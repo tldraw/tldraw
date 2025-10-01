@@ -8,7 +8,7 @@ The `@internal/config` package centralizes common configuration to ensure consis
 
 ## Key files
 
-### TypeScript Configuration
+### TypeScript configuration
 
 - **`tsconfig.base.json`** - Base TypeScript configuration extended by all packages
   - Enables strict mode, composite builds, and declaration generation
@@ -17,7 +17,7 @@ The `@internal/config` package centralizes common configuration to ensure consis
 
 - **`tsconfig.json`** - Package-specific TypeScript configuration
 
-### API Documentation
+### API documentation
 
 - **`api-extractor.json`** - Microsoft API Extractor configuration for generating consistent API documentation and validating public API surfaces across packages
 

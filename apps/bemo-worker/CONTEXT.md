@@ -12,20 +12,20 @@ A Cloudflare Worker that provides essential services for tldraw applications, in
 
 ## Core responsibilities
 
-### 1. asset management
+### 1. Asset management
 
 - **Upload Endpoint**: `POST /uploads/:objectName` - Handles user asset uploads to R2 bucket
 - **Asset Retrieval**: `GET /uploads/:objectName` - Serves uploaded assets with proper caching
 - Storage path: `asset-uploads/{objectName}` in BEMO_BUCKET
 
-### 2. bookmark unfurling
+### 2. Bookmark unfurling
 
 - **Legacy Route**: `GET /bookmarks/unfurl` - Extract metadata only
 - **Full Unfurl**: `POST /bookmarks/unfurl` - Extract metadata and save preview images
 - **Asset Serving**: `GET /bookmarks/assets/:objectName` - Serve bookmark preview images
 - Storage path: `bookmark-assets/{objectName}` in BEMO_BUCKET
 
-### 3. real-time collaboration
+### 3. Real-time collaboration
 
 - **Room Connection**: `GET /connect/:slug` - Establishes WebSocket connection to collaborative rooms
 - Uses BemoDO (Durable Object) to maintain room state and handle multiplayer synchronization

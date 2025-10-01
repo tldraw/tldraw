@@ -133,9 +133,9 @@ Client Applications
 
 Zero handles conflicts using Conflict-Free Replicated Data Types (CRDTs):
 
-- **Last-Write-Wins**: For simple field updates
-- **Causal Ordering**: For maintaining operation sequences
-- **Vector Clocks**: For distributed state tracking
+- **Last-write-wins**: For simple field updates
+- **Causal ordering**: For maintaining operation sequences
+- **Vector clocks**: For distributed state tracking
 
 ## Database schema evolution
 
@@ -420,9 +420,9 @@ interface UserMutationNumber {
 }
 ```
 
-## Real-Time synchronization
+## Real-time synchronization
 
-### Client-Server protocol
+### Client-server protocol
 
 Zero implements a sophisticated sync protocol:
 
@@ -440,7 +440,7 @@ const zero = new Zero({
 const files = await zero.query.file.where('ownerId', userId).or('shared', true).run()
 ```
 
-#### Real-Time updates
+#### Real-time updates
 
 ```typescript
 // Client mutations are immediately optimistic
@@ -465,7 +465,7 @@ await zero.mutate.file.update({
 
 Zero employs multiple conflict resolution approaches:
 
-#### Last-Write-Wins (LWW)
+#### Last-write-wins (LWW)
 
 ```typescript
 // Simple fields use timestamp-based resolution
@@ -576,7 +576,7 @@ query_wait_timeout = 30              # Timeout protection
 
 Multi-layer caching for optimal performance:
 
-#### Local sQLite replica
+#### Local SQLite replica
 
 ```typescript
 // Zero maintains local copy of relevant data
@@ -736,33 +736,33 @@ LOG_LEVEL=trace yarn zero-server
 
 ## Key features
 
-### Real-Time synchronization
+### Real-time synchronization
 
-- **Instant Updates**: Changes appear immediately across all connected clients
-- **Offline Support**: Full functionality during network disconnection
-- **Conflict Resolution**: Automatic handling of concurrent modifications
-- **Selective Sync**: Only relevant data synchronized per user
+- **Instant updates**: Changes appear immediately across all connected clients
+- **Offline support**: Full functionality during network disconnection
+- **Conflict resolution**: Automatic handling of concurrent modifications
+- **Selective sync**: Only relevant data synchronized per user
 
 ### Developer experience
 
-- **Type Safety**: Full TypeScript integration with generated types
-- **Schema Evolution**: Safe database migrations with rollback support
-- **Hot Reloading**: Automatic schema updates during development
-- **Testing Support**: In-memory mode for unit testing
+- **Type safety**: Full TypeScript integration with generated types
+- **Schema evolution**: Safe database migrations with rollback support
+- **Hot reloading**: Automatic schema updates during development
+- **Testing support**: In-memory mode for unit testing
 
 ### Production ready
 
-- **High Availability**: Multi-region deployment with failover
+- **High availability**: Multi-region deployment with failover
 - **Scalability**: Horizontal scaling across multiple instances
 - **Performance**: Sub-millisecond query responses from local cache
 - **Reliability**: Transactional consistency with automatic recovery
 
 ### Data consistency
 
-- **ACID Transactions**: Full transactional support for complex operations
-- **Causal Consistency**: Operations maintain proper ordering
-- **Eventual Consistency**: Guaranteed convergence across all clients
-- **Schema Validation**: Type-safe data with runtime validation
+- **ACID transactions**: Full transactional support for complex operations
+- **Causal consistency**: Operations maintain proper ordering
+- **Eventual consistency**: Guaranteed convergence across all clients
+- **Schema validation**: Type-safe data with runtime validation
 
 ## Integration with tldraw ecosystem
 

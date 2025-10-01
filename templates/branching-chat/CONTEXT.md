@@ -8,57 +8,57 @@ The branching chat template is a full-stack application that combines tldraw's i
 
 ### Key features
 
-- **Visual Conversation Flow**: Create branching conversation trees on an infinite canvas
-- **AI Integration**: Stream responses from AI models (OpenAI/compatible APIs)
-- **Node-Based UI**: Custom node shapes representing chat messages
-- **Connection System**: Visual connections between conversation nodes
-- **Real-time Updates**: Streaming AI responses with live updates
+- **Visual conversation flow**: Create branching conversation trees on an infinite canvas
+- **AI integration**: Stream responses from AI models (OpenAI/compatible APIs)
+- **Node-based UI**: Custom node shapes representing chat messages
+- **Connection system**: Visual connections between conversation nodes
+- **Real-time updates**: Streaming AI responses with live updates
 - **Cloudflare Workers**: Backend powered by Cloudflare Workers and Durable Objects
 
 ## Architecture
 
 ### Frontend (`/client`)
 
-**Core App Structure**
+**Core app structure**
 
 - `App.tsx` - Main application component with tldraw configuration
 - Custom shape utilities: `NodeShapeUtil`, `ConnectionShapeUtil`
 - Custom binding utilities: `ConnectionBindingUtil`
 - Workflow-specific toolbar and UI components
 
-**Node System** (`/client/nodes`)
+**Node system** (`/client/nodes`)
 
 - `NodeShapeUtil.tsx` - Defines how chat nodes render and behave
 - `nodeTypes.tsx` - Type definitions and node management utilities
 - `types/MessageNode.tsx` - Message node implementation with AI streaming
 - `nodePorts.tsx` - Connection port system for linking nodes
 
-**Connection System** (`/client/connection`)
+**Connection system** (`/client/connection`)
 
 - `ConnectionShapeUtil.tsx` - Visual connections between nodes
 - `ConnectionBindingUtil.tsx` - Binding logic for node relationships
 - `keepConnectionsAtBottom.tsx` - Z-index management for connections
 
-**Ports System** (`/client/ports`)
+**Ports system** (`/client/ports`)
 
 - `Port.tsx` - Port definitions and utilities
 - `PointingPort.tsx` - Interactive port pointing tool
 
-**UI Components** (`/client/components`)
+**UI components** (`/client/components`)
 
 - `WorkflowToolbar.tsx` - Custom toolbar with node creation tools
 - Custom icons and UI elements
 
 ### Backend (`/worker`)
 
-**Cloudflare Workers Architecture**
+**Cloudflare Workers architecture**
 
 - `worker.ts` - Main worker entry point with routing
 - `do.ts` - Durable Object for stateful operations
 - `routes/` - API route handlers
 - `types.ts` - Shared type definitions
 
-**Key Endpoints**
+**Key endpoints**
 
 - `/stream` - POST endpoint for AI chat streaming
 - Handles conversation context from connected nodes
@@ -77,17 +77,17 @@ The branching chat template is a full-stack application that combines tldraw's i
 
 ### Connection flow
 
-1. **Node Creation**: Users create message nodes via toolbar
+1. **Node creation**: Users create message nodes via toolbar
 2. **Connection**: Nodes connect via ports to establish conversation flow
-3. **Context Building**: When sending a message, system traces back through connected nodes to build conversation history
-4. **AI Processing**: Complete conversation context sent to AI endpoint
-5. **Streaming Response**: AI response streamed back and displayed in real-time
+3. **Context building**: When sending a message, system traces back through connected nodes to build conversation history
+4. **AI processing**: Complete conversation context sent to AI endpoint
+5. **Streaming response**: AI response streamed back and displayed in real-time
 
 ### Port system
 
-- **Input Ports**: Allow incoming connections from previous conversation steps
-- **Output Ports**: Allow outgoing connections to next conversation steps
-- **Dynamic Positioning**: Ports adjust position based on node content size
+- **Input ports**: Allow incoming connections from previous conversation steps
+- **Output ports**: Allow outgoing connections to next conversation steps
+- **Dynamic positioning**: Ports adjust position based on node content size
 
 ## Development setup
 
@@ -123,13 +123,13 @@ The template uses Cloudflare Workers for the backend:
 2. Add to `NodeDefinitions` array in `nodeTypes.tsx`
 3. Implement required methods: `Component`, `getPorts`, `computeOutput`
 
-### Custom aI integration
+### Custom AI integration
 
 - Modify `/worker/routes/` to change AI provider
 - Uses Vercel AI SDK - supports multiple providers
 - Streaming implementation in `MessageNode.tsx`
 
-### UI Customization
+### UI customization
 
 - Override tldraw components via `components` prop
 - Custom toolbar in `WorkflowToolbar.tsx`

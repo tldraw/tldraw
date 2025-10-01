@@ -23,12 +23,12 @@ icons: {
 }
 ```
 
-**Icon Categories:**
+**Icon categories:**
 
-- **Tool Icons**: `tool-pointer`, `tool-pencil`, `tool-arrow`, `tool-text`, etc.
-- **Geometry Icons**: `geo-rectangle`, `geo-ellipse`, `geo-triangle`, `geo-star`, etc.
-- **UI Icons**: `chevron-*`, `align-*`, `zoom-*`, `undo`, `redo`, etc.
-- **Action Icons**: `duplicate`, `delete`, `lock`, `group`, `share`, etc.
+- **Tool icons**: `tool-pointer`, `tool-pencil`, `tool-arrow`, `tool-text`, etc.
+- **Geometry icons**: `geo-rectangle`, `geo-ellipse`, `geo-triangle`, `geo-star`, etc.
+- **UI icons**: `chevron-*`, `align-*`, `zoom-*`, `undo`, `redo`, etc.
+- **Action icons**: `duplicate`, `delete`, `lock`, `group`, `share`, etc.
 
 #### Typography system
 
@@ -154,9 +154,9 @@ export function getAssetUrls(opts) {
 }
 ```
 
-### Asset uRL formatting
+### Asset URL formatting
 
-#### `formatAssetUrl` Utility
+#### `formatAssetUrl` utility
 
 Flexible asset URL processing supporting multiple hosting scenarios:
 
@@ -180,16 +180,16 @@ function formatAssetUrl(assetUrl: AssetUrl, format: AssetUrlOptions = {}) {
 }
 ```
 
-**Use Cases:**
+**Use cases:**
 
-- **CDN Hosting**: Add baseUrl for CDN deployment
-- **Custom Domains**: Redirect assets to custom asset servers
+- **CDN hosting**: Add baseUrl for CDN deployment
+- **Custom domains**: Redirect assets to custom asset servers
 - **Development**: Serve assets from local dev server
-- **Self-Hosting**: Package assets with application bundle
+- **Self-hosting**: Package assets with application bundle
 
 ### Type system
 
-#### Asset uRL types
+#### Asset URL types
 
 Type-safe asset URL handling:
 
@@ -216,14 +216,14 @@ Asset exports are automatically generated from source files:
 // Do not edit manually. Or do, I'm a comment, not a cop.
 ```
 
-**Generated Files:**
+**Generated files:**
 
 - `imports.js` + `imports.d.ts` - ES module imports
 - `urls.js` + `urls.d.ts` - import.meta.url resolution
 - `selfHosted.js` + `selfHosted.d.ts` - relative path resolution
 - `types.d.ts` - TypeScript definitions
 
-#### Vite-Specific exports
+#### Vite-specific exports
 
 Special handling for Vite bundler:
 
@@ -238,14 +238,14 @@ Special handling for Vite bundler:
 
 Comprehensive internationalization with regional variants:
 
-**Language Coverage:**
+**Language coverage:**
 
 - **European**: en, de, fr, es, it, nl, ru, pl, etc.
 - **Asian**: zh-cn, zh-tw, ja, ko-kr, hi-in, th, etc.
 - **Middle Eastern**: ar, fa, he, ur
-- **Regional Variants**: pt-br/pt-pt, gu-in/hi-in, zh-cn/zh-tw
+- **Regional variants**: pt-br/pt-pt, gu-in/hi-in, zh-cn/zh-tw
 
-**Translation Structure:**
+**Translation structure:**
 
 ```json
 // Each translation file contains UI strings
@@ -276,7 +276,7 @@ Centralized language configuration:
 
 Visual branding for embedded content:
 
-**Supported Services:**
+**Supported services:**
 
 - **Development**: GitHub Gist, CodePen, CodeSandbox, Replit, Observable
 - **Design**: Figma, Excalidraw, tldraw
@@ -284,7 +284,7 @@ Visual branding for embedded content:
 - **Productivity**: Google Maps, Google Slides, Google Calendar
 - **Other**: Desmos, Felt, Val Town, Scratch
 
-**Icon Usage:**
+**Icon usage:**
 
 ```typescript
 // Icons displayed when embedding external content
@@ -313,10 +313,10 @@ All icons merged into single SVG sprite for optimal loading:
 
 **Benefits:**
 
-- **Single HTTP Request**: All icons in one file
-- **Browser Caching**: Icons cached together
-- **Fragment Addressing**: Access via `#icon-name`
-- **Bundle Optimization**: Unused icons can be tree-shaken
+- **Single HTTP request**: All icons in one file
+- **Browser caching**: Icons cached together
+- **Fragment addressing**: Access via `#icon-name`
+- **Bundle optimization**: Unused icons can be tree-shaken
 
 ### Font loading strategy
 
@@ -336,9 +336,9 @@ Optimized web font delivery:
 
 Multiple export patterns support different bundling needs:
 
-**Import Strategy**: Best for Webpack/Rollup with asset processing
-**URL Strategy**: Best for ESM environments with import.meta.url
-**Self-Hosted Strategy**: Best for custom asset hosting solutions
+**Import strategy**: Best for Webpack/Rollup with asset processing
+**URL strategy**: Best for ESM environments with import.meta.url
+**Self-hosted strategy**: Best for custom asset hosting solutions
 
 ## Development workflow
 
@@ -346,20 +346,20 @@ Multiple export patterns support different bundling needs:
 
 Automated asset management and optimization:
 
-1. **Source Assets**: Fonts, icons, images stored in organized directories
-2. **Build Script**: `internal/scripts/refresh-assets.ts` processes assets
-3. **Generated Exports**: Multiple export formats created automatically
-4. **Type Generation**: TypeScript definitions auto-generated
-5. **Bundle Integration**: Assets ready for different bundler strategies
+1. **Source assets**: Fonts, icons, images stored in organized directories
+2. **Build script**: `internal/scripts/refresh-assets.ts` processes assets
+3. **Generated exports**: Multiple export formats created automatically
+4. **Type generation**: TypeScript definitions auto-generated
+5. **Bundle integration**: Assets ready for different bundler strategies
 
 ### Asset updates
 
 Standardized process for asset modifications:
 
-1. **Add Assets**: Place new assets in appropriate directories
-2. **Run Build**: Execute asset refresh script
-3. **Commit Generated**: Include auto-generated export files
-4. **Type Safety**: TypeScript ensures valid asset references
+1. **Add assets**: Place new assets in appropriate directories
+2. **Run build**: Execute asset refresh script
+3. **Commit generated**: Include auto-generated export files
+4. **Type safety**: TypeScript ensures valid asset references
 
 ## Integration patterns
 
@@ -373,7 +373,7 @@ const iconUrl = assetUrls.icons['tool-pointer']
 const fontUrl = assetUrls.fonts.tldraw_sans_bold
 ```
 
-### Custom base uRL
+### Custom base URL
 
 ```typescript
 import { getAssetUrls } from '@tldraw/assets/selfHosted'
@@ -383,7 +383,7 @@ const assetUrls = getAssetUrls({
 })
 ```
 
-### Custom uRL transformation
+### Custom URL transformation
 
 ```typescript
 const assetUrls = getAssetUrls((assetUrl) => {
@@ -396,35 +396,35 @@ const assetUrls = getAssetUrls((assetUrl) => {
 
 ### Asset management
 
-- **Centralized Assets**: All static resources in one package
-- **Type Safety**: TypeScript definitions for all asset references
-- **Multiple Export Strategies**: Support for different bundling workflows
-- **Automatic Generation**: Asset exports generated from source files
+- **Centralized assets**: All static resources in one package
+- **Type safety**: TypeScript definitions for all asset references
+- **Multiple export strategies**: Support for different bundling workflows
+- **Automatic generation**: Asset exports generated from source files
 
 ### Performance
 
-- **Optimized Loading**: Icon sprites and font subsetting
-- **Flexible Hosting**: Support for CDNs and custom asset servers
-- **Bundle Efficiency**: Tree-shakable exports for unused assets
-- **Caching Strategy**: Asset URLs designed for effective browser caching
+- **Optimized loading**: Icon sprites and font subsetting
+- **Flexible hosting**: Support for CDNs and custom asset servers
+- **Bundle efficiency**: Tree-shakable exports for unused assets
+- **Caching strategy**: Asset URLs designed for effective browser caching
 
 ### Internationalization
 
-- **Global Reach**: 40+ supported languages with regional variants
-- **Extensible Translation**: Easy to add new languages
-- **Fallback Strategy**: Graceful degradation to English
-- **Cultural Adaptation**: Right-to-left language support
+- **Global reach**: 40+ supported languages with regional variants
+- **Extensible translation**: Easy to add new languages
+- **Fallback strategy**: Graceful degradation to English
+- **Cultural adaptation**: Right-to-left language support
 
 ### Developer experience
 
-- **Simple Integration**: Import and use pattern for all assets
-- **Build-Time Safety**: TypeScript prevents invalid asset references
-- **Hot Reloading**: Development-friendly asset serving
+- **Simple integration**: Import and use pattern for all assets
+- **Build-time safety**: TypeScript prevents invalid asset references
+- **Hot reloading**: Development-friendly asset serving
 - **Documentation**: Clear asset categorization and naming
 
 ### Maintenance
 
-- **Single Source**: All assets managed in one location
-- **Automated Updates**: Build scripts maintain export consistency
-- **Version Control**: Asset changes tracked with application changes
-- **Dependency Management**: Minimal external dependencies for assets
+- **Single source**: All assets managed in one location
+- **Automated updates**: Build scripts maintain export consistency
+- **Version control**: Asset changes tracked with application changes
+- **Dependency management**: Minimal external dependencies for assets

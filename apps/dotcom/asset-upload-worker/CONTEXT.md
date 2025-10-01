@@ -13,15 +13,15 @@ A lightweight Cloudflare Worker that provides asset upload and retrieval service
 - **Runtime**: Cloudflare Workers (V8 isolates)
 - **Storage**: Cloudflare R2 (S3-compatible object storage)
 - **Router**: itty-router for request routing
-- **Shared Logic**: @tldraw/worker-shared package
+- **Shared logic**: @tldraw/worker-shared package
 - **Analytics**: Cloudflare Analytics Engine for telemetry
 
 ### Infrastructure
 
-- **Edge Computing**: Deployed globally on Cloudflare's edge network
+- **Edge computing**: Deployed globally on Cloudflare's edge network
 - **Caching**: Cloudflare Cache API for optimized asset delivery
 - **CORS**: Full CORS support for cross-origin requests
-- **Multi-Environment**: dev, preview, staging, production deployments
+- **Multi-environment**: dev, preview, staging, production deployments
 
 ## Core functionality
 
@@ -76,15 +76,15 @@ Client Request → Cloudflare Edge → Worker → R2 Storage
 
 - **uploads-preview**: Development, preview, and staging assets
 - **uploads**: Production assets only
-- **Object Names**: Client-generated unique identifiers
+- **Object names**: Client-generated unique identifiers
 - **Metadata**: Preserved HTTP headers (content-type, etc.)
 
 ### Caching strategy
 
 - **Cloudflare Cache**: Automatic edge caching for GET requests
-- **Cache Keys**: Full URL with headers for proper invalidation
-- **Range Support**: Efficient streaming for large assets
-- **ETag Headers**: For conditional requests and validation
+- **Cache keys**: Full URL with headers for proper invalidation
+- **Range support**: Efficient streaming for large assets
+- **ETag headers**: For conditional requests and validation
 
 ## Worker implementation
 
@@ -132,14 +132,14 @@ Provides common functionality across all tldraw workers:
 ### Access control
 
 - **CORS**: Configured for cross-origin requests (`origin: '*'`)
-- **Object Names**: Client-controlled, requires proper validation
-- **Upload Limits**: Inherits Cloudflare Worker size limits
-- **Content Types**: Preserves but doesn't validate file types
+- **Object names**: Client-controlled, requires proper validation
+- **Upload limits**: Inherits Cloudflare Worker size limits
+- **Content types**: Preserves but doesn't validate file types
 
 ### Data isolation
 
-- **Environment Separation**: Separate buckets for dev/preview/production
-- **No Authentication**: Public upload/retrieval (relies on object name secrecy)
+- **Environment separation**: Separate buckets for dev/preview/production
+- **No authentication**: Public upload/retrieval (relies on object name secrecy)
 - **Analytics**: Basic request telemetry via Analytics Engine
 
 ## Development workflow
@@ -168,7 +168,7 @@ yarn lint        # Code quality checks
 - **Automatic**: Via CI/CD pipeline
 - **Manual**: Using Wrangler CLI
 - **Environment-specific**: Different names/buckets per environment
-- **Version Metadata**: Automatic version tracking
+- **Version metadata**: Automatic version tracking
 
 ## Usage integration
 
@@ -186,10 +186,10 @@ const response = await fetch(`${WORKER_URL}/uploads/${objectName}`, {
 const imageUrl = `${WORKER_URL}/uploads/${objectName}`
 ```
 
-### tldraw.com Integration
+### tldraw.com integration
 
-- **Image Import**: Users can upload images to canvas
-- **Asset Management**: Temporary storage for session assets
+- **Image import**: Users can upload images to canvas
+- **Asset management**: Temporary storage for session assets
 - **Performance**: Edge-cached delivery for global users
 - **Reliability**: R2 durability and redundancy
 
@@ -197,30 +197,30 @@ const imageUrl = `${WORKER_URL}/uploads/${objectName}`
 
 ### Analytics engine
 
-- **Request Metrics**: Upload/retrieval counts and latency
-- **Error Tracking**: Failed requests and error rates
+- **Request metrics**: Upload/retrieval counts and latency
+- **Error tracking**: Failed requests and error rates
 - **Performance**: Response times and cache hit rates
-- **Usage Patterns**: Popular asset types and sizes
+- **Usage patterns**: Popular asset types and sizes
 
 ### Observability
 
 - **Cloudflare Dashboard**: Worker metrics and logs
-- **Sentry Integration**: Error reporting and alerting
-- **Version Tracking**: Deployment metadata and rollback capability
+- **Sentry integration**: Error reporting and alerting
+- **Version tracking**: Deployment metadata and rollback capability
 
 ## Limitations & considerations
 
 ### Size constraints
 
-- **Worker Limit**: 25MB request body size (Cloudflare limit)
-- **Asset Types**: No server-side validation of file types
+- **Worker limit**: 25MB request body size (Cloudflare limit)
+- **Asset types**: No server-side validation of file types
 - **Concurrency**: Limited by Cloudflare Worker isolate model
 
 ### Retention
 
-- **No Cleanup**: Assets persist indefinitely once uploaded
-- **No Versioning**: Object names must be unique per upload
-- **No Metadata**: Minimal asset information beyond HTTP headers
+- **No cleanup**: Assets persist indefinitely once uploaded
+- **No versioning**: Object names must be unique per upload
+- **No metadata**: Minimal asset information beyond HTTP headers
 
 ## Related services
 
@@ -232,7 +232,7 @@ const imageUrl = `${WORKER_URL}/uploads/${objectName}`
 ### Integration points
 
 - **tldraw.com client**: Primary consumer of upload/retrieval APIs
-- **R2 Storage**: Shared storage infrastructure
+- **R2 storage**: Shared storage infrastructure
 - **Cloudflare Cache**: Global content delivery network
 
 This worker provides essential asset management capabilities for tldraw.com, enabling users to work with images while maintaining global performance and reliability through Cloudflare's edge infrastructure.

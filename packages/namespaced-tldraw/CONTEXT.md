@@ -70,7 +70,7 @@ const destination = join(packageDir, 'tldraw.css')
 writeFileSync(destination, content)
 ```
 
-**Build Integration:**
+**Build integration:**
 
 ```json
 {
@@ -217,10 +217,10 @@ import { Tldraw } from 'tldraw'
 
 Maintains full API compatibility:
 
-- **Same Exports**: Identical API surface as main package
-- **Same Types**: TypeScript definitions preserved
+- **Same exports**: Identical API surface as main package
+- **Same types**: TypeScript definitions preserved
 - **Same CSS**: Styling rules synchronized
-- **Same Behavior**: Functional parity guaranteed
+- **Same behavior**: Functional parity guaranteed
 
 ## Use cases
 
@@ -261,7 +261,7 @@ const libraryInfo = {
 
 ## Development workflow
 
-### CSS Synchronization
+### CSS synchronization
 
 Automatic CSS file management during development:
 
@@ -316,28 +316,28 @@ import 'tldraw/tldraw.css'
 
 ### Backwards compatibility
 
-- **Zero Breaking Changes**: Existing code continues to work
-- **Gradual Migration**: Update imports at your own pace
-- **Feature Parity**: Identical functionality to main package
-- **Documentation Continuity**: Same API documentation applies
+- **Zero breaking changes**: Existing code continues to work
+- **Gradual migration**: Update imports at your own pace
+- **Feature parity**: Identical functionality to main package
+- **Documentation continuity**: Same API documentation applies
 
 ### Global usage
 
-- **CDN Friendly**: Optimized for script tag inclusion
-- **Version Tracking**: Runtime version information available via globalThis
-- **Namespace Safety**: Avoids global namespace conflicts
-- **Browser Compatibility**: Works in all modern browsers
+- **CDN friendly**: Optimized for script tag inclusion
+- **Version tracking**: Runtime version information available via globalThis
+- **Namespace safety**: Avoids global namespace conflicts
+- **Browser compatibility**: Works in all modern browsers
 
 ### Maintenance
 
-- **Automated Sync**: CSS and exports stay current with main package via tsx build scripts
-- **Single Source**: No duplicate implementation to maintain
-- **Version Alignment**: Always matches main package version
-- **Testing Coverage**: Inherits test suite from main package
+- **Automated sync**: CSS and exports stay current with main package via tsx build scripts
+- **Single source**: No duplicate implementation to maintain
+- **Version alignment**: Always matches main package version
+- **Testing coverage**: Inherits test suite from main package
 
 ### Ecosystem
 
-- **NPM Compatibility**: Standard npm package structure
-- **Bundler Support**: Works with all major bundlers
-- **TypeScript Ready**: Full type safety maintained
+- **NPM compatibility**: Standard npm package structure
+- **Bundler support**: Works with all major bundlers
+- **TypeScript ready**: Full type safety maintained
 - **Documentation**: API docs generated automatically with reports in both api/temp/ and package root

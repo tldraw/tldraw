@@ -31,10 +31,10 @@ Implementation details:
 - Automatic dependency tracking with deps array
 - Safe error handling with try-catch blocks for render-time exceptions
 
-**Return Signature:**
+**Return signature:**
 The hook returns the actual value (not the signal wrapper) by using `__unsafe__getWithoutCapture()` to avoid triggering dependency tracking during the subscription callback.
 
-#### `useAtom` - component-Local state
+#### `useAtom` - component-local state
 
 Creates component-scoped reactive atoms:
 
@@ -53,7 +53,7 @@ Features:
 - Configurable with AtomOptions (diff functions, etc.)
 - Automatically cleaned up when component unmounts
 
-#### `useComputed` - component-Local computed values
+#### `useComputed` - component-local computed values
 
 Creates memoized computed signals within components:
 
@@ -81,7 +81,7 @@ Benefits:
 
 ### Effect hooks
 
-#### `useReactor` - frame-Throttled effects
+#### `useReactor` - frame-throttled effects
 
 Runs reactive effects with updates throttled to animation frames:
 
@@ -118,7 +118,7 @@ Use cases:
 
 ### Component tracking
 
-#### `track` - higher-Order component
+#### `track` - higher-order component
 
 Automatically tracks signal dependencies in React components:
 
@@ -135,7 +135,7 @@ Advanced implementation:
 - **Forward ref support**: Handles forwardRef components correctly
 - **Symbol detection**: Works with React's internal component types
 
-#### `useStateTracking` - lower-Level tracking
+#### `useStateTracking` - lower-level tracking
 
 Manual reactive tracking for render functions:
 
@@ -439,14 +439,14 @@ function CustomComponent() {
 Used throughout tldraw's React components:
 
 - **TldrawEditor**: Main editor component uses tracking
-- **UI Components**: All reactive UI elements use state-react hooks
-- **Tool Components**: State machines integrated with React lifecycle
+- **UI components**: All reactive UI elements use state-react hooks
+- **Tool components**: State machines integrated with React lifecycle
 
-### Performance in complex uIs
+### Performance in complex UIs
 
-- **Selective Updates**: Only components accessing changed signals re-render
-- **Batched Updates**: Multiple signal changes batched into single renders
-- **Frame Alignment**: Visual updates aligned with browser paint cycles
+- **Selective updates**: Only components accessing changed signals re-render
+- **Batched updates**: Multiple signal changes batched into single renders
+- **Frame alignment**: Visual updates aligned with browser paint cycles
 
 ## Key benefits
 

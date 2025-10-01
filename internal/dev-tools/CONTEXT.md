@@ -30,11 +30,11 @@ internal/dev-tools/
 
 The primary feature is a web-based git bisect helper tool that:
 
-- **PR Testing**: Allows developers to test different PR preview deployments
-- **Binary Search**: Implements git bisect logic to find problematic PRs
-- **Preview Links**: Automatically opens PR preview deployments for testing
+- **PR testing**: Allows developers to test different PR preview deployments
+- **Binary search**: Implements git bisect logic to find problematic PRs
+- **Preview links**: Automatically opens PR preview deployments for testing
 - **Interactive UI**: Mark PRs as "good" or "bad" to narrow down issues
-- **Progress Tracking**: Shows current bisect position and remaining candidates
+- **Progress tracking**: Shows current bisect position and remaining candidates
 
 The tool uses PR preview deployments at `https://pr-{number}-preview-deploy.tldraw.com/` to test different versions.
 

@@ -11,7 +11,7 @@ A modern React SPA built with Vite that provides the complete tldraw.com user ex
 ### Tech stack
 
 - **Framework**: React 18 with TypeScript
-- **Build Tool**: Vite with SWC for fast compilation
+- **Build tool**: Vite with SWC for fast compilation
 - **Router**: React Router v6 with lazy-loaded routes
 - **Authentication**: Clerk for user management and auth
 - **Collaboration**: @tldraw/sync for real-time multiplayer
@@ -42,32 +42,32 @@ src/
 
 ### Authentication & user management
 
-- **Clerk Integration**: Complete auth flow with sign-in/sign-up
-- **User Sessions**: Persistent authentication state
-- **Protected Routes**: Authenticated route protection
-- **Social Login**: Multiple authentication providers
+- **Clerk integration**: Complete auth flow with sign-in/sign-up
+- **User sessions**: Persistent authentication state
+- **Protected routes**: Authenticated route protection
+- **Social login**: Multiple authentication providers
 
 ### Real-time collaboration
 
-- **WebSocket Sync**: Real-time document synchronization
-- **Multiplayer Editing**: Multiple users editing simultaneously
-- **Conflict Resolution**: Operational transforms for concurrent edits
-- **Presence Indicators**: Live cursors and user awareness
+- **WebSocket sync**: Real-time document synchronization
+- **Multiplayer editing**: Multiple users editing simultaneously
+- **Conflict resolution**: Operational transforms for concurrent edits
+- **Presence indicators**: Live cursors and user awareness
 
 ### File management (TLA system)
 
-- **Local Files**: Client-side file storage with IndexedDB
-- **Cloud Sync**: Server-side file persistence and sync
-- **File History**: Version control with snapshots
+- **Local files**: Client-side file storage with IndexedDB
+- **Cloud sync**: Server-side file persistence and sync
+- **File history**: Version control with snapshots
 - **Sharing**: Public sharing and collaborative access
-- **Import/Export**: Multiple file format support
+- **Import/export**: Multiple file format support
 
 ### Editor integration
 
 - **Full tldraw SDK**: Complete drawing and design capabilities
-- **Asset Management**: Image upload and storage via workers
+- **Asset management**: Image upload and storage via workers
 - **Responsive UI**: Adaptive interface for different screen sizes
-- **Keyboard Shortcuts**: Comprehensive hotkey system
+- **Keyboard shortcuts**: Comprehensive hotkey system
 
 ## Routing architecture
 
@@ -91,48 +91,48 @@ src/
 
 ### Lazy loading
 
-- **Route-based Splitting**: Each page component lazy loaded
-- **Provider Splitting**: Context providers loaded on demand
-- **Component Splitting**: Large components split for performance
+- **Route-based splitting**: Each page component lazy loaded
+- **Provider splitting**: Context providers loaded on demand
+- **Component splitting**: Large components split for performance
 
 ### Error boundaries
 
-- **Global Error Handling**: Captures and reports all errors
-- **Sync Error Handling**: Specific handling for collaboration errors
-- **User-friendly Messages**: Contextual error messages
-- **Sentry Integration**: Automatic error reporting
+- **Global error handling**: Captures and reports all errors
+- **Sync error handling**: Specific handling for collaboration errors
+- **User-friendly messages**: Contextual error messages
+- **Sentry integration**: Automatic error reporting
 
 ## Data management
 
 ### Client-side storage
 
 - **IndexedDB**: Local file persistence via IDB library
-- **Zero Database**: Real-time sync with server state
-- **Asset Caching**: Local caching of uploaded images
-- **Settings Persistence**: User preferences and settings
+- **Zero database**: Real-time sync with server state
+- **Asset caching**: Local caching of uploaded images
+- **Settings persistence**: User preferences and settings
 
 ### State management
 
 - **React Context**: Global app state via providers
-- **Custom Hooks**: Business logic encapsulation
+- **Custom hooks**: Business logic encapsulation
 - **Zero Sync**: Real-time data synchronization
-- **Signal-based Updates**: Reactive state updates
+- **Signal-based updates**: Reactive state updates
 
 ### API integration
 
-- **Sync Worker**: Real-time collaboration backend
-- **Asset Upload Worker**: File upload and storage
-- **Image Resize Worker**: Image processing and optimization
-- **Zero Server**: Data persistence and sync
+- **Sync worker**: Real-time collaboration backend
+- **Asset upload worker**: File upload and storage
+- **Image resize worker**: Image processing and optimization
+- **Zero server**: Data persistence and sync
 
 ## Development environment
 
 ### Build configuration
 
-- **Vite Config**: Modern build tooling with HMR
-- **Environment Variables**: Config via .env files
-- **Proxy Setup**: API proxying for development
-- **Source Maps**: Full debugging support with Sentry
+- **Vite config**: Modern build tooling with HMR
+- **Environment variables**: Config via .env files
+- **Proxy setup**: API proxying for development
+- **Source maps**: Full debugging support with Sentry
 
 ### Development commands
 
@@ -148,112 +148,112 @@ yarn lint        # Code quality checks
 ### Environment setup
 
 - **PostgreSQL**: Database dependency via wait-for-postgres.sh
-- **Worker Services**: Local development with companion workers
-- **Hot Reload**: Fast refresh for development
-- **Debug Tools**: Inspector and debugging support
+- **Worker services**: Local development with companion workers
+- **Hot reload**: Fast refresh for development
+- **Debug tools**: Inspector and debugging support
 
 ## Internationalization
 
 ### FormatJS integration
 
-- **Message Extraction**: `yarn i18n:extract` extracts translatable strings
+- **Message extraction**: `yarn i18n:extract` extracts translatable strings
 - **Compilation**: `yarn i18n:compile` compiles for runtime
-- **ICU Messages**: Full ICU message format support
-- **Locale Support**: Multiple language support infrastructure
+- **ICU messages**: Full ICU message format support
+- **Locale support**: Multiple language support infrastructure
 
 ### Translation workflow
 
-- **Source Scanning**: Automatic message ID generation
-- **Lokalise Format**: Translation management integration
-- **AST Compilation**: Optimized runtime message handling
-- **Dynamic Loading**: Locale-specific bundle loading
+- **Source scanning**: Automatic message ID generation
+- **Lokalise format**: Translation management integration
+- **AST compilation**: Optimized runtime message handling
+- **Dynamic loading**: Locale-specific bundle loading
 
 ## Testing strategy
 
-### End-to-End testing
+### End-to-end testing
 
 - **Playwright**: Full browser automation testing
-- **Auth Testing**: @clerk/testing for authentication flows
-- **Multiple Environments**: Testing against staging/production
-- **Parallel Execution**: Fast test suite execution
+- **Auth testing**: @clerk/testing for authentication flows
+- **Multiple environments**: Testing against staging/production
+- **Parallel execution**: Fast test suite execution
 
 ### Unit testing
 
 - **Vitest**: Fast unit test runner
-- **React Testing**: Component and hook testing
-- **Snapshot Tests**: UI regression testing
-- **Coverage Reports**: Code coverage analysis
+- **React testing**: Component and hook testing
+- **Snapshot tests**: UI regression testing
+- **Coverage reports**: Code coverage analysis
 
 ## Performance optimizations
 
 ### Bundle optimization
 
-- **Code Splitting**: Route and component-level splitting
-- **Asset Optimization**: Image optimization and inlining limits
-- **Tree Shaking**: Unused code elimination
+- **Code splitting**: Route and component-level splitting
+- **Asset optimization**: Image optimization and inlining limits
+- **Tree shaking**: Unused code elimination
 - **Compression**: Gzip and Brotli compression
 
 ### Runtime performance
 
-- **Lazy Loading**: On-demand component loading
+- **Lazy loading**: On-demand component loading
 - **Memoization**: React.memo and useMemo optimization
 - **Virtual DOM**: Efficient React rendering
-- **Service Worker**: Cache management (legacy cleanup)
+- **Service worker**: Cache management (legacy cleanup)
 
 ### Network optimization
 
-- **CDN Assets**: Static asset delivery via CDN
+- **CDN assets**: Static asset delivery via CDN
 - **HTTP/2**: Modern protocol support
-- **Caching Headers**: Browser caching optimization
+- **Caching headers**: Browser caching optimization
 - **Preloading**: Critical resource preloading
 
 ## Security considerations
 
 ### Authentication security
 
-- **JWT Tokens**: Secure token-based authentication
-- **HTTPS Only**: Encrypted communication
-- **CSRF Protection**: Cross-site request forgery prevention
-- **Session Management**: Secure session handling
+- **JWT tokens**: Secure token-based authentication
+- **HTTPS only**: Encrypted communication
+- **CSRF protection**: Cross-site request forgery prevention
+- **Session management**: Secure session handling
 
 ### Content security
 
-- **Iframe Protection**: IFrameProtector component for embedding
-- **XSS Prevention**: Input sanitization and validation
-- **Asset Validation**: Safe asset handling
-- **Privacy Controls**: User data protection
+- **Iframe protection**: IFrameProtector component for embedding
+- **XSS prevention**: Input sanitization and validation
+- **Asset validation**: Safe asset handling
+- **Privacy controls**: User data protection
 
 ## Deployment & infrastructure
 
 ### Build process
 
-- **Vite Build**: Optimized production bundles
-- **Source Maps**: Error tracking and debugging
-- **Asset Fingerprinting**: Cache busting for static assets
-- **Environment Configuration**: Runtime environment detection
+- **Vite build**: Optimized production bundles
+- **Source maps**: Error tracking and debugging
+- **Asset fingerprinting**: Cache busting for static assets
+- **Environment configuration**: Runtime environment detection
 
 ### Hosting
 
-- **Vercel Deployment**: Serverless hosting platform
-- **CDN Integration**: Global asset distribution
+- **Vercel deployment**: Serverless hosting platform
+- **CDN integration**: Global asset distribution
 - **SSL/TLS**: Automatic certificate management
-- **Custom Domains**: tldraw.com domain configuration
+- **Custom domains**: tldraw.com domain configuration
 
 ### Monitoring & analytics
 
 - **Sentry**: Error tracking and performance monitoring
 - **PostHog**: User analytics and feature flags
 - **Google Analytics**: User behavior tracking
-- **Real User Monitoring**: Performance metrics collection
+- **Real user monitoring**: Performance metrics collection
 
 ## Integration points
 
 ### Backend services
 
-- **Sync Worker**: Real-time collaboration
-- **Asset Upload Worker**: File upload handling
-- **Image Resize Worker**: Image processing
-- **Zero Server**: Data persistence and sync
+- **Sync worker**: Real-time collaboration
+- **Asset upload worker**: File upload handling
+- **Image resize worker**: Image processing
+- **Zero server**: Data persistence and sync
 
 ### Third-party services
 

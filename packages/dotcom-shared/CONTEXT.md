@@ -430,23 +430,23 @@ assert(file.id.length >= 16, ZErrorCode.bad_request)
 
 ## Key features
 
-### Real-Time collaboration
+### Real-time collaboration
 
-**Optimistic Updates**: Immediate UI response while server processes changes
-**Conflict Resolution**: Automatic handling of concurrent modifications
-**Live Sync**: Real-time data synchronization across multiple clients
+**Optimistic updates**: Immediate UI response while server processes changes
+**Conflict resolution**: Automatic handling of concurrent modifications
+**Live sync**: Real-time data synchronization across multiple clients
 
 ### File management
 
-**Ownership Model**: Clear file ownership with sharing capabilities
-**Access Control**: Permission-based file access for collaboration
-**State Tracking**: Per-user file interaction history and preferences
+**Ownership model**: Clear file ownership with sharing capabilities
+**Access control**: Permission-based file access for collaboration
+**State tracking**: Per-user file interaction history and preferences
 
 ### User experience
 
-**Preferences Sync**: User settings synchronized across devices
-**Export Options**: Customizable export formats and themes
-**Session State**: Restore user's last position and tool selection
+**Preferences sync**: User settings synchronized across devices
+**Export options**: Customizable export formats and themes
+**Session state**: Restore user's last position and tool selection
 
 ### Security
 
@@ -668,28 +668,28 @@ export default function getLicenseKey(): string | null {
 
 ### Developer experience
 
-- **Type Safety**: Full TypeScript definitions for all operations
-- **Real-Time**: Optimistic updates for instant UI feedback
+- **Type safety**: Full TypeScript definitions for all operations
+- **Real-time**: Optimistic updates for instant UI feedback
 - **Scalable**: Designed for thousands of concurrent users
 - **Reliable**: Automatic conflict resolution and error recovery
 
 ### User experience
 
-- **Instant Updates**: Changes appear immediately while syncing
-- **Offline Resilience**: Optimistic updates work during network issues
+- **Instant updates**: Changes appear immediately while syncing
+- **Offline resilience**: Optimistic updates work during network issues
 - **Collaborative**: Multiple users can edit simultaneously
 - **Persistent**: All changes automatically saved and synchronized
 
 ### Architecture
 
-- **Shared Logic**: Common code between client and server
-- **Event Driven**: WebSocket-based real-time communication
-- **Permission Controlled**: Secure access to user and file data
-- **Version Managed**: Protocol versioning for smooth updates
+- **Shared logic**: Common code between client and server
+- **Event driven**: WebSocket-based real-time communication
+- **Permission controlled**: Secure access to user and file data
+- **Version managed**: Protocol versioning for smooth updates
 
 ### Maintenance
 
-- **Schema Evolution**: Zero-downtime database migrations
-- **Error Tracking**: Comprehensive error codes and logging
+- **Schema evolution**: Zero-downtime database migrations
+- **Error tracking**: Comprehensive error codes and logging
 - **Performance**: Optimized queries and efficient data structures
 - **Testing**: Comprehensive test coverage for critical paths

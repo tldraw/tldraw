@@ -121,7 +121,7 @@ The worker handles multiple types of requests through a comprehensive routing sy
 })
 ```
 
-#### API Endpoints
+#### API endpoints
 
 ```typescript
 // File creation and management
@@ -137,7 +137,7 @@ The worker handles multiple types of requests through a comprehensive routing sy
 
 ## Data persistence architecture
 
-### Multi-Layer storage system
+### Multi-layer storage system
 
 The sync-worker uses a sophisticated multi-layer storage approach:
 
@@ -217,9 +217,9 @@ triggerPersist = throttle(() => {
 }, PERSIST_INTERVAL_MS)
 ```
 
-## Real-Time collaboration
+## Real-time collaboration
 
-### WebSocket Communication
+### WebSocket communication
 
 The worker manages WebSocket connections for real-time collaboration:
 
@@ -285,14 +285,14 @@ onSessionRemoved: async (room, args) => {
 
 The worker uses tldraw's sync system for operational transformation:
 
-- **Clock-based Versioning**: Each change has a logical clock timestamp
-- **Last-Write-Wins**: Simple conflict resolution for most operations
-- **Presence Tracking**: Real-time cursor and selection synchronization
-- **Undo/Redo Support**: Complete operation history maintenance
+- **Clock-based versioning**: Each change has a logical clock timestamp
+- **Last-write-wins**: Simple conflict resolution for most operations
+- **Presence tracking**: Real-time cursor and selection synchronization
+- **Undo/redo support**: Complete operation history maintenance
 
 ## Authentication and authorization
 
-### Multi-Provider authentication
+### Multi-provider authentication
 
 The worker supports multiple authentication providers:
 
@@ -480,7 +480,7 @@ async publishFile(fileId: string, auth: AuthData) {
 
 ## Environment configuration
 
-### Multi-Environment setup
+### Multi-environment setup
 
 The worker supports multiple deployment environments:
 
@@ -599,7 +599,7 @@ const mutators = createMutators(userId)
 	})
 ```
 
-#### Real-Time replication
+#### Real-time replication
 
 ```typescript
 // PostgreSQL logical replication to Durable Objects
@@ -856,40 +856,40 @@ async loadFromDatabase(slug: string): Promise<DBLoadResult> {
 
 ## Key features
 
-### Real-Time collaboration
+### Real-time collaboration
 
-- **WebSocket-based Communication**: Low-latency bidirectional communication
-- **Operational Transformation**: Conflict-free collaborative editing
-- **Presence Tracking**: Real-time cursors and user awareness
-- **Session Management**: Automatic cleanup and resource management
+- **WebSocket-based communication**: Low-latency bidirectional communication
+- **Operational transformation**: Conflict-free collaborative editing
+- **Presence tracking**: Real-time cursors and user awareness
+- **Session management**: Automatic cleanup and resource management
 
 ### Distributed architecture
 
-- **Edge Computing**: Deployed globally on Cloudflare Workers
+- **Edge computing**: Deployed globally on Cloudflare Workers
 - **Durable Objects**: Stateful, location-pinned computing units
-- **Multi-Layer Caching**: Memory, KV, and R2 storage optimization
-- **Database Replication**: PostgreSQL logical replication for consistency
+- **Multi-layer caching**: Memory, KV, and R2 storage optimization
+- **Database replication**: PostgreSQL logical replication for consistency
 
 ### Security and authentication
 
-- **Multi-Provider Auth**: Support for Clerk and other providers
-- **Fine-Grained Permissions**: File-level access control
-- **Rate Limiting**: Per-user and per-session protection
-- **CORS Management**: Secure cross-origin resource sharing
+- **Multi-provider auth**: Support for Clerk and other providers
+- **Fine-grained permissions**: File-level access control
+- **Rate limiting**: Per-user and per-session protection
+- **CORS management**: Secure cross-origin resource sharing
 
 ### File management
 
-- **Asset Pipeline**: Integrated upload and optimization system
-- **Version History**: Complete editing history with restore capability
-- **Publishing System**: Public sharing with custom slugs
-- **Soft Deletion**: Recoverable file deletion with cleanup
+- **Asset pipeline**: Integrated upload and optimization system
+- **Version history**: Complete editing history with restore capability
+- **Publishing system**: Public sharing with custom slugs
+- **Soft deletion**: Recoverable file deletion with cleanup
 
 ### Performance
 
-- **Global Distribution**: Sub-100ms latency worldwide
-- **Automatic Scaling**: Handle traffic spikes seamlessly
-- **Resource Efficiency**: Intelligent persistence and cleanup
-- **Connection Pooling**: Optimized database connections
+- **Global distribution**: Sub-100ms latency worldwide
+- **Automatic scaling**: Handle traffic spikes seamlessly
+- **Resource efficiency**: Intelligent persistence and cleanup
+- **Connection pooling**: Optimized database connections
 
 ## Development and testing
 
@@ -943,31 +943,31 @@ wscat -c wss://worker-url/app/__debug-tail
 
 ### Developer experience
 
-- **Type Safety**: Full TypeScript support across the stack
-- **Hot Reloading**: Fast development iteration
-- **Comprehensive Logging**: Detailed debugging and monitoring
-- **Testing Support**: Unit and integration test frameworks
+- **Type safety**: Full TypeScript support across the stack
+- **Hot reloading**: Fast development iteration
+- **Comprehensive logging**: Detailed debugging and monitoring
+- **Testing support**: Unit and integration test frameworks
 
 ### User experience
 
-- **Instant Collaboration**: Real-time synchronization without conflicts
-- **Offline Resilience**: Graceful handling of network issues
-- **Fast Loading**: Edge caching for sub-second room joining
-- **Reliable Persistence**: Automatic saving with version history
+- **Instant collaboration**: Real-time synchronization without conflicts
+- **Offline resilience**: Graceful handling of network issues
+- **Fast loading**: Edge caching for sub-second room joining
+- **Reliable persistence**: Automatic saving with version history
 
 ### Operations
 
-- **Zero Maintenance**: Serverless architecture with auto-scaling
-- **Global Deployment**: Automatic worldwide distribution
-- **Cost Efficiency**: Pay-per-request pricing model
-- **Monitoring Integration**: Built-in analytics and error tracking
+- **Zero maintenance**: Serverless architecture with auto-scaling
+- **Global deployment**: Automatic worldwide distribution
+- **Cost efficiency**: Pay-per-request pricing model
+- **Monitoring integration**: Built-in analytics and error tracking
 
 ### Architecture
 
-- **Microservice Pattern**: Specialized Durable Objects for different concerns
-- **Event-Driven Design**: Reactive system with real-time updates
-- **Eventual Consistency**: Distributed system with conflict resolution
-- **Horizontal Scaling**: Automatic scaling based on demand
+- **Microservice pattern**: Specialized Durable Objects for different concerns
+- **Event-driven design**: Reactive system with real-time updates
+- **Eventual consistency**: Distributed system with conflict resolution
+- **Horizontal scaling**: Automatic scaling based on demand
 
 ## Integration with tldraw ecosystem
 

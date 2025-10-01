@@ -47,11 +47,11 @@ The build system:
 
 ### Add-on configuration
 
-- **Side Panel URI**: `/ts-side` - Compact tldraw interface for Meet sidebar
-- **Main Stage URI**: `/ts` - Full tldraw interface for screen sharing
-- **Screen Sharing Support**: Enabled for presenting drawings to all participants
+- **Side panel URI**: `/ts-side` - Compact tldraw interface for Meet sidebar
+- **Main stage URI**: `/ts` - Full tldraw interface for screen sharing
+- **Screen sharing support**: Enabled for presenting drawings to all participants
 
-### OAuth Scopes
+### OAuth scopes
 
 Required permissions:
 

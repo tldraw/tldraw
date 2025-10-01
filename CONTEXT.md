@@ -1,4 +1,4 @@
-# CONTEXT.md - tldraw Monorepo
+# CONTEXT.md - tldraw monorepo
 
 This file provides comprehensive context for understanding the tldraw monorepo, an infinite canvas SDK for React applications and the infrastructure behind tldraw.com.
 
@@ -6,7 +6,7 @@ This file provides comprehensive context for understanding the tldraw monorepo, 
 
 This is a TypeScript monorepo containing the complete tldraw ecosystem - from the core infinite canvas SDK to the collaborative whiteboard application tldraw.com. It's organized using Yarn Berry workspaces and built with a custom incremental build system called LazyRepo.
 
-**Repository Purpose:** Develop and maintain tldraw as both an open-source SDK for developers and a commercial collaborative whiteboard service.
+**Repository purpose:** Develop and maintain tldraw as both an open-source SDK for developers and a commercial collaborative whiteboard service.
 
 **Version:** 3.15.1 across all packages  
 **Node.js:** ^20.0.0 required  
@@ -49,7 +49,7 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
 - `yarn format` - Format code with Prettier
 - `yarn api-check` - Validate public API consistency
 
-## High-Level architecture
+## High-level architecture
 
 ### Monorepo structure
 
@@ -95,7 +95,7 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
 
 ### Core SDK architecture
 
-**Three-Layer System:**
+**Three-layer system:**
 
 1. **@tldraw/editor** - Pure canvas engine
    - No shapes, tools, or UI - just the reactive editor foundation
@@ -125,7 +125,7 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
 - Efficient updates with minimal re-computation
 - Memory-optimized with `ArraySet` and cleanup systems
 
-**Pattern Throughout Codebase:**
+**Pattern throughout codebase:**
 
 - All editor state is reactive and observable
 - Components automatically re-render when dependencies change
@@ -134,21 +134,21 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
 
 ### Shape and tool system
 
-**Shape Architecture:**
+**Shape architecture:**
 
 - Each shape type has a `ShapeUtil` class defining behavior
 - ShapeUtil handles geometry calculation, rendering, hit testing, interactions
 - Extensible system - custom shapes via new ShapeUtil implementations
 - Shape definitions in `@tldraw/tlschema` with validators and migrations
 
-**Tool State Machines:**
+**Tool state machines:**
 
 - Tools implemented as `StateNode` hierarchies with parent/child states
 - Event-driven architecture (pointer, keyboard, tick events)
 - Complex tools like SelectTool have multiple child states (Brushing, Translating, etc.)
 - State machines handle tool lifecycle and user interactions
 
-**Bindings System:**
+**Bindings system:**
 
 - Relationships between shapes (arrows connecting to shapes, etc.)
 - `BindingUtil` classes define binding behavior and visual indicators
@@ -158,13 +158,13 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
 
 ### Vitest tests
 
-**Unit Tests:**
+**Unit tests:**
 
 - Test files named `*.test.ts` alongside source files (e.g., `LicenseManager.test.ts`)
 - Integration tests use `src/test/feature-name.test.ts` format
 - Test in tldraw workspace if you need default shapes/tools
 
-**Running Tests:**
+**Running tests:**
 
 - Run from specific workspace directory: `cd packages/editor && yarn test run`
 - Filter with additional args: `yarn test run --grep "selection"`
@@ -243,7 +243,7 @@ Custom incremental build system optimized for monorepos:
 
 ### Package management
 
-**Yarn Berry (v4) with Workspaces:**
+**Yarn Berry (v4) with workspaces:**
 
 - Workspace dependencies automatically linked
 - Package manager enforced via `packageManager` field
@@ -252,14 +252,14 @@ Custom incremental build system optimized for monorepos:
 
 ### Code quality
 
-**TypeScript Configuration:**
+**TypeScript configuration:**
 
 - Workspace references for incremental compilation
 - API surface validation with Microsoft API Extractor
 - Strict type checking across all packages
 - Generated API documentation from TSDoc comments
 
-**Linting and Formatting:**
+**Linting and formatting:**
 
 - ESLint with custom configuration in `eslint.config.mjs`
 - Prettier for consistent code formatting
@@ -267,7 +267,7 @@ Custom incremental build system optimized for monorepos:
 
 ## Key development notes
 
-### TypeScript Workflow
+### TypeScript workflow
 
 - Uses workspace references for fast incremental compilation
 - Run `yarn typecheck` before commits (critical for API consistency)
@@ -299,12 +299,12 @@ Custom incremental build system optimized for monorepos:
 
 ### Asset pipeline
 
-**Static Assets (`/assets`):**
+**Static assets (`/assets`):**
 
 - Automatic optimization and format conversion
 - Deduplication and efficient bundling
 
-**Dynamic Assets:**
+**Dynamic assets:**
 
 - Image/video upload handling in Cloudflare Workers
 - Asset validation, resizing, and optimization
@@ -313,7 +313,7 @@ Custom incremental build system optimized for monorepos:
 
 ### External content integration
 
-**Rich Content Handling:**
+**Rich content handling:**
 
 - Bookmark creation with metadata extraction
 - Embed system for YouTube, Figma, Excalidraw, etc.
@@ -331,16 +331,16 @@ Custom incremental build system optimized for monorepos:
 - Presence awareness (cursors, selections) separate from document state
 - Cloudflare Durable Objects for scalable backend
 
-**Data Synchronization:**
+**Data synchronization:**
 
 - Document state synced via structured diffs
 - Presence state (cursors, etc.) synced but not persisted
 - Connection state management with reconnection logic
 - See `templates/sync-cloudflare` for implementation patterns
 
-### tldraw.com Infrastructure
+### tldraw.com infrastructure
 
-**Production Application Stack:**
+**Production application stack:**
 
 - **Frontend**: React SPA with Vite, Clerk auth, React Router, FormatJS i18n
 - **Real-time Sync**: Cloudflare Workers + Durable Objects for multiplayer collaboration
@@ -353,7 +353,7 @@ Custom incremental build system optimized for monorepos:
 
 ### Creating custom components
 
-**Custom Shapes:**
+**Custom shapes:**
 
 1. Define shape type in schema with validator
 2. Create `ShapeUtil` class extending base ShapeUtil
@@ -361,16 +361,16 @@ Custom incremental build system optimized for monorepos:
 4. Register in editor via `shapeUtils` prop
 5. Implement creation tool if needed
 
-**Custom Tools:**
+**Custom tools:**
 
 1. Create `StateNode` class with tool logic
 2. Define state machine with onEnter/onExit/event handlers (onPointerDown, etc.)
 3. Handle state transitions and editor updates
 4. Register in editor via `tools` prop
 
-### UI Customization
+### UI customization
 
-**Component Override System:**
+**Component override system:**
 
 - Every tldraw UI component can be replaced/customized
 - Pass custom implementations via `components` prop
@@ -392,14 +392,14 @@ Custom incremental build system optimized for monorepos:
 
 ### Rendering optimization
 
-**Canvas Performance:**
+**Canvas performance:**
 
 - WebGL-accelerated minimap rendering
 - Viewport culling - only visible shapes rendered
 - Shape geometry caching with invalidation
 - Efficient hit testing and bounds calculation
 
-**Reactive System Optimization:**
+**Reactive system optimization:**
 
 - Signals minimize unnecessary re-renders via precise dependency tracking
 - Computed values cached until dependencies change
@@ -409,7 +409,7 @@ Custom incremental build system optimized for monorepos:
 
 ### Memory management
 
-**Efficient Resource Usage:**
+**Efficient resource usage:**
 
 - Automatic cleanup of event listeners and signal dependencies
 - Asset deduplication reduces memory footprint
@@ -424,7 +424,7 @@ Custom incremental build system optimized for monorepos:
 - Business license available for watermark removal
 - Separate commercial terms for tldraw.com service
 
-**Development Philosophy:**
+**Development philosophy:**
 
 - SDK-first development - tldraw.com built using the same APIs
 - Extensive examples and documentation for SDK adoption
@@ -434,7 +434,7 @@ Custom incremental build system optimized for monorepos:
 
 ### Asset management
 
-**Centralized Assets (`@tldraw/assets`):**
+**Centralized assets (`@tldraw/assets`):**
 
 - **Icon System**: 80+ icons in optimized SVG sprite format
 - **Typography**: IBM Plex fonts (Sans, Serif, Mono) + Shantell Sans (handwritten)
@@ -442,7 +442,7 @@ Custom incremental build system optimized for monorepos:
 - **Embed Icons**: Service icons for external content (YouTube, Figma, etc.)
 - **Export Strategies**: Multiple formats (imports, URLs, self-hosted) for different bundlers
 
-**Dynamic Asset Pipeline:**
+**Dynamic asset pipeline:**
 
 - **Upload Workers**: Cloudflare R2 + image optimization + format conversion (AVIF/WebP)
 - **CDN Delivery**: Global asset distribution with intelligent caching
@@ -451,14 +451,14 @@ Custom incremental build system optimized for monorepos:
 
 ### Collaboration features
 
-**Real-Time Multiplayer:**
+**Real-time multiplayer:**
 
 - **Presence System**: Live cursors, selections, and user awareness indicators
 - **Conflict Resolution**: Operational transformation for concurrent edits
 - **Connection Reliability**: Automatic reconnection with exponential backoff
 - **Permission Management**: File-level access control (view/edit/owner)
 
-**Data Synchronization:**
+**Data synchronization:**
 
 - **Optimistic Updates**: Immediate UI feedback with server reconciliation
 - **Offline Support**: Queue changes during network issues, sync on reconnect
@@ -467,14 +467,14 @@ Custom incremental build system optimized for monorepos:
 
 ### Extension and customization
 
-**Developer Tools:**
+**Developer tools:**
 
 - **CLI Scaffolding**: `npm create tldraw` with interactive template selection
 - **VSCode Integration**: Full editor for .tldr files with webview-based rendering
 - **Testing Utilities**: TestEditor, comprehensive E2E test suites
 - **Performance Monitoring**: Built-in performance tracking and analysis
 
-**Extension Points:**
+**Extension points:**
 
 - **Custom Shapes**: ShapeUtil classes for new shape types
 - **Custom Tools**: StateNode state machines for interactive tools
@@ -486,7 +486,7 @@ Custom incremental build system optimized for monorepos:
 
 ### Reactive architecture details
 
-**Signals System (`@tldraw/state`):**
+**Signals system (`@tldraw/state`):**
 
 - **Atom/Computed Pattern**: Mutable atoms + derived computed values
 - **Dependency Tracking**: Automatic capture of signal dependencies during computation
@@ -494,7 +494,7 @@ Custom incremental build system optimized for monorepos:
 - **Effect Scheduling**: Pluggable scheduling (immediate vs animation frame throttled)
 - **Transaction Support**: Atomic multi-state updates with rollback capability
 
-**Store System (`@tldraw/store`):**
+**Store system (`@tldraw/store`):**
 
 - **Record Management**: Type-safe record storage with validation and migrations
 - **Query System**: Reactive indexes with incremental updates
@@ -504,14 +504,14 @@ Custom incremental build system optimized for monorepos:
 
 ### Database and persistence
 
-**Client-Side Storage:**
+**Client-side storage:**
 
 - **IndexedDB**: Local persistence with automatic migrations
 - **Store Snapshots**: Complete document state serialization
 - **Asset Caching**: Local asset storage with deduplication
 - **User Preferences**: Settings persistence across sessions
 
-**Server-Side Infrastructure:**
+**Server-side infrastructure:**
 
 - **PostgreSQL**: Source of truth for user data, files, metadata
 - **R2 Object Storage**: Durable asset storage with global replication

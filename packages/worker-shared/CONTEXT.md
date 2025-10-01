@@ -353,31 +353,31 @@ function forbidden() {
 
 ### Asset pipeline
 
-**R2 Integration**: Cloudflare R2 object storage for user assets
-**Caching Strategy**: Multi-layer caching with Cloudflare Cache API
-**Range Requests**: Support for partial content delivery
-**Immutable Assets**: Long-term caching for uploaded content
+**R2 integration**: Cloudflare R2 object storage for user assets
+**Caching strategy**: Multi-layer caching with Cloudflare Cache API
+**Range requests**: Support for partial content delivery
+**Immutable assets**: Long-term caching for uploaded content
 
 ### Bookmark system
 
-**Metadata Extraction**: Rich preview data from web pages
-**Image Optimization**: Automatic image resizing and quality optimization
-**Fallback Handling**: Graceful degradation when image processing fails
-**Multi-Size Support**: Different image sizes for different use cases
+**Metadata extraction**: Rich preview data from web pages
+**Image optimization**: Automatic image resizing and quality optimization
+**Fallback handling**: Graceful degradation when image processing fails
+**Multi-size support**: Different image sizes for different use cases
 
 ### Error handling
 
-**Structured Errors**: Consistent error response format
-**Monitoring Integration**: Automatic error reporting to Sentry
-**Graceful Degradation**: Fallback behavior for non-critical failures
-**Development Safety**: Sentry disabled in development mode
+**Structured errors**: Consistent error response format
+**Monitoring integration**: Automatic error reporting to Sentry
+**Graceful degradation**: Fallback behavior for non-critical failures
+**Development safety**: Sentry disabled in development mode
 
 ### Performance
 
-**Edge Computing**: Optimized for Cloudflare Workers runtime
-**Streaming Support**: Efficient handling of large uploads/downloads
-**Cache Integration**: Leverages Cloudflare's global cache network
-**Minimal Dependencies**: Lightweight for fast cold starts
+**Edge computing**: Optimized for Cloudflare Workers runtime
+**Streaming support**: Efficient handling of large uploads/downloads
+**Cache integration**: Leverages Cloudflare's global cache network
+**Minimal dependencies**: Lightweight for fast cold starts
 
 ## Integration patterns
 
@@ -523,7 +523,7 @@ context.waitUntil(caches.default.put(cacheKey, response.clone()))
 
 ## Environment management
 
-### Type-Safe environment variables
+### Type-safe environment variables
 
 ```typescript
 interface WorkerEnv {
@@ -608,46 +608,46 @@ const sentry = new Toucan({
 
 ### Edge computing
 
-- **Global Distribution**: Workers run at Cloudflare edge locations
-- **Low Latency**: Processing close to users
-- **Automatic Scaling**: Handles traffic spikes automatically
-- **Zero Cold Starts**: V8 isolates for instant execution
+- **Global distribution**: Workers run at Cloudflare edge locations
+- **Low latency**: Processing close to users
+- **Automatic scaling**: Handles traffic spikes automatically
+- **Zero cold starts**: V8 isolates for instant execution
 
 ### Caching strategy
 
-- **Multi-Layer Caching**: Browser cache + CDN cache + worker cache
-- **Immutable Assets**: Assets cached for 1 year
-- **Cache Invalidation**: ETags for conditional requests
-- **Range Support**: Efficient partial content delivery
+- **Multi-layer caching**: Browser cache + CDN cache + worker cache
+- **Immutable assets**: Assets cached for 1 year
+- **Cache invalidation**: ETags for conditional requests
+- **Range support**: Efficient partial content delivery
 
 ### Resource efficiency
 
 - **Streaming**: Support for large file uploads/downloads
-- **Memory Management**: Efficient handling of binary data
-- **Connection Pooling**: Reuse connections for external requests
-- **Background Tasks**: Non-blocking asset processing
+- **Memory management**: Efficient handling of binary data
+- **Connection pooling**: Reuse connections for external requests
+- **Background tasks**: Non-blocking asset processing
 
 ## Security considerations
 
 ### Input validation
 
-- **URL Validation**: Ensure valid HTTP/HTTPS URLs for bookmarks
-- **File Type Validation**: Verify content types for uploads
-- **Size Limits**: Prevent abuse with file size restrictions
-- **Path Sanitization**: Secure object naming patterns
+- **URL validation**: Ensure valid HTTP/HTTPS URLs for bookmarks
+- **File type validation**: Verify content types for uploads
+- **Size limits**: Prevent abuse with file size restrictions
+- **Path sanitization**: Secure object naming patterns
 
 ### Access control
 
-- **CORS Configuration**: Controlled cross-origin access
+- **CORS configuration**: Controlled cross-origin access
 - **Authentication**: Integration with auth systems
-- **Rate Limiting**: Prevent API abuse
-- **Error Information**: Careful error message disclosure
+- **Rate limiting**: Prevent API abuse
+- **Error information**: Careful error message disclosure
 
 ### Content safety
 
-- **Image Processing**: Automatic optimization prevents malicious images
-- **Metadata Scrubbing**: Remove sensitive information from extracted data
-- **Sandbox Execution**: Workers isolated from sensitive systems
+- **Image processing**: Automatic optimization prevents malicious images
+- **Metadata scrubbing**: Remove sensitive information from extracted data
+- **Sandbox execution**: Workers isolated from sensitive systems
 - **Monitoring**: Comprehensive error and security event tracking
 
 ## Deployment architecture
@@ -674,10 +674,10 @@ Edge Locations (Global)
 
 ### Development experience
 
-- **Type Safety**: Full TypeScript support for worker development
-- **Reusable Patterns**: Common worker utilities abstracted
-- **Error Handling**: Comprehensive error management system
-- **Testing Support**: Jest configuration for worker code
+- **Type safety**: Full TypeScript support for worker development
+- **Reusable patterns**: Common worker utilities abstracted
+- **Error handling**: Comprehensive error management system
+- **Testing support**: Jest configuration for worker code
 
 ### Operations
 
@@ -688,7 +688,7 @@ Edge Locations (Global)
 
 ### Maintenance
 
-- **Shared Code**: Consistent patterns across all workers
-- **Environment Management**: Type-safe configuration handling
-- **Dependency Management**: Minimal, focused dependencies
+- **Shared code**: Consistent patterns across all workers
+- **Environment management**: Type-safe configuration handling
+- **Dependency management**: Minimal, focused dependencies
 - **Deployment**: Streamlined worker deployment workflows

@@ -40,14 +40,14 @@ async function main() {
 }
 ```
 
-**CLI Features:**
+**CLI features:**
 
-- **Interactive Mode**: Guided project setup with prompts and spinners
-- **Argument Mode**: Direct template specification via flags
-- **Directory Handling**: Smart target directory management with safety checks
-- **Package Manager Detection**: Automatic npm/yarn/pnpm detection and command generation
-- **Progress Indication**: Visual feedback with spinners and status messages
-- **Error Recovery**: Graceful handling of cancellation and failures
+- **Interactive mode**: Guided project setup with prompts and spinners
+- **Argument mode**: Direct template specification via flags
+- **Directory handling**: Smart target directory management with safety checks
+- **Package manager detection**: Automatic npm/yarn/pnpm detection and command generation
+- **Progress indication**: Visual feedback with spinners and status messages
+- **Error recovery**: Graceful handling of cancellation and failures
 
 #### Template system (`templates.ts`)
 
@@ -197,12 +197,12 @@ async function downloadTemplate(template: Template, targetDir: string) {
 }
 ```
 
-**Error Handling Features:**
+**Error handling features:**
 
-- **Network Failure Recovery**: Graceful handling of download failures
-- **Invalid Repository Detection**: Clear error messages for missing repos
-- **Progress Indication**: Real-time download status with spinners
-- **Cleanup on Failure**: Automatic cleanup of partially downloaded content
+- **Network failure recovery**: Graceful handling of download failures
+- **Invalid repository detection**: Clear error messages for missing repos
+- **Progress indication**: Real-time download status with spinners
+- **Cleanup on failure**: Automatic cleanup of partially downloaded content
 
 ### Project customization
 
@@ -339,12 +339,12 @@ async function ensureEmpty(targetDir: string, overwriteArg: boolean) {
 }
 ```
 
-**Directory Safety Features:**
+**Directory safety features:**
 
-- **Git Repository Preservation**: `.git` directories are never deleted
-- **Interactive Confirmation**: User must explicitly confirm destructive operations
-- **Flexible Options**: Cancel, overwrite, or merge with existing content
-- **Recursive Creation**: Automatically creates parent directories as needed
+- **Git repository preservation**: `.git` directories are never deleted
+- **Interactive confirmation**: User must explicitly confirm destructive operations
+- **Flexible options**: Cancel, overwrite, or merge with existing content
+- **Recursive creation**: Automatically creates parent directories as needed
 
 ### Package manager integration
 
@@ -422,12 +422,12 @@ try {
 }
 ```
 
-**Error Recovery Strategies:**
+**Error recovery strategies:**
 
-- **Graceful Degradation**: Meaningful error messages without technical details
-- **Debug Mode**: Detailed error information when DEBUG environment variable is set
-- **Operation Cleanup**: Automatic cleanup of partial operations on failure
-- **User Guidance**: Actionable suggestions for resolving common issues
+- **Graceful degradation**: Meaningful error messages without technical details
+- **Debug mode**: Detailed error information when DEBUG environment variable is set
+- **Operation cleanup**: Automatic cleanup of partial operations on failure
+- **User guidance**: Actionable suggestions for resolving common issues
 
 ## Build system
 
@@ -520,12 +520,12 @@ Comprehensive test configuration for CLI validation:
 }
 ```
 
-**Testing Patterns:**
+**Testing patterns:**
 
-- **Unit Tests**: Individual function validation (utils, naming, validation)
-- **Integration Tests**: Template download and project setup workflows
-- **CLI Tests**: Command-line interface and argument parsing
-- **Mock Templates**: Test template system without external dependencies
+- **Unit tests**: Individual function validation (utils, naming, validation)
+- **Integration tests**: Template download and project setup workflows
+- **CLI tests**: Command-line interface and argument parsing
+- **Mock templates**: Test template system without external dependencies
 
 ## Template categories
 
@@ -536,16 +536,16 @@ Ready-to-use integrations with popular frameworks:
 #### Vite template (`tldraw/vite-template`)
 
 - **Purpose**: Fastest way to start with tldraw
-- **Tech Stack**: Vite + React + TypeScript
-- **Use Case**: Simple drawing applications, rapid prototyping
-- **Build Time**: ~10 seconds for initial setup
+- **Tech stack**: Vite + React + TypeScript
+- **Use case**: Simple drawing applications, rapid prototyping
+- **Build time**: ~10 seconds for initial setup
 - **Development**: Hot module replacement with Vite dev server
 
-#### Next.js Template (`tldraw/nextjs-template`)
+#### Next.js template (`tldraw/nextjs-template`)
 
 - **Purpose**: Full-stack applications with tldraw
-- **Tech Stack**: Next.js + React + TypeScript
-- **Use Case**: Production web applications, SSR/SSG requirements
+- **Tech stack**: Next.js + React + TypeScript
+- **Use case**: Production web applications, SSR/SSG requirements
 - **Features**: App Router, optimized builds, deployment ready
 
 ### Application templates
@@ -555,9 +555,9 @@ Complete application examples with advanced features:
 #### Multiplayer sync (`tldraw/tldraw-sync-cloudflare`)
 
 - **Purpose**: Real-time collaborative drawing
-- **Tech Stack**: tldraw + sync + Cloudflare Durable Objects
+- **Tech stack**: tldraw + sync + Cloudflare Durable Objects
 - **Features**: Multiplayer, persistence, scalable infrastructure
-- **Use Case**: Collaborative whiteboarding, team drawing sessions
+- **Use case**: Collaborative whiteboarding, team drawing sessions
 - **Deployment**: Cloudflare Workers with Durable Objects backend
 
 ## Usage patterns
@@ -700,32 +700,32 @@ function isDirEmpty(path: string): boolean {
 
 ### Developer experience
 
-- **Zero Configuration**: Works immediately with sensible defaults
-- **Framework Flexibility**: Support for React, Next.js, and Vue ecosystems
-- **Interactive Guidance**: Step-by-step project setup with visual feedback
-- **Universal Compatibility**: Works with npm, yarn, and pnpm package managers
-- **Error Prevention**: Comprehensive validation and safety checks
+- **Zero configuration**: Works immediately with sensible defaults
+- **Framework flexibility**: Support for React, Next.js, and Vue ecosystems
+- **Interactive guidance**: Step-by-step project setup with visual feedback
+- **Universal compatibility**: Works with npm, yarn, and pnpm package managers
+- **Error prevention**: Comprehensive validation and safety checks
 
 ### Template ecosystem
 
-- **Curated Quality**: Official templates demonstrate best practices
-- **Feature Examples**: Specialized templates for multiplayer, AI integration
-- **Extensible Architecture**: Easy addition of new templates
-- **Automatic Updates**: Template list stays current with repository changes
-- **Community Driven**: Clear contribution model for new template types
+- **Curated quality**: Official templates demonstrate best practices
+- **Feature examples**: Specialized templates for multiplayer, AI integration
+- **Extensible architecture**: Easy addition of new templates
+- **Automatic updates**: Template list stays current with repository changes
+- **Community driven**: Clear contribution model for new template types
 
 ### Production readiness
 
-- **TypeScript First**: All templates include strict TypeScript configuration
-- **Modern Tooling**: Latest build tools, development servers, and frameworks
-- **Deployment Ready**: Templates include production build and deployment guides
-- **Testing Integration**: Pre-configured testing frameworks and example tests
-- **Performance Optimized**: Build configurations optimized for production use
+- **TypeScript first**: All templates include strict TypeScript configuration
+- **Modern tooling**: Latest build tools, development servers, and frameworks
+- **Deployment ready**: Templates include production build and deployment guides
+- **Testing integration**: Pre-configured testing frameworks and example tests
+- **Performance optimized**: Build configurations optimized for production use
 
 ### Maintenance and reliability
 
-- **Automated Validation**: Template repositories automatically validated for integrity
-- **Version Consistency**: Templates maintained to work with current tldraw releases
-- **Comprehensive Testing**: CLI functionality covered by automated test suite
+- **Automated validation**: Template repositories automatically validated for integrity
+- **Version consistency**: Templates maintained to work with current tldraw releases
+- **Comprehensive testing**: CLI functionality covered by automated test suite
 - **Documentation**: Each template includes detailed setup and customization guides
-- **Error Recovery**: Graceful handling of network issues, user cancellation, and edge cases
+- **Error recovery**: Graceful handling of network issues, user cancellation, and edge cases

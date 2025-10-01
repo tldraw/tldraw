@@ -1,5 +1,5 @@
 ````markdown
-# CONTEXT.md - @tldraw/editor Package
+# CONTEXT.md - @tldraw/editor package
 
 This file provides comprehensive context for understanding the `@tldraw/editor` package, the core infinite canvas editor for tldraw.
 
@@ -7,7 +7,7 @@ This file provides comprehensive context for understanding the `@tldraw/editor` 
 
 The `@tldraw/editor` package is the foundational layer of tldraw - a minimal infinite canvas editor without any specific shapes, tools, or UI. It provides the core editing engine that the main `tldraw` package builds upon.
 
-**Key Distinction:** This package provides the editor engine only. For a complete editor with shapes and UI, use `@tldraw/tldraw` instead.
+**Key distinction:** This package provides the editor engine only. For a complete editor with shapes and UI, use `@tldraw/tldraw` instead.
 
 **Version:** 3.15.1  
 **Compatibility:** Requires Node.js ^20.0.0, React ^18.0.0  
@@ -41,14 +41,14 @@ The `@tldraw/editor` package is the foundational layer of tldraw - a minimal inf
 
 ### State management architecture
 
-**Reactive Signals System:**
+**Reactive signals system:**
 
 - Uses `@tldraw/state` for reactive state management
 - Atoms for mutable state, Computed for derived state
 - Automatic dependency tracking and efficient updates
 - All editor state is reactive and observable
 
-**Store Structure:**
+**Store structure:**
 
 - Document data stored in `TLStore` (shapes, pages, assets, etc.)
 - Editor state (camera, selection, tools) stored separately
@@ -57,14 +57,14 @@ The `@tldraw/editor` package is the foundational layer of tldraw - a minimal inf
 
 ### Tools and state system
 
-**StateNode Architecture (`src/lib/editor/tools/StateNode.ts`)**
+**StateNode architecture (`src/lib/editor/tools/StateNode.ts`)**
 
 - Hierarchical finite state machine for tools
 - Each tool is a StateNode with potential child states
 - Event-driven with handlers for pointer, keyboard, tick events
 - Supports both "branch" nodes (with children) and "leaf" nodes
 
-**Tool Types:**
+**Tool types:**
 
 - Root state manages overall editor state
 - Tool states handle specific user interactions
@@ -73,14 +73,14 @@ The `@tldraw/editor` package is the foundational layer of tldraw - a minimal inf
 
 ### Shape system
 
-**ShapeUtil Architecture (`src/lib/editor/shapes/ShapeUtil.ts`)**
+**ShapeUtil architecture (`src/lib/editor/shapes/ShapeUtil.ts`)**
 
 - Abstract base class for defining shape behavior
 - Each shape type needs a corresponding ShapeUtil
 - Handles rendering, geometry, interactions, and serialization
 - Extensible system for custom shapes
 
-**Key Shape Methods:**
+**Key shape methods:**
 
 - `getGeometry()` - Shape's geometric representation
 - `component()` - React component for rendering
@@ -89,14 +89,14 @@ The `@tldraw/editor` package is the foundational layer of tldraw - a minimal inf
 
 ### Binding system
 
-**BindingUtil Architecture (`src/lib/editor/bindings/BindingUtil.ts`)**
+**BindingUtil architecture (`src/lib/editor/bindings/BindingUtil.ts`)**
 
 - Abstract base class for defining relationships between shapes
 - Manages connections like arrows to shapes, text to shapes, etc.
 - Handles binding creation, updates, and cleanup
 - Each binding type needs a corresponding BindingUtil
 
-**Key Binding Concepts:**
+**Key binding concepts:**
 
 - Bindings connect shapes through relationships
 - `fromId` and `toId` reference connected shapes
@@ -107,7 +107,7 @@ The `@tldraw/editor` package is the foundational layer of tldraw - a minimal inf
 
 The editor uses specialized managers for different concerns:
 
-**Core Managers:**
+**Core managers:**
 
 - `ClickManager` - Multi-click detection and handling
 - `EdgeScrollManager` - Auto-scroll at viewport edges during interactions
@@ -122,14 +122,14 @@ The editor uses specialized managers for different concerns:
 
 ### Component system
 
-**Default Components (`src/lib/components/default-components/`)**
+**Default components (`src/lib/components/default-components/`)**
 
 - Minimal implementations for all editor UI elements
 - Canvas, cursors, handles, selection indicators, grid
 - Error fallbacks and loading screens
 - Fully customizable via `components` prop
 
-**Key Components:**
+**Key components:**
 
 - `DefaultCanvas` - Main drawing surface
 - `DefaultCursor` - Mouse cursor rendering
@@ -137,7 +137,7 @@ The editor uses specialized managers for different concerns:
 - `DefaultSelectionBackground/Foreground` - Selection UI
 - `DefaultGrid` - Viewport grid overlay
 
-**Indicators System (`src/lib/components/default-components/DefaultSelectionBackground.tsx`)**
+**Indicators system (`src/lib/components/default-components/DefaultSelectionBackground.tsx`)**
 
 - Visual feedback for shape selection and interaction states
 - Includes selection boxes, rotation handles, and resize handles
@@ -146,14 +146,14 @@ The editor uses specialized managers for different concerns:
 
 ### Text editing integration
 
-**Tiptap Integration:**
+**Tiptap integration:**
 
 - Uses `@tiptap/core` and related packages for rich text editing
 - Provides collaborative text editing capabilities
 - Handles text formatting, selection, and cursor management
 - Integrates with tldraw's event system and state management
 
-**Text Manager (`src/lib/editor/managers/TextManager.ts`):**
+**Text manager (`src/lib/editor/managers/TextManager.ts`):**
 
 - Handles text measurement and font metrics
 - Manages text input states and focus
@@ -162,7 +162,7 @@ The editor uses specialized managers for different concerns:
 
 ### Geometry and math
 
-**Primitive System (`src/lib/primitives/`)**
+**Primitive system (`src/lib/primitives/`)**
 
 - `Vec` - 2D vector math
 - `Mat` - 2D transformation matrices
@@ -170,7 +170,7 @@ The editor uses specialized managers for different concerns:
 - Geometry2d classes for shape collision/intersection
 - Comprehensive math utilities for canvas operations
 
-**Geometry Classes:**
+**Geometry classes:**
 
 - `Rectangle2d`, `Circle2d`, `Polygon2d`, etc.
 - Hit testing and intersection calculations
@@ -178,7 +178,7 @@ The editor uses specialized managers for different concerns:
 
 ### Event system
 
-**Event Flow:**
+**Event flow:**
 
 1. DOM events captured by editor container
 2. Processed through pointer/keyboard managers
@@ -186,7 +186,7 @@ The editor uses specialized managers for different concerns:
 4. Tool updates editor state accordingly
 5. Reactive system triggers re-renders
 
-**Event Types:**
+**Event types:**
 
 - Pointer events (down, move, up) with target detection
 - Keyboard events with modifier key handling
@@ -195,14 +195,14 @@ The editor uses specialized managers for different concerns:
 
 ### Export and serialization
 
-**Export Capabilities:**
+**Export capabilities:**
 
 - SVG export with full shape fidelity
 - PNG/JPEG export via canvas rendering
 - Snapshot serialization for persistence
 - Asset handling (images, videos, fonts)
 
-**Deep Links:**
+**Deep links:**
 
 - URL-based state synchronization
 - Camera position and selected shapes in URL
@@ -210,7 +210,7 @@ The editor uses specialized managers for different concerns:
 
 ### Licensing and watermark
 
-**License Management:**
+**License management:**
 
 - Handles tldraw licensing and watermark display
 - `LicenseProvider` and `LicenseManager` components
@@ -364,7 +364,7 @@ describe('MyFeature', () => {
 
 ## Dependencies
 
-**Runtime Dependencies:**
+**Runtime dependencies:**
 
 - `@tldraw/state` ^3.15.1 - Reactive state management
 - `@tldraw/state-react` ^3.15.1 - React integration for state
@@ -382,21 +382,21 @@ describe('MyFeature', () => {
 - `idb` ^8.0.0 - IndexedDB wrapper
 - `is-plain-object` ^5.0.0 - Object type checking
 
-**Key Peer Dependencies:**
+**Key peer dependencies:**
 
 - `react` ^18.0.0 - Required React version
 - `react-dom` ^18.0.0 - Required React DOM version
 
-## CSS and Styling
+## CSS and styling
 
-**CSS Bundle:**
+**CSS bundle:**
 
 - Ships with `editor.css` containing all core styles
 - Uses CSS custom properties for theming
 - Separate from tldraw.css (which includes shape styles)
 - Must be imported: `import '@tldraw/editor/editor.css'`
 
-**Styling Approach:**
+**Styling approach:**
 
 - CSS-in-JS for dynamic styles (selections, cursors)
 - Static CSS for layout and base component styles
@@ -405,14 +405,14 @@ describe('MyFeature', () => {
 
 ## Performance considerations
 
-**Reactive System Optimization:**
+**Reactive system optimization:**
 
 - Reactive system minimizes unnecessary re-renders through precise dependency tracking
 - Computed values are cached and only recalculated when dependencies change
 - Store changes are batched to prevent cascading updates
 - Component re-renders are minimized through React memo and signal integration
 
-**Rendering Performance:**
+**Rendering performance:**
 
 - Geometry calculations are cached and memoized using shape geometry cache
 - Large shape counts handled via viewport culling - only visible shapes are rendered
@@ -420,7 +420,7 @@ describe('MyFeature', () => {
 - SVG export uses virtualization for large documents
 - Font loading is managed asynchronously to prevent layout shifts during text rendering
 
-**Memory Management:**
+**Memory management:**
 
 - Unused shape utilities are garbage collected
 - Event listeners are properly cleaned up on component unmount
@@ -429,7 +429,7 @@ describe('MyFeature', () => {
 
 ## Extensibility points
 
-**Highly Customizable:**
+**Highly customizable:**
 
 - Shape definitions via ShapeUtil
 - Binding definitions via BindingUtil
@@ -438,7 +438,7 @@ describe('MyFeature', () => {
 - Event handling via editor instance
 - Styling via CSS custom properties
 
-**Less Customizable:**
+**Less customizable:**
 
 - Core editor logic and data flow
 - Store structure and reactivity system

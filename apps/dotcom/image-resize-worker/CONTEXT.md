@@ -241,24 +241,24 @@ route = { pattern = "images.tldraw.xyz", custom_domain = true }
 
 ### Image optimization
 
-**Format Conversion**: Automatic AVIF/WebP conversion based on browser support
-**Quality Control**: Adjustable quality settings (1-100)
-**Size Control**: Width-based resizing with scale-down protection
+**Format conversion**: Automatic AVIF/WebP conversion based on browser support
+**Quality control**: Adjustable quality settings (1-100)
+**Size control**: Width-based resizing with scale-down protection
 **Compression**: Cloudflare's optimized image processing pipeline
 
 ### Performance optimization
 
-**Global Caching**: Leverages Cloudflare's global cache network
-**ETag Support**: Proper HTTP caching with conditional requests
-**Edge Processing**: Image transformation at edge locations
-**Service Bindings**: Direct worker-to-worker communication for internal requests
+**Global caching**: Leverages Cloudflare's global cache network
+**ETag support**: Proper HTTP caching with conditional requests
+**Edge processing**: Image transformation at edge locations
+**Service bindings**: Direct worker-to-worker communication for internal requests
 
 ### Security
 
-**Origin Validation**: Whitelist of allowed domains to prevent abuse
-**Path Filtering**: Asset upload endpoint validation for service bindings
-**Content Type Validation**: Ensures responses are actual images
-**No Upscaling**: Prevents resource abuse with fit: 'scale-down'
+**Origin validation**: Whitelist of allowed domains to prevent abuse
+**Path filtering**: Asset upload endpoint validation for service bindings
+**Content type validation**: Ensures responses are actual images
+**No upscaling**: Prevents resource abuse with fit: 'scale-down'
 
 ## Usage patterns
 
@@ -345,16 +345,16 @@ Different URL patterns for different use cases:
 
 ### Cloudflare edge benefits
 
-- **Global Distribution**: Processing at 200+ edge locations worldwide
-- **Low Latency**: Image transformation close to users
-- **High Throughput**: Automatic scaling based on demand
-- **Bandwidth Optimization**: Format conversion reduces transfer sizes
+- **Global distribution**: Processing at 200+ edge locations worldwide
+- **Low latency**: Image transformation close to users
+- **High throughput**: Automatic scaling based on demand
+- **Bandwidth optimization**: Format conversion reduces transfer sizes
 
 ### Caching efficiency
 
-- **Cache Hit Rate**: High hit rate due to consistent cache keys
-- **Cache Duration**: Leverages browser and CDN caching
-- **Cache Invalidation**: ETag-based validation for freshness
+- **Cache hit rate**: High hit rate due to consistent cache keys
+- **Cache duration**: Leverages browser and CDN caching
+- **Cache invalidation**: ETag-based validation for freshness
 
 ## Development and testing
 
@@ -384,21 +384,21 @@ Each environment is deployed separately:
 
 ### User experience
 
-- **Faster Loading**: Optimized images load faster
-- **Bandwidth Savings**: Modern formats reduce data usage
-- **Responsive Images**: Width-based resizing for different screen sizes
-- **Universal Compatibility**: Fallback to supported formats
+- **Faster loading**: Optimized images load faster
+- **Bandwidth savings**: Modern formats reduce data usage
+- **Responsive images**: Width-based resizing for different screen sizes
+- **Universal compatibility**: Fallback to supported formats
 
 ### Developer experience
 
 - **Simple API**: URL-based transformation parameters
-- **Type Safety**: Full TypeScript support with validation
-- **Easy Integration**: Works with existing asset upload systems
+- **Type safety**: Full TypeScript support with validation
+- **Easy integration**: Works with existing asset upload systems
 - **Monitoring**: Built-in error handling and logging
 
 ### Operations
 
 - **Scalability**: Automatic scaling with zero configuration
 - **Reliability**: Global redundancy and failover capabilities
-- **Cost Efficiency**: Pay-per-request pricing with caching benefits
+- **Cost efficiency**: Pay-per-request pricing with caching benefits
 - **Maintenance**: Minimal operational overhead

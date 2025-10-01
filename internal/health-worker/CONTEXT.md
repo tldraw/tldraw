@@ -39,7 +39,7 @@ A Cloudflare Worker that processes webhooks from [Updown](https://updown.io/) he
 
 ## Configuration
 
-**Environment Variables**
+**Environment variables**
 
 - `DISCORD_HEALTH_WEBHOOK_URL` - Discord webhook URL for sending alerts
 - `HEALTH_WORKER_UPDOWN_WEBHOOK_PATH` - Secret path for Updown webhooks (security measure)
