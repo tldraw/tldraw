@@ -239,7 +239,7 @@ const AssetRecordType = createRecordType<TLAsset>('asset', {
 
 ### Adding new shape types
 
-1. **Define Shape Interface:**
+1. **Define shape interface:**
 
 ```typescript
 interface TLCustomShape extends TLBaseShape<'custom', TLCustomShapeProps> {}
