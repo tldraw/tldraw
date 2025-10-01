@@ -650,7 +650,7 @@ interface TLAssetStore {
 
 ## Package dependencies and integration
 
-**Internal Dependencies:**
+**Internal dependencies:**
 
 - Builds on `@tldraw/store` for record management
 - Uses `@tldraw/validate` for all validation
