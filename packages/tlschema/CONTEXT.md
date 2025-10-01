@@ -106,7 +106,7 @@ Each shape defines:
 
 ### Asset system
 
-**Asset Types (`src/assets/`):**
+**Asset types (`src/assets/`):**
 
 - **TLImageAsset** - Raster images with metadata (size, MIME type, etc.)
 - **TLVideoAsset** - Video files with duration and thumbnail info
