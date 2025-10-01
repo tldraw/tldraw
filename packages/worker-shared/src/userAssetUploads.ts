@@ -2,6 +2,34 @@ import { R2Bucket } from '@cloudflare/workers-types'
 import { IRequest } from 'itty-router'
 import { notFound } from './errors'
 
+/**
+ * Handles asset upload requests to Cloudflare R2 storage with conflict detection.
+ * Checks if the asset already exists and returns a 409 Conflict status if found,
+ * otherwise uploads the asset with the provided HTTP metadata.
+ *
+ * @param options - Configuration object for the upload
+ *   - objectName - Unique identifier for the asset in R2 storage
+ *   - bucket - Cloudflare R2 bucket instance for storage
+ *   - body - ReadableStream containing the asset data to upload
+ *   - headers - HTTP headers to store as metadata with the asset
+ * @returns Promise resolving to JSON response with object name and ETag, or 409 if exists
+ *
+ * @example
+ * ```ts
+ * router.put('/assets/:objectName', async (request, env) => {
+ *   const { objectName } = request.params
+ *
+ *   return handleUserAssetUpload({
+ *     objectName,
+ *     bucket: env.ASSETS_BUCKET,
+ *     body: request.body,
+ *     headers: request.headers,
+ *   })
+ * })
+ * ```
+ *
+ * @public
+ */
 export async function handleUserAssetUpload({
 	body,
 	headers,
@@ -24,6 +52,35 @@ export async function handleUserAssetUpload({
 	return Response.json({ object: objectName }, { headers: { etag: object.httpEtag } })
 }
 
+/**
+ * Handles asset retrieval requests from Cloudflare R2 storage with comprehensive caching and range support.
+ * Provides automatic caching via Cloudflare's cache API, supports partial content requests (range headers),
+ * and includes proper CORS headers for cross-origin access. Assets are cached with immutable headers
+ * for optimal performance.
+ *
+ * @param options - Configuration object for asset retrieval
+ *   - request - HTTP request containing potential range headers and cache keys
+ *   - bucket - Cloudflare R2 bucket instance containing the asset
+ *   - objectName - Unique identifier of the asset to retrieve
+ *   - context - Execution context for background caching operations
+ * @returns Promise resolving to the asset response with appropriate headers and caching
+ *
+ * @example
+ * ```ts
+ * router.get('/assets/:objectName', async (request, env, ctx) => {
+ *   const { objectName } = request.params
+ *
+ *   return handleUserAssetGet({
+ *     request,
+ *     bucket: env.ASSETS_BUCKET,
+ *     objectName,
+ *     context: ctx,
+ *   })
+ * })
+ * ```
+ *
+ * @public
+ */
 export async function handleUserAssetGet({
 	request,
 	bucket,

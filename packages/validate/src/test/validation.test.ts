@@ -1,4 +1,5 @@
 import * as T from '../lib/validation'
+import { ValidationError } from '../lib/validation'
 
 describe('validations', () => {
 	it('Returns referentially identical objects', () => {
@@ -119,12 +120,62 @@ describe('validations', () => {
 })
 
 describe('T.refine', () => {
-	it.todo('Refines a validator.')
-	it.todo('Produces a type error if the refinement is not of the correct type.')
+	it('Refines a validator.', () => {
+		const stringToNumber = T.string.refine((str) => parseInt(str, 10))
+		const originalEnv = process.env.NODE_ENV
+		process.env.NODE_ENV = 'production'
+		expect(stringToNumber.validate('42')).toBe(42)
+		process.env.NODE_ENV = originalEnv
+
+		const prefixedString = T.string.refine((str) =>
+			str.startsWith('prefix:') ? str : `prefix:${str}`
+		)
+		process.env.NODE_ENV = 'production'
+		expect(prefixedString.validate('test')).toBe('prefix:test')
+		expect(prefixedString.validate('prefix:existing')).toBe('prefix:existing')
+		process.env.NODE_ENV = originalEnv
+	})
+
+	it('Produces a type error if the refinement is not of the correct type.', () => {
+		const stringToNumber = T.string.refine((str) => {
+			const num = parseInt(str, 10)
+			if (isNaN(num)) {
+				throw new ValidationError('Invalid number format')
+			}
+			return num
+		})
+
+		expect(() => stringToNumber.validate('not-a-number')).toThrowErrorMatchingInlineSnapshot(
+			`[ValidationError: At null: Invalid number format]`
+		)
+	})
 })
 
 describe('T.check', () => {
-	it.todo('Adds a check to a validator.')
+	it('Adds a check to a validator.', () => {
+		const evenNumber = T.number.check((value) => {
+			if (value % 2 !== 0) {
+				throw new ValidationError('Expected even number')
+			}
+		})
+
+		expect(evenNumber.validate(4)).toBe(4)
+		expect(evenNumber.validate(0)).toBe(0)
+		expect(() => evenNumber.validate(3)).toThrowErrorMatchingInlineSnapshot(
+			`[ValidationError: At null: Expected even number]`
+		)
+
+		const namedCheck = T.number.check('positive', (value) => {
+			if (value <= 0) {
+				throw new ValidationError('Must be positive')
+			}
+		})
+
+		expect(namedCheck.validate(5)).toBe(5)
+		expect(() => namedCheck.validate(-1)).toThrowErrorMatchingInlineSnapshot(
+			`[ValidationError: At (check positive): Must be positive]`
+		)
+	})
 })
 
 describe('T.indexKey', () => {

@@ -245,17 +245,60 @@ const EMBED_DEFINITIONS = [
 	},
 ]
 
-/** @public */
+/**
+ * Properties for the embed shape, which displays embedded content from external services.
+ *
+ * @public
+ */
 export interface TLEmbedShapeProps {
+	/** Width of the embed shape in pixels */
 	w: number
+	/** Height of the embed shape in pixels */
 	h: number
+	/** URL of the content to embed (supports YouTube, Figma, CodePen, etc.) */
 	url: string
 }
 
-/** @public */
+/**
+ * An embed shape displays external content like YouTube videos, Figma designs, CodePen demos,
+ * and other embeddable content within the tldraw canvas.
+ *
+ * @public
+ * @example
+ * ```ts
+ * const embedShape: TLEmbedShape = {
+ *   id: createShapeId(),
+ *   typeName: 'shape',
+ *   type: 'embed',
+ *   x: 200,
+ *   y: 200,
+ *   rotation: 0,
+ *   index: 'a1',
+ *   parentId: 'page:page1',
+ *   isLocked: false,
+ *   opacity: 1,
+ *   props: {
+ *     w: 560,
+ *     h: 315,
+ *     url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+ *   },
+ *   meta: {}
+ * }
+ * ```
+ */
 export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>
 
-/** @public */
+/**
+ * Validation schema for embed shape properties.
+ *
+ * @public
+ * @example
+ * ```ts
+ * // Validate embed shape properties
+ * const isValidUrl = embedShapeProps.url.isValid('https://youtube.com/watch?v=abc123')
+ * const isValidSize = embedShapeProps.w.isValid(560)
+ * ```
+ */
 export const embedShapeProps: RecordProps<TLEmbedShape> = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
@@ -269,9 +312,19 @@ const Versions = createShapePropsMigrationIds('embed', {
 	RemovePermissionOverrides: 4,
 })
 
+/**
+ * Version identifiers for embed shape migrations.
+ *
+ * @public
+ */
 export { Versions as embedShapeVersions }
 
-/** @public */
+/**
+ * Migration sequence for embed shape properties across different schema versions.
+ * Handles URL transformations and removal of deprecated properties.
+ *
+ * @public
+ */
 export const embedShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{
