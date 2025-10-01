@@ -72,7 +72,7 @@ Complete toolset:
 - **LaserTool**: Temporary pointer for presentations
 - **ZoomTool**: Zoom to specific areas
 
-#### SelectTool - primary interaction tool
+#### SelectTool - Primary interaction tool
 
 Sophisticated state machine with child states:
 
