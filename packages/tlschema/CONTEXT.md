@@ -525,7 +525,7 @@ interface TLAssetStore {
 
 ### Shape property patterns
 
-**Geometric Properties:**
+**Geometric properties:**
 
 - Position: `x`, `y`, `rotation` (inherited from base)
 - Size: `w`, `h` or shape-specific dimensions
