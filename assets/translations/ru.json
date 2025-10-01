@@ -94,6 +94,7 @@
 	"action.stretch-horizontal.short": "Растянуть по горизонтали",
 	"action.stretch-vertical": "Растянуть по вертикали",
 	"action.stretch-vertical.short": "Растянуть по вертикали",
+	"action.toggle-auto-none": "Авто",
 	"action.toggle-auto-size": "Переключить автоматический размер",
 	"action.toggle-dark-mode": "Переключить темный режим",
 	"action.toggle-dark-mode.menu": "Темный режим",
