@@ -179,7 +179,7 @@ const migrations = createMigrationSequence({
 
 ### Shape property system
 
-**Properties with Styles:**
+**Properties with styles:**
 
 ```typescript
 interface TLGeoShapeProps {
