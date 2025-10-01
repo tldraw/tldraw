@@ -117,7 +117,7 @@ function getRunCommand(manager: PackageManager, command: string): string
 async function uncancel<T>(promise: Promise<T | symbol>): Promise<T>
 ```
 
-#### Custom aNSI text wrapping (`wrap-ansi.ts`)
+#### Custom ANSI text wrapping (`wrap-ansi.ts`)
 
 Custom implementation for terminal text wrapping that handles ANSI escape sequences:
 
