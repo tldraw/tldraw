@@ -6,7 +6,7 @@ This file provides comprehensive context for understanding the `@tldraw/tlschema
 
 `@tldraw/tlschema` is the central type definition and schema management package for tldraw. It defines all record types (shapes, assets, pages, etc.), their validation schemas, migration sequences, and the overall data model that powers the tldraw editor.
 
-**Core Purpose:** Provide a complete, type-safe, and version-aware data model for tldraw that can evolve over time while maintaining backward compatibility.
+**Core purpose:** Provide a complete, type-safe, and version-aware data model for tldraw that can evolve over time while maintaining backward compatibility.
 
 ## Architecture overview
 
