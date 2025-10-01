@@ -202,7 +202,7 @@ const GeoShapeGeoStyle = StyleProp.defineEnum('tldraw:geo', {
 
 ### Record type creation
 
-**Shape Record Creation:**
+**Shape record creation:**
 
 ```typescript
 const GeoShapeRecordType = createRecordType<TLGeoShape>('shape', {
