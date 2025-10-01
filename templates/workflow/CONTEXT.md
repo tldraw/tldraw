@@ -65,9 +65,9 @@ This is a starter template for building workflow/flowchart applications using tl
 
 ### Event handling
 
-- **Port Interactions**: Custom pointer events for creating connections and nodes
-- **Connection Management**: Automatic connection rerouting and cleanup
-- **Z-Order Management**: Connections automatically stay below nodes
+- **Port interactions**: Custom pointer events for creating connections and nodes
+- **Connection management**: Automatic connection rerouting and cleanup
+- **Z-Order management**: Connections automatically stay below nodes
 
 ## Development patterns
 
