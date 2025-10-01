@@ -46,7 +46,7 @@ type TLRecord =
 
 ### Shape system architecture
 
-**Base Shape Structure (`src/shapes/TLBaseShape.ts`):**
+**Base shape structure (`src/shapes/TLBaseShape.ts`):**
 
 ```typescript
 interface TLBaseShape<Type extends string, Props extends object> {
