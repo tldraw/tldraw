@@ -331,9 +331,9 @@ Different URL patterns for different use cases:
 
 ### Validation errors
 
-- **Invalid Origin**: Returns 404 for non-whitelisted domains
-- **Invalid Path**: Returns 404 for non-asset paths in service binding mode
-- **Invalid Content**: Returns 404 for non-image responses
+- **Invalid origin**: Returns 404 for non-whitelisted domains
+- **Invalid path**: Returns 404 for non-asset paths in service binding mode
+- **Invalid content**: Returns 404 for non-image responses
 
 ### Graceful degradation
 
