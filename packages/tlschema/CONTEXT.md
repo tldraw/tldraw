@@ -640,8 +640,8 @@ interface TLAssetStore {
 
 ## Common pitfalls
 
-1. **Migration Inconsistencies:** Mismatched up/down migrations causing data loss
-2. **Validation Performance:** Over-complex validators in hot paths
+1. **Migration inconsistencies:** Mismatched up/down migrations causing data loss
+2. **Validation performance:** Over-complex validators in hot paths
 3. **Style Property Conflicts:** Multiple properties with same ID
 4. **ID Type Confusion:** Using wrong ID types for references
 5. **Schema Breaking Changes:** Changes without proper migrations
