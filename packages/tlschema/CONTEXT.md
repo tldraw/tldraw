@@ -12,7 +12,7 @@ This file provides comprehensive context for understanding the `@tldraw/tlschema
 
 ### Record system hierarchy
 
-**TLRecord Union (`src/records/TLRecord.ts`):**
+**TLRecord union (`src/records/TLRecord.ts`):**
 
 ```typescript
 type TLRecord =
