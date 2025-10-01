@@ -9,7 +9,7 @@ export function getTlsyncProtocolVersion() {
 }
 
 /**
- * @internal
+ * @public
  * @deprecated Replaced by websocket .close status/reason
  */
 export const TLIncompatibilityReason = {
@@ -20,7 +20,7 @@ export const TLIncompatibilityReason = {
 } as const
 
 /**
- * @internal
+ * @public
  * @deprecated replaced by websocket .close status/reason
  */
 export type TLIncompatibilityReason =

@@ -239,7 +239,7 @@ export interface TLConnectRequest {
 // @public
 export type TLCustomMessageHandler = (this: null, data: any) => void;
 
-// @internal @deprecated (undocumented)
+// @public @deprecated (undocumented)
 export const TLIncompatibilityReason: {
     readonly ClientTooOld: "clientTooOld";
     readonly InvalidOperation: "invalidOperation";
@@ -247,7 +247,7 @@ export const TLIncompatibilityReason: {
     readonly ServerTooOld: "serverTooOld";
 };
 
-// @internal @deprecated (undocumented)
+// @public @deprecated (undocumented)
 export type TLIncompatibilityReason = (typeof TLIncompatibilityReason)[keyof typeof TLIncompatibilityReason];
 
 // @public
@@ -601,10 +601,6 @@ export interface WebSocketMinimal {
     // (undocumented)
     send: (data: string) => void;
 }
-
-// Warnings were encountered during analysis:
-//
-// src/lib/protocol.ts:49:20 - (ae-incompatible-release-tags) The symbol "reason" is marked as @public, but its signature references "TLIncompatibilityReason" which is marked as @internal
 
 // (No @packageDocumentation comment for this package)
 
