@@ -67,7 +67,7 @@ Client Request → Cloudflare Edge → Worker → R2 Storage
 
 - Worker Name: `tldraw-assets`
 - R2 Bucket: `uploads` (dedicated production bucket)
-- Custom Domain: `assets.tldraw.xyz`
+- Custom domain: `assets.tldraw.xyz`
 - Zone: `tldraw.xyz`
 
 ## Storage structure
