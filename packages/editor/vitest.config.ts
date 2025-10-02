@@ -25,6 +25,6 @@ export default mergeConfig(baseConfig, {
 	},
 	// Handle ES module imports - equivalent to Jest's transformIgnorePatterns
 	ssr: {
-		noExternal: ['nanoevents', '@tiptap/core', '@tiptap/react', '@tiptap/pm', 'fast-deep-equal'],
+		noExternal: ['@tiptap/react'],
 	},
 })
