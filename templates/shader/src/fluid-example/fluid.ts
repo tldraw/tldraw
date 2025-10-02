@@ -317,6 +317,27 @@ export class FluidSimulation {
 		`
 		)
 
+		// Blur vertex shader for bloom
+		const blurVertexShader = this.compileShader(
+			this.gl.VERTEX_SHADER,
+			`
+			precision highp float;
+			attribute vec2 aPosition;
+			varying vec2 vUv;
+			varying vec2 vL;
+			varying vec2 vR;
+			uniform vec2 texelSize;
+
+			void main () {
+				vUv = aPosition * 0.5 + 0.5;
+				float offset = 1.33333333;
+				vL = vUv - texelSize * offset;
+				vR = vUv + texelSize * offset;
+				gl_Position = vec4(aPosition, 0.0, 1.0);
+			}
+		`
+		)
+
 		// Simple copy shader
 		const copyShader = this.compileShader(
 			this.gl.FRAGMENT_SHADER,
@@ -364,6 +385,153 @@ export class FluidSimulation {
 				vec3 splat = exp(-dot(p, p) / radius) * color;
 				vec3 base = texture2D(uTarget, vUv).xyz;
 				gl_FragColor = vec4(base + splat, 1.0);
+			}
+		`
+		)
+
+		// Blur shader for bloom
+		const blurShader = this.compileShader(
+			this.gl.FRAGMENT_SHADER,
+			`
+			precision mediump float;
+			precision mediump sampler2D;
+			varying vec2 vUv;
+			varying vec2 vL;
+			varying vec2 vR;
+			uniform sampler2D uTexture;
+
+			void main () {
+				vec4 sum = texture2D(uTexture, vUv) * 0.29411764;
+				sum += texture2D(uTexture, vL) * 0.35294117;
+				sum += texture2D(uTexture, vR) * 0.35294117;
+				gl_FragColor = sum;
+			}
+		`
+		)
+
+		// Bloom prefilter shader
+		const bloomPrefilterShader = this.compileShader(
+			this.gl.FRAGMENT_SHADER,
+			`
+			precision mediump float;
+			precision mediump sampler2D;
+			varying vec2 vUv;
+			uniform sampler2D uTexture;
+			uniform vec3 curve;
+			uniform float threshold;
+
+			void main () {
+				vec3 c = texture2D(uTexture, vUv).rgb;
+				float br = max(c.r, max(c.g, c.b));
+				float rq = clamp(br - curve.x, 0.0, curve.y);
+				rq = curve.z * rq * rq;
+				c *= max(rq, br - threshold) / max(br, 0.0001);
+				gl_FragColor = vec4(c, 0.0);
+			}
+		`
+		)
+
+		// Bloom blur shader
+		const bloomBlurShader = this.compileShader(
+			this.gl.FRAGMENT_SHADER,
+			`
+			precision mediump float;
+			precision mediump sampler2D;
+			varying vec2 vL;
+			varying vec2 vR;
+			varying vec2 vT;
+			varying vec2 vB;
+			uniform sampler2D uTexture;
+
+			void main () {
+				vec4 sum = vec4(0.0);
+				sum += texture2D(uTexture, vL);
+				sum += texture2D(uTexture, vR);
+				sum += texture2D(uTexture, vT);
+				sum += texture2D(uTexture, vB);
+				sum *= 0.25;
+				gl_FragColor = sum;
+			}
+		`
+		)
+
+		// Bloom final shader
+		const bloomFinalShader = this.compileShader(
+			this.gl.FRAGMENT_SHADER,
+			`
+			precision mediump float;
+			precision mediump sampler2D;
+			varying vec2 vL;
+			varying vec2 vR;
+			varying vec2 vT;
+			varying vec2 vB;
+			uniform sampler2D uTexture;
+			uniform float intensity;
+
+			void main () {
+				vec4 sum = vec4(0.0);
+				sum += texture2D(uTexture, vL);
+				sum += texture2D(uTexture, vR);
+				sum += texture2D(uTexture, vT);
+				sum += texture2D(uTexture, vB);
+				sum *= 0.25;
+				gl_FragColor = sum * intensity;
+			}
+		`
+		)
+
+		// Sunrays mask shader
+		const sunraysMaskShader = this.compileShader(
+			this.gl.FRAGMENT_SHADER,
+			`
+			precision highp float;
+			precision highp sampler2D;
+			varying vec2 vUv;
+			uniform sampler2D uTexture;
+
+			void main () {
+				vec4 c = texture2D(uTexture, vUv);
+				float br = max(c.r, max(c.g, c.b));
+				c.a = 1.0 - min(max(br * 20.0, 0.0), 0.8);
+				gl_FragColor = c;
+			}
+		`
+		)
+
+		// Sunrays shader
+		const sunraysShader = this.compileShader(
+			this.gl.FRAGMENT_SHADER,
+			`
+			precision highp float;
+			precision highp sampler2D;
+			varying vec2 vUv;
+			uniform sampler2D uTexture;
+			uniform float weight;
+
+			#define ITERATIONS 16
+
+			void main () {
+				float Density = 0.3;
+				float Decay = 0.95;
+				float Exposure = 0.7;
+
+				vec2 coord = vUv;
+				vec2 dir = vUv - 0.5;
+
+				dir *= 1.0 / float(ITERATIONS) * Density;
+				float illuminationDecay = 1.0;
+
+				float color = texture2D(uTexture, vUv).a;
+
+				for (int i = 0; i < ITERATIONS; i++)
+				{
+					coord -= dir;
+					float col = texture2D(uTexture, coord).a;
+					color += col * illuminationDecay * weight;
+					illuminationDecay *= Decay;
+				}
+
+				gl_FragColor = vec4(color * Exposure, 0.0, 0.0, 1.0);
 			}
 		`
 		)
@@ -571,6 +739,17 @@ export class FluidSimulation {
 			gradientSubtractShader
 		)
 
+		// Bloom and sunrays programs
+		this.programs.blur = this.createProgramWithUniforms(blurVertexShader, blurShader)
+		this.programs.bloomPrefilter = this.createProgramWithUniforms(
+			baseVertexShader,
+			bloomPrefilterShader
+		)
+		this.programs.bloomBlur = this.createProgramWithUniforms(baseVertexShader, bloomBlurShader)
+		this.programs.bloomFinal = this.createProgramWithUniforms(baseVertexShader, bloomFinalShader)
+		this.programs.sunraysMask = this.createProgramWithUniforms(baseVertexShader, sunraysMaskShader)
+		this.programs.sunrays = this.createProgramWithUniforms(baseVertexShader, sunraysShader)
+
 		// Display material with keywords support
 		this.displayMaterial = new Material(this.gl, baseVertexShader, this.getDisplayShaderSource())
 		this.updateKeywords()
@@ -645,6 +824,7 @@ export class FluidSimulation {
 				c += bloom;
 			#endif
 
+				c = clamp(c, 0.0, 1.0);
 				float a = max(c.r, max(c.g, c.b));
 				gl_FragColor = vec4(c, a);
 			}
@@ -1089,25 +1269,79 @@ export class FluidSimulation {
 		let last = destination
 
 		this.gl.disable(this.gl.BLEND)
-		// Simple bloom implementation - just copy for now
-		this.programs.copy.bind()
-		this.gl.uniform1i(this.programs.copy.uniforms.uTexture, source.attach(0))
-		this.blit(last)
-	}
 
-	private applySunrays(source: any, _mask: any, destination: any) {
-		this.gl.disable(this.gl.BLEND)
-		// Simple sunrays implementation - just copy for now
-		this.programs.copy.bind()
-		this.gl.uniform1i(this.programs.copy.uniforms.uTexture, source.attach(0))
+		// Apply bloom prefilter
+		this.programs.bloomPrefilter.bind()
+		const knee = this.config.BLOOM_THRESHOLD * this.config.BLOOM_SOFT_KNEE + 0.0001
+		const curve0 = this.config.BLOOM_THRESHOLD - knee
+		const curve1 = knee * 2
+		const curve2 = 0.25 / knee
+		this.gl.uniform3f(this.programs.bloomPrefilter.uniforms.curve, curve0, curve1, curve2)
+		this.gl.uniform1f(this.programs.bloomPrefilter.uniforms.threshold, this.config.BLOOM_THRESHOLD)
+		this.gl.uniform1i(this.programs.bloomPrefilter.uniforms.uTexture, source.attach(0))
+		this.blit(last)
+
+		// Blur down
+		this.programs.bloomBlur.bind()
+		for (let i = 0; i < this.bloomFramebuffers.length; i++) {
+			const dest = this.bloomFramebuffers[i]
+			this.gl.uniform2f(
+				this.programs.bloomBlur.uniforms.texelSize,
+				last.texelSizeX,
+				last.texelSizeY
+			)
+			this.gl.uniform1i(this.programs.bloomBlur.uniforms.uTexture, last.attach(0))
+			this.blit(dest)
+			last = dest
+		}
+
+		// Blur up
+		this.programs.bloomFinal.bind()
+		this.gl.uniform1f(this.programs.bloomFinal.uniforms.intensity, this.config.BLOOM_INTENSITY)
+		for (let i = this.bloomFramebuffers.length - 2; i >= 0; i--) {
+			const baseTex = this.bloomFramebuffers[i]
+			this.gl.uniform2f(
+				this.programs.bloomFinal.uniforms.texelSize,
+				last.texelSizeX,
+				last.texelSizeY
+			)
+			this.gl.uniform1i(this.programs.bloomFinal.uniforms.uTexture, last.attach(0))
+			this.blit(baseTex)
+			last = baseTex
+		}
+
+		// Final composite
+		this.gl.uniform2f(this.programs.bloomFinal.uniforms.texelSize, last.texelSizeX, last.texelSizeY)
+		this.gl.uniform1i(this.programs.bloomFinal.uniforms.uTexture, last.attach(0))
 		this.blit(destination)
 	}
 
-	private blur(target: any, temp: any, _iterations: number) {
-		// Simple blur implementation - just copy for now
-		this.programs.copy.bind()
-		this.gl.uniform1i(this.programs.copy.uniforms.uTexture, target.attach(0))
-		this.blit(temp)
+	private applySunrays(source: any, mask: any, destination: any) {
+		this.gl.disable(this.gl.BLEND)
+
+		// Create sunrays mask
+		this.programs.sunraysMask.bind()
+		this.gl.uniform1i(this.programs.sunraysMask.uniforms.uTexture, source.attach(0))
+		this.blit(mask)
+
+		// Apply sunrays effect
+		this.programs.sunrays.bind()
+		this.gl.uniform1f(this.programs.sunrays.uniforms.weight, this.config.SUNRAYS_WEIGHT)
+		this.gl.uniform1i(this.programs.sunrays.uniforms.uTexture, mask.attach(0))
+		this.blit(destination)
+	}
+
+	private blur(target: any, temp: any, iterations: number) {
+		this.programs.blur.bind()
+		for (let i = 0; i < iterations; i++) {
+			this.gl.uniform2f(this.programs.blur.uniforms.texelSize, target.texelSizeX, 0.0)
+			this.gl.uniform1i(this.programs.blur.uniforms.uTexture, target.attach(0))
+			this.blit(temp)
+
+			this.gl.uniform2f(this.programs.blur.uniforms.texelSize, 0.0, target.texelSizeY)
+			this.gl.uniform1i(this.programs.blur.uniforms.uTexture, temp.attach(0))
+			this.blit(target)
+		}
 	}
 
 	private normalizeColor(input: { r: number; g: number; b: number }) {

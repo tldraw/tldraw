@@ -18,6 +18,7 @@ export const FluidRenderer = memo(() => {
 		const manager = new FluidManager(canvas, editor, config)
 		rFluidManager.current = manager
 
+		// Initialize the WebGL context and start the animation loop
 		manager.initialize(darkMode)
 
 		function handlePointerDown(e: PointerEvent) {

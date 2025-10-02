@@ -1,5 +1,11 @@
 import { useCallback } from 'react'
-import { TldrawUiIcon, TldrawUiSlider, useLocalStorageState, useValue } from 'tldraw'
+import {
+	TldrawUiButton,
+	TldrawUiIcon,
+	TldrawUiSlider,
+	useLocalStorageState,
+	useValue,
+} from 'tldraw'
 import { DEFAULT_CONFIG, FluidManagerConfig } from './FluidManager'
 import { fluidConfig } from './fluid-config'
 
@@ -38,58 +44,54 @@ export function ConfigPanel() {
 			{isExpanded && (
 				<div className="shader-config-content">
 					{/* Reset Button */}
-					<div className="shader-reset-container">
-						<button onClick={handleReset} className="shader-reset-button">
-							Reset to Defaults
-						</button>
-					</div>
+					<TldrawUiButton type="menu" onClick={handleReset}>
+						Reset to Defaults
+					</TldrawUiButton>
 
 					{/* General Settings */}
-					<FloatSlider prop="quality" label="Quality" min={0} max={1} step={0.01} />
-					<FloatSlider prop="velocityScale" label="Velocity Scale" min={0} max={1} step={0.001} />
-					<IntSlider prop="boundsSampleCount" label="Bounds Sample Count" min={4} max={84} />
+					<NormalizedValueSlider prop="quality" label="Quality" min={0} max={1} />
+					<NormalizedValueSlider prop="velocityScale" label="Velocity Scale" min={0} max={0.1} />
+					<NumberSlider prop="boundsSampleCount" label="Bounds Sample Count" min={4} max={100} />
 					<BooleanControl prop="paused" label="Paused" />
 					<BooleanControl prop="transparent" label="Transparent Background" />
 
 					{/* Simulation Settings */}
 					<ResolutionSlider prop="simResolution" label="Simulation Resolution" min={32} max={512} />
 					<ResolutionSlider prop="dyeResolution" label="Dye Resolution" min={256} max={2048} />
-					<FloatSlider
+					<NormalizedValueSlider
 						prop="densityDissipation"
 						label="Density Dissipation"
 						min={0}
-						max={3}
-						step={0.1}
+						max={4}
 					/>
-					<FloatSlider
+					<NormalizedValueSlider
 						prop="velocityDissipation"
 						label="Velocity Dissipation"
 						min={0}
 						max={1}
-						step={0.01}
 					/>
-					<FloatSlider prop="pressure" label="Pressure" min={0} max={2} step={0.1} />
-					<IntSlider prop="pressureIterations" label="Pressure Iterations" min={1} max={40} />
-					<IntSlider prop="curl" label="Curl (Vorticity)" min={0} max={100} />
+					<NormalizedValueSlider prop="pressure" label="Pressure" min={0} max={2} />
+					<NumberSlider prop="pressureIterations" label="Pressure Iterations" min={1} max={60} />
+					<NumberSlider prop="curl" label="Curl (Vorticity)" min={0} max={100} />
 
 					{/* Splat Settings */}
-					<FloatSlider prop="splatRadius" label="Splat Radius" min={0.01} max={1} step={0.01} />
-					<IntSlider prop="splatForce" label="Splat Force" min={1000} max={20000} />
+					<NormalizedValueSlider prop="splatRadius" label="Splat Radius" min={0.01} max={1} />
+					<NumberSlider prop="splatForce" label="Splat Force" min={1000} max={20000} />
 					<BooleanControl prop="shading" label="Shading" />
 					<BooleanControl prop="colorful" label="Colorful Mode" />
-					<IntSlider prop="colorUpdateSpeed" label="Color Update Speed" min={1} max={50} />
+					<NumberSlider prop="colorUpdateSpeed" label="Color Update Speed" min={1} max={50} />
 
 					{/* Post-Processing */}
 					<BooleanControl prop="bloom" label="Bloom Effect" />
-					<IntSlider prop="bloomIterations" label="Bloom Iterations" min={1} max={20} />
-					<IntSlider prop="bloomResolution" label="Bloom Resolution" min={64} max={512} />
-					<FloatSlider prop="bloomIntensity" label="Bloom Intensity" min={0} max={2} step={0.1} />
-					<FloatSlider prop="bloomThreshold" label="Bloom Threshold" min={0} max={1} step={0.1} />
-					<FloatSlider prop="bloomSoftKnee" label="Bloom Soft Knee" min={0} max={1} step={0.1} />
+					<NumberSlider prop="bloomIterations" label="Bloom Iterations" min={1} max={20} />
+					<NumberSlider prop="bloomResolution" label="Bloom Resolution" min={64} max={512} />
+					<NormalizedValueSlider prop="bloomIntensity" label="Bloom Intensity" min={0} max={2} />
+					<NormalizedValueSlider prop="bloomThreshold" label="Bloom Threshold" min={0} max={1} />
+					<NormalizedValueSlider prop="bloomSoftKnee" label="Bloom Soft Knee" min={0} max={1} />
 
 					<BooleanControl prop="sunrays" label="Sunrays Effect" />
-					<IntSlider prop="sunraysResolution" label="Sunrays Resolution" min={64} max={512} />
-					<FloatSlider prop="sunraysWeight" label="Sunrays Weight" min={0} max={2} step={0.1} />
+					<NumberSlider prop="sunraysResolution" label="Sunrays Resolution" min={64} max={512} />
+					<NormalizedValueSlider prop="sunraysWeight" label="Sunrays Weight" min={0} max={2} />
 				</div>
 			)}
 		</div>
@@ -101,40 +103,41 @@ type KeyForType<U, T> = {
 	[K in keyof U]: U[K] extends T ? K : never
 }[keyof U]
 
-function FloatSlider({
+function NormalizedValueSlider({
 	prop,
 	label,
 	min,
 	max,
-	step = 0.01,
 }: {
 	prop: KeyForType<FluidManagerConfig, number>
 	label: string
 	min: number
 	max: number
-	step?: number
 }) {
-	const value = useValue(prop, () => fluidConfig.get()[prop], [])
-	const steps = Math.ceil((max - min) / step)
+	const actualValue = useValue(prop, () => fluidConfig.get()[prop], [])
+	// Map actual value (min to max) to slider value (1 to 10)
+	const sliderValue = actualValue != null ? 1 + ((actualValue - min) / (max - min)) * 9 : 1
 
 	return (
 		<div className="shader-slider-container">
 			<PanelLabel>{label}</PanelLabel>
 			<TldrawUiSlider
-				steps={steps}
-				min={min}
-				value={value ?? min}
+				steps={10}
+				min={1}
+				value={sliderValue}
 				label={label}
 				title={label}
-				onValueChange={(value) => {
-					fluidConfig.update((prev) => ({ ...prev, [prop]: value }))
+				onValueChange={(sliderValue) => {
+					// Map slider value (1 to 10) back to actual value (min to max)
+					const actualValue = min + ((sliderValue - 1) / 9) * (max - min)
+					fluidConfig.update((prev) => ({ ...prev, [prop]: actualValue }))
 				}}
 			/>
 		</div>
 	)
 }
 
-function IntSlider({
+function NumberSlider({
 	prop,
 	label,
 	min,
@@ -145,19 +148,23 @@ function IntSlider({
 	min: number
 	max: number
 }) {
-	const value = useValue(prop, () => fluidConfig.get()[prop], [])
+	const actualValue = useValue(prop, () => fluidConfig.get()[prop], [])
+	// Map actual value (min to max) to slider value (1 to 10)
+	const sliderValue = actualValue != null ? 1 + ((actualValue - min) / (max - min)) * 9 : 1
 
 	return (
 		<div className="shader-slider-container">
 			<PanelLabel>{label}</PanelLabel>
 			<TldrawUiSlider
-				steps={max - min}
-				min={min}
-				value={value ?? min}
+				steps={10}
+				min={1}
+				value={sliderValue}
 				label={label}
 				title={label}
-				onValueChange={(value) => {
-					fluidConfig.update((prev) => ({ ...prev, [prop]: Math.round(value) }))
+				onValueChange={(sliderValue) => {
+					// Map slider value (1 to 10) back to actual value (min to max)
+					const actualValue = min + ((sliderValue - 1) / 9) * (max - min)
+					fluidConfig.update((prev) => ({ ...prev, [prop]: Math.round(actualValue) }))
 				}}
 			/>
 		</div>
@@ -175,20 +182,27 @@ function ResolutionSlider({
 	min: number
 	max: number
 }) {
-	const value = useValue(prop, () => fluidConfig.get()[prop], [])
-	const steps = Math.log2(max / min)
+	const actualValue = useValue(prop, () => fluidConfig.get()[prop], [])
+	// Use logarithmic scale for resolution values
+	const logMin = Math.log2(min)
+	const logMax = Math.log2(max)
+	const logValue = actualValue != null ? Math.log2(actualValue) : logMin
+	// Map log value to slider value (1 to 10)
+	const sliderValue = 1 + ((logValue - logMin) / (logMax - logMin)) * 9
 
 	return (
 		<div className="shader-slider-container">
 			<PanelLabel>{label}</PanelLabel>
 			<TldrawUiSlider
-				steps={steps}
-				min={0}
-				value={Math.log2((value ?? min) / min)}
+				steps={10}
+				min={1}
+				value={sliderValue}
 				label={label}
 				title={label}
-				onValueChange={(logValue) => {
-					const actualValue = min * Math.pow(2, logValue)
+				onValueChange={(sliderValue) => {
+					// Map slider value (1 to 10) back to log value, then to actual value
+					const logValue = logMin + ((sliderValue - 1) / 9) * (logMax - logMin)
+					const actualValue = Math.pow(2, logValue)
 					fluidConfig.update((prev) => ({ ...prev, [prop]: Math.round(actualValue) }))
 				}}
 			/>

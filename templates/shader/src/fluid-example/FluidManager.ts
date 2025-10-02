@@ -193,7 +193,7 @@ export class FluidManager {
 		this.canvas.width = rect.width
 		this.canvas.height = rect.height
 
-		const backgroundColor = darkMode ? { r: 0, g: 0, b: 0 } : { r: 255, g: 255, b: 255 }
+		const backgroundColor = darkMode ? { r: 16, g: 16, b: 17 } : { r: 249, g: 250, b: 251 }
 
 		this.fluidSim = new FluidSimulation(this.canvas, {
 			SIM_RESOLUTION: this.config.quality * this.config.simResolution,
