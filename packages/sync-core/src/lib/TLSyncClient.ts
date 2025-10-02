@@ -562,25 +562,28 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	}
 
 	/** Send any unsent push requests to the server */
-	private flushPendingPushRequests = fpsThrottle(() => {
-		this.debug('flushing pending push requests', {
-			isConnectedToRoom: this.isConnectedToRoom,
-			pendingPushRequests: this.pendingPushRequests,
-		})
-		if (!this.isConnectedToRoom || this.store.isPossiblyCorrupted()) {
-			return
-		}
-		for (const pendingPushRequest of this.pendingPushRequests) {
-			if (!pendingPushRequest.sent) {
-				if (this.socket.connectionStatus !== 'online') {
-					// we went offline, so don't send anything
-					return
-				}
-				this.socket.sendMessage(pendingPushRequest.request)
-				pendingPushRequest.sent = true
+	private flushPendingPushRequests = fpsThrottle(
+		() => {
+			this.debug('flushing pending push requests', {
+				isConnectedToRoom: this.isConnectedToRoom,
+				pendingPushRequests: this.pendingPushRequests,
+			})
+			if (!this.isConnectedToRoom || this.store.isPossiblyCorrupted()) {
+				return
 			}
-		}
-	})
+			for (const pendingPushRequest of this.pendingPushRequests) {
+				if (!pendingPushRequest.sent) {
+					if (this.socket.connectionStatus !== 'online') {
+						// we went offline, so don't send anything
+						return
+					}
+					this.socket.sendMessage(pendingPushRequest.request)
+					pendingPushRequest.sent = true
+				}
+			}
+		},
+		() => (this.presenceMode?.get() === 'solo' ? 1 : 30)
+	)
 
 	/**
 	 * Applies a 'network' diff to the store this does value-based equality checking so that if the
@@ -688,5 +691,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 	}
 
-	private scheduleRebase = fpsThrottle(this.rebase)
+	private scheduleRebase = fpsThrottle(this.rebase, () =>
+		this.presenceMode?.get() === 'solo' ? 1 : 30
+	)
 }

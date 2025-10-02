@@ -5,11 +5,14 @@ const isTest = () =>
 	!globalThis.__FORCE_RAF_IN_TESTS__
 
 const fpsQueue: Array<() => void> = []
-const targetFps = 60
-const targetTimePerFrame = Math.floor(1000 / targetFps) * 0.9 // ~15ms - we allow for some variance as browsers aren't that precise.
+const targetFps = 120
+const targetTimePerFrame = Math.floor(1000 / targetFps) * 0.9 // ~7ms - we allow for some variance as browsers aren't that precise.
 let frameRaf: undefined | number
 let flushRaf: undefined | number
 let lastFlushTime = -targetTimePerFrame
+
+// Track custom FPS timing per function
+const customFpsLastRunTime = new WeakMap<() => void, number>()
 
 const flush = () => {
 	const queue = fpsQueue.splice(0, fpsQueue.length)
@@ -53,12 +56,16 @@ function tick(isOnNextFrame = false) {
 
 /**
  * Returns a throttled version of the function that will only be called max once per frame.
- * The target frame rate is 60fps.
+ * The target frame rate is up to 120fps (adapts to display refresh rate via requestAnimationFrame).
  * @param fn - the fun to return a throttled version of
+ * @param getTargetFps - optional function that returns the current target FPS rate for custom throttling
  * @returns
  * @internal
  */
-export function fpsThrottle(fn: { (): void; cancel?(): void }): {
+export function fpsThrottle(
+	fn: { (): void; cancel?(): void },
+	getTargetFps?: () => number
+): {
 	(): void
 	cancel?(): void
 } {
@@ -77,6 +84,20 @@ export function fpsThrottle(fn: { (): void; cancel?(): void }): {
 	}
 
 	const throttledFn = () => {
+		// Check custom FPS timing if applicable
+		if (getTargetFps) {
+			const lastRun = customFpsLastRunTime.get(fn) ?? -Infinity
+			const customTimePerFrame = Math.floor(1000 / getTargetFps()) * 0.9
+			const elapsed = Date.now() - lastRun
+
+			if (elapsed < customTimePerFrame) {
+				// Not enough time has elapsed, skip this call
+				return
+			}
+
+			customFpsLastRunTime.set(fn, Date.now())
+		}
+
 		if (fpsQueue.includes(fn)) {
 			return
 		}
@@ -93,7 +114,7 @@ export function fpsThrottle(fn: { (): void; cancel?(): void }): {
 }
 
 /**
- * Calls the function on the next frame. The target frame rate is 60fps.
+ * Calls the function on the next frame. The target frame rate is up to 120fps (adapts to display refresh rate).
  * If the same fn is passed again before the next frame, it will still be called only once.
  * @param fn - the fun to call on the next frame
  * @returns a function that will cancel the call if called before the next frame
