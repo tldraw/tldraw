@@ -27,7 +27,7 @@ export function useComputed<Value, Diff = unknown>(name: string, compute: () => 
 // @public (undocumented)
 export function useQuickReactor(name: string, reactFn: () => void, deps?: any[]): void;
 
-// @public (undocumented)
+// @public
 export function useReactor(name: string, reactFn: () => void, deps?: any[] | undefined): void;
 
 // @public
