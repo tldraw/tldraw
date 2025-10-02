@@ -1321,6 +1321,10 @@ input,
 	flex: 1;
 }
 
+.tl-bookmark__copy_container:has(.tl-bookmark__link:only-child) {
+	justify-content: center;
+}
+
 .tl-bookmark__heading,
 .tl-bookmark__description,
 .tl-bookmark__link {
@@ -1353,7 +1357,7 @@ input,
 	line-clamp: 3;
 	text-overflow: ellipsis;
 	display: -webkit-box;
-	color: var(--tl-color-text-2);
+	color: var(--tl-color-text-1);
 	margin: var(--tl-space-2) 0px;
 }
 
@@ -1365,7 +1369,7 @@ input,
 	font-size: 12px;
 	pointer-events: all;
 	display: flex;
-	color: var(--tl-color-text-2);
+	color: var(--tl-color-text-1);
 	align-items: center;
 	cursor: var(--tl-cursor-pointer);
 	width: fit-content;
