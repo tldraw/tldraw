@@ -13,10 +13,17 @@ let lastFlushTime = -targetTimePerFrame
 
 // Track custom FPS timing per function
 const customFpsLastRunTime = new WeakMap<() => void, number>()
+// Map function to its custom FPS getter
+const customFpsGetters = new WeakMap<() => void, () => number>()
 
 const flush = () => {
 	const queue = fpsQueue.splice(0, fpsQueue.length)
 	for (const fn of queue) {
+		// If this function has custom FPS, update timestamp when executing
+		const getTargetFps = customFpsGetters.get(fn)
+		if (getTargetFps) {
+			customFpsLastRunTime.set(fn, Date.now())
+		}
 		fn()
 	}
 }
@@ -83,6 +90,11 @@ export function fpsThrottle(
 		return fn
 	}
 
+	// Store custom FPS getter if provided
+	if (getTargetFps) {
+		customFpsGetters.set(fn, getTargetFps)
+	}
+
 	const throttledFn = () => {
 		// Custom FPS - check timing before queuing
 		if (getTargetFps) {
@@ -94,11 +106,7 @@ export function fpsThrottle(
 				// Not ready yet, don't queue
 				return
 			}
-
-			// Ready to run - update timing and proceed to queue
-			customFpsLastRunTime.set(fn, Date.now())
 		}
-
 		if (fpsQueue.includes(fn)) {
 			return
 		}
