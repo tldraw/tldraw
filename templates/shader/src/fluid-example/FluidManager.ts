@@ -1,35 +1,5 @@
-import { Box, Editor, react, throttle, TLShape, Vec } from 'tldraw'
+import { Box, Editor, react, throttle, TLCamera, TLShape, Vec } from 'tldraw'
 import { FluidSimulation } from './fluid'
-
-const DEFAULT_DARK_MODE_COLOR_MAP: Record<string, [number, number, number]> = {
-	black: [0.04, 0.04, 0.04],
-	grey: [0.08, 0.08, 0.08],
-	'light-violet': [0.07, 0.03, 0.06],
-	violet: [0.04, 0.02, 0.08],
-	blue: [0.02, 0.04, 0.09],
-	'light-blue': [0.03, 0.06, 0.09],
-	yellow: [0.09, 0.08, 0.02],
-	orange: [0.08, 0.03, 0.01],
-	green: [0.03, 0.07, 0.03],
-	'light-green': [0.06, 0.09, 0.04],
-	'light-red': [0.08, 0.03, 0.03],
-	red: [0.08, 0.02, 0.02],
-}
-
-const DEFAULT_LIGHT_MODE_COLOR_MAP: Record<string, [number, number, number]> = {
-	black: [0.2, 0.2, 0.2],
-	grey: [0.25, 0.25, 0.25],
-	'light-violet': [0.45, 0.25, 0.4],
-	violet: [0.35, 0.15, 0.5],
-	blue: [0.15, 0.3, 0.6],
-	'light-blue': [0.2, 0.4, 0.7],
-	yellow: [0.7, 0.6, 0.15],
-	orange: [0.6, 0.3, 0.1],
-	green: [0.2, 0.5, 0.2],
-	'light-green': [0.3, 0.65, 0.25],
-	'light-red': [0.6, 0.2, 0.2],
-	red: [0.5, 0.15, 0.15],
-}
 
 export interface FluidManagerConfig {
 	/** Quality mode affects canvas resolution */
@@ -94,6 +64,36 @@ export interface FluidManagerConfig {
 	sunraysWeight: number
 }
 
+const DEFAULT_DARK_MODE_COLOR_MAP: Record<string, [number, number, number]> = {
+	black: [0.0, 0.1, 0.1],
+	grey: [0.08, 0.08, 0.08],
+	'light-violet': [0.07, 0.03, 0.06],
+	violet: [0.04, 0.02, 0.08],
+	blue: [0.02, 0.04, 0.09],
+	'light-blue': [0.03, 0.06, 0.09],
+	yellow: [0.09, 0.08, 0.02],
+	orange: [0.08, 0.03, 0.01],
+	green: [0.03, 0.07, 0.03],
+	'light-green': [0.06, 0.09, 0.04],
+	'light-red': [0.08, 0.03, 0.03],
+	red: [0.08, 0.02, 0.02],
+}
+
+const DEFAULT_LIGHT_MODE_COLOR_MAP: Record<string, [number, number, number]> = {
+	black: [0.001, 0.043, 0.084],
+	grey: [0.083, 0.083, 0.084],
+	'light-violet': [0.125, 0.063, 0.062],
+	violet: [0.125, 0.05, 0.075],
+	blue: [0.05, 0.075, 0.125],
+	'light-blue': [0.05, 0.1, 0.1],
+	yellow: [0.125, 0.1, 0.025],
+	orange: [0.15, 0.075, 0.025],
+	green: [0.05, 0.15, 0.05],
+	'light-green': [0.075, 0.125, 0.05],
+	'light-red': [0.15, 0.05, 0.05],
+	red: [0.15, 0.05, 0.05],
+}
+
 export const DEFAULT_CONFIG: FluidManagerConfig = {
 	quality: 0.5,
 	velocityScale: 0.01,
@@ -108,7 +108,7 @@ export const DEFAULT_CONFIG: FluidManagerConfig = {
 	velocityDissipation: 0.2,
 	pressure: 0.8,
 	pressureIterations: 20,
-	curl: 30,
+	curl: 10,
 	splatRadius: 0.25,
 	splatForce: 6000,
 	shading: true,
@@ -164,20 +164,30 @@ export class FluidManager {
 		)
 
 		this.disposables.add(
-			editor.store.listen(
-				(diff) => {
-					const added = Object.values(diff.changes.added).filter(
-						(record) => record.typeName === 'shape'
-					) as TLShape[]
+			editor.store.listen((diff) => {
+				const updatedRecords = Object.values(diff.changes.updated)
+				const updatedCamera = updatedRecords.find(([record]) => record.typeName === 'camera')
+				if (updatedCamera) {
+					const [prevCamera, newCamera] = updatedCamera as [TLCamera, TLCamera]
+					const { velocityScale } = this.config
+					this.handleViewportChange(
+						this.editor.getViewportScreenBounds(),
+						Vec.Sub(newCamera, prevCamera).mul(velocityScale)
+					)
+					return
+				}
 
-					const updated = Object.values(diff.changes.updated).filter(
-						([record]) => record.typeName === 'shape'
-					) as [TLShape, TLShape][]
+				const added = Object.values(diff.changes.added).filter(
+					(record) => record.typeName === 'shape'
+				) as TLShape[]
 
-					this.updateShapes(added, updated)
-				},
-				{ scope: 'document' }
-			)
+				const updated = updatedRecords.filter(([record]) => record.typeName === 'shape') as [
+					TLShape,
+					TLShape,
+				][]
+
+				this.updateShapes(added, updated)
+			})
 		)
 	}
 
@@ -223,6 +233,16 @@ export class FluidManager {
 		})
 
 		this.fluidSim.start()
+	}
+
+	/**
+	 * Create random splats in the fluid simulation.
+	 * @param count - Number of random splats to create. If not provided, uses randomSplatsRange from config.
+	 */
+	createRandomSplats = (count?: number): void => {
+		if (!this.fluidSim) return
+		const splatCount = count ?? Math.floor(Math.random() * 20) + 5
+		this.fluidSim.addRandomSplats(splatCount)
 	}
 
 	/**
@@ -361,6 +381,22 @@ export class FluidManager {
 		}
 	}
 
+	private handleViewportChange = throttle((vsb: Box, cameraVelocity: Vec): void => {
+		const renderingShape = this.editor.getRenderingShapes()
+		for (const { shape } of renderingShape) {
+			const geometryData = this.extractShapeGeometry(shape, vsb)
+			const color = this.getShapeColor(shape)
+			if (geometryData.points.length > 0) {
+				this.fluidSim!.createSplatsFromGeometry(
+					geometryData.points,
+					cameraVelocity,
+					geometryData.isClosed,
+					color
+				)
+			}
+		}
+	}, 32)
+
 	/**
 	 * Extract the color from a shape and convert it to RGB values.
 	 * Uses the appropriate color map based on dark mode setting.
@@ -377,11 +413,8 @@ export class FluidManager {
 
 			// Convert tldraw color names to RGB values
 			const colorMap = this.darkMode ? this.config.darkModeColorMap : this.config.lightModeColorMap
-
-			return (
-				colorMap[colorValue] ||
-				(this.darkMode ? DEFAULT_DARK_MODE_COLOR_MAP.blue : DEFAULT_LIGHT_MODE_COLOR_MAP.blue)
-			) // Default blue-ish
+			const color = colorMap[colorValue] || colorMap.blue
+			return color
 		} catch (error) {
 			console.warn('Failed to extract color for shape:', shape.type, error)
 			return this.darkMode ? DEFAULT_DARK_MODE_COLOR_MAP.blue : DEFAULT_LIGHT_MODE_COLOR_MAP.blue // Default color

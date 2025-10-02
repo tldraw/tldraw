@@ -14,6 +14,10 @@ try {
 
 export const fluidConfig = atom<Partial<FluidManagerConfig>>('fluid-config', initialValue)
 
+export function resetFluidConfig() {
+	fluidConfig.set(DEFAULT_CONFIG)
+}
+
 // When the config changes, save it to localStorage
 react('save to local storage', () => {
 	localStorage.setItem(STORAGE_KEY, JSON.stringify(fluidConfig.get()))

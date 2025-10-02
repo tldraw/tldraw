@@ -6,15 +6,11 @@ import {
 	useLocalStorageState,
 	useValue,
 } from 'tldraw'
-import { DEFAULT_CONFIG, FluidManagerConfig } from './FluidManager'
-import { fluidConfig } from './fluid-config'
+import { FluidManagerConfig } from './FluidManager'
+import { fluidConfig, resetFluidConfig } from './fluid-config'
 
 export function ConfigPanel() {
-	const [isExpanded, setIsExpanded] = useLocalStorageState('shader-config-panel-expanded', true)
-
-	const handleReset = useCallback(() => {
-		fluidConfig.set(DEFAULT_CONFIG)
-	}, [])
+	const [isExpanded, setIsExpanded] = useLocalStorageState('shader-config-panel-expanded', false)
 
 	const toggleExpanded = useCallback(() => {
 		setIsExpanded((expanded) => !expanded)
@@ -37,41 +33,36 @@ export function ConfigPanel() {
 						isExpanded ? 'shader-config-chevron--expanded' : 'shader-config-chevron--collapsed'
 					}`}
 				>
-					<TldrawUiIcon icon="chevron-down" label="Expand / collapse" />
+					<TldrawUiIcon icon="chevron-down" small label="Expand / collapse" />
 				</span>
 			</div>
 
 			{isExpanded && (
 				<div className="shader-config-content">
 					{/* Reset Button */}
-					<TldrawUiButton type="menu" onClick={handleReset}>
+					<TldrawUiButton type="menu" onClick={resetFluidConfig}>
 						Reset to Defaults
 					</TldrawUiButton>
 
 					{/* General Settings */}
 					<NormalizedValueSlider prop="quality" label="Quality" min={0} max={1} />
 					<NormalizedValueSlider prop="velocityScale" label="Velocity Scale" min={0} max={0.1} />
-					<NumberSlider prop="boundsSampleCount" label="Bounds Sample Count" min={4} max={100} />
+					<NumberSlider prop="boundsSampleCount" label="Bounds Sample Ct." min={4} max={100} />
 					<BooleanControl prop="paused" label="Paused" />
-					<BooleanControl prop="transparent" label="Transparent Background" />
+					<BooleanControl prop="transparent" label="Transparent Bg" />
 
 					{/* Simulation Settings */}
-					<ResolutionSlider prop="simResolution" label="Simulation Resolution" min={32} max={512} />
-					<ResolutionSlider prop="dyeResolution" label="Dye Resolution" min={256} max={2048} />
-					<NormalizedValueSlider
-						prop="densityDissipation"
-						label="Density Dissipation"
-						min={0}
-						max={4}
-					/>
+					<ResolutionSlider prop="simResolution" label="Sim Quality" min={32} max={512} />
+					<ResolutionSlider prop="dyeResolution" label="Dye Quality" min={256} max={2048} />
+					<NormalizedValueSlider prop="densityDissipation" label="Density Diss." min={0} max={4} />
 					<NormalizedValueSlider
 						prop="velocityDissipation"
-						label="Velocity Dissipation"
+						label="Velocity Diss."
 						min={0}
 						max={1}
 					/>
 					<NormalizedValueSlider prop="pressure" label="Pressure" min={0} max={2} />
-					<NumberSlider prop="pressureIterations" label="Pressure Iterations" min={1} max={60} />
+					<NumberSlider prop="pressureIterations" label="Pressure Iter." min={1} max={60} />
 					<NumberSlider prop="curl" label="Curl (Vorticity)" min={0} max={100} />
 
 					{/* Splat Settings */}
@@ -79,18 +70,18 @@ export function ConfigPanel() {
 					<NumberSlider prop="splatForce" label="Splat Force" min={1000} max={20000} />
 					<BooleanControl prop="shading" label="Shading" />
 					<BooleanControl prop="colorful" label="Colorful Mode" />
-					<NumberSlider prop="colorUpdateSpeed" label="Color Update Speed" min={1} max={50} />
+					<NumberSlider prop="colorUpdateSpeed" label="Color Speed" min={1} max={50} />
 
 					{/* Post-Processing */}
 					<BooleanControl prop="bloom" label="Bloom Effect" />
-					<NumberSlider prop="bloomIterations" label="Bloom Iterations" min={1} max={20} />
-					<NumberSlider prop="bloomResolution" label="Bloom Resolution" min={64} max={512} />
-					<NormalizedValueSlider prop="bloomIntensity" label="Bloom Intensity" min={0} max={2} />
-					<NormalizedValueSlider prop="bloomThreshold" label="Bloom Threshold" min={0} max={1} />
+					<NumberSlider prop="bloomIterations" label="Bloom Iter." min={1} max={20} />
+					<NumberSlider prop="bloomResolution" label="Bloom Res." min={64} max={512} />
+					<NormalizedValueSlider prop="bloomIntensity" label="Bloom Int." min={0} max={2} />
+					<NormalizedValueSlider prop="bloomThreshold" label="Bloom Thresh." min={0} max={1} />
 					<NormalizedValueSlider prop="bloomSoftKnee" label="Bloom Soft Knee" min={0} max={1} />
 
 					<BooleanControl prop="sunrays" label="Sunrays Effect" />
-					<NumberSlider prop="sunraysResolution" label="Sunrays Resolution" min={64} max={512} />
+					<NumberSlider prop="sunraysResolution" label="Sunrays Res." min={64} max={512} />
 					<NormalizedValueSlider prop="sunraysWeight" label="Sunrays Weight" min={0} max={2} />
 				</div>
 			)}

@@ -1483,7 +1483,6 @@ export class FluidSimulation {
 		if (this.isRunning) return
 		this.isRunning = true
 		this.resizeCanvas()
-		this.multipleSplats(Math.floor(Math.random() * 20) + 5)
 		this.lastUpdateTime = Date.now()
 		this.update()
 	}
@@ -1494,6 +1493,71 @@ export class FluidSimulation {
 			cancelAnimationFrame(this.animationId)
 			this.animationId = null
 		}
+
+		// Clean up WebGL resources
+		const deleteTexture = (obj: any) => {
+			if (obj?.texture) {
+				this.gl.deleteTexture(obj.texture)
+			}
+		}
+
+		const deleteFBO = (obj: any) => {
+			if (obj?.fbo) {
+				this.gl.deleteFramebuffer(obj.fbo)
+			}
+			deleteTexture(obj)
+		}
+
+		const deleteDoubleFBO = (obj: any) => {
+			if (obj?.read) {
+				deleteFBO(obj.read)
+			}
+			if (obj?.write) {
+				deleteFBO(obj.write)
+			}
+		}
+
+		// Delete framebuffers and textures
+		deleteDoubleFBO(this.dye)
+		deleteDoubleFBO(this.velocity)
+		deleteFBO(this.divergence)
+		deleteFBO(this.curl)
+		deleteDoubleFBO(this.pressure)
+		deleteFBO(this.bloom)
+		this.bloomFramebuffers.forEach((fbo) => deleteFBO(fbo))
+		deleteFBO(this.sunrays)
+		deleteFBO(this.sunraysTemp)
+		deleteTexture(this.ditheringTexture)
+
+		// Delete programs
+		const deleteProgram = (prog: any) => {
+			if (prog?.program) {
+				this.gl.deleteProgram(prog.program)
+			}
+		}
+
+		Object.values(this.programs).forEach((prog) => deleteProgram(prog))
+
+		// Delete display material programs
+		if (this.displayMaterial) {
+			Object.values((this.displayMaterial as any).programs || {}).forEach((prog: any) => {
+				if (prog) this.gl.deleteProgram(prog)
+			})
+		}
+
+		// Clear references
+		this.dye = null
+		this.velocity = null
+		this.divergence = null
+		this.curl = null
+		this.pressure = null
+		this.bloom = null
+		this.bloomFramebuffers = []
+		this.sunrays = null
+		this.sunraysTemp = null
+		this.ditheringTexture = null
+		this.programs = {}
+		this.displayMaterial = null
 	}
 
 	pause() {
