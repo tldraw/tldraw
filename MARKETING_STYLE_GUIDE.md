@@ -44,6 +44,10 @@ The overall goal is confident, clear technical marketing that shows both immedia
 
 ### Writing mechanics
 
+- **Use sentence case for all titles and headings** (NOT Title Case)
+  - ✅ "Database configuration" ❌ "Database Configuration"
+  - ✅ "Real-time updates" ❌ "Real-Time Updates"
+  - Exception: Proper nouns, acronyms, and class/component names remain capitalized
 - Avoid complex clauses, especially "while" clauses
 - Prefer active, direct language over passive constructions
 - Always keep tldraw lowercase (avoid at sentence beginnings)

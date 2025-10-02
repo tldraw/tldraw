@@ -215,6 +215,29 @@ Uses `lazyrepo` for incremental builds with caching:
 - Business license removes watermark
 - See tldraw.dev for licensing details
 
+## Writing style guidelines
+
+**Sentence case for titles and headings**
+
+- Always use sentence case for titles, headings, and labels (NOT Title Case)
+- Examples:
+  - ✅ "Database configuration"
+  - ❌ "Database Configuration"
+  - ✅ "Real-time updates"
+  - ❌ "Real-Time Updates"
+  - ✅ "Custom shapes"
+  - ❌ "Custom Shapes"
+- Exception: Proper nouns, acronyms, and class/component names remain capitalized
+  - ✅ "PostgreSQL database"
+  - ✅ "WebSocket connections"
+  - ✅ "NodeShapeUtil implementation"
+- This applies to:
+  - Markdown headers (##, ###, etc.)
+  - Bold labels in lists (**Label**:)
+  - Documentation titles
+  - Code comments describing features
+  - CONTEXT.md files
+
 # important-instruction-reminders
 
 Do what has been asked; nothing more, nothing less.
