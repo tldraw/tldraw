@@ -1,142 +1,1004 @@
 {
-  "0095a9fa74": "Eksport",
-  "03b3e13197": "Seret fail ke dalam bar sisi pada halaman ini. Atau pilih pilihan 'Import fail' daripada menu pengguna.",
-  "043973ec1f": "Masih menghadapi masalah? {GetHelpLink}",
-  "05596b840b": "Buka tldraw.",
-  "06b9281e39": "Auto",
-  "07dbd11b21": "Fail tidak bertajuk",
-  "08331c1710": "Had kadar melebihi, cuba lagi kemudian.",
-  "08bd40c754": "Akaun",
-  "0b27918290": "Fail",
-  "0b9a4cde72": "menu fail",
-  "0d1f2bb523": "Hantar maklum balas",
-  "110a4b01be": "Terbitkan",
-  "13ddd375ad": "Eksport sebagai",
-  "181b90f889": "Buat fail",
-  "1da2e8106b": "Ralat yang tidak dijangka berlaku.",
-  "1dd1c5fb7f": "Hari ini",
-  "250ddea65c": "Mengenai tldraw",
-  "299cb00a7a": "Muat naik gagal",
-  "31246941ad": "Anda perlu log masuk untuk melihat fail ini.",
-  "31418ce4ad": "i18n: Serlahkan Hilang",
-  "335defdafe": "Sila cuba muat semula halaman.",
-  "344a7f427f": "Editor",
-  "3bd1b98dbd": "Tidak dapat menerbitkan perubahan.",
-  "3c5e891bff": "Disemat",
-  "3d0238bf16": "Terima semua",
-  "42e53c47c1": "Hubungi pemilik untuk meminta akses.",
-  "44db318ee5": "Dapatkan bantuan tentang Discord",
-  "46137245cd": "Terima kasih kerana membantu kami meningkatkan tldraw!",
-  "47839e47a5": "tldraw",
-  "4908687e50": "Adakah anda pasti mahu melupakan fail ini?",
-  "4d0d3ddec9": "Tapak ini menggunakan kuki untuk menjadikan apl berfungsi dan mengumpul analitik.",
-  "4d1c8263ba": "Muat semula",
-  "50db1b7e1e": "Tidak dapat menyahterbitkan fail.",
-  "517bb809d9": "Menu halaman",
-  "54286b1d01": "Had kolaborator dicapai",
-  "54d240fa41": "Tolong perlahankan.",
-  "554a05155c": "Masih menghadapi masalah? <a>Laporkan masalah</a>",
-  "55505ba281": "PNG",
-  "5677e381d2": "Kami menggunakan kuki analitik untuk menjadikan tldraw lebih baik.",
-  "56c34c6410": "Dasar privasi",
-  "5a95a425f7": "Kongsi",
-  "5d26ae7550": "Kami gagal memuat naik beberapa kandungan yang anda buat sebelum anda melog masuk.",
-  "5f3c333678": "Maklum balas diserahkan",
-  "5fb63579fc": "salin",
-  "61057a0c84": "Nanti",
-  "625fd29749": "Lebih tua",
-  "6609dd239e": "Sesuatu telah berlaku",
-  "6637a98151": "Versi baharu tldraw tersedia. Sila muat semula halaman untuk meneruskan.",
-  "6a26f54883": "Tolong",
-  "6dc0836c1b": "Anda tidak mempunyai kebenaran yang diperlukan untuk melakukan tindakan ini.",
-  "6dfc62f621": "Ikuti langkah ini untuk mengimport kandungan secara manual:",
-  "70a6facb9d": "minggu ini",
-  "71a29b007b": "Mempunyai pepijat, isu atau idea untuk tldraw? Beritahu kami!",
-  "73ab799383": "Versi tldraw ini tidak lagi disokong.",
-  "7408cf0d7b": "Sila muat semula halaman",
-  "752b79f137": "Anda telah mencapai bilangan maksimum fail. Anda perlu memadam fail lama sebelum membuat yang baharu.",
-  "7573b8110a": "Tiada akses",
-  "761e93ede9": "Uruskan kuki",
-  "764671e008": "Berbual dengan kami di Discord",
-  "7697920637": "Sila muat semula",
-  "777f9e90cf": "Permintaan tidak sah.",
-  "797799f35e": "Serahkan isu pada GitHub",
-  "7b1329f5ca": "Manual pengguna",
-  "7be10fc592": "Pulihkan versi",
-  "7cb5f8b4a5": "lupa",
-  "7daeced9ff": "Terbitkan perubahan",
-  "7fcdcc6455": "Lupakan fail",
-  "801ab24683": "Muat turun",
-  "815e116a2e": "Mempunyai pepijat, isu atau idea untuk tldraw? Beritahu kami! Isi borang ini dan kami akan membuat susulan melalui e-mel jika perlu. Anda juga boleh <discord>berbual dengan kami di Discord</discord> atau <github>menyerahkan isu pada GitHub</github>.",
-  "85a082de1b": "Sila muat semula halaman untuk mendapatkan versi terkini tldraw.",
-  "86353d2c41": "Menambahkan {total} fail .tldr.",
-  "86c66437fd": "Namakan semula fail",
-  "8eb2c00e96": "Dikongsi dengan anda",
-  "8ff3d0a705": "Kadar terhad",
-  "902b0d55fd": "ralat",
-  "904a830405": "Namakan semula",
-  "91e49bb0eb": "Salin ke fail saya",
-  "96165d6df5": "bulan ini",
-  "9914a0ce04": "Cahaya",
-  "9bef626805": "Padam fail",
-  "9ceb927baa": "Terbitkan fail ini",
-  "9e076f5885": "Tidak dijumpai",
-  "9e93c98d88": "Pilih keluar",
-  "a0da245992": "Eksport kandungan sebagai fail .tldr: Pilih 'Muat turun' dalam menu kiri atas.",
-  "a104439641": "Padding",
-  "a18366b217": "Gelap",
-  "a1c915578c": "Fail yang anda cari tidak wujud.",
-  "a239905023": "Eksport imej",
-  "a3debabee7": "Dasar kuki",
-  "a4d3b161ce": "Hantar",
-  "a6cc403d56": "Sesiapa sahaja yang mempunyai pautan",
-  "a768caa988": "Analitis",
-  "a9ded1e5ce": "Latar belakang",
-  "ab0df9ba36": "Had fail dicapai",
-  "af3dc88931": "Terakhir diterbitkan <date></date>",
-  "b028909917": "Pengguna tetamu",
-  "b6d4223e60": "Log masuk",
-  "b758336699": "Salin pautan",
-  "bb792693e2": "Nyahsemat",
-  "bbbcefd7ce": "{total, plural, other {Memuat naik {uploaded} daripada {total} fail .tldr…}}",
-  "bc88b0e89e": "Dikongsi oleh {ownerName}",
-  "bcb62136a3": "Muat naik fail .tldr",
-  "c2276c9127": "Ketahui lebih lanjut tentang perkongsian.",
-  "c303bd1095": "Tidak dapat menerbitkan fail.",
-  "c4b39a1cc3": "Kuki penting",
-  "c655b27b1e": "i18n: Rentetan Panjang",
-  "c6a00f137b": "Jemput",
-  "c87aacf567": "Log keluar",
-  "cbef7ba103": "Bilik ini akan menjadi baca sahaja tidak lama lagi",
-  "cceaefbc20": "Kongsi fail ini",
-  "cd15a75c26": "SVG",
-  "cea291e45e": "Ketahui lebih lanjut tentang penerbitan.",
-  "d3d2e61733": "tutup",
-  "d4bbf74f3e": "Togol bar sisi",
-  "d721757161": "Tema",
-  "d876a9fe1a": "Cuba Lagi",
-  "d9100f3e10": "Pergi ke sini untuk melihat kandungannya",
-  "dbbebf3c03": "Jemput sahaja",
-  "dfdb78a4e4": "Bendera nyahpepijat apl",
-  "e2ae80a510": "Ringkasan undang-undang",
-  "e404559826": "Syarat perkhidmatan",
-  "e78e14c5f1": "Pin",
-  "ea2301d01c": "Selepas 1 Julai 2025, bilik berbilang pemain tldraw tanpa nama ini akan menjadi baca sahaja. Untuk meneruskan pengeditan pada masa hadapan sila log masuk dan salin ke fail anda.",
-  "ea4788705e": "Batal",
-  "ebfe9ce86e": "Semalam",
-  "ec59b960ea": "Fail ini telah mencapai bilangan maksimum kolaborator aktif.",
-  "ec611e9a08": "Menu akaun",
-  "ed53713239": "i18n: Beraksen",
-  "ed75712b0e": "Pendua",
-  "ede55d955f": "Baca <a>dasar kuki</a> kami untuk mengetahui lebih lanjut.",
-  "f09b16bc5f": "Kami menggunakan kuki untuk memastikan anda tetap log masuk, menyegerakkan fail anda dan mengumpul analitik untuk membantu kami menambah baik tldraw.",
-  "f0e8bff6f9": "Tetapan pengguna",
-  "f2569594b2": "Kami menggunakan kuki ini untuk menyimpan fail dan tetapan anda.",
-  "f2a6c498fb": "Padam",
-  "f43fb62093": "Kembali ke tldraw.",
-  "f4f70727dc": "tetapan",
-  "fb15c53f22": "Penonton",
-  "fd1be3efcf": "Adakah anda pasti mahu memadamkan fail ini?",
-  "fed5ec05eb": "pautan disalin",
-  "ffcd73e997": "Import fail…"
+  "0095a9fa74": [
+    {
+      "type": 0,
+      "value": "Eksport"
+    }
+  ],
+  "03b3e13197": [
+    {
+      "type": 0,
+      "value": "Seret fail ke dalam bar sisi pada halaman ini. Atau pilih pilihan 'Import fail' daripada menu pengguna."
+    }
+  ],
+  "043973ec1f": [
+    {
+      "type": 0,
+      "value": "Masih menghadapi masalah? "
+    },
+    {
+      "type": 1,
+      "value": "GetHelpLink"
+    }
+  ],
+  "05596b840b": [
+    {
+      "type": 0,
+      "value": "Buka tldraw."
+    }
+  ],
+  "06b9281e39": [
+    {
+      "type": 0,
+      "value": "Auto"
+    }
+  ],
+  "07dbd11b21": [
+    {
+      "type": 0,
+      "value": "Fail tidak bertajuk"
+    }
+  ],
+  "08331c1710": [
+    {
+      "type": 0,
+      "value": "Had kadar melebihi, cuba lagi kemudian."
+    }
+  ],
+  "08bd40c754": [
+    {
+      "type": 0,
+      "value": "Akaun"
+    }
+  ],
+  "0b27918290": [
+    {
+      "type": 0,
+      "value": "Fail"
+    }
+  ],
+  "0b9a4cde72": [
+    {
+      "type": 0,
+      "value": "menu fail"
+    }
+  ],
+  "0d1f2bb523": [
+    {
+      "type": 0,
+      "value": "Hantar maklum balas"
+    }
+  ],
+  "110a4b01be": [
+    {
+      "type": 0,
+      "value": "Terbitkan"
+    }
+  ],
+  "12c8a9838c": [
+    {
+      "type": 0,
+      "value": "Cuba tldraw SDK"
+    }
+  ],
+  "13ddd375ad": [
+    {
+      "type": 0,
+      "value": "Eksport sebagai"
+    }
+  ],
+  "181b90f889": [
+    {
+      "type": 0,
+      "value": "Buat fail"
+    }
+  ],
+  "1da2e8106b": [
+    {
+      "type": 0,
+      "value": "Ralat yang tidak dijangka berlaku."
+    }
+  ],
+  "1dd1c5fb7f": [
+    {
+      "type": 0,
+      "value": "Hari ini"
+    }
+  ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Bilik penuh"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Bilik ini menghampiri had saiznya. Pertimbangkan untuk mengalih keluar beberapa kandungan atau memulakan fail baharu."
+    }
+  ],
+  "250ddea65c": [
+    {
+      "type": 0,
+      "value": "Mengenai tldraw"
+    }
+  ],
+  "299cb00a7a": [
+    {
+      "type": 0,
+      "value": "Muat naik gagal"
+    }
+  ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Bilik ini telah mencapai had saiznya dan perubahan mungkin tidak disimpan lagi. Alih keluar beberapa kandungan atau mulakan fail baharu."
+    }
+  ],
+  "31246941ad": [
+    {
+      "type": 0,
+      "value": "Anda perlu log masuk untuk melihat fail ini."
+    }
+  ],
+  "31418ce4ad": [
+    {
+      "type": 0,
+      "value": "i18n: Serlahkan Hilang"
+    }
+  ],
+  "335defdafe": [
+    {
+      "type": 0,
+      "value": "Sila cuba muat semula halaman."
+    }
+  ],
+  "344a7f427f": [
+    {
+      "type": 0,
+      "value": "Editor"
+    }
+  ],
+  "3bd1b98dbd": [
+    {
+      "type": 0,
+      "value": "Tidak dapat menerbitkan perubahan."
+    }
+  ],
+  "3c5e891bff": [
+    {
+      "type": 0,
+      "value": "Disemat"
+    }
+  ],
+  "3d0238bf16": [
+    {
+      "type": 0,
+      "value": "Terima semua"
+    }
+  ],
+  "42e53c47c1": [
+    {
+      "type": 0,
+      "value": "Hubungi pemilik untuk meminta akses."
+    }
+  ],
+  "44db318ee5": [
+    {
+      "type": 0,
+      "value": "Dapatkan bantuan tentang Discord"
+    }
+  ],
+  "46137245cd": [
+    {
+      "type": 0,
+      "value": "Terima kasih kerana membantu kami meningkatkan tldraw!"
+    }
+  ],
+  "47839e47a5": [
+    {
+      "type": 0,
+      "value": "tldraw"
+    }
+  ],
+  "4908687e50": [
+    {
+      "type": 0,
+      "value": "Adakah anda pasti mahu melupakan fail ini?"
+    }
+  ],
+  "4d0d3ddec9": [
+    {
+      "type": 0,
+      "value": "Tapak ini menggunakan kuki untuk menjadikan apl berfungsi dan mengumpul analitik."
+    }
+  ],
+  "4d1c8263ba": [
+    {
+      "type": 0,
+      "value": "Muat semula"
+    }
+  ],
+  "50db1b7e1e": [
+    {
+      "type": 0,
+      "value": "Tidak dapat menyahterbitkan fail."
+    }
+  ],
+  "517bb809d9": [
+    {
+      "type": 0,
+      "value": "Menu halaman"
+    }
+  ],
+  "54286b1d01": [
+    {
+      "type": 0,
+      "value": "Had kolaborator dicapai"
+    }
+  ],
+  "54d240fa41": [
+    {
+      "type": 0,
+      "value": "Tolong perlahankan."
+    }
+  ],
+  "554a05155c": [
+    {
+      "type": 0,
+      "value": "Masih menghadapi masalah? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Laporkan masalah"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    }
+  ],
+  "55505ba281": [
+    {
+      "type": 0,
+      "value": "PNG"
+    }
+  ],
+  "5677e381d2": [
+    {
+      "type": 0,
+      "value": "Kami menggunakan kuki analitik untuk menjadikan tldraw lebih baik."
+    }
+  ],
+  "56c34c6410": [
+    {
+      "type": 0,
+      "value": "Dasar privasi"
+    }
+  ],
+  "5a95a425f7": [
+    {
+      "type": 0,
+      "value": "Kongsi"
+    }
+  ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Bilik semakin besar"
+    }
+  ],
+  "5bcc12ace8": [
+    {
+      "type": 0,
+      "value": "Bilik ini kini dibaca sahaja"
+    }
+  ],
+  "5bec508475": [
+    {
+      "type": 0,
+      "value": "Pelayar lama dikesan. Sila kemas kini pelayar anda untuk menggunakan aplikasi ini."
+    }
+  ],
+  "5d26ae7550": [
+    {
+      "type": 0,
+      "value": "Kami gagal memuat naik beberapa kandungan yang anda buat sebelum anda melog masuk."
+    }
+  ],
+  "5f3c333678": [
+    {
+      "type": 0,
+      "value": "Maklum balas diserahkan"
+    }
+  ],
+  "5fb63579fc": [
+    {
+      "type": 0,
+      "value": "salin"
+    }
+  ],
+  "61057a0c84": [
+    {
+      "type": 0,
+      "value": "Nanti"
+    }
+  ],
+  "625fd29749": [
+    {
+      "type": 0,
+      "value": "Lebih tua"
+    }
+  ],
+  "6609dd239e": [
+    {
+      "type": 0,
+      "value": "Sesuatu telah berlaku"
+    }
+  ],
+  "6637a98151": [
+    {
+      "type": 0,
+      "value": "Versi baharu tldraw tersedia. Sila muat semula halaman untuk meneruskan."
+    }
+  ],
+  "6a26f54883": [
+    {
+      "type": 0,
+      "value": "Tolong"
+    }
+  ],
+  "6dc0836c1b": [
+    {
+      "type": 0,
+      "value": "Anda tidak mempunyai kebenaran yang diperlukan untuk melakukan tindakan ini."
+    }
+  ],
+  "6dfc62f621": [
+    {
+      "type": 0,
+      "value": "Ikuti langkah ini untuk mengimport kandungan secara manual:"
+    }
+  ],
+  "70a6facb9d": [
+    {
+      "type": 0,
+      "value": "minggu ini"
+    }
+  ],
+  "71a29b007b": [
+    {
+      "type": 0,
+      "value": "Mempunyai pepijat, isu atau idea untuk tldraw? Beritahu kami!"
+    }
+  ],
+  "73ab799383": [
+    {
+      "type": 0,
+      "value": "Versi tldraw ini tidak lagi disokong."
+    }
+  ],
+  "7408cf0d7b": [
+    {
+      "type": 0,
+      "value": "Sila muat semula halaman"
+    }
+  ],
+  "752b79f137": [
+    {
+      "type": 0,
+      "value": "Anda telah mencapai bilangan maksimum fail. Anda perlu memadam fail lama sebelum membuat yang baharu."
+    }
+  ],
+  "7573b8110a": [
+    {
+      "type": 0,
+      "value": "Tiada akses"
+    }
+  ],
+  "761e93ede9": [
+    {
+      "type": 0,
+      "value": "Uruskan kuki"
+    }
+  ],
+  "764671e008": [
+    {
+      "type": 0,
+      "value": "Berbual dengan kami di Discord"
+    }
+  ],
+  "7697920637": [
+    {
+      "type": 0,
+      "value": "Sila muat semula"
+    }
+  ],
+  "777f9e90cf": [
+    {
+      "type": 0,
+      "value": "Permintaan tidak sah."
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "faham"
+    }
+  ],
+  "797799f35e": [
+    {
+      "type": 0,
+      "value": "Serahkan isu pada GitHub"
+    }
+  ],
+  "7b1329f5ca": [
+    {
+      "type": 0,
+      "value": "Manual pengguna"
+    }
+  ],
+  "7be10fc592": [
+    {
+      "type": 0,
+      "value": "Pulihkan versi"
+    }
+  ],
+  "7cb5f8b4a5": [
+    {
+      "type": 0,
+      "value": "lupa"
+    }
+  ],
+  "7daeced9ff": [
+    {
+      "type": 0,
+      "value": "Terbitkan perubahan"
+    }
+  ],
+  "7fcdcc6455": [
+    {
+      "type": 0,
+      "value": "Lupakan fail"
+    }
+  ],
+  "801ab24683": [
+    {
+      "type": 0,
+      "value": "Muat turun"
+    }
+  ],
+  "815e116a2e": [
+    {
+      "type": 0,
+      "value": "Mempunyai pepijat, isu atau idea untuk tldraw? Beritahu kami! Isi borang ini dan kami akan membuat susulan melalui e-mel jika perlu. Anda juga boleh "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "berbual dengan kami di Discord"
+        }
+      ],
+      "type": 8,
+      "value": "discord"
+    },
+    {
+      "type": 0,
+      "value": " atau "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "menyerahkan isu pada GitHub"
+        }
+      ],
+      "type": 8,
+      "value": "github"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "85a082de1b": [
+    {
+      "type": 0,
+      "value": "Sila muat semula halaman untuk mendapatkan versi terkini tldraw."
+    }
+  ],
+  "86353d2c41": [
+    {
+      "type": 0,
+      "value": "Menambahkan "
+    },
+    {
+      "type": 1,
+      "value": "total"
+    },
+    {
+      "type": 0,
+      "value": " fail .tldr."
+    }
+  ],
+  "86c66437fd": [
+    {
+      "type": 0,
+      "value": "Namakan semula fail"
+    }
+  ],
+  "8b1946f965": [
+    {
+      "type": 0,
+      "value": "Untuk meneruskan pengeditan sila salin bilik ke fail anda."
+    }
+  ],
+  "8eb2c00e96": [
+    {
+      "type": 0,
+      "value": "Dikongsi dengan anda"
+    }
+  ],
+  "8ff3d0a705": [
+    {
+      "type": 0,
+      "value": "Kadar terhad"
+    }
+  ],
+  "902b0d55fd": [
+    {
+      "type": 0,
+      "value": "ralat"
+    }
+  ],
+  "904a830405": [
+    {
+      "type": 0,
+      "value": "Namakan semula"
+    }
+  ],
+  "91e49bb0eb": [
+    {
+      "type": 0,
+      "value": "Salin ke fail saya"
+    }
+  ],
+  "96165d6df5": [
+    {
+      "type": 0,
+      "value": "bulan ini"
+    }
+  ],
+  "9914a0ce04": [
+    {
+      "type": 0,
+      "value": "Cahaya"
+    }
+  ],
+  "9bef626805": [
+    {
+      "type": 0,
+      "value": "Padam fail"
+    }
+  ],
+  "9c258b8f88": [
+    {
+      "type": 0,
+      "value": "Bilik berbilang pemain tldraw tanpa nama ini kini dibaca sahaja. Untuk meneruskan pengeditan, sila log masuk dan salin ke fail anda."
+    }
+  ],
+  "9ceb927baa": [
+    {
+      "type": 0,
+      "value": "Terbitkan fail ini"
+    }
+  ],
+  "9e076f5885": [
+    {
+      "type": 0,
+      "value": "Tidak dijumpai"
+    }
+  ],
+  "9e93c98d88": [
+    {
+      "type": 0,
+      "value": "Pilih keluar"
+    }
+  ],
+  "a0da245992": [
+    {
+      "type": 0,
+      "value": "Eksport kandungan sebagai fail .tldr: Pilih 'Muat turun' dalam menu kiri atas."
+    }
+  ],
+  "a104439641": [
+    {
+      "type": 0,
+      "value": "Padding"
+    }
+  ],
+  "a18366b217": [
+    {
+      "type": 0,
+      "value": "Gelap"
+    }
+  ],
+  "a1c915578c": [
+    {
+      "type": 0,
+      "value": "Fail yang anda cari tidak wujud."
+    }
+  ],
+  "a239905023": [
+    {
+      "type": 0,
+      "value": "Eksport imej"
+    }
+  ],
+  "a3debabee7": [
+    {
+      "type": 0,
+      "value": "Dasar kuki"
+    }
+  ],
+  "a4d3b161ce": [
+    {
+      "type": 0,
+      "value": "Hantar"
+    }
+  ],
+  "a6cc403d56": [
+    {
+      "type": 0,
+      "value": "Sesiapa sahaja yang mempunyai pautan"
+    }
+  ],
+  "a768caa988": [
+    {
+      "type": 0,
+      "value": "Analitis"
+    }
+  ],
+  "a9ded1e5ce": [
+    {
+      "type": 0,
+      "value": "Latar belakang"
+    }
+  ],
+  "ab0df9ba36": [
+    {
+      "type": 0,
+      "value": "Had fail dicapai"
+    }
+  ],
+  "af3dc88931": [
+    {
+      "type": 0,
+      "value": "Terakhir diterbitkan "
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "date"
+    }
+  ],
+  "b028909917": [
+    {
+      "type": 0,
+      "value": "Pengguna tetamu"
+    }
+  ],
+  "b6d4223e60": [
+    {
+      "type": 0,
+      "value": "Log masuk"
+    }
+  ],
+  "b758336699": [
+    {
+      "type": 0,
+      "value": "Salin pautan"
+    }
+  ],
+  "ba0318cb81": [
+    {
+      "type": 0,
+      "value": "Log masuk untuk berkongsi"
+    }
+  ],
+  "bb792693e2": [
+    {
+      "type": 0,
+      "value": "Nyahsemat"
+    }
+  ],
+  "bbbcefd7ce": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Memuat naik "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " daripada "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " fail .tldr…"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
+  "bc88b0e89e": [
+    {
+      "type": 0,
+      "value": "Dikongsi oleh "
+    },
+    {
+      "type": 1,
+      "value": "ownerName"
+    }
+  ],
+  "bcb62136a3": [
+    {
+      "type": 0,
+      "value": "Muat naik fail .tldr"
+    }
+  ],
+  "c2276c9127": [
+    {
+      "type": 0,
+      "value": "Ketahui lebih lanjut tentang perkongsian."
+    }
+  ],
+  "c303bd1095": [
+    {
+      "type": 0,
+      "value": "Tidak dapat menerbitkan fail."
+    }
+  ],
+  "c4b39a1cc3": [
+    {
+      "type": 0,
+      "value": "Kuki penting"
+    }
+  ],
+  "c655b27b1e": [
+    {
+      "type": 0,
+      "value": "i18n: Rentetan Panjang"
+    }
+  ],
+  "c6a00f137b": [
+    {
+      "type": 0,
+      "value": "Jemput"
+    }
+  ],
+  "c87aacf567": [
+    {
+      "type": 0,
+      "value": "Log keluar"
+    }
+  ],
+  "cceaefbc20": [
+    {
+      "type": 0,
+      "value": "Kongsi fail ini"
+    }
+  ],
+  "cd15a75c26": [
+    {
+      "type": 0,
+      "value": "SVG"
+    }
+  ],
+  "cea291e45e": [
+    {
+      "type": 0,
+      "value": "Ketahui lebih lanjut tentang penerbitan."
+    }
+  ],
+  "d3d2e61733": [
+    {
+      "type": 0,
+      "value": "tutup"
+    }
+  ],
+  "d4bbf74f3e": [
+    {
+      "type": 0,
+      "value": "Togol bar sisi"
+    }
+  ],
+  "d721757161": [
+    {
+      "type": 0,
+      "value": "Tema"
+    }
+  ],
+  "d876a9fe1a": [
+    {
+      "type": 0,
+      "value": "Cuba Lagi"
+    }
+  ],
+  "d9100f3e10": [
+    {
+      "type": 0,
+      "value": "Pergi ke sini untuk melihat kandungannya"
+    }
+  ],
+  "dbbebf3c03": [
+    {
+      "type": 0,
+      "value": "Jemput sahaja"
+    }
+  ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "Bendera nyahpepijat apl"
+    }
+  ],
+  "e2ae80a510": [
+    {
+      "type": 0,
+      "value": "Ringkasan undang-undang"
+    }
+  ],
+  "e404559826": [
+    {
+      "type": 0,
+      "value": "Syarat perkhidmatan"
+    }
+  ],
+  "e78e14c5f1": [
+    {
+      "type": 0,
+      "value": "Pin"
+    }
+  ],
+  "ea4788705e": [
+    {
+      "type": 0,
+      "value": "Batal"
+    }
+  ],
+  "ebfe9ce86e": [
+    {
+      "type": 0,
+      "value": "Semalam"
+    }
+  ],
+  "ec59b960ea": [
+    {
+      "type": 0,
+      "value": "Fail ini telah mencapai bilangan maksimum kolaborator aktif."
+    }
+  ],
+  "ec611e9a08": [
+    {
+      "type": 0,
+      "value": "Menu akaun"
+    }
+  ],
+  "ed53713239": [
+    {
+      "type": 0,
+      "value": "i18n: Beraksen"
+    }
+  ],
+  "ed75712b0e": [
+    {
+      "type": 0,
+      "value": "Pendua"
+    }
+  ],
+  "ede55d955f": [
+    {
+      "type": 0,
+      "value": "Baca "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "dasar kuki"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " kami untuk mengetahui lebih lanjut."
+    }
+  ],
+  "ef7de3f485": [
+    {
+      "type": 0,
+      "value": "dipilih"
+    }
+  ],
+  "f09b16bc5f": [
+    {
+      "type": 0,
+      "value": "Kami menggunakan kuki untuk memastikan anda tetap log masuk, menyegerakkan fail anda dan mengumpul analitik untuk membantu kami menambah baik tldraw."
+    }
+  ],
+  "f0e8bff6f9": [
+    {
+      "type": 0,
+      "value": "Tetapan pengguna"
+    }
+  ],
+  "f2569594b2": [
+    {
+      "type": 0,
+      "value": "Kami menggunakan kuki ini untuk menyimpan fail dan tetapan anda."
+    }
+  ],
+  "f2a6c498fb": [
+    {
+      "type": 0,
+      "value": "Padam"
+    }
+  ],
+  "f43fb62093": [
+    {
+      "type": 0,
+      "value": "Kembali ke tldraw."
+    }
+  ],
+  "f4f70727dc": [
+    {
+      "type": 0,
+      "value": "tetapan"
+    }
+  ],
+  "fb15c53f22": [
+    {
+      "type": 0,
+      "value": "Penonton"
+    }
+  ],
+  "fd1be3efcf": [
+    {
+      "type": 0,
+      "value": "Adakah anda pasti mahu memadamkan fail ini?"
+    }
+  ],
+  "fed5ec05eb": [
+    {
+      "type": 0,
+      "value": "pautan disalin"
+    }
+  ],
+  "ffcd73e997": [
+    {
+      "type": 0,
+      "value": "Import fail…"
+    }
+  ]
 }

@@ -1,4 +1,4 @@
-name: Publish new SDK release from main (minor version bump)
+name: Publish new SDK release from production branch (minor version bump)
 # This bumps the version, updates the changelogs, publishes a GitHub release, and publishes the packages to npm.
 
 # Prevent more than one non-canary npm publishing job from running at the same time
@@ -22,6 +22,10 @@ on:
         type: string
         description: Version Override
         required: false
+      release_notes_url:
+        type: string
+        description: Release Notes Gist URL
+        required: true
 
 defaults:
   run:
@@ -53,9 +57,12 @@ jobs:
         with:
           token: ${{ steps.generate_token.outputs.token }}
 
-      - name: Prepare repository
-        # Fetch full git history and tags for auto
-        run: git fetch --unshallow --tags
+      - name: Check branch
+        run: |
+          if [[ "$(git rev-parse --abbrev-ref HEAD)" != "production" ]]; then
+            echo "ERROR You must be on the production branch to publish a new version."
+            exit 1
+          fi
 
       - name: Run our setup
         uses: ./.github/actions/setup
@@ -65,14 +72,13 @@ jobs:
           git config --global user.name 'huppy-bot[bot]'
           git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
           if [[ "${{ inputs.bump_type }}" == "override" ]]; then
-            yarn tsx ./internal/scripts/publish-new.ts --bump ${{ inputs.version_override }}
+            yarn tsx ./internal/scripts/publish-new.ts --bump ${{ inputs.version_override }} --release_notes_url ${{ inputs.release_notes_url }}
           else
-            yarn tsx ./internal/scripts/publish-new.ts --bump ${{ inputs.bump_type }}
+            yarn tsx ./internal/scripts/publish-new.ts --bump ${{ inputs.bump_type }} --release_notes_url ${{ inputs.release_notes_url }}
           fi
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          HUPPY_TOKEN: ${{ secrets.HUPPY_TOKEN }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
           TLDRAW_BEMO_URL: https://demo.tldraw.xyz
@@ -81,7 +87,6 @@ jobs:
     name: Publishes code templates to separate repositories
     uses: tldraw/tldraw/.github/workflows/publish-templates.yml@main
     secrets:
-      VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
-      NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
-      CLOUDFLARE_WORKERS_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.CLOUDFLARE_WORKERS_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
+      HUPPY_PRIVATE_KEY: ${{ secrets.HUPPY_PRIVATE_KEY }}
+      HUPPY_APP_ID: ${{ vars.HUPPY_APP_ID }}
     needs: [deploy]

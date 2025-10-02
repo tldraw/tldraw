@@ -1,7 +1,7 @@
 import { Page, expect } from '@playwright/test'
 import { Editor } from 'tldraw'
+import test from '../fixtures/fixtures'
 import { setupPage } from '../shared-e2e'
-import test from './fixtures/fixtures'
 
 declare const editor: Editor
 

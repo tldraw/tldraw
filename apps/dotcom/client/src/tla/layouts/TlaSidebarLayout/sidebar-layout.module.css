@@ -7,7 +7,7 @@
 	height: 100%;
 	/* disable transition while dragging */
 	transition: padding-left 0.16s ease-in-out;
-	background-color: var(--color-background);
+	background-color: var(--tl-color-background);
 }
 .layout[data-resizing='true'] {
 	pointer-events: none;

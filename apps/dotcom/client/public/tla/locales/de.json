@@ -35,6 +35,9 @@
   "110a4b01be": {
     "translation": "Veröffentlichen"
   },
+  "12c8a9838c": {
+    "translation": "Testen Sie das tldraw SDK"
+  },
   "13ddd375ad": {
     "translation": "Exportieren als"
   },
@@ -47,11 +50,20 @@
   "1dd1c5fb7f": {
     "translation": "Heute"
   },
+  "20976e7bec": {
+    "translation": "Der Raum ist voll"
+  },
+  "21bfb2dc2e": {
+    "translation": "Dieser Raum erreicht seine maximale Größe. Entfernen Sie ggf. Inhalte oder erstellen Sie eine neue Datei."
+  },
   "250ddea65c": {
     "translation": "Über tldraw"
   },
   "299cb00a7a": {
     "translation": "Hochladen fehlgeschlagen"
+  },
+  "2deec2cb74": {
+    "translation": "Dieser Raum hat seine Größenbeschränkung erreicht und Änderungen können möglicherweise nicht mehr gespeichert werden. Entfernen Sie Inhalte oder beginnen Sie eine neue Datei."
   },
   "31246941ad": {
     "translation": "Um diese Datei anzuzeigen, müssen Sie sich anmelden."
@@ -85,6 +97,12 @@
   },
   "47839e47a5": {
     "translation": "tldraw"
+  },
+  "7697920637": {
+    "translation": "Bitte neu laden"
+  },
+  "764671e008": {
+    "translation": "Chatten Sie mit uns auf Discord"
   },
   "4908687e50": {
     "translation": "Möchten Sie diese Datei wirklich vergessen?"
@@ -121,6 +139,15 @@
   },
   "5a95a425f7": {
     "translation": "Teilen"
+  },
+  "5bb6cf3b53": {
+    "translation": "Das Zimmer wird größer"
+  },
+  "5bcc12ace8": {
+    "translation": "Dieser Raum ist jetzt schreibgeschützt"
+  },
+  "5bec508475": {
+    "translation": "Alter Browser erkannt. Bitte aktualisieren Sie Ihren Browser, um diese App zu verwenden."
   },
   "5d26ae7550": {
     "translation": "Wir konnten den von Ihnen vor Ihrer Anmeldung erstellten Inhalt teilweise nicht hochladen."
@@ -173,14 +200,11 @@
   "761e93ede9": {
     "translation": "Cookies anpassen"
   },
-  "7697920637": {
-    "translation": "Bitte neu laden"
-  },
-  "764671e008": {
-    "translation": "Chatten Sie mit uns auf Discord"
-  },
   "777f9e90cf": {
     "translation": "Ungültige Anfrage."
+  },
+  "78e9815992": {
+    "translation": "Habe es"
   },
   "797799f35e": {
     "translation": "Senden Sie ein Problem auf GitHub"
@@ -215,6 +239,9 @@
   "86c66437fd": {
     "translation": "Datei umbenennen"
   },
+  "8b1946f965": {
+    "translation": "Um mit der Bearbeitung fortzufahren, kopieren Sie den Raum bitte in Ihre Dateien."
+  },
   "8eb2c00e96": {
     "translation": "Mit Ihnen geteilt"
   },
@@ -238,6 +265,9 @@
   },
   "9bef626805": {
     "translation": "Datei löschen"
+  },
+  "9c258b8f88": {
+    "translation": "Dieser anonyme TLdraw-Multiplayer-Raum ist jetzt schreibgeschützt. Um mit der Bearbeitung fortzufahren, melden Sie sich bitte an und kopieren Sie den Inhalt in Ihre Dateien."
   },
   "9ceb927baa": {
     "translation": "Diese Datei veröffentlichen"
@@ -294,6 +324,9 @@
   "b758336699": {
     "translation": "Link kopieren"
   },
+  "ba0318cb81": {
+    "translation": "Zum Teilen anmelden"
+  },
   "bb792693e2": {
     "translation": "Lösen"
   },
@@ -323,9 +356,6 @@
   },
   "c87aacf567": {
     "translation": "Abmelden"
-  },
-  "cbef7ba103": {
-    "translation": "Dieser Raum wird bald schreibgeschützt sein"
   },
   "cceaefbc20": {
     "translation": "Diese Datei teilen"
@@ -366,9 +396,6 @@
   "e78e14c5f1": {
     "translation": "Anheften"
   },
-  "ea2301d01c": {
-    "translation": "Nach dem 1. Juli 2025 ist dieser anonyme tldraw-Multiplayer-Raum schreibgeschützt. Um in Zukunft weiterarbeiten zu können, melden Sie sich bitte an und kopieren Sie den Inhalt in Ihre Dateien."
-  },
   "ea4788705e": {
     "translation": "Abbrechen"
   },
@@ -389,6 +416,9 @@
   },
   "ede55d955f": {
     "translation": "Lesen Sie unsere <a>Cookie-Richtlinie</a>, um mehr zu erfahren."
+  },
+  "ef7de3f485": {
+    "translation": "ausgewählt"
   },
   "f09b16bc5f": {
     "translation": "Wir verwenden Cookies, um Sie angemeldet zu halten, Ihre Dateien zu synchronisieren und Analysen zu sammeln, die uns bei der Verbesserung von tldraw helfen."

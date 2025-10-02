@@ -1,8 +1,5 @@
 import { TLBookmarkShape, createShapeId } from '@tldraw/editor'
-import {
-	BookmarkShapeUtil,
-	getHumanReadableAddress,
-} from '../lib/shapes/bookmark/BookmarkShapeUtil'
+import { getHumanReadableAddress } from '../lib/shapes/bookmark/BookmarkShapeUtil'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -12,10 +9,6 @@ beforeEach(() => {
 })
 afterEach(() => {
 	editor?.dispose()
-})
-
-describe(BookmarkShapeUtil, () => {
-	return
 })
 
 describe('The URL formatter', () => {

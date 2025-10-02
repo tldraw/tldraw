@@ -5,7 +5,7 @@ import { TLUiEventSource } from '../../../context/events'
 import { useReadonly } from '../../../hooks/useReadonly'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
-import { TldrawUiIcon } from '../TldrawUiIcon'
+import { TldrawUiIcon, TLUiIconJsx } from '../TldrawUiIcon'
 import { TldrawUiKbd } from '../TldrawUiKbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
@@ -14,11 +14,12 @@ export interface TLUiMenuCheckboxItemProps<
 	TranslationKey extends string = string,
 	IconType extends string = string,
 > {
-	icon?: IconType
+	icon?: IconType | TLUiIconJsx
 	id: string
 	kbd?: string
 	title?: string
 	label?: TranslationKey | { [key: string]: TranslationKey }
+	lang?: string
 	readonlyOk?: boolean
 	onSelect(source: TLUiEventSource): Promise<void> | void
 	toggle?: boolean
@@ -34,6 +35,7 @@ export function TldrawUiMenuCheckboxItem<
 	id,
 	kbd,
 	label,
+	lang,
 	readonlyOk,
 	onSelect,
 	toggle = false,
@@ -55,6 +57,7 @@ export function TldrawUiMenuCheckboxItem<
 			return (
 				<_DropdownMenu.CheckboxItem
 					dir="ltr"
+					lang={lang}
 					className="tlui-button tlui-button__menu tlui-button__checkbox"
 					title={labelStr}
 					onSelect={(e) => {
@@ -84,6 +87,7 @@ export function TldrawUiMenuCheckboxItem<
 					key={id}
 					className="tlui-button tlui-button__menu tlui-button__checkbox"
 					dir="ltr"
+					lang={lang}
 					title={labelStr}
 					onSelect={(e) => {
 						onSelect(sourceId)

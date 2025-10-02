@@ -18,6 +18,7 @@
 	},
 	"keywords": [
 		"tldraw",
+		"sdk",
 		"drawing",
 		"app",
 		"development",
@@ -43,8 +44,9 @@
 		"clean": "rm -rf node_modules .yarn",
 		"format": "yarn run -T prettier --write .",
 		"watch-content": "tsx ./watcher.ts",
-		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest"
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"dependencies": {
 		"@ariakit/react": "^0.4.15",
@@ -66,12 +68,11 @@
 		"gray-matter": "^4.0.3",
 		"instantsearch.js": "^4.77.1",
 		"js-cookie": "^3.0.5",
-		"next": "^14.2.23",
-		"next-mdx-remote": "^5.0.0",
+		"next": "^15.4.6",
+		"next-mdx-remote-client": "^1.1.2",
 		"next-themes": "^0.3.0",
-		"openai": "^4.80.1",
 		"query-string": "^9.1.1",
-		"radix-ui": "^1.3.4",
+		"radix-ui": "^1.4.2",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
 		"react-instantsearch": "^7.15.1",
@@ -97,35 +98,22 @@
 		"@types/react": "^18.3.18",
 		"@types/react-dom": "^18.3.5",
 		"@types/sqlite3": "^3.1.11",
-		"@types/ws": "^8.5.14",
+		"@types/ws": "^8.18.1",
 		"autoprefixer": "^10.4.20",
 		"concurrently": "^9.1.2",
 		"dotenv": "^16.4.7",
-		"eslint": "^9.19.0",
-		"eslint-config-next": "^15.1.6",
 		"linkinator": "^6.1.2",
 		"mdast-util-mdx": "^3.0.0",
 		"octokit": "^3.2.1",
 		"patch-package": "^8.0.0",
 		"postcss": "^8.5.1",
 		"postinstall-postinstall": "^2.1.0",
-		"prettier": "^3.4.2",
-		"prettier-plugin-organize-imports": "^3.2.4",
+		"prettier": "^3.6.1",
 		"sharp": "^0.33.5",
 		"tailwindcss": "^3.4.17",
 		"tsx": "^4.19.2",
-		"typescript": "~5.4.5",
+		"typescript": "^5.8.3",
 		"vectra": "^0.4.4",
 		"ws": "^8.18.0"
-	},
-	"jest": {
-		"preset": "../../internal/config/jest/node/jest-preset.js",
-		"roots": [
-			"<rootDir>"
-		],
-		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
-		"transformIgnorePatterns": [
-			"node_modules/(?!(.*)/)"
-		]
 	}
 }

@@ -35,6 +35,9 @@
   "110a4b01be": {
     "translation": "發布"
   },
+  "12c8a9838c": {
+    "translation": "嘗試 tldraw SDK"
+  },
   "13ddd375ad": {
     "translation": "匯出為"
   },
@@ -47,11 +50,20 @@
   "1dd1c5fb7f": {
     "translation": "今天"
   },
+  "20976e7bec": {
+    "translation": "房間已滿"
+  },
+  "21bfb2dc2e": {
+    "translation": "此房間已接近其大小限制。請考慮刪除一些內容或建立新檔案。"
+  },
   "250ddea65c": {
     "translation": "關於tldraw"
   },
   "299cb00a7a": {
     "translation": "上傳失敗"
+  },
+  "2deec2cb74": {
+    "translation": "此房間已達到其大小限制，更改可能無法再儲存。請刪除部分內容或建立新檔案。"
   },
   "31246941ad": {
     "translation": "您必須登入才能檢視此檔案。"
@@ -85,6 +97,12 @@
   },
   "47839e47a5": {
     "translation": "tldraw"
+  },
+  "7697920637": {
+    "translation": "請重新加載"
+  },
+  "764671e008": {
+    "translation": "在 Discord 上與我們聊天"
   },
   "4908687e50": {
     "translation": "您確定要遺忘此檔案嗎？"
@@ -121,6 +139,15 @@
   },
   "5a95a425f7": {
     "translation": "共享"
+  },
+  "5bb6cf3b53": {
+    "translation": "房間越來越大"
+  },
+  "5bcc12ace8": {
+    "translation": "此房間現在為唯讀"
+  },
+  "5bec508475": {
+    "translation": "偵測到舊版瀏覽器。請更新您的瀏覽器以使用此應用程式。"
   },
   "5d26ae7550": {
     "translation": "我們無法上傳您登入之前所建立的部分內容。"
@@ -173,14 +200,11 @@
   "761e93ede9": {
     "translation": "管理cookies"
   },
-  "7697920637": {
-    "translation": "請重新加載"
-  },
-  "764671e008": {
-    "translation": "在 Discord 上與我們聊天"
-  },
   "777f9e90cf": {
     "translation": "無效的請求。"
+  },
+  "78e9815992": {
+    "translation": "知道了"
   },
   "797799f35e": {
     "translation": "在 GitHub 上提交問題"
@@ -215,6 +239,9 @@
   "86c66437fd": {
     "translation": "重新命名文件"
   },
+  "8b1946f965": {
+    "translation": "若要繼續編輯，請將房間複製到您的文件中。"
+  },
   "8eb2c00e96": {
     "translation": "已與您共享"
   },
@@ -238,6 +265,9 @@
   },
   "9bef626805": {
     "translation": "刪除檔案"
+  },
+  "9c258b8f88": {
+    "translation": "此匿名 tldraw 多人遊戲房間現已設為唯讀。如需繼續編輯，請登入並將其複製到您的文件。"
   },
   "9ceb927baa": {
     "translation": "發布此檔案"
@@ -294,6 +324,9 @@
   "b758336699": {
     "translation": "複製連結"
   },
+  "ba0318cb81": {
+    "translation": "登入以分享"
+  },
   "bb792693e2": {
     "translation": "取消置頂"
   },
@@ -323,9 +356,6 @@
   },
   "c87aacf567": {
     "translation": "登出"
-  },
-  "cbef7ba103": {
-    "translation": "此房間即將變成唯讀"
   },
   "cceaefbc20": {
     "translation": "共享此檔案"
@@ -366,9 +396,6 @@
   "e78e14c5f1": {
     "translation": "置頂"
   },
-  "ea2301d01c": {
-    "translation": "2025年7月1日後，此匿名tldraw多人遊戲房間將變成唯讀狀態。如需繼續編輯，請登入並將其複製到您的文件。"
-  },
   "ea4788705e": {
     "translation": "取消"
   },
@@ -389,6 +416,9 @@
   },
   "ede55d955f": {
     "translation": "請閱讀我們的<a>cookie 政策</a>以了解更多資訊。"
+  },
+  "ef7de3f485": {
+    "translation": "已選擇"
   },
   "f09b16bc5f": {
     "translation": "我們使用 cookie 來讓您保持登入狀態、同步您的檔案並收集分析資料以幫助我們改善 tldraw。"

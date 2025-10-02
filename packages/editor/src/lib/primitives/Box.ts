@@ -1,6 +1,6 @@
 import { BoxModel } from '@tldraw/tlschema'
 import { Vec, VecLike } from './Vec'
-import { PI, PI2, toPrecision } from './utils'
+import { approximatelyLte, PI, PI2, toPrecision } from './utils'
 
 /** @public */
 export type BoxLike = BoxModel | Box
@@ -415,6 +415,15 @@ export class Box {
 
 	static Contains(A: Box, B: Box) {
 		return A.minX < B.minX && A.minY < B.minY && A.maxY > B.maxY && A.maxX > B.maxX
+	}
+
+	static ContainsApproximately(A: Box, B: Box, precision?: number) {
+		return (
+			approximatelyLte(A.minX, B.minX, precision) &&
+			approximatelyLte(A.minY, B.minY, precision) &&
+			approximatelyLte(B.maxX, A.maxX, precision) &&
+			approximatelyLte(B.maxY, A.maxY, precision)
+		)
 	}
 
 	static Includes(A: Box, B: Box) {

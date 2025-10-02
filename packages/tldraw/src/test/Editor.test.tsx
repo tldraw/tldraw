@@ -14,6 +14,7 @@ import {
 	loadSnapshot,
 	react,
 } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 
@@ -33,7 +34,7 @@ beforeEach(() => {
 	editor = new TestEditor({})
 
 	editor.createShapes([
-		// on it's own
+		// on its own
 		{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 		// in a frame
 		{ id: ids.frame1, type: 'frame', x: 100, y: 100, props: { w: 100, h: 100 } },
@@ -49,7 +50,7 @@ beforeEach(() => {
 })
 
 const moveShapesToPage2 = () => {
-	// directly maniuplate parentId like would happen in multiplayer situations
+	// directly manipulate parentId like would happen in multiplayer situations
 
 	editor.updateShapes([
 		{ id: ids.box1, type: 'geo', parentId: ids.page2 },
@@ -415,24 +416,24 @@ describe('isFocused', () => {
 	})
 
 	it('becomes true when the container div receives a focus event', () => {
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(false)
 
 		editor.elm.focus()
 
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(true)
 	})
 
 	it('becomes false when the container div receives a blur event', () => {
 		editor.elm.focus()
 
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(true)
 
 		editor.elm.blur()
 
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(false)
 	})
 
@@ -444,13 +445,13 @@ describe('isFocused', () => {
 		editor.elm.blur()
 		const child = document.createElement('div')
 		editor.elm.appendChild(child)
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(false)
 		child.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(true)
 		child.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(false)
 	})
 
@@ -466,7 +467,7 @@ describe('isFocused', () => {
 
 		child.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
 
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(false)
 	})
 })
@@ -520,13 +521,13 @@ describe('getShapeUtil', () => {
 	it('throws if that shape type isnt registered', () => {
 		const myMissingShape = { type: 'missing' } as TLShape
 		expect(() => editor.getShapeUtil(myMissingShape)).toThrowErrorMatchingInlineSnapshot(
-			`"No shape util found for type "missing""`
+			`[Error: No shape util found for type "missing"]`
 		)
 	})
 
 	it('throws if that type isnt registered', () => {
 		expect(() => editor.getShapeUtil('missing')).toThrowErrorMatchingInlineSnapshot(
-			`"No shape util found for type "missing""`
+			`[Error: No shape util found for type "missing"]`
 		)
 	})
 })
@@ -603,14 +604,14 @@ describe('snapshots', () => {
 
 describe('when the user prefers dark UI', () => {
 	beforeEach(() => {
-		window.matchMedia = jest.fn().mockImplementation((query) => {
+		window.matchMedia = vi.fn().mockImplementation((query) => {
 			return {
 				matches: query === '(prefers-color-scheme: dark)',
 				media: query,
 				onchange: null,
-				addEventListener: jest.fn(),
-				removeEventListener: jest.fn(),
-				dispatchEvent: jest.fn(),
+				addEventListener: vi.fn(),
+				removeEventListener: vi.fn(),
+				dispatchEvent: vi.fn(),
 			}
 		})
 	})
@@ -630,14 +631,14 @@ describe('when the user prefers dark UI', () => {
 
 describe('when the user prefers light UI', () => {
 	beforeEach(() => {
-		window.matchMedia = jest.fn().mockImplementation((query) => {
+		window.matchMedia = vi.fn().mockImplementation((query) => {
 			return {
 				matches: false,
 				media: query,
 				onchange: null,
-				addEventListener: jest.fn(),
-				removeEventListener: jest.fn(),
-				dispatchEvent: jest.fn(),
+				addEventListener: vi.fn(),
+				removeEventListener: vi.fn(),
+				dispatchEvent: vi.fn(),
 			}
 		})
 	})
@@ -722,7 +723,7 @@ describe('dragging', () => {
 })
 
 describe('getShapeVisibility', () => {
-	const getShapeVisibility = jest.fn(((shape: TLShape) => {
+	const getShapeVisibility = vi.fn(((shape: TLShape) => {
 		return shape.meta.visibility as any
 	}) satisfies TldrawEditorProps['getShapeVisibility'])
 
@@ -897,5 +898,72 @@ describe('the geometry cache', () => {
 		expect(editor.getShapePageBounds(A)!.width).toBe(100)
 		editor.updateShape({ id: A, type: 'custom', meta: { double: true } })
 		expect(editor.getShapePageBounds(A)!.width).toBe(200)
+	})
+})
+describe('editor.getShapePageBounds', () => {
+	it('calculates axis aligned bounds correctly', () => {
+		editor.createShape({
+			type: 'geo',
+			x: 99,
+			y: 88,
+			props: {
+				w: 199,
+				h: 188,
+			},
+		})
+		const shape = editor.getLastCreatedShape()
+		expect(editor.getShapePageBounds(shape)!).toMatchInlineSnapshot(`
+	Box {
+	  "h": 188,
+	  "w": 199,
+	  "x": 99,
+	  "y": 88,
+	}
+`)
+	})
+
+	it('calculates rotated bounds correctly', () => {
+		editor.createShape({
+			type: 'geo',
+			x: 99,
+			y: 88,
+			rotation: Math.PI / 4,
+			props: {
+				w: 199,
+				h: 188,
+			},
+		})
+		const shape = editor.getLastCreatedShape()
+		expect(editor.getShapePageBounds(shape)!).toMatchInlineSnapshot(`
+	Box {
+	  "h": 273.65032431919394,
+	  "w": 273.6503243191939,
+	  "x": -33.93607486307093,
+	  "y": 88,
+	}
+`)
+	})
+
+	it('calculates bounds based on vertices, not corners', () => {
+		editor.createShape({
+			type: 'geo',
+			x: 99,
+			y: 88,
+			rotation: Math.PI / 4,
+			props: {
+				geo: 'ellipse',
+				w: 199,
+				h: 188,
+			},
+		})
+		const shape = editor.getLastCreatedShape()
+		expect(editor.getShapePageBounds(shape)!).toMatchInlineSnapshot(`
+	Box {
+	  "h": 193.49999999999997,
+	  "w": 193.50000000000003,
+	  "x": 6.139087296526014,
+	  "y": 128.07516215959694,
+	}
+`)
 	})
 })

@@ -32,6 +32,7 @@ import {
 } from '@tldraw/editor'
 import { EmbedDefinition } from './defaultEmbedDefinitions'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
+import { getCroppedImageDataForReplacedImage } from './shapes/shared/crop'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
@@ -143,7 +144,7 @@ export async function defaultHandleExternalFileAsset(
 	{ file, assetId }: TLFileExternalAsset,
 	options: TLDefaultExternalContentHandlerOpts
 ) {
-	const isSuccess = runFileChecks(file, options)
+	const isSuccess = notifyIfFileNotAllowed(file, options)
 	if (!isSuccess) assert(false, 'File checks failed')
 
 	const assetInfo = await getAssetInfo(file, options, assetId)
@@ -160,7 +161,7 @@ export async function defaultHandleExternalFileReplaceContent(
 	{ file, shapeId, isImage }: TLFileReplaceExternalContent,
 	options: TLDefaultExternalContentHandlerOpts
 ) {
-	const isSuccess = runFileChecks(file, options)
+	const isSuccess = notifyIfFileNotAllowed(file, options)
 	if (!isSuccess) assert(false, 'File checks failed')
 
 	const shape = editor.getShape(shapeId)
@@ -179,16 +180,43 @@ export async function defaultHandleExternalFileReplaceContent(
 
 	// And update the shape
 	if (shape.type === 'image') {
+		const imageShape = shape as TLImageShape
+		const currentCrop = imageShape.props.crop
+
+		// Calculate new dimensions that preserve the current visual size of the cropped area
+		let newWidth = assetInfoPartial.props.w
+		let newHeight = assetInfoPartial.props.h
+		let newX = imageShape.x
+		let newY = imageShape.y
+		let finalCrop = currentCrop
+
+		if (currentCrop) {
+			// Use the dedicated function to calculate the new crop and dimensions
+			const result = getCroppedImageDataForReplacedImage(
+				imageShape,
+				assetInfoPartial.props.w,
+				assetInfoPartial.props.h
+			)
+
+			finalCrop = result.crop
+			newWidth = result.w
+			newHeight = result.h
+			newX = result.x
+			newY = result.y
+		}
+
 		editor.updateShapes<TLImageShape>([
 			{
-				id: shape.id,
-				type: shape.type,
+				id: imageShape.id,
+				type: imageShape.type,
 				props: {
 					assetId: assetId,
-					crop: { topLeft: { x: 0, y: 0 }, bottomRight: { x: 1, y: 1 } },
-					w: assetInfoPartial.props.w,
-					h: assetInfoPartial.props.h,
+					crop: finalCrop,
+					w: newWidth,
+					h: newHeight,
 				},
+				x: newX,
+				y: newY,
 			},
 		])
 	} else if (shape.type === 'video') {
@@ -354,7 +382,7 @@ export async function defaultHandleExternalFileContent(
 ) {
 	const { acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES, toasts, msg } = options
 	if (files.length > editor.options.maxFilesAtOnce) {
-		toasts.addToast({ title: msg('assets.files.amount-too-big'), severity: 'error' })
+		toasts.addToast({ title: msg('assets.files.amount-too-many'), severity: 'error' })
 		return
 	}
 
@@ -371,7 +399,7 @@ export async function defaultHandleExternalFileContent(
 		file: File
 	}[] = []
 	for (const file of files) {
-		const isSuccess = runFileChecks(file, options)
+		const isSuccess = notifyIfFileNotAllowed(file, options)
 		if (!isSuccess) continue
 
 		const assetInfo = await getAssetInfo(file, options)
@@ -845,7 +873,15 @@ export function createEmptyBookmarkShape(
 	return editor.getShape(partial.id) as TLBookmarkShape
 }
 
-function runFileChecks(file: File, options: TLDefaultExternalContentHandlerOpts) {
+/**
+ * Checks if a file is allowed to be uploaded. If it is not, it will show a toast explaining why to the user.
+ *
+ * @param file - The file to check
+ * @param options - The options for the external content handler
+ * @returns True if the file is allowed, false otherwise
+ * @public
+ */
+export function notifyIfFileNotAllowed(file: File, options: TLDefaultExternalContentHandlerOpts) {
 	const {
 		acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
 		acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
@@ -865,8 +901,22 @@ function runFileChecks(file: File, options: TLDefaultExternalContentHandlerOpts)
 	}
 
 	if (file.size > maxAssetSize) {
+		const formatBytes = (bytes: number): string => {
+			if (bytes === 0) return '0 bytes'
+
+			const units = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB']
+			const base = 1024
+			const unitIndex = Math.floor(Math.log(bytes) / Math.log(base))
+
+			const value = bytes / Math.pow(base, unitIndex)
+			const formatted = value % 1 === 0 ? value.toString() : value.toFixed(1)
+
+			return `${formatted} ${units[unitIndex]}`
+		}
+
 		toasts.addToast({
 			title: msg('assets.files.size-too-big'),
+			description: msg('assets.files.maximum-size').replace('{size}', formatBytes(maxAssetSize)),
 			severity: 'error',
 		})
 		return false
@@ -887,7 +937,8 @@ function runFileChecks(file: File, options: TLDefaultExternalContentHandlerOpts)
 	return true
 }
 
-async function getAssetInfo(
+/** @public */
+export async function getAssetInfo(
 	file: File,
 	options: TLDefaultExternalContentHandlerOpts,
 	assetId?: TLAssetId

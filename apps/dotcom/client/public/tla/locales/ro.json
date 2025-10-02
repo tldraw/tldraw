@@ -35,6 +35,9 @@
   "110a4b01be": {
     "translation": "Publica"
   },
+  "12c8a9838c": {
+    "translation": "Încercați SDK-ul tldraw"
+  },
   "13ddd375ad": {
     "translation": "Exportați ca"
   },
@@ -47,11 +50,20 @@
   "1dd1c5fb7f": {
     "translation": "Astăzi"
   },
+  "20976e7bec": {
+    "translation": "Camera este plină"
+  },
+  "21bfb2dc2e": {
+    "translation": "Această cameră se apropie de limita de dimensiune. Luați în considerare eliminarea unei părți din conținut sau începerea unui fișier nou."
+  },
   "250ddea65c": {
     "translation": "Despre tldraw"
   },
   "299cb00a7a": {
     "translation": "Încărcarea nu a reușit"
+  },
+  "2deec2cb74": {
+    "translation": "Această cameră a atins limita de dimensiune și este posibil ca modificările să nu mai fie salvate. Eliminați o parte din conținut sau începeți un fișier nou."
   },
   "31246941ad": {
     "translation": "Trebuie să vă conectați pentru a vedea acest fișier."
@@ -85,6 +97,12 @@
   },
   "47839e47a5": {
     "translation": "tldraw"
+  },
+  "7697920637": {
+    "translation": "Vă rugăm să reîncărcați"
+  },
+  "764671e008": {
+    "translation": "Discutați cu noi pe Discord"
   },
   "4908687e50": {
     "translation": "Sigur vrei să uiți acest fișier?"
@@ -121,6 +139,15 @@
   },
   "5a95a425f7": {
     "translation": "Distribuie"
+  },
+  "5bb6cf3b53": {
+    "translation": "Camera devine mare"
+  },
+  "5bcc12ace8": {
+    "translation": "Această cameră este acum doar pentru citire"
+  },
+  "5bec508475": {
+    "translation": "Browser vechi detectat. Vă rugăm să actualizați browserul pentru a utiliza această aplicație."
   },
   "5d26ae7550": {
     "translation": "Nu am reușit să încărcăm o parte din conținutul pe care l-ați creat înainte de a vă conecta."
@@ -173,14 +200,11 @@
   "761e93ede9": {
     "translation": "Gestionați cookie-urile"
   },
-  "7697920637": {
-    "translation": "Vă rugăm să reîncărcați"
-  },
-  "764671e008": {
-    "translation": "Discutați cu noi pe Discord"
-  },
   "777f9e90cf": {
     "translation": "Solicitare nevalidă."
+  },
+  "78e9815992": {
+    "translation": "Am înţeles"
   },
   "797799f35e": {
     "translation": "Trimiteți o problemă pe GitHub"
@@ -215,6 +239,9 @@
   "86c66437fd": {
     "translation": "Redenumiți fișierul"
   },
+  "8b1946f965": {
+    "translation": "Pentru a continua editarea, vă rugăm să copiați camera în fișierele dvs."
+  },
   "8eb2c00e96": {
     "translation": "Împărtășită cu tine"
   },
@@ -238,6 +265,9 @@
   },
   "9bef626805": {
     "translation": "Ștergeți fișierul"
+  },
+  "9c258b8f88": {
+    "translation": "Această cameră multiplayer anonimă de pe tldraw este acum doar pentru citire. Pentru a continua editarea, vă rugăm să o conectați și să o copiați în fișierele dvs."
   },
   "9ceb927baa": {
     "translation": "Publicați acest fișier"
@@ -294,6 +324,9 @@
   "b758336699": {
     "translation": "Copiați linkul"
   },
+  "ba0318cb81": {
+    "translation": "Conectați-vă pentru a partaja"
+  },
   "bb792693e2": {
     "translation": "Anulați fixarea"
   },
@@ -323,9 +356,6 @@
   },
   "c87aacf567": {
     "translation": "Sign out"
-  },
-  "cbef7ba103": {
-    "translation": "Această cameră va fi în curând doar pentru citire"
   },
   "cceaefbc20": {
     "translation": "Distribuiți acest fișier"
@@ -366,9 +396,6 @@
   "e78e14c5f1": {
     "translation": "Pin"
   },
-  "ea2301d01c": {
-    "translation": "După 1 iulie 2025, această cameră multiplayer anonimă de pe tldraw va deveni doar pentru citire. Pentru a continua editarea în viitor, vă rugăm să vă conectați și să o copiați în fișierele dvs."
-  },
   "ea4788705e": {
     "translation": "Anula"
   },
@@ -389,6 +416,9 @@
   },
   "ede55d955f": {
     "translation": "Citiți <a>politica noastră privind cookie-urile</a> pentru a afla mai multe."
+  },
+  "ef7de3f485": {
+    "translation": "selectat"
   },
   "f09b16bc5f": {
     "translation": "Folosim cookie-uri pentru a vă menține conectat(ă), pentru a vă sincroniza fișierele și pentru a colecta date analitice care să ne ajute să îmbunătățim tldraw."

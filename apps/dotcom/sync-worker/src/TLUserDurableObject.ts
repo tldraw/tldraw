@@ -9,7 +9,6 @@ import {
 	ZErrorCode,
 	ZServerSentPacket,
 	createMutators,
-	downgradeZStoreData,
 	schema,
 } from '@tldraw/dotcom-shared'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
@@ -29,7 +28,6 @@ import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 import { PerfHackHooks, ServerCRUD } from './zero/ServerCrud'
 import { ServerQuery } from './zero/ServerQuery'
 import { ZMutationError } from './zero/ZMutationError'
-import { legacy_assertValidMutation } from './zero/legacy_assertValidMutation'
 
 export class TLUserDurableObject extends DurableObject<Environment> {
 	private readonly db: Kysely<DB>
@@ -185,26 +183,13 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.outgoingBuffer = null
 		if (!buffer) return
 
-		for (const [socket, socketMeta] of this.sockets.entries()) {
+		for (const [socket] of this.sockets.entries()) {
 			if (socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
 				this.sockets.delete(socket)
 				continue
 			}
 			if (socket.readyState !== WebSocket.OPEN) {
 				continue
-			}
-			// maybe downgrade the data for the client
-			if (socketMeta.protocolVersion === 1) {
-				for (let msg of buffer) {
-					if (msg.type === 'initial_data') {
-						msg = {
-							type: 'initial_data',
-							initialData: downgradeZStoreData(msg.initialData) as any,
-						}
-					}
-					socket.send(JSON.stringify(msg))
-				}
-				return
 			}
 
 			socket.send(JSON.stringify(buffer))
@@ -232,6 +217,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		const params = Object.fromEntries(url.searchParams.entries())
 		const { sessionId } = params
 
+		// before we sent the protocolVersion param, the protocol was the same as v1
 		const protocolVersion = params.protocolVersion ? Number(params.protocolVersion) : 1
 
 		assert(sessionId, 'Session ID is required')
@@ -273,17 +259,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		if (initialData) {
 			this.log.debug('sending initial data on connect', this.userId)
 			serverWebSocket.send(
-				protocolVersion === 1
-					? JSON.stringify({
-							type: 'initial_data',
-							initialData: downgradeZStoreData(initialData),
-						})
-					: JSON.stringify([
-							{
-								type: 'initial_data',
-								initialData,
-							} satisfies ZServerSentPacket,
-						])
+				JSON.stringify([
+					{
+						type: 'initial_data',
+						initialData,
+					} satisfies ZServerSentPacket,
+				])
 			)
 		} else {
 			this.log.debug('no initial data to send, waiting for boot to finish', this.userId)
@@ -298,7 +279,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 		const msg = JSON.parse(message) as any as ZClientSentMessage
 		switch (msg.type) {
-			case 'mutate':
 			case 'mutator':
 				if (rateLimited) {
 					this.logEvent({ type: 'rate_limited', id: this.userId! })
@@ -331,7 +311,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private async rejectMutation(socket: WebSocket, mutationId: string, errorCode: ZErrorCode) {
 		this.assertCache()
-		const socketMeta = assertExists(this.sockets.get(socket), 'Socket not found')
+		assertExists(this.sockets.get(socket), 'Socket not found')
 		this.logEvent({ type: 'reject_mutation', id: this.userId! })
 		this.cache.store.rejectMutation(mutationId)
 		this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== mutationId)
@@ -342,7 +322,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			errorCode,
 		}
 
-		socket?.send(JSON.stringify(socketMeta.protocolVersion === 1 ? msg : [msg]))
+		socket?.send(JSON.stringify([msg]))
 	}
 
 	private pool: Pool
@@ -359,38 +339,30 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			const controller = new AbortController()
 			const mutate = this.makeCrud(client, controller.signal, { newFiles })
 			try {
-				if (msg.type === 'mutate') {
-					// legacy
-					for (const update of msg.updates) {
-						await legacy_assertValidMutation(this.userId!, client, update)
-						await mutate[update.table][update.event](update.row as any)
-					}
-				} else {
-					// new
-					const mutators = createMutators(this.userId!)
-					const path = msg.name.split('.')
-					assert(path.length <= 2, 'Invalid mutation path')
-					const mutator: CustomMutatorImpl<TlaSchema> =
-						path.length === 1 ? (mutators as any)[path[0]] : (mutators as any)[path[0]][path[1]]
-					assert(mutator, 'Invalid mutator path')
-					await mutator(
-						{
-							clientID: '',
-							dbTransaction: {
-								wrappedTransaction: null as any,
-								async query(sqlString: string, params: unknown[]): Promise<any[]> {
-									return client.query(sqlString, params).then((res) => res.rows)
-								},
+				// new
+				const mutators = createMutators(this.userId!)
+				const path = msg.name.split('.')
+				assert(path.length <= 2, 'Invalid mutation path')
+				const mutator: CustomMutatorImpl<TlaSchema> =
+					path.length === 1 ? (mutators as any)[path[0]] : (mutators as any)[path[0]][path[1]]
+				assert(mutator, 'Invalid mutator path')
+				await mutator(
+					{
+						clientID: '',
+						dbTransaction: {
+							wrappedTransaction: null as any,
+							async query(sqlString: string, params: unknown[]): Promise<any[]> {
+								return client.query(sqlString, params).then((res) => res.rows)
 							},
-							mutate,
-							location: 'server',
-							reason: 'authoritative',
-							mutationID: 0,
-							query: this.makeQuery(client, controller.signal),
 						},
-						msg.props
-					)
-				}
+						mutate,
+						location: 'server',
+						reason: 'authoritative',
+						mutationID: 0,
+						query: this.makeQuery(client, controller.signal),
+					},
+					msg.props
+				)
 			} finally {
 				controller.abort()
 			}
@@ -462,7 +434,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	async handleReplicationEvent(event: ZReplicationEvent) {
 		this.logEvent({ type: 'replication_event', id: this.userId ?? 'anon' })
 		this.log.debug('replication event', event, !!this.cache)
-		if (await this.notActive()) {
+		if (!this.cache) {
+			this.logEvent({ type: 'woken_up_by_replication_event', id: this.userId ?? 'anon' })
 			this.log.debug('requesting to unregister')
 			return 'unregister'
 		}
@@ -474,10 +447,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 
 		return 'ok'
-	}
-
-	async notActive() {
-		return !this.cache
 	}
 
 	/* --------------  */
@@ -543,5 +512,29 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			await sleep(100)
 		}
 		return cache.store.getCommittedData()
+	}
+
+	async admin_delete(userId: string) {
+		// Close all websocket connections
+		for (const socket of this.sockets.keys()) {
+			socket.close()
+		}
+		this.sockets.clear()
+
+		// Clear the cache/state
+		if (this.cache) {
+			this.cache = null
+		}
+
+		// Delete R2 data snapshot
+		await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
+
+		// Clear any intervals
+		if (this.interval) {
+			clearInterval(this.interval)
+			this.interval = null
+		}
+
+		await this.db.destroy()
 	}
 }

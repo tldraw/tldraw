@@ -1,142 +1,1028 @@
 {
-  "0095a9fa74": "I-export",
-  "03b3e13197": "I-drag ang file sa sidebar sa page na ito. O piliin ang opsyong 'Mag-import ng file' mula sa menu ng user.",
-  "043973ec1f": "Nahihirapan pa rin? {GetHelpLink}",
-  "05596b840b": "Buksan ang tldraw.",
-  "06b9281e39": "Auto",
-  "07dbd11b21": "Walang pamagat na file",
-  "08331c1710": "Lumampas sa limitasyon sa rate, subukang muli sa ibang pagkakataon.",
-  "08bd40c754": "Account",
-  "0b27918290": "file",
-  "0b9a4cde72": "Menu ng file",
-  "0d1f2bb523": "Magpadala ng feedback",
-  "110a4b01be": "I-publish",
-  "13ddd375ad": "I-export bilang",
-  "181b90f889": "Lumikha ng file",
-  "1da2e8106b": "May naganap na hindi inaasahang error.",
-  "1dd1c5fb7f": "Ngayong araw",
-  "250ddea65c": "Tungkol sa tldraw",
-  "299cb00a7a": "Nabigo ang pag-upload",
-  "31246941ad": "Kailangan mong mag-sign in upang tingnan ang file na ito.",
-  "31418ce4ad": "i18n: Nawawala ang Highlight",
-  "335defdafe": "Pakisubukang i-refresh ang page.",
-  "344a7f427f": "Editor",
-  "3bd1b98dbd": "Hindi ma-publish ang mga pagbabago.",
-  "3c5e891bff": "Naka-pin",
-  "3d0238bf16": "Tanggapin lahat",
-  "42e53c47c1": "Makipag-ugnayan sa may-ari para humiling ng access.",
-  "44db318ee5": "Humingi ng tulong sa Discord",
-  "46137245cd": "Salamat sa pagtulong sa amin na mapabuti ang tldraw!",
-  "47839e47a5": "tldraw",
-  "4908687e50": "Sigurado ka bang gusto mong kalimutan ang file na ito?",
-  "4d0d3ddec9": "Gumagamit ang site na ito ng cookies para gumana ang app at para mangolekta ng analytics.",
-  "4d1c8263ba": "I-reload",
-  "50db1b7e1e": "Hindi ma-unpublish ang file.",
-  "517bb809d9": "Menu ng page",
-  "54286b1d01": "Naabot na ang limitasyon ng collaborator",
-  "54d240fa41": "Mangyaring magdahan-dahan.",
-  "554a05155c": "Nahihirapan pa rin? <a>Mag-ulat ng problema</a>",
-  "55505ba281": "PNG",
-  "5677e381d2": "Gumagamit kami ng analytics cookies upang pagandahin ang tldraw.",
-  "56c34c6410": "Patakaran sa privacy",
-  "5a95a425f7": "Ibahagi",
-  "5d26ae7550": "Nabigo kaming mag-upload ng ilan sa nilalamang ginawa mo bago ka mag-sign in.",
-  "5f3c333678": "Naisumite ang feedback",
-  "5fb63579fc": "Kopyahin",
-  "61057a0c84": "Mamaya",
-  "625fd29749": "Mas matanda",
-  "6609dd239e": "Nagkaproblema",
-  "6637a98151": "Available ang bagong bersyon ng tldraw. Paki-reload ang page para magpatuloy.",
-  "6a26f54883": "Tulong",
-  "6dc0836c1b": "Wala kang mga kinakailangang pahintulot upang maisagawa ang pagkilos na ito.",
-  "6dfc62f621": "Sundin ang mga hakbang na ito upang manu-manong i-import ang nilalaman:",
-  "70a6facb9d": "Ngayong linggo",
-  "71a29b007b": "May bug, isyu, o ideya para sa tldraw? Ipaalam sa amin!",
-  "73ab799383": "Ang bersyon na ito ng tldraw ay hindi na suportado.",
-  "7408cf0d7b": "Paki-reload ang page",
-  "752b79f137": "Naabot mo na ang maximum na bilang ng mga file. Kailangan mong tanggalin ang mga lumang file bago gumawa ng mga bago.",
-  "7573b8110a": "Walang access",
-  "761e93ede9": "Pamahalaan ang cookies",
-  "764671e008": "Makipag-chat sa amin sa Discord",
-  "7697920637": "Paki-reload",
-  "777f9e90cf": "Di-wastong kahilingan.",
-  "797799f35e": "Magsumite ng isyu sa GitHub",
-  "7b1329f5ca": "User manual",
-  "7be10fc592": "Ibalik ang bersyon",
-  "7cb5f8b4a5": "Kalimutan",
-  "7daeced9ff": "I-publish ang mga pagbabago",
-  "7fcdcc6455": "Kalimutan ang file",
-  "801ab24683": "I-download",
-  "815e116a2e": "May bug, isyu, o ideya para sa tldraw? Ipaalam sa amin! Punan ang form na ito at susubaybayan namin ang email kung kinakailangan. Maaari ka ring <discord>makipag-chat sa amin sa Discord</discord> o <github>magsumite ng isyu sa GitHub</github>.",
-  "85a082de1b": "Paki-refresh ang page para makuha ang pinakabagong bersyon ng tldraw.",
-  "86353d2c41": "Nagdagdag ng {total} .tldr file.",
-  "86c66437fd": "Palitan ang pangalan ng file",
-  "8eb2c00e96": "Ibinahagi sa iyo",
-  "8ff3d0a705": "Limitado ang rate",
-  "902b0d55fd": "Error",
-  "904a830405": "Palitan ang pangalan",
-  "91e49bb0eb": "Kopyahin sa aking mga file",
-  "96165d6df5": "Ngayong buwan",
-  "9914a0ce04": "Liwanag",
-  "9bef626805": "Tanggalin ang file",
-  "9ceb927baa": "I-publish ang file na ito",
-  "9e076f5885": "Hindi nahanap",
-  "9e93c98d88": "Mag-opt out",
-  "a0da245992": "I-export ang nilalaman bilang isang .tldr file: Piliin ang 'I-download' sa kaliwang menu sa itaas.",
-  "a104439641": "Padding",
-  "a18366b217": "Madilim",
-  "a1c915578c": "Ang file na iyong hinahanap ay wala.",
-  "a239905023": "I-export ang larawan",
-  "a3debabee7": "Patakaran sa cookie",
-  "a4d3b161ce": "Isumite",
-  "a6cc403d56": "Sinumang may link",
-  "a768caa988": "Analytics",
-  "a9ded1e5ce": "Background",
-  "ab0df9ba36": "Naabot na ang limitasyon ng file",
-  "af3dc88931": "Huling na-publish <date></date>",
-  "b028909917": "Guest user",
-  "b6d4223e60": "Mag-sign in",
-  "b758336699": "Kopyahin ang link",
-  "bb792693e2": "I-unpin",
-  "bbbcefd7ce": "{total, plural, zero {} one {Ina-upload ang .tldr file…} two {} few {} many {} other {Ina-upload ang {uploaded} ng {total} .tldr file…}}",
-  "bc88b0e89e": "Ibinahagi ni {ownerName}",
-  "bcb62136a3": "Mag-upload ng mga .tldr na file",
-  "c2276c9127": "Matuto pa tungkol sa pagbabahagi.",
-  "c303bd1095": "Hindi ma-publish ang file.",
-  "c4b39a1cc3": "Mahahalagang cookies",
-  "c655b27b1e": "i18n: Mahabang String",
-  "c6a00f137b": "Mag-imbita",
-  "c87aacf567": "Mag-sign out",
-  "cbef7ba103": "Malapit nang maging read-only ang kwartong ito",
-  "cceaefbc20": "Ibahagi ang file na ito",
-  "cd15a75c26": "SVG",
-  "cea291e45e": "Matuto pa tungkol sa pag-publish.",
-  "d3d2e61733": "Isara",
-  "d4bbf74f3e": "I-toggle ang sidebar",
-  "d721757161": "Tema",
-  "d876a9fe1a": "Subukan Muli",
-  "d9100f3e10": "Pumunta dito upang makita ang nilalaman",
-  "dbbebf3c03": "Mag-imbita lang",
-  "dfdb78a4e4": "Mga flag ng pag-debug ng app",
-  "e2ae80a510": "Legal na buod",
-  "e404559826": "Mga tuntunin ng serbisyo",
-  "e78e14c5f1": "Pin",
-  "ea2301d01c": "Pagkatapos ng Hulyo 1, 2025, magiging read-only ang anonymous na tldraw multiplayer room na ito. Upang magpatuloy sa pag-edit sa hinaharap mangyaring mag-sign in at kopyahin ito sa iyong mga file.",
-  "ea4788705e": "Kanselahin",
-  "ebfe9ce86e": "Kahapon",
-  "ec59b960ea": "Naabot ng file na ito ang maximum na bilang ng mga aktibong collaborator.",
-  "ec611e9a08": "Menu ng account",
-  "ed53713239": "i18n: Accented",
-  "ed75712b0e": "Duplicate",
-  "ede55d955f": "Basahin ang aming <a>patakaran sa cookie</a> upang matuto nang higit pa.",
-  "f09b16bc5f": "Gumagamit kami ng cookies upang panatilihin kang naka-log in, upang i-sync ang iyong mga file, at upang mangolekta ng analytics upang matulungan kaming mapabuti ang tldraw.",
-  "f0e8bff6f9": "Mga setting ng user",
-  "f2569594b2": "Ginagamit namin ang cookies na ito para i-save ang iyong mga file at setting.",
-  "f2a6c498fb": "Tanggalin",
-  "f43fb62093": "Bumalik sa tldraw.",
-  "f4f70727dc": "Mga setting",
-  "fb15c53f22": "manonood",
-  "fd1be3efcf": "Sigurado ka bang gusto mong tanggalin ang file na ito?",
-  "fed5ec05eb": "Kinopya ang link",
-  "ffcd73e997": "Mag-import ng file…"
+  "0095a9fa74": [
+    {
+      "type": 0,
+      "value": "I-export"
+    }
+  ],
+  "03b3e13197": [
+    {
+      "type": 0,
+      "value": "I-drag ang file sa sidebar sa page na ito. O piliin ang opsyong 'Mag-import ng file' mula sa menu ng user."
+    }
+  ],
+  "043973ec1f": [
+    {
+      "type": 0,
+      "value": "Nahihirapan pa rin? "
+    },
+    {
+      "type": 1,
+      "value": "GetHelpLink"
+    }
+  ],
+  "05596b840b": [
+    {
+      "type": 0,
+      "value": "Buksan ang tldraw."
+    }
+  ],
+  "06b9281e39": [
+    {
+      "type": 0,
+      "value": "Auto"
+    }
+  ],
+  "07dbd11b21": [
+    {
+      "type": 0,
+      "value": "Walang pamagat na file"
+    }
+  ],
+  "08331c1710": [
+    {
+      "type": 0,
+      "value": "Lumampas sa limitasyon sa rate, subukang muli sa ibang pagkakataon."
+    }
+  ],
+  "08bd40c754": [
+    {
+      "type": 0,
+      "value": "Account"
+    }
+  ],
+  "0b27918290": [
+    {
+      "type": 0,
+      "value": "file"
+    }
+  ],
+  "0b9a4cde72": [
+    {
+      "type": 0,
+      "value": "Menu ng file"
+    }
+  ],
+  "0d1f2bb523": [
+    {
+      "type": 0,
+      "value": "Magpadala ng feedback"
+    }
+  ],
+  "110a4b01be": [
+    {
+      "type": 0,
+      "value": "I-publish"
+    }
+  ],
+  "12c8a9838c": [
+    {
+      "type": 0,
+      "value": "Subukan ang tldraw SDK"
+    }
+  ],
+  "13ddd375ad": [
+    {
+      "type": 0,
+      "value": "I-export bilang"
+    }
+  ],
+  "181b90f889": [
+    {
+      "type": 0,
+      "value": "Lumikha ng file"
+    }
+  ],
+  "1da2e8106b": [
+    {
+      "type": 0,
+      "value": "May naganap na hindi inaasahang error."
+    }
+  ],
+  "1dd1c5fb7f": [
+    {
+      "type": 0,
+      "value": "Ngayong araw"
+    }
+  ],
+  "20976e7bec": [
+    {
+      "type": 0,
+      "value": "Puno ang kwarto"
+    }
+  ],
+  "21bfb2dc2e": [
+    {
+      "type": 0,
+      "value": "Papalapit na ang kwartong ito sa limitasyon ng laki nito. Pag-isipang mag-alis ng ilang content o magsimula ng bagong file."
+    }
+  ],
+  "250ddea65c": [
+    {
+      "type": 0,
+      "value": "Tungkol sa tldraw"
+    }
+  ],
+  "299cb00a7a": [
+    {
+      "type": 0,
+      "value": "Nabigo ang pag-upload"
+    }
+  ],
+  "2deec2cb74": [
+    {
+      "type": 0,
+      "value": "Naabot na ng kwartong ito ang limitasyon sa laki nito at maaaring hindi na ma-save ang mga pagbabago. Mag-alis ng ilang content o magsimula ng bagong file."
+    }
+  ],
+  "31246941ad": [
+    {
+      "type": 0,
+      "value": "Kailangan mong mag-sign in upang tingnan ang file na ito."
+    }
+  ],
+  "31418ce4ad": [
+    {
+      "type": 0,
+      "value": "i18n: Nawawala ang Highlight"
+    }
+  ],
+  "335defdafe": [
+    {
+      "type": 0,
+      "value": "Pakisubukang i-refresh ang page."
+    }
+  ],
+  "344a7f427f": [
+    {
+      "type": 0,
+      "value": "Editor"
+    }
+  ],
+  "3bd1b98dbd": [
+    {
+      "type": 0,
+      "value": "Hindi ma-publish ang mga pagbabago."
+    }
+  ],
+  "3c5e891bff": [
+    {
+      "type": 0,
+      "value": "Naka-pin"
+    }
+  ],
+  "3d0238bf16": [
+    {
+      "type": 0,
+      "value": "Tanggapin lahat"
+    }
+  ],
+  "42e53c47c1": [
+    {
+      "type": 0,
+      "value": "Makipag-ugnayan sa may-ari para humiling ng access."
+    }
+  ],
+  "44db318ee5": [
+    {
+      "type": 0,
+      "value": "Humingi ng tulong sa Discord"
+    }
+  ],
+  "46137245cd": [
+    {
+      "type": 0,
+      "value": "Salamat sa pagtulong sa amin na mapabuti ang tldraw!"
+    }
+  ],
+  "47839e47a5": [
+    {
+      "type": 0,
+      "value": "tldraw"
+    }
+  ],
+  "4908687e50": [
+    {
+      "type": 0,
+      "value": "Sigurado ka bang gusto mong kalimutan ang file na ito?"
+    }
+  ],
+  "4d0d3ddec9": [
+    {
+      "type": 0,
+      "value": "Gumagamit ang site na ito ng cookies para gumana ang app at para mangolekta ng analytics."
+    }
+  ],
+  "4d1c8263ba": [
+    {
+      "type": 0,
+      "value": "I-reload"
+    }
+  ],
+  "50db1b7e1e": [
+    {
+      "type": 0,
+      "value": "Hindi ma-unpublish ang file."
+    }
+  ],
+  "517bb809d9": [
+    {
+      "type": 0,
+      "value": "Menu ng page"
+    }
+  ],
+  "54286b1d01": [
+    {
+      "type": 0,
+      "value": "Naabot na ang limitasyon ng collaborator"
+    }
+  ],
+  "54d240fa41": [
+    {
+      "type": 0,
+      "value": "Mangyaring magdahan-dahan."
+    }
+  ],
+  "554a05155c": [
+    {
+      "type": 0,
+      "value": "Nahihirapan pa rin? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Mag-ulat ng problema"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    }
+  ],
+  "55505ba281": [
+    {
+      "type": 0,
+      "value": "PNG"
+    }
+  ],
+  "5677e381d2": [
+    {
+      "type": 0,
+      "value": "Gumagamit kami ng analytics cookies upang pagandahin ang tldraw."
+    }
+  ],
+  "56c34c6410": [
+    {
+      "type": 0,
+      "value": "Patakaran sa privacy"
+    }
+  ],
+  "5a95a425f7": [
+    {
+      "type": 0,
+      "value": "Ibahagi"
+    }
+  ],
+  "5bb6cf3b53": [
+    {
+      "type": 0,
+      "value": "Lumalaki ang kwarto"
+    }
+  ],
+  "5bcc12ace8": [
+    {
+      "type": 0,
+      "value": "Read-only na ang kwartong ito"
+    }
+  ],
+  "5bec508475": [
+    {
+      "type": 0,
+      "value": "Nakita ang lumang browser. Mangyaring i-update ang iyong browser upang magamit ang app na ito."
+    }
+  ],
+  "5d26ae7550": [
+    {
+      "type": 0,
+      "value": "Nabigo kaming mag-upload ng ilan sa nilalamang ginawa mo bago ka mag-sign in."
+    }
+  ],
+  "5f3c333678": [
+    {
+      "type": 0,
+      "value": "Naisumite ang feedback"
+    }
+  ],
+  "5fb63579fc": [
+    {
+      "type": 0,
+      "value": "Kopyahin"
+    }
+  ],
+  "61057a0c84": [
+    {
+      "type": 0,
+      "value": "Mamaya"
+    }
+  ],
+  "625fd29749": [
+    {
+      "type": 0,
+      "value": "Mas matanda"
+    }
+  ],
+  "6609dd239e": [
+    {
+      "type": 0,
+      "value": "Nagkaproblema"
+    }
+  ],
+  "6637a98151": [
+    {
+      "type": 0,
+      "value": "Available ang bagong bersyon ng tldraw. Paki-reload ang page para magpatuloy."
+    }
+  ],
+  "6a26f54883": [
+    {
+      "type": 0,
+      "value": "Tulong"
+    }
+  ],
+  "6dc0836c1b": [
+    {
+      "type": 0,
+      "value": "Wala kang mga kinakailangang pahintulot upang maisagawa ang pagkilos na ito."
+    }
+  ],
+  "6dfc62f621": [
+    {
+      "type": 0,
+      "value": "Sundin ang mga hakbang na ito upang manu-manong i-import ang nilalaman:"
+    }
+  ],
+  "70a6facb9d": [
+    {
+      "type": 0,
+      "value": "Ngayong linggo"
+    }
+  ],
+  "71a29b007b": [
+    {
+      "type": 0,
+      "value": "May bug, isyu, o ideya para sa tldraw? Ipaalam sa amin!"
+    }
+  ],
+  "73ab799383": [
+    {
+      "type": 0,
+      "value": "Ang bersyon na ito ng tldraw ay hindi na suportado."
+    }
+  ],
+  "7408cf0d7b": [
+    {
+      "type": 0,
+      "value": "Paki-reload ang page"
+    }
+  ],
+  "752b79f137": [
+    {
+      "type": 0,
+      "value": "Naabot mo na ang maximum na bilang ng mga file. Kailangan mong tanggalin ang mga lumang file bago gumawa ng mga bago."
+    }
+  ],
+  "7573b8110a": [
+    {
+      "type": 0,
+      "value": "Walang access"
+    }
+  ],
+  "761e93ede9": [
+    {
+      "type": 0,
+      "value": "Pamahalaan ang cookies"
+    }
+  ],
+  "764671e008": [
+    {
+      "type": 0,
+      "value": "Makipag-chat sa amin sa Discord"
+    }
+  ],
+  "7697920637": [
+    {
+      "type": 0,
+      "value": "Paki-reload"
+    }
+  ],
+  "777f9e90cf": [
+    {
+      "type": 0,
+      "value": "Di-wastong kahilingan."
+    }
+  ],
+  "78e9815992": [
+    {
+      "type": 0,
+      "value": "Nakuha ko"
+    }
+  ],
+  "797799f35e": [
+    {
+      "type": 0,
+      "value": "Magsumite ng isyu sa GitHub"
+    }
+  ],
+  "7b1329f5ca": [
+    {
+      "type": 0,
+      "value": "User manual"
+    }
+  ],
+  "7be10fc592": [
+    {
+      "type": 0,
+      "value": "Ibalik ang bersyon"
+    }
+  ],
+  "7cb5f8b4a5": [
+    {
+      "type": 0,
+      "value": "Kalimutan"
+    }
+  ],
+  "7daeced9ff": [
+    {
+      "type": 0,
+      "value": "I-publish ang mga pagbabago"
+    }
+  ],
+  "7fcdcc6455": [
+    {
+      "type": 0,
+      "value": "Kalimutan ang file"
+    }
+  ],
+  "801ab24683": [
+    {
+      "type": 0,
+      "value": "I-download"
+    }
+  ],
+  "815e116a2e": [
+    {
+      "type": 0,
+      "value": "May bug, isyu, o ideya para sa tldraw? Ipaalam sa amin! Punan ang form na ito at susubaybayan namin ang email kung kinakailangan. Maaari ka ring "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "makipag-chat sa amin sa Discord"
+        }
+      ],
+      "type": 8,
+      "value": "discord"
+    },
+    {
+      "type": 0,
+      "value": " o "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "magsumite ng isyu sa GitHub"
+        }
+      ],
+      "type": 8,
+      "value": "github"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
+  "85a082de1b": [
+    {
+      "type": 0,
+      "value": "Paki-refresh ang page para makuha ang pinakabagong bersyon ng tldraw."
+    }
+  ],
+  "86353d2c41": [
+    {
+      "type": 0,
+      "value": "Nagdagdag ng "
+    },
+    {
+      "type": 1,
+      "value": "total"
+    },
+    {
+      "type": 0,
+      "value": " .tldr file."
+    }
+  ],
+  "86c66437fd": [
+    {
+      "type": 0,
+      "value": "Palitan ang pangalan ng file"
+    }
+  ],
+  "8b1946f965": [
+    {
+      "type": 0,
+      "value": "Para magpatuloy sa pag-edit, pakikopya ang kwarto sa iyong mga file."
+    }
+  ],
+  "8eb2c00e96": [
+    {
+      "type": 0,
+      "value": "Ibinahagi sa iyo"
+    }
+  ],
+  "8ff3d0a705": [
+    {
+      "type": 0,
+      "value": "Limitado ang rate"
+    }
+  ],
+  "902b0d55fd": [
+    {
+      "type": 0,
+      "value": "Error"
+    }
+  ],
+  "904a830405": [
+    {
+      "type": 0,
+      "value": "Palitan ang pangalan"
+    }
+  ],
+  "91e49bb0eb": [
+    {
+      "type": 0,
+      "value": "Kopyahin sa aking mga file"
+    }
+  ],
+  "96165d6df5": [
+    {
+      "type": 0,
+      "value": "Ngayong buwan"
+    }
+  ],
+  "9914a0ce04": [
+    {
+      "type": 0,
+      "value": "Liwanag"
+    }
+  ],
+  "9bef626805": [
+    {
+      "type": 0,
+      "value": "Tanggalin ang file"
+    }
+  ],
+  "9c258b8f88": [
+    {
+      "type": 0,
+      "value": "Read-only na ang anonymous na tldraw multiplayer room na ito. Upang magpatuloy sa pag-edit, mangyaring mag-sign in at kopyahin ito sa iyong mga file."
+    }
+  ],
+  "9ceb927baa": [
+    {
+      "type": 0,
+      "value": "I-publish ang file na ito"
+    }
+  ],
+  "9e076f5885": [
+    {
+      "type": 0,
+      "value": "Hindi nahanap"
+    }
+  ],
+  "9e93c98d88": [
+    {
+      "type": 0,
+      "value": "Mag-opt out"
+    }
+  ],
+  "a0da245992": [
+    {
+      "type": 0,
+      "value": "I-export ang nilalaman bilang isang .tldr file: Piliin ang 'I-download' sa kaliwang menu sa itaas."
+    }
+  ],
+  "a104439641": [
+    {
+      "type": 0,
+      "value": "Padding"
+    }
+  ],
+  "a18366b217": [
+    {
+      "type": 0,
+      "value": "Madilim"
+    }
+  ],
+  "a1c915578c": [
+    {
+      "type": 0,
+      "value": "Ang file na iyong hinahanap ay wala."
+    }
+  ],
+  "a239905023": [
+    {
+      "type": 0,
+      "value": "I-export ang larawan"
+    }
+  ],
+  "a3debabee7": [
+    {
+      "type": 0,
+      "value": "Patakaran sa cookie"
+    }
+  ],
+  "a4d3b161ce": [
+    {
+      "type": 0,
+      "value": "Isumite"
+    }
+  ],
+  "a6cc403d56": [
+    {
+      "type": 0,
+      "value": "Sinumang may link"
+    }
+  ],
+  "a768caa988": [
+    {
+      "type": 0,
+      "value": "Analytics"
+    }
+  ],
+  "a9ded1e5ce": [
+    {
+      "type": 0,
+      "value": "Background"
+    }
+  ],
+  "ab0df9ba36": [
+    {
+      "type": 0,
+      "value": "Naabot na ang limitasyon ng file"
+    }
+  ],
+  "af3dc88931": [
+    {
+      "type": 0,
+      "value": "Huling na-publish "
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "date"
+    }
+  ],
+  "b028909917": [
+    {
+      "type": 0,
+      "value": "Guest user"
+    }
+  ],
+  "b6d4223e60": [
+    {
+      "type": 0,
+      "value": "Mag-sign in"
+    }
+  ],
+  "b758336699": [
+    {
+      "type": 0,
+      "value": "Kopyahin ang link"
+    }
+  ],
+  "ba0318cb81": [
+    {
+      "type": 0,
+      "value": "Mag-sign in upang ibahagi"
+    }
+  ],
+  "bb792693e2": [
+    {
+      "type": 0,
+      "value": "I-unpin"
+    }
+  ],
+  "bbbcefd7ce": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+          ]
+        },
+        "many": {
+          "value": [
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Ina-upload ang .tldr file…"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Ina-upload ang "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " ng "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " .tldr file…"
+            }
+          ]
+        },
+        "two": {
+          "value": [
+          ]
+        },
+        "zero": {
+          "value": [
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
+  "bc88b0e89e": [
+    {
+      "type": 0,
+      "value": "Ibinahagi ni "
+    },
+    {
+      "type": 1,
+      "value": "ownerName"
+    }
+  ],
+  "bcb62136a3": [
+    {
+      "type": 0,
+      "value": "Mag-upload ng mga .tldr na file"
+    }
+  ],
+  "c2276c9127": [
+    {
+      "type": 0,
+      "value": "Matuto pa tungkol sa pagbabahagi."
+    }
+  ],
+  "c303bd1095": [
+    {
+      "type": 0,
+      "value": "Hindi ma-publish ang file."
+    }
+  ],
+  "c4b39a1cc3": [
+    {
+      "type": 0,
+      "value": "Mahahalagang cookies"
+    }
+  ],
+  "c655b27b1e": [
+    {
+      "type": 0,
+      "value": "i18n: Mahabang String"
+    }
+  ],
+  "c6a00f137b": [
+    {
+      "type": 0,
+      "value": "Mag-imbita"
+    }
+  ],
+  "c87aacf567": [
+    {
+      "type": 0,
+      "value": "Mag-sign out"
+    }
+  ],
+  "cceaefbc20": [
+    {
+      "type": 0,
+      "value": "Ibahagi ang file na ito"
+    }
+  ],
+  "cd15a75c26": [
+    {
+      "type": 0,
+      "value": "SVG"
+    }
+  ],
+  "cea291e45e": [
+    {
+      "type": 0,
+      "value": "Matuto pa tungkol sa pag-publish."
+    }
+  ],
+  "d3d2e61733": [
+    {
+      "type": 0,
+      "value": "Isara"
+    }
+  ],
+  "d4bbf74f3e": [
+    {
+      "type": 0,
+      "value": "I-toggle ang sidebar"
+    }
+  ],
+  "d721757161": [
+    {
+      "type": 0,
+      "value": "Tema"
+    }
+  ],
+  "d876a9fe1a": [
+    {
+      "type": 0,
+      "value": "Subukan Muli"
+    }
+  ],
+  "d9100f3e10": [
+    {
+      "type": 0,
+      "value": "Pumunta dito upang makita ang nilalaman"
+    }
+  ],
+  "dbbebf3c03": [
+    {
+      "type": 0,
+      "value": "Mag-imbita lang"
+    }
+  ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "Mga flag ng pag-debug ng app"
+    }
+  ],
+  "e2ae80a510": [
+    {
+      "type": 0,
+      "value": "Legal na buod"
+    }
+  ],
+  "e404559826": [
+    {
+      "type": 0,
+      "value": "Mga tuntunin ng serbisyo"
+    }
+  ],
+  "e78e14c5f1": [
+    {
+      "type": 0,
+      "value": "Pin"
+    }
+  ],
+  "ea4788705e": [
+    {
+      "type": 0,
+      "value": "Kanselahin"
+    }
+  ],
+  "ebfe9ce86e": [
+    {
+      "type": 0,
+      "value": "Kahapon"
+    }
+  ],
+  "ec59b960ea": [
+    {
+      "type": 0,
+      "value": "Naabot ng file na ito ang maximum na bilang ng mga aktibong collaborator."
+    }
+  ],
+  "ec611e9a08": [
+    {
+      "type": 0,
+      "value": "Menu ng account"
+    }
+  ],
+  "ed53713239": [
+    {
+      "type": 0,
+      "value": "i18n: Accented"
+    }
+  ],
+  "ed75712b0e": [
+    {
+      "type": 0,
+      "value": "Duplicate"
+    }
+  ],
+  "ede55d955f": [
+    {
+      "type": 0,
+      "value": "Basahin ang aming "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "patakaran sa cookie"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " upang matuto nang higit pa."
+    }
+  ],
+  "ef7de3f485": [
+    {
+      "type": 0,
+      "value": "pinili"
+    }
+  ],
+  "f09b16bc5f": [
+    {
+      "type": 0,
+      "value": "Gumagamit kami ng cookies upang panatilihin kang naka-log in, upang i-sync ang iyong mga file, at upang mangolekta ng analytics upang matulungan kaming mapabuti ang tldraw."
+    }
+  ],
+  "f0e8bff6f9": [
+    {
+      "type": 0,
+      "value": "Mga setting ng user"
+    }
+  ],
+  "f2569594b2": [
+    {
+      "type": 0,
+      "value": "Ginagamit namin ang cookies na ito para i-save ang iyong mga file at setting."
+    }
+  ],
+  "f2a6c498fb": [
+    {
+      "type": 0,
+      "value": "Tanggalin"
+    }
+  ],
+  "f43fb62093": [
+    {
+      "type": 0,
+      "value": "Bumalik sa tldraw."
+    }
+  ],
+  "f4f70727dc": [
+    {
+      "type": 0,
+      "value": "Mga setting"
+    }
+  ],
+  "fb15c53f22": [
+    {
+      "type": 0,
+      "value": "manonood"
+    }
+  ],
+  "fd1be3efcf": [
+    {
+      "type": 0,
+      "value": "Sigurado ka bang gusto mong tanggalin ang file na ito?"
+    }
+  ],
+  "fed5ec05eb": [
+    {
+      "type": 0,
+      "value": "Kinopya ang link"
+    }
+  ],
+  "ffcd73e997": [
+    {
+      "type": 0,
+      "value": "Mag-import ng file…"
+    }
+  ]
 }

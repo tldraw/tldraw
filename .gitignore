@@ -6,8 +6,12 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+/worktrees
 
 .rooms
+
+# Temporary files
+*.tmp.ts
 
 node_modules
 dist
@@ -112,3 +116,5 @@ license-report.html
 
 # sst
 .sst
+
+.mcp.json

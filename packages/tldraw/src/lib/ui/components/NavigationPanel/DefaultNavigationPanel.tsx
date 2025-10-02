@@ -33,7 +33,7 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 
 	return (
 		<div ref={ref} className="tlui-navigation-panel">
-			<TldrawUiToolbar className="tlui-buttons__horizontal" label={msg('navigation-zone.title')}>
+			<TldrawUiToolbar orientation="horizontal" label={msg('navigation-zone.title')}>
 				{ZoomMenu && breakpoint < PORTRAIT_BREAKPOINT.TABLET ? (
 					<ZoomMenu />
 				) : (
@@ -45,7 +45,7 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 								title={`${msg(unwrapLabel(actions['zoom-out'].label))} ${kbdStr(actions['zoom-out'].kbd!)}`}
 								onClick={() => actions['zoom-out'].onSelect('navigation-zone')}
 							>
-								<TldrawUiButtonIcon icon="minus" />
+								<TldrawUiButtonIcon small icon="minus" />
 							</TldrawUiToolbarButton>
 						)}
 						{ZoomMenu && <ZoomMenu key="zoom-menu" />}
@@ -56,7 +56,7 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 								title={`${msg(unwrapLabel(actions['zoom-in'].label))} ${kbdStr(actions['zoom-in'].kbd!)}`}
 								onClick={() => actions['zoom-in'].onSelect('navigation-zone')}
 							>
-								<TldrawUiButtonIcon icon="plus" />
+								<TldrawUiButtonIcon small icon="plus" />
 							</TldrawUiToolbarButton>
 						)}
 						{Minimap && (
@@ -64,10 +64,9 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 								type="icon"
 								data-testid="minimap.toggle-button"
 								title={msg('navigation-zone.toggle-minimap')}
-								className="tlui-navigation-panel__toggle"
 								onClick={toggleMinimap}
 							>
-								<TldrawUiButtonIcon icon={collapsed ? 'chevrons-ne' : 'chevrons-sw'} />
+								<TldrawUiButtonIcon small icon={collapsed ? 'chevron-right' : 'chevron-left'} />
 							</TldrawUiToolbarButton>
 						)}
 					</>

@@ -13,7 +13,6 @@ import {
 	debounce,
 	getHashForString,
 	lerp,
-	stopEventPropagation,
 	tlenv,
 	toDomPrecision,
 	useEditor,
@@ -132,9 +131,9 @@ function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
 	const [isFaviconValid, setIsFaviconValid] = useState(true)
 	const onFaviconError = () => setIsFaviconValid(false)
 
-	const useStopPropagationOnShiftKey = useCallback<PointerEventHandler>(
+	const markAsHandledOnShiftKey = useCallback<PointerEventHandler>(
 		(e) => {
-			if (!editor.inputs.shiftKey) stopEventPropagation(e)
+			if (!editor.inputs.shiftKey) editor.markEventAsHandled(e)
 		},
 		[editor]
 	)
@@ -167,24 +166,34 @@ function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
 						{asset?.props.image && <HyperlinkButton url={shape.props.url} />}
 					</div>
 				)}
-				<a
-					className="tl-bookmark__link-wrapper"
-					href={shape.props.url || ''}
-					target="_blank"
-					rel="noopener noreferrer"
-					draggable={false}
-					onPointerDown={useStopPropagationOnShiftKey}
-					onPointerUp={useStopPropagationOnShiftKey}
-				>
-					{asset?.props.title ? (
-						<h2 className="tl-bookmark__heading">
-							{convertCommonTitleHTMLEntities(asset.props.title)}
-						</h2>
-					) : null}
+				<div className="tl-bookmark__copy_container">
+					<a
+						className="tl-bookmark__link"
+						href={shape.props.url || ''}
+						target="_blank"
+						rel="noopener noreferrer"
+						draggable={false}
+						onPointerDown={markAsHandledOnShiftKey}
+						onPointerUp={markAsHandledOnShiftKey}
+					>
+						{asset?.props.title ? (
+							<h2 className="tl-bookmark__heading">
+								{convertCommonTitleHTMLEntities(asset.props.title)}
+							</h2>
+						) : null}
+					</a>
 					{asset?.props.description && asset?.props.image ? (
 						<p className="tl-bookmark__description">{asset.props.description}</p>
 					) : null}
-					<span className="tl-bookmark__link">
+					<a
+						className="tl-bookmark__link"
+						href={shape.props.url || ''}
+						target="_blank"
+						rel="noopener noreferrer"
+						draggable={false}
+						onPointerDown={markAsHandledOnShiftKey}
+						onPointerUp={markAsHandledOnShiftKey}
+					>
 						{isFaviconValid && asset?.props.favicon ? (
 							<img
 								className="tl-bookmark__favicon"
@@ -203,8 +212,8 @@ function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
 							/>
 						)}
 						<span>{address}</span>
-					</span>
-				</a>
+					</a>
+				</div>
 			</div>
 		</HTMLContainer>
 	)

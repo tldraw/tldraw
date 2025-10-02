@@ -6,101 +6,58 @@ date: 9/13/2023
 order: 2
 ---
 
-tldraw's source code and distributed packages (the tldraw SDK) are provided under the [tldraw license](/legal/tldraw-license).
+This article is about the [tldraw license](/legal/tldraw-license). The tldraw SDK's source code and published packages are provided under the tldraw license.
 
-You can use the tldraw SDK in commercial or non-commercial projects so long as you preserve the "Made with tldraw" watermark. If you purchase a [business license](https://tldraw.dev#pricing), we will provide you with a license key that removes the watermark.
+Under its default terms, the tldraw SDK license permits use **only in development**.
 
-For more information, visit the [pricing page](https://tldraw.dev#pricing).
+To use the tldraw SDK **in production**, you need either a:
 
-<TwoImages
-	left={{
-		src: '/images/with-watermark.png',
-		title: 'With a valid license key, the watermark is removed.',
-		alt: 'tldraw with watermark',
-	}}
-	right={{
-		src: '/images/without-watermark.png',
-		title: 'When a valid license key is provided, the canvas does not display the watermark.',
-		alt: 'tldraw without watermark',
-	}}
-/>
+- [trial license](#Trial-license) for evaluation;
+- [commercial license](#Commercial-license) for commercial projects; or a
+- [hobby license](#Hobby-license) for non-commercial projects.
 
-## How to use your license key
+The SDK enforces its license using [license keys](#License-keys).
 
-To use your license key, provide it to the `Tldraw` component’s `licenseKey` prop.
+Trial, commercial, and hobby licenses each come with a license key. The SDK will work in production only when provided with a valid and active license key. See the [License Keys](#License-keys) section for more information about license keys.
+
+### Trial license
+
+You can get a free 100-day trial license by completing [this form](https://tldraw.dev/get-a-license/trial). When you submit the form, we will immediately begin your free trial and email you a [license key](#License-keys). You are allowed only one trial license per commercial unit. Please do not abuse trial licenses and tell your friends not to, either. During your trial, the SDK [collects information](#Data-collection) about where it is used.
+
+The license key will stop working when the trial ends. If you wish to continue using tldraw in production after this date, you will need to get either a [commercial license](#Commercial-license) or a [hobby license](#Hobby-license).
+
+### Commercial license
+
+You can request a commercial license by completing [this form](https://tldraw.dev/get-a-license/plans). When you submit the form, our sales team will be in touch to learn about your requirements and discuss pricing. Startup pricing may be available for small teams. Check our [pricing page](https://tldraw.dev/pricing) for the latest.
+
+### Hobby license
+
+For non-commercial projects, education projects, and small projects, we also provide a discretionary hobby license. You can request a hobby license by completing [this form](https://tldraw.dev/get-a-license/hobby). When you submit the form, our team may issue a license or reach out to learn about your project. When using the tldraw SDK under a hobby license, the "made with tldraw" watermark must be shown on the canvas.
+
+## License keys
+
+The tldraw SDK enforces its license using **license keys**.
+
+When you receive a trial, commercial, or hobby license, you will also receive a public license key that encodes information about your license. You can provide this license key to the SDK as shown below.
 
 ```tsx
-import { Tldraw } from 'tldraw'
-
-function MyApp() {
-	return <Tldraw licenseKey="abc123" />
+function App() {
+	return <Tldraw licenseKey="tldraw-***********************" />
 }
 ```
 
-<Callout>The [TldrawEditor](?) component also has a `licenseKey` prop.</Callout>
+License keys are validated **on the client**. You can use them offline. They can be public. The tldraw SDK will not work in production without a valid license key.
 
-If the license key is valid and the license is active, then the canvas should no longer display the watermark. If you still see a watermark, check the JavaScript console for information about any problems and how to fix them.
+## Data collection
 
-## How the license key works
+When using the tldraw SDK under a commercial or hobby license, no information is sent to tldraw.
 
-Your license key encodes information about your business license, its dates of validity, and valid domains where the license key may be used. The SDK checks license keys on the client to determine their validity.
+When using the tldraw SDK in production under a trial license, the tldraw SDK will ping tldraw's servers with a hash of the license key. This information is primarily for analytics purposes. No user data, canvas contents, or personally-identifiable information (PII) is sent or saved.
 
-### Active licenses
+## Notes on Open Source
 
-Your license key encodes the **type of license** that you have (annual or perpetual) and the **expiration date** for that license.
+While the tldraw SDK is [source available](https://github.com/tldraw/tldraw), it is not permissively licensed. Many of our examples and demos are available under an MIT licenses, and you should feel free to use this code as if it were your own; however any source code or packages licensed by the tldraw SDK would not be [Open Source](https://opensource.org/osd) by any definition.
 
-To be valid, a license key must be associated with an active license. An **annual** **license** is valid if the current date is earlier than the license’s expiration date. A **perpetual license** is valid if the client’s SDK version’s release date is earlier than the license’s expiration date.
+If you wish to include tldraw in an open source project, you may do so but the SDK itself must remain under its original license. This means that you and your down-stream users will require their own trial, commercial, or hobby license in order to use the SDK in production. In this case, please also see our [trademark guidelines](https://tldraw.dev/legal/trademark-guidelines) that limit the use of the tldraw name and branding.
 
-### Domain verification
-
-Your license key also encodes a list of **approved domains** where the keys should be valid.
-
-In production, a license key is only valid when used on an approved domain. If your key is used on an unapproved domain, then the client will consider the key invalid.
-
-## Trademarks
-
-While the copyright to our software is licensed under the tldraw license, our trademarks appearing in or on the software are the exclusive property of tldraw. Our default license does not include a license to use our trademarks.
-
-Please see our [trademark policy](https://github.com/tldraw/tldraw/blob/main/TRADEMARKS.md) for more information.
-
-## FAQ
-
-### What happens if my license key is missing / invalid?
-
-If you don’t provide a license key, or your license key is invalid, then the canvas will display the “Made with tldraw” watermark. If you provide an invalid license key in development, we will log notes about the problem in the JavaScript console.
-
-### Does tldraw make any network calls to validate my license?
-
-No. The license key check runs on the client and does not rely on any network calls. The watermark image is loaded from cdn.tldraw.com, however this is only loaded if a license key is missing or invalid.
-
-### Can I still use tldraw while offline?
-
-Yes. The license key check runs on the client and does not rely on any network calls, so you can use the tldraw SDK for offline apps.
-
-### Can I expose my license key in production?
-
-Yes. The license key check runs on the client so keys must be exposed in your application client. In production, the [domain verification](#Domain-verification) phase of our license key check should ensure that your license key is valid only on your approved domains.
-
-### Should I use my license key in development and testing?
-
-Yes. We suggest using your license key in development and testing so that the experience matches your production environment. When creating your license key, be sure to provide us with all deployment and preview domains where the license key should be valid.
-
-### Will my license key work inside of an iframe / web view?
-
-Yes, you can still put tldraw in an iframe or web view for your product. The domain verification is done at the iframe level (the iframe’s `src`) not the domain of the parent window.
-
-### How can I update my license key?
-
-If you need to change your license key, for example by adding or removing valid domain names, please reach out to your account manager.
-
-### What happens when my key expires?
-
-Before the end of your license period, our sales and support team will reach out to you to arrange a renewal for your license.
-
-If you choose to renew your license, we will create a new license key for you as part of the renewal process. Because the license keys are enforced in the client, you will need to update your application to use the new license key.
-
-If you choose not to renew your license, then your license will expire and your license key will become invalid. For an annual license, your license will expire on date of its expiration. For a perpetual license, your license remain valid for any version of the SDK released before the expiration date, but be invalid for any version released after the expiration of your license.
-
-### What information do you collect via the watermark?
-
-The watermark collects only two pieces of information: the domain where tldraw is being used and the country where the request came from. For customers with license keys, no information is collected.
+The tldraw SDK is a product of a company. See [tldraw.dev](https://tldraw.dev/company) for more information about the company and the team.

@@ -19,7 +19,8 @@ export function areArraysShallowEqual<T>(arr1: readonly T[], arr2: readonly T[])
 export function areObjectsShallowEqual<T extends object>(obj1: T, obj2: T): boolean;
 
 // @internal (undocumented)
-export const assert: (value: unknown, message?: string) => asserts value;
+const assert_2: (value: unknown, message?: string) => asserts value;
+export { assert_2 as assert }
 
 // @internal (undocumented)
 export const assertExists: <T>(value: T, message?: string | undefined) => NonNullable<T>;
@@ -109,8 +110,6 @@ export { fetch_2 as fetch }
 export class FileHelpers {
     static blobToDataUrl(file: Blob): Promise<string>;
     static blobToText(file: Blob): Promise<string>;
-    // @deprecated (undocumented)
-    static dataUrlToArrayBuffer(dataURL: string): Promise<ArrayBuffer>;
     // (undocumented)
     static rewriteMimeType(blob: Blob, newMimeType: string): Blob;
     // (undocumented)
@@ -337,6 +336,11 @@ export const noop: () => void;
 export function objectMapEntries<Key extends string, Value>(object: {
     [K in Key]: Value;
 }): Array<[Key, Value]>;
+
+// @internal
+export function objectMapEntriesIterable<Key extends string, Value>(object: {
+    [K in Key]: Value;
+}): IterableIterator<[Key, Value]>;
 
 // @internal
 export function objectMapFromEntries<Key extends string, Value>(entries: ReadonlyArray<readonly [Key, Value]>): {

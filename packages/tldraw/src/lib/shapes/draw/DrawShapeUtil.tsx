@@ -14,6 +14,7 @@ import {
 	VecLike,
 	drawShapeMigrations,
 	drawShapeProps,
+	getColorValue,
 	last,
 	lerp,
 	rng,
@@ -49,10 +50,6 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override options: DrawShapeOptions = {
 		maxPointsPerShape: 600,
-	}
-
-	override canTabTo() {
-		return false
 	}
 
 	override hideResizeHandles(shape: TLDrawShape) {
@@ -293,7 +290,7 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 				<path
 					d={svgInk(allPointsFromSegments, options)}
 					strokeLinecap="round"
-					fill={theme[shape.props.color].solid}
+					fill={getColorValue(theme, shape.props.color, 'solid')}
 				/>
 			</>
 		)
@@ -317,8 +314,8 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 			<path
 				d={solidStrokePath}
 				strokeLinecap="round"
-				fill={isDot ? theme[shape.props.color].solid : 'none'}
-				stroke={theme[shape.props.color].solid}
+				fill={isDot ? getColorValue(theme, shape.props.color, 'solid') : 'none'}
+				stroke={getColorValue(theme, shape.props.color, 'solid')}
 				strokeWidth={sw}
 				strokeDasharray={isDot ? 'none' : getDrawShapeStrokeDashArray(shape, sw, dotAdjustment)}
 				strokeDashoffset="0"

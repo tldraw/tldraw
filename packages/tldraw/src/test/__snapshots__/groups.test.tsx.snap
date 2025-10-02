@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`creating new shapes pencil lines will reisze the group appropriately if the new shape changes the group bounds: box shape after second resize 1`] = `
+exports[`creating new shapes > pencil > lines > will reisze the group appropriately if the new shape changes the group bounds > box shape after second resize 1`] = `
 {
   "h": 40,
   "w": 40,
@@ -9,7 +9,7 @@ exports[`creating new shapes pencil lines will reisze the group appropriately if
 }
 `;
 
-exports[`creating new shapes pencil lines will reisze the group appropriately if the new shape changes the group bounds: group shape after second resize 1`] = `
+exports[`creating new shapes > pencil > lines > will reisze the group appropriately if the new shape changes the group bounds > group shape after second resize 1`] = `
 {
   "h": 120,
   "w": 120,
@@ -18,7 +18,7 @@ exports[`creating new shapes pencil lines will reisze the group appropriately if
 }
 `;
 
-exports[`creating new shapes pencil lines will reisze the group appropriately if the new shape changes the group bounds: group with line shape 1`] = `
+exports[`creating new shapes > pencil > lines > will reisze the group appropriately if the new shape changes the group bounds > group with line shape 1`] = `
 Box {
   "h": 110,
   "w": 110,
@@ -27,7 +27,7 @@ Box {
 }
 `;
 
-exports[`creating new shapes pencil lines works if the shape drawing begins outside of the current group bounds: box shape after resize 1`] = `
+exports[`creating new shapes > pencil > lines > works if the shape drawing begins outside of the current group bounds > box shape after resize 1`] = `
 {
   "h": 50,
   "w": 50,
@@ -36,7 +36,7 @@ exports[`creating new shapes pencil lines works if the shape drawing begins outs
 }
 `;
 
-exports[`creating new shapes pencil lines works if the shape drawing begins outside of the current group bounds: group with line 1`] = `
+exports[`creating new shapes > pencil > lines > works if the shape drawing begins outside of the current group bounds > group with line 1`] = `
 {
   "h": 200,
   "w": 200,

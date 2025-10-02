@@ -30,12 +30,14 @@ const defaultUser = {
 	flags: '',
 	locale: null,
 	animationSpeed: null,
+	areKeyboardShortcutsEnabled: true,
 	edgeScrollSpeed: null,
 	colorScheme: null,
 	isSnapMode: null,
 	isWrapMode: null,
 	isDynamicSizeMode: null,
 	isPasteAtCursorMode: null,
+	enhancedA11yMode: null,
 }
 
 export class Database {

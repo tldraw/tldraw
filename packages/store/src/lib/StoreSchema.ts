@@ -107,6 +107,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 	readonly migrations: Record<string, MigrationSequence> = {}
 	readonly sortedMigrations: readonly Migration[]
+	private readonly migrationCache = new WeakMap<SerializedSchema, Result<Migration[], string>>()
 
 	private constructor(
 		public readonly types: {
@@ -158,10 +159,17 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		}
 	}
 
-	// TODO: use a weakmap to store the result of this function
 	public getMigrationsSince(persistedSchema: SerializedSchema): Result<Migration[], string> {
+		// Check cache first
+		const cached = this.migrationCache.get(persistedSchema)
+		if (cached) {
+			return cached
+		}
+
 		const upgradeResult = upgradeSchema(persistedSchema)
 		if (!upgradeResult.ok) {
+			// Cache the error result
+			this.migrationCache.set(persistedSchema, upgradeResult)
 			return upgradeResult
 		}
 		const schema = upgradeResult.value
@@ -178,7 +186,10 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		}
 
 		if (sequenceIdsToInclude.size === 0) {
-			return Result.ok([])
+			const result = Result.ok([])
+			// Cache the empty result
+			this.migrationCache.set(persistedSchema, result)
+			return result
 		}
 
 		const allMigrationsToInclude = new Set<MigrationId>()
@@ -197,7 +208,10 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			const idx = this.migrations[sequenceId].sequence.findIndex((m) => m.id === theirVersionId)
 			// todo: better error handling
 			if (idx === -1) {
-				return Result.err('Incompatible schema?')
+				const result = Result.err('Incompatible schema?')
+				// Cache the error result
+				this.migrationCache.set(persistedSchema, result)
+				return result
 			}
 			for (const migration of this.migrations[sequenceId].sequence.slice(idx + 1)) {
 				allMigrationsToInclude.add(migration.id)
@@ -205,7 +219,12 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		}
 
 		// collect any migrations
-		return Result.ok(this.sortedMigrations.filter(({ id }) => allMigrationsToInclude.has(id)))
+		const result = Result.ok(
+			this.sortedMigrations.filter(({ id }) => allMigrationsToInclude.has(id))
+		)
+		// Cache the result
+		this.migrationCache.set(persistedSchema, result)
+		return result
 	}
 
 	migratePersistedRecord(
@@ -263,7 +282,10 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		return { type: 'success', value: record }
 	}
 
-	migrateStoreSnapshot(snapshot: StoreSnapshot<R>): MigrationResult<SerializedStore<R>> {
+	migrateStoreSnapshot(
+		snapshot: StoreSnapshot<R>,
+		opts?: { mutateInputStore?: boolean }
+	): MigrationResult<SerializedStore<R>> {
 		let { store } = snapshot
 		const migrations = this.getMigrationsSince(snapshot.schema)
 		if (!migrations.ok) {
@@ -276,7 +298,9 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			return { type: 'success', value: store }
 		}
 
-		store = structuredClone(store)
+		if (!opts?.mutateInputStore) {
+			store = structuredClone(store)
+		}
 
 		try {
 			for (const migration of migrationsToApply) {
@@ -286,13 +310,13 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 						if (!shouldApply) continue
 						const result = migration.up!(record as any)
 						if (result) {
-							store[id as keyof typeof store] = structuredClone(result) as any
+							store[id as keyof typeof store] = result as any
 						}
 					}
 				} else if (migration.scope === 'store') {
 					const result = migration.up!(store)
 					if (result) {
-						store = structuredClone(result) as any
+						store = result as any
 					}
 				} else {
 					exhaustiveSwitchError(migration)
@@ -325,6 +349,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 	/**
 	 * @deprecated This is only here for legacy reasons, don't use it unless you have david's blessing!
+	 * @internal
 	 */
 	serializeEarliestVersion(): SerializedSchema {
 		return {

@@ -33,16 +33,21 @@ export function useKeyboardShortcuts() {
 		if (!isFocused) return
 
 		const disposables = new Array<() => void>()
+		const container = editor.getContainer()
 
 		const hot = (keys: string, callback: (event: KeyboardEvent) => void) => {
-			hotkeys(keys, { element: document.body }, callback)
+			hotkeys(keys, { element: container.ownerDocument.body }, callback)
 			disposables.push(() => {
 				hotkeys.unbind(keys, callback)
 			})
 		}
 
 		const hotUp = (keys: string, callback: (event: KeyboardEvent) => void) => {
-			hotkeys(keys, { element: document.body, keyup: true, keydown: false }, callback)
+			hotkeys(
+				keys,
+				{ element: container.ownerDocument.body, keyup: true, keydown: false },
+				callback
+			)
 			disposables.push(() => {
 				hotkeys.unbind(keys, callback)
 			})
@@ -56,7 +61,7 @@ export function useKeyboardShortcuts() {
 			if (SKIP_KBDS.includes(action.id)) continue
 
 			hot(getHotkeysStringFromKbd(action.kbd), (event) => {
-				if (areShortcutsDisabled(editor)) return
+				if (areShortcutsDisabled(editor) && !action.isRequiredA11yAction) return
 				preventDefault(event)
 				action.onSelect('kbd')
 			})
@@ -144,7 +149,8 @@ export function areShortcutsDisabled(editor: Editor) {
 	return (
 		editor.menus.hasAnyOpenMenus() ||
 		editor.getEditingShapeId() !== null ||
-		editor.getCrashingError()
+		editor.getCrashingError() ||
+		!editor.user.getAreKeyboardShortcutsEnabled()
 	)
 }
 

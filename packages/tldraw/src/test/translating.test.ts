@@ -11,6 +11,7 @@ import {
 	Vec,
 	createShapeId,
 } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TranslatingInfo } from '../lib/tools/SelectTool/childStates/Translating'
 import { TestEditor } from './TestEditor'
@@ -41,7 +42,7 @@ const ids = {
 }
 
 beforeEach(() => {
-	console.error = jest.fn()
+	console.error = vi.fn()
 	editor = new TestEditor({
 		options: {
 			adjacentShapeMargin: 20,
@@ -151,10 +152,10 @@ describe('When translating...', () => {
 		editor
 			// The change is bigger than expected because the camera moves
 			.expectShapeToMatch({ id: ids.box1, x: -65, y: 10 })
-			// We'll continue moving in the x postion, but now we'll also move in the y position.
+			// We'll continue moving in the x position, but now we'll also move in the y position.
 			// The speed in the y position is smaller since we are further away from the edge.
 			.pointerMove(0, 25)
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		editor.pointerUp()
 
 		const after = editor.getShape<TLGeoShape>(ids.box1)!
@@ -254,7 +255,7 @@ describe('When cloning...', () => {
 
 		// Stop cloning!
 		editor.keyUp('Alt')
-		jest.advanceTimersByTime(500)
+		vi.advanceTimersByTime(500)
 
 		editor.expectShapeToMatch({ id: ids.box1, x: 20, y: 0 }) // A should be at the translated position...
 		expect(editor.getShape(newShape.id)).toBeUndefined() // And the new node should be gone!
@@ -289,7 +290,7 @@ describe('When cloning...', () => {
 		editor.keyUp('Alt')
 
 		// wait 500ms
-		jest.advanceTimersByTime(500)
+		vi.advanceTimersByTime(500)
 		editor
 			.expectShapeToMatch({ id: ids.box1, x: 20, y: 0 }) // A should be at the translated position...
 			.expectShapeToMatch({ id: ids.box2, x: 210, y: 190 }) // B should be at the translated position...
@@ -327,7 +328,7 @@ describe('When cloning...', () => {
 		// Stop cloning!
 		editor.keyUp('Alt')
 		// wait 500ms
-		jest.advanceTimersByTime(500)
+		vi.advanceTimersByTime(500)
 
 		editor.expectShapeToMatch({ id: ids.box2, x: 210, y: 190 }) // B should be at the translated position...
 		expect(editor.getShape(cloneB.id)).toBeUndefined() // And the new node A should be gone!
@@ -352,7 +353,7 @@ describe('When cloning...', () => {
 		expect(editor.getCurrentPageShapes().length).toBe(count1 + 3) // 2 new box and group
 
 		editor.keyUp('Alt')
-		jest.advanceTimersByTime(500)
+		vi.advanceTimersByTime(500)
 
 		expect(editor.getCurrentPageShapes().length).toBe(count1) // 2 new box and group
 
@@ -500,7 +501,7 @@ describe('snapping with single shapes', () => {
 
 		// release ctrl key and it unsnaps
 		editor.keyUp('Control')
-		jest.advanceTimersByTime(200)
+		vi.advanceTimersByTime(200)
 
 		expect(editor.getShape(ids.box2)!).toMatchObject({ x: 11, y: 0 })
 
@@ -2325,7 +2326,7 @@ it('preserves z-indexes when translating', () => {
 	editor.pointerDown(50, 50)
 	editor.pointerMove(60, 60)
 
-	jest.advanceTimersByTime(500)
+	vi.advanceTimersByTime(500)
 
 	const ordered2 = editor.getCurrentPageShapesSorted().map((s) => s.id)
 	expect(ordered2.indexOf(box1.id)).toBe(0)

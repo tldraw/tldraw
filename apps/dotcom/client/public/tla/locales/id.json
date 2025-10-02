@@ -35,6 +35,9 @@
   "110a4b01be": {
     "translation": "Terbitkan"
   },
+  "12c8a9838c": {
+    "translation": "Coba tldraw SDK"
+  },
   "13ddd375ad": {
     "translation": "Ekspor sebagai"
   },
@@ -47,11 +50,20 @@
   "1dd1c5fb7f": {
     "translation": "Hari ini"
   },
+  "20976e7bec": {
+    "translation": "Kamar sudah penuh"
+  },
+  "21bfb2dc2e": {
+    "translation": "Ruangan ini hampir mencapai batas ukurannya. Pertimbangkan untuk menghapus beberapa konten atau memulai berkas baru."
+  },
   "250ddea65c": {
     "translation": "Tentang tldraw"
   },
   "299cb00a7a": {
     "translation": "Pengunggahan gagal"
+  },
+  "2deec2cb74": {
+    "translation": "Ruangan ini telah mencapai batas ukuran dan perubahan mungkin tidak dapat disimpan lagi. Hapus beberapa konten atau buat berkas baru."
   },
   "31246941ad": {
     "translation": "Anda harus masuk untuk melihat file ini."
@@ -85,6 +97,12 @@
   },
   "47839e47a5": {
     "translation": "tldraw"
+  },
+  "7697920637": {
+    "translation": "Silakan muat ulang"
+  },
+  "764671e008": {
+    "translation": "Ngobrol dengan kami di Discord"
   },
   "4908687e50": {
     "translation": "Yakin ingin mengabaikan file ini?"
@@ -121,6 +139,15 @@
   },
   "5a95a425f7": {
     "translation": "Bagikan"
+  },
+  "5bb6cf3b53": {
+    "translation": "Ruangan menjadi besar"
+  },
+  "5bcc12ace8": {
+    "translation": "Ruangan ini sekarang hanya bisa dibaca"
+  },
+  "5bec508475": {
+    "translation": "Browser lama terdeteksi. Harap perbarui browser Anda untuk menggunakan aplikasi ini."
   },
   "5d26ae7550": {
     "translation": "Kami gagal mengunggah beberapa konten yang Anda buat sebelum masuk."
@@ -173,14 +200,11 @@
   "761e93ede9": {
     "translation": "Kelola cookie"
   },
-  "7697920637": {
-    "translation": "Silakan muat ulang"
-  },
-  "764671e008": {
-    "translation": "Ngobrol dengan kami di Discord"
-  },
   "777f9e90cf": {
     "translation": "Permintaan tidak valid."
+  },
+  "78e9815992": {
+    "translation": "Mengerti"
   },
   "797799f35e": {
     "translation": "Kirimkan masalah di GitHub"
@@ -215,6 +239,9 @@
   "86c66437fd": {
     "translation": "Ganti nama berkas"
   },
+  "8b1946f965": {
+    "translation": "Untuk meneruskan pengeditan, salin ruangan ke berkas Anda."
+  },
   "8eb2c00e96": {
     "translation": "Dibagikan kepada Anda"
   },
@@ -238,6 +265,9 @@
   },
   "9bef626805": {
     "translation": "Hapus file"
+  },
+  "9c258b8f88": {
+    "translation": "Ruang multipemain tldraw anonim ini sekarang hanya dapat dibaca. Untuk melanjutkan pengeditan, silakan masuk dan salin ke berkas Anda."
   },
   "9ceb927baa": {
     "translation": "Terbitkan file ini"
@@ -294,6 +324,9 @@
   "b758336699": {
     "translation": "Salin tautan"
   },
+  "ba0318cb81": {
+    "translation": "Masuk untuk berbagi"
+  },
   "bb792693e2": {
     "translation": "Lepaskan"
   },
@@ -323,9 +356,6 @@
   },
   "c87aacf567": {
     "translation": "Keluar"
-  },
-  "cbef7ba103": {
-    "translation": "Ruangan ini akan segera menjadi hanya-baca"
   },
   "cceaefbc20": {
     "translation": "Bagikan file ini"
@@ -366,9 +396,6 @@
   "e78e14c5f1": {
     "translation": "Sematkan"
   },
-  "ea2301d01c": {
-    "translation": "Setelah 1 Juli 2025, ruang multipemain tldraw anonim ini akan menjadi hanya-baca. Untuk terus mengedit di masa mendatang, silakan masuk dan salin ke berkas Anda."
-  },
   "ea4788705e": {
     "translation": "Batal"
   },
@@ -389,6 +416,9 @@
   },
   "ede55d955f": {
     "translation": "Baca <a>kebijakan cookie</a> kami untuk mempelajari lebih lanjut."
+  },
+  "ef7de3f485": {
+    "translation": "terpilih"
   },
   "f09b16bc5f": {
     "translation": "Kami menggunakan cookie untuk membuat Anda tetap masuk, menyinkronkan berkas Anda, dan mengumpulkan analitik untuk membantu kami meningkatkan tldraw."

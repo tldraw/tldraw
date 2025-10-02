@@ -18,6 +18,7 @@ import {
 	exhaustiveSwitchError,
 	geoShapeMigrations,
 	geoShapeProps,
+	getColorValue,
 	getDefaultColorTheme,
 	getFontsFromRichText,
 	isEqual,
@@ -125,6 +126,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					height: unscaledLabelHeight * shape.props.scale,
 					isFilled: true,
 					isLabel: true,
+					excludeFromShapeBounds: true,
 					isEmptyLabel: isEmptyRichText(shape.props.richText),
 				}),
 			],
@@ -220,7 +222,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							verticalAlign={verticalAlign}
 							richText={richText}
 							isSelected={isOnlySelected}
-							labelColor={theme[props.labelColor].solid}
+							labelColor={getColorValue(theme, props.labelColor, 'solid')}
 							wrap
 						/>
 					</HTMLContainer>
@@ -278,7 +280,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					align={props.align}
 					verticalAlign={props.verticalAlign}
 					richText={props.richText}
-					labelColor={theme[props.labelColor].solid}
+					labelColor={getColorValue(theme, props.labelColor, 'solid')}
 					bounds={bounds}
 					padding={LABEL_PADDING}
 				/>
