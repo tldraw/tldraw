@@ -233,6 +233,7 @@ export class FluidManager {
 		})
 
 		this.fluidSim.start()
+		this.handleViewportChange(this.editor.getViewportScreenBounds(), new Vec(0, -0.2))
 	}
 
 	/**
@@ -370,7 +371,7 @@ export class FluidManager {
 			// Calculate velocity based on position change
 			const velocity = {
 				x: (shape.x - prevShape.x) * velocityScale,
-				y: (shape.y - prevShape.y) * velocityScale,
+				y: (shape.y - prevShape.y) * velocityScale - 0.12,
 			}
 			this.fluidSim!.createSplatsFromGeometry(
 				geometryData.points,

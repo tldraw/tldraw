@@ -1,6 +1,6 @@
 import { memo, useLayoutEffect, useRef } from 'react'
 import { DefaultStylePanel, Tldraw, useEditor, useIsDarkMode, useValue } from 'tldraw'
-import { ConfigPanel } from './ConfigPanel'
+import { FluidConfigPanel } from './FluidConfigPanel'
 import { FluidManager } from './FluidManager'
 import { fluidConfig } from './fluid-config'
 
@@ -64,7 +64,7 @@ export function FluidExample() {
 				StylePanel: () => {
 					return (
 						<div style={{ display: 'flex', flexDirection: 'row' }}>
-							<ConfigPanel />
+							<FluidConfigPanel />
 							<DefaultStylePanel />
 						</div>
 					)

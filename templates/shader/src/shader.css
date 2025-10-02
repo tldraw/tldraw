@@ -1,4 +1,26 @@
-/* Shader Config Panel Styles */
+.shader-example-toggle {
+	position: absolute;
+	top: 48px;
+	left: 10px;
+	z-index: 1000;
+	border: 1px solid black;
+	border-radius: 4px;
+	overflow: hidden;
+	font-size: 12px;
+	padding-left: 8px;
+}
+
+.shader-example-toggle button {
+	background-color: var(--tl-color-background);
+	color: var(--tl-color-text);
+	border: none;
+	cursor: pointer;
+	padding: 4px;
+}
+
+.shader-example-toggle button[data-isactive='true'] {
+	text-decoration: underline;
+}
 
 .shader-canvas {
 	position: absolute;

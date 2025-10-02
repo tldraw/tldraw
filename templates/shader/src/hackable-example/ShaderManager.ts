@@ -11,7 +11,6 @@ const VERTEX_SHADER = vertexShader
 const FRAGMENT_SHADER = fragmentShader
 
 export interface Geometry {
-	points: Vec[]
 	segments: Array<{ start: Vec; end: Vec }>
 }
 
@@ -180,10 +179,6 @@ export class ShaderManager extends WebGLManager {
 		this.renderFrame()
 	}
 
-	protected onUpdate = (_deltaTime: number, _currentTime: number): void => {
-		// No continuous updates needed - we render on-demand
-	}
-
 	protected onRender = (_deltaTime: number, _currentTime: number): void => {
 		if (!this.gl || !this.program) return
 
@@ -244,12 +239,6 @@ export class ShaderManager extends WebGLManager {
 		// Draw the quad
 		this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4)
 
-		// Check for GL errors
-		// const err = this.gl.getError()
-		// if (err !== this.gl.NO_ERROR) {
-		// 	console.error('GL error during draw:', err)
-		// }
-
 		// Unbind VAO
 		if (this.vao && this.gl instanceof WebGL2RenderingContext) {
 			this.gl.bindVertexArray(null)
@@ -262,6 +251,10 @@ export class ShaderManager extends WebGLManager {
 
 		// Clean up WebGL resources
 		if (this.gl) {
+			if (this.vao && this.gl instanceof WebGL2RenderingContext) {
+				this.gl.deleteVertexArray(this.vao)
+				this.vao = null
+			}
 			if (this.positionBuffer) {
 				this.gl.deleteBuffer(this.positionBuffer)
 				this.positionBuffer = null
@@ -288,12 +281,6 @@ export class ShaderManager extends WebGLManager {
 		this.gl.shaderSource(shader, source)
 		this.gl.compileShader(shader)
 
-		// // Check for GL errors
-		// const error = this.gl.getError()
-		// if (error !== this.gl.NO_ERROR) {
-		// 	console.error('GL error after compileShader:', error)
-		// }
-
 		const compileStatus = this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)
 		const shaderType = type === this.gl.VERTEX_SHADER ? 'VERTEX' : 'FRAGMENT'
 
@@ -301,12 +288,6 @@ export class ShaderManager extends WebGLManager {
 			const log = this.gl.getShaderInfoLog(shader)
 			console.error(`${shaderType} shader compile error:`, log || 'No error log available')
 			console.error('Shader source:', source)
-
-			// Try to get more info
-			const shaderType2 = this.gl.getShaderParameter(shader, this.gl.SHADER_TYPE)
-			const deleteStatus = this.gl.getShaderParameter(shader, this.gl.DELETE_STATUS)
-			console.error('Shader type:', shaderType2, 'Delete status:', deleteStatus)
-
 			this.gl.deleteShader(shader)
 			return null
 		}
@@ -337,16 +318,12 @@ export class ShaderManager extends WebGLManager {
 
 		if (!transform) return null
 
-		const points: Vec[] = []
 		const segments: Array<{ start: Vec; end: Vec }> = []
 
 		const transformed = vertices.map((c) => transform.applyToPoint(c))
 		const canvasPoints = transformed.map((p) => this.pageToCanvas(p))
 
-		// Add all collected points
-		points.push(...canvasPoints)
-
-		// Check if geometry is closed. The children note is a hack to handle arrows, which are groups with the (open) arrow and the (closed) label. In practice, you could special case any custom shape.s
+		// Check if geometry is closed. The children note is a hack to handle arrows, which are groups with the (open) arrow and the (closed) label. In practice, you could special case any custom shapes.
 		const isClosed =
 			geometry instanceof Group2d
 				? (geometry.children[0]?.isClosed ?? true)
@@ -369,7 +346,7 @@ export class ShaderManager extends WebGLManager {
 			})
 		}
 
-		return { points, segments }
+		return { segments }
 	}
 
 	private pageToCanvas = (point: Vec): Vec => {

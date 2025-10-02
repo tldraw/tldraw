@@ -1,6 +1,7 @@
 import { DefaultStylePanel, Tldraw, useEditor } from 'tldraw'
 
 import { memo, useLayoutEffect, useRef } from 'react'
+import { HackableConfigPanel } from './HackableConfigPanel'
 import { ShaderManager } from './ShaderManager'
 import { DEFAULT_CONFIG, shaderConfig } from './config'
 
@@ -45,6 +46,7 @@ export function HackableExample() {
 				StylePanel: () => {
 					return (
 						<div style={{ display: 'flex', flexDirection: 'row' }}>
+							<HackableConfigPanel />
 							<DefaultStylePanel />
 						</div>
 					)

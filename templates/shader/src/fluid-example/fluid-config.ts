@@ -12,7 +12,7 @@ try {
 	// noop
 }
 
-export const fluidConfig = atom<Partial<FluidManagerConfig>>('fluid-config', initialValue)
+export const fluidConfig = atom<FluidManagerConfig>('fluid-config', initialValue)
 
 export function resetFluidConfig() {
 	fluidConfig.set(DEFAULT_CONFIG)
