@@ -4,9 +4,8 @@ import {
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
-	useValue,
 } from 'tldraw'
-import { useApp } from '../../hooks/useAppState'
+import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
 import { F } from '../../utils/i18n'
 import {
 	TlaMenuControl,
@@ -20,8 +19,7 @@ import styles from './dialogs.module.css'
 const COOKIE_POLICY_URL = 'https://tldraw.notion.site/cookie-policy'
 
 export function TlaManageCookiesDialog() {
-	const app = useApp()
-	const user = useValue('user', () => app.getUser(), [app])
+	const [consent, updateConsent] = useAnalyticsConsent()
 
 	return (
 		<_Tooltip.Provider>
@@ -47,26 +45,25 @@ export function TlaManageCookiesDialog() {
 					</p>
 					<TlaMenuControlGroup>
 						<TlaMenuControl>
-							<TlaMenuControlLabel>
+							<TlaMenuControlLabel htmlFor="tla-essential-cookies-switch">
 								<F defaultMessage="Essential cookies" />
 							</TlaMenuControlLabel>
-							<TlaMenuControlInfoTooltip>
+							<TlaMenuControlInfoTooltip showOnMobile>
 								<F defaultMessage="We use these cookies to save your files and settings." />
 							</TlaMenuControlInfoTooltip>
-							<TlaMenuSwitch checked={true} disabled />
+							<TlaMenuSwitch id="tla-essential-cookies-switch" checked={true} disabled />
 						</TlaMenuControl>
 						<TlaMenuControl>
-							<TlaMenuControlLabel>
+							<TlaMenuControlLabel htmlFor="tla-analytics-switch">
 								<F defaultMessage="Analytics" />
 							</TlaMenuControlLabel>
-							<TlaMenuControlInfoTooltip>
+							<TlaMenuControlInfoTooltip showOnMobile>
 								<F defaultMessage="We use analytics cookies to make tldraw better." />
 							</TlaMenuControlInfoTooltip>
 							<TlaMenuSwitch
-								checked={!!app.getUser().allowAnalyticsCookie}
-								onChange={() => {
-									app.updateUser({ id: user.id, allowAnalyticsCookie: !user.allowAnalyticsCookie })
-								}}
+								id="tla-analytics-switch"
+								checked={consent === true}
+								onChange={() => updateConsent(!(consent === true))}
 							/>
 						</TlaMenuControl>
 					</TlaMenuControlGroup>

@@ -1,0 +1,74 @@
+/* Custom People Menu Styles */
+.custom-people-menu {
+	background: #f5f5f5;
+	padding: 4px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	width: 320px;
+}
+
+.user-section {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.section-title {
+	margin: 0;
+}
+
+.user-info {
+	display: flex;
+	align-items: center;
+	padding: 8px 12px;
+	gap: 8px;
+}
+
+.user-avatar {
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	margin-right: 8px;
+}
+
+.user-name {
+	word-break: break-word;
+}
+
+.other-users-section {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.other-users-list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.other-user-item {
+	display: flex;
+	align-items: start;
+	padding: 6px 12px;
+}
+
+.other-user-avatar {
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	margin-right: 8px;
+}
+
+.other-user-name {
+	word-break: break-word;
+	width: 170px;
+}
+
+.cursor-info {
+	width: 80px;
+	color: #aaa;
+	font-size: 12px;
+	margin-left: 8px;
+}

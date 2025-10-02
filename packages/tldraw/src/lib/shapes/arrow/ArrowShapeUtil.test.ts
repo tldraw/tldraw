@@ -1,6 +1,7 @@
-import { HALF_PI, TLArrowShape, TLShapeId, createShapeId } from '@tldraw/editor'
+import { HALF_PI, TLArrowShape, TLShapeId, createShapeId, toRichText } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from '../../../test/TestEditor'
-import { createOrUpdateArrowBinding, getArrowBindings } from './shared'
+import { createOrUpdateArrowBinding, getArrowBindings, getArrowInfo } from './shared'
 
 let editor: TestEditor
 
@@ -12,7 +13,7 @@ const ids = {
 	arrow1: createShapeId('arrow1'),
 }
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 window.requestAnimationFrame = function requestAnimationFrame(cb) {
 	return setTimeout(cb, 1000 / 60)
@@ -217,7 +218,7 @@ describe('Other cases when arrow are moved', () => {
 		// When box one is not selected, unbinds box1 and keeps binding to box2
 		editor.select(ids.arrow1, ids.box2, ids.box3)
 		editor.alignShapes(editor.getSelectedShapeIds(), 'right')
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 
 		expect(bindings()).toMatchObject({
 			start: { toId: ids.box1, props: { isPrecise: false } },
@@ -227,7 +228,7 @@ describe('Other cases when arrow are moved', () => {
 		// maintains bindings if they would still be over the same shape (but makes them precise), but unbinds others
 		editor.select(ids.arrow1, ids.box3)
 		editor.alignShapes(editor.getSelectedShapeIds(), 'top')
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 
 		expect(bindings()).toMatchObject({
 			start: { toId: ids.box1, props: { isPrecise: true } },
@@ -244,7 +245,7 @@ describe('Other cases when arrow are moved', () => {
 		// When box one is not selected, unbinds box1 and keeps binding to box2
 		editor.select(ids.arrow1, ids.box2, ids.box3)
 		editor.distributeShapes(editor.getSelectedShapeIds(), 'horizontal')
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 
 		expect(bindings()).toMatchObject({
 			start: { toId: ids.box1, props: { isPrecise: false } },
@@ -254,7 +255,7 @@ describe('Other cases when arrow are moved', () => {
 		// unbinds when only the arrow is selected (not its bound shapes) if the arrow itself has moved
 		editor.select(ids.arrow1, ids.box3, ids.box4)
 		editor.distributeShapes(editor.getSelectedShapeIds(), 'vertical')
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 
 		// The arrow didn't actually move
 		expect(bindings()).toMatchObject({
@@ -265,7 +266,7 @@ describe('Other cases when arrow are moved', () => {
 		// The arrow will not move because it is still bound to another shape
 		editor.updateShapes([{ id: ids.box4, type: 'geo', y: -600 }])
 		editor.distributeShapes(editor.getSelectedShapeIds(), 'vertical')
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 
 		expect(bindings()).toMatchObject({
 			start: undefined,
@@ -333,7 +334,7 @@ describe('Arrow labels', () => {
 		editor.setCurrentTool('arrow').pointerDown(10, 10).pointerMove(100, 100).pointerUp()
 		const arrowId = editor.getOnlySelectedShape()!.id
 		editor.updateShapes<TLArrowShape>([
-			{ id: arrowId, type: 'arrow', props: { text: 'Test Label' } },
+			{ id: arrowId, type: 'arrow', props: { richText: toRichText('Test Label') } },
 		])
 	})
 
@@ -341,7 +342,7 @@ describe('Arrow labels', () => {
 		const arrowId = editor.getOnlySelectedShape()!.id
 		expect(arrow(arrowId)).toMatchObject({
 			props: {
-				text: 'Test Label',
+				richText: toRichText('Test Label'),
 			},
 		})
 	})
@@ -349,11 +350,11 @@ describe('Arrow labels', () => {
 	it('should update the label of an arrow', () => {
 		const arrowId = editor.getOnlySelectedShape()!.id
 		editor.updateShapes<TLArrowShape>([
-			{ id: arrowId, type: 'arrow', props: { text: 'New Label' } },
+			{ id: arrowId, type: 'arrow', props: { richText: toRichText('New Label') } },
 		])
 		expect(arrow(arrowId)).toMatchObject({
 			props: {
-				text: 'New Label',
+				richText: toRichText('New Label'),
 			},
 		})
 	})
@@ -576,5 +577,256 @@ describe("an arrow's parents", () => {
 			start: { toId: boxAid },
 			end: { toId: boxCid },
 		})
+	})
+})
+
+describe('Arrow export bounds', () => {
+	it('excludes labels from shape bounds for export', () => {
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+
+		// Create shapes for the arrow to bind to
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+			{ id: ids.box2, type: 'geo', x: 300, y: 100, props: { w: 100, h: 100 } },
+		])
+
+		// Create an arrow with a label
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 0,
+				y: 0,
+				props: {
+					start: { x: 0, y: 0 },
+					end: { x: 0, y: 100 },
+					richText: toRichText('Test Label'),
+				},
+			},
+		])
+
+		// Get the page bounds (should exclude labels due to excludeFromShapeBounds flag)
+		const pageBounds = editor.getShapePageBounds(ids.arrow1)
+		expect(pageBounds).toBeDefined()
+
+		// The bounds should be smaller than if labels were included
+		// Since the arrow has a label that's excluded, the bounds should be minimal
+		expect(pageBounds!.width).toBeLessThan(200) // Should not include label width
+		expect(pageBounds!.height).toBeLessThan(200) // Should not include label height
+
+		// Verify that the arrow has a label (which should be excluded from shape bounds)
+		const arrow = editor.getShape(ids.arrow1) as TLArrowShape
+		expect(arrow.props.richText).toBeDefined()
+		expect(arrow.props.richText).not.toBeNull()
+	})
+})
+
+describe('Arrow terminal positioning bug fix', () => {
+	const data = {
+		document: {
+			store: {
+				'shape:1Hm61DGAsY0uqEO-kt75l': {
+					x: 637.2890625,
+					y: 383.9296875,
+					rotation: 0,
+					isLocked: false,
+					opacity: 1,
+					meta: {},
+					id: 'shape:1Hm61DGAsY0uqEO-kt75l',
+					type: 'geo',
+					props: {
+						w: 230.66796875,
+						h: 114.796875,
+						geo: 'rectangle',
+						dash: 'draw',
+						growY: 0,
+						url: '',
+						scale: 1,
+						color: 'black',
+						labelColor: 'black',
+						fill: 'none',
+						size: 'm',
+						font: 'draw',
+						align: 'middle',
+						verticalAlign: 'middle',
+						richText: {
+							type: 'doc',
+							content: [
+								{
+									type: 'paragraph',
+								},
+							],
+						},
+					},
+					parentId: 'page:page',
+					index: 'a1',
+					typeName: 'shape',
+				},
+				'binding:nekxhMCGaoEJO98DEqWgo': {
+					meta: {},
+					id: 'binding:nekxhMCGaoEJO98DEqWgo',
+					type: 'arrow',
+					fromId: 'shape:j0HKQihjBXqMqgVhfRhDS',
+					toId: 'shape:1Hm61DGAsY0uqEO-kt75l',
+					props: {
+						isPrecise: true,
+						isExact: false,
+						normalizedAnchor: {
+							x: 0.13182672605036325,
+							y: 0.8036953858717844,
+						},
+						snap: 'none',
+						terminal: 'start',
+					},
+					typeName: 'binding',
+				},
+				'binding:kWamalL_QSq_kFPZDgp7Z': {
+					meta: {},
+					id: 'binding:kWamalL_QSq_kFPZDgp7Z',
+					type: 'arrow',
+					fromId: 'shape:j0HKQihjBXqMqgVhfRhDS',
+					toId: 'shape:1Hm61DGAsY0uqEO-kt75l',
+					props: {
+						isPrecise: true,
+						isExact: false,
+						normalizedAnchor: {
+							x: 0.7138744475114731,
+							y: 0.45797604464407243,
+						},
+						snap: 'none',
+						terminal: 'end',
+					},
+					typeName: 'binding',
+				},
+				'shape:j0HKQihjBXqMqgVhfRhDS': {
+					x: 665.296875,
+					y: 477.59765625,
+					rotation: 0,
+					isLocked: false,
+					opacity: 1,
+					meta: {},
+					id: 'shape:j0HKQihjBXqMqgVhfRhDS',
+					type: 'arrow',
+					props: {
+						kind: 'arc',
+						elbowMidPoint: 0.5,
+						dash: 'draw',
+						size: 'm',
+						fill: 'none',
+						color: 'black',
+						labelColor: 'black',
+						bend: 0,
+						start: {
+							x: 0,
+							y: 0,
+						},
+						end: {
+							x: 2,
+							y: 0,
+						},
+						arrowheadStart: 'none',
+						arrowheadEnd: 'arrow',
+						richText: {
+							type: 'doc',
+							content: [
+								{
+									type: 'paragraph',
+								},
+							],
+						},
+						labelPosition: 0.5,
+						font: 'draw',
+						scale: 1,
+					},
+					parentId: 'page:page',
+					index: 'a2lbpzZG',
+					typeName: 'shape',
+				},
+				'page:page': {
+					meta: {},
+					id: 'page:page',
+					name: 'Page 1',
+					index: 'a1',
+					typeName: 'page',
+				},
+				'document:document': {
+					gridSize: 10,
+					name: '',
+					meta: {},
+					id: 'document:document',
+					typeName: 'document',
+				},
+			},
+			schema: {
+				schemaVersion: 2,
+				sequences: {
+					'com.tldraw.store': 5,
+					'com.tldraw.asset': 1,
+					'com.tldraw.camera': 1,
+					'com.tldraw.document': 2,
+					'com.tldraw.instance': 25,
+					'com.tldraw.instance_page_state': 5,
+					'com.tldraw.page': 1,
+					'com.tldraw.instance_presence': 6,
+					'com.tldraw.pointer': 1,
+					'com.tldraw.shape': 4,
+					'com.tldraw.asset.bookmark': 2,
+					'com.tldraw.asset.image': 5,
+					'com.tldraw.asset.video': 5,
+					'com.tldraw.shape.group': 0,
+					'com.tldraw.shape.text': 3,
+					'com.tldraw.shape.bookmark': 2,
+					'com.tldraw.shape.draw': 2,
+					'com.tldraw.shape.geo': 10,
+					'com.tldraw.shape.note': 9,
+					'com.tldraw.shape.line': 5,
+					'com.tldraw.shape.frame': 1,
+					'com.tldraw.shape.arrow': 7,
+					'com.tldraw.shape.highlight': 1,
+					'com.tldraw.shape.embed': 4,
+					'com.tldraw.shape.image': 5,
+					'com.tldraw.shape.video': 4,
+					'com.tldraw.binding.arrow': 1,
+				},
+			},
+		},
+		session: {
+			version: 0,
+			currentPageId: 'page:page',
+			exportBackground: true,
+			isFocusMode: false,
+			isDebugMode: false,
+			isToolLocked: false,
+			isGridMode: false,
+			pageStates: [
+				{
+					pageId: 'page:page',
+					camera: {
+						x: 0,
+						y: 0,
+						z: 1,
+					},
+					selectedShapeIds: ['shape:j0HKQihjBXqMqgVhfRhDS'],
+					focusedGroupId: null,
+				},
+			],
+		},
+	}
+
+	it('should position straight arrow terminals on shape boundary, not text label boundary', () => {
+		// Create a geo shape with text label
+		editor.loadSnapshot(data as any)
+
+		const arrow = editor.getShape('shape:j0HKQihjBXqMqgVhfRhDS' as TLShapeId) as TLArrowShape
+		expect(arrow).toBeDefined()
+
+		expect(getArrowBindings(editor, arrow)).toMatchObject({
+			end: { props: { isPrecise: true } },
+			start: { props: { isPrecise: true } },
+		})
+
+		const info = getArrowInfo(editor, arrow)
+		expect(info?.start.handle).toEqual(info?.start.point)
+		expect(info?.end.handle).toEqual(info?.end.point)
 	})
 })

@@ -405,7 +405,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 									...inCommon,
 									type: 'arrow',
 									props: {
-										text: v1Shape.label ?? '',
+										richText: toRichText(v1Shape.label ?? ''),
 										color: getV2Color(v1Shape.style.color),
 										labelColor: getV2Color(v1Shape.style.color),
 										size: getV2Size(v1Shape.style.size),
@@ -562,6 +562,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 										y: point.y,
 									},
 									isPrecise: point.x !== 0.5 || point.y !== 0.5,
+									isCreatingShape: true,
 								})
 
 								if (change) {

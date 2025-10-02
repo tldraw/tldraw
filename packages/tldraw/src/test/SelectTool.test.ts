@@ -7,6 +7,7 @@ import {
 	createShapeId,
 	toRichText,
 } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -18,7 +19,7 @@ const ids = {
 	arrow1: createShapeId('arrow1'),
 }
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 beforeEach(() => {
 	editor = new TestEditor()
@@ -160,7 +161,7 @@ describe('TLSelectTool.Translating', () => {
 		// There's a timer here! We shouldn't end the clone until the timer is done
 		expect(editor.getCurrentPageShapes().length).toBe(2)
 
-		jest.advanceTimersByTime(250) // tick tock
+		vi.advanceTimersByTime(250) // tick tock
 
 		// Timer is done! We should have ended the clone.
 		expect(editor.getCurrentPageShapes().length).toBe(1)
@@ -275,17 +276,27 @@ describe('PointingLabel', () => {
 				type: 'arrow',
 				x: 100,
 				y: 100,
-				props: { text: 'Test Label', end: { x: 100, y: 100 } },
+				props: {
+					richText: toRichText('Test Label'),
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 0 },
+				},
 			},
 		])
-		const shape = editor.getShape(ids.arrow1)
-		editor.pointerDown(150, 150, {
+		const shape = editor.getShape(ids.arrow1)!
+		// First select the shape so it's already selected
+		editor.select(shape.id)
+
+		// Click at the middle of the arrow where the label would be and drag to move the label
+		editor.pointerDown(150, 100, {
 			target: 'shape',
 			shape,
 		})
-		editor.pointerMove(100, 100)
+		editor.pointerMove(160, 100)
 		editor.expectToBeIn('select.pointing_arrow_label')
 
+		// Continue dragging to actually move the label, then it should go to idle
+		editor.pointerMove(170, 100)
 		editor.pointerUp()
 		editor.expectToBeIn('select.idle')
 	})
@@ -297,16 +308,21 @@ describe('PointingLabel', () => {
 				type: 'arrow',
 				x: 100,
 				y: 100,
-				props: { text: 'Test Label', end: { x: 100, y: 100 } },
+				props: {
+					richText: toRichText('Test Label'),
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 0 },
+				},
 			},
 		])
 		const shape = editor.getShape(ids.arrow1)
 
-		editor.pointerDown(150, 150, {
+		// Click at the middle of the arrow where the label would be
+		editor.pointerDown(150, 100, {
 			target: 'shape',
 			shape,
 		})
-		editor.pointerMove(100, 100)
+		editor.pointerMove(160, 100)
 		editor.expectToBeIn('select.pointing_arrow_label')
 		editor.cancel()
 		editor.expectToBeIn('select.idle')
@@ -314,14 +330,25 @@ describe('PointingLabel', () => {
 
 	it('Doesnt go into pointing_arrow_label mode if not selecting the arrow shape', () => {
 		editor.createShapes<TLArrowShape>([
-			{ id: ids.arrow1, type: 'arrow', x: 100, y: 100, props: { text: 'Test Label' } },
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: {
+					richText: toRichText(''), // Empty label
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 0 },
+				},
+			},
 		])
-		const shape = editor.getShape(ids.arrow1)
-		editor.pointerDown(0, 150, {
+		const shape = editor.getShape(ids.arrow1)!
+		// Click anywhere on the arrow - since there's no label, it should go to translating
+		editor.pointerDown(150, 100, {
 			target: 'shape',
 			shape,
 		})
-		editor.pointerMove(100, 100)
+		editor.pointerMove(155, 105)
 		editor.expectToBeIn('select.translating')
 
 		editor.pointerUp()

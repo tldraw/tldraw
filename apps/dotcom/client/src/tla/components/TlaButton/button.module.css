@@ -141,7 +141,7 @@
 		position: absolute;
 		inset: 0px 4px;
 		border-radius: 6px;
-		background-color: var(--color-muted-2);
+		background-color: var(--tl-color-muted-2);
 	}
 }
 

@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`buildFromV1Document test fixtures arrow-binding.tldr 1`] = `
+exports[`buildFromV1Document test fixtures > arrow-binding.tldr 1`] = `
 {
   "binding:12": {
     "fromId": "shape:11",
@@ -112,13 +112,20 @@ exports[`buildFromV1Document test fixtures arrow-binding.tldr 1`] = `
       "kind": "arc",
       "labelColor": "red",
       "labelPosition": 0.5,
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
       "scale": 1,
       "size": "m",
       "start": {
         "x": 146.32,
         "y": 0,
       },
-      "text": "",
     },
     "rotation": 0,
     "type": "arrow",
@@ -166,7 +173,7 @@ exports[`buildFromV1Document test fixtures arrow-binding.tldr 1`] = `
 }
 `;
 
-exports[`buildFromV1Document test fixtures exact-arrow-binding.tldr 1`] = `
+exports[`buildFromV1Document test fixtures > exact-arrow-binding.tldr 1`] = `
 {
   "binding:11": {
     "fromId": "shape:10",
@@ -241,13 +248,20 @@ exports[`buildFromV1Document test fixtures exact-arrow-binding.tldr 1`] = `
       "kind": "arc",
       "labelColor": "red",
       "labelPosition": 0.5,
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
       "scale": 1,
       "size": "m",
       "start": {
         "x": 293.36,
         "y": 0,
       },
-      "text": "",
     },
     "rotation": 0,
     "type": "arrow",
@@ -332,7 +346,7 @@ exports[`buildFromV1Document test fixtures exact-arrow-binding.tldr 1`] = `
 }
 `;
 
-exports[`buildFromV1Document test fixtures incorrect-arrow-binding.tldr 1`] = `
+exports[`buildFromV1Document test fixtures > incorrect-arrow-binding.tldr 1`] = `
 {
   "binding:11": {
     "fromId": "shape:10",
@@ -389,13 +403,20 @@ exports[`buildFromV1Document test fixtures incorrect-arrow-binding.tldr 1`] = `
       "kind": "arc",
       "labelColor": "red",
       "labelPosition": 0.5,
+      "richText": {
+        "content": [
+          {
+            "type": "paragraph",
+          },
+        ],
+        "type": "doc",
+      },
       "scale": 1,
       "size": "m",
       "start": {
         "x": 252.64,
         "y": 0,
       },
-      "text": "",
     },
     "rotation": 0,
     "type": "arrow",

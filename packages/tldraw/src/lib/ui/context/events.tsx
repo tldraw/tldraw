@@ -76,8 +76,8 @@ export interface TLUiEventMap {
 	'delete-shapes': null
 	'select-all-shapes': null
 	'select-none-shapes': null
-	'rotate-ccw': null
-	'rotate-cw': null
+	'rotate-ccw': { fine: boolean }
+	'rotate-cw': { fine: boolean }
 	'zoom-in': { towardsCursor: boolean }
 	'zoom-out': { towardsCursor: boolean }
 	'zoom-to-fit': null
@@ -102,11 +102,14 @@ export interface TLUiEventMap {
 	'toggle-grid-mode': null
 	'toggle-wrap-mode': null
 	'toggle-focus-mode': null
+	'input-mode': { value: string }
 	'toggle-debug-mode': null
 	'toggle-dynamic-size-mode': null
 	'toggle-paste-at-cursor': null
 	'toggle-lock': null
 	'toggle-reduce-motion': null
+	'toggle-keyboard-shortcuts': null
+	'enhanced-a11y-mode': null
 	'toggle-edge-scrolling': null
 	'color-scheme': { value: string }
 	'exit-pen-mode': null
@@ -121,12 +124,14 @@ export interface TLUiEventMap {
 	'shrink-shapes': null
 	'flatten-to-image': null
 	'a11y-repeat-shape-announce': null
-	'open-url': { url: string }
+	'open-url': { destinationUrl: string }
 	'open-context-menu': null
 	'adjust-shape-styles': null
 	'copy-link': null
+	'drag-tool': { id: string }
 	'image-replace': null
 	'video-replace': null
+	'open-kbd-shortcuts': null
 	'rich-text': {
 		operation:
 			| 'bold'

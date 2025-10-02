@@ -35,6 +35,9 @@
   "110a4b01be": {
     "translation": "Julkaista"
   },
+  "12c8a9838c": {
+    "translation": "Kokeile tldraw SDK:ta"
+  },
   "13ddd375ad": {
     "translation": "Vie nimellä"
   },
@@ -47,11 +50,20 @@
   "1dd1c5fb7f": {
     "translation": "Tänään"
   },
+  "20976e7bec": {
+    "translation": "Huone on täynnä"
+  },
+  "21bfb2dc2e": {
+    "translation": "Tämä huone lähestyy kokorajoitustaan. Harkitse sisällön poistamista tai uuden tiedoston aloittamista."
+  },
   "250ddea65c": {
     "translation": "Tietoja tldraw'sta"
   },
   "299cb00a7a": {
     "translation": "Lataus epäonnistui"
+  },
+  "2deec2cb74": {
+    "translation": "Tämä huone on saavuttanut kokorajoituksensa, eikä muutoksia ehkä enää tallenneta. Poista sisältöä tai aloita uusi tiedosto."
   },
   "31246941ad": {
     "translation": "Sinun on kirjauduttava sisään nähdäksesi tämän tiedoston."
@@ -85,6 +97,12 @@
   },
   "47839e47a5": {
     "translation": "tldraw"
+  },
+  "7697920637": {
+    "translation": "Lataa uudelleen"
+  },
+  "764671e008": {
+    "translation": "Keskustele kanssamme Discordissa"
   },
   "4908687e50": {
     "translation": "Haluatko varmasti unohtaa tämän tiedoston?"
@@ -121,6 +139,15 @@
   },
   "5a95a425f7": {
     "translation": "Jakaa"
+  },
+  "5bb6cf3b53": {
+    "translation": "Huone kasvaa suureksi"
+  },
+  "5bcc12ace8": {
+    "translation": "Tämä huone on nyt vain luku -tilassa"
+  },
+  "5bec508475": {
+    "translation": "Vanha selain havaittu. Päivitä selaimesi käyttääksesi tätä sovellusta."
   },
   "5d26ae7550": {
     "translation": "Emme pystyneet lataamaan osaa sisällöstä, jonka loit ennen kirjautumista."
@@ -173,14 +200,11 @@
   "761e93ede9": {
     "translation": "Hallinnoi evästeitä"
   },
-  "7697920637": {
-    "translation": "Lataa uudelleen"
-  },
-  "764671e008": {
-    "translation": "Keskustele kanssamme Discordissa"
-  },
   "777f9e90cf": {
     "translation": "Virheellinen pyyntö."
+  },
+  "78e9815992": {
+    "translation": "Selvä"
   },
   "797799f35e": {
     "translation": "Lähetä ongelma GitHubissa"
@@ -215,6 +239,9 @@
   "86c66437fd": {
     "translation": "Nimeä tiedosto uudelleen"
   },
+  "8b1946f965": {
+    "translation": "Jatkaaksesi muokkaamista, kopioi huone tiedostoihisi."
+  },
   "8eb2c00e96": {
     "translation": "Jaettu kanssasi"
   },
@@ -238,6 +265,9 @@
   },
   "9bef626805": {
     "translation": "Poista tiedosto"
+  },
+  "9c258b8f88": {
+    "translation": "Tämä anonyymi tldraw-moninpelihuone on nyt vain luku -tilassa. Jatkaaksesi muokkaamista, kirjaudu sisään ja kopioi se tiedostoihisi."
   },
   "9ceb927baa": {
     "translation": "Julkaise tämä tiedosto"
@@ -294,6 +324,9 @@
   "b758336699": {
     "translation": "Kopioi linkki"
   },
+  "ba0318cb81": {
+    "translation": "Kirjaudu sisään jakaaksesi"
+  },
   "bb792693e2": {
     "translation": "Irrota kiinnitys"
   },
@@ -323,9 +356,6 @@
   },
   "c87aacf567": {
     "translation": "Kirjaudu ulos"
-  },
-  "cbef7ba103": {
-    "translation": "Tämä huone on pian vain luku -tilassa"
   },
   "cceaefbc20": {
     "translation": "Jaa tämä tiedosto"
@@ -366,9 +396,6 @@
   "e78e14c5f1": {
     "translation": "Pin"
   },
-  "ea2301d01c": {
-    "translation": "1. heinäkuuta 2025 jälkeen tästä anonyymistä tldraw-moninpelihuoneesta tulee vain luku -tilassa oleva. Jos haluat jatkaa muokkaamista tulevaisuudessa, kirjaudu sisään ja kopioi se tiedostoihisi."
-  },
   "ea4788705e": {
     "translation": "Peruuttaa"
   },
@@ -389,6 +416,9 @@
   },
   "ede55d955f": {
     "translation": "Lue lisää <a>evästekäytännöstämme</a>."
+  },
+  "ef7de3f485": {
+    "translation": "valittu"
   },
   "f09b16bc5f": {
     "translation": "Käytämme evästeitä pitääksemme sinut kirjautuneena sisään, synkronoidaksemme tiedostosi ja kerätäksemme analytiikkaa tldrawin parantamiseksi."

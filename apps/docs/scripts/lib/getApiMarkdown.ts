@@ -305,7 +305,7 @@ function getItemTitle(item: ApiItem) {
 
 	const name = item.displayName
 	if (item.kind === ApiItemKind.Method || item.kind === ApiItemKind.Function) {
-		return `${name}()`
+		return `${name}(\u00A0)`
 	}
 
 	return name

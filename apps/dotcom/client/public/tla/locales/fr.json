@@ -35,6 +35,9 @@
   "110a4b01be": {
     "translation": "Publier"
   },
+  "12c8a9838c": {
+    "translation": "Essayez le SDK tldraw"
+  },
   "13ddd375ad": {
     "translation": "Exporter en tant que"
   },
@@ -47,11 +50,20 @@
   "1dd1c5fb7f": {
     "translation": "Aujourd'hui"
   },
+  "20976e7bec": {
+    "translation": "La salle est pleine"
+  },
+  "21bfb2dc2e": {
+    "translation": "Cette salle approche de sa taille maximale. Envisagez de supprimer du contenu ou de créer un nouveau fichier."
+  },
   "250ddea65c": {
     "translation": "À propos de tldraw"
   },
   "299cb00a7a": {
     "translation": "Échec de l'importation"
+  },
+  "2deec2cb74": {
+    "translation": "Cette salle a atteint sa taille maximale et les modifications risquent de ne plus être enregistrées. Supprimez du contenu ou créez un nouveau fichier."
   },
   "31246941ad": {
     "translation": "Vous devez vous connecter pour consulter ce fichier."
@@ -85,6 +97,12 @@
   },
   "47839e47a5": {
     "translation": "tldraw"
+  },
+  "7697920637": {
+    "translation": "Veuillez recharger"
+  },
+  "764671e008": {
+    "translation": "Discutez avec nous sur Discord"
   },
   "4908687e50": {
     "translation": "Voulez-vous vraiment oublier ce fichier ?"
@@ -121,6 +139,15 @@
   },
   "5a95a425f7": {
     "translation": "Partager"
+  },
+  "5bb6cf3b53": {
+    "translation": "La pièce devient grande"
+  },
+  "5bcc12ace8": {
+    "translation": "Cette salle est désormais en lecture seule"
+  },
+  "5bec508475": {
+    "translation": "Ancien navigateur détecté. Veuillez mettre à jour votre navigateur pour utiliser cette application."
   },
   "5d26ae7550": {
     "translation": "Nous n'avons pas réussi à importer une partie du contenu que vous avez créé avant de vous connecter."
@@ -173,14 +200,11 @@
   "761e93ede9": {
     "translation": "Gérer les cookies"
   },
-  "7697920637": {
-    "translation": "Veuillez recharger"
-  },
-  "764671e008": {
-    "translation": "Discutez avec nous sur Discord"
-  },
   "777f9e90cf": {
     "translation": "Demande invalide."
+  },
+  "78e9815992": {
+    "translation": "J'ai compris"
   },
   "797799f35e": {
     "translation": "Soumettre un problème sur GitHub"
@@ -215,6 +239,9 @@
   "86c66437fd": {
     "translation": "Renommer le fichier"
   },
+  "8b1946f965": {
+    "translation": "Pour continuer l'édition, veuillez copier la pièce dans vos fichiers."
+  },
   "8eb2c00e96": {
     "translation": "Partagé avec vous"
   },
@@ -238,6 +265,9 @@
   },
   "9bef626805": {
     "translation": "Supprimer le fichier"
+  },
+  "9c258b8f88": {
+    "translation": "Cette salle multijoueur anonyme de tldraw est désormais en lecture seule. Pour continuer à la modifier, veuillez vous connecter et la copier dans vos fichiers."
   },
   "9ceb927baa": {
     "translation": "Publier ce fichier"
@@ -294,6 +324,9 @@
   "b758336699": {
     "translation": "Copier le lien"
   },
+  "ba0318cb81": {
+    "translation": "Connectez-vous pour partager"
+  },
   "bb792693e2": {
     "translation": "Désépingler"
   },
@@ -323,9 +356,6 @@
   },
   "c87aacf567": {
     "translation": "Se déconnecter"
-  },
-  "cbef7ba103": {
-    "translation": "Cette salle sera bientôt en lecture seule"
   },
   "cceaefbc20": {
     "translation": "Partager ce fichier"
@@ -366,9 +396,6 @@
   "e78e14c5f1": {
     "translation": "Épingler"
   },
-  "ea2301d01c": {
-    "translation": "Après le 1er juillet 2025, cette salle multijoueur anonyme de tldraw sera en lecture seule. Pour continuer à la modifier ultérieurement, veuillez vous connecter et la copier dans vos fichiers."
-  },
   "ea4788705e": {
     "translation": "Annuler"
   },
@@ -389,6 +416,9 @@
   },
   "ede55d955f": {
     "translation": "Lisez notre <a>politique relative aux cookies</a> pour en savoir plus."
+  },
+  "ef7de3f485": {
+    "translation": "choisi"
   },
   "f09b16bc5f": {
     "translation": "Nous utilisons des cookies pour vous garder connecté, pour synchroniser vos fichiers et pour collecter des analyses pour nous aider à améliorer tldraw."

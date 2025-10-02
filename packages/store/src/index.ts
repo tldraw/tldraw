@@ -1,8 +1,24 @@
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
 export { AtomMap } from './lib/AtomMap'
 export type { BaseRecord, IdOf, RecordId, UnknownRecord } from './lib/BaseRecord'
+export { devFreeze } from './lib/devFreeze'
+export { type QueryExpression, type QueryValueMatcher } from './lib/executeQuery'
 export { IncrementalSetConstructor } from './lib/IncrementalSetConstructor'
-export { RecordType, assertIdType, createRecordType, type RecordScope } from './lib/RecordType'
+export {
+	createMigrationIds,
+	createMigrationSequence,
+	createRecordMigrationSequence,
+	MigrationFailureReason,
+	parseMigrationId,
+	type LegacyBaseMigrationsInfo,
+	type LegacyMigration,
+	type LegacyMigrations,
+	type Migration,
+	type MigrationId,
+	type MigrationResult,
+	type MigrationSequence,
+	type StandaloneDependsOn,
+} from './lib/migrate'
 export {
 	createEmptyRecordsDiff,
 	isRecordsDiffEmpty,
@@ -11,9 +27,10 @@ export {
 	squashRecordDiffsMutable,
 	type RecordsDiff,
 } from './lib/RecordsDiff'
+export { assertIdType, createRecordType, RecordType, type RecordScope } from './lib/RecordType'
 export {
-	Store,
 	createComputedCache,
+	Store,
 	type ChangeSource,
 	type CollectionDiff,
 	type ComputedCache,
@@ -49,24 +66,6 @@ export {
 	type StoreBeforeDeleteHandler,
 	type StoreOperationCompleteHandler,
 } from './lib/StoreSideEffects'
-export { devFreeze } from './lib/devFreeze'
-export { type QueryExpression, type QueryValueMatcher } from './lib/executeQuery'
-export {
-	MigrationFailureReason,
-	createMigrationIds,
-	createMigrationSequence,
-	createRecordMigrationSequence,
-	defineMigrations,
-	parseMigrationId,
-	type LegacyBaseMigrationsInfo,
-	type LegacyMigration,
-	type LegacyMigrations,
-	type Migration,
-	type MigrationId,
-	type MigrationResult,
-	type MigrationSequence,
-	type StandaloneDependsOn,
-} from './lib/migrate'
 
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,

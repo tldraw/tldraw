@@ -35,6 +35,9 @@
   "110a4b01be": {
     "translation": "Publiceren"
   },
+  "12c8a9838c": {
+    "translation": "Probeer de tldraw SDK"
+  },
   "13ddd375ad": {
     "translation": "Exporteren als"
   },
@@ -47,11 +50,20 @@
   "1dd1c5fb7f": {
     "translation": "Vandaag"
   },
+  "20976e7bec": {
+    "translation": "Kamer is vol"
+  },
+  "21bfb2dc2e": {
+    "translation": "Deze ruimte nadert zijn maximale grootte. Overweeg om wat inhoud te verwijderen of een nieuw bestand te maken."
+  },
   "250ddea65c": {
     "translation": "Over tldraw"
   },
   "299cb00a7a": {
     "translation": "Uploaden mislukt"
+  },
+  "2deec2cb74": {
+    "translation": "Deze ruimte heeft de maximale bestandsgrootte bereikt en wijzigingen worden mogelijk niet meer opgeslagen. Verwijder wat inhoud of begin een nieuw bestand."
   },
   "31246941ad": {
     "translation": "U moet zijn aangemeld om dit bestand te kunnen bekijken."
@@ -85,6 +97,12 @@
   },
   "47839e47a5": {
     "translation": "tldraw"
+  },
+  "7697920637": {
+    "translation": "Gelieve opnieuw te laden"
+  },
+  "764671e008": {
+    "translation": "Chat met ons op Discord"
   },
   "4908687e50": {
     "translation": "Weet u zeker dat u dit bestand wilt vergeten?"
@@ -121,6 +139,15 @@
   },
   "5a95a425f7": {
     "translation": "Deel"
+  },
+  "5bb6cf3b53": {
+    "translation": "Kamer wordt groot"
+  },
+  "5bcc12ace8": {
+    "translation": "Deze kamer is nu alleen-lezen"
+  },
+  "5bec508475": {
+    "translation": "Oude browser gedetecteerd. Werk uw browser bij om deze app te gebruiken."
   },
   "5d26ae7550": {
     "translation": "Een deel van de content die u hebt gemaakt voordat u zich aanmeldde, is niet geüpload."
@@ -173,14 +200,11 @@
   "761e93ede9": {
     "translation": "Cookies beheren"
   },
-  "7697920637": {
-    "translation": "Gelieve opnieuw te laden"
-  },
-  "764671e008": {
-    "translation": "Chat met ons op Discord"
-  },
   "777f9e90cf": {
     "translation": "Ongeldig verzoek."
+  },
+  "78e9815992": {
+    "translation": "Ik heb het"
   },
   "797799f35e": {
     "translation": "Een probleem melden op GitHub"
@@ -215,6 +239,9 @@
   "86c66437fd": {
     "translation": "Bestand hernoemen"
   },
+  "8b1946f965": {
+    "translation": "Om door te kunnen gaan met bewerken, kopieer je de kamer naar je bestanden."
+  },
   "8eb2c00e96": {
     "translation": "Gedeeld met jou"
   },
@@ -238,6 +265,9 @@
   },
   "9bef626805": {
     "translation": "Bestand verwijderen"
+  },
+  "9c258b8f88": {
+    "translation": "Deze anonieme tldraw-multiplayerroom is nu alleen-lezen. Om verder te gaan met bewerken, meld je aan en kopieer je de room naar je bestanden."
   },
   "9ceb927baa": {
     "translation": "Publiceer dit bestand"
@@ -294,6 +324,9 @@
   "b758336699": {
     "translation": "Link kopiëren"
   },
+  "ba0318cb81": {
+    "translation": "Meld je aan om te delen"
+  },
   "bb792693e2": {
     "translation": "Losmaken"
   },
@@ -323,9 +356,6 @@
   },
   "c87aacf567": {
     "translation": "Afmelden"
-  },
-  "cbef7ba103": {
-    "translation": "Deze kamer zal binnenkort alleen-lezen zijn"
   },
   "cceaefbc20": {
     "translation": "Deel dit bestand"
@@ -366,9 +396,6 @@
   "e78e14c5f1": {
     "translation": "Vastmaken"
   },
-  "ea2301d01c": {
-    "translation": "Na 1 juli 2025 wordt deze anonieme tldraw-multiplayerruimte alleen-lezen. Om in de toekomst te kunnen blijven bewerken, meld je aan en kopieer je de ruimte naar je bestanden."
-  },
   "ea4788705e": {
     "translation": "Annuleren"
   },
@@ -389,6 +416,9 @@
   },
   "ede55d955f": {
     "translation": "Lees ons <a>cookiebeleid</a> voor meer informatie."
+  },
+  "ef7de3f485": {
+    "translation": "gekozen"
   },
   "f09b16bc5f": {
     "translation": "We gebruiken cookies om ervoor te zorgen dat u ingelogd blijft, om uw bestanden te synchroniseren en om analyses te verzamelen waarmee we tldraw kunnen verbeteren."

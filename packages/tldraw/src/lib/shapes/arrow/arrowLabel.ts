@@ -9,13 +9,17 @@ import {
 	Polygon2d,
 	Polyline2d,
 	TLArrowShape,
+	TLShape,
 	Vec,
 	VecLike,
 	clamp,
 	createComputedCache,
 	exhaustiveSwitchError,
 	getChangedKeys,
+	pointInPolygon,
+	toRichText,
 } from '@tldraw/editor'
+import { isEmptyRichText, renderHtmlFromRichTextForMeasurement } from '../../utils/text/richText'
 import {
 	ARROW_LABEL_FONT_SIZES,
 	ARROW_LABEL_PADDING,
@@ -59,14 +63,18 @@ const labelSizeCache = createComputedCache(
 
 		const bodyGeom = getArrowBodyGeometry(editor, shape)
 		// We use 'i' as a default label to measure against as a minimum width.
-		const text = shape.props.text || 'i'
+		const isEmpty = isEmptyRichText(shape.props.richText)
+		const html = renderHtmlFromRichTextForMeasurement(
+			editor,
+			isEmpty ? toRichText('i') : shape.props.richText
+		)
 
 		const bodyBounds = bodyGeom.bounds
 
 		const fontSize = getArrowLabelFontSize(shape)
 
 		// First we measure the text with no constraints
-		const { w, h } = editor.textMeasure.measureText(text, {
+		const { w, h } = editor.textMeasure.measureHtml(html, {
 			...TEXT_PROPS,
 			fontFamily: FONT_FAMILIES[shape.props.font],
 			fontSize,
@@ -96,7 +104,7 @@ const labelSizeCache = createComputedCache(
 		}
 
 		if (shouldSquish) {
-			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(text, {
+			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureHtml(html, {
 				...TEXT_PROPS,
 				fontFamily: FONT_FAMILIES[shape.props.font],
 				fontSize,
@@ -219,6 +227,14 @@ interface ArrowheadInfo {
 	hasEndArrowhead: boolean
 }
 export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
+	const isEditing = editor.getEditingShapeId() === shape.id
+	if (!isEditing && isEmptyRichText(shape.props.richText)) {
+		// Short-circuit for empty labels.
+		const bodyGeom = getArrowBodyGeometry(editor, shape)
+		const labelCenter = bodyGeom.interpolateAlongEdge(0.5)
+		return { box: Box.FromCenter(labelCenter, new Vec(0, 0)), debugGeom: [] }
+	}
+
 	const debugGeom: Geometry2d[] = []
 	const info = getArrowInfo(editor, shape)!
 
@@ -291,4 +307,16 @@ export function getArrowLabelDefaultPosition(editor: Editor, shape: TLArrowShape
 		default:
 			exhaustiveSwitchError(info, 'type')
 	}
+}
+
+/** @internal */
+export function isOverArrowLabel(editor: Editor, shape: TLShape) {
+	if (!editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) return false
+
+	const pointInShapeSpace = editor.getPointInShapeSpace(shape, editor.inputs.currentPagePoint)
+	// How should we handle multiple labels? Do shapes ever have multiple labels?
+	const labelGeometry = editor.getShapeGeometry<Group2d>(shape).children[1]
+	// Knowing what we know about arrows... if the shape has no text in its label,
+	// then the label geometry should not be there.
+	return labelGeometry && pointInPolygon(pointInShapeSpace, labelGeometry.vertices)
 }

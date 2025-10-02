@@ -1,9 +1,0 @@
-{
-	"extends": "./tsconfig.base.json",
-	"compilerOptions": {
-		"outDir": "./.tsbuild",
-		"types": ["@cloudflare/workers-types"]
-	},
-	"include": ["client", "shared", "worker"],
-	"files": ["./vite.config.ts"]
-}

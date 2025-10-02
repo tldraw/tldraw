@@ -1,6 +1,6 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
-import Analytics, { identify, page, PrivacySettings, track } from './analytics'
+import Analytics, { gtag, identify, page, PrivacySettings, track } from './analytics'
 import styles from './styles.css?inline'
 
 // Inject styles
@@ -25,8 +25,10 @@ declare global {
 			page(): void
 			identify(userId: string, properties?: { [key: string]: any }): void
 			track(name: string, data?: { [key: string]: any }): void
+			gtag(...args: any[]): void
 		}
 		TL_GA4_MEASUREMENT_ID: string | undefined
+		TL_GOOGLE_ADS_ID?: string
 		Reo: any
 		posthog: any
 	}
@@ -47,4 +49,5 @@ window.tlanalytics = {
 	page,
 	identify,
 	track,
+	gtag,
 }

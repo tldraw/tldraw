@@ -37,7 +37,7 @@ export default defineConfig({
 		trace: 'on-first-retry',
 		video: 'retain-on-failure',
 		launchOptions: {
-			// Uncomment this to make the browser slow down. Usefull when debugging in the headed mode.
+			// Uncomment this to make the browser slow down. Useful when debugging in the headed mode.
 			// slowMo: 1000,
 		},
 	},

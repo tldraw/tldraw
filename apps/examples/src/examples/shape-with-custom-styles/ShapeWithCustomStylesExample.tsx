@@ -58,7 +58,7 @@ class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 		return (
 			<HTMLContainer
 				id={shape.id}
-				style={{ backgroundColor: 'var(--color-low-border)', overflow: 'hidden' }}
+				style={{ backgroundColor: 'var(--tl-color-low-border)', overflow: 'hidden' }}
 			>
 				{stars}
 			</HTMLContainer>
@@ -80,7 +80,7 @@ function CustomStylePanel() {
 
 	return (
 		<DefaultStylePanel>
-			<DefaultStylePanelContent styles={styles} />
+			<DefaultStylePanelContent />
 			{rating !== undefined && (
 				<div>
 					<select

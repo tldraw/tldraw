@@ -1,0 +1,142 @@
+---
+title: Releases
+status: published
+author: steveruizok
+order: 3
+---
+
+## How tldraw is versioned
+
+Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), the tldraw SDK does not follow [semantic versioning](https://semver.org/) in its release versions. Here's what we do instead:
+
+- Major version bumps are very rare and we reserve them for special changes that signify a paradigm shift of some kind.
+- Minor version bumps are released on a regular cadence - approximately monthly. **They may contain breaking changes**. We aim to make breaking changes as minimally disruptive as possible, but tldraw is actively evolving as we add new features. We recommend updating tldraw at a similar pace to our release cadence, and be sure to check the release notes.
+- Patch version bumps are for bugfixes and hotfixes that can't wait for the next cadence release.
+
+{/* START AUTO-GENERATED CHANGELOG */}
+
+## Current release: [v3.15.0](/releases/v3.15.0)
+
+This release adds `npm create tldraw` to bootstrap new tldraw projects. It also includes several small API additions, accessibility improvements, performance optimizations, and various bug fixes.
+
+### `npm create tldraw`
+
+You can now run `npm create tldraw` in your terminal to bootstrap a new tldraw project from our starter templates.
+
+![npm create tldraw](https://github.com/user-attachments/assets/7141d2cc-fb24-44c4-b440-2e6e00d3606b)
+
+## Breaking changes
+
+There are no breaking changes in this release.
+
+## User-facing changes
+
+- Improve the 'Select All' action to select within the common parent of the current selection. For example, if you select a shape within a frame, it will select all the shapes within that frame but not the frame itself. ([#6386](https://github.com/tldraw/tldraw/pull/6386))
+
+- Add a user preference option to turn off keyboard shortcuts. ([#6363](https://github.com/tldraw/tldraw/pull/6363))
+
+## API additions
+
+- Add several new `ShapeUtil` callbacks for handle interactions. ([#6489](https://github.com/tldraw/tldraw/pull/6489))
+  - Handle drag start and end callbacks: `onHandleDragStart` and `onHandleDragEnd`.
+  - Interaction cancellation callbacks: `onTranslateCancel`, `onResizeCancel`, `onRotateCancel`, and `onHandleDragCancel`.
+
+- Allow custom JSX for icons in UI components. ([#6486](https://github.com/tldraw/tldraw/pull/6486))
+
+  This applies to tool and action overrides as well as our button and menu item components.
+
+- Add the `StateNode.addChild` method for dynamically adding functionality to tools. ([#6485](https://github.com/tldraw/tldraw/pull/6485))
+
+- The `DefaultSpinner` component is now an SVG, and accepts SVG props like `width`, `height`, and `className`. ([#6459](https://github.com/tldraw/tldraw/pull/6459))
+
+- Add a missing export of `HeartToolbarItem`. ([#6438](https://github.com/tldraw/tldraw/pull/6438))
+
+## Bug fixes
+
+- Fix HTML entities escaping in pasted content. ([#6396](https://github.com/tldraw/tldraw/pull/6396))
+
+- Fix measurement of fixed-size text shapes and labels. ([#6423](https://github.com/tldraw/tldraw/pull/6423))
+
+- Fix an issue where text measurement could be wrong due to styles being leaked between measurements. ([#6419](https://github.com/tldraw/tldraw/pull/6419))
+
+- Fix an issue that would cause arrows between circles to sometimes render incorrectly. ([#6417](https://github.com/tldraw/tldraw/pull/6417))
+
+- Fix text outline rendering in exported SVGs. ([#6371](https://github.com/tldraw/tldraw/pull/6371))
+
+- Fix some edge cases where errors were thrown after reaching the maximum number of shapes. ([#6359](https://github.com/tldraw/tldraw/pull/6359))
+
+- Fix image toolbar reacting to camera movement. ([#6375](https://github.com/tldraw/tldraw/pull/6375))
+
+- Update `fractional-indexing-jittered` to address an issue with certain null values. See [this PR](https://github.com/TMeerhof/fractional-indexing-jittered/pull/5). ([#6479](https://github.com/tldraw/tldraw/pull/6479))
+
+## Performance improvements
+
+- Prevent unnecessarily dropped frames. ([#6464](https://github.com/tldraw/tldraw/pull/6464)) ([#6409](https://github.com/tldraw/tldraw/pull/6409))
+
+- Optimize the `useValue` hook. ([#6405](https://github.com/tldraw/tldraw/pull/6405))
+
+- Optimize the `useReactor` hook. ([#6383](https://github.com/tldraw/tldraw/pull/6383))
+
+- Optimize frame rendering performance. ([#6415](https://github.com/tldraw/tldraw/pull/6415))
+
+## Accessibility improvements
+
+- Apply `aria-hidden` to more elements, and in more intelligent ways. ([#6471](https://github.com/tldraw/tldraw/pull/6471)) ([#6437](https://github.com/tldraw/tldraw/pull/6437))
+
+- Improve keyboard navigation. ([#6446](https://github.com/tldraw/tldraw/pull/6446))
+
+- Set `role="radiogroup"` on the `ToggleGroup` component. ([#6435](https://github.com/tldraw/tldraw/pull/6435))
+
+- Fix aria slider values and make dialogs scrollable via keyboard. ([#6431](https://github.com/tldraw/tldraw/pull/6431))
+
+- Fix several other minor accessibility issues. ([#6358](https://github.com/tldraw/tldraw/pull/6358))
+
+## Other improvements
+
+- Show max shapes alert when duplicating shapes. ([#6411](https://github.com/tldraw/tldraw/pull/6411))
+
+- Hide cropping toolbar while cropping. ([#6376](https://github.com/tldraw/tldraw/pull/6376))
+
+## Previous releases
+
+- [v3.14.0](/releases/v3.14.0)
+
+- [v3.13.0](/releases/v3.13.0)
+
+- [v3.12.0](/releases/v3.12.0)
+
+- [v3.11.0](/releases/v3.11.0)
+
+- [v3.10.0](/releases/v3.10.0)
+
+- [v3.9.0](/releases/v3.9.0)
+
+- [v3.8.0](/releases/v3.8.0)
+
+- [v3.7.0](/releases/v3.7.0)
+
+- [v3.6.0](/releases/v3.6.0)
+
+- [v3.5.0](/releases/v3.5.0)
+
+- [v3.4.0](/releases/v3.4.0)
+
+- [v3.3.0](/releases/v3.3.0)
+
+- [v3.2.0](/releases/v3.2.0)
+
+- [v3.1.0](/releases/v3.1.0)
+
+- [v3.0.0](/releases/v3.0.0)
+
+- [v2.4.0](/releases/v2.4.0)
+
+- [v2.3.0](/releases/v2.3.0)
+
+- [v2.2.0](/releases/v2.2.0)
+
+- [v2.1.0](/releases/v2.1.0)
+
+- [v2.0.0](/releases/v2.0.0)
+
+{/* END AUTO-GENERATED CHANGELOG */}

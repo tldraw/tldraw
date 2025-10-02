@@ -35,6 +35,9 @@
   "110a4b01be": {
     "translation": "게시"
   },
+  "12c8a9838c": {
+    "translation": "tldraw SDK를 사용해 보세요"
+  },
   "13ddd375ad": {
     "translation": "내보내기 형식"
   },
@@ -47,11 +50,20 @@
   "1dd1c5fb7f": {
     "translation": "오늘"
   },
+  "20976e7bec": {
+    "translation": "방이 꽉 찼습니다"
+  },
+  "21bfb2dc2e": {
+    "translation": "이 방의 크기 제한에 거의 도달했습니다. 일부 콘텐츠를 삭제하거나 새 파일을 만들어 보세요."
+  },
   "250ddea65c": {
     "translation": "tldraw에 대하여"
   },
   "299cb00a7a": {
     "translation": "업로드 실패"
+  },
+  "2deec2cb74": {
+    "translation": "이 채팅방은 크기 제한에 도달하여 변경 사항이 더 이상 저장되지 않을 수 있습니다. 일부 콘텐츠를 삭제하거나 새 파일을 시작하세요."
   },
   "31246941ad": {
     "translation": "이 파일을 보려면 로그인해야 합니다."
@@ -85,6 +97,12 @@
   },
   "47839e47a5": {
     "translation": "tldraw"
+  },
+  "7697920637": {
+    "translation": "다시 로드해주세요"
+  },
+  "764671e008": {
+    "translation": "Discord에서 우리와 채팅하세요"
   },
   "4908687e50": {
     "translation": "이 파일을 무시하시겠습니까?"
@@ -121,6 +139,15 @@
   },
   "5a95a425f7": {
     "translation": "공유"
+  },
+  "5bb6cf3b53": {
+    "translation": "방이 넓어지고 있어요"
+  },
+  "5bcc12ace8": {
+    "translation": "이 방은 이제 읽기 전용입니다."
+  },
+  "5bec508475": {
+    "translation": "이전 브라우저가 감지되었습니다. 이 앱을 사용하려면 브라우저를 업데이트하세요."
   },
   "5d26ae7550": {
     "translation": "로그인하기 전에 생성하신 콘텐츠 중 일부를 업로드하지 못했습니다."
@@ -173,14 +200,11 @@
   "761e93ede9": {
     "translation": "쿠키 관리"
   },
-  "7697920637": {
-    "translation": "다시 로드해주세요"
-  },
-  "764671e008": {
-    "translation": "Discord에서 우리와 채팅하세요"
-  },
   "777f9e90cf": {
     "translation": "유효하지 않은 요청입니다."
+  },
+  "78e9815992": {
+    "translation": "알았어요"
   },
   "797799f35e": {
     "translation": "GitHub에 이슈 제출"
@@ -215,6 +239,9 @@
   "86c66437fd": {
     "translation": "파일 이름 바꾸기"
   },
+  "8b1946f965": {
+    "translation": "편집을 계속하려면 해당 방을 파일로 복사하세요."
+  },
   "8eb2c00e96": {
     "translation": "나와 공유됨"
   },
@@ -238,6 +265,9 @@
   },
   "9bef626805": {
     "translation": "파일 삭제"
+  },
+  "9c258b8f88": {
+    "translation": "이 익명 TLDraw 멀티플레이어 방은 이제 읽기 전용입니다. 편집을 계속하려면 로그인하여 파일에 복사하세요."
   },
   "9ceb927baa": {
     "translation": "이 파일 게시"
@@ -294,6 +324,9 @@
   "b758336699": {
     "translation": "링크 복사"
   },
+  "ba0318cb81": {
+    "translation": "공유하려면 로그인하세요"
+  },
   "bb792693e2": {
     "translation": "고정 해제"
   },
@@ -323,9 +356,6 @@
   },
   "c87aacf567": {
     "translation": "로그아웃"
-  },
-  "cbef7ba103": {
-    "translation": "이 방은 곧 읽기 전용이 됩니다."
   },
   "cceaefbc20": {
     "translation": "이 파일 공유"
@@ -366,9 +396,6 @@
   "e78e14c5f1": {
     "translation": "고정"
   },
-  "ea2301d01c": {
-    "translation": "2025년 7월 1일 이후 이 익명 tldraw 멀티플레이어 방은 읽기 전용으로 전환됩니다. 나중에 편집을 계속하려면 로그인하여 파일에 복사하세요."
-  },
   "ea4788705e": {
     "translation": "취소"
   },
@@ -389,6 +416,9 @@
   },
   "ede55d955f": {
     "translation": "자세한 내용을 알아보려면 <a>쿠키 정책</a>을 읽어보세요."
+  },
+  "ef7de3f485": {
+    "translation": "선택된"
   },
   "f09b16bc5f": {
     "translation": "tldraw를 개선하는 데 도움이 되는 분석 자료를 수집하고, 파일을 동기화하고, 로그인 상태를 유지하기 위해 쿠키를 사용합니다."

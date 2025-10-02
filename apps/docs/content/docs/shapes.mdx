@@ -142,7 +142,7 @@ class CardShapeUtil extends ShapeUtil<CardShape> {
 }
 ```
 
-This is a minimal [ShapeUtil](?). We've given it a static property `type` that matches the type of our shape, we've provided implementations for the abstract methods [ShapeUtil#getDefaultProps](?), [ShapeUtil#getBounds](?), [ShapeUtil#component](?), and [ShapeUtil#indicator](?).
+This is a minimal [ShapeUtil](?). We've given it a static property `type` that matches the type of our shape, we've provided implementations for the abstract methods [ShapeUtil#getDefaultProps](?), [ShapeUtil#getGeometry](?), [ShapeUtil#component](?), and [ShapeUtil#indicator](?).
 
 We still have work to do on the `CardShapeUtil` class, but we'll come back to it later. For now, let's put the shape onto the canvas by passing it to the [Tldraw](?) component.
 
@@ -281,6 +281,10 @@ export default function RichTextCustomExtensionExample() {
 ```
 
 Check out our [rich text examples](/examples/rich-text-custom-extension) to see how to add custom extensions or UI to tailor the rich text.
+
+### Clipping
+
+Custom shapes can clip their children using the `getClipPath` and `shouldClipChild` methods. See our [custom clipping shape example](/examples/editor-api/custom-clipping-shape) for details.
 
 ### Migrations
 

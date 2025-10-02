@@ -35,6 +35,9 @@
   "110a4b01be": {
     "translation": "Közzététel"
   },
+  "12c8a9838c": {
+    "translation": "Próbáld ki a tldraw SDK-t"
+  },
   "13ddd375ad": {
     "translation": "Exportálás másként"
   },
@@ -47,11 +50,20 @@
   "1dd1c5fb7f": {
     "translation": "Ma"
   },
+  "20976e7bec": {
+    "translation": "A szoba tele van"
+  },
+  "21bfb2dc2e": {
+    "translation": "Ez a szoba közeledik a méretkorlátjához. Fontolja meg néhány tartalom eltávolítását vagy új fájl létrehozását."
+  },
   "250ddea65c": {
     "translation": "A tldraw-ról"
   },
   "299cb00a7a": {
     "translation": "A feltöltés sikertelen"
+  },
+  "2deec2cb74": {
+    "translation": "Ez a szoba elérte a méretkorlátját, és előfordulhat, hogy a módosítások már nem menthetők. Távolítson el néhány tartalmat, vagy hozzon létre egy új fájlt."
   },
   "31246941ad": {
     "translation": "A fájl megtekintéséhez be kell jelentkeznie."
@@ -85,6 +97,12 @@
   },
   "47839e47a5": {
     "translation": "tldraw"
+  },
+  "7697920637": {
+    "translation": "Kérjük, töltse újra"
+  },
+  "764671e008": {
+    "translation": "Csevegés velünk a Discordon"
   },
   "4908687e50": {
     "translation": "Biztosan elfelejti ezt a fájlt?"
@@ -121,6 +139,15 @@
   },
   "5a95a425f7": {
     "translation": "Részesedés"
+  },
+  "5bb6cf3b53": {
+    "translation": "Egyre nagyobb lesz a szoba"
+  },
+  "5bcc12ace8": {
+    "translation": "Ez a szoba mostantól írásvédett"
+  },
+  "5bec508475": {
+    "translation": "Régi böngésző észlelve. Kérjük, frissítse böngészőjét az alkalmazás használatához."
   },
   "5d26ae7550": {
     "translation": "Nem sikerült feltöltenünk a bejelentkezés előtt létrehozott tartalmak egy részét."
@@ -173,14 +200,11 @@
   "761e93ede9": {
     "translation": "Cookie-k kezelése"
   },
-  "7697920637": {
-    "translation": "Kérjük, töltse újra"
-  },
-  "764671e008": {
-    "translation": "Csevegés velünk a Discordon"
-  },
   "777f9e90cf": {
     "translation": "Érvénytelen kérés."
+  },
+  "78e9815992": {
+    "translation": "Értem"
   },
   "797799f35e": {
     "translation": "Probléma benyújtása a GitHubon"
@@ -215,6 +239,9 @@
   "86c66437fd": {
     "translation": "Fájl átnevezése"
   },
+  "8b1946f965": {
+    "translation": "A szerkesztés folytatásához másold át a szobát a fájljaid közé."
+  },
   "8eb2c00e96": {
     "translation": "Megosztva veled"
   },
@@ -238,6 +265,9 @@
   },
   "9bef626805": {
     "translation": "Fájl törlése"
+  },
+  "9c258b8f88": {
+    "translation": "Ez az anonim tldraw többjátékos szoba mostantól csak olvasható. A szerkesztés folytatásához jelentkezzen be, és másolja át a fájljai közé."
   },
   "9ceb927baa": {
     "translation": "Tegye közzé ezt a fájlt"
@@ -294,6 +324,9 @@
   "b758336699": {
     "translation": "Link másolása"
   },
+  "ba0318cb81": {
+    "translation": "Jelentkezzen be a megosztáshoz"
+  },
   "bb792693e2": {
     "translation": "Kibont"
   },
@@ -323,9 +356,6 @@
   },
   "c87aacf567": {
     "translation": "Jelentkezzen ki"
-  },
-  "cbef7ba103": {
-    "translation": "Ez a szoba hamarosan csak olvasható lesz"
   },
   "cceaefbc20": {
     "translation": "Ossza meg ezt a fájlt"
@@ -366,9 +396,6 @@
   "e78e14c5f1": {
     "translation": "Pin"
   },
-  "ea2301d01c": {
-    "translation": "2025. július 1. után ez az anonim tldraw többjátékos szoba írásvédetté válik. A jövőbeni szerkesztés folytatásához kérjük, jelentkezzen be, és másolja át a fájljai közé."
-  },
   "ea4788705e": {
     "translation": "Mégsem"
   },
@@ -389,6 +416,9 @@
   },
   "ede55d955f": {
     "translation": "További információért olvassa el <a>süti szabályzatunkat</a>."
+  },
+  "ef7de3f485": {
+    "translation": "kiválasztott"
   },
   "f09b16bc5f": {
     "translation": "Sütiket használunk a bejelentkezéshez, a fájlok szinkronizálásához és a tldraw fejlesztését segítő elemzések gyűjtéséhez."

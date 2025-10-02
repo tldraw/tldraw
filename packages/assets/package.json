@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/assets",
-	"description": "A tiny little drawing app (assets).",
-	"version": "3.13.0",
+	"description": "tldraw infinite canvas SDK (assets).",
+	"version": "4.0.2",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -17,6 +17,7 @@
 	},
 	"keywords": [
 		"tldraw",
+		"sdk",
 		"drawing",
 		"app",
 		"development",
@@ -43,7 +44,9 @@
 	],
 	"scripts": {
 		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
+		"context": "yarn run -T tsx ../../internal/scripts/context.ts"
 	},
 	"dependencies": {
 		"@tldraw/utils": "workspace:*"
@@ -51,15 +54,6 @@
 	"devDependencies": {
 		"lazyrepo": "0.0.0-alpha.27",
 		"ts-node-dev": "^1.1.8",
-		"typescript": "~5.4.5"
-	},
-	"jest": {
-		"preset": "../../internal/config/jest/node/jest-preset.js",
-		"setupFiles": [
-			"raf/polyfill"
-		],
-		"moduleNameMapper": {
-			"^~(.*)": "<rootDir>/src/$1"
-		}
+		"typescript": "^5.8.3"
 	}
 }

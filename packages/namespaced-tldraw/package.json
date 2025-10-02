@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/tldraw",
 	"description": "A tiny little drawing editor.",
-	"version": "3.13.0",
+	"version": "4.0.2",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -17,6 +17,7 @@
 	},
 	"keywords": [
 		"tldraw",
+		"sdk",
 		"drawing",
 		"app",
 		"development",
@@ -27,10 +28,11 @@
 	"/* NOTE */": "These `main` and `types` fields are rewritten by the build script. They are not the actual values we publish",
 	"main": "./src/index.ts",
 	"types": "./.tsbuild/index.d.ts",
+	"type": "module",
 	"scripts": {
-		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest",
-		"test-coverage": "lazy inherit",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
 		"predev": "node ./scripts/copy-css-files.mjs",
 		"dev": "chokidar '../tldraw/tldraw.css' -c 'node ./scripts/copy-css-files.mjs'",
 		"prebuild": "node ./scripts/copy-css-files.mjs",
@@ -39,7 +41,8 @@
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"context": "yarn run -T tsx ../../internal/scripts/context.ts"
 	},
 	"files": [
 		"tldraw.css"
@@ -57,26 +60,5 @@
 		"lazyrepo": "0.0.0-alpha.27",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1"
-	},
-	"jest": {
-		"preset": "../../internal/config/jest/node/jest-preset.js",
-		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
-		"fakeTimers": {
-			"enableGlobally": true
-		},
-		"testPathIgnorePatterns": [
-			"^.+\\.*.css$"
-		],
-		"moduleNameMapper": {
-			"^~(.*)": "<rootDir>/src/$1",
-			"\\.(css|less|scss|sass)$": "identity-obj-proxy"
-		},
-		"setupFiles": [
-			"raf/polyfill",
-			"jest-canvas-mock"
-		],
-		"setupFilesAfterEnv": [
-			"../../internal/config/setupJest.ts"
-		]
 	}
 }

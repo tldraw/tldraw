@@ -116,7 +116,6 @@ import {
 } from '../constants'
 import { exportToSvg } from '../exports/exportToSvg'
 import { getSvgAsImage } from '../exports/getSvgAsImage'
-import { tlenv } from '../globals/environment'
 import { tlmenus } from '../globals/menus'
 import { tltime } from '../globals/time'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
@@ -176,8 +175,10 @@ import {
 	RequiredKeys,
 	TLCameraMoveOptions,
 	TLCameraOptions,
+	TLGetShapeAtPointOptions,
 	TLImageExportOptions,
 	TLSvgExportOptions,
+	TLUpdatePointerOptions,
 } from './types/misc-types'
 import { TLAdjacentDirection, TLResizeHandle } from './types/selection-types'
 
@@ -243,16 +244,6 @@ export interface TLEditorOptions {
 	licenseKey?: string
 	fontAssetUrls?: { [key: string]: string | undefined }
 	/**
-	 * A predicate that should return true if the given shape should be hidden.
-	 *
-	 * @deprecated Use {@link Editor#getShapeVisibility} instead.
-	 *
-	 * @param shape - The shape to check.
-	 * @param editor - The editor instance.
-	 */
-	isShapeHidden?(shape: TLShape, editor: Editor): boolean
-
-	/**
 	 * Provides a way to hide shapes.
 	 *
 	 * @example
@@ -307,21 +298,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		autoFocus,
 		inferDarkMode,
 		options,
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		isShapeHidden,
 		getShapeVisibility,
 		fontAssetUrls,
 	}: TLEditorOptions) {
 		super()
-		assert(
-			!(isShapeHidden && getShapeVisibility),
-			'Cannot use both isShapeHidden and getShapeVisibility'
-		)
 
-		this._getShapeVisibility = isShapeHidden
-			? // eslint-disable-next-line @typescript-eslint/no-deprecated
-				(shape: TLShape, editor: Editor) => (isShapeHidden(shape, editor) ? 'hidden' : 'inherit')
-			: getShapeVisibility
+		this._getShapeVisibility = getShapeVisibility
 
 		this.options = { ...defaultTldrawOptions, ...options }
 
@@ -360,6 +342,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.root = new NewRoot(this)
 		this.root.children = {}
+
+		this.markEventAsHandled = this.markEventAsHandled.bind(this)
 
 		const allShapeUtils = checkShapesAndAddCore(shapeUtils)
 
@@ -906,14 +890,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly fonts: FontManager
 
 	/**
-	 * A manager for the editor's environment.
-	 *
-	 * @deprecated This is deprecated and will be removed in a future version. Use the `tlenv` global export instead.
-	 * @public
-	 */
-	readonly environment = tlenv
-
-	/**
 	 * A manager for the editor's scribbles.
 	 *
 	 * @public
@@ -1119,35 +1095,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Create a new "mark", or stopping point, in the undo redo history. Creating a mark will clear
-	 * any redos.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.mark()
-	 * editor.mark('flip shapes')
-	 * ```
-	 *
-	 * @param markId - The mark's id, usually the reason for adding the mark.
-	 *
-	 * @public
-	 * @deprecated use {@link Editor.markHistoryStoppingPoint} instead
-	 */
-	mark(markId?: string): this {
-		if (typeof markId === 'string') {
-			console.warn(
-				`[tldraw] \`editor.history.mark("${markId}")\` is deprecated. Please use \`const myMarkId = editor.markHistoryStoppingPoint()\` instead.`
-			)
-		} else {
-			console.warn(
-				'[tldraw] `editor.mark()` is deprecated. Use `editor.markHistoryStoppingPoint()` instead.'
-			)
-		}
-		this.history._mark(markId ?? uniqueId())
-		return this
-	}
-
-	/**
-	 * Create a new "mark", or stopping point, in the undo redo history. Creating a mark will clear
 	 * any redos. You typically want to do this just before a user interaction begins or is handled.
 	 *
 	 * @example
@@ -1268,13 +1215,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		return this
-	}
-
-	/**
-	 * @deprecated Use `Editor.run` instead.
-	 */
-	batch(fn: () => void, opts?: TLEditorRunOptions): this {
-		return this.run(fn, opts)
 	}
 
 	/* --------------------- Errors --------------------- */
@@ -1578,54 +1518,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	menus = tlmenus.forContext(this.contextId)
 
-	/**
-	 * @deprecated Use `editor.menus.getOpenMenus` instead.
-	 *
-	 * @public
-	 */
-	@computed getOpenMenus(): string[] {
-		return this.menus.getOpenMenus()
-	}
-
-	/**
-	 * @deprecated Use `editor.menus.addOpenMenu` instead.
-	 *
-	 * @public
-	 */
-	addOpenMenu(id: string): this {
-		this.menus.addOpenMenu(id)
-		return this
-	}
-
-	/**
-	 * @deprecated Use `editor.menus.deleteOpenMenu` instead.
-	 *
-	 * @public
-	 */
-	deleteOpenMenu(id: string): this {
-		this.menus.deleteOpenMenu(id)
-		return this
-	}
-
-	/**
-	 * @deprecated Use `editor.menus.clearOpenMenus` instead.
-	 *
-	 * @public
-	 */
-	clearOpenMenus(): this {
-		this.menus.clearOpenMenus()
-		return this
-	}
-
-	/**
-	 * @deprecated Use `editor.menus.hasAnyOpenMenus` instead.
-	 *
-	 * @public
-	 */
-	@computed getIsMenuOpen(): boolean {
-		return this.menus.hasAnyOpenMenus()
-	}
-
 	/* --------------------- Cursor --------------------- */
 
 	/**
@@ -1803,7 +1695,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Select all direct children of the current page.
+	 * Select all shapes. If the user has selected shapes that share a parent,
+	 * select all shapes within that parent. If the user has not selected any shapes,
+	 * or if the shapes shapes are only on select all shapes on the current page.
 	 *
 	 * @example
 	 * ```ts
@@ -1813,11 +1707,34 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	selectAll(): this {
-		const ids = this.getSortedChildIdsForParent(this.getCurrentPageId())
-		// page might have no shapes
+		let parentToSelectWithinId: TLParentId | null = null
+
+		const selectedShapeIds = this.getSelectedShapeIds()
+
+		// If we have selected shapes, try to find a parent to select within
+		if (selectedShapeIds.length > 0) {
+			for (const id of selectedShapeIds) {
+				const shape = this.getShape(id)
+				if (!shape) continue
+				if (parentToSelectWithinId === null) {
+					// If we haven't found a parent yet, set this parent as the parent to select within
+					parentToSelectWithinId = shape.parentId
+				} else if (parentToSelectWithinId !== shape.parentId) {
+					// If we've found two different parents, we can't select all, do nothing
+					return this
+				}
+			}
+		}
+
+		// If we haven't found a parent from our selected shapes, select the current page
+		if (!parentToSelectWithinId) {
+			parentToSelectWithinId = this.getCurrentPageId()
+		}
+
+		// Select all the unlocked shapes within the parent
+		const ids = this.getSortedChildIdsForParent(parentToSelectWithinId)
 		if (ids.length <= 0) return this
 		this.setSelectedShapes(this._getUnlockedShapeIds(ids))
-
 		return this
 	}
 
@@ -1838,10 +1755,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			firstParentId &&
 			selectedShapeIds.every((shapeId) => this.getShape(shapeId)?.parentId === firstParentId) &&
 			!isPageId(firstParentId)
+		const filteredShapes = isSelectedWithinContainer
+			? this.getCurrentPageShapes().filter((shape) => shape.parentId === firstParentId)
+			: this.getCurrentPageShapes().filter((shape) => isPageId(shape.parentId))
 		const readingOrderShapes = isSelectedWithinContainer
-			? this._getShapesInReadingOrder(
-					this.getCurrentPageShapes().filter((shape) => shape.parentId === firstParentId)
-				)
+			? this._getShapesInReadingOrder(filteredShapes)
 			: this.getCurrentPageShapesInReadingOrder()
 		const currentShapeId: TLShapeId | undefined =
 			selectedShapeIds.length === 1
@@ -1858,7 +1776,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			adjacentShapeId = shapeIds[adjacentIndex]
 		} else {
 			if (!currentShapeId) return
-			adjacentShapeId = this.getNearestAdjacentShape(currentShapeId, direction)
+			adjacentShapeId = this.getNearestAdjacentShape(filteredShapes, currentShapeId, direction)
 		}
 
 		const shape = this.getShape(adjacentShapeId)
@@ -1957,6 +1875,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getNearestAdjacentShape(
+		shapes: TLShape[],
 		currentShapeId: TLShapeId,
 		direction: 'left' | 'right' | 'up' | 'down'
 	): TLShapeId {
@@ -1964,7 +1883,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const currentShape = this.getShape(currentShapeId)
 		if (!currentShape) return currentShapeId
 
-		const shapes = this.getCurrentPageShapes()
 		const tabbableShapes = shapes.filter(
 			(shape) => this.getShapeUtil(shape).canTabTo(shape) && shape.id !== currentShapeId
 		)
@@ -3046,7 +2964,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Dispatch a new pointer move because the pointer's page will have changed
 			// (its screen position will compute to a new page position given the new camera position)
 			const { currentScreenPoint, currentPagePoint } = this.inputs
-			const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 
 			// compare the next page point (derived from the current camera) to the current page point
 			if (
@@ -3054,27 +2971,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				currentScreenPoint.y / z - y !== currentPagePoint.y
 			) {
 				// If it's changed, dispatch a pointer event
-				const event: TLPointerEventInfo = {
-					type: 'pointer',
-					target: 'canvas',
-					name: 'pointer_move',
-					// weird but true: we need to put the screen point back into client space
-					point: Vec.AddXY(currentScreenPoint, screenBounds.x, screenBounds.y),
+				this.updatePointer({
+					immediate: opts?.immediate,
 					pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
-					ctrlKey: this.inputs.ctrlKey,
-					altKey: this.inputs.altKey,
-					shiftKey: this.inputs.shiftKey,
-					metaKey: this.inputs.metaKey,
-					accelKey: isAccelKey(this.inputs),
-					button: 0,
-					isPen: this.getInstanceState().isPenMode ?? false,
-				}
-
-				if (opts?.immediate) {
-					this._flushEventForTick(event)
-				} else {
-					this.dispatch(event)
-				}
+				})
 			}
 
 			this._tickCameraState()
@@ -3662,7 +3562,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	updateViewportScreenBounds(screenBounds: Box | HTMLElement, center = false): this {
-		if (screenBounds instanceof HTMLElement) {
+		if (!(screenBounds instanceof Box)) {
 			const rect = screenBounds.getBoundingClientRect()
 			screenBounds = new Box(
 				rect.left || rect.x,
@@ -4395,21 +4295,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	deletePage(page: TLPageId | TLPage): this {
 		const id = typeof page === 'string' ? page : page.id
-		this.run(() => {
-			if (this.getIsReadonly()) return
-			const pages = this.getPages()
-			if (pages.length === 1) return
+		this.run(
+			() => {
+				if (this.getIsReadonly()) return
+				const pages = this.getPages()
+				if (pages.length === 1) return
 
-			const deletedPage = this.getPage(id)
-			if (!deletedPage) return
+				const deletedPage = this.getPage(id)
+				if (!deletedPage) return
 
-			if (id === this.getCurrentPageId()) {
-				const index = pages.findIndex((page) => page.id === id)
-				const next = pages[index - 1] ?? pages[index + 1]
-				this.setCurrentPage(next.id)
-			}
-			this.store.remove([deletedPage.id])
-		})
+				if (id === this.getCurrentPageId()) {
+					const index = pages.findIndex((page) => page.id === id)
+					const next = pages[index - 1] ?? pages[index + 1]
+					this.setCurrentPage(next.id)
+				}
+
+				const shapes = this.getSortedChildIdsForParent(deletedPage.id)
+				this.deleteShapes(shapes)
+
+				this.store.remove([deletedPage.id])
+			},
+			{ ignoreShapeLock: true }
+		)
 		return this
 	}
 
@@ -4775,8 +4682,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.store.createComputedCache<Box, TLShape>('pageBoundsCache', (shape) => {
 			const pageTransform = this.getShapePageTransform(shape)
 			if (!pageTransform) return undefined
-			const geometry = this.getShapeGeometry(shape)
-			return Box.FromPoints(pageTransform.applyToPoints(geometry.vertices))
+
+			return Box.FromPoints(
+				pageTransform.applyToPoints(this.getShapeGeometry(shape).boundsVertices)
+			)
 		})
 	}
 
@@ -4843,27 +4752,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.store.createComputedCache('pageMaskCache', (shape) => {
 			if (isPageId(shape.parentId)) return undefined
 
-			const frameAncestors = this.getShapeAncestors(shape.id).filter((shape) =>
-				this.isShapeOfType<TLFrameShape>(shape, 'frame')
-			)
+			const clipPaths: Vec[][] = []
+			// Get all ancestors that can potentially clip this shape
+			for (const ancestor of this.getShapeAncestors(shape.id)) {
+				const util = this.getShapeUtil(ancestor)
+				const clipPath = util.getClipPath?.(ancestor)
+				if (!clipPath) continue
+				if (util.shouldClipChild?.(shape) === false) continue
+				const pageTransform = this.getShapePageTransform(ancestor.id)
+				clipPaths.push(pageTransform.applyToPoints(clipPath))
+			}
+			if (clipPaths.length === 0) return undefined
 
-			if (frameAncestors.length === 0) return undefined
-
-			const pageMask = frameAncestors
-				.map<Vec[] | undefined>((s) => {
-					// Apply the frame transform to the frame outline to get the frame outline in the current page space
-					const geometry = this.getShapeGeometry(s.id)
-					const pageTransform = this.getShapePageTransform(s.id)
-					return pageTransform.applyToPoints(geometry.vertices)
-				})
-				.reduce((acc, b) => {
-					if (!(b && acc)) return undefined
-					const intersection = intersectPolygonPolygon(acc, b)
-					if (intersection) {
-						return intersection.map(Vec.Cast)
-					}
-					return []
-				})
+			const pageMask = clipPaths.reduce((acc, b) => {
+				const intersection = intersectPolygonPolygon(acc, b)
+				if (intersection) {
+					return intersection.map(Vec.Cast)
+				}
+				return []
+			})
 
 			return pageMask
 		})
@@ -5138,20 +5045,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @returns The shape at the given point, or undefined if there is no shape at the point.
 	 */
-	getShapeAtPoint(
-		point: VecLike,
-		opts = {} as {
-			renderingOnly?: boolean
-			margin?: number
-			hitInside?: boolean
-			hitLocked?: boolean
-			// TODO: we probably need to rename this, we don't quite _always_
-			// respect this esp. in the part below that does "Check labels first"
-			hitLabels?: boolean
-			hitFrameInside?: boolean
-			filter?(shape: TLShape): boolean
-		}
-	): TLShape | undefined {
+	getShapeAtPoint(point: VecLike, opts: TLGetShapeAtPointOptions = {}): TLShape | undefined {
 		const zoomLevel = this.getZoomLevel()
 		const viewportPageBounds = this.getViewportPageBounds()
 		const {
@@ -5162,6 +5056,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			hitInside = false,
 			hitFrameInside = false,
 		} = opts
+
+		const [innerMargin, outerMargin] = Array.isArray(margin) ? margin : [margin, margin]
 
 		let inHollowSmallestArea = Infinity
 		let inHollowSmallestAreaHit: TLShape | null = null
@@ -5182,7 +5078,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				return false
 			const pageMask = this.getShapeMask(shape)
 			if (pageMask && !pointInPolygon(point, pageMask)) return false
-			if (filter) return filter(shape)
+			if (filter && !filter(shape)) return false
 			return true
 		})
 
@@ -5196,8 +5092,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Check labels first
 			if (
 				this.isShapeOfType<TLFrameShape>(shape, 'frame') ||
-				(this.isShapeOfType<TLArrowShape>(shape, 'arrow') && shape.props.text.trim()) ||
 				((this.isShapeOfType<TLNoteShape>(shape, 'note') ||
+					this.isShapeOfType<TLArrowShape>(shape, 'arrow') ||
 					(this.isShapeOfType<TLGeoShape>(shape, 'geo') && shape.props.fill === 'none')) &&
 					this.getShapeUtil(shape).getText(shape)?.trim())
 			) {
@@ -5208,13 +5104,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 
-			if (this.isShapeOfType(shape, 'frame')) {
+			if (this.isShapeOfType<TLFrameShape>(shape, 'frame')) {
 				// On the rare case that we've hit a frame (not its label), test again hitInside to be forced true;
 				// this prevents clicks from passing through the body of a frame to shapes behind it.
 
 				// If the hit is within the frame's outer margin, then select the frame
-				const distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
-				if (Math.abs(distance) <= margin) {
+				const distance = geometry.distanceToPoint(pointInShapeSpace, hitFrameInside)
+				if (
+					hitFrameInside
+						? (distance > 0 && distance <= outerMargin) ||
+							(distance <= 0 && distance > -innerMargin)
+						: distance > 0 && distance <= outerMargin
+				) {
 					return inMarginClosestToEdgeHit || shape
 				}
 
@@ -5253,11 +5154,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// If the margin is zero and the geometry has a very small width or height,
 				// then check the actual distance. This is to prevent a bug where straight
 				// lines would never pass the broad phase (point-in-bounds) check.
-				if (margin === 0 && (geometry.bounds.w < 1 || geometry.bounds.h < 1)) {
+				if (outerMargin === 0 && (geometry.bounds.w < 1 || geometry.bounds.h < 1)) {
 					distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
 				} else {
 					// Broad phase
-					if (geometry.bounds.containsPoint(pointInShapeSpace, margin)) {
+					if (geometry.bounds.containsPoint(pointInShapeSpace, outerMargin)) {
 						// Narrow phase (actual distance)
 						distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
 					} else {
@@ -5272,7 +5173,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// the shape or negative if inside of the shape. If the distance
 				// is greater than the margin, then it's a miss. Otherwise...
 
-				if (distance <= margin) {
+				// Are we close to the shape's edge?
+				if (distance <= outerMargin || (hitInside && distance <= 0 && distance > -innerMargin)) {
 					if (geometry.isFilled || (isGroup && geometry.children[0].isFilled)) {
 						// If the shape is filled, then it's a hit. Remember, we're
 						// starting from the TOP-MOST shape in z-index order, so any
@@ -5282,11 +5184,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// If the shape is bigger than the viewport, then skip it.
 						if (this.getShapePageBounds(shape)!.contains(viewportPageBounds)) continue
 
-						// For hollow shapes...
-						if (Math.abs(distance) < margin) {
-							// We want to preference shapes where we're inside of the
-							// shape margin; and we would want to hit the shape with the
-							// edge closest to the point.
+						// If we're close to the edge of the shape, and if it's the closest edge among
+						// all the edges that we've gotten close to so far, then we will want to hit the
+						// shape unless we hit something else or closer in later iterations.
+						if (
+							hitInside
+								? // On hitInside, the distance will be negative for hits inside
+									// If the distance is positive, check against the outer margin
+									(distance > 0 && distance <= outerMargin) ||
+									// If the distance is negative, check against the inner margin
+									(distance <= 0 && distance > -innerMargin)
+								: // If hitInside is false, then sadly _we do not know_ whether the
+									// point is inside or outside of the shape, so we check against
+									// the max of the two margins
+									Math.abs(distance) <= Math.max(innerMargin, outerMargin)
+						) {
 							if (Math.abs(distance) < inMarginClosestToEdgeDistance) {
 								inMarginClosestToEdgeDistance = Math.abs(distance)
 								inMarginClosestToEdgeHit = shape
@@ -5308,6 +5220,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			} else {
 				// For open shapes (e.g. lines or draw shapes) always use the margin.
 				// If the distance is less than the margin, return the shape as the hit.
+				// Use the editor's configurable hit test margin.
 				if (distance < this.options.hitTestMargin / zoomLevel) {
 					return shape
 				}
@@ -5818,11 +5731,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return shapeIds
 	}
 
-	/** @deprecated Use {@link Editor.getDraggingOverShape} instead */
-	getDroppingOverShape(point: Vec, droppingShapes: TLShape[]): TLShape | undefined {
-		return this.getDraggingOverShape(point, droppingShapes)
-	}
-
 	/**
 	 * Get the shape that some shapes should be dropped on at a given point.
 	 *
@@ -6310,7 +6218,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			this.createShapes(shapesToCreate)
 			this.createBindings(bindingsToCreate)
-			this.setSelectedShapes(compact(ids.map((id) => shapeIds.get(id))))
+
+			this.setSelectedShapes(
+				compact(
+					ids.map((oldId) => {
+						const newId = shapeIds.get(oldId)
+						if (!newId) return null
+						if (!this.getShape(newId)) return null
+						return newId
+					})
+				)
+			)
 
 			if (offset !== undefined) {
 				// If we've offset the duplicated shapes, check to see whether their new bounds is entirely
@@ -7364,7 +7282,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (
 				!this.getShapeUtil(shape).canBeLaidOut?.(shape, {
 					type: 'stretch',
-					shapes: shapesToStretchFirstPass,
 				})
 			) {
 				continue
@@ -7835,31 +7752,38 @@ export class Editor extends EventEmitter<TLEventMap> {
 				) {
 					let parentId: TLParentId = this.getFocusedGroupId()
 
-					for (let i = currentPageShapesSorted.length - 1; i >= 0; i--) {
-						const parent = currentPageShapesSorted[i]
-						const util = this.getShapeUtil(parent)
-						if (
-							util.canReceiveNewChildrenOfType(parent, partial.type) &&
-							!this.isShapeHidden(parent) &&
-							this.isPointInShape(
-								parent,
-								// If no parent is provided, then we can treat the
-								// shape's provided x/y as being in the page's space.
-								{ x: partial.x ?? 0, y: partial.y ?? 0 },
-								{
-									margin: 0,
-									hitInside: true,
-								}
-							)
-						) {
-							parentId = parent.id
-							break
+					const isPositioned = partial.x !== undefined && partial.y !== undefined
+
+					// If the shape has been explicitly positioned, we'll try to find a parent at
+					// that position. If not, we'll assume the user isn't deliberately placing the
+					// shape and the positioning will be handled later by another system.
+					if (isPositioned) {
+						for (let i = currentPageShapesSorted.length - 1; i >= 0; i--) {
+							const parent = currentPageShapesSorted[i]
+							const util = this.getShapeUtil(parent)
+							if (
+								util.canReceiveNewChildrenOfType(parent, partial.type) &&
+								!this.isShapeHidden(parent) &&
+								this.isPointInShape(
+									parent,
+									// If no parent is provided, then we can treat the
+									// shape's provided x/y as being in the page's space.
+									{ x: partial.x ?? 0, y: partial.y ?? 0 },
+									{
+										margin: 0,
+										hitInside: true,
+									}
+								)
+							) {
+								parentId = parent.id
+								break
+							}
 						}
 					}
 
 					const prevParentId = partial.parentId
 
-					// a shape cannot be it's own parent. This was a rare issue with frames/groups in the syncFuzz tests.
+					// a shape cannot be its own parent. This was a rare issue with frames/groups in the syncFuzz tests.
 					if (parentId === partial.id) {
 						parentId = focusedGroupId
 					}
@@ -8911,8 +8835,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Handle external content, such as files, urls, embeds, or plain text which has been put into the app, for example by pasting external text or dropping external images onto canvas.
 	 *
 	 * @param info - Info about the external content.
+	 * @param opts - Options for handling external content, including force flag to bypass readonly checks.
 	 */
-	async putExternalContent<E>(info: TLExternalContent<E>): Promise<void> {
+	async putExternalContent<E>(
+		info: TLExternalContent<E>,
+		opts = {} as { force?: boolean }
+	): Promise<void> {
+		if (!opts.force && this.getIsReadonly()) return
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
 
@@ -8920,8 +8849,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Handle replacing external content.
 	 *
 	 * @param info - Info about the external content.
+	 * @param opts - Options for handling external content, including force flag to bypass readonly checks.
 	 */
-	async replaceExternalContent<E>(info: TLExternalContent<E>): Promise<void> {
+	async replaceExternalContent<E>(
+		info: TLExternalContent<E>,
+		opts = {} as { force?: boolean }
+	): Promise<void> {
+		if (!opts.force && this.getIsReadonly()) return
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
 
@@ -9422,13 +9356,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 	}
 
-	/** @deprecated Use {@link Editor.getSvgString} or {@link Editor.getSvgElement} instead. */
-	async getSvg(shapes: TLShapeId[] | TLShape[], opts: TLSvgExportOptions = {}) {
-		const result = await this.getSvgElement(shapes, opts)
-		if (!result) return undefined
-		return result.svg
-	}
-
 	/**
 	 * Get an exported image of the given shapes.
 	 *
@@ -9477,6 +9404,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 			default: {
 				exhaustiveSwitchError(withDefaults.format)
 			}
+		}
+	}
+
+	/**
+	 * Get an exported image of the given shapes as a data URL.
+	 *
+	 * @param shapes - The shapes (or shape ids) to export.
+	 * @param opts - Options for the export.
+	 *
+	 * @returns A data URL of the image.
+	 * @public
+	 */
+	async toImageDataUrl(shapes: TLShapeId[] | TLShape[], opts: TLImageExportOptions = {}) {
+		const { blob, width, height } = await this.toImage(shapes, opts)
+		return {
+			url: await FileHelpers.blobToDataUrl(blob),
+			width,
+			height,
 		}
 	}
 
@@ -9644,6 +9589,52 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	complete(): this {
 		this.dispatch({ type: 'misc', name: 'complete' })
+		return this
+	}
+
+	/**
+	 * Dispatch a pointer move event in the current position of the pointer. This is useful when
+	 * external circumstances have changed (e.g. the camera moved or a shape was moved) and you want
+	 * the current interaction to respond to that change.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.updatePointer()
+	 * ```
+	 *
+	 * @param options - The options for updating the pointer.
+	 * @returns The editor instance.
+	 * @public
+	 */
+	updatePointer(options?: TLUpdatePointerOptions): this {
+		const event: TLPointerEventInfo = {
+			type: 'pointer',
+			target: 'canvas',
+			name: 'pointer_move',
+			point:
+				options?.point ??
+				// weird but true: what `inputs` calls screen-space is actually viewport space. so
+				// we need to convert back into true screen space first. we should fix this...
+				Vec.Add(
+					this.inputs.currentScreenPoint,
+					this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!.screenBounds
+				),
+			pointerId: options?.pointerId ?? 0,
+			button: options?.button ?? 0,
+			isPen: options?.isPen ?? this.inputs.isPen,
+			shiftKey: options?.shiftKey ?? this.inputs.shiftKey,
+			altKey: options?.altKey ?? this.inputs.altKey,
+			ctrlKey: options?.ctrlKey ?? this.inputs.ctrlKey,
+			metaKey: options?.metaKey ?? this.inputs.metaKey,
+			accelKey: options?.accelKey ?? isAccelKey(this.inputs),
+		}
+
+		if (options?.immediate) {
+			this._flushEventForTick(event)
+		} else {
+			this.dispatch(event)
+		}
+
 		return this
 	}
 
@@ -10108,6 +10099,37 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private performanceTrackerTimeout = -1 as any
 
+	/** @internal */
+	private handledEvents = new WeakSet<Event>()
+
+	/**
+	 * In tldraw, events are sometimes handled by multiple components. For example, the shapes might
+	 * have events, but the canvas handles events too. The way that the canvas handles events can
+	 * interfere with the with the shapes event handlers - for example, it calls `.preventDefault()`
+	 * on `pointerDown`, which also prevents `click` events from firing on the shapes.
+	 *
+	 * You can use `.stopPropagation()` to prevent the event from propagating to the rest of the
+	 * DOM, but that can impact non-tldraw event handlers set up elsewhere. By using
+	 * `markEventAsHandled`, you'll stop other parts of tldraw from handling the event without
+	 * impacting other, non-tldraw event handlers. See also {@link Editor.wasEventAlreadyHandled}.
+	 *
+	 * @public
+	 */
+	markEventAsHandled(e: Event | { nativeEvent: Event }) {
+		const nativeEvent = 'nativeEvent' in e ? e.nativeEvent : e
+		this.handledEvents.add(nativeEvent)
+	}
+
+	/**
+	 * Checks if an event has already been handled. See {@link Editor.markEventAsHandled}.
+	 *
+	 * @public
+	 */
+	wasEventAlreadyHandled(e: Event | { nativeEvent: Event }) {
+		const nativeEvent = 'nativeEvent' in e ? e.nativeEvent : e
+		return this.handledEvents.has(nativeEvent)
+	}
+
 	/**
 	 * Dispatch an event to the editor.
 	 *
@@ -10312,7 +10334,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				this._updateInputsFromEvent(info)
 
-				const { panSpeed, zoomSpeed, wheelBehavior } = cameraOptions
+				const { panSpeed, zoomSpeed } = cameraOptions
+				let wheelBehavior = cameraOptions.wheelBehavior
+				const inputMode = this.user.getUserPreferences().inputMode
+
+				// If the user has set their input mode preference, then use that to determine the wheel behavior
+				if (inputMode !== null) {
+					wheelBehavior = inputMode === 'trackpad' ? 'pan' : 'zoom'
+				}
 
 				if (wheelBehavior !== 'none') {
 					// Stop any camera animation

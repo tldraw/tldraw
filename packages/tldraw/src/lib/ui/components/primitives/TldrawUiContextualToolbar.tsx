@@ -4,7 +4,6 @@ import {
 	clamp,
 	Editor,
 	react,
-	stopEventPropagation,
 	useAtom,
 	useEditor,
 	usePassThroughMouseOverEvents,
@@ -170,9 +169,14 @@ export const TldrawUiContextualToolbar = ({
 			data-visible={false}
 			data-testid="contextual-toolbar"
 			className={classNames('tlui-contextual-toolbar', className)}
-			onPointerDown={stopEventPropagation}
+			onPointerDown={editor.markEventAsHandled}
 		>
-			<TldrawUiToolbar className="tlui-menu tlui-buttons__horizontal" label={label}>
+			<TldrawUiToolbar
+				orientation="horizontal"
+				className="tlui-menu"
+				label={label}
+				tooltipSide="top"
+			>
 				{children}
 			</TldrawUiToolbar>
 		</div>
@@ -190,7 +194,7 @@ export function getToolbarScreenPosition(
 	toolbarElm: HTMLElement,
 	getSelectionBounds: () => Box | undefined
 ) {
-	const selectionBounds = getSelectionBounds()
+	const selectionBounds = getSelectionBounds()?.clone()
 	if (!selectionBounds) return
 
 	// Offset the selection bounds by the viewport screen bounds (if the editor is scrolled or inset, etc)

@@ -1,3 +1,4 @@
+import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
@@ -22,6 +23,7 @@ import {
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
+import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
@@ -30,6 +32,7 @@ import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
+import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
 import { A11yAudit } from './TlaDebug'
@@ -40,8 +43,10 @@ import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
 import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
 import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
+import { SneakyLargeFileHander } from './sneaky/SneakyLargeFileHandler'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
+import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
 /** @internal */
@@ -126,8 +131,13 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		})
 	}, [hideAllShapes])
 
+	const trackRoomLoaded = useRoomLoadTracking()
+	const trackNewRoomCreation = useNewRoomCreationTracking()
+
 	const handleMount = useCallback(
 		(editor: Editor) => {
+			trackRoomLoaded(editor)
+			trackNewRoomCreation(app, fileId)
 			;(window as any).app = app
 			;(window as any).editor = editor
 			// Register the editor globally
@@ -183,7 +193,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				cleanup()
 			}
 		},
-		[addDialog, app, fileId, remountImageShapes, setIsReady]
+		[addDialog, trackRoomLoaded, trackNewRoomCreation, app, fileId, remountImageShapes, setIsReady]
 	)
 
 	const user = useTldrawUser()
@@ -247,11 +257,13 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	}, [app, fileId, store.status])
 
 	const overrides = useFileEditorOverrides({ fileSlug })
+	const extraDragIconOverrides = useExtraDragIconOverrides()
 
 	return (
 		<TlaEditorWrapper>
 			<Tldraw
 				className="tla-editor"
+				licenseKey={getLicenseKey()}
 				store={store}
 				assetUrls={assetUrls}
 				user={app?.tlUser}
@@ -260,7 +272,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				components={components}
 				options={{ actionShortcutsLocation: 'toolbar' }}
 				deepLinks={deepLinks || undefined}
-				overrides={overrides}
+				overrides={[overrides, extraDragIconOverrides]}
 				getShapeVisibility={getShapeVisibility}
 			>
 				<ThemeUpdater />
@@ -268,6 +280,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<SneakyToolSwitcher />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyFileUpdateHandler fileId={fileId} />
+				<SneakyLargeFileHander />
 			</Tldraw>
 		</TlaEditorWrapper>
 	)

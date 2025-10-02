@@ -1,11 +1,16 @@
-import { useAuth } from '@clerk/clerk-react'
-import { ROOM_OPEN_MODE, RoomOpenMode, RoomOpenModeToPath } from '@tldraw/dotcom-shared'
+import {
+	getLicenseKey,
+	ROOM_OPEN_MODE,
+	RoomOpenMode,
+	RoomOpenModeToPath,
+} from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useMemo } from 'react'
 import { Editor, TLComponents, Tldraw } from 'tldraw'
 import { StoreErrorScreen } from '../../../components/StoreErrorScreen'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
+import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
@@ -14,7 +19,6 @@ import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
-import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorLegacySharePanel } from './editor-components/TlaEditorLegacySharePanel'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
@@ -24,6 +28,7 @@ import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakyLegacyModal } from './sneaky/SneakyLegacyModal'
 import { SneakyLegacySetDocumentTitle } from './sneaky/SneakyLegacytSetDocumentTitle'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
+import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
 /** @internal */
@@ -61,8 +66,6 @@ function TlaEditorInner({
 	fileSlug: string
 }) {
 	const app = useMaybeApp()
-	const auth = useAuth()
-
 	const setIsReady = useSetIsReady()
 
 	// make sure this runs before the editor is instantiated
@@ -83,8 +86,11 @@ function TlaEditorInner({
 	const isReadonly =
 		roomOpenMode === ROOM_OPEN_MODE.READ_ONLY || roomOpenMode === ROOM_OPEN_MODE.READ_ONLY_LEGACY
 
+	const trackRoomLoaded = useRoomLoadTracking()
+
 	const handleMount = useCallback(
 		(editor: Editor) => {
+			trackRoomLoaded(editor)
 			if (!isReadonly) {
 				;(window as any).app = editor
 				;(window as any).editor = editor
@@ -94,7 +100,7 @@ function TlaEditorInner({
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
 			setIsReady()
 		},
-		[isReadonly, setIsReady]
+		[isReadonly, trackRoomLoaded, setIsReady]
 	)
 
 	if (storeWithStatus.error) {
@@ -106,6 +112,7 @@ function TlaEditorInner({
 		<TlaEditorWrapper>
 			<Tldraw
 				className="tla-editor"
+				licenseKey={getLicenseKey()}
 				store={storeWithStatus}
 				assetUrls={assetUrls}
 				onMount={handleMount}
@@ -119,7 +126,7 @@ function TlaEditorInner({
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
 				<SneakyLegacySetDocumentTitle />
-				{roomOpenMode === 'read-write' && !auth.isSignedIn && <SneakyLegacyModal />}
+				{roomOpenMode === 'read-write' && <SneakyLegacyModal />}
 				{app && <SneakyTldrawFileDropHandler />}
 			</Tldraw>
 		</TlaEditorWrapper>

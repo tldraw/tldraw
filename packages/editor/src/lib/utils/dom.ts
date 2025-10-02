@@ -18,7 +18,7 @@ import { debugFlags, pointerCaptureTrackingObject } from './debug-flags'
 
 /** @public */
 export function loopToHtmlElement(elm: Element): HTMLElement {
-	if (elm instanceof HTMLElement) return elm
+	if (elm.nodeType === Node.ELEMENT_NODE) return elm as HTMLElement
 	if (elm.parentElement) return loopToHtmlElement(elm.parentElement)
 	else throw Error('Could not find a parent element of an HTML type!')
 }
@@ -78,7 +78,14 @@ export function releasePointerCapture(
 	}
 }
 
-/** @public */
+/**
+ * Calls `event.stopPropagation()`.
+ *
+ * @deprecated Use {@link Editor.markEventAsHandled} instead, or manually call `event.stopPropagation()` if
+ * that's what you really want.
+ *
+ * @public
+ */
 export const stopEventPropagation = (e: any) => e.stopPropagation()
 
 /** @internal */

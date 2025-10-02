@@ -35,6 +35,9 @@
   "110a4b01be": {
     "translation": "Publikovat"
   },
+  "12c8a9838c": {
+    "translation": "Vyzkoušejte sadu SDK tldraw"
+  },
   "13ddd375ad": {
     "translation": "Exportovat jako"
   },
@@ -47,11 +50,20 @@
   "1dd1c5fb7f": {
     "translation": "Dnes"
   },
+  "20976e7bec": {
+    "translation": "Místnost je plná"
+  },
+  "21bfb2dc2e": {
+    "translation": "Tato místnost se blíží svému limitu velikosti. Zkuste odstranit část obsahu nebo vytvořit nový soubor."
+  },
   "250ddea65c": {
     "translation": "O tldraw"
   },
   "299cb00a7a": {
     "translation": "Nahrání se nezdařilo"
+  },
+  "2deec2cb74": {
+    "translation": "Tato místnost dosáhla limitu velikosti a změny se již nemusí ukládat. Odstraňte část obsahu nebo začněte vytvářet nový soubor."
   },
   "31246941ad": {
     "translation": "Chcete-li zobrazit tento soubor, musíte se přihlásit."
@@ -85,6 +97,12 @@
   },
   "47839e47a5": {
     "translation": "tldraw"
+  },
+  "7697920637": {
+    "translation": "Načtěte znovu"
+  },
+  "764671e008": {
+    "translation": "Chatujte s námi na Discordu"
   },
   "4908687e50": {
     "translation": "Opravdu chcete tento soubor zapomenout?"
@@ -121,6 +139,15 @@
   },
   "5a95a425f7": {
     "translation": "Podíl"
+  },
+  "5bb6cf3b53": {
+    "translation": "Místnost se zvětšuje"
+  },
+  "5bcc12ace8": {
+    "translation": "Tato místnost je nyní pouze pro čtení"
+  },
+  "5bec508475": {
+    "translation": "Byl detekován starý prohlížeč. Pro použití této aplikace prosím aktualizujte prohlížeč."
   },
   "5d26ae7550": {
     "translation": "Nepodařilo se nám nahrát část obsahu, který jste vytvořili, než jste se přihlásili."
@@ -173,14 +200,11 @@
   "761e93ede9": {
     "translation": "Spravovat soubory cookie"
   },
-  "7697920637": {
-    "translation": "Načtěte znovu"
-  },
-  "764671e008": {
-    "translation": "Chatujte s námi na Discordu"
-  },
   "777f9e90cf": {
     "translation": "Neplatný požadavek."
+  },
+  "78e9815992": {
+    "translation": "Rozumím"
   },
   "797799f35e": {
     "translation": "Odešlete problém na GitHub"
@@ -215,6 +239,9 @@
   "86c66437fd": {
     "translation": "Přejmenovat soubor"
   },
+  "8b1946f965": {
+    "translation": "Chcete-li pokračovat v úpravách, zkopírujte prosím místnost do svých souborů."
+  },
   "8eb2c00e96": {
     "translation": "Sdíleno s vámi"
   },
@@ -238,6 +265,9 @@
   },
   "9bef626805": {
     "translation": "Smazat soubor"
+  },
+  "9c258b8f88": {
+    "translation": "Tato anonymní multiplayerová místnost tldraw je nyní pouze pro čtení. Chcete-li pokračovat v úpravách, přihlaste se a zkopírujte ji do svých souborů."
   },
   "9ceb927baa": {
     "translation": "Publikovat tento soubor"
@@ -294,6 +324,9 @@
   "b758336699": {
     "translation": "Zkopírujte odkaz"
   },
+  "ba0318cb81": {
+    "translation": "Přihlaste se pro sdílení"
+  },
   "bb792693e2": {
     "translation": "Odepnout"
   },
@@ -323,9 +356,6 @@
   },
   "c87aacf567": {
     "translation": "Odhlaste se"
-  },
-  "cbef7ba103": {
-    "translation": "Tato místnost bude brzy pouze pro čtení"
   },
   "cceaefbc20": {
     "translation": "Sdílet tento soubor"
@@ -366,9 +396,6 @@
   "e78e14c5f1": {
     "translation": "Připnout"
   },
-  "ea2301d01c": {
-    "translation": "Po 1. červenci 2025 bude tato anonymní multiplayerová místnost tldraw pouze pro čtení. Chcete-li v budoucnu pokračovat v úpravách, přihlaste se a zkopírujte ji do svých souborů."
-  },
   "ea4788705e": {
     "translation": "Zrušit"
   },
@@ -389,6 +416,9 @@
   },
   "ede55d955f": {
     "translation": "Přečtěte si naše <a>zásady používání souborů cookie</a> a dozvíte se více."
+  },
+  "ef7de3f485": {
+    "translation": "vybraný"
   },
   "f09b16bc5f": {
     "translation": "Používáme soubory cookie, abychom vás udrželi přihlášené, synchronizovali vaše soubory a shromažďovali analytické údaje, které nám pomáhají vylepšovat tldraw."

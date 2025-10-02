@@ -109,7 +109,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 			// We don't get the mouseup event later because we preventDefault
 			// so we have to do it manually.
 			const handlePointerUp = (e: TLEventInfo) => {
-				if (e.name !== 'pointer_up') return
+				if (e.name !== 'pointer_up' || !link) return
 
 				if (!isDragging.current) {
 					window.open(link, '_blank', 'noopener, noreferrer')
@@ -128,6 +128,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	return (
 		<div
 			className={`${cssPrefix}-label tl-text-wrapper tl-rich-text-wrapper`}
+			aria-hidden={!isEditing}
 			data-font={font}
 			data-align={align}
 			data-hastext={!isEmpty}
@@ -193,6 +194,7 @@ export interface RichTextSVGProps {
 	wrap?: boolean
 	labelColor: string
 	padding: number
+	showTextOutline?: boolean
 }
 
 /**
@@ -210,6 +212,7 @@ export function RichTextSVG({
 	wrap,
 	labelColor,
 	padding,
+	showTextOutline = true,
 }: RichTextSVGProps) {
 	const editor = useEditor()
 	const html = renderHtmlFromRichText(editor, richText)
@@ -245,6 +248,7 @@ export function RichTextSVG({
 		wordWrap: 'break-word' as const,
 		overflowWrap: 'break-word' as const,
 		whiteSpace: 'pre-wrap',
+		textShadow: showTextOutline ? 'var(--tl-text-outline)' : 'none',
 	}
 
 	return (

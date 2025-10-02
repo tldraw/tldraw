@@ -4,6 +4,7 @@ import {
 	TLGroupShape,
 	TLShape,
 	TLShapeId,
+	getColorValue,
 	getDefaultColorTheme,
 } from '@tldraw/tlschema'
 import { hasOwnProperty, promiseWithResolve, uniqueId } from '@tldraw/utils'
@@ -56,32 +57,20 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 		.filter(({ id }) => shapeIdsToInclude.has(id))
 
 	// --- Common bounding box of all shapes
-	let bbox: null | Box = null
-	if (opts.bounds) {
-		bbox = opts.bounds
-	} else {
-		for (const { id } of renderingShapes) {
-			const maskedPageBounds = editor.getShapeMaskedPageBounds(id)
-			if (!maskedPageBounds) continue
-			if (bbox) {
-				bbox.union(maskedPageBounds)
-			} else {
-				bbox = maskedPageBounds.clone()
-			}
-		}
-	}
-
-	// no unmasked shapes to export
-	if (!bbox) return
-
 	const singleFrameShapeId =
 		ids.length === 1 && editor.isShapeOfType<TLFrameShape>(editor.getShape(ids[0])!, 'frame')
 			? ids[0]
 			: null
-	if (!singleFrameShapeId) {
-		// Expand by an extra 32 pixels
-		bbox.expandBy(padding)
+
+	let bbox: null | Box = null
+	if (opts.bounds) {
+		bbox = opts.bounds.clone().expandBy(padding)
+	} else {
+		bbox = getExportDefaultBounds(editor, renderingShapes, padding, singleFrameShapeId)
 	}
+
+	// no unmasked shapes to export
+	if (!bbox) return
 
 	// We want the svg image to be BIGGER THAN USUAL to account for image quality
 	const w = bbox.width * scale
@@ -117,6 +106,75 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 	)
 
 	return { jsx: svg, width: w, height: h, exportDelay }
+}
+
+/**
+ * Calculates the default bounds for an SVG export. This function handles:
+ * 1. Computing masked page bounds for each shape
+ * 2. Container logic: if a shape is marked as an export bounds container and it
+ *    contains all other shapes, use its bounds and skip padding
+ * 3. Otherwise, create a union of all shape bounds and apply padding
+ *
+ * The container logic is useful for cases like annotating on an image - if the image
+ * contains all annotations, we want to export exactly the image bounds without extra padding.
+ *
+ * @param editor - The editor instance
+ * @param renderingShapes - The shapes to include in the export
+ * @param padding - Padding to add around the bounds (only applied if no container bounds)
+ * @param singleFrameShapeId - If exporting a single frame, this is its ID (skips padding)
+ * @returns The calculated bounds box, or null if no shapes to export
+ */
+export function getExportDefaultBounds(
+	editor: Editor,
+	renderingShapes: TLRenderingShape[],
+	padding: number,
+	singleFrameShapeId: TLShapeId | null
+) {
+	let isBoundedByContainer = false
+	let bbox: null | Box = null
+
+	for (const { id } of renderingShapes) {
+		const maskedPageBounds = editor.getShapeMaskedPageBounds(id)
+		if (!maskedPageBounds) continue
+
+		// Check if this shape is an export bounds container (e.g., an image being annotated)
+		const shape = editor.getShape(id)!
+		const isContainer = editor.getShapeUtil(shape).isExportBoundsContainer(shape)
+
+		if (bbox) {
+			// Container logic: if this is a container and it contains all shapes processed so far,
+			// use the container's bounds instead of the union. This prevents extra padding around
+			// things like annotated images.
+			if (isContainer && Box.ContainsApproximately(maskedPageBounds, bbox)) {
+				isBoundedByContainer = true
+				bbox = maskedPageBounds.clone()
+			} else {
+				// If we were previously bounded by a container but this shape extends outside it,
+				// we're no longer bounded by a container
+				if (isBoundedByContainer && !Box.ContainsApproximately(bbox, maskedPageBounds)) {
+					isBoundedByContainer = false
+				}
+				// Expand the bounding box to include this shape
+				bbox.union(maskedPageBounds)
+			}
+		} else {
+			// First shape sets the initial bounds
+			isBoundedByContainer = isContainer
+			bbox = maskedPageBounds.clone()
+		}
+	}
+
+	// No unmasked shapes to export
+	if (!bbox) return null
+
+	// Only apply padding if:
+	// - Not exporting a single frame (frames have their own padding rules)
+	// - Not bounded by a container (containers define their own bounds precisely)
+	if (!singleFrameShapeId && !isBoundedByContainer) {
+		bbox.expandBy(padding)
+	}
+
+	return bbox
 }
 
 function SvgExport({
@@ -373,8 +431,7 @@ function SvgExport({
 			| { options: { showColors: boolean } }
 		if (frameShapeUtil?.options.showColors) {
 			const shape = editor.getShape(singleFrameShapeId)! as TLFrameShape
-			const color = theme[shape.props.color]
-			backgroundColor = color.frame.fill
+			backgroundColor = getColorValue(theme, shape.props.color, 'frameFill')
 		} else {
 			backgroundColor = theme.solid
 		}

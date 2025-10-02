@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -14,9 +15,9 @@ it('centers on the point', () => {
 it('centers on the point with animation', () => {
 	editor.centerOnPoint({ x: 400, y: 400 }, { animation: { duration: 200 } })
 	expect(editor.getViewportPageCenter()).not.toMatchObject({ x: 400, y: 400 })
-	jest.advanceTimersByTime(100)
+	vi.advanceTimersByTime(100)
 	expect(editor.getViewportPageCenter()).not.toMatchObject({ x: 400, y: 400 })
-	jest.advanceTimersByTime(200)
+	vi.advanceTimersByTime(200)
 	expect(editor.getViewportPageCenter()).toMatchObject({ x: 400, y: 400 })
 })
 
