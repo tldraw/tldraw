@@ -9,6 +9,13 @@
 	z-index: 1000;
 }
 
+/* Pixelated rendering - nearest-neighbor instead of smooth interpolation */
+.shader-canvas-pixelated {
+	image-rendering: pixelated;
+	image-rendering: -moz-crisp-edges;
+	image-rendering: crisp-edges;
+}
+
 .shader-app {
 	position: fixed;
 	inset: 0;
@@ -44,7 +51,6 @@
 	border-bottom: 1px solid var(--color-muted-2);
 	cursor: pointer;
 }
-
 
 .shader-app .shader-config-chevron--expanded {
 	transform: rotate(180deg);

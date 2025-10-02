@@ -9,7 +9,6 @@ import { Editor } from 'tldraw'
  * 2. initialize() - Create WebGL context and set up resources
  * 3. onInitialize() - Override to initialize custom resources
  * 4. Animation loop starts:
- *    - onFrame() - Called every frame, receives delta time
  *    - onUpdate() - Override for logic updates
  *    - onRender() - Override for rendering
  * 5. dispose() - Clean up all resources
@@ -18,22 +17,31 @@ import { Editor } from 'tldraw'
 export abstract class WebGLManager {
 	gl: WebGLRenderingContext | WebGL2RenderingContext | null = null
 	animationFrameId: number | null = null
+	quality: number
 	lastFrameTime: number = 0
 	isInitialized: boolean = false
 	isDisposed: boolean = false
 
 	constructor(
 		readonly editor: Editor,
-		readonly canvas: HTMLCanvasElement
-	) {}
+		readonly canvas: HTMLCanvasElement,
+		quality: number = 1
+	) {
+		this.quality = quality
+	}
 
 	/**
 	 * Initialize the WebGL context and set up the rendering loop.
 	 * Call this before using any WebGL functionality.
 	 * @param useWebGL2 - Whether to use WebGL2 context (defaults to true)
 	 * @param contextAttributes - Optional WebGL context attributes
+	 * @param startPaused - Whether to start paused (defaults to false)
 	 */
-	initialize = (useWebGL2: boolean = true, contextAttributes?: WebGLContextAttributes): void => {
+	initialize = (
+		useWebGL2: boolean = true,
+		contextAttributes?: WebGLContextAttributes,
+		startPaused: boolean = false
+	): void => {
 		if (this.isInitialized) {
 			console.warn('WebGLManager already initialized')
 			return
@@ -84,8 +92,10 @@ export abstract class WebGLManager {
 		this.isInitialized = true
 		this.lastFrameTime = performance.now()
 
-		// Start the animation loop
-		this.startAnimationLoop()
+		// Start the animation loop only if not paused
+		if (!startPaused) {
+			this.startAnimationLoop()
+		}
 	}
 
 	/**
@@ -107,7 +117,6 @@ export abstract class WebGLManager {
 			this.lastFrameTime = currentTime
 
 			// Call lifecycle hooks
-			this.onFrame(deltaTime, currentTime)
 			this.onUpdate(deltaTime, currentTime)
 			this.onRender(deltaTime, currentTime)
 
@@ -119,18 +128,8 @@ export abstract class WebGLManager {
 	}
 
 	/**
-	 * Override this method to handle frame-level logic.
-	 * Called once per frame before update and render.
-	 * @param deltaTime - Time elapsed since last frame in seconds
-	 * @param currentTime - Current timestamp from performance.now()
-	 */
-	protected onFrame = (_deltaTime: number, _currentTime: number): void => {
-		// Override in subclass
-	}
-
-	/**
-	 * Override this method to update application state.
-	 * Called after onFrame and before onRender.
+	 * Override this method to update application state and logic.
+	 * Called once per frame before onRender.
 	 * @param deltaTime - Time elapsed since last frame in seconds
 	 * @param currentTime - Current timestamp from performance.now()
 	 */
@@ -221,17 +220,26 @@ export abstract class WebGLManager {
 	/**
 	 * Resize the canvas and update the WebGL viewport.
 	 * Call this when the canvas size changes.
+	 * If the animation loop is paused, triggers a single frame render.
 	 * @param width - New canvas width
 	 * @param height - New canvas height
 	 */
-	resize = (width: number, height: number): void => {
+	resize = (): void => {
+		const { width, height } = this.canvas.getBoundingClientRect()
 		if (!this.isInitialized || this.isDisposed || !this.gl) {
 			return
 		}
 
-		this.canvas.width = width
-		this.canvas.height = height
-		this.gl.viewport(0, 0, width, height)
+		this.canvas.width = Math.floor(width * this.quality)
+		this.canvas.height = Math.floor(height * this.quality)
+
+		// Apply quality (resolution scale) to the internal canvas resolution
+		this.gl.viewport(0, 0, this.canvas.width, this.canvas.height)
+
+		// If paused, trigger a single frame render to show the resize
+		if (!this.isRunning()) {
+			this.renderFrame()
+		}
 	}
 
 	/**
@@ -252,5 +260,44 @@ export abstract class WebGLManager {
 			this.lastFrameTime = performance.now()
 			this.startAnimationLoop()
 		}
+	}
+
+	/**
+	 * Manually trigger a single frame render.
+	 * Useful for on-demand rendering when the animation loop is paused.
+	 */
+	renderFrame = (): void => {
+		if (!this.isInitialized || this.isDisposed) return
+
+		const currentTime = performance.now()
+		const deltaTime = (currentTime - this.lastFrameTime) / 1000
+		this.lastFrameTime = currentTime
+
+		// Call lifecycle hooks
+		this.onUpdate(deltaTime, currentTime)
+		this.onRender(deltaTime, currentTime)
+	}
+
+	/**
+	 * Check if the animation loop is currently running.
+	 */
+	isRunning = (): boolean => {
+		return this.animationFrameId !== null
+	}
+
+	/**
+	 * Set the quality (resolution scale) of the canvas.
+	 * @param quality - Resolution multiplier (e.g., 0.5 = half resolution, 1.0 = full resolution, 2.0 = double resolution)
+	 */
+	setQuality = (quality: number): void => {
+		this.quality = Math.max(0.1, Math.min(4.0, quality)) // Clamp between 0.1 and 4.0
+		this.resize() // Apply the new quality
+	}
+
+	/**
+	 * Get the current quality (resolution scale).
+	 */
+	getQuality = (): number => {
+		return this.quality
 	}
 }
