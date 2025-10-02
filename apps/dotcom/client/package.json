@@ -24,6 +24,7 @@
 		"e2e-x10": "NODE_OPTIONS='--no-experimental-strip-types' yarn playwright test --project=chromium --repeat-each=10",
 		"e2e-debug": "NODE_OPTIONS='--no-experimental-strip-types' yarn playwright test --project=chromium --debug",
 		"e2e-ui": "NODE_OPTIONS='--no-experimental-strip-types' yarn playwright test --project=chromium --ui",
+		"e2e-staging": "NODE_OPTIONS='--no-experimental-strip-types' yarn playwright test --project=staging",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"dependencies": {
