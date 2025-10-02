@@ -65,7 +65,7 @@ export interface FluidManagerConfig {
 }
 
 const DEFAULT_DARK_MODE_COLOR_MAP: Record<string, [number, number, number]> = {
-	black: [0.0, 0.1, 0.1],
+	black: [0.001, 0.043, 0.084],
 	grey: [0.08, 0.08, 0.08],
 	'light-violet': [0.07, 0.03, 0.06],
 	violet: [0.04, 0.02, 0.08],
