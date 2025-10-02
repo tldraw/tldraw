@@ -1240,7 +1240,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         hitInside?: boolean;
         margin?: number;
     }): TLShape[];
-    // @internal (undocumented)
     getShapesPageBounds(shapeIds: TLShapeId[]): Box | null;
     // @internal (undocumented)
     getShapesRotatedPageBounds(shapeIds: TLShapeId[]): Box | undefined;
