@@ -1,5 +1,3 @@
-import { Editor } from 'tldraw'
-
 /**
  * Generic WebGL manager class that provides lifecycle hooks for WebGL-based applications.
  * Manages the WebGL context, animation loop, and provides game-engine-like lifecycle methods.
@@ -23,7 +21,6 @@ export abstract class WebGLManager {
 	isDisposed: boolean = false
 
 	constructor(
-		readonly editor: Editor,
 		readonly canvas: HTMLCanvasElement,
 		quality: number = 1
 	) {
@@ -208,13 +205,6 @@ export abstract class WebGLManager {
 	 */
 	getCanvas = (): HTMLCanvasElement => {
 		return this.canvas
-	}
-
-	/**
-	 * Get the tldraw editor instance.
-	 */
-	getEditor = (): Editor => {
-		return this.editor
 	}
 
 	/**

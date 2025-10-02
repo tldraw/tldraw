@@ -1,11 +1,18 @@
 import { useCallback } from 'react'
-import { TldrawUiButton, useValue } from 'tldraw'
+import { useValue } from 'tldraw'
 import { ConfigPanel } from '../config-panel/ConfigPanel'
 import { ConfigPanelBooleanControl } from '../config-panel/ConfigPanelBooleanControl'
 import { ConfigPanelSlider } from '../config-panel/ConfigPanelSlider'
 import { resetShaderConfig, shaderConfig } from './config'
 
-export function HackableConfigPanel() {
+/**
+ * Configuration panel for the rainbow shader effect.
+ * Provides UI controls for adjusting:
+ * - Quality (rendering resolution)
+ * - Radius (size of the rainbow halo effect)
+ * - Other shader-specific parameters
+ */
+export function RainbowConfigPanel() {
 	const config = useValue('config', () => shaderConfig.get(), [])
 
 	const handleChange = useCallback((prop: string, value: number | boolean) => {
@@ -13,11 +20,7 @@ export function HackableConfigPanel() {
 	}, [])
 
 	return (
-		<ConfigPanel>
-			<TldrawUiButton type="menu" onClick={resetShaderConfig}>
-				Reset to Defaults
-			</TldrawUiButton>
-
+		<ConfigPanel onReset={resetShaderConfig}>
 			{Object.entries(config).map(([prop, value], i) =>
 				typeof value === 'number' ? (
 					<ConfigPanelSlider

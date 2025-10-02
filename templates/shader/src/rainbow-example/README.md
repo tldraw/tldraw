@@ -1,14 +1,14 @@
-# Hackable Shader Example
+# Rainbow shader example
 
-A minimal WebGL shader example that renders shape geometry from tldraw onto a canvas background using custom GLSL shaders.
+A minimal WebGL shader example that renders colorful rainbow distance fields around tldraw shapes using custom GLSL shaders.
 
 ## Overview
 
 This example demonstrates how to:
 
 - Extract geometry from tldraw shapes in real-time
-- Render shape outlines using WebGL shaders
-- Create custom visual effects that respond to canvas content
+- Create rainbow color effects based on distance from shape edges
+- Use WebGL shaders to render custom visual effects
 - Integrate reactive state management with WebGL rendering
 
 ## Key Components
@@ -48,9 +48,9 @@ Configurable through `config.ts`:
 
 ## Customization
 
-The beauty of this example is its hackability. Try modifying:
+This example serves as a starting point for creating custom shader effects. Try modifying:
 
-- **fragment.glsl**: Change the distance field rendering, add noise, time-based animations, or color effects
+- **fragment.glsl**: Change the rainbow colors, distance field calculations, or add new visual effects
 - **extractGeometry**: Handle custom shape types differently or add additional geometry data
 - **onRender**: Add time-based uniforms or post-processing effects
 - **config.ts**: Add new configuration options for your shader effects

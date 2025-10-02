@@ -1,9 +1,15 @@
 import { memo, useLayoutEffect, useRef } from 'react'
-import { DefaultStylePanel, Tldraw, useEditor, useIsDarkMode, useValue } from 'tldraw'
-import { FluidConfigPanel } from './FluidConfigPanel'
+import { useEditor, useIsDarkMode, useValue } from 'tldraw'
 import { FluidManager } from './FluidManager'
 import { fluidConfig } from './fluid-config'
 
+/**
+ * React component that renders the fluid simulation canvas.
+ * Initializes and manages the FluidManager lifecycle, including:
+ * - WebGL context setup
+ * - Pointer event handling
+ * - Cleanup on unmount
+ */
 export const FluidRenderer = memo(() => {
 	const editor = useEditor()
 	const rCanvas = useRef<HTMLCanvasElement>(null)
@@ -52,24 +58,8 @@ export const FluidRenderer = memo(() => {
 		}
 	}, [darkMode, editor, config])
 
-	return <canvas ref={rCanvas} className="shader-canvas" />
-})
+	const pixelate = config.pixelate ?? false
+	const canvasClassName = `shader-canvas${pixelate ? ' shader-canvas-pixelated' : ''}`
 
-export function FluidExample() {
-	return (
-		<Tldraw
-			persistenceKey="shader"
-			components={{
-				Background: FluidRenderer,
-				StylePanel: () => {
-					return (
-						<div style={{ display: 'flex', flexDirection: 'row' }}>
-							<FluidConfigPanel />
-							<DefaultStylePanel />
-						</div>
-					)
-				},
-			}}
-		/>
-	)
-}
+	return <canvas ref={rCanvas} className={canvasClassName} />
+})

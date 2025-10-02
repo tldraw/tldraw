@@ -24,46 +24,89 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+/**
+ * Configuration parameters for the fluid simulation.
+ */
 export interface FluidConfig {
+	/** Resolution of the simulation grid (lower = faster, higher = more detailed) */
 	SIM_RESOLUTION: number
+	/** Resolution of the dye texture (affects visual quality) */
 	DYE_RESOLUTION: number
+	/** Rate at which dye density dissipates (0 = never fades, higher = fades faster) */
 	DENSITY_DISSIPATION: number
+	/** Rate at which velocity dissipates (0 = perpetual motion, higher = stops faster) */
 	VELOCITY_DISSIPATION: number
+	/** Pressure strength for velocity field calculations */
 	PRESSURE: number
+	/** Number of iterations for pressure solver (higher = more accurate but slower) */
 	PRESSURE_ITERATIONS: number
+	/** Vorticity confinement strength (creates swirling patterns) */
 	CURL: number
+	/** Radius of splat effect (size of fluid disturbance) */
 	SPLAT_RADIUS: number
+	/** Force applied to splats (strength of fluid disturbance) */
 	SPLAT_FORCE: number
+	/** Enable shading effect (adds depth perception) */
 	SHADING: boolean
+	/** Enable colorful mode (automatically cycles colors) */
 	COLORFUL: boolean
+	/** Speed of automatic color updates (when colorful is true) */
 	COLOR_UPDATE_SPEED: number
+	/** Pause the simulation */
 	PAUSED: boolean
+	/** Background color (RGB values 0-255) */
 	BACK_COLOR: { r: number; g: number; b: number }
+	/** Transparent background */
 	TRANSPARENT: boolean
+	/** Enable bloom post-processing effect */
 	BLOOM: boolean
+	/** Number of bloom blur iterations */
 	BLOOM_ITERATIONS: number
+	/** Resolution for bloom effect */
 	BLOOM_RESOLUTION: number
+	/** Bloom effect intensity */
 	BLOOM_INTENSITY: number
+	/** Brightness threshold for bloom effect */
 	BLOOM_THRESHOLD: number
+	/** Bloom soft knee (smoothness of threshold transition) */
 	BLOOM_SOFT_KNEE: number
+	/** Enable sunrays post-processing effect */
 	SUNRAYS: boolean
+	/** Resolution for sunrays effect */
 	SUNRAYS_RESOLUTION: number
+	/** Sunrays effect weight (intensity) */
 	SUNRAYS_WEIGHT: number
 }
 
+/**
+ * Pointer state for tracking user interactions with the fluid simulation.
+ */
 interface Pointer {
+	/** Unique identifier for this pointer */
 	id: number
+	/** Current texture coordinate X position (normalized 0-1) */
 	texcoordX: number
+	/** Current texture coordinate Y position (normalized 0-1) */
 	texcoordY: number
+	/** Previous texture coordinate X position */
 	prevTexcoordX: number
+	/** Previous texture coordinate Y position */
 	prevTexcoordY: number
+	/** Change in X position since last update */
 	deltaX: number
+	/** Change in Y position since last update */
 	deltaY: number
+	/** Whether the pointer is currently pressed down */
 	down: boolean
+	/** Whether the pointer moved in the current frame */
 	moved: boolean
+	/** RGB color values for this pointer's splats */
 	color: [number, number, number]
 }
 
+/**
+ * Creates a new pointer instance with default values.
+ */
 function createPointer(): Pointer {
 	return {
 		id: -1,
@@ -79,6 +122,18 @@ function createPointer(): Pointer {
 	}
 }
 
+/**
+ * Main fluid simulation class implementing a GPU-accelerated Navier-Stokes solver.
+ * Based on the WebGL fluid simulation by Pavel Dobryakov (MIT License).
+ *
+ * This class handles:
+ * - WebGL context initialization and management
+ * - Shader compilation and program creation
+ * - Framebuffer management for double-buffering
+ * - Physical simulation steps (advection, diffusion, pressure solving)
+ * - Post-processing effects (bloom, sunrays)
+ * - User interaction via pointer/drag events
+ */
 export class FluidSimulation {
 	private gl: WebGL2RenderingContext | WebGLRenderingContext
 	private ext: any
@@ -108,6 +163,11 @@ export class FluidSimulation {
 	private displayMaterial: any
 	private blit: any
 
+	/**
+	 * Creates a new fluid simulation instance.
+	 * @param canvas - The HTML canvas element to render to
+	 * @param config - Configuration parameters for the simulation
+	 */
 	constructor(
 		private canvas: HTMLCanvasElement,
 		private config: FluidConfig
@@ -1478,7 +1538,10 @@ export class FluidSimulation {
 		this.dye.swap()
 	}
 
-	// Public methods for controlling the simulation
+	/**
+	 * Starts the fluid simulation animation loop.
+	 * Resizes the canvas and begins the render loop if not already running.
+	 */
 	start() {
 		if (this.isRunning) return
 		this.isRunning = true
@@ -1487,6 +1550,10 @@ export class FluidSimulation {
 		this.update()
 	}
 
+	/**
+	 * Destroys the fluid simulation and releases all WebGL resources.
+	 * Stops the animation loop and cleans up all textures, framebuffers, and programs.
+	 */
 	destroy() {
 		this.isRunning = false
 		if (this.animationId) {
@@ -1560,20 +1627,40 @@ export class FluidSimulation {
 		this.displayMaterial = null
 	}
 
+	/**
+	 * Pauses the fluid simulation.
+	 * The render loop continues but physics updates are skipped.
+	 */
 	pause() {
 		this.config.PAUSED = true
 	}
 
+	/**
+	 * Resumes the fluid simulation after being paused.
+	 */
 	resume() {
 		this.config.PAUSED = false
 	}
 
+	/**
+	 * Adds a single splat (fluid disturbance) at the specified location.
+	 * @param x - Normalized X coordinate (0-1)
+	 * @param y - Normalized Y coordinate (0-1)
+	 * @param dx - Velocity in X direction
+	 * @param dy - Velocity in Y direction
+	 * @param color - Optional RGB color values (0-1 range). If not provided, a random color is generated.
+	 */
 	addSplat(x: number, y: number, dx: number, dy: number, color?: [number, number, number]) {
 		if (!color) color = this.generateColor()
 		this.splat(x, y, dx, dy, { r: color[0], g: color[1], b: color[2] })
 	}
 
-	// Drag interaction methods for tldraw integration
+	/**
+	 * Starts a drag interaction at the specified position.
+	 * Used for continuous user input that creates fluid effects.
+	 * @param x - Normalized X coordinate (0-1)
+	 * @param y - Normalized Y coordinate (0-1)
+	 */
 	startDrag(x: number, y: number) {
 		if (!this.dragPointer) {
 			this.dragPointer = createPointer()
@@ -1591,6 +1678,11 @@ export class FluidSimulation {
 		this.dragPointer.color = this.generateColor()
 	}
 
+	/**
+	 * Updates the drag position and creates fluid effects along the drag path.
+	 * @param x - Normalized X coordinate (0-1)
+	 * @param y - Normalized Y coordinate (0-1)
+	 */
 	updateDrag(x: number, y: number) {
 		if (!this.isDragging || !this.dragPointer) return
 
@@ -1611,6 +1703,9 @@ export class FluidSimulation {
 		}
 	}
 
+	/**
+	 * Ends the current drag interaction.
+	 */
 	endDrag() {
 		if (this.dragPointer) {
 			this.dragPointer.down = false
@@ -1618,7 +1713,13 @@ export class FluidSimulation {
 		this.isDragging = false
 	}
 
-	// Shape geometry splat methods
+	/**
+	 * Creates fluid splats from an array of points.
+	 * Used to convert shape geometry into fluid disturbances.
+	 * @param points - Array of normalized coordinate points
+	 * @param velocity - Velocity vector to apply to splats
+	 * @param color - Optional RGB color values (0-1 range)
+	 */
 	createSplatsFromPoints(
 		points: Array<{ x: number; y: number }>,
 		velocity: { x: number; y: number } = { x: 0, y: 0 },
@@ -1633,6 +1734,13 @@ export class FluidSimulation {
 		})
 	}
 
+	/**
+	 * Interpolates points between two positions to ensure dense coverage.
+	 * @param point1 - Starting point
+	 * @param point2 - Ending point
+	 * @param maxDistance - Maximum distance between interpolated points
+	 * @returns Array of interpolated points
+	 */
 	interpolatePoints(
 		point1: { x: number; y: number },
 		point2: { x: number; y: number },
@@ -1658,7 +1766,12 @@ export class FluidSimulation {
 		return points
 	}
 
-	// Decimate points to remove those that are too close together
+	/**
+	 * Reduces point density by removing points that are too close together.
+	 * @param points - Array of points to decimate
+	 * @param minDistance - Minimum distance required between kept points
+	 * @returns Decimated array of points
+	 */
 	decimatePoints(
 		points: Array<{ x: number; y: number }>,
 		minDistance: number = 0.003
@@ -1700,7 +1813,12 @@ export class FluidSimulation {
 		return decimated
 	}
 
-	// Adaptive decimation based on point density and shape size
+	/**
+	 * Adaptively decimates points based on shape size and point density.
+	 * Larger shapes use more aggressive decimation for better performance.
+	 * @param points - Array of points to decimate
+	 * @returns Adaptively decimated array of points
+	 */
 	adaptiveDecimatePoints(points: Array<{ x: number; y: number }>): Array<{ x: number; y: number }> {
 		if (points.length <= 3) return points
 
@@ -1734,6 +1852,14 @@ export class FluidSimulation {
 		return this.decimatePoints(points, threshold)
 	}
 
+	/**
+	 * Creates fluid splats from shape geometry with intelligent point optimization.
+	 * Handles decimation, interpolation, and performance optimizations automatically.
+	 * @param geometry - Array of geometry points defining the shape
+	 * @param velocity - Velocity vector to apply to splats
+	 * @param isClosed - Whether the geometry represents a closed shape
+	 * @param color - Optional RGB color values (0-1 range)
+	 */
 	createSplatsFromGeometry(
 		geometry: Array<{ x: number; y: number }>,
 		velocity: { x: number; y: number } = { x: 0, y: 0 },
@@ -1786,21 +1912,35 @@ export class FluidSimulation {
 		this.createSplatsFromPoints(finalPoints, velocity, color)
 	}
 
-	// Configuration methods
+	/**
+	 * Updates the fluid simulation configuration.
+	 * @param newConfig - Partial configuration object with properties to update
+	 */
 	updateConfig(newConfig: Partial<FluidConfig>) {
 		this.config = { ...this.config, ...newConfig }
 		this.updateKeywords()
 	}
 
+	/**
+	 * Gets a copy of the current configuration.
+	 * @returns Copy of the current FluidConfig
+	 */
 	getConfig(): FluidConfig {
 		return { ...this.config }
 	}
 
-	// Additional utility methods
+	/**
+	 * Adds multiple random splats to the simulation.
+	 * @param count - Number of random splats to add
+	 */
 	addRandomSplats(count: number = 5) {
 		this.splatStack.push(count)
 	}
 
+	/**
+	 * Clears all fluid dye from the simulation.
+	 * Resets the dye texture to transparent/empty state.
+	 */
 	clearFluid() {
 		// Clear the dye texture
 		this.programs.clear.bind()
@@ -1810,11 +1950,20 @@ export class FluidSimulation {
 		this.dye.swap()
 	}
 
+	/**
+	 * Sets the background color of the simulation.
+	 * @param r - Red component (0-255)
+	 * @param g - Green component (0-255)
+	 * @param b - Blue component (0-255)
+	 */
 	setBackgroundColor(r: number, g: number, b: number) {
 		this.config.BACK_COLOR = { r, g, b }
 	}
 
-	// Performance monitoring
+	/**
+	 * Gets performance and status information about the simulation.
+	 * @returns Object containing runtime status and configuration details
+	 */
 	getPerformanceInfo() {
 		return {
 			isRunning: this.isRunning,
@@ -1827,6 +1976,10 @@ export class FluidSimulation {
 	}
 }
 
+/**
+ * Material class for managing shader programs with keyword-based variants.
+ * Supports dynamic shader compilation with preprocessor definitions.
+ */
 class Material {
 	private vertexShader: WebGLShader
 	private fragmentShaderSource: string
@@ -1835,6 +1988,12 @@ class Material {
 	public uniforms: { [key: string]: WebGLUniformLocation } = {}
 	private gl: WebGL2RenderingContext | WebGLRenderingContext
 
+	/**
+	 * Creates a new Material instance.
+	 * @param gl - WebGL rendering context
+	 * @param vertexShader - Compiled vertex shader
+	 * @param fragmentShaderSource - Fragment shader source code
+	 */
 	constructor(
 		gl: WebGL2RenderingContext | WebGLRenderingContext,
 		vertexShader: WebGLShader,
@@ -1845,6 +2004,10 @@ class Material {
 		this.fragmentShaderSource = fragmentShaderSource
 	}
 
+	/**
+	 * Sets shader keywords (preprocessor definitions) and compiles a variant if needed.
+	 * @param keywords - Array of keyword strings to define in the shader
+	 */
 	setKeywords(keywords: string[]) {
 		let hash = 0
 		for (let i = 0; i < keywords.length; i++) hash += this.hashCode(keywords[i])
@@ -1866,6 +2029,9 @@ class Material {
 		this.activeProgram = program
 	}
 
+	/**
+	 * Binds this material's active program for rendering.
+	 */
 	bind() {
 		this.gl.useProgram(this.activeProgram)
 	}

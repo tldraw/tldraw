@@ -1,6 +1,6 @@
 # Fluid Simulation Example
 
-A WebGL-based fluid simulation that reacts to shape interactions on the tldraw canvas, creating dynamic visual effects as shapes are created, moved, and manipulated.
+A WebGL-based fluid simulation that reacts to shape interactions on the tldraw canvas, creating dynamic visual effects as shapes are created, moved, and manipulated. The incredible fluid shader is adapted from the work of Pavel Dobryakov, see license in fluid.ts.
 
 ## Overview
 

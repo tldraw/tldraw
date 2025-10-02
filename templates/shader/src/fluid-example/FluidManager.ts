@@ -62,6 +62,8 @@ export interface FluidManagerConfig {
 	sunraysResolution: number
 	/** Sunrays effect weight (intensity) */
 	sunraysWeight: number
+	/** Enable pixelated rendering style */
+	pixelate: boolean
 }
 
 const DEFAULT_DARK_MODE_COLOR_MAP: Record<string, [number, number, number]> = {
@@ -126,6 +128,7 @@ export const DEFAULT_CONFIG: FluidManagerConfig = {
 	sunrays: true,
 	sunraysResolution: 196,
 	sunraysWeight: 1.0,
+	pixelate: false,
 }
 
 /**
@@ -371,7 +374,7 @@ export class FluidManager {
 			// Calculate velocity based on position change
 			const velocity = {
 				x: (shape.x - prevShape.x) * velocityScale,
-				y: (shape.y - prevShape.y) * velocityScale - 0.12,
+				y: (shape.y - prevShape.y) * velocityScale - 0.05,
 			}
 			this.fluidSim!.createSplatsFromGeometry(
 				geometryData.points,
@@ -382,6 +385,12 @@ export class FluidManager {
 		}
 	}
 
+	/**
+	 * Handle viewport/camera changes by creating splats for all visible shapes.
+	 * Throttled to prevent excessive updates during camera movements.
+	 * @param vsb - The viewport screen bounds
+	 * @param cameraVelocity - The velocity of the camera movement
+	 */
 	private handleViewportChange = throttle((vsb: Box, cameraVelocity: Vec): void => {
 		const renderingShape = this.editor.getRenderingShapes()
 		for (const { shape } of renderingShape) {

@@ -2,13 +2,17 @@ import { atom, react } from 'tldraw'
 
 export interface ShaderManagerConfig {
 	quality: number
+	shadowContrast: number
+	pixelate: boolean
 }
 
 export const DEFAULT_CONFIG = {
 	quality: 0.5,
+	shadowContrast: 0.08,
+	pixelate: true,
 }
 
-const STORAGE_KEY = 'shader-fluid-config-1'
+const STORAGE_KEY = 'shader-shadowcasting-config-1'
 
 let initialValue = DEFAULT_CONFIG
 

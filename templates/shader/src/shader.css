@@ -1,25 +1,9 @@
 .shader-example-toggle {
-	position: absolute;
-	top: 48px;
-	left: 10px;
 	z-index: 1000;
-	border: 1px solid black;
-	border-radius: 4px;
+	margin: 4px;
 	overflow: hidden;
-	font-size: 12px;
-	padding-left: 8px;
-}
-
-.shader-example-toggle button {
-	background-color: var(--tl-color-background);
 	color: var(--tl-color-text);
-	border: none;
-	cursor: pointer;
-	padding: 4px;
-}
-
-.shader-example-toggle button[data-isactive='true'] {
-	text-decoration: underline;
+	background-color: var(--tl-color-background);
 }
 
 .shader-canvas {
@@ -53,7 +37,9 @@
 }
 
 .shader-app .shader-config-panel--expanded {
-	height: 600px;
+	height: fit-content;
+	min-width: 220px;
+	max-height: 600px;
 	overflow-y: auto;
 }
 
@@ -67,15 +53,14 @@
 	align-items: center;
 	z-index: 200;
 	justify-content: space-between;
-	padding: 8px 12px;
 	gap: var(--tl-space-3);
 	color: var(--color-text);
 	border-bottom: 1px solid var(--color-muted-2);
 	cursor: pointer;
 }
 
-.shader-app .shader-config-chevron--expanded {
-	transform: rotate(180deg);
+.shader-app .shader-config-chevron {
+	padding: var(--tl-space-4);
 }
 
 .shader-app .shader-config-content {

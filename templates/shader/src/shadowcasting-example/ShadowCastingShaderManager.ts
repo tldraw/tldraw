@@ -1,6 +1,5 @@
 import { Editor, Group2d, react, TLShape, Vec } from 'tldraw'
-import { WebGLManager } from './WebGLManager'
-import { shaderConfig } from './config'
+import { WebGLManager } from '../WebGLManager'
 import fragmentShader from './fragment.glsl?raw'
 import vertexShader from './vertex.glsl?raw'
 
@@ -14,7 +13,7 @@ export interface Geometry {
 	segments: Array<{ start: Vec; end: Vec }>
 }
 
-export class ShaderManager extends WebGLManager {
+export class ShadowCastingShaderManager extends WebGLManager {
 	private program: WebGLProgram | null = null
 	private positionBuffer: WebGLBuffer | null = null
 	private vao: WebGLVertexArrayObject | null = null
@@ -26,13 +25,26 @@ export class ShaderManager extends WebGLManager {
 	private u_zoom: WebGLUniformLocation | null = null
 	private u_segments: WebGLUniformLocation | null = null
 	private u_segmentCount: WebGLUniformLocation | null = null
+	private u_lightPos: WebGLUniformLocation | null = null
+	private u_shadowContrast: WebGLUniformLocation | null = null
 
 	private geometries: Geometry[] = []
 	private isDarkMode = false
 	private maxSegments: number = 2000
+	private lightPos: Vec = new Vec(0, 0)
+	private shadowContrast: number = 0.08
 
-	constructor(editor: Editor, canvas: HTMLCanvasElement, quality: number = 1) {
-		super(editor, canvas, quality)
+	private editor: Editor
+
+	constructor(
+		editor: Editor,
+		canvas: HTMLCanvasElement,
+		quality: number = 1,
+		shadowContrast: number = 0.08
+	) {
+		super(canvas, quality)
+		this.editor = editor
+		this.shadowContrast = shadowContrast
 		// Calculate max segments based on quality (inverse relationship)
 		// Lower quality = fewer pixels to compute = can handle more segments
 		// Cap at 512 to stay within WebGL uniform limits
@@ -103,6 +115,8 @@ export class ShaderManager extends WebGLManager {
 		this.u_zoom = this.gl.getUniformLocation(this.program, 'u_zoom')
 		this.u_segments = this.gl.getUniformLocation(this.program, 'u_segments')
 		this.u_segmentCount = this.gl.getUniformLocation(this.program, 'u_segmentCount')
+		this.u_lightPos = this.gl.getUniformLocation(this.program, 'u_lightPos')
+		this.u_shadowContrast = this.gl.getUniformLocation(this.program, 'u_shadowContrast')
 
 		// Create a full-screen quad
 		this.positionBuffer = this.gl.createBuffer()
@@ -160,17 +174,7 @@ export class ShaderManager extends WebGLManager {
 			})
 		)
 
-		// Listen for config changes
-		this._disposables.add(
-			react('config', () => {
-				const config = shaderConfig.get()
-				if (config.quality !== undefined && config.quality !== this.quality) {
-					this.setQuality(config.quality)
-					// Recalculate max segments based on new quality
-					this.maxSegments = Math.floor(Math.min(512, 2000 / this.quality))
-				}
-			})
-		)
+		// Note: Config changes (quality, radius) trigger manager recreation in ShadowCastingExample
 
 		// Initial geometry update
 		this.updateGeometries()
@@ -204,6 +208,12 @@ export class ShaderManager extends WebGLManager {
 		}
 		if (this.u_zoom) {
 			this.gl.uniform1f(this.u_zoom, this.editor.getZoomLevel())
+		}
+		if (this.u_lightPos) {
+			this.gl.uniform2f(this.u_lightPos, this.lightPos.x, this.lightPos.y)
+		}
+		if (this.u_shadowContrast) {
+			this.gl.uniform1f(this.u_shadowContrast, this.shadowContrast)
 		}
 
 		// Flatten all geometries into segments array
@@ -361,6 +371,15 @@ export class ShaderManager extends WebGLManager {
 		const canvasY = this.canvas.height - (screenPoint.y - vsb.y) * this.quality
 
 		return new Vec(canvasX, canvasY)
+	}
+
+	/**
+	 * Update the light position (in canvas coordinates)
+	 */
+	setLightPosition = (x: number, y: number): void => {
+		this.lightPos.x = x
+		this.lightPos.y = y
+		this.renderFrame()
 	}
 
 	/**
