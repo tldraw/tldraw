@@ -2610,6 +2610,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     getInterpolatedProps?(startShape: Shape, endShape: Shape, progress: number): Shape['props'];
     // (undocumented)
     getText(_shape: Shape): string | undefined;
+    hideInMinimap?(_shape: Shape): boolean;
     hideResizeHandles(_shape: Shape): boolean;
     hideRotateHandle(_shape: Shape): boolean;
     hideSelectionBoundsBg(_shape: Shape): boolean;

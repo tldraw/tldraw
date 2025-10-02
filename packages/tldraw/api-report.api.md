@@ -274,6 +274,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     getText(shape: TLArrowShape): string;
     // (undocumented)
+    hideInMinimap(): boolean;
+    // (undocumented)
     hideResizeHandles(): boolean;
     // (undocumented)
     hideRotateHandle(): boolean;
@@ -1972,6 +1974,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     getHandleSnapGeometry(shape: TLLineShape): HandleSnapGeometry;
     // (undocumented)
     getInterpolatedProps(startShape: TLLineShape, endShape: TLLineShape, t: number): TLLineShape['props'];
+    // (undocumented)
+    hideInMinimap(): boolean;
     // (undocumented)
     hideResizeHandles(): boolean;
     // (undocumented)
