@@ -13,8 +13,8 @@ body {
 .tldraw-agent-container {
 	position: fixed;
 	inset: 0;
-	display: grid;
-	grid-template-columns: 1fr 350px;
+	/* display: grid; */
+	/* grid-template-columns: 1fr 350px; */
 }
 
 @media (max-width: 768px) {
