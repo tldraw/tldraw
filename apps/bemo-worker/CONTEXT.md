@@ -4,7 +4,7 @@ A Cloudflare Worker that provides essential services for tldraw applications, in
 
 ## Architecture
 
-**Cloudflare Worker + Durable Object Pattern**
+**Cloudflare Worker + Durable Object pattern**
 
 - Main worker handles HTTP requests via itty-router
 - BemoDO (Durable Object) manages persistent WebSocket connections and room state
@@ -14,20 +14,20 @@ A Cloudflare Worker that provides essential services for tldraw applications, in
 
 ### 1. Asset management
 
-- **Upload Endpoint**: `POST /uploads/:objectName` - Handles user asset uploads to R2 bucket
-- **Asset Retrieval**: `GET /uploads/:objectName` - Serves uploaded assets with proper caching
+- **Upload endpoint**: `POST /uploads/:objectName` - Handles user asset uploads to R2 bucket
+- **Asset retrieval**: `GET /uploads/:objectName` - Serves uploaded assets with proper caching
 - Storage path: `asset-uploads/{objectName}` in BEMO_BUCKET
 
 ### 2. Bookmark unfurling
 
-- **Legacy Route**: `GET /bookmarks/unfurl` - Extract metadata only
-- **Full Unfurl**: `POST /bookmarks/unfurl` - Extract metadata and save preview images
-- **Asset Serving**: `GET /bookmarks/assets/:objectName` - Serve bookmark preview images
+- **Legacy route**: `GET /bookmarks/unfurl` - Extract metadata only
+- **Full unfurl**: `POST /bookmarks/unfurl` - Extract metadata and save preview images
+- **Asset serving**: `GET /bookmarks/assets/:objectName` - Serve bookmark preview images
 - Storage path: `bookmark-assets/{objectName}` in BEMO_BUCKET
 
 ### 3. Real-time collaboration
 
-- **Room Connection**: `GET /connect/:slug` - Establishes WebSocket connection to collaborative rooms
+- **Room connection**: `GET /connect/:slug` - Establishes WebSocket connection to collaborative rooms
 - Uses BemoDO (Durable Object) to maintain room state and handle multiplayer synchronization
 - Integrates with @tldraw/sync-core for real-time document collaboration
 

@@ -9,27 +9,27 @@ This is a starter template for building workflow/flowchart applications using tl
 ### Nodes
 
 - **NodeShapeUtil** (`src/nodes/NodeShapeUtil.tsx`): Custom tldraw shape representing workflow nodes
-- **Node Types** (`src/nodes/types/`): Different node implementations including:
+- **Node types** (`src/nodes/types/`): Different node implementations including:
   - `AddNode`, `SubtractNode`, `MultiplyNode`, `DivideNode`: Mathematical operations
   - `SliderNode`: Input node with slider control
   - `ConditionalNode`: Conditional logic node
-- **Node Ports** (`src/nodes/nodePorts.tsx`): Helper functions for managing input/output ports on nodes
+- **Node ports** (`src/nodes/nodePorts.tsx`): Helper functions for managing input/output ports on nodes
 
 ### Connections
 
 - **ConnectionShapeUtil** (`src/connection/ConnectionShapeUtil.tsx`): Custom shape for connecting nodes
 - **ConnectionBindingUtil** (`src/connection/ConnectionBindingUtil.tsx`): Manages relationships between connected nodes
-- **Connection Management**: Utilities for inserting nodes within connections and maintaining visual hierarchy
+- **Connection management**: Utilities for inserting nodes within connections and maintaining visual hierarchy
 
 ### Ports
 
-- **Port System** (`src/ports/Port.tsx`): Defines input/output connection points on nodes
+- **Port system** (`src/ports/Port.tsx`): Defines input/output connection points on nodes
 - **PointingPort** (`src/ports/PointingPort.tsx`): Custom interaction state for port-specific behaviors
 
 ### Execution system
 
 - **ExecutionGraph** (`src/execution/ExecutionGraph.tsx`): Handles asynchronous execution of workflow graphs
-- **Real-time Updates**: Nodes update instantly to show results
+- **Real-time updates**: Nodes update instantly to show results
 - **Async execution**: Demonstrates how workflows might execute against real services
 
 ## Key features
@@ -52,10 +52,10 @@ This is a starter template for building workflow/flowchart applications using tl
 
 ### Extending tldraw
 
-- **Custom Shapes**: `NodeShapeUtil` and `ConnectionShapeUtil` extend tldraw's shape system
-- **Custom Bindings**: `ConnectionBindingUtil` manages node-to-node relationships
-- **Tool Extensions**: `PointingPort` extends the select tool with port-specific interactions
-- **UI Customization**: Complete replacement of toolbar and addition of canvas overlays
+- **Custom shapes**: `NodeShapeUtil` and `ConnectionShapeUtil` extend tldraw's shape system
+- **Custom bindings**: `ConnectionBindingUtil` manages node-to-node relationships
+- **Tool extensions**: `PointingPort` extends the select tool with port-specific interactions
+- **UI customization**: Complete replacement of toolbar and addition of canvas overlays
 
 ### State management
 
@@ -67,7 +67,7 @@ This is a starter template for building workflow/flowchart applications using tl
 
 - **Port interactions**: Custom pointer events for creating connections and nodes
 - **Connection management**: Automatic connection rerouting and cleanup
-- **Z-Order management**: Connections automatically stay below nodes
+- **Z-order management**: Connections automatically stay below nodes
 
 ## Development patterns
 

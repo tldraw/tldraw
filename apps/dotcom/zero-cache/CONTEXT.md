@@ -10,7 +10,7 @@ The `zero-cache` is a specialized database caching and synchronization layer for
 
 The zero-cache system consists of several integrated components:
 
-#### Zero server (Rocicorp zero)
+#### Zero server (Rocicorp Zero)
 
 The primary synchronization engine that provides:
 
@@ -104,7 +104,7 @@ max_prepared_statements = 10
 
 The zero-cache implements a sophisticated data flow:
 
-#### 1. database change detection
+#### 1. Database change detection
 
 PostgreSQL logical replication streams changes to Zero:
 
@@ -117,7 +117,7 @@ ALTER TABLE file REPLICA IDENTITY FULL;
 ALTER TABLE file_state REPLICA IDENTITY FULL;
 ```
 
-#### 2. local caching
+#### 2. Local caching
 
 Zero maintains a local SQLite replica for performance:
 
@@ -129,7 +129,7 @@ SQLite Replica (/data/sync-replica.db)
 Client Applications
 ```
 
-#### 3. conflict resolution
+#### 3. Conflict resolution
 
 Zero handles conflicts using Conflict-Free Replicated Data Types (CRDTs):
 
