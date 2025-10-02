@@ -1,17 +1,24 @@
-// Fragment shader for rendering particles
-// Makes circular point sprites
+// Rain particle fragment shader
+// Renders elongated rain drop effect
 
 precision mediump float;
 
 varying vec4 v_color;
+varying float v_speed;
 
 void main() {
-    // Make particles circular
     vec2 coord = gl_PointCoord - vec2(0.5);
-    if (length(coord) > 0.5) {
+
+    // Elongate drops vertically for rain streak effect
+    coord.y *= 0.3;
+
+    float dist = length(coord);
+    if (dist > 0.5) {
         discard;
     }
-    
-    gl_FragColor = v_color;
-}
 
+    // Soft edges with glow
+    float alpha = 1.0 - smoothstep(0.3, 0.5, dist);
+
+    gl_FragColor = vec4(v_color.rgb, v_color.a * alpha);
+}

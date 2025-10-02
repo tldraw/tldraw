@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { DefaultStylePanel, Tldraw, TldrawUiButton } from 'tldraw'
+import { useMemo } from 'react'
+import { DefaultStylePanel, Tldraw, TldrawUiButton, useLocalStorageState } from 'tldraw'
 import { FluidConfigPanel } from './fluid-example/FluidConfigPanel'
 import { FluidRenderer } from './fluid-example/FluidRenderer'
 import { ParticlePhysicsConfigPanel } from './particle-example/ParticlePhysicsConfigPanel'
@@ -18,7 +18,7 @@ function App() {
 		{ label: 'Particles', value: 'particles' },
 	]
 
-	const [selected, setSelected] = useState<string>('fluid')
+	const [selected, setSelected] = useLocalStorageState<string>('shader-selected', 'fluid')
 
 	const ConfigComponent = useMemo(() => {
 		if (selected === 'fluid') return FluidConfigPanel

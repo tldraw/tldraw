@@ -72,6 +72,14 @@ export class ParticlePhysicsManager extends WebGLManager {
 	protected onInitialize = (): void => {
 		if (!this.gl) return
 
+		// Check for vertex texture support (required for reading positions in vertex shader)
+		const maxVertexTextureUnits = this.gl.getParameter(this.gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS)
+		console.log('[ParticlePhysics] MAX_VERTEX_TEXTURE_IMAGE_UNITS:', maxVertexTextureUnits)
+		if (maxVertexTextureUnits < 1) {
+			console.error('[ParticlePhysics] Vertex texture units not supported on this device')
+			return
+		}
+
 		// Compile shaders and create programs
 		this.updatePositionProgram = this.createProgram(
 			updateVertexShader,
@@ -126,6 +134,26 @@ export class ParticlePhysicsManager extends WebGLManager {
 
 		// Initial obstacle update
 		this.updateObstacles()
+
+		console.log('[ParticlePhysics] Initialization complete')
+		console.log(
+			'  Particle count:',
+			this.particleCount,
+			`(${this.particleCount * this.particleCount} total)`
+		)
+		console.log('  Canvas size:', this.canvas.width, 'x', this.canvas.height)
+		console.log(
+			'  Position textures:',
+			this.positionTextures[0] !== null,
+			this.positionTextures[1] !== null
+		)
+		console.log(
+			'  Velocity textures:',
+			this.velocityTextures[0] !== null,
+			this.velocityTextures[1] !== null
+		)
+		console.log('  Framebuffers:', this.framebuffers.length)
+		console.log('[ParticlePhysics] Starting animation loop')
 	}
 
 	private reinitialize = (): void => {
@@ -175,7 +203,12 @@ export class ParticlePhysicsManager extends WebGLManager {
 		this.gl.compileShader(shader)
 
 		if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-			console.error('Shader compile error:', this.gl.getShaderInfoLog(shader))
+			const shaderType = type === this.gl.VERTEX_SHADER ? 'VERTEX' : 'FRAGMENT'
+			console.error(
+				`[ParticlePhysics] ${shaderType} shader compile error:`,
+				this.gl.getShaderInfoLog(shader)
+			)
+			console.error('Shader source:', source)
 			this.gl.deleteShader(shader)
 			return null
 		}
@@ -189,10 +222,11 @@ export class ParticlePhysicsManager extends WebGLManager {
 		const size = this.particleCount
 		const data = new Uint8Array(size * size * 4)
 
-		// Initialize position data (random positions across canvas)
+		// Initialize position data (spawn particles from top for rain effect)
 		const { width, height } = this.canvas.getBoundingClientRect()
 		for (let i = 0; i < size * size; i++) {
 			const x = Math.random() * width
+			// Spawn from top of screen, distributed across the full height initially
 			const y = Math.random() * height
 			const [xr, xg] = encode(x, 1.0)
 			const [yr, yg] = encode(y, 1.0)
@@ -207,10 +241,10 @@ export class ParticlePhysicsManager extends WebGLManager {
 			this.positionTextures[i] = this.createTexture(size, size, data)
 		}
 
-		// Initialize velocity data (small random velocities)
+		// Initialize velocity data (downward for rain effect with slight horizontal variation)
 		for (let i = 0; i < size * size; i++) {
-			const vx = (Math.random() - 0.5) * 20
-			const vy = (Math.random() - 0.5) * 20
+			const vx = (Math.random() - 0.5) * 10 // Slight horizontal drift
+			const vy = -Math.random() * 50 - 20 // Start falling downward
 			const [vxr, vxg] = encode(vx, 1.0)
 			const [vyr, vyg] = encode(vy, 1.0)
 			data[i * 4 + 0] = vxr
@@ -290,12 +324,14 @@ export class ParticlePhysicsManager extends WebGLManager {
 		}
 	}
 
+	private updateQuadBuffer: WebGLBuffer | null = null
+
 	private setupUpdateQuad = (): void => {
 		if (!this.gl) return
 
 		// Full-screen quad for update passes
-		const buffer = this.gl.createBuffer()
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer)
+		this.updateQuadBuffer = this.gl.createBuffer()
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.updateQuadBuffer)
 		const positions = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1])
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, positions, this.gl.STATIC_DRAW)
 	}
@@ -393,69 +429,107 @@ export class ParticlePhysicsManager extends WebGLManager {
 		}
 	}
 
+	private frameCount = 0
+
 	protected onRender = (_deltaTime: number, currentTime: number): void => {
-		if (!this.gl) return
+		try {
+			this.frameCount++
 
-		const config = particleConfig.get()
-		const { width, height } = this.canvas.getBoundingClientRect()
-		const deltaTime = Math.min(_deltaTime, 0.033) // Cap at 30fps
+			// Log every 60 frames to show it's still running
+			if (this.frameCount % 60 === 0) {
+				console.log(`[ParticlePhysics] Still running at frame ${this.frameCount}`)
+			}
 
-		// Update position
-		this.updatePass(this.updatePositionProgram!, this.positionTextures, (program) => {
-			const u_positionTexture = this.gl!.getUniformLocation(program, 'u_positionTexture')
-			const u_velocityTexture = this.gl!.getUniformLocation(program, 'u_velocityTexture')
-			const u_resolution = this.gl!.getUniformLocation(program, 'u_resolution')
-			const u_deltaTime = this.gl!.getUniformLocation(program, 'u_deltaTime')
+			if (!this.gl) {
+				console.error('[ParticlePhysics] No GL context')
+				return
+			}
+			if (
+				!this.updatePositionProgram ||
+				!this.updateVelocityProgram ||
+				!this.renderParticlesProgram
+			) {
+				console.error('[ParticlePhysics] Programs not initialized')
+				return
+			}
 
-			this.gl!.uniform1i(u_positionTexture, 0)
-			this.gl!.uniform1i(u_velocityTexture, 1)
-			this.gl!.uniform2f(u_resolution, this.particleCount, this.particleCount)
-			this.gl!.uniform1f(u_deltaTime, deltaTime)
+			// Log first few frames to confirm render loop is running
+			if (this.frameCount <= 5) {
+				console.log(
+					`[ParticlePhysics] Frame ${this.frameCount}, deltaTime: ${_deltaTime}, currentBuffer: ${this.currentBuffer}`
+				)
+			}
 
-			// Bind textures
-			this.gl!.activeTexture(this.gl!.TEXTURE0)
-			this.gl!.bindTexture(this.gl!.TEXTURE_2D, this.positionTextures[this.currentBuffer])
-			this.gl!.activeTexture(this.gl!.TEXTURE1)
-			this.gl!.bindTexture(this.gl!.TEXTURE_2D, this.velocityTextures[this.currentBuffer])
-		})
+			// Check if context is lost
+			if (this.gl.isContextLost()) {
+				console.error('[ParticlePhysics] WebGL context lost!')
+				return
+			}
 
-		this.currentBuffer = 1 - this.currentBuffer
+			const config = particleConfig.get()
+			const { width, height } = this.canvas.getBoundingClientRect()
+			const deltaTime = Math.min(_deltaTime, 0.033) // Cap at 30fps
 
-		// Update velocity
-		this.updatePass(this.updateVelocityProgram!, this.velocityTextures, (program) => {
-			const u_positionTexture = this.gl!.getUniformLocation(program, 'u_positionTexture')
-			const u_velocityTexture = this.gl!.getUniformLocation(program, 'u_velocityTexture')
-			const u_obstacleTexture = this.gl!.getUniformLocation(program, 'u_obstacleTexture')
-			const u_resolution = this.gl!.getUniformLocation(program, 'u_resolution')
-			const u_canvasSize = this.gl!.getUniformLocation(program, 'u_canvasSize')
-			const u_deltaTime = this.gl!.getUniformLocation(program, 'u_deltaTime')
-			const u_gravity = this.gl!.getUniformLocation(program, 'u_gravity')
-			const u_damping = this.gl!.getUniformLocation(program, 'u_damping')
-			const u_time = this.gl!.getUniformLocation(program, 'u_time')
+			// Update position
+			this.updatePass(this.updatePositionProgram!, this.positionTextures, (program) => {
+				const u_positionTexture = this.gl!.getUniformLocation(program, 'u_positionTexture')
+				const u_velocityTexture = this.gl!.getUniformLocation(program, 'u_velocityTexture')
+				const u_resolution = this.gl!.getUniformLocation(program, 'u_resolution')
+				const u_deltaTime = this.gl!.getUniformLocation(program, 'u_deltaTime')
 
-			this.gl!.uniform1i(u_positionTexture, 0)
-			this.gl!.uniform1i(u_velocityTexture, 1)
-			this.gl!.uniform1i(u_obstacleTexture, 2)
-			this.gl!.uniform2f(u_resolution, this.particleCount, this.particleCount)
-			this.gl!.uniform2f(u_canvasSize, width, height)
-			this.gl!.uniform1f(u_deltaTime, deltaTime)
-			this.gl!.uniform1f(u_gravity, config.gravity)
-			this.gl!.uniform1f(u_damping, config.damping)
-			this.gl!.uniform1f(u_time, currentTime / 1000)
+				this.gl!.uniform1i(u_positionTexture, 0)
+				this.gl!.uniform1i(u_velocityTexture, 1)
+				this.gl!.uniform2f(u_resolution, this.particleCount, this.particleCount)
+				this.gl!.uniform1f(u_deltaTime, deltaTime)
 
-			// Bind textures
-			this.gl!.activeTexture(this.gl!.TEXTURE0)
-			this.gl!.bindTexture(this.gl!.TEXTURE_2D, this.positionTextures[this.currentBuffer])
-			this.gl!.activeTexture(this.gl!.TEXTURE1)
-			this.gl!.bindTexture(this.gl!.TEXTURE_2D, this.velocityTextures[this.currentBuffer])
-			this.gl!.activeTexture(this.gl!.TEXTURE2)
-			this.gl!.bindTexture(this.gl!.TEXTURE_2D, this.obstacleTexture)
-		})
+				// Bind textures
+				this.gl!.activeTexture(this.gl!.TEXTURE0)
+				this.gl!.bindTexture(this.gl!.TEXTURE_2D, this.positionTextures[this.currentBuffer])
+				this.gl!.activeTexture(this.gl!.TEXTURE1)
+				this.gl!.bindTexture(this.gl!.TEXTURE_2D, this.velocityTextures[this.currentBuffer])
+			})
 
-		this.currentBuffer = 1 - this.currentBuffer
+			this.currentBuffer = 1 - this.currentBuffer
 
-		// Render particles
-		this.renderParticles()
+			// Update velocity
+			this.updatePass(this.updateVelocityProgram!, this.velocityTextures, (program) => {
+				const u_positionTexture = this.gl!.getUniformLocation(program, 'u_positionTexture')
+				const u_velocityTexture = this.gl!.getUniformLocation(program, 'u_velocityTexture')
+				const u_obstacleTexture = this.gl!.getUniformLocation(program, 'u_obstacleTexture')
+				const u_resolution = this.gl!.getUniformLocation(program, 'u_resolution')
+				const u_canvasSize = this.gl!.getUniformLocation(program, 'u_canvasSize')
+				const u_deltaTime = this.gl!.getUniformLocation(program, 'u_deltaTime')
+				const u_gravity = this.gl!.getUniformLocation(program, 'u_gravity')
+				const u_damping = this.gl!.getUniformLocation(program, 'u_damping')
+				const u_time = this.gl!.getUniformLocation(program, 'u_time')
+
+				this.gl!.uniform1i(u_positionTexture, 0)
+				this.gl!.uniform1i(u_velocityTexture, 1)
+				this.gl!.uniform1i(u_obstacleTexture, 2)
+				this.gl!.uniform2f(u_resolution, this.particleCount, this.particleCount)
+				this.gl!.uniform2f(u_canvasSize, width, height)
+				this.gl!.uniform1f(u_deltaTime, deltaTime)
+				this.gl!.uniform1f(u_gravity, config.gravity)
+				this.gl!.uniform1f(u_damping, config.damping)
+				this.gl!.uniform1f(u_time, currentTime / 1000)
+
+				// Bind textures
+				this.gl!.activeTexture(this.gl!.TEXTURE0)
+				this.gl!.bindTexture(this.gl!.TEXTURE_2D, this.positionTextures[this.currentBuffer])
+				this.gl!.activeTexture(this.gl!.TEXTURE1)
+				this.gl!.bindTexture(this.gl!.TEXTURE_2D, this.velocityTextures[this.currentBuffer])
+				this.gl!.activeTexture(this.gl!.TEXTURE2)
+				this.gl!.bindTexture(this.gl!.TEXTURE_2D, this.obstacleTexture)
+			})
+
+			this.currentBuffer = 1 - this.currentBuffer
+
+			// Render particles
+			this.renderParticles()
+		} catch (error) {
+			console.error('[ParticlePhysics] Error in onRender:', error)
+			throw error // Re-throw to stop the animation loop
+		}
 	}
 
 	private updatePass = (
@@ -478,6 +552,21 @@ export class ParticlePhysicsManager extends WebGLManager {
 			0
 		)
 
+		// Check framebuffer completeness
+		const status = this.gl.checkFramebufferStatus(this.gl.FRAMEBUFFER)
+		if (status !== this.gl.FRAMEBUFFER_COMPLETE) {
+			console.error(
+				'[ParticlePhysics] Framebuffer incomplete:',
+				status,
+				'expected:',
+				this.gl.FRAMEBUFFER_COMPLETE
+			)
+			console.error('  Read buffer:', readBuffer, 'Write buffer:', writeBuffer)
+			console.error('  Texture:', textures[writeBuffer])
+			this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null)
+			return
+		}
+
 		// Set viewport to texture size
 		this.gl.viewport(0, 0, this.particleCount, this.particleCount)
 
@@ -487,11 +576,18 @@ export class ParticlePhysicsManager extends WebGLManager {
 		// Setup uniforms
 		setupUniforms(program)
 
-		// Draw full-screen quad
+		// Bind update quad buffer and draw
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.updateQuadBuffer)
 		const a_position = this.gl.getAttribLocation(program, 'a_position')
 		this.gl.enableVertexAttribArray(a_position)
 		this.gl.vertexAttribPointer(a_position, 2, this.gl.FLOAT, false, 0, 0)
 		this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4)
+
+		// Check for GL errors
+		const error = this.gl.getError()
+		if (error !== this.gl.NO_ERROR) {
+			console.error('[ParticlePhysics] GL error in updatePass:', error)
+		}
 
 		// Unbind framebuffer
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null)
@@ -550,6 +646,12 @@ export class ParticlePhysicsManager extends WebGLManager {
 
 		// Draw particles as points
 		this.gl.drawArrays(this.gl.POINTS, 0, this.particleCount * this.particleCount)
+
+		// Check for GL errors
+		const error = this.gl.getError()
+		if (error !== this.gl.NO_ERROR) {
+			console.error('[ParticlePhysics] GL error in renderParticles:', error)
+		}
 	}
 
 	private cleanupStateTextures = (): void => {
@@ -574,6 +676,7 @@ export class ParticlePhysicsManager extends WebGLManager {
 
 			if (this.obstacleTexture) this.gl.deleteTexture(this.obstacleTexture)
 			if (this.particleVertexBuffer) this.gl.deleteBuffer(this.particleVertexBuffer)
+			if (this.updateQuadBuffer) this.gl.deleteBuffer(this.updateQuadBuffer)
 
 			for (const fb of this.framebuffers) {
 				this.gl.deleteFramebuffer(fb)
