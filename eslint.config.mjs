@@ -400,6 +400,7 @@ export default [
 			'no-restricted-syntax': 'off',
 			'no-console': 'off',
 			'@typescript-eslint/method-signature-style': 'off',
+			'local/no-at-internal': 'error',
 		},
 	},
 ]
