@@ -48,6 +48,9 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	override hideSelectionBoundsBg() {
 		return true
 	}
+	override hideInMinimap() {
+		return true
+	}
 
 	override getDefaultProps(): TLLineShape['props'] {
 		const [start, end] = getIndices(2)

@@ -22,10 +22,11 @@
 		"i18n:compile": "formatjs compile-folder public/tla/locales public/tla/locales-compiled --format lokalise --ast",
 		"preplaywright-e2e": "cp ../../../node_modules/@tiptap/core/jsx-runtime/index.cjs ../../../node_modules/@tiptap/core/jsx-runtime/index.cjs.bak || true && echo 'module.exports = {};' > ../../../node_modules/@tiptap/core/jsx-runtime/index.cjs",
 		"postplaywright-e2e": "mv ../../../node_modules/@tiptap/core/jsx-runtime/index.cjs.bak ../../../node_modules/@tiptap/core/jsx-runtime/index.cjs || true",
-		"e2e": "yarn preplaywright-e2e && rm -rf 'e2e/.auth' && yarn playwright test --project=chromium; yarn postplaywright-e2e",
-		"e2e-x10": "yarn preplaywright-e2e && yarn playwright test --project=chromium --repeat-each=10; yarn postplaywright-e2e",
-		"e2e-debug": "yarn preplaywright-e2e && yarn playwright test --project=chromium --debug; yarn postplaywright-e2e",
-		"e2e-ui": "yarn preplaywright-e2e && yarn playwright test --project=chromium --ui; yarn postplaywright-e2e"
+		"e2e": "NODE_OPTIONS='--no-experimental-strip-types' yarn preplaywright-e2e && rm -rf 'e2e/.auth' && yarn playwright test --project=chromium; yarn postplaywright-e2e",
+		"e2e-x10": "NODE_OPTIONS='--no-experimental-strip-types' yarn preplaywright-e2e && yarn playwright test --project=chromium --repeat-each=10; yarn postplaywright-e2e",
+		"e2e-debug": "NODE_OPTIONS='--no-experimental-strip-types' yarn preplaywright-e2e && yarn playwright test --project=chromium --debug; yarn postplaywright-e2e",
+		"e2e-ui": "NODE_OPTIONS='--no-experimental-strip-types' yarn preplaywright-e2e && yarn playwright test --project=chromium --ui; yarn postplaywright-e2e",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"dependencies": {
 		"@clerk/clerk-react": "^5.22.8",
