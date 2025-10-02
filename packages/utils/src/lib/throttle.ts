@@ -84,17 +84,18 @@ export function fpsThrottle(
 	}
 
 	const throttledFn = () => {
-		// Check custom FPS timing if applicable
+		// Custom FPS - check timing before queuing
 		if (getTargetFps) {
 			const lastRun = customFpsLastRunTime.get(fn) ?? -Infinity
 			const customTimePerFrame = Math.floor(1000 / getTargetFps()) * 0.9
 			const elapsed = Date.now() - lastRun
 
 			if (elapsed < customTimePerFrame) {
-				// Not enough time has elapsed, skip this call
+				// Not ready yet, don't queue
 				return
 			}
 
+			// Ready to run - update timing and proceed to queue
 			customFpsLastRunTime.set(fn, Date.now())
 		}
 
