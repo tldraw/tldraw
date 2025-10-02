@@ -1361,14 +1361,13 @@ input,
 .tl-bookmark__description + .tl-bookmark__link {
 	margin-top: var(--tl-space-3);
 }
-
 .tl-bookmark__link {
 	font-size: 12px;
 	pointer-events: all;
 	display: flex;
-	cursor: var(--tl-cursor-pointer);
 	color: var(--tl-color-text-2);
 	align-items: center;
+	cursor: var(--tl-cursor-pointer);
 	width: fit-content;
 	max-width: 100%;
 	text-decoration: none;
