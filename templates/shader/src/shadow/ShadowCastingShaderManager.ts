@@ -28,8 +28,6 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 
 	private pointer: Vec = new Vec(0.5, 0.5)
 
-	private _disposables = new Set<() => void>()
-
 	constructor(
 		editor: Editor,
 		canvas: HTMLCanvasElement,
@@ -149,7 +147,7 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 			gl2.bindVertexArray(null)
 		}
 
-		this._disposables.add(react('dependencies', this.tick))
+		this.disposables.add(react('dependencies', this.tick))
 
 		this.tick()
 	}
@@ -245,9 +243,6 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 	}
 
 	onDispose = (): void => {
-		this._disposables.forEach((dispose) => dispose())
-		this._disposables.clear()
-
 		if (this.gl) {
 			if (this.vao && this.gl instanceof WebGL2RenderingContext) {
 				this.gl.deleteVertexArray(this.vao)

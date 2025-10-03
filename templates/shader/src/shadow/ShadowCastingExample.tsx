@@ -1,7 +1,7 @@
 import { useEditor } from 'tldraw'
 
 import { memo, useLayoutEffect, useRef } from 'react'
-import { WebGLCanvas } from '../webgl-canvas/WebGLCanvas'
+import { WebGLCanvas } from '../WebGLCanvas'
 import { ShadowCastingShaderManager } from './ShadowCastingShaderManager'
 import { shaderConfig } from './config'
 

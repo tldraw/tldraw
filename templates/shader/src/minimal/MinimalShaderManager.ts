@@ -8,7 +8,6 @@ export class MinimalShaderManager extends WebGLManager<ShaderManagerConfig> {
 	private program: WebGLProgram | null = null
 	private positionBuffer: WebGLBuffer | null = null
 	private vao: WebGLVertexArrayObject | null = null
-	private _disposables = new Set<() => void>()
 
 	pointer: Vec = new Vec(0, 0)
 
@@ -124,7 +123,7 @@ export class MinimalShaderManager extends WebGLManager<ShaderManagerConfig> {
 			gl2.bindVertexArray(null)
 		}
 
-		this._disposables.add(react('dependencies', this.tick))
+		this.disposables.add(react('dependencies', this.tick))
 
 		this.tick()
 	}
@@ -166,9 +165,6 @@ export class MinimalShaderManager extends WebGLManager<ShaderManagerConfig> {
 	}
 
 	onDispose = (): void => {
-		this._disposables.forEach((dispose) => dispose())
-		this._disposables.clear()
-
 		if (this.gl) {
 			if (this.vao && this.gl instanceof WebGL2RenderingContext) {
 				this.gl.deleteVertexArray(this.vao)
