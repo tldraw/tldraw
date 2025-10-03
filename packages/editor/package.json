@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/editor",
 	"description": "tldraw infinite canvas SDK (editor).",
-	"version": "4.0.2",
+	"version": "4.0.3",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -29,6 +29,7 @@
 	"main": "./src/index.ts",
 	"types": "./.tsbuild/index.d.ts",
 	"style": "./editor.css",
+	"type": "module",
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [
 		"editor.css"

@@ -28,7 +28,7 @@ export function reverseRecordsDiff(diff: RecordsDiff<any>) {
 
 /**
  * Is a records diff empty?
- * @internal
+ * @public
  */
 export function isRecordsDiffEmpty<T extends UnknownRecord>(diff: RecordsDiff<T>) {
 	return (

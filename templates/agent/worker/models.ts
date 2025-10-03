@@ -1,4 +1,4 @@
-export const DEFAULT_MODEL_NAME = 'claude-4-sonnet'
+export const DEFAULT_MODEL_NAME = 'claude-4.5-sonnet'
 
 export type AgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
 export type AgentModelProvider = 'openai' | 'anthropic' | 'google'
@@ -27,6 +27,13 @@ export function getAgentModelDefinition(modelName: AgentModelName): AgentModelDe
 
 export const AGENT_MODEL_DEFINITIONS = {
 	// Strongly recommended
+	'claude-4.5-sonnet': {
+		name: 'claude-4.5-sonnet',
+		id: 'claude-sonnet-4-5',
+		provider: 'anthropic',
+	},
+
+	// Recommended
 	'claude-4-sonnet': {
 		name: 'claude-4-sonnet',
 		id: 'claude-sonnet-4-0',
