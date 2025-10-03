@@ -1,3 +1,12 @@
+import { Editor } from 'tldraw'
+
+export interface WebGLManagerConfig {
+	quality: number
+	startPaused: boolean
+	pixelate: boolean
+	contextAttributes?: WebGLContextAttributes
+}
+
 /**
  * Generic WebGL manager class that provides lifecycle hooks for WebGL-based applications.
  * Manages the WebGL context, animation loop, and provides game-engine-like lifecycle methods.
@@ -12,33 +21,29 @@
  * 5. dispose() - Clean up all resources
  * 6. onDispose() - Override to clean up custom resources
  */
-export abstract class WebGLManager {
+export abstract class WebGLManager<T extends WebGLManagerConfig> {
 	gl: WebGLRenderingContext | WebGL2RenderingContext | null = null
 	animationFrameId: number | null = null
-	quality: number
 	lastFrameTime: number = 0
 	isInitialized: boolean = false
 	isDisposed: boolean = false
+	private _needsFirstRender: boolean = true
 
 	constructor(
+		readonly editor: Editor,
 		readonly canvas: HTMLCanvasElement,
-		quality: number = 1
+		public config: T
 	) {
-		this.quality = quality
+		this.initialize()
 	}
 
 	/**
 	 * Initialize the WebGL context and set up the rendering loop.
 	 * Call this before using any WebGL functionality.
-	 * @param useWebGL2 - Whether to use WebGL2 context (defaults to true)
-	 * @param contextAttributes - Optional WebGL context attributes
-	 * @param startPaused - Whether to start paused (defaults to false)
 	 */
-	initialize = (
-		useWebGL2: boolean = true,
-		contextAttributes?: WebGLContextAttributes,
-		startPaused: boolean = false
-	): void => {
+	initialize = (): void => {
+		const { startPaused, contextAttributes } = this.config
+
 		if (this.isInitialized) {
 			console.warn('WebGLManager already initialized')
 			return
@@ -50,7 +55,7 @@ export abstract class WebGLManager {
 		}
 
 		// Create WebGL context
-		const contextType = useWebGL2 ? 'webgl2' : 'webgl'
+		const contextType = 'webgl2'
 
 		this.gl = this.canvas.getContext(contextType, contextAttributes) as
 			| WebGLRenderingContext
@@ -58,15 +63,7 @@ export abstract class WebGLManager {
 			| null
 
 		if (!this.gl) {
-			// Fallback to WebGL1 if WebGL2 is not available
-			if (useWebGL2) {
-				console.warn('WebGL2 not available, falling back to WebGL1')
-				this.gl = this.canvas.getContext('webgl', contextAttributes) as WebGLRenderingContext | null
-			}
-
-			if (!this.gl) {
-				throw new Error('Failed to get WebGL context')
-			}
+			throw Error('WebGL2 not available')
 		}
 
 		// Set viewport to match canvas size
@@ -131,6 +128,15 @@ export abstract class WebGLManager {
 	 * @param currentTime - Current timestamp from performance.now()
 	 */
 	protected onUpdate = (_deltaTime: number, _currentTime: number): void => {
+		// Override in subclass
+	}
+
+	/**
+	 * Override this method to perform actions after the first render.
+	 * Called before the first frame is rendered, or after a the canvas
+	 * context is re-created (e.g. after a resize event).
+	 */
+	protected onFirstRender = (): void => {
 		// Override in subclass
 	}
 
@@ -220,15 +226,18 @@ export abstract class WebGLManager {
 			return
 		}
 
-		this.canvas.width = Math.floor(width * this.quality)
-		this.canvas.height = Math.floor(height * this.quality)
+		this.canvas.width = Math.floor(width * this.config.quality)
+		this.canvas.height = Math.floor(height * this.config.quality)
 
 		// Apply quality (resolution scale) to the internal canvas resolution
 		this.gl.viewport(0, 0, this.canvas.width, this.canvas.height)
 
+		// Mark that a render is needed
+		this._needsFirstRender = true
+
 		// If paused, trigger a single frame render to show the resize
 		if (!this.isRunning()) {
-			this.renderFrame()
+			this.tick()
 		}
 	}
 
@@ -256,7 +265,7 @@ export abstract class WebGLManager {
 	 * Manually trigger a single frame render.
 	 * Useful for on-demand rendering when the animation loop is paused.
 	 */
-	renderFrame = (): void => {
+	tick = (): void => {
 		if (!this.isInitialized || this.isDisposed) return
 
 		const currentTime = performance.now()
@@ -265,6 +274,13 @@ export abstract class WebGLManager {
 
 		// Call lifecycle hooks
 		this.onUpdate(deltaTime, currentTime)
+
+		if (this._needsFirstRender) {
+			// Run the first frame by hand
+			this.onFirstRender()
+			this._needsFirstRender = false
+		}
+
 		this.onRender(deltaTime, currentTime)
 	}
 
@@ -276,18 +292,18 @@ export abstract class WebGLManager {
 	}
 
 	/**
-	 * Set the quality (resolution scale) of the canvas.
-	 * @param quality - Resolution multiplier (e.g., 0.5 = half resolution, 1.0 = full resolution, 2.0 = double resolution)
+	 * Set the configuration of the manager.
+	 * @param config - Configuration object
 	 */
-	setQuality = (quality: number): void => {
-		this.quality = Math.max(0.1, Math.min(4.0, quality)) // Clamp between 0.1 and 4.0
-		this.resize() // Apply the new quality
+	setConfig = (config: T): void => {
+		this.config = config
+		this.resize()
 	}
 
 	/**
 	 * Get the current quality (resolution scale).
 	 */
-	getQuality = (): number => {
-		return this.quality
+	getConfig = (): T => {
+		return this.config
 	}
 }

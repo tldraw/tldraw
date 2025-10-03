@@ -1,28 +1,26 @@
 import { atom, react } from 'tldraw'
+import { WebGLManagerConfig } from '../WebGLManager'
 
 /**
  * Configuration interface for the rainbow shader manager.
  */
-export interface ShaderManagerConfig {
-	/** Rendering quality multiplier (0-1), affects canvas resolution */
-	quality: number
+export interface ShaderManagerConfig extends WebGLManagerConfig {
 	/** Radius of the rainbow effect around shape segments (in pixels) */
 	radius: number
-	/** Enable pixelated rendering style */
-	pixelate: boolean
 }
 
 /**
  * Default configuration values for the shader.
  */
-export const DEFAULT_CONFIG = {
+export const DEFAULT_CONFIG: ShaderManagerConfig = {
+	startPaused: true,
 	quality: 0.5,
 	radius: 500,
 	pixelate: true,
 }
 
 /** Storage key for persisting shader configuration in localStorage */
-const STORAGE_KEY = 'shader-hackable-config-1'
+const STORAGE_KEY = 'shader-rainbow-config-1'
 
 let initialValue = DEFAULT_CONFIG
 
@@ -37,7 +35,7 @@ try {
  * Reactive atom containing the shader configuration.
  * Changes to this atom are automatically persisted to localStorage.
  */
-export const shaderConfig = atom<Partial<ShaderManagerConfig>>('shader-config', initialValue)
+export const shaderConfig = atom<ShaderManagerConfig>('shader-config', initialValue)
 
 /**
  * Resets the shader configuration to default values.

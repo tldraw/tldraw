@@ -1,21 +1,21 @@
 import { useMemo } from 'react'
 import { DefaultStylePanel, Tldraw, TldrawUiButton, useLocalStorageState } from 'tldraw'
-import { FluidConfigPanel } from './fluid-example/FluidConfigPanel'
-import { FluidRenderer } from './fluid-example/FluidRenderer'
-import { ParticlePhysicsConfigPanel } from './particle-example/ParticlePhysicsConfigPanel'
-import { ParticlePhysicsRenderer } from './particle-example/ParticlePhysicsExample'
-import { RainbowConfigPanel } from './rainbow-example/RainbowConfigPanel'
-import { RainbowRenderer } from './rainbow-example/RainbowExample'
+import { FluidConfigPanel } from './fluid/FluidConfigPanel'
+import { FluidRenderer } from './fluid/FluidRenderer'
+import { MinimalConfigPanel } from './minimal/MinimalConfigPanel'
+import { MinimalRenderer } from './minimal/MinimalRenderer'
+import { RainbowConfigPanel } from './rainbow/RainbowConfigPanel'
+import { RainbowRenderer } from './rainbow/RainbowRenderer'
 import './shader.css'
-import { ShadowCastingConfigPanel } from './shadowcasting-example/ShadowCastingConfigPanel'
-import { ShadowCastingRenderer } from './shadowcasting-example/ShadowCastingExample'
+import { ShadowCastingConfigPanel } from './shadow/ShadowCastingConfigPanel'
+import { ShadowCastingRenderer } from './shadow/ShadowCastingExample'
 
 function App() {
 	const options = [
 		{ label: 'Fluid', value: 'fluid' },
 		{ label: 'Rainbow', value: 'rainbow' },
 		{ label: 'Shadows', value: 'shadows' },
-		{ label: 'Particles', value: 'particles' },
+		{ label: 'Minimal', value: 'minimal' },
 	]
 
 	const [selected, setSelected] = useLocalStorageState<string>('shader-selected', 'fluid')
@@ -24,14 +24,14 @@ function App() {
 		if (selected === 'fluid') return FluidConfigPanel
 		if (selected === 'rainbow') return RainbowConfigPanel
 		if (selected === 'shadows') return ShadowCastingConfigPanel
-		if (selected === 'particles') return ParticlePhysicsConfigPanel
+		if (selected === 'minimal') return MinimalConfigPanel
 	}, [selected])
 
 	const BackgroundComponent = useMemo(() => {
 		if (selected === 'fluid') return FluidRenderer
 		if (selected === 'rainbow') return RainbowRenderer
 		if (selected === 'shadows') return ShadowCastingRenderer
-		if (selected === 'particles') return ParticlePhysicsRenderer
+		if (selected === 'minimal') return MinimalRenderer
 	}, [selected])
 
 	return (

@@ -1,12 +1,12 @@
 import { atom, react } from 'tldraw'
+import { WebGLManagerConfig } from '../WebGLManager'
 
-export interface ShaderManagerConfig {
-	quality: number
+export interface ShaderManagerConfig extends WebGLManagerConfig {
 	shadowContrast: number
-	pixelate: boolean
 }
 
-export const DEFAULT_CONFIG = {
+export const DEFAULT_CONFIG: ShaderManagerConfig = {
+	startPaused: true,
 	quality: 0.5,
 	shadowContrast: 0.08,
 	pixelate: true,
@@ -23,7 +23,7 @@ try {
 	// noop
 }
 
-export const shaderConfig = atom<Partial<ShaderManagerConfig>>('shader-config', initialValue)
+export const shaderConfig = atom<ShaderManagerConfig>('shader-config', initialValue)
 
 export function resetShaderConfig() {
 	shaderConfig.set(DEFAULT_CONFIG)

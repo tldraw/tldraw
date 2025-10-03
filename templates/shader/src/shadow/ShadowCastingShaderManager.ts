@@ -1,6 +1,6 @@
-import { Editor, Group2d, react, TLShape, Vec } from 'tldraw'
+import { Box, Group2d, react, TLShape, Vec } from 'tldraw'
 import { WebGLManager } from '../WebGLManager'
-import { shaderConfig } from './config'
+import { ShaderManagerConfig } from './config'
 import fragmentShader from './fragment.glsl?raw'
 import vertexShader from './vertex.glsl?raw'
 
@@ -10,20 +10,9 @@ const VERTEX_SHADER = vertexShader
 // Fragment shader for rendering the smoke effect
 const FRAGMENT_SHADER = fragmentShader
 
-/**
- * Geometry data structure containing line segments for a shape.
- */
-export interface Geometry {
-	/** Array of line segments defining the shape's outline */
-	segments: Array<{ start: Vec; end: Vec }>
-}
+export type Geometry = Array<{ start: Vec; end: Vec }>
 
-/**
- * Manages a rainbow shader effect that renders colorful halos around shape edges.
- * Uses WebGL shaders to create distance-based color gradients around all visible shapes.
- * Extends WebGLManager for WebGL lifecycle management.
- */
-export class RainbowShaderManager extends WebGLManager {
+export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig> {
 	private program: WebGLProgram | null = null
 	private positionBuffer: WebGLBuffer | null = null
 	private vao: WebGLVertexArrayObject | null = null
@@ -35,37 +24,23 @@ export class RainbowShaderManager extends WebGLManager {
 	private u_zoom: WebGLUniformLocation | null = null
 	private u_segments: WebGLUniformLocation | null = null
 	private u_segmentCount: WebGLUniformLocation | null = null
+	private u_lightPos: WebGLUniformLocation | null = null
+	private u_shadowContrast: WebGLUniformLocation | null = null
 
 	private geometries: Geometry[] = []
 	private isDarkMode = false
 	private maxSegments: number = 2000
 
-	private editor: Editor
-
-	/**
-	 * Creates a new rainbow shader manager.
-	 * @param editor - The tldraw editor instance
-	 * @param canvas - The HTML canvas element to render to
-	 * @param quality - Rendering quality multiplier (default: 1)
-	 */
-	constructor(editor: Editor, canvas: HTMLCanvasElement, quality: number = 1) {
-		super(canvas, quality)
-		this.editor = editor
-		// Calculate max segments based on quality (inverse relationship)
-		// Lower quality = fewer pixels to compute = can handle more segments
-		// Cap at 512 to stay within WebGL uniform limits
-		this.maxSegments = Math.floor(Math.min(512, 2000 / quality))
-		// Start paused - we'll render on-demand when things change
-		this.initialize(true, undefined, true)
-	}
+	// The pointer position in normalized coordinates (0-1)
+	private pointer: Vec = new Vec(0.5, 0.5)
 
 	private _disposables = new Set<() => void>()
 
-	/**
-	 * Initializes the WebGL context, shaders, and shape reactivity.
-	 * Called automatically by the base WebGLManager class.
-	 */
-	protected onInitialize = (): void => {
+	/* ------------------- Life cycle ------------------- */
+
+	onInitialize = (): void => {
+		this.maxSegments = Math.floor(Math.min(512, 2000 / this.config.quality))
+
 		if (!this.gl) {
 			console.error('No WebGL context available')
 			return
@@ -87,14 +62,43 @@ export class RainbowShaderManager extends WebGLManager {
 			return
 		}
 
+		const compileShader = (type: number, source: string): WebGLShader | null => {
+			if (!this.gl) {
+				console.error('No GL context')
+				return null
+			}
+
+			const shader = this.gl.createShader(type)
+			if (!shader) {
+				console.error('Failed to create shader - createShader returned null')
+				return null
+			}
+
+			this.gl.shaderSource(shader, source)
+			this.gl.compileShader(shader)
+
+			const compileStatus = this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)
+			const shaderType = type === this.gl.VERTEX_SHADER ? 'VERTEX' : 'FRAGMENT'
+
+			if (compileStatus !== true) {
+				const log = this.gl.getShaderInfoLog(shader)
+				console.error(`${shaderType} shader compile error:`, log || 'No error log available')
+				console.error('Shader source:', source)
+				this.gl.deleteShader(shader)
+				return null
+			}
+
+			return shader
+		}
+
 		// Compile shaders and create program
-		const vertexShader = this.compileShader(this.gl.VERTEX_SHADER, VERTEX_SHADER)
+		const vertexShader = compileShader(this.gl.VERTEX_SHADER, VERTEX_SHADER)
 		if (!vertexShader) {
 			console.error('Failed to compile vertex shader, aborting initialization')
 			return
 		}
 
-		const fragmentShader = this.compileShader(this.gl.FRAGMENT_SHADER, FRAGMENT_SHADER)
+		const fragmentShader = compileShader(this.gl.FRAGMENT_SHADER, FRAGMENT_SHADER)
 		if (!fragmentShader) {
 			console.error('Failed to compile fragment shader, aborting initialization')
 			// Clean up vertex shader
@@ -125,6 +129,8 @@ export class RainbowShaderManager extends WebGLManager {
 		this.u_zoom = this.gl.getUniformLocation(this.program, 'u_zoom')
 		this.u_segments = this.gl.getUniformLocation(this.program, 'u_segments')
 		this.u_segmentCount = this.gl.getUniformLocation(this.program, 'u_segmentCount')
+		this.u_lightPos = this.gl.getUniformLocation(this.program, 'u_lightPos')
+		this.u_shadowContrast = this.gl.getUniformLocation(this.program, 'u_shadowContrast')
 
 		// Create a full-screen quad
 		this.positionBuffer = this.gl.createBuffer()
@@ -157,9 +163,7 @@ export class RainbowShaderManager extends WebGLManager {
 		// Listen for shape changes
 		this._disposables.add(
 			react('shapes', () => {
-				this.updateGeometries()
-				// Trigger a single frame render when shapes change
-				this.renderFrame()
+				this.tick()
 			})
 		)
 
@@ -169,7 +173,7 @@ export class RainbowShaderManager extends WebGLManager {
 				const newIsDarkMode = this.editor.user.getIsDarkMode()
 				if (newIsDarkMode !== this.isDarkMode) {
 					this.isDarkMode = newIsDarkMode
-					this.renderFrame()
+					this.tick()
 				}
 			})
 		)
@@ -178,36 +182,15 @@ export class RainbowShaderManager extends WebGLManager {
 		this._disposables.add(
 			react('camera', () => {
 				this.editor.getCamera()
-				this.renderFrame()
+				this.tick()
 			})
 		)
 
-		// Listen for config changes
-		this._disposables.add(
-			react('config', () => {
-				const config = shaderConfig.get()
-				if (config.quality !== undefined && config.quality !== this.quality) {
-					this.setQuality(config.quality)
-					// Recalculate max segments based on new quality
-					this.maxSegments = Math.floor(Math.min(512, 2000 / this.quality))
-				}
-			})
-		)
-
-		// Initial geometry update
-		this.updateGeometries()
-
-		// Render the first frame
-		this.renderFrame()
+		// update and render
+		this.tick()
 	}
 
-	/**
-	 * Renders a single frame of the rainbow effect.
-	 * Called by the animation loop or manually when shapes/camera change.
-	 * @param _deltaTime - Time since last frame (unused, rendering is frame-independent)
-	 * @param _currentTime - Current animation time (unused, rendering is frame-independent)
-	 */
-	protected onRender = (_deltaTime: number, _currentTime: number): void => {
+	onFirstRender = (): void => {
 		if (!this.gl || !this.program) return
 
 		// Clear with transparent background
@@ -219,6 +202,29 @@ export class RainbowShaderManager extends WebGLManager {
 		this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA)
 
 		this.gl.useProgram(this.program)
+	}
+
+	onUpdate = (): void => {
+		const { editor } = this
+		const vsb = editor.getViewportScreenBounds()
+		const camera = editor.getCamera()
+		const shapes = this.editor.getCurrentPageShapes()
+		this.geometries = []
+
+		for (const shape of shapes) {
+			try {
+				const geometry = this.extractGeometry(shape, camera, vsb)
+				if (geometry) {
+					this.geometries.push(geometry)
+				}
+			} catch (e) {
+				console.log(`Error extracting geometry for shape: ${shape.type}`, e)
+			}
+		}
+	}
+
+	onRender = (_deltaTime: number, _currentTime: number): void => {
+		if (!this.gl || !this.program) return
 
 		// Set uniforms
 		if (this.u_resolution) {
@@ -228,18 +234,24 @@ export class RainbowShaderManager extends WebGLManager {
 			this.gl.uniform1f(this.u_darkMode, this.isDarkMode ? 1.0 : 0.0)
 		}
 		if (this.u_quality) {
-			this.gl.uniform1f(this.u_quality, this.quality)
+			this.gl.uniform1f(this.u_quality, this.config.quality)
 		}
 		if (this.u_zoom) {
 			this.gl.uniform1f(this.u_zoom, this.editor.getZoomLevel())
+		}
+
+		if (this.u_lightPos) {
+			this.gl.uniform2f(this.u_lightPos, this.pointer.x, this.pointer.y)
+		}
+		if (this.u_shadowContrast) {
+			this.gl.uniform1f(this.u_shadowContrast, this.config.shadowContrast)
 		}
 
 		// Flatten all geometries into segments array
 		const allSegments: number[] = []
 
 		for (const geometry of this.geometries) {
-			const { segments } = geometry
-			for (const segment of segments) {
+			for (const segment of geometry) {
 				if (allSegments.length < this.maxSegments * 4) {
 					allSegments.push(segment.start.x, segment.start.y, segment.end.x, segment.end.y)
 				}
@@ -273,11 +285,7 @@ export class RainbowShaderManager extends WebGLManager {
 		}
 	}
 
-	/**
-	 * Cleans up WebGL resources and reactive subscriptions.
-	 * Called automatically when the manager is disposed.
-	 */
-	protected onDispose = (): void => {
+	onDispose = (): void => {
 		this._disposables.forEach((dispose) => dispose())
 		this._disposables.clear()
 
@@ -298,86 +306,62 @@ export class RainbowShaderManager extends WebGLManager {
 		}
 	}
 
+	/* --------------------- Events --------------------- */
+
 	/**
-	 * Compiles a WebGL shader from source code.
-	 * @param type - Shader type (VERTEX_SHADER or FRAGMENT_SHADER)
-	 * @param source - GLSL source code
-	 * @returns Compiled shader or null if compilation failed
+	 * Update the light position (in normalized coordinates, 0-1)
 	 */
-	private compileShader = (type: number, source: string): WebGLShader | null => {
-		if (!this.gl) {
-			console.error('No GL context')
-			return null
-		}
-
-		const shader = this.gl.createShader(type)
-		if (!shader) {
-			console.error('Failed to create shader - createShader returned null')
-			return null
-		}
-
-		this.gl.shaderSource(shader, source)
-		this.gl.compileShader(shader)
-
-		const compileStatus = this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)
-		const shaderType = type === this.gl.VERTEX_SHADER ? 'VERTEX' : 'FRAGMENT'
-
-		if (compileStatus !== true) {
-			const log = this.gl.getShaderInfoLog(shader)
-			console.error(`${shaderType} shader compile error:`, log || 'No error log available')
-			console.error('Shader source:', source)
-			this.gl.deleteShader(shader)
-			return null
-		}
-
-		return shader
+	pointerMove = (x: number, y: number): void => {
+		const vsb = this.editor.getViewportScreenBounds()
+		this.pointer.x = (x - vsb.x) / vsb.width
+		this.pointer.y = 1.0 - (y - vsb.y) / vsb.height
+		this.tick()
 	}
 
 	/**
-	 * Updates geometry data from all shapes on the current page.
-	 * Extracts line segments from each shape for shader rendering.
+	 * Manually update geometries from shapes and re-render
 	 */
-	private updateGeometries = (): void => {
-		const shapes = this.editor.getCurrentPageShapes()
-		this.geometries = []
-
-		for (const shape of shapes) {
-			try {
-				const geometry = this.extractGeometry(shape)
-				if (geometry) {
-					this.geometries.push(geometry)
-				}
-			} catch (e) {
-				console.log(`Error extracting geometry for shape: ${shape.type}`, e)
-			}
+	refresh = (): void => {
+		try {
+			this.tick()
+		} catch (e) {
+			console.log('Error refreshing geometries', e)
 		}
 	}
 
-	/**
-	 * Extracts line segment geometry from a shape.
-	 * Converts shape vertices to canvas coordinates for shader rendering.
-	 * @param shape - The shape to extract geometry from
-	 * @returns Geometry object with line segments, or null if extraction failed
-	 */
-	private extractGeometry = (shape: TLShape): Geometry | null => {
+	/* -------------------- Internal -------------------- */
+
+	private pageToCanvas = (
+		point: Vec,
+		camera: { x: number; y: number; z: number },
+		viewportScreenBounds: Box
+	): Vec => {
+		// Transform page coordinates to screen space
+		const screenX = (point.x + camera.x) * camera.z + viewportScreenBounds.x
+		const screenY = (point.y + camera.y) * camera.z + viewportScreenBounds.y
+		// Normalize to canvas coordinates (0-1 range) within the viewport
+		const canvasX = (screenX - viewportScreenBounds.x) / viewportScreenBounds.width
+		const canvasY = 1.0 - (screenY - viewportScreenBounds.y) / viewportScreenBounds.height
+		return new Vec(canvasX, canvasY)
+	}
+
+	private extractGeometry = (
+		shape: TLShape,
+		camera: { x: number; y: number; z: number },
+		viewportScreenBounds: Box
+	): Array<{ start: Vec; end: Vec }> | null => {
+		const { editor } = this
 		const geometry = this.editor.getShapeGeometry(shape)
-		const vertices = geometry.vertices
-		const transform = this.editor.getShapePageTransform(shape)
-
+		const transform = editor.getShapePageTransform(shape)
 		if (!transform) return null
 
+		// transform local point to page space and convert page space point to canvas space
+		const canvasPoints = geometry.vertices.map((c) =>
+			this.pageToCanvas(transform.applyToPoint(c), camera, viewportScreenBounds)
+		)
+
+		// Collect points as segments
 		const segments: Array<{ start: Vec; end: Vec }> = []
-
-		const transformed = vertices.map((c) => transform.applyToPoint(c))
-		const canvasPoints = transformed.map((p) => this.pageToCanvas(p))
-
-		// Check if geometry is closed. The children note is a hack to handle arrows, which are groups with the (open) arrow and the (closed) label. In practice, you could special case any custom shapes.
-		const isClosed =
-			geometry instanceof Group2d
-				? (geometry.children[0]?.isClosed ?? true)
-				: 'isClosed' in geometry
-					? geometry.isClosed
-					: true
 
 		// Add segments connecting the vertices
 		for (let i = 0; i < canvasPoints.length - 1; i++) {
@@ -385,6 +369,16 @@ export class RainbowShaderManager extends WebGLManager {
 			const end = canvasPoints[i + 1]
 			segments.push({ start, end })
 		}
+
+		// Check if geometry is closed. The children note is a hack to handle arrows,
+		// which are groups with the (open) arrow and the (closed) label. In practice,
+		// you could special case any custom shapes.
+		const isClosed =
+			geometry instanceof Group2d
+				? (geometry.children[0]?.isClosed ?? true)
+				: 'isClosed' in geometry
+					? geometry.isClosed
+					: true
 
 		// Only add closing segment if geometry is closed
 		if (isClosed && canvasPoints.length > 0) {
@@ -394,38 +388,6 @@ export class RainbowShaderManager extends WebGLManager {
 			})
 		}
 
-		return { segments }
-	}
-
-	/**
-	 * Converts a point from page coordinates to canvas pixel coordinates.
-	 * Accounts for camera position, zoom, and quality scaling.
-	 * @param point - Point in page coordinates
-	 * @returns Point in canvas pixel coordinates
-	 */
-	private pageToCanvas = (point: Vec): Vec => {
-		// Convert page coordinates to screen coordinates
-		const screenPoint = this.editor.pageToScreen(point)
-		const vsb = this.editor.getViewportScreenBounds()
-
-		// Convert to canvas pixel coordinates (relative to canvas, not viewport)
-		// Scale by quality to match the canvas internal resolution
-		const canvasX = (screenPoint.x - vsb.x) * this.quality
-		// Flip Y axis: canvas Y=0 is at top, but we want Y=0 at bottom for consistency
-		const canvasY = this.canvas.height - (screenPoint.y - vsb.y) * this.quality
-
-		return new Vec(canvasX, canvasY)
-	}
-
-	/**
-	 * Manually update geometries from shapes and re-render
-	 */
-	refresh = (): void => {
-		try {
-			this.updateGeometries()
-			this.renderFrame()
-		} catch (e) {
-			console.log('Error refreshing geometries', e)
-		}
+		return segments
 	}
 }

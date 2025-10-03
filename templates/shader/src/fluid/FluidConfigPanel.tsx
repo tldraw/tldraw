@@ -3,7 +3,7 @@ import { useValue } from 'tldraw'
 import { ConfigPanel } from '../config-panel/ConfigPanel'
 import { ConfigPanelBooleanControl } from '../config-panel/ConfigPanelBooleanControl'
 import { ConfigPanelSlider } from '../config-panel/ConfigPanelSlider'
-import { fluidConfig, resetFluidConfig } from './fluid-config'
+import { fluidConfig, resetFluidConfig } from './config'
 
 /**
  * Configuration panel for the fluid simulation.

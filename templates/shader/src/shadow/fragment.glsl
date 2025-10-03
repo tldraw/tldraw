@@ -52,9 +52,10 @@ bool isVisible(vec2 point, vec2 lightPos) {
 		vec2 end = segment.zw;
 		
 		float t = raySegmentIntersect(point, rayDir, start, end);
-		
+
 		// If intersection exists and is closer than the light, we're blocked
-		if (t > 0.1 && t < distToLight - 0.1) {
+		// Using small epsilon for normalized coordinates (0-1 range)
+		if (t > 0.001 && t < distToLight - 0.001) {
 			return false;
 		}
 	}
@@ -63,10 +64,10 @@ bool isVisible(vec2 point, vec2 lightPos) {
 }
 
 void main() {
-	vec2 pixelPos = v_uv * u_resolution;
-	
+	// v_uv is already in normalized coordinates (0-1)
+
 	// Check if this pixel is visible from the light
-	bool visible = isVisible(pixelPos, u_lightPos);
+	bool visible = isVisible(v_uv, u_lightPos);
 	
 	// Canvas background colors
 	vec3 darkBg = vec3(16.0/255.0, 16.0/255.0, 17.0/255.0);
