@@ -2,17 +2,17 @@ import { useEditor } from 'tldraw'
 
 import { memo, useLayoutEffect, useRef } from 'react'
 import { WebGLCanvas } from '../WebGLCanvas'
-import { ShadowCastingShaderManager } from './ShadowCastingShaderManager'
+import { ShadowShaderManager } from './ShadowShaderManager'
 import { shaderConfig } from './config'
 
-export const ShadowCastingRenderer = memo(() => {
+export const ShadowRenderer = memo(() => {
 	const editor = useEditor()
 	const rCanvas = useRef<HTMLCanvasElement>(null)
-	const rShaderManager = useRef<ShadowCastingShaderManager | null>(null)
+	const rShaderManager = useRef<ShadowShaderManager | null>(null)
 
 	useLayoutEffect(() => {
 		const canvas = rCanvas.current!
-		const manager = new ShadowCastingShaderManager(editor, canvas, shaderConfig)
+		const manager = new ShadowShaderManager(editor, canvas, shaderConfig)
 		rShaderManager.current = manager
 
 		const handlePointerMove = (e: PointerEvent) => manager.pointerMove(e.clientX, e.clientY)

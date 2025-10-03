@@ -7,8 +7,8 @@ import { MinimalRenderer } from './minimal/MinimalRenderer'
 import { RainbowConfigPanel } from './rainbow/RainbowConfigPanel'
 import { RainbowRenderer } from './rainbow/RainbowRenderer'
 import './shader.css'
-import { ShadowCastingConfigPanel } from './shadow/ShadowCastingConfigPanel'
-import { ShadowCastingRenderer } from './shadow/ShadowCastingExample'
+import { ShadowControlPanel } from './shadow/ShadowControlPanel'
+import { ShadowRenderer } from './shadow/ShadowRenderer'
 
 function App() {
 	const options = [
@@ -23,14 +23,14 @@ function App() {
 	const ConfigComponent = useMemo(() => {
 		if (selected === 'fluid') return FluidConfigPanel
 		if (selected === 'rainbow') return RainbowConfigPanel
-		if (selected === 'shadows') return ShadowCastingConfigPanel
+		if (selected === 'shadows') return ShadowControlPanel
 		if (selected === 'minimal') return MinimalConfigPanel
 	}, [selected])
 
 	const BackgroundComponent = useMemo(() => {
 		if (selected === 'fluid') return FluidRenderer
 		if (selected === 'rainbow') return RainbowRenderer
-		if (selected === 'shadows') return ShadowCastingRenderer
+		if (selected === 'shadows') return ShadowRenderer
 		if (selected === 'minimal') return MinimalRenderer
 	}, [selected])
 

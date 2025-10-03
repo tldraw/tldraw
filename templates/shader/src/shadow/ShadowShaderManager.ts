@@ -9,7 +9,7 @@ const FRAGMENT_SHADER = fragmentShader
 
 export type Geometry = Array<{ start: Vec; end: Vec }>
 
-export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig> {
+export class ShadowShaderManager extends WebGLManager<ShaderManagerConfig> {
 	private program: WebGLProgram | null = null
 	private positionBuffer: WebGLBuffer | null = null
 	private vao: WebGLVertexArrayObject | null = null

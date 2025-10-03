@@ -10,7 +10,7 @@ const SLIDER_CONFIGS: Record<string, { min: number; max: number }> = {
 	shadowContrast: { min: 0, max: 1 },
 }
 
-export function ShadowCastingConfigPanel() {
+export function ShadowControlPanel() {
 	const config = useValue('config', () => shaderConfig.get(), [])
 
 	const handleChange = useCallback((prop: string, value: number | boolean) => {
