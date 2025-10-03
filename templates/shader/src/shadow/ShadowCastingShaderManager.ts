@@ -47,7 +47,6 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 	/* ------------------- Life cycle ------------------- */
 
 	onInitialize = (): void => {
-		console.log('initializing here...')
 		this.maxSegments = Math.floor(Math.min(512, 2000 / this.getConfig().quality))
 
 		if (!this.gl) {
@@ -166,12 +165,8 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 			gl2.bindVertexArray(null)
 		}
 
-		this._disposables.add(
-			react('dependencies', () => {
-				console.log('dependencies changed')
-				this.tick()
-			})
-		)
+		// Run tick whenever dependencies change
+		this._disposables.add(react('dependencies', this.tick))
 
 		this.tick()
 	}
@@ -215,7 +210,6 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 		const isDarkMode = this.editor.user.getIsDarkMode()
 
 		const { quality, shadowContrast } = this.getConfig()
-		console.log(quality, shadowContrast)
 
 		// Set uniforms
 		if (this.u_resolution) {

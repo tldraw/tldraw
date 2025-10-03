@@ -1,4 +1,4 @@
-import { Atom, Box, Editor, Vec } from 'tldraw'
+import { Atom, Box, Editor, react, Vec } from 'tldraw'
 import { WebGLManager } from '../WebGLManager'
 import { ShaderManagerConfig } from './config'
 import fragmentShader from './fragment.glsl?raw'
@@ -139,6 +139,9 @@ export class MinimalShaderManager extends WebGLManager<ShaderManagerConfig> {
 			const gl2 = this.gl as WebGL2RenderingContext
 			gl2.bindVertexArray(null)
 		}
+
+		// Run tick whenever dependencies change
+		this._disposables.add(react('dependencies', this.tick))
 
 		// Update and render
 		this.tick()

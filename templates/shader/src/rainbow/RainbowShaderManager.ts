@@ -158,12 +158,8 @@ export class RainbowShaderManager extends WebGLManager<ShaderManagerConfig> {
 			gl2.bindVertexArray(null)
 		}
 
-		// Listen for shape changes
-		this._disposables.add(
-			react('dependencies', () => {
-				this.tick()
-			})
-		)
+		// Run tick whenever dependencies change
+		this._disposables.add(react('dependencies', this.tick))
 
 		// update and render
 		this.tick()
