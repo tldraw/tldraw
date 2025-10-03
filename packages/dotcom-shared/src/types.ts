@@ -5,8 +5,17 @@ import {
 	TlaFilePartial,
 	TlaFileState,
 	TlaFileStatePartial,
+	TlaGroup,
+	TlaGroupFile,
+	TlaGroupFilePartial,
+	TlaGroupPartial,
+	TlaGroupUser,
+	TlaGroupUserPartial,
+	TlaRow,
 	TlaUser,
 	TlaUserPartial,
+	TlaUserPresence,
+	TlaUserPresencePartial,
 } from './tlaSchema'
 
 export interface Snapshot {
@@ -80,35 +89,80 @@ export type UnpublishFileResponseBody =
 			message: string
 	  }
 
-export interface ZStoreDataV1 {
-	files: TlaFile[]
-	fileStates: TlaFileState[]
-	user: TlaUser
-	lsn: string
-}
+export type GetInviteInfoResponseBody =
+	| {
+			error: false
+			groupId: string
+			groupName: string
+			isValid: true
+			inviteSecret: string
+	  }
+	| {
+			error: true
+			message: string
+	  }
+
+export type AcceptInviteResponseBody =
+	| {
+			error: false
+			message: string
+			groupId: string
+			groupName: string
+			success: true
+	  }
+	| {
+			error: false
+			message: string
+			groupId: string
+			groupName: string
+			alreadyMember: true
+	  }
+	| {
+			error: true
+			message: string
+	  }
 
 export interface ZStoreData {
 	file: TlaFile[]
 	file_state: TlaFileState[]
 	user: TlaUser[]
+	group: TlaGroup[]
+	group_user: TlaGroupUser[]
+	user_presence: TlaUserPresence[]
+	group_file: TlaGroupFile[]
 	lsn: string
 }
 
 export type ZRowUpdate = ZRowInsert | ZRowDeleteOrUpdate
 
 export interface ZRowInsert {
-	row: TlaFile | TlaFileState | TlaUser
+	row: TlaRow
 	table: ZTable
 	event: 'insert'
 }
 
 export interface ZRowDeleteOrUpdate {
-	row: TlaFilePartial | TlaFileStatePartial | TlaUserPartial
+	row:
+		| TlaFilePartial
+		| TlaFileStatePartial
+		| TlaUserPartial
+		| TlaGroupPartial
+		| TlaGroupUserPartial
+		| TlaUserPresencePartial
+		| TlaGroupFilePartial
 	table: ZTable
 	event: 'update' | 'delete'
 }
 
-export type ZTable = 'file' | 'file_state' | 'user'
+export type ZTable =
+	| 'file'
+	| 'file_state'
+	| 'user'
+	| 'group'
+	| 'group_user'
+	| 'user_presence'
+	| 'group_file'
+
 export type ZEvent = 'insert' | 'update' | 'delete'
 
 export const ZErrorCode = stringEnum(

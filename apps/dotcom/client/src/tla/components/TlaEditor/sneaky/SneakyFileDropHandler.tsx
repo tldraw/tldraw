@@ -19,8 +19,8 @@ export const SneakyTldrawFileDropHandler = memo(function SneakyTldrawFileDropHan
 			const { files } = content
 			const tldrawFiles = files.filter((file) => file.name.endsWith('.tldr'))
 			if (tldrawFiles.length > 0) {
-				await app.uploadTldrFiles(tldrawFiles, (file) => {
-					navigate(routes.tlaFile(file.id), { state: { mode: 'create' } })
+				await app.uploadTldrFiles(tldrawFiles, (fileId) => {
+					navigate(routes.tlaFile(fileId), { state: { mode: 'create' } })
 				})
 			} else {
 				await defaultHandleExternalFileContent(editor, content, { toasts, msg })

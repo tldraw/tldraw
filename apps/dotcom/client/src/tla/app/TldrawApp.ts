@@ -3,7 +3,6 @@ import { Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
 import {
 	CreateFilesResponseBody,
-	createMutators,
 	CreateSnapshotRequestBody,
 	FILE_PREFIX,
 	LOCAL_FILE_PREFIX,
@@ -11,30 +10,44 @@ import {
 	ROOM_PREFIX,
 	TlaFile,
 	TlaFileState,
+	TlaFlags,
+	TlaGroup,
+	TlaGroupFile,
+	TlaGroupUser,
 	TlaMutators,
 	TlaSchema,
 	TlaUser,
+	TlaUserPresence,
 	UserPreferencesKeys,
-	Z_PROTOCOL_VERSION,
-	schema as zeroSchema,
 	ZErrorCode,
+	Z_PROTOCOL_VERSION,
+	createMutators,
+	schema as zeroSchema,
 } from '@tldraw/dotcom-shared'
 import {
+	Result,
 	assert,
 	fetch,
 	getFromLocalStorage,
 	isEqual,
 	promiseWithResolve,
-	Result,
 	setInLocalStorage,
+	sortByIndex,
+	sortByMaybeIndex,
 	structuredClone,
 	throttle,
 	uniqueId,
 } from '@tldraw/utils'
 import pick from 'lodash.pick'
+import { useNavigate } from 'react-router-dom'
 import {
-	assertExists,
 	Atom,
+	Signal,
+	TLDocument,
+	TLSessionStateSnapshot,
+	TLUiToastsContextType,
+	TLUserPreferences,
+	assertExists,
 	atom,
 	computed,
 	createTLSchema,
@@ -46,11 +59,6 @@ import {
 	objectMapKeys,
 	parseTldrawJsonFile,
 	react,
-	Signal,
-	TLDocument,
-	TLSessionStateSnapshot,
-	TLUiToastsContextType,
-	TLUserPreferences,
 	transact,
 } from 'tldraw'
 import { trackEvent } from '../../utils/analytics'
@@ -85,6 +93,13 @@ export class TldrawApp {
 
 	private readonly user$: Signal<TlaUser | undefined>
 	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
+	private readonly groupMemberships$: Signal<
+		(TlaGroupUser & {
+			group: TlaGroup
+			groupFiles: Array<TlaGroupFile & { file: TlaFile & { presences: TlaUserPresence[] } }>
+			groupMembers: Array<TlaGroupUser>
+		})[]
+	>
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
@@ -122,13 +137,18 @@ export class TldrawApp {
 	}
 
 	toasts: TLUiToastsContextType | null = null
+	trackEvent: TLAppUiContextType
+	navigate: ReturnType<typeof useNavigate>
 
 	private constructor(
 		public readonly userId: string,
 		getToken: () => Promise<string | undefined>,
 		onClientTooOld: () => void,
-		trackEvent: TLAppUiContextType
+		trackEvent: TLAppUiContextType,
+		navigate: ReturnType<typeof useNavigate>
 	) {
+		this.navigate = navigate
+		this.trackEvent = trackEvent
 		const sessionId = uniqueId()
 		this.z = useProperZero
 			? new Zero<TlaSchema, TlaMutators>({
@@ -165,6 +185,10 @@ export class TldrawApp {
 
 		this.user$ = this.signalizeQuery('user signal', this.userQuery())
 		this.fileStates$ = this.signalizeQuery('file states signal', this.fileStateQuery())
+		this.groupMemberships$ = this.signalizeQuery(
+			'group memberships signal',
+			this.groupMembershipsQuery()
+		)
 	}
 
 	private userQuery() {
@@ -172,9 +196,15 @@ export class TldrawApp {
 	}
 
 	private fileStateQuery() {
-		return this.z.query.file_state
+		return this.z.query.file_state.where('userId', '=', this.userId).related('file', (q) => q.one())
+	}
+
+	private groupMembershipsQuery() {
+		return this.z.query.group_user
 			.where('userId', '=', this.userId)
-			.related('file', (q: any) => q.one())
+			.related('group', (q) => q.one())
+			.related('groupFiles', (q) => q.related('file', (q) => q.one()))
+			.related('groupMembers')
 	}
 
 	async preload(initialUserData: TlaUser) {
@@ -269,6 +299,91 @@ export class TldrawApp {
 		return assertExists(this.user$.get(), 'no user')
 	}
 
+	@computed({ isEqual })
+	getUserFlags(): Set<TlaFlags> {
+		const user = this.getUser()
+		return new Set(user.flags?.split(',') ?? []) as Set<TlaFlags>
+	}
+
+	hasFlag(flag: TlaFlags) {
+		return this.getUserFlags().has(flag)
+	}
+
+	/**
+	 * Check if the user has been migrated to the new groups-based data model.
+	 * Users with the 'groups_backend' flag use group_file for access control and pinning.
+	 * Users without the flag use the legacy file_state-based approach.
+	 */
+	isGroupsMigrated() {
+		return this.hasFlag('groups_backend')
+	}
+
+	/**
+	 * Get the user's home group ID.
+	 * For migrated users, this is used to store shared files and pinned files.
+	 * The home group ID is the same as the user ID.
+	 */
+	getHomeGroupId() {
+		return this.userId
+	}
+
+	@computed({ isEqual })
+	getGroupMemberships() {
+		return this.groupMemberships$.get().slice(0).sort(sortByIndex)
+	}
+
+	getGroupMembership(groupId: string) {
+		return this.groupMemberships$.get().find((g) => g.groupId === groupId)
+	}
+
+	getGroupFilesSorted(groupId: string) {
+		const group = this.getGroupMembership(groupId)
+		if (!group) return []
+
+		const lastOrdering = this.lastGroupFileOrderings.get(groupId)
+
+		const nextOrdering: Array<{
+			fileId: TlaFile['id']
+			date: number
+		}> = []
+
+		const pinned = group.groupFiles.filter((f) => f.index !== null)
+		const unpinned = group.groupFiles.filter((f) => !this.isPinned(f.fileId))
+
+		pinned.sort(sortByMaybeIndex)
+
+		for (const file of unpinned) {
+			const existing = lastOrdering?.find((f) => f.fileId === file.fileId)
+
+			if (existing) {
+				// Preserve existing entry to maintain ordering and prevent jumping
+				nextOrdering.push(existing)
+			} else {
+				// For new files, use current updatedAt
+				nextOrdering.push({
+					fileId: file.fileId,
+					date: Math.max(file.updatedAt, file.file.updatedAt),
+				})
+			}
+		}
+
+		// Sort by date (most recent first) but only for new ordering
+		nextOrdering.sort((a, b) => b.date - a.date)
+
+		// Store the ordering for next time
+		this.lastGroupFileOrderings.set(groupId, nextOrdering)
+
+		// Return the actual file objects in the stable order
+		return pinned
+			.map((f) => ({ fileId: f.fileId, isPinned: f.index !== null, date: f.file.updatedAt }))
+			.concat(nextOrdering.map((f) => ({ fileId: f.fileId, isPinned: false, date: f.date })))
+	}
+
+	// Clear group file ordering to refresh on expand (like recent files on page reload)
+	clearGroupFileOrdering(groupId: string) {
+		this.lastGroupFileOrderings.delete(groupId)
+	}
+
 	tlUser = createTLUser({
 		userPreferences: computed('user prefs', () => {
 			const user = this.getUser()
@@ -310,8 +425,20 @@ export class TldrawApp {
 		date: number
 	}>
 
+	// Store stable group file ordering for each group to prevent jumping when files are edited
+	lastGroupFileOrderings = new Map<
+		string,
+		Array<{
+			fileId: TlaFile['id']
+			date: number
+		}>
+	>()
+
 	@computed({ isEqual })
 	getUserRecentFiles() {
+		if (this.isGroupsMigrated()) {
+			return this.getGroupFilesSorted(this.getHomeGroupId())
+		}
 		const myFiles = objectMapFromEntries(this.getUserOwnFiles().map((f) => [f.id, f]))
 		const myStates = objectMapFromEntries(this.getUserFileStates().map((f) => [f.fileId, f]))
 
@@ -358,20 +485,6 @@ export class TldrawApp {
 		return nextRecentFileOrdering
 	}
 
-	getUserSharedFiles() {
-		return Array.from(
-			new Set(
-				this.getUserFileStates()
-					.map((s) => {
-						// skip files where the owner is the current user
-						if (s.file!.ownerId === this.userId) return
-						return s.file
-					})
-					.filter(Boolean) as TlaFile[]
-			)
-		)
-	}
-
 	private canCreateNewFile() {
 		const numberOfFiles = this.getUserOwnFiles().length
 		return numberOfFiles < this.config.maxNumberOfFiles
@@ -386,53 +499,28 @@ export class TldrawApp {
 		})
 	}
 
-	async createFile(
-		fileOrId?: string | Partial<TlaFile>
-	): Promise<Result<{ file: TlaFile }, 'max number of files reached'>> {
+	isPinned(fileId: string) {
+		return this.getFileState(fileId)?.isPinned ?? false
+	}
+
+	async createFile({
+		fileId = uniqueId(),
+		groupId = this.getHomeGroupId(),
+		name = this.getFallbackFileName(Date.now()),
+		createSource = null,
+	}: {
+		fileId?: string
+		groupId?: string
+		name?: string
+		createSource?: string | null
+	}): Promise<Result<{ fileId: string }, 'max number of files reached'>> {
 		if (!this.canCreateNewFile()) {
 			this.showMaxFilesToast()
 			return Result.err('max number of files reached')
 		}
 
-		const creationStartTime = Date.now()
-		const file: TlaFile = {
-			id: typeof fileOrId === 'string' ? fileOrId : uniqueId(),
-			ownerId: this.userId,
-			// these two owner properties are overridden by postgres triggers
-			ownerAvatar: this.getUser().avatar,
-			ownerName: this.getUser().name,
-			isEmpty: true,
-			createdAt: creationStartTime,
-			lastPublished: 0,
-			name: this.getFallbackFileName(creationStartTime),
-			published: false,
-			publishedSlug: uniqueId(),
-			shared: true,
-			sharedLinkType: 'edit',
-			thumbnail: '',
-			updatedAt: creationStartTime,
-			isDeleted: false,
-			createSource: null,
-		}
-		if (typeof fileOrId === 'object') {
-			Object.assign(file, fileOrId)
-			if (!file.name) {
-				Object.assign(file, { name: this.getFallbackFileName(file.createdAt) })
-			}
-		}
-		const fileState = {
-			isFileOwner: true,
-			fileId: file.id,
-			userId: this.userId,
-			firstVisitAt: null,
-			isPinned: false,
-			lastEditAt: null,
-			lastSessionState: null,
-			lastVisitAt: null,
-		}
-		this.storeNewRoomCreationTracking(file.id, file.createSource, creationStartTime)
-
-		this.z.mutate.file.insertWithFileState({ file, fileState })
+		this.storeNewRoomCreationTracking(fileId, createSource, Date.now())
+		this.z.mutate.createFile({ fileId, groupId, name, createSource, time: Date.now() })
 		// todo: add server error handling for real Zero
 		// .server.catch((res: { error: string; details: string }) => {
 		// 	if (res.details === ZErrorCode.max_files_reached) {
@@ -440,7 +528,7 @@ export class TldrawApp {
 		// 	}
 		// })
 
-		return Result.ok({ file })
+		return Result.ok({ fileId })
 	}
 
 	/**
@@ -525,16 +613,9 @@ export class TldrawApp {
 		})
 	}
 
-	getFilePk(fileId: string) {
-		const file = this.getFile(fileId)
-		return { id: fileId, ownerId: file!.ownerId, publishedSlug: file!.publishedSlug }
-	}
-
 	toggleFileShared(fileId: string) {
 		const file = this.getUserOwnFiles().find((f) => f.id === fileId)
 		if (!file) throw Error('no file with id ' + fileId)
-
-		if (file.ownerId !== this.userId) throw Error('user cannot edit that file')
 
 		this.z.mutate.file.update({
 			id: fileId,
@@ -567,12 +648,21 @@ export class TldrawApp {
 
 	getFile(fileId?: string): TlaFile | null {
 		if (!fileId) return null
+		if (this.isGroupsMigrated()) {
+			return (
+				this.getGroupMemberships()
+					.find((g) => g.groupFiles.some((gf) => gf.fileId === fileId))
+					?.groupFiles.find((gf) => gf.fileId === fileId)?.file ?? null
+			)
+		}
 		return this.getUserOwnFiles().find((f) => f.id === fileId) ?? null
 	}
 
-	isFileOwner(fileId: string) {
+	canUpdateFile(fileId: string): boolean {
 		const file = this.getFile(fileId)
-		return file && file.ownerId === this.userId
+		if (!file) return false
+		if (file.ownerId) return file.ownerId === this.userId
+		return this.getGroupMemberships().some((g) => g.groupId === file.owningGroupId)
 	}
 
 	requireFile(fileId: string): TlaFile {
@@ -587,17 +677,15 @@ export class TldrawApp {
 	 */
 	unpublishFile(fileId: string) {
 		const file = this.requireFile(fileId)
-		if (file.ownerId !== this.userId) throw Error('user cannot edit that file')
+		if (!this.canUpdateFile(fileId)) throw Error('user cannot edit that file')
 
-		if (!file.published) return Result.ok('success')
+		if (!file.published) return
 
 		// Optimistic update
 		this.z.mutate.file.update({
 			id: fileId,
 			published: false,
 		})
-
-		return Result.ok('success')
 	}
 
 	/**
@@ -606,36 +694,12 @@ export class TldrawApp {
 	 * @param fileId - The file id.
 	 */
 	async deleteOrForgetFile(fileId: string) {
-		const file = this.getFile(fileId)
-		if (!file) return
-
 		// Optimistic update, remove file and file states
-		await this.z.mutate.file.deleteOrForget(file)
-	}
-
-	/**
-	 * Pin a file (or unpin it if it's already pinned).
-	 *
-	 * @param fileId - The file id.
-	 */
-	async pinOrUnpinFile(fileId: string) {
-		const fileState = this.getFileState(fileId)
-
-		if (!fileState) return
-
-		return this.z.mutate.file_state.update({
-			fileId,
-			userId: this.userId,
-			isPinned: !fileState.isPinned,
-		})
+		await this.z.mutate.removeFileFromGroup({ fileId, groupId: this.getHomeGroupId() })
 	}
 
 	setFileSharedLinkType(fileId: string, sharedLinkType: TlaFile['sharedLinkType'] | 'no-access') {
-		const file = this.requireFile(fileId)
-
-		if (this.userId !== file.ownerId) {
-			throw Error('user cannot edit that file')
-		}
+		if (!this.canUpdateFile(fileId)) throw Error('user cannot edit that file')
 
 		if (sharedLinkType === 'no-access') {
 			this.z.mutate.file.update({ id: fileId, shared: false })
@@ -660,34 +724,12 @@ export class TldrawApp {
 		this.updateUser(exportPreferences)
 	}
 
-	async createFileStateIfNotExists(fileId: string) {
-		await this.changesFlushed
-		const fileState = this.getFileState(fileId)
-		if (!fileState) {
-			const fs: TlaFileState = {
-				fileId,
-				userId: this.userId,
-				firstVisitAt: Date.now(),
-				lastEditAt: null,
-				lastSessionState: null,
-				lastVisitAt: null,
-				isPinned: false,
-				// doesn't really matter what this is because it is
-				// overwritten by postgres
-				isFileOwner: this.isFileOwner(fileId),
-			}
-			this.z.mutate.file_state.insert(fs)
-		}
-	}
-
 	getFileState(fileId: string) {
 		return this.getUserFileStates().find((f) => f.fileId === fileId)
 	}
 
 	updateFileState(fileId: string, partial: Partial<TlaFileState>) {
-		const fileState = this.getFileState(fileId)
-		if (!fileState) return
-		this.z.mutate.file_state.update({ ...partial, fileId, userId: fileState.userId })
+		this.z.mutate.file_state.update({ ...partial, fileId, userId: this.userId })
 	}
 
 	updateFile(fileId: string, partial: Partial<TlaFile>) {
@@ -695,7 +737,6 @@ export class TldrawApp {
 	}
 
 	async onFileEnter(fileId: string) {
-		await this.createFileStateIfNotExists(fileId)
 		this.updateFileState(fileId, {
 			lastVisitAt: Date.now(),
 		})
@@ -724,13 +765,20 @@ export class TldrawApp {
 		getToken(): Promise<string | undefined>
 		onClientTooOld(): void
 		trackEvent: TLAppUiContextType
+		navigate: ReturnType<typeof useNavigate>
 	}) {
 		// This is an issue: we may have a user record but not in the store.
 		// Could be just old accounts since before the server had a version
 		// of the store... but we should probably identify that better.
 
 		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
-		const app = new TldrawApp(opts.userId, opts.getToken, opts.onClientTooOld, opts.trackEvent)
+		const app = new TldrawApp(
+			opts.userId,
+			opts.getToken,
+			opts.onClientTooOld,
+			opts.trackEvent,
+			opts.navigate
+		)
 		// @ts-expect-error
 		window.app = app
 		const didCreate = await app.preload({
@@ -778,7 +826,7 @@ export class TldrawApp {
 		return createIntl()!
 	}
 
-	async uploadTldrFiles(files: File[], onFirstFileUploaded?: (file: TlaFile) => void) {
+	async uploadTldrFiles(files: File[], onFirstFileUploaded?: (fileId: string) => void) {
 		const totalFiles = files.length
 		let uploadedFiles = 0
 		if (totalFiles === 0) return
@@ -853,7 +901,7 @@ export class TldrawApp {
 			})
 
 			if (onFirstFileUploaded) {
-				onFirstFileUploaded(res.value.file)
+				onFirstFileUploaded(res.value.fileId)
 				onFirstFileUploaded = undefined
 			}
 		}
@@ -936,12 +984,12 @@ export class TldrawApp {
 		if (response.error) {
 			throw Error(response.message)
 		}
-		const id = response.slugs[0]
+		const fileId = response.slugs[0]
 		const name =
 			file.name?.replace(/\.tldr$/, '') ??
 			Object.values(snapshot.store).find((d): d is TLDocument => d.typeName === 'document')?.name ??
 			''
 
-		return this.createFile({ id, name })
+		return this.createFile({ fileId, name })
 	}
 }
