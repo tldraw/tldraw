@@ -11,7 +11,7 @@ import react from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import localRules from './.eslintplugin.js'
+import localRules from './internal/scripts/eslint/eslint-plugin.mjs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -58,6 +58,7 @@ export default [
 			'apps/docs/postcss.config.js',
 			'apps/docs/tailwind.config.js',
 			'apps/dotcom/client/public/sw.js',
+			'apps/analytics/public/*',
 			'**/.clasp.json',
 			'**/*.mjs',
 			'**/.*.js',
@@ -400,6 +401,7 @@ export default [
 			'no-restricted-syntax': 'off',
 			'no-console': 'off',
 			'@typescript-eslint/method-signature-style': 'off',
+			'local/no-at-internal': 'error',
 		},
 	},
 ]

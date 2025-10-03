@@ -4,23 +4,24 @@ main = "worker/worker.ts"
 compatibility_date = "2025-05-08"
 compatibility_flags = ["nodejs_compat"]
 upload_source_maps = true
+preview_urls = true
+
+[[routes]]
+pattern = "multiplayer.templates.tldraw.dev"
+custom_domain = true
+
+[observability]
+enabled = true
 
 [assets]
 not_found_handling = "single-page-application"
 directory = "./dist/client"
-
-[observability]
-enabled = true
 
 # Set up the durable object used for each tldraw room
 [durable_objects]
 bindings = [
     { name = "TLDRAW_DURABLE_OBJECT", class_name = "TldrawDurableObject" },
 ]
-
-[[routes]]
-pattern = "multiplayer.templates.tldraw.dev"
-custom_domain = true
 
 # Durable objects require migrations to create/modify/delete them
 [[migrations]]
