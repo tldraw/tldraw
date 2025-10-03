@@ -113,7 +113,11 @@ export function FileItems({
 	}, [fileId, addToast, copiedMsg, trackEvent, source, editor])
 
 	const handlePinUnpinClick = useCallback(async () => {
-		app.pinOrUnpinFile(fileId)
+		if (app.isPinned(fileId)) {
+			app.z.mutate.unpinFile({ fileId, groupId: app.getHomeGroupId() })
+		} else {
+			app.z.mutate.pinFile({ fileId, groupId: app.getHomeGroupId() })
+		}
 	}, [app, fileId])
 
 	const focusCtx = useFileSidebarFocusContext()
@@ -124,13 +128,12 @@ export function FileItems({
 		if (!file) return
 		trackEvent('duplicate-file', { source })
 		const res = await app.createFile({
-			id: newFileId,
+			fileId: newFileId,
 			name: getDuplicateName(file, app),
 			createSource: `${FILE_PREFIX}/${fileId}`,
 		})
 		// copy the state too
 		const prevState = app.getFileState(fileId)
-		app.createFileStateIfNotExists(newFileId)
 		app.updateFileState(newFileId, {
 			lastSessionState: prevState?.lastSessionState,
 		})

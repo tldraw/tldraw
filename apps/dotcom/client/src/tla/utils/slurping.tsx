@@ -71,7 +71,7 @@ interface SlurperOpts {
 
 export async function maybeSlurp(opts: SlurperOpts) {
 	if (opts.abortSignal.aborted) return
-	if (!opts.app.isFileOwner(opts.fileId)) return
+	if (!opts.app.canUpdateFile(opts.fileId)) return
 	const file = opts.app.getFile(opts.fileId)
 	const persistenceKey =
 		(opts.editor.getDocumentSettings().meta.slurpPersistenceKey as string | undefined) ||
