@@ -123,7 +123,12 @@ export function createMutators(userId: string) {
 				const file = await tx.query.file.where('id', '=', _file.id).one().run()
 				assert(file, ZErrorCode.bad_request)
 				assert(!file.isDeleted, ZErrorCode.bad_request)
-				assert(file.ownerId === userId, ZErrorCode.forbidden)
+				if (file.ownerId) {
+					assert(file.ownerId === userId, ZErrorCode.forbidden)
+				} else {
+					assert(file.owningGroupId, ZErrorCode.bad_request)
+					await assertUserIsGroupMember(tx, userId, file.owningGroupId)
+				}
 
 				await tx.mutate.file.update({
 					..._file,
@@ -282,10 +287,18 @@ export function createMutators(userId: string) {
 				groupId,
 				createdAt: time,
 				updatedAt: time,
+				index: null,
 			})
 			await tx.mutate.file_state.insert({
 				fileId,
 				userId,
+				isPinned: false,
+				lastEditAt: null,
+				lastVisitAt: null,
+				firstVisitAt: null,
+				lastSessionState: null,
+				// isFileOwner is no longer used in new model.
+				isFileOwner: false,
 			})
 		},
 
