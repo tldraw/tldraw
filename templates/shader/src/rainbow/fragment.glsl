@@ -9,9 +9,11 @@ uniform vec2 u_resolution;
 uniform float u_darkMode;
 uniform float u_quality;
 uniform float u_zoom;
+uniform float u_stepSize;
+uniform int u_steps;
+uniform float u_offset;
 
 // Geometry data
-#define STEPS 20.0
 #define MAX_SEGMENTS 512
 uniform vec4 u_segments[MAX_SEGMENTS]; // xy = start, zw = end
 uniform float u_segmentCount;
@@ -19,6 +21,20 @@ uniform float u_segmentCount;
 // Simple noise function
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+// Rotate through full rainbow spectrum based on step count
+vec3 rotateHue(float step, float steps, float offset) {
+	float t = mod(step + offset * steps, steps) / steps;
+	float hue = t * 6.0; // 0-6 range for six color transitions
+	float x = 1.0 - abs(mod(hue, 2.0) - 1.0);
+
+	if (hue < 1.0) return vec3(1.0, x, 0.0);       // Red to Yellow
+	else if (hue < 2.0) return vec3(x, 1.0, 0.0);  // Yellow to Green
+	else if (hue < 3.0) return vec3(0.0, 1.0, x);  // Green to Cyan
+	else if (hue < 4.0) return vec3(0.0, x, 1.0);  // Cyan to Blue
+	else if (hue < 5.0) return vec3(x, 0.0, 1.0);  // Blue to Magenta
+	else return vec3(1.0, 0.0, x);                 // Magenta to Red
 }
 
 float noise(vec2 p) {
@@ -86,34 +102,26 @@ void main() {
 		}
 	}
 
-	
+
 	// Proximity-based rainbow
-	// Scale maxDistance by quality and zoom to maintain consistent appearance
-	float maxDistance = 200.0 * u_quality * u_zoom;
+	// Scale by quality and zoom to maintain consistent appearance
+	float maxDistance = u_stepSize * float(u_steps) * u_quality * u_zoom;
 
 	if (minDist > maxDistance) {
 		fragColor = vec4(0.0, 0.0, 0.0, 0.0);
 		return;
   }
-	
-	
-	minDist = floor(minDist / (maxDistance/STEPS)) * (maxDistance/STEPS);
+
+
+	// Quantize distance into discrete bands
+	float steps = float(u_steps);
+
+	float bandIndex = floor(minDist / (maxDistance/steps));
+	minDist = bandIndex * (maxDistance/steps);
 	float proximity = smoothstep(maxDistance, 0.0, minDist);
-	
-	// Static rainbow based on distance
-	// Scale by quality and zoom to maintain consistent color bands
-	float hue = mod(minDist * 0.003 / (u_quality * u_zoom), 1.0);
-	
-	// Convert HSV to RGB (simple approximation)
-	vec3 rainbowColor;
-	float h = hue * 20.0;
-	float x = 1.0 - abs(mod(h, 2.0) - 1.0);
-	if (h < 1.0) rainbowColor = vec3(1.0, x, 0.0);       // Red to Yellow
-	else if (h < 2.0) rainbowColor = vec3(x, 1.0, 0.0);  // Yellow to Green
-	else if (h < 3.0) rainbowColor = vec3(0.0, 1.0, x);  // Green to Cyan
-	else if (h < 4.0) rainbowColor = vec3(0.0, x, 1.0);  // Cyan to Blue
-	else if (h < 5.0) rainbowColor = vec3(x, 0.0, 1.0);  // Blue to Magenta
-	else rainbowColor = vec3(1.0, 0.0, x);               // Magenta to Red
+
+	// Generate rainbow color for this band using rotateHue
+	vec3 rainbowColor = rotateHue(bandIndex, steps, u_offset);
 
 	// Adjust colors for dark mode
 	if (u_darkMode > 0.5) {

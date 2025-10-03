@@ -154,18 +154,6 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 		this.tick()
 	}
 
-	onFirstRender = (): void => {
-		if (!this.gl || !this.program) return
-
-		this.gl.clearColor(0, 0, 0, 0)
-		this.gl.clear(this.gl.COLOR_BUFFER_BIT)
-
-		this.gl.enable(this.gl.BLEND)
-		this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA)
-
-		this.gl.useProgram(this.program)
-	}
-
 	onUpdate = (): void => {
 		const { editor } = this
 		const vsb = editor.getViewportScreenBounds()
@@ -183,6 +171,15 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 				console.log(`Error extracting geometry for shape: ${shape.type}`, e)
 			}
 		}
+	}
+
+	onFirstRender = (): void => {
+		if (!this.gl || !this.program) return
+
+		this.gl.clearColor(0, 0, 0, 0)
+		this.gl.enable(this.gl.BLEND)
+		this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA)
+		this.gl.useProgram(this.program)
 	}
 
 	onRender = (_deltaTime: number, _currentTime: number): void => {

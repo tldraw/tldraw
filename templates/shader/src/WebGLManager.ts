@@ -1,4 +1,4 @@
-import { Atom, computed, debounce, Editor, react } from 'tldraw'
+import { Atom, computed, Editor, react } from 'tldraw'
 
 export interface WebGLManagerConfig {
 	quality: number
@@ -8,18 +8,19 @@ export interface WebGLManagerConfig {
 }
 
 /**
- * Generic WebGL manager class that provides lifecycle hooks for WebGL-based applications.
- * Manages the WebGL context, animation loop, and provides game-engine-like lifecycle methods.
+ * Base class for WebGL-powered canvas managers integrated with tldraw's reactive system.
+ * Provides lifecycle hooks, animation loop management, and automatic viewport synchronization.
  *
- * Lifecycle order:
- * 1. constructor - Set up initial state
- * 2. initialize() - Create WebGL context and set up resources
- * 3. onInitialize() - Override to initialize custom resources
- * 4. Animation loop starts:
- *    - onUpdate() - Override for logic updates
- *    - onRender() - Override for rendering
- * 5. dispose() - Clean up all resources
- * 6. onDispose() - Override to clean up custom resources
+ * Lifecycle:
+ * 1. constructor() - Initialize reactive dependencies and quality monitoring
+ * 2. initialize() - Create WebGL context and configure viewport
+ * 3. onInitialize() - Hook for subclass resource setup (shaders, buffers, etc.)
+ * 4. Animation loop (if not paused):
+ *    - onUpdate() - Logic and state updates
+ *    - onFirstRender() - One-time setup after context creation
+ *    - onRender() - Draw calls and rendering
+ * 5. dispose() - Stop animation and clean up resources
+ * 6. onDispose() - Hook for subclass cleanup
  */
 export abstract class WebGLManager<T extends WebGLManagerConfig> {
 	gl: WebGLRenderingContext | WebGL2RenderingContext | null = null
@@ -54,8 +55,9 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 	}
 
 	/**
-	 * Initialize the WebGL context and set up the rendering loop.
-	 * Call this before using any WebGL functionality.
+	 * Creates the WebGL2 context and initializes the manager.
+	 * Must be called before any rendering operations. Calls onInitialize() hook for subclass setup.
+	 * Automatically starts the animation loop unless startPaused is true in config.
 	 */
 	initialize = (): void => {
 		const { startPaused, contextAttributes } = this.getConfig()
@@ -70,7 +72,7 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 			return
 		}
 
-		// Create WebGL context
+		// Create WebGL2 context with optional attributes
 		const contextType = 'webgl2'
 
 		this.gl = this.canvas.getContext(contextType, contextAttributes) as
@@ -82,18 +84,17 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 			throw Error('WebGL2 not available')
 		}
 
-		// Set viewport to match canvas size
+		// Configure viewport to match canvas dimensions
 		if (this.canvas.width > 0 && this.canvas.height > 0) {
 			this.gl.viewport(0, 0, this.canvas.width, this.canvas.height)
 		} else {
 			console.warn('Canvas has zero dimensions, skipping viewport setup')
 		}
 
-		// Call custom initialization hook BEFORE marking as initialized
+		// Execute subclass initialization hook before marking as ready
 		this.onInitialize()
 
-		// Only proceed if onInitialize succeeded
-		// Subclasses should set a flag or we check if essential resources exist
+		// Abort if subclass called dispose() during initialization
 		if (this.isDisposed) {
 			console.error('Initialization was aborted')
 			return
@@ -102,35 +103,36 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 		this.isInitialized = true
 		this.lastFrameTime = performance.now()
 
-		// Start the animation loop only if not paused
+		// Begin animation loop unless configured to start paused
 		if (!startPaused) {
 			this.startAnimationLoop()
 		}
 	}
 
 	/**
-	 * Override this method to initialize custom WebGL resources.
-	 * Called after the WebGL context is created but before the first frame.
+	 * Lifecycle hook for subclass-specific initialization.
+	 * Called after WebGL context creation but before animation loop starts.
+	 * Use this to compile shaders, create buffers, load textures, etc.
 	 */
 	protected onInitialize = (): void => {
 		// Override in subclass
 	}
 
 	/**
-	 * Start the animation loop.
+	 * Begins the requestAnimationFrame loop, calling onUpdate() and onRender() each frame.
 	 */
 	private startAnimationLoop = (): void => {
 		const frame = (currentTime: number) => {
 			if (this.isDisposed) return
 
-			const deltaTime = (currentTime - this.lastFrameTime) / 1000 // Convert to seconds
+			const deltaTime = (currentTime - this.lastFrameTime) / 1000
 			this.lastFrameTime = currentTime
 
-			// Call lifecycle hooks
+			// Execute lifecycle hooks each frame
 			this.onUpdate(deltaTime, currentTime)
 			this.onRender(deltaTime, currentTime)
 
-			// Schedule next frame
+			// Queue next frame
 			this.animationFrameId = requestAnimationFrame(frame)
 		}
 
@@ -138,45 +140,46 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 	}
 
 	/**
-	 * Override this method to update application state and logic.
-	 * Called once per frame before onRender.
-	 * @param deltaTime - Time elapsed since last frame in seconds
-	 * @param currentTime - Current timestamp from performance.now()
+	 * Lifecycle hook for logic and state updates.
+	 * Called once per frame before onRender(). Override to update uniforms, animation state, etc.
+	 * @param deltaTime - Seconds elapsed since previous frame
+	 * @param currentTime - Absolute timestamp from performance.now() in milliseconds
 	 */
 	protected onUpdate = (_deltaTime: number, _currentTime: number): void => {
 		// Override in subclass
 	}
 
 	/**
-	 * Override this method to perform actions after the first render.
-	 * Called before the first frame is rendered, or after a the canvas
-	 * context is re-created (e.g. after a resize event).
+	 * Lifecycle hook called once after context creation or recreation.
+	 * Invoked before the first onRender() call and after resize events that recreate the canvas.
+	 * Use this for one-time setup that depends on final canvas dimensions.
 	 */
 	protected onFirstRender = (): void => {
 		// Override in subclass
 	}
 
 	/**
-	 * Override this method to render the scene.
-	 * Called after onUpdate.
-	 * @param deltaTime - Time elapsed since last frame in seconds
-	 * @param currentTime - Current timestamp from performance.now()
+	 * Lifecycle hook for rendering to the canvas.
+	 * Called after onUpdate() each frame. Override to execute draw calls and render your scene.
+	 * @param deltaTime - Seconds elapsed since previous frame
+	 * @param currentTime - Absolute timestamp from performance.now() in milliseconds
 	 */
 	protected onRender = (_deltaTime: number, _currentTime: number): void => {
 		// Override in subclass
 	}
 
 	/**
-	 * Override this method to clean up custom resources.
-	 * Called during dispose() before the WebGL context is destroyed.
+	 * Lifecycle hook for cleanup of subclass-specific resources.
+	 * Called during dispose() before clearing the WebGL context.
+	 * Use this to delete shaders, buffers, textures, and other GPU resources.
 	 */
 	protected onDispose = (): void => {
 		// Override in subclass
 	}
 
 	/**
-	 * Stop the animation loop and clean up all resources.
-	 * After calling dispose(), this instance cannot be reused.
+	 * Stops the animation loop and releases all resources.
+	 * Calls onDispose() hook for subclass cleanup. Instance cannot be reused after disposal.
 	 */
 	dispose = (): void => {
 		this.disposables.forEach((dispose) => dispose())
@@ -187,16 +190,16 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 			return
 		}
 
-		// Stop animation loop
+		// Cancel any pending animation frame
 		if (this.animationFrameId !== null) {
 			cancelAnimationFrame(this.animationFrameId)
 			this.animationFrameId = null
 		}
 
-		// Call custom disposal hook
+		// Execute subclass cleanup hook
 		this.onDispose()
 
-		// Clear GL reference (don't explicitly lose context as it can interfere with React)
+		// Clear WebGL context reference (avoid explicit context loss to prevent React conflicts)
 		this.gl = null
 
 		this.isDisposed = true
@@ -204,42 +207,39 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 	}
 
 	/**
-	 * Check if the manager has been initialized.
+	 * Returns true if initialize() has been called successfully.
 	 */
 	getIsInitialized = (): boolean => {
 		return this.isInitialized
 	}
 
 	/**
-	 * Check if the manager has been disposed.
+	 * Returns true if dispose() has been called.
 	 */
 	getIsDisposed = (): boolean => {
 		return this.isDisposed
 	}
 
 	/**
-	 * Get the WebGL context.
-	 * Returns null if not initialized or disposed.
+	 * Returns the WebGL rendering context, or null if not initialized or disposed.
 	 */
 	getGL = (): WebGLRenderingContext | WebGL2RenderingContext | null => {
 		return this.gl
 	}
 
 	/**
-	 * Get the canvas element.
+	 * Returns the HTMLCanvasElement this manager is rendering to.
 	 */
 	getCanvas = (): HTMLCanvasElement => {
 		return this.canvas
 	}
 
 	/**
-	 * Resize the canvas and update the WebGL viewport.
-	 * Call this when the canvas size changes.
-	 * If the animation loop is paused, triggers a single frame render.
-	 * @param width - New canvas width
-	 * @param height - New canvas height
+	 * Updates canvas dimensions and WebGL viewport based on current bounding rect and quality setting.
+	 * Automatically called when viewport bounds or quality changes via reactive dependency.
+	 * Triggers onFirstRender() and a single frame if animation loop is paused.
 	 */
-	resize = debounce((): void => {
+	resize = (): void => {
 		const { width, height } = this.canvas.getBoundingClientRect()
 		if (!this.isInitialized || this.isDisposed || !this.gl) {
 			return
@@ -249,20 +249,20 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 		this.canvas.width = Math.floor(width * quality)
 		this.canvas.height = Math.floor(height * quality)
 
-		// Apply quality (resolution scale) to the internal canvas resolution
+		// Update WebGL viewport to match new canvas resolution
 		this.gl.viewport(0, 0, this.canvas.width, this.canvas.height)
 
-		// Mark that a render is needed
+		// Flag that onFirstRender() should be called on next frame
 		this._needsFirstRender = true
 
-		// If paused, trigger a single frame render to show the resize
+		// Render immediately if paused to reflect resize
 		if (!this.isRunning()) {
 			this.tick()
 		}
-	}, 100)
+	}
 
 	/**
-	 * Pause the animation loop.
+	 * Stops the animation loop by canceling the current requestAnimationFrame.
 	 */
 	pause = (): void => {
 		if (this.animationFrameId !== null) {
@@ -272,7 +272,8 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 	}
 
 	/**
-	 * Resume the animation loop if it was paused.
+	 * Restarts the animation loop if currently paused.
+	 * Resets lastFrameTime to prevent large deltaTime jump.
 	 */
 	resume = (): void => {
 		if (this.animationFrameId === null && this.isInitialized && !this.isDisposed) {
@@ -282,8 +283,9 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 	}
 
 	/**
-	 * Manually trigger a single frame render.
-	 * Useful for on-demand rendering when the animation loop is paused.
+	 * Executes a single frame update and render cycle manually.
+	 * Useful for on-demand rendering when paused, or for controlled frame stepping.
+	 * Calls onFirstRender() if needed, then onUpdate() and onRender().
 	 */
 	tick = (): void => {
 		if (this.isDisposed) return
@@ -292,11 +294,16 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 		const deltaTime = (currentTime - this.lastFrameTime) / 1000
 		this.lastFrameTime = currentTime
 
-		// Call lifecycle hooks
+		// Execute update hook
 		this.onUpdate(deltaTime, currentTime)
 
 		if (this._needsFirstRender) {
-			// Run the first frame by hand
+			// Ensure canvas has correct dimensions before first render
+			const { width, height } = this.canvas.getBoundingClientRect()
+			const { quality } = this.getConfig()
+			this.canvas.width = Math.floor(width * quality)
+			this.canvas.height = Math.floor(height * quality)
+
 			this.onFirstRender()
 			this._needsFirstRender = false
 		}
@@ -305,7 +312,7 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 	}
 
 	/**
-	 * Check if the animation loop is currently running.
+	 * Returns true if the animation loop is actively running via requestAnimationFrame.
 	 */
 	isRunning = (): boolean => {
 		return this.animationFrameId !== null

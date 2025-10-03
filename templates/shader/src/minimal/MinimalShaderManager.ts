@@ -129,14 +129,17 @@ export class MinimalShaderManager extends WebGLManager<ShaderManagerConfig> {
 		this.tick()
 	}
 
-	onUpdate = (): void => {}
+	onUpdate = (): void => {
+		// implement here...
+	}
 
 	onFirstRender = (): void => {
 		if (!this.gl || !this.program) return
 
-		this.gl.useProgram(this.program)
 		this.gl.enable(this.gl.BLEND)
+		this.gl.clearColor(0, 0, 0, 0)
 		this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA)
+		this.gl.useProgram(this.program)
 	}
 
 	onRender = (_deltaTime: number, _currentTime: number): void => {

@@ -18,6 +18,9 @@ export class RainbowShaderManager extends WebGLManager<ShaderManagerConfig> {
 	private u_darkMode: WebGLUniformLocation | null = null
 	private u_quality: WebGLUniformLocation | null = null
 	private u_zoom: WebGLUniformLocation | null = null
+	private u_stepSize: WebGLUniformLocation | null = null
+	private u_steps: WebGLUniformLocation | null = null
+	private u_offset: WebGLUniformLocation | null = null
 	private u_segments: WebGLUniformLocation | null = null
 	private u_segmentCount: WebGLUniformLocation | null = null
 
@@ -119,6 +122,9 @@ export class RainbowShaderManager extends WebGLManager<ShaderManagerConfig> {
 		this.u_darkMode = this.gl.getUniformLocation(this.program, 'u_darkMode')
 		this.u_quality = this.gl.getUniformLocation(this.program, 'u_quality')
 		this.u_zoom = this.gl.getUniformLocation(this.program, 'u_zoom')
+		this.u_stepSize = this.gl.getUniformLocation(this.program, 'u_stepSize')
+		this.u_steps = this.gl.getUniformLocation(this.program, 'u_steps')
+		this.u_offset = this.gl.getUniformLocation(this.program, 'u_offset')
 		this.u_segments = this.gl.getUniformLocation(this.program, 'u_segments')
 		this.u_segmentCount = this.gl.getUniformLocation(this.program, 'u_segmentCount')
 
@@ -148,18 +154,6 @@ export class RainbowShaderManager extends WebGLManager<ShaderManagerConfig> {
 		this.tick()
 	}
 
-	onFirstRender = (): void => {
-		if (!this.gl || !this.program) return
-
-		this.gl.clearColor(0, 0, 0, 0)
-		this.gl.clear(this.gl.COLOR_BUFFER_BIT)
-
-		this.gl.enable(this.gl.BLEND)
-		this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA)
-
-		this.gl.useProgram(this.program)
-	}
-
 	onUpdate = (): void => {
 		const { editor } = this
 		const vsb = editor.getViewportScreenBounds()
@@ -179,12 +173,24 @@ export class RainbowShaderManager extends WebGLManager<ShaderManagerConfig> {
 		}
 	}
 
+	onFirstRender = (): void => {
+		if (!this.gl || !this.program) return
+
+		this.gl.viewport(0, 0, this.canvas.width, this.canvas.height)
+		this.gl.clearColor(0, 0, 0, 0)
+		this.gl.enable(this.gl.BLEND)
+		this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA)
+		this.gl.useProgram(this.program)
+	}
+
 	onRender = (_deltaTime: number, _currentTime: number): void => {
 		if (!this.gl || !this.program) return
 
+		this.gl.clear(this.gl.COLOR_BUFFER_BIT)
+
 		const isDarkMode = this.editor.user.getIsDarkMode()
 
-		const { quality } = this.getConfig()
+		const { quality, stepSize, steps, offset } = this.getConfig()
 
 		if (this.u_resolution) {
 			this.gl.uniform2f(this.u_resolution, this.canvas.width, this.canvas.height)
@@ -197,6 +203,15 @@ export class RainbowShaderManager extends WebGLManager<ShaderManagerConfig> {
 		}
 		if (this.u_zoom) {
 			this.gl.uniform1f(this.u_zoom, this.editor.getZoomLevel())
+		}
+		if (this.u_stepSize) {
+			this.gl.uniform1f(this.u_stepSize, stepSize)
+		}
+		if (this.u_steps) {
+			this.gl.uniform1i(this.u_steps, steps)
+		}
+		if (this.u_offset) {
+			this.gl.uniform1f(this.u_offset, offset)
 		}
 
 		const allSegments: number[] = []

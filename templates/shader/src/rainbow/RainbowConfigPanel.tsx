@@ -7,7 +7,8 @@ import { resetShaderConfig, shaderConfig } from './config'
 
 const SLIDER_CONFIGS: Record<string, { min: number; max: number }> = {
 	quality: { min: 0.1, max: 1 },
-	radius: { min: 100, max: 1000 },
+	stepSize: { min: 1, max: 50 },
+	steps: { min: 1, max: 100 },
 }
 
 export function RainbowConfigPanel() {

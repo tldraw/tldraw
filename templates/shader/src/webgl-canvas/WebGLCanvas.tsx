@@ -7,6 +7,7 @@ export const WebGLCanvas = forwardRef<
 	{ config: Atom<WebGLManagerConfig, unknown> }
 >(({ config }, ref) => {
 	const isPixelated = useValue('config', () => config.get().pixelate, [])
+	console.log('isPixelated', isPixelated)
 	const canvasClassName = `shader-canvas${isPixelated ? ' shader-canvas-pixelated' : ''}`
 	return <canvas ref={ref} className={canvasClassName} />
 })

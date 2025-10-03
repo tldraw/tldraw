@@ -2,13 +2,17 @@ import { atom, react } from 'tldraw'
 import { WebGLManagerConfig } from '../WebGLManager'
 
 export interface ShaderManagerConfig extends WebGLManagerConfig {
-	radius: number
+	stepSize: number
+	steps: number
+	offset: number
 }
 
 export const DEFAULT_CONFIG: ShaderManagerConfig = {
 	startPaused: true,
 	quality: 0.5,
-	radius: 500,
+	stepSize: 10,
+	steps: 10,
+	offset: 0,
 	pixelate: true,
 }
 

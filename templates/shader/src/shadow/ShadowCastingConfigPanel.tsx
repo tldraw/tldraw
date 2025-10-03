@@ -14,7 +14,6 @@ export function ShadowCastingConfigPanel() {
 	const config = useValue('config', () => shaderConfig.get(), [])
 
 	const handleChange = useCallback((prop: string, value: number | boolean) => {
-		console.log(value)
 		shaderConfig.update((prev) => ({ ...prev, [prop]: value }))
 	}, [])
 
