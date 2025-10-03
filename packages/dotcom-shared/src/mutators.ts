@@ -159,7 +159,9 @@ export function createMutators(userId: string) {
 						assert(file.ownerId === userId || file.shared, ZErrorCode.forbidden)
 					} else {
 						assert(file.owningGroupId, ZErrorCode.bad_request)
-						await assertUserIsGroupMember(tx, userId, file.owningGroupId)
+						if (!file.shared) {
+							await assertUserIsGroupMember(tx, userId, file.owningGroupId)
+						}
 					}
 				}
 				await tx.mutate.file_state.upsert(fileState)

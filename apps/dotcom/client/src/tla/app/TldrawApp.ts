@@ -39,7 +39,6 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import pick from 'lodash.pick'
-import { useNavigate } from 'react-router-dom'
 import {
 	Atom,
 	Signal,
@@ -138,16 +137,13 @@ export class TldrawApp {
 
 	toasts: TLUiToastsContextType | null = null
 	trackEvent: TLAppUiContextType
-	navigate: ReturnType<typeof useNavigate>
 
 	private constructor(
 		public readonly userId: string,
 		getToken: () => Promise<string | undefined>,
 		onClientTooOld: () => void,
-		trackEvent: TLAppUiContextType,
-		navigate: ReturnType<typeof useNavigate>
+		trackEvent: TLAppUiContextType
 	) {
-		this.navigate = navigate
 		this.trackEvent = trackEvent
 		const sessionId = uniqueId()
 		this.z = useProperZero
@@ -513,7 +509,7 @@ export class TldrawApp {
 		groupId?: string
 		name?: string
 		createSource?: string | null
-	}): Promise<Result<{ fileId: string }, 'max number of files reached'>> {
+	} = {}): Promise<Result<{ fileId: string }, 'max number of files reached'>> {
 		if (!this.canCreateNewFile()) {
 			this.showMaxFilesToast()
 			return Result.err('max number of files reached')
@@ -765,20 +761,13 @@ export class TldrawApp {
 		getToken(): Promise<string | undefined>
 		onClientTooOld(): void
 		trackEvent: TLAppUiContextType
-		navigate: ReturnType<typeof useNavigate>
 	}) {
 		// This is an issue: we may have a user record but not in the store.
 		// Could be just old accounts since before the server had a version
 		// of the store... but we should probably identify that better.
 
 		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
-		const app = new TldrawApp(
-			opts.userId,
-			opts.getToken,
-			opts.onClientTooOld,
-			opts.trackEvent,
-			opts.navigate
-		)
+		const app = new TldrawApp(opts.userId, opts.getToken, opts.onClientTooOld, opts.trackEvent)
 		// @ts-expect-error
 		window.app = app
 		const didCreate = await app.preload({
