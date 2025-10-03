@@ -6,7 +6,10 @@ const isTest = () =>
 
 const fpsQueue: Array<() => void> = []
 const targetFps = 120
-const targetTimePerFrame = Math.floor(1000 / targetFps) * 0.9 // ~7ms - we allow for some variance as browsers aren't that precise.
+// Browsers aren't precise with frame timing - this factor prevents skipping frames unnecessarily
+// by aiming slightly below the theoretical frame duration (e.g., ~7.5ms instead of 8.33ms for 120fps)
+const timingVarianceFactor = 0.9
+const targetTimePerFrame = Math.floor(1000 / targetFps) * timingVarianceFactor // ~7ms
 let frameRaf: undefined | number
 let flushRaf: undefined | number
 let lastFlushTime = -targetTimePerFrame
@@ -99,7 +102,7 @@ export function fpsThrottle(
 		// Custom FPS - check timing before queuing
 		if (getTargetFps) {
 			const lastRun = customFpsLastRunTime.get(fn) ?? -Infinity
-			const customTimePerFrame = Math.floor(1000 / getTargetFps()) * 0.9
+			const customTimePerFrame = Math.floor(1000 / getTargetFps()) * timingVarianceFactor
 			const elapsed = Date.now() - lastRun
 
 			if (elapsed < customTimePerFrame) {
