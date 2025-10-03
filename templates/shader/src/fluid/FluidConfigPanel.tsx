@@ -26,7 +26,7 @@ export function FluidConfigPanel() {
 			<ConfigPanelSlider
 				prop="quality"
 				label="Quality"
-				min={0}
+				min={0.001}
 				max={1}
 				value={config.quality}
 				type="float"

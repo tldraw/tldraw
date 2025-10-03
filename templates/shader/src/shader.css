@@ -113,4 +113,5 @@
 .shader-app .shader-panel-label {
 	height: 20px;
 	padding: var(--tl-space-4);
+	font-family: var(--tl-font-mono);
 }

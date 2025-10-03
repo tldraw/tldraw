@@ -12,6 +12,7 @@ uniform float u_zoom;
 uniform float u_stepSize;
 uniform int u_steps;
 uniform float u_offset;
+uniform vec2 u_pointerPos;
 
 // Constants
 #define MAX_SEGMENTS 512
@@ -132,6 +133,18 @@ void main() {
 		return;
   }
 
+	// Apply pointer erosion effect
+	vec2 pointerPixelPos = u_pointerPos * u_resolution;
+	float pointerDist = distance(pixelPos, pointerPixelPos);
+	float pointerRadius = 100.0 * u_zoom; // Radius of effect in pixels
+
+	// Only affect pixels within the pointer radius
+	if (pointerDist < pointerRadius) {
+		// Erosion strength falls off from center to edge
+		float erosionStrength = smoothstep(pointerRadius, 0.0, pointerDist);
+		// Subtract from geometry distance, creating erosion effect
+		minDist = max(0.0, minDist - erosionStrength * maxDistance * 0.3);
+	}
 
 	// Quantize distance into discrete bands
 	float steps = float(u_steps);

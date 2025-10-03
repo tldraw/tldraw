@@ -23,9 +23,12 @@ export class RainbowShaderManager extends WebGLManager<ShaderManagerConfig> {
 	private u_offset: WebGLUniformLocation | null = null
 	private u_segments: WebGLUniformLocation | null = null
 	private u_segmentCount: WebGLUniformLocation | null = null
+	private u_pointerPos: WebGLUniformLocation | null = null
 
 	private geometries: Geometry[] = []
 	private maxSegments: number = 2000
+
+	private pointer: Vec = new Vec(0.5, 0.5)
 
 	constructor(
 		editor: Editor,
@@ -125,6 +128,7 @@ export class RainbowShaderManager extends WebGLManager<ShaderManagerConfig> {
 		this.u_offset = this.gl.getUniformLocation(this.program, 'u_offset')
 		this.u_segments = this.gl.getUniformLocation(this.program, 'u_segments')
 		this.u_segmentCount = this.gl.getUniformLocation(this.program, 'u_segmentCount')
+		this.u_pointerPos = this.gl.getUniformLocation(this.program, 'u_pointerPos')
 
 		this.positionBuffer = this.gl.createBuffer()
 
@@ -211,6 +215,9 @@ export class RainbowShaderManager extends WebGLManager<ShaderManagerConfig> {
 		if (this.u_offset) {
 			this.gl.uniform1f(this.u_offset, offset)
 		}
+		if (this.u_pointerPos) {
+			this.gl.uniform2f(this.u_pointerPos, this.pointer.x, this.pointer.y)
+		}
 
 		const allSegments: number[] = []
 
@@ -267,6 +274,13 @@ export class RainbowShaderManager extends WebGLManager<ShaderManagerConfig> {
 		} catch (e) {
 			console.log('Error refreshing geometries', e)
 		}
+	}
+
+	pointerMove = (x: number, y: number): void => {
+		const vsb = this.editor.getViewportScreenBounds()
+		this.pointer.x = (x - vsb.x) / vsb.width
+		this.pointer.y = 1.0 - (y - vsb.y) / vsb.height
+		this.tick()
 	}
 
 	private pageToCanvas = (

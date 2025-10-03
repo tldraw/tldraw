@@ -17,7 +17,12 @@ export const RainbowRenderer = memo(() => {
 
 		manager.refresh()
 
+		const handlePointerMove = (e: PointerEvent) => manager.pointerMove(e.clientX, e.clientY)
+
+		window.addEventListener('pointermove', handlePointerMove)
+
 		return () => {
+			window.removeEventListener('pointermove', handlePointerMove)
 			manager.dispose()
 			rShaderManager.current = null
 		}
