@@ -1,4 +1,4 @@
-import { Box, Group2d, react, TLShape, Vec } from 'tldraw'
+import { Atom, Box, Editor, Group2d, react, TLShape, Vec } from 'tldraw'
 import { WebGLManager } from '../WebGLManager'
 import { ShaderManagerConfig } from './config'
 import fragmentShader from './fragment.glsl?raw'
@@ -26,15 +26,23 @@ export class RainbowShaderManager extends WebGLManager<ShaderManagerConfig> {
 	private u_segmentCount: WebGLUniformLocation | null = null
 
 	private geometries: Geometry[] = []
-	private isDarkMode = false
 	private maxSegments: number = 2000
 
 	private _disposables = new Set<() => void>()
 
+	constructor(
+		editor: Editor,
+		canvas: HTMLCanvasElement,
+		config: Atom<ShaderManagerConfig, unknown>
+	) {
+		super(editor, canvas, config)
+		this.initialize()
+	}
+
 	/* ------------------- Life cycle ------------------- */
 
 	onInitialize = (): void => {
-		this.maxSegments = Math.floor(Math.min(512, 2000 / this.config.quality))
+		this.maxSegments = Math.floor(Math.min(512, 2000 / this.getConfig().quality))
 
 		if (!this.gl) {
 			console.error('No WebGL context available')
@@ -150,31 +158,9 @@ export class RainbowShaderManager extends WebGLManager<ShaderManagerConfig> {
 			gl2.bindVertexArray(null)
 		}
 
-		// Initial dark mode check
-		this.isDarkMode = this.editor.user.getIsDarkMode()
-
 		// Listen for shape changes
 		this._disposables.add(
-			react('shapes', () => {
-				this.tick()
-			})
-		)
-
-		// Listen for theme changes
-		this._disposables.add(
-			react('dark mode', () => {
-				const newIsDarkMode = this.editor.user.getIsDarkMode()
-				if (newIsDarkMode !== this.isDarkMode) {
-					this.isDarkMode = newIsDarkMode
-					this.tick()
-				}
-			})
-		)
-
-		// Listen for camera changes
-		this._disposables.add(
-			react('camera', () => {
-				this.editor.getCamera()
+			react('dependencies', () => {
 				this.tick()
 			})
 		)
@@ -219,15 +205,19 @@ export class RainbowShaderManager extends WebGLManager<ShaderManagerConfig> {
 	onRender = (_deltaTime: number, _currentTime: number): void => {
 		if (!this.gl || !this.program) return
 
+		const isDarkMode = this.editor.user.getIsDarkMode()
+
+		const { quality } = this.getConfig()
+
 		// Set uniforms
 		if (this.u_resolution) {
 			this.gl.uniform2f(this.u_resolution, this.canvas.width, this.canvas.height)
 		}
 		if (this.u_darkMode) {
-			this.gl.uniform1f(this.u_darkMode, this.isDarkMode ? 1.0 : 0.0)
+			this.gl.uniform1f(this.u_darkMode, isDarkMode ? 1.0 : 0.0)
 		}
 		if (this.u_quality) {
-			this.gl.uniform1f(this.u_quality, this.config.quality)
+			this.gl.uniform1f(this.u_quality, quality)
 		}
 		if (this.u_zoom) {
 			this.gl.uniform1f(this.u_zoom, this.editor.getZoomLevel())

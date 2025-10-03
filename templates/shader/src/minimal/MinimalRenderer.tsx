@@ -12,8 +12,7 @@ export const MinimalRenderer = memo(() => {
 
 	useLayoutEffect(() => {
 		const canvas = rCanvas.current!
-		const config = shaderConfig.get()
-		const manager = new MinimalShaderManager(editor, canvas, config)
+		const manager = new MinimalShaderManager(editor, canvas, shaderConfig)
 		rShaderManager.current = manager
 
 		const handlePointerMove = (e: PointerEvent) => manager.pointerMove(e.clientX, e.clientY)

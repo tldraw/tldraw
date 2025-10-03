@@ -1,4 +1,4 @@
-import { Box, Group2d, react, TLShape, Vec } from 'tldraw'
+import { Atom, Box, Editor, Group2d, react, TLShape, Vec } from 'tldraw'
 import { WebGLManager } from '../WebGLManager'
 import { ShaderManagerConfig } from './config'
 import fragmentShader from './fragment.glsl?raw'
@@ -28,7 +28,6 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 	private u_shadowContrast: WebGLUniformLocation | null = null
 
 	private geometries: Geometry[] = []
-	private isDarkMode = false
 	private maxSegments: number = 2000
 
 	// The pointer position in normalized coordinates (0-1)
@@ -36,10 +35,20 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 
 	private _disposables = new Set<() => void>()
 
+	constructor(
+		editor: Editor,
+		canvas: HTMLCanvasElement,
+		config: Atom<ShaderManagerConfig, unknown>
+	) {
+		super(editor, canvas, config)
+		this.initialize()
+	}
+
 	/* ------------------- Life cycle ------------------- */
 
 	onInitialize = (): void => {
-		this.maxSegments = Math.floor(Math.min(512, 2000 / this.config.quality))
+		console.log('initializing here...')
+		this.maxSegments = Math.floor(Math.min(512, 2000 / this.getConfig().quality))
 
 		if (!this.gl) {
 			console.error('No WebGL context available')
@@ -157,36 +166,13 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 			gl2.bindVertexArray(null)
 		}
 
-		// Initial dark mode check
-		this.isDarkMode = this.editor.user.getIsDarkMode()
-
-		// Listen for shape changes
 		this._disposables.add(
-			react('shapes', () => {
+			react('dependencies', () => {
+				console.log('dependencies changed')
 				this.tick()
 			})
 		)
 
-		// Listen for theme changes
-		this._disposables.add(
-			react('dark mode', () => {
-				const newIsDarkMode = this.editor.user.getIsDarkMode()
-				if (newIsDarkMode !== this.isDarkMode) {
-					this.isDarkMode = newIsDarkMode
-					this.tick()
-				}
-			})
-		)
-
-		// Listen for camera changes
-		this._disposables.add(
-			react('camera', () => {
-				this.editor.getCamera()
-				this.tick()
-			})
-		)
-
-		// update and render
 		this.tick()
 	}
 
@@ -226,15 +212,20 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 	onRender = (_deltaTime: number, _currentTime: number): void => {
 		if (!this.gl || !this.program) return
 
+		const isDarkMode = this.editor.user.getIsDarkMode()
+
+		const { quality, shadowContrast } = this.getConfig()
+		console.log(quality, shadowContrast)
+
 		// Set uniforms
 		if (this.u_resolution) {
 			this.gl.uniform2f(this.u_resolution, this.canvas.width, this.canvas.height)
 		}
 		if (this.u_darkMode) {
-			this.gl.uniform1f(this.u_darkMode, this.isDarkMode ? 1.0 : 0.0)
+			this.gl.uniform1f(this.u_darkMode, isDarkMode ? 1.0 : 0.0)
 		}
 		if (this.u_quality) {
-			this.gl.uniform1f(this.u_quality, this.config.quality)
+			this.gl.uniform1f(this.u_quality, quality)
 		}
 		if (this.u_zoom) {
 			this.gl.uniform1f(this.u_zoom, this.editor.getZoomLevel())
@@ -244,7 +235,7 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 			this.gl.uniform2f(this.u_lightPos, this.pointer.x, this.pointer.y)
 		}
 		if (this.u_shadowContrast) {
-			this.gl.uniform1f(this.u_shadowContrast, this.config.shadowContrast)
+			this.gl.uniform1f(this.u_shadowContrast, shadowContrast)
 		}
 
 		// Flatten all geometries into segments array

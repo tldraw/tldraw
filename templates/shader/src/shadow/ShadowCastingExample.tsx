@@ -12,8 +12,7 @@ export const ShadowCastingRenderer = memo(() => {
 
 	useLayoutEffect(() => {
 		const canvas = rCanvas.current!
-		const config = shaderConfig.get()
-		const manager = new ShadowCastingShaderManager(editor, canvas, config)
+		const manager = new ShadowCastingShaderManager(editor, canvas, shaderConfig)
 		rShaderManager.current = manager
 
 		const handlePointerMove = (e: PointerEvent) => manager.pointerMove(e.clientX, e.clientY)

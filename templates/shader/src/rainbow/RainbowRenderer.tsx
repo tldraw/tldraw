@@ -12,8 +12,7 @@ export const RainbowRenderer = memo(() => {
 
 	useLayoutEffect(() => {
 		const canvas = rCanvas.current!
-		const config = shaderConfig.get()
-		const manager = new RainbowShaderManager(editor, canvas, config)
+		const manager = new RainbowShaderManager(editor, canvas, shaderConfig)
 		rShaderManager.current = manager
 
 		manager.refresh()

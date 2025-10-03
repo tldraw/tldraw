@@ -1,4 +1,4 @@
-import { Editor } from 'tldraw'
+import { Atom, computed, debounce, Editor, react } from 'tldraw'
 
 export interface WebGLManagerConfig {
 	quality: number
@@ -29,12 +29,28 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 	isDisposed: boolean = false
 	private _needsFirstRender: boolean = true
 
+	disposables = new Set<() => void>()
+
 	constructor(
 		readonly editor: Editor,
 		readonly canvas: HTMLCanvasElement,
-		public config: T
+		public configAtom: Atom<T, unknown>
 	) {
-		this.initialize()
+		this.disposables.add(
+			react('quality changed', () => {
+				editor.getViewportScreenBounds()
+				this.getQuality()
+				this.resize()
+			})
+		)
+	}
+
+	@computed getQuality() {
+		return this.getConfig().quality
+	}
+
+	@computed getConfig() {
+		return this.configAtom.get()
 	}
 
 	/**
@@ -42,7 +58,7 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 	 * Call this before using any WebGL functionality.
 	 */
 	initialize = (): void => {
-		const { startPaused, contextAttributes } = this.config
+		const { startPaused, contextAttributes } = this.getConfig()
 
 		if (this.isInitialized) {
 			console.warn('WebGLManager already initialized')
@@ -163,6 +179,9 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 	 * After calling dispose(), this instance cannot be reused.
 	 */
 	dispose = (): void => {
+		this.disposables.forEach((dispose) => dispose())
+		this.disposables.clear()
+
 		if (this.isDisposed) {
 			console.warn('WebGLManager already disposed')
 			return
@@ -220,14 +239,15 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 	 * @param width - New canvas width
 	 * @param height - New canvas height
 	 */
-	resize = (): void => {
+	resize = debounce((): void => {
 		const { width, height } = this.canvas.getBoundingClientRect()
 		if (!this.isInitialized || this.isDisposed || !this.gl) {
 			return
 		}
 
-		this.canvas.width = Math.floor(width * this.config.quality)
-		this.canvas.height = Math.floor(height * this.config.quality)
+		const { quality } = this.getConfig()
+		this.canvas.width = Math.floor(width * quality)
+		this.canvas.height = Math.floor(height * quality)
 
 		// Apply quality (resolution scale) to the internal canvas resolution
 		this.gl.viewport(0, 0, this.canvas.width, this.canvas.height)
@@ -239,7 +259,7 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 		if (!this.isRunning()) {
 			this.tick()
 		}
-	}
+	}, 100)
 
 	/**
 	 * Pause the animation loop.
@@ -266,7 +286,7 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 	 * Useful for on-demand rendering when the animation loop is paused.
 	 */
 	tick = (): void => {
-		if (!this.isInitialized || this.isDisposed) return
+		if (this.isDisposed) return
 
 		const currentTime = performance.now()
 		const deltaTime = (currentTime - this.lastFrameTime) / 1000
@@ -289,21 +309,5 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 	 */
 	isRunning = (): boolean => {
 		return this.animationFrameId !== null
-	}
-
-	/**
-	 * Set the configuration of the manager.
-	 * @param config - Configuration object
-	 */
-	setConfig = (config: T): void => {
-		this.config = config
-		this.resize()
-	}
-
-	/**
-	 * Get the current quality (resolution scale).
-	 */
-	getConfig = (): T => {
-		return this.config
 	}
 }
