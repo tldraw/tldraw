@@ -310,6 +310,9 @@ export class UserDataSyncer {
 				initialData.user = []
 				initialData.file = []
 				initialData.file_state = []
+				initialData.group = []
+				initialData.group_user = []
+				initialData.group_file = []
 
 				await this.db.transaction().execute(async (tx) => {
 					const result = await tx.executeQuery(CompiledQuery.raw(fetchEverythingSql, [this.userId]))
