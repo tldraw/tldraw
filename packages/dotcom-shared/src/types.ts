@@ -14,8 +14,6 @@ import {
 	TlaRow,
 	TlaUser,
 	TlaUserPartial,
-	TlaUserPresence,
-	TlaUserPresencePartial,
 } from './tlaSchema'
 
 export interface Snapshot {
@@ -128,7 +126,6 @@ export interface ZStoreData {
 	user: TlaUser[]
 	group: TlaGroup[]
 	group_user: TlaGroupUser[]
-	user_presence: TlaUserPresence[]
 	group_file: TlaGroupFile[]
 	lsn: string
 }
@@ -148,20 +145,12 @@ export interface ZRowDeleteOrUpdate {
 		| TlaUserPartial
 		| TlaGroupPartial
 		| TlaGroupUserPartial
-		| TlaUserPresencePartial
 		| TlaGroupFilePartial
 	table: ZTable
 	event: 'update' | 'delete'
 }
 
-export type ZTable =
-	| 'file'
-	| 'file_state'
-	| 'user'
-	| 'group'
-	| 'group_user'
-	| 'user_presence'
-	| 'group_file'
+export type ZTable = 'file' | 'file_state' | 'user' | 'group' | 'group_user' | 'group_file'
 
 export type ZEvent = 'insert' | 'update' | 'delete'
 

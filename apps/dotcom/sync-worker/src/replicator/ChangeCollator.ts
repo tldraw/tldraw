@@ -7,7 +7,6 @@ import {
 	TlaRow,
 	TlaUser,
 	TlaUserMutationNumber,
-	TlaUserPresence,
 	ZTable,
 } from '@tldraw/dotcom-shared'
 import { exhaustiveSwitchError } from '@tldraw/utils'
@@ -55,8 +54,6 @@ export function getTopics(row: TlaRow, event: ReplicationEvent): Topic[] {
 			return [`group:${(row as TlaGroup).id}`]
 		case 'group_user':
 			return [`group:${(row as TlaGroupUser).groupId}`, `user:${(row as TlaGroupUser).userId}`]
-		case 'user_presence':
-			return [`file:${(row as TlaUserPresence).fileId}`]
 		case 'group_file':
 			return [`group:${(row as TlaGroupFile).groupId}`, `file:${(row as TlaGroupFile).fileId}`]
 		default: {

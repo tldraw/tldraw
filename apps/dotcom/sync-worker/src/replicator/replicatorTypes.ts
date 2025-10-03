@@ -10,7 +10,6 @@ export const relevantTables = stringEnum(
 	'user_mutation_number',
 	'group',
 	'group_user',
-	'user_presence',
 	'group_file'
 )
 

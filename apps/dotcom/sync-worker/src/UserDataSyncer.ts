@@ -128,7 +128,6 @@ function migrateStateSnapshot(snapshot: any) {
 			file_state: data.file_state,
 			group: [],
 			group_user: [],
-			user_presence: [],
 			group_file: [],
 		} satisfies ZStoreData
 	}
@@ -298,7 +297,6 @@ export class UserDataSyncer {
 			file_state: [],
 			group: [],
 			group_user: [],
-			user_presence: [],
 			group_file: [],
 			lsn: '0/0',
 			mutationNumber: 0,
@@ -478,7 +476,6 @@ export class UserDataSyncer {
 				event.table !== 'file_state' &&
 				event.table !== 'group' &&
 				event.table !== 'group_user' &&
-				event.table !== 'user_presence' &&
 				event.table !== 'group_file'
 			) {
 				throw new Error(`Unhandled table: ${event.table}`)

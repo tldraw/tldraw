@@ -17,7 +17,6 @@ import {
 	TlaMutators,
 	TlaSchema,
 	TlaUser,
-	TlaUserPresence,
 	UserPreferencesKeys,
 	ZErrorCode,
 	Z_PROTOCOL_VERSION,
@@ -95,7 +94,7 @@ export class TldrawApp {
 	private readonly groupMemberships$: Signal<
 		(TlaGroupUser & {
 			group: TlaGroup
-			groupFiles: Array<TlaGroupFile & { file: TlaFile & { presences: TlaUserPresence[] } }>
+			groupFiles: Array<TlaGroupFile & { file: TlaFile }>
 			groupMembers: Array<TlaGroupUser>
 		})[]
 	>
