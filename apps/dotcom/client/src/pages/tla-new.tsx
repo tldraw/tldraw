@@ -16,8 +16,8 @@ export function Component() {
 			}
 			const res = await app.createFile()
 			if (res.ok) {
-				const { file } = res.value
-				navigate(routes.tlaFile(file.id), { replace: true })
+				const { fileId } = res.value
+				navigate(routes.tlaFile(fileId), { replace: true })
 				trackEvent('create-file', { source: 'new-page' })
 			} else {
 				navigate(routes.tlaRoot(), { replace: true })

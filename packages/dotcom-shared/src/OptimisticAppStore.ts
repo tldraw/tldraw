@@ -114,7 +114,7 @@ export class OptimisticAppStore {
 				assert(!rows.some(matchExisting), 'row already exists')
 				return { ...prev, [table]: [...rows, row] }
 			case 'update':
-				assert(rows.some(matchExisting), 'row not found')
+				assert(rows.some(matchExisting), 'row not found ' + table + ' ' + JSON.stringify(row))
 				return {
 					...prev,
 					[table]: rows.map((existing) => {

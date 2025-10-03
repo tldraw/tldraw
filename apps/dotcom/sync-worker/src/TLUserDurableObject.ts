@@ -327,6 +327,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private pool: Pool
 
 	private async _doMutate(msg: ZClientSentMessage) {
+		this.log.debug('doMutate', this.userId, msg)
 		assert(msg.type === 'mutator', 'Invalid message type')
 		this.assertCache()
 		const client = await this.pool.connect()

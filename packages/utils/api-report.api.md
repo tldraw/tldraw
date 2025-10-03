@@ -458,6 +458,11 @@ export function sortByIndex<T extends {
     index: IndexKey;
 }>(a: T, b: T): -1 | 0 | 1;
 
+// @public
+export function sortByMaybeIndex<T extends {
+    index?: IndexKey | null;
+}>(a: T, b: T): -1 | 0 | 1;
+
 // @internal
 export function stringEnum<T extends string>(...values: T[]): {
     [K in T]: K;
