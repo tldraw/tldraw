@@ -1,5 +1,5 @@
 {
-	"name": "tldraw-fluid-simulation-example",
+	"name": "tldraw-shader-starter-kit",
 	"private": true,
 	"version": "0.0.0",
 	"author": {
@@ -10,10 +10,10 @@
 	"license": "MIT",
 	"type": "module",
 	"tldraw_template": {
-		"repo": "tldraw/fluid-simulation-template",
+		"repo": "tldraw/shader-starter-kit",
 		"cli": {
-			"name": "Fluid Simulation",
-			"description": "A tldraw template with WebGL fluid simulation background that creates dynamic fluid flows from shape geometry.",
+			"name": "Shader Starter Kit",
+			"description": "A tldraw template with WebGL shader starter kit that creates dynamic shader effects from shape geometry.",
 			"order": 10
 		},
 		"scripts": {

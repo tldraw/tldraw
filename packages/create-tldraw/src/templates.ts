@@ -17,6 +17,13 @@ export const TEMPLATES: Template[] = [
 		repo: 'tldraw/vite-template',
 	},
 	{
+		name: 'Fluid Simulation',
+		description:
+			'A tldraw template with WebGL fluid simulation background that creates dynamic fluid flows from shape geometry.',
+		order: 10,
+		repo: 'tldraw/fluid-simulation-template',
+	},
+	{
 		name: 'Agent',
 		description: 'Enable AI agents to interpret and interact with canvas drawings and elements.',
 		shortDescription: 'An AI-powered agent.',
