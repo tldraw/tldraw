@@ -372,6 +372,7 @@ DECLARE
     v_pinned_files_migrated INTEGER := 0;
     v_current_flags TEXT;
     v_file_record RECORD;
+    v_now BIGINT := EXTRACT(EPOCH FROM NOW()) * 1000;
 BEGIN
     -- Check if user exists
     IF NOT EXISTS (SELECT 1 FROM public."user" WHERE id = target_user_id) THEN
@@ -388,11 +389,11 @@ BEGIN
 
     -- Create a home group for the user
     INSERT INTO public."group" ("id", "name", "createdAt", "updatedAt", "isDeleted", "inviteSecret")
-    VALUES (target_user_id, target_user_id, EXTRACT(EPOCH FROM NOW()) * 1000, EXTRACT(EPOCH FROM NOW()) * 1000, FALSE, invite_secret);
+    VALUES (target_user_id, target_user_id, v_now, v_now, FALSE, invite_secret);
 
     -- Make the user a member of the home group
     INSERT INTO public."group_user" ("userId", "groupId", "createdAt", "updatedAt", "role", "index", "userName", "userColor")
-    VALUES (target_user_id, target_user_id, EXTRACT(EPOCH FROM NOW()) * 1000, EXTRACT(EPOCH FROM NOW()) * 1000, 'owner', 'a1', '', '');
+    VALUES (target_user_id, target_user_id, v_now, v_now, 'owner', 'a1', '', '');
 
     -- For any files owned by the user, change the owningGroupId to the home group and set the ownerId to null
     UPDATE public."file"
@@ -402,28 +403,28 @@ BEGIN
 
     -- For any files owned by the user, create a group_file entry in the home group
     INSERT INTO public."group_file" ("fileId", "groupId", "createdAt", "updatedAt")
-    SELECT f."id", target_user_id, EXTRACT(EPOCH FROM NOW()) * 1000, EXTRACT(EPOCH FROM NOW()) * 1000
+    SELECT f."id", target_user_id, COALESCE(f."createdAt", v_now), COALESCE(f."updatedAt", v_now)
     FROM public."file" f
     WHERE f."owningGroupId" = target_user_id
       AND f."isDeleted" = FALSE;
 
     -- For any shared files that the user has access to, create a group_file entry in the home group
     INSERT INTO public."group_file" ("fileId", "groupId", "createdAt", "updatedAt")
-    SELECT fs."fileId", target_user_id, EXTRACT(EPOCH FROM NOW()) * 1000, EXTRACT(EPOCH FROM NOW()) * 1000
+    SELECT fs."fileId", target_user_id, COALESCE(fs."firstVisitAt", v_now), COALESCE(fs."lastEditAt", v_now)
     FROM public."file_state" fs
     WHERE fs."userId" = target_user_id
       AND fs."isFileOwner" = FALSE;
 
     -- Update indexes for the group_file entries
-    UPDATE public."group_file"
-    SET "index" = 'a' || gf.i::text
+    UPDATE public."group_file" gf
+    SET "index" = 'a' || fs.i::text
     FROM (
       SELECT "fileId", ROW_NUMBER() over (ORDER BY COALESCE("lastEditAt", "firstVisitAt", 0) DESC) AS i
       FROM public."file_state"
       WHERE "userId" = target_user_id
         AND "isPinned" = TRUE
-    ) AS gf
-    WHERE "fileId" = gf."fileId" AND "groupId" = target_user_id;
+    ) AS fs
+    WHERE gf."fileId" = fs."fileId" AND gf."groupId" = target_user_id;
 
     -- Add 'groups' flag to user
     IF v_current_flags IS NULL OR v_current_flags = '' THEN
