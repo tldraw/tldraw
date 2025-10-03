@@ -12,6 +12,9 @@ uniform float u_zoom;
 uniform vec2 u_lightPos;
 uniform float u_shadowContrast;
 
+#define LIGHT_SHADOW_ALPHA 0.5
+#define DARK_SHADOW_ALPHA 0.15
+
 // Geometry data
 #define MAX_SEGMENTS 512
 uniform vec4 u_segments[MAX_SEGMENTS]; // xy = start, zw = end
@@ -68,26 +71,24 @@ void main() {
 
 	// Check if this pixel is visible from the light
 	bool visible = isVisible(v_uv, u_lightPos);
-	
-	// Canvas background colors
-	vec3 darkBg = vec3(16.0/255.0, 16.0/255.0, 17.0/255.0);
-	vec3 lightBg = vec3(249.0/255.0, 250.0/255.0, 251.0/255.0);
-	
-	vec3 bgColor = u_darkMode > 0.5 ? darkBg : lightBg;
+
 	bool isDark = u_darkMode > 0.5;
-	
-	if (visible) {
-		if (isDark) {
-			// Dark mode: Visible area is lighter than background
-			vec3 litColor = bgColor + vec3(u_shadowContrast);
-			fragColor = vec4(litColor, 1.0);
+
+	if (isDark) {
+		if (visible) {
+			// Visible area is transparent (show canvas)
+			// Shadow area - semi-transparent black overlay
+			fragColor = vec4(1.0, 1.0, 1.0, u_shadowContrast * DARK_SHADOW_ALPHA);
 		} else {
-			// Light mode: Visible area is transparent (show canvas)
 			fragColor = vec4(0.0, 0.0, 0.0, 0.0);
 		}
 	} else {
-		// Shadow area - darker than background
-		vec3 shadowColor = bgColor - vec3(u_shadowContrast * 0.5);
-		fragColor = vec4(shadowColor, 1.0);
+		if (visible) {
+			// Visible area is transparent (show canvas)
+			fragColor = vec4(0.0, 0.0, 0.0, 0.0);
+		} else {
+			// Shadow area - semi-transparent black overlay
+			fragColor = vec4(0.0, 0.0, 0.0, u_shadowContrast * LIGHT_SHADOW_ALPHA);
+		}
 	}
 }

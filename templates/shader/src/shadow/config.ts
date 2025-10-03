@@ -8,7 +8,7 @@ export interface ShaderManagerConfig extends WebGLManagerConfig {
 export const DEFAULT_CONFIG: ShaderManagerConfig = {
 	startPaused: true,
 	quality: 0.5,
-	shadowContrast: 0.08,
+	shadowContrast: 0.5,
 	pixelate: true,
 }
 

@@ -188,6 +188,9 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 	onRender = (_deltaTime: number, _currentTime: number): void => {
 		if (!this.gl || !this.program) return
 
+		// Clear the canvas each frame to prevent flickering
+		this.gl.clear(this.gl.COLOR_BUFFER_BIT)
+
 		const isDarkMode = this.editor.user.getIsDarkMode()
 
 		const { quality, shadowContrast } = this.getConfig()
