@@ -24,73 +24,89 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+/**
+ * Configuration parameters for the fluid simulation.
+ */
 export interface FluidConfig {
+	/** Resolution of the simulation grid (lower = faster, higher = more detailed) */
 	SIM_RESOLUTION: number
+	/** Resolution of the dye texture (affects visual quality) */
 	DYE_RESOLUTION: number
+	/** Rate at which dye density dissipates (0 = never fades, higher = fades faster) */
 	DENSITY_DISSIPATION: number
+	/** Rate at which velocity dissipates (0 = perpetual motion, higher = stops faster) */
 	VELOCITY_DISSIPATION: number
+	/** Pressure strength for velocity field calculations */
 	PRESSURE: number
+	/** Number of iterations for pressure solver (higher = more accurate but slower) */
 	PRESSURE_ITERATIONS: number
+	/** Vorticity confinement strength (creates swirling patterns) */
 	CURL: number
+	/** Radius of splat effect (size of fluid disturbance) */
 	SPLAT_RADIUS: number
+	/** Force applied to splats (strength of fluid disturbance) */
 	SPLAT_FORCE: number
+	/** Enable shading effect (adds depth perception) */
 	SHADING: boolean
+	/** Enable colorful mode (automatically cycles colors) */
 	COLORFUL: boolean
+	/** Speed of automatic color updates (when colorful is true) */
 	COLOR_UPDATE_SPEED: number
+	/** Pause the simulation */
 	PAUSED: boolean
+	/** Background color (RGB values 0-255) */
 	BACK_COLOR: { r: number; g: number; b: number }
+	/** Transparent background */
 	TRANSPARENT: boolean
+	/** Enable bloom post-processing effect */
 	BLOOM: boolean
+	/** Number of bloom blur iterations */
 	BLOOM_ITERATIONS: number
+	/** Resolution for bloom effect */
 	BLOOM_RESOLUTION: number
+	/** Bloom effect intensity */
 	BLOOM_INTENSITY: number
+	/** Brightness threshold for bloom effect */
 	BLOOM_THRESHOLD: number
+	/** Bloom soft knee (smoothness of threshold transition) */
 	BLOOM_SOFT_KNEE: number
+	/** Enable sunrays post-processing effect */
 	SUNRAYS: boolean
+	/** Resolution for sunrays effect */
 	SUNRAYS_RESOLUTION: number
+	/** Sunrays effect weight (intensity) */
 	SUNRAYS_WEIGHT: number
 }
 
-const DEFAULT_CONFIG: FluidConfig = {
-	SIM_RESOLUTION: 128,
-	DYE_RESOLUTION: 1024,
-	DENSITY_DISSIPATION: 1,
-	VELOCITY_DISSIPATION: 0.2,
-	PRESSURE: 0.8,
-	PRESSURE_ITERATIONS: 20,
-	CURL: 30,
-	SPLAT_RADIUS: 0.25,
-	SPLAT_FORCE: 6000,
-	SHADING: true,
-	COLORFUL: true,
-	COLOR_UPDATE_SPEED: 10,
-	PAUSED: false,
-	BACK_COLOR: { r: 0, g: 0, b: 0 },
-	TRANSPARENT: false,
-	BLOOM: true,
-	BLOOM_ITERATIONS: 8,
-	BLOOM_RESOLUTION: 256,
-	BLOOM_INTENSITY: 0.8,
-	BLOOM_THRESHOLD: 0.6,
-	BLOOM_SOFT_KNEE: 0.7,
-	SUNRAYS: true,
-	SUNRAYS_RESOLUTION: 196,
-	SUNRAYS_WEIGHT: 1.0,
-}
-
+/**
+ * Pointer state for tracking user interactions with the fluid simulation.
+ */
 interface Pointer {
+	/** Unique identifier for this pointer */
 	id: number
+	/** Current texture coordinate X position (normalized 0-1) */
 	texcoordX: number
+	/** Current texture coordinate Y position (normalized 0-1) */
 	texcoordY: number
+	/** Previous texture coordinate X position */
 	prevTexcoordX: number
+	/** Previous texture coordinate Y position */
 	prevTexcoordY: number
+	/** Change in X position since last update */
 	deltaX: number
+	/** Change in Y position since last update */
 	deltaY: number
+	/** Whether the pointer is currently pressed down */
 	down: boolean
+	/** Whether the pointer moved in the current frame */
 	moved: boolean
+	/** RGB color values for this pointer's splats */
 	color: [number, number, number]
 }
 
+/**
+ * Creates a new pointer instance with default values.
+ */
 function createPointer(): Pointer {
 	return {
 		id: -1,
@@ -106,11 +122,21 @@ function createPointer(): Pointer {
 	}
 }
 
+/**
+ * Main fluid simulation class implementing a GPU-accelerated Navier-Stokes solver.
+ * Based on the WebGL fluid simulation by Pavel Dobryakov (MIT License).
+ *
+ * This class handles:
+ * - WebGL context initialization and management
+ * - Shader compilation and program creation
+ * - Framebuffer management for double-buffering
+ * - Physical simulation steps (advection, diffusion, pressure solving)
+ * - Post-processing effects (bloom, sunrays)
+ * - User interaction via pointer/drag events
+ */
 export class FluidSimulation {
-	private canvas: HTMLCanvasElement
 	private gl: WebGL2RenderingContext | WebGLRenderingContext
 	private ext: any
-	private config: FluidConfig
 	private pointers: Pointer[] = []
 	private splatStack: number[] = []
 	private animationId: number | null = null
@@ -137,9 +163,15 @@ export class FluidSimulation {
 	private displayMaterial: any
 	private blit: any
 
-	constructor(canvas: HTMLCanvasElement, config: Partial<FluidConfig> = {}) {
-		this.canvas = canvas
-		this.config = { ...DEFAULT_CONFIG, ...config }
+	/**
+	 * Creates a new fluid simulation instance.
+	 * @param canvas - The HTML canvas element to render to
+	 * @param config - Configuration parameters for the simulation
+	 */
+	constructor(
+		private canvas: HTMLCanvasElement,
+		private config: FluidConfig
+	) {
 		this.pointers.push(createPointer())
 
 		const webglContext = this.getWebGLContext(canvas)
@@ -345,6 +377,27 @@ export class FluidSimulation {
 		`
 		)
 
+		// Blur vertex shader for bloom
+		const blurVertexShader = this.compileShader(
+			this.gl.VERTEX_SHADER,
+			`
+			precision highp float;
+			attribute vec2 aPosition;
+			varying vec2 vUv;
+			varying vec2 vL;
+			varying vec2 vR;
+			uniform vec2 texelSize;
+
+			void main () {
+				vUv = aPosition * 0.5 + 0.5;
+				float offset = 1.33333333;
+				vL = vUv - texelSize * offset;
+				vR = vUv + texelSize * offset;
+				gl_Position = vec4(aPosition, 0.0, 1.0);
+			}
+		`
+		)
+
 		// Simple copy shader
 		const copyShader = this.compileShader(
 			this.gl.FRAGMENT_SHADER,
@@ -392,6 +445,153 @@ export class FluidSimulation {
 				vec3 splat = exp(-dot(p, p) / radius) * color;
 				vec3 base = texture2D(uTarget, vUv).xyz;
 				gl_FragColor = vec4(base + splat, 1.0);
+			}
+		`
+		)
+
+		// Blur shader for bloom
+		const blurShader = this.compileShader(
+			this.gl.FRAGMENT_SHADER,
+			`
+			precision mediump float;
+			precision mediump sampler2D;
+			varying vec2 vUv;
+			varying vec2 vL;
+			varying vec2 vR;
+			uniform sampler2D uTexture;
+
+			void main () {
+				vec4 sum = texture2D(uTexture, vUv) * 0.29411764;
+				sum += texture2D(uTexture, vL) * 0.35294117;
+				sum += texture2D(uTexture, vR) * 0.35294117;
+				gl_FragColor = sum;
+			}
+		`
+		)
+
+		// Bloom prefilter shader
+		const bloomPrefilterShader = this.compileShader(
+			this.gl.FRAGMENT_SHADER,
+			`
+			precision mediump float;
+			precision mediump sampler2D;
+			varying vec2 vUv;
+			uniform sampler2D uTexture;
+			uniform vec3 curve;
+			uniform float threshold;
+
+			void main () {
+				vec3 c = texture2D(uTexture, vUv).rgb;
+				float br = max(c.r, max(c.g, c.b));
+				float rq = clamp(br - curve.x, 0.0, curve.y);
+				rq = curve.z * rq * rq;
+				c *= max(rq, br - threshold) / max(br, 0.0001);
+				gl_FragColor = vec4(c, 0.0);
+			}
+		`
+		)
+
+		// Bloom blur shader
+		const bloomBlurShader = this.compileShader(
+			this.gl.FRAGMENT_SHADER,
+			`
+			precision mediump float;
+			precision mediump sampler2D;
+			varying vec2 vL;
+			varying vec2 vR;
+			varying vec2 vT;
+			varying vec2 vB;
+			uniform sampler2D uTexture;
+
+			void main () {
+				vec4 sum = vec4(0.0);
+				sum += texture2D(uTexture, vL);
+				sum += texture2D(uTexture, vR);
+				sum += texture2D(uTexture, vT);
+				sum += texture2D(uTexture, vB);
+				sum *= 0.25;
+				gl_FragColor = sum;
+			}
+		`
+		)
+
+		// Bloom final shader
+		const bloomFinalShader = this.compileShader(
+			this.gl.FRAGMENT_SHADER,
+			`
+			precision mediump float;
+			precision mediump sampler2D;
+			varying vec2 vL;
+			varying vec2 vR;
+			varying vec2 vT;
+			varying vec2 vB;
+			uniform sampler2D uTexture;
+			uniform float intensity;
+
+			void main () {
+				vec4 sum = vec4(0.0);
+				sum += texture2D(uTexture, vL);
+				sum += texture2D(uTexture, vR);
+				sum += texture2D(uTexture, vT);
+				sum += texture2D(uTexture, vB);
+				sum *= 0.25;
+				gl_FragColor = sum * intensity;
+			}
+		`
+		)
+
+		// Sunrays mask shader
+		const sunraysMaskShader = this.compileShader(
+			this.gl.FRAGMENT_SHADER,
+			`
+			precision highp float;
+			precision highp sampler2D;
+			varying vec2 vUv;
+			uniform sampler2D uTexture;
+
+			void main () {
+				vec4 c = texture2D(uTexture, vUv);
+				float br = max(c.r, max(c.g, c.b));
+				c.a = 1.0 - min(max(br * 20.0, 0.0), 0.8);
+				gl_FragColor = c;
+			}
+		`
+		)
+
+		// Sunrays shader
+		const sunraysShader = this.compileShader(
+			this.gl.FRAGMENT_SHADER,
+			`
+			precision highp float;
+			precision highp sampler2D;
+			varying vec2 vUv;
+			uniform sampler2D uTexture;
+			uniform float weight;
+
+			#define ITERATIONS 16
+
+			void main () {
+				float Density = 0.3;
+				float Decay = 0.95;
+				float Exposure = 0.7;
+
+				vec2 coord = vUv;
+				vec2 dir = vUv - 0.5;
+
+				dir *= 1.0 / float(ITERATIONS) * Density;
+				float illuminationDecay = 1.0;
+
+				float color = texture2D(uTexture, vUv).a;
+
+				for (int i = 0; i < ITERATIONS; i++)
+				{
+					coord -= dir;
+					float col = texture2D(uTexture, coord).a;
+					color += col * illuminationDecay * weight;
+					illuminationDecay *= Decay;
+				}
+
+				gl_FragColor = vec4(color * Exposure, 0.0, 0.0, 1.0);
 			}
 		`
 		)
@@ -599,6 +799,17 @@ export class FluidSimulation {
 			gradientSubtractShader
 		)
 
+		// Bloom and sunrays programs
+		this.programs.blur = this.createProgramWithUniforms(blurVertexShader, blurShader)
+		this.programs.bloomPrefilter = this.createProgramWithUniforms(
+			baseVertexShader,
+			bloomPrefilterShader
+		)
+		this.programs.bloomBlur = this.createProgramWithUniforms(baseVertexShader, bloomBlurShader)
+		this.programs.bloomFinal = this.createProgramWithUniforms(baseVertexShader, bloomFinalShader)
+		this.programs.sunraysMask = this.createProgramWithUniforms(baseVertexShader, sunraysMaskShader)
+		this.programs.sunrays = this.createProgramWithUniforms(baseVertexShader, sunraysShader)
+
 		// Display material with keywords support
 		this.displayMaterial = new Material(this.gl, baseVertexShader, this.getDisplayShaderSource())
 		this.updateKeywords()
@@ -673,6 +884,7 @@ export class FluidSimulation {
 				c += bloom;
 			#endif
 
+				c = clamp(c, 0.0, 1.0);
 				float a = max(c.r, max(c.g, c.b));
 				gl_FragColor = vec4(c, a);
 			}
@@ -950,68 +1162,11 @@ export class FluidSimulation {
 	}
 
 	private generateColor(modifier: number = 1): [number, number, number] {
-		// let c = this.HSVtoRGB(Math.random(), 1.0, 0.25)
-		// c.r *= 0.5
-		// c.g *= 0.5
-		// c.b *= 2
-
 		let r = Math.random() * 0.4 * modifier
 		let g = Math.random() * 0.4 * modifier
 		let b = Math.random() * 0.7 * modifier
-		// if (r < 0.2 && g < 0.2 && b < 0.2) {
-		// 	b = 1
-		// }
 		return [r, g, b]
 	}
-
-	// private HSVtoRGB(h: number, s: number, v: number) {
-	// 	let r: number, g: number, b: number, i: number, f: number, p: number, q: number, t: number
-	// 	i = Math.floor(h * 6)
-	// 	f = h * 6 - i
-	// 	p = v * (1 - s)
-	// 	q = v * (1 - f * s)
-	// 	t = v * (1 - (1 - f) * s)
-
-	// 	switch (i % 6) {
-	// 		case 0:
-	// 			r = v
-	// 			g = t
-	// 			b = p
-	// 			break
-	// 		case 1:
-	// 			r = q
-	// 			g = v
-	// 			b = p
-	// 			break
-	// 		case 2:
-	// 			r = p
-	// 			g = v
-	// 			b = t
-	// 			break
-	// 		case 3:
-	// 			r = p
-	// 			g = q
-	// 			b = v
-	// 			break
-	// 		case 4:
-	// 			r = t
-	// 			g = p
-	// 			b = v
-	// 			break
-	// 		case 5:
-	// 			r = v
-	// 			g = p
-	// 			b = q
-	// 			break
-	// 		default:
-	// 			r = 0
-	// 			g = 0
-	// 			b = 0
-	// 			break
-	// 	}
-
-	// 	return { r, g, b }
-	// }
 
 	private resizeCanvas() {
 		let width = this.scaleByPixelRatio(this.canvas.clientWidth)
@@ -1174,25 +1329,79 @@ export class FluidSimulation {
 		let last = destination
 
 		this.gl.disable(this.gl.BLEND)
-		// Simple bloom implementation - just copy for now
-		this.programs.copy.bind()
-		this.gl.uniform1i(this.programs.copy.uniforms.uTexture, source.attach(0))
-		this.blit(last)
-	}
 
-	private applySunrays(source: any, _mask: any, destination: any) {
-		this.gl.disable(this.gl.BLEND)
-		// Simple sunrays implementation - just copy for now
-		this.programs.copy.bind()
-		this.gl.uniform1i(this.programs.copy.uniforms.uTexture, source.attach(0))
+		// Apply bloom prefilter
+		this.programs.bloomPrefilter.bind()
+		const knee = this.config.BLOOM_THRESHOLD * this.config.BLOOM_SOFT_KNEE + 0.0001
+		const curve0 = this.config.BLOOM_THRESHOLD - knee
+		const curve1 = knee * 2
+		const curve2 = 0.25 / knee
+		this.gl.uniform3f(this.programs.bloomPrefilter.uniforms.curve, curve0, curve1, curve2)
+		this.gl.uniform1f(this.programs.bloomPrefilter.uniforms.threshold, this.config.BLOOM_THRESHOLD)
+		this.gl.uniform1i(this.programs.bloomPrefilter.uniforms.uTexture, source.attach(0))
+		this.blit(last)
+
+		// Blur down
+		this.programs.bloomBlur.bind()
+		for (let i = 0; i < this.bloomFramebuffers.length; i++) {
+			const dest = this.bloomFramebuffers[i]
+			this.gl.uniform2f(
+				this.programs.bloomBlur.uniforms.texelSize,
+				last.texelSizeX,
+				last.texelSizeY
+			)
+			this.gl.uniform1i(this.programs.bloomBlur.uniforms.uTexture, last.attach(0))
+			this.blit(dest)
+			last = dest
+		}
+
+		// Blur up
+		this.programs.bloomFinal.bind()
+		this.gl.uniform1f(this.programs.bloomFinal.uniforms.intensity, this.config.BLOOM_INTENSITY)
+		for (let i = this.bloomFramebuffers.length - 2; i >= 0; i--) {
+			const baseTex = this.bloomFramebuffers[i]
+			this.gl.uniform2f(
+				this.programs.bloomFinal.uniforms.texelSize,
+				last.texelSizeX,
+				last.texelSizeY
+			)
+			this.gl.uniform1i(this.programs.bloomFinal.uniforms.uTexture, last.attach(0))
+			this.blit(baseTex)
+			last = baseTex
+		}
+
+		// Final composite
+		this.gl.uniform2f(this.programs.bloomFinal.uniforms.texelSize, last.texelSizeX, last.texelSizeY)
+		this.gl.uniform1i(this.programs.bloomFinal.uniforms.uTexture, last.attach(0))
 		this.blit(destination)
 	}
 
-	private blur(target: any, temp: any, _iterations: number) {
-		// Simple blur implementation - just copy for now
-		this.programs.copy.bind()
-		this.gl.uniform1i(this.programs.copy.uniforms.uTexture, target.attach(0))
-		this.blit(temp)
+	private applySunrays(source: any, mask: any, destination: any) {
+		this.gl.disable(this.gl.BLEND)
+
+		// Create sunrays mask
+		this.programs.sunraysMask.bind()
+		this.gl.uniform1i(this.programs.sunraysMask.uniforms.uTexture, source.attach(0))
+		this.blit(mask)
+
+		// Apply sunrays effect
+		this.programs.sunrays.bind()
+		this.gl.uniform1f(this.programs.sunrays.uniforms.weight, this.config.SUNRAYS_WEIGHT)
+		this.gl.uniform1i(this.programs.sunrays.uniforms.uTexture, mask.attach(0))
+		this.blit(destination)
+	}
+
+	private blur(target: any, temp: any, iterations: number) {
+		this.programs.blur.bind()
+		for (let i = 0; i < iterations; i++) {
+			this.gl.uniform2f(this.programs.blur.uniforms.texelSize, target.texelSizeX, 0.0)
+			this.gl.uniform1i(this.programs.blur.uniforms.uTexture, target.attach(0))
+			this.blit(temp)
+
+			this.gl.uniform2f(this.programs.blur.uniforms.texelSize, 0.0, target.texelSizeY)
+			this.gl.uniform1i(this.programs.blur.uniforms.uTexture, temp.attach(0))
+			this.blit(target)
+		}
 	}
 
 	private normalizeColor(input: { r: number; g: number; b: number }) {
@@ -1329,38 +1538,129 @@ export class FluidSimulation {
 		this.dye.swap()
 	}
 
-	// Public methods for controlling the simulation
+	/**
+	 * Starts the fluid simulation animation loop.
+	 * Resizes the canvas and begins the render loop if not already running.
+	 */
 	start() {
 		if (this.isRunning) return
 		this.isRunning = true
 		this.resizeCanvas()
-		this.multipleSplats(Math.floor(Math.random() * 20) + 5)
 		this.lastUpdateTime = Date.now()
 		this.update()
 	}
 
+	/**
+	 * Destroys the fluid simulation and releases all WebGL resources.
+	 * Stops the animation loop and cleans up all textures, framebuffers, and programs.
+	 */
 	destroy() {
 		this.isRunning = false
 		if (this.animationId) {
 			cancelAnimationFrame(this.animationId)
 			this.animationId = null
 		}
+
+		// Clean up WebGL resources
+		const deleteTexture = (obj: any) => {
+			if (obj?.texture) {
+				this.gl.deleteTexture(obj.texture)
+			}
+		}
+
+		const deleteFBO = (obj: any) => {
+			if (obj?.fbo) {
+				this.gl.deleteFramebuffer(obj.fbo)
+			}
+			deleteTexture(obj)
+		}
+
+		const deleteDoubleFBO = (obj: any) => {
+			if (obj?.read) {
+				deleteFBO(obj.read)
+			}
+			if (obj?.write) {
+				deleteFBO(obj.write)
+			}
+		}
+
+		// Delete framebuffers and textures
+		deleteDoubleFBO(this.dye)
+		deleteDoubleFBO(this.velocity)
+		deleteFBO(this.divergence)
+		deleteFBO(this.curl)
+		deleteDoubleFBO(this.pressure)
+		deleteFBO(this.bloom)
+		this.bloomFramebuffers.forEach((fbo) => deleteFBO(fbo))
+		deleteFBO(this.sunrays)
+		deleteFBO(this.sunraysTemp)
+		deleteTexture(this.ditheringTexture)
+
+		// Delete programs
+		const deleteProgram = (prog: any) => {
+			if (prog?.program) {
+				this.gl.deleteProgram(prog.program)
+			}
+		}
+
+		Object.values(this.programs).forEach((prog) => deleteProgram(prog))
+
+		// Delete display material programs
+		if (this.displayMaterial) {
+			Object.values((this.displayMaterial as any).programs || {}).forEach((prog: any) => {
+				if (prog) this.gl.deleteProgram(prog)
+			})
+		}
+
+		// Clear references
+		this.dye = null
+		this.velocity = null
+		this.divergence = null
+		this.curl = null
+		this.pressure = null
+		this.bloom = null
+		this.bloomFramebuffers = []
+		this.sunrays = null
+		this.sunraysTemp = null
+		this.ditheringTexture = null
+		this.programs = {}
+		this.displayMaterial = null
 	}
 
+	/**
+	 * Pauses the fluid simulation.
+	 * The render loop continues but physics updates are skipped.
+	 */
 	pause() {
 		this.config.PAUSED = true
 	}
 
+	/**
+	 * Resumes the fluid simulation after being paused.
+	 */
 	resume() {
 		this.config.PAUSED = false
 	}
 
+	/**
+	 * Adds a single splat (fluid disturbance) at the specified location.
+	 * @param x - Normalized X coordinate (0-1)
+	 * @param y - Normalized Y coordinate (0-1)
+	 * @param dx - Velocity in X direction
+	 * @param dy - Velocity in Y direction
+	 * @param color - Optional RGB color values (0-1 range). If not provided, a random color is generated.
+	 */
 	addSplat(x: number, y: number, dx: number, dy: number, color?: [number, number, number]) {
 		if (!color) color = this.generateColor()
 		this.splat(x, y, dx, dy, { r: color[0], g: color[1], b: color[2] })
 	}
 
-	// Drag interaction methods for tldraw integration
+	/**
+	 * Starts a drag interaction at the specified position.
+	 * Used for continuous user input that creates fluid effects.
+	 * @param x - Normalized X coordinate (0-1)
+	 * @param y - Normalized Y coordinate (0-1)
+	 */
 	startDrag(x: number, y: number) {
 		if (!this.dragPointer) {
 			this.dragPointer = createPointer()
@@ -1378,6 +1678,11 @@ export class FluidSimulation {
 		this.dragPointer.color = this.generateColor()
 	}
 
+	/**
+	 * Updates the drag position and creates fluid effects along the drag path.
+	 * @param x - Normalized X coordinate (0-1)
+	 * @param y - Normalized Y coordinate (0-1)
+	 */
 	updateDrag(x: number, y: number) {
 		if (!this.isDragging || !this.dragPointer) return
 
@@ -1398,6 +1703,9 @@ export class FluidSimulation {
 		}
 	}
 
+	/**
+	 * Ends the current drag interaction.
+	 */
 	endDrag() {
 		if (this.dragPointer) {
 			this.dragPointer.down = false
@@ -1405,7 +1713,13 @@ export class FluidSimulation {
 		this.isDragging = false
 	}
 
-	// Shape geometry splat methods
+	/**
+	 * Creates fluid splats from an array of points.
+	 * Used to convert shape geometry into fluid disturbances.
+	 * @param points - Array of normalized coordinate points
+	 * @param velocity - Velocity vector to apply to splats
+	 * @param color - Optional RGB color values (0-1 range)
+	 */
 	createSplatsFromPoints(
 		points: Array<{ x: number; y: number }>,
 		velocity: { x: number; y: number } = { x: 0, y: 0 },
@@ -1420,6 +1734,13 @@ export class FluidSimulation {
 		})
 	}
 
+	/**
+	 * Interpolates points between two positions to ensure dense coverage.
+	 * @param point1 - Starting point
+	 * @param point2 - Ending point
+	 * @param maxDistance - Maximum distance between interpolated points
+	 * @returns Array of interpolated points
+	 */
 	interpolatePoints(
 		point1: { x: number; y: number },
 		point2: { x: number; y: number },
@@ -1445,7 +1766,12 @@ export class FluidSimulation {
 		return points
 	}
 
-	// Decimate points to remove those that are too close together
+	/**
+	 * Reduces point density by removing points that are too close together.
+	 * @param points - Array of points to decimate
+	 * @param minDistance - Minimum distance required between kept points
+	 * @returns Decimated array of points
+	 */
 	decimatePoints(
 		points: Array<{ x: number; y: number }>,
 		minDistance: number = 0.003
@@ -1487,7 +1813,12 @@ export class FluidSimulation {
 		return decimated
 	}
 
-	// Adaptive decimation based on point density and shape size
+	/**
+	 * Adaptively decimates points based on shape size and point density.
+	 * Larger shapes use more aggressive decimation for better performance.
+	 * @param points - Array of points to decimate
+	 * @returns Adaptively decimated array of points
+	 */
 	adaptiveDecimatePoints(points: Array<{ x: number; y: number }>): Array<{ x: number; y: number }> {
 		if (points.length <= 3) return points
 
@@ -1521,6 +1852,14 @@ export class FluidSimulation {
 		return this.decimatePoints(points, threshold)
 	}
 
+	/**
+	 * Creates fluid splats from shape geometry with intelligent point optimization.
+	 * Handles decimation, interpolation, and performance optimizations automatically.
+	 * @param geometry - Array of geometry points defining the shape
+	 * @param velocity - Velocity vector to apply to splats
+	 * @param isClosed - Whether the geometry represents a closed shape
+	 * @param color - Optional RGB color values (0-1 range)
+	 */
 	createSplatsFromGeometry(
 		geometry: Array<{ x: number; y: number }>,
 		velocity: { x: number; y: number } = { x: 0, y: 0 },
@@ -1531,10 +1870,6 @@ export class FluidSimulation {
 
 		// Use adaptive decimation based on shape size and point density
 		const decimatedGeometry = this.adaptiveDecimatePoints(geometry)
-
-		console.log(
-			`Geometry decimation: ${geometry.length} -> ${decimatedGeometry.length} points (${isClosed ? 'closed' : 'open'})`
-		)
 
 		// Skip interpolation for very dense geometry to improve performance
 		let finalPoints: Array<{ x: number; y: number }>
@@ -1566,35 +1901,46 @@ export class FluidSimulation {
 			finalPoints = this.decimatePoints(interpolatedPoints, 0.005)
 		}
 
-		// console.log(`Final point count: ${finalPoints.length}`)
-
 		// Limit maximum points for performance
 		if (finalPoints.length > 200) {
 			// Sample evenly spaced points from the final set
 			const step = Math.ceil(finalPoints.length / 200)
 			finalPoints = finalPoints.filter((_, index) => index % step === 0)
-			console.log(`Limited to ${finalPoints.length} points for performance`)
 		}
 
 		// Create splats from optimized points
 		this.createSplatsFromPoints(finalPoints, velocity, color)
 	}
 
-	// Configuration methods
+	/**
+	 * Updates the fluid simulation configuration.
+	 * @param newConfig - Partial configuration object with properties to update
+	 */
 	updateConfig(newConfig: Partial<FluidConfig>) {
 		this.config = { ...this.config, ...newConfig }
 		this.updateKeywords()
 	}
 
+	/**
+	 * Gets a copy of the current configuration.
+	 * @returns Copy of the current FluidConfig
+	 */
 	getConfig(): FluidConfig {
 		return { ...this.config }
 	}
 
-	// Additional utility methods
+	/**
+	 * Adds multiple random splats to the simulation.
+	 * @param count - Number of random splats to add
+	 */
 	addRandomSplats(count: number = 5) {
 		this.splatStack.push(count)
 	}
 
+	/**
+	 * Clears all fluid dye from the simulation.
+	 * Resets the dye texture to transparent/empty state.
+	 */
 	clearFluid() {
 		// Clear the dye texture
 		this.programs.clear.bind()
@@ -1604,11 +1950,20 @@ export class FluidSimulation {
 		this.dye.swap()
 	}
 
+	/**
+	 * Sets the background color of the simulation.
+	 * @param r - Red component (0-255)
+	 * @param g - Green component (0-255)
+	 * @param b - Blue component (0-255)
+	 */
 	setBackgroundColor(r: number, g: number, b: number) {
 		this.config.BACK_COLOR = { r, g, b }
 	}
 
-	// Performance monitoring
+	/**
+	 * Gets performance and status information about the simulation.
+	 * @returns Object containing runtime status and configuration details
+	 */
 	getPerformanceInfo() {
 		return {
 			isRunning: this.isRunning,
@@ -1621,6 +1976,10 @@ export class FluidSimulation {
 	}
 }
 
+/**
+ * Material class for managing shader programs with keyword-based variants.
+ * Supports dynamic shader compilation with preprocessor definitions.
+ */
 class Material {
 	private vertexShader: WebGLShader
 	private fragmentShaderSource: string
@@ -1629,6 +1988,12 @@ class Material {
 	public uniforms: { [key: string]: WebGLUniformLocation } = {}
 	private gl: WebGL2RenderingContext | WebGLRenderingContext
 
+	/**
+	 * Creates a new Material instance.
+	 * @param gl - WebGL rendering context
+	 * @param vertexShader - Compiled vertex shader
+	 * @param fragmentShaderSource - Fragment shader source code
+	 */
 	constructor(
 		gl: WebGL2RenderingContext | WebGLRenderingContext,
 		vertexShader: WebGLShader,
@@ -1639,6 +2004,10 @@ class Material {
 		this.fragmentShaderSource = fragmentShaderSource
 	}
 
+	/**
+	 * Sets shader keywords (preprocessor definitions) and compiles a variant if needed.
+	 * @param keywords - Array of keyword strings to define in the shader
+	 */
 	setKeywords(keywords: string[]) {
 		let hash = 0
 		for (let i = 0; i < keywords.length; i++) hash += this.hashCode(keywords[i])
@@ -1660,6 +2029,9 @@ class Material {
 		this.activeProgram = program
 	}
 
+	/**
+	 * Binds this material's active program for rendering.
+	 */
 	bind() {
 		this.gl.useProgram(this.activeProgram)
 	}
