@@ -79,11 +79,6 @@ const withs = [
 		expression:
 			'SELECT * from my_owned_files UNION SELECT * from files_shared_with_me UNION SELECT * from group_files',
 	},
-	{
-		alias: 'all_presences',
-		expression:
-			'SELECT p.* FROM all_files af JOIN public."user_presence" p ON p."fileId" = af."id"',
-	},
 ] as const satisfies WithClause[]
 
 type WithTable = (typeof withs)[number]['alias']
@@ -126,11 +121,6 @@ const selects: SelectClause[] = [
 		from: 'all_group_users',
 		outputTableName: 'group_user',
 		columns: makeColumnStuff(schema.tables.group_user),
-	},
-	{
-		from: 'all_presences',
-		outputTableName: 'user_presence',
-		columns: makeColumnStuff(schema.tables.user_presence),
 	},
 	{
 		from: 'public."user_mutation_number"',

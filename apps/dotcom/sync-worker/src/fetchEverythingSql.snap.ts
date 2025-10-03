@@ -12,7 +12,6 @@ WITH
   group_file_ownership AS (SELECT fg.* FROM my_groups mg JOIN public."group_file" fg ON fg."groupId" = mg."id"),
   group_files AS (SELECT f.* FROM group_file_ownership gfo JOIN public."file" f ON f.id = gfo."fileId"),
   all_files AS (SELECT * from my_owned_files UNION SELECT * from files_shared_with_me UNION SELECT * from group_files),
-  all_presences AS (SELECT p.* FROM all_files af JOIN public."user_presence" p ON p."fileId" = af."id")
 SELECT
   'user' as "table",
   "allowAnalyticsCookie"::boolean as "0",
@@ -183,7 +182,6 @@ SELECT
 FROM all_group_users
 UNION ALL
 SELECT
-  'user_presence' as "table",
   null::boolean as "0",
   null::boolean as "1",
   null::boolean as "2",
@@ -347,14 +345,6 @@ export const columnNamesByAlias = {
 		'16': 'userColor',
 		'17': 'userId',
 		'18': 'userName',
-	},
-	user_presence: {
-		'9': 'lastActivityAt',
-		'13': 'color',
-		'14': 'fileId',
-		'15': 'name',
-		'16': 'sessionId',
-		'17': 'userId',
 	},
 	user_mutation_number: {
 		'9': 'mutationNumber',

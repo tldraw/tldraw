@@ -44,22 +44,6 @@ CREATE TABLE "group_file" (
 -- add owningGroupId column
 ALTER TABLE public."file" ADD COLUMN "owningGroupId" TEXT REFERENCES public."group" ("id") ON DELETE CASCADE;
 
-CREATE TABLE "user_presence" (
-  "sessionId" TEXT NOT NULL,
-  "fileId" TEXT NOT NULL,
-  -- These are not necessarily unique, as a user can have multiple tabs open.
-  -- These are also not necessarily users in our DB since we support guests, who
-  -- get a random ID assigned by the client.
-  "userId" TEXT NOT NULL,
-  "lastActivityAt" BIGINT NOT NULL,
-  -- We let the client decide the name and color of the user, so we can support
-  -- guests more easily.
-  "name" TEXT,
-  "color" TEXT,
-  PRIMARY KEY ("sessionId", "fileId"),
-  FOREIGN KEY ("fileId") REFERENCES public."file" ("id") ON DELETE CASCADE
-);
-
 -- When the user's name or color is updated, update the userName and userColor columns in the group_user table
 CREATE OR REPLACE FUNCTION update_group_user_details() RETURNS TRIGGER AS $$
 BEGIN
@@ -96,7 +80,7 @@ AFTER INSERT OR UPDATE OF "userId" ON "group_user"
 FOR EACH ROW
 EXECUTE FUNCTION set_group_user_details();
 
-ALTER PUBLICATION zero_data ADD TABLE public."group", public."group_user", public."group_file", public."user_presence";
+ALTER PUBLICATION zero_data ADD TABLE public."group", public."group_user", public."group_file";
 
 -- Remove ownerId and publishedSlug from file table primary key
 ALTER TABLE public."file" DROP CONSTRAINT "file_pkey";
@@ -250,51 +234,6 @@ AFTER DELETE ON public."group_user"
 FOR EACH ROW
 EXECUTE FUNCTION cleanup_group_user_file_states();
 
--- Create a function to clean up user presence when files are deleted
-CREATE OR REPLACE FUNCTION cleanup_user_presence() RETURNS TRIGGER AS $$
-BEGIN
-  -- Delete any user presence records for this file
-  DELETE FROM "user_presence"
-  WHERE "fileId" = NEW."id";
-  
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Create a trigger to clean up user presence when files are marked as deleted
-CREATE TRIGGER "cleanup_user_presence_trigger"
-AFTER UPDATE OF "isDeleted" ON public."file"
-FOR EACH ROW
-WHEN (OLD."isDeleted" = false AND NEW."isDeleted" = true)
-EXECUTE FUNCTION cleanup_user_presence();
-
--- Create a function to clean up user presence when users lose access to files
-CREATE OR REPLACE FUNCTION cleanup_user_presence_on_access_loss() RETURNS TRIGGER AS $$
-BEGIN
-  -- Delete presence records for files that are:
-  -- 1. Not shared (so the user no longer has access)
-  -- 2. Not owned by the user
-  -- 3. Not owned by a group the user is a member of
-  DELETE FROM "user_presence"
-  WHERE "userId" = OLD."userId"
-    AND "fileId" IN (
-      SELECT f."id" FROM "file" f
-      WHERE f."shared" = false
-        AND f."ownerId" != OLD."userId"
-        AND (f."owningGroupId" IS NULL OR f."owningGroupId" NOT IN (
-          SELECT gu."groupId" FROM "group_user" gu WHERE gu."userId" = OLD."userId"
-        ))
-    );
-  
-  RETURN OLD;
-END;
-$$ LANGUAGE plpgsql;
-
--- Create a trigger to clean up user presence when file_state is deleted (user loses access)
-CREATE TRIGGER "cleanup_user_presence_on_access_loss_trigger"
-AFTER DELETE ON public."file_state"
-FOR EACH ROW
-EXECUTE FUNCTION cleanup_user_presence_on_access_loss();
 
 -- Create a function to update the updatedAt timestamp for group tables
 CREATE OR REPLACE FUNCTION update_group_timestamp() RETURNS TRIGGER AS $$
