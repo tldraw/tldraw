@@ -2,13 +2,16 @@ import { atom, react } from 'tldraw'
 import { WebGLManagerConfig } from '../WebGLManager'
 
 export interface ShaderManagerConfig extends WebGLManagerConfig {
-	quality: number
+	count: number
 }
 
 export const DEFAULT_CONFIG: ShaderManagerConfig = {
+	// default properties
 	quality: 0.5,
 	pixelate: true,
 	startPaused: false,
+	// Custom properties
+	count: 10,
 }
 
 const STORAGE_KEY = 'shader-minimal-config-1'

@@ -13,6 +13,7 @@
 	width: 100%;
 	height: 100%;
 	z-index: 1000;
+	background-color: var(--tl-color-background);
 }
 
 /* Pixelated rendering - nearest-neighbor instead of smooth interpolation */

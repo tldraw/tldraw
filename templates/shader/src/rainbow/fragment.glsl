@@ -72,11 +72,11 @@ void main() {
 	// Find actual closest point on any segment
 	for (int i = 0; i < MAX_SEGMENTS; i++) {
 		if (float(i) >= u_segmentCount) break;
-		
+
 		vec4 segment = u_segments[i];
-		vec2 start = segment.xy;
-		vec2 end = segment.zw;
-		
+		vec2 start = segment.xy * u_resolution;
+		vec2 end = segment.zw * u_resolution;
+
 		vec2 pointOnSegment = closestPointOnSegment(pixelPos, start, end);
 		float dist = distance(pixelPos, pointOnSegment);
 		
@@ -114,9 +114,18 @@ void main() {
 	else if (h < 4.0) rainbowColor = vec3(0.0, x, 1.0);  // Cyan to Blue
 	else if (h < 5.0) rainbowColor = vec3(x, 0.0, 1.0);  // Blue to Magenta
 	else rainbowColor = vec3(1.0, 0.0, x);               // Magenta to Red
-	
+
+	// Adjust colors for dark mode
+	if (u_darkMode > 0.5) {
+		// In dark mode, reduce brightness and increase saturation
+		rainbowColor = rainbowColor * 0.8;
+	} else {
+		// In light mode, slightly desaturate for better visibility
+		rainbowColor = mix(rainbowColor, vec3(dot(rainbowColor, vec3(0.299, 0.587, 0.114))), 0.1);
+	}
+
 	// Opacity with ease out quintic for smooth falloff
 	float alpha = easeOutQuint(proximity);
-    
+
     fragColor = vec4(rainbowColor, alpha);
 }

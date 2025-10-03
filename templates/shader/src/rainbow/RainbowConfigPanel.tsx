@@ -20,27 +20,32 @@ export function RainbowConfigPanel() {
 	return (
 		<ConfigPanel onReset={resetShaderConfig}>
 			{Object.entries(config).map(([prop, value], i) => {
-				const sliderConfig = SLIDER_CONFIGS[prop] || { min: 0, max: 1 }
-				return typeof value === 'number' ? (
-					<ConfigPanelSlider
-						key={i}
-						prop={prop}
-						label={prop}
-						min={sliderConfig.min}
-						max={sliderConfig.max}
-						value={value}
-						type="float"
-						onChange={handleChange}
-					/>
-				) : typeof value === 'boolean' ? (
-					<ConfigPanelBooleanControl
-						key={i}
-						prop={prop}
-						label={prop}
-						value={value}
-						onChange={handleChange}
-					/>
-				) : null
+				if (typeof value === 'number') {
+					const sliderConfig = SLIDER_CONFIGS[prop] || { min: 0, max: 1 }
+					return (
+						<ConfigPanelSlider
+							key={i}
+							prop={prop}
+							label={prop}
+							min={sliderConfig.min}
+							max={sliderConfig.max}
+							value={value}
+							type="float"
+							onChange={handleChange}
+						/>
+					)
+				} else if (typeof value === 'boolean') {
+					return (
+						<ConfigPanelBooleanControl
+							key={i}
+							prop={prop}
+							label={prop}
+							value={value}
+							onChange={handleChange}
+						/>
+					)
+				}
+				return null
 			})}
 		</ConfigPanel>
 	)
