@@ -143,7 +143,7 @@ export class Idle extends StateNode {
 	}
 
 	override onKeyUp(info: TLKeyboardEventInfo) {
-		switch (info.code) {
+		switch (info.key) {
 			case 'Enter': {
 				this.editor.setCroppingShape(null)
 				this.editor.setCurrentTool('select.idle', {})

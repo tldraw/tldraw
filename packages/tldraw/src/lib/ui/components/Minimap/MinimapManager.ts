@@ -249,6 +249,12 @@ export class MinimapManager {
 
 			const len = geometry.length
 
+			const shape = this.editor.getShape(shapeId)
+			if (shape) {
+				const shapeUtil = this.editor.getShapeUtil(shape.type)
+				if (shapeUtil.hideInMinimap?.(shape)) continue
+			}
+
 			if (selectedShapes.has(shapeId)) {
 				appendVertices(this.gl.selectedShapes, selectedShapeOffset, geometry)
 				selectedShapeOffset += len

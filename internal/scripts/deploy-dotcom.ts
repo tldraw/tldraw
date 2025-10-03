@@ -48,6 +48,8 @@ const { previewId, sha } = getDeployInfo()
 // Do not use `process.env` directly in this script. Add your variable to `makeEnv` and use it via
 // `env` instead. This makes sure that all required env vars are present.
 const env = makeEnv([
+	'ANALYTICS_API_TOKEN',
+	'ANALYTICS_API_URL',
 	'ASSET_UPLOAD_SENTRY_DSN',
 	'ASSET_UPLOAD',
 	'CLERK_SECRET_KEY',
@@ -293,6 +295,8 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
 			DISCORD_FEEDBACK_WEBHOOK_URL: env.DISCORD_FEEDBACK_WEBHOOK_URL,
 			HEALTH_CHECK_BEARER_TOKEN: env.HEALTH_CHECK_BEARER_TOKEN,
+			ANALYTICS_API_URL: env.ANALYTICS_API_URL,
+			ANALYTICS_API_TOKEN: env.ANALYTICS_API_TOKEN,
 		},
 		sentry: {
 			project: 'tldraw-sync',

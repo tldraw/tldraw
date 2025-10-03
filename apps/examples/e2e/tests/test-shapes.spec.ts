@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test'
+import test from '../fixtures/fixtures'
 import { getAllShapeTypes, setup } from '../shared-e2e'
-import test from './fixtures/fixtures'
 
 const clickableShapeCreators = [
 	{ tool: 'draw', shape: 'draw' },

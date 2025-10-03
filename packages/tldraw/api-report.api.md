@@ -274,6 +274,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     getText(shape: TLArrowShape): string;
     // (undocumented)
+    hideInMinimap(): boolean;
+    // (undocumented)
     hideResizeHandles(): boolean;
     // (undocumented)
     hideRotateHandle(): boolean;
@@ -619,6 +621,7 @@ export function DebugFlags(): JSX_2.Element | null;
 // @public (undocumented)
 export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly doesResize: true;
+    readonly embedOnPaste: false;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["beta.tldraw.com", "tldraw.com", "localhost:3000"];
@@ -633,6 +636,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["figma.com"];
@@ -642,6 +646,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["google.*"];
@@ -654,6 +659,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["val.town"];
@@ -665,6 +671,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["codesandbox.io"];
@@ -676,6 +683,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 400;
     readonly hostnames: readonly ["codepen.io"];
@@ -687,6 +695,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 520;
 }, {
     readonly doesResize: false;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 400;
     readonly hostnames: readonly ["scratch.mit.edu"];
@@ -696,6 +705,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 520;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 450;
     readonly hostnames: readonly ["*.youtube.com", "youtube.com", "youtu.be"];
@@ -710,6 +720,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 800;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["calendar.google.*"];
@@ -725,6 +736,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["docs.google.*"];
@@ -739,6 +751,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["gist.github.com"];
@@ -748,6 +761,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["replit.com"];
@@ -757,6 +771,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["felt.com"];
@@ -766,6 +781,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["open.spotify.com"];
@@ -777,6 +793,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 360;
     readonly hostnames: readonly ["vimeo.com", "player.vimeo.com"];
@@ -787,6 +804,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 640;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["excalidraw.com"];
@@ -798,6 +816,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
 }, {
     readonly backgroundColor: "#fff";
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["observablehq.com"];
@@ -808,6 +827,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 450;
     readonly hostnames: readonly ["desmos.com"];
@@ -1306,6 +1326,8 @@ export interface EmbedDefinition {
     readonly backgroundColor?: string;
     // (undocumented)
     readonly doesResize: boolean;
+    // (undocumented)
+    readonly embedOnPaste?: boolean;
     // (undocumented)
     readonly fromEmbedUrl: (url: string) => string | undefined;
     // (undocumented)
@@ -1952,6 +1974,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     getHandleSnapGeometry(shape: TLLineShape): HandleSnapGeometry;
     // (undocumented)
     getInterpolatedProps(startShape: TLLineShape, endShape: TLLineShape, t: number): TLLineShape['props'];
+    // (undocumented)
+    hideInMinimap(): boolean;
     // (undocumented)
     hideResizeHandles(): boolean;
     // (undocumented)
