@@ -23,8 +23,4 @@ export default mergeConfig(baseConfig, {
 			generateScopedName: (name) => name,
 		},
 	},
-	// Handle ES module imports - equivalent to Jest's transformIgnorePatterns
-	ssr: {
-		noExternal: ['@tiptap/react'],
-	},
 })
