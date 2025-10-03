@@ -4,10 +4,7 @@ import { ShaderManagerConfig } from './config'
 import fragmentShader from './fragment.glsl?raw'
 import vertexShader from './vertex.glsl?raw'
 
-// Vertex shader for rendering a full-screen quad
 const VERTEX_SHADER = vertexShader
-
-// Fragment shader for rendering the smoke effect
 const FRAGMENT_SHADER = fragmentShader
 
 export type Geometry = Array<{ start: Vec; end: Vec }>
@@ -17,7 +14,6 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 	private positionBuffer: WebGLBuffer | null = null
 	private vao: WebGLVertexArrayObject | null = null
 
-	// Uniform locations
 	private u_resolution: WebGLUniformLocation | null = null
 	private u_darkMode: WebGLUniformLocation | null = null
 	private u_quality: WebGLUniformLocation | null = null
@@ -30,7 +26,6 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 	private geometries: Geometry[] = []
 	private maxSegments: number = 2000
 
-	// The pointer position in normalized coordinates (0-1)
 	private pointer: Vec = new Vec(0.5, 0.5)
 
 	private _disposables = new Set<() => void>()
@@ -44,8 +39,6 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 		this.initialize()
 	}
 
-	/* ------------------- Life cycle ------------------- */
-
 	onInitialize = (): void => {
 		this.maxSegments = Math.floor(Math.min(512, 2000 / this.getConfig().quality))
 
@@ -54,7 +47,6 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 			return
 		}
 
-		// Check if context is lost before doing anything
 		if (this.gl.isContextLost()) {
 			console.error('WebGL context is lost, cannot initialize')
 			return
@@ -62,7 +54,6 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 
 		const isWebGL2 = this.gl instanceof WebGL2RenderingContext
 
-		// Test context by checking a simple parameter
 		const maxTextureSize = this.gl.getParameter(this.gl.MAX_TEXTURE_SIZE)
 
 		if (!maxTextureSize) {
@@ -99,7 +90,6 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 			return shader
 		}
 
-		// Compile shaders and create program
 		const vertexShader = compileShader(this.gl.VERTEX_SHADER, VERTEX_SHADER)
 		if (!vertexShader) {
 			console.error('Failed to compile vertex shader, aborting initialization')
@@ -109,7 +99,6 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 		const fragmentShader = compileShader(this.gl.FRAGMENT_SHADER, FRAGMENT_SHADER)
 		if (!fragmentShader) {
 			console.error('Failed to compile fragment shader, aborting initialization')
-			// Clean up vertex shader
 			this.gl.deleteShader(vertexShader)
 			return
 		}
@@ -130,7 +119,6 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 			return
 		}
 
-		// Get uniform locations
 		this.u_resolution = this.gl.getUniformLocation(this.program, 'u_resolution')
 		this.u_darkMode = this.gl.getUniformLocation(this.program, 'u_darkMode')
 		this.u_quality = this.gl.getUniformLocation(this.program, 'u_quality')
@@ -140,10 +128,8 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 		this.u_lightPos = this.gl.getUniformLocation(this.program, 'u_lightPos')
 		this.u_shadowContrast = this.gl.getUniformLocation(this.program, 'u_shadowContrast')
 
-		// Create a full-screen quad
 		this.positionBuffer = this.gl.createBuffer()
 
-		// Create and set up VAO for WebGL2
 		if (isWebGL2) {
 			const gl2 = this.gl as WebGL2RenderingContext
 			this.vao = gl2.createVertexArray()
@@ -154,18 +140,15 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 		const positions = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1])
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, positions, this.gl.STATIC_DRAW)
 
-		// Set up attribute
 		const a_position = this.gl.getAttribLocation(this.program, 'a_position')
 		this.gl.enableVertexAttribArray(a_position)
 		this.gl.vertexAttribPointer(a_position, 2, this.gl.FLOAT, false, 0, 0)
 
-		// Unbind VAO
 		if (isWebGL2) {
 			const gl2 = this.gl as WebGL2RenderingContext
 			gl2.bindVertexArray(null)
 		}
 
-		// Run tick whenever dependencies change
 		this._disposables.add(react('dependencies', this.tick))
 
 		this.tick()
@@ -174,11 +157,9 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 	onFirstRender = (): void => {
 		if (!this.gl || !this.program) return
 
-		// Clear with transparent background
 		this.gl.clearColor(0, 0, 0, 0)
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT)
 
-		// Enable blending
 		this.gl.enable(this.gl.BLEND)
 		this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA)
 
@@ -211,7 +192,6 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 
 		const { quality, shadowContrast } = this.getConfig()
 
-		// Set uniforms
 		if (this.u_resolution) {
 			this.gl.uniform2f(this.u_resolution, this.canvas.width, this.canvas.height)
 		}
@@ -232,7 +212,6 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 			this.gl.uniform1f(this.u_shadowContrast, shadowContrast)
 		}
 
-		// Flatten all geometries into segments array
 		const allSegments: number[] = []
 
 		for (const geometry of this.geometries) {
@@ -243,12 +222,10 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 			}
 		}
 
-		// Pad arrays with far-away coordinates so they don't appear on screen
 		const farAway = 999999
 		while (allSegments.length < this.maxSegments * 4)
 			allSegments.push(farAway, farAway, farAway, farAway)
 
-		// Upload geometry data
 		if (this.u_segments) {
 			this.gl.uniform4fv(this.u_segments, allSegments)
 		}
@@ -256,15 +233,12 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 			this.gl.uniform1f(this.u_segmentCount, Math.min(allSegments.length / 4, this.maxSegments))
 		}
 
-		// Bind VAO if using WebGL2
 		if (this.vao && this.gl instanceof WebGL2RenderingContext) {
 			this.gl.bindVertexArray(this.vao)
 		}
 
-		// Draw the quad
 		this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4)
 
-		// Unbind VAO
 		if (this.vao && this.gl instanceof WebGL2RenderingContext) {
 			this.gl.bindVertexArray(null)
 		}
@@ -274,7 +248,6 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 		this._disposables.forEach((dispose) => dispose())
 		this._disposables.clear()
 
-		// Clean up WebGL resources
 		if (this.gl) {
 			if (this.vao && this.gl instanceof WebGL2RenderingContext) {
 				this.gl.deleteVertexArray(this.vao)
@@ -291,11 +264,6 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 		}
 	}
 
-	/* --------------------- Events --------------------- */
-
-	/**
-	 * Update the light position (in normalized coordinates, 0-1)
-	 */
 	pointerMove = (x: number, y: number): void => {
 		const vsb = this.editor.getViewportScreenBounds()
 		this.pointer.x = (x - vsb.x) / vsb.width
@@ -303,9 +271,6 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 		this.tick()
 	}
 
-	/**
-	 * Manually update geometries from shapes and re-render
-	 */
 	refresh = (): void => {
 		try {
 			this.tick()
@@ -314,17 +279,13 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 		}
 	}
 
-	/* -------------------- Internal -------------------- */
-
 	private pageToCanvas = (
 		point: Vec,
 		camera: { x: number; y: number; z: number },
 		viewportScreenBounds: Box
 	): Vec => {
-		// Transform page coordinates to screen space
 		const screenX = (point.x + camera.x) * camera.z + viewportScreenBounds.x
 		const screenY = (point.y + camera.y) * camera.z + viewportScreenBounds.y
-		// Normalize to canvas coordinates (0-1 range) within the viewport
 		const canvasX = (screenX - viewportScreenBounds.x) / viewportScreenBounds.width
 		const canvasY = 1.0 - (screenY - viewportScreenBounds.y) / viewportScreenBounds.height
 		return new Vec(canvasX, canvasY)
@@ -340,24 +301,18 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 		const transform = editor.getShapePageTransform(shape)
 		if (!transform) return null
 
-		// transform local point to page space and convert page space point to canvas space
 		const canvasPoints = geometry.vertices.map((c) =>
 			this.pageToCanvas(transform.applyToPoint(c), camera, viewportScreenBounds)
 		)
 
-		// Collect points as segments
 		const segments: Array<{ start: Vec; end: Vec }> = []
 
-		// Add segments connecting the vertices
 		for (let i = 0; i < canvasPoints.length - 1; i++) {
 			const start = canvasPoints[i]
 			const end = canvasPoints[i + 1]
 			segments.push({ start, end })
 		}
 
-		// Check if geometry is closed. The children note is a hack to handle arrows,
-		// which are groups with the (open) arrow and the (closed) label. In practice,
-		// you could special case any custom shapes.
 		const isClosed =
 			geometry instanceof Group2d
 				? (geometry.children[0]?.isClosed ?? true)
@@ -365,7 +320,6 @@ export class ShadowCastingShaderManager extends WebGLManager<ShaderManagerConfig
 					? geometry.isClosed
 					: true
 
-		// Only add closing segment if geometry is closed
 		if (isClosed && canvasPoints.length > 0) {
 			segments.push({
 				start: canvasPoints[canvasPoints.length - 1],

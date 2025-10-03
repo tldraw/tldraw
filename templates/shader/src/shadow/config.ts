@@ -29,7 +29,6 @@ export function resetShaderConfig() {
 	shaderConfig.set(DEFAULT_CONFIG)
 }
 
-// When the config changes, save it to localStorage
 react('save to local storage', () => {
 	localStorage.setItem(STORAGE_KEY, JSON.stringify(shaderConfig.get()))
 })

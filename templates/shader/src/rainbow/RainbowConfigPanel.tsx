@@ -5,13 +5,11 @@ import { ConfigPanelBooleanControl } from '../config-panel/ConfigPanelBooleanCon
 import { ConfigPanelSlider } from '../config-panel/ConfigPanelSlider'
 import { resetShaderConfig, shaderConfig } from './config'
 
-/**
- * Configuration panel for the rainbow shader effect.
- * Provides UI controls for adjusting:
- * - Quality (rendering resolution)
- * - Radius (size of the rainbow halo effect)
- * - Other shader-specific parameters
- */
+const SLIDER_CONFIGS: Record<string, { min: number; max: number }> = {
+	quality: { min: 0.1, max: 1 },
+	radius: { min: 100, max: 1000 },
+}
+
 export function RainbowConfigPanel() {
 	const config = useValue('config', () => shaderConfig.get(), [])
 
@@ -21,14 +19,15 @@ export function RainbowConfigPanel() {
 
 	return (
 		<ConfigPanel onReset={resetShaderConfig}>
-			{Object.entries(config).map(([prop, value], i) =>
-				typeof value === 'number' ? (
+			{Object.entries(config).map(([prop, value], i) => {
+				const sliderConfig = SLIDER_CONFIGS[prop] || { min: 0, max: 1 }
+				return typeof value === 'number' ? (
 					<ConfigPanelSlider
 						key={i}
 						prop={prop}
 						label={prop}
-						min={0}
-						max={1}
+						min={sliderConfig.min}
+						max={sliderConfig.max}
 						value={value}
 						type="float"
 						onChange={handleChange}
@@ -42,7 +41,7 @@ export function RainbowConfigPanel() {
 						onChange={handleChange}
 					/>
 				) : null
-			)}
+			})}
 		</ConfigPanel>
 	)
 }

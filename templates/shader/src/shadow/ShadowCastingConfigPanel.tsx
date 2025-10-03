@@ -6,7 +6,7 @@ import { ConfigPanelSlider } from '../config-panel/ConfigPanelSlider'
 import { resetShaderConfig, shaderConfig } from './config'
 
 const SLIDER_CONFIGS: Record<string, { min: number; max: number }> = {
-	quality: { min: 0.1, max: 2 },
+	quality: { min: 0.1, max: 1 },
 	shadowContrast: { min: 0, max: 0.3 },
 }
 

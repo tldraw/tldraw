@@ -2,7 +2,7 @@ import { atom, react } from 'tldraw'
 import { WebGLManagerConfig } from '../WebGLManager'
 
 export interface ShaderManagerConfig extends WebGLManagerConfig {
-	quality: number // or whatever
+	quality: number
 }
 
 export const DEFAULT_CONFIG: ShaderManagerConfig = {
@@ -28,7 +28,6 @@ export function resetShaderConfig() {
 	shaderConfig.set(DEFAULT_CONFIG)
 }
 
-// When the config changes, save it to localStorage
 react('save to local storage', () => {
 	localStorage.setItem(STORAGE_KEY, JSON.stringify(shaderConfig.get()))
 })
