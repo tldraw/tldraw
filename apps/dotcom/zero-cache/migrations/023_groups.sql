@@ -428,9 +428,9 @@ BEGIN
 
     -- Add 'groups' flag to user
     IF v_current_flags IS NULL OR v_current_flags = '' THEN
-        UPDATE public."user" SET flags = 'groups' WHERE id = target_user_id;
+        UPDATE public."user" SET flags = 'groups_backend' WHERE id = target_user_id;
     ELSE
-        UPDATE public."user" SET flags = v_current_flags || ' groups' WHERE id = target_user_id;
+        UPDATE public."user" SET flags = v_current_flags || ' groups_backend' WHERE id = target_user_id;
     END IF;
 
     RAISE NOTICE 'Successfully migrated user % to groups model. Files: %, Pinned: %',
