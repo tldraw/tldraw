@@ -39,7 +39,6 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 	const intl = useIntl()
 	const { fileSlug } = useParams<{ fileSlug: string }>()
 	const { fileId } = item
-	const isOwnFile = useIsFileOwner(fileId)
 	const isActive = fileSlug === fileId
 	const fileName = useValue('file name', () => app.getFileName(fileId), [fileId, app])
 	const isMobile = getIsCoarsePointer()
@@ -71,7 +70,6 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 					fileName={fileName}
 					testId={testId}
 					isActive={isActive}
-					isOwnFile={isOwnFile}
 					href={routes.tlaFile(fileId)}
 					onClose={() => setIsRenaming(false)}
 					isRenaming={isRenaming}
@@ -105,8 +103,6 @@ export function TlaSidebarFileLinkInner({
 	testId,
 	fileId,
 	isActive,
-	isOwnFile,
-	// owner,
 	fileName,
 	href,
 	isRenaming,
@@ -116,7 +112,6 @@ export function TlaSidebarFileLinkInner({
 	fileId: string
 	testId: string | number
 	isActive: boolean
-	isOwnFile: boolean
 	fileName: string
 	href: string
 	isRenaming: boolean
@@ -156,6 +151,7 @@ export function TlaSidebarFileLinkInner({
 	}, [isActive, linkRef])
 
 	const file = useValue('file', () => app.getFile(fileId), [fileId, app])
+	const isOwnFile = useIsFileOwner(fileId)
 	if (!file) return null
 
 	if (isRenaming) {
