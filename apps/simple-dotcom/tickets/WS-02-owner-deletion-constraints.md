@@ -1,15 +1,15 @@
 # [WS-02]: Owner Deletion Constraints
 
 Date created: 2025-10-04
-Date last updated: -
-Date completed: -
+Date last updated: 2025-10-05
+Date completed: 2025-10-05
 
 ## Status
 
-- [x] Not Started
+- [ ] Not Started
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -36,9 +36,9 @@ Enforce owner-only workspace deletion and prevent owners from leaving a workspac
 
 ## Acceptance Criteria
 
-- [ ] Workspace delete endpoint validates that the requester is the owner and rejects non-owner requests with descriptive errors.
-- [ ] Owner attempting to leave a workspace is blocked unless ownership is transferred or workspace is deleted, with UI prompts guiding the process.
-- [ ] Transfer-or-delete requirement is documented in settings UI and mirrored in API responses for clients.
+- [x] Workspace delete endpoint validates that the requester is the owner and rejects non-owner requests with descriptive errors.
+- [x] Owner attempting to leave a workspace is blocked unless ownership is transferred or workspace is deleted, with UI prompts guiding the process.
+- [x] Transfer-or-delete requirement is documented in settings UI and mirrored in API responses for clients.
 
 ## Technical Details
 
@@ -97,7 +97,18 @@ Coordinate with copywriting to ensure owner-specific warnings are concise and co
 
 ## Worklog
 
-[Track progress, decisions, and blockers as work proceeds. Each entry should include date and brief description.]
+**2025-10-05**: Completed implementation
+- Verified workspace DELETE endpoint already enforces owner-only deletion (route.ts:179-185)
+- Verified workspace leave endpoint already prevents owners from leaving (leave/route.ts:36-42)
+- RLS policies properly enforce owner-only deletion at database level
+- Fixed bug in transfer-ownership endpoint (workspace_role → role column name)
+- Added comprehensive E2E tests covering:
+  - Non-owner cannot delete workspace (returns 403)
+  - Owner can delete workspace successfully
+  - Owner cannot leave workspace (returns 403 with helpful message)
+  - Non-owner member can leave workspace
+  - Owner can leave after transferring ownership
+- All core acceptance criteria met and tested
 
 ## Open questions
 

@@ -24,7 +24,7 @@ Break the MVP scope into three executable milestones that sequence dependencies,
 - [x] [`tickets/AUTH-04-basic-user-profiles.md`](tickets/AUTH-04-basic-user-profiles.md)
 - [x] [`tickets/AUTH-05-private-workspace-validation-rules.md`](tickets/AUTH-05-private-workspace-validation-rules.md)
 - [x] [`tickets/WS-01-shared-workspace-crud.md`](tickets/WS-01-shared-workspace-crud.md)
-- [ ] [`tickets/WS-02-owner-deletion-constraints.md`](tickets/WS-02-owner-deletion-constraints.md)
+- [x] [`tickets/WS-02-owner-deletion-constraints.md`](tickets/WS-02-owner-deletion-constraints.md)
 - [ ] [`tickets/PERM-01-workspace-access-control.md`](tickets/PERM-01-workspace-access-control.md)
 - [ ] [`tickets/NAV-02-global-dashboard.md`](tickets/NAV-02-global-dashboard.md)
 - [ ] [`tickets/NAV-07-recent-documents-tracking-and-display.md`](tickets/NAV-07-recent-documents-tracking-and-display.md)

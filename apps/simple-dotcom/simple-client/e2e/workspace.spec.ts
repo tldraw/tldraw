@@ -486,6 +486,332 @@ test.describe('Workspace Management', () => {
 		})
 	})
 
+	test.describe('Owner Deletion Constraints', () => {
+		test('should prevent non-owner from deleting workspace via API', async ({
+			authenticatedPage,
+			supabaseAdmin,
+			testUser,
+		}) => {
+			const page = authenticatedPage
+
+			// Create a workspace owned by another user
+			const { data: otherUser } = await supabaseAdmin.auth.admin.createUser({
+				email: `other-user-${Date.now()}@example.com`,
+				password: 'TestPassword123!',
+				email_confirm: true,
+			})
+
+			if (!otherUser?.user) {
+				throw new Error('Failed to create other user')
+			}
+
+			// Create user entry in users table
+			await supabaseAdmin.from('users').insert({
+				id: otherUser.user.id,
+				email: otherUser.user.email!,
+				display_name: 'Other User',
+			})
+
+			const { data: workspace, error: workspaceError } = await supabaseAdmin
+				.from('workspaces')
+				.insert({
+					owner_id: otherUser.user.id,
+					name: `Other's Workspace ${Date.now()}`,
+					is_private: false,
+				})
+				.select()
+				.single()
+
+			if (workspaceError || !workspace) {
+				throw new Error(`Failed to create workspace: ${workspaceError?.message}`)
+			}
+
+			// Add test user as member (not owner)
+			await supabaseAdmin.from('workspace_members').insert({
+				workspace_id: workspace.id,
+				user_id: testUser.id,
+				role: 'member',
+			})
+
+			// Attempt to delete via API
+			const response = await page.request.delete(`/api/workspaces/${workspace.id}`)
+
+			// Should return 403 error
+			expect(response.status()).toBe(403)
+			const body = await response.json()
+			expect(body.success).toBe(false)
+			expect(body.error.code).toBe('WORKSPACE_OWNERSHIP_REQUIRED')
+
+			// Verify workspace still exists
+			const { data: unchangedWorkspace } = await supabaseAdmin
+				.from('workspaces')
+				.select('is_deleted')
+				.eq('id', workspace.id)
+				.single()
+
+			expect(unchangedWorkspace?.is_deleted).toBe(false)
+
+			// Cleanup
+			await supabaseAdmin.from('workspaces').delete().eq('id', workspace.id)
+			await supabaseAdmin.auth.admin.deleteUser(otherUser.user.id)
+		})
+
+		test('should allow owner to delete workspace via API', async ({
+			authenticatedPage,
+			supabaseAdmin,
+			testUser,
+		}) => {
+			const page = authenticatedPage
+			const workspaceName = `Owner Delete ${Date.now()}`
+
+			// Create workspace owned by test user
+			const { data: workspace } = await supabaseAdmin
+				.from('workspaces')
+				.insert({
+					owner_id: testUser.id,
+					name: workspaceName,
+					is_private: false,
+				})
+				.select()
+				.single()
+
+			await supabaseAdmin.from('workspace_members').insert({
+				workspace_id: workspace.id,
+				user_id: testUser.id,
+				role: 'owner',
+			})
+
+			// Delete via API
+			const response = await page.request.delete(`/api/workspaces/${workspace.id}`)
+
+			// Should succeed
+			expect(response.status()).toBe(200)
+			const body = await response.json()
+			expect(body.success).toBe(true)
+
+			// Verify workspace is soft deleted
+			const { data: deletedWorkspace } = await supabaseAdmin
+				.from('workspaces')
+				.select('is_deleted, deleted_at')
+				.eq('id', workspace.id)
+				.single()
+
+			expect(deletedWorkspace?.is_deleted).toBe(true)
+			expect(deletedWorkspace?.deleted_at).toBeTruthy()
+
+			// Cleanup
+			await supabaseAdmin.from('workspaces').delete().eq('id', workspace.id)
+		})
+
+		test('should prevent owner from leaving workspace via API', async ({
+			authenticatedPage,
+			supabaseAdmin,
+			testUser,
+		}) => {
+			const page = authenticatedPage
+			const workspaceName = `Owner Leave Test ${Date.now()}`
+
+			// Create workspace owned by test user
+			const { data: workspace } = await supabaseAdmin
+				.from('workspaces')
+				.insert({
+					owner_id: testUser.id,
+					name: workspaceName,
+					is_private: false,
+				})
+				.select()
+				.single()
+
+			await supabaseAdmin.from('workspace_members').insert({
+				workspace_id: workspace.id,
+				user_id: testUser.id,
+				role: 'owner',
+			})
+
+			// Attempt to leave via API
+			const response = await page.request.post(`/api/workspaces/${workspace.id}/leave`)
+
+			// Should return 403 error
+			expect(response.status()).toBe(403)
+			const body = await response.json()
+			expect(body.success).toBe(false)
+			expect(body.error.code).toBe('CANNOT_LEAVE_OWNED_WORKSPACE')
+			expect(body.error.message).toContain('transfer ownership')
+
+			// Verify membership still exists
+			const { data: membership } = await supabaseAdmin
+				.from('workspace_members')
+				.select('*')
+				.eq('workspace_id', workspace.id)
+				.eq('user_id', testUser.id)
+
+			expect(membership).toBeTruthy()
+			expect(membership?.length).toBe(1)
+
+			// Cleanup
+			await supabaseAdmin.from('workspaces').delete().eq('id', workspace.id)
+		})
+
+		test('should allow non-owner member to leave workspace via API', async ({
+			authenticatedPage,
+			supabaseAdmin,
+			testUser,
+		}) => {
+			const page = authenticatedPage
+
+			// Create a workspace owned by another user
+			const { data: otherUser } = await supabaseAdmin.auth.admin.createUser({
+				email: `owner-${Date.now()}@example.com`,
+				password: 'TestPassword123!',
+				email_confirm: true,
+			})
+
+			if (!otherUser?.user) {
+				throw new Error('Failed to create other user')
+			}
+
+			// Create user entry in users table
+			await supabaseAdmin.from('users').insert({
+				id: otherUser.user.id,
+				email: otherUser.user.email!,
+				display_name: 'Owner User',
+			})
+
+			const { data: workspace, error: workspaceError } = await supabaseAdmin
+				.from('workspaces')
+				.insert({
+					owner_id: otherUser.user.id,
+					name: `Shared Workspace ${Date.now()}`,
+					is_private: false,
+				})
+				.select()
+				.single()
+
+			if (workspaceError || !workspace) {
+				throw new Error(`Failed to create workspace: ${workspaceError?.message}`)
+			}
+
+			// Add test user as member
+			await supabaseAdmin.from('workspace_members').insert({
+				workspace_id: workspace.id,
+				user_id: testUser.id,
+				role: 'member',
+			})
+
+			// Leave via API
+			const response = await page.request.post(`/api/workspaces/${workspace.id}/leave`)
+
+			// Should succeed
+			expect(response.status()).toBe(200)
+			const body = await response.json()
+			expect(body.success).toBe(true)
+
+			// Verify membership is removed
+			const { data: membership } = await supabaseAdmin
+				.from('workspace_members')
+				.select('*')
+				.eq('workspace_id', workspace.id)
+				.eq('user_id', testUser.id)
+
+			expect(membership?.length).toBe(0)
+
+			// Cleanup
+			await supabaseAdmin.from('workspaces').delete().eq('id', workspace.id)
+			await supabaseAdmin.auth.admin.deleteUser(otherUser.user.id)
+		})
+
+		test('should allow owner to leave after transferring ownership', async ({
+			authenticatedPage,
+			supabaseAdmin,
+			testUser,
+		}) => {
+			const page = authenticatedPage
+
+			// Create another user
+			const { data: newOwner } = await supabaseAdmin.auth.admin.createUser({
+				email: `new-owner-${Date.now()}@example.com`,
+				password: 'TestPassword123!',
+				email_confirm: true,
+			})
+
+			if (!newOwner?.user) {
+				throw new Error('Failed to create new owner user')
+			}
+
+			// Create user entry in users table
+			await supabaseAdmin.from('users').insert({
+				id: newOwner.user.id,
+				email: newOwner.user.email!,
+				display_name: 'New Owner',
+			})
+
+			// Create workspace owned by test user
+			const { data: workspace } = await supabaseAdmin
+				.from('workspaces')
+				.insert({
+					owner_id: testUser.id,
+					name: `Transfer Test ${Date.now()}`,
+					is_private: false,
+				})
+				.select()
+				.single()
+
+			// Add both users as members
+			await supabaseAdmin.from('workspace_members').insert([
+				{
+					workspace_id: workspace.id,
+					user_id: testUser.id,
+					role: 'owner',
+				},
+				{
+					workspace_id: workspace.id,
+					user_id: newOwner.user.id,
+					role: 'member',
+				},
+			])
+
+			// Transfer ownership via API
+			const transferResponse = await page.request.post(
+				`/api/workspaces/${workspace.id}/transfer-ownership`,
+				{
+					data: { new_owner_id: newOwner.user.id },
+				}
+			)
+			expect(transferResponse.status()).toBe(200)
+
+			// Now original owner should be able to leave
+			const leaveResponse = await page.request.post(`/api/workspaces/${workspace.id}/leave`)
+
+			// Should succeed
+			expect(leaveResponse.status()).toBe(200)
+			const body = await leaveResponse.json()
+			expect(body.success).toBe(true)
+
+			// Verify test user membership is removed
+			const { data: testUserMembership } = await supabaseAdmin
+				.from('workspace_members')
+				.select('*')
+				.eq('workspace_id', workspace.id)
+				.eq('user_id', testUser.id)
+
+			expect(testUserMembership?.length).toBe(0)
+
+			// Verify workspace still exists and has new owner
+			const { data: updatedWorkspace } = await supabaseAdmin
+				.from('workspaces')
+				.select('owner_id, is_deleted')
+				.eq('id', workspace.id)
+				.single()
+
+			expect(updatedWorkspace?.owner_id).toBe(newOwner.user.id)
+			expect(updatedWorkspace?.is_deleted).toBe(false)
+
+			// Cleanup
+			await supabaseAdmin.from('workspaces').delete().eq('id', workspace.id)
+			await supabaseAdmin.auth.admin.deleteUser(newOwner.user.id)
+		})
+	})
+
 	test.describe('Private Workspace Validation', () => {
 		test('should prevent renaming private workspace via API', async ({
 			authenticatedPage,
