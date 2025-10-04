@@ -24,7 +24,7 @@ import {
 	getTlsyncProtocolVersion,
 } from './protocol'
 
-/** @internal */
+/** @public */
 export type SubscribingFn<T> = (cb: (val: T) => void) => () => void
 
 /**
@@ -73,9 +73,9 @@ export type TLSyncErrorCloseEventReason =
 export type TLCustomMessageHandler = (this: null, data: any) => void
 
 /**
- * @internal
+ * @public
  */
-export type TlSocketStatusChangeEvent =
+export type TLSocketStatusChangeEvent =
 	| {
 			status: 'online' | 'offline'
 	  }
@@ -84,7 +84,7 @@ export type TlSocketStatusChangeEvent =
 			reason: string
 	  }
 /** @internal */
-export type TLSocketStatusListener = (params: TlSocketStatusChangeEvent) => void
+export type TLSocketStatusListener = (params: TLSocketStatusChangeEvent) => void
 
 /** @internal */
 export type TLPersistentClientSocketStatus = 'online' | 'offline' | 'error'
@@ -96,7 +96,7 @@ export type TLPresenceMode = 'solo' | 'full'
  * open and reconnecting when the connection is lost. In actual client code this will be a wrapper
  * around a websocket or socket.io or something similar.
  *
- * @internal
+ * @public
  */
 export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecord> {
 	/** Whether there is currently an open connection to the server. */
@@ -106,9 +106,11 @@ export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecor
 	/** Attach a listener for messages sent by the server */
 	onReceiveMessage: SubscribingFn<TLSocketServerSentEvent<R>>
 	/** Attach a listener for connection status changes */
-	onStatusChange: SubscribingFn<TlSocketStatusChangeEvent>
+	onStatusChange: SubscribingFn<TLSocketStatusChangeEvent>
 	/** Restart the connection */
 	restart(): void
+	/** Close the connection */
+	close(): void
 }
 
 const PING_INTERVAL = 5000

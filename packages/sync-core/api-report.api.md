@@ -18,7 +18,7 @@ import { TLRecord } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
 
-// @internal (undocumented)
+// @public (undocumented)
 export type AppendOp = [type: typeof ValueOpType.Append, values: unknown[], offset: number];
 
 // @internal (undocumented)
@@ -56,7 +56,7 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
     _ws: null | WebSocket;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export type DeleteOp = [type: typeof ValueOpType.Delete];
 
 // @internal (undocumented)
@@ -84,13 +84,13 @@ export function getNetworkDiff<R extends UnknownRecord>(diff: RecordsDiff<R>): N
 // @internal (undocumented)
 export function getTlsyncProtocolVersion(): number;
 
-// @internal
+// @public
 export interface NetworkDiff<R extends UnknownRecord> {
     // (undocumented)
     [id: string]: RecordOp<R>;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export interface ObjectDiff {
     // (undocumented)
     [k: string]: ValueOp;
@@ -101,7 +101,7 @@ export type OmitVoid<T, KS extends keyof T = keyof T> = {
     [K in KS extends any ? (void extends T[KS] ? never : KS) : never]: T[K];
 };
 
-// @internal (undocumented)
+// @public (undocumented)
 export type PatchOp = [type: typeof ValueOpType.Patch, diff: ObjectDiff];
 
 // @internal (undocumented)
@@ -114,7 +114,7 @@ export interface PersistedRoomSnapshotForSupabase {
     slug: string;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export type PutOp = [type: typeof ValueOpType.Put, value: unknown];
 
 // @internal (undocumented)
@@ -132,17 +132,17 @@ export class ReconnectManager {
     maybeReconnected(): void;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export type RecordOp<R extends UnknownRecord> = [typeof RecordOpType.Patch, ObjectDiff] | [typeof RecordOpType.Put, R] | [typeof RecordOpType.Remove];
 
-// @internal (undocumented)
+// @public (undocumented)
 export const RecordOpType: {
     readonly Patch: "patch";
     readonly Put: "put";
     readonly Remove: "remove";
 };
 
-// @internal (undocumented)
+// @public (undocumented)
 export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType];
 
 // @internal (undocumented)
@@ -219,10 +219,10 @@ export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
     put(record: R): void;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export type SubscribingFn<T> = (cb: (val: T) => void) => () => void;
 
-// @internal (undocumented)
+// @public (undocumented)
 export interface TLConnectRequest {
     // (undocumented)
     connectRequestId: string;
@@ -239,7 +239,7 @@ export interface TLConnectRequest {
 // @public
 export type TLCustomMessageHandler = (this: null, data: any) => void;
 
-// @internal @deprecated (undocumented)
+// @public @deprecated (undocumented)
 export const TLIncompatibilityReason: {
     readonly ClientTooOld: "clientTooOld";
     readonly InvalidOperation: "invalidOperation";
@@ -247,14 +247,15 @@ export const TLIncompatibilityReason: {
     readonly ServerTooOld: "serverTooOld";
 };
 
-// @internal @deprecated (undocumented)
+// @public @deprecated (undocumented)
 export type TLIncompatibilityReason = (typeof TLIncompatibilityReason)[keyof typeof TLIncompatibilityReason];
 
-// @internal
+// @public
 export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecord> {
+    close(): void;
     connectionStatus: 'error' | 'offline' | 'online';
     onReceiveMessage: SubscribingFn<TLSocketServerSentEvent<R>>;
-    onStatusChange: SubscribingFn<TlSocketStatusChangeEvent>;
+    onStatusChange: SubscribingFn<TLSocketStatusChangeEvent>;
     restart(): void;
     sendMessage(msg: TLSocketClientSentEvent<R>): void;
 }
@@ -262,7 +263,7 @@ export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecor
 // @internal (undocumented)
 export type TLPersistentClientSocketStatus = 'error' | 'offline' | 'online';
 
-// @internal (undocumented)
+// @public (undocumented)
 export interface TLPingRequest {
     // (undocumented)
     type: 'ping';
@@ -271,7 +272,7 @@ export interface TLPingRequest {
 // @internal (undocumented)
 export type TLPresenceMode = 'full' | 'solo';
 
-// @internal (undocumented)
+// @public (undocumented)
 export interface TLPushRequest<R extends UnknownRecord> {
     // (undocumented)
     clientClock: number;
@@ -302,7 +303,7 @@ export interface TLRoomSocket<R extends UnknownRecord> {
     sendMessage(msg: TLSocketServerSentEvent<R>): void;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export type TLSocketClientSentEvent<R extends UnknownRecord> = TLConnectRequest | TLPingRequest | TLPushRequest<R>;
 
 // @public (undocumented)
@@ -393,7 +394,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export type TLSocketServerSentDataEvent<R extends UnknownRecord> = {
     action: 'commit' | 'discard' | {
         rebaseWithDiff: NetworkDiff<R>;
@@ -407,7 +408,7 @@ export type TLSocketServerSentDataEvent<R extends UnknownRecord> = {
     type: 'patch';
 };
 
-// @internal (undocumented)
+// @public (undocumented)
 export type TLSocketServerSentEvent<R extends UnknownRecord> = {
     connectRequestId: string;
     diff: NetworkDiff<R>;
@@ -430,8 +431,8 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> = {
     type: 'pong';
 } | TLSocketServerSentDataEvent<R>;
 
-// @internal (undocumented)
-export type TlSocketStatusChangeEvent = {
+// @public (undocumented)
+export type TLSocketStatusChangeEvent = {
     reason: string;
     status: 'error';
 } | {
@@ -439,7 +440,7 @@ export type TlSocketStatusChangeEvent = {
 };
 
 // @internal (undocumented)
-export type TLSocketStatusListener = (params: TlSocketStatusChangeEvent) => void;
+export type TLSocketStatusListener = (params: TLSocketStatusChangeEvent) => void;
 
 // @internal
 export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
@@ -572,10 +573,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export type ValueOp = AppendOp | DeleteOp | PatchOp | PutOp;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const ValueOpType: {
     readonly Append: "append";
     readonly Delete: "delete";
@@ -583,7 +584,7 @@ export const ValueOpType: {
     readonly Put: "put";
 };
 
-// @internal (undocumented)
+// @public (undocumented)
 export type ValueOpType = (typeof ValueOpType)[keyof typeof ValueOpType];
 
 // @public

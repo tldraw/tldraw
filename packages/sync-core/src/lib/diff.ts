@@ -1,17 +1,17 @@
 import { RecordsDiff, UnknownRecord } from '@tldraw/store'
 import { isEqual, objectMapEntries, objectMapValues } from '@tldraw/utils'
 
-/** @internal */
+/** @public */
 export const RecordOpType = {
 	Put: 'put',
 	Patch: 'patch',
 	Remove: 'remove',
 } as const
 
-/** @internal */
+/** @public */
 export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType]
 
-/** @internal */
+/** @public */
 export type RecordOp<R extends UnknownRecord> =
 	| [typeof RecordOpType.Put, R]
 	| [typeof RecordOpType.Patch, ObjectDiff]
@@ -24,7 +24,7 @@ export type RecordOp<R extends UnknownRecord> =
  *
  * Each key in this object is the id of a record that has been added, updated, or removed.
  *
- * @internal
+ * @public
  */
 export interface NetworkDiff<R extends UnknownRecord> {
 	[id: string]: RecordOp<R>
@@ -61,29 +61,29 @@ export function getNetworkDiff<R extends UnknownRecord>(
 	return res
 }
 
-/** @internal */
+/** @public */
 export const ValueOpType = {
 	Put: 'put',
 	Delete: 'delete',
 	Append: 'append',
 	Patch: 'patch',
 } as const
-/** @internal */
+/** @public */
 export type ValueOpType = (typeof ValueOpType)[keyof typeof ValueOpType]
 
-/** @internal */
+/** @public */
 export type PutOp = [type: typeof ValueOpType.Put, value: unknown]
-/** @internal */
+/** @public */
 export type AppendOp = [type: typeof ValueOpType.Append, values: unknown[], offset: number]
-/** @internal */
+/** @public */
 export type PatchOp = [type: typeof ValueOpType.Patch, diff: ObjectDiff]
-/** @internal */
+/** @public */
 export type DeleteOp = [type: typeof ValueOpType.Delete]
 
-/** @internal */
+/** @public */
 export type ValueOp = PutOp | AppendOp | PatchOp | DeleteOp
 
-/** @internal */
+/** @public */
 export interface ObjectDiff {
 	[k: string]: ValueOp
 }

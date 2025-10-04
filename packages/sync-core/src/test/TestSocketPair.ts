@@ -87,6 +87,9 @@ export class TestSocketPair<R extends UnknownRecord> {
 			this.disconnect()
 			this.connect()
 		},
+		close: () => {
+			this.disconnect()
+		},
 	}
 
 	callbacks = {

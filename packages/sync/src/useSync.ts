@@ -3,6 +3,7 @@ import { useAtom } from '@tldraw/state-react'
 import {
 	ClientWebSocketAdapter,
 	TLCustomMessageHandler,
+	TLPersistentClientSocket,
 	TLPresenceMode,
 	TLRemoteSyncError,
 	TLSyncClient,
@@ -21,6 +22,7 @@ import {
 	TLStore,
 	TLStoreSchemaOptions,
 	TLStoreWithStatus,
+	assert,
 	computed,
 	createTLStore,
 	defaultUserPreferences,
@@ -76,6 +78,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	} | null>(null)
 	const {
 		uri,
+		connect,
 		roomId = 'default',
 		assets,
 		onMount,
@@ -122,32 +125,50 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			}
 		)
 
-		const socket = new ClientWebSocketAdapter(async () => {
-			const uriString = typeof uri === 'string' ? uri : await uri()
+		let socket: TLPersistentClientSocket<TLRecord>
+		if (connect) {
+			assert(!uri, 'uri and connect cannot be used together')
 
-			// set sessionId as a query param on the uri
-			const withParams = new URL(uriString)
-			if (withParams.searchParams.has('sessionId')) {
-				throw new Error(
-					'useSync. "sessionId" is a reserved query param name. Please use a different name'
-				)
-			}
-			if (withParams.searchParams.has('storeId')) {
-				throw new Error(
-					'useSync. "storeId" is a reserved query param name. Please use a different name'
-				)
-			}
+			socket = connect({
+				sessionId: TAB_ID,
+				storeId,
+			})
+		} else if (uri) {
+			assert(!connect, 'uri and connect cannot be used together')
 
-			withParams.searchParams.set('sessionId', TAB_ID)
-			withParams.searchParams.set('storeId', storeId)
-			return withParams.toString()
-		})
+			socket = new ClientWebSocketAdapter(async () => {
+				const uriString = typeof uri === 'string' ? uri : await uri()
+
+				// set sessionId as a query param on the uri
+				const withParams = new URL(uriString)
+				if (withParams.searchParams.has('sessionId')) {
+					throw new Error(
+						'useSync. "sessionId" is a reserved query param name. Please use a different name'
+					)
+				}
+				if (withParams.searchParams.has('storeId')) {
+					throw new Error(
+						'useSync. "storeId" is a reserved query param name. Please use a different name'
+					)
+				}
+
+				withParams.searchParams.set('sessionId', TAB_ID)
+				withParams.searchParams.set('storeId', storeId)
+				return withParams.toString()
+			})
+		} else {
+			throw new Error('uri or connect must be provided')
+		}
 
 		let didCancel = false
 
-		const collaborationStatusSignal = computed('collaboration status', () =>
-			socket.connectionStatus === 'error' ? 'offline' : socket.connectionStatus
-		)
+		function getConnectionStatus() {
+			return socket.connectionStatus === 'error' ? 'offline' : socket.connectionStatus
+		}
+		const collaborationStatusSignal = atom('collaboration status', getConnectionStatus())
+		const unsubscribeFromConnectionStatus = socket.onStatusChange(() => {
+			collaborationStatusSignal.set(getConnectionStatus())
+		})
 
 		const syncMode = atom('sync mode', 'readwrite' as 'readonly' | 'readwrite')
 
@@ -232,9 +253,9 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 
 		return () => {
 			didCancel = true
+			unsubscribeFromConnectionStatus()
 			client.close()
 			socket.close()
-			setState(null)
 		}
 	}, [
 		assets,
@@ -245,6 +266,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		setState,
 		track,
 		uri,
+		connect,
 		getUserPresence,
 		onCustomMessageReceived,
 	])
@@ -267,23 +289,10 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 }
 
 /**
- * Options for the {@link useSync} hook.
+ * Common options for the {@link useSync} hook.
  * @public
  */
-export interface UseSyncOptions {
-	/**
-	 * The URI of the multiplayer server. This must include the protocol,
-	 *
-	 *   e.g. `wss://server.example.com/my-room` or `ws://localhost:5858/my-room`.
-	 *
-	 * Note that the protocol can also be `https` or `http` and it will upgrade to a websocket
-	 * connection.
-	 *
-	 * Optionally, you can pass a function which will be called each time a connection is
-	 * established to get the URI. This is useful if you need to include e.g. a short-lived session
-	 * token for authentication.
-	 */
-	uri: string | (() => string | Promise<string>)
+export interface UseSyncOptionsBase {
 	/**
 	 * A signal that contains the user information needed for multiplayer features.
 	 * This should be synchronized with the `userPreferences` configuration for the main `<Tldraw />` component.
@@ -318,3 +327,44 @@ export interface UseSyncOptions {
 	 */
 	getUserPresence?(store: TLStore, user: TLPresenceUserInfo): TLPresenceStateInfo | null
 }
+
+/** @public */
+export interface UseSyncOptionsWithUri extends UseSyncOptionsBase {
+	/**
+	 * The URI of the multiplayer server. This must include the protocol,
+	 *
+	 *   e.g. `wss://server.example.com/my-room` or `ws://localhost:5858/my-room`.
+	 *
+	 * Note that the protocol can also be `https` or `http` and it will upgrade to a websocket
+	 * connection.
+	 *
+	 * Optionally, you can pass a function which will be called each time a connection is
+	 * established to get the URI. This is useful if you need to include e.g. a short-lived session
+	 * token for authentication.
+	 */
+	uri: string | (() => string | Promise<string>)
+	connect?: undefined
+}
+
+/** @public */
+export interface UseSyncOptionsWithConnectFn extends UseSyncOptionsBase {
+	/**
+	 * Create a connection to the server. Mostly you should use {@link UseSyncOptionsWithUri.uri}
+	 * instead, but this is useful if you want to use a custom transport to connect to the server,
+	 * instead of our default websocket-based transport.
+	 */
+	connect: UseSyncConnectFn
+	uri?: undefined
+}
+
+/** @public */
+export type UseSyncConnectFn = (query: {
+	sessionId: string
+	storeId: string
+}) => TLPersistentClientSocket<TLRecord>
+
+/**
+ * Options for the {@link useSync} hook.
+ * @public
+ */
+export type UseSyncOptions = UseSyncOptionsWithUri | UseSyncOptionsWithConnectFn
