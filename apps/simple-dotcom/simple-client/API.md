@@ -156,6 +156,8 @@ GET /api/workspaces/:workspaceId/invite
 ```
 Owner only. Returns the current invitation link (creates one if none exists).
 
+**Note:** Private workspaces cannot have invitation links. This endpoint will return a 403 error for private workspaces.
+
 #### Update Invitation Link
 ```
 PATCH /api/workspaces/:workspaceId/invite
@@ -174,6 +176,8 @@ Owner only. Enable or disable the invitation link.
 POST /api/workspaces/:workspaceId/invite/regenerate
 ```
 Owner only. Generates a new token, invalidating the old link.
+
+**Note:** Cannot regenerate invitation links for private workspaces.
 
 #### Join Workspace
 ```

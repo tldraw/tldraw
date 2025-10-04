@@ -33,7 +33,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 		// Verify user is owner
 		const { data: workspace } = await supabase
 			.from('workspaces')
-			.select('owner_id')
+			.select('owner_id, is_private')
 			.eq('id', workspaceId)
 			.eq('is_deleted', false)
 			.single()
@@ -47,6 +47,14 @@ export async function GET(request: NextRequest, context: RouteContext) {
 				403,
 				ErrorCodes.WORKSPACE_OWNERSHIP_REQUIRED,
 				'Only workspace owner can view invitation link'
+			)
+		}
+
+		if (workspace.is_private) {
+			throw new ApiException(
+				403,
+				ErrorCodes.FORBIDDEN,
+				'Private workspaces cannot have invitation links'
 			)
 		}
 
@@ -97,7 +105,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 		// Verify user is owner
 		const { data: workspace } = await supabase
 			.from('workspaces')
-			.select('owner_id')
+			.select('owner_id, is_private')
 			.eq('id', workspaceId)
 			.eq('is_deleted', false)
 			.single()
@@ -111,6 +119,14 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 				403,
 				ErrorCodes.WORKSPACE_OWNERSHIP_REQUIRED,
 				'Only workspace owner can update invitation link'
+			)
+		}
+
+		if (workspace.is_private) {
+			throw new ApiException(
+				403,
+				ErrorCodes.FORBIDDEN,
+				'Private workspaces cannot have invitation links'
 			)
 		}
 
