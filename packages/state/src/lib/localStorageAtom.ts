@@ -7,7 +7,8 @@ import { react } from './EffectScheduler'
  *
  * The atom is automatically synced with localStorage - changes to the atom are saved to localStorage,
  * and the initial value is read from localStorage if it exists. Returns both the atom and a cleanup
- * function that should be called to stop syncing when the atom is no longer needed.
+ * function that should be called to stop syncing when the atom is no longer needed. If you need to delete
+ * the atom, you should do it manually after all cleanup functions have been called.
  *
  * @example
  * ```ts
@@ -47,12 +48,40 @@ export function localStorageAtom<Value, Diff = unknown>(
 	}
 
 	// Create the atom with the restored or initial value
-	const result = atom(name, _initialValue, options)
+	const outAtom = atom(name, _initialValue, options)
 
 	// Set up automatic syncing: whenever the atom changes, save it to localStorage
-	const cleanup = react(`save ${name} to localStorage`, () => {
-		setInLocalStorage(name, JSON.stringify(result.get()))
+	const reactCleanup = react(`save ${name} to localStorage`, () => {
+		setInLocalStorage(name, JSON.stringify(outAtom.get()))
 	})
 
-	return [result, cleanup]
+	// Set up cross-tab sync: listen for storage events from other tabs
+	const handleStorageEvent = (event: StorageEvent) => {
+		// Only handle events for this specific key
+		if (event.key !== name) return
+
+		// If the value was deleted in another tab
+		if (event.newValue === null) {
+			outAtom.set(initialValue)
+			return
+		}
+
+		// If the value was changed in another tab, update the atom
+		try {
+			const newValue = JSON.parse(event.newValue) as Value
+			outAtom.set(newValue)
+		} catch {
+			// If parsing fails, the stored value is corrupted; preserve the existing value
+		}
+	}
+
+	window.addEventListener('storage', handleStorageEvent)
+
+	// Combined cleanup function
+	const cleanup = () => {
+		reactCleanup()
+		window.removeEventListener('storage', handleStorageEvent)
+	}
+
+	return [outAtom, cleanup]
 }
