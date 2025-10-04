@@ -13,7 +13,7 @@ uniform vec2 u_lightPos;
 uniform float u_shadowContrast;
 
 // Constants
-#define MAX_SEGMENTS 1024
+#define MAX_SEGMENTS 512
 const float LIGHT_SHADOW_ALPHA = 0.5;
 const float DARK_SHADOW_ALPHA = 0.15;
 const float EPSILON_SMALL = 0.001;

@@ -15,7 +15,7 @@ uniform float u_offset;
 uniform vec2 u_pointerPos;
 
 // Constants
-#define MAX_SEGMENTS 1024
+#define MAX_SEGMENTS 512
 const float HASH_SEED_X = 127.1;
 const float HASH_SEED_Y = 311.7;
 const float HASH_MULTIPLIER = 43758.5453;
