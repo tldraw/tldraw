@@ -1,10 +1,30 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
-	// Allows to automatically instantiate createClient with right options
-	// instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-	__InternalSupabase: {
-		PostgrestVersion: '13.0.5'
+	graphql_public: {
+		Tables: {
+			[_ in never]: never
+		}
+		Views: {
+			[_ in never]: never
+		}
+		Functions: {
+			graphql: {
+				Args: {
+					variables?: Json
+					extensions?: Json
+					operationName?: string
+					query?: string
+				}
+				Returns: Json
+			}
+		}
+		Enums: {
+			[_ in never]: never
+		}
+		CompositeTypes: {
+			[_ in never]: never
+		}
 	}
 	public: {
 		Tables: {
@@ -64,7 +84,7 @@ export type Database = {
 					is_archived: boolean
 					name: string
 					r2_key: string | null
-					sharing_mode: Database['public']['Enums']['document_sharing_mode']
+					sharing_mode: Database['public']['Enums']['sharing_mode']
 					updated_at: string
 					workspace_id: string
 				}
@@ -77,7 +97,7 @@ export type Database = {
 					is_archived?: boolean
 					name: string
 					r2_key?: string | null
-					sharing_mode?: Database['public']['Enums']['document_sharing_mode']
+					sharing_mode?: Database['public']['Enums']['sharing_mode']
 					updated_at?: string
 					workspace_id: string
 				}
@@ -90,7 +110,7 @@ export type Database = {
 					is_archived?: boolean
 					name?: string
 					r2_key?: string | null
-					sharing_mode?: Database['public']['Enums']['document_sharing_mode']
+					sharing_mode?: Database['public']['Enums']['sharing_mode']
 					updated_at?: string
 					workspace_id?: string
 				}
@@ -217,25 +237,25 @@ export type Database = {
 			}
 			presence: {
 				Row: {
-					cursor_position: Json | null
+					created_at: string
+					cursor_data: Json | null
 					document_id: string
-					id: string
 					last_seen_at: string
 					session_id: string
 					user_id: string | null
 				}
 				Insert: {
-					cursor_position?: Json | null
+					created_at?: string
+					cursor_data?: Json | null
 					document_id: string
-					id?: string
 					last_seen_at?: string
-					session_id: string
+					session_id?: string
 					user_id?: string | null
 				}
 				Update: {
-					cursor_position?: Json | null
+					created_at?: string
+					cursor_data?: Json | null
 					document_id?: string
-					id?: string
 					last_seen_at?: string
 					session_id?: string
 					user_id?: string | null
@@ -270,7 +290,7 @@ export type Database = {
 					created_at?: string
 					display_name?: string | null
 					email: string
-					id: string
+					id?: string
 					name?: string | null
 					updated_at?: string
 				}
@@ -288,23 +308,23 @@ export type Database = {
 				Row: {
 					id: string
 					joined_at: string
-					role: Database['public']['Enums']['workspace_role']
 					user_id: string
 					workspace_id: string
+					workspace_role: Database['public']['Enums']['workspace_role']
 				}
 				Insert: {
 					id?: string
 					joined_at?: string
-					role?: Database['public']['Enums']['workspace_role']
 					user_id: string
 					workspace_id: string
+					workspace_role?: Database['public']['Enums']['workspace_role']
 				}
 				Update: {
 					id?: string
 					joined_at?: string
-					role?: Database['public']['Enums']['workspace_role']
 					user_id?: string
 					workspace_id?: string
+					workspace_role?: Database['public']['Enums']['workspace_role']
 				}
 				Relationships: [
 					{
@@ -369,13 +389,61 @@ export type Database = {
 			[_ in never]: never
 		}
 		Functions: {
+			can_access_document: {
+				Args: { user_uuid: string; document_uuid: string }
+				Returns: boolean
+			}
+			can_edit_document: {
+				Args: { document_uuid: string; user_uuid: string }
+				Returns: boolean
+			}
 			cleanup_stale_presence: {
 				Args: Record<PropertyKey, never>
 				Returns: undefined
 			}
+			gtrgm_compress: {
+				Args: { '': unknown }
+				Returns: unknown
+			}
+			gtrgm_decompress: {
+				Args: { '': unknown }
+				Returns: unknown
+			}
+			gtrgm_in: {
+				Args: { '': unknown }
+				Returns: unknown
+			}
+			gtrgm_options: {
+				Args: { '': unknown }
+				Returns: undefined
+			}
+			gtrgm_out: {
+				Args: { '': unknown }
+				Returns: unknown
+			}
+			is_workspace_member: {
+				Args: { workspace_uuid: string; user_uuid: string }
+				Returns: boolean
+			}
+			is_workspace_owner: {
+				Args: { workspace_uuid: string; user_uuid: string }
+				Returns: boolean
+			}
+			set_limit: {
+				Args: { '': number }
+				Returns: number
+			}
+			show_limit: {
+				Args: Record<PropertyKey, never>
+				Returns: number
+			}
+			show_trgm: {
+				Args: { '': string }
+				Returns: string[]
+			}
 		}
 		Enums: {
-			document_sharing_mode: 'private' | 'public_read_only' | 'public_editable'
+			sharing_mode: 'private' | 'public_read_only' | 'public_editable'
 			workspace_role: 'owner' | 'member'
 		}
 		CompositeTypes: {
@@ -384,25 +452,21 @@ export type Database = {
 	}
 }
 
-type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
-
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
+type DefaultSchema = Database[Extract<keyof Database, 'public'>]
 
 export type Tables<
 	DefaultSchemaTableNameOrOptions extends
 		| keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
-		| { schema: keyof DatabaseWithoutInternals },
+		| { schema: keyof Database },
 	TableName extends DefaultSchemaTableNameOrOptions extends {
-		schema: keyof DatabaseWithoutInternals
+		schema: keyof Database
 	}
-		? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-				DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
+		? keyof (Database[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+				Database[DefaultSchemaTableNameOrOptions['schema']]['Views'])
 		: never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-	schema: keyof DatabaseWithoutInternals
-}
-	? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-			DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+	? (Database[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+			Database[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
 			Row: infer R
 		}
 		? R
@@ -418,16 +482,14 @@ export type Tables<
 export type TablesInsert<
 	DefaultSchemaTableNameOrOptions extends
 		| keyof DefaultSchema['Tables']
-		| { schema: keyof DatabaseWithoutInternals },
+		| { schema: keyof Database },
 	TableName extends DefaultSchemaTableNameOrOptions extends {
-		schema: keyof DatabaseWithoutInternals
+		schema: keyof Database
 	}
-		? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+		? keyof Database[DefaultSchemaTableNameOrOptions['schema']]['Tables']
 		: never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-	schema: keyof DatabaseWithoutInternals
-}
-	? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+	? Database[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
 			Insert: infer I
 		}
 		? I
@@ -443,16 +505,14 @@ export type TablesInsert<
 export type TablesUpdate<
 	DefaultSchemaTableNameOrOptions extends
 		| keyof DefaultSchema['Tables']
-		| { schema: keyof DatabaseWithoutInternals },
+		| { schema: keyof Database },
 	TableName extends DefaultSchemaTableNameOrOptions extends {
-		schema: keyof DatabaseWithoutInternals
+		schema: keyof Database
 	}
-		? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+		? keyof Database[DefaultSchemaTableNameOrOptions['schema']]['Tables']
 		: never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-	schema: keyof DatabaseWithoutInternals
-}
-	? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+	? Database[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
 			Update: infer U
 		}
 		? U
@@ -466,18 +526,14 @@ export type TablesUpdate<
 		: never
 
 export type Enums<
-	DefaultSchemaEnumNameOrOptions extends
-		| keyof DefaultSchema['Enums']
-		| { schema: keyof DatabaseWithoutInternals },
+	DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums'] | { schema: keyof Database },
 	EnumName extends DefaultSchemaEnumNameOrOptions extends {
-		schema: keyof DatabaseWithoutInternals
+		schema: keyof Database
 	}
-		? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
+		? keyof Database[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
 		: never = never,
-> = DefaultSchemaEnumNameOrOptions extends {
-	schema: keyof DatabaseWithoutInternals
-}
-	? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
+	? Database[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
 	: DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
 		? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
 		: never
@@ -485,24 +541,25 @@ export type Enums<
 export type CompositeTypes<
 	PublicCompositeTypeNameOrOptions extends
 		| keyof DefaultSchema['CompositeTypes']
-		| { schema: keyof DatabaseWithoutInternals },
+		| { schema: keyof Database },
 	CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-		schema: keyof DatabaseWithoutInternals
+		schema: keyof Database
 	}
-		? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+		? keyof Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
 		: never = never,
-> = PublicCompositeTypeNameOrOptions extends {
-	schema: keyof DatabaseWithoutInternals
-}
-	? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+	? Database[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
 	: PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
 		? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
 		: never
 
 export const Constants = {
+	graphql_public: {
+		Enums: {},
+	},
 	public: {
 		Enums: {
-			document_sharing_mode: ['private', 'public_read_only', 'public_editable'],
+			sharing_mode: ['private', 'public_read_only', 'public_editable'],
 			workspace_role: ['owner', 'member'],
 		},
 	},

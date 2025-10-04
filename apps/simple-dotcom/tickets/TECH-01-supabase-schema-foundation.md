@@ -38,8 +38,8 @@ Author the initial Supabase schema and migrations that back the Simple tldraw MV
 
 - [x] Base SQL migration(s) under `apps/simple-dotcom/supabase/migrations/` create the core tables with UUID primary keys, timestamps, soft-delete fields, foreign keys, and supporting indexes that match the product specification.
 - [x] Draft outline of the RLS policies and helper functions needed for PERM-01 is recorded (policy names, high-level predicates per table) so follow-up work can enable them without further schema changes.
-- [ ] Manual verification notes in this ticket describe how to run `supabase db reset` (or `supabase db push`) against a local project, seed a sample owner/workspace/document, and confirm read/write access via `psql` or Supabase Studio. *(Pending Docker startup for local testing)*
-- [ ] Repository documentation (`docs/simple-dotcom/tech-01-schema.md`) captures table/column descriptions and embeds an ER diagram exported to `docs/simple-dotcom/tech-01-er.png`; ticket links to both. *(Deferred - can be generated from Studio after local testing)*
+- [x] Manual verification notes in this ticket describe how to run `supabase db reset` (or `supabase db push`) against a local project, seed a sample owner/workspace/document, and confirm read/write access via `psql` or Supabase Studio.
+- [ ] Repository documentation (`docs/simple-dotcom/tech-01-schema.md`) captures table/column descriptions and embeds an ER diagram exported to `docs/simple-dotcom/tech-01-er.png`; ticket links to both. *(Deferred - can be generated from Studio and documented in follow-up)*
 
 ## Technical Details
 
@@ -79,9 +79,9 @@ Author the initial Supabase schema and migrations that back the Simple tldraw MV
 
 ## Testing Requirements
 
-- [ ] Unit tests
-- [ ] Integration tests (not applicable for schema-only work)
-- [ ] E2E tests (Playwright)
+- [ ] Unit tests (deferred to API implementation tickets)
+- [ ] Integration tests (deferred to API implementation tickets)
+- [ ] E2E tests (Playwright - deferred to TEST-01)
 - [x] Manual testing scenarios (documented smoke test applying migrations + basic CRUD)
 
 ## Related Documentation
@@ -94,8 +94,80 @@ Author the initial Supabase schema and migrations that back the Simple tldraw MV
 ## Notes
 
 - Export the ER diagram from Supabase Studio (or dbdiagram.io) into `docs/simple-dotcom/tech-01-er.png` and reference it inside the schema doc.
-- Capture manual verification commands directly in this ticket once migrations land (psql snippets, sample insert/select).
 - Coordinate with PERM-01 to avoid double work on RLS function naming.
+
+## Manual Verification Commands
+
+To verify the schema locally:
+
+```bash
+# Start Supabase (first time setup)
+cd apps/simple-dotcom
+supabase start
+
+# Check all tables are created
+psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -c "\dt"
+
+# Verify enums
+psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -c "\dT+"
+
+# Verify RLS helper functions
+psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -c "\df is_workspace_*"
+psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -c "\df can_*"
+
+# Test basic CRUD operations
+psql postgresql://postgres:postgres@127.0.0.1:54322/postgres << 'EOF'
+-- Insert test user
+INSERT INTO users (email, display_name, name)
+VALUES ('test@example.com', 'Test User', 'Test')
+RETURNING id, email, display_name;
+
+-- Create workspace
+WITH test_user AS (SELECT id FROM users WHERE email = 'test@example.com')
+INSERT INTO workspaces (owner_id, name, is_private)
+SELECT id, 'Test Workspace', false FROM test_user
+RETURNING id, name, is_private;
+
+-- Create document
+WITH test_user AS (SELECT id FROM users WHERE email = 'test@example.com'),
+     test_workspace AS (SELECT id FROM workspaces WHERE name = 'Test Workspace')
+INSERT INTO documents (workspace_id, name, created_by, sharing_mode)
+SELECT w.id, 'Test Document', u.id, 'private'
+FROM test_workspace w, test_user u
+RETURNING id, name, sharing_mode;
+
+-- Verify data
+SELECT u.email, w.name as workspace, d.name as document
+FROM users u
+JOIN workspaces w ON w.owner_id = u.id
+LEFT JOIN documents d ON d.workspace_id = w.id
+WHERE u.email = 'test@example.com';
+EOF
+
+# Test folder cycle prevention (should error)
+psql postgresql://postgres:postgres@127.0.0.1:54322/postgres << 'EOF'
+WITH test_user AS (SELECT id FROM users WHERE email = 'test@example.com'),
+     test_workspace AS (SELECT id FROM workspaces WHERE name = 'Test Workspace')
+INSERT INTO folders (workspace_id, name, created_by)
+SELECT w.id, 'Root Folder', u.id FROM test_workspace w, test_user u
+RETURNING id;
+
+-- Try to create cycle (should fail)
+UPDATE folders SET parent_folder_id = id WHERE name = 'Root Folder';
+EOF
+
+# Generate TypeScript types
+supabase gen types typescript --local > supabase/types.ts
+
+# Access Supabase Studio
+open http://127.0.0.1:54323
+
+# Reset database (destructive - only for testing)
+supabase db reset
+
+# Stop Supabase
+supabase stop
+```
 
 ## Worklog
 
@@ -109,6 +181,14 @@ Author the initial Supabase schema and migrations that back the Simple tldraw MV
   - Indexes: optimized for dashboard queries, search (pg_trgm), membership lookups
 - 2025-10-04: Documented comprehensive RLS policy outline in `supabase/RLS_POLICIES_OUTLINE.md` for PERM-01 implementation
 - 2025-10-04: Schema includes all tables, relationships, and constraints specified in SPECIFICATION.md data model
+- 2025-10-04: Started local Supabase instance and verified migration applies successfully
+- 2025-10-04: Generated TypeScript types with `supabase gen types typescript --local > supabase/types.ts`
+- 2025-10-04: Verified schema with manual testing:
+  - ✅ Created user, workspace, workspace member, and document
+  - ✅ Verified folder hierarchy creation
+  - ✅ Confirmed cycle prevention trigger works (blocks circular parent references)
+  - ✅ All tables, enums, and helper functions present
+  - ✅ Indexes and constraints functioning as expected
 
 ## Open Questions
 
