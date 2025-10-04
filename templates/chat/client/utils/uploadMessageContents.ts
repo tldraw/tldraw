@@ -9,12 +9,10 @@ interface UploadedMetadata {
 const UPLOAD_METADATA_KEY = 'tldraw_uploaded'
 
 /**
- * Vercel limits us to 4.5mb uploads. We upload files to Google GenAI to avoid this limitation.
- * There's two problems with that we need to work around though:
- * 1. Google will only store files for 24 hours.
- * 2. Google will host files privately - so we can't use them to display them in the UI.
+ * We upload files to Cloudflare R2 to handle larger files and provide temporary storage.
+ * Files are automatically expired after 24 hours for privacy and storage efficiency.
  *
- * To work around these, we process the messages into two versions:
+ * We process the messages into two versions:
  * 1. The messages to send to the server - these have the file data URLs replaced with uploaded versions.
  * 2. The messages we use locally - these store the upload for re-use in `providerMetadata`, but keep the originals for display or when the uploads expire.
  */

@@ -58,15 +58,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ai-sdk/gateway@npm:1.0.7":
-  version: 1.0.7
-  resolution: "@ai-sdk/gateway@npm:1.0.7"
+"@ai-sdk/gateway@npm:1.0.24":
+  version: 1.0.24
+  resolution: "@ai-sdk/gateway@npm:1.0.24"
   dependencies:
     "@ai-sdk/provider": "npm:2.0.0"
-    "@ai-sdk/provider-utils": "npm:3.0.3"
+    "@ai-sdk/provider-utils": "npm:3.0.9"
   peerDependencies:
     zod: ^3.25.76 || ^4
-  checksum: 10/19790a127594be4c784a2ec9e773c404ccf3d7ea5f29ad1ec10a154052c87de03c2aab7d5d650d3ca8b721e80ab9e126c623f7b6d8975736f6de9e29b44e8a34
+  checksum: 10/08e862725ecc044ff22266d7b7a8157f6140e7c0357179187638182fdfddcd2e569ee46458286be88eb836303df11ab28de4e0ae95302c26133a935b3549c4b1
   languageName: node
   linkType: hard
 
@@ -91,20 +91,6 @@ __metadata:
   peerDependencies:
     zod: ^3.25.76 || ^4
   checksum: 10/c15ffe86ebcf854e44a93d933b1f622358beffb3f3731c1f44b0ba8c75533ee0a39704597c309963a8ccc95c4eaf845805a61ae09dfe7e45bf18019cb350e773
-  languageName: node
-  linkType: hard
-
-"@ai-sdk/provider-utils@npm:3.0.3":
-  version: 3.0.3
-  resolution: "@ai-sdk/provider-utils@npm:3.0.3"
-  dependencies:
-    "@ai-sdk/provider": "npm:2.0.0"
-    "@standard-schema/spec": "npm:^1.0.0"
-    eventsource-parser: "npm:^3.0.3"
-    zod-to-json-schema: "npm:^3.24.1"
-  peerDependencies:
-    zod: ^3.25.76 || ^4
-  checksum: 10/1b4f9042211afc14ebe8d50ad7b224dfa4f53ed6c0fcf5a4f31653cd22572946f6925d86edcca36bf36c92b5cff3c09b337073fdd21fab3a6448fa9db8201722
   languageName: node
   linkType: hard
 
@@ -157,11 +143,11 @@ __metadata:
   linkType: hard
 
 "@ai-sdk/react@npm:^2.0.15":
-  version: 2.0.15
-  resolution: "@ai-sdk/react@npm:2.0.15"
+  version: 2.0.47
+  resolution: "@ai-sdk/react@npm:2.0.47"
   dependencies:
-    "@ai-sdk/provider-utils": "npm:3.0.3"
-    ai: "npm:5.0.15"
+    "@ai-sdk/provider-utils": "npm:3.0.9"
+    ai: "npm:5.0.47"
     swr: "npm:^2.2.5"
     throttleit: "npm:2.1.0"
   peerDependencies:
@@ -170,7 +156,7 @@ __metadata:
   peerDependenciesMeta:
     zod:
       optional: true
-  checksum: 10/fcb40f59c852f0793ada5d6461326ec495669edc82a41260e3d35ec3aff8d37d135193231fa001209bdd2b71f6142979dcc4f41d47bb732c0fbb98961792cdc1
+  checksum: 10/441de5d1afe205712a72f46d95c9b7a7774d62d41d47c375c1b1a20af649f675042c50339868d0fca5abeeda054922ecacf39db9c223f5f23ed14f8649f0d583
   languageName: node
   linkType: hard
 
@@ -3515,21 +3501,6 @@ __metadata:
   bin:
     clasp: build/src/index.js
   checksum: 10/421b283df24d32fbaea26f4e51e7512201aab28612c8033f4e4c5ed5d6cd59a2eec65b5386fb7db33ca3a9c28e3e4ed4db807ae2bb3db739b0b94b03a17fc195
-  languageName: node
-  linkType: hard
-
-"@google/genai@npm:^1.17.0":
-  version: 1.17.0
-  resolution: "@google/genai@npm:1.17.0"
-  dependencies:
-    google-auth-library: "npm:^9.14.2"
-    ws: "npm:^8.18.0"
-  peerDependencies:
-    "@modelcontextprotocol/sdk": ^1.11.4
-  peerDependenciesMeta:
-    "@modelcontextprotocol/sdk":
-      optional: true
-  checksum: 10/b46b6bf35bebce515ebbd554c1db2af385012740aac476158c37b169192760db615bd77418f49443fffbf6980f1616f3d10ec6b630f5b8d41e702bd685376b41
   languageName: node
   linkType: hard
 
@@ -11720,17 +11691,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ai@npm:5.0.15":
-  version: 5.0.15
-  resolution: "ai@npm:5.0.15"
+"ai@npm:5.0.47":
+  version: 5.0.47
+  resolution: "ai@npm:5.0.47"
   dependencies:
-    "@ai-sdk/gateway": "npm:1.0.7"
+    "@ai-sdk/gateway": "npm:1.0.24"
     "@ai-sdk/provider": "npm:2.0.0"
-    "@ai-sdk/provider-utils": "npm:3.0.3"
+    "@ai-sdk/provider-utils": "npm:3.0.9"
     "@opentelemetry/api": "npm:1.9.0"
   peerDependencies:
     zod: ^3.25.76 || ^4
-  checksum: 10/a0077b55895555de7ef708faf41983d76f7a78b41fa3a1dd22faad19d63b1877350392927289c8724f3e69fc23044ffe84642ee0cea232e46186e485a8e4b7b7
+  checksum: 10/a43d728b1cfd755bc3cce36c9c4bb3555bad3d579ed23c80b36fe47aa1b1e3626db07d590041c6878d08c5e5ace145a0b4a390451b18e94ffcefcde7d5955bf9
   languageName: node
   linkType: hard
 
@@ -16068,7 +16039,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eventsource-parser@npm:^3.0.0, eventsource-parser@npm:^3.0.3, eventsource-parser@npm:^3.0.5":
+"eventsource-parser@npm:^3.0.0, eventsource-parser@npm:^3.0.5":
   version: 3.0.6
   resolution: "eventsource-parser@npm:3.0.6"
   checksum: 10/febf7058b9c2168ecbb33e92711a1646e06bd1568f60b6eb6a01a8bf9f8fcd29cc8320d57247059cacf657a296280159f21306d2e3ff33309a9552b2ef889387
@@ -17575,7 +17546,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"google-auth-library@npm:^9.14.2, google-auth-library@npm:^9.15.1":
+"google-auth-library@npm:^9.15.1":
   version: 9.15.1
   resolution: "google-auth-library@npm:9.15.1"
   dependencies:
@@ -27730,17 +27701,20 @@ __metadata:
   dependencies:
     "@ai-sdk/google": "npm:^2.0.14"
     "@ai-sdk/react": "npm:^2.0.15"
-    "@google/genai": "npm:^1.17.0"
-    "@types/node": "npm:^22.15.31"
+    "@cloudflare/vite-plugin": "npm:^1.13.2"
+    "@cloudflare/workers-types": "npm:^4.20250913.0"
     "@types/react": "npm:^18.3.18"
     "@types/react-dom": "npm:^18.3.5"
+    "@vitejs/plugin-react-swc": "npm:^3.10.2"
     ai: "npm:^5.0.15"
-    next: "npm:^15.4.6"
+    itty-router: "npm:^5.0.18"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
     react-markdown: "npm:^10.1.0"
     tldraw: "workspace:*"
     typescript: "npm:^5.8.3"
+    vite: "npm:^7.0.1"
+    wrangler: "npm:^4.37.1"
     zod: "npm:^4.1.5"
   languageName: unknown
   linkType: soft
