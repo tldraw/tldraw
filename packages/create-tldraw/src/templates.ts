@@ -17,6 +17,13 @@ export const TEMPLATES: Template[] = [
 		repo: 'tldraw/vite-template',
 	},
 	{
+		name: 'Shader Starter Kit',
+		description:
+			'A tldraw template with WebGL shader starter kit that creates dynamic shader effects from shape geometry.',
+		order: 10,
+		repo: 'tldraw/shader-starter-kit',
+	},
+	{
 		name: 'Agent',
 		description: 'Enable AI agents to interpret and interact with canvas drawings and elements.',
 		shortDescription: 'An AI-powered agent.',
