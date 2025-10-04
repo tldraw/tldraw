@@ -10256,9 +10256,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						if (!inputs.isEditing) {
 							this._pinchStart = this.getCamera().z
-							if (!this._selectedShapeIdsAtPointerDown.length) {
-								this._selectedShapeIdsAtPointerDown = [...pageState.selectedShapeIds]
-							}
+							this._selectedShapeIdsAtPointerDown = [...pageState.selectedShapeIds]
 
 							this._didPinch = true
 
