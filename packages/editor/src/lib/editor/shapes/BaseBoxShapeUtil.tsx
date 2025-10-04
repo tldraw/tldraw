@@ -1,4 +1,4 @@
-import { TLBaseShape } from '@tldraw/tlschema'
+import { TLShape } from '@tldraw/tlschema'
 import { lerp } from '@tldraw/utils'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import { Rectangle2d } from '../../primitives/geometry/Rectangle2d'
@@ -7,7 +7,7 @@ import { ShapeUtil, TLResizeInfo } from './ShapeUtil'
 import { resizeBox } from './shared/resizeBox'
 
 /** @public */
-export type TLBaseBoxShape = TLBaseShape<string, { w: number; h: number }>
+export type TLBaseBoxShape = Extract<TLShape, { props: { w: number; h: number } }>
 
 /** @public */
 export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends ShapeUtil<Shape> {

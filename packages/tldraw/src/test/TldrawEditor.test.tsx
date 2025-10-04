@@ -411,15 +411,21 @@ describe('<TldrawEditor />', () => {
 	})
 })
 
-describe('Custom shapes', () => {
-	type CardShape = TLBaseShape<
-		'card',
-		{
-			w: number
-			h: number
-		}
-	>
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		card: CardShape
+	}
+}
 
+type CardShape = TLBaseShape<
+	'card',
+	{
+		w: number
+		h: number
+	}
+>
+
+describe('Custom shapes', () => {
 	class CardUtil extends BaseBoxShapeUtil<CardShape> {
 		static override type = 'card' as const
 
@@ -463,7 +469,7 @@ describe('Custom shapes', () => {
 	class CardTool extends BaseBoxShapeTool {
 		static override id = 'card'
 		static override initial = 'idle'
-		override shapeType = 'card'
+		override shapeType = 'card' as const
 	}
 
 	const tools = [CardTool]
