@@ -22,7 +22,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
-      issues: read
+      issues: write
       id-token: write
 
     steps:
@@ -38,7 +38,7 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prompt: |
             FIRST: Delete any previous Claude Code reviews on this PR by running:
-            `gh pr view --json comments --jq '.comments[] | select(.body | contains("🤖 Claude Code Review")) | .id' | xargs -I {} gh api --method DELETE repos/:owner/:repo/issues/comments/{} 2>/dev/null || true`
+            `gh pr view --json comments --jq '.comments[] | select(.body | contains("🤖 Claude Code Review")) | .id' | xargs -I {} gh api --method DELETE "repos/${{ github.repository }}/issues/comments/{}" 2>/dev/null || true`
 
             THEN: Please review this pull request and provide feedback on:
             - Code quality and best practices
@@ -49,9 +49,7 @@ jobs:
 
             Use the repository's CLAUDE.md for guidance on style and conventions. Be constructive and helpful in your feedback.
 
-            Use `gh pr comment` with your Bash tool to leave your review as a comment on the PR.
-
-            IMPORTANT: Start your review comment with "🤖 Claude Code Review" so it can be identified and deleted in future runs.
+            Use `gh pr comment` with your Bash tool to leave your review as a comment on the PR. IMPORTANT: Your comment MUST start with "🤖 Claude Code Review" so it can be identified and cleaned up in future runs.
 
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://docs.anthropic.com/en/docs/claude-code/sdk#command-line for available options
