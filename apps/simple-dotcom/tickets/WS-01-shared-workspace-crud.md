@@ -1,15 +1,15 @@
 # [WS-01]: Shared Workspace CRUD
 
 Date created: 2025-10-04
-Date last updated: -
-Date completed: -
+Date last updated: 2025-10-04
+Date completed: 2025-10-04
 
 ## Status
 
-- [x] Not Started
+- [ ] Not Started
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -99,7 +99,17 @@ Coordinate with workspace archive ticket to ensure soft-deleted workspaces remai
 
 ## Worklog
 
-[Track progress, decisions, and blockers as work proceeds. Each entry should include date and brief description.]
+### 2025-10-04
+
+- ✅ Implemented shared workspace creation UI with modal dialog
+- ✅ Implemented workspace rename functionality with inline controls
+- ✅ Implemented workspace soft deletion with confirmation dialog
+- ✅ Updated API routes to use Better Auth for authentication
+- ✅ Created admin Supabase client helper for bypassing RLS
+- ✅ Added RLS policy for workspace_members INSERT operations
+- ✅ Wrote comprehensive E2E tests for all workspace CRUD operations
+- ✅ Dashboard now displays all workspaces with appropriate controls based on ownership and workspace type
+- ✅ Private workspaces correctly show "(Cannot modify)" and hide action buttons
 
 ## Open questions
 

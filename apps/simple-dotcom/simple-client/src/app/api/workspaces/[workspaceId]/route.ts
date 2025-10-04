@@ -6,8 +6,10 @@
 import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
 import { UpdateWorkspaceRequest, Workspace } from '@/lib/api/types'
-import { createClient, requireAuth } from '@/lib/supabase/server'
+import { auth } from '@/lib/auth'
+import { createClient } from '@/lib/supabase/server'
 import type { Tables } from '@/lib/supabase/types'
+import { headers } from 'next/headers'
 import { NextRequest } from 'next/server'
 
 type RouteContext = {
@@ -20,7 +22,15 @@ type RouteContext = {
  */
 export async function GET(request: NextRequest, context: RouteContext) {
 	try {
-		const user = await requireAuth()
+		// Get session from Better Auth
+		const session = await auth.api.getSession({
+			headers: await headers(),
+		})
+
+		if (!session?.user) {
+			throw new ApiException(401, ErrorCodes.UNAUTHORIZED, 'Not authenticated')
+		}
+
 		const supabase = await createClient()
 		const { workspaceId } = await context.params
 
@@ -29,7 +39,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 			.from('workspace_members')
 			.select('*')
 			.eq('workspace_id', workspaceId)
-			.eq('user_id', user.id)
+			.eq('user_id', session.user.id)
 			.single()
 
 		if (!membership) {
@@ -61,7 +71,15 @@ export async function GET(request: NextRequest, context: RouteContext) {
  */
 export async function PATCH(request: NextRequest, context: RouteContext) {
 	try {
-		const user = await requireAuth()
+		// Get session from Better Auth
+		const session = await auth.api.getSession({
+			headers: await headers(),
+		})
+
+		if (!session?.user) {
+			throw new ApiException(401, ErrorCodes.UNAUTHORIZED, 'Not authenticated')
+		}
+
 		const supabase = await createClient()
 		const { workspaceId } = await context.params
 		const body: UpdateWorkspaceRequest = await request.json()
@@ -80,7 +98,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
 		const workspace = data as Pick<Tables<'workspaces'>, 'owner_id' | 'is_private'>
 
-		if (workspace.owner_id !== user.id) {
+		if (workspace.owner_id !== session.user.id) {
 			throw new ApiException(
 				403,
 				ErrorCodes.WORKSPACE_OWNERSHIP_REQUIRED,
@@ -132,7 +150,15 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
  */
 export async function DELETE(request: NextRequest, context: RouteContext) {
 	try {
-		const user = await requireAuth()
+		// Get session from Better Auth
+		const session = await auth.api.getSession({
+			headers: await headers(),
+		})
+
+		if (!session?.user) {
+			throw new ApiException(401, ErrorCodes.UNAUTHORIZED, 'Not authenticated')
+		}
+
 		const supabase = await createClient()
 		const { workspaceId } = await context.params
 
@@ -150,7 +176,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
 
 		const workspace = data as Pick<Tables<'workspaces'>, 'owner_id' | 'is_private'>
 
-		if (workspace.owner_id !== user.id) {
+		if (workspace.owner_id !== session.user.id) {
 			throw new ApiException(
 				403,
 				ErrorCodes.WORKSPACE_OWNERSHIP_REQUIRED,

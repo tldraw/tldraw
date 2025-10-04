@@ -10,7 +10,7 @@ import type { Tables } from '@/lib/supabase/types'
 import { NextRequest } from 'next/server'
 
 // Database row type with joined user data
-// Note: cursor_position is stored as Json in DB but we validate it as {x, y} shape
+// Note: cursor_data is stored as Json in DB but we validate it as {x, y} shape
 type PresenceWithUser = Tables<'presence'> & {
 	users: { display_name: string | null } | null
 }
@@ -22,7 +22,7 @@ function toPresenceSession(dbRow: PresenceWithUser): PresenceSession {
 		document_id: dbRow.document_id,
 		user_id: dbRow.user_id,
 		display_name: dbRow.users?.display_name || null,
-		cursor_position: dbRow.cursor_position as { x: number; y: number } | null,
+		cursor_position: dbRow.cursor_data as { x: number; y: number } | null,
 		last_seen_at: dbRow.last_seen_at,
 	}
 }
@@ -136,7 +136,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 					session_id: sessionId,
 					document_id: documentId,
 					user_id: user?.id || null,
-					cursor_position: body.cursor_position || null,
+					cursor_data: body.cursor_position || null,
 					last_seen_at: new Date().toISOString(),
 				},
 				{

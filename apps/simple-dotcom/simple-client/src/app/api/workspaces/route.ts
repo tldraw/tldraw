@@ -5,7 +5,9 @@
 import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, parsePaginationParams, successResponse } from '@/lib/api/response'
 import { CreateWorkspaceRequest, Workspace } from '@/lib/api/types'
-import { createClient, requireAuth } from '@/lib/supabase/server'
+import { auth } from '@/lib/auth'
+import { createAdminClient, createClient } from '@/lib/supabase/server'
+import { headers } from 'next/headers'
 import { NextRequest } from 'next/server'
 
 /**
@@ -14,7 +16,15 @@ import { NextRequest } from 'next/server'
  */
 export async function GET(request: NextRequest) {
 	try {
-		const user = await requireAuth()
+		// Get session from Better Auth
+		const session = await auth.api.getSession({
+			headers: await headers(),
+		})
+
+		if (!session?.user) {
+			throw new ApiException(401, ErrorCodes.UNAUTHORIZED, 'Not authenticated')
+		}
+
 		const supabase = await createClient()
 		const { searchParams } = new URL(request.url)
 		const { limit, offset } = parsePaginationParams(searchParams)
@@ -29,7 +39,7 @@ export async function GET(request: NextRequest) {
 			`,
 				{ count: 'exact' }
 			)
-			.eq('workspace_members.user_id', user.id)
+			.eq('workspace_members.user_id', session.user.id)
 			.eq('is_deleted', false)
 			.order('created_at', { ascending: false })
 			.range(offset, offset + limit - 1)
@@ -52,8 +62,17 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
 	try {
-		const user = await requireAuth()
-		const supabase = await createClient()
+		// Get session from Better Auth
+		const session = await auth.api.getSession({
+			headers: await headers(),
+		})
+
+		if (!session?.user) {
+			throw new ApiException(401, ErrorCodes.UNAUTHORIZED, 'Not authenticated')
+		}
+
+		// Use admin client to bypass RLS for workspace creation
+		const supabaseAdmin = createAdminClient()
 		const body: CreateWorkspaceRequest = await request.json()
 
 		if (!body.name || body.name.trim().length === 0) {
@@ -61,10 +80,10 @@ export async function POST(request: NextRequest) {
 		}
 
 		// Check workspace limit (~100 workspaces per user)
-		const { count } = await supabase
+		const { count } = await supabaseAdmin
 			.from('workspaces')
 			.select('*', { count: 'exact', head: true })
-			.eq('owner_id', user.id)
+			.eq('owner_id', session.user.id)
 			.eq('is_deleted', false)
 
 		if (count && count >= 100) {
@@ -76,10 +95,10 @@ export async function POST(request: NextRequest) {
 		}
 
 		// Create workspace
-		const { data: workspace, error: workspaceError } = await supabase
+		const { data: workspace, error: workspaceError } = await supabaseAdmin
 			.from('workspaces')
 			.insert({
-				owner_id: user.id,
+				owner_id: session.user.id,
 				name: body.name.trim(),
 				is_private: false,
 			})
@@ -87,21 +106,40 @@ export async function POST(request: NextRequest) {
 			.single()
 
 		if (workspaceError || !workspace) {
+			console.error('[Workspace Creation] Error creating workspace:', workspaceError)
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to create workspace')
 		}
 
 		// Add owner as member
-		const { error: memberError } = await supabase.from('workspace_members').insert({
-			workspace_id: workspace.id,
-			user_id: user.id,
-			workspace_role: 'owner',
-		})
+		const { error: memberError, data: memberData } = await supabaseAdmin
+			.from('workspace_members')
+			.insert({
+				workspace_id: workspace.id,
+				user_id: session.user.id,
+				role: 'owner',
+			})
+			.select()
 
 		if (memberError) {
+			console.error(
+				'[Workspace Creation] Error creating member:',
+				JSON.stringify(memberError, null, 2)
+			)
+			console.error('[Workspace Creation] Attempted to insert:', {
+				workspace_id: workspace.id,
+				user_id: session.user.id,
+				role: 'owner',
+			})
 			// Rollback workspace creation
-			await supabase.from('workspaces').delete().eq('id', workspace.id)
-			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to create workspace member')
+			await supabaseAdmin.from('workspaces').delete().eq('id', workspace.id)
+			throw new ApiException(
+				500,
+				ErrorCodes.INTERNAL_ERROR,
+				`Failed to create workspace member: ${memberError.message}`
+			)
 		}
+
+		console.log('[Workspace Creation] Successfully created member:', memberData)
 
 		return successResponse<Workspace>(workspace, 201)
 	} catch (error) {

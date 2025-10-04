@@ -64,7 +64,7 @@ CREATE TABLE workspace_members (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  workspace_role workspace_role NOT NULL DEFAULT 'member',
+  role workspace_role NOT NULL DEFAULT 'member',
   joined_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
   -- Ensure one membership record per user per workspace

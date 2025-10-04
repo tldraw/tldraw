@@ -124,7 +124,7 @@ export const auth = betterAuth({
 
 						// Add owner as member
 						await client.query(
-							`INSERT INTO workspace_members (workspace_id, user_id, workspace_role)
+							`INSERT INTO workspace_members (workspace_id, user_id, role)
 							 VALUES ($1, $2, $3)`,
 							[workspaceId, newSession.user.id, 'owner']
 						)

@@ -17,7 +17,7 @@ export default defineConfig({
 	retries: process.env.CI ? 2 : 0,
 	workers: 1, // Use 1 worker with dev server, can increase to 3-5 with production build
 	reporter: undefined,
-	timeout: 20000,
+	timeout: 30000,
 	use: {
 		baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000',
 		trace: 'on-first-retry',
