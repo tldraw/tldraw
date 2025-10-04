@@ -14,7 +14,9 @@
 		"next": "15.5.4",
 		"tldraw": "workspace:*",
 		"@tldraw/sync": "workspace:*",
-		"@tldraw/sync-core": "workspace:*"
+		"@tldraw/sync-core": "workspace:*",
+		"@supabase/ssr": "^0.5.2",
+		"@supabase/supabase-js": "^2.47.10"
 	},
 	"devDependencies": {
 		"typescript": "^5",

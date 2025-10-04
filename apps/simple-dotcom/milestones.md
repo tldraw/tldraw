@@ -14,8 +14,8 @@ Break the MVP scope into three executable milestones that sequence dependencies,
 - Workspace CRUD with owner safeguards and initial dashboard/navigation shell, including recent documents.
 
 **Ticket checklist:**
-- [ ] [`tickets/TECH-01-supabase-schema-foundation.md`](tickets/TECH-01-supabase-schema-foundation.md)
-- [ ] [`tickets/TECH-04-api-surface-area.md`](tickets/TECH-04-api-surface-area.md)
+- [x] [`tickets/TECH-01-supabase-schema-foundation.md`](tickets/TECH-01-supabase-schema-foundation.md)
+- [~] [`tickets/TECH-04-api-surface-area.md`](tickets/TECH-04-api-surface-area.md) *(In Progress: API routes done, integration tests blocked on AUTH-01)*
 - [ ] [`tickets/AUTH-01-implement-email-authentication-flows.md`](tickets/AUTH-01-implement-email-authentication-flows.md)
 - [ ] [`tickets/AUTH-02-provision-private-workspace-on-signup.md`](tickets/AUTH-02-provision-private-workspace-on-signup.md)
 - [ ] [`tickets/AUTH-03-password-recovery-flow.md`](tickets/AUTH-03-password-recovery-flow.md)

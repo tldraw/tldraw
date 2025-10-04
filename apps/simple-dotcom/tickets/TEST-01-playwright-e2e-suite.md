@@ -79,6 +79,17 @@ Establish Playwright end-to-end test suite covering critical MVP flows: authenti
 
 Coordinate with infra to provision dedicated Supabase project for automated tests to avoid interfering with staging/production data.
 
+**Related Work:**
+- When setting up the test infrastructure, also implement **API integration tests for TECH-04** (api-surface-area.md) which are currently blocked.
+- API integration tests should cover:
+  - Workspace CRUD operations with permission enforcement
+  - Document sharing modes (private, public read-only, public editable)
+  - Invitation flow (generate, enable/disable, join)
+  - Folder hierarchy validation (cycle prevention, depth limits)
+  - Member management and ownership transfer
+- These can use the same Supabase test project and test fixtures as E2E tests.
+- Consider using Next.js API route testing utilities or direct HTTP calls with test auth tokens.
+
 ## Estimated Complexity
 
 - [ ] Small (< 1 day)
