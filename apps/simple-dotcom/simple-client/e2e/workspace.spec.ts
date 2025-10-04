@@ -23,16 +23,18 @@ test.describe('Workspace Management', () => {
 		test('should redirect to dashboard after signup', async ({ page, supabaseAdmin }) => {
 			const email = `test-workspace-${Date.now()}@example.com`
 			const password = 'TestPassword123!'
+			const name = 'Test User'
 
 			await page.goto('/signup')
 
 			// Sign up a new user
+			await page.fill('[data-testid="name-input"]', name)
 			await page.fill('[data-testid="email-input"]', email)
 			await page.fill('[data-testid="password-input"]', password)
 			await page.click('[data-testid="signup-button"]')
 
 			// Should redirect to dashboard
-			await page.waitForURL('**/dashboard')
+			await page.waitForURL('**/dashboard**')
 			expect(page.url()).toContain('/dashboard')
 
 			// Cleanup
@@ -51,9 +53,9 @@ test.describe('Workspace Management', () => {
 			// Should be on dashboard
 			expect(page.url()).toContain('/dashboard')
 
-			// Should display workspace list placeholder
-			const workspaceList = page.locator('[data-testid="workspace-list"]')
-			await expect(workspaceList).toBeVisible()
+			// Should display dashboard heading and user greeting
+			await expect(page.locator('h1:has-text("Dashboard")')).toBeVisible()
+			await expect(page.locator('text=Welcome,')).toBeVisible()
 		})
 	})
 

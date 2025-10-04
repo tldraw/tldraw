@@ -30,6 +30,7 @@
 		"@types/pg": "^8",
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
+		"dotenv": "^17.2.3",
 		"eslint": "^9",
 		"eslint-config-next": "15.5.4",
 		"supabase": "2.48.3",

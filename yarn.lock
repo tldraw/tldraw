@@ -15790,6 +15790,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dotenv@npm:^17.2.3":
+  version: 17.2.3
+  resolution: "dotenv@npm:17.2.3"
+  checksum: 10/f8b78626ebfff6e44420f634773375c9651808b3e1a33df6d4cc19120968eea53e100f59f04ec35f2a20b2beb334b6aba4f24040b2f8ad61773f158ac042a636
+  languageName: node
+  linkType: hard
+
 "dotenv@npm:^8.0.0, dotenv@npm:^8.2.0":
   version: 8.6.0
   resolution: "dotenv@npm:8.6.0"
@@ -28129,6 +28136,7 @@ __metadata:
     "@types/react": "npm:^19"
     "@types/react-dom": "npm:^19"
     better-auth: "npm:^1.3.0"
+    dotenv: "npm:^17.2.3"
     eslint: "npm:^9"
     eslint-config-next: "npm:15.5.4"
     next: "npm:15.5.4"

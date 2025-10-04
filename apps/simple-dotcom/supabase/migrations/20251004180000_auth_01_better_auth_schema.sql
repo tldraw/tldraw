@@ -13,12 +13,16 @@ CREATE TABLE IF NOT EXISTS session (
   id TEXT PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   expires_at TIMESTAMPTZ NOT NULL,
+  token TEXT NOT NULL UNIQUE,
+  ip_address TEXT,
+  user_agent TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS idx_session_user_id ON session(user_id);
 CREATE INDEX IF NOT EXISTS idx_session_expires_at ON session(expires_at);
+CREATE INDEX IF NOT EXISTS idx_session_token ON session(token);
 
 -- Better Auth account table (for OAuth, future use)
 CREATE TABLE IF NOT EXISTS account (

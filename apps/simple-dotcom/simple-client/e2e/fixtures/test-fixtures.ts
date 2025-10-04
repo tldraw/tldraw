@@ -13,11 +13,16 @@ export type TestFixtures = {
 	supabaseAdmin: SupabaseClient
 }
 
-// Generate unique test user email
-function generateTestEmail() {
+// Counter to ensure unique emails even within the same millisecond
+let emailCounter = 0
+
+// Generate unique test user email with worker ID for parallel execution
+function generateTestEmail(workerIndex: number, testIndex: number) {
 	const timestamp = Date.now()
-	const random = Math.random().toString(36).substring(7)
-	return `test-${timestamp}-${random}@example.com`
+	const counter = emailCounter++
+	const random = Math.random().toString(36).substring(2, 8)
+	// Include worker, test, counter, timestamp, and random to ensure uniqueness
+	return `test-w${workerIndex}-t${testIndex}-${counter}-${timestamp}-${random}@example.com`
 }
 
 export const test = base.extend<TestFixtures>({
@@ -41,37 +46,79 @@ export const test = base.extend<TestFixtures>({
 	},
 
 	// Test user fixture - creates a unique user for each test
-	testUser: async ({ supabaseAdmin }, use) => {
-		const email = generateTestEmail()
+	testUser: async ({ browser, supabaseAdmin }, use, testInfo) => {
+		// Generate unique email for this specific test
+		const email = generateTestEmail(testInfo.parallelIndex, testInfo.workerIndex)
 		const password = 'TestPassword123!'
+		const name = `Test User ${testInfo.parallelIndex}`
 
-		// Create the user via Supabase admin API
-		const { data, error } = await supabaseAdmin.auth.admin.createUser({
-			email,
-			password,
-			email_confirm: true,
-		})
+		// Create the user via Better Auth signup flow
+		const context = await browser.newContext()
+		const page = await context.newPage()
 
-		if (error) {
-			throw new Error(`Failed to create test user: ${error.message}`)
+		let userId: string | undefined
+
+		try {
+			await page.goto('/signup', { waitUntil: 'networkidle' })
+
+			// Wait for form to be ready
+			await page.waitForSelector('[data-testid="name-input"]', { state: 'visible' })
+
+			await page.fill('[data-testid="name-input"]', name)
+			await page.fill('[data-testid="email-input"]', email)
+			await page.fill('[data-testid="password-input"]', password)
+
+			// Wait a bit for React state to update
+			await page.waitForTimeout(500)
+
+			await page.click('[data-testid="signup-button"]')
+
+			// Wait for either dashboard or error message
+			const result = await Promise.race([
+				page.waitForURL('**/dashboard**', { timeout: 20000 }).then(() => 'success'),
+				page
+					.locator('[data-testid="error-message"]')
+					.waitFor({ state: 'visible', timeout: 20000 })
+					.then(() => 'error'),
+			])
+
+			if (result === 'error') {
+				const errorText = await page.locator('[data-testid="error-message"]').textContent()
+				throw new Error(`Signup failed: ${errorText}`)
+			}
+
+			// Get the user ID from the database
+			const { data } = await supabaseAdmin.from('users').select('id').eq('email', email).single()
+			userId = data?.id
+		} catch (error) {
+			console.error(`Failed to create test user ${email}:`, error)
+			throw error
+		} finally {
+			// Always close the temporary context
+			await context.close()
 		}
 
 		const user: TestUser = {
 			email,
 			password,
-			id: data.user.id,
+			id: userId,
 		}
 
 		await use(user)
 
 		// Cleanup: Delete the test user after the test
-		if (data.user.id) {
-			await supabaseAdmin.auth.admin.deleteUser(data.user.id)
+		if (user.id) {
+			// Better Auth stores users in the 'users' table
+			await supabaseAdmin.from('users').delete().eq('id', user.id)
 		}
 	},
 
 	// Authenticated page fixture - logs in before test starts
-	authenticatedPage: async ({ page, testUser }, use) => {
+	authenticatedPage: async ({ browser, testUser }, use) => {
+		// Create a new page context for authenticated tests
+		const context = await browser.newContext()
+		const page = await context.newPage()
+
 		// Navigate to login page
 		await page.goto('/login')
 
@@ -81,9 +128,12 @@ export const test = base.extend<TestFixtures>({
 		await page.click('[data-testid="login-button"]')
 
 		// Wait for successful login (redirects to dashboard)
-		await page.waitForURL('**/dashboard')
+		await page.waitForURL('**/dashboard**', { timeout: 20000 })
 
 		await use(page)
+
+		// Cleanup
+		await context.close()
 	},
 })
 
