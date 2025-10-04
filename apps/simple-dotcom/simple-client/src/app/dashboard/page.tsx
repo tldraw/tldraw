@@ -27,6 +27,7 @@ export default function DashboardPage() {
 					<h1 className="text-3xl font-bold">Dashboard</h1>
 					<button
 						onClick={handleSignOut}
+						data-testid="logout-button"
 						className="rounded-md border border-foreground/20 px-4 py-2 text-sm hover:bg-foreground/5"
 					>
 						Sign out
@@ -36,6 +37,9 @@ export default function DashboardPage() {
 				<div className="rounded-lg border border-foreground/20 p-6">
 					<h2 className="text-xl font-semibold mb-4">Welcome, {session.user?.name || 'User'}!</h2>
 					<p className="text-foreground/60">Your dashboard is ready. More features coming soon.</p>
+					<div data-testid="workspace-list" className="mt-6">
+						{/* Workspace list will be added here */}
+					</div>
 				</div>
 			</div>
 		</div>

@@ -1,0 +1,48 @@
+name: Simple Dotcom E2E Tests
+
+on:
+  push:
+    branches: [main, simple-dotcom]
+    paths:
+      - 'apps/simple-dotcom/**'
+      - '.github/workflows/simple-dotcom-e2e.yml'
+  pull_request:
+    branches: [main, simple-dotcom]
+    paths:
+      - 'apps/simple-dotcom/**'
+      - '.github/workflows/simple-dotcom-e2e.yml'
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/simple-dotcom/simple-client
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+        working-directory: .
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_TEST_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_TEST_SERVICE_ROLE_KEY }}
+          PLAYWRIGHT_BASE_URL: http://localhost:3000
+        run: npx playwright test
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: apps/simple-dotcom/simple-client/playwright-report/
+          retention-days: 30

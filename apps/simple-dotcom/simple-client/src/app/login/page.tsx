@@ -52,7 +52,10 @@ export default function LoginPage() {
 
 				<form onSubmit={handleSubmit} className="mt-8 space-y-6">
 					{error && (
-						<div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-800 dark:text-red-200">
+						<div
+							data-testid="error-message"
+							className="rounded-md bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-800 dark:text-red-200"
+						>
 							{error}
 						</div>
 					)}
@@ -70,6 +73,7 @@ export default function LoginPage() {
 								required
 								value={email}
 								onChange={(e) => setEmail(e.target.value)}
+								data-testid="email-input"
 								className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/40"
 								placeholder="you@example.com"
 							/>
@@ -95,6 +99,7 @@ export default function LoginPage() {
 								required
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
+								data-testid="password-input"
 								className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/40"
 								placeholder="Enter your password"
 							/>
@@ -104,6 +109,7 @@ export default function LoginPage() {
 					<button
 						type="submit"
 						disabled={loading}
+						data-testid="login-button"
 						className="w-full rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-foreground/90 focus:outline-none focus:ring-2 focus:ring-foreground/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
 					>
 						{loading ? 'Signing in...' : 'Sign in'}

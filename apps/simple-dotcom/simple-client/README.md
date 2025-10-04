@@ -508,3 +508,7 @@ This route serves different experiences based on the user's role:
 
 - Error page for server-side errors
 - **Role**: Any user
+
+## Testing
+
+For information about end-to-end testing with Playwright, see [e2e/README.md](e2e/README.md).

@@ -39,7 +39,10 @@ export default function ForgotPasswordPage() {
 				<div className="w-full max-w-md space-y-8">
 					<div className="text-center">
 						<h1 className="text-3xl font-bold">Check your email</h1>
-						<div className="mt-4 rounded-md bg-green-50 dark:bg-green-900/20 p-4">
+						<div
+							data-testid="success-message"
+							className="mt-4 rounded-md bg-green-50 dark:bg-green-900/20 p-4"
+						>
 							<p className="text-sm text-green-800 dark:text-green-200">
 								If an account exists with <strong>{email}</strong>, you will receive a password
 								reset link shortly.
@@ -81,7 +84,10 @@ export default function ForgotPasswordPage() {
 
 				<form onSubmit={handleSubmit} className="mt-8 space-y-6">
 					{error && (
-						<div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-800 dark:text-red-200">
+						<div
+							data-testid="error-message"
+							className="rounded-md bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-800 dark:text-red-200"
+						>
 							{error}
 						</div>
 					)}
@@ -98,6 +104,7 @@ export default function ForgotPasswordPage() {
 							required
 							value={email}
 							onChange={(e) => setEmail(e.target.value)}
+							data-testid="email-input"
 							className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/40"
 							placeholder="you@example.com"
 						/>
@@ -106,6 +113,7 @@ export default function ForgotPasswordPage() {
 					<button
 						type="submit"
 						disabled={loading}
+						data-testid="send-reset-button"
 						className="w-full rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-foreground/90 focus:outline-none focus:ring-2 focus:ring-foreground/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
 					>
 						{loading ? 'Sending...' : 'Send reset link'}
