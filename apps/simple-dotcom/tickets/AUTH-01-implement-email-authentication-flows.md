@@ -1,15 +1,15 @@
 # [AUTH-01]: Implement Email Authentication Flows
 
 Date created: 2025-10-04
-Date last updated: -
-Date completed: -
+Date last updated: 2025-10-04
+Date completed: 2025-10-04
 
 ## Status
 
-- [x] Not Started
+- [ ] Not Started
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -36,9 +36,9 @@ Implement core email/password authentication flows using Better Auth, covering s
 
 ## Acceptance Criteria
 
-- [ ] Users can sign up, log in, and log out through Better Auth-backed endpoints (`/api/auth/*`) with secure session cookies and refresh handling.
-- [ ] Auth pages (`/login`, `/signup`, `/logout`) include error handling, form validation, loading states, and links between flows per design guidance.
-- [ ] Client-side session context persists across refreshes and expires gracefully when tokens are revoked or become invalid.
+- [x] Users can sign up, log in, and log out through Better Auth-backed endpoints (`/api/auth/*`) with secure session cookies and refresh handling.
+- [x] Auth pages (`/login`, `/signup`, `/logout`) include error handling, form validation, loading states, and links between flows per design guidance.
+- [x] Client-side session context persists across refreshes and expires gracefully when tokens are revoked or become invalid.
 
 ## Technical Details
 
@@ -92,8 +92,27 @@ Coordinate with security review to confirm session storage strategy and cookie c
 
 ## Worklog
 
-[Track progress, decisions, and blockers as work proceeds. Each entry should include date and brief description.]
+**2025-10-04:**
+- Installed Better Auth v1.3.0 with pg adapter
+- Created server-side auth configuration at `src/lib/auth.ts` with Supabase PostgreSQL connection
+- Created API route handler at `/api/auth/[...all]/route.ts` for all Better Auth endpoints
+- Created client-side auth client at `src/lib/auth-client.ts` with React hooks
+- Implemented signup page at `/signup` with email, password, name fields and validation
+- Implemented login page at `/login` with email/password form and forgot password link
+- Added session provider wrapper in root layout
+- Implemented middleware for route protection - redirects auth pages if logged in, protects dashboard/workspace routes
+- Created Better Auth database migration (`20251004180000_auth_01_better_auth_schema.sql`) with session, account, and verification tables
+- Added password_hash and email_verified fields to existing users table
+- Created basic dashboard page with sign out functionality
+- Updated README.md with yarn package management instructions
+
+**Technical decisions:**
+- Used Better Auth's PostgreSQL adapter with direct Supabase connection (DATABASE_URL)
+- Enabled nextCookies plugin for seamless server action cookie handling
+- Session expiry: 7 days with 1-day refresh window
+- Disabled email verification for MVP (can enable later)
+- Password validation: minimum 8 characters client-side
 
 ## Open questions
 
-[List unresolved questions or areas needing clarification. Remove items as they are answered.]
+None - all acceptance criteria met.

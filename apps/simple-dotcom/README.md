@@ -27,13 +27,20 @@ apps/simple-dotcom/
 
 ## Getting Started
 1. Install Node 20 (the monorepo requires it) and enable Corepack if you have not already: `corepack enable`.
-2. Install dependencies from the repository root: `yarn install`.
-3. Seed environment configuration. Follow the integration guidance in `SPECIFICATION.md` under **Technical Architecture & Implementation** for Supabase, Better Auth, Cloudflare, and R2. Create `.env.local` files as needed for `simple-client` and future packages.
-4. Run the web app:
+2. **IMPORTANT: Always use `yarn` for package management. This monorepo uses yarn workspaces - never use `npm`.**
+3. Install dependencies from the repository root: `yarn install`.
+4. Seed environment configuration. Follow the integration guidance in `SPECIFICATION.md` under **Technical Architecture & Implementation** for Supabase, Better Auth, Cloudflare, and R2. Create `.env.local` files as needed for `simple-client` and future packages.
+5. Run the web app:
    - `yarn workspace simple-dotcom dev` — Next.js development server with Turbopack.
    - `yarn workspace simple-dotcom build` / `start` for production verification.
    - `yarn workspace simple-dotcom lint` before opening a PR.
-5. Add additional services (workers, shared packages) as you implement the corresponding milestones; wire up scripts in the root `package.json` or individual package manifests when ready.
+6. Add additional services (workers, shared packages) as you implement the corresponding milestones; wire up scripts in the root `package.json` or individual package manifests when ready.
+
+## Package Management
+- **Always use `yarn`** - this project uses yarn workspaces
+- Add dependencies: `yarn workspace simple-dotcom add <package>`
+- Add dev dependencies: `yarn workspace simple-dotcom add -D <package>`
+- Run scripts: `yarn workspace simple-dotcom <script>`
 
 ## Delivery Workflow
 1. **Plan via milestones**: Confirm which milestone you are executing (`MILESTONES.md`). Do not pull tickets from later milestones until current exit criteria are satisfied.
