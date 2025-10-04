@@ -33,7 +33,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 			throw new ApiException(403, ErrorCodes.FORBIDDEN, 'Access denied to this workspace')
 		}
 
-		// Get all members with user details
+		// Get all members with user details (excluding email for privacy)
 		const { data: members, error } = await supabase
 			.from('workspace_members')
 			.select(
@@ -41,7 +41,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
 				*,
 				users:user_id (
 					id,
-					email,
 					display_name,
 					name
 				)
@@ -64,7 +63,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
 				joined_at: member.joined_at,
 				user: {
 					id: member.users.id,
-					email: member.users.email,
 					display_name: member.users.display_name,
 					name: member.users.name,
 				},

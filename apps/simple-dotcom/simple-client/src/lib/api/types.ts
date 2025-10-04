@@ -92,7 +92,6 @@ export interface WorkspaceMember {
 	joined_at: string
 	user: {
 		id: string
-		email: string
 		display_name: string | null
 		name: string | null
 	}

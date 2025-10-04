@@ -81,3 +81,8 @@ apps/simple-dotcom/
 - Prefer workspace-aware Yarn commands (`yarn workspace <package> <script>`) to keep dependency management centralized.
 
 This README is intentionally lightweight. If a contributor cannot accomplish a task using this guide plus `SPECIFICATION.md`, update the documentation so the next person can.
+
+For Better Auth, see the [Better Auth documentation](https://www.better-auth.com/llms.txt).
+For Supabase, see the [Supabase documentation](https://supabase.com/docs).
+For Cloudflare, see the [Cloudflare documentation](https://developers.cloudflare.com/workers/runtime-apis/overview).
+For R2, see the [R2 documentation](https://developers.cloudflare.com/r2/reference).

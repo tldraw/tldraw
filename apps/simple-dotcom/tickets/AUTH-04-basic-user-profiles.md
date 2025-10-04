@@ -2,14 +2,14 @@
 
 Date created: 2025-10-04
 Date last updated: 2025-10-04
-Date completed: -
+Date completed: 2025-10-04
 
 ## Status
 
-- [x] Not Started
+- [ ] Not Started
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -36,10 +36,10 @@ Implement basic profile management so authenticated users can view and update th
 
 ## Acceptance Criteria
 
-- [ ] `/profile` route shows current profile data with editable name and display name fields and read-only email.
-- [ ] Update submission persists changes to Supabase `users` table and reflects immediately in UI (sidebar, presence, invitations, etc.).
-- [ ] Form enforces validation (e.g., max length, non-empty) and surfaces error/success states.
-- [ ] Application-wide UI uses **display names (or initials)** when showing other users—emails are never exposed beyond the profile page.
+- [x] `/profile` route shows current profile data with editable name and display name fields and read-only email.
+- [x] Update submission persists changes to Supabase `users` table and reflects immediately in UI (sidebar, presence, invitations, etc.).
+- [x] Form enforces validation (e.g., max length, non-empty) and surfaces error/success states.
+- [x] Application-wide UI uses **display names (or initials)** when showing other users—emails are never exposed beyond the profile page.
 
 ## Technical Details
 
@@ -68,7 +68,7 @@ Implement basic profile management so authenticated users can view and update th
 
 ## Testing Requirements
 
-- [ ] Unit tests
+- [x] Unit tests
 - [x] Integration tests
 - [x] E2E tests (Playwright) — add scenarios listed below.
 - [x] Manual testing scenarios
@@ -99,7 +99,14 @@ Coordinate with presence and invitations tickets to ensure display name updates 
 
 ## Worklog
 
-[Track progress, decisions, and blockers as work proceeds. Each entry should include date and brief description.]
+### 2025-10-04
+- Created `/api/profile` GET/PUT endpoints using Better Auth for session management
+- Built `/profile` page with form validation and user-friendly UI
+- Added database trigger to set default `display_name` from `name` on user creation
+- Updated middleware to protect `/profile` route
+- Created comprehensive E2E test suite (7 tests covering all scenarios)
+- All E2E tests passing ✅
+- Backend already properly uses `display_name` for members and presence APIs
 
 ## Open questions
 

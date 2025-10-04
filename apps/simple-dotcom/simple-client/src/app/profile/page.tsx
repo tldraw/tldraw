@@ -1,0 +1,202 @@
+'use client'
+
+import { User } from '@/lib/api/types'
+import { authClient } from '@/lib/auth-client'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+
+export default function ProfilePage() {
+	const router = useRouter()
+	const { data: session } = authClient.useSession()
+	const [profile, setProfile] = useState<User | null>(null)
+	const [name, setName] = useState('')
+	const [displayName, setDisplayName] = useState('')
+	const [loading, setLoading] = useState(false)
+	const [saving, setSaving] = useState(false)
+	const [error, setError] = useState<string | null>(null)
+	const [success, setSuccess] = useState(false)
+
+	// Fetch profile on mount
+	useEffect(() => {
+		const fetchProfile = async () => {
+			if (!session) return
+
+			setLoading(true)
+			try {
+				const response = await fetch('/api/profile')
+				const data = await response.json()
+
+				if (data.success && data.data) {
+					setProfile(data.data)
+					setName(data.data.name || '')
+					setDisplayName(data.data.display_name || '')
+				} else {
+					setError('Failed to load profile')
+				}
+			} catch (err) {
+				setError(err instanceof Error ? err.message : 'Failed to load profile')
+			} finally {
+				setLoading(false)
+			}
+		}
+
+		fetchProfile()
+	}, [session])
+
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault()
+		setSaving(true)
+		setError(null)
+		setSuccess(false)
+
+		try {
+			const response = await fetch('/api/profile', {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					name: name.trim(),
+					display_name: displayName.trim(),
+				}),
+			})
+
+			const data = await response.json()
+
+			if (!response.ok || !data.success) {
+				setError(data.error?.message || 'Failed to update profile')
+				return
+			}
+
+			setProfile(data.data)
+			setSuccess(true)
+
+			// Clear success message after 3 seconds
+			setTimeout(() => setSuccess(false), 3000)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
+		} finally {
+			setSaving(false)
+		}
+	}
+
+	if (!session) {
+		return (
+			<div className="flex min-h-screen items-center justify-center">
+				<p>Loading...</p>
+			</div>
+		)
+	}
+
+	if (loading) {
+		return (
+			<div className="flex min-h-screen items-center justify-center">
+				<p>Loading profile...</p>
+			</div>
+		)
+	}
+
+	return (
+		<div className="min-h-screen bg-background p-8">
+			<div className="mx-auto max-w-2xl">
+				<div className="mb-8">
+					<Link
+						href="/dashboard"
+						className="text-sm text-foreground/60 hover:text-foreground hover:underline"
+					>
+						← Back to Dashboard
+					</Link>
+				</div>
+
+				<div className="rounded-lg border border-foreground/20 p-6">
+					<h1 className="text-2xl font-bold mb-6">Profile Settings</h1>
+
+					<form onSubmit={handleSubmit} className="space-y-6">
+						{error && (
+							<div
+								data-testid="error-message"
+								className="rounded-md bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-800 dark:text-red-200"
+							>
+								{error}
+							</div>
+						)}
+
+						{success && (
+							<div
+								data-testid="success-message"
+								className="rounded-md bg-green-50 dark:bg-green-900/20 p-4 text-sm text-green-800 dark:text-green-200"
+							>
+								Profile updated successfully!
+							</div>
+						)}
+
+						<div>
+							<label htmlFor="email" className="block text-sm font-medium mb-2">
+								Email address
+							</label>
+							<input
+								id="email"
+								name="email"
+								type="email"
+								disabled
+								value={profile?.email || ''}
+								data-testid="email-input"
+								className="w-full rounded-md border border-foreground/20 bg-foreground/5 px-3 py-2 text-sm text-foreground/60 cursor-not-allowed"
+							/>
+							<p className="mt-1 text-xs text-foreground/50">Email addresses cannot be changed</p>
+						</div>
+
+						<div>
+							<label htmlFor="name" className="block text-sm font-medium mb-2">
+								Full name
+							</label>
+							<input
+								id="name"
+								name="name"
+								type="text"
+								required
+								maxLength={100}
+								value={name}
+								onChange={(e) => setName(e.target.value)}
+								data-testid="name-input"
+								className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/40"
+								placeholder="Enter your full name"
+							/>
+						</div>
+
+						<div>
+							<label htmlFor="displayName" className="block text-sm font-medium mb-2">
+								Display name
+							</label>
+							<input
+								id="displayName"
+								name="displayName"
+								type="text"
+								required
+								maxLength={100}
+								value={displayName}
+								onChange={(e) => setDisplayName(e.target.value)}
+								data-testid="display-name-input"
+								className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/40"
+								placeholder="Enter your display name"
+							/>
+							<p className="mt-1 text-xs text-foreground/50">
+								This is how other users will see your name throughout the app
+							</p>
+						</div>
+
+						<button
+							type="submit"
+							disabled={saving}
+							data-testid="save-button"
+							className="w-full rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-foreground/90 focus:outline-none focus:ring-2 focus:ring-foreground/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+						>
+							{saving ? 'Saving...' : 'Save changes'}
+						</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	)
+}

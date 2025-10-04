@@ -16,6 +16,7 @@ export const ErrorCodes = {
 	NOT_FOUND: 'NOT_FOUND',
 	ALREADY_EXISTS: 'ALREADY_EXISTS',
 	CONFLICT: 'CONFLICT',
+	USER_NOT_FOUND: 'USER_NOT_FOUND',
 
 	// Workspace
 	WORKSPACE_NOT_FOUND: 'WORKSPACE_NOT_FOUND',
@@ -123,6 +124,7 @@ export const getStatusCodeForError = (code: ErrorCode): number => {
 
 		// 404 - Not Found
 		[ErrorCodes.NOT_FOUND]: 404,
+		[ErrorCodes.USER_NOT_FOUND]: 404,
 		[ErrorCodes.WORKSPACE_NOT_FOUND]: 404,
 		[ErrorCodes.DOCUMENT_NOT_FOUND]: 404,
 		[ErrorCodes.FOLDER_NOT_FOUND]: 404,
