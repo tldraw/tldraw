@@ -17,11 +17,11 @@ export const TEMPLATES: Template[] = [
 		repo: 'tldraw/vite-template',
 	},
 	{
-		name: 'Fluid Simulation',
+		name: 'Shader Starter Kit',
 		description:
-			'A tldraw template with WebGL fluid simulation background that creates dynamic fluid flows from shape geometry.',
+			'A tldraw template with WebGL shader starter kit that creates dynamic shader effects from shape geometry.',
 		order: 10,
-		repo: 'tldraw/fluid-simulation-template',
+		repo: 'tldraw/shader-starter-kit',
 	},
 	{
 		name: 'Agent',
