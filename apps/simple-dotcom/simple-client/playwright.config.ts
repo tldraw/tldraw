@@ -16,11 +16,18 @@ export default defineConfig({
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 0,
 	workers: 1, // Use 1 worker with dev server, can increase to 3-5 with production build
-	reporter: undefined,
+	reporter: 'html',
 	timeout: 30000,
+	// Global setup runs before all tests to clean up any leftover data
+	globalSetup: './e2e/global-setup.ts',
 	use: {
 		baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000',
+		// Record traces on first retry and keep them for debugging
 		trace: 'on-first-retry',
+		// Take screenshots on failure for debugging
+		screenshot: 'only-on-failure',
+		// Record video on retry to help diagnose flaky tests
+		video: 'retain-on-failure',
 	},
 
 	projects: [

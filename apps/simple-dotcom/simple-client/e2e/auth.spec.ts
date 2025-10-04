@@ -1,3 +1,4 @@
+import { assertCleanupSuccess, cleanupUserData } from './fixtures/cleanup-helpers'
 import { expect, test } from './fixtures/test-fixtures'
 
 test.describe('Authentication', () => {
@@ -19,11 +20,11 @@ test.describe('Authentication', () => {
 			await page.waitForURL('**/dashboard**')
 			expect(page.url()).toContain('/dashboard')
 
-			// Cleanup: delete the created user
-			const { data } = await supabaseAdmin.auth.admin.listUsers()
-			const user = data.users.find((u) => u.email === email)
-			if (user) {
-				await supabaseAdmin.auth.admin.deleteUser(user.id)
+			// Cleanup: delete the created user and all related data
+			const { data } = await supabaseAdmin.from('users').select('id').eq('email', email).single()
+			if (data) {
+				const cleanupResult = await cleanupUserData(supabaseAdmin, data.id)
+				assertCleanupSuccess(cleanupResult, `signup test user ${email}`)
 			}
 		})
 

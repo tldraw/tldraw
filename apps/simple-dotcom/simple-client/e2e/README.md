@@ -90,13 +90,79 @@ The workflow is located at `.github/workflows/simple-dotcom-e2e.yml` in the repo
 
 These deferred tests are written and ready to be enabled as workspace features are built in tickets WS-01, WS-02, PERM-01, etc.
 
+## Data Isolation Strategy
+
+To ensure reliable test execution and prevent flaky tests, we implement comprehensive data isolation:
+
+### Global Setup
+
+Before any tests run, `e2e/global-setup.ts` cleans up leftover test data from previous runs by:
+- Finding all users with emails matching `test-%` pattern
+- Cascading deletion of all related data (workspaces, documents, folders, memberships, etc.)
+- Logging detailed cleanup results
+
+This ensures tests never inherit dirty state from:
+- Failed or interrupted previous test runs
+- Manual testing during development
+- CI runs that didn't clean up properly
+
+### Per-Test Isolation
+
+Each test using the `testUser` fixture gets:
+
+1. **Unique test user** with email: `test-w{worker}-t{test}-{counter}-{timestamp}-{random}@example.com`
+2. **Automatic cleanup** after the test that deletes:
+   - presence records
+   - document_access_log entries
+   - documents in owned workspaces
+   - folders in owned workspaces
+   - invitation_links for owned workspaces
+   - workspace_members records
+   - owned workspaces
+   - the user record itself
+
+3. **Failure on cleanup errors** - If cleanup fails, the test fails with detailed logging showing:
+   - Which table(s) failed
+   - Specific error messages
+   - Counts of successfully deleted records
+
+### Cleanup Utilities
+
+Located in `e2e/fixtures/cleanup-helpers.ts`:
+
+- **`cleanupUserData(supabase, userId)`** - Comprehensive cleanup for a single user
+- **`cleanupTestUsersByPattern(supabase, pattern)`** - Bulk cleanup matching email pattern
+- **`assertCleanupSuccess(result, context)`** - Validates and logs cleanup results
+
+### Supabase RPC Function
+
+The database includes a `cleanup_test_data(email_pattern)` RPC function for efficient bulk deletion:
+
+```sql
+SELECT cleanup_test_data('test-%');
+```
+
+This function can only be called with service role key and provides atomic deletion of all test data.
+
+### Manual Database Reset
+
+If needed, you can manually reset the test database:
+
+```bash
+# Option 1: Run global setup directly
+npx tsx simple-client/e2e/global-setup.ts
+
+# Option 2: Use Supabase SQL Editor
+SELECT cleanup_test_data('test-%');
+```
+
 ## Best Practices
 
-1. **Isolation**: Each test creates its own test user and cleans up after itself
+1. **Isolation**: Each test creates its own test user with automatic comprehensive cleanup
 2. **Stable Selectors**: Uses `data-testid` attributes for reliable element selection
 3. **Fixtures**: Leverage fixtures for common setup patterns
 4. **No Hardcoded Data**: Generate unique test data to avoid conflicts
-5. **Cleanup**: Always clean up created resources in fixtures
+5. **Cleanup**: Cleanup is automatic via fixtures and fails tests if unsuccessful
 
 ## Debugging
 

@@ -1,5 +1,6 @@
 import { test as base, Page } from '@playwright/test'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { assertCleanupSuccess, cleanupUserData } from './cleanup-helpers'
 
 export type TestUser = {
 	email: string
@@ -106,10 +107,10 @@ export const test = base.extend<TestFixtures>({
 
 		await use(user)
 
-		// Cleanup: Delete the test user after the test
+		// Cleanup: Delete the test user and all related data after the test
 		if (user.id) {
-			// Better Auth stores users in the 'users' table
-			await supabaseAdmin.from('users').delete().eq('id', user.id)
+			const cleanupResult = await cleanupUserData(supabaseAdmin, user.id)
+			assertCleanupSuccess(cleanupResult, `test user ${user.email}`)
 		}
 	},
 

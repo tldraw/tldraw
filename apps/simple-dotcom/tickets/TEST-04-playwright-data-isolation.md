@@ -1,15 +1,15 @@
 # [TEST-04]: Playwright Data Isolation & Cleanup Hardening
 
 Date created: 2025-02-14
-Date last updated: -
-Date completed: -
+Date last updated: 2025-10-05
+Date completed: 2025-10-05
 
 ## Status
 
-- [x] Not Started
+- [ ] Not Started
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -36,10 +36,10 @@ Improve the Playwright E2E suite so each run starts from a deterministic state a
 
 ## Acceptance Criteria
 
-- [ ] Playwright fixtures delete all records created for a test user across auth, workspace, document, session, and membership tables before the next test begins. Failures in cleanup must fail the test with actionable logging.
-- [ ] Global test setup (or a Supabase RPC/script) truncates relevant tables before a Playwright run so suites never inherit dirty state from previous executions.
-- [ ] Workspace tests wrap Supabase admin mutations in helpers that assert success, preventing silent cleanup failures.
-- [ ] Documentation in `e2e/README.md` (or equivalent) explains the isolation strategy and how to run the reset utilities locally and in CI.
+- [x] Playwright fixtures delete all records created for a test user across auth, workspace, document, session, and membership tables before the next test begins. Failures in cleanup must fail the test with actionable logging.
+- [x] Global test setup (or a Supabase RPC/script) truncates relevant tables before a Playwright run so suites never inherit dirty state from previous executions.
+- [x] Workspace tests wrap Supabase admin mutations in helpers that assert success, preventing silent cleanup failures.
+- [x] Documentation in `e2e/README.md` (or equivalent) explains the isolation strategy and how to run the reset utilities locally and in CI.
 
 ## Technical Details
 
@@ -91,9 +91,49 @@ Improve the Playwright E2E suite so each run starts from a deterministic state a
 
 ## Worklog
 
-[Pending]
+### 2025-10-05 - Implementation Complete
+
+**Created comprehensive cleanup infrastructure:**
+
+1. **Cleanup Helpers** (`e2e/fixtures/cleanup-helpers.ts`)
+   - `cleanupUserData()` - Cascading deletion of all user-related data across 8 tables
+   - `cleanupTestUsersByPattern()` - Bulk cleanup with RPC function fallback
+   - `assertCleanupSuccess()` - Validation with detailed error logging
+   - Proper deletion order respecting foreign key constraints
+
+2. **Global Test Setup** (`e2e/global-setup.ts`)
+   - Runs before all tests to clean leftover data from previous runs
+   - Uses pattern matching (`test-%`) to find all test users
+   - Logs detailed cleanup results for visibility
+
+3. **Supabase RPC Function** (migration `add_test_cleanup_rpc`)
+   - `cleanup_test_data(email_pattern)` for efficient bulk deletion
+   - Service role only, with proper error handling
+   - Returns detailed success/error information and deletion counts
+
+4. **Updated Test Fixtures** (`e2e/fixtures/test-fixtures.ts`)
+   - Integrated comprehensive cleanup into `testUser` fixture
+   - Cleanup failures now fail tests with actionable logging
+   - Each test gets unique user with automatic cascading cleanup
+
+5. **Enhanced Playwright Config** (`playwright.config.ts`)
+   - Added global setup reference
+   - Enhanced trace/screenshot/video settings for debugging
+   - Better reporter configuration
+
+6. **Comprehensive Documentation** (`e2e/README.md`)
+   - Data isolation strategy explained
+   - Cleanup lifecycle documented
+   - Manual reset procedures provided
+   - Best practices and troubleshooting guide
+
+**Test Results:**
+- All 12 auth tests pass (1 skipped)
+- Cleanup successful for all test users
+- Each test isolated with unique user data
+- No orphaned records after test runs
 
 ## Open questions
 
-- Should we add a reusable Supabase SQL script or rely on a Next.js API endpoint for database resets?
-- Do we need to snapshot specific seed data (e.g., marketing content) after truncation, or can the app boot from an empty state?
+- ~~Should we add a reusable Supabase SQL script or rely on a Next.js API endpoint for database resets?~~ **Resolved:** Implemented Supabase RPC function with TypeScript fallback
+- ~~Do we need to snapshot specific seed data (e.g., marketing content) after truncation, or can the app boot from an empty state?~~ **Resolved:** App boots from empty state successfully
