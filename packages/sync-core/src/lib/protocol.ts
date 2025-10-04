@@ -9,7 +9,7 @@ export function getTlsyncProtocolVersion() {
 }
 
 /**
- * @internal
+ * @public
  * @deprecated Replaced by websocket .close status/reason
  */
 export const TLIncompatibilityReason = {
@@ -20,13 +20,13 @@ export const TLIncompatibilityReason = {
 } as const
 
 /**
- * @internal
+ * @public
  * @deprecated replaced by websocket .close status/reason
  */
 export type TLIncompatibilityReason =
 	(typeof TLIncompatibilityReason)[keyof typeof TLIncompatibilityReason]
 
-/** @internal */
+/** @public */
 export type TLSocketServerSentEvent<R extends UnknownRecord> =
 	| {
 			type: 'connect'
@@ -50,7 +50,7 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 	| { type: 'custom'; data: any }
 	| TLSocketServerSentDataEvent<R>
 
-/** @internal */
+/** @public */
 export type TLSocketServerSentDataEvent<R extends UnknownRecord> =
 	| {
 			type: 'patch'
@@ -64,7 +64,7 @@ export type TLSocketServerSentDataEvent<R extends UnknownRecord> =
 			action: 'discard' | 'commit' | { rebaseWithDiff: NetworkDiff<R> }
 	  }
 
-/** @internal */
+/** @public */
 export interface TLPushRequest<R extends UnknownRecord> {
 	type: 'push'
 	clientClock: number
@@ -72,7 +72,7 @@ export interface TLPushRequest<R extends UnknownRecord> {
 	presence?: [typeof RecordOpType.Patch, ObjectDiff] | [typeof RecordOpType.Put, R]
 }
 
-/** @internal */
+/** @public */
 export interface TLConnectRequest {
 	type: 'connect'
 	connectRequestId: string
@@ -81,12 +81,12 @@ export interface TLConnectRequest {
 	schema: SerializedSchema
 }
 
-/** @internal */
+/** @public */
 export interface TLPingRequest {
 	type: 'ping'
 }
 
-/** @internal */
+/** @public */
 export type TLSocketClientSentEvent<R extends UnknownRecord> =
 	| TLPushRequest<R>
 	| TLConnectRequest

@@ -41,13 +41,12 @@ function debug(...args: any[]) {
 //       they don't seem to be surfaced in browser APIs and can't be relied on. Therefore,
 //       pings need to be implemented one level up, on the application API side, which for our
 //       codebase means whatever code that uses ClientWebSocketAdapter.
-/** @internal */
+/** @public */
 export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord> {
 	_ws: WebSocket | null = null
 
 	isDisposed = false
 
-	/** @internal */
 	readonly _reconnectManager: ReconnectManager
 
 	// TODO: .close should be a project-wide interface with a common contract (.close()d thing
@@ -252,7 +251,7 @@ export const DELAY_EXPONENT = 1.5
 // not needlessly reconnecting if the connection is just slow to establish
 export const ATTEMPT_TIMEOUT = 1000
 
-/** @internal */
+/** @public */
 export class ReconnectManager {
 	private isDisposed = false
 	private disposables: (() => void)[] = [

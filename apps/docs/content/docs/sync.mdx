@@ -50,7 +50,7 @@ Make sure you also read the section below about [deployment concerns](#deploymen
 
 We recommend using Cloudflare, but the `@tldraw/sync-core` library can be used to integrate tldraw sync into any JavaScript server environment that supports WebSockets.
 
-We have a [simple server example](https://github.com/tldraw/tldraw/tree/main/templates/simple-server-example), supporting both NodeJS and Bun, to use as a reference for how things should be stitched together.
+We have a [custom Socket.IO server example](https://github.com/tldraw/tldraw/tree/main/templates/custom-server-example) that shows how to integrate tldraw sync with Socket.IO instead of standard WebSockets. We also have a [simple server example](https://github.com/tldraw/tldraw/tree/main/templates/simple-server-example), supporting both NodeJS and Bun, to use as a reference for how things should be stitched together.
 
 ## What does a tldraw sync backend do?
 
@@ -119,6 +119,406 @@ The `@tldraw/sync-core` package exports a class called [`TLSocketRoom`](?) that 
 </Callout>
 
 Read the reference docs for [`TLSocketRoom`](?), and see an example of how to use it in the [simple server example](https://github.com/tldraw/tldraw/blob/main/templates/simple-server-example/src/server/rooms.ts).
+
+### Sync client
+
+On the client side, the `@tldraw/sync-core` package exports a class called [`TLSyncClient`](?) that handles the connection and synchronization with the server.
+
+<Callout type="warning">
+	**Advanced usage only:** Most applications should use the [`useSync`](?) hook from the
+	`@tldraw/sync` package instead of creating `TLSyncClient` directly. The `useSync` hook handles all
+	the complexity of setting up the sync client, managing presence, and integrating with React
+	components.
+</Callout>
+
+`TLSyncClient` is used to:
+
+- Establish and maintain a WebSocket connection to the server
+- Send local changes to the server and apply remote changes from other clients
+- Handle network interruptions and reconnections automatically
+- Manage optimistic updates and conflict resolution
+- Synchronize user presence information (cursors, selections, etc.)
+
+#### When to use TLSyncClient directly
+
+You might need to create `TLSyncClient` directly if you're:
+
+- Building a non-React application
+- Implementing custom connection logic or error handling
+- Need fine-grained control over the sync lifecycle
+- Building a custom integration with a different UI framework
+
+#### Direct usage example
+
+Here's a complete advanced usage example that mirrors how `useSync` works internally:
+
+```tsx
+import {
+	TLSyncClient,
+	TLSyncErrorCloseEventReason,
+	type TLPresenceMode,
+	type TLPersistentClientSocket,
+} from '@tldraw/sync-core'
+import {
+	createTLStore,
+	InstancePresenceRecordType,
+	getDefaultUserPresence,
+	getUserPreferences,
+	defaultUserPreferences,
+	TAB_ID,
+	uniqueId,
+} from 'tldraw'
+import { atom, computed, transact } from '@tldraw/state'
+import { io, type Socket } from 'socket.io-client'
+
+// Generate unique identifiers
+const storeId = uniqueId()
+const roomId = 'my-room-123'
+
+// User preferences (in real app, this would come from your auth system)
+const userPreferences = {
+	id: 'user-' + uniqueId(),
+	name: 'John Doe',
+	color: '#ff0000',
+}
+
+// Manual Socket.IO implementation
+import { io, type Socket } from 'socket.io-client'
+
+// Create Socket.IO connection
+const ioSocket = io('wss://my-server.com', {
+	query: {
+		sessionId: TAB_ID,
+		storeId: storeId,
+		roomId: roomId,
+	},
+})
+
+// Implement TLPersistentClientSocket manually
+const socket: TLPersistentClientSocket = {
+	connectionStatus: 'offline',
+
+	sendMessage: (message) => {
+		console.log('📤 Sending:', message)
+		// Send tldraw sync protocol messages via Socket.IO
+		ioSocket.emit('tldraw-message', message)
+	},
+
+	onReceiveMessage: (callback) => {
+		// Listen for tldraw sync protocol messages
+		const handler = (message: any) => {
+			console.log('📥 Received:', message)
+			callback(message)
+		}
+
+		ioSocket.on('tldraw-message', handler)
+
+		// Return cleanup function
+		return () => {
+			ioSocket.off('tldraw-message', handler)
+		}
+	},
+
+	onStatusChange: (callback) => {
+		// Map Socket.IO events to TLPersistentClientSocket status
+		const connectHandler = () => {
+			;(socket as any).connectionStatus = 'online'
+			callback({ status: 'online' })
+		}
+
+		const disconnectHandler = () => {
+			;(socket as any).connectionStatus = 'offline'
+			callback({ status: 'offline' })
+		}
+
+		const errorHandler = (error: any) => {
+			;(socket as any).connectionStatus = 'error'
+			callback({
+				status: 'error',
+				reason: error.message || 'Connection error',
+			})
+		}
+
+		ioSocket.on('connect', connectHandler)
+		ioSocket.on('disconnect', disconnectHandler)
+		ioSocket.on('connect_error', errorHandler)
+
+		// Set initial status
+		if (ioSocket.connected) {
+			;(socket as any).connectionStatus = 'online'
+			setTimeout(() => callback({ status: 'online' }), 0)
+		}
+
+		// Return cleanup function
+		return () => {
+			ioSocket.off('connect', connectHandler)
+			ioSocket.off('disconnect', disconnectHandler)
+			ioSocket.off('connect_error', errorHandler)
+		}
+	},
+
+	restart: () => {
+		console.log('🔄 Restarting Socket.IO connection...')
+		ioSocket.disconnect()
+		ioSocket.connect()
+	},
+}
+
+// Track connection status for collaboration UX
+const collaborationStatus = computed('collaboration status', () =>
+	socket.connectionStatus === 'error' ? 'offline' : socket.connectionStatus
+)
+
+// Track read/write mode
+const syncMode = atom('sync mode', 'readwrite' as 'readonly' | 'readwrite')
+
+// Create the store with collaboration status
+const store = createTLStore({
+	id: storeId,
+	// Pass your schema, assets, etc. here
+	collaboration: {
+		status: collaborationStatus,
+		mode: syncMode,
+	},
+})
+
+// Create presence signal using tldraw's built-in logic
+const presence = computed('instancePresence', () => {
+	const presenceState = getDefaultUserPresence(store, userPreferences)
+	if (!presenceState) return null
+
+	return InstancePresenceRecordType.create({
+		...presenceState,
+		id: InstancePresenceRecordType.createId(store.id),
+	})
+})
+
+// Track other users for presence mode
+const otherUserPresences = store.query.ids('instance_presence', () => ({
+	userId: { neq: userPreferences.id },
+}))
+
+const presenceMode = computed<TLPresenceMode>('presenceMode', () => {
+	if (otherUserPresences.get().size === 0) return 'solo'
+	return 'full'
+})
+
+// Track cancellation state
+let didCancel = false
+
+// Create the sync client (mirrors useSync implementation)
+const client = new TLSyncClient({
+	store,
+	socket,
+	presence,
+	presenceMode,
+	didCancel: () => didCancel,
+
+	onLoad: (client) => {
+		console.log('✅ Sync client loaded and ready')
+		// At this point, the store is synchronized and ready to use
+		// You can now render your UI or perform other initialization
+	},
+
+	onSyncError: (reason) => {
+		console.error('❌ Sync error:', reason)
+
+		// Handle specific error types
+		switch (reason) {
+			case TLSyncErrorCloseEventReason.NOT_FOUND:
+				console.error('Room not found')
+				break
+			case TLSyncErrorCloseEventReason.FORBIDDEN:
+				console.error('Access forbidden')
+				break
+			case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED:
+				console.error('Authentication required')
+				break
+			case TLSyncErrorCloseEventReason.RATE_LIMITED:
+				console.error('Rate limited - too many requests')
+				break
+			case TLSyncErrorCloseEventReason.ROOM_FULL:
+				console.error('Room is full')
+				break
+			default:
+				console.error('Unknown sync error:', reason)
+		}
+
+		// Clean up on error
+		socket.close()
+	},
+
+	onAfterConnect: (client, { isReadonly }) => {
+		console.log('🔄 Connected to room', { isReadonly })
+
+		// Update sync mode and ensure store is usable
+		transact(() => {
+			syncMode.set(isReadonly ? 'readonly' : 'readwrite')
+			store.ensureStoreIsUsable()
+		})
+	},
+
+	// Optional: Handle custom messages
+	onCustomMessageReceived: (message) => {
+		console.log('📨 Custom message:', message)
+		// Process your custom server messages here
+	},
+})
+
+// Example: Send custom messages to server
+function sendCustomMessage(type: string, data: any) {
+	if (socket.connectionStatus === 'online') {
+		socket.sendMessage({
+			type: 'custom' as any, // Extend the protocol
+			customType: type,
+			data,
+		})
+	}
+}
+
+// Example: Update user presence manually
+function updateUserCursor(x: number, y: number) {
+	const current = presence.get()
+	if (current) {
+		// The presence signal will automatically sync to other users
+		// This is handled by TLSyncClient's internal reactivity
+		store.put([
+			{
+				...current,
+				cursor: { x, y, type: 'default', rotation: 0 },
+			},
+		])
+	}
+}
+
+// Cleanup function
+function cleanup() {
+	didCancel = true
+	client.close()
+	socket.close()
+}
+
+// The store is now ready to use with tldraw:
+// <Tldraw store={store} />
+```
+
+#### Alternative transport implementations
+
+Here are examples of implementing `TLPersistentClientSocket` with other transport layers:
+
+**Raw WebSocket:**
+
+```tsx
+const ws = new WebSocket('wss://my-server.com/sync')
+
+const socket: TLPersistentClientSocket = {
+	connectionStatus: 'offline',
+
+	sendMessage: (message) => {
+		if (ws.readyState === WebSocket.OPEN) {
+			ws.send(JSON.stringify(message))
+		}
+	},
+
+	onReceiveMessage: (callback) => {
+		const handler = (event: MessageEvent) => {
+			callback(JSON.parse(event.data))
+		}
+		ws.addEventListener('message', handler)
+		return () => ws.removeEventListener('message', handler)
+	},
+
+	onStatusChange: (callback) => {
+		const openHandler = () => {
+			;(socket as any).connectionStatus = 'online'
+			callback({ status: 'online' })
+		}
+		const closeHandler = () => {
+			;(socket as any).connectionStatus = 'offline'
+			callback({ status: 'offline' })
+		}
+		const errorHandler = () => {
+			;(socket as any).connectionStatus = 'error'
+			callback({ status: 'error', reason: 'WebSocket error' })
+		}
+
+		ws.addEventListener('open', openHandler)
+		ws.addEventListener('close', closeHandler)
+		ws.addEventListener('error', errorHandler)
+
+		return () => {
+			ws.removeEventListener('open', openHandler)
+			ws.removeEventListener('close', closeHandler)
+			ws.removeEventListener('error', errorHandler)
+		}
+	},
+
+	restart: () => {
+		ws.close()
+		// You'd need to recreate the WebSocket here
+	},
+}
+```
+
+**Custom HTTP polling:**
+
+```tsx
+let pollInterval: NodeJS.Timeout
+let messageHandlers: Array<(message: any) => void> = []
+
+const socket: TLPersistentClientSocket = {
+	connectionStatus: 'offline',
+
+	sendMessage: async (message) => {
+		try {
+			await fetch('/api/sync/send', {
+				method: 'POST',
+				body: JSON.stringify({ roomId, message }),
+				headers: { 'Content-Type': 'application/json' },
+			})
+		} catch (error) {
+			console.error('Failed to send message:', error)
+		}
+	},
+
+	onReceiveMessage: (callback) => {
+		messageHandlers.push(callback)
+
+		// Start polling if not already polling
+		if (!pollInterval) {
+			pollInterval = setInterval(async () => {
+				try {
+					const response = await fetch(`/api/sync/poll?roomId=${roomId}`)
+					const messages = await response.json()
+					messages.forEach((msg: any) => {
+						messageHandlers.forEach((handler) => handler(msg))
+					})
+				} catch (error) {
+					console.error('Polling error:', error)
+				}
+			}, 1000) // Poll every second
+		}
+
+		return () => {
+			messageHandlers = messageHandlers.filter((h) => h !== callback)
+			if (messageHandlers.length === 0 && pollInterval) {
+				clearInterval(pollInterval)
+				pollInterval = null
+			}
+		}
+	},
+
+	onStatusChange: (callback) => {
+		// Simulate connection status
+		setTimeout(() => callback({ status: 'online' }), 100)
+		return () => {}
+	},
+
+	restart: () => {
+		// Restart polling logic
+	},
+}
+```
 
 ### Asset storage
 
