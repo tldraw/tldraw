@@ -41,6 +41,8 @@ apps/simple-dotcom/
    - Each ticket in `tickets/` references a requirement ID from `SPECIFICATION.md`. Ensure acceptance criteria trace back to the spec (e.g., `AUTH-01`, `DOC-03`).
    - When creating a new ticket, copy `tickets/TEMPLATE.md`, fill in the metadata, and list relevant sections in the **Related Documentation** field (pointing to `SPECIFICATION.md` headings).
    - Update status checkboxes and dates as work progresses.
+   - Use the **Worklog** section to track progress, decisions, and blockers with dated entries as work proceeds.
+   - Use the **Open questions** section to capture unresolved issues or areas needing clarification; remove items as they are answered.
 3. **Implement using the spec**:
    - Product scope: see **MVP Requirements** in `SPECIFICATION.md` for the authoritative feature list, user roles, and limits.
    - Technical direction: follow the same document’s architecture, data model, API surface, sync worker plan, and security/testing strategies.

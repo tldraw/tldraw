@@ -87,3 +87,11 @@ Include content strategy for error and success states so the engineering team ca
 - [x] Medium (1-3 days)
 - [ ] Large (3-5 days)
 - [ ] Extra Large (> 5 days)
+
+## Worklog
+
+[Track progress, decisions, and blockers as work proceeds. Each entry should include date and brief description.]
+
+## Open questions
+
+[List unresolved questions or areas needing clarification. Remove items as they are answered.]
