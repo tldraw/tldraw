@@ -3,7 +3,7 @@
 
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { Database } from './database.types'
+import { Database } from './types'
 
 /**
  * Create a Supabase client for use in Server Components and API Routes

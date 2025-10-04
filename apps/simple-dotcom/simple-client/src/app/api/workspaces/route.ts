@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
 		const { limit, offset } = parsePaginationParams(searchParams)
 
 		// Get workspaces where user is owner or member
-		const { data: workspaces, error } = await supabase
+		const { data, error } = await supabase
 			.from('workspaces')
 			.select(
 				`
@@ -33,6 +33,8 @@ export async function GET(request: NextRequest) {
 			.eq('is_deleted', false)
 			.order('created_at', { ascending: false })
 			.range(offset, offset + limit - 1)
+
+		const workspaces = data as unknown as Workspace[]
 
 		if (error) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to fetch workspaces')

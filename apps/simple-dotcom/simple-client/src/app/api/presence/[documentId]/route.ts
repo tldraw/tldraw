@@ -6,7 +6,26 @@ import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
 import { PresenceSession, UpdatePresenceRequest } from '@/lib/api/types'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
+import type { Tables } from '@/lib/supabase/types'
 import { NextRequest } from 'next/server'
+
+// Database row type with joined user data
+// Note: cursor_position is stored as Json in DB but we validate it as {x, y} shape
+type PresenceWithUser = Tables<'presence'> & {
+	users: { display_name: string | null } | null
+}
+
+// Helper to transform DB row to API response format
+function toPresenceSession(dbRow: PresenceWithUser): PresenceSession {
+	return {
+		session_id: dbRow.session_id,
+		document_id: dbRow.document_id,
+		user_id: dbRow.user_id,
+		display_name: dbRow.users?.display_name || null,
+		cursor_position: dbRow.cursor_position as { x: number; y: number } | null,
+		last_seen_at: dbRow.last_seen_at,
+	}
+}
 
 type RouteContext = {
 	params: Promise<{ documentId: string }>
@@ -69,7 +88,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
 		const { data: sessions, error } = await supabase
 			.from('presence')
-			.select('*')
+			.select('*, users(display_name)')
 			.eq('document_id', documentId)
 			.gte('last_seen_at', thirtySecondsAgo)
 			.order('last_seen_at', { ascending: false })
@@ -78,7 +97,12 @@ export async function GET(request: NextRequest, context: RouteContext) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to fetch presence')
 		}
 
-		return successResponse<PresenceSession[]>(sessions || [])
+		// Transform DB rows to API response format
+		const presenceSessions: PresenceSession[] = ((sessions as PresenceWithUser[] | null) || []).map(
+			toPresenceSession
+		)
+
+		return successResponse<PresenceSession[]>(presenceSessions)
 	} catch (error) {
 		return handleApiError(error)
 	}
@@ -112,7 +136,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
 					session_id: sessionId,
 					document_id: documentId,
 					user_id: user?.id || null,
-					display_name: user?.email || 'Guest',
 					cursor_position: body.cursor_position || null,
 					last_seen_at: new Date().toISOString(),
 				},
@@ -120,14 +143,15 @@ export async function POST(request: NextRequest, context: RouteContext) {
 					onConflict: 'session_id',
 				}
 			)
-			.select()
+			.select('*, users(display_name)')
 			.single()
 
 		if (error || !session) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to update presence')
 		}
 
-		return successResponse<PresenceSession>(session)
+		// Transform DB row to API response format
+		return successResponse<PresenceSession>(toPresenceSession(session as PresenceWithUser))
 	} catch (error) {
 		return handleApiError(error)
 	}

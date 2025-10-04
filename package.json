@@ -31,7 +31,8 @@
 		"apps/vscode/*",
 		"apps/dotcom/*",
 		"internal/*",
-		"templates/*"
+		"templates/*",
+		"apps/simple-dotcom/*"
 	],
 	"scripts": {
 		"aws-login": "aws sso login --sso-session=tldraw",

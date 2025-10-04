@@ -6,6 +6,7 @@ import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
 import { CreateFolderRequest, Folder } from '@/lib/api/types'
 import { createClient, requireAuth } from '@/lib/supabase/server'
+import type { Tables, TablesInsert } from '@/lib/supabase/types'
 import { NextRequest } from 'next/server'
 
 type RouteContext = {
@@ -16,7 +17,7 @@ type RouteContext = {
  * Helper: Calculate folder depth to prevent exceeding max depth (10 levels)
  */
 async function getFolderDepth(
-	supabase: any,
+	supabase: Awaited<ReturnType<typeof createClient>>,
 	folderId: string,
 	workspaceId: string
 ): Promise<number> {
@@ -25,11 +26,13 @@ async function getFolderDepth(
 
 	while (currentFolderId && depth < 15) {
 		// Safety limit
-		const { data: folder } = await supabase
+		const { data } = await supabase
 			.from('folders')
 			.select('parent_folder_id, workspace_id')
 			.eq('id', currentFolderId)
 			.single()
+
+		const folder = data as Pick<Tables<'folders'>, 'parent_folder_id' | 'workspace_id'> | null
 
 		if (!folder) break
 		if (folder.workspace_id !== workspaceId) {
@@ -52,7 +55,7 @@ async function getFolderDepth(
  * Helper: Check for cycles in folder hierarchy
  */
 async function wouldCreateCycle(
-	supabase: any,
+	supabase: Awaited<ReturnType<typeof createClient>>,
 	folderId: string,
 	parentFolderId: string
 ): Promise<boolean> {
@@ -64,11 +67,13 @@ async function wouldCreateCycle(
 		if (visited.has(currentFolderId)) return true // Cycle detected
 		visited.add(currentFolderId)
 
-		const { data: folder } = await supabase
+		const { data } = await supabase
 			.from('folders')
 			.select('parent_folder_id')
 			.eq('id', currentFolderId)
 			.single()
+
+		const folder = data as Pick<Tables<'folders'>, 'parent_folder_id'> | null
 
 		if (!folder) break
 		currentFolderId = folder.parent_folder_id
@@ -100,7 +105,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 		}
 
 		// Get all folders in workspace
-		const { data: folders, error } = await supabase
+		const { data, error } = await supabase
 			.from('folders')
 			.select('*')
 			.eq('workspace_id', workspaceId)
@@ -110,7 +115,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to fetch folders')
 		}
 
-		return successResponse<Folder[]>(folders || [])
+		const folders = (data || []) as Tables<'folders'>[]
+
+		return successResponse<Folder[]>(folders)
 	} catch (error) {
 		return handleApiError(error)
 	}
@@ -145,11 +152,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
 		// Verify parent folder if specified
 		if (body.parent_folder_id) {
-			const { data: parentFolder } = await supabase
+			const { data } = await supabase
 				.from('folders')
 				.select('workspace_id')
 				.eq('id', body.parent_folder_id)
 				.single()
+
+			const parentFolder = data as Pick<Tables<'folders'>, 'workspace_id'> | null
 
 			if (!parentFolder) {
 				throw new ApiException(404, ErrorCodes.FOLDER_NOT_FOUND, 'Parent folder not found')
@@ -175,20 +184,24 @@ export async function POST(request: NextRequest, context: RouteContext) {
 		}
 
 		// Create folder
-		const { data: folder, error: folderError } = await supabase
+		const insertData: TablesInsert<'folders'> = {
+			workspace_id: workspaceId,
+			parent_folder_id: body.parent_folder_id || null,
+			name: body.name.trim(),
+			created_by: user.id,
+		}
+
+		const { data, error: folderError } = await supabase
 			.from('folders')
-			.insert({
-				workspace_id: workspaceId,
-				parent_folder_id: body.parent_folder_id || null,
-				name: body.name.trim(),
-				created_by: user.id,
-			})
+			.insert(insertData)
 			.select()
 			.single()
 
-		if (folderError || !folder) {
+		if (folderError || !data) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to create folder')
 		}
+
+		const folder = data as Tables<'folders'>
 
 		return successResponse<Folder>(folder, 201)
 	} catch (error) {

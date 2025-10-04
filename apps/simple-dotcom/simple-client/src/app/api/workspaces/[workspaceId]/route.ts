@@ -7,6 +7,7 @@ import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
 import { UpdateWorkspaceRequest, Workspace } from '@/lib/api/types'
 import { createClient, requireAuth } from '@/lib/supabase/server'
+import type { Tables } from '@/lib/supabase/types'
 import { NextRequest } from 'next/server'
 
 type RouteContext = {
@@ -35,16 +36,18 @@ export async function GET(request: NextRequest, context: RouteContext) {
 			throw new ApiException(403, ErrorCodes.FORBIDDEN, 'Access denied to this workspace')
 		}
 
-		const { data: workspace, error } = await supabase
+		const { data, error } = await supabase
 			.from('workspaces')
 			.select('*')
 			.eq('id', workspaceId)
 			.eq('is_deleted', false)
 			.single()
 
-		if (error || !workspace) {
+		if (error || !data) {
 			throw new ApiException(404, ErrorCodes.WORKSPACE_NOT_FOUND, 'Workspace not found')
 		}
+
+		const workspace = data as unknown as Workspace
 
 		return successResponse<Workspace>(workspace)
 	} catch (error) {
@@ -64,22 +67,33 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 		const body: UpdateWorkspaceRequest = await request.json()
 
 		// Verify user is owner
-		const { data: workspace } = await supabase
+		const { data } = await supabase
 			.from('workspaces')
 			.select('owner_id, is_private')
 			.eq('id', workspaceId)
 			.eq('is_deleted', false)
 			.single()
 
-		if (!workspace) {
+		if (!data) {
 			throw new ApiException(404, ErrorCodes.WORKSPACE_NOT_FOUND, 'Workspace not found')
 		}
+
+		const workspace = data as Pick<Tables<'workspaces'>, 'owner_id' | 'is_private'>
 
 		if (workspace.owner_id !== user.id) {
 			throw new ApiException(
 				403,
 				ErrorCodes.WORKSPACE_OWNERSHIP_REQUIRED,
 				'Only workspace owner can update workspace'
+			)
+		}
+
+		// Prevent renaming private workspaces
+		if (workspace.is_private && body.name !== undefined) {
+			throw new ApiException(
+				403,
+				ErrorCodes.CANNOT_RENAME_PRIVATE_WORKSPACE,
+				'Cannot rename private workspace'
 			)
 		}
 
@@ -106,7 +120,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to update workspace')
 		}
 
-		return successResponse<Workspace>(updated)
+		return successResponse<Workspace>(updated as unknown as Workspace)
 	} catch (error) {
 		return handleApiError(error)
 	}
@@ -123,16 +137,18 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
 		const { workspaceId } = await context.params
 
 		// Verify user is owner
-		const { data: workspace } = await supabase
+		const { data } = await supabase
 			.from('workspaces')
 			.select('owner_id, is_private')
 			.eq('id', workspaceId)
 			.eq('is_deleted', false)
 			.single()
 
-		if (!workspace) {
+		if (!data) {
 			throw new ApiException(404, ErrorCodes.WORKSPACE_NOT_FOUND, 'Workspace not found')
 		}
+
+		const workspace = data as Pick<Tables<'workspaces'>, 'owner_id' | 'is_private'>
 
 		if (workspace.owner_id !== user.id) {
 			throw new ApiException(

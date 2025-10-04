@@ -87,7 +87,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 		// 2. Update new owner's role to 'owner'
 		const { error: newOwnerError } = await supabase
 			.from('workspace_members')
-			.update({ workspace_role: 'owner' })
+			.update({ role: 'owner' })
 			.eq('workspace_id', workspaceId)
 			.eq('user_id', body.new_owner_id)
 
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 		// 3. Update old owner's role to 'member'
 		const { error: oldOwnerError } = await supabase
 			.from('workspace_members')
-			.update({ workspace_role: 'member' })
+			.update({ role: 'member' })
 			.eq('workspace_id', workspaceId)
 			.eq('user_id', user.id)
 
