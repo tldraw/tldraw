@@ -18,12 +18,12 @@ Date completed: -
 
 ## Category
 
-- [ ] Authentication
+- [x] Authentication
 - [x] Workspaces
-- [x] Documents
-- [x] Folders
 - [x] Permissions & Sharing
-- [x] Real-time Collaboration
+- [ ] Documents
+- [ ] Folders
+- [ ] Real-time Collaboration
 - [ ] UI/UX
 - [ ] API
 - [ ] Database
@@ -32,13 +32,15 @@ Date completed: -
 
 ## Description
 
-Establish Playwright end-to-end test suite covering critical MVP flows: authentication, workspace management, document operations, folder hierarchy, invite acceptance, and permission enforcement.
+Establish the foundational Playwright end-to-end suite for Milestone 1, covering authentication, workspace provisioning, navigation shell access, and baseline access control so we can extend coverage as later milestones land.
 
 ## Acceptance Criteria
 
-- [ ] Playwright project configured with fixtures for Supabase test project and Cloudflare Worker test environment.
-- [ ] Automated tests cover signup/login/logout, workspace create/invite/delete, document create/move/archive, folder nesting, and guest access scenarios.
-- [ ] CI pipeline runs E2E tests on merge requests with reliable teardown/cleanup scripts.
+- [ ] Playwright project configured with Supabase-focused fixtures and worker runtime stubs so tests can run locally and in CI without polluting shared environments.
+- [ ] Automated flows cover signup, login, logout, password recovery, and re-authentication guard rails (e.g., invalid credentials, locked sessions).
+- [ ] Workspace scenarios validate provisioning on signup, workspace listing/dashboard navigation, owner safeguards on delete, and private access enforcement for unauthorized sessions.
+- [ ] Route guard tests ensure unauthenticated users are redirected away from protected areas (dashboard, workspace routes) to the auth entry point.
+- [ ] CI pipeline executes the E2E suite on merge and performs deterministic setup/teardown seeded via test fixtures.
 
 ## Technical Details
 
@@ -60,8 +62,13 @@ Establish Playwright end-to-end test suite covering critical MVP flows: authenti
 
 ## Dependencies
 
+- TECH-01 Supabase schema foundation.
+- TECH-04 API surface area.
 - AUTH-01 authentication flows.
-- MEM-03 invite lifecycle for invite test coverage.
+- AUTH-02 private workspace provisioning on signup.
+- AUTH-03 password recovery flow.
+- AUTH-05 private workspace validation rules.
+- NAV-05 route structure and guards.
 
 ## Testing Requirements
 
@@ -80,15 +87,10 @@ Establish Playwright end-to-end test suite covering critical MVP flows: authenti
 Coordinate with infra to provision dedicated Supabase project for automated tests to avoid interfering with staging/production data.
 
 **Related Work:**
-- When setting up the test infrastructure, also implement **API integration tests for TECH-04** (api-surface-area.md) which are currently blocked.
-- API integration tests should cover:
-  - Workspace CRUD operations with permission enforcement
-  - Document sharing modes (private, public read-only, public editable)
-  - Invitation flow (generate, enable/disable, join)
-  - Folder hierarchy validation (cycle prevention, depth limits)
-  - Member management and ownership transfer
-- These can use the same Supabase test project and test fixtures as E2E tests.
-- Consider using Next.js API route testing utilities or direct HTTP calls with test auth tokens.
+- When setting up the test infrastructure, also unblock **API integration tests for TECH-04** (api-surface-area.md) so workspace endpoints and auth guards share the same fixtures.
+- API integration tests should cover workspace CRUD, private workspace access rules, and navigation route guards that align with Milestone 1 exit criteria.
+- Reuse the Supabase test project, seeded accounts, and teardown scripts from the Playwright suite to keep coverage consistent.
+- Consider using Next.js API route testing utilities or direct HTTP calls with seeded auth tokens for deterministic checks.
 
 ## Estimated Complexity
 

@@ -67,8 +67,15 @@ Define Next.js routing structure covering member management, settings, archive, 
 
 - [ ] Unit tests
 - [x] Integration tests
-- [x] E2E tests (Playwright)
+- [x] E2E tests (Playwright) — add guard path coverage below.
 - [ ] Manual testing scenarios
+
+### E2E Test Coverage (Playwright)
+
+- Unauthenticated user navigates directly to protected routes (workspace settings, member management, archive) and is redirected to login.
+- Authenticated but unauthorized member hits owner-only pages and receives `/403` UI without data leakage.
+- Authenticated owner navigates across nested routes and experiences consistent layout transitions without full reloads.
+- Server-rendered navigation (hard refresh) and client-side router transitions both enforce the same guard logic.
 
 ## Related Documentation
 

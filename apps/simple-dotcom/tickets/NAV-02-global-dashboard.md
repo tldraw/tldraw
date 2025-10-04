@@ -71,8 +71,15 @@ Build the `/dashboard` view aggregating all workspaces, documents, folders, and 
 
 - [ ] Unit tests
 - [x] Integration tests
-- [x] E2E tests (Playwright)
+- [x] E2E tests (Playwright) — extend TEST-01 suite with dashboard flows below.
 - [x] Manual testing scenarios
+
+### E2E Test Coverage (Playwright)
+
+- Authenticated user loads `/dashboard` and sees all private + shared workspaces rendered simultaneously with collapsible sections.
+- Toggle workspace sections open/closed and confirm state persists across navigation or refresh (per design decision).
+- Create/Rename workspace (from WS-01 flows) and ensure dashboard reflects updates in real time without manual refresh.
+- Remove user from workspace (via API helper) and verify the workspace disappears from dashboard lists instantly.
 
 ## Related Documentation
 

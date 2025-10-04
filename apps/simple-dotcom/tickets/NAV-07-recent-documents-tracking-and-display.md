@@ -71,8 +71,15 @@ Surface a "Recent Documents" section in the dashboard/sidebar that automatically
 
 - [ ] Unit tests
 - [x] Integration tests
-- [x] E2E tests (Playwright)
+- [x] E2E tests (Playwright) — add scenarios outlined below.
 - [x] Manual testing scenarios
+
+### E2E Test Coverage (Playwright)
+
+- Open multiple documents across workspaces and confirm Recent Documents list updates order and metadata instantly.
+- Remove access to a document (simulate via API) and verify it disappears from recent list on next poll/refresh.
+- Reopen an item already in recents and ensure it bubbles to the top without duplicates.
+- Validate real-time updates by opening a document in second session (worker context) and watching primary session list refresh appropriately.
 
 ## Related Documentation
 

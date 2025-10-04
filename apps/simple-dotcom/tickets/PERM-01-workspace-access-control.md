@@ -68,8 +68,15 @@ Restrict workspace data access to owners and members through Supabase RLS polici
 
 - [x] Unit tests
 - [x] Integration tests
-- [x] E2E tests (Playwright)
+- [x] E2E tests (Playwright) — add scenarios detailed below.
 - [x] Manual testing scenarios
+
+### E2E Test Coverage (Playwright)
+
+- Non-member attempts to access `/workspaces/[id]` and related dashboard sections and is redirected to `/403` with audit log entry captured.
+- Authenticated member can load the same workspace after being added (via API helper) and sees expected data without stale forbidden cache.
+- API calls from non-member sessions to workspace endpoints return 403 with standardized error payload, and UI surfaces friendly message.
+- Revoked member loses access in existing session; subsequent navigation or refresh triggers forbidden state immediately.
 
 ## Related Documentation
 

@@ -18,7 +18,8 @@ Break the MVP scope into three executable milestones that sequence dependencies,
 - [~] [`tickets/TECH-04-api-surface-area.md`](tickets/TECH-04-api-surface-area.md) *(In Progress: API routes done, integration tests blocked on AUTH-01)*
 - [x] [`tickets/AUTH-01-implement-email-authentication-flows.md`](tickets/AUTH-01-implement-email-authentication-flows.md)
 - [x] [`tickets/AUTH-02-provision-private-workspace-on-signup.md`](tickets/AUTH-02-provision-private-workspace-on-signup.md)
-- [ ] [`tickets/AUTH-03-password-recovery-flow.md`](tickets/AUTH-03-password-recovery-flow.md)
+- [ ] [`tickets/TEST-01-playwright-e2e-suite.md`](tickets/TEST-01-playwright-e2e-suite.md)
+- [x] [`tickets/AUTH-03-password-recovery-flow.md`](tickets/AUTH-03-password-recovery-flow.md)
 - [ ] [`tickets/AUTH-04-basic-user-profiles.md`](tickets/AUTH-04-basic-user-profiles.md)
 - [ ] [`tickets/AUTH-05-private-workspace-validation-rules.md`](tickets/AUTH-05-private-workspace-validation-rules.md)
 - [ ] [`tickets/WS-01-shared-workspace-crud.md`](tickets/WS-01-shared-workspace-crud.md)
@@ -84,7 +85,6 @@ Break the MVP scope into three executable milestones that sequence dependencies,
 - [ ] [`tickets/PERF-03-permission-cache-with-invalidation.md`](tickets/PERF-03-permission-cache-with-invalidation.md)
 - [ ] [`tickets/TECH-03-deployment-and-environment-setup.md`](tickets/TECH-03-deployment-and-environment-setup.md)
 - [ ] [`tickets/TECH-07-error-tracking-and-monitoring.md`](tickets/TECH-07-error-tracking-and-monitoring.md)
-- [ ] [`tickets/TEST-01-playwright-e2e-suite.md`](tickets/TEST-01-playwright-e2e-suite.md)
 - [ ] [`tickets/TEST-02-multiplayer-e2e-coverage.md`](tickets/TEST-02-multiplayer-e2e-coverage.md)
 - [ ] [`tickets/TEST-03-permission-and-guest-testing.md`](tickets/TEST-03-permission-and-guest-testing.md)
 

@@ -69,8 +69,14 @@ Enforce system-level validation so private workspaces created at signup remain n
 
 - [x] Unit tests
 - [x] Integration tests
-- [ ] E2E tests (Playwright)
+- [ ] E2E tests (Playwright) — extend TEST-01 suite with the scenarios below.
 - [ ] Manual testing scenarios
+
+### E2E Test Coverage (Playwright)
+
+- From dashboard/settings, verify rename and delete actions are absent or disabled for private workspace cards.
+- Attempt to trigger rename/delete via direct navigation (e.g., query params, deep links) and assert UI surfaces 403 messaging without mutating data.
+- Use API helper within test to simulate rename/delete request and confirm response surfaces guardrail error while workspace remains unchanged in UI refresh.
 
 ## Related Documentation
 

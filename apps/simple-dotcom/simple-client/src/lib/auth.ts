@@ -16,6 +16,21 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 		requireEmailVerification: false, // Disable for MVP - can add later
+		// Password reset configuration
+		sendResetPassword: async ({ user, url, token }) => {
+			// For MVP, we'll log the reset URL to console
+			// In production, this should send an email via a service like Resend
+			console.log(`[Password Reset] User: ${user.email}\nReset URL: ${url}\nToken: ${token}`)
+			// TODO: Replace with actual email service in production
+			// Example with Resend:
+			// await resend.emails.send({
+			//   from: 'noreply@yourdomain.com',
+			//   to: user.email,
+			//   subject: 'Reset your password',
+			//   html: `Click here to reset your password: ${url}`
+			// })
+		},
+		resetPasswordTokenExpiresIn: 60 * 60, // 1 hour
 	},
 	session: {
 		expiresIn: 60 * 60 * 24 * 7, // 7 days

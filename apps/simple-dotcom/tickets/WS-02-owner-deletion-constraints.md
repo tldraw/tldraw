@@ -68,8 +68,15 @@ Enforce owner-only workspace deletion and prevent owners from leaving a workspac
 
 - [ ] Unit tests
 - [ ] Integration tests
-- [x] E2E tests (Playwright)
+- [x] E2E tests (Playwright) — incorporate the guard scenarios below.
 - [x] Manual testing scenarios
+
+### E2E Test Coverage (Playwright)
+
+- Member attempts to delete workspace and is blocked with descriptive error toast/dialog.
+- Owner attempts to leave workspace; flow requires transferring ownership or deleting first and surfaces guidance modal.
+- After transferring ownership (stubbed via API helper or UI), former owner can leave successfully and workspace remains accessible to new owner.
+- Deleting workspace as owner succeeds only after confirmation and logs event; verify resulting redirect and state cleanup.
 
 ## Related Documentation
 

@@ -70,8 +70,15 @@ Implement basic profile management so authenticated users can view and update th
 
 - [ ] Unit tests
 - [x] Integration tests
-- [x] E2E tests (Playwright)
+- [x] E2E tests (Playwright) — add scenarios listed below.
 - [x] Manual testing scenarios
+
+### E2E Test Coverage (Playwright)
+
+- Authenticated user loads `/profile`, sees populated read-only email and editable name/display name fields.
+- Update display name and confirm dashboard/sidebar/presence badges reflect the new value after navigation without page refresh.
+- Submit invalid input (blank or > max length) and assert validation messaging prevents save.
+- Refresh after successful save to ensure persisted profile values appear and no stale cache is shown.
 
 ## Related Documentation
 

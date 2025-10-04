@@ -70,8 +70,15 @@ Implement creation, renaming, and soft deletion for shared workspaces backed by 
 
 - [ ] Unit tests
 - [x] Integration tests
-- [x] E2E tests (Playwright)
+- [x] E2E tests (Playwright) — add cases described below.
 - [x] Manual testing scenarios
+
+### E2E Test Coverage (Playwright)
+
+- Authenticated owner creates a shared workspace from dashboard modal and sees it populate sidebar and API payloads immediately.
+- Rename workspace from settings/sidebar inline control and verify change persists after reload and in other sessions via presence stub.
+- Soft delete workspace, confirm removal from default listing, then restore via undo/archive view to reinstate it.
+- Attempt creation/rename/delete without required permissions (e.g., member role) and assert UI blocks the action with appropriate error messaging.
 
 ## Related Documentation
 
