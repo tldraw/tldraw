@@ -5,15 +5,28 @@ const isTest = () =>
 	!globalThis.__FORCE_RAF_IN_TESTS__
 
 const fpsQueue: Array<() => void> = []
-const targetFps = 60
-const targetTimePerFrame = Math.floor(1000 / targetFps) * 0.9 // ~15ms - we allow for some variance as browsers aren't that precise.
+const targetFps = 120
+// Browsers aren't precise with frame timing - this factor prevents skipping frames unnecessarily
+// by aiming slightly below the theoretical frame duration (e.g., ~7.5ms instead of 8.33ms for 120fps)
+const timingVarianceFactor = 0.9
+const targetTimePerFrame = Math.floor(1000 / targetFps) * timingVarianceFactor // ~7ms
 let frameRaf: undefined | number
 let flushRaf: undefined | number
 let lastFlushTime = -targetTimePerFrame
 
+// Track custom FPS timing per function
+const customFpsLastRunTime = new WeakMap<() => void, number>()
+// Map function to its custom FPS getter
+const customFpsGetters = new WeakMap<() => void, () => number>()
+
 const flush = () => {
 	const queue = fpsQueue.splice(0, fpsQueue.length)
 	for (const fn of queue) {
+		// If this function has custom FPS, update timestamp when executing
+		const getTargetFps = customFpsGetters.get(fn)
+		if (getTargetFps) {
+			customFpsLastRunTime.set(fn, Date.now())
+		}
 		fn()
 	}
 }
@@ -53,12 +66,16 @@ function tick(isOnNextFrame = false) {
 
 /**
  * Returns a throttled version of the function that will only be called max once per frame.
- * The target frame rate is 60fps.
+ * The target frame rate is up to 120fps (adapts to display refresh rate via requestAnimationFrame).
  * @param fn - the fun to return a throttled version of
+ * @param getTargetFps - optional function that returns the current target FPS rate for custom throttling
  * @returns
  * @internal
  */
-export function fpsThrottle(fn: { (): void; cancel?(): void }): {
+export function fpsThrottle(
+	fn: { (): void; cancel?(): void },
+	getTargetFps?: () => number
+): {
 	(): void
 	cancel?(): void
 } {
@@ -76,7 +93,23 @@ export function fpsThrottle(fn: { (): void; cancel?(): void }): {
 		return fn
 	}
 
+	// Store custom FPS getter if provided
+	if (getTargetFps) {
+		customFpsGetters.set(fn, getTargetFps)
+	}
+
 	const throttledFn = () => {
+		// Custom FPS - check timing before queuing
+		if (getTargetFps) {
+			const lastRun = customFpsLastRunTime.get(fn) ?? -Infinity
+			const customTimePerFrame = Math.floor(1000 / getTargetFps()) * timingVarianceFactor
+			const elapsed = Date.now() - lastRun
+
+			if (elapsed < customTimePerFrame) {
+				// Not ready yet, don't queue
+				return
+			}
+		}
 		if (fpsQueue.includes(fn)) {
 			return
 		}
@@ -93,7 +126,7 @@ export function fpsThrottle(fn: { (): void; cancel?(): void }): {
 }
 
 /**
- * Calls the function on the next frame. The target frame rate is 60fps.
+ * Calls the function on the next frame. The target frame rate is up to 120fps (adapts to display refresh rate).
  * If the same fn is passed again before the next frame, it will still be called only once.
  * @param fn - the fun to call on the next frame
  * @returns a function that will cancel the call if called before the next frame
