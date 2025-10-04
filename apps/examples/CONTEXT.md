@@ -2,7 +2,7 @@
 
 This is the tldraw SDK examples application - a comprehensive showcase and development environment for demonstrating tldraw capabilities. It hosts over 130 example implementations showing different features, integrations, and use cases.
 
-## Purpose & Deployment
+## Purpose & deployment
 
 **Development**: When you run `yarn dev` from the repository root, this examples app runs at localhost:5420
 **Production**: Deployed to [examples.tldraw.com](https://examples.tldraw.com) with each SDK release. Deployed to [examples-canary.tldraw.com](https://examples-canary.tldraw.com) with each push to main
@@ -11,22 +11,22 @@ This is the tldraw SDK examples application - a comprehensive showcase and devel
 
 ## Architecture
 
-### Core Structure
+### Core structure
 
-- **Entry Point**: `src/index.tsx` - Main application entry
-- **Example Wrapper**: `src/ExampleWrapper.tsx` - Provides consistent layout and error boundaries
-- **Example Registry**: `src/examples.tsx` - Central registry of all examples with metadata
-- **Example Pages**: `src/ExamplePage.tsx` - Individual example page component
+- **Entry point**: `src/index.tsx` - Main application entry
+- **Example wrapper**: `src/ExampleWrapper.tsx` - Provides consistent layout and error boundaries
+- **Example registry**: `src/examples.tsx` - Central registry of all examples with metadata
+- **Example pages**: `src/ExamplePage.tsx` - Individual example page component
 
-### Example Organization
+### Example organization
 
 Each example lives in its own directory under `src/examples/` following these patterns:
 
-- **Folder Naming**: kebab-case (e.g., `custom-shape`, `sync-demo`)
-- **Required Files**:
+- **Folder naming**: kebab-case (e.g., `custom-shape`, `sync-demo`)
+- **Required files**:
   - `README.md` with frontmatter metadata
   - Main component file ending with `Example.tsx`
-- **Optional Files**: CSS files, supporting components, utilities
+- **Optional files**: CSS files, supporting components, utilities
 
 ### Categories
 
@@ -43,38 +43,38 @@ Examples are organized into these categories:
 - `data/assets` - Data management and asset handling
 - `use-cases` - Complete application scenarios
 
-## Example Types
+## Example types
 
-### Core SDK Examples
+### Core SDK examples
 
-- **Basic Usage**: Simple editor setups (`basic`, `readonly`)
+- **Basic usage**: Simple editor setups (`basic`, `readonly`)
 - **Configuration**: Editor options (`hide-ui`, `dark-mode-toggle`)
-- **API Integration**: Editor methods (`api`, `canvas-events`)
+- **API integration**: Editor methods (`api`, `canvas-events`)
 
-### Customization Examples
+### Customization examples
 
-- **Custom Shapes**: New shape types (`custom-shape`, `ag-grid-shape`)
-- **Custom Tools**: Interactive tools (`custom-tool`, `lasso-select-tool`)
+- **Custom shapes**: New shape types (`custom-shape`, `ag-grid-shape`)
+- **Custom tools**: Interactive tools (`custom-tool`, `lasso-select-tool`)
 - **Custom UI**: Interface modifications (`custom-ui`, `toolbar-groups`)
-- **Custom Styling**: Visual customization (`custom-grid`, `frame-colors`)
+- **Custom styling**: Visual customization (`custom-grid`, `frame-colors`)
 
-### Advanced Features
+### Advanced features
 
 - **Collaboration**: Real-time sync (`sync-demo`, `sync-custom-presence`)
 - **Bindings**: Shape relationships (`pin-bindings`, `layout-bindings`)
-- **Export/Import**: Data exchange (`export-canvas-as-image`, `snapshots`)
-- **Complex Interactions**: Advanced behaviors (`drag-and-drop`, `interactive-shape`)
+- **Export/import**: Data exchange (`export-canvas-as-image`, `snapshots`)
+- **Complex interactions**: Advanced behaviors (`drag-and-drop`, `interactive-shape`)
 
-### Use Case Demonstrations
+### Use case demonstrations
 
-- **PDF Editor**: Complete PDF annotation tool
-- **Image Annotator**: Image markup interface
+- **PDF editor**: Complete PDF annotation tool
+- **Image annotator**: Image markup interface
 - **Slides**: Presentation creation tool
-- **Education Canvas**: Learning-focused interface
+- **Education canvas**: Learning-focused interface
 
-## Development Workflow
+## Development workflow
 
-### Adding New Examples
+### Adding new examples
 
 1. Create folder in `src/examples/` with kebab-case name
 2. Add `README.md` with proper frontmatter:
@@ -96,7 +96,7 @@ Examples are organized into these categories:
 3. Create main component file ending with `Example.tsx`
 4. Follow established patterns for layout and styling
 
-### Example Component Pattern
+### Example component pattern
 
 ```tsx
 import { Tldraw } from 'tldraw'
@@ -111,7 +111,7 @@ export default function YourExample() {
 }
 ```
 
-### Code Style Guidelines
+### Code style guidelines
 
 - Use numbered footnote comments: `// [1]`, `// [2]` with explanations at bottom
 - Keep examples focused and minimal for "tight" examples
@@ -119,9 +119,9 @@ export default function YourExample() {
 - External CSS files should match example name
 - Avoid inline styles unless necessary
 
-## Testing & Quality
+## Testing & quality
 
-### Available Commands
+### Available commands
 
 - `yarn e2e` - Run end-to-end tests for examples
 - `yarn e2e-ui` - Run E2E tests with Playwright UI
@@ -129,29 +129,29 @@ export default function YourExample() {
 - `yarn lint` - Lint the codebase
 - `yarn build` - Build for production
 
-### Testing Infrastructure
+### Testing infrastructure
 
-- **E2E Tests**: Located in `e2e/` directory using Playwright
-- **Performance Tests**: Dedicated performance testing suite
-- **Error Boundaries**: Built-in error handling for example failures
+- **E2E tests**: Located in `e2e/` directory using Playwright
+- **Performance tests**: Dedicated performance testing suite
+- **Error boundaries**: Built-in error handling for example failures
 
-## Key Dependencies
+## Key dependencies
 
-### Core tldraw Packages
+### Core tldraw packages
 
 - `tldraw` - Main SDK with full UI
 - `@tldraw/editor` - Core editor (some examples use editor-only)
 - `@tldraw/state` - Reactive state management
 - `@tldraw/sync` - Collaboration features
 
-### Supporting Libraries
+### Supporting libraries
 
 - `react-router-dom` - Client-side routing
 - `@tiptap/core` - Rich text editing (some examples)
 - `pdf-lib` - PDF manipulation (PDF examples)
 - `ag-grid-react` - Data grid component (grid examples)
 
-## Important Files
+## Important files
 
 ### Configuration
 
@@ -159,14 +159,14 @@ export default function YourExample() {
 - `tsconfig.json` - TypeScript configuration
 - `package.json` - Dependencies and scripts
 
-### Core Application Files
+### Core application files
 
 - `src/examples.tsx` - Example registry and metadata
 - `src/ExampleWrapper.tsx` - Layout wrapper with error boundaries
 - `src/hooks/` - Shared hooks for performance monitoring, debugging
 - `writing-examples.md` - Comprehensive guide for creating examples
 
-## Development Notes
+## Development notes
 
 - Examples should demonstrate single concepts clearly
 - Use the existing example patterns and conventions

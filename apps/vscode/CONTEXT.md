@@ -2,7 +2,7 @@
 
 The tldraw VS Code extension enables users to create, view, and edit `.tldr` files directly within VS Code, bringing the full tldraw infinite canvas experience to the editor.
 
-## Architecture Overview
+## Architecture overview
 
 This application consists of two main components:
 
@@ -10,33 +10,33 @@ This application consists of two main components:
 
 The VS Code extension itself, built in TypeScript:
 
-- **Entry Point**: `src/extension.ts` - Main activation function and extension lifecycle
-- **Editor Provider**: `src/TldrawEditorProvider.ts` - Custom editor provider for .tldr files
-- **Webview Manager**: `src/TldrawWebviewManager.ts` - Manages webview communication
-- **Document Handling**: `src/TldrawDocument.ts` - Document model for .tldr files
-- **File Operations**: `src/file.ts` - File I/O utilities for .tldr files
+- **Entry point**: `src/extension.ts` - Main activation function and extension lifecycle
+- **Editor provider**: `src/TldrawEditorProvider.ts` - Custom editor provider for .tldr files
+- **Webview manager**: `src/TldrawWebviewManager.ts` - Manages webview communication
+- **Document handling**: `src/TldrawDocument.ts` - Document model for .tldr files
+- **File operations**: `src/file.ts` - File I/O utilities for .tldr files
 - **Utilities**: `src/utils.ts`, `src/unfurl.ts`, `src/media.ts` - Supporting functionality
 
 ### Editor (`apps/vscode/editor/`)
 
 A React-based webview application that renders the tldraw editor:
 
-- **Entry Point**: `src/index.tsx` - React app initialization
-- **Main App**: `src/app.tsx` - Core tldraw editor component
-- **File Handling**: `src/FileOpen.tsx` - File open/import UI
-- **Change Tracking**: `src/ChangeResponder.tsx` - Handles editor state changes
+- **Entry point**: `src/index.tsx` - React app initialization
+- **Main app**: `src/app.tsx` - Core tldraw editor component
+- **File handling**: `src/FileOpen.tsx` - File open/import UI
+- **Change tracking**: `src/ChangeResponder.tsx` - Handles editor state changes
 - **Messages**: `src/FullPageMessage.tsx` - Error/loading states
 - **Utils**: `src/utils/` - RPC communication, bookmarks, external content handling
 
-## Key Features
+## Key features
 
-**File Support**
+**File support**
 
 - Opens `.tldr` and `.tldr.json` files
 - Creates new tldraw files via command palette
 - Bidirectional compatibility with tldraw.com web app
 
-**Editor Integration**
+**Editor integration**
 
 - Custom VS Code editor provider for seamless integration
 - Keyboard shortcuts for zoom and dark mode toggle
@@ -49,20 +49,20 @@ A React-based webview application that renders the tldraw editor:
 - Real-time file change synchronization
 - External content handling for links and embeds
 
-## Development Commands
+## Development commands
 
-**Extension Development**
+**Extension development**
 
 - `yarn dev` - Start extension development with hot reload
 - `yarn build` - Build extension and editor for production
 - `yarn package` - Create .vsix package for distribution
 
-**Editor Development**
+**Editor development**
 
 - `yarn dev` (from editor/) - Start editor development server
 - `yarn build` (from editor/) - Build editor bundle
 
-## Extension Configuration
+## Extension configuration
 
 The extension contributes:
 
@@ -71,7 +71,7 @@ The extension contributes:
 - Keyboard shortcuts for zoom and dark mode
 - File type associations for `.tldr` and `.tldr.json`
 
-## Build System
+## Build system
 
 - Extension uses esbuild for fast compilation
 - Editor uses esbuild with React/JSX support
@@ -85,7 +85,7 @@ The extension contributes:
 - Manual publishing via `yarn publish` command
 - Direct .vsix downloads available from repository
 
-## Key Dependencies
+## Key dependencies
 
 - **VS Code API**: Core extension functionality
 - **tldraw**: Full tldraw SDK for editor capabilities

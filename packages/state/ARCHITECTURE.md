@@ -10,7 +10,7 @@ This document provides a machine-readable guide to the @tldraw/state package str
 **Main Export**: Complete reactive signals API  
 **Dependencies**: @tldraw/utils
 
-## Directory Structure
+## Directory structure
 
 ```
 packages/state/

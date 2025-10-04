@@ -6,11 +6,11 @@ The `sync-worker` (also known as `@tldraw/dotcom-worker`) is the core multiplaye
 
 ## Architecture
 
-### Core Components
+### Core components
 
 The sync-worker consists of several specialized Durable Objects and services:
 
-#### TLDrawDurableObject - Room Management
+#### TLDrawDurableObject - room management
 
 The primary collaboration engine that manages individual drawing rooms:
 
@@ -38,7 +38,7 @@ export class TLDrawDurableObject extends DurableObject {
 }
 ```
 
-#### TLUserDurableObject - User Data Synchronization
+#### TLUserDurableObject - user data synchronization
 
 Manages individual user data and application-level state:
 
@@ -51,7 +51,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 }
 ```
 
-#### TLPostgresReplicator - Database Synchronization
+#### TLPostgresReplicator - database synchronization
 
 Replicates PostgreSQL database changes to user Durable Objects:
 
@@ -63,11 +63,11 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 }
 ```
 
-### Request Routing System
+### Request routing system
 
 The worker handles multiple types of requests through a comprehensive routing system:
 
-#### Legacy Room Routes
+#### Legacy room routes
 
 ```typescript
 // Read-write collaborative rooms
@@ -86,7 +86,7 @@ The worker handles multiple types of requests through a comprehensive routing sy
 )
 ```
 
-#### Modern App Routes
+#### Modern app routes
 
 ```typescript
 // TLA (Tldraw App) file collaboration
@@ -104,7 +104,7 @@ The worker handles multiple types of requests through a comprehensive routing sy
 })
 ```
 
-#### Asset Management
+#### Asset management
 
 ```typescript
 // Asset uploads
@@ -121,7 +121,7 @@ The worker handles multiple types of requests through a comprehensive routing sy
 })
 ```
 
-#### API Endpoints
+#### API endpoints
 
 ```typescript
 // File creation and management
@@ -135,13 +135,13 @@ The worker handles multiple types of requests through a comprehensive routing sy
 .get('/snapshot/:roomId', getRoomSnapshot)
 ```
 
-## Data Persistence Architecture
+## Data persistence architecture
 
-### Multi-Layer Storage System
+### Multi-layer storage system
 
 The sync-worker uses a sophisticated multi-layer storage approach:
 
-#### R2 Object Storage
+#### R2 object storage
 
 Primary storage for room data and history:
 
@@ -165,7 +165,7 @@ async persistToDatabase() {
 }
 ```
 
-#### PostgreSQL Database
+#### PostgreSQL database
 
 Structured data for users, files, and metadata:
 
@@ -190,7 +190,7 @@ const user = table('user').columns({
 })
 ```
 
-#### Durable Object Storage
+#### Durable object storage
 
 Cached state and session data:
 
@@ -204,7 +204,7 @@ interface DocumentInfo {
 }
 ```
 
-### Persistence Strategy
+### Persistence strategy
 
 The worker implements intelligent persistence with configurable intervals:
 
@@ -217,13 +217,13 @@ triggerPersist = throttle(() => {
 }, PERSIST_INTERVAL_MS)
 ```
 
-## Real-Time Collaboration
+## Real-time collaboration
 
-### WebSocket Communication
+### WebSocket communication
 
 The worker manages WebSocket connections for real-time collaboration:
 
-#### Connection Establishment
+#### Connection establishment
 
 ```typescript
 // Upgrade HTTP request to WebSocket
@@ -245,7 +245,7 @@ room.handleSocketConnect({
 })
 ```
 
-#### Message Handling
+#### Message handling
 
 ```typescript
 // Real-time message processing and broadcasting
@@ -259,7 +259,7 @@ onBeforeSendMessage: ({ message, stringified }) => {
 }
 ```
 
-#### Session Management
+#### Session management
 
 ```typescript
 // Automatic cleanup when users disconnect
@@ -281,22 +281,22 @@ onSessionRemoved: async (room, args) => {
 }
 ```
 
-### Conflict Resolution
+### Conflict resolution
 
 The worker uses tldraw's sync system for operational transformation:
 
-- **Clock-based Versioning**: Each change has a logical clock timestamp
-- **Last-Write-Wins**: Simple conflict resolution for most operations
-- **Presence Tracking**: Real-time cursor and selection synchronization
-- **Undo/Redo Support**: Complete operation history maintenance
+- **Clock-based versioning**: Each change has a logical clock timestamp
+- **Last-write-wins**: Simple conflict resolution for most operations
+- **Presence tracking**: Real-time cursor and selection synchronization
+- **Undo/redo support**: Complete operation history maintenance
 
-## Authentication and Authorization
+## Authentication and authorization
 
-### Multi-Provider Authentication
+### Multi-provider authentication
 
 The worker supports multiple authentication providers:
 
-#### Clerk Integration
+#### Clerk integration
 
 ```typescript
 // JWT-based authentication with Clerk
@@ -307,7 +307,7 @@ if (auth) {
 }
 ```
 
-#### Permission System
+#### Permission system
 
 ```typescript
 // File-based permissions
@@ -321,7 +321,7 @@ if (file.ownerId !== auth?.userId) {
 }
 ```
 
-#### Rate Limiting
+#### Rate limiting
 
 ```typescript
 // Per-user rate limiting
@@ -331,13 +331,13 @@ if (rateLimited) {
 }
 ```
 
-## File Management System
+## File management system
 
-### File Lifecycle
+### File lifecycle
 
 The worker manages the complete file lifecycle:
 
-#### File Creation
+#### File creation
 
 ```typescript
 // Create new tldraw files
@@ -365,7 +365,7 @@ async createFiles(req: IRequest, env: Environment) {
 }
 ```
 
-#### File Updates
+#### File updates
 
 ```typescript
 // Automatic file updates when room changes
@@ -392,7 +392,7 @@ async appFileRecordDidUpdate(file: TlaFile) {
 }
 ```
 
-#### File Deletion
+#### File deletion
 
 ```typescript
 // Soft deletion with cleanup
@@ -410,9 +410,9 @@ async appFileRecordDidDelete({ id, publishedSlug }: Pick<TlaFile, 'id' | 'publis
 }
 ```
 
-### Asset Management
+### Asset management
 
-#### Asset Upload Pipeline
+#### Asset upload pipeline
 
 ```typescript
 // Handle asset uploads with queue processing
@@ -449,7 +449,7 @@ async queue(batch: MessageBatch<QueueMessage>) {
 }
 ```
 
-### Publishing System
+### Publishing system
 
 ```typescript
 // Publish files for public access
@@ -478,13 +478,13 @@ async publishFile(fileId: string, auth: AuthData) {
 }
 ```
 
-## Environment Configuration
+## Environment configuration
 
-### Multi-Environment Setup
+### Multi-environment setup
 
 The worker supports multiple deployment environments:
 
-#### Development Environment
+#### Development environment
 
 ```toml
 [env.dev]
@@ -493,7 +493,7 @@ vars.TLDRAW_ENV = "development"
 vars.MULTIPLAYER_SERVER = "http://localhost:3000"
 ```
 
-#### Staging Environment
+#### Staging environment
 
 ```toml
 [env.staging]
@@ -504,7 +504,7 @@ zone_name = "tldraw.com"
 pattern = "staging.tldraw.com/api/*"
 ```
 
-#### Production Environment
+#### Production environment
 
 ```toml
 [env.production]
@@ -515,7 +515,7 @@ zone_name = "tldraw.com"
 pattern = "www.tldraw.com/api/*"
 ```
 
-### Durable Object Configuration
+### Durable object configuration
 
 All environments use the same Durable Object setup:
 
@@ -530,7 +530,7 @@ bindings = [
 ]
 ```
 
-### Storage Bindings
+### Storage bindings
 
 Environment-specific storage configurations:
 
@@ -554,13 +554,13 @@ binding = "SLUG_TO_READONLY_SLUG"
 id = "2fb5fc7f7ca54a5a9dfae1b07a30a778"
 ```
 
-## Data Synchronization System
+## Data synchronization system
 
-### Zero/Rocicorp Integration
+### Zero/Rocicorp integration
 
 The worker uses Zero (Rocicorp) for client-server data synchronization:
 
-#### Schema Definition
+#### Schema definition
 
 ```typescript
 // Shared schema between client and server
@@ -582,7 +582,7 @@ const schema = {
 }
 ```
 
-#### Mutation System
+#### Mutation system
 
 ```typescript
 // Type-safe mutations with validation
@@ -599,7 +599,7 @@ const mutators = createMutators(userId)
 	})
 ```
 
-#### Real-Time Replication
+#### Real-time replication
 
 ```typescript
 // PostgreSQL logical replication to Durable Objects
@@ -620,7 +620,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 }
 ```
 
-### Conflict Resolution Strategy
+### Conflict resolution strategy
 
 ```typescript
 // Optimistic updates with server reconciliation
@@ -646,13 +646,13 @@ class UserDataSyncer {
 }
 ```
 
-## Performance Optimizations
+## Performance optimizations
 
-### Caching Strategy
+### Caching strategy
 
 Multiple layers of caching for optimal performance:
 
-#### Durable Object State Caching
+#### Durable object state caching
 
 ```typescript
 // Cache frequently accessed data in DO memory
@@ -682,7 +682,7 @@ class TLDrawDurableObject {
 }
 ```
 
-#### Connection Pooling
+#### Connection pooling
 
 ```typescript
 // Efficient database connection management
@@ -698,7 +698,7 @@ const db = new Kysely<DB>({
 })
 ```
 
-#### Throttled Persistence
+#### Throttled persistence
 
 ```typescript
 // Batch database writes to reduce load
@@ -721,7 +721,7 @@ async persistToDatabase() {
 }
 ```
 
-### Memory Management
+### Memory management
 
 ```typescript
 // Automatic resource cleanup
@@ -740,9 +740,9 @@ onSessionRemoved: async (room, args) => {
 }
 ```
 
-### Scalability Features
+### Scalability features
 
-#### Connection Limits
+#### Connection limits
 
 ```typescript
 const MAX_CONNECTIONS = 50
@@ -753,7 +753,7 @@ if (room.getNumActiveSessions() > MAX_CONNECTIONS) {
 }
 ```
 
-#### Rate Limiting
+#### Rate limiting
 
 ```typescript
 // Global rate limiting per user/session
@@ -763,11 +763,11 @@ async function isRateLimited(env: Environment, identifier: string): Promise<bool
 }
 ```
 
-## Error Handling and Monitoring
+## Error handling and monitoring
 
-### Comprehensive Error Tracking
+### Comprehensive error tracking
 
-#### Sentry Integration
+#### Sentry integration
 
 ```typescript
 // Automatic error reporting with context
@@ -782,7 +782,7 @@ try {
 }
 ```
 
-#### Analytics and Metrics
+#### Analytics and metrics
 
 ```typescript
 // Real-time analytics with Cloudflare Analytics Engine
@@ -804,7 +804,7 @@ logEvent(event: TLServerEvent) {
 }
 ```
 
-#### Health Monitoring
+#### Health monitoring
 
 ```typescript
 // Health check endpoints
@@ -822,7 +822,7 @@ logEvent(event: TLServerEvent) {
 })
 ```
 
-### Graceful Degradation
+### Graceful degradation
 
 ```typescript
 // Fallback strategies for various failure modes
@@ -854,46 +854,46 @@ async loadFromDatabase(slug: string): Promise<DBLoadResult> {
 }
 ```
 
-## Key Features
+## Key features
 
-### Real-Time Collaboration
+### Real-time collaboration
 
-- **WebSocket-based Communication**: Low-latency bidirectional communication
-- **Operational Transformation**: Conflict-free collaborative editing
-- **Presence Tracking**: Real-time cursors and user awareness
-- **Session Management**: Automatic cleanup and resource management
+- **WebSocket-based communication**: Low-latency bidirectional communication
+- **Operational transformation**: Conflict-free collaborative editing
+- **Presence tracking**: Real-time cursors and user awareness
+- **Session management**: Automatic cleanup and resource management
 
-### Distributed Architecture
+### Distributed architecture
 
-- **Edge Computing**: Deployed globally on Cloudflare Workers
+- **Edge computing**: Deployed globally on Cloudflare Workers
 - **Durable Objects**: Stateful, location-pinned computing units
-- **Multi-Layer Caching**: Memory, KV, and R2 storage optimization
-- **Database Replication**: PostgreSQL logical replication for consistency
+- **Multi-layer caching**: Memory, KV, and R2 storage optimization
+- **Database replication**: PostgreSQL logical replication for consistency
 
-### Security and Authentication
+### Security and authentication
 
-- **Multi-Provider Auth**: Support for Clerk and other providers
-- **Fine-Grained Permissions**: File-level access control
-- **Rate Limiting**: Per-user and per-session protection
-- **CORS Management**: Secure cross-origin resource sharing
+- **Multi-provider auth**: Support for Clerk and other providers
+- **Fine-grained permissions**: File-level access control
+- **Rate limiting**: Per-user and per-session protection
+- **CORS management**: Secure cross-origin resource sharing
 
-### File Management
+### File management
 
-- **Asset Pipeline**: Integrated upload and optimization system
-- **Version History**: Complete editing history with restore capability
-- **Publishing System**: Public sharing with custom slugs
-- **Soft Deletion**: Recoverable file deletion with cleanup
+- **Asset pipeline**: Integrated upload and optimization system
+- **Version history**: Complete editing history with restore capability
+- **Publishing system**: Public sharing with custom slugs
+- **Soft deletion**: Recoverable file deletion with cleanup
 
 ### Performance
 
-- **Global Distribution**: Sub-100ms latency worldwide
-- **Automatic Scaling**: Handle traffic spikes seamlessly
-- **Resource Efficiency**: Intelligent persistence and cleanup
-- **Connection Pooling**: Optimized database connections
+- **Global distribution**: Sub-100ms latency worldwide
+- **Automatic scaling**: Handle traffic spikes seamlessly
+- **Resource efficiency**: Intelligent persistence and cleanup
+- **Connection pooling**: Optimized database connections
 
-## Development and Testing
+## Development and testing
 
-### Local Development
+### Local development
 
 ```bash
 # Start development server
@@ -906,7 +906,7 @@ async loadFromDatabase(slug: string): Promise<DBLoadResult> {
 yarn clean
 ```
 
-### Environment Setup
+### Environment setup
 
 ```bash
 # Create local environment file
@@ -939,39 +939,39 @@ curl -X POST https://worker-url/app/__debug-tail/clear
 wscat -c wss://worker-url/app/__debug-tail
 ```
 
-## Key Benefits
+## Key benefits
 
-### Developer Experience
+### Developer experience
 
-- **Type Safety**: Full TypeScript support across the stack
-- **Hot Reloading**: Fast development iteration
-- **Comprehensive Logging**: Detailed debugging and monitoring
-- **Testing Support**: Unit and integration test frameworks
+- **Type safety**: Full TypeScript support across the stack
+- **Hot reloading**: Fast development iteration
+- **Comprehensive logging**: Detailed debugging and monitoring
+- **Testing support**: Unit and integration test frameworks
 
-### User Experience
+### User experience
 
-- **Instant Collaboration**: Real-time synchronization without conflicts
-- **Offline Resilience**: Graceful handling of network issues
-- **Fast Loading**: Edge caching for sub-second room joining
-- **Reliable Persistence**: Automatic saving with version history
+- **Instant collaboration**: Real-time synchronization without conflicts
+- **Offline resilience**: Graceful handling of network issues
+- **Fast loading**: Edge caching for sub-second room joining
+- **Reliable persistence**: Automatic saving with version history
 
 ### Operations
 
-- **Zero Maintenance**: Serverless architecture with auto-scaling
-- **Global Deployment**: Automatic worldwide distribution
-- **Cost Efficiency**: Pay-per-request pricing model
-- **Monitoring Integration**: Built-in analytics and error tracking
+- **Zero maintenance**: Serverless architecture with auto-scaling
+- **Global deployment**: Automatic worldwide distribution
+- **Cost efficiency**: Pay-per-request pricing model
+- **Monitoring integration**: Built-in analytics and error tracking
 
 ### Architecture
 
-- **Microservice Pattern**: Specialized Durable Objects for different concerns
-- **Event-Driven Design**: Reactive system with real-time updates
-- **Eventual Consistency**: Distributed system with conflict resolution
-- **Horizontal Scaling**: Automatic scaling based on demand
+- **Microservice pattern**: Specialized Durable Objects for different concerns
+- **Event-driven design**: Reactive system with real-time updates
+- **Eventual consistency**: Distributed system with conflict resolution
+- **Horizontal scaling**: Automatic scaling based on demand
 
-## Integration with tldraw Ecosystem
+## Integration with tldraw ecosystem
 
-### Client Integration
+### Client integration
 
 The sync-worker integrates seamlessly with tldraw clients:
 
@@ -990,7 +990,7 @@ const editor = new Editor({
 })
 ```
 
-### Service Architecture
+### Service architecture
 
 ```
 tldraw.com (Client)
