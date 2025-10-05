@@ -10,8 +10,6 @@ test.describe('Global Dashboard', () => {
 	test.describe('Dashboard Layout and Structure', () => {
 		test('should display all accessible workspaces simultaneously in sidebar', async ({
 			authenticatedPage,
-			supabaseAdmin,
-			testUser,
 		}) => {
 			const page = authenticatedPage
 
@@ -35,8 +33,6 @@ test.describe('Global Dashboard', () => {
 
 		test('should load dashboard with all workspaces expanded by default', async ({
 			authenticatedPage,
-			supabaseAdmin,
-			testUser,
 		}) => {
 			const page = authenticatedPage
 
@@ -74,11 +70,7 @@ test.describe('Global Dashboard', () => {
 	})
 
 	test.describe('Collapsible Workspace Sections', () => {
-		test('should toggle workspace sections open and closed', async ({
-			authenticatedPage,
-			supabaseAdmin,
-			testUser,
-		}) => {
+		test('should toggle workspace sections open and closed', async ({ authenticatedPage }) => {
 			const page = authenticatedPage
 
 			// Create a workspace
@@ -123,11 +115,7 @@ test.describe('Global Dashboard', () => {
 	})
 
 	test.describe('Workspace CRUD from Dashboard', () => {
-		test('should create new workspace and see it in dashboard', async ({
-			authenticatedPage,
-			supabaseAdmin,
-			testUser,
-		}) => {
+		test('should create new workspace and see it in dashboard', async ({ authenticatedPage }) => {
 			const page = authenticatedPage
 			const workspaceName = `Dashboard Create Test ${Date.now()}`
 
@@ -150,11 +138,7 @@ test.describe('Global Dashboard', () => {
 			await expect(workspaceList).toContainText(workspaceName)
 		})
 
-		test('should rename workspace from dashboard', async ({
-			authenticatedPage,
-			supabaseAdmin,
-			testUser,
-		}) => {
+		test('should rename workspace from dashboard', async ({ authenticatedPage }) => {
 			const page = authenticatedPage
 			const originalName = `Original ${Date.now()}`
 			const newName = `Renamed ${Date.now()}`
@@ -195,8 +179,6 @@ test.describe('Global Dashboard', () => {
 
 		test('should delete workspace from dashboard and it disappears immediately', async ({
 			authenticatedPage,
-			supabaseAdmin,
-			testUser,
 		}) => {
 			const page = authenticatedPage
 			const workspaceName = `Delete Test ${Date.now()}`

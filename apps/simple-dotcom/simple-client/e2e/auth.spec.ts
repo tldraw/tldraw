@@ -200,7 +200,7 @@ test.describe('Authentication', () => {
 			expect(page.url()).toContain('/dashboard')
 		})
 
-		test('should handle session expiry', async ({ authenticatedPage, page }) => {
+		test('should handle session expiry', async ({}) => {
 			// This test would require manipulating session tokens or waiting for expiry
 			// For now, we'll skip this as it requires more complex setup
 			test.skip()

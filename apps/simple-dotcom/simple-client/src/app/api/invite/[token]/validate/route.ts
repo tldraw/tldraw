@@ -4,6 +4,7 @@
 import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
 import { WORKSPACE_LIMITS } from '@/lib/constants'
+import { createRateLimitResponse, RATE_LIMITS, rateLimitByIp } from '@/lib/rate-limit/rate-limiter'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { NextRequest } from 'next/server'
 
@@ -17,6 +18,13 @@ type RouteContext = {
  */
 export async function GET(request: NextRequest, context: RouteContext) {
 	try {
+		// Check rate limit by IP (20 validations per 5 minutes)
+		const rateLimitResult = await rateLimitByIp(request, RATE_LIMITS.INVITE_VALIDATION)
+
+		if (!rateLimitResult.success) {
+			return createRateLimitResponse(rateLimitResult)
+		}
+
 		const supabase = await createClient()
 		const { token } = await context.params
 		const user = await getCurrentUser() // Optional - may be null

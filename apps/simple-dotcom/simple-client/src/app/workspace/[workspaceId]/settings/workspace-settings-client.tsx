@@ -283,12 +283,26 @@ export default function WorkspaceSettingsClient({
 			<header className="border-b px-6 py-4">
 				<div className="flex items-center justify-between">
 					<h1 className="text-2xl font-bold">Workspace Settings</h1>
-					<Link
-						href={`/workspace/${workspace.id}`}
-						className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50"
-					>
-						Back to Workspace
-					</Link>
+					<div className="flex gap-2">
+						<Link
+							href={`/workspace/${workspace.id}/archive`}
+							className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50"
+						>
+							Archive
+						</Link>
+						<Link
+							href={`/workspace/${workspace.id}/members`}
+							className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50"
+						>
+							Members
+						</Link>
+						<Link
+							href={`/workspace/${workspace.id}`}
+							className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50"
+						>
+							Back to Workspace
+						</Link>
+					</div>
 				</div>
 			</header>
 

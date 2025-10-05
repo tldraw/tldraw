@@ -28,6 +28,7 @@
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^3",
+		"@faker-js/faker": "^10.0.0",
 		"@playwright/test": "^1.55.1",
 		"@tailwindcss/postcss": "^4",
 		"@types/node": "^20",

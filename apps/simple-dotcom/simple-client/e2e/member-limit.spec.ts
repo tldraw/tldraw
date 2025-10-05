@@ -4,7 +4,6 @@ test.describe('Workspace Member Limits', () => {
 	test('shows warning when approaching member limit', async ({
 		authenticatedPage,
 		supabaseAdmin,
-		testUser,
 	}) => {
 		const page = authenticatedPage
 		const workspaceName = `Limit Test ${Date.now()}`
@@ -54,7 +53,6 @@ test.describe('Workspace Member Limits', () => {
 	test('prevents joining workspace when at member limit', async ({
 		authenticatedPage,
 		supabaseAdmin,
-		testUser,
 	}) => {
 		const page = authenticatedPage
 		const workspaceName = `Full Workspace ${Date.now()}`
@@ -125,7 +123,6 @@ test.describe('Workspace Member Limits', () => {
 	test('shows warning in API response when near limit', async ({
 		authenticatedPage,
 		supabaseAdmin,
-		testUser,
 	}) => {
 		const page = authenticatedPage
 		const workspaceName = `Near Limit ${Date.now()}`

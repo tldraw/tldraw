@@ -825,7 +825,6 @@ test.describe('Workspace Management', () => {
 		test('should deny non-member access to workspace via API', async ({
 			authenticatedPage,
 			supabaseAdmin,
-			testUser,
 		}) => {
 			const page = authenticatedPage
 
@@ -936,7 +935,6 @@ test.describe('Workspace Management', () => {
 		test('should deny non-member access to workspace members list', async ({
 			authenticatedPage,
 			supabaseAdmin,
-			testUser,
 		}) => {
 			const page = authenticatedPage
 
@@ -984,7 +982,6 @@ test.describe('Workspace Management', () => {
 		test('should deny non-member from creating documents in workspace', async ({
 			authenticatedPage,
 			supabaseAdmin,
-			testUser,
 		}) => {
 			const page = authenticatedPage
 
@@ -1095,7 +1092,7 @@ test.describe('Workspace Management', () => {
 		test('should have RLS policies enabled on workspace tables', async ({ supabaseAdmin }) => {
 			// Query pg_tables to verify RLS is enabled
 			const { data: tables, error } = await supabaseAdmin
-				.from('pg_tables' as any)
+				.from('pg_tables')
 				.select('tablename, rowsecurity')
 				.eq('schemaname', 'public')
 				.in('tablename', [

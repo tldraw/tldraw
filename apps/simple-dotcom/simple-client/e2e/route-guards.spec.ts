@@ -312,7 +312,7 @@ test.describe('Route Guards', () => {
 			expect([401, 403, 302, 500]).toContain(response.status())
 		})
 
-		test('should allow authenticated requests to API endpoints', async ({ authenticatedPage }) => {
+		test('should allow authenticated requests to API endpoints', async ({}) => {
 			// TODO: Fix auth integration - Better Auth cookies not being recognized by Supabase requireAuth
 			// The app uses Better Auth for authentication but API routes use Supabase auth
 			// This needs middleware to sync the auth state between the two systems

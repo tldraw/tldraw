@@ -259,7 +259,6 @@ test.describe('Session Edge Cases (M15-04)', () => {
 		})
 
 		test('should batch session validation for multiple protected resources', async ({
-			testUser,
 			authenticatedPage,
 		}) => {
 			const page = authenticatedPage

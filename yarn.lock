@@ -3016,6 +3016,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@faker-js/faker@npm:^10.0.0":
+  version: 10.0.0
+  resolution: "@faker-js/faker@npm:10.0.0"
+  checksum: 10/14e558e66bf7d8ffb6c00f241c4763dc8295baee5d7be56a2b40c7150cd6b7404c46d82a5558144fa7635c4391eb412fb10bad12c87b9ba844d12d904fe55d73
+  languageName: node
+  linkType: hard
+
 "@fastify/ajv-compiler@npm:^3.5.0":
   version: 3.6.0
   resolution: "@fastify/ajv-compiler@npm:3.6.0"
@@ -27885,6 +27892,7 @@ __metadata:
   resolution: "simple-client@workspace:apps/simple-dotcom/simple-client"
   dependencies:
     "@eslint/eslintrc": "npm:^3"
+    "@faker-js/faker": "npm:^10.0.0"
     "@playwright/test": "npm:^1.55.1"
     "@supabase/ssr": "npm:^0.7.0"
     "@supabase/supabase-js": "npm:^2.58.0"

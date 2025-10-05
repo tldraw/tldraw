@@ -10,12 +10,14 @@ test.describe('Empty Workspace List Handling (M15-02)', () => {
 		// Get all shared workspaces the user has access to
 		const { data: memberWorkspaces } = await supabaseAdmin
 			.from('workspace_members')
-			.select('workspace_id, workspaces!inner(id, is_private)')
+			.select('workspace_id, workspace:workspaces!inner(id, is_private)')
 			.eq('user_id', testUser.id)
 
 		if (memberWorkspaces) {
 			for (const membership of memberWorkspaces) {
-				const workspace = (membership as any).workspaces
+				const workspace = Array.isArray(membership.workspace)
+					? membership.workspace[0]
+					: membership.workspace
 				if (!workspace.is_private) {
 					// Remove user from shared workspaces
 					await supabaseAdmin
@@ -59,12 +61,14 @@ test.describe('Empty Workspace List Handling (M15-02)', () => {
 		// Remove user from all shared workspaces (keep private workspace)
 		const { data: memberWorkspaces } = await supabaseAdmin
 			.from('workspace_members')
-			.select('workspace_id, workspaces!inner(id, is_private)')
+			.select('workspace_id, workspace:workspaces!inner(id, is_private)')
 			.eq('user_id', testUser.id)
 
 		if (memberWorkspaces) {
 			for (const membership of memberWorkspaces) {
-				const workspace = (membership as any).workspaces
+				const workspace = Array.isArray(membership.workspace)
+					? membership.workspace[0]
+					: membership.workspace
 				if (!workspace.is_private) {
 					await supabaseAdmin
 						.from('workspace_members')
@@ -110,12 +114,14 @@ test.describe('Empty Workspace List Handling (M15-02)', () => {
 		// Remove user from all shared workspaces
 		const { data: memberWorkspaces } = await supabaseAdmin
 			.from('workspace_members')
-			.select('workspace_id, workspaces!inner(id, is_private)')
+			.select('workspace_id, workspace:workspaces!inner(id, is_private)')
 			.eq('user_id', testUser.id!)
 
 		if (memberWorkspaces) {
 			for (const membership of memberWorkspaces) {
-				const workspace = (membership as any).workspaces
+				const workspace = Array.isArray(membership.workspace)
+					? membership.workspace[0]
+					: membership.workspace
 				if (!workspace.is_private) {
 					// Remove from shared workspaces
 					await supabaseAdmin

@@ -27,10 +27,8 @@ export default function WorkspaceArchiveClient({
 		setProcessingId(documentId)
 
 		try {
-			const res = await fetch(`/api/documents/${documentId}`, {
-				method: 'PATCH',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ is_archived: false }),
+			const res = await fetch(`/api/documents/${documentId}/restore`, {
+				method: 'POST',
 			})
 
 			if (!res.ok) {
@@ -57,8 +55,11 @@ export default function WorkspaceArchiveClient({
 		setProcessingId(documentId)
 
 		try {
-			const res = await fetch(`/api/documents/${documentId}`, {
+			const res = await fetch(`/api/documents/${documentId}/delete`, {
 				method: 'DELETE',
+				headers: {
+					'X-Confirm-Delete': 'true',
+				},
 			})
 
 			if (!res.ok) {
@@ -138,13 +139,15 @@ export default function WorkspaceArchiveClient({
 											>
 												{isProcessing ? 'Processing...' : 'Restore'}
 											</button>
-											<button
-												onClick={() => handlePermanentDelete(doc.id)}
-												disabled={isProcessing}
-												className="rounded-md border border-red-200 bg-red-50 px-3 py-1 text-sm text-red-700 hover:bg-red-100 disabled:opacity-50"
-											>
-												Delete Forever
-											</button>
+											{isOwner && (
+												<button
+													onClick={() => handlePermanentDelete(doc.id)}
+													disabled={isProcessing}
+													className="rounded-md border border-red-200 bg-red-50 px-3 py-1 text-sm text-red-700 hover:bg-red-100 disabled:opacity-50"
+												>
+													Delete Forever
+												</button>
+											)}
 										</div>
 									</div>
 								)

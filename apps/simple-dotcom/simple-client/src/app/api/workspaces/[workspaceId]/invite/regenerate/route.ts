@@ -4,6 +4,11 @@
 import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
 import { InvitationLink } from '@/lib/api/types'
+import {
+	createRateLimitResponse,
+	RATE_LIMITS,
+	rateLimitByWorkspace,
+} from '@/lib/rate-limit/rate-limiter'
 import { createClient, requireAuth } from '@/lib/supabase/server'
 import { randomBytes } from 'crypto'
 import { NextRequest } from 'next/server'
@@ -25,9 +30,17 @@ function generateInviteToken(): string {
  */
 export async function POST(request: NextRequest, context: RouteContext) {
 	try {
+		const { workspaceId } = await context.params
+
+		// Check rate limit for workspace (5 regenerations per hour)
+		const rateLimitResult = await rateLimitByWorkspace(workspaceId, RATE_LIMITS.INVITE_REGENERATION)
+
+		if (!rateLimitResult.success) {
+			return createRateLimitResponse(rateLimitResult)
+		}
+
 		const user = await requireAuth()
 		const supabase = await createClient()
-		const { workspaceId } = await context.params
 
 		// Verify user is owner
 		const { data: workspace } = await supabase
