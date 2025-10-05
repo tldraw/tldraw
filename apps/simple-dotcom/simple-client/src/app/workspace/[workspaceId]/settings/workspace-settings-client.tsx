@@ -5,11 +5,19 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
+interface Member {
+	id: string
+	email: string
+	display_name: string | null
+	role: 'owner' | 'member'
+}
+
 interface WorkspaceSettingsClientProps {
 	workspace: Workspace
 	isOwner: boolean
 	role: 'owner' | 'member'
 	userId: string
+	members?: Member[]
 }
 
 export default function WorkspaceSettingsClient({
@@ -17,12 +25,16 @@ export default function WorkspaceSettingsClient({
 	isOwner,
 	role,
 	userId,
+	members = [],
 }: WorkspaceSettingsClientProps) {
 	const router = useRouter()
 	const [isRenaming, setIsRenaming] = useState(false)
 	const [name, setName] = useState(workspace.name)
 	const [isDeleting, setIsDeleting] = useState(false)
 	const [isLeaving, setIsLeaving] = useState(false)
+	const [isTransferring, setIsTransferring] = useState(false)
+	const [selectedNewOwner, setSelectedNewOwner] = useState<string>('')
+	const [showTransferConfirm, setShowTransferConfirm] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 
 	const handleRename = async (e: React.FormEvent) => {
@@ -115,6 +127,40 @@ export default function WorkspaceSettingsClient({
 		}
 	}
 
+	const handleTransferOwnership = async () => {
+		if (!selectedNewOwner) {
+			setError('Please select a member to transfer ownership to')
+			return
+		}
+
+		setError(null)
+		setIsTransferring(true)
+		setShowTransferConfirm(false)
+
+		try {
+			const res = await fetch(`/api/workspaces/${workspace.id}/transfer-ownership`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ new_owner_id: selectedNewOwner }),
+			})
+
+			const result = await res.json()
+
+			if (!res.ok) {
+				throw new Error(result.message || 'Failed to transfer ownership')
+			}
+
+			// Redirect to workspace page after successful transfer
+			router.push(`/workspace/${workspace.id}`)
+		} catch (err: any) {
+			setError(err.message)
+			setIsTransferring(false)
+		}
+	}
+
+	// Filter out current user from potential new owners
+	const eligibleMembers = members.filter((m) => m.id !== userId)
+
 	return (
 		<div className="flex h-screen flex-col">
 			{/* Header */}
@@ -200,6 +246,97 @@ export default function WorkspaceSettingsClient({
 							</p>
 						)}
 					</section>
+
+					{/* Ownership Transfer - Only show for owners of shared workspaces */}
+					{isOwner && !workspace.is_private && eligibleMembers.length > 0 && (
+						<section className="rounded-lg border p-6">
+							<h2 className="mb-4 text-lg font-semibold">Transfer Ownership</h2>
+							<p className="mb-4 text-sm text-gray-600">
+								Transfer ownership of this workspace to another member. You will become a regular
+								member after the transfer.
+							</p>
+
+							{!showTransferConfirm ? (
+								<div className="space-y-4">
+									<div>
+										<label
+											htmlFor="new-owner"
+											className="block text-sm font-medium text-gray-700 mb-2"
+										>
+											Select new owner
+										</label>
+										<select
+											id="new-owner"
+											value={selectedNewOwner}
+											onChange={(e) => setSelectedNewOwner(e.target.value)}
+											className="w-full rounded-md border px-3 py-2"
+											disabled={isTransferring}
+										>
+											<option value="">Choose a member...</option>
+											{eligibleMembers.map((member) => (
+												<option key={member.id} value={member.id}>
+													{member.display_name || member.email} ({member.role})
+												</option>
+											))}
+										</select>
+									</div>
+
+									<button
+										onClick={() => {
+											if (selectedNewOwner) {
+												setShowTransferConfirm(true)
+											} else {
+												setError('Please select a member to transfer ownership to')
+											}
+										}}
+										disabled={isTransferring || !selectedNewOwner}
+										className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
+									>
+										Continue
+									</button>
+								</div>
+							) : (
+								<div className="space-y-4 rounded-lg bg-yellow-50 p-4">
+									<p className="text-sm text-yellow-800">
+										<strong>Confirm ownership transfer</strong>
+									</p>
+									<p className="text-sm text-gray-700">
+										Are you sure you want to transfer ownership to{' '}
+										<strong>
+											{eligibleMembers.find((m) => m.id === selectedNewOwner)?.display_name ||
+												eligibleMembers.find((m) => m.id === selectedNewOwner)?.email}
+										</strong>
+										?
+									</p>
+									<p className="text-sm text-gray-600">After this transfer:</p>
+									<ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+										<li>You will become a regular member</li>
+										<li>You will lose owner privileges (rename, delete, transfer)</li>
+										<li>The new owner will have full control of the workspace</li>
+									</ul>
+									<div className="flex gap-2">
+										<button
+											onClick={handleTransferOwnership}
+											disabled={isTransferring}
+											className="rounded-md bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 disabled:opacity-50"
+										>
+											{isTransferring ? 'Transferring...' : 'Confirm Transfer'}
+										</button>
+										<button
+											onClick={() => {
+												setShowTransferConfirm(false)
+												setError(null)
+											}}
+											disabled={isTransferring}
+											className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
+										>
+											Cancel
+										</button>
+									</div>
+								</div>
+							)}
+						</section>
+					)}
 
 					{/* Leave/Delete Workspace */}
 					<section className="rounded-lg border border-red-200 p-6">

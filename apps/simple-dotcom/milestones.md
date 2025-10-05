@@ -97,7 +97,7 @@ Break the MVP scope into three executable milestones that sequence dependencies,
 - [x] [`tickets/DOC-01-document-crud-and-archive.md`](tickets/DOC-01-document-crud-and-archive.md) *(Medium - metadata only, no canvas)* ✅ COMPLETED 2025-10-05
 - [x] [`tickets/DOC-05-archive-hard-delete-policies.md`](tickets/DOC-05-archive-hard-delete-policies.md) *(Small)* ✅ COMPLETED 2025-10-05
 - [x] [`tickets/MEM-05-member-limit-guardrails.md`](tickets/MEM-05-member-limit-guardrails.md) *(Small)* ✅ COMPLETED 2025-10-05
-- [ ] [`tickets/WS-03-member-settings-and-leave-flow.md`](tickets/WS-03-member-settings-and-leave-flow.md) *(Small)*
+- [x] [`tickets/WS-03-member-settings-and-leave-flow.md`](tickets/WS-03-member-settings-and-leave-flow.md) *(Small)* ✅ COMPLETED 2025-10-05
 
 ### Phase 2: Workspace Collaboration (Week 2-3)
 - [ ] [`tickets/MEM-01-role-management-and-ownership-transfer.md`](tickets/MEM-01-role-management-and-ownership-transfer.md) *(Medium)*

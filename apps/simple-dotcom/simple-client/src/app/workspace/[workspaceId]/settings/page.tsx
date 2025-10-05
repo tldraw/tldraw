@@ -24,14 +24,26 @@ async function getWorkspaceSettings(userId: string, workspaceId: string) {
 	// Check if user is owner or member
 	const isOwner = workspace.owner_id === userId
 
+	// Fetch all members for ownership transfer dropdown
+	const { data: members } = await supabase
+		.from('workspace_members')
+		.select('user_id, role, users!inner(id, email, display_name)')
+		.eq('workspace_id', workspaceId)
+		.order('role', { ascending: false })
+		.order('joined_at', { ascending: true })
+
+	// Transform members data
+	const transformedMembers =
+		members?.map((m) => ({
+			id: m.user_id,
+			email: m.users.email,
+			display_name: m.users.display_name,
+			role: m.role,
+		})) || []
+
 	if (!isOwner) {
 		// Check membership for read-only access
-		const { data: membership } = await supabase
-			.from('workspace_members')
-			.select('role')
-			.eq('workspace_id', workspaceId)
-			.eq('user_id', userId)
-			.single()
+		const membership = members?.find((m) => m.user_id === userId)
 
 		if (!membership) {
 			return null
@@ -41,6 +53,7 @@ async function getWorkspaceSettings(userId: string, workspaceId: string) {
 			workspace,
 			isOwner: false,
 			role: membership.role,
+			members: transformedMembers,
 		}
 	}
 
@@ -48,6 +61,7 @@ async function getWorkspaceSettings(userId: string, workspaceId: string) {
 		workspace,
 		isOwner: true,
 		role: 'owner' as const,
+		members: transformedMembers,
 	}
 }
 
@@ -74,6 +88,7 @@ export default async function WorkspaceSettingsPage({ params }: WorkspaceSetting
 			isOwner={workspaceSettings.isOwner}
 			role={workspaceSettings.role}
 			userId={user.id}
+			members={workspaceSettings.members}
 		/>
 	)
 }
