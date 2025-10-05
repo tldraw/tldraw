@@ -1,6 +1,4 @@
-import { auth } from '@/lib/auth'
-import { createClient } from '@/lib/supabase/server'
-import { headers } from 'next/headers'
+import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import WorkspaceSettingsClient from './workspace-settings-client'
 
@@ -57,16 +55,14 @@ export default async function WorkspaceSettingsPage({ params }: WorkspaceSetting
 	const { workspaceId } = await params
 
 	// Get session
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	})
+	const user = await getCurrentUser()
 
-	if (!session?.user) {
+	if (!user) {
 		redirect(`/login?redirect=/workspace/${workspaceId}/settings`)
 	}
 
 	// Get workspace settings
-	const workspaceSettings = await getWorkspaceSettings(session.user.id, workspaceId)
+	const workspaceSettings = await getWorkspaceSettings(user.id, workspaceId)
 
 	if (!workspaceSettings) {
 		redirect('/403')
@@ -77,7 +73,7 @@ export default async function WorkspaceSettingsPage({ params }: WorkspaceSetting
 			workspace={workspaceSettings.workspace}
 			isOwner={workspaceSettings.isOwner}
 			role={workspaceSettings.role}
-			userId={session.user.id}
+			userId={user.id}
 		/>
 	)
 }

@@ -1,14 +1,15 @@
 // Next.js Middleware for route protection
-// Checks session cookies and redirects as needed
+// Checks Supabase session and redirects as needed
 
+import { validateSession } from '@/lib/supabase/middleware'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function middleware(request: NextRequest) {
 	const { pathname } = request.nextUrl
 
-	// Check if user has session cookie
-	const sessionCookie = request.cookies.get('better-auth.session_token')
-	const isAuthenticated = !!sessionCookie
+	// Validate session with Supabase Auth
+	const { session, response } = await validateSession(request)
+	const isAuthenticated = !!session
 
 	// Auth pages - redirect to dashboard if already logged in
 	const authPages = ['/login', '/signup', '/forgot-password', '/reset-password']
@@ -16,7 +17,7 @@ export async function middleware(request: NextRequest) {
 		if (isAuthenticated) {
 			return NextResponse.redirect(new URL('/dashboard', request.url))
 		}
-		return NextResponse.next()
+		return response
 	}
 
 	// Protected routes - redirect to login if not authenticated
@@ -31,7 +32,7 @@ export async function middleware(request: NextRequest) {
 		return NextResponse.redirect(loginUrl)
 	}
 
-	return NextResponse.next()
+	return response
 }
 
 export const config = {

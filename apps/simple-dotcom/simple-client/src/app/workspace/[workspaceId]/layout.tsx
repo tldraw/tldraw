@@ -1,6 +1,4 @@
-import { auth } from '@/lib/auth'
-import { createClient } from '@/lib/supabase/server'
-import { headers } from 'next/headers'
+import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { ReactNode } from 'react'
 
@@ -57,17 +55,15 @@ export default async function WorkspaceLayout({ children, params }: WorkspaceLay
 	const { workspaceId } = await params
 
 	// Get session from Better Auth (server-side)
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	})
+	const user = await getCurrentUser()
 
 	// Redirect to login if not authenticated
-	if (!session?.user) {
+	if (!user) {
 		redirect(`/login?redirect=/workspace/${workspaceId}`)
 	}
 
 	// Check workspace access
-	const access = await checkWorkspaceAccess(session.user.id, workspaceId)
+	const access = await checkWorkspaceAccess(user.id, workspaceId)
 
 	if (!access) {
 		redirect('/403')

@@ -3,9 +3,7 @@
 
 import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
-import { auth } from '@/lib/auth'
-import { createClient } from '@/lib/supabase/server'
-import { headers } from 'next/headers'
+import { createClient, requireAuth } from '@/lib/supabase/server'
 import { NextRequest } from 'next/server'
 
 export interface RecentDocument {
@@ -28,11 +26,9 @@ export interface RecentDocument {
 export async function GET(request: NextRequest) {
 	try {
 		// Get session from Better Auth
-		const session = await auth.api.getSession({
-			headers: await headers(),
-		})
+		const user = await requireAuth()
 
-		if (!session?.user) {
+		if (!user) {
 			throw new ApiException(401, ErrorCodes.UNAUTHORIZED, 'Not authenticated')
 		}
 
@@ -68,7 +64,7 @@ export async function GET(request: NextRequest) {
 				)
 			`
 			)
-			.eq('user_id', session.user.id)
+			.eq('user_id', user.id)
 			.order('accessed_at', { ascending: false })
 			.limit(limit)
 
@@ -81,7 +77,7 @@ export async function GET(request: NextRequest) {
 		const { data: memberships } = await supabase
 			.from('workspace_members')
 			.select('workspace_id')
-			.eq('user_id', session.user.id)
+			.eq('user_id', user.id)
 
 		const memberWorkspaceIds = new Set(memberships?.map((m) => m.workspace_id) || [])
 

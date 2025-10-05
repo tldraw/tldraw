@@ -1,7 +1,5 @@
 import { Document, Folder, RecentDocument, Workspace } from '@/lib/api/types'
-import { auth } from '@/lib/auth'
-import { createClient } from '@/lib/supabase/server'
-import { headers } from 'next/headers'
+import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import DashboardClient from './dashboard-client'
 
@@ -186,26 +184,18 @@ async function getUserProfile(userId: string) {
 
 export default async function DashboardPage() {
 	// Get session from Better Auth (server-side)
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	})
+	const user = await getCurrentUser()
 
 	// Redirect to login if not authenticated
-	if (!session?.user) {
+	if (!user) {
 		redirect('/login')
 	}
 
 	// Fetch dashboard data and user profile in parallel
 	const [dashboardData, userProfile] = await Promise.all([
-		getDashboardData(session.user.id),
-		getUserProfile(session.user.id),
+		getDashboardData(user.id),
+		getUserProfile(user.id),
 	])
 
-	return (
-		<DashboardClient
-			initialData={dashboardData}
-			userProfile={userProfile}
-			userId={session.user.id}
-		/>
-	)
+	return <DashboardClient initialData={dashboardData} userProfile={userProfile} userId={user.id} />
 }

@@ -2,14 +2,14 @@
 
 Date created: 2025-10-05
 Date last updated: 2025-10-05
-Date completed: -
+Date completed: 2025-10-05
 
 ## Status
 
-- [x] Not Started
+- [ ] Not Started
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -36,11 +36,11 @@ Replace the current Better Auth integration with Supabase Auth so that identity,
 
 ## Acceptance Criteria
 
-- [ ] Better Auth dependencies and code (`@better-auth/*`, `src/lib/auth.ts`, `authClient`, middleware hooks) are removed and replaced with Supabase Auth equivalents.
-- [ ] Signup, login, logout, forgot/reset password, and session refresh work end-to-end using Supabase Auth APIs in both server components and client components.
-- [ ] API routes that currently call `auth.api.getSession` (e.g. workspaces, dashboard, profile, documents, presence) rely solely on Supabase helpers and honour existing RLS policies without service-role exceptions.
-- [ ] User provisioning flow (private workspace creation) executes using Supabase database functions or triggers without Better Auth middleware.
-- [ ] Playwright auth scenarios pass with the new auth stack and regression tests cover key flows.
+- [x] Better Auth dependencies and code (`@better-auth/*`, `src/lib/auth.ts`, `authClient`, middleware hooks) are removed and replaced with Supabase Auth equivalents.
+- [x] Signup, login, logout, forgot/reset password, and session refresh work end-to-end using Supabase Auth APIs in both server components and client components.
+- [x] API routes that currently call `auth.api.getSession` (e.g. workspaces, dashboard, profile, documents, presence) rely solely on Supabase helpers and honour existing RLS policies without service-role exceptions.
+- [x] User provisioning flow (private workspace creation) executes using Supabase database functions or triggers without Better Auth middleware.
+- [x] Playwright auth scenarios pass with the new auth stack and regression tests cover key flows.
 
 ## Technical Details
 
@@ -95,7 +95,14 @@ Replace the current Better Auth integration with Supabase Auth so that identity,
 
 ## Worklog
 
--
+2025-10-05: Completed full migration from Better Auth to Supabase Auth
+- Created Supabase client modules (browser, server, middleware)
+- Updated all auth pages (login, signup, forgot-password, reset-password)
+- Fixed middleware to properly validate Supabase sessions
+- Updated all API routes to use Supabase Auth
+- Created database trigger for automatic workspace provisioning on signup
+- Removed Better Auth dependencies
+- All auth E2E tests passing
 
 ## Open questions
 

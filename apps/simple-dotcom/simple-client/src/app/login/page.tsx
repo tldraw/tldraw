@@ -1,6 +1,6 @@
 'use client'
 
-import { authClient } from '@/lib/auth-client'
+import { getBrowserClient } from '@/lib/supabase/browser'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -11,6 +11,7 @@ export default function LoginPage() {
 	const [password, setPassword] = useState('')
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+	const supabase = getBrowserClient()
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -18,7 +19,7 @@ export default function LoginPage() {
 		setError(null)
 
 		try {
-			const { error: signInError } = await authClient.signIn.email({
+			const { error: signInError } = await supabase.auth.signInWithPassword({
 				email,
 				password,
 			})
@@ -30,6 +31,7 @@ export default function LoginPage() {
 
 			// Redirect to dashboard on success
 			router.push('/dashboard')
+			router.refresh() // Refresh server components
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
 		} finally {

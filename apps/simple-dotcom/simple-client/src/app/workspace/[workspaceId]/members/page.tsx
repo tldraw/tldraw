@@ -1,6 +1,4 @@
-import { auth } from '@/lib/auth'
-import { createClient } from '@/lib/supabase/server'
-import { headers } from 'next/headers'
+import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import WorkspaceMembersClient from './workspace-members-client'
 
@@ -104,16 +102,14 @@ export default async function WorkspaceMembersPage({ params }: WorkspaceMembersP
 	const { workspaceId } = await params
 
 	// Get session
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	})
+	const user = await getCurrentUser()
 
-	if (!session?.user) {
+	if (!user) {
 		redirect(`/login?redirect=/workspace/${workspaceId}/members`)
 	}
 
 	// Get workspace members
-	const membersData = await getWorkspaceMembers(session.user.id, workspaceId)
+	const membersData = await getWorkspaceMembers(user.id, workspaceId)
 
 	if (!membersData) {
 		redirect('/403')
@@ -124,7 +120,7 @@ export default async function WorkspaceMembersPage({ params }: WorkspaceMembersP
 			workspace={membersData.workspace}
 			members={membersData.members}
 			inviteLink={membersData.inviteLink}
-			currentUserId={session.user.id}
+			currentUserId={user.id}
 		/>
 	)
 }

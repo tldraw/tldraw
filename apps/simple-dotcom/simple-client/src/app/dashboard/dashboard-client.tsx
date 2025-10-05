@@ -1,7 +1,7 @@
 'use client'
 
 import { Document, Folder, RecentDocument, User, Workspace } from '@/lib/api/types'
-import { authClient } from '@/lib/auth-client'
+import { getBrowserClient } from '@/lib/supabase/browser'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -45,8 +45,10 @@ export default function DashboardClient({
 	const [actionLoading, setActionLoading] = useState(false)
 
 	const handleSignOut = async () => {
-		await authClient.signOut()
+		const supabase = getBrowserClient()
+		await supabase.auth.signOut()
 		router.push('/login')
+		router.refresh() // Refresh server components
 	}
 
 	const handleCreateWorkspace = async () => {

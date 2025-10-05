@@ -5,9 +5,7 @@
 import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
 import { UpdateProfileRequest, User } from '@/lib/api/types'
-import { auth } from '@/lib/auth'
-import { createClient } from '@/lib/supabase/server'
-import { headers } from 'next/headers'
+import { createClient, requireAuth } from '@/lib/supabase/server'
 import { NextRequest } from 'next/server'
 
 /**
@@ -17,11 +15,9 @@ import { NextRequest } from 'next/server'
 export async function GET() {
 	try {
 		// Get session from Better Auth
-		const session = await auth.api.getSession({
-			headers: await headers(),
-		})
+		const user = await requireAuth()
 
-		if (!session?.user) {
+		if (!user) {
 			throw new ApiException(401, ErrorCodes.UNAUTHORIZED, 'Not authenticated')
 		}
 
@@ -31,7 +27,7 @@ export async function GET() {
 		const { data: profile, error } = await supabase
 			.from('users')
 			.select('id, email, display_name, name, created_at, updated_at')
-			.eq('id', session.user.id)
+			.eq('id', user.id)
 			.single()
 
 		if (error || !profile) {
@@ -51,11 +47,9 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
 	try {
 		// Get session from Better Auth
-		const session = await auth.api.getSession({
-			headers: await headers(),
-		})
+		const user = await requireAuth()
 
-		if (!session?.user) {
+		if (!user) {
 			throw new ApiException(401, ErrorCodes.UNAUTHORIZED, 'Not authenticated')
 		}
 
@@ -108,7 +102,7 @@ export async function PUT(request: NextRequest) {
 		const { data: profile, error } = await supabase
 			.from('users')
 			.update(updates)
-			.eq('id', session.user.id)
+			.eq('id', user.id)
 			.select('id, email, display_name, name, created_at, updated_at')
 			.single()
 

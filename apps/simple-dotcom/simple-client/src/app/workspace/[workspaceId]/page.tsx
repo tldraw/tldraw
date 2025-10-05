@@ -1,7 +1,5 @@
 import { Document, Folder, Workspace } from '@/lib/api/types'
-import { auth } from '@/lib/auth'
-import { createClient } from '@/lib/supabase/server'
-import { headers } from 'next/headers'
+import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import WorkspaceBrowserClient from './workspace-browser-client'
 
@@ -90,16 +88,14 @@ export default async function WorkspacePage({ params }: WorkspacePageProps) {
 	const { workspaceId } = await params
 
 	// Get session
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	})
+	const user = await getCurrentUser()
 
-	if (!session?.user) {
+	if (!user) {
 		redirect(`/login?redirect=/workspace/${workspaceId}`)
 	}
 
 	// Get workspace data
-	const workspaceData = await getWorkspaceData(session.user.id, workspaceId)
+	const workspaceData = await getWorkspaceData(user.id, workspaceId)
 
 	if (!workspaceData) {
 		redirect('/403')
@@ -112,7 +108,7 @@ export default async function WorkspacePage({ params }: WorkspacePageProps) {
 			folders={workspaceData.folders}
 			role={workspaceData.role}
 			isOwner={workspaceData.isOwner}
-			userId={session.user.id}
+			userId={user.id}
 		/>
 	)
 }

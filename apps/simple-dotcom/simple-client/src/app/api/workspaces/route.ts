@@ -5,10 +5,8 @@
 import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, parsePaginationParams, successResponse } from '@/lib/api/response'
 import { CreateWorkspaceRequest, Workspace } from '@/lib/api/types'
-import { auth } from '@/lib/auth'
 import { logger } from '@/lib/server/logger'
-import { createAdminClient, createClient } from '@/lib/supabase/server'
-import { headers } from 'next/headers'
+import { createAdminClient, createClient, requireAuth } from '@/lib/supabase/server'
 import { NextRequest } from 'next/server'
 
 /**
@@ -18,11 +16,9 @@ import { NextRequest } from 'next/server'
 export async function GET(request: NextRequest) {
 	try {
 		// Get session from Better Auth
-		const session = await auth.api.getSession({
-			headers: await headers(),
-		})
+		const user = await requireAuth()
 
-		if (!session?.user) {
+		if (!user) {
 			throw new ApiException(401, ErrorCodes.UNAUTHORIZED, 'Not authenticated')
 		}
 
@@ -40,7 +36,7 @@ export async function GET(request: NextRequest) {
 			`,
 				{ count: 'exact' }
 			)
-			.eq('workspace_members.user_id', session.user.id)
+			.eq('workspace_members.user_id', user.id)
 			.eq('is_deleted', false)
 			.order('created_at', { ascending: false })
 			.range(offset, offset + limit - 1)
@@ -64,11 +60,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
 	try {
 		// Get session from Better Auth
-		const session = await auth.api.getSession({
-			headers: await headers(),
-		})
+		const user = await requireAuth()
 
-		if (!session?.user) {
+		if (!user) {
 			throw new ApiException(401, ErrorCodes.UNAUTHORIZED, 'Not authenticated')
 		}
 
@@ -84,7 +78,7 @@ export async function POST(request: NextRequest) {
 		const { count } = await supabaseAdmin
 			.from('workspaces')
 			.select('*', { count: 'exact', head: true })
-			.eq('owner_id', session.user.id)
+			.eq('owner_id', user.id)
 			.eq('is_deleted', false)
 
 		if (count && count >= 100) {
@@ -99,7 +93,7 @@ export async function POST(request: NextRequest) {
 		const { data: workspace, error: workspaceError } = await supabaseAdmin
 			.from('workspaces')
 			.insert({
-				owner_id: session.user.id,
+				owner_id: user.id,
 				name: body.name.trim(),
 				is_private: false,
 			})
@@ -110,7 +104,7 @@ export async function POST(request: NextRequest) {
 			logger.error('Error creating workspace', workspaceError, {
 				context: 'workspace_creation',
 				route: '/api/workspaces',
-				user_id: session.user.id,
+				user_id: user.id,
 			})
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to create workspace')
 		}
@@ -120,7 +114,7 @@ export async function POST(request: NextRequest) {
 			.from('workspace_members')
 			.insert({
 				workspace_id: workspace.id,
-				user_id: session.user.id,
+				user_id: user.id,
 				role: 'owner',
 			})
 			.select()
@@ -130,7 +124,7 @@ export async function POST(request: NextRequest) {
 				context: 'workspace_creation',
 				route: '/api/workspaces',
 				workspace_id: workspace.id,
-				user_id: session.user.id,
+				user_id: user.id,
 				role: 'owner',
 			})
 			// Rollback workspace creation
@@ -146,7 +140,7 @@ export async function POST(request: NextRequest) {
 			context: 'workspace_creation',
 			route: '/api/workspaces',
 			workspace_id: workspace.id,
-			user_id: session.user.id,
+			user_id: user.id,
 			member_count: memberData?.length || 1,
 		})
 

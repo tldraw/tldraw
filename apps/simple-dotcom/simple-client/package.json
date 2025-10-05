@@ -16,7 +16,6 @@
 	"dependencies": {
 		"@supabase/ssr": "^0.7.0",
 		"@supabase/supabase-js": "^2.58.0",
-		"better-auth": "^1.3.0",
 		"next": "15.5.4",
 		"pg": "^8.13.3",
 		"pino": "^10.0.0",

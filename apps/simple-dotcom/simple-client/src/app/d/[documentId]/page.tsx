@@ -1,6 +1,4 @@
-import { auth } from '@/lib/auth'
-import { createClient } from '@/lib/supabase/server'
-import { headers } from 'next/headers'
+import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import DocumentViewClient from './document-view-client'
 
@@ -94,11 +92,9 @@ export default async function DocumentViewPage({ params }: DocumentViewPageProps
 	const { documentId } = await params
 
 	// Get session (optional - guests can view public documents)
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	})
+	const user = await getCurrentUser()
 
-	const userId = session?.user?.id || null
+	const userId = user?.id || null
 
 	// Get document access
 	const accessData = await getDocumentAccess(userId, documentId)

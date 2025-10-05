@@ -1,6 +1,4 @@
-import { auth } from '@/lib/auth'
-import { createClient } from '@/lib/supabase/server'
-import { headers } from 'next/headers'
+import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import WorkspaceArchiveClient from './workspace-archive-client'
 
@@ -62,16 +60,14 @@ export default async function WorkspaceArchivePage({ params }: WorkspaceArchiveP
 	const { workspaceId } = await params
 
 	// Get session
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	})
+	const user = await getCurrentUser()
 
-	if (!session?.user) {
+	if (!user) {
 		redirect(`/login?redirect=/workspace/${workspaceId}/archive`)
 	}
 
 	// Get archived documents
-	const archiveData = await getArchivedDocuments(session.user.id, workspaceId)
+	const archiveData = await getArchivedDocuments(user.id, workspaceId)
 
 	if (!archiveData) {
 		redirect('/403')

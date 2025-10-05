@@ -1,6 +1,4 @@
-import { auth } from '@/lib/auth'
-import { createClient } from '@/lib/supabase/server'
-import { headers } from 'next/headers'
+import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import InviteAcceptClient from './invite-accept-client'
 
@@ -89,11 +87,9 @@ export default async function InvitePage({ params }: InvitePageProps) {
 	const { token } = await params
 
 	// Get session (optional)
-	const session = await auth.api.getSession({
-		headers: await headers(),
-	})
+	const user = await getCurrentUser()
 
-	const userId = session?.user?.id || null
+	const userId = user?.id || null
 
 	// Get invite info
 	const inviteInfo = await getInviteInfo(token, userId)

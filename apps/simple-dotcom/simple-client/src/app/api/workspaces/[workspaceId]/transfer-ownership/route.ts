@@ -4,9 +4,7 @@
 import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
 import { TransferOwnershipRequest } from '@/lib/api/types'
-import { auth } from '@/lib/auth'
-import { createClient } from '@/lib/supabase/server'
-import { headers } from 'next/headers'
+import { createClient, requireAuth } from '@/lib/supabase/server'
 import { NextRequest } from 'next/server'
 
 type RouteContext = {
@@ -19,8 +17,8 @@ type RouteContext = {
  */
 export async function POST(request: NextRequest, context: RouteContext) {
 	try {
-		const session = await auth.api.getSession({ headers: await headers() })
-		if (!session?.user) {
+		const user = await requireAuth()
+		if (!user) {
 			throw new ApiException(401, ErrorCodes.UNAUTHORIZED, 'Not authenticated')
 		}
 		const supabase = await createClient()
@@ -43,7 +41,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 			throw new ApiException(404, ErrorCodes.WORKSPACE_NOT_FOUND, 'Workspace not found')
 		}
 
-		if (workspace.owner_id !== session.user.id) {
+		if (workspace.owner_id !== user.id) {
 			throw new ApiException(
 				403,
 				ErrorCodes.WORKSPACE_OWNERSHIP_REQUIRED,
@@ -105,7 +103,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 			.from('workspace_members')
 			.update({ role: 'member' })
 			.eq('workspace_id', workspaceId)
-			.eq('user_id', session.user.id)
+			.eq('user_id', user.id)
 
 		if (oldOwnerError) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to update old owner role')

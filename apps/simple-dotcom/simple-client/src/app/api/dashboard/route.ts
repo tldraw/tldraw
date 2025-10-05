@@ -1,12 +1,9 @@
 // Dashboard API Route
 // GET /api/dashboard - Consolidated dashboard data
 
-import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
 import { Document, Folder, RecentDocument, Workspace } from '@/lib/api/types'
-import { auth } from '@/lib/auth'
-import { createClient } from '@/lib/supabase/server'
-import { headers } from 'next/headers'
+import { createClient, requireAuth } from '@/lib/supabase/server'
 
 export interface DashboardData {
 	workspaces: Array<{
@@ -23,16 +20,8 @@ export interface DashboardData {
  */
 export async function GET() {
 	try {
-		// Get session from Better Auth
-		const session = await auth.api.getSession({
-			headers: await headers(),
-		})
-
-		if (!session?.user) {
-			throw new ApiException(401, ErrorCodes.UNAUTHORIZED, 'Not authenticated')
-		}
-
-		const user = session.user
+		// Get authenticated user from Supabase Auth
+		const user = await requireAuth()
 		const supabase = await createClient()
 
 		// Fetch all accessible workspaces
