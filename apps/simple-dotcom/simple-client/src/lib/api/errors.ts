@@ -45,6 +45,7 @@ export const ErrorCodes = {
 	INVITATION_NOT_FOUND: 'INVITATION_NOT_FOUND',
 	INVITATION_DISABLED: 'INVITATION_DISABLED',
 	INVITATION_EXPIRED: 'INVITATION_EXPIRED',
+	REGENERATED_TOKEN: 'REGENERATED_TOKEN',
 	ALREADY_MEMBER: 'ALREADY_MEMBER',
 
 	// Rate Limiting
@@ -142,6 +143,7 @@ export const getStatusCodeForError = (code: ErrorCode): number => {
 		// 410 - Gone
 		[ErrorCodes.INVITATION_DISABLED]: 410,
 		[ErrorCodes.INVITATION_EXPIRED]: 410,
+		[ErrorCodes.REGENERATED_TOKEN]: 410,
 
 		// 422 - Unprocessable Entity
 		[ErrorCodes.WORKSPACE_LIMIT_EXCEEDED]: 422,

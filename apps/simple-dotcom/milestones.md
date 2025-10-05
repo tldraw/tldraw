@@ -103,8 +103,8 @@ Break the MVP scope into three executable milestones that sequence dependencies,
 - [x] [`tickets/MEM-01-role-management-and-ownership-transfer.md`](tickets/MEM-01-role-management-and-ownership-transfer.md) *(Medium)* ✅ COMPLETED 2025-10-05
 - [x] [`tickets/MEM-02-member-directory-and-removal.md`](tickets/MEM-02-member-directory-and-removal.md) *(Medium)* ✅ COMPLETED 2025-10-05
 - [x] [`tickets/MEM-03-invitation-link-lifecycle.md`](tickets/MEM-03-invitation-link-lifecycle.md) *(Medium)* ✅ COMPLETED 2025-10-05
-- [ ] [`tickets/MEM-04-join-workspace-by-invite-link.md`](tickets/MEM-04-join-workspace-by-invite-link.md) *(Medium)*
-- [ ] [`tickets/INV-01-invitation-acceptance-flow.md`](tickets/INV-01-invitation-acceptance-flow.md) *(Small-Medium, combined)*
+- [x] [`tickets/MEM-04-join-workspace-by-invite-link.md`](tickets/MEM-04-join-workspace-by-invite-link.md) *(Medium)* ✅ COMPLETED 2025-10-05
+- [x] [`tickets/INV-01-invitation-acceptance-flow.md`](tickets/INV-01-invitation-acceptance-flow.md) *(Small-Medium, combined)* ✅ COMPLETED 2025-10-05
 - [ ] [`tickets/WS-04-workspace-archive-management.md`](tickets/WS-04-workspace-archive-management.md) *(Medium)*
 - [ ] [`tickets/SEC-01-rate-limiting-and-abuse-prevention.md`](tickets/SEC-01-rate-limiting-and-abuse-prevention.md) *(Small-Medium)*
 

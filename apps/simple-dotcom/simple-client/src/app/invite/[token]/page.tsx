@@ -19,7 +19,7 @@ async function getInviteInfo(token: string, userId: string | null) {
 	if (error || !inviteLink) {
 		return {
 			status: 'invalid' as const,
-			message: 'This invitation link is invalid or has expired.',
+			message: 'This invitation link is invalid.',
 		}
 	}
 
@@ -38,6 +38,42 @@ async function getInviteInfo(token: string, userId: string | null) {
 		return {
 			status: 'disabled' as const,
 			message: 'This invitation link has been disabled.',
+			workspace,
+		}
+	}
+
+	// Check if token has been regenerated
+	const { data: newerToken } = await supabase
+		.from('invitation_links')
+		.select('token')
+		.eq('workspace_id', inviteLink.workspace_id)
+		.neq('token', token)
+		.gt('created_at', inviteLink.created_at)
+		.single()
+
+	if (newerToken) {
+		return {
+			status: 'regenerated' as const,
+			message: 'This invitation link has expired. A new link was generated.',
+			workspace,
+		}
+	}
+
+	// Check member limit
+	const { count } = await supabase
+		.from('workspace_members')
+		.select('*', { count: 'exact', head: true })
+		.eq('workspace_id', inviteLink.workspace_id)
+
+	const memberCount = count || 0
+
+	// Using hardcoded limit for now - should match WORKSPACE_LIMITS.MAX_MEMBERS
+	const MAX_MEMBERS = 100
+
+	if (memberCount >= MAX_MEMBERS) {
+		return {
+			status: 'member_limit' as const,
+			message: `This workspace has reached its member limit (${MAX_MEMBERS}).`,
 			workspace,
 		}
 	}

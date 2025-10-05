@@ -44,6 +44,23 @@ export async function POST(request: NextRequest, context: RouteContext) {
 			throw new ApiException(404, ErrorCodes.WORKSPACE_NOT_FOUND, 'Workspace no longer exists')
 		}
 
+		// Check if token has been regenerated
+		const { data: newerToken } = await supabase
+			.from('invitation_links')
+			.select('token')
+			.eq('workspace_id', invitation.workspace_id)
+			.neq('token', token)
+			.gt('created_at', invitation.created_at)
+			.single()
+
+		if (newerToken) {
+			throw new ApiException(
+				410,
+				ErrorCodes.REGENERATED_TOKEN,
+				'This invitation link has expired. A new link was generated.'
+			)
+		}
+
 		// Check if already a member
 		const { data: existingMembership } = await supabase
 			.from('workspace_members')

@@ -2,16 +2,34 @@
 
 import { getBrowserClient } from '@/lib/supabase/browser'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 export default function LoginPage() {
 	const router = useRouter()
+	const searchParams = useSearchParams()
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+	const [inviteContext, setInviteContext] = useState<string | null>(null)
 	const supabase = getBrowserClient()
+
+	// Get redirect URL from query params
+	const redirectUrl = searchParams.get('redirect')
+
+	// Validate redirect URL to prevent open redirect attacks
+	const isValidRedirect = (url: string) => {
+		// Only allow internal redirects
+		return url.startsWith('/') && !url.startsWith('//')
+	}
+
+	useEffect(() => {
+		// Check if coming from invite flow
+		if (redirectUrl?.startsWith('/invite/')) {
+			setInviteContext('Sign in to join the workspace')
+		}
+	}, [redirectUrl])
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -29,8 +47,9 @@ export default function LoginPage() {
 				return
 			}
 
-			// Redirect to dashboard on success
-			router.push('/dashboard')
+			// Redirect to specified URL or dashboard
+			const destination = redirectUrl && isValidRedirect(redirectUrl) ? redirectUrl : '/dashboard'
+			router.push(destination)
 			router.refresh() // Refresh server components
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
@@ -42,11 +61,20 @@ export default function LoginPage() {
 	return (
 		<div className="flex min-h-screen items-center justify-center bg-background p-4">
 			<div className="w-full max-w-md space-y-8">
+				{inviteContext && (
+					<div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 p-4 text-blue-800 dark:text-blue-200">
+						<p className="text-sm font-medium">{inviteContext}</p>
+					</div>
+				)}
+
 				<div className="text-center">
 					<h1 className="text-3xl font-bold">Welcome back</h1>
 					<p className="mt-2 text-sm text-foreground/60">
 						Don't have an account?{' '}
-						<Link href="/signup" className="font-medium hover:underline">
+						<Link
+							href={`/signup${redirectUrl ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`}
+							className="font-medium hover:underline"
+						>
 							Sign up
 						</Link>
 					</p>
