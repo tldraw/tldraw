@@ -109,26 +109,37 @@ While working on your assigned task, you may discover bugs that are **unrelated 
 - Document the issue clearly and wait for guidance
 
 **If the bug is unrelated or non-blocking:**
-1. **Document it**: Use the `/bug` slash command to create a bug report with a clear description of the issue
-2. **Stay focused**: Do NOT get sidetracked fixing unrelated bugs during your current task
-3. **Continue working**: Return to your assigned task immediately after the bug is documented
+1. **Delegate it**: Use the Task tool to delegate to the **bug-report-generator** agent with a clear description of the issue
+2. **Continue immediately**: Do NOT wait for the bug report to be created. This is FIRE-AND-FORGET. The bug-report-generator runs in the background.
+3. **Stay focused**: Do NOT get sidetracked fixing unrelated bugs during your current task
 
-The `/bug` command will automatically:
+The **bug-report-generator agent** will automatically (in the background):
 - Check logs for relevant errors
 - Determine the next bug number
 - Assess severity and category
 - Create a properly formatted bug report in the `bugs/` folder
 - Include all technical details and stack traces
+- Perform initial root cause analysis
+
+You don't need to wait or check if it completed - just keep working on your assigned task.
 
 **Example:**
 
 ```
 While implementing AUTH-05, I noticed the dashboard loading spinner doesn't
-center properly on mobile. Let me document this:
+center properly on mobile.
 
-[Uses /bug command with description: "Dashboard loading spinner not centered on mobile"]
+[Uses Task tool with bug-report-generator agent - fire and forget:]
+Task({
+  subagent_type: "bug-report-generator",
+  description: "Report dashboard spinner bug",
+  prompt: "Create a bug report: Dashboard loading spinner not centered on mobile devices.
+  Observed while testing AUTH-05 validation rules on iPhone 12 Safari."
+})
 
-Bug documented as BUG-06. Continuing with AUTH-05 validation rules...
+[Immediately continues without waiting for bug report completion]
+
+Now back to AUTH-05 validation rules. Adding email format validation...
 ```
 
 **Why this matters:**

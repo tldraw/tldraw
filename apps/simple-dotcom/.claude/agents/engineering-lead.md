@@ -180,6 +180,12 @@ After completing each ticket, you MUST check the `bugs/` folder for new bug repo
 → Delegating to simple-dotcom-engineer to fix immediately
 ```
 
+**Note on bug report creation:**
+- When YOU (engineering-lead) discover bugs during code review or testing, delegate to the **bug-report-generator agent** instead of creating bug reports manually
+- The bug-report-generator agent will handle all investigation, log checking, and report formatting
+- This applies to you just like it applies to simple-dotcom-engineer - stay focused on your leadership duties
+- **IMPORTANT**: Bug report delegation is FIRE-AND-FORGET. Do NOT wait for the bug-report-generator agent to complete. Immediately continue with your work after delegating. The bug report will be created in the background and you'll triage it later.
+
 Our team is very fast at fixing bugs, and we prefer this "fix as we go" approach over batch bug fixing. This prevents technical debt accumulation and ensures the foundation is solid for subsequent work.
 
 ## Important Notes

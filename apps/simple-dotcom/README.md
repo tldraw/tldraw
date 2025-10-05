@@ -142,6 +142,7 @@ Log entries are structured JSON with the following fields:
 
 ## Reporting Bugs
 
+**For Users:**
 To report a bug, use the `/bug` slash command followed by a description of the issue:
 
 ```
@@ -150,25 +151,48 @@ navigated to dashboard, clicked button in top-right. Browser console shows
 TypeError: Cannot read property 'id' of undefined
 ```
 
-**What to include in your description:**
+**For Agents:**
+When you encounter a bug during your work, delegate to the **bug-report-generator agent** using the Task tool. This is **FIRE-AND-FORGET** - do not wait for the agent to complete. Continue with your work immediately.
+
+```typescript
+// Delegate bug report creation to specialist agent (fire-and-forget)
+Task({
+  subagent_type: "bug-report-generator",
+  description: "Report dashboard crash bug",
+  prompt: `Create a bug report for the following issue:
+
+  Dashboard crashes when clicking 'New Workspace' button. User was logged in,
+  navigated to dashboard, clicked button in top-right. Browser console shows
+  TypeError: Cannot read property 'id' of undefined
+
+  Additional context: [any relevant details about state, recent changes, etc.]`
+})
+
+// Then immediately continue with your current task - don't wait!
+```
+
+**What to include in your bug description:**
 - Clear description of the bug
 - State of the app when you observed it (logged in/out, which page, what actions)
 - Error messages from browser console or UI
 - Steps that led to the bug
+- Any additional context (recent changes, affected files, etc.)
 
 **What NOT to do:**
-- Don't investigate or analyze the root cause yourself
-- Don't check logs or stack traces manually
+- Don't investigate or analyze the root cause yourself (unless you're the bug-report-generator agent)
+- Don't manually check logs or stack traces
 - Don't try to diagnose the issue
+- Don't get sidetracked from your current task
 
-The `/bug` command will automatically:
+The **bug-report-generator agent** will automatically:
 - Check backend logs for related errors
 - Extract stack traces and error details
-- Determine severity and category
+- Determine severity and priority
 - Assign the next bug number
 - Create a properly formatted bug report in `bugs/BUG-XX-description.md`
+- Perform initial root cause analysis
 
-Just describe what you observed, and let the `/bug` command handle the investigation and root cause analysis.
+Just describe what you observed, delegate to the bug-report-generator agent, and continue with your work.
 6. **Ship**:
    - Use milestone exit criteria to confirm readiness.
    - Summarize spec deltas, tests run, and outstanding risks in your PR description.
