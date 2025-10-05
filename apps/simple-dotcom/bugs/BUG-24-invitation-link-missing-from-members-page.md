@@ -1,16 +1,16 @@
 # [BUG-24]: Invitation Link Missing from Members Page
 
 Date reported: 2025-10-05
-Date last updated: 2025-10-05
-Date resolved:
+Date last updated: 2025-10-08
+Date resolved: 2025-10-08
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -111,7 +111,15 @@ The issue stems from the database schema design and workspace provisioning flow:
 
 ## Proposed Solution
 
-Suggested fix or approach to resolve the bug.
+The fix requires three changes:
+
+1. **Add helper function**: Create `generate_invite_token()` function in SQL that generates URL-safe random tokens (base64url format) matching the format used in the API.
+
+2. **Add trigger for new workspaces**: Create a trigger `auto_create_invitation_link()` that automatically creates invitation links when new non-private workspaces are created.
+
+3. **Backfill existing workspaces**: Add a migration to create invitation links for all existing non-private workspaces that don't have one.
+
+Migration: `20251008120000_fix_invitation_link_provisioning.sql`
 
 ## Related Issues
 
@@ -123,6 +131,25 @@ Suggested fix or approach to resolve the bug.
 - Bug report created
 - Initial analysis performed
 
+**2025-10-08:**
+- Created migration `20251008120000_fix_invitation_link_provisioning.sql`
+- Added `generate_invite_token()` SQL function for URL-safe token generation
+- Created `auto_create_invitation_link()` trigger for new workspaces
+- Backfilled invitation links for existing non-private workspaces
+- Bug marked as resolved
+
 ## Resolution
 
-Description of how the bug was fixed, or why it was closed without fixing.
+Fixed by creating migration `20251008120000_fix_invitation_link_provisioning.sql` that:
+
+1. **Added SQL helper function** (`generate_invite_token()`): Generates URL-safe base64url tokens matching the format used by the API (`randomBytes(32).toString('base64url')`).
+
+2. **Added database trigger** (`auto_create_invitation_link()`): Automatically creates invitation links when new non-private workspaces are inserted. The trigger fires AFTER INSERT on the `workspaces` table.
+
+3. **Backfilled existing workspaces**: Migration includes a one-time INSERT to create invitation links for all existing non-private workspaces that don't have one.
+
+The solution ensures that:
+- All new non-private workspaces automatically get invitation links
+- Private workspaces are excluded (by design, they shouldn't have invitation links)
+- Token format matches the API implementation for consistency
+- Removed unnecessary API fallback that was masking the bug (GET endpoint now returns 404 if link doesn't exist instead of creating one on-demand)

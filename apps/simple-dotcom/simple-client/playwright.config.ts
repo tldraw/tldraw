@@ -17,7 +17,7 @@ export default defineConfig({
 	// Enable parallel execution for faster test runs
 	fullyParallel: true,
 	forbidOnly: !!process.env.CI,
-	retries: process.env.CI ? 2 : 0,
+	retries: 1,
 	workers: process.env.CI ? 2 : Number.isNaN(localWorkerCount) ? undefined : localWorkerCount,
 	reporter: [['html', { open: 'never' }]],
 	timeout: 30000,

@@ -103,12 +103,11 @@ test.describe('Global Dashboard', () => {
 			// Confirm creation
 			await page.click('[data-testid="confirm-create-workspace"]')
 
-			// Should navigate to the new workspace
-			await page.waitForURL(/\/workspace\/[a-f0-9-]+/, { timeout: 10000 })
-
-			// Navigate back to dashboard to verify it's in the list
-			await page.goto('/dashboard')
-			await page.waitForLoadState('networkidle')
+			// Modal should close
+			await page.waitForSelector('[data-testid="workspace-name-input"]', {
+				state: 'hidden',
+				timeout: 10000,
+			})
 
 			// Should see the new workspace in the list
 			const workspaceList = page.locator('[data-testid="workspace-list"]')
@@ -126,12 +125,11 @@ test.describe('Global Dashboard', () => {
 			await page.fill('[data-testid="workspace-name-input"]', originalName)
 			await page.click('[data-testid="confirm-create-workspace"]')
 
-			// Wait for navigation to workspace
-			await page.waitForURL(/\/workspace\/[a-f0-9-]+/, { timeout: 10000 })
-
-			// Navigate back to dashboard
-			await page.goto('/dashboard')
-			await page.waitForLoadState('networkidle')
+			// Modal should close
+			await page.waitForSelector('[data-testid="workspace-name-input"]', {
+				state: 'hidden',
+				timeout: 10000,
+			})
 
 			await expect(
 				page.locator('[data-testid^="workspace-item-"]').filter({ hasText: originalName }).first()
@@ -175,12 +173,11 @@ test.describe('Global Dashboard', () => {
 			await page.fill('[data-testid="workspace-name-input"]', workspaceName)
 			await page.click('[data-testid="confirm-create-workspace"]')
 
-			// Wait for navigation to workspace
-			await page.waitForURL(/\/workspace\/[a-f0-9-]+/, { timeout: 10000 })
-
-			// Navigate back to dashboard
-			await page.goto('/dashboard')
-			await page.waitForLoadState('networkidle')
+			// Modal should close
+			await page.waitForSelector('[data-testid="workspace-name-input"]', {
+				state: 'hidden',
+				timeout: 10000,
+			})
 
 			await expect(
 				page.locator('[data-testid^="workspace-item-"]').filter({ hasText: workspaceName }).first()

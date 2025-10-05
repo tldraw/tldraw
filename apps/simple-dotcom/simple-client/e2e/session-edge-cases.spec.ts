@@ -5,7 +5,7 @@ import { expect, test } from './fixtures/test-fixtures'
  * Complements existing tests in route-guards.spec.ts
  */
 test.describe('Session Edge Cases (M15-04)', () => {
-	test.describe('Stale Cookie Handling', () => {
+	test.describe.serial('Stale Cookie Handling', () => {
 		test('should handle stale auth cookies without redirect loops', async ({
 			testUser,
 			browser,
@@ -31,10 +31,10 @@ test.describe('Session Edge Cases (M15-04)', () => {
 			// Add cookies but modify them to be stale
 			const staleCookies = cookies.map((cookie) => ({
 				...cookie,
-				// Modify the value slightly to make it invalid
+				// Replace with a well-formed but invalid token value
 				value:
 					cookie.name.includes('token') || cookie.name.includes('session')
-						? cookie.value + '_stale'
+						? 'invalid_stale_token_value'
 						: cookie.value,
 			}))
 			await staleContext.addCookies(staleCookies)
@@ -88,7 +88,7 @@ test.describe('Session Edge Cases (M15-04)', () => {
 		})
 	})
 
-	test.describe('API Session Validation', () => {
+	test.describe.serial('API Session Validation', () => {
 		test('should return 401 for API calls with expired session', async ({ testUser, browser }) => {
 			const context = await browser.newContext()
 			const page = await context.newPage()
@@ -148,7 +148,7 @@ test.describe('Session Edge Cases (M15-04)', () => {
 		})
 	})
 
-	test.describe('Session Recovery', () => {
+	test.describe.serial('Session Recovery', () => {
 		test('should allow re-authentication after session expiry', async ({ testUser, browser }) => {
 			const context = await browser.newContext()
 			const page = await context.newPage()
@@ -228,7 +228,7 @@ test.describe('Session Edge Cases (M15-04)', () => {
 		})
 	})
 
-	test.describe('Performance Optimizations', () => {
+	test.describe.serial('Performance Optimizations', () => {
 		test('should minimize session checks on public pages', async ({ browser }) => {
 			const context = await browser.newContext()
 			const page = await context.newPage()

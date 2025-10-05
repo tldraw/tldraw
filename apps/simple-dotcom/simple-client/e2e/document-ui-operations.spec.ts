@@ -144,10 +144,22 @@ test.describe('Document UI Operations (NAV-03A)', () => {
 		await page.fill('[data-testid="workspace-name-input"]', workspaceName)
 		await page.click('[data-testid="confirm-create-workspace"]')
 
-		// Wait for auto-navigation to workspace
-		await page.waitForURL(/\/workspace\/[a-f0-9-]+/, { timeout: 10000 })
+		// Wait for modal to close and workspace to be created
+		await page.waitForSelector('[data-testid="workspace-name-input"]', {
+			state: 'hidden',
+			timeout: 10000,
+		})
+		await expect(page.getByText(workspaceName)).toBeVisible({ timeout: 10000 })
 
-		const workspaceId = page.url().split('/workspace/')[1]
+		// Get workspace ID from the workspace list
+		const workspaceElement = page
+			.locator(`[data-testid^="workspace-item-"]`)
+			.filter({ hasText: workspaceName })
+			.first()
+		const workspaceId = (await workspaceElement.getAttribute('data-testid'))?.replace(
+			'workspace-item-',
+			''
+		)
 
 		// Wait for page to load
 		await expect(page.getByTestId('create-document-button')).toBeVisible()
@@ -186,10 +198,22 @@ test.describe('Document UI Operations (NAV-03A)', () => {
 		await page.fill('[data-testid="workspace-name-input"]', workspaceName)
 		await page.click('[data-testid="confirm-create-workspace"]')
 
-		// Wait for auto-navigation to workspace
-		await page.waitForURL(/\/workspace\/[a-f0-9-]+/, { timeout: 10000 })
+		// Wait for modal to close and workspace to be created
+		await page.waitForSelector('[data-testid="workspace-name-input"]', {
+			state: 'hidden',
+			timeout: 10000,
+		})
+		await expect(page.getByText(workspaceName)).toBeVisible({ timeout: 10000 })
 
-		const workspaceId = page.url().split('/workspace/')[1]
+		// Get workspace ID from the workspace list
+		const workspaceElement = page
+			.locator(`[data-testid^="workspace-item-"]`)
+			.filter({ hasText: workspaceName })
+			.first()
+		const workspaceId = (await workspaceElement.getAttribute('data-testid'))?.replace(
+			'workspace-item-',
+			''
+		)
 
 		// Create document
 		const documentName = `To Archive ${Date.now()}`

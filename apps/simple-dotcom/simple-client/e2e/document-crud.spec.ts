@@ -14,12 +14,22 @@ test.describe('Document CRUD Operations', () => {
 		await page.fill('[data-testid="workspace-name-input"]', workspaceName)
 		await page.click('[data-testid="confirm-create-workspace"]')
 
-		// Wait for workspace to be created
+		// Wait for modal to close and workspace to be created
+		await page.waitForSelector('[data-testid="workspace-name-input"]', {
+			state: 'hidden',
+			timeout: 10000,
+		})
 		await expect(page.getByText(workspaceName)).toBeVisible({ timeout: 10000 })
 
-		// Get workspace ID
-		await page.waitForURL(/\/workspace\/[a-f0-9-]+/)
-		const workspaceId = page.url().split('/workspace/')[1]
+		// Get workspace ID from the workspace list
+		const workspaceElement = page
+			.locator(`[data-testid^="workspace-item-"]`)
+			.filter({ hasText: workspaceName })
+			.first()
+		const workspaceId = (await workspaceElement.getAttribute('data-testid'))?.replace(
+			'workspace-item-',
+			''
+		)
 
 		// Create a document via API
 		const { data: document } = await supabaseAdmin
@@ -113,11 +123,22 @@ test.describe('Document CRUD Operations', () => {
 		await page.fill('[data-testid="workspace-name-input"]', workspaceName)
 		await page.click('[data-testid="confirm-create-workspace"]')
 
-		// Wait for workspace
+		// Wait for modal to close and workspace to be created
+		await page.waitForSelector('[data-testid="workspace-name-input"]', {
+			state: 'hidden',
+			timeout: 10000,
+		})
 		await expect(page.getByText(workspaceName)).toBeVisible({ timeout: 10000 })
 
-		await page.waitForURL(/\/workspace\/[a-f0-9-]+/)
-		const workspaceId = page.url().split('/workspace/')[1]
+		// Get workspace ID from the workspace list
+		const workspaceElement = page
+			.locator(`[data-testid^="workspace-item-"]`)
+			.filter({ hasText: workspaceName })
+			.first()
+		const workspaceId = (await workspaceElement.getAttribute('data-testid'))?.replace(
+			'workspace-item-',
+			''
+		)
 
 		// Create original document
 		const { data: original } = await supabaseAdmin
@@ -171,8 +192,15 @@ test.describe('Document CRUD Operations', () => {
 
 		await expect(page.getByText(workspaceName)).toBeVisible({ timeout: 10000 })
 
-		await page.waitForURL(/\/workspace\/[a-f0-9-]+/)
-		const workspaceId = page.url().split('/workspace/')[1]
+		// Get workspace ID from the workspace list
+		const workspaceElement = page
+			.locator(`[data-testid^="workspace-item-"]`)
+			.filter({ hasText: workspaceName })
+			.first()
+		const workspaceId = (await workspaceElement.getAttribute('data-testid'))?.replace(
+			'workspace-item-',
+			''
+		)
 
 		// Check that we can create documents (won't actually create 1000)
 		const { data: document, error } = await supabaseAdmin
@@ -209,8 +237,15 @@ test.describe('Document CRUD Operations', () => {
 
 		await expect(page.getByText(workspaceName)).toBeVisible({ timeout: 10000 })
 
-		await page.waitForURL(/\/workspace\/[a-f0-9-]+/)
-		const workspaceId = page.url().split('/workspace/')[1]
+		// Get workspace ID from the workspace list
+		const workspaceElement = page
+			.locator(`[data-testid^="workspace-item-"]`)
+			.filter({ hasText: workspaceName })
+			.first()
+		const workspaceId = (await workspaceElement.getAttribute('data-testid'))?.replace(
+			'workspace-item-',
+			''
+		)
 
 		// Create active and archived documents
 		const { data: activeDoc } = await supabaseAdmin

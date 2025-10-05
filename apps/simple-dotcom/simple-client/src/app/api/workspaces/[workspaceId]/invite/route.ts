@@ -6,18 +6,10 @@ import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
 import { InvitationLink, UpdateInvitationRequest } from '@/lib/api/types'
 import { createClient, requireAuth } from '@/lib/supabase/server'
-import { randomBytes } from 'crypto'
 import { NextRequest } from 'next/server'
 
 type RouteContext = {
 	params: Promise<{ workspaceId: string }>
-}
-
-/**
- * Generate a secure random token for invitation links
- */
-function generateInviteToken(): string {
-	return randomBytes(32).toString('base64url')
 }
 
 /**
@@ -58,31 +50,19 @@ export async function GET(request: NextRequest, context: RouteContext) {
 			)
 		}
 
-		// Get or create invitation link
-		let { data: invitation } = await supabase
+		// Get invitation link
+		const { data: invitation, error: fetchError } = await supabase
 			.from('invitation_links')
 			.select('*')
 			.eq('workspace_id', workspaceId)
 			.single()
 
-		if (!invitation) {
-			// Create initial invitation link (enabled by default)
-			const { data: newInvitation, error: createError } = await supabase
-				.from('invitation_links')
-				.insert({
-					workspace_id: workspaceId,
-					token: generateInviteToken(),
-					enabled: true,
-					created_by: user.id,
-				})
-				.select()
-				.single()
-
-			if (createError || !newInvitation) {
-				throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to create invitation link')
-			}
-
-			invitation = newInvitation
+		if (fetchError || !invitation) {
+			throw new ApiException(
+				404,
+				ErrorCodes.INVITATION_NOT_FOUND,
+				'Invitation link not found for this workspace'
+			)
 		}
 
 		return successResponse<InvitationLink>(invitation)

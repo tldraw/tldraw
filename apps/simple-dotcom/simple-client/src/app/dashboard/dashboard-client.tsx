@@ -235,8 +235,6 @@ export default function DashboardClient({
 				setShowCreateModal(false)
 				setNewWorkspaceName('')
 				setValidationError(null)
-				// Navigate to the new workspace
-				router.push(`/workspace/${data.data.id}`)
 			} else {
 				// Show error in modal, not alert
 				setValidationError(data.error?.message || 'Failed to create workspace')

@@ -2,15 +2,15 @@
 
 Date reported: 2025-10-05
 Date last updated: 2025-10-05
-Date resolved: 
+Date resolved: 2025-10-05
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -105,7 +105,13 @@ The issue is purely in the client code which is not calling the correct endpoint
 **2025-10-05:**
 - Bug discovered during code review
 - Identified incorrect endpoint usage in archive client
+- Upon investigation, found all issues already fixed in current codebase:
+  - `handleRestore` correctly calls `POST /api/documents/[documentId]/restore` (line 30)
+  - `handlePermanentDelete` correctly calls `DELETE /api/documents/[documentId]/delete` with `X-Confirm-Delete: true` header (lines 58-61)
+  - Delete Forever button only visible to workspace owners via `{isOwner && (` conditional (line 142)
 
 ## Resolution
 
-Pending fix.
+**Status**: Already Fixed
+
+All three issues described in this bug report were found to be already implemented correctly in the current codebase at `simple-client/src/app/workspace/[workspaceId]/archive/workspace-archive-client.tsx`. The bug was likely fixed in a previous commit before this bug report was filed.

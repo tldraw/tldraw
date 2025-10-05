@@ -118,7 +118,6 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 				email_confirm: true,
 				user_metadata: {
 					name,
-					display_name: name,
 				},
 			})
 
