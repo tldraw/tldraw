@@ -45,7 +45,7 @@ Break the MVP scope into three executable milestones that sequence dependencies,
 
 **Ticket checklist:**
 - [x] [`tickets/M15-05-surface-backend-logs-to-agents.md`](tickets/M15-05-surface-backend-logs-to-agents.md) *(Medium, 1-3 days)*
-- [ ] [`tickets/M15-01-bridge-better-auth-to-supabase-rls.md`](tickets/M15-01-bridge-better-auth-to-supabase-rls.md) *(Large, 3-5 days - **CRITICAL PATH**)*
+- [x] [`tickets/M15-01-migrate-to-supabase-auth.md`](tickets/M15-01-migrate-to-supabase-auth.md) *(Large, 3-5 days - **CRITICAL PATH** - COMPLETED 2025-10-05)*
 - [ ] [`tickets/M15-02-handle-empty-workspace-lists.md`](tickets/M15-02-handle-empty-workspace-lists.md) *(Small, < 1 day)*
 - [ ] [`tickets/M15-03-make-ownership-transfer-atomic.md`](tickets/M15-03-make-ownership-transfer-atomic.md) *(Medium, 1-3 days)*
 - [ ] [`tickets/M15-04-harden-route-middleware-session-validation.md`](tickets/M15-04-harden-route-middleware-session-validation.md) *(Medium, 1-3 days)*

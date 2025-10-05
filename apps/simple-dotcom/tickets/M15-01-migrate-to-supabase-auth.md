@@ -108,3 +108,23 @@ Replace the current Better Auth integration with Supabase Auth so that identity,
 
 - Do we need to support OAuth providers in milestone 1.5 or can we stick to email/password for now?
 - Should we migrate existing Better Auth user data into Supabase Auth automatically or require fresh signups in non-prod?
+
+## Notes from engineering lead
+
+This was a critical migration that unblocked all of Milestone 2 by properly integrating authentication with Supabase RLS. The migration was complex but successful, touching 36 files and completely replacing the authentication system.
+
+Key achievements:
+- Seamless migration from Better Auth to Supabase Auth without breaking existing functionality
+- Proper session validation at middleware level preventing redirect loops
+- Atomic workspace provisioning using database triggers
+- All authentication E2E tests passing (12/13, 1 skipped)
+- TypeScript compilation successful with no errors
+- Clean removal of all Better Auth dependencies
+
+The implementation follows best practices:
+- Separate client configurations for browser, server, and middleware contexts
+- Consistent error handling across all auth flows
+- Proper session refresh and cookie management
+- Database triggers for automatic user provisioning ensuring data integrity
+
+This migration ensures that authentication and Row Level Security operate on a single stack, providing a solid foundation for the application's security model going forward.
