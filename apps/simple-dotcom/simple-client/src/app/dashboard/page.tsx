@@ -63,6 +63,14 @@ async function getDashboardData(userId: string): Promise<DashboardData> {
 	// Fetch documents and folders for all workspaces in parallel
 	const workspaceIds = (workspaces || []).map((ws) => ws.id)
 
+	// Handle empty workspace list to avoid Supabase PGRST116 error
+	if (workspaceIds.length === 0) {
+		return {
+			workspaces: [],
+			recentDocuments: [],
+		}
+	}
+
 	const [documentsResult, foldersResult, recentResult] = await Promise.all([
 		// Get all non-archived documents
 		supabase
