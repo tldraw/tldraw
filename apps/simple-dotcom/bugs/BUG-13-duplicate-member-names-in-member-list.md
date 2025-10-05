@@ -1,4 +1,4 @@
-# BUG-13: Duplicate Member Names in Member List
+# [BUG-13]: Duplicate Member Names in Member List
 
 **Date reported**: 2025-10-05
 **Status**: New

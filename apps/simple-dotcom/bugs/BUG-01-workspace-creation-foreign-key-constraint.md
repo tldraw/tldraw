@@ -1,4 +1,4 @@
-# BUG-01: Workspace Creation Fails - Foreign Key Constraint Violation
+# [BUG-01]: Workspace Creation Fails - Foreign Key Constraint Violation
 
 Date reported: 2025-10-05
 Date last updated: 2025-10-05

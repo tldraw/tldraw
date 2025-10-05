@@ -1,4 +1,4 @@
-# BUG-14: Ambiguous "Next" Button Selector in Member List Pagination
+# [BUG-14]: Ambiguous "Next" Button Selector in Member List Pagination
 
 **Status:** Open
 **Priority:** Low

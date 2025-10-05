@@ -1,4 +1,4 @@
-# BUG-06: Missing Delete Confirmation Header in Workspace Browser
+# [BUG-19]: Missing Delete Confirmation Header in Workspace Browser
 
 **Status:** Open
 **Priority:** High

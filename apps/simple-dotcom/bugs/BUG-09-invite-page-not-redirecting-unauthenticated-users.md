@@ -1,37 +1,57 @@
-# BUG-09: Invite Page Not Redirecting Unauthenticated Users to Login
+# [BUG-09]: Invite Page Not Redirecting Unauthenticated Users to Login
 
-**Status:** Open
-**Priority:** High
-**Estimate:** 3 hours
-**Related Tests:** e2e/invite.spec.ts:48
+Date reported: 2025-10-05
+Date last updated: 2025-10-05
+Date resolved:
 
-## Problem
+## Status
+
+- [x] New
+- [ ] Investigating
+- [ ] In Progress
+- [ ] Blocked
+- [ ] Resolved
+- [ ] Cannot Reproduce
+- [ ] Won't Fix
+
+## Severity
+
+- [ ] Critical (System down, data loss, security)
+- [x] High (Major feature broken, significant impact)
+- [ ] Medium (Feature partially broken, workaround exists)
+- [ ] Low (Minor issue, cosmetic)
+
+## Category
+
+- [x] Authentication
+- [x] Workspaces
+- [ ] Documents
+- [ ] Folders
+- [x] Permissions & Sharing
+- [ ] Real-time Collaboration
+- [ ] UI/UX
+- [ ] API
+- [ ] Database
+- [ ] Performance
+- [ ] Infrastructure
+
+## Environment
+
+- Browser: All
+- OS: All
+- Environment: local/staging/production
+- Affected version/commit: simple-dotcom branch
+
+## Description
 
 When an unauthenticated user visits an invitation link (`/invite/[token]`), they are not being redirected to the login page with the invite URL preserved as a redirect parameter. Instead, they remain on the invite page.
 
-## Error Details
-
-```
-Error: expect(page).toHaveURL(expected) failed
-
-Expected pattern: /\/login\?redirect=%2Finvite%2F/
-Received string:  "http://localhost:3000/invite/6mx1pZgIrW50WFgkiM_J2KAI1QRpTIsw954sVFcttIw"
-```
-
-## Test Flow
+## Steps to Reproduce
 
 1. Create an invitation link for a workspace
-2. Visit the invitation URL as an unauthenticated user
-3. **FAILS**: User stays on `/invite/[token]` instead of being redirected to `/login?redirect=%2Finvite%2F[token]`
-
-## Root Cause
-
-The invitation page is either:
-- Not protected by authentication middleware
-- Missing the redirect logic for unauthenticated users
-- Not properly configured in the route guards
-
-The middleware should detect unauthenticated users and redirect them to login with the current URL preserved in the redirect parameter.
+2. Visit the invitation URL as an unauthenticated user (not logged in)
+3. Observe: User stays on `/invite/[token]` page
+4. Expected: User should be redirected to `/login?redirect=%2Finvite%2F[token]`
 
 ## Expected Behavior
 
@@ -40,16 +60,48 @@ When an unauthenticated user visits `/invite/[token]`:
 2. After successful login, they should be redirected back to the invite page
 3. The invite acceptance flow should then proceed
 
-## Affected Tests
+## Actual Behavior
 
-- `e2e/invite.spec.ts:48` - should redirect to login with preserved redirect URL
-- `e2e/invite.spec.ts:89` - should join workspace after signup
-- `e2e/invite.spec.ts:215` - should show error for disabled link
-- `e2e/invite.spec.ts:282` - should preserve redirect when switching between login and signup
+User remains on the `/invite/[token]` page without being redirected to login. The authentication middleware is not properly protecting the route or not preserving the redirect URL.
 
-## Acceptance Criteria
+## Screenshots/Videos
 
-- [ ] Unauthenticated users are redirected to login when visiting invite links
-- [ ] Redirect parameter preserves the original invite URL
-- [ ] After login, users are redirected back to complete the invitation
-- [ ] Test passes when run individually
+N/A
+
+## Error Messages/Logs
+
+```
+Error: expect(page).toHaveURL(expected) failed
+
+Expected pattern: /\/login\?redirect=%2Finvite%2F/
+Received string:  "http://localhost:3000/invite/[token]"
+```
+
+## Related Files/Components
+
+- `/invite/[token]` route
+- Authentication middleware
+- Route guards configuration
+
+## Possible Cause
+
+The invitation page is either:
+- Not protected by authentication middleware
+- Missing the redirect logic for unauthenticated users
+- Not properly configured in the route guards
+
+## Proposed Solution
+
+1. Add authentication check to the invite page route
+2. Implement redirect to login with preserved URL in redirect parameter
+3. Ensure middleware detects unauthenticated users and redirects appropriately
+4. Verify the redirect flow works after login
+
+## Related Issues
+
+- Affects tests: `e2e/invite.spec.ts:48, 89, 215, 282`
+- Related to authentication flow and route protection
+
+## Worklog
+
+## Resolution

@@ -1,4 +1,4 @@
-# BUG-06: Document Sharing Permission Changes Not Updating Realtime for Guest Users
+# [BUG-18]: Document Sharing Permission Changes Not Updating Realtime for Guest Users
 
 **Status:** New
 **Date reported:** 2025-10-05

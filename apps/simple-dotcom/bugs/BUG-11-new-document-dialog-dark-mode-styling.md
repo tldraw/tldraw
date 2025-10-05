@@ -1,4 +1,4 @@
-# BUG-11: New Document Dialog Has Incorrect Colors Due to Dark Mode CSS
+# [BUG-11]: New Document Dialog Has Incorrect Colors Due to Dark Mode CSS
 
 **Status**: Open
 **Date reported**: 2025-10-05

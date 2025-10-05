@@ -1,15 +1,71 @@
-# BUG-08: Missing Error Handling for Invitation Link Toggle
+# [BUG-08]: Missing Error Handling for Invitation Link Toggle
 
-**Status:** Open
-**Priority:** Medium
-**Estimate:** 2 hours
-**Related Tests:** e2e/invitation-links.spec.ts:334
+Date reported: 2025-10-05
+Date last updated: 2025-10-05
+Date resolved:
 
-## Problem
+## Status
+
+- [x] New
+- [ ] Investigating
+- [ ] In Progress
+- [ ] Blocked
+- [ ] Resolved
+- [ ] Cannot Reproduce
+- [ ] Won't Fix
+
+## Severity
+
+- [ ] Critical (System down, data loss, security)
+- [ ] High (Major feature broken, significant impact)
+- [x] Medium (Feature partially broken, workaround exists)
+- [ ] Low (Minor issue, cosmetic)
+
+## Category
+
+- [ ] Authentication
+- [x] Workspaces
+- [ ] Documents
+- [ ] Folders
+- [x] Permissions & Sharing
+- [ ] Real-time Collaboration
+- [x] UI/UX
+- [ ] API
+- [ ] Database
+- [ ] Performance
+- [ ] Infrastructure
+
+## Environment
+
+- Browser: All
+- OS: All
+- Environment: local/staging/production
+- Affected version/commit: simple-dotcom branch
+
+## Description
 
 When toggling an invitation link (enable/disable) fails due to a network error, no error message is displayed to the user. The UI should show a clear error message indicating the operation failed.
 
-## Error Details
+## Steps to Reproduce
+
+1. Navigate to workspace settings page
+2. Intercept API request for invitation link toggle and force it to fail
+3. Click the "Disable Link" or "Enable Link" button
+4. Observe: No error message is displayed to the user
+
+## Expected Behavior
+
+When the invitation link toggle operation fails due to a network error or API error, the user should see a clear error message, such as "Failed to toggle invitation link" or similar.
+
+## Actual Behavior
+
+No error message is displayed when the invitation link toggle operation fails. The error is either not being caught, being caught but not displayed, or using a different error message format than expected.
+
+## Screenshots/Videos
+
+N/A
+
+## Error Messages/Logs
 
 ```
 Error: expect(locator).toBeVisible() failed
@@ -20,30 +76,27 @@ Received: <element(s) not found>
 Timeout:  5000ms
 ```
 
-## Test Flow
+## Related Files/Components
 
-1. Navigate to workspace settings page
-2. Intercept API request for invitation link toggle and force it to fail
-3. Click the "Disable Link" or "Enable Link" button
-4. **FAILS**: No error message is displayed to the user
+- Workspace settings page (invitation link management component)
+- `e2e/invitation-links.spec.ts:334` - Test expecting error handling
 
-## Root Cause
+## Possible Cause
 
-The workspace settings page (likely in the invitation link management component) does not properly handle and display errors when the toggle operation fails. The error is either:
-- Not being caught
-- Being caught but not displayed in the UI
-- Using a different error message format than expected
+The workspace settings page does not properly handle and display errors when the toggle operation fails. The error is either not being caught, being caught but not displayed in the UI, or using a different error message format than expected.
 
-## Expected Behavior
+## Proposed Solution
 
-When the invitation link toggle operation fails due to a network error or API error, the user should see a clear error message, such as "Failed to toggle invitation link" or similar.
+1. Add proper error handling to invitation link toggle operations
+2. Catch API errors when toggling invitation links
+3. Display user-friendly error message when operation fails
+4. Ensure error message matches what tests expect
 
-## Affected Tests
+## Related Issues
 
-- `e2e/invitation-links.spec.ts:334` - handles network errors gracefully
+- Related to: E2E test failures
+- Test: `e2e/invitation-links.spec.ts:334` - handles network errors gracefully
 
-## Acceptance Criteria
+## Worklog
 
-- [ ] Error handling added to invitation link toggle operations
-- [ ] Error message displayed to user when toggle fails
-- [ ] Test passes when run individually
+## Resolution

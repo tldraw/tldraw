@@ -1,10 +1,46 @@
-# BUG-10: Invitation Link Missing from Members Page
+# [BUG-24]: Invitation Link Missing from Members Page
 
-**Date reported:** 2025-10-05
-**Reported by:** User
-**Status:** New
-**Severity:** High
-**Category:** Workspace Members / UI
+Date reported: 2025-10-05
+Date last updated: 2025-10-05
+Date resolved:
+
+## Status
+
+- [x] New
+- [ ] Investigating
+- [ ] In Progress
+- [ ] Blocked
+- [ ] Resolved
+- [ ] Cannot Reproduce
+- [ ] Won't Fix
+
+## Severity
+
+- [ ] Critical (System down, data loss, security)
+- [x] High (Major feature broken, significant impact)
+- [ ] Medium (Feature partially broken, workaround exists)
+- [ ] Low (Minor issue, cosmetic)
+
+## Category
+
+- [x] Authentication
+- [x] Workspaces
+- [ ] Documents
+- [ ] Folders
+- [ ] Permissions & Sharing
+- [ ] Real-time Collaboration
+- [x] UI/UX
+- [x] API
+- [ ] Database
+- [ ] Performance
+- [ ] Infrastructure
+
+## Environment
+
+- Browser: All
+- OS: All
+- Environment: local/staging/production
+- Affected version/commit: simple-dotcom branch
 
 ## Description
 
@@ -28,7 +64,24 @@ When a user accesses the workspace members page, an invitation link should be di
 
 The "Invitation Link" section is visible but empty. The conditional check `{inviteLink && (...)}` in the UI means that if `inviteLink` is `null`, the link controls are not rendered at all.
 
-## Root Cause Analysis
+## Screenshots/Videos
+
+N/A
+
+## Error Messages/Logs
+
+```
+No specific error logs available
+```
+
+## Related Files/Components
+
+- **Server Component**: `simple-client/src/app/workspace/[workspaceId]/members/page.tsx:87-91` - Fetches invitation link (can return null)
+- **Client Component**: `simple-client/src/app/workspace/[workspaceId]/members/workspace-members-client.tsx:240-286` - Renders invitation link UI (conditional on inviteLink existence)
+- **Database Schema**: `supabase/migrations/20251004152910_tech_01_base_schema.sql` - Defines invitation_links table
+- **Provisioning Function**: `supabase/migrations/20251005000000_auth_02_sync_supabase_auth.sql:77-103` - Creates workspace but not invitation link
+
+## Possible Cause
 
 The issue stems from the database schema design and workspace provisioning flow:
 
@@ -56,68 +109,20 @@ The issue stems from the database schema design and workspace provisioning flow:
    ```
    This returns `null` for workspaces without an invitation link record.
 
-## Affected Files
+## Proposed Solution
 
-- **Server Component**: `simple-client/src/app/workspace/[workspaceId]/members/page.tsx:87-91` - Fetches invitation link (can return null)
-- **Client Component**: `simple-client/src/app/workspace/[workspaceId]/members/workspace-members-client.tsx:240-286` - Renders invitation link UI (conditional on inviteLink existence)
-- **Database Schema**: `supabase/migrations/20251004152910_tech_01_base_schema.sql` - Defines invitation_links table
-- **Provisioning Function**: `supabase/migrations/20251005000000_auth_02_sync_supabase_auth.sql:77-103` - Creates workspace but not invitation link
+Suggested fix or approach to resolve the bug.
 
-## Possible Solutions
+## Related Issues
 
-### Option 1: Add Invitation Link to Workspace Provisioning (Recommended)
-Modify the `provision_user_workspace()` function to automatically create an invitation link when creating a new workspace:
+- Related to: [ticket/bug numbers]
 
-```sql
--- Add to provision_user_workspace() function after workspace creation
-INSERT INTO public.invitation_links (workspace_id, token, enabled, created_by)
-VALUES (workspace_uuid, gen_random_uuid()::text, true, NEW.id);
-```
+## Worklog
 
-**Pros:**
-- Every workspace automatically gets an invitation link
-- No code changes needed in the UI
-- Matches user expectation that invitation links always exist
+**2025-10-05:**
+- Bug report created
+- Initial analysis performed
 
-**Cons:**
-- Private workspaces get invitation links they may not need
+## Resolution
 
-### Option 2: Create Invitation Link on Demand
-Add API logic to create an invitation link the first time a user accesses the members page or tries to enable invitations:
-
-**Pros:**
-- Only creates invitation links when needed
-- More efficient for private workspaces
-
-**Cons:**
-- Requires API changes
-- More complex logic
-
-### Option 3: Update UI to Handle Missing Invitation Links
-Display a message and button to create an invitation link when one doesn't exist:
-
-**Pros:**
-- Gives users explicit control
-- Clear UX
-
-**Cons:**
-- Additional UI complexity
-- Requires both API and UI changes
-
-## Recommended Fix
-
-**Option 1** is recommended because:
-1. The schema already enforces one invitation link per workspace (UNIQUE constraint)
-2. The UI is already designed assuming invitation links exist
-3. Minimal code changes required
-4. Aligns with the feature expectation (MEM-03, INV-01 tickets)
-
-## Related Tickets
-
-- MEM-03: Invitation link lifecycle management (completed)
-- INV-01: Invitation flow implementation (completed)
-- AUTH-02: User provisioning with private workspace (completed)
-
-## Notes
-
-The logs show several "Access denied to this workspace" errors (403) but these appear unrelated to the invitation link issue - they're general authorization errors from various API endpoints.
+Description of how the bug was fixed, or why it was closed without fixing.

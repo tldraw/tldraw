@@ -1,4 +1,4 @@
-# BUG-05: Workspace Archive UI API Endpoint Mismatch
+# [BUG-17]: Workspace Archive UI API Endpoint Mismatch
 
 Date reported: 2025-10-05
 Date resolved: -

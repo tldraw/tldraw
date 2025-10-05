@@ -1,4 +1,4 @@
-# BUG-16: Private Workspace Name Not Based on Email Prefix
+# [BUG-16]: Private Workspace Name Not Based on Email Prefix
 
 **Status:** Open
 **Priority:** Medium

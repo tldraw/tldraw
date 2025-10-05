@@ -1,4 +1,4 @@
-# BUG-12: Workspace Creation Modal Not Opening from Dashboard
+# [BUG-12]: Workspace Creation Modal Not Opening from Dashboard
 
 **Status:** Open
 **Priority:** High

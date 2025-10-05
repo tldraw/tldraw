@@ -1,4 +1,4 @@
-# BUG-15: Archive Button Appearing on Workspace Members Page
+# [BUG-15]: Archive Button Appearing on Workspace Members Page
 
 ## Status
 New
