@@ -41,9 +41,8 @@ test.describe('Empty Workspace List Handling (M15-02)', () => {
 		expect(count).toBe(1) // User should always have their private workspace
 
 		// Verify the workspace shown is the private workspace
-		// The workspace name should be based on the email prefix
-		const emailPrefix = testUser.email.split('@')[0]
-		await expect(page.locator(`text=/${emailPrefix}'s Workspace/i`).first()).toBeVisible()
+		// The workspace name should be based on the display_name (Playwright Worker X)
+		await expect(page.locator('text=/Playwright Worker.*Workspace/i').first()).toBeVisible()
 
 		// Verify no error messages are shown
 		await expect(page.locator('text=/error|500|crash/i')).not.toBeVisible()
@@ -95,9 +94,8 @@ test.describe('Empty Workspace List Handling (M15-02)', () => {
 		expect(data.data.workspaces[0].workspace.is_private).toBe(true)
 
 		// Verify the workspace name follows the expected pattern
-		// Since testUser doesn't have display_name, it will use the email prefix
-		const emailPrefix = testUser.email.split('@')[0]
-		expect(data.data.workspaces[0].workspace.name).toBe(`${emailPrefix}'s Workspace`)
+		// testUser has display_name set to "Playwright Worker X"
+		expect(data.data.workspaces[0].workspace.name).toMatch(/Playwright Worker \d+'s Workspace/)
 
 		// Recent documents might be empty if user hasn't accessed any
 		expect(data.data.recentDocuments).toBeDefined()
@@ -163,8 +161,7 @@ test.describe('Empty Workspace List Handling (M15-02)', () => {
 		expect(await workspaceItems.count()).toBe(1)
 
 		// Verify it's the private workspace
-		const emailPrefix = testUser.email.split('@')[0]
-		await expect(page.locator(`text=/${emailPrefix}'s Workspace/i`).first()).toBeVisible()
+		await expect(page.locator('text=/Playwright Worker.*Workspace/i').first()).toBeVisible()
 
 		// Verify the workspace is marked as private (if there's a UI indicator)
 		const { data: privateWorkspace } = await supabaseAdmin

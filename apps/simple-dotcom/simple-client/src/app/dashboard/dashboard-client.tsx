@@ -41,8 +41,10 @@ export default function DashboardClient({
 	const [showCreateModal, setShowCreateModal] = useState(false)
 	const [showRenameModal, setShowRenameModal] = useState(false)
 	const [showDeleteModal, setShowDeleteModal] = useState(false)
+	const [showCreateDocumentModal, setShowCreateDocumentModal] = useState(false)
 	const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null)
 	const [newWorkspaceName, setNewWorkspaceName] = useState('')
+	const [newDocumentName, setNewDocumentName] = useState('')
 	const [actionLoading, setActionLoading] = useState(false)
 
 	// New states for improved UX
@@ -90,6 +92,103 @@ export default function DashboardClient({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [showCreateModal, newWorkspaceName, actionLoading])
 
+	// Subscribe to realtime updates for documents
+	useEffect(() => {
+		const supabase = getBrowserClient()
+		const workspaceIds = dashboardData.workspaces.map((w) => w.workspace.id)
+
+		if (workspaceIds.length === 0) return
+
+		console.log('[Dashboard Realtime] Setting up subscription for workspaces:', workspaceIds)
+
+		const channel = supabase
+			.channel('dashboard-documents')
+			.on(
+				'postgres_changes',
+				{
+					event: 'INSERT',
+					schema: 'public',
+					table: 'documents',
+				},
+				(payload) => {
+					console.log('[Dashboard Realtime] Document INSERT:', payload)
+					const newDoc = payload.new as Document
+					if (!newDoc.is_archived && workspaceIds.includes(newDoc.workspace_id)) {
+						setDashboardData((prev) => ({
+							...prev,
+							workspaces: prev.workspaces.map((ws) =>
+								ws.workspace.id === newDoc.workspace_id
+									? { ...ws, documents: [newDoc, ...ws.documents] }
+									: ws
+							),
+						}))
+					}
+				}
+			)
+			.on(
+				'postgres_changes',
+				{
+					event: 'UPDATE',
+					schema: 'public',
+					table: 'documents',
+				},
+				(payload) => {
+					const updatedDoc = payload.new as Document
+					if (workspaceIds.includes(updatedDoc.workspace_id)) {
+						setDashboardData((prev) => ({
+							...prev,
+							workspaces: prev.workspaces.map((ws) => {
+								if (ws.workspace.id !== updatedDoc.workspace_id) return ws
+								// Remove if archived
+								if (updatedDoc.is_archived) {
+									return {
+										...ws,
+										documents: ws.documents.filter((doc) => doc.id !== updatedDoc.id),
+									}
+								}
+								// Update existing
+								return {
+									...ws,
+									documents: ws.documents.map((doc) =>
+										doc.id === updatedDoc.id ? updatedDoc : doc
+									),
+								}
+							}),
+						}))
+					}
+				}
+			)
+			.on(
+				'postgres_changes',
+				{
+					event: 'DELETE',
+					schema: 'public',
+					table: 'documents',
+				},
+				(payload) => {
+					const deletedDoc = payload.old as { id: string; workspace_id: string }
+					if (workspaceIds.includes(deletedDoc.workspace_id)) {
+						setDashboardData((prev) => ({
+							...prev,
+							workspaces: prev.workspaces.map((ws) =>
+								ws.workspace.id === deletedDoc.workspace_id
+									? { ...ws, documents: ws.documents.filter((doc) => doc.id !== deletedDoc.id) }
+									: ws
+							),
+						}))
+					}
+				}
+			)
+			.subscribe((status, err) => {
+				console.log('[Dashboard Realtime] Subscription status:', status, err)
+			})
+
+		return () => {
+			console.log('[Dashboard Realtime] Cleaning up subscription')
+			supabase.removeChannel(channel)
+		}
+	}, [dashboardData.workspaces.length])
+
 	const handleSignOut = async () => {
 		const supabase = getBrowserClient()
 		await supabase.auth.signOut()
@@ -131,6 +230,8 @@ export default function DashboardClient({
 				setShowCreateModal(false)
 				setNewWorkspaceName('')
 				setValidationError(null)
+				// Navigate to the new workspace
+				router.push(`/workspace/${data.data.id}`)
 			} else {
 				// Show error in modal, not alert
 				setValidationError(data.error?.message || 'Failed to create workspace')
@@ -221,6 +322,84 @@ export default function DashboardClient({
 		setShowDeleteModal(true)
 	}
 
+	const handleCreateDocument = async () => {
+		if (!selectedWorkspace || !newDocumentName.trim()) {
+			setValidationError('Document name is required')
+			return
+		}
+
+		try {
+			setActionLoading(true)
+			setValidationError(null)
+
+			const abortController = new AbortController()
+			currentRequestRef.current = abortController
+
+			const response = await fetch(`/api/workspaces/${selectedWorkspace.id}/documents`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ name: newDocumentName.trim() }),
+				signal: abortController.signal,
+			})
+
+			const data = await response.json()
+
+			if (data.success && data.data) {
+				// Document will be added via realtime subscription
+				setShowCreateDocumentModal(false)
+				setNewDocumentName('')
+				setValidationError(null)
+				setSelectedWorkspace(null)
+			} else {
+				setValidationError(data.error?.message || 'Failed to create document')
+			}
+		} catch (err: any) {
+			if (err.name !== 'AbortError') {
+				console.error('Failed to create document:', err)
+				setValidationError('Failed to create document. Please try again.')
+			}
+		} finally {
+			setActionLoading(false)
+			currentRequestRef.current = null
+		}
+	}
+
+	const openCreateDocumentModal = (workspace: Workspace) => {
+		setSelectedWorkspace(workspace)
+		setNewDocumentName('')
+		setValidationError(null)
+		setShowCreateDocumentModal(true)
+	}
+
+	const handleCloseCreateDocumentModal = () => {
+		if (currentRequestRef.current) {
+			currentRequestRef.current.abort()
+		}
+		setShowCreateDocumentModal(false)
+		setNewDocumentName('')
+		setValidationError(null)
+		setSelectedWorkspace(null)
+		setActionLoading(false)
+	}
+
+	// Keyboard handling for document creation modal
+	useEffect(() => {
+		if (!showCreateDocumentModal) return
+
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') {
+				handleCloseCreateDocumentModal()
+			} else if (e.key === 'Enter' && newDocumentName.trim() && !actionLoading) {
+				e.preventDefault()
+				handleCreateDocument()
+			}
+		}
+
+		window.addEventListener('keydown', handleKeyDown)
+		return () => window.removeEventListener('keydown', handleKeyDown)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [showCreateDocumentModal, newDocumentName, actionLoading])
+
 	const toggleWorkspace = (workspaceId: string) => {
 		setExpandedWorkspaces((prev) => {
 			const next = new Set(prev)
@@ -302,19 +481,29 @@ export default function DashboardClient({
 									>
 										{/* Workspace Header */}
 										<div className="flex items-center justify-between p-3 bg-foreground/5">
-											<button
-												onClick={() => toggleWorkspace(workspace.id)}
-												className="flex-1 flex items-center gap-2 text-left"
-												data-testid={`toggle-workspace-${workspace.id}`}
-											>
-												<span className="text-sm">{isExpanded ? '▼' : '▶'}</span>
-												<div className="flex-1">
+											<div className="flex-1 flex items-center gap-2">
+												<button
+													onClick={() => toggleWorkspace(workspace.id)}
+													className="text-sm hover:bg-foreground/10 rounded px-1"
+													data-testid={`toggle-workspace-${workspace.name
+														.toLowerCase()
+														.replace(/\s+/g, '-')
+														.replace(/[^a-z0-9-]/g, '')}`}
+													aria-label="Toggle workspace"
+												>
+													{isExpanded ? '▼' : '▶'}
+												</button>
+												<Link
+													href={`/workspace/${workspace.id}`}
+													className="flex-1 hover:opacity-80"
+													data-testid={`workspace-link-${workspace.id}`}
+												>
 													<h3 className="font-medium text-sm">{workspace.name}</h3>
 													<p className="text-xs text-foreground/60">
 														{workspace.is_private ? 'Private' : 'Shared'}
 													</p>
-												</div>
-											</button>
+												</Link>
+											</div>
 											{!workspace.is_private && isOwner && (
 												<div className="flex items-center gap-1">
 													<button
@@ -366,26 +555,35 @@ export default function DashboardClient({
 												)}
 
 												{/* Documents */}
-												{documents.length > 0 && (
-													<div>
-														<h4 className="text-xs font-semibold text-foreground/60 mb-1">
-															Documents
-														</h4>
-														<div className="space-y-1">
-															{documents.map((doc) => (
-																<Link
-																	key={doc.id}
-																	href={`/d/${doc.id}`}
-																	className="block px-2 py-1 text-sm rounded hover:bg-foreground/5"
-																	data-testid={`document-${doc.id}`}
-																>
-																	📄 {doc.name}
-																</Link>
-															))}
-														</div>
+												<div>
+													<h4 className="text-xs font-semibold text-foreground/60 mb-1">
+														Documents
+													</h4>
+													<div className="space-y-1">
+														{documents.map((doc) => (
+															<Link
+																key={doc.id}
+																href={`/d/${doc.id}`}
+																className="block px-2 py-1 text-sm rounded hover:bg-foreground/5"
+																data-testid={`document-${doc.id}`}
+															>
+																📄 {doc.name}
+															</Link>
+														))}
+														{/* New Document button - show for non-private workspaces or workspace owners */}
+														{(!workspace.is_private || isOwner) && (
+															<button
+																onClick={() => openCreateDocumentModal(workspace)}
+																data-testid={`create-document-${workspace.id}`}
+																className="w-full px-2 py-1 text-sm text-left rounded hover:bg-foreground/5 text-foreground/60 hover:text-foreground flex items-center gap-1"
+															>
+																<span className="text-xs">+</span> New Document
+															</button>
+														)}
 													</div>
-												)}
+												</div>
 
+												{/* Empty state for folders */}
 												{folders.length === 0 && documents.length === 0 && (
 													<p className="text-xs text-foreground/40 italic">No items yet</p>
 												)}
@@ -581,6 +779,60 @@ export default function DashboardClient({
 								disabled={actionLoading}
 							>
 								{actionLoading ? 'Deleting...' : 'Delete'}
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
+
+			{/* Create Document Modal */}
+			{showCreateDocumentModal && selectedWorkspace && (
+				<div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+					<div className="bg-background rounded-lg p-6 max-w-md w-full border border-foreground/20">
+						<h3 className="text-xl font-semibold mb-4">
+							Create Document in {selectedWorkspace.name}
+						</h3>
+						<input
+							type="text"
+							value={newDocumentName}
+							onChange={(e) => {
+								setNewDocumentName(e.target.value)
+								if (validationError) setValidationError(null)
+							}}
+							onBlur={() => {
+								if (!newDocumentName.trim()) {
+									setValidationError('Document name is required')
+								}
+							}}
+							placeholder="Document name"
+							data-testid="document-name-input"
+							className={`w-full px-3 py-2 rounded-md border ${
+								validationError ? 'border-red-500' : 'border-foreground/20'
+							} bg-background mb-2`}
+							disabled={actionLoading}
+							autoFocus
+						/>
+						{validationError && (
+							<p className="text-red-500 text-sm mb-4" data-testid="validation-error">
+								{validationError}
+							</p>
+						)}
+						{!validationError && <div className="mb-4" />}
+						<div className="flex gap-2 justify-end">
+							<button
+								onClick={handleCloseCreateDocumentModal}
+								className="rounded-md border border-foreground/20 px-4 py-2 text-sm hover:bg-foreground/5"
+								disabled={actionLoading}
+							>
+								Cancel
+							</button>
+							<button
+								onClick={handleCreateDocument}
+								data-testid="confirm-create-document"
+								className="rounded-md bg-foreground text-background px-4 py-2 text-sm font-medium hover:opacity-90 disabled:opacity-50"
+								disabled={actionLoading || !newDocumentName.trim()}
+							>
+								{actionLoading ? 'Creating...' : 'Create'}
 							</button>
 						</div>
 					</div>

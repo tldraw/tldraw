@@ -38,8 +38,8 @@ export default function WorkspaceArchiveClient({
 
 			setSuccess('Document restored')
 			router.refresh()
-		} catch (err: any) {
-			setError(err.message)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
 		} finally {
 			setProcessingId(null)
 		}
@@ -69,8 +69,8 @@ export default function WorkspaceArchiveClient({
 
 			setSuccess('Document permanently deleted')
 			router.refresh()
-		} catch (err: any) {
-			setError(err.message)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
 		} finally {
 			setProcessingId(null)
 		}

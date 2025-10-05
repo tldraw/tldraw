@@ -1,4 +1,5 @@
 import { ErrorCodes } from '@/lib/api/errors'
+import { NextRequest } from 'next/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { POST } from './route'
 
@@ -12,7 +13,7 @@ vi.mock('@/lib/supabase/server', () => ({
 class MockNextRequest {
 	constructor(
 		public url: string,
-		public options: { method: string; body?: any; headers?: any } = { method: 'GET' }
+		public options: { method: string; body?: unknown; headers?: unknown } = { method: 'GET' }
 	) {}
 	async json() {
 		return this.options.body
@@ -27,8 +28,11 @@ describe('Transfer Ownership API Route', () => {
 		params: Promise.resolve({ workspaceId: mockWorkspaceId }),
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let mockSupabase: any
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let mockRequireAuth: any
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let mockCreateClient: any
 
 	beforeEach(async () => {
@@ -75,7 +79,7 @@ describe('Transfer Ownership API Route', () => {
 				body: { new_owner_id: mockNewOwnerId },
 			})
 
-			const response = await POST(request as any, mockContext)
+			const response = await POST(request as unknown as NextRequest, mockContext)
 			const data = await response.json()
 
 			expect(response.status).toBe(200)
@@ -105,7 +109,7 @@ describe('Transfer Ownership API Route', () => {
 				body: { new_owner_id: mockNewOwnerId },
 			})
 
-			const response = await POST(request as any, mockContext)
+			const response = await POST(request as unknown as NextRequest, mockContext)
 			const data = await response.json()
 
 			expect(response.status).toBe(401)
@@ -129,7 +133,7 @@ describe('Transfer Ownership API Route', () => {
 				body: { new_owner_id: mockNewOwnerId },
 			})
 
-			const response = await POST(request as any, mockContext)
+			const response = await POST(request as unknown as NextRequest, mockContext)
 			const data = await response.json()
 
 			expect(response.status).toBe(403)
@@ -145,7 +149,7 @@ describe('Transfer Ownership API Route', () => {
 				body: {},
 			})
 
-			const response = await POST(request as any, mockContext)
+			const response = await POST(request as unknown as NextRequest, mockContext)
 			const data = await response.json()
 
 			expect(response.status).toBe(400)
@@ -170,7 +174,7 @@ describe('Transfer Ownership API Route', () => {
 				body: { new_owner_id: 'non-member-id' },
 			})
 
-			const response = await POST(request as any, mockContext)
+			const response = await POST(request as unknown as NextRequest, mockContext)
 			const data = await response.json()
 
 			expect(response.status).toBe(400)
@@ -195,7 +199,7 @@ describe('Transfer Ownership API Route', () => {
 				body: { new_owner_id: mockUserId },
 			})
 
-			const response = await POST(request as any, mockContext)
+			const response = await POST(request as unknown as NextRequest, mockContext)
 			const data = await response.json()
 
 			expect(response.status).toBe(400)
@@ -222,7 +226,7 @@ describe('Transfer Ownership API Route', () => {
 				body: { new_owner_id: mockNewOwnerId },
 			})
 
-			const response = await POST(request as any, mockContext)
+			const response = await POST(request as unknown as NextRequest, mockContext)
 			const data = await response.json()
 
 			expect(response.status).toBe(403)
@@ -247,7 +251,7 @@ describe('Transfer Ownership API Route', () => {
 				body: { new_owner_id: mockNewOwnerId },
 			})
 
-			const response = await POST(request as any, {
+			const response = await POST(request as unknown as NextRequest, {
 				params: Promise.resolve({ workspaceId: 'non-existent-id' }),
 			})
 			const data = await response.json()
@@ -271,7 +275,7 @@ describe('Transfer Ownership API Route', () => {
 				body: { new_owner_id: mockNewOwnerId },
 			})
 
-			const response = await POST(request as any, mockContext)
+			const response = await POST(request as unknown as NextRequest, mockContext)
 			const data = await response.json()
 
 			expect(response.status).toBe(500)
@@ -296,7 +300,7 @@ describe('Transfer Ownership API Route', () => {
 				body: { new_owner_id: mockNewOwnerId },
 			})
 
-			const response = await POST(request as any, mockContext)
+			const response = await POST(request as unknown as NextRequest, mockContext)
 			const data = await response.json()
 
 			expect(response.status).toBe(500)
@@ -314,9 +318,11 @@ describe('Transfer Ownership API Route', () => {
 			})
 
 			// Override json() to throw error
-			;(request as any).json = vi.fn().mockRejectedValue(new Error('Invalid JSON'))
+			;(request as unknown as NextRequest).json = vi
+				.fn()
+				.mockRejectedValue(new Error('Invalid JSON'))
 
-			const response = await POST(request as any, mockContext)
+			const response = await POST(request as unknown as NextRequest, mockContext)
 			const data = await response.json()
 
 			expect(response.status).toBe(500)
@@ -329,7 +335,7 @@ describe('Transfer Ownership API Route', () => {
 				body: { new_owner_id: null },
 			})
 
-			const response = await POST(request as any, mockContext)
+			const response = await POST(request as unknown as NextRequest, mockContext)
 			const data = await response.json()
 
 			expect(response.status).toBe(400)
@@ -343,7 +349,7 @@ describe('Transfer Ownership API Route', () => {
 				body: { new_owner_id: '' },
 			})
 
-			const response = await POST(request as any, mockContext)
+			const response = await POST(request as unknown as NextRequest, mockContext)
 			const data = await response.json()
 
 			expect(response.status).toBe(400)

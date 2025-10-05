@@ -199,7 +199,7 @@ export async function cleanupTestUsersByPattern(
 
 		// If RPC failed, fall back to manual cleanup
 		console.log('RPC cleanup failed, falling back to manual cleanup:', error?.message)
-	} catch (rpcError) {
+	} catch (_rpcError) {
 		console.log('RPC not available, using manual cleanup')
 	}
 

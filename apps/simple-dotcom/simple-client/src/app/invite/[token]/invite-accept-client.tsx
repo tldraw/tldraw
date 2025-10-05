@@ -25,7 +25,6 @@ export default function InviteAcceptClient({
 	workspace,
 	message,
 	token,
-	userId,
 }: InviteAcceptClientProps) {
 	const router = useRouter()
 	const [isJoining, setIsJoining] = useState(false)
@@ -49,8 +48,8 @@ export default function InviteAcceptClient({
 
 			// Redirect to workspace
 			router.push(`/workspace/${data.workspace_id}`)
-		} catch (err: any) {
-			setError(err.message)
+		} catch (err: unknown) {
+			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
 			setIsJoining(false)
 		}
 	}
@@ -64,7 +63,8 @@ export default function InviteAcceptClient({
 							<div className="mb-4 text-5xl">📨</div>
 							<h1 className="mb-2 text-2xl font-bold">Join Workspace</h1>
 							<p className="text-gray-600">
-								You've been invited to join <span className="font-semibold">{workspace.name}</span>
+								You have been invited to join{' '}
+								<span className="font-semibold">{workspace.name}</span>
 							</p>
 						</div>
 

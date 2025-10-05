@@ -178,7 +178,10 @@ test.describe('Route Guards', () => {
 			await page.goto('/workspace/non-existent-workspace-id/settings')
 
 			// Should redirect to 403 or error page
-			await page.waitForTimeout(1000)
+			await Promise.race([
+				page.waitForURL('**/403**', { timeout: 5000 }),
+				page.waitForURL('**/dashboard**', { timeout: 5000 }),
+			])
 			const urlAfter = page.url()
 			expect(urlAfter.includes('/403') || urlAfter.includes('/dashboard')).toBe(true)
 		})
@@ -192,7 +195,10 @@ test.describe('Route Guards', () => {
 			await page.goto('/workspace/non-existent-workspace-id/members')
 
 			// Should redirect to 403 or error page
-			await page.waitForTimeout(1000)
+			await Promise.race([
+				page.waitForURL('**/403**', { timeout: 5000 }),
+				page.waitForURL('**/dashboard**', { timeout: 5000 }),
+			])
 			const urlAfter = page.url()
 			expect(urlAfter.includes('/403') || urlAfter.includes('/dashboard')).toBe(true)
 		})
@@ -206,7 +212,10 @@ test.describe('Route Guards', () => {
 			await page.goto('/workspace/non-existent-workspace-id/archive')
 
 			// Should redirect to 403 or error page
-			await page.waitForTimeout(1000)
+			await Promise.race([
+				page.waitForURL('**/403**', { timeout: 5000 }),
+				page.waitForURL('**/dashboard**', { timeout: 5000 }),
+			])
 			const urlAfter = page.url()
 			expect(urlAfter.includes('/403') || urlAfter.includes('/dashboard')).toBe(true)
 		})
@@ -250,7 +259,10 @@ test.describe('Route Guards', () => {
 			await page.goto('/d/some-document-id')
 
 			// Should redirect to login or show 403
-			await page.waitForTimeout(1000)
+			await Promise.race([
+				page.waitForURL('**/login**', { timeout: 5000 }),
+				page.waitForURL('**/403**', { timeout: 5000 }),
+			])
 			const urlAfter = page.url()
 			expect(urlAfter.includes('/login') || urlAfter.includes('/403')).toBe(true)
 		})
@@ -271,8 +283,7 @@ test.describe('Route Guards', () => {
 
 				// Should be able to access own document
 				await page.goto(`/d/${docId}`)
-				await page.waitForTimeout(1000)
-				expect(page.url()).toContain(`/d/${docId}`)
+				await expect(page).toHaveURL(new RegExp(`/d/${docId}`))
 			}
 		})
 	})
@@ -283,9 +294,8 @@ test.describe('Route Guards', () => {
 			await page.goto('/invite/some-invalid-token')
 
 			// Should show invalid invitation message (not redirect to login)
-			await page.waitForTimeout(1000)
-			const hasError = await page.locator('text=/Invalid|invalid|expired/i').first().isVisible()
-			expect(hasError).toBe(true)
+			const invalidInviteMessage = page.locator('text=/Invalid|invalid|expired/i').first()
+			await expect(invalidInviteMessage).toBeVisible()
 		})
 
 		test('should show error for invalid invite tokens when authenticated', async ({
@@ -297,9 +307,8 @@ test.describe('Route Guards', () => {
 			await page.goto('/invite/invalid-token-12345')
 
 			// Should show invalid invitation message
-			await page.waitForTimeout(1000)
-			const hasError = await page.locator('text=/Invalid|invalid|expired/i').first().isVisible()
-			expect(hasError).toBe(true)
+			const invalidInviteMessage = page.locator('text=/Invalid|invalid|expired/i').first()
+			await expect(invalidInviteMessage).toBeVisible()
 		})
 	})
 

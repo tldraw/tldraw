@@ -3,9 +3,9 @@
 import { getBrowserClient } from '@/lib/supabase/browser'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 
-export default function LoginPage() {
+function LoginForm() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const [email, setEmail] = useState('')
@@ -70,7 +70,7 @@ export default function LoginPage() {
 				<div className="text-center">
 					<h1 className="text-3xl font-bold">Welcome back</h1>
 					<p className="mt-2 text-sm text-foreground/60">
-						Don't have an account?{' '}
+						No account?{' '}
 						<Link
 							href={`/signup${redirectUrl ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`}
 							className="font-medium hover:underline"
@@ -147,5 +147,19 @@ export default function LoginPage() {
 				</form>
 			</div>
 		</div>
+	)
+}
+
+export default function LoginPage() {
+	return (
+		<Suspense
+			fallback={
+				<div className="flex min-h-screen items-center justify-center bg-background">
+					<div className="text-sm text-foreground/60">Loading...</div>
+				</div>
+			}
+		>
+			<LoginForm />
+		</Suspense>
 	)
 }

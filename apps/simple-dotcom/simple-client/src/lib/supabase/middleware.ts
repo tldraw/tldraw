@@ -11,7 +11,7 @@ import { Database } from './types'
  */
 export async function createMiddlewareClient(request: NextRequest) {
 	// Create a response object that we can modify
-	let response = NextResponse.next({
+	const response = NextResponse.next({
 		request: {
 			headers: request.headers,
 		},

@@ -23,7 +23,6 @@ interface WorkspaceSettingsClientProps {
 export default function WorkspaceSettingsClient({
 	workspace,
 	isOwner,
-	role,
 	userId,
 	members = [],
 }: WorkspaceSettingsClientProps) {
@@ -69,8 +68,8 @@ export default function WorkspaceSettingsClient({
 
 			router.refresh()
 			setIsRenaming(false)
-		} catch (err: any) {
-			setError(err.message)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
 		}
 	}
 
@@ -97,8 +96,8 @@ export default function WorkspaceSettingsClient({
 			}
 
 			router.push('/dashboard')
-		} catch (err: any) {
-			setError(err.message)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
 			setIsDeleting(false)
 		}
 	}
@@ -135,8 +134,8 @@ export default function WorkspaceSettingsClient({
 			}
 
 			router.push('/dashboard')
-		} catch (err: any) {
-			setError(err.message)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
 			setIsLeaving(false)
 		}
 	}
@@ -166,8 +165,8 @@ export default function WorkspaceSettingsClient({
 
 			// Redirect to workspace page after successful transfer
 			router.push(`/workspace/${workspace.id}`)
-		} catch (err: any) {
-			setError(err.message)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
 			setIsTransferring(false)
 		}
 	}
@@ -221,8 +220,8 @@ export default function WorkspaceSettingsClient({
 			if (result.success && result.data) {
 				setInvitationLink(result.data)
 			}
-		} catch (err: any) {
-			setError(err.message)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
 		} finally {
 			setIsTogglingInvite(false)
 		}
@@ -254,8 +253,8 @@ export default function WorkspaceSettingsClient({
 			if (result.success && result.data) {
 				setInvitationLink(result.data)
 			}
-		} catch (err: any) {
-			setError(err.message)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
 		} finally {
 			setIsRegenerating(false)
 		}
@@ -268,7 +267,7 @@ export default function WorkspaceSettingsClient({
 				await navigator.clipboard.writeText(url)
 				setCopySuccess(true)
 				setTimeout(() => setCopySuccess(false), 2000)
-			} catch (err) {
+			} catch {
 				setError('Failed to copy link to clipboard')
 			}
 		}

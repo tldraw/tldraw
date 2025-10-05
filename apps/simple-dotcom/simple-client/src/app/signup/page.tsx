@@ -3,9 +3,9 @@
 import { getBrowserClient } from '@/lib/supabase/browser'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 
-export default function SignupPage() {
+function SignupForm() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const [email, setEmail] = useState('')
@@ -182,5 +182,19 @@ export default function SignupPage() {
 				</form>
 			</div>
 		</div>
+	)
+}
+
+export default function SignupPage() {
+	return (
+		<Suspense
+			fallback={
+				<div className="flex min-h-screen items-center justify-center bg-background">
+					<div className="text-sm text-foreground/60">Loading...</div>
+				</div>
+			}
+		>
+			<SignupForm />
+		</Suspense>
 	)
 }

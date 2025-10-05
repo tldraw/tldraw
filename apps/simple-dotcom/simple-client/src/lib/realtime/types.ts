@@ -100,7 +100,7 @@ export function isWorkspaceUpdatePayload(payload: unknown): payload is Workspace
 		typeof payload === 'object' &&
 		payload !== null &&
 		'workspaceId' in payload &&
-		typeof (payload as any).workspaceId === 'string'
+		typeof payload.workspaceId === 'string'
 	)
 }
 

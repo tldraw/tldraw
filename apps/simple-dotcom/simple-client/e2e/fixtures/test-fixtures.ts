@@ -1,140 +1,177 @@
-import { test as base, Page } from '@playwright/test'
+/* eslint-disable react-hooks/rules-of-hooks */
+import { test as base, BrowserContext, Page } from '@playwright/test'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
-import { assertCleanupSuccess, cleanupUserData } from './cleanup-helpers'
+import fs from 'fs'
+import { assertCleanupSuccess, cleanupTestUsersByPattern } from './cleanup-helpers'
+import { TestDataBuilder } from './data-helpers'
 
 export type TestUser = {
 	email: string
 	password: string
-	id?: string
+	id: string
+}
+
+export type WorkerFixtures = {
+	supabaseAdmin: SupabaseClient
+	testUser: TestUser
+	storageStatePath: string
 }
 
 export type TestFixtures = {
-	testUser: TestUser
 	authenticatedPage: Page
-	supabaseAdmin: SupabaseClient
+	testData: TestDataBuilder
+	authenticatedContext: BrowserContext
 }
 
 // Counter to ensure unique emails even within the same millisecond
 let emailCounter = 0
 
-// Generate unique test user email with worker ID for parallel execution
-function generateTestEmail(workerIndex: number, testIndex: number) {
+// Generate unique worker-level test user email
+function generateWorkerEmail(workerIndex: number) {
 	const timestamp = Date.now()
 	const counter = emailCounter++
 	const random = Math.random().toString(36).substring(2, 8)
-	// Include worker, test, counter, timestamp, and random to ensure uniqueness
-	return `test-w${workerIndex}-t${testIndex}-${counter}-${timestamp}-${random}@example.com`
+	return `test-worker-${workerIndex}-${counter}-${timestamp}-${random}@example.com`
 }
 
-export const test = base.extend<TestFixtures>({
-	// Supabase admin client for test setup/teardown
-	supabaseAdmin: async ({}, use) => {
-		const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-		const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-		if (!supabaseUrl || !supabaseServiceKey) {
-			throw new Error('Missing Supabase credentials for tests')
+async function waitForPrivateWorkspace(supabase: SupabaseClient, userId: string, timeoutMs = 5000) {
+	const started = Date.now()
+	while (Date.now() - started < timeoutMs) {
+		const { data, error } = await supabase
+			.from('workspaces')
+			.select('id')
+			.eq('owner_id', userId)
+			.eq('is_private', true)
+			.limit(1)
+		if (error) {
+			throw new Error(`Failed to verify private workspace provisioning: ${error.message}`)
 		}
+		if (data && data.length > 0) {
+			return
+		}
+		await new Promise((resolve) => setTimeout(resolve, 200))
+	}
+	throw new Error('Timed out waiting for private workspace provisioning')
+}
 
-		const client = createClient(supabaseUrl, supabaseServiceKey, {
-			auth: {
-				autoRefreshToken: false,
-				persistSession: false,
-			},
-		})
+export const test = base.extend<TestFixtures, WorkerFixtures>({
+	// Supabase admin client shared per worker
+	supabaseAdmin: [
+		async ({}, use) => {
+			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+			const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-		await use(client)
-	},
-
-	// Test user fixture - creates a unique user for each test
-	testUser: async ({ browser, supabaseAdmin }, use, testInfo) => {
-		// Generate unique email for this specific test
-		const email = generateTestEmail(testInfo.parallelIndex, testInfo.workerIndex)
-		const password = 'TestPassword123!'
-		const name = `Test User ${testInfo.parallelIndex}`
-
-		// Create the user via Better Auth signup flow
-		const context = await browser.newContext()
-		const page = await context.newPage()
-
-		let userId: string | undefined
-
-		try {
-			await page.goto('/signup', { waitUntil: 'networkidle' })
-
-			// Wait for form to be ready
-			await page.waitForSelector('[data-testid="name-input"]', { state: 'visible' })
-
-			await page.fill('[data-testid="name-input"]', name)
-			await page.fill('[data-testid="email-input"]', email)
-			await page.fill('[data-testid="password-input"]', password)
-
-			// Wait a bit for React state to update
-			await page.waitForTimeout(500)
-
-			await page.click('[data-testid="signup-button"]')
-
-			// Wait for either dashboard or error message
-			const result = await Promise.race([
-				page.waitForURL('**/dashboard**', { timeout: 20000 }).then(() => 'success'),
-				page
-					.locator('[data-testid="error-message"]')
-					.waitFor({ state: 'visible', timeout: 20000 })
-					.then(() => 'error'),
-			])
-
-			if (result === 'error') {
-				const errorText = await page.locator('[data-testid="error-message"]').textContent()
-				throw new Error(`Signup failed: ${errorText}`)
+			if (!supabaseUrl || !supabaseServiceKey) {
+				throw new Error('Missing Supabase credentials for tests')
 			}
 
-			// Get the user ID from the database
-			const { data } = await supabaseAdmin.from('users').select('id').eq('email', email).single()
-			userId = data?.id
-		} catch (error) {
-			console.error(`Failed to create test user ${email}:`, error)
-			throw error
-		} finally {
-			// Always close the temporary context
-			await context.close()
-		}
+			const client = createClient(supabaseUrl, supabaseServiceKey, {
+				auth: {
+					autoRefreshToken: false,
+					persistSession: false,
+				},
+			})
 
-		const user: TestUser = {
-			email,
-			password,
-			id: userId,
-		}
+			await use(client)
+		},
+		{ scope: 'worker' },
+	],
 
-		await use(user)
+	// Generate storage state once per worker after user provisioning
+	storageStatePath: [
+		async ({ browser, testUser }, use, workerInfo) => {
+			const fileName = `test-auth-state-${workerInfo.workerIndex}.json`
 
-		// Cleanup: Delete the test user and all related data after the test
-		if (user.id) {
-			const cleanupResult = await cleanupUserData(supabaseAdmin, user.id)
-			assertCleanupSuccess(cleanupResult, `test user ${user.email}`)
-		}
+			const page = await browser.newPage({ storageState: undefined })
+			await page.goto('/login')
+			await page.fill('[data-testid="email-input"]', testUser.email)
+			await page.fill('[data-testid="password-input"]', testUser.password)
+			await page.click('[data-testid="login-button"]')
+			await page.waitForURL('**/dashboard**', { timeout: 30000 })
+			await page.context().storageState({ path: fileName })
+			await page.close()
+
+			try {
+				await use(fileName)
+			} finally {
+				await fs.promises.rm(fileName, { force: true })
+			}
+		},
+		{ scope: 'worker' },
+	],
+
+	testData: async ({ supabaseAdmin }, use) => {
+		const builder = new TestDataBuilder(supabaseAdmin)
+		await use(builder)
 	},
 
-	// Authenticated page fixture - logs in before test starts
-	authenticatedPage: async ({ browser, testUser }, use) => {
-		// Create a new page context for authenticated tests
-		const context = await browser.newContext()
+	// Test user fixture - creates a unique user per worker via Supabase admin API
+	testUser: [
+		async ({ supabaseAdmin }, use, workerInfo) => {
+			const email = generateWorkerEmail(workerInfo.workerIndex)
+			const password = 'TestPassword123!'
+			const name = `Playwright Worker ${workerInfo.workerIndex}`
+
+			const { data, error } = await supabaseAdmin.auth.admin.createUser({
+				email,
+				password,
+				email_confirm: true,
+				user_metadata: {
+					name,
+					display_name: name,
+				},
+			})
+
+			if (error) {
+				throw new Error(`Failed to create worker test user ${email}: ${error.message}`)
+			}
+
+			const userId = data?.user?.id
+			if (!userId) {
+				throw new Error(`Supabase did not return an id for test user ${email}`)
+			}
+
+			await waitForPrivateWorkspace(supabaseAdmin, userId)
+
+			const user: TestUser = {
+				email,
+				password,
+				id: userId,
+			}
+
+			try {
+				await use(user)
+			} finally {
+				const cleanupResult = await cleanupTestUsersByPattern(supabaseAdmin, user.email)
+
+				const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user.id)
+				if (deleteError) {
+					throw new Error(`Failed to delete worker test user ${user.email}: ${deleteError.message}`)
+				}
+
+				assertCleanupSuccess(cleanupResult, `worker test user ${user.email}`)
+			}
+		},
+		{ scope: 'worker' },
+	],
+
+	// Authenticated page fixture - reuses stored auth state
+	authenticatedPage: async ({ browser, storageStatePath }, use) => {
+		const context = await browser.newContext({ storageState: storageStatePath })
 		const page = await context.newPage()
-
-		// Navigate to login page
-		await page.goto('/login')
-
-		// Fill in login form
-		await page.fill('[data-testid="email-input"]', testUser.email)
-		await page.fill('[data-testid="password-input"]', testUser.password)
-		await page.click('[data-testid="login-button"]')
-
-		// Wait for successful login (redirects to dashboard)
-		await page.waitForURL('**/dashboard**', { timeout: 20000 })
-
+		await page.goto('/dashboard')
 		await use(page)
-
-		// Cleanup
 		await context.close()
+	},
+
+	// Authenticated context fixture for tests that manage navigation manually
+	authenticatedContext: async ({ browser, storageStatePath }, use) => {
+		const context = await browser.newContext({ storageState: storageStatePath })
+		try {
+			await use(context)
+		} finally {
+			await context.close()
+		}
 	},
 })
 

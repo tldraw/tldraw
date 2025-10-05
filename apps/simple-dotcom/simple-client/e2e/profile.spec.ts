@@ -26,20 +26,13 @@ test.describe('User Profile', () => {
 		await expect(displayNameInput).toBeEnabled()
 	})
 
-	test('should update display name and reflect in dashboard', async ({
-		authenticatedPage,
-		testUser,
-	}) => {
+	test('should update display name and reflect in dashboard', async ({ authenticatedPage }) => {
 		const page = authenticatedPage
 		const newDisplayName = 'Updated Display Name'
 
 		// Navigate to profile page
 		await page.goto('/profile')
 		await page.waitForSelector('[data-testid="display-name-input"]')
-
-		// Get current name value to keep it unchanged
-		const nameInput = page.locator('[data-testid="name-input"]')
-		const currentName = await nameInput.inputValue()
 
 		// Update display name
 		await page.fill('[data-testid="display-name-input"]', newDisplayName)
@@ -53,9 +46,6 @@ test.describe('User Profile', () => {
 		// Navigate back to dashboard
 		await page.click('text=Back to Dashboard')
 		await page.waitForURL('**/dashboard**')
-
-		// Wait for dashboard to load profile data
-		await page.waitForTimeout(1000)
 
 		// Dashboard should show the updated display name
 		const welcomeText = page.locator('h2:has-text("Welcome")')
@@ -208,11 +198,8 @@ test.describe('User Profile', () => {
 		// Try to navigate away
 		await page.click('text=Back to Dashboard')
 
-		// Wait a bit to ensure dialog handler could fire
-		await page.waitForTimeout(500)
-
 		// Verify dialog was shown and we're still on profile page
-		expect(dialogShown).toBe(true)
+		await expect.poll(() => dialogShown, { timeout: 2000 }).toBe(true)
 		expect(dialogMessage).toContain('unsaved changes')
 		expect(page.url()).toContain('/profile')
 	})
@@ -302,14 +289,6 @@ test.describe('User Profile', () => {
 
 		// Make a change without saving
 		await page.fill('[data-testid="name-input"]', 'Changed Name')
-
-		// Set up beforeunload dialog handler
-		let beforeUnloadFired = false
-		await page.evaluate(() => {
-			window.addEventListener('beforeunload', () => {
-				;(window as any).beforeUnloadFired = true
-			})
-		})
 
 		// Try to use browser back button
 		// Note: Playwright cannot fully test beforeunload for browser back button

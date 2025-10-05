@@ -23,7 +23,7 @@ async function getInviteInfo(token: string, userId: string | null) {
 		}
 	}
 
-	const workspace = (inviteLink as any).workspaces
+	const workspace = inviteLink.workspaces
 
 	// Check if workspace is deleted
 	if (workspace.is_deleted) {
@@ -34,7 +34,7 @@ async function getInviteInfo(token: string, userId: string | null) {
 	}
 
 	// Check if link is enabled
-	if (!(inviteLink as any).enabled) {
+	if (!inviteLink.enabled) {
 		return {
 			status: 'disabled' as const,
 			message: 'This invitation link has been disabled.',

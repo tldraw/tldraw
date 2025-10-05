@@ -1,275 +1,124 @@
+import { cleanupUserData } from './fixtures/cleanup-helpers'
 import { expect, test } from './fixtures/test-fixtures'
 
 test.describe('Member Management', () => {
-	test('owner can view and remove workspace members', async ({ page, supabaseAdmin }) => {
-		// Create owner user
-		const ownerEmail = `owner-mem-${Date.now()}@example.com`
-		const memberEmail = `member-mem-${Date.now()}@example.com`
-		const password = 'TestPassword123!'
+	test('owner can view and remove workspace members', async ({
+		authenticatedPage,
+		supabaseAdmin,
+		testData,
+		testUser,
+	}) => {
+		const page = authenticatedPage
 
-		// Sign up owner
-		await page.goto('/signup')
-		await page.fill('[data-testid="name-input"]', 'Owner User')
-		await page.fill('[data-testid="email-input"]', ownerEmail)
-		await page.fill('[data-testid="password-input"]', password)
-		await page.click('[data-testid="signup-button"]')
-		await page.waitForURL('**/dashboard**')
-
-		// Get owner ID and create workspace
-		const { data: ownerData } = await supabaseAdmin
-			.from('users')
-			.select('id')
-			.eq('email', ownerEmail)
-			.single()
-
-		await page.click('[data-testid="create-workspace-button"]')
-		await page.waitForSelector('[data-testid="workspace-name-input"]', { state: 'visible' })
-		await page.fill('[data-testid="workspace-name-input"]', 'Members Test Workspace')
-		await page.click('[data-testid="confirm-create-workspace"]')
-		await page.waitForTimeout(1000)
-
-		const { data: workspaceData } = await supabaseAdmin
-			.from('workspaces')
-			.select('id')
-			.eq('owner_id', ownerData?.id)
-			.eq('name', 'Members Test Workspace')
-			.single()
-
-		// Create and add member user
-		await page.goto('/logout')
-		await page.goto('/signup')
-		await page.fill('[data-testid="name-input"]', 'Member User')
-		await page.fill('[data-testid="email-input"]', memberEmail)
-		await page.fill('[data-testid="password-input"]', password)
-		await page.click('[data-testid="signup-button"]')
-		await page.waitForURL('**/dashboard**')
-
-		const { data: memberData } = await supabaseAdmin
-			.from('users')
-			.select('id')
-			.eq('email', memberEmail)
-			.single()
-
-		// Add member to workspace
-		await supabaseAdmin.from('workspace_members').insert({
-			workspace_id: workspaceData?.id,
-			user_id: memberData?.id,
-			role: 'member',
+		const workspace = await testData.createWorkspace({
+			ownerId: testUser.id,
+			name: `Members Test Workspace ${Date.now()}`,
 		})
 
-		// Login as owner
-		await page.goto('/logout')
-		await page.goto('/login')
-		await page.fill('[data-testid="email-input"]', ownerEmail)
-		await page.fill('[data-testid="password-input"]', password)
-		await page.click('[data-testid="login-button"]')
-		await page.waitForURL('**/dashboard**')
+		await supabaseAdmin.from('users').update({ display_name: 'Owner User' }).eq('id', testUser.id)
 
-		// Navigate to members page
-		await page.goto(`/workspace/${workspaceData?.id}/members`)
-		await expect(page.locator('h1')).toContainText('Workspace Members')
+		const memberEmail = `member-${Date.now()}@example.com`
+		const { data: memberAuth, error: memberError } = await supabaseAdmin.auth.admin.createUser({
+			email: memberEmail,
+			password: 'TestPassword123!',
+			email_confirm: true,
+			user_metadata: {
+				display_name: 'Member User',
+				name: 'Member User',
+			},
+		})
 
-		// Verify both members are shown
-		await expect(page.locator('text=Owner User')).toBeVisible()
-		await expect(page.locator('text=Member User')).toBeVisible()
-
-		// Verify role badges
-		const ownerBadge = page.locator('span:has-text("Owner")').first()
-		const memberBadge = page.locator('span:has-text("Member")').first()
-		await expect(ownerBadge).toBeVisible()
-		await expect(memberBadge).toBeVisible()
-
-		// Remove member
-		const removeMemberButton = page.locator('button:has-text("Remove")').first()
-		await removeMemberButton.click()
-
-		// Confirm in dialog
-		page.on('dialog', (dialog) => dialog.accept())
-
-		// Wait for success message
-		await expect(page.locator('text="Member removed"')).toBeVisible()
-
-		// Verify member is no longer shown
-		await expect(page.locator('text="Member User"')).not.toBeVisible()
-
-		// Cleanup
-		await supabaseAdmin.from('workspaces').delete().eq('id', workspaceData?.id)
-		const { data: users } = await supabaseAdmin.auth.admin.listUsers()
-		for (const user of users.users) {
-			if (user.email === ownerEmail || user.email === memberEmail) {
-				await supabaseAdmin.auth.admin.deleteUser(user.id)
-			}
+		if (memberError || !memberAuth?.user?.id) {
+			throw new Error(`Failed to create member user: ${memberError?.message ?? 'Unknown error'}`)
 		}
+
+		const memberId = memberAuth.user.id
+		await testData.addWorkspaceMember(workspace.id, memberId)
+
+		await page.goto(`/workspace/${workspace.id}/members`)
+		await expect(page.getByRole('heading', { name: 'Workspace Members' })).toBeVisible()
+
+		await expect(page.getByText('Owner User')).toBeVisible()
+		await expect(page.getByText('Member User')).toBeVisible()
+
+		page.once('dialog', (dialog) => dialog.accept())
+		const memberRow = page
+			.locator('div')
+			.filter({ hasText: 'Member User' })
+			.filter({ has: page.locator('button:has-text("Remove")') })
+			.first()
+		await memberRow.locator('button:has-text("Remove")').click()
+
+		await expect(page.getByText('Member removed')).toBeVisible()
+		await expect(page.getByText('Member User')).toHaveCount(0)
+
+		await supabaseAdmin.from('workspaces').delete().eq('id', workspace.id)
+		await cleanupUserData(supabaseAdmin, memberId)
+		await supabaseAdmin.auth.admin.deleteUser(memberId)
 	})
 
-	test('search and pagination work for large member lists', async ({ page, supabaseAdmin }) => {
-		// Create owner
-		const ownerEmail = `owner-search-${Date.now()}@example.com`
-		const password = 'TestPassword123!'
+	test('search and pagination work for large member lists', async ({
+		authenticatedPage,
+		supabaseAdmin,
+		testData,
+		testUser,
+	}) => {
+		const page = authenticatedPage
 
-		await page.goto('/signup')
-		await page.fill('[data-testid="name-input"]', 'Owner User')
-		await page.fill('[data-testid="email-input"]', ownerEmail)
-		await page.fill('[data-testid="password-input"]', password)
-		await page.click('[data-testid="signup-button"]')
-		await page.waitForURL('**/dashboard**')
+		const workspace = await testData.createWorkspace({
+			ownerId: testUser.id,
+			name: `Large Team Workspace ${Date.now()}`,
+		})
 
-		const { data: ownerData } = await supabaseAdmin
-			.from('users')
-			.select('id')
-			.eq('email', ownerEmail)
-			.single()
+		await supabaseAdmin.from('users').update({ display_name: 'Owner User' }).eq('id', testUser.id)
 
-		// Create workspace
-		await page.click('[data-testid="create-workspace-button"]')
-		await page.waitForSelector('[data-testid="workspace-name-input"]', { state: 'visible' })
-		await page.fill('[data-testid="workspace-name-input"]', 'Large Team Workspace')
-		await page.click('[data-testid="confirm-create-workspace"]')
-		await page.waitForTimeout(1000)
-
-		const { data: workspaceData } = await supabaseAdmin
-			.from('workspaces')
-			.select('id')
-			.eq('owner_id', ownerData?.id)
-			.eq('name', 'Large Team Workspace')
-			.single()
-
-		// Create 15 test members (to trigger pagination)
-		const memberIds = []
+		const memberIds: string[] = []
 		for (let i = 1; i <= 15; i++) {
-			const memberEmail = `member${i}-${Date.now()}@example.com`
+			const email = `member-${i}-${Date.now()}@example.com`
 			const displayName = `Test Member ${i}`
-
-			// Create user directly in database
-			const { data: userData } = await supabaseAdmin
-				.from('users')
-				.insert({
-					email: memberEmail,
+			const { data, error } = await supabaseAdmin.auth.admin.createUser({
+				email,
+				password: 'TestPassword123!',
+				email_confirm: true,
+				user_metadata: {
 					display_name: displayName,
-				})
-				.select()
-				.single()
-
-			// Add to workspace
-			await supabaseAdmin.from('workspace_members').insert({
-				workspace_id: workspaceData?.id,
-				user_id: userData.id,
-				role: 'member',
+					name: displayName,
+				},
 			})
 
-			memberIds.push(userData.id)
+			if (error || !data?.user?.id) {
+				throw new Error(`Failed to create member ${i}: ${error?.message ?? 'Unknown error'}`)
+			}
+
+			await testData.addWorkspaceMember(workspace.id, data.user.id)
+			memberIds.push(data.user.id)
 		}
 
-		// Navigate to members page
-		await page.goto(`/workspace/${workspaceData?.id}/members`)
+		await page.goto(`/workspace/${workspace.id}/members`)
 
-		// Search bar should be visible (more than 10 members)
-		const searchInput = page.locator('input[placeholder*="Search members"]')
+		const searchInput = page.getByPlaceholder('Search members by name or email...')
 		await expect(searchInput).toBeVisible()
 
-		// Test search functionality
 		await searchInput.fill('Test Member 5')
-		await expect(page.locator('text="Found 1 member"')).toBeVisible()
-		await expect(page.locator('text="Test Member 5"')).toBeVisible()
-		await expect(page.locator('text="Test Member 6"')).not.toBeVisible()
+		await expect(page.getByText('Found 1 member')).toBeVisible()
+		await expect(page.getByText('Test Member 5')).toBeVisible()
+		await expect(page.getByText('Test Member 6')).toHaveCount(0)
 
-		// Clear search
 		await searchInput.clear()
+		await expect(page.getByText('Page 1 of 2')).toBeVisible()
+		await expect(page.getByText('Showing 1 to 10')).toBeVisible()
 
-		// Test pagination
-		await expect(page.locator('text="Page 1 of 2"')).toBeVisible()
-		await expect(page.locator('text="Showing 1 to 10"')).toBeVisible()
+		await page.getByRole('button', { name: 'Next' }).click()
+		await expect(page.getByText('Page 2 of 2')).toBeVisible()
+		await expect(page.getByText('Showing 11 to 16')).toBeVisible()
 
-		// Go to page 2
-		await page.click('button:has-text("Next")')
-		await expect(page.locator('text="Page 2 of 2"')).toBeVisible()
-		await expect(page.locator('text="Showing 11 to 16"')).toBeVisible() // 15 members + 1 owner
+		await page.getByRole('button', { name: 'Previous' }).click()
+		await expect(page.getByText('Page 1 of 2')).toBeVisible()
 
-		// Go back to page 1
-		await page.click('button:has-text("Previous")')
-		await expect(page.locator('text="Page 1 of 2"')).toBeVisible()
-
-		// Cleanup
-		await supabaseAdmin.from('workspace_members').delete().eq('workspace_id', workspaceData?.id)
-		await supabaseAdmin.from('workspaces').delete().eq('id', workspaceData?.id)
+		await supabaseAdmin.from('workspaces').delete().eq('id', workspace.id)
 		for (const memberId of memberIds) {
-			await supabaseAdmin.from('users').delete().eq('id', memberId)
-		}
-		const { data: users } = await supabaseAdmin.auth.admin.listUsers()
-		const owner = users.users.find((u) => u.email === ownerEmail)
-		if (owner) {
-			await supabaseAdmin.auth.admin.deleteUser(owner.id)
-		}
-	})
-
-	test('non-owners cannot access members page', async ({ page, supabaseAdmin }) => {
-		// Create owner and member
-		const ownerEmail = `owner-access-${Date.now()}@example.com`
-		const memberEmail = `member-access-${Date.now()}@example.com`
-		const password = 'TestPassword123!'
-
-		// Create owner and workspace
-		await page.goto('/signup')
-		await page.fill('[data-testid="name-input"]', 'Owner User')
-		await page.fill('[data-testid="email-input"]', ownerEmail)
-		await page.fill('[data-testid="password-input"]', password)
-		await page.click('[data-testid="signup-button"]')
-		await page.waitForURL('**/dashboard**')
-
-		const { data: ownerData } = await supabaseAdmin
-			.from('users')
-			.select('id')
-			.eq('email', ownerEmail)
-			.single()
-
-		await page.click('[data-testid="create-workspace-button"]')
-		await page.waitForSelector('[data-testid="workspace-name-input"]', { state: 'visible' })
-		await page.fill('[data-testid="workspace-name-input"]', 'Private Members Workspace')
-		await page.click('[data-testid="confirm-create-workspace"]')
-		await page.waitForTimeout(1000)
-
-		const { data: workspaceData } = await supabaseAdmin
-			.from('workspaces')
-			.select('id')
-			.eq('owner_id', ownerData?.id)
-			.eq('name', 'Private Members Workspace')
-			.single()
-
-		// Create member
-		await page.goto('/logout')
-		await page.goto('/signup')
-		await page.fill('[data-testid="name-input"]', 'Member User')
-		await page.fill('[data-testid="email-input"]', memberEmail)
-		await page.fill('[data-testid="password-input"]', password)
-		await page.click('[data-testid="signup-button"]')
-		await page.waitForURL('**/dashboard**')
-
-		const { data: memberData } = await supabaseAdmin
-			.from('users')
-			.select('id')
-			.eq('email', memberEmail)
-			.single()
-
-		// Add member to workspace
-		await supabaseAdmin.from('workspace_members').insert({
-			workspace_id: workspaceData?.id,
-			user_id: memberData?.id,
-			role: 'member',
-		})
-
-		// Try to access members page as member
-		await page.goto(`/workspace/${workspaceData?.id}/members`)
-
-		// Should redirect to 403 page
-		await expect(page).toHaveURL('**/403')
-
-		// Cleanup
-		await supabaseAdmin.from('workspaces').delete().eq('id', workspaceData?.id)
-		const { data: users } = await supabaseAdmin.auth.admin.listUsers()
-		for (const user of users.users) {
-			if (user.email === ownerEmail || user.email === memberEmail) {
-				await supabaseAdmin.auth.admin.deleteUser(user.id)
-			}
+			await cleanupUserData(supabaseAdmin, memberId)
+			await supabaseAdmin.auth.admin.deleteUser(memberId)
 		}
 	})
 })

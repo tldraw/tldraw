@@ -129,7 +129,7 @@ _Start these in parallel after M1.5 complete_
 
 ### Phase 3: Documents & Folders (Week 3-4)
 
-- [ ] [`tickets/NAV-03A-document-creation-ui.md`](tickets/NAV-03A-document-creation-ui.md) _(Small - UI for creating/managing documents)_
+- [x] [`tickets/NAV-03A-document-creation-ui.md`](tickets/NAV-03A-document-creation-ui.md) _(Small - UI for creating/managing documents)_ ✅ COMPLETED 2025-10-05
 - [ ] [`tickets/TECH-05-folder-ancestry-validation.md`](tickets/TECH-05-folder-ancestry-validation.md) _(Medium)_
 - [ ] [`tickets/DOC-02-folder-hierarchy-and-cycle-prevention.md`](tickets/DOC-02-folder-hierarchy-and-cycle-prevention.md) _(Large - COMPLEX)_
 - [ ] [`tickets/DOC-03-document-move-operations.md`](tickets/DOC-03-document-move-operations.md) _(Medium)_
@@ -230,6 +230,12 @@ _Document views show file metadata/preview only - no canvas rendering_
 - [ ] [`tickets/TECH-07-error-tracking-and-monitoring.md`](tickets/TECH-07-error-tracking-and-monitoring.md)
 - [ ] [`tickets/TEST-02-multiplayer-e2e-coverage.md`](tickets/TEST-02-multiplayer-e2e-coverage.md)
 - [ ] [`tickets/TEST-03-permission-and-guest-testing.md`](tickets/TEST-03-permission-and-guest-testing.md)
+- [x] [`tickets/TEST-05-worker-auth-fixture.md`](tickets/TEST-05-worker-auth-fixture.md)
+- [x] [`tickets/TEST-06-auth-storage-state.md`](tickets/TEST-06-auth-storage-state.md)
+- [ ] [`tickets/TEST-07-playwright-production-server.md`](tickets/TEST-07-playwright-production-server.md)
+- [x] [`tickets/TEST-08-playwright-test-data-seeding.md`](tickets/TEST-08-playwright-test-data-seeding.md)
+- [ ] [`tickets/TEST-09-playwright-artifact-tuning.md`](tickets/TEST-09-playwright-artifact-tuning.md)
+- [ ] [`tickets/TEST-10-fast-global-reset.md`](tickets/TEST-10-fast-global-reset.md)
 
 ## How to Use This Plan
 

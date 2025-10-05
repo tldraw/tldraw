@@ -1,70 +1,47 @@
 import { expect, test } from './fixtures/test-fixtures'
 
 test.describe('Ownership Transfer', () => {
-	test('owner can transfer ownership to another member', async ({ page, supabaseAdmin }) => {
+	test('owner can transfer ownership to another member', async ({
+		page,
+		supabaseAdmin,
+		testData,
+	}) => {
 		// Create two users for the test
 		const ownerEmail = `owner-${Date.now()}@example.com`
 		const memberEmail = `member-${Date.now()}@example.com`
 		const password = 'TestPassword123!'
 
-		// Sign up the owner
-		await page.goto('/signup')
-		await page.fill('[data-testid="name-input"]', 'Owner User')
-		await page.fill('[data-testid="email-input"]', ownerEmail)
-		await page.fill('[data-testid="password-input"]', password)
-		await page.click('[data-testid="signup-button"]')
-		await page.waitForURL('**/dashboard**')
+		// Provision users via Supabase admin API to skip UI signup flows
+		const { data: ownerAuth, error: ownerError } = await supabaseAdmin.auth.admin.createUser({
+			email: ownerEmail,
+			password,
+			email_confirm: true,
+			user_metadata: { name: 'Owner User' },
+		})
+		if (ownerError) throw ownerError
+		const ownerId = ownerAuth?.user?.id
 
-		// Get owner's user ID
-		const { data: ownerData } = await supabaseAdmin
-			.from('users')
-			.select('id')
-			.eq('email', ownerEmail)
-			.single()
-		const ownerId = ownerData?.id
+		const { data: memberAuth, error: memberError } = await supabaseAdmin.auth.admin.createUser({
+			email: memberEmail,
+			password,
+			email_confirm: true,
+			user_metadata: { name: 'Member User' },
+		})
+		if (memberError) throw memberError
+		const memberId = memberAuth?.user?.id
 
-		// Create a workspace
-		await page.click('[data-testid="create-workspace-button"]')
-		await page.waitForSelector('[data-testid="workspace-name-input"]', { state: 'visible' })
-		await page.fill('[data-testid="workspace-name-input"]', 'Transfer Test Workspace')
-		await page.click('[data-testid="confirm-create-workspace"]')
-		await page.waitForTimeout(1000)
+		if (!ownerId || !memberId) {
+			throw new Error('Failed to provision test users for ownership transfer test')
+		}
 
-		// Get the workspace ID
-		const { data: workspaceData } = await supabaseAdmin
-			.from('workspaces')
-			.select('id')
-			.eq('owner_id', ownerId)
-			.eq('name', 'Transfer Test Workspace')
-			.single()
-		const workspaceId = workspaceData?.id
-
-		// Logout and create member user
-		await page.goto('/logout')
-		await page.goto('/signup')
-		await page.fill('[data-testid="name-input"]', 'Member User')
-		await page.fill('[data-testid="email-input"]', memberEmail)
-		await page.fill('[data-testid="password-input"]', password)
-		await page.click('[data-testid="signup-button"]')
-		await page.waitForURL('**/dashboard**')
-
-		// Get member's user ID
-		const { data: memberData } = await supabaseAdmin
-			.from('users')
-			.select('id')
-			.eq('email', memberEmail)
-			.single()
-		const memberId = memberData?.id
-
-		// Add member to workspace directly via database
-		await supabaseAdmin.from('workspace_members').insert({
-			workspace_id: workspaceId,
-			user_id: memberId,
-			role: 'member',
+		// Create workspace and add member without touching the UI
+		const workspace = await testData.createWorkspace({
+			ownerId,
+			name: 'Transfer Test Workspace',
+			members: [{ userId: memberId, role: 'member' }],
 		})
 
-		// Logout and login as owner again
-		await page.goto('/logout')
+		// Login as owner via UI to perform the transfer
 		await page.goto('/login')
 		await page.fill('[data-testid="email-input"]', ownerEmail)
 		await page.fill('[data-testid="password-input"]', password)
@@ -72,7 +49,7 @@ test.describe('Ownership Transfer', () => {
 		await page.waitForURL('**/dashboard**')
 
 		// Navigate to workspace settings
-		await page.goto(`/workspace/${workspaceId}/settings`)
+		await page.goto(`/workspace/${workspace.id}/settings`)
 		await expect(page.locator('h1')).toContainText('Workspace Settings')
 
 		// Check ownership transfer section exists
@@ -88,13 +65,13 @@ test.describe('Ownership Transfer', () => {
 		await page.click('button:has-text("Confirm Transfer")')
 
 		// Should redirect to workspace page
-		await page.waitForURL(`**/workspace/${workspaceId}`)
+		await page.waitForURL(`**/workspace/${workspace.id}`)
 
 		// Verify ownership was transferred in database
 		const { data: updatedWorkspace } = await supabaseAdmin
 			.from('workspaces')
 			.select('owner_id')
-			.eq('id', workspaceId)
+			.eq('id', workspace.id)
 			.single()
 
 		expect(updatedWorkspace?.owner_id).toBe(memberId)
@@ -103,14 +80,14 @@ test.describe('Ownership Transfer', () => {
 		const { data: ownerMembership } = await supabaseAdmin
 			.from('workspace_members')
 			.select('role')
-			.eq('workspace_id', workspaceId)
+			.eq('workspace_id', workspace.id)
 			.eq('user_id', ownerId)
 			.single()
 
 		const { data: memberMembership } = await supabaseAdmin
 			.from('workspace_members')
 			.select('role')
-			.eq('workspace_id', workspaceId)
+			.eq('workspace_id', workspace.id)
 			.eq('user_id', memberId)
 			.single()
 
@@ -118,7 +95,7 @@ test.describe('Ownership Transfer', () => {
 		expect(memberMembership?.role).toBe('owner')
 
 		// Cleanup
-		await supabaseAdmin.from('workspaces').delete().eq('id', workspaceId)
+		await supabaseAdmin.from('workspaces').delete().eq('id', workspace.id)
 		const { data: users } = await supabaseAdmin.auth.admin.listUsers()
 		for (const user of users.users) {
 			if (user.email === ownerEmail || user.email === memberEmail) {
@@ -157,74 +134,57 @@ test.describe('Ownership Transfer', () => {
 		await expect(transferSection).not.toBeVisible()
 	})
 
-	test('members cannot see ownership transfer section', async ({ page, supabaseAdmin }) => {
-		// Create owner user
+	test('members cannot see ownership transfer section', async ({
+		page,
+		supabaseAdmin,
+		testData,
+	}) => {
 		const ownerEmail = `owner2-${Date.now()}@example.com`
 		const memberEmail = `member2-${Date.now()}@example.com`
 		const password = 'TestPassword123!'
 
-		// Sign up owner
-		await page.goto('/signup')
-		await page.fill('[data-testid="name-input"]', 'Owner User 2')
-		await page.fill('[data-testid="email-input"]', ownerEmail)
-		await page.fill('[data-testid="password-input"]', password)
-		await page.click('[data-testid="signup-button"]')
-		await page.waitForURL('**/dashboard**')
+		const { data: ownerAuth, error: ownerError } = await supabaseAdmin.auth.admin.createUser({
+			email: ownerEmail,
+			password,
+			email_confirm: true,
+			user_metadata: { name: 'Owner User 2' },
+		})
+		if (ownerError) throw ownerError
+		const ownerId = ownerAuth?.user?.id
 
-		// Get owner ID and create workspace
-		const { data: ownerData } = await supabaseAdmin
-			.from('users')
-			.select('id')
-			.eq('email', ownerEmail)
-			.single()
+		const { data: memberAuth, error: memberError } = await supabaseAdmin.auth.admin.createUser({
+			email: memberEmail,
+			password,
+			email_confirm: true,
+			user_metadata: { name: 'Member User 2' },
+		})
+		if (memberError) throw memberError
+		const memberId = memberAuth?.user?.id
 
-		await page.click('[data-testid="create-workspace-button"]')
-		await page.waitForSelector('[data-testid="workspace-name-input"]', { state: 'visible' })
-		await page.fill('[data-testid="workspace-name-input"]', 'Member Test Workspace')
-		await page.click('[data-testid="confirm-create-workspace"]')
-		await page.waitForTimeout(1000)
+		if (!ownerId || !memberId) {
+			throw new Error('Failed to provision users for member visibility test')
+		}
 
-		const { data: workspaceData } = await supabaseAdmin
-			.from('workspaces')
-			.select('id')
-			.eq('owner_id', ownerData?.id)
-			.eq('name', 'Member Test Workspace')
-			.single()
-
-		// Create member user
-		await page.goto('/logout')
-		await page.goto('/signup')
-		await page.fill('[data-testid="name-input"]', 'Member User 2')
-		await page.fill('[data-testid="email-input"]', memberEmail)
-		await page.fill('[data-testid="password-input"]', password)
-		await page.click('[data-testid="signup-button"]')
-		await page.waitForURL('**/dashboard**')
-
-		// Get member ID and add to workspace
-		const { data: memberData } = await supabaseAdmin
-			.from('users')
-			.select('id')
-			.eq('email', memberEmail)
-			.single()
-
-		await supabaseAdmin.from('workspace_members').insert({
-			workspace_id: workspaceData?.id,
-			user_id: memberData?.id,
-			role: 'member',
+		const workspace = await testData.createWorkspace({
+			ownerId,
+			name: 'Member Test Workspace',
+			members: [{ userId: memberId, role: 'member' }],
 		})
 
-		// Navigate to workspace settings as member
-		await page.goto(`/workspace/${workspaceData?.id}/settings`)
+		// Login as member to verify restricted UI
+		await page.goto('/login')
+		await page.fill('[data-testid="email-input"]', memberEmail)
+		await page.fill('[data-testid="password-input"]', password)
+		await page.click('[data-testid="login-button"]')
+		await page.waitForURL('**/dashboard**')
 
-		// Transfer section should not be visible
+		await page.goto(`/workspace/${workspace.id}/settings`)
+
 		const transferSection = page.locator('section:has-text("Transfer Ownership")')
 		await expect(transferSection).not.toBeVisible()
-
-		// Member should see leave option
 		await expect(page.locator('button:has-text("Leave Workspace")')).toBeVisible()
 
-		// Cleanup
-		await supabaseAdmin.from('workspaces').delete().eq('id', workspaceData?.id)
+		await supabaseAdmin.from('workspaces').delete().eq('id', workspace.id)
 		const { data: users } = await supabaseAdmin.auth.admin.listUsers()
 		for (const user of users.users) {
 			if (user.email === ownerEmail || user.email === memberEmail) {
@@ -237,39 +197,18 @@ test.describe('Ownership Transfer', () => {
 		authenticatedPage,
 		testUser,
 		supabaseAdmin,
+		testData,
 	}) => {
-		// Create a workspace without other members
-		await authenticatedPage.goto('/dashboard')
-		await authenticatedPage.click('[data-testid="create-workspace-button"]')
-		await authenticatedPage.waitForSelector('[data-testid="workspace-name-input"]', {
-			state: 'visible',
+		const workspace = await testData.createWorkspace({
+			ownerId: testUser.id,
+			name: 'Solo Workspace',
 		})
-		await authenticatedPage.fill('[data-testid="workspace-name-input"]', 'Solo Workspace')
-		await authenticatedPage.click('[data-testid="confirm-create-workspace"]')
-		await authenticatedPage.waitForTimeout(1000)
 
-		// Get workspace ID
-		const { data: userData } = await supabaseAdmin
-			.from('users')
-			.select('id')
-			.eq('email', testUser.email)
-			.single()
+		await authenticatedPage.goto(`/workspace/${workspace.id}/settings`)
 
-		const { data: workspaceData } = await supabaseAdmin
-			.from('workspaces')
-			.select('id')
-			.eq('owner_id', userData?.id)
-			.eq('name', 'Solo Workspace')
-			.single()
-
-		// Navigate to workspace settings
-		await authenticatedPage.goto(`/workspace/${workspaceData?.id}/settings`)
-
-		// Transfer section should not exist (no other members)
 		const transferSection = authenticatedPage.locator('section:has-text("Transfer Ownership")')
 		await expect(transferSection).not.toBeVisible()
 
-		// Cleanup
-		await supabaseAdmin.from('workspaces').delete().eq('id', workspaceData?.id)
+		await supabaseAdmin.from('workspaces').delete().eq('id', workspace.id)
 	})
 })

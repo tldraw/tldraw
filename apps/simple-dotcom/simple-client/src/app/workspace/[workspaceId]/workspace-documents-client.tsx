@@ -19,14 +19,12 @@ export default function WorkspaceDocumentsClient({
 	workspace,
 	documents: initialDocuments,
 	folders,
-	role,
 	isOwner,
-	userId,
 }: WorkspaceDocumentsClientProps) {
 	const router = useRouter()
 	const [documents, setDocuments] = useState(initialDocuments)
 	const [isCreating, setIsCreating] = useState(false)
-	const [selectedFolder, setSelectedFolder] = useState<string | null>(null)
+	const [selectedFolder, _setSelectedFolder] = useState<string | null>(null)
 
 	// Filter documents by selected folder
 	const filteredDocuments = selectedFolder
@@ -59,8 +57,10 @@ export default function WorkspaceDocumentsClient({
 			setDocuments((prev) => [newDocument, ...prev])
 			// Navigate to the new document
 			router.push(`/d/${newDocument.id}`)
-		} catch (error: any) {
-			alert(`Error creating document: ${error.message}`)
+		} catch (err) {
+			alert(
+				`Error creating document: ${err instanceof Error ? err.message : 'An unexpected error occurred'}`
+			)
 		} finally {
 			setIsCreating(false)
 		}
@@ -81,8 +81,10 @@ export default function WorkspaceDocumentsClient({
 
 			const { data: updatedDocument } = await response.json()
 			setDocuments((prev) => prev.map((doc) => (doc.id === documentId ? updatedDocument : doc)))
-		} catch (error: any) {
-			alert(`Error renaming document: ${error.message}`)
+		} catch (err) {
+			alert(
+				`Error renaming document: ${err instanceof Error ? err.message : 'An unexpected error occurred'}`
+			)
 		}
 	}
 
@@ -99,8 +101,10 @@ export default function WorkspaceDocumentsClient({
 
 			const { data: duplicatedDocument } = await response.json()
 			setDocuments((prev) => [duplicatedDocument, ...prev])
-		} catch (error: any) {
-			alert(`Error duplicating document: ${error.message}`)
+		} catch (err) {
+			alert(
+				`Error duplicating document: ${err instanceof Error ? err.message : 'An unexpected error occurred'}`
+			)
 		}
 	}
 
@@ -123,8 +127,10 @@ export default function WorkspaceDocumentsClient({
 						: doc
 				)
 			)
-		} catch (error: any) {
-			alert(`Error archiving document: ${error.message}`)
+		} catch (err) {
+			alert(
+				`Error archiving document: ${err instanceof Error ? err.message : 'An unexpected error occurred'}`
+			)
 		}
 	}
 
@@ -141,12 +147,14 @@ export default function WorkspaceDocumentsClient({
 
 			const { data: restoredDocument } = await response.json()
 			setDocuments((prev) => prev.map((doc) => (doc.id === documentId ? restoredDocument : doc)))
-		} catch (error: any) {
-			alert(`Error restoring document: ${error.message}`)
+		} catch (err) {
+			alert(
+				`Error restoring document: ${err instanceof Error ? err.message : 'An unexpected error occurred'}`
+			)
 		}
 	}
 
-	const handleDeleteDocument = async (documentId: string) => {
+	const handleDeleteDocument = async (_documentId: string) => {
 		// For M2, we only support soft delete (archive)
 		// Hard delete will be implemented in DOC-05
 		alert('Permanent deletion will be available in a future update')

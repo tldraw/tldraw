@@ -56,7 +56,17 @@ async function getWorkspaceData(
 	const [documentsResult, foldersResult] = await Promise.all([
 		supabase
 			.from('documents')
-			.select('*')
+			.select(
+				`
+				*,
+				creator:users!created_by (
+					id,
+					display_name,
+					name,
+					email
+				)
+			`
+			)
 			.eq('workspace_id', workspaceId)
 			.eq('is_archived', false)
 			.order('created_at', { ascending: false }),

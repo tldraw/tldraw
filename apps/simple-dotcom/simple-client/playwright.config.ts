@@ -5,6 +5,10 @@ import * as path from 'path'
 // Load .env.local for test environment variables
 dotenv.config({ path: path.resolve(__dirname, '.env.local') })
 
+const localWorkerCount = process.env.PLAYWRIGHT_WORKERS
+	? Number.parseInt(process.env.PLAYWRIGHT_WORKERS, 10)
+	: undefined
+
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
@@ -14,7 +18,7 @@ export default defineConfig({
 	fullyParallel: true,
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 0,
-	workers: process.env.CI ? 2 : 4, // Use 4 workers locally, 2 in CI
+	workers: process.env.CI ? 2 : Number.isNaN(localWorkerCount) ? undefined : localWorkerCount,
 	reporter: [['html', { open: 'never' }]],
 	timeout: 30000,
 	// Global setup runs before all tests to clean up any leftover data
@@ -37,7 +41,7 @@ export default defineConfig({
 	],
 
 	webServer: {
-		command: 'yarn workspace simple-client dev',
+		command: 'yarn workspace simple-client build && yarn workspace simple-client start --port 3000',
 		url: 'http://localhost:3000',
 		reuseExistingServer: !process.env.CI,
 		cwd: '../../../', // Run from repo root to access workspace command

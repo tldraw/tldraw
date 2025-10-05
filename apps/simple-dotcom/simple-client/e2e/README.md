@@ -52,9 +52,11 @@ yarn test:e2e:debug
 ### Fixtures (`fixtures/test-fixtures.ts`)
 
 Custom Playwright fixtures for:
-- `testUser`: Automatically creates and cleans up test users
+- `testUser`: Worker-scoped Supabase account created via the admin API and shared by that worker's tests
 - `authenticatedPage`: Pre-authenticated page ready for testing protected routes
 - `supabaseAdmin`: Admin client for test setup/teardown
+- `storageStatePath`: Path to the worker's cached Playwright storage state (used internally by `authenticatedPage`)
+- `testData`: Helper for seeding workspaces, documents, and memberships directly through Supabase
 
 ### Test Suites
 
@@ -96,35 +98,37 @@ To ensure reliable test execution and prevent flaky tests, we implement comprehe
 
 ### Global Setup
 
-Before any tests run, `e2e/global-setup.ts` cleans up leftover test data from previous runs by:
-- Finding all users with emails matching `test-%` pattern
-- Cascading deletion of all related data (workspaces, documents, folders, memberships, etc.)
-- Logging detailed cleanup results
+Before any tests run, `e2e/global-setup.ts` calls the `cleanup_test_data('test-%')` RPC to purge leftover records in one shot:
+- Finds test users (`test-%`) in `auth.users`
+- Cascades deletions across workspaces, documents, folders, members, presence, and audit tables inside the database
+- Logs counts so we can spot lingering state quickly
 
 This ensures tests never inherit dirty state from:
 - Failed or interrupted previous test runs
 - Manual testing during development
 - CI runs that didn't clean up properly
 
-### Per-Test Isolation
+### Worker-Scoped Isolation
 
-Each test using the `testUser` fixture gets:
+Each Playwright worker provisions its own Supabase user via the `testUser` fixture:
 
-1. **Unique test user** with email: `test-w{worker}-t{test}-{counter}-{timestamp}-{random}@example.com`
-2. **Automatic cleanup** after the test that deletes:
-   - presence records
-   - document_access_log entries
-   - documents in owned workspaces
-   - folders in owned workspaces
-   - invitation_links for owned workspaces
-   - workspace_members records
-   - owned workspaces
-   - the user record itself
+1. **Unique worker user** with email: `test-worker-{workerIndex}-{counter}-{timestamp}-{random}@example.com`, created through `supabase.auth.admin.createUser`
+2. **Shared across tests** running on that worker to avoid repeated UI signups and expensive teardown
+3. **Single cleanup pass** when the worker shuts down that removes documents, workspaces, memberships, and finally deletes the Supabase user (via `cleanupTestUsersByPattern` + `auth.admin.deleteUser`)
 
-3. **Failure on cleanup errors** - If cleanup fails, the test fails with detailed logging showing:
-   - Which table(s) failed
-   - Specific error messages
-   - Counts of successfully deleted records
+If the cleanup step surfaces errors, the worker fails with detailed logging so problems are visible instead of silently accumulating state.
+
+### Auth Storage State
+
+- Authentication happens once per worker. The fixtures sign in the generated user, persist Playwright `storageState`, and reuse it for every authenticated context.
+- To run a test without credentials, request a fresh context: `const context = await browser.newContext({ storageState: undefined })` or `test.use({ storageState: { cookies: [], origins: [] } })` within that spec.
+- Storage state files are ephemeral and removed after each worker completes, so reruns always start clean.
+
+### Test Data Helpers
+
+- `fixtures/data-helpers.ts` exposes `TestDataBuilder` with methods like `createWorkspace`, `createDocument`, and `addWorkspaceMember` for fast Supabase seeding.
+- Use `testData` from fixtures to set up complex scenarios without UI flows, e.g. `await testData.createWorkspace({ ownerId: testUser.id })`.
+- Helper methods automatically create owner memberships and can optionally log document access timestamps to drive recent-document assertions.
 
 ### Cleanup Utilities
 

@@ -62,7 +62,7 @@ export default function WorkspaceMembersClient({
 					table: 'workspace_members',
 					filter: `workspace_id=eq.${workspace.id}`,
 				},
-				(payload) => {
+				(_payload) => {
 					// Refresh the page to get updated member list
 					// In a production app, we'd update state more efficiently
 					router.refresh()
@@ -116,8 +116,8 @@ export default function WorkspaceMembersClient({
 
 			setSuccess(inviteLink?.enabled ? 'Invite link disabled' : 'Invite link enabled')
 			router.refresh()
-		} catch (err: any) {
-			setError(err.message)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
 		} finally {
 			setIsToggling(false)
 		}
@@ -144,8 +144,8 @@ export default function WorkspaceMembersClient({
 
 			setSuccess('Invite link regenerated')
 			router.refresh()
-		} catch (err: any) {
-			setError(err.message)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
 		} finally {
 			setIsRegenerating(false)
 		}
@@ -183,8 +183,8 @@ export default function WorkspaceMembersClient({
 
 			// Still refresh to ensure consistency
 			router.refresh()
-		} catch (err: any) {
-			setError(err.message)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
 		}
 	}
 

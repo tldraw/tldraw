@@ -8,7 +8,7 @@ export default function ForbiddenPage() {
 					<h1 className="text-6xl font-bold text-foreground/20">403</h1>
 					<h2 className="mt-4 text-2xl font-bold">Access Denied</h2>
 					<p className="mt-2 text-sm text-foreground/60">
-						You don't have permission to access this workspace or resource.
+						You do not have permission to access this workspace or resource.
 					</p>
 				</div>
 

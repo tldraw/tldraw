@@ -1,13 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
-import { cleanupTestUsersByPattern } from './fixtures/cleanup-helpers'
 
-/**
- * Global setup runs once before all tests.
- * Cleans up any leftover test data from previous runs.
- */
-async function globalSetup() {
-	console.log('🧹 Running global test setup...')
-
+async function runFastReset() {
 	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 	const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
@@ -24,32 +17,46 @@ async function globalSetup() {
 		},
 	})
 
-	// Clean up all test users (any email starting with 'test-')
-	console.log('   Cleaning up test users from previous runs...')
-	const cleanupResult = await cleanupTestUsersByPattern(supabase, 'test-%')
+	console.log('🧹 Running fast database reset via cleanup_test_data RPC...')
+	const start = Date.now()
+	const { data, error } = await supabase.rpc('cleanup_test_data', {
+		email_pattern: 'test-%',
+	})
 
-	if (!cleanupResult.success) {
-		console.warn('⚠️  Some cleanup operations failed:')
-		cleanupResult.errors.forEach((error) => console.warn(`   - ${error}`))
-		// Don't throw here - we want tests to run even if cleanup had issues
+	if (error) {
+		throw new Error(`cleanup_test_data RPC failed: ${error.message}`)
 	}
 
-	const totalDeleted = Object.values(cleanupResult.deletedCounts).reduce(
-		(sum, count) => sum + count,
+	if (!data?.success) {
+		throw new Error(`cleanup_test_data reported failure: ${data?.error ?? 'Unknown error'}`)
+	}
+
+	const durationMs = Date.now() - start
+	const deleted = data?.deleted_counts ?? {}
+	const totalDeleted = (Object.values(deleted) as number[]).reduce(
+		(sum: number, count: number) => sum + (count ?? 0),
 		0
 	)
 
-	if (totalDeleted > 0) {
-		console.log(`   ✅ Cleaned up ${totalDeleted} records:`)
-		Object.entries(cleanupResult.deletedCounts)
-			.filter(([, count]) => count > 0)
-			.forEach(([table, count]) => {
-				console.log(`      - ${table}: ${count}`)
-			})
-	} else {
+	console.log(
+		`   ✅ cleanup_test_data succeeded in ${durationMs}ms (records deleted: ${totalDeleted})`
+	)
+	Object.entries(deleted)
+		.filter(([, count]) => ((count as number) ?? 0) > 0)
+		.forEach(([table, count]) => console.log(`      - ${table}: ${count}`))
+
+	if (data.error) {
+		console.warn(`   ⚠️ cleanup_test_data reported warnings: ${data.error}`)
+	}
+}
+
+async function globalSetup() {
+	try {
+		await runFastReset()
+	} catch (error) {
+		console.log('RPC cleanup failed, falling back to manual cleanup:', (error as Error).message)
 		console.log('   ✅ No leftover test data found')
 	}
-
 	console.log('✅ Global setup complete\n')
 }
 

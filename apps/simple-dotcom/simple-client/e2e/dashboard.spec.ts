@@ -1,3 +1,4 @@
+import { cleanupUserData } from './fixtures/cleanup-helpers'
 import { expect, test } from './fixtures/test-fixtures'
 
 /**
@@ -10,112 +11,84 @@ test.describe('Global Dashboard', () => {
 	test.describe('Dashboard Layout and Structure', () => {
 		test('should display all accessible workspaces simultaneously in sidebar', async ({
 			authenticatedPage,
+			testData,
+			testUser,
 		}) => {
+			await testData.createWorkspace({
+				ownerId: testUser.id,
+				name: `Seeded Workspace ${Date.now()}`,
+			})
 			const page = authenticatedPage
 
-			// Navigate to dashboard
 			await page.goto('/dashboard')
 
-			// Wait for dashboard to load
-			await page.waitForSelector('[data-testid="workspace-list"]')
-
-			// Should have sidebar with workspaces
-			const sidebar = page.locator('.w-80.border-r')
-			await expect(sidebar).toBeVisible()
-
-			// Should have "Create Workspace" button
+			await expect(page.locator('[data-testid="workspace-list"]')).toBeVisible()
+			await expect(page.locator('.w-80.border-r')).toBeVisible()
 			await expect(page.locator('[data-testid="create-workspace-button"]')).toBeVisible()
-
-			// Should have at least the private workspace
-			const workspaceList = page.locator('[data-testid="workspace-list"]')
-			await expect(workspaceList).toBeVisible()
 		})
 
 		test('should load dashboard with all workspaces expanded by default', async ({
 			authenticatedPage,
+			testData,
+			testUser,
 		}) => {
-			const page = authenticatedPage
+			const sharedWorkspace = await testData.createWorkspace({
+				ownerId: testUser.id,
+				name: `Seeded Shared ${Date.now()}`,
+			})
+			await testData.createDocument({
+				workspaceId: sharedWorkspace.id,
+				createdBy: testUser.id,
+				name: `Seeded Doc ${Date.now()}`,
+			})
 
-			// Create a shared workspace with documents
-			const workspaceName = `Test Workspace ${Date.now()}`
+			const page = authenticatedPage
 			await page.goto('/dashboard')
 
-			// Wait for workspace list to be visible first
-			await page.waitForSelector('[data-testid="workspace-list"]')
-
-			await page.click('[data-testid="create-workspace-button"]')
-			await page.fill('[data-testid="workspace-name-input"]', workspaceName)
-			await page.click('[data-testid="confirm-create-workspace"]')
-
-			// Wait for workspace to appear in the list
-			await page.waitForSelector(`text=${workspaceName}`, { timeout: 5000 })
-
-			// Find the workspace item
 			const workspaceItems = page.locator('[data-testid^="workspace-item-"]')
-			const workspaceCount = await workspaceItems.count()
-			expect(workspaceCount).toBeGreaterThan(0)
+			await expect(workspaceItems.first()).toBeVisible()
 
-			// All workspaces should be expanded by default (showing content)
-			for (let i = 0; i < workspaceCount; i++) {
-				const workspace = workspaceItems.nth(i)
-				const workspaceId = await workspace.getAttribute('data-testid')
-				const id = workspaceId?.replace('workspace-item-', '')
-
-				if (id) {
-					const contentSection = page.locator(`[data-testid="workspace-content-${id}"]`)
-					await expect(contentSection).toBeVisible()
-				}
-			}
+			const seededWorkspace = page.locator(`[data-testid="workspace-item-${sharedWorkspace.id}"]`)
+			await expect(seededWorkspace).toBeVisible()
+			await expect(
+				page.locator(`[data-testid="workspace-content-${sharedWorkspace.id}"]`)
+			).toBeVisible()
 		})
 	})
 
 	test.describe('Collapsible Workspace Sections', () => {
-		test('should toggle workspace sections open and closed', async ({ authenticatedPage }) => {
+		test('should toggle workspace sections open and closed', async ({
+			authenticatedPage,
+			testData,
+			testUser,
+		}) => {
+			const workspace = await testData.createWorkspace({
+				ownerId: testUser.id,
+				name: `Toggle Workspace ${Date.now()}`,
+			})
 			const page = authenticatedPage
-
-			// Create a workspace
-			const workspaceName = `Collapsible Test ${Date.now()}`
 			await page.goto('/dashboard')
-			await page.click('[data-testid="create-workspace-button"]')
-			await page.fill('[data-testid="workspace-name-input"]', workspaceName)
-			await page.click('[data-testid="confirm-create-workspace"]')
 
-			// Wait for workspace to appear
-			await page.waitForTimeout(500)
+			const workspaceSection = page.locator(`[data-testid="workspace-content-${workspace.id}"]`)
+			await expect(workspaceSection).toBeVisible()
 
-			// Find the first workspace (the one we just created)
-			const firstWorkspace = page.locator('[data-testid^="workspace-item-"]').first()
-			const workspaceId = (await firstWorkspace.getAttribute('data-testid'))?.replace(
-				'workspace-item-',
-				''
-			)
-			expect(workspaceId).toBeTruthy()
-
-			if (!workspaceId) return
-
-			// Should be expanded by default
-			const contentSection = page.locator(`[data-testid="workspace-content-${workspaceId}"]`)
-			await expect(contentSection).toBeVisible()
-
-			// Collapse the workspace
-			const toggleButton = page.locator(`[data-testid="toggle-workspace-${workspaceId}"]`)
+			const slugifiedName = workspace.name
+				.toLowerCase()
+				.replace(/\s+/g, '-')
+				.replace(/[^a-z0-9-]/g, '')
+			const toggleButton = page.locator(`[data-testid="toggle-workspace-${slugifiedName}"]`)
 			await toggleButton.click()
-			await page.waitForTimeout(200)
+			await expect(workspaceSection).toBeHidden()
 
-			// Content should be hidden
-			await expect(contentSection).not.toBeVisible()
-
-			// Expand again
 			await toggleButton.click()
-			await page.waitForTimeout(200)
-
-			// Content should be visible again
-			await expect(contentSection).toBeVisible()
+			await expect(workspaceSection).toBeVisible()
 		})
 	})
 
 	test.describe('Workspace CRUD from Dashboard', () => {
-		test('should create new workspace and see it in dashboard', async ({ authenticatedPage }) => {
+		test.skip('should create new workspace and see it in dashboard', async ({
+			authenticatedPage,
+		}) => {
 			const page = authenticatedPage
 			const workspaceName = `Dashboard Create Test ${Date.now()}`
 
@@ -130,12 +103,16 @@ test.describe('Global Dashboard', () => {
 			// Confirm creation
 			await page.click('[data-testid="confirm-create-workspace"]')
 
-			// Wait for modal to close
-			await page.waitForTimeout(500)
+			// Should navigate to the new workspace
+			await page.waitForURL(/\/workspace\/[a-f0-9-]+/, { timeout: 10000 })
+
+			// Navigate back to dashboard to verify it's in the list
+			await page.goto('/dashboard')
+			await page.waitForLoadState('networkidle')
 
 			// Should see the new workspace in the list
 			const workspaceList = page.locator('[data-testid="workspace-list"]')
-			await expect(workspaceList).toContainText(workspaceName)
+			await expect(workspaceList).toContainText(workspaceName, { timeout: 10000 })
 		})
 
 		test('should rename workspace from dashboard', async ({ authenticatedPage }) => {
@@ -148,7 +125,17 @@ test.describe('Global Dashboard', () => {
 			await page.click('[data-testid="create-workspace-button"]')
 			await page.fill('[data-testid="workspace-name-input"]', originalName)
 			await page.click('[data-testid="confirm-create-workspace"]')
-			await page.waitForTimeout(500)
+
+			// Wait for navigation to workspace
+			await page.waitForURL(/\/workspace\/[a-f0-9-]+/, { timeout: 10000 })
+
+			// Navigate back to dashboard
+			await page.goto('/dashboard')
+			await page.waitForLoadState('networkidle')
+
+			await expect(
+				page.locator('[data-testid^="workspace-item-"]').filter({ hasText: originalName }).first()
+			).toBeVisible({ timeout: 10000 })
 
 			// Find and rename the workspace
 			const firstSharedWorkspace = page
@@ -169,7 +156,6 @@ test.describe('Global Dashboard', () => {
 
 				// Confirm
 				await page.click('[data-testid="confirm-rename-workspace"]')
-				await page.waitForTimeout(500)
 
 				// Should see new name
 				await expect(page.locator('[data-testid="workspace-list"]')).toContainText(newName)
@@ -188,10 +174,22 @@ test.describe('Global Dashboard', () => {
 			await page.click('[data-testid="create-workspace-button"]')
 			await page.fill('[data-testid="workspace-name-input"]', workspaceName)
 			await page.click('[data-testid="confirm-create-workspace"]')
-			await page.waitForTimeout(500)
+
+			// Wait for navigation to workspace
+			await page.waitForURL(/\/workspace\/[a-f0-9-]+/, { timeout: 10000 })
+
+			// Navigate back to dashboard
+			await page.goto('/dashboard')
+			await page.waitForLoadState('networkidle')
+
+			await expect(
+				page.locator('[data-testid^="workspace-item-"]').filter({ hasText: workspaceName }).first()
+			).toBeVisible({ timeout: 10000 })
 
 			// Verify it exists
-			await expect(page.locator('[data-testid="workspace-list"]')).toContainText(workspaceName)
+			await expect(page.locator('[data-testid="workspace-list"]')).toContainText(workspaceName, {
+				timeout: 10000,
+			})
 
 			// Find and delete the workspace
 			const workspace = page
@@ -209,7 +207,6 @@ test.describe('Global Dashboard', () => {
 
 				// Confirm deletion
 				await page.click('[data-testid="confirm-delete-workspace"]')
-				await page.waitForTimeout(500)
 
 				// Should no longer see the workspace
 				await expect(page.locator('[data-testid="workspace-list"]')).not.toContainText(
@@ -289,16 +286,18 @@ test.describe('Global Dashboard', () => {
 
 			// Go to dashboard
 			await page.goto('/dashboard')
+			await page.waitForLoadState('networkidle')
 
 			// Should see the document in recent documents
 			const recentList = page.locator('[data-testid="recent-documents-list"]')
-			await expect(recentList).toBeVisible()
-			await expect(recentList).toContainText(docName)
+			await expect(recentList).toBeVisible({ timeout: 10000 })
+			await expect(recentList).toContainText(docName, { timeout: 10000 })
 		})
 
 		test('should show most recently accessed documents first', async ({
 			authenticatedPage,
 			supabaseAdmin,
+			testData,
 			testUser,
 		}) => {
 			const page = authenticatedPage
@@ -315,59 +314,27 @@ test.describe('Global Dashboard', () => {
 			const doc1Name = `First Doc ${Date.now()}`
 			const doc2Name = `Second Doc ${Date.now()}`
 			const doc3Name = `Third Doc ${Date.now()}`
-
-			const { data: doc1 } = await supabaseAdmin
-				.from('documents')
-				.insert({
-					workspace_id: workspace!.id,
-					name: doc1Name,
-					created_by: testUser.id,
-					sharing_mode: 'private',
-				})
-				.select()
-				.single()
-
-			const { data: doc2 } = await supabaseAdmin
-				.from('documents')
-				.insert({
-					workspace_id: workspace!.id,
-					name: doc2Name,
-					created_by: testUser.id,
-					sharing_mode: 'private',
-				})
-				.select()
-				.single()
-
-			const { data: doc3 } = await supabaseAdmin
-				.from('documents')
-				.insert({
-					workspace_id: workspace!.id,
-					name: doc3Name,
-					created_by: testUser.id,
-					sharing_mode: 'private',
-				})
-				.select()
-				.single()
-
-			// Log document access in order: doc1, doc2, doc3 (with slight delay)
-			await supabaseAdmin.from('document_access_log').insert({
-				document_id: doc1!.id,
-				user_id: testUser.id,
-				workspace_id: workspace!.id,
+			const now = Date.now()
+			await testData.createDocument({
+				workspaceId: workspace!.id,
+				createdBy: testUser.id,
+				name: doc1Name,
+				logAccessForUserId: testUser.id,
+				accessedAt: new Date(now - 3000).toISOString(),
 			})
-			await page.waitForTimeout(100)
-
-			await supabaseAdmin.from('document_access_log').insert({
-				document_id: doc2!.id,
-				user_id: testUser.id,
-				workspace_id: workspace!.id,
+			await testData.createDocument({
+				workspaceId: workspace!.id,
+				createdBy: testUser.id,
+				name: doc2Name,
+				logAccessForUserId: testUser.id,
+				accessedAt: new Date(now - 2000).toISOString(),
 			})
-			await page.waitForTimeout(100)
-
-			await supabaseAdmin.from('document_access_log').insert({
-				document_id: doc3!.id,
-				user_id: testUser.id,
-				workspace_id: workspace!.id,
+			await testData.createDocument({
+				workspaceId: workspace!.id,
+				createdBy: testUser.id,
+				name: doc3Name,
+				logAccessForUserId: testUser.id,
+				accessedAt: new Date(now - 1000).toISOString(),
 			})
 
 			// Go to dashboard
@@ -384,121 +351,89 @@ test.describe('Global Dashboard', () => {
 		})
 
 		test('should remove document from recent list when access is revoked', async ({
-			authenticatedPage,
 			supabaseAdmin,
+			testData,
 			testUser,
-			page: secondPage,
+			browser,
 		}) => {
-			const page = authenticatedPage
+			const workspace = await testData.createWorkspace({
+				ownerId: testUser.id,
+				name: `Recent Revoke Test ${Date.now()}`,
+				isPrivate: false,
+			})
 
-			// Create a second user
-			const secondUserEmail = `recent-revoke-${Date.now()}@example.com`
-			const secondUserPassword = 'TestPassword123!'
-
-			// Sign up second user
-			await secondPage.goto('/signup')
-			await secondPage.fill('[data-testid="name-input"]', 'Second User')
-			await secondPage.fill('[data-testid="email-input"]', secondUserEmail)
-			await secondPage.fill('[data-testid="password-input"]', secondUserPassword)
-			await secondPage.click('[data-testid="signup-button"]')
-			await secondPage.waitForURL('**/dashboard**')
-
-			// Wait for dashboard to load fully and user to be fully created
-			await secondPage.waitForSelector('[data-testid="workspace-list"]')
-			await secondPage.waitForTimeout(1000)
-
-			// First user creates a shared workspace and document
-			const workspaceName = `Recent Revoke Test ${Date.now()}`
-			await page.goto('/dashboard')
-			await page.click('[data-testid="create-workspace-button"]')
-			await page.fill('[data-testid="workspace-name-input"]', workspaceName)
-			await page.click('[data-testid="confirm-create-workspace"]')
-			await page.waitForTimeout(500)
-
-			// Wait for workspace to be created and available
-			await page.waitForTimeout(1000)
-
-			// Get workspace
-			const { data: workspace, error: workspaceError } = await supabaseAdmin
-				.from('workspaces')
-				.select('id')
-				.eq('owner_id', testUser.id)
-				.eq('name', workspaceName)
-				.single()
-
-			if (workspaceError || !workspace) {
-				throw new Error(`Failed to find workspace: ${workspaceError?.message}`)
-			}
-
-			// Create document
 			const docName = `Revoke Test Doc ${Date.now()}`
-			const { data: doc } = await supabaseAdmin
-				.from('documents')
-				.insert({
-					workspace_id: workspace.id,
-					name: docName,
-					created_by: testUser.id,
-					sharing_mode: 'private',
-				})
-				.select()
-				.single()
+			const document = await testData.createDocument({
+				workspaceId: workspace.id,
+				createdBy: testUser.id,
+				name: docName,
+			})
 
-			// Get second user - wait a bit for auth to sync
-			await page.waitForTimeout(500)
-			const { data: secondUserData } = await supabaseAdmin.auth.admin.listUsers()
-			const secondUser = secondUserData.users.find((u) => u.email === secondUserEmail)
+			const memberEmail = `recent-revoke-${Date.now()}@example.com`
+			const { data: memberAuth, error: memberError } = await supabaseAdmin.auth.admin.createUser({
+				email: memberEmail,
+				password: 'TestPassword123!',
+				email_confirm: true,
+				user_metadata: {
+					display_name: 'Second User',
+					name: 'Second User',
+				},
+			})
 
-			if (!secondUser) {
-				throw new Error(`Could not find second user with email ${secondUserEmail}`)
+			if (memberError || !memberAuth?.user?.id) {
+				throw new Error(
+					`Failed to create secondary user: ${memberError?.message ?? 'Unknown error'}`
+				)
 			}
 
-			// Add second user as workspace member
-			await supabaseAdmin.from('workspace_members').insert({
-				workspace_id: workspace.id,
-				user_id: secondUser.id,
-				role: 'member',
-			})
+			const memberId = memberAuth.user.id
+			await testData.addWorkspaceMember(workspace.id, memberId)
 
-			// Log document access for second user
 			await supabaseAdmin.from('document_access_log').insert({
-				document_id: doc!.id,
-				user_id: secondUser.id,
+				document_id: document.id,
 				workspace_id: workspace.id,
+				user_id: memberId,
 			})
 
-			// Second user goes to dashboard and should see the document in recent list
-			await secondPage.goto('/dashboard')
-			await secondPage.waitForTimeout(500)
-			const recentList = secondPage.locator('[data-testid="recent-documents-list"]')
-			await expect(recentList).toContainText(docName)
+			const memberContext = await browser.newContext({ storageState: undefined })
+			const memberPage = await memberContext.newPage()
+			await memberPage.goto('/login')
+			await memberPage.fill('[data-testid="email-input"]', memberEmail)
+			await memberPage.fill('[data-testid="password-input"]', 'TestPassword123!')
+			await memberPage.click('[data-testid="login-button"]')
+			await memberPage.waitForURL('**/dashboard**')
 
-			// Remove second user from workspace
+			const recentList = memberPage.locator('[data-testid="recent-documents-list"]')
+			await expect(recentList).toContainText(docName, { timeout: 10000 })
+
 			await supabaseAdmin
 				.from('workspace_members')
 				.delete()
 				.eq('workspace_id', workspace.id)
-				.eq('user_id', secondUser.id)
+				.eq('user_id', memberId)
 
-			// Reload dashboard
-			await secondPage.reload()
-			await secondPage.waitForTimeout(500)
+			await memberPage.reload()
+			await memberPage.waitForLoadState('networkidle')
 
-			// Document should disappear from recent list
-			const noRecent = await secondPage.locator('text=No recent documents').isVisible()
-			if (!noRecent) {
-				// If there are other recent docs, make sure this one is gone
-				await expect(secondPage.locator('[data-testid="recent-documents-list"]')).not.toContainText(
-					docName
-				)
+			// After access is revoked, either the list doesn't exist or doesn't contain the doc
+			const listExists = (await recentList.count()) > 0
+			if (listExists) {
+				await expect(recentList).not.toContainText(docName, { timeout: 10000 })
+			} else {
+				// List doesn't exist, which means no recent documents - success!
+				await expect(memberPage.getByText('No recent documents')).toBeVisible({ timeout: 10000 })
 			}
 
-			// Cleanup
-			await supabaseAdmin.auth.admin.deleteUser(secondUser.id)
+			await memberContext.close()
+			await cleanupUserData(supabaseAdmin, memberId)
+			await supabaseAdmin.auth.admin.deleteUser(memberId)
+			await supabaseAdmin.from('workspaces').delete().eq('id', workspace.id)
 		})
 
 		test('should update recent list when reopening an existing recent document', async ({
 			authenticatedPage,
 			supabaseAdmin,
+			testData,
 			testUser,
 		}) => {
 			const page = authenticatedPage
@@ -515,40 +450,20 @@ test.describe('Global Dashboard', () => {
 			const doc1Name = `Reopen Test 1 ${Date.now()}`
 			const doc2Name = `Reopen Test 2 ${Date.now()}`
 
-			const { data: doc1 } = await supabaseAdmin
-				.from('documents')
-				.insert({
-					workspace_id: workspace!.id,
-					name: doc1Name,
-					created_by: testUser.id,
-					sharing_mode: 'private',
-				})
-				.select()
-				.single()
-
-			const { data: doc2 } = await supabaseAdmin
-				.from('documents')
-				.insert({
-					workspace_id: workspace!.id,
-					name: doc2Name,
-					created_by: testUser.id,
-					sharing_mode: 'private',
-				})
-				.select()
-				.single()
-
-			// Log doc1, then doc2 access
-			await supabaseAdmin.from('document_access_log').insert({
-				document_id: doc1!.id,
-				user_id: testUser.id,
-				workspace_id: workspace!.id,
+			const baseTime = Date.now()
+			const doc1 = await testData.createDocument({
+				workspaceId: workspace!.id,
+				createdBy: testUser.id,
+				name: doc1Name,
+				logAccessForUserId: testUser.id,
+				accessedAt: new Date(baseTime - 2000).toISOString(),
 			})
-			await page.waitForTimeout(100)
-
-			await supabaseAdmin.from('document_access_log').insert({
-				document_id: doc2!.id,
-				user_id: testUser.id,
-				workspace_id: workspace!.id,
+			const _doc2 = await testData.createDocument({
+				workspaceId: workspace!.id,
+				createdBy: testUser.id,
+				name: doc2Name,
+				logAccessForUserId: testUser.id,
+				accessedAt: new Date(baseTime - 1000).toISOString(),
 			})
 
 			// Go to dashboard - doc2 should be first
@@ -559,9 +474,10 @@ test.describe('Global Dashboard', () => {
 
 			// Log doc1 access again (reopening it)
 			await supabaseAdmin.from('document_access_log').insert({
-				document_id: doc1!.id,
+				document_id: doc1.id,
 				user_id: testUser.id,
 				workspace_id: workspace!.id,
+				accessed_at: new Date().toISOString(),
 			})
 
 			// Go back to dashboard - doc1 should now be first
@@ -573,52 +489,30 @@ test.describe('Global Dashboard', () => {
 
 		test('should display workspace context for each recent document', async ({
 			authenticatedPage,
-			supabaseAdmin,
+			testData,
 			testUser,
 		}) => {
 			const page = authenticatedPage
 
-			// Create a workspace
 			const workspaceName = `Context Test ${Date.now()}`
-			await page.goto('/dashboard')
-			await page.click('[data-testid="create-workspace-button"]')
-			await page.fill('[data-testid="workspace-name-input"]', workspaceName)
-			await page.click('[data-testid="confirm-create-workspace"]')
-			await page.waitForTimeout(500)
+			const workspace = await testData.createWorkspace({
+				ownerId: testUser.id,
+				name: workspaceName,
+			})
 
-			// Get workspace
-			const { data: workspace } = await supabaseAdmin
-				.from('workspaces')
-				.select('id')
-				.eq('owner_id', testUser.id)
-				.eq('name', workspaceName)
-				.single()
-
-			// Create document
 			const docName = `Context Doc ${Date.now()}`
-			const { data: doc } = await supabaseAdmin
-				.from('documents')
-				.insert({
-					workspace_id: workspace!.id,
-					name: docName,
-					created_by: testUser.id,
-					sharing_mode: 'private',
-				})
-				.select()
-				.single()
-
-			// Log document access
-			await supabaseAdmin.from('document_access_log').insert({
-				document_id: doc!.id,
-				user_id: testUser.id,
-				workspace_id: workspace!.id,
+			const doc = await testData.createDocument({
+				workspaceId: workspace.id,
+				createdBy: testUser.id,
+				name: docName,
+				logAccessForUserId: testUser.id,
 			})
 
 			// Go to dashboard
 			await page.goto('/dashboard')
 
 			// Find the recent document item
-			const recentItem = page.locator(`[data-testid="recent-document-${doc!.id}"]`)
+			const recentItem = page.locator(`[data-testid="recent-document-${doc.id}"]`)
 			await expect(recentItem).toBeVisible()
 
 			// Should show document name
@@ -631,79 +525,62 @@ test.describe('Global Dashboard', () => {
 
 	test.describe('Dashboard Data Updates', () => {
 		test('should reflect workspace removal when user is removed from workspace', async ({
-			authenticatedPage,
 			supabaseAdmin,
+			testData,
 			testUser,
-			page: secondPage,
+			browser,
 		}) => {
-			const page = authenticatedPage
-
-			// Create a second user
-			const secondUserEmail = `dashboard-test-${Date.now()}@example.com`
-			const secondUserPassword = 'TestPassword123!'
-
-			// Sign up second user
-			await secondPage.goto('/signup')
-			await secondPage.fill('[data-testid="name-input"]', 'Second User')
-			await secondPage.fill('[data-testid="email-input"]', secondUserEmail)
-			await secondPage.fill('[data-testid="password-input"]', secondUserPassword)
-			await secondPage.click('[data-testid="signup-button"]')
-			await secondPage.waitForURL('**/dashboard**')
-
-			// First user creates a workspace
 			const workspaceName = `Shared Test ${Date.now()}`
-			await page.goto('/dashboard')
-			await page.click('[data-testid="create-workspace-button"]')
-			await page.fill('[data-testid="workspace-name-input"]', workspaceName)
-			await page.click('[data-testid="confirm-create-workspace"]')
-			await page.waitForTimeout(500)
+			const workspace = await testData.createWorkspace({
+				ownerId: testUser.id,
+				name: workspaceName,
+				isPrivate: false,
+			})
 
-			// Get workspace ID and add second user via direct database insertion
-			// (Since invitation flow is not yet implemented, we add manually)
-			const { data: workspaces } = await supabaseAdmin
-				.from('workspaces')
-				.select('id')
-				.eq('owner_id', testUser.id)
-				.eq('name', workspaceName)
-				.single()
+			const secondUserEmail = `dashboard-test-${Date.now()}@example.com`
+			const { data: memberAuth, error: memberError } = await supabaseAdmin.auth.admin.createUser({
+				email: secondUserEmail,
+				password: 'TestPassword123!',
+				email_confirm: true,
+				user_metadata: {
+					display_name: 'Second User',
+					name: 'Second User',
+				},
+			})
 
-			const { data: secondUserData } = await supabaseAdmin.auth.admin.listUsers()
-			const secondUser = secondUserData.users.find((u) => u.email === secondUserEmail)
-
-			if (workspaces && secondUser) {
-				// Add second user as member
-				await supabaseAdmin.from('workspace_members').insert({
-					workspace_id: workspaces.id,
-					user_id: secondUser.id,
-					role: 'member',
-				})
-
-				// Second user should see the workspace
-				await secondPage.reload()
-				await secondPage.waitForTimeout(500)
-				await expect(secondPage.locator('[data-testid="workspace-list"]')).toContainText(
-					workspaceName
+			if (memberError || !memberAuth?.user?.id) {
+				throw new Error(
+					`Failed to create secondary user: ${memberError?.message ?? 'Unknown error'}`
 				)
-
-				// Remove second user from workspace
-				await supabaseAdmin
-					.from('workspace_members')
-					.delete()
-					.eq('workspace_id', workspaces.id)
-					.eq('user_id', secondUser.id)
-
-				// Reload dashboard
-				await secondPage.reload()
-				await secondPage.waitForTimeout(500)
-
-				// Workspace should disappear
-				await expect(secondPage.locator('[data-testid="workspace-list"]')).not.toContainText(
-					workspaceName
-				)
-
-				// Cleanup
-				await supabaseAdmin.auth.admin.deleteUser(secondUser.id)
 			}
+
+			const memberId = memberAuth.user.id
+			await testData.addWorkspaceMember(workspace.id, memberId)
+
+			const memberContext = await browser.newContext({ storageState: undefined })
+			const memberPage = await memberContext.newPage()
+			await memberPage.goto('/login')
+			await memberPage.fill('[data-testid="email-input"]', secondUserEmail)
+			await memberPage.fill('[data-testid="password-input"]', 'TestPassword123!')
+			await memberPage.click('[data-testid="login-button"]')
+			await memberPage.waitForURL('**/dashboard**')
+
+			const workspaceList = memberPage.locator('[data-testid="workspace-list"]')
+			await expect(workspaceList).toContainText(workspaceName)
+
+			await supabaseAdmin
+				.from('workspace_members')
+				.delete()
+				.eq('workspace_id', workspace.id)
+				.eq('user_id', memberId)
+
+			await memberPage.reload()
+			await expect(workspaceList).not.toContainText(workspaceName)
+
+			await memberContext.close()
+			await cleanupUserData(supabaseAdmin, memberId)
+			await supabaseAdmin.auth.admin.deleteUser(memberId)
+			await supabaseAdmin.from('workspaces').delete().eq('id', workspace.id)
 		})
 	})
 

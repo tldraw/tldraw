@@ -42,7 +42,7 @@ async function getDashboardData(userId: string): Promise<DashboardData> {
 
 	// Add member workspaces
 	if (memberWorkspaces) {
-		memberWorkspaces.forEach((item: any) => {
+		memberWorkspaces.forEach((item) => {
 			if (item.workspace) {
 				workspaceMap.set(item.workspace.id, item.workspace)
 			}
@@ -143,13 +143,13 @@ async function getDashboardData(userId: string): Promise<DashboardData> {
 	const memberWorkspaceIds = new Set(workspaces.map((ws) => ws.id))
 	const seenDocuments = new Set<string>()
 	const recentDocuments: RecentDocument[] = (recentResult.data || [])
-		.filter((entry: any) => {
+		.filter((entry) => {
 			const doc = entry.documents
 			const workspace = doc.workspaces
 			// Filter out documents in deleted workspaces or where user is not a member
 			return !workspace.is_deleted && memberWorkspaceIds.has(doc.workspace_id)
 		})
-		.map((entry: any) => {
+		.map((entry) => {
 			const doc = entry.documents
 			const workspace = doc.workspaces
 			return {

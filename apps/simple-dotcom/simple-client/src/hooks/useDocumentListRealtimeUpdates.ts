@@ -3,7 +3,7 @@
 // useDocumentListRealtimeUpdates Hook
 // Subscribes to document list changes in a workspace
 
-import type { RealtimeEvent } from '@/lib/realtime/types'
+import type { DocumentChangePayload, RealtimeEvent } from '@/lib/realtime/types'
 import { useCallback } from 'react'
 import { useWorkspaceRealtimeUpdates } from './useWorkspaceRealtimeUpdates'
 
@@ -45,11 +45,11 @@ export function useDocumentListRealtimeUpdates(
 	// Handle document change events
 	const handleDocumentChange = useCallback(
 		(event: RealtimeEvent) => {
-			const payload = event.payload as any
+			const payload = event.payload as DocumentChangePayload
 
 			switch (event.type) {
 				case 'document.created':
-					onDocumentCreated?.(payload.documentId, payload.name, payload.folderId)
+					onDocumentCreated?.(payload.documentId, payload.name ?? 'New document', payload.folderId)
 					break
 
 				case 'document.updated':

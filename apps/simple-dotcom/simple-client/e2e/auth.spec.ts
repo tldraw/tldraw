@@ -73,17 +73,18 @@ test.describe('Authentication', () => {
 
 			// Should display error (or stay on signup page)
 			// Better Auth may redirect or show error depending on configuration
-			await page.waitForTimeout(2000)
-
-			// Check if we're still on signup page or if error is shown
 			const errorMessage = page.locator('[data-testid="error-message"]')
-			const isOnSignup = page.url().includes('/signup')
+			await Promise.race([
+				errorMessage.waitFor({ state: 'visible', timeout: 5000 }),
+				page.waitForURL('**/dashboard**', { timeout: 5000 }),
+				page.waitForLoadState('networkidle', { timeout: 5000 }),
+			])
 
 			// Either error should be visible OR we should still be on signup (not dashboard)
-			if (isOnSignup) {
-				expect(page.url()).toContain('/signup')
-			} else {
+			if (await errorMessage.isVisible()) {
 				await expect(errorMessage).toBeVisible()
+			} else {
+				await expect(page).toHaveURL('**/signup**')
 			}
 
 			await context.close()

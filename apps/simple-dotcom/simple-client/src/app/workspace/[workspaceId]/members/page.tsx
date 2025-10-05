@@ -73,7 +73,7 @@ async function getWorkspaceMembers(userId: string, workspaceId: string) {
 
 	// Add other members
 	if (membersData) {
-		membersData.forEach((item: any) => {
+		membersData.forEach((item) => {
 			members.push({
 				id: item.users.id,
 				email: item.users.email,

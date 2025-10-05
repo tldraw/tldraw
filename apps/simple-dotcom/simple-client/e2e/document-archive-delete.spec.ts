@@ -5,38 +5,24 @@ test.describe('Document Archive and Hard Delete', () => {
 		authenticatedPage,
 		supabaseAdmin,
 		testUser,
+		testData,
 	}) => {
 		const page = authenticatedPage
 		const workspaceName = `Archive Test ${Date.now()}`
 		const documentName = 'Test Document'
 
-		// Create workspace
-		await page.goto('/dashboard')
-		await page.getByRole('button', { name: 'Create Workspace' }).click()
-		await page.getByPlaceholder('Enter workspace name').fill(workspaceName)
-		await page.getByRole('button', { name: 'Create' }).click()
-		await expect(page.getByText(workspaceName)).toBeVisible()
+		// Create workspace and document via testData helper
+		const workspace = await testData.createWorkspace({
+			ownerId: testUser.id,
+			name: workspaceName,
+		})
+		const document = await testData.createDocument({
+			workspaceId: workspace.id,
+			createdBy: testUser.id,
+			name: documentName,
+		})
 
-		// Navigate to workspace
-		await page.getByText(workspaceName).click()
-		const workspaceUrl = page.url()
-		const workspaceId = workspaceUrl.split('/workspace/')[1]
-
-		// Create document
-		await page.getByRole('button', { name: 'Create Document' }).click()
-		await page.getByPlaceholder('Enter document name').fill(documentName)
-		await page.getByRole('button', { name: 'Create', exact: true }).click()
-		await expect(page.getByText(documentName)).toBeVisible()
-
-		// Get document ID
-		const { data: documents } = await supabaseAdmin
-			.from('documents')
-			.select('id')
-			.eq('workspace_id', workspaceId)
-			.eq('name', documentName)
-			.single()
-
-		const documentId = documents!.id
+		const documentId = document.id
 
 		// Archive document using new archive endpoint
 		const archiveResponse = await page.request.post(`/api/documents/${documentId}/archive`)
@@ -69,38 +55,24 @@ test.describe('Document Archive and Hard Delete', () => {
 		authenticatedPage,
 		supabaseAdmin,
 		testUser,
+		testData,
 	}) => {
 		const page = authenticatedPage
 		const workspaceName = `Delete Test ${Date.now()}`
 		const documentName = 'Document to Delete'
 
-		// Create workspace (user becomes owner)
-		await page.goto('/dashboard')
-		await page.getByRole('button', { name: 'Create Workspace' }).click()
-		await page.getByPlaceholder('Enter workspace name').fill(workspaceName)
-		await page.getByRole('button', { name: 'Create' }).click()
-		await expect(page.getByText(workspaceName)).toBeVisible()
+		// Create workspace and document via testData helper
+		const workspace = await testData.createWorkspace({
+			ownerId: testUser.id,
+			name: workspaceName,
+		})
+		const document = await testData.createDocument({
+			workspaceId: workspace.id,
+			createdBy: testUser.id,
+			name: documentName,
+		})
 
-		// Navigate to workspace
-		await page.getByText(workspaceName).click()
-		const workspaceUrl = page.url()
-		const workspaceId = workspaceUrl.split('/workspace/')[1]
-
-		// Create document
-		await page.getByRole('button', { name: 'Create Document' }).click()
-		await page.getByPlaceholder('Enter document name').fill(documentName)
-		await page.getByRole('button', { name: 'Create', exact: true }).click()
-		await expect(page.getByText(documentName)).toBeVisible()
-
-		// Get document ID
-		const { data: documents } = await supabaseAdmin
-			.from('documents')
-			.select('id')
-			.eq('workspace_id', workspaceId)
-			.eq('name', documentName)
-			.single()
-
-		const documentId = documents!.id
+		const documentId = document.id
 
 		// Owner can hard delete with confirmation header
 		const deleteResponse = await page.request.delete(`/api/documents/${documentId}/delete`, {
@@ -133,38 +105,28 @@ test.describe('Document Archive and Hard Delete', () => {
 		expect(auditLog.user_id).toBe(testUser.id)
 	})
 
-	test('hard delete requires confirmation header', async ({ authenticatedPage, supabaseAdmin }) => {
+	test('hard delete requires confirmation header', async ({
+		authenticatedPage,
+		supabaseAdmin,
+		testUser,
+		testData,
+	}) => {
 		const page = authenticatedPage
 		const workspaceName = `Header Test ${Date.now()}`
 		const documentName = 'Header Test Document'
 
-		// Create workspace
-		await page.goto('/dashboard')
-		await page.getByRole('button', { name: 'Create Workspace' }).click()
-		await page.getByPlaceholder('Enter workspace name').fill(workspaceName)
-		await page.getByRole('button', { name: 'Create' }).click()
-		await expect(page.getByText(workspaceName)).toBeVisible()
+		// Create workspace and document via testData helper
+		const workspace = await testData.createWorkspace({
+			ownerId: testUser.id,
+			name: workspaceName,
+		})
+		const document = await testData.createDocument({
+			workspaceId: workspace.id,
+			createdBy: testUser.id,
+			name: documentName,
+		})
 
-		// Navigate to workspace
-		await page.getByText(workspaceName).click()
-		const workspaceUrl = page.url()
-		const workspaceId = workspaceUrl.split('/workspace/')[1]
-
-		// Create document
-		await page.getByRole('button', { name: 'Create Document' }).click()
-		await page.getByPlaceholder('Enter document name').fill(documentName)
-		await page.getByRole('button', { name: 'Create', exact: true }).click()
-		await expect(page.getByText(documentName)).toBeVisible()
-
-		// Get document ID
-		const { data: documents } = await supabaseAdmin
-			.from('documents')
-			.select('id')
-			.eq('workspace_id', workspaceId)
-			.eq('name', documentName)
-			.single()
-
-		const documentId = documents!.id
+		const documentId = document.id
 
 		// Try to hard delete without confirmation header - should fail
 		const deleteResponse = await page.request.delete(`/api/documents/${documentId}/delete`)
@@ -182,38 +144,28 @@ test.describe('Document Archive and Hard Delete', () => {
 		expect(doc).toBeTruthy()
 	})
 
-	test('cannot archive already archived document', async ({ authenticatedPage, supabaseAdmin }) => {
+	test('cannot archive already archived document', async ({
+		authenticatedPage,
+		supabaseAdmin,
+		testUser,
+		testData,
+	}) => {
 		const page = authenticatedPage
 		const workspaceName = `Double Archive Test ${Date.now()}`
 		const documentName = 'Archive Once Document'
 
-		// Create workspace
-		await page.goto('/dashboard')
-		await page.getByRole('button', { name: 'Create Workspace' }).click()
-		await page.getByPlaceholder('Enter workspace name').fill(workspaceName)
-		await page.getByRole('button', { name: 'Create' }).click()
-		await expect(page.getByText(workspaceName)).toBeVisible()
+		// Create workspace and document via testData helper
+		const workspace = await testData.createWorkspace({
+			ownerId: testUser.id,
+			name: workspaceName,
+		})
+		const document = await testData.createDocument({
+			workspaceId: workspace.id,
+			createdBy: testUser.id,
+			name: documentName,
+		})
 
-		// Navigate to workspace
-		await page.getByText(workspaceName).click()
-		const workspaceUrl = page.url()
-		const workspaceId = workspaceUrl.split('/workspace/')[1]
-
-		// Create document
-		await page.getByRole('button', { name: 'Create Document' }).click()
-		await page.getByPlaceholder('Enter document name').fill(documentName)
-		await page.getByRole('button', { name: 'Create', exact: true }).click()
-		await expect(page.getByText(documentName)).toBeVisible()
-
-		// Get document ID
-		const { data: documents } = await supabaseAdmin
-			.from('documents')
-			.select('id')
-			.eq('workspace_id', workspaceId)
-			.eq('name', documentName)
-			.single()
-
-		const documentId = documents!.id
+		const documentId = document.id
 
 		// First archive - should succeed
 		const firstArchive = await page.request.post(`/api/documents/${documentId}/archive`)
@@ -230,38 +182,24 @@ test.describe('Document Archive and Hard Delete', () => {
 		authenticatedPage,
 		supabaseAdmin,
 		testUser,
+		testData,
 	}) => {
 		const page = authenticatedPage
 		const workspaceName = `Member Delete Test ${Date.now()}`
 		const documentName = 'Owner Only Delete'
 
-		// Create workspace as owner
-		await page.goto('/dashboard')
-		await page.getByRole('button', { name: 'Create Workspace' }).click()
-		await page.getByPlaceholder('Enter workspace name').fill(workspaceName)
-		await page.getByRole('button', { name: 'Create' }).click()
-		await expect(page.getByText(workspaceName)).toBeVisible()
+		// Create workspace and document via testData helper
+		const workspace = await testData.createWorkspace({
+			ownerId: testUser.id,
+			name: workspaceName,
+		})
+		const document = await testData.createDocument({
+			workspaceId: workspace.id,
+			createdBy: testUser.id,
+			name: documentName,
+		})
 
-		// Navigate to workspace
-		await page.getByText(workspaceName).click()
-		const workspaceUrl = page.url()
-		const workspaceId = workspaceUrl.split('/workspace/')[1]
-
-		// Create document
-		await page.getByRole('button', { name: 'Create Document' }).click()
-		await page.getByPlaceholder('Enter document name').fill(documentName)
-		await page.getByRole('button', { name: 'Create', exact: true }).click()
-		await expect(page.getByText(documentName)).toBeVisible()
-
-		// Get document ID
-		const { data: documents } = await supabaseAdmin
-			.from('documents')
-			.select('id')
-			.eq('workspace_id', workspaceId)
-			.eq('name', documentName)
-			.single()
-
-		const documentId = documents!.id
+		const documentId = document.id
 
 		// Create another test user to be a member
 		const memberEmail = `member_${Date.now()}@example.com`
@@ -273,7 +211,7 @@ test.describe('Document Archive and Hard Delete', () => {
 
 		// Add member to workspace
 		await supabaseAdmin.from('workspace_members').insert({
-			workspace_id: workspaceId,
+			workspace_id: workspace.id,
 			user_id: memberUser.user!.id,
 			role: 'member',
 		})
@@ -282,7 +220,7 @@ test.describe('Document Archive and Hard Delete', () => {
 		await supabaseAdmin
 			.from('workspace_members')
 			.update({ role: 'member' })
-			.eq('workspace_id', workspaceId)
+			.eq('workspace_id', workspace.id)
 			.eq('user_id', testUser.id)
 
 		// Member tries to hard delete - should fail

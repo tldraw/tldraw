@@ -83,14 +83,14 @@ export async function GET(request: NextRequest) {
 
 		const recentDocuments: RecentDocument[] = (data || [])
 			.filter((entry) => {
-				const doc = entry.documents as any
-				const workspace = doc.workspaces as any
+				const doc = entry.documents
+				const workspace = doc.workspaces
 				// Filter out documents in deleted workspaces or where user is not a member
 				return !workspace.is_deleted && memberWorkspaceIds.has(doc.workspace_id)
 			})
 			.map((entry) => {
-				const doc = entry.documents as any
-				const workspace = doc.workspaces as any
+				const doc = entry.documents
+				const workspace = doc.workspaces
 				return {
 					id: doc.id,
 					name: doc.name,
