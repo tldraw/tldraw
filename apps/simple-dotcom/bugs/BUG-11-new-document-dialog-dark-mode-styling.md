@@ -2,15 +2,15 @@
 
 Date reported: 2025-10-05
 Date last updated: 2025-10-05
-Date resolved: 
+Date resolved: 2025-10-05 
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -171,7 +171,17 @@ Remove the automatic dark mode media query and force light mode for all users un
 - Bug discovered during UI testing with OS dark mode enabled
 - Modal text is nearly invisible due to CSS custom property conflict
 - Affects all dialogs using fixed white backgrounds
+- Applied Option A (force light mode in modal) by adding explicit text color classes:
+  - Added `text-gray-900` to dialog container and heading
+  - Added `text-gray-900` and `placeholder:text-gray-500` to input field
+  - Added `text-gray-700` to Cancel button
 
 ## Resolution
 
-Pending fix.
+**Fixed** - Applied explicit text color classes to the Create New Document modal to override dark mode CSS inheritance. The modal now displays with proper contrast (dark text on white background) regardless of OS color scheme preference.
+
+**Changes made:**
+- `workspace-browser-client.tsx:380` - Added `text-gray-900` to dialog container
+- `workspace-browser-client.tsx:381` - Added `text-gray-900` to h3 heading
+- `workspace-browser-client.tsx:398` - Added `text-gray-900 placeholder:text-gray-500` to input
+- `workspace-browser-client.tsx:411` - Added `text-gray-700` to Cancel button

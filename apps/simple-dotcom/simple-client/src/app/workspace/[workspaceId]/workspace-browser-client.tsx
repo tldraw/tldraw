@@ -377,8 +377,8 @@ export default function WorkspaceBrowserClient({
 			{/* Create Document Modal */}
 			{showCreateModal && (
 				<div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-					<div className="bg-white rounded-lg p-6 max-w-md w-full border">
-						<h3 className="text-xl font-semibold mb-4">Create New Document</h3>
+					<div className="bg-white rounded-lg p-6 max-w-md w-full border text-gray-900">
+						<h3 className="text-xl font-semibold mb-4 text-gray-900">Create New Document</h3>
 						<input
 							type="text"
 							value={newDocumentName}
@@ -395,7 +395,7 @@ export default function WorkspaceBrowserClient({
 							data-testid="document-name-input"
 							className={`w-full px-3 py-2 rounded-md border ${
 								validationError ? 'border-red-500' : 'border-gray-300'
-							} bg-white mb-2`}
+							} bg-white text-gray-900 placeholder:text-gray-500 mb-2`}
 							disabled={actionLoading}
 							autoFocus
 						/>
@@ -408,7 +408,7 @@ export default function WorkspaceBrowserClient({
 						<div className="flex gap-2 justify-end">
 							<button
 								onClick={handleCloseCreateModal}
-								className="rounded-md border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50"
+								className="rounded-md border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
 								disabled={actionLoading}
 							>
 								Cancel

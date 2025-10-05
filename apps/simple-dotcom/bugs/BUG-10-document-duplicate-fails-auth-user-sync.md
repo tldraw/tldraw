@@ -2,15 +2,15 @@
 
 Date reported: 2025-10-05
 Date last updated: 2025-10-05
-Date resolved:
+Date resolved: 2025-10-05
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -138,4 +138,27 @@ export async function getCurrentUser() {
 
 ## Worklog
 
+2025-10-05: Implemented Option A - Modified `getCurrentUser()` to verify user exists in both `auth.users` and `public.users` before returning user data.
+
 ## Resolution
+
+**Fixed by:** Implementing defensive check in `getCurrentUser()` function
+
+**Changes made:**
+- Modified `simple-client/src/lib/supabase/server.ts:65-90` to query `public.users` after retrieving auth user
+- Added validation to ensure user exists in both `auth.users` and `public.users`
+- Returns `null` if user is authenticated but not synced to `public.users`
+- Added error logging to detect auth/user sync mismatches
+- Returns combined user data with fields from both tables when successful
+
+**Why this fixes the issue:**
+The document duplication endpoint (and all other endpoints using `getCurrentUser()`) now safely handles the edge case where a user exists in `auth.users` but not in `public.users`. Instead of attempting to insert a document with a `created_by` value that violates the foreign key constraint, the function returns `null`, causing `requireAuth()` to throw an `UNAUTHORIZED` error, which is the correct behavior.
+
+**Testing:**
+- Document duplication e2e test passes: `e2e/document-crud.spec.ts` - "can duplicate document metadata"
+- Verified no orphaned users in database after test cleanup
+
+**Preventive measures in place:**
+- Database triggers on `auth.users` (INSERT/UPDATE) sync to `public.users` automatically
+- Error logging identifies when sync mismatches occur for investigation
+- All API endpoints now protected from FK constraint violations via `getCurrentUser()` validation

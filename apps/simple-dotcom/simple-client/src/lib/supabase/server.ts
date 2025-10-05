@@ -57,14 +57,36 @@ export function createAdminClient() {
 
 /**
  * Get the current authenticated user from the session
- * Returns null if not authenticated
+ * Returns null if not authenticated or if user doesn't exist in public.users
+ *
+ * This function ensures that the authenticated user exists in both auth.users
+ * and public.users to prevent foreign key constraint violations.
  */
 export async function getCurrentUser() {
 	const supabase = await createClient()
 	const {
-		data: { user },
+		data: { user: authUser },
 	} = await supabase.auth.getUser()
-	return user
+
+	if (!authUser) return null
+
+	// Ensure user exists in public.users to prevent FK constraint violations
+	const { data: publicUser } = await supabase
+		.from('users')
+		.select('id, email, display_name, name')
+		.eq('id', authUser.id)
+		.single()
+
+	if (!publicUser) {
+		console.error('Auth/User sync mismatch detected', {
+			authUserId: authUser.id,
+			authEmail: authUser.email,
+		})
+		return null
+	}
+
+	// Return combined user data with public.users fields available
+	return { ...authUser, ...publicUser }
 }
 
 /**
