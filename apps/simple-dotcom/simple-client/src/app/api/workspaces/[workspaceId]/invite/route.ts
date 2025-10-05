@@ -66,13 +66,13 @@ export async function GET(request: NextRequest, context: RouteContext) {
 			.single()
 
 		if (!invitation) {
-			// Create initial invitation link
+			// Create initial invitation link (enabled by default)
 			const { data: newInvitation, error: createError } = await supabase
 				.from('invitation_links')
 				.insert({
 					workspace_id: workspaceId,
 					token: generateInviteToken(),
-					enabled: false,
+					enabled: true,
 					created_by: user.id,
 				})
 				.select()

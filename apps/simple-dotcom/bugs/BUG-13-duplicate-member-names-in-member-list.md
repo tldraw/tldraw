@@ -1,17 +1,50 @@
 # [BUG-13]: Duplicate Member Names in Member List
 
-**Date reported**: 2025-10-05
-**Status**: New
-**Severity**: Medium
-**Category**: Member Management
+Date reported: 2025-10-05
+Date last updated: 2025-10-05
+Date resolved: 
 
----
+## Status
+
+- [x] New
+- [ ] Investigating
+- [ ] In Progress
+- [ ] Blocked
+- [ ] Resolved
+- [ ] Cannot Reproduce
+- [ ] Won't Fix
+
+## Severity
+
+- [ ] Critical (System down, data loss, security)
+- [ ] High (Major feature broken, significant impact)
+- [x] Medium (Feature partially broken, workaround exists)
+- [ ] Low (Minor issue, cosmetic)
+
+## Category
+
+- [ ] Authentication
+- [x] Workspaces
+- [ ] Documents
+- [ ] Folders
+- [ ] Permissions & Sharing
+- [ ] Real-time Collaboration
+- [x] UI/UX
+- [ ] API
+- [x] Database
+- [ ] Performance
+- [ ] Infrastructure
+
+## Environment
+
+- Browser: All
+- OS: All
+- Environment: local/staging/production
+- Affected version/commit: simple-dotcom branch
 
 ## Description
 
 The workspace members page displays the workspace owner twice in the member list, showing duplicate entries for the same user.
-
----
 
 ## Steps to Reproduce
 
@@ -19,21 +52,30 @@ The workspace members page displays the workspace owner twice in the member list
 2. Go to the Members page (`/workspace/[workspaceId]/members`)
 3. Observe that the owner appears twice in the member list
 
----
-
 ## Expected Behavior
 
 Each member should appear exactly once in the member list, with the workspace owner appearing only once with the "Owner" badge.
-
----
 
 ## Actual Behavior
 
 The workspace owner appears twice in the member list with duplicate "Owner" badges and identical display information (name and email).
 
----
+## Screenshots/Videos
 
-## Root Cause Analysis
+N/A
+
+## Error Messages/Logs
+
+```
+No specific error logs available
+```
+
+## Related Files/Components
+
+- `simple-client/src/app/workspace/[workspaceId]/members/page.tsx:16-99` - Server-side data fetching logic
+- `simple-client/src/app/workspace/[workspaceId]/members/workspace-members-client.tsx:314` - Client-side rendering
+
+## Possible Cause
 
 **File**: `simple-client/src/app/workspace/[workspaceId]/members/page.tsx:64-83`
 
@@ -49,15 +91,6 @@ The issue is that the owner exists in both:
 - The `workspace_members` table (included in the general member query)
 
 This causes the owner to be added twice to the members array.
-
----
-
-## Affected Files
-
-- `simple-client/src/app/workspace/[workspaceId]/members/page.tsx:16-99` - Server-side data fetching logic
-- `simple-client/src/app/workspace/[workspaceId]/members/workspace-members-client.tsx:314` - Client-side rendering (uses member.id as key, so both duplicates render)
-
----
 
 ## Proposed Solution
 
@@ -118,19 +151,16 @@ if (membersData) {
 
 **Recommendation**: Use Option 1 to maintain the current architecture where owner is fetched separately.
 
----
-
-## Testing Notes
-
-- Verify that the owner appears exactly once in the member list
-- Verify the owner has the correct "Owner" badge
-- Verify pagination and search still work correctly
-- Verify member removal works correctly
-- Verify real-time updates still work when members join/leave
-
----
-
 ## Related Issues
 
 - Related to workspace member management implementation
-- May affect member count display and pagination calculations if not fixed
+
+## Worklog
+
+**2025-10-05:**
+- Bug identified during member list review
+- Owner appears twice due to fetching from both `workspaces.owner_id` and `workspace_members` table
+
+## Resolution
+
+Pending fix.

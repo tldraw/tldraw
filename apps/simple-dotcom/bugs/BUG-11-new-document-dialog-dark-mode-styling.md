@@ -1,11 +1,48 @@
 # [BUG-11]: New Document Dialog Has Incorrect Colors Due to Dark Mode CSS
 
-**Status**: Open
-**Date reported**: 2025-10-05
-**Severity**: Medium
-**Category**: UI/Styling
+Date reported: 2025-10-05
+Date last updated: 2025-10-05
+Date resolved: 
 
-## Summary
+## Status
+
+- [x] New
+- [ ] Investigating
+- [ ] In Progress
+- [ ] Blocked
+- [ ] Resolved
+- [ ] Cannot Reproduce
+- [ ] Won't Fix
+
+## Severity
+
+- [ ] Critical (System down, data loss, security)
+- [ ] High (Major feature broken, significant impact)
+- [x] Medium (Feature partially broken, workaround exists)
+- [ ] Low (Minor issue, cosmetic)
+
+## Category
+
+- [ ] Authentication
+- [ ] Workspaces
+- [x] Documents
+- [ ] Folders
+- [ ] Permissions & Sharing
+- [ ] Real-time Collaboration
+- [x] UI/UX
+- [ ] API
+- [ ] Database
+- [ ] Performance
+- [ ] Infrastructure
+
+## Environment
+
+- Browser: All (when OS is in dark mode)
+- OS: All
+- Environment: local/staging/production
+- Affected version/commit: simple-dotcom branch
+
+## Description
 
 The "Create New Document" dialog on the workspace browser page displays with incorrect styling. The title text appears very light/washed out (barely visible), making it difficult to read against the white dialog background.
 
@@ -32,13 +69,27 @@ The dialog displays with:
 - "Cancel" button text appears very light
 - Error message shows in bright red (correct)
 - Blue "Create" button renders correctly
-- Overall appearance suggests CSS is not loading properly or dark mode is interfering
+- Overall appearance suggests dark mode CSS is interfering
 
-## Root Cause Analysis
+## Screenshots/Videos
+
+N/A
+
+## Error Messages/Logs
+
+```
+No specific error logs available
+```
+
+## Related Files/Components
+
+- `simple-client/src/app/globals.css:15-20` - Dark mode media query setting light text color
+- `simple-client/src/app/workspace/[workspaceId]/workspace-browser-client.tsx:378-427` - Modal dialog component
+- `simple-client/src/app/layout.tsx:22-33` - Body tag that inherits color scheme
+
+## Possible Cause
 
 The issue is caused by the dark mode media query in `globals.css` conflicting with the fixed white background of the modal dialog.
-
-### Key Evidence
 
 **globals.css (lines 15-20)**:
 
@@ -67,21 +118,7 @@ The issue is caused by the dark mode media query in `globals.css` conflicting wi
    - Dialog background stays white
    - Result: light text on light background = poor/no contrast
 
-## Affected Files
-
-- `simple-client/src/app/globals.css:15-20` - Dark mode media query setting light text color
-- `simple-client/src/app/workspace/[workspaceId]/workspace-browser-client.tsx:378-427` - Modal dialog component
-- `simple-client/src/app/layout.tsx:22-33` - Body tag that inherits color scheme
-
-## Impact
-
-- Dialog is nearly unusable when OS is in dark mode
-- Users cannot read the dialog title or placeholder text
-- Creates confusion about whether the feature is broken
-- Affects all users with OS-level dark mode enabled
-- Does not prevent functionality but severely impacts usability
-
-## Proposed Solutions
+## Proposed Solution
 
 ### Option A: Force Light Mode in Modal (Quick Fix)
 
@@ -113,61 +150,28 @@ Add explicit dark text colors to the modal to override dark mode inheritance:
 ### Option B: Implement Proper Dark Mode Support (Better Long-term)
 
 Use Tailwind's dark mode with class strategy:
-
-1. Configure Tailwind for class-based dark mode (requires tailwind.config)
-2. Add dark mode variants to all components:
-   ```tsx
-   className = 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-   ```
+1. Configure Tailwind for class-based dark mode
+2. Add dark mode variants to all components
 3. Manage dark mode state with context/localStorage
 4. Apply consistent dark mode throughout the entire app
 
 ### Option C: Update Global CSS (Intermediate)
 
-Remove the automatic dark mode media query and manage colors explicitly:
+Remove the automatic dark mode media query and force light mode for all users until proper dark mode is implemented.
 
-```css
-/* Remove or comment out */
-/* @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-} */
-```
-
-This forces light mode for all users until proper dark mode is implemented.
-
-## Recommended Solution
-
-**Option A (immediate)** + **Option B (future milestone)**
-
-1. Apply Option A as an immediate fix to restore usability
-2. Add explicit text colors to all modal/dialog components
-3. Plan Option B (full dark mode support) for a future milestone
-4. Audit all other dialogs/modals for similar issues
-
-## Testing
-
-To reproduce and verify fix:
-
-1. Set OS to dark mode (System Preferences → Appearance → Dark)
-2. Open the app in a browser
-3. Navigate to workspace browser
-4. Click "+ New Document"
-5. Verify all text is readable with good contrast
-
-To test thoroughly:
-
-- Test in both light and dark OS modes
-- Check all other dialogs/modals for similar issues
-- Verify buttons, inputs, and error states
+**Recommendation**: Apply Option A as immediate fix, then plan Option B for future milestone.
 
 ## Related Issues
 
-None identified yet, but should audit:
+- May affect other dialog/modal components throughout the app
 
-- All dialog/modal components for similar dark mode conflicts
-- Delete confirmation dialog
-- Rename dialog in DocumentCard
-- Any other overlay components
+## Worklog
+
+**2025-10-05:**
+- Bug discovered during UI testing with OS dark mode enabled
+- Modal text is nearly invisible due to CSS custom property conflict
+- Affects all dialogs using fixed white backgrounds
+
+## Resolution
+
+Pending fix.

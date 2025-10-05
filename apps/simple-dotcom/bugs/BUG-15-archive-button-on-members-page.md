@@ -1,16 +1,46 @@
 # [BUG-15]: Archive Button Appearing on Workspace Members Page
 
-## Status
-New
+Date reported: 2025-10-05
+Date last updated: 2025-10-05
+Date resolved: 
 
-## Date Reported
-2025-10-05
+## Status
+
+- [x] New
+- [ ] Investigating
+- [ ] In Progress
+- [ ] Blocked
+- [ ] Resolved
+- [ ] Cannot Reproduce
+- [ ] Won't Fix
 
 ## Severity
-Low
+
+- [ ] Critical (System down, data loss, security)
+- [ ] High (Major feature broken, significant impact)
+- [ ] Medium (Feature partially broken, workaround exists)
+- [x] Low (Minor issue, cosmetic)
 
 ## Category
-UI/UX - Navigation
+
+- [ ] Authentication
+- [x] Workspaces
+- [ ] Documents
+- [ ] Folders
+- [ ] Permissions & Sharing
+- [ ] Real-time Collaboration
+- [x] UI/UX
+- [ ] API
+- [ ] Database
+- [ ] Performance
+- [ ] Infrastructure
+
+## Environment
+
+- Browser: All
+- OS: All
+- Environment: local/staging/production
+- Affected version/commit: simple-dotcom branch
 
 ## Description
 The workspace members page (`/workspace/[workspaceId]/members`) displays an "Archive" button in the header that navigates to the workspace archive page. This button should not be present on the members management page as it's unrelated to member management functionality and creates navigation confusion.
@@ -32,7 +62,22 @@ The members page displays both:
 - "Archive" button (incorrect)
 - "Back to Workspace" button (correct)
 
-## Root Cause
+## Screenshots/Videos
+
+N/A
+
+## Error Messages/Logs
+
+```
+No errors in logs - this is a UI/navigation issue, not a functional error.
+```
+
+## Related Files/Components
+
+- `simple-client/src/app/workspace/[workspaceId]/members/workspace-members-client.tsx:198-203`
+
+## Possible Cause
+
 In `simple-client/src/app/workspace/[workspaceId]/members/workspace-members-client.tsx`, lines 198-203, the Archive button is hardcoded in the header:
 
 ```tsx
@@ -44,10 +89,10 @@ In `simple-client/src/app/workspace/[workspaceId]/members/workspace-members-clie
 </Link>
 ```
 
-## Affected Files
-- `simple-client/src/app/workspace/[workspaceId]/members/workspace-members-client.tsx:198-203`
+This appears to be leftover navigation from copying the header structure from another page.
 
-## Suggested Fix
+## Proposed Solution
+
 Remove the Archive link from the workspace members page header. The button serves no purpose on this page since member management is unrelated to document archiving.
 
 **Proposed change:**
@@ -62,13 +107,16 @@ Remove the Archive link from the workspace members page header. The button serve
 </div>
 ```
 
-## Impact
-- **User Experience:** Minor - Causes slight navigation confusion but doesn't break functionality
-- **Functionality:** None - The button works correctly, it's just contextually inappropriate
-- **Consistency:** The Archive button appearing on unrelated pages creates inconsistent navigation patterns
+## Related Issues
 
-## Related Logs
-No errors in logs - this is a UI/navigation issue, not a functional error.
+- None
 
-## Additional Context
-This appears to be leftover navigation from copying the header structure from another page. The Archive functionality is properly accessible from the main workspace browser page where it's more relevant.
+## Worklog
+
+**2025-10-05:**
+- Bug identified during UI review
+- Archive button is contextually inappropriate on members page
+
+## Resolution
+
+Pending fix.

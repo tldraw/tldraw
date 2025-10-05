@@ -1,22 +1,28 @@
 # [BUG-17]: Workspace Archive UI API Endpoint Mismatch
 
 Date reported: 2025-10-05
-Date resolved: -
+Date last updated: 2025-10-05
+Date resolved: 
 
 ## Status
+
 - [x] New
+- [ ] Investigating
 - [ ] In Progress
+- [ ] Blocked
 - [ ] Resolved
+- [ ] Cannot Reproduce
 - [ ] Won't Fix
-- [ ] Duplicate
 
 ## Severity
-- [ ] Critical (System down, data loss, security breach)
-- [x] High (Major functionality broken, affecting many users)
-- [ ] Medium (Feature partially broken, workaround available)
-- [ ] Low (Cosmetic issue, minor inconvenience)
+
+- [ ] Critical (System down, data loss, security)
+- [x] High (Major feature broken, significant impact)
+- [ ] Medium (Feature partially broken, workaround exists)
+- [ ] Low (Minor issue, cosmetic)
 
 ## Category
+
 - [ ] Authentication
 - [x] Workspaces
 - [x] Documents
@@ -26,7 +32,15 @@ Date resolved: -
 - [x] UI/UX
 - [x] API
 - [ ] Database
-- [ ] Other
+- [ ] Performance
+- [ ] Infrastructure
+
+## Environment
+
+- Browser: All
+- OS: All
+- Environment: local/staging/production
+- Affected version/commit: simple-dotcom branch
 
 ## Description
 The workspace archive client UI component makes incorrect API calls for restore and permanent delete operations, causing these features to fail completely. The UI calls the wrong endpoints with incorrect HTTP methods.
@@ -49,41 +63,49 @@ The workspace archive client UI component makes incorrect API calls for restore 
 - Delete Forever button is shown to all users, not just owners
 - No confirmation header is sent for permanent deletion
 
-## Environment
-- Browser: All browsers
-- OS: All operating systems
-- User Role: Owner/Member
-- Timestamp: Discovered during code review
+## Screenshots/Videos
+
+N/A
 
 ## Error Messages/Logs
+
+```
 No direct error logs as the wrong endpoints are being called successfully, but they perform the wrong actions.
+```
 
-## Screenshots
-N/A - Issue found during code analysis
+## Related Files/Components
 
-## Affected Files/Components
 - `/simple-client/src/app/workspace/[workspaceId]/archive/workspace-archive-client.tsx` (lines 24-76)
 - `/simple-client/src/app/api/documents/[documentId]/restore/route.ts` (not being called)
 - `/simple-client/src/app/api/documents/[documentId]/delete/route.ts` (not being called)
 
-## Additional Context
+## Possible Cause
+
+The workspace-archive-client.tsx was likely implemented before the dedicated restore and delete endpoints were created, and was using the general document PATCH/DELETE endpoints as a workaround.
+
 The API endpoints for restore and permanent delete exist and are correctly implemented:
 - `POST /api/documents/[documentId]/restore` - properly restores archived documents
 - `DELETE /api/documents/[documentId]/delete` - properly deletes documents permanently (with confirmation header)
 
 The issue is purely in the client code which is not calling the correct endpoints.
 
-## Possible Cause
-The workspace-archive-client.tsx was likely implemented before the dedicated restore and delete endpoints were created, and was using the general document PATCH/DELETE endpoints as a workaround.
+## Proposed Solution
 
-## Suggested Fix
 1. Update `handleRestore` to call `POST /api/documents/${documentId}/restore` instead of PATCH
 2. Update `handlePermanentDelete` to call `DELETE /api/documents/${documentId}/delete` with the required `X-Confirm-Delete: true` header
 3. Add permission check to only show "Delete Forever" button when `isOwner === true`
 4. Consider adding a proper modal confirmation instead of browser confirm() for better UX
 
-## Priority Justification
-High severity because core functionality (restore and permanent delete) is completely broken in the archive management feature, which is a P0 MVP requirement (WS-04).
-
 ## Related Issues
-- WS-04: Workspace Archive Management ticket
+
+- Related to: WS-04 (Workspace Archive Management)
+
+## Worklog
+
+**2025-10-05:**
+- Bug discovered during code review
+- Identified incorrect endpoint usage in archive client
+
+## Resolution
+
+Pending fix.

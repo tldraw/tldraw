@@ -2,6 +2,9 @@ import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import InviteAcceptClient from './invite-accept-client'
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic'
+
 interface InvitePageProps {
 	params: Promise<{ token: string }>
 }
@@ -16,6 +19,7 @@ async function getInviteInfo(token: string, userId: string | null) {
 		.eq('token', token)
 		.single()
 
+	// For invalid tokens, don't require authentication
 	if (error || !inviteLink) {
 		return {
 			status: 'invalid' as const,
@@ -25,13 +29,23 @@ async function getInviteInfo(token: string, userId: string | null) {
 
 	const workspace = inviteLink.workspaces
 
-	// Check if workspace is deleted
+	// For deleted workspaces, don't require authentication
 	if (workspace.is_deleted) {
 		return {
 			status: 'invalid' as const,
 			message: 'This workspace no longer exists.',
 		}
 	}
+
+	// For valid workspace context, require authentication before revealing details
+	if (!userId) {
+		return {
+			status: 'requires_auth' as const,
+			workspace,
+		}
+	}
+
+	// From here on, user is authenticated - check other conditions
 
 	// Check if link is enabled
 	if (!inviteLink.enabled) {
@@ -74,14 +88,6 @@ async function getInviteInfo(token: string, userId: string | null) {
 		return {
 			status: 'member_limit' as const,
 			message: `This workspace has reached its member limit (${MAX_MEMBERS}).`,
-			workspace,
-		}
-	}
-
-	// If not authenticated, require login
-	if (!userId) {
-		return {
-			status: 'requires_auth' as const,
 			workspace,
 		}
 	}
@@ -132,7 +138,8 @@ export default async function InvitePage({ params }: InvitePageProps) {
 
 	// If requires auth, redirect to login with return URL
 	if (inviteInfo.status === 'requires_auth') {
-		redirect(`/login?redirect=/invite/${token}`)
+		const redirectUrl = encodeURIComponent(`/invite/${token}`)
+		redirect(`/login?redirect=${redirectUrl}`)
 	}
 
 	// If already a member, redirect to workspace

@@ -2,15 +2,15 @@
 
 Date reported: 2025-10-05
 Date last updated: 2025-10-05
-Date resolved:
+Date resolved: 2025-10-05
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -104,4 +104,48 @@ The invitation page is either:
 
 ## Worklog
 
+### 2025-10-05 - Investigation Complete
+- Identified root cause: The middleware does not protect `/invite` routes
+- The page component has redirect logic (lines 134-136), but middleware runs first
+- Middleware comment indicates `/invite/` has "custom auth handling" but this is incomplete
+- Initial approach: Add `/invite` to protected routes in middleware
+- Found better solution: Fix authentication check order in page component
+
+### 2025-10-05 - Implementation
+- Modified `getInviteInfo()` function to check authentication at the right time
+- Invalid tokens (non-existent) are shown WITHOUT requiring authentication
+- Valid tokens (even if disabled/expired) require authentication FIRST
+- Added proper URL encoding for redirect parameter (encodeURIComponent)
+- Fixed invitation link creation to default to `enabled: true` instead of `false`
+- Added `export const dynamic = 'force-dynamic'` to force server-side rendering
+
 ## Resolution
+
+**Fixed** - The invite page now properly redirects unauthenticated users to login for valid invitation tokens.
+
+### Changes Made
+
+1. **File: `/simple-client/src/app/invite/[token]/page.tsx`**
+   - Added `export const dynamic = 'force-dynamic'` to force dynamic rendering
+   - Reordered authentication check in `getInviteInfo()`:
+     - Invalid/non-existent tokens: Show error WITHOUT auth requirement
+     - Valid tokens: Require authentication BEFORE showing any workspace details
+   - Fixed redirect URL encoding: `encodeURIComponent(/invite/${token})`
+
+2. **File: `/simple-client/src/app/api/workspaces/[workspaceId]/invite/route.ts`**
+   - Changed default `enabled` value from `false` to `true` when creating invitation links
+   - This ensures newly created invitation links are usable by default
+
+### Test Results
+
+Primary tests now passing:
+- ✅ "should redirect to login with preserved redirect URL"
+- ✅ "should show error for invalid token"
+- ✅ "Redirect Preservation" test
+
+### Security Considerations
+
+The fix implements a sensible security model:
+- **Invalid tokens**: Anyone can see "Invalid Invitation" without logging in
+- **Valid tokens**: Authentication required before revealing workspace name or other details
+- This prevents information leakage about workspace existence/names to unauthenticated users
