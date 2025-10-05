@@ -100,7 +100,7 @@ Break the MVP scope into three executable milestones that sequence dependencies,
 - [x] [`tickets/WS-03-member-settings-and-leave-flow.md`](tickets/WS-03-member-settings-and-leave-flow.md) *(Small)* ✅ COMPLETED 2025-10-05
 
 ### Phase 2: Workspace Collaboration (Week 2-3)
-- [ ] [`tickets/MEM-01-role-management-and-ownership-transfer.md`](tickets/MEM-01-role-management-and-ownership-transfer.md) *(Medium)*
+- [x] [`tickets/MEM-01-role-management-and-ownership-transfer.md`](tickets/MEM-01-role-management-and-ownership-transfer.md) *(Medium)* ✅ COMPLETED 2025-10-05
 - [ ] [`tickets/MEM-02-member-directory-and-removal.md`](tickets/MEM-02-member-directory-and-removal.md) *(Medium)*
 - [ ] [`tickets/MEM-03-invitation-link-lifecycle.md`](tickets/MEM-03-invitation-link-lifecycle.md) *(Medium)*
 - [ ] [`tickets/MEM-04-join-workspace-by-invite-link.md`](tickets/MEM-04-join-workspace-by-invite-link.md) *(Medium)*

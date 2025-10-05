@@ -2,9 +2,10 @@
 
 import { Workspace } from '@/lib/api/types'
 import { WORKSPACE_LIMITS } from '@/lib/constants'
+import { getBrowserClient } from '@/lib/supabase/browser'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 interface Member {
 	id: string
@@ -31,17 +32,70 @@ interface WorkspaceMembersClientProps {
 
 export default function WorkspaceMembersClient({
 	workspace,
-	members,
+	members: initialMembers,
 	inviteLink,
 	currentUserId,
 }: WorkspaceMembersClientProps) {
 	const router = useRouter()
+	const [members, setMembers] = useState(initialMembers)
 	const [isToggling, setIsToggling] = useState(false)
 	const [isRegenerating, setIsRegenerating] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 	const [success, setSuccess] = useState<string | null>(null)
+	const [searchTerm, setSearchTerm] = useState('')
+	const [currentPage, setCurrentPage] = useState(1)
+	const itemsPerPage = 10
 
 	const inviteUrl = inviteLink ? `${window.location.origin}/invite/${inviteLink.token}` : null
+
+	// Set up real-time subscription for member changes
+	useEffect(() => {
+		const supabase = getBrowserClient()
+
+		const channel = supabase
+			.channel(`workspace-members-${workspace.id}`)
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'workspace_members',
+					filter: `workspace_id=eq.${workspace.id}`,
+				},
+				(payload) => {
+					// Refresh the page to get updated member list
+					// In a production app, we'd update state more efficiently
+					router.refresh()
+				}
+			)
+			.subscribe()
+
+		return () => {
+			supabase.removeChannel(channel)
+		}
+	}, [workspace.id, router])
+
+	// Filter members based on search term
+	const filteredMembers = useMemo(() => {
+		if (!searchTerm) return members
+
+		const term = searchTerm.toLowerCase()
+		return members.filter((member) => {
+			const name = member.display_name || member.email
+			return name.toLowerCase().includes(term)
+		})
+	}, [members, searchTerm])
+
+	// Pagination logic
+	const totalPages = Math.ceil(filteredMembers.length / itemsPerPage)
+	const startIndex = (currentPage - 1) * itemsPerPage
+	const endIndex = startIndex + itemsPerPage
+	const paginatedMembers = filteredMembers.slice(startIndex, endIndex)
+
+	// Reset page when search changes
+	useEffect(() => {
+		setCurrentPage(1)
+	}, [searchTerm])
 
 	const handleToggleInvite = async () => {
 		setError(null)
@@ -123,7 +177,11 @@ export default function WorkspaceMembersClient({
 				throw new Error(data.message || 'Failed to remove member')
 			}
 
+			// Update local state immediately for better UX
+			setMembers((prevMembers) => prevMembers.filter((m) => m.id !== memberId))
 			setSuccess('Member removed')
+
+			// Still refresh to ensure consistency
 			router.refresh()
 		} catch (err: any) {
 			setError(err.message)
@@ -226,8 +284,26 @@ export default function WorkspaceMembersClient({
 							Members ({members.length}/{WORKSPACE_LIMITS.MAX_MEMBERS})
 						</h2>
 
+						{/* Search bar - only show if more than 10 members */}
+						{members.length > 10 && (
+							<div className="mb-4">
+								<input
+									type="text"
+									placeholder="Search members by name or email..."
+									value={searchTerm}
+									onChange={(e) => setSearchTerm(e.target.value)}
+									className="w-full rounded-md border px-3 py-2"
+								/>
+								{searchTerm && (
+									<p className="mt-2 text-sm text-gray-600">
+										Found {filteredMembers.length} member{filteredMembers.length !== 1 ? 's' : ''}
+									</p>
+								)}
+							</div>
+						)}
+
 						<div className="space-y-2">
-							{members.map((member) => {
+							{paginatedMembers.map((member) => {
 								const isCurrentUser = member.id === currentUserId
 								const isOwner = member.role === 'owner'
 
@@ -268,6 +344,35 @@ export default function WorkspaceMembersClient({
 								)
 							})}
 						</div>
+
+						{/* Pagination controls - only show if more than itemsPerPage */}
+						{totalPages > 1 && (
+							<div className="mt-4 flex items-center justify-between">
+								<p className="text-sm text-gray-600">
+									Showing {startIndex + 1} to {Math.min(endIndex, filteredMembers.length)} of{' '}
+									{filteredMembers.length} members
+								</p>
+								<div className="flex gap-2">
+									<button
+										onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+										disabled={currentPage === 1}
+										className="rounded-md border px-3 py-1 text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+									>
+										Previous
+									</button>
+									<span className="px-3 py-1 text-sm">
+										Page {currentPage} of {totalPages}
+									</span>
+									<button
+										onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+										disabled={currentPage === totalPages}
+										className="rounded-md border px-3 py-1 text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+									>
+										Next
+									</button>
+								</div>
+							</div>
+						)}
 					</section>
 				</div>
 			</main>
