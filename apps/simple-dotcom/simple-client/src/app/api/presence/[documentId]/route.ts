@@ -22,7 +22,7 @@ function toPresenceSession(dbRow: PresenceWithUser): PresenceSession {
 		document_id: dbRow.document_id,
 		user_id: dbRow.user_id,
 		display_name: dbRow.users?.display_name || null,
-		cursor_position: dbRow.cursor_data as { x: number; y: number } | null,
+		cursor_position: dbRow.cursor_position as { x: number; y: number } | null,
 		last_seen_at: dbRow.last_seen_at,
 	}
 }

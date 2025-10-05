@@ -128,12 +128,48 @@ Log entries are structured JSON with the following fields:
    - Use the **Open questions** section to capture unresolved issues or areas needing clarification; remove items as they are answered.
 3. **Implement using the spec**:
    - Product scope: see **MVP Requirements** in `SPECIFICATION.md` for the authoritative feature list, user roles, and limits.
-   - Technical direction: follow the same document’s architecture, data model, API surface, sync worker plan, and security/testing strategies.
-   - Open questions or new decisions should be recorded back in the spec’s **Open Questions & Outstanding Decisions** section.
+   - Technical direction: follow the same document's architecture, data model, API surface, sync worker plan, and security/testing strategies.
+   - Open questions or new decisions should be recorded back in the spec's **Open Questions & Outstanding Decisions** section.
 4. **Review & QA**:
    - Align test coverage with `SPECIFICATION.md` → **Testing Strategy** and milestone expectations. Add or update Playwright, integration, and unit tests as features are implemented.
    - Document manual verification steps in the related ticket for future regressions.
-5. **Ship**:
+5. **Bug Triage** (after each ticket):
+   - Check the `bugs/` folder for new bug reports
+   - Assign priority: Critical/Blocking, High, Medium, or Low
+   - Update `MILESTONES.md` to incorporate the bug based on priority
+   - Fix Critical/Blocking bugs immediately before proceeding to the next task
+   - Our team philosophy: **fix bugs between tasks** rather than accumulating them for the end of a milestone. We are very fast at bug fixes and prefer this "fix as we go" approach to keep the codebase healthy.
+
+## Reporting Bugs
+
+To report a bug, use the `/bug` slash command followed by a description of the issue:
+
+```
+/bug Dashboard crashes when clicking 'New Workspace' button. User was logged in,
+navigated to dashboard, clicked button in top-right. Browser console shows
+TypeError: Cannot read property 'id' of undefined
+```
+
+**What to include in your description:**
+- Clear description of the bug
+- State of the app when you observed it (logged in/out, which page, what actions)
+- Error messages from browser console or UI
+- Steps that led to the bug
+
+**What NOT to do:**
+- Don't investigate or analyze the root cause yourself
+- Don't check logs or stack traces manually
+- Don't try to diagnose the issue
+
+The `/bug` command will automatically:
+- Check backend logs for related errors
+- Extract stack traces and error details
+- Determine severity and category
+- Assign the next bug number
+- Create a properly formatted bug report in `bugs/BUG-XX-description.md`
+
+Just describe what you observed, and let the `/bug` command handle the investigation and root cause analysis.
+6. **Ship**:
    - Use milestone exit criteria to confirm readiness.
    - Summarize spec deltas, tests run, and outstanding risks in your PR description.
 

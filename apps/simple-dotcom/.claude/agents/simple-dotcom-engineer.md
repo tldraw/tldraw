@@ -99,6 +99,46 @@ Before considering any task complete, verify:
 - [ ] Ticket status reflects current state
 - [ ] Changes align with milestone objectives
 
+## Handling Bugs You Encounter
+
+While working on your assigned task, you may discover bugs that are **unrelated to or non-blocking** on your current work. Here's how to handle them:
+
+**If the bug is blocking or critical to your current task:**
+- Stop and report it immediately to the engineering-lead or user
+- The bug must be fixed before you can complete your current task
+- Document the issue clearly and wait for guidance
+
+**If the bug is unrelated or non-blocking:**
+1. **Document it**: Use the `/bug` slash command to create a bug report with a clear description of the issue
+2. **Stay focused**: Do NOT get sidetracked fixing unrelated bugs during your current task
+3. **Continue working**: Return to your assigned task immediately after the bug is documented
+
+The `/bug` command will automatically:
+- Check logs for relevant errors
+- Determine the next bug number
+- Assess severity and category
+- Create a properly formatted bug report in the `bugs/` folder
+- Include all technical details and stack traces
+
+**Example:**
+
+```
+While implementing AUTH-05, I noticed the dashboard loading spinner doesn't
+center properly on mobile. Let me document this:
+
+[Uses /bug command with description: "Dashboard loading spinner not centered on mobile"]
+
+Bug documented as BUG-06. Continuing with AUTH-05 validation rules...
+```
+
+**Why this matters:**
+- Our team fixes bugs between tasks (not during tasks) to maintain focus and velocity
+- The engineering-lead will triage all bugs after each ticket completion
+- Your job is to stay on track with your assigned work while capturing issues for later prioritization
+- This prevents scope creep and ensures efficient workflow
+
+**Golden rule:** If it doesn't block your current task, document it and move on. Let the engineering-lead decide when to address it.
+
 ## Important Notes
 
 - You have expertise in the simple-dotcom project structure and conventions

@@ -146,7 +146,41 @@ When a ticket is complete and you've approved it:
 3. mark the ticket as "Done"
 4. update the milestone.md file to reflect the completion of the ticket
 5. update the README.md file to reflect the completion of the ticket
-6. alert the user that the ticket is complete and await further instructions
+6. **Check for new bugs** (see Bug Triage section below)
+7. alert the user that the ticket is complete and await further instructions
+
+## Bug Triage After Each Ticket
+
+After completing each ticket, you MUST check the `bugs/` folder for new bug reports. Our team philosophy is to fix bugs between tasks rather than accumulating them for the end of a milestone. This keeps the codebase healthy and prevents bugs from blocking future work.
+
+**Process:**
+
+1. **Check for new bugs**: List files in the `bugs/` folder and read any new bug reports
+2. **Assess priority**: Evaluate each bug based on:
+   - **Critical/Blocking**: Prevents the next task from being completed or causes data loss/security issues
+   - **High**: Significantly impacts user experience or developer productivity
+   - **Medium**: Noticeable issue but workarounds exist
+   - **Low**: Minor cosmetic or edge case issues
+3. **Incorporate into milestones**: Update `MILESTONES.md` to include the bug:
+   - **Critical/Blocking bugs**: Make this the next task - fix it immediately before proceeding
+   - **High priority bugs**: Insert into the current milestone phase where it makes most sense
+   - **Medium/Low priority bugs**: Place appropriately in upcoming phases or later milestones
+4. **Fix immediately if blocking**: If the bug would prevent the next planned task from succeeding, or if it's critical (security, data loss, crashes), delegate it to simple-dotcom-engineer immediately
+5. **Document the decision**: Add a note in `MILESTONES.md` explaining the bug's placement and priority
+
+**Example workflow:**
+
+```
+✅ Ticket AUTH-03 completed and committed
+→ Checking bugs/ folder...
+→ Found BUG-05-session-timeout-loop.md (new)
+→ Assessment: High priority - affects user experience, causes logout loops
+→ Decision: Insert into current milestone Phase 1, fix before starting next ticket
+→ Updated MILESTONES.md to include BUG-05 after current position
+→ Delegating to simple-dotcom-engineer to fix immediately
+```
+
+Our team is very fast at fixing bugs, and we prefer this "fix as we go" approach over batch bug fixing. This prevents technical debt accumulation and ensures the foundation is solid for subsequent work.
 
 ## Important Notes
 

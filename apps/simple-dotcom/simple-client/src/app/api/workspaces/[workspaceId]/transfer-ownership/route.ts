@@ -1,7 +1,7 @@
 // Transfer Ownership API Route
 // POST /api/workspaces/:workspaceId/transfer-ownership - Transfer workspace ownership
 
-import { ApiException, ErrorCodes } from '@/lib/api/errors'
+import { ApiException, ErrorCode, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
 import { TransferOwnershipRequest } from '@/lib/api/types'
 import { createClient, requireAuth } from '@/lib/supabase/server'
@@ -29,87 +29,86 @@ export async function POST(request: NextRequest, context: RouteContext) {
 			throw new ApiException(400, ErrorCodes.MISSING_REQUIRED_FIELD, 'new_owner_id is required')
 		}
 
-		// Verify user is current owner
-		const { data: workspace } = await supabase
-			.from('workspaces')
-			.select('owner_id, is_private')
-			.eq('id', workspaceId)
-			.eq('is_deleted', false)
-			.single()
+		// Note: All validation is now handled atomically in the database function
+		// This includes checking:
+		// - Workspace exists and is not deleted
+		// - Current user is the owner
+		// - Workspace is not private
+		// - New owner is an existing member
+		// The function ensures consistency through database-level locks
 
-		if (!workspace) {
-			throw new ApiException(404, ErrorCodes.WORKSPACE_NOT_FOUND, 'Workspace not found')
-		}
+		// Perform atomic ownership transfer via database function
+		// This ensures all updates happen together or none at all
+		const { data: result, error } = await supabase.rpc('transfer_workspace_ownership', {
+			p_workspace_id: workspaceId,
+			p_current_owner_id: user.id,
+			p_new_owner_id: body.new_owner_id,
+		})
 
-		if (workspace.owner_id !== user.id) {
+		if (error) {
 			throw new ApiException(
-				403,
-				ErrorCodes.WORKSPACE_OWNERSHIP_REQUIRED,
-				'Only workspace owner can transfer ownership'
+				500,
+				ErrorCodes.INTERNAL_ERROR,
+				`Failed to transfer ownership: ${error.message}`
 			)
 		}
 
-		if (workspace.is_private) {
-			throw new ApiException(
-				403,
-				ErrorCodes.CANNOT_DELETE_PRIVATE_WORKSPACE,
-				'Cannot transfer ownership of private workspace'
-			)
+		// Type guard for the response
+		interface TransferResult {
+			success: boolean
+			error?: string
+			code?: string
+			message?: string
+			data?: {
+				workspace_id: string
+				previous_owner_id: string
+				new_owner_id: string
+			}
 		}
 
-		// Verify new owner is a member
-		const { data: newOwnerMembership } = await supabase
-			.from('workspace_members')
-			.select('*')
-			.eq('workspace_id', workspaceId)
-			.eq('user_id', body.new_owner_id)
-			.single()
+		const transferResult = result as unknown as TransferResult
 
-		if (!newOwnerMembership) {
-			throw new ApiException(
-				400,
-				ErrorCodes.INVALID_INPUT,
-				'New owner must be an existing workspace member'
-			)
+		// Handle function response
+		if (!transferResult?.success) {
+			// Map error codes to appropriate HTTP status and error codes
+			const errorCode = transferResult?.code || 'TRANSFER_FAILED'
+			const errorMessage = transferResult?.error || 'Failed to transfer ownership'
+
+			let statusCode = 500
+			let apiErrorCode: ErrorCode = ErrorCodes.INTERNAL_ERROR
+
+			switch (errorCode) {
+				case 'WORKSPACE_NOT_FOUND':
+					// This covers both workspace not found and not being the owner
+					statusCode = 404
+					apiErrorCode = ErrorCodes.WORKSPACE_NOT_FOUND
+					// Check if it's actually an ownership issue based on the error message
+					if (errorMessage.includes('not the owner')) {
+						statusCode = 403
+						apiErrorCode = ErrorCodes.WORKSPACE_OWNERSHIP_REQUIRED
+					}
+					break
+				case 'CANNOT_TRANSFER_PRIVATE':
+					statusCode = 403
+					apiErrorCode = ErrorCodes.CANNOT_DELETE_PRIVATE_WORKSPACE
+					break
+				case 'INVALID_NEW_OWNER':
+					statusCode = 400
+					apiErrorCode = ErrorCodes.INVALID_INPUT
+					break
+				case 'SELF_TRANSFER':
+					statusCode = 400
+					apiErrorCode = ErrorCodes.INVALID_INPUT
+					break
+			}
+
+			throw new ApiException(statusCode, apiErrorCode, errorMessage)
 		}
 
-		// Perform ownership transfer in transaction
-		// 1. Update workspace owner
-		const { error: workspaceError } = await supabase
-			.from('workspaces')
-			.update({
-				owner_id: body.new_owner_id,
-				updated_at: new Date().toISOString(),
-			})
-			.eq('id', workspaceId)
-
-		if (workspaceError) {
-			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to transfer ownership')
-		}
-
-		// 2. Update new owner's role to 'owner'
-		const { error: newOwnerError } = await supabase
-			.from('workspace_members')
-			.update({ role: 'owner' })
-			.eq('workspace_id', workspaceId)
-			.eq('user_id', body.new_owner_id)
-
-		if (newOwnerError) {
-			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to update new owner role')
-		}
-
-		// 3. Update old owner's role to 'member'
-		const { error: oldOwnerError } = await supabase
-			.from('workspace_members')
-			.update({ role: 'member' })
-			.eq('workspace_id', workspaceId)
-			.eq('user_id', user.id)
-
-		if (oldOwnerError) {
-			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to update old owner role')
-		}
-
-		return successResponse({ message: 'Ownership transferred successfully' })
+		return successResponse({
+			message: transferResult.message || 'Ownership transferred successfully',
+			data: transferResult.data,
+		})
 	} catch (error) {
 		return handleApiError(error)
 	}
