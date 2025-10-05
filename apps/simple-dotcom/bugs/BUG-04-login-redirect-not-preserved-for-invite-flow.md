@@ -2,15 +2,15 @@
 
 Date reported: 2025-10-05
 Date last updated: 2025-10-05
-Date resolved: -
+Date resolved: 2025-10-05
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -248,6 +248,14 @@ Update the signup link in login page to preserve the redirect parameter:
 - Analyzed login/signup pages and found missing redirect handling
 - Invite page correctly passes redirect parameter but auth pages ignore it
 - Created comprehensive bug report with proposed solution
+
+**2025-10-05 (Resolution):**
+- Fixed as part of MEM-04 and INV-01 implementation
+- Added useSearchParams to both login and signup pages
+- Implemented redirect parameter preservation and validation
+- Added invite context messaging
+- Links between auth pages now preserve redirect parameter
+- Comprehensive E2E tests added
 
 ## Open Questions
 
