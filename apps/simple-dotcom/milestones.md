@@ -92,7 +92,7 @@ Break the MVP scope into three executable milestones that sequence dependencies,
 ### Phase 1: Foundation & Simple CRUD (Week 1-2)
 *Start these in parallel after M1.5 complete*
 - [x] [`tickets/TECH-09-realtime-update-architecture.md`](tickets/TECH-09-realtime-update-architecture.md) *(Small, < 1 day)* ✅ COMPLETED 2025-10-05
-- [ ] [`tickets/DESIGN-07-shared-component-library.md`](tickets/DESIGN-07-shared-component-library.md) *(Small, 1-2 days)*
+- [x] [`tickets/DESIGN-07-shared-component-library.md`](tickets/DESIGN-07-shared-component-library.md) *(Small, 1-2 days)* ✅ COMPLETED 2025-10-05
 - [ ] [`tickets/DOC-04-document-metadata-tracking.md`](tickets/DOC-04-document-metadata-tracking.md) *(Small)*
 - [ ] [`tickets/DOC-01-document-crud-and-archive.md`](tickets/DOC-01-document-crud-and-archive.md) *(Medium - metadata only, no canvas)*
 - [ ] [`tickets/DOC-05-archive-hard-delete-policies.md`](tickets/DOC-05-archive-hard-delete-policies.md) *(Small)*
@@ -143,6 +143,41 @@ Break the MVP scope into three executable milestones that sequence dependencies,
 **Superseded tickets:**
 - ~~INV-01 + INV-02~~ → Combined into new INV-01
 - ~~PERM-02 + PERM-04~~ → Combined into new PERM-02
+
+## Milestone 2.5 – Canvas Integration Foundation
+
+**Goal:** Deliver the first canvas-capable experience by layering tldraw editing, real-time sync, and offline resilience on top of the Milestone 2 workspace/document system.
+
+**Strategic Approach:** Reuse the production dotcom integration as the blueprint while carving out a simplified worker + client surface for the simple-dotcom stack. Build the integration incrementally: local canvas → multiplayer sync → resilience and UX polish.
+
+**Primary outcomes:**
+- `/d/[documentId]` renders `<Tldraw />` for members with role-aware read/write behaviour for guests.
+- Cloudflare Durable Object worker manages multiplayer sessions, Supabase-backed permissions, and autosave snapshots.
+- R2 snapshot pipeline writes and restores document state without blocking editing flows.
+- Presence, offline banners, and reconnection UX match product expectations without regressing Milestone 2 behaviours.
+
+**Prerequisites:** Milestone 2 tickets complete, Supabase auth/permissions stable, and Cloudflare credentials (Workers, Durable Objects, R2) provisioned.
+
+**Estimated timeline:** 3–4 weeks with 2 engineers (COLLAB-01B + TECH-02 on the critical path).
+
+**Ticket checklist (Canvas integration):**
+- [ ] [`tickets/COLLAB-01A-basic-tldraw-integration.md`](tickets/COLLAB-01A-basic-tldraw-integration.md) *(Medium)*
+- [ ] [`tickets/TECH-02-tldraw-storage-and-snapshots.md`](tickets/TECH-02-tldraw-storage-and-snapshots.md) *(Large)*
+- [ ] [`tickets/COLLAB-01B-multiplayer-sync-worker.md`](tickets/COLLAB-01B-multiplayer-sync-worker.md) *(Large)*
+- [ ] [`tickets/COLLAB-02-presence-indicators.md`](tickets/COLLAB-02-presence-indicators.md) *(Medium)*
+- [ ] [`tickets/COLLAB-03-offline-resilience.md`](tickets/COLLAB-03-offline-resilience.md) *(Medium)*
+- [ ] [`tickets/TECH-06-offline-status-detection.md`](tickets/TECH-06-offline-status-detection.md) *(Medium)*
+
+### Ticket Guidance
+
+- **COLLAB-01A** – Replace the placeholder canvas in `apps/simple-dotcom/simple-client/src/app/d/[documentId]/document-view-client.tsx` with the `<Tldraw />` component. Start with the minimal patterns in `apps/examples/src/examples/inline/InlineExample.tsx` and `apps/examples/src/misc/develop.tsx` to understand required providers. Use `persistenceKey={document.id}` so IndexedDB stores per-document state, and gate editability via the existing `canEdit` flag. Mirror the layout constraints from dotcom (`apps/dotcom/client/src/tla/components/TlaEditor/TlaEditor.tsx`) so the canvas stretches under the document header, and introduce a feature flag so the route can fall back to read-only while COLLAB-01B lands.
+- **TECH-02** – Extend Supabase with `snapshot_key`, `last_snapshot_at`, and `snapshot_version` on `documents` (follow the migration style under `apps/simple-dotcom/supabase/migrations`). Reuse the R2 helpers from `apps/dotcom/sync-worker/src/r2.ts` and `snapshotUtils.ts` to implement `writeSnapshotWithRetry` inside the new worker. Share snapshot key formatting via a small module in `apps/simple-dotcom/simple-shared` so both worker and client agree on `documents/{workspace_id}/{document_id}/latest.json`. Update `apps/simple-dotcom/simple-client/src/app/d/[documentId]/page.tsx` to request the latest snapshot on load and fall back to an empty canvas when none exists.
+- **COLLAB-01B** – Scaffold `apps/simple-dotcom/simple-worker/` using `apps/dotcom/sync-worker` as the reference but strip dotcom-specific routes. Minimum pieces: `wrangler.toml`, a Durable Object managing room state, WebSocket upgrade handling in `src/worker.ts`, and token validation that calls Supabase with a service-role key (copy the pattern from `apps/dotcom/sync-worker/src/utils/tla/getAuth.ts`). Add `apps/simple-dotcom/simple-client/src/app/api/sync/[documentId]/token/route.ts` to issue signed tokens after checking workspace permissions. On the client, swap the local persistence adapter for `useSync` from `@tldraw/sync` (see `apps/dotcom/client/src/tla/components/TlaEditor/TlaEditor.tsx`) and pipe the returned `store` into `<Tldraw />`.
+- **COLLAB-02** – Surface live collaborators once sync is active. The tldraw editor will render cursors automatically if tokens include user metadata; extend the token payload in COLLAB-01B with `display_name` and colour hints. For the header participant list, subscribe to Supabase Realtime on the `presence` table using a client helper (build on the existing REST handler at `apps/simple-dotcom/simple-client/src/app/api/presence/[documentId]/route.ts`). Reference `packages/tldraw/src/components/DefaultCollaborators.tsx` for mapping collaborator state into avatars.
+- **COLLAB-03** – Connect offline queues to user-facing banners. Leverage `useCollaborationStatus` / `OfflineIndicator` from `tldraw` (see `apps/dotcom/client/src/tla/components/TlaEditor/editor-components/TlaEditorTopPanel.tsx`) and expose clear copy when edits are queued. Ensure reconnect flow replays queued ops via the sync adapter—no bespoke queue needed. Extend Playwright coverage in `apps/simple-dotcom/simple-client/e2e` with a multi-tab offline scenario using `browserContext.setOffline(true)`.
+- **TECH-06** – Implement a global connectivity service shared by dashboard and document routes. Create a hook under `apps/simple-dotcom/simple-client/src/hooks/useNetworkStatus.ts` that combines `window.navigator.onLine` events with a heartbeat fetch (add `/api/health` if needed). Provide context in `app/layout.tsx` and display a banner component that reuses the offline styles from `apps/dotcom/client/src/tla/components/TlaEditor/top.module.css` while avoiding workspace-name leaks for guests.
+
+**Testing expectations:** After schema changes run `yarn workspace simple-client gen-types` then `yarn typecheck` at repo root. Multiplayer and offline scenarios require Playwright multi-browser coverage; reuse the patterns in `apps/simple-dotcom/simple-client/e2e` and the sync-focused examples under `apps/examples/src/examples/sync-*` for deterministic assertions.
 
 ## Milestone 3 – Launch Hardening & Readiness
 
