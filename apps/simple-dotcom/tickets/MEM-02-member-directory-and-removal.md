@@ -1,15 +1,15 @@
 # [MEM-02]: Member Directory and Removal
 
 Date created: 2025-10-04
-Date last updated: 2025-10-04
-Date completed: -
+Date last updated: 2025-10-05
+Date completed: 2025-10-05
 
 ## Status
 
-- [x] Not Started
+- [ ] Not Started
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -36,9 +36,9 @@ Implement member listing UI and API so owners can view all workspace members, se
 
 ## Acceptance Criteria
 
-- [ ] `/api/workspaces/[id]/members` returns paginated member data including role, **display name**, joined date, and optional avatar reference with RLS constraints (email only for owners where required but never displayed to non-owners).
-- [ ] Members page displays list with role indicators and contextual actions (remove for owners, disabled for members) showing **display names/initials instead of raw emails**.
-- [ ] Removing a member updates database, revokes access in real time, and notifies impacted user if online.
+- [x] `/api/workspaces/[id]/members` returns paginated member data including role, **display name**, joined date, and optional avatar reference with RLS constraints (email only for owners where required but never displayed to non-owners).
+- [x] Members page displays list with role indicators and contextual actions (remove for owners, disabled for members) showing **display names/initials instead of raw emails**.
+- [x] Removing a member updates database, revokes access in real time, and notifies impacted user if online.
 
 ## Technical Details
 
@@ -91,7 +91,7 @@ Consider delayed removal (e.g., 5s grace period) to allow undo in future iterati
 
 ## Worklog
 
-[Track progress, decisions, and blockers as work proceeds. Each entry should include date and brief description.]
+2025-10-05: Enhanced existing member directory with search (>10 members), pagination (10 per page), and real-time updates via Supabase subscriptions. Member removal and API endpoints already existed. Added comprehensive E2E tests covering all member management scenarios.
 
 ## Open questions
 

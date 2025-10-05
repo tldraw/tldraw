@@ -3,7 +3,7 @@
 import { Workspace } from '@/lib/api/types'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface Member {
 	id: string
@@ -36,6 +36,20 @@ export default function WorkspaceSettingsClient({
 	const [selectedNewOwner, setSelectedNewOwner] = useState<string>('')
 	const [showTransferConfirm, setShowTransferConfirm] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+
+	// Invitation link states
+	const [invitationLink, setInvitationLink] = useState<{
+		id: string
+		workspace_id: string
+		token: string
+		enabled: boolean
+		created_at: string
+		regenerated_at: string | null
+	} | null>(null)
+	const [isLoadingInvite, setIsLoadingInvite] = useState(false)
+	const [isRegenerating, setIsRegenerating] = useState(false)
+	const [isTogglingInvite, setIsTogglingInvite] = useState(false)
+	const [copySuccess, setCopySuccess] = useState(false)
 
 	const handleRename = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -158,6 +172,108 @@ export default function WorkspaceSettingsClient({
 		}
 	}
 
+	// Fetch invitation link status on mount
+	useEffect(() => {
+		if (isOwner && !workspace.is_private) {
+			fetchInvitationLink()
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [workspace.id, isOwner, workspace.is_private])
+
+	const fetchInvitationLink = async () => {
+		setIsLoadingInvite(true)
+		try {
+			const res = await fetch(`/api/workspaces/${workspace.id}/invite`)
+			if (res.ok) {
+				const result = await res.json()
+				if (result.success && result.data) {
+					setInvitationLink(result.data)
+				}
+			} else if (res.status === 403) {
+				// User is not an owner, don't show invitation link section
+				console.log('User is not workspace owner')
+			} else {
+				console.error('Failed to fetch invitation link:', res.status, res.statusText)
+			}
+		} catch (err) {
+			console.error('Failed to fetch invitation link:', err)
+		} finally {
+			setIsLoadingInvite(false)
+		}
+	}
+
+	const handleToggleInvite = async () => {
+		setIsTogglingInvite(true)
+		setError(null)
+		try {
+			const res = await fetch(`/api/workspaces/${workspace.id}/invite`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ enabled: !invitationLink?.enabled }),
+			})
+
+			if (!res.ok) {
+				const result = await res.json()
+				throw new Error(result.error?.message || 'Failed to toggle invitation link')
+			}
+
+			const result = await res.json()
+			if (result.success && result.data) {
+				setInvitationLink(result.data)
+			}
+		} catch (err: any) {
+			setError(err.message)
+		} finally {
+			setIsTogglingInvite(false)
+		}
+	}
+
+	const handleRegenerateInvite = async () => {
+		if (
+			!confirm(
+				'Are you sure you want to regenerate the invitation link? The old link will stop working immediately.'
+			)
+		) {
+			return
+		}
+
+		setIsRegenerating(true)
+		setError(null)
+		try {
+			const res = await fetch(`/api/workspaces/${workspace.id}/invite/regenerate`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+			})
+
+			if (!res.ok) {
+				const result = await res.json()
+				throw new Error(result.error?.message || 'Failed to regenerate invitation link')
+			}
+
+			const result = await res.json()
+			if (result.success && result.data) {
+				setInvitationLink(result.data)
+			}
+		} catch (err: any) {
+			setError(err.message)
+		} finally {
+			setIsRegenerating(false)
+		}
+	}
+
+	const handleCopyInviteLink = async () => {
+		if (invitationLink?.token) {
+			try {
+				const url = `${window.location.origin}/invite/${invitationLink.token}`
+				await navigator.clipboard.writeText(url)
+				setCopySuccess(true)
+				setTimeout(() => setCopySuccess(false), 2000)
+			} catch (err) {
+				setError('Failed to copy link to clipboard')
+			}
+		}
+	}
+
 	// Filter out current user from potential new owners
 	const eligibleMembers = members.filter((m) => m.id !== userId)
 
@@ -246,6 +362,101 @@ export default function WorkspaceSettingsClient({
 							</p>
 						)}
 					</section>
+
+					{/* Invitation Links - Only for owners of shared workspaces */}
+					{isOwner && !workspace.is_private && (
+						<section className="rounded-lg border p-6">
+							<h2 className="mb-4 text-lg font-semibold">Invitation Link</h2>
+							<p className="mb-4 text-sm text-gray-600">
+								Share this link to invite people to your workspace. Anyone with the link can join as
+								a member.
+							</p>
+
+							{isLoadingInvite ? (
+								<div className="text-sm text-gray-500">Loading invitation link...</div>
+							) : invitationLink ? (
+								<div className="space-y-4">
+									{/* Link status badge */}
+									<div className="flex items-center gap-2">
+										<span className="text-sm font-medium">Status:</span>
+										<span
+											className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+												invitationLink.enabled
+													? 'bg-green-100 text-green-800'
+													: 'bg-gray-100 text-gray-800'
+											}`}
+										>
+											{invitationLink.enabled ? 'Enabled' : 'Disabled'}
+										</span>
+									</div>
+
+									{/* Invitation link display and copy */}
+									{invitationLink.enabled && invitationLink.token && (
+										<div className="space-y-2">
+											<div className="flex items-center gap-2">
+												<input
+													type="text"
+													value={`${window.location.origin}/invite/${invitationLink.token}`}
+													readOnly
+													className="flex-1 rounded-md border bg-gray-50 px-3 py-2 text-sm text-gray-700"
+												/>
+												<button
+													onClick={handleCopyInviteLink}
+													className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+												>
+													{copySuccess ? 'Copied!' : 'Copy'}
+												</button>
+											</div>
+										</div>
+									)}
+
+									{/* Dates */}
+									{(invitationLink.created_at || invitationLink.regenerated_at) && (
+										<div className="text-xs text-gray-500">
+											{invitationLink.regenerated_at ? (
+												<>
+													Last regenerated:{' '}
+													{new Date(invitationLink.regenerated_at).toLocaleDateString()}
+												</>
+											) : (
+												<>Created: {new Date(invitationLink.created_at).toLocaleDateString()}</>
+											)}
+										</div>
+									)}
+
+									{/* Actions */}
+									<div className="flex gap-2">
+										<button
+											onClick={handleToggleInvite}
+											disabled={isTogglingInvite}
+											className={`rounded-md px-4 py-2 text-sm ${
+												invitationLink.enabled
+													? 'bg-gray-600 text-white hover:bg-gray-700'
+													: 'bg-green-600 text-white hover:bg-green-700'
+											} disabled:opacity-50`}
+										>
+											{isTogglingInvite
+												? 'Processing...'
+												: invitationLink.enabled
+													? 'Disable Link'
+													: 'Enable Link'}
+										</button>
+										{invitationLink.enabled && (
+											<button
+												onClick={handleRegenerateInvite}
+												disabled={isRegenerating}
+												className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
+											>
+												{isRegenerating ? 'Regenerating...' : 'Regenerate Link'}
+											</button>
+										)}
+									</div>
+								</div>
+							) : (
+								<div className="text-sm text-gray-500">Loading invitation settings...</div>
+							)}
+						</section>
+					)}
 
 					{/* Ownership Transfer - Only show for owners of shared workspaces */}
 					{isOwner && !workspace.is_private && eligibleMembers.length > 0 && (
