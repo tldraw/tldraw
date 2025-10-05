@@ -74,6 +74,23 @@ export async function POST(request: NextRequest) {
 			throw new ApiException(400, ErrorCodes.MISSING_REQUIRED_FIELD, 'Workspace name is required')
 		}
 
+		// Check for duplicate workspace name within user's workspaces
+		const { data: existingWorkspace } = await supabaseAdmin
+			.from('workspaces')
+			.select('id')
+			.eq('owner_id', user.id)
+			.eq('name', body.name.trim())
+			.eq('is_deleted', false)
+			.single()
+
+		if (existingWorkspace) {
+			throw new ApiException(
+				422,
+				ErrorCodes.DUPLICATE_WORKSPACE_NAME,
+				'A workspace with this name already exists'
+			)
+		}
+
 		// Check workspace limit (~100 workspaces per user)
 		const { count } = await supabaseAdmin
 			.from('workspaces')

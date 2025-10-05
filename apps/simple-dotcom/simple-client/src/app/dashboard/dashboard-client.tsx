@@ -4,7 +4,7 @@ import { Document, Folder, RecentDocument, User, Workspace } from '@/lib/api/typ
 import { getBrowserClient } from '@/lib/supabase/browser'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface WorkspaceWithContent {
 	workspace: Workspace
@@ -44,6 +44,40 @@ export default function DashboardClient({
 	const [newWorkspaceName, setNewWorkspaceName] = useState('')
 	const [actionLoading, setActionLoading] = useState(false)
 
+	// New states for improved UX
+	const [validationError, setValidationError] = useState<string | null>(null)
+	const currentRequestRef = useRef<AbortController | null>(null)
+
+	// Define handlers before useEffect to avoid dependency issues
+	const handleCloseCreateModal = () => {
+		// Cancel any pending request
+		if (currentRequestRef.current) {
+			currentRequestRef.current.abort()
+		}
+		setShowCreateModal(false)
+		setNewWorkspaceName('')
+		setValidationError(null)
+		setActionLoading(false)
+	}
+
+	// Keyboard event handling for modal
+	useEffect(() => {
+		if (!showCreateModal) return
+
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') {
+				handleCloseCreateModal()
+			} else if (e.key === 'Enter' && newWorkspaceName.trim() && !actionLoading) {
+				e.preventDefault()
+				handleCreateWorkspace()
+			}
+		}
+
+		window.addEventListener('keydown', handleKeyDown)
+		return () => window.removeEventListener('keydown', handleKeyDown)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [showCreateModal, newWorkspaceName, actionLoading])
+
 	const handleSignOut = async () => {
 		const supabase = getBrowserClient()
 		await supabase.auth.signOut()
@@ -52,14 +86,24 @@ export default function DashboardClient({
 	}
 
 	const handleCreateWorkspace = async () => {
-		if (!newWorkspaceName.trim()) return
+		if (!newWorkspaceName.trim()) {
+			setValidationError('Workspace name is required')
+			return
+		}
 
 		try {
 			setActionLoading(true)
+			setValidationError(null)
+
+			// Create AbortController for request cancellation
+			const abortController = new AbortController()
+			currentRequestRef.current = abortController
+
 			const response = await fetch('/api/workspaces', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ name: newWorkspaceName.trim() }),
+				signal: abortController.signal,
 			})
 
 			const data = await response.json()
@@ -71,16 +115,23 @@ export default function DashboardClient({
 					workspaces: [{ workspace: data.data, documents: [], folders: [] }, ...prev.workspaces],
 				}))
 				setExpandedWorkspaces((prev) => new Set([...prev, data.data.id]))
+				// Only close modal on success
 				setShowCreateModal(false)
 				setNewWorkspaceName('')
+				setValidationError(null)
 			} else {
-				alert(data.error?.message || 'Failed to create workspace')
+				// Show error in modal, not alert
+				setValidationError(data.error?.message || 'Failed to create workspace')
 			}
-		} catch (err) {
-			console.error('Failed to create workspace:', err)
-			alert('Failed to create workspace')
+		} catch (err: any) {
+			// Don't show error if request was aborted
+			if (err.name !== 'AbortError') {
+				console.error('Failed to create workspace:', err)
+				setValidationError('Failed to create workspace. Please try again.')
+			}
 		} finally {
 			setActionLoading(false)
+			currentRequestRef.current = null
 		}
 	}
 
@@ -179,7 +230,11 @@ export default function DashboardClient({
 				<div className="p-4 border-b border-foreground/20">
 					<h2 className="text-lg font-semibold mb-2">Workspaces</h2>
 					<button
-						onClick={() => setShowCreateModal(true)}
+						onClick={() => {
+							setNewWorkspaceName('')
+							setValidationError(null)
+							setShowCreateModal(true)
+						}}
 						data-testid="create-workspace-button"
 						className="w-full rounded-md bg-foreground text-background px-3 py-2 text-sm font-medium hover:opacity-90"
 					>
@@ -373,18 +428,34 @@ export default function DashboardClient({
 						<input
 							type="text"
 							value={newWorkspaceName}
-							onChange={(e) => setNewWorkspaceName(e.target.value)}
+							onChange={(e) => {
+								setNewWorkspaceName(e.target.value)
+								// Clear validation error when user starts typing
+								if (validationError) setValidationError(null)
+							}}
+							onBlur={() => {
+								// Show validation on blur if empty
+								if (!newWorkspaceName.trim()) {
+									setValidationError('Workspace name is required')
+								}
+							}}
 							placeholder="Workspace name"
 							data-testid="workspace-name-input"
-							className="w-full px-3 py-2 rounded-md border border-foreground/20 bg-background mb-4"
+							className={`w-full px-3 py-2 rounded-md border ${
+								validationError ? 'border-red-500' : 'border-foreground/20'
+							} bg-background mb-2`}
 							disabled={actionLoading}
+							autoFocus
 						/>
+						{validationError && (
+							<p className="text-red-500 text-sm mb-4" data-testid="validation-error">
+								{validationError}
+							</p>
+						)}
+						{!validationError && <div className="mb-4" />}
 						<div className="flex gap-2 justify-end">
 							<button
-								onClick={() => {
-									setShowCreateModal(false)
-									setNewWorkspaceName('')
-								}}
+								onClick={handleCloseCreateModal}
 								className="rounded-md border border-foreground/20 px-4 py-2 text-sm hover:bg-foreground/5"
 								disabled={actionLoading}
 							>

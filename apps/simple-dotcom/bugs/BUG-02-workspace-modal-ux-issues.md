@@ -2,15 +2,15 @@
 
 Date reported: 2025-10-05
 Date last updated: 2025-10-05
-Date resolved:
+Date resolved: 2025-10-05
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -312,4 +312,25 @@ if (existingWorkspace) {
 
 ## Resolution
 
-Not yet resolved.
+**Resolved on 2025-10-05**
+
+All 8 issues have been successfully fixed:
+
+1. ✅ **Escape Key Handling**: Modal now closes when pressing Escape
+2. ✅ **Auto-Focus on Input**: Input field is automatically focused when modal opens
+3. ✅ **Enter Key Submit**: Form submits when pressing Enter (if valid)
+4. ✅ **Empty Name Validation UI**: Shows clear validation message for empty names
+5. ✅ **Duplicate Name Validation**: Checks for duplicate workspace names and shows error
+6. ✅ **Modal Stays Open During Request**: Modal no longer closes prematurely
+7. ✅ **Request Cancellation**: Implemented AbortController to cancel requests if modal is closed
+8. ✅ **Better Error Handling**: Shows errors inline in modal instead of using browser alert()
+
+**Files Modified:**
+- `/apps/simple-dotcom/simple-client/src/app/dashboard/dashboard-client.tsx` - Main modal implementation fixes
+- `/apps/simple-dotcom/simple-client/src/app/api/workspaces/route.ts` - Added duplicate name validation
+- `/apps/simple-dotcom/simple-client/src/lib/api/errors.ts` - Added DUPLICATE_WORKSPACE_NAME error code
+
+**Tests Added:**
+- `/apps/simple-dotcom/simple-client/e2e/workspace-modal-ux.spec.ts` - E2E tests for all UX fixes
+
+All E2E tests pass (94 passing, 3 skipped), including the new UX tests.
