@@ -20,7 +20,10 @@ import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
-import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
+import {
+	updateHoveredShapeIdDeferred,
+	updateHoveredShapeIdResponsive,
+} from '../../selection-logic/updateHoveredShapeId'
 import { startEditingShapeWithLabel } from '../selectHelpers'
 
 const SKIPPED_KEYS_FOR_AUTO_EDITING = [
@@ -41,17 +44,24 @@ export class Idle extends StateNode {
 
 	override onEnter() {
 		this.parent.setCurrentToolIdMask(undefined)
-		updateHoveredShapeId(this.editor)
+		updateHoveredShapeIdResponsive(this.editor)(this.editor)
 		this.selectedShapesOnKeyDown = []
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
 	override onExit() {
-		updateHoveredShapeId.cancel()
+		updateHoveredShapeIdDeferred(this.editor).cancel()
+		updateHoveredShapeIdResponsive(this.editor).cancel()
 	}
 
 	override onPointerMove() {
-		updateHoveredShapeId(this.editor)
+		if (this.editor.getCameraState() === 'moving') {
+			// When we're panning around, for performance reasons (esp. in larger rooms),
+			// We don't need to update the hovered shape as often, it really slows down things.
+			updateHoveredShapeIdDeferred(this.editor)(this.editor)
+		} else {
+			updateHoveredShapeIdResponsive(this.editor)(this.editor)
+		}
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
