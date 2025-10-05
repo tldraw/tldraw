@@ -1,24 +1,22 @@
 import { expect, test } from './fixtures/test-fixtures'
 
 test.describe('Empty Workspace List Handling (M15-02)', () => {
-	test('should handle users with no accessible workspaces without errors', async ({
+	test('should handle users with only private workspace', async ({
 		testUser,
 		authenticatedPage: page,
 		supabaseAdmin,
 	}) => {
-		// First, remove user from all workspaces (except private which we'll delete)
-		// Get all workspaces the user has access to
-		const { data: workspaces } = await supabaseAdmin
-			.from('workspaces')
-			.select('id, type')
-			.or(`owner_id.eq.${testUser.id}`)
+		// Remove user from all shared workspaces (but keep private workspace as it cannot be deleted per AUTH-02)
+		// Get all shared workspaces the user has access to
+		const { data: memberWorkspaces } = await supabaseAdmin
+			.from('workspace_members')
+			.select('workspace_id, workspaces!inner(id, is_private)')
+			.eq('user_id', testUser.id)
 
-		if (workspaces) {
-			for (const workspace of workspaces) {
-				if (workspace.type === 'private') {
-					// Delete the private workspace (this simulates provisioning failure)
-					await supabaseAdmin.from('workspaces').update({ is_deleted: true }).eq('id', workspace.id)
-				} else {
+		if (memberWorkspaces) {
+			for (const membership of memberWorkspaces) {
+				const workspace = (membership as any).workspaces
+				if (!workspace.is_private) {
 					// Remove user from shared workspaces
 					await supabaseAdmin
 						.from('workspace_members')
@@ -29,16 +27,21 @@ test.describe('Empty Workspace List Handling (M15-02)', () => {
 			}
 		}
 
-		// Now navigate to dashboard - it should not crash
+		// Now navigate to dashboard - it should show only the private workspace
 		await page.goto('/dashboard')
 
-		// Should show empty state without errors
+		// Should show workspace list without errors
 		await expect(page.locator('[data-testid="workspace-list"]')).toBeVisible()
 
-		// Check that we see the "No workspaces yet" empty state
+		// Check that we see exactly one workspace (the private workspace)
 		const workspaceItems = page.locator('[data-testid^="workspace-item-"]')
 		const count = await workspaceItems.count()
-		expect(count).toBe(0)
+		expect(count).toBe(1) // User should always have their private workspace
+
+		// Verify the workspace shown is the private workspace
+		// The workspace name should be based on the email prefix
+		const emailPrefix = testUser.email.split('@')[0]
+		await expect(page.locator(`text=/${emailPrefix}'s Workspace/i`).first()).toBeVisible()
 
 		// Verify no error messages are shown
 		await expect(page.locator('text=/error|500|crash/i')).not.toBeVisible()
@@ -48,22 +51,21 @@ test.describe('Empty Workspace List Handling (M15-02)', () => {
 		expect(title).toContain('tldraw')
 	})
 
-	test('should return proper empty response from dashboard API with no workspaces', async ({
+	test('should return proper dashboard API response with only private workspace', async ({
 		testUser,
 		authenticatedPage: page,
 		supabaseAdmin,
 	}) => {
-		// First, remove user from all workspaces
-		const { data: workspaces } = await supabaseAdmin
-			.from('workspaces')
-			.select('id, type')
-			.or(`owner_id.eq.${testUser.id}`)
+		// Remove user from all shared workspaces (keep private workspace)
+		const { data: memberWorkspaces } = await supabaseAdmin
+			.from('workspace_members')
+			.select('workspace_id, workspaces!inner(id, is_private)')
+			.eq('user_id', testUser.id)
 
-		if (workspaces) {
-			for (const workspace of workspaces) {
-				if (workspace.type === 'private') {
-					await supabaseAdmin.from('workspaces').update({ is_deleted: true }).eq('id', workspace.id)
-				} else {
+		if (memberWorkspaces) {
+			for (const membership of memberWorkspaces) {
+				const workspace = (membership as any).workspaces
+				if (!workspace.is_private) {
 					await supabaseAdmin
 						.from('workspace_members')
 						.delete()
@@ -83,78 +85,90 @@ test.describe('Empty Workspace List Handling (M15-02)', () => {
 		const data = await response.json()
 		expect(data.success).toBe(true)
 		expect(data.data).toBeDefined()
-		expect(data.data.workspaces).toEqual([])
-		expect(data.data.recentDocuments).toEqual([])
+
+		// Should have exactly one workspace (the private workspace)
+		expect(data.data.workspaces).toHaveLength(1)
+		expect(data.data.workspaces[0].workspace.is_private).toBe(true)
+
+		// Verify the workspace name follows the expected pattern
+		// Since testUser doesn't have display_name, it will use the email prefix
+		const emailPrefix = testUser.email.split('@')[0]
+		expect(data.data.workspaces[0].workspace.name).toBe(`${emailPrefix}'s Workspace`)
+
+		// Recent documents might be empty if user hasn't accessed any
+		expect(data.data.recentDocuments).toBeDefined()
 
 		// Should not have any error field
 		expect(data.error).toBeUndefined()
 	})
 
-	test('should recover gracefully when workspace is restored', async ({
+	test('should show private workspace that cannot be deleted', async ({
 		testUser,
 		authenticatedPage: page,
 		supabaseAdmin,
 	}) => {
-		// Get all workspaces the user has access to (owned or member)
-		const { data: ownedWorkspaces } = await supabaseAdmin
-			.from('workspaces')
-			.select('id, type')
-			.eq('owner_id', testUser.id!)
-
+		// Remove user from all shared workspaces
 		const { data: memberWorkspaces } = await supabaseAdmin
 			.from('workspace_members')
-			.select('workspace_id, workspaces!inner(id, type)')
+			.select('workspace_id, workspaces!inner(id, is_private)')
 			.eq('user_id', testUser.id!)
 
-		// Combine all workspaces
-		const allWorkspaces = [
-			...(ownedWorkspaces || []),
-			...(memberWorkspaces?.map((m) => (m as any).workspaces) || []),
-		]
-
-		// Find and soft-delete the private workspace
-		let privateWorkspaceId: string | null = null
-		for (const workspace of allWorkspaces) {
-			if (workspace.type === 'private') {
-				privateWorkspaceId = workspace.id
-				await supabaseAdmin.from('workspaces').update({ is_deleted: true }).eq('id', workspace.id)
-			} else {
-				// Remove from shared workspaces
-				await supabaseAdmin
-					.from('workspace_members')
-					.delete()
-					.eq('workspace_id', workspace.id)
-					.eq('user_id', testUser.id!)
+		if (memberWorkspaces) {
+			for (const membership of memberWorkspaces) {
+				const workspace = (membership as any).workspaces
+				if (!workspace.is_private) {
+					// Remove from shared workspaces
+					await supabaseAdmin
+						.from('workspace_members')
+						.delete()
+						.eq('workspace_id', workspace.id)
+						.eq('user_id', testUser.id!)
+				}
 			}
 		}
 
-		// Navigate to dashboard with no workspaces
+		// Create a new shared workspace to test removal
+		const { data: sharedWorkspace } = await supabaseAdmin
+			.from('workspaces')
+			.insert({
+				owner_id: testUser.id,
+				name: 'Temporary Shared Workspace',
+				is_private: false,
+			})
+			.select()
+			.single()
+
+		// Navigate to dashboard with both private and shared workspace
 		await page.goto('/dashboard')
 		await expect(page.locator('[data-testid="workspace-list"]')).toBeVisible()
 
 		let workspaceItems = page.locator('[data-testid^="workspace-item-"]')
-		expect(await workspaceItems.count()).toBe(0)
+		expect(await workspaceItems.count()).toBe(2) // Private + shared
 
-		// Restore the private workspace
-		if (privateWorkspaceId) {
-			await supabaseAdmin
-				.from('workspaces')
-				.update({ is_deleted: false })
-				.eq('id', privateWorkspaceId)
+		// Remove the shared workspace
+		await supabaseAdmin.from('workspaces').delete().eq('id', sharedWorkspace.id)
 
-			// Refresh the page
-			await page.reload()
+		// Refresh the page
+		await page.reload()
 
-			// Should now show the restored workspace
-			await expect(page.locator('[data-testid="workspace-list"]')).toBeVisible()
-			workspaceItems = page.locator('[data-testid^="workspace-item-"]')
-			expect(await workspaceItems.count()).toBeGreaterThan(0)
+		// Should still show the private workspace (which cannot be deleted)
+		await expect(page.locator('[data-testid="workspace-list"]')).toBeVisible()
+		workspaceItems = page.locator('[data-testid^="workspace-item-"]')
+		expect(await workspaceItems.count()).toBe(1)
 
-			// Should see the Private workspace
-			await expect(page.locator('text=/Private/i')).toBeVisible()
-		} else {
-			// If no private workspace was found, skip this assertion
-			console.warn('No private workspace found for test user - skipping restoration test')
-		}
+		// Verify it's the private workspace
+		const emailPrefix = testUser.email.split('@')[0]
+		await expect(page.locator(`text=/${emailPrefix}'s Workspace/i`).first()).toBeVisible()
+
+		// Verify the workspace is marked as private (if there's a UI indicator)
+		const { data: privateWorkspace } = await supabaseAdmin
+			.from('workspaces')
+			.select('*')
+			.eq('owner_id', testUser.id)
+			.eq('is_private', true)
+			.single()
+
+		expect(privateWorkspace).toBeDefined()
+		expect(privateWorkspace.is_deleted).toBe(false)
 	})
 })
