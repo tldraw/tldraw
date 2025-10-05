@@ -17,6 +17,13 @@ export const TEMPLATES: Template[] = [
 		repo: 'tldraw/vite-template',
 	},
 	{
+		name: 'v0',
+		description: 'A tldraw template optimized for v0.dev development environment.',
+		shortDescription: 'tldraw for v0.dev',
+		order: 2,
+		repo: 'tldraw/v0-template',
+	},
+	{
 		name: 'Shader Starter Kit',
 		description:
 			'A tldraw template with WebGL shader starter kit that creates dynamic shader effects from shape geometry.',
