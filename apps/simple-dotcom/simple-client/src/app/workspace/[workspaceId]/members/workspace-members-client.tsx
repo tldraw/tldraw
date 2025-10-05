@@ -1,0 +1,262 @@
+'use client'
+
+import { Workspace } from '@/lib/api/types'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+
+interface Member {
+	id: string
+	email: string
+	display_name: string | null
+	role: 'owner' | 'member'
+}
+
+interface InviteLink {
+	id: string
+	token: string
+	enabled: boolean
+	created_at: string
+	regenerated_at: string | null
+	workspace_id: string
+}
+
+interface WorkspaceMembersClientProps {
+	workspace: Workspace
+	members: Member[]
+	inviteLink: InviteLink | null
+	currentUserId: string
+}
+
+export default function WorkspaceMembersClient({
+	workspace,
+	members,
+	inviteLink,
+	currentUserId,
+}: WorkspaceMembersClientProps) {
+	const router = useRouter()
+	const [isToggling, setIsToggling] = useState(false)
+	const [isRegenerating, setIsRegenerating] = useState(false)
+	const [error, setError] = useState<string | null>(null)
+	const [success, setSuccess] = useState<string | null>(null)
+
+	const inviteUrl = inviteLink ? `${window.location.origin}/invite/${inviteLink.token}` : null
+
+	const handleToggleInvite = async () => {
+		setError(null)
+		setSuccess(null)
+		setIsToggling(true)
+
+		try {
+			const res = await fetch(`/api/workspaces/${workspace.id}/invite`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ is_enabled: !inviteLink?.enabled }),
+			})
+
+			if (!res.ok) {
+				const data = await res.json()
+				throw new Error(data.message || 'Failed to toggle invite link')
+			}
+
+			setSuccess(inviteLink?.enabled ? 'Invite link disabled' : 'Invite link enabled')
+			router.refresh()
+		} catch (err: any) {
+			setError(err.message)
+		} finally {
+			setIsToggling(false)
+		}
+	}
+
+	const handleRegenerateInvite = async () => {
+		if (!confirm('Regenerate invite link? The old link will stop working.')) {
+			return
+		}
+
+		setError(null)
+		setSuccess(null)
+		setIsRegenerating(true)
+
+		try {
+			const res = await fetch(`/api/workspaces/${workspace.id}/invite/regenerate`, {
+				method: 'POST',
+			})
+
+			if (!res.ok) {
+				const data = await res.json()
+				throw new Error(data.message || 'Failed to regenerate invite link')
+			}
+
+			setSuccess('Invite link regenerated')
+			router.refresh()
+		} catch (err: any) {
+			setError(err.message)
+		} finally {
+			setIsRegenerating(false)
+		}
+	}
+
+	const handleCopyInviteLink = () => {
+		if (inviteUrl) {
+			navigator.clipboard.writeText(inviteUrl)
+			setSuccess('Invite link copied to clipboard')
+			setTimeout(() => setSuccess(null), 3000)
+		}
+	}
+
+	const handleRemoveMember = async (memberId: string) => {
+		if (!confirm('Remove this member from the workspace?')) {
+			return
+		}
+
+		setError(null)
+		setSuccess(null)
+
+		try {
+			const res = await fetch(`/api/workspaces/${workspace.id}/members/${memberId}`, {
+				method: 'DELETE',
+			})
+
+			if (!res.ok) {
+				const data = await res.json()
+				throw new Error(data.message || 'Failed to remove member')
+			}
+
+			setSuccess('Member removed')
+			router.refresh()
+		} catch (err: any) {
+			setError(err.message)
+		}
+	}
+
+	return (
+		<div className="flex h-screen flex-col">
+			{/* Header */}
+			<header className="border-b px-6 py-4">
+				<div className="flex items-center justify-between">
+					<h1 className="text-2xl font-bold">Workspace Members</h1>
+					<Link
+						href={`/workspace/${workspace.id}`}
+						className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50"
+					>
+						Back to Workspace
+					</Link>
+				</div>
+			</header>
+
+			{/* Main content */}
+			<main className="flex-1 overflow-y-auto p-6">
+				<div className="mx-auto max-w-4xl space-y-8">
+					{error && <div className="rounded-lg bg-red-50 p-4 text-sm text-red-800">{error}</div>}
+					{success && (
+						<div className="rounded-lg bg-green-50 p-4 text-sm text-green-800">{success}</div>
+					)}
+
+					{/* Invitation Link */}
+					<section className="rounded-lg border p-6">
+						<h2 className="mb-4 text-lg font-semibold">Invitation Link</h2>
+						<p className="mb-4 text-sm text-gray-600">
+							Share this link with people you want to invite to the workspace.
+						</p>
+
+						{inviteLink && (
+							<div className="space-y-4">
+								<div className="flex items-center gap-2">
+									<input
+										type="text"
+										value={inviteUrl || ''}
+										readOnly
+										className="flex-1 rounded-md border bg-gray-50 px-3 py-2 text-sm font-mono"
+									/>
+									<button
+										onClick={handleCopyInviteLink}
+										disabled={!inviteLink.enabled}
+										className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
+									>
+										Copy
+									</button>
+								</div>
+
+								<div className="flex gap-2">
+									<button
+										onClick={handleToggleInvite}
+										disabled={isToggling}
+										className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
+									>
+										{isToggling
+											? 'Processing...'
+											: inviteLink.enabled
+												? 'Disable Link'
+												: 'Enable Link'}
+									</button>
+									<button
+										onClick={handleRegenerateInvite}
+										disabled={isRegenerating}
+										className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
+									>
+										{isRegenerating ? 'Regenerating...' : 'Regenerate Link'}
+									</button>
+								</div>
+
+								<p className="text-xs text-gray-500">
+									Status:{' '}
+									<span className={inviteLink.enabled ? 'text-green-600' : 'text-gray-600'}>
+										{inviteLink.enabled ? 'Enabled' : 'Disabled'}
+									</span>
+								</p>
+							</div>
+						)}
+					</section>
+
+					{/* Members List */}
+					<section className="rounded-lg border p-6">
+						<h2 className="mb-4 text-lg font-semibold">Members ({members.length})</h2>
+
+						<div className="space-y-2">
+							{members.map((member) => {
+								const isCurrentUser = member.id === currentUserId
+								const isOwner = member.role === 'owner'
+
+								return (
+									<div
+										key={member.id}
+										className="flex items-center justify-between rounded-lg border p-4"
+									>
+										<div>
+											<p className="font-medium">
+												{member.display_name || member.email}
+												{isCurrentUser && <span className="ml-2 text-sm text-gray-500">(You)</span>}
+											</p>
+											{member.display_name && (
+												<p className="text-sm text-gray-500">{member.email}</p>
+											)}
+										</div>
+
+										<div className="flex items-center gap-3">
+											<span
+												className={`rounded px-2 py-1 text-xs font-medium ${
+													isOwner ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
+												}`}
+											>
+												{isOwner ? 'Owner' : 'Member'}
+											</span>
+
+											{!isOwner && (
+												<button
+													onClick={() => handleRemoveMember(member.id)}
+													className="text-sm text-red-600 hover:text-red-800"
+												>
+													Remove
+												</button>
+											)}
+										</div>
+									</div>
+								)
+							})}
+						</div>
+					</section>
+				</div>
+			</main>
+		</div>
+	)
+}

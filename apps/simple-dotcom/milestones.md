@@ -29,7 +29,7 @@ Break the MVP scope into three executable milestones that sequence dependencies,
 - [x] [`tickets/NAV-02-global-dashboard.md`](tickets/NAV-02-global-dashboard.md)
 - [x] [`tickets/TECH-08-server-component-data-fetching.md`](tickets/TECH-08-server-component-data-fetching.md)
 - [x] [`tickets/NAV-07-recent-documents-tracking-and-display.md`](tickets/NAV-07-recent-documents-tracking-and-display.md)
-- [ ] [`tickets/NAV-05-route-structure-and-guards.md`](tickets/NAV-05-route-structure-and-guards.md)
+- [x] [`tickets/NAV-05-route-structure-and-guards.md`](tickets/NAV-05-route-structure-and-guards.md)
 
 ## Milestone 2 – Collaboration & Organization
 

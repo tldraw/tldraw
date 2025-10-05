@@ -171,7 +171,7 @@ export default function DashboardClient({
 	const displayName = userProfile?.display_name || userProfile?.name || 'User'
 
 	return (
-		<div className="flex min-h-screen bg-background">
+		<div className="flex min-h-screen bg-background" data-testid="dashboard">
 			{/* Sidebar */}
 			<div className="w-80 border-r border-foreground/20 flex flex-col">
 				<div className="p-4 border-b border-foreground/20">

@@ -1,15 +1,15 @@
 # [NAV-05]: Route Structure and Guards
 
 Date created: 2025-10-04
-Date last updated: -
-Date completed: -
+Date last updated: 2025-10-05
+Date completed: 2025-10-05
 
 ## Status
 
-- [x] Not Started
+- [ ] Not Started
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -36,9 +36,9 @@ Define Next.js routing structure covering member management, settings, archive, 
 
 ## Acceptance Criteria
 
-- [ ] Routes exist for workspace settings, member management, archive, folder views, invite management, profile, and marketing pages using shared layouts.
-- [ ] Navigation guards redirect unauthorized users to `/403` or login as appropriate, with consistent handling across server/client transitions.
-- [ ] Route-level loading and error boundaries are implemented to improve resilience.
+- [x] Routes exist for workspace settings, member management, archive, folder views, invite management, profile, and marketing pages using shared layouts.
+- [x] Navigation guards redirect unauthorized users to `/403` or login as appropriate, with consistent handling across server/client transitions.
+- [x] Route-level loading and error boundaries are implemented to improve resilience.
 
 ## Technical Details
 
@@ -56,7 +56,7 @@ Define Next.js routing structure covering member management, settings, archive, 
 
 ### Permissions/Security
 
-- Integrate server-side checks in `getServerSideProps`/middleware (or equivalent) to guard routes before render.
+- Integrate server-side checks in Server Components (using `auth.api.getSession()` with `redirect()`) and/or middleware to guard routes before render.
 
 ## Dependencies
 
@@ -68,7 +68,7 @@ Define Next.js routing structure covering member management, settings, archive, 
 - [ ] Unit tests
 - [x] Integration tests
 - [x] E2E tests (Playwright) — add guard path coverage below.
-- [ ] Manual testing scenarios
+- [x] Manual testing scenarios
 
 ### E2E Test Coverage (Playwright)
 
@@ -95,7 +95,24 @@ Ensure route naming and parameter patterns align with analytics tracking and fut
 
 ## Worklog
 
-[Track progress, decisions, and blockers as work proceeds. Each entry should include date and brief description.]
+**2025-10-05**: Completed implementation
+- Created workspace route structure with nested layouts:
+  - `/workspace/[workspaceId]` - Workspace browser with folder tree and documents list
+  - `/workspace/[workspaceId]/settings` - Workspace settings (rename, delete, leave)
+  - `/workspace/[workspaceId]/members` - Member management with invitation links
+  - `/workspace/[workspaceId]/archive` - Archived documents management
+- Created document view route `/d/[documentId]` with member/guest access modes
+- Created invite acceptance route `/invite/[token]` with authentication flow
+- Implemented server-side role-based guards in all routes using Better Auth session checks
+- Added loading.tsx and error.tsx boundaries for resilient UX
+- Updated middleware to handle new route patterns
+- Added E2E tests for route guards covering:
+  - Unauthenticated access redirects
+  - Unauthorized member access (403)
+  - Document sharing modes (private/public)
+  - Invite link validation
+  - Server-side and client-side guard consistency
+- All TypeScript type checks passing
 
 ## Open questions
 

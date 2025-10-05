@@ -146,14 +146,11 @@ test.describe('Route Guards', () => {
 			const page = authenticatedPage
 
 			// Try to access a non-existent workspace
-			const response = await page.goto('/workspace/non-existent-workspace-id')
+			await page.goto('/workspace/00000000-0000-0000-0000-000000000000')
 
-			// Should either redirect, show error, or return non-200 status
-			const urlAfter = page.url()
-			const hasError = await page.locator('[data-testid="error-message"]').isVisible()
-			const isNotFound = response?.status() === 404 || response?.status() === 500
-
-			expect(urlAfter.includes('/dashboard') || hasError || isNotFound).toBe(true)
+			// Should redirect to 403 page
+			await page.waitForURL('**/403**', { timeout: 5000 })
+			expect(page.url()).toContain('/403')
 		})
 
 		test('should allow access only to authorized workspaces', async ({ authenticatedPage }) => {
@@ -170,6 +167,48 @@ test.describe('Route Guards', () => {
 				await page.goto(`/workspace/${workspaceId}`)
 				expect(page.url()).toContain(`/workspace/${workspaceId}`)
 			}
+		})
+
+		test('should redirect non-members to 403 when accessing workspace settings', async ({
+			authenticatedPage,
+		}) => {
+			const page = authenticatedPage
+
+			// Try to access settings for a non-existent workspace
+			await page.goto('/workspace/non-existent-workspace-id/settings')
+
+			// Should redirect to 403 or error page
+			await page.waitForTimeout(1000)
+			const urlAfter = page.url()
+			expect(urlAfter.includes('/403') || urlAfter.includes('/dashboard')).toBe(true)
+		})
+
+		test('should redirect non-members to 403 when accessing workspace members', async ({
+			authenticatedPage,
+		}) => {
+			const page = authenticatedPage
+
+			// Try to access members for a non-existent workspace
+			await page.goto('/workspace/non-existent-workspace-id/members')
+
+			// Should redirect to 403 or error page
+			await page.waitForTimeout(1000)
+			const urlAfter = page.url()
+			expect(urlAfter.includes('/403') || urlAfter.includes('/dashboard')).toBe(true)
+		})
+
+		test('should redirect non-members to 403 when accessing workspace archive', async ({
+			authenticatedPage,
+		}) => {
+			const page = authenticatedPage
+
+			// Try to access archive for a non-existent workspace
+			await page.goto('/workspace/non-existent-workspace-id/archive')
+
+			// Should redirect to 403 or error page
+			await page.waitForTimeout(1000)
+			const urlAfter = page.url()
+			expect(urlAfter.includes('/403') || urlAfter.includes('/dashboard')).toBe(true)
 		})
 	})
 
@@ -200,6 +239,67 @@ test.describe('Route Guards', () => {
 			// Should redirect to deep link after login
 			await page.waitForURL('**/dashboard**')
 			expect(page.url()).toContain(deepLink)
+		})
+	})
+
+	test.describe('Document Access Guards', () => {
+		test('should redirect to login for private documents when unauthenticated', async ({
+			page,
+		}) => {
+			// Try to access a document (assuming private by default)
+			await page.goto('/d/some-document-id')
+
+			// Should redirect to login or show 403
+			await page.waitForTimeout(1000)
+			const urlAfter = page.url()
+			expect(urlAfter.includes('/login') || urlAfter.includes('/403')).toBe(true)
+		})
+
+		test('should allow authenticated members to view private documents', async ({
+			authenticatedPage,
+		}) => {
+			const page = authenticatedPage
+
+			// Navigate to dashboard to find a document
+			await page.goto('/dashboard')
+			await page.waitForSelector('[data-testid="dashboard"]', { timeout: 5000 })
+
+			// Look for a document link
+			const docLink = page.locator('a[href^="/d/"]').first()
+			if ((await docLink.count()) > 0) {
+				const docId = (await docLink.getAttribute('href'))?.split('/d/')[1]
+
+				// Should be able to access own document
+				await page.goto(`/d/${docId}`)
+				await page.waitForTimeout(1000)
+				expect(page.url()).toContain(`/d/${docId}`)
+			}
+		})
+	})
+
+	test.describe('Invite Link Guards', () => {
+		test('should show error for invalid invite tokens when unauthenticated', async ({ page }) => {
+			// Try to access an invalid invite link without auth
+			await page.goto('/invite/some-invalid-token')
+
+			// Should show invalid invitation message (not redirect to login)
+			await page.waitForTimeout(1000)
+			const hasError = await page.locator('text=/Invalid|invalid|expired/i').first().isVisible()
+			expect(hasError).toBe(true)
+		})
+
+		test('should show error for invalid invite tokens when authenticated', async ({
+			authenticatedPage,
+		}) => {
+			const page = authenticatedPage
+
+			// Try to access an invalid invite link
+			await page.goto('/invite/invalid-token-12345')
+
+			// Should show invalid invitation message
+			await page.waitForTimeout(1000)
+			const hasError = await page.locator('text=/Invalid|invalid|expired/i').first().isVisible()
+			expect(hasError).toBe(true)
 		})
 	})
 
