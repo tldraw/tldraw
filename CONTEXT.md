@@ -8,8 +8,8 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
 
 **Repository Purpose:** Develop and maintain tldraw as both an open-source SDK for developers and a commercial collaborative whiteboard service.
 
-**Version:** 3.15.1 across all packages  
-**Node.js:** ^20.0.0 required  
+**Version:** 4.0.3 across all packages
+**Node.js:** ^20.0.0 required
 **React:** ^18.0.0 || ^19.0.0 peer dependency
 
 ## Essential Commands
@@ -78,6 +78,7 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
 - `apps/dotcom/asset-upload-worker/` - Cloudflare Worker for media uploads to R2
 - `apps/dotcom/image-resize-worker/` - Cloudflare Worker for image optimization
 - `apps/dotcom/zero-cache/` - Database synchronization layer using Rocicorp Zero
+- `apps/simple-dotcom/` - Simplified collaborative whiteboard app using Supabase (optimized for AI agent development)
 - `apps/vscode/` - tldraw VSCode extension for .tldr files
 - `apps/analytics/` - Analytics service (UMD library for cookie consent and tracking)
 - `apps/bemo-worker/` - Bemo worker service for collaboration and asset management
@@ -188,6 +189,9 @@ apps/
 │   ├── asset-upload-worker/  # Cloudflare Worker for media uploads to R2
 │   ├── image-resize-worker/  # Cloudflare Worker for image optimization + format conversion
 │   └── zero-cache/   # Future database synchronization layer (Rocicorp Zero + PostgreSQL)
+├── simple-dotcom/    # Simplified collaborative app with Supabase (AI agent development focus)
+│   ├── simple-client/  # Next.js frontend with Supabase auth
+│   └── SPECIFICATION.md  # Canonical product + technical reference
 ├── vscode/           # tldraw VSCode extension (.tldr file support)
 ├── analytics/        # Analytics service (UMD library with GDPR compliance)
 └── bemo-worker/      # Bemo worker service (collaboration + asset management)
@@ -243,7 +247,7 @@ Custom incremental build system optimized for monorepos:
 
 ### Package Management
 
-**Yarn Berry (v4) with Workspaces:**
+**Yarn Berry (v4.7.0) with Workspaces:**
 
 - Workspace dependencies automatically linked
 - Package manager enforced via `packageManager` field

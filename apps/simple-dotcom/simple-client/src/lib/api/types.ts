@@ -135,6 +135,11 @@ export interface Document {
 	r2_key: string | null
 	created_at: string
 	updated_at: string
+	creator?: {
+		id: string
+		display_name: string | null
+		email: string
+	}
 }
 
 export interface CreateDocumentRequest {

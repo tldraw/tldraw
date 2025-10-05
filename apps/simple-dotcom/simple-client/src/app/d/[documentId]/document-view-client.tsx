@@ -1,5 +1,6 @@
 'use client'
 
+import DocumentMetadata from '@/components/documents/DocumentMetadata'
 import { Document, Workspace } from '@/lib/api/types'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -56,56 +57,62 @@ export default function DocumentViewClient({
 		<div className="flex h-screen flex-col">
 			{/* Header - different for members vs guests */}
 			{isMember ? (
-				<header className="flex items-center justify-between border-b px-6 py-4">
-					<div className="flex items-center gap-4">
-						<Link
-							href={`/workspace/${workspace.id}`}
-							className="text-sm text-gray-600 hover:text-gray-900"
-						>
-							← {workspace.name}
-						</Link>
-						<h1 className="text-xl font-bold">{document.name}</h1>
-					</div>
-					<div className="flex gap-2">
-						<button
-							onClick={() => setShowSharingModal(true)}
-							className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50"
-						>
-							Share
-						</button>
-						<Link
-							href="/dashboard"
-							className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50"
-						>
-							Dashboard
-						</Link>
-					</div>
-				</header>
-			) : (
-				<header className="flex items-center justify-between border-b bg-gray-50 px-6 py-4">
-					<div>
-						<h1 className="text-xl font-bold">{document.name}</h1>
-						<p className="text-xs text-gray-600">
-							{canEdit ? 'Public - Editable' : 'Public - Read Only'}
-						</p>
-					</div>
-					{!userId && (
-						<div className="flex gap-2">
+				<>
+					<header className="flex items-center justify-between border-b px-6 py-4">
+						<div className="flex items-center gap-4">
 							<Link
-								href="/login"
-								className="rounded-md border bg-white px-4 py-2 text-sm hover:bg-gray-50"
+								href={`/workspace/${workspace.id}`}
+								className="text-sm text-gray-600 hover:text-gray-900"
 							>
-								Sign In
+								← {workspace.name}
 							</Link>
-							<Link
-								href="/signup"
-								className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+							<h1 className="text-xl font-bold">{document.name}</h1>
+						</div>
+						<div className="flex gap-2">
+							<button
+								onClick={() => setShowSharingModal(true)}
+								className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50"
 							>
-								Sign Up
+								Share
+							</button>
+							<Link
+								href="/dashboard"
+								className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50"
+							>
+								Dashboard
 							</Link>
 						</div>
-					)}
-				</header>
+					</header>
+					<DocumentMetadata document={document} />
+				</>
+			) : (
+				<>
+					<header className="flex items-center justify-between border-b bg-gray-50 px-6 py-4">
+						<div>
+							<h1 className="text-xl font-bold">{document.name}</h1>
+							<p className="text-xs text-gray-600">
+								{canEdit ? 'Public - Editable' : 'Public - Read Only'}
+							</p>
+						</div>
+						{!userId && (
+							<div className="flex gap-2">
+								<Link
+									href="/login"
+									className="rounded-md border bg-white px-4 py-2 text-sm hover:bg-gray-50"
+								>
+									Sign In
+								</Link>
+								<Link
+									href="/signup"
+									className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+								>
+									Sign Up
+								</Link>
+							</div>
+						)}
+					</header>
+					<DocumentMetadata document={document} isGuest={true} />
+				</>
 			)}
 
 			{/* Canvas area placeholder */}

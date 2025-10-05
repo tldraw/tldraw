@@ -22,7 +22,7 @@ async function checkDocumentAccess(documentId: string, userId: string | null) {
 
 	const { data: document } = await supabase
 		.from('documents')
-		.select('*, workspaces(is_deleted)')
+		.select('*, workspaces(is_deleted), creator:users!created_by(id, display_name, email)')
 		.eq('id', documentId)
 		.single()
 

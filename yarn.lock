@@ -14949,6 +14949,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"date-fns@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "date-fns@npm:4.1.0"
+  checksum: 10/d5f6e9de5bbc52310f786099e18609289ed5e30af60a71e0646784c8185ddd1d0eebcf7c96b7faaaefc4a8366f3a3a4244d099b6d0866ee2bec80d1361e64342
+  languageName: node
+  linkType: hard
+
 "dateformat@npm:^4.6.3":
   version: 4.6.3
   resolution: "dateformat@npm:4.6.3"
@@ -27886,6 +27893,7 @@ __metadata:
     "@types/pg": "npm:^8"
     "@types/react": "npm:^19"
     "@types/react-dom": "npm:^19"
+    date-fns: "npm:^4.1.0"
     dotenv: "npm:^17.2.3"
     eslint: "npm:^9"
     eslint-config-next: "npm:15.5.4"

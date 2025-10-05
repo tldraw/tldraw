@@ -5,6 +5,7 @@
 export { DocumentActions } from './documents/DocumentActions'
 export { DocumentCard } from './documents/DocumentCard'
 export { DocumentListItem } from './documents/DocumentListItem'
+export { default as DocumentMetadata } from './documents/DocumentMetadata'
 export { EmptyDocumentList } from './documents/EmptyDocumentList'
 
 // Folder components
