@@ -226,10 +226,12 @@ export interface UpdatePresenceRequest {
 // ============================================================================
 
 export interface RecentDocument {
-	document: Document
-	last_accessed_at: string
-	workspace: {
-		id: string
-		name: string
-	}
+	id: string
+	name: string
+	workspace_id: string
+	workspace_name: string
+	folder_id: string | null
+	accessed_at: string
+	is_archived: boolean
+	sharing_mode: SharingMode
 }

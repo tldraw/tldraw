@@ -83,35 +83,31 @@ async function getDashboardData(userId: string): Promise<DashboardData> {
 			.order('name', { ascending: true })
 			.limit(1000),
 
-		// Get recent documents (last 20)
+		// Get recent documents directly from database
 		supabase
 			.from('document_access_log')
 			.select(
 				`
+				document_id,
 				accessed_at,
-				document:documents!inner(
+				documents!inner (
 					id,
+					name,
 					workspace_id,
 					folder_id,
-					name,
-					created_by,
-					sharing_mode,
 					is_archived,
-					archived_at,
-					r2_key,
-					created_at,
-					updated_at
-				),
-				workspace:workspaces!inner(
-					id,
-					name
+					sharing_mode,
+					workspaces!inner (
+						id,
+						name,
+						is_deleted
+					)
 				)
 			`
 			)
 			.eq('user_id', userId)
-			.eq('document.is_archived', false)
 			.order('accessed_at', { ascending: false })
-			.limit(20),
+			.limit(10),
 	])
 
 	if (documentsResult.error) {
@@ -134,12 +130,41 @@ async function getDashboardData(userId: string): Promise<DashboardData> {
 		folders: folders.filter((folder) => folder.workspace_id === workspace.id),
 	}))
 
-	// Transform recent documents
-	const recentDocuments: RecentDocument[] = (recentResult.data || []).map((log: any) => ({
-		document: log.document,
-		last_accessed_at: log.accessed_at,
-		workspace: log.workspace,
-	}))
+	// Filter and transform recent documents, removing:
+	// - Documents in deleted workspaces
+	// - Documents user no longer has access to
+	// - Duplicates (keep most recent)
+	const memberWorkspaceIds = new Set(workspaces.map((ws) => ws.id))
+	const seenDocuments = new Set<string>()
+	const recentDocuments: RecentDocument[] = (recentResult.data || [])
+		.filter((entry: any) => {
+			const doc = entry.documents
+			const workspace = doc.workspaces
+			// Filter out documents in deleted workspaces or where user is not a member
+			return !workspace.is_deleted && memberWorkspaceIds.has(doc.workspace_id)
+		})
+		.map((entry: any) => {
+			const doc = entry.documents
+			const workspace = doc.workspaces
+			return {
+				id: doc.id,
+				name: doc.name,
+				workspace_id: doc.workspace_id,
+				workspace_name: workspace.name,
+				folder_id: doc.folder_id,
+				accessed_at: entry.accessed_at,
+				is_archived: doc.is_archived,
+				sharing_mode: doc.sharing_mode,
+			}
+		})
+		.filter((doc: RecentDocument) => {
+			// Remove duplicates (keep most recent)
+			if (seenDocuments.has(doc.id)) {
+				return false
+			}
+			seenDocuments.add(doc.id)
+			return true
+		})
 
 	return {
 		workspaces: workspaceData,

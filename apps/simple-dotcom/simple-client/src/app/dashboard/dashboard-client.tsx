@@ -334,18 +334,18 @@ export default function DashboardClient({
 								<div className="space-y-2" data-testid="recent-documents-list">
 									{dashboardData.recentDocuments.map((recent) => (
 										<Link
-											key={recent.document.id}
-											href={`/d/${recent.document.id}`}
+											key={recent.id}
+											href={`/d/${recent.id}`}
 											className="block p-3 rounded-md border border-foreground/10 hover:bg-foreground/5"
-											data-testid={`recent-document-${recent.document.id}`}
+											data-testid={`recent-document-${recent.id}`}
 										>
 											<div className="flex items-center justify-between">
 												<div>
-													<h4 className="font-medium">{recent.document.name}</h4>
-													<p className="text-sm text-foreground/60">{recent.workspace.name}</p>
+													<h4 className="font-medium">{recent.name}</h4>
+													<p className="text-sm text-foreground/60">{recent.workspace_name}</p>
 												</div>
 												<p className="text-xs text-foreground/40">
-													{new Date(recent.last_accessed_at).toLocaleDateString()}
+													{new Date(recent.accessed_at).toLocaleDateString()}
 												</p>
 											</div>
 										</Link>

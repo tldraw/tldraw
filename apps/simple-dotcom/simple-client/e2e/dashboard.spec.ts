@@ -237,25 +237,413 @@ test.describe('Global Dashboard', () => {
 		})
 	})
 
-	test.describe('Recent Documents Display', () => {
-		test('should display recent documents section when documents exist', async ({
+	test.describe('Recent Documents Display (NAV-07)', () => {
+		test('should display empty state when user has no recent documents', async ({
+			page,
+			supabaseAdmin,
+		}) => {
+			const email = `recent-empty-${Date.now()}@example.com`
+			const password = 'TestPassword123!'
+
+			// Sign up new user
+			await page.goto('/signup')
+			await page.fill('[data-testid="name-input"]', 'New User')
+			await page.fill('[data-testid="email-input"]', email)
+			await page.fill('[data-testid="password-input"]', password)
+			await page.click('[data-testid="signup-button"]')
+			await page.waitForURL('**/dashboard**')
+
+			// Should show empty state for recent documents
+			await expect(page.locator('text=No recent documents')).toBeVisible()
+
+			// Cleanup
+			const { data } = await supabaseAdmin.auth.admin.listUsers()
+			const user = data.users.find((u) => u.email === email)
+			if (user) {
+				await supabaseAdmin.auth.admin.deleteUser(user.id)
+			}
+		})
+
+		test('should track document access and display in recent documents list', async ({
 			authenticatedPage,
 			supabaseAdmin,
 			testUser,
 		}) => {
 			const page = authenticatedPage
 
+			// Create a document
+			const docName = `Recent Test Doc ${Date.now()}`
+
+			// Get private workspace
+			const { data: workspace } = await supabaseAdmin
+				.from('workspaces')
+				.select('id')
+				.eq('owner_id', testUser.id)
+				.eq('is_private', true)
+				.single()
+
+			expect(workspace).toBeTruthy()
+
+			// Create document via API
+			const { data: doc } = await supabaseAdmin
+				.from('documents')
+				.insert({
+					workspace_id: workspace!.id,
+					name: docName,
+					created_by: testUser.id,
+					sharing_mode: 'private',
+				})
+				.select()
+				.single()
+
+			expect(doc).toBeTruthy()
+
+			// Manually log document access (since we don't have a document view page yet)
+			await supabaseAdmin.from('document_access_log').insert({
+				document_id: doc!.id,
+				user_id: testUser.id,
+				workspace_id: workspace!.id,
+			})
+
+			// Go to dashboard
 			await page.goto('/dashboard')
 
-			// Check for recent documents section
-			// Note: This might be empty for new users, which is expected
-			const recentSection = page.locator('text=Recent Documents')
+			// Should see the document in recent documents
+			const recentList = page.locator('[data-testid="recent-documents-list"]')
+			await expect(recentList).toBeVisible()
+			await expect(recentList).toContainText(docName)
+		})
 
-			// If no recent documents, should show empty state
-			const hasRecentDocs = await recentSection.isVisible()
-			if (!hasRecentDocs) {
-				await expect(page.locator('text=No recent documents')).toBeVisible()
+		test('should show most recently accessed documents first', async ({
+			authenticatedPage,
+			supabaseAdmin,
+			testUser,
+		}) => {
+			const page = authenticatedPage
+
+			// Get private workspace
+			const { data: workspace } = await supabaseAdmin
+				.from('workspaces')
+				.select('id')
+				.eq('owner_id', testUser.id)
+				.eq('is_private', true)
+				.single()
+
+			// Create three documents
+			const doc1Name = `First Doc ${Date.now()}`
+			const doc2Name = `Second Doc ${Date.now()}`
+			const doc3Name = `Third Doc ${Date.now()}`
+
+			const { data: doc1 } = await supabaseAdmin
+				.from('documents')
+				.insert({
+					workspace_id: workspace!.id,
+					name: doc1Name,
+					created_by: testUser.id,
+					sharing_mode: 'private',
+				})
+				.select()
+				.single()
+
+			const { data: doc2 } = await supabaseAdmin
+				.from('documents')
+				.insert({
+					workspace_id: workspace!.id,
+					name: doc2Name,
+					created_by: testUser.id,
+					sharing_mode: 'private',
+				})
+				.select()
+				.single()
+
+			const { data: doc3 } = await supabaseAdmin
+				.from('documents')
+				.insert({
+					workspace_id: workspace!.id,
+					name: doc3Name,
+					created_by: testUser.id,
+					sharing_mode: 'private',
+				})
+				.select()
+				.single()
+
+			// Log document access in order: doc1, doc2, doc3 (with slight delay)
+			await supabaseAdmin.from('document_access_log').insert({
+				document_id: doc1!.id,
+				user_id: testUser.id,
+				workspace_id: workspace!.id,
+			})
+			await page.waitForTimeout(100)
+
+			await supabaseAdmin.from('document_access_log').insert({
+				document_id: doc2!.id,
+				user_id: testUser.id,
+				workspace_id: workspace!.id,
+			})
+			await page.waitForTimeout(100)
+
+			await supabaseAdmin.from('document_access_log').insert({
+				document_id: doc3!.id,
+				user_id: testUser.id,
+				workspace_id: workspace!.id,
+			})
+
+			// Go to dashboard
+			await page.goto('/dashboard')
+
+			// Get all recent document items
+			const recentItems = page.locator('[data-testid^="recent-document-"]')
+			const count = await recentItems.count()
+			expect(count).toBeGreaterThanOrEqual(3)
+
+			// Most recent (doc3) should be first
+			const firstItem = recentItems.first()
+			await expect(firstItem).toContainText(doc3Name)
+		})
+
+		test('should remove document from recent list when access is revoked', async ({
+			authenticatedPage,
+			supabaseAdmin,
+			testUser,
+			page: secondPage,
+		}) => {
+			const page = authenticatedPage
+
+			// Create a second user
+			const secondUserEmail = `recent-revoke-${Date.now()}@example.com`
+			const secondUserPassword = 'TestPassword123!'
+
+			// Sign up second user
+			await secondPage.goto('/signup')
+			await secondPage.fill('[data-testid="name-input"]', 'Second User')
+			await secondPage.fill('[data-testid="email-input"]', secondUserEmail)
+			await secondPage.fill('[data-testid="password-input"]', secondUserPassword)
+			await secondPage.click('[data-testid="signup-button"]')
+			await secondPage.waitForURL('**/dashboard**')
+
+			// Wait for dashboard to load fully and user to be fully created
+			await secondPage.waitForSelector('[data-testid="workspace-list"]')
+			await secondPage.waitForTimeout(1000)
+
+			// First user creates a shared workspace and document
+			const workspaceName = `Recent Revoke Test ${Date.now()}`
+			await page.goto('/dashboard')
+			await page.click('[data-testid="create-workspace-button"]')
+			await page.fill('[data-testid="workspace-name-input"]', workspaceName)
+			await page.click('[data-testid="confirm-create-workspace"]')
+			await page.waitForTimeout(500)
+
+			// Wait for workspace to be created and available
+			await page.waitForTimeout(1000)
+
+			// Get workspace
+			const { data: workspace, error: workspaceError } = await supabaseAdmin
+				.from('workspaces')
+				.select('id')
+				.eq('owner_id', testUser.id)
+				.eq('name', workspaceName)
+				.single()
+
+			if (workspaceError || !workspace) {
+				throw new Error(`Failed to find workspace: ${workspaceError?.message}`)
 			}
+
+			// Create document
+			const docName = `Revoke Test Doc ${Date.now()}`
+			const { data: doc } = await supabaseAdmin
+				.from('documents')
+				.insert({
+					workspace_id: workspace.id,
+					name: docName,
+					created_by: testUser.id,
+					sharing_mode: 'private',
+				})
+				.select()
+				.single()
+
+			// Get second user - wait a bit for auth to sync
+			await page.waitForTimeout(500)
+			const { data: secondUserData } = await supabaseAdmin.auth.admin.listUsers()
+			const secondUser = secondUserData.users.find((u) => u.email === secondUserEmail)
+
+			if (!secondUser) {
+				throw new Error(`Could not find second user with email ${secondUserEmail}`)
+			}
+
+			// Add second user as workspace member
+			await supabaseAdmin.from('workspace_members').insert({
+				workspace_id: workspace.id,
+				user_id: secondUser.id,
+				role: 'member',
+			})
+
+			// Log document access for second user
+			await supabaseAdmin.from('document_access_log').insert({
+				document_id: doc!.id,
+				user_id: secondUser.id,
+				workspace_id: workspace.id,
+			})
+
+			// Second user goes to dashboard and should see the document in recent list
+			await secondPage.goto('/dashboard')
+			await secondPage.waitForTimeout(500)
+			const recentList = secondPage.locator('[data-testid="recent-documents-list"]')
+			await expect(recentList).toContainText(docName)
+
+			// Remove second user from workspace
+			await supabaseAdmin
+				.from('workspace_members')
+				.delete()
+				.eq('workspace_id', workspace.id)
+				.eq('user_id', secondUser.id)
+
+			// Reload dashboard
+			await secondPage.reload()
+			await secondPage.waitForTimeout(500)
+
+			// Document should disappear from recent list
+			const noRecent = await secondPage.locator('text=No recent documents').isVisible()
+			if (!noRecent) {
+				// If there are other recent docs, make sure this one is gone
+				await expect(secondPage.locator('[data-testid="recent-documents-list"]')).not.toContainText(
+					docName
+				)
+			}
+
+			// Cleanup
+			await supabaseAdmin.auth.admin.deleteUser(secondUser.id)
+		})
+
+		test('should update recent list when reopening an existing recent document', async ({
+			authenticatedPage,
+			supabaseAdmin,
+			testUser,
+		}) => {
+			const page = authenticatedPage
+
+			// Get private workspace
+			const { data: workspace } = await supabaseAdmin
+				.from('workspaces')
+				.select('id')
+				.eq('owner_id', testUser.id)
+				.eq('is_private', true)
+				.single()
+
+			// Create two documents
+			const doc1Name = `Reopen Test 1 ${Date.now()}`
+			const doc2Name = `Reopen Test 2 ${Date.now()}`
+
+			const { data: doc1 } = await supabaseAdmin
+				.from('documents')
+				.insert({
+					workspace_id: workspace!.id,
+					name: doc1Name,
+					created_by: testUser.id,
+					sharing_mode: 'private',
+				})
+				.select()
+				.single()
+
+			const { data: doc2 } = await supabaseAdmin
+				.from('documents')
+				.insert({
+					workspace_id: workspace!.id,
+					name: doc2Name,
+					created_by: testUser.id,
+					sharing_mode: 'private',
+				})
+				.select()
+				.single()
+
+			// Log doc1, then doc2 access
+			await supabaseAdmin.from('document_access_log').insert({
+				document_id: doc1!.id,
+				user_id: testUser.id,
+				workspace_id: workspace!.id,
+			})
+			await page.waitForTimeout(100)
+
+			await supabaseAdmin.from('document_access_log').insert({
+				document_id: doc2!.id,
+				user_id: testUser.id,
+				workspace_id: workspace!.id,
+			})
+
+			// Go to dashboard - doc2 should be first
+			await page.goto('/dashboard')
+			const recentItems = page.locator('[data-testid^="recent-document-"]')
+			const firstItem = recentItems.first()
+			await expect(firstItem).toContainText(doc2Name)
+
+			// Log doc1 access again (reopening it)
+			await supabaseAdmin.from('document_access_log').insert({
+				document_id: doc1!.id,
+				user_id: testUser.id,
+				workspace_id: workspace!.id,
+			})
+
+			// Go back to dashboard - doc1 should now be first
+			await page.goto('/dashboard')
+			const updatedItems = page.locator('[data-testid^="recent-document-"]')
+			const newFirstItem = updatedItems.first()
+			await expect(newFirstItem).toContainText(doc1Name)
+		})
+
+		test('should display workspace context for each recent document', async ({
+			authenticatedPage,
+			supabaseAdmin,
+			testUser,
+		}) => {
+			const page = authenticatedPage
+
+			// Create a workspace
+			const workspaceName = `Context Test ${Date.now()}`
+			await page.goto('/dashboard')
+			await page.click('[data-testid="create-workspace-button"]')
+			await page.fill('[data-testid="workspace-name-input"]', workspaceName)
+			await page.click('[data-testid="confirm-create-workspace"]')
+			await page.waitForTimeout(500)
+
+			// Get workspace
+			const { data: workspace } = await supabaseAdmin
+				.from('workspaces')
+				.select('id')
+				.eq('owner_id', testUser.id)
+				.eq('name', workspaceName)
+				.single()
+
+			// Create document
+			const docName = `Context Doc ${Date.now()}`
+			const { data: doc } = await supabaseAdmin
+				.from('documents')
+				.insert({
+					workspace_id: workspace!.id,
+					name: docName,
+					created_by: testUser.id,
+					sharing_mode: 'private',
+				})
+				.select()
+				.single()
+
+			// Log document access
+			await supabaseAdmin.from('document_access_log').insert({
+				document_id: doc!.id,
+				user_id: testUser.id,
+				workspace_id: workspace!.id,
+			})
+
+			// Go to dashboard
+			await page.goto('/dashboard')
+
+			// Find the recent document item
+			const recentItem = page.locator(`[data-testid="recent-document-${doc!.id}"]`)
+			await expect(recentItem).toBeVisible()
+
+			// Should show document name
+			await expect(recentItem).toContainText(docName)
+
+			// Should show workspace name as context
+			await expect(recentItem).toContainText(workspaceName)
 		})
 	})
 
