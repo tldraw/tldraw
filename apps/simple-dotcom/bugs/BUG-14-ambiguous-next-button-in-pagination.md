@@ -2,15 +2,15 @@
 
 Date reported: 2025-10-05
 Date last updated: 2025-10-05
-Date resolved: 
+Date resolved: 2025-10-05
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -97,9 +97,9 @@ One of the following solutions:
 3. Ensure Next.js Dev Tools button is not present in test environment
 
 Acceptance criteria:
-- [ ] Pagination Next button can be uniquely identified
-- [ ] Test can click the pagination Next button without ambiguity
-- [ ] Test passes when run individually
+- [x] Pagination Next button can be uniquely identified
+- [x] Test can click the pagination Next button without ambiguity
+- [x] Test passes when run individually
 
 ## Related Issues
 
@@ -109,7 +109,12 @@ Acceptance criteria:
 
 **2025-10-05:**
 - Bug identified during test execution
+- Updated test selector to filter for Next button within pagination container
+- Test now passes without ambiguity
+- Bug resolved
 
 ## Resolution
 
-Not yet resolved.
+**Resolution approach:** Updated test selector to be more specific by filtering for buttons within the pagination container, avoiding conflict with Next.js Dev Tools button.
+
+The test now uses a more precise selector that targets the pagination Next button specifically, ensuring no ambiguity with other buttons on the page.

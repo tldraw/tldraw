@@ -2,15 +2,15 @@
 
 Date reported: 2025-10-05
 Date last updated: 2025-10-05
-Date resolved: 
+Date resolved: 2025-10-05 
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -160,7 +160,8 @@ if (membersData) {
 **2025-10-05:**
 - Bug identified during member list review
 - Owner appears twice due to fetching from both `workspaces.owner_id` and `workspace_members` table
+- Fixed by adding filter to exclude owner from workspace_members query
 
 ## Resolution
 
-Pending fix.
+Fixed by implementing Option 1: Added `.neq('user_id', workspace.owner_id)` filter to the workspace_members query in `simple-client/src/app/workspace/[workspaceId]/members/page.tsx:61` to exclude the owner from the general member fetch, since the owner is added separately.

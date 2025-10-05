@@ -12,7 +12,7 @@ test.describe('Workspace Member Limits', () => {
 		await page.goto('/dashboard')
 		await page.getByRole('button', { name: 'Create Workspace' }).click()
 		await page.getByPlaceholder('Enter workspace name').fill(workspaceName)
-		await page.getByRole('button', { name: 'Create' }).click()
+		await page.getByTestId('confirm-create-workspace').click()
 		await expect(page.getByText(workspaceName)).toBeVisible()
 
 		// Get workspace ID
@@ -61,7 +61,7 @@ test.describe('Workspace Member Limits', () => {
 		await page.goto('/dashboard')
 		await page.getByRole('button', { name: 'Create Workspace' }).click()
 		await page.getByPlaceholder('Enter workspace name').fill(workspaceName)
-		await page.getByRole('button', { name: 'Create' }).click()
+		await page.getByTestId('confirm-create-workspace').click()
 		await expect(page.getByText(workspaceName)).toBeVisible()
 
 		// Get workspace ID
@@ -131,7 +131,7 @@ test.describe('Workspace Member Limits', () => {
 		await page.goto('/dashboard')
 		await page.getByRole('button', { name: 'Create Workspace' }).click()
 		await page.getByPlaceholder('Enter workspace name').fill(workspaceName)
-		await page.getByRole('button', { name: 'Create' }).click()
+		await page.getByTestId('confirm-create-workspace').click()
 		await expect(page.getByText(workspaceName)).toBeVisible()
 
 		// Get workspace ID

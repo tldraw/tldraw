@@ -43,7 +43,7 @@ async function getWorkspaceMembers(userId: string, workspaceId: string) {
 		.eq('id', workspace.owner_id)
 		.single()
 
-	// Fetch all members
+	// Fetch all members EXCEPT the owner (owner is added separately)
 	const { data: membersData } = await supabase
 		.from('workspace_members')
 		.select(
@@ -58,6 +58,7 @@ async function getWorkspaceMembers(userId: string, workspaceId: string) {
 		`
 		)
 		.eq('workspace_id', workspaceId)
+		.neq('user_id', workspace.owner_id)
 
 	const members: Member[] = []
 

@@ -809,7 +809,7 @@ export default function DashboardClient({
 									setValidationError('Workspace name is required')
 								}
 							}}
-							placeholder="Workspace name"
+							placeholder="Enter workspace name"
 							data-testid="workspace-name-input"
 							className={`w-full px-3 py-2 rounded-md border ${
 								validationError ? 'border-red-500' : 'border-foreground/20'

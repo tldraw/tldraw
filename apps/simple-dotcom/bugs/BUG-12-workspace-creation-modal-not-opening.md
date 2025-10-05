@@ -2,15 +2,15 @@
 
 Date reported: 2025-10-05
 Date last updated: 2025-10-05
-Date resolved: 
+Date resolved: 2025-10-05
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -123,7 +123,21 @@ This is related to BUG-06 (workspace name not visible after creation) and BUG-11
 **2025-10-05:**
 - Bug reported from failing e2e tests
 - Initial investigation shows modal not opening or input not rendering
+- Root cause identified: Placeholder text mismatch between tests and implementation
+- Fixed placeholder text from "Workspace name" to "Enter workspace name" in dashboard-client.tsx:812
+- Updated e2e tests to use specific data-testid selectors instead of ambiguous role selectors
+- Tests now pass successfully
 
 ## Resolution
 
-Pending investigation and fix.
+**Fixed on 2025-10-05**
+
+The issue was caused by a mismatch between the placeholder text in the workspace creation modal and what the e2e tests were looking for:
+- Tests expected: `"Enter workspace name"`
+- Actual placeholder: `"Workspace name"`
+
+**Changes made:**
+1. Updated placeholder text in `/simple-client/src/app/dashboard/dashboard-client.tsx:812` from `"Workspace name"` to `"Enter workspace name"`
+2. Updated e2e tests in `/simple-client/e2e/member-limit.spec.ts` to use `getByTestId('confirm-create-workspace')` instead of ambiguous `getByRole('button', { name: 'Create' })` selector
+
+The workspace creation modal now opens correctly, displays the input field with the expected placeholder, and all related tests pass.

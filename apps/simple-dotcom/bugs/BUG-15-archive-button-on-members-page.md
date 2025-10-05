@@ -2,15 +2,15 @@
 
 Date reported: 2025-10-05
 Date last updated: 2025-10-05
-Date resolved: 
+Date resolved: 2025-10-05 
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -116,7 +116,9 @@ Remove the Archive link from the workspace members page header. The button serve
 **2025-10-05:**
 - Bug identified during UI review
 - Archive button is contextually inappropriate on members page
+- Fixed: Removed Archive button from workspace members page header
+- Only "Back to Workspace" button now appears in the header
 
 ## Resolution
 
-Pending fix.
+Fixed by removing the Archive link from `workspace-members-client.tsx:198-203`. The members page header now only displays the "Back to Workspace" button, which is the appropriate navigation control for this page.
