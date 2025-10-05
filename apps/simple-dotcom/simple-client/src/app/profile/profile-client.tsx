@@ -1,8 +1,9 @@
 'use client'
 
+import { useUnsavedChanges } from '@/hooks'
 import { User } from '@/lib/api/types'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface ProfileClientProps {
 	profile: User | null
@@ -14,6 +15,17 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
 	const [saving, setSaving] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 	const [success, setSuccess] = useState(false)
+	const [isDirty, setIsDirty] = useState(false)
+
+	// Track unsaved changes
+	useEffect(() => {
+		const hasChanges =
+			name !== (profile?.name || '') || displayName !== (profile?.display_name || '')
+		setIsDirty(hasChanges)
+	}, [name, displayName, profile])
+
+	// Warn when navigating away with unsaved changes
+	useUnsavedChanges(isDirty)
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -41,6 +53,8 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
 			}
 
 			setSuccess(true)
+			// Clear dirty state after successful save
+			setIsDirty(false)
 
 			// Clear success message after 3 seconds
 			setTimeout(() => setSuccess(false), 3000)
@@ -75,6 +89,16 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
 					<h1 className="text-2xl font-bold mb-6">Profile Settings</h1>
 
 					<form onSubmit={handleSubmit} className="space-y-6">
+						{isDirty && !error && !success && (
+							<div
+								data-testid="unsaved-changes-indicator"
+								className="rounded-md bg-yellow-50 dark:bg-yellow-900/20 p-3 text-sm text-yellow-800 dark:text-yellow-200"
+							>
+								<p className="font-medium">Unsaved changes</p>
+								<p className="text-xs mt-1">Your changes have not been saved yet.</p>
+							</div>
+						)}
+
 						{error && (
 							<div
 								data-testid="error-message"
