@@ -1,4 +1,4 @@
-import { Document, Folder, RecentDocument, Workspace } from '@/lib/api/types'
+import { Document, Folder, RecentDocument, Workspace, WorkspaceRole } from '@/lib/api/types'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import DashboardClient from './dashboard-client'
@@ -7,6 +7,7 @@ interface WorkspaceWithContent {
 	workspace: Workspace
 	documents: Document[]
 	folders: Folder[]
+	userRole: WorkspaceRole
 }
 
 interface DashboardData {
@@ -129,12 +130,34 @@ async function getDashboardData(userId: string): Promise<DashboardData> {
 	const documents = documentsResult.data || []
 	const folders = foldersResult.data || []
 
-	// Group documents and folders by workspace
-	const workspaceData = (workspaces || []).map((workspace) => ({
-		workspace,
-		documents: documents.filter((doc) => doc.workspace_id === workspace.id),
-		folders: folders.filter((folder) => folder.workspace_id === workspace.id),
-	}))
+	// Fetch workspace member roles for the user
+	const { data: memberRoles } = await supabase
+		.from('workspace_members')
+		.select('workspace_id, role')
+		.eq('user_id', userId)
+		.in('workspace_id', workspaceIds)
+
+	// Create a map of workspace_id -> role
+	const roleMap = new Map<string, WorkspaceRole>()
+	if (memberRoles) {
+		memberRoles.forEach((member) => {
+			roleMap.set(member.workspace_id, member.role as WorkspaceRole)
+		})
+	}
+
+	// Group documents and folders by workspace, and determine user role
+	const workspaceData = (workspaces || []).map((workspace) => {
+		// Owner if workspace.owner_id === userId, otherwise use member role
+		const userRole: WorkspaceRole =
+			workspace.owner_id === userId ? 'owner' : roleMap.get(workspace.id) || 'member'
+
+		return {
+			workspace,
+			documents: documents.filter((doc) => doc.workspace_id === workspace.id),
+			folders: folders.filter((folder) => folder.workspace_id === workspace.id),
+			userRole,
+		}
+	})
 
 	// Filter and transform recent documents, removing:
 	// - Documents in deleted workspaces

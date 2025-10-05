@@ -2,15 +2,15 @@
 
 Date reported: 2025-10-05
 Date last updated: 2025-10-05
-Date resolved:
+Date resolved: 2025-10-05
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -103,4 +103,34 @@ Dashboard was implemented with a minimalist approach for quick workspace/documen
 
 ## Worklog
 
+2025-10-05: Implemented fix
+- Updated `dashboard/page.tsx` to fetch workspace member roles from database
+- Added `userRole` field to `WorkspaceWithContent` interface
+- Updated `dashboard-client.tsx` to integrate `DocumentActions` component with document items
+- Implemented document operation handlers (rename, duplicate, archive, restore, delete)
+- Added hover interaction to show/hide actions menu (opacity transition)
+- Ensured proper permission handling based on workspace role (canEdit, canDelete)
+- Added e2e tests for document actions menu functionality
+
 ## Resolution
+
+**Root Cause**: Dashboard was implemented with a minimalist approach for quick navigation. The `DocumentActions` component existed but was not integrated into the dashboard sidebar document list.
+
+**Solution Implemented**:
+1. Extended dashboard data loading to include workspace member roles for permission checking
+2. Integrated `DocumentActions` component into dashboard document items with hover-based visibility
+3. Implemented all document operation handlers that call existing API endpoints
+4. Leveraged existing realtime subscriptions for automatic UI updates after operations
+5. Added comprehensive e2e tests to verify functionality
+
+**Files Modified**:
+- `/apps/simple-dotcom/simple-client/src/app/dashboard/page.tsx` - Added role fetching
+- `/apps/simple-dotcom/simple-client/src/app/dashboard/dashboard-client.tsx` - Added DocumentActions integration and handlers
+- `/apps/simple-dotcom/simple-client/e2e/dashboard.spec.ts` - Added test coverage
+
+**Testing**: E2e tests added to verify:
+- Actions menu appears on hover
+- Rename operation works from dashboard
+- Archive operation works from dashboard
+
+The fix follows existing patterns from `DocumentListItem` component and ensures consistent UX across the application.

@@ -628,4 +628,112 @@ test.describe('Global Dashboard', () => {
 			}
 		})
 	})
+
+	test.describe('Document Actions Menu (BUG-06)', () => {
+		test('should show document actions menu on hover in dashboard sidebar', async ({
+			authenticatedPage,
+			testData,
+			testUser,
+		}) => {
+			const page = authenticatedPage
+			const workspace = await testData.createWorkspace({
+				ownerId: testUser.id,
+				name: `Actions Test ${Date.now()}`,
+			})
+			const document = await testData.createDocument({
+				workspaceId: workspace.id,
+				createdBy: testUser.id,
+				name: `Test Doc ${Date.now()}`,
+			})
+
+			await page.goto('/dashboard')
+
+			// Find the document in the sidebar
+			const docItem = page.locator(`[data-testid="document-${document.id}"]`)
+			await expect(docItem).toBeVisible()
+
+			// Hover over the document to reveal the actions menu
+			await docItem.hover()
+
+			// The actions menu should become visible (it has opacity-0 group-hover:opacity-100)
+			// Check if the menu button exists within the document item
+			const actionsButton = docItem.locator('button[aria-label="Actions"]')
+			await expect(actionsButton).toBeVisible({ timeout: 5000 })
+		})
+
+		test('should allow renaming document from dashboard', async ({
+			authenticatedPage,
+			testData,
+			testUser,
+		}) => {
+			const page = authenticatedPage
+			const workspace = await testData.createWorkspace({
+				ownerId: testUser.id,
+				name: `Rename Test ${Date.now()}`,
+			})
+			const originalName = `Original Doc ${Date.now()}`
+			const newName = `Renamed Doc ${Date.now()}`
+			const document = await testData.createDocument({
+				workspaceId: workspace.id,
+				createdBy: testUser.id,
+				name: originalName,
+			})
+
+			await page.goto('/dashboard')
+
+			const docItem = page.locator(`[data-testid="document-${document.id}"]`)
+			await expect(docItem).toContainText(originalName)
+
+			// Hover and click actions menu
+			await docItem.hover()
+			const actionsButton = docItem.locator('button[aria-label="Actions"]')
+			await actionsButton.click()
+
+			// Click rename option
+			page.on('dialog', async (dialog) => {
+				expect(dialog.message()).toContain('Enter new name')
+				await dialog.accept(newName)
+			})
+
+			await page.click('text=Rename')
+
+			// Document should update via realtime
+			await expect(docItem).toContainText(newName, { timeout: 5000 })
+			await expect(docItem).not.toContainText(originalName)
+		})
+
+		test('should allow archiving document from dashboard', async ({
+			authenticatedPage,
+			testData,
+			testUser,
+		}) => {
+			const page = authenticatedPage
+			const workspace = await testData.createWorkspace({
+				ownerId: testUser.id,
+				name: `Archive Test ${Date.now()}`,
+			})
+			const docName = `Archive Doc ${Date.now()}`
+			const document = await testData.createDocument({
+				workspaceId: workspace.id,
+				createdBy: testUser.id,
+				name: docName,
+			})
+
+			await page.goto('/dashboard')
+
+			const docItem = page.locator(`[data-testid="document-${document.id}"]`)
+			await expect(docItem).toBeVisible()
+
+			// Hover and open actions menu
+			await docItem.hover()
+			const actionsButton = docItem.locator('button[aria-label="Actions"]')
+			await actionsButton.click()
+
+			// Click archive option
+			await page.click('text=Archive')
+
+			// Document should disappear from the list via realtime
+			await expect(docItem).not.toBeVisible({ timeout: 5000 })
+		})
+	})
 })

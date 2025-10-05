@@ -308,7 +308,7 @@ test.describe('Invitation Links', () => {
 		})
 
 		// Sign in as member
-		await page.goto('/auth/signin')
+		await page.goto('/login')
 		await page.fill('input[type="email"]', memberEmail)
 		await page.fill('input[type="password"]', memberPassword)
 		await page.click('button[type="submit"]')

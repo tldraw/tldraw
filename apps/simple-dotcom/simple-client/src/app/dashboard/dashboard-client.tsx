@@ -1,6 +1,7 @@
 'use client'
 
-import { Document, Folder, RecentDocument, User, Workspace } from '@/lib/api/types'
+import { DocumentActions } from '@/components/documents/DocumentActions'
+import { Document, Folder, RecentDocument, User, Workspace, WorkspaceRole } from '@/lib/api/types'
 import { getBrowserClient } from '@/lib/supabase/browser'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -10,6 +11,7 @@ interface WorkspaceWithContent {
 	workspace: Workspace
 	documents: Document[]
 	folders: Folder[]
+	userRole: WorkspaceRole
 }
 
 interface DashboardData {
@@ -223,7 +225,10 @@ export default function DashboardClient({
 				// Add new workspace to dashboard
 				setDashboardData((prev) => ({
 					...prev,
-					workspaces: [{ workspace: data.data, documents: [], folders: [] }, ...prev.workspaces],
+					workspaces: [
+						{ workspace: data.data, documents: [], folders: [], userRole: 'owner' },
+						...prev.workspaces,
+					],
 				}))
 				setExpandedWorkspaces((prev) => new Set([...prev, data.data.id]))
 				// Only close modal on success
@@ -400,6 +405,108 @@ export default function DashboardClient({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [showCreateDocumentModal, newDocumentName, actionLoading])
 
+	// Document operation handlers
+	const handleDocumentRename = async (workspaceId: string, documentId: string, newName: string) => {
+		try {
+			const response = await fetch(`/api/workspaces/${workspaceId}/documents/${documentId}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ name: newName }),
+			})
+
+			const data = await response.json()
+
+			if (!data.success) {
+				alert(data.error?.message || 'Failed to rename document')
+			}
+			// Realtime subscription will handle the update
+		} catch (err) {
+			console.error('Failed to rename document:', err)
+			alert('Failed to rename document')
+		}
+	}
+
+	const handleDocumentDuplicate = async (workspaceId: string, documentId: string) => {
+		try {
+			const response = await fetch(
+				`/api/workspaces/${workspaceId}/documents/${documentId}/duplicate`,
+				{
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({}),
+				}
+			)
+
+			const data = await response.json()
+
+			if (!data.success) {
+				alert(data.error?.message || 'Failed to duplicate document')
+			}
+			// Realtime subscription will handle adding the new document
+		} catch (err) {
+			console.error('Failed to duplicate document:', err)
+			alert('Failed to duplicate document')
+		}
+	}
+
+	const handleDocumentArchive = async (workspaceId: string, documentId: string) => {
+		try {
+			const response = await fetch(`/api/workspaces/${workspaceId}/documents/${documentId}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ is_archived: true }),
+			})
+
+			const data = await response.json()
+
+			if (!data.success) {
+				alert(data.error?.message || 'Failed to archive document')
+			}
+			// Realtime subscription will handle the update
+		} catch (err) {
+			console.error('Failed to archive document:', err)
+			alert('Failed to archive document')
+		}
+	}
+
+	const handleDocumentRestore = async (workspaceId: string, documentId: string) => {
+		try {
+			const response = await fetch(`/api/workspaces/${workspaceId}/documents/${documentId}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ is_archived: false }),
+			})
+
+			const data = await response.json()
+
+			if (!data.success) {
+				alert(data.error?.message || 'Failed to restore document')
+			}
+			// Realtime subscription will handle the update
+		} catch (err) {
+			console.error('Failed to restore document:', err)
+			alert('Failed to restore document')
+		}
+	}
+
+	const handleDocumentDelete = async (workspaceId: string, documentId: string) => {
+		try {
+			const response = await fetch(`/api/workspaces/${workspaceId}/documents/${documentId}`, {
+				method: 'DELETE',
+			})
+
+			const data = await response.json()
+
+			if (!data.success) {
+				alert(data.error?.message || 'Failed to delete document')
+			}
+			// Realtime subscription will handle the deletion
+		} catch (err) {
+			console.error('Failed to delete document:', err)
+			alert('Failed to delete document')
+		}
+	}
+
 	const toggleWorkspace = (workspaceId: string) => {
 		setExpandedWorkspaces((prev) => {
 			const next = new Set(prev)
@@ -469,9 +576,11 @@ export default function DashboardClient({
 					)}
 					{dashboardData.workspaces.length > 0 && (
 						<div className="space-y-2">
-							{dashboardData.workspaces.map(({ workspace, documents, folders }) => {
+							{dashboardData.workspaces.map(({ workspace, documents, folders, userRole }) => {
 								const isExpanded = expandedWorkspaces.has(workspace.id)
 								const isOwner = workspace.owner_id === userId
+								const canEdit = userRole === 'owner' || userRole === 'member'
+								const canDelete = userRole === 'owner'
 
 								return (
 									<div
@@ -561,14 +670,37 @@ export default function DashboardClient({
 													</h4>
 													<div className="space-y-1">
 														{documents.map((doc) => (
-															<Link
+															<div
 																key={doc.id}
-																href={`/d/${doc.id}`}
-																className="block px-2 py-1 text-sm rounded hover:bg-foreground/5"
+																className="group flex items-center justify-between px-2 py-1 text-sm rounded hover:bg-foreground/5"
 																data-testid={`document-${doc.id}`}
 															>
-																📄 {doc.name}
-															</Link>
+																<Link
+																	href={`/d/${doc.id}`}
+																	className="flex-1 flex items-center gap-1"
+																>
+																	📄 {doc.name}
+																</Link>
+																<div
+																	className="opacity-0 group-hover:opacity-100 transition-opacity"
+																	onClick={(e) => e.stopPropagation()}
+																>
+																	<DocumentActions
+																		document={doc}
+																		onRename={(newName) =>
+																			handleDocumentRename(workspace.id, doc.id, newName)
+																		}
+																		onDuplicate={() =>
+																			handleDocumentDuplicate(workspace.id, doc.id)
+																		}
+																		onArchive={() => handleDocumentArchive(workspace.id, doc.id)}
+																		onRestore={() => handleDocumentRestore(workspace.id, doc.id)}
+																		onDelete={() => handleDocumentDelete(workspace.id, doc.id)}
+																		canEdit={canEdit}
+																		canDelete={canDelete}
+																	/>
+																</div>
+															</div>
 														))}
 														{/* New Document button - show for non-private workspaces or workspace owners */}
 														{(!workspace.is_private || isOwner) && (

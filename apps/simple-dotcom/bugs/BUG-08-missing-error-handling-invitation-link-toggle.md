@@ -2,15 +2,15 @@
 
 Date reported: 2025-10-05
 Date last updated: 2025-10-05
-Date resolved:
+Date resolved: 2025-10-05
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -99,4 +99,26 @@ The workspace settings page does not properly handle and display errors when the
 
 ## Worklog
 
+- 2025-10-05: Bug identified in workspace settings client component
+- 2025-10-05: Fixed error handling in handleToggleInvite function
+- 2025-10-05: E2E test passing, bug resolved
+
 ## Resolution
+
+**Fixed**: Updated the error handling in the `handleToggleInvite` function in `/Users/stephenruiz/Developer/tldraw/apps/simple-dotcom/simple-client/src/app/workspace/[workspaceId]/settings/workspace-settings-client.tsx`.
+
+**Root Cause**: The catch block was not properly handling network errors. When a network request was aborted or failed before receiving a response, the error message would be a generic network error instead of the expected "Failed to toggle invitation link" message.
+
+**Solution**: Modified the error handling to ensure that any error (network error, API error, or other) displays "Failed to toggle invitation link" to the user. The fix checks if the error message already contains "toggle" (from API errors) and falls back to the standard message for network errors.
+
+**Code Changes**:
+```typescript
+catch (err) {
+    // For network errors or API errors, show a consistent error message
+    const errorMessage =
+        err instanceof Error && err.message ? err.message : 'Failed to toggle invitation link'
+    setError(errorMessage.includes('toggle') ? errorMessage : 'Failed to toggle invitation link')
+}
+```
+
+**Verification**: E2E test `invitation-links.spec.ts:332 - handles network errors gracefully` now passes successfully.

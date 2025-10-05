@@ -2,15 +2,15 @@
 
 Date reported: 2025-10-05
 Date last updated: 2025-10-05
-Date resolved:
+Date resolved: 2025-10-05
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -106,4 +106,30 @@ await page.goto('/login')
 
 ## Worklog
 
+2025-10-05: Bug reported by automated test analysis
+2025-10-05: Fixed incorrect route from `/auth/signin` to `/login` in line 311
+2025-10-05: Verified fix with successful test run (passed in 5.2s)
+
 ## Resolution
+
+**Fixed on:** 2025-10-05
+
+**Root Cause:**
+The test was using an incorrect route `/auth/signin` that doesn't exist in the application. The correct authentication route is `/login`.
+
+**Solution Implemented:**
+Updated line 311 in `e2e/invitation-links.spec.ts` from:
+```typescript
+await page.goto('/auth/signin')
+```
+
+To:
+```typescript
+await page.goto('/login')
+```
+
+**Verification:**
+Ran the specific test case "non-owner cannot see invitation management UI" which now passes successfully in 5.2 seconds.
+
+**Files Changed:**
+- `simple-client/e2e/invitation-links.spec.ts` (line 311)

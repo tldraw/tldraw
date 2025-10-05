@@ -221,7 +221,10 @@ export default function WorkspaceSettingsClient({
 				setInvitationLink(result.data)
 			}
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
+			// For network errors or API errors, show a consistent error message
+			const errorMessage =
+				err instanceof Error && err.message ? err.message : 'Failed to toggle invitation link'
+			setError(errorMessage.includes('toggle') ? errorMessage : 'Failed to toggle invitation link')
 		} finally {
 			setIsTogglingInvite(false)
 		}
