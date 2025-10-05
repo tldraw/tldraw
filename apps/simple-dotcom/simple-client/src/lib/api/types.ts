@@ -240,3 +240,17 @@ export interface RecentDocument {
 	is_archived: boolean
 	sharing_mode: SharingMode
 }
+
+// ============================================================================
+// Audit Log Types
+// ============================================================================
+
+export interface AuditLog {
+	id: string
+	user_id: string
+	workspace_id: string
+	document_id: string | null
+	action: 'document_archived' | 'document_hard_deleted' | string
+	metadata: Record<string, unknown> | null
+	created_at: string
+}

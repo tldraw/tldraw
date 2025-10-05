@@ -28,6 +28,51 @@ export type Database = {
 	}
 	public: {
 		Tables: {
+			audit_logs: {
+				Row: {
+					action: string
+					created_at: string
+					document_id: string | null
+					id: string
+					metadata: Json | null
+					user_id: string
+					workspace_id: string
+				}
+				Insert: {
+					action: string
+					created_at?: string
+					document_id?: string | null
+					id?: string
+					metadata?: Json | null
+					user_id: string
+					workspace_id: string
+				}
+				Update: {
+					action?: string
+					created_at?: string
+					document_id?: string | null
+					id?: string
+					metadata?: Json | null
+					user_id?: string
+					workspace_id?: string
+				}
+				Relationships: [
+					{
+						foreignKeyName: 'audit_logs_user_id_fkey'
+						columns: ['user_id']
+						isOneToOne: false
+						referencedRelation: 'users'
+						referencedColumns: ['id']
+					},
+					{
+						foreignKeyName: 'audit_logs_workspace_id_fkey'
+						columns: ['workspace_id']
+						isOneToOne: false
+						referencedRelation: 'workspaces'
+						referencedColumns: ['id']
+					},
+				]
+			}
 			document_access_log: {
 				Row: {
 					accessed_at: string
@@ -79,6 +124,7 @@ export type Database = {
 					archived_at: string | null
 					created_at: string
 					created_by: string
+					deleted_at: string | null
 					folder_id: string | null
 					id: string
 					is_archived: boolean
@@ -92,6 +138,7 @@ export type Database = {
 					archived_at?: string | null
 					created_at?: string
 					created_by: string
+					deleted_at?: string | null
 					folder_id?: string | null
 					id?: string
 					is_archived?: boolean
@@ -105,6 +152,7 @@ export type Database = {
 					archived_at?: string | null
 					created_at?: string
 					created_by?: string
+					deleted_at?: string | null
 					folder_id?: string | null
 					id?: string
 					is_archived?: boolean
@@ -443,9 +491,9 @@ export type Database = {
 			}
 			transfer_workspace_ownership: {
 				Args: {
-					p_workspace_id: string
 					p_current_owner_id: string
 					p_new_owner_id: string
+					p_workspace_id: string
 				}
 				Returns: Json
 			}
