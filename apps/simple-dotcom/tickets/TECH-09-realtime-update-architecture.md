@@ -2,14 +2,14 @@
 
 Date created: 2025-10-05
 Date last updated: 2025-10-05
-Date completed: -
+Date completed: 2025-10-05
 
 ## Status
 
-- [x] Not Started
+- [ ] Not Started
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -36,22 +36,22 @@ Define and document the real-time update architecture for non-canvas changes (wo
 
 ## Acceptance Criteria
 
-- [ ] **Channel Structure Defined:**
+- [x] **Channel Structure Defined:**
   - Channel naming convention documented (e.g., `workspace:{workspace_id}`, `document:{document_id}`)
   - Scope rules: which updates belong in which channels
   - Authorization model: how channel access is validated
 
-- [ ] **Event Types Documented:**
+- [x] **Event Types Documented:**
   - Standard event format with type, payload, timestamp, actor_id
   - Events for: workspace updates, membership changes, document CRUD, folder CRUD
   - Example payloads for each event type
 
-- [ ] **Subscription Patterns:**
+- [x] **Subscription Patterns:**
   - Client-side hooks/utilities for subscribing to channels
   - Reconnection handling and missed-update recovery
   - Cleanup on component unmount
 
-- [ ] **Shared Utilities Implemented:**
+- [x] **Shared Utilities Implemented:**
   - `useWorkspaceRealtimeUpdates(workspaceId)` hook
   - `useDocumentListRealtimeUpdates(workspaceId)` hook
   - Server-side helper for broadcasting events consistently
@@ -141,6 +141,50 @@ Define and document the real-time update architecture for non-canvas changes (wo
 ## Worklog
 
 2025-10-05: Created to define real-time architecture for non-canvas updates across M2 tickets.
+2025-10-05: Implemented complete real-time update architecture with hooks and broadcast utilities.
+
+## Notes from Engineering Lead
+
+**Implementation Summary:**
+
+Successfully implemented the real-time update architecture for non-canvas changes. The implementation includes:
+
+1. **Type System** (`src/lib/realtime/types.ts`):
+   - Defined standard event format with type, payload, timestamp, and actor_id
+   - Created type-safe event constructors and type guards
+   - Established event types for workspace, member, document, and folder changes
+
+2. **Client-Side Hooks** (`src/hooks/`):
+   - `useWorkspaceRealtimeUpdates`: Main hook for subscribing to workspace-level events
+   - `useDocumentListRealtimeUpdates`: Specialized hook for document list updates
+   - Both hooks handle reconnection, cleanup, and error scenarios
+
+3. **Server-Side Utilities** (`src/lib/realtime/broadcast.ts`):
+   - `broadcastWorkspaceEvent`: Broadcasts workspace-level events
+   - `broadcastDocumentEvent`: Routes document events through workspace channel
+   - `broadcastMemberEvent`: Handles membership change broadcasts
+   - `broadcastFolderEvent`: Manages folder hierarchy change broadcasts
+
+4. **Documentation** (`src/lib/realtime/README.md`):
+   - Complete usage guide with examples
+   - Architecture decisions documented
+   - Security considerations noted
+
+5. **Testing**:
+   - Unit tests for broadcast utilities (`broadcast.test.ts`)
+   - All tests mock Supabase client for isolated testing
+
+**Additional Fixes:**
+- Fixed TypeScript errors in `transfer_workspace_ownership` function type definition
+- Fixed `cursor_position` field reference in presence API route
+
+**Architecture Decisions:**
+- Single workspace-level channel to minimize connection overhead
+- Document-specific channels reserved for future canvas sync
+- Optimistic UI with reconciliation on reconnect
+- No event replay on reconnection - full state refetch instead
+
+This foundation enables all M2 tickets requiring real-time updates to integrate seamlessly.
 
 ## Open questions
 

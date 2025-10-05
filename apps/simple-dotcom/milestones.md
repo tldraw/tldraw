@@ -78,7 +78,7 @@ Break the MVP scope into three executable milestones that sequence dependencies,
 - Permission system that will support canvas integration when added later
 
 **Refinements applied (2025-10-05):**
-- **DEFERRED to M2B/M3:** All tldraw/canvas tickets (COLLAB-01A/B, COLLAB-02, COLLAB-03, TECH-02)
+- **DEFERRED to Milestone 2.5:** All tldraw/canvas tickets (COLLAB-01A/B, COLLAB-02, COLLAB-03, TECH-02)
 - Split NAV-04 → NAV-04A (member view) + NAV-04B (guest view) - simplified without canvas
 - Combined INV-01 + INV-02 → unified invitation acceptance flow
 - Combined PERM-02 + PERM-04 → unified document sharing system
@@ -91,7 +91,7 @@ Break the MVP scope into three executable milestones that sequence dependencies,
 
 ### Phase 1: Foundation & Simple CRUD (Week 1-2)
 *Start these in parallel after M1.5 complete*
-- [ ] [`tickets/TECH-09-realtime-update-architecture.md`](tickets/TECH-09-realtime-update-architecture.md) *(Small, < 1 day)*
+- [x] [`tickets/TECH-09-realtime-update-architecture.md`](tickets/TECH-09-realtime-update-architecture.md) *(Small, < 1 day)* ✅ COMPLETED 2025-10-05
 - [ ] [`tickets/DESIGN-07-shared-component-library.md`](tickets/DESIGN-07-shared-component-library.md) *(Small, 1-2 days)*
 - [ ] [`tickets/DOC-04-document-metadata-tracking.md`](tickets/DOC-04-document-metadata-tracking.md) *(Small)*
 - [ ] [`tickets/DOC-01-document-crud-and-archive.md`](tickets/DOC-01-document-crud-and-archive.md) *(Medium - metadata only, no canvas)*
