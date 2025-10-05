@@ -147,3 +147,8 @@ When a ticket is complete and you've approved it:
 4. update the milestone.md file to reflect the completion of the ticket
 5. update the README.md file to reflect the completion of the ticket
 6. alert the user that the ticket is complete and await further instructions
+
+## Important Notes
+
+- If the agent gets stuck, try to give it additional guidance or context.
+- If you get stuck, ask the user for help.
