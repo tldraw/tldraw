@@ -2,14 +2,14 @@
 
 Date created: 2025-10-05
 Date last updated: 2025-10-05
-Date completed: -
+Date completed: 2025-10-05
 
 ## Status
 
 - [ ] Not Started
-- [x] In Progress
+- [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -43,12 +43,12 @@ Client components should only be used for interactive/stateful UI elements (form
 ## Acceptance Criteria
 
 - [x] Dashboard page uses Server Component for data fetching (already completed)
-- [ ] Profile page uses Server Component for initial profile data fetch
-- [ ] Other authenticated pages follow the same pattern where applicable
-- [ ] Client components are only used for interactive UI (forms, modals, buttons with state)
-- [ ] No client-side `useEffect` calls for initial data fetching on page load
-- [ ] Better Auth session is validated server-side before rendering
-- [ ] Unauthenticated users are redirected server-side (not client-side)
+- [x] Profile page uses Server Component for initial profile data fetch
+- [x] Other authenticated pages follow the same pattern where applicable
+- [x] Client components are only used for interactive UI (forms, modals, buttons with state)
+- [x] No client-side `useEffect` calls for initial data fetching on page load
+- [x] Better Auth session is validated server-side before rendering
+- [x] Unauthenticated users are redirected server-side (not client-side)
 
 ## Technical Details
 
@@ -178,6 +178,14 @@ This ensures:
 ## Worklog
 
 **2025-10-05**: Ticket created. Dashboard page already refactored to use Server Components as reference implementation.
+
+**2025-10-05**: Completed profile page refactoring:
+- Created Server Component `page.tsx` that fetches profile data server-side
+- Created Client Component `profile-client.tsx` for form interactions only
+- Eliminated client-side `useEffect` for initial data fetch
+- Added server-side auth check with redirect
+- Profile data now arrives with HTML (no loading state on mount)
+- All acceptance criteria met
 
 ## Open questions
 

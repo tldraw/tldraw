@@ -27,7 +27,7 @@ Break the MVP scope into three executable milestones that sequence dependencies,
 - [x] [`tickets/WS-02-owner-deletion-constraints.md`](tickets/WS-02-owner-deletion-constraints.md)
 - [x] [`tickets/PERM-01-workspace-access-control.md`](tickets/PERM-01-workspace-access-control.md)
 - [x] [`tickets/NAV-02-global-dashboard.md`](tickets/NAV-02-global-dashboard.md)
-- [~] [`tickets/TECH-08-server-component-data-fetching.md`](tickets/TECH-08-server-component-data-fetching.md) *(In Progress: Dashboard done, profile page pending)*
+- [x] [`tickets/TECH-08-server-component-data-fetching.md`](tickets/TECH-08-server-component-data-fetching.md)
 - [ ] [`tickets/NAV-07-recent-documents-tracking-and-display.md`](tickets/NAV-07-recent-documents-tracking-and-display.md)
 - [ ] [`tickets/NAV-05-route-structure-and-guards.md`](tickets/NAV-05-route-structure-and-guards.md)
 
