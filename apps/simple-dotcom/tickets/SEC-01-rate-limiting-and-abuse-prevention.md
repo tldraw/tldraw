@@ -1,7 +1,7 @@
 # [SEC-01]: Rate Limiting & Abuse Prevention
 
 Date created: 2025-10-04
-Date last updated: -
+Date last updated: 2025-10-05
 Date completed: -
 
 ## Status
@@ -32,14 +32,23 @@ Date completed: -
 
 ## Description
 
-Implement rate limiting and abuse prevention for sensitive endpoints—authentication, invitation link generation, password reset, and sharing—to align with security guidance in engineering notes.
+Implement rate limiting and abuse prevention for **M2 critical endpoints**: authentication flows and invitation link operations. This provides essential security for the MVP while deferring more advanced rate limiting (password reset, general API protection, captcha) to M3 hardening phase.
 
 ## Acceptance Criteria
 
-- [ ] Auth endpoints (`/api/auth/*`) enforce per-IP and per-account rate limits with appropriate error messaging.
-- [ ] Invitation endpoints (`/api/workspaces/[id]/invite`, `/api/invite/[token]`) throttle regeneration/validation attempts and log suspicious activity.
-- [ ] Password reset and share endpoints include rate limiting plus optional captcha hook when thresholds exceeded.
-- [ ] Rate limit configuration documented (thresholds, time windows) and monitored via metrics/alerts.
+### M2 Scope (MVP Required)
+- [ ] Auth endpoints (`/api/auth/sign-in`, `/api/auth/sign-up`) enforce per-IP rate limits (e.g., 10 requests/15 minutes) with 429 responses and retry-after headers.
+- [ ] Invitation endpoints throttled:
+  - `/api/workspaces/[id]/invite` (regeneration): Max 5 regenerations/hour per workspace
+  - `/api/invite/[token]` (validation): Max 20 validations/5 minutes per IP
+- [ ] Rate limit responses include clear error messages without exposing internal thresholds.
+- [ ] Rate limit configuration documented with recommended thresholds for production.
+
+### Deferred to M3 (Launch Hardening)
+- Password reset endpoint throttling
+- Document sharing endpoint rate limits (lower priority; covered by membership checks)
+- Captcha integration hooks (when thresholds exceeded)
+- Advanced monitoring/alerting dashboards (TECH-07 handles basic logging)
 
 ## Technical Details
 
@@ -85,15 +94,20 @@ Coordinate with security review (SEC-02, if created later) to validate configura
 
 ## Estimated Complexity
 
-- [ ] Small (< 1 day)
-- [x] Medium (1-3 days)
+- [x] Small (< 1 day)
+- [ ] Medium (1-3 days)
 - [ ] Large (3-5 days)
 - [ ] Extra Large (> 5 days)
 
+**Note:** Reduced from Medium (1-3 days) to Small-Medium (1-2 days) by scoping to auth + invite endpoints only. Advanced features deferred to M3.
+
 ## Worklog
 
-[Track progress, decisions, and blockers as work proceeds. Each entry should include date and brief description.]
+2025-10-05: Scoped to M2 essentials (auth + invites only). Password reset, sharing, captcha, and advanced monitoring deferred to M3 hardening phase.
 
 ## Open questions
 
-[List unresolved questions or areas needing clarification. Remove items as they are answered.]
+- Which rate limiting backend should we use: Upstash Redis vs Cloudflare KV?
+  → Cloudflare KV preferred for consistency with Workers deployment (COLLAB-01B).
+- Should rate limits be stricter in production vs development?
+  → Yes, use environment-based configuration with relaxed limits in dev.

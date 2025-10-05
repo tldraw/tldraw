@@ -32,12 +32,12 @@ Date completed: -
 
 ## Description
 
-Deliver guest-facing document experience for public links, ensuring guests can view or edit based on sharing mode without seeing workspace chrome or management controls.
+Deliver guest-facing document experience for public links, ensuring guests can view document information based on sharing mode without seeing workspace chrome or management controls. **M2 Scope: Canvas-agnostic** - guests see document metadata/info; canvas integration deferred to M2B/M3.
 
 ## Acceptance Criteria
 
 - [ ] Public document routes render streamlined UI without workspace sidebar, showing required context (document name, owner) and CTA to sign up.
-- [ ] Guest permissions enforced so read-only links block editing actions while editable links allow limited editing in canvas.
+- [ ] Guest permissions enforced so read-only links show view-only document info while editable links show appropriate indicators (actual canvas editing deferred to M2B/M3).
 - [ ] Access to private documents via public link returns 403 page with messaging guiding user to request access.
 
 ## Technical Details
@@ -80,7 +80,13 @@ Deliver guest-facing document experience for public links, ensuring guests can v
 
 ## Notes
 
-Coordinate with marketing to ensure guest view includes appropriate branding and conversion messaging without distracting from canvas.
+**M2 Canvas-Agnostic Approach:**
+- Guest view shows document info/metadata page without canvas rendering
+- Permission enforcement at application level ready for future canvas integration
+- Clear messaging that canvas editor is coming soon
+- Architecture supports drop-in canvas integration later (M2B/M3)
+
+Coordinate with marketing to ensure guest view includes appropriate branding and conversion messaging.
 
 ## Estimated Complexity
 
@@ -91,7 +97,7 @@ Coordinate with marketing to ensure guest view includes appropriate branding and
 
 ## Worklog
 
-[Track progress, decisions, and blockers as work proceeds. Each entry should include date and brief description.]
+2025-10-05: Updated to canvas-agnostic approach - guest document info view instead of canvas for M2.
 
 ## Open questions
 

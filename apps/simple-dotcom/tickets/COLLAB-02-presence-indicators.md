@@ -1,7 +1,7 @@
 # [COLLAB-02]: Presence Indicators
 
 Date created: 2025-10-04
-Date last updated: 2025-10-04
+Date last updated: 2025-10-05
 Date completed: -
 
 ## Status
@@ -83,15 +83,38 @@ Plan for optimistic presence removal (timeout after inactivity) to avoid ghost i
 
 ## Estimated Complexity
 
-- [x] Small (< 1 day)
-- [ ] Medium (1-3 days)
+- [ ] Small (< 1 day)
+- [x] Medium (1-3 days)
 - [ ] Large (3-5 days)
 - [ ] Extra Large (> 5 days)
 
+**Note:** Complexity increased from Small to Medium due to "persist across page refreshes" requirement (see investigation note below).
+
 ## Worklog
 
-[Track progress, decisions, and blockers as work proceeds. Each entry should include date and brief description.]
+2025-10-05: Added investigation note about presence persistence requirement. This is more complex than standard reconnect-on-refresh.
 
 ## Open questions
 
-[List unresolved questions or areas needing clarification. Remove items as they are answered.]
+**INVESTIGATION REQUIRED:** What does "persist across page refreshes" mean exactly?
+
+Two possible interpretations:
+1. **Standard reconnect** (Simple, ~1 day):
+   - User refreshes → client reconnects to presence channel
+   - Server remembers user is in session (via session ID/token)
+   - Presence restored automatically on reconnect
+   - This is typical behavior for WebSocket/Realtime systems
+
+2. **Server-side presence persistence** (Complex, 2-3 days):
+   - Server tracks presence state in database/cache
+   - User refreshes → presence never shows "disconnected" to others
+   - Requires presence heartbeat system
+   - Needs cleanup logic for truly disconnected users (not just refreshing)
+   - More infrastructure: Redis/DB for presence state, background jobs for cleanup
+
+**Decision needed before starting this ticket:**
+- Which interpretation is correct per product requirements?
+- Is preventing "disconnect flicker" on refresh critical for MVP?
+- Recommendation: Start with standard reconnect (interpretation #1) for MVP; add server-side persistence post-MVP if needed.
+
+→ **Action:** Clarify with product/eng stakeholders before implementation.

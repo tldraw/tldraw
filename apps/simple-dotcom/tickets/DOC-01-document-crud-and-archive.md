@@ -1,7 +1,7 @@
 # [DOC-01]: Document CRUD and Archive
 
 Date created: 2025-10-04
-Date last updated: -
+Date last updated: 2025-10-05
 Date completed: -
 
 ## Status
@@ -32,13 +32,24 @@ Date completed: -
 
 ## Description
 
-Build document lifecycle management within workspaces—create, rename, duplicate, delete, archive, and restore—ensuring Supabase records track status and UI provides appropriate controls and confirmations.
+Build document lifecycle management within workspaces—create, rename, duplicate, delete, archive, and restore—ensuring Supabase records track status and UI provides appropriate controls and confirmations. **M2 Scope: Canvas-agnostic** - documents treated as files with metadata; canvas integration deferred to M2B/M3.
 
 ## Acceptance Criteria
 
-- [ ] `/api/workspaces/[id]/documents` supports POST (create), PATCH (rename/duplicate metadata), DELETE (soft delete/archive), and restore actions with proper validation.
-- [ ] Dashboard/workspace views expose document-level menus for rename, duplicate, archive, restore, and delete with confirmation prompts.
-- [ ] Archived documents are hidden from active lists and appear in workspace archive (WS-04) for restoration.
+- [ ] `/api/workspaces/[id]/documents` supports:
+  - POST (create new document with metadata only)
+  - PATCH (rename document)
+  - POST `/api/documents/[id]/duplicate` (duplicate metadata only, see below)
+  - DELETE (soft delete/archive - sets `is_archived = true`)
+  - POST `/api/documents/[id]/restore` (unarchive - sets `is_archived = false`)
+- [ ] Dashboard/workspace views expose document-level action menus with: rename, duplicate, archive, restore, delete options with confirmation prompts.
+- [ ] Archived documents hidden from active lists and appear in workspace archive (WS-04) for restoration.
+
+### MVP Duplication Scope (M2 Canvas-Agnostic)
+- **Duplicate creates:** New document record with copied metadata (name + " (copy)", workspace_id, folder_id, same creator)
+- **Does NOT copy:** Canvas content (M2 treats documents as files, no canvas yet)
+- **Rationale:** Canvas integration deferred to M2B/M3, so duplication is metadata-only
+- **Post-M2:** Canvas content duplication can be added when canvas integrated (M2B/M3)
 
 ## Technical Details
 
@@ -49,8 +60,13 @@ Build document lifecycle management within workspaces—create, rename, duplicat
 
 ### API Endpoints
 
-- Implement REST handlers for document operations; include duplication logic that clones metadata and optionally workspace references.
-- Publish Supabase Realtime events for CRUD to update UI lists.
+- Implement REST handlers for document operations:
+  - `POST /api/workspaces/[id]/documents` - Create new document (metadata only)
+  - `PATCH /api/documents/[id]` - Rename document
+  - `POST /api/documents/[id]/duplicate` - Duplicate metadata only
+  - `DELETE /api/documents/[id]` - Soft delete (archive)
+  - `POST /api/documents/[id]/restore` - Restore from archive
+- Publish Supabase Realtime events for CRUD operations to update UI lists.
 
 ### UI Components
 
@@ -82,7 +98,22 @@ Build document lifecycle management within workspaces—create, rename, duplicat
 
 ## Notes
 
-Coordinate with storage team to ensure document duplication semantics align with tldraw asset duplication strategy.
+**M2 Canvas-Agnostic Approach:**
+- Documents are metadata files without canvas content in M2
+- Create/duplicate operations work with metadata only
+- UI shows document info/metadata instead of canvas
+- Architecture designed for easy canvas integration later (M2B/M3)
+
+**Duplication Strategy:**
+- M2: Metadata-only duplication (no canvas to copy)
+- Duplicated documents are independent metadata records
+- UI should indicate "Duplicate" creates new document with same metadata
+- Post-M2: Add canvas content duplication when canvas integrated (M2B/M3)
+
+**Realtime Updates:**
+- Use Supabase Realtime to broadcast CRUD events to connected clients
+- Clients should update document lists without page refresh
+- Events: `document.created`, `document.updated`, `document.archived`, `document.restored`
 
 ## Estimated Complexity
 
@@ -93,8 +124,11 @@ Coordinate with storage team to ensure document duplication semantics align with
 
 ## Worklog
 
-[Track progress, decisions, and blockers as work proceeds. Each entry should include date and brief description.]
+2025-10-05: Clarified duplication scope - metadata only for M2 canvas-agnostic approach. Documents treated as files without canvas content; canvas integration deferred to M2B/M3.
 
 ## Open questions
 
-[List unresolved questions or areas needing clarification. Remove items as they are answered.]
+- Should "duplicate" be disabled in UI until canvas integrated?
+  → No, keep it enabled - duplicates metadata. In M2, documents are just metadata anyway.
+- Do we need undo for accidental archive/delete?
+  → Not for MVP; archive provides safety net. Consider post-MVP undo system.
