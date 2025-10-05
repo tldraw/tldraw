@@ -47,10 +47,23 @@ Break the MVP scope into three executable milestones that sequence dependencies,
 - [x] [`tickets/M15-05-surface-backend-logs-to-agents.md`](tickets/M15-05-surface-backend-logs-to-agents.md) *(Medium, 1-3 days)*
 - [x] [`tickets/M15-01-migrate-to-supabase-auth.md`](tickets/M15-01-migrate-to-supabase-auth.md) *(Large, 3-5 days - **CRITICAL PATH** - COMPLETED 2025-10-05)*
 - [x] [`tickets/M15-02-handle-empty-workspace-lists.md`](tickets/M15-02-handle-empty-workspace-lists.md) *(Small, < 1 day - COMPLETED 2025-10-05)*
-- [ ] [`tickets/M15-03-make-ownership-transfer-atomic.md`](tickets/M15-03-make-ownership-transfer-atomic.md) *(Medium, 1-3 days)*
+- [x] [`tickets/M15-03-make-ownership-transfer-atomic.md`](tickets/M15-03-make-ownership-transfer-atomic.md) *(Medium, 1-3 days - COMPLETED 2025-10-05)*
 - [x] [`tickets/M15-04-harden-route-middleware-session-validation.md`](tickets/M15-04-harden-route-middleware-session-validation.md) *(Medium, 1-3 days - COMPLETED 2025-10-05)*
+- [x] [`tickets/M15-06-fix-tests-for-auto-provisioning.md`](tickets/M15-06-fix-tests-for-auto-provisioning.md) *(Small, < 1 day - COMPLETED 2025-10-05)*
+- [x] **BUG-01** [`bugs/BUG-01-workspace-creation-foreign-key-constraint.md`](bugs/BUG-01-workspace-creation-foreign-key-constraint.md) *(RESOLVED 2025-10-05 - Critical auth.users sync issue)*
+
+**Status:** ✅ **COMPLETE** (2025-10-05)
 
 **Estimated timeline:** 1-2 weeks (some parallelization possible after M15-01 complete)
+
+**Achievement Summary:**
+- Successfully migrated from Better Auth to Supabase Auth (36 files modified)
+- Implemented database triggers for auth.users → public.users sync with auto-workspace provisioning
+- Resolved critical foreign key constraint issues (BUG-01)
+- Added atomic ownership transfer using database functions
+- Hardened session validation to prevent redirect loops
+- Fixed E2E test suite to reflect AUTH-02 auto-provisioning behavior
+- All 94 E2E tests passing (3 skipped)
 
 ## Milestone 2 – Collaboration & Organization (Canvas-Agnostic)
 
