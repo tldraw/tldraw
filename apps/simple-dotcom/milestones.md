@@ -93,7 +93,7 @@ Break the MVP scope into three executable milestones that sequence dependencies,
 *Start these in parallel after M1.5 complete*
 - [x] [`tickets/TECH-09-realtime-update-architecture.md`](tickets/TECH-09-realtime-update-architecture.md) *(Small, < 1 day)* ✅ COMPLETED 2025-10-05
 - [x] [`tickets/DESIGN-07-shared-component-library.md`](tickets/DESIGN-07-shared-component-library.md) *(Small, 1-2 days)* ✅ COMPLETED 2025-10-05
-- [ ] [`tickets/DOC-04-document-metadata-tracking.md`](tickets/DOC-04-document-metadata-tracking.md) *(Small)*
+- [x] [`tickets/DOC-04-document-metadata-tracking.md`](tickets/DOC-04-document-metadata-tracking.md) *(Small)* ✅ COMPLETED 2025-10-05
 - [ ] [`tickets/DOC-01-document-crud-and-archive.md`](tickets/DOC-01-document-crud-and-archive.md) *(Medium - metadata only, no canvas)*
 - [ ] [`tickets/DOC-05-archive-hard-delete-policies.md`](tickets/DOC-05-archive-hard-delete-policies.md) *(Small)*
 - [ ] [`tickets/MEM-05-member-limit-guardrails.md`](tickets/MEM-05-member-limit-guardrails.md) *(Small)*

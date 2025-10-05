@@ -181,7 +181,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
 /**
  * DELETE /api/documents/:documentId
- * Delete document (members only)
+ * Soft delete (archive) document (members only)
  */
 export async function DELETE(_request: NextRequest, context: RouteContext) {
 	try {
@@ -193,24 +193,36 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
 		const supabase = await createClient()
 		const { documentId } = await context.params
 
-		const { isMember } = await checkDocumentAccess(documentId, user.id)
+		const { document, isMember } = await checkDocumentAccess(documentId, user.id)
 
 		if (!isMember) {
 			throw new ApiException(
 				403,
 				ErrorCodes.FORBIDDEN,
-				'Only workspace members can delete document'
+				'Only workspace members can archive document'
 			)
 		}
 
-		// Delete document
-		const { error } = await supabase.from('documents').delete().eq('id', documentId)
-
-		if (error) {
-			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to delete document')
+		// Check if already archived
+		if (document.is_archived) {
+			throw new ApiException(409, ErrorCodes.CONFLICT, 'Document is already archived')
 		}
 
-		return successResponse({ message: 'Document deleted successfully' })
+		// Soft delete - archive document
+		const { error } = await supabase
+			.from('documents')
+			.update({
+				is_archived: true,
+				archived_at: new Date().toISOString(),
+				updated_at: new Date().toISOString(),
+			})
+			.eq('id', documentId)
+
+		if (error) {
+			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to archive document')
+		}
+
+		return successResponse({ message: 'Document archived successfully' })
 	} catch (error) {
 		return handleApiError(error)
 	}
