@@ -118,6 +118,31 @@ This application combines the tldraw infinite canvas with Supabase for data pers
 - **Permissions**: Row Level Security (RLS) in Supabase + API layer validation
 - **Testing**: Playwright for end-to-end tests
 
+### Component Architecture Pattern
+
+**Server Components First:**
+- All authenticated pages should use Next.js Server Components for initial data fetching
+- Better Auth session validation happens server-side before rendering
+- Data is fetched directly from Supabase on the server and passed as props
+- Unauthenticated users are redirected server-side (no client-side flash)
+
+**Client Components for Interactivity:**
+- Use `'use client'` directive only for components requiring:
+  - Form state management and submissions
+  - Interactive UI elements (modals, dropdowns, collapsible sections)
+  - Client-side state mutations
+  - Real-time updates and subscriptions
+- Client components receive initial data from Server Component parents
+
+**Benefits:**
+- Faster initial page loads (data arrives with HTML)
+- Reduced client-side JavaScript bundle size
+- Better SEO and Core Web Vitals
+- No loading states on mount for initial data
+- Improved security (auth checks happen server-side)
+
+**Reference Implementation:** See `apps/simple-dotcom/simple-client/src/app/dashboard/page.tsx` for the Server Component pattern and `dashboard-client.tsx` for the Client Component pattern.
+
 ### Data Model
 
 **Folders:**

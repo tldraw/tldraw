@@ -1,15 +1,15 @@
 # [NAV-02]: Global Dashboard
 
 Date created: 2025-10-04
-Date last updated: 2025-10-04
-Date completed: -
+Date last updated: 2025-10-05
+Date completed: 2025-10-05
 
 ## Status
 
-- [x] Not Started
+- [ ] Not Started
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -36,12 +36,12 @@ Build the `/dashboard` view aggregating all workspaces, documents, folders, and 
 
 ## Acceptance Criteria
 
-- [ ] Dashboard displays **all accessible workspaces simultaneously** - no workspace switcher or dropdown needed.
-- [ ] Sidebar includes collapsible sections for each workspace showing documents and folder trees at once.
-- [ ] Dashboard lists private and shared workspaces, recent documents, and folder shortcuts with responsive layout.
-- [ ] Quick access to all workspaces and their documents is available without navigation between workspace views.
-- [ ] Search bar or filters allow locating documents quickly (linked to NAV-06 search ticket).
-- [ ] Data loads efficiently with loading skeletons and empty states for new users.
+- [x] Dashboard displays **all accessible workspaces simultaneously** - no workspace switcher or dropdown needed.
+- [x] Sidebar includes collapsible sections for each workspace showing documents and folder trees at once.
+- [x] Dashboard lists private and shared workspaces, recent documents, and folder shortcuts with responsive layout.
+- [x] Quick access to all workspaces and their documents is available without navigation between workspace views.
+- [ ] Search bar or filters allow locating documents quickly (linked to NAV-06 search ticket - not yet implemented).
+- [x] Data loads efficiently with loading skeletons and empty states for new users.
 
 ## Technical Details
 
@@ -99,7 +99,15 @@ Coordinate with analytics to capture dashboard engagement metrics for future ite
 
 ## Worklog
 
-[Track progress, decisions, and blockers as work proceeds. Each entry should include date and brief description.]
+**2025-10-05**: Implemented global dashboard with all features:
+- Created `/api/dashboard` endpoint that consolidates workspaces, documents, folders, and recent documents in a single API call
+- Built dashboard UI with sidebar-first layout displaying all accessible workspaces simultaneously
+- Implemented collapsible workspace sections with expand/collapse functionality (all expanded by default)
+- Added workspace CRUD operations (create, rename, delete) directly from dashboard
+- Integrated recent documents display showing last 20 accessed documents
+- Added loading states and empty states for new users
+- Created Playwright E2E test suite in `e2e/dashboard.spec.ts` covering all major flows
+- Dashboard uses Better Auth client-side session management consistent with rest of app
 
 ## Open questions
 

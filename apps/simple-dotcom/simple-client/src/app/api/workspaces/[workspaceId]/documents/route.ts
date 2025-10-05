@@ -5,6 +5,7 @@
 import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, parsePaginationParams, successResponse } from '@/lib/api/response'
 import { CreateDocumentRequest, Document } from '@/lib/api/types'
+import { requireWorkspaceMembership } from '@/lib/api/workspace-middleware'
 import { createClient, requireAuth } from '@/lib/supabase/server'
 import { NextRequest } from 'next/server'
 
@@ -27,16 +28,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 		const folderId = searchParams.get('folder_id')
 
 		// Verify user has access to workspace
-		const { data: membership } = await supabase
-			.from('workspace_members')
-			.select('*')
-			.eq('workspace_id', workspaceId)
-			.eq('user_id', user.id)
-			.single()
-
-		if (!membership) {
-			throw new ApiException(403, ErrorCodes.FORBIDDEN, 'Access denied to this workspace')
-		}
+		await requireWorkspaceMembership(workspaceId, user.id, supabase)
 
 		// Build query
 		let query = supabase
@@ -85,16 +77,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 		}
 
 		// Verify user has access to workspace
-		const { data: membership } = await supabase
-			.from('workspace_members')
-			.select('*')
-			.eq('workspace_id', workspaceId)
-			.eq('user_id', user.id)
-			.single()
-
-		if (!membership) {
-			throw new ApiException(403, ErrorCodes.FORBIDDEN, 'Access denied to this workspace')
-		}
+		await requireWorkspaceMembership(workspaceId, user.id, supabase)
 
 		// Check document limit (~1000 documents per workspace)
 		const { count } = await supabase

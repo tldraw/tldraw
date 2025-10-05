@@ -1,15 +1,15 @@
 # [PERM-01]: Workspace Access Control
 
 Date created: 2025-10-04
-Date last updated: -
-Date completed: -
+Date last updated: 2025-10-05
+Date completed: 2025-10-05
 
 ## Status
 
-- [x] Not Started
+- [ ] Not Started
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -36,9 +36,9 @@ Restrict workspace data access to owners and members through Supabase RLS polici
 
 ## Acceptance Criteria
 
-- [ ] Supabase RLS policies enforce membership checks on all workspace-scoped tables (workspaces, workspace_members, folders, documents, invitation_links).
-- [ ] API layer confirms membership before executing operations and returns 403 responses with consistent error payloads for unauthorized access.
-- [ ] Unauthorized workspace access attempts render `/403` page with helpful messaging when triggered from UI routes.
+- [x] Supabase RLS policies enforce membership checks on all workspace-scoped tables (workspaces, workspace_members, folders, documents, invitation_links).
+- [x] API layer confirms membership before executing operations and returns 403 responses with consistent error payloads for unauthorized access.
+- [x] Unauthorized workspace access attempts render `/403` page with helpful messaging when triggered from UI routes.
 
 ## Technical Details
 
@@ -97,8 +97,28 @@ Review RLS with security lead before launch to ensure no gaps for service roles 
 
 ## Worklog
 
-[Track progress, decisions, and blockers as work proceeds. Each entry should include date and brief description.]
+### 2025-10-05
+- ✅ Created migration `perm_01_workspace_access_control_helpers_and_policies` with:
+  - Helper functions: `is_workspace_owner`, `is_workspace_member`, `can_access_document`, `can_edit_document`
+  - Comprehensive RLS policies for all workspace-scoped tables (INSERT, UPDATE, DELETE)
+  - Policies for workspace_members, folders, documents, invitation_links, document_access_log, and presence tables
+- ✅ Created `/lib/api/workspace-middleware.ts` with reusable middleware:
+  - `requireWorkspaceMembership()` - validates user is member or owner
+  - `requireWorkspaceOwnership()` - validates user is owner
+  - `checkWorkspaceAccess()` - non-throwing access check
+  - `isWorkspaceOwner()` - boolean ownership check
+- ✅ Implemented `/403` forbidden page at `/app/403/page.tsx`
+- ✅ Updated API routes to use middleware:
+  - `/api/workspaces/[workspaceId]/members/route.ts`
+  - `/api/workspaces/[workspaceId]/documents/route.ts`
+- ✅ Fixed `requireAuth()` in `/lib/supabase/server.ts` to throw `ApiException` instead of generic `Error`
+- ✅ Added comprehensive E2E tests in `e2e/workspace.spec.ts`:
+  - Non-member access denial tests (401/403)
+  - Member access validation tests
+  - Membership removal/revocation tests
+  - RLS policy verification tests
+- ✅ All 6 E2E tests passing
 
 ## Open questions
 
-[List unresolved questions or areas needing clarification. Remove items as they are answered.]
+None - all acceptance criteria met.

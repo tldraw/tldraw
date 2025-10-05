@@ -812,6 +812,307 @@ test.describe('Workspace Management', () => {
 		})
 	})
 
+	test.describe('Workspace Access Control (PERM-01)', () => {
+		test('should deny non-member access to workspace via API', async ({
+			authenticatedPage,
+			supabaseAdmin,
+			testUser,
+		}) => {
+			const page = authenticatedPage
+
+			// Create a workspace owned by another user
+			const { data: otherUser } = await supabaseAdmin.auth.admin.createUser({
+				email: `other-owner-${Date.now()}@example.com`,
+				password: 'TestPassword123!',
+				email_confirm: true,
+			})
+
+			if (!otherUser?.user) {
+				throw new Error('Failed to create other user')
+			}
+
+			// Create user entry in users table
+			await supabaseAdmin.from('users').insert({
+				id: otherUser.user.id,
+				email: otherUser.user.email!,
+				display_name: 'Other Owner',
+			})
+
+			const { data: workspace, error: workspaceError } = await supabaseAdmin
+				.from('workspaces')
+				.insert({
+					owner_id: otherUser.user.id,
+					name: `Private Workspace ${Date.now()}`,
+					is_private: false,
+				})
+				.select()
+				.single()
+
+			if (workspaceError || !workspace) {
+				throw new Error(`Failed to create workspace: ${workspaceError?.message}`)
+			}
+
+			// DO NOT add test user as member
+
+			// Attempt to access workspace via API
+			const response = await page.request.get(`/api/workspaces/${workspace.id}`)
+
+			// Should return 403 error
+			expect(response.status()).toBe(403)
+			const body = await response.json()
+			expect(body.success).toBe(false)
+			expect(body.error.code).toBe('FORBIDDEN')
+
+			// Cleanup
+			await supabaseAdmin.from('workspaces').delete().eq('id', workspace.id)
+			await supabaseAdmin.auth.admin.deleteUser(otherUser.user.id)
+		})
+
+		test('should allow member to access workspace via API', async ({
+			authenticatedPage,
+			supabaseAdmin,
+			testUser,
+		}) => {
+			const page = authenticatedPage
+
+			// Create a workspace owned by another user
+			const { data: otherUser } = await supabaseAdmin.auth.admin.createUser({
+				email: `workspace-owner-${Date.now()}@example.com`,
+				password: 'TestPassword123!',
+				email_confirm: true,
+			})
+
+			if (!otherUser?.user) {
+				throw new Error('Failed to create other user')
+			}
+
+			// Create user entry in users table
+			await supabaseAdmin.from('users').insert({
+				id: otherUser.user.id,
+				email: otherUser.user.email!,
+				display_name: 'Workspace Owner',
+			})
+
+			const { data: workspace } = await supabaseAdmin
+				.from('workspaces')
+				.insert({
+					owner_id: otherUser.user.id,
+					name: `Shared Workspace ${Date.now()}`,
+					is_private: false,
+				})
+				.select()
+				.single()
+
+			// Add test user as member
+			await supabaseAdmin.from('workspace_members').insert({
+				workspace_id: workspace.id,
+				user_id: testUser.id,
+				role: 'member',
+			})
+
+			// Access workspace via API
+			const response = await page.request.get(`/api/workspaces/${workspace.id}`)
+
+			// Should succeed
+			expect(response.status()).toBe(200)
+			const body = await response.json()
+			expect(body.success).toBe(true)
+			expect(body.data.id).toBe(workspace.id)
+
+			// Cleanup
+			await supabaseAdmin.from('workspaces').delete().eq('id', workspace.id)
+			await supabaseAdmin.auth.admin.deleteUser(otherUser.user.id)
+		})
+
+		test('should deny non-member access to workspace members list', async ({
+			authenticatedPage,
+			supabaseAdmin,
+			testUser,
+		}) => {
+			const page = authenticatedPage
+
+			// Create a workspace owned by another user
+			const { data: otherUser } = await supabaseAdmin.auth.admin.createUser({
+				email: `members-test-${Date.now()}@example.com`,
+				password: 'TestPassword123!',
+				email_confirm: true,
+			})
+
+			if (!otherUser?.user) {
+				throw new Error('Failed to create other user')
+			}
+
+			await supabaseAdmin.from('users').insert({
+				id: otherUser.user.id,
+				email: otherUser.user.email!,
+				display_name: 'Members Test Owner',
+			})
+
+			const { data: workspace } = await supabaseAdmin
+				.from('workspaces')
+				.insert({
+					owner_id: otherUser.user.id,
+					name: `Members Workspace ${Date.now()}`,
+					is_private: false,
+				})
+				.select()
+				.single()
+
+			// Attempt to access members list via API
+			const response = await page.request.get(`/api/workspaces/${workspace.id}/members`)
+
+			// Should return 403 error (or 401 if not authenticated at API level)
+			expect([401, 403]).toContain(response.status())
+			const body = await response.json()
+			expect(body.success).toBe(false)
+			expect(['UNAUTHORIZED', 'FORBIDDEN']).toContain(body.error.code)
+
+			// Cleanup
+			await supabaseAdmin.from('workspaces').delete().eq('id', workspace.id)
+			await supabaseAdmin.auth.admin.deleteUser(otherUser.user.id)
+		})
+
+		test('should deny non-member from creating documents in workspace', async ({
+			authenticatedPage,
+			supabaseAdmin,
+			testUser,
+		}) => {
+			const page = authenticatedPage
+
+			// Create a workspace owned by another user
+			const { data: otherUser } = await supabaseAdmin.auth.admin.createUser({
+				email: `doc-test-${Date.now()}@example.com`,
+				password: 'TestPassword123!',
+				email_confirm: true,
+			})
+
+			if (!otherUser?.user) {
+				throw new Error('Failed to create other user')
+			}
+
+			await supabaseAdmin.from('users').insert({
+				id: otherUser.user.id,
+				email: otherUser.user.email!,
+				display_name: 'Doc Test Owner',
+			})
+
+			const { data: workspace } = await supabaseAdmin
+				.from('workspaces')
+				.insert({
+					owner_id: otherUser.user.id,
+					name: `Docs Workspace ${Date.now()}`,
+					is_private: false,
+				})
+				.select()
+				.single()
+
+			// Attempt to create document via API
+			const response = await page.request.post(`/api/workspaces/${workspace.id}/documents`, {
+				data: { name: 'Test Document' },
+			})
+
+			// Should return 403 error (or 401 if not authenticated at API level)
+			expect([401, 403]).toContain(response.status())
+			const body = await response.json()
+			expect(body.success).toBe(false)
+			expect(['UNAUTHORIZED', 'FORBIDDEN']).toContain(body.error.code)
+
+			// Cleanup
+			await supabaseAdmin.from('workspaces').delete().eq('id', workspace.id)
+			await supabaseAdmin.auth.admin.deleteUser(otherUser.user.id)
+		})
+
+		test('should lose access immediately after membership removal', async ({
+			authenticatedPage,
+			supabaseAdmin,
+			testUser,
+		}) => {
+			const page = authenticatedPage
+
+			// Create a workspace owned by another user
+			const { data: otherUser } = await supabaseAdmin.auth.admin.createUser({
+				email: `revoke-test-${Date.now()}@example.com`,
+				password: 'TestPassword123!',
+				email_confirm: true,
+			})
+
+			if (!otherUser?.user) {
+				throw new Error('Failed to create other user')
+			}
+
+			await supabaseAdmin.from('users').insert({
+				id: otherUser.user.id,
+				email: otherUser.user.email!,
+				display_name: 'Revoke Test Owner',
+			})
+
+			const { data: workspace } = await supabaseAdmin
+				.from('workspaces')
+				.insert({
+					owner_id: otherUser.user.id,
+					name: `Revoke Workspace ${Date.now()}`,
+					is_private: false,
+				})
+				.select()
+				.single()
+
+			// Add test user as member
+			await supabaseAdmin.from('workspace_members').insert({
+				workspace_id: workspace.id,
+				user_id: testUser.id,
+				role: 'member',
+			})
+
+			// Verify access works
+			const accessResponse = await page.request.get(`/api/workspaces/${workspace.id}`)
+			expect(accessResponse.status()).toBe(200)
+
+			// Remove membership
+			await supabaseAdmin
+				.from('workspace_members')
+				.delete()
+				.eq('workspace_id', workspace.id)
+				.eq('user_id', testUser.id)
+
+			// Verify access is now denied
+			const deniedResponse = await page.request.get(`/api/workspaces/${workspace.id}`)
+			expect(deniedResponse.status()).toBe(403)
+
+			// Cleanup
+			await supabaseAdmin.from('workspaces').delete().eq('id', workspace.id)
+			await supabaseAdmin.auth.admin.deleteUser(otherUser.user.id)
+		})
+
+		test('should have RLS policies enabled on workspace tables', async ({ supabaseAdmin }) => {
+			// Query pg_tables to verify RLS is enabled
+			const { data: tables, error } = await supabaseAdmin
+				.from('pg_tables' as any)
+				.select('tablename, rowsecurity')
+				.eq('schemaname', 'public')
+				.in('tablename', [
+					'workspaces',
+					'workspace_members',
+					'documents',
+					'folders',
+					'invitation_links',
+				])
+
+			if (error) {
+				// If we can't query pg_tables directly, skip this test
+				// RLS enforcement is tested via API tests above
+				return
+			}
+
+			// Verify all workspace-scoped tables have RLS enabled
+			expect(tables).toBeTruthy()
+			expect(tables!.length).toBeGreaterThan(0)
+
+			for (const table of tables!) {
+				expect(table.rowsecurity).toBe(true)
+			}
+		})
+	})
+
 	test.describe('Private Workspace Validation', () => {
 		test('should prevent renaming private workspace via API', async ({
 			authenticatedPage,

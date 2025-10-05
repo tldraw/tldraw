@@ -4,6 +4,7 @@
 import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
 import { WorkspaceMember } from '@/lib/api/types'
+import { requireWorkspaceMembership } from '@/lib/api/workspace-middleware'
 import { createClient, requireAuth } from '@/lib/supabase/server'
 import { NextRequest } from 'next/server'
 
@@ -22,16 +23,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 		const { workspaceId } = await context.params
 
 		// Verify user has access to workspace
-		const { data: membership } = await supabase
-			.from('workspace_members')
-			.select('*')
-			.eq('workspace_id', workspaceId)
-			.eq('user_id', user.id)
-			.single()
-
-		if (!membership) {
-			throw new ApiException(403, ErrorCodes.FORBIDDEN, 'Access denied to this workspace')
-		}
+		await requireWorkspaceMembership(workspaceId, user.id, supabase)
 
 		// Get all members with user details (excluding email for privacy)
 		const { data: members, error } = await supabase

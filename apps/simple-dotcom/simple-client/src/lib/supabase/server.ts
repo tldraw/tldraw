@@ -69,12 +69,13 @@ export async function getCurrentUser() {
 
 /**
  * Get the current user's ID
- * Throws an error if not authenticated
+ * Throws an ApiException if not authenticated
  */
 export async function requireAuth() {
 	const user = await getCurrentUser()
 	if (!user) {
-		throw new Error('Unauthorized')
+		const { ApiException, ErrorCodes } = await import('@/lib/api/errors')
+		throw new ApiException(401, ErrorCodes.UNAUTHORIZED, 'Not authenticated')
 	}
 	return user
 }
