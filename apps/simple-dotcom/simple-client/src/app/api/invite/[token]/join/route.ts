@@ -3,6 +3,7 @@
 
 import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
+import { WORKSPACE_LIMITS } from '@/lib/constants'
 import { createClient, requireAuth } from '@/lib/supabase/server'
 import { NextRequest } from 'next/server'
 
@@ -59,17 +60,31 @@ export async function POST(request: NextRequest, context: RouteContext) {
 			)
 		}
 
-		// Check member limit (~100 members per workspace)
+		// Check member limit
 		const { count } = await supabase
 			.from('workspace_members')
 			.select('*', { count: 'exact', head: true })
 			.eq('workspace_id', invitation.workspace_id)
 
-		if (count && count >= 100) {
+		const memberCount = count || 0
+
+		if (memberCount >= WORKSPACE_LIMITS.MAX_MEMBERS) {
+			// Log the blocked attempt
+			await supabase.from('audit_logs').insert({
+				user_id: user.id,
+				workspace_id: invitation.workspace_id,
+				action: 'member_limit_exceeded',
+				metadata: {
+					attempted_action: 'join_workspace_by_invitation',
+					current_count: memberCount,
+					limit: WORKSPACE_LIMITS.MAX_MEMBERS,
+				},
+			})
+
 			throw new ApiException(
 				422,
 				ErrorCodes.WORKSPACE_MEMBER_LIMIT_EXCEEDED,
-				'Workspace member limit exceeded (100 per workspace)'
+				`Workspace has reached the maximum limit of ${WORKSPACE_LIMITS.MAX_MEMBERS} members`
 			)
 		}
 
@@ -84,10 +99,20 @@ export async function POST(request: NextRequest, context: RouteContext) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to join workspace')
 		}
 
+		// Check if approaching limit and include warning
+		const warning =
+			memberCount >= WORKSPACE_LIMITS.WARNING_THRESHOLD
+				? `This workspace is approaching its member limit (${memberCount + 1}/${
+						WORKSPACE_LIMITS.MAX_MEMBERS
+					})`
+				: undefined
+
 		return successResponse({
 			message: 'Successfully joined workspace',
 			workspace_id: invitation.workspace_id,
 			workspace_name: invitation.workspaces?.name,
+			warning,
+			member_count: memberCount + 1,
 		})
 	} catch (error) {
 		return handleApiError(error)

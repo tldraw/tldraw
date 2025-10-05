@@ -1,123 +1,150 @@
 # Task for simple-dotcom-engineer
 
-## Implement DOC-05: Archive and Hard Delete Policies
+## Implement MEM-05: Member Limit Guardrails
 
 ### Task Description
-Implement backend policies for workspace-specific document archives, including hard delete operations guarded by permissions and confirmation patterns.
+Introduce sanity checks to enforce the ~100 member per workspace limit, preventing overages and surfacing warnings as the limit is approached.
 
 ### Current State Analysis
-- The database already has `is_archived` and `archived_at` columns on the documents table
-- Basic soft delete (archive) is implemented in the DELETE endpoint at `/api/documents/[documentId]/route.ts`
-- Archive functionality sets `is_archived=true` and `archived_at` timestamp
-- No dedicated `/archive` endpoint exists yet
-- No hard delete endpoint exists
-- No audit logging for archive/delete operations
+- Workspace member management exists with roles (owner/member)
+- No current limits on number of members per workspace
+- Member invitation and addition endpoints exist
+- No warning system for approaching limits
 
 ### Requirements to Implement
 
-#### 1. Add Dedicated Archive Endpoint
-Create `/api/documents/[documentId]/archive/route.ts`:
-- POST endpoint to archive a document (soft delete)
-- Should check user is workspace member
-- Set `is_archived=true` and `archived_at` timestamp
-- Return success response
-
-#### 2. Add Hard Delete Endpoint
-Create `/api/documents/[documentId]/delete/route.ts`:
-- DELETE endpoint to permanently remove document
-- **Restricted to workspace owners only** (not just members)
-- Should verify user is workspace owner before allowing
-- Permanently delete from database
-- Trigger R2 storage cleanup if `r2_key` exists (add TODO comment if R2 not implemented yet)
-- Add confirmation token validation for safety (use request header like X-Confirm-Delete: true)
-
-#### 3. Add Audit Logging
-Create a database migration to add audit_logs table:
-```sql
-CREATE TABLE audit_logs (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id),
-  workspace_id UUID NOT NULL REFERENCES workspaces(id),
-  document_id UUID, -- nullable since document may be deleted
-  action TEXT NOT NULL, -- 'document_archived', 'document_hard_deleted'
-  metadata JSONB, -- additional context
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-```
-- Insert audit log entries when archive/delete operations occur
-
-#### 4. Update API Types
-In `/lib/api/types.ts`:
-- Add AuditLog type
-- Add any other types needed
-
-#### 5. Database Migration
-Create a new migration file:
-- Add audit_logs table (see SQL above)
-- Optionally add `deleted_at` column to documents table for tracking hard deletes
-- Add indexes on audit_logs for querying by workspace_id and user_id
-
-#### 6. Update Existing Endpoints
-- Keep the current DELETE endpoint at `/api/documents/[documentId]/route.ts` as-is for backwards compatibility
-- It already does soft delete (archive) which is fine
-
-### Acceptance Criteria
-- [ ] API endpoints enforce `is_archived` flag to segment archived documents
-- [ ] Hard delete endpoint permanently removes document records
-- [ ] Hard delete restricted to workspace owners only
-- [ ] Audit logs capture archive and hard delete actions
-- [ ] Confirmation header required for hard deletes
-- [ ] Foreign key cascades handle deletion of associated data safely
-
-### Technical Implementation Notes
-
-1. For the archive endpoint, follow the pattern in the existing DELETE endpoint
-2. For hard delete, use this pattern to check ownership:
+#### 1. Add Member Limit Configuration
+Create a configuration constant for the member limit:
 ```typescript
-const { data: membership } = await supabase
-  .from('workspace_members')
-  .select('role')
-  .eq('workspace_id', document.workspace_id)
-  .eq('user_id', user.id)
-  .single()
+// In simple-client/src/lib/constants.ts (create if doesn't exist)
+export const WORKSPACE_LIMITS = {
+  MAX_MEMBERS: 100,
+  WARNING_THRESHOLD: 90, // Show warning at 90% capacity
+} as const
+```
 
-if (!membership || membership.role !== 'owner') {
-  throw new ApiException(403, ErrorCodes.FORBIDDEN, 'Only workspace owners can permanently delete documents')
+#### 2. Update Member Addition Endpoints
+Modify these endpoints to check member count before adding:
+- `/api/workspaces/[workspaceId]/members/route.ts` - direct member addition
+- `/api/invitations/accept/route.ts` - invitation acceptance (if it adds members)
+
+For each endpoint:
+```typescript
+// Check current member count
+const { count } = await supabase
+  .from('workspace_members')
+  .select('*', { count: 'exact', head: true })
+  .eq('workspace_id', workspaceId)
+
+if (count >= WORKSPACE_LIMITS.MAX_MEMBERS) {
+  throw new ApiException(
+    403,
+    ErrorCodes.MEMBER_LIMIT_EXCEEDED,
+    `Workspace has reached the maximum limit of ${WORKSPACE_LIMITS.MAX_MEMBERS} members`
+  )
+}
+
+// If near limit, include warning in response
+const warning = count >= WORKSPACE_LIMITS.WARNING_THRESHOLD
+  ? `Workspace is approaching member limit (${count}/${WORKSPACE_LIMITS.MAX_MEMBERS})`
+  : undefined
+```
+
+#### 3. Add Error Code
+In `/lib/api/errors.ts`, add:
+```typescript
+MEMBER_LIMIT_EXCEEDED = 'MEMBER_LIMIT_EXCEEDED',
+```
+
+#### 4. Create Database Function for Efficient Counting
+Create a migration to add a function for checking member limits:
+```sql
+-- Function to check if workspace can add more members
+CREATE OR REPLACE FUNCTION check_workspace_member_limit(workspace_uuid UUID)
+RETURNS BOOLEAN AS $$
+DECLARE
+  member_count INTEGER;
+  max_limit INTEGER := 100;
+BEGIN
+  SELECT COUNT(*) INTO member_count
+  FROM workspace_members
+  WHERE workspace_id = workspace_uuid;
+
+  RETURN member_count < max_limit;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Add comment
+COMMENT ON FUNCTION check_workspace_member_limit IS 'Checks if workspace has room for more members (limit: 100)';
+```
+
+#### 5. Update UI Components
+In workspace member management components, add:
+- Member count display: "Members (X/100)"
+- Warning banner when count >= 90
+- Error message when trying to add members at limit
+
+Look for these components:
+- `WorkspaceSettings` or similar component
+- Member invitation modal/form
+- Member list component
+
+Add warning banner component:
+```tsx
+{memberCount >= WORKSPACE_LIMITS.WARNING_THRESHOLD && (
+  <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded mb-4">
+    <strong>Approaching member limit:</strong> This workspace has {memberCount} of {WORKSPACE_LIMITS.MAX_MEMBERS} members.
+    Consider removing inactive members before the limit is reached.
+  </div>
+)}
+```
+
+#### 6. Add Observability/Logging
+When limit blocks occur, log to audit_logs:
+```typescript
+if (count >= WORKSPACE_LIMITS.MAX_MEMBERS) {
+  // Log the blocked attempt
+  await supabase.from('audit_logs').insert({
+    user_id: user.id,
+    workspace_id: workspaceId,
+    action: 'member_limit_exceeded',
+    metadata: {
+      attempted_action: 'add_member',
+      current_count: count,
+      limit: WORKSPACE_LIMITS.MAX_MEMBERS
+    }
+  })
+
+  throw new ApiException(...)
 }
 ```
 
-3. For audit logging:
-```typescript
-await supabase.from('audit_logs').insert({
-  user_id: user.id,
-  workspace_id: document.workspace_id,
-  document_id: documentId,
-  action: 'document_hard_deleted',
-  metadata: { document_name: document.name }
-})
-```
-
-4. For R2 cleanup, add a TODO comment:
-```typescript
-// TODO: Implement R2 storage cleanup when TECH-02 is complete
-// if (document.r2_key) {
-//   await deleteFromR2(document.r2_key)
-// }
-```
+### Acceptance Criteria
+- [ ] Member invite and add endpoints validate workspace membership count before inserting
+- [ ] Endpoints block additions beyond 100 member limit with descriptive error messages
+- [ ] UI surfaces friendly warning when member count crosses 90 members
+- [ ] Observability captures when limit blocks are hit via audit logs
 
 ### Files to Create/Modify
-1. Create: `simple-client/src/app/api/documents/[documentId]/archive/route.ts`
-2. Create: `simple-client/src/app/api/documents/[documentId]/delete/route.ts`
-3. Create migration: `supabase/migrations/[timestamp]_add_audit_logs.sql`
-4. Modify: `simple-client/src/lib/api/types.ts` - add AuditLog type
-5. After migration, regenerate types: `cd simple-client && yarn gen-types`
+1. Create: `simple-client/src/lib/constants.ts` - add workspace limits
+2. Modify: `/api/workspaces/[workspaceId]/members/route.ts` - add limit check
+3. Modify: Any invitation acceptance endpoint - add limit check
+4. Modify: `/lib/api/errors.ts` - add new error code
+5. Create migration: Add check_workspace_member_limit function
+6. Modify: Workspace settings/member UI components - add count and warnings
+7. After migration, regenerate types: `cd simple-client && yarn gen-types`
 
 ### Testing
-After implementation:
-1. Test archive endpoint works for workspace members
-2. Test hard delete works only for workspace owners
-3. Test that audit logs are created
-4. Verify that cascading deletes work (presence, document_access_log entries deleted)
-5. Test confirmation header is required for hard delete
+1. Create workspace with 99 members (use loop in test)
+2. Try to add 100th member - should succeed with warning
+3. Try to add 101st member - should fail with error
+4. Verify warning appears in UI at 90+ members
+5. Check audit logs capture limit exceeded attempts
 
-Please implement this following the existing patterns in the codebase. Make sure to handle errors properly using ApiException and the existing error codes pattern.
+### Implementation Notes
+- Make the limit configurable via constants for easy future adjustment
+- Consider future plan-based differentiation (e.g., free=10, pro=100, enterprise=unlimited)
+- Ensure RLS policies also enforce limits if direct Supabase access is possible
+- Use database function for atomic count checking if needed
+
+Please implement this following the existing patterns in the codebase.

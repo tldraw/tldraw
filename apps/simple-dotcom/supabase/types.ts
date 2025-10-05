@@ -445,9 +445,17 @@ export type Database = {
 				Args: { document_uuid: string; user_uuid: string }
 				Returns: boolean
 			}
+			check_workspace_member_limit: {
+				Args: { workspace_uuid: string }
+				Returns: boolean
+			}
 			cleanup_stale_presence: {
 				Args: Record<PropertyKey, never>
 				Returns: undefined
+			}
+			get_workspace_member_count: {
+				Args: { workspace_uuid: string }
+				Returns: number
 			}
 			gtrgm_compress: {
 				Args: { '': unknown }

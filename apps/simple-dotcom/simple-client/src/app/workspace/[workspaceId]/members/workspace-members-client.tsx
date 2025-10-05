@@ -1,6 +1,7 @@
 'use client'
 
 import { Workspace } from '@/lib/api/types'
+import { WORKSPACE_LIMITS } from '@/lib/constants'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -152,6 +153,17 @@ export default function WorkspaceMembersClient({
 						<div className="rounded-lg bg-green-50 p-4 text-sm text-green-800">{success}</div>
 					)}
 
+					{/* Member limit warning */}
+					{members.length >= WORKSPACE_LIMITS.WARNING_THRESHOLD && (
+						<div className="rounded-lg bg-yellow-50 border border-yellow-200 p-4">
+							<p className="text-sm text-yellow-800">
+								<strong>Approaching member limit:</strong> This workspace has {members.length} of{' '}
+								{WORKSPACE_LIMITS.MAX_MEMBERS} members. Consider removing inactive members before
+								the limit is reached.
+							</p>
+						</div>
+					)}
+
 					{/* Invitation Link */}
 					<section className="rounded-lg border p-6">
 						<h2 className="mb-4 text-lg font-semibold">Invitation Link</h2>
@@ -210,7 +222,9 @@ export default function WorkspaceMembersClient({
 
 					{/* Members List */}
 					<section className="rounded-lg border p-6">
-						<h2 className="mb-4 text-lg font-semibold">Members ({members.length})</h2>
+						<h2 className="mb-4 text-lg font-semibold">
+							Members ({members.length}/{WORKSPACE_LIMITS.MAX_MEMBERS})
+						</h2>
 
 						<div className="space-y-2">
 							{members.map((member) => {
