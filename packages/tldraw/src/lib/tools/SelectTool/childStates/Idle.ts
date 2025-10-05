@@ -39,6 +39,10 @@ export class Idle extends StateNode {
 
 	selectedShapesOnKeyDown: TLShape[] = []
 
+	override getShouldShowIndicators() {
+		return true
+	}
+
 	override onEnter() {
 		this.parent.setCurrentToolIdMask(undefined)
 		updateHoveredShapeId(this.editor)
