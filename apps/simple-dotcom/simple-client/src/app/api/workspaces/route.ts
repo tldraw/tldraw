@@ -6,6 +6,7 @@ import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, parsePaginationParams, successResponse } from '@/lib/api/response'
 import { CreateWorkspaceRequest, Workspace } from '@/lib/api/types'
 import { auth } from '@/lib/auth'
+import { logger } from '@/lib/server/logger'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
 import { NextRequest } from 'next/server'
@@ -106,7 +107,11 @@ export async function POST(request: NextRequest) {
 			.single()
 
 		if (workspaceError || !workspace) {
-			console.error('[Workspace Creation] Error creating workspace:', workspaceError)
+			logger.error('Error creating workspace', workspaceError, {
+				context: 'workspace_creation',
+				route: '/api/workspaces',
+				user_id: session.user.id,
+			})
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to create workspace')
 		}
 
@@ -121,11 +126,9 @@ export async function POST(request: NextRequest) {
 			.select()
 
 		if (memberError) {
-			console.error(
-				'[Workspace Creation] Error creating member:',
-				JSON.stringify(memberError, null, 2)
-			)
-			console.error('[Workspace Creation] Attempted to insert:', {
+			logger.error('Error creating workspace member', memberError, {
+				context: 'workspace_creation',
+				route: '/api/workspaces',
 				workspace_id: workspace.id,
 				user_id: session.user.id,
 				role: 'owner',
@@ -139,7 +142,13 @@ export async function POST(request: NextRequest) {
 			)
 		}
 
-		console.log('[Workspace Creation] Successfully created member:', memberData)
+		logger.info('Successfully created workspace member', {
+			context: 'workspace_creation',
+			route: '/api/workspaces',
+			workspace_id: workspace.id,
+			user_id: session.user.id,
+			member_count: memberData?.length || 1,
+		})
 
 		return successResponse<Workspace>(workspace, 201)
 	} catch (error) {

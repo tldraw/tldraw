@@ -78,6 +78,45 @@ This command updates types in two locations:
 - When database schema changes in development
 - After pulling schema changes from other developers
 
+## Viewing Backend Logs
+
+The backend uses a structured logger that writes to both stdout and a rotating log file. This makes it easy to inspect server-side logs when debugging issues.
+
+**Log Locations:**
+
+- **Console**: Pretty-printed logs appear in your terminal when running `yarn workspace simple-dotcom dev`
+- **File**: JSON-formatted logs are appended to `apps/simple-dotcom/.logs/backend.log`
+
+**Viewing Recent Logs:**
+
+To see the last 200 lines of backend logs:
+
+```bash
+tail -n 200 apps/simple-dotcom/.logs/backend.log
+```
+
+Or to follow logs in real-time:
+
+```bash
+tail -f apps/simple-dotcom/.logs/backend.log
+```
+
+**Log Format:**
+
+Log entries are structured JSON with the following fields:
+
+- `level`: Log level (info, warn, error, debug)
+- `time`: ISO timestamp
+- `msg`: Human-readable message
+- Context-specific fields (route, user_id, error details, etc.)
+
+**Notes:**
+
+- Log files are created on first server startup and persist across process restarts
+- The `.logs/` directory is git-ignored and will not be committed
+- Logs are not automatically rotated - the file grows indefinitely (suitable for development)
+- For production, consider implementing proper log rotation or using a log management service
+
 ## Delivery Workflow
 
 1. **Plan via milestones**: Confirm which milestone you are executing (`MILESTONES.md`). Do not pull tickets from later milestones until current exit criteria are satisfied.

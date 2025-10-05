@@ -44,7 +44,7 @@ Break the MVP scope into three executable milestones that sequence dependencies,
 - Session validation prevents redirect loops
 
 **Ticket checklist:**
-- [ ] [`tickets/M15-05-surface-backend-logs-to-agents.md`](tickets/M15-05-surface-backend-logs-to-agents.md) *(Medium, 1-3 days)*
+- [x] [`tickets/M15-05-surface-backend-logs-to-agents.md`](tickets/M15-05-surface-backend-logs-to-agents.md) *(Medium, 1-3 days)*
 - [ ] [`tickets/M15-01-bridge-better-auth-to-supabase-rls.md`](tickets/M15-01-bridge-better-auth-to-supabase-rls.md) *(Large, 3-5 days - **CRITICAL PATH**)*
 - [ ] [`tickets/M15-02-handle-empty-workspace-lists.md`](tickets/M15-02-handle-empty-workspace-lists.md) *(Small, < 1 day)*
 - [ ] [`tickets/M15-03-make-ownership-transfer-atomic.md`](tickets/M15-03-make-ownership-transfer-atomic.md) *(Medium, 1-3 days)*

@@ -5,6 +5,7 @@ import { betterAuth } from 'better-auth'
 import { createAuthMiddleware } from 'better-auth/api'
 import { nextCookies } from 'better-auth/next-js'
 import { Pool } from 'pg'
+import { logger } from './server/logger'
 
 // Create PostgreSQL connection pool for Better Auth
 // Uses Supabase connection string
@@ -77,9 +78,14 @@ export const auth = betterAuth({
 		requireEmailVerification: false, // Disable for MVP - can add later
 		// Password reset configuration
 		sendResetPassword: async ({ user, url, token }) => {
-			// For MVP, we'll log the reset URL to console
+			// For MVP, we'll log the reset URL
 			// In production, this should send an email via a service like Resend
-			console.log(`[Password Reset] User: ${user.email}\nReset URL: ${url}\nToken: ${token}`)
+			logger.info('Password reset requested', {
+				context: 'password_reset',
+				user_email: user.email,
+				reset_url: url,
+				token,
+			})
 			// TODO: Replace with actual email service in production
 			// Example with Resend:
 			// await resend.emails.send({
@@ -134,7 +140,10 @@ export const auth = betterAuth({
 					} catch (error) {
 						// Rollback transaction on any error
 						await client.query('ROLLBACK')
-						console.error('Failed to provision private workspace:', error)
+						logger.error('Failed to provision private workspace', error, {
+							context: 'signup',
+							user_id: newSession.user.id,
+						})
 						// Rethrow to fail signup - user must have workspace before proceeding
 						throw new Error('Failed to provision private workspace. Please try signing up again.')
 					} finally {

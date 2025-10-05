@@ -4,6 +4,7 @@
 import { NextResponse } from 'next/server'
 import { ApiResponse, ApiError, PaginatedResponse } from './types'
 import { ApiException, getStatusCodeForError } from './errors'
+import { logger } from '../server/logger'
 
 /**
  * Create a successful API response
@@ -38,14 +39,18 @@ export function errorResponse(
  * Handle exceptions and convert them to API responses
  */
 export function handleApiError(error: unknown): NextResponse<ApiResponse<never>> {
-	console.error('API Error:', error)
-
 	// Handle known ApiExceptions
 	if (error instanceof ApiException) {
+		logger.error('API Exception', error, {
+			status_code: error.statusCode,
+			error_code: error.code,
+			details: error.details,
+		})
 		return NextResponse.json(error.toJSON(), { status: error.statusCode })
 	}
 
 	// Handle unknown errors
+	logger.error('Unexpected API Error', error)
 	return errorResponse(
 		{
 			code: 'INTERNAL_ERROR',

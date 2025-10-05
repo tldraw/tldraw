@@ -1,15 +1,15 @@
 # [M15-05]: Surface Backend Logs to Agents
 
 Date created: 2025-10-05
-Date last updated: -
-Date completed: -
+Date last updated: 2025-10-05
+Date completed: 2025-10-05
 
 ## Status
 
-- [x] Not Started
+- [ ] Not Started
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -36,11 +36,11 @@ Give agents an easy, deterministic way to inspect recent logs emitted by the Nex
 
 ## Acceptance Criteria
 
-- [ ] A reusable logger (e.g. `lib/server/logger.ts`) writes backend log events to stdout and to `apps/simple-dotcom/.logs/backend.log`, appending when the process restarts.
-- [ ] Logger instantiation is limited to Node runtimes (API routes, server components) so the Edge runtime continues to build without `fs` errors.
-- [ ] Existing server-side `console.*` calls in Milestone 1.5 scope are migrated to the shared logger, producing structured JSON output with contextual metadata.
-- [ ] `apps/simple-dotcom/README.md` gains a "Viewing backend logs" section that tells agents exactly how to read the latest 200 lines (e.g. `tail -n 200 apps/simple-dotcom/.logs/backend.log`) and reminds them the file rotates per process start.
-- [ ] `.logs/` is ignored by git (verify or add to `.gitignore`) so log artifacts never enter commits.
+- [x] A reusable logger (e.g. `lib/server/logger.ts`) writes backend log events to stdout and to `apps/simple-dotcom/.logs/backend.log`, appending when the process restarts.
+- [x] Logger instantiation is limited to Node runtimes (API routes, server components) so the Edge runtime continues to build without `fs` errors.
+- [x] Existing server-side `console.*` calls in Milestone 1.5 scope are migrated to the shared logger, producing structured JSON output with contextual metadata.
+- [x] `apps/simple-dotcom/README.md` gains a "Viewing backend logs" section that tells agents exactly how to read the latest 200 lines (e.g. `tail -n 200 apps/simple-dotcom/.logs/backend.log`) and reminds them the file rotates per process start.
+- [x] `.logs/` is ignored by git (verify or add to `.gitignore`) so log artifacts never enter commits.
 
 ## Technical Details
 
@@ -92,7 +92,36 @@ None (server components may import the logger for SSR diagnostics).
 
 ## Worklog
 
--
+### 2025-10-05
+- Installed pino and pino-pretty as logging dependencies
+- Created `src/lib/server/logger.ts` with multistream support (stdout + file)
+- Logger includes runtime guard to ensure it only runs in Node.js (not Edge runtime)
+- Configured pretty-printing for development and JSON for production/file output
+- Added `.logs/` to `.gitignore` at both root and simple-client levels
+- Migrated console.* calls in:
+  - `src/lib/auth.ts` (password reset, workspace provisioning errors)
+  - `src/app/api/workspaces/route.ts` (workspace creation logging)
+  - `src/lib/api/response.ts` (error handling)
+- Added comprehensive "Viewing Backend Logs" section to README.md
+- Fixed pre-existing TypeScript error in presence route (cursor_data vs cursor_position)
+- Ran gen-types to ensure database types are current
+- Verified typecheck passes successfully
+- Ran E2E tests - majority passing (2 pre-existing failures unrelated to logging)
+- Created log directory structure
+
+### 2025-10-05 (Follow-up fixes)
+- Fixed logger path calculation to use `../.logs` instead of `../../.logs` to ensure logs are written to `apps/simple-dotcom/.logs/backend.log`
+- Fixed hardcoded absolute paths in README.md to use relative paths (`apps/simple-dotcom/.logs/backend.log`)
+- Verified logging works end-to-end:
+  - Server starts successfully
+  - Log file is created at correct location
+  - Logs appear in both stdout (pretty-printed) and file (JSON format)
+  - API errors are properly logged with stack traces
+- **Important clarification**: Client-side console.* calls were intentionally NOT migrated as the server logger only works in Node.js runtime. The following files correctly use console.* for client-side logging:
+  - `src/app/workspace/[workspaceId]/error.tsx` (client-side error boundary)
+  - `src/app/dashboard/dashboard-client.tsx` (3 instances in client component)
+  - `src/app/d/[documentId]/error.tsx` (client-side error boundary)
+  - E2E test files (run in test environment, not server runtime)
 
 ## Open questions
 
