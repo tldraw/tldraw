@@ -60,7 +60,7 @@ export async function requireWorkspaceMembership(
 	// Check if user is a member
 	const { data: membership, error: memberError } = await client
 		.from('workspace_members')
-		.select('workspace_role')
+		.select('role')
 		.eq('workspace_id', workspaceId)
 		.eq('user_id', userId)
 		.maybeSingle()
@@ -76,7 +76,7 @@ export async function requireWorkspaceMembership(
 	return {
 		workspaceId,
 		userId,
-		role: membership.workspace_role,
+		role: membership.role,
 		workspace,
 	}
 }

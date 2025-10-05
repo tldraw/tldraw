@@ -10,13 +10,12 @@ dotenv.config({ path: path.resolve(__dirname, '.env.local') })
  */
 export default defineConfig({
 	testDir: './e2e',
-	// Serial execution for dev server - Next.js dev compilation is slow with concurrent requests
-	// For faster parallel execution, use production build: `next build && next start`
-	fullyParallel: false,
+	// Enable parallel execution for faster test runs
+	fullyParallel: true,
 	forbidOnly: !!process.env.CI,
 	retries: process.env.CI ? 2 : 0,
-	workers: 1, // Use 1 worker with dev server, can increase to 3-5 with production build
-	reporter: 'html',
+	workers: process.env.CI ? 2 : 4, // Use 4 workers locally, 2 in CI
+	reporter: [['html', { open: 'never' }]],
 	timeout: 30000,
 	// Global setup runs before all tests to clean up any leftover data
 	globalSetup: './e2e/global-setup.ts',

@@ -42,6 +42,21 @@ apps/simple-dotcom/
 - Add dev dependencies: `yarn workspace simple-dotcom add -D <package>`
 - Run scripts: `yarn workspace simple-dotcom <script>`
 
+## TypeScript Type Generation
+When the Supabase database schema changes, regenerate TypeScript types:
+```bash
+yarn workspace simple-client gen-types
+```
+
+This command updates types in two locations:
+- `supabase/types.ts` (shared types for the workspace)
+- `simple-client/src/lib/supabase/types.ts` (client-specific types)
+
+**When to regenerate types:**
+- After running new migrations (`supabase migration up`)
+- When database schema changes in development
+- After pulling schema changes from other developers
+
 ## Delivery Workflow
 1. **Plan via milestones**: Confirm which milestone you are executing (`MILESTONES.md`). Do not pull tickets from later milestones until current exit criteria are satisfied.
 2. **Work from tickets**:

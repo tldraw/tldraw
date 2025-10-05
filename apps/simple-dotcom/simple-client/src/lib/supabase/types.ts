@@ -1,89 +1,13 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
-	graphql_public: {
-		Tables: {
-			[_ in never]: never
-		}
-		Views: {
-			[_ in never]: never
-		}
-		Functions: {
-			graphql: {
-				Args: {
-					extensions?: Json
-					operationName?: string
-					query?: string
-					variables?: Json
-				}
-				Returns: Json
-			}
-		}
-		Enums: {
-			[_ in never]: never
-		}
-		CompositeTypes: {
-			[_ in never]: never
-		}
+	// Allows to automatically instantiate createClient with right options
+	// instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+	__InternalSupabase: {
+		PostgrestVersion: '13.0.5'
 	}
 	public: {
 		Tables: {
-			account: {
-				Row: {
-					access_token: string | null
-					access_token_expires_at: string | null
-					account_id: string
-					created_at: string
-					id: string
-					id_token: string | null
-					password: string | null
-					provider_id: string
-					refresh_token: string | null
-					refresh_token_expires_at: string | null
-					scope: string | null
-					updated_at: string
-					user_id: string
-				}
-				Insert: {
-					access_token?: string | null
-					access_token_expires_at?: string | null
-					account_id: string
-					created_at?: string
-					id: string
-					id_token?: string | null
-					password?: string | null
-					provider_id: string
-					refresh_token?: string | null
-					refresh_token_expires_at?: string | null
-					scope?: string | null
-					updated_at?: string
-					user_id: string
-				}
-				Update: {
-					access_token?: string | null
-					access_token_expires_at?: string | null
-					account_id?: string
-					created_at?: string
-					id?: string
-					id_token?: string | null
-					password?: string | null
-					provider_id?: string
-					refresh_token?: string | null
-					refresh_token_expires_at?: string | null
-					scope?: string | null
-					updated_at?: string
-					user_id?: string
-				}
-				Relationships: [
-					{
-						foreignKeyName: 'account_user_id_fkey'
-						columns: ['user_id']
-						isOneToOne: false
-						referencedRelation: 'users'
-						referencedColumns: ['id']
-					},
-				]
-			}
 			document_access_log: {
 				Row: {
 					accessed_at: string
@@ -140,7 +64,7 @@ export type Database = {
 					is_archived: boolean
 					name: string
 					r2_key: string | null
-					sharing_mode: Database['public']['Enums']['sharing_mode']
+					sharing_mode: Database['public']['Enums']['document_sharing_mode']
 					updated_at: string
 					workspace_id: string
 				}
@@ -153,7 +77,7 @@ export type Database = {
 					is_archived?: boolean
 					name: string
 					r2_key?: string | null
-					sharing_mode?: Database['public']['Enums']['sharing_mode']
+					sharing_mode?: Database['public']['Enums']['document_sharing_mode']
 					updated_at?: string
 					workspace_id: string
 				}
@@ -166,7 +90,7 @@ export type Database = {
 					is_archived?: boolean
 					name?: string
 					r2_key?: string | null
-					sharing_mode?: Database['public']['Enums']['sharing_mode']
+					sharing_mode?: Database['public']['Enums']['document_sharing_mode']
 					updated_at?: string
 					workspace_id?: string
 				}
@@ -293,25 +217,25 @@ export type Database = {
 			}
 			presence: {
 				Row: {
-					created_at: string
-					cursor_data: Json | null
+					cursor_position: Json | null
 					document_id: string
+					id: string
 					last_seen_at: string
 					session_id: string
 					user_id: string | null
 				}
 				Insert: {
-					created_at?: string
-					cursor_data?: Json | null
+					cursor_position?: Json | null
 					document_id: string
+					id?: string
 					last_seen_at?: string
-					session_id?: string
+					session_id: string
 					user_id?: string | null
 				}
 				Update: {
-					created_at?: string
-					cursor_data?: Json | null
+					cursor_position?: Json | null
 					document_id?: string
+					id?: string
 					last_seen_at?: string
 					session_id?: string
 					user_id?: string | null
@@ -333,104 +257,30 @@ export type Database = {
 					},
 				]
 			}
-			session: {
-				Row: {
-					created_at: string
-					expires_at: string
-					id: string
-					ip_address: string | null
-					token: string
-					updated_at: string
-					user_agent: string | null
-					user_id: string
-				}
-				Insert: {
-					created_at?: string
-					expires_at: string
-					id: string
-					ip_address?: string | null
-					token: string
-					updated_at?: string
-					user_agent?: string | null
-					user_id: string
-				}
-				Update: {
-					created_at?: string
-					expires_at?: string
-					id?: string
-					ip_address?: string | null
-					token?: string
-					updated_at?: string
-					user_agent?: string | null
-					user_id?: string
-				}
-				Relationships: [
-					{
-						foreignKeyName: 'session_user_id_fkey'
-						columns: ['user_id']
-						isOneToOne: false
-						referencedRelation: 'users'
-						referencedColumns: ['id']
-					},
-				]
-			}
 			users: {
 				Row: {
 					created_at: string
 					display_name: string | null
 					email: string
-					email_verified: boolean
 					id: string
 					name: string | null
-					password_hash: string | null
 					updated_at: string
 				}
 				Insert: {
 					created_at?: string
 					display_name?: string | null
 					email: string
-					email_verified?: boolean
-					id?: string
+					id: string
 					name?: string | null
-					password_hash?: string | null
 					updated_at?: string
 				}
 				Update: {
 					created_at?: string
 					display_name?: string | null
 					email?: string
-					email_verified?: boolean
 					id?: string
 					name?: string | null
-					password_hash?: string | null
 					updated_at?: string
-				}
-				Relationships: []
-			}
-			verification: {
-				Row: {
-					created_at: string | null
-					expires_at: string
-					id: string
-					identifier: string
-					updated_at: string | null
-					value: string
-				}
-				Insert: {
-					created_at?: string | null
-					expires_at: string
-					id: string
-					identifier: string
-					updated_at?: string | null
-					value: string
-				}
-				Update: {
-					created_at?: string | null
-					expires_at?: string
-					id?: string
-					identifier?: string
-					updated_at?: string | null
-					value?: string
 				}
 				Relationships: []
 			}
@@ -438,23 +288,23 @@ export type Database = {
 				Row: {
 					id: string
 					joined_at: string
+					role: Database['public']['Enums']['workspace_role']
 					user_id: string
 					workspace_id: string
-					workspace_role: Database['public']['Enums']['workspace_role']
 				}
 				Insert: {
 					id?: string
 					joined_at?: string
+					role?: Database['public']['Enums']['workspace_role']
 					user_id: string
 					workspace_id: string
-					workspace_role?: Database['public']['Enums']['workspace_role']
 				}
 				Update: {
 					id?: string
 					joined_at?: string
+					role?: Database['public']['Enums']['workspace_role']
 					user_id?: string
 					workspace_id?: string
-					workspace_role?: Database['public']['Enums']['workspace_role']
 				}
 				Relationships: [
 					{
@@ -519,61 +369,13 @@ export type Database = {
 			[_ in never]: never
 		}
 		Functions: {
-			can_access_document: {
-				Args: { document_uuid: string; user_uuid: string }
-				Returns: boolean
-			}
-			can_edit_document: {
-				Args: { document_uuid: string; user_uuid: string }
-				Returns: boolean
-			}
 			cleanup_stale_presence: {
 				Args: Record<PropertyKey, never>
 				Returns: undefined
 			}
-			gtrgm_compress: {
-				Args: { '': unknown }
-				Returns: unknown
-			}
-			gtrgm_decompress: {
-				Args: { '': unknown }
-				Returns: unknown
-			}
-			gtrgm_in: {
-				Args: { '': unknown }
-				Returns: unknown
-			}
-			gtrgm_options: {
-				Args: { '': unknown }
-				Returns: undefined
-			}
-			gtrgm_out: {
-				Args: { '': unknown }
-				Returns: unknown
-			}
-			is_workspace_member: {
-				Args: { user_uuid: string; workspace_uuid: string }
-				Returns: boolean
-			}
-			is_workspace_owner: {
-				Args: { user_uuid: string; workspace_uuid: string }
-				Returns: boolean
-			}
-			set_limit: {
-				Args: { '': number }
-				Returns: number
-			}
-			show_limit: {
-				Args: Record<PropertyKey, never>
-				Returns: number
-			}
-			show_trgm: {
-				Args: { '': string }
-				Returns: string[]
-			}
 		}
 		Enums: {
-			sharing_mode: 'private' | 'public_read_only' | 'public_editable'
+			document_sharing_mode: 'private' | 'public_read_only' | 'public_editable'
 			workspace_role: 'owner' | 'member'
 		}
 		CompositeTypes: {
@@ -698,12 +500,9 @@ export type CompositeTypes<
 		: never
 
 export const Constants = {
-	graphql_public: {
-		Enums: {},
-	},
 	public: {
 		Enums: {
-			sharing_mode: ['private', 'public_read_only', 'public_editable'],
+			document_sharing_mode: ['private', 'public_read_only', 'public_editable'],
 			workspace_role: ['owner', 'member'],
 		},
 	},

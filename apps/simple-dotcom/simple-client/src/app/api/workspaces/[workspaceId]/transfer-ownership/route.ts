@@ -4,7 +4,9 @@
 import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
 import { TransferOwnershipRequest } from '@/lib/api/types'
-import { createClient, requireAuth } from '@/lib/supabase/server'
+import { auth } from '@/lib/auth'
+import { createClient } from '@/lib/supabase/server'
+import { headers } from 'next/headers'
 import { NextRequest } from 'next/server'
 
 type RouteContext = {
@@ -17,7 +19,10 @@ type RouteContext = {
  */
 export async function POST(request: NextRequest, context: RouteContext) {
 	try {
-		const user = await requireAuth()
+		const session = await auth.api.getSession({ headers: await headers() })
+		if (!session?.user) {
+			throw new ApiException(401, ErrorCodes.UNAUTHORIZED, 'Not authenticated')
+		}
 		const supabase = await createClient()
 		const { workspaceId } = await context.params
 		const body: TransferOwnershipRequest = await request.json()
@@ -38,7 +43,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 			throw new ApiException(404, ErrorCodes.WORKSPACE_NOT_FOUND, 'Workspace not found')
 		}
 
-		if (workspace.owner_id !== user.id) {
+		if (workspace.owner_id !== session.user.id) {
 			throw new ApiException(
 				403,
 				ErrorCodes.WORKSPACE_OWNERSHIP_REQUIRED,
@@ -87,7 +92,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 		// 2. Update new owner's role to 'owner'
 		const { error: newOwnerError } = await supabase
 			.from('workspace_members')
-			.update({ workspace_role: 'owner' })
+			.update({ role: 'owner' })
 			.eq('workspace_id', workspaceId)
 			.eq('user_id', body.new_owner_id)
 
@@ -98,9 +103,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
 		// 3. Update old owner's role to 'member'
 		const { error: oldOwnerError } = await supabase
 			.from('workspace_members')
-			.update({ workspace_role: 'member' })
+			.update({ role: 'member' })
 			.eq('workspace_id', workspaceId)
-			.eq('user_id', user.id)
+			.eq('user_id', session.user.id)
 
 		if (oldOwnerError) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to update old owner role')

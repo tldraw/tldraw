@@ -3,7 +3,9 @@
 
 import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
-import { createClient, requireAuth } from '@/lib/supabase/server'
+import { auth } from '@/lib/auth'
+import { createClient } from '@/lib/supabase/server'
+import { headers } from 'next/headers'
 import { NextRequest } from 'next/server'
 
 type RouteContext = {
@@ -16,7 +18,10 @@ type RouteContext = {
  */
 export async function POST(request: NextRequest, context: RouteContext) {
 	try {
-		const user = await requireAuth()
+		const session = await auth.api.getSession({ headers: await headers() })
+		if (!session?.user) {
+			throw new ApiException(401, ErrorCodes.UNAUTHORIZED, 'Not authenticated')
+		}
 		const supabase = await createClient()
 		const { workspaceId } = await context.params
 
@@ -33,7 +38,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 		}
 
 		// Cannot leave if you're the owner
-		if (workspace.owner_id === user.id) {
+		if (workspace.owner_id === session.user.id) {
 			throw new ApiException(
 				403,
 				ErrorCodes.CANNOT_LEAVE_OWNED_WORKSPACE,
@@ -46,7 +51,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 			.from('workspace_members')
 			.delete()
 			.eq('workspace_id', workspaceId)
-			.eq('user_id', user.id)
+			.eq('user_id', session.user.id)
 
 		if (error) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to leave workspace')

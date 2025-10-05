@@ -10,7 +10,8 @@
 		"test:e2e": "playwright test",
 		"test:e2e:ui": "playwright test --ui",
 		"test:e2e:headed": "playwright test --headed",
-		"test:e2e:debug": "playwright test --debug"
+		"test:e2e:debug": "playwright test --debug",
+		"gen-types": "supabase gen types typescript --local > ../supabase/types.ts && cp ../supabase/types.ts src/lib/supabase/types.ts"
 	},
 	"dependencies": {
 		"@supabase/ssr": "^0.7.0",

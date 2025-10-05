@@ -236,6 +236,9 @@ export default function DashboardClient({
 													</button>
 												</div>
 											)}
+											{workspace.is_private && (
+												<span className="text-sm text-foreground/40">(Cannot modify)</span>
+											)}
 										</div>
 
 										{/* Workspace Content - Documents & Folders */}
