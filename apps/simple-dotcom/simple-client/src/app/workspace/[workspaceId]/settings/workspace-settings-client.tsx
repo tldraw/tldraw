@@ -78,7 +78,11 @@ export default function WorkspaceSettingsClient({
 	}
 
 	const handleLeave = async () => {
-		if (!confirm('Are you sure you want to leave this workspace?')) {
+		if (
+			!confirm(
+				'Are you sure you want to leave this workspace? You will lose access to all documents and folders in this workspace.'
+			)
+		) {
 			return
 		}
 
@@ -90,9 +94,18 @@ export default function WorkspaceSettingsClient({
 				method: 'POST',
 			})
 
+			const result = await res.json()
+
 			if (!res.ok) {
-				const data = await res.json()
-				throw new Error(data.message || 'Failed to leave workspace')
+				throw new Error(result.error?.message || 'Failed to leave workspace')
+			}
+
+			// Store success message in sessionStorage for dashboard to display
+			if (result.data?.workspaceName) {
+				sessionStorage.setItem(
+					'leaveWorkspaceSuccess',
+					`Successfully left workspace "${result.data.workspaceName}"`
+				)
 			}
 
 			router.push('/dashboard')

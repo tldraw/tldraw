@@ -4,7 +4,7 @@ import { Document, Folder, RecentDocument, User, Workspace } from '@/lib/api/typ
 import { getBrowserClient } from '@/lib/supabase/browser'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface WorkspaceWithContent {
 	workspace: Workspace
@@ -30,6 +30,7 @@ export default function DashboardClient({
 }: DashboardClientProps) {
 	const router = useRouter()
 	const [dashboardData, setDashboardData] = useState<DashboardData>(initialData)
+	const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
 	// Collapsible state for workspace sections - expand all by default
 	const [expandedWorkspaces, setExpandedWorkspaces] = useState<Set<string>>(() => {
@@ -47,6 +48,17 @@ export default function DashboardClient({
 	// New states for improved UX
 	const [validationError, setValidationError] = useState<string | null>(null)
 	const currentRequestRef = useRef<AbortController | null>(null)
+
+	// Check for success message from leaving workspace
+	useEffect(() => {
+		const message = sessionStorage.getItem('leaveWorkspaceSuccess')
+		if (message) {
+			setSuccessMessage(message)
+			sessionStorage.removeItem('leaveWorkspaceSuccess')
+			// Auto-dismiss after 5 seconds
+			setTimeout(() => setSuccessMessage(null), 5000)
+		}
+	}, [])
 
 	// Define handlers before useEffect to avoid dependency issues
 	const handleCloseCreateModal = () => {
@@ -225,6 +237,34 @@ export default function DashboardClient({
 
 	return (
 		<div className="flex min-h-screen bg-background" data-testid="dashboard">
+			{/* Success Message */}
+			{successMessage && (
+				<div className="absolute top-4 right-4 z-50 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-md shadow-md flex items-center gap-2">
+					<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							strokeWidth={2}
+							d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+						/>
+					</svg>
+					<span>{successMessage}</span>
+					<button
+						onClick={() => setSuccessMessage(null)}
+						className="ml-2 text-green-600 hover:text-green-800"
+					>
+						<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M6 18L18 6M6 6l12 12"
+							/>
+						</svg>
+					</button>
+				</div>
+			)}
+
 			{/* Sidebar */}
 			<div className="w-80 border-r border-foreground/20 flex flex-col">
 				<div className="p-4 border-b border-foreground/20">
