@@ -108,15 +108,24 @@ _Start these in parallel after M1.5 complete_
 - [x] [`tickets/MEM-05-member-limit-guardrails.md`](tickets/MEM-05-member-limit-guardrails.md) _(Small)_ ✅ COMPLETED 2025-10-05
 - [x] [`tickets/WS-03-member-settings-and-leave-flow.md`](tickets/WS-03-member-settings-and-leave-flow.md) _(Small)_ ✅ COMPLETED 2025-10-05
 
-### Phase 2: Workspace Collaboration (Week 2-3)
+### Phase 2: Workspace Collaboration (Week 2-3) ✅ COMPLETE (2025-10-05)
+
+**All 7 tickets completed successfully:**
 
 - [x] [`tickets/MEM-01-role-management-and-ownership-transfer.md`](tickets/MEM-01-role-management-and-ownership-transfer.md) _(Medium)_ ✅ COMPLETED 2025-10-05
 - [x] [`tickets/MEM-02-member-directory-and-removal.md`](tickets/MEM-02-member-directory-and-removal.md) _(Medium)_ ✅ COMPLETED 2025-10-05
 - [x] [`tickets/MEM-03-invitation-link-lifecycle.md`](tickets/MEM-03-invitation-link-lifecycle.md) _(Medium)_ ✅ COMPLETED 2025-10-05
 - [x] [`tickets/MEM-04-join-workspace-by-invite-link.md`](tickets/MEM-04-join-workspace-by-invite-link.md) _(Medium)_ ✅ COMPLETED 2025-10-05
 - [x] [`tickets/INV-01-invitation-acceptance-flow.md`](tickets/INV-01-invitation-acceptance-flow.md) _(Small-Medium, combined)_ ✅ COMPLETED 2025-10-05
-- [ ] [`tickets/WS-04-workspace-archive-management.md`](tickets/WS-04-workspace-archive-management.md) _(Medium)_
-- [ ] [`tickets/SEC-01-rate-limiting-and-abuse-prevention.md`](tickets/SEC-01-rate-limiting-and-abuse-prevention.md) _(Small-Medium)_
+- [x] [`tickets/WS-04-workspace-archive-management.md`](tickets/WS-04-workspace-archive-management.md) _(Medium)_ ✅ COMPLETED 2025-10-05
+- [x] [`tickets/SEC-01-rate-limiting-and-abuse-prevention.md`](tickets/SEC-01-rate-limiting-and-abuse-prevention.md) _(Small-Medium)_ ✅ COMPLETED 2025-10-05
+
+**Phase 2 Achievement Summary:**
+- Complete member management system with role-based access control
+- Invitation link lifecycle with secure token generation and validation
+- Archive management with owner-only permanent deletion
+- Rate limiting protection on critical endpoints
+- Fixed BUG-05 (archive UI/API mismatch) as part of WS-04
 
 ### Phase 3: Documents & Folders (Week 3-4)
 
