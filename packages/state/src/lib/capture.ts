@@ -48,6 +48,25 @@ export function unsafe__withoutCapture<T>(fn: () => T): T {
 	}
 }
 
+/**
+ * Begins capturing parent signal dependencies for the given child signal.
+ *
+ * This function initiates a capture session where any signal accessed via `.get()`
+ * will be automatically registered as a dependency of the child signal. It sets up
+ * the capture stack frame and clears the existing parent set to prepare for fresh
+ * dependency tracking.
+ *
+ * @param child - The child signal (computed or effect) that will capture dependencies
+ *
+ * @example
+ * ```ts
+ * const effect = createEffect('myEffect', () => { /* ... *\/ })
+ * startCapturingParents(effect)
+ * // Now any signal.get() calls will be captured as dependencies
+ * ```
+ *
+ * @internal
+ */
 export function startCapturingParents(child: Child) {
 	inst.stack = new CaptureStackFrame(inst.stack, child)
 	if (child.__debug_ancestor_epochs__) {
@@ -61,6 +80,23 @@ export function startCapturingParents(child: Child) {
 	child.parentSet.clear()
 }
 
+/**
+ * Completes the parent dependency capture session and finalizes the dependency graph.
+ *
+ * This function cleans up the capture session by removing dependencies that are no
+ * longer needed, detaching signals that should no longer be parents, and updating
+ * the dependency arrays to reflect the current set of captured parents. It must be
+ * called after `startCapturingParents` to complete the capture cycle.
+ *
+ * @example
+ * ```ts
+ * startCapturingParents(effect)
+ * // ... signal.get() calls happen here ...
+ * stopCapturingParents() // Finalizes the dependency graph
+ * ```
+ *
+ * @internal
+ */
 export function stopCapturingParents() {
 	const frame = inst.stack!
 	inst.stack = frame.below
@@ -91,7 +127,26 @@ export function stopCapturingParents() {
 	}
 }
 
-// this must be called after the parent is up to date
+/**
+ * Conditionally captures a signal as a parent dependency during an active capture session.
+ *
+ * This function is called whenever a signal's `.get()` method is invoked during a
+ * capture session. It checks if the signal should be added as a dependency and manages
+ * the parent-child relationship in the reactive graph. The function handles deduplication,
+ * attachment/detachment, and tracks changes in dependency order.
+ *
+ * Note: This must be called after the parent signal is up to date.
+ *
+ * @param p - The signal that might be captured as a parent dependency
+ *
+ * @example
+ * ```ts
+ * // This is called internally when you do:
+ * const value = someAtom.get() // maybeCaptureParent(someAtom) is called
+ * ```
+ *
+ * @internal
+ */
 export function maybeCaptureParent(p: Signal<any, any>) {
 	if (inst.stack) {
 		const wasCapturedAlready = inst.stack.child.parentSet.has(p)

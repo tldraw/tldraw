@@ -1,51 +1,211 @@
 import { UnknownRecord } from './BaseRecord'
 import { Store } from './Store'
 
-/** @public */
+/**
+ * Handler function called before a record is created in the store.
+ * The handler receives the record to be created and can return a modified version.
+ * Use this to validate, transform, or modify records before they are added to the store.
+ *
+ * @param record - The record about to be created
+ * @param source - Whether the change originated from 'user' interaction or 'remote' synchronization
+ * @returns The record to actually create (may be modified)
+ *
+ * @example
+ * ```ts
+ * const handler: StoreBeforeCreateHandler<MyRecord> = (record, source) => {
+ *   // Ensure all user-created records have a timestamp
+ *   if (source === 'user' && !record.createdAt) {
+ *     return { ...record, createdAt: Date.now() }
+ *   }
+ *   return record
+ * }
+ * ```
+ *
+ * @public
+ */
 export type StoreBeforeCreateHandler<R extends UnknownRecord> = (
 	record: R,
 	source: 'remote' | 'user'
 ) => R
-/** @public */
+/**
+ * Handler function called after a record has been successfully created in the store.
+ * Use this for side effects that should happen after record creation, such as updating
+ * related records or triggering notifications.
+ *
+ * @param record - The record that was created
+ * @param source - Whether the change originated from 'user' interaction or 'remote' synchronization
+ *
+ * @example
+ * ```ts
+ * const handler: StoreAfterCreateHandler<BookRecord> = (book, source) => {
+ *   if (source === 'user') {
+ *     console.log(`New book added: ${book.title}`)
+ *     updateAuthorBookCount(book.authorId)
+ *   }
+ * }
+ * ```
+ *
+ * @public
+ */
 export type StoreAfterCreateHandler<R extends UnknownRecord> = (
 	record: R,
 	source: 'remote' | 'user'
 ) => void
-/** @public */
+/**
+ * Handler function called before a record is updated in the store.
+ * The handler receives the current and new versions of the record and can return
+ * a modified version or the original to prevent the change.
+ *
+ * @param prev - The current version of the record in the store
+ * @param next - The proposed new version of the record
+ * @param source - Whether the change originated from 'user' interaction or 'remote' synchronization
+ * @returns The record version to actually store (may be modified or the original to block change)
+ *
+ * @example
+ * ```ts
+ * const handler: StoreBeforeChangeHandler<ShapeRecord> = (prev, next, source) => {
+ *   // Prevent shapes from being moved outside the canvas bounds
+ *   if (next.x < 0 || next.y < 0) {
+ *     return prev // Block the change
+ *   }
+ *   return next
+ * }
+ * ```
+ *
+ * @public
+ */
 export type StoreBeforeChangeHandler<R extends UnknownRecord> = (
 	prev: R,
 	next: R,
 	source: 'remote' | 'user'
 ) => R
-/** @public */
+/**
+ * Handler function called after a record has been successfully updated in the store.
+ * Use this for side effects that should happen after record changes, such as
+ * updating related records or maintaining consistency constraints.
+ *
+ * @param prev - The previous version of the record
+ * @param next - The new version of the record that was stored
+ * @param source - Whether the change originated from 'user' interaction or 'remote' synchronization
+ *
+ * @example
+ * ```ts
+ * const handler: StoreAfterChangeHandler<ShapeRecord> = (prev, next, source) => {
+ *   // Update connected arrows when a shape moves
+ *   if (prev.x !== next.x || prev.y !== next.y) {
+ *     updateConnectedArrows(next.id)
+ *   }
+ * }
+ * ```
+ *
+ * @public
+ */
 export type StoreAfterChangeHandler<R extends UnknownRecord> = (
 	prev: R,
 	next: R,
 	source: 'remote' | 'user'
 ) => void
-/** @public */
+/**
+ * Handler function called before a record is deleted from the store.
+ * The handler can return `false` to prevent the deletion from occurring.
+ *
+ * @param record - The record about to be deleted
+ * @param source - Whether the change originated from 'user' interaction or 'remote' synchronization
+ * @returns `false` to prevent deletion, `void` or any other value to allow it
+ *
+ * @example
+ * ```ts
+ * const handler: StoreBeforeDeleteHandler<BookRecord> = (book, source) => {
+ *   // Prevent deletion of books that are currently checked out
+ *   if (book.isCheckedOut) {
+ *     console.warn('Cannot delete checked out book')
+ *     return false
+ *   }
+ *   // Allow deletion for other books
+ * }
+ * ```
+ *
+ * @public
+ */
 export type StoreBeforeDeleteHandler<R extends UnknownRecord> = (
 	record: R,
 	source: 'remote' | 'user'
 ) => void | false
-/** @public */
+/**
+ * Handler function called after a record has been successfully deleted from the store.
+ * Use this for cleanup operations and maintaining referential integrity.
+ *
+ * @param record - The record that was deleted
+ * @param source - Whether the change originated from 'user' interaction or 'remote' synchronization
+ *
+ * @example
+ * ```ts
+ * const handler: StoreAfterDeleteHandler<ShapeRecord> = (shape, source) => {
+ *   // Clean up arrows that were connected to this shape
+ *   const connectedArrows = findArrowsConnectedTo(shape.id)
+ *   store.remove(connectedArrows.map(arrow => arrow.id))
+ * }
+ * ```
+ *
+ * @public
+ */
 export type StoreAfterDeleteHandler<R extends UnknownRecord> = (
 	record: R,
 	source: 'remote' | 'user'
 ) => void
 
-/** @public */
+/**
+ * Handler function called when a store operation (atomic transaction) completes.
+ * This is useful for performing actions after a batch of changes has been applied,
+ * such as triggering saves or sending notifications.
+ *
+ * @param source - Whether the operation originated from 'user' interaction or 'remote' synchronization
+ *
+ * @example
+ * ```ts
+ * const handler: StoreOperationCompleteHandler = (source) => {
+ *   if (source === 'user') {
+ *     // Auto-save after user operations complete
+ *     saveStoreSnapshot()
+ *   }
+ * }
+ * ```
+ *
+ * @public
+ */
 export type StoreOperationCompleteHandler = (source: 'remote' | 'user') => void
 
 /**
  * The side effect manager (aka a "correct state enforcer") is responsible
- * for making sure that the editor's state is always correct. This includes
+ * for making sure that the store's state is always correct and consistent. This includes
  * things like: deleting a shape if its parent is deleted; unbinding
- * arrows when their binding target is deleted; etc.
+ * arrows when their binding target is deleted; maintaining referential integrity; etc.
+ *
+ * Side effects are organized into lifecycle hooks that run before and after
+ * record operations (create, change, delete), allowing you to validate data,
+ * transform records, and maintain business rules.
+ *
+ * @example
+ * ```ts
+ * const sideEffects = new StoreSideEffects(store)
+ *
+ * // Ensure arrows are deleted when their target shape is deleted
+ * sideEffects.registerAfterDeleteHandler('shape', (shape) => {
+ *   const arrows = store.query.records('arrow', () => ({
+ *     toId: { eq: shape.id }
+ *   })).get()
+ *   store.remove(arrows.map(arrow => arrow.id))
+ * })
+ * ```
  *
  * @public
  */
 export class StoreSideEffects<R extends UnknownRecord> {
+	/**
+	 * Creates a new side effects manager for the given store.
+	 *
+	 * store - The store instance to manage side effects for
+	 */
 	constructor(private readonly store: Store<R>) {}
 
 	private _beforeCreateHandlers: { [K in string]?: StoreBeforeCreateHandler<any>[] } = {}
@@ -57,16 +217,36 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	private _operationCompleteHandlers: StoreOperationCompleteHandler[] = []
 
 	private _isEnabled = true
-	/** @internal */
+	/**
+	 * Checks whether side effects are currently enabled.
+	 * When disabled, all side effect handlers are bypassed.
+	 *
+	 * @returns `true` if side effects are enabled, `false` otherwise
+	 * @internal
+	 */
 	isEnabled() {
 		return this._isEnabled
 	}
-	/** @internal */
+	/**
+	 * Enables or disables side effects processing.
+	 * When disabled, no side effect handlers will be called.
+	 *
+	 * @param enabled - Whether to enable or disable side effects
+	 * @internal
+	 */
 	setIsEnabled(enabled: boolean) {
 		this._isEnabled = enabled
 	}
 
-	/** @internal */
+	/**
+	 * Processes all registered 'before create' handlers for a record.
+	 * Handlers are called in registration order and can transform the record.
+	 *
+	 * @param record - The record about to be created
+	 * @param source - Whether the change originated from 'user' or 'remote'
+	 * @returns The potentially modified record to actually create
+	 * @internal
+	 */
 	handleBeforeCreate(record: R, source: 'remote' | 'user') {
 		if (!this._isEnabled) return record
 
@@ -82,7 +262,14 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		return record
 	}
 
-	/** @internal */
+	/**
+	 * Processes all registered 'after create' handlers for a record.
+	 * Handlers are called in registration order after the record is created.
+	 *
+	 * @param record - The record that was created
+	 * @param source - Whether the change originated from 'user' or 'remote'
+	 * @internal
+	 */
 	handleAfterCreate(record: R, source: 'remote' | 'user') {
 		if (!this._isEnabled) return
 
@@ -94,7 +281,16 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		}
 	}
 
-	/** @internal */
+	/**
+	 * Processes all registered 'before change' handlers for a record.
+	 * Handlers are called in registration order and can modify or block the change.
+	 *
+	 * @param prev - The current version of the record
+	 * @param next - The proposed new version of the record
+	 * @param source - Whether the change originated from 'user' or 'remote'
+	 * @returns The potentially modified record to actually store
+	 * @internal
+	 */
 	handleBeforeChange(prev: R, next: R, source: 'remote' | 'user') {
 		if (!this._isEnabled) return next
 
@@ -110,7 +306,15 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		return next
 	}
 
-	/** @internal */
+	/**
+	 * Processes all registered 'after change' handlers for a record.
+	 * Handlers are called in registration order after the record is updated.
+	 *
+	 * @param prev - The previous version of the record
+	 * @param next - The new version of the record that was stored
+	 * @param source - Whether the change originated from 'user' or 'remote'
+	 * @internal
+	 */
 	handleAfterChange(prev: R, next: R, source: 'remote' | 'user') {
 		if (!this._isEnabled) return
 
@@ -122,7 +326,15 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		}
 	}
 
-	/** @internal */
+	/**
+	 * Processes all registered 'before delete' handlers for a record.
+	 * If any handler returns `false`, the deletion is prevented.
+	 *
+	 * @param record - The record about to be deleted
+	 * @param source - Whether the change originated from 'user' or 'remote'
+	 * @returns `true` to allow deletion, `false` to prevent it
+	 * @internal
+	 */
 	handleBeforeDelete(record: R, source: 'remote' | 'user') {
 		if (!this._isEnabled) return true
 
@@ -137,7 +349,14 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		return true
 	}
 
-	/** @internal */
+	/**
+	 * Processes all registered 'after delete' handlers for a record.
+	 * Handlers are called in registration order after the record is deleted.
+	 *
+	 * @param record - The record that was deleted
+	 * @param source - Whether the change originated from 'user' or 'remote'
+	 * @internal
+	 */
 	handleAfterDelete(record: R, source: 'remote' | 'user') {
 		if (!this._isEnabled) return
 
@@ -149,7 +368,13 @@ export class StoreSideEffects<R extends UnknownRecord> {
 		}
 	}
 
-	/** @internal */
+	/**
+	 * Processes all registered operation complete handlers.
+	 * Called after an atomic store operation finishes.
+	 *
+	 * @param source - Whether the operation originated from 'user' or 'remote'
+	 * @internal
+	 */
 	handleOperationComplete(source: 'remote' | 'user') {
 		if (!this._isEnabled) return
 
@@ -159,7 +384,29 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	}
 
 	/**
-	 * Internal helper for registering a bunch of side effects at once and keeping them organized.
+	 * Internal helper for registering multiple side effect handlers at once and keeping them organized.
+	 * This provides a convenient way to register handlers for multiple record types and lifecycle events
+	 * in a single call, returning a single cleanup function.
+	 *
+	 * @param handlersByType - An object mapping record type names to their respective handlers
+	 * @returns A function that removes all registered handlers when called
+	 *
+	 * @example
+	 * ```ts
+	 * const cleanup = sideEffects.register({
+	 *   shape: {
+	 *     afterDelete: (shape) => console.log('Shape deleted:', shape.id),
+	 *     beforeChange: (prev, next) => ({ ...next, lastModified: Date.now() })
+	 *   },
+	 *   arrow: {
+	 *     afterCreate: (arrow) => updateConnectedShapes(arrow)
+	 *   }
+	 * })
+	 *
+	 * // Later, remove all handlers
+	 * cleanup()
+	 * ```
+	 *
 	 * @internal
 	 */
 	register(handlersByType: {

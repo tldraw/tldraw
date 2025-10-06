@@ -4,6 +4,12 @@ import { TLPage } from './records/TLPage'
 import { TLShape } from './records/TLShape'
 import { TLLineShape } from './shapes/TLLineShape'
 
+/**
+ * Migration version constants for store-level schema changes.
+ * Each version represents a breaking change that requires data transformation.
+ *
+ * @internal
+ */
 const Versions = createMigrationIds('com.tldraw.store', {
 	RemoveCodeAndIconShapeTypes: 1,
 	AddInstancePresenceType: 2,
@@ -12,9 +18,49 @@ const Versions = createMigrationIds('com.tldraw.store', {
 	FixIndexKeys: 5,
 } as const)
 
+/**
+ * Migration version identifiers for store-level migrations.
+ * These versions track changes to the overall store structure and data model.
+ *
+ * @example
+ * ```ts
+ * import { storeVersions } from '@tldraw/tlschema'
+ *
+ * // Check if a specific migration version exists
+ * const hasRemoveCodeShapes = storeVersions.RemoveCodeAndIconShapeTypes
+ * ```
+ *
+ * @public
+ */
 export { Versions as storeVersions }
 
-/** @public */
+/**
+ * Store-level migration sequence that handles evolution of the tldraw data model.
+ * These migrations run when the store schema version changes and ensure backward
+ * compatibility by transforming old data structures to new formats.
+ *
+ * The migrations handle:
+ * - Removal of deprecated shape types (code, icon)
+ * - Addition of new record types (instance presence)
+ * - Cleanup of obsolete user and presence data
+ * - Removal of deprecated user document records
+ *
+ * @example
+ * ```ts
+ * import { storeMigrations } from '@tldraw/tlschema'
+ * import { migrate } from '@tldraw/store'
+ *
+ * // Apply store migrations to old data
+ * const migratedStore = migrate({
+ *   store: oldStoreData,
+ *   migrations: storeMigrations,
+ *   fromVersion: 0,
+ *   toVersion: storeMigrations.currentVersion
+ * })
+ * ```
+ *
+ * @public
+ */
 export const storeMigrations = createMigrationSequence({
 	sequenceId: 'com.tldraw.store',
 	retroactive: false,

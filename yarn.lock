@@ -9208,7 +9208,6 @@ __metadata:
     tldraw: "workspace:*"
     tsx: "npm:^4.19.2"
     typescript: "npm:^5.8.3"
-    vectra: "npm:^0.4.4"
     ws: "npm:^8.18.0"
   languageName: unknown
   linkType: soft
@@ -9522,6 +9521,7 @@ __metadata:
     typescript: "npm:^5.8.3"
     uuid-by-string: "npm:^4.0.0"
     uuid-readable: "npm:^0.0.2"
+    vitest: "npm:^3.2.4"
     ws: "npm:^8.18.0"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
@@ -9625,6 +9625,7 @@ __metadata:
     lazyrepo: "npm:0.0.0-alpha.27"
     toucan-js: "npm:^3.4.0"
     typescript: "npm:^5.8.3"
+    vitest: "npm:^3.2.4"
   languageName: unknown
   linkType: soft
 
@@ -12493,26 +12494,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^0.26.0":
-  version: 0.26.1
-  resolution: "axios@npm:0.26.1"
-  dependencies:
-    follow-redirects: "npm:^1.14.8"
-  checksum: 10/02863f4a4fd4e43ad6e0c8bc9d1359a0863c43cc57bda42ea21dfce34681e3211df193b2bf2e8ee10b2c3870ab8d6bed38a3cf80cd6e8ee17749b7d73ccd4752
-  languageName: node
-  linkType: hard
-
-"axios@npm:^1.3.4":
-  version: 1.6.5
-  resolution: "axios@npm:1.6.5"
-  dependencies:
-    follow-redirects: "npm:^1.15.4"
-    form-data: "npm:^4.0.0"
-    proxy-from-env: "npm:^1.1.0"
-  checksum: 10/465489d9bf8f039b9adbc8103b6299d6a5e26de77b27f0e4173d814d39bca8f4b4659d94e09ee40461aedccd8c2452f1e2b3edace1c9f81220060d2974ff9dc7
-  languageName: node
-  linkType: hard
-
 "azure-devops-node-api@npm:^11.0.1":
   version: 11.2.0
   resolution: "azure-devops-node-api@npm:11.2.0"
@@ -13178,7 +13159,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cheerio@npm:^1.0.0, cheerio@npm:^1.0.0-rc.12, cheerio@npm:^1.0.0-rc.9":
+"cheerio@npm:^1.0.0, cheerio@npm:^1.0.0-rc.9":
   version: 1.0.0
   resolution: "cheerio@npm:1.0.0"
   dependencies:
@@ -14558,20 +14539,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"domino@npm:2.1.6":
-  version: 2.1.6
-  resolution: "domino@npm:2.1.6"
-  checksum: 10/cc2fb95084dd7cdf5df073191768807d70c8bef0e08e92cf5ce02d02933d6e6ecc4c742ac4985e5adfb93466776980280b9c6fb93fb4fd6b4ec85368c9f5e053
-  languageName: node
-  linkType: hard
-
-"domino@patch:domino@npm%3A2.1.6#./.yarn/patches/domino-npm-2.1.6-b0dc3de857.patch::locator=%40tldraw%2Fmonorepo%40workspace%3A.":
-  version: 2.1.6
-  resolution: "domino@patch:domino@npm%3A2.1.6#./.yarn/patches/domino-npm-2.1.6-b0dc3de857.patch::version=2.1.6&hash=e1adcb&locator=%40tldraw%2Fmonorepo%40workspace%3A."
-  checksum: 10/8c5c8272095bd32b37e602936147e434858c59d24dda20de1e76f892b71409ab79d0beaabcd68ccc52e34631e126bb736b75b1ddf5ba74e66f49f404112a90c6
-  languageName: node
-  linkType: hard
-
 "domutils@npm:^3.0.1, domutils@npm:^3.1.0":
   version: 3.1.0
   resolution: "domutils@npm:3.1.0"
@@ -14676,7 +14643,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dotenv@npm:^8.0.0, dotenv@npm:^8.2.0":
+"dotenv@npm:^8.0.0":
   version: 8.6.0
   resolution: "dotenv@npm:8.6.0"
   checksum: 10/31d7b5c010cebb80046ba6853d703f9573369b00b15129536494f04b0af4ea0060ce8646e3af58b455af2f6f1237879dd261a5831656410ec92561ae1ea44508
@@ -16781,16 +16748,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.14.8, follow-redirects@npm:^1.15.4":
-  version: 1.15.6
-  resolution: "follow-redirects@npm:1.15.6"
-  peerDependenciesMeta:
-    debug:
-      optional: true
-  checksum: 10/70c7612c4cab18e546e36b991bbf8009a1a41cf85354afe04b113d1117569abf760269409cb3eb842d9f7b03d62826687086b081c566ea7b1e6613cf29030bf7
-  languageName: node
-  linkType: hard
-
 "for-each@npm:^0.3.3":
   version: 0.3.3
   resolution: "for-each@npm:0.3.3"
@@ -17666,13 +17623,6 @@ __metadata:
     responselike: "npm:^3.0.0"
     type-fest: "npm:^4.26.1"
   checksum: 10/8570a7e495d5fe5989e4729dc2bd29ec76b90c95412e53efb1835820f8116635192f11cab80b75c99ec6ece453d0f18d50d06a87baddaa22dd9214041c2ed2af
-  languageName: node
-  linkType: hard
-
-"gpt-3-encoder@npm:1.1.4":
-  version: 1.1.4
-  resolution: "gpt-3-encoder@npm:1.1.4"
-  checksum: 10/ea404828e94c23ae8ab2417b42f811061bcbb467e0b50426236834e59720a5d3580b2009fad3e6e15af954c7ebd5ba00da441664657c61f891ddbe5070c8a54d
   languageName: node
   linkType: hard
 
@@ -19539,16 +19489,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"json-colorizer@npm:^2.2.2":
-  version: 2.2.2
-  resolution: "json-colorizer@npm:2.2.2"
-  dependencies:
-    chalk: "npm:^2.4.1"
-    lodash.get: "npm:^4.4.2"
-  checksum: 10/9e2015d43a6dbafc095f11dfbd83ac64017ab3382f44596c13e6366eb1be3be8d6f0f925ae0f0dfb9f8ab8a74e2d2feea10a612c3d4f2925d8c850e7211c31c8
-  languageName: node
-  linkType: hard
-
 "json-custom-numbers@npm:^3.1.1":
   version: 3.1.1
   resolution: "json-custom-numbers@npm:3.1.1"
@@ -20144,7 +20084,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash.get@npm:^4, lodash.get@npm:^4.4.2":
+"lodash.get@npm:^4":
   version: 4.4.2
   resolution: "lodash.get@npm:4.4.2"
   checksum: 10/2a4925f6e89bc2c010a77a802d1ba357e17ed1ea03c2ddf6a146429f2856a216663e694a6aa3549a318cbbba3fd8b7decb392db457e6ac0b83dc745ed0a17380
@@ -22667,16 +22607,6 @@ __metadata:
     is-docker: "npm:^2.1.1"
     is-wsl: "npm:^2.2.0"
   checksum: 10/acd81a1d19879c818acb3af2d2e8e9d81d17b5367561e623248133deb7dd3aefaed527531df2677d3e6aaf0199f84df57b6b2262babff8bf46ea0029aac536c9
-  languageName: node
-  linkType: hard
-
-"openai@npm:^3.2.1":
-  version: 3.3.0
-  resolution: "openai@npm:3.3.0"
-  dependencies:
-    axios: "npm:^0.26.0"
-    form-data: "npm:^4.0.0"
-  checksum: 10/613fb92552b68dbe915b98eb7d3c0a60a9cc6b6d109ff7ad8d05cca149b8511f2a2cd57fd990bea84bd5bc324e23a5401f635ad7b66976cb0bc6edcc32425ba9
   languageName: node
   linkType: hard
 
@@ -28386,15 +28316,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"turndown@npm:^7.1.2":
-  version: 7.1.2
-  resolution: "turndown@npm:7.1.2"
-  dependencies:
-    domino: "npm:^2.1.6"
-  checksum: 10/40404935e1322caf4d84eae617d4537b3b3516b86ac2cac0c1b65d7a00716351f9cc25132dbcb89863ab112f4ef43d85e79ce821edf3aa89f236ac30dc5b8bb8
-  languageName: node
-  linkType: hard
-
 "type-check@npm:^0.4.0, type-check@npm:~0.4.0":
   version: 0.4.0
   resolution: "type-check@npm:0.4.0"
@@ -29152,7 +29073,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:^9.0.0, uuid@npm:^9.0.1":
+"uuid@npm:^9.0.1":
   version: 9.0.1
   resolution: "uuid@npm:9.0.1"
   bin:
@@ -29189,44 +29110,6 @@ __metadata:
   version: 1.1.2
   resolution: "vary@npm:1.1.2"
   checksum: 10/31389debef15a480849b8331b220782230b9815a8e0dbb7b9a8369559aed2e9a7800cd904d4371ea74f4c3527db456dc8e7ac5befce5f0d289014dbdf47b2242
-  languageName: node
-  linkType: hard
-
-"vectra@npm:0.4.4":
-  version: 0.4.4
-  resolution: "vectra@npm:0.4.4"
-  dependencies:
-    axios: "npm:^1.3.4"
-    cheerio: "npm:^1.0.0-rc.12"
-    dotenv: "npm:^8.2.0"
-    gpt-3-encoder: "npm:1.1.4"
-    json-colorizer: "npm:^2.2.2"
-    openai: "npm:^3.2.1"
-    turndown: "npm:^7.1.2"
-    uuid: "npm:^9.0.0"
-    yargs: "npm:^17.7.2"
-  bin:
-    vectra: bin/vectra.js
-  checksum: 10/7658b08046dde3af816fc384a5c099f5be703053dcf8f13393c65d9be082da7df0222bf4c74ee9d74bccd3fded45151b005b6f269419d974e37b64a93bb29755
-  languageName: node
-  linkType: hard
-
-"vectra@patch:vectra@npm%3A0.4.4#./.yarn/patches/vectra-npm-0.4.4-6aac3f6c29.patch::locator=%40tldraw%2Fmonorepo%40workspace%3A.":
-  version: 0.4.4
-  resolution: "vectra@patch:vectra@npm%3A0.4.4#./.yarn/patches/vectra-npm-0.4.4-6aac3f6c29.patch::version=0.4.4&hash=4c7942&locator=%40tldraw%2Fmonorepo%40workspace%3A."
-  dependencies:
-    axios: "npm:^1.3.4"
-    cheerio: "npm:^1.0.0-rc.12"
-    dotenv: "npm:^8.2.0"
-    gpt-3-encoder: "npm:1.1.4"
-    json-colorizer: "npm:^2.2.2"
-    openai: "npm:^3.2.1"
-    turndown: "npm:^7.1.2"
-    uuid: "npm:^9.0.0"
-    yargs: "npm:^17.7.2"
-  bin:
-    vectra: bin/vectra.js
-  checksum: 10/6b5b0ccf766b34d9e5f65c44d9f271e29c36d759970f6adc8dfced8475db2c0f8e0d623aa3743da6a667f8e269384634998f2b72e362cabd9b0cb245eaf2dece
   languageName: node
   linkType: hard
 
