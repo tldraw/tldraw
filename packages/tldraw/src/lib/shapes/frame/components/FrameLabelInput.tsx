@@ -1,12 +1,12 @@
 import { TLFrameShape, TLShapeId, useEditor } from '@tldraw/editor'
 import { forwardRef, useCallback, useEffect, useRef } from 'react'
-import { defaultEmptyAs } from '../FrameShapeUtil'
-import { useBreakpoint } from '../../../ui/context/breakpoints'
 import { PORTRAIT_BREAKPOINT } from '../../../ui/constants'
+import { useBreakpoint } from '../../../ui/context/breakpoints'
+import { defaultEmptyAs } from '../FrameShapeUtil'
 
 export const FrameLabelInput = forwardRef<
 	HTMLInputElement,
-	{ id: TLShapeId; name: string; isEditing: boolean; }
+	{ id: TLShapeId; name: string; isEditing: boolean }
 >(({ id, name, isEditing }, ref) => {
 	const editor = useEditor()
 	const breakpoint = useBreakpoint()
@@ -32,27 +32,30 @@ export const FrameLabelInput = forwardRef<
 		},
 		[editor]
 	)
-	
-	const renameFrame = useCallback((value: string | undefined) => {
-		if (!value) return
 
-		const trimmed = value.trim()
-		if (!trimmed) return
+	const renameFrame = useCallback(
+		(value: string | undefined) => {
+			if (!value) return
 
-		const shape = editor.getShape<TLFrameShape>(id)
-		if (!shape) return
+			const trimmed = value.trim()
+			if (!trimmed) return
 
-		const name = shape.props.name
-		if (name === trimmed) return
+			const shape = editor.getShape<TLFrameShape>(id)
+			if (!shape) return
 
-		editor.updateShapes([
-			{
-				id,
-				type: 'frame',
-				props: { name: trimmed },
-			},
-		])
-	}, [id, editor])
+			const name = shape.props.name
+			if (name === trimmed) return
+
+			editor.updateShapes([
+				{
+					id,
+					type: 'frame',
+					props: { name: trimmed },
+				},
+			])
+		},
+		[id, editor]
+	)
 
 	const handleBlur = useCallback(
 		(e: React.FocusEvent<HTMLInputElement>) => {
@@ -83,9 +86,8 @@ export const FrameLabelInput = forwardRef<
 		}
 	}, [isEditing, isMobile, name, editor, id])
 
-
 	return (
-		<div className={`tl-frame-label ${(isEditing && !isMobile) ? 'tl-frame-label__editing' : ''}`}>
+		<div className={`tl-frame-label ${isEditing && !isMobile ? 'tl-frame-label__editing' : ''}`}>
 			<input
 				className="tl-frame-name-input"
 				ref={ref}
