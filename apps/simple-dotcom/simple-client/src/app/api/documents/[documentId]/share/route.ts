@@ -4,6 +4,11 @@
 import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
 import { Document, UpdateSharingRequest } from '@/lib/api/types'
+import {
+	CHANNEL_PATTERNS,
+	createDocumentEvent,
+	type DocumentSharingUpdatePayload,
+} from '@/lib/realtime/types'
 import { createClient, requireAuth } from '@/lib/supabase/server'
 import { NextRequest } from 'next/server'
 
@@ -64,11 +69,12 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 		}
 
 		// Update sharing mode
+		const updatedAt = new Date().toISOString()
 		const { data: updated, error } = await supabase
 			.from('documents')
 			.update({
 				sharing_mode: body.sharing_mode,
-				updated_at: new Date().toISOString(),
+				updated_at: updatedAt,
 			})
 			.eq('id', documentId)
 			.select()
@@ -77,6 +83,24 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 		if (error || !updated) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to update sharing mode')
 		}
+
+		// Broadcast the sharing mode change to the document channel
+		// This ensures all users viewing the document receive the update in real-time
+		const payload: DocumentSharingUpdatePayload = {
+			documentId: updated.id,
+			workspaceId: updated.workspace_id,
+			sharing_mode: updated.sharing_mode as 'private' | 'public_read_only' | 'public_editable',
+			updatedAt,
+		}
+
+		const event = createDocumentEvent('document.sharing_updated', payload, user.id)
+
+		// Broadcast to document-specific channel (accessible to both members and guests)
+		await supabase.channel(CHANNEL_PATTERNS.document(documentId)).send({
+			type: 'broadcast',
+			event: 'document_event',
+			payload: event,
+		})
 
 		return successResponse<Document>(updated)
 	} catch (error) {

@@ -146,5 +146,5 @@ export function DocumentActions({
 		return null
 	}
 
-	return <ActionMenu items={items} />
+	return <ActionMenu items={items} ariaLabel="Actions" />
 }

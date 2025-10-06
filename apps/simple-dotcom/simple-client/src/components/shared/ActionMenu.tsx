@@ -18,9 +18,15 @@ interface ActionMenuProps {
 	items: ActionMenuItem[]
 	trigger?: React.ReactNode
 	className?: string
+	ariaLabel?: string
 }
 
-export function ActionMenu({ items, trigger, className = '' }: ActionMenuProps) {
+export function ActionMenu({
+	items,
+	trigger,
+	className = '',
+	ariaLabel = 'Open menu',
+}: ActionMenuProps) {
 	const [isOpen, setIsOpen] = useState(false)
 	const menuRef = useRef<HTMLDivElement>(null)
 	const buttonRef = useRef<HTMLButtonElement>(null)
@@ -74,7 +80,7 @@ export function ActionMenu({ items, trigger, className = '' }: ActionMenuProps) 
 					setIsOpen(!isOpen)
 				}}
 				className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-				aria-label="Open menu"
+				aria-label={ariaLabel}
 			>
 				{trigger || (
 					<svg

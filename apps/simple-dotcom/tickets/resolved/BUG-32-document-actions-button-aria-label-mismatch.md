@@ -2,15 +2,15 @@
 
 Date reported: 2025-10-06
 Date last updated: 2025-10-06
-Date resolved:
+Date resolved: 2025-10-06
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -152,7 +152,33 @@ This is less preferred because:
 - Located exact source of issue in ActionMenu.tsx line 77
 - Confirmed all three Document Actions Menu tests fail with same root cause
 - Created comprehensive bug report with proposed solutions
+- Implemented fix: Made aria-label configurable in ActionMenu component
+- Updated DocumentActions to pass ariaLabel="Actions"
+- Verified fix with E2E tests - tests now successfully find the Actions button
 
 ## Resolution
 
-(To be completed when resolved)
+**Fixed on 2025-10-06**
+
+This bug was a duplicate of BUG-28 and was resolved with the same fix.
+
+Implemented Option 1 with the recommended enhancement (configurable aria-label):
+
+1. **Modified ActionMenu component** (`/Users/stephenruiz/Developer/tldraw/apps/simple-dotcom/simple-client/src/components/shared/ActionMenu.tsx`):
+   - Added optional `ariaLabel?: string` prop to `ActionMenuProps` interface
+   - Updated component to accept `ariaLabel` parameter with default value "Open menu"
+   - Changed button's aria-label from hardcoded "Open menu" to use the `ariaLabel` prop
+
+2. **Updated DocumentActions component** (`/Users/stephenruiz/Developer/tldraw/apps/simple-dotcom/simple-client/src/components/documents/DocumentActions.tsx`):
+   - Modified the return statement to pass `ariaLabel="Actions"` to ActionMenu
+   - This ensures document action menus have the specific, descriptive label expected by E2E tests
+
+**Test Results:**
+- Tests now successfully locate `button[aria-label="Actions"]` (previously would timeout at this step)
+- The aria-label mismatch is fully resolved
+- Some tests still have unrelated failures (test setup issues, realtime updates) but those are tracked in separate bugs
+
+**Impact:**
+- All three Document Actions Menu E2E tests can now find and interact with the Actions button
+- The ActionMenu component is now more flexible and can accept custom aria-labels for better accessibility
+- This fix also resolves BUG-28 which was tracking the same issue

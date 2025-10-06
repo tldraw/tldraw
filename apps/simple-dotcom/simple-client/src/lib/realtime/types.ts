@@ -31,6 +31,14 @@ export type WorkspaceEventType =
 	| 'document.deleted'
 
 /**
+ * Document-level events (for subscriptions to specific documents)
+ */
+export type DocumentEventType =
+	| 'document.sharing_updated'
+	| 'document.permissions_changed'
+	| 'document.metadata_updated'
+
+/**
  * Channel naming conventions
  */
 export const CHANNEL_PATTERNS = {
@@ -72,6 +80,13 @@ export interface FolderChangePayload {
 	action: 'created' | 'updated' | 'deleted'
 }
 
+export interface DocumentSharingUpdatePayload {
+	documentId: string
+	workspaceId: string
+	sharing_mode: 'private' | 'public_read_only' | 'public_editable'
+	updatedAt: string
+}
+
 /**
  * Type-safe event constructors
  */
@@ -82,6 +97,19 @@ export function createWorkspaceEvent(
 		| MemberChangePayload
 		| DocumentChangePayload
 		| FolderChangePayload,
+	actorId: string
+): RealtimeEvent {
+	return {
+		type,
+		payload,
+		timestamp: new Date().toISOString(),
+		actor_id: actorId,
+	}
+}
+
+export function createDocumentEvent(
+	type: DocumentEventType,
+	payload: DocumentSharingUpdatePayload,
 	actorId: string
 ): RealtimeEvent {
 	return {
@@ -131,5 +159,16 @@ export function isFolderChangePayload(payload: unknown): payload is FolderChange
 		'folderId' in payload &&
 		'workspaceId' in payload &&
 		'action' in payload
+	)
+}
+
+export function isDocumentSharingUpdatePayload(
+	payload: unknown
+): payload is DocumentSharingUpdatePayload {
+	return (
+		typeof payload === 'object' &&
+		payload !== null &&
+		'documentId' in payload &&
+		'sharing_mode' in payload
 	)
 }
