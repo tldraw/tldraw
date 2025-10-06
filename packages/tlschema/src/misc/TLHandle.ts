@@ -96,8 +96,12 @@ export interface TLHandle {
 	label?: string
 	/** The type of handle, determining its behavior and interaction mode */
 	type: TLHandleType
-	/** Whether this handle should snap to other geometry during interactions */
+	/**
+	 * @deprecated Use `snapType` instead. Whether this handle should snap to other geometry during interactions.
+	 */
 	canSnap?: boolean
+	/** The type of snap to use for this handle */
+	snapType?: 'point' | 'align'
 	/** The fractional index used for ordering handles */
 	index: IndexKey
 	/** The x-coordinate of the handle in the shape's local coordinate system */
