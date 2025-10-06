@@ -152,7 +152,9 @@ export function createMutators(userId: string) {
 				// use upsert under the hood here for a little fault tolerance
 				await tx.mutate.file_state.upsert(fileState)
 			},
-			update: async (tx, fileState: TlaFileStatePartial) => {
+			update: async (tx, props: TlaFileStatePartial) => {
+				const fileState = props
+
 				assert(fileState.userId === userId, ZErrorCode.forbidden)
 				disallowImmutableMutations(fileState, immutableColumns.file_state)
 				if (tx.location === 'server') {
@@ -169,6 +171,17 @@ export function createMutators(userId: string) {
 						}
 					}
 				}
+				const exists = await tx.query.file_state
+					.where('fileId', '=', fileState.fileId)
+					.where('userId', '=', userId)
+					.one()
+					.run()
+
+				if (!exists) {
+					// if the file state does not exist, do nothing
+					return
+				}
+
 				await tx.mutate.file_state.upsert(fileState)
 			},
 		},
@@ -379,6 +392,24 @@ export function createMutators(userId: string) {
 			await tx.mutate.group_file.delete({ fileId, groupId })
 			if (file.owningGroupId === groupId) {
 				await tx.mutate.file.update({ id: fileId, isDeleted: true })
+			}
+		},
+		onEnterFile: async (tx, { fileId, time }: { fileId: string; time: number }) => {
+			assert(fileId, ZErrorCode.bad_request)
+			await tx.mutate.file_state.upsert({ fileId, userId, firstVisitAt: time })
+			const migrated = await isGroupsMigrated(tx, userId)
+			if (migrated) {
+				const groupFiles = await tx.query.group_file.where('fileId', '=', fileId).run()
+				const userGroups = await tx.query.group_user.where('userId', '=', userId).run()
+				if (!userGroups.some((g) => groupFiles.some((gf) => gf.groupId === g.groupId))) {
+					await tx.mutate.group_file.insert({
+						fileId,
+						groupId: userId,
+						createdAt: time,
+						updatedAt: time,
+						index: null,
+					})
+				}
 			}
 		},
 	} as const satisfies CustomMutatorDefs<TlaSchema>

@@ -10,6 +10,7 @@ import {
 	ROOM_PREFIX,
 	TlaFile,
 	TlaFileState,
+	TlaFileStatePartial,
 	TlaFlags,
 	TlaGroup,
 	TlaGroupFile,
@@ -208,7 +209,7 @@ export class TldrawApp {
 		await this.changesFlushed
 		if (!this.user$.get()) {
 			didCreate = true
-			this.z.mutate.user.insert(initialUserData)
+			this.z.mutate.init({ user: initialUserData, time: Date.now() })
 			updateLocalSessionState((state) => ({ ...state, shouldShowWelcomeDialog: true }))
 		}
 		await new Promise((resolve) => {
@@ -725,7 +726,7 @@ export class TldrawApp {
 		return this.getUserFileStates().find((f) => f.fileId === fileId)
 	}
 
-	updateFileState(fileId: string, partial: Partial<TlaFileState>) {
+	updateFileState(fileId: string, partial: Omit<TlaFileStatePartial, 'fileId' | 'userId'>) {
 		this.z.mutate.file_state.update({ ...partial, fileId, userId: this.userId })
 	}
 
@@ -734,9 +735,7 @@ export class TldrawApp {
 	}
 
 	async onFileEnter(fileId: string) {
-		this.updateFileState(fileId, {
-			lastVisitAt: Date.now(),
-		})
+		this.z.mutate.onEnterFile({ fileId, time: Date.now() })
 	}
 
 	onFileEdit(fileId: string) {
