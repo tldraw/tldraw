@@ -2,7 +2,7 @@
 description: Create a bug report by investigating user's issue description
 ---
 
-Create a comprehensive bug report in the bugs/ folder by investigating the user's description and available logs.
+Create a comprehensive bug report ticket in the tickets/ folder by investigating the user's description and available logs.
 
 **Investigation Workflow:**
 
@@ -13,7 +13,7 @@ Create a comprehensive bug report in the bugs/ folder by investigating the user'
    - Look for errors, stack traces, or relevant events matching the timeframe and user's description
    - Extract error messages, API failures, database issues, etc.
 
-3. **Determine bug number**: Check bugs/ directory for next available number (BUG-01, BUG-02, etc.)
+3. **Determine bug number**: Check tickets/ directory for next available bug number (BUG-01, BUG-02, etc.)
 
 4. **Build the case**: Based on user description + logs, automatically determine:
    - Severity (Critical/High/Medium/Low) based on error type
@@ -29,7 +29,7 @@ Create a comprehensive bug report in the bugs/ folder by investigating the user'
    - Critical reproduction steps are missing and can't be inferred
    - Environment details are needed and not in logs
 
-6. **Create bug report**: Generate `bugs/BUG-XX-description-slug.md` with:
+6. **Create bug report ticket**: Generate `tickets/BUG-XX-description-slug.md` with:
    - All information gathered from investigation
    - Today's date as "Date reported"
    - Status set to "New"
@@ -37,11 +37,27 @@ Create a comprehensive bug report in the bugs/ folder by investigating the user'
    - Analysis of possible cause
    - Related files identified from stack traces
 
-7. **Confirm creation**: Show the bug report path and a brief summary of findings
+7. **Confirm creation**: Show the ticket path and a brief summary of findings
+
+**Resolving Bug Tickets:**
+
+When fixing or closing a bug, update the ticket and move it to the resolved folder:
+
+1. Update the bug ticket:
+   - Check the appropriate status (Resolved/Cannot Reproduce/Won't Fix)
+   - Fill in "Date resolved" field
+   - Complete the "Resolution" section with details
+
+2. Move to resolved folder:
+   ```bash
+   git mv tickets/BUG-XX-description.md tickets/resolved/
+   ```
+
+This keeps the main `tickets/` folder focused on active work.
 
 **Example usage:**
 - User: "got an error when creating a workspace"
-- You: [checks logs, finds error, analyzes, creates BUG-01-workspace-creation-fails.md]
-- Output: Created bug report with full details from logs showing database constraint violation on workspace insert
+- You: [checks logs, finds error, analyzes, creates tickets/BUG-01-workspace-creation-fails.md]
+- Output: Created bug report ticket with full details from logs showing database constraint violation on workspace insert
 
 The filename pattern: `BUG-XX-brief-description-slug.md` (zero-padded number, kebab-case slug)

@@ -236,7 +236,7 @@ export default function WorkspaceMembersClient({
 										type="text"
 										value={inviteUrl || ''}
 										readOnly
-										className="flex-1 rounded-md border bg-gray-50 px-3 py-2 text-sm font-mono"
+										className="flex-1 rounded-md border bg-gray-50 dark:bg-gray-900 px-3 py-2 text-sm font-mono text-gray-900 dark:text-gray-100"
 									/>
 									<button
 										onClick={handleCopyInviteLink}
@@ -251,7 +251,7 @@ export default function WorkspaceMembersClient({
 									<button
 										onClick={handleToggleInvite}
 										disabled={isToggling}
-										className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
+										className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
 									>
 										{isToggling
 											? 'Processing...'
@@ -262,7 +262,7 @@ export default function WorkspaceMembersClient({
 									<button
 										onClick={handleRegenerateInvite}
 										disabled={isRegenerating}
-										className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
+										className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
 									>
 										{isRegenerating ? 'Regenerating...' : 'Regenerate Link'}
 									</button>

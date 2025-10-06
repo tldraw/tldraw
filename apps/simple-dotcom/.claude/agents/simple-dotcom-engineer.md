@@ -117,7 +117,7 @@ The **bug-report-generator agent** will automatically (in the background):
 - Check logs for relevant errors
 - Determine the next bug number
 - Assess severity and category
-- Create a properly formatted bug report in the `bugs/` folder
+- Create a properly formatted bug report ticket in the `tickets/` folder
 - Include all technical details and stack traces
 - Perform initial root cause analysis
 

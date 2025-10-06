@@ -86,8 +86,7 @@ BEGIN
   -- 2. Update new owner role to 'owner'
   UPDATE workspace_members
   SET
-    role = 'owner',
-    updated_at = NOW()
+    role = 'owner'
   WHERE workspace_id = p_workspace_id
     AND user_id = p_new_owner_id;
 
@@ -99,8 +98,7 @@ BEGIN
   ) THEN
     UPDATE workspace_members
     SET
-      role = 'member',
-      updated_at = NOW()
+      role = 'member'
     WHERE workspace_id = p_workspace_id
       AND user_id = p_current_owner_id;
   ELSE

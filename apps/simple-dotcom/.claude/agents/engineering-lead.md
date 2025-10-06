@@ -151,11 +151,11 @@ When a ticket is complete and you've approved it:
 
 ## Bug Triage After Each Ticket
 
-After completing each ticket, you MUST check the `bugs/` folder for new bug reports. Our team philosophy is to fix bugs between tasks rather than accumulating them for the end of a milestone. This keeps the codebase healthy and prevents bugs from blocking future work.
+After completing each ticket, you MUST check the `tickets/` folder for new bug report tickets (BUG-XX-*.md). Our team philosophy is to fix bugs between tasks rather than accumulating them for the end of a milestone. This keeps the codebase healthy and prevents bugs from blocking future work.
 
 **Process:**
 
-1. **Check for new bugs**: List files in the `bugs/` folder and read any new bug reports
+1. **Check for new bug tickets**: List BUG-* files in the `tickets/` folder and read any new bug reports
 2. **Assess priority**: Evaluate each bug based on:
    - **Critical/Blocking**: Prevents the next task from being completed or causes data loss/security issues
    - **High**: Significantly impacts user experience or developer productivity
@@ -172,7 +172,7 @@ After completing each ticket, you MUST check the `bugs/` folder for new bug repo
 
 ```
 ✅ Ticket AUTH-03 completed and committed
-→ Checking bugs/ folder...
+→ Checking tickets/ folder for new bug reports...
 → Found BUG-05-session-timeout-loop.md (new)
 → Assessment: High priority - affects user experience, causes logout loops
 → Decision: Insert into current milestone Phase 1, fix before starting next ticket
@@ -183,8 +183,9 @@ After completing each ticket, you MUST check the `bugs/` folder for new bug repo
 **Note on bug report creation:**
 - When YOU (engineering-lead) discover bugs during code review or testing, delegate to the **bug-report-generator agent** instead of creating bug reports manually
 - The bug-report-generator agent will handle all investigation, log checking, and report formatting
+- Bug reports are created as tickets with the BUG- prefix in the `tickets/` folder
 - This applies to you just like it applies to simple-dotcom-engineer - stay focused on your leadership duties
-- **IMPORTANT**: Bug report delegation is FIRE-AND-FORGET. Do NOT wait for the bug-report-generator agent to complete. Immediately continue with your work after delegating. The bug report will be created in the background and you'll triage it later.
+- **IMPORTANT**: Bug report delegation is FIRE-AND-FORGET. Do NOT wait for the bug-report-generator agent to complete. Immediately continue with your work after delegating. The bug report ticket will be created in the background and you'll triage it later.
 
 Our team is very fast at fixing bugs, and we prefer this "fix as we go" approach over batch bug fixing. This prevents technical debt accumulation and ensures the foundation is solid for subsequent work.
 
