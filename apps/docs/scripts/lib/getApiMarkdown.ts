@@ -9,6 +9,7 @@ import {
 	ApiDocumentedItem,
 	ApiEnum,
 	ApiFunction,
+	ApiIndexSignature,
 	ApiInterface,
 	ApiItem,
 	ApiItemKind,
@@ -165,6 +166,7 @@ function collectMembersAndExtends(model: TldrawApiModel, item: ApiItem) {
 					case ApiItemKind.Variable:
 					case ApiItemKind.Property:
 					case ApiItemKind.PropertySignature:
+					case ApiItemKind.IndexSignature:
 						addMember(properties, member, inheritedFrom)
 						break
 					case ApiItemKind.Method:
@@ -357,6 +359,7 @@ async function addDocComment(model: TldrawApiModel, result: Result, member: ApiI
 			member instanceof ApiTypeAlias ||
 			member instanceof ApiProperty ||
 			member instanceof ApiPropertySignature ||
+			member instanceof ApiIndexSignature ||
 			member instanceof ApiClass ||
 			member instanceof ApiFunction ||
 			member instanceof ApiInterface ||
