@@ -44,7 +44,7 @@ export function ChatPanel({ agent }: { agent: TldrawAgent }) {
 			await agent.prompt({
 				message,
 				contextItems,
-				bounds: agent.calculatViewportBounds(),
+				bounds: agent.calculateViewportBounds(),
 				modelName,
 				selectedShapes,
 				type: 'user',

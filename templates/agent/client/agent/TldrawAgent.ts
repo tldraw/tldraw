@@ -215,7 +215,7 @@ export class TldrawAgent {
 			data: request.data ?? [],
 			selectedShapes: request.selectedShapes ?? [],
 			contextItems: request.contextItems ?? [],
-			bounds: request.bounds ?? activeRequest?.bounds ?? this.calculatViewportBounds(),
+			bounds: request.bounds ?? activeRequest?.bounds ?? this.calculateViewportBounds(),
 			modelName: request.modelName ?? activeRequest?.modelName ?? this.$modelName.get(),
 		}
 	}
@@ -720,7 +720,7 @@ export class TldrawAgent {
 	 * to a range the agent will be able to adequately act in.
 	 * @returns The agent's viewport bounds.
 	 */
-	calculatViewportBounds() {
+	calculateViewportBounds() {
 		const { editor } = this
 		// Set the agent's request bounds
 		const userBoundsCenter = editor.getViewportPageBounds().center
@@ -745,12 +745,7 @@ export class TldrawAgent {
 			const newWidth = box.w * scale
 			const newHeight = box.h * scale
 
-			box.x = center.x - newWidth / 2
-			box.y = center.y - newHeight / 2
-			box.w = newWidth
-			box.h = newHeight
-
-			return box
+			return new Box(center.x - newWidth / 2, center.y - newHeight / 2, newWidth, newHeight)
 		}
 	}
 }
