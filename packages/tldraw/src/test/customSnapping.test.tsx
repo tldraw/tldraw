@@ -15,13 +15,20 @@ import {
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		test1: Test1Shape
+	}
+}
+
+type Test1Shape = TLBaseShape<
+	'test1',
+	{ w: number; h: number; boundsSnapPoints: VecModel[] | null }
+>
+
 describe('custom shape bounds snapping - translate', () => {
-	type TestShape = TLBaseShape<
-		'test',
-		{ w: number; h: number; boundsSnapPoints: VecModel[] | null }
-	>
-	class TestShapeUtil extends BaseBoxShapeUtil<TestShape> {
-		static override type = 'test'
+	class TestShapeUtil extends BaseBoxShapeUtil<Test1Shape> {
+		static override type = 'test1'
 		override getDefaultProps() {
 			return { w: 100, h: 100, boundsSnapPoints: null }
 		}
@@ -31,7 +38,7 @@ describe('custom shape bounds snapping - translate', () => {
 		override indicator() {
 			throw new Error('Method not implemented.')
 		}
-		override getBoundsSnapGeometry(shape: TestShape) {
+		override getBoundsSnapGeometry(shape: Test1Shape) {
 			return {
 				points: shape.props.boundsSnapPoints ?? undefined,
 			}
@@ -45,14 +52,14 @@ describe('custom shape bounds snapping - translate', () => {
 		editor = new TestEditor({ shapeUtils })
 		ids = editor.createShapesFromJsx([
 			<TL.geo ref="box" x={0} y={0} w={100} h={100} />,
-			<TL.test ref="test" x={200} y={200} w={100} h={100} boundsSnapPoints={null} />,
+			<TL.test1 ref="test1" x={200} y={200} w={100} h={100} boundsSnapPoints={null} />,
 		])
 	})
 
 	describe('with default boundSnapPoints', () => {
 		test('normal snapping works with default boundSnapPoints when moving test shape', () => {
 			// start translating the test shape
-			editor.setSelectedShapes([ids.test]).pointerDown(250, 250)
+			editor.setSelectedShapes([ids.test1]).pointerDown(250, 250)
 
 			// move the left edge of the test shape to the right edge of the box shape - it should snap
 			editor.pointerMove(155, 250, undefined, { ctrlKey: true })
@@ -83,15 +90,15 @@ describe('custom shape bounds snapping - translate', () => {
 
 	describe('with only the center in boundSnapPoints', () => {
 		beforeEach(() => {
-			editor.updateShape<TestShape>({
-				id: ids.test,
-				type: 'test',
+			editor.updateShape<Test1Shape>({
+				id: ids.test1,
+				type: 'test1',
 				props: { boundsSnapPoints: [{ x: 50, y: 50 }] },
 			})
 		})
 
 		describe('when moving the test shape', () => {
-			beforeEach(() => editor.select(ids.test).pointerDown(250, 250))
+			beforeEach(() => editor.select(ids.test1).pointerDown(250, 250))
 
 			test('does not snap its edges to the box edges', () => {
 				editor.pointerMove(155, 250, undefined, { ctrlKey: true })
@@ -125,15 +132,15 @@ describe('custom shape bounds snapping - translate', () => {
 
 	describe('with empty boundSnapPoints', () => {
 		beforeEach(() => {
-			editor.updateShape<TestShape>({
-				id: ids.test,
-				type: 'test',
+			editor.updateShape<Test1Shape>({
+				id: ids.test1,
+				type: 'test1',
 				props: { boundsSnapPoints: [] },
 			})
 		})
 
 		test('test shape does not snap to anything', () => {
-			editor.select(ids.test).pointerDown(250, 250)
+			editor.select(ids.test1).pointerDown(250, 250)
 
 			// try to snap our left edge to the right edge of the box shape - it should not snap
 			editor.pointerMove(155, 250, undefined, { ctrlKey: true })
@@ -162,22 +169,29 @@ describe('custom shape bounds snapping - translate', () => {
 	})
 })
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		test2: Test2Shape
+	}
+}
+
+type Test2Shape = TLBaseShape<
+	'test2',
+	{
+		w: number
+		h: number
+		ownHandle: VecModel
+		handleOutline: VecModel[] | 'default' | null
+		handlePoints: VecModel[] | 'default'
+		selfSnapOutline: VecModel[] | 'default'
+		selfSnapPoints: VecModel[] | 'default'
+	}
+>
+
 describe('custom handle snapping', () => {
-	type TestShape = TLBaseShape<
-		'test',
-		{
-			w: number
-			h: number
-			ownHandle: VecModel
-			handleOutline: VecModel[] | 'default' | null
-			handlePoints: VecModel[] | 'default'
-			selfSnapOutline: VecModel[] | 'default'
-			selfSnapPoints: VecModel[] | 'default'
-		}
-	>
-	class TestShapeUtil extends BaseBoxShapeUtil<TestShape> {
-		static override type = 'test'
-		override getDefaultProps(): TestShape['props'] {
+	class TestShapeUtil extends BaseBoxShapeUtil<Test2Shape> {
+		static override type = 'test2'
+		override getDefaultProps(): Test2Shape['props'] {
 			return {
 				w: 100,
 				h: 100,
@@ -194,7 +208,7 @@ describe('custom handle snapping', () => {
 		override indicator() {
 			throw new Error('Method not implemented.')
 		}
-		override getHandleSnapGeometry(shape: TestShape) {
+		override getHandleSnapGeometry(shape: Test2Shape) {
 			const { handleOutline, handlePoints, selfSnapOutline, selfSnapPoints } = shape.props
 			return {
 				outline:
@@ -212,7 +226,7 @@ describe('custom handle snapping', () => {
 				getSelfSnapPoints: selfSnapPoints === 'default' ? undefined : () => selfSnapPoints,
 			}
 		}
-		override getHandles(shape: TestShape): TLHandle[] {
+		override getHandles(shape: Test2Shape): TLHandle[] {
 			return [
 				{
 					id: 'handle',
@@ -225,7 +239,7 @@ describe('custom handle snapping', () => {
 				},
 			]
 		}
-		override onHandleDrag(shape: TestShape, { handle }: TLHandleDragInfo<TestShape>) {
+		override onHandleDrag(shape: Test2Shape, { handle }: TLHandleDragInfo<Test2Shape>) {
 			return { ...shape, props: { ...shape.props, ownHandle: { x: handle.x, y: handle.y } } }
 		}
 	}
@@ -245,7 +259,7 @@ describe('custom handle snapping', () => {
 					a2: { id: 'a2', index: 'a2' as IndexKey, x: 100, y: 100 },
 				}}
 			/>,
-			<TL.test ref="test" x={200} y={200} w={100} h={100} boundsSnapPoints={null} />,
+			<TL.test2 ref="test2" x={200} y={200} w={100} h={100} boundsSnapPoints={null} />,
 		])
 	})
 
@@ -288,9 +302,9 @@ describe('custom handle snapping', () => {
 
 	describe('with empty handleSnapGeometry.outline', () => {
 		beforeEach(() => {
-			editor.updateShape<TestShape>({
-				id: ids.test,
-				type: 'test',
+			editor.updateShape<Test2Shape>({
+				id: ids.test2,
+				type: 'test2',
 				props: { handleOutline: null },
 			})
 		})
@@ -305,9 +319,9 @@ describe('custom handle snapping', () => {
 
 	describe('with custom handleSnapGeometry.outline', () => {
 		beforeEach(() => {
-			editor.updateShape<TestShape>({
-				id: ids.test,
-				type: 'test',
+			editor.updateShape<Test2Shape>({
+				id: ids.test2,
+				type: 'test2',
 				props: {
 					// a diagonal line from the top left to the bottom right
 					handleOutline: [
@@ -352,9 +366,9 @@ describe('custom handle snapping', () => {
 
 	describe('with custom handleSnapGeometry.points', () => {
 		beforeEach(() => {
-			editor.updateShape<TestShape>({
-				id: ids.test,
-				type: 'test',
+			editor.updateShape<Test2Shape>({
+				id: ids.test2,
+				type: 'test2',
 				props: {
 					handlePoints: [
 						{ x: 30, y: 30 },
@@ -379,12 +393,12 @@ describe('custom handle snapping', () => {
 
 	describe('with custom handleSnapGeometry.points along the outline', () => {
 		beforeEach(() => {
-			editor.updateShape<TestShape>({
-				id: ids.test,
-				type: 'test',
+			editor.updateShape<Test2Shape>({
+				id: ids.test2,
+				type: 'test2',
 				props: {
 					handlePoints: editor
-						.getShapeGeometry(ids.test)
+						.getShapeGeometry(ids.test2)
 						.bounds.cornersAndCenter.map(({ x, y }) => ({ x, y })),
 				},
 			})
@@ -418,9 +432,9 @@ describe('custom handle snapping', () => {
 	describe('self snapping', () => {
 		beforeEach(() => {
 			editor.deleteShape(ids.line)
-			editor.updateShape<TestShape>({
-				id: ids.test,
-				type: 'test',
+			editor.updateShape<Test2Shape>({
+				id: ids.test2,
+				type: 'test2',
 				x: 0,
 				y: 0,
 				props: {
@@ -429,12 +443,12 @@ describe('custom handle snapping', () => {
 			})
 		})
 		function startDraggingOwnHandle() {
-			const shape = editor.select(ids.test).getOnlySelectedShape()!
+			const shape = editor.select(ids.test2).getOnlySelectedShape()!
 			const handles = editor.getShapeHandles(shape)!
 			editor.pointerDown(0, 0, { target: 'handle', shape, handle: handles[0] })
 		}
 		function ownHandlePosition() {
-			const shape = editor.select(ids.test).getOnlySelectedShape()!
+			const shape = editor.select(ids.test2).getOnlySelectedShape()!
 			const handle = editor.getShapeHandles(shape)![0]
 			return { x: handle.x, y: handle.y }
 		}
@@ -454,9 +468,9 @@ describe('custom handle snapping', () => {
 		})
 		describe('with custom self snap outline & points', () => {
 			beforeEach(() => {
-				editor.updateShape<TestShape>({
-					id: ids.test,
-					type: 'test',
+				editor.updateShape<Test2Shape>({
+					id: ids.test2,
+					type: 'test2',
 					props: {
 						selfSnapOutline: [
 							{ x: 20, y: 50 },

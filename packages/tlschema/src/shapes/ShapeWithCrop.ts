@@ -1,5 +1,5 @@
 import { VecModel } from '../misc/geometry-types'
-import { TLBaseShape } from './TLBaseShape'
+import { TLShape } from '../records/TLShape'
 
 /** @public */
 export interface TLShapeCrop {
@@ -9,4 +9,7 @@ export interface TLShapeCrop {
 }
 
 /** @public */
-export type ShapeWithCrop = TLBaseShape<string, { w: number; h: number; crop: TLShapeCrop | null }>
+export type ShapeWithCrop = Extract<
+	TLShape,
+	{ props: { w: number; h: number; crop: TLShapeCrop | null } }
+>

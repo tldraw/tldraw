@@ -12,6 +12,12 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		'my-custom-shape': ICustomShape
+	}
+}
+
 // There's a guide at the bottom of this file!
 
 type ICustomShape = TLBaseShape<
