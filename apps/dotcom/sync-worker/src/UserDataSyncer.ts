@@ -79,7 +79,7 @@ type BootState =
 			lastSequenceNumber: number
 	  }
 
-const stateVersion = 2
+const stateVersion = 3
 interface StateSnapshot {
 	version: number
 	initialData: ZStoreData
@@ -118,8 +118,15 @@ function migrateStateSnapshot(snapshot: any) {
 			file_state: data.fileStates,
 		} satisfies LegacyZStoreDataV1
 	}
+
 	if (snapshot.version === 1) {
 		snapshot.version = 2
+		snapshot.sequenceId = notASequenceId
+		snapshot.lastSequenceNumber = 0
+	}
+
+	if (snapshot.version === 2) {
+		snapshot.version = 3
 		const data = snapshot.initialData as LegacyZStoreDataV1
 		snapshot.initialData = {
 			lsn: data.lsn,
@@ -130,12 +137,6 @@ function migrateStateSnapshot(snapshot: any) {
 			group_user: [],
 			group_file: [],
 		} satisfies ZStoreData
-	}
-
-	if (snapshot.version === 1) {
-		snapshot.version = 2
-		snapshot.sequenceId = notASequenceId
-		snapshot.lastSequenceNumber = 0
 	}
 }
 
