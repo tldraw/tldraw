@@ -298,6 +298,31 @@ BEFORE INSERT ON public."group_file"
 FOR EACH ROW
 EXECUTE FUNCTION validate_group_file_association();
 
+-- ownerId becomes nullable so we need to update the file_state updater fns to handle NULLs
+CREATE OR REPLACE FUNCTION update_file_state_on_file_change() RETURNS TRIGGER AS $$
+BEGIN
+  IF OLD."ownerId" IS DISTINCT FROM NEW."ownerId" THEN
+    UPDATE file_state
+    SET "isFileOwner" = COALESCE(file_state."userId" = NEW."ownerId", FALSE)
+    WHERE file_state."fileId" = NEW.id;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION update_is_file_owner() RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    NEW."isFileOwner" := COALESCE(NEW."userId" = (SELECT "ownerId" FROM file WHERE file.id = NEW."fileId"), FALSE);
+  ELSIF TG_OP = 'UPDATE' THEN
+    IF NEW."userId" IS DISTINCT FROM OLD."userId" THEN
+      NEW."isFileOwner" := COALESCE(NEW."userId" = (SELECT "ownerId" FROM file WHERE file.id = NEW."fileId"), FALSE);
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Migration function to move a user from legacy file_state-based model to group_file-based model
 -- Usage: SELECT migrate_user_to_groups('user-id-here');
 CREATE OR REPLACE FUNCTION migrate_user_to_groups(target_user_id TEXT, invite_secret TEXT)
@@ -352,7 +377,8 @@ BEGIN
     SELECT fs."fileId", target_user_id, COALESCE(fs."firstVisitAt", v_now), COALESCE(fs."lastEditAt", v_now)
     FROM public."file_state" fs
     WHERE fs."userId" = target_user_id
-      AND fs."isFileOwner" = FALSE;
+      AND fs."isFileOwner" = FALSE
+    ON CONFLICT DO NOTHING;
 
     -- Update indexes for the group_file entries
     UPDATE public."group_file" gf

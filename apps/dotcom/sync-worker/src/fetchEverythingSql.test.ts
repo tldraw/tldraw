@@ -36,7 +36,7 @@ function makeColumnStuff(table: (typeof schema.tables)[keyof typeof schema.table
 
 const withs = [
 	{
-		alias: 'my_owned_files',
+		alias: 'legacy_my_own_files',
 		expression: 'SELECT * FROM public."file" WHERE "ownerId" = $1 AND "isDeleted" = false',
 	},
 	{
@@ -44,7 +44,7 @@ const withs = [
 		expression: 'SELECT * FROM public."file_state" WHERE "userId" = $1',
 	},
 	{
-		alias: 'files_shared_with_me',
+		alias: 'legacy_files_shared_with_me',
 		// Legacy access control via file_state for non-migrated users
 		// Migrated users (with 'groups_backend' flag) have shared files in their home group via group_file
 		expression:
@@ -77,7 +77,7 @@ const withs = [
 	{
 		alias: 'all_files',
 		expression:
-			'SELECT * from my_owned_files UNION SELECT * from files_shared_with_me UNION SELECT * from group_files',
+			'SELECT * from legacy_my_own_files UNION SELECT * from legacy_files_shared_with_me UNION SELECT * from group_files',
 	},
 ] as const satisfies WithClause[]
 

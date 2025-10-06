@@ -3,15 +3,15 @@
 
 export const fetchEverythingSql = `
 WITH
-  my_owned_files AS (SELECT * FROM public."file" WHERE "ownerId" = $1 AND "isDeleted" = false),
+  legacy_my_own_files AS (SELECT * FROM public."file" WHERE "ownerId" = $1 AND "isDeleted" = false),
   my_file_states AS (SELECT * FROM public."file_state" WHERE "userId" = $1),
-  files_shared_with_me AS (SELECT f.* FROM my_file_states ufs JOIN public."file" f ON f.id = ufs."fileId" WHERE ufs."isFileOwner" = false AND f.shared = true),
+  legacy_files_shared_with_me AS (SELECT f.* FROM my_file_states ufs JOIN public."file" f ON f.id = ufs."fileId" WHERE ufs."isFileOwner" = false AND f.shared = true),
   my_group_ids AS (SELECT "groupId" FROM public."group_user" WHERE "userId" = $1),
   my_groups AS (SELECT g.* FROM my_group_ids mg JOIN public."group" g ON g.id = mg."groupId" WHERE g."isDeleted" = false),
   all_group_users AS (SELECT ug.* FROM my_groups mg JOIN public."group_user" ug ON ug."groupId" = mg."id"),
   group_file_ownership AS (SELECT fg.* FROM my_groups mg JOIN public."group_file" fg ON fg."groupId" = mg."id"),
   group_files AS (SELECT f.* FROM group_file_ownership gfo JOIN public."file" f ON f.id = gfo."fileId"),
-  all_files AS (SELECT * from my_owned_files UNION SELECT * from files_shared_with_me UNION SELECT * from group_files)
+  all_files AS (SELECT * from legacy_my_own_files UNION SELECT * from legacy_files_shared_with_me UNION SELECT * from group_files)
 SELECT
   'user' as "table",
   "allowAnalyticsCookie"::boolean as "0",
