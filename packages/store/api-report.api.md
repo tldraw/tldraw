@@ -132,7 +132,7 @@ export class IncrementalSetConstructor<T> {
     remove(item: T): void;
 }
 
-// @internal
+// @public
 export function isRecordsDiffEmpty<T extends UnknownRecord>(diff: RecordsDiff<T>): boolean;
 
 // @public

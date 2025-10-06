@@ -283,7 +283,7 @@ export class TldrawApp {
 			const user = this.getUser()
 
 			const nonNull = Object.fromEntries(
-				Object.entries(others).filter(([_, value]) => value !== null)
+				Object.entries(others).filter(([key, value]) => value !== null || key === 'inputMode')
 			) as Partial<TLUserPreferences>
 
 			this.z.mutate.user.update({

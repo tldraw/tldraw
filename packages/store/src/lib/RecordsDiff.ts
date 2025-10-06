@@ -104,7 +104,7 @@ export function reverseRecordsDiff(diff: RecordsDiff<any>) {
  * console.log(isRecordsDiffEmpty(nonEmptyDiff)) // false
  * ```
  *
- * @internal
+ * @public
  */
 export function isRecordsDiffEmpty<T extends UnknownRecord>(diff: RecordsDiff<T>) {
 	return (

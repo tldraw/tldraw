@@ -557,7 +557,7 @@ export async function defaultHandleExternalUrlContent(
 	const embedUtil = editor.getShapeUtil('embed') as EmbedShapeUtil | undefined
 	const embedInfo = embedUtil?.getEmbedDefinition(url)
 
-	if (embedInfo) {
+	if (embedInfo && embedInfo.definition.embedOnPaste !== false) {
 		return editor.putExternalContent({
 			type: 'embed',
 			url: embedInfo.url,

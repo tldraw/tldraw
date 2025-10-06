@@ -133,6 +133,9 @@ export function isSignal(value: any): value is Signal<any>;
 export function isUninitialized(value: any): value is UNINITIALIZED;
 
 // @public
+export function localStorageAtom<Value, Diff = unknown>(name: string, initialValue: Value, options?: AtomOptions<Value, Diff>): [Atom<Value, Diff>, () => void];
+
+// @public
 export function react(name: string, fn: (lastReactedEpoch: number) => any, options?: EffectSchedulerOptions): () => void;
 
 // @public

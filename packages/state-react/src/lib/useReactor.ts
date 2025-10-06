@@ -3,56 +3,74 @@ import { throttleToNextFrame } from '@tldraw/utils'
 import { useEffect } from 'react'
 
 /**
- * A React hook that runs side effects in response to signal changes, with updates throttled to animation frames for optimal performance.
+ * A React hook that runs a side effect in response to changes in signals (reactive state).
  *
- * Unlike regular React effects, `useReactor` automatically tracks which signals are accessed within the effect function
- * and re-executes the effect when those signals change. Updates are batched and throttled to animation frames to
- * prevent excessive re-execution during rapid state changes.
+ * The effect function will automatically track any signals (atoms, computed values) that are
+ * accessed during its execution. When any of those signals change, the effect will be
+ * scheduled to run again on the next animation frame.
  *
- * The effect runs immediately when the component mounts, then again whenever tracked signals change, but updates
- * are batched to animation frames for smooth performance.
- *
- * @param name - A descriptive name for the effect, used for debugging and development tools
- * @param reactFn - The effect function to execute. This function will be tracked for signal dependencies and re-executed when they change
- * @param deps - Optional dependency array similar to other React hooks. When provided, the effect will only be recreated if dependencies change. Defaults to an empty array
+ * This is useful for performing side effects (like updating the DOM, making API calls, or
+ * updating external state) in response to changes in tldraw's reactive state system, while
+ * keeping those effects efficiently batched and throttled.
  *
  * @example
- * ```ts
- * function CanvasRenderer() {
- *   const shapes = useAtom('shapes', [])
+ * ```tsx
+ * import { useReactor, useEditor } from 'tldraw'
  *
- *   useReactor('canvas-update', () => {
- *     // This runs at most once per animation frame
- *     redrawCanvas(shapes.get())
- *   }, [shapes])
+ * function MyComponent() {
+ *   const editor = useEditor()
  *
- *   return <canvas ref={canvasRef} />
- * }
- * ```
- *
- * @example
- * ```ts
- * function AnimatedCounter() {
- *   const count = useAtom('count', 0)
- *   const elementRef = useRef<HTMLDivElement>(null)
- *
- *   useReactor('animate-color', () => {
- *     const element = elementRef.current
- *     if (element) {
- *       // Animate background color based on count
- *       element.style.backgroundColor = count.get() > 10 ? 'green' : 'blue'
- *     }
- *   }, [count])
- *
- *   return (
- *     <div ref={elementRef}>
- *       <button onClick={() => count.set(count.get() + 1)}>
- *         Count: {count.get()}
- *       </button>
- *     </div>
+ *   // Update document title when shapes change
+ *   useReactor(
+ *     'update title',
+ *     () => {
+ *       const shapes = editor.getCurrentPageShapes()
+ *       document.title = `Shapes: ${shapes.length}`
+ *     },
+ *     [editor]
  *   )
+ *
+ *   return <div>...</div>
  * }
  * ```
+ *
+ * @example
+ * ```tsx
+ * import { useReactor, useEditor } from 'tldraw'
+ *
+ * function SelectionAnnouncer() {
+ *   const editor = useEditor()
+ *
+ *   // Announce selection changes for accessibility
+ *   useReactor(
+ *     'announce selection',
+ *     () => {
+ *       const selectedIds = editor.getSelectedShapeIds()
+ *       if (selectedIds.length > 0) {
+ *         console.log(`Selected ${selectedIds.length} shape(s)`)
+ *       }
+ *     },
+ *     [editor]
+ *   )
+ *
+ *   return null
+ * }
+ * ```
+ *
+ * @remarks
+ * The effect is throttled to run at most once per animation frame using `requestAnimationFrame`.
+ * This makes it suitable for effects that need to respond to state changes but don't need to
+ * run synchronously.
+ *
+ * If you need the effect to run immediately without throttling, use {@link useQuickReactor} instead.
+ *
+ * The effect function will be re-created when any of the `deps` change, similar to React's
+ * `useEffect`. The effect automatically tracks which signals it accesses, so you don't need
+ * to manually specify them as dependencies.
+ *
+ * @param name - A debug name for the effect, useful for debugging and performance profiling.
+ * @param reactFn - The effect function to run. Any signals accessed in this function will be tracked.
+ * @param deps - React dependencies array. The effect will be recreated when these change. Defaults to `[]`.
  *
  * @public
  */
