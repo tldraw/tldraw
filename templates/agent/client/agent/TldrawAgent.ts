@@ -2,8 +2,8 @@ import {
 	Atom,
 	atom,
 	Box,
+	clamp,
 	Editor,
-	modulate,
 	react,
 	RecordsDiff,
 	reverseRecordsDiff,
@@ -727,15 +727,13 @@ export class TldrawAgent {
 		const screenBounds = editor.getViewportScreenBounds()
 
 		// Map zoom from user's full range to a range the agent will be able to adequately act in
-		const zoomSteps = editor.getCameraOptions().zoomSteps
-		const zoomMin = zoomSteps[0]
-		const zoomMax = zoomSteps[zoomSteps.length - 1]
-		const mappedZoom = modulate(editor.getZoomLevel(), [zoomMin, zoomMax], [1.25, 0.75])
 		const agentRequestBoundsUnscaled = Box.FromCenter(userBoundsCenter, {
 			x: screenBounds.width,
 			y: screenBounds.height,
 		})
-		const agentRequestBounds = scaleBoxFromCenter(agentRequestBoundsUnscaled, mappedZoom)
+
+		const clampedZoom = clamp(editor.getZoomLevel(), 0.67, 1.25)
+		const agentRequestBounds = scaleBoxFromCenter(agentRequestBoundsUnscaled, 1 / clampedZoom)
 
 		return agentRequestBounds
 
