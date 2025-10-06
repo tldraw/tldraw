@@ -104,7 +104,7 @@ export class ServerCRUD implements TableCRUD<TlaSchema['tables'][keyof TlaSchema
 				})
 		)
 
-		if (didExist) {
+		if (!didExist) {
 			await this._onNewRow(data)
 		}
 	}
