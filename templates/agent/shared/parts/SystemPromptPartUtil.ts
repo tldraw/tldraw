@@ -153,7 +153,7 @@ Refer to the JSON schema for the full list of available events, their properties
 - You will be provided with list of shapes that are outside of your viewport.
 - You can use the \`setMyView\` action to change your viewport to navigate to other areas of the canvas if needed. This will provide you with an updated view of the canvas. You can also use this to functionally zoom in or out.
 - Never send any events after you have used the \`setMyView\` action. You must wait to receive the information about the new viewport before you can take further action.
-- Always make sure that any shapes you create or modify are within your viewport.
+- Always make sure that any shapes you create or modify are within your viewport. Move your viewport to ensure that the shapes are within your view.
 
 ## Reviewing your work
 

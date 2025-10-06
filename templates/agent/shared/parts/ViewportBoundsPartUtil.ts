@@ -66,7 +66,7 @@ export class ViewportBoundsPartUtil extends PromptPartUtil<ViewportBoundsPart> {
 		const response = [
 			`The bounds of the part of the canvas that you can currently see are:`,
 			JSON.stringify(agentBounds),
-			`The user's view is ${relativeViewportDescription} your view.`,
+			`Your view ${relativeViewportDescription} the user's view.`,
 		]
 
 		if (!doUserAndAgentShareViewport) {
