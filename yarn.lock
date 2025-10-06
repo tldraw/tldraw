@@ -27760,6 +27760,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"tldraw-shader-starter-kit@workspace:templates/shader":
+  version: 0.0.0-use.local
+  resolution: "tldraw-shader-starter-kit@workspace:templates/shader"
+  dependencies:
+    "@types/react": "npm:^18.3.18"
+    "@types/react-dom": "npm:^18.3.5"
+    "@vitejs/plugin-react-swc": "npm:^3.10.2"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
+    tldraw: "workspace:*"
+    typescript: "npm:^5.8.3"
+    vite: "npm:^7.0.1"
+  languageName: unknown
+  linkType: soft
+
 "tldraw-sync-cloudflare@workspace:templates/sync-cloudflare":
   version: 0.0.0-use.local
   resolution: "tldraw-sync-cloudflare@workspace:templates/sync-cloudflare"
