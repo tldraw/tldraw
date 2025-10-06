@@ -51,9 +51,7 @@ export class ServerCRUD implements TableCRUD<TlaSchema['tables'][keyof TlaSchema
 				[data.fileId]
 			)
 			assert(res.rowCount === 1, 'file not found')
-			if (res.rows[0].ownerId !== data.userId) {
-				this.perfHackHooks.newFiles.push(res.rows[0])
-			}
+			this.perfHackHooks.newFiles.push(res.rows[0])
 		} else if (this.table.name === 'file') {
 			this.perfHackHooks.newFiles.push(data as TlaFile)
 		}

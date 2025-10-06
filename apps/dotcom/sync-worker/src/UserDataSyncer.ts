@@ -568,24 +568,22 @@ export class UserDataSyncer {
 			return
 		}
 
-		// if we encounter a new subscription for the user to a file, and the file is not in the store,
-		// we can add the file to the store directly instead of doing a hard reboot
+		// By default, we reboot for new subscriptions
+		// However, if it's a subscription to a new file and that file is already in the store,
+		// we can skip the hard reboot.
 		for (const update of topicUpdates.newSubscriptions ?? []) {
-			// Only handle user-to-file subscriptions, reboot for everything else
 			if (update.fromTopic === `user:${this.userId}` && update.toTopic.startsWith('file:')) {
 				const fileId = update.toTopic.split(':')[1]
-				if (!this.store.getCommittedData()?.file.find((f) => f.id === fileId)) {
-					this.log.debug('new subscription, adding guest file', fileId)
-					this.addGuestFile(fileId)
+				if (this.store.getCommittedData()?.file.find((f) => f.id === fileId)) {
+					continue
 				}
-			} else {
-				this.reboot({
-					hard: true,
-					delay: false,
-					source: 'handleReplicationEvent(new subscription)',
-				})
-				return
 			}
+			this.reboot({
+				hard: true,
+				delay: false,
+				source: 'handleReplicationEvent(new subscription)',
+			})
+			return
 		}
 
 		transact(() => {
@@ -614,12 +612,13 @@ export class UserDataSyncer {
 	async addGuestFile(fileOrId: string | TlaFile) {
 		assert('bootId' in this.state, 'bootId should be in state')
 		const bootId = this.state.bootId
+		const fileId = typeof fileOrId === 'string' ? fileOrId : fileOrId.id
+		if (this.store.getFullData()?.file.find((f) => f.id === fileId)) return
 		const file =
 			typeof fileOrId === 'string'
 				? await this.db.selectFrom('file').where('id', '=', fileOrId).selectAll().executeTakeFirst()
 				: fileOrId
 		if (!file) return
-		if (file.ownerId !== this.userId && !file.shared) return
 		if (this.state.bootId !== bootId) return
 		const update: ZRowUpdate = {
 			event: 'insert',
