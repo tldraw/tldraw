@@ -730,14 +730,28 @@ export class TldrawAgent {
 		const zoomSteps = editor.getCameraOptions().zoomSteps
 		const zoomMin = zoomSteps[0]
 		const zoomMax = zoomSteps[zoomSteps.length - 1]
-		const mappedZoom = modulate(editor.getZoomLevel(), [zoomMin, zoomMax], [0.75, 1.25])
+		const mappedZoom = modulate(editor.getZoomLevel(), [zoomMin, zoomMax], [1.25, 0.75])
 		const agentRequestBoundsUnscaled = Box.FromCenter(userBoundsCenter, {
 			x: screenBounds.width,
 			y: screenBounds.height,
 		})
-		const agentRequestBounds = agentRequestBoundsUnscaled.scale(mappedZoom)
+		const agentRequestBounds = scaleBoxFromCenter(agentRequestBoundsUnscaled, mappedZoom)
 
 		return agentRequestBounds
+
+		function scaleBoxFromCenter(box: Box, scale: number) {
+			const { center } = box
+
+			const newWidth = box.w * scale
+			const newHeight = box.h * scale
+
+			box.x = center.x - newWidth / 2
+			box.y = center.y - newHeight / 2
+			box.w = newWidth
+			box.h = newHeight
+
+			return box
+		}
 	}
 }
 
