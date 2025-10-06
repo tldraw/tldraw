@@ -14,24 +14,22 @@ export default function CanvasEventsExample() {
 		setEvents((prevEvents) => ({
 			...prevEvents,
 			[data.type]: {
-			...data,
-			lastUpdated: Date.now(),
+				...data,
+				lastUpdated: Date.now(),
 			},
 		}))
 	}, [])
 
 	// Convert events to array and sort by lastUpdated descending (most recent first)
-	const eventsArray = Object.values(events).sort(
-		(a, b) => a.lastUpdated - b.lastUpdated
-	)
+	const eventsArray = Object.values(events).sort((a, b) => a.lastUpdated - b.lastUpdated)
 
 	return (
 		<div style={{ display: 'flex' }}>
 			<div style={{ width: '50%', height: '100vh' }}>
 				<Tldraw
-				onMount={(editor) => {
-					editor.on('event', (event) => handleEvent(event))
-				}}
+					onMount={(editor) => {
+						editor.on('event', (event) => handleEvent(event))
+					}}
 				/>
 			</div>
 			<div
