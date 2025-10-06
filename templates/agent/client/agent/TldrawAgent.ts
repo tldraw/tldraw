@@ -3,6 +3,7 @@ import {
 	atom,
 	Box,
 	Editor,
+	modulate,
 	react,
 	RecordsDiff,
 	reverseRecordsDiff,
@@ -214,7 +215,7 @@ export class TldrawAgent {
 			data: request.data ?? [],
 			selectedShapes: request.selectedShapes ?? [],
 			contextItems: request.contextItems ?? [],
-			bounds: request.bounds ?? activeRequest?.bounds ?? this.editor.getViewportPageBounds(),
+			bounds: request.bounds ?? activeRequest?.bounds ?? this.calculatViewportBounds(),
 			modelName: request.modelName ?? activeRequest?.modelName ?? this.$modelName.get(),
 		}
 	}
@@ -711,6 +712,32 @@ export class TldrawAgent {
 		}
 
 		return false
+	}
+
+	/**
+	 * Calculate what the agent's viewport bounds should be.
+	 * The viewport bounds are centered on the user's viewport, but scaled
+	 * to a range the agent will be able to adequately act in.
+	 * @returns The agent's viewport bounds.
+	 */
+	calculatViewportBounds() {
+		const { editor } = this
+		// Set the agent's request bounds
+		const userBoundsCenter = editor.getViewportPageBounds().center
+		const screenBounds = editor.getViewportScreenBounds()
+
+		// Map zoom from user's full range to a range the agent will be able to adequately act in
+		const zoomSteps = editor.getCameraOptions().zoomSteps
+		const zoomMin = zoomSteps[0]
+		const zoomMax = zoomSteps[zoomSteps.length - 1]
+		const mappedZoom = modulate(editor.getZoomLevel(), [zoomMin, zoomMax], [0.75, 1.25])
+		const agentRequestBoundsUnscaled = Box.FromCenter(userBoundsCenter, {
+			x: screenBounds.width,
+			y: screenBounds.height,
+		})
+		const agentRequestBounds = agentRequestBoundsUnscaled.scale(mappedZoom)
+
+		return agentRequestBounds
 	}
 }
 
