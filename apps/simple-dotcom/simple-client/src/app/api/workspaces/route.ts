@@ -126,14 +126,19 @@ export async function POST(request: NextRequest) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to create workspace')
 		}
 
-		// Add owner as member
+		// Add owner as member (use upsert to handle duplicates)
 		const { error: memberError, data: memberData } = await supabaseAdmin
 			.from('workspace_members')
-			.insert({
-				workspace_id: workspace.id,
-				user_id: user.id,
-				role: 'owner',
-			})
+			.upsert(
+				{
+					workspace_id: workspace.id,
+					user_id: user.id,
+					role: 'owner',
+				},
+				{
+					onConflict: 'workspace_id,user_id',
+				}
+			)
 			.select()
 
 		if (memberError) {

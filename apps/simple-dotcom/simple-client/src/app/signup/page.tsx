@@ -2,17 +2,17 @@
 
 import { getBrowserClient } from '@/lib/supabase/browser'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 
 function SignupForm() {
-	const router = useRouter()
 	const searchParams = useSearchParams()
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [name, setName] = useState('')
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+	const [success, setSuccess] = useState(false)
 	const [inviteContext, setInviteContext] = useState<string | null>(null)
 	const supabase = getBrowserClient()
 
@@ -38,6 +38,10 @@ function SignupForm() {
 		setError(null)
 
 		try {
+			// Construct the redirect URL for email confirmation callback
+			const destination = redirectUrl && isValidRedirect(redirectUrl) ? redirectUrl : '/dashboard'
+			const confirmationRedirectUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(destination)}`
+
 			const { error: signUpError } = await supabase.auth.signUp({
 				email,
 				password,
@@ -45,6 +49,7 @@ function SignupForm() {
 					data: {
 						name: name,
 					},
+					emailRedirectTo: confirmationRedirectUrl,
 				},
 			})
 
@@ -53,21 +58,8 @@ function SignupForm() {
 				return
 			}
 
-			// Auto sign in after signup
-			const { error: signInError } = await supabase.auth.signInWithPassword({
-				email,
-				password,
-			})
-
-			if (signInError) {
-				setError('Account created but failed to sign in. Please try logging in.')
-				return
-			}
-
-			// Redirect to specified URL or dashboard
-			const destination = redirectUrl && isValidRedirect(redirectUrl) ? redirectUrl : '/dashboard'
-			router.push(destination)
-			router.refresh() // Refresh server components
+			// Show success message - user needs to confirm their email
+			setSuccess(true)
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
 		} finally {
@@ -101,15 +93,35 @@ function SignupForm() {
 					</p>
 				</div>
 
-				<form onSubmit={handleSubmit} className="mt-8 space-y-6">
-					{error && (
-						<div
-							data-testid="error-message"
-							className="rounded-md bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-800 dark:text-red-200"
-						>
-							{error}
+				{success ? (
+					<div
+						data-testid="success-message"
+						className="rounded-md bg-green-50 dark:bg-green-900/20 p-6 text-center space-y-4"
+					>
+						<div className="text-green-800 dark:text-green-200">
+							<h2 className="text-lg font-semibold mb-2">Check your email</h2>
+							<p className="text-sm">
+								We&apos;ve sent a confirmation email to <strong>{email}</strong>. Click the link in
+								the email to activate your account and sign in.
+							</p>
 						</div>
-					)}
+						<p className="text-xs text-foreground/60">
+							Didn&apos;t receive the email? Check your spam folder or{' '}
+							<Link href="/login" className="font-medium hover:underline">
+								try logging in
+							</Link>
+						</p>
+					</div>
+				) : (
+					<form onSubmit={handleSubmit} className="mt-8 space-y-6">
+						{error && (
+							<div
+								data-testid="error-message"
+								className="rounded-md bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-800 dark:text-red-200"
+							>
+								{error}
+							</div>
+						)}
 
 					<div className="space-y-4">
 						<div>
@@ -171,15 +183,16 @@ function SignupForm() {
 						</div>
 					</div>
 
-					<button
-						type="submit"
-						disabled={loading || !isPasswordValid}
-						data-testid="signup-button"
-						className="w-full rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-foreground/90 focus:outline-none focus:ring-2 focus:ring-foreground/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-					>
-						{loading ? 'Creating account...' : 'Create account'}
-					</button>
-				</form>
+						<button
+							type="submit"
+							disabled={loading || !isPasswordValid}
+							data-testid="signup-button"
+							className="w-full rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-foreground/90 focus:outline-none focus:ring-2 focus:ring-foreground/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+						>
+							{loading ? 'Creating account...' : 'Create account'}
+						</button>
+					</form>
+				)}
 			</div>
 		</div>
 	)
