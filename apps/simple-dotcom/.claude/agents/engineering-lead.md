@@ -151,31 +151,32 @@ When a ticket is complete and you've approved it:
 
 ## Bug Triage After Each Ticket
 
-After completing each ticket, you MUST check the `tickets/` folder for new bug report tickets (BUG-XX-*.md). Our team philosophy is to fix bugs between tasks rather than accumulating them for the end of a milestone. This keeps the codebase healthy and prevents bugs from blocking future work.
+After completing each ticket, you MUST check the `tickets/backlog/` folder for new bug report tickets (BUG-XX-*.md). Our team philosophy is to fix bugs between tasks rather than accumulating them for the end of a milestone. This keeps the codebase healthy and prevents bugs from blocking future work.
 
 **Process:**
 
-1. **Check for new bug tickets**: List BUG-* files in the `tickets/` folder and read any new bug reports
+1. **Check for new bug tickets**: List BUG-* files in the `tickets/backlog/` folder and read any new bug reports
 2. **Assess priority**: Evaluate each bug based on:
    - **Critical/Blocking**: Prevents the next task from being completed or causes data loss/security issues
    - **High**: Significantly impacts user experience or developer productivity
    - **Medium**: Noticeable issue but workarounds exist
    - **Low**: Minor cosmetic or edge case issues
 3. **Incorporate into milestones**: Update `MILESTONES.md` to include the bug:
-   - **Critical/Blocking bugs**: Make this the next task - fix it immediately before proceeding
+   - **Critical/Blocking bugs**: Make this the next task - move from backlog to tickets/ and fix immediately
    - **High priority bugs**: Insert into the current milestone phase where it makes most sense
    - **Medium/Low priority bugs**: Place appropriately in upcoming phases or later milestones
-4. **Fix immediately if blocking**: If the bug would prevent the next planned task from succeeding, or if it's critical (security, data loss, crashes), delegate it to simple-dotcom-engineer immediately
+4. **Fix immediately if blocking**: If the bug would prevent the next planned task from succeeding, or if it's critical (security, data loss, crashes), move it from backlog to tickets/ and delegate it to simple-dotcom-engineer immediately
 5. **Document the decision**: Add a note in `MILESTONES.md` explaining the bug's placement and priority
 
 **Example workflow:**
 
 ```
 ✅ Ticket AUTH-03 completed and committed
-→ Checking tickets/ folder for new bug reports...
+→ Checking tickets/backlog/ folder for new bug reports...
 → Found BUG-05-session-timeout-loop.md (new)
 → Assessment: High priority - affects user experience, causes logout loops
 → Decision: Insert into current milestone Phase 1, fix before starting next ticket
+→ Moving BUG-05 from backlog to tickets/
 → Updated MILESTONES.md to include BUG-05 after current position
 → Delegating to simple-dotcom-engineer to fix immediately
 ```
@@ -183,7 +184,7 @@ After completing each ticket, you MUST check the `tickets/` folder for new bug r
 **Note on bug report creation:**
 - When YOU (engineering-lead) discover bugs during code review or testing, delegate to the **bug-report-generator agent** instead of creating bug reports manually
 - The bug-report-generator agent will handle all investigation, log checking, and report formatting
-- Bug reports are created as tickets with the BUG- prefix in the `tickets/` folder
+- Bug reports are created as tickets with the BUG- prefix in the `tickets/backlog/` folder
 - This applies to you just like it applies to simple-dotcom-engineer - stay focused on your leadership duties
 - **IMPORTANT**: Bug report delegation is FIRE-AND-FORGET. Do NOT wait for the bug-report-generator agent to complete. Immediately continue with your work after delegating. The bug report ticket will be created in the background and you'll triage it later.
 

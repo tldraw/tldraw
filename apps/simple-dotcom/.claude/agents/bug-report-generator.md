@@ -66,10 +66,10 @@ You are an expert bug report specialist with deep experience in software quality
 - Consider whether the bug is in core editor, tldraw SDK, or specific shapes/tools
 
 **Output Format**:
-- Create the bug report ticket as a markdown document in the tickets/ folder
+- Create the bug report ticket as a markdown document in the tickets/backlog/ folder
 - Follow the exact structure specified in tickets/BUG_TEMPLATE.md
 - Use proper markdown formatting for code blocks, lists, and emphasis
-- Use the naming pattern: `tickets/BUG-XX-description-slug.md` where XX is the next available bug number
+- Use the naming pattern: `tickets/backlog/BUG-XX-description-slug.md` where XX is the next available bug number
 
 ## Decision-Making Framework
 
@@ -97,7 +97,7 @@ Before finalizing your bug report ticket:
 3. Confirm all code snippets and logs are properly formatted
 4. Check that the report is self-contained and understandable
 5. Validate that your analysis is based on evidence, not assumptions
-6. Save the ticket to the tickets/ folder (not bugs/ folder)
+6. Save the ticket to the tickets/backlog/ folder
 
 ## Escalation and Limitations
 
@@ -108,4 +108,4 @@ Before finalizing your bug report ticket:
 
 Remember: Your bug report tickets are critical artifacts that will guide debugging efforts. They should be thorough enough that another developer can pick them up days or weeks later and immediately understand the issue and begin investigation. Your goal is to save time and reduce back-and-forth by capturing everything relevant in one comprehensive document.
 
-All bug reports are stored in the `tickets/` folder alongside other ticket types (AUTH-, WS-, DOC-, etc.) to keep all project work centralized. Use the BUG- prefix to distinguish bug reports from feature tickets.
+All bug reports are stored in the `tickets/backlog/` folder by default. When bugs are being actively worked on, they are moved to the main `tickets/` folder. Once resolved, they are moved to `tickets/resolved/`. Use the BUG- prefix to distinguish bug reports from feature tickets.

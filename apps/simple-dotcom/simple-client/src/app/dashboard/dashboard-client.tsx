@@ -52,6 +52,7 @@ export default function DashboardClient({
 	// New states for improved UX
 	const [validationError, setValidationError] = useState<string | null>(null)
 	const currentRequestRef = useRef<AbortController | null>(null)
+	const documentNameInputRef = useRef<HTMLInputElement>(null)
 
 	// Check for success message from leaving workspace
 	useEffect(() => {
@@ -369,7 +370,7 @@ export default function DashboardClient({
 
 	const openCreateDocumentModal = (workspace: Workspace) => {
 		setSelectedWorkspace(workspace)
-		setNewDocumentName('')
+		setNewDocumentName('New Document')
 		setValidationError(null)
 		setShowCreateDocumentModal(true)
 	}
@@ -402,6 +403,16 @@ export default function DashboardClient({
 		return () => window.removeEventListener('keydown', handleKeyDown)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [showCreateDocumentModal, newDocumentName, actionLoading])
+
+	// Select text when document creation modal opens
+	useEffect(() => {
+		if (showCreateDocumentModal && documentNameInputRef.current) {
+			// Use setTimeout to ensure the input is fully rendered and focused
+			setTimeout(() => {
+				documentNameInputRef.current?.select()
+			}, 0)
+		}
+	}, [showCreateDocumentModal])
 
 	// Document operation handlers
 	const handleDocumentRename = async (workspaceId: string, documentId: string, newName: string) => {
@@ -923,6 +934,7 @@ export default function DashboardClient({
 							Create Document in {selectedWorkspace.name}
 						</h3>
 						<input
+							ref={documentNameInputRef}
 							type="text"
 							value={newDocumentName}
 							onChange={(e) => {

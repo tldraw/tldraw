@@ -86,9 +86,7 @@ test.describe('Global Dashboard', () => {
 	})
 
 	test.describe('Workspace CRUD from Dashboard', () => {
-		test.skip('should create new workspace and see it in dashboard', async ({
-			authenticatedPage,
-		}) => {
+		test('should create new workspace and see it in dashboard', async ({ authenticatedPage }) => {
 			const page = authenticatedPage
 			const workspaceName = `Dashboard Create Test ${Date.now()}`
 

@@ -4,10 +4,20 @@ This folder contains all tickets for the simple-dotcom project, including featur
 
 ## Folder Structure
 
-- `tickets/` - Active tickets (features, bugs, technical debt, etc.)
+- `tickets/` - Active tickets currently being worked on
+- `tickets/backlog/` - New tickets not yet started (default location for new bugs and features)
+- `tickets/in-progress/` - Tickets actively in development (optional, can also use tickets/)
 - `tickets/resolved/` - Resolved tickets (completed, cannot reproduce, or won't fix)
 - `BUG_TEMPLATE.md` - Template for creating bug report tickets
 - `TEMPLATE.md` - Template for creating feature tickets
+
+## Ticket Workflow
+
+Tickets move through folders as they progress:
+
+1. **New**: Created in `tickets/backlog/`
+2. **Started**: Moved to `tickets/` (or optionally `tickets/in-progress/`) when work begins
+3. **Completed**: Moved to `tickets/resolved/` when done
 
 ## Ticket Types
 
@@ -34,7 +44,7 @@ Use the `/bug-report` slash command to create a new bug report ticket. The comma
 1. Investigate the issue description and check logs
 2. Determine the next available bug number
 3. Create a comprehensive bug report using the BUG_TEMPLATE.md
-4. Save it as `BUG-XX-description-slug.md` in the `tickets/` folder
+4. Save it as `BUG-XX-description-slug.md` in the `tickets/backlog/` folder
 
 ### Ticket Statuses
 
@@ -45,6 +55,18 @@ Use the `/bug-report` slash command to create a new bug report ticket. The comma
 - **Resolved** - Ticket has been completed
 - **Cannot Reproduce** - Unable to reproduce the issue (bugs only)
 - **Won't Fix** - Decision made not to fix this issue
+
+### Starting Work on a Ticket
+
+When beginning work on a ticket from the backlog:
+
+```bash
+git mv tickets/backlog/BUG-XX-description.md tickets/
+# or optionally
+git mv tickets/backlog/BUG-XX-description.md tickets/in-progress/
+```
+
+Update the ticket status to "In Progress".
 
 ### Resolving a Ticket
 
@@ -57,10 +79,13 @@ When a ticket is resolved (status changed to "Resolved", "Cannot Reproduce", or 
 
 2. **Move the file to `tickets/resolved/`**:
    ```bash
+   # From main tickets folder
    git mv tickets/BUG-XX-description.md tickets/resolved/
+   # Or from in-progress
+   git mv tickets/in-progress/BUG-XX-description.md tickets/resolved/
    ```
 
-This keeps the main `tickets/` folder focused on active work while preserving the history of resolved tickets.
+This keeps the `tickets/` and `tickets/backlog/` folders focused on active or upcoming work while preserving the history of resolved tickets.
 
 ## Naming Convention
 
@@ -83,14 +108,24 @@ Feature ticket examples:
 
 ## Viewing Tickets
 
+To see all bug tickets in backlog:
+```bash
+ls tickets/backlog/BUG-*.md
+```
+
 To see all active bug tickets:
 ```bash
-ls tickets/BUG-*.md
+ls tickets/BUG-*.md tickets/in-progress/BUG-*.md 2>/dev/null
+```
+
+To see all tickets in backlog:
+```bash
+ls tickets/backlog/*.md
 ```
 
 To see all active tickets:
 ```bash
-ls tickets/*.md | grep -v TEMPLATE | grep -v README
+ls tickets/*.md tickets/in-progress/*.md 2>/dev/null | grep -v TEMPLATE | grep -v README
 ```
 
 To see resolved tickets:
@@ -98,7 +133,7 @@ To see resolved tickets:
 ls tickets/resolved/
 ```
 
-To search for tickets by keyword:
+To search for tickets by keyword across all folders:
 ```bash
 grep -r "keyword" tickets/
 ```

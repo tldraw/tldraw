@@ -32,6 +32,7 @@ export default function WorkspaceBrowserClient({
 	const [actionLoading, setActionLoading] = useState(false)
 	const [validationError, setValidationError] = useState<string | null>(null)
 	const currentRequestRef = useRef<AbortController | null>(null)
+	const documentNameInputRef = useRef<HTMLInputElement>(null)
 
 	// Subscribe to realtime updates for documents
 	useEffect(() => {
@@ -128,6 +129,16 @@ export default function WorkspaceBrowserClient({
 		return () => window.removeEventListener('keydown', handleKeyDown)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [showCreateModal, newDocumentName, actionLoading])
+
+	// Select text when modal opens
+	useEffect(() => {
+		if (showCreateModal && documentNameInputRef.current) {
+			// Use setTimeout to ensure the input is fully rendered and focused
+			setTimeout(() => {
+				documentNameInputRef.current?.select()
+			}, 0)
+		}
+	}, [showCreateModal])
 
 	const handleCreateDocument = async () => {
 		if (!newDocumentName.trim()) {
@@ -316,7 +327,7 @@ export default function WorkspaceBrowserClient({
 						{canEdit && (
 							<button
 								onClick={() => {
-									setNewDocumentName('')
+									setNewDocumentName('New Document')
 									setValidationError(null)
 									setShowCreateModal(true)
 								}}
@@ -332,7 +343,7 @@ export default function WorkspaceBrowserClient({
 						<EmptyDocumentList
 							canCreate={canEdit}
 							onCreateDocument={() => {
-								setNewDocumentName('')
+								setNewDocumentName('New Document')
 								setValidationError(null)
 								setShowCreateModal(true)
 							}}
@@ -380,6 +391,7 @@ export default function WorkspaceBrowserClient({
 					<div className="bg-white rounded-lg p-6 max-w-md w-full border text-gray-900">
 						<h3 className="text-xl font-semibold mb-4 text-gray-900">Create New Document</h3>
 						<input
+							ref={documentNameInputRef}
 							type="text"
 							value={newDocumentName}
 							onChange={(e) => {

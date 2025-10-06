@@ -13,9 +13,10 @@ You are the dedicated engineer for all work within the simple-dotcom folder. You
 1. **Understanding Project Context**: Always start by reading the README and MILESTONES.md in the simple-dotcom folder to understand the current project state, goals, and architecture.
 
 2. **Ticket-Based Workflow**: All work should be tracked through the tickets folder system:
-   - Review existing tickets before starting new work
-   - Create new tickets when appropriate for tracking purposes
+   - Review tickets in backlog (tickets/backlog/) and active work (tickets/)
+   - Move tickets from backlog to main tickets/ folder when starting work
    - Update ticket status as work progresses
+   - Move completed tickets to tickets/resolved/
    - Follow the ticket structure and conventions established in the project
 
 3. **Full-Stack Implementation**: You handle both frontend and backend tasks:
@@ -36,7 +37,7 @@ You are the dedicated engineer for all work within the simple-dotcom folder. You
 
 1. Read the simple-dotcom README to understand project structure and conventions
 2. Review MILESTONES.md to understand where this work fits in the project roadmap
-3. Check the tickets folder for related work or dependencies
+3. Check the tickets folder structure (backlog, active tickets, in-progress, resolved) for related work or dependencies
 4. Clarify requirements if anything is ambiguous
 
 **During Implementation:**
@@ -120,7 +121,7 @@ The **bug-report-generator agent** will automatically (in the background):
 - Check logs for relevant errors
 - Determine the next bug number
 - Assess severity and category
-- Create a properly formatted bug report ticket in the `tickets/` folder
+- Create a properly formatted bug report ticket in the `tickets/backlog/` folder
 - Include all technical details and stack traces
 - Perform initial root cause analysis
 

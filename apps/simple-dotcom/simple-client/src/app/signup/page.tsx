@@ -42,7 +42,7 @@ function SignupForm() {
 			const destination = redirectUrl && isValidRedirect(redirectUrl) ? redirectUrl : '/dashboard'
 			const confirmationRedirectUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(destination)}`
 
-			const { error: signUpError } = await supabase.auth.signUp({
+			const { data, error: signUpError } = await supabase.auth.signUp({
 				email,
 				password,
 				options: {
@@ -58,8 +58,15 @@ function SignupForm() {
 				return
 			}
 
-			// Show success message - user needs to confirm their email
-			setSuccess(true)
+			// Check if user is immediately confirmed (local dev mode)
+			// If confirmed, redirect immediately. Otherwise show email confirmation message.
+			if (data.user && data.session) {
+				// User is signed in, redirect
+				window.location.href = destination
+			} else {
+				// User needs to confirm email
+				setSuccess(true)
+			}
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
 		} finally {
@@ -123,65 +130,65 @@ function SignupForm() {
 							</div>
 						)}
 
-					<div className="space-y-4">
-						<div>
-							<label htmlFor="name" className="block text-sm font-medium mb-2">
-								Name
-							</label>
-							<input
-								id="name"
-								name="name"
-								type="text"
-								required
-								value={name}
-								onChange={(e) => setName(e.target.value)}
-								data-testid="name-input"
-								className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/40"
-								placeholder="Enter your name"
-							/>
-						</div>
+						<div className="space-y-4">
+							<div>
+								<label htmlFor="name" className="block text-sm font-medium mb-2">
+									Name
+								</label>
+								<input
+									id="name"
+									name="name"
+									type="text"
+									required
+									value={name}
+									onChange={(e) => setName(e.target.value)}
+									data-testid="name-input"
+									className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/40"
+									placeholder="Enter your name"
+								/>
+							</div>
 
-						<div>
-							<label htmlFor="email" className="block text-sm font-medium mb-2">
-								Email address
-							</label>
-							<input
-								id="email"
-								name="email"
-								type="email"
-								autoComplete="email"
-								required
-								value={email}
-								onChange={(e) => setEmail(e.target.value)}
-								data-testid="email-input"
-								className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/40"
-								placeholder="you@example.com"
-							/>
-						</div>
+							<div>
+								<label htmlFor="email" className="block text-sm font-medium mb-2">
+									Email address
+								</label>
+								<input
+									id="email"
+									name="email"
+									type="email"
+									autoComplete="email"
+									required
+									value={email}
+									onChange={(e) => setEmail(e.target.value)}
+									data-testid="email-input"
+									className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/40"
+									placeholder="you@example.com"
+								/>
+							</div>
 
-						<div>
-							<label htmlFor="password" className="block text-sm font-medium mb-2">
-								Password
-							</label>
-							<input
-								id="password"
-								name="password"
-								type="password"
-								autoComplete="new-password"
-								required
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-								data-testid="password-input"
-								className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/40"
-								placeholder="At least 8 characters"
-							/>
-							{showPasswordHint && (
-								<p className="mt-1 text-xs text-red-600 dark:text-red-400">
-									Password must be at least 8 characters long
-								</p>
-							)}
+							<div>
+								<label htmlFor="password" className="block text-sm font-medium mb-2">
+									Password
+								</label>
+								<input
+									id="password"
+									name="password"
+									type="password"
+									autoComplete="new-password"
+									required
+									value={password}
+									onChange={(e) => setPassword(e.target.value)}
+									data-testid="password-input"
+									className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/40"
+									placeholder="At least 8 characters"
+								/>
+								{showPasswordHint && (
+									<p className="mt-1 text-xs text-red-600 dark:text-red-400">
+										Password must be at least 8 characters long
+									</p>
+								)}
+							</div>
 						</div>
-					</div>
 
 						<button
 							type="submit"
