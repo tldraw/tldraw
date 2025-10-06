@@ -120,6 +120,8 @@ export abstract class Geometry2d {
 	distanceToLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters) {
 		if (Vec.Equals(A, B)) return this.distanceToPoint(A, false, filters)
 		const { vertices } = this
+		if (vertices.length === 0) throw Error('nearest point not found')
+		if (vertices.length === 1) return Vec.Dist(A, vertices[0])
 		let nearest: Vec | undefined
 		let dist = Infinity
 		let d: number, p: Vec, q: Vec
