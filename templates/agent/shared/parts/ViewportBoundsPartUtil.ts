@@ -13,7 +13,7 @@ export class ViewportBoundsPartUtil extends PromptPartUtil<ViewportBoundsPart> {
 	static override type = 'viewportBounds' as const
 
 	override getPriority() {
-		return 75 // viewport should go after context bounds (low priority)
+		return 75 // viewport should go after agent's viewport bounds (low priority)
 	}
 
 	override getPart(request: AgentRequest, helpers: AgentHelpers): ViewportBoundsPart {

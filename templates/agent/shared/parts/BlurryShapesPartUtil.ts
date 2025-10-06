@@ -22,14 +22,14 @@ export class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {
 		const { editor } = this.agent
 
 		const shapes = editor.getCurrentPageShapesSorted()
-		const contextBoundsBox = Box.From(request.bounds)
+		const agentViewportBoundsBox = Box.From(request.bounds)
 
 		// Get all shapes within the agent's viewport
 		const shapesInBounds = shapes.filter((shape) => {
 			if (!editor) return false
 			const bounds = editor.getShapeMaskedPageBounds(shape)
 			if (!bounds) return false
-			return contextBoundsBox.includes(bounds)
+			return agentViewportBoundsBox.includes(bounds)
 		})
 
 		// Convert the shapes to the blurry shape format

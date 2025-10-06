@@ -22,16 +22,14 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPar
 		const { editor } = this.agent
 
 		const shapes = editor.getCurrentPageShapesSorted()
-		const contextBounds = request.bounds
+		const agentViewportBoundsBox = Box.From(request.bounds)
 
-		const contextBoundsBox = Box.From(contextBounds)
-
-		// Get all shapes that are outside the context bounds (these are what we want to peripheralize)
+		// Get all shapes that are outside the agent's viewport (these are what we want to peripheralize)
 		const shapesOutsideViewport = shapes.filter((shape) => {
 			if (!editor) return false
 			const bounds = editor.getShapeMaskedPageBounds(shape)
 			if (!bounds) return
-			if (contextBoundsBox.includes(bounds)) return
+			if (agentViewportBoundsBox.includes(bounds)) return
 			return true
 		})
 

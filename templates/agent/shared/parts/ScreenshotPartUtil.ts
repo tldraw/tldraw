@@ -18,15 +18,13 @@ export class ScreenshotPartUtil extends PromptPartUtil<ScreenshotPart> {
 		if (!this.agent) return { type: 'screenshot', screenshot: null }
 		const { editor } = this.agent
 
-		const contextBounds = request.bounds
-
-		const contextBoundsBox = Box.From(contextBounds)
+		const agentViewportBoundsBox = Box.From(request.bounds)
 
 		const shapes = editor.getCurrentPageShapesSorted().filter((shape) => {
 			if (!editor) return false
 			const bounds = editor.getShapeMaskedPageBounds(shape)
 			if (!bounds) return false
-			return contextBoundsBox.includes(bounds)
+			return agentViewportBoundsBox.includes(bounds)
 		})
 
 		if (shapes.length === 0) {
