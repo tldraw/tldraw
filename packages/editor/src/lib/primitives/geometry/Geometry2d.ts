@@ -120,6 +120,8 @@ export abstract class Geometry2d {
 	distanceToLineSegment(A: VecLike, B: VecLike, filters?: Geometry2dFilters) {
 		if (Vec.Equals(A, B)) return this.distanceToPoint(A, false, filters)
 		const { vertices } = this
+		if (vertices.length === 0) throw Error('nearest point not found')
+		if (vertices.length === 1) return Vec.Dist(A, vertices[0])
 		let nearest: Vec | undefined
 		let dist = Infinity
 		let d: number, p: Vec, q: Vec
@@ -175,6 +177,8 @@ export abstract class Geometry2d {
 	interpolateAlongEdge(t: number, _filters?: Geometry2dFilters): Vec {
 		const { vertices } = this
 
+		if (vertices.length === 0) return new Vec(0, 0)
+		if (vertices.length === 1) return vertices[0]
 		if (t <= 0) return vertices[0]
 
 		const distanceToTravel = t * this.length
@@ -208,6 +212,8 @@ export abstract class Geometry2d {
 		let closestSegment = null
 		let closestDistance = Infinity
 		let distanceTraveled = 0
+
+		if (vertices.length === 0 || vertices.length === 1) return 0
 
 		for (let i = 0; i < (this.isClosed ? vertices.length : vertices.length - 1); i++) {
 			const curr = vertices[i]
