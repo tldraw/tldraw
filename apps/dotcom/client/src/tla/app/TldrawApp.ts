@@ -480,9 +480,12 @@ export class TldrawApp {
 		return nextRecentFileOrdering
 	}
 
-	private canCreateNewFile() {
-		const numberOfFiles = this.getUserOwnFiles().length
-		return numberOfFiles < this.config.maxNumberOfFiles
+	private canCreateNewFile(groupId: string) {
+		if (this.isGroupsMigrated()) {
+			return this.getGroupFilesSorted(groupId).length < this.config.maxNumberOfFiles
+		} else {
+			return this.getUserOwnFiles().length < this.config.maxNumberOfFiles
+		}
 	}
 
 	private showMaxFilesToast() {
@@ -509,7 +512,7 @@ export class TldrawApp {
 		name?: string
 		createSource?: string | null
 	} = {}): Promise<Result<{ fileId: string }, 'max number of files reached'>> {
-		if (!this.canCreateNewFile()) {
+		if (!this.canCreateNewFile(this.getHomeGroupId())) {
 			this.showMaxFilesToast()
 			return Result.err('max number of files reached')
 		}
@@ -609,7 +612,7 @@ export class TldrawApp {
 	}
 
 	toggleFileShared(fileId: string) {
-		const file = this.getUserOwnFiles().find((f) => f.id === fileId)
+		const file = this.getFile(fileId)
 		if (!file) throw Error('no file with id ' + fileId)
 
 		this.z.mutate.file.update({
@@ -625,9 +628,8 @@ export class TldrawApp {
 	 * @returns A result indicating success or failure.
 	 */
 	publishFile(fileId: string) {
-		const file = this.getUserOwnFiles().find((f) => f.id === fileId)
+		const file = this.getFile(fileId)
 		if (!file) throw Error(`No file with that id`)
-		if (file.ownerId !== this.userId) throw Error('user cannot publish that file')
 
 		// We're going to bake the name of the file, if it's undefined
 		const name = this.getFileName(file)

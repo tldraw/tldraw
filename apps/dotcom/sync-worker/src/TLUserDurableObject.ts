@@ -390,11 +390,9 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			await client.query('COMMIT')
 
 			for (const file of newFiles) {
-				if (file.ownerId !== this.userId && !file.owningGroupId) {
-					this.cache?.addGuestFile(file)
-				} else {
-					getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
-				}
+				// if this is a legacy guest file, add it to the cache
+				this.cache?.addGuestFile(file)
+				getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
 			}
 		} catch (e) {
 			await client.query('ROLLBACK')
