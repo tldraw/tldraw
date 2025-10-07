@@ -1,8 +1,10 @@
 'use client'
 
 import { DocumentActions } from '@/components/documents/DocumentActions'
+import { useDashboardRealtime } from '@/hooks/useDashboardRealtime'
 import { Document, Folder, RecentDocument, User, Workspace, WorkspaceRole } from '@/lib/api/types'
 import { getBrowserClient } from '@/lib/supabase/browser'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
@@ -31,8 +33,29 @@ export default function DashboardClient({
 	userId,
 }: DashboardClientProps) {
 	const router = useRouter()
-	const [dashboardData, setDashboardData] = useState<DashboardData>(initialData)
+	const queryClient = useQueryClient()
 	const [successMessage, setSuccessMessage] = useState<string | null>(null)
+
+	// Fetch dashboard data with React Query
+	const { data: dashboardData = initialData } = useQuery<DashboardData>({
+		queryKey: ['dashboard', userId],
+		queryFn: async () => {
+			const response = await fetch('/api/dashboard')
+			const result = await response.json()
+			if (!result.success) {
+				throw new Error(result.error?.message || 'Failed to fetch dashboard data')
+			}
+			return result.data
+		},
+		initialData,
+		staleTime: 1000 * 60, // 1 minute
+		refetchOnMount: false,
+		refetchOnReconnect: false,
+	})
+
+	// Enable realtime subscriptions for all workspaces (handles changes from other users)
+	const workspaceIds = dashboardData.workspaces.map((w) => w.workspace.id)
+	useDashboardRealtime(userId, workspaceIds)
 
 	// Collapsible state for workspace sections - expand all by default
 	const [expandedWorkspaces, setExpandedWorkspaces] = useState<Set<string>>(() => {
@@ -95,160 +118,6 @@ export default function DashboardClient({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [showCreateModal, newWorkspaceName, actionLoading])
 
-	// Subscribe to realtime updates for documents and access logs
-	useEffect(() => {
-		const supabase = getBrowserClient()
-		const workspaceIds = dashboardData.workspaces.map((w) => w.workspace.id)
-
-		if (workspaceIds.length === 0) return
-
-		console.log('[Dashboard Realtime] Setting up subscription for workspaces:', workspaceIds)
-
-		const channel = supabase
-			.channel('dashboard-documents')
-			.on(
-				'postgres_changes',
-				{
-					event: 'INSERT',
-					schema: 'public',
-					table: 'documents',
-				},
-				(payload) => {
-					console.log('[Dashboard Realtime] Document INSERT:', payload)
-					const newDoc = payload.new as Document
-					if (!newDoc.is_archived && workspaceIds.includes(newDoc.workspace_id)) {
-						setDashboardData((prev) => ({
-							...prev,
-							workspaces: prev.workspaces.map((ws) =>
-								ws.workspace.id === newDoc.workspace_id
-									? { ...ws, documents: [newDoc, ...ws.documents] }
-									: ws
-							),
-						}))
-					}
-				}
-			)
-			.on(
-				'postgres_changes',
-				{
-					event: 'UPDATE',
-					schema: 'public',
-					table: 'documents',
-				},
-				(payload) => {
-					const updatedDoc = payload.new as Document
-					if (workspaceIds.includes(updatedDoc.workspace_id)) {
-						setDashboardData((prev) => ({
-							...prev,
-							workspaces: prev.workspaces.map((ws) => {
-								if (ws.workspace.id !== updatedDoc.workspace_id) return ws
-								// Remove if archived
-								if (updatedDoc.is_archived) {
-									return {
-										...ws,
-										documents: ws.documents.filter((doc) => doc.id !== updatedDoc.id),
-									}
-								}
-								// Update existing
-								return {
-									...ws,
-									documents: ws.documents.map((doc) =>
-										doc.id === updatedDoc.id ? updatedDoc : doc
-									),
-								}
-							}),
-						}))
-					}
-				}
-			)
-			.on(
-				'postgres_changes',
-				{
-					event: 'DELETE',
-					schema: 'public',
-					table: 'documents',
-				},
-				(payload) => {
-					const deletedDoc = payload.old as { id: string; workspace_id: string }
-					if (workspaceIds.includes(deletedDoc.workspace_id)) {
-						setDashboardData((prev) => ({
-							...prev,
-							workspaces: prev.workspaces.map((ws) =>
-								ws.workspace.id === deletedDoc.workspace_id
-									? { ...ws, documents: ws.documents.filter((doc) => doc.id !== deletedDoc.id) }
-									: ws
-							),
-						}))
-					}
-				}
-			)
-			.on(
-				'postgres_changes',
-				{
-					event: 'INSERT',
-					schema: 'public',
-					table: 'document_access_log',
-					filter: `user_id=eq.${userId}`,
-				},
-				async (payload) => {
-					console.log('[Dashboard Realtime] Document access log INSERT:', payload)
-					const accessLog = payload.new as {
-						document_id: string
-						workspace_id: string
-						accessed_at: string
-					}
-
-					// Fetch the document details to add to recent documents
-					const { data: docData, error } = await supabase
-						.from('documents')
-						.select('id, name, workspace_id, folder_id, is_archived, sharing_mode')
-						.eq('id', accessLog.document_id)
-						.single()
-
-					if (error || !docData) {
-						console.error('[Dashboard Realtime] Failed to fetch document:', error)
-						return
-					}
-
-					// Fetch workspace name
-					const { data: wsData } = await supabase
-						.from('workspaces')
-						.select('name')
-						.eq('id', accessLog.workspace_id)
-						.single()
-
-					const recentDoc: RecentDocument = {
-						id: docData.id,
-						name: docData.name,
-						workspace_id: docData.workspace_id,
-						workspace_name: wsData?.name || 'Unknown Workspace',
-						folder_id: docData.folder_id,
-						accessed_at: accessLog.accessed_at,
-						is_archived: docData.is_archived,
-						sharing_mode: docData.sharing_mode,
-					}
-
-					setDashboardData((prev) => {
-						// Remove the document if it already exists in recent documents
-						const filteredRecent = prev.recentDocuments.filter((doc) => doc.id !== recentDoc.id)
-						// Add to the beginning and limit to 10 most recent
-						return {
-							...prev,
-							recentDocuments: [recentDoc, ...filteredRecent].slice(0, 10),
-						}
-					})
-				}
-			)
-			.subscribe((status, err) => {
-				console.log('[Dashboard Realtime] Subscription status:', status, err)
-			})
-
-		return () => {
-			console.log('[Dashboard Realtime] Cleaning up subscription')
-			supabase.removeChannel(channel)
-		}
-	}, [dashboardData.workspaces.length, userId])
-
 	const handleSignOut = async () => {
 		const supabase = getBrowserClient()
 		await supabase.auth.signOut()
@@ -280,14 +149,8 @@ export default function DashboardClient({
 			const data = await response.json()
 
 			if (data.success && data.data) {
-				// Add new workspace to dashboard
-				setDashboardData((prev) => ({
-					...prev,
-					workspaces: [
-						{ workspace: data.data, documents: [], folders: [], userRole: 'owner' },
-						...prev.workspaces,
-					],
-				}))
+				// Invalidate to trigger refetch
+				queryClient.invalidateQueries({ queryKey: ['dashboard', userId] })
 				setExpandedWorkspaces((prev) => new Set([...prev, data.data.id]))
 				// Only close modal on success
 				setShowCreateModal(false)
@@ -323,12 +186,8 @@ export default function DashboardClient({
 			const data = await response.json()
 
 			if (data.success && data.data) {
-				setDashboardData((prev) => ({
-					...prev,
-					workspaces: prev.workspaces.map((ws) =>
-						ws.workspace.id === selectedWorkspace.id ? { ...ws, workspace: data.data } : ws
-					),
-				}))
+				// Invalidate to trigger refetch
+				queryClient.invalidateQueries({ queryKey: ['dashboard', userId] })
 				setShowRenameModal(false)
 				setNewWorkspaceName('')
 				setSelectedWorkspace(null)
@@ -355,10 +214,8 @@ export default function DashboardClient({
 			const data = await response.json()
 
 			if (data.success) {
-				setDashboardData((prev) => ({
-					...prev,
-					workspaces: prev.workspaces.filter((ws) => ws.workspace.id !== selectedWorkspace.id),
-				}))
+				// Invalidate to trigger refetch
+				queryClient.invalidateQueries({ queryKey: ['dashboard', userId] })
 				setShowDeleteModal(false)
 				setSelectedWorkspace(null)
 			} else {
@@ -482,10 +339,12 @@ export default function DashboardClient({
 
 			const data = await response.json()
 
-			if (!data.success) {
+			if (data.success) {
+				// Invalidate to trigger refetch
+				queryClient.invalidateQueries({ queryKey: ['dashboard', userId] })
+			} else {
 				alert(data.error?.message || 'Failed to rename document')
 			}
-			// Realtime subscription will handle the update
 		} catch (err) {
 			console.error('Failed to rename document:', err)
 			alert('Failed to rename document')

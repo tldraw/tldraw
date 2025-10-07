@@ -698,11 +698,9 @@ test.describe('Global Dashboard', () => {
 			const response = await responsePromise
 			expect(response.status()).toBe(200)
 
-			// Reload page to see updated name
-			await page.reload()
-			const updatedDocItem = page.locator(`[data-testid="document-${document.id}"]`)
-			await expect(updatedDocItem).toContainText(newName)
-			await expect(updatedDocItem).not.toContainText(originalName)
+			// Document should update via React Query invalidation (triggered by mutation)
+			await expect(docItem).toContainText(newName, { timeout: 5000 })
+			await expect(docItem).not.toContainText(originalName)
 		})
 
 		test('should allow archiving document from dashboard', async ({
