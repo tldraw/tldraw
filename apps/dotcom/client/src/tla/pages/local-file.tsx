@@ -7,7 +7,7 @@ import {
 	TldrawUiMenuGroup,
 } from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
-import FairyWrapper from '../components/fairy/Fairy'
+import { FairyWrapper } from '../components/fairy/FairyWrapper'
 
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
