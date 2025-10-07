@@ -2,6 +2,26 @@
 set -e
 
 # Script to snapshot wrangler and postgres state for dotcom app
+#
+# USAGE:
+#   ./snapshot-state.sh [snapshot-name]
+#
+# DESCRIPTION:
+#   Creates a snapshot of the current state of:
+#   - Wrangler state (from sync-worker/.wrangler)
+#   - Postgres database volume (docker_tlapp_pgdata)
+#
+#   Snapshots are stored in .snapshots/ directory and can be restored
+#   using the restore-state.sh script.
+#
+# EXAMPLES:
+#   ./snapshot-state.sh                    # Creates snapshot with timestamp name
+#   ./snapshot-state.sh my-backup         # Creates snapshot named "my-backup"
+#
+# REQUIREMENTS:
+#   - Docker must be running
+#   - Postgres volume must exist (docker_tlapp_pgdata)
+#   - Wrangler state directory should exist (sync-worker/.wrangler)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SNAPSHOTS_DIR="$SCRIPT_DIR/.snapshots"

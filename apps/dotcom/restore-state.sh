@@ -2,6 +2,35 @@
 set -e
 
 # Script to restore wrangler and postgres state for dotcom app
+#
+# USAGE:
+#   ./restore-state.sh <snapshot-name>
+#   ./restore-state.sh                     # Lists available snapshots
+#
+# DESCRIPTION:
+#   Restores a previously created snapshot of:
+#   - Wrangler state (to sync-worker/.wrangler)
+#   - Postgres database volume (docker_tlapp_pgdata)
+#
+#   This will:
+#   - Stop and remove any containers using the postgres volume
+#   - Remove the existing postgres volume
+#   - Create a new volume and restore data from snapshot
+#   - Restore wrangler state to sync-worker/.wrangler
+#
+# EXAMPLES:
+#   ./restore-state.sh                     # Shows available snapshots
+#   ./restore-state.sh my-backup           # Restores snapshot "my-backup"
+#   ./restore-state.sh 20241201_143022     # Restores timestamped snapshot
+#
+# REQUIREMENTS:
+#   - Docker must be running
+#   - Snapshot must exist in .snapshots/ directory
+#   - All containers using the postgres volume will be stopped/removed
+#
+# NOTE:
+#   After restoration, you may need to restart your containers
+#   (e.g., via docker-compose up) as they were removed during the process.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SNAPSHOTS_DIR="$SCRIPT_DIR/.snapshots"
