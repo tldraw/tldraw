@@ -149,8 +149,8 @@ export default function DashboardClient({
 			const data = await response.json()
 
 			if (data.success && data.data) {
-				// Invalidate to trigger refetch
-				queryClient.invalidateQueries({ queryKey: ['dashboard', userId] })
+				// Invalidate to trigger refetch and wait for it to complete
+				await queryClient.refetchQueries({ queryKey: ['dashboard', userId] })
 				setExpandedWorkspaces((prev) => new Set([...prev, data.data.id]))
 				// Only close modal on success
 				setShowCreateModal(false)

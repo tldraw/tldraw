@@ -3,8 +3,9 @@
 import { DocumentListItem } from '@/components/documents/DocumentListItem'
 import { EmptyDocumentList } from '@/components/documents/EmptyDocumentList'
 import { Document, Folder, Workspace } from '@/lib/api/types'
+import { getBrowserClient } from '@/lib/supabase/browser'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface WorkspaceDocumentsClientProps {
 	workspace: Workspace
@@ -25,6 +26,66 @@ export default function WorkspaceDocumentsClient({
 	const [documents, setDocuments] = useState(initialDocuments)
 	const [isCreating, setIsCreating] = useState(false)
 	const [selectedFolder, _setSelectedFolder] = useState<string | null>(null)
+
+	// Subscribe to realtime updates for documents
+	useEffect(() => {
+		const supabase = getBrowserClient()
+
+		const channel = supabase
+			.channel(`workspace-documents-${workspace.id}`)
+			.on(
+				'postgres_changes',
+				{
+					event: 'INSERT',
+					schema: 'public',
+					table: 'documents',
+					filter: `workspace_id=eq.${workspace.id}`,
+				},
+				(payload) => {
+					const newDoc = payload.new as Document
+					if (!newDoc.is_archived) {
+						setDocuments((prev) => [newDoc, ...prev])
+					}
+				}
+			)
+			.on(
+				'postgres_changes',
+				{
+					event: 'UPDATE',
+					schema: 'public',
+					table: 'documents',
+					filter: `workspace_id=eq.${workspace.id}`,
+				},
+				(payload) => {
+					const updatedDoc = payload.new as Document
+					setDocuments((prev) => {
+						// Remove if archived
+						if (updatedDoc.is_archived) {
+							return prev.filter((doc) => doc.id !== updatedDoc.id)
+						}
+						// Update existing document
+						return prev.map((doc) => (doc.id === updatedDoc.id ? updatedDoc : doc))
+					})
+				}
+			)
+			.on(
+				'postgres_changes',
+				{
+					event: 'DELETE',
+					schema: 'public',
+					table: 'documents',
+					filter: `workspace_id=eq.${workspace.id}`,
+				},
+				(payload) => {
+					setDocuments((prev) => prev.filter((doc) => doc.id !== payload.old.id))
+				}
+			)
+			.subscribe()
+
+		return () => {
+			supabase.removeChannel(channel)
+		}
+	}, [workspace.id])
 
 	// Filter documents by selected folder
 	const filteredDocuments = selectedFolder
@@ -110,24 +171,40 @@ export default function WorkspaceDocumentsClient({
 
 	const handleArchiveDocument = async (documentId: string) => {
 		try {
-			const response = await fetch(`/api/documents/${documentId}`, {
-				method: 'DELETE',
+			// Optimistically remove document from UI immediately
+			// This ensures the UI updates even if realtime UPDATE events aren't received
+			setDocuments((prev) => prev.filter((doc) => doc.id !== documentId))
+
+			const response = await fetch(`/api/documents/${documentId}/archive`, {
+				method: 'POST',
 			})
 
 			if (!response.ok) {
 				const error = await response.json()
+				// Revert optimistic update on error by refetching documents
+				const refetchResponse = await fetch(`/api/workspaces/${workspace.id}/documents`)
+				if (refetchResponse.ok) {
+					const refetchData = await refetchResponse.json()
+					if (refetchData.success && refetchData.data) {
+						setDocuments(refetchData.data)
+					}
+				}
 				throw new Error(error.message || 'Failed to archive document')
 			}
-
-			// Update document to archived state
-			setDocuments((prev) =>
-				prev.map((doc) =>
-					doc.id === documentId
-						? { ...doc, is_archived: true, archived_at: new Date().toISOString() }
-						: doc
-				)
-			)
+			// Realtime subscription will keep UI in sync if events are received
 		} catch (err) {
+			// Revert optimistic update on error by refetching documents
+			try {
+				const refetchResponse = await fetch(`/api/workspaces/${workspace.id}/documents`)
+				if (refetchResponse.ok) {
+					const refetchData = await refetchResponse.json()
+					if (refetchData.success && refetchData.data) {
+						setDocuments(refetchData.data)
+					}
+				}
+			} catch (refetchErr) {
+				console.error('Failed to refetch documents:', refetchErr)
+			}
 			alert(
 				`Error archiving document: ${err instanceof Error ? err.message : 'An unexpected error occurred'}`
 			)

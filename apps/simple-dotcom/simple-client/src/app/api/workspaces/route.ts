@@ -15,7 +15,7 @@ import { NextRequest } from 'next/server'
  */
 export async function GET(request: NextRequest) {
 	try {
-		// Get session from Better Auth
+		// Get session from Supabase Auth
 		const user = await requireAuth()
 
 		if (!user) {
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
 	try {
-		// Get session from Better Auth
+		// Get session from Supabase Auth
 		const user = await requireAuth()
 
 		if (!user) {

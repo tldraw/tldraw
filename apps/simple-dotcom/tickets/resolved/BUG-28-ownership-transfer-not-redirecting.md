@@ -1,16 +1,16 @@
 # [BUG-28]: Ownership Transfer Not Redirecting to Workspace Page
 
 Date reported: 2025-10-05
-Date last updated: 2025-10-05
-Date resolved:
+Date last updated: 2025-10-07
+Date resolved: 2025-10-07
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -62,7 +62,7 @@ After transferring workspace ownership:
 
 ## Actual Behavior
 
-What actually happens:
+After successful ownership transfer API call, the page did not redirect. The router.push() call was executed, but Next.js router cache was not invalidated, causing the navigation to fail or use stale cached data.
 
 ## Screenshots/Videos
 
@@ -83,17 +83,22 @@ waiting for navigation to "**/workspace/7b995540-caa3-4348-9a3b-a1e537925cd3" un
 
 - `e2e/ownership-transfer.spec.ts:4` - owner can transfer ownership to another member
 
-## Possible Cause
+## Root Cause
 
-After completing the ownership transfer:
-- The API operation may be completing successfully
-- But the redirect logic is missing or not executing
-- User remains on the settings page instead of being redirected
-- Or there may be an error preventing the operation from completing
+The ownership transfer API call was completing successfully, but the client-side navigation was failing because:
+- After the transfer, the user's role changes from "owner" to "member"
+- The workspace page server component fetches fresh data based on the user's role
+- router.push() was called without first calling router.refresh()
+- Next.js router cache still had the old ownership data cached
+- The navigation attempted to use stale cached data, causing the redirect to fail
 
-## Proposed Solution
+## Solution Implemented
 
-Suggested fix or approach to resolve the bug.
+Added router.refresh() call before router.push() in the handleTransferOwnership function:
+- router.refresh() invalidates the Next.js router cache
+- This forces Next.js to refetch fresh server-side data on navigation
+- The workspace page then loads with the updated ownership information
+- User successfully navigates to the workspace page as a member
 
 ## Related Issues
 
@@ -105,6 +110,15 @@ Suggested fix or approach to resolve the bug.
 - Bug report created
 - Initial analysis performed
 
+**2025-10-07:**
+- Investigated the issue in workspace-settings-client.tsx
+- Identified that router.push() was being called without router.refresh()
+- Added router.refresh() call before router.push() in handleTransferOwnership
+- Verified fix with e2e test - all 4 ownership transfer tests now pass
+- Bug resolved
+
 ## Resolution
 
-Description of how the bug was fixed, or why it was closed without fixing.
+Fixed by adding router.refresh() before router.push() in the handleTransferOwnership function in workspace-settings-client.tsx (line 175). This ensures the Next.js router cache is invalidated before navigation, allowing the workspace page to load with fresh server-side data reflecting the new ownership structure.
+
+File changed: simple-client/src/app/workspace/[workspaceId]/settings/workspace-settings-client.tsx

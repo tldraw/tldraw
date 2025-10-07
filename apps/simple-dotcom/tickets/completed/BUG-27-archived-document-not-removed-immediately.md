@@ -1,16 +1,16 @@
 # [BUG-27]: Archived Document Not Removed Immediately from Document List
 
 Date reported: 2025-10-05
-Date last updated: 2025-10-05
-Date resolved:
+Date last updated: 2025-10-07
+Date resolved: 2025-10-07
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -125,6 +125,25 @@ The issue is in `simple-client/src/app/workspace/[workspaceId]/workspace-documen
 - Bug report created
 - Initial analysis performed
 
+**2025-10-07:**
+- Added Supabase realtime subscriptions to workspace-documents-client.tsx
+- Updated handleArchiveDocument to use correct API endpoint (POST /api/documents/:id/archive)
+- Implemented optimistic UI updates with error recovery
+- Bug fixed and tested
+
 ## Resolution
 
-Description of how the bug was fixed, or why it was closed without fixing.
+Fixed by implementing realtime subscriptions in workspace-documents-client.tsx:
+
+1. **Added imports**: Imported `getBrowserClient` from '@/lib/supabase/browser' and `useEffect` from React
+
+2. **Added realtime subscription**: Created a Supabase channel that listens for INSERT, UPDATE, and DELETE events on the documents table filtered by workspace_id
+   - INSERT: Adds new non-archived documents to the list
+   - UPDATE: Removes documents when they become archived, updates documents otherwise
+   - DELETE: Removes documents from the list
+
+3. **Fixed API endpoint**: Changed `handleArchiveDocument` from using DELETE method on `/api/documents/:id` to POST method on `/api/documents/:id/archive`
+
+4. **Optimistic updates**: Added optimistic UI update that immediately removes the document from the list when archiving, with error recovery that refetches documents if the API call fails
+
+The realtime subscription ensures documents are removed immediately when archived, whether from the current client or from other clients viewing the same workspace.

@@ -20,7 +20,7 @@ type RouteContext = {
  */
 export async function GET(request: NextRequest, context: RouteContext) {
 	try {
-		// Get session from Better Auth
+		// Get session from Supabase Auth
 		const user = await requireAuth()
 
 		if (!user) {
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
  */
 export async function PATCH(request: NextRequest, context: RouteContext) {
 	try {
-		// Get session from Better Auth
+		// Get session from Supabase Auth
 		const user = await requireAuth()
 
 		if (!user) {
@@ -144,7 +144,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
  */
 export async function DELETE(request: NextRequest, context: RouteContext) {
 	try {
-		// Get session from Better Auth
+		// Get session from Supabase Auth
 		const user = await requireAuth()
 
 		if (!user) {

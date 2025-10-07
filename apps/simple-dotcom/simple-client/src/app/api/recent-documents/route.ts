@@ -25,7 +25,7 @@ export interface RecentDocument {
  */
 export async function GET(request: NextRequest) {
 	try {
-		// Get session from Better Auth
+		// Get session from Supabase Auth
 		const user = await requireAuth()
 
 		if (!user) {

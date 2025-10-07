@@ -171,6 +171,8 @@ export default function WorkspaceSettingsClient({
 				throw new Error(result.message || 'Failed to transfer ownership')
 			}
 
+			// Refresh router cache to invalidate cached data
+			router.refresh()
 			// Redirect to workspace page after successful transfer
 			router.push(`/workspace/${workspace.id}`)
 		} catch (err) {
