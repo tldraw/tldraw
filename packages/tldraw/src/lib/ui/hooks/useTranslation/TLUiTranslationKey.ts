@@ -236,6 +236,7 @@ export type TLUiTranslationKey =
 	| 'tool.hexagon'
 	| 'tool.highlight'
 	| 'tool.line'
+	| 'tool.ruler'
 	| 'tool.octagon'
 	| 'tool.oval'
 	| 'tool.pentagon'

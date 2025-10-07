@@ -8,6 +8,7 @@ import { HighlightShapeUtil } from './shapes/highlight/HighlightShapeUtil'
 import { ImageShapeUtil } from './shapes/image/ImageShapeUtil'
 import { LineShapeUtil } from './shapes/line/LineShapeUtil'
 import { NoteShapeUtil } from './shapes/note/NoteShapeUtil'
+import { RulerShapeUtil } from './shapes/ruler/RulerShapeUtil'
 import { TextShapeUtil } from './shapes/text/TextShapeUtil'
 import { VideoShapeUtil } from './shapes/video/VideoShapeUtil'
 
@@ -19,6 +20,7 @@ export const defaultShapeUtils = [
 	GeoShapeUtil,
 	NoteShapeUtil,
 	LineShapeUtil,
+	RulerShapeUtil,
 	FrameShapeUtil,
 	ArrowShapeUtil,
 	HighlightShapeUtil,

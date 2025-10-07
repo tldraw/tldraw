@@ -36,6 +36,7 @@ export function DefaultToolbarContent() {
 			<ArrowRightToolbarItem />
 
 			<LineToolbarItem />
+			<RulerToolbarItem />
 			<HighlightToolbarItem />
 			<LaserToolbarItem />
 			<FrameToolbarItem />
@@ -207,6 +208,11 @@ export function ArrowRightToolbarItem() {
 /** @public @react */
 export function LineToolbarItem() {
 	return <ToolbarItem tool="line" />
+}
+
+/** @public @react */
+export function RulerToolbarItem() {
+	return <ToolbarItem tool="ruler" />
 }
 
 /** @public @react */

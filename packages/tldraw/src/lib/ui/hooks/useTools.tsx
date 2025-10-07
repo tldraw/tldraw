@@ -211,6 +211,28 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				},
 			},
 			{
+				id: 'ruler',
+				label: 'tool.ruler',
+				icon: 'tool-line',
+				kbd: 'm',
+				onSelect(source) {
+					editor.setCurrentTool('ruler')
+					onToolSelect(source, this)
+				},
+				onDragStart(source, info) {
+					onDragFromToolbarToCreateShape(editor, info, {
+						createShape: (id) => {
+							editor.createShape({
+								id,
+								type: 'ruler',
+								props: { w: 200, h: 200 },
+							})
+						},
+					})
+					trackEvent('drag-tool', { source, id: 'ruler' })
+				},
+			},
+			{
 				id: 'frame',
 				label: 'tool.frame',
 				icon: 'tool-frame',

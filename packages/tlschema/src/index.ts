@@ -246,6 +246,13 @@ export {
 	type TLNoteShapeProps,
 } from './shapes/TLNoteShape'
 export {
+	rulerShapeMigrations,
+	rulerShapeProps,
+	rulerShapeVersions,
+	type TLRulerShape,
+	type TLRulerShapeProps,
+} from './shapes/TLRulerShape'
+export {
 	textShapeMigrations,
 	textShapeProps,
 	type TLTextShape,

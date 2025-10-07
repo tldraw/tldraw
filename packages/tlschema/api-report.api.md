@@ -250,6 +250,10 @@ export const defaultShapeSchemas: {
         migrations: TLPropsMigrations;
         props: RecordProps<TLNoteShape>;
     };
+    ruler: {
+        migrations: TLPropsMigrations;
+        props: RecordProps<TLRulerShape>;
+    };
     text: {
         migrations: TLPropsMigrations;
         props: RecordProps<TLTextShape>;
@@ -610,6 +614,17 @@ export const rootBindingMigrations: MigrationSequence;
 export const rootShapeMigrations: MigrationSequence;
 
 // @public
+export const rulerShapeMigrations: TLPropsMigrations;
+
+// @public
+export const rulerShapeProps: RecordProps<TLRulerShape>;
+
+// @public
+export const rulerShapeVersions: {
+    readonly AddScale: "com.tldraw.shape.ruler/1";
+};
+
+// @public
 export interface SchemaPropsInfo {
     meta?: Record<string, StoreValidator<any>>;
     migrations?: LegacyMigrations | MigrationSequence | TLPropsMigrations;
@@ -944,7 +959,7 @@ export type TLDefaultFontStyle = T.TypeOf<typeof DefaultFontStyle>;
 export type TLDefaultHorizontalAlignStyle = T.TypeOf<typeof DefaultHorizontalAlignStyle>;
 
 // @public
-export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
+export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLImageShape | TLLineShape | TLNoteShape | TLRulerShape | TLTextShape | TLVideoShape;
 
 // @public
 export type TLDefaultSizeStyle = T.TypeOf<typeof DefaultSizeStyle>;
@@ -1347,6 +1362,19 @@ export type TLRecord = TLAsset | TLBinding | TLCamera | TLDocument | TLInstance 
 
 // @public
 export type TLRichText = T.TypeOf<typeof richTextValidator>;
+
+// @public
+export type TLRulerShape = TLBaseShape<'ruler', TLRulerShapeProps>;
+
+// @public
+export interface TLRulerShapeProps {
+    color: TLDefaultColorStyle;
+    dash: TLDefaultDashStyle;
+    h: number;
+    scale: number;
+    size: TLDefaultSizeStyle;
+    w: number;
+}
 
 // @public
 export type TLSchema = StoreSchema<TLRecord, TLStoreProps>;

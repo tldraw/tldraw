@@ -237,6 +237,7 @@ export const DEFAULT_TRANSLATION = {
 	'tool.hexagon': 'Hexagon',
 	'tool.highlight': 'Highlight',
 	'tool.line': 'Line',
+	'tool.ruler': 'Ruler',
 	'tool.octagon': 'Octagon',
 	'tool.oval': 'Oval',
 	'tool.pentagon': 'Pentagon',

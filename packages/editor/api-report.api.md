@@ -1030,6 +1030,19 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                type: "ruler";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
                 type: "text";
                 typeName: "shape";
                 x: number;

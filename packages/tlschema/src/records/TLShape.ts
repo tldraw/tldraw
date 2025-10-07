@@ -21,6 +21,7 @@ import { TLHighlightShape } from '../shapes/TLHighlightShape'
 import { TLImageShape } from '../shapes/TLImageShape'
 import { TLLineShape } from '../shapes/TLLineShape'
 import { TLNoteShape } from '../shapes/TLNoteShape'
+import { TLRulerShape } from '../shapes/TLRulerShape'
 import { TLTextShape } from '../shapes/TLTextShape'
 import { TLVideoShape } from '../shapes/TLVideoShape'
 import { StyleProp } from '../styles/StyleProp'
@@ -55,6 +56,7 @@ export type TLDefaultShape =
 	| TLImageShape
 	| TLLineShape
 	| TLNoteShape
+	| TLRulerShape
 	| TLTextShape
 	| TLVideoShape
 	| TLHighlightShape
