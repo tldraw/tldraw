@@ -23,6 +23,7 @@ interface DocumentCardProps {
 	onClick?: () => void
 	onRename?: (newName: string) => void
 	onDuplicate?: () => void
+	onMove?: () => void
 	onArchive?: () => void
 	onRestore?: () => void
 	onDelete?: () => void
@@ -37,6 +38,7 @@ export function DocumentCard({
 	onClick,
 	onRename,
 	onDuplicate,
+	onMove,
 	onArchive,
 	onRestore,
 	onDelete,
@@ -98,6 +100,7 @@ export function DocumentCard({
 						document={document}
 						onRename={onRename}
 						onDuplicate={onDuplicate}
+						onMove={onMove}
 						onArchive={onArchive}
 						onRestore={onRestore}
 						onDelete={onDelete}
