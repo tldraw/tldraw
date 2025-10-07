@@ -3,16 +3,9 @@
 // FolderTree Component
 // Hierarchical folder browser with expand/collapse
 
+import type { Folder } from '@/lib/api/types'
 import { useMemo, useState } from 'react'
 import { FolderListItem } from './FolderListItem'
-
-interface Folder {
-	id: string
-	name: string
-	parent_folder_id?: string | null
-	created_at?: string
-	updated_at?: string
-}
 
 interface FolderTreeProps {
 	folders: Folder[]
@@ -81,6 +74,7 @@ export function FolderTree({
 			<div key={folder.id}>
 				<FolderListItem
 					folder={folder}
+					allFolders={folders}
 					onClick={() => {
 						if (hasChildren) {
 							toggleFolder(folder.id)

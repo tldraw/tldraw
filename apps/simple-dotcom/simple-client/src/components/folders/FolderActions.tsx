@@ -3,13 +3,18 @@
 // FolderActions Component
 // Dropdown menu with folder-specific actions
 
+import type { Folder } from '@/lib/api/types'
+import { useState } from 'react'
 import { ActionMenu, type ActionMenuItem } from '../shared/ActionMenu'
+import { FolderPicker } from './FolderPicker'
 
 interface FolderActionsProps {
 	folder: {
 		id: string
 		name: string
+		parent_folder_id?: string | null
 	}
+	allFolders?: Folder[]
 	onRename?: (newName: string) => void
 	onMove?: (targetFolderId: string | null) => void
 	onDelete?: () => void
@@ -19,18 +24,28 @@ interface FolderActionsProps {
 
 export function FolderActions({
 	folder,
+	allFolders = [],
 	onRename,
 	onMove,
 	onDelete,
 	canEdit = false,
 	canDelete = false,
 }: FolderActionsProps) {
+	const [showFolderPicker, setShowFolderPicker] = useState(false)
+
 	const handleRename = () => {
 		if (onRename) {
 			const newName = window.prompt('Enter new name:', folder.name)
 			if (newName && newName.trim() && newName !== folder.name) {
 				onRename(newName.trim())
 			}
+		}
+	}
+
+	const handleMove = (targetFolderId: string | null) => {
+		if (onMove) {
+			onMove(targetFolderId)
+			setShowFolderPicker(false)
 		}
 	}
 
@@ -59,9 +74,7 @@ export function FolderActions({
 			items.push({
 				label: 'Move',
 				onClick: () => {
-					// In a real implementation, this would open a folder picker dialog
-					console.log('Move folder not yet implemented')
-					// onMove(targetFolderId)
+					setShowFolderPicker(true)
 				},
 				icon: (
 					<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -112,5 +125,19 @@ export function FolderActions({
 		return null
 	}
 
-	return <ActionMenu items={items} />
+	return (
+		<>
+			<ActionMenu items={items} />
+			{showFolderPicker && onMove && (
+				<FolderPicker
+					folders={allFolders}
+					currentFolderId={folder.id}
+					currentParentId={folder.parent_folder_id}
+					onSelect={handleMove}
+					onCancel={() => setShowFolderPicker(false)}
+					isOpen={showFolderPicker}
+				/>
+			)}
+		</>
+	)
 }

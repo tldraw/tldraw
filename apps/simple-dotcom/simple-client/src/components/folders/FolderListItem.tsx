@@ -3,6 +3,7 @@
 // FolderListItem Component
 // Folder display in list views
 
+import type { Folder } from '@/lib/api/types'
 import React, { useState } from 'react'
 import { FolderActions } from './FolderActions'
 
@@ -12,6 +13,7 @@ interface FolderListItemProps {
 		name: string
 		parent_folder_id?: string | null
 	}
+	allFolders?: Folder[]
 	onClick?: () => void
 	onRename?: (newName: string) => void
 	onMove?: (targetFolderId: string | null) => void
@@ -25,6 +27,7 @@ interface FolderListItemProps {
 
 export function FolderListItem({
 	folder,
+	allFolders,
 	onClick,
 	onRename,
 	onMove,
@@ -110,6 +113,7 @@ export function FolderListItem({
 				<div className="opacity-0 group-hover:opacity-100 transition-opacity">
 					<FolderActions
 						folder={folder}
+						allFolders={allFolders}
 						onRename={onRename}
 						onMove={onMove}
 						onDelete={onDelete}
