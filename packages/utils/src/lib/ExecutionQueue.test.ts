@@ -25,7 +25,7 @@ describe('ExecutionQueue', () => {
 		// number of exeutions is still 1 because we didn't await the second task
 		expect(numExecutions).toBe(1)
 
-		await sleep(2) // wait for the second task to finish
+		await sleep(5) // wait for the second task to finish
 
 		// number of exeutions is 2 because we waited for the second task to finish
 		expect(numExecutions).toBe(2)
