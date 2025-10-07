@@ -296,11 +296,13 @@ export class DraggingHandle extends StateNode {
 		let nextHandle = { ...initialHandle, x: point.x, y: point.y }
 
 		let canSnap = false
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		if (initialHandle.canSnap && initialHandle.snapType) {
 			warnOnce(
 				'canSnap is deprecated. Cannot use both canSnap and snapType together - snapping disabled. Please use only snapType.'
 			)
 		} else {
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			canSnap = initialHandle.canSnap || initialHandle.snapType !== undefined
 		}
 

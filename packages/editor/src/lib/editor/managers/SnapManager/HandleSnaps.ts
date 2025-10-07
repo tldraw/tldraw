@@ -246,6 +246,7 @@ export class HandleSnaps {
 	}): SnapData | null {
 		const currentShapeTransform = assertExists(this.editor.getShapePageTransform(currentShapeId))
 		const handleInPageSpace = currentShapeTransform.applyToPoint(handle)
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		const snapType = handle.canSnap ? 'point' : handle.snapType
 
 		if (snapType === 'point') {
