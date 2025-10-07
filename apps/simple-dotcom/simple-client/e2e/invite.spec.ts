@@ -212,7 +212,7 @@ test.describe('Workspace Invitation Flow', () => {
 			await expect(page.locator('text=This invitation link is invalid')).toBeVisible()
 		})
 
-		test('should show error for disabled link', async ({ authenticatedPage }) => {
+		test('should show error for disabled link', async ({ authenticatedPage, testUser }) => {
 			// Create workspace with invite
 			const { workspaceId, inviteToken } = await createWorkspaceWithInvite(authenticatedPage)
 
@@ -233,8 +233,8 @@ test.describe('Workspace Invitation Flow', () => {
 			await expect(authenticatedPage).toHaveURL(/\/login\?redirect=%2Finvite%2F/)
 
 			// Login
-			await authenticatedPage.fill('[data-testid="email-input"]', 'test@example.com')
-			await authenticatedPage.fill('[data-testid="password-input"]', 'TestPassword123!')
+			await authenticatedPage.fill('[data-testid="email-input"]', testUser.email)
+			await authenticatedPage.fill('[data-testid="password-input"]', testUser.password)
 			await authenticatedPage.click('[data-testid="login-button"]')
 
 			// After login, should see disabled message
