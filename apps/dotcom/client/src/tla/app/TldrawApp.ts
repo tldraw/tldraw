@@ -336,36 +336,32 @@ export class TldrawApp {
 		const group = this.getGroupMembership(groupId)
 		if (!group) return []
 
-		const lastOrdering = this.lastGroupFileOrderings.get(groupId)
-
-		const nextOrdering: Array<{
-			fileId: TlaFile['id']
-			date: number
-		}> = []
-
 		const pinned = group.groupFiles.filter((f) => f.index !== null)
 		const unpinned = group.groupFiles.filter((f) => !this.isPinned(f.fileId))
+
+		const lastOrdering = this.lastGroupFileOrderings.get(groupId)
+		const retainedOrdering =
+			lastOrdering?.filter((f) => unpinned.some((p) => p.fileId === f.fileId)) ?? []
+		const newOrdering: typeof retainedOrdering = []
 
 		pinned.sort(sortByMaybeIndex)
 
 		for (const file of unpinned) {
-			const existing = lastOrdering?.find((f) => f.fileId === file.fileId)
+			const existing = retainedOrdering?.find((f) => f.fileId === file.fileId)
+			if (existing) continue
 
-			if (existing) {
-				// Preserve existing entry to maintain ordering and prevent jumping
-				nextOrdering.push(existing)
-			} else {
-				// For new files, use current updatedAt
-				nextOrdering.push({
-					fileId: file.fileId,
-					date: Math.max(file.updatedAt, file.file.updatedAt),
-				})
-			}
+			// For new files, use current updatedAt
+			const state = this.getFileState(file.fileId)
+			newOrdering.push({
+				fileId: file.fileId,
+				date: Math.max(state?.lastEditAt ?? state?.firstVisitAt ?? file.file.createdAt),
+			})
 		}
 
 		// Sort by date (most recent first) but only for new ordering
-		nextOrdering.sort((a, b) => b.date - a.date)
+		newOrdering.sort((a, b) => b.date - a.date)
 
+		const nextOrdering = [...retainedOrdering, ...newOrdering]
 		// Store the ordering for next time
 		this.lastGroupFileOrderings.set(groupId, nextOrdering)
 
