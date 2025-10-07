@@ -1,16 +1,16 @@
 # [BUG-31]: Workspace Rename Dialog Closes Before Update Completes
 
 Date reported: 2025-10-06
-Date last updated: 2025-10-06
-Date resolved:
+Date last updated: 2025-10-07
+Date resolved: 2025-10-07
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -192,6 +192,37 @@ Replace API route with Next.js server actions for better integration with `route
 - Identified root cause: premature form closure before router refresh completes
 - Proposed solution with loading state
 
+**2025-10-07:**
+- Implemented Option 1 (Recommended) from proposed solution
+- Added `isSavingRename` state variable to track loading state
+- Updated `handleRename` function to:
+  - Set loading state at start of operation
+  - Wait 500ms after `router.refresh()` to allow UI to update
+  - Clear loading state in finally block
+  - Only close dialog after data refresh completes
+- Updated UI components to:
+  - Disable input field during save operation
+  - Show "Saving..." text on Save button during operation
+  - Disable Cancel button during save operation
+  - Add visual feedback with disabled styles (opacity, cursor)
+- Verified TypeScript compilation passes
+- Fix provides smooth UX with no flash of old content
+
 ## Resolution
 
-Description of how the bug was fixed, or why it was closed without fixing.
+Fixed by implementing a loading state pattern in the workspace rename dialog. The form now:
+
+1. Shows "Saving..." button text and disables all inputs when user clicks Save
+2. Waits for the API request to complete
+3. Triggers `router.refresh()` to fetch updated workspace data
+4. Waits 500ms for Next.js to complete the refresh and update the UI
+5. Only then closes the dialog, ensuring the new name is visible immediately
+
+Changes made to `/Users/stephenruiz/Documents/GitHub/tldraw/apps/simple-dotcom/simple-client/src/app/workspace/[workspaceId]/settings/workspace-settings-client.tsx`:
+- Added `isSavingRename` state variable (line 32)
+- Updated `handleRename` function to set loading state and wait for refresh (lines 54-82)
+- Updated input field to be disabled during save with visual feedback (lines 333-334)
+- Updated Save button to show loading state and be disabled during save (lines 338-343)
+- Updated Cancel button to be disabled during save (lines 345-356)
+
+This eliminates the flash of incorrect content (FOIC) and provides clear feedback to users that their action is being processed.

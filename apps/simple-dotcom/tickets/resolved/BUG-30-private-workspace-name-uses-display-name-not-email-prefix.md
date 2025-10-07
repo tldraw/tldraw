@@ -1,7 +1,8 @@
 # BUG-30: Private workspace name uses display_name not email prefix
 
-**Status**: New
+**Status**: Resolved
 **Date reported**: 2025-10-05
+**Date resolved**: 2025-10-07
 **Reporter**: System
 **Priority**: Medium
 **Category**: Workspaces
@@ -154,3 +155,31 @@ Both locations need the same fix.
 ## Notes
 
 The database behavior is correct - using `display_name` when available is the right behavior for real users. The test expectation is what needs to be fixed to match the fixture setup.
+
+---
+
+## Resolution
+
+**Date**: 2025-10-07
+**Resolved by**: Claude (simple-dotcom full-stack engineer)
+
+### Changes Made
+
+1. **Restored `display_name` to test fixture** (`simple-client/e2e/fixtures/test-fixtures.ts`):
+   - Added `display_name: name` back to `user_metadata` in test user creation
+   - This ensures test users behave like real users who sign up with a display name
+
+2. **Updated test expectations** (`simple-client/e2e/workspace.spec.ts`):
+   - Line 1159-1166: Modified "should prevent renaming private workspace via API" test
+   - Line 1221-1228: Modified "should verify private workspace created on signup" test
+   - Both tests now query the user's `display_name` from the database and verify workspace name matches it
+   - Removed incorrect assumptions about email prefix being used when display_name is available
+
+### Rationale
+
+The database correctly uses `COALESCE(display_name, email_prefix)` for workspace naming. Since:
+- Real users signing up through the UI have `display_name` set in their user metadata
+- The test fixture should simulate real user behavior
+- The tests should verify correct behavior, not incorrect edge cases
+
+The fix ensures tests match production behavior where workspace names use user display names.

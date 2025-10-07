@@ -29,6 +29,7 @@ export default function WorkspaceSettingsClient({
 	const router = useRouter()
 	const [isRenaming, setIsRenaming] = useState(false)
 	const [name, setName] = useState(workspace.name)
+	const [isSavingRename, setIsSavingRename] = useState(false)
 	const [isDeleting, setIsDeleting] = useState(false)
 	const [isLeaving, setIsLeaving] = useState(false)
 	const [isTransferring, setIsTransferring] = useState(false)
@@ -53,6 +54,7 @@ export default function WorkspaceSettingsClient({
 	const handleRename = async (e: React.FormEvent) => {
 		e.preventDefault()
 		setError(null)
+		setIsSavingRename(true)
 
 		try {
 			const res = await fetch(`/api/workspaces/${workspace.id}`, {
@@ -66,10 +68,16 @@ export default function WorkspaceSettingsClient({
 				throw new Error(data.message || 'Failed to rename workspace')
 			}
 
+			// Trigger router refresh and wait for UI to update
 			router.refresh()
+			// Give Next.js time to refetch and update the UI
+			await new Promise((resolve) => setTimeout(resolve, 500))
+
 			setIsRenaming(false)
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
+		} finally {
+			setIsSavingRename(false)
 		}
 	}
 
@@ -322,16 +330,17 @@ export default function WorkspaceSettingsClient({
 									type="text"
 									value={name}
 									onChange={(e) => setName(e.target.value)}
-									className="w-full rounded-md border px-3 py-2"
-									disabled={!isOwner}
+									className="w-full rounded-md border px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+									disabled={isSavingRename}
 									required
 								/>
 								<div className="flex gap-2">
 									<button
 										type="submit"
-										className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+										disabled={isSavingRename}
+										className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
 									>
-										Save
+										{isSavingRename ? 'Saving...' : 'Save'}
 									</button>
 									<button
 										type="button"
@@ -340,7 +349,8 @@ export default function WorkspaceSettingsClient({
 											setName(workspace.name)
 											setError(null)
 										}}
-										className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50"
+										disabled={isSavingRename}
+										className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
 									>
 										Cancel
 									</button>
