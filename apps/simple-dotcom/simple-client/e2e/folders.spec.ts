@@ -176,6 +176,17 @@ test.describe('Folder Operations', () => {
 		const workspaces = await workspacesResponse.json()
 		const workspaceId = workspaces.data[0].id
 
+		// Pre-cleanup: Delete any existing folders in the workspace to ensure clean state
+		// This prevents data pollution from other parallel tests that may have created folders
+		const existingFolders = await supabaseAdmin
+			.from('folders')
+			.select('id')
+			.eq('workspace_id', workspaceId)
+
+		if (existingFolders.data && existingFolders.data.length > 0) {
+			await supabaseAdmin.from('folders').delete().eq('workspace_id', workspaceId)
+		}
+
 		// Create multiple folders
 		const folderNames = ['Documents', 'Images', 'Videos', 'Archive']
 		const createdFolders = []
