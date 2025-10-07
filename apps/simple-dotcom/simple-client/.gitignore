@@ -15,6 +15,7 @@
 /test-results/
 /playwright-report/
 /playwright/.cache/
+test-auth-state-*.json
 
 # next.js
 /.next/
