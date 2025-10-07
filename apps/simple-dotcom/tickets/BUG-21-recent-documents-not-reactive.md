@@ -1,16 +1,16 @@
 # [BUG-21]: Recent Documents List Not Reactive
 
 Date reported: 2025-10-05
-Date last updated: 2025-10-05
-Date resolved:
+Date last updated: 2025-10-07
+Date resolved: 2025-10-07
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -119,6 +119,32 @@ Suggested fix or approach to resolve the bug.
 - Bug report created
 - Initial analysis performed
 
+**2025-10-07:**
+- Added realtime subscription to `document_access_log` table in dashboard client
+- Created migration to enable realtime replication for `document_access_log` table
+- Implemented handler that fetches document and workspace details when access log entries are inserted
+- Recent documents list now updates immediately when documents are accessed (no page refresh required)
+- Subscription filters by `user_id` to only receive current user's access logs
+- Recent documents are limited to 10 most recent items with automatic de-duplication
+
 ## Resolution
 
-Description of how the bug was fixed, or why it was closed without fixing.
+**Fixed** by adding realtime subscription to the `document_access_log` table.
+
+**Changes made:**
+1. **Database Migration** (`20251007183714_enable_realtime_for_document_access_log.sql`):
+   - Enabled `REPLICA IDENTITY FULL` for `document_access_log` table
+   - Added table to `supabase_realtime` publication
+
+2. **Dashboard Client** (`dashboard-client.tsx` lines 185-237):
+   - Added new subscription handler for `document_access_log` INSERT events
+   - Filtered by current user's ID to only receive relevant updates
+   - Fetches document and workspace details when access is logged
+   - Updates recent documents list in state, maintaining sort order and limiting to 10 items
+   - Handles de-duplication by removing existing entries before re-adding to top
+
+**Testing:**
+- User can access a document via `/d/{documentId}`
+- Pressing back button returns to dashboard
+- Recent documents section immediately shows the accessed document at the top
+- Works across multiple tabs and browser sessions for the same user

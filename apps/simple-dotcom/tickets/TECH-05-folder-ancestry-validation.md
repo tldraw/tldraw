@@ -1,15 +1,15 @@
 # [TECH-05]: Folder Ancestry Validation
 
 Date created: 2025-10-04
-Date last updated: -
-Date completed: -
+Date last updated: 2025-10-07
+Date completed: 2025-10-07
 
 ## Status
 
-- [x] Not Started
+- [ ] Not Started
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -36,9 +36,9 @@ Implement backend validation to prevent folder hierarchy cycles and enforce maxi
 
 ## Acceptance Criteria
 
-- [ ] Folder create/move operations compute ancestry chain and reject actions that would introduce cycles or exceed depth limit.
-- [ ] Validation logic shared across API and database (e.g., using stored procedures or triggers) to prevent bypass.
-- [ ] Errors surfaced to clients include actionable messaging for UI display.
+- [x] Folder create/move operations compute ancestry chain and reject actions that would introduce cycles or exceed depth limit.
+- [x] Validation logic shared across API and database (e.g., using stored procedures or triggers) to prevent bypass.
+- [x] Errors surfaced to clients include actionable messaging for UI display.
 
 ## Technical Details
 
@@ -89,7 +89,21 @@ Benchmark validation performance under deep hierarchies to ensure it does not be
 
 ## Worklog
 
-[Track progress, decisions, and blockers as work proceeds. Each entry should include date and brief description.]
+**2025-10-07:**
+- Reviewed base schema migration (20251004152910_tech_01_base_schema.sql) and confirmed database triggers already implement validation:
+  - `check_folder_depth()` trigger validates 10-level depth limit
+  - `prevent_folder_cycles()` trigger prevents circular references
+- Created individual folder API route at `/api/workspaces/[workspaceId]/folders/[folderId]/route.ts` with:
+  - GET endpoint for folder details
+  - PATCH endpoint for rename and move operations with client-side validation
+  - DELETE endpoint for folder removal
+  - Comprehensive validation for cycles, depth, and workspace boundaries
+- Updated existing folder creation route to include depth and cycle checking
+- Created integration test files:
+  - `route.test.ts` for folder listing and creation
+  - `[folderId]/route.test.ts` for updates and deletion
+  - Tests cover happy paths and edge cases (cycles, depth limits, invalid parents)
+- All acceptance criteria met: validation at both database and API layers with actionable error messages
 
 ## Open questions
 
