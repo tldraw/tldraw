@@ -108,11 +108,11 @@ test.describe('Member Management', () => {
 		await expect(page.getByText('Page 1 of 2')).toBeVisible()
 		await expect(page.getByText('Showing 1 to 10')).toBeVisible()
 
-		await page.getByRole('button', { name: 'Next' }).click()
+		await page.getByTestId('pagination-next').click()
 		await expect(page.getByText('Page 2 of 2')).toBeVisible()
 		await expect(page.getByText('Showing 11 to 16')).toBeVisible()
 
-		await page.getByRole('button', { name: 'Previous' }).click()
+		await page.getByTestId('pagination-previous').click()
 		await expect(page.getByText('Page 1 of 2')).toBeVisible()
 
 		await supabaseAdmin.from('workspaces').delete().eq('id', workspace.id)

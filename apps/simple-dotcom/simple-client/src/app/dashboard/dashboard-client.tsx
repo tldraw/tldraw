@@ -725,12 +725,6 @@ export default function DashboardClient({
 								// Clear validation error when user starts typing
 								if (validationError) setValidationError(null)
 							}}
-							onBlur={() => {
-								// Show validation on blur if empty
-								if (!newWorkspaceName.trim()) {
-									setValidationError('Workspace name is required')
-								}
-							}}
 							placeholder="Enter workspace name"
 							data-testid="workspace-name-input"
 							className={`w-full px-3 py-2 rounded-md border ${
@@ -853,11 +847,6 @@ export default function DashboardClient({
 							onChange={(e) => {
 								setNewDocumentName(e.target.value)
 								if (validationError) setValidationError(null)
-							}}
-							onBlur={() => {
-								if (!newDocumentName.trim()) {
-									setValidationError('Document name is required')
-								}
 							}}
 							placeholder="Document name"
 							data-testid="document-name-input"

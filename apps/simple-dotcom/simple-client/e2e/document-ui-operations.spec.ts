@@ -72,17 +72,21 @@ test.describe('Document UI Operations (NAV-03A)', () => {
 			// Open create modal
 			await page.click('[data-testid="create-document-button"]')
 
-			// Verify button is disabled when name is empty
-			const createButton = page.locator('[data-testid="confirm-create-document"]')
-			await expect(createButton).toBeDisabled()
+			// Verify modal opens with "New Document" pre-filled
+			const nameInput = page.locator('[data-testid="document-name-input"]')
+			await expect(nameInput).toHaveValue('New Document')
 
-			// Fill in a name and verify button is enabled
-			await page.fill('[data-testid="document-name-input"]', 'Valid Name')
+			// Verify button is enabled with pre-filled name
+			const createButton = page.locator('[data-testid="confirm-create-document"]')
 			await expect(createButton).toBeEnabled()
 
-			// Clear the name and verify button is disabled again
+			// Clear the name and verify button is disabled
 			await page.fill('[data-testid="document-name-input"]', '')
 			await expect(createButton).toBeDisabled()
+
+			// Fill in a name and verify button is enabled again
+			await page.fill('[data-testid="document-name-input"]', 'Valid Name')
+			await expect(createButton).toBeEnabled()
 
 			// Cleanup handled in finally
 		} finally {

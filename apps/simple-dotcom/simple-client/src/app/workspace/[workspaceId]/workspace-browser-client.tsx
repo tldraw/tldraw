@@ -712,11 +712,6 @@ export default function WorkspaceBrowserClient({
 								setNewDocumentName(e.target.value)
 								if (validationError) setValidationError(null)
 							}}
-							onBlur={() => {
-								if (!newDocumentName.trim()) {
-									setValidationError('Document name is required')
-								}
-							}}
 							placeholder="Document name"
 							data-testid="document-name-input"
 							className={`w-full px-3 py-2 rounded-md border ${
@@ -764,11 +759,6 @@ export default function WorkspaceBrowserClient({
 							onChange={(e) => {
 								setNewFolderName(e.target.value)
 								if (validationError) setValidationError(null)
-							}}
-							onBlur={() => {
-								if (!newFolderName.trim()) {
-									setValidationError('Folder name is required')
-								}
 							}}
 							placeholder="Folder name"
 							data-testid="folder-name-input"

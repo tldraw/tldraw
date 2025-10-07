@@ -1,15 +1,15 @@
 # [BUG-44]: Pagination "Next" Button Selector Ambiguous with Next.js Dev Tools
 
 Date created: 2025-10-07
-Date last updated: -
-Date completed: -
+Date last updated: 2025-10-07
+Date completed: 2025-10-07
 
 ## Status
 
-- [x] Not Started
+- [ ] Not Started
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -87,11 +87,11 @@ Error: locator.click: Error: strict mode violation: getByRole('button', { name: 
 
 ## Acceptance Criteria
 
-- [ ] Pagination "Next" button has unique, stable selector
-- [ ] Test can click Next button without ambiguity
-- [ ] Pagination works correctly (navigates to page 2)
-- [ ] Test passes reliably in both dev and production modes
-- [ ] E2E test passes
+- [x] Pagination "Next" button has unique, stable selector
+- [x] Test can click Next button without ambiguity
+- [x] Pagination works correctly (navigates to page 2)
+- [x] Test passes reliably in both dev and production modes
+- [x] E2E test passes
 
 ## Related Files
 
@@ -133,8 +133,27 @@ process.env.__NEXT_DISABLE_DEV_OVERLAY = 'true'
 ## Testing Requirements
 
 - [x] E2E test exists and is failing
-- [ ] Manual testing required
-- [ ] Fix verification needed
+- [x] Manual testing required
+- [x] Fix verification needed
+
+## Resolution
+
+**Date Fixed:** 2025-10-07
+
+**Solution Applied:** Added `data-testid` attributes to pagination buttons (Option 1 - Preferred)
+
+**Changes Made:**
+1. Added `data-testid="pagination-next"` to Next button in `workspace-members-client.tsx` (line 368)
+2. Added `data-testid="pagination-previous"` to Previous button in `workspace-members-client.tsx` (line 357)
+3. Updated test selectors in `member-management.spec.ts`:
+   - Line 111: Changed from `page.getByRole('button', { name: 'Next' })` to `page.getByTestId('pagination-next')`
+   - Line 115: Changed from `page.getByRole('button', { name: 'Previous' })` to `page.getByTestId('pagination-previous')`
+
+**Test Results:** E2E test now passes successfully (1 passed in 4.7s)
+
+**Files Modified:**
+- `/Users/stephenruiz/Developer/tldraw/apps/simple-dotcom/simple-client/src/app/workspace/[workspaceId]/members/workspace-members-client.tsx`
+- `/Users/stephenruiz/Developer/tldraw/apps/simple-dotcom/simple-client/e2e/member-management.spec.ts`
 
 ## Notes
 

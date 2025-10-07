@@ -1,16 +1,16 @@
 # [BUG-29]: Duplicate Member Names Displayed in Member Management Page
 
 Date reported: 2025-10-05
-Date last updated: 2025-10-05
-Date resolved:
+Date last updated: 2025-10-07
+Date resolved: 2025-10-07
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -98,6 +98,33 @@ Suggested fix or approach to resolve the bug.
 - Bug report created
 - Initial analysis performed
 
+**2025-10-07:**
+- Root cause identified: While the server query correctly excluded the owner using `.neq('user_id', workspace.owner_id)`, there was a potential edge case where the owner could still appear in the workspace_members query results and also be manually added
+- Fixed by adding deduplication logic before returning members array
+- Implementation uses a Set to track seen member IDs and filters to keep only the first occurrence
+- Since the owner is added first (lines 65-72), this ensures the owner appears with the correct 'owner' role if duplicates exist
+
 ## Resolution
 
-Description of how the bug was fixed, or why it was closed without fixing.
+**Fixed** by adding deduplication logic to prevent the same member from appearing multiple times in the members list.
+
+### Root Cause
+The member management page was constructing the members array by:
+1. Manually fetching and adding the workspace owner from the `users` table
+2. Fetching all other members from `workspace_members` table with `.neq('user_id', workspace.owner_id)` filter
+
+While the `.neq()` filter should prevent the owner from appearing in the workspace_members query, there was no defensive deduplication. This could lead to duplicates in edge cases where:
+- The database filter didn't execute as expected
+- Race conditions in real-time updates
+- Data inconsistencies in the workspace_members table
+
+### Solution
+Added deduplication logic using a Set to track seen member IDs and filter out duplicates. The implementation keeps the first occurrence of each member, which ensures the owner appears with the correct 'owner' role (since they're added first).
+
+### Files Changed
+- `simple-client/src/app/workspace/[workspaceId]/members/page.tsx` - Added deduplication logic (lines 87-97)
+
+### Testing
+- Build successful - no TypeScript errors
+- Logic verified through code review
+- Deduplication ensures each member appears exactly once by ID

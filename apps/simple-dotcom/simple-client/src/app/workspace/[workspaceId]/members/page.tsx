@@ -84,6 +84,18 @@ async function getWorkspaceMembers(userId: string, workspaceId: string) {
 		})
 	}
 
+	// Deduplicate members by ID (safety check to prevent duplicate displays)
+	// This handles edge cases where the same user might appear multiple times
+	// We keep the first occurrence (which will be the owner with correct role)
+	const seenIds = new Set<string>()
+	const uniqueMembers = members.filter((member) => {
+		if (seenIds.has(member.id)) {
+			return false
+		}
+		seenIds.add(member.id)
+		return true
+	})
+
 	// Fetch invitation link
 	const { data: inviteLink } = await supabase
 		.from('invitation_links')
@@ -93,7 +105,7 @@ async function getWorkspaceMembers(userId: string, workspaceId: string) {
 
 	return {
 		workspace,
-		members,
+		members: uniqueMembers,
 		inviteLink,
 		isOwner,
 	}

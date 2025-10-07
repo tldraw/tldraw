@@ -2,15 +2,15 @@
 
 Date reported: 2025-10-07
 Date last updated: 2025-10-07
-Date resolved:
+Date resolved: 2025-10-07
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -150,7 +150,35 @@ The button's disabled state is correctly implemented (`disabled={actionLoading |
 - Discovered via e2e test run
 - Analyzed code and confirmed pre-fill is intentional
 - Identified as test design mismatch vs actual UX behavior
+- **Fixed:** Updated test to match actual UX behavior (Option 1)
+- Modified `simple-client/e2e/document-ui-operations.spec.ts` test "validates document name is required"
 
 ## Resolution
 
-Awaiting decision on whether this is a test issue or a UX issue.
+**Resolution: Test Updated to Match UX (Option 1)**
+
+The bug was resolved by updating the test to match the intentional UX behavior rather than changing the UX itself. The pre-fill behavior provides better user experience by offering a sensible default that users can easily replace.
+
+**Changes Made:**
+1. Updated test to expect "New Document" to be pre-filled when modal opens
+2. Test now verifies button is enabled with the pre-filled value
+3. Test clears the field and verifies button becomes disabled
+4. Test fills field again and verifies button becomes enabled
+
+**Rationale:**
+- The pre-fill UX is intentional and provides good user experience
+- The text is automatically selected on focus, making it easy to replace
+- Users get a working default but can still easily customize
+- The validation still works correctly (button disables when field is empty)
+
+**Test Changes:**
+```typescript
+// Before (Expected empty field):
+await expect(createButton).toBeDisabled()
+
+// After (Expects pre-filled field):
+await expect(nameInput).toHaveValue('New Document')
+await expect(createButton).toBeEnabled()
+await page.fill('[data-testid="document-name-input"]', '')
+await expect(createButton).toBeDisabled()
+```

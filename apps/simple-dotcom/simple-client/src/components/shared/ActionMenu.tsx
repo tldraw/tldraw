@@ -109,13 +109,16 @@ export function ActionMenu({
 						{items.map((item, index) => {
 							if (item.divider) {
 								return (
-									<div key={index} className="border-t border-gray-100 dark:border-gray-700 my-1" />
+									<div
+										key={`divider-${index}`}
+										className="border-t border-gray-100 dark:border-gray-700 my-1"
+									/>
 								)
 							}
 
 							return (
 								<button
-									key={index}
+									key={item.label}
 									onClick={() => handleItemClick(item)}
 									disabled={item.disabled}
 									className={`

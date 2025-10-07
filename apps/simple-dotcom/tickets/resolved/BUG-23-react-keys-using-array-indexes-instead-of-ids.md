@@ -1,16 +1,16 @@
 # [BUG-23]: React Keys Using Array Indexes Instead of Unique IDs
 
 Date reported: 2025-10-05
-Date last updated: 2025-10-05
-Date resolved:
+Date last updated: 2025-10-07
+Date resolved: 2025-10-07
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -120,6 +120,24 @@ Suggested fix or approach to resolve the bug.
 - Bug report created
 - Initial analysis performed
 
+**2025-10-07:**
+- Fixed ActionMenu component to use unique keys
+- Changed from `key={index}` to `key={item.label}` for menu items
+- Used `key={`divider-${index}`}` for dividers (acceptable as they are stateless separators)
+- Verified all ActionMenu usages have unique labels within their respective menus
+- Type checking passed successfully
+
 ## Resolution
 
-Description of how the bug was fixed, or why it was closed without fixing.
+**Fixed** - Updated `/Users/stephenruiz/Developer/tldraw/apps/simple-dotcom/simple-client/src/components/shared/ActionMenu.tsx` to use proper React keys:
+
+1. **Menu items** now use `key={item.label}` instead of `key={index}` (line 118)
+2. **Dividers** now use `key={`divider-${index}`}` instead of `key={index}` (line 112)
+
+**Rationale for key strategy:**
+- Menu item labels are unique within each menu (verified in DocumentActions and FolderActions components)
+- Labels are stable and don't change unless the menu structure changes
+- This follows React best practices for list item keys
+- Dividers are stateless UI elements, so a prefixed index is acceptable
+
+The fix ensures proper React reconciliation and prevents potential rendering issues when menu items are dynamically updated or reordered.

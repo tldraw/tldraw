@@ -1,16 +1,16 @@
 # [BUG-22]: Validation Error Flashes When Clicking Cancel on Create Modals
 
 Date reported: 2025-10-05
-Date last updated: 2025-10-05
-Date resolved:
+Date last updated: 2025-10-07
+Date resolved: 2025-10-07
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -132,6 +132,22 @@ Suggested fix or approach to resolve the bug.
 - Bug report created
 - Initial analysis performed
 
+**2025-10-07:**
+- Fixed by removing onBlur validation handlers from all affected modals
+- Validation now only occurs on form submission (clicking Create button)
+- Changes made to 4 modals total across 2 files
+
 ## Resolution
 
-Description of how the bug was fixed, or why it was closed without fixing.
+Fixed by removing the `onBlur` validation handlers from all four affected modals:
+
+1. **dashboard-client.tsx - Create Workspace modal** (line ~728)
+2. **dashboard-client.tsx - Create Document modal** (line ~851)
+3. **workspace-browser-client.tsx - Create Document modal** (line ~715)
+4. **workspace-browser-client.tsx - Create Folder modal** (line ~763)
+
+The validation logic remains intact in the form submission handlers (`handleCreateWorkspace`, `handleCreateDocument`, `handleCreateFolder`), ensuring users still receive validation errors when attempting to create items with empty names. The only change is that validation no longer triggers on blur events, preventing the error flash when users click Cancel or click outside the input field.
+
+Files modified:
+- `/Users/stephenruiz/Developer/tldraw/apps/simple-dotcom/simple-client/src/app/dashboard/dashboard-client.tsx`
+- `/Users/stephenruiz/Developer/tldraw/apps/simple-dotcom/simple-client/src/app/workspace/[workspaceId]/workspace-browser-client.tsx`

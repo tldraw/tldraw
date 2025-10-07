@@ -354,6 +354,7 @@ export default function WorkspaceMembersClient({
 								</p>
 								<div className="flex gap-2">
 									<button
+										data-testid="pagination-previous"
 										onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
 										disabled={currentPage === 1}
 										className="rounded-md border px-3 py-1 text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -364,6 +365,7 @@ export default function WorkspaceMembersClient({
 										Page {currentPage} of {totalPages}
 									</span>
 									<button
+										data-testid="pagination-next"
 										onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
 										disabled={currentPage === totalPages}
 										className="rounded-md border px-3 py-1 text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
