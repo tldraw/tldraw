@@ -365,20 +365,11 @@ BEGIN
         "ownerId" = NULL
     WHERE "ownerId" = target_user_id;
 
-    -- For any files owned by the user, create a group_file entry in the home group
+    -- For any files that the user has access to, create a group_file entry in the home group
     INSERT INTO public."group_file" ("fileId", "groupId", "createdAt", "updatedAt")
-    SELECT f."id", target_user_id, COALESCE(f."createdAt", v_now), COALESCE(f."updatedAt", v_now)
-    FROM public."file" f
-    WHERE f."owningGroupId" = target_user_id
-      AND f."isDeleted" = FALSE;
-
-    -- For any shared files that the user has access to, create a group_file entry in the home group
-    INSERT INTO public."group_file" ("fileId", "groupId", "createdAt", "updatedAt")
-    SELECT fs."fileId", target_user_id, COALESCE(fs."firstVisitAt", v_now), COALESCE(fs."lastEditAt", v_now)
-    FROM public."file_state" fs
-    WHERE fs."userId" = target_user_id
-      AND fs."isFileOwner" = FALSE
-    ON CONFLICT DO NOTHING;
+    SELECT fs."fileId", target_user_id, COALESCE(fs."firstVisitAt", f."createdAt", v_now), COALESCE(fs."lastEditAt", fs."firstVisitAt", f."updatedAt", f."createdAt", v_now)
+    FROM public."file_state" fs JOIN public."file" f ON fs."fileId" = f."id"
+    WHERE fs."userId" = target_user_id;
 
     -- Update indexes for the group_file entries
     UPDATE public."group_file" gf
