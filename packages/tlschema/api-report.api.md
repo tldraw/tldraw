@@ -1042,10 +1042,12 @@ export interface TLGroupShapeProps {
 
 // @public
 export interface TLHandle {
+    // @deprecated (undocumented)
     canSnap?: boolean;
     id: string;
     index: IndexKey;
     label?: string;
+    snapType?: 'align' | 'point';
     type: TLHandleType;
     x: number;
     y: number;

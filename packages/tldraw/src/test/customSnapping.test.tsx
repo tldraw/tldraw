@@ -173,6 +173,7 @@ describe('custom handle snapping', () => {
 			handlePoints: VecModel[] | 'default'
 			selfSnapOutline: VecModel[] | 'default'
 			selfSnapPoints: VecModel[] | 'default'
+			handleSnapType?: 'point' | 'align'
 		}
 	>
 	class TestShapeUtil extends BaseBoxShapeUtil<TestShape> {
@@ -213,17 +214,23 @@ describe('custom handle snapping', () => {
 			}
 		}
 		override getHandles(shape: TestShape): TLHandle[] {
-			return [
-				{
-					id: 'handle',
-					label: 'handle',
-					type: 'vertex',
-					x: shape.props.ownHandle.x,
-					y: shape.props.ownHandle.y,
-					index: ZERO_INDEX_KEY,
-					canSnap: true,
-				},
-			]
+			const handle: TLHandle = {
+				id: 'handle',
+				label: 'handle',
+				type: 'vertex',
+				x: shape.props.ownHandle.x,
+				y: shape.props.ownHandle.y,
+				index: ZERO_INDEX_KEY,
+			}
+
+			if (shape.props.handleSnapType) {
+				handle.snapType = shape.props.handleSnapType
+			} else {
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				handle.canSnap = true
+			}
+
+			return [handle]
 		}
 		override onHandleDrag(shape: TestShape, { handle }: TLHandleDragInfo<TestShape>) {
 			return { ...shape, props: { ...shape.props, ownHandle: { x: handle.x, y: handle.y } } }
@@ -493,6 +500,43 @@ describe('custom handle snapping', () => {
 				editor.pointerMove(23, 55, undefined, { ctrlKey: true })
 				expect(editor.snaps.getIndicators()).toHaveLength(1)
 				expect(ownHandlePosition()).toMatchObject({ x: 20, y: 50 })
+			})
+		})
+
+		describe('with snapType set to align', () => {
+			beforeEach(() => {
+				editor.updateShape<TestShape>({
+					id: ids.test,
+					type: 'test',
+					props: {
+						selfSnapPoints: [
+							{ x: 20, y: 50 },
+							{ x: 60, y: 10 },
+						],
+						handleSnapType: 'align',
+					},
+				})
+			})
+
+			test('snaps to the y axis', () => {
+				startDraggingOwnHandle()
+				editor.pointerMove(18, 0, undefined, { ctrlKey: true })
+				expect(editor.snaps.getIndicators()).toHaveLength(1)
+				expect(ownHandlePosition()).toMatchObject({ x: 20, y: 0 })
+			})
+
+			test('snaps to the x axis', () => {
+				startDraggingOwnHandle()
+				editor.pointerMove(0, 48, undefined, { ctrlKey: true })
+				expect(editor.snaps.getIndicators()).toHaveLength(1)
+				expect(ownHandlePosition()).toMatchObject({ x: 0, y: 50 })
+			})
+
+			test('snaps to both axes', () => {
+				startDraggingOwnHandle()
+				editor.pointerMove(18, 9, undefined, { ctrlKey: true })
+				expect(editor.snaps.getIndicators()).toHaveLength(2)
+				expect(ownHandlePosition()).toMatchObject({ x: 20, y: 10 })
 			})
 		})
 	})

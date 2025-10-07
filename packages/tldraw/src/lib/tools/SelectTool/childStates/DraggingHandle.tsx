@@ -12,6 +12,7 @@ import {
 	snapAngle,
 	sortByIndex,
 	structuredClone,
+	warnOnce,
 } from '@tldraw/editor'
 import { ArrowShapeUtil } from '../../../shapes/arrow/ArrowShapeUtil'
 import { clearArrowTargetState } from '../../../shapes/arrow/arrowTargetState'
@@ -294,7 +295,18 @@ export class DraggingHandle extends StateNode {
 
 		let nextHandle = { ...initialHandle, x: point.x, y: point.y }
 
-		if (initialHandle.canSnap && (isSnapMode ? !ctrlKey : ctrlKey)) {
+		let canSnap = false
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		if (initialHandle.canSnap && initialHandle.snapType) {
+			warnOnce(
+				'canSnap is deprecated. Cannot use both canSnap and snapType together - snapping disabled. Please use only snapType.'
+			)
+		} else {
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			canSnap = initialHandle.canSnap || initialHandle.snapType !== undefined
+		}
+
+		if (canSnap && (isSnapMode ? !ctrlKey : ctrlKey)) {
 			// We're snapping
 			const pageTransform = editor.getShapePageTransform(shape.id)
 			if (!pageTransform) throw Error('Expected a page transform')
