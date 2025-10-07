@@ -7,12 +7,14 @@ import {
 	TldrawUiMenuGroup,
 } from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
+import FairyWrapper from '../components/fairy/Fairy'
 
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
 	SharePanel: null,
+	InFrontOfTheCanvas: FairyWrapper,
 	MainMenu: () => (
 		<DefaultMainMenu>
 			<TldrawUiMenuGroup id="download">
