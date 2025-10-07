@@ -6,11 +6,28 @@ test.describe('Empty Workspace List Handling (M15-02)', () => {
 		authenticatedPage: page,
 		supabaseAdmin,
 	}) => {
-		// Remove user from all shared workspaces (but keep private workspace as it cannot be deleted per AUTH-02)
-		// Get all shared workspaces the user has access to
+		// Pre-cleanup: Delete all non-private workspaces owned by testUser to ensure clean state
+		// This prevents data pollution from other parallel tests that may have created workspaces
+
+		// Step 1: Delete all non-private workspaces owned by the test user
+		const { data: ownedWorkspaces } = await supabaseAdmin
+			.from('workspaces')
+			.select('id, is_private')
+			.eq('owner_id', testUser.id)
+
+		if (ownedWorkspaces) {
+			for (const workspace of ownedWorkspaces) {
+				if (!workspace.is_private) {
+					// Delete the workspace entirely (not just membership)
+					await supabaseAdmin.from('workspaces').delete().eq('id', workspace.id)
+				}
+			}
+		}
+
+		// Step 2: Remove from any workspaces where user is a member but not owner
 		const { data: memberWorkspaces } = await supabaseAdmin
 			.from('workspace_members')
-			.select('workspace_id, workspace:workspaces!inner(id, is_private)')
+			.select('workspace_id, workspace:workspaces!inner(id, is_private, owner_id)')
 			.eq('user_id', testUser.id)
 
 		if (memberWorkspaces) {
@@ -18,8 +35,9 @@ test.describe('Empty Workspace List Handling (M15-02)', () => {
 				const workspace = Array.isArray(membership.workspace)
 					? membership.workspace[0]
 					: membership.workspace
-				if (!workspace.is_private) {
-					// Remove user from shared workspaces
+
+				// Only remove membership if user doesn't own it (owners already handled above)
+				if (!workspace.is_private && workspace.owner_id !== testUser.id) {
 					await supabaseAdmin
 						.from('workspace_members')
 						.delete()
@@ -57,10 +75,28 @@ test.describe('Empty Workspace List Handling (M15-02)', () => {
 		authenticatedPage: page,
 		supabaseAdmin,
 	}) => {
-		// Remove user from all shared workspaces (keep private workspace)
+		// Pre-cleanup: Delete all non-private workspaces owned by testUser to ensure clean state
+		// This prevents data pollution from other parallel tests that may have created workspaces
+
+		// Step 1: Delete all non-private workspaces owned by the test user
+		const { data: ownedWorkspaces } = await supabaseAdmin
+			.from('workspaces')
+			.select('id, is_private')
+			.eq('owner_id', testUser.id)
+
+		if (ownedWorkspaces) {
+			for (const workspace of ownedWorkspaces) {
+				if (!workspace.is_private) {
+					// Delete the workspace entirely (not just membership)
+					await supabaseAdmin.from('workspaces').delete().eq('id', workspace.id)
+				}
+			}
+		}
+
+		// Step 2: Remove from any workspaces where user is a member but not owner
 		const { data: memberWorkspaces } = await supabaseAdmin
 			.from('workspace_members')
-			.select('workspace_id, workspace:workspaces!inner(id, is_private)')
+			.select('workspace_id, workspace:workspaces!inner(id, is_private, owner_id)')
 			.eq('user_id', testUser.id)
 
 		if (memberWorkspaces) {
@@ -68,7 +104,9 @@ test.describe('Empty Workspace List Handling (M15-02)', () => {
 				const workspace = Array.isArray(membership.workspace)
 					? membership.workspace[0]
 					: membership.workspace
-				if (!workspace.is_private) {
+
+				// Only remove membership if user doesn't own it (owners already handled above)
+				if (!workspace.is_private && workspace.owner_id !== testUser.id) {
 					await supabaseAdmin
 						.from('workspace_members')
 						.delete()
@@ -109,10 +147,28 @@ test.describe('Empty Workspace List Handling (M15-02)', () => {
 		authenticatedPage: page,
 		supabaseAdmin,
 	}) => {
-		// Remove user from all shared workspaces
+		// Pre-cleanup: Delete all non-private workspaces owned by testUser to ensure clean state
+		// This prevents data pollution from other parallel tests that may have created workspaces
+
+		// Step 1: Delete all non-private workspaces owned by the test user
+		const { data: ownedWorkspaces } = await supabaseAdmin
+			.from('workspaces')
+			.select('id, is_private')
+			.eq('owner_id', testUser.id)
+
+		if (ownedWorkspaces) {
+			for (const workspace of ownedWorkspaces) {
+				if (!workspace.is_private) {
+					// Delete the workspace entirely (not just membership)
+					await supabaseAdmin.from('workspaces').delete().eq('id', workspace.id)
+				}
+			}
+		}
+
+		// Step 2: Remove from any workspaces where user is a member but not owner
 		const { data: memberWorkspaces } = await supabaseAdmin
 			.from('workspace_members')
-			.select('workspace_id, workspace:workspaces!inner(id, is_private)')
+			.select('workspace_id, workspace:workspaces!inner(id, is_private, owner_id)')
 			.eq('user_id', testUser.id!)
 
 		if (memberWorkspaces) {
@@ -120,8 +176,9 @@ test.describe('Empty Workspace List Handling (M15-02)', () => {
 				const workspace = Array.isArray(membership.workspace)
 					? membership.workspace[0]
 					: membership.workspace
-				if (!workspace.is_private) {
-					// Remove from shared workspaces
+
+				// Only remove membership if user doesn't own it (owners already handled above)
+				if (!workspace.is_private && workspace.owner_id !== testUser.id) {
 					await supabaseAdmin
 						.from('workspace_members')
 						.delete()

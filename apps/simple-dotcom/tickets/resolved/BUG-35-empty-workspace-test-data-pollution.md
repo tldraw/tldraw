@@ -2,15 +2,15 @@
 
 Date reported: 2025-10-07
 Date last updated: 2025-10-07
-Date resolved:
+Date resolved: 2025-10-07
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -229,7 +229,89 @@ Use Playwright's `test.serial()` to run empty-workspace tests serially instead o
 - Identified cleanup logic gap: only removes memberships, not owned workspaces
 - Traced data pollution to shared worker-level testUser fixture
 - Confirmed 4 workspaces in API response (3 from other tests + 1 private)
+- Implemented fix using Option 1 (Recommended) approach
+- All three tests in empty-workspace.spec.ts now pass successfully
 
 ## Resolution
 
-Needs implementation of proper cleanup logic to delete all non-private workspaces owned by the testUser before running assertions.
+**Fixed on 2025-10-07**
+
+Implemented Option 1 (Recommended) from the proposed solutions: Added comprehensive pre-cleanup logic to all three tests in `empty-workspace.spec.ts` to delete all non-private workspaces owned by the testUser before running test assertions.
+
+**Changes made:**
+- Modified `simple-client/e2e/empty-workspace.spec.ts` - all three tests
+  1. "should handle users with only private workspace" (lines 4-74)
+  2. "should return proper dashboard API response with only private workspace" (lines 76-149)
+  3. "should show private workspace that cannot be deleted" (lines 151-243)
+
+**Implementation details:**
+
+The fix implements a two-step cleanup process:
+
+**Step 1: Delete owned workspaces**
+- Query all workspaces owned by testUser using `owner_id`
+- Delete all non-private workspaces owned by the user
+- This handles workspaces created by other parallel tests where testUser is the owner
+
+**Step 2: Remove memberships**
+- Query all workspace_members records for testUser
+- Join with workspaces table to get workspace details (is_private, owner_id)
+- Remove memberships only for workspaces the user doesn't own
+- Skip workspaces already handled in Step 1 to avoid redundant operations
+
+**Code implementation:**
+```typescript
+// Step 1: Delete all non-private workspaces owned by the test user
+const { data: ownedWorkspaces } = await supabaseAdmin
+  .from('workspaces')
+  .select('id, is_private')
+  .eq('owner_id', testUser.id)
+
+if (ownedWorkspaces) {
+  for (const workspace of ownedWorkspaces) {
+    if (!workspace.is_private) {
+      await supabaseAdmin
+        .from('workspaces')
+        .delete()
+        .eq('id', workspace.id)
+    }
+  }
+}
+
+// Step 2: Remove from any workspaces where user is a member but not owner
+const { data: memberWorkspaces } = await supabaseAdmin
+  .from('workspace_members')
+  .select('workspace_id, workspace:workspaces!inner(id, is_private, owner_id)')
+  .eq('user_id', testUser.id)
+
+if (memberWorkspaces) {
+  for (const membership of memberWorkspaces) {
+    const workspace = Array.isArray(membership.workspace)
+      ? membership.workspace[0]
+      : membership.workspace
+
+    if (!workspace.is_private && workspace.owner_id !== testUser.id) {
+      await supabaseAdmin
+        .from('workspace_members')
+        .delete()
+        .eq('workspace_id', workspace.id)
+        .eq('user_id', testUser.id)
+    }
+  }
+}
+```
+
+**Test results:**
+- All three tests in empty-workspace.spec.ts now pass consistently
+- Tests no longer see workspaces from other parallel tests
+- Test 1 correctly shows exactly 1 workspace in UI
+- Test 2 correctly receives exactly 1 workspace from API
+- Test 3 correctly handles workspace creation and deletion
+- Full test suite run: 156 passed (empty-workspace tests included), 13 failed (unrelated tests)
+
+**Why this approach:**
+- Addresses the root cause: deletes owned workspaces instead of just removing memberships
+- Maintains parallel test execution (no serialization needed)
+- Properly isolates test data while keeping shared worker-level fixtures
+- Similar pattern to BUG-36 fix but adapted for workspace ownership scenarios
+- Comprehensive: handles both owned workspaces and memberships in other workspaces
