@@ -1,15 +1,15 @@
 # [NAV-03]: Workspace Browser
 
 Date created: 2025-10-04
-Date last updated: -
-Date completed: -
+Date last updated: 2025-10-07
+Date completed: 2025-10-07
 
 ## Status
 
-- [x] Not Started
+- [ ] Not Started
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -36,9 +36,9 @@ Create workspace-level browsing experience at `/workspace/[id]` with folder tree
 
 ## Acceptance Criteria
 
-- [ ] Workspace view renders hierarchical folder tree, document lists, and quick actions aligned with role permissions.
-- [ ] Archive entry accessible within navigation linking to WS-04 archive route.
-- [ ] Data fetching respects workspace scoping and updates in real time when changes occur.
+- [x] Workspace view renders hierarchical folder tree, document lists, and quick actions aligned with role permissions.
+- [x] Archive entry accessible within navigation linking to WS-04 archive route.
+- [x] Data fetching respects workspace scoping and updates in real time when changes occur.
 
 ## Technical Details
 
@@ -88,7 +88,22 @@ Coordinate with design for responsive layout guidelines and iconography for fold
 
 ## Worklog
 
-[Track progress, decisions, and blockers as work proceeds. Each entry should include date and brief description.]
+**2025-10-07**: Implementation completed
+- Integrated existing FolderTree component with expand/collapse functionality
+- Added folder selection state and document filtering by folder
+- Implemented folder creation modal and CRUD operations (rename, move, delete)
+- Added realtime subscriptions for folders alongside documents
+- Integrated FolderBreadcrumbs component showing workspace > folder path
+- Added archive link in sidebar navigation
+- Implemented two-pane responsive layout (sidebar + content area)
+- Created comprehensive E2E test suite (workspace-browser.spec.ts) covering:
+  - Folder tree navigation
+  - Document filtering by folder
+  - Breadcrumb navigation
+  - Archive link functionality
+  - Document creation in folders
+  - Responsive layout verification
+- All acceptance criteria met and typecheck passed
 
 ## Open questions
 

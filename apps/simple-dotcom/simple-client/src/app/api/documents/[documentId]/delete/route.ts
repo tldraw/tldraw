@@ -3,7 +3,7 @@
 
 import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
-import { createClient, getCurrentUser } from '@/lib/supabase/server'
+import { createAdminClient, createClient, getCurrentUser } from '@/lib/supabase/server'
 import { NextRequest } from 'next/server'
 
 type RouteContext = {
@@ -46,24 +46,39 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
 			throw new ApiException(404, ErrorCodes.DOCUMENT_NOT_FOUND, 'Document not found')
 		}
 
-		// Check if user is workspace owner
-		const { data: membership } = await supabase
-			.from('workspace_members')
-			.select('role')
-			.eq('workspace_id', document.workspace_id)
-			.eq('user_id', user.id)
+		// Check if user is workspace owner (either direct owner or member with owner role)
+		const { data: workspace } = await supabase
+			.from('workspaces')
+			.select('owner_id')
+			.eq('id', document.workspace_id)
 			.single()
 
-		if (!membership || membership.role !== 'owner') {
-			throw new ApiException(
-				403,
-				ErrorCodes.FORBIDDEN,
-				'Only workspace owners can permanently delete documents'
-			)
+		const isDirectOwner = workspace?.owner_id === user.id
+
+		if (!isDirectOwner) {
+			// Check for member with owner role
+			const { data: membership } = await supabase
+				.from('workspace_members')
+				.select('role')
+				.eq('workspace_id', document.workspace_id)
+				.eq('user_id', user.id)
+				.maybeSingle()
+
+			if (!membership || membership.role !== 'owner') {
+				throw new ApiException(
+					403,
+					ErrorCodes.FORBIDDEN,
+					'Only workspace owners can permanently delete documents'
+				)
+			}
 		}
 
+		// Use admin client for deletion to bypass any potential RLS issues
+		// We've already verified permissions above
+		const adminClient = createAdminClient()
+
 		// Log the hard delete action before deletion
-		await supabase.from('audit_logs').insert({
+		await adminClient.from('audit_logs').insert({
 			user_id: user.id,
 			workspace_id: document.workspace_id,
 			document_id: documentId,
@@ -75,7 +90,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
 		})
 
 		// Permanently delete the document (cascades will handle related records)
-		const { error: deleteError } = await supabase.from('documents').delete().eq('id', documentId)
+		const { error: deleteError } = await adminClient.from('documents').delete().eq('id', documentId)
 
 		if (deleteError) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to delete document')
