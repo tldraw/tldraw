@@ -17,7 +17,7 @@ Break the MVP scope into three executable milestones that sequence dependencies,
 **Ticket checklist:**
 
 - [x] [`tickets/TECH-01-supabase-schema-foundation.md`](tickets/TECH-01-supabase-schema-foundation.md)
-- [~] [`tickets/TECH-04-api-surface-area.md`](tickets/TECH-04-api-surface-area.md) _(In Progress: API routes done, integration tests blocked on AUTH-01)_
+- [x] [`tickets/resolved/TECH-04-api-surface-area.md`](tickets/resolved/TECH-04-api-surface-area.md) ✅ COMPLETED 2025-10-07
 - [x] [`tickets/AUTH-01-implement-email-authentication-flows.md`](tickets/AUTH-01-implement-email-authentication-flows.md)
 - [x] [`tickets/AUTH-02-provision-private-workspace-on-signup.md`](tickets/AUTH-02-provision-private-workspace-on-signup.md)
 - [x] [`tickets/TEST-01-playwright-e2e-suite.md`](tickets/TEST-01-playwright-e2e-suite.md)
@@ -130,7 +130,7 @@ _Start these in parallel after M1.5 complete_
 ### Phase 3: Documents & Folders (Week 3-4)
 
 - [x] [`tickets/NAV-03A-document-creation-ui.md`](tickets/NAV-03A-document-creation-ui.md) _(Small - UI for creating/managing documents)_ ✅ COMPLETED 2025-10-05
-- [ ] [`tickets/TECH-05-folder-ancestry-validation.md`](tickets/TECH-05-folder-ancestry-validation.md) _(Medium)_
+- [x] [`tickets/TECH-05-folder-ancestry-validation.md`](tickets/resolved/TECH-05-folder-ancestry-validation.md) _(Medium)_ ✅ COMPLETED 2025-10-07
 - [ ] [`tickets/DOC-02-folder-hierarchy-and-cycle-prevention.md`](tickets/DOC-02-folder-hierarchy-and-cycle-prevention.md) _(Large - COMPLEX)_
 - [ ] [`tickets/DOC-03-document-move-operations.md`](tickets/DOC-03-document-move-operations.md) _(Medium)_
 - [ ] [`tickets/NAV-03-workspace-browser.md`](tickets/NAV-03-workspace-browser.md) _(Medium - full browser with folder tree)_

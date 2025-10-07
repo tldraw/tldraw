@@ -1156,9 +1156,14 @@ test.describe('Workspace Management', () => {
 				.eq('id', privateWorkspaceId)
 				.single()
 
-			// Private workspace name should be based on email prefix since testUser doesn't have display_name
-			const emailPrefix = testUser.email.split('@')[0]
-			expect(unchangedWorkspace?.name).toBe(`${emailPrefix}'s Workspace`)
+			// Private workspace name should be based on display_name from user metadata
+			const { data: userData } = await supabaseAdmin
+				.from('users')
+				.select('display_name')
+				.eq('id', testUser.id)
+				.single()
+
+			expect(unchangedWorkspace?.name).toBe(`${userData?.display_name}'s Workspace`)
 		})
 
 		test('should prevent deleting private workspace via API', async ({
@@ -1213,9 +1218,14 @@ test.describe('Workspace Management', () => {
 			expect(privateWorkspaces?.length).toBe(1)
 
 			const privateWorkspace = privateWorkspaces![0]
-			// Private workspace name should be based on email prefix since testUser doesn't have display_name
-			const emailPrefix = testUser.email.split('@')[0]
-			expect(privateWorkspace.name).toBe(`${emailPrefix}'s Workspace`)
+			// Private workspace name should be based on display_name from user metadata
+			const { data: userData } = await supabaseAdmin
+				.from('users')
+				.select('display_name')
+				.eq('id', testUser.id)
+				.single()
+
+			expect(privateWorkspace.name).toBe(`${userData?.display_name}'s Workspace`)
 			expect(privateWorkspace.is_deleted).toBe(false)
 			expect(privateWorkspace.owner_id).toBe(testUser.id)
 		})
