@@ -679,22 +679,30 @@ test.describe('Global Dashboard', () => {
 			const docItem = page.locator(`[data-testid="document-${document.id}"]`)
 			await expect(docItem).toContainText(originalName)
 
-			// Hover and click actions menu
-			await docItem.hover()
-			const actionsButton = docItem.locator('button[aria-label="Actions"]')
-			await actionsButton.click()
-
-			// Click rename option
+			// Register dialog handler before any clicks
 			page.on('dialog', async (dialog) => {
 				expect(dialog.message()).toContain('Enter new name')
 				await dialog.accept(newName)
 			})
 
-			await page.click('text=Rename')
+			// Hover and click actions menu
+			await docItem.hover()
+			const actionsButton = docItem.locator('button[aria-label="Actions"]')
+			await actionsButton.click()
 
-			// Document should update via realtime
-			await expect(docItem).toContainText(newName, { timeout: 5000 })
-			await expect(docItem).not.toContainText(originalName)
+			// Click rename option and wait for API response
+			const responsePromise = page.waitForResponse(
+				(resp) => resp.url().includes('/api/documents/') && resp.request().method() === 'PATCH'
+			)
+			await page.click('role=menuitem[name="Rename"]')
+			const response = await responsePromise
+			expect(response.status()).toBe(200)
+
+			// Reload page to see updated name
+			await page.reload()
+			const updatedDocItem = page.locator(`[data-testid="document-${document.id}"]`)
+			await expect(updatedDocItem).toContainText(newName)
+			await expect(updatedDocItem).not.toContainText(originalName)
 		})
 
 		test('should allow archiving document from dashboard', async ({

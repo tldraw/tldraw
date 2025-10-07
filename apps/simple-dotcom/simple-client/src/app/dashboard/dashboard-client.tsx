@@ -474,7 +474,7 @@ export default function DashboardClient({
 	// Document operation handlers
 	const handleDocumentRename = async (workspaceId: string, documentId: string, newName: string) => {
 		try {
-			const response = await fetch(`/api/workspaces/${workspaceId}/documents/${documentId}`, {
+			const response = await fetch(`/api/documents/${documentId}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ name: newName }),
@@ -494,14 +494,11 @@ export default function DashboardClient({
 
 	const handleDocumentDuplicate = async (workspaceId: string, documentId: string) => {
 		try {
-			const response = await fetch(
-				`/api/workspaces/${workspaceId}/documents/${documentId}/duplicate`,
-				{
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({}),
-				}
-			)
+			const response = await fetch(`/api/documents/${documentId}/duplicate`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({}),
+			})
 
 			const data = await response.json()
 
@@ -517,7 +514,7 @@ export default function DashboardClient({
 
 	const handleDocumentArchive = async (workspaceId: string, documentId: string) => {
 		try {
-			const response = await fetch(`/api/workspaces/${workspaceId}/documents/${documentId}`, {
+			const response = await fetch(`/api/documents/${documentId}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ is_archived: true }),
@@ -537,7 +534,7 @@ export default function DashboardClient({
 
 	const handleDocumentRestore = async (workspaceId: string, documentId: string) => {
 		try {
-			const response = await fetch(`/api/workspaces/${workspaceId}/documents/${documentId}`, {
+			const response = await fetch(`/api/documents/${documentId}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ is_archived: false }),
@@ -557,7 +554,7 @@ export default function DashboardClient({
 
 	const handleDocumentDelete = async (workspaceId: string, documentId: string) => {
 		try {
-			const response = await fetch(`/api/workspaces/${workspaceId}/documents/${documentId}`, {
+			const response = await fetch(`/api/documents/${documentId}`, {
 				method: 'DELETE',
 			})
 

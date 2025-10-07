@@ -242,6 +242,9 @@ export default function WorkspaceBrowserClient({
 		try {
 			const response = await fetch(`/api/documents/${documentId}/delete`, {
 				method: 'DELETE',
+				headers: {
+					'X-Confirm-Delete': 'true',
+				},
 			})
 
 			const data = await response.json()

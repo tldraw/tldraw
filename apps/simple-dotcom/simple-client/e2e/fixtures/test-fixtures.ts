@@ -144,7 +144,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 				const cleanupResult = await cleanupTestUsersByPattern(supabaseAdmin, user.email)
 
 				const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user.id)
-				if (deleteError) {
+				if (deleteError && deleteError.message !== 'User not found') {
 					throw new Error(`Failed to delete worker test user ${user.email}: ${deleteError.message}`)
 				}
 

@@ -1,16 +1,16 @@
 # [BUG-19]: Missing Delete Confirmation Header in Workspace Browser
 
 Date reported: 2025-10-05
-Date last updated: 2025-10-05
-Date resolved: 
+Date last updated: 2025-10-07
+Date resolved: 2025-10-07 
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -139,6 +139,12 @@ This matches the working implementation in the archive page and satisfies the AP
 - Bug discovered via code review
 - Identified inconsistency between archive and browser page implementations
 
+**2025-10-07:**
+- Added missing `X-Confirm-Delete: true` header to `handleDeleteDocument` function in `workspace-browser-client.tsx:243-248`
+- Fix matches working implementation from archive page
+- Added E2E test in `document-ui-operations.spec.ts:336` to verify fix
+- E2E test passed successfully
+
 ## Resolution
 
-Pending fix.
+Fixed by adding the required confirmation header to the delete API call in `workspace-browser-client.tsx:245-247`. Verified with passing E2E test that exercises the complete UI workflow (hover document card, click actions menu, click "Delete permanently", accept confirmation dialog).

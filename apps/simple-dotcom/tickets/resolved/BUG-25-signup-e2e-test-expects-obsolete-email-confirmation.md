@@ -1,16 +1,16 @@
 # [BUG-25]: Signup E2E Test Expects Obsolete Email Confirmation Message
 
 Date reported: 2025-10-06
-Date last updated: 2025-10-06
-Date resolved:
+Date last updated: 2025-10-07
+Date resolved: 2025-10-07
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -171,4 +171,15 @@ test('should successfully sign up a new user and redirect to dashboard', async (
 
 ## Resolution
 
-[To be completed when fixed]
+**2025-10-07:** Fixed by updating the test to match the actual auto-confirmed signup behavior.
+
+**Changes made:**
+- Updated test name from "should successfully sign up a new user and show confirmation message" to "should successfully sign up a new user and redirect to dashboard"
+- Changed expectations to verify redirect to dashboard (lines 22-28 in auth.spec.ts)
+- Removed check for email confirmation message
+- Added verification that dashboard loads with workspace sidebar
+- Test now passes consistently in test environment
+
+**Implementation:** Option 1 (Recommended) was implemented - test updated to match new behavior rather than checking for obsolete email confirmation message.
+
+**Test result:** ✅ Passing - "1 passed (2.1s)"

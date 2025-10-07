@@ -332,4 +332,75 @@ test.describe('Document UI Operations (NAV-03A)', () => {
 		await supabaseAdmin.from('documents').delete().eq('id', document.id)
 		await supabaseAdmin.from('workspaces').delete().eq('id', workspaceId)
 	})
+
+	test('can permanently delete document via workspace browser menu (BUG-19)', async ({
+		authenticatedPage,
+		supabaseAdmin,
+		testUser,
+		testData,
+	}) => {
+		const page = authenticatedPage
+		const workspaceName = `Delete UI Test ${Date.now()}`
+		const documentName = `Doc to Delete ${Date.now()}`
+
+		// Create workspace and document via testData helper
+		const workspace = await testData.createWorkspace({
+			ownerId: testUser.id,
+			name: workspaceName,
+		})
+		const document = await testData.createDocument({
+			workspaceId: workspace.id,
+			createdBy: testUser.id,
+			name: documentName,
+		})
+
+		const documentId = document.id
+
+		try {
+			// Navigate to workspace page
+			await page.goto(`/workspace/${workspace.id}`)
+
+			// Wait for document to appear
+			await expect(page.getByText(documentName)).toBeVisible({ timeout: 5000 })
+
+			// Find the document card by its name text and hover to show actions
+			const documentCard = page.locator('.group').filter({ hasText: documentName })
+			await documentCard.hover()
+
+			// Wait for actions to appear (they show on hover) and click the three-dot menu button
+			await documentCard.locator('button[aria-label="Actions"]').click()
+
+			// Set up dialog handler to accept the confirmation
+			page.once('dialog', (dialog) => dialog.accept())
+
+			// Click "Delete permanently" option
+			await page.getByRole('menuitem', { name: /delete permanently/i }).click()
+
+			// Document should disappear from list via realtime subscription
+			await expect(page.getByText(documentName)).not.toBeVisible({ timeout: 10000 })
+
+			// Verify document is permanently deleted from database
+			const { data: deletedDoc } = await supabaseAdmin
+				.from('documents')
+				.select('id')
+				.eq('id', documentId)
+				.maybeSingle()
+
+			expect(deletedDoc).toBeNull()
+
+			// Verify audit log was created
+			const { data: auditLog } = await supabaseAdmin
+				.from('audit_logs')
+				.select('*')
+				.eq('document_id', documentId)
+				.eq('action', 'document_hard_deleted')
+				.single()
+
+			expect(auditLog).toBeTruthy()
+			expect(auditLog.user_id).toBe(testUser.id)
+		} finally {
+			// Cleanup workspace (document should already be deleted)
+			await supabaseAdmin.from('workspaces').delete().eq('id', workspace.id)
+		}
+	})
 })

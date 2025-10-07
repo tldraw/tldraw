@@ -3,7 +3,7 @@ import { expect, test } from './fixtures/test-fixtures'
 
 test.describe('Authentication', () => {
 	test.describe('Signup', () => {
-		test('should successfully sign up a new user and show confirmation message', async ({
+		test('should successfully sign up a new user and redirect to dashboard', async ({
 			page,
 			supabaseAdmin,
 		}) => {
@@ -19,11 +19,13 @@ test.describe('Authentication', () => {
 			await page.fill('[data-testid="password-input"]', password)
 			await page.click('[data-testid="signup-button"]')
 
-			// Should show success message about email confirmation
-			const successMessage = page.locator('[data-testid="success-message"]')
-			await expect(successMessage).toBeVisible()
-			await expect(successMessage).toContainText('Check your email')
-			await expect(successMessage).toContainText(email)
+			// Should redirect to dashboard (auto-confirmed in test environment)
+			await page.waitForURL('**/dashboard**', { timeout: 10000 })
+			expect(page.url()).toContain('/dashboard')
+
+			// Verify dashboard loaded and user has a workspace
+			await expect(page.locator('text=Dashboard')).toBeVisible()
+			await expect(page.locator('text=Workspaces')).toBeVisible()
 
 			// Cleanup: delete the created user and all related data
 			const { data } = await supabaseAdmin.from('users').select('id').eq('email', email).single()
