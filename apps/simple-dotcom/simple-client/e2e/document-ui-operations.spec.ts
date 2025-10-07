@@ -373,11 +373,22 @@ test.describe('Document UI Operations (NAV-03A)', () => {
 			// Set up dialog handler to accept the confirmation
 			page.once('dialog', (dialog) => dialog.accept())
 
+			// Wait for the DELETE API request to complete
+			const deleteRequest = page.waitForResponse(
+				(response) =>
+					response.url().includes(`/api/documents/${documentId}/delete`) &&
+					response.request().method() === 'DELETE'
+			)
+
 			// Click "Delete permanently" option
 			await page.getByRole('menuitem', { name: /delete permanently/i }).click()
 
-			// Document should disappear from list via realtime subscription
-			await expect(page.getByText(documentName)).not.toBeVisible({ timeout: 10000 })
+			// Document should disappear from list immediately (optimistic update)
+			await expect(page.getByText(documentName)).not.toBeVisible({ timeout: 1000 })
+
+			// Wait for the API call to complete
+			const response = await deleteRequest
+			expect(response.ok()).toBeTruthy()
 
 			// Verify document is permanently deleted from database
 			const { data: deletedDoc } = await supabaseAdmin
