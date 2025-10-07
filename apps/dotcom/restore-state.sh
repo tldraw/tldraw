@@ -26,11 +26,8 @@ set -e
 # REQUIREMENTS:
 #   - Docker must be running
 #   - Snapshot must exist in .snapshots/ directory
+#   - dev-app must NOT be running (checked via http://localhost:3000)
 #   - All containers using the postgres volume will be stopped/removed
-#
-# NOTE:
-#   After restoration, you may need to restart your containers
-#   (e.g., via docker-compose up) as they were removed during the process.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SNAPSHOTS_DIR="$SCRIPT_DIR/.snapshots"
@@ -59,6 +56,21 @@ if [ ! -d "$SNAPSHOT_DIR" ]; then
 fi
 
 echo "Restoring from snapshot: $SNAPSHOT_NAME"
+echo ""
+
+# Check if dev-app is running
+echo "Checking if dev-app is running..."
+if curl -s -f http://localhost:3000 > /dev/null 2>&1; then
+  echo "  ❌ ERROR: dev-app is running on port 3000"
+  echo "  Please stop the dev-app before restoring state:"
+  echo "    - Press Ctrl+C in the terminal running 'yarn dev-app'"
+  echo "    - Or run 'pkill -f \"vite.*3000\"' to kill the process"
+  echo ""
+  echo "  This prevents data corruption during the restore process."
+  exit 1
+else
+  echo "  ✓ dev-app is not running"
+fi
 echo ""
 
 # Restore wrangler state
