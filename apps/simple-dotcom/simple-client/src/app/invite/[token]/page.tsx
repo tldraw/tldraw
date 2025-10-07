@@ -142,11 +142,8 @@ export default async function InvitePage({ params }: InvitePageProps) {
 		redirect(`/login?redirect=${redirectUrl}`)
 	}
 
-	// If already a member, redirect to workspace
-	if (inviteInfo.status === 'already_member' && inviteInfo.workspace) {
-		redirect(`/workspace/${inviteInfo.workspace.id}`)
-	}
-
+	// Render the invite page for all other statuses (including already_member)
+	// The client component will handle showing appropriate messages and actions
 	return (
 		<InviteAcceptClient
 			status={inviteInfo.status}
