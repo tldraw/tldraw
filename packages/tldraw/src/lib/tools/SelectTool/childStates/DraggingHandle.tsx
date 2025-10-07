@@ -297,7 +297,9 @@ export class DraggingHandle extends StateNode {
 
 		let canSnap = false
 		if (initialHandle.canSnap && initialHandle.snapType) {
-			warnOnce('cannot use canSnap and snapType together, skipping snapping')
+			warnOnce(
+				'canSnap is deprecated. Cannot use both canSnap and snapType together - snapping disabled. Please use only snapType.'
+			)
 		} else {
 			canSnap = initialHandle.canSnap || initialHandle.snapType !== undefined
 		}

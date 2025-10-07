@@ -184,7 +184,8 @@ export class HandleSnaps {
 		currentShapeId: TLShapeId
 	}): AlignPointsSnap | null {
 		const snapThreshold = this.manager.getSnapThreshold()
-		const handleInPageSpace = this.editor.getShapePageTransform(currentShapeId).applyToPoint(handle)
+		const currentShapeTransform = assertExists(this.editor.getShapePageTransform(currentShapeId))
+		const handleInPageSpace = currentShapeTransform.applyToPoint(handle)
 
 		let nearestXSnap: Vec | null = null
 		let nearestYSnap: Vec | null = null
