@@ -27934,7 +27934,6 @@ __metadata:
     tailwindcss: "npm:^4"
     tldraw: "workspace:*"
     typescript: "npm:^5"
-    vitest: "npm:^3.2.4"
   languageName: unknown
   linkType: soft
 
