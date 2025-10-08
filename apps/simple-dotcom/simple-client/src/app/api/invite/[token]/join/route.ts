@@ -52,16 +52,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
 			throw new ApiException(404, ErrorCodes.WORKSPACE_NOT_FOUND, 'Workspace no longer exists')
 		}
 
-		// Check if token has been regenerated
-		const { data: newerToken } = await supabase
-			.from('invitation_links')
-			.select('token')
-			.eq('workspace_id', invitation.workspace_id)
-			.neq('token', token)
-			.gt('created_at', invitation.created_at)
-			.single()
-
-		if (newerToken) {
+		// Check if token has been superseded (regenerated)
+		if (invitation.superseded_by_token_id) {
 			throw new ApiException(
 				410,
 				ErrorCodes.REGENERATED_TOKEN,

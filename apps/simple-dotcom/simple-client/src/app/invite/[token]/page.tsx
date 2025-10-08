@@ -59,16 +59,8 @@ async function getInviteInfo(token: string, userId: string | null) {
 		}
 	}
 
-	// Check if token has been regenerated
-	const { data: newerToken } = await supabase
-		.from('invitation_links')
-		.select('token')
-		.eq('workspace_id', inviteLink.workspace_id)
-		.neq('token', token)
-		.gt('created_at', inviteLink.created_at)
-		.single()
-
-	if (newerToken) {
+	// Check if token has been superseded (regenerated)
+	if (inviteLink.superseded_by_token_id) {
 		return {
 			status: 'regenerated' as const,
 			message: 'This invitation link has expired. A new link was generated.',

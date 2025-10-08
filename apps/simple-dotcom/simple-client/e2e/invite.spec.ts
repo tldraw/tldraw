@@ -281,6 +281,10 @@ test.describe('Workspace Invitation Flow', () => {
 			const regenerateResponse = await authenticatedPage.request.post(
 				`/api/workspaces/${workspaceId}/invite/regenerate`
 			)
+			if (!regenerateResponse.ok()) {
+				const body = await regenerateResponse.json()
+				console.error('[DEBUG] Regenerate API failed:', regenerateResponse.status(), body)
+			}
 			expect(regenerateResponse.ok()).toBeTruthy()
 
 			// Create new user context

@@ -70,22 +70,71 @@ export async function POST(request: NextRequest, context: RouteContext) {
 			)
 		}
 
-		// Regenerate token
-		const { data: updated, error } = await supabase
+		// Get the current invitation link (the one not superseded by any other)
+		const { data: currentLink, error: fetchError } = await supabase
 			.from('invitation_links')
-			.update({
-				token: generateInviteToken(),
-				regenerated_at: new Date().toISOString(),
-			})
+			.select('*')
 			.eq('workspace_id', workspaceId)
+			.is('superseded_by_token_id', null) // Get links not marked as superseded
+			.order('created_at', { ascending: false }) // Get the most recent one
+			.limit(1)
+			.single()
+
+		if (fetchError || !currentLink) {
+			console.error('[REGENERATE] Failed to find current invitation link:', {
+				workspaceId,
+				fetchError,
+				currentLink,
+			})
+			throw new ApiException(
+				500,
+				ErrorCodes.INTERNAL_ERROR,
+				'Failed to find current invitation link'
+			)
+		}
+
+		// Create new invitation link
+		const { data: newLink, error: insertError } = await supabase
+			.from('invitation_links')
+			.insert({
+				workspace_id: workspaceId,
+				token: generateInviteToken(),
+				created_by: user.id,
+				enabled: currentLink.enabled, // Preserve enabled state
+			})
 			.select()
 			.single()
 
-		if (error || !updated) {
-			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to regenerate invitation link')
+		if (insertError || !newLink) {
+			console.error('[REGENERATE] Failed to create new invitation link:', {
+				insertError,
+				workspaceId,
+				userId: user.id,
+				currentLinkId: currentLink.id,
+			})
+			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to create new invitation link')
 		}
 
-		return successResponse<InvitationLink>(updated)
+		// Mark old link as superseded
+		const { error: updateError } = await supabase
+			.from('invitation_links')
+			.update({
+				superseded_by_token_id: newLink.id,
+				regenerated_at: new Date().toISOString(),
+			})
+			.eq('id', currentLink.id)
+
+		if (updateError) {
+			// Rollback by deleting the new link
+			await supabase.from('invitation_links').delete().eq('id', newLink.id)
+			throw new ApiException(
+				500,
+				ErrorCodes.INTERNAL_ERROR,
+				'Failed to mark old link as superseded'
+			)
+		}
+
+		return successResponse<InvitationLink>(newLink)
 	} catch (error) {
 		return handleApiError(error)
 	}

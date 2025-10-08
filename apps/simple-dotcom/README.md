@@ -2,6 +2,8 @@
 
 Developer guide for building and shipping the Simple tldraw MVP. The authoritative requirements, architecture, and implementation details live in `SPECIFICATION.md`; everything else exists to support those decisions.
 
+> **Note for AI agents**: See [`CLAUDE.md`](./CLAUDE.md) for agent-specific guidance, architecture patterns, and workflow best practices.
+
 ## Relationship to the tldraw Monorepo
 
 Simple Dotcom is a self-contained collaborative application built on the tldraw library. The tldraw monorepo contains several applications:
@@ -45,7 +47,7 @@ apps/simple-dotcom/
 1. Install Node 20 (the monorepo requires it) and enable Corepack if you have not already: `corepack enable`.
 2. **IMPORTANT: Always use `yarn` for package management. This monorepo uses yarn workspaces - never use `npm`.**
 3. Install dependencies from the repository root: `yarn install`.
-4. Seed environment configuration. Follow the integration guidance in `SPECIFICATION.md` under **Technical Architecture & Implementation** for Supabase, Better Auth, Cloudflare, and R2. Create `.env.local` files as needed for `simple-client` and future packages.
+4. Seed environment configuration. Follow the integration guidance in `SPECIFICATION.md` under **Technical Architecture & Implementation** for Supabase, Cloudflare, and R2. Create `.env.local` files as needed for `simple-client` and future packages.
 5. Run the web app:
    - `yarn workspace simple-dotcom dev` — Next.js development server with Turbopack.
    - `yarn workspace simple-dotcom build` / `start` for production verification.
@@ -316,7 +318,6 @@ Log entries are structured JSON with the following fields:
 
 ## Reporting Bugs
 
-**For Users:**
 To report a bug, use the `/bug` slash command followed by a description of the issue:
 
 ```
@@ -325,60 +326,15 @@ navigated to dashboard, clicked button in top-right. Browser console shows
 TypeError: Cannot read property 'id' of undefined
 ```
 
-**For Agents:**
-When you encounter a bug during your work, delegate to the **bug-report-generator agent** using the Task tool. This is **FIRE-AND-FORGET** - do not wait for the agent to complete. Continue with your work immediately.
-
-```typescript
-// Delegate bug report creation to specialist agent (fire-and-forget)
-Task({
-  subagent_type: "bug-report-generator",
-  description: "Report dashboard crash bug",
-  prompt: `Create a bug report for the following issue:
-
-  Dashboard crashes when clicking 'New Workspace' button. User was logged in,
-  navigated to dashboard, clicked button in top-right. Browser console shows
-  TypeError: Cannot read property 'id' of undefined
-
-  Additional context: [any relevant details about state, recent changes, etc.]`
-})
-
-// Then immediately continue with your current task - don't wait!
-```
-
-**What to include in your bug description:**
+**What to include:**
 - Clear description of the bug
 - State of the app when you observed it (logged in/out, which page, what actions)
 - Error messages from browser console or UI
 - Steps that led to the bug
 - Any additional context (recent changes, affected files, etc.)
-
-**What NOT to do:**
-- Don't investigate or analyze the root cause yourself (unless you're the bug-report-generator agent)
-- Don't manually check logs or stack traces
-- Don't try to diagnose the issue
-- Don't get sidetracked from your current task
-
-The **bug-report-generator agent** will automatically:
-- Check backend logs for related errors
-- Extract stack traces and error details
-- Determine severity and priority
-- Assign the next bug number
-- Create a properly formatted bug report in `bugs/BUG-XX-description.md`
-- Perform initial root cause analysis
-
-Just describe what you observed, delegate to the bug-report-generator agent, and continue with your work.
 6. **Ship**:
    - Use milestone exit criteria to confirm readiness.
    - Summarize spec deltas, tests run, and outstanding risks in your PR description.
-
-## Agent Workflow Guide
-
-- Treat `SPECIFICATION.md` as your contract. Before acting on a request, restate the relevant requirement IDs, assumptions, and affected sections to the user. Call out any ambiguity so the spec can be updated.
-- Cross-check `MILESTONES.md` to ensure work aligns with the current milestone. If a request falls outside scope, flag it and propose a ticket move or spec change.
-- When drafting or completing tickets, mirror the workflow expected of human contributors: note assumptions, list tests run (or not run), and reference spec sections by heading name.
-- Prefer non-destructive exploration commands (read-only listing, `rg`, etc.) unless the user explicitly requests edits. Announce planned file changes before executing them.
-- After making changes, provide a concise diff-oriented summary, validation results, and next-step suggestions so humans can review quickly.
-- Keep documentation synchronized. Any decision, workaround, or clarification uncovered while assisting must be reflected in `SPECIFICATION.md`, `MILESTONES.md`, or the relevant ticket before handing off.
 
 ## Updating Documentation
 
@@ -395,7 +351,6 @@ Just describe what you observed, delegate to the bug-report-generator agent, and
 
 This README is intentionally lightweight. If a contributor cannot accomplish a task using this guide plus `SPECIFICATION.md`, update the documentation so the next person can.
 
-For Better Auth, see the [Better Auth documentation](https://www.better-auth.com/llms.txt).
 For Supabase, see the [Supabase documentation](https://supabase.com/docs).
 For Cloudflare, see the [Cloudflare documentation](https://developers.cloudflare.com/workers/runtime-apis/overview).
 For R2, see the [R2 documentation](https://developers.cloudflare.com/r2/reference).
