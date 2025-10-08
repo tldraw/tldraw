@@ -2,6 +2,7 @@
 
 import { DocumentListItem } from '@/components/documents/DocumentListItem'
 import { EmptyDocumentList } from '@/components/documents/EmptyDocumentList'
+import { PromptDialog } from '@/components/ui/prompt-dialog'
 import { useWorkspaceRealtimeUpdates } from '@/hooks/useWorkspaceRealtimeUpdates'
 import { Document, Folder, Workspace } from '@/lib/api/types'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -27,6 +28,7 @@ export default function WorkspaceDocumentsClient({
 	const queryClient = useQueryClient()
 	const [isCreating, setIsCreating] = useState(false)
 	const [selectedFolder, _setSelectedFolder] = useState<string | null>(null)
+	const [showCreateDialog, setShowCreateDialog] = useState(false)
 
 	// Fetch documents data with React Query
 	// Hybrid approach: Realtime for instant updates + polling for reliability
@@ -67,39 +69,40 @@ export default function WorkspaceDocumentsClient({
 
 	const activeDocuments = filteredDocuments.filter((doc) => !doc.is_archived)
 
-	const handleCreateDocument = useCallback(async () => {
-		const name = window.prompt('Enter document name:')
-		if (!name || !name.trim()) return
+	const handleCreateDocument = useCallback(
+		async (name: string) => {
+			setIsCreating(true)
+			setShowCreateDialog(false)
+			try {
+				const response = await fetch(`/api/workspaces/${workspace.id}/documents`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						name: name.trim(),
+						folder_id: selectedFolder,
+					}),
+				})
 
-		setIsCreating(true)
-		try {
-			const response = await fetch(`/api/workspaces/${workspace.id}/documents`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					name: name.trim(),
-					folder_id: selectedFolder,
-				}),
-			})
+				if (!response.ok) {
+					const error = await response.json()
+					throw new Error(error.message || 'Failed to create document')
+				}
 
-			if (!response.ok) {
-				const error = await response.json()
-				throw new Error(error.message || 'Failed to create document')
+				const { data: newDocument } = await response.json()
+				// Invalidate queries to refetch documents with the new one
+				await queryClient.invalidateQueries({ queryKey: ['workspace-documents', workspace.id] })
+				// Navigate to the new document
+				router.push(`/d/${newDocument.id}`)
+			} catch (err) {
+				alert(
+					`Error creating document: ${err instanceof Error ? err.message : 'An unexpected error occurred'}`
+				)
+			} finally {
+				setIsCreating(false)
 			}
-
-			const { data: newDocument } = await response.json()
-			// Invalidate queries to refetch documents with the new one
-			await queryClient.invalidateQueries({ queryKey: ['workspace-documents', workspace.id] })
-			// Navigate to the new document
-			router.push(`/d/${newDocument.id}`)
-		} catch (err) {
-			alert(
-				`Error creating document: ${err instanceof Error ? err.message : 'An unexpected error occurred'}`
-			)
-		} finally {
-			setIsCreating(false)
-		}
-	}, [workspace.id, selectedFolder, queryClient, router])
+		},
+		[workspace.id, selectedFolder, queryClient, router]
+	)
 
 	const handleRenameDocument = useCallback(async (documentId: string, newName: string) => {
 		try {
@@ -203,7 +206,7 @@ export default function WorkspaceDocumentsClient({
 					</span>
 				</div>
 				<button
-					onClick={handleCreateDocument}
+					onClick={() => setShowCreateDialog(true)}
 					disabled={isCreating}
 					className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
 				>
@@ -214,7 +217,7 @@ export default function WorkspaceDocumentsClient({
 			{/* Documents list */}
 			<div className="flex-1 overflow-y-auto">
 				{activeDocuments.length === 0 ? (
-					<EmptyDocumentList onCreateDocument={handleCreateDocument} canCreate={true} />
+					<EmptyDocumentList onCreateDocument={() => setShowCreateDialog(true)} canCreate={true} />
 				) : (
 					<div className="divide-y divide-gray-200">
 						{activeDocuments.map((document) => (
@@ -237,6 +240,16 @@ export default function WorkspaceDocumentsClient({
 					</div>
 				)}
 			</div>
+			<PromptDialog
+				open={showCreateDialog}
+				onOpenChange={setShowCreateDialog}
+				title="Create New Document"
+				label="Document Name"
+				placeholder="Enter document name"
+				onConfirm={handleCreateDocument}
+				confirmText="Create"
+				loading={isCreating}
+			/>
 		</div>
 	)
 }

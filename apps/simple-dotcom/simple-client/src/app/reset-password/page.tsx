@@ -1,14 +1,38 @@
 'use client'
 
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import {
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 import { getBrowserClient } from '@/lib/supabase/browser'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { AlertCircle, CheckCircle2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import * as z from 'zod'
+
+const resetPasswordSchema = z
+	.object({
+		password: z.string().min(8, 'Password must be at least 8 characters'),
+		confirmPassword: z.string().min(1, 'Please confirm your password'),
+	})
+	.refine((data) => data.password === data.confirmPassword, {
+		message: 'Passwords do not match',
+		path: ['confirmPassword'],
+	})
+
+type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>
 
 export default function ResetPasswordPage() {
 	const router = useRouter()
-	const [password, setPassword] = useState('')
-	const [confirmPassword, setConfirmPassword] = useState('')
-	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 	const [success, setSuccess] = useState(false)
 	const supabase = getBrowserClient()
@@ -24,26 +48,20 @@ export default function ResetPasswordPage() {
 		}
 	}, [])
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault()
-		setLoading(true)
+	const form = useForm<ResetPasswordFormValues>({
+		resolver: zodResolver(resetPasswordSchema),
+		defaultValues: {
+			password: '',
+			confirmPassword: '',
+		},
+	})
+
+	const onSubmit = async (data: ResetPasswordFormValues) => {
 		setError(null)
-
-		if (password !== confirmPassword) {
-			setError('Passwords do not match')
-			setLoading(false)
-			return
-		}
-
-		if (password.length < 8) {
-			setError('Password must be at least 8 characters long')
-			setLoading(false)
-			return
-		}
 
 		try {
 			const { error: updateError } = await supabase.auth.updateUser({
-				password: password,
+				password: data.password,
 			})
 
 			if (updateError) {
@@ -57,8 +75,6 @@ export default function ResetPasswordPage() {
 			}, 3000)
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to reset password')
-		} finally {
-			setLoading(false)
 		}
 	}
 
@@ -68,14 +84,12 @@ export default function ResetPasswordPage() {
 				<div className="w-full max-w-md space-y-8">
 					<div className="text-center">
 						<h1 className="text-3xl font-bold">Password reset successful</h1>
-						<div
-							data-testid="success-message"
-							className="mt-4 rounded-md bg-green-50 dark:bg-green-900/20 p-4"
-						>
-							<p className="text-sm text-green-800 dark:text-green-200">
+						<Alert variant="success" data-testid="success-message" className="mt-4">
+							<CheckCircle2 className="h-4 w-4" />
+							<AlertDescription>
 								Your password has been reset successfully. Redirecting to login...
-							</p>
-						</div>
+							</AlertDescription>
+						</Alert>
 					</div>
 				</div>
 			</div>
@@ -90,63 +104,67 @@ export default function ResetPasswordPage() {
 					<p className="mt-2 text-sm text-foreground/60">Enter your new password below</p>
 				</div>
 
-				<form onSubmit={handleSubmit} className="mt-8 space-y-6">
-					{error && (
-						<div
-							data-testid="error-message"
-							className="rounded-md bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-800 dark:text-red-200"
-						>
-							{error}
-						</div>
-					)}
+				<Form {...form}>
+					<form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-6">
+						{error && (
+							<Alert variant="destructive" data-testid="error-message">
+								<AlertCircle className="h-4 w-4" />
+								<AlertDescription>{error}</AlertDescription>
+							</Alert>
+						)}
 
-					<div className="space-y-4">
-						<div>
-							<label htmlFor="password" className="block text-sm font-medium mb-2">
-								New password
-							</label>
-							<input
-								id="password"
+						<div className="space-y-4">
+							<FormField
+								control={form.control}
 								name="password"
-								type="password"
-								autoComplete="new-password"
-								required
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-								data-testid="password-input"
-								className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/40"
-								placeholder="At least 8 characters"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>New password</FormLabel>
+										<FormControl>
+											<Input
+												{...field}
+												type="password"
+												autoComplete="new-password"
+												data-testid="password-input"
+												placeholder="At least 8 characters"
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
 							/>
-						</div>
 
-						<div>
-							<label htmlFor="confirmPassword" className="block text-sm font-medium mb-2">
-								Confirm new password
-							</label>
-							<input
-								id="confirmPassword"
+							<FormField
+								control={form.control}
 								name="confirmPassword"
-								type="password"
-								autoComplete="new-password"
-								required
-								value={confirmPassword}
-								onChange={(e) => setConfirmPassword(e.target.value)}
-								data-testid="confirm-password-input"
-								className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/40"
-								placeholder="Confirm your password"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Confirm new password</FormLabel>
+										<FormControl>
+											<Input
+												{...field}
+												type="password"
+												autoComplete="new-password"
+												data-testid="confirm-password-input"
+												placeholder="Confirm your password"
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
 							/>
 						</div>
-					</div>
 
-					<button
-						type="submit"
-						disabled={loading || !password || !confirmPassword}
-						data-testid="reset-button"
-						className="w-full rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-foreground/90 focus:outline-none focus:ring-2 focus:ring-foreground/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-					>
-						{loading ? 'Resetting...' : 'Reset password'}
-					</button>
-				</form>
+						<Button
+							type="submit"
+							disabled={form.formState.isSubmitting}
+							data-testid="reset-button"
+							className="w-full"
+						>
+							{form.formState.isSubmitting ? 'Resetting...' : 'Reset password'}
+						</Button>
+					</form>
+				</Form>
 			</div>
 		</div>
 	)

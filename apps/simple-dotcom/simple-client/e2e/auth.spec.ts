@@ -121,19 +121,19 @@ test.describe('Authentication', () => {
 			expect(validationMessage).toBeTruthy()
 		})
 
-		test('should disable submit button for weak password', async ({ page }) => {
+		test('should show validation error for weak password', async ({ page }) => {
 			await page.goto('/signup')
 
 			await page.fill('[data-testid="name-input"]', 'Test User')
 			await page.fill('[data-testid="email-input"]', 'test@example.com')
 			await page.fill('[data-testid="password-input"]', '123')
 
-			// Button should be disabled for weak password
+			// Try to submit with weak password
 			const signupButton = page.locator('[data-testid="signup-button"]')
-			await expect(signupButton).toBeDisabled()
+			await signupButton.click()
 
-			// Password hint should be visible
-			await expect(page.locator('text=Password must be at least 8 characters long')).toBeVisible()
+			// Validation error should be visible
+			await expect(page.locator('text=Password must be at least 8 characters')).toBeVisible()
 		})
 
 		test('should show error for duplicate email', async ({ browser, testUser }) => {
@@ -199,16 +199,16 @@ test.describe('Authentication', () => {
 			await expect(errorMessage).toBeVisible()
 		})
 
-		test('should prevent submission with empty fields', async ({ page }) => {
+		test('should show validation errors for empty fields', async ({ page }) => {
 			await page.goto('/login')
 
 			// Try to submit without filling fields
-			// HTML5 validation should prevent submission
-			const emailInput = page.locator('[data-testid="email-input"]')
-			const validationMessage = await emailInput.evaluate(
-				(el: HTMLInputElement) => el.validationMessage
-			)
-			expect(validationMessage).toBeTruthy()
+			const loginButton = page.locator('[data-testid="login-button"]')
+			await loginButton.click()
+
+			// React Hook Form validation should show errors
+			await expect(page.locator('text=Invalid email address')).toBeVisible()
+			await expect(page.locator('text=Password is required')).toBeVisible()
 		})
 	})
 

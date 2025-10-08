@@ -4,7 +4,7 @@
 // Manages realtime subscriptions for multiple workspaces simultaneously
 // Used by the dashboard to receive updates for all user's workspaces
 
-import { CHANNEL_PATTERNS, type RealtimeEvent } from '@/lib/realtime/types'
+import { type RealtimeEvent } from '@/lib/realtime/types'
 import { getBrowserClient } from '@/lib/supabase/browser'
 import { RealtimeChannel } from '@supabase/supabase-js'
 import { useQueryClient } from '@tanstack/react-query'
@@ -63,22 +63,82 @@ export function useMultiWorkspaceRealtime({
 			return
 		}
 
+		console.log(
+			'[useMultiWorkspaceRealtime] Setting up postgres_changes for workspaces:',
+			workspaceIds
+		)
+
 		// Clear any existing subscriptions
 		channelsRef.current.forEach((channel) => {
 			supabase.removeChannel(channel)
 		})
 		channelsRef.current.clear()
 
-		// Create a channel for each workspace using the broadcast pattern
-		workspaceIds.forEach((workspaceId) => {
-			const channel = supabase
-				.channel(CHANNEL_PATTERNS.workspace(workspaceId))
-				.on('broadcast', { event: 'workspace_event' }, handleWorkspaceEvent(workspaceId))
-				.subscribe()
+		// Create a single channel that listens to all workspace changes using postgres_changes
+		// This is more efficient than creating separate channels for each workspace
+		const channel = supabase
+			.channel('dashboard:postgres_changes')
+			// Listen to document changes in any of the user's workspaces
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'documents',
+					filter: `workspace_id=in.(${workspaceIds.join(',')})`,
+				},
+				(payload) => {
+					console.log('[useMultiWorkspaceRealtime] Document change:', payload)
+					queryClient.invalidateQueries({ queryKey: ['dashboard', userId] })
+				}
+			)
+			// Listen to folder changes
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'folders',
+					filter: `workspace_id=in.(${workspaceIds.join(',')})`,
+				},
+				(payload) => {
+					console.log('[useMultiWorkspaceRealtime] Folder change:', payload)
+					queryClient.invalidateQueries({ queryKey: ['dashboard', userId] })
+				}
+			)
+			// Listen to workspace changes
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'workspaces',
+					filter: `id=in.(${workspaceIds.join(',')})`,
+				},
+				(payload) => {
+					console.log('[useMultiWorkspaceRealtime] Workspace change:', payload)
+					queryClient.invalidateQueries({ queryKey: ['dashboard', userId] })
+				}
+			)
+			// Listen to membership changes
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'workspace_members',
+					filter: `workspace_id=in.(${workspaceIds.join(',')})`,
+				},
+				(payload) => {
+					console.log('[useMultiWorkspaceRealtime] Member change:', payload)
+					queryClient.invalidateQueries({ queryKey: ['dashboard', userId] })
+				}
+			)
+			.subscribe((status) => {
+				console.log('[useMultiWorkspaceRealtime] Subscription status:', status)
+			})
 
-			channelsRef.current.set(workspaceId, channel)
-		})
-
+		channelsRef.current.set('dashboard', channel)
 		isSubscribedRef.current = true
 
 		// Handle tab visibility changes for reconnection
@@ -100,7 +160,7 @@ export function useMultiWorkspaceRealtime({
 			channelsRef.current.clear()
 			isSubscribedRef.current = false
 		}
-	}, [workspaceIds, enabled, handleWorkspaceEvent, handleReconnect])
+	}, [workspaceIds, enabled, handleWorkspaceEvent, handleReconnect, queryClient, userId, supabase])
 
 	return {
 		isSubscribed: isSubscribedRef.current,

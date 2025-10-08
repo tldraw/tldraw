@@ -3,6 +3,9 @@
 // DocumentCard Component
 // Card/grid view variant for document display
 
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 import { formatUserDisplayName } from '../users/formatUserDisplayName'
 import { DocumentActions } from './DocumentActions'
 
@@ -64,24 +67,19 @@ export function DocumentCard({
 	}
 
 	return (
-		<div
-			className={`
-				group relative bg-white dark:bg-gray-800 rounded-lg border
-				${
-					selected
-						? 'border-blue-500 ring-2 ring-blue-200 dark:ring-blue-800'
-						: 'border-gray-200 dark:border-gray-700'
-				}
-				hover:shadow-md transition-all cursor-pointer
-				${document.is_archived ? 'opacity-60' : ''}
-				${className}
-			`}
+		<Card
+			className={cn(
+				'group relative cursor-pointer transition-all hover:shadow-md',
+				selected && 'ring-2 ring-blue-500',
+				document.is_archived && 'opacity-60',
+				className
+			)}
 			onClick={onClick}
 		>
 			{/* Thumbnail area */}
-			<div className="aspect-[4/3] bg-gray-100 dark:bg-gray-700 rounded-t-lg flex items-center justify-center">
+			<div className="aspect-[4/3] bg-muted rounded-t-xl flex items-center justify-center">
 				<svg
-					className="w-16 h-16 text-gray-300 dark:text-gray-600"
+					className="w-16 h-16 text-muted-foreground/40"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -112,23 +110,23 @@ export function DocumentCard({
 				{/* Archived badge */}
 				{document.is_archived && (
 					<div className="absolute top-2 left-2">
-						<span className="text-xs bg-gray-900/75 text-white px-2 py-1 rounded">Archived</span>
+						<Badge variant="secondary" className="bg-gray-900/75 text-white">
+							Archived
+						</Badge>
 					</div>
 				)}
 			</div>
 
 			{/* Content */}
-			<div className="p-4">
-				<h3 className="font-medium text-gray-900 dark:text-gray-100 truncate mb-1">
-					{document.name}
-				</h3>
-				<div className="text-xs text-gray-500 dark:text-gray-400">
+			<CardContent className="p-4">
+				<h3 className="font-medium truncate mb-1">{document.name}</h3>
+				<div className="text-xs text-muted-foreground">
 					<div>{formatDate(document.updated_at)}</div>
 					{document.created_by && (
 						<div className="truncate mt-0.5">by {formatUserDisplayName(document.created_by)}</div>
 					)}
 				</div>
-			</div>
-		</div>
+			</CardContent>
+		</Card>
 	)
 }

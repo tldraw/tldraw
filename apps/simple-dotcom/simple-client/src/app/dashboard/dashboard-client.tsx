@@ -1,6 +1,8 @@
 'use client'
 
 import { DocumentActions } from '@/components/documents/DocumentActions'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { PromptDialog } from '@/components/ui/prompt-dialog'
 import { useMultiWorkspaceRealtime } from '@/hooks/useMultiWorkspaceRealtime'
 import { Document, Folder, RecentDocument, User, Workspace, WorkspaceRole } from '@/lib/api/types'
 import { getBrowserClient } from '@/lib/supabase/browser'
@@ -728,180 +730,81 @@ export default function DashboardClient({
 			</div>
 
 			{/* Create Workspace Modal */}
-			{showCreateModal && (
-				<div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-					<div className="bg-background rounded-lg p-6 max-w-md w-full border border-foreground/20">
-						<h3 className="text-xl font-semibold mb-4">Create New Workspace</h3>
-						<input
-							type="text"
-							value={newWorkspaceName}
-							onChange={(e) => {
-								setNewWorkspaceName(e.target.value)
-								// Clear validation error when user starts typing
-								if (validationError) setValidationError(null)
-							}}
-							onBlur={() => {
-								if (!newWorkspaceName.trim()) {
-									setValidationError('Workspace name is required')
-								}
-							}}
-							placeholder="Enter workspace name"
-							data-testid="workspace-name-input"
-							className={`w-full px-3 py-2 rounded-md border ${
-								validationError ? 'border-red-500' : 'border-foreground/20'
-							} bg-background mb-2`}
-							disabled={actionLoading}
-							autoFocus
-						/>
-						{validationError && (
-							<p className="text-red-500 text-sm mb-4" data-testid="validation-error">
-								{validationError}
-							</p>
-						)}
-						{!validationError && <div className="mb-4" />}
-						<div className="flex gap-2 justify-end">
-							<button
-								onClick={handleCloseCreateModal}
-								className="rounded-md border border-foreground/20 px-4 py-2 text-sm hover:bg-foreground/5"
-								disabled={actionLoading}
-							>
-								Cancel
-							</button>
-							<button
-								onClick={handleCreateWorkspace}
-								data-testid="confirm-create-workspace"
-								className="rounded-md bg-foreground text-background px-4 py-2 text-sm font-medium hover:opacity-90 disabled:opacity-50"
-								disabled={actionLoading || !newWorkspaceName.trim()}
-							>
-								{actionLoading ? 'Creating...' : 'Create'}
-							</button>
-						</div>
-					</div>
-				</div>
-			)}
+			<PromptDialog
+				open={showCreateModal}
+				onOpenChange={(open) => {
+					if (!open) handleCloseCreateModal()
+				}}
+				title="Create New Workspace"
+				label="Workspace Name"
+				placeholder="Enter workspace name"
+				defaultValue={newWorkspaceName}
+				onConfirm={async (name) => {
+					setNewWorkspaceName(name)
+					await handleCreateWorkspace()
+				}}
+				confirmText="Create"
+				loading={actionLoading}
+				validationError={validationError ?? undefined}
+			/>
 
 			{/* Rename Workspace Modal */}
-			{showRenameModal && selectedWorkspace && (
-				<div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-					<div className="bg-background rounded-lg p-6 max-w-md w-full border border-foreground/20">
-						<h3 className="text-xl font-semibold mb-4">Rename Workspace</h3>
-						<input
-							type="text"
-							value={newWorkspaceName}
-							onChange={(e) => setNewWorkspaceName(e.target.value)}
-							placeholder="New workspace name"
-							data-testid="rename-workspace-input"
-							className="w-full px-3 py-2 rounded-md border border-foreground/20 bg-background mb-4"
-							disabled={actionLoading}
-						/>
-						<div className="flex gap-2 justify-end">
-							<button
-								onClick={() => {
-									setShowRenameModal(false)
-									setNewWorkspaceName('')
-									setSelectedWorkspace(null)
-								}}
-								className="rounded-md border border-foreground/20 px-4 py-2 text-sm hover:bg-foreground/5"
-								disabled={actionLoading}
-							>
-								Cancel
-							</button>
-							<button
-								onClick={handleRenameWorkspace}
-								data-testid="confirm-rename-workspace"
-								className="rounded-md bg-foreground text-background px-4 py-2 text-sm font-medium hover:opacity-90 disabled:opacity-50"
-								disabled={actionLoading || !newWorkspaceName.trim()}
-							>
-								{actionLoading ? 'Renaming...' : 'Rename'}
-							</button>
-						</div>
-					</div>
-				</div>
-			)}
+			<PromptDialog
+				open={showRenameModal && !!selectedWorkspace}
+				onOpenChange={(open) => {
+					if (!open) {
+						setShowRenameModal(false)
+						setNewWorkspaceName('')
+						setSelectedWorkspace(null)
+					}
+				}}
+				title="Rename Workspace"
+				label="Workspace Name"
+				placeholder="New workspace name"
+				defaultValue={selectedWorkspace?.name || newWorkspaceName}
+				onConfirm={async (name) => {
+					setNewWorkspaceName(name)
+					await handleRenameWorkspace()
+				}}
+				confirmText="Rename"
+				loading={actionLoading}
+			/>
 
 			{/* Delete Workspace Modal */}
-			{showDeleteModal && selectedWorkspace && (
-				<div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-					<div className="bg-background rounded-lg p-6 max-w-md w-full border border-foreground/20">
-						<h3 className="text-xl font-semibold mb-4">Delete Workspace</h3>
-						<p className="text-foreground/80 mb-4">
-							Are you sure you want to delete &quot;{selectedWorkspace.name}&quot;? This action will
-							soft-delete the workspace and remove it from your workspace list. The workspace can be
-							restored later from the archive view.
-						</p>
-						<div className="flex gap-2 justify-end">
-							<button
-								onClick={() => {
-									setShowDeleteModal(false)
-									setSelectedWorkspace(null)
-								}}
-								className="rounded-md border border-foreground/20 px-4 py-2 text-sm hover:bg-foreground/5"
-								disabled={actionLoading}
-							>
-								Cancel
-							</button>
-							<button
-								onClick={handleDeleteWorkspace}
-								data-testid="confirm-delete-workspace"
-								className="rounded-md bg-red-500 text-white px-4 py-2 text-sm font-medium hover:opacity-90 disabled:opacity-50"
-								disabled={actionLoading}
-							>
-								{actionLoading ? 'Deleting...' : 'Delete'}
-							</button>
-						</div>
-					</div>
-				</div>
-			)}
+			<ConfirmDialog
+				open={showDeleteModal && !!selectedWorkspace}
+				onOpenChange={(open) => {
+					if (!open) {
+						setShowDeleteModal(false)
+						setSelectedWorkspace(null)
+					}
+				}}
+				title="Delete Workspace"
+				description={`Are you sure you want to delete "${selectedWorkspace?.name}"? This action will soft-delete the workspace and remove it from your workspace list. The workspace can be restored later from the archive view.`}
+				onConfirm={handleDeleteWorkspace}
+				confirmText="Delete"
+				destructive
+				loading={actionLoading}
+			/>
 
 			{/* Create Document Modal */}
-			{showCreateDocumentModal && selectedWorkspace && (
-				<div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-					<div className="bg-background rounded-lg p-6 max-w-md w-full border border-foreground/20">
-						<h3 className="text-xl font-semibold mb-4">
-							Create Document in {selectedWorkspace.name}
-						</h3>
-						<input
-							ref={documentNameInputRef}
-							type="text"
-							value={newDocumentName}
-							onChange={(e) => {
-								setNewDocumentName(e.target.value)
-								if (validationError) setValidationError(null)
-							}}
-							placeholder="Document name"
-							data-testid="document-name-input"
-							className={`w-full px-3 py-2 rounded-md border ${
-								validationError ? 'border-red-500' : 'border-foreground/20'
-							} bg-background mb-2`}
-							disabled={actionLoading}
-							autoFocus
-						/>
-						{validationError && (
-							<p className="text-red-500 text-sm mb-4" data-testid="validation-error">
-								{validationError}
-							</p>
-						)}
-						{!validationError && <div className="mb-4" />}
-						<div className="flex gap-2 justify-end">
-							<button
-								onClick={handleCloseCreateDocumentModal}
-								className="rounded-md border border-foreground/20 px-4 py-2 text-sm hover:bg-foreground/5"
-								disabled={actionLoading}
-							>
-								Cancel
-							</button>
-							<button
-								onClick={handleCreateDocument}
-								data-testid="confirm-create-document"
-								className="rounded-md bg-foreground text-background px-4 py-2 text-sm font-medium hover:opacity-90 disabled:opacity-50"
-								disabled={actionLoading || !newDocumentName.trim()}
-							>
-								{actionLoading ? 'Creating...' : 'Create'}
-							</button>
-						</div>
-					</div>
-				</div>
-			)}
+			<PromptDialog
+				open={showCreateDocumentModal && !!selectedWorkspace}
+				onOpenChange={(open) => {
+					if (!open) handleCloseCreateDocumentModal()
+				}}
+				title={`Create Document in ${selectedWorkspace?.name || ''}`}
+				label="Document Name"
+				placeholder="Document name"
+				defaultValue={newDocumentName}
+				onConfirm={async (name) => {
+					setNewDocumentName(name)
+					await handleCreateDocument()
+				}}
+				confirmText="Create"
+				loading={actionLoading}
+				validationError={validationError ?? undefined}
+			/>
 		</div>
 	)
 }

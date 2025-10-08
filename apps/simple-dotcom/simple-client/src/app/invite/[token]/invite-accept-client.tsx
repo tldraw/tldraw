@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
 import { Workspace } from '@/lib/api/types'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -72,13 +73,14 @@ export default function InviteAcceptClient({
 							<div className="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800">{error}</div>
 						)}
 
-						<button
+						<Button
 							onClick={handleJoin}
 							disabled={isJoining}
-							className="w-full rounded-md bg-blue-600 px-4 py-3 font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+							className="w-full"
+							data-testid="join-button"
 						>
 							{isJoining ? 'Joining...' : 'Join Workspace'}
-						</button>
+						</Button>
 
 						<div className="mt-4 text-center">
 							<Link href="/dashboard" className="text-sm text-gray-600 hover:text-gray-900">

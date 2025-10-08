@@ -1,3 +1,4 @@
+import { Toaster } from '@/components/ui/sonner'
 import { SessionProvider } from '@/lib/session-provider'
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
@@ -30,6 +31,7 @@ export default function RootLayout({
 				<QueryProvider>
 					<SessionProvider>{children}</SessionProvider>
 				</QueryProvider>
+				<Toaster />
 			</body>
 		</html>
 	)

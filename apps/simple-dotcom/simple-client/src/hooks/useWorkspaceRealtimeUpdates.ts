@@ -1,9 +1,8 @@
 'use client'
 
 // useWorkspaceRealtimeUpdates Hook
-// Subscribes to real-time updates for a workspace and handles events
+// Subscribes to real-time Postgres changes for workspace-related tables
 
-import { CHANNEL_PATTERNS } from '@/lib/realtime/types'
 import { getBrowserClient } from '@/lib/supabase/browser'
 import { RealtimeChannel } from '@supabase/supabase-js'
 import { useEffect, useRef } from 'react'
@@ -14,11 +13,10 @@ interface UseWorkspaceRealtimeUpdatesOptions {
 }
 
 /**
- * Hook to subscribe to real-time updates for a workspace
+ * Hook to subscribe to real-time Postgres changes for a workspace
  *
- * Handles all workspace events (documents, folders, members, workspace updates)
- * with a single onChange callback for simplicity. The hybrid realtime strategy
- * (Broadcast + React Query polling) ensures missed events are caught.
+ * Listens to INSERT, UPDATE, DELETE events on documents, folders, and workspace_members tables.
+ * Filters events to only those relevant to the specified workspace.
  *
  * @param workspaceId - The workspace ID to subscribe to
  * @param options - onChange callback and configuration
@@ -30,7 +28,13 @@ export function useWorkspaceRealtimeUpdates(
 	const { onChange, enabled = true } = options
 
 	const channelRef = useRef<RealtimeChannel | null>(null)
+	const onChangeRef = useRef(onChange)
 	const supabase = getBrowserClient()
+
+	// Keep onChangeRef current without triggering re-subscriptions
+	useEffect(() => {
+		onChangeRef.current = onChange
+	}, [onChange])
 
 	useEffect(() => {
 		// Skip if no workspace ID or disabled
@@ -38,23 +42,74 @@ export function useWorkspaceRealtimeUpdates(
 			return
 		}
 
-		// Create channel and subscribe
+		console.log(
+			'[useWorkspaceRealtimeUpdates] Setting up postgres_changes subscription for workspace:',
+			workspaceId
+		)
+
+		// Create channel and subscribe to postgres changes
 		const channel = supabase
-			.channel(CHANNEL_PATTERNS.workspace(workspaceId))
-			.on('broadcast', { event: 'workspace_event' }, () => {
-				onChange?.()
+			.channel(`workspace:${workspaceId}:postgres_changes`)
+			// Listen to all document changes in this workspace
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'documents',
+					filter: `workspace_id=eq.${workspaceId}`,
+				},
+				(payload) => {
+					console.log('[useWorkspaceRealtimeUpdates] Document change:', payload)
+					onChangeRef.current?.()
+				}
+			)
+			// Listen to all folder changes in this workspace
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'folders',
+					filter: `workspace_id=eq.${workspaceId}`,
+				},
+				(payload) => {
+					console.log('[useWorkspaceRealtimeUpdates] Folder change:', payload)
+					onChangeRef.current?.()
+				}
+			)
+			// Listen to workspace member changes
+			.on(
+				'postgres_changes',
+				{
+					event: '*',
+					schema: 'public',
+					table: 'workspace_members',
+					filter: `workspace_id=eq.${workspaceId}`,
+				},
+				(payload) => {
+					console.log('[useWorkspaceRealtimeUpdates] Member change:', payload)
+					onChangeRef.current?.()
+				}
+			)
+			.subscribe((status) => {
+				console.log('[useWorkspaceRealtimeUpdates] Subscription status:', status)
 			})
-			.subscribe()
 
 		// Store channel reference
 		channelRef.current = channel
 
 		// Cleanup on unmount
 		return () => {
+			console.log(
+				'[useWorkspaceRealtimeUpdates] Cleaning up subscription for workspace:',
+				workspaceId
+			)
 			if (channelRef.current) {
 				supabase.removeChannel(channelRef.current)
 				channelRef.current = null
 			}
 		}
-	}, [workspaceId, enabled, onChange])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [workspaceId, enabled])
 }

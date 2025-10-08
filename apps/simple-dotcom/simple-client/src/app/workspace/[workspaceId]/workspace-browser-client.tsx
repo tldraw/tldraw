@@ -4,6 +4,7 @@ import { DocumentCard } from '@/components/documents/DocumentCard'
 import { EmptyDocumentList } from '@/components/documents/EmptyDocumentList'
 import { FolderBreadcrumbs } from '@/components/folders/FolderBreadcrumbs'
 import { FolderTree } from '@/components/folders/FolderTree'
+import { PromptDialog } from '@/components/ui/prompt-dialog'
 import { useWorkspaceRealtimeUpdates } from '@/hooks/useWorkspaceRealtimeUpdates'
 import { Document, Folder, Workspace } from '@/lib/api/types'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -606,100 +607,42 @@ export default function WorkspaceBrowserClient({
 			</div>
 
 			{/* Create Document Modal */}
-			{showCreateDocumentModal && (
-				<div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-					<div className="bg-white dark:bg-gray-900 rounded-lg p-6 max-w-md w-full border text-gray-900 dark:text-gray-100">
-						<h3 className="text-xl font-semibold mb-4">Create New Document</h3>
-						<input
-							ref={documentNameInputRef}
-							type="text"
-							value={newDocumentName}
-							onChange={(e) => {
-								setNewDocumentName(e.target.value)
-								if (validationError) setValidationError(null)
-							}}
-							placeholder="Document name"
-							data-testid="document-name-input"
-							className={`w-full px-3 py-2 rounded-md border ${
-								validationError ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'
-							} bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 mb-2`}
-							disabled={actionLoading}
-							autoFocus
-						/>
-						{validationError && (
-							<p className="text-red-500 text-sm mb-4" data-testid="validation-error">
-								{validationError}
-							</p>
-						)}
-						{!validationError && <div className="mb-4" />}
-						<div className="flex gap-2 justify-end">
-							<button
-								onClick={handleCloseCreateDocumentModal}
-								className="rounded-md border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-								disabled={actionLoading}
-							>
-								Cancel
-							</button>
-							<button
-								onClick={handleCreateDocument}
-								data-testid="confirm-create-document"
-								className="rounded-md bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-								disabled={actionLoading || !newDocumentName.trim()}
-							>
-								{actionLoading ? 'Creating...' : 'Create'}
-							</button>
-						</div>
-					</div>
-				</div>
-			)}
+			<PromptDialog
+				open={showCreateDocumentModal}
+				onOpenChange={(open) => {
+					if (!open) handleCloseCreateDocumentModal()
+				}}
+				title="Create New Document"
+				label="Document Name"
+				placeholder="Document name"
+				defaultValue={newDocumentName}
+				onConfirm={async (name) => {
+					setNewDocumentName(name)
+					await handleCreateDocument()
+				}}
+				confirmText="Create"
+				loading={actionLoading}
+				validationError={validationError ?? undefined}
+			/>
 
 			{/* Create Folder Modal */}
-			{showCreateFolderModal && (
-				<div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-					<div className="bg-white dark:bg-gray-900 rounded-lg p-6 max-w-md w-full border text-gray-900 dark:text-gray-100">
-						<h3 className="text-xl font-semibold mb-4">Create New Folder</h3>
-						<input
-							ref={folderNameInputRef}
-							type="text"
-							value={newFolderName}
-							onChange={(e) => {
-								setNewFolderName(e.target.value)
-								if (validationError) setValidationError(null)
-							}}
-							placeholder="Folder name"
-							data-testid="folder-name-input"
-							className={`w-full px-3 py-2 rounded-md border ${
-								validationError ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'
-							} bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 mb-2`}
-							disabled={actionLoading}
-							autoFocus
-						/>
-						{validationError && (
-							<p className="text-red-500 text-sm mb-4" data-testid="validation-error">
-								{validationError}
-							</p>
-						)}
-						{!validationError && <div className="mb-4" />}
-						<div className="flex gap-2 justify-end">
-							<button
-								onClick={handleCloseCreateFolderModal}
-								className="rounded-md border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-								disabled={actionLoading}
-							>
-								Cancel
-							</button>
-							<button
-								onClick={handleCreateFolder}
-								data-testid="confirm-create-folder"
-								className="rounded-md bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-								disabled={actionLoading || !newFolderName.trim()}
-							>
-								{actionLoading ? 'Creating...' : 'Create'}
-							</button>
-						</div>
-					</div>
-				</div>
-			)}
+			<PromptDialog
+				open={showCreateFolderModal}
+				onOpenChange={(open) => {
+					if (!open) handleCloseCreateFolderModal()
+				}}
+				title="Create New Folder"
+				label="Folder Name"
+				placeholder="Folder name"
+				defaultValue={newFolderName}
+				onConfirm={async (name) => {
+					setNewFolderName(name)
+					await handleCreateFolder()
+				}}
+				confirmText="Create"
+				loading={actionLoading}
+				validationError={validationError ?? undefined}
+			/>
 		</div>
 	)
 }

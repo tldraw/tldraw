@@ -1,16 +1,35 @@
 'use client'
 
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import {
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 import { getBrowserClient } from '@/lib/supabase/browser'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { AlertCircle, Info } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import * as z from 'zod'
+
+const loginSchema = z.object({
+	email: z.string().email('Invalid email address'),
+	password: z.string().min(1, 'Password is required'),
+})
+
+type LoginFormValues = z.infer<typeof loginSchema>
 
 function LoginForm() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
-	const [email, setEmail] = useState('')
-	const [password, setPassword] = useState('')
-	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 	const [inviteContext, setInviteContext] = useState<string | null>(null)
 	const supabase = getBrowserClient()
@@ -31,15 +50,21 @@ function LoginForm() {
 		}
 	}, [redirectUrl])
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault()
-		setLoading(true)
+	const form = useForm<LoginFormValues>({
+		resolver: zodResolver(loginSchema),
+		defaultValues: {
+			email: '',
+			password: '',
+		},
+	})
+
+	const onSubmit = async (data: LoginFormValues) => {
 		setError(null)
 
 		try {
 			const { error: signInError } = await supabase.auth.signInWithPassword({
-				email,
-				password,
+				email: data.email,
+				password: data.password,
 			})
 
 			if (signInError) {
@@ -53,8 +78,6 @@ function LoginForm() {
 			router.refresh() // Refresh server components
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
-		} finally {
-			setLoading(false)
 		}
 	}
 
@@ -62,9 +85,10 @@ function LoginForm() {
 		<div className="flex min-h-screen items-center justify-center bg-background p-4">
 			<div className="w-full max-w-md space-y-8">
 				{inviteContext && (
-					<div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 p-4 text-blue-800 dark:text-blue-200">
-						<p className="text-sm font-medium">{inviteContext}</p>
-					</div>
+					<Alert>
+						<Info className="h-4 w-4" />
+						<AlertDescription>{inviteContext}</AlertDescription>
+					</Alert>
 				)}
 
 				<div className="text-center">
@@ -80,71 +104,75 @@ function LoginForm() {
 					</p>
 				</div>
 
-				<form onSubmit={handleSubmit} className="mt-8 space-y-6">
-					{error && (
-						<div
-							data-testid="error-message"
-							className="rounded-md bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-800 dark:text-red-200"
-						>
-							{error}
-						</div>
-					)}
+				<Form {...form}>
+					<form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-6">
+						{error && (
+							<Alert variant="destructive" data-testid="error-message">
+								<AlertCircle className="h-4 w-4" />
+								<AlertDescription>{error}</AlertDescription>
+							</Alert>
+						)}
 
-					<div className="space-y-4">
-						<div>
-							<label htmlFor="email" className="block text-sm font-medium mb-2">
-								Email address
-							</label>
-							<input
-								id="email"
+						<div className="space-y-4">
+							<FormField
+								control={form.control}
 								name="email"
-								type="email"
-								autoComplete="email"
-								required
-								value={email}
-								onChange={(e) => setEmail(e.target.value)}
-								data-testid="email-input"
-								className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/40"
-								placeholder="you@example.com"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Email address</FormLabel>
+										<FormControl>
+											<Input
+												{...field}
+												type="email"
+												autoComplete="email"
+												data-testid="email-input"
+												placeholder="you@example.com"
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
 							/>
-						</div>
 
-						<div>
-							<div className="flex items-center justify-between mb-2">
-								<label htmlFor="password" className="block text-sm font-medium">
-									Password
-								</label>
-								<Link
-									href="/forgot-password"
-									className="text-xs font-medium text-foreground/60 hover:text-foreground hover:underline"
-								>
-									Forgot password?
-								</Link>
-							</div>
-							<input
-								id="password"
+							<FormField
+								control={form.control}
 								name="password"
-								type="password"
-								autoComplete="current-password"
-								required
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-								data-testid="password-input"
-								className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none focus:ring-1 focus:ring-foreground/40"
-								placeholder="Enter your password"
+								render={({ field }) => (
+									<FormItem>
+										<div className="flex items-center justify-between">
+											<FormLabel>Password</FormLabel>
+											<Link
+												href="/forgot-password"
+												className="text-xs font-medium text-foreground/60 hover:text-foreground hover:underline"
+											>
+												Forgot password?
+											</Link>
+										</div>
+										<FormControl>
+											<Input
+												{...field}
+												type="password"
+												autoComplete="current-password"
+												data-testid="password-input"
+												placeholder="Enter your password"
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
 							/>
 						</div>
-					</div>
 
-					<button
-						type="submit"
-						disabled={loading}
-						data-testid="login-button"
-						className="w-full rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-foreground/90 focus:outline-none focus:ring-2 focus:ring-foreground/50 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-					>
-						{loading ? 'Signing in...' : 'Sign in'}
-					</button>
-				</form>
+						<Button
+							type="submit"
+							disabled={form.formState.isSubmitting}
+							data-testid="login-button"
+							className="w-full"
+						>
+							{form.formState.isSubmitting ? 'Signing in...' : 'Sign in'}
+						</Button>
+					</form>
+				</Form>
 			</div>
 		</div>
 	)

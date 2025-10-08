@@ -1,9 +1,16 @@
 'use client'
 
 // ActionMenu Component
-// Reusable dropdown action menu
+// Reusable dropdown action menu built with shadcn DropdownMenu
 
-import React, { useEffect, useRef, useState } from 'react'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import React from 'react'
 
 export interface ActionMenuItem {
 	label: string
@@ -27,64 +34,16 @@ export function ActionMenu({
 	className = '',
 	ariaLabel = 'Open menu',
 }: ActionMenuProps) {
-	const [isOpen, setIsOpen] = useState(false)
-	const menuRef = useRef<HTMLDivElement>(null)
-	const buttonRef = useRef<HTMLButtonElement>(null)
-
-	// Close menu when clicking outside
-	useEffect(() => {
-		function handleClickOutside(event: MouseEvent) {
-			if (
-				menuRef.current &&
-				!menuRef.current.contains(event.target as Node) &&
-				buttonRef.current &&
-				!buttonRef.current.contains(event.target as Node)
-			) {
-				setIsOpen(false)
-			}
-		}
-
-		if (isOpen) {
-			document.addEventListener('mousedown', handleClickOutside)
-			return () => document.removeEventListener('mousedown', handleClickOutside)
-		}
-	}, [isOpen])
-
-	// Close menu on escape
-	useEffect(() => {
-		function handleEscape(event: KeyboardEvent) {
-			if (event.key === 'Escape') {
-				setIsOpen(false)
-			}
-		}
-
-		if (isOpen) {
-			document.addEventListener('keydown', handleEscape)
-			return () => document.removeEventListener('keydown', handleEscape)
-		}
-	}, [isOpen])
-
-	const handleItemClick = (item: ActionMenuItem) => {
-		if (!item.disabled) {
-			item.onClick()
-			setIsOpen(false)
-		}
-	}
-
 	return (
-		<div className={`relative ${className}`}>
-			<button
-				ref={buttonRef}
-				onClick={(e) => {
-					e.stopPropagation()
-					setIsOpen(!isOpen)
-				}}
-				className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+		<DropdownMenu>
+			<DropdownMenuTrigger
+				className={`p-1 rounded hover:bg-accent transition-colors ${className}`}
 				aria-label={ariaLabel}
+				onClick={(e) => e.stopPropagation()}
 			>
 				{trigger || (
 					<svg
-						className="w-5 h-5 text-gray-500 dark:text-gray-400"
+						className="w-5 h-5 text-muted-foreground"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -97,50 +56,30 @@ export function ActionMenu({
 						/>
 					</svg>
 				)}
-			</button>
+			</DropdownMenuTrigger>
 
-			{isOpen && (
-				<div
-					ref={menuRef}
-					className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50"
-					onClick={(e) => e.stopPropagation()}
-				>
-					<div className="py-1" role="menu">
-						{items.map((item, index) => {
-							if (item.divider) {
-								return (
-									<div
-										key={`divider-${index}`}
-										className="border-t border-gray-100 dark:border-gray-700 my-1"
-									/>
-								)
-							}
+			<DropdownMenuContent align="end" className="w-56" onClick={(e) => e.stopPropagation()}>
+				{items.map((item, index) => {
+					if (item.divider) {
+						return <DropdownMenuSeparator key={`divider-${index}`} />
+					}
 
-							return (
-								<button
-									key={item.label}
-									onClick={() => handleItemClick(item)}
-									disabled={item.disabled}
-									className={`
-										w-full text-left px-4 py-2 text-sm flex items-center gap-2
-										${
-											item.destructive
-												? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
-												: 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-										}
-										${item.disabled ? 'opacity-50 cursor-not-allowed' : ''}
-										transition-colors
-									`}
-									role="menuitem"
-								>
-									{item.icon && <span className="w-4 h-4">{item.icon}</span>}
-									{item.label}
-								</button>
-							)
-						})}
-					</div>
-				</div>
-			)}
-		</div>
+					return (
+						<DropdownMenuItem
+							key={item.label}
+							onClick={(e) => {
+								e.stopPropagation()
+								item.onClick()
+							}}
+							disabled={item.disabled}
+							className={item.destructive ? 'text-destructive focus:text-destructive' : ''}
+						>
+							{item.icon && <span className="w-4 h-4">{item.icon}</span>}
+							{item.label}
+						</DropdownMenuItem>
+					)
+				})}
+			</DropdownMenuContent>
+		</DropdownMenu>
 	)
 }

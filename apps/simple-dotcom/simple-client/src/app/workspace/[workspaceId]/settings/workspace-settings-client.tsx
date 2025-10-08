@@ -1,5 +1,8 @@
 'use client'
 
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Workspace } from '@/lib/api/types'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -329,13 +332,15 @@ export default function WorkspaceSettingsClient({
 						<h2 className="mb-4 text-lg font-semibold">Workspace Name</h2>
 						{isRenaming && isOwner ? (
 							<form onSubmit={handleRename} className="space-y-4">
-								<input
+								<Label htmlFor="workspace-name">Workspace Name</Label>
+								<Input
+									id="workspace-name"
 									type="text"
 									value={name}
 									onChange={(e) => setName(e.target.value)}
-									className="w-full rounded-md border px-3 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
 									disabled={isSavingRename}
 									required
+									className="mt-2"
 								/>
 								<div className="flex gap-2">
 									<button
@@ -408,31 +413,30 @@ export default function WorkspaceSettingsClient({
 									{/* Link status badge */}
 									<div className="flex items-center gap-2">
 										<span className="text-sm font-medium">Status:</span>
-										<span
+										<Badge
 											data-testid="invitation-link-status"
-											className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-												invitationLink.enabled
-													? 'bg-green-100 text-green-800'
-													: 'bg-gray-100 text-gray-800'
-											}`}
+											variant={invitationLink.enabled ? 'default' : 'secondary'}
+											className={invitationLink.enabled ? 'bg-green-600 hover:bg-green-700' : ''}
 										>
 											{invitationLink.enabled ? 'Enabled' : 'Disabled'}
-										</span>
+										</Badge>
 									</div>
 
 									{/* Invitation link display and copy */}
 									{invitationLink.enabled && invitationLink.token && (
 										<div className="space-y-2">
+											<Label htmlFor="invitation-link">Invitation Link</Label>
 											<div className="flex items-center gap-2">
-												<input
+												<Input
+													id="invitation-link"
 													type="text"
 													value={`${window.location.origin}/invite/${invitationLink.token}`}
 													readOnly
-													className="flex-1 rounded-md border bg-gray-50 px-3 py-2 text-sm text-gray-700"
+													className="flex-1 mt-2"
 												/>
 												<button
 													onClick={handleCopyInviteLink}
-													className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+													className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 mt-2"
 												>
 													{copySuccess ? 'Copied!' : 'Copy'}
 												</button>

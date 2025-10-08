@@ -3,6 +3,8 @@
 // FolderActions Component
 // Dropdown menu with folder-specific actions
 
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { PromptDialog } from '@/components/ui/prompt-dialog'
 import type { Folder } from '@/lib/api/types'
 import { useState } from 'react'
 import { ActionMenu, type ActionMenuItem } from '../shared/ActionMenu'
@@ -32,14 +34,25 @@ export function FolderActions({
 	canDelete = false,
 }: FolderActionsProps) {
 	const [showFolderPicker, setShowFolderPicker] = useState(false)
+	const [showRenameDialog, setShowRenameDialog] = useState(false)
+	const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
 	const handleRename = () => {
-		if (onRename) {
-			const newName = window.prompt('Enter new name:', folder.name)
-			if (newName && newName.trim() && newName !== folder.name) {
-				onRename(newName.trim())
-			}
+		setShowRenameDialog(true)
+	}
+
+	const handleConfirmRename = (newName: string) => {
+		if (onRename && newName !== folder.name) {
+			onRename(newName)
 		}
+		setShowRenameDialog(false)
+	}
+
+	const handleConfirmDelete = () => {
+		if (onDelete) {
+			onDelete()
+		}
+		setShowDeleteDialog(false)
 	}
 
 	const handleMove = (targetFolderId: string | null) => {
@@ -97,15 +110,7 @@ export function FolderActions({
 		}
 		items.push({
 			label: 'Delete folder',
-			onClick: () => {
-				if (
-					window.confirm(
-						`Are you sure you want to delete "${folder.name}" and all its contents? This action cannot be undone.`
-					)
-				) {
-					onDelete()
-				}
-			},
+			onClick: () => setShowDeleteDialog(true),
 			destructive: true,
 			icon: (
 				<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -138,6 +143,25 @@ export function FolderActions({
 					isOpen={showFolderPicker}
 				/>
 			)}
+			<PromptDialog
+				open={showRenameDialog}
+				onOpenChange={setShowRenameDialog}
+				title="Rename Folder"
+				label="Folder Name"
+				defaultValue={folder.name}
+				placeholder="Enter folder name"
+				onConfirm={handleConfirmRename}
+				confirmText="Rename"
+			/>
+			<ConfirmDialog
+				open={showDeleteDialog}
+				onOpenChange={setShowDeleteDialog}
+				title="Delete Folder"
+				description={`Are you sure you want to delete "${folder.name}" and all its contents? This action cannot be undone.`}
+				onConfirm={handleConfirmDelete}
+				confirmText="Delete"
+				destructive
+			/>
 		</>
 	)
 }

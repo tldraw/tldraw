@@ -3,6 +3,9 @@
 // DocumentActions Component
 // Dropdown menu with document-specific actions
 
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { PromptDialog } from '@/components/ui/prompt-dialog'
+import { useState } from 'react'
 import { ActionMenu, type ActionMenuItem } from '../shared/ActionMenu'
 
 interface DocumentActionsProps {
@@ -32,13 +35,25 @@ export function DocumentActions({
 	canEdit = false,
 	canDelete = false,
 }: DocumentActionsProps) {
+	const [showRenameDialog, setShowRenameDialog] = useState(false)
+	const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+
 	const handleRename = () => {
-		if (onRename) {
-			const newName = window.prompt('Enter new name:', document.name)
-			if (newName && newName.trim() && newName !== document.name) {
-				onRename(newName.trim())
-			}
+		setShowRenameDialog(true)
+	}
+
+	const handleConfirmRename = (newName: string) => {
+		if (onRename && newName !== document.name) {
+			onRename(newName)
 		}
+		setShowRenameDialog(false)
+	}
+
+	const handleConfirmDelete = () => {
+		if (onDelete) {
+			onDelete()
+		}
+		setShowDeleteDialog(false)
 	}
 
 	const items: ActionMenuItem[] = []
@@ -137,15 +152,7 @@ export function DocumentActions({
 		}
 		items.push({
 			label: 'Delete permanently',
-			onClick: () => {
-				if (
-					window.confirm(
-						`Are you sure you want to permanently delete "${document.name}"? This action cannot be undone.`
-					)
-				) {
-					onDelete()
-				}
-			},
+			onClick: () => setShowDeleteDialog(true),
 			destructive: true,
 			icon: (
 				<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -165,5 +172,28 @@ export function DocumentActions({
 		return null
 	}
 
-	return <ActionMenu items={items} ariaLabel="Actions" />
+	return (
+		<>
+			<ActionMenu items={items} ariaLabel="Actions" />
+			<PromptDialog
+				open={showRenameDialog}
+				onOpenChange={setShowRenameDialog}
+				title="Rename Document"
+				label="Document Name"
+				defaultValue={document.name}
+				placeholder="Enter document name"
+				onConfirm={handleConfirmRename}
+				confirmText="Rename"
+			/>
+			<ConfirmDialog
+				open={showDeleteDialog}
+				onOpenChange={setShowDeleteDialog}
+				title="Delete Permanently"
+				description={`Are you sure you want to permanently delete "${document.name}"? This action cannot be undone.`}
+				onConfirm={handleConfirmDelete}
+				confirmText="Delete"
+				destructive
+			/>
+		</>
+	)
 }
