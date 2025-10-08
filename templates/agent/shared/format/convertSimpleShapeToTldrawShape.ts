@@ -313,7 +313,7 @@ function convertArrowShapeToTldrawShape(
 		props: {
 			arrowheadEnd: defaultArrowShape.props?.arrowheadEnd ?? 'arrow',
 			arrowheadStart: defaultArrowShape.props?.arrowheadStart ?? 'none',
-			bend: simpleShape.bend ?? (defaultArrowShape.props?.bend ?? 0) * -1,
+			bend: (simpleShape.bend ?? (defaultArrowShape.props?.bend ?? 0) * -1) * -1,
 			color: asColor(simpleShape.color ?? defaultArrowShape.props?.color ?? 'black'),
 			dash: defaultArrowShape.props?.dash ?? 'draw',
 			elbowMidPoint: defaultArrowShape.props?.elbowMidPoint ?? 0.5,
