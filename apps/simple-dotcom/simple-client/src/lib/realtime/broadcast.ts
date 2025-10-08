@@ -21,14 +21,30 @@ export async function broadcastWorkspaceEvent(
 	payload: any,
 	actorId: string
 ) {
+	const logger = getLogger()
 	try {
 		const event = createWorkspaceEvent(eventType, payload, actorId)
+		const channelName = CHANNEL_PATTERNS.workspace(workspaceId)
 
-		const channel = supabase.channel(CHANNEL_PATTERNS.workspace(workspaceId))
+		logger.info({
+			context: 'broadcast_start',
+			workspace_id: workspaceId,
+			event_type: eventType,
+			channel_name: channelName,
+			message: 'Starting broadcast',
+		})
+
+		const channel = supabase.channel(channelName)
 
 		// Subscribe first to enable WebSocket delivery
 		await new Promise<void>((resolve, reject) => {
 			channel.subscribe((status) => {
+				logger.info({
+					context: 'broadcast_subscribe',
+					workspace_id: workspaceId,
+					status,
+					message: 'Channel subscription status',
+				})
 				if (status === 'SUBSCRIBED') {
 					resolve()
 				} else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
@@ -38,10 +54,18 @@ export async function broadcastWorkspaceEvent(
 		})
 
 		// Send broadcast event via WebSocket
-		await channel.send({
+		const sendResult = await channel.send({
 			type: 'broadcast',
 			event: 'workspace_event',
 			payload: event,
+		})
+
+		logger.info({
+			context: 'broadcast_sent',
+			workspace_id: workspaceId,
+			event_type: eventType,
+			send_result: sendResult,
+			message: 'Broadcast sent',
 		})
 
 		// Clean up channel
@@ -49,11 +73,12 @@ export async function broadcastWorkspaceEvent(
 
 		return { success: true }
 	} catch (error) {
-		const logger = getLogger()
-		logger.error('Failed to broadcast event', error as any, {
-			context: 'broadcast',
+		logger.error({
+			context: 'broadcast_error',
 			workspace_id: workspaceId,
 			event_type: eventType,
+			error: error instanceof Error ? error.message : String(error),
+			message: 'Failed to broadcast event',
 		})
 		return { success: false, error }
 	}
