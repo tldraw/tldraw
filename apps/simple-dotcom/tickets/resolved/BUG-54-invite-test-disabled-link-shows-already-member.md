@@ -2,14 +2,14 @@
 
 Date created: 2025-10-08
 Date last updated: 2025-10-08
-Date completed: -
+Date completed: 2025-10-08
 
 ## Status
 
-- [x] Not Started
+- [ ] Not Started
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -138,6 +138,45 @@ test('should show error for disabled link', async ({ authenticatedPage, testUser
 - BUG-39: ✅ Fixed - Check order now prioritizes membership status
 - BUG-45: Consolidation ticket for invite page issues
 
+## Resolution
+
+**Status:** ✅ RESOLVED
+
+**Fix Applied:** Updated the test to create a second user context (not the owner) to properly test the "Link Disabled" state.
+
+**Changes Made:**
+1. Modified `simple-client/e2e/invite.spec.ts` lines 245-277
+2. Removed `testUser` parameter dependency (was causing owner re-login)
+3. Added new user context creation pattern (matching other tests in the file)
+4. New user is authenticated but NOT a member of the workspace
+5. Test now correctly verifies "Link Disabled" message appears for non-members
+
+**Test Result:**
+```
+✅ Test passed: "should show error for disabled link" (5.8s)
+✅ No regressions: 7 of 8 invite tests passing
+❌ 1 unrelated failure: "regenerated token" test (pre-existing API issue)
+```
+
+**Code Pattern Used:**
+```typescript
+// Create new user context (not the owner)
+const browser = authenticatedPage.context().browser()!
+const newUserContext = await browser.newContext()
+const newUserPage = await newUserContext.newPage()
+
+// Sign up as new user
+const newEmail = generateTestEmail()
+await newUserPage.goto('/signup')
+// ... signup flow ...
+
+// Visit disabled link as non-owner
+await newUserPage.goto(`/invite/${inviteToken}`)
+await expect(newUserPage.locator('text=Link Disabled')).toBeVisible()
+
+await newUserContext.close()
+```
+
 ## Notes
 
-This is a test design issue, not an application bug. The application is working correctly by showing owners their membership status before checking link validity. The test needs to be updated to use a non-owner user to properly test disabled link functionality.
+This was a test design issue, not an application bug. The application is working correctly by showing owners their membership status before checking link validity. The test now properly uses a non-owner user to test disabled link functionality.

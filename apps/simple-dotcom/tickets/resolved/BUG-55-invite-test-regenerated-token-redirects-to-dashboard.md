@@ -2,14 +2,14 @@
 
 Date created: 2025-10-08
 Date last updated: 2025-10-08
-Date completed: -
+Date completed: 2025-10-08
 
 ## Status
 
-- [x] Not Started
+- [ ] Not Started
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -160,8 +160,31 @@ Check the regenerate logic in:
 - BUG-54: Same root cause - test uses owner instead of non-member
 - BUG-45: Consolidation ticket for invite page issues
 
+## Resolution
+
+**Actual Root Cause:** Missing database migration, NOT a test design issue.
+
+The test was failing because the database migration `20251008150000_support_invitation_token_regeneration_tracking.sql` was not applied to the local Supabase database. This migration adds the `superseded_by_token_id` column to the `invitation_links` table, which is required for the regenerate API to work.
+
+When the regenerate API tried to update the old link with `superseded_by_token_id`, the operation failed with a 500 error because the column didn't exist (or wasn't properly configured).
+
+**Fix Applied:**
+1. Applied pending migrations using `npx supabase migration up`
+2. Verified the `superseded_by_token_id` column exists in the database
+3. Re-ran the test - it now passes
+
+**Test Results:**
+- Single test: PASSING (1/1)
+- All invite tests: PASSING (8/8)
+
+**Key Learnings:**
+1. The test design was actually correct - it creates a new user who is not a member
+2. The invite page check order was also correct - it checks link validity BEFORE membership status (lines 50-94 in `/invite/[token]/page.tsx`)
+3. The bug report's assumption about check order was outdated - the code had been updated to check link validity first
+4. Always verify database migrations are applied when testing features that depend on new schema changes
+
 ## Notes
 
-This is likely a test design issue (same as BUG-54), not an application bug. The application correctly prioritizes membership status checks before link validity checks. The test needs to ensure it's using a non-member user to properly test the "Link Expired" functionality for regenerated tokens.
+This bug demonstrates the importance of checking database migrations when encountering API failures. The regenerate API has complex error handling for pgBouncer connection pool caching issues (added in BUG-41), but the root cause here was simpler - a missing migration.
 
-However, if the fix doesn't work, we may need to investigate whether the regeneration logic itself is working correctly.
+The test is now working correctly and validates that regenerated tokens show the "Link Expired" message to non-member users.

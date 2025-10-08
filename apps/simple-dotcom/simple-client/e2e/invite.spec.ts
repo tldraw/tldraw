@@ -242,8 +242,8 @@ test.describe('Workspace Invitation Flow', () => {
 			await expect(page.locator('text=This invitation link is invalid')).toBeVisible()
 		})
 
-		test('should show error for disabled link', async ({ authenticatedPage, testUser }) => {
-			// Create workspace with invite
+		test('should show error for disabled link', async ({ authenticatedPage }) => {
+			// Create workspace with invite (as owner)
 			const { workspaceId, inviteToken } = await createWorkspaceWithInvite(authenticatedPage)
 
 			// Disable the invite link
@@ -253,23 +253,27 @@ test.describe('Workspace Invitation Flow', () => {
 			)
 			expect(disableResponse.ok()).toBeTruthy()
 
-			// Clear cookies to test as unauthenticated
-			await authenticatedPage.context().clearCookies()
+			// Create new user context to test as a different user (not the owner)
+			const browser = authenticatedPage.context().browser()!
+			const newUserContext = await browser.newContext()
+			const newUserPage = await newUserContext.newPage()
 
-			// Visit disabled invite link
-			await authenticatedPage.goto(`/invite/${inviteToken}`)
+			// Sign up as new user
+			const newEmail = generateTestEmail()
+			await newUserPage.goto('/signup')
+			await newUserPage.fill('[data-testid="name-input"]', 'New User')
+			await newUserPage.fill('[data-testid="email-input"]', newEmail)
+			await newUserPage.fill('[data-testid="password-input"]', 'TestPassword123!')
+			await newUserPage.click('[data-testid="signup-button"]')
+			await newUserPage.waitForURL('**/dashboard**')
 
-			// Should redirect to login first
-			await expect(authenticatedPage).toHaveURL(/\/login\?redirect=%2Finvite%2F/)
+			// Visit disabled invite link as authenticated user (not a member)
+			await newUserPage.goto(`/invite/${inviteToken}`)
 
-			// Login
-			await authenticatedPage.fill('[data-testid="email-input"]', testUser.email)
-			await authenticatedPage.fill('[data-testid="password-input"]', testUser.password)
-			await authenticatedPage.click('[data-testid="login-button"]')
+			// Should see disabled message
+			await expect(newUserPage.locator('text=Link Disabled')).toBeVisible()
 
-			// After login, should see disabled message
-			await authenticatedPage.waitForURL(`/invite/${inviteToken}`)
-			await expect(authenticatedPage.locator('text=Link Disabled')).toBeVisible()
+			await newUserContext.close()
 		})
 
 		test('should show error for regenerated token', async ({ authenticatedPage }) => {
