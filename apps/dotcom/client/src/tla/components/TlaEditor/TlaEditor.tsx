@@ -1,6 +1,6 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
@@ -22,6 +22,8 @@ import {
 	useValue,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
+import { TldrawAgent } from '../../../fairy/fairy-agent/client/agent/TldrawAgent'
+import { useTldrawAgent } from '../../../fairy/fairy-agent/client/agent/useTldrawAgent'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { useHandleUiEvents } from '../../../utils/analytics'
@@ -261,6 +263,8 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const overrides = useFileEditorOverrides({ fileSlug })
 	const extraDragIconOverrides = useExtraDragIconOverrides()
 
+	const [_agent, setAgent] = useState<TldrawAgent | undefined>()
+
 	return (
 		<TlaEditorWrapper>
 			<Tldraw
@@ -283,9 +287,25 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyFileUpdateHandler fileId={fileId} />
 				<SneakyLargeFileHander />
+				<FairyAppInner setAgent={setAgent} />
 			</Tldraw>
 		</TlaEditorWrapper>
 	)
+}
+
+function FairyAppInner({ setAgent }: { setAgent(agent: TldrawAgent): void }) {
+	const AGENT_ID = 'fairy'
+	const editor = useEditor()
+	const agent = useTldrawAgent(editor, AGENT_ID)
+
+	useEffect(() => {
+		if (!editor || !agent) return
+		setAgent(agent)
+		;(window as any).editor = editor
+		;(window as any).agent = agent
+	}, [agent, editor, setAgent])
+
+	return null
 }
 
 function SneakyFileUpdateHandler({ fileId }: { fileId: string }) {
