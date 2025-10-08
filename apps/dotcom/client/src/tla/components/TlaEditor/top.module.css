@@ -83,15 +83,15 @@
 }
 
 .topLeftInputNameWidthSetter {
-        position: relative;
-        z-index: 1;
-        width: fit-content;
-        max-width: 320px;
-        width: 100%;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        opacity: 0;
+	position: relative;
+	z-index: 1;
+	width: fit-content;
+	max-width: 320px;
+	width: 100%;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	opacity: 0;
 	pointer-events: none;
 	padding: 0px 12px;
 	font-weight: 800;
