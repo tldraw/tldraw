@@ -20,6 +20,7 @@ import {
 	approximately,
 	compact,
 	createShapeId,
+	deferAsyncEffects,
 	kickoutOccludedShapes,
 	openWindow,
 	useMaybeEditor,
@@ -400,28 +401,30 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					const creationPromises: Promise<Result<any, any>>[] = []
 
-					for (const shape of shapes) {
-						if (!shape || !editor.isShapeOfType<TLEmbedShape>(shape, 'embed') || !shape.props.url)
-							continue
+					await deferAsyncEffects(async () => {
+						for (const shape of shapes) {
+							if (!shape || !editor.isShapeOfType<TLEmbedShape>(shape, 'embed') || !shape.props.url)
+								continue
 
-						const center = editor.getShapePageBounds(shape)?.center
+							const center = editor.getShapePageBounds(shape)?.center
 
-						if (!center) continue
-						editor.deleteShapes([shape.id])
+							if (!center) continue
+							editor.deleteShapes([shape.id])
 
-						creationPromises.push(
-							createBookmarkFromUrl(editor, { url: shape.props.url, center }).then((res) => {
-								if (!res.ok) {
-									throw new Error(res.error)
-								}
-								return res
-							})
-						)
-					}
+							creationPromises.push(
+								createBookmarkFromUrl(editor, { url: shape.props.url, center }).then((res) => {
+									if (!res.ok) {
+										throw new Error(res.error)
+									}
+									return res
+								})
+							)
+						}
 
-					await Promise.all(creationPromises).catch((error) => {
-						editor.bailToMark(markId)
-						console.error(error)
+						await Promise.all(creationPromises).catch((error) => {
+							editor.bailToMark(markId)
+							console.error(error)
+						})
 					})
 				},
 			},

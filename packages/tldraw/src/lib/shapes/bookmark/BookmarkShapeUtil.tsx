@@ -89,7 +89,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	}
 
 	override onBeforeCreate(next: TLBookmarkShape) {
-		return getBookmarkSize(this.editor, next)
+		return setBookmarkHeight(this.editor, next)
 	}
 
 	override onBeforeUpdate(prev: TLBookmarkShape, shape: TLBookmarkShape) {
@@ -102,7 +102,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 		}
 
 		if (prev.props.assetId !== shape.props.assetId) {
-			return getBookmarkSize(this.editor, shape)
+			return setBookmarkHeight(this.editor, shape)
 		}
 	}
 	override getInterpolatedProps(
@@ -222,29 +222,26 @@ function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
 	)
 }
 
-function getBookmarkSize(editor: Editor, shape: TLBookmarkShape) {
-	const asset = (
-		shape.props.assetId ? editor.getAsset(shape.props.assetId) : null
-	) as TLBookmarkAsset
-
-	let h = BOOKMARK_HEIGHT
+function getBookmarkHeight(editor: Editor, assetId?: TLAssetId | null) {
+	const asset = (assetId ? editor.getAsset(assetId) : null) as TLBookmarkAsset | null
 
 	if (asset) {
 		if (!asset.props.image) {
 			if (!asset.props.title) {
-				h = BOOKMARK_JUST_URL_HEIGHT
+				return BOOKMARK_JUST_URL_HEIGHT
 			} else {
-				h = SHORT_BOOKMARK_HEIGHT
+				return SHORT_BOOKMARK_HEIGHT
 			}
 		}
 	}
 
+	return BOOKMARK_HEIGHT
+}
+
+function setBookmarkHeight(editor: Editor, shape: TLBookmarkShape) {
 	return {
 		...shape,
-		props: {
-			...shape.props,
-			h,
-		},
+		props: { ...shape.props, h: getBookmarkHeight(editor, shape.props.assetId) },
 	}
 }
 
@@ -355,18 +352,18 @@ export async function createBookmarkFromUrl(
 				url,
 				assetId: asset?.id || null,
 				w: BOOKMARK_WIDTH,
-				h: BOOKMARK_HEIGHT,
+				h: getBookmarkHeight(editor, asset?.id),
 			},
 		}
 
 		editor.run(() => {
-			// Create the shape
-			editor.createShapes([shapePartial])
-
 			// Create the asset if we have one
 			if (asset) {
 				editor.createAssets([asset])
 			}
+
+			// Create the shape
+			editor.createShapes([shapePartial])
 		})
 
 		// Get the created shape
