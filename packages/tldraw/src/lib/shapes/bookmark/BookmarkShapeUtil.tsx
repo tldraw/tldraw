@@ -71,18 +71,14 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	}
 
 	override component(shape: TLBookmarkShape) {
-		return <BookmarkShapeComponent shape={shape} />
+		const { assetId, url, h } = shape.props
+		const rotation = this.editor.getShapePageTransform(shape)!.rotation()
+
+		return <BookmarkShapeComponent assetId={assetId} url={url} h={h} rotation={rotation} />
 	}
 
 	override indicator(shape: TLBookmarkShape) {
-		return (
-			<rect
-				width={toDomPrecision(shape.props.w)}
-				height={toDomPrecision(shape.props.h)}
-				rx="6"
-				ry="6"
-			/>
-		)
+		return <BookmarkIndicatorComponent w={shape.props.w} h={shape.props.h} />
 	}
 
 	override onBeforeCreate(next: TLBookmarkShape) {
@@ -115,18 +111,24 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	}
 }
 
-function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
+export function BookmarkShapeComponent({
+	assetId,
+	rotation,
+	url,
+	h,
+}: {
+	assetId: TLAssetId | null
+	rotation: number
+	h: number
+	url: string
+}) {
 	const editor = useEditor()
 
-	const asset = (
-		shape.props.assetId ? editor.getAsset(shape.props.assetId) : null
-	) as TLBookmarkAsset
+	const asset = assetId ? (editor.getAsset(assetId) as TLBookmarkAsset) : null
 
 	const isSafariExport = !!useSvgExportContext() && tlenv.isSafari
 
-	const pageRotation = editor.getShapePageTransform(shape)!.rotation()
-
-	const address = getHumanReadableAddress(shape)
+	const address = getHumanReadableAddress(url)
 
 	const [isFaviconValid, setIsFaviconValid] = useState(true)
 	const onFaviconError = () => setIsFaviconValid(false)
@@ -146,8 +148,8 @@ function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
 					isSafariExport && 'tl-bookmark__container--safariExport'
 				)}
 				style={{
-					boxShadow: isSafariExport ? undefined : getRotatedBoxShadow(pageRotation),
-					maxHeight: shape.props.h,
+					boxShadow: isSafariExport ? undefined : getRotatedBoxShadow(rotation),
+					maxHeight: h,
 				}}
 			>
 				{(!asset || asset.props.image) && (
@@ -163,14 +165,14 @@ function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
 						) : (
 							<div className="tl-bookmark__placeholder" />
 						)}
-						{asset?.props.image && <HyperlinkButton url={shape.props.url} />}
+						{asset?.props.image && <HyperlinkButton url={url} />}
 					</div>
 				)}
 				<div className="tl-bookmark__copy_container">
 					{asset?.props.title ? (
 						<a
 							className="tl-bookmark__link"
-							href={shape.props.url || ''}
+							href={url || ''}
 							target="_blank"
 							rel="noopener noreferrer"
 							draggable={false}
@@ -187,7 +189,7 @@ function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
 					) : null}
 					<a
 						className="tl-bookmark__link"
-						href={shape.props.url || ''}
+						href={url || ''}
 						target="_blank"
 						rel="noopener noreferrer"
 						draggable={false}
@@ -219,6 +221,10 @@ function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
 	)
 }
 
+export function BookmarkIndicatorComponent({ w, h }: { w: number; h: number }) {
+	return <rect width={toDomPrecision(w)} height={toDomPrecision(h)} rx="6" ry="6" />
+}
+
 function getBookmarkSize(editor: Editor, shape: TLBookmarkShape) {
 	const asset = (
 		shape.props.assetId ? editor.getAsset(shape.props.assetId) : null
@@ -246,13 +252,13 @@ function getBookmarkSize(editor: Editor, shape: TLBookmarkShape) {
 }
 
 /** @internal */
-export const getHumanReadableAddress = (shape: TLBookmarkShape) => {
+export const getHumanReadableAddress = (url: string) => {
 	try {
-		const url = new URL(shape.props.url)
+		const urlObj = new URL(url)
 		// we want the hostname without any www
-		return url.hostname.replace(/^www\./, '')
+		return urlObj.hostname.replace(/^www\./, '')
 	} catch {
-		return shape.props.url
+		return url
 	}
 }
 
