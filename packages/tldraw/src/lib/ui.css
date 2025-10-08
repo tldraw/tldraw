@@ -993,8 +993,16 @@
 	position: relative;
 	z-index: var(--tl-layer-panels);
 	pointer-events: all;
-	width: 148px;
-	max-width: 148px;
+	/*
+	  This is a fractional width because when zooming in/out with the browser the
+	  width of this panel can become something like 147.995. The browser tries it's
+	  best but since the buttons within are exact size they start wrapping where
+		we don't want them to.
+		We need the flex-wrap on the items btw because if "Enhanced a11y mode" is on,
+	  the labels and buttons need to wrap appropriately.
+	*/
+	width: 148.05px;
+	max-width: 148.05px;
 }
 
 .tlui-style-panel[data-enhanced-a11y-mode='true'] .tlui-button[data-isactive='true'] {
