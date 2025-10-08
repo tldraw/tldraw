@@ -1,6 +1,7 @@
 import { useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
 import { Popover as _Popover } from 'radix-ui'
 import { ReactNode } from 'react'
+import { PORTRAIT_BREAKPOINTS } from '../../constants'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { PeopleMenuAvatar } from './PeopleMenuAvatar'
@@ -23,17 +24,38 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 	const userIds = usePeerIds()
 	const userColor = useValue('user', () => editor.user.getColor(), [editor])
 	const userName = useValue('user', () => editor.user.getName(), [editor])
+	const viewportWidth = useValue(
+		'people-menu.viewport-width',
+		() => {
+			const bounds = editor.getViewportScreenBounds()
+			if (!bounds) {
+				if (typeof window !== 'undefined') {
+					return window.innerWidth
+				}
+				return undefined
+			}
+			return bounds.width
+		},
+		[editor]
+	)
 
 	const [isOpen, onOpenChange] = useMenuIsOpen('people menu')
 
 	if (!userIds.length) return null
+
+	const maxVisibleRemoteAvatars = getMaxVisibleRemoteAvatars(viewportWidth)
+	const visibleUserIds =
+		maxVisibleRemoteAvatars === 0
+			? []
+			: userIds.slice(-Math.min(userIds.length, maxVisibleRemoteAvatars))
+	const overflowCount = Math.max(0, userIds.length - visibleUserIds.length)
 
 	return (
 		<_Popover.Root onOpenChange={onOpenChange} open={isOpen}>
 			<_Popover.Trigger dir="ltr" asChild>
 				<button className="tlui-people-menu__avatars-button" title={msg('people-menu.title')}>
 					<div className="tlui-people-menu__avatars">
-						{userIds.slice(-5).map((userId) => (
+						{visibleUserIds.map((userId) => (
 							<PeopleMenuAvatar key={userId} userId={userId} />
 						))}
 						{userIds.length > 0 && (
@@ -46,7 +68,7 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 								{userName?.[0] ?? ''}
 							</div>
 						)}
-						{userIds.length > 5 && <PeopleMenuMore count={userIds.length - 5} />}
+						{overflowCount > 0 && <PeopleMenuMore count={overflowCount} />}
 					</div>
 				</button>
 			</_Popover.Trigger>
@@ -75,4 +97,32 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 			</_Popover.Portal>
 		</_Popover.Root>
 	)
+}
+
+function getMaxVisibleRemoteAvatars(viewportWidth?: number) {
+	if (!viewportWidth || Number.isNaN(viewportWidth)) {
+		return 5
+	}
+
+	if (viewportWidth <= PORTRAIT_BREAKPOINTS[2]) {
+		return 0
+	}
+
+	if (viewportWidth <= PORTRAIT_BREAKPOINTS[3]) {
+		return 1
+	}
+
+	if (viewportWidth <= PORTRAIT_BREAKPOINTS[4]) {
+		return 2
+	}
+
+	if (viewportWidth <= PORTRAIT_BREAKPOINTS[5]) {
+		return 3
+	}
+
+	if (viewportWidth <= PORTRAIT_BREAKPOINTS[6]) {
+		return 4
+	}
+
+	return 5
 }
