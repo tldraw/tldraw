@@ -208,22 +208,22 @@ To remove the watermark, please purchase a license at tldraw.dev.
 }
 
 @media (hover: hover) {
-	.${className}[data-licensed='false'] > button {
+	.${className} > button {
 		pointer-events: none;
 	}
 
-	.${className}[data-licensed='false']:hover {
+	.${className}:hover {
 		background-color: var(--tl-color-background);
 		transition: background-color 0.2s ease-in-out;
 		transition-delay: 0.32s;
 	}
 
-	.${className}[data-licensed='false']:hover > button {
+	.${className}:hover > button {
 		animation: ${className}_delayed_link 0.2s forwards ease-in-out;
 		animation-delay: 0.32s;
 	}
 
-	.${className}[data-licensed='false'] > button:focus-visible {
+	.${className} > button:focus-visible {
 		opacity: 1;
 	}
 }

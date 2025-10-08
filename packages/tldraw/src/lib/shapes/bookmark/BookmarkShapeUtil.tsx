@@ -168,9 +168,19 @@ function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
 				)}
 				<div className="tl-bookmark__copy_container">
 					{asset?.props.title ? (
-						<h2 className="tl-bookmark__heading">
-							{convertCommonTitleHTMLEntities(asset.props.title)}
-						</h2>
+						<a
+							className="tl-bookmark__link"
+							href={shape.props.url || ''}
+							target="_blank"
+							rel="noopener noreferrer"
+							draggable={false}
+							onPointerDown={markAsHandledOnShiftKey}
+							onPointerUp={markAsHandledOnShiftKey}
+						>
+							<h2 className="tl-bookmark__heading">
+								{convertCommonTitleHTMLEntities(asset.props.title)}
+							</h2>
+						</a>
 					) : null}
 					{asset?.props.description && asset?.props.image ? (
 						<p className="tl-bookmark__description">{asset.props.description}</p>
