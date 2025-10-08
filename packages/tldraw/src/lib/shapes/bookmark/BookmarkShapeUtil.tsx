@@ -3,13 +3,16 @@ import {
 	BaseBoxShapeUtil,
 	Editor,
 	HTMLContainer,
+	Result,
 	T,
 	TLAssetId,
 	TLBookmarkAsset,
 	TLBookmarkShape,
 	TLBookmarkShapeProps,
+	TLShapePartial,
 	bookmarkShapeMigrations,
 	bookmarkShapeProps,
+	createShapeId,
 	debounce,
 	getHashForString,
 	lerp,
@@ -35,6 +38,61 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	static override type = 'bookmark' as const
 	static override props = bookmarkShapeProps
 	static override migrations = bookmarkShapeMigrations
+
+	/**
+	 * Creates a bookmark shape from a URL with unfurled metadata.
+	 *
+	 * @returns A Result containing the created bookmark shape or an error
+	 * @public
+	 */
+	async createBookmarkFromUrl({
+		url,
+		center,
+	}: {
+		url: string
+		center: { x: number; y: number }
+	}): Promise<Result<TLBookmarkShape, string>> {
+		try {
+			// Create the bookmark asset with unfurled metadata
+			const asset = await this.editor.getAssetForExternalContent({ type: 'url', url })
+
+			// Create the bookmark shape
+			const shapeId = createShapeId()
+			const shapePartial: TLShapePartial<TLBookmarkShape> = {
+				id: shapeId,
+				type: 'bookmark',
+				x: center.x - BOOKMARK_WIDTH / 2,
+				y: center.y - BOOKMARK_HEIGHT / 2,
+				rotation: 0,
+				opacity: 1,
+				props: {
+					url,
+					assetId: asset?.id || null,
+					w: BOOKMARK_WIDTH,
+					h: BOOKMARK_HEIGHT,
+				},
+			}
+
+			this.editor.run(() => {
+				// Create the shape
+				this.editor.createShapes([shapePartial])
+
+				// Create the asset if we have one
+				if (asset) {
+					this.editor.createAssets([asset])
+				}
+			})
+
+			// Get the created shape
+			const createdShape = this.editor.getShape(shapeId) as TLBookmarkShape
+			return Result.ok(createdShape)
+		} catch (error) {
+			return {
+				ok: false,
+				error: error instanceof Error ? error.message : 'Failed to create bookmark',
+			}
+		}
+	}
 
 	override canResize() {
 		return false

@@ -418,6 +418,13 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     canResize(): boolean;
     // (undocumented)
     component(shape: TLBookmarkShape): JSX_2.Element;
+    createBookmarkFromUrl({ url, center, }: {
+        center: {
+            x: number;
+            y: number;
+        };
+        url: string;
+    }): Promise<Result<TLBookmarkShape, string>>;
     // (undocumented)
     getAriaDescriptor(shape: TLBookmarkShape): string | undefined;
     // (undocumented)
