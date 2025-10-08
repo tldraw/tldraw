@@ -116,10 +116,11 @@ test.describe('Workspace Browser Navigation', () => {
 			await page.goto(`/workspace/${workspaceId}`)
 
 			// Click on the folder to select it
-			await page.locator(`text=${folderName}`).click()
+			await page.locator(`text=${folderName}`).first().click()
 
 			// Verify breadcrumbs show the folder
-			await expect(page.locator(`text=${folderName}`)).toBeVisible()
+			const breadcrumbNav = page.locator('nav[aria-label="Breadcrumb"]')
+			await expect(breadcrumbNav.locator(`text=${folderName}`)).toBeVisible()
 
 			// Root document should not be visible when folder is selected
 			const documentList = page.locator('[data-testid="document-list"]')

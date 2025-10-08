@@ -4,6 +4,7 @@
 import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
 import { Document } from '@/lib/api/types'
+import { broadcastDocumentEvent } from '@/lib/realtime/broadcast'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { NextRequest } from 'next/server'
 
@@ -72,6 +73,23 @@ export async function POST(_request: NextRequest, context: RouteContext) {
 		if (error || !restored) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to restore document')
 		}
+
+		// Broadcast restore event
+		await broadcastDocumentEvent(
+			supabase,
+			documentId,
+			document.workspace_id,
+			'document.restored',
+			{
+				documentId,
+				workspaceId: document.workspace_id,
+				name: restored.name,
+				folderId: restored.folder_id,
+				isArchived: false,
+				action: 'restored',
+			},
+			user.id
+		)
 
 		return successResponse<Document>(restored)
 	} catch (error) {

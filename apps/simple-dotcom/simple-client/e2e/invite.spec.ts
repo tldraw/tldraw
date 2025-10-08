@@ -31,10 +31,36 @@ async function createWorkspaceWithInvite(page: Page): Promise<{
 	const workspaceData = await response.json()
 	const workspaceId = workspaceData.data.id
 
-	// Get the invite token
-	const inviteResponse = await page.request.get(`/api/workspaces/${workspaceId}/invite`)
-	expect(inviteResponse.ok()).toBeTruthy()
-	const inviteData = await inviteResponse.json()
+	// Get the invite token - retry since database trigger creates it asynchronously
+	let inviteResponse
+	let retries = 0
+	const maxRetries = 10
+	const retryDelay = 500 // ms
+
+	while (retries < maxRetries) {
+		inviteResponse = await page.request.get(`/api/workspaces/${workspaceId}/invite`)
+
+		if (inviteResponse.ok()) {
+			const data = await inviteResponse.json()
+			// Verify the link is actually enabled
+			if (data.data && data.data.enabled === true) {
+				console.log(`[HELPER] Got enabled invitation link for workspace ${workspaceId}`)
+				break
+			} else {
+				console.log(
+					`[HELPER] Link exists but not enabled (enabled=${data.data?.enabled}), retrying...`
+				)
+			}
+		}
+
+		// Wait before retrying
+		await new Promise((resolve) => setTimeout(resolve, retryDelay))
+		retries++
+	}
+
+	expect(inviteResponse!.ok()).toBeTruthy()
+	const inviteData = await inviteResponse!.json()
+	expect(inviteData.data.enabled).toBe(true) // Ensure link is enabled
 
 	return {
 		workspaceId,
@@ -171,6 +197,10 @@ test.describe('Workspace Invitation Flow', () => {
 
 			// Visit invite link as authenticated new user
 			await newUserPage.goto(`/invite/${inviteToken}`)
+
+			// Debug: Check what's on the page
+			const bodyText = await newUserPage.locator('body').textContent()
+			console.log('[DEBUG] Body text for join test:', bodyText?.substring(0, 300))
 
 			// Should see join button immediately (no redirect to login)
 			await expect(newUserPage.locator('text=Join Workspace')).toBeVisible()

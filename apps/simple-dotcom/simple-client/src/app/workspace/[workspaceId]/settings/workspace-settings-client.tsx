@@ -408,6 +408,7 @@ export default function WorkspaceSettingsClient({
 									<div className="flex items-center gap-2">
 										<span className="text-sm font-medium">Status:</span>
 										<span
+											data-testid="invitation-link-status"
 											className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
 												invitationLink.enabled
 													? 'bg-green-100 text-green-800'

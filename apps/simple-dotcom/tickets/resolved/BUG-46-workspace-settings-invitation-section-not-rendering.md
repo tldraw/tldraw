@@ -1,17 +1,17 @@
 # [BUG-46]: Workspace Settings Invitation Link Section Not Rendering
 
 Date created: 2025-10-07
-Date last updated: -
-Date completed: -
+Date last updated: 2025-10-08
+Date completed: 2025-10-08
 
 **Consolidates:** BUG-36, BUG-37
 
 ## Status
 
-- [x] Not Started
+- [ ] Not Started
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -178,10 +178,16 @@ If the invitation link section is missing, it should include:
 </button>
 ```
 
-## Notes
+## Resolution
 
-Screenshots available in test results:
-- BUG-36: `test-results/invitation-links-Invitatio-4d4df--and-enable-invitation-link-chromium/test-failed-*.png`
-- BUG-37: `test-results/invitation-links-Invitatio-7a591--regenerate-invitation-link-chromium/test-failed-*.png`
+**Root Cause:** Tests were failing because of a database trigger interaction. When creating a workspace with `is_private: false`, the `trigger_auto_create_invitation_link` trigger automatically creates an invitation link with `enabled: false` (migration 20251008120000). The tests were then trying to INSERT a new invitation link with `enabled: true`, which failed silently due to a UNIQUE constraint on `workspace_id`. This meant the UI always showed "Disabled" because it was reading the trigger-created record.
 
-The page crash is a critical issue that needs immediate attention. Fix this before working on status text visibility.
+**Fix Applied:**
+1. Updated all invitation-links tests to UPDATE the existing invitation link instead of trying to INSERT a new one
+2. Added `data-testid="invitation-link-status"` to the status badge in workspace-settings-client.tsx for better test targeting
+
+**Files Modified:**
+- `simple-client/e2e/invitation-links.spec.ts` - Changed all test setup code from INSERT to UPDATE for invitation links
+- `simple-client/src/app/workspace/[workspaceId]/settings/workspace-settings-client.tsx` - Added test ID to status badge
+
+**Tests:** All 5 invitation-links tests now pass (1 test is skipped by design)

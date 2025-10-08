@@ -4,21 +4,18 @@ test.describe('Workspace Member Limits', () => {
 	test('shows warning when approaching member limit', async ({
 		authenticatedPage,
 		supabaseAdmin,
+		testData,
+		testUser,
 	}) => {
 		const page = authenticatedPage
 		const workspaceName = `Limit Test ${Date.now()}`
 
-		// Create workspace
-		await page.goto('/dashboard')
-		await page.getByRole('button', { name: 'Create Workspace' }).click()
-		await page.getByPlaceholder('Enter workspace name').fill(workspaceName)
-		await page.getByTestId('confirm-create-workspace').click()
-		await expect(page.getByText(workspaceName)).toBeVisible()
-
-		// Get workspace ID
-		await page.getByText(workspaceName).click()
-		const workspaceUrl = page.url()
-		const workspaceId = workspaceUrl.split('/workspace/')[1]
+		// Create workspace via test data helper
+		const workspace = await testData.createWorkspace({
+			ownerId: testUser.id,
+			name: workspaceName,
+		})
+		const workspaceId = workspace.id
 
 		// Add 89 more members to reach 90 total (warning threshold)
 		// Note: workspace owner is already member #1
@@ -31,11 +28,7 @@ test.describe('Workspace Member Limits', () => {
 			})
 
 			if (memberUser.user) {
-				await supabaseAdmin.from('workspace_members').insert({
-					workspace_id: workspaceId,
-					user_id: memberUser.user.id,
-					workspace_role: 'member',
-				})
+				await testData.addWorkspaceMember(workspaceId, memberUser.user.id, 'member')
 			}
 		}
 
@@ -53,21 +46,18 @@ test.describe('Workspace Member Limits', () => {
 	test('prevents joining workspace when at member limit', async ({
 		authenticatedPage,
 		supabaseAdmin,
+		testData,
+		testUser,
 	}) => {
 		const page = authenticatedPage
 		const workspaceName = `Full Workspace ${Date.now()}`
 
-		// Create workspace
-		await page.goto('/dashboard')
-		await page.getByRole('button', { name: 'Create Workspace' }).click()
-		await page.getByPlaceholder('Enter workspace name').fill(workspaceName)
-		await page.getByTestId('confirm-create-workspace').click()
-		await expect(page.getByText(workspaceName)).toBeVisible()
-
-		// Get workspace ID
-		await page.getByText(workspaceName).click()
-		const workspaceUrl = page.url()
-		const workspaceId = workspaceUrl.split('/workspace/')[1]
+		// Create workspace via test data helper
+		const workspace = await testData.createWorkspace({
+			ownerId: testUser.id,
+			name: workspaceName,
+		})
+		const workspaceId = workspace.id
 
 		// Get invite token
 		const { data: inviteLink } = await supabaseAdmin
@@ -86,11 +76,7 @@ test.describe('Workspace Member Limits', () => {
 			})
 
 			if (memberUser.user) {
-				await supabaseAdmin.from('workspace_members').insert({
-					workspace_id: workspaceId,
-					user_id: memberUser.user.id,
-					workspace_role: 'member',
-				})
+				await testData.addWorkspaceMember(workspaceId, memberUser.user.id, 'member')
 			}
 		}
 
@@ -123,21 +109,18 @@ test.describe('Workspace Member Limits', () => {
 	test('shows warning in API response when near limit', async ({
 		authenticatedPage,
 		supabaseAdmin,
+		testData,
+		testUser,
 	}) => {
 		const page = authenticatedPage
 		const workspaceName = `Near Limit ${Date.now()}`
 
-		// Create workspace
-		await page.goto('/dashboard')
-		await page.getByRole('button', { name: 'Create Workspace' }).click()
-		await page.getByPlaceholder('Enter workspace name').fill(workspaceName)
-		await page.getByTestId('confirm-create-workspace').click()
-		await expect(page.getByText(workspaceName)).toBeVisible()
-
-		// Get workspace ID
-		await page.getByText(workspaceName).click()
-		const workspaceUrl = page.url()
-		const workspaceId = workspaceUrl.split('/workspace/')[1]
+		// Create workspace via test data helper
+		const workspace = await testData.createWorkspace({
+			ownerId: testUser.id,
+			name: workspaceName,
+		})
+		const workspaceId = workspace.id
 
 		// Get invite token
 		const { data: inviteLink } = await supabaseAdmin
@@ -156,11 +139,7 @@ test.describe('Workspace Member Limits', () => {
 			})
 
 			if (memberUser.user) {
-				await supabaseAdmin.from('workspace_members').insert({
-					workspace_id: workspaceId,
-					user_id: memberUser.user.id,
-					workspace_role: 'member',
-				})
+				await testData.addWorkspaceMember(workspaceId, memberUser.user.id, 'member')
 			}
 		}
 

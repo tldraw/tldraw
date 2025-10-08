@@ -90,14 +90,12 @@ test.describe('Invitation Links', () => {
 			role: 'owner',
 		})
 
-		// Create invitation link
-		const token = crypto.randomUUID()
-		await supabaseAdmin.from('invitation_links').insert({
-			workspace_id: workspaceId,
-			token,
-			enabled: true,
-			created_by: testUser.id,
-		})
+		// Update invitation link (auto-created by trigger) to enabled
+		// Trigger creates invitation link with enabled=false, so we update it
+		await supabaseAdmin
+			.from('invitation_links')
+			.update({ enabled: true })
+			.eq('workspace_id', workspaceId)
 
 		// Navigate to workspace settings
 		await page.goto(`/workspace/${workspaceId}/settings`)
@@ -150,14 +148,12 @@ test.describe('Invitation Links', () => {
 			role: 'owner',
 		})
 
-		// Create invitation link
-		const token = crypto.randomUUID()
-		await supabaseAdmin.from('invitation_links').insert({
-			workspace_id: workspaceId,
-			token,
-			enabled: true,
-			created_by: testUser.id,
-		})
+		// Update invitation link (auto-created by trigger) to enabled
+		// Trigger creates invitation link with enabled=false, so we update it
+		await supabaseAdmin
+			.from('invitation_links')
+			.update({ enabled: true })
+			.eq('workspace_id', workspaceId)
 
 		// Navigate to workspace settings
 		await page.goto(`/workspace/${workspaceId}/settings`)
@@ -218,14 +214,12 @@ test.describe('Invitation Links', () => {
 			role: 'owner',
 		})
 
-		// Create invitation link
-		const token = crypto.randomUUID()
-		await supabaseAdmin.from('invitation_links').insert({
-			workspace_id: workspaceId,
-			token,
-			enabled: true,
-			created_by: testUser.id,
-		})
+		// Update invitation link (auto-created by trigger) to enabled
+		// Trigger creates invitation link with enabled=false, so we update it
+		await supabaseAdmin
+			.from('invitation_links')
+			.update({ enabled: true })
+			.eq('workspace_id', workspaceId)
 
 		// Navigate to workspace settings
 		await page.goto(`/workspace/${workspaceId}/settings`)
@@ -357,14 +351,12 @@ test.describe('Invitation Links', () => {
 			role: 'owner',
 		})
 
-		// Create invitation link
-		const token = crypto.randomUUID()
-		await supabaseAdmin.from('invitation_links').insert({
-			workspace_id: workspaceId,
-			token,
-			enabled: true,
-			created_by: testUser.id,
-		})
+		// Update invitation link (auto-created by trigger) to enabled
+		// Trigger creates invitation link with enabled=false, so we update it
+		await supabaseAdmin
+			.from('invitation_links')
+			.update({ enabled: true })
+			.eq('workspace_id', workspaceId)
 
 		// Navigate to workspace settings
 		await page.goto(`/workspace/${workspaceId}/settings`)

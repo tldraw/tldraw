@@ -214,11 +214,15 @@ export default function WorkspaceMembersClient({
 					{/* Member limit warning */}
 					{members.length >= WORKSPACE_LIMITS.WARNING_THRESHOLD && (
 						<div className="rounded-lg bg-yellow-50 border border-yellow-200 p-4">
-							<p className="text-sm text-yellow-800">
-								<strong>Approaching member limit:</strong> This workspace has {members.length} of{' '}
-								{WORKSPACE_LIMITS.MAX_MEMBERS} members. Consider removing inactive members before
-								the limit is reached.
-							</p>
+							<div className="flex items-start">
+								<div className="flex-1">
+									<h3 className="text-sm font-medium text-yellow-800">Approaching member limit:</h3>
+									<p className="mt-1 text-sm text-yellow-700">
+										This workspace has {members.length} of {WORKSPACE_LIMITS.MAX_MEMBERS} members.
+										Consider removing inactive members before the limit is reached.
+									</p>
+								</div>
+							</div>
 						</div>
 					)}
 

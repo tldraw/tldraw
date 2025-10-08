@@ -47,6 +47,33 @@ async function getInviteInfo(token: string, userId: string | null) {
 
 	// From here on, user is authenticated - check other conditions
 
+	// Check if user is already owner (check this FIRST - owners should see their status regardless of link state)
+	if (workspace.owner_id === userId) {
+		return {
+			status: 'already_member' as const,
+			message: 'You are the owner of this workspace.',
+			workspace,
+		}
+	}
+
+	// Check if user is already a member (check this BEFORE link validity - members should see their status)
+	const { data: existingMembership } = await supabase
+		.from('workspace_members')
+		.select('*')
+		.eq('workspace_id', workspace.id)
+		.eq('user_id', userId)
+		.single()
+
+	if (existingMembership) {
+		return {
+			status: 'already_member' as const,
+			message: 'You are already a member of this workspace.',
+			workspace,
+		}
+	}
+
+	// Now check link validity (only matters for non-members trying to join)
+
 	// Check if link is enabled
 	if (!inviteLink.enabled) {
 		return {
@@ -88,31 +115,6 @@ async function getInviteInfo(token: string, userId: string | null) {
 		return {
 			status: 'member_limit' as const,
 			message: `This workspace has reached its member limit (${MAX_MEMBERS}).`,
-			workspace,
-		}
-	}
-
-	// Check if user is already owner
-	if (workspace.owner_id === userId) {
-		return {
-			status: 'already_member' as const,
-			message: 'You are the owner of this workspace.',
-			workspace,
-		}
-	}
-
-	// Check if user is already a member
-	const { data: existingMembership } = await supabase
-		.from('workspace_members')
-		.select('*')
-		.eq('workspace_id', workspace.id)
-		.eq('user_id', userId)
-		.single()
-
-	if (existingMembership) {
-		return {
-			status: 'already_member' as const,
-			message: 'You are already a member of this workspace.',
 			workspace,
 		}
 	}

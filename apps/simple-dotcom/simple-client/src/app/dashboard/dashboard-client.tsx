@@ -37,6 +37,7 @@ export default function DashboardClient({
 	const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
 	// Fetch dashboard data with React Query
+	// Hybrid approach: Realtime for instant updates + polling for reliability
 	const { data: dashboardData = initialData } = useQuery<DashboardData>({
 		queryKey: ['dashboard', userId],
 		queryFn: async () => {
@@ -48,9 +49,10 @@ export default function DashboardClient({
 			return result.data
 		},
 		initialData,
-		staleTime: 1000 * 60, // 1 minute
-		refetchOnMount: false,
-		refetchOnReconnect: false,
+		staleTime: 1000 * 10, // 10 seconds - shorter to catch missed realtime events
+		refetchInterval: 1000 * 15, // Poll every 15 seconds as fallback
+		refetchOnMount: true, // Refetch when returning to dashboard
+		refetchOnReconnect: true, // Refetch when connection restored
 	})
 
 	// Enable realtime subscriptions for all workspaces (handles changes from other users)
@@ -186,8 +188,8 @@ export default function DashboardClient({
 			const data = await response.json()
 
 			if (data.success && data.data) {
-				// Invalidate to trigger refetch
-				queryClient.invalidateQueries({ queryKey: ['dashboard', userId] })
+				// Refetch to ensure UI updates before modal closes
+				await queryClient.refetchQueries({ queryKey: ['dashboard', userId] })
 				setShowRenameModal(false)
 				setNewWorkspaceName('')
 				setSelectedWorkspace(null)
@@ -527,7 +529,7 @@ export default function DashboardClient({
 												<Link
 													href={`/workspace/${workspace.id}`}
 													className="flex-1 hover:opacity-80"
-													data-testid={`workspace-link-${workspace.id}`}
+													data-testid={`workspace-card-${workspace.id}`}
 												>
 													<h3 className="font-medium text-sm">{workspace.name}</h3>
 													<p className="text-xs text-foreground/60">
@@ -724,6 +726,11 @@ export default function DashboardClient({
 								setNewWorkspaceName(e.target.value)
 								// Clear validation error when user starts typing
 								if (validationError) setValidationError(null)
+							}}
+							onBlur={() => {
+								if (!newWorkspaceName.trim()) {
+									setValidationError('Workspace name is required')
+								}
 							}}
 							placeholder="Enter workspace name"
 							data-testid="workspace-name-input"

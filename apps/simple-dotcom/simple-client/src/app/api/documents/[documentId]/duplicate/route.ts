@@ -4,6 +4,7 @@
 import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
 import { Document } from '@/lib/api/types'
+import { broadcastDocumentEvent } from '@/lib/realtime/broadcast'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { NextRequest } from 'next/server'
 
@@ -85,6 +86,22 @@ export async function POST(request: NextRequest, context: RouteContext) {
 		if (error || !duplicate) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to duplicate document')
 		}
+
+		// Broadcast document creation event
+		await broadcastDocumentEvent(
+			supabase,
+			duplicate.id,
+			original.workspace_id,
+			'document.created',
+			{
+				documentId: duplicate.id,
+				workspaceId: original.workspace_id,
+				name: duplicate.name,
+				folderId: duplicate.folder_id,
+				action: 'created',
+			},
+			user.id
+		)
 
 		return successResponse<Document>(duplicate, 201)
 	} catch (error) {

@@ -1,15 +1,15 @@
 # BUG-51: Workspace Modal Validation Error Not Displayed on Empty Input
 
 Date created: 2025-10-07
-Date last updated: -
-Date completed: -
+Date last updated: 2025-10-08
+Date completed: 2025-10-08
 
 ## Status
 
-- [x] Not Started
+- [ ] Not Started
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -95,7 +95,24 @@ This is part of the "Workspace Modal UX (BUG-02 Fixes)" test suite. The other 3 
 
 2025-10-07: Bug identified via e2e test run. Validation error element not rendering on blur of empty input.
 
-## Open questions
+2025-10-08: Fixed by adding onBlur handler to workspace name input in dashboard-client.tsx (lines 730-734). The handler checks if the input is empty and sets the validation error "Workspace name is required". The error clears when user starts typing (existing onChange handler). All 4 tests in workspace-modal-ux.spec.ts now pass.
 
-- Where is the create workspace modal component located?
-- Is there existing validation logic that needs to be connected, or does it need to be implemented from scratch?
+## Resolution
+
+**Root Cause**: The create workspace modal had validation error state and display logic, but was missing the `onBlur` handler to trigger the validation when the input lost focus while empty.
+
+**Fix Applied**: Added `onBlur` handler to the workspace name input field that checks if the input is empty and sets the appropriate validation error message.
+
+**Files Modified**:
+- `/Users/stephenruiz/Developer/tldraw/apps/simple-dotcom/simple-client/src/app/dashboard/dashboard-client.tsx` (lines 730-734)
+
+**Changes Made**:
+```typescript
+onBlur={() => {
+  if (!newWorkspaceName.trim()) {
+    setValidationError('Workspace name is required')
+  }
+}}
+```
+
+**Testing**: All 4 tests in `simple-client/e2e/workspace-modal-ux.spec.ts` pass, including the previously failing "should show validation errors inline" test.

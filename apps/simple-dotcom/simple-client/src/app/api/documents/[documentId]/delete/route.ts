@@ -3,6 +3,7 @@
 
 import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
+import { broadcastDocumentEvent } from '@/lib/realtime/broadcast'
 import { createAdminClient, createClient, getCurrentUser } from '@/lib/supabase/server'
 import { NextRequest } from 'next/server'
 
@@ -95,6 +96,20 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
 		if (deleteError) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to delete document')
 		}
+
+		// Broadcast delete event before cleanup
+		await broadcastDocumentEvent(
+			supabase,
+			documentId,
+			document.workspace_id,
+			'document.deleted',
+			{
+				documentId,
+				workspaceId: document.workspace_id,
+				action: 'deleted',
+			},
+			user.id
+		)
 
 		// TODO: Implement R2 storage cleanup when TECH-02 is complete
 		// if (document.r2_key) {

@@ -78,6 +78,180 @@ This command updates types in two locations:
 - When database schema changes in development
 - After pulling schema changes from other developers
 
+## Realtime Data
+
+The application uses a **hybrid realtime strategy** that combines Supabase Realtime with React Query polling for reliable data synchronization across all clients.
+
+### Architecture Overview
+
+We use **two complementary approaches** to ensure data consistency:
+
+1. **Supabase Realtime (Primary)** - Instant updates when connections are stable
+2. **React Query Polling (Fallback)** - Periodic fetching to catch missed events
+
+This hybrid approach follows Supabase best practices for Next.js applications and handles browser throttling, tab backgrounding, and connection issues gracefully.
+
+### Why Hybrid?
+
+Relying solely on WebSocket connections (Realtime) can be unreliable due to:
+- Browser throttling when tabs are backgrounded
+- Connection drops during network transitions
+- WebSocket suspension on mobile devices
+- Events missed during navigation
+
+The polling fallback ensures eventual consistency even when realtime events are missed.
+
+### Implementation Pattern
+
+**1. Client-Side: React Query with Polling**
+
+```typescript
+const { data } = useQuery({
+  queryKey: ['dashboard', userId],
+  queryFn: fetchDashboard,
+  staleTime: 1000 * 10,           // 10 seconds - short to catch missed events
+  refetchInterval: 1000 * 15,      // Poll every 15 seconds as fallback
+  refetchOnMount: true,            // Refetch when returning to page
+  refetchOnReconnect: true,        // Refetch when connection restored
+})
+```
+
+**2. Client-Side: Realtime Subscriptions**
+
+We use Supabase's **Broadcast** feature (not Postgres Changes) for reliability:
+
+```typescript
+// Subscribe to workspace events
+const channel = supabase
+  .channel(`workspace:${workspaceId}`)
+  .on('broadcast', { event: 'workspace_event' }, (payload) => {
+    // Invalidate queries to trigger refetch
+    queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+  })
+  .subscribe()
+
+// Always cleanup on unmount
+return () => supabase.removeChannel(channel)
+```
+
+**3. Server-Side: Broadcasting Events**
+
+After any mutation, broadcast an event to notify all subscribers:
+
+```typescript
+import { broadcastDocumentEvent } from '@/lib/realtime/broadcast'
+
+// After creating/updating a document
+await broadcastDocumentEvent(
+  supabase,
+  documentId,
+  workspaceId,
+  'document.created',
+  {
+    documentId,
+    workspaceId,
+    name: document.name,
+    action: 'created'
+  },
+  userId
+)
+```
+
+### Event Types
+
+All events follow the pattern `{entity}.{action}`:
+
+**Workspace Events:**
+- `workspace.updated` - Workspace metadata changed
+- `workspace.archived` - Workspace archived
+- `workspace.restored` - Workspace restored
+
+**Member Events:**
+- `member.added` - User added to workspace
+- `member.removed` - User removed from workspace
+- `member.updated` - Member role changed
+
+**Document Events:**
+- `document.created` - New document created
+- `document.updated` - Document metadata updated (name, folder)
+- `document.archived` - Document moved to archive
+- `document.restored` - Document restored from archive
+- `document.deleted` - Document permanently deleted
+
+**Folder Events:**
+- `folder.created` - New folder created
+- `folder.updated` - Folder metadata updated
+- `folder.deleted` - Folder deleted
+
+### Implementation Checklist
+
+When adding new features that modify data:
+
+- [ ] Add React Query configuration with polling fallback
+- [ ] Set up Realtime subscription on client
+- [ ] Add cleanup function to remove subscription on unmount
+- [ ] Broadcast event after mutation on server
+- [ ] Invalidate or refetch relevant queries on event receipt
+- [ ] Test with tab backgrounding and navigation
+
+### Best Practices
+
+**DO:**
+- ✅ Always implement cleanup functions for subscriptions
+- ✅ Use Broadcast feature for reliability over Postgres Changes
+- ✅ Combine Realtime with React Query polling (10-15 second interval)
+- ✅ Set `refetchOnMount: true` to catch missed events
+- ✅ Broadcast events after every mutation
+- ✅ Invalidate queries when events are received
+
+**DON'T:**
+- ❌ Rely solely on WebSocket connections
+- ❌ Use `refetchOnMount: false` for realtime data
+- ❌ Forget to broadcast events after mutations
+- ❌ Create excessive subscriptions (group related events)
+- ❌ Use Postgres Changes for critical updates (less reliable)
+
+### Channel Naming
+
+We use consistent channel patterns defined in `/lib/realtime/types.ts`:
+
+```typescript
+const CHANNEL_PATTERNS = {
+  workspace: (workspaceId: string) => `workspace:${workspaceId}`,
+  document: (documentId: string) => `document:${documentId}`,
+}
+```
+
+### Debugging Realtime Issues
+
+**Enable console logging:**
+```typescript
+console.log('[Realtime] Subscribed to workspace:', workspaceId)
+console.log('[Realtime] Event received:', event.type, payload)
+```
+
+**Check subscription status:**
+```typescript
+.subscribe((status) => {
+  if (status === 'SUBSCRIBED') {
+    console.log('✅ Connected')
+  } else if (status === 'CHANNEL_ERROR') {
+    console.log('❌ Failed to subscribe')
+  }
+})
+```
+
+**Verify events are broadcast:**
+- Check server logs for broadcast calls
+- Verify channel names match between client and server
+- Ensure user has permission to access the channel (RLS policies)
+
+### Further Reading
+
+- [Supabase Realtime Best Practices](https://supabase.com/docs/guides/realtime)
+- [React Query Polling Strategy](https://tanstack.com/query/latest/docs/react/guides/window-focus-refetching)
+- Implementation details: `/simple-client/src/lib/realtime/README.md`
+
 ## Viewing Backend Logs
 
 The backend uses a structured logger that writes to both stdout and a rotating log file. This makes it easy to inspect server-side logs when debugging issues.

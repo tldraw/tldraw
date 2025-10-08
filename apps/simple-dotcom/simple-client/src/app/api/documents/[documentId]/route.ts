@@ -6,6 +6,7 @@
 import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
 import { Document, UpdateDocumentRequest } from '@/lib/api/types'
+import { broadcastDocumentEvent } from '@/lib/realtime/broadcast'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { NextRequest } from 'next/server'
 
@@ -173,6 +174,29 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to update document')
 		}
 
+		// Broadcast appropriate event based on what changed
+		let eventType: 'document.updated' | 'document.archived' | 'document.restored' =
+			'document.updated'
+		if (body.is_archived !== undefined) {
+			eventType = body.is_archived ? 'document.archived' : 'document.restored'
+		}
+
+		await broadcastDocumentEvent(
+			supabase,
+			documentId,
+			document.workspace_id,
+			eventType,
+			{
+				documentId,
+				workspaceId: document.workspace_id,
+				name: updated.name,
+				folderId: updated.folder_id,
+				isArchived: updated.is_archived,
+				action: eventType.split('.')[1] as 'updated' | 'archived' | 'restored',
+			},
+			user.id
+		)
+
 		return successResponse<Document>(updated)
 	} catch (error) {
 		return handleApiError(error)
@@ -221,6 +245,21 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
 		if (error) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to archive document')
 		}
+
+		// Broadcast archive event
+		await broadcastDocumentEvent(
+			supabase,
+			documentId,
+			document.workspace_id,
+			'document.archived',
+			{
+				documentId,
+				workspaceId: document.workspace_id,
+				isArchived: true,
+				action: 'archived',
+			},
+			user.id
+		)
 
 		return successResponse({ message: 'Document archived successfully' })
 	} catch (error) {

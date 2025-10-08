@@ -1,9 +1,10 @@
 # BUG-50: Workspace Card Click Crashes Browser Context
 
-**Status:** Backlog
+**Status:** Resolved
 **Priority:** Critical
 **Ticket:** NAV-03
 **Created:** 2025-10-07
+**Resolved:** 2025-10-08
 
 ## Description
 
@@ -69,10 +70,17 @@ await page.waitForURL('**/workspace/**')
 - `simple-client/src/app/dashboard/dashboard-client.tsx` - Likely contains workspace card component
 - `simple-client/src/app/workspace/[workspaceId]/workspace-browser-client.tsx` - Target page that may be crashing
 
-## Next Steps
+## Resolution
 
-1. Check browser console logs for JavaScript errors during navigation
-2. Review workspace card click handler and navigation logic
-3. Check if workspace browser page has initialization errors
-4. Run single test with `--debug` flag to see exact failure point
-5. Review recent changes to dashboard and workspace browser components
+**Root Cause:** The workspace card link in the dashboard had the wrong test ID. Tests were looking for `data-testid^="workspace-card-"` but the dashboard used `workspace-link-${workspace.id}`.
+
+**Fix Applied:**
+1. Changed test ID in dashboard-client.tsx:532 from `workspace-link-${workspace.id}` to `workspace-card-${workspace.id}`
+2. Fixed strict mode violation in workspace-browser.spec.ts:119 by using `.first()` to select the folder element
+3. Updated folder visibility assertion in workspace-browser.spec.ts:122 to use breadcrumb navigation for more specific selector
+
+**Tests:** All 7 workspace-browser tests now pass (simple-client/e2e/workspace-browser.spec.ts)
+
+**Files Modified:**
+- `simple-client/src/app/dashboard/dashboard-client.tsx` - Updated workspace card test ID
+- `simple-client/e2e/workspace-browser.spec.ts` - Fixed test selectors
