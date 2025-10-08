@@ -25,7 +25,7 @@ import {
 	useMaybeEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
-import { BookmarkShapeUtil } from '../../shapes/bookmark/BookmarkShapeUtil'
+import { createBookmarkFromUrl } from '../../shapes/bookmark/BookmarkShapeUtil'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { EditLinkDialog } from '../components/EditLinkDialog'
@@ -398,7 +398,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					const markId = editor.markHistoryStoppingPoint('convert shapes to bookmark')
 
-					const bookmarkUtil = editor.getShapeUtil('bookmark') as BookmarkShapeUtil
 					const creationPromises: Promise<Result<any, any>>[] = []
 
 					for (const shape of shapes) {
@@ -411,7 +410,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						editor.deleteShapes([shape.id])
 
 						creationPromises.push(
-							bookmarkUtil.createBookmarkFromUrl({ url: shape.props.url, center }).then((res) => {
+							createBookmarkFromUrl(editor, { url: shape.props.url, center }).then((res) => {
 								if (!res.ok) {
 									throw new Error(res.error)
 								}

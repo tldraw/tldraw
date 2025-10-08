@@ -31,7 +31,7 @@ import {
 	toRichText,
 } from '@tldraw/editor'
 import { EmbedDefinition } from './defaultEmbedDefinitions'
-import { BookmarkShapeUtil } from './shapes/bookmark/BookmarkShapeUtil'
+import { createBookmarkFromUrl } from './shapes/bookmark/BookmarkShapeUtil'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { getCroppedImageDataForReplacedImage } from './shapes/shared/crop'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
@@ -573,9 +573,8 @@ export async function defaultHandleExternalUrlContent(
 			? editor.inputs.currentPagePoint
 			: editor.getViewportPageBounds().center)
 
-	// Use the new static method to create the bookmark
-	const bookmarkUtil = editor.getShapeUtil('bookmark') as BookmarkShapeUtil
-	const result = await bookmarkUtil.createBookmarkFromUrl({ url, center: position })
+	// Use the new function to create the bookmark
+	const result = await createBookmarkFromUrl(editor, { url, center: position })
 
 	if (!result.ok) {
 		toasts.addToast({

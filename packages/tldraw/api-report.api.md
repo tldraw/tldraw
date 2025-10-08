@@ -418,13 +418,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     canResize(): boolean;
     // (undocumented)
     component(shape: TLBookmarkShape): JSX_2.Element;
-    createBookmarkFromUrl({ url, center, }: {
-        center: {
-            x: number;
-            y: number;
-        };
-        url: string;
-    }): Promise<Result<TLBookmarkShape, string>>;
     // (undocumented)
     getAriaDescriptor(shape: TLBookmarkShape): string | undefined;
     // (undocumented)
@@ -569,6 +562,15 @@ export interface CopyAsOptions extends TLImageExportOptions {
 
 // @public (undocumented)
 export function CopyMenuItem(): JSX_2.Element;
+
+// @public
+export function createBookmarkFromUrl(editor: Editor, { url, center, }: {
+    center?: {
+        x: number;
+        y: number;
+    };
+    url: string;
+}): Promise<Result<TLBookmarkShape, string>>;
 
 // @public (undocumented)
 export function createEmptyBookmarkShape(editor: Editor, url: string, position: VecLike): TLBookmarkShape;
