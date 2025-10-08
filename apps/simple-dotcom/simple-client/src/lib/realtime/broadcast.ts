@@ -1,8 +1,8 @@
 // Real-time Broadcast Utilities
 // Server-side helpers for broadcasting events to Supabase Realtime channels
 
-import { SupabaseClient } from '@supabase/supabase-js'
 import { getLogger } from '@/lib/server/logger'
+import { SupabaseClient } from '@supabase/supabase-js'
 import { CHANNEL_PATTERNS, createWorkspaceEvent, type WorkspaceEventType } from './types'
 
 /**
@@ -26,7 +26,18 @@ export async function broadcastWorkspaceEvent(
 
 		const channel = supabase.channel(CHANNEL_PATTERNS.workspace(workspaceId))
 
-		// Send broadcast event
+		// Subscribe first to enable WebSocket delivery
+		await new Promise<void>((resolve, reject) => {
+			channel.subscribe((status) => {
+				if (status === 'SUBSCRIBED') {
+					resolve()
+				} else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+					reject(new Error(`Channel subscription failed: ${status}`))
+				}
+			})
+		})
+
+		// Send broadcast event via WebSocket
 		await channel.send({
 			type: 'broadcast',
 			event: 'workspace_event',

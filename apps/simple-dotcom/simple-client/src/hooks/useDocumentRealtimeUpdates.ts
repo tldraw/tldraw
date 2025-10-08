@@ -112,7 +112,7 @@ export function useDocumentRealtimeUpdates(
 				channelRef.current = null
 			}
 		}
-	}, [documentId, enabled, handleEvent, refresh, onError, supabase])
+	}, [documentId, enabled, handleEvent, refresh, onError])
 
 	return {
 		isSubscribed: !!channelRef.current,

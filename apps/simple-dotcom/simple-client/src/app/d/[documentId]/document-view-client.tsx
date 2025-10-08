@@ -23,7 +23,6 @@ export default function DocumentViewClient({
 	document,
 	workspace,
 	accessType,
-	canEdit: initialCanEdit,
 	userId,
 }: DocumentViewClientProps) {
 	const [sharingMode, setSharingMode] = useState(document.sharing_mode)
@@ -31,7 +30,6 @@ export default function DocumentViewClient({
 	const [showSharingModal, setShowSharingModal] = useState(false)
 
 	const isMember = accessType === 'member'
-	const isGuest = accessType === 'guest'
 
 	// Recalculate canEdit based on current sharing mode
 	// Members can always edit, guests can only edit if sharing_mode is public_editable
@@ -41,7 +39,6 @@ export default function DocumentViewClient({
 	const handleSharingUpdate = useCallback((event: RealtimeEvent) => {
 		if (isDocumentSharingUpdatePayload(event.payload)) {
 			const payload = event.payload as DocumentSharingUpdatePayload
-			console.log('Document sharing mode updated via realtime:', payload)
 
 			// Update local state with new sharing mode
 			setSharingMode(payload.sharing_mode)
@@ -73,10 +70,11 @@ export default function DocumentViewClient({
 				throw new Error(data.message || 'Failed to update sharing')
 			}
 
-			setSharingMode(newMode)
+			// Don't update local state here - rely on realtime broadcast
+			// Server broadcasts 'document.sharing_updated' which will trigger handleSharingUpdate
 			setShowSharingModal(false)
-		} catch (err: any) {
-			alert(`Error: ${err.message}`)
+		} catch (err: unknown) {
+			alert(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`)
 		} finally {
 			setIsChangingSharing(false)
 		}

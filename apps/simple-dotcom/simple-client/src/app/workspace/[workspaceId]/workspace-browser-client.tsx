@@ -9,7 +9,7 @@ import { Document, Folder, Workspace } from '@/lib/api/types'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 interface WorkspaceBrowserClientProps {
 	workspace: Workspace
@@ -79,14 +79,16 @@ export default function WorkspaceBrowserClient({
 		refetchOnReconnect: true, // Refetch when connection restored
 	})
 
+	const onChange = useCallback(() => {
+		// Invalidate queries to trigger refetch when any workspace event is received
+		queryClient.invalidateQueries({ queryKey: ['workspace-documents', workspace.id] })
+		queryClient.invalidateQueries({ queryKey: ['workspace-folders', workspace.id] })
+	}, [queryClient, workspace.id])
+
 	// Enable realtime subscriptions using broadcast pattern
 	// This follows the documented hybrid realtime strategy (broadcast + polling)
 	useWorkspaceRealtimeUpdates(workspace.id, {
-		onChange: () => {
-			// Invalidate queries to trigger refetch when any workspace event is received
-			queryClient.invalidateQueries({ queryKey: ['workspace-documents', workspace.id] })
-			queryClient.invalidateQueries({ queryKey: ['workspace-folders', workspace.id] })
-		},
+		onChange,
 		enabled: true,
 	})
 
@@ -95,7 +97,7 @@ export default function WorkspaceBrowserClient({
 		? documents.filter((doc) => doc.folder_id === selectedFolderId)
 		: documents.filter((doc) => !doc.folder_id) // Show only root-level documents when no folder selected
 
-	const handleCloseCreateDocumentModal = () => {
+	const handleCloseCreateDocumentModal = useCallback(() => {
 		if (currentRequestRef.current) {
 			currentRequestRef.current.abort()
 		}
@@ -103,14 +105,14 @@ export default function WorkspaceBrowserClient({
 		setNewDocumentName('')
 		setValidationError(null)
 		setActionLoading(false)
-	}
+	}, [])
 
-	const handleCloseCreateFolderModal = () => {
+	const handleCloseCreateFolderModal = useCallback(() => {
 		setShowCreateFolderModal(false)
 		setNewFolderName('')
 		setValidationError(null)
 		setActionLoading(false)
-	}
+	}, [])
 
 	// Keyboard handling for document modal
 	useEffect(() => {
@@ -166,7 +168,7 @@ export default function WorkspaceBrowserClient({
 		}
 	}, [showCreateFolderModal])
 
-	const handleCreateDocument = async () => {
+	const handleCreateDocument = useCallback(async () => {
 		if (!newDocumentName.trim()) {
 			setValidationError('Document name is required')
 			return
@@ -209,9 +211,9 @@ export default function WorkspaceBrowserClient({
 			setActionLoading(false)
 			currentRequestRef.current = null
 		}
-	}
+	}, [newDocumentName, selectedFolderId, router, workspace.id])
 
-	const handleCreateFolder = async () => {
+	const handleCreateFolder = useCallback(async () => {
 		if (!newFolderName.trim()) {
 			setValidationError('Folder name is required')
 			return
@@ -247,9 +249,9 @@ export default function WorkspaceBrowserClient({
 		} finally {
 			setActionLoading(false)
 		}
-	}
+	}, [workspace.id, newFolderName, queryClient, selectedFolderId])
 
-	const handleRenameDocument = async (documentId: string, newName: string) => {
+	const handleRenameDocument = useCallback(async (documentId: string, newName: string) => {
 		try {
 			const response = await fetch(`/api/documents/${documentId}`, {
 				method: 'PATCH',
@@ -267,9 +269,9 @@ export default function WorkspaceBrowserClient({
 			console.error('Failed to rename document:', err)
 			alert('Failed to rename document')
 		}
-	}
+	}, [])
 
-	const handleDuplicateDocument = async (documentId: string) => {
+	const handleDuplicateDocument = useCallback(async (documentId: string) => {
 		try {
 			const response = await fetch(`/api/documents/${documentId}/duplicate`, {
 				method: 'POST',
@@ -285,54 +287,60 @@ export default function WorkspaceBrowserClient({
 			console.error('Failed to duplicate document:', err)
 			alert('Failed to duplicate document')
 		}
-	}
+	}, [])
 
-	const handleArchiveDocument = async (documentId: string) => {
-		try {
-			const response = await fetch(`/api/documents/${documentId}/archive`, {
-				method: 'POST',
-			})
+	const handleArchiveDocument = useCallback(
+		async (documentId: string) => {
+			try {
+				const response = await fetch(`/api/documents/${documentId}/archive`, {
+					method: 'POST',
+				})
 
-			const data = await response.json()
+				const data = await response.json()
 
-			if (!data.success) {
-				alert(data.error?.message || 'Failed to archive document')
-			} else {
-				// Invalidate queries to trigger refetch
-				// The realtime subscription will also trigger this, but we do it immediately for better UX
-				queryClient.invalidateQueries({ queryKey: ['workspace-documents', workspace.id] })
+				if (!data.success) {
+					alert(data.error?.message || 'Failed to archive document')
+				} else {
+					// Invalidate queries to trigger refetch
+					// The realtime subscription will also trigger this, but we do it immediately for better UX
+					queryClient.invalidateQueries({ queryKey: ['workspace-documents', workspace.id] })
+				}
+			} catch (err) {
+				console.error('Failed to archive document:', err)
+				alert('Failed to archive document')
 			}
-		} catch (err) {
-			console.error('Failed to archive document:', err)
-			alert('Failed to archive document')
-		}
-	}
+		},
+		[queryClient, workspace.id]
+	)
 
-	const handleDeleteDocument = async (documentId: string) => {
-		try {
-			const response = await fetch(`/api/documents/${documentId}/delete`, {
-				method: 'DELETE',
-				headers: {
-					'X-Confirm-Delete': 'true',
-				},
-			})
+	const handleDeleteDocument = useCallback(
+		async (documentId: string) => {
+			try {
+				const response = await fetch(`/api/documents/${documentId}/delete`, {
+					method: 'DELETE',
+					headers: {
+						'X-Confirm-Delete': 'true',
+					},
+				})
 
-			const data = await response.json()
+				const data = await response.json()
 
-			if (!data.success) {
-				alert(data.error?.message || 'Failed to delete document')
-			} else {
-				// Invalidate queries to trigger refetch
-				// The realtime subscription will also trigger this, but we do it immediately for better UX
-				queryClient.invalidateQueries({ queryKey: ['workspace-documents', workspace.id] })
+				if (!data.success) {
+					alert(data.error?.message || 'Failed to delete document')
+				} else {
+					// Invalidate queries to trigger refetch
+					// The realtime subscription will also trigger this, but we do it immediately for better UX
+					queryClient.invalidateQueries({ queryKey: ['workspace-documents', workspace.id] })
+				}
+			} catch (err) {
+				console.error('Failed to delete document:', err)
+				alert('Failed to delete document')
 			}
-		} catch (err) {
-			console.error('Failed to delete document:', err)
-			alert('Failed to delete document')
-		}
-	}
+		},
+		[queryClient, workspace.id]
+	)
 
-	const handleRenameFolder = async (folderId: string, newName: string) => {
+	const handleRenameFolder = useCallback(async (folderId: string, newName: string) => {
 		try {
 			const response = await fetch(`/api/folders/${folderId}`, {
 				method: 'PATCH',
@@ -350,9 +358,9 @@ export default function WorkspaceBrowserClient({
 			console.error('Failed to rename folder:', err)
 			alert('Failed to rename folder')
 		}
-	}
+	}, [])
 
-	const handleMoveFolder = async (folderId: string, targetFolderId: string | null) => {
+	const handleMoveFolder = useCallback(async (folderId: string, targetFolderId: string | null) => {
 		try {
 			const response = await fetch(`/api/folders/${folderId}`, {
 				method: 'PATCH',
@@ -370,29 +378,32 @@ export default function WorkspaceBrowserClient({
 			console.error('Failed to move folder:', err)
 			alert('Failed to move folder')
 		}
-	}
+	}, [])
 
-	const handleDeleteFolder = async (folderId: string) => {
-		try {
-			const response = await fetch(`/api/folders/${folderId}`, {
-				method: 'DELETE',
-			})
+	const handleDeleteFolder = useCallback(
+		async (folderId: string) => {
+			try {
+				const response = await fetch(`/api/folders/${folderId}`, {
+					method: 'DELETE',
+				})
 
-			const data = await response.json()
+				const data = await response.json()
 
-			if (!data.success) {
-				alert(data.error?.message || 'Failed to delete folder')
+				if (!data.success) {
+					alert(data.error?.message || 'Failed to delete folder')
+				}
+				// Folder will be removed via realtime subscription
+				// Also reset selected folder if it was deleted
+				if (selectedFolderId === folderId) {
+					setSelectedFolderId(null)
+				}
+			} catch (err) {
+				console.error('Failed to delete folder:', err)
+				alert('Failed to delete folder')
 			}
-			// Folder will be removed via realtime subscription
-			// Also reset selected folder if it was deleted
-			if (selectedFolderId === folderId) {
-				setSelectedFolderId(null)
-			}
-		} catch (err) {
-			console.error('Failed to delete folder:', err)
-			alert('Failed to delete folder')
-		}
-	}
+		},
+		[selectedFolderId]
+	)
 
 	const canEdit = isOwner || role === 'member'
 

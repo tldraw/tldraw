@@ -6,7 +6,7 @@ import { WORKSPACE_LIMITS } from '@/lib/constants'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 interface Member {
 	id: string
@@ -69,13 +69,16 @@ export default function WorkspaceMembersClient({
 		refetchOnReconnect: true, // Refetch when connection restored
 	})
 
+	// Memoize onChange to prevent subscription reconnects
+	const handleRealtimeChange = useCallback(() => {
+		// Invalidate queries to trigger refetch when any workspace event is received
+		queryClient.invalidateQueries({ queryKey: ['workspace-members', workspace.id] })
+	}, [queryClient, workspace.id])
+
 	// Enable realtime subscriptions using broadcast pattern
 	// This follows the documented hybrid realtime strategy (broadcast + polling)
 	useWorkspaceRealtimeUpdates(workspace.id, {
-		onChange: () => {
-			// Invalidate queries to trigger refetch when any workspace event is received
-			queryClient.invalidateQueries({ queryKey: ['workspace-members', workspace.id] })
-		},
+		onChange: handleRealtimeChange,
 		enabled: true,
 	})
 
@@ -101,7 +104,7 @@ export default function WorkspaceMembersClient({
 		setCurrentPage(1)
 	}, [searchTerm])
 
-	const handleToggleInvite = async () => {
+	const handleToggleInvite = useCallback(async () => {
 		setError(null)
 		setSuccess(null)
 		setIsToggling(true)
@@ -127,9 +130,9 @@ export default function WorkspaceMembersClient({
 		} finally {
 			setIsToggling(false)
 		}
-	}
+	}, [workspace.id, inviteLink?.enabled, router])
 
-	const handleRegenerateInvite = async () => {
+	const handleRegenerateInvite = useCallback(async () => {
 		if (!confirm('Regenerate invite link? The old link will stop working.')) {
 			return
 		}
@@ -157,42 +160,45 @@ export default function WorkspaceMembersClient({
 		} finally {
 			setIsRegenerating(false)
 		}
-	}
+	}, [workspace.id, router])
 
-	const handleCopyInviteLink = () => {
+	const handleCopyInviteLink = useCallback(() => {
 		if (inviteUrl) {
 			navigator.clipboard.writeText(inviteUrl)
 			setSuccess('Invite link copied to clipboard')
 			setTimeout(() => setSuccess(null), 3000)
 		}
-	}
+	}, [inviteUrl])
 
-	const handleRemoveMember = async (memberId: string) => {
-		if (!confirm('Remove this member from the workspace?')) {
-			return
-		}
-
-		setError(null)
-		setSuccess(null)
-
-		try {
-			const res = await fetch(`/api/workspaces/${workspace.id}/members/${memberId}`, {
-				method: 'DELETE',
-			})
-
-			if (!res.ok) {
-				const data = await res.json()
-				throw new Error(data.message || 'Failed to remove member')
+	const handleRemoveMember = useCallback(
+		async (memberId: string) => {
+			if (!confirm('Remove this member from the workspace?')) {
+				return
 			}
 
-			setSuccess('Member removed')
-			// Invalidate the query to refetch members list
-			// The realtime subscription will also trigger this
-			queryClient.invalidateQueries({ queryKey: ['workspace-members', workspace.id] })
-		} catch (err) {
-			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
-		}
-	}
+			setError(null)
+			setSuccess(null)
+
+			try {
+				const res = await fetch(`/api/workspaces/${workspace.id}/members/${memberId}`, {
+					method: 'DELETE',
+				})
+
+				if (!res.ok) {
+					const data = await res.json()
+					throw new Error(data.message || 'Failed to remove member')
+				}
+
+				setSuccess('Member removed')
+				// Invalidate the query to refetch members list
+				// The realtime subscription will also trigger this
+				queryClient.invalidateQueries({ queryKey: ['workspace-members', workspace.id] })
+			} catch (err) {
+				setError(err instanceof Error ? err.message : 'An unexpected error occurred')
+			}
+		},
+		[workspace.id, queryClient]
+	)
 
 	return (
 		<div className="flex h-screen flex-col">

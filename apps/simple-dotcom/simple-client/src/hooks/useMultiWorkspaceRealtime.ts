@@ -100,7 +100,7 @@ export function useMultiWorkspaceRealtime({
 			channelsRef.current.clear()
 			isSubscribedRef.current = false
 		}
-	}, [userId, workspaceIds.join(','), enabled, handleWorkspaceEvent, handleReconnect, supabase])
+	}, [workspaceIds, enabled, handleWorkspaceEvent, handleReconnect])
 
 	return {
 		isSubscribed: isSubscribedRef.current,

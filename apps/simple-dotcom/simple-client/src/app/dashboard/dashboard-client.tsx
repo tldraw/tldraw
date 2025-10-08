@@ -7,7 +7,7 @@ import { getBrowserClient } from '@/lib/supabase/browser'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 interface WorkspaceWithContent {
 	workspace: Workspace
@@ -55,9 +55,14 @@ export default function DashboardClient({
 		refetchOnReconnect: true, // Refetch when connection restored
 	})
 
+	// Memoize workspace IDs to prevent constant array reference changes
+	const workspaceIds = useMemo(
+		() => dashboardData.workspaces.map((w) => w.workspace.id),
+		[dashboardData.workspaces]
+	)
+
 	// Enable realtime subscriptions for all workspaces using broadcast pattern
 	// This follows the documented hybrid realtime strategy (broadcast + polling)
-	const workspaceIds = dashboardData.workspaces.map((w) => w.workspace.id)
 	useMultiWorkspaceRealtime({
 		userId,
 		workspaceIds,
@@ -96,7 +101,7 @@ export default function DashboardClient({
 	}, [])
 
 	// Define handlers before useEffect to avoid dependency issues
-	const handleCloseCreateModal = () => {
+	const handleCloseCreateModal = useCallback(() => {
 		// Cancel any pending request
 		if (currentRequestRef.current) {
 			currentRequestRef.current.abort()
@@ -105,7 +110,7 @@ export default function DashboardClient({
 		setNewWorkspaceName('')
 		setValidationError(null)
 		setActionLoading(false)
-	}
+	}, [])
 
 	// Keyboard event handling for modal
 	useEffect(() => {
@@ -125,14 +130,14 @@ export default function DashboardClient({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [showCreateModal, newWorkspaceName, actionLoading])
 
-	const handleSignOut = async () => {
+	const handleSignOut = useCallback(async () => {
 		const supabase = getBrowserClient()
 		await supabase.auth.signOut()
 		router.push('/login')
 		router.refresh() // Refresh server components
-	}
+	}, [router])
 
-	const handleCreateWorkspace = async () => {
+	const handleCreateWorkspace = useCallback(async () => {
 		if (!newWorkspaceName.trim()) {
 			setValidationError('Workspace name is required')
 			return
@@ -177,9 +182,9 @@ export default function DashboardClient({
 			setActionLoading(false)
 			currentRequestRef.current = null
 		}
-	}
+	}, [newWorkspaceName, queryClient, userId])
 
-	const handleRenameWorkspace = async () => {
+	const handleRenameWorkspace = useCallback(async () => {
 		if (!selectedWorkspace || !newWorkspaceName.trim()) return
 
 		try {
@@ -207,9 +212,9 @@ export default function DashboardClient({
 		} finally {
 			setActionLoading(false)
 		}
-	}
+	}, [selectedWorkspace, newWorkspaceName, queryClient, userId])
 
-	const handleDeleteWorkspace = async () => {
+	const handleDeleteWorkspace = useCallback(async () => {
 		if (!selectedWorkspace) return
 
 		try {
@@ -234,7 +239,7 @@ export default function DashboardClient({
 		} finally {
 			setActionLoading(false)
 		}
-	}
+	}, [selectedWorkspace, queryClient, userId])
 
 	const openRenameModal = (workspace: Workspace) => {
 		setSelectedWorkspace(workspace)
@@ -247,7 +252,7 @@ export default function DashboardClient({
 		setShowDeleteModal(true)
 	}
 
-	const handleCreateDocument = async () => {
+	const handleCreateDocument = useCallback(async () => {
 		if (!selectedWorkspace || !newDocumentName.trim()) {
 			setValidationError('Document name is required')
 			return
@@ -287,7 +292,7 @@ export default function DashboardClient({
 			setActionLoading(false)
 			currentRequestRef.current = null
 		}
-	}
+	}, [selectedWorkspace, newDocumentName])
 
 	const openCreateDocumentModal = (workspace: Workspace) => {
 		setSelectedWorkspace(workspace)
@@ -296,7 +301,7 @@ export default function DashboardClient({
 		setShowCreateDocumentModal(true)
 	}
 
-	const handleCloseCreateDocumentModal = () => {
+	const handleCloseCreateDocumentModal = useCallback(() => {
 		if (currentRequestRef.current) {
 			currentRequestRef.current.abort()
 		}
@@ -305,7 +310,7 @@ export default function DashboardClient({
 		setValidationError(null)
 		setSelectedWorkspace(null)
 		setActionLoading(false)
-	}
+	}, [])
 
 	// Keyboard handling for document creation modal
 	useEffect(() => {
@@ -336,29 +341,32 @@ export default function DashboardClient({
 	}, [showCreateDocumentModal])
 
 	// Document operation handlers
-	const handleDocumentRename = async (workspaceId: string, documentId: string, newName: string) => {
-		try {
-			const response = await fetch(`/api/documents/${documentId}`, {
-				method: 'PATCH',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ name: newName }),
-			})
+	const handleDocumentRename = useCallback(
+		async (workspaceId: string, documentId: string, newName: string) => {
+			try {
+				const response = await fetch(`/api/documents/${documentId}`, {
+					method: 'PATCH',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ name: newName }),
+				})
 
-			const data = await response.json()
+				const data = await response.json()
 
-			if (data.success) {
-				// Invalidate to trigger refetch
-				queryClient.invalidateQueries({ queryKey: ['dashboard', userId] })
-			} else {
-				alert(data.error?.message || 'Failed to rename document')
+				if (data.success) {
+					// Invalidate to trigger refetch
+					queryClient.invalidateQueries({ queryKey: ['dashboard', userId] })
+				} else {
+					alert(data.error?.message || 'Failed to rename document')
+				}
+			} catch (err) {
+				console.error('Failed to rename document:', err)
+				alert('Failed to rename document')
 			}
-		} catch (err) {
-			console.error('Failed to rename document:', err)
-			alert('Failed to rename document')
-		}
-	}
+		},
+		[queryClient, userId]
+	)
 
-	const handleDocumentDuplicate = async (workspaceId: string, documentId: string) => {
+	const handleDocumentDuplicate = useCallback(async (workspaceId: string, documentId: string) => {
 		try {
 			const response = await fetch(`/api/documents/${documentId}/duplicate`, {
 				method: 'POST',
@@ -376,9 +384,9 @@ export default function DashboardClient({
 			console.error('Failed to duplicate document:', err)
 			alert('Failed to duplicate document')
 		}
-	}
+	}, [])
 
-	const handleDocumentArchive = async (workspaceId: string, documentId: string) => {
+	const handleDocumentArchive = useCallback(async (workspaceId: string, documentId: string) => {
 		try {
 			const response = await fetch(`/api/documents/${documentId}`, {
 				method: 'PATCH',
@@ -396,9 +404,9 @@ export default function DashboardClient({
 			console.error('Failed to archive document:', err)
 			alert('Failed to archive document')
 		}
-	}
+	}, [])
 
-	const handleDocumentRestore = async (workspaceId: string, documentId: string) => {
+	const handleDocumentRestore = useCallback(async (workspaceId: string, documentId: string) => {
 		try {
 			const response = await fetch(`/api/documents/${documentId}`, {
 				method: 'PATCH',
@@ -416,9 +424,9 @@ export default function DashboardClient({
 			console.error('Failed to restore document:', err)
 			alert('Failed to restore document')
 		}
-	}
+	}, [])
 
-	const handleDocumentDelete = async (workspaceId: string, documentId: string) => {
+	const handleDocumentDelete = useCallback(async (workspaceId: string, documentId: string) => {
 		try {
 			const response = await fetch(`/api/documents/${documentId}`, {
 				method: 'DELETE',
@@ -434,7 +442,7 @@ export default function DashboardClient({
 			console.error('Failed to delete document:', err)
 			alert('Failed to delete document')
 		}
-	}
+	}, [])
 
 	const toggleWorkspace = (workspaceId: string) => {
 		setExpandedWorkspaces((prev) => {

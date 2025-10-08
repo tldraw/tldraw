@@ -3,7 +3,7 @@
 import { Document, Workspace } from '@/lib/api/types'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 
 interface WorkspaceArchiveClientProps {
 	workspace: Workspace
@@ -21,60 +21,66 @@ export default function WorkspaceArchiveClient({
 	const [success, setSuccess] = useState<string | null>(null)
 	const [processingId, setProcessingId] = useState<string | null>(null)
 
-	const handleRestore = async (documentId: string) => {
-		setError(null)
-		setSuccess(null)
-		setProcessingId(documentId)
+	const handleRestore = useCallback(
+		async (documentId: string) => {
+			setError(null)
+			setSuccess(null)
+			setProcessingId(documentId)
 
-		try {
-			const res = await fetch(`/api/documents/${documentId}/restore`, {
-				method: 'POST',
-			})
+			try {
+				const res = await fetch(`/api/documents/${documentId}/restore`, {
+					method: 'POST',
+				})
 
-			if (!res.ok) {
-				const data = await res.json()
-				throw new Error(data.message || 'Failed to restore document')
+				if (!res.ok) {
+					const data = await res.json()
+					throw new Error(data.message || 'Failed to restore document')
+				}
+
+				setSuccess('Document restored')
+				router.refresh()
+			} catch (err) {
+				setError(err instanceof Error ? err.message : 'An unexpected error occurred')
+			} finally {
+				setProcessingId(null)
+			}
+		},
+		[router]
+	)
+
+	const handlePermanentDelete = useCallback(
+		async (documentId: string) => {
+			if (!confirm('Permanently delete this document? This action cannot be undone!')) {
+				return
 			}
 
-			setSuccess('Document restored')
-			router.refresh()
-		} catch (err) {
-			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
-		} finally {
-			setProcessingId(null)
-		}
-	}
+			setError(null)
+			setSuccess(null)
+			setProcessingId(documentId)
 
-	const handlePermanentDelete = async (documentId: string) => {
-		if (!confirm('Permanently delete this document? This action cannot be undone!')) {
-			return
-		}
+			try {
+				const res = await fetch(`/api/documents/${documentId}/delete`, {
+					method: 'DELETE',
+					headers: {
+						'X-Confirm-Delete': 'true',
+					},
+				})
 
-		setError(null)
-		setSuccess(null)
-		setProcessingId(documentId)
+				if (!res.ok) {
+					const data = await res.json()
+					throw new Error(data.message || 'Failed to delete document')
+				}
 
-		try {
-			const res = await fetch(`/api/documents/${documentId}/delete`, {
-				method: 'DELETE',
-				headers: {
-					'X-Confirm-Delete': 'true',
-				},
-			})
-
-			if (!res.ok) {
-				const data = await res.json()
-				throw new Error(data.message || 'Failed to delete document')
+				setSuccess('Document permanently deleted')
+				router.refresh()
+			} catch (err) {
+				setError(err instanceof Error ? err.message : 'An unexpected error occurred')
+			} finally {
+				setProcessingId(null)
 			}
-
-			setSuccess('Document permanently deleted')
-			router.refresh()
-		} catch (err) {
-			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
-		} finally {
-			setProcessingId(null)
-		}
-	}
+		},
+		[router]
+	)
 
 	return (
 		<div className="flex h-screen flex-col">

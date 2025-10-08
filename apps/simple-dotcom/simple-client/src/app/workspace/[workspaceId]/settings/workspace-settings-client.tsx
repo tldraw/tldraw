@@ -3,7 +3,7 @@
 import { Workspace } from '@/lib/api/types'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 interface Member {
 	id: string
@@ -51,37 +51,40 @@ export default function WorkspaceSettingsClient({
 	const [isTogglingInvite, setIsTogglingInvite] = useState(false)
 	const [copySuccess, setCopySuccess] = useState(false)
 
-	const handleRename = async (e: React.FormEvent) => {
-		e.preventDefault()
-		setError(null)
-		setIsSavingRename(true)
+	const handleRename = useCallback(
+		async (e: React.FormEvent) => {
+			e.preventDefault()
+			setError(null)
+			setIsSavingRename(true)
 
-		try {
-			const res = await fetch(`/api/workspaces/${workspace.id}`, {
-				method: 'PATCH',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ name }),
-			})
+			try {
+				const res = await fetch(`/api/workspaces/${workspace.id}`, {
+					method: 'PATCH',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ name }),
+				})
 
-			if (!res.ok) {
-				const data = await res.json()
-				throw new Error(data.message || 'Failed to rename workspace')
+				if (!res.ok) {
+					const data = await res.json()
+					throw new Error(data.message || 'Failed to rename workspace')
+				}
+
+				// Trigger router refresh and wait for UI to update
+				router.refresh()
+				// Give Next.js time to refetch and update the UI
+				await new Promise((resolve) => setTimeout(resolve, 500))
+
+				setIsRenaming(false)
+			} catch (err) {
+				setError(err instanceof Error ? err.message : 'An unexpected error occurred')
+			} finally {
+				setIsSavingRename(false)
 			}
+		},
+		[workspace.id, name, router]
+	)
 
-			// Trigger router refresh and wait for UI to update
-			router.refresh()
-			// Give Next.js time to refetch and update the UI
-			await new Promise((resolve) => setTimeout(resolve, 500))
-
-			setIsRenaming(false)
-		} catch (err) {
-			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
-		} finally {
-			setIsSavingRename(false)
-		}
-	}
-
-	const handleDelete = async () => {
+	const handleDelete = useCallback(async () => {
 		if (
 			!confirm(
 				'Are you sure you want to delete this workspace? This action can be undone by restoring from trash.'
@@ -108,9 +111,9 @@ export default function WorkspaceSettingsClient({
 			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
 			setIsDeleting(false)
 		}
-	}
+	}, [workspace.id, router])
 
-	const handleLeave = async () => {
+	const handleLeave = useCallback(async () => {
 		if (
 			!confirm(
 				'Are you sure you want to leave this workspace? You will lose access to all documents and folders in this workspace.'
@@ -146,9 +149,9 @@ export default function WorkspaceSettingsClient({
 			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
 			setIsLeaving(false)
 		}
-	}
+	}, [workspace.id, router])
 
-	const handleTransferOwnership = async () => {
+	const handleTransferOwnership = useCallback(async () => {
 		if (!selectedNewOwner) {
 			setError('Please select a member to transfer ownership to')
 			return
@@ -179,7 +182,7 @@ export default function WorkspaceSettingsClient({
 			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
 			setIsTransferring(false)
 		}
-	}
+	}, [selectedNewOwner, workspace.id, router])
 
 	// Fetch invitation link status on mount
 	useEffect(() => {
@@ -202,14 +205,14 @@ export default function WorkspaceSettingsClient({
 				// User is not an owner, don't show invitation link section
 				// Silently handle - this is expected behavior
 			}
-		} catch (err) {
+		} catch {
 			// Silently fail - not critical for settings page functionality
 		} finally {
 			setIsLoadingInvite(false)
 		}
 	}
 
-	const handleToggleInvite = async () => {
+	const handleToggleInvite = useCallback(async () => {
 		setIsTogglingInvite(true)
 		setError(null)
 		try {
@@ -236,9 +239,9 @@ export default function WorkspaceSettingsClient({
 		} finally {
 			setIsTogglingInvite(false)
 		}
-	}
+	}, [workspace.id, invitationLink?.enabled])
 
-	const handleRegenerateInvite = async () => {
+	const handleRegenerateInvite = useCallback(async () => {
 		if (
 			!confirm(
 				'Are you sure you want to regenerate the invitation link? The old link will stop working immediately.'
@@ -269,9 +272,9 @@ export default function WorkspaceSettingsClient({
 		} finally {
 			setIsRegenerating(false)
 		}
-	}
+	}, [workspace.id])
 
-	const handleCopyInviteLink = async () => {
+	const handleCopyInviteLink = useCallback(async () => {
 		if (invitationLink?.token) {
 			try {
 				const url = `${window.location.origin}/invite/${invitationLink.token}`
@@ -282,7 +285,7 @@ export default function WorkspaceSettingsClient({
 				setError('Failed to copy link to clipboard')
 			}
 		}
-	}
+	}, [invitationLink?.token])
 
 	// Filter out current user from potential new owners
 	const eligibleMembers = members.filter((m) => m.id !== userId)

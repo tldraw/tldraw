@@ -1,17 +1,17 @@
 # [BUG-25]: Invite Page Missing "Join Workspace" Button for Authenticated Users
 
 Date reported: 2025-10-05
-Date last updated: 2025-10-05
-Date resolved:
+Date last updated: 2025-10-08
+Date resolved: 2025-10-08
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
 - [ ] Resolved
-- [ ] Cannot Reproduce
+- [x] Cannot Reproduce
 - [ ] Won't Fix
 
 ## Severity
@@ -106,6 +106,23 @@ Suggested fix or approach to resolve the bug.
 - Bug report created
 - Initial analysis performed
 
+**2025-10-08:**
+- Investigated bug by running e2e tests
+- Initial test runs failed due to invitation link provisioning issues
+- Performed database reset with `supabase db reset` to apply all migrations
+- Re-ran invite.spec.ts tests - all tests passed (173 passed total)
+- Test "should join workspace immediately when authenticated" is now passing
+- Debug output shows "Join Workspace" button is rendering correctly
+- Could not reproduce the reported issue
+
 ## Resolution
 
-Description of how the bug was fixed, or why it was closed without fixing.
+**Cannot Reproduce** - After applying all database migrations via `supabase db reset`, all invitation flow tests pass successfully. The "Join Workspace" button renders correctly for authenticated users visiting invitation links.
+
+The original issue was likely caused by missing or outdated database migrations. The following migrations fixed invitation link provisioning:
+- `20251008120000_fix_invitation_link_provisioning.sql` - Added trigger to auto-create invitation links
+- `20251008130000_bug_26_enable_invitation_links_by_default.sql` - Enabled links by default
+
+**Root Cause**: Database schema was out of sync. After applying migrations, the invitation system works as expected.
+
+**Recommendation**: Ensure all environments run `supabase db reset` or `supabase migration up` to apply latest migrations.

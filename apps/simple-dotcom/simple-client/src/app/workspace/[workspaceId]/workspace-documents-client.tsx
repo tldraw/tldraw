@@ -6,7 +6,7 @@ import { useWorkspaceRealtimeUpdates } from '@/hooks/useWorkspaceRealtimeUpdates
 import { Document, Folder, Workspace } from '@/lib/api/types'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 
 interface WorkspaceDocumentsClientProps {
 	workspace: Workspace
@@ -47,13 +47,16 @@ export default function WorkspaceDocumentsClient({
 		refetchOnReconnect: true, // Refetch when connection restored
 	})
 
+	// Memoize onChange to prevent subscription reconnects
+	const handleRealtimeChange = useCallback(() => {
+		// Invalidate queries to trigger refetch when any workspace event is received
+		queryClient.invalidateQueries({ queryKey: ['workspace-documents', workspace.id] })
+	}, [queryClient, workspace.id])
+
 	// Enable realtime subscriptions using broadcast pattern
 	// This follows the documented hybrid realtime strategy (broadcast + polling)
 	useWorkspaceRealtimeUpdates(workspace.id, {
-		onChange: () => {
-			// Invalidate queries to trigger refetch when any workspace event is received
-			queryClient.invalidateQueries({ queryKey: ['workspace-documents', workspace.id] })
-		},
+		onChange: handleRealtimeChange,
 		enabled: true,
 	})
 
@@ -64,7 +67,7 @@ export default function WorkspaceDocumentsClient({
 
 	const activeDocuments = filteredDocuments.filter((doc) => !doc.is_archived)
 
-	const handleCreateDocument = async () => {
+	const handleCreateDocument = useCallback(async () => {
 		const name = window.prompt('Enter document name:')
 		if (!name || !name.trim()) return
 
@@ -96,9 +99,9 @@ export default function WorkspaceDocumentsClient({
 		} finally {
 			setIsCreating(false)
 		}
-	}
+	}, [workspace.id, selectedFolder, queryClient, router])
 
-	const handleRenameDocument = async (documentId: string, newName: string) => {
+	const handleRenameDocument = useCallback(async (documentId: string, newName: string) => {
 		try {
 			const response = await fetch(`/api/documents/${documentId}`, {
 				method: 'PATCH',
@@ -118,9 +121,9 @@ export default function WorkspaceDocumentsClient({
 				`Error renaming document: ${err instanceof Error ? err.message : 'An unexpected error occurred'}`
 			)
 		}
-	}
+	}, [])
 
-	const handleDuplicateDocument = async (documentId: string) => {
+	const handleDuplicateDocument = useCallback(async (documentId: string) => {
 		try {
 			const response = await fetch(`/api/documents/${documentId}/duplicate`, {
 				method: 'POST',
@@ -138,9 +141,9 @@ export default function WorkspaceDocumentsClient({
 				`Error duplicating document: ${err instanceof Error ? err.message : 'An unexpected error occurred'}`
 			)
 		}
-	}
+	}, [])
 
-	const handleArchiveDocument = async (documentId: string) => {
+	const handleArchiveDocument = useCallback(async (documentId: string) => {
 		try {
 			const response = await fetch(`/api/documents/${documentId}/archive`, {
 				method: 'POST',
@@ -157,9 +160,9 @@ export default function WorkspaceDocumentsClient({
 				`Error archiving document: ${err instanceof Error ? err.message : 'An unexpected error occurred'}`
 			)
 		}
-	}
+	}, [])
 
-	const handleRestoreDocument = async (documentId: string) => {
+	const handleRestoreDocument = useCallback(async (documentId: string) => {
 		try {
 			const response = await fetch(`/api/documents/${documentId}/restore`, {
 				method: 'POST',
@@ -177,13 +180,13 @@ export default function WorkspaceDocumentsClient({
 				`Error restoring document: ${err instanceof Error ? err.message : 'An unexpected error occurred'}`
 			)
 		}
-	}
+	}, [])
 
-	const handleDeleteDocument = async (_documentId: string) => {
+	const handleDeleteDocument = useCallback(async (_documentId: string) => {
 		// For M2, we only support soft delete (archive)
 		// Hard delete will be implemented in DOC-05
 		alert('Permanent deletion will be available in a future update')
-	}
+	}, [])
 
 	return (
 		<div className="flex h-full flex-col">

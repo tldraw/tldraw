@@ -6,7 +6,7 @@
 import { CHANNEL_PATTERNS } from '@/lib/realtime/types'
 import { getBrowserClient } from '@/lib/supabase/browser'
 import { RealtimeChannel } from '@supabase/supabase-js'
-import { useCallback, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 
 interface UseWorkspaceRealtimeUpdatesOptions {
 	onChange?: () => void
@@ -32,11 +32,6 @@ export function useWorkspaceRealtimeUpdates(
 	const channelRef = useRef<RealtimeChannel | null>(null)
 	const supabase = getBrowserClient()
 
-	// Handle incoming events
-	const handleEvent = useCallback(() => {
-		onChange?.()
-	}, [onChange])
-
 	useEffect(() => {
 		// Skip if no workspace ID or disabled
 		if (!workspaceId || !enabled) {
@@ -46,7 +41,9 @@ export function useWorkspaceRealtimeUpdates(
 		// Create channel and subscribe
 		const channel = supabase
 			.channel(CHANNEL_PATTERNS.workspace(workspaceId))
-			.on('broadcast', { event: 'workspace_event' }, handleEvent)
+			.on('broadcast', { event: 'workspace_event' }, () => {
+				onChange?.()
+			})
 			.subscribe()
 
 		// Store channel reference
@@ -59,5 +56,5 @@ export function useWorkspaceRealtimeUpdates(
 				channelRef.current = null
 			}
 		}
-	}, [workspaceId, enabled, handleEvent, supabase])
+	}, [workspaceId, enabled, onChange])
 }

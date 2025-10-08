@@ -20,7 +20,7 @@ async function getDocumentAccess(userId: string | null, documentId: string) {
 		return null
 	}
 
-	const workspace = (document as any).workspaces
+	const workspace = document.workspaces
 
 	// Check if workspace is deleted
 	if (workspace.is_deleted) {
