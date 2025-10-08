@@ -41,7 +41,7 @@ async function createWorkspaceWithInvite(page: Page): Promise<{
 			},
 			{ timeout: 5000, message: 'Invitation link not created within timeout' }
 		)
-		.resolves.toBeTruthy()
+		.toBeTruthy()
 
 	// Fetch the final invitation data
 	const inviteResponse = await page.request.get(`/api/workspaces/${workspaceId}/invite`)

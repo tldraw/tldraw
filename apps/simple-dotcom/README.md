@@ -254,44 +254,143 @@ console.log('[Realtime] Event received:', event.type, payload)
 - [React Query Polling Strategy](https://tanstack.com/query/latest/docs/react/guides/window-focus-refetching)
 - Implementation details: `/simple-client/src/lib/realtime/README.md`
 
-## Viewing Backend Logs
+## Logging & Debugging
 
-The backend uses a structured logger that writes to both stdout and a rotating log file. This makes it easy to inspect server-side logs when debugging issues.
+The application follows professional logging practices with structured server-side logging (pino) and minimal client-side logging. This ensures production builds are clean while maintaining good developer experience.
 
-**Log Locations:**
+### Using the Logger
 
-- **Console**: Pretty-printed logs appear in your terminal when running `yarn workspace simple-dotcom dev`
-- **File**: JSON-formatted logs are appended to `apps/simple-dotcom/.logs/backend.log`
+**Server-Side (API Routes, Server Components)**
 
-**Viewing Recent Logs:**
+Use the structured pino logger for all server-side code:
 
-To see the last 200 lines of backend logs:
+```typescript
+import { logger } from '@/lib/server/logger'
 
+// Log an error with context
+logger.error('Failed to create workspace', error, {
+  context: 'workspace_creation',
+  user_id: user.id,
+  workspace_name: body.name,
+})
+
+// Log significant business events
+logger.info('Workspace created', {
+  context: 'workspace_creation',
+  workspace_id: workspace.id,
+  user_id: user.id,
+})
+
+// Debug-level logging (development only)
+logger.debug('Cache workaround triggered', {
+  context: 'invite_regeneration',
+  workspace_id: workspaceId,
+})
+```
+
+**Client-Side (React Components, Hooks)**
+
+Use `console.error` **only** for errors that affect users:
+
+```typescript
+// ✅ Good: Log errors shown to users
+try {
+  await createWorkspace(name)
+} catch (err) {
+  console.error('Failed to create workspace:', err)
+  setValidationError('Failed to create workspace. Please try again.')
+}
+
+// ❌ Bad: Don't log normal operations
+console.log('Event received:', event.type) // DELETE
+console.log('Subscribed to channel') // DELETE
+```
+
+### Logging Standards
+
+**What to Log:**
+- ✅ API errors that affect users
+- ✅ Significant business events (workspace created, member invited)
+- ✅ Security issues (RLS policy denials, unauthorized access)
+- ✅ System problems (database connection lost, rate limit exceeded)
+
+**What NOT to Log:**
+- ❌ Normal operations (successful API calls, successful broadcasts)
+- ❌ React Query refetches or invalidations
+- ❌ Realtime event receipts or subscription status
+- ❌ Tab visibility changes or reconnections
+
+**Server-Side Rules:**
+- Always use the pino logger, never `console`
+- Include structured context (user_id, workspace_id, route, etc.)
+- Use appropriate log levels: ERROR for failures, INFO for significant events, DEBUG for troubleshooting
+
+**Client-Side Rules:**
+- Only use `console.error` for user-facing errors
+- Never use `console.log`, `console.warn`, or `console.info` in production code
+- Don't log internal state changes, subscriptions, or normal operations
+
+### Viewing Logs
+
+**Console Logs (Development):**
+
+When running `yarn workspace simple-dotcom dev`, server logs appear pretty-printed in your terminal.
+
+**Log Files (Production):**
+
+Server logs are written to `apps/simple-dotcom/.logs/backend.log` in JSON format.
+
+To see recent logs:
 ```bash
 tail -n 200 apps/simple-dotcom/.logs/backend.log
 ```
 
-Or to follow logs in real-time:
-
+To follow logs in real-time:
 ```bash
 tail -f apps/simple-dotcom/.logs/backend.log
 ```
 
 **Log Format:**
 
-Log entries are structured JSON with the following fields:
-
+Log entries include:
 - `level`: Log level (info, warn, error, debug)
 - `time`: ISO timestamp
 - `msg`: Human-readable message
-- Context-specific fields (route, user_id, error details, etc.)
+- Context fields: route, user_id, workspace_id, error details, etc.
 
-**Notes:**
+### Configuration
 
-- Log files are created on first server startup and persist across process restarts
-- The `.logs/` directory is git-ignored and will not be committed
-- Logs are not automatically rotated - the file grows indefinitely (suitable for development)
-- For production, consider implementing proper log rotation or using a log management service
+**Environment Variables:**
+
+- `LOG_LEVEL` - Control server log level (info, debug, warn, error)
+- `LOG_TO_FILE` - Enable/disable file logging (default: production only)
+
+**Development:**
+```bash
+LOG_LEVEL=info    # Default for development
+```
+
+**Production:**
+```bash
+LOG_LEVEL=info
+LOG_TO_FILE=true  # Automatic in production
+```
+
+### Best Practices
+
+**DO:**
+- ✅ Use structured logging with context objects
+- ✅ Log errors with enough detail to diagnose issues
+- ✅ Include relevant IDs (user_id, workspace_id) in context
+- ✅ Use appropriate log levels (ERROR for failures, INFO for events)
+
+**DON'T:**
+- ❌ Use console.log/warn/info anywhere in the codebase
+- ❌ Log sensitive data (passwords, tokens, full error objects with credentials)
+- ❌ Log every function entry/exit
+- ❌ Create log spam for normal operations
+
+For complete logging standards and additional examples, see the "Logging & Debugging" section in [`CLAUDE.md`](./CLAUDE.md).
 
 ## Delivery Workflow
 
