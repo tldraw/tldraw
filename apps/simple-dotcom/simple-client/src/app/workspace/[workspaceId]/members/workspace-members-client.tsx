@@ -1,8 +1,9 @@
 'use client'
 
+import { useWorkspaceRealtimeUpdates } from '@/hooks/useWorkspaceRealtimeUpdates'
 import { Workspace } from '@/lib/api/types'
 import { WORKSPACE_LIMITS } from '@/lib/constants'
-import { getBrowserClient } from '@/lib/supabase/browser'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
@@ -37,7 +38,7 @@ export default function WorkspaceMembersClient({
 	currentUserId,
 }: WorkspaceMembersClientProps) {
 	const router = useRouter()
-	const [members, setMembers] = useState(initialMembers)
+	const queryClient = useQueryClient()
 	const [isToggling, setIsToggling] = useState(false)
 	const [isRegenerating, setIsRegenerating] = useState(false)
 	const [error, setError] = useState<string | null>(null)
@@ -48,32 +49,35 @@ export default function WorkspaceMembersClient({
 
 	const inviteUrl = inviteLink ? `${window.location.origin}/invite/${inviteLink.token}` : null
 
-	// Set up real-time subscription for member changes
-	useEffect(() => {
-		const supabase = getBrowserClient()
+	// Fetch members data with React Query
+	// Hybrid approach: Realtime for instant updates + polling for reliability
+	const { data: members = initialMembers } = useQuery<Member[]>({
+		queryKey: ['workspace-members', workspace.id],
+		queryFn: async () => {
+			const response = await fetch(`/api/workspaces/${workspace.id}/members`)
+			const result = await response.json()
+			if (!result.success) {
+				throw new Error(result.error?.message || 'Failed to fetch members')
+			}
+			// The API now returns members in the correct format for owners
+			return result.data as Member[]
+		},
+		initialData: initialMembers,
+		staleTime: 1000 * 10, // 10 seconds - shorter to catch missed realtime events
+		refetchInterval: 1000 * 15, // Poll every 15 seconds as fallback
+		refetchOnMount: true, // Refetch when returning to members page
+		refetchOnReconnect: true, // Refetch when connection restored
+	})
 
-		const channel = supabase
-			.channel(`workspace-members-${workspace.id}`)
-			.on(
-				'postgres_changes',
-				{
-					event: '*',
-					schema: 'public',
-					table: 'workspace_members',
-					filter: `workspace_id=eq.${workspace.id}`,
-				},
-				(_payload) => {
-					// Refresh the page to get updated member list
-					// In a production app, we'd update state more efficiently
-					router.refresh()
-				}
-			)
-			.subscribe()
-
-		return () => {
-			supabase.removeChannel(channel)
-		}
-	}, [workspace.id, router])
+	// Enable realtime subscriptions using broadcast pattern
+	// This follows the documented hybrid realtime strategy (broadcast + polling)
+	useWorkspaceRealtimeUpdates(workspace.id, {
+		onChange: () => {
+			// Invalidate queries to trigger refetch when any workspace event is received
+			queryClient.invalidateQueries({ queryKey: ['workspace-members', workspace.id] })
+		},
+		enabled: true,
+	})
 
 	// Filter members based on search term
 	const filteredMembers = useMemo(() => {
@@ -115,6 +119,8 @@ export default function WorkspaceMembersClient({
 			}
 
 			setSuccess(inviteLink?.enabled ? 'Invite link disabled' : 'Invite link enabled')
+			// Trigger a page refresh to get updated invite link state
+			// Invite link is server-rendered, so we need to refresh the page
 			router.refresh()
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
@@ -143,6 +149,8 @@ export default function WorkspaceMembersClient({
 			}
 
 			setSuccess('Invite link regenerated')
+			// Trigger a page refresh to get updated invite link with new token
+			// Invite link is server-rendered, so we need to refresh the page
 			router.refresh()
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
@@ -177,12 +185,10 @@ export default function WorkspaceMembersClient({
 				throw new Error(data.message || 'Failed to remove member')
 			}
 
-			// Update local state immediately for better UX
-			setMembers((prevMembers) => prevMembers.filter((m) => m.id !== memberId))
 			setSuccess('Member removed')
-
-			// Still refresh to ensure consistency
-			router.refresh()
+			// Invalidate the query to refetch members list
+			// The realtime subscription will also trigger this
+			queryClient.invalidateQueries({ queryKey: ['workspace-members', workspace.id] })
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
 		}

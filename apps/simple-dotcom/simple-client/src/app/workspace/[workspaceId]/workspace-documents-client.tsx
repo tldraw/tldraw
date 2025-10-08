@@ -50,16 +50,8 @@ export default function WorkspaceDocumentsClient({
 	// Enable realtime subscriptions using broadcast pattern
 	// This follows the documented hybrid realtime strategy (broadcast + polling)
 	useWorkspaceRealtimeUpdates(workspace.id, {
-		onDocumentChange: () => {
-			// Invalidate queries to trigger refetch when document events are received
-			queryClient.invalidateQueries({ queryKey: ['workspace-documents', workspace.id] })
-		},
-		onFolderChange: () => {
-			// Also invalidate on folder changes as they may affect document organization
-			queryClient.invalidateQueries({ queryKey: ['workspace-documents', workspace.id] })
-		},
-		onReconnect: () => {
-			// Refetch data when reconnecting after tab was backgrounded
+		onChange: () => {
+			// Invalidate queries to trigger refetch when any workspace event is received
 			queryClient.invalidateQueries({ queryKey: ['workspace-documents', workspace.id] })
 		},
 		enabled: true,

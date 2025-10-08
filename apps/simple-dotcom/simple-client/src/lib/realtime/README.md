@@ -43,46 +43,36 @@ All events follow a standard structure:
 
 ### Client-Side: Subscribing to Updates
 
-Use the provided hooks in React components:
+Use the `useWorkspaceRealtimeUpdates` hook with React Query for the hybrid realtime strategy:
 
 ```typescript
-import { useWorkspaceRealtimeUpdates } from '@/hooks'
+import { useWorkspaceRealtimeUpdates } from '@/hooks/useWorkspaceRealtimeUpdates'
+import { useQueryClient } from '@tanstack/react-query'
 
-function WorkspaceView({ workspaceId }) {
-  // Subscribe to all workspace events
+function WorkspaceDocuments({ workspaceId }) {
+  const queryClient = useQueryClient()
+
+  // Hybrid strategy: React Query polling + Realtime for instant updates
+  const { data: documents } = useQuery({
+    queryKey: ['workspace-documents', workspaceId],
+    queryFn: fetchDocuments,
+    staleTime: 1000 * 10,        // 10 seconds
+    refetchInterval: 1000 * 15,  // Poll every 15 seconds
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+  })
+
+  // Subscribe to all workspace events with single onChange callback
   useWorkspaceRealtimeUpdates(workspaceId, {
-    onDocumentChange: (event) => {
-      // Handle document updates
-      refetchDocuments()
+    onChange: () => {
+      // Invalidate queries to trigger refetch for any workspace event
+      queryClient.invalidateQueries({ queryKey: ['workspace-documents', workspaceId] })
     },
-    onMemberChange: (event) => {
-      // Handle member updates
-      refetchMembers()
-    },
-    onReconnect: () => {
-      // Refetch data after reconnection
-      refetchAll()
-    }
   })
 }
 ```
 
-Or use the specialized document list hook:
-
-```typescript
-import { useDocumentListRealtimeUpdates } from '@/hooks'
-
-function DocumentList({ workspaceId }) {
-  useDocumentListRealtimeUpdates(workspaceId, {
-    onDocumentCreated: (documentId, name) => {
-      // Add to local state
-    },
-    onDocumentDeleted: (documentId) => {
-      // Remove from local state
-    }
-  })
-}
-```
+This simplified pattern handles all event types (documents, folders, members, workspace) with a single callback. The hybrid approach (Broadcast + polling) ensures missed events are caught even if connections drop.
 
 ### Server-Side: Broadcasting Events
 
@@ -134,9 +124,10 @@ await broadcastWorkspaceEvent(
 
 The hooks automatically handle reconnection:
 1. Supabase Realtime reconnects automatically
-2. On reconnect, the `onReconnect` callback fires
-3. UI components should refetch current state to catch missed updates
-4. We don't attempt to replay missed events
+2. The hook detects tab visibility changes and triggers `onChange`
+3. React Query polling (15s intervals) catches any missed events
+4. `refetchOnMount` and `refetchOnReconnect` provide additional safety nets
+5. We don't attempt to replay missed events - instead we refetch current state
 
 ## Testing
 

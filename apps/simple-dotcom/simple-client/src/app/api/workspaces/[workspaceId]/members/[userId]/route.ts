@@ -3,7 +3,8 @@
 
 import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
-import { createClient, requireAuth } from '@/lib/supabase/server'
+import { broadcastMemberEvent } from '@/lib/realtime/broadcast'
+import { createAdminClient, createClient, requireAuth } from '@/lib/supabase/server'
 import { NextRequest } from 'next/server'
 
 type RouteContext = {
@@ -59,6 +60,17 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
 		if (error) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to remove member')
 		}
+
+		// Broadcast member.removed event for realtime updates
+		const adminClient = await createAdminClient()
+		await broadcastMemberEvent(
+			adminClient,
+			workspaceId,
+			'member.removed',
+			userId,
+			undefined, // No role for removed members
+			user.id // Actor who removed the member
+		)
 
 		return successResponse({ message: 'Member removed successfully' })
 	} catch (error) {

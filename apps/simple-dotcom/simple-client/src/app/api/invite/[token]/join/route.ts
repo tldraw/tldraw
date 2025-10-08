@@ -5,7 +5,8 @@ import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
 import { WORKSPACE_LIMITS } from '@/lib/constants'
 import { createRateLimitResponse, RATE_LIMITS, rateLimitByIp } from '@/lib/rate-limit/rate-limiter'
-import { createClient, requireAuth } from '@/lib/supabase/server'
+import { broadcastMemberEvent } from '@/lib/realtime/broadcast'
+import { createAdminClient, createClient, requireAuth } from '@/lib/supabase/server'
 import { NextRequest } from 'next/server'
 
 type RouteContext = {
@@ -115,6 +116,17 @@ export async function POST(request: NextRequest, context: RouteContext) {
 		if (error) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to join workspace')
 		}
+
+		// Broadcast member.added event for realtime updates
+		const adminClient = await createAdminClient()
+		await broadcastMemberEvent(
+			adminClient,
+			invitation.workspace_id,
+			'member.added',
+			user.id,
+			'member',
+			user.id // Actor is the user who joined
+		)
 
 		// Check if approaching limit and include warning
 		const warning =
