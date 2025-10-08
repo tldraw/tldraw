@@ -526,30 +526,6 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		},
 	},
 	{
-		type: 'excalidraw',
-		title: 'Excalidraw',
-		hostnames: ['excalidraw.com'],
-		width: 720,
-		height: 500,
-		doesResize: true,
-		isAspectRatioLocked: true,
-		embedOnPaste: true,
-		toEmbedUrl: (url) => {
-			const urlObj = safeParseUrl(url)
-			if (urlObj && urlObj.hash.match(/#room=/)) {
-				return url
-			}
-			return
-		},
-		fromEmbedUrl: (url) => {
-			const urlObj = safeParseUrl(url)
-			if (urlObj && urlObj.hash.match(/#room=/)) {
-				return url
-			}
-			return
-		},
-	},
-	{
 		type: 'observable',
 		title: 'Observable',
 		hostnames: ['observablehq.com'],

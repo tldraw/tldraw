@@ -347,23 +347,6 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		url: 'https://vimeo.com/foobar',
 		match: false,
 	},
-	// excalidraw
-	{
-		url: 'https://excalidraw.com/#room=asdkjashdkjhaskdjh,sadkjhakjshdkjahd',
-		match: true,
-		output: {
-			type: 'excalidraw',
-			embedUrl: `https://excalidraw.com/#room=asdkjashdkjhaskdjh,sadkjhakjshdkjahd`,
-		},
-	},
-	{
-		url: 'https://excalidraw.com',
-		match: false,
-	},
-	{
-		url: 'https://excalidraw.com/help',
-		match: false,
-	},
 	//desmos
 	{
 		url: 'https://www.desmos.com/calculator/js9hryvejc',
@@ -669,23 +652,6 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 	},
 	{
 		embedUrl: 'https://vimeo.com/foobar',
-		match: false,
-	},
-	// excalidraw
-	{
-		embedUrl: 'https://excalidraw.com/#room=asdkjashdkjhaskdjh,sadkjhakjshdkjahd',
-		match: true,
-		output: {
-			type: 'excalidraw',
-			url: `https://excalidraw.com/#room=asdkjashdkjhaskdjh,sadkjhakjshdkjahd`,
-		},
-	},
-	{
-		embedUrl: 'https://excalidraw.com',
-		match: false,
-	},
-	{
-		embedUrl: 'https://excalidraw.com/help',
 		match: false,
 	},
 	// desmos
