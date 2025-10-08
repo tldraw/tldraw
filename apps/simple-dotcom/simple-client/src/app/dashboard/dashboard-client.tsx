@@ -1,7 +1,7 @@
 'use client'
 
 import { DocumentActions } from '@/components/documents/DocumentActions'
-import { useDashboardRealtime } from '@/hooks/useDashboardRealtime'
+import { useMultiWorkspaceRealtime } from '@/hooks/useMultiWorkspaceRealtime'
 import { Document, Folder, RecentDocument, User, Workspace, WorkspaceRole } from '@/lib/api/types'
 import { getBrowserClient } from '@/lib/supabase/browser'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -55,9 +55,14 @@ export default function DashboardClient({
 		refetchOnReconnect: true, // Refetch when connection restored
 	})
 
-	// Enable realtime subscriptions for all workspaces (handles changes from other users)
+	// Enable realtime subscriptions for all workspaces using broadcast pattern
+	// This follows the documented hybrid realtime strategy (broadcast + polling)
 	const workspaceIds = dashboardData.workspaces.map((w) => w.workspace.id)
-	useDashboardRealtime(userId, workspaceIds)
+	useMultiWorkspaceRealtime({
+		userId,
+		workspaceIds,
+		enabled: true,
+	})
 
 	// Collapsible state for workspace sections - expand all by default
 	const [expandedWorkspaces, setExpandedWorkspaces] = useState<Set<string>>(() => {

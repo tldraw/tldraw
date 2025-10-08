@@ -6,7 +6,8 @@
 import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
 import { UpdateWorkspaceRequest, Workspace } from '@/lib/api/types'
-import { createClient, requireAuth } from '@/lib/supabase/server'
+import { broadcastWorkspaceEvent } from '@/lib/realtime/broadcast'
+import { createAdminClient, createClient, requireAuth } from '@/lib/supabase/server'
 import type { Tables } from '@/lib/supabase/types'
 import { NextRequest } from 'next/server'
 
@@ -132,6 +133,20 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to update workspace')
 		}
 
+		// Broadcast workspace update event
+		const adminClient = await createAdminClient()
+		await broadcastWorkspaceEvent(
+			adminClient,
+			workspaceId,
+			'workspace.updated',
+			{
+				workspaceId,
+				name: updated.name,
+				updatedAt: updated.updated_at,
+			},
+			user.id
+		)
+
 		return successResponse<Workspace>(updated as unknown as Workspace)
 	} catch (error) {
 		return handleApiError(error)
@@ -196,6 +211,19 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
 		if (error) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to delete workspace')
 		}
+
+		// Broadcast workspace archive event
+		const adminClient = await createAdminClient()
+		await broadcastWorkspaceEvent(
+			adminClient,
+			workspaceId,
+			'workspace.archived',
+			{
+				workspaceId,
+				updatedAt: new Date().toISOString(),
+			},
+			user.id
+		)
 
 		return successResponse({ message: 'Workspace deleted successfully' })
 	} catch (error) {
