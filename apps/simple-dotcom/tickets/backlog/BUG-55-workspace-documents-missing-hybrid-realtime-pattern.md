@@ -2,15 +2,15 @@
 
 Date reported: 2025-10-08
 Date last updated: 2025-10-08
-Date resolved: 
+Date resolved: 2025-10-08
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -134,6 +134,36 @@ const { isSubscribed } = useWorkspaceRealtimeUpdates(workspace.id, {
 - Identified missing hybrid pattern during codebase review
 - Verified against documented architecture
 - Noted correct implementation exists in dashboard-client.tsx for reference
+- Implemented fix using ultrathink-debugger agent
+- Replaced postgres_changes with broadcast pattern using useWorkspaceRealtimeUpdates
+- Integrated React Query with polling fallback
+- Fixed archive route to broadcast document.archived events
+- Created E2E test suite for realtime functionality
 
 ## Resolution
 
+**Fixed** by implementing the documented hybrid realtime strategy:
+
+1. **Replaced postgres_changes with broadcast pattern**:
+   - Now uses `useWorkspaceRealtimeUpdates` hook
+   - Listens for `workspace_event` broadcasts on channel `workspace:${workspaceId}`
+   - Invalidates queries on document/folder changes and reconnections
+
+2. **Integrated React Query with polling**:
+   - Implemented `useQuery` with 15-second polling fallback
+   - Configured `refetchOnMount: true` and `refetchOnReconnect: true`
+   - Set `staleTime: 10s` for optimal balance
+   - Removed direct state management with `useState`
+
+3. **Fixed server-side broadcasting**:
+   - Added `broadcastDocumentEvent` to archive route
+   - Now broadcasts `document.archived` events
+   - Consistent with other document mutations
+
+4. **Created E2E test suite**:
+   - Tests initial data fetching
+   - Verifies real-time updates for create/archive/rename
+   - Tests network interruption handling
+   - Validates polling fallback mechanism
+
+The workspace documents page now properly implements the hybrid realtime strategy, ensuring reliable updates during network issues, tab backgrounding, and connection drops.

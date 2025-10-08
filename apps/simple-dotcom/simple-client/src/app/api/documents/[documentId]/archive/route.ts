@@ -3,6 +3,7 @@
 
 import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
+import { broadcastDocumentEvent } from '@/lib/realtime/broadcast'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { NextRequest } from 'next/server'
 
@@ -69,6 +70,23 @@ export async function POST(_request: NextRequest, context: RouteContext) {
 		if (archiveError) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to archive document')
 		}
+
+		// Broadcast archive event
+		await broadcastDocumentEvent(
+			supabase,
+			documentId,
+			document.workspace_id,
+			'document.archived',
+			{
+				documentId,
+				workspaceId: document.workspace_id,
+				name: document.name,
+				folderId: document.folder_id,
+				isArchived: true,
+				action: 'archived',
+			},
+			user.id
+		)
 
 		// Log the archive action
 		await supabase.from('audit_logs').insert({

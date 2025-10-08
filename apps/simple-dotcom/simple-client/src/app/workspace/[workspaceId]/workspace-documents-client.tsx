@@ -2,10 +2,11 @@
 
 import { DocumentListItem } from '@/components/documents/DocumentListItem'
 import { EmptyDocumentList } from '@/components/documents/EmptyDocumentList'
+import { useWorkspaceRealtimeUpdates } from '@/hooks/useWorkspaceRealtimeUpdates'
 import { Document, Folder, Workspace } from '@/lib/api/types'
-import { getBrowserClient } from '@/lib/supabase/browser'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 interface WorkspaceDocumentsClientProps {
 	workspace: Workspace
@@ -23,69 +24,46 @@ export default function WorkspaceDocumentsClient({
 	isOwner,
 }: WorkspaceDocumentsClientProps) {
 	const router = useRouter()
-	const [documents, setDocuments] = useState(initialDocuments)
+	const queryClient = useQueryClient()
 	const [isCreating, setIsCreating] = useState(false)
 	const [selectedFolder, _setSelectedFolder] = useState<string | null>(null)
 
-	// Subscribe to realtime updates for documents
-	useEffect(() => {
-		const supabase = getBrowserClient()
+	// Fetch documents data with React Query
+	// Hybrid approach: Realtime for instant updates + polling for reliability
+	const { data: documents = initialDocuments } = useQuery<Document[]>({
+		queryKey: ['workspace-documents', workspace.id],
+		queryFn: async () => {
+			const response = await fetch(`/api/workspaces/${workspace.id}/documents`)
+			const result = await response.json()
+			if (!result.success) {
+				throw new Error(result.error?.message || 'Failed to fetch documents')
+			}
+			return result.data
+		},
+		initialData: initialDocuments,
+		staleTime: 1000 * 10, // 10 seconds - shorter to catch missed realtime events
+		refetchInterval: 1000 * 15, // Poll every 15 seconds as fallback
+		refetchOnMount: true, // Refetch when returning to documents page
+		refetchOnReconnect: true, // Refetch when connection restored
+	})
 
-		const channel = supabase
-			.channel(`workspace-documents-${workspace.id}`)
-			.on(
-				'postgres_changes',
-				{
-					event: 'INSERT',
-					schema: 'public',
-					table: 'documents',
-					filter: `workspace_id=eq.${workspace.id}`,
-				},
-				(payload) => {
-					const newDoc = payload.new as Document
-					if (!newDoc.is_archived) {
-						setDocuments((prev) => [newDoc, ...prev])
-					}
-				}
-			)
-			.on(
-				'postgres_changes',
-				{
-					event: 'UPDATE',
-					schema: 'public',
-					table: 'documents',
-					filter: `workspace_id=eq.${workspace.id}`,
-				},
-				(payload) => {
-					const updatedDoc = payload.new as Document
-					setDocuments((prev) => {
-						// Remove if archived
-						if (updatedDoc.is_archived) {
-							return prev.filter((doc) => doc.id !== updatedDoc.id)
-						}
-						// Update existing document
-						return prev.map((doc) => (doc.id === updatedDoc.id ? updatedDoc : doc))
-					})
-				}
-			)
-			.on(
-				'postgres_changes',
-				{
-					event: 'DELETE',
-					schema: 'public',
-					table: 'documents',
-					filter: `workspace_id=eq.${workspace.id}`,
-				},
-				(payload) => {
-					setDocuments((prev) => prev.filter((doc) => doc.id !== payload.old.id))
-				}
-			)
-			.subscribe()
-
-		return () => {
-			supabase.removeChannel(channel)
-		}
-	}, [workspace.id])
+	// Enable realtime subscriptions using broadcast pattern
+	// This follows the documented hybrid realtime strategy (broadcast + polling)
+	useWorkspaceRealtimeUpdates(workspace.id, {
+		onDocumentChange: () => {
+			// Invalidate queries to trigger refetch when document events are received
+			queryClient.invalidateQueries({ queryKey: ['workspace-documents', workspace.id] })
+		},
+		onFolderChange: () => {
+			// Also invalidate on folder changes as they may affect document organization
+			queryClient.invalidateQueries({ queryKey: ['workspace-documents', workspace.id] })
+		},
+		onReconnect: () => {
+			// Refetch data when reconnecting after tab was backgrounded
+			queryClient.invalidateQueries({ queryKey: ['workspace-documents', workspace.id] })
+		},
+		enabled: true,
+	})
 
 	// Filter documents by selected folder
 	const filteredDocuments = selectedFolder
@@ -115,7 +93,8 @@ export default function WorkspaceDocumentsClient({
 			}
 
 			const { data: newDocument } = await response.json()
-			setDocuments((prev) => [newDocument, ...prev])
+			// Invalidate queries to refetch documents with the new one
+			await queryClient.invalidateQueries({ queryKey: ['workspace-documents', workspace.id] })
 			// Navigate to the new document
 			router.push(`/d/${newDocument.id}`)
 		} catch (err) {
@@ -140,8 +119,8 @@ export default function WorkspaceDocumentsClient({
 				throw new Error(error.message || 'Failed to rename document')
 			}
 
-			const { data: updatedDocument } = await response.json()
-			setDocuments((prev) => prev.map((doc) => (doc.id === documentId ? updatedDocument : doc)))
+			// No need to handle the response - React Query will refetch via broadcast event
+			// The server broadcasts 'document.updated' which triggers query invalidation
 		} catch (err) {
 			alert(
 				`Error renaming document: ${err instanceof Error ? err.message : 'An unexpected error occurred'}`
@@ -160,8 +139,8 @@ export default function WorkspaceDocumentsClient({
 				throw new Error(error.message || 'Failed to duplicate document')
 			}
 
-			const { data: duplicatedDocument } = await response.json()
-			setDocuments((prev) => [duplicatedDocument, ...prev])
+			// No need to handle the response - React Query will refetch via broadcast event
+			// The server broadcasts 'document.created' which triggers query invalidation
 		} catch (err) {
 			alert(
 				`Error duplicating document: ${err instanceof Error ? err.message : 'An unexpected error occurred'}`
@@ -171,40 +150,17 @@ export default function WorkspaceDocumentsClient({
 
 	const handleArchiveDocument = async (documentId: string) => {
 		try {
-			// Optimistically remove document from UI immediately
-			// This ensures the UI updates even if realtime UPDATE events aren't received
-			setDocuments((prev) => prev.filter((doc) => doc.id !== documentId))
-
 			const response = await fetch(`/api/documents/${documentId}/archive`, {
 				method: 'POST',
 			})
 
 			if (!response.ok) {
 				const error = await response.json()
-				// Revert optimistic update on error by refetching documents
-				const refetchResponse = await fetch(`/api/workspaces/${workspace.id}/documents`)
-				if (refetchResponse.ok) {
-					const refetchData = await refetchResponse.json()
-					if (refetchData.success && refetchData.data) {
-						setDocuments(refetchData.data)
-					}
-				}
 				throw new Error(error.message || 'Failed to archive document')
 			}
-			// Realtime subscription will keep UI in sync if events are received
+			// The server broadcasts 'document.archived' which triggers query invalidation
+			// React Query will automatically refetch and update the UI
 		} catch (err) {
-			// Revert optimistic update on error by refetching documents
-			try {
-				const refetchResponse = await fetch(`/api/workspaces/${workspace.id}/documents`)
-				if (refetchResponse.ok) {
-					const refetchData = await refetchResponse.json()
-					if (refetchData.success && refetchData.data) {
-						setDocuments(refetchData.data)
-					}
-				}
-			} catch (refetchErr) {
-				console.error('Failed to refetch documents:', refetchErr)
-			}
 			alert(
 				`Error archiving document: ${err instanceof Error ? err.message : 'An unexpected error occurred'}`
 			)
@@ -222,8 +178,8 @@ export default function WorkspaceDocumentsClient({
 				throw new Error(error.message || 'Failed to restore document')
 			}
 
-			const { data: restoredDocument } = await response.json()
-			setDocuments((prev) => prev.map((doc) => (doc.id === documentId ? restoredDocument : doc)))
+			// No need to handle the response - React Query will refetch via broadcast event
+			// The server broadcasts 'document.restored' which triggers query invalidation
 		} catch (err) {
 			alert(
 				`Error restoring document: ${err instanceof Error ? err.message : 'An unexpected error occurred'}`
