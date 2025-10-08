@@ -146,7 +146,6 @@ test.describe('Document Archive and Hard Delete', () => {
 
 	test('cannot archive already archived document', async ({
 		authenticatedPage,
-		supabaseAdmin,
 		testUser,
 		testData,
 	}) => {

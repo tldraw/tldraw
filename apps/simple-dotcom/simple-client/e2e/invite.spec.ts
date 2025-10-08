@@ -1,5 +1,11 @@
 import { Page } from '@playwright/test'
-import { createAuthenticatedUser, expect, SELECTORS, test, TEST_PASSWORD } from './fixtures/test-fixtures'
+import {
+	createAuthenticatedUser,
+	expect,
+	SELECTORS,
+	test,
+	TEST_PASSWORD,
+} from './fixtures/test-fixtures'
 
 // Helper to generate unique workspace names
 function generateWorkspaceName(): string {
@@ -52,7 +58,10 @@ test.describe('Workspace Invitation Flow', () => {
 	test.describe('Unauthenticated User Flow', () => {
 		test('should redirect to login with preserved redirect URL', async ({ browser }) => {
 			// Create owner user
-			const { context: ownerContext, page: ownerPage } = await createAuthenticatedUser(browser, 'Owner User')
+			const { context: ownerContext, page: ownerPage } = await createAuthenticatedUser(
+				browser,
+				'Owner User'
+			)
 
 			// Create workspace and get invite
 			const { inviteToken } = await createWorkspaceWithInvite(ownerPage)
@@ -81,7 +90,10 @@ test.describe('Workspace Invitation Flow', () => {
 
 		test('should join workspace after signup', async ({ browser }) => {
 			// Create owner user
-			const { context: ownerContext, page: ownerPage } = await createAuthenticatedUser(browser, 'Owner User')
+			const { context: ownerContext, page: ownerPage } = await createAuthenticatedUser(
+				browser,
+				'Owner User'
+			)
 
 			// Create workspace and get invite
 			const { workspaceId, workspaceName, inviteToken } = await createWorkspaceWithInvite(ownerPage)
@@ -142,7 +154,10 @@ test.describe('Workspace Invitation Flow', () => {
 
 			// Create new authenticated user
 			const browser = authenticatedPage.context().browser()!
-			const { context: newUserContext, page: newUserPage } = await createAuthenticatedUser(browser, 'New User')
+			const { context: newUserContext, page: newUserPage } = await createAuthenticatedUser(
+				browser,
+				'New User'
+			)
 
 			// Visit invite link as authenticated new user
 			await newUserPage.goto(`/invite/${inviteToken}`)
@@ -204,7 +219,10 @@ test.describe('Workspace Invitation Flow', () => {
 
 			// Create new authenticated user to test as a different user (not the owner)
 			const browser = authenticatedPage.context().browser()!
-			const { context: newUserContext, page: newUserPage } = await createAuthenticatedUser(browser, 'New User')
+			const { context: newUserContext, page: newUserPage } = await createAuthenticatedUser(
+				browser,
+				'New User'
+			)
 
 			// Visit disabled invite link as authenticated user (not a member)
 			await newUserPage.goto(`/invite/${inviteToken}`)
@@ -232,7 +250,10 @@ test.describe('Workspace Invitation Flow', () => {
 
 			// Create new authenticated user
 			const browser = authenticatedPage.context().browser()!
-			const { context: newUserContext, page: newUserPage } = await createAuthenticatedUser(browser, 'New User')
+			const { context: newUserContext, page: newUserPage } = await createAuthenticatedUser(
+				browser,
+				'New User'
+			)
 
 			// Visit old token as authenticated user
 			await newUserPage.goto(`/invite/${oldToken}`)
@@ -250,7 +271,10 @@ test.describe('Workspace Invitation Flow', () => {
 			browser,
 		}) => {
 			// Create owner and workspace
-			const { context: ownerContext, page: ownerPage } = await createAuthenticatedUser(browser, 'Owner')
+			const { context: ownerContext, page: ownerPage } = await createAuthenticatedUser(
+				browser,
+				'Owner'
+			)
 
 			const { inviteToken } = await createWorkspaceWithInvite(ownerPage)
 			await ownerContext.close()

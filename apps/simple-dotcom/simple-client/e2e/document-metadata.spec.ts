@@ -39,13 +39,11 @@ test.describe('Document Metadata Display', () => {
 	})
 
 	test('displays limited metadata for guests with public documents', async ({
-		authenticatedPage,
 		page,
 		supabaseAdmin,
 		testUser,
 		testData,
 	}) => {
-		const authPage = authenticatedPage
 		const workspaceName = `Public Test ${Date.now()}`
 
 		// Create workspace and public document via testData helper
