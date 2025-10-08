@@ -301,7 +301,6 @@ function FairyAppInner({ setAgent }: { setAgent(agent: TldrawAgent): void }) {
 	useEffect(() => {
 		if (!editor || !agent) return
 		setAgent(agent)
-		;(window as any).editor = editor
 		;(window as any).agent = agent
 	}, [agent, editor, setAgent])
 
