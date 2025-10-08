@@ -144,3 +144,7 @@ The scratchpad model seems like the best middle ground:
 - Easy to implement and migrate
 
 The only question is whether a single scratchpad document is sufficient for users' private note needs, or if they'll want more organization (multiple private docs, folders, etc.). If the latter, maybe we keep workspaces but remove the `is_private` distinction entirely and just let users choose not to share specific workspaces.
+
+---
+
+I think it might be better to have not a Next.js site for this, and instead have a beat site with a client state manager that is just setting up all the queries that matter for this user and then syncing those queries into some sort of reactive store. Tealdra's state is a good example of this sort of reactive store, but it could just as easily be like Zustand or something else. We wouldn't do any optimistic updates; we would just update the server. React does have some like use optimistic state and other things that we could use to not just delay the user every time they submit something. Hope would be you should set it up in such a way that new subscriptions every time that it user navigates around that it would just constantly be updating the picture of what the client's data is based on whatever is on the server. That said, I think we could also just make it work for you know, using Next.js. I can pretty sure there are ways to make this happen, but if not, then I think we have to think of something else for the next time.

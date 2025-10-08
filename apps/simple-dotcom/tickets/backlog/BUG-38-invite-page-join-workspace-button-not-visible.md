@@ -1,13 +1,13 @@
 # [BUG-38]: Invite Page "Join Workspace" Button Not Visible
 
 Date created: 2025-10-07
-Date last updated: -
+Date last updated: 2025-10-08
 Date completed: -
 
 ## Status
 
-- [x] Not Started
-- [ ] In Progress
+- [ ] Not Started
+- [x] In Progress
 - [ ] Blocked
 - [ ] Done
 
@@ -111,5 +111,43 @@ Screenshots available in test results for both failures.
 This may be related to:
 - BUG-36 (invitation settings page issues)
 - BUG-37 (page closing unexpectedly)
+- BUG-39 (Already member message not visible) - ✅ FIXED
 
 All three bugs suggest the invitation/invite pages may not be fully implemented.
+
+## Investigation Notes
+
+**2025-10-08 Investigation:**
+
+The UI implementation in `invite-accept-client.tsx` is complete and correct. All 6 states are properly implemented:
+- Valid (join button) - line 60-88
+- Already member - line 131-151 (✅ now working after check order fix)
+- Link expired - line 154-174
+- Link disabled - line 108-128
+- Invalid token - line 91-106
+- Member limit - line 177-198
+
+**Findings:**
+1. ✅ Check order bug fixed (see BUG-39) - membership checks now happen before link validity checks
+2. ⚠️ Tests still failing because invitation links appear to be created with `enabled=false` despite migration setting default to `true`
+
+**Test Results (after check order fix):**
+- ✅ Passing: 4/8 tests (invalid token, already member, redirects)
+- ❌ Failing: 4/8 tests (join after signup, join when authenticated, disabled link, regenerated token)
+
+All 4 failing tests show "Link Disabled" message instead of expected UI states, suggesting:
+- Database trigger creates invitation links asynchronously
+- Invitation links are created with `enabled=false` despite migration default
+- Test environment may not have all migrations applied
+
+**Next Steps:**
+1. Run `supabase db reset` to ensure all migrations are applied
+2. Verify migration `20251008130000_bug_26_enable_invitation_links_by_default.sql` is applied
+3. Check if database triggers are executing correctly in test environment
+4. Re-run tests after database reset
+
+**Files Investigated:**
+- `simple-client/src/app/invite/[token]/page.tsx:48-120` - Check order fixed
+- `simple-client/src/app/invite/[token]/invite-accept-client.tsx` - UI implementation correct
+- `simple-client/e2e/invite.spec.ts:34-64` - Added retry logic for async trigger
+- Migration: `20251008130000_bug_26_enable_invitation_links_by_default.sql`

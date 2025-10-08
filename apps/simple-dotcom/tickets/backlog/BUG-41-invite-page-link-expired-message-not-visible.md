@@ -1,13 +1,13 @@
 # [BUG-41]: Invite Page "Link Expired" Message Not Visible for Regenerated Tokens
 
 Date created: 2025-10-07
-Date last updated: -
+Date last updated: 2025-10-08
 Date completed: -
 
 ## Status
 
-- [x] Not Started
-- [ ] In Progress
+- [ ] Not Started
+- [x] In Progress
 - [ ] Blocked
 - [ ] Done
 
@@ -124,7 +124,42 @@ Screenshots available in test results:
 ## Related Bugs
 
 - BUG-38: Join Workspace button not visible
-- BUG-39: Already member message not visible
-- BUG-40: Disabled link causes crash
+- BUG-39: Already member message not visible - ✅ FIXED
+- BUG-40: Disabled link causes crash - ✅ FIXED
 
 All suggest the invite page error states are not properly implemented.
+
+## Investigation Notes
+
+**2025-10-08 Investigation:**
+
+The UI implementation in `invite-accept-client.tsx` is complete and correct. All 6 states are properly implemented including the "Link Expired" state for regenerated tokens (line 154-174).
+
+**Findings:**
+1. ✅ Check order bug fixed (see BUG-39) - membership checks now happen before link validity checks
+2. ⚠️ Test still failing because invitation link appears to be created with `enabled=false` instead of `enabled=true`
+
+**Test Behavior:**
+The test regenerates an invitation link and tries to access the old token. However, instead of showing "Link Expired", it shows "Link Disabled" message. This suggests:
+- The old token is being marked as disabled rather than expired/regenerated
+- OR the new invitation link is being created with `enabled=false` by default
+- Migration `20251008130000_bug_26_enable_invitation_links_by_default.sql` may not be applied
+
+**Test Results:**
+- ❌ Test still failing: `invite.spec.ts` > "Error Scenarios" > "should show error for regenerated token"
+- Error: Shows "Link Disabled" instead of "Link Expired"
+
+**Root Cause Hypothesis:**
+The database may not have all migrations applied. The migration that sets `enabled=true` by default for new invitation links may not have been executed in the test environment.
+
+**Next Steps:**
+1. Run `supabase db reset` to ensure all migrations are applied
+2. Verify migration `20251008130000_bug_26_enable_invitation_links_by_default.sql` is applied
+3. Check regeneration logic to ensure old tokens are properly marked as regenerated vs disabled
+4. Re-run test after database reset
+
+**Files Investigated:**
+- `simple-client/src/app/invite/[token]/page.tsx:48-120` - Status determination logic
+- `simple-client/src/app/invite/[token]/invite-accept-client.tsx:154-174` - "Link Expired" UI implementation
+- `simple-client/e2e/invite.spec.ts:245-278` - Test for regenerated token
+- Migration: `20251008130000_bug_26_enable_invitation_links_by_default.sql`

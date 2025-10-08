@@ -120,6 +120,52 @@ _Start these in parallel after M1.5 complete_
 - [x] [`tickets/WS-04-workspace-archive-management.md`](tickets/WS-04-workspace-archive-management.md) _(Medium)_ ✅ COMPLETED 2025-10-05
 - [x] [`tickets/SEC-01-rate-limiting-and-abuse-prevention.md`](tickets/SEC-01-rate-limiting-and-abuse-prevention.md) _(Small-Medium)_ ✅ COMPLETED 2025-10-05
 
+
+**Bug fixing interlude**
+
+We now want to fix our bugs and tech debt:
+
+P0 (Critical - Blocking)
+
+BUG-45: Invite Page UI States Not Rendering Correctly ⚠️
+- Status: Not Started
+- Impact: Users cannot join workspaces via invite links
+- Scope: Consolidates BUG-38, BUG-39, BUG-41
+- Issue: The invite page at /invite/[token] doesn't show:
+  - "Join Workspace" button for valid invites
+  - "Already a Member" message
+  - "Link Expired" message for regenerated tokens
+- Root cause: Server-side status determination or client rendering issue
+- Tests failing: 4 tests in invite.spec.ts
+
+P1 (High - Should Fix Soon)
+
+BUG-46: Workspace Settings Invitation Section Not Rendering
+- Status: Not Started
+- Impact: Workspace owners cannot manage invitation links
+- Scope: Consolidates BUG-36, BUG-37
+- Issue: Settings page crashes or missing UI for:
+  - Invitation link status ("Enabled/Disabled")
+  - Invitation URL input field
+  - Enable/disable toggle
+  - Regenerate link button
+- Root cause: Page crash when accessing invitation settings
+- Tests failing: 2 tests in invitation-links.spec.ts
+
+BUG-47: Realtime Document Updates Tests - Authentication Fixture Not Working
+- Status: Backlog
+- Impact: Cannot test realtime collaboration features
+- Issue: authenticatedPage fixture shows login screen instead of authenticated state
+- Tests failing: All 6 tests in realtime-document-updates.spec.ts
+- Root cause: Authentication fixture setup broken
+
+P2 (Medium)
+
+BUG-43: Page Crashes During Sign-In in Member Limit API Test
+- Status: Not Started
+- Note: This is a TEST ISSUE, not an app bug
+- Quick fix: Update test to use /login instead of /sign-in and use data-testid selectors
+
 **Phase 2 Achievement Summary:**
 - Complete member management system with role-based access control
 - Invitation link lifecycle with secure token generation and validation
@@ -171,7 +217,39 @@ _Document views show file metadata/preview only - no canvas rendering_
 - ~~INV-01 + INV-02~~ → Combined into new INV-01
 - ~~PERM-02 + PERM-04~~ → Combined into new PERM-02
 
-## Milestone 2.5 – Canvas Integration Foundation
+## Milestone 2.5 – UI Foundation & shadcn Integration
+
+**Goal:** Establish a comprehensive, reusable UI component system using shadcn/ui as the foundation for all future interface development. This milestone creates the architectural foundation that all subsequent UI work will build upon.
+
+**Strategic Approach:** Conduct systematic inventory of existing UI elements, replace inline/custom components with standardized shadcn components, and establish development patterns and guidelines for consistent UI implementation across the application.
+
+**Primary outcomes:**
+
+- Complete component inventory identifying all UI integration opportunities
+- `/src/components/ui/` folder containing foundational shadcn components (Button, Input, Form, Dialog, Alert, etc.)
+- Comprehensive frontend development guide with design tokens, patterns, and standards
+- Individual implementation tickets for each component integration
+- Milestone blocks all new UI development until foundation is complete
+
+**Prerequisites:** Milestone 2 tickets complete, existing Tailwind configuration stable.
+
+**Estimated timeline:** 2-3 weeks with focus on foundation before any new UI work begins.
+
+**Ticket checklist (UI Foundation):**
+
+- [ ] [`tickets/backlog/DESIGN-06-shadcn-component-integration.md`](tickets/backlog/DESIGN-06-shadcn-component-integration.md) _(Extra Large - Foundation setup)_
+- [ ] DESIGN-06-A: Button Component Integration _(Medium)_
+- [ ] DESIGN-06-B: Input Component Integration _(Medium)_  
+- [ ] DESIGN-06-C: Form Component Integration _(Large)_
+- [ ] DESIGN-06-D: Dialog Component Integration _(Medium)_
+- [ ] DESIGN-06-E: Alert Component Integration _(Medium)_
+- [ ] Additional component tickets as identified in inventory
+
+**Critical Dependencies:** 
+- **BLOCKS Milestone 3** - Canvas integration must wait for UI foundation
+- **BLOCKS all new UI work** - No new interface development until foundation complete
+
+## Milestone 3 – Canvas Integration Foundation
 
 **Goal:** Deliver the first canvas-capable experience by layering tldraw editing, real-time sync, and offline resilience on top of the Milestone 2 workspace/document system.
 
@@ -208,7 +286,7 @@ _Document views show file metadata/preview only - no canvas rendering_
 
 **Testing expectations:** After schema changes run `yarn workspace simple-client gen-types` then `yarn typecheck` at repo root. Multiplayer and offline scenarios require Playwright multi-browser coverage; reuse the patterns in `apps/simple-dotcom/simple-client/e2e` and the sync-focused examples under `apps/examples/src/examples/sync-*` for deterministic assertions.
 
-## Milestone 3 – Launch Hardening & Readiness
+## Milestone 4 – Launch Hardening & Readiness
 
 **Goal:** Finalize public entry points, performance guardrails, deployment tooling, monitoring, and automated testing to ship the MVP confidently.
 

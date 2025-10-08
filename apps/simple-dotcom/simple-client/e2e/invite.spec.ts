@@ -160,7 +160,7 @@ test.describe('Workspace Invitation Flow', () => {
 			await userPage.waitForURL(`/invite/${inviteToken}`)
 
 			// Should see join button
-			await expect(userPage.locator('text=Join Workspace')).toBeVisible()
+			await expect(userPage.getByRole('button', { name: 'Join Workspace' })).toBeVisible()
 			await expect(userPage.locator(`text="${workspaceName}"`)).toBeVisible()
 
 			// Join workspace
@@ -203,7 +203,7 @@ test.describe('Workspace Invitation Flow', () => {
 			console.log('[DEBUG] Body text for join test:', bodyText?.substring(0, 300))
 
 			// Should see join button immediately (no redirect to login)
-			await expect(newUserPage.locator('text=Join Workspace')).toBeVisible()
+			await expect(newUserPage.getByRole('button', { name: 'Join Workspace' })).toBeVisible()
 
 			// Join workspace
 			await newUserPage.click('button:has-text("Join Workspace")')

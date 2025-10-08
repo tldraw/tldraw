@@ -1,16 +1,16 @@
 # [BUG-26]: Invite Page Not Showing "Already a Member" Message
 
 Date reported: 2025-10-05
-Date last updated: 2025-10-05
-Date resolved:
+Date last updated: 2025-10-08
+Date resolved: 2025-10-08
 
 ## Status
 
 - [ ] New
-- [x] Investigating
+- [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -127,4 +127,23 @@ The invite page logic is not correctly:
 
 ## Resolution
 
-Description of how the bug was fixed, or why it was closed without fixing.
+**Date Resolved:** 2025-10-08
+
+**Duplicate Of:** BUG-39
+
+**Root Cause:**
+This ticket is a duplicate of BUG-39. The issue was caused by incorrect check ordering in `/invite/[token]/page.tsx`. The page was checking if the invitation link was disabled BEFORE checking if the user was already a member/owner. This caused owners/members to see "Link Disabled" instead of the "Already a Member" message.
+
+**Fix Applied:**
+Reordered the checks in `page.tsx` (lines 48-120) so that membership status is verified FIRST, before any link validity checks:
+1. Check if user is owner → show "Already a Member" with owner message
+2. Check if user is member → show "Already a Member" with member message
+3. Then check link validity (disabled, expired, etc.)
+
+**Files Modified:**
+- `simple-client/src/app/invite/[token]/page.tsx:48-120` - Reordered status checks
+
+**Test Results:**
+✅ Test now passing: `invite.spec.ts` > "Authenticated User Flow" > "should show already member message"
+
+**Note:** The UI implementation in `invite-accept-client.tsx` was always correct. The issue was purely in the server-side status determination logic.

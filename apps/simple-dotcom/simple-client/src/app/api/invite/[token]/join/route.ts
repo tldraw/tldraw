@@ -117,7 +117,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 		const { error } = await supabase.from('workspace_members').insert({
 			workspace_id: invitation.workspace_id,
 			user_id: user.id,
-			workspace_role: 'member',
+			role: 'member',
 		})
 
 		if (error) {

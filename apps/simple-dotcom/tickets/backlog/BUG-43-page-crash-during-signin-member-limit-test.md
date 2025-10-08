@@ -1,15 +1,15 @@
 # [BUG-43]: Page Crashes During Sign-In in Member Limit API Test
 
 Date created: 2025-10-07
-Date last updated: -
-Date completed: -
+Date last updated: 2025-10-08
+Date completed: 2025-10-08
 
 ## Status
 
-- [x] Not Started
+- [ ] Not Started
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -91,12 +91,12 @@ Call log:
 
 ## Acceptance Criteria
 
-- [ ] Sign-in page loads successfully at the correct route
-- [ ] Email and password fields are accessible
-- [ ] Field selectors match actual implementation
-- [ ] Page remains stable (no crashes)
-- [ ] Sign-in flow completes successfully
-- [ ] E2E test passes without timeout
+- [x] Sign-in page loads successfully at the correct route
+- [x] Email and password fields are accessible
+- [x] Field selectors match actual implementation
+- [x] Page remains stable (no crashes)
+- [x] Sign-in flow completes successfully
+- [x] E2E test passes without timeout
 
 ## Related Files
 
@@ -164,3 +164,37 @@ await page.fill('[data-testid="email-input"]', newMemberEmail)
 await page.fill('[data-testid="password-input"]', 'Password123!')
 await page.click('[data-testid="login-button"]')
 ```
+
+## Resolution
+
+**Fixed on 2025-10-08**
+
+The test has been successfully fixed with the following changes:
+
+1. **Fixed test route and selectors** (`e2e/member-limit.spec.ts:155-158`):
+   - Changed route from `/sign-in` to `/login`
+   - Updated selectors to use `data-testid` attributes instead of placeholders
+   - Changed button click from `getByRole` to `data-testid` selector
+
+2. **Fixed browser context issue** (`e2e/member-limit.spec.ts:154-176`):
+   - Created a new browser context for the new user to avoid auth state conflicts
+   - Used `newUserContext` and `newUserPage` for login and API calls
+   - Added proper cleanup of the new context
+
+3. **Fixed API bug** (`src/app/api/invite/[token]/join/route.ts:117-121`):
+   - Discovered and fixed a bug in the join API where it was using `workspace_role` instead of `role`
+   - The column name in the `workspace_members` table is `role`, not `workspace_role`
+   - This was causing the insert to fail with a 500 error
+
+4. **Added user sync wait** (`e2e/member-limit.spec.ts:158-172`):
+   - Added wait logic to ensure the user is synced to `public.users` table via trigger
+   - Added `user_metadata` with name and display_name for consistency with other tests
+
+**Test Result:** ✅ Test now passes successfully in 11.4s
+
+The test correctly:
+- Navigates to the login page without crashes
+- Signs in the new user successfully
+- Makes the API call to join the workspace
+- Receives a 200 response with the expected warning message
+- Verifies the member count is 91 as expected

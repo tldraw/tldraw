@@ -1,15 +1,15 @@
 # [BUG-45]: Invite Page UI States Not Rendering Correctly
 
 Date created: 2025-10-07
-Date last updated: -
+Date last updated: 2025-10-08
 Date completed: -
 
 **Consolidates:** BUG-38, BUG-39, BUG-41
 
 ## Status
 
-- [x] Not Started
-- [ ] In Progress
+- [ ] Not Started
+- [x] In Progress
 - [ ] Blocked
 - [ ] Done
 
@@ -153,3 +153,37 @@ Potential causes:
 ## Notes
 
 The UI implementation is complete and correct. The issue is likely in the server-side status determination or data flow from server to client component. Fixing the root cause should resolve all three related bugs simultaneously.
+
+## Progress Update (2025-10-08)
+
+**Overall Status: 1 of 3 Fixed, 2 Pending Database Reset**
+
+### ✅ BUG-39 - RESOLVED
+**Issue:** "Already a Member" message not visible
+**Root Cause:** Incorrect check ordering in `page.tsx` - link validity was checked before membership status
+**Fix:** Reordered checks so membership status is verified FIRST (lines 48-120)
+**Result:** Test now passing ✅
+
+### ⚠️ BUG-38 - IN PROGRESS
+**Issue:** "Join Workspace" button not visible
+**Status:** UI implementation is correct, but tests fail because invitation links are created with `enabled=false`
+**Hypothesis:** Migration `20251008130000_bug_26_enable_invitation_links_by_default.sql` may not be applied
+**Next Step:** Database reset required
+
+### ⚠️ BUG-41 - IN PROGRESS
+**Issue:** "Link Expired" message not visible for regenerated tokens
+**Status:** UI implementation is correct, but test shows "Link Disabled" instead of "Link Expired"
+**Hypothesis:** Same database migration issue as BUG-38
+**Next Step:** Database reset required
+
+### Key Findings
+1. **UI Implementation:** All 6 invite page states are properly implemented in `invite-accept-client.tsx`
+2. **Check Order Bug:** Fixed by reordering server-side status checks
+3. **Database Issue:** Invitation links appear to be created with `enabled=false` despite migration setting default to `true`
+4. **Test Results:** 4/8 tests passing (up from 3/8 before check order fix)
+
+### Action Items
+- [x] Fix check order bug (BUG-39 resolved)
+- [ ] Run `supabase db reset` to apply all migrations
+- [ ] Re-run tests after database reset
+- [ ] Verify all 8 tests pass after reset

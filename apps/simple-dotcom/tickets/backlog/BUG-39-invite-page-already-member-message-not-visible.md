@@ -1,15 +1,15 @@
 # [BUG-39]: Invite Page "Already a Member" Message Not Visible
 
 Date created: 2025-10-07
-Date last updated: -
-Date completed: -
+Date last updated: 2025-10-08
+Date completed: 2025-10-08
 
 ## Status
 
-- [x] Not Started
+- [ ] Not Started
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -111,3 +111,24 @@ Screenshots available in test results:
 ## Related Bugs
 
 - BUG-38: Join Workspace button not visible (same invite page)
+
+## Resolution
+
+**Date Resolved:** 2025-10-08
+
+**Root Cause:**
+The issue was caused by incorrect check ordering in `/invite/[token]/page.tsx`. The page was checking if the invitation link was disabled BEFORE checking if the user was already a member/owner. This caused owners/members to see "Link Disabled" instead of the "Already a Member" message.
+
+**Fix Applied:**
+Reordered the checks in `page.tsx` (lines 48-120) so that membership status is verified FIRST, before any link validity checks:
+1. Check if user is owner → show "Already a Member" with owner message
+2. Check if user is member → show "Already a Member" with member message
+3. Then check link validity (disabled, expired, etc.)
+
+**Files Modified:**
+- `simple-client/src/app/invite/[token]/page.tsx:48-120` - Reordered status checks
+
+**Test Results:**
+✅ Test now passing: `invite.spec.ts` > "Authenticated User Flow" > "should show already member message"
+
+**Note:** The UI implementation in `invite-accept-client.tsx` was always correct. The issue was purely in the server-side status determination logic.

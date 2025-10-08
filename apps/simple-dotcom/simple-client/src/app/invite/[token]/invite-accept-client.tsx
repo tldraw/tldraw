@@ -41,13 +41,13 @@ export default function InviteAcceptClient({
 
 			if (!res.ok) {
 				const data = await res.json()
-				throw new Error(data.message || 'Failed to join workspace')
+				throw new Error(data.error?.message || 'Failed to join workspace')
 			}
 
-			const data = await res.json()
+			const response = await res.json()
 
 			// Redirect to workspace
-			router.push(`/workspace/${data.workspace_id}`)
+			router.push(`/workspace/${response.data.workspace_id}`)
 		} catch (err: unknown) {
 			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
 			setIsJoining(false)

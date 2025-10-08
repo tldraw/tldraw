@@ -47,32 +47,8 @@ async function getInviteInfo(token: string, userId: string | null) {
 
 	// From here on, user is authenticated - check other conditions
 
-	// Check if user is already owner (check this FIRST - owners should see their status regardless of link state)
-	if (workspace.owner_id === userId) {
-		return {
-			status: 'already_member' as const,
-			message: 'You are the owner of this workspace.',
-			workspace,
-		}
-	}
-
-	// Check if user is already a member (check this BEFORE link validity - members should see their status)
-	const { data: existingMembership } = await supabase
-		.from('workspace_members')
-		.select('*')
-		.eq('workspace_id', workspace.id)
-		.eq('user_id', userId)
-		.single()
-
-	if (existingMembership) {
-		return {
-			status: 'already_member' as const,
-			message: 'You are already a member of this workspace.',
-			workspace,
-		}
-	}
-
-	// Now check link validity (only matters for non-members trying to join)
+	// First check link validity (disabled or regenerated links should show error even to members)
+	// This allows workspace owners to see when their invite links are broken
 
 	// Check if link is enabled
 	if (!inviteLink.enabled) {
@@ -96,6 +72,31 @@ async function getInviteInfo(token: string, userId: string | null) {
 		return {
 			status: 'regenerated' as const,
 			message: 'This invitation link has expired. A new link was generated.',
+			workspace,
+		}
+	}
+
+	// After confirming link is valid, check if user is already the owner
+	if (workspace.owner_id === userId) {
+		return {
+			status: 'already_member' as const,
+			message: 'You are the owner of this workspace.',
+			workspace,
+		}
+	}
+
+	// Check if user is already a member
+	const { data: existingMembership } = await supabase
+		.from('workspace_members')
+		.select('*')
+		.eq('workspace_id', workspace.id)
+		.eq('user_id', userId)
+		.single()
+
+	if (existingMembership) {
+		return {
+			status: 'already_member' as const,
+			message: 'You are already a member of this workspace.',
 			workspace,
 		}
 	}
