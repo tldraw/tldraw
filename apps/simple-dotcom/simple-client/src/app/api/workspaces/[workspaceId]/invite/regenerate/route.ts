@@ -9,6 +9,7 @@ import {
 	RATE_LIMITS,
 	rateLimitByWorkspace,
 } from '@/lib/rate-limit/rate-limiter'
+import { getLogger } from '@/lib/server/logger'
 import { createAdminClient, createClient, requireAuth } from '@/lib/supabase/server'
 import { randomBytes } from 'crypto'
 import { NextRequest } from 'next/server'
@@ -85,10 +86,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
 			.single()
 
 		if (fetchError || !currentLink) {
-			console.error('[REGENERATE] Failed to find current invitation link:', {
-				workspaceId,
-				fetchError,
-				currentLink,
+			const logger = getLogger()
+			logger.error('Failed to find current invitation link', fetchError as any, {
+				context: 'invite_regenerate',
+				workspace_id: workspaceId,
+				user_id: user.id,
 			})
 			throw new ApiException(
 				500,
@@ -111,14 +113,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
 			.eq('id', currentLink.id)
 
 		if (updateError) {
-			console.error('[REGENERATE] Failed to mark old link as superseded:', {
-				updateError: {
-					message: updateError.message,
-					code: updateError.code,
-					details: updateError.details,
-					hint: updateError.hint,
-				},
-				currentLinkId: currentLink.id,
+			const logger = getLogger()
+			logger.error('Failed to mark old link as superseded', updateError as any, {
+				context: 'invite_regenerate',
+				workspace_id: workspaceId,
+				user_id: user.id,
+				current_link_id: currentLink.id,
 			})
 			throw new ApiException(
 				500,
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 			insertError.code === '23505' &&
 			insertError.message?.includes('invitation_links_workspace_id_key')
 		) {
-			console.log('[REGENERATE] Detected cached constraint error, working around it')
+			// Cached constraint error - apply workaround
 
 			// Instead of deleting, let's create a proper superseded link
 			// First, create the new link with a temporary different workspace_id
@@ -172,7 +172,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
 					})
 					.eq('id', currentLink.id)
 
-				console.error('[REGENERATE] Failed to create temp link:', tempResult.error)
+				const logger = getLogger()
+				logger.error('Failed to create temp link during constraint workaround', tempResult.error as any, {
+					context: 'invite_regenerate',
+					workspace_id: workspaceId,
+					user_id: user.id,
+				})
 				throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to create invitation link')
 			}
 
@@ -188,7 +193,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
 			if (updateOldError) {
 				// Rollback: delete temp link
 				await adminSupabase.from('invitation_links').delete().eq('id', tempResult.data.id)
-				console.error('[REGENERATE] Failed to update old link:', updateOldError)
+				const logger = getLogger()
+				logger.error('Failed to update old link during constraint workaround', updateOldError as any, {
+					context: 'invite_regenerate',
+					workspace_id: workspaceId,
+					user_id: user.id,
+				})
 				throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to update old link')
 			}
 
@@ -210,7 +220,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
 						regenerated_at: null,
 					})
 					.eq('id', currentLink.id)
-				console.error('[REGENERATE] Failed to update new link workspace:', updateNewError)
+				const logger = getLogger()
+				logger.error('Failed to update new link workspace during constraint workaround', updateNewError as any, {
+					context: 'invite_regenerate',
+					workspace_id: workspaceId,
+					user_id: user.id,
+				})
 				throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to update new link')
 			}
 
@@ -228,18 +243,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
 				})
 				.eq('id', currentLink.id)
 
-			console.error('[REGENERATE] Failed to create new invitation link:', {
-				insertError: insertError
-					? {
-							message: insertError.message,
-							code: insertError.code,
-							details: insertError.details,
-							hint: insertError.hint,
-						}
-					: 'no error but no data',
-				workspaceId,
-				userId: user.id,
-				currentLinkId: currentLink.id,
+			const logger = getLogger()
+			logger.error('Failed to create new invitation link', insertError as any, {
+				context: 'invite_regenerate',
+				workspace_id: workspaceId,
+				user_id: user.id,
+				current_link_id: currentLink.id,
 			})
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to create new invitation link')
 		}
@@ -271,10 +280,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
 					})
 					.eq('id', currentLink.id)
 
-				console.error('[REGENERATE] Failed to update superseded reference:', {
-					finalUpdateError,
-					currentLinkId: currentLink.id,
-					newLinkId: newLink.id,
+				const logger = getLogger()
+				logger.error('Failed to update superseded reference', finalUpdateError as any, {
+					context: 'invite_regenerate',
+					workspace_id: workspaceId,
+					user_id: user.id,
+					current_link_id: currentLink.id,
+					new_link_id: newLink.id,
 				})
 				throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to update link reference')
 			}

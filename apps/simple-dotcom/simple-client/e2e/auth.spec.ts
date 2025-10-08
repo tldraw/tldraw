@@ -162,7 +162,7 @@ test.describe('Authentication', () => {
 			if (await errorMessage.isVisible()) {
 				await expect(errorMessage).toBeVisible()
 			} else {
-				await expect(page).toHaveURL('**/signup**')
+				await expect(page).toHaveURL('/signup')
 			}
 
 			await context.close()

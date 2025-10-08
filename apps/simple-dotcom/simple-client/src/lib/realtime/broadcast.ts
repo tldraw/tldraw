@@ -2,6 +2,7 @@
 // Server-side helpers for broadcasting events to Supabase Realtime channels
 
 import { SupabaseClient } from '@supabase/supabase-js'
+import { getLogger } from '@/lib/server/logger'
 import { CHANNEL_PATTERNS, createWorkspaceEvent, type WorkspaceEventType } from './types'
 
 /**
@@ -35,10 +36,14 @@ export async function broadcastWorkspaceEvent(
 		// Clean up channel
 		await supabase.removeChannel(channel)
 
-		console.log(`Broadcast ${eventType} event to workspace ${workspaceId}`)
 		return { success: true }
 	} catch (error) {
-		console.error(`Failed to broadcast event to workspace ${workspaceId}:`, error)
+		const logger = getLogger()
+		logger.error('Failed to broadcast event', error as any, {
+			context: 'broadcast',
+			workspace_id: workspaceId,
+			event_type: eventType,
+		})
 		return { success: false, error }
 	}
 }

@@ -1,18 +1,11 @@
 import { Page } from '@playwright/test'
-import { expect, test } from './fixtures/test-fixtures'
+import { createAuthenticatedUser, expect, SELECTORS, test, TEST_PASSWORD } from './fixtures/test-fixtures'
 
 // Helper to generate unique workspace names
 function generateWorkspaceName(): string {
 	const timestamp = Date.now()
 	const random = Math.random().toString(36).substring(2, 6)
 	return `Test Workspace ${timestamp}-${random}`
-}
-
-// Helper to generate unique test email
-function generateTestEmail(): string {
-	const timestamp = Date.now()
-	const random = Math.random().toString(36).substring(2, 8)
-	return `test-invite-${timestamp}-${random}@example.com`
 }
 
 // Helper to create a test workspace and get its invite token
@@ -31,36 +24,22 @@ async function createWorkspaceWithInvite(page: Page): Promise<{
 	const workspaceData = await response.json()
 	const workspaceId = workspaceData.data.id
 
-	// Get the invite token - retry since database trigger creates it asynchronously
-	let inviteResponse
-	let retries = 0
-	const maxRetries = 10
-	const retryDelay = 500 // ms
+	// Wait for database trigger to create invitation link using Playwright's polling
+	await expect
+		.poll(
+			async () => {
+				const res = await page.request.get(`/api/workspaces/${workspaceId}/invite`)
+				if (!res.ok()) return null
+				const data = await res.json()
+				return data.data?.enabled === true ? data.data : null
+			},
+			{ timeout: 5000, message: 'Invitation link not created within timeout' }
+		)
+		.resolves.toBeTruthy()
 
-	while (retries < maxRetries) {
-		inviteResponse = await page.request.get(`/api/workspaces/${workspaceId}/invite`)
-
-		if (inviteResponse.ok()) {
-			const data = await inviteResponse.json()
-			// Verify the link is actually enabled
-			if (data.data && data.data.enabled === true) {
-				console.log(`[HELPER] Got enabled invitation link for workspace ${workspaceId}`)
-				break
-			} else {
-				console.log(
-					`[HELPER] Link exists but not enabled (enabled=${data.data?.enabled}), retrying...`
-				)
-			}
-		}
-
-		// Wait before retrying
-		await new Promise((resolve) => setTimeout(resolve, retryDelay))
-		retries++
-	}
-
-	expect(inviteResponse!.ok()).toBeTruthy()
-	const inviteData = await inviteResponse!.json()
-	expect(inviteData.data.enabled).toBe(true) // Ensure link is enabled
+	// Fetch the final invitation data
+	const inviteResponse = await page.request.get(`/api/workspaces/${workspaceId}/invite`)
+	const inviteData = await inviteResponse.json()
 
 	return {
 		workspaceId,
@@ -72,20 +51,8 @@ async function createWorkspaceWithInvite(page: Page): Promise<{
 test.describe('Workspace Invitation Flow', () => {
 	test.describe('Unauthenticated User Flow', () => {
 		test('should redirect to login with preserved redirect URL', async ({ browser }) => {
-			// Create first context for owner
-			const ownerContext = await browser.newContext()
-			const ownerPage = await ownerContext.newPage()
-
 			// Create owner user
-			const ownerEmail = generateTestEmail()
-			const ownerPassword = 'TestPassword123!'
-
-			await ownerPage.goto('/signup')
-			await ownerPage.fill('[data-testid="name-input"]', 'Owner User')
-			await ownerPage.fill('[data-testid="email-input"]', ownerEmail)
-			await ownerPage.fill('[data-testid="password-input"]', ownerPassword)
-			await ownerPage.click('[data-testid="signup-button"]')
-			await ownerPage.waitForURL('**/dashboard**')
+			const { context: ownerContext, page: ownerPage } = await createAuthenticatedUser(browser, 'Owner User')
 
 			// Create workspace and get invite
 			const { inviteToken } = await createWorkspaceWithInvite(ownerPage)
@@ -113,18 +80,8 @@ test.describe('Workspace Invitation Flow', () => {
 		})
 
 		test('should join workspace after signup', async ({ browser }) => {
-			// Create first context for owner
-			const ownerContext = await browser.newContext()
-			const ownerPage = await ownerContext.newPage()
-
 			// Create owner user
-			const ownerEmail = generateTestEmail()
-			await ownerPage.goto('/signup')
-			await ownerPage.fill('[data-testid="name-input"]', 'Owner User')
-			await ownerPage.fill('[data-testid="email-input"]', ownerEmail)
-			await ownerPage.fill('[data-testid="password-input"]', 'TestPassword123!')
-			await ownerPage.click('[data-testid="signup-button"]')
-			await ownerPage.waitForURL('**/dashboard**')
+			const { context: ownerContext, page: ownerPage } = await createAuthenticatedUser(browser, 'Owner User')
 
 			// Create workspace and get invite
 			const { workspaceId, workspaceName, inviteToken } = await createWorkspaceWithInvite(ownerPage)
@@ -147,14 +104,16 @@ test.describe('Workspace Invitation Flow', () => {
 			// Check for invite context
 			await expect(userPage.locator('text=Create an account to join the workspace')).toBeVisible()
 
-			// Fill signup form
-			const joinerEmail = generateTestEmail()
-			await userPage.fill('[data-testid="name-input"]', 'Joining User')
-			await userPage.fill('[data-testid="email-input"]', joinerEmail)
-			await userPage.fill('[data-testid="password-input"]', 'TestPassword123!')
+			// Fill signup form (note: we keep inline signup here as it's part of the redirect flow being tested)
+			const timestamp = Date.now()
+			const random = Math.random().toString(36).substring(2, 8)
+			const joinerEmail = `test-invite-${timestamp}-${random}@example.com`
+			await userPage.fill(SELECTORS.nameInput, 'Joining User')
+			await userPage.fill(SELECTORS.emailInput, joinerEmail)
+			await userPage.fill(SELECTORS.passwordInput, TEST_PASSWORD)
 
 			// Submit signup
-			await userPage.click('[data-testid="signup-button"]')
+			await userPage.click(SELECTORS.signupButton)
 
 			// Should redirect back to invite page after signup
 			await userPage.waitForURL(`/invite/${inviteToken}`)
@@ -181,19 +140,9 @@ test.describe('Workspace Invitation Flow', () => {
 			// Create workspace with current user
 			const { workspaceId, inviteToken } = await createWorkspaceWithInvite(authenticatedPage)
 
-			// Clear cookies and create new user
+			// Create new authenticated user
 			const browser = authenticatedPage.context().browser()!
-			const newUserContext = await browser.newContext()
-			const newUserPage = await newUserContext.newPage()
-
-			// Sign up as new user
-			const newEmail = generateTestEmail()
-			await newUserPage.goto('/signup')
-			await newUserPage.fill('[data-testid="name-input"]', 'New User')
-			await newUserPage.fill('[data-testid="email-input"]', newEmail)
-			await newUserPage.fill('[data-testid="password-input"]', 'TestPassword123!')
-			await newUserPage.click('[data-testid="signup-button"]')
-			await newUserPage.waitForURL('**/dashboard**')
+			const { context: newUserContext, page: newUserPage } = await createAuthenticatedUser(browser, 'New User')
 
 			// Visit invite link as authenticated new user
 			await newUserPage.goto(`/invite/${inviteToken}`)
@@ -253,19 +202,9 @@ test.describe('Workspace Invitation Flow', () => {
 			)
 			expect(disableResponse.ok()).toBeTruthy()
 
-			// Create new user context to test as a different user (not the owner)
+			// Create new authenticated user to test as a different user (not the owner)
 			const browser = authenticatedPage.context().browser()!
-			const newUserContext = await browser.newContext()
-			const newUserPage = await newUserContext.newPage()
-
-			// Sign up as new user
-			const newEmail = generateTestEmail()
-			await newUserPage.goto('/signup')
-			await newUserPage.fill('[data-testid="name-input"]', 'New User')
-			await newUserPage.fill('[data-testid="email-input"]', newEmail)
-			await newUserPage.fill('[data-testid="password-input"]', 'TestPassword123!')
-			await newUserPage.click('[data-testid="signup-button"]')
-			await newUserPage.waitForURL('**/dashboard**')
+			const { context: newUserContext, page: newUserPage } = await createAuthenticatedUser(browser, 'New User')
 
 			// Visit disabled invite link as authenticated user (not a member)
 			await newUserPage.goto(`/invite/${inviteToken}`)
@@ -291,19 +230,9 @@ test.describe('Workspace Invitation Flow', () => {
 			}
 			expect(regenerateResponse.ok()).toBeTruthy()
 
-			// Create new user context
+			// Create new authenticated user
 			const browser = authenticatedPage.context().browser()!
-			const newUserContext = await browser.newContext()
-			const newUserPage = await newUserContext.newPage()
-
-			// Sign up as new user
-			const newEmail = generateTestEmail()
-			await newUserPage.goto('/signup')
-			await newUserPage.fill('[data-testid="name-input"]', 'New User')
-			await newUserPage.fill('[data-testid="email-input"]', newEmail)
-			await newUserPage.fill('[data-testid="password-input"]', 'TestPassword123!')
-			await newUserPage.click('[data-testid="signup-button"]')
-			await newUserPage.waitForURL('**/dashboard**')
+			const { context: newUserContext, page: newUserPage } = await createAuthenticatedUser(browser, 'New User')
 
 			// Visit old token as authenticated user
 			await newUserPage.goto(`/invite/${oldToken}`)
@@ -321,16 +250,7 @@ test.describe('Workspace Invitation Flow', () => {
 			browser,
 		}) => {
 			// Create owner and workspace
-			const ownerContext = await browser.newContext()
-			const ownerPage = await ownerContext.newPage()
-
-			const ownerEmail = generateTestEmail()
-			await ownerPage.goto('/signup')
-			await ownerPage.fill('[data-testid="name-input"]', 'Owner')
-			await ownerPage.fill('[data-testid="email-input"]', ownerEmail)
-			await ownerPage.fill('[data-testid="password-input"]', 'TestPassword123!')
-			await ownerPage.click('[data-testid="signup-button"]')
-			await ownerPage.waitForURL('**/dashboard**')
+			const { context: ownerContext, page: ownerPage } = await createAuthenticatedUser(browser, 'Owner')
 
 			const { inviteToken } = await createWorkspaceWithInvite(ownerPage)
 			await ownerContext.close()

@@ -62,7 +62,6 @@ export function useDocumentRealtimeUpdates(
 					onMetadataUpdate?.(event)
 				}
 			} catch (error) {
-				console.error('Error handling document realtime event:', error)
 				onError?.(error as Error)
 			}
 		},
@@ -85,13 +84,8 @@ export function useDocumentRealtimeUpdates(
 			.channel(CHANNEL_PATTERNS.document(documentId))
 			.on('broadcast', { event: 'document_event' }, handleEvent)
 			.subscribe((status) => {
-				if (status === 'SUBSCRIBED') {
-					console.log(`Subscribed to document ${documentId} realtime updates`)
-				} else if (status === 'CHANNEL_ERROR') {
-					console.error(`Failed to subscribe to document ${documentId}`)
+				if (status === 'CHANNEL_ERROR') {
 					onError?.(new Error('Failed to subscribe to document updates'))
-				} else if (status === 'CLOSED') {
-					console.log(`Channel closed for document ${documentId}`)
 				}
 			})
 

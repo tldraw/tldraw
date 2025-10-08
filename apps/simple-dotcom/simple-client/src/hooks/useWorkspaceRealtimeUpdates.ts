@@ -47,15 +47,7 @@ export function useWorkspaceRealtimeUpdates(
 		const channel = supabase
 			.channel(CHANNEL_PATTERNS.workspace(workspaceId))
 			.on('broadcast', { event: 'workspace_event' }, handleEvent)
-			.subscribe((status) => {
-				if (status === 'SUBSCRIBED') {
-					console.log(`Subscribed to workspace ${workspaceId} realtime updates`)
-				} else if (status === 'CHANNEL_ERROR') {
-					console.error(`Failed to subscribe to workspace ${workspaceId}`)
-				} else if (status === 'CLOSED') {
-					console.log(`Channel closed for workspace ${workspaceId}`)
-				}
-			})
+			.subscribe()
 
 		// Store channel reference
 		channelRef.current = channel

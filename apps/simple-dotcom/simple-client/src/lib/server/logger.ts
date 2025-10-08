@@ -24,18 +24,53 @@ export function getLogger(): pino.Logger {
 	}
 
 	if (!loggerInstance) {
+		// Determine if file logging should be enabled
+		// Default: production only, unless LOG_TO_FILE=true is explicitly set
+		const shouldLogToFile =
+			process.env.LOG_TO_FILE === 'true' ||
+			(process.env.LOG_TO_FILE !== 'false' && process.env.NODE_ENV === 'production')
+
 		// Determine log directory path
 		// For dev: apps/simple-dotcom/.logs/
 		// For production: .logs/ relative to working directory
 		const logDir = process.env.NODE_ENV === 'production' ? '.logs' : '../.logs'
 		const logPath = join(process.cwd(), logDir, 'backend.log')
 
+		// Build streams array
+		const logLevel = (process.env.LOG_LEVEL || 'info') as pino.Level
+		const streams: pino.StreamEntry[] = [
+			{
+				// Stdout stream - pretty in dev, JSON in prod
+				stream:
+					process.env.NODE_ENV === 'production'
+						? process.stdout
+						: require('pino-pretty')({
+								colorize: true,
+								translateTime: 'HH:MM:ss.l',
+								ignore: 'pid,hostname,node_env',
+							}),
+				level: logLevel,
+			},
+		]
+
+		// Conditionally add file stream
+		if (shouldLogToFile) {
+			streams.push({
+				// File stream - always JSON, append mode
+				stream: require('fs').createWriteStream(logPath, {
+					flags: 'a', // append mode
+					encoding: 'utf8',
+				}),
+				level: 'debug' as pino.Level, // Log everything to file
+			})
+		}
+
 		// Create logger with multi-stream transport
 		// - stdout: pretty-printed for development, JSON for production
-		// - file: always JSON format with append mode
+		// - file: JSON format with append mode (production only by default)
 		loggerInstance = pino(
 			{
-				level: process.env.LOG_LEVEL || 'info',
+				level: logLevel,
 				formatters: {
 					// Add standardized fields to every log entry
 					bindings: (bindings) => {
@@ -56,36 +91,16 @@ export function getLogger(): pino.Logger {
 					error: pino.stdSerializers.err,
 				},
 			},
-			pino.multistream([
-				{
-					// Stdout stream - pretty in dev, JSON in prod
-					stream:
-						process.env.NODE_ENV === 'production'
-							? process.stdout
-							: require('pino-pretty')({
-									colorize: true,
-									translateTime: 'HH:MM:ss.l',
-									ignore: 'pid,hostname,node_env',
-								}),
-					level: process.env.LOG_LEVEL || 'info',
-				},
-				{
-					// File stream - always JSON, append mode
-					stream: require('fs').createWriteStream(logPath, {
-						flags: 'a', // append mode
-						encoding: 'utf8',
-					}),
-					level: 'debug', // Log everything to file
-				},
-			])
+			pino.multistream(streams)
 		)
 
 		// Log initialization
 		loggerInstance.info(
 			{
-				logPath,
+				logPath: shouldLogToFile ? logPath : 'disabled',
 				env: process.env.NODE_ENV,
 				logLevel: process.env.LOG_LEVEL || 'info',
+				fileLogging: shouldLogToFile,
 			},
 			'Logger initialized'
 		)

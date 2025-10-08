@@ -41,13 +41,12 @@ export function useMultiWorkspaceRealtime({
 		(workspaceId: string) => (payload: any) => {
 			try {
 				const event = payload as RealtimeEvent
-				console.log(`[Dashboard Realtime] Event in workspace ${workspaceId}:`, event.type)
 
 				// Invalidate dashboard query to refetch all data
 				// This ensures the dashboard stays in sync with all workspace changes
 				queryClient.invalidateQueries({ queryKey: ['dashboard', userId] })
 			} catch (error) {
-				console.error('[Dashboard Realtime] Error handling event:', error)
+				// Silently fail - React Query polling will catch up
 			}
 		},
 		[queryClient, userId]
@@ -55,7 +54,6 @@ export function useMultiWorkspaceRealtime({
 
 	// Handle reconnection after tab becomes visible
 	const handleReconnect = useCallback(() => {
-		console.log('[Dashboard Realtime] Tab visible - refetching data')
 		queryClient.invalidateQueries({ queryKey: ['dashboard', userId] })
 	}, [queryClient, userId])
 
@@ -64,8 +62,6 @@ export function useMultiWorkspaceRealtime({
 		if (!enabled || workspaceIds.length === 0) {
 			return
 		}
-
-		console.log('[Dashboard Realtime] Setting up subscriptions for workspaces:', workspaceIds)
 
 		// Clear any existing subscriptions
 		channelsRef.current.forEach((channel) => {
@@ -78,13 +74,7 @@ export function useMultiWorkspaceRealtime({
 			const channel = supabase
 				.channel(CHANNEL_PATTERNS.workspace(workspaceId))
 				.on('broadcast', { event: 'workspace_event' }, handleWorkspaceEvent(workspaceId))
-				.subscribe((status) => {
-					if (status === 'SUBSCRIBED') {
-						console.log(`[Dashboard Realtime] Subscribed to workspace ${workspaceId}`)
-					} else if (status === 'CHANNEL_ERROR') {
-						console.error(`[Dashboard Realtime] Failed to subscribe to workspace ${workspaceId}`)
-					}
-				})
+				.subscribe()
 
 			channelsRef.current.set(workspaceId, channel)
 		})
@@ -102,7 +92,6 @@ export function useMultiWorkspaceRealtime({
 
 		// Cleanup on unmount or when dependencies change
 		return () => {
-			console.log('[Dashboard Realtime] Cleaning up subscriptions')
 			document.removeEventListener('visibilitychange', handleVisibilityChange)
 
 			channelsRef.current.forEach((channel) => {

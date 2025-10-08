@@ -331,35 +331,77 @@ The bug-report-generator agent will automatically create a properly formatted re
 
 ### 6. Logging & Debugging
 
-**Backend Logs:**
+**Logging Standards:**
 
-Structured logs are written to:
-- **Console**: Pretty-printed when running `yarn workspace simple-dotcom dev`
-- **File**: JSON format in `apps/simple-dotcom/.logs/backend.log`
+The application uses a professional, pragmatic logging strategy to avoid console pollution in production while maintaining debuggability.
+
+**Server-Side Logging:**
+
+Use the structured pino logger exclusively on the server:
+
+```typescript
+import { getLogger } from '@/lib/server/logger'
+
+// Log errors with structured context
+const logger = getLogger()
+logger.error(error, {
+  context: 'api_route_name',
+  workspace_id: workspaceId,
+  user_id: userId,
+  message: 'Human-readable error description',
+})
+
+// Log significant business events
+logger.info({
+  context: 'workspace_creation',
+  workspace_id: newWorkspaceId,
+  user_id: userId,
+  message: 'Workspace created successfully',
+})
+```
+
+**Rules:**
+- ✅ Use pino logger exclusively (never `console`)
+- ✅ Log errors with structured context (user_id, workspace_id, etc.)
+- ✅ Log significant business events at INFO level
+- ✅ Use DEBUG level for troubleshooting (development only)
+- ❌ Don't log normal operations (successful queries, broadcasts)
+
+**Client-Side Logging:**
+
+Client-side logging is minimal to avoid console pollution:
+
+```typescript
+// ONLY use console.error for user-facing errors in catch blocks
+catch (err) {
+  console.error('Failed to create workspace:', err)
+  setValidationError('Failed to create workspace. Please try again.')
+}
+
+// DO NOT use console.log, console.warn, or console.info in production code
+// Realtime events, subscriptions, and debug statements should be removed
+```
+
+**Rules:**
+- ✅ Use `console.error` only for user-facing errors (with alerts/toasts)
+- ❌ Remove all `console.log/warn/info` statements
+- ❌ Don't log realtime events, subscriptions, tab visibility changes
+
+**Viewing Logs:**
+
+Backend logs are written to:
+- **Console**: Pretty-printed in development, JSON in production
+- **File**: JSON format in `apps/simple-dotcom/.logs/backend.log` (production only by default)
 
 ```bash
-# View recent logs
+# View recent logs (if file logging enabled)
 tail -n 200 apps/simple-dotcom/.logs/backend.log
 
 # Follow logs in real-time
 tail -f apps/simple-dotcom/.logs/backend.log
-```
 
-**Debugging Realtime Issues:**
-
-```typescript
-// Enable console logging
-console.log('[Realtime] Subscribed to workspace:', workspaceId)
-console.log('[Realtime] Event received:', event.type, payload)
-
-// Check subscription status
-.subscribe((status) => {
-  if (status === 'SUBSCRIBED') {
-    console.log('✅ Connected')
-  } else if (status === 'CHANNEL_ERROR') {
-    console.log('❌ Failed to subscribe')
-  }
-})
+# Enable file logging in development (optional)
+LOG_TO_FILE=true yarn workspace simple-dotcom dev
 ```
 
 ## Agent Workflow Best Practices

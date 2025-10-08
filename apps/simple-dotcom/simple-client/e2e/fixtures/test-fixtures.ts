@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import { test as base, BrowserContext, Page } from '@playwright/test'
+import { test as base, Browser, BrowserContext, Page } from '@playwright/test'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import fs from 'fs'
 import { assertCleanupSuccess, cleanupTestUsersByPattern } from './cleanup-helpers'
@@ -52,6 +52,53 @@ async function waitForPrivateWorkspace(supabase: SupabaseClient, userId: string,
 		await new Promise((resolve) => setTimeout(resolve, 200))
 	}
 	throw new Error('Timed out waiting for private workspace provisioning')
+}
+
+// Test constants
+export const TEST_PASSWORD = 'TestPassword123!'
+export const SELECTORS = {
+	nameInput: '[data-testid="name-input"]',
+	emailInput: '[data-testid="email-input"]',
+	passwordInput: '[data-testid="password-input"]',
+	signupButton: '[data-testid="signup-button"]',
+	loginButton: '[data-testid="login-button"]',
+} as const
+
+/**
+ * Generates a unique test email for invite tests.
+ * Uses a different pattern than worker emails to avoid collisions.
+ */
+function generateInviteTestEmail(): string {
+	const timestamp = Date.now()
+	const counter = emailCounter++
+	const random = Math.random().toString(36).substring(2, 8)
+	return `test-invite-${counter}-${timestamp}-${random}@example.com`
+}
+
+/**
+ * Creates a new authenticated user with a fresh browser context.
+ * This is useful for invite tests that need multiple users with separate sessions.
+ *
+ * @param browser - Playwright browser instance
+ * @param role - Display name for the user (e.g., 'Owner', 'Member')
+ * @returns Object containing the browser context, page, and user email
+ */
+export async function createAuthenticatedUser(
+	browser: Browser,
+	role: string = 'User'
+): Promise<{ context: BrowserContext; page: Page; email: string }> {
+	const context = await browser.newContext()
+	const page = await context.newPage()
+	const email = generateInviteTestEmail()
+
+	await page.goto('/signup')
+	await page.fill(SELECTORS.nameInput, role)
+	await page.fill(SELECTORS.emailInput, email)
+	await page.fill(SELECTORS.passwordInput, TEST_PASSWORD)
+	await page.click(SELECTORS.signupButton)
+	await page.waitForURL('**/dashboard**')
+
+	return { context, page, email }
 }
 
 export const test = base.extend<TestFixtures, WorkerFixtures>({

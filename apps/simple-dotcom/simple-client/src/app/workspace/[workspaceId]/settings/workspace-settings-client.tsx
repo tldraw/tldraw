@@ -200,12 +200,10 @@ export default function WorkspaceSettingsClient({
 				}
 			} else if (res.status === 403) {
 				// User is not an owner, don't show invitation link section
-				console.log('User is not workspace owner')
-			} else {
-				console.error('Failed to fetch invitation link:', res.status, res.statusText)
+				// Silently handle - this is expected behavior
 			}
 		} catch (err) {
-			console.error('Failed to fetch invitation link:', err)
+			// Silently fail - not critical for settings page functionality
 		} finally {
 			setIsLoadingInvite(false)
 		}
