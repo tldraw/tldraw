@@ -1,19 +1,15 @@
 'use client'
 
+import { AuthPageLayout } from '@/components/auth/AuthPageLayout'
+import { SecondaryLink } from '@/components/shared/SecondaryLink'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import {
-	Form,
-	FormControl,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
-} from '@/components/ui/form'
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { isValidRedirect } from '@/lib/auth/validation'
 import { getBrowserClient } from '@/lib/supabase/browser'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { AlertCircle, CheckCircle2, Info } from 'lucide-react'
+import { AlertCircle, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
@@ -38,12 +34,6 @@ function SignupForm() {
 
 	// Get redirect URL from query params
 	const redirectUrl = searchParams.get('redirect')
-
-	// Validate redirect URL to prevent open redirect attacks
-	const isValidRedirect = (url: string) => {
-		// Only allow internal redirects
-		return url.startsWith('/') && !url.startsWith('//')
-	}
 
 	useEffect(() => {
 		// Check if coming from invite flow
@@ -101,131 +91,98 @@ function SignupForm() {
 	}
 
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-background p-4">
-			<div className="w-full max-w-md space-y-8">
-				{inviteContext && (
-					<Alert>
-						<Info className="h-4 w-4" />
-						<AlertDescription>{inviteContext}</AlertDescription>
-					</Alert>
-				)}
+		<AuthPageLayout inviteContext={inviteContext} title="Create your account">
+			{success ? (
+				<Alert variant="success" data-testid="success-message" className="p-6">
+					<CheckCircle2 className="h-5 w-5" />
+					<div className="space-y-4">
+						<div>
+							<h2 className="text-lg font-semibold mb-2">Check your email</h2>
+							<AlertDescription>
+								We&apos;ve sent a confirmation email to <strong>{submittedEmail}</strong>. Click the
+								link in the email to activate your account and sign in.
+							</AlertDescription>
+						</div>
+						<p className="text-xs text-foreground/60">
+							Didn&apos;t receive the email? Check your spam folder or{' '}
+							<Link href="/login" className="font-medium hover:underline">
+								try logging in
+							</Link>
+						</p>
+					</div>
+				</Alert>
+			) : (
+				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+					{error && (
+						<Alert variant="destructive" data-testid="error-message">
+							<AlertCircle className="h-4 w-4" />
+							<AlertDescription>{error}</AlertDescription>
+						</Alert>
+					)}
 
-				<div className="text-center">
-					<h1 className="text-3xl font-bold">Create your account</h1>
-					<p className="mt-2 text-sm text-foreground/60">
+					<FieldGroup>
+						<Field data-invalid={!!form.formState.errors.name}>
+							<FieldLabel htmlFor="name">Name</FieldLabel>
+							<Input
+								id="name"
+								type="text"
+								data-testid="name-input"
+								placeholder="Enter your name"
+								aria-invalid={!!form.formState.errors.name}
+								{...form.register('name')}
+							/>
+							<FieldError>{form.formState.errors.name?.message}</FieldError>
+						</Field>
+
+						<Field data-invalid={!!form.formState.errors.email}>
+							<FieldLabel htmlFor="email">Email address</FieldLabel>
+							<Input
+								id="email"
+								type="email"
+								autoComplete="email"
+								data-testid="email-input"
+								placeholder="you@example.com"
+								aria-invalid={!!form.formState.errors.email}
+								{...form.register('email')}
+							/>
+							<FieldError>{form.formState.errors.email?.message}</FieldError>
+						</Field>
+
+						<Field data-invalid={!!form.formState.errors.password}>
+							<FieldLabel htmlFor="password">Password</FieldLabel>
+							<Input
+								id="password"
+								type="password"
+								autoComplete="new-password"
+								data-testid="password-input"
+								placeholder="At least 8 characters"
+								aria-invalid={!!form.formState.errors.password}
+								{...form.register('password')}
+							/>
+							<FieldError>{form.formState.errors.password?.message}</FieldError>
+						</Field>
+					</FieldGroup>
+
+					<Button
+						type="submit"
+						disabled={form.formState.isSubmitting}
+						data-testid="signup-button"
+						className="w-full"
+					>
+						{form.formState.isSubmitting ? 'Creating account...' : 'Create account'}
+					</Button>
+
+					<p className="text-sm text-foreground/60 text-center">
 						Already have an account?{' '}
-						<Link
-							href={`/login${redirectUrl ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`}
-							className="font-medium hover:underline"
+						<SecondaryLink
+							href={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : '/login'}
 						>
 							Log in
-						</Link>
+						</SecondaryLink>
 					</p>
-				</div>
-
-				{success ? (
-					<Alert variant="success" data-testid="success-message" className="p-6">
-						<CheckCircle2 className="h-5 w-5" />
-						<div className="space-y-4">
-							<div>
-								<h2 className="text-lg font-semibold mb-2">Check your email</h2>
-								<AlertDescription>
-									We&apos;ve sent a confirmation email to <strong>{submittedEmail}</strong>. Click
-									the link in the email to activate your account and sign in.
-								</AlertDescription>
-							</div>
-							<p className="text-xs text-foreground/60">
-								Didn&apos;t receive the email? Check your spam folder or{' '}
-								<Link href="/login" className="font-medium hover:underline">
-									try logging in
-								</Link>
-							</p>
-						</div>
-					</Alert>
-				) : (
-					<Form {...form}>
-						<form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-6">
-							{error && (
-								<Alert variant="destructive" data-testid="error-message">
-									<AlertCircle className="h-4 w-4" />
-									<AlertDescription>{error}</AlertDescription>
-								</Alert>
-							)}
-
-							<div className="space-y-4">
-								<FormField
-									control={form.control}
-									name="name"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Name</FormLabel>
-											<FormControl>
-												<Input
-													{...field}
-													type="text"
-													data-testid="name-input"
-													placeholder="Enter your name"
-												/>
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-
-								<FormField
-									control={form.control}
-									name="email"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Email address</FormLabel>
-											<FormControl>
-												<Input
-													{...field}
-													type="email"
-													autoComplete="email"
-													data-testid="email-input"
-													placeholder="you@example.com"
-												/>
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-
-								<FormField
-									control={form.control}
-									name="password"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Password</FormLabel>
-											<FormControl>
-												<Input
-													{...field}
-													type="password"
-													autoComplete="new-password"
-													data-testid="password-input"
-													placeholder="At least 8 characters"
-												/>
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-							</div>
-
-							<Button
-								type="submit"
-								disabled={form.formState.isSubmitting}
-								data-testid="signup-button"
-								className="w-full"
-							>
-								{form.formState.isSubmitting ? 'Creating account...' : 'Create account'}
-							</Button>
-						</form>
-					</Form>
-				)}
-			</div>
-		</div>
+				</form>
+			)}
+		</AuthPageLayout>
 	)
 }
 
