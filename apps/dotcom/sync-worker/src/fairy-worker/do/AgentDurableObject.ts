@@ -17,8 +17,6 @@ export class AgentDurableObject extends DurableObject<Environment> {
 
 	// `fetch` is the entry point for all requests to the Durable Object
 	override async fetch(request: Request): Promise<Response> {
-		console.warn('\n\n\nAgentDurableObject fetch\n\n\n')
-		
 		const url = new URL(request.url)
 		
 		// Handle the stream endpoint directly without router
@@ -34,7 +32,6 @@ export class AgentDurableObject extends DurableObject<Environment> {
 	 * Stream changes from the model.
 	 */
 	private async stream(request: Request): Promise<Response> {
-		console.warn('\n\nhello you have successfully reached AgentDurableObject\'s stream function\n\n')
 		const encoder = new TextEncoder()
 		const { readable, writable } = new TransformStream()
 		const writer = writable.getWriter()

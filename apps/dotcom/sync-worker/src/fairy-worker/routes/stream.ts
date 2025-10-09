@@ -2,8 +2,6 @@ import { IRequest } from 'itty-router'
 import { Environment } from '../environment'
 
 export async function stream(request: IRequest, env: Environment) {
-    console.warn('\n\n\nstream.ts\n\n\n')
-    
     // Read the body once and convert to string
     const bodyText = await request.text()  // or request.json() then JSON.stringify()
     

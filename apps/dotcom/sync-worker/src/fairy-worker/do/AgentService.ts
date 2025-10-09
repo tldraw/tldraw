@@ -12,10 +12,7 @@ import { LanguageModel, streamText } from 'ai'
 // import { Streaming } from '../../shared/types/Streaming'
 
 import { Environment } from '../environment'
-import { AgentModelName, getAgentModelDefinition } from '@tldraw/dotcom-shared/src/fairy-shared/models'
-import { buildMessages } from '@tldraw/dotcom-shared/src/fairy-shared/prompt/buildMessages'
-import { buildSystemPrompt } from '@tldraw/dotcom-shared/src/fairy-shared/prompt/buildSystemPrompt'
-import { getModelName } from '@tldraw/dotcom-shared/src/fairy-shared/prompt/getModelName'
+import { AgentAction, AgentModelName, AgentPrompt, getAgentModelDefinition, Streaming, buildMessages, buildSystemPrompt, getModelName } from '@tldraw/dotcom-shared'
 import { closeAndParseJson } from './closeAndParseJson'
 
 export class AgentService {
@@ -60,7 +57,7 @@ async function* streamActions(
 	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
 
 	const messages = buildMessages(prompt)
-	const systemPrompt = buildSystemPrompt(prompt)
+	const systemPrompt = buildSystemPrompt(prompt) || 'You are a helpful assistant.'
 
 	try {
 		messages.push({

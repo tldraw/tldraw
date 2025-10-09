@@ -25,21 +25,21 @@ import { ThinkActionUtil } from './actions/ThinkActionUtil'
 import { TodoListActionUtil } from './actions/TodoListActionUtil'
 import { UnknownActionUtil } from './actions/UnknownActionUtil'
 import { UpdateActionUtil } from './actions/UpdateActionUtil'
-import { BlurryShapesPartUtil } from './parts/BlurryShapesPartUtil'
-import { ChatHistoryPartUtil } from './parts/ChatHistoryPartUtil'
-import { ContextItemsPartUtil } from './parts/ContextItemsPartUtil'
-import { DataPartUtil } from './parts/DataPartUtil'
+// import { BlurryShapesPartUtil } from './parts/BlurryShapesPartUtil'
+// import { ChatHistoryPartUtil } from './parts/ChatHistoryPartUtil'
+// import { ContextItemsPartUtil } from './parts/ContextItemsPartUtil'
+// import { DataPartUtil } from './parts/DataPartUtil'
 import { MessagesPartUtil } from './parts/MessagesPartUtil'
-import { ModelNamePartUtil } from './parts/ModelNamePartUtil'
-import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
+// import { ModelNamePartUtil } from './parts/ModelNamePartUtil'
+// import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
 import { PromptPartUtil, PromptPartUtilConstructor } from './parts/PromptPartUtil'
-import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
-import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
-import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
+// import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
+// import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
+// import { SystemPromptPartUtil } from './parts/SystemPromptPartUtil'
 import { TimePartUtil } from './parts/TimePartUtil'
-import { TodoListPartUtil } from './parts/TodoListPartUtil'
-import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
-import { ViewportBoundsPartUtil } from './parts/ViewportBoundsPartUtil'
+// import { TodoListPartUtil } from './parts/TodoListPartUtil'
+// import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
+// import { ViewportBoundsPartUtil } from './parts/ViewportBoundsPartUtil'
 import { AgentAction } from './types/AgentAction'
 import { BaseAgentAction } from './types/BaseAgentAction'
 import { BasePromptPart } from './types/BasePromptPart'
@@ -53,27 +53,27 @@ import { PromptPart } from './types/PromptPart'
  */
 export const PROMPT_PART_UTILS = [
 	// Model
-	SystemPromptPartUtil,
-	ModelNamePartUtil,
+	// SystemPromptPartUtil,
+	// ModelNamePartUtil,
 
 	// Request
 	MessagesPartUtil,
-	DataPartUtil,
-	ContextItemsPartUtil,
+	// DataPartUtil,
+	// ContextItemsPartUtil,
 
 	// Viewport
-	ScreenshotPartUtil,
-	ViewportBoundsPartUtil,
+	// ScreenshotPartUtil,
+	// ViewportBoundsPartUtil,
 
 	// Shapes
-	BlurryShapesPartUtil,
-	PeripheralShapesPartUtil,
-	SelectedShapesPartUtil,
+	// BlurryShapesPartUtil,
+	// PeripheralShapesPartUtil,
+	// SelectedShapesPartUtil,
 
 	// History
-	ChatHistoryPartUtil,
-	UserActionHistoryPartUtil,
-	TodoListPartUtil,
+	// ChatHistoryPartUtil,
+	// UserActionHistoryPartUtil,
+	// TodoListPartUtil,
 
 	// Metadata
 	TimePartUtil,
