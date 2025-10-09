@@ -74,8 +74,7 @@ export default function WorkspaceBrowserClient({
 			return result.data
 		},
 		initialData: initialFolders,
-		staleTime: 1000 * 10, // 10 seconds - shorter to catch missed realtime events
-		refetchInterval: 1000 * 15, // Poll every 15 seconds as fallback
+		staleTime: 1000 * 60, // 10 seconds - shorter to catch missed realtime events
 		refetchOnMount: true, // Refetch when returning to workspace browser
 		refetchOnReconnect: true, // Refetch when connection restored
 	})

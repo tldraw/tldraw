@@ -42,11 +42,6 @@ export function useWorkspaceRealtimeUpdates(
 			return
 		}
 
-		console.log(
-			'[useWorkspaceRealtimeUpdates] Setting up postgres_changes subscription for workspace:',
-			workspaceId
-		)
-
 		// Create channel and subscribe to postgres changes
 		const channel = supabase
 			.channel(`workspace:${workspaceId}:postgres_changes`)
@@ -59,8 +54,7 @@ export function useWorkspaceRealtimeUpdates(
 					table: 'documents',
 					filter: `workspace_id=eq.${workspaceId}`,
 				},
-				(payload) => {
-					console.log('[useWorkspaceRealtimeUpdates] Document change:', payload)
+				() => {
 					onChangeRef.current?.()
 				}
 			)
@@ -73,8 +67,7 @@ export function useWorkspaceRealtimeUpdates(
 					table: 'folders',
 					filter: `workspace_id=eq.${workspaceId}`,
 				},
-				(payload) => {
-					console.log('[useWorkspaceRealtimeUpdates] Folder change:', payload)
+				() => {
 					onChangeRef.current?.()
 				}
 			)
@@ -87,24 +80,20 @@ export function useWorkspaceRealtimeUpdates(
 					table: 'workspace_members',
 					filter: `workspace_id=eq.${workspaceId}`,
 				},
-				(payload) => {
-					console.log('[useWorkspaceRealtimeUpdates] Member change:', payload)
+				() => {
 					onChangeRef.current?.()
 				}
 			)
-			.subscribe((status) => {
-				console.log('[useWorkspaceRealtimeUpdates] Subscription status:', status)
-			})
+			.subscribe()
+
+		// Trigger initial fetch of folders, documents, and workspace members
+		onChangeRef.current?.()
 
 		// Store channel reference
 		channelRef.current = channel
 
 		// Cleanup on unmount
 		return () => {
-			console.log(
-				'[useWorkspaceRealtimeUpdates] Cleaning up subscription for workspace:',
-				workspaceId
-			)
 			if (channelRef.current) {
 				supabase.removeChannel(channelRef.current)
 				channelRef.current = null

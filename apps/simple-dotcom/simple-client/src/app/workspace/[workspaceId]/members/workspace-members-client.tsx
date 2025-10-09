@@ -46,6 +46,7 @@ interface WorkspaceMembersClientProps {
 	workspace: Workspace
 	members: Member[]
 	inviteLink: InviteLink | null
+	inviteUrl: string | null
 	currentUserId: string
 }
 
@@ -53,6 +54,7 @@ export default function WorkspaceMembersClient({
 	workspace,
 	members: initialMembers,
 	inviteLink,
+	inviteUrl,
 	currentUserId,
 }: WorkspaceMembersClientProps) {
 	const router = useRouter()
@@ -62,8 +64,6 @@ export default function WorkspaceMembersClient({
 	const [searchTerm, setSearchTerm] = useState('')
 	const [currentPage, setCurrentPage] = useState(1)
 	const itemsPerPage = 10
-
-	const inviteUrl = inviteLink ? `${window.location.origin}/invite/${inviteLink.token}` : null
 
 	// Fetch members data with React Query
 	// Hybrid approach: Realtime for instant updates + polling for reliability

@@ -75,6 +75,7 @@ export function DocumentCard({
 				className
 			)}
 			onClick={onClick}
+			data-testid={`document-${document.id}`}
 		>
 			{/* Thumbnail area */}
 			<div className="aspect-[4/3] bg-muted rounded-t-xl flex items-center justify-center">

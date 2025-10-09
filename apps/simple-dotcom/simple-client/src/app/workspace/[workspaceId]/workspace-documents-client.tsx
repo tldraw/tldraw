@@ -72,7 +72,6 @@ export default function WorkspaceDocumentsClient({
 	const handleCreateDocument = useCallback(
 		async (name: string) => {
 			setIsCreating(true)
-			setShowCreateDialog(false)
 			try {
 				const response = await fetch(`/api/workspaces/${workspace.id}/documents`, {
 					method: 'POST',
@@ -91,6 +90,8 @@ export default function WorkspaceDocumentsClient({
 				const { data: newDocument } = await response.json()
 				// Invalidate queries to refetch documents with the new one
 				await queryClient.invalidateQueries({ queryKey: ['workspace-documents', workspace.id] })
+				// Close dialog before navigation
+				setShowCreateDialog(false)
 				// Navigate to the new document
 				router.push(`/d/${newDocument.id}`)
 			} catch (err) {

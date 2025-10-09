@@ -103,10 +103,16 @@ async function getWorkspaceMembers(userId: string, workspaceId: string) {
 		.eq('workspace_id', workspaceId)
 		.single()
 
+	// Construct the full invite URL on the server
+	const inviteUrl = inviteLink
+		? `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/invite/${inviteLink.token}`
+		: null
+
 	return {
 		workspace,
 		members: uniqueMembers,
 		inviteLink,
+		inviteUrl,
 		isOwner,
 	}
 }
@@ -133,6 +139,7 @@ export default async function WorkspaceMembersPage({ params }: WorkspaceMembersP
 			workspace={membersData.workspace}
 			members={membersData.members}
 			inviteLink={membersData.inviteLink}
+			inviteUrl={membersData.inviteUrl}
 			currentUserId={user.id}
 		/>
 	)
