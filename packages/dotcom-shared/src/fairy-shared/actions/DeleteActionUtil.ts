@@ -44,6 +44,14 @@ export class DeleteActionUtil extends AgentActionUtil<DeleteAction> {
 		if (!action.complete) return
 		if (!this.agent) return
 
+		const shape = this.agent.editor.getShape(`shape:${action.shapeId}` as TLShapeId)
+		if (!shape) return
+		const coordinates = { x: shape?.x, y: shape?.y }
+		
 		this.agent.editor.deleteShape(`shape:${action.shapeId}` as TLShapeId)
+
+		return {
+			coordinates,
+		}
 	}
 }

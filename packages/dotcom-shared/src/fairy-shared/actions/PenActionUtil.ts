@@ -1,5 +1,6 @@
 import { createShapeId, TLDrawShape, TLDrawShapeSegment, Vec, VecModel } from '@tldraw/editor'
 import z from 'zod'
+import { last } from '@tldraw/utils'
 import { AgentHelpers } from '../AgentHelpers'
 import { asColor, SimpleColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill, SimpleFillSchema } from '../format/SimpleFill'
@@ -123,5 +124,14 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 				isPen: true,
 			},
 		})
+
+		const lastPoint = last(points)
+		if (!lastPoint) return
+		return {
+			coordinates: {
+				x: lastPoint.x,
+				y: lastPoint.y,
+			},
+		}
 	}
 }

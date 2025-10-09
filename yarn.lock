@@ -58,6 +58,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ai-sdk/gateway@npm:1.0.35":
+  version: 1.0.35
+  resolution: "@ai-sdk/gateway@npm:1.0.35"
+  dependencies:
+    "@ai-sdk/provider": "npm:2.0.0"
+    "@ai-sdk/provider-utils": "npm:3.0.11"
+    "@vercel/oidc": "npm:3.0.2"
+  peerDependencies:
+    zod: ^3.25.76 || ^4.1.8
+  checksum: 10/5da83f19b72ac176070a0271b796134eef5342feafd40d2eac1b24ed77919197021612738646a7cfde401190a57e829aaeae06002d6afc7f5f24f89c4515a848
+  languageName: node
+  linkType: hard
+
 "@ai-sdk/gateway@npm:1.0.7":
   version: 1.0.7
   resolution: "@ai-sdk/gateway@npm:1.0.7"
@@ -91,6 +104,19 @@ __metadata:
   peerDependencies:
     zod: ^3.25.76 || ^4
   checksum: 10/c15ffe86ebcf854e44a93d933b1f622358beffb3f3731c1f44b0ba8c75533ee0a39704597c309963a8ccc95c4eaf845805a61ae09dfe7e45bf18019cb350e773
+  languageName: node
+  linkType: hard
+
+"@ai-sdk/provider-utils@npm:3.0.11":
+  version: 3.0.11
+  resolution: "@ai-sdk/provider-utils@npm:3.0.11"
+  dependencies:
+    "@ai-sdk/provider": "npm:2.0.0"
+    "@standard-schema/spec": "npm:^1.0.0"
+    eventsource-parser: "npm:^3.0.5"
+  peerDependencies:
+    zod: ^3.25.76 || ^4.1.8
+  checksum: 10/e9bc15098b3a07db0a0c6b6194c18afcf9f470728ab940fdc77f09328e4f47d89167e0f7ce57a67cb966f5e06cfdb4f64cb6d50bd65109556f9345bf08193500
   languageName: node
   linkType: hard
 
@@ -9400,15 +9426,18 @@ __metadata:
   resolution: "@tldraw/dotcom-shared@workspace:packages/dotcom-shared"
   dependencies:
     "@rocicorp/zero": "npm:0.19.2025050203"
+    "@tldraw/editor": "workspace:*"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/react": "npm:^18.3.18"
+    ai: "npm:^5.0.63"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
     tldraw: "workspace:*"
+    zod: "npm:^4.1.12"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
     react-dom: ^18.2.0 || ^19.0.0
@@ -9434,6 +9463,7 @@ __metadata:
     "@tldraw/worker-shared": "workspace:*"
     "@types/pg": "npm:^8.11.11"
     "@types/react": "npm:^18.3.18"
+    ai: "npm:^5.0.63"
     esbuild: "npm:^0.25.6"
     itty-router: "npm:^5.0.18"
     jose: "npm:^5.9.6"
@@ -11051,6 +11081,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vercel/oidc@npm:3.0.2":
+  version: 3.0.2
+  resolution: "@vercel/oidc@npm:3.0.2"
+  checksum: 10/2a01b4fe80c71d901d7f901b9f60e071cc0a7510ce65b8f163bf8669fb094673acc65cb571f88ffa5c1d65b317da9913509a582cc75a2c8fe53ad7525b63bf0d
+  languageName: node
+  linkType: hard
+
 "@vercel/python@npm:4.3.0":
   version: 4.3.0
   resolution: "@vercel/python@npm:4.3.0"
@@ -11927,6 +11964,20 @@ __metadata:
   peerDependencies:
     zod: ^3.25.76 || ^4
   checksum: 10/9f56165d6a8b4a09b3c0881532c6d0f7708cf79f93d925f6b177916e941045556db4579fdfffa278089fc252d4aba7e7e9f8d16d47df69b2a43e70ee7158f91e
+  languageName: node
+  linkType: hard
+
+"ai@npm:^5.0.63":
+  version: 5.0.63
+  resolution: "ai@npm:5.0.63"
+  dependencies:
+    "@ai-sdk/gateway": "npm:1.0.35"
+    "@ai-sdk/provider": "npm:2.0.0"
+    "@ai-sdk/provider-utils": "npm:3.0.11"
+    "@opentelemetry/api": "npm:1.9.0"
+  peerDependencies:
+    zod: ^3.25.76 || ^4.1.8
+  checksum: 10/6835767319a48768ff51e4d510c7cf6d0bfe0bd38ab93ac6555cb524624ef793144842a6d5760cf48418e42a4449fb7ecfd2f9169a2060d52338c6cda2011c0b
   languageName: node
   linkType: hard
 
@@ -30754,6 +30805,13 @@ __metadata:
   version: 3.25.67
   resolution: "zod@npm:3.25.67"
   checksum: 10/0e35432dcca7f053e63f5dd491a87c78abe0d981817547252c3b6d05f0f58788695d1a69724759c6501dff3fd62929be24c9f314a3625179bee889150f7a61fa
+  languageName: node
+  linkType: hard
+
+"zod@npm:^4.1.12":
+  version: 4.1.12
+  resolution: "zod@npm:4.1.12"
+  checksum: 10/c5f04e6ac306515c4db6ef73cf7705f521c7a2107c8c8912416a0658d689f361db9bee829b0bf01ef4a22492f1065c5cbcdb523ce532606ac6792fd714f3c326
   languageName: node
   linkType: hard
 

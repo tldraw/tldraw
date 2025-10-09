@@ -22,8 +22,9 @@ import {
 	useValue,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
-import { TldrawAgent } from '../../../fairy/fairy-agent/TldrawAgent'
-import { useTldrawAgent } from '../../../fairy/fairy-agent/useTldrawAgent'
+import { FairyAppInner } from '../../../fairy/FairyAppInner'
+import { $theOnlyFairy, FairyWrapper } from '../../../fairy/FairyWrapper'
+import { TldrawFairyAgent } from '../../../fairy/fairy-agent/agent/TldrawAgent'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { useHandleUiEvents } from '../../../utils/analytics'
@@ -37,7 +38,6 @@ import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
-import { FairyWrapper } from '../fairy/FairyWrapper'
 import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
@@ -51,6 +51,8 @@ import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
+import { FairyVision } from '../../../fairy/FairyVision'
+import './fairy.css'
 
 /** @internal */
 export const components: TLComponents = {
@@ -263,7 +265,15 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const overrides = useFileEditorOverrides({ fileSlug })
 	const extraDragIconOverrides = useExtraDragIconOverrides()
 
-	const [_agent, setAgent] = useState<TldrawAgent | undefined>()
+	const [agent, setAgent] = useState<TldrawFairyAgent | undefined>()
+	
+	const OriginalInFrontOfTheCanvas = components.InFrontOfTheCanvas
+	components.InFrontOfTheCanvas = (props) => (
+		<>
+			{OriginalInFrontOfTheCanvas ? <OriginalInFrontOfTheCanvas {...props} /> : null}
+			{agent && <FairyVision agent={agent} />}
+		</>
+	)
 
 	return (
 		<TlaEditorWrapper>
@@ -287,24 +297,10 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyFileUpdateHandler fileId={fileId} />
 				<SneakyLargeFileHander />
-				<FairyAppInner setAgent={setAgent} />
+				<FairyAppInner setAgent={setAgent} $fairy={$theOnlyFairy} />
 			</Tldraw>
 		</TlaEditorWrapper>
 	)
-}
-
-function FairyAppInner({ setAgent }: { setAgent(agent: TldrawAgent): void }) {
-	const AGENT_ID = 'fairy'
-	const editor = useEditor()
-	const agent = useTldrawAgent(editor, AGENT_ID)
-
-	useEffect(() => {
-		if (!editor || !agent) return
-		setAgent(agent)
-		;(window as any).agent = agent
-	}, [agent, editor, setAgent])
-
-	return null
 }
 
 function SneakyFileUpdateHandler({ fileId }: { fileId: string }) {

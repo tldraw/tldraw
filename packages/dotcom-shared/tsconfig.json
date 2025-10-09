@@ -10,6 +10,7 @@
 		{ "path": "../tlschema" },
 		{ "path": "../utils" },
 		{ "path": "../validate" },
-		{ "path": "../tldraw" }
+		{ "path": "../tldraw" },
+		{ "path": "../editor" }
 	]
 }

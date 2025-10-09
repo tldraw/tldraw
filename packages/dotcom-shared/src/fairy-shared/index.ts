@@ -73,16 +73,19 @@ export type * from './types/PromptPart'
 export type * from './types/Streaming'
 export type * from './types/TodoItem'
 export type * from './types/WikipediaArticle'
+export type * from './types/TldrawAgent'
+export type * from './types/FairyEntity'
 
 // Utils and Helpers
 export * from './AgentHelpers'
-export * from './AgentUtils'
+export * from './AgentActionUtils'
+export * from './AgentPromptUtils'
 
 // Models
 export * from './models'
 
 // Prompt
 export * from './prompt/buildMessages'
-export * from './prompt/buildResponseSchema'
 export * from './prompt/buildSystemPrompt'
 export * from './prompt/getModelName'
+

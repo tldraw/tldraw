@@ -1,0 +1,47 @@
+/* Context Highlights */
+
+.context-highlight {
+	pointer-events: none;
+    /* background-color: gold; */
+    opacity: 0;
+}
+
+.context-highlight line {
+	stroke-dasharray: 4px;
+	stroke-linecap: round;
+	stroke-width: 1px;
+    color: red
+}
+
+.context-highlight-generating line {
+	animation: dash 100s linear infinite;
+}
+
+.context-highlight circle {
+	stroke-width: 1px;
+	pointer-events: none;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.context-highlight-generating circle {
+	stroke-dasharray: 3px;
+	stroke-width: 6px;
+	fill: none;
+	animation: dash 100s linear infinite;
+}
+
+.context-highlight-label {
+	position: absolute;
+	color: var(--tl-color-text-shadow);
+	padding: 4px;
+	font-size: 12px;
+	background-color: var(--tl-color-tooltip);
+	border-radius: 0px 0px 6px 0px;
+	font-weight: 500;
+	white-space: nowrap;
+	margin-top: -0.5px;
+	margin-left: -0.5px;
+	pointer-events: none;
+	font-family: 'Inter', sans-serif;
+}
