@@ -1,8 +1,35 @@
 import {
+	AgentAction,
+	AgentActionUtil,
+	AgentHelpers,
+	AgentInput,
+	AgentModelName,
+	AgentPrompt,
+	AgentRequest,
+	AreaContextItem,
+	BaseAgentPrompt,
+	ChatHistoryItem,
+	ContextItem,
+	DEFAULT_MODEL_NAME,
+	getAgentActionUtilsRecord,
+	getPromptPartUtilsRecord,
+	TldrawAgent as ITldrawAgent,
+	PointContextItem,
+	PromptPart,
+	PromptPartUtil,
+	ShapeContextItem,
+	ShapesContextItem,
+	SimpleShape,
+	Streaming,
+	TldrawAgentOptions,
+	TodoItem,
+} from '@tldraw/dotcom-shared'
+import {
 	Atom,
 	atom,
 	Box,
 	Editor,
+	fetch,
 	getFromLocalStorage,
 	react,
 	RecordsDiff,
@@ -13,34 +40,7 @@ import {
 	Vec,
 	VecModel,
 } from 'tldraw'
-import {
-	AgentActionUtil,
-	AgentHelpers,
-	getAgentActionUtilsRecord,
-	getPromptPartUtilsRecord,
-	SimpleShape,
-	PromptPartUtil,
-	AgentAction,
-	AgentInput,
-	AgentPrompt,
-	BaseAgentPrompt,
-	AgentRequest,
-	ChatHistoryItem,
-	AreaContextItem,
-	ContextItem,
-	PointContextItem,
-	ShapeContextItem,
-	ShapesContextItem,
-	PromptPart,
-	Streaming,
-	TodoItem,
-	AgentModelName,
-	DEFAULT_MODEL_NAME,
-	TldrawAgentOptions,
-	TldrawAgent as ITldrawAgent,
-} from '@tldraw/dotcom-shared'
 import { $agentsAtom } from './agentsAtom'
-
 
 /**
  * An agent that can be prompted to edit the canvas.
@@ -493,7 +493,7 @@ export class TldrawAgent implements ITldrawAgent {
 	 */
 	act(
 		action: Streaming<AgentAction>,
-		helpers = new AgentHelpers(this)
+		helpers: AgentHelpers = new AgentHelpers(this)
 	): { diff: RecordsDiff<TLRecord>; promise: Promise<void> | null } {
 		const { editor } = this
 		const util = this.getAgentActionUtil(action._type)
@@ -744,6 +744,7 @@ function requestAgent({ agent, request }: { agent: TldrawAgent; request: AgentRe
 		try {
 			for await (const action of streamAgent({ prompt, signal })) {
 				if (cancelled) break
+				// eslint-disable-next-line no-console
 				console.log('AGENT ACTION\n', action)
 				editor.run(
 					() => {

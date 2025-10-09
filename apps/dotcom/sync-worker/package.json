@@ -34,6 +34,7 @@
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
 		"@tldraw/worker-shared": "workspace:*",
+		"ai": "^5.0.63",
 		"itty-router": "^5.0.18",
 		"jose": "^5.9.6",
 		"kysely": "^0.27.5",

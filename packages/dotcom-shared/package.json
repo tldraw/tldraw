@@ -16,7 +16,9 @@
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
-		"tldraw": "workspace:*"
+		"ai": "^5.0.63",
+		"tldraw": "workspace:*",
+		"zod": "^4.1.12"
 	},
 	"peerDependencies": {
 		"react": "^18.2.0 || ^19.0.0",

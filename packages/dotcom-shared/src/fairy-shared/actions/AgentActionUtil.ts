@@ -68,6 +68,6 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 }
 
 export interface AgentActionUtilConstructor<T extends BaseAgentAction = BaseAgentAction> {
-	new (agent, editor: Editor): AgentActionUtil<T>
+	new (agent: TldrawAgent, editor: Editor): AgentActionUtil<T>
 	type: T['_type']
 }

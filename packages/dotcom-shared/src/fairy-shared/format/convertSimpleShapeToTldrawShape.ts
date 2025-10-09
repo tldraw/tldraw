@@ -16,7 +16,7 @@ import {
 	Vec,
 	VecLike,
 } from '@tldraw/editor'
-import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '@tldraw/tldraw'
+import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from 'tldraw'
 import { asColor } from './SimpleColor'
 import { convertSimpleFillToTldrawFill } from './SimpleFill'
 import { convertSimpleFontSizeToTldrawFontSizeAndScale } from './SimpleFontSize'
