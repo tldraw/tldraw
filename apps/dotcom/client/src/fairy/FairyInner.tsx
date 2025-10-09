@@ -1,9 +1,9 @@
 import { useRef } from 'react'
-import { useEditor, useValue } from 'tldraw'
+import { Atom, useEditor, useValue } from 'tldraw'
 import { FairySprite } from './FairySprite'
-import { FairyEntity } from './FairyWrapper'
+import { FairyEntity } from '@tldraw/dotcom-shared'
 
-export default function FairyInner({ fairy }: { fairy: FairyEntity }) {
+export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 	const editor = useEditor()
 	const containerRef = useRef<HTMLDivElement>(null)
 	const fairyRef = useRef<HTMLDivElement>(null)
@@ -13,14 +13,14 @@ export default function FairyInner({ fairy }: { fairy: FairyEntity }) {
 		'fairy screen position',
 		() => {
 			// Convert page coordinates to screen coordinates
-			const screenPos = editor.pageToScreen(fairy.position)
+			const screenPos = editor.pageToScreen(fairy.get().position)
 			const screenBounds = editor.getViewportScreenBounds()
 			return {
 				x: screenPos.x - screenBounds.x,
 				y: screenPos.y - screenBounds.y,
 			}
 		},
-		[editor, fairy.position]
+		[editor, fairy]
 	)
 
 	// useEffect(() => {
@@ -118,6 +118,8 @@ export default function FairyInner({ fairy }: { fairy: FairyEntity }) {
 					top: screenPosition.y,
 					transform: 'translate(-50%, -50%) scale(max(var(--tl-zoom), 0.4))',
 					pointerEvents: 'auto',
+					transition:
+						'left 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
 				}}
 			>
 				<FairySprite

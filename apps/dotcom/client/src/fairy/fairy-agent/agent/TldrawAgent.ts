@@ -13,7 +13,7 @@ import {
 	DEFAULT_MODEL_NAME,
 	getAgentActionUtilsRecord,
 	getPromptPartUtilsRecord,
-	TldrawAgent as ITldrawAgent,
+	TldrawFairyAgent as ITldrawFairyAgent,
 	PointContextItem,
 	PromptPart,
 	PromptPartUtil,
@@ -21,13 +21,15 @@ import {
 	ShapesContextItem,
 	SimpleShape,
 	Streaming,
-	TldrawAgentOptions,
+	TldrawFairyAgentOptions,
 	TodoItem,
+	FairyEntity,
 } from '@tldraw/dotcom-shared'
 import {
 	Atom,
 	atom,
 	Box,
+	BoxModel,
 	Editor,
 	fetch,
 	getFromLocalStorage,
@@ -41,6 +43,9 @@ import {
 	VecModel,
 } from 'tldraw'
 import { $agentsAtom } from './agentsAtom'
+import { $theOnlyFairy } from '../../FairyWrapper'
+import { scaleBoxFromCenter } from '../../utils/scaleBoxFromCenter'
+import { reset } from 'axe-core'
 
 /**
  * An agent that can be prompted to edit the canvas.
@@ -52,12 +57,15 @@ import { $agentsAtom } from './agentsAtom'
  * agent.prompt({ message: 'Draw a snowman' })
  * ```
  */
-export class TldrawAgent implements ITldrawAgent {
+export class TldrawFairyAgent implements ITldrawFairyAgent {
 	/** The editor associated with this agent. */
 	editor: Editor
 
 	/** An id to differentiate the agent from other agents. */
 	id: string
+
+	/** The fairy associated with this agent. */
+	$fairy = atom<FairyEntity | undefined>('fairy', undefined)
 
 	/** A callback for when an error occurs. */
 	onError: (e: any) => void
@@ -116,9 +124,10 @@ export class TldrawAgent implements ITldrawAgent {
 	/**
 	 * Create a new tldraw agent.
 	 */
-	constructor({ editor, id, onError }: TldrawAgentOptions) {
+	constructor({ editor, id, $fairy, onError }: TldrawFairyAgentOptions) {
 		this.editor = editor
 		this.id = id
+		this.$fairy = $fairy
 		this.onError = onError
 
 		$agentsAtom.update(editor, (agents) => [...agents, this])
@@ -213,7 +222,7 @@ export class TldrawAgent implements ITldrawAgent {
 			data: request.data ?? [],
 			selectedShapes: request.selectedShapes ?? [],
 			contextItems: request.contextItems ?? [],
-			bounds: request.bounds ?? activeRequest?.bounds ?? this.editor.getViewportPageBounds(),
+			bounds: request.bounds ?? activeRequest?.bounds ?? scaleBoxFromCenter(this.editor.getViewportPageBounds(), 0.67),
 			modelName: request.modelName ?? activeRequest?.modelName ?? this.$modelName.get(),
 		}
 	}
@@ -360,6 +369,8 @@ export class TldrawAgent implements ITldrawAgent {
 	async request(input: AgentInput) {
 		const request = this.getFullRequestFromInput(input)
 
+		moveFairyToBounds(request.bounds)
+
 		// Interrupt any currently active request
 		if (this.$activeRequest.get() !== null) {
 			this.cancel()
@@ -489,21 +500,34 @@ export class TldrawAgent implements ITldrawAgent {
 	 * Make the agent perform an action.
 	 * @param action The action to make the agent do.
 	 * @param helpers The helpers to use.
-	 * @returns The diff of the action, and a promise for when the action is finished
+	 * @returns The diff of the action, a promise for when the action is finished, and optional coordinates
 	 */
 	act(
 		action: Streaming<AgentAction>,
 		helpers: AgentHelpers = new AgentHelpers(this)
-	): { diff: RecordsDiff<TLRecord>; promise: Promise<void> | null } {
+	): {
+		diff: RecordsDiff<TLRecord>
+		promise: Promise<void> | null
+	} {
 		const { editor } = this
 		const util = this.getAgentActionUtil(action._type)
 		this.isActing = true
 
 		let promise: Promise<void> | null = null
+		let coordinates: { x: number; y: number } | undefined = undefined
 		let diff: RecordsDiff<TLRecord>
 		try {
 			diff = editor.store.extractingChanges(() => {
-				promise = util.applyAction(structuredClone(action), helpers) ?? null
+				const resultPromise = util.applyAction(structuredClone(action), helpers)
+				if (resultPromise) {
+					promise = resultPromise.promise ?? null
+					coordinates = resultPromise.coordinates ?? undefined
+					if (coordinates) {
+						moveFairyToCoordinates(coordinates)
+					} else {
+						console.log('no coordinates')
+					}
+				}
 			})
 		} finally {
 			this.isActing = false
@@ -718,7 +742,7 @@ export class TldrawAgent implements ITldrawAgent {
  *
  * This is a helper function that is used internally by the agent.
  */
-function requestAgent({ agent, request }: { agent: TldrawAgent; request: AgentRequest }) {
+function requestAgent({ agent, request }: { agent: TldrawFairyAgent; request: AgentRequest }) {
 	const { editor } = agent
 
 	// If the request is from the user, add it to chat history
@@ -757,11 +781,11 @@ function requestAgent({ agent, request }: { agent: TldrawAgent; request: AgentRe
 							return
 						}
 
-						// If there was a diff from an incomplete action, revert it so that we can reapply the action
-						if (incompleteDiff) {
-							const inversePrevDiff = reverseRecordsDiff(incompleteDiff)
-							editor.store.applyDiff(inversePrevDiff)
-						}
+					// If there was a diff from an incomplete action, revert it so that we can reapply the action
+					if (incompleteDiff) {
+						const inversePrevDiff = reverseRecordsDiff(incompleteDiff)
+						editor.store.applyDiff(inversePrevDiff)
+					}
 
 						// Apply the action to the app and editor
 						const { diff, promise } = agent.act(transformedAction, helpers)
@@ -983,4 +1007,28 @@ function exhaustiveSwitchError(value: never, property?: string): never {
 	const debugValue =
 		property && value && typeof value === 'object' && property in value ? value[property] : value
 	throw new Error(`Unknown switch case ${debugValue}`)
+}
+
+
+function moveFairyToBounds(bounds: BoxModel) {	
+	const smallerBounds = scaleBoxFromCenter(bounds, 0.5)
+
+	const x = smallerBounds.x + Math.random() * smallerBounds.w
+	const y = smallerBounds.y + Math.random() * smallerBounds.h
+
+	$theOnlyFairy.update((fairy) => ({
+		...fairy,
+		position: { x, y }
+	}))
+}
+
+function moveFairyToCoordinates(coordinates: VecModel) {	
+
+	const x = coordinates.x
+	const y = coordinates.y
+
+	$theOnlyFairy.update((fairy) => ({
+		...fairy,
+		position: { x, y }
+	}))
 }

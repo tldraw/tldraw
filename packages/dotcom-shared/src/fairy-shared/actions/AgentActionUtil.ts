@@ -4,15 +4,15 @@ import { AgentHelpers } from '../AgentHelpers'
 import { BaseAgentAction } from '../types/BaseAgentAction'
 import { ChatHistoryInfo } from '../types/ChatHistoryInfo'
 import { Streaming } from '../types/Streaming'
-import { TldrawAgent } from '../types/TldrawAgent'
+import { TldrawFairyAgent } from '../types/TldrawAgent'
 
 export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentAction> {
 	static type: string
 
-	protected agent?: TldrawAgent
+	protected agent?: TldrawFairyAgent
 	protected editor?: Editor
 
-	constructor(agent?: TldrawAgent) {
+	constructor(agent?: TldrawFairyAgent) {
 		this.agent = agent
 		this.editor = agent?.editor
 	}
@@ -46,9 +46,14 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	/**
 	 * Apply the action to the editor.
 	 * Any changes that happen during this function will be displayed as a diff.
+	 * @returns An object containing an optional promise and optional coordinates to move the fairy to
 	 */
-	applyAction(_action: Streaming<T>, _helpers: AgentHelpers): Promise<void> | void {
+	applyAction(
+		_action: Streaming<T>,
+		_helpers: AgentHelpers
+	): { promise?: Promise<void>; coordinates?: { x: number; y: number } } | void {
 		// Do nothing by default
+		return {}
 	}
 
 	/**
@@ -68,6 +73,6 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 }
 
 export interface AgentActionUtilConstructor<T extends BaseAgentAction = BaseAgentAction> {
-	new (agent: TldrawAgent, editor: Editor): AgentActionUtil<T>
+	new (agent: TldrawFairyAgent, editor: Editor): AgentActionUtil<T>
 	type: T['_type']
 }

@@ -23,8 +23,8 @@ import {
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { FairyAppInner } from '../../../fairy/FairyAppInner'
-import { FairyWrapper } from '../../../fairy/FairyWrapper'
-import { TldrawAgent } from '../../../fairy/fairy-agent/agent/TldrawAgent'
+import { $theOnlyFairy, FairyWrapper } from '../../../fairy/FairyWrapper'
+import { TldrawFairyAgent } from '../../../fairy/fairy-agent/agent/TldrawAgent'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { useHandleUiEvents } from '../../../utils/analytics'
@@ -51,6 +51,8 @@ import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
+import { FairyVision } from '../../../fairy/FairyVision'
+import './fairy.css'
 
 /** @internal */
 export const components: TLComponents = {
@@ -263,7 +265,15 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const overrides = useFileEditorOverrides({ fileSlug })
 	const extraDragIconOverrides = useExtraDragIconOverrides()
 
-	const [_agent, setAgent] = useState<TldrawAgent | undefined>()
+	const [agent, setAgent] = useState<TldrawFairyAgent | undefined>()
+	
+	const OriginalInFrontOfTheCanvas = components.InFrontOfTheCanvas
+	components.InFrontOfTheCanvas = (props) => (
+		<>
+			{OriginalInFrontOfTheCanvas ? <OriginalInFrontOfTheCanvas {...props} /> : null}
+			{agent && <FairyVision agent={agent} />}
+		</>
+	)
 
 	return (
 		<TlaEditorWrapper>
@@ -287,7 +297,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyFileUpdateHandler fileId={fileId} />
 				<SneakyLargeFileHander />
-				<FairyAppInner setAgent={setAgent} />
+				<FairyAppInner setAgent={setAgent} $fairy={$theOnlyFairy} />
 			</Tldraw>
 		</TlaEditorWrapper>
 	)

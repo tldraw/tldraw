@@ -4,15 +4,15 @@ import { AgentHelpers } from '../AgentHelpers'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
-import { TldrawAgent } from '../types/TldrawAgent'
+import { TldrawFairyAgent } from '../types/TldrawAgent'
 
 export abstract class PromptPartUtil<T extends BasePromptPart = BasePromptPart> {
 	static type: string
 
-	protected agent?: TldrawAgent
+	protected agent?: TldrawFairyAgent
 	protected editor?: Editor
 
-	constructor(agent?: TldrawAgent) {
+	constructor(agent?: TldrawFairyAgent) {
 		this.agent = agent
 		this.editor = agent?.editor
 	}

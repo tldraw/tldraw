@@ -16,12 +16,15 @@ import { AgentInput } from './AgentInput'
 import { AgentHelpers } from '../AgentHelpers'
 import { AgentPrompt } from './AgentPrompt'
 import { Streaming } from './Streaming'
+import { FairyEntity } from './FairyEntity'
 
-export interface TldrawAgentOptions {
+export interface TldrawFairyAgentOptions {
 	/** The editor to associate the agent with. */
 	editor: Editor
 	/** A key used to differentiate the agent from other agents. */
 	id: string
+	/** The fairy associated with this agent. */
+	$fairy: Atom<FairyEntity | undefined>
 	/** A callback for when an error occurs. */
 	onError(e: any): void
 }
@@ -30,12 +33,15 @@ export interface TldrawAgentOptions {
  * Interface for the TldrawAgent.
  * Defines the public API of an agent that can be prompted to edit the canvas.
  */
-export interface TldrawAgent {
+export interface TldrawFairyAgent {
 	/** The editor associated with this agent. */
 	editor: Editor
 
 	/** An id to differentiate the agent from other agents. */
 	id: string
+
+	/** The fairy associated with this agent. */
+	$fairy: Atom<FairyEntity | undefined>
 
 	/** A callback for when an error occurs. */
 	onError(e: any): void

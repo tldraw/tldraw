@@ -27,7 +27,7 @@ import { UnknownActionUtil } from './actions/UnknownActionUtil'
 import { UpdateActionUtil } from './actions/UpdateActionUtil'
 import { AgentAction } from './types/AgentAction'
 import { BaseAgentAction } from './types/BaseAgentAction'
-import { TldrawAgent } from './types/TldrawAgent'
+import { TldrawFairyAgent } from './types/TldrawAgent'
 
 /**
  * Agent actions determine what actions the agent can take.
@@ -79,7 +79,7 @@ export const AGENT_ACTION_UTILS = [
 /**
  * Get an object containing all agent action utils.
  */
-export function getAgentActionUtilsRecord(agent?: TldrawAgent) {
+export function getAgentActionUtilsRecord(agent?: TldrawFairyAgent) {
 	const object = {} as Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
 	for (const util of AGENT_ACTION_UTILS) {
 		object[util.type] = new util(agent)

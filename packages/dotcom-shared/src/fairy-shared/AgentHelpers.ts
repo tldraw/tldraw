@@ -3,7 +3,7 @@ import { Editor } from '@tldraw/editor'
 import { SimpleFill, SimpleFillSchema } from './format/SimpleFill'
 import { SimpleShape } from './format/SimpleShape'
 import { ContextItem } from './types/ContextItem'
-import { TldrawAgent } from './types/TldrawAgent'
+import { TldrawFairyAgent } from './types/TldrawAgent'
 
 /**
  * This class contains handles the transformations that happen throughout a
@@ -25,14 +25,14 @@ export class AgentHelpers {
 	/**
 	 * The agent that the this intance of AgentHelpers is for.
 	 */
-	agent: TldrawAgent
+	agent: TldrawFairyAgent
 
 	/**
 	 * The editor that the this intance of AgentHelpers is for.
 	 */
 	editor: Editor
 
-	constructor(agent: TldrawAgent) {
+	constructor(agent: TldrawFairyAgent) {
 		this.agent = agent
 		this.editor = agent.editor
 		const origin = agent.$chatOrigin.get()

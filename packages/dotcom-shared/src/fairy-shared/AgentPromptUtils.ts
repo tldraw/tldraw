@@ -15,7 +15,7 @@ import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
 import { ViewportBoundsPartUtil } from './parts/ViewportBoundsPartUtil'
 import { BasePromptPart } from './types/BasePromptPart'
 import { PromptPart } from './types/PromptPart'
-import { TldrawAgent } from './types/TldrawAgent'
+import { TldrawFairyAgent } from './types/TldrawAgent'
 
 /**
  * Prompt parts determine what information will be sent to the model.
@@ -54,7 +54,7 @@ export const PROMPT_PART_UTILS = [
 /**
  * Get an object containing all prompt part utils.
  */
-export function getPromptPartUtilsRecord(agent?: TldrawAgent) {
+export function getPromptPartUtilsRecord(agent?: TldrawFairyAgent) {
 	const object = {} as Record<PromptPart['type'], PromptPartUtil<PromptPart>>
 	for (const util of PROMPT_PART_UTILS) {
 		object[util.type] = new util(agent)
