@@ -178,13 +178,11 @@ test.describe('Document Archive and Hard Delete', () => {
 	})
 
 	test('member cannot hard delete in workspace where they are not owner', async ({
-		authenticatedPage,
 		supabaseAdmin,
 		testUser,
 		testData,
 		browser,
 	}) => {
-		const page = authenticatedPage
 		const workspaceName = `Member Delete Test ${Date.now()}`
 		const documentName = 'Owner Only Delete'
 
