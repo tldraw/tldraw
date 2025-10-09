@@ -1,8 +1,11 @@
 'use client'
 
 // UserAvatar Component
-// Displays user avatar with initials or image
+// Displays user avatar with initials or image using shadcn/ui Avatar
 
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
 import { getUserAvatarColor, getUserInitials } from './formatUserDisplayName'
 
 interface UserAvatarProps {
@@ -15,6 +18,7 @@ interface UserAvatarProps {
 	} | null
 	size?: 'sm' | 'md' | 'lg'
 	className?: string
+	showTooltip?: boolean
 }
 
 const sizeClasses = {
@@ -23,42 +27,40 @@ const sizeClasses = {
 	lg: 'h-12 w-12 text-base',
 }
 
-export function UserAvatar({ user, size = 'md', className = '' }: UserAvatarProps) {
+export function UserAvatar({
+	user,
+	size = 'md',
+	className = '',
+	showTooltip = true,
+}: UserAvatarProps) {
 	const initials = getUserInitials(user)
 	const bgColor = getUserAvatarColor(user?.id)
 
-	// If user has an avatar URL, show the image
-	if (user?.avatar_url) {
-		return (
-			<div
-				className={`${sizeClasses[size]} rounded-full overflow-hidden flex-shrink-0 ${className}`}
-			>
-				<img
-					src={user.avatar_url}
-					alt={initials}
-					className="h-full w-full object-cover"
-					onError={(e) => {
-						// If image fails to load, hide it to show initials fallback
-						const target = e.target as HTMLImageElement
-						target.style.display = 'none'
-					}}
-				/>
-				{/* Fallback to initials if image fails */}
-				<div
-					className={`h-full w-full ${bgColor} text-white flex items-center justify-center font-medium`}
-				>
-					{initials}
-				</div>
-			</div>
-		)
+	const avatarElement = (
+		<Avatar className={cn(sizeClasses[size], className)}>
+			<AvatarImage src={user?.avatar_url || undefined} alt={initials} />
+			<AvatarFallback className={cn(bgColor, 'text-white font-medium')}>{initials}</AvatarFallback>
+		</Avatar>
+	)
+
+	if (!showTooltip || !user) {
+		return avatarElement
 	}
 
-	// Default: Show initials
+	const displayName = user.display_name || user.name || user.email
+	const showEmail = (user.display_name || user.name) && user.email
+
 	return (
-		<div
-			className={`${sizeClasses[size]} ${bgColor} text-white rounded-full flex items-center justify-center font-medium flex-shrink-0 ${className}`}
-		>
-			{initials}
-		</div>
+		<Tooltip>
+			<TooltipTrigger asChild>
+				<div className="cursor-default">{avatarElement}</div>
+			</TooltipTrigger>
+			<TooltipContent>
+				<div className="text-center">
+					<p>{displayName}</p>
+					{showEmail && <p className="text-xs text-muted-foreground">{user.email}</p>}
+				</div>
+			</TooltipContent>
+		</Tooltip>
 	)
 }

@@ -5,6 +5,7 @@ import { Workspace } from '@/lib/api/types'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 interface InviteAcceptClientProps {
 	status:
@@ -29,10 +30,8 @@ export default function InviteAcceptClient({
 }: InviteAcceptClientProps) {
 	const router = useRouter()
 	const [isJoining, setIsJoining] = useState(false)
-	const [error, setError] = useState<string | null>(null)
 
 	const handleJoin = async () => {
-		setError(null)
 		setIsJoining(true)
 
 		try {
@@ -47,10 +46,11 @@ export default function InviteAcceptClient({
 
 			const response = await res.json()
 
+			toast.success('Successfully joined workspace', { duration: 3000 })
 			// Redirect to workspace
 			router.push(`/workspace/${response.data.workspace_id}`)
 		} catch (err: unknown) {
-			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
+			toast.error(err instanceof Error ? err.message : 'An unexpected error occurred')
 			setIsJoining(false)
 		}
 	}
@@ -68,10 +68,6 @@ export default function InviteAcceptClient({
 								<span className="font-semibold">{workspace.name}</span>
 							</p>
 						</div>
-
-						{error && (
-							<div className="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800">{error}</div>
-						)}
 
 						<Button
 							onClick={handleJoin}

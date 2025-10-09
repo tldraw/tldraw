@@ -174,7 +174,7 @@ export function DocumentActions({
 
 	return (
 		<>
-			<ActionMenu items={items} ariaLabel="Actions" />
+			<ActionMenu items={items} ariaLabel="Document actions" tooltipText="Document actions" />
 			<PromptDialog
 				open={showRenameDialog}
 				onOpenChange={setShowRenameDialog}

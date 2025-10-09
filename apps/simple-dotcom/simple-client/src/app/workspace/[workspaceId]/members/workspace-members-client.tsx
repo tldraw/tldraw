@@ -1,5 +1,22 @@
 'use client'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+	Pagination,
+	PaginationContent,
+	PaginationItem,
+	PaginationNext,
+	PaginationPrevious,
+} from '@/components/ui/pagination'
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from '@/components/ui/table'
 import { useWorkspaceRealtimeUpdates } from '@/hooks/useWorkspaceRealtimeUpdates'
 import { Workspace } from '@/lib/api/types'
 import { WORKSPACE_LIMITS } from '@/lib/constants'
@@ -7,6 +24,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { toast } from 'sonner'
 
 interface Member {
 	id: string
@@ -41,8 +59,6 @@ export default function WorkspaceMembersClient({
 	const queryClient = useQueryClient()
 	const [isToggling, setIsToggling] = useState(false)
 	const [isRegenerating, setIsRegenerating] = useState(false)
-	const [error, setError] = useState<string | null>(null)
-	const [success, setSuccess] = useState<string | null>(null)
 	const [searchTerm, setSearchTerm] = useState('')
 	const [currentPage, setCurrentPage] = useState(1)
 	const itemsPerPage = 10
@@ -105,8 +121,6 @@ export default function WorkspaceMembersClient({
 	}, [searchTerm])
 
 	const handleToggleInvite = useCallback(async () => {
-		setError(null)
-		setSuccess(null)
 		setIsToggling(true)
 
 		try {
@@ -121,12 +135,14 @@ export default function WorkspaceMembersClient({
 				throw new Error(data.message || 'Failed to toggle invite link')
 			}
 
-			setSuccess(inviteLink?.enabled ? 'Invite link disabled' : 'Invite link enabled')
+			toast.success(inviteLink?.enabled ? 'Invite link disabled' : 'Invite link enabled', {
+				duration: 3000,
+			})
 			// Trigger a page refresh to get updated invite link state
 			// Invite link is server-rendered, so we need to refresh the page
 			router.refresh()
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
+			toast.error(err instanceof Error ? err.message : 'An unexpected error occurred')
 		} finally {
 			setIsToggling(false)
 		}
@@ -137,8 +153,6 @@ export default function WorkspaceMembersClient({
 			return
 		}
 
-		setError(null)
-		setSuccess(null)
 		setIsRegenerating(true)
 
 		try {
@@ -151,12 +165,12 @@ export default function WorkspaceMembersClient({
 				throw new Error(data.message || 'Failed to regenerate invite link')
 			}
 
-			setSuccess('Invite link regenerated')
+			toast.success('Invite link regenerated', { duration: 3000 })
 			// Trigger a page refresh to get updated invite link with new token
 			// Invite link is server-rendered, so we need to refresh the page
 			router.refresh()
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
+			toast.error(err instanceof Error ? err.message : 'An unexpected error occurred')
 		} finally {
 			setIsRegenerating(false)
 		}
@@ -165,8 +179,7 @@ export default function WorkspaceMembersClient({
 	const handleCopyInviteLink = useCallback(() => {
 		if (inviteUrl) {
 			navigator.clipboard.writeText(inviteUrl)
-			setSuccess('Invite link copied to clipboard')
-			setTimeout(() => setSuccess(null), 3000)
+			toast.success('Invite link copied to clipboard', { duration: 3000 })
 		}
 	}, [inviteUrl])
 
@@ -175,9 +188,6 @@ export default function WorkspaceMembersClient({
 			if (!confirm('Remove this member from the workspace?')) {
 				return
 			}
-
-			setError(null)
-			setSuccess(null)
 
 			try {
 				const res = await fetch(`/api/workspaces/${workspace.id}/members/${memberId}`, {
@@ -189,12 +199,12 @@ export default function WorkspaceMembersClient({
 					throw new Error(data.message || 'Failed to remove member')
 				}
 
-				setSuccess('Member removed')
+				toast.success('Member removed', { duration: 3000 })
 				// Invalidate the query to refetch members list
 				// The realtime subscription will also trigger this
 				queryClient.invalidateQueries({ queryKey: ['workspace-members', workspace.id] })
 			} catch (err) {
-				setError(err instanceof Error ? err.message : 'An unexpected error occurred')
+				toast.error(err instanceof Error ? err.message : 'An unexpected error occurred')
 			}
 		},
 		[workspace.id, queryClient]
@@ -218,11 +228,6 @@ export default function WorkspaceMembersClient({
 			{/* Main content */}
 			<main className="flex-1 overflow-y-auto p-6">
 				<div className="mx-auto max-w-4xl space-y-8">
-					{error && <div className="rounded-lg bg-red-50 p-4 text-sm text-red-800">{error}</div>}
-					{success && (
-						<div className="rounded-lg bg-green-50 p-4 text-sm text-green-800">{success}</div>
-					)}
-
 					{/* Member limit warning */}
 					{members.length >= WORKSPACE_LIMITS.WARNING_THRESHOLD && (
 						<div className="rounded-lg bg-yellow-50 border border-yellow-200 p-4">
@@ -318,47 +323,54 @@ export default function WorkspaceMembersClient({
 							</div>
 						)}
 
-						<div className="space-y-2">
-							{paginatedMembers.map((member) => {
-								const isCurrentUser = member.id === currentUserId
-								const isOwner = member.role === 'owner'
+						<div className="rounded-md border">
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead>Name</TableHead>
+										<TableHead>Email</TableHead>
+										<TableHead>Role</TableHead>
+										<TableHead className="text-right">Actions</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{paginatedMembers.map((member) => {
+										const isCurrentUser = member.id === currentUserId
+										const isOwner = member.role === 'owner'
 
-								return (
-									<div
-										key={member.id}
-										className="flex items-center justify-between rounded-lg border p-4"
-									>
-										<div>
-											<p className="font-medium">
-												{member.display_name || member.email}
-												{isCurrentUser && <span className="ml-2 text-sm text-gray-500">(You)</span>}
-											</p>
-											{member.display_name && (
-												<p className="text-sm text-gray-500">{member.email}</p>
-											)}
-										</div>
-
-										<div className="flex items-center gap-3">
-											<span
-												className={`rounded px-2 py-1 text-xs font-medium ${
-													isOwner ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
-												}`}
-											>
-												{isOwner ? 'Owner' : 'Member'}
-											</span>
-
-											{!isOwner && (
-												<button
-													onClick={() => handleRemoveMember(member.id)}
-													className="text-sm text-red-600 hover:text-red-800"
-												>
-													Remove
-												</button>
-											)}
-										</div>
-									</div>
-								)
-							})}
+										return (
+											<TableRow key={member.id}>
+												<TableCell className="font-medium">
+													{member.display_name || member.email}
+													{isCurrentUser && (
+														<span className="ml-2 text-sm text-muted-foreground">(You)</span>
+													)}
+												</TableCell>
+												<TableCell className="text-muted-foreground">
+													{member.display_name ? member.email : '—'}
+												</TableCell>
+												<TableCell>
+													<Badge variant={isOwner ? 'default' : 'secondary'}>
+														{isOwner ? 'Owner' : 'Member'}
+													</Badge>
+												</TableCell>
+												<TableCell className="text-right">
+													{!isOwner && (
+														<Button
+															variant="ghost"
+															size="sm"
+															onClick={() => handleRemoveMember(member.id)}
+															className="text-destructive hover:text-destructive"
+														>
+															Remove
+														</Button>
+													)}
+												</TableCell>
+											</TableRow>
+										)
+									})}
+								</TableBody>
+							</Table>
 						</div>
 
 						{/* Pagination controls - only show if more than itemsPerPage */}
@@ -368,27 +380,37 @@ export default function WorkspaceMembersClient({
 									Showing {startIndex + 1} to {Math.min(endIndex, filteredMembers.length)} of{' '}
 									{filteredMembers.length} members
 								</p>
-								<div className="flex gap-2">
-									<button
-										data-testid="pagination-previous"
-										onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-										disabled={currentPage === 1}
-										className="rounded-md border px-3 py-1 text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-									>
-										Previous
-									</button>
-									<span className="px-3 py-1 text-sm">
-										Page {currentPage} of {totalPages}
-									</span>
-									<button
-										data-testid="pagination-next"
-										onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-										disabled={currentPage === totalPages}
-										className="rounded-md border px-3 py-1 text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-									>
-										Next
-									</button>
-								</div>
+								<Pagination>
+									<PaginationContent>
+										<PaginationItem>
+											<PaginationPrevious
+												data-testid="pagination-previous"
+												onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+												aria-disabled={currentPage === 1}
+												className={
+													currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'
+												}
+											/>
+										</PaginationItem>
+										<PaginationItem>
+											<span className="px-3 py-1 text-sm">
+												Page {currentPage} of {totalPages}
+											</span>
+										</PaginationItem>
+										<PaginationItem>
+											<PaginationNext
+												data-testid="pagination-next"
+												onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+												aria-disabled={currentPage === totalPages}
+												className={
+													currentPage === totalPages
+														? 'pointer-events-none opacity-50'
+														: 'cursor-pointer'
+												}
+											/>
+										</PaginationItem>
+									</PaginationContent>
+								</Pagination>
 							</div>
 						)}
 					</section>

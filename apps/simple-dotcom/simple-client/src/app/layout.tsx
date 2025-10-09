@@ -1,4 +1,5 @@
 import { Toaster } from '@/components/ui/sonner'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { SessionProvider } from '@/lib/session-provider'
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
@@ -29,7 +30,9 @@ export default function RootLayout({
 		<html lang="en">
 			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
 				<QueryProvider>
-					<SessionProvider>{children}</SessionProvider>
+					<SessionProvider>
+						<TooltipProvider delayDuration={500}>{children}</TooltipProvider>
+					</SessionProvider>
 				</QueryProvider>
 				<Toaster />
 			</body>

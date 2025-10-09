@@ -10,6 +10,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import React from 'react'
 
 export interface ActionMenuItem {
@@ -26,6 +27,7 @@ interface ActionMenuProps {
 	trigger?: React.ReactNode
 	className?: string
 	ariaLabel?: string
+	tooltipText?: string
 }
 
 export function ActionMenu({
@@ -33,30 +35,40 @@ export function ActionMenu({
 	trigger,
 	className = '',
 	ariaLabel = 'Open menu',
+	tooltipText = 'Actions',
 }: ActionMenuProps) {
+	const triggerButton = (
+		<DropdownMenuTrigger
+			className={`p-1 rounded hover:bg-accent transition-colors ${className}`}
+			aria-label={ariaLabel}
+			onClick={(e) => e.stopPropagation()}
+		>
+			{trigger || (
+				<svg
+					className="w-5 h-5 text-muted-foreground"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+				>
+					<path
+						strokeLinecap="round"
+						strokeLinejoin="round"
+						strokeWidth={2}
+						d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+					/>
+				</svg>
+			)}
+		</DropdownMenuTrigger>
+	)
+
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger
-				className={`p-1 rounded hover:bg-accent transition-colors ${className}`}
-				aria-label={ariaLabel}
-				onClick={(e) => e.stopPropagation()}
-			>
-				{trigger || (
-					<svg
-						className="w-5 h-5 text-muted-foreground"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth={2}
-							d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-						/>
-					</svg>
-				)}
-			</DropdownMenuTrigger>
+			<Tooltip>
+				<TooltipTrigger asChild>{triggerButton}</TooltipTrigger>
+				<TooltipContent>
+					<p>{tooltipText}</p>
+				</TooltipContent>
+			</Tooltip>
 
 			<DropdownMenuContent align="end" className="w-56" onClick={(e) => e.stopPropagation()}>
 				{items.map((item, index) => {

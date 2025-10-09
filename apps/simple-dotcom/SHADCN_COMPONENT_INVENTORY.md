@@ -54,6 +54,7 @@ Nice-to-have improvements, not blocking.
 
 | Component | Usage Count | Complexity | Impact |
 |-----------|-------------|------------|--------|
+| Breadcrumb | 1 (✅ complete) | Low | Low |
 | Skeleton | 0 (new) | Low | Low |
 | Tooltip | 0 (new) | Low | Low |
 | Switch | 0 (potential) | Low | Low |
@@ -715,6 +716,35 @@ No tooltips - button titles sometimes used
 - Position awareness
 - Don't block interactions
 - Short, descriptive text only
+
+---
+
+### 16. Breadcrumb Component
+
+**Priority:** P3 (Future Enhancement - ✅ COMPLETED)
+**Estimated Instances:** 1
+**Shadcn Variants Needed:** default
+
+#### Current State
+Component has been migrated to shadcn/ui primitives.
+
+#### Locations
+
+**Workspace Browser:**
+- `/components/folders/FolderBreadcrumbs.tsx` - Folder hierarchy navigation
+
+#### Implementation Notes
+- ✅ Installed shadcn Breadcrumb component
+- ✅ Refactored to use BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator
+- ✅ Maintains existing breadcrumb path calculation logic
+- ✅ Root/home breadcrumb shows custom label ("All Files")
+- ✅ Current folder highlighted as BreadcrumbPage
+- ✅ Separators between items using default ChevronRight icon
+- ✅ Dark mode compatible
+- ✅ Keyboard accessible with proper ARIA attributes
+
+**Completed:** 2025-10-08
+**Ticket:** UI-03
 
 ---
 

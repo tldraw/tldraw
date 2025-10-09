@@ -10,6 +10,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { toast } from 'sonner'
 
 interface WorkspaceWithContent {
 	workspace: Workspace
@@ -36,7 +37,6 @@ export default function DashboardClient({
 }: DashboardClientProps) {
 	const router = useRouter()
 	const queryClient = useQueryClient()
-	const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
 	// Fetch dashboard data with React Query
 	// Hybrid approach: Realtime for instant updates + polling for reliability
@@ -95,10 +95,8 @@ export default function DashboardClient({
 	useEffect(() => {
 		const message = sessionStorage.getItem('leaveWorkspaceSuccess')
 		if (message) {
-			setSuccessMessage(message)
+			toast.success(message, { duration: 5000 })
 			sessionStorage.removeItem('leaveWorkspaceSuccess')
-			// Auto-dismiss after 5 seconds
-			setTimeout(() => setSuccessMessage(null), 5000)
 		}
 	}, [])
 
@@ -205,12 +203,13 @@ export default function DashboardClient({
 				setShowRenameModal(false)
 				setNewWorkspaceName('')
 				setSelectedWorkspace(null)
+				toast.success('Workspace renamed successfully')
 			} else {
-				alert(data.error?.message || 'Failed to rename workspace')
+				toast.error(data.error?.message || 'Failed to rename workspace')
 			}
 		} catch (err) {
 			console.error('Failed to rename workspace:', err)
-			alert('Failed to rename workspace')
+			toast.error('Failed to rename workspace')
 		} finally {
 			setActionLoading(false)
 		}
@@ -232,12 +231,13 @@ export default function DashboardClient({
 				queryClient.invalidateQueries({ queryKey: ['dashboard', userId] })
 				setShowDeleteModal(false)
 				setSelectedWorkspace(null)
+				toast.success('Workspace deleted successfully')
 			} else {
-				alert(data.error?.message || 'Failed to delete workspace')
+				toast.error(data.error?.message || 'Failed to delete workspace')
 			}
 		} catch (err) {
 			console.error('Failed to delete workspace:', err)
-			alert('Failed to delete workspace')
+			toast.error('Failed to delete workspace')
 		} finally {
 			setActionLoading(false)
 		}
@@ -357,12 +357,13 @@ export default function DashboardClient({
 				if (data.success) {
 					// Invalidate to trigger refetch
 					queryClient.invalidateQueries({ queryKey: ['dashboard', userId] })
+					toast.success('Document renamed successfully')
 				} else {
-					alert(data.error?.message || 'Failed to rename document')
+					toast.error(data.error?.message || 'Failed to rename document')
 				}
 			} catch (err) {
 				console.error('Failed to rename document:', err)
-				alert('Failed to rename document')
+				toast.error('Failed to rename document')
 			}
 		},
 		[queryClient, userId]
@@ -379,12 +380,14 @@ export default function DashboardClient({
 			const data = await response.json()
 
 			if (!data.success) {
-				alert(data.error?.message || 'Failed to duplicate document')
+				toast.error(data.error?.message || 'Failed to duplicate document')
+			} else {
+				toast.success('Document duplicated successfully')
 			}
 			// Realtime subscription will handle adding the new document
 		} catch (err) {
 			console.error('Failed to duplicate document:', err)
-			alert('Failed to duplicate document')
+			toast.error('Failed to duplicate document')
 		}
 	}, [])
 
@@ -399,12 +402,14 @@ export default function DashboardClient({
 			const data = await response.json()
 
 			if (!data.success) {
-				alert(data.error?.message || 'Failed to archive document')
+				toast.error(data.error?.message || 'Failed to archive document')
+			} else {
+				toast.success('Document archived successfully')
 			}
 			// Realtime subscription will handle the update
 		} catch (err) {
 			console.error('Failed to archive document:', err)
-			alert('Failed to archive document')
+			toast.error('Failed to archive document')
 		}
 	}, [])
 
@@ -419,12 +424,14 @@ export default function DashboardClient({
 			const data = await response.json()
 
 			if (!data.success) {
-				alert(data.error?.message || 'Failed to restore document')
+				toast.error(data.error?.message || 'Failed to restore document')
+			} else {
+				toast.success('Document restored successfully')
 			}
 			// Realtime subscription will handle the update
 		} catch (err) {
 			console.error('Failed to restore document:', err)
-			alert('Failed to restore document')
+			toast.error('Failed to restore document')
 		}
 	}, [])
 
@@ -437,12 +444,14 @@ export default function DashboardClient({
 			const data = await response.json()
 
 			if (!data.success) {
-				alert(data.error?.message || 'Failed to delete document')
+				toast.error(data.error?.message || 'Failed to delete document')
+			} else {
+				toast.success('Document deleted successfully')
 			}
 			// Realtime subscription will handle the deletion
 		} catch (err) {
 			console.error('Failed to delete document:', err)
-			alert('Failed to delete document')
+			toast.error('Failed to delete document')
 		}
 	}, [])
 
@@ -462,34 +471,6 @@ export default function DashboardClient({
 
 	return (
 		<div className="flex min-h-screen bg-background" data-testid="dashboard">
-			{/* Success Message */}
-			{successMessage && (
-				<div className="absolute top-4 right-4 z-50 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-md shadow-md flex items-center gap-2">
-					<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth={2}
-							d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-						/>
-					</svg>
-					<span>{successMessage}</span>
-					<button
-						onClick={() => setSuccessMessage(null)}
-						className="ml-2 text-green-600 hover:text-green-800"
-					>
-						<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth={2}
-								d="M6 18L18 6M6 6l12 12"
-							/>
-						</svg>
-					</button>
-				</div>
-			)}
-
 			{/* Sidebar */}
 			<div className="w-80 border-r border-foreground/20 flex flex-col">
 				<div className="p-4 border-b border-foreground/20">

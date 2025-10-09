@@ -2,15 +2,15 @@
 
 Date reported: 2025-10-08
 Date last updated: 2025-10-08
-Date resolved: 
+Date resolved: 2025-10-08 
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -151,3 +151,30 @@ useWorkspaceRealtimeUpdates(workspace.id, {
 
 ## Resolution
 
+**Fixed** by implementing the documented hybrid realtime strategy:
+
+1. **Implemented React Query with polling fallback** (lines 53-69):
+   - Members query with 15-second polling interval
+   - Configured with `refetchOnMount: true` and `refetchOnReconnect: true`
+   - 10-second staleTime to catch missed events
+   - Proper TypeScript typing for members data
+
+2. **Replaced postgres_changes with broadcast pattern** (lines 79-82):
+   - Now uses `useWorkspaceRealtimeUpdates` hook
+   - Listens for `workspace_event` broadcasts on channel `workspace:${workspaceId}`
+   - Invalidates members query on changes
+
+3. **Removed inefficient router.refresh()** call:
+   - Previously used `router.refresh()` for full page re-render
+   - Now uses efficient query invalidation pattern
+   - Better performance and user experience
+
+4. **Proper callback memoization** (lines 72-75):
+   - Memoized `handleRealtimeChange` to prevent unnecessary subscription reconnects
+   - Dependencies properly specified for optimization
+
+5. **Removed development comments**:
+   - Deleted "In a production app, we'd update state more efficiently" comment
+   - Code now follows production-ready patterns
+
+The workspace members page now properly implements the hybrid realtime strategy, ensuring reliable updates during network issues, tab backgrounding, and connection drops. The page is also more performant by using query invalidation instead of full page refreshes.

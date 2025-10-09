@@ -3,6 +3,7 @@
 // DocumentListItem Component
 // List view variant for document display
 
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { formatUserDisplayName } from '../users/formatUserDisplayName'
 import { DocumentActions } from './DocumentActions'
 
@@ -94,9 +95,16 @@ export function DocumentListItem({
 					</svg>
 
 					{/* Document name */}
-					<h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-						{document.name}
-					</h3>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+								{document.name}
+							</h3>
+						</TooltipTrigger>
+						<TooltipContent>
+							<p>{document.name}</p>
+						</TooltipContent>
+					</Tooltip>
 
 					{/* Archived badge */}
 					{document.is_archived && (

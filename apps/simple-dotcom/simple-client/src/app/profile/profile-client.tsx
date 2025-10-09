@@ -15,10 +15,10 @@ import { Input } from '@/components/ui/input'
 import { useUnsavedChanges } from '@/hooks'
 import { User } from '@/lib/api/types'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { AlertCircle, AlertTriangle, CheckCircle2 } from 'lucide-react'
+import { AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import * as z from 'zod'
 
 interface ProfileClientProps {
@@ -36,9 +36,6 @@ const profileSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileSchema>
 
 export default function ProfileClient({ profile }: ProfileClientProps) {
-	const [error, setError] = useState<string | null>(null)
-	const [success, setSuccess] = useState(false)
-
 	const form = useForm<ProfileFormValues>({
 		resolver: zodResolver(profileSchema),
 		defaultValues: {
@@ -53,9 +50,6 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
 	useUnsavedChanges(isDirty)
 
 	const onSubmit = async (data: ProfileFormValues) => {
-		setError(null)
-		setSuccess(false)
-
 		try {
 			const response = await fetch('/api/profile', {
 				method: 'PUT',
@@ -71,18 +65,15 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
 			const responseData = await response.json()
 
 			if (!response.ok || !responseData.success) {
-				setError(responseData.error?.message || 'Failed to update profile')
+				toast.error(responseData.error?.message || 'Failed to update profile')
 				return
 			}
 
-			setSuccess(true)
+			toast.success('Profile updated successfully', { duration: 3000 })
 			// Reset form to new values to clear dirty state
 			form.reset(data)
-
-			// Clear success message after 3 seconds
-			setTimeout(() => setSuccess(false), 3000)
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
+			toast.error(err instanceof Error ? err.message : 'An unexpected error occurred')
 		}
 	}
 
@@ -111,27 +102,13 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
 
 					<Form {...form}>
 						<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-							{isDirty && !error && !success && (
+							{isDirty && (
 								<Alert data-testid="unsaved-changes-indicator">
 									<AlertTriangle className="h-4 w-4" />
 									<AlertDescription>
 										<p className="font-medium">Unsaved changes</p>
 										<p className="text-xs mt-1">Your changes have not been saved yet.</p>
 									</AlertDescription>
-								</Alert>
-							)}
-
-							{error && (
-								<Alert variant="destructive" data-testid="error-message">
-									<AlertCircle className="h-4 w-4" />
-									<AlertDescription>{error}</AlertDescription>
-								</Alert>
-							)}
-
-							{success && (
-								<Alert variant="success" data-testid="success-message">
-									<CheckCircle2 className="h-4 w-4" />
-									<AlertDescription>Profile updated successfully!</AlertDescription>
 								</Alert>
 							)}
 

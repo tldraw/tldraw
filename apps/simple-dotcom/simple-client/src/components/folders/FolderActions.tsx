@@ -132,7 +132,7 @@ export function FolderActions({
 
 	return (
 		<>
-			<ActionMenu items={items} />
+			<ActionMenu items={items} ariaLabel="Folder actions" tooltipText="Folder actions" />
 			{showFolderPicker && onMove && (
 				<FolderPicker
 					folders={allFolders}

@@ -3,6 +3,7 @@
 // FolderListItem Component
 // Folder display in list views
 
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { Folder } from '@/lib/api/types'
 import React, { useState } from 'react'
 import { FolderActions } from './FolderActions'
@@ -104,9 +105,16 @@ export function FolderListItem({
 					</svg>
 
 					{/* Folder name */}
-					<span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-						{folder.name}
-					</span>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+								{folder.name}
+							</span>
+						</TooltipTrigger>
+						<TooltipContent>
+							<p>{folder.name}</p>
+						</TooltipContent>
+					</Tooltip>
 				</div>
 
 				{/* Actions */}

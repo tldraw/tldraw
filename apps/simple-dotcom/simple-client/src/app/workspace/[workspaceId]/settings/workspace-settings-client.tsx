@@ -3,10 +3,12 @@
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Workspace } from '@/lib/api/types'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 interface Member {
 	id: string
@@ -38,7 +40,6 @@ export default function WorkspaceSettingsClient({
 	const [isTransferring, setIsTransferring] = useState(false)
 	const [selectedNewOwner, setSelectedNewOwner] = useState<string>('')
 	const [showTransferConfirm, setShowTransferConfirm] = useState(false)
-	const [error, setError] = useState<string | null>(null)
 
 	// Invitation link states
 	const [invitationLink, setInvitationLink] = useState<{
@@ -57,7 +58,6 @@ export default function WorkspaceSettingsClient({
 	const handleRename = useCallback(
 		async (e: React.FormEvent) => {
 			e.preventDefault()
-			setError(null)
 			setIsSavingRename(true)
 
 			try {
@@ -78,8 +78,9 @@ export default function WorkspaceSettingsClient({
 				await new Promise((resolve) => setTimeout(resolve, 500))
 
 				setIsRenaming(false)
+				toast.success('Workspace renamed successfully', { duration: 3000 })
 			} catch (err) {
-				setError(err instanceof Error ? err.message : 'An unexpected error occurred')
+				toast.error(err instanceof Error ? err.message : 'An unexpected error occurred')
 			} finally {
 				setIsSavingRename(false)
 			}
@@ -96,7 +97,6 @@ export default function WorkspaceSettingsClient({
 			return
 		}
 
-		setError(null)
 		setIsDeleting(true)
 
 		try {
@@ -109,9 +109,10 @@ export default function WorkspaceSettingsClient({
 				throw new Error(data.message || 'Failed to delete workspace')
 			}
 
+			toast.success('Workspace deleted successfully', { duration: 3000 })
 			router.push('/dashboard')
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
+			toast.error(err instanceof Error ? err.message : 'An unexpected error occurred')
 			setIsDeleting(false)
 		}
 	}, [workspace.id, router])
@@ -125,7 +126,6 @@ export default function WorkspaceSettingsClient({
 			return
 		}
 
-		setError(null)
 		setIsLeaving(true)
 
 		try {
@@ -149,18 +149,17 @@ export default function WorkspaceSettingsClient({
 
 			router.push('/dashboard')
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
+			toast.error(err instanceof Error ? err.message : 'An unexpected error occurred')
 			setIsLeaving(false)
 		}
 	}, [workspace.id, router])
 
 	const handleTransferOwnership = useCallback(async () => {
 		if (!selectedNewOwner) {
-			setError('Please select a member to transfer ownership to')
+			toast.error('Please select a member to transfer ownership to')
 			return
 		}
 
-		setError(null)
 		setIsTransferring(true)
 		setShowTransferConfirm(false)
 
@@ -177,12 +176,13 @@ export default function WorkspaceSettingsClient({
 				throw new Error(result.message || 'Failed to transfer ownership')
 			}
 
+			toast.success('Ownership transferred successfully', { duration: 3000 })
 			// Refresh router cache to invalidate cached data
 			router.refresh()
 			// Redirect to workspace page after successful transfer
 			router.push(`/workspace/${workspace.id}`)
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
+			toast.error(err instanceof Error ? err.message : 'An unexpected error occurred')
 			setIsTransferring(false)
 		}
 	}, [selectedNewOwner, workspace.id, router])
@@ -217,7 +217,6 @@ export default function WorkspaceSettingsClient({
 
 	const handleToggleInvite = useCallback(async () => {
 		setIsTogglingInvite(true)
-		setError(null)
 		try {
 			const res = await fetch(`/api/workspaces/${workspace.id}/invite`, {
 				method: 'PATCH',
@@ -233,12 +232,17 @@ export default function WorkspaceSettingsClient({
 			const result = await res.json()
 			if (result.success && result.data) {
 				setInvitationLink(result.data)
+				toast.success(result.data.enabled ? 'Invite link enabled' : 'Invite link disabled', {
+					duration: 3000,
+				})
 			}
 		} catch (err) {
 			// For network errors or API errors, show a consistent error message
 			const errorMessage =
 				err instanceof Error && err.message ? err.message : 'Failed to toggle invitation link'
-			setError(errorMessage.includes('toggle') ? errorMessage : 'Failed to toggle invitation link')
+			toast.error(
+				errorMessage.includes('toggle') ? errorMessage : 'Failed to toggle invitation link'
+			)
 		} finally {
 			setIsTogglingInvite(false)
 		}
@@ -254,7 +258,6 @@ export default function WorkspaceSettingsClient({
 		}
 
 		setIsRegenerating(true)
-		setError(null)
 		try {
 			const res = await fetch(`/api/workspaces/${workspace.id}/invite/regenerate`, {
 				method: 'POST',
@@ -269,9 +272,10 @@ export default function WorkspaceSettingsClient({
 			const result = await res.json()
 			if (result.success && result.data) {
 				setInvitationLink(result.data)
+				toast.success('Invite link regenerated', { duration: 3000 })
 			}
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'An unexpected error occurred')
+			toast.error(err instanceof Error ? err.message : 'An unexpected error occurred')
 		} finally {
 			setIsRegenerating(false)
 		}
@@ -284,8 +288,9 @@ export default function WorkspaceSettingsClient({
 				await navigator.clipboard.writeText(url)
 				setCopySuccess(true)
 				setTimeout(() => setCopySuccess(false), 2000)
+				toast.success('Invite link copied to clipboard', { duration: 3000 })
 			} catch {
-				setError('Failed to copy link to clipboard')
+				toast.error('Failed to copy link to clipboard')
 			}
 		}
 	}, [invitationLink?.token])
@@ -325,8 +330,6 @@ export default function WorkspaceSettingsClient({
 			{/* Main content */}
 			<main className="flex-1 overflow-y-auto p-6">
 				<div className="mx-auto max-w-2xl space-y-8">
-					{error && <div className="rounded-lg bg-red-50 p-4 text-sm text-red-800">{error}</div>}
-
 					{/* Workspace Name */}
 					<section className="rounded-lg border p-6">
 						<h2 className="mb-4 text-lg font-semibold">Workspace Name</h2>
@@ -355,7 +358,6 @@ export default function WorkspaceSettingsClient({
 										onClick={() => {
 											setIsRenaming(false)
 											setName(workspace.name)
-											setError(null)
 										}}
 										disabled={isSavingRename}
 										className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -526,19 +528,30 @@ export default function WorkspaceSettingsClient({
 										</select>
 									</div>
 
-									<button
-										onClick={() => {
-											if (selectedNewOwner) {
-												setShowTransferConfirm(true)
-											} else {
-												setError('Please select a member to transfer ownership to')
-											}
-										}}
-										disabled={isTransferring || !selectedNewOwner}
-										className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
-									>
-										Continue
-									</button>
+									<Tooltip>
+										<TooltipTrigger asChild>
+											<span>
+												<button
+													onClick={() => {
+														if (selectedNewOwner) {
+															setShowTransferConfirm(true)
+														} else {
+															toast.error('Please select a member to transfer ownership to')
+														}
+													}}
+													disabled={isTransferring || !selectedNewOwner}
+													className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+												>
+													Continue
+												</button>
+											</span>
+										</TooltipTrigger>
+										{!selectedNewOwner && (
+											<TooltipContent>
+												<p>Select a member to continue</p>
+											</TooltipContent>
+										)}
+									</Tooltip>
 								</div>
 							) : (
 								<div className="space-y-4 rounded-lg bg-yellow-50 p-4">
@@ -570,7 +583,6 @@ export default function WorkspaceSettingsClient({
 										<button
 											onClick={() => {
 												setShowTransferConfirm(false)
-												setError(null)
 											}}
 											disabled={isTransferring}
 											className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"

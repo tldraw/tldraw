@@ -2,15 +2,15 @@
 
 Date reported: 2025-10-08
 Date last updated: 2025-10-08
-Date resolved: 
+Date resolved: 2025-10-08 
 
 ## Status
 
-- [x] New
+- [ ] New
 - [ ] Investigating
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Resolved
+- [x] Resolved
 - [ ] Cannot Reproduce
 - [ ] Won't Fix
 
@@ -160,3 +160,22 @@ useWorkspaceRealtimeUpdates(workspace.id, {
 
 ## Resolution
 
+**Fixed** by implementing the documented hybrid realtime strategy:
+
+1. **Implemented React Query with polling fallback** (lines 47-81):
+   - Documents query with 15-second polling interval
+   - Folders query with 15-second polling interval
+   - Both configured with `refetchOnMount: true` and `refetchOnReconnect: true`
+   - 10-second staleTime to catch missed events
+
+2. **Replaced postgres_changes with broadcast pattern** (lines 91-94):
+   - Now uses `useWorkspaceRealtimeUpdates` hook
+   - Listens for `workspace_event` broadcasts on channel `workspace:${workspaceId}`
+   - Invalidates both documents and folders queries on changes
+
+3. **Proper cleanup and error handling**:
+   - Realtime subscriptions automatically cleaned up on unmount
+   - Query errors handled gracefully
+   - Follows documented implementation checklist
+
+The workspace browser page now properly implements the hybrid realtime strategy, ensuring reliable updates during network issues, tab backgrounding, and connection drops.
