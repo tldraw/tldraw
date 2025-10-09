@@ -67,6 +67,7 @@ export default defineConfig((env) => ({
 		'process.env.ZERO_SERVER': urlOrLocalFallback(env.mode, process.env.ZERO_SERVER, 4848),
 		'process.env.ASSET_UPLOAD': urlOrLocalFallback(env.mode, process.env.ASSET_UPLOAD, 8788),
 		'process.env.IMAGE_WORKER': urlOrLocalFallback(env.mode, process.env.IMAGE_WORKER, 8786),
+		'process.env.FAIRY_WORKER': urlOrLocalFallback(env.mode, process.env.FAIRY_WORKER, 8789),
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.TLDRAW_ENV ?? 'development'),
 		'process.env.TLDRAW_LICENSE': JSON.stringify(process.env.TLDRAW_LICENSE ?? ''),
 		// Fall back to staging DSN for local develeopment, although you still need to

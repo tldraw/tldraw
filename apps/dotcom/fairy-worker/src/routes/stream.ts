@@ -2,23 +2,23 @@ import { IRequest } from 'itty-router'
 import { Environment } from '../environment'
 
 export async function stream(request: IRequest, env: Environment) {
-    // Read the body once and convert to string
-    const bodyText = await request.text()  // or request.json() then JSON.stringify()
-    
-    const id = env.AGENT_DURABLE_OBJECT.idFromName('anonymous')
-    const DO = env.AGENT_DURABLE_OBJECT.get(id)
-    
-    // Create a NEW request body from the text we read
-    const response = await DO.fetch(request.url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: bodyText,  // Pass the string, not the consumed stream
-    })
+	// Read the body once and convert to string
+	const bodyText = await request.text() // or request.json() then JSON.stringify()
 
-    // Return the response directly, don't wrap it again
-    return response
+	const id = env.AGENT_DURABLE_OBJECT.idFromName('anonymous')
+	const DO = env.AGENT_DURABLE_OBJECT.get(id)
+
+	// Create a NEW request body from the text we read
+	const response = await DO.fetch(request.url, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: bodyText, // Pass the string, not the consumed stream
+	})
+
+	// Return the response directly, don't wrap it again
+	return response
 }
 
 // Original version

@@ -120,6 +120,7 @@ jobs:
           APP_ORIGIN: ${{ vars.APP_ORIGIN }}
           ASSET_UPLOAD: ${{ vars.ASSET_UPLOAD }}
           IMAGE_WORKER: ${{ vars.IMAGE_WORKER }}
+          FAIRY_WORKER: ${{ vars.FAIRY_WORKER }}
           MULTIPLAYER_SERVER: ${{ vars.MULTIPLAYER_SERVER }}
           NEXT_PUBLIC_GOOGLE_CLOUD_PROJECT_NUMBER: ${{ vars.NEXT_PUBLIC_GOOGLE_CLOUD_PROJECT_NUMBER }}
           SUPABASE_LITE_URL: ${{ vars.SUPABASE_LITE_URL }}

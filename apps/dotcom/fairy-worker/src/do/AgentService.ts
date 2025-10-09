@@ -7,8 +7,17 @@ import {
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
 import { LanguageModel, streamText } from 'ai'
 
+import {
+	AgentAction,
+	AgentModelName,
+	AgentPrompt,
+	buildMessages,
+	buildSystemPrompt,
+	getAgentModelDefinition,
+	getModelName,
+	Streaming,
+} from '@tldraw/dotcom-shared'
 import { Environment } from '../environment'
-import { AgentAction, AgentModelName, AgentPrompt, getAgentModelDefinition, Streaming, buildMessages, buildSystemPrompt, getModelName } from '@tldraw/dotcom-shared'
 import { closeAndParseJson } from './closeAndParseJson'
 
 export class AgentService {

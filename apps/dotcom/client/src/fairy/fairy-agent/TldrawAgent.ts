@@ -37,6 +37,7 @@ import {
 	AgentModelName,
 	DEFAULT_MODEL_NAME
 } from '@tldraw/dotcom-shared'
+import { FAIRY_WORKER } from '../../utils/config'
 import { $agentsAtom } from './agentsAtom'
 
 export interface TldrawAgentOptions {
@@ -824,7 +825,7 @@ async function* streamAgent({
 	// console.warn('sike')
 	// yield { _type: 'message', text: 'sike', complete: true, time: Date.now() }
 
-	const res = await fetch('/api/app/fairy/stream', {
+	const res = await fetch(`${FAIRY_WORKER}/stream`, {
 		method: 'POST',
 		body: JSON.stringify(prompt),
 		headers: {

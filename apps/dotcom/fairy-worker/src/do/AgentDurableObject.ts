@@ -1,9 +1,9 @@
 import { DurableObject } from 'cloudflare:workers'
 // import { AutoRouter, error } from 'itty-router'
 
+import { AgentAction, AgentPrompt, Streaming } from '@tldraw/dotcom-shared'
 import { Environment } from '../environment'
 import { AgentService } from './AgentService'
-import { AgentAction, AgentPrompt, Streaming } from '@tldraw/dotcom-shared'
 
 export class AgentDurableObject extends DurableObject<Environment> {
 	service: AgentService
@@ -16,12 +16,12 @@ export class AgentDurableObject extends DurableObject<Environment> {
 	// `fetch` is the entry point for all requests to the Durable Object
 	override async fetch(request: Request): Promise<Response> {
 		const url = new URL(request.url)
-		
+
 		// Handle the stream endpoint directly without router
-		if (url.pathname === '/app/fairy/stream' && request.method === 'POST') {
+		if (url.pathname === '/stream' && request.method === 'POST') {
 			return this.stream(request)
 		}
-		
+
 		// For other routes, you can still use the router or return 404
 		return new Response('Not Found', { status: 404 })
 	}
@@ -87,8 +87,8 @@ export class AgentDurableObject extends DurableObject<Environment> {
 // 			console.error(e)
 // 			return error(e)
 // 		},
-// 	}).post('/app/fairy/stream', (request) => { 
-// 		console.warn('\n\n\nAgentDurableObject stream\n\n\n', request); 
+// 	}).post('/app/fairy/stream', (request) => {
+// 		console.warn('\n\n\nAgentDurableObject stream\n\n\n', request);
 // 		return this.stream(request)
 // 	})
 
