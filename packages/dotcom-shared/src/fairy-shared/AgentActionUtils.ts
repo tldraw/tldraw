@@ -103,4 +103,3 @@ export function buildResponseSchema() {
 
 	return z.toJSONSchema(schema, { reused: 'ref' })
 }
-

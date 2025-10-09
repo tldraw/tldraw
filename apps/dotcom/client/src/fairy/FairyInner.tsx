@@ -1,7 +1,7 @@
+import { FairyEntity } from '@tldraw/dotcom-shared'
 import { useRef } from 'react'
 import { Atom, useEditor, useValue } from 'tldraw'
 import { FairySprite } from './FairySprite'
-import { FairyEntity } from '@tldraw/dotcom-shared'
 
 export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 	const editor = useEditor()

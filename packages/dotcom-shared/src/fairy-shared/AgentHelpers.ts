@@ -1,5 +1,5 @@
-import { BoxModel, TLShapeId, VecModel } from '@tldraw/tlschema'
 import { Editor } from '@tldraw/editor'
+import { BoxModel, TLShapeId, VecModel } from '@tldraw/tlschema'
 import { SimpleFill, SimpleFillSchema } from './format/SimpleFill'
 import { SimpleShape } from './format/SimpleShape'
 import { ContextItem } from './types/ContextItem'

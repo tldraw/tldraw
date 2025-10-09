@@ -1,8 +1,8 @@
 // lazy load fairy
 
+import { FairyEntity } from '@tldraw/dotcom-shared'
 import { lazy, Suspense } from 'react'
 import { atom } from 'tldraw'
-import { FairyEntity } from '@tldraw/dotcom-shared'
 
 const FairyInner = lazy(() => import('./FairyInner'))
 

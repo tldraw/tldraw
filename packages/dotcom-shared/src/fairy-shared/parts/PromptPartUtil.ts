@@ -1,6 +1,6 @@
 import { Editor } from '@tldraw/editor'
-import { AgentModelName } from '../models'
 import { AgentHelpers } from '../AgentHelpers'
+import { AgentModelName } from '../models'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'

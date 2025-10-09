@@ -2,15 +2,15 @@
 
 .context-highlight {
 	pointer-events: none;
-    /* background-color: gold; */
-    opacity: 0;
+	/* background-color: gold; */
+	opacity: 0;
 }
 
 .context-highlight line {
 	stroke-dasharray: 4px;
 	stroke-linecap: round;
 	stroke-width: 1px;
-    color: red
+	color: red;
 }
 
 .context-highlight-generating line {

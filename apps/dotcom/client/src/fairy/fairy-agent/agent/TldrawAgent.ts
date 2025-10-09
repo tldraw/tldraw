@@ -11,6 +11,7 @@ import {
 	ChatHistoryItem,
 	ContextItem,
 	DEFAULT_MODEL_NAME,
+	FairyEntity,
 	getAgentActionUtilsRecord,
 	getPromptPartUtilsRecord,
 	TldrawFairyAgent as ITldrawFairyAgent,
@@ -23,7 +24,6 @@ import {
 	Streaming,
 	TldrawFairyAgentOptions,
 	TodoItem,
-	FairyEntity,
 } from '@tldraw/dotcom-shared'
 import {
 	Atom,
@@ -42,11 +42,10 @@ import {
 	Vec,
 	VecModel,
 } from 'tldraw'
-import { $agentsAtom } from './agentsAtom'
-import { $theOnlyFairy } from '../../FairyWrapper'
 import { FAIRY_WORKER } from '../../../utils/config'
+import { $theOnlyFairy } from '../../FairyWrapper'
 import { scaleBoxFromCenter } from '../../utils/scaleBoxFromCenter'
-import { reset } from 'axe-core'
+import { $agentsAtom } from './agentsAtom'
 
 /**
  * An agent that can be prompted to edit the canvas.
@@ -223,7 +222,10 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 			data: request.data ?? [],
 			selectedShapes: request.selectedShapes ?? [],
 			contextItems: request.contextItems ?? [],
-			bounds: request.bounds ?? activeRequest?.bounds ?? scaleBoxFromCenter(this.editor.getViewportPageBounds(), 0.67),
+			bounds:
+				request.bounds ??
+				activeRequest?.bounds ??
+				scaleBoxFromCenter(this.editor.getViewportPageBounds(), 0.67),
 			modelName: request.modelName ?? activeRequest?.modelName ?? this.$modelName.get(),
 		}
 	}
@@ -782,11 +784,11 @@ function requestAgent({ agent, request }: { agent: TldrawFairyAgent; request: Ag
 							return
 						}
 
-					// If there was a diff from an incomplete action, revert it so that we can reapply the action
-					if (incompleteDiff) {
-						const inversePrevDiff = reverseRecordsDiff(incompleteDiff)
-						editor.store.applyDiff(inversePrevDiff)
-					}
+						// If there was a diff from an incomplete action, revert it so that we can reapply the action
+						if (incompleteDiff) {
+							const inversePrevDiff = reverseRecordsDiff(incompleteDiff)
+							editor.store.applyDiff(inversePrevDiff)
+						}
 
 						// Apply the action to the app and editor
 						const { diff, promise } = agent.act(transformedAction, helpers)
@@ -1010,8 +1012,7 @@ function exhaustiveSwitchError(value: never, property?: string): never {
 	throw new Error(`Unknown switch case ${debugValue}`)
 }
 
-
-function moveFairyToBounds(bounds: BoxModel) {	
+function moveFairyToBounds(bounds: BoxModel) {
 	const smallerBounds = scaleBoxFromCenter(bounds, 0.5)
 
 	const x = smallerBounds.x + Math.random() * smallerBounds.w
@@ -1019,17 +1020,16 @@ function moveFairyToBounds(bounds: BoxModel) {
 
 	$theOnlyFairy.update((fairy) => ({
 		...fairy,
-		position: { x, y }
+		position: { x, y },
 	}))
 }
 
-function moveFairyToCoordinates(coordinates: VecModel) {	
-
+function moveFairyToCoordinates(coordinates: VecModel) {
 	const x = coordinates.x
 	const y = coordinates.y
 
 	$theOnlyFairy.update((fairy) => ({
 		...fairy,
-		position: { x, y }
+		position: { x, y },
 	}))
 }

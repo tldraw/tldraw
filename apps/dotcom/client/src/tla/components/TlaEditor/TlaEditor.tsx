@@ -23,6 +23,7 @@ import {
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { FairyAppInner } from '../../../fairy/FairyAppInner'
+import { FairyVision } from '../../../fairy/FairyVision'
 import { $theOnlyFairy, FairyWrapper } from '../../../fairy/FairyWrapper'
 import { TldrawFairyAgent } from '../../../fairy/fairy-agent/agent/TldrawAgent'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
@@ -44,6 +45,7 @@ import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallba
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
 import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
+import './fairy.css'
 import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakyLargeFileHander } from './sneaky/SneakyLargeFileHandler'
@@ -51,8 +53,6 @@ import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
-import { FairyVision } from '../../../fairy/FairyVision'
-import './fairy.css'
 
 /** @internal */
 export const components: TLComponents = {
@@ -266,7 +266,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const extraDragIconOverrides = useExtraDragIconOverrides()
 
 	const [agent, setAgent] = useState<TldrawFairyAgent | undefined>()
-	
+
 	const OriginalInFrontOfTheCanvas = components.InFrontOfTheCanvas
 	components.InFrontOfTheCanvas = (props) => (
 		<>
