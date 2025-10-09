@@ -3,9 +3,7 @@ import { DurableObject } from 'cloudflare:workers'
 
 import { Environment } from '../environment'
 import { AgentService } from './AgentService'
-import { AgentAction } from '@tldraw/dotcom-shared'  // '../../../../client/src/fairy/fairy-agent/shared/types/AgentAction'
-import { AgentPrompt } from '@tldraw/dotcom-shared'  // '../../../../client/src/fairy/fairy-agent/shared/types/AgentPrompt'
-import { Streaming } from '@tldraw/dotcom-shared'  // '../../../../client/src/fairy/fairy-agent/shared/types/Streaming'
+import { AgentAction, AgentPrompt, Streaming } from '@tldraw/dotcom-shared'
 
 export class AgentDurableObject extends DurableObject<Environment> {
 	service: AgentService
