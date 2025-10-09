@@ -102,7 +102,8 @@ export async function requireWriteAccessToFile(
 			throw new StatusError(403, 'File is shared but not for editing')
 		}
 
-		throw new StatusError(403, 'User does not have write access to this file')
+		// file is shared and for editing, allow access
+		return
 	} finally {
 		// Ensure database connection is properly closed
 		await db.destroy()
