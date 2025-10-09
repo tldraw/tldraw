@@ -225,6 +225,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 			<DefaultPageMenu />
 			<TlaFileMenu
 				fileId={fileId}
+				groupId={null}
 				source="file-header"
 				onRenameAction={handleRenameAction}
 				trigger={

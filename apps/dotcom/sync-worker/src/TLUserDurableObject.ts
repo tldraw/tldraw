@@ -5,6 +5,7 @@ import {
 	MIN_Z_PROTOCOL_VERSION,
 	TlaFile,
 	TlaSchema,
+	TlaUserPartial,
 	ZClientSentMessage,
 	ZErrorCode,
 	ZServerSentPacket,
@@ -12,7 +13,7 @@ import {
 	schema,
 } from '@tldraw/dotcom-shared'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { ExecutionQueue, assert, mapObjectMapValues, sleep } from '@tldraw/utils'
+import { ExecutionQueue, IndexKey, assert, mapObjectMapValues, sleep } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
@@ -486,6 +487,75 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		for (const socket of this.sockets.keys()) {
 			socket.close()
 		}
+	}
+
+	async __test__prepareForTest(userId: string, legacy: boolean) {
+		if (this.env.IS_LOCAL !== 'true') {
+			return
+		}
+		this.userId ??= userId
+
+		await this.db.transaction().execute(async (tx) => {
+			const user = await tx
+				.selectFrom('user')
+				.where('id', '=', userId)
+				.selectAll()
+				.executeTakeFirst()
+			if (!user) {
+				console.error('User not found', userId)
+				return
+			} else {
+				await tx
+					.updateTable('user')
+					.set({
+						flags: legacy ? '' : 'groups_backend',
+						allowAnalyticsCookie: null,
+						enhancedA11yMode: null,
+						colorScheme: null,
+						locale: null,
+						exportBackground: true,
+						exportPadding: true,
+						exportFormat: 'png',
+						inputMode: null,
+					} satisfies Omit<TlaUserPartial, 'id'>)
+					.where('id', '=', userId)
+					.execute()
+			}
+			await tx.deleteFrom('file_state').where('userId', '=', userId).execute()
+			await tx.deleteFrom('file').where('ownerId', '=', userId).execute()
+			await tx.deleteFrom('file').where('owningGroupId', '=', userId).execute()
+			await tx.deleteFrom('group').where('id', '=', userId).execute()
+			if (!legacy) {
+				await tx
+					.insertInto('group')
+					.values({
+						id: userId,
+						name: '',
+						createdAt: Date.now(),
+						updatedAt: Date.now(),
+						isDeleted: false,
+						inviteSecret: null,
+					})
+					.onConflict((oc) => oc.doNothing())
+					.execute()
+				await tx
+					.insertInto('group_user')
+					.values({
+						userId: userId,
+						groupId: userId,
+						createdAt: Date.now(),
+						updatedAt: Date.now(),
+						role: 'owner',
+						index: 'a1' as IndexKey,
+						userColor: '',
+						userName: '',
+					})
+					.onConflict((oc) => oc.doNothing())
+					.execute()
+			}
+		})
+
+		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
 	}
 
 	async admin_forceHardReboot(userId: string) {

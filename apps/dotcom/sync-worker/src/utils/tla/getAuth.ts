@@ -102,43 +102,6 @@ export async function requireWriteAccessToFile(
 			throw new StatusError(403, 'File is shared but not for editing')
 		}
 
-		// Check if user is a collaborator
-		// For migrated users (with 'groups_backend' flag), check group_file in their home group
-		// For non-migrated users, check file_state
-		const user = await db
-			.selectFrom('user')
-			.select('flags')
-			.where('id', '=', auth.userId)
-			.executeTakeFirst()
-
-		const hasGroupsFlag = user?.flags?.includes('groups_backend') ?? false
-
-		if (hasGroupsFlag) {
-			// Migrated user: check if file is in their home group (groupId === userId)
-			const groupFile = await db
-				.selectFrom('group_file')
-				.select('fileId')
-				.where('fileId', '=', roomId)
-				.where('groupId', '=', auth.userId) // home group
-				.executeTakeFirst()
-
-			if (groupFile) {
-				return
-			}
-		} else {
-			// Non-migrated user: check file_state
-			const fileState = await db
-				.selectFrom('file_state')
-				.select('fileId')
-				.where('fileId', '=', roomId)
-				.where('userId', '=', auth.userId)
-				.executeTakeFirst()
-
-			if (fileState) {
-				return
-			}
-		}
-
 		throw new StatusError(403, 'User does not have write access to this file')
 	} finally {
 		// Ensure database connection is properly closed

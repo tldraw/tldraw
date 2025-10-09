@@ -36,6 +36,7 @@ export function Component() {
 			const recentFiles = app.getUserRecentFiles()
 			if (recentFiles.length === 0) {
 				const result = await app.createFile()
+
 				assert(result.ok, 'Failed to create file')
 				// result is only false if the user reached their file limit so
 				// we don't need to handle that case here since they have no files

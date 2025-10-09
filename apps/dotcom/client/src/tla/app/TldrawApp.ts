@@ -215,11 +215,11 @@ export class TldrawApp {
 
 			if (useNewGroupsInit) {
 				// New groups initialization
-				this.z.mutate.init({ user: initialUserData, time: Date.now() })
+				await this.z.mutate.init({ user: initialUserData, time: Date.now() })
 			} else {
 				// Legacy initialization (no groups) - just insert user like before
 				// eslint-disable-next-line @typescript-eslint/no-deprecated
-				this.z.mutate.user.insert({ ...initialUserData, flags: '' })
+				await this.z.mutate.user.insert({ ...initialUserData, flags: '' })
 			}
 
 			updateLocalSessionState((state) => ({ ...state, shouldShowWelcomeDialog: true }))
@@ -349,7 +349,7 @@ export class TldrawApp {
 		if (!group) return []
 
 		const pinned = group.groupFiles.filter((f) => f.index !== null)
-		const unpinned = group.groupFiles.filter((f) => !this.isPinned(f.fileId))
+		const unpinned = group.groupFiles.filter((f) => f.index === null)
 
 		const lastOrdering = this.lastGroupFileOrderings.get(groupId)
 		const retainedOrdering =
@@ -373,7 +373,7 @@ export class TldrawApp {
 		// Sort by date (most recent first) but only for new ordering
 		newOrdering.sort((a, b) => b.date - a.date)
 
-		const nextOrdering = [...retainedOrdering, ...newOrdering]
+		const nextOrdering = [...newOrdering, ...retainedOrdering]
 		// Store the ordering for next time
 		this.lastGroupFileOrderings.set(groupId, nextOrdering)
 
@@ -506,7 +506,10 @@ export class TldrawApp {
 		})
 	}
 
-	isPinned(fileId: string) {
+	isPinned(fileId: string, groupId: string) {
+		if (this.isGroupsMigrated()) {
+			return this.getGroupFilesSorted(groupId).some((f) => f.fileId === fileId && f.isPinned)
+		}
 		return this.getFileState(fileId)?.isPinned ?? false
 	}
 
