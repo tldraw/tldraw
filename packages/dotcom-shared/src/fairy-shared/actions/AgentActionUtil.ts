@@ -1,4 +1,4 @@
-// import { Editor } from 'tldraw'
+import { Editor } from '@tldraw/editor'
 import z from 'zod'
 // import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentHelpers } from '../AgentHelpers'
@@ -10,7 +10,7 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	static type: string
 
 	protected agent?//: TldrawAgent
-	protected editor?//: Editor
+	protected editor?: Editor
 
 	constructor(agent?){//: TldrawAgent) {
 		this.agent = agent
@@ -68,7 +68,6 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 }
 
 export interface AgentActionUtilConstructor<T extends BaseAgentAction = BaseAgentAction> {
-	// new (agent: TldrawAgent, editor: Editor): AgentActionUtil<T>
-	new (agent, editor): AgentActionUtil<T>
+	new (agent, editor: Editor): AgentActionUtil<T>
 	type: T['_type']
 }

@@ -1,4 +1,5 @@
-import { BoxModel, Editor, VecModel } from 'tldraw'
+import { BoxModel, VecModel } from '@tldraw/tlschema'
+import { Editor } from '@tldraw/editor'
 // import { AgentIconType } from '../../client/components/icons/AgentIcon'
 import { SimpleShape } from '../format/SimpleShape'
 

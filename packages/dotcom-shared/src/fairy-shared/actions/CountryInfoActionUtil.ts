@@ -1,4 +1,4 @@
-import { JsonValue } from 'tldraw'
+import { JsonValue } from '@tldraw/utils'
 import z from 'zod'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'

@@ -1,4 +1,4 @@
-import { createShapeId, TLDrawShape, TLDrawShapeSegment, Vec, VecModel } from 'tldraw'
+import { createShapeId, TLDrawShape, TLDrawShapeSegment, Vec, VecModel } from '@tldraw/editor'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { asColor, SimpleColor } from '../format/SimpleColor'

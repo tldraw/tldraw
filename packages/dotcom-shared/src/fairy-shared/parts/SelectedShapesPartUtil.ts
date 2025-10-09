@@ -1,4 +1,4 @@
-import { structuredClone } from 'tldraw'
+import { structuredClone } from '@tldraw/utils'
 import { AgentHelpers } from '../AgentHelpers'
 import { convertTldrawShapeToSimpleShape } from '../format/convertTldrawShapeToSimpleShape'
 import { SimpleShape } from '../format/SimpleShape'

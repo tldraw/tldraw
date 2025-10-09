@@ -1,4 +1,5 @@
-import { Box, FileHelpers } from 'tldraw'
+import { Box } from '@tldraw/editor'
+import { FileHelpers } from '@tldraw/utils'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'

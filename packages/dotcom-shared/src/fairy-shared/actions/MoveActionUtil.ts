@@ -1,4 +1,4 @@
-import { TLShapeId, Vec } from 'tldraw'
+import { TLShapeId, Vec } from '@tldraw/editor'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'

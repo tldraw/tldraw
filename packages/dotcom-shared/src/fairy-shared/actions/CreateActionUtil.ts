@@ -1,4 +1,4 @@
-import { IndexKey, toRichText } from 'tldraw'
+import { IndexKey, toRichText } from '@tldraw/editor'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import {

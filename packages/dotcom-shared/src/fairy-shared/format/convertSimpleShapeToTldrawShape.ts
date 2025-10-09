@@ -1,9 +1,6 @@
 import {
 	Editor,
-	FONT_FAMILIES,
-	FONT_SIZES,
 	IndexKey,
-	TEXT_PROPS,
 	TLArrowShape,
 	TLBindingCreate,
 	TLDefaultShape,
@@ -18,7 +15,8 @@ import {
 	toRichText,
 	Vec,
 	VecLike,
-} from 'tldraw'
+} from '@tldraw/editor'
+import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '@tldraw/tldraw'
 import { asColor } from './SimpleColor'
 import { convertSimpleFillToTldrawFill } from './SimpleFill'
 import { convertSimpleFontSizeToTldrawFontSizeAndScale } from './SimpleFontSize'

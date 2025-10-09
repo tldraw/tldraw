@@ -1,4 +1,4 @@
-// import { Editor } from 'tldraw'
+import { Editor } from '@tldraw/editor'
 import { PROMPT_PART_UTILS as _PROMPT_PART_UTILS } from '../AgentUtils'
 import { AgentRequest } from './AgentRequest'
 import { BasePromptPart } from './BasePromptPart'
@@ -8,7 +8,7 @@ import { PromptPart } from './PromptPart'
  * AgentPromptOptions contains the information needed to construct all the parts of the prompt.
  */
 export interface AgentPromptOptions {
-	editor//: Editor
+	editor: Editor
 	request: AgentRequest
 }
 

@@ -1,4 +1,4 @@
-import { Box } from 'tldraw'
+import { Box } from '@tldraw/editor'
 import { AgentHelpers } from '../AgentHelpers'
 import { BlurryShape } from '../format/BlurryShape'
 import { convertTldrawShapeToBlurryShape } from '../format/convertTldrawShapeToBlurryShape'

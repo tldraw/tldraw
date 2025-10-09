@@ -1,5 +1,6 @@
-import { BoxModel, JsonValue } from 'tldraw'
-import { AgentModelName } from '../../worker/models'
+import { BoxModel } from '@tldraw/tlschema'
+import { JsonValue } from '@tldraw/utils'
+import { AgentModelName } from '../models'
 import { SimpleShape } from '../format/SimpleShape'
 import { ContextItem } from './ContextItem'
 

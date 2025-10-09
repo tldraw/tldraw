@@ -1,4 +1,4 @@
-import { TLShapeId } from 'tldraw'
+import { TLShapeId } from '@tldraw/editor'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { BaseAgentAction } from '../types/BaseAgentAction'

@@ -1,4 +1,4 @@
-import { TLDefaultFillStyle } from 'tldraw'
+import { TLDefaultFillStyle } from '@tldraw/editor'
 import z from 'zod'
 
 export const SimpleFillSchema = z.enum(['none', 'tint', 'background', 'solid', 'pattern'])

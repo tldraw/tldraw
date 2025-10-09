@@ -1,4 +1,4 @@
-import { JsonValue } from 'tldraw'
+import { JsonValue } from '@tldraw/utils'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'

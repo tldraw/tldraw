@@ -1,4 +1,4 @@
-import { Box, Editor, TLShape } from 'tldraw'
+import { Box, Editor, TLShape } from '@tldraw/editor'
 import { PeripheralShapeCluster } from './PeripheralShapesCluster'
 
 export function convertTldrawShapesToPeripheralShapes(

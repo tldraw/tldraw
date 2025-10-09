@@ -1,4 +1,4 @@
-import { Editor, TLShape } from 'tldraw'
+import { Editor, TLShape } from '@tldraw/editor'
 import { BlurryShape } from './BlurryShape'
 import {
 	convertTldrawIdToSimpleId,

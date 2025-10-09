@@ -1,4 +1,4 @@
-import { Box } from 'tldraw'
+import { Box } from '@tldraw/editor'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { AreaContextItem } from '../types/ContextItem'

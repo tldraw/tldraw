@@ -1,4 +1,4 @@
-import { structuredClone } from 'tldraw'
+import { structuredClone } from '@tldraw/utils'
 import { AgentHelpers } from '../AgentHelpers'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { AgentRequest } from '../types/AgentRequest'

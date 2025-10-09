@@ -1,4 +1,4 @@
-import { Box } from 'tldraw'
+import { Box } from '@tldraw/editor'
 import { AgentHelpers } from '../AgentHelpers'
 import { convertTldrawShapesToPeripheralShapes } from '../format/convertTldrawShapesToPeripheralShapes'
 import { PeripheralShapeCluster } from '../format/PeripheralShapesCluster'

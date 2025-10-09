@@ -13,7 +13,7 @@ import {
 	TLShape,
 	TLShapeId,
 	TLTextShape,
-} from 'tldraw'
+} from '@tldraw/editor'
 import { convertTldrawFillToSimpleFill } from './SimpleFill'
 import { convertTldrawFontSizeAndScaleToSimpleFontSize } from './SimpleFontSize'
 import { SimpleGeoShapeType } from './SimpleGeoShapeType'

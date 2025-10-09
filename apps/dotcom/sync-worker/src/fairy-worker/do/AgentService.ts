@@ -7,10 +7,6 @@ import {
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
 import { LanguageModel, streamText } from 'ai'
 
-// import { AgentAction } from '../../shared/types/AgentAction'
-// import { AgentPrompt } from '../../shared/types/AgentPrompt'
-// import { Streaming } from '../../shared/types/Streaming'
-
 import { Environment } from '../environment'
 import { AgentAction, AgentModelName, AgentPrompt, getAgentModelDefinition, Streaming, buildMessages, buildSystemPrompt, getModelName } from '@tldraw/dotcom-shared'
 import { closeAndParseJson } from './closeAndParseJson'

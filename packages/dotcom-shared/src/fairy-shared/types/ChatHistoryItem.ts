@@ -1,4 +1,6 @@
-import { JsonValue, RecordsDiff, TLRecord } from 'tldraw'
+import { JsonValue } from '@tldraw/utils'
+import { TLRecord } from '@tldraw/tlschema'
+import { RecordsDiff } from '@tldraw/store'
 import { SimpleShape } from '../format/SimpleShape'
 import { AgentAction } from './AgentAction'
 import { ContextItem } from './ContextItem'

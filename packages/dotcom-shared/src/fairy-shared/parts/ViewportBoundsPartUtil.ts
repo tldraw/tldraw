@@ -1,4 +1,4 @@
-import { Box, BoxModel } from 'tldraw'
+import { Box, BoxModel } from '@tldraw/editor'
 import { AgentHelpers } from '../AgentHelpers'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'

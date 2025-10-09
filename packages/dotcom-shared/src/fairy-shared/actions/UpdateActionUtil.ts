@@ -1,4 +1,4 @@
-import { TLBindingId } from 'tldraw'
+import { TLBindingId } from '@tldraw/editor'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import {

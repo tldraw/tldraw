@@ -1,4 +1,5 @@
-import { BoxModel, Editor, TLShapeId, VecModel } from 'tldraw'
+import { BoxModel, TLShapeId, VecModel } from '@tldraw/tlschema'
+import { Editor } from '@tldraw/editor'
 // import { TldrawAgent } from '../client/agent/TldrawAgent'
 import { SimpleFill, SimpleFillSchema } from './format/SimpleFill'
 import { SimpleShape } from './format/SimpleShape'

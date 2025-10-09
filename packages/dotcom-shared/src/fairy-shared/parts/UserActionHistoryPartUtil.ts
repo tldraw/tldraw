@@ -1,4 +1,4 @@
-import { squashRecordDiffs } from 'tldraw'
+import { squashRecordDiffs } from '@tldraw/store'
 import { AgentHelpers } from '../AgentHelpers'
 import {
 	convertTldrawIdToSimpleId,

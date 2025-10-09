@@ -1,4 +1,4 @@
-import { TLShapeId, toRichText } from 'tldraw'
+import { TLShapeId, toRichText } from '@tldraw/editor'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
