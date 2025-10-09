@@ -1,9 +1,6 @@
 import { TLBookmarkShape, createShapeId } from '@tldraw/editor'
 import { vi } from 'vitest'
-import {
-	createBookmarkFromUrl,
-	getHumanReadableAddress,
-} from '../lib/shapes/bookmark/BookmarkShapeUtil'
+import { createBookmarkFromUrl, getHumanReadableAddress } from '../lib/shapes/bookmark/bookmarks'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor

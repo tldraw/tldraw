@@ -441,7 +441,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
-            assetId: null | TLAssetId;
+            assetId: TLAssetId | null;
             h: number;
             url: string;
             w: number;
@@ -461,7 +461,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
-            assetId: null | TLAssetId;
+            assetId: TLAssetId | null;
             h: number;
             url: string;
             w: number;
