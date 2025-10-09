@@ -1,5 +1,5 @@
-import { TlaFile, ZStoreData } from '@tldraw/dotcom-shared'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { TlaFile, TlaUser, ZStoreData } from '@tldraw/dotcom-shared'
+import { RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { fetch } from 'tldraw'
 import { TlaButton } from '../tla/components/TlaButton/TlaButton'
@@ -208,6 +208,13 @@ export function Component() {
 								Force Reboot
 							</TlaButton>
 						</div>
+						<MigrateUserToGroups
+							inputRef={inputRef}
+							onSuccess={loadData}
+							onError={setError}
+							onSuccessMessage={setSuccessMessage}
+							didMigrate={(data.user[0] as TlaUser).flags.includes('groups_backend')}
+						/>
 						<StructuredDataDisplay data={data} />
 					</section>
 				)}
@@ -393,6 +400,79 @@ function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 					Download
 				</TlaButton>
 			</div>
+		</div>
+	)
+}
+
+function MigrateUserToGroups({
+	inputRef,
+	onSuccess,
+	onError,
+	onSuccessMessage,
+	didMigrate,
+}: {
+	inputRef: RefObject<HTMLInputElement>
+	onSuccess(): void
+	onError(error: string): void
+	onSuccessMessage(message: string): void
+	didMigrate: boolean
+}) {
+	const [isMigrating, setIsMigrating] = useState(false)
+
+	const handleMigrate = useCallback(async () => {
+		const q = inputRef.current?.value?.trim() ?? ''
+		if (!q) {
+			onError('Please enter an email or ID')
+			return
+		}
+
+		if (
+			!window.confirm(
+				`Are you sure you want to migrate user "${q}" to the groups backend? This action cannot be undone.`
+			)
+		) {
+			return
+		}
+
+		setIsMigrating(true)
+		onError('')
+
+		try {
+			const res = await fetch(`/api/app/admin/user/migrate?${new URLSearchParams({ q })}`, {
+				method: 'POST',
+			})
+
+			if (!res.ok) {
+				onError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+
+			const result = await res.json()
+			onSuccessMessage(
+				`User migrated successfully! Files: ${result.files_migrated}, Pinned: ${result.pinned_files_migrated}`
+			)
+			onSuccess()
+		} catch (err) {
+			onError(err instanceof Error ? err.message : 'Migration failed')
+		} finally {
+			setIsMigrating(false)
+		}
+	}, [inputRef, onError, onSuccess, onSuccessMessage])
+
+	return didMigrate ? null : (
+		<div className={styles.migrationSection}>
+			<h4 className="tla-text_ui__medium">Migrate User to Groups Backend</h4>
+			<p className="tla-text_ui__small">
+				Migrate this user from the legacy file_state model to the new groups model.
+			</p>
+			<TlaButton
+				onClick={handleMigrate}
+				variant="primary"
+				disabled={isMigrating}
+				isLoading={isMigrating}
+			>
+				{isMigrating ? 'Migrating...' : 'Migrate to Groups'}
+			</TlaButton>
 		</div>
 	)
 }
