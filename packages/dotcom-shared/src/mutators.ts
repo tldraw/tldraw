@@ -91,6 +91,7 @@ export function createMutators(userId: string) {
 			},
 		},
 		file: {
+			/** @deprecated */
 			insertWithFileState: async (
 				tx,
 				{ file, fileState }: { file: TlaFile; fileState: TlaFileState }
@@ -275,6 +276,7 @@ export function createMutators(userId: string) {
 				.one()
 				.run()
 			assert(hasGroupAccess, ZErrorCode.forbidden)
+
 			// create file row, group_file row, file_state row
 			await tx.mutate.file.insert({
 				id: fileId,
@@ -336,13 +338,13 @@ export function createMutators(userId: string) {
 					).filter((gf) => gf.index !== null)
 
 					otherPinnedFiles.sort(sortByMaybeIndex)
-					indexToUse = getIndexBelow(otherPinnedFiles[0].index)
+					indexToUse = getIndexBelow(otherPinnedFiles[0]?.index) ?? ('a1' as IndexKey)
 				}
 
 				await tx.mutate.group_file.update({
 					fileId,
 					groupId: userId,
-					index,
+					index: indexToUse,
 				})
 			} else {
 				await tx.mutate.file_state.upsert({

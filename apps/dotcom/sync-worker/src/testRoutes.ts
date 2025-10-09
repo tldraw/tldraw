@@ -33,4 +33,12 @@ export const testRoutes = createRouter<Environment>()
 		getUserDurableObject(env, req.params.userId).__test__downgradeClient(false)
 		return new Response('ok')
 	})
+	.post('/app/__test__/user/:userId/prepare-for-test', async (req, env) => {
+		const legacy = req.headers.get('x-legacy') === 'true'
+		await getUserDurableObject(env, req.params.userId).__test__prepareForTest(
+			req.params.userId,
+			legacy
+		)
+		return new Response('ok')
+	})
 	.all('*', notFound)

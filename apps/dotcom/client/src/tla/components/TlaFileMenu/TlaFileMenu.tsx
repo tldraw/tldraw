@@ -58,12 +58,14 @@ export function TlaFileMenu({
 	children,
 	source,
 	fileId,
+	groupId,
 	onRenameAction,
 	trigger,
 }: {
 	children?: ReactNode
 	source: TLAppUiEventSource
 	fileId: string
+	groupId: string | null
 	onRenameAction(): void
 	trigger: ReactNode
 }) {
@@ -73,7 +75,12 @@ export function TlaFileMenu({
 				<TldrawUiDropdownMenuTrigger>{trigger}</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 					<FileItemsWrapper showAsSubMenu={!!children}>
-						<FileItems source={source} fileId={fileId} onRenameAction={onRenameAction} />
+						<FileItems
+							source={source}
+							fileId={fileId}
+							onRenameAction={onRenameAction}
+							groupId={groupId}
+						/>
 					</FileItemsWrapper>
 					{children}
 				</TldrawUiDropdownMenuContent>
@@ -86,10 +93,12 @@ export function FileItems({
 	source,
 	fileId,
 	onRenameAction,
+	groupId,
 }: {
 	source: TLAppUiEventSource
 	fileId: string
 	onRenameAction(): void
+	groupId: string | null
 }) {
 	const app = useApp()
 	const editor = useMaybeEditor()
@@ -99,7 +108,7 @@ export function FileItems({
 	const trackEvent = useTldrawAppUiEvents()
 	const copiedMsg = useMsg(messages.copied)
 	const isOwner = useIsFileOwner(fileId)
-	const isPinned = useIsFilePinned(fileId)
+	const isPinned = useIsFilePinned(fileId, groupId ?? '')
 	const isActive = useCurrentFileId() === fileId
 
 	const handleCopyLinkClick = useCallback(() => {
@@ -113,12 +122,13 @@ export function FileItems({
 	}, [fileId, addToast, copiedMsg, trackEvent, source, editor])
 
 	const handlePinUnpinClick = useCallback(async () => {
-		if (app.isPinned(fileId)) {
-			app.z.mutate.unpinFile({ fileId, groupId: app.getHomeGroupId() })
+		if (!groupId) return
+		if (app.isPinned(fileId, groupId)) {
+			app.z.mutate.unpinFile({ fileId, groupId })
 		} else {
-			app.z.mutate.pinFile({ fileId, groupId: app.getHomeGroupId() })
+			app.z.mutate.pinFile({ fileId, groupId })
 		}
-	}, [app, fileId])
+	}, [app, fileId, groupId])
 
 	const focusCtx = useFileSidebarFocusContext()
 
@@ -197,12 +207,14 @@ export function FileItems({
 							onSelect={handleDownloadClick}
 						/>
 					))}
-				<TldrawUiMenuItem
-					label={isPinned ? unpinMsg : pinMsg}
-					id="pin-unpin"
-					readonlyOk
-					onSelect={handlePinUnpinClick}
-				/>
+				{groupId && (
+					<TldrawUiMenuItem
+						label={isPinned ? unpinMsg : pinMsg}
+						id="pin-unpin"
+						readonlyOk
+						onSelect={handlePinUnpinClick}
+					/>
+				)}
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="file-delete">
 				<TldrawUiMenuItem
