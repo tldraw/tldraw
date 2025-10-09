@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { useEditor, useValue } from 'tldraw'
-import { FairySprite } from '../../../fairy/FairySprite'
+import { FairySprite } from './FairySprite'
 import { FairyEntity } from './FairyWrapper'
 
 export default function FairyInner({ fairy }: { fairy: FairyEntity }) {

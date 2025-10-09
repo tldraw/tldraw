@@ -22,8 +22,9 @@ import {
 	useValue,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
+import { FairyAppInner } from '../../../fairy/FairyAppInner'
+import { FairyWrapper } from '../../../fairy/FairyWrapper'
 import { TldrawAgent } from '../../../fairy/fairy-agent/agent/TldrawAgent'
-import { useTldrawAgent } from '../../../fairy/fairy-agent/agent/useTldrawAgent'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { useHandleUiEvents } from '../../../utils/analytics'
@@ -37,7 +38,6 @@ import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
-import { FairyWrapper } from '../fairy/FairyWrapper'
 import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
@@ -291,20 +291,6 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			</Tldraw>
 		</TlaEditorWrapper>
 	)
-}
-
-function FairyAppInner({ setAgent }: { setAgent(agent: TldrawAgent): void }) {
-	const AGENT_ID = 'fairy'
-	const editor = useEditor()
-	const agent = useTldrawAgent(editor, AGENT_ID)
-
-	useEffect(() => {
-		if (!editor || !agent) return
-		setAgent(agent)
-		;(window as any).agent = agent
-	}, [agent, editor, setAgent])
-
-	return null
 }
 
 function SneakyFileUpdateHandler({ fileId }: { fileId: string }) {
