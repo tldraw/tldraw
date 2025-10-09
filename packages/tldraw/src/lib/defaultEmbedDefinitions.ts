@@ -428,7 +428,8 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(/\/@([^/]+)\/([^/]+)/)) {
-				return `${url}?embed=true`
+				urlObj.searchParams.append('embed', 'true')
+				return urlObj.href
 			}
 			return
 		},
