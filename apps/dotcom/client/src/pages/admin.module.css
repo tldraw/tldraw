@@ -227,6 +227,18 @@
 	word-break: break-word;
 }
 
+/* Migration Section */
+.migrationSection {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 16px;
+	background-color: var(--tla-color-panel);
+	border: 1px solid var(--tla-color-primary);
+	border-radius: var(--tla-radius-2);
+	margin-top: 16px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
 	.adminHeader {

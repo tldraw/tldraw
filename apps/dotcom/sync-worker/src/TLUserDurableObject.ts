@@ -558,6 +558,22 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
 	}
 
+	async admin_migrateToGroups(userId: string, inviteSecret: string | null = null) {
+		this.userId ??= userId
+
+		// Call the Postgres migration function
+		const result = await sql<{
+			files_migrated: number
+			pinned_files_migrated: number
+			flag_added: boolean
+		}>`SELECT * FROM migrate_user_to_groups(${userId}, ${inviteSecret})`.execute(this.db)
+
+		// Reboot the user's cache to pick up the new data structure
+		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
+
+		return result.rows[0]
+	}
+
 	async admin_forceHardReboot(userId: string) {
 		if (this.cache) {
 			await this.cache?.reboot({ hard: true, delay: false, source: 'admin' })
