@@ -1,5 +1,5 @@
 import { BasePromptPart } from './BasePromptPart'
-// import { PROMPT_PART_UTILS } from '../AgentUtils'
+// import { PROMPT_PART_UTILS } from '../AgentPromptUtils'
 import { PromptPartUtil, PromptPartUtilConstructor } from '../parts/PromptPartUtil'
 
 // type ExtractPromptPartType<T> = T extends PromptPartUtilConstructor<infer U> ? U : never

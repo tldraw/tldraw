@@ -22,8 +22,8 @@ import {
 	useValue,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
-import { TldrawAgent } from '../../../fairy/fairy-agent/TldrawAgent'
-import { useTldrawAgent } from '../../../fairy/fairy-agent/useTldrawAgent'
+import { TldrawAgent } from '../../../fairy/fairy-agent/agent/TldrawAgent'
+import { useTldrawAgent } from '../../../fairy/fairy-agent/agent/useTldrawAgent'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { useHandleUiEvents } from '../../../utils/analytics'

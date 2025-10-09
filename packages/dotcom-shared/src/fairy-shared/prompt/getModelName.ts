@@ -1,4 +1,4 @@
-import { getPromptPartUtilsRecord } from '../AgentUtils'
+import { getPromptPartUtilsRecord } from '../AgentPromptUtils'
 import { AgentPrompt } from '../types/AgentPrompt'
 import { AgentModelName, DEFAULT_MODEL_NAME } from '../models'
 
