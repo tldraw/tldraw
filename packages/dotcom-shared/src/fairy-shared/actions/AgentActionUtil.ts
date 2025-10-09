@@ -1,6 +1,6 @@
-import { Editor } from 'tldraw'
+// import { Editor } from 'tldraw'
 import z from 'zod'
-import { TldrawAgent } from '../../client/agent/TldrawAgent'
+// import { TldrawAgent } from '../../client/agent/TldrawAgent'
 import { AgentHelpers } from '../AgentHelpers'
 import { BaseAgentAction } from '../types/BaseAgentAction'
 import { ChatHistoryInfo } from '../types/ChatHistoryInfo'
@@ -9,10 +9,10 @@ import { Streaming } from '../types/Streaming'
 export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentAction> {
 	static type: string
 
-	protected agent?: TldrawAgent
-	protected editor?: Editor
+	protected agent?//: TldrawAgent
+	protected editor?//: Editor
 
-	constructor(agent?: TldrawAgent) {
+	constructor(agent?){//: TldrawAgent) {
 		this.agent = agent
 		this.editor = agent?.editor
 	}
@@ -68,6 +68,7 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 }
 
 export interface AgentActionUtilConstructor<T extends BaseAgentAction = BaseAgentAction> {
-	new (agent: TldrawAgent, editor: Editor): AgentActionUtil<T>
+	// new (agent: TldrawAgent, editor: Editor): AgentActionUtil<T>
+	new (agent, editor): AgentActionUtil<T>
 	type: T['_type']
 }

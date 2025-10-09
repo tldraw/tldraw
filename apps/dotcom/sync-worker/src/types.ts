@@ -69,6 +69,12 @@ export interface Environment {
 	RATE_LIMITER: RateLimit
 
 	QUEUE: Queue<QueueMessage>
+
+	// fairy
+	AGENT_DURABLE_OBJECT: DurableObjectNamespace
+	OPENAI_API_KEY: string
+	ANTHROPIC_API_KEY: string
+	GOOGLE_API_KEY: string
 }
 
 export function isDebugLogging(env: Environment) {

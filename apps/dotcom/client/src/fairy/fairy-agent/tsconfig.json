@@ -30,10 +30,11 @@
 		"noImplicitOverride": true
 	},
 	"exclude": ["node_modules"],
-	"include": ["client", "shared", "worker"],
+	"include": ["client"],
 	"files": ["./vite.config.ts"],
 	"references": [
 		{ "path": "../../../../../../packages/tldraw" },
-		{ "path": "../../../../../../packages/tlschema" }
+		{ "path": "../../../../../../packages/tlschema" },
+		{ "path": "../../../../../../packages/dotcom-shared" }
 	]
 }

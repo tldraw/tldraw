@@ -1,6 +1,6 @@
 {
 	"extends": "../../internal/config/tsconfig.base.json",
-	"include": ["src"],
+	"include": ["src", "src/fairy-shared"],
 	"exclude": ["node_modules", ".tsbuild*"],
 	"compilerOptions": { "outDir": "./.tsbuild", "rootDir": "src" },
 	"references": [
@@ -9,6 +9,7 @@
 		{ "path": "../tldraw" },
 		{ "path": "../tlschema" },
 		{ "path": "../utils" },
-		{ "path": "../validate" }
+		{ "path": "../validate" },
+		{ "path": "../tldraw" }
 	]
 }

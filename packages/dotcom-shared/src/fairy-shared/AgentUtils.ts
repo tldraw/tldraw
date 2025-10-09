@@ -1,4 +1,4 @@
-import { TldrawAgent } from '../client/agent/TldrawAgent'
+// import { TldrawAgent } from '../client/agent/TldrawAgent'
 import { AddDetailActionUtil } from './actions/AddDetailActionUtil'
 import { AgentActionUtil, AgentActionUtilConstructor } from './actions/AgentActionUtil'
 import { AlignActionUtil } from './actions/AlignActionUtil'
@@ -129,7 +129,7 @@ export const AGENT_ACTION_UTILS = [
 /**
  * Get an object containing all prompt part utils.
  */
-export function getPromptPartUtilsRecord(agent?: TldrawAgent) {
+export function getPromptPartUtilsRecord(agent?){//}: TldrawAgent) {
 	const object = {} as Record<PromptPart['type'], PromptPartUtil<PromptPart>>
 	for (const util of PROMPT_PART_UTILS) {
 		object[util.type] = new util(agent)
@@ -140,7 +140,7 @@ export function getPromptPartUtilsRecord(agent?: TldrawAgent) {
 /**
  * Get an object containing all agent action utils.
  */
-export function getAgentActionUtilsRecord(agent?: TldrawAgent) {
+export function getAgentActionUtilsRecord(agent?){//: TldrawAgent) {
 	const object = {} as Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
 	for (const util of AGENT_ACTION_UTILS) {
 		object[util.type] = new util(agent)

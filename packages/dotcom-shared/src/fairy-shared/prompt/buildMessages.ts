@@ -1,7 +1,7 @@
 import { ModelMessage, UserContent } from 'ai'
-import { getPromptPartUtilsRecord } from '../../shared/AgentUtils'
-import { AgentMessage } from '../../shared/types/AgentMessage'
-import { AgentPrompt } from '../../shared/types/AgentPrompt'
+import { getPromptPartUtilsRecord } from '../AgentUtils'
+import { AgentMessage } from '../types/AgentMessage'
+import { AgentPrompt } from '../types/AgentPrompt'
 
 export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
 	const utils = getPromptPartUtilsRecord()

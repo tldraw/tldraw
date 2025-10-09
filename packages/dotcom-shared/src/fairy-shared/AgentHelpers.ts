@@ -1,5 +1,5 @@
 import { BoxModel, Editor, TLShapeId, VecModel } from 'tldraw'
-import { TldrawAgent } from '../client/agent/TldrawAgent'
+// import { TldrawAgent } from '../client/agent/TldrawAgent'
 import { SimpleFill, SimpleFillSchema } from './format/SimpleFill'
 import { SimpleShape } from './format/SimpleShape'
 import { ContextItem } from './types/ContextItem'
@@ -24,14 +24,14 @@ export class AgentHelpers {
 	/**
 	 * The agent that the this intance of AgentHelpers is for.
 	 */
-	agent: TldrawAgent
+	agent//: TldrawAgent
 
 	/**
 	 * The editor that the this intance of AgentHelpers is for.
 	 */
 	editor: Editor
 
-	constructor(agent: TldrawAgent) {
+	constructor(agent){//: TldrawAgent) {
 		this.agent = agent
 		this.editor = agent.editor
 		const origin = agent.$chatOrigin.get()

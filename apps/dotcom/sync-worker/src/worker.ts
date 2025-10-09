@@ -43,6 +43,7 @@ import { testRoutes } from './testRoutes'
 import { Environment, QueueMessage, isDebugLogging } from './types'
 import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
 import { getAuth, requireAuth } from './utils/tla/getAuth'
+import { stream } from './fairy-worker/routes/stream'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
@@ -163,6 +164,10 @@ const router = createRouter<Environment>()
 		const result = await processor.process(createMutators(auth.userId), req)
 		return json(result)
 	})
+	.post('/app/fairy/stream', async (req, env) => { 
+		const result = await stream(req, env)
+		return result
+	})
 	.all('*', notFound)
 
 export default class Worker extends WorkerEntrypoint<Environment> {
@@ -264,3 +269,5 @@ async function blockUnknownOrigins(request: Request, env: Environment) {
 	// origin doesn't match, so we can continue
 	return undefined
 }
+
+export { AgentDurableObject } from './fairy-worker/do/AgentDurableObject'

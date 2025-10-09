@@ -1,5 +1,5 @@
 import z from 'zod'
-import { getAgentActionUtilsRecord } from '../../shared/AgentUtils'
+import { getAgentActionUtilsRecord } from '../AgentUtils'
 
 export function buildResponseSchema() {
 	const actionUtils = getAgentActionUtilsRecord()

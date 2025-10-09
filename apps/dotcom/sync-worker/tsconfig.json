@@ -1,6 +1,6 @@
 {
 	"extends": "../../../internal/config/tsconfig.base.json",
-	"include": ["src", "scripts"],
+	"include": ["src", "scripts", "../../../packages/dotcom-shared/src/fairy-shared/prompt", "../../../packages/dotcom-shared/src/fairy-shared/models.ts"],
 	"exclude": ["node_modules", "dist", ".tsbuild*"],
 	"compilerOptions": { "noEmit": true, "emitDeclarationOnly": false },
 	"references": [

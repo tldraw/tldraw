@@ -13,27 +13,30 @@ import {
 	Vec,
 	VecModel,
 } from 'tldraw'
-import { AgentActionUtil } from '../../shared/actions/AgentActionUtil'
-import { AgentHelpers } from '../../shared/AgentHelpers'
-import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../shared/AgentUtils'
-import { SimpleShape } from '../../shared/format/SimpleShape'
-import { PromptPartUtil } from '../../shared/parts/PromptPartUtil'
-import { AgentAction } from '../../shared/types/AgentAction'
-import { AgentInput } from '../../shared/types/AgentInput'
-import { AgentPrompt, BaseAgentPrompt } from '../../shared/types/AgentPrompt'
-import { AgentRequest } from '../../shared/types/AgentRequest'
-import { ChatHistoryItem } from '../../shared/types/ChatHistoryItem'
 import {
+	AgentActionUtil,
+	AgentHelpers,
+	getAgentActionUtilsRecord,
+	getPromptPartUtilsRecord,
+	SimpleShape,
+	PromptPartUtil,
+	AgentAction,
+	AgentInput,
+	AgentPrompt,
+	BaseAgentPrompt,
+	AgentRequest,
+	ChatHistoryItem,
 	AreaContextItem,
 	ContextItem,
 	PointContextItem,
 	ShapeContextItem,
 	ShapesContextItem,
-} from '../../shared/types/ContextItem'
-import { PromptPart } from '../../shared/types/PromptPart'
-import { Streaming } from '../../shared/types/Streaming'
-import { TodoItem } from '../../shared/types/TodoItem'
-import { AgentModelName, DEFAULT_MODEL_NAME } from '../../worker/models'
+	PromptPart,
+	Streaming,
+	TodoItem,
+	AgentModelName,
+	DEFAULT_MODEL_NAME
+} from '@tldraw/dotcom-shared'
 import { $agentsAtom } from './agentsAtom'
 
 export interface TldrawAgentOptions {
@@ -747,6 +750,7 @@ function requestAgent({ agent, request }: { agent: TldrawAgent; request: AgentRe
 		try {
 			for await (const action of streamAgent({ prompt, signal })) {
 				if (cancelled) break
+				console.log('AGENT ACTION\n', action)
 				editor.run(
 					() => {
 						const actionUtil = agent.getAgentActionUtil(action._type)
@@ -814,60 +818,60 @@ async function* streamAgent({
 	prompt: BaseAgentPrompt
 	signal: AbortSignal
 }): AsyncGenerator<Streaming<AgentAction>> {
-	const _propmt = prompt
-	const _signal = signal
+	// const _propmt = prompt
+	// const _signal = signal
 
-	console.warn('sike')
-	yield { _type: 'message', text: 'sike', complete: true, time: Date.now() }
+	// console.warn('sike')
+	// yield { _type: 'message', text: 'sike', complete: true, time: Date.now() }
 
-	// const res = await fetch('/stream', {
-	// 	method: 'POST',
-	// 	body: JSON.stringify(prompt),
-	// 	headers: {
-	// 		'Content-Type': 'application/json',
-	// 	},
-	// 	signal,
-	// })
+	const res = await fetch('/api/app/fairy/stream', {
+		method: 'POST',
+		body: JSON.stringify(prompt),
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		signal,
+	})
 
-	// if (!res.body) {
-	// 	throw Error('No body in response')
-	// }
+	if (!res.body) {
+		throw Error('No body in response')
+	}
 
-	// const reader = res.body.getReader()
-	// const decoder = new TextDecoder()
-	// let buffer = ''
+	const reader = res.body.getReader()
+	const decoder = new TextDecoder()
+	let buffer = ''
 
-	// try {
-	// 	while (true) {
-	// 		const { value, done } = await reader.read()
-	// 		if (done) break
+	try {
+		while (true) {
+			const { value, done } = await reader.read()
+			if (done) break
 
-	// 		buffer += decoder.decode(value, { stream: true })
-	// 		const actions = buffer.split('\n\n')
-	// 		buffer = actions.pop() || ''
+			buffer += decoder.decode(value, { stream: true })
+			const actions = buffer.split('\n\n')
+			buffer = actions.pop() || ''
 
-	// 		for (const action of actions) {
-	// 			const match = action.match(/^data: (.+)$/m)
-	// 			if (match) {
-	// 				try {
-	// 					const data = JSON.parse(match[1])
+			for (const action of actions) {
+				const match = action.match(/^data: (.+)$/m)
+				if (match) {
+					try {
+						const data = JSON.parse(match[1])
 
-	// 					// If the response contains an error, throw it
-	// 					if ('error' in data) {
-	// 						throw new Error(data.error)
-	// 					}
+						// If the response contains an error, throw it
+						if ('error' in data) {
+							throw new Error(data.error)
+						}
 
-	// 					const agentAction: Streaming<AgentAction> = data
-	// 					yield agentAction
-	// 				} catch (err: any) {
-	// 					throw new Error(err.message)
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// } finally {
-	// 	reader.releaseLock()
-	// }
+						const agentAction: Streaming<AgentAction> = data
+						yield agentAction
+					} catch (err: any) {
+						throw new Error(err.message)
+					}
+				}
+			}
+		}
+	} finally {
+		reader.releaseLock()
+	}
 }
 
 /**

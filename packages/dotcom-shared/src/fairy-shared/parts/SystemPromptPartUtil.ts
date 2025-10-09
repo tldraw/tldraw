@@ -1,4 +1,4 @@
-import { buildResponseSchema } from '../../worker/prompt/buildResponseSchema'
+import { buildResponseSchema } from '../prompt/buildResponseSchema'
 import { getSimpleShapeSchemaNames } from '../format/SimpleShape'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'

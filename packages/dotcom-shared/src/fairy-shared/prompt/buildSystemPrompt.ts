@@ -1,5 +1,5 @@
-import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../shared/AgentUtils'
-import { AgentPrompt } from '../../shared/types/AgentPrompt'
+import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../AgentUtils'
+import { AgentPrompt } from '../types/AgentPrompt'
 
 /**
  * Build a system prompt from all of the prompt parts.
