@@ -1,10 +1,35 @@
 # BUG-48: Multi-Tab Test - Authentication Not Persisting to Second Tab
 
 **Status:** Backlog
-**Priority:** Medium
+**Priority:** P2 (Medium) - Blocked
 **Component:** E2E Tests, Authentication
 **Affected Test:** `e2e/realtime-document-updates.spec.ts:222` - "document appears in both tabs simultaneously when created"
-**Dependency:** BUG-47 (must be fixed first)
+**Dependency:** BUG-47 (must be fixed first - does BUG-47 exist?)
+
+## Priority
+
+**P2 (Medium) - Blocked**
+
+**Rationale:**
+- **Blocked by BUG-47** (authentication fixture issue - need to verify if this exists)
+- **Affects 1 test** (multi-tab realtime test)
+- **Test infrastructure issue**: Playwright authentication state not shared between tabs
+- **Niche scenario**: Multi-tab testing is less common than single-tab flows
+- **Possible dependency on BUG-58**: If workspace creation fails, multi-tab test cannot proceed
+
+**Why P2:**
+- Medium importance - validates multi-tab realtime functionality
+- Blocked by another bug that needs investigation
+- Less critical than core functionality bugs
+- May be blocked by multiple dependencies
+
+**Investigation Steps:**
+1. **First, verify BUG-47 exists** - check if this bug is documented
+2. If BUG-47 doesn't exist, investigate Playwright authentication fixture
+3. Check if `authenticatedPage` fixture sets auth at context level vs page level
+4. May also be blocked by BUG-58 if workspace creation is required
+
+**Current Status:** On hold pending dependency resolution
 
 ## Problem
 

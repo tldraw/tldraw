@@ -26,6 +26,9 @@ export interface PromptDialogProps {
 	cancelText?: string
 	loading?: boolean
 	validationError?: string
+	inputTestId?: string
+	confirmButtonTestId?: string
+	cancelButtonTestId?: string
 }
 
 export function PromptDialog({
@@ -41,6 +44,9 @@ export function PromptDialog({
 	cancelText = 'Cancel',
 	loading = false,
 	validationError,
+	inputTestId = 'workspace-name-input',
+	confirmButtonTestId = 'confirm-create-workspace',
+	cancelButtonTestId = 'cancel-dialog',
 }: PromptDialogProps) {
 	const [value, setValue] = React.useState(defaultValue)
 	const inputRef = React.useRef<HTMLInputElement>(null)
@@ -62,9 +68,8 @@ export function PromptDialog({
 		if (!trimmedValue) return
 
 		await onConfirm(trimmedValue)
-		if (!loading) {
-			onOpenChange(false)
-		}
+		// Note: Parent component is responsible for closing the dialog
+		// via onOpenChange or by setting open=false
 	}
 
 	const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -86,6 +91,7 @@ export function PromptDialog({
 					<Input
 						ref={inputRef}
 						id="prompt-input"
+						data-testid={inputTestId}
 						value={value}
 						onChange={(e) => setValue(e.target.value)}
 						onKeyDown={handleKeyDown}
@@ -98,10 +104,19 @@ export function PromptDialog({
 					)}
 				</div>
 				<DialogFooter>
-					<Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+					<Button
+						variant="outline"
+						onClick={() => onOpenChange(false)}
+						disabled={loading}
+						data-testid={cancelButtonTestId}
+					>
 						{cancelText}
 					</Button>
-					<Button onClick={handleConfirm} disabled={loading || !value.trim()}>
+					<Button
+						onClick={handleConfirm}
+						disabled={loading || !value.trim()}
+						data-testid={confirmButtonTestId}
+					>
 						{loading ? 'Processing...' : confirmText}
 					</Button>
 				</DialogFooter>

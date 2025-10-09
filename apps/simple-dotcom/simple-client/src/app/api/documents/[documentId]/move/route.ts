@@ -1,9 +1,10 @@
 // Document Move API Route
-// POST /api/documents/:documentId/move - Move document between folders/workspaces
+// PATCH /api/documents/:documentId/move - Move document to folder
 
 import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, successResponse } from '@/lib/api/response'
 import { Document } from '@/lib/api/types'
+import { broadcastDocumentEvent } from '@/lib/realtime/broadcast'
 import { createClient, getCurrentUser } from '@/lib/supabase/server'
 import { NextRequest } from 'next/server'
 
@@ -12,20 +13,14 @@ type RouteContext = {
 }
 
 interface MoveDocumentRequest {
-	target_workspace_id?: string // Target workspace (optional - for cross-workspace moves)
-	target_folder_id?: string | null // Target folder (null for workspace root)
+	folder_id: string | null // null = move to workspace root
 }
 
 /**
- * POST /api/documents/:documentId/move
- * Move document to different folder or workspace
- *
- * Permission rules:
- * - Only document creator can move documents between workspaces
- * - Workspace members can move documents within the same workspace
- * - Must be a member of target workspace
+ * PATCH /api/documents/:documentId/move
+ * Move document to a different folder or workspace root
  */
-export async function POST(request: NextRequest, context: RouteContext) {
+export async function PATCH(request: NextRequest, context: RouteContext) {
 	try {
 		const user = await getCurrentUser()
 		if (!user) {
@@ -36,140 +31,92 @@ export async function POST(request: NextRequest, context: RouteContext) {
 		const { documentId } = await context.params
 		const body: MoveDocumentRequest = await request.json()
 
-		// Get current document
+		// Get document and verify access
 		const { data: document } = await supabase
 			.from('documents')
-			.select('*, workspaces!inner(is_deleted)')
+			.select('*, workspaces(is_deleted)')
 			.eq('id', documentId)
 			.single()
 
-		if (!document || document.workspaces.is_deleted) {
+		if (!document || document.workspaces?.is_deleted) {
 			throw new ApiException(404, ErrorCodes.DOCUMENT_NOT_FOUND, 'Document not found')
 		}
 
-		// Check if user is member of source workspace
-		const { data: sourceMembership } = await supabase
+		// Verify user is workspace member
+		const { data: membership } = await supabase
 			.from('workspace_members')
 			.select('*')
 			.eq('workspace_id', document.workspace_id)
 			.eq('user_id', user.id)
 			.single()
 
-		if (!sourceMembership) {
-			throw new ApiException(
-				403,
-				ErrorCodes.FORBIDDEN,
-				'You must be a member of the document workspace'
-			)
+		if (!membership) {
+			throw new ApiException(403, ErrorCodes.FORBIDDEN, 'Only workspace members can move documents')
 		}
 
-		// Determine target workspace and folder
-		const targetWorkspaceId = body.target_workspace_id || document.workspace_id
-		const targetFolderId =
-			body.target_folder_id !== undefined ? body.target_folder_id : document.folder_id
-		const isCrossWorkspaceMove = targetWorkspaceId !== document.workspace_id
-
-		// Validate cross-workspace move permissions
-		if (isCrossWorkspaceMove) {
-			// Only document creator can move between workspaces
-			if (document.created_by !== user.id) {
-				throw new ApiException(
-					403,
-					ErrorCodes.FORBIDDEN,
-					'Only the document creator can move documents between workspaces'
-				)
-			}
-
-			// Verify target workspace exists and is not deleted
-			const { data: targetWorkspace } = await supabase
-				.from('workspaces')
-				.select('is_deleted')
-				.eq('id', targetWorkspaceId)
-				.single()
-
-			if (!targetWorkspace || targetWorkspace.is_deleted) {
-				throw new ApiException(404, ErrorCodes.WORKSPACE_NOT_FOUND, 'Target workspace not found')
-			}
-
-			// Verify user is member of target workspace
-			const { data: targetMembership } = await supabase
-				.from('workspace_members')
-				.select('*')
-				.eq('workspace_id', targetWorkspaceId)
-				.eq('user_id', user.id)
-				.single()
-
-			if (!targetMembership) {
-				throw new ApiException(
-					403,
-					ErrorCodes.FORBIDDEN,
-					'You must be a member of the target workspace'
-				)
-			}
+		// Check if document is archived (can't move archived documents)
+		if (document.is_archived) {
+			throw new ApiException(409, ErrorCodes.CONFLICT, 'Cannot move archived document')
 		}
 
-		// Validate target folder (if specified)
-		if (targetFolderId) {
-			const { data: targetFolder } = await supabase
+		// Validate folder if not null
+		if (body.folder_id !== null) {
+			const { data: folder } = await supabase
 				.from('folders')
 				.select('workspace_id')
-				.eq('id', targetFolderId)
+				.eq('id', body.folder_id)
 				.single()
 
-			if (!targetFolder) {
-				throw new ApiException(404, ErrorCodes.FOLDER_NOT_FOUND, 'Target folder not found')
+			if (!folder) {
+				throw new ApiException(404, ErrorCodes.FOLDER_NOT_FOUND, 'Folder not found')
 			}
 
-			// Ensure folder belongs to target workspace
-			if (targetFolder.workspace_id !== targetWorkspaceId) {
+			if (folder.workspace_id !== document.workspace_id) {
 				throw new ApiException(
 					409,
 					ErrorCodes.FOLDER_NOT_IN_WORKSPACE,
-					'Target folder does not belong to target workspace'
+					'Folder does not belong to this workspace'
 				)
 			}
 		}
 
-		// Check if move is actually changing anything
-		if (targetWorkspaceId === document.workspace_id && targetFolderId === document.folder_id) {
-			throw new ApiException(
-				400,
-				ErrorCodes.INVALID_INPUT,
-				'Document is already in the specified location'
-			)
+		// Check if already in target location (no-op)
+		if (document.folder_id === body.folder_id) {
+			return successResponse<Document>(document)
 		}
 
-		// Perform the move atomically
-		const { data: updatedDocument, error: updateError } = await supabase
+		// Move document
+		const { data: updated, error } = await supabase
 			.from('documents')
 			.update({
-				workspace_id: targetWorkspaceId,
-				folder_id: targetFolderId,
+				folder_id: body.folder_id,
 				updated_at: new Date().toISOString(),
 			})
 			.eq('id', documentId)
 			.select()
 			.single()
 
-		if (updateError || !updatedDocument) {
+		if (error || !updated) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to move document')
 		}
 
-		// Log the move operation in audit logs
-		await supabase.from('audit_logs').insert({
-			workspace_id: targetWorkspaceId,
-			user_id: user.id,
-			document_id: documentId,
-			action: isCrossWorkspaceMove ? 'document.moved_workspace' : 'document.moved_folder',
-			metadata: {
-				source_workspace_id: document.workspace_id,
-				source_folder_id: document.folder_id,
-				target_workspace_id: targetWorkspaceId,
-				target_folder_id: targetFolderId,
+		// Broadcast move event
+		await broadcastDocumentEvent(
+			supabase,
+			documentId,
+			document.workspace_id,
+			'document.moved',
+			{
+				documentId,
+				workspaceId: document.workspace_id,
+				name: updated.name,
+				folderId: updated.folder_id,
+				previousFolderId: document.folder_id,
 			},
-		})
+			user.id
+		)
 
-		return successResponse<Document>(updatedDocument)
+		return successResponse<Document>(updated)
 	} catch (error) {
 		return handleApiError(error)
 	}

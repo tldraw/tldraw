@@ -20,6 +20,8 @@ export interface ConfirmDialogProps {
 	onConfirm: () => void | Promise<void>
 	destructive?: boolean
 	loading?: boolean
+	confirmButtonTestId?: string
+	cancelButtonTestId?: string
 }
 
 export function ConfirmDialog({
@@ -32,6 +34,8 @@ export function ConfirmDialog({
 	onConfirm,
 	destructive = false,
 	loading = false,
+	confirmButtonTestId,
+	cancelButtonTestId,
 }: ConfirmDialogProps) {
 	const handleConfirm = async () => {
 		await onConfirm()
@@ -48,13 +52,19 @@ export function ConfirmDialog({
 					<DialogDescription>{description}</DialogDescription>
 				</DialogHeader>
 				<DialogFooter>
-					<Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+					<Button
+						variant="outline"
+						onClick={() => onOpenChange(false)}
+						disabled={loading}
+						data-testid={cancelButtonTestId}
+					>
 						{cancelText}
 					</Button>
 					<Button
 						variant={destructive ? 'destructive' : 'default'}
 						onClick={handleConfirm}
 						disabled={loading}
+						data-testid={confirmButtonTestId}
 					>
 						{loading ? 'Processing...' : confirmText}
 					</Button>

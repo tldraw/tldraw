@@ -31,10 +31,19 @@ export function getLogger(): pino.Logger {
 			(process.env.LOG_TO_FILE !== 'false' && process.env.NODE_ENV === 'production')
 
 		// Determine log directory path
-		// For dev: apps/simple-dotcom/.logs/
+		// For dev/test: apps/simple-dotcom/.logs/
 		// For production: .logs/ relative to working directory
 		const logDir = process.env.NODE_ENV === 'production' ? '.logs' : '../.logs'
 		const logPath = join(process.cwd(), logDir, 'backend.log')
+
+		// Ensure log directory exists if file logging is enabled
+		if (shouldLogToFile) {
+			const fs = require('fs')
+			const logDirPath = join(process.cwd(), logDir)
+			if (!fs.existsSync(logDirPath)) {
+				fs.mkdirSync(logDirPath, { recursive: true })
+			}
+		}
 
 		// Build streams array
 		const logLevel = (process.env.LOG_LEVEL || 'info') as pino.Level

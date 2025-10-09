@@ -166,6 +166,27 @@ export async function POST(request: NextRequest) {
 			member_count: memberData?.length || 1,
 		})
 
+		// Broadcast workspace creation event (fire-and-forget, don't block response)
+		// Note: This won't be received by the creator's client since they're not subscribed
+		// to the new workspace's channel yet. The client will refetch via React Query instead.
+		const { broadcastWorkspaceEvent } = await import('@/lib/realtime/broadcast')
+		broadcastWorkspaceEvent(
+			supabaseAdmin,
+			workspace.id,
+			'workspace.created',
+			{
+				workspaceId: workspace.id,
+				name: workspace.name,
+			},
+			user.id
+		).catch((err) => {
+			logger.error('Failed to broadcast workspace creation event', err, {
+				context: 'workspace_creation_broadcast',
+				route: '/api/workspaces',
+				workspace_id: workspace.id,
+			})
+		})
+
 		return successResponse<Workspace>(workspace, 201)
 	} catch (error) {
 		return handleApiError(error)

@@ -1,15 +1,15 @@
 # DOC-07: Document Move to Folder UI
 
 Date created: 2025-01-09
-Date last updated: -
-Date completed: -
+Date last updated: 2025-01-09
+Date completed: 2025-01-09
 
 ## Status
 
-- [x] Not Started
+- [ ] Not Started
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -300,7 +300,20 @@ Total: ~1.5-2 days for experienced developer
 
 ## Worklog
 
-_Track progress, decisions, and blockers as work proceeds. Each entry should include date and brief description._
+**2025-01-09:** Initial implementation completed
+- Created `/api/documents/[documentId]/move` API endpoint with full validation
+- Built `MoveDocumentDialog.tsx` component with recursive folder tree rendering
+- Added "Move" action to document dropdown menu (DocumentActions.tsx)
+- Integrated with workspace documents client using hybrid realtime pattern
+- Created 3 E2E tests covering move operations, archived document prevention, and cross-workspace validation
+- All typechecks passing
+- Realtime broadcast integration complete (broadcasts `document.moved` event)
+
+**Implementation Details:**
+- API validates: workspace membership, folder ownership, non-archived documents, and same-workspace constraint
+- Dialog features: collapsible folder tree, workspace root option, disabled current location, loading/error states
+- Realtime: Broadcasts trigger React Query invalidation for instant UI updates
+- E2E tests use existing fixture pattern (authenticatedPage, supabaseAdmin, testUser)
 
 ## Open questions
 

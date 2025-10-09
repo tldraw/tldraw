@@ -372,7 +372,7 @@ test.describe('Document UI Operations (NAV-03A)', () => {
 			await documentCard.hover()
 
 			// Wait for actions to appear (they show on hover) and click the three-dot menu button
-			await documentCard.locator('button[aria-label="Actions"]').click()
+			await documentCard.locator('button[aria-label="Document actions"]').click()
 
 			// Set up dialog handler to accept the confirmation
 			page.once('dialog', (dialog) => dialog.accept())

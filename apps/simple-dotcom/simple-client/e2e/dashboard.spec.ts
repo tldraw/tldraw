@@ -652,7 +652,7 @@ test.describe('Global Dashboard', () => {
 
 			// The actions menu should become visible (it has opacity-0 group-hover:opacity-100)
 			// Check if the menu button exists within the document item
-			const actionsButton = docItem.locator('button[aria-label="Actions"]')
+			const actionsButton = docItem.locator('button[aria-label="Document actions"]')
 			await expect(actionsButton).toBeVisible({ timeout: 5000 })
 		})
 
@@ -687,7 +687,7 @@ test.describe('Global Dashboard', () => {
 
 			// Hover and click actions menu
 			await docItem.hover()
-			const actionsButton = docItem.locator('button[aria-label="Actions"]')
+			const actionsButton = docItem.locator('button[aria-label="Document actions"]')
 			await actionsButton.click()
 
 			// Click rename option and wait for API response
@@ -727,7 +727,7 @@ test.describe('Global Dashboard', () => {
 
 			// Hover and open actions menu
 			await docItem.hover()
-			const actionsButton = docItem.locator('button[aria-label="Actions"]')
+			const actionsButton = docItem.locator('button[aria-label="Document actions"]')
 			await actionsButton.click()
 
 			// Click archive option

@@ -1,8 +1,9 @@
 'use client'
 
 // useWorkspaceRealtimeUpdates Hook
-// Subscribes to real-time Postgres changes for workspace-related tables
+// Subscribes to real-time Broadcast events for workspace-related changes
 
+import { CHANNEL_PATTERNS } from '@/lib/realtime/types'
 import { getBrowserClient } from '@/lib/supabase/browser'
 import { RealtimeChannel } from '@supabase/supabase-js'
 import { useEffect, useRef } from 'react'
@@ -13,10 +14,17 @@ interface UseWorkspaceRealtimeUpdatesOptions {
 }
 
 /**
- * Hook to subscribe to real-time Postgres changes for a workspace
+ * Hook to subscribe to workspace-level broadcast events
  *
- * Listens to INSERT, UPDATE, DELETE events on documents, folders, and workspace_members tables.
- * Filters events to only those relevant to the specified workspace.
+ * Part of the hybrid realtime strategy:
+ * - Primary: Supabase Realtime Broadcast (instant updates via WebSocket)
+ * - Fallback: React Query polling (10-15 second intervals in parent component)
+ *
+ * Listens to broadcast events on the workspace channel for:
+ * - Document changes (created, updated, archived, deleted, moved)
+ * - Folder changes (created, updated, deleted)
+ * - Member changes (added, removed, updated)
+ * - Workspace metadata changes (updated, archived)
  *
  * @param workspaceId - The workspace ID to subscribe to
  * @param options - onChange callback and configuration
@@ -42,52 +50,16 @@ export function useWorkspaceRealtimeUpdates(
 			return
 		}
 
-		// Create channel and subscribe to postgres changes
-		const channel = supabase
-			.channel(`workspace:${workspaceId}:postgres_changes`)
-			// Listen to all document changes in this workspace
-			.on(
-				'postgres_changes',
-				{
-					event: '*',
-					schema: 'public',
-					table: 'documents',
-					filter: `workspace_id=eq.${workspaceId}`,
-				},
-				() => {
-					onChangeRef.current?.()
-				}
-			)
-			// Listen to all folder changes in this workspace
-			.on(
-				'postgres_changes',
-				{
-					event: '*',
-					schema: 'public',
-					table: 'folders',
-					filter: `workspace_id=eq.${workspaceId}`,
-				},
-				() => {
-					onChangeRef.current?.()
-				}
-			)
-			// Listen to workspace member changes
-			.on(
-				'postgres_changes',
-				{
-					event: '*',
-					schema: 'public',
-					table: 'workspace_members',
-					filter: `workspace_id=eq.${workspaceId}`,
-				},
-				() => {
-					onChangeRef.current?.()
-				}
-			)
-			.subscribe()
+		const channelName = CHANNEL_PATTERNS.workspace(workspaceId)
 
-		// Trigger initial fetch of folders, documents, and workspace members
-		onChangeRef.current?.()
+		// Subscribe to broadcast events on workspace channel
+		const channel = supabase
+			.channel(channelName)
+			.on('broadcast', { event: 'workspace_event' }, (payload) => {
+				// Trigger React Query invalidation for any workspace event
+				onChangeRef.current?.()
+			})
+			.subscribe()
 
 		// Store channel reference
 		channelRef.current = channel

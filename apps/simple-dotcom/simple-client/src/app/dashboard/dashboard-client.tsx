@@ -2,6 +2,7 @@
 
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { PromptDialog } from '@/components/ui/prompt-dialog'
+import { useDashboardRealtimeUpdates } from '@/hooks/useDashboardRealtimeUpdates'
 import { Document, Folder, RecentDocument, User, Workspace, WorkspaceRole } from '@/lib/api/types'
 import { getBrowserClient } from '@/lib/supabase/browser'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -85,6 +86,17 @@ export default function DashboardClient({
 		}
 	}, [])
 
+	// Subscribe to realtime updates for all workspaces
+	const workspaceIds = dashboardData.workspaces.map((w) => w.workspace.id)
+	const handleRealtimeChange = useCallback(() => {
+		queryClient.invalidateQueries({ queryKey: ['dashboard', userId] })
+	}, [queryClient, userId])
+
+	useDashboardRealtimeUpdates(userId, workspaceIds, {
+		onChange: handleRealtimeChange,
+		enabled: true,
+	})
+
 	// Define handlers before useEffect to avoid dependency issues
 	const handleCloseCreateModal = useCallback(() => {
 		// Cancel any pending request
@@ -149,13 +161,16 @@ export default function DashboardClient({
 				// Invalidate to trigger refetch and wait for it to complete
 				await queryClient.refetchQueries({ queryKey: ['dashboard', userId] })
 				setExpandedWorkspaces((prev) => new Set([...prev, data.data.id]))
-				// Only close modal on success
-				setShowCreateModal(false)
 				setNewWorkspaceName('')
 				setValidationError(null)
+				setActionLoading(false)
+				currentRequestRef.current = null
+				// Modal will be closed automatically by PromptDialog after this function returns
 			} else {
-				// Show error in modal, not alert
+				// Show error in modal, keep it open
 				setValidationError(data.error?.message || 'Failed to create workspace')
+				setActionLoading(false)
+				currentRequestRef.current = null
 			}
 		} catch (err: any) {
 			// Don't show error if request was aborted
@@ -163,7 +178,6 @@ export default function DashboardClient({
 				console.error('Failed to create workspace:', err)
 				setValidationError('Failed to create workspace. Please try again.')
 			}
-		} finally {
 			setActionLoading(false)
 			currentRequestRef.current = null
 		}
@@ -212,8 +226,9 @@ export default function DashboardClient({
 			const data = await response.json()
 
 			if (data.success) {
-				// Invalidate to trigger refetch
-				queryClient.invalidateQueries({ queryKey: ['dashboard', userId] })
+				// Wait for refetch to complete before closing modal
+				// This ensures the workspace is removed from the list before re-subscribing
+				await queryClient.refetchQueries({ queryKey: ['dashboard', userId] })
 				setShowDeleteModal(false)
 				setSelectedWorkspace(null)
 				toast.success('Workspace deleted successfully')
@@ -460,8 +475,48 @@ export default function DashboardClient({
 				placeholder="Enter workspace name"
 				defaultValue={newWorkspaceName}
 				onConfirm={async (name) => {
-					setNewWorkspaceName(name)
-					await handleCreateWorkspace()
+					if (!name.trim()) {
+						setValidationError('Workspace name is required')
+						return
+					}
+
+					try {
+						setActionLoading(true)
+						setValidationError(null)
+
+						const abortController = new AbortController()
+						currentRequestRef.current = abortController
+
+						const response = await fetch('/api/workspaces', {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({ name: name.trim() }),
+							signal: abortController.signal,
+						})
+
+						const data = await response.json()
+
+						if (data.success && data.data) {
+							await queryClient.refetchQueries({ queryKey: ['dashboard', userId] })
+							setExpandedWorkspaces((prev) => new Set([...prev, data.data.id]))
+							setNewWorkspaceName('')
+							setValidationError(null)
+							setActionLoading(false)
+							currentRequestRef.current = null
+							setShowCreateModal(false)
+						} else {
+							setValidationError(data.error?.message || 'Failed to create workspace')
+							setActionLoading(false)
+							currentRequestRef.current = null
+						}
+					} catch (err: any) {
+						if (err.name !== 'AbortError') {
+							console.error('Failed to create workspace:', err)
+							setValidationError('Failed to create workspace. Please try again.')
+						}
+						setActionLoading(false)
+						currentRequestRef.current = null
+					}
 				}}
 				confirmText="Create"
 				loading={actionLoading}
@@ -483,11 +538,40 @@ export default function DashboardClient({
 				placeholder="New workspace name"
 				defaultValue={selectedWorkspace?.name || newWorkspaceName}
 				onConfirm={async (name) => {
-					setNewWorkspaceName(name)
-					await handleRenameWorkspace()
+					if (!selectedWorkspace || !name.trim()) return
+
+					try {
+						setActionLoading(true)
+						const response = await fetch(`/api/workspaces/${selectedWorkspace.id}`, {
+							method: 'PATCH',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({ name: name.trim() }),
+						})
+
+						const data = await response.json()
+
+						if (data.success && data.data) {
+							await queryClient.refetchQueries({ queryKey: ['dashboard', userId] })
+							setActionLoading(false)
+							setShowRenameModal(false)
+							setNewWorkspaceName('')
+							setSelectedWorkspace(null)
+							toast.success('Workspace renamed successfully')
+						} else {
+							setActionLoading(false)
+							toast.error(data.error?.message || 'Failed to rename workspace')
+						}
+					} catch (err) {
+						console.error('Failed to rename workspace:', err)
+						setActionLoading(false)
+						toast.error('Failed to rename workspace')
+					}
 				}}
 				confirmText="Rename"
 				loading={actionLoading}
+				inputTestId="rename-workspace-input"
+				confirmButtonTestId="confirm-rename-workspace"
+				cancelButtonTestId="cancel-rename-workspace"
 			/>
 
 			{/* Delete Workspace Modal */}
@@ -505,6 +589,8 @@ export default function DashboardClient({
 				confirmText="Delete"
 				destructive
 				loading={actionLoading}
+				confirmButtonTestId="confirm-delete-workspace"
+				cancelButtonTestId="cancel-delete-workspace"
 			/>
 
 			{/* Create Document Modal */}

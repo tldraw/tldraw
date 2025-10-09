@@ -24,6 +24,7 @@ interface DocumentListItemProps {
 	onClick?: () => void
 	onRename?: (newName: string) => void
 	onDuplicate?: () => void
+	onMove?: () => void
 	onArchive?: () => void
 	onRestore?: () => void
 	onDelete?: () => void
@@ -38,6 +39,7 @@ export function DocumentListItem({
 	onClick,
 	onRename,
 	onDuplicate,
+	onMove,
 	onArchive,
 	onRestore,
 	onDelete,
@@ -127,6 +129,7 @@ export function DocumentListItem({
 					document={document}
 					onRename={onRename}
 					onDuplicate={onDuplicate}
+					onMove={onMove}
 					onArchive={onArchive}
 					onRestore={onRestore}
 					onDelete={onDelete}

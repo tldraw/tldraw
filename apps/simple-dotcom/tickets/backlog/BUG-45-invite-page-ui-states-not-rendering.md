@@ -15,10 +15,30 @@ Date completed: -
 
 ## Priority
 
-- [x] P0 (Critical - Blocking)
-- [ ] P1 (High - Should Fix Soon)
-- [ ] P2 (Medium - Normal Priority)
-- [ ] P3 (Low - Nice to Have)
+**P1 (High) - Fix Soon**
+
+**Rationale:**
+- **Affects 4 E2E tests** (invite.spec.ts)
+- **Partially resolved**: 1 of 3 sub-issues already fixed (BUG-39)
+- **Clear fix path**: Likely database migration issue, not complex code problem
+- **Quick win**: Running `supabase db reset` may resolve remaining 2 issues
+- **User impact**: Invitation system is important but not blocking core functionality
+- **Workaround exists**: Users can still join workspaces via direct API if needed
+
+**Why not P0:**
+- Already 50% resolved (4/8 tests passing)
+- Clear investigation path and likely simple fix
+- Does not block other bugs
+- Invitation flow is secondary to core workspace operations
+
+**Suggested Fix:**
+1. Run `supabase db reset` to apply all migrations
+2. Verify migration `20251008130000_bug_26_enable_invitation_links_by_default.sql` is applied
+3. Re-run invite tests
+4. If still failing, investigate token regeneration logic
+
+**Previous Priority:** P0 (Critical)
+**New Priority:** P1 (High) - demoted because BUG-58 has broader impact
 
 ## Category
 
@@ -176,6 +196,16 @@ The UI implementation is complete and correct. The issue is likely in the server
 **Hypothesis:** Same database migration issue as BUG-38
 **Next Step:** Database reset required
 
+**Failing Test:** `invite.spec.ts` > "Error Scenarios" > "should show error for regenerated token"
+
+**Test Behavior:** The test regenerates an invitation link and tries to access the old token. Instead of showing "Link Expired", it shows "Link Disabled" message. This suggests the old token is being marked as disabled rather than expired/regenerated, OR the new invitation link is being created with `enabled=false` by default.
+
+**Investigation Notes from BUG-41:**
+- UI implementation in `invite-accept-client.tsx` is complete (line 154-174)
+- Check order bug was fixed (see BUG-39)
+- Root cause: Migration `20251008130000_bug_26_enable_invitation_links_by_default.sql` may not be applied in test environment
+- Database may not have all migrations applied
+
 ### Key Findings
 1. **UI Implementation:** All 6 invite page states are properly implemented in `invite-accept-client.tsx`
 2. **Check Order Bug:** Fixed by reordering server-side status checks
@@ -185,5 +215,12 @@ The UI implementation is complete and correct. The issue is likely in the server
 ### Action Items
 - [x] Fix check order bug (BUG-39 resolved)
 - [ ] Run `supabase db reset` to apply all migrations
+- [ ] Verify migration `20251008130000_bug_26_enable_invitation_links_by_default.sql` is applied
+- [ ] Check regeneration logic to ensure old tokens are properly marked as regenerated vs disabled
 - [ ] Re-run tests after database reset
-- [ ] Verify all 8 tests pass after reset
+- [ ] Verify all 8 invite tests pass after reset
+
+### Screenshots Available
+- `test-results/invite-Workspace-Invitatio-02ebf-error-for-regenerated-token-chromium/test-failed-1.png`
+- `test-results/invite-Workspace-Invitatio-02ebf-error-for-regenerated-token-chromium/test-failed-2.png`
+- `test-results/invite-Workspace-Invitatio-02ebf-error-for-regenerated-token-chromium/test-failed-3.png`

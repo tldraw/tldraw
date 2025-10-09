@@ -2,6 +2,7 @@
 
 import { DocumentListItem } from '@/components/documents/DocumentListItem'
 import { EmptyDocumentList } from '@/components/documents/EmptyDocumentList'
+import { MoveDocumentDialog } from '@/components/documents/MoveDocumentDialog'
 import { PromptDialog } from '@/components/ui/prompt-dialog'
 import { useWorkspaceRealtimeUpdates } from '@/hooks/useWorkspaceRealtimeUpdates'
 import { Document, Folder, Workspace } from '@/lib/api/types'
@@ -29,6 +30,8 @@ export default function WorkspaceDocumentsClient({
 	const [isCreating, setIsCreating] = useState(false)
 	const [selectedFolder, _setSelectedFolder] = useState<string | null>(null)
 	const [showCreateDialog, setShowCreateDialog] = useState(false)
+	const [showMoveDialog, setShowMoveDialog] = useState(false)
+	const [documentToMove, setDocumentToMove] = useState<Document | null>(null)
 
 	// Fetch documents data with React Query
 	// Hybrid approach: Realtime for instant updates + polling for reliability
@@ -192,6 +195,39 @@ export default function WorkspaceDocumentsClient({
 		alert('Permanent deletion will be available in a future update')
 	}, [])
 
+	const handleMoveDocument = useCallback((document: Document) => {
+		setDocumentToMove(document)
+		setShowMoveDialog(true)
+	}, [])
+
+	const handleConfirmMove = useCallback(
+		async (folderId: string | null) => {
+			if (!documentToMove) return
+
+			try {
+				const response = await fetch(`/api/documents/${documentToMove.id}/move`, {
+					method: 'PATCH',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ folder_id: folderId }),
+				})
+
+				if (!response.ok) {
+					const error = await response.json()
+					throw new Error(error.message || 'Failed to move document')
+				}
+
+				// No need to handle the response - React Query will refetch via broadcast event
+				// The server broadcasts 'document.moved' which triggers query invalidation
+			} catch (err) {
+				alert(
+					`Error moving document: ${err instanceof Error ? err.message : 'An unexpected error occurred'}`
+				)
+				throw err
+			}
+		},
+		[documentToMove]
+	)
+
 	return (
 		<div className="flex h-full flex-col">
 			{/* Documents header */}
@@ -231,6 +267,7 @@ export default function WorkspaceDocumentsClient({
 								onClick={() => router.push(`/d/${document.id}`)}
 								onRename={(newName) => handleRenameDocument(document.id, newName)}
 								onDuplicate={() => handleDuplicateDocument(document.id)}
+								onMove={() => handleMoveDocument(document)}
 								onArchive={() => handleArchiveDocument(document.id)}
 								onRestore={() => handleRestoreDocument(document.id)}
 								onDelete={isOwner ? () => handleDeleteDocument(document.id) : undefined}
@@ -251,6 +288,15 @@ export default function WorkspaceDocumentsClient({
 				confirmText="Create"
 				loading={isCreating}
 			/>
+			{documentToMove && (
+				<MoveDocumentDialog
+					open={showMoveDialog}
+					onOpenChange={setShowMoveDialog}
+					document={documentToMove}
+					workspaceId={workspace.id}
+					onMove={handleConfirmMove}
+				/>
+			)}
 		</div>
 	)
 }

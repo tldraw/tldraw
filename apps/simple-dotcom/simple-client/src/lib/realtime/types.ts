@@ -15,6 +15,7 @@ export interface RealtimeEvent<T = unknown> {
  * Workspace-level events
  */
 export type WorkspaceEventType =
+	| 'workspace.created'
 	| 'workspace.updated'
 	| 'workspace.archived'
 	| 'workspace.restored'
@@ -29,6 +30,7 @@ export type WorkspaceEventType =
 	| 'document.archived'
 	| 'document.restored'
 	| 'document.deleted'
+	| 'document.moved'
 
 /**
  * Document-level events (for subscriptions to specific documents)
