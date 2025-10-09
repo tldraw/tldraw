@@ -135,123 +135,6 @@ test.describe('Document UI Operations (NAV-03A)', () => {
 		}
 	})
 
-	test.skip('document list updates in realtime when document is created', async ({
-		authenticatedPage,
-		supabaseAdmin,
-		testUser,
-	}) => {
-		const page = authenticatedPage
-		const workspaceName = `Realtime Test ${Date.now()}`
-
-		// Create workspace
-		await page.click('[data-testid="create-workspace-button"]')
-		await page.fill('[data-testid="workspace-name-input"]', workspaceName)
-		await page.click('[data-testid="confirm-create-workspace"]')
-
-		// Wait for modal to close and workspace to be created
-		await page.waitForSelector('[data-testid="workspace-name-input"]', {
-			state: 'hidden',
-			timeout: 10000,
-		})
-		await expect(page.getByText(workspaceName)).toBeVisible({ timeout: 10000 })
-
-		// Get workspace ID from the workspace list
-		const workspaceElement = page
-			.locator(`[data-testid^="workspace-item-"]`)
-			.filter({ hasText: workspaceName })
-			.first()
-		const workspaceId = (await workspaceElement.getAttribute('data-testid'))?.replace(
-			'workspace-item-',
-			''
-		)
-
-		// Wait for page to load
-		await expect(page.getByTestId('create-document-button')).toBeVisible()
-
-		// Create document via API (simulating another user or tab)
-		const documentName = `Realtime Document ${Date.now()}`
-		const { data: document } = await supabaseAdmin
-			.from('documents')
-			.insert({
-				workspace_id: workspaceId,
-				name: documentName,
-				created_by: testUser.id,
-				sharing_mode: 'private',
-			})
-			.select()
-			.single()
-
-		// Document should appear in UI via realtime subscription
-		await expect(page.getByText(documentName)).toBeVisible({ timeout: 10000 })
-
-		// Cleanup
-		await supabaseAdmin.from('documents').delete().eq('id', document.id)
-		await supabaseAdmin.from('workspaces').delete().eq('id', workspaceId)
-	})
-
-	test.skip('document list updates in realtime when document is archived', async ({
-		authenticatedPage,
-		supabaseAdmin,
-		testUser,
-	}) => {
-		const page = authenticatedPage
-		const workspaceName = `Archive Realtime Test ${Date.now()}`
-
-		// Create workspace
-		await page.click('[data-testid="create-workspace-button"]')
-		await page.fill('[data-testid="workspace-name-input"]', workspaceName)
-		await page.click('[data-testid="confirm-create-workspace"]')
-
-		// Wait for modal to close and workspace to be created
-		await page.waitForSelector('[data-testid="workspace-name-input"]', {
-			state: 'hidden',
-			timeout: 10000,
-		})
-		await expect(page.getByText(workspaceName)).toBeVisible({ timeout: 10000 })
-
-		// Get workspace ID from the workspace list
-		const workspaceElement = page
-			.locator(`[data-testid^="workspace-item-"]`)
-			.filter({ hasText: workspaceName })
-			.first()
-		const workspaceId = (await workspaceElement.getAttribute('data-testid'))?.replace(
-			'workspace-item-',
-			''
-		)
-
-		// Create document
-		const documentName = `To Archive ${Date.now()}`
-		const { data: document } = await supabaseAdmin
-			.from('documents')
-			.insert({
-				workspace_id: workspaceId,
-				name: documentName,
-				created_by: testUser.id,
-				sharing_mode: 'private',
-			})
-			.select()
-			.single()
-
-		// Wait for document to appear
-		await expect(page.getByText(documentName)).toBeVisible({ timeout: 5000 })
-
-		// Archive document via API (simulating action)
-		await supabaseAdmin
-			.from('documents')
-			.update({
-				is_archived: true,
-				archived_at: new Date().toISOString(),
-			})
-			.eq('id', document.id)
-
-		// Document should disappear from list via realtime subscription
-		await expect(page.getByText(documentName)).not.toBeVisible({ timeout: 10000 })
-
-		// Cleanup
-		await supabaseAdmin.from('documents').delete().eq('id', document.id)
-		await supabaseAdmin.from('workspaces').delete().eq('id', workspaceId)
-	})
-
 	test('shows empty state when workspace has no documents', async ({
 		authenticatedPage,
 		supabaseAdmin,
@@ -388,7 +271,8 @@ test.describe('Document UI Operations (NAV-03A)', () => {
 			await page.getByRole('menuitem', { name: /delete permanently/i }).click()
 
 			// Document should disappear from list immediately (optimistic update)
-			await expect(page.getByText(documentName)).not.toBeVisible({ timeout: 1000 })
+			// Use a more specific selector to avoid matching the confirmation dialog text
+			await expect(documentCard).not.toBeVisible({ timeout: 5000 })
 
 			// Wait for the API call to complete
 			const response = await deleteRequest

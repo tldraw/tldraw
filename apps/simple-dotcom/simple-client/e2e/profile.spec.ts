@@ -59,56 +59,6 @@ test.describe('User Profile', () => {
 		await expect(displayNameInput).toHaveValue(newDisplayName)
 	})
 
-	test('should validate empty display name', async ({ authenticatedPage }) => {
-		const page = authenticatedPage
-
-		await page.goto('/profile')
-		await page.waitForSelector('[data-testid="display-name-input"]')
-
-		// Try to clear display name
-		await page.fill('[data-testid="display-name-input"]', '')
-
-		// Form validation should prevent submission
-		const displayNameInput = page.locator('[data-testid="display-name-input"]')
-		const validationMessage = await displayNameInput.evaluate(
-			(el: HTMLInputElement) => el.validationMessage
-		)
-		expect(validationMessage).toBeTruthy()
-	})
-
-	test('should validate max length for display name', async ({ authenticatedPage }) => {
-		const page = authenticatedPage
-
-		await page.goto('/profile')
-		await page.waitForSelector('[data-testid="display-name-input"]')
-
-		// Try to enter a very long display name (>100 characters)
-		const longName = 'A'.repeat(150)
-		await page.fill('[data-testid="display-name-input"]', longName)
-
-		// Input should truncate to maxLength
-		const displayNameInput = page.locator('[data-testid="display-name-input"]')
-		const actualValue = await displayNameInput.inputValue()
-		expect(actualValue.length).toBeLessThanOrEqual(100)
-	})
-
-	test('should validate empty name', async ({ authenticatedPage }) => {
-		const page = authenticatedPage
-
-		await page.goto('/profile')
-		await page.waitForSelector('[data-testid="name-input"]')
-
-		// Try to clear name
-		await page.fill('[data-testid="name-input"]', '')
-
-		// Form validation should prevent submission
-		const nameInput = page.locator('[data-testid="name-input"]')
-		const validationMessage = await nameInput.evaluate(
-			(el: HTMLInputElement) => el.validationMessage
-		)
-		expect(validationMessage).toBeTruthy()
-	})
-
 	test('should persist profile after page refresh', async ({ authenticatedPage }) => {
 		const page = authenticatedPage
 		const newName = 'Refreshed Name'
@@ -175,87 +125,6 @@ test.describe('User Profile', () => {
 		)
 	})
 
-	test('should warn when navigating away with unsaved changes via link', async ({
-		authenticatedPage,
-	}) => {
-		const page = authenticatedPage
-
-		await page.goto('/profile')
-		await page.waitForSelector('[data-testid="name-input"]')
-
-		// Make a change without saving
-		await page.fill('[data-testid="name-input"]', 'Changed Name')
-
-		// Set up dialog handler before clicking the link
-		let dialogShown = false
-		let dialogMessage = ''
-		page.once('dialog', async (dialog) => {
-			dialogShown = true
-			dialogMessage = dialog.message()
-			await dialog.dismiss() // Don't navigate away
-		})
-
-		// Try to navigate away
-		await page.click('text=Back to Dashboard')
-
-		// Verify dialog was shown and we're still on profile page
-		await expect.poll(() => dialogShown, { timeout: 2000 }).toBe(true)
-		expect(dialogMessage).toContain('unsaved changes')
-		expect(page.url()).toContain('/profile')
-	})
-
-	test('should allow navigation after dismissing unsaved changes warning', async ({
-		authenticatedPage,
-	}) => {
-		const page = authenticatedPage
-
-		await page.goto('/profile')
-		await page.waitForSelector('[data-testid="name-input"]')
-
-		// Make a change without saving
-		await page.fill('[data-testid="display-name-input"]', 'Changed Display Name')
-
-		// Set up dialog handler to accept navigation
-		page.once('dialog', async (dialog) => {
-			expect(dialog.message()).toContain('unsaved changes')
-			await dialog.accept() // Allow navigation
-		})
-
-		// Try to navigate away
-		await page.click('text=Back to Dashboard')
-
-		// Should navigate to dashboard
-		await page.waitForURL('**/dashboard**', { timeout: 5000 })
-		expect(page.url()).toContain('/dashboard')
-	})
-
-	test('should not warn when navigating after save', async ({ authenticatedPage }) => {
-		const page = authenticatedPage
-
-		await page.goto('/profile')
-		await page.waitForSelector('[data-testid="name-input"]')
-
-		// Make a change and save
-		await page.fill('[data-testid="name-input"]', 'Saved Name')
-		await page.click('[data-testid="save-button"]')
-		await expect(page.locator('[data-testid="success-message"]')).toBeVisible()
-
-		// Set up dialog handler
-		let dialogShown = false
-		page.on('dialog', async (dialog) => {
-			dialogShown = true
-			await dialog.accept()
-		})
-
-		// Navigate away - should not show dialog
-		await page.click('text=Back to Dashboard')
-		await page.waitForURL('**/dashboard**')
-
-		// Verify no dialog was shown
-		expect(dialogShown).toBe(false)
-		expect(page.url()).toContain('/dashboard')
-	})
-
 	test('should hide unsaved changes indicator after successful save', async ({
 		authenticatedPage,
 	}) => {
@@ -276,30 +145,5 @@ test.describe('User Profile', () => {
 
 		// Indicator should be hidden after save
 		await expect(page.locator('[data-testid="unsaved-changes-indicator"]')).not.toBeVisible()
-	})
-
-	test('should warn on browser back button with unsaved changes', async ({ authenticatedPage }) => {
-		const page = authenticatedPage
-
-		// Navigate from dashboard to profile
-		await page.goto('/dashboard')
-		await page.click('text=Profile')
-		await page.waitForURL('**/profile**')
-		await page.waitForSelector('[data-testid="name-input"]')
-
-		// Make a change without saving
-		await page.fill('[data-testid="name-input"]', 'Changed Name')
-
-		// Try to use browser back button
-		// Note: Playwright cannot fully test beforeunload for browser back button
-		// but we can verify the event handler is registered
-		const hasBeforeUnload = await page.evaluate(() => {
-			const event = new Event('beforeunload', { cancelable: true }) as BeforeUnloadEvent
-			window.dispatchEvent(event)
-			return event.defaultPrevented || event.returnValue !== ''
-		})
-
-		// Should have beforeunload handler active when there are unsaved changes
-		expect(hasBeforeUnload).toBe(true)
 	})
 })

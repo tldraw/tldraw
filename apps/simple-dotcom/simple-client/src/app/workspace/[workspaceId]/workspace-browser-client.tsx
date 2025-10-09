@@ -168,50 +168,54 @@ export default function WorkspaceBrowserClient({
 		}
 	}, [showCreateFolderModal])
 
-	const handleCreateDocument = useCallback(async () => {
-		if (!newDocumentName.trim()) {
-			setValidationError('Document name is required')
-			return
-		}
+	const handleCreateDocument = useCallback(
+		async (documentName?: string) => {
+			const nameToUse = documentName ?? newDocumentName
+			if (!nameToUse.trim()) {
+				setValidationError('Document name is required')
+				return
+			}
 
-		try {
-			setActionLoading(true)
-			setValidationError(null)
-
-			const abortController = new AbortController()
-			currentRequestRef.current = abortController
-
-			const response = await fetch(`/api/workspaces/${workspace.id}/documents`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					name: newDocumentName.trim(),
-					folder_id: selectedFolderId,
-				}),
-				signal: abortController.signal,
-			})
-
-			const data = await response.json()
-
-			if (data.success && data.data) {
-				// Navigate to the new document
-				router.push(`/d/${data.data.id}`)
-				setShowCreateDocumentModal(false)
-				setNewDocumentName('')
+			try {
+				setActionLoading(true)
 				setValidationError(null)
-			} else {
-				setValidationError(data.error?.message || 'Failed to create document')
+
+				const abortController = new AbortController()
+				currentRequestRef.current = abortController
+
+				const response = await fetch(`/api/workspaces/${workspace.id}/documents`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						name: nameToUse.trim(),
+						folder_id: selectedFolderId,
+					}),
+					signal: abortController.signal,
+				})
+
+				const data = await response.json()
+
+				if (data.success && data.data) {
+					// Navigate to the new document
+					router.push(`/d/${data.data.id}`)
+					setShowCreateDocumentModal(false)
+					setNewDocumentName('')
+					setValidationError(null)
+				} else {
+					setValidationError(data.error?.message || 'Failed to create document')
+				}
+			} catch (err) {
+				if (err instanceof Error && err.name !== 'AbortError') {
+					console.error('Failed to create document:', err)
+					setValidationError('Failed to create document. Please try again.')
+				}
+			} finally {
+				setActionLoading(false)
+				currentRequestRef.current = null
 			}
-		} catch (err) {
-			if (err instanceof Error && err.name !== 'AbortError') {
-				console.error('Failed to create document:', err)
-				setValidationError('Failed to create document. Please try again.')
-			}
-		} finally {
-			setActionLoading(false)
-			currentRequestRef.current = null
-		}
-	}, [newDocumentName, selectedFolderId, router, workspace.id])
+		},
+		[newDocumentName, selectedFolderId, router, workspace.id]
+	)
 
 	const handleCreateFolder = useCallback(async () => {
 		if (!newFolderName.trim()) {
@@ -616,12 +620,13 @@ export default function WorkspaceBrowserClient({
 				placeholder="Document name"
 				defaultValue={newDocumentName}
 				onConfirm={async (name) => {
-					setNewDocumentName(name)
-					await handleCreateDocument()
+					await handleCreateDocument(name)
 				}}
 				confirmText="Create"
 				loading={actionLoading}
 				validationError={validationError ?? undefined}
+				inputTestId="document-name-input"
+				confirmButtonTestId="confirm-create-document"
 			/>
 
 			{/* Create Folder Modal */}

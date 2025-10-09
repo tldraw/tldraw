@@ -182,12 +182,13 @@ test.describe('Document Archive and Hard Delete', () => {
 		supabaseAdmin,
 		testUser,
 		testData,
+		browser,
 	}) => {
 		const page = authenticatedPage
 		const workspaceName = `Member Delete Test ${Date.now()}`
 		const documentName = 'Owner Only Delete'
 
-		// Create workspace and document via testData helper
+		// Create workspace owned by testUser and document
 		const workspace = await testData.createWorkspace({
 			ownerId: testUser.id,
 			name: workspaceName,
@@ -200,30 +201,32 @@ test.describe('Document Archive and Hard Delete', () => {
 
 		const documentId = document.id
 
-		// Create another test user to be a member
+		// Create another test user who will be a member (not owner)
 		const memberEmail = `member_${Date.now()}@example.com`
-		const { data: memberUser } = await supabaseAdmin.auth.admin.createUser({
+		const { data: memberAuth } = await supabaseAdmin.auth.admin.createUser({
 			email: memberEmail,
 			password: 'Password123!',
 			email_confirm: true,
 		})
 
-		// Add member to workspace
-		await supabaseAdmin.from('workspace_members').insert({
-			workspace_id: workspace.id,
-			user_id: memberUser.user!.id,
-			role: 'member',
-		})
+		const memberId = memberAuth.user!.id
 
-		// Change current user's role to member (simulate member trying to delete)
-		await supabaseAdmin
-			.from('workspace_members')
-			.update({ role: 'member' })
-			.eq('workspace_id', workspace.id)
-			.eq('user_id', testUser.id)
+		// Add the new user as a member to the workspace
+		await testData.addWorkspaceMember(workspace.id, memberId)
 
-		// Member tries to hard delete - should fail
-		const deleteResponse = await page.request.delete(`/api/documents/${documentId}/delete`, {
+		// Create a new browser context for the member user
+		const memberContext = await browser.newContext({ storageState: undefined })
+		const memberPage = await memberContext.newPage()
+
+		// Log in as the member
+		await memberPage.goto('/login')
+		await memberPage.fill('[data-testid="email-input"]', memberEmail)
+		await memberPage.fill('[data-testid="password-input"]', 'Password123!')
+		await memberPage.click('[data-testid="login-button"]')
+		await memberPage.waitForURL('**/dashboard**')
+
+		// Member tries to hard delete - should fail with 403
+		const deleteResponse = await memberPage.request.delete(`/api/documents/${documentId}/delete`, {
 			headers: {
 				'X-Confirm-Delete': 'true',
 			},
@@ -240,5 +243,9 @@ test.describe('Document Archive and Hard Delete', () => {
 			.single()
 
 		expect(doc).toBeTruthy()
+
+		// Cleanup
+		await memberContext.close()
+		await supabaseAdmin.auth.admin.deleteUser(memberId)
 	})
 })
