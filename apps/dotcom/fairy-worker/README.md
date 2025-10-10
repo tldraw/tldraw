@@ -41,10 +41,6 @@ ANTHROPIC_API_KEY=your-anthropic-key
 GOOGLE_API_KEY=your-google-key
 ```
 
-Custom domain configuration:
-
-- **Production**: `agent.templates.tldraw.dev`
-
 ## Key Components
 
 ### Worker (worker.ts)
@@ -94,15 +90,15 @@ Service layer handling:
 The fairy-worker runs as a completely independent Cloudflare Worker:
 
 - **Development**: `http://localhost:8789` (port 8789)
-- **Staging**: `https://staging-agent.tldraw.xyz`
-- **Production**: `https://agent.tldraw.xyz`
+- **Staging**: `https://staging-fairy.tldraw.xyz`
+- **Production**: `https://fairy.tldraw.xyz`
 
 ## Usage Example
 
 ```typescript
 // Client-side usage
 const response = await fetch('http://localhost:8789/stream', {
-	// Or in production: 'https://agent.tldraw.xyz/stream'
+	// Or in production: 'https://fairy.tldraw.xyz/stream'
 	method: 'POST',
 	headers: {
 		'Content-Type': 'application/json',

@@ -13,11 +13,11 @@ name = "fairydraw-dev"
 
 [env.staging]
 name = "fairydraw-staging"
-route = { pattern = "staging-agent.tldraw.xyz", custom_domain = true }
+route = { pattern = "staging-fairy.tldraw.xyz", custom_domain = true }
 
 [env.production]
 name = "fairydraw"
-route = { pattern = "agent.tldraw.xyz", custom_domain = true }
+route = { pattern = "fairy.tldraw.xyz", custom_domain = true }
 
 #################### Durable Objects ####################
 # Durable objects require migrations to create/modify/delete them

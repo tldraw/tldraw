@@ -119,11 +119,11 @@ name = "fairydraw-dev"
 
 [env.staging]
 name = "fairydraw-staging"
-route = { pattern = "staging-agent.tldraw.xyz", custom_domain = true }
+route = { pattern = "staging-fairy.tldraw.xyz", custom_domain = true }
 
 [env.production]
 name = "fairydraw"
-route = { pattern = "agent.tldraw.xyz", custom_domain = true }
+route = { pattern = "fairy.tldraw.xyz", custom_domain = true }
 
 [durable_objects]
 bindings = [
@@ -188,8 +188,8 @@ yarn lint
 The fairy-worker runs independently from the sync-worker, with its own endpoints:
 
 - **Development**: `http://localhost:8789/stream`
-- **Staging**: `https://staging-agent.tldraw.xyz/stream`
-- **Production**: `https://agent.tldraw.xyz/stream`
+- **Staging**: `https://staging-fairy.tldraw.xyz/stream`
+- **Production**: `https://fairy.tldraw.xyz/stream`
 
 Client-side integration example:
 
@@ -197,7 +197,7 @@ Client-side integration example:
 // Client-side integration
 const agentUrl =
 	process.env.NODE_ENV === 'production'
-		? 'https://agent.tldraw.xyz/stream'
+		? 'https://fairy.tldraw.xyz/stream'
 		: 'http://localhost:8789/stream'
 
 const response = await fetch(agentUrl, {
@@ -234,7 +234,7 @@ fairy-worker:8789 (AI Agent) [Independent Service]
 
 Note: Runs separately from sync-worker
 - Development: localhost:8789
-- Production: agent.tldraw.xyz
+- Production: fairy.tldraw.xyz
 ```
 
 The fairy-worker enables AI-powered features in tldraw by providing a scalable, real-time agent interaction service that bridges natural language understanding with canvas manipulation.
