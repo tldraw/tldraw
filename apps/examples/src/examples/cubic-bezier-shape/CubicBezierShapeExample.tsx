@@ -91,9 +91,8 @@ export class BezierCurveShapeUtil extends ShapeUtil<IBezierCurveShape> {
 	}
 
 	override getBoundsSnapGeometry(shape: IBezierCurveShape): BoundsSnapGeometry {
-		const snapPoints = [shape.props.start, shape.props.end]
 		return {
-			points: snapPoints,
+			points: [shape.props.start, shape.props.end],
 		}
 	}
 
