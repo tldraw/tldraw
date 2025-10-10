@@ -44,7 +44,13 @@ export function FairySprite({ pose, outfit }: FairySpriteProps) {
 		return () => clearInterval(timer)
 	}, [frameCount])
 
-	return <img style={{ width: '100%', height: '100%' }} src={frameSources[frameNumber]} />
+	return (
+		<img
+			className="fairy-sprite"
+			style={{ width: '100%', height: '100%' }}
+			src={frameSources[frameNumber]}
+		/>
+	)
 }
 
 function getBakedSpriteSources(_props: FairySpriteProps): string[] {

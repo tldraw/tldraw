@@ -27,6 +27,7 @@ import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
+import '../styles/fairy.css'
 import { IntlProvider, defineMessages, setupCreateIntl, useIntl } from '../utils/i18n'
 import {
 	clearLocalSessionState,

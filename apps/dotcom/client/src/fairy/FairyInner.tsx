@@ -26,15 +26,15 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 	const flipX = useValue('fairy flipX', () => fairy.get().flipX, [fairy])
 	const isSelected = useValue('fairy isSelected', () => fairy.get().isSelected, [fairy])
 
-	// I think we should override the select tool instead?
 	useEffect(() => {
 		// Deselect fairy when clicking outside
 		const handleClickOutside = (e: any) => {
-			if (fairyRef.current && !fairyRef.current.contains(e.target)) {
-				fairy.update((value) => ({
-					...value,
-					isSelected: false,
-				}))
+			if (
+				fairyRef.current &&
+				!fairyRef.current.contains(e.target) &&
+				!e.target.closest('.tla-fairy-hud')
+			) {
+				fairy.update((f) => ({ ...f, isSelected: false }))
 			}
 		}
 
@@ -49,10 +49,7 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 
 	const handleFairyClick = (e: any) => {
 		e.stopPropagation()
-		fairy.update((value) => ({
-			...value,
-			isSelected: !value.isSelected,
-		}))
+		fairy.update((f) => ({ ...f, isSelected: !f.isSelected }))
 	}
 
 	return (
@@ -65,7 +62,6 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 				width: '100vw',
 				height: '100vh',
 				pointerEvents: 'none',
-				zIndex: 9999,
 				overflow: 'hidden',
 			}}
 		>
@@ -84,20 +80,73 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 				}}
 				className={isSelected ? 'fairy-selected' : ''}
 			>
-				<FairySprite
-					pose="idle"
-					outfit={{
-						body: 'default',
-						eyes: 'default',
-						hat: 'default',
-						mouth: 'default',
-						wand: 'default',
-						wings: 'default',
-						arms: 'default',
-						legs: 'default',
-						head: 'default',
-					}}
-				/>
+				{/* Selection corner brackets */}
+				{isSelected && (
+					<div
+						style={{
+							position: 'absolute',
+							left: '50%',
+							top: '50%',
+							transform: 'translate(-50%, -50%)',
+							width: '64px',
+							height: '64px',
+							pointerEvents: 'none',
+						}}
+					>
+						<div
+							className="fairy-selected-corner"
+							style={{
+								top: '-10px',
+								left: '-10px',
+								borderTopWidth: '3px',
+								borderLeftWidth: '3px',
+							}}
+						/>
+						<div
+							className="fairy-selected-corner"
+							style={{
+								top: '-10px',
+								right: '-10px',
+								borderTopWidth: '3px',
+								borderRightWidth: '3px',
+							}}
+						/>
+						<div
+							className="fairy-selected-corner"
+							style={{
+								bottom: '-10px',
+								left: '-10px',
+								borderBottomWidth: '3px',
+								borderLeftWidth: '3px',
+							}}
+						/>
+						<div
+							className="fairy-selected-corner"
+							style={{
+								bottom: '-10px',
+								right: '-10px',
+								borderBottomWidth: '3px',
+								borderRightWidth: '3px',
+							}}
+						/>
+					</div>
+				)}
+				<div onClick={handleFairyClick}>
+					<FairySprite
+						pose="idle"
+						outfit={{
+							body: 'default',
+							eyes: 'default',
+							hat: 'default',
+							mouth: 'default',
+							wand: 'default',
+							wings: 'default',
+							arms: 'default',
+							legs: 'default',
+							head: 'default',
+						}}
+					/>
+				</div>
 			</div>
 		</div>
 	)

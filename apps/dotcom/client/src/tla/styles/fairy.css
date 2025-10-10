@@ -223,3 +223,14 @@
 	background-color: var(--tl-color-grid);
 	cursor: not-allowed;
 }
+
+.fairy-selected-corner {
+	position: absolute;
+	width: 10px;
+	height: 10px;
+	border: 0 solid var(--tl-color-primary);
+}
+
+.fairy-sprite {
+	pointer-events: none;
+}
