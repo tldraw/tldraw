@@ -41,8 +41,18 @@ export class BringToFrontActionUtil extends AgentActionUtil<BringToFrontAction> 
 		if (!this.agent) return
 
 		if (!action.shapeIds) return
-		this.agent.editor.bringToFront(
-			action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId)
-		)
+
+		const shapeIds = action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId)
+		this.agent.editor.bringToFront(shapeIds)
+
+		const bounds = this.agent.editor.getShapesPageBounds(shapeIds)
+
+		if (!bounds) {
+			return
+		}
+
+		return {
+			coordinates: bounds.center,
+		}
 	}
 }

@@ -67,5 +67,9 @@ export class ResizeActionUtil extends AgentActionUtil<ResizeAction> {
 				{ scaleOrigin: origin }
 			)
 		}
+
+		return {
+			coordinates: origin,
+		}
 	}
 }

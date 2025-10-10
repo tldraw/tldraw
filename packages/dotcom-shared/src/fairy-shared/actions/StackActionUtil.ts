@@ -46,10 +46,17 @@ export class StackActionUtil extends AgentActionUtil<IAgentStackEvent> {
 		if (!action.complete) return
 		if (!this.agent) return
 
-		this.agent.editor.stackShapes(
-			action.shapeIds.map((id) => `shape:${id}` as TLShapeId),
-			action.direction,
-			Math.min(action.gap, 1)
-		)
+		const shapeIds = action.shapeIds.map((id) => `shape:${id}` as TLShapeId)
+		this.agent.editor.stackShapes(shapeIds, action.direction, Math.min(action.gap, 1))
+
+		const bounds = this.agent.editor.getShapesPageBounds(shapeIds)
+
+		if (!bounds) {
+			return
+		}
+
+		return {
+			coordinates: bounds.center,
+		}
 	}
 }

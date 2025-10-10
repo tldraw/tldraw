@@ -1,5 +1,5 @@
 import { FairyEntity } from '@tldraw/dotcom-shared'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { Atom, useEditor, useValue } from 'tldraw'
 import { FairySprite } from './FairySprite'
 
@@ -24,78 +24,36 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 	)
 
 	const flipX = useValue('fairy flipX', () => fairy.get().flipX, [fairy])
-
-	// useEffect(() => {
-	// 	// Generate new whimsical target positions in page space
-	// 	const moveToNewPosition = () => {
-	// 		const viewport = editor.getViewportPageBounds()
-	// 		const margin = 200 // Keep fairy away from edges in page space
-
-	// 		const newX = viewport.x + margin + Math.random() * (viewport.width - margin * 2)
-	// 		const newY = viewport.y + margin + Math.random() * (viewport.height - margin * 2)
-
-	// 		setTargetPosition({ x: newX, y: newY })
-
-	// 		// Schedule next movement with random joyful timing
-	// 		const nextMove = 1500 + Math.random() * 10000
-	// 		setTimeout(moveToNewPosition, nextMove)
-	// 	}
-
-	// 	moveToNewPosition()
-	// }, [editor])
-
-	// useEffect(() => {
-	// 	// Smoothly animate towards target with whimsical easing
-	// 	let animationFrame: number
-
-	// 	const animate = () => {
-	// 		setPosition((current) => {
-	// 			const dx = targetPosition.x - current.x
-	// 			const dy = targetPosition.y - current.y
-	// 			const distance = Math.sqrt(dx * dx + dy * dy)
-
-	// 			if (distance < 1) return current
-
-	// 			// Add some flutter to the movement
-	// 			const flutter = Math.sin(Date.now() * 0.01) * 3
-	// 			const ease = 0.8 // Smooth easing factor
-
-	// 			return {
-	// 				x: current.x + dx * ease + flutter,
-	// 				y: current.y + dy * ease + Math.cos(Date.now() * 0.008) * 2,
-	// 			}
-	// 		})
-
-	// 		animationFrame = requestAnimationFrame(animate)
-	// 	}
-
-	// 	animationFrame = requestAnimationFrame(animate)
-
-	// 	return () => cancelAnimationFrame(animationFrame)
-	// }, [targetPosition])
+	const isSelected = useValue('fairy isSelected', () => fairy.get().isSelected, [fairy])
 
 	// I think we should override the select tool instead?
-	// useEffect(() => {
-	// 	// Deselect fairy when clicking outside
-	// 	const handleClickOutside = (e: any) => {
-	// 		if (fairyRef.current && !fairyRef.current.contains(e.target)) {
-	// 			setIsSelected(false)
-	// 		}
-	// 	}
+	useEffect(() => {
+		// Deselect fairy when clicking outside
+		const handleClickOutside = (e: any) => {
+			if (fairyRef.current && !fairyRef.current.contains(e.target)) {
+				fairy.update((value) => ({
+					...value,
+					isSelected: false,
+				}))
+			}
+		}
 
-	// 	if (isSelected) {
-	// 		document.addEventListener('mousedown', handleClickOutside)
-	// 	}
+		if (isSelected) {
+			document.addEventListener('mousedown', handleClickOutside)
+		}
 
-	// 	return () => {
-	// 		document.removeEventListener('mousedown', handleClickOutside)
-	// 	}
-	// }, [isSelected])
+		return () => {
+			document.removeEventListener('mousedown', handleClickOutside)
+		}
+	}, [isSelected, fairy])
 
-	// const handleFairyClick = (e: any) => {
-	// 	e.stopPropagation()
-	// 	setIsSelected((prev) => !prev)
-	// }
+	const handleFairyClick = (e: any) => {
+		e.stopPropagation()
+		fairy.update((value) => ({
+			...value,
+			isSelected: !value.isSelected,
+		}))
+	}
 
 	return (
 		<div
@@ -114,6 +72,7 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 			{/* Fairy */}
 			<div
 				ref={fairyRef}
+				onClick={handleFairyClick}
 				style={{
 					position: 'absolute',
 					left: screenPosition.x,
@@ -123,6 +82,7 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 					transition:
 						'left 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
 				}}
+				className={isSelected ? 'fairy-selected' : ''}
 			>
 				<FairySprite
 					pose="idle"

@@ -41,6 +41,18 @@ export class SendToBackActionUtil extends AgentActionUtil<SendToBackAction> {
 		if (!this.agent) return
 
 		if (!action.shapeIds) return
-		this.agent.editor.sendToBack(action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId))
+
+		const shapeIds = action.shapeIds.map((shapeId) => `shape:${shapeId}` as TLShapeId)
+		this.agent.editor.sendToBack(shapeIds)
+
+		const bounds = this.agent.editor.getShapesPageBounds(shapeIds)
+
+		if (!bounds) {
+			return
+		}
+
+		return {
+			coordinates: bounds.center,
+		}
 	}
 }

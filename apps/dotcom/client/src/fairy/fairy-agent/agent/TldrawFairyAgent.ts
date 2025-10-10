@@ -129,6 +129,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 		this.$fairy = atom<FairyEntity>(`fairy-${id}`, {
 			position: { x: 0, y: 0 },
 			flipX: false,
+			isSelected: false,
 		})
 
 		this.onError = onError
@@ -228,7 +229,8 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 			bounds:
 				request.bounds ??
 				activeRequest?.bounds ??
-				scaleBoxFromCenter(this.editor.getViewportPageBounds(), 0.67),
+				// scaleBoxFromCenter(this.editor.getViewportPageBounds(), 0.67),
+				this.editor.getViewportPageBounds(),
 			modelName: request.modelName ?? activeRequest?.modelName ?? this.$modelName.get(),
 		}
 	}

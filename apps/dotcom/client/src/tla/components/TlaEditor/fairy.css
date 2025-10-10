@@ -45,3 +45,181 @@
 	pointer-events: none;
 	font-family: 'Inter', sans-serif;
 }
+
+/* Fairy Home */
+
+.fairy-home {
+	position: fixed;
+	bottom: 48px;
+	right: 20px;
+	pointer-events: auto;
+	z-index: 1000;
+}
+
+.fairy-home__stack {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	pointer-events: auto;
+	height: 182px; /* 50px * 3 + 8px * 2 (gaps) + 16px (padding) */
+	overflow-y: auto;
+	background-color: var(--tl-color-panel);
+	padding: 8px;
+	border-radius: 8px;
+	border: 1px solid var(--tl-color-muted-2);
+}
+
+/* Fairy Row */
+
+.fairy-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+	min-height: 50px;
+}
+
+.fairy-row__input {
+	pointer-events: auto;
+}
+
+/* Fairy Square */
+
+.fairy-square {
+	width: 50px;
+	height: 50px;
+	border: 1px solid var(--tl-color-muted-2);
+	border-radius: 4px;
+	background-color: var(--tl-color-muted-1);
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 24px;
+	pointer-events: auto;
+}
+
+.fairy-square:hover {
+	background-color: var(--tl-color-muted-2);
+}
+
+.fairy-square--selected {
+	background-color: var(--tl-color-primary);
+	border-color: var(--tl-color-primary);
+	color: var(--tl-color-panel-contrast);
+}
+
+.fairy-selected {
+	position: relative;
+}
+
+.fairy-selected::before,
+.fairy-selected::after {
+	content: '';
+	position: absolute;
+	width: calc(100% + 2px);
+	height: calc(100% + 2px);
+	top: -1px;
+	left: -1px;
+	border: 2px solid var(--tl-color-primary);
+	border-radius: 2px;
+	pointer-events: none;
+}
+
+.fairy-selected::before {
+	clip-path: polygon(
+		0 0,
+		12px 0,
+		12px 2px,
+		2px 2px,
+		2px 12px,
+		0 12px,
+		0 100%,
+		12px 100%,
+		12px calc(100% - 2px),
+		2px calc(100% - 2px),
+		2px calc(100% - 12px),
+		0 calc(100% - 12px)
+	);
+}
+
+.fairy-selected::after {
+	clip-path: polygon(
+		100% 0,
+		calc(100% - 12px) 0,
+		calc(100% - 12px) 2px,
+		calc(100% - 2px) 2px,
+		calc(100% - 2px) 12px,
+		100% 12px,
+		100% 100%,
+		calc(100% - 12px) 100%,
+		calc(100% - 12px) calc(100% - 2px),
+		calc(100% - 2px) calc(100% - 2px),
+		calc(100% - 2px) calc(100% - 12px),
+		100% calc(100% - 12px)
+	);
+}
+
+/* Fairy Input */
+
+.fairy-input {
+	background-color: var(--tl-color-muted-1);
+	border-radius: 12px;
+	padding: 8px;
+	pointer-events: auto;
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.fairy-input__form {
+	pointer-events: auto;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex: 1;
+}
+
+.fairy-input__field {
+	flex: 1;
+	padding: 0;
+	pointer-events: auto;
+	border: none;
+	background: transparent;
+	color: var(--tl-color-text);
+	font-size: 12px;
+	font-family: inherit;
+	outline: none;
+	min-width: 150px;
+}
+
+.fairy-input__field::placeholder {
+	color: var(--tl-color-text-3);
+}
+
+.fairy-input__submit {
+	pointer-events: auto;
+	width: 16px;
+	height: 16px;
+	padding: 0;
+	background-color: var(--tl-color-primary);
+	color: var(--tl-color-panel-contrast);
+	border: none;
+	border-radius: 100%;
+	cursor: pointer;
+	font-size: 10px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.fairy-input__submit:hover:not(:disabled) {
+	background-color: var(--tl-color-primary-hover);
+}
+
+.fairy-input__submit:disabled {
+	background-color: var(--tl-color-grid);
+	cursor: not-allowed;
+}

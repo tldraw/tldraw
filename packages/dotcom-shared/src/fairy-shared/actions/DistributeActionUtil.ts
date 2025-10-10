@@ -41,9 +41,17 @@ export class DistributeActionUtil extends AgentActionUtil<DistributeAction> {
 		if (!action.complete) return
 		if (!this.agent) return
 
-		this.agent.editor.distributeShapes(
-			action.shapeIds.map((id) => `shape:${id}` as TLShapeId),
-			action.direction
-		)
+		const shapeIds = action.shapeIds.map((id) => `shape:${id}` as TLShapeId)
+		this.agent.editor.distributeShapes(shapeIds, action.direction)
+
+		const bounds = this.agent.editor.getShapesPageBounds(shapeIds)
+
+		if (!bounds) {
+			return
+		}
+
+		return {
+			coordinates: bounds.center,
+		}
 	}
 }

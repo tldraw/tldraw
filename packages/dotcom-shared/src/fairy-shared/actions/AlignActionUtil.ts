@@ -39,9 +39,17 @@ export class AlignActionUtil extends AgentActionUtil<AlignAction> {
 		if (!action.complete) return
 		if (!this.agent) return
 
-		this.agent.editor.alignShapes(
-			action.shapeIds.map((id) => `shape:${id}` as TLShapeId),
-			action.alignment
-		)
+		const shapeIds = action.shapeIds.map((id) => `shape:${id}` as TLShapeId)
+		this.agent.editor.alignShapes(shapeIds, action.alignment)
+
+		const bounds = this.agent.editor.getShapesPageBounds(shapeIds)
+
+		if (!bounds) {
+			return
+		}
+
+		return {
+			coordinates: bounds.center,
+		}
 	}
 }
