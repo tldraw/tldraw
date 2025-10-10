@@ -1,20 +1,20 @@
-# CONTEXT.md - tldraw Monorepo
+# CONTEXT.md - tldraw monorepo
 
 This file provides comprehensive context for understanding the tldraw monorepo, an infinite canvas SDK for React applications and the infrastructure behind tldraw.com.
 
-## Repository Overview
+## Repository overview
 
 This is a TypeScript monorepo containing the complete tldraw ecosystem - from the core infinite canvas SDK to the collaborative whiteboard application tldraw.com. It's organized using Yarn Berry workspaces and built with a custom incremental build system called LazyRepo.
 
-**Repository Purpose:** Develop and maintain tldraw as both an open-source SDK for developers and a commercial collaborative whiteboard service.
+**Repository purpose:** Develop and maintain tldraw as both an open-source SDK for developers and a commercial collaborative whiteboard service.
 
 **Version:** 3.15.1 across all packages  
 **Node.js:** ^20.0.0 required  
 **React:** ^18.0.0 || ^19.0.0 peer dependency
 
-## Essential Commands
+## Essential commands
 
-### Development Commands
+### Development commands
 
 - `yarn dev` - Start development server for examples app (main SDK showcase)
 - `yarn dev-app` - Start tldraw.com client app development
@@ -42,16 +42,16 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
 - `yarn e2e-dotcom` - Run end-to-end tests for tldraw.com
 - `yarn e2e-ui` - Run E2E tests with Playwright UI
 
-### Code Quality
+### Code quality
 
 - `yarn lint` - Lint all packages
 - `yarn typecheck` - Type check all packages (run before commits)
 - `yarn format` - Format code with Prettier
 - `yarn api-check` - Validate public API consistency
 
-## High-Level Architecture
+## High-level architecture
 
-### Monorepo Structure
+### Monorepo structure
 
 **Packages (`packages/`)** - Core SDK and libraries:
 
@@ -93,9 +93,9 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
 - `workflow/` - Node-based visual programming interface for executable workflows
 - `chat/`, `agent/`, `simple-server-example/` - Additional use case examples
 
-### Core SDK Architecture
+### Core SDK architecture
 
-**Three-Layer System:**
+**Three-layer system:**
 
 1. **@tldraw/editor** - Pure canvas engine
    - No shapes, tools, or UI - just the reactive editor foundation
@@ -115,9 +115,9 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
    - IndexedDB persistence and migration system
    - Built on @tldraw/state reactive signals
 
-### Reactive State Management
+### Reactive state management
 
-**@tldraw/state - Signals Architecture:**
+**@tldraw/state - Signals architecture:**
 
 - Fine-grained reactivity similar to MobX or SolidJS
 - `Atom<T>` for mutable state, `Computed<T>` for derived values
@@ -125,58 +125,58 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
 - Efficient updates with minimal re-computation
 - Memory-optimized with `ArraySet` and cleanup systems
 
-**Pattern Throughout Codebase:**
+**Pattern throughout codebase:**
 
 - All editor state is reactive and observable
 - Components automatically re-render when dependencies change
 - Store changes trigger reactive updates across the system
 - Batched updates prevent cascading re-computations
 
-### Shape and Tool System
+### Shape and tool system
 
-**Shape Architecture:**
+**Shape architecture:**
 
 - Each shape type has a `ShapeUtil` class defining behavior
 - ShapeUtil handles geometry calculation, rendering, hit testing, interactions
 - Extensible system - custom shapes via new ShapeUtil implementations
 - Shape definitions in `@tldraw/tlschema` with validators and migrations
 
-**Tool State Machines:**
+**Tool state machines:**
 
 - Tools implemented as `StateNode` hierarchies with parent/child states
 - Event-driven architecture (pointer, keyboard, tick events)
 - Complex tools like SelectTool have multiple child states (Brushing, Translating, etc.)
 - State machines handle tool lifecycle and user interactions
 
-**Bindings System:**
+**Bindings system:**
 
 - Relationships between shapes (arrows connecting to shapes, etc.)
 - `BindingUtil` classes define binding behavior and visual indicators
 - Automatic updates when connected shapes change position/properties
 
-## Testing Patterns
+## Testing patterns
 
-### Vitest Tests
+### Vitest tests
 
-**Unit Tests:**
+**Unit tests:**
 
 - Test files named `*.test.ts` alongside source files (e.g., `LicenseManager.test.ts`)
 - Integration tests use `src/test/feature-name.test.ts` format
 - Test in tldraw workspace if you need default shapes/tools
 
-**Running Tests:**
+**Running tests:**
 
 - Run from specific workspace directory: `cd packages/editor && yarn test run`
 - Filter with additional args: `yarn test run --grep "selection"`
 - Avoid root-level `yarn test` (slow and hard to filter)
 
-### Playwright E2E Tests
+### Playwright E2E tests
 
 - Located in `apps/examples/e2e/` and `apps/dotcom/client/e2e/`
 - Use `yarn e2e` and `yarn e2e-dotcom` commands
 - Comprehensive UI interaction testing
 
-## Development Workspace Structure
+## Development workspace structure
 
 ```
 apps/
@@ -229,9 +229,9 @@ internal/             # Internal development tools and configuration
 └── scripts/         # Build, deployment, and maintenance automation
 ```
 
-## Development Infrastructure
+## Development infrastructure
 
-### Build System (LazyRepo)
+### Build system (LazyRepo)
 
 Custom incremental build system optimized for monorepos:
 
@@ -241,106 +241,106 @@ Custom incremental build system optimized for monorepos:
 - Parallel execution where dependencies allow
 - Configuration in `lazy.config.ts`
 
-### Package Management
+### Package management
 
-**Yarn Berry (v4) with Workspaces:**
+**Yarn Berry (v4) with workspaces:**
 
 - Workspace dependencies automatically linked
 - Package manager enforced via `packageManager` field
 - Efficient disk usage with Plug'n'Play
 - Lock file and cache committed to repository
 
-### Code Quality
+### Code quality
 
-**TypeScript Configuration:**
+**TypeScript configuration:**
 
 - Workspace references for incremental compilation
 - API surface validation with Microsoft API Extractor
 - Strict type checking across all packages
 - Generated API documentation from TSDoc comments
 
-**Linting and Formatting:**
+**Linting and formatting:**
 
 - ESLint with custom configuration in `eslint.config.mjs`
 - Prettier for consistent code formatting
 - Pre-commit hooks via Husky ensuring quality
 
-## Key Development Notes
+## Key development notes
 
-### TypeScript Workflow
+### TypeScript workflow
 
 - Uses workspace references for fast incremental compilation
 - Run `yarn typecheck` before commits (critical for API consistency)
 - API surface validated with Microsoft API Extractor
 - Strict type checking across all packages
 
-### Monorepo Management
+### Monorepo management
 
 - Yarn workspaces with berry (yarn 4.x) - use `yarn` not `npm`
 - Package manager enforced via `packageManager` field in package.json
 - Dependencies managed at workspace level where possible
 - Efficient disk usage with Plug'n'Play system
 
-### Asset Management Workflow
+### Asset management workflow
 
 - Icons, fonts, translations stored in `/assets` directory
 - Run `yarn refresh-assets` after making asset changes
 - Assets automatically bundled into packages during build process
 - Shared across packages and applications with optimization
 
-### Primary Development Environment
+### Primary development environment
 
 - Main development happens in `apps/examples` - the SDK showcase
 - Examples demonstrate SDK capabilities and serve as development testbed
 - See `apps/examples/writing-examples.md` for example guidelines
 - Use examples app to test SDK changes in real scenarios
 
-## Asset and Content Management
+## Asset and content management
 
-### Asset Pipeline
+### Asset pipeline
 
-**Static Assets (`/assets`):**
+**Static assets (`/assets`):**
 
 - Automatic optimization and format conversion
 - Deduplication and efficient bundling
 
-**Dynamic Assets:**
+**Dynamic assets:**
 
 - Image/video upload handling in Cloudflare Workers
 - Asset validation, resizing, and optimization
 - Hash-based deduplication and caching
 - Support for various formats and size constraints
 
-### External Content Integration
+### External content integration
 
-**Rich Content Handling:**
+**Rich content handling:**
 
 - Bookmark creation with metadata extraction
 - Embed system for YouTube, Figma, Excalidraw, etc.
 - SVG import with size calculation and optimization
 - Copy/paste between tldraw instances with format preservation
 
-## Collaboration and Sync
+## Collaboration and sync
 
-### Multiplayer Architecture
+### Multiplayer architecture
 
-**@tldraw/sync System:**
+**@tldraw/sync system:**
 
 - WebSocket-based real-time collaboration
 - Conflict-free updates with operational transformation
 - Presence awareness (cursors, selections) separate from document state
 - Cloudflare Durable Objects for scalable backend
 
-**Data Synchronization:**
+**Data synchronization:**
 
 - Document state synced via structured diffs
 - Presence state (cursors, etc.) synced but not persisted
 - Connection state management with reconnection logic
 - See `templates/sync-cloudflare` for implementation patterns
 
-### tldraw.com Infrastructure
+### tldraw.com infrastructure
 
-**Production Application Stack:**
+**Production application stack:**
 
 - **Frontend**: React SPA with Vite, Clerk auth, React Router, FormatJS i18n
 - **Real-time Sync**: Cloudflare Workers + Durable Objects for multiplayer collaboration
@@ -349,11 +349,11 @@ Custom incremental build system optimized for monorepos:
 - **Authentication**: Clerk integration with JWT-based API access
 - **File Management**: Complete file system with sharing, publishing, version history
 
-## Development Patterns
+## Development patterns
 
-### Creating Custom Components
+### Creating custom components
 
-**Custom Shapes:**
+**Custom shapes:**
 
 1. Define shape type in schema with validator
 2. Create `ShapeUtil` class extending base ShapeUtil
@@ -361,25 +361,25 @@ Custom incremental build system optimized for monorepos:
 4. Register in editor via `shapeUtils` prop
 5. Implement creation tool if needed
 
-**Custom Tools:**
+**Custom tools:**
 
 1. Create `StateNode` class with tool logic
 2. Define state machine with onEnter/onExit/event handlers (onPointerDown, etc.)
 3. Handle state transitions and editor updates
 4. Register in editor via `tools` prop
 
-### UI Customization
+### UI customization
 
-**Component Override System:**
+**Component override system:**
 
 - Every tldraw UI component can be replaced/customized
 - Pass custom implementations via `components` prop
 - Maintains responsive behavior and accessibility
 - See existing components for architectural patterns
 
-### Integration Patterns
+### Integration patterns
 
-**Embedding in Applications:**
+**Embedding in applications:**
 
 - Import required CSS: `import 'tldraw/tldraw.css'` (full) or `import '@tldraw/editor/editor.css'` (editor only)
 - Requires React 18+ and modern bundler support
@@ -388,18 +388,18 @@ Custom incremental build system optimized for monorepos:
 - Asset URLs configurable via `@tldraw/assets` package (imports, URLs, or self-hosted strategies)
 - Use `npm create tldraw` CLI for quick project scaffolding
 
-## Performance Considerations
+## Performance considerations
 
-### Rendering Optimization
+### Rendering optimization
 
-**Canvas Performance:**
+**Canvas performance:**
 
 - WebGL-accelerated minimap rendering
 - Viewport culling - only visible shapes rendered
 - Shape geometry caching with invalidation
 - Efficient hit testing and bounds calculation
 
-**Reactive System Optimization:**
+**Reactive system optimization:**
 
 - Signals minimize unnecessary re-renders via precise dependency tracking
 - Computed values cached until dependencies change
@@ -407,146 +407,146 @@ Custom incremental build system optimized for monorepos:
 - Component re-renders minimized through React.memo and signal integration
 - Uses `__unsafe__getWithoutCapture()` for performance-critical paths
 
-### Memory Management
+### Memory management
 
-**Efficient Resource Usage:**
+**Efficient resource usage:**
 
 - Automatic cleanup of event listeners and signal dependencies
 - Asset deduplication reduces memory footprint
 - Store history pruning prevents unbounded growth
 - Shape utility garbage collection when unused
 
-## Licensing and Business Model
+## Licensing and business model
 
-**SDK Licensing:**
+**SDK licensing:**
 
 - Open source with "Made with tldraw" watermark by default
 - Business license available for watermark removal
 - Separate commercial terms for tldraw.com service
 
-**Development Philosophy:**
+**Development philosophy:**
 
 - SDK-first development - tldraw.com built using the same APIs
 - Extensive examples and documentation for SDK adoption
 - Community-driven with transparent development process
 
-## Advanced Features and Integrations
+## Advanced features and integrations
 
-### Asset Management
+### Asset management
 
-**Centralized Assets (`@tldraw/assets`):**
+**Centralized assets (`@tldraw/assets`):**
 
-- **Icon System**: 80+ icons in optimized SVG sprite format
+- **Icon system**: 80+ icons in optimized SVG sprite format
 - **Typography**: IBM Plex fonts (Sans, Serif, Mono) + Shantell Sans (handwritten)
 - **Internationalization**: 40+ languages with regional variants (RTL support)
-- **Embed Icons**: Service icons for external content (YouTube, Figma, etc.)
-- **Export Strategies**: Multiple formats (imports, URLs, self-hosted) for different bundlers
+- **Embed icons**: Service icons for external content (YouTube, Figma, etc.)
+- **Export strategies**: Multiple formats (imports, URLs, self-hosted) for different bundlers
 
-**Dynamic Asset Pipeline:**
+**Dynamic asset pipeline:**
 
-- **Upload Workers**: Cloudflare R2 + image optimization + format conversion (AVIF/WebP)
-- **CDN Delivery**: Global asset distribution with intelligent caching
-- **External Content**: Bookmark unfurling, embed metadata extraction
+- **Upload workers**: Cloudflare R2 + image optimization + format conversion (AVIF/WebP)
+- **CDN delivery**: Global asset distribution with intelligent caching
+- **External content**: Bookmark unfurling, embed metadata extraction
 - **Deduplication**: Hash-based asset deduplication across uploads
 
-### Collaboration Features
+### Collaboration features
 
-**Real-Time Multiplayer:**
+**Real-time multiplayer:**
 
-- **Presence System**: Live cursors, selections, and user awareness indicators
-- **Conflict Resolution**: Operational transformation for concurrent edits
-- **Connection Reliability**: Automatic reconnection with exponential backoff
-- **Permission Management**: File-level access control (view/edit/owner)
+- **Presence system**: Live cursors, selections, and user awareness indicators
+- **Conflict resolution**: Operational transformation for concurrent edits
+- **Connection reliability**: Automatic reconnection with exponential backoff
+- **Permission management**: File-level access control (view/edit/owner)
 
-**Data Synchronization:**
+**Data synchronization:**
 
-- **Optimistic Updates**: Immediate UI feedback with server reconciliation
-- **Offline Support**: Queue changes during network issues, sync on reconnect
-- **Version Control**: Complete change history with restore capability
-- **Schema Migration**: Automatic data migration for schema evolution
+- **Optimistic updates**: Immediate UI feedback with server reconciliation
+- **Offline support**: Queue changes during network issues, sync on reconnect
+- **Version control**: Complete change history with restore capability
+- **Schema migration**: Automatic data migration for schema evolution
 
-### Extension and Customization
+### Extension and customization
 
-**Developer Tools:**
+**Developer tools:**
 
-- **CLI Scaffolding**: `npm create tldraw` with interactive template selection
-- **VSCode Integration**: Full editor for .tldr files with webview-based rendering
-- **Testing Utilities**: TestEditor, comprehensive E2E test suites
-- **Performance Monitoring**: Built-in performance tracking and analysis
+- **CLI scaffolding**: `npm create tldraw` with interactive template selection
+- **VSCode integration**: Full editor for .tldr files with webview-based rendering
+- **Testing utilities**: TestEditor, comprehensive E2E test suites
+- **Performance monitoring**: Built-in performance tracking and analysis
 
-**Extension Points:**
+**Extension points:**
 
-- **Custom Shapes**: ShapeUtil classes for new shape types
-- **Custom Tools**: StateNode state machines for interactive tools
-- **Custom Bindings**: BindingUtil classes for shape relationships
+- **Custom shapes**: ShapeUtil classes for new shape types
+- **Custom tools**: StateNode state machines for interactive tools
+- **Custom bindings**: BindingUtil classes for shape relationships
 - **Custom UI**: Complete component override system
-- **External Content**: Handlers for custom import/export formats
+- **External content**: Handlers for custom import/export formats
 
-## Technical Deep Dive
+## Technical deep dive
 
-### Reactive Architecture Details
+### Reactive architecture details
 
-**Signals System (`@tldraw/state`):**
+**Signals system (`@tldraw/state`):**
 
-- **Atom/Computed Pattern**: Mutable atoms + derived computed values
-- **Dependency Tracking**: Automatic capture of signal dependencies during computation
-- **Memory Optimization**: ArraySet hybrid data structure, WeakCache for object-keyed caches
-- **Effect Scheduling**: Pluggable scheduling (immediate vs animation frame throttled)
-- **Transaction Support**: Atomic multi-state updates with rollback capability
+- **Atom/Computed pattern**: Mutable atoms + derived computed values
+- **Dependency tracking**: Automatic capture of signal dependencies during computation
+- **Memory optimization**: ArraySet hybrid data structure, WeakCache for object-keyed caches
+- **Effect scheduling**: Pluggable scheduling (immediate vs animation frame throttled)
+- **Transaction support**: Atomic multi-state updates with rollback capability
 
-**Store System (`@tldraw/store`):**
+**Store system (`@tldraw/store`):**
 
-- **Record Management**: Type-safe record storage with validation and migrations
-- **Query System**: Reactive indexes with incremental updates
-- **Side Effects**: Lifecycle hooks for create/update/delete operations
-- **History Tracking**: Change diffs with configurable history length
-- **Schema Evolution**: Version-based migration system with dependencies
+- **Record management**: Type-safe record storage with validation and migrations
+- **Query system**: Reactive indexes with incremental updates
+- **Side effects**: Lifecycle hooks for create/update/delete operations
+- **History tracking**: Change diffs with configurable history length
+- **Schema evolution**: Version-based migration system with dependencies
 
-### Database and Persistence
+### Database and persistence
 
-**Client-Side Storage:**
+**Client-side storage:**
 
 - **IndexedDB**: Local persistence with automatic migrations
-- **Store Snapshots**: Complete document state serialization
-- **Asset Caching**: Local asset storage with deduplication
-- **User Preferences**: Settings persistence across sessions
+- **Store snapshots**: Complete document state serialization
+- **Asset caching**: Local asset storage with deduplication
+- **User preferences**: Settings persistence across sessions
 
-**Server-Side Infrastructure:**
+**Server-side infrastructure:**
 
 - **PostgreSQL**: Source of truth for user data, files, metadata
-- **R2 Object Storage**: Durable asset storage with global replication
+- **R2 object storage**: Durable asset storage with global replication
 - **Durable Objects**: Stateful compute for room management and real-time sync
-- **Zero Sync**: Optimistic synchronization with conflict resolution
+- **Zero sync**: Optimistic synchronization with conflict resolution
 
-## Development Workflow Best Practices
+## Development workflow best practices
 
-### Getting Started
+### Getting started
 
-1. **Clone and Setup**: `git clone` → `yarn install`
-2. **Start Development**: `yarn dev` (examples app at localhost:5420)
-3. **Run Tests**: `cd packages/editor && yarn test run` for specific packages
-4. **Check Types**: `yarn typecheck` before commits
-5. **Follow Patterns**: Read relevant CONTEXT.md files and existing code
+1. **Clone and setup**: `git clone` → `yarn install`
+2. **Start development**: `yarn dev` (examples app at localhost:5420)
+3. **Run tests**: `cd packages/editor && yarn test run` for specific packages
+4. **Check types**: `yarn typecheck` before commits
+5. **Follow patterns**: Read relevant CONTEXT.md files and existing code
 
-### Creating Examples
+### Creating examples
 
 - **Location**: `apps/examples/src/examples/your-example/`
 - **Structure**: README.md with frontmatter + YourExample.tsx component
 - **Guidelines**: See `apps/examples/writing-examples.md` for detailed patterns
 - **Categories**: getting-started, configuration, editor-api, shapes/tools, etc.
 
-### Package Development
+### Package development
 
 - **Testing**: Run tests from package directory, not root
-- **API Changes**: Run `yarn api-check` to validate public API surface
+- **API changes**: Run `yarn api-check` to validate public API surface
 - **Dependencies**: Check existing usage before adding new libraries
 - **Documentation**: API docs auto-generated from TSDoc comments
 
-### Performance Guidelines
+### Performance guidelines
 
-- **Use Signals**: Leverage reactive system for automatic optimization
-- **Batch Updates**: Use transactions for multiple state changes
-- **Memory Management**: Dispose of effects and subscriptions properly
-- **Asset Optimization**: Use appropriate asset export strategy for your bundler
+- **Use signals**: Leverage reactive system for automatic optimization
+- **Batch updates**: Use transactions for multiple state changes
+- **Memory management**: Dispose of effects and subscriptions properly
+- **Asset optimization**: Use appropriate asset export strategy for your bundler
 
 This context file provides the essential architectural understanding needed to navigate and contribute to the tldraw codebase effectively.

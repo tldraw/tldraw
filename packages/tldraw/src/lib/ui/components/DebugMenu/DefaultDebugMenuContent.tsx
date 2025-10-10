@@ -172,7 +172,7 @@ export function DebugFlags() {
 	const items = Object.values(debugFlags)
 	if (!items.length) return null
 	return (
-		<TldrawUiMenuSubmenu id="debug flags" label="Debug Flags">
+		<TldrawUiMenuSubmenu id="debug flags" label="Debug flags">
 			<TldrawUiMenuGroup id="debug flags">
 				{items.map((flag) => (
 					<DebugFlagToggle key={flag.name} flag={flag} />
@@ -186,7 +186,7 @@ export function FeatureFlags() {
 	const items = Object.values(featureFlags)
 	if (!items.length) return null
 	return (
-		<TldrawUiMenuSubmenu id="feature flags" label="Feature Flags">
+		<TldrawUiMenuSubmenu id="feature flags" label="Feature flags">
 			<TldrawUiMenuGroup id="feature flags">
 				{items.map((flag) => (
 					<DebugFlagToggle key={flag.name} flag={flag} />
