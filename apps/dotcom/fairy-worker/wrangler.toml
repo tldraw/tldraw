@@ -37,6 +37,11 @@ bindings = [
     { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
 ]
 
+[env.preview.durable_objects]
+bindings = [
+    { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
+]
+
 [durable_objects]
 bindings = [
     { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
