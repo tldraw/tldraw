@@ -20,7 +20,7 @@ interface SidebarContentProps {
 	onInvalidate: () => void
 	onOpenRenameModal: (workspace: Workspace) => void
 	onOpenDeleteModal: (workspace: Workspace) => void
-	onOpenCreateDocumentModal: (workspace: Workspace) => void
+	onOpenCreateDocumentModal: (workspace: Workspace, folder?: Folder) => void
 }
 
 /**

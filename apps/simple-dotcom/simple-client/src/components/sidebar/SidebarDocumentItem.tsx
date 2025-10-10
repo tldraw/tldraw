@@ -50,7 +50,6 @@ export function SidebarDocumentItem({
 			style={{ paddingLeft: `${8 + depth * 16}px` }}
 		>
 			<Link href={`/d/${document.id}`} className="flex-1 flex items-center gap-1 min-w-0">
-				<span className="shrink-0">📄</span>
 				<span className="truncate" title={document.name}>
 					{document.name}
 				</span>

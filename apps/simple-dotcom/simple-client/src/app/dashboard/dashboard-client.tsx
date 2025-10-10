@@ -31,7 +31,7 @@ type ModalState =
 	| { type: 'create-workspace' }
 	| { type: 'rename-workspace'; workspace: Workspace }
 	| { type: 'delete-workspace'; workspace: Workspace }
-	| { type: 'create-document'; workspace: Workspace }
+	| { type: 'create-document'; workspace: Workspace; folder?: Folder }
 
 interface DashboardClientProps {
 	initialData: DashboardData
@@ -209,10 +209,17 @@ export default function DashboardClient({
 				setActionLoading(true)
 				setValidationError(null)
 
+				const requestBody: { name: string; folder_id?: string } = { name: name.trim() }
+
+				// Include folder_id if a folder was specified
+				if (modalState.folder?.id) {
+					requestBody.folder_id = modalState.folder.id
+				}
+
 				const response = await fetch(`/api/workspaces/${modalState.workspace.id}/documents`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ name }),
+					body: JSON.stringify(requestBody),
 				})
 
 				const data = await response.json()
@@ -247,8 +254,8 @@ export default function DashboardClient({
 				onInvalidate={handleRealtimeChange}
 				onOpenRenameModal={(ws) => setModalState({ type: 'rename-workspace', workspace: ws })}
 				onOpenDeleteModal={(ws) => setModalState({ type: 'delete-workspace', workspace: ws })}
-				onOpenCreateDocumentModal={(ws) =>
-					setModalState({ type: 'create-document', workspace: ws })
+				onOpenCreateDocumentModal={(ws, folder) =>
+					setModalState({ type: 'create-document', workspace: ws, folder: folder })
 				}
 			/>
 
@@ -258,15 +265,6 @@ export default function DashboardClient({
 					<div className="flex items-center justify-between mb-8">
 						<h1 className="text-3xl font-bold">Dashboard</h1>
 						<div className="flex items-center gap-3">
-							<Button
-								onClick={() => {
-									setValidationError(null)
-									setModalState({ type: 'create-workspace' })
-								}}
-								data-testid="create-workspace-button"
-							>
-								Create Workspace
-							</Button>
 							<ThemeToggle />
 							<Button variant="outline" asChild>
 								<Link href="/profile">Profile</Link>
@@ -372,7 +370,7 @@ export default function DashboardClient({
 				onOpenChange={(open) => {
 					if (!open) closeModal()
 				}}
-				title={`Create Document in ${modalState.type === 'create-document' ? modalState.workspace.name : ''}`}
+				title={`Create Document in ${modalState.type === 'create-document' ? modalState.workspace.name : ''}${modalState.type === 'create-document' && modalState.folder ? ` in ${modalState.folder.name}` : ''}`}
 				label="Document Name"
 				placeholder="Document name"
 				defaultValue="New Document"

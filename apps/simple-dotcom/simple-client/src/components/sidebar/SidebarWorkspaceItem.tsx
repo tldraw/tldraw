@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useCallback } from 'react'
 import { SidebarDocumentItem } from './SidebarDocumentItem'
 import { SidebarFolderItem } from './SidebarFolderItem'
+import { SidebarNewDocumentButton } from './SidebarNewDocumentButton'
 
 interface SidebarWorkspaceItemProps {
 	workspace: Workspace
@@ -19,7 +20,7 @@ interface SidebarWorkspaceItemProps {
 	onInvalidate?: () => void
 	onOpenRenameModal?: (workspace: Workspace) => void
 	onOpenDeleteModal?: (workspace: Workspace) => void
-	onOpenCreateDocumentModal?: (workspace: Workspace) => void
+	onOpenCreateDocumentModal?: (workspace: Workspace, folder?: Folder) => void
 }
 
 /**
@@ -74,12 +75,9 @@ export function SidebarWorkspaceItem({
 	const rootDocuments = documents.filter((d) => !d.folder_id && !d.is_archived)
 
 	return (
-		<div
-			className="border border-foreground/10 rounded-md overflow-hidden"
-			data-testid={`sidebar-workspace-${workspace.id}`}
-		>
+		<div className="overflow-hidden" data-testid={`sidebar-workspace-${workspace.id}`}>
 			{/* Workspace Header */}
-			<div className="flex items-center justify-between px-3 py-2 bg-foreground/5">
+			<div className="flex items-center justify-between px-3 py-2">
 				<div className="flex-1 flex items-center gap-2 min-w-0">
 					<button
 						onClick={handleToggle}
@@ -156,6 +154,7 @@ export function SidebarWorkspaceItem({
 								canEdit={canEdit}
 								canDelete={canDelete}
 								onInvalidate={onInvalidate}
+								onCreateDocument={(folder) => onOpenCreateDocumentModal?.(workspace, folder)}
 							/>
 						)
 					})}
@@ -175,13 +174,10 @@ export function SidebarWorkspaceItem({
 
 					{/* Create Document Button */}
 					{(!workspace.is_private || isOwner) && (
-						<button
-							onClick={() => onOpenCreateDocumentModal?.(workspace)}
-							data-testid={`create-document-${workspace.id}`}
-							className="w-full px-2 py-1 text-sm text-left rounded hover:bg-foreground/5 text-foreground/60 hover:text-foreground flex items-center gap-1"
-						>
-							<span className="text-xs">+</span> New Document
-						</button>
+						<SidebarNewDocumentButton
+							onSelect={() => onOpenCreateDocumentModal?.(workspace, undefined)}
+							id={workspace.id}
+						/>
 					)}
 
 					{/* Empty state */}

@@ -365,6 +365,13 @@ _2025-10-10 (continued):_ Completed sidebar container and search integration:
   - Search dialog state managed in Sidebar component
 - All search acceptance criteria now complete
 
+_2025-10-10 (design review):_ Compared implementation against design mockups in `designs/sidebar-*.png`. Core functionality complete. Created follow-up polish tickets:
+- **UI-POLISH-01** (P1): Visual refinements (logo, icons, document status indicators)
+- **UI-POLISH-02** (P2): Interactive component upgrades (context dropdown, help menu, optional inline search)
+- **DESIGN-01**: Marked complete (designs already exist, implementation done)
+
+Implementation is feature-complete for MVP. Polish tickets track design alignment work for post-MVP.
+
 ## Open Questions
 
 1. **Search scope for "Shared with me" context:**

@@ -6,10 +6,10 @@ Date completed: -
 
 ## Status
 
-- [x] Not Started
+- [ ] Not Started
 - [ ] In Progress
 - [ ] Blocked
-- [ ] Done
+- [x] Done
 
 ## Priority
 
@@ -90,7 +90,7 @@ Provide redlines and responsive behavior notes so engineers can translate layout
 
 ## Worklog
 
-[Track progress, decisions, and blockers as work proceeds. Each entry should include date and brief description.]
+_2025-10-10:_ Marked as complete. Design mockups already exist in `designs/sidebar-*.png`. Sidebar has been implemented per NAV-08. Visual and interactive refinements tracked in new tickets UI-POLISH-01 and UI-POLISH-02.
 
 ## Open questions
 

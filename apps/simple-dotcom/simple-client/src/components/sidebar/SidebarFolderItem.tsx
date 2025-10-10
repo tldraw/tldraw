@@ -2,9 +2,10 @@
 
 import { useLocalStorageState } from '@/app/hooks/useLocalStorageState'
 import { Document, Folder } from '@/lib/api/types'
-import { ChevronDown, ChevronRight, Folder as FolderIcon } from 'lucide-react'
+import { Folder as FolderIcon, FolderOpenIcon } from 'lucide-react'
 import Link from 'next/link'
 import { SidebarDocumentItem } from './SidebarDocumentItem'
+import { SidebarNewDocumentButton } from './SidebarNewDocumentButton'
 
 interface SidebarFolderItemProps {
 	folder: Folder
@@ -17,6 +18,7 @@ interface SidebarFolderItemProps {
 	canEdit: boolean
 	canDelete: boolean
 	onInvalidate?: () => void
+	onCreateDocument: (folder?: Folder) => void
 }
 
 /**
@@ -42,6 +44,7 @@ export function SidebarFolderItem({
 	canEdit,
 	canDelete,
 	onInvalidate,
+	onCreateDocument,
 }: SidebarFolderItemProps) {
 	const [isExpanded, setIsExpanded] = useLocalStorageState(
 		`sidebar-folder-${folder.id}-expanded`,
@@ -71,13 +74,16 @@ export function SidebarFolderItem({
 					aria-label={isExpanded ? 'Collapse folder' : 'Expand folder'}
 					aria-expanded={isExpanded}
 				>
-					{isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+					{isExpanded ? (
+						<FolderOpenIcon className="w-4 h-4 shrink-0 text-foreground/60" />
+					) : (
+						<FolderIcon className="w-4 h-4 shrink-0 text-foreground/60" />
+					)}
 				</button>
 				<Link
 					href={`/workspace/${workspaceId}/folder/${folder.id}`}
 					className="flex-1 flex items-center gap-1.5 min-w-0"
 				>
-					<FolderIcon className="w-4 h-4 shrink-0 text-foreground/60" />
 					<span className="truncate" title={folder.name}>
 						{folder.name}
 					</span>
@@ -106,6 +112,7 @@ export function SidebarFolderItem({
 								canEdit={canEdit}
 								canDelete={canDelete}
 								onInvalidate={onInvalidate}
+								onCreateDocument={onCreateDocument}
 							/>
 						)
 					})}
@@ -125,12 +132,7 @@ export function SidebarFolderItem({
 
 					{/* Empty state */}
 					{childFolders.length === 0 && folderDocuments.length === 0 && (
-						<div
-							className="text-xs text-foreground/40 italic py-1 px-2"
-							style={{ paddingLeft: `${8 + (depth + 1) * 16}px` }}
-						>
-							Empty folder
-						</div>
+						<SidebarNewDocumentButton onSelect={() => onCreateDocument(folder)} id={folder.id} />
 					)}
 				</div>
 			)}
