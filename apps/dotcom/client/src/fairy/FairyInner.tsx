@@ -80,57 +80,6 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 				}}
 				className={isSelected ? 'fairy-selected' : ''}
 			>
-				{/* Selection corner brackets */}
-				{isSelected && (
-					<div
-						style={{
-							position: 'absolute',
-							left: '50%',
-							top: '50%',
-							transform: 'translate(-50%, -50%)',
-							width: '64px',
-							height: '64px',
-							pointerEvents: 'none',
-						}}
-					>
-						<div
-							className="fairy-selected-corner"
-							style={{
-								top: '-10px',
-								left: '-10px',
-								borderTopWidth: '3px',
-								borderLeftWidth: '3px',
-							}}
-						/>
-						<div
-							className="fairy-selected-corner"
-							style={{
-								top: '-10px',
-								right: '-10px',
-								borderTopWidth: '3px',
-								borderRightWidth: '3px',
-							}}
-						/>
-						<div
-							className="fairy-selected-corner"
-							style={{
-								bottom: '-10px',
-								left: '-10px',
-								borderBottomWidth: '3px',
-								borderLeftWidth: '3px',
-							}}
-						/>
-						<div
-							className="fairy-selected-corner"
-							style={{
-								bottom: '-10px',
-								right: '-10px',
-								borderBottomWidth: '3px',
-								borderRightWidth: '3px',
-							}}
-						/>
-					</div>
-				)}
 				<div onClick={handleFairyClick}>
 					<FairySprite
 						pose="idle"
