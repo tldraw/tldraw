@@ -521,14 +521,13 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 		let diff: RecordsDiff<TLRecord>
 		try {
 			diff = editor.store.extractingChanges(() => {
-				const resultPromise = util.applyAction(structuredClone(action), helpers)
-				if (resultPromise) {
-					promise = resultPromise.promise ?? null
-					coordinates = resultPromise.coordinates ?? undefined
+				const actionResult = util.applyAction(structuredClone(action), helpers)
+				if (actionResult) {
+					// todo this logic probably gets extracted, esp once fairy stuff gets more complex than just moving it the fairy
+					promise = actionResult.promise ?? null
+					coordinates = actionResult.coordinates ?? undefined
 					if (coordinates) {
 						moveFairyToCoordinates(coordinates)
-					} else {
-						console.log('no coordinates')
 					}
 				}
 			})
@@ -772,7 +771,7 @@ function requestAgent({ agent, request }: { agent: TldrawFairyAgent; request: Ag
 			for await (const action of streamAgent({ prompt, signal })) {
 				if (cancelled) break
 				// eslint-disable-next-line no-console
-				console.log('AGENT ACTION\n', action)
+				if (action.complete) console.log('AGENT ACTION\n', action)
 				editor.run(
 					() => {
 						const actionUtil = agent.getAgentActionUtil(action._type)

@@ -46,14 +46,13 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	/**
 	 * Apply the action to the editor.
 	 * Any changes that happen during this function will be displayed as a diff.
-	 * @returns An object containing an optional promise and optional coordinates to move the fairy to
+	 * @returns An optional object containing a promise and/or coordinates to move the fairy to
 	 */
 	applyAction(
 		_action: Streaming<T>,
 		_helpers: AgentHelpers
 	): { promise?: Promise<void>; coordinates?: { x: number; y: number } } | void {
 		// Do nothing by default
-		return {}
 	}
 
 	/**

@@ -80,11 +80,6 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 				})
 			}
 		}
-		console.log(
-			'i am the create action util and I want to move the fairy to the point',
-			result.shape.x,
-			result.shape.y
-		)
 
 		return {
 			coordinates: {
