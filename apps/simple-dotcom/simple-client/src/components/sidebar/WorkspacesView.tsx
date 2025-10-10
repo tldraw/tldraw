@@ -39,22 +39,25 @@ export function WorkspacesView({
 	onOpenDeleteModal,
 	onOpenCreateDocumentModal,
 }: WorkspacesViewProps) {
-	const [collapsedWorkspaces, setCollapsedWorkspaces] = useLocalStorageState<string[]>(
+	const [collapsedWorkspaces, setCollapsedWorkspaces, isLoaded] = useLocalStorageState<string[]>(
 		'collapsed-workspaces',
 		[]
 	)
 
-	const handleToggle = useCallback((workspaceId: string) => {
-		setCollapsedWorkspaces((prev) => {
-			const next = [...prev]
-			if (next.includes(workspaceId)) {
-				next.splice(next.indexOf(workspaceId), 1)
-			} else {
-				next.push(workspaceId)
-			}
-			return next
-		})
-	}, [])
+	const handleToggle = useCallback(
+		(workspaceId: string) => {
+			setCollapsedWorkspaces((prev) => {
+				const next = [...prev]
+				if (next.includes(workspaceId)) {
+					next.splice(next.indexOf(workspaceId), 1)
+				} else {
+					next.push(workspaceId)
+				}
+				return next
+			})
+		},
+		[setCollapsedWorkspaces]
+	)
 
 	const handleShiftToggle = useCallback(
 		(workspaceId: string) => {
@@ -83,8 +86,13 @@ export function WorkspacesView({
 		)
 	}
 
+	if (!isLoaded) {
+		// todo: show skeleton or loading state
+		return null
+	}
+
 	return (
-		<div className="space-y-2" data-testid="workspaces-view">
+		<div data-testid="workspaces-view">
 			{workspaces.map(({ workspace, documents, folders, userRole }) => (
 				<SidebarWorkspaceItem
 					key={workspace.id}
@@ -93,7 +101,7 @@ export function WorkspacesView({
 					folders={folders}
 					userRole={userRole}
 					userId={userId}
-					isCollapsed={collapsedWorkspaces.includes(workspace.id)}
+					isCollapsed={!isLoaded || !collapsedWorkspaces.includes(workspace.id)}
 					onCollapsedToggle={handleToggle}
 					onCollapsedShiftToggle={handleShiftToggle}
 					onInvalidate={onInvalidate}

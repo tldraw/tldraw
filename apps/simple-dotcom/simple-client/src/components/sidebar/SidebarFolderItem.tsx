@@ -6,6 +6,7 @@ import { Folder as FolderIcon, FolderOpenIcon } from 'lucide-react'
 import Link from 'next/link'
 import { SidebarDocumentItem } from './SidebarDocumentItem'
 import { SidebarNewDocumentButton } from './SidebarNewDocumentButton'
+import { SIDEBAR_ITEM_HOVERABLE } from './sidebar-styles'
 
 interface SidebarFolderItemProps {
 	folder: Folder
@@ -61,10 +62,10 @@ export function SidebarFolderItem({
 	const folderDocuments = documents.filter((doc) => doc.folder_id === folder.id)
 
 	return (
-		<div>
+		<>
 			{/* Folder Header */}
 			<div
-				className="flex items-center gap-1 px-2 py-1 text-sm rounded hover:bg-foreground/5 cursor-pointer"
+				className={`${SIDEBAR_ITEM_HOVERABLE} gap-1 text-sm cursor-pointer`}
 				data-testid={`sidebar-folder-${folder.id}`}
 				style={{ paddingLeft: `${8 + depth * 16}px` }}
 			>
@@ -92,7 +93,7 @@ export function SidebarFolderItem({
 
 			{/* Folder Contents (when expanded) */}
 			{isExpanded && (
-				<div>
+				<>
 					{/* Child Folders (recursive) */}
 					{childFolders.map((childFolder) => {
 						// Find nested folders and documents for this child
@@ -134,8 +135,8 @@ export function SidebarFolderItem({
 					{childFolders.length === 0 && folderDocuments.length === 0 && (
 						<SidebarNewDocumentButton onSelect={() => onCreateDocument(folder)} id={folder.id} />
 					)}
-				</div>
+				</>
 			)}
-		</div>
+		</>
 	)
 }

@@ -1,257 +1,269 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+:root,
+html {
+	color-scheme: light !important;
+}
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+	--background: #ffffff;
+	--foreground: #171717;
 
-  /* shadcn/ui CSS variables */
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 3.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 3.9%;
-  --primary: 0 0% 9%;
-  --primary-foreground: 0 0% 98%;
-  --secondary: 0 0% 96.1%;
-  --secondary-foreground: 0 0% 9%;
-  --muted: 0 0% 96.1%;
-  --muted-foreground: 0 0% 45.1%;
-  --accent: 0 0% 96.1%;
-  --accent-foreground: 0 0% 9%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 89.8%;
-  --input: 0 0% 89.8%;
-  --ring: 0 0% 3.9%;
-  --radius: 0.5rem;
+	/* shadcn/ui CSS variables */
+	--card: 0 0% 100%;
+	--card-foreground: 0 0% 3.9%;
+	--popover: 0 0% 100%;
+	--popover-foreground: 0 0% 3.9%;
+	--primary: 0 0% 9%;
+	--primary-foreground: 0 0% 98%;
+	--secondary: 0 0% 96.1%;
+	--secondary-foreground: 0 0% 9%;
+	--muted: 0 0% 96.1%;
+	--muted-foreground: 0 0% 45.1%;
+	--accent: 0 0% 96.1%;
+	--accent-foreground: 0 0% 9%;
+	--destructive: 0 84.2% 60.2%;
+	--destructive-foreground: 0 0% 98%;
+	--border: 0 0% 89.8%;
+	--input: 0 0% 89.8%;
+	--ring: 0 0% 3.9%;
+	--radius: 0.5rem;
 
-  /* TLA (apps/dotcom/client) light theme */
-  --tla-color-sidebar: hsl(0, 0%, 99%);
-  --tla-color-tooltip: hsla(200, 14%, 4%, 1);
-  --tla-color-canvas: hsl(210, 20%, 98%);
-  --tla-color-panel: hsl(0, 0%, 100%);
-  --tla-color-text-1: hsl(204, 8%, 5%);
-  --tla-color-text-2: hsl(204, 2%, 20%);
-  --tla-color-text-3: hsl(204, 4%, 45%);
-  --tla-color-contrast: hsl(0, 0%, 100%);
-  --tla-color-low: hsl(204, 16%, 94%);
-  --tla-color-border: hsl(204, 16%, 85%);
-  --tla-color-hover-1: hsl(204, 16%, 4%, 3%);
-  --tla-color-hover-2: hsl(204, 16%, 4%, 4.5%);
-  --tla-color-hover-3: hsla(0, 0%, 100%, 32.5%);
-  --tla-color-overlay: hsla(240, 16%, 2%, 30%);
-  --tla-color-cta: hsl(214, 92%, 50%);
-  --tla-color-cta-hover: hsl(214, 92%, 53%);
-  --tla-color-inactive: hsl(204, 4%, 55%);
-  --tla-color-inactive-hover: hsl(204, 4%, 59%);
-  --tla-color-primary: hsl(214, 84%, 56%);
-  --tla-color-primary-hover: hsl(214, 84%, 58%);
-  --tla-color-secondary: hsl(0, 0%, 92%);
-  --tla-color-secondary-hover: hsl(0, 0%, 93.5%);
-  --tla-color-secondary-border: hsl(0, 0%, 80%);
-  --tla-color-accent-1: hsl(50, 91%, 70%);
-  --tla-color-accent-2: hsl(28, 88%, 57%);
-  --tla-color-accent-3: hsl(135, 59%, 49%);
-  --tla-color-warning: hsl(0, 88%, 57%);
-  --tla-shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 25%), 0px 1px 3px hsl(0, 0%, 0%, 9%);
-  --tla-shadow-2: 0px 0px 2px hsl(0, 0%, 0%, 16%), 0px 2px 3px hsl(0, 0%, 0%, 24%), 0px 2px 6px hsl(0, 0%, 0%, 0.1), inset 0px 0px 0px 1px var(--tla-color-contrast);
-  --tla-shadow-3: 0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%), inset 0px 0px 0px 1px var(--tla-color-contrast);
-  --tla-shadow-4: 0px 0px 3px hsl(0, 0%, 0%, 19%), 0px 5px 4px hsl(0, 0%, 0%, 16%), 0px 2px 16px hsl(0, 0%, 0%, 6%), inset 0px 0px 0px 1px var(--tla-color-contrast);
+	/* TLA (apps/dotcom/client) light theme */
+	--tla-color-sidebar: hsl(0, 0%, 99%);
+	--tla-color-tooltip: hsla(200, 14%, 4%, 1);
+	--tla-color-canvas: hsl(210, 20%, 98%);
+	--tla-color-panel: hsl(0, 0%, 100%);
+	--tla-color-text-1: hsl(204, 8%, 5%);
+	--tla-color-text-2: hsl(204, 2%, 20%);
+	--tla-color-text-3: hsl(204, 4%, 45%);
+	--tla-color-contrast: hsl(0, 0%, 100%);
+	--tla-color-low: hsl(204, 16%, 94%);
+	--tla-color-border: hsl(204, 16%, 85%);
+	--tla-color-hover-1: hsl(204, 16%, 4%, 3%);
+	--tla-color-hover-2: hsl(204, 16%, 4%, 4.5%);
+	--tla-color-hover-3: hsla(0, 0%, 100%, 32.5%);
+	--tla-color-overlay: hsla(240, 16%, 2%, 30%);
+	--tla-color-cta: hsl(214, 92%, 50%);
+	--tla-color-cta-hover: hsl(214, 92%, 53%);
+	--tla-color-inactive: hsl(204, 4%, 55%);
+	--tla-color-inactive-hover: hsl(204, 4%, 59%);
+	--tla-color-primary: hsl(214, 84%, 56%);
+	--tla-color-primary-hover: hsl(214, 84%, 58%);
+	--tla-color-secondary: hsl(0, 0%, 92%);
+	--tla-color-secondary-hover: hsl(0, 0%, 93.5%);
+	--tla-color-secondary-border: hsl(0, 0%, 80%);
+	--tla-color-accent-1: hsl(50, 91%, 70%);
+	--tla-color-accent-2: hsl(28, 88%, 57%);
+	--tla-color-accent-3: hsl(135, 59%, 49%);
+	--tla-color-warning: hsl(0, 88%, 57%);
+	--tla-shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 25%), 0px 1px 3px hsl(0, 0%, 0%, 9%);
+	--tla-shadow-2:
+		0px 0px 2px hsl(0, 0%, 0%, 16%), 0px 2px 3px hsl(0, 0%, 0%, 24%),
+		0px 2px 6px hsl(0, 0%, 0%, 0.1), inset 0px 0px 0px 1px var(--tla-color-contrast);
+	--tla-shadow-3:
+		0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%),
+		inset 0px 0px 0px 1px var(--tla-color-contrast);
+	--tla-shadow-4:
+		0px 0px 3px hsl(0, 0%, 0%, 19%), 0px 5px 4px hsl(0, 0%, 0%, 16%),
+		0px 2px 16px hsl(0, 0%, 0%, 6%), inset 0px 0px 0px 1px var(--tla-color-contrast);
 
-  /* TL Editor (packages/editor) light theme */
-  --tl-color-snap: hsl(0, 76%, 60%);
-  --tl-color-selection-fill: hsl(210, 100%, 56%, 24%);
-  --tl-color-selection-stroke: hsl(214, 84%, 56%);
-  --tl-color-background: hsl(210, 20%, 98%);
-  --tl-color-brush-fill: hsl(0, 0%, 56%, 10.2%);
-  --tl-color-brush-stroke: hsl(0, 0%, 56%, 25.1%);
-  --tl-color-grid: hsl(0, 0%, 43%);
-  --tl-color-low: hsl(204, 16%, 94%);
-  --tl-color-low-border: hsl(204, 16%, 92%);
-  --tl-color-culled: hsl(204, 14%, 93%);
-  --tl-color-muted-none: hsl(0, 0%, 0%, 0%);
-  --tl-color-muted-0: hsl(0, 0%, 0%, 2%);
-  --tl-color-muted-1: hsl(0, 0%, 0%, 10%);
-  --tl-color-muted-2: hsl(0, 0%, 0%, 4.3%);
-  --tl-color-hint: hsl(0, 0%, 0%, 5.5%);
-  --tl-color-overlay: hsl(0, 0%, 0%, 20%);
-  --tl-color-divider: hsl(0, 0%, 91%);
-  --tl-color-panel: hsl(0, 0%, 99%);
-  --tl-color-panel-contrast: hsl(0, 0%, 100%);
-  --tl-color-panel-overlay: hsl(0, 0%, 100%, 82%);
-  --tl-color-panel-transparent: hsla(0, 0%, 99%, 0%);
-  --tl-color-selected: hsl(214, 84%, 56%);
-  --tl-color-selected-contrast: hsl(0, 0%, 100%);
-  --tl-color-focus: hsl(219, 65%, 50%);
-  --tl-color-tooltip: hsla(200, 14%, 4%, 1);
-  --tl-color-text: hsl(0, 0%, 0%);
-  --tl-color-text-0: hsl(0, 0%, 11%);
-  --tl-color-text-1: hsl(0, 0%, 18%);
-  --tl-color-text-3: hsl(204, 4%, 45%);
-  --tl-color-text-shadow: hsl(0, 0%, 100%);
-  --tl-color-text-highlight: hsl(52, 100%, 50%);
-  --tl-color-primary: hsl(214, 84%, 56%);
-  --tl-color-success: hsl(123, 46%, 34%);
-  --tl-color-info: hsl(201, 98%, 41%);
-  --tl-color-warning: hsl(27, 98%, 47%);
-  --tl-color-danger: hsl(0, 90%, 43%);
+	/* TL Editor (packages/editor) light theme */
+	--tl-color-snap: hsl(0, 76%, 60%);
+	--tl-color-selection-fill: hsl(210, 100%, 56%, 24%);
+	--tl-color-selection-stroke: hsl(214, 84%, 56%);
+	--tl-color-background: hsl(210, 20%, 98%);
+	--tl-color-brush-fill: hsl(0, 0%, 56%, 10.2%);
+	--tl-color-brush-stroke: hsl(0, 0%, 56%, 25.1%);
+	--tl-color-grid: hsl(0, 0%, 43%);
+	--tl-color-low: hsl(204, 16%, 94%);
+	--tl-color-low-border: hsl(204, 16%, 92%);
+	--tl-color-culled: hsl(204, 14%, 93%);
+	--tl-color-muted-none: hsl(0, 0%, 0%, 0%);
+	--tl-color-muted-0: hsl(0, 0%, 0%, 2%);
+	--tl-color-muted-1: hsl(0, 0%, 0%, 10%);
+	--tl-color-muted-2: hsl(0, 0%, 0%, 4.3%);
+	--tl-color-hint: hsl(0, 0%, 0%, 5.5%);
+	--tl-color-overlay: hsl(0, 0%, 0%, 20%);
+	--tl-color-divider: hsl(0, 0%, 91%);
+	--tl-color-panel: hsl(0, 0%, 99%);
+	--tl-color-panel-contrast: hsl(0, 0%, 100%);
+	--tl-color-panel-overlay: hsl(0, 0%, 100%, 82%);
+	--tl-color-panel-transparent: hsla(0, 0%, 99%, 0%);
+	--tl-color-selected: hsl(214, 84%, 56%);
+	--tl-color-selected-contrast: hsl(0, 0%, 100%);
+	--tl-color-focus: hsl(219, 65%, 50%);
+	--tl-color-tooltip: hsla(200, 14%, 4%, 1);
+	--tl-color-text: hsl(0, 0%, 0%);
+	--tl-color-text-0: hsl(0, 0%, 11%);
+	--tl-color-text-1: hsl(0, 0%, 18%);
+	--tl-color-text-3: hsl(204, 4%, 45%);
+	--tl-color-text-shadow: hsl(0, 0%, 100%);
+	--tl-color-text-highlight: hsl(52, 100%, 50%);
+	--tl-color-primary: hsl(214, 84%, 56%);
+	--tl-color-success: hsl(123, 46%, 34%);
+	--tl-color-info: hsl(201, 98%, 41%);
+	--tl-color-warning: hsl(27, 98%, 47%);
+	--tl-color-danger: hsl(0, 90%, 43%);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--font-sans: var(--font-geist-sans);
+	--font-mono: var(--font-geist-mono);
 
-  /* shadcn/ui theme colors */
-  --color-card: hsl(var(--card));
-  --color-card-foreground: hsl(var(--card-foreground));
-  --color-popover: hsl(var(--popover));
-  --color-popover-foreground: hsl(var(--popover-foreground));
-  --color-primary: hsl(var(--primary));
-  --color-primary-foreground: hsl(var(--primary-foreground));
-  --color-secondary: hsl(var(--secondary));
-  --color-secondary-foreground: hsl(var(--secondary-foreground));
-  --color-muted: hsl(var(--muted));
-  --color-muted-foreground: hsl(var(--muted-foreground));
-  --color-accent: hsl(var(--accent));
-  --color-accent-foreground: hsl(var(--accent-foreground));
-  --color-destructive: hsl(var(--destructive));
-  --color-destructive-foreground: hsl(var(--destructive-foreground));
-  --color-border: hsl(var(--border));
-  --color-input: hsl(var(--input));
-  --color-ring: hsl(var(--ring));
+	/* shadcn/ui theme colors */
+	--color-card: hsl(var(--card));
+	--color-card-foreground: hsl(var(--card-foreground));
+	--color-popover: hsl(var(--popover));
+	--color-popover-foreground: hsl(var(--popover-foreground));
+	--color-primary: hsl(var(--primary));
+	--color-primary-foreground: hsl(var(--primary-foreground));
+	--color-secondary: hsl(var(--secondary));
+	--color-secondary-foreground: hsl(var(--secondary-foreground));
+	--color-muted: hsl(var(--muted));
+	--color-muted-foreground: hsl(var(--muted-foreground));
+	--color-accent: hsl(var(--accent));
+	--color-accent-foreground: hsl(var(--accent-foreground));
+	--color-destructive: hsl(var(--destructive));
+	--color-destructive-foreground: hsl(var(--destructive-foreground));
+	--color-border: hsl(var(--border));
+	--color-input: hsl(var(--input));
+	--color-ring: hsl(var(--ring));
 
-  /* Expose TL Editor colors */
-  --color-tl-background: var(--tl-color-background);
-  --color-tl-text: var(--tl-color-text);
-  --color-tl-text-0: var(--tl-color-text-0);
-  --color-tl-text-1: var(--tl-color-text-1);
-  --color-tl-text-3: var(--tl-color-text-3);
-  --color-tl-panel: var(--tl-color-panel);
-  --color-tl-panel-contrast: var(--tl-color-panel-contrast);
-  --color-tl-divider: var(--tl-color-divider);
-  --color-tl-selected: var(--tl-color-selected);
-  --color-tl-selected-contrast: var(--tl-color-selected-contrast);
-  --color-tl-primary: var(--tl-color-primary);
-  --color-tl-success: var(--tl-color-success);
-  --color-tl-info: var(--tl-color-info);
-  --color-tl-warning: var(--tl-color-warning);
-  --color-tl-danger: var(--tl-color-danger);
-  --color-tl-focus: var(--tl-color-focus);
-  --color-tl-tooltip: var(--tl-color-tooltip);
+	/* Expose TL Editor colors */
+	--color-tl-background: var(--tl-color-background);
+	--color-tl-text: var(--tl-color-text);
+	--color-tl-text-0: var(--tl-color-text-0);
+	--color-tl-text-1: var(--tl-color-text-1);
+	--color-tl-text-3: var(--tl-color-text-3);
+	--color-tl-panel: var(--tl-color-panel);
+	--color-tl-panel-contrast: var(--tl-color-panel-contrast);
+	--color-tl-divider: var(--tl-color-divider);
+	--color-tl-selected: var(--tl-color-selected);
+	--color-tl-selected-contrast: var(--tl-color-selected-contrast);
+	--color-tl-primary: var(--tl-color-primary);
+	--color-tl-success: var(--tl-color-success);
+	--color-tl-info: var(--tl-color-info);
+	--color-tl-warning: var(--tl-color-warning);
+	--color-tl-danger: var(--tl-color-danger);
+	--color-tl-focus: var(--tl-color-focus);
+	--color-tl-tooltip: var(--tl-color-tooltip);
 
-  /* Expose TLA colors */
-  --color-tla-panel: var(--tla-color-panel);
-  --color-tla-sidebar: var(--tla-color-sidebar);
-  --color-tla-canvas: var(--tla-color-canvas);
-  --color-tla-text-1: var(--tla-color-text-1);
-  --color-tla-text-2: var(--tla-color-text-2);
-  --color-tla-text-3: var(--tla-color-text-3);
-  --color-tla-border: var(--tla-color-border);
-  --color-tla-overlay: var(--tla-color-overlay);
-  --color-tla-primary: var(--tla-color-primary);
-  --color-tla-secondary: var(--tla-color-secondary);
-  --color-tla-cta: var(--tla-color-cta);
-  --color-tla-warning: var(--tla-color-warning);
-  --shadow-tla-1: var(--tla-shadow-1);
-  --shadow-tla-2: var(--tla-shadow-2);
-  --shadow-tla-3: var(--tla-shadow-3);
-  --shadow-tla-4: var(--tla-shadow-4);
+	/* Expose TLA colors */
+	--color-tla-panel: var(--tla-color-panel);
+	--color-tla-sidebar: var(--tla-color-sidebar);
+	--color-tla-canvas: var(--tla-color-canvas);
+	--color-tla-text-1: var(--tla-color-text-1);
+	--color-tla-text-2: var(--tla-color-text-2);
+	--color-tla-text-3: var(--tla-color-text-3);
+	--color-tla-border: var(--tla-color-border);
+	--color-tla-overlay: var(--tla-color-overlay);
+	--color-tla-primary: var(--tla-color-primary);
+	--color-tla-secondary: var(--tla-color-secondary);
+	--color-tla-cta: var(--tla-color-cta);
+	--color-tla-warning: var(--tla-color-warning);
+	--shadow-tla-1: var(--tla-shadow-1);
+	--shadow-tla-2: var(--tla-shadow-2);
+	--shadow-tla-3: var(--tla-shadow-3);
+	--shadow-tla-4: var(--tla-shadow-4);
 }
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+	--background: #0a0a0a;
+	--foreground: #ededed;
 
-  /* shadcn/ui dark mode */
-  --card: 0 0% 3.9%;
-  --card-foreground: 0 0% 98%;
-  --popover: 0 0% 3.9%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 0 0% 98%;
-  --primary-foreground: 0 0% 9%;
-  --secondary: 0 0% 14.9%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 0 0% 14.9%;
-  --muted-foreground: 0 0% 63.9%;
-  --accent: 0 0% 14.9%;
-  --accent-foreground: 0 0% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 14.9%;
-  --input: 0 0% 14.9%;
-  --ring: 0 0% 83.1%;
+	/* shadcn/ui dark mode */
+	--card: 0 0% 3.9%;
+	--card-foreground: 0 0% 98%;
+	--popover: 0 0% 3.9%;
+	--popover-foreground: 0 0% 98%;
+	--primary: 0 0% 98%;
+	--primary-foreground: 0 0% 9%;
+	--secondary: 0 0% 14.9%;
+	--secondary-foreground: 0 0% 98%;
+	--muted: 0 0% 14.9%;
+	--muted-foreground: 0 0% 63.9%;
+	--accent: 0 0% 14.9%;
+	--accent-foreground: 0 0% 98%;
+	--destructive: 0 62.8% 30.6%;
+	--destructive-foreground: 0 0% 98%;
+	--border: 0 0% 14.9%;
+	--input: 0 0% 14.9%;
+	--ring: 0 0% 83.1%;
 
-  /* TLA dark theme */
-  --tla-color-sidebar: hsl(0, 0%, 5%);
-  --tla-color-tooltip: hsla(0, 0%, 100%, 1);
-  --tla-color-canvas: hsl(240, 5%, 6.5%);
-  --tla-color-panel: hsl(240, 6%, 13%);
-  --tla-color-text-1: hsl(204, 8%, 98%);
-  --tla-color-text-2: hsl(204, 5%, 85%);
-  --tla-color-text-3: hsl(204, 4%, 75%);
-  --tla-color-contrast: hsl(0, 0%, 100%);
-  --tla-color-low: hsl(240, 4%, 11%);
-  --tla-color-border: hsl(240, 12%, 20%);
-  --tla-color-hover-1: hsl(240, 8%, 100%, 3%);
-  --tla-color-hover-2: hsl(240, 8%, 100%, 5%);
-  --tla-color-hover-3: hsl(204, 16%, 4%, 3%);
-  --tla-color-overlay: hsla(240, 0%, 0%, 81%);
-  --tla-color-cta: hsl(214, 100%, 50%);
-  --tla-color-cta-hover: hsl(214, 100%, 52%);
-  --tla-color-inactive: hsl(204, 4%, 45%);
-  --tla-color-inactive-hover: hsl(204, 4%, 49%);
-  --tla-color-primary: hsl(214, 84%, 46%);
-  --tla-color-primary-hover: hsl(214, 84%, 50%);
-  --tla-color-secondary: hsl(0, 0%, 20%);
-  --tla-color-secondary-hover: hsl(0, 0%, 22%);
-  --tla-color-secondary-border: hsl(0, 0%, 25%);
-  --tla-color-accent-1: hsl(50, 91%, 60%);
-  --tla-color-accent-2: hsl(28, 88%, 47%);
-  --tla-color-accent-3: hsl(135, 59%, 39%);
-  --tla-color-warning: hsl(0, 95%, 65%);
+	/* TLA dark theme */
+	--tla-color-sidebar: hsl(0, 0%, 5%);
+	--tla-color-tooltip: hsla(0, 0%, 100%, 1);
+	--tla-color-canvas: hsl(240, 5%, 6.5%);
+	--tla-color-panel: hsl(240, 6%, 13%);
+	--tla-color-text-1: hsl(204, 8%, 98%);
+	--tla-color-text-2: hsl(204, 5%, 85%);
+	--tla-color-text-3: hsl(204, 4%, 75%);
+	--tla-color-contrast: hsl(0, 0%, 100%);
+	--tla-color-low: hsl(240, 4%, 11%);
+	--tla-color-border: hsl(240, 12%, 20%);
+	--tla-color-hover-1: hsl(240, 8%, 100%, 3%);
+	--tla-color-hover-2: hsl(240, 8%, 100%, 5%);
+	--tla-color-hover-3: hsl(204, 16%, 4%, 3%);
+	--tla-color-overlay: hsla(240, 0%, 0%, 81%);
+	--tla-color-cta: hsl(214, 100%, 50%);
+	--tla-color-cta-hover: hsl(214, 100%, 52%);
+	--tla-color-inactive: hsl(204, 4%, 45%);
+	--tla-color-inactive-hover: hsl(204, 4%, 49%);
+	--tla-color-primary: hsl(214, 84%, 46%);
+	--tla-color-primary-hover: hsl(214, 84%, 50%);
+	--tla-color-secondary: hsl(0, 0%, 20%);
+	--tla-color-secondary-hover: hsl(0, 0%, 22%);
+	--tla-color-secondary-border: hsl(0, 0%, 25%);
+	--tla-color-accent-1: hsl(50, 91%, 60%);
+	--tla-color-accent-2: hsl(28, 88%, 47%);
+	--tla-color-accent-3: hsl(135, 59%, 39%);
+	--tla-color-warning: hsl(0, 95%, 65%);
 
-  /* TL Editor dark theme */
-  --tl-color-snap: hsl(0, 76%, 60%);
-  --tl-color-selection-fill: hsl(209, 100%, 57%, 20%);
-  --tl-color-selection-stroke: hsl(214, 84%, 56%);
-  --tl-color-background: hsl(240, 5%, 6.5%);
-  --tl-color-brush-fill: hsl(0, 0%, 71%, 5.1%);
-  --tl-color-brush-stroke: hsl(0, 0%, 71%, 25.1%);
-  --tl-color-grid: hsl(0, 0%, 40%);
-  --tl-color-low: hsl(260, 4.5%, 10.5%);
-  --tl-color-low-border: hsl(207, 10%, 10%);
-  --tl-color-culled: hsl(210, 11%, 19%);
-  --tl-color-muted-none: hsl(0, 0%, 100%, 0%);
-  --tl-color-muted-0: hsl(0, 0%, 100%, 2%);
-  --tl-color-muted-1: hsl(0, 0%, 100%, 10%);
-  --tl-color-muted-2: hsl(0, 0%, 100%, 5%);
-  --tl-color-hint: hsl(0, 0%, 100%, 7%);
-  --tl-color-overlay: hsl(0, 0%, 0%, 50%);
-  --tl-color-divider: hsl(240, 9%, 22%);
-  --tl-color-panel: hsl(235, 6.8%, 13.5%);
-  --tl-color-panel-contrast: hsl(245, 12%, 23%);
-  --tl-color-panel-overlay: hsl(210, 10%, 24%, 82%);
-  --tl-color-panel-transparent: hsla(235, 6.8%, 13.5%, 0%);
-  --tl-color-selected: hsl(217, 89%, 61%);
-  --tl-color-selected-contrast: hsl(0, 0%, 100%);
-  --tl-color-focus: hsl(217, 76%, 80%);
-  --tl-color-tooltip: hsla(0, 0%, 100%, 1);
-  --tl-color-text: hsl(210, 17%, 98%);
-  --tl-color-text-0: hsl(0, 9%, 94%);
-  --tl-color-text-1: hsl(0, 0%, 85%);
-  --tl-color-text-3: hsl(204, 4%, 75%);
-  --tl-color-text-shadow: hsl(210, 13%, 18%);
-  --tl-color-text-highlight: hsl(52, 100%, 41%);
-  --tl-color-primary: hsl(214, 84%, 56%);
-  --tl-color-success: hsl(123, 38%, 57%);
-  --tl-color-info: hsl(199, 92%, 56%);
-  --tl-color-warning: hsl(36, 100%, 57%);
-  --tl-color-danger: hsl(0, 82%, 66%);
+	/* TL Editor dark theme */
+	--tl-color-snap: hsl(0, 76%, 60%);
+	--tl-color-selection-fill: hsl(209, 100%, 57%, 20%);
+	--tl-color-selection-stroke: hsl(214, 84%, 56%);
+	--tl-color-background: hsl(240, 5%, 6.5%);
+	--tl-color-brush-fill: hsl(0, 0%, 71%, 5.1%);
+	--tl-color-brush-stroke: hsl(0, 0%, 71%, 25.1%);
+	--tl-color-grid: hsl(0, 0%, 40%);
+	--tl-color-low: hsl(260, 4.5%, 10.5%);
+	--tl-color-low-border: hsl(207, 10%, 10%);
+	--tl-color-culled: hsl(210, 11%, 19%);
+	--tl-color-muted-none: hsl(0, 0%, 100%, 0%);
+	--tl-color-muted-0: hsl(0, 0%, 100%, 2%);
+	--tl-color-muted-1: hsl(0, 0%, 100%, 10%);
+	--tl-color-muted-2: hsl(0, 0%, 100%, 5%);
+	--tl-color-hint: hsl(0, 0%, 100%, 7%);
+	--tl-color-overlay: hsl(0, 0%, 0%, 50%);
+	--tl-color-divider: hsl(240, 9%, 22%);
+	--tl-color-panel: hsl(235, 6.8%, 13.5%);
+	--tl-color-panel-contrast: hsl(245, 12%, 23%);
+	--tl-color-panel-overlay: hsl(210, 10%, 24%, 82%);
+	--tl-color-panel-transparent: hsla(235, 6.8%, 13.5%, 0%);
+	--tl-color-selected: hsl(217, 89%, 61%);
+	--tl-color-selected-contrast: hsl(0, 0%, 100%);
+	--tl-color-focus: hsl(217, 76%, 80%);
+	--tl-color-tooltip: hsla(0, 0%, 100%, 1);
+	--tl-color-text: hsl(210, 17%, 98%);
+	--tl-color-text-0: hsl(0, 9%, 94%);
+	--tl-color-text-1: hsl(0, 0%, 85%);
+	--tl-color-text-3: hsl(204, 4%, 75%);
+	--tl-color-text-shadow: hsl(210, 13%, 18%);
+	--tl-color-text-highlight: hsl(52, 100%, 41%);
+	--tl-color-primary: hsl(214, 84%, 56%);
+	--tl-color-success: hsl(123, 38%, 57%);
+	--tl-color-info: hsl(199, 92%, 56%);
+	--tl-color-warning: hsl(36, 100%, 57%);
+	--tl-color-danger: hsl(0, 82%, 66%);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+	background: var(--background);
+	color: var(--foreground);
+	font-family: Arial, Helvetica, sans-serif;
 }
+

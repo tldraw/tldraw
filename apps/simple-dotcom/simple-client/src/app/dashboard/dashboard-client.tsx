@@ -1,7 +1,7 @@
 'use client'
 
 import { Sidebar } from '@/components/sidebar/Sidebar'
-import { ThemeToggle } from '@/components/theme-toggle'
+import { ThemeToggle } from '@/components/theme/ThemeToggle'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { PromptDialog } from '@/components/ui/prompt-dialog'
@@ -244,7 +244,7 @@ export default function DashboardClient({
 	const displayName = userProfile?.display_name || userProfile?.name || 'User'
 
 	return (
-		<div className="flex min-h-screen bg-background" data-testid="dashboard">
+		<div className="fixed inset-0 flex bg-background" data-testid="dashboard">
 			{/* New Sidebar Component */}
 			<Sidebar
 				workspaces={dashboardData.workspaces}
@@ -260,56 +260,58 @@ export default function DashboardClient({
 			/>
 
 			{/* Main Content Area */}
-			<div className="flex-1 p-8 overflow-y-auto">
-				<div className="mx-auto max-w-4xl">
-					<div className="flex items-center justify-between mb-8">
-						<h1 className="text-3xl font-bold">Dashboard</h1>
-						<div className="flex items-center gap-3">
-							<ThemeToggle />
-							<Button variant="outline" asChild>
-								<Link href="/profile">Profile</Link>
-							</Button>
-							<Button variant="outline" onClick={handleSignOut} data-testid="logout-button">
-								Sign out
-							</Button>
-						</div>
-					</div>
-
-					<div className="rounded-lg border border-foreground/20 p-6">
-						<h2 className="text-xl font-semibold mb-4">Welcome, {displayName}!</h2>
-
-						{/* Recent Documents */}
-						{dashboardData.recentDocuments.length > 0 && (
-							<div className="mt-6">
-								<h3 className="text-lg font-semibold mb-3">Recent Documents</h3>
-								<div className="space-y-2" data-testid="recent-documents-list">
-									{dashboardData.recentDocuments.map((recent) => (
-										<Link
-											key={recent.id}
-											href={`/d/${recent.id}`}
-											className="block p-3 rounded-md border border-foreground/10 hover:bg-foreground/5"
-											data-testid={`recent-document-${recent.id}`}
-										>
-											<div className="flex items-center justify-between">
-												<div>
-													<h4 className="font-medium">{recent.name}</h4>
-													<p className="text-sm text-foreground/60">{recent.workspace_name}</p>
-												</div>
-												<p className="text-xs text-foreground/40">
-													{new Date(recent.accessed_at).toLocaleDateString()}
-												</p>
-											</div>
-										</Link>
-									))}
-								</div>
+			<div className="flex-1 overflow-y-auto">
+				<div className="p-8">
+					<div className="mx-auto max-w-4xl">
+						<div className="flex items-center justify-between mb-8">
+							<h1 className="text-3xl font-bold">Dashboard</h1>
+							<div className="flex items-center gap-3">
+								<ThemeToggle />
+								<Button variant="outline" asChild>
+									<Link href="/profile">Profile</Link>
+								</Button>
+								<Button variant="outline" onClick={handleSignOut} data-testid="logout-button">
+									Sign out
+								</Button>
 							</div>
-						)}
+						</div>
 
-						{dashboardData.recentDocuments.length === 0 && (
-							<p className="text-foreground/60 mt-4">
-								No recent documents. Access a document to see it here.
-							</p>
-						)}
+						<div className="rounded-lg border border-foreground/20 p-6">
+							<h2 className="text-xl font-semibold mb-4">Welcome, {displayName}!</h2>
+
+							{/* Recent Documents */}
+							{dashboardData.recentDocuments.length > 0 && (
+								<div className="mt-6">
+									<h3 className="text-lg font-semibold mb-3">Recent Documents</h3>
+									<div className="space-y-2" data-testid="recent-documents-list">
+										{dashboardData.recentDocuments.map((recent) => (
+											<Link
+												key={recent.id}
+												href={`/d/${recent.id}`}
+												className="block p-3 rounded-md border border-foreground/10 hover:bg-foreground/5"
+												data-testid={`recent-document-${recent.id}`}
+											>
+												<div className="flex items-center justify-between">
+													<div>
+														<h4 className="font-medium">{recent.name}</h4>
+														<p className="text-sm text-foreground/60">{recent.workspace_name}</p>
+													</div>
+													<p className="text-xs text-foreground/40">
+														{new Date(recent.accessed_at).toLocaleDateString()}
+													</p>
+												</div>
+											</Link>
+										))}
+									</div>
+								</div>
+							)}
+
+							{dashboardData.recentDocuments.length === 0 && (
+								<p className="text-foreground/60 mt-4">
+									No recent documents. Access a document to see it here.
+								</p>
+							)}
+						</div>
 					</div>
 				</div>
 			</div>

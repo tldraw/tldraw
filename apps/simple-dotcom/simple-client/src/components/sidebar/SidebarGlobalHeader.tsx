@@ -1,7 +1,8 @@
 'use client'
 
-import { Menu, Search } from 'lucide-react'
+import { Columns2, Search } from 'lucide-react'
 import Link from 'next/link'
+import { Logo } from '../shared/Logo'
 
 interface SidebarGlobalHeaderProps {
 	onSearchClick: () => void
@@ -30,7 +31,7 @@ export function SidebarGlobalHeader({ onSearchClick }: SidebarGlobalHeaderProps)
 		>
 			{/* Branding */}
 			<Link href="/" className="flex items-center gap-2 hover:opacity-80">
-				<div className="text-lg font-bold">tldraw</div>
+				<Logo className="h-5 text-foreground" />
 			</Link>
 
 			{/* Actions */}
@@ -51,7 +52,7 @@ export function SidebarGlobalHeader({ onSearchClick }: SidebarGlobalHeaderProps)
 					title="Menu"
 					data-testid="global-menu-button"
 				>
-					<Menu className="w-4 h-4" />
+					<Columns2 className="w-4 h-4" />
 				</button>
 			</div>
 		</div>

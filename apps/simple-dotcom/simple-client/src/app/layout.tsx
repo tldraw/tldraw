@@ -1,4 +1,4 @@
-import { ThemeProvider } from '@/components/theme-provider'
+import { ThemeProvider } from '@/components/theme/ThemeProvider'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { SessionProvider } from '@/lib/session-provider'
@@ -32,8 +32,8 @@ export default function RootLayout({
 			<body className={`${interSans.variable} ${geistMono.variable} antialiased`}>
 				<ThemeProvider
 					attribute="class"
-					defaultTheme="system"
-					enableSystem
+					defaultTheme="light"
+					forcedTheme="light"
 					disableTransitionOnChange
 				>
 					<QueryProvider>

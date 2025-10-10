@@ -91,7 +91,7 @@ export function Sidebar({
 	return (
 		<>
 			<div
-				className="w-80 border-r border-foreground/20 flex flex-col bg-background"
+				className="w-80 h-full border-r border-foreground/20 flex flex-col bg-background shrink-0"
 				data-testid="sidebar"
 			>
 				{/* Global Header (Tier 1) */}

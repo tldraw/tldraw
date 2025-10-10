@@ -1,12 +1,28 @@
 'use client'
 
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Document, Folder, Workspace, WorkspaceRole } from '@/lib/api/types'
-import { ChevronDown, ChevronRight } from 'lucide-react'
+import {
+	ChevronDown,
+	ChevronRight,
+	FileText,
+	FolderPlus,
+	Link2,
+	MoreVertical,
+	Settings,
+} from 'lucide-react'
 import Link from 'next/link'
 import { useCallback } from 'react'
 import { SidebarDocumentItem } from './SidebarDocumentItem'
 import { SidebarFolderItem } from './SidebarFolderItem'
 import { SidebarNewDocumentButton } from './SidebarNewDocumentButton'
+import { SIDEBAR_ITEM_BASE } from './sidebar-styles'
 
 interface SidebarWorkspaceItemProps {
 	workspace: Workspace
@@ -75,9 +91,9 @@ export function SidebarWorkspaceItem({
 	const rootDocuments = documents.filter((d) => !d.folder_id && !d.is_archived)
 
 	return (
-		<div className="overflow-hidden" data-testid={`sidebar-workspace-${workspace.id}`}>
+		<div className="overflow-hidden group" data-testid={`sidebar-workspace-${workspace.id}`}>
 			{/* Workspace Header */}
-			<div className="flex items-center justify-between px-3 py-2">
+			<div className={`${SIDEBAR_ITEM_BASE} justify-between`}>
 				<div className="flex-1 flex items-center gap-2 min-w-0">
 					<button
 						onClick={handleToggle}
@@ -108,34 +124,82 @@ export function SidebarWorkspaceItem({
 
 				{/* Workspace Actions */}
 				{!workspace.is_private && isOwner && (
-					<div className="flex items-center gap-1 shrink-0">
-						<button
-							onClick={(e) => {
-								e.stopPropagation()
-								onOpenRenameModal?.(workspace)
-							}}
-							data-testid={`rename-workspace-${workspace.id}`}
-							className="rounded px-2 py-1 text-xs hover:bg-foreground/10"
-						>
-							Rename
-						</button>
-						<button
-							onClick={(e) => {
-								e.stopPropagation()
-								onOpenDeleteModal?.(workspace)
-							}}
-							data-testid={`delete-workspace-${workspace.id}`}
-							className="rounded px-2 py-1 text-xs text-red-500 hover:bg-red-500/10"
-						>
-							Delete
-						</button>
-					</div>
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<button
+								className="shrink-0 p-1 hover:bg-foreground/10 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+								aria-label="Workspace menu"
+								data-testid={`workspace-menu-${workspace.id}`}
+								onClick={(e) => e.stopPropagation()}
+							>
+								<MoreVertical className="w-4 h-4" />
+							</button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end" className="w-48">
+							<DropdownMenuItem
+								onClick={(e) => {
+									e.stopPropagation()
+									navigator.clipboard.writeText(
+										window.location.origin + `/workspace/${workspace.id}`
+									)
+								}}
+								data-testid={`copy-workspace-link-${workspace.id}`}
+							>
+								<Link2 className="w-4 h-4" />
+								<span>Copy link</span>
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={(e) => {
+									e.stopPropagation()
+									onOpenRenameModal?.(workspace)
+								}}
+								data-testid={`rename-workspace-${workspace.id}`}
+							>
+								<Settings className="w-4 h-4" />
+								<span>Settings</span>
+							</DropdownMenuItem>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem
+								onClick={(e) => {
+									e.stopPropagation()
+									onOpenCreateDocumentModal?.(workspace, undefined)
+								}}
+								data-testid={`create-document-${workspace.id}`}
+							>
+								<FileText className="w-4 h-4" />
+								<span>Document</span>
+								<span className="ml-auto text-foreground/40">+</span>
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={(e) => {
+									e.stopPropagation()
+									// TODO: Implement create folder
+								}}
+								data-testid={`create-folder-${workspace.id}`}
+							>
+								<FolderPlus className="w-4 h-4" />
+								<span>Folder</span>
+								<span className="ml-auto text-foreground/40">+</span>
+							</DropdownMenuItem>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem
+								onClick={(e) => {
+									e.stopPropagation()
+									onOpenDeleteModal?.(workspace)
+								}}
+								data-testid={`delete-workspace-${workspace.id}`}
+								className="text-red-500 focus:text-red-500"
+							>
+								<span>Delete workspace</span>
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
 				)}
 			</div>
 
 			{/* Workspace Content */}
 			{isCollapsed && (
-				<div className="p-3 space-y-1" data-testid={`workspace-content-${workspace.id}`}>
+				<div data-testid={`workspace-content-${workspace.id}`}>
 					{/* Root Folders */}
 					{rootFolders.map((folder) => {
 						const childFolders = folders.filter((f) => f.parent_folder_id === folder.id)

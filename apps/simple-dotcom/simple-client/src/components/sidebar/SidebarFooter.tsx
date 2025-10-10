@@ -1,7 +1,7 @@
 'use client'
 
 import { User as UserType } from '@/lib/api/types'
-import { HelpCircle, User } from 'lucide-react'
+import { HelpCircle } from 'lucide-react'
 import Link from 'next/link'
 
 interface SidebarFooterProps {
@@ -37,11 +37,10 @@ export function SidebarFooter({ userProfile }: SidebarFooterProps) {
 				className="flex items-center gap-2 hover:bg-foreground/5 rounded px-2 py-1 flex-1 min-w-0"
 				data-testid="sidebar-user-link"
 			>
-				<User className="w-4 h-4 shrink-0" />
+				<span className="text-sm text-foreground shrink-0">●</span>
 				<span className="text-sm truncate" title={displayName}>
 					{displayName}
 				</span>
-				<span className="text-xs text-foreground/60 shrink-0">●</span>
 			</Link>
 
 			{/* Help Button */}
