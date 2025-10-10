@@ -1,6 +1,7 @@
 import { convertTldrawShapeToSimpleShape } from '@tldraw/dotcom-shared'
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
-import { useValue } from 'tldraw'
+import { Box, useValue } from 'tldraw'
+import { DEFAULT_FAIRY_VISION } from '../../constants'
 import { TldrawFairyAgent } from '../agent/TldrawFairyAgent'
 
 export function FairyBasicInput({ agent }: { agent: TldrawFairyAgent }) {
@@ -9,6 +10,8 @@ export function FairyBasicInput({ agent }: { agent: TldrawFairyAgent }) {
 	const [inputValue, setInputValue] = useState('')
 	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
 	const modelName = useValue(agent.$modelName)
+
+	const fairy = useValue('fairy', () => agent.$fairy, [agent])
 
 	// Auto-focus the input when the component mounts
 	useEffect(() => {
@@ -38,16 +41,20 @@ export function FairyBasicInput({ agent }: { agent: TldrawFairyAgent }) {
 				.getSelectedShapes()
 				.map((shape) => convertTldrawShapeToSimpleShape(editor, shape))
 
+			const fairyPosition = fairy.get().position
+
+			const fairyVision = Box.FromCenter(fairyPosition, DEFAULT_FAIRY_VISION)
+
 			await agent.prompt({
 				message,
 				contextItems: [],
-				bounds: editor.getViewportPageBounds(),
+				bounds: fairyVision,
 				modelName,
 				selectedShapes,
 				type: 'user',
 			})
 		},
-		[agent, modelName, editor]
+		[agent, modelName, editor, fairy]
 	)
 
 	return (

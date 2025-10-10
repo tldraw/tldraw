@@ -43,6 +43,7 @@ import {
 	VecModel,
 } from 'tldraw'
 import { FAIRY_WORKER } from '../../../utils/config'
+import { DEFAULT_FAIRY_VISION } from '../../constants'
 import { scaleBoxFromCenter } from '../../utils/scaleBoxFromCenter'
 import { $fairyAgentsAtom } from './fairyAgentsAtom'
 
@@ -229,8 +230,8 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 			bounds:
 				request.bounds ??
 				activeRequest?.bounds ??
-				// scaleBoxFromCenter(this.editor.getViewportPageBounds(), 0.67),
-				this.editor.getViewportPageBounds(),
+				Box.FromCenter(this.$fairy.get().position, DEFAULT_FAIRY_VISION),
+			// this.editor.getViewportPageBounds(),
 			modelName: request.modelName ?? activeRequest?.modelName ?? this.$modelName.get(),
 		}
 	}
@@ -596,7 +597,8 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 		this.$todoList.set([])
 		this.$userActionHistory.set([])
 
-		const viewport = this.editor.getViewportPageBounds()
+		const viewport = Box.FromCenter(this.$fairy.get().position, DEFAULT_FAIRY_VISION)
+		// const viewport = this.editor.getViewportPageBounds()
 		this.$chatHistory.set([])
 		this.$chatOrigin.set({ x: viewport.x, y: viewport.y })
 	}
