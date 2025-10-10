@@ -20,8 +20,8 @@ import {
 import {
 	TLPersistentClientSocket,
 	TLPresenceMode,
+	TLSocketStatusChangeEvent,
 	TLSyncClient,
-	TlSocketStatusChangeEvent,
 } from './TLSyncClient'
 
 // Mock store and schema setup
@@ -30,13 +30,19 @@ const protocolVersion = getTlsyncProtocolVersion()
 type TestRecord = TLRecord
 
 // Mock socket implementation for testing
-class MockSocket implements TLPersistentClientSocket<TestRecord> {
+class MockSocket
+	implements
+		TLPersistentClientSocket<
+			TLSocketClientSentEvent<TestRecord>,
+			TLSocketServerSentEvent<TestRecord>
+		>
+{
 	connectionStatus: 'online' | 'offline' | 'error' = 'offline'
 	private messageListeners: Array<(msg: TLSocketServerSentEvent<TestRecord>) => void> = []
-	private statusListeners: Array<(event: TlSocketStatusChangeEvent) => void> = []
+	private statusListeners: Array<(event: TLSocketStatusChangeEvent) => void> = []
 	private sentMessages: TLSocketClientSentEvent<TestRecord>[] = []
 
-	sendMessage(msg: TLSocketClientSentEvent<TestRecord>): void {
+	sendMessage(msg: TLSocketClientSentEvent<TestRecord>) {
 		if (this.connectionStatus !== 'online') {
 			throw new Error('Cannot send message when not online')
 		}
@@ -51,7 +57,7 @@ class MockSocket implements TLPersistentClientSocket<TestRecord> {
 		}
 	}
 
-	onStatusChange(callback: (params: TlSocketStatusChangeEvent) => void) {
+	onStatusChange(callback: (event: TLSocketStatusChangeEvent) => void) {
 		this.statusListeners.push(callback)
 		return () => {
 			const index = this.statusListeners.indexOf(callback)
@@ -67,6 +73,11 @@ class MockSocket implements TLPersistentClientSocket<TestRecord> {
 			this.connectionStatus = 'online'
 			this._notifyStatus({ status: 'online' })
 		}, 0)
+	}
+
+	close(): void {
+		this.connectionStatus = 'offline'
+		this._notifyStatus({ status: 'offline' })
 	}
 
 	// Test helpers
@@ -95,7 +106,7 @@ class MockSocket implements TLPersistentClientSocket<TestRecord> {
 		this.sentMessages = []
 	}
 
-	private _notifyStatus(event: TlSocketStatusChangeEvent) {
+	private _notifyStatus(event: TLSocketStatusChangeEvent) {
 		this.statusListeners.forEach((listener) => listener(event))
 	}
 }
