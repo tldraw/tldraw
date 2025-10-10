@@ -18,4 +18,7 @@ export default defineConfig({
 			'\\.(css|less)$': 'identity-obj-proxy',
 		},
 	},
+	ssr: {
+		noExternal: ['@tiptap/react'],
+	},
 })
