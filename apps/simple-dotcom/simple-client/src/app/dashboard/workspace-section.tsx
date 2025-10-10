@@ -1,17 +1,15 @@
 'use client'
 
 import { DocumentActions } from '@/components/documents/DocumentActions'
-import { useWorkspaceRealtimeUpdates } from '@/hooks/useWorkspaceRealtimeUpdates'
 import { Document, Folder, Workspace, WorkspaceRole } from '@/lib/api/types'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useCallback } from 'react'
 import { toast } from 'sonner'
 
 interface WorkspaceSectionProps {
 	workspace: Workspace
-	initialDocuments: Document[]
-	initialFolders: Folder[]
+	documents: Document[]
+	folders: Folder[]
 	userRole: WorkspaceRole
 	userId: string
 	isExpanded: boolean
@@ -19,12 +17,13 @@ interface WorkspaceSectionProps {
 	onOpenRenameModal: (workspace: Workspace) => void
 	onOpenDeleteModal: (workspace: Workspace) => void
 	onOpenCreateDocumentModal: (workspace: Workspace) => void
+	onInvalidate: () => void
 }
 
 export function WorkspaceSection({
 	workspace,
-	initialDocuments,
-	initialFolders,
+	documents,
+	folders,
 	userRole,
 	userId,
 	isExpanded,
@@ -32,57 +31,8 @@ export function WorkspaceSection({
 	onOpenRenameModal,
 	onOpenDeleteModal,
 	onOpenCreateDocumentModal,
+	onInvalidate,
 }: WorkspaceSectionProps) {
-	const queryClient = useQueryClient()
-
-	// Fetch documents with React Query - hybrid approach (realtime + polling)
-	const { data: documents = initialDocuments } = useQuery<Document[]>({
-		queryKey: ['workspace-documents', workspace.id],
-		queryFn: async () => {
-			const response = await fetch(`/api/workspaces/${workspace.id}/documents`)
-			const result = await response.json()
-			if (!result.success) {
-				throw new Error(result.error?.message || 'Failed to fetch documents')
-			}
-			return result.data
-		},
-		initialData: initialDocuments,
-		staleTime: 1000 * 10, // 10 seconds
-		refetchInterval: 1000 * 15, // Poll every 15 seconds as fallback
-		refetchOnMount: true,
-		refetchOnReconnect: true,
-	})
-
-	// Fetch folders with React Query - hybrid approach (realtime + polling)
-	const { data: folders = initialFolders } = useQuery<Folder[]>({
-		queryKey: ['workspace-folders', workspace.id],
-		queryFn: async () => {
-			const response = await fetch(`/api/workspaces/${workspace.id}/folders`)
-			const result = await response.json()
-			if (!result.success) {
-				throw new Error(result.error?.message || 'Failed to fetch folders')
-			}
-			return result.data
-		},
-		initialData: initialFolders,
-		staleTime: 1000 * 10, // 10 seconds
-		refetchInterval: 1000 * 15, // Poll every 15 seconds as fallback
-		refetchOnMount: true,
-		refetchOnReconnect: true,
-	})
-
-	// Realtime updates callback
-	const onChange = useCallback(() => {
-		queryClient.invalidateQueries({ queryKey: ['workspace-documents', workspace.id] })
-		queryClient.invalidateQueries({ queryKey: ['workspace-folders', workspace.id] })
-	}, [queryClient, workspace.id])
-
-	// Subscribe to realtime updates for this workspace
-	useWorkspaceRealtimeUpdates(workspace.id, {
-		onChange,
-		enabled: true,
-	})
-
 	// Document operation handlers
 	const handleDocumentRename = useCallback(
 		async (documentId: string, newName: string) => {
@@ -96,7 +46,7 @@ export function WorkspaceSection({
 				const data = await response.json()
 
 				if (data.success) {
-					queryClient.invalidateQueries({ queryKey: ['workspace-documents', workspace.id] })
+					onInvalidate()
 					toast.success('Document renamed successfully')
 				} else {
 					toast.error(data.error?.message || 'Failed to rename document')
@@ -106,7 +56,7 @@ export function WorkspaceSection({
 				toast.error('Failed to rename document')
 			}
 		},
-		[queryClient, workspace.id]
+		[onInvalidate]
 	)
 
 	const handleDocumentDuplicate = useCallback(async (documentId: string) => {

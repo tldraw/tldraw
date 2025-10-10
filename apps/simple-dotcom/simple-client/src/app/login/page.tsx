@@ -14,7 +14,7 @@ function getRedirectAndContext(searchParams: URLSearchParams) {
 export default async function LoginPage({
 	searchParams,
 }: {
-	searchParams?: { [key: string]: string | string[] | undefined }
+	searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
 	// If authenticated, redirect to dashboard
 	const supabase = await createClient()
@@ -28,7 +28,7 @@ export default async function LoginPage({
 
 	// Compute redirect and context on the server
 	const usp = new URLSearchParams()
-	const params: Record<string, string | string[] | undefined> = searchParams ?? {}
+	const params: Record<string, string | string[] | undefined> = (await searchParams) ?? {}
 	for (const [key, value] of Object.entries(params)) {
 		if (Array.isArray(value)) {
 			value.forEach((v) => usp.append(key, v))
