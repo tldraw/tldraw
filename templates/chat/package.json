@@ -8,6 +8,7 @@
 	},
 	"homepage": "https://tldraw.dev",
 	"license": "MIT",
+	"type": "module",
 	"tldraw_template": {
 		"repo": "tldraw/chat-template",
 		"cli": {
@@ -20,25 +21,30 @@
 		}
 	},
 	"scripts": {
-		"dev": "next dev",
-		"build": "next build",
-		"start": "next start",
+		"build": "tsc && vite build",
+		"dev": "vite",
+		"preview": "vite preview",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
 		"@ai-sdk/google": "^2.0.14",
 		"@ai-sdk/react": "^2.0.15",
-		"@google/genai": "^1.17.0",
-		"@types/node": "^22.15.31",
-		"@types/react": "^18.3.18",
-		"@types/react-dom": "^18.3.5",
+		"@cloudflare/vite-plugin": "^1.13.2",
 		"ai": "^5.0.15",
-		"next": "^15.4.6",
+		"itty-router": "^5.0.18",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
 		"react-markdown": "^10.1.0",
 		"tldraw": "workspace:*",
-		"typescript": "^5.8.3",
+		"wrangler": "^4.37.1",
 		"zod": "^4.1.5"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20250913.0",
+		"@types/react": "^18.3.18",
+		"@types/react-dom": "^18.3.5",
+		"@vitejs/plugin-react-swc": "^3.10.2",
+		"typescript": "^5.8.3",
+		"vite": "^7.0.1"
 	}
 }

@@ -1,8 +1,8 @@
 'use client'
 import { TldrawUiTooltipProvider } from 'tldraw'
-import { Chat } from '../components/Chat'
+import { Chat } from './components/Chat'
 
-export default function Home() {
+export default function App() {
 	return (
 		<main className="tl-theme__light">
 			{/* We use tooltips from tldraw's ui kit */}
