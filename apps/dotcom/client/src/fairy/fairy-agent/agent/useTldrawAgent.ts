@@ -1,6 +1,5 @@
-import { FairyEntity } from '@tldraw/dotcom-shared'
 import { useCallback, useMemo } from 'react'
-import { Atom, Editor, useToasts } from 'tldraw'
+import { Editor, useToasts } from 'tldraw'
 import { TldrawFairyAgent } from './TldrawAgent'
 import { $agentsAtom } from './agentsAtom'
 
@@ -23,11 +22,7 @@ import { $agentsAtom } from './agentsAtom'
  * agent2.prompt({ message: 'Draw a snowman on the right' })
  * ```
  */
-export function useTldrawAgent(
-	editor: Editor,
-	id: string = 'tldraw-agent',
-	$fairy: Atom<FairyEntity | undefined>
-): TldrawFairyAgent {
+export function useTldrawAgent(editor: Editor, id: string = 'tldraw-agent'): TldrawFairyAgent {
 	const toasts = useToasts()
 
 	const handleError = useCallback(
@@ -51,8 +46,8 @@ export function useTldrawAgent(
 		}
 
 		// Create a new agent
-		return new TldrawFairyAgent({ editor, id, $fairy, onError: handleError })
-	}, [editor, handleError, id, $fairy])
+		return new TldrawFairyAgent({ editor, id, onError: handleError })
+	}, [editor, handleError, id])
 
 	return agent
 }

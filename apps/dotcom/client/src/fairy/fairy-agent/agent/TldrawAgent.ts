@@ -65,7 +65,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 	id: string
 
 	/** The fairy associated with this agent. */
-	$fairy = atom<FairyEntity | undefined>('fairy', undefined)
+	$fairy: Atom<FairyEntity>
 
 	/** A callback for when an error occurs. */
 	onError: (e: any) => void
@@ -124,10 +124,15 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 	/**
 	 * Create a new tldraw agent.
 	 */
-	constructor({ editor, id, $fairy, onError }: TldrawFairyAgentOptions) {
+	constructor({ editor, id, onError }: Omit<TldrawFairyAgentOptions, '$fairy'>) {
 		this.editor = editor
 		this.id = id
-		this.$fairy = $fairy
+		// this.$fairy = atom<FairyEntity>(`fairy-${id}`, {
+		// 	position: { x: 0, y: 0 },
+		// 	flipX: false,
+		// })
+
+		this.$fairy = $theOnlyFairy
 		this.onError = onError
 
 		$agentsAtom.update(editor, (agents) => [...agents, this])
@@ -372,7 +377,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 	async request(input: AgentInput) {
 		const request = this.getFullRequestFromInput(input)
 
-		moveFairyToBounds(request.bounds)
+		this.moveFairyToBounds(request.bounds)
 
 		// Interrupt any currently active request
 		if (this.$activeRequest.get() !== null) {
@@ -527,7 +532,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 					promise = actionResult.promise ?? null
 					coordinates = actionResult.coordinates ?? undefined
 					if (coordinates) {
-						moveFairyToCoordinates(coordinates)
+						this.moveFairyToCoordinates(coordinates)
 					}
 				}
 			})
@@ -736,6 +741,29 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 		}
 
 		return false
+	}
+
+	moveFairyToBounds(bounds: BoxModel) {
+		const smallerBounds = scaleBoxFromCenter(bounds, 0.5)
+
+		const x = smallerBounds.x + Math.random() * smallerBounds.w
+		const y = smallerBounds.y + Math.random() * smallerBounds.h
+
+		this.moveFairyToCoordinates({ x, y })
+	}
+
+	moveFairyToCoordinates(coordinates: VecModel) {
+		const x = coordinates.x
+		const y = coordinates.y
+
+		this.$fairy.update((fairy) => {
+			const isMovingLeft = x < fairy.position.x
+			return {
+				...fairy,
+				position: { x, y },
+				flipX: isMovingLeft,
+			}
+		})
 	}
 }
 
@@ -1009,26 +1037,4 @@ function exhaustiveSwitchError(value: never, property?: string): never {
 	const debugValue =
 		property && value && typeof value === 'object' && property in value ? value[property] : value
 	throw new Error(`Unknown switch case ${debugValue}`)
-}
-
-function moveFairyToBounds(bounds: BoxModel) {
-	const smallerBounds = scaleBoxFromCenter(bounds, 0.5)
-
-	const x = smallerBounds.x + Math.random() * smallerBounds.w
-	const y = smallerBounds.y + Math.random() * smallerBounds.h
-
-	$theOnlyFairy.update((fairy) => ({
-		...fairy,
-		position: { x, y },
-	}))
-}
-
-function moveFairyToCoordinates(coordinates: VecModel) {
-	const x = coordinates.x
-	const y = coordinates.y
-
-	$theOnlyFairy.update((fairy) => ({
-		...fairy,
-		position: { x, y },
-	}))
 }

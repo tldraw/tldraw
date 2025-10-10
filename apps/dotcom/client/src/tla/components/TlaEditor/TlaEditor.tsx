@@ -24,7 +24,7 @@ import {
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { FairyAppInner } from '../../../fairy/FairyAppInner'
 import { FairyVision } from '../../../fairy/FairyVision'
-import { $theOnlyFairy, FairyWrapper } from '../../../fairy/FairyWrapper'
+import { FairyWrapper } from '../../../fairy/FairyWrapper'
 import { TldrawFairyAgent } from '../../../fairy/fairy-agent/agent/TldrawAgent'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
@@ -297,7 +297,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyFileUpdateHandler fileId={fileId} />
 				<SneakyLargeFileHander />
-				<FairyAppInner setAgent={setAgent} $fairy={$theOnlyFairy} />
+				<FairyAppInner setAgent={setAgent} />
 			</Tldraw>
 		</TlaEditorWrapper>
 	)
