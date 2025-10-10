@@ -1,0 +1,12 @@
+{
+	"extends": "../../../internal/config/tsconfig.base.json",
+	"include": ["src"],
+	"exclude": ["node_modules", "dist", ".tsbuild*"],
+	"compilerOptions": { "noEmit": true, "emitDeclarationOnly": false },
+	"references": [
+		{ "path": "../../../packages/dotcom-shared" },
+		{ "path": "../../../packages/tlschema" },
+		{ "path": "../../../packages/worker-shared" },
+		{ "path": "../../../packages/tldraw" }
+	]
+}

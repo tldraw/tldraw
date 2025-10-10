@@ -10,12 +10,15 @@
 	"type": "module",
 	"dependencies": {
 		"@rocicorp/zero": "0.19.2025050203",
+		"@tldraw/editor": "workspace:*",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
-		"tldraw": "workspace:*"
+		"ai": "^5.0.63",
+		"tldraw": "workspace:*",
+		"zod": "^4.1.12"
 	},
 	"peerDependencies": {
 		"react": "^18.2.0 || ^19.0.0",

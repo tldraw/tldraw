@@ -14,6 +14,11 @@ if (!process.env.IMAGE_WORKER) {
 }
 export const IMAGE_WORKER = process.env.IMAGE_WORKER
 
+if (!process.env.FAIRY_WORKER) {
+	throw new Error('Missing FAIRY_WORKER env var')
+}
+export const FAIRY_WORKER = process.env.FAIRY_WORKER
+
 if (!process.env.MULTIPLAYER_SERVER) {
 	throw new Error('Missing MULTIPLAYER_SERVER env var')
 }

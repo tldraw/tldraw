@@ -1,6 +1,6 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
@@ -22,6 +22,11 @@ import {
 	useValue,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
+import { FairyAppInner } from '../../../fairy/FairyAppInner'
+import { FairyHUD } from '../../../fairy/FairyHUD'
+import { FairyVision } from '../../../fairy/FairyVision'
+import { FairyWrapper } from '../../../fairy/FairyWrapper'
+import { TldrawFairyAgent } from '../../../fairy/fairy-agent/agent/TldrawFairyAgent'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { useHandleUiEvents } from '../../../utils/analytics'
@@ -259,6 +264,24 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const overrides = useFileEditorOverrides({ fileSlug })
 	const extraDragIconOverrides = useExtraDragIconOverrides()
 
+	// Fairy stuff
+
+	const [agents, setAgents] = useState<TldrawFairyAgent[]>([])
+	// is there a reason not to use the $fairyAgentsAtom? (fka $agentsAtom) i assume it shouldn't be an editoratom anymore if it can move around to different pages?
+
+	// this is ugly
+	const originalInFrontOfTheCanvasRef = useRef(components.InFrontOfTheCanvas)
+	const OriginalInFrontOfTheCanvas = originalInFrontOfTheCanvasRef.current
+	// is there a reason not to use the $fairyAgentsAtom? (fka $agentsAtom)
+	components.InFrontOfTheCanvas = (props) => (
+		<>
+			{OriginalInFrontOfTheCanvas ? <OriginalInFrontOfTheCanvas {...props} /> : null}
+			{agents.length > 0 && <FairyVision agents={agents} />}
+			{agents.length > 0 && <FairyWrapper agents={agents} />}
+			{agents.length > 0 && <FairyHUD agents={agents} />}
+		</>
+	)
+
 	return (
 		<TlaEditorWrapper>
 			<Tldraw
@@ -281,6 +304,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyFileUpdateHandler fileId={fileId} />
 				<SneakyLargeFileHander />
+				<FairyAppInner setAgents={setAgents} />
 			</Tldraw>
 		</TlaEditorWrapper>
 	)
