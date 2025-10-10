@@ -313,7 +313,7 @@ export class TldrawAgent {
 
 		if (!scheduledRequest) {
 			// If there no outstanding todo items or requests, finish
-			if (todoItemsRemaining.length === 0) {
+			if (todoItemsRemaining.length === 0 || !this.cancelFn) {
 				return
 			}
 
