@@ -204,16 +204,6 @@ const EMBED_DEFINITIONS = [
 		},
 	},
 	{
-		hostnames: ['excalidraw.com'],
-		fromEmbedUrl: (url: string) => {
-			const urlObj = safeParseUrl(url)
-			if (urlObj && urlObj.hash.match(/#room=/)) {
-				return url
-			}
-			return
-		},
-	},
-	{
 		hostnames: ['observablehq.com'],
 		fromEmbedUrl: (url: string) => {
 			const urlObj = safeParseUrl(url)

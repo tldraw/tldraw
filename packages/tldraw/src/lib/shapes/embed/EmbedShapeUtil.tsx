@@ -24,6 +24,7 @@ import {
 	embedShapePermissionDefaults,
 } from '../../defaultEmbedDefinitions'
 import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
+import { BookmarkIndicatorComponent, BookmarkShapeComponent } from '../bookmark/BookmarkShapeUtil'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
 const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
@@ -206,20 +207,25 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 							background: embedInfo?.definition.backgroundColor,
 						}}
 					/>
-				) : null}
+				) : (
+					<BookmarkShapeComponent url={url} h={h} rotation={pageRotation} assetId={null} />
+				)}
 			</HTMLContainer>
 		)
 	}
 
 	override indicator(shape: TLEmbedShape) {
 		const embedInfo = this.getEmbedDefinition(shape.props.url)
-		return (
+
+		return embedInfo?.definition ? (
 			<rect
 				width={toDomPrecision(shape.props.w)}
 				height={toDomPrecision(shape.props.h)}
 				rx={embedInfo?.definition.overrideOutlineRadius ?? 8}
 				ry={embedInfo?.definition.overrideOutlineRadius ?? 8}
 			/>
+		) : (
+			<BookmarkIndicatorComponent w={shape.props.w} h={shape.props.h} />
 		)
 	}
 	override getInterpolatedProps(

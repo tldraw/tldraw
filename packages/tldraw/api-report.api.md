@@ -803,17 +803,6 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly type: "vimeo";
     readonly width: 640;
 }, {
-    readonly doesResize: true;
-    readonly embedOnPaste: true;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    readonly height: 500;
-    readonly hostnames: readonly ["excalidraw.com"];
-    readonly isAspectRatioLocked: true;
-    readonly title: "Excalidraw";
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "excalidraw";
-    readonly width: 720;
-}, {
     readonly backgroundColor: "#fff";
     readonly doesResize: true;
     readonly embedOnPaste: true;
