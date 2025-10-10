@@ -3,7 +3,7 @@ import { BoxModel, TLShapeId, VecModel } from '@tldraw/tlschema'
 import { SimpleFill, SimpleFillSchema } from './format/SimpleFill'
 import { SimpleShape } from './format/SimpleShape'
 import { ContextItem } from './types/ContextItem'
-import { TldrawFairyAgent } from './types/TldrawAgent'
+import { TldrawFairyAgent } from './types/TldrawFairyAgent'
 
 /**
  * This class contains handles the transformations that happen throughout a

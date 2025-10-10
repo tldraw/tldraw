@@ -1,4 +1,4 @@
-import { buildResponseSchema } from '../AgentActionUtils'
+import { buildResponseSchema } from '../actions/AgentActionUtils'
 import { getSimpleShapeSchemaNames } from '../format/SimpleShape'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'

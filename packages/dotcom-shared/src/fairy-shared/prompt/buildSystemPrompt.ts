@@ -1,5 +1,5 @@
-import { getAgentActionUtilsRecord } from '../AgentActionUtils'
-import { getPromptPartUtilsRecord } from '../AgentPromptUtils'
+import { getAgentActionUtilsRecord } from '../actions/AgentActionUtils'
+import { getPromptPartUtilsRecord } from '../parts/PrompPartUtils'
 import { AgentPrompt } from '../types/AgentPrompt'
 
 /**

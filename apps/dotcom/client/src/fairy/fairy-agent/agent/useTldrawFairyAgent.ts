@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import { Editor, useToasts } from 'tldraw'
-import { TldrawFairyAgent } from './TldrawAgent'
+import { TldrawFairyAgent } from './TldrawFairyAgent'
 import { $agentsAtom } from './agentsAtom'
 
 /**

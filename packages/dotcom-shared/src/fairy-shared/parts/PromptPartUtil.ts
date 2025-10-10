@@ -4,7 +4,7 @@ import { AgentModelName } from '../models'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
-import { TldrawFairyAgent } from '../types/TldrawAgent'
+import { TldrawFairyAgent } from '../types/TldrawFairyAgent'
 
 export abstract class PromptPartUtil<T extends BasePromptPart = BasePromptPart> {
 	static type: string

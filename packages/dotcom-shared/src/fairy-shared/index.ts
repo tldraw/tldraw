@@ -72,14 +72,14 @@ export type * from './types/ContextItem'
 export type * from './types/FairyEntity'
 export type * from './types/PromptPart'
 export type * from './types/Streaming'
-export type * from './types/TldrawAgent'
+export type * from './types/TldrawFairyAgent'
 export type * from './types/TodoItem'
 export type * from './types/WikipediaArticle'
 
 // Utils and Helpers
-export * from './AgentActionUtils'
+export * from './actions/AgentActionUtils'
 export * from './AgentHelpers'
-export * from './AgentPromptUtils'
+export * from './parts/PrompPartUtils'
 
 // Models
 export * from './models'

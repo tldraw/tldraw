@@ -1,5 +1,5 @@
 import { Box, BoxModel, SVGContainer, useEditor, useValue } from 'tldraw'
-import { TldrawFairyAgent } from './fairy-agent/agent/TldrawAgent'
+import { TldrawFairyAgent } from './fairy-agent/agent/TldrawFairyAgent'
 
 export function FairyVision({ agent }: { agent: TldrawFairyAgent }) {
 	const activeRequest = useValue(agent.$activeRequest)

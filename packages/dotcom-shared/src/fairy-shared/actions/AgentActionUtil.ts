@@ -4,7 +4,7 @@ import { AgentHelpers } from '../AgentHelpers'
 import { BaseAgentAction } from '../types/BaseAgentAction'
 import { ChatHistoryInfo } from '../types/ChatHistoryInfo'
 import { Streaming } from '../types/Streaming'
-import { TldrawFairyAgent } from '../types/TldrawAgent'
+import { TldrawFairyAgent } from '../types/TldrawFairyAgent'
 
 export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentAction> {
 	static type: string

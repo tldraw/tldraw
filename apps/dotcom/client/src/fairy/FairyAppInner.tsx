@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useEditor } from 'tldraw'
-import { TldrawFairyAgent } from './fairy-agent/agent/TldrawAgent'
-import { useTldrawAgent } from './fairy-agent/agent/useTldrawAgent'
+import { TldrawFairyAgent } from './fairy-agent/agent/TldrawFairyAgent'
+import { useTldrawAgent } from './fairy-agent/agent/useTldrawFairyAgent'
 
 export function FairyAppInner({ setAgent }: { setAgent(agent: TldrawFairyAgent): void }) {
 	const AGENT_ID = 'fairy'
