@@ -1,5 +1,6 @@
 'use client'
 
+import { Sidebar } from '@/components/sidebar/Sidebar'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -12,7 +13,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { WorkspaceSection } from './workspace-section'
 
 interface WorkspaceWithContent {
 	workspace: Workspace
@@ -64,11 +64,6 @@ export default function DashboardClient({
 		refetchInterval: 1000 * 15, // Poll every 15 seconds as fallback
 		refetchOnMount: true, // Refetch when returning to dashboard
 		refetchOnReconnect: true, // Refetch when connection restored
-	})
-
-	// Collapsible state for workspace sections - expand all by default
-	const [expandedWorkspaces, setExpandedWorkspaces] = useState<Set<string>>(() => {
-		return new Set(initialData.workspaces.map((w) => w.workspace.id))
 	})
 
 	// Single modal state machine
@@ -131,7 +126,6 @@ export default function DashboardClient({
 
 				if (data.success && data.data) {
 					await queryClient.refetchQueries({ queryKey: ['dashboard', userId] })
-					setExpandedWorkspaces((prev) => new Set([...prev, data.data.id]))
 					setModalState({ type: 'idle' })
 					setValidationError(null)
 				} else {
@@ -240,72 +234,23 @@ export default function DashboardClient({
 		[modalState]
 	)
 
-	const toggleWorkspace = (workspaceId: string) => {
-		setExpandedWorkspaces((prev) => {
-			const next = new Set(prev)
-			if (next.has(workspaceId)) {
-				next.delete(workspaceId)
-			} else {
-				next.add(workspaceId)
-			}
-			return next
-		})
-	}
-
 	const displayName = userProfile?.display_name || userProfile?.name || 'User'
 
 	return (
 		<div className="flex min-h-screen bg-background" data-testid="dashboard">
-			{/* Sidebar */}
-			<div className="w-80 border-r border-foreground/20 flex flex-col">
-				<div className="p-4 border-b border-foreground/20">
-					<h2 className="text-lg font-semibold mb-2">Workspaces</h2>
-					<Button
-						onClick={() => {
-							setValidationError(null)
-							setModalState({ type: 'create-workspace' })
-						}}
-						data-testid="create-workspace-button"
-						className="w-full"
-					>
-						Create Workspace
-					</Button>
-				</div>
-
-				<div className="flex-1 overflow-y-auto p-4" data-testid="workspace-list">
-					{dashboardData.workspaces.length === 0 && (
-						<p className="text-foreground/60 text-sm">
-							No workspaces yet. Create your first workspace above!
-						</p>
-					)}
-					{dashboardData.workspaces.length > 0 && (
-						<div className="space-y-2">
-							{dashboardData.workspaces.map(({ workspace, documents, folders, userRole }) => (
-								<WorkspaceSection
-									key={workspace.id}
-									workspace={workspace}
-									documents={documents}
-									folders={folders}
-									userRole={userRole}
-									userId={userId}
-									isExpanded={expandedWorkspaces.has(workspace.id)}
-									onToggle={() => toggleWorkspace(workspace.id)}
-									onOpenRenameModal={(ws) =>
-										setModalState({ type: 'rename-workspace', workspace: ws })
-									}
-									onOpenDeleteModal={(ws) =>
-										setModalState({ type: 'delete-workspace', workspace: ws })
-									}
-									onOpenCreateDocumentModal={(ws) =>
-										setModalState({ type: 'create-document', workspace: ws })
-									}
-									onInvalidate={handleRealtimeChange}
-								/>
-							))}
-						</div>
-					)}
-				</div>
-			</div>
+			{/* New Sidebar Component */}
+			<Sidebar
+				workspaces={dashboardData.workspaces}
+				recentDocuments={dashboardData.recentDocuments}
+				userProfile={userProfile}
+				userId={userId}
+				onInvalidate={handleRealtimeChange}
+				onOpenRenameModal={(ws) => setModalState({ type: 'rename-workspace', workspace: ws })}
+				onOpenDeleteModal={(ws) => setModalState({ type: 'delete-workspace', workspace: ws })}
+				onOpenCreateDocumentModal={(ws) =>
+					setModalState({ type: 'create-document', workspace: ws })
+				}
+			/>
 
 			{/* Main Content Area */}
 			<div className="flex-1 p-8 overflow-y-auto">
@@ -313,6 +258,15 @@ export default function DashboardClient({
 					<div className="flex items-center justify-between mb-8">
 						<h1 className="text-3xl font-bold">Dashboard</h1>
 						<div className="flex items-center gap-3">
+							<Button
+								onClick={() => {
+									setValidationError(null)
+									setModalState({ type: 'create-workspace' })
+								}}
+								data-testid="create-workspace-button"
+							>
+								Create Workspace
+							</Button>
 							<ThemeToggle />
 							<Button variant="outline" asChild>
 								<Link href="/profile">Profile</Link>
