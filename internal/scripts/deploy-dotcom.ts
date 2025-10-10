@@ -110,7 +110,7 @@ if (previewId) {
 	env.ASSET_UPLOAD = `https://${previewId}-tldraw-assets.tldraw.workers.dev`
 	env.MULTIPLAYER_SERVER = `https://${previewId}-tldraw-multiplayer.tldraw.workers.dev`
 	env.IMAGE_WORKER = `https://${previewId}-images.tldraw.xyz`
-	env.FAIRY_WORKER = `https://${previewId}-fairy.tldraw.workers.dev`
+	env.FAIRY_WORKER = `https://${previewId}-fairy.tldraw.xyz`
 }
 
 const zeroPushUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/push`
@@ -267,7 +267,10 @@ let didUpdateFairyWorker = false
 async function deployFairyWorker({ dryRun }: { dryRun: boolean }) {
 	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-fairy`
 	if (previewId && !didUpdateFairyWorker) {
-		await setWranglerPreviewConfig(fairyWorker, { name: workerId })
+		await setWranglerPreviewConfig(fairyWorker, {
+			name: workerId,
+			customDomain: `${previewId}-fairy.tldraw.xyz`,
+		})
 		didUpdateFairyWorker = true
 	}
 
