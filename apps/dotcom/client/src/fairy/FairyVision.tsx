@@ -1,12 +1,20 @@
 import { Box, BoxModel, SVGContainer, useEditor, useValue } from 'tldraw'
 import { TldrawFairyAgent } from './fairy-agent/agent/TldrawFairyAgent'
 
-export function FairyVision({ agent }: { agent: TldrawFairyAgent }) {
+export function FairyVision({ agents }: { agents: TldrawFairyAgent[] }) {
+	return (
+		<>
+			{agents.map((agent, i) => (
+				<AgentVision key={i} agent={agent} />
+			))}
+		</>
+	)
+}
+
+function AgentVision({ agent }: { agent: TldrawFairyAgent }) {
 	const activeRequest = useValue(agent.$activeRequest)
 	if (!activeRequest) return null
-	const bounds = activeRequest.bounds
-
-	return <AreaHighlight pageBounds={bounds} color="gold" generating={true} />
+	return <AreaHighlight pageBounds={activeRequest.bounds} color="gold" generating={true} />
 }
 
 interface AreaHighlightProps {

@@ -1,24 +1,27 @@
 // lazy load fairy
 
-import { FairyEntity } from '@tldraw/dotcom-shared'
-import { lazy, Suspense } from 'react'
-import { atom } from 'tldraw'
+import { FairyEntity, TldrawFairyAgent } from '@tldraw/dotcom-shared'
+import { lazy, Suspense, useMemo } from 'react'
+import { Atom } from 'tldraw'
 
 const FairyInner = lazy(() => import('./FairyInner'))
 
-export const $theOnlyFairy = atom<FairyEntity>(
-	'the-only-fairy',
-	{
-		position: { x: 0, y: 0 },
-		flipX: false,
-	},
-	{}
-)
+export function FairyWrapper({ agents }: { agents: TldrawFairyAgent[] }) {
+	const fairies = useMemo(
+		() =>
+			agents
+				.filter((agent) => agent.$fairy.get() !== undefined)
+				.map((agent) => agent.$fairy as Atom<FairyEntity>),
+		[agents]
+	)
 
-export function FairyWrapper() {
 	return (
-		<Suspense fallback={<div />}>
-			<FairyInner fairy={$theOnlyFairy} />
-		</Suspense>
+		<>
+			{fairies.map((fairy, i) => (
+				<Suspense key={i} fallback={<div />}>
+					<FairyInner fairy={fairy} />
+				</Suspense>
+			))}
+		</>
 	)
 }

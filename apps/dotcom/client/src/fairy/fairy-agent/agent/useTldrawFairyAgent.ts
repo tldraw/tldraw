@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react'
 import { Editor, useToasts } from 'tldraw'
 import { TldrawFairyAgent } from './TldrawFairyAgent'
-import { $agentsAtom } from './agentsAtom'
+import { $fairyAgentsAtom } from './fairyAgentsAtom'
 
 /**
  * Create a tldraw agent that can be prompted to edit the canvas.
@@ -22,7 +22,10 @@ import { $agentsAtom } from './agentsAtom'
  * agent2.prompt({ message: 'Draw a snowman on the right' })
  * ```
  */
-export function useTldrawAgent(editor: Editor, id: string = 'tldraw-agent'): TldrawFairyAgent {
+export function useTldrawFairyAgent(
+	editor: Editor,
+	id: string = 'tldraw-fairy-agent'
+): TldrawFairyAgent {
 	const toasts = useToasts()
 
 	const handleError = useCallback(
@@ -40,7 +43,7 @@ export function useTldrawAgent(editor: Editor, id: string = 'tldraw-agent'): Tld
 
 	const agent = useMemo(() => {
 		// Dispose an existing agent
-		const existingAgent = $agentsAtom.get(editor).find((agent) => agent.id === id)
+		const existingAgent = $fairyAgentsAtom.get(editor).find((agent) => agent.id === id)
 		if (existingAgent) {
 			existingAgent.dispose()
 		}

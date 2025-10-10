@@ -43,9 +43,8 @@ import {
 	VecModel,
 } from 'tldraw'
 import { FAIRY_WORKER } from '../../../utils/config'
-import { $theOnlyFairy } from '../../FairyWrapper'
 import { scaleBoxFromCenter } from '../../utils/scaleBoxFromCenter'
-import { $agentsAtom } from './agentsAtom'
+import { $fairyAgentsAtom } from './fairyAgentsAtom'
 
 /**
  * An agent that can be prompted to edit the canvas.
@@ -124,18 +123,17 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 	/**
 	 * Create a new tldraw agent.
 	 */
-	constructor({ editor, id, onError }: Omit<TldrawFairyAgentOptions, '$fairy'>) {
+	constructor({ editor, id, onError }: TldrawFairyAgentOptions) {
 		this.editor = editor
 		this.id = id
-		// this.$fairy = atom<FairyEntity>(`fairy-${id}`, {
-		// 	position: { x: 0, y: 0 },
-		// 	flipX: false,
-		// })
+		this.$fairy = atom<FairyEntity>(`fairy-${id}`, {
+			position: { x: 0, y: 0 },
+			flipX: false,
+		})
 
-		this.$fairy = $theOnlyFairy
 		this.onError = onError
 
-		$agentsAtom.update(editor, (agents) => [...agents, this])
+		$fairyAgentsAtom.update(editor, (agents) => [...agents, this])
 
 		this.agentActionUtils = getAgentActionUtilsRecord(this)
 		this.promptPartUtils = getPromptPartUtilsRecord(this)
@@ -156,7 +154,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 	dispose() {
 		this.cancel()
 		this.stopRecordingUserActions()
-		$agentsAtom.update(this.editor, (agents) => agents.filter((agent) => agent.id !== this.id))
+		$fairyAgentsAtom.update(this.editor, (agents) => agents.filter((agent) => agent.id !== this.id))
 	}
 
 	/**

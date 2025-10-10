@@ -22,8 +22,6 @@ export interface TldrawFairyAgentOptions {
 	editor: Editor
 	/** A key used to differentiate the agent from other agents. */
 	id: string
-	/** The fairy associated with this agent. */
-	$fairy: Atom<FairyEntity | undefined>
 	/** A callback for when an error occurs. */
 	onError(e: any): void
 }

@@ -60,7 +60,6 @@ export const components: TLComponents = {
 	MenuPanel: TlaEditorMenuPanel,
 	TopPanel: TlaEditorTopPanel,
 	SharePanel: TlaEditorSharePanel,
-	InFrontOfTheCanvas: FairyWrapper,
 	Dialogs: null,
 	Toasts: null,
 	DebugMenu: () => {
@@ -265,13 +264,18 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const overrides = useFileEditorOverrides({ fileSlug })
 	const extraDragIconOverrides = useExtraDragIconOverrides()
 
-	const [agent, setAgent] = useState<TldrawFairyAgent | undefined>()
+	// Fairy stuff
 
+	const [agents, setAgents] = useState<TldrawFairyAgent[]>([])
+
+	// this is ugly
 	const OriginalInFrontOfTheCanvas = components.InFrontOfTheCanvas
+	// is there a reason not to use the $fairyAgentsAtom? (fka $agentsAtom)
 	components.InFrontOfTheCanvas = (props) => (
 		<>
 			{OriginalInFrontOfTheCanvas ? <OriginalInFrontOfTheCanvas {...props} /> : null}
-			{agent && <FairyVision agent={agent} />}
+			{agents.length > 0 && <FairyVision agents={agents} />}
+			{agents.length > 0 && <FairyWrapper agents={agents} />}
 		</>
 	)
 
@@ -297,7 +301,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyFileUpdateHandler fileId={fileId} />
 				<SneakyLargeFileHander />
-				<FairyAppInner setAgent={setAgent} />
+				<FairyAppInner setAgents={setAgents} />
 			</Tldraw>
 		</TlaEditorWrapper>
 	)

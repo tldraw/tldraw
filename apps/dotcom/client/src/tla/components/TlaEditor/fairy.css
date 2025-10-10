@@ -2,8 +2,8 @@
 
 .context-highlight {
 	pointer-events: none;
-	/* background-color: gold; */
-	opacity: 0;
+	background-color: gold;
+	opacity: 0.05;
 }
 
 .context-highlight line {

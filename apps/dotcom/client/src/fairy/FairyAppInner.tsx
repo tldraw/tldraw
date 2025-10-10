@@ -1,18 +1,18 @@
 import { useEffect } from 'react'
 import { useEditor } from 'tldraw'
 import { TldrawFairyAgent } from './fairy-agent/agent/TldrawFairyAgent'
-import { useTldrawAgent } from './fairy-agent/agent/useTldrawFairyAgent'
+import { useTldrawFairyAgent } from './fairy-agent/agent/useTldrawFairyAgent'
 
-export function FairyAppInner({ setAgent }: { setAgent(agent: TldrawFairyAgent): void }) {
-	const AGENT_ID = 'fairy'
+export function FairyAppInner({ setAgents }: { setAgents(agents: TldrawFairyAgent[]): void }) {
+	const FAIRY_ID = 'theOnlyFairy'
 	const editor = useEditor()
-	const agent = useTldrawAgent(editor, AGENT_ID)
+	const agent = useTldrawFairyAgent(editor, FAIRY_ID)
 
 	useEffect(() => {
 		if (!editor || !agent) return
-		setAgent(agent)
+		setAgents([agent])
 		;(window as any).agent = agent
-	}, [agent, editor, setAgent])
+	}, [agent, editor, setAgents])
 
 	return null
 }
