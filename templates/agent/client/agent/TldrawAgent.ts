@@ -2,6 +2,7 @@ import {
 	Atom,
 	atom,
 	Box,
+	clamp,
 	Editor,
 	react,
 	RecordsDiff,
@@ -214,7 +215,7 @@ export class TldrawAgent {
 			data: request.data ?? [],
 			selectedShapes: request.selectedShapes ?? [],
 			contextItems: request.contextItems ?? [],
-			bounds: request.bounds ?? activeRequest?.bounds ?? this.editor.getViewportPageBounds(),
+			bounds: request.bounds ?? activeRequest?.bounds ?? this.calculateViewportBounds(),
 			modelName: request.modelName ?? activeRequest?.modelName ?? this.$modelName.get(),
 		}
 	}
@@ -711,6 +712,39 @@ export class TldrawAgent {
 		}
 
 		return false
+	}
+
+	/**
+	 * Calculate what the agent's viewport bounds should be.
+	 * The viewport bounds are centered on the user's viewport, but scaled
+	 * to a range the agent will be able to adequately act in.
+	 * @returns The agent's viewport bounds.
+	 */
+	calculateViewportBounds() {
+		const { editor } = this
+		// Set the agent's request bounds
+		const userBoundsCenter = editor.getViewportPageBounds().center
+		const screenBounds = editor.getViewportScreenBounds()
+
+		// Map zoom from user's full range to a range the agent will be able to adequately act in
+		const agentRequestBoundsUnscaled = Box.FromCenter(userBoundsCenter, {
+			x: screenBounds.width,
+			y: screenBounds.height,
+		})
+
+		const clampedZoom = clamp(editor.getZoomLevel(), 0.67, 1.25)
+		const agentRequestBounds = scaleBoxFromCenter(agentRequestBoundsUnscaled, 1 / clampedZoom)
+
+		return agentRequestBounds
+
+		function scaleBoxFromCenter(box: Box, scale: number) {
+			const { center } = box
+
+			const newWidth = box.w * scale
+			const newHeight = box.h * scale
+
+			return new Box(center.x - newWidth / 2, center.y - newHeight / 2, newWidth, newHeight)
+		}
 	}
 }
 

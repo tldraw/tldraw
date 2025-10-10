@@ -13,7 +13,7 @@ export class ViewportBoundsPartUtil extends PromptPartUtil<ViewportBoundsPart> {
 	static override type = 'viewportBounds' as const
 
 	override getPriority() {
-		return 75 // viewport should go after context bounds (low priority)
+		return 75 // viewport should go after agent's viewport bounds (low priority)
 	}
 
 	override getPart(request: AgentRequest, helpers: AgentHelpers): ViewportBoundsPart {
@@ -66,7 +66,7 @@ export class ViewportBoundsPartUtil extends PromptPartUtil<ViewportBoundsPart> {
 		const response = [
 			`The bounds of the part of the canvas that you can currently see are:`,
 			JSON.stringify(agentBounds),
-			`The user's view is ${relativeViewportDescription} your view.`,
+			`Your view ${relativeViewportDescription} the user's view.`,
 		]
 
 		if (!doUserAndAgentShareViewport) {

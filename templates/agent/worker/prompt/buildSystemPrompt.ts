@@ -11,13 +11,13 @@ import { AgentPrompt } from '../../shared/types/AgentPrompt'
  * @returns The system prompt.
  */
 export function buildSystemPrompt(prompt: AgentPrompt): string {
-	const propmtUtils = getPromptPartUtilsRecord()
+	const promptUtils = getPromptPartUtilsRecord()
 	const messages: string[] = []
 
 	for (const part of Object.values(prompt)) {
-		const propmtUtil = propmtUtils[part.type]
-		if (!propmtUtil) continue
-		const systemMessage = propmtUtil.buildSystemPrompt(part)
+		const promptUtil = promptUtils[part.type]
+		if (!promptUtil) continue
+		const systemMessage = promptUtil.buildSystemPrompt(part)
 		if (systemMessage) {
 			messages.push(systemMessage)
 		}
