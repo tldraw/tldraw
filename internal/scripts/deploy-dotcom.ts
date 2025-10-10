@@ -60,6 +60,7 @@ const env = makeEnv([
 	'CLOUDFLARE_ACCOUNT_ID',
 	'CLOUDFLARE_API_TOKEN',
 	'FAIRY_WORKER',
+	'FAIRY_WORKER_SENTRY_DSN',
 	'DISCORD_DEPLOY_WEBHOOK_URL',
 	'DISCORD_FEEDBACK_WEBHOOK_URL',
 	'DISCORD_HEALTH_WEBHOOK_URL',
@@ -276,7 +277,7 @@ async function deployFairyWorker({ dryRun }: { dryRun: boolean }) {
 		env: env.TLDRAW_ENV,
 		vars: {
 			TLDRAW_ENV: env.TLDRAW_ENV,
-			SENTRY_DSN: env.SENTRY_DSN,
+			SENTRY_DSN: env.FAIRY_WORKER_SENTRY_DSN,
 			WORKER_NAME: workerId,
 		},
 		sentry: {
