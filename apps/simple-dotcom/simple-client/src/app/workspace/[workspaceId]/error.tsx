@@ -17,8 +17,8 @@ export default function WorkspaceError({
 	return (
 		<div className="flex h-screen items-center justify-center">
 			<div className="max-w-md text-center">
-				<div className="mb-4 text-6xl">⚠️</div>
-				<h2 className="mb-2 text-2xl font-bold">Something went wrong</h2>
+				<div className="mb-4 ">⚠️</div>
+				<h2 className="mb-2  font-bold">Something went wrong</h2>
 				<p className="mb-6 text-gray-600">We encountered an error loading this workspace.</p>
 				<div className="flex justify-center gap-2">
 					<button

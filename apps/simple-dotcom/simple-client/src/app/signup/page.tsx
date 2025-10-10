@@ -97,7 +97,7 @@ function SignupForm() {
 					<CheckCircle2 className="h-5 w-5" />
 					<div className="space-y-4">
 						<div>
-							<h2 className="text-lg font-semibold mb-2">Check your email</h2>
+							<h2 className=" font-semibold mb-2">Check your email</h2>
 							<AlertDescription>
 								We&apos;ve sent a confirmation email to <strong>{submittedEmail}</strong>. Click the
 								link in the email to activate your account and sign in.
@@ -172,7 +172,7 @@ function SignupForm() {
 						{form.formState.isSubmitting ? 'Creating account...' : 'Create account'}
 					</Button>
 
-					<p className="text-sm text-foreground/60 text-center">
+					<p className=" text-foreground/60 text-center">
 						Already have an account?{' '}
 						<SecondaryLink
 							href={redirectUrl ? `/login?redirect=${encodeURIComponent(redirectUrl)}` : '/login'}
@@ -191,7 +191,7 @@ export default function SignupPage() {
 		<Suspense
 			fallback={
 				<div className="flex min-h-screen items-center justify-center bg-background">
-					<div className="text-sm text-foreground/60">Loading...</div>
+					<div className=" text-foreground/60">Loading...</div>
 				</div>
 			}
 		>

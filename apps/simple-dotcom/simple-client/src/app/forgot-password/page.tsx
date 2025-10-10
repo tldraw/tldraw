@@ -65,7 +65,7 @@ export default function ForgotPasswordPage() {
 			<div className="flex min-h-screen items-center justify-center bg-background p-4">
 				<div className="w-full max-w-md space-y-8">
 					<div className="text-center">
-						<h1 className="text-3xl font-bold">Check your email</h1>
+						<h1 className=" font-bold">Check your email</h1>
 						<Alert variant="success" data-testid="success-message" className="mt-4">
 							<CheckCircle2 className="h-4 w-4" />
 							<AlertDescription>
@@ -73,7 +73,7 @@ export default function ForgotPasswordPage() {
 								password reset link shortly.
 							</AlertDescription>
 						</Alert>
-						<p className="mt-6 text-sm text-foreground/60">
+						<p className="mt-6  text-foreground/60">
 							Didn&apos;t receive an email? Check your spam folder or{' '}
 							<button
 								onClick={() => {
@@ -86,7 +86,7 @@ export default function ForgotPasswordPage() {
 							</button>
 							.
 						</p>
-						<p className="mt-4 text-sm text-foreground/60">
+						<p className="mt-4  text-foreground/60">
 							<Link href="/login" className="font-medium hover:underline">
 								Back to login
 							</Link>
@@ -101,8 +101,8 @@ export default function ForgotPasswordPage() {
 		<div className="flex min-h-screen items-center justify-center bg-background p-4">
 			<div className="w-full max-w-md space-y-8">
 				<div className="text-center">
-					<h1 className="text-3xl font-bold">Reset your password</h1>
-					<p className="mt-2 text-sm text-foreground/60">
+					<h1 className=" font-bold">Reset your password</h1>
+					<p className="mt-2  text-foreground/60">
 						Enter your email address and we&apos;ll send you a link to reset your password.
 					</p>
 				</div>
@@ -145,7 +145,7 @@ export default function ForgotPasswordPage() {
 							{form.formState.isSubmitting ? 'Sending...' : 'Send reset link'}
 						</Button>
 
-						<p className="text-center text-sm text-foreground/60">
+						<p className="text-center  text-foreground/60">
 							Remember your password?{' '}
 							<Link href="/login" className="font-medium hover:underline">
 								Back to login

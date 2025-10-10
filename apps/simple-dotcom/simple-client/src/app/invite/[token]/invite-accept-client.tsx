@@ -61,8 +61,8 @@ export default function InviteAcceptClient({
 				{status === 'valid' && workspace && (
 					<>
 						<div className="mb-6 text-center">
-							<div className="mb-4 text-5xl">📨</div>
-							<h1 className="mb-2 text-2xl font-bold">Join Workspace</h1>
+							<div className="mb-4 ">📨</div>
+							<h1 className="mb-2  font-bold">Join Workspace</h1>
 							<p className="text-gray-600">
 								You have been invited to join{' '}
 								<span className="font-semibold">{workspace.name}</span>
@@ -79,7 +79,7 @@ export default function InviteAcceptClient({
 						</Button>
 
 						<div className="mt-4 text-center">
-							<Link href="/dashboard" className="text-sm text-gray-600 hover:text-gray-900">
+							<Link href="/dashboard" className=" text-gray-600 hover:text-gray-900">
 								Go to Dashboard
 							</Link>
 						</div>
@@ -89,8 +89,8 @@ export default function InviteAcceptClient({
 				{status === 'invalid' && (
 					<>
 						<div className="mb-6 text-center">
-							<div className="mb-4 text-5xl">❌</div>
-							<h1 className="mb-2 text-2xl font-bold">Invalid Invitation</h1>
+							<div className="mb-4 ">❌</div>
+							<h1 className="mb-2  font-bold">Invalid Invitation</h1>
 							<p className="text-gray-600">{message}</p>
 						</div>
 
@@ -106,13 +106,13 @@ export default function InviteAcceptClient({
 				{status === 'disabled' && workspace && (
 					<>
 						<div className="mb-6 text-center">
-							<div className="mb-4 text-5xl">🔒</div>
-							<h1 className="mb-2 text-2xl font-bold">Link Disabled</h1>
+							<div className="mb-4 ">🔒</div>
+							<h1 className="mb-2  font-bold">Link Disabled</h1>
 							<p className="text-gray-600">
 								The invitation link for <span className="font-semibold">{workspace.name}</span> has
 								been disabled.
 							</p>
-							<p className="mt-2 text-sm text-gray-500">
+							<p className="mt-2  text-gray-500">
 								Please contact the workspace owner for a new invitation link.
 							</p>
 						</div>
@@ -129,8 +129,8 @@ export default function InviteAcceptClient({
 				{status === 'already_member' && workspace && (
 					<>
 						<div className="mb-6 text-center">
-							<div className="mb-4 text-5xl">✅</div>
-							<h1 className="mb-2 text-2xl font-bold">Already a Member</h1>
+							<div className="mb-4 ">✅</div>
+							<h1 className="mb-2  font-bold">Already a Member</h1>
 							<p className="text-gray-600">{message}</p>
 						</div>
 
@@ -142,7 +142,7 @@ export default function InviteAcceptClient({
 						</Link>
 
 						<div className="mt-4 text-center">
-							<Link href="/dashboard" className="text-sm text-gray-600 hover:text-gray-900">
+							<Link href="/dashboard" className=" text-gray-600 hover:text-gray-900">
 								Go to Dashboard
 							</Link>
 						</div>
@@ -152,13 +152,13 @@ export default function InviteAcceptClient({
 				{status === 'regenerated' && (
 					<>
 						<div className="mb-6 text-center">
-							<div className="mb-4 text-5xl">🔄</div>
-							<h1 className="mb-2 text-2xl font-bold">Link Expired</h1>
+							<div className="mb-4 ">🔄</div>
+							<h1 className="mb-2  font-bold">Link Expired</h1>
 							<p className="text-gray-600">
 								This invitation link has expired. A new link was generated for{' '}
 								<span className="font-semibold">{workspace?.name || 'this workspace'}</span>.
 							</p>
-							<p className="mt-2 text-sm text-gray-500">
+							<p className="mt-2  text-gray-500">
 								Please contact the workspace owner for the new invitation link.
 							</p>
 						</div>
@@ -175,13 +175,13 @@ export default function InviteAcceptClient({
 				{status === 'member_limit' && (
 					<>
 						<div className="mb-6 text-center">
-							<div className="mb-4 text-5xl">👥</div>
-							<h1 className="mb-2 text-2xl font-bold">Workspace Full</h1>
+							<div className="mb-4 ">👥</div>
+							<h1 className="mb-2  font-bold">Workspace Full</h1>
 							<p className="text-gray-600">
 								<span className="font-semibold">{workspace?.name || 'This workspace'}</span> has
 								reached its member limit.
 							</p>
-							<p className="mt-2 text-sm text-gray-500">
+							<p className="mt-2  text-gray-500">
 								Please contact the workspace owner to increase the member limit or remove inactive
 								members.
 							</p>

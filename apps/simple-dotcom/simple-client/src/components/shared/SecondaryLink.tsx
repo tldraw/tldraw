@@ -10,7 +10,7 @@ export function SecondaryLink(props: ComponentProps<typeof Link>) {
 	return (
 		<Link
 			{...props}
-			className={cn('text-sm font-medium text-foreground/60 hover:underline', props.className)}
+			className={cn(' font-medium text-foreground/60 hover:underline', props.className)}
 		/>
 	)
 }

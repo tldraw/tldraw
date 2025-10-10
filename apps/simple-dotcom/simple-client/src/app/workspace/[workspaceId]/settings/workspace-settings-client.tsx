@@ -303,23 +303,23 @@ export default function WorkspaceSettingsClient({
 			{/* Header */}
 			<header className="border-b px-6 py-4">
 				<div className="flex items-center justify-between">
-					<h1 className="text-2xl font-bold">Workspace Settings</h1>
+					<h1 className=" font-bold">Workspace Settings</h1>
 					<div className="flex gap-2">
 						<Link
 							href={`/workspace/${workspace.id}/archive`}
-							className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50"
+							className="rounded-md border px-4 py-2  hover:bg-gray-50"
 						>
 							Archive
 						</Link>
 						<Link
 							href={`/workspace/${workspace.id}/members`}
-							className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50"
+							className="rounded-md border px-4 py-2  hover:bg-gray-50"
 						>
 							Members
 						</Link>
 						<Link
 							href={`/workspace/${workspace.id}`}
-							className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50"
+							className="rounded-md border px-4 py-2  hover:bg-gray-50"
 						>
 							Back to Workspace
 						</Link>
@@ -332,7 +332,7 @@ export default function WorkspaceSettingsClient({
 				<div className="mx-auto max-w-2xl space-y-8">
 					{/* Workspace Name */}
 					<section className="rounded-lg border p-6">
-						<h2 className="mb-4 text-lg font-semibold">Workspace Name</h2>
+						<h2 className="mb-4  font-semibold">Workspace Name</h2>
 						{isRenaming && isOwner ? (
 							<form onSubmit={handleRename} className="space-y-4">
 								<Label htmlFor="workspace-name">Workspace Name</Label>
@@ -349,7 +349,7 @@ export default function WorkspaceSettingsClient({
 									<button
 										type="submit"
 										disabled={isSavingRename}
-										className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+										className="rounded-md bg-blue-600 px-4 py-2  text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
 									>
 										{isSavingRename ? 'Saving...' : 'Save'}
 									</button>
@@ -360,7 +360,7 @@ export default function WorkspaceSettingsClient({
 											setName(workspace.name)
 										}}
 										disabled={isSavingRename}
-										className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+										className="rounded-md border px-4 py-2  hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
 									>
 										Cancel
 									</button>
@@ -372,7 +372,7 @@ export default function WorkspaceSettingsClient({
 								{isOwner && (
 									<button
 										onClick={() => setIsRenaming(true)}
-										className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50"
+										className="rounded-md border px-4 py-2  hover:bg-gray-50"
 									>
 										Rename
 									</button>
@@ -380,7 +380,7 @@ export default function WorkspaceSettingsClient({
 							</div>
 						)}
 						{!isOwner && (
-							<p className="mt-2 text-sm text-gray-500">
+							<p className="mt-2  text-gray-500">
 								Only the workspace owner can rename the workspace.
 							</p>
 						)}
@@ -388,12 +388,12 @@ export default function WorkspaceSettingsClient({
 
 					{/* Workspace Type */}
 					<section className="rounded-lg border p-6">
-						<h2 className="mb-4 text-lg font-semibold">Workspace Type</h2>
+						<h2 className="mb-4  font-semibold">Workspace Type</h2>
 						<p className="text-gray-700">
 							{workspace.is_private ? 'Private Workspace' : 'Shared Workspace'}
 						</p>
 						{workspace.is_private && (
-							<p className="mt-2 text-sm text-gray-500">
+							<p className="mt-2  text-gray-500">
 								Your private workspace is automatically created and cannot be deleted.
 							</p>
 						)}
@@ -402,19 +402,19 @@ export default function WorkspaceSettingsClient({
 					{/* Invitation Links - Only for owners of shared workspaces */}
 					{isOwner && !workspace.is_private && (
 						<section className="rounded-lg border p-6">
-							<h2 className="mb-4 text-lg font-semibold">Invitation Link</h2>
-							<p className="mb-4 text-sm text-gray-600">
+							<h2 className="mb-4  font-semibold">Invitation Link</h2>
+							<p className="mb-4  text-gray-600">
 								Share this link to invite people to your workspace. Anyone with the link can join as
 								a member.
 							</p>
 
 							{isLoadingInvite ? (
-								<div className="text-sm text-gray-500">Loading invitation link...</div>
+								<div className=" text-gray-500">Loading invitation link...</div>
 							) : invitationLink ? (
 								<div className="space-y-4">
 									{/* Link status badge */}
 									<div className="flex items-center gap-2">
-										<span className="text-sm font-medium">Status:</span>
+										<span className=" font-medium">Status:</span>
 										<Badge
 											data-testid="invitation-link-status"
 											variant={invitationLink.enabled ? 'default' : 'secondary'}
@@ -438,7 +438,7 @@ export default function WorkspaceSettingsClient({
 												/>
 												<button
 													onClick={handleCopyInviteLink}
-													className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 mt-2"
+													className="rounded-md bg-blue-600 px-4 py-2  text-white hover:bg-blue-700 mt-2"
 												>
 													{copySuccess ? 'Copied!' : 'Copy'}
 												</button>
@@ -465,7 +465,7 @@ export default function WorkspaceSettingsClient({
 										<button
 											onClick={handleToggleInvite}
 											disabled={isTogglingInvite}
-											className={`rounded-md px-4 py-2 text-sm ${
+											className={`rounded-md px-4 py-2  ${
 												invitationLink.enabled
 													? 'bg-gray-600 text-white hover:bg-gray-700'
 													: 'bg-green-600 text-white hover:bg-green-700'
@@ -481,7 +481,7 @@ export default function WorkspaceSettingsClient({
 											<button
 												onClick={handleRegenerateInvite}
 												disabled={isRegenerating}
-												className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
+												className="rounded-md border px-4 py-2  hover:bg-gray-50 disabled:opacity-50"
 											>
 												{isRegenerating ? 'Regenerating...' : 'Regenerate Link'}
 											</button>
@@ -489,7 +489,7 @@ export default function WorkspaceSettingsClient({
 									</div>
 								</div>
 							) : (
-								<div className="text-sm text-gray-500">Loading invitation settings...</div>
+								<div className=" text-gray-500">Loading invitation settings...</div>
 							)}
 						</section>
 					)}
@@ -497,8 +497,8 @@ export default function WorkspaceSettingsClient({
 					{/* Ownership Transfer - Only show for owners of shared workspaces */}
 					{isOwner && !workspace.is_private && eligibleMembers.length > 0 && (
 						<section className="rounded-lg border p-6">
-							<h2 className="mb-4 text-lg font-semibold">Transfer Ownership</h2>
-							<p className="mb-4 text-sm text-gray-600">
+							<h2 className="mb-4  font-semibold">Transfer Ownership</h2>
+							<p className="mb-4  text-gray-600">
 								Transfer ownership of this workspace to another member. You will become a regular
 								member after the transfer.
 							</p>
@@ -506,10 +506,7 @@ export default function WorkspaceSettingsClient({
 							{!showTransferConfirm ? (
 								<div className="space-y-4">
 									<div>
-										<label
-											htmlFor="new-owner"
-											className="block text-sm font-medium text-gray-700 mb-2"
-										>
+										<label htmlFor="new-owner" className="block  font-medium text-gray-700 mb-2">
 											Select new owner
 										</label>
 										<select
@@ -540,7 +537,7 @@ export default function WorkspaceSettingsClient({
 														}
 													}}
 													disabled={isTransferring || !selectedNewOwner}
-													className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+													className="rounded-md bg-blue-600 px-4 py-2  text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
 												>
 													Continue
 												</button>
@@ -555,10 +552,10 @@ export default function WorkspaceSettingsClient({
 								</div>
 							) : (
 								<div className="space-y-4 rounded-lg bg-yellow-50 p-4">
-									<p className="text-sm text-yellow-800">
+									<p className=" text-yellow-800">
 										<strong>Confirm ownership transfer</strong>
 									</p>
-									<p className="text-sm text-gray-700">
+									<p className=" text-gray-700">
 										Are you sure you want to transfer ownership to{' '}
 										<strong>
 											{eligibleMembers.find((m) => m.id === selectedNewOwner)?.display_name ||
@@ -566,8 +563,8 @@ export default function WorkspaceSettingsClient({
 										</strong>
 										?
 									</p>
-									<p className="text-sm text-gray-600">After this transfer:</p>
-									<ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+									<p className=" text-gray-600">After this transfer:</p>
+									<ul className="list-disc list-inside  text-gray-600 space-y-1">
 										<li>You will become a regular member</li>
 										<li>You will lose owner privileges (rename, delete, transfer)</li>
 										<li>The new owner will have full control of the workspace</li>
@@ -576,7 +573,7 @@ export default function WorkspaceSettingsClient({
 										<button
 											onClick={handleTransferOwnership}
 											disabled={isTransferring}
-											className="rounded-md bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 disabled:opacity-50"
+											className="rounded-md bg-red-600 px-4 py-2  text-white hover:bg-red-700 disabled:opacity-50"
 										>
 											{isTransferring ? 'Transferring...' : 'Confirm Transfer'}
 										</button>
@@ -585,7 +582,7 @@ export default function WorkspaceSettingsClient({
 												setShowTransferConfirm(false)
 											}}
 											disabled={isTransferring}
-											className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
+											className="rounded-md border px-4 py-2  hover:bg-gray-50 disabled:opacity-50"
 										>
 											Cancel
 										</button>
@@ -597,24 +594,24 @@ export default function WorkspaceSettingsClient({
 
 					{/* Leave/Delete Workspace */}
 					<section className="rounded-lg border border-red-200 p-6">
-						<h2 className="mb-4 text-lg font-semibold text-red-800">Danger Zone</h2>
+						<h2 className="mb-4  font-semibold text-red-800">Danger Zone</h2>
 
 						{!isOwner ? (
 							<div>
-								<p className="mb-4 text-sm text-gray-600">
+								<p className="mb-4  text-gray-600">
 									Leave this workspace. You will no longer have access to its documents and folders.
 								</p>
 								<button
 									onClick={handleLeave}
 									disabled={isLeaving}
-									className="rounded-md bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 disabled:opacity-50"
+									className="rounded-md bg-red-600 px-4 py-2  text-white hover:bg-red-700 disabled:opacity-50"
 								>
 									{isLeaving ? 'Leaving...' : 'Leave Workspace'}
 								</button>
 							</div>
 						) : (
 							<div>
-								<p className="mb-4 text-sm text-gray-600">
+								<p className="mb-4  text-gray-600">
 									{workspace.is_private
 										? 'Your private workspace cannot be deleted.'
 										: 'Soft delete this workspace. It can be restored later.'}
@@ -623,7 +620,7 @@ export default function WorkspaceSettingsClient({
 									<button
 										onClick={handleDelete}
 										disabled={isDeleting}
-										className="rounded-md bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 disabled:opacity-50"
+										className="rounded-md bg-red-600 px-4 py-2  text-white hover:bg-red-700 disabled:opacity-50"
 									>
 										{isDeleting ? 'Deleting...' : 'Delete Workspace'}
 									</button>

@@ -1,12 +1,14 @@
 'use client'
 
 import { useLocalStorageState } from '@/app/hooks/useLocalStorageState'
+import { Button } from '@/components/ui/button'
 import { Document, Folder } from '@/lib/api/types'
 import { Folder as FolderIcon, FolderOpenIcon } from 'lucide-react'
 import Link from 'next/link'
+import { SIDEBAR_ITEM_HOVERABLE } from './sidebar-styles'
+import { SidebarDepthIndicator } from './SidebarDepthIndicator'
 import { SidebarDocumentItem } from './SidebarDocumentItem'
 import { SidebarNewDocumentButton } from './SidebarNewDocumentButton'
-import { SIDEBAR_ITEM_HOVERABLE } from './sidebar-styles'
 
 interface SidebarFolderItemProps {
 	folder: Folder
@@ -64,14 +66,13 @@ export function SidebarFolderItem({
 	return (
 		<>
 			{/* Folder Header */}
-			<div
-				className={`${SIDEBAR_ITEM_HOVERABLE} gap-1 text-sm cursor-pointer`}
-				data-testid={`sidebar-folder-${folder.id}`}
-				style={{ paddingLeft: `${8 + depth * 16}px` }}
-			>
-				<button
+			<div className={`${SIDEBAR_ITEM_HOVERABLE} `} data-testid={`sidebar-folder-${folder.id}`}>
+				<SidebarDepthIndicator depth={depth} />
+				<Button
+					variant="include"
+					size="icon"
 					onClick={toggleExpanded}
-					className="shrink-0 p-0.5 hover:bg-foreground/10 rounded"
+					className="shrink-0 h-6 w-6 p-0 mr-1"
 					aria-label={isExpanded ? 'Collapse folder' : 'Expand folder'}
 					aria-expanded={isExpanded}
 				>
@@ -80,7 +81,7 @@ export function SidebarFolderItem({
 					) : (
 						<FolderIcon className="w-4 h-4 shrink-0 text-foreground/60" />
 					)}
-				</button>
+				</Button>
 				<Link
 					href={`/workspace/${workspaceId}/folder/${folder.id}`}
 					className="flex-1 flex items-center gap-1.5 min-w-0"

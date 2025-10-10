@@ -42,7 +42,7 @@ export default async function LoginPage({
 		<Suspense
 			fallback={
 				<div className="flex min-h-screen items-center justify-center bg-background">
-					<div className="text-sm text-foreground/60">Loading...</div>
+					<div className=" text-foreground/60">Loading...</div>
 				</div>
 			}
 		>

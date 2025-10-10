@@ -77,7 +77,7 @@ export function WorkspacesView({
 	if (workspaces.length === 0) {
 		return (
 			<div className="flex-1 flex items-center justify-center p-6">
-				<p className="text-sm text-foreground/60 text-center">
+				<p className=" text-foreground/60 text-center">
 					No workspaces yet.
 					<br />
 					Create your first workspace to get started!

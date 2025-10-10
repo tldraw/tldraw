@@ -2,6 +2,7 @@
 
 import { ChevronDown, Search } from 'lucide-react'
 import { SidebarContext } from './Sidebar'
+import { SIDEBAR_ITEM_HOVERABLE } from './sidebar-styles'
 
 interface SidebarContextHeaderProps {
 	currentContext: SidebarContext
@@ -40,16 +41,16 @@ export function SidebarContextHeader({
 
 	return (
 		<div
-			className="flex items-center justify-between px-4 py-3 border-b border-foreground/20"
+			className="flex items-center justify-between pr-2 mb-2"
 			data-testid="sidebar-context-header"
 		>
 			{/* Context Switcher */}
 			<button
 				onClick={handleContextClick}
-				className="flex items-center gap-2 hover:bg-foreground/5 rounded px-2 py-1 flex-1"
+				className={`flex items-center gap-2 rounded h-10 px-3 flex-1 ${SIDEBAR_ITEM_HOVERABLE}`}
 				data-testid="context-switcher"
 			>
-				<span className="font-medium text-sm">{contextLabels[currentContext]}</span>
+				<span className="font-medium ">{contextLabels[currentContext]}</span>
 				<ChevronDown className="w-3 h-3 text-foreground/60" />
 			</button>
 

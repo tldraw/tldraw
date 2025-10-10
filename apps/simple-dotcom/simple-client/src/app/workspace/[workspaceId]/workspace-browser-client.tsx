@@ -417,8 +417,8 @@ export default function WorkspaceBrowserClient({
 			<header className="border-b px-6 py-4">
 				<div className="flex items-center justify-between">
 					<div>
-						<h1 className="text-2xl font-bold">{workspace.name}</h1>
-						<p className="text-sm text-gray-600 dark:text-gray-400">
+						<h1 className=" font-bold">{workspace.name}</h1>
+						<p className=" text-gray-600 dark:text-gray-400">
 							{isOwner ? 'Owner' : `Member (${role})`}
 						</p>
 					</div>
@@ -427,13 +427,13 @@ export default function WorkspaceBrowserClient({
 							<>
 								<Link
 									href={`/workspace/${workspace.id}/members`}
-									className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+									className="rounded-md border px-4 py-2  hover:bg-gray-50 dark:hover:bg-gray-800"
 								>
 									Members
 								</Link>
 								<Link
 									href={`/workspace/${workspace.id}/settings`}
-									className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+									className="rounded-md border px-4 py-2  hover:bg-gray-50 dark:hover:bg-gray-800"
 								>
 									Settings
 								</Link>
@@ -441,7 +441,7 @@ export default function WorkspaceBrowserClient({
 						)}
 						<Link
 							href="/dashboard"
-							className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+							className="rounded-md border px-4 py-2  hover:bg-gray-50 dark:hover:bg-gray-800"
 						>
 							Back to Dashboard
 						</Link>
@@ -456,7 +456,7 @@ export default function WorkspaceBrowserClient({
 					{/* Root level button */}
 					<button
 						onClick={() => setSelectedFolderId(null)}
-						className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+						className={`flex items-center gap-2 px-3 py-2 rounded-md  font-medium transition-colors ${
 							selectedFolderId === null
 								? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
 								: 'hover:bg-gray-100 dark:hover:bg-gray-800'
@@ -477,7 +477,7 @@ export default function WorkspaceBrowserClient({
 					{/* Archive link */}
 					<Link
 						href={`/workspace/${workspace.id}/archive`}
-						className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+						className="flex items-center gap-2 px-3 py-2 rounded-md  font-medium hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
 						data-testid="archive-link"
 					>
 						<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -493,7 +493,7 @@ export default function WorkspaceBrowserClient({
 
 					<div className="border-t pt-4">
 						<div className="flex items-center justify-between mb-2">
-							<h2 className="text-sm font-semibold">Folders</h2>
+							<h2 className=" font-semibold">Folders</h2>
 							{canEdit && (
 								<button
 									onClick={() => {
@@ -543,7 +543,7 @@ export default function WorkspaceBrowserClient({
 
 					{/* Toolbar */}
 					<div className="mb-4 flex items-center justify-between">
-						<h2 className="text-xl font-semibold">
+						<h2 className=" font-semibold">
 							{selectedFolderId
 								? folders.find((f) => f.id === selectedFolderId)?.name
 								: 'All Documents'}
@@ -556,7 +556,7 @@ export default function WorkspaceBrowserClient({
 									setShowCreateDocumentModal(true)
 								}}
 								data-testid="create-document-button"
-								className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+								className="rounded-md bg-blue-600 px-4 py-2  text-white hover:bg-blue-700"
 							>
 								+ New Document
 							</button>

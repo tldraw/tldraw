@@ -7,6 +7,15 @@
  * 3. Create wrapper components (for behavior + style)
  */
 
-export const SIDEBAR_ITEM_BASE = 'h-8 border flex items-center'
-export const SIDEBAR_ITEM_HOVERABLE = `${SIDEBAR_ITEM_BASE} hover:bg-foreground/5`
-export const SIDEBAR_ITEM_ACTIVE = `${SIDEBAR_ITEM_HOVERABLE} data-[active=true]:bg-foreground/10`
+import { cn } from '@/lib/utils'
+
+export const SIDEBAR_ITEM_BASE = cn(
+	'h-10 px-2 flex items-center',
+	'relative after:absolute after:inset-1 after:rounded-xs',
+	'after:z-0 after:pointer-events-none after:opacity-0 after:bg-foreground/5 -my-1',
+	'cursor-pointer'
+)
+
+export const SIDEBAR_ITEM_HOVERABLE = `${SIDEBAR_ITEM_BASE} hover:after:opacity-100`
+
+export const SIDEBAR_ITEM_ACTIVE = `${SIDEBAR_ITEM_HOVERABLE} data-[active=true]:after:opacity-100`

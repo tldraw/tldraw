@@ -83,7 +83,7 @@ export default function ResetPasswordPage() {
 			<div className="flex min-h-screen items-center justify-center bg-background p-4">
 				<div className="w-full max-w-md space-y-8">
 					<div className="text-center">
-						<h1 className="text-3xl font-bold">Password reset successful</h1>
+						<h1 className=" font-bold">Password reset successful</h1>
 						<Alert variant="success" data-testid="success-message" className="mt-4">
 							<CheckCircle2 className="h-4 w-4" />
 							<AlertDescription>
@@ -100,8 +100,8 @@ export default function ResetPasswordPage() {
 		<div className="flex min-h-screen items-center justify-center bg-background p-4">
 			<div className="w-full max-w-md space-y-8">
 				<div className="text-center">
-					<h1 className="text-3xl font-bold">Set new password</h1>
-					<p className="mt-2 text-sm text-foreground/60">Enter your new password below</p>
+					<h1 className=" font-bold">Set new password</h1>
+					<p className="mt-2  text-foreground/60">Enter your new password below</p>
 				</div>
 
 				<Form {...form}>

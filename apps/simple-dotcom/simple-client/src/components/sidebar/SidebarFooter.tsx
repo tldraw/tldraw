@@ -37,8 +37,8 @@ export function SidebarFooter({ userProfile }: SidebarFooterProps) {
 				className="flex items-center gap-2 hover:bg-foreground/5 rounded px-2 py-1 flex-1 min-w-0"
 				data-testid="sidebar-user-link"
 			>
-				<span className="text-sm text-foreground shrink-0">●</span>
-				<span className="text-sm truncate" title={displayName}>
+				<span className=" text-foreground shrink-0">●</span>
+				<span className=" truncate" title={displayName}>
 					{displayName}
 				</span>
 			</Link>

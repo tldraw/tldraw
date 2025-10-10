@@ -30,7 +30,7 @@ export default function DocumentMetadata({ document, isGuest = false }: Document
 	if (isGuest) {
 		return (
 			<div className="border-b border-gray-200 bg-gray-50 px-6 py-3">
-				<div className="flex items-center gap-4 text-sm text-gray-600">
+				<div className="flex items-center gap-4  text-gray-600">
 					<span>Last updated {formatDate(document.updated_at)}</span>
 				</div>
 			</div>
@@ -40,7 +40,7 @@ export default function DocumentMetadata({ document, isGuest = false }: Document
 	// Members see full metadata
 	return (
 		<div className="border-b border-gray-200 bg-gray-50 px-6 py-3">
-			<div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+			<div className="flex flex-wrap items-center gap-4  text-gray-600">
 				{document.creator && (
 					<div className="flex items-center gap-1">
 						<span className="font-medium">Created by:</span>

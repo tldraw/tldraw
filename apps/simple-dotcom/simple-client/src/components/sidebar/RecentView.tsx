@@ -30,7 +30,7 @@ export function RecentView({ recentDocuments }: RecentViewProps) {
 			<div className="flex-1 flex flex-col items-center justify-center p-6 gap-3">
 				<Clock className="w-8 h-8 text-foreground/40" />
 				<div className="text-center">
-					<p className="text-sm font-medium text-foreground/80">No recent documents</p>
+					<p className=" font-medium text-foreground/80">No recent documents</p>
 					<p className="text-xs text-foreground/60 mt-1">Access a document to see it here</p>
 				</div>
 			</div>
@@ -57,7 +57,7 @@ export function RecentView({ recentDocuments }: RecentViewProps) {
 					>
 						<div className="flex items-start justify-between gap-2">
 							<div className="flex-1 min-w-0">
-								<p className="text-sm font-medium truncate" title={recent.name}>
+								<p className=" font-medium truncate" title={recent.name}>
 									{recent.name}
 								</p>
 								<p className="text-xs text-foreground/60 truncate" title={recent.workspace_name}>

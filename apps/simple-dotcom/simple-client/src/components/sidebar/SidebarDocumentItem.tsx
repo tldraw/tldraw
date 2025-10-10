@@ -7,6 +7,7 @@ import { Archive, Clock, Share2 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { SIDEBAR_ITEM_ACTIVE } from './sidebar-styles'
+import { SidebarDepthIndicator } from './SidebarDepthIndicator'
 
 interface SidebarDocumentItemProps {
 	document: Document
@@ -65,11 +66,11 @@ export function SidebarDocumentItem({
 
 	return (
 		<div
-			className={`group ${SIDEBAR_ITEM_ACTIVE} justify-between text-sm`}
+			className={`group ${SIDEBAR_ITEM_ACTIVE} justify-between `}
 			data-active={isActive}
 			data-testid={`sidebar-document-${document.id}`}
-			style={{ paddingLeft: `${8 + depth * 16}px` }}
 		>
+			<SidebarDepthIndicator depth={depth} />
 			<Link href={`/d/${document.id}`} className="flex-1 flex items-center gap-2 min-w-0">
 				{StatusIcon && (
 					<span title={statusIndicator.label}>

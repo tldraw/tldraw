@@ -99,7 +99,7 @@ export function DocumentListItem({
 					{/* Document name */}
 					<Tooltip>
 						<TooltipTrigger asChild>
-							<h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+							<h3 className=" font-medium text-gray-900 dark:text-gray-100 truncate">
 								{document.name}
 							</h3>
 						</TooltipTrigger>

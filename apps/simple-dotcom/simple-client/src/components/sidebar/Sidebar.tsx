@@ -78,11 +78,6 @@ export function Sidebar({
 		return () => window.removeEventListener('keydown', handleKeyDown)
 	}, [])
 
-	const handleGlobalSearchClick = () => {
-		setSearchContext('workspaces')
-		setSearchOpen(true)
-	}
-
 	const handleContextSearchClick = () => {
 		setSearchContext(currentContext)
 		setSearchOpen(true)
@@ -95,7 +90,7 @@ export function Sidebar({
 				data-testid="sidebar"
 			>
 				{/* Global Header (Tier 1) */}
-				<SidebarGlobalHeader onSearchClick={handleGlobalSearchClick} />
+				<SidebarGlobalHeader />
 
 				{/* Context Header (Tier 2) */}
 				<SidebarContextHeader

@@ -264,7 +264,7 @@ export default function DashboardClient({
 				<div className="p-8">
 					<div className="mx-auto max-w-4xl">
 						<div className="flex items-center justify-between mb-8">
-							<h1 className="text-3xl font-bold">Dashboard</h1>
+							<h1 className=" font-bold">Dashboard</h1>
 							<div className="flex items-center gap-3">
 								<ThemeToggle />
 								<Button variant="outline" asChild>
@@ -277,12 +277,12 @@ export default function DashboardClient({
 						</div>
 
 						<div className="rounded-lg border border-foreground/20 p-6">
-							<h2 className="text-xl font-semibold mb-4">Welcome, {displayName}!</h2>
+							<h2 className=" font-semibold mb-4">Welcome, {displayName}!</h2>
 
 							{/* Recent Documents */}
 							{dashboardData.recentDocuments.length > 0 && (
 								<div className="mt-6">
-									<h3 className="text-lg font-semibold mb-3">Recent Documents</h3>
+									<h3 className=" font-semibold mb-3">Recent Documents</h3>
 									<div className="space-y-2" data-testid="recent-documents-list">
 										{dashboardData.recentDocuments.map((recent) => (
 											<Link
@@ -294,7 +294,7 @@ export default function DashboardClient({
 												<div className="flex items-center justify-between">
 													<div>
 														<h4 className="font-medium">{recent.name}</h4>
-														<p className="text-sm text-foreground/60">{recent.workspace_name}</p>
+														<p className=" text-foreground/60">{recent.workspace_name}</p>
 													</div>
 													<p className="text-xs text-foreground/40">
 														{new Date(recent.accessed_at).toLocaleDateString()}

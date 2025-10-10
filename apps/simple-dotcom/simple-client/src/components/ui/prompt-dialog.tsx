@@ -99,9 +99,7 @@ export function PromptDialog({
 						disabled={loading}
 						className={validationError ? 'border-red-500' : ''}
 					/>
-					{validationError && (
-						<p className="text-sm text-red-500 dark:text-red-400">{validationError}</p>
-					)}
+					{validationError && <p className=" text-red-500 dark:text-red-400">{validationError}</p>}
 				</div>
 				<DialogFooter>
 					<Button

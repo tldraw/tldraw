@@ -107,7 +107,7 @@ export function FolderListItem({
 					{/* Folder name */}
 					<Tooltip>
 						<TooltipTrigger asChild>
-							<span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+							<span className=" font-medium text-gray-900 dark:text-gray-100 truncate">
 								{folder.name}
 							</span>
 						</TooltipTrigger>

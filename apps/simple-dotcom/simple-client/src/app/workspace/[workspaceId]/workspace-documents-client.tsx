@@ -233,19 +233,19 @@ export default function WorkspaceDocumentsClient({
 			{/* Documents header */}
 			<div className="flex items-center justify-between border-b px-6 py-4">
 				<div className="flex items-center gap-4">
-					<h2 className="text-xl font-semibold">
+					<h2 className=" font-semibold">
 						{selectedFolder
 							? folders.find((f) => f.id === selectedFolder)?.name || 'Documents'
 							: 'Documents'}
 					</h2>
-					<span className="text-sm text-gray-500">
+					<span className=" text-gray-500">
 						{activeDocuments.length} document{activeDocuments.length !== 1 ? 's' : ''}
 					</span>
 				</div>
 				<button
 					onClick={() => setShowCreateDialog(true)}
 					disabled={isCreating}
-					className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
+					className="rounded-md bg-blue-600 px-4 py-2  text-white hover:bg-blue-700 disabled:opacity-50"
 				>
 					{isCreating ? 'Creating...' : '+ New Document'}
 				</button>

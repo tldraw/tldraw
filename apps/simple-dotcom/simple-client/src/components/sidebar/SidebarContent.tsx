@@ -44,7 +44,7 @@ export function SidebarContent({
 	onOpenCreateDocumentModal,
 }: SidebarContentProps) {
 	return (
-		<div className="flex-1 min-h-0 overflow-y-auto" data-testid="sidebar-content">
+		<div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide" data-testid="sidebar-content">
 			{currentContext === 'workspaces' && (
 				<WorkspacesView
 					workspaces={workspaces}
@@ -60,7 +60,7 @@ export function SidebarContent({
 
 			{currentContext === 'shared-with-me' && (
 				<div className="flex-1 flex items-center justify-center p-6">
-					<p className="text-sm text-foreground/60 text-center">
+					<p className=" text-foreground/60 text-center">
 						Shared with me
 						<br />
 						<span className="text-xs">(Coming soon)</span>

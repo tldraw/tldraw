@@ -91,14 +91,14 @@ export default function ProfileClient({ profile }: ProfileClientProps) {
 				<div className="mb-8">
 					<Link
 						href="/dashboard"
-						className="text-sm text-foreground/60 hover:text-foreground hover:underline"
+						className=" text-foreground/60 hover:text-foreground hover:underline"
 					>
 						← Back to Dashboard
 					</Link>
 				</div>
 
 				<div className="rounded-lg border border-foreground/20 p-6">
-					<h1 className="text-2xl font-bold mb-6">Profile Settings</h1>
+					<h1 className=" font-bold mb-6">Profile Settings</h1>
 
 					<Form {...form}>
 						<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">

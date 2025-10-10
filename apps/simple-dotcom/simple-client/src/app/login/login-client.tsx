@@ -116,7 +116,7 @@ export default function LoginClient({
 					{form.formState.isSubmitting ? 'Signing in...' : 'Sign in'}
 				</Button>
 
-				<p className="text-sm text-foreground/60 text-center">
+				<p className=" text-foreground/60 text-center">
 					No account?{' '}
 					<SecondaryLink
 						href={redirectUrl ? `/signup?redirect=${encodeURIComponent(redirectUrl)}` : '/signup'}

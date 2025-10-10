@@ -215,10 +215,10 @@ export default function WorkspaceMembersClient({
 			{/* Header */}
 			<header className="border-b px-6 py-4">
 				<div className="flex items-center justify-between">
-					<h1 className="text-2xl font-bold">Workspace Members</h1>
+					<h1 className=" font-bold">Workspace Members</h1>
 					<Link
 						href={`/workspace/${workspace.id}`}
-						className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50"
+						className="rounded-md border px-4 py-2  hover:bg-gray-50"
 					>
 						Back to Workspace
 					</Link>
@@ -233,8 +233,8 @@ export default function WorkspaceMembersClient({
 						<div className="rounded-lg bg-yellow-50 border border-yellow-200 p-4">
 							<div className="flex items-start">
 								<div className="flex-1">
-									<h3 className="text-sm font-medium text-yellow-800">Approaching member limit:</h3>
-									<p className="mt-1 text-sm text-yellow-700">
+									<h3 className=" font-medium text-yellow-800">Approaching member limit:</h3>
+									<p className="mt-1  text-yellow-700">
 										This workspace has {members.length} of {WORKSPACE_LIMITS.MAX_MEMBERS} members.
 										Consider removing inactive members before the limit is reached.
 									</p>
@@ -245,8 +245,8 @@ export default function WorkspaceMembersClient({
 
 					{/* Invitation Link */}
 					<section className="rounded-lg border p-6">
-						<h2 className="mb-4 text-lg font-semibold">Invitation Link</h2>
-						<p className="mb-4 text-sm text-gray-600">
+						<h2 className="mb-4  font-semibold">Invitation Link</h2>
+						<p className="mb-4  text-gray-600">
 							Share this link with people you want to invite to the workspace.
 						</p>
 
@@ -257,12 +257,12 @@ export default function WorkspaceMembersClient({
 										type="text"
 										value={inviteUrl || ''}
 										readOnly
-										className="flex-1 rounded-md border bg-gray-50 dark:bg-gray-900 px-3 py-2 text-sm font-mono text-gray-900 dark:text-gray-100"
+										className="flex-1 rounded-md border bg-gray-50 dark:bg-gray-900 px-3 py-2  font-mono text-gray-900 dark:text-gray-100"
 									/>
 									<button
 										onClick={handleCopyInviteLink}
 										disabled={!inviteLink.enabled}
-										className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
+										className="rounded-md bg-blue-600 px-4 py-2  text-white hover:bg-blue-700 disabled:opacity-50"
 									>
 										Copy
 									</button>
@@ -272,7 +272,7 @@ export default function WorkspaceMembersClient({
 									<button
 										onClick={handleToggleInvite}
 										disabled={isToggling}
-										className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
+										className="rounded-md border px-4 py-2  hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
 									>
 										{isToggling
 											? 'Processing...'
@@ -283,7 +283,7 @@ export default function WorkspaceMembersClient({
 									<button
 										onClick={handleRegenerateInvite}
 										disabled={isRegenerating}
-										className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
+										className="rounded-md border px-4 py-2  hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
 									>
 										{isRegenerating ? 'Regenerating...' : 'Regenerate Link'}
 									</button>
@@ -301,7 +301,7 @@ export default function WorkspaceMembersClient({
 
 					{/* Members List */}
 					<section className="rounded-lg border p-6">
-						<h2 className="mb-4 text-lg font-semibold">
+						<h2 className="mb-4  font-semibold">
 							Members ({members.length}/{WORKSPACE_LIMITS.MAX_MEMBERS})
 						</h2>
 
@@ -316,7 +316,7 @@ export default function WorkspaceMembersClient({
 									className="w-full rounded-md border px-3 py-2"
 								/>
 								{searchTerm && (
-									<p className="mt-2 text-sm text-gray-600">
+									<p className="mt-2  text-gray-600">
 										Found {filteredMembers.length} member{filteredMembers.length !== 1 ? 's' : ''}
 									</p>
 								)}
@@ -343,7 +343,7 @@ export default function WorkspaceMembersClient({
 												<TableCell className="font-medium">
 													{member.display_name || member.email}
 													{isCurrentUser && (
-														<span className="ml-2 text-sm text-muted-foreground">(You)</span>
+														<span className="ml-2  text-muted-foreground">(You)</span>
 													)}
 												</TableCell>
 												<TableCell className="text-muted-foreground">
@@ -376,7 +376,7 @@ export default function WorkspaceMembersClient({
 						{/* Pagination controls - only show if more than itemsPerPage */}
 						{totalPages > 1 && (
 							<div className="mt-4 flex items-center justify-between">
-								<p className="text-sm text-gray-600">
+								<p className=" text-gray-600">
 									Showing {startIndex + 1} to {Math.min(endIndex, filteredMembers.length)} of{' '}
 									{filteredMembers.length} members
 								</p>
@@ -393,7 +393,7 @@ export default function WorkspaceMembersClient({
 											/>
 										</PaginationItem>
 										<PaginationItem>
-											<span className="px-3 py-1 text-sm">
+											<span className="px-3 py-1 ">
 												Page {currentPage} of {totalPages}
 											</span>
 										</PaginationItem>

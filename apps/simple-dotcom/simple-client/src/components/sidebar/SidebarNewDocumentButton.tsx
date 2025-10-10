@@ -1,13 +1,15 @@
 import { SIDEBAR_ITEM_HOVERABLE } from './sidebar-styles'
+import { SidebarDepthIndicator } from './SidebarDepthIndicator'
 
 export function SidebarNewDocumentButton({ id, onSelect }: { id: string; onSelect: () => void }) {
 	return (
 		<button
 			onClick={onSelect}
 			data-testid={`create-document-${id}`}
-			className={`${SIDEBAR_ITEM_HOVERABLE} w-full text-sm text-left rounded text-foreground/60 hover:text-foreground gap-1`}
+			className={`${SIDEBAR_ITEM_HOVERABLE} w-full  text-left rounded text-foreground/60 hover:text-foreground`}
 		>
-			<span className="text-xs">+</span> New Document
+			<SidebarDepthIndicator depth={0} />
+			New Document
 		</button>
 	)
 }

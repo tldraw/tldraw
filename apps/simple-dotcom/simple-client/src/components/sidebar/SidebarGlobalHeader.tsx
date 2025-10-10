@@ -1,12 +1,8 @@
 'use client'
 
-import { Columns2, Search } from 'lucide-react'
+import { Columns2 } from 'lucide-react'
 import Link from 'next/link'
 import { Logo } from '../shared/Logo'
-
-interface SidebarGlobalHeaderProps {
-	onSearchClick: () => void
-}
 
 /**
  * SidebarGlobalHeader (Tier 1)
@@ -18,7 +14,7 @@ interface SidebarGlobalHeaderProps {
  * - Global menu button (future: dropdown for settings, sign out, etc.)
  * - Global search button (⌘K to search across all workspaces)
  */
-export function SidebarGlobalHeader({ onSearchClick }: SidebarGlobalHeaderProps) {
+export function SidebarGlobalHeader() {
 	const handleMenuClick = () => {
 		// TODO: Open global menu dropdown (Phase 5)
 		console.log('Global menu clicked')
@@ -26,7 +22,7 @@ export function SidebarGlobalHeader({ onSearchClick }: SidebarGlobalHeaderProps)
 
 	return (
 		<div
-			className="flex items-center justify-between p-4 border-b border-foreground/20"
+			className="flex items-center justify-between h-10 px-2 mb-2"
 			data-testid="sidebar-global-header"
 		>
 			{/* Branding */}
@@ -36,15 +32,6 @@ export function SidebarGlobalHeader({ onSearchClick }: SidebarGlobalHeaderProps)
 
 			{/* Actions */}
 			<div className="flex items-center gap-1">
-				<button
-					onClick={onSearchClick}
-					className="p-2 hover:bg-foreground/5 rounded"
-					aria-label="Global search (⌘K)"
-					title="Search (⌘K)"
-					data-testid="global-search-button"
-				>
-					<Search className="w-4 h-4" />
-				</button>
 				<button
 					onClick={handleMenuClick}
 					className="p-2 hover:bg-foreground/5 rounded"

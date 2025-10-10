@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -8,21 +9,13 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Document, Folder, Workspace, WorkspaceRole } from '@/lib/api/types'
-import {
-	ChevronDown,
-	ChevronRight,
-	FileText,
-	FolderPlus,
-	Link2,
-	MoreVertical,
-	Settings,
-} from 'lucide-react'
+import { FileText, FolderPlus, Link2, MoreVertical, Settings } from 'lucide-react'
 import Link from 'next/link'
 import { useCallback } from 'react'
 import { SidebarDocumentItem } from './SidebarDocumentItem'
 import { SidebarFolderItem } from './SidebarFolderItem'
 import { SidebarNewDocumentButton } from './SidebarNewDocumentButton'
-import { SIDEBAR_ITEM_BASE } from './sidebar-styles'
+import { SIDEBAR_ITEM_HOVERABLE } from './sidebar-styles'
 
 interface SidebarWorkspaceItemProps {
 	workspace: Workspace
@@ -91,13 +84,15 @@ export function SidebarWorkspaceItem({
 	const rootDocuments = documents.filter((d) => !d.folder_id && !d.is_archived)
 
 	return (
-		<div className="overflow-hidden group" data-testid={`sidebar-workspace-${workspace.id}`}>
+		<div className="overflow-hidden group mb-2" data-testid={`sidebar-workspace-${workspace.id}`}>
 			{/* Workspace Header */}
-			<div className={`${SIDEBAR_ITEM_BASE} justify-between`}>
+			<div className={`${SIDEBAR_ITEM_HOVERABLE} justify-between`}>
 				<div className="flex-1 flex items-center gap-2 min-w-0">
-					<button
+					<Button
+						variant="include"
+						size="icon"
 						onClick={handleToggle}
-						className="shrink-0 p-0.5 hover:bg-foreground/10 rounded"
+						className="shrink-0 h-full w-4 p-0 text-[10px]"
 						aria-label={isCollapsed ? 'Expand workspace' : 'Collapse workspace'}
 						aria-expanded={!isCollapsed}
 						data-testid={`toggle-workspace-${workspace.name
@@ -105,18 +100,14 @@ export function SidebarWorkspaceItem({
 							.replace(/\s+/g, '-')
 							.replace(/[^a-z0-9-]/g, '')}`}
 					>
-						{isCollapsed ? (
-							<ChevronDown className="w-4 h-4" />
-						) : (
-							<ChevronRight className="w-4 h-4" />
-						)}
-					</button>
+						{isCollapsed ? '▼' : '▶'}
+					</Button>
 					<Link
 						href={`/workspace/${workspace.id}`}
 						className="flex-1 hover:opacity-80 min-w-0"
 						data-testid={`workspace-card-${workspace.id}`}
 					>
-						<h3 className="font-medium text-sm truncate" title={workspace.name}>
+						<h3 className="font-medium  truncate" title={workspace.name}>
 							{workspace.name}
 						</h3>
 					</Link>

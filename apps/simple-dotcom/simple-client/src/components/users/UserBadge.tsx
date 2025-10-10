@@ -30,9 +30,9 @@ export function UserBadge({
 	const displayName = formatUserDisplayName(user)
 
 	const textSizeClasses = {
-		sm: 'text-sm',
+		sm: '',
 		md: 'text-base',
-		lg: 'text-lg',
+		lg: '',
 	}
 
 	return (

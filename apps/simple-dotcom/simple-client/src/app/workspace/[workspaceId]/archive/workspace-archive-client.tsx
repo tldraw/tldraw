@@ -88,12 +88,12 @@ export default function WorkspaceArchiveClient({
 			<header className="border-b px-6 py-4">
 				<div className="flex items-center justify-between">
 					<div>
-						<h1 className="text-2xl font-bold">Archive</h1>
-						<p className="text-sm text-gray-600">{workspace.name}</p>
+						<h1 className=" font-bold">Archive</h1>
+						<p className=" text-gray-600">{workspace.name}</p>
 					</div>
 					<Link
 						href={`/workspace/${workspace.id}`}
-						className="rounded-md border px-4 py-2 text-sm hover:bg-gray-50"
+						className="rounded-md border px-4 py-2  hover:bg-gray-50"
 					>
 						Back to Workspace
 					</Link>
@@ -103,13 +103,11 @@ export default function WorkspaceArchiveClient({
 			{/* Main content */}
 			<main className="flex-1 overflow-y-auto p-6">
 				<div className="mx-auto max-w-4xl space-y-6">
-					{error && <div className="rounded-lg bg-red-50 p-4 text-sm text-red-800">{error}</div>}
-					{success && (
-						<div className="rounded-lg bg-green-50 p-4 text-sm text-green-800">{success}</div>
-					)}
+					{error && <div className="rounded-lg bg-red-50 p-4  text-red-800">{error}</div>}
+					{success && <div className="rounded-lg bg-green-50 p-4  text-green-800">{success}</div>}
 
 					<div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-						<p className="text-sm text-blue-800">
+						<p className=" text-blue-800">
 							Archived documents are hidden from your workspace. You can restore them or permanently
 							delete them here.
 						</p>
@@ -118,7 +116,7 @@ export default function WorkspaceArchiveClient({
 					{archivedDocuments.length === 0 ? (
 						<div className="rounded-lg border border-dashed p-12 text-center">
 							<p className="text-gray-500">No archived documents</p>
-							<p className="mt-2 text-sm text-gray-400">Documents you archive will appear here</p>
+							<p className="mt-2  text-gray-400">Documents you archive will appear here</p>
 						</div>
 					) : (
 						<div className="space-y-3">
@@ -141,7 +139,7 @@ export default function WorkspaceArchiveClient({
 											<button
 												onClick={() => handleRestore(doc.id)}
 												disabled={isProcessing}
-												className="rounded-md border px-3 py-1 text-sm hover:bg-gray-50 disabled:opacity-50"
+												className="rounded-md border px-3 py-1  hover:bg-gray-50 disabled:opacity-50"
 											>
 												{isProcessing ? 'Processing...' : 'Restore'}
 											</button>
@@ -149,7 +147,7 @@ export default function WorkspaceArchiveClient({
 												<button
 													onClick={() => handlePermanentDelete(doc.id)}
 													disabled={isProcessing}
-													className="rounded-md border border-red-200 bg-red-50 px-3 py-1 text-sm text-red-700 hover:bg-red-100 disabled:opacity-50"
+													className="rounded-md border border-red-200 bg-red-50 px-3 py-1  text-red-700 hover:bg-red-100 disabled:opacity-50"
 												>
 													Delete Forever
 												</button>

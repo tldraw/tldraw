@@ -217,7 +217,7 @@ export function MoveDocumentDialog({
 					)}
 
 					{error && (
-						<div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{error}</div>
+						<div className=" text-destructive bg-destructive/10 p-3 rounded-md">{error}</div>
 					)}
 
 					{!loading && !error && (
@@ -242,7 +242,7 @@ export function MoveDocumentDialog({
 							{/* Folder Tree */}
 							<div className="py-1">
 								{folderTree.length === 0 && (
-									<div className="py-8 text-center text-sm text-muted-foreground">
+									<div className="py-8 text-center  text-muted-foreground">
 										No folders in this workspace
 									</div>
 								)}
