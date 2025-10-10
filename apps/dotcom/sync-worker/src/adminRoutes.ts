@@ -52,6 +52,16 @@ export const adminRoutes = createRouter<Environment>()
 		await user.admin_forceHardReboot(userRow.id)
 		return new Response('Rebooted', { status: 200 })
 	})
+	.post('/app/admin/user/migrate', async (res, env) => {
+		const q = res.query['q']
+		if (typeof q !== 'string') {
+			return new Response('Missing query param', { status: 400 })
+		}
+		const userRow = await requireUser(env, q)
+		const user = getUserDurableObject(env, userRow.id)
+		const result = await user.admin_migrateToGroups(userRow.id, uniqueId())
+		return json(result)
+	})
 	.post('/app/admin/create_legacy_file', async (_res, env) => {
 		const slug = uniqueId()
 		await getRoomDurableObject(env, slug).__admin__createLegacyRoom(slug)

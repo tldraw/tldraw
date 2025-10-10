@@ -33,8 +33,8 @@ function LegacyChangesModal({ onClose }: { onClose(): void }) {
 		})
 		onClose()
 		if (res?.ok) {
-			const { file } = res.value
-			navigate(routes.tlaFile(file.id))
+			const { fileId } = res.value
+			navigate(routes.tlaFile(fileId))
 			trackEvent('create-file', { source: 'legacy-import-button' })
 		}
 	}

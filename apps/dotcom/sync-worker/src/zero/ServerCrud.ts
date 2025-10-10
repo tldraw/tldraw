@@ -51,9 +51,7 @@ export class ServerCRUD implements TableCRUD<TlaSchema['tables'][keyof TlaSchema
 				[data.fileId]
 			)
 			assert(res.rowCount === 1, 'file not found')
-			if (res.rows[0].ownerId !== data.userId) {
-				this.perfHackHooks.newFiles.push(res.rows[0])
-			}
+			this.perfHackHooks.newFiles.push(res.rows[0])
 		} else if (this.table.name === 'file') {
 			this.perfHackHooks.newFiles.push(data as TlaFile)
 		}
@@ -106,7 +104,7 @@ export class ServerCRUD implements TableCRUD<TlaSchema['tables'][keyof TlaSchema
 				})
 		)
 
-		if (didExist) {
+		if (!didExist) {
 			await this._onNewRow(data)
 		}
 	}
@@ -120,12 +118,14 @@ export class ServerCRUD implements TableCRUD<TlaSchema['tables'][keyof TlaSchema
 	async update(data: any) {
 		assert(!this.signal.aborted, 'CRUD usage outside of mutator scope')
 		assertRowIsValid(data, this.table)
+		const vals = omit(data, this.table.primaryKey)
+		if (Object.keys(vals).length === 0) {
+			console.error('update is a noop', data)
+			return
+		}
 
 		const res = await this._exec(
-			this._wherePrimaryKey(
-				db.updateTable(this.table.name).set(omit(data, this.table.primaryKey)),
-				data
-			)
+			this._wherePrimaryKey(db.updateTable(this.table.name).set(vals), data)
 		)
 		if (res.rowCount !== 1) {
 			// might have been a noop

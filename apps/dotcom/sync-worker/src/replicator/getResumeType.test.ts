@@ -32,6 +32,7 @@ function createMockFileChange(fileId: string, ownerId: string, _lsn: string): Ch
 			isEmpty: false,
 			isDeleted: false,
 			createSource: 'test',
+			owningGroupId: null,
 		},
 		previous: {
 			id: fileId,
@@ -50,6 +51,7 @@ function createMockFileChange(fileId: string, ownerId: string, _lsn: string): Ch
 			isEmpty: false,
 			isDeleted: false,
 			createSource: 'test',
+			owningGroupId: null,
 		},
 		topics: [`user:${ownerId}`, `file:${fileId}`],
 	}
@@ -333,7 +335,7 @@ describe.skip('getResumeType Performance Tests', () => {
 			row: {
 				id: fileId,
 				ownerId,
-				name: `File ${fileId}`,
+				name: `Test File ${fileId}`,
 				ownerName: `Owner ${ownerId}`,
 				ownerAvatar: '',
 				thumbnail: '',
@@ -347,6 +349,7 @@ describe.skip('getResumeType Performance Tests', () => {
 				isEmpty: Math.random() > 0.95, // 5% chance of being empty
 				isDeleted: command === 'delete',
 				createSource: 'test',
+				owningGroupId: null,
 			},
 			previous:
 				command === 'update'

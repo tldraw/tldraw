@@ -2,12 +2,13 @@ import {
 	DB,
 	OptimisticAppStore,
 	TlaFile,
+	TlaFileState,
 	TlaRow,
+	TlaUser,
 	ZEvent,
 	ZRowUpdate,
 	ZServerSentPacket,
 	ZStoreData,
-	ZStoreDataV1,
 	ZTable,
 } from '@tldraw/dotcom-shared'
 import { react, transact } from '@tldraw/state'
@@ -18,7 +19,7 @@ import throttle from 'lodash.throttle'
 import { Logger } from './Logger'
 import { fetchEverythingSql } from './fetchEverythingSql.snap'
 import { parseResultRow } from './parseResultRow'
-import { getSubscriptionChanges } from './replicator/Subscription'
+import { TopicSubscriptionTree, getSubscriptionChanges } from './replicator/Subscription'
 import { Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { getReplicator, getStatsDurableObjct } from './utils/durableObjects'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
@@ -78,7 +79,7 @@ type BootState =
 			lastSequenceNumber: number
 	  }
 
-const stateVersion = 2
+const stateVersion = 3
 interface StateSnapshot {
 	version: number
 	initialData: ZStoreData
@@ -91,23 +92,51 @@ interface StateSnapshot {
 }
 
 const notASequenceId = 'not_a_sequence'
+// Legacy interfaces for migration - inlined here since they're only used in this migration function
+interface LegacyZStoreDataV0 {
+	files: TlaFile[]
+	fileStates: TlaFileState[]
+	user: TlaUser
+	lsn: string
+}
+
+interface LegacyZStoreDataV1 {
+	file: TlaFile[]
+	file_state: TlaFileState[]
+	user: TlaUser[]
+	lsn: string
+}
 
 function migrateStateSnapshot(snapshot: any) {
 	if (snapshot.version === 0) {
 		snapshot.version = 1
-		const data = snapshot.initialData as ZStoreDataV1
+		const data = snapshot.initialData as LegacyZStoreDataV0
 		snapshot.initialData = {
 			lsn: data.lsn,
 			user: [data.user],
 			file: data.files,
 			file_state: data.fileStates,
-		} satisfies ZStoreData
+		} satisfies LegacyZStoreDataV1
 	}
 
 	if (snapshot.version === 1) {
 		snapshot.version = 2
 		snapshot.sequenceId = notASequenceId
 		snapshot.lastSequenceNumber = 0
+	}
+
+	if (snapshot.version === 2) {
+		snapshot.version = 3
+		const data = snapshot.initialData as LegacyZStoreDataV1
+		snapshot.initialData = {
+			lsn: data.lsn,
+			user: data.user,
+			file: data.file,
+			file_state: data.file_state,
+			group: [],
+			group_user: [],
+			group_file: [],
+		} satisfies ZStoreData
 	}
 }
 
@@ -267,6 +296,9 @@ export class UserDataSyncer {
 			user: [],
 			file: [],
 			file_state: [],
+			group: [],
+			group_user: [],
+			group_file: [],
 			lsn: '0/0',
 			mutationNumber: 0,
 		}
@@ -279,6 +311,9 @@ export class UserDataSyncer {
 				initialData.user = []
 				initialData.file = []
 				initialData.file_state = []
+				initialData.group = []
+				initialData.group_user = []
+				initialData.group_file = []
 
 				await this.db.transaction().execute(async (tx) => {
 					const result = await tx.executeQuery(CompiledQuery.raw(fetchEverythingSql, [this.userId]))
@@ -365,10 +400,6 @@ export class UserDataSyncer {
 			}
 		}
 
-		const initialData = this.store.getCommittedData()!
-
-		const guestFileIds = initialData.file.filter((f) => f.ownerId !== this.userId).map((f) => f.id)
-
 		if (
 			!resumeData ||
 			!(await getReplicator(this.env).resumeSequence({
@@ -377,10 +408,32 @@ export class UserDataSyncer {
 				lastSequenceNumber: resumeData.lastSequenceNumber,
 			}))
 		) {
+			const initialData = this.store.getCommittedData()!
+			const topicSubscriptions: TopicSubscriptionTree = {}
+			const groupFileIds = new Set()
+			for (const group_user of initialData.group_user) {
+				topicSubscriptions[`group:${group_user.groupId}`] = {}
+			}
+			for (const group_file of initialData.group_file) {
+				groupFileIds.add(group_file.fileId)
+				let subgraph = topicSubscriptions[`group:${group_file.groupId}`]
+				if (typeof subgraph !== 'object') {
+					subgraph = {}
+					topicSubscriptions[`group:${group_file.groupId}`] = subgraph
+				}
+
+				subgraph[`file:${group_file.fileId}`] = 1
+			}
+
+			for (const file_state of initialData.file_state) {
+				if (groupFileIds.has(file_state.fileId)) continue
+				topicSubscriptions[`file:${file_state.fileId}`] = 1
+			}
+
 			const res = await getReplicator(this.env).registerUser({
 				userId: this.userId,
 				lsn: initialData.lsn,
-				guestFileIds,
+				topicSubscriptions,
 				bootId: this.state.bootId,
 			})
 
@@ -421,7 +474,14 @@ export class UserDataSyncer {
 	private handleRowUpdateEvent(event: ZRowUpdateEvent) {
 		try {
 			assert(this.state.type === 'connected', 'state should be connected in handleEvent')
-			if (event.table !== 'user' && event.table !== 'file' && event.table !== 'file_state') {
+			if (
+				event.table !== 'user' &&
+				event.table !== 'file' &&
+				event.table !== 'file_state' &&
+				event.table !== 'group' &&
+				event.table !== 'group_user' &&
+				event.table !== 'group_file'
+			) {
 				throw new Error(`Unhandled table: ${event.table}`)
 			}
 			this.store.updateCommittedData(event)
@@ -452,7 +512,7 @@ export class UserDataSyncer {
 
 		// ignore irrelevant events
 		if (!event.sequenceId.endsWith(this.state.bootId)) {
-			this.log.debug('ignoring irrelevant event', event)
+			this.log.debug('ignoring irrelevant event', event, this.state.bootId)
 			return
 		}
 
@@ -500,8 +560,30 @@ export class UserDataSyncer {
 				.map((ev) => ({ row: ev.row, event: { command: ev.event, table: ev.table } }))
 		)
 
-		if (topicUpdates.newSubscriptions?.length || topicUpdates.removedSubscriptions?.length) {
-			this.reboot({ hard: true, delay: false, source: 'handleReplicationEvent(hard reboot)' })
+		if (topicUpdates.removedSubscriptions && topicUpdates.removedSubscriptions.length > 0) {
+			this.reboot({
+				hard: true,
+				delay: false,
+				source: 'handleReplicationEvent(removed subscription)',
+			})
+			return
+		}
+
+		// By default, we reboot for new subscriptions
+		// However, if it's a subscription to a new file and that file is already in the store,
+		// we can skip the hard reboot.
+		for (const update of topicUpdates.newSubscriptions ?? []) {
+			if (update.fromTopic === `user:${this.userId}` && update.toTopic.startsWith('file:')) {
+				const fileId = update.toTopic.split(':')[1]
+				if (this.store.getCommittedData()?.file.find((f) => f.id === fileId)) {
+					continue
+				}
+			}
+			this.reboot({
+				hard: true,
+				delay: false,
+				source: 'handleReplicationEvent(new subscription)',
+			})
 			return
 		}
 
@@ -529,15 +611,30 @@ export class UserDataSyncer {
 	}
 
 	async addGuestFile(fileOrId: string | TlaFile) {
+		assert('bootId' in this.state, 'bootId should be in state')
+		const bootId = this.state.bootId
+		const fileId = typeof fileOrId === 'string' ? fileOrId : fileOrId.id
+		if (this.store.getFullData()?.file.find((f) => f.id === fileId)) return
 		const file =
 			typeof fileOrId === 'string'
 				? await this.db.selectFrom('file').where('id', '=', fileOrId).selectAll().executeTakeFirst()
 				: fileOrId
 		if (!file) return
-		if (file.ownerId !== this.userId && !file.shared) return
+		if (this.state.bootId !== bootId) return
 		const update: ZRowUpdate = {
 			event: 'insert',
 			row: file,
+			table: 'file',
+		}
+		this.store.updateCommittedData(update)
+		this.broadcast({ type: 'update', update })
+	}
+
+	async removeGuestFile(id: string) {
+		if (!this.store.getFullData()?.file.find((f) => f.id === id)) return
+		const update: ZRowUpdate = {
+			event: 'delete',
+			row: { id },
 			table: 'file',
 		}
 		this.store.updateCommittedData(update)

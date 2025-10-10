@@ -30,8 +30,8 @@ export function TlaSidebarCreateFileButton() {
 			if (!isMobile) {
 				focusCtx.shouldRenameNextNewFile = true
 			}
-			const { file } = res.value
-			navigate(routes.tlaFile(file.id))
+			const { fileId } = res.value
+			navigate(routes.tlaFile(fileId))
 			trackEvent('create-file', { source: 'sidebar' })
 			rCanCreate.current = false
 			tltime.setTimeout('can create again', () => (rCanCreate.current = true), 1000)

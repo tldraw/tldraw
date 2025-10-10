@@ -5,6 +5,7 @@ import {
 	MIN_Z_PROTOCOL_VERSION,
 	TlaFile,
 	TlaSchema,
+	TlaUserPartial,
 	ZClientSentMessage,
 	ZErrorCode,
 	ZServerSentPacket,
@@ -12,7 +13,7 @@ import {
 	schema,
 } from '@tldraw/dotcom-shared'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { ExecutionQueue, assert, assertExists, mapObjectMapValues, sleep } from '@tldraw/utils'
+import { ExecutionQueue, IndexKey, assert, mapObjectMapValues, sleep } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
@@ -166,7 +167,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private makeQuery(client: PoolClient, signal: AbortSignal): SchemaQuery<TlaSchema> {
 		return mapObjectMapValues(
 			schema.tables,
-			(tableName) => new ServerQuery(signal, client, true, tableName) as any
+			(tableName) => new ServerQuery(signal, client, false, tableName) as any
 		)
 	}
 
@@ -311,7 +312,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private async rejectMutation(socket: WebSocket, mutationId: string, errorCode: ZErrorCode) {
 		this.assertCache()
-		assertExists(this.sockets.get(socket), 'Socket not found')
 		this.logEvent({ type: 'reject_mutation', id: this.userId! })
 		this.cache.store.rejectMutation(mutationId)
 		this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== mutationId)
@@ -328,6 +328,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private pool: Pool
 
 	private async _doMutate(msg: ZClientSentMessage) {
+		this.log.debug('doMutate', this.userId, msg)
+		assert(msg.type === 'mutator', 'Invalid message type')
 		this.assertCache()
 		const client = await this.pool.connect()
 
@@ -389,11 +391,9 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			await client.query('COMMIT')
 
 			for (const file of newFiles) {
-				if (file.ownerId !== this.userId) {
-					this.cache?.addGuestFile(file)
-				} else {
-					getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
-				}
+				// if this is a legacy guest file, add it to the cache
+				this.cache?.addGuestFile(file)
+				getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
 			}
 		} catch (e) {
 			await client.query('ROLLBACK')
@@ -411,6 +411,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 		this.log.debug('mutation', this.userId, msg)
 		try {
+			assert(msg.type === 'mutator', 'Invalid message type')
 			// we connect to pg via a pooler, so in the case that the pool is exhausted
 			// we need to retry the connection. (also in the case that a neon branch is asleep apparently?)
 			await retryOnConnectionFailure(
@@ -486,6 +487,91 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		for (const socket of this.sockets.keys()) {
 			socket.close()
 		}
+	}
+
+	async __test__prepareForTest(userId: string, legacy: boolean) {
+		if (this.env.IS_LOCAL !== 'true') {
+			return
+		}
+		this.userId ??= userId
+
+		await this.db.transaction().execute(async (tx) => {
+			const user = await tx
+				.selectFrom('user')
+				.where('id', '=', userId)
+				.selectAll()
+				.executeTakeFirst()
+			if (!user) {
+				console.error('User not found', userId)
+				return
+			} else {
+				await tx
+					.updateTable('user')
+					.set({
+						flags: legacy ? '' : 'groups_backend',
+						allowAnalyticsCookie: null,
+						enhancedA11yMode: null,
+						colorScheme: null,
+						locale: null,
+						exportBackground: true,
+						exportPadding: true,
+						exportFormat: 'png',
+						inputMode: null,
+					} satisfies Omit<TlaUserPartial, 'id'>)
+					.where('id', '=', userId)
+					.execute()
+			}
+			await tx.deleteFrom('file_state').where('userId', '=', userId).execute()
+			await tx.deleteFrom('file').where('ownerId', '=', userId).execute()
+			await tx.deleteFrom('file').where('owningGroupId', '=', userId).execute()
+			await tx.deleteFrom('group').where('id', '=', userId).execute()
+			if (!legacy) {
+				await tx
+					.insertInto('group')
+					.values({
+						id: userId,
+						name: '',
+						createdAt: Date.now(),
+						updatedAt: Date.now(),
+						isDeleted: false,
+						inviteSecret: null,
+					})
+					.onConflict((oc) => oc.doNothing())
+					.execute()
+				await tx
+					.insertInto('group_user')
+					.values({
+						userId: userId,
+						groupId: userId,
+						createdAt: Date.now(),
+						updatedAt: Date.now(),
+						role: 'owner',
+						index: 'a1' as IndexKey,
+						userColor: '',
+						userName: '',
+					})
+					.onConflict((oc) => oc.doNothing())
+					.execute()
+			}
+		})
+
+		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
+	}
+
+	async admin_migrateToGroups(userId: string, inviteSecret: string | null = null) {
+		this.userId ??= userId
+
+		// Call the Postgres migration function
+		const result = await sql<{
+			files_migrated: number
+			pinned_files_migrated: number
+			flag_added: boolean
+		}>`SELECT * FROM migrate_user_to_groups(${userId}, ${inviteSecret})`.execute(this.db)
+
+		// Reboot the user's cache to pick up the new data structure
+		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
+
+		return result.rows[0]
 	}
 
 	async admin_forceHardReboot(userId: string) {

@@ -22,7 +22,7 @@ export function Component() {
 				const res = await app.slurpFile()
 				if (res.ok) {
 					clearShouldSlurpFile()
-					navigate(routes.tlaFile(res.value.file.id), {
+					navigate(routes.tlaFile(res.value.fileId), {
 						replace: true,
 					})
 				} else {
@@ -36,11 +36,12 @@ export function Component() {
 			const recentFiles = app.getUserRecentFiles()
 			if (recentFiles.length === 0) {
 				const result = await app.createFile()
+
 				assert(result.ok, 'Failed to create file')
 				// result is only false if the user reached their file limit so
 				// we don't need to handle that case here since they have no files
 				if (result.ok) {
-					navigate(routes.tlaFile(result.value.file.id), {
+					navigate(routes.tlaFile(result.value.fileId), {
 						replace: true,
 					})
 				}

@@ -28,8 +28,8 @@ export function useTldrFileDrop() {
 			if (!tldrawFiles.length) {
 				return
 			}
-			app.uploadTldrFiles(tldrawFiles, (file) => {
-				navigate(routes.tlaFile(file.id))
+			app.uploadTldrFiles(tldrawFiles, (fileId) => {
+				navigate(routes.tlaFile(fileId))
 			})
 		},
 		[app, auth, navigate]
