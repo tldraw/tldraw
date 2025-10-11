@@ -4,6 +4,7 @@ import { useLocalStorageState } from '@/app/hooks/useLocalStorageState'
 import { SidebarWorkspaceItem } from '@/components/sidebar/SidebarWorkspaceItem'
 import { Document, Folder, Workspace, WorkspaceRole } from '@/lib/api/types'
 import { useCallback } from 'react'
+import { SidebarNewWorkspaceButton } from './SidebarNewWorkspaceButton'
 
 interface WorkspaceWithContent {
 	workspace: Workspace
@@ -19,6 +20,8 @@ interface WorkspacesViewProps {
 	onOpenRenameModal: (workspace: Workspace) => void
 	onOpenDeleteModal: (workspace: Workspace) => void
 	onOpenCreateDocumentModal: (workspace: Workspace, folder?: Folder) => void
+	onOpenCreateFolderModal: (workspace: Workspace, folder?: Folder) => void
+	onOpenCreateWorkspaceModal: () => void
 }
 
 /**
@@ -38,6 +41,8 @@ export function WorkspacesView({
 	onOpenRenameModal,
 	onOpenDeleteModal,
 	onOpenCreateDocumentModal,
+	onOpenCreateFolderModal,
+	onOpenCreateWorkspaceModal,
 }: WorkspacesViewProps) {
 	const [collapsedWorkspaces, setCollapsedWorkspaces, isLoaded] = useLocalStorageState<string[]>(
 		'collapsed-workspaces',
@@ -108,8 +113,10 @@ export function WorkspacesView({
 					onOpenRenameModal={onOpenRenameModal}
 					onOpenDeleteModal={onOpenDeleteModal}
 					onOpenCreateDocumentModal={onOpenCreateDocumentModal}
+					onOpenCreateFolderModal={onOpenCreateFolderModal}
 				/>
 			))}
+			<SidebarNewWorkspaceButton id="new-workspace" onSelect={onOpenCreateWorkspaceModal} />
 		</div>
 	)
 }

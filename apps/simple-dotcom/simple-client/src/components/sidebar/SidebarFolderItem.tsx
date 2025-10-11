@@ -4,9 +4,11 @@ import { useLocalStorageState } from '@/app/hooks/useLocalStorageState'
 import { FolderActions } from '@/components/folders/FolderActions'
 import { Button } from '@/components/ui/button'
 import { Document, Folder } from '@/lib/api/types'
-import { useState } from 'react'
+import { cn } from '@/lib/utils'
 import { ChevronDownFilledIcon, ChevronRightFilledIcon } from '../shared/ChevronIcon'
-import { SIDEBAR_ITEM_HOVERABLE } from './sidebar-styles'
+import { NewFileIcon } from '../shared/NewFileIcon'
+import { NewFolderIcon } from '../shared/NewFolderIcon'
+import { SIDEBAR_ITEM_HOVERABLE, SIDEBAR_MENU_BUTTON } from './sidebar-styles'
 import { SidebarDepthIndicator } from './SidebarDepthIndicator'
 import { SidebarDocumentItem } from './SidebarDocumentItem'
 import { SidebarNewDocumentButton } from './SidebarNewDocumentButton'
@@ -23,6 +25,7 @@ interface SidebarFolderItemProps {
 	canDelete: boolean
 	onInvalidate?: () => void
 	onCreateDocument: (folder?: Folder) => void
+	onCreateFolder: (folder?: Folder) => void
 }
 
 /**
@@ -48,12 +51,12 @@ export function SidebarFolderItem({
 	canDelete,
 	onInvalidate,
 	onCreateDocument,
+	onCreateFolder,
 }: SidebarFolderItemProps) {
 	const [isExpanded, setIsExpanded] = useLocalStorageState(
 		`sidebar-folder-${folder.id}-expanded`,
 		true
 	)
-	const [isMenuOpen, setIsMenuOpen] = useState(false)
 
 	const toggleExpanded = (e: React.MouseEvent) => {
 		e.preventDefault()
@@ -65,31 +68,50 @@ export function SidebarFolderItem({
 	const folderDocuments = documents.filter((doc) => doc.folder_id === folder.id)
 
 	return (
-		<>
+		<div className="group/section">
 			{/* Folder Header */}
 			<div
-				className={`${SIDEBAR_ITEM_HOVERABLE} group/item pl-2 justify-between`}
 				data-testid={`sidebar-folder-${folder.id}`}
+				className={cn(SIDEBAR_ITEM_HOVERABLE, 'group/item pl-2 justify-between')}
 			>
 				<SidebarDepthIndicator depth={depth} />
 				<Button
 					variant="include"
 					onClick={toggleExpanded}
-					className="shrink-0 h-full grow-1 justify-start px-0 gap-1"
+					className="shrink-0 h-full grow-1 justify-start pl-0 pr-0 gap-1 group/item"
 					aria-label={isExpanded ? 'Collapse folder' : 'Expand folder'}
 					aria-expanded={isExpanded}
 				>
 					{folder.name}
 					{isExpanded ? (
-						<ChevronDownFilledIcon className="text-foreground/60" />
+						<ChevronDownFilledIcon className="text-foreground/30 group-hover/item:text-foreground/60" />
 					) : (
-						<ChevronRightFilledIcon className="text-foreground/60" />
+						<ChevronRightFilledIcon className="text-foreground/30 group-hover/item:text-foregroundd/60" />
 					)}
 				</Button>
-				<div
-					className={`shrink-0 ${isMenuOpen ? 'opacity-100' : 'opacity-0 group-hover/item:opacity-60 hover:opacity-100'}`}
-					onClick={(e) => e.stopPropagation()}
+				<Button
+					variant="include"
+					size="icon"
+					title="Create document"
+					className={cn(SIDEBAR_MENU_BUTTON, 'w-7 group-hover/section:opacity-30')}
+					aria-label="Create document"
+					data-testid={`create-document-${workspaceId}-${folder.id}`}
+					onClick={() => onCreateDocument(folder)}
 				>
+					<NewFileIcon className="size-4" />
+				</Button>
+				<Button
+					variant="include"
+					size="icon"
+					title="Create folder"
+					className={cn(SIDEBAR_MENU_BUTTON, 'w-7 group-hover/section:opacity-30')}
+					aria-label="Create folder"
+					data-testid={`create-folder-${workspaceId}-${folder.id}`}
+					onClick={() => onCreateFolder(folder)}
+				>
+					<NewFolderIcon className="size-4" />
+				</Button>
+				<div onClick={(e) => e.stopPropagation()}>
 					<FolderActions
 						folder={folder}
 						allFolders={allFolders}
@@ -107,7 +129,6 @@ export function SidebarFolderItem({
 						}}
 						canEdit={canEdit}
 						canDelete={canDelete}
-						onMenuOpenChange={setIsMenuOpen}
 					/>
 				</div>
 			</div>
@@ -135,6 +156,7 @@ export function SidebarFolderItem({
 								canDelete={canDelete}
 								onInvalidate={onInvalidate}
 								onCreateDocument={onCreateDocument}
+								onCreateFolder={onCreateFolder}
 							/>
 						)
 					})}
@@ -153,11 +175,15 @@ export function SidebarFolderItem({
 					))}
 
 					{/* Empty state */}
-					{childFolders.length === 0 && folderDocuments.length === 0 && (
-						<SidebarNewDocumentButton onSelect={() => onCreateDocument(folder)} id={folder.id} />
+					{folderDocuments.length < 3 && (
+						<SidebarNewDocumentButton
+							depth={depth + 1}
+							onSelect={() => onCreateDocument(folder)}
+							id={folder.id}
+						/>
 					)}
 				</>
 			)}
-		</>
+		</div>
 	)
 }

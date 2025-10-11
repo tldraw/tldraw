@@ -21,6 +21,8 @@ interface SidebarContentProps {
 	onOpenRenameModal: (workspace: Workspace) => void
 	onOpenDeleteModal: (workspace: Workspace) => void
 	onOpenCreateDocumentModal: (workspace: Workspace, folder?: Folder) => void
+	onOpenCreateFolderModal: (workspace: Workspace, folder?: Folder) => void
+	onOpenCreateWorkspaceModal: () => void
 }
 
 /**
@@ -42,6 +44,8 @@ export function SidebarContent({
 	onOpenRenameModal,
 	onOpenDeleteModal,
 	onOpenCreateDocumentModal,
+	onOpenCreateWorkspaceModal,
+	onOpenCreateFolderModal,
 }: SidebarContentProps) {
 	return (
 		<div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide" data-testid="sidebar-content">
@@ -53,6 +57,8 @@ export function SidebarContent({
 					onOpenRenameModal={onOpenRenameModal}
 					onOpenDeleteModal={onOpenDeleteModal}
 					onOpenCreateDocumentModal={onOpenCreateDocumentModal}
+					onOpenCreateWorkspaceModal={onOpenCreateWorkspaceModal}
+					onOpenCreateFolderModal={onOpenCreateFolderModal}
 				/>
 			)}
 

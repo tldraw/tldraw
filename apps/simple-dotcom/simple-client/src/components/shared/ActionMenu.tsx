@@ -56,7 +56,7 @@ export function ActionMenu({
 					variant="include"
 					size="icon"
 					title={tooltipText}
-					className={cn(SIDEBAR_MENU_BUTTON, className)}
+					className={cn(SIDEBAR_MENU_BUTTON, 'w-10 -ml-2', className)}
 					aria-label={ariaLabel}
 					onClick={(e) => e.stopPropagation()}
 				>

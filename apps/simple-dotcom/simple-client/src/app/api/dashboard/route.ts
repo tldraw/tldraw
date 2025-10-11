@@ -24,42 +24,41 @@ export async function GET() {
 		const user = await requireAuth()
 		const supabase = await createClient()
 
-		// Fetch all accessible workspaces
-		// First get workspaces owned by user
-		const { data: ownedWorkspaces } = await supabase
-			.from('workspaces')
-			.select('*')
-			.eq('owner_id', user.id)
-			.eq('is_deleted', false)
-
-		// Then get workspaces where user is a member
+		// Fetch all accessible workspaces with joined_at timestamps
+		// Get workspaces where user is a member (includes owned workspaces via membership record)
 		const { data: memberWorkspaces } = await supabase
 			.from('workspace_members')
-			.select('workspace:workspaces!inner(*)')
+			.select(
+				`
+			joined_at,
+			workspace:workspaces!inner(*)
+		`
+			)
 			.eq('user_id', user.id)
 			.eq('workspace.is_deleted', false)
 
-		// Combine and deduplicate
-		const workspaceMap = new Map()
-
-		// Add owned workspaces
-		if (ownedWorkspaces) {
-			ownedWorkspaces.forEach((ws) => workspaceMap.set(ws.id, ws))
-		}
-
-		// Add member workspaces
-		if (memberWorkspaces) {
-			memberWorkspaces.forEach((item: any) => {
-				if (item.workspace) {
-					workspaceMap.set(item.workspace.id, item.workspace)
-				}
+		if (!memberWorkspaces) {
+			return successResponse<DashboardData>({
+				workspaces: [],
+				recentDocuments: [],
 			})
 		}
 
-		// Convert to array and sort by created_at
-		const workspaces = Array.from(workspaceMap.values()).sort(
-			(a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-		)
+		// Create workspace list with joined_at information
+		const workspacesWithJoinedAt = memberWorkspaces.map((item: any) => ({
+			...item.workspace,
+			joined_at: item.joined_at,
+		}))
+
+		// Sort workspaces: private workspace first, then by joined_at (oldest first)
+		const workspaces = workspacesWithJoinedAt.sort((a, b) => {
+			// Private workspace always first
+			if (a.is_private && a.owner_id === user.id) return -1
+			if (b.is_private && b.owner_id === user.id) return 1
+
+			// Otherwise sort by joined_at (oldest first = order in which they were joined)
+			return new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime()
+		})
 
 		// Fetch documents and folders for all workspaces in parallel
 		const workspaceIds = (workspaces || []).map((ws) => ws.id)
@@ -87,7 +86,7 @@ export async function GET() {
 				.from('folders')
 				.select('*')
 				.in('workspace_id', workspaceIds)
-				.order('name', { ascending: true })
+				.order('created_at', { ascending: false })
 				.limit(1000),
 
 			// Get recent documents (last 20)

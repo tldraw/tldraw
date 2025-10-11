@@ -2,16 +2,24 @@ import { PlusIcon } from 'lucide-react'
 import { SIDEBAR_ITEM_HOVERABLE } from './sidebar-styles'
 import { SidebarDepthIndicator } from './SidebarDepthIndicator'
 
-export function SidebarNewDocumentButton({ id, onSelect }: { id: string; onSelect: () => void }) {
+export function SidebarNewDocumentButton({
+	id,
+	onSelect,
+	depth,
+}: {
+	id: string
+	onSelect: () => void
+	depth: number
+}) {
 	return (
 		<button
 			onClick={onSelect}
 			data-testid={`create-document-${id}`}
-			className={`${SIDEBAR_ITEM_HOVERABLE} w-full text-left rounded text-foreground/60 hover:text-foreground`}
+			className={`${SIDEBAR_ITEM_HOVERABLE} pl-2 w-full text-left text-foreground/60 hover:text-foreground`}
 		>
-			<SidebarDepthIndicator depth={0} />
+			<SidebarDepthIndicator depth={depth} />
 			New document
-			<PlusIcon className="size-4 ml-1.5" />
+			<PlusIcon className="size-3 ml-1.5" />
 		</button>
 	)
 }

@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-	title: 'Simple tldraw',
+	title: 'tldraw',
 	description: 'Collaborative whiteboard with infinite canvas',
 }
 

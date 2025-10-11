@@ -32,6 +32,7 @@ type ModalState =
 	| { type: 'rename-workspace'; workspace: Workspace }
 	| { type: 'delete-workspace'; workspace: Workspace }
 	| { type: 'create-document'; workspace: Workspace; folder?: Folder }
+	| { type: 'create-folder'; workspace: Workspace; folder?: Folder }
 
 interface DashboardClientProps {
 	initialData: DashboardData
@@ -83,7 +84,8 @@ export default function DashboardClient({
 	// Subscribe to realtime updates for all workspaces
 	const workspaceIds = dashboardData.workspaces.map((w) => w.workspace.id)
 	const handleRealtimeChange = useCallback(() => {
-		queryClient.invalidateQueries({ queryKey: ['dashboard', userId] })
+		// Immediately refetch when realtime event is received
+		queryClient.refetchQueries({ queryKey: ['dashboard', userId] })
 	}, [queryClient, userId])
 
 	useDashboardRealtimeUpdates(userId, workspaceIds, {
@@ -216,6 +218,8 @@ export default function DashboardClient({
 					requestBody.folder_id = modalState.folder.id
 				}
 
+				console.log('creating document in workspace', modalState.workspace.id)
+
 				const response = await fetch(`/api/workspaces/${modalState.workspace.id}/documents`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
@@ -225,7 +229,8 @@ export default function DashboardClient({
 				const data = await response.json()
 
 				if (data.success && data.data) {
-					// Document will be added via realtime subscription
+					// Immediately refetch to show new document
+					await queryClient.refetchQueries({ queryKey: ['dashboard', userId] })
 					setModalState({ type: 'idle' })
 					setValidationError(null)
 				} else {
@@ -238,7 +243,52 @@ export default function DashboardClient({
 				setActionLoading(false)
 			}
 		},
-		[modalState]
+		[modalState, queryClient, userId]
+	)
+
+	const handleCreateFolder = useCallback(
+		async (name: string) => {
+			if (modalState.type !== 'create-folder' || !name.trim()) {
+				setValidationError('Folder name is required')
+				return
+			}
+
+			try {
+				setActionLoading(true)
+				setValidationError(null)
+
+				const requestBody: { name: string; parent_id?: string } = { name: name.trim() }
+
+				// Include parent_id if a parent folder was specified
+				if (modalState.folder?.id) {
+					requestBody.parent_id = modalState.folder.id
+				}
+
+				const response = await fetch(`/api/workspaces/${modalState.workspace.id}/folders`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(requestBody),
+				})
+
+				const data = await response.json()
+
+				if (data.success && data.data) {
+					// Immediately refetch to show new folder
+					await queryClient.refetchQueries({ queryKey: ['dashboard', userId] })
+					setModalState({ type: 'idle' })
+					setValidationError(null)
+					toast.success('Folder created successfully')
+				} else {
+					setValidationError(data.error?.message || 'Failed to create folder')
+				}
+			} catch (err) {
+				console.error('Failed to create folder:', err)
+				setValidationError('Failed to create folder. Please try again.')
+			} finally {
+				setActionLoading(false)
+			}
+		},
+		[modalState, queryClient, userId]
 	)
 
 	const displayName = userProfile?.display_name || userProfile?.name || 'User'
@@ -256,6 +306,10 @@ export default function DashboardClient({
 				onOpenDeleteModal={(ws) => setModalState({ type: 'delete-workspace', workspace: ws })}
 				onOpenCreateDocumentModal={(ws, folder) =>
 					setModalState({ type: 'create-document', workspace: ws, folder: folder })
+				}
+				onOpenCreateWorkspaceModal={() => setModalState({ type: 'create-workspace' })}
+				onOpenCreateFolderModal={(ws, folder) =>
+					setModalState({ type: 'create-folder', workspace: ws, folder: folder })
 				}
 			/>
 
@@ -377,6 +431,22 @@ export default function DashboardClient({
 				placeholder="Document name"
 				defaultValue="New Document"
 				onConfirm={handleCreateDocument}
+				confirmText="Create"
+				loading={actionLoading}
+				validationError={validationError ?? undefined}
+			/>
+
+			{/* Create Folder Modal */}
+			<PromptDialog
+				open={modalState.type === 'create-folder'}
+				onOpenChange={(open) => {
+					if (!open) closeModal()
+				}}
+				title={`Create Folder in ${modalState.type === 'create-folder' ? modalState.workspace.name : ''}${modalState.type === 'create-folder' && modalState.folder ? ` in ${modalState.folder.name}` : ''}`}
+				label="Folder Name"
+				placeholder="Folder name"
+				defaultValue="New Folder"
+				onConfirm={handleCreateFolder}
 				confirmText="Create"
 				loading={actionLoading}
 				validationError={validationError ?? undefined}

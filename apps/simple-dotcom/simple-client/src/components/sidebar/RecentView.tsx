@@ -1,74 +1,144 @@
 'use client'
 
 import { RecentDocument } from '@/lib/api/types'
-import { Clock } from 'lucide-react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { getRelevantDates } from '@/lib/utils/dates'
+import { useRef } from 'react'
+import { SidebarDocumentItem } from './SidebarDocumentItem'
+import { SidebarFileSection } from './SidebarFileSection'
 
 interface RecentViewProps {
 	recentDocuments: RecentDocument[]
 }
 
+interface DocumentSnapshot {
+	documentId: string
+	date: number
+}
+
 /**
  * RecentView
  *
- * Displays recently accessed documents in chronological order.
+ * Displays recently accessed documents grouped by time periods (Today, Yesterday, This Week, etc.)
+ * with snapshot preservation to prevent files from jumping between sections.
  *
  * Features:
- * - Flat list (no folder hierarchy)
- * - Shows document name + workspace name
- * - Active state highlighting for current document
- * - Order cached in memory (React Query handles caching)
- * - New documents appear at top
- * - Order refreshes on page reload
+ * - Time-based grouping: Today, Yesterday, This Week, This Month, Older
+ * - Snapshot preservation: Files stay in their section during a session
+ * - Sections only render when they have files
+ * - Files sorted by date within each section (most recent first)
+ * - Snapshot invalidated on page reload or when document is accessed (updates accessed_at)
+ *
+ * Based on: apps/dotcom/client/src/tla/app/TldrawApp.ts:309-361
  */
 export function RecentView({ recentDocuments }: RecentViewProps) {
-	const pathname = usePathname()
+	// Snapshot preservation: Store document timestamps from first render
+	// This prevents files from moving between sections as time advances
+	const lastRecentFileOrdering = useRef<DocumentSnapshot[] | null>(null)
 
 	if (recentDocuments.length === 0) {
 		return (
 			<div className="flex-1 flex flex-col items-center justify-center p-6 gap-3">
-				<Clock className="w-8 h-8 text-foreground/40" />
 				<div className="text-center">
 					<p className=" font-medium text-foreground/80">No recent documents</p>
-					<p className="text-xs text-foreground/60 mt-1">Access a document to see it here</p>
 				</div>
 			</div>
 		)
 	}
 
-	return (
-		<div className="space-y-1" data-testid="recent-view">
-			{recentDocuments.map((recent) => {
-				const isActive = pathname === `/d/${recent.id}`
-				const accessDate = new Date(recent.accessed_at)
-				const formattedDate = accessDate.toLocaleDateString('en-US', {
-					month: 'short',
-					day: 'numeric',
-				})
+	// Build next ordering with snapshot preservation
+	const nextOrdering: DocumentSnapshot[] = []
 
-				return (
-					<Link
-						key={recent.id}
-						href={`/d/${recent.id}`}
-						className="block px-3 py-2 rounded hover:bg-foreground/5 data-[active=true]:bg-foreground/10"
-						data-active={isActive}
-						data-testid={`recent-document-${recent.id}`}
-					>
-						<div className="flex items-start justify-between gap-2">
-							<div className="flex-1 min-w-0">
-								<p className=" font-medium truncate" title={recent.name}>
-									{recent.name}
-								</p>
-								<p className="text-xs text-foreground/60 truncate" title={recent.workspace_name}>
-									{recent.workspace_name}
-								</p>
-							</div>
-							<span className="text-xs text-foreground/40 shrink-0">{formattedDate}</span>
-						</div>
-					</Link>
-				)
-			})}
+	for (const document of recentDocuments) {
+		const existing = lastRecentFileOrdering.current?.find((f) => f.documentId === document.id)
+
+		if (existing) {
+			// Preserve snapshot - use old date to keep file in same section
+			nextOrdering.push(existing)
+		} else {
+			// Create new snapshot with current accessed_at date
+			nextOrdering.push({
+				documentId: document.id,
+				date: new Date(document.accessed_at).getTime(),
+			})
+		}
+	}
+
+	// Sort by date (most recent first)
+	nextOrdering.sort((a, b) => b.date - a.date)
+
+	// Save snapshot for next render
+	lastRecentFileOrdering.current = nextOrdering
+
+	// Get time boundaries
+	const { today, yesterday, thisWeek, thisMonth } = getRelevantDates()
+
+	// Group documents by time period using snapshot dates
+	const todayDocs: RecentDocument[] = []
+	const yesterdayDocs: RecentDocument[] = []
+	const thisWeekDocs: RecentDocument[] = []
+	const thisMonthDocs: RecentDocument[] = []
+	const olderDocs: RecentDocument[] = []
+
+	for (const snapshot of nextOrdering) {
+		const document = recentDocuments.find((d) => d.id === snapshot.documentId)
+		if (!document) continue
+
+		const { date } = snapshot
+
+		if (date >= today) {
+			todayDocs.push(document)
+		} else if (date >= yesterday) {
+			yesterdayDocs.push(document)
+		} else if (date >= thisWeek) {
+			thisWeekDocs.push(document)
+		} else if (date >= thisMonth) {
+			thisMonthDocs.push(document)
+		} else {
+			olderDocs.push(document)
+		}
+	}
+
+	return (
+		<div data-testid="recent-view" className="flex flex-col">
+			{todayDocs.length > 0 && (
+				<SidebarFileSection title="Today">
+					{todayDocs.map((doc) => (
+						<SidebarDocumentItem key={doc.id} document={doc} showActions={false} depth={1} />
+					))}
+				</SidebarFileSection>
+			)}
+
+			{yesterdayDocs.length > 0 && (
+				<SidebarFileSection title="Yesterday">
+					{yesterdayDocs.map((doc) => (
+						<SidebarDocumentItem key={doc.id} document={doc} showActions={false} depth={1} />
+					))}
+				</SidebarFileSection>
+			)}
+
+			{thisWeekDocs.length > 0 && (
+				<SidebarFileSection title="This Week">
+					{thisWeekDocs.map((doc) => (
+						<SidebarDocumentItem key={doc.id} document={doc} showActions={false} depth={1} />
+					))}
+				</SidebarFileSection>
+			)}
+
+			{thisMonthDocs.length > 0 && (
+				<SidebarFileSection title="This Month">
+					{thisMonthDocs.map((doc) => (
+						<SidebarDocumentItem key={doc.id} document={doc} showActions={false} depth={1} />
+					))}
+				</SidebarFileSection>
+			)}
+
+			{olderDocs.length > 0 && (
+				<SidebarFileSection title="Older">
+					{olderDocs.map((doc) => (
+						<SidebarDocumentItem key={doc.id} document={doc} showActions={false} depth={1} />
+					))}
+				</SidebarFileSection>
+			)}
 		</div>
 	)
 }

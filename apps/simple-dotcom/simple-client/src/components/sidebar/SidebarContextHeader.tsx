@@ -53,12 +53,12 @@ export function SidebarContextHeader({
 				onClick={handleContextClick}
 				className={cn(
 					SIDEBAR_ITEM_HOVERABLE,
-					`flex justify-start items-center gap-2 rounded px-3 flex-1`
+					`flex justify-start items-center gap-1 rounded px-3 flex-1 group`
 				)}
 				data-testid="context-switcher"
 			>
 				<span className="font-medium ">{contextLabels[currentContext]}</span>
-				<ChevronsUpDownIcon className="w-3 h-3 text-foreground/60" />
+				<ChevronsUpDownIcon className="size-2 text-foreground/30 group-hover:text-foreground/60" />
 			</Button>
 
 			{/* Context Search */}

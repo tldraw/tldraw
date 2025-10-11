@@ -10,9 +10,11 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Document, Folder, Workspace, WorkspaceRole } from '@/lib/api/types'
 import { cn } from '@/lib/utils'
-import { FileText, FolderPlus, Link2, MoreVertical, Settings } from 'lucide-react'
+import { MoreVertical } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { ChevronDownFilledIcon, ChevronRightFilledIcon } from '../shared/ChevronIcon'
+import { NewFileIcon } from '../shared/NewFileIcon'
+import { NewFolderIcon } from '../shared/NewFolderIcon'
 import { SidebarDocumentItem } from './SidebarDocumentItem'
 import { SidebarFolderItem } from './SidebarFolderItem'
 import { SidebarNewDocumentButton } from './SidebarNewDocumentButton'
@@ -28,9 +30,10 @@ interface SidebarWorkspaceItemProps {
 	onCollapsedShiftToggle?: (workspaceId: string) => void
 	isCollapsed: boolean
 	onInvalidate?: () => void
-	onOpenRenameModal?: (workspace: Workspace) => void
-	onOpenDeleteModal?: (workspace: Workspace) => void
-	onOpenCreateDocumentModal?: (workspace: Workspace, folder?: Folder) => void
+	onOpenRenameModal: (workspace: Workspace) => void
+	onOpenDeleteModal: (workspace: Workspace) => void
+	onOpenCreateDocumentModal: (workspace: Workspace, folder?: Folder) => void
+	onOpenCreateFolderModal: (workspace: Workspace, folder?: Folder) => void
 }
 
 /**
@@ -57,8 +60,8 @@ export function SidebarWorkspaceItem({
 	isCollapsed,
 	onInvalidate,
 	onOpenRenameModal,
-	onOpenDeleteModal,
 	onOpenCreateDocumentModal,
+	onOpenCreateFolderModal,
 }: SidebarWorkspaceItemProps) {
 	const [isMenuOpen, setIsMenuOpen] = useState(false)
 
@@ -90,13 +93,13 @@ export function SidebarWorkspaceItem({
 	const rootDocuments = documents.filter((d) => !d.folder_id && !d.is_archived)
 
 	return (
-		<div className="overflow-hidden group" data-testid={`sidebar-workspace-${workspace.id}`}>
+		<div className="overflow-hidden group mb-2" data-testid={`sidebar-workspace-${workspace.id}`}>
 			{/* Workspace Header */}
 			<div className={`${SIDEBAR_ITEM_HOVERABLE} justify-between`}>
 				<Button
 					variant="include"
 					onClick={handleToggle}
-					className="shrink-0 h-full grow-1 justify-start pr-0 pl-3 gap-1"
+					className="shrink-0 h-full grow-1 justify-start pr-0 pl-3 gap-1 group/item"
 					aria-label={isCollapsed ? 'Expand workspace' : 'Collapse workspace'}
 					aria-expanded={!isCollapsed}
 					data-testid={`toggle-workspace-${workspace.name
@@ -106,88 +109,90 @@ export function SidebarWorkspaceItem({
 				>
 					<strong>{workspace.name}</strong>
 					{isCollapsed ? (
-						<ChevronDownFilledIcon className="text-foreground/60" />
+						<ChevronDownFilledIcon className="text-foreground/30 group-hover/item:text-foreground/60" />
 					) : (
-						<ChevronRightFilledIcon className="text-foreground/60" />
+						<ChevronRightFilledIcon className="text-foreground/30 group-hover/item:text-foreground/60" />
 					)}
 				</Button>
-
+				<Button
+					variant="include"
+					size="icon"
+					title="Create document"
+					className={cn(SIDEBAR_MENU_BUTTON, 'w-7 group-hover:opacity-30')}
+					aria-label="Create document"
+					data-testid={`create-document-${workspace.id}`}
+					onClick={() => onOpenCreateDocumentModal?.(workspace, undefined)}
+				>
+					<NewFileIcon className="size-4" />
+				</Button>
+				<Button
+					variant="include"
+					size="icon"
+					title="Create folder"
+					className={cn(SIDEBAR_MENU_BUTTON, 'w-7 group-hover:opacity-30')}
+					aria-label="Create folder"
+					data-testid={`create-folder-${workspace.id}`}
+					onClick={() => onOpenCreateFolderModal?.(workspace, undefined)}
+				>
+					<NewFolderIcon className="size-4" />
+				</Button>
 				{/* Workspace Actions */}
-				{!workspace.is_private && isOwner && (
-					<DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-						<DropdownMenuTrigger asChild>
-							<Button
-								variant="include"
-								size="icon"
-								title="Workspace menu"
-								className={cn(SIDEBAR_MENU_BUTTON, 'group-hover:opacity-30')}
-								aria-label="Workspace menu"
-								data-testid={`workspace-menu-${workspace.id}`}
-								onClick={(e) => e.stopPropagation()}
-							>
-								<MoreVertical className="size-4" />
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent sideOffset={0} align="end" className="w-48">
-							<DropdownMenuItem
-								onClick={(e) => {
-									e.stopPropagation()
-									navigator.clipboard.writeText(
-										window.location.origin + `/workspace/${workspace.id}`
-									)
-								}}
-								data-testid={`copy-workspace-link-${workspace.id}`}
-							>
-								<Link2 className="size-4" />
-								<span>Copy link</span>
-							</DropdownMenuItem>
-							<DropdownMenuItem
-								onClick={(e) => {
-									e.stopPropagation()
-									onOpenRenameModal?.(workspace)
-								}}
-								data-testid={`rename-workspace-${workspace.id}`}
-							>
-								<Settings className="size-4" />
-								<span>Settings</span>
-							</DropdownMenuItem>
-							<DropdownMenuSeparator />
-							<DropdownMenuItem
-								onClick={(e) => {
-									e.stopPropagation()
-									onOpenCreateDocumentModal?.(workspace, undefined)
-								}}
-								data-testid={`create-document-${workspace.id}`}
-							>
-								<FileText className="size-4" />
-								<span>Document</span>
-								<span className="ml-auto text-foreground/40">+</span>
-							</DropdownMenuItem>
-							<DropdownMenuItem
-								onClick={(e) => {
-									e.stopPropagation()
-									// TODO: Implement create folder
-								}}
-								data-testid={`create-folder-${workspace.id}`}
-							>
-								<FolderPlus className="size-4" />
-								<span>Folder</span>
-								<span className="ml-auto text-foreground/40">+</span>
-							</DropdownMenuItem>
-							<DropdownMenuSeparator />
-							<DropdownMenuItem
-								onClick={(e) => {
-									e.stopPropagation()
-									onOpenDeleteModal?.(workspace)
-								}}
-								data-testid={`delete-workspace-${workspace.id}`}
-								className="text-red-500 focus:text-red-500"
-							>
-								<span>Delete workspace</span>
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
-				)}
+				<DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+					<DropdownMenuTrigger asChild>
+						<Button
+							variant="include"
+							size="icon"
+							title="Workspace menu"
+							className={cn(SIDEBAR_MENU_BUTTON, 'w-10 -ml-2 group-hover:opacity-30')}
+							aria-label="Workspace menu"
+							data-testid={`workspace-menu-${workspace.id}`}
+							onClick={(e) => e.stopPropagation()}
+						>
+							<MoreVertical className="size-4" />
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent sideOffset={0} align="end" className="w-48">
+						<DropdownMenuItem
+							onClick={(e) => {
+								e.stopPropagation()
+								navigator.clipboard.writeText(window.location.origin + `/workspace/${workspace.id}`)
+							}}
+							data-testid={`copy-workspace-link-${workspace.id}`}
+						>
+							<span>Copy link</span>
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							onClick={(e) => {
+								e.stopPropagation()
+								onOpenCreateDocumentModal?.(workspace, undefined)
+							}}
+							data-testid={`create-document-${workspace.id}`}
+						>
+							<span>New document</span>
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							onClick={(e) => {
+								e.stopPropagation()
+								// TODO: Implement create folder
+							}}
+							data-testid={`create-folder-${workspace.id}`}
+						>
+							<>
+								<span>New folder</span>
+							</>
+						</DropdownMenuItem>
+						<DropdownMenuSeparator />
+						<DropdownMenuItem
+							onClick={(e) => {
+								e.stopPropagation()
+								onOpenRenameModal?.(workspace)
+							}}
+							data-testid={`rename-workspace-${workspace.id}`}
+						>
+							<span>Settings</span>
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
 			</div>
 
 			{/* Workspace Content */}
@@ -213,11 +218,12 @@ export function SidebarWorkspaceItem({
 							childFolders={childFolders}
 							allFolders={folders}
 							allDocuments={documents}
-							depth={0}
+							depth={1}
 							canEdit={canEdit}
 							canDelete={canDelete}
 							onInvalidate={onInvalidate}
 							onCreateDocument={(folder) => onOpenCreateDocumentModal?.(workspace, folder)}
+							onCreateFolder={(folder) => onOpenCreateFolderModal?.(workspace, folder)}
 						/>
 					)
 				})}
@@ -228,7 +234,7 @@ export function SidebarWorkspaceItem({
 						key={doc.id}
 						document={doc}
 						workspaceId={workspace.id}
-						depth={0}
+						depth={1}
 						canEdit={canEdit}
 						canDelete={canDelete}
 						onInvalidate={onInvalidate}
@@ -236,16 +242,12 @@ export function SidebarWorkspaceItem({
 				))}
 
 				{/* Create Document Button */}
-				{(!workspace.is_private || isOwner) && (
+				{rootDocuments.length < 3 && (
 					<SidebarNewDocumentButton
-						onSelect={() => onOpenCreateDocumentModal?.(workspace, undefined)}
 						id={workspace.id}
+						depth={1}
+						onSelect={() => onOpenCreateDocumentModal?.(workspace, undefined)}
 					/>
-				)}
-
-				{/* Empty state */}
-				{rootFolders.length === 0 && rootDocuments.length === 0 && (
-					<p className="text-xs text-foreground/40 italic">No items yet</p>
 				)}
 			</div>
 		</div>

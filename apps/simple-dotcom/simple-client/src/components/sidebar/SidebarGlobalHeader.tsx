@@ -3,6 +3,7 @@
 import { Columns2 } from 'lucide-react'
 import Link from 'next/link'
 import { Logo } from '../shared/Logo'
+import { NewFileIcon } from '../shared/NewFileIcon'
 import { Button } from '../ui/button'
 
 /**
@@ -15,7 +16,7 @@ import { Button } from '../ui/button'
  * - Global menu button (future: dropdown for settings, sign out, etc.)
  * - Global search button (⌘K to search across all workspaces)
  */
-export function SidebarGlobalHeader() {
+export function SidebarGlobalHeader({ onCreateFile }: { onCreateFile: () => void }) {
 	const handleMenuClick = () => {
 		// TODO: Open global menu dropdown (Phase 5)
 		console.log('Global menu clicked')
@@ -32,7 +33,17 @@ export function SidebarGlobalHeader() {
 			</Link>
 
 			{/* Actions */}
-			<div className="flex items-center gap-1">
+			<div className="flex items-center">
+				<Button
+					variant="hoverable"
+					size="icon"
+					onClick={onCreateFile}
+					aria-label="Global menu"
+					title="Menu"
+					data-testid="global-menu-button"
+				>
+					<NewFileIcon className="size-4" />
+				</Button>
 				<Button
 					variant="hoverable"
 					size="icon"

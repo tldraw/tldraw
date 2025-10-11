@@ -3,7 +3,17 @@
 // FolderPicker Component
 // Modal dialog for selecting a target folder for move operations
 
+import { Button } from '@/components/ui/button'
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from '@/components/ui/dialog'
 import type { Folder } from '@/lib/api/types'
+import { ChevronRight, Folder as FolderIcon, Home } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 interface FolderPickerProps {
@@ -80,11 +90,11 @@ export function FolderPicker({
 
 		return (
 			<div key={folder.id}>
-				<div
+				<button
 					className={`
-						flex items-center gap-2 px-3 py-1.5 cursor-pointer rounded
-						hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
-						${isSelected ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : ''}
+						w-full flex items-center gap-2 px-3 py-1.5 cursor-pointer rounded text-left
+						hover:bg-accent transition-colors
+						${isSelected ? 'bg-accent text-accent-foreground' : ''}
 					`}
 					style={{ paddingLeft: `${12 + level * 20}px` }}
 					onClick={() => setSelectedFolderId(folder.id)}
@@ -96,45 +106,27 @@ export function FolderPicker({
 								e.stopPropagation()
 								toggleFolder(folder.id)
 							}}
-							className="p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded"
+							className="p-0.5 hover:bg-muted rounded"
 						>
-							<svg
-								className={`w-3 h-3 text-gray-500 transition-transform ${
+							<ChevronRight
+								className={`h-3 w-3 text-muted-foreground transition-transform ${
 									isExpanded ? 'rotate-90' : ''
 								}`}
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth={2}
-									d="M9 5l7 7-7 7"
-								/>
-							</svg>
+							/>
 						</button>
 					)}
 					{!hasChildren && <div className="w-4" />}
 
 					{/* Folder icon */}
-					<svg
-						className={`size-4 flex-shrink-0 ${
-							isSelected ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'
+					<FolderIcon
+						className={`h-4 w-4 flex-shrink-0 ${
+							isSelected ? 'text-primary' : 'text-muted-foreground'
 						}`}
-						fill="currentColor"
-						viewBox="0 0 20 20"
-					>
-						<path
-							fillRule="evenodd"
-							d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V8a2 2 0 00-2-2h-5L9 4H4z"
-							clipRule="evenodd"
-						/>
-					</svg>
+					/>
 
 					{/* Folder name */}
-					<span className="">{folder.name}</span>
-				</div>
+					<span>{folder.name}</span>
+				</button>
 
 				{/* Render children if expanded */}
 				{isExpanded && children.map((child) => renderFolderNode(child, level + 1))}
@@ -144,70 +136,46 @@ export function FolderPicker({
 
 	const rootFolders = hierarchy.get(null) || []
 
-	if (!isOpen) return null
-
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-			<div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-md mx-4">
-				{/* Header */}
-				<div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
-					<h2 className=" font-semibold text-gray-900 dark:text-gray-100">Move to Folder</h2>
-					<p className=" text-gray-600 dark:text-gray-400 mt-1">Select a destination folder</p>
-				</div>
+		<Dialog open={isOpen} onOpenChange={(open) => !open && onCancel()}>
+			<DialogContent className="sm:max-w-md">
+				<DialogHeader>
+					<DialogTitle>Move to Folder</DialogTitle>
+					<DialogDescription>Select a destination folder</DialogDescription>
+				</DialogHeader>
 
 				{/* Folder tree */}
-				<div className="max-h-96 overflow-y-auto py-2">
+				<div className="max-h-96 overflow-y-auto py-2 border rounded-md">
 					{/* Root level option */}
-					<div
+					<button
 						className={`
-							flex items-center gap-2 px-3 py-1.5 cursor-pointer rounded mx-2
-							hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors
-							${selectedFolderId === null ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : ''}
+							w-full flex items-center gap-2 px-3 py-1.5 cursor-pointer rounded text-left mx-2
+							hover:bg-accent transition-colors
+							${selectedFolderId === null ? 'bg-accent text-accent-foreground' : ''}
 						`}
 						onClick={() => setSelectedFolderId(null)}
 					>
-						<svg
-							className="size-4 text-gray-400 dark:text-gray-500"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth={2}
-								d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-							/>
-						</svg>
-						<span className=" font-medium">Workspace Root</span>
-					</div>
+						<Home className="h-4 w-4 text-muted-foreground" />
+						<span className="font-medium">Workspace Root</span>
+					</button>
 
 					{/* Folder hierarchy */}
 					<div className="mt-1 px-2">{rootFolders.map((folder) => renderFolderNode(folder))}</div>
 
 					{folders.length === 0 && (
-						<div className="text-center py-8 text-gray-500 dark:text-gray-400">
-							<p className="">No folders available</p>
+						<div className="text-center py-8 text-muted-foreground">
+							<p>No folders available</p>
 						</div>
 					)}
 				</div>
 
-				{/* Actions */}
-				<div className="px-6 py-4 border-t border-gray-200 dark:border-gray-800 flex justify-end gap-3">
-					<button
-						onClick={onCancel}
-						className="px-4 py-2  font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
-					>
+				<DialogFooter>
+					<Button variant="outline" onClick={onCancel}>
 						Cancel
-					</button>
-					<button
-						onClick={() => onSelect(selectedFolderId)}
-						className="px-4 py-2  font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
-					>
-						Move Here
-					</button>
-				</div>
-			</div>
-		</div>
+					</Button>
+					<Button onClick={() => onSelect(selectedFolderId)}>Move Here</Button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	)
 }

@@ -6,6 +6,7 @@ import { ApiException, ErrorCodes } from '@/lib/api/errors'
 import { handleApiError, parsePaginationParams, successResponse } from '@/lib/api/response'
 import { CreateDocumentRequest, Document } from '@/lib/api/types'
 import { requireWorkspaceMembership } from '@/lib/api/workspace-middleware'
+import { broadcastDocumentEvent } from '@/lib/realtime/broadcast'
 import { createClient, requireAuth } from '@/lib/supabase/server'
 import { NextRequest } from 'next/server'
 
@@ -132,7 +133,29 @@ export async function POST(request: NextRequest, context: RouteContext) {
 			throw new ApiException(500, ErrorCodes.INTERNAL_ERROR, 'Failed to create document')
 		}
 
-		// No need to broadcast - clients will receive updates via postgres_changes subscription
+		// Log document access so it appears in recent documents
+		await supabase.from('document_access_log').insert({
+			document_id: document.id,
+			workspace_id: workspaceId,
+			user_id: user.id,
+			accessed_at: new Date().toISOString(),
+		})
+
+		// Broadcast document creation event to workspace channel
+		await broadcastDocumentEvent(
+			supabase,
+			document.id,
+			workspaceId,
+			'document.created',
+			{
+				documentId: document.id,
+				workspaceId,
+				name: document.name,
+				folderId: document.folder_id,
+			},
+			user.id
+		)
+
 		return successResponse<Document>(document, 201)
 	} catch (error) {
 		return handleApiError(error)

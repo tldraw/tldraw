@@ -2,8 +2,9 @@
 
 import { DocumentActions } from '@/components/documents/DocumentActions'
 import { useDocumentActions } from '@/hooks/useDocumentActions'
-import { Document } from '@/lib/api/types'
-import { Archive, Clock, Share2 } from 'lucide-react'
+import { Document, RecentDocument } from '@/lib/api/types'
+import { cn } from '@/lib/utils'
+import { Archive, Share2 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
@@ -11,13 +12,13 @@ import { SIDEBAR_ITEM_ACTIVE } from './sidebar-styles'
 import { SidebarDepthIndicator } from './SidebarDepthIndicator'
 
 interface SidebarDocumentItemProps {
-	document: Document
-	workspaceId: string
+	document: Document | RecentDocument
+	workspaceId?: string
 	depth?: number
-	canEdit: boolean
-	canDelete: boolean
+	canEdit?: boolean
+	canDelete?: boolean
 	onInvalidate?: () => void
-	isRecent?: boolean
+	showActions?: boolean
 }
 
 /**
@@ -26,16 +27,17 @@ interface SidebarDocumentItemProps {
  * Renders an individual document in the sidebar with:
  * - Link to document view (/d/{documentId})
  * - Active state highlighting (if current route matches)
- * - Hover-triggered DocumentActions menu
+ * - Hover-triggered DocumentActions menu (optional)
  * - Depth-based indentation for nested folders
+ * - Status icons (archived, shared)
  */
 export function SidebarDocumentItem({
 	document,
 	depth = 0,
-	canEdit,
-	canDelete,
+	canEdit = false,
+	canDelete = false,
 	onInvalidate,
-	isRecent = false,
+	showActions = true,
 }: SidebarDocumentItemProps) {
 	const pathname = usePathname()
 	const isActive = pathname === `/d/${document.id}`
@@ -49,6 +51,11 @@ export function SidebarDocumentItem({
 		handleDocumentDelete,
 	} = useDocumentActions({ onInvalidate })
 
+	// Type guard to check if document is a full Document (has all fields)
+	const isFullDocument = (doc: Document | RecentDocument): doc is Document => {
+		return 'created_by' in doc && 'created_at' in doc
+	}
+
 	// Determine document status indicator
 	const getStatusIndicator = () => {
 		if (document.is_archived) {
@@ -56,9 +63,6 @@ export function SidebarDocumentItem({
 		}
 		if (document.sharing_mode !== 'private') {
 			return { icon: Share2, color: 'text-blue-500 dark:text-blue-400', label: 'Shared' }
-		}
-		if (isRecent) {
-			return { icon: Clock, color: 'text-green-500 dark:text-green-400', label: 'Recent' }
 		}
 		return null
 	}
@@ -68,12 +72,12 @@ export function SidebarDocumentItem({
 
 	return (
 		<div
-			className={`group/item ${SIDEBAR_ITEM_ACTIVE} pl-2 justify-between`}
+			className={cn(SIDEBAR_ITEM_ACTIVE, 'group/item pl-2 justify-between')}
 			data-active={isActive}
 			data-testid={`sidebar-document-${document.id}`}
 		>
 			<SidebarDepthIndicator depth={depth} />
-			<Link href={`/d/${document.id}`} className="flex-1 flex items-center gap-2 min-w-0">
+			<Link href={`/d/${document.id}`} className="flex-1 h-full flex items-center gap-2 min-w-0">
 				{StatusIcon && (
 					<span title={statusIndicator.label}>
 						<StatusIcon
@@ -86,22 +90,24 @@ export function SidebarDocumentItem({
 					{document.name}
 				</span>
 			</Link>
-			<div
-				className={`shrink-0 ${isMenuOpen ? 'opacity-100' : 'opacity-0 group-hover/item:opacity-60 hover:opacity-100'}`}
-				onClick={(e) => e.stopPropagation()}
-			>
-				<DocumentActions
-					document={document}
-					onRename={(newName) => handleDocumentRename(document.id, newName)}
-					onDuplicate={() => handleDocumentDuplicate(document.id)}
-					onArchive={() => handleDocumentArchive(document.id)}
-					onRestore={() => handleDocumentRestore(document.id)}
-					onDelete={() => handleDocumentDelete(document.id)}
-					canEdit={canEdit}
-					canDelete={canDelete}
-					onMenuOpenChange={setIsMenuOpen}
-				/>
-			</div>
+			{showActions && isFullDocument(document) && (
+				<div
+					className={`shrink-0 ${isMenuOpen ? 'opacity-100' : 'opacity-0 group-hover/item:opacity-60 hover:opacity-100'}`}
+					onClick={(e) => e.stopPropagation()}
+				>
+					<DocumentActions
+						document={document}
+						onRename={(newName) => handleDocumentRename(document.id, newName)}
+						onDuplicate={() => handleDocumentDuplicate(document.id)}
+						onArchive={() => handleDocumentArchive(document.id)}
+						onRestore={() => handleDocumentRestore(document.id)}
+						onDelete={() => handleDocumentDelete(document.id)}
+						canEdit={canEdit}
+						canDelete={canDelete}
+						onMenuOpenChange={setIsMenuOpen}
+					/>
+				</div>
+			)}
 		</div>
 	)
 }

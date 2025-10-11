@@ -27,6 +27,8 @@ interface SidebarProps {
 	onOpenRenameModal: (workspace: Workspace) => void
 	onOpenDeleteModal: (workspace: Workspace) => void
 	onOpenCreateDocumentModal: (workspace: Workspace, folder?: Folder) => void
+	onOpenCreateWorkspaceModal: () => void
+	onOpenCreateFolderModal: (workspace: Workspace, folder?: Folder) => void
 }
 
 /**
@@ -53,6 +55,8 @@ export function Sidebar({
 	onOpenRenameModal,
 	onOpenDeleteModal,
 	onOpenCreateDocumentModal,
+	onOpenCreateWorkspaceModal,
+	onOpenCreateFolderModal,
 }: SidebarProps) {
 	// Context state (persisted to localStorage)
 	const [currentContext, setCurrentContext] = useLocalStorageState<SidebarContext>(
@@ -90,7 +94,15 @@ export function Sidebar({
 				data-testid="sidebar"
 			>
 				{/* Global Header (Tier 1) */}
-				<SidebarGlobalHeader />
+				<SidebarGlobalHeader
+					onCreateFile={() => {
+						// Create the new file in the user's private workspace
+						const privateWorkspace = workspaces.find((w) => w.workspace.is_private)
+						if (privateWorkspace) {
+							onOpenCreateDocumentModal(privateWorkspace.workspace, undefined)
+						}
+					}}
+				/>
 
 				{/* Context Header (Tier 2) */}
 				<SidebarContextHeader
@@ -109,6 +121,8 @@ export function Sidebar({
 					onOpenRenameModal={onOpenRenameModal}
 					onOpenDeleteModal={onOpenDeleteModal}
 					onOpenCreateDocumentModal={onOpenCreateDocumentModal}
+					onOpenCreateWorkspaceModal={onOpenCreateWorkspaceModal}
+					onOpenCreateFolderModal={onOpenCreateFolderModal}
 				/>
 
 				{/* Footer */}
