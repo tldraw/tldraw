@@ -22,6 +22,7 @@ interface DocumentActionsProps {
 	onDelete?: () => void
 	canEdit?: boolean
 	canDelete?: boolean
+	onMenuOpenChange?: (open: boolean) => void
 }
 
 export function DocumentActions({
@@ -34,6 +35,7 @@ export function DocumentActions({
 	onDelete,
 	canEdit = false,
 	canDelete = false,
+	onMenuOpenChange,
 }: DocumentActionsProps) {
 	const [showRenameDialog, setShowRenameDialog] = useState(false)
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -174,7 +176,12 @@ export function DocumentActions({
 
 	return (
 		<>
-			<ActionMenu items={items} ariaLabel="Document actions" tooltipText="Document actions" />
+			<ActionMenu
+				items={items}
+				ariaLabel="Document actions"
+				tooltipText="Document actions"
+				onOpenChange={onMenuOpenChange}
+			/>
 			<PromptDialog
 				open={showRenameDialog}
 				onOpenChange={setShowRenameDialog}

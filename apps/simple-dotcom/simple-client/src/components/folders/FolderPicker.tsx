@@ -119,7 +119,7 @@ export function FolderPicker({
 
 					{/* Folder icon */}
 					<svg
-						className={`w-4 h-4 flex-shrink-0 ${
+						className={`size-4 flex-shrink-0 ${
 							isSelected ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'
 						}`}
 						fill="currentColor"
@@ -167,7 +167,7 @@ export function FolderPicker({
 						onClick={() => setSelectedFolderId(null)}
 					>
 						<svg
-							className="w-4 h-4 text-gray-400 dark:text-gray-500"
+							className="size-4 text-gray-400 dark:text-gray-500"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"

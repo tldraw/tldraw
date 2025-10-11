@@ -1,8 +1,11 @@
 'use client'
 
 import { User as UserType } from '@/lib/api/types'
-import { HelpCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { HelpCircle, UserCircleIcon } from 'lucide-react'
 import Link from 'next/link'
+import { Button } from '../ui/button'
+import { SIDEBAR_ITEM_HOVERABLE } from './sidebar-styles'
 
 interface SidebarFooterProps {
 	userProfile: UserType | null
@@ -27,32 +30,31 @@ export function SidebarFooter({ userProfile }: SidebarFooterProps) {
 	}
 
 	return (
-		<div
-			className="flex items-center justify-between px-4 py-3 border-t border-foreground/20 mt-auto"
-			data-testid="sidebar-footer"
-		>
+		<div className="flex items-center justify-between pr-1 h-10" data-testid="sidebar-footer">
 			{/* User Link */}
 			<Link
 				href="/profile"
-				className="flex items-center gap-2 hover:bg-foreground/5 rounded px-2 py-1 flex-1 min-w-0"
+				className={cn(SIDEBAR_ITEM_HOVERABLE, 'flex items-center gap-2 px-2 py-1 flex-1 min-w-0')}
 				data-testid="sidebar-user-link"
 			>
-				<span className=" text-foreground shrink-0">●</span>
+				<UserCircleIcon className="size-4" />
 				<span className=" truncate" title={displayName}>
 					{displayName}
 				</span>
 			</Link>
 
 			{/* Help Button */}
-			<button
+			<Button
+				variant="hoverable"
+				size="icon"
 				onClick={handleHelpClick}
-				className="p-2 hover:bg-foreground/5 rounded shrink-0"
+				className="p-2"
 				aria-label="Help"
 				title="Help"
 				data-testid="sidebar-help-button"
 			>
-				<HelpCircle className="w-4 h-4" />
-			</button>
+				<HelpCircle className="size-4" />
+			</Button>
 		</div>
 	)
 }

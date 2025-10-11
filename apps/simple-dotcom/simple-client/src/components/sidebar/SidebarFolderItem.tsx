@@ -1,10 +1,11 @@
 'use client'
 
 import { useLocalStorageState } from '@/app/hooks/useLocalStorageState'
+import { FolderActions } from '@/components/folders/FolderActions'
 import { Button } from '@/components/ui/button'
 import { Document, Folder } from '@/lib/api/types'
-import { Folder as FolderIcon, FolderOpenIcon } from 'lucide-react'
-import Link from 'next/link'
+import { useState } from 'react'
+import { ChevronDownFilledIcon, ChevronRightFilledIcon } from '../shared/ChevronIcon'
 import { SIDEBAR_ITEM_HOVERABLE } from './sidebar-styles'
 import { SidebarDepthIndicator } from './SidebarDepthIndicator'
 import { SidebarDocumentItem } from './SidebarDocumentItem'
@@ -33,8 +34,7 @@ interface SidebarFolderItemProps {
  * - localStorage persistence for expand/collapse state
  * - Recursive rendering of nested folders (up to 10 levels deep)
  * - Depth-based indentation (16px per level)
- * - Click folder name to navigate to folder view
- * - Click chevron to expand/collapse
+ * - Click folder row to expand/collapse
  */
 export function SidebarFolderItem({
 	folder,
@@ -53,6 +53,7 @@ export function SidebarFolderItem({
 		`sidebar-folder-${folder.id}-expanded`,
 		true
 	)
+	const [isMenuOpen, setIsMenuOpen] = useState(false)
 
 	const toggleExpanded = (e: React.MouseEvent) => {
 		e.preventDefault()
@@ -66,30 +67,49 @@ export function SidebarFolderItem({
 	return (
 		<>
 			{/* Folder Header */}
-			<div className={`${SIDEBAR_ITEM_HOVERABLE} `} data-testid={`sidebar-folder-${folder.id}`}>
+			<div
+				className={`${SIDEBAR_ITEM_HOVERABLE} group/item pl-2 justify-between`}
+				data-testid={`sidebar-folder-${folder.id}`}
+			>
 				<SidebarDepthIndicator depth={depth} />
 				<Button
 					variant="include"
-					size="icon"
 					onClick={toggleExpanded}
-					className="shrink-0 h-6 w-6 p-0 mr-1"
+					className="shrink-0 h-full grow-1 justify-start px-0 gap-1"
 					aria-label={isExpanded ? 'Collapse folder' : 'Expand folder'}
 					aria-expanded={isExpanded}
 				>
+					{folder.name}
 					{isExpanded ? (
-						<FolderOpenIcon className="w-4 h-4 shrink-0 text-foreground/60" />
+						<ChevronDownFilledIcon className="text-foreground/60" />
 					) : (
-						<FolderIcon className="w-4 h-4 shrink-0 text-foreground/60" />
+						<ChevronRightFilledIcon className="text-foreground/60" />
 					)}
 				</Button>
-				<Link
-					href={`/workspace/${workspaceId}/folder/${folder.id}`}
-					className="flex-1 flex items-center gap-1.5 min-w-0"
+				<div
+					className={`shrink-0 ${isMenuOpen ? 'opacity-100' : 'opacity-0 group-hover/item:opacity-60 hover:opacity-100'}`}
+					onClick={(e) => e.stopPropagation()}
 				>
-					<span className="truncate" title={folder.name}>
-						{folder.name}
-					</span>
-				</Link>
+					<FolderActions
+						folder={folder}
+						allFolders={allFolders}
+						onRename={async (newName) => {
+							// TODO: Implement folder rename
+							console.log('Rename folder:', folder.id, newName)
+						}}
+						onMove={async (targetFolderId) => {
+							// TODO: Implement folder move
+							console.log('Move folder:', folder.id, 'to', targetFolderId)
+						}}
+						onDelete={async () => {
+							// TODO: Implement folder delete
+							console.log('Delete folder:', folder.id)
+						}}
+						canEdit={canEdit}
+						canDelete={canDelete}
+						onMenuOpenChange={setIsMenuOpen}
+					/>
+				</div>
 			</div>
 
 			{/* Folder Contents (when expanded) */}

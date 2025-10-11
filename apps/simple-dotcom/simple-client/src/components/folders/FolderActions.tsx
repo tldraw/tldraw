@@ -22,6 +22,7 @@ interface FolderActionsProps {
 	onDelete?: () => void
 	canEdit?: boolean
 	canDelete?: boolean
+	onMenuOpenChange?: (open: boolean) => void
 }
 
 export function FolderActions({
@@ -32,6 +33,7 @@ export function FolderActions({
 	onDelete,
 	canEdit = false,
 	canDelete = false,
+	onMenuOpenChange,
 }: FolderActionsProps) {
 	const [showFolderPicker, setShowFolderPicker] = useState(false)
 	const [showRenameDialog, setShowRenameDialog] = useState(false)
@@ -132,7 +134,12 @@ export function FolderActions({
 
 	return (
 		<>
-			<ActionMenu items={items} ariaLabel="Folder actions" tooltipText="Folder actions" />
+			<ActionMenu
+				items={items}
+				ariaLabel="Folder actions"
+				tooltipText="Folder actions"
+				onOpenChange={onMenuOpenChange}
+			/>
 			{showFolderPicker && onMove && (
 				<FolderPicker
 					folders={allFolders}

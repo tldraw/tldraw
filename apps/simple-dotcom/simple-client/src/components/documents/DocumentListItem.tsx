@@ -83,7 +83,7 @@ export function DocumentListItem({
 				<div className="flex items-center gap-2">
 					{/* Document icon */}
 					<svg
-						className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0"
+						className="size-4 text-gray-400 dark:text-gray-500 flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"

@@ -6,6 +6,7 @@ import { Document } from '@/lib/api/types'
 import { Archive, Clock, Share2 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useState } from 'react'
 import { SIDEBAR_ITEM_ACTIVE } from './sidebar-styles'
 import { SidebarDepthIndicator } from './SidebarDepthIndicator'
 
@@ -38,6 +39,7 @@ export function SidebarDocumentItem({
 }: SidebarDocumentItemProps) {
 	const pathname = usePathname()
 	const isActive = pathname === `/d/${document.id}`
+	const [isMenuOpen, setIsMenuOpen] = useState(false)
 
 	const {
 		handleDocumentRename,
@@ -66,7 +68,7 @@ export function SidebarDocumentItem({
 
 	return (
 		<div
-			className={`group ${SIDEBAR_ITEM_ACTIVE} justify-between `}
+			className={`group/item ${SIDEBAR_ITEM_ACTIVE} pl-2 justify-between`}
 			data-active={isActive}
 			data-testid={`sidebar-document-${document.id}`}
 		>
@@ -85,7 +87,7 @@ export function SidebarDocumentItem({
 				</span>
 			</Link>
 			<div
-				className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+				className={`shrink-0 ${isMenuOpen ? 'opacity-100' : 'opacity-0 group-hover/item:opacity-60 hover:opacity-100'}`}
 				onClick={(e) => e.stopPropagation()}
 			>
 				<DocumentActions
@@ -97,6 +99,7 @@ export function SidebarDocumentItem({
 					onDelete={() => handleDocumentDelete(document.id)}
 					canEdit={canEdit}
 					canDelete={canDelete}
+					onMenuOpenChange={setIsMenuOpen}
 				/>
 			</div>
 		</div>

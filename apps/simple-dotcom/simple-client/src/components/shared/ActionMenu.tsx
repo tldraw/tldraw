@@ -10,8 +10,11 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
+import { EllipsisVerticalIcon } from 'lucide-react'
 import React from 'react'
+import { SIDEBAR_MENU_BUTTON } from '../sidebar/sidebar-styles'
+import { Button } from '../ui/button'
 
 export interface ActionMenuItem {
 	label: string
@@ -28,6 +31,7 @@ interface ActionMenuProps {
 	className?: string
 	ariaLabel?: string
 	tooltipText?: string
+	onOpenChange?: (open: boolean) => void
 }
 
 export function ActionMenu({
@@ -36,39 +40,29 @@ export function ActionMenu({
 	className = '',
 	ariaLabel = 'Open menu',
 	tooltipText = 'Actions',
+	onOpenChange,
 }: ActionMenuProps) {
-	const triggerButton = (
-		<DropdownMenuTrigger
-			className={`p-1 rounded hover:bg-accent transition-colors ${className}`}
-			aria-label={ariaLabel}
-			onClick={(e) => e.stopPropagation()}
-		>
-			{trigger || (
-				<svg
-					className="w-5 h-5 text-muted-foreground"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-				>
-					<path
-						strokeLinecap="round"
-						strokeLinejoin="round"
-						strokeWidth={2}
-						d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-					/>
-				</svg>
-			)}
-		</DropdownMenuTrigger>
-	)
+	const [open, setOpen] = React.useState(false)
+
+	const handleOpenChange = (newOpen: boolean) => {
+		setOpen(newOpen)
+		onOpenChange?.(newOpen)
+	}
 
 	return (
-		<DropdownMenu>
-			<Tooltip>
-				<TooltipTrigger asChild>{triggerButton}</TooltipTrigger>
-				<TooltipContent>
-					<p>{tooltipText}</p>
-				</TooltipContent>
-			</Tooltip>
+		<DropdownMenu open={open} onOpenChange={handleOpenChange}>
+			<DropdownMenuTrigger asChild>
+				<Button
+					variant="include"
+					size="icon"
+					title={tooltipText}
+					className={cn(SIDEBAR_MENU_BUTTON, className)}
+					aria-label={ariaLabel}
+					onClick={(e) => e.stopPropagation()}
+				>
+					{trigger || <EllipsisVerticalIcon className="size-4" />}
+				</Button>
+			</DropdownMenuTrigger>
 
 			<DropdownMenuContent align="end" className="w-56" onClick={(e) => e.stopPropagation()}>
 				{items.map((item, index) => {
@@ -86,7 +80,7 @@ export function ActionMenu({
 							disabled={item.disabled}
 							className={item.destructive ? 'text-destructive focus:text-destructive' : ''}
 						>
-							{item.icon && <span className="w-4 h-4">{item.icon}</span>}
+							{item.icon && <span className="size-4">{item.icon}</span>}
 							{item.label}
 						</DropdownMenuItem>
 					)

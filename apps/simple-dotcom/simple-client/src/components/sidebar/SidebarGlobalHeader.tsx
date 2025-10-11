@@ -3,6 +3,7 @@
 import { Columns2 } from 'lucide-react'
 import Link from 'next/link'
 import { Logo } from '../shared/Logo'
+import { Button } from '../ui/button'
 
 /**
  * SidebarGlobalHeader (Tier 1)
@@ -22,25 +23,26 @@ export function SidebarGlobalHeader() {
 
 	return (
 		<div
-			className="flex items-center justify-between h-10 px-2 mb-2"
+			className="flex items-center justify-between h-10 pl-3 pr-1 mb-2"
 			data-testid="sidebar-global-header"
 		>
 			{/* Branding */}
 			<Link href="/" className="flex items-center gap-2 hover:opacity-80">
-				<Logo className="h-5 text-foreground" />
+				<Logo className="h-[18px] text-foreground" />
 			</Link>
 
 			{/* Actions */}
 			<div className="flex items-center gap-1">
-				<button
+				<Button
+					variant="hoverable"
+					size="icon"
 					onClick={handleMenuClick}
-					className="p-2 hover:bg-foreground/5 rounded"
 					aria-label="Global menu"
 					title="Menu"
 					data-testid="global-menu-button"
 				>
-					<Columns2 className="w-4 h-4" />
-				</button>
+					<Columns2 className="size-4" />
+				</Button>
 			</div>
 		</div>
 	)

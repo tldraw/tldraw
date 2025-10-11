@@ -1,6 +1,8 @@
 'use client'
 
-import { ChevronDown, Search } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { ChevronsUpDownIcon, Search } from 'lucide-react'
+import { Button } from '../ui/button'
 import { SidebarContext } from './Sidebar'
 import { SIDEBAR_ITEM_HOVERABLE } from './sidebar-styles'
 
@@ -41,29 +43,35 @@ export function SidebarContextHeader({
 
 	return (
 		<div
-			className="flex items-center justify-between pr-2 mb-2"
+			className="flex items-center justify-between pl-0 pr-1 mb-2"
 			data-testid="sidebar-context-header"
 		>
 			{/* Context Switcher */}
-			<button
+			<Button
+				variant="include"
+				size="default"
 				onClick={handleContextClick}
-				className={`flex items-center gap-2 rounded h-10 px-3 flex-1 ${SIDEBAR_ITEM_HOVERABLE}`}
+				className={cn(
+					SIDEBAR_ITEM_HOVERABLE,
+					`flex justify-start items-center gap-2 rounded px-3 flex-1`
+				)}
 				data-testid="context-switcher"
 			>
 				<span className="font-medium ">{contextLabels[currentContext]}</span>
-				<ChevronDown className="w-3 h-3 text-foreground/60" />
-			</button>
+				<ChevronsUpDownIcon className="w-3 h-3 text-foreground/60" />
+			</Button>
 
 			{/* Context Search */}
-			<button
+			<Button
+				variant="hoverable"
+				size="icon"
 				onClick={onSearchClick}
-				className="p-2 hover:bg-foreground/5 rounded"
 				aria-label={`Search within ${contextLabels[currentContext]}`}
 				title={`Search ${contextLabels[currentContext]}`}
 				data-testid="context-search-button"
 			>
-				<Search className="w-4 h-4" />
-			</button>
+				<Search className="size-4" />
+			</Button>
 		</div>
 	)
 }
