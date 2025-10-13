@@ -44,10 +44,13 @@ export function disposeFairySprite(variants: FairyOutfit) {
 	}
 }
 
+const OFFSCREEN_CANVAS_SIZE = 1200
+const FAIRY_ASSET_SCALE = OFFSCREEN_CANVAS_SIZE / 200
+
 /**
  * An offscreen canvas we used to draw frames.
  */
-const offscreenCanvas = new OffscreenCanvas(200, 200)
+const offscreenCanvas = new OffscreenCanvas(OFFSCREEN_CANVAS_SIZE, OFFSCREEN_CANVAS_SIZE)
 const offscreenContext = offscreenCanvas.getContext('2d')!
 offscreenContext.imageSmoothingEnabled = false
 
@@ -150,10 +153,13 @@ class FairySprite {
 		}
 
 		for (let i = 0; i < maxFrameCount; i++) {
-			offscreenContext.clearRect(0, 0, 200, 200)
+			offscreenContext.clearRect(0, 0, OFFSCREEN_CANVAS_SIZE, OFFSCREEN_CANVAS_SIZE)
+			offscreenContext.scale(FAIRY_ASSET_SCALE, FAIRY_ASSET_SCALE)
 			offscreenContext.drawImage(wingsFrameImages[i % wingsFrameImages.length], 0, 0)
 			offscreenContext.drawImage(bodyFrameImages[i % bodyFrameImages.length], 0, 0)
 			offscreenContext.drawImage(hatFrameImages[i % hatFrameImages.length], 0, 0)
+			offscreenContext.scale(1 / FAIRY_ASSET_SCALE, 1 / FAIRY_ASSET_SCALE)
+
 			const blob = await offscreenCanvas.convertToBlob()
 			const dataUrl = await FileHelpers.blobToDataUrl(blob)
 			let cachedPose = this.cachedPoses[pose]
