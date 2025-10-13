@@ -38,7 +38,7 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prompt: |
             FIRST: Delete any previous Claude Code reviews on this PR by running:
-            `gh pr view --json comments --jq '.comments[] | select(.body | contains("🤖 Claude Code Review")) | .url | sub(".*issuecomment-"; "")' | xargs -I {} gh api --method DELETE repos/:owner/:repo/issues/comments/{} 2>/dev/null || true`
+            `gh pr view --json comments --jq '.comments[] | select(.body | contains("🤖 Claude Code Review")) | .url | sub(".*issuecomment-"; "")' | xargs -I {} gh api --method DELETE "repos/${{ github.repository }}/issues/comments/{}" 2>/dev/null || true`
 
             THEN: Please review this pull request and provide feedback on:
             - Code quality and best practices
