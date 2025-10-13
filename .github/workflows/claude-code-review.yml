@@ -47,6 +47,9 @@ jobs:
             - Security concerns
             - Test coverage
 
+            Be terse or omit sections that have no constructive feedback. In your final summary you can add a positive remark.
+            We want to ensure that the Claude reviews are not ignored because of verbosity, the signal-to-noise ratio is important.
+
             Use the repository's CLAUDE.md for guidance on style and conventions. Be constructive and helpful in your feedback.
 
             Use `gh pr comment` with your Bash tool to leave your review as a comment on the PR. IMPORTANT: Your comment MUST start with "🤖 Claude Code Review" so it can be identified and cleaned up in future runs.
