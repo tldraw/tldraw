@@ -76,6 +76,8 @@ export type * from './types/TldrawFairyAgent'
 export type * from './types/TodoItem'
 export type * from './types/WikipediaArticle'
 
+export * from './types/FairyPose'
+
 // Utils and Helpers
 export * from './actions/AgentActionUtils'
 export * from './AgentHelpers'
