@@ -231,7 +231,7 @@ export class AgentHelpers {
 	 * @param id - The id to check.
 	 * @returns The unique id.
 	 */
-	ensureShapeIdIsUnique(id: string): string {
+	ensureShapeIdIsUnique(id: string = 'shape'): string {
 		const { editor } = this.agent
 		const idWithoutPrefix = id.startsWith('shape:') ? id.slice(6) : id
 
