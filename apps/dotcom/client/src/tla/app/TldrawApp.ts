@@ -491,9 +491,15 @@ export class TldrawApp {
 
 	private canCreateNewFile(groupId: string) {
 		if (this.isGroupsMigrated()) {
-			return this.getGroupFilesSorted(groupId).length < this.config.maxNumberOfFiles
+			// For migrated users, count non-deleted files in the home group
+			const group = this.getGroupMembership(groupId)
+			if (!group) return true
+			const nonDeletedCount = group.groupFiles.filter((gf) => !gf.file.isDeleted).length
+			return nonDeletedCount < this.config.maxNumberOfFiles
 		} else {
-			return this.getUserOwnFiles().length < this.config.maxNumberOfFiles
+			// For unmigrated users, count non-deleted files owned by the user
+			const nonDeletedCount = this.getUserOwnFiles().filter((f) => !f.isDeleted).length
+			return nonDeletedCount < this.config.maxNumberOfFiles
 		}
 	}
 

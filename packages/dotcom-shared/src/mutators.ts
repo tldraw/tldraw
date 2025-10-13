@@ -39,16 +39,27 @@ function ensureSensibleTimestamp(time: number) {
 }
 
 async function assertNotMaxFiles(tx: Transaction<TlaSchema>, userId: string) {
+	const migrated = await isGroupsMigrated(tx, userId)
+
 	if (tx.location === 'client') {
-		const count = (await tx.query.file.where('ownerId', '=', userId).run()).filter(
-			(f) => !f.isDeleted
-		).length
+		const files = await tx.query.file.run()
+		const count = files.filter((f) => {
+			if (f.isDeleted) return false
+			// For migrated users, count files owned by their home group
+			// For unmigrated users, count files owned directly by userId
+			if (migrated) {
+				return f.owningGroupId === userId
+			} else {
+				return f.ownerId === userId
+			}
+		}).length
 		assert(count < MAX_NUMBER_OF_FILES, ZErrorCode.max_files_reached)
 	} else {
 		// On the server, don't fetch all files because we don't need them
+		// Check both ownerId and owningGroupId to handle both migration states
 		const rows = Array.from(
 			await tx.dbTransaction.query(
-				`select count(*) from "file" where "ownerId" = $1 and "isDeleted" = false`,
+				`select count(*) from "file" where "isDeleted" = false and ("ownerId" = $1 OR "owningGroupId" = $1)`,
 				[userId]
 			)
 		) as { count: number }[]

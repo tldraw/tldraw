@@ -3,6 +3,7 @@ import { DB } from '@tldraw/dotcom-shared'
 import fs from 'fs'
 import { Kysely, PostgresDialect, sql } from 'kysely'
 import pg from 'pg'
+import { uniqueId } from 'tldraw'
 import { OTHER_USERS, USERS } from '../consts'
 import { getStorageStateFileName } from './helpers'
 
@@ -50,6 +51,18 @@ export class Database {
 		}>`SELECT flags FROM public.user WHERE id = ${id}`.execute(db)
 
 		return result.rows[0]?.flags?.includes('groups_backend') ?? false
+	}
+
+	/**
+	 * Migrate a user to the groups model
+	 */
+	async migrateUser(isOther: boolean = false): Promise<void> {
+		const id = await this.getUserId(isOther)
+		const inviteSecret = uniqueId()
+		if (!id) throw new Error('User not found')
+
+		// Call the migration function
+		await sql`SELECT * FROM migrate_user_to_groups(${id}, ${inviteSecret})`.execute(db)
 	}
 
 	private async cleanUpUser(isOther: boolean) {
