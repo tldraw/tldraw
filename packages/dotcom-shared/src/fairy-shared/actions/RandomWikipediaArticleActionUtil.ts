@@ -9,7 +9,7 @@ const RandomWikipediaArticleAction = z
 	})
 	.meta({
 		title: 'Get inspiration',
-		description: 'The AI gets inspiration from a random Wikipedia article.',
+		description: 'The fairy gets inspiration from a random Wikipedia article.',
 	})
 
 type RandomWikipediaArticleAction = z.infer<typeof RandomWikipediaArticleAction>

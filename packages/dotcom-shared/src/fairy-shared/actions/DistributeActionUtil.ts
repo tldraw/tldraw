@@ -13,7 +13,7 @@ const DistributeAction = z
 	})
 	.meta({
 		title: 'Distribute',
-		description: 'The AI distributes shapes horizontally or vertically.',
+		description: 'The fairy distributes shapes horizontally or vertically.',
 	})
 
 type DistributeAction = z.infer<typeof DistributeAction>

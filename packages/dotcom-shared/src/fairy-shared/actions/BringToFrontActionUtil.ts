@@ -13,7 +13,7 @@ const BringToFrontAction = z
 	.meta({
 		title: 'Bring to Front',
 		description:
-			'The AI brings one or more shapes to the front so that they appear in front of everything else.',
+			'The fairy brings one or more shapes to the front so that they appear in front of everything else.',
 	})
 
 type BringToFrontAction = z.infer<typeof BringToFrontAction>

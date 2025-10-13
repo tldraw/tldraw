@@ -13,7 +13,7 @@ const SendToBackAction = z
 	.meta({
 		title: 'Send to Back',
 		description:
-			'The AI sends one or more shapes to the back so that they appear behind everything else.',
+			'The fairy sends one or more shapes to the back so that they appear behind everything else.',
 	})
 
 type SendToBackAction = z.infer<typeof SendToBackAction>

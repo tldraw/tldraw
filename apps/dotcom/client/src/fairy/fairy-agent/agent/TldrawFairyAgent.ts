@@ -11,6 +11,7 @@ import {
 	BaseAgentPrompt,
 	ChatHistoryItem,
 	ContextItem,
+	DEFAULT_FAIRY_VISION,
 	DEFAULT_MODEL_NAME,
 	FairyEntity,
 	FocusedShape,
@@ -43,7 +44,6 @@ import {
 	VecModel,
 } from 'tldraw'
 import { FAIRY_WORKER } from '../../../utils/config'
-import { DEFAULT_FAIRY_VISION } from '../../constants'
 import { $fairyAgentsAtom } from './fairyAgentsAtom'
 
 /**
@@ -807,8 +807,16 @@ function requestAgent({ agent, request }: { agent: TldrawFairyAgent; request: Ag
 		try {
 			for await (const action of streamAgent({ prompt, signal })) {
 				if (cancelled) break
-				// eslint-disable-next-line no-console
-				if (action.complete) console.log('AGENT ACTION\n', action)
+
+				if (action.complete && action._type !== 'message') {
+					// eslint-disable-next-line no-console
+					console.log('AGENT ACTION\n', action)
+				}
+				if (action.complete && action._type === 'message') {
+					// eslint-disable-next-line no-console
+					console.log('Message from fairy\n', action.text)
+				}
+
 				editor.run(
 					() => {
 						const actionUtil = agent.getAgentActionUtil(action._type)

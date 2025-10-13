@@ -11,7 +11,7 @@ const LabelAction = z
 		shapeId: z.string(),
 		text: z.string(),
 	})
-	.meta({ title: 'Label', description: "The AI changes a shape's text." })
+	.meta({ title: 'Label', description: "The fairy changes a shape's text." })
 
 type ILabelEvent = z.infer<typeof LabelAction>
 

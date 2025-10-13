@@ -202,6 +202,32 @@
 	color: var(--tl-color-text-3);
 }
 
+.fairy-input__new-chat {
+	pointer-events: auto;
+	width: 16px;
+	height: 16px;
+	padding: 0;
+	background-color: var(--tl-color-primary);
+	color: var(--tl-color-panel-contrast);
+	border: none;
+	border-radius: 100%;
+	cursor: pointer;
+	font-size: 10px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.fairy-input__new-chat:hover:not(:disabled) {
+	background-color: var(--tl-color-primary-hover);
+}
+
+.fairy-input__new-chat:disabled {
+	background-color: var(--tl-color-grid);
+	cursor: not-allowed;
+}
+
 .fairy-input__submit {
 	pointer-events: auto;
 	width: 16px;

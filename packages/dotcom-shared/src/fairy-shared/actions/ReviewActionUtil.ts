@@ -17,7 +17,7 @@ const ReviewAction = z
 	.meta({
 		title: 'Review',
 		description:
-			'The AI schedules further work or a review so that it can look at the results of its work so far and take further action, such as reviewing what it has done or taking further steps that would benefit from seeing the results of its work so far.',
+			'The fairy schedules further work or a review so that it can look at the results of its work so far and take further action, such as reviewing what it has done or taking further steps that would benefit from seeing the results of its work so far.',
 	})
 
 type ReviewAction = z.infer<typeof ReviewAction>

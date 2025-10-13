@@ -1,7 +1,6 @@
-import { convertTldrawShapeToFocusedShape } from '@tldraw/dotcom-shared'
+import { convertTldrawShapeToFocusedShape, DEFAULT_FAIRY_VISION } from '@tldraw/dotcom-shared'
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { Box, useValue } from 'tldraw'
-import { DEFAULT_FAIRY_VISION } from '../../constants'
 import { TldrawFairyAgent } from '../agent/TldrawFairyAgent'
 
 export function FairyBasicInput({ agent }: { agent: TldrawFairyAgent }) {
@@ -10,6 +9,7 @@ export function FairyBasicInput({ agent }: { agent: TldrawFairyAgent }) {
 	const [inputValue, setInputValue] = useState('')
 	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
 	const modelName = useValue(agent.$modelName)
+	const chatHistory = useValue('chatHistory', () => agent.$chatHistory.get(), [agent])
 
 	const fairy = useValue('fairy', () => agent.$fairy, [agent])
 
@@ -57,6 +57,11 @@ export function FairyBasicInput({ agent }: { agent: TldrawFairyAgent }) {
 		[agent, modelName, editor, fairy]
 	)
 
+	const handleNewChat = useCallback(() => {
+		agent.cancel()
+		agent.reset()
+	}, [agent])
+
 	return (
 		<div className="fairy-input">
 			<form onSubmit={handleSubmit} className="fairy-input__form">
@@ -70,6 +75,15 @@ export function FairyBasicInput({ agent }: { agent: TldrawFairyAgent }) {
 					onInput={(e) => setInputValue(e.currentTarget.value)}
 					className="fairy-input__field"
 				/>
+				<button
+					type="button"
+					onClick={handleNewChat}
+					disabled={chatHistory.length === 0}
+					className="fairy-input__new-chat"
+					title="New chat"
+				>
+					+
+				</button>
 				<button
 					type="submit"
 					disabled={inputValue === '' && !isGenerating}

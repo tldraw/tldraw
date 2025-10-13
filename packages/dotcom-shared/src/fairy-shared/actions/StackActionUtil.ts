@@ -15,7 +15,7 @@ const StackAction = z
 	.meta({
 		title: 'Stack',
 		description:
-			"The AI stacks shapes horizontally or vertically. Note that this doesn't align shapes, it only stacks them along one axis.",
+			"The fairy stacks shapes horizontally or vertically. Note that this doesn't align shapes, it only stacks them along one axis.",
 	})
 
 type IAgentStackEvent = z.infer<typeof StackAction>

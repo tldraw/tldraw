@@ -15,7 +15,7 @@ const PlaceAction = z
 		sideOffset: z.number(),
 		shapeId: z.string(),
 	})
-	.meta({ title: 'Place', description: 'The AI places a shape relative to another shape.' })
+	.meta({ title: 'Place', description: 'The fairy places a shape relative to another shape.' })
 
 type PlaceAction = z.infer<typeof PlaceAction>
 

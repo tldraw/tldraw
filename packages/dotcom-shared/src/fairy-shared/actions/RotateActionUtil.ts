@@ -16,7 +16,7 @@ const RotateAction = z
 	})
 	.meta({
 		title: 'Rotate',
-		description: 'The AI rotates one or more shapes around an origin point.',
+		description: 'The fairy rotates one or more shapes around an origin point.',
 	})
 
 type RotateAction = z.infer<typeof RotateAction>

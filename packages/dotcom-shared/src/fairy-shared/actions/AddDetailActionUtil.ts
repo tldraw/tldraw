@@ -9,7 +9,7 @@ const AddDetailAction = z
 	})
 	.meta({
 		title: 'Add Detail',
-		description: 'The AI plans further work so that it can add detail to its work.',
+		description: 'The fairy plans further work so that it can add detail to its work.',
 	})
 
 type AddDetailAction = z.infer<typeof AddDetailAction>

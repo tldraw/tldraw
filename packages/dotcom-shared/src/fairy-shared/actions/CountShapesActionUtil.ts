@@ -11,7 +11,7 @@ const CountShapesAction = z
 	.meta({
 		title: 'Count',
 		description:
-			'The AI requests to count the number of shapes in the canvas. The answer will be provided to the AI in a follow-up request.',
+			'The fairy requests to count the number of shapes in the canvas. The answer will be provided to the AI in a follow-up request.',
 	})
 
 type CountShapesAction = z.infer<typeof CountShapesAction>

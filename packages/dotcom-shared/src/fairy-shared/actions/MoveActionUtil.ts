@@ -12,7 +12,7 @@ const MoveAction = z
 		x: z.number(),
 		y: z.number(),
 	})
-	.meta({ title: 'Move', description: 'The AI moves a shape to a new position.' })
+	.meta({ title: 'Move', description: 'The fairy moves a shape to a new position.' })
 
 type MoveAction = z.infer<typeof MoveAction>
 
