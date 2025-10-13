@@ -69,6 +69,7 @@ import {
 	JsonObject,
 	PerformanceTracker,
 	Result,
+	ZERO_INDEX_KEY,
 	annotateError,
 	assert,
 	assertExists,
@@ -5663,7 +5664,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const children = this._parentIdsToChildIds.get()[parentId]
 
 		if (!children || children.length === 0) {
-			return 'a1' as IndexKey
+			return getIndexAbove(ZERO_INDEX_KEY)
 		}
 		const shape = this.getShape(children[children.length - 1])!
 		return getIndexAbove(shape.index)

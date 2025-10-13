@@ -41,7 +41,37 @@ function debug(...args: any[]) {
 //       they don't seem to be surfaced in browser APIs and can't be relied on. Therefore,
 //       pings need to be implemented one level up, on the application API side, which for our
 //       codebase means whatever code that uses ClientWebSocketAdapter.
-/** @internal */
+/**
+ * A WebSocket adapter that provides persistent connection management for tldraw synchronization.
+ * This adapter handles connection establishment, reconnection logic, and message routing between
+ * the sync client and server. It implements automatic reconnection with exponential backoff
+ * and supports connection loss detection.
+ *
+ * Note: This adapter requires users to implement their own connection loss detection (e.g., pings)
+ * as browser WebSocket APIs don't reliably surface protocol-level ping/pong frames.
+ *
+ * @internal
+ * @example
+ * ```ts
+ * // Create a WebSocket adapter with connection URI
+ * const adapter = new ClientWebSocketAdapter(() => 'ws://localhost:3000/sync')
+ *
+ * // Listen for connection status changes
+ * adapter.onStatusChange((status) => {
+ *   console.log('Connection status:', status)
+ * })
+ *
+ * // Listen for incoming messages
+ * adapter.onReceiveMessage((message) => {
+ *   console.log('Received:', message)
+ * })
+ *
+ * // Send a message when connected
+ * if (adapter.connectionStatus === 'online') {
+ *   adapter.sendMessage({ type: 'ping' })
+ * }
+ * ```
+ */
 export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord> {
 	_ws: WebSocket | null = null
 
@@ -50,6 +80,11 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 	/** @internal */
 	readonly _reconnectManager: ReconnectManager
 
+	/**
+	 * Permanently closes the WebSocket adapter and disposes of all resources.
+	 * Once closed, the adapter cannot be reused and should be discarded.
+	 * This method is idempotent - calling it multiple times has no additional effect.
+	 */
 	// TODO: .close should be a project-wide interface with a common contract (.close()d thing
 	//       can only be garbage collected, and can't be used anymore)
 	close() {
@@ -59,6 +94,14 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 		this._ws?.close()
 	}
 
+	/**
+	 * Creates a new ClientWebSocketAdapter instance.
+	 *
+	 * @param getUri - Function that returns the WebSocket URI to connect to.
+	 *                 Can return a string directly or a Promise that resolves to a string.
+	 *                 This function is called each time a connection attempt is made,
+	 *                 allowing for dynamic URI generation (e.g., for authentication tokens).
+	 */
 	constructor(getUri: () => Promise<string> | string) {
 		this._reconnectManager = new ReconnectManager(this, getUri)
 	}
@@ -189,12 +232,31 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 		'initial'
 	)
 
+	/**
+	 * Gets the current connection status of the WebSocket.
+	 *
+	 * @returns The current connection status: 'online', 'offline', or 'error'
+	 */
 	// eslint-disable-next-line no-restricted-syntax
 	get connectionStatus(): TLPersistentClientSocketStatus {
 		const status = this._connectionStatus.get()
 		return status === 'initial' ? 'offline' : status
 	}
 
+	/**
+	 * Sends a message to the server through the WebSocket connection.
+	 * Messages are automatically chunked if they exceed size limits.
+	 *
+	 * @param msg - The message to send to the server
+	 *
+	 * @example
+	 * ```ts
+	 * adapter.sendMessage({
+	 *   type: 'push',
+	 *   diff: { 'shape:abc123': [2, { x: [1, 150] }] }
+	 * })
+	 * ```
+	 */
 	sendMessage(msg: TLSocketClientSentEvent<TLRecord>) {
 		assert(!this.isDisposed, 'Tried to send message on a disposed socket')
 
@@ -210,6 +272,29 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 	}
 
 	private messageListeners = new Set<(msg: TLSocketServerSentEvent<TLRecord>) => void>()
+	/**
+	 * Registers a callback to handle incoming messages from the server.
+	 *
+	 * @param cb - Callback function that will be called with each received message
+	 * @returns A cleanup function to remove the message listener
+	 *
+	 * @example
+	 * ```ts
+	 * const unsubscribe = adapter.onReceiveMessage((message) => {
+	 *   switch (message.type) {
+	 *     case 'connect':
+	 *       console.log('Connected to room')
+	 *       break
+	 *     case 'data':
+	 *       console.log('Received data:', message.diff)
+	 *       break
+	 *   }
+	 * })
+	 *
+	 * // Later, remove the listener
+	 * unsubscribe()
+	 * ```
+	 */
 	onReceiveMessage(cb: (val: TLSocketServerSentEvent<TLRecord>) => void) {
 		assert(!this.isDisposed, 'Tried to add message listener on a disposed socket')
 
@@ -220,6 +305,26 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 	}
 
 	private statusListeners = new Set<TLSocketStatusListener>()
+	/**
+	 * Registers a callback to handle connection status changes.
+	 *
+	 * @param cb - Callback function that will be called when the connection status changes
+	 * @returns A cleanup function to remove the status listener
+	 *
+	 * @example
+	 * ```ts
+	 * const unsubscribe = adapter.onStatusChange((status) => {
+	 *   if (status.status === 'error') {
+	 *     console.error('Connection error:', status.reason)
+	 *   } else {
+	 *     console.log('Status changed to:', status.status)
+	 *   }
+	 * })
+	 *
+	 * // Later, remove the listener
+	 * unsubscribe()
+	 * ```
+	 */
 	onStatusChange(cb: TLSocketStatusListener) {
 		assert(!this.isDisposed, 'Tried to add status listener on a disposed socket')
 
@@ -229,6 +334,19 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 		}
 	}
 
+	/**
+	 * Manually restarts the WebSocket connection.
+	 * This closes the current connection (if any) and attempts to establish a new one.
+	 * Useful for implementing connection loss detection and recovery.
+	 *
+	 * @example
+	 * ```ts
+	 * // Restart connection after detecting it's stale
+	 * if (lastPongTime < Date.now() - 30000) {
+	 *   adapter.restart()
+	 * }
+	 * ```
+	 */
 	restart() {
 		assert(!this.isDisposed, 'Tried to restart a disposed socket')
 		debug('restarting')
@@ -238,21 +356,78 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 	}
 }
 
-// Those constants are exported primarily for tests
-// ACTIVE_ means the tab is active, document.hidden is false
+/**
+ * Minimum reconnection delay in milliseconds when the browser tab is active and focused.
+ *
+ * @internal
+ */
 export const ACTIVE_MIN_DELAY = 500
+
+/**
+ * Maximum reconnection delay in milliseconds when the browser tab is active and focused.
+ *
+ * @internal
+ */
 export const ACTIVE_MAX_DELAY = 2000
-// Correspondingly, here document.hidden is true. It's intended to reduce the load and battery drain
-// on client devices somewhat when they aren't looking at the tab. We don't disconnect completely
-// to minimise issues with reconnection/sync when the tab becomes visible again
+
+/**
+ * Minimum reconnection delay in milliseconds when the browser tab is inactive or hidden.
+ * This longer delay helps reduce battery drain and server load when users aren't actively viewing the tab.
+ *
+ * @internal
+ */
 export const INACTIVE_MIN_DELAY = 1000
+
+/**
+ * Maximum reconnection delay in milliseconds when the browser tab is inactive or hidden.
+ * Set to 5 minutes to balance between maintaining sync and conserving resources.
+ *
+ * @internal
+ */
 export const INACTIVE_MAX_DELAY = 1000 * 60 * 5
+
+/**
+ * Exponential backoff multiplier for calculating reconnection delays.
+ * Each failed connection attempt increases the delay by this factor until max delay is reached.
+ *
+ * @internal
+ */
 export const DELAY_EXPONENT = 1.5
-// this is a tradeoff between quickly detecting connections stuck in the CONNECTING state and
-// not needlessly reconnecting if the connection is just slow to establish
+
+/**
+ * Maximum time in milliseconds to wait for a connection attempt before considering it failed.
+ * This helps detect connections stuck in the CONNECTING state and retry with fresh attempts.
+ *
+ * @internal
+ */
 export const ATTEMPT_TIMEOUT = 1000
 
-/** @internal */
+/**
+ * Manages automatic reconnection logic for WebSocket connections with intelligent backoff strategies.
+ * This class handles connection attempts, tracks connection state, and implements exponential backoff
+ * with different delays based on whether the browser tab is active or inactive.
+ *
+ * The ReconnectManager responds to various browser events like network status changes,
+ * tab visibility changes, and connection events to optimize reconnection timing and
+ * minimize unnecessary connection attempts.
+ *
+ * @internal
+ *
+ * @example
+ * ```ts
+ * const manager = new ReconnectManager(
+ *   socketAdapter,
+ *   () => 'ws://localhost:3000/sync'
+ * )
+ *
+ * // Manager automatically handles:
+ * // - Initial connection
+ * // - Reconnection on disconnect
+ * // - Exponential backoff on failures
+ * // - Tab visibility-aware delays
+ * // - Network status change responses
+ * ```
+ */
 export class ReconnectManager {
 	private isDisposed = false
 	private disposables: (() => void)[] = [
@@ -268,6 +443,12 @@ export class ReconnectManager {
 	intendedDelay: number = ACTIVE_MIN_DELAY
 	private state: 'pendingAttempt' | 'pendingAttemptResult' | 'delay' | 'connected'
 
+	/**
+	 * Creates a new ReconnectManager instance.
+	 *
+	 * socketAdapter - The ClientWebSocketAdapter instance to manage
+	 * getUri - Function that returns the WebSocket URI for connection attempts
+	 */
 	constructor(
 		private socketAdapter: ClientWebSocketAdapter,
 		private getUri: () => Promise<string> | string
@@ -356,6 +537,22 @@ export class ReconnectManager {
 		}
 	}
 
+	/**
+	 * Checks if reconnection should be attempted and initiates it if appropriate.
+	 * This method is called in response to network events, tab visibility changes,
+	 * and other hints that connectivity may have been restored.
+	 *
+	 * The method intelligently handles various connection states:
+	 * - Already connected: no action needed
+	 * - Currently connecting: waits or retries based on attempt age
+	 * - Disconnected: initiates immediate reconnection attempt
+	 *
+	 * @example
+	 * ```ts
+	 * // Called automatically on network/visibility events, but can be called manually
+	 * manager.maybeReconnected()
+	 * ```
+	 */
 	maybeReconnected() {
 		debug('ReconnectManager.maybeReconnected')
 		// It doesn't make sense to have another check scheduled if we're already checking it now.
@@ -409,6 +606,22 @@ export class ReconnectManager {
 		this.disconnected()
 	}
 
+	/**
+	 * Handles disconnection events and schedules reconnection attempts with exponential backoff.
+	 * This method is called when the WebSocket connection is lost or fails to establish.
+	 *
+	 * It implements intelligent delay calculation based on:
+	 * - Previous attempt timing
+	 * - Current tab visibility (active vs inactive delays)
+	 * - Exponential backoff for repeated failures
+	 *
+	 * @example
+	 * ```ts
+	 * // Called automatically when connection is lost
+	 * // Schedules reconnection with appropriate delay
+	 * manager.disconnected()
+	 * ```
+	 */
 	disconnected() {
 		debug('ReconnectManager.disconnected')
 		// This either means we're freshly disconnected, or the last connection attempt failed;
@@ -458,6 +671,19 @@ export class ReconnectManager {
 		}
 	}
 
+	/**
+	 * Handles successful connection events and resets reconnection state.
+	 * This method is called when the WebSocket successfully connects to the server.
+	 *
+	 * It clears any pending reconnection attempts and resets the delay back to minimum
+	 * for future connection attempts.
+	 *
+	 * @example
+	 * ```ts
+	 * // Called automatically when WebSocket opens successfully
+	 * manager.connected()
+	 * ```
+	 */
 	connected() {
 		debug('ReconnectManager.connected')
 		// this notification could've been delayed, recheck synchronously
@@ -469,6 +695,11 @@ export class ReconnectManager {
 		}
 	}
 
+	/**
+	 * Permanently closes the reconnection manager and cleans up all resources.
+	 * This stops all pending reconnection attempts and removes event listeners.
+	 * Once closed, the manager cannot be reused.
+	 */
 	close() {
 		this.disposables.forEach((d) => d())
 		this.isDisposed = true

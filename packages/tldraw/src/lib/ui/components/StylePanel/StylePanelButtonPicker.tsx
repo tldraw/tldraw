@@ -132,7 +132,7 @@ export const StylePanelButtonPicker = memo(function StylePanelButtonPicker<T ext
 				<TldrawUiToolbarToggleGroup
 					data-testid={`style.${uiType}`}
 					type="single"
-					value={value.type === 'shared' ? value.value : undefined}
+					value={value.type === 'shared' ? value.value : null}
 					asChild
 				>
 					<Layout>
