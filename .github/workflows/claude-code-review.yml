@@ -31,16 +31,19 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Delete previous Claude reviews
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[] | select(.body | contains("🤖 Claude Code Review")) | .url | sub(".*issuecomment-"; "")' | xargs -I {} gh api --method DELETE "repos/${{ github.repository }}/issues/comments/{}" 2>/dev/null || true
+
       - name: Run Claude Code Review
         id: claude-review
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prompt: |
-            FIRST: Delete any previous Claude Code reviews on this PR by running:
-            `gh pr view --json comments --jq '.comments[] | select(.body | contains("🤖 Claude Code Review")) | .url | sub(".*issuecomment-"; "")' | xargs -I {} gh api --method DELETE "repos/${{ github.repository }}/issues/comments/{}" 2>/dev/null || true`
-
-            THEN: Please review this pull request and provide feedback on:
+            Please review this pull request and provide feedback on:
             - Code quality and best practices
             - Potential bugs or issues
             - Performance considerations
