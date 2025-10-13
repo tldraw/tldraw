@@ -1,6 +1,6 @@
 import { BoxModel } from '@tldraw/tlschema'
 import { JsonValue } from '@tldraw/utils'
-import { SimpleShape } from '../format/SimpleShape'
+import { FocusedShape } from '../format/FocusedShape'
 import { AgentModelName } from '../models'
 import { ContextItem } from './ContextItem'
 
@@ -21,7 +21,7 @@ export interface AgentRequest {
 	/**
 	 * Any shapes that have been selected as part of this request.
 	 */
-	selectedShapes: SimpleShape[]
+	selectedShapes: FocusedShape[]
 
 	/**
 	 * Any extra data that has been retrieved as part of this request.

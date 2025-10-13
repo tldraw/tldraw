@@ -12,6 +12,7 @@ import {
 	ContextItem,
 	DEFAULT_MODEL_NAME,
 	FairyEntity,
+	FocusedShape,
 	getAgentActionUtilsRecord,
 	getPromptPartUtilsRecord,
 	TldrawFairyAgent as ITldrawFairyAgent,
@@ -20,7 +21,6 @@ import {
 	PromptPartUtil,
 	ShapeContextItem,
 	ShapesContextItem,
-	SimpleShape,
 	Streaming,
 	TldrawFairyAgentOptions,
 	TodoItem,
@@ -975,7 +975,7 @@ function dedupeShapesContextItem(
 		if (contextItem.type === 'shape') {
 			existingShapeIds.add(contextItem.shape.shapeId)
 		} else if (contextItem.type === 'shapes') {
-			contextItem.shapes.forEach((shape: SimpleShape) => {
+			contextItem.shapes.forEach((shape: FocusedShape) => {
 				existingShapeIds.add(shape.shapeId)
 			})
 		}

@@ -1,5 +1,5 @@
 import { buildResponseSchema } from '../actions/AgentActionUtils'
-import { getSimpleShapeSchemaNames } from '../format/SimpleShape'
+import { getFocusedShapeSchemaNames } from '../format/FocusedShape'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
 
@@ -17,7 +17,7 @@ export class SystemPromptPartUtil extends PromptPartUtil<SystemPromptPart> {
 	}
 }
 
-const shapeTypeNames = getSimpleShapeSchemaNames()
+const shapeTypeNames = getFocusedShapeSchemaNames()
 
 function getSystemPrompt() {
 	return `# System Prompt

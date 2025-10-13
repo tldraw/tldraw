@@ -3,8 +3,8 @@ import { BlurryShape } from './BlurryShape'
 import {
 	convertTldrawIdToSimpleId,
 	convertTldrawShapeToSimpleType,
-} from './convertTldrawShapeToSimpleShape'
-import { SimpleShape } from './SimpleShape'
+} from './convertTldrawShapeToFocusedShape'
+import { FocusedShape } from './FocusedShape'
 
 /**
  * Convert a tldraw shape to the blurry shape format
@@ -26,7 +26,7 @@ export function convertTldrawShapeToBlurryShape(
 		y: Math.round(bounds.y),
 		w: Math.round(bounds.w),
 		h: Math.round(bounds.h),
-		type: shapeType as SimpleShape['_type'],
+		type: shapeType as FocusedShape['_type'],
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text,
 	}

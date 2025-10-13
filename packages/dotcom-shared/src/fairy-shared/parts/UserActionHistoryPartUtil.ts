@@ -2,10 +2,10 @@ import { squashRecordDiffs } from '@tldraw/store'
 import { AgentHelpers } from '../AgentHelpers'
 import {
 	convertTldrawIdToSimpleId,
-	convertTldrawShapeToSimpleShape,
+	convertTldrawShapeToFocusedShape,
 	convertTldrawShapeToSimpleType,
-} from '../format/convertTldrawShapeToSimpleShape'
-import { SimpleShape } from '../format/SimpleShape'
+} from '../format/convertTldrawShapeToFocusedShape'
+import { FocusedShape } from '../format/FocusedShape'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
@@ -13,17 +13,17 @@ import { PromptPartUtil } from './PromptPartUtil'
 export interface UserActionHistoryPart extends BasePromptPart<'userActionHistory'> {
 	added: {
 		shapeId: string
-		type: SimpleShape['_type']
+		type: FocusedShape['_type']
 	}[]
 	removed: {
 		shapeId: string
-		type: SimpleShape['_type']
+		type: FocusedShape['_type']
 	}[]
 	updated: {
 		shapeId: string
-		type: SimpleShape['_type']
-		before: Partial<SimpleShape>
-		after: Partial<SimpleShape>
+		type: FocusedShape['_type']
+		before: Partial<FocusedShape>
+		after: Partial<FocusedShape>
 	}[]
 }
 
@@ -63,7 +63,7 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 		// Collect user-removed shapes
 		for (const shape of Object.values(removed)) {
 			if (shape.typeName !== 'shape') continue
-			const simpleShape = convertTldrawShapeToSimpleShape(editor, shape)
+			const simpleShape = convertTldrawShapeToFocusedShape(editor, shape)
 			part.removed.push({
 				shapeId: simpleShape.shapeId,
 				type: simpleShape._type,
@@ -73,8 +73,8 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 		// Collect user-updated shapes
 		for (const [from, to] of Object.values(updated)) {
 			if (from.typeName !== 'shape' || to.typeName !== 'shape') continue
-			const fromSimpleShape = convertTldrawShapeToSimpleShape(editor, from)
-			const toSimpleShape = convertTldrawShapeToSimpleShape(editor, to)
+			const fromSimpleShape = convertTldrawShapeToFocusedShape(editor, from)
+			const toSimpleShape = convertTldrawShapeToFocusedShape(editor, to)
 
 			const changeSimpleShape = getSimpleShapeChange(fromSimpleShape, toSimpleShape)
 			if (!changeSimpleShape) continue
@@ -112,17 +112,17 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
  * @param to - The new shape.
  * @returns The changed properties.
  */
-function getSimpleShapeChange<T extends SimpleShape['_type']>(
-	from: SimpleShape & { _type: T },
-	to: SimpleShape & { _type: T }
+function getSimpleShapeChange<T extends FocusedShape['_type']>(
+	from: FocusedShape & { _type: T },
+	to: FocusedShape & { _type: T }
 ) {
 	if (from._type !== to._type) {
 		return null
 	}
 
 	const change: {
-		from: Partial<SimpleShape>
-		to: Partial<SimpleShape>
+		from: Partial<FocusedShape>
+		to: Partial<FocusedShape>
 	} = {
 		from: {},
 		to: {},

@@ -6,7 +6,7 @@ import { SimpleGeoShapeTypeSchema } from './SimpleGeoShapeType'
 
 const SimpleLabel = z.string()
 
-export const SimpleGeoShape = z.object({
+export const FocusedGeoShape = z.object({
 	_type: SimpleGeoShapeTypeSchema,
 	color: SimpleColor,
 	fill: SimpleFillSchema,
@@ -20,9 +20,9 @@ export const SimpleGeoShape = z.object({
 	y: z.number(),
 })
 
-export type SimpleGeoShape = z.infer<typeof SimpleGeoShape>
+export type FocusedGeoShape = z.infer<typeof FocusedGeoShape>
 
-const SimpleLineShape = z.object({
+const FocusedLineShape = z.object({
 	_type: z.literal('line'),
 	color: SimpleColor,
 	note: z.string(),
@@ -33,9 +33,9 @@ const SimpleLineShape = z.object({
 	y2: z.number(),
 })
 
-export type SimpleLineShape = z.infer<typeof SimpleLineShape>
+export type FocusedLineShape = z.infer<typeof FocusedLineShape>
 
-const SimpleNoteShape = z.object({
+const FocusedNoteShape = z.object({
 	_type: z.literal('note'),
 	color: SimpleColor,
 	note: z.string(),
@@ -45,9 +45,9 @@ const SimpleNoteShape = z.object({
 	y: z.number(),
 })
 
-export type SimpleNoteShape = z.infer<typeof SimpleNoteShape>
+export type FocusedNoteShape = z.infer<typeof FocusedNoteShape>
 
-const SimpleTextShape = z.object({
+const FocusedTextShape = z.object({
 	_type: z.literal('text'),
 	color: SimpleColor,
 	fontSize: SimpleFontSize.optional(),
@@ -61,9 +61,9 @@ const SimpleTextShape = z.object({
 	y: z.number(),
 })
 
-export type SimpleTextShape = z.infer<typeof SimpleTextShape>
+export type FocusedTextShape = z.infer<typeof FocusedTextShape>
 
-const SimpleArrowShape = z.object({
+const FocusedArrowShape = z.object({
 	_type: z.literal('arrow'),
 	color: SimpleColor,
 	fromId: z.string().nullable(),
@@ -78,9 +78,9 @@ const SimpleArrowShape = z.object({
 	bend: z.number().optional(),
 })
 
-export type SimpleArrowShape = z.infer<typeof SimpleArrowShape>
+export type FocusedArrowShape = z.infer<typeof FocusedArrowShape>
 
-const SimpleDrawShape = z
+const FocusedDrawShape = z
 	.object({
 		_type: z.literal('draw'),
 		color: SimpleColor,
@@ -94,9 +94,9 @@ const SimpleDrawShape = z
 			'A draw shape is a freeform shape that was drawn by the pen tool. To create new draw shapes, the AI must use the pen event because it gives more control.',
 	})
 
-export type SimpleDrawShape = z.infer<typeof SimpleDrawShape>
+export type FocusedDrawShape = z.infer<typeof FocusedDrawShape>
 
-const SimpleUnknownShape = z
+const FocusedUnknownShape = z
 	.object({
 		_type: z.literal('unknown'),
 		note: z.string(),
@@ -111,36 +111,36 @@ const SimpleUnknownShape = z
 			"A special shape that is not represented by one of the canvas's core shape types. The AI cannot create these shapes, but it *can* interact with them. eg: The AI can move these shapes. The `subType` property contains the internal name of the shape's type.",
 	})
 
-export type SimpleUnknownShape = z.infer<typeof SimpleUnknownShape>
+export type FocusedUnknownShape = z.infer<typeof FocusedUnknownShape>
 
-const SIMPLE_SHAPES = [
-	SimpleDrawShape,
-	SimpleGeoShape,
-	SimpleLineShape,
-	SimpleTextShape,
-	SimpleArrowShape,
-	SimpleNoteShape,
-	SimpleUnknownShape,
+const FOCUSED_SHAPES = [
+	FocusedDrawShape,
+	FocusedGeoShape,
+	FocusedLineShape,
+	FocusedTextShape,
+	FocusedArrowShape,
+	FocusedNoteShape,
+	FocusedUnknownShape,
 ] as const
-export const SimpleShapeSchema = z.union(SIMPLE_SHAPES)
+export const FocusedShapeSchema = z.union(FOCUSED_SHAPES)
 
-export type SimpleShape = z.infer<typeof SimpleShapeSchema>
+export type FocusedShape = z.infer<typeof FocusedShapeSchema>
 
 /**
  * Extract all shape type names from the schema
  */
-export function getSimpleShapeSchemaNames() {
-	const typeNames: SimpleShape['_type'][] = []
+export function getFocusedShapeSchemaNames() {
+	const typeNames: FocusedShape['_type'][] = []
 
-	for (const shapeSchema of SIMPLE_SHAPES) {
+	for (const shapeSchema of FOCUSED_SHAPES) {
 		const typeField = shapeSchema.shape._type
 
 		if (typeField) {
-			// Handle ZodLiterals (like SimpleDrawShape)
+			// Handle ZodLiterals (like FocusedDrawShape)
 			if ('value' in typeField && typeof typeField.value === 'string') {
 				typeNames.push(typeField.value)
 			}
-			// Handle ZodEnums (like SimpleGeoShape)
+			// Handle ZodEnums (like FocusedGeoShape)
 			else if ('options' in typeField && Array.isArray(typeField.options)) {
 				typeNames.push(...typeField.options)
 			}

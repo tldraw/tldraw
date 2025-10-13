@@ -2,10 +2,10 @@ import { TLBindingId } from '@tldraw/editor'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import {
+	convertFocusedShapeToTldrawShape,
 	convertSimpleIdToTldrawId,
-	convertSimpleShapeToTldrawShape,
-} from '../format/convertSimpleShapeToTldrawShape'
-import { SimpleShapeSchema } from '../format/SimpleShape'
+} from '../format/convertFocusedShapeToTldrawShape'
+import { FocusedShapeSchema } from '../format/FocusedShape'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -13,7 +13,7 @@ const UpdateAction = z
 	.object({
 		_type: z.literal('update'),
 		intent: z.string(),
-		update: SimpleShapeSchema,
+		update: FocusedShapeSchema,
 	})
 	.meta({
 		title: 'Update',
@@ -77,7 +77,7 @@ export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
 			throw new Error(`Shape ${shapeId} not found in canvas`)
 		}
 
-		const result = convertSimpleShapeToTldrawShape(editor, action.update, {
+		const result = convertFocusedShapeToTldrawShape(editor, action.update, {
 			defaultShape: existingShape,
 		})
 

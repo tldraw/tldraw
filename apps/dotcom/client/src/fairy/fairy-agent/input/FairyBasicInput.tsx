@@ -1,4 +1,4 @@
-import { convertTldrawShapeToSimpleShape } from '@tldraw/dotcom-shared'
+import { convertTldrawShapeToFocusedShape } from '@tldraw/dotcom-shared'
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { Box, useValue } from 'tldraw'
 import { DEFAULT_FAIRY_VISION } from '../../constants'
@@ -39,7 +39,7 @@ export function FairyBasicInput({ agent }: { agent: TldrawFairyAgent }) {
 			// Prompt the agent
 			const selectedShapes = editor
 				.getSelectedShapes()
-				.map((shape) => convertTldrawShapeToSimpleShape(editor, shape))
+				.map((shape) => convertTldrawShapeToFocusedShape(editor, shape))
 
 			const fairyPosition = fairy.get().position
 
