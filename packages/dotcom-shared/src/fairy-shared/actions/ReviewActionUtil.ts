@@ -37,6 +37,7 @@ export class ReviewActionUtil extends AgentActionUtil<ReviewAction> {
 		return {
 			icon: null, //'search' as const,
 			description,
+			pose: 'thinking' as const,
 		}
 	}
 

@@ -1,5 +1,6 @@
 import {
 	AgentAction,
+	AgentActionInfo,
 	AgentActionUtil,
 	AgentHelpers,
 	AgentInput,
@@ -360,6 +361,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 		// Handle the scheduled request
 		this.$scheduledRequest.set(null)
 		await this.prompt(scheduledRequest)
+		this.$fairy.update((fairy) => ({ ...fairy, pose: 'idle' }))
 	}
 
 	/**
@@ -522,6 +524,9 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 		const { editor } = this
 		const util = this.getAgentActionUtil(action._type)
 		this.isActing = true
+
+		const actionInfo = this.getActionInfo(action)
+		this.$fairy.update((fairy) => ({ ...fairy, pose: actionInfo.pose }))
 
 		let promise: Promise<void> | null = null
 		let coordinates: { x: number; y: number } | undefined = undefined
@@ -744,6 +749,26 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 		}
 
 		return false
+	}
+
+	getActionInfo(action: Streaming<AgentAction>): AgentActionInfo {
+		const util = this.getAgentActionUtil(action._type)
+		const info = util.getInfo(action) ?? {}
+		const {
+			icon = null,
+			description = null,
+			summary = null,
+			canGroup = () => true,
+			pose = 'idle' as const,
+		} = info
+
+		return {
+			icon,
+			description,
+			summary,
+			canGroup,
+			pose,
+		}
 	}
 
 	moveFairyToBounds(bounds: BoxModel) {

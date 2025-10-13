@@ -1,8 +1,8 @@
 import { Editor } from '@tldraw/editor'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
+import { AgentActionInfo } from '../types/AgentActionInfo'
 import { BaseAgentAction } from '../types/BaseAgentAction'
-import { ChatHistoryInfo } from '../types/ChatHistoryInfo'
 import { Streaming } from '../types/Streaming'
 import { TldrawFairyAgent } from '../types/TldrawFairyAgent'
 
@@ -30,7 +30,7 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	 * Return null to not show anything.
 	 * Defaults to the stringified action if not set.
 	 */
-	getInfo(_action: Streaming<T>): Partial<ChatHistoryInfo> | null {
+	getInfo(_action: Streaming<T>): Partial<AgentActionInfo> | null {
 		return {}
 	}
 

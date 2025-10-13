@@ -25,7 +25,9 @@ export class TodoListActionUtil extends AgentActionUtil<TodoListAction> {
 
 	override getInfo() {
 		// Don't show todo actions in the chat history because we show them in the dedicated todo list UI
-		return null
+		return {
+			pose: 'thinking' as const,
+		}
 	}
 
 	override applyAction(action: Streaming<TodoListAction>) {

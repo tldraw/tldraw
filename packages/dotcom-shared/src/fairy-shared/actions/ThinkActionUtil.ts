@@ -28,18 +28,7 @@ export class ThinkActionUtil extends AgentActionUtil<ThinkAction> {
 			icon: null, //'brain' as const,
 			description: action.text ?? (action.complete ? 'Thinking...' : null),
 			summary,
-		}
-	}
-
-	override applyAction(action: Streaming<ThinkAction>) {
-		if (!this.agent) return
-
-		const fairy = this.agent.$fairy.get()
-		if (!fairy) return
-		if (!action.complete) {
-			this.agent.$fairy.set({ ...fairy, pose: 'thinking' })
-		} else {
-			this.agent.$fairy.set({ ...fairy, pose: 'idle' })
+			pose: 'thinking' as const,
 		}
 	}
 }

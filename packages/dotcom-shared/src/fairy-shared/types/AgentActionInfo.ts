@@ -1,11 +1,12 @@
 // import { AgentIconType } from '../../client/components/icons/AgentIcon'
 import { BaseAgentAction } from './BaseAgentAction'
+import { FairyPose } from './FairyPose'
 import { Streaming } from './Streaming'
 
 /**
  * Information on how the action should be displayed in chat history.
  */
-export interface ChatHistoryInfo {
+export interface AgentActionInfo {
 	/**
 	 * The icon to display in chat history.
 	 * Null to not show an icon.
@@ -33,4 +34,10 @@ export interface ChatHistoryInfo {
 	 * @returns Whether the action can be grouped with the other action
 	 */
 	canGroup(other: Streaming<BaseAgentAction>): boolean
+
+	/**
+	 * The pose to display when the action is applied.
+	 * Defaults to idle if not set.
+	 */
+	pose: FairyPose
 }
