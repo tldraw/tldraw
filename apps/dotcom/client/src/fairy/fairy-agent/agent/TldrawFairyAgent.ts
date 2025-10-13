@@ -30,7 +30,6 @@ import {
 	Atom,
 	atom,
 	Box,
-	BoxModel,
 	Editor,
 	fetch,
 	getFromLocalStorage,
@@ -45,7 +44,6 @@ import {
 } from 'tldraw'
 import { FAIRY_WORKER } from '../../../utils/config'
 import { DEFAULT_FAIRY_VISION } from '../../constants'
-import { scaleBoxFromCenter } from '../../utils/scaleBoxFromCenter'
 import { $fairyAgentsAtom } from './fairyAgentsAtom'
 
 /**
@@ -381,8 +379,6 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 	async request(input: AgentInput) {
 		const request = this.getFullRequestFromInput(input)
 
-		this.moveFairyToBounds(request.bounds)
-
 		// Interrupt any currently active request
 		if (this.$activeRequest.get() !== null) {
 			this.cancel()
@@ -512,7 +508,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 	 * Make the agent perform an action.
 	 * @param action The action to make the agent do.
 	 * @param helpers The helpers to use.
-	 * @returns The diff of the action, a promise for when the action is finished, and optional coordinates
+	 * @returns The diff of the action, a promise for when the action is finished
 	 */
 	act(
 		action: Streaming<AgentAction>,
@@ -529,19 +525,10 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 		this.$fairy.update((fairy) => ({ ...fairy, pose: actionInfo.pose }))
 
 		let promise: Promise<void> | null = null
-		let coordinates: { x: number; y: number } | undefined = undefined
 		let diff: RecordsDiff<TLRecord>
 		try {
 			diff = editor.store.extractingChanges(() => {
-				const actionResult = util.applyAction(structuredClone(action), helpers)
-				if (actionResult) {
-					// todo this logic probably gets extracted, esp once fairy stuff gets more complex than just moving it the fairy
-					promise = actionResult.promise ?? null
-					coordinates = actionResult.coordinates ?? undefined
-					if (coordinates) {
-						this.moveFairyToCoordinates(coordinates)
-					}
-				}
+				promise = util.applyAction(structuredClone(action), helpers) ?? null
 			})
 		} finally {
 			this.isActing = false
@@ -771,24 +758,12 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 		}
 	}
 
-	moveFairyToBounds(bounds: BoxModel) {
-		const smallerBounds = scaleBoxFromCenter(bounds, 0.5)
-
-		const x = smallerBounds.x + Math.random() * smallerBounds.w
-		const y = smallerBounds.y + Math.random() * smallerBounds.h
-
-		this.moveFairyToCoordinates({ x, y })
-	}
-
-	moveFairyToCoordinates(coordinates: VecModel) {
-		const x = coordinates.x
-		const y = coordinates.y
-
+	move(position: VecModel) {
 		this.$fairy.update((fairy) => {
-			const isMovingLeft = x < fairy.position.x
+			const isMovingLeft = position.x < fairy.position.x
 			return {
 				...fairy,
-				position: { x, y },
+				position,
 				flipX: isMovingLeft,
 			}
 		})

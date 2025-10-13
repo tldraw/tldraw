@@ -81,12 +81,10 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 			}
 		}
 
-		return {
-			coordinates: {
-				x: result.shape.x,
-				y: result.shape.y,
-			},
-		}
+		this.agent.move({
+			x: result.shape.x,
+			y: result.shape.y,
+		})
 	}
 }
 

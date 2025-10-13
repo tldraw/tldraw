@@ -53,11 +53,9 @@ export class LabelActionUtil extends AgentActionUtil<ILabelEvent> {
 			props: { richText: toRichText(action.text ?? '') },
 		})
 
-		return {
-			coordinates: {
-				x: shape.x,
-				y: shape.y,
-			},
-		}
+		this.agent.move({
+			x: shape.x,
+			y: shape.y,
+		})
 	}
 }

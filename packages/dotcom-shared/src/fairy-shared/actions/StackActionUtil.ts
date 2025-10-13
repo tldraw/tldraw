@@ -55,8 +55,6 @@ export class StackActionUtil extends AgentActionUtil<IAgentStackEvent> {
 			return
 		}
 
-		return {
-			coordinates: bounds.center,
-		}
+		this.agent.move(bounds.center)
 	}
 }

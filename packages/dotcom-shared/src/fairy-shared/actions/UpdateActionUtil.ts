@@ -103,11 +103,9 @@ export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
 			}
 		}
 
-		return {
-			coordinates: {
-				x: result.shape.x,
-				y: result.shape.y,
-			},
-		}
+		this.agent.move({
+			x: result.shape.x,
+			y: result.shape.y,
+		})
 	}
 }

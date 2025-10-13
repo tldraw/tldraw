@@ -50,8 +50,6 @@ export class DistributeActionUtil extends AgentActionUtil<DistributeAction> {
 			return
 		}
 
-		return {
-			coordinates: bounds.center,
-		}
+		this.agent.move(bounds.center)
 	}
 }

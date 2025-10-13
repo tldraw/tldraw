@@ -48,8 +48,6 @@ export class AlignActionUtil extends AgentActionUtil<AlignAction> {
 			return
 		}
 
-		return {
-			coordinates: bounds.center,
-		}
+		this.agent.move(bounds.center)
 	}
 }

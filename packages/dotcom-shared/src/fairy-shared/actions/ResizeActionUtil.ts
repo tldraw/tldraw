@@ -68,8 +68,6 @@ export class ResizeActionUtil extends AgentActionUtil<ResizeAction> {
 			)
 		}
 
-		return {
-			coordinates: origin,
-		}
+		this.agent.move(origin)
 	}
 }

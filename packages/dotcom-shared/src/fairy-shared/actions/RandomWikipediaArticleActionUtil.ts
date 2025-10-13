@@ -31,16 +31,16 @@ export class RandomWikipediaArticleActionUtil extends AgentActionUtil<RandomWiki
 		}
 	}
 
-	override applyAction(action: Streaming<RandomWikipediaArticleAction>, _helpers: AgentHelpers) {
+	override async applyAction(
+		action: Streaming<RandomWikipediaArticleAction>,
+		_helpers: AgentHelpers
+	) {
 		// Wait until the action has finished streaming
 		if (!action.complete) return
 		if (!this.agent) return
 
-		const promise = fetchRandomWikipediaArticle().then((data) => {
-			this.agent!.schedule({ data: [data] })
-		})
-
-		return { promise }
+		const article = await fetchRandomWikipediaArticle()
+		this.agent.schedule({ data: [article] })
 	}
 }
 

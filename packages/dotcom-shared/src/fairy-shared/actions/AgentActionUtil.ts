@@ -48,10 +48,7 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	 * Any changes that happen during this function will be displayed as a diff.
 	 * @returns An optional object containing a promise and/or coordinates to move the fairy to
 	 */
-	applyAction(
-		_action: Streaming<T>,
-		_helpers: AgentHelpers
-	): { promise?: Promise<void>; coordinates?: { x: number; y: number } } | void {
+	applyAction(_action: Streaming<T>, _helpers: AgentHelpers): Promise<void> | void {
 		// Do nothing by default
 	}
 

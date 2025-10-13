@@ -31,16 +31,13 @@ export class CountryInfoActionUtil extends AgentActionUtil<CountryInfoAction> {
 		}
 	}
 
-	override applyAction(action: Streaming<CountryInfoAction>) {
+	override async applyAction(action: Streaming<CountryInfoAction>) {
 		// Wait until the action has finished streaming
 		if (!action.complete) return
 		if (!this.agent) return
 
-		const promise = fetchCountryInfo(action.code).then((data) => {
-			this.agent!.schedule({ data: [data] })
-		})
-
-		return { promise }
+		const info = await fetchCountryInfo(action.code)
+		this.agent!.schedule({ data: [info] })
 	}
 }
 

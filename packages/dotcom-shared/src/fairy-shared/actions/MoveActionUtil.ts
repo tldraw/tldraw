@@ -77,11 +77,9 @@ export class MoveActionUtil extends AgentActionUtil<MoveAction> {
 			y: newTarget.y,
 		})
 
-		return {
-			coordinates: {
-				x: newTarget.x,
-				y: newTarget.y,
-			},
-		}
+		this.agent.move({
+			x: newTarget.x,
+			y: newTarget.y,
+		})
 	}
 }

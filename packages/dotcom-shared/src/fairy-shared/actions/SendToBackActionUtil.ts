@@ -51,8 +51,6 @@ export class SendToBackActionUtil extends AgentActionUtil<SendToBackAction> {
 			return
 		}
 
-		return {
-			coordinates: bounds.center,
-		}
+		this.agent.move(bounds.center)
 	}
 }

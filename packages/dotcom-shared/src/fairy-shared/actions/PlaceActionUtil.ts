@@ -113,8 +113,6 @@ export class PlaceActionUtil extends AgentActionUtil<PlaceAction> {
 			y,
 		})
 
-		return {
-			coordinates: { x, y },
-		}
+		this.agent.move({ x, y })
 	}
 }
