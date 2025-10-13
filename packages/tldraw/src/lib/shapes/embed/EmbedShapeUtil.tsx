@@ -226,7 +226,13 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 						}}
 					/>
 				) : (
-					<BookmarkShapeComponent url={url} h={h} rotation={pageRotation} assetId={null} />
+					<BookmarkShapeComponent
+						url={url}
+						h={h}
+						rotation={pageRotation}
+						assetId={null}
+						showImageContainer={false}
+					/>
 				)}
 			</HTMLContainer>
 		)

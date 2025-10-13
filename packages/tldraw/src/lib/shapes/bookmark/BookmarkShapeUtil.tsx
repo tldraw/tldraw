@@ -116,11 +116,13 @@ export function BookmarkShapeComponent({
 	rotation,
 	url,
 	h,
+	showImageContainer = true,
 }: {
 	assetId: TLAssetId | null
 	rotation: number
 	h: number
 	url: string
+	showImageContainer?: boolean
 }) {
 	const editor = useEditor()
 
@@ -152,7 +154,7 @@ export function BookmarkShapeComponent({
 					maxHeight: h,
 				}}
 			>
-				{(!asset || asset.props.image) && (
+				{showImageContainer && (!asset || asset.props.image) && (
 					<div className="tl-bookmark__image_container">
 						{asset ? (
 							<img
