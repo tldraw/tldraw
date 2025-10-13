@@ -1,6 +1,7 @@
 import { useValue } from '@tldraw/state-react'
 import React, { useEffect, useMemo } from 'react'
 import { RIGHT_MOUSE_BUTTON } from '../constants'
+import { tlenv } from '../globals/environment'
 import { preventDefault, releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/getPointerInfo'
 import { useEditor } from './useEditor'
@@ -162,7 +163,10 @@ export function useCanvasEvents() {
 			// we dispatch the coalesced events.
 			// N.B. Sometimes getCoalescedEvents isn't present on iOS, ugh.
 			const events =
-				currentTool.useCoalescedEvents && e.getCoalescedEvents ? e.getCoalescedEvents() : [e]
+				!tlenv.isIos && currentTool.useCoalescedEvents && e.getCoalescedEvents
+					? e.getCoalescedEvents()
+					: [e]
+
 			for (const singleEvent of events) {
 				editor.dispatch({
 					type: 'pointer',
