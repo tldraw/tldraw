@@ -131,6 +131,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 			position: { x: 0, y: 0 },
 			flipX: false,
 			isSelected: false,
+			pose: 'idle',
 		})
 
 		this.onError = onError

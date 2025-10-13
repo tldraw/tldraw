@@ -69,6 +69,14 @@ export class ReviewActionUtil extends AgentActionUtil<ReviewAction> {
 			message: getReviewMessage(action.intent),
 			contextItems: [contextArea],
 		})
+
+		const fairy = this.agent.$fairy.get()
+		if (!fairy) return
+		if (!action.complete) {
+			this.agent.$fairy.set({ ...fairy, pose: 'thinking' })
+		} else {
+			this.agent.$fairy.set({ ...fairy, pose: 'idle' })
+		}
 	}
 }
 

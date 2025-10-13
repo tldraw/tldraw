@@ -25,6 +25,7 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 
 	const flipX = useValue('fairy flipX', () => fairy.get().flipX, [fairy])
 	const isSelected = useValue('fairy isSelected', () => fairy.get().isSelected, [fairy])
+	const pose = useValue('fairy pose', () => fairy.get().pose, [fairy])
 
 	useEffect(() => {
 		// Deselect fairy when clicking outside
@@ -82,7 +83,7 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 			>
 				<div onClick={handleFairyClick}>
 					<FairySpriteComponent
-						pose="idle"
+						pose={pose}
 						outfit={{
 							body: 'plain',
 							hat: 'pointy',
