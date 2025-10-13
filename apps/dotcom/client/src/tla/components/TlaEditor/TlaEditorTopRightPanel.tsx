@@ -39,7 +39,7 @@ export function TlaEditorTopRightPanel({
 
 	if (isAnonUser) {
 		return (
-			<div ref={ref} className={classNames(styles.topRightPanel)}>
+			<div ref={ref} className={styles.topRightPanel}>
 				<PeopleMenu />
 				<SignedOutShareButton fileId={fileId} context={context} />
 				<SignInButton

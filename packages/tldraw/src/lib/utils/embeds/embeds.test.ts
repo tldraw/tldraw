@@ -276,6 +276,14 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		},
 	},
 	{
+		url: 'https://replit.com/@omar/Blob-Generator#index.html',
+		match: true,
+		output: {
+			type: 'replit',
+			embedUrl: `https://replit.com/@omar/Blob-Generator?embed=true#index.html`,
+		},
+	},
+	{
 		url: 'https://replit.com/foobar',
 		match: false,
 	},
@@ -597,6 +605,14 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 		output: {
 			type: 'replit',
 			url: `https://replit.com/@omar/Blob-Generator`,
+		},
+	},
+	{
+		embedUrl: 'https://replit.com/@omar/Blob-Generator?embed=true#index.html',
+		match: true,
+		output: {
+			type: 'replit',
+			url: `https://replit.com/@omar/Blob-Generator#index.html`,
 		},
 	},
 	{

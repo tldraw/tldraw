@@ -441,7 +441,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
-            assetId: null | TLAssetId;
+            assetId: TLAssetId | null;
             h: number;
             url: string;
             w: number;
@@ -461,7 +461,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
-            assetId: null | TLAssetId;
+            assetId: TLAssetId | null;
             h: number;
             url: string;
             w: number;
@@ -562,6 +562,15 @@ export interface CopyAsOptions extends TLImageExportOptions {
 
 // @public (undocumented)
 export function CopyMenuItem(): JSX_2.Element;
+
+// @public
+export function createBookmarkFromUrl(editor: Editor, { url, center, }: {
+    center?: {
+        x: number;
+        y: number;
+    };
+    url: string;
+}): Promise<Result<TLBookmarkShape, string>>;
 
 // @public (undocumented)
 export function createEmptyBookmarkShape(editor: Editor, url: string, position: VecLike): TLBookmarkShape;
