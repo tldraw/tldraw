@@ -15,7 +15,7 @@ const CreateAction = z
 		intent: z.string(),
 		shape: FocusedShapeSchema,
 	})
-	.meta({ title: 'Create', description: 'The AI creates a new shape.' })
+	.meta({ title: 'Create', description: 'The fairy creates a new shape.' })
 
 type CreateAction = z.infer<typeof CreateAction>
 

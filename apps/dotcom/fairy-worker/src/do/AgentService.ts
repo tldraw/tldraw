@@ -64,6 +64,8 @@ async function* streamActions(
 	const messages = buildMessages(prompt)
 	const systemPrompt = buildSystemPrompt(prompt) || 'You are a helpful assistant.'
 
+	console.warn('Messages:', logMessagesWithoutImages(messages))
+
 	try {
 		messages.push({
 			role: 'assistant',
@@ -153,4 +155,21 @@ async function* streamActions(
 		console.error('streamEventsVercel error:', error)
 		throw error
 	}
+}
+
+function logMessagesWithoutImages(messages: any[]): any[] {
+	return messages.map((message) => {
+		if (!message.content) return message
+
+		const content = Array.isArray(message.content)
+			? message.content.map((item: any) => {
+					if (item.type === 'image') {
+						return { ...item, image: '<IMAGE_DATA_REMOVED>' }
+					}
+					return item
+				})
+			: message.content
+
+		return { ...message, content: JSON.stringify(content, null, 2) }
+	})
 }

@@ -11,7 +11,7 @@ const DeleteAction = z
 		intent: z.string(),
 		shapeId: z.string(),
 	})
-	.meta({ title: 'Delete', description: 'The AI deletes a shape.' })
+	.meta({ title: 'Delete', description: 'The fairy deletes a shape.' })
 
 type DeleteAction = z.infer<typeof DeleteAction>
 

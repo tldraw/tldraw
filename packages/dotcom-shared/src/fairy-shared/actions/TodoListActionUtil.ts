@@ -11,7 +11,7 @@ const TodoListAction = z
 	})
 	.meta({
 		title: 'Update Todo List',
-		description: 'The AI updates a current todo list item or creates a new one',
+		description: 'The fairy updates a current todo list item or creates a new one',
 	})
 
 type TodoListAction = z.infer<typeof TodoListAction>

@@ -7,7 +7,7 @@ const MessageAction = z
 		_type: z.literal('message'),
 		text: z.string(),
 	})
-	.meta({ title: 'Message', description: 'The AI sends a message to the user.' })
+	.meta({ title: 'Message', description: 'The fairy sends a message to the user.' })
 
 type MessageAction = z.infer<typeof MessageAction>
 

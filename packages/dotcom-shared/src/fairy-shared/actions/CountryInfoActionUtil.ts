@@ -11,7 +11,7 @@ const CountryInfoAction = z
 	.meta({
 		title: 'Country info',
 		description:
-			'The AI gets information about a country by providing its country code, eg: "de" for Germany.',
+			'The fairy gets information about a country by providing its country code, eg: "de" for Germany.',
 	})
 
 type CountryInfoAction = z.infer<typeof CountryInfoAction>

@@ -17,7 +17,7 @@ const ResizeAction = z
 	.meta({
 		title: 'Resize',
 		description:
-			'The AI resizes one or more shapes, with the resize operation being performed relative to an origin point.',
+			'The fairy resizes one or more shapes, with the resize operation being performed relative to an origin point.',
 	})
 
 type ResizeAction = z.infer<typeof ResizeAction>

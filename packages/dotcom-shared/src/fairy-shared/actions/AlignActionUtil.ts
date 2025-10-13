@@ -12,7 +12,7 @@ const AlignAction = z
 		intent: z.string(),
 		shapeIds: z.array(z.string()),
 	})
-	.meta({ title: 'Align', description: 'The AI aligns shapes to each other on an axis.' })
+	.meta({ title: 'Align', description: 'The fairy aligns shapes to each other on an axis.' })
 
 type AlignAction = z.infer<typeof AlignAction>
 

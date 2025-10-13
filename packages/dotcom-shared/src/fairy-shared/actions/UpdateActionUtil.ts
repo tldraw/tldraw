@@ -17,7 +17,7 @@ const UpdateAction = z
 	})
 	.meta({
 		title: 'Update',
-		description: 'The AI updates an existing shape.',
+		description: 'The fairy updates an existing shape.',
 	})
 
 type UpdateAction = z.infer<typeof UpdateAction>

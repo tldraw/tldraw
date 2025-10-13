@@ -12,6 +12,7 @@ import { DistributeActionUtil } from '../actions/DistributeActionUtil'
 import { LabelActionUtil } from '../actions/LabelActionUtil'
 import { MessageActionUtil } from '../actions/MessageActionUtil'
 import { MoveActionUtil } from '../actions/MoveActionUtil'
+import { NoteToSelfActionUtil } from '../actions/NoteToSelfActionUtil'
 import { PenActionUtil } from '../actions/PenActionUtil'
 import { PlaceActionUtil } from '../actions/PlaceActionUtil'
 import { RandomWikipediaArticleActionUtil } from '../actions/RandomWikipediaArticleActionUtil'
@@ -19,7 +20,6 @@ import { ResizeActionUtil } from '../actions/ResizeActionUtil'
 import { ReviewActionUtil } from '../actions/ReviewActionUtil'
 import { RotateActionUtil } from '../actions/RotateActionUtil'
 import { SendToBackActionUtil } from '../actions/SendToBackActionUtil'
-import { SetMyViewActionUtil } from '../actions/SetMyViewActionUtil'
 import { StackActionUtil } from '../actions/StackActionUtil'
 import { ThinkActionUtil } from '../actions/ThinkActionUtil'
 import { TodoListActionUtil } from '../actions/TodoListActionUtil'
@@ -28,6 +28,7 @@ import { UpdateActionUtil } from '../actions/UpdateActionUtil'
 import { AgentAction } from '../types/AgentAction'
 import { BaseAgentAction } from '../types/BaseAgentAction'
 import { TldrawFairyAgent } from '../types/TldrawFairyAgent'
+import { FlyToBoundsActionUtil } from './FlyToBoundsActionUtil'
 
 /**
  * Agent actions determine what actions the agent can take.
@@ -44,7 +45,8 @@ export const AGENT_ACTION_UTILS = [
 	ReviewActionUtil,
 	AddDetailActionUtil,
 	TodoListActionUtil,
-	SetMyViewActionUtil,
+	FlyToBoundsActionUtil,
+	NoteToSelfActionUtil,
 
 	// Individual shapes
 	CreateActionUtil,

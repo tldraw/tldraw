@@ -7,7 +7,7 @@ const ThinkAction = z
 		_type: z.literal('think'),
 		text: z.string(),
 	})
-	.meta({ title: 'Think', description: 'The AI describes its intent or reasoning.' })
+	.meta({ title: 'Think', description: 'The fairy describes its intent or reasoning.' })
 
 type ThinkAction = z.infer<typeof ThinkAction>
 
