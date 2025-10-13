@@ -1,13 +1,13 @@
 import { structuredClone } from '@tldraw/utils'
 import { AgentHelpers } from '../AgentHelpers'
-import { convertTldrawShapeToSimpleShape } from '../format/convertTldrawShapeToSimpleShape'
-import { SimpleShape } from '../format/SimpleShape'
+import { convertTldrawShapeToFocusedShape } from '../format/convertTldrawShapeToFocusedShape'
+import { FocusedShape } from '../format/FocusedShape'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export interface SelectedShapesPart extends BasePromptPart<'selectedShapes'> {
-	shapes: SimpleShape[] | null
+	shapes: FocusedShape[] | null
 }
 
 export class SelectedShapesPartUtil extends PromptPartUtil<SelectedShapesPart> {
@@ -23,10 +23,10 @@ export class SelectedShapesPartUtil extends PromptPartUtil<SelectedShapesPart> {
 
 		const userSelectedShapes = editor.getSelectedShapes().map((v) => structuredClone(v)) ?? []
 
-		const simpleShapes: SimpleShape[] = []
+		const simpleShapes: FocusedShape[] = []
 		for (const shape of userSelectedShapes) {
 			if (!shape) continue
-			const simpleShape = convertTldrawShapeToSimpleShape(editor, shape)
+			const simpleShape = convertTldrawShapeToFocusedShape(editor, shape)
 			if (simpleShape) {
 				simpleShapes.push(simpleShape)
 			}

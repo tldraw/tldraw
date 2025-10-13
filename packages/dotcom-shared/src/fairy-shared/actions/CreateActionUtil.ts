@@ -2,10 +2,10 @@ import { IndexKey, toRichText } from '@tldraw/editor'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import {
-	convertSimpleShapeToTldrawShape,
+	convertFocusedShapeToTldrawShape,
 	SIMPLE_TO_GEO_TYPES,
-} from '../format/convertSimpleShapeToTldrawShape'
-import { SimpleShape, SimpleShapeSchema } from '../format/SimpleShape'
+} from '../format/convertFocusedShapeToTldrawShape'
+import { FocusedShape, FocusedShapeSchema } from '../format/FocusedShape'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -13,7 +13,7 @@ const CreateAction = z
 	.object({
 		_type: z.literal('create'),
 		intent: z.string(),
-		shape: SimpleShapeSchema,
+		shape: FocusedShapeSchema,
 	})
 	.meta({ title: 'Create', description: 'The AI creates a new shape.' })
 
@@ -62,7 +62,7 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 		// Translate the shape back to the chat's position
 		action.shape = helpers.removeOffsetFromShape(action.shape)
 
-		const result = convertSimpleShapeToTldrawShape(editor, action.shape, {
+		const result = convertFocusedShapeToTldrawShape(editor, action.shape, {
 			defaultShape: getDefaultShape(action.shape._type),
 		})
 
@@ -90,7 +90,7 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 	}
 }
 
-function getDefaultShape(shapeType: SimpleShape['_type']) {
+function getDefaultShape(shapeType: FocusedShape['_type']) {
 	const isGeo = shapeType in SIMPLE_TO_GEO_TYPES
 	return isGeo
 		? SHAPE_DEFAULTS.geo

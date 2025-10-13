@@ -1,7 +1,7 @@
 import { RecordsDiff } from '@tldraw/store'
 import { TLRecord } from '@tldraw/tlschema'
 import { JsonValue } from '@tldraw/utils'
-import { SimpleShape } from '../format/SimpleShape'
+import { FocusedShape } from '../format/FocusedShape'
 import { AgentAction } from './AgentAction'
 import { ContextItem } from './ContextItem'
 import { Streaming } from './Streaming'
@@ -18,7 +18,7 @@ export interface ChatHistoryPromptItem {
 	type: 'prompt'
 	message: string
 	contextItems: ContextItem[]
-	selectedShapes: SimpleShape[]
+	selectedShapes: FocusedShape[]
 }
 
 /**

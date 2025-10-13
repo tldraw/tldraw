@@ -47,16 +47,16 @@ export * from './parts/ViewportBoundsPartUtil'
 
 // Format
 export type * from './format/BlurryShape'
-export * from './format/convertSimpleShapeToTldrawShape'
+export * from './format/convertFocusedShapeToTldrawShape'
 export * from './format/convertTldrawShapesToPeripheralShapes'
 export * from './format/convertTldrawShapeToBlurryShape'
-export * from './format/convertTldrawShapeToSimpleShape'
+export * from './format/convertTldrawShapeToFocusedShape'
+export * from './format/FocusedShape'
 export type * from './format/PeripheralShapesCluster'
 export * from './format/SimpleColor'
 export * from './format/SimpleFill'
 export * from './format/SimpleFontSize'
 export * from './format/SimpleGeoShapeType'
-export * from './format/SimpleShape'
 
 // Types (these are type-only exports)
 export type * from './types/AgentAction'
