@@ -64,8 +64,6 @@ async function* streamActions(
 	const messages = buildMessages(prompt)
 	const systemPrompt = buildSystemPrompt(prompt) || 'You are a helpful assistant.'
 
-	console.warn('Messages:', logMessagesWithoutImages(messages))
-
 	try {
 		messages.push({
 			role: 'assistant',
