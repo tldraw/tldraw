@@ -40,6 +40,7 @@ export function MenuClickCapture() {
 					isDragging: false,
 					start: new Vec(e.clientX, e.clientY),
 				}
+				rDidAPointerDownAndDragWhileMenuWasOpen.current = false
 			}
 			editor.menus.clearOpenMenus()
 		},
