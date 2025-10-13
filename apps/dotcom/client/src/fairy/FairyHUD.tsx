@@ -70,6 +70,7 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 					asChild
 				>
 					<TldrawUiToolbarToggleItem
+						className="fairy-toggle-button"
 						onClick={handleToggle}
 						type="icon"
 						data-state={isSelected ? 'on' : 'off'}
