@@ -1382,6 +1382,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     getEmbedDefinitions(): readonly TLEmbedDefinition[];
     // (undocumented)
+    getGeometry(shape: TLEmbedShape): Geometry2d;
+    // (undocumented)
     getInterpolatedProps(startShape: TLEmbedShape, endShape: TLEmbedShape, t: number): TLEmbedShapeProps;
     // (undocumented)
     getText(shape: TLEmbedShape): string;

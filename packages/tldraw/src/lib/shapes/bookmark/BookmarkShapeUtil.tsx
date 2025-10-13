@@ -25,9 +25,9 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { LINK_ICON } from '../shared/icons-editor'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
-const BOOKMARK_WIDTH = 300
+export const BOOKMARK_WIDTH = 300
 const BOOKMARK_HEIGHT = 320
-const BOOKMARK_JUST_URL_HEIGHT = 46
+export const BOOKMARK_JUST_URL_HEIGHT = 46
 const SHORT_BOOKMARK_HEIGHT = 101
 
 /** @public */
