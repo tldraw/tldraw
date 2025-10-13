@@ -171,6 +171,14 @@ export class LicenseManager {
 		url.searchParams.set('license_type', trackType)
 		if ('license' in result) {
 			url.searchParams.set('license_id', result.license.id)
+			const sku = this.isFlagEnabled(result.license.flags, FLAGS.EVALUATION_LICENSE)
+				? 'evaluation'
+				: this.isFlagEnabled(result.license.flags, FLAGS.ANNUAL_LICENSE)
+					? 'annual'
+					: this.isFlagEnabled(result.license.flags, FLAGS.PERPETUAL_LICENSE)
+						? 'perpetual'
+						: 'unknown'
+			url.searchParams.set('sku', sku)
 		}
 		if (process.env.NODE_ENV) {
 			url.searchParams.set('environment', process.env.NODE_ENV)

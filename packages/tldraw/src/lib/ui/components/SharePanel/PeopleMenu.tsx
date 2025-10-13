@@ -1,6 +1,8 @@
 import { useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
 import { Popover as _Popover } from 'radix-ui'
 import { ReactNode } from 'react'
+import { PORTRAIT_BREAKPOINT } from '../../constants'
+import { useBreakpoint } from '../../context/breakpoints'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { PeopleMenuAvatar } from './PeopleMenuAvatar'
@@ -25,6 +27,8 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 	const userName = useValue('user', () => editor.user.getName(), [editor])
 
 	const [isOpen, onOpenChange] = useMenuIsOpen('people menu')
+	const breakpoint = useBreakpoint()
+	const maxAvatars = breakpoint <= PORTRAIT_BREAKPOINT.MOBILE_XS ? 1 : 5
 
 	if (!userIds.length) return null
 
@@ -33,7 +37,7 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 			<_Popover.Trigger dir="ltr" asChild>
 				<button className="tlui-people-menu__avatars-button" title={msg('people-menu.title')}>
 					<div className="tlui-people-menu__avatars">
-						{userIds.slice(-5).map((userId) => (
+						{userIds.slice(-maxAvatars).map((userId) => (
 							<PeopleMenuAvatar key={userId} userId={userId} />
 						))}
 						{userIds.length > 0 && (
@@ -46,7 +50,7 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 								{userName?.[0] ?? ''}
 							</div>
 						)}
-						{userIds.length > 5 && <PeopleMenuMore count={userIds.length - 5} />}
+						{userIds.length > maxAvatars && <PeopleMenuMore count={userIds.length - maxAvatars} />}
 					</div>
 				</button>
 			</_Popover.Trigger>

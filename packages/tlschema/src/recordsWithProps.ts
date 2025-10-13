@@ -11,18 +11,78 @@ import { MakeUndefinedOptional, assert } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { SchemaPropsInfo } from './createTLSchema'
 
-/** @public */
+/**
+ * Maps a record's property types to their corresponding validators.
+ *
+ * This utility type takes a record type with a `props` object and creates
+ * a mapping where each property key maps to a validator for that property's type.
+ * This is used to define validation schemas for record properties.
+ *
+ * @example
+ * ```ts
+ * interface MyShape extends TLBaseShape<'custom', { width: number; color: string }> {}
+ *
+ * // Define validators for the shape properties
+ * const myShapeProps: RecordProps<MyShape> = {
+ *   width: T.number,
+ *   color: T.string
+ * }
+ * ```
+ *
+ * @public
+ */
 export type RecordProps<R extends UnknownRecord & { props: object }> = {
 	[K in keyof R['props']]: T.Validatable<R['props'][K]>
 }
 
-/** @public */
+/**
+ * Extracts the TypeScript types from a record properties configuration.
+ *
+ * Takes a configuration object where values are validators and returns the
+ * corresponding TypeScript types, with undefined values made optional.
+ *
+ * @example
+ * ```ts
+ * const shapePropsConfig = {
+ *   width: T.number,
+ *   height: T.number,
+ *   color: T.optional(T.string)
+ * }
+ *
+ * type ShapeProps = RecordPropsType<typeof shapePropsConfig>
+ * // Result: { width: number; height: number; color?: string }
+ * ```
+ *
+ * @public
+ */
 export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> =
 	MakeUndefinedOptional<{
 		[K in keyof Config]: T.TypeOf<Config[K]>
 	}>
 
 /**
+ * A migration definition for shape or record properties.
+ *
+ * Defines how to transform record properties when migrating between schema versions.
+ * Each migration has an `up` function to upgrade data and an optional `down` function
+ * to downgrade data if needed.
+ *
+ * @example
+ * ```ts
+ * const addColorMigration: TLPropsMigration = {
+ *   id: 'com.myapp.shape.custom/1.0.0',
+ *   up: (props) => {
+ *     // Add a default color property
+ *     return { ...props, color: 'black' }
+ *   },
+ *   down: (props) => {
+ *     // Remove the color property
+ *     const { color, ...rest } = props
+ *     return rest
+ *   }
+ * }
+ * ```
+ *
  * @public
  */
 export interface TLPropsMigration {
@@ -43,12 +103,57 @@ export interface TLPropsMigration {
 }
 
 /**
+ * A sequence of property migrations for a record type.
+ *
+ * Contains an ordered array of migrations that should be applied to transform
+ * record properties from one version to another. Migrations can include both
+ * property-specific migrations and standalone dependency declarations.
+ *
+ * @example
+ * ```ts
+ * const myShapeMigrations: TLPropsMigrations = {
+ *   sequence: [
+ *     {
+ *       id: 'com.myapp.shape.custom/1.0.0',
+ *       up: (props) => ({ ...props, version: 1 })
+ *     },
+ *     {
+ *       id: 'com.myapp.shape.custom/2.0.0',
+ *       up: (props) => ({ ...props, newFeature: true })
+ *     }
+ *   ]
+ * }
+ * ```
+ *
  * @public
  */
 export interface TLPropsMigrations {
 	readonly sequence: Array<StandaloneDependsOn | TLPropsMigration>
 }
 
+/**
+ * Processes property migrations for all record types in a schema.
+ *
+ * Takes a collection of record configurations and converts their migrations
+ * into proper migration sequences that can be used by the store system.
+ * Handles different migration formats including legacy migrations.
+ *
+ * @param typeName - The base type name for the records (e.g., 'shape', 'binding')
+ * @param records - Record of type names to their schema configuration
+ * @returns Array of processed migration sequences
+ *
+ * @example
+ * ```ts
+ * const shapeRecords = {
+ *   geo: { props: geoProps, migrations: geoMigrations },
+ *   arrow: { props: arrowProps, migrations: arrowMigrations }
+ * }
+ *
+ * const sequences = processPropsMigrations('shape', shapeRecords)
+ * ```
+ *
+ * @internal
+ */
 export function processPropsMigrations<R extends UnknownRecord & { type: string; props: object }>(
 	typeName: R['typeName'],
 	records: Record<string, SchemaPropsInfo>
@@ -118,6 +223,30 @@ export function processPropsMigrations<R extends UnknownRecord & { type: string;
 	return result
 }
 
+/**
+ * Creates a store migration from a props migration definition.
+ *
+ * Converts a high-level property migration into a low-level store migration
+ * that can be applied to records. The resulting migration will only affect
+ * records of the specified type and subtype.
+ *
+ * @param typeName - The base type name (e.g., 'shape', 'binding')
+ * @param subType - The specific subtype (e.g., 'geo', 'arrow')
+ * @param m - The property migration definition
+ * @returns A store migration that applies the property transformation
+ *
+ * @example
+ * ```ts
+ * const propsMigration: TLPropsMigration = {
+ *   id: 'com.myapp.shape.custom/1.0.0',
+ *   up: (props) => ({ ...props, color: 'blue' })
+ * }
+ *
+ * const storeMigration = createPropsMigration('shape', 'custom', propsMigration)
+ * ```
+ *
+ * @internal
+ */
 export function createPropsMigration<R extends UnknownRecord & { type: string; props: object }>(
 	typeName: R['typeName'],
 	subType: R['type'],
