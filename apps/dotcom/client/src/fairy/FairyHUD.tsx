@@ -5,9 +5,9 @@ import {
 	useValue,
 } from 'tldraw'
 import { defineMessages, useMsg } from '../tla/utils/i18n'
-import { FairySprite } from './FairySprite'
-import { FairyBasicInput } from './fairy-agent/input/FairyBasicInput'
 import { TldrawFairyAgent } from './fairy-agent/agent/TldrawFairyAgent'
+import { FairyBasicInput } from './fairy-agent/input/FairyBasicInput'
+import { FairySpriteComponent } from './fairy-sprite/FairySprite'
 
 const fairyMessages = defineMessages({
 	toolbar: { defaultMessage: 'Fairies' },
@@ -56,11 +56,13 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 					<FairyBasicInput agent={agent} />
 				</div>
 			)}
-			<TldrawUiToolbar label={toolbarMessage}
-						style={{
-							borderRadius: 'var(--tl-radius-2)',
-							boxShadow: 'var(--tl-shadow-1)',
-						}}>
+			<TldrawUiToolbar
+				label={toolbarMessage}
+				style={{
+					borderRadius: 'var(--tl-radius-2)',
+					boxShadow: 'var(--tl-shadow-1)',
+				}}
+			>
 				<TldrawUiToolbarToggleGroup
 					// TODO: do multiple later
 					type="single"
@@ -75,20 +77,16 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 						aria-label={isSelected ? deselectMessage : selectMessage}
 						value="on"
 					>
-						<FairySprite
+						{/* <div style={{ width: '20px', height: '20px' }}> */}
+						<FairySpriteComponent
 							pose="idle"
 							outfit={{
-								body: 'default',
-								eyes: 'default',
-								hat: 'default',
-								mouth: 'default',
-								wand: 'default',
-								wings: 'default',
-								arms: 'default',
-								legs: 'default',
-								head: 'default',
+								body: 'plain',
+								hat: 'pointy',
+								wings: 'plain',
 							}}
 						/>
+						{/* </div> */}
 					</TldrawUiToolbarToggleItem>
 				</TldrawUiToolbarToggleGroup>
 			</TldrawUiToolbar>

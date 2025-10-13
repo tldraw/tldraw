@@ -1,7 +1,7 @@
 import { FairyEntity } from '@tldraw/dotcom-shared'
 import { useEffect, useRef } from 'react'
 import { Atom, useEditor, useValue } from 'tldraw'
-import { FairySprite } from './FairySprite'
+import { FairySpriteComponent } from './fairy-sprite/FairySprite'
 
 export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 	const editor = useEditor()
@@ -81,18 +81,12 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 				className={isSelected ? 'fairy-selected' : ''}
 			>
 				<div onClick={handleFairyClick}>
-					<FairySprite
+					<FairySpriteComponent
 						pose="idle"
 						outfit={{
-							body: 'default',
-							eyes: 'default',
-							hat: 'default',
-							mouth: 'default',
-							wand: 'default',
-							wings: 'default',
-							arms: 'default',
-							legs: 'default',
-							head: 'default',
+							body: 'plain',
+							hat: 'pointy',
+							wings: 'plain',
 						}}
 					/>
 				</div>
