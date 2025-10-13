@@ -4,7 +4,7 @@ import { assertExists, uniqueId } from '@tldraw/utils'
 import { Vec } from '../../../primitives/Vec'
 import { Geometry2d } from '../../../primitives/geometry/Geometry2d'
 import { Editor } from '../../Editor'
-import { SnapData, SnapManager } from './SnapManager'
+import { PointsSnapIndicator, SnapData, SnapManager } from './SnapManager'
 
 /**
  * When dragging a handle, users can snap the handle to key geometry on other nearby shapes.
@@ -41,6 +41,11 @@ export interface HandleSnapGeometry {
 	 * self-snapping.
 	 */
 	getSelfSnapPoints?(handle: TLHandle): VecModel[]
+}
+
+interface AlignPointsSnap {
+	snaps: PointsSnapIndicator[]
+	nudge: Vec
 }
 
 const defaultGetSelfSnapOutline = () => null
@@ -171,6 +176,67 @@ export class HandleSnaps {
 		return null
 	}
 
+	private getHandleSnapData({
+		handle,
+		currentShapeId,
+	}: {
+		handle: TLHandle
+		currentShapeId: TLShapeId
+	}): AlignPointsSnap | null {
+		const snapThreshold = this.manager.getSnapThreshold()
+		const currentShapeTransform = assertExists(this.editor.getShapePageTransform(currentShapeId))
+		const handleInPageSpace = currentShapeTransform.applyToPoint(handle)
+
+		let nearestXSnap: Vec | null = null
+		let nearestYSnap: Vec | null = null
+		let minOffsetX = snapThreshold
+		let minOffsetY = snapThreshold
+
+		for (const snapPoint of this.iterateSnapPointsInPageSpace(currentShapeId, handle)) {
+			const offsetX = Math.abs(handleInPageSpace.x - snapPoint.x)
+			const offsetY = Math.abs(handleInPageSpace.y - snapPoint.y)
+			if (offsetX < minOffsetX) {
+				minOffsetX = offsetX
+				nearestXSnap = snapPoint
+			}
+			if (offsetY < minOffsetY) {
+				minOffsetY = offsetY
+				nearestYSnap = snapPoint
+			}
+		}
+
+		if (!nearestXSnap && !nearestYSnap) {
+			return null
+		}
+
+		const nudge = new Vec(
+			nearestXSnap ? nearestXSnap.x - handleInPageSpace.x : 0,
+			nearestYSnap ? nearestYSnap.y - handleInPageSpace.y : 0
+		)
+
+		const snappedHandle = Vec.Add(handleInPageSpace, nudge)
+		const snaps: PointsSnapIndicator[] = []
+
+		if (nearestXSnap) {
+			const snappedHandleOnX = new Vec(nearestXSnap.x, snappedHandle.y)
+			snaps.push({
+				id: uniqueId(),
+				type: 'points',
+				points: [nearestXSnap, snappedHandleOnX],
+			})
+		}
+		if (nearestYSnap) {
+			const snappedHandleOnY = new Vec(snappedHandle.x, nearestYSnap.y)
+			snaps.push({
+				id: uniqueId(),
+				type: 'points',
+				points: [nearestYSnap, snappedHandleOnY],
+			})
+		}
+
+		return { snaps, nudge }
+	}
+
 	snapHandle({
 		currentShapeId,
 		handle,
@@ -180,10 +246,16 @@ export class HandleSnaps {
 	}): SnapData | null {
 		const currentShapeTransform = assertExists(this.editor.getShapePageTransform(currentShapeId))
 		const handleInPageSpace = currentShapeTransform.applyToPoint(handle)
-		const snapPosition = this.getHandleSnapPosition({ currentShapeId, handle, handleInPageSpace })
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		const snapType = handle.canSnap ? 'point' : handle.snapType
 
-		// If we found a point, display snap lines, and return the nudge
-		if (snapPosition) {
+		if (snapType === 'point') {
+			const snapPosition = this.getHandleSnapPosition({ currentShapeId, handle, handleInPageSpace })
+
+			if (!snapPosition) {
+				return null
+			}
+
 			this.manager.setIndicators([
 				{
 					id: uniqueId(),
@@ -193,6 +265,21 @@ export class HandleSnaps {
 			])
 
 			return { nudge: Vec.Sub(snapPosition, handleInPageSpace) }
+		}
+
+		if (snapType === 'align') {
+			const snapData = this.getHandleSnapData({
+				handle,
+				currentShapeId,
+			})
+
+			if (!snapData) {
+				return null
+			}
+
+			this.manager.setIndicators(snapData.snaps)
+
+			return { nudge: snapData.nudge }
 		}
 
 		return null

@@ -1,0 +1,117 @@
+.shader-example-toggle {
+	z-index: 1000;
+	margin: 4px;
+	overflow: hidden;
+	color: var(--tl-color-text);
+	background-color: var(--tl-color-background);
+}
+
+.shader-canvas {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 1000;
+	background-color: var(--tl-color-background);
+}
+
+/* Pixelated rendering - nearest-neighbor instead of smooth interpolation */
+.shader-canvas-pixelated {
+	image-rendering: pixelated;
+	image-rendering: -moz-crisp-edges;
+	image-rendering: crisp-edges;
+}
+
+.shader-app {
+	position: fixed;
+	inset: 0;
+}
+
+.shader-app .shader-config-panel {
+	width: fit-content;
+	max-width: none;
+	z-index: 1000;
+	pointer-events: all;
+	font-size: 12px;
+	color: var(--color-text);
+}
+
+.shader-app .shader-config-panel--expanded {
+	height: fit-content;
+	min-width: 220px;
+	max-height: 600px;
+	overflow-y: auto;
+}
+
+.shader-app .shader-config-panel--collapsed {
+	height: min-content;
+	overflow-y: visible;
+}
+
+.shader-app .shader-config-header {
+	display: flex;
+	align-items: center;
+	z-index: 200;
+	justify-content: space-between;
+	gap: var(--tl-space-3);
+	color: var(--color-text);
+	border-bottom: 1px solid var(--color-muted-2);
+	cursor: pointer;
+}
+
+.shader-app .shader-config-chevron {
+	padding: var(--tl-space-4);
+}
+
+.shader-app .shader-config-content {
+	height: fit-content;
+	padding: 0;
+}
+
+.shader-app .shader-reset-container {
+	margin-bottom: 16px;
+	padding-left: var(--tl-space-4);
+	padding-right: var(--tl-space-4);
+}
+
+.shader-app .shader-reset-button {
+	width: 100%;
+	height: 32px;
+	background-color: var(--color-accent);
+	color: white;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 12px;
+	font-weight: bold;
+}
+
+.shader-app .shader-reset-button:hover {
+	opacity: 0.8;
+}
+
+.shader-app .shader-slider-container {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+}
+
+.shader-app .shader-boolean-control {
+	align-items: center;
+	cursor: pointer;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	padding: 0 var(--tl-space-4);
+	height: 40px;
+}
+
+.shader-app .shader-boolean-input {
+	accent-color: var(--color-accent);
+}
+
+.shader-app .shader-panel-label {
+	height: 20px;
+	padding: var(--tl-space-4);
+	font-family: var(--tl-font-mono);
+}

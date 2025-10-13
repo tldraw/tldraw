@@ -18,6 +18,9 @@
 		"toucan-js": "^3.4.0",
 		"typescript": "^5.8.3"
 	},
+	"devDependencies": {
+		"vitest": "^3.2.4"
+	},
 	"scripts": {
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test": "yarn run -T vitest --passWithNoTests",

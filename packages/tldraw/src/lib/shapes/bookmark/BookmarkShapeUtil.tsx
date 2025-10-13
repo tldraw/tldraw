@@ -1,17 +1,12 @@
 import {
-	AssetRecordType,
 	BaseBoxShapeUtil,
-	Editor,
 	HTMLContainer,
 	T,
-	TLAssetId,
 	TLBookmarkAsset,
 	TLBookmarkShape,
 	TLBookmarkShapeProps,
 	bookmarkShapeMigrations,
 	bookmarkShapeProps,
-	debounce,
-	getHashForString,
 	lerp,
 	tlenv,
 	toDomPrecision,
@@ -24,11 +19,13 @@ import { convertCommonTitleHTMLEntities } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { LINK_ICON } from '../shared/icons-editor'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
-
-const BOOKMARK_WIDTH = 300
-const BOOKMARK_HEIGHT = 320
-const BOOKMARK_JUST_URL_HEIGHT = 46
-const SHORT_BOOKMARK_HEIGHT = 101
+import {
+	BOOKMARK_HEIGHT,
+	BOOKMARK_WIDTH,
+	getHumanReadableAddress,
+	setBookmarkHeight,
+	updateBookmarkAssetOnUrlChange,
+} from './bookmarks'
 
 /** @public */
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
@@ -86,7 +83,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	}
 
 	override onBeforeCreate(next: TLBookmarkShape) {
-		return getBookmarkSize(this.editor, next)
+		return setBookmarkHeight(this.editor, next)
 	}
 
 	override onBeforeUpdate(prev: TLBookmarkShape, shape: TLBookmarkShape) {
@@ -99,7 +96,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 		}
 
 		if (prev.props.assetId !== shape.props.assetId) {
-			return getBookmarkSize(this.editor, shape)
+			return setBookmarkHeight(this.editor, shape)
 		}
 	}
 	override getInterpolatedProps(
@@ -168,9 +165,19 @@ function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
 				)}
 				<div className="tl-bookmark__copy_container">
 					{asset?.props.title ? (
-						<h2 className="tl-bookmark__heading">
-							{convertCommonTitleHTMLEntities(asset.props.title)}
-						</h2>
+						<a
+							className="tl-bookmark__link"
+							href={shape.props.url || ''}
+							target="_blank"
+							rel="noopener noreferrer"
+							draggable={false}
+							onPointerDown={markAsHandledOnShiftKey}
+							onPointerUp={markAsHandledOnShiftKey}
+						>
+							<h2 className="tl-bookmark__heading">
+								{convertCommonTitleHTMLEntities(asset.props.title)}
+							</h2>
+						</a>
 					) : null}
 					{asset?.props.description && asset?.props.image ? (
 						<p className="tl-bookmark__description">{asset.props.description}</p>
@@ -208,103 +215,3 @@ function BookmarkShapeComponent({ shape }: { shape: TLBookmarkShape }) {
 		</HTMLContainer>
 	)
 }
-
-function getBookmarkSize(editor: Editor, shape: TLBookmarkShape) {
-	const asset = (
-		shape.props.assetId ? editor.getAsset(shape.props.assetId) : null
-	) as TLBookmarkAsset
-
-	let h = BOOKMARK_HEIGHT
-
-	if (asset) {
-		if (!asset.props.image) {
-			if (!asset.props.title) {
-				h = BOOKMARK_JUST_URL_HEIGHT
-			} else {
-				h = SHORT_BOOKMARK_HEIGHT
-			}
-		}
-	}
-
-	return {
-		...shape,
-		props: {
-			...shape.props,
-			h,
-		},
-	}
-}
-
-/** @internal */
-export const getHumanReadableAddress = (shape: TLBookmarkShape) => {
-	try {
-		const url = new URL(shape.props.url)
-		// we want the hostname without any www
-		return url.hostname.replace(/^www\./, '')
-	} catch {
-		return shape.props.url
-	}
-}
-
-function updateBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmarkShape) {
-	const { url } = shape.props
-
-	// Derive the asset id from the URL
-	const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
-
-	if (editor.getAsset(assetId)) {
-		// Existing asset for this URL?
-		if (shape.props.assetId !== assetId) {
-			editor.updateShapes<TLBookmarkShape>([
-				{
-					id: shape.id,
-					type: shape.type,
-					props: { assetId },
-				},
-			])
-		}
-	} else {
-		// No asset for this URL?
-
-		// First, clear out the existing asset reference
-		editor.updateShapes<TLBookmarkShape>([
-			{
-				id: shape.id,
-				type: shape.type,
-				props: { assetId: null },
-			},
-		])
-
-		// Then try to asyncronously create a new one
-		createBookmarkAssetOnUrlChange(editor, shape)
-	}
-}
-
-const createBookmarkAssetOnUrlChange = debounce(async (editor: Editor, shape: TLBookmarkShape) => {
-	if (editor.isDisposed) return
-
-	const { url } = shape.props
-
-	// Create the asset using the external content manager's createAssetFromUrl method.
-	// This may be overwritten by the user (for example, we overwrite it on tldraw.com)
-	const asset = await editor.getAssetForExternalContent({ type: 'url', url })
-
-	if (!asset) {
-		// No asset? Just leave the bookmark as a null assetId.
-		return
-	}
-
-	editor.run(() => {
-		// Create the new asset
-		editor.createAssets([asset])
-
-		// And update the shape
-		editor.updateShapes<TLBookmarkShape>([
-			{
-				id: shape.id,
-				type: shape.type,
-				props: { assetId: asset.id },
-			},
-		])
-	})
-}, 500)
