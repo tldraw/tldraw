@@ -3,7 +3,6 @@ import { DB } from '@tldraw/dotcom-shared'
 import fs from 'fs'
 import { Kysely, PostgresDialect, sql } from 'kysely'
 import pg from 'pg'
-import { uniqueId } from 'tldraw'
 import { OTHER_USERS, USERS } from '../consts'
 import { getStorageStateFileName } from './helpers'
 
@@ -58,7 +57,7 @@ export class Database {
 	 */
 	async migrateUser(isOther: boolean = false): Promise<void> {
 		const id = await this.getUserId(isOther)
-		const inviteSecret = uniqueId()
+		const inviteSecret = 'test' + Math.random().toString(36).substring(2, 15)
 		if (!id) throw new Error('User not found')
 
 		// Call the migration function
