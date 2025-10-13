@@ -164,7 +164,7 @@ function convertTextShapeToTldrawShape(
 
 	const effectiveFontSize = textFontSize * scale
 
-	const measurement = editor.textMeasure.measureText(focusedShape.text, {
+	const measurement = editor.textMeasure.measureText(focusedShape.text ?? '', {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[font as keyof typeof FONT_FAMILIES],
 		fontSize: effectiveFontSize,
@@ -175,18 +175,16 @@ function convertTextShapeToTldrawShape(
 	const baseX = focusedShape.x ?? defaultTextShape.x ?? 0
 	const baseY = focusedShape.y ?? defaultTextShape.y ?? 0
 
+	correctedTextCoords.y = baseY - measurement.h / 2
 	switch (textAlign) {
 		case 'start':
 			correctedTextCoords.x = baseX
-			correctedTextCoords.y = baseY - measurement.h / 2
 			break
 		case 'middle':
 			correctedTextCoords.x = baseX - measurement.w / 2
-			correctedTextCoords.y = baseY - measurement.h / 2
 			break
 		case 'end':
 			correctedTextCoords.x = baseX - measurement.w
-			correctedTextCoords.y = baseY - measurement.h / 2
 			break
 	}
 

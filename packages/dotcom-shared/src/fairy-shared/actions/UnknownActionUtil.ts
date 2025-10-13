@@ -13,6 +13,8 @@ export class UnknownActionUtil extends AgentActionUtil<UnknownAction> {
 
 	override getInfo() {
 		// Don't show anything in the UI for unknown actions
-		return null
+		return {
+			pose: 'active' as const,
+		}
 	}
 }

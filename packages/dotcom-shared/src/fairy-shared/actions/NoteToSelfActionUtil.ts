@@ -23,6 +23,7 @@ export class NoteToSelfActionUtil extends AgentActionUtil<NoteToSelfAction> {
 		return {
 			icon: null,
 			description: `**${label}**: ${action.intent ?? ''}`,
+			pose: 'thinking' as const,
 		}
 	}
 

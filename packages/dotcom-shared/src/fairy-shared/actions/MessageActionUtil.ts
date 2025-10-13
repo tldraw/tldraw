@@ -22,6 +22,7 @@ export class MessageActionUtil extends AgentActionUtil<MessageAction> {
 		return {
 			description: action.text ?? '',
 			canGroup: () => false,
+			pose: 'thinking' as const,
 		}
 	}
 }

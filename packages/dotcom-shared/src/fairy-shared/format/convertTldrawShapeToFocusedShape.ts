@@ -14,6 +14,7 @@ import {
 	TLShapeId,
 	TLTextShape,
 } from '@tldraw/editor'
+import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from 'tldraw'
 import {
 	FocusedArrowShape,
 	FocusedDrawShape,
@@ -110,15 +111,26 @@ function convertTextShapeToFocused(editor: Editor, shape: TLTextShape): FocusedT
 	const bounds = getSimpleBounds(editor, shape)
 	const textSize = shape.props.size
 	const textAlign = shape.props.textAlign
-	const textWidth = shape.props.w
+	const font = shape.props.font
 
+	const textFontSize = FONT_SIZES[textSize]
+	const effectiveFontSize = textFontSize * shape.props.scale
+
+	const measurement = editor.textMeasure.measureText(text, {
+		...TEXT_PROPS,
+		fontFamily: FONT_FAMILIES[font as keyof typeof FONT_FAMILIES],
+		fontSize: effectiveFontSize,
+		maxWidth: shape.props.autoSize ? null : bounds.w,
+	})
+
+	const anchorY = bounds.y + measurement.h / 2
 	let anchorX = bounds.x
 	switch (textAlign) {
 		case 'middle':
-			anchorX = bounds.x + textWidth / 2
+			anchorX = bounds.x + measurement.w / 2
 			break
 		case 'end':
-			anchorX = bounds.x + textWidth
+			anchorX = bounds.x + measurement.w
 			break
 		case 'start':
 		default:
@@ -135,7 +147,7 @@ function convertTextShapeToFocused(editor: Editor, shape: TLTextShape): FocusedT
 		text: text,
 		textAlign: shape.props.textAlign,
 		x: anchorX,
-		y: bounds.y,
+		y: anchorY,
 	}
 }
 
