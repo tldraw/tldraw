@@ -1,4 +1,4 @@
-import { FairyPose } from '@tldraw/dotcom-shared/src/fairy-shared/types/FairyPose'
+import { FairyPose } from '@tldraw/dotcom-shared'
 import { FairyPartDefinition, FairyPartType } from './FairyPart'
 
 const FAIRY_HAT_VARIANTS = {
@@ -7,11 +7,18 @@ const FAIRY_HAT_VARIANTS = {
 } as const satisfies FairyPartDefinition
 
 const FAIRY_WINGS_VARIANTS = {
-	plain: { idle: ['/fairy/fairy-wing-0.png', '/fairy/fairy-wing-1.png'] },
+	plain: {
+		idle: ['/fairy/fairy-wing-0.png'],
+		active: ['/fairy/fairy-wing-0.png', '/fairy/fairy-wing-1.png'],
+		thinking: ['/fairy/fairy-wing-0.png', '/fairy/fairy-wing-1.png'],
+	},
 } as const satisfies FairyPartDefinition
 
 const FAIRY_BODY_VARIANTS = {
-	plain: { idle: ['/fairy/fairy-body-default.png'], thinking: ['/fairy/fairy-body-think.png'] },
+	plain: {
+		idle: ['/fairy/fairy-body-default.png'],
+		thinking: ['/fairy/fairy-body-think.png'],
+	},
 } as const satisfies FairyPartDefinition
 
 export const FAIRY_VARIANTS = {

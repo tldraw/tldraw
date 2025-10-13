@@ -226,5 +226,7 @@ export function FairySpriteComponent({ pose, outfit }: { pose: FairyPose; outfit
 		return () => clearInterval(timer)
 	}, [pose, sprite, sprite.loadingState])
 
-	return <img className="fairy-sprite" src={poseFrames[frameNumber]} />
+	const frame = poseFrames[frameNumber % poseFrames.length]
+
+	return <img className="fairy-sprite" src={frame} />
 }

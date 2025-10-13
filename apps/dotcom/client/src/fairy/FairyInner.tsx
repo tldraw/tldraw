@@ -77,8 +77,8 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 					width: '200px',
 					height: '200px',
 					transform: `translate(-50%, -50%) scale(max(var(--tl-zoom), 0.4))${flipX ? ' scaleX(-1)' : ''}`,
-					transition:
-						'left 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
+					// transition:
+					// 'left 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
 				}}
 				className={isSelected ? 'fairy-selected' : ''}
 			>

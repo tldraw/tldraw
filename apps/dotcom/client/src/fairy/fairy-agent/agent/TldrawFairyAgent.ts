@@ -319,6 +319,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 	 * @returns A promise for when the agent has finished its work.
 	 */
 	async prompt(input: AgentInput) {
+		this.$fairy.update((fairy) => ({ ...fairy, pose: 'active' }))
 		const request = this.getFullRequestFromInput(input)
 
 		// Submit the request to the agent.
@@ -746,7 +747,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 			description = null,
 			summary = null,
 			canGroup = () => true,
-			pose = 'idle' as const,
+			pose = 'active' as const,
 		} = info
 
 		return {
@@ -758,13 +759,18 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 		}
 	}
 
+	MOVE_OFFSET = { x: -70, y: 70 }
+
 	move(position: VecModel) {
 		this.$fairy.update((fairy) => {
-			const isMovingLeft = position.x < fairy.position.x
+			const offsetPosition = Vec.Add(position, this.MOVE_OFFSET)
+
+			// const isMovingLeft = offsetPosition.x < fairy.position.x
 			return {
 				...fairy,
-				position,
-				flipX: isMovingLeft,
+				position: offsetPosition,
+				flipX: false,
+				// flipX: isMovingLeft,
 			}
 		})
 	}
