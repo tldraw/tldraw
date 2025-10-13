@@ -93,7 +93,7 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 			points.push(...pointsToAdd)
 		}
 
-		if (points.length === 0) {
+		if (points.length <= 1) {
 			return
 		}
 
