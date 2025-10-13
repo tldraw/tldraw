@@ -801,11 +801,16 @@ function requestAgent({ agent, request }: { agent: TldrawFairyAgent; request: Ag
 		try {
 			for await (const action of streamAgent({ prompt, signal })) {
 				if (cancelled) break
-				// eslint-disable-next-line no-console
-				if (action.complete && action._type !== 'message') console.log('AGENT ACTION\n', action)
-				// eslint-disable-next-line no-console
-				if (action.complete && action._type === 'message')
+
+				if (action.complete && action._type !== 'message') {
+					// eslint-disable-next-line no-console
+					console.log('AGENT ACTION\n', action)
+				}
+				if (action.complete && action._type === 'message') {
+					// eslint-disable-next-line no-console
 					console.log('Message from fairy\n', action.text)
+				}
+
 				editor.run(
 					() => {
 						const actionUtil = agent.getAgentActionUtil(action._type)
