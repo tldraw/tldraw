@@ -38,6 +38,9 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		end: vecModelValidator,
 	}
 
+	private isMetaKeyOnTranslateStart = false
+	private didHitCurveOnTranslateStart = false
+
 	override getDefaultProps(): MyBezierCurveShape['props'] {
 		return {
 			start: { x: 0, y: 0 },
@@ -91,9 +94,21 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		}
 	}
 
+	override toSvg(shape: MyBezierCurveShape) {
+		const path = this.getGeometry(shape).getSvgPathData(true)
+		return <path d={path} stroke="black" fill="transparent" strokeWidth={2} />
+	}
+
 	// [4]
 	override getHandles(shape: MyBezierCurveShape): TLHandle[] {
-		const threshold = 2
+		const CONTROL_POINT_THRESHOLD = 2
+
+		const pageTransform = this.editor.getShapePageTransform(shape)
+
+		const cp1InPageSpace = pageTransform.applyToPoint(shape.props.cp1)
+		const cp2InPageSpace = pageTransform.applyToPoint(shape.props.cp2)
+		const startInPageSpace = pageTransform.applyToPoint(shape.props.start)
+		const endInPageSpace = pageTransform.applyToPoint(shape.props.end)
 
 		const indices = [ZERO_INDEX_KEY, ...getIndicesAbove(ZERO_INDEX_KEY, 3)]
 
@@ -132,11 +147,12 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 			},
 		]
 
-		if (Vec.Dist(shape.props.cp1, shape.props.start) < threshold) {
+		// collapse control points if you drag them to the its associated start or end point
+		if (Vec.Dist(cp1InPageSpace, startInPageSpace) < CONTROL_POINT_THRESHOLD) {
 			handles = handles.filter((handle) => handle.id !== 'cp1')
 		}
 
-		if (Vec.Dist(shape.props.cp2, shape.props.end) < threshold) {
+		if (Vec.Dist(cp2InPageSpace, endInPageSpace) < CONTROL_POINT_THRESHOLD) {
 			handles = handles.filter((handle) => handle.id !== 'cp2')
 		}
 
@@ -165,6 +181,8 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		let props = {}
 		let newProps: any = {}
 
+		// if you hold command or control key whilst dragging over a start or end handle,
+		// move the associated control point to the new positions
 		if (this.editor.inputs.metaKey) {
 			switch (id) {
 				case 'start': {
@@ -188,24 +206,23 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 			}
 		}
 
+		// move the handles
 		switch (id) {
 			case 'start': {
-				const dx = x - shape.props.start.x
-				const dy = y - shape.props.start.y
+				const delta = Vec.Sub(handle, shape.props.start)
 
 				newProps = {
 					start: { x, y },
-					cp1: { x: shape.props.cp1.x + dx, y: shape.props.cp1.y + dy },
+					cp1: { x: shape.props.cp1.x + delta.x, y: shape.props.cp1.y + delta.y },
 				}
 				break
 			}
 			case 'end': {
-				const dx = x - shape.props.end.x
-				const dy = y - shape.props.end.y
+				const delta = Vec.Sub(handle, shape.props.end)
 
 				newProps = {
 					end: { x, y },
-					cp2: { x: shape.props.cp2.x + dx, y: shape.props.cp2.y + dy },
+					cp2: { x: shape.props.cp2.x + delta.x, y: shape.props.cp2.y + delta.y },
 				}
 				break
 			}
@@ -228,20 +245,67 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		}
 	}
 
+	override onTranslateStart(shape: MyBezierCurveShape) {
+		// only bend if we start translating with the command or control key pressed
+		// this avoids bending the curve midway through a translation where the user accidentally
+		// holds the command or control key
+		this.isMetaKeyOnTranslateStart = this.editor.inputs.metaKey
+
+		// we should bend the curve if we hit the curve but not the start or end handles,
+		const handles = this.getHandles(shape)
+		const startAndEndHandles = handles.filter(
+			(handle) => handle.id === 'start' || handle.id === 'end'
+		)
+		if (!startAndEndHandles.length) return
+
+		const hitStartOrEndHandle = startAndEndHandles.some((handle) => {
+			const threshold = 8 / this.editor.getZoomLevel()
+			const pageTransform = this.editor.getShapePageTransform(shape)
+			const handleInPageSpace = pageTransform.applyToPoint(handle)
+
+			if (Vec.Dist(handleInPageSpace, this.editor.inputs.currentPagePoint) < threshold) {
+				return true
+			}
+			return false
+		})
+
+		const hitCurve = this.editor.isPointInShape(shape, this.editor.inputs.currentPagePoint, {
+			margin: 10 / this.editor.getZoomLevel(),
+		})
+
+		this.didHitCurveOnTranslateStart = hitCurve && !hitStartOrEndHandle
+	}
+
+	override onTranslate(initial: MyBezierCurveShape, current: MyBezierCurveShape) {
+		// bend the curve
+		if (this.isMetaKeyOnTranslateStart && this.didHitCurveOnTranslateStart) {
+			const delta = Vec.Sub(current, initial)
+
+			return {
+				...initial,
+				props: {
+					...initial.props,
+					cp1: { x: initial.props.cp1.x + delta.x, y: initial.props.cp1.y + delta.y },
+					cp2: { x: initial.props.cp2.x + delta.x, y: initial.props.cp2.y + delta.y },
+				},
+			}
+		}
+
+		return
+	}
+
 	component(shape: MyBezierCurveShape) {
 		const path = this.getGeometry(shape).getSvgPathData(true)
 		const { start, end, cp1, cp2 } = shape.props
-		const isDraggingHandle = this.editor.isInAny('select.pointing_handle', 'select.dragging_handle')
-		const isEditing = this.editor.getEditingShapeId() === shape.id
 
-		const shouldShowControlLines = isEditing || isDraggingHandle
+		const zoomLevel = this.editor.getZoomLevel()
 
 		return (
 			<HTMLContainer>
 				<svg className="tl-svg-container">
 					<path d={path} stroke="black" fill="transparent" />
 					<>
-						{shouldShowControlLines && (
+						{this.shouldShowControlLines(shape) && (
 							<>
 								<line
 									x1={start.x}
@@ -249,7 +313,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 									x2={cp1.x}
 									y2={cp1.y}
 									stroke="black"
-									strokeWidth={1 / this.editor.getZoomLevel()}
+									strokeWidth={1 / zoomLevel}
 									strokeDasharray="6 6"
 									opacity={0.5}
 								/>
@@ -259,7 +323,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 									x2={cp2.x}
 									y2={cp2.y}
 									stroke="black"
-									strokeWidth={1 / this.editor.getZoomLevel()}
+									strokeWidth={1 / zoomLevel}
 									strokeDasharray="6 6"
 									opacity={0.5}
 								/>
@@ -274,6 +338,18 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 	indicator(shape: MyBezierCurveShape) {
 		const path = this.getGeometry(shape).getSvgPathData(true)
 		return <path d={path} />
+	}
+
+	private shouldShowControlLines(shape: MyBezierCurveShape) {
+		const selectedShape = this.editor.getOnlySelectedShape() === shape
+		if (!selectedShape) return false
+
+		return this.editor.isInAny(
+			'select.translating',
+			'select.editing_shape',
+			'select.pointing_handle',
+			'select.dragging_handle'
+		)
 	}
 }
 

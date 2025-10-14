@@ -1,6 +1,6 @@
 import { StateNode, TLAnyShapeUtilConstructor, Tldraw, TLPointerEventInfo } from 'tldraw'
-import { ControlHandles } from './ControlHandles'
 import { BezierCurveShapeUtil, MyBezierCurveShape } from './CubicBezierShape'
+import { CustomHandles } from './CustomHandles'
 
 const customShapes: TLAnyShapeUtilConstructor[] = [BezierCurveShapeUtil]
 
@@ -10,10 +10,12 @@ export default function BezierCurveShapeExample() {
 			<Tldraw
 				// [7]
 				components={{
-					Handles: ControlHandles,
+					Handles: CustomHandles,
 				}}
 				shapeUtils={customShapes}
 				onMount={(editor) => {
+					editor.updateInstanceState({ isDebugMode: true })
+
 					const viewportPageBounds = editor.getViewportPageBounds()
 					const centerX = viewportPageBounds.center.x
 					const centerY = viewportPageBounds.center.y
@@ -25,83 +27,127 @@ export default function BezierCurveShapeExample() {
 					})
 
 					// [8]
-					type PointingHandle = StateNode & {
-						onPointerMove(info: TLPointerEventInfo): void
+					// Get state nodes with proper type safety
+					const pointingHandleState = editor.getStateDescendant<StateNode>('select.pointing_handle')
+					const editingShapeState = editor.getStateDescendant<StateNode>('select.editing_shape')
+
+					if (!pointingHandleState) {
+						throw new Error('SelectTool pointing_handle state not found')
+					}
+					if (!editingShapeState) {
+						throw new Error('SelectTool editing_shape state not found')
 					}
 
-					const pointingHandleState =
-						editor.getStateDescendant<PointingHandle>('select.pointing_handle')
-					if (!pointingHandleState) throw Error('SelectTool PointingHandle state not found')
+					// store original handlers with proper binding
+					const originalHandlers = {
+						pointingHandle: {
+							onPointerMove: pointingHandleState.onPointerMove?.bind(pointingHandleState),
+							onEnter: pointingHandleState.onEnter?.bind(pointingHandleState),
+							onPointerUp: pointingHandleState.onPointerUp?.bind(pointingHandleState),
+						},
+						editingShape: {
+							onPointerDown: editingShapeState.onPointerDown?.bind(editingShapeState),
+							onPointerMove: editingShapeState.onPointerMove?.bind(editingShapeState),
+						},
+					}
 
-					const ogPointerMove = pointingHandleState.onPointerMove.bind(pointingHandleState)
-
-					function onPointerMove(info: TLPointerEventInfo) {
+					// collapse control points
+					pointingHandleState.onEnter = (info: TLPointerEventInfo & { target: 'handle' }) => {
 						if (!info.shape) return
 
-						const { shape } = info
+						if (
+							info.accelKey &&
+							editor.isShapeOfType<MyBezierCurveShape>(info.shape, 'bezier-curve') &&
+							info.target === 'handle'
+						) {
+							switch (info.handle.id) {
+								case 'cp1': {
+									editor.updateShape<MyBezierCurveShape>({
+										id: info.shape.id,
+										type: 'bezier-curve',
+										props: {
+											cp1: { x: info.shape.props.start.x, y: info.shape.props.start.y },
+										},
+									})
 
-						if (editor.isShapeOfType<MyBezierCurveShape>(shape, 'bezier-curve')) {
+									editor.setEditingShape(info.shape.id)
+									return
+								}
+								case 'cp2': {
+									editor.updateShape<MyBezierCurveShape>({
+										id: info.shape.id,
+										type: 'bezier-curve',
+										props: {
+											cp2: { x: info.shape.props.end.x, y: info.shape.props.end.y },
+										},
+									})
+
+									editor.setEditingShape(info.shape.id)
+									return
+								}
+							}
+						}
+
+						originalHandlers.pointingHandle.onEnter?.(info, 'pointing_handle')
+						return
+					}
+
+					// clicking on start or end point should not go to select.idle
+					pointingHandleState.onPointerUp = (info: TLPointerEventInfo & { target: 'handle' }) => {
+						if (!info.shape) return
+
+						if (
+							editor.isShapeOfType<MyBezierCurveShape>(info.shape, 'bezier-curve') &&
+							info.target === 'handle'
+						) {
+							editor.setEditingShape(info.shape.id)
+							return
+						}
+						originalHandlers.pointingHandle.onPointerUp?.(info)
+					}
+
+					// return to editing state after dragging a handle
+					pointingHandleState.onPointerMove = (info: TLPointerEventInfo) => {
+						if (!info.shape) return
+
+						if (editor.isShapeOfType<MyBezierCurveShape>(info.shape, 'bezier-curve')) {
 							editor.updateInstanceState({ isToolLocked: true })
 							editor.setCurrentTool('select.dragging_handle', {
 								...info,
 								onInteractionEnd: () => {
-									// noop, stay in this state
-									editor.setEditingShape(shape.id) // go back to editing mode
+									editor.setEditingShape(info.shape.id)
 								},
 							})
 							return
 						}
-						ogPointerMove(info)
+
+						originalHandlers.pointingHandle.onPointerMove?.(info)
 					}
 
-					const defaultOnEnter = pointingHandleState?.onEnter?.bind(pointingHandleState)
+					// allow translating in editing state
+					editingShapeState.onPointerMove = (info: TLPointerEventInfo) => {
+						if (editor.inputs.isDragging) {
+							const editingShape = editor.getEditingShape()
+							if (
+								editingShape &&
+								editor.isShapeOfType<MyBezierCurveShape>(editingShape, 'bezier-curve')
+							) {
+								editor.updateInstanceState({ isToolLocked: true })
 
-					function onEnter(info: TLPointerEventInfo & { target: 'handle' }, from: string) {
-						if (!info) return
-
-						const { shape } = info
-
-						if (
-							editor.isShapeOfType<MyBezierCurveShape>(shape, 'bezier-curve') &&
-							editor.inputs.metaKey
-						) {
-							switch (info.handle.id) {
-								case 'cp1':
-									{
-										editor.updateShapes([
-											{
-												...shape,
-												props: {
-													cp1: { x: shape.props.start.x, y: shape.props.start.y },
-												},
-											},
-										])
-									}
-									break
-								case 'cp2':
-									{
-										editor.updateShapes([
-											{
-												...shape,
-												props: {
-													cp2: { x: shape.props.end.x, y: shape.props.end.y },
-												},
-											},
-										])
-									}
-									break
+								editor.setCurrentTool('select.translating', {
+									...info,
+									target: 'shape',
+									shape: editingShape,
+									onInteractionEnd: () => {
+										editor.setEditingShape(editingShape.id)
+									},
+								})
+								return
 							}
-
-							editor.setEditingShape(shape.id)
-							return
 						}
 
-						if (!defaultOnEnter) return
-						defaultOnEnter(info, from)
+						originalHandlers.editingShape.onPointerMove?.(info)
 					}
-
-					pointingHandleState.onPointerMove = onPointerMove
-					pointingHandleState.onEnter = onEnter
 				}}
 			/>
 		</div>
