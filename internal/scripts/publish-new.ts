@@ -43,9 +43,11 @@ function getReleaseType(): ReleaseType {
 async function getDraftRelease(version: string, octokit: Octokit) {
 	const expectedVersion = `v${version}`
 
-	const { data: releases } = await octokit.rest.repos.listReleases({
+	// Fetch all releases with pagination
+	const releases = await octokit.paginate(octokit.rest.repos.listReleases, {
 		owner: 'tldraw',
 		repo: 'tldraw',
+		per_page: 100, // Maximum per page to reduce API calls
 	})
 
 	const draftRelease = releases.find((release) => release.draft && release.name === expectedVersion)
