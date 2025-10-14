@@ -626,6 +626,8 @@
 	color: var(--tla-color-text-1);
 }
 
+/* Dot dev link */
+
 .sidebarDotdevLink {
 	position: relative;
 	font-size: 12px;
@@ -637,6 +639,7 @@
 	padding: 2px 2px 2px 2px;
 	display: flex;
 	align-items: center;
+	height: 36px;
 	justify-content: space-between;
 	background-color: var(--tla-color-sidebar);
 }
@@ -662,14 +665,18 @@
 	align-items: center;
 	flex: 1;
 	gap: 4px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .sidebarDotdevLink a div {
 	position: relative;
 	transform: rotate(180deg);
+	flex-shrink: 0;
 }
 .sidebarDotdevLink:hover a div {
-	transform: translate(24px, 0px) rotate(180deg);
+	transform: translate(80px, 0px) rotate(180deg);
 	transition: transform 6s ease-in-out;
 	transition-delay: 2s;
 }
@@ -685,9 +692,14 @@
 	align-items: center;
 	justify-content: center;
 	color: var(--tla-color-inactive);
+	transition: opacity 0.2s ease-in-out;
 }
 
 .sidebarDotDevDismissButton div {
 	width: 12px;
 	height: 12px;
+}
+
+.sidebarDotdevLink:has(a:hover) .sidebarDotDevDismissButton {
+	opacity: 0;
 }

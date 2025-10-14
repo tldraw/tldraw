@@ -10,11 +10,7 @@ export function TlaSidebarDotdevLink() {
 
 	return (
 		<div className={styles.sidebarDotdevLink}>
-			<ExternalLink
-				to="https://tldraw.dev"
-				data-testid="tla-sidebar-dotdev-link"
-				className={styles.hoverable}
-			>
+			<ExternalLink to="https://tldraw.dev" data-testid="tla-sidebar-dotdev-link">
 				<F defaultMessage="Build with the tldraw SDK" />
 				<TldrawUiIcon icon="arrow-left" label="Build with the tldraw SDK" small />
 			</ExternalLink>
