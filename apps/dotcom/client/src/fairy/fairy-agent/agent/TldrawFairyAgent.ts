@@ -319,7 +319,9 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 	 * @returns A promise for when the agent has finished its work.
 	 */
 	async prompt(input: AgentInput) {
-		this.$fairy.update((fairy) => ({ ...fairy, pose: 'active' }))
+		if (this.$fairy.get().pose === 'idle') {
+			this.$fairy.update((fairy) => ({ ...fairy, pose: 'active' }))
+		}
 		const request = this.getFullRequestFromInput(input)
 
 		// Submit the request to the agent.
@@ -331,7 +333,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 
 		if (!scheduledRequest) {
 			// If there no outstanding todo items or requests, finish
-			if (todoItemsRemaining.length === 0) {
+			if (todoItemsRemaining.length === 0 || !this.cancelFn) {
 				this.$fairy.update((fairy) => ({ ...fairy, pose: 'idle' }))
 				return
 			}
