@@ -119,6 +119,19 @@
 	}
 }
 
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+	.cookieConsent {
+		animation: none;
+		transform: translate(0px, 0%);
+	}
+
+	.cookieAcceptButtonText {
+		animation: none;
+		transform: translateX(0);
+	}
+}
+
 @media (hover: hover) {
 	.cookieAcceptButton:hover {
 		color: var(--tla-color-contrast);
