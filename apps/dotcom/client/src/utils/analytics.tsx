@@ -178,9 +178,11 @@ function configurePosthog(options: AnalyticsOptions) {
 			posthog.identify(options.user.id, {
 				email: options.user.email,
 				name: options.user.name,
+				analytics_consent: true,
 			})
 		}
 	} else if (currentOptionsPosthog?.optedIn) {
+		posthog.setPersonProperties({ analytics_consent: false })
 		posthog.reset()
 	}
 
