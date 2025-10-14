@@ -2,6 +2,7 @@ import {
 	TldrawUiToolbar,
 	TldrawUiToolbarToggleGroup,
 	TldrawUiToolbarToggleItem,
+	useEditor,
 	useValue,
 } from 'tldraw'
 import { defineMessages, useMsg } from '../tla/utils/i18n'
@@ -17,7 +18,9 @@ const fairyMessages = defineMessages({
 
 export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 	// For now, we'll just handle the first agent since FairyAppInner creates only one
+	const editor = useEditor()
 	const agent = agents[0]
+	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
 
 	const isSelected = useValue(
 		'fairy toggle button state',
@@ -40,7 +43,7 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 			className="tla-fairy-hud"
 			style={{
 				position: 'fixed',
-				bottom: '48px',
+				bottom: isDebugMode ? '88px' : '48px',
 				right: '6px',
 				display: 'flex',
 				flexDirection: 'row',
