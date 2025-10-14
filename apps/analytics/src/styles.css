@@ -137,6 +137,19 @@
 	}
 }
 
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+	.tl-analytics-banner {
+		animation: none;
+		transform: translateY(0);
+	}
+
+	.tl-analytics-button-text {
+		animation: none;
+		transform: translateX(0);
+	}
+}
+
 .tl-analytics-button-secondary {
 	background: none;
 	color: var(--tl-analytics-text-secondary);
