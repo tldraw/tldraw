@@ -13,8 +13,9 @@
 		"repo": "tldraw/branching-chat-template",
 		"cli": {
 			"name": "Branching chat",
-			"description": "Create interactive chat trees using visual branching conversation interface with AI integration.",
-			"shortDescription": "A branching chat interface."
+			"description": "Chat with an AI using a branching conversation interface.",
+			"shortDescription": "A branching chat interface.",
+			"order": 6
 		},
 		"scripts": {
 			"lint": null

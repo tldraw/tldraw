@@ -14,7 +14,8 @@
 		"cli": {
 			"name": "Workflow",
 			"description": "Build visual tools where users drag and connect nodes, think automation builders with a canvas interface.",
-			"shortDescription": "Visual node-based builder for workflows."
+			"shortDescription": "Visual node-based builder for workflows.",
+			"order": 4
 		},
 		"scripts": {
 			"lint": null

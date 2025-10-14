@@ -26,7 +26,7 @@ import { wrapAnsi } from './wrap-ansi'
 const DEBUG = !!process.env.DEBUG
 
 async function main() {
-	intro(`Let's build a tldraw app!`)
+	intro(`Let's build with the tldraw SDK.`)
 
 	const args = parseArgs(process.argv.slice(2), {
 		alias: {
@@ -86,7 +86,7 @@ async function templatePicker(argOption?: string) {
 
 	return await handleCancel(
 		groupSelect({
-			message: 'Select a template:',
+			message: 'Select a starter kit:',
 			options: TEMPLATES.map(
 				(template): GroupSelectOption<Template> => ({
 					label: template.name,

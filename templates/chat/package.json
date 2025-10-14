@@ -13,7 +13,8 @@
 		"cli": {
 			"name": "Chat",
 			"description": "Use tldraw to add sketches and annotated images as visual context in an LLM chat interface.",
-			"shortDescription": "A chat UI with sketches and images as context for AI."
+			"shortDescription": "A chat UI with sketches and images as context for AI.",
+			"order": 5
 		},
 		"scripts": {
 			"lint": null
