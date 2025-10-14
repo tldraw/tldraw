@@ -177,6 +177,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 		persistAtomInLocalStorage(this.$modelName, `${id}:model-name`)
 		persistAtomInLocalStorage(this.$todoList, `${id}:todo-items`)
 		persistAtomInLocalStorage(this.$contextItems, `${id}:context-items`)
+		persistAtomInLocalStorage(this.$fairy, `${id}:fairy`)
 
 		this.stopRecordingFn = this.startRecordingUserActions()
 	}
