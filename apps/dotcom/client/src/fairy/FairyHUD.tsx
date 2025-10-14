@@ -25,6 +25,12 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 		[agent]
 	)
 
+	const hasThink = useValue(
+		'fairy think toggle state',
+		() => agent?.$fairy.get()?.actions.includes('think') ?? false,
+		[agent]
+	)
+
 	const toolbarMessage = useMsg(fairyMessages.toolbar)
 	const deselectMessage = useMsg(fairyMessages.deselect)
 	const selectMessage = useMsg(fairyMessages.select)
@@ -33,6 +39,17 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 
 	const handleToggle = () => {
 		agent.$fairy.update((f) => ({ ...f!, isSelected: !f!.isSelected }))
+	}
+
+	const handleThinkToggle = () => {
+		agent.$fairy.update((f) => {
+			const actions = f!.actions
+			const hasThink = actions.includes('think')
+			return {
+				...f!,
+				actions: hasThink ? actions.filter((p) => p !== 'think') : [...actions, 'think'],
+			}
+		})
 	}
 
 	return (
@@ -56,6 +73,24 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 					<FairyBasicInput agent={agent} />
 				</div>
 			)}
+			<button
+				onClick={handleThinkToggle}
+				style={{
+					padding: '8px 12px',
+					borderRadius: 'var(--tl-radius-2)',
+					boxShadow: 'var(--tl-shadow-1)',
+					border: '1px solid var(--tl-color-panel-contrast)',
+					backgroundColor: 'var(--tl-color-panel)',
+					color: 'var(--tl-color-text)',
+					cursor: 'pointer',
+					fontFamily: 'var(--tl-font-ui)',
+					fontSize: '12px',
+					fontWeight: 500,
+				}}
+				title="Toggle 'think' part (debug)"
+			>
+				Think: {hasThink ? 'ON' : 'OFF'}
+			</button>
 			<TldrawUiToolbar
 				label={toolbarMessage}
 				style={{

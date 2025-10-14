@@ -2,7 +2,7 @@ import { TLShapeId } from '@tldraw/editor'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const DistributeAction = z
 	.object({
@@ -21,7 +21,10 @@ type DistributeAction = z.infer<typeof DistributeAction>
 export class DistributeActionUtil extends AgentActionUtil<DistributeAction> {
 	static override type = 'distribute' as const
 
-	override getSchema() {
+	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
+		if (!actions.includes('distribute')) {
+			return null
+		}
 		return DistributeAction
 	}
 

@@ -1,8 +1,9 @@
 import { Box } from '@tldraw/editor'
 import { FileHelpers } from '@tldraw/utils'
+import { AgentHelpers } from '../AgentHelpers'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
-import { PromptPartUtil } from './PromptPartUtil'
+import { PromptPartUtil, PromptPartUtilConstructor } from './PromptPartUtil'
 
 export interface ScreenshotPart extends BasePromptPart<'screenshot'> {
 	screenshot: string | null
@@ -15,8 +16,14 @@ export class ScreenshotPartUtil extends PromptPartUtil<ScreenshotPart> {
 		return 40 // screenshot after text content (medium priority)
 	}
 
-	override async getPart(request: AgentRequest): Promise<ScreenshotPart> {
-		if (!this.agent) return { type: 'screenshot', screenshot: null }
+	override async getPart(
+		request: AgentRequest,
+		helpers: AgentHelpers,
+		parts: PromptPartUtilConstructor['type'][]
+	): Promise<ScreenshotPart> {
+		if (!this.agent || !parts.includes('screenshot')) {
+			return { type: 'screenshot', screenshot: null }
+		}
 		const { editor } = this.agent
 
 		const contextBounds = request.bounds

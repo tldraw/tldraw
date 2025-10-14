@@ -1,6 +1,7 @@
 import { Editor } from '@tldraw/editor'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
+import { PromptPartUtilConstructor } from '../parts/PromptPartUtil'
 import { AgentActionInfo } from '../types/AgentActionInfo'
 import { BaseAgentAction } from '../types/BaseAgentAction'
 import { Streaming } from '../types/Streaming'
@@ -19,9 +20,10 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 
 	/**
 	 * Get a schema to use for the model's response.
+	 * @param actions - The list of action types to include
 	 * @returns The schema, or null to not use a schema
 	 */
-	getSchema(): z.ZodType<T> | null {
+	getSchema(_actions: AgentActionUtilConstructor['type'][]): z.ZodType<T> | null {
 		return null
 	}
 
@@ -63,7 +65,10 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	 * Build a system message that gets concatenated with the other system messages.
 	 * @returns The system message, or null to not add anything to the system message.
 	 */
-	buildSystemPrompt(): string | null {
+	buildSystemPrompt(
+		_actions: AgentActionUtilConstructor['type'][],
+		_parts: PromptPartUtilConstructor['type'][]
+	): string | null {
 		return null
 	}
 }

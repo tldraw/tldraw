@@ -2,7 +2,7 @@ import { TLShapeId } from '@tldraw/editor'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const RotateAction = z
 	.object({
@@ -24,7 +24,10 @@ type RotateAction = z.infer<typeof RotateAction>
 export class RotateActionUtil extends AgentActionUtil<RotateAction> {
 	static override type = 'rotate' as const
 
-	override getSchema() {
+	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
+		if (!actions.includes('rotate')) {
+			return null
+		}
 		return RotateAction
 	}
 

@@ -1,10 +1,14 @@
 import { ModelMessage, UserContent } from 'ai'
-import { getPromptPartUtilsRecord } from '../parts/PrompPartUtils'
+import { PromptPartUtilConstructor } from '../parts/PromptPartUtil'
+import { getPromptPartUtilsRecordByTypes } from '../parts/PromptPartUtils'
 import { AgentMessage } from '../types/AgentMessage'
 import { AgentPrompt } from '../types/AgentPrompt'
 
-export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
-	const utils = getPromptPartUtilsRecord()
+export function buildMessages(
+	prompt: AgentPrompt,
+	parts: PromptPartUtilConstructor['type'][]
+): ModelMessage[] {
+	const utils = getPromptPartUtilsRecordByTypes(parts)
 	const allMessages: AgentMessage[] = []
 
 	for (const part of Object.values(prompt)) {

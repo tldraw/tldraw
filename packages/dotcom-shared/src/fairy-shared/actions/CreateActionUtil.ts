@@ -7,7 +7,7 @@ import {
 } from '../format/convertFocusedShapeToTldrawShape'
 import { FocusedShape, FocusedShapeSchema } from '../format/FocusedShape'
 import { Streaming } from '../types/Streaming'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const CreateAction = z
 	.object({
@@ -22,7 +22,10 @@ type CreateAction = z.infer<typeof CreateAction>
 export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 	static override type = 'create' as const
 
-	override getSchema() {
+	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
+		if (!actions.includes('create')) {
+			return null
+		}
 		return CreateAction
 	}
 

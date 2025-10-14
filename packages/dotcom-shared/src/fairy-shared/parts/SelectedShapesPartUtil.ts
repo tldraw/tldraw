@@ -4,7 +4,7 @@ import { convertTldrawShapeToFocusedShape } from '../format/convertTldrawShapeTo
 import { FocusedShape } from '../format/FocusedShape'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
-import { PromptPartUtil } from './PromptPartUtil'
+import { PromptPartUtil, PromptPartUtilConstructor } from './PromptPartUtil'
 
 export interface SelectedShapesPart extends BasePromptPart<'selectedShapes'> {
 	shapes: FocusedShape[] | null
@@ -17,8 +17,14 @@ export class SelectedShapesPartUtil extends PromptPartUtil<SelectedShapesPart> {
 		return 55 // selected shapes after context items (low priority)
 	}
 
-	override getPart(_request: AgentRequest, helpers: AgentHelpers): SelectedShapesPart {
-		if (!this.agent) return { type: 'selectedShapes', shapes: null }
+	override getPart(
+		_request: AgentRequest,
+		helpers: AgentHelpers,
+		parts: PromptPartUtilConstructor['type'][]
+	): SelectedShapesPart {
+		if (!this.agent || !parts.includes('selectedShapes')) {
+			return { type: 'selectedShapes', shapes: null }
+		}
 		const { editor } = this.agent
 
 		const userSelectedShapes = editor.getSelectedShapes().map((v) => structuredClone(v)) ?? []

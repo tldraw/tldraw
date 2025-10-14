@@ -3,7 +3,7 @@ import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { BaseAgentAction } from '../types/BaseAgentAction'
 import { Streaming } from '../types/Streaming'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const DeleteAction = z
 	.object({
@@ -18,7 +18,10 @@ type DeleteAction = z.infer<typeof DeleteAction>
 export class DeleteActionUtil extends AgentActionUtil<DeleteAction> {
 	static override type = 'delete' as const
 
-	override getSchema() {
+	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
+		if (!actions.includes('delete')) {
+			return null
+		}
 		return DeleteAction
 	}
 

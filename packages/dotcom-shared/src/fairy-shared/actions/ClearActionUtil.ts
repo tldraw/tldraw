@@ -1,6 +1,6 @@
 import z from 'zod'
 import { Streaming } from '../types/Streaming'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const ClearAction = z
 	.object({
@@ -22,7 +22,10 @@ export class ClearActionUtil extends AgentActionUtil<ClearAction> {
 	/**
 	 * Tell the model what the action's schema is
 	 */
-	override getSchema() {
+	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
+		if (!actions.includes('clear')) {
+			return null
+		}
 		return ClearAction
 	}
 

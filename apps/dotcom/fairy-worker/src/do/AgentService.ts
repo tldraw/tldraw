@@ -9,12 +9,14 @@ import { LanguageModel, streamText } from 'ai'
 
 import {
 	AgentAction,
+	AgentActionUtilConstructor,
 	AgentModelName,
 	AgentPrompt,
 	buildMessages,
 	buildSystemPrompt,
 	getAgentModelDefinition,
 	getModelName,
+	PromptPartUtilConstructor,
 	Streaming,
 } from '@tldraw/dotcom-shared'
 import { Environment } from '../environment'
@@ -37,11 +39,15 @@ export class AgentService {
 		return this[provider](modelDefinition.id)
 	}
 
-	async *stream(prompt: AgentPrompt): AsyncGenerator<Streaming<AgentAction>> {
+	async *stream(
+		prompt: AgentPrompt,
+		actions: AgentActionUtilConstructor['type'][],
+		parts: PromptPartUtilConstructor['type'][]
+	): AsyncGenerator<Streaming<AgentAction>> {
 		try {
 			const modelName = getModelName(prompt)
 			const model = this.getModel(modelName)
-			for await (const event of streamActions(model, prompt)) {
+			for await (const event of streamActions(model, prompt, actions, parts)) {
 				yield event
 			}
 		} catch (error: any) {
@@ -53,7 +59,9 @@ export class AgentService {
 
 async function* streamActions(
 	model: LanguageModel,
-	prompt: AgentPrompt
+	prompt: AgentPrompt,
+	actions: AgentActionUtilConstructor['type'][],
+	parts: PromptPartUtilConstructor['type'][]
 ): AsyncGenerator<Streaming<AgentAction>> {
 	if (typeof model === 'string') {
 		throw new Error('Model is a string, not a LanguageModel')
@@ -61,8 +69,8 @@ async function* streamActions(
 
 	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
 
-	const messages = buildMessages(prompt)
-	const systemPrompt = buildSystemPrompt(prompt) || 'You are a helpful assistant.'
+	const messages = buildMessages(prompt, parts)
+	const systemPrompt = buildSystemPrompt(prompt, actions, parts) || 'You are a helpful assistant.'
 
 	try {
 		messages.push({
@@ -155,19 +163,19 @@ async function* streamActions(
 	}
 }
 
-function logMessagesWithoutImages(messages: any[]): any[] {
-	return messages.map((message) => {
-		if (!message.content) return message
+// function getMessagesWithoutImages(messages: any[]): any[] {
+// 	return messages.map((message) => {
+// 		if (!message.content) return message
 
-		const content = Array.isArray(message.content)
-			? message.content.map((item: any) => {
-					if (item.type === 'image') {
-						return { ...item, image: '<IMAGE_DATA_REMOVED>' }
-					}
-					return item
-				})
-			: message.content
+// 		const content = Array.isArray(message.content)
+// 			? message.content.map((item: any) => {
+// 					if (item.type === 'image') {
+// 						return { ...item, image: '<IMAGE_DATA_REMOVED>' }
+// 					}
+// 					return item
+// 				})
+// 			: message.content
 
-		return { ...message, content: JSON.stringify(content, null, 2) }
-	})
-}
+// 		return { ...message, content: JSON.stringify(content, null, 2) }
+// 	})
+// }

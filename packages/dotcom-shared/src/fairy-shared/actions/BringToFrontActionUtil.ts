@@ -2,7 +2,7 @@ import { TLShapeId } from '@tldraw/editor'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const BringToFrontAction = z
 	.object({
@@ -21,7 +21,10 @@ type BringToFrontAction = z.infer<typeof BringToFrontAction>
 export class BringToFrontActionUtil extends AgentActionUtil<BringToFrontAction> {
 	static override type = 'bringToFront' as const
 
-	override getSchema() {
+	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
+		if (!actions.includes('bringToFront')) {
+			return null
+		}
 		return BringToFrontAction
 	}
 

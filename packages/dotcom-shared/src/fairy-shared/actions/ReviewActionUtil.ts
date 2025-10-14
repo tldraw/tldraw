@@ -3,7 +3,7 @@ import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { AreaContextItem } from '../types/ContextItem'
 import { Streaming } from '../types/Streaming'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const ReviewAction = z
 	.object({
@@ -25,7 +25,10 @@ type ReviewAction = z.infer<typeof ReviewAction>
 export class ReviewActionUtil extends AgentActionUtil<ReviewAction> {
 	static override type = 'review' as const
 
-	override getSchema() {
+	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
+		if (!actions.includes('review')) {
+			return null
+		}
 		return ReviewAction
 	}
 

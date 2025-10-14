@@ -1,4 +1,5 @@
 import { Editor } from '@tldraw/editor'
+import { AgentActionUtilConstructor } from '../actions/AgentActionUtil'
 import { AgentHelpers } from '../AgentHelpers'
 import { AgentModelName } from '../models'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
@@ -21,7 +22,11 @@ export abstract class PromptPartUtil<T extends BasePromptPart = BasePromptPart> 
 	 * Get some data to add to the prompt.
 	 * @returns The prompt part.
 	 */
-	abstract getPart(request: AgentRequest, helpers: AgentHelpers): Promise<T> | T
+	abstract getPart(
+		request: AgentRequest,
+		helpers: AgentHelpers,
+		parts: PromptPartUtilConstructor['type'][]
+	): Promise<T> | T
 
 	/**
 	 * Get priority for this prompt part to determine its position in the prompt.
@@ -87,7 +92,11 @@ export abstract class PromptPartUtil<T extends BasePromptPart = BasePromptPart> 
 	 * Build a system message that gets concatenated with the other system messages.
 	 * @returns The system message, or null to not add anything to the system message.
 	 */
-	buildSystemPrompt(_part: T): string | null {
+	buildSystemPrompt(
+		_part: T,
+		_actions: AgentActionUtilConstructor['type'][],
+		_parts: PromptPartUtilConstructor['type'][]
+	): string | null {
 		return null
 	}
 }

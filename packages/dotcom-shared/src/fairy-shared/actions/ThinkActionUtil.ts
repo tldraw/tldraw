@@ -1,6 +1,6 @@
 import z from 'zod'
 import { Streaming } from '../types/Streaming'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const ThinkAction = z
 	.object({
@@ -14,7 +14,10 @@ type ThinkAction = z.infer<typeof ThinkAction>
 export class ThinkActionUtil extends AgentActionUtil<ThinkAction> {
 	static override type = 'think' as const
 
-	override getSchema() {
+	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
+		if (!actions.includes('think')) {
+			return null
+		}
 		return ThinkAction
 	}
 

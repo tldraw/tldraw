@@ -1,5 +1,5 @@
 import { Editor } from '@tldraw/editor'
-import { PROMPT_PART_UTILS as _PROMPT_PART_UTILS } from '../parts/PrompPartUtils'
+import { PROMPT_PART_UTILS as _PROMPT_PART_UTILS } from '../parts/PromptPartUtils'
 import { AgentRequest } from './AgentRequest'
 import { BasePromptPart } from './BasePromptPart'
 import { PromptPart } from './PromptPart'

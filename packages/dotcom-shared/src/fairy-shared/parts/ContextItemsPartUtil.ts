@@ -2,7 +2,7 @@ import { AgentHelpers } from '../AgentHelpers'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { ContextItem } from '../types/ContextItem'
-import { PromptPartUtil } from './PromptPartUtil'
+import { PromptPartUtil, PromptPartUtilConstructor } from './PromptPartUtil'
 
 export interface ContextItemsPart extends BasePromptPart<'contextItems'> {
 	items: ContextItem[]
@@ -16,7 +16,19 @@ export class ContextItemsPartUtil extends PromptPartUtil<ContextItemsPart> {
 		return 60 // context items in middle (low priority)
 	}
 
-	override getPart(request: AgentRequest, helpers: AgentHelpers): ContextItemsPart {
+	override getPart(
+		request: AgentRequest,
+		helpers: AgentHelpers,
+		parts: PromptPartUtilConstructor['type'][]
+	): ContextItemsPart {
+		if (!parts.includes('contextItems')) {
+			return {
+				type: 'contextItems',
+				items: [],
+				requestType: request.type,
+			}
+		}
+
 		const items = request.contextItems.map((contextItem) => {
 			const offsetContextItem = helpers.applyOffsetToContextItem(contextItem)
 			return helpers.roundContextItem(offsetContextItem)

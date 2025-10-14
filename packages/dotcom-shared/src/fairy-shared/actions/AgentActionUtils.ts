@@ -9,6 +9,7 @@ import { CountShapesActionUtil } from '../actions/CountShapesActionUtil'
 import { CreateActionUtil } from '../actions/CreateActionUtil'
 import { DeleteActionUtil } from '../actions/DeleteActionUtil'
 import { DistributeActionUtil } from '../actions/DistributeActionUtil'
+import { FlyToBoundsActionUtil } from '../actions/FlyToBoundsActionUtil'
 import { LabelActionUtil } from '../actions/LabelActionUtil'
 import { MessageActionUtil } from '../actions/MessageActionUtil'
 import { MoveActionUtil } from '../actions/MoveActionUtil'
@@ -28,7 +29,6 @@ import { UpdateActionUtil } from '../actions/UpdateActionUtil'
 import { AgentAction } from '../types/AgentAction'
 import { BaseAgentAction } from '../types/BaseAgentAction'
 import { TldrawFairyAgent } from '../types/TldrawFairyAgent'
-import { FlyToBoundsActionUtil } from './FlyToBoundsActionUtil'
 
 /**
  * Agent actions determine what actions the agent can take.
@@ -90,14 +90,30 @@ export function getAgentActionUtilsRecord(agent?: TldrawFairyAgent) {
 }
 
 /**
+ * Get an object containing only the specified agent action utils.
+ */
+export function getAgentActionUtilsRecordByTypes(
+	types: AgentActionUtilConstructor['type'][],
+	agent?: TldrawFairyAgent
+) {
+	const object = {} as Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
+	const typeSet = new Set(types)
+	for (const util of AGENT_ACTION_UTILS) {
+		if (typeSet.has(util.type)) {
+			object[util.type] = new util(agent)
+		}
+	}
+	return object
+}
+
+/**
  * Build the JSON schema for the agent's response format.
  */
-export function buildResponseSchema() {
-	const actionUtils = getAgentActionUtilsRecord()
+export function buildResponseSchema(actions: AgentActionUtilConstructor['type'][]) {
+	const actionUtils = getAgentActionUtilsRecordByTypes(actions)
 	const actionSchemas = Object.values(actionUtils)
-		.map((util) => util.getSchema())
+		.map((util) => util.getSchema(actions))
 		.filter((schema) => schema !== null)
-
 	const actionSchema = z.union(actionSchemas)
 	const schema = z.object({
 		actions: z.array(actionSchema),

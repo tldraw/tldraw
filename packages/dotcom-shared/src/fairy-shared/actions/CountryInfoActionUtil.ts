@@ -1,7 +1,7 @@
 import { JsonValue } from '@tldraw/utils'
 import z from 'zod'
 import { Streaming } from '../types/Streaming'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const CountryInfoAction = z
 	.object({
@@ -19,7 +19,10 @@ type CountryInfoAction = z.infer<typeof CountryInfoAction>
 export class CountryInfoActionUtil extends AgentActionUtil<CountryInfoAction> {
 	static override type = 'countryInfo' as const
 
-	override getSchema() {
+	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
+		if (!actions.includes('countryInfo')) {
+			return null
+		}
 		return CountryInfoAction
 	}
 

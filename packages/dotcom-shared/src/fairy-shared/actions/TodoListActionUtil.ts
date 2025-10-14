@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { Streaming } from '../types/Streaming'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const TodoListAction = z
 	.object({
@@ -19,7 +19,10 @@ type TodoListAction = z.infer<typeof TodoListAction>
 export class TodoListActionUtil extends AgentActionUtil<TodoListAction> {
 	static override type = 'update-todo-list' as const
 
-	override getSchema() {
+	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
+		if (!actions.includes('update-todo-list')) {
+			return null
+		}
 		return TodoListAction
 	}
 

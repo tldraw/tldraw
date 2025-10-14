@@ -8,7 +8,7 @@ import {
 import { FocusedShape } from '../format/FocusedShape'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
-import { PromptPartUtil } from './PromptPartUtil'
+import { PromptPartUtil, PromptPartUtilConstructor } from './PromptPartUtil'
 
 export interface UserActionHistoryPart extends BasePromptPart<'userActionHistory'> {
 	added: {
@@ -34,7 +34,20 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 		return 40
 	}
 
-	override getPart(_request: AgentRequest, helpers: AgentHelpers): UserActionHistoryPart {
+	override getPart(
+		_request: AgentRequest,
+		helpers: AgentHelpers,
+		parts: PromptPartUtilConstructor['type'][]
+	): UserActionHistoryPart {
+		if (!parts.includes('userActionHistory')) {
+			return {
+				type: 'userActionHistory',
+				added: [],
+				removed: [],
+				updated: [],
+			}
+		}
+
 		const { editor, agent } = helpers
 
 		// Get the action history and clear it so that we can start tracking changes for the next request

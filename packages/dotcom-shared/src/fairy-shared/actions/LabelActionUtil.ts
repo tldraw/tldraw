@@ -2,7 +2,7 @@ import { TLShapeId, toRichText } from '@tldraw/editor'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const LabelAction = z
 	.object({
@@ -18,7 +18,10 @@ type ILabelEvent = z.infer<typeof LabelAction>
 export class LabelActionUtil extends AgentActionUtil<ILabelEvent> {
 	static override type = 'label' as const
 
-	override getSchema() {
+	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
+		if (!actions.includes('label')) {
+			return null
+		}
 		return LabelAction
 	}
 

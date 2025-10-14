@@ -2,7 +2,7 @@ import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { DEFAULT_FAIRY_VISION } from '../constants'
 import { Streaming } from '../types/Streaming'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const FlyToBoundsAction = z
 	.object({
@@ -24,7 +24,10 @@ type FlyToBoundsAction = z.infer<typeof FlyToBoundsAction>
 export class FlyToBoundsActionUtil extends AgentActionUtil<FlyToBoundsAction> {
 	static override type = 'flyToBounds' as const
 
-	override getSchema() {
+	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
+		if (!actions.includes('flyToBounds')) {
+			return null
+		}
 		return FlyToBoundsAction
 	}
 

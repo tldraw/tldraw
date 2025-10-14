@@ -1,7 +1,13 @@
 import { DurableObject } from 'cloudflare:workers'
 // import { AutoRouter, error } from 'itty-router'
 
-import { AgentAction, AgentPrompt, Streaming } from '@tldraw/dotcom-shared'
+import {
+	AgentAction,
+	AgentActionUtilConstructor,
+	AgentPrompt,
+	PromptPartUtilConstructor,
+	Streaming,
+} from '@tldraw/dotcom-shared'
 import { Environment } from '../environment'
 import { AgentService } from './AgentService'
 
@@ -38,9 +44,13 @@ export class AgentDurableObject extends DurableObject<Environment> {
 
 		;(async () => {
 			try {
-				const prompt = (await request.json()) as AgentPrompt
+				const { prompt, actions, parts } = (await request.json()) as {
+					prompt: AgentPrompt
+					actions: AgentActionUtilConstructor['type'][]
+					parts: PromptPartUtilConstructor['type'][]
+				}
 
-				for await (const change of this.service.stream(prompt)) {
+				for await (const change of this.service.stream(prompt, actions, parts)) {
 					response.changes.push(change)
 					const data = `data: ${JSON.stringify(change)}\n\n`
 					await writer.write(encoder.encode(data))

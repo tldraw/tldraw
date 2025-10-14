@@ -2,7 +2,7 @@ import { TLShapeId } from '@tldraw/editor'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const ResizeAction = z
 	.object({
@@ -25,7 +25,10 @@ type ResizeAction = z.infer<typeof ResizeAction>
 export class ResizeActionUtil extends AgentActionUtil<ResizeAction> {
 	static override type = 'resize' as const
 
-	override getSchema() {
+	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
+		if (!actions.includes('resize')) {
+			return null
+		}
 		return ResizeAction
 	}
 

@@ -1,6 +1,7 @@
+import { AgentHelpers } from '../AgentHelpers'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
-import { PromptPartUtil } from './PromptPartUtil'
+import { PromptPartUtil, PromptPartUtilConstructor } from './PromptPartUtil'
 
 export interface MessagesPart extends BasePromptPart<'messages'> {
 	messages: string[]
@@ -14,7 +15,19 @@ export class MessagesPartUtil extends PromptPartUtil<MessagesPart> {
 		return -Infinity // user message should be last (highest priority)
 	}
 
-	override getPart(request: AgentRequest): MessagesPart {
+	override getPart(
+		request: AgentRequest,
+		helpers: AgentHelpers,
+		parts: PromptPartUtilConstructor['type'][]
+	): MessagesPart {
+		if (!parts.includes('messages')) {
+			return {
+				type: 'messages',
+				messages: [],
+				requestType: request.type,
+			}
+		}
+
 		const { messages, type } = request
 		return {
 			type: 'messages',

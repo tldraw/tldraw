@@ -4,7 +4,7 @@ import { convertTldrawShapesToPeripheralShapes } from '../format/convertTldrawSh
 import { PeripheralShapeCluster } from '../format/PeripheralShapesCluster'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
-import { PromptPartUtil } from './PromptPartUtil'
+import { PromptPartUtil, PromptPartUtilConstructor } from './PromptPartUtil'
 
 export interface PeripheralShapesPart extends BasePromptPart<'peripheralShapes'> {
 	clusters: PeripheralShapeCluster[] | null
@@ -17,8 +17,14 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPar
 		return 65 // peripheral content after viewport shapes (low priority)
 	}
 
-	override getPart(request: AgentRequest, helpers: AgentHelpers): PeripheralShapesPart {
-		if (!this.agent) return { type: 'peripheralShapes', clusters: null }
+	override getPart(
+		request: AgentRequest,
+		helpers: AgentHelpers,
+		parts: PromptPartUtilConstructor['type'][]
+	): PeripheralShapesPart {
+		if (!this.agent || !parts.includes('peripheralShapes')) {
+			return { type: 'peripheralShapes', clusters: null }
+		}
 		const { editor } = this.agent
 
 		const shapes = editor.getCurrentPageShapesSorted()

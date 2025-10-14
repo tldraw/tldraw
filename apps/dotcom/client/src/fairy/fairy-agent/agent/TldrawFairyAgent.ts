@@ -11,12 +11,14 @@ import {
 	BaseAgentPrompt,
 	ChatHistoryItem,
 	ContextItem,
+	DEFAULT_FAIRY_ACTIONS,
+	DEFAULT_FAIRY_PROMPT_PARTS,
 	DEFAULT_FAIRY_VISION,
 	DEFAULT_MODEL_NAME,
 	FairyEntity,
 	FocusedShape,
-	getAgentActionUtilsRecord,
-	getPromptPartUtilsRecord,
+	getAgentActionUtilsRecordByTypes,
+	getPromptPartUtilsRecordByTypes,
 	TldrawFairyAgent as ITldrawFairyAgent,
 	PointContextItem,
 	PromptPart,
@@ -32,6 +34,7 @@ import {
 	atom,
 	Box,
 	BoxModel,
+	computed,
 	Editor,
 	fetch,
 	getFromLocalStorage,
@@ -121,25 +124,52 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 	 */
 	$modelName = atom<AgentModelName>('modelName', DEFAULT_MODEL_NAME)
 
+	private stopReactingToActions: () => void
+	private stopReactingToParts: () => void
+
 	/**
 	 * Create a new tldraw agent.
 	 */
 	constructor({ editor, id, onError }: TldrawFairyAgentOptions) {
 		this.editor = editor
 		this.id = id
+
+		const availableActions = DEFAULT_FAIRY_ACTIONS
+		const availableParts = DEFAULT_FAIRY_PROMPT_PARTS
+
 		this.$fairy = atom<FairyEntity>(`fairy-${id}`, {
 			position: { x: 0, y: 0 },
 			flipX: false,
 			isSelected: false,
 			pose: 'idle',
+			actions: availableActions,
+			parts: availableParts,
 		})
 
 		this.onError = onError
 
 		$fairyAgentsAtom.update(editor, (agents) => [...agents, this])
 
-		this.agentActionUtils = getAgentActionUtilsRecord(this)
-		this.promptPartUtils = getPromptPartUtilsRecord(this)
+		// This below can probably be cleaned up a bit
+
+		// Source of truth for the actions and parts are the values in the $fairy atom
+		const computedActions = computed('computedActions', () => this.$fairy.get().actions)
+		const computedParts = computed('computedParts', () => this.$fairy.get().parts)
+
+		// Change the utils only if the actions or parts have changed
+		const stopReactingToActionsFn = react('update available actions', () => {
+			this.agentActionUtils = getAgentActionUtilsRecordByTypes(computedActions.get(), this)
+		})
+		this.stopReactingToActions = stopReactingToActionsFn
+
+		const stopReactingToPartsFn = react('update available parts', () => {
+			this.promptPartUtils = getPromptPartUtilsRecordByTypes(computedParts.get(), this)
+		})
+		this.stopReactingToParts = stopReactingToPartsFn
+
+		// Some of this might be vestigal
+		this.agentActionUtils = getAgentActionUtilsRecordByTypes(availableActions, this)
+		this.promptPartUtils = getPromptPartUtilsRecordByTypes(availableParts, this)
 		this.unknownActionUtil = this.agentActionUtils.unknown
 
 		persistAtomInLocalStorage(this.$chatHistory, `${id}:chat-history`)
@@ -157,6 +187,8 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 	dispose() {
 		this.cancel()
 		this.stopRecordingUserActions()
+		this.stopReactingToActions()
+		this.stopReactingToParts()
 		$fairyAgentsAtom.update(this.editor, (agents) => agents.filter((agent) => agent.id !== this.id))
 	}
 
@@ -288,7 +320,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 		const transformedParts: PromptPart[] = []
 
 		for (const util of Object.values(promptPartUtils)) {
-			const part = await util.getPart(structuredClone(request), helpers)
+			const part = await util.getPart(structuredClone(request), helpers, this.$fairy.get().parts)
 			if (!part) continue
 			transformedParts.push(part)
 		}
@@ -571,6 +603,73 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 	}
 
 	/**
+	 * Stream a response from the model.
+	 * Act on the model's events as they come in.
+	 *
+	 * This is a helper function that is used internally by the agent.
+	 */
+	async *streamAgent({
+		prompt,
+		signal,
+	}: {
+		prompt: BaseAgentPrompt
+		signal: AbortSignal
+	}): AsyncGenerator<Streaming<AgentAction>> {
+		const res = await fetch(`${FAIRY_WORKER}/stream`, {
+			method: 'POST',
+			body: JSON.stringify({
+				prompt,
+				actions: this.$fairy.get().actions,
+				parts: this.$fairy.get().parts,
+			}),
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			signal,
+		})
+
+		if (!res.body) {
+			throw Error('No body in response')
+		}
+
+		const reader = res.body.getReader()
+		const decoder = new TextDecoder()
+		let buffer = ''
+
+		try {
+			while (true) {
+				const { value, done } = await reader.read()
+				if (done) break
+
+				buffer += decoder.decode(value, { stream: true })
+				const actions = buffer.split('\n\n')
+				buffer = actions.pop() || ''
+
+				for (const action of actions) {
+					const match = action.match(/^data: (.+)$/m)
+					if (match) {
+						try {
+							const data = JSON.parse(match[1])
+
+							// If the response contains an error, throw it
+							if ('error' in data) {
+								throw new Error(data.error)
+							}
+
+							const agentAction: Streaming<AgentAction> = data
+							yield agentAction
+						} catch (err: any) {
+							throw new Error(err.message)
+						}
+					}
+				}
+			}
+		} finally {
+			reader.releaseLock()
+		}
+	}
+
+	/**
 	 * A function that cancels the agent's current prompt, if one is active.
 	 */
 	private cancelFn: (() => void) | null = null
@@ -820,7 +919,7 @@ function requestAgent({ agent, request }: { agent: TldrawFairyAgent; request: Ag
 		let incompleteDiff: RecordsDiff<TLRecord> | null = null
 		const actionPromises: Promise<void>[] = []
 		try {
-			for await (const action of streamAgent({ prompt, signal })) {
+			for await (const action of agent.streamAgent({ prompt, signal })) {
 				if (cancelled) break
 
 				if (action.complete && action._type !== 'message') {
@@ -884,75 +983,6 @@ function requestAgent({ agent, request }: { agent: TldrawFairyAgent; request: Ag
 	}
 
 	return { promise: requestPromise, cancel }
-}
-
-/**
- * Stream a response from the model.
- * Act on the model's events as they come in.
- *
- * This is a helper function that is used internally by the agent.
- */
-async function* streamAgent({
-	prompt,
-	signal,
-}: {
-	prompt: BaseAgentPrompt
-	signal: AbortSignal
-}): AsyncGenerator<Streaming<AgentAction>> {
-	// const _propmt = prompt
-	// const _signal = signal
-
-	// console.warn('sike')
-	// yield { _type: 'message', text: 'sike', complete: true, time: Date.now() }
-
-	const res = await fetch(`${FAIRY_WORKER}/stream`, {
-		method: 'POST',
-		body: JSON.stringify(prompt),
-		headers: {
-			'Content-Type': 'application/json',
-		},
-		signal,
-	})
-
-	if (!res.body) {
-		throw Error('No body in response')
-	}
-
-	const reader = res.body.getReader()
-	const decoder = new TextDecoder()
-	let buffer = ''
-
-	try {
-		while (true) {
-			const { value, done } = await reader.read()
-			if (done) break
-
-			buffer += decoder.decode(value, { stream: true })
-			const actions = buffer.split('\n\n')
-			buffer = actions.pop() || ''
-
-			for (const action of actions) {
-				const match = action.match(/^data: (.+)$/m)
-				if (match) {
-					try {
-						const data = JSON.parse(match[1])
-
-						// If the response contains an error, throw it
-						if ('error' in data) {
-							throw new Error(data.error)
-						}
-
-						const agentAction: Streaming<AgentAction> = data
-						yield agentAction
-					} catch (err: any) {
-						throw new Error(err.message)
-					}
-				}
-			}
-		}
-	} finally {
-		reader.releaseLock()
-	}
 }
 
 /**

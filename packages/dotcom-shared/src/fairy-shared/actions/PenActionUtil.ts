@@ -5,7 +5,7 @@ import { AgentHelpers } from '../AgentHelpers'
 import { asColor, SimpleColor } from '../format/SimpleColor'
 import { convertSimpleFillToTldrawFill, SimpleFillSchema } from '../format/SimpleFill'
 import { Streaming } from '../types/Streaming'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const PenAction = z
 	.object({
@@ -33,7 +33,10 @@ type PenAction = z.infer<typeof PenAction>
 export class PenActionUtil extends AgentActionUtil<PenAction> {
 	static override type = 'pen' as const
 
-	override getSchema() {
+	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
+		if (!actions.includes('pen')) {
+			return null
+		}
 		return PenAction
 	}
 

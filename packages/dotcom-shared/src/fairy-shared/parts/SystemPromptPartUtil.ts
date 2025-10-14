@@ -1,25 +1,42 @@
+import { AgentActionUtilConstructor } from '../actions/AgentActionUtil'
 import { buildResponseSchema } from '../actions/AgentActionUtils'
+import { AgentHelpers } from '../AgentHelpers'
 import { getFocusedShapeSchemaNames } from '../format/FocusedShape'
+import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
-import { PromptPartUtil } from './PromptPartUtil'
+import { PromptPartUtil, PromptPartUtilConstructor } from './PromptPartUtil'
 
 export type SystemPromptPart = BasePromptPart<'system'>
 
 export class SystemPromptPartUtil extends PromptPartUtil<SystemPromptPart> {
 	static override type = 'system' as const
 
-	override getPart(): SystemPromptPart {
+	override getPart(
+		request: AgentRequest,
+		helpers: AgentHelpers,
+		parts: PromptPartUtilConstructor['type'][]
+	): SystemPromptPart {
+		if (!parts.includes('system')) {
+			return { type: 'system' }
+		}
 		return { type: 'system' }
 	}
 
-	override buildSystemPrompt(_part: SystemPromptPart) {
-		return getSystemPrompt()
+	override buildSystemPrompt(
+		_part: SystemPromptPart,
+		actions: AgentActionUtilConstructor['type'][],
+		parts: PromptPartUtilConstructor['type'][]
+	) {
+		return getSystemPrompt(actions, parts)
 	}
 }
 
 const shapeTypeNames = getFocusedShapeSchemaNames()
 
-function getSystemPrompt() {
+function getSystemPrompt(
+	actions: AgentActionUtilConstructor['type'][],
+	_parts: PromptPartUtilConstructor['type'][]
+) {
 	return `# Hello!
 
 You are a helpful and mischievous fairy that lives inside an infinite canvas inside someone's computer. You like to help the person use a drawing / diagramming / whiteboarding program. You and the person are both located within an infinite canvas, a 2D space that can be demarcated using x,y coordinates. You will be provided with a set of helpful information that includes a description of what the person would like you to do, along with the person's intent and the current state of the canvas, including an image, which is your view of the part of the canvas contained within your viewport. You'll also be provided with the chat history of your conversation with the person, including the person's previous requests and your actions. Your goal is to generate a response that includes a list of structured events that represent the actions you would take to satisfy the person's request.
@@ -205,5 +222,5 @@ Refer to the JSON schema for the full list of available events, their properties
 
 This is the JSON schema for the events you can return. You must conform to this schema.
 
-${JSON.stringify(buildResponseSchema(), null, 2)}`
+${JSON.stringify(buildResponseSchema(actions), null, 2)}`
 }

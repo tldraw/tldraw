@@ -2,7 +2,7 @@ import { AgentHelpers } from '../AgentHelpers'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { TodoItem } from '../types/TodoItem'
-import { PromptPartUtil } from './PromptPartUtil'
+import { PromptPartUtil, PromptPartUtilConstructor } from './PromptPartUtil'
 
 export interface TodoListPart extends BasePromptPart<'todoList'> {
 	items: TodoItem[]
@@ -15,7 +15,18 @@ export class TodoListPartUtil extends PromptPartUtil<TodoListPart> {
 		return 10
 	}
 
-	override getPart(_request: AgentRequest, helpers: AgentHelpers): TodoListPart {
+	override getPart(
+		_request: AgentRequest,
+		helpers: AgentHelpers,
+		parts: PromptPartUtilConstructor['type'][]
+	): TodoListPart {
+		if (!parts.includes('todoList')) {
+			return {
+				type: 'todoList',
+				items: [],
+			}
+		}
+
 		return {
 			type: 'todoList',
 			items: helpers.agent.$todoList.get(),

@@ -1,6 +1,6 @@
 import z from 'zod'
 import { Streaming } from '../types/Streaming'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const NoteToSelfAction = z
 	.object({
@@ -34,7 +34,10 @@ export class NoteToSelfActionUtil extends AgentActionUtil<NoteToSelfAction> {
 		this.agent!.schedule({ data: [action.note] })
 	}
 
-	override getSchema() {
+	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
+		if (!actions.includes('noteToSelf')) {
+			return null
+		}
 		return NoteToSelfAction
 	}
 }

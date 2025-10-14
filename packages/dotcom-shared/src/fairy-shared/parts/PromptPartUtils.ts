@@ -61,3 +61,20 @@ export function getPromptPartUtilsRecord(agent?: TldrawFairyAgent) {
 	}
 	return object
 }
+
+/**
+ * Get an object containing only the specified prompt part utils.
+ */
+export function getPromptPartUtilsRecordByTypes(
+	types: PromptPartUtilConstructor['type'][],
+	agent?: TldrawFairyAgent
+) {
+	const object = {} as Record<PromptPart['type'], PromptPartUtil<PromptPart>>
+	const typeSet = new Set(types)
+	for (const util of PROMPT_PART_UTILS) {
+		if (typeSet.has(util.type)) {
+			object[util.type] = new util(agent)
+		}
+	}
+	return object
+}

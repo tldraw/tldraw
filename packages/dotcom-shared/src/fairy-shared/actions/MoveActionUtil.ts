@@ -2,7 +2,7 @@ import { TLShapeId, Vec } from '@tldraw/editor'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const MoveAction = z
 	.object({
@@ -19,7 +19,10 @@ type MoveAction = z.infer<typeof MoveAction>
 export class MoveActionUtil extends AgentActionUtil<MoveAction> {
 	static override type = 'move' as const
 
-	override getSchema() {
+	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
+		if (!actions.includes('move')) {
+			return null
+		}
 		return MoveAction
 	}
 

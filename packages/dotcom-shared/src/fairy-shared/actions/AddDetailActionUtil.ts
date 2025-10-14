@@ -1,6 +1,6 @@
 import z from 'zod'
 import { Streaming } from '../types/Streaming'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const AddDetailAction = z
 	.object({
@@ -17,7 +17,10 @@ type AddDetailAction = z.infer<typeof AddDetailAction>
 export class AddDetailActionUtil extends AgentActionUtil<AddDetailAction> {
 	static override type = 'add-detail' as const
 
-	override getSchema() {
+	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
+		if (!actions.includes('add-detail')) {
+			return null
+		}
 		return AddDetailAction
 	}
 

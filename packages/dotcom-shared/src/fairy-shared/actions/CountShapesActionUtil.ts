@@ -1,7 +1,7 @@
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const CountShapesAction = z
 	.object({
@@ -19,7 +19,10 @@ type CountShapesAction = z.infer<typeof CountShapesAction>
 export class CountShapesActionUtil extends AgentActionUtil<CountShapesAction> {
 	static override type = 'count' as const
 
-	override getSchema() {
+	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
+		if (!actions.includes('count')) {
+			return null
+		}
 		return CountShapesAction
 	}
 

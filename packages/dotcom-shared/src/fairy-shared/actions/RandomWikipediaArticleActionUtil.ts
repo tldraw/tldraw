@@ -1,7 +1,7 @@
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const RandomWikipediaArticleAction = z
 	.object({
@@ -17,7 +17,10 @@ type RandomWikipediaArticleAction = z.infer<typeof RandomWikipediaArticleAction>
 export class RandomWikipediaArticleActionUtil extends AgentActionUtil<RandomWikipediaArticleAction> {
 	static override type = 'getInspiration' as const
 
-	override getSchema() {
+	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
+		if (!actions.includes('getInspiration')) {
+			return null
+		}
 		return RandomWikipediaArticleAction
 	}
 

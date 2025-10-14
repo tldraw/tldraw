@@ -2,7 +2,7 @@ import { TLShapeId } from '@tldraw/editor'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
-import { AgentActionUtil } from './AgentActionUtil'
+import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const AlignAction = z
 	.object({
@@ -19,7 +19,10 @@ type AlignAction = z.infer<typeof AlignAction>
 export class AlignActionUtil extends AgentActionUtil<AlignAction> {
 	static override type = 'align' as const
 
-	override getSchema() {
+	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
+		if (!actions.includes('align')) {
+			return null
+		}
 		return AlignAction
 	}
 

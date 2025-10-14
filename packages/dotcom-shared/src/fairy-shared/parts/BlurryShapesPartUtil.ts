@@ -4,7 +4,7 @@ import { BlurryShape } from '../format/BlurryShape'
 import { convertTldrawShapeToBlurryShape } from '../format/convertTldrawShapeToBlurryShape'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
-import { PromptPartUtil } from './PromptPartUtil'
+import { PromptPartUtil, PromptPartUtilConstructor } from './PromptPartUtil'
 
 export interface BlurryShapesPart extends BasePromptPart<'blurryShapes'> {
 	shapes: BlurryShape[] | null
@@ -17,8 +17,14 @@ export class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {
 		return 70
 	}
 
-	override getPart(request: AgentRequest, helpers: AgentHelpers): BlurryShapesPart {
-		if (!this.agent) return { type: 'blurryShapes', shapes: null }
+	override getPart(
+		request: AgentRequest,
+		helpers: AgentHelpers,
+		parts: PromptPartUtilConstructor['type'][]
+	): BlurryShapesPart {
+		if (!this.agent || !parts.includes('blurryShapes')) {
+			return { type: 'blurryShapes', shapes: null }
+		}
 		const { editor } = this.agent
 
 		const shapes = editor.getCurrentPageShapesSorted()

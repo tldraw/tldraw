@@ -2,7 +2,7 @@ import { Box, BoxModel } from '@tldraw/editor'
 import { AgentHelpers } from '../AgentHelpers'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
-import { PromptPartUtil } from './PromptPartUtil'
+import { PromptPartUtil, PromptPartUtilConstructor } from './PromptPartUtil'
 
 export interface ViewportBoundsPart extends BasePromptPart<'viewportBounds'> {
 	userBounds: BoxModel | null
@@ -16,8 +16,14 @@ export class ViewportBoundsPartUtil extends PromptPartUtil<ViewportBoundsPart> {
 		return 75 // viewport should go after context bounds (low priority)
 	}
 
-	override getPart(request: AgentRequest, helpers: AgentHelpers): ViewportBoundsPart {
-		if (!this.agent) return { type: 'viewportBounds', userBounds: null, agentBounds: null }
+	override getPart(
+		request: AgentRequest,
+		helpers: AgentHelpers,
+		parts: PromptPartUtilConstructor['type'][]
+	): ViewportBoundsPart {
+		if (!this.agent || !parts.includes('viewportBounds')) {
+			return { type: 'viewportBounds', userBounds: null, agentBounds: null }
+		}
 
 		const userBounds = this.agent.editor.getViewportPageBounds()
 		const offsetUserBounds = helpers.applyOffsetToBox(userBounds)

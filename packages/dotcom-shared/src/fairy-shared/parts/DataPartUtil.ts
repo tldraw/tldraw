@@ -1,7 +1,8 @@
 import { JsonValue } from '@tldraw/utils'
+import { AgentHelpers } from '../AgentHelpers'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
-import { PromptPartUtil } from './PromptPartUtil'
+import { PromptPartUtil, PromptPartUtilConstructor } from './PromptPartUtil'
 
 interface DataPart extends BasePromptPart<'data'> {
 	data: JsonValue[]
@@ -17,7 +18,18 @@ export class DataPartUtil extends PromptPartUtil<DataPart> {
 		return -200 // API data should come right before the user message but after most other parts
 	}
 
-	override async getPart(request: AgentRequest): Promise<DataPart> {
+	override async getPart(
+		request: AgentRequest,
+		helpers: AgentHelpers,
+		parts: PromptPartUtilConstructor['type'][]
+	): Promise<DataPart> {
+		if (!parts.includes('data')) {
+			return {
+				type: 'data',
+				data: [],
+			}
+		}
+
 		const { data } = request
 
 		const values = await Promise.all(

@@ -4,7 +4,7 @@ import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { ChatHistoryItem } from '../types/ChatHistoryItem'
-import { PromptPartUtil } from './PromptPartUtil'
+import { PromptPartUtil, PromptPartUtilConstructor } from './PromptPartUtil'
 
 export interface ChatHistoryPart extends BasePromptPart<'chatHistory'> {
 	items: ChatHistoryItem[] | null
@@ -17,8 +17,14 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 		return Infinity // history should appear first in the prompt (low priority)
 	}
 
-	override async getPart(_request: AgentRequest, helpers: AgentHelpers) {
-		if (!this.agent) return { type: 'chatHistory' as const, items: null }
+	override async getPart(
+		_request: AgentRequest,
+		helpers: AgentHelpers,
+		parts: PromptPartUtilConstructor['type'][]
+	) {
+		if (!this.agent || !parts.includes('chatHistory')) {
+			return { type: 'chatHistory' as const, items: null }
+		}
 
 		const items = structuredClone(this.agent.$chatHistory.get())
 
