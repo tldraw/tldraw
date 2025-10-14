@@ -13,7 +13,7 @@
 		"repo": "tldraw/workflow-template",
 		"cli": {
 			"name": "Workflow",
-			"description": "Build visual tools where users drag and connect nodes, think automation builders with a canvas interface.",
+			"description": "Create a node-based builder for visual workflows.",
 			"shortDescription": "Visual node-based builder for workflows.",
 			"order": 4
 		},

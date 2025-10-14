@@ -13,7 +13,7 @@
 		"repo": "tldraw/shader-starter-kit",
 		"cli": {
 			"name": "Shader",
-			"description": "Use WebGL shaders that use shape geometry to create dynamic effects.",
+			"description": "Create WebGL shaders that respond to shapes on the canvas.",
 			"shortDescription": "Shaders on the canvas.",
 			"order": 7
 		},

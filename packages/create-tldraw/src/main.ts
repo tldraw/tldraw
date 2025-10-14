@@ -1,5 +1,5 @@
 import { parse as parseArgs } from '@bomb.sh/args'
-import { intro, outro, select, spinner, text } from '@clack/prompts'
+import { outro, select, spinner, text } from '@clack/prompts'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path, { relative, resolve } from 'node:path'
 import process from 'node:process'
@@ -26,8 +26,6 @@ import { wrapAnsi } from './wrap-ansi'
 const DEBUG = !!process.env.DEBUG
 
 async function main() {
-	intro(`Let's build with the tldraw SDK.`)
-
 	const args = parseArgs(process.argv.slice(2), {
 		alias: {
 			h: 'help',
@@ -61,7 +59,7 @@ async function main() {
 	doneMessage.push(`   ${getInstallCommand(manager)}`)
 	doneMessage.push(`   ${getRunCommand(manager, 'dev')}`)
 	doneMessage.push('')
-	doneMessage.push('   Happy building!')
+	doneMessage.push('   Happy building! Visit https://tldraw.dev/docs to learn more.')
 
 	outro(doneMessage.join('\n'))
 }
@@ -81,12 +79,13 @@ async function templatePicker(argOption?: string) {
 			process.exit(1)
 		}
 
+		trackStarterKitChoice(template.name)
 		return template
 	}
 
-	return await handleCancel(
+	const template = await handleCancel(
 		groupSelect({
-			message: 'Select a starter kit:',
+			message: 'Select a tldraw starter kit:',
 			options: TEMPLATES.map(
 				(template): GroupSelectOption<Template> => ({
 					label: template.name,
@@ -96,6 +95,22 @@ async function templatePicker(argOption?: string) {
 			),
 		})
 	)
+
+	trackStarterKitChoice(template.name)
+	return template
+}
+
+function trackStarterKitChoice(templateId: string) {
+	// Fire and forget - don't block on this request
+	fetch('https://dashboard.tldraw.pro/api/starter-kit-choice', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({ id: templateId }),
+	}).catch(() => {
+		// Silently ignore errors
+	})
 }
 
 async function namePicker(argOption?: string) {
@@ -234,7 +249,7 @@ function getHelp() {
 	const lines = [
 		picocolors.bold('Usage: create-tldraw [OPTION]... [DIRECTORY]'),
 		'',
-		'Create a new tldraw project.',
+		'Create a new tldraw project from a starter kit.',
 		"With no arguments, you'll be guided through an interactive setup.",
 		'',
 		picocolors.bold('Options:'),

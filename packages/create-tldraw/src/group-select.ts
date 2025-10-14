@@ -137,7 +137,7 @@ export function groupSelect<Value>(opts: GroupSelectOptions<Value>) {
 				[picocolors.cyan(S_BAR), picocolors.dim(' ...')].join('')
 			)
 
-			return [title, limited].join('')
+			return [title, picocolors.cyan(S_BAR), '\n', limited].join('')
 		},
 	}).prompt() as Promise<Value | symbol>
 }

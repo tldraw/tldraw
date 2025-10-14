@@ -12,7 +12,7 @@
 		"repo": "tldraw/chat-template",
 		"cli": {
 			"name": "Chat",
-			"description": "Use tldraw to add sketches and annotated images as visual context in an LLM chat interface.",
+			"description": "Create an AI chat that uses tldraw for sketches and annotations.",
 			"shortDescription": "A chat UI with sketches and images as context for AI.",
 			"order": 5
 		},

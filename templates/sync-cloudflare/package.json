@@ -13,7 +13,7 @@
 		"repo": "tldraw/tldraw-sync-cloudflare",
 		"cli": {
 			"name": "Multiplayer",
-			"description": "Real-time multiplayer with a self-hosted backend powered by tldraw sync and Cloudflare Durable Objects.",
+			"description": "Real-time multiplayer with a self-hosted backend.",
 			"shortDescription": "Real-time multiplayer.",
 			"order": 2
 		},

@@ -18,8 +18,7 @@ export const TEMPLATES: Template[] = [
 	},
 	{
 		name: 'Multiplayer',
-		description:
-			'Real-time multiplayer with a self-hosted backend powered by tldraw sync and Cloudflare Durable Objects.',
+		description: 'Real-time multiplayer with a self-hosted backend.',
 		shortDescription: 'Real-time multiplayer.',
 		order: 2,
 		repo: 'tldraw/tldraw-sync-cloudflare',
@@ -33,16 +32,14 @@ export const TEMPLATES: Template[] = [
 	},
 	{
 		name: 'Workflow',
-		description:
-			'Build visual tools where users drag and connect nodes, think automation builders with a canvas interface.',
+		description: 'Create a node-based builder for visual workflows.',
 		shortDescription: 'Visual node-based builder for workflows.',
 		order: 4,
 		repo: 'tldraw/workflow-template',
 	},
 	{
 		name: 'Chat',
-		description:
-			'Use tldraw to add sketches and annotated images as visual context in an LLM chat interface.',
+		description: 'Create an AI chat that uses tldraw for sketches and annotations.',
 		shortDescription: 'A chat UI with sketches and images as context for AI.',
 		order: 5,
 		repo: 'tldraw/chat-template',
@@ -56,7 +53,7 @@ export const TEMPLATES: Template[] = [
 	},
 	{
 		name: 'Shader',
-		description: 'Use WebGL shaders that use shape geometry to create dynamic effects.',
+		description: 'Create WebGL shaders that respond to shapes on the canvas.',
 		shortDescription: 'Shaders on the canvas.',
 		order: 7,
 		repo: 'tldraw/shader-starter-kit',
