@@ -64,24 +64,7 @@ function extractRelevantSections(message: string): string {
 	return ''
 }
 
-async function getStartRef() {
-	const branch = (await exec('git', ['rev-parse', '--abbrev-ref', 'HEAD'])).toString().trim()
-	const releaseBranchMatch = branch.match(/^v(\d+)\.(\d+)\.x$/)
-	if (releaseBranchMatch) {
-		// we are running on a release branch, calculate the local diff
-		const tags = (
-			await exec('git', [
-				'tag',
-				'--list',
-				`v${releaseBranchMatch[1]}.${releaseBranchMatch[2]}.*`,
-				'--sort=-version:refname',
-			])
-		)
-			.toString()
-			.trim()
-		const maxReleaseTag = tags.split('\n')[0]
-		return maxReleaseTag
-	}
+async function getLatestMinorRelease() {
 	// otherwise get the latest minor release
 	const tags = (await exec('git', ['tag', '--list', `v*.*.0`, '--sort=-version:refname']))
 		.toString()
@@ -248,8 +231,8 @@ async function main() {
 		process.exit(1)
 	}
 
-	const startRef = args[0] || 'origin/production'
-	const endRef = args[1] || 'origin/main'
+	const startRef = args[0] || (await getLatestMinorRelease())
+	const endRef = args[1] || 'origin/production'
 
 	try {
 		const output = await extractChangelog(startRef, endRef)
