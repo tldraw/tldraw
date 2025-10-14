@@ -122,11 +122,11 @@ async function namePicker(argOption?: string) {
 
 	const name = await handleCancel(
 		text({
-			message: picocolors.bold('Name your package'),
+			message: picocolors.bold('Name your app'),
 			placeholder: defaultName,
 			validate: (value) => {
 				if (value && !isValidPackageName(value)) {
-					return `Invalid package name: ${value}`
+					return `Invalid name: ${value}`
 				}
 
 				return undefined
