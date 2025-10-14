@@ -32,7 +32,7 @@ async function main() {
 			t: 'template',
 			o: 'overwrite',
 		},
-		boolean: ['help', 'overwrite'],
+		boolean: ['help', 'overwrite', 'no-telemetry'],
 		string: ['template'],
 	})
 
@@ -44,7 +44,7 @@ async function main() {
 	const maybeTargetDir = args._[0] ? formatTargetDir(resolve(String(args._[0]))) : undefined
 	const targetDir = maybeTargetDir ?? process.cwd()
 
-	const template = await templatePicker(args.template)
+	const template = await templatePicker(args.template, args['no-telemetry'])
 	const name = await namePicker(maybeTargetDir)
 
 	await ensureDirectoryEmpty(targetDir, args.overwrite)
@@ -70,7 +70,7 @@ main().catch((err) => {
 	process.exit(1)
 })
 
-async function templatePicker(argOption?: string) {
+async function templatePicker(argOption?: string, noTelemetry?: boolean) {
 	if (argOption) {
 		const template = TEMPLATES.find((t) => formatTemplateId(t) === argOption.toLowerCase().trim())
 
@@ -79,7 +79,7 @@ async function templatePicker(argOption?: string) {
 			process.exit(1)
 		}
 
-		trackStarterKitChoice(template.name)
+		trackStarterKitChoice(template.name, noTelemetry)
 		return template
 	}
 
@@ -96,11 +96,14 @@ async function templatePicker(argOption?: string) {
 		})
 	)
 
-	trackStarterKitChoice(template.name)
+	trackStarterKitChoice(template.name, noTelemetry)
 	return template
 }
 
-function trackStarterKitChoice(templateId: string) {
+function trackStarterKitChoice(templateId: string, noTelemetry?: boolean) {
+	// Skip tracking if --no-telemetry flag is set
+	if (noTelemetry) return
+
 	// Fire and forget - don't block on this request
 	fetch('https://dashboard.tldraw.pro/api/starter-kit-choice', {
 		method: 'POST',
@@ -230,6 +233,7 @@ function getHelp() {
 		{ flags: '-h, --help', description: 'Display this help message.' },
 		{ flags: '-t, --template NAME', description: 'Use a specific template.' },
 		{ flags: '-o, --overwrite', description: 'Overwrite the target directory if it exists.' },
+		{ flags: '--no-telemetry', description: 'Disable anonymous usage tracking.' },
 	]
 
 	const GAP_SIZE = 2
