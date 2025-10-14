@@ -13,7 +13,7 @@ import {
 
 export const BOOKMARK_WIDTH = 300
 export const BOOKMARK_HEIGHT = 320
-const BOOKMARK_JUST_URL_HEIGHT = 46
+export const BOOKMARK_JUST_URL_HEIGHT = 46
 const SHORT_BOOKMARK_HEIGHT = 101
 
 export function getBookmarkHeight(editor: Editor, assetId?: TLAssetId | null) {
@@ -40,13 +40,13 @@ export function setBookmarkHeight(editor: Editor, shape: TLBookmarkShape) {
 }
 
 /** @internal */
-export const getHumanReadableAddress = (shape: TLBookmarkShape) => {
+export const getHumanReadableAddress = (url: string) => {
 	try {
-		const url = new URL(shape.props.url)
+		const objUrl = new URL(url)
 		// we want the hostname without any www
-		return url.hostname.replace(/^www\./, '')
+		return objUrl.hostname.replace(/^www\./, '')
 	} catch {
-		return shape.props.url
+		return url
 	}
 }
 
