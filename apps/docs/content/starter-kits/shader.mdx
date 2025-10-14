@@ -3,8 +3,8 @@ title: Shader starter kit
 sidebarTitle: Shader
 status: published
 author: tldraw
-date: 10/14/2025
-order: 4
+date: 10/14/2024
+order: 7
 keywords:
   - shader
   - webgl
@@ -29,113 +29,76 @@ npm create tldraw@latest -- --template shader
 
 ---
 
-## What's included
+## Use Cases
 
-- **[WebGLManager](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/WebGLManager.ts) base class** ([`src/WebGLManager.ts`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/WebGLManager.ts)) - Handles WebGL lifecycle, viewport synchronization, and animation loop integration with tldraw's reactive system
-- **Four example shaders** - Fluid simulation, rainbow gradients, dynamic shadows, and a minimal starter template
-- **Config panel components** ([`src/config-panel/`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/config-panel/)) - Pre-built UI controls for adjusting shader parameters with localStorage persistence
-- **Full TypeScript support** - Strongly typed throughout
+The shader starter kit is perfect for building:
 
-Switch between examples using the toggle buttons in the tldraw style panel.
+- **Immersive creative tools**: Layer animated, touch-responsive backgrounds behind your drawing UI for design or storytelling apps.
+- **Data-rich dashboards**: Highlight state changes or live metrics using GPU-driven gradients and particle systems that react to editor data.
+- **Games and interactive experiences**: Combine tldraw shapes with shader-based effects to build puzzle overlays, interactive maps, or ambient scenes.
+- **Live events and streaming overlays**: Drive real-time graphics for broadcast overlays or virtual stages that react to presenter actions.
+- **Educational demos**: Teach graphics concepts with interactive examples that expose shader parameters through the config panel.
 
-## Examples
+---
 
-### Fluid simulation
+## How it works
 
-A real-time fluid simulation that creates dynamic flows from shape interactions. Based on Pavel Dobryakov's WebGL fluid implementation.
+### WebGLManager lifecycle
 
-- Navier-Stokes fluid dynamics
-- Shape movements create velocity-based splats
-- Configurable physics and visual effects
+The reusable `WebGLManager` class ([`src/WebGLManager.ts`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/WebGLManager.ts)) creates and manages a WebGL2 context that is synchronized with the tldraw canvas. It owns the render loop and exposes lifecycle hooks—`onInitialize()`, `onUpdate()`, `onRender()`, and `onDispose()`—so each shader manager can focus on its effect-specific logic while sharing viewport coordination, resolution control, and animation timing.
 
-**See:** [`src/fluid/`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/fluid/) | [Documentation](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/fluid/fluid.md)
+### Config panel system
 
-### Rainbow
+The config panel components ([`src/config-panel/`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/config-panel/)) provide ready-made UI controls for editing shader uniforms. Each panel stores settings in reactive atoms and persists them to `localStorage`, so your shader parameters survive reloads without extra wiring.
 
-An animated gradient shader demonstrating time-based effects and uniform management.
+### Example gallery
 
-**See:** [`src/rainbow/`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/rainbow/)
+The template ships with four complete demos that follow the same pattern of manager, renderer, config panel, and GLSL files:
 
-### Shadows
+- **Fluid simulation** ([`src/fluid/`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/fluid/)) — Navier-Stokes-based flow that turns pointer movement into velocity splats. Includes an in-depth [guide](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/fluid/fluid.md).
+- **Rainbow** ([`src/rainbow/`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/rainbow/)) — Gradient animation that demonstrates time-based uniforms and color cycling.
+- **Shadows** ([`src/shadow/`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/shadow/)) — Raymarched shadow effect using signed distance fields derived from canvas geometry.
+- **Minimal** ([`src/minimal/`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/minimal/)) — Dark-mode-aware solid color shader that makes it easy to start your own effect, with a [step-by-step walkthrough](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/minimal/minimal-example.md).
 
-Dynamic shadow casting from tldraw shapes using raymarching and signed distance fields.
+Switch between demos from the style panel inside the starter kit to see how different managers plug into the same infrastructure.
 
-**See:** [`src/shadow/`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/shadow/)
+---
 
-### Minimal
+## Customization
 
-A bare-bones template for starting new shader projects. Renders a solid color that adapts to dark mode.
+### Start from the minimal template
 
-**See:** [`src/minimal/`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/minimal/) | [Documentation](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/minimal/minimal-example.md)
-
-## Architecture
-
-### WebGLManager
-
-The `WebGLManager` class ([`src/WebGLManager.ts`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/WebGLManager.ts)) provides the foundation for all shader examples. It handles:
-
-- WebGL2 context creation and lifecycle management
-- Automatic viewport synchronization with tldraw's canvas
-- Animation loop with lifecycle hooks: `onInitialize()`, `onUpdate()`, `onRender()`, `onDispose()`
-- Quality/resolution management
-- Integration with tldraw's reactive state system
-
-To create a custom shader, extend `WebGLManager` and implement the lifecycle hooks. See the minimal example for a starting point.
-
-### Config panel
-
-The config panel system ([`src/config-panel/`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/config-panel/)) provides reusable UI components for creating interactive shader controls:
-
-- `ConfigPanel` - Collapsible container with reset functionality
-- `ConfigPanelSlider` - Numeric slider control
-- `ConfigPanelBooleanControl` - Checkbox control
-
-Config values are stored in reactive atoms and automatically persisted to localStorage. See [config-panel.md](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/config-panel/config-panel.md) for usage details.
-
-### Renderer pattern
-
-Each example follows this pattern:
-
-1. Define a config interface extending `WebGLManagerConfig` in `config.ts`
-2. Create a shader manager class extending `WebGLManager`
-3. Write GLSL shaders (vertex and fragment)
-4. Create a React renderer component using `useLayoutEffect` to initialize the manager
-5. Build a config panel for live parameter adjustment
-6. Register the renderer as tldraw's `Background` component
-
-See any of the example directories for complete implementations.
-
-## Creating a custom shader
-
-The fastest way to create a custom shader is to copy the minimal example:
+Copy the minimal shader to create a new effect:
 
 ```bash
 cp -r src/minimal src/my-shader
 ```
 
-Then customize the following files:
+Then update:
 
-- `config.ts` - Define your configuration parameters
-- `fragment.glsl` / `vertex.glsl` - Write your shader code
-- `MyShaderManager.ts` - Extend WebGLManager and implement rendering logic
-- `MyRenderer.tsx` - Create the React component
-- `MyConfigPanel.tsx` - Build UI controls
+- `config.ts` — Define uniforms and UI controls for your shader.
+- `fragment.glsl` / `vertex.glsl` — Implement rendering logic.
+- `MyShaderManager.ts` — Extend `WebGLManager` and coordinate buffers, uniforms, and lifecycle hooks.
+- `MyRenderer.tsx` — Mount the manager from React and handle cleanup.
+- `MyConfigPanel.tsx` — Customize the controls exposed to users.
 
-Finally, register your shader in [`src/App.tsx`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/App.tsx).
+Finally, register the new manager in [`src/App.tsx`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/App.tsx).
 
-For a detailed walkthrough, see [src/minimal/minimal-example.md](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/minimal/minimal-example.md).
+### Extend WebGLManager hooks
 
-## Integration with tldraw
+Each manager can override lifecycle hooks to add render targets, resize behavior, or post-processing passes. Use `onInitialize()` to set up buffers, textures, and framebuffers; `onUpdate()` for per-frame uniform updates (such as time, resolution, or editor-driven state); and `onRender()` to issue draw calls. The base class also exposes helpers for handling pixel density and canvas resizes.
 
-The `WebGLManager` has direct access to the tldraw editor instance, allowing you to:
+### Integrate with tldraw data
 
-- Access shapes: `this.editor.getCurrentPageShapes()`
-- Listen to shape changes: `this.editor.store.listen()`
-- Get camera state: `this.editor.getCamera()`
-- Convert coordinates: `this.editor.pageToViewport()`
-- Track pointer position: `this.editor.inputs.currentPagePoint`
+Every manager receives the live tldraw editor instance, which lets you:
 
-The fluid simulation example ([`src/fluid/FluidManager.ts`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/fluid/FluidManager.ts)) demonstrates shape integration in depth.
+- Access shapes with `editor.getCurrentPageShapes()`.
+- Subscribe to document changes through `editor.store.listen()`.
+- Read the current camera via `editor.getCamera()`.
+- Convert coordinates with `editor.pageToViewport()`.
+- Track pointer data from `editor.inputs.currentPagePoint`.
+
+See [`src/fluid/FluidManager.ts`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/fluid/FluidManager.ts) for a full example of mixing editor state with GPU simulation.
 
 ## Resources
 
