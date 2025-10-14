@@ -55,6 +55,6 @@ export class StackActionUtil extends AgentActionUtil<IAgentStackEvent> {
 			return
 		}
 
-		this.agent.move(bounds.center)
+		this.agent.moveToPosition(bounds.center)
 	}
 }

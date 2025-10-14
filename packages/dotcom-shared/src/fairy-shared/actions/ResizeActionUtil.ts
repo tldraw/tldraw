@@ -68,6 +68,6 @@ export class ResizeActionUtil extends AgentActionUtil<ResizeAction> {
 			)
 		}
 
-		this.agent.move(origin)
+		this.agent.moveToPosition(origin)
 	}
 }

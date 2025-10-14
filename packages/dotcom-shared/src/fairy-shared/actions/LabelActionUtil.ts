@@ -53,7 +53,7 @@ export class LabelActionUtil extends AgentActionUtil<ILabelEvent> {
 			props: { richText: toRichText(action.text ?? '') },
 		})
 
-		this.agent.move({
+		this.agent.moveToPosition({
 			x: shape.x,
 			y: shape.y,
 		})

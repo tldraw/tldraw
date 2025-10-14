@@ -127,7 +127,7 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 
 		const lastPoint = last(points)
 		if (!lastPoint) return
-		this.agent.move({
+		this.agent.moveToPosition({
 			x: lastPoint.x,
 			y: lastPoint.y,
 		})

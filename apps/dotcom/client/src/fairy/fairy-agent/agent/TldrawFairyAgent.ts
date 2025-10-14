@@ -31,6 +31,7 @@ import {
 	Atom,
 	atom,
 	Box,
+	BoxModel,
 	Editor,
 	fetch,
 	getFromLocalStorage,
@@ -363,6 +364,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 		// Handle the scheduled request
 		this.$scheduledRequest.set(null)
 		await this.prompt(scheduledRequest)
+		this.moveToBounds(scheduledRequest.bounds)
 	}
 
 	/**
@@ -763,7 +765,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 
 	MOVE_OFFSET = { x: -70, y: 70 }
 
-	move(position: VecModel) {
+	moveToPosition(position: VecModel) {
 		this.$fairy.update((fairy) => {
 			const offsetPosition = Vec.Add(position, this.MOVE_OFFSET)
 
@@ -772,7 +774,18 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 				...fairy,
 				position: offsetPosition,
 				flipX: false,
-				// flipX: isMovingLeft,
+			}
+		})
+	}
+
+	moveToBounds(bounds: BoxModel) {
+		this.$fairy.update((fairy) => {
+			const bottomLeft = new Vec(bounds.x, bounds.y + bounds.h)
+			const offsetPosition = Vec.Add(bottomLeft, this.MOVE_OFFSET)
+			return {
+				...fairy,
+				position: offsetPosition,
+				flipX: false,
 			}
 		})
 	}

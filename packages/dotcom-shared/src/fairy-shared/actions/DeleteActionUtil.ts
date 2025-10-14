@@ -48,6 +48,6 @@ export class DeleteActionUtil extends AgentActionUtil<DeleteAction> {
 		if (!shape) return
 
 		this.agent.editor.deleteShape(`shape:${action.shapeId}` as TLShapeId)
-		this.agent.move({ x: shape.x, y: shape.y })
+		this.agent.moveToPosition({ x: shape.x, y: shape.y })
 	}
 }

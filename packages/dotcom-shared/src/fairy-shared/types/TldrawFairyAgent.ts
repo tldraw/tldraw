@@ -134,5 +134,5 @@ export interface TldrawFairyAgent {
 	hasContextItem(item: ContextItem): boolean
 
 	/** Move the fairy to a new position. */
-	move(position: VecModel): void
+	moveToPosition(position: VecModel): void
 }

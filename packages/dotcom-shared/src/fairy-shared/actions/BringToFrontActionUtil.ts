@@ -51,6 +51,6 @@ export class BringToFrontActionUtil extends AgentActionUtil<BringToFrontAction> 
 			return
 		}
 
-		this.agent.move(bounds.center)
+		this.agent.moveToPosition(bounds.center)
 	}
 }
