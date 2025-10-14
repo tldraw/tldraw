@@ -1,6 +1,6 @@
 import { FairyEntity } from '@tldraw/dotcom-shared'
 import { useEffect, useRef } from 'react'
-import { Atom, useEditor, useValue } from 'tldraw'
+import { Atom, Box, useEditor, useValue } from 'tldraw'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
 
 export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
@@ -26,6 +26,99 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 	const flipX = useValue('fairy flipX', () => fairy.get().flipX, [fairy])
 	const isSelected = useValue('fairy isSelected', () => fairy.get().isSelected, [fairy])
 	const pose = useValue('fairy pose', () => fairy.get().pose, [fairy])
+
+	// Listen to brush selection events and update fairy selection
+	const brush = useValue('editor brush', () => editor.getInstanceState().brush, [editor])
+	const wasInitiallySelectedRef = useRef(false)
+	const isBrushingRef = useRef(false)
+
+	// Listen for "select all" events
+	const selectedShapeIds = useValue(
+		'selected shape ids',
+		() => editor.getSelectedShapeIds(),
+		[editor]
+	)
+	const prevSelectedCountRef = useRef(0)
+
+	// Track when brushing starts
+	useEffect(() => {
+		if (brush && !isBrushingRef.current) {
+			// Brushing just started - remember initial selection state
+			wasInitiallySelectedRef.current = fairy.get().isSelected
+			isBrushingRef.current = true
+		} else if (!brush && isBrushingRef.current) {
+			// Brushing just ended
+			isBrushingRef.current = false
+		}
+	}, [brush, fairy])
+
+	// Detect "select all" or "select none" events
+	useEffect(() => {
+		// Don't process during brushing (handled by brush logic)
+		if (brush) return
+
+		const currentSelectedCount = selectedShapeIds.length
+
+		// Get all unlocked shapes on the current page
+		const currentPageId = editor.getCurrentPageId()
+		const allUnlockedShapeIds = editor
+			.getSortedChildIdsForParent(currentPageId)
+			.filter((id) => {
+				const shape = editor.getShape(id)
+				return shape && !editor.isShapeOrAncestorLocked(shape)
+			})
+
+		// Detect "select all" - if all shapes are now selected and previously weren't
+		const allShapesSelected = currentSelectedCount === allUnlockedShapeIds.length
+		const wasSelectAllTriggered =
+			allShapesSelected && currentSelectedCount > 0 && prevSelectedCountRef.current < currentSelectedCount
+
+		if (wasSelectAllTriggered && !fairy.get().isSelected) {
+			// Select the fairy too
+			fairy.update((f) => ({ ...f, isSelected: true }))
+		}
+
+		// Detect "select none" - if no shapes are selected and previously some were
+		const wasSelectNoneTriggered = currentSelectedCount === 0 && prevSelectedCountRef.current > 0
+
+		if (wasSelectNoneTriggered && fairy.get().isSelected) {
+			// Deselect the fairy too
+			fairy.update((f) => ({ ...f, isSelected: false }))
+		}
+
+		prevSelectedCountRef.current = currentSelectedCount
+	}, [selectedShapeIds, brush, fairy, editor])
+
+	useEffect(() => {
+		// Only process when brush is active (not null)
+		if (!brush) return
+
+		const fairyPosition = fairy.get().position
+		// Create a bounding box for the fairy (200px x 200px centered on position)
+		const fairyBounds = new Box(fairyPosition.x - 100, fairyPosition.y - 100, 200, 200)
+		const brushBox = Box.From(brush)
+
+		// Check if the fairy bounds intersect with the brush box
+		const intersects = brushBox.collides(fairyBounds)
+
+		// Determine if fairy should be selected based on brush intersection and shift key
+		const shiftKey = editor.inputs.shiftKey
+		let shouldBeSelected: boolean
+
+		if (shiftKey) {
+			// With shift key: keep initial selection and add if intersecting
+			shouldBeSelected = wasInitiallySelectedRef.current || intersects
+		} else {
+			// Without shift key: only select if intersecting
+			shouldBeSelected = intersects
+		}
+
+		// Update selection state if it changed
+		const currentlySelected = fairy.get().isSelected
+		if (shouldBeSelected !== currentlySelected) {
+			fairy.update((f) => ({ ...f, isSelected: shouldBeSelected }))
+		}
+	}, [brush, fairy, editor])
 
 	useEffect(() => {
 		// Deselect fairy when clicking outside
