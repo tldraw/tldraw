@@ -45,6 +45,7 @@ export default function Analytics() {
 	const onConsentChanged = (hasConsent: boolean) => {
 		Cookies.set('allowTracking', hasConsent ? 'true' : 'false')
 		setHasConsent(hasConsent ? 'opted-in' : 'opted-out')
+		track('consent_changed', { consent: hasConsent })
 	}
 
 	useEffect(() => {
@@ -123,6 +124,7 @@ export default function Analytics() {
 				document.head.appendChild(reoScriptTag)
 			}
 		} else {
+			posthog.setPersonProperties({ analytics_consent: false })
 			posthog.reset()
 			posthog.set_config({ persistence: 'memory' })
 			posthog.opt_out_capturing()
@@ -179,7 +181,10 @@ export function identify(userId: string, properties?: { [key: string]: any }) {
 
 	if (storedHasConsent !== 'opted-in') return
 
-	posthog.identify(userId, properties)
+	posthog.identify(userId, {
+		properties,
+		analytics_consent: true,
+	})
 	ReactGA.set({ userId })
 	ReactGA.set(properties)
 	window.Reo?.identify?.({

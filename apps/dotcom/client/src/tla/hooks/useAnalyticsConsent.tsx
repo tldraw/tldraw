@@ -4,6 +4,7 @@ import { useValue } from 'tldraw'
 import {
 	configureAnalytics,
 	setStoredAnalyticsConsent,
+	trackEvent,
 	useAnalyticsConsentValue,
 } from '../../utils/analytics'
 import { useMaybeApp } from '../hooks/useAppState'
@@ -35,6 +36,7 @@ export function useAnalyticsConsent() {
 				// Immediately configure analytics for signed-out users
 				configureAnalytics(newConsent, undefined)
 			}
+			trackEvent('consent_changed', { consent: newConsent })
 		},
 		[isSignedIn, user, app]
 	)
