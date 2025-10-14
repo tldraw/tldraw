@@ -1,0 +1,18 @@
+html, body, #__next {
+	padding: 0;
+	margin: 0;
+	font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	background-color: #fafafa;
+}
+
+.tldraw {
+	width: 100vw;
+	height: 100vh;
+}
