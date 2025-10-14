@@ -665,7 +665,13 @@
 }
 
 .sidebarDotdevLink a div {
+	position: relative;
 	transform: rotate(180deg);
+}
+.sidebarDotdevLink:hover a div {
+	transform: translate(24px, 0px) rotate(180deg);
+	transition: transform 6s ease-in-out;
+	transition-delay: 2s;
 }
 
 .sidebarDotDevDismissButton {
