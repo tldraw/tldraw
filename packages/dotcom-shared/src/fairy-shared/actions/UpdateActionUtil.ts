@@ -41,6 +41,8 @@ export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
 
 		const { update } = action
 
+		if (!update) return null
+
 		// Ensure the shape ID refers to a real shape
 		const shapeId = helpers.ensureShapeIdExists(update.shapeId)
 		if (!shapeId) return null

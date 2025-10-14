@@ -38,6 +38,8 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 
 		const { shape } = action
 
+		if (!shape) return null
+
 		// Ensure the created shape has a unique ID
 		shape.shapeId = helpers.ensureShapeIdIsUnique(shape.shapeId)
 
