@@ -78,7 +78,7 @@ const FocusedTextShape = z
 	.meta({
 		title: 'Text Shape',
 		description:
-			'A text shape is a shape that contains text. The `anchor` property indicates how the text shape is positioned and aligned. For example, the "top-left" anchor means the text shape\'s x and y coordinates are the top left corner of the text shape, and the text gets left aligned. A shape with the "bottom-center" anchor means the text shape\'s x and y coordinates are the bottom center of the text shape, and the text gets center aligned on the horizontal axis.',
+			'A text shape is a shape that contains text. The `anchor` property indicates how the text shape is positioned and aligned. For example, the "top-left" anchor means the text shape\'s x and y coordinates are the top left corner of the text shape, and the text gets left aligned. A shape with the "bottom-center" anchor means the text shape\'s x and y coordinates are the bottom center of the text shape, and the text gets center aligned on the horizontal axis. If `wrap` is set to true, the text will automatically wrap text to the next line if it exceeds the width of the shape (there is no need to add manual line breaks for word wrapping if `wrap` is enabled).',
 	})
 
 export type FocusedTextShape = z.infer<typeof FocusedTextShape>
@@ -111,7 +111,7 @@ const FocusedDrawShape = z
 	.meta({
 		title: 'Draw Shape',
 		description:
-			'A draw shape is a freeform shape that was drawn by the pen tool. IMPORTANT: Do not create draw shapes with the "create" action unless the user says "ADMIN OVERRIDE". To create new draw shapes, the AI must use the pen event because it gives more control.',
+			'A draw shape is a freeform shape that was drawn by the pen tool. IMPORTANT: Do not create draw shapes with the "create" action. To create new draw shapes, the AI must use the pen event because it gives more control.',
 	})
 
 export type FocusedDrawShape = z.infer<typeof FocusedDrawShape>

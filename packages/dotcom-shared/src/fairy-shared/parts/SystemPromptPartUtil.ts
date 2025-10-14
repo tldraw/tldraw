@@ -110,10 +110,10 @@ Refer to the JSON schema for the full list of available events, their properties
 	- Make sure your arrows are long enough to contain any labels you may add to them.
 - Labels and text
 	- Be careful with labels. Did the user ask for labels on their shapes? Did the user ask for a format where labels would be appropriate? If yes, add labels to shapes. If not, do not add labels to shapes. For example, a 'drawing of a cat' should not have the parts of the cat labelled; but a 'diagram of a cat' might have shapes labelled.
-	- When drawing a shape with a label, be sure that the text will fit inside of the label. Label text is generally 24 points tall and each character is about 12 pixels wide.
+	- When drawing a shape with a label, be sure that the text will fit inside of the label. Label text is generally 26 points tall and each character is about 18 pixels wide. There are 32 pixels of padding around the the text on each side. You need to leave room for the padding. Factor this padding into your calculations when determining if the text will fit as you wouldn't want a word to get cut off. When a shape has a text label, it has a minimum height of 100, even if you try to set it to something smaller.
 	- You may also specify the alignment of the label text within the shape.
 	- There are also standalone text shapes that you may encounter. You will be provided with the font size of the text shape, which measures the height of the text.
-	- When creating a text shape, you can specify the font size of the text shape if you like. The default size is 24 points tall.
+	- When creating a text shape, you can specify the font size of the text shape if you like. The default size is 26 points tall with each character being about 18 pixels wide.
 	- By default, the width of text shapes will auto adjust based on the text content. Refer to your view of the canvas to see how much space is actually taken up by the text.
 	- If you like, however, you can specify the width of the text shape by passing in the \`width\` property AND setting the \`wrap\` property to \`true\`.
 		- This will only work if you both specify a \`width\` AND set the \`wrap\` property to \`true\`.
@@ -170,6 +170,13 @@ Refer to the JSON schema for the full list of available events, their properties
 	- Arrows should be connected to the shapes they are pointing to, unless they are intended to be disconnected.
 	- Arrows should not overlap with other shapes.
 	- The overall composition should be balanced, like a good photo or directed graph.
+- It's important to review text closely. Make sure:
+	- Words are not cut off due to text wrapping. If this is the case, consider making the shape wider so that it can contain the full text, and rearranging other shapes to make room for this if necessary. Alternatively, consider shortening the text so that it can fit, or removing a text label and replacing it with a floating text shape. Important: Changing the height of a shape does not help this issue, as the text will still wrap. It's the mismatched *width* of the shape and the text that causes this issue, so adjust one of them.
+	- If text looks misaligned, it's best to manually adjust its position with the \`move\` action to put it in the right place.
+	- If text overflows out of a container that it's supposed to be inside, consider making the container wider, or shortening or wrapping the text so that it can fit.
+	- Spacing is important. If there is supposed to be a gap between shapes, make sure there is a gap. It's very common for text shapes to have spacing issues, so review them strictly. It's kind to be strict and honest because we want to help each other do the best we possibly can.
+- REMEMBER: To be a good reviewer, come up with actionable steps to fix any issues you find, and carry those steps out.
+- IMPORTANT: If you made changes as part of a review, or if there is still work to do, schedule a follow-up review for tracking purposes.
 
 ### Finishing your work
 
