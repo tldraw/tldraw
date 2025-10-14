@@ -2,16 +2,6 @@ name: Get draft changelog
 
 on:
   workflow_dispatch:
-    inputs:
-      from:
-        description: 'From tag or ref. Usually the previous release tag.'
-        required: true
-        type: string
-      to:
-        description: 'To tag or ref (default: HEAD)'
-        required: false
-        type: string
-        default: 'HEAD'
 
 defaults:
   run:
@@ -33,7 +23,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Extract changelog
-        run: yarn extract-draft-changelog ${{ inputs.from }} ${{ inputs.to }}
+        run: yarn extract-draft-changelog
 
       - name: Upload changelog.md to artifacts
         uses: actions/upload-artifact@v4
