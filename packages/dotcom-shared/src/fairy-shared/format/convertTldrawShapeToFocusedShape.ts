@@ -211,7 +211,7 @@ function convertArrowShapeToFocused(editor: Editor, shape: TLArrowShape): Focuse
 
 	return {
 		_type: 'arrow',
-		bend: shape.props.bend,
+		bend: shape.props.bend * -1,
 		color: shape.props.color,
 		fromId: startBinding?.toId ?? null,
 		note: (shape.meta.note as string) ?? '',

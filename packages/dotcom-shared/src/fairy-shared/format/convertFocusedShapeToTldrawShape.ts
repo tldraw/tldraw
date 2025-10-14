@@ -370,7 +370,7 @@ function convertArrowShapeToTldrawShape(
 		props: {
 			arrowheadEnd: defaultArrowShape.props?.arrowheadEnd ?? 'arrow',
 			arrowheadStart: defaultArrowShape.props?.arrowheadStart ?? 'none',
-			bend: focusedShape.bend ?? defaultArrowShape.props?.bend ?? 0,
+			bend: (focusedShape.bend ?? (defaultArrowShape.props?.bend ?? 0) * -1) * -1,
 			color: asColor(focusedShape.color ?? defaultArrowShape.props?.color ?? 'black'),
 			dash: defaultArrowShape.props?.dash ?? 'draw',
 			elbowMidPoint: defaultArrowShape.props?.elbowMidPoint ?? 0.5,
@@ -669,8 +669,8 @@ function calculateArrowBindingAnchor(
 
 	// Step 3: Clamp normalized coordinates to valid range [0, 1]
 	const clampedNormalizedAnchor = {
-		x: Math.max(0, Math.min(1, normalizedAnchor.x)),
-		y: Math.max(0, Math.min(1, normalizedAnchor.y)),
+		x: Math.max(0.1, Math.min(0.9, normalizedAnchor.x)),
+		y: Math.max(0.1, Math.min(0.9, normalizedAnchor.y)),
 	}
 
 	// Step 4: Validate that the clamped anchor point is still within the shape geometry. This is necessary because the above logic sometimes fails for some reason?

@@ -105,7 +105,17 @@ Refer to the JSON schema for the full list of available events, their properties
 - When drawing arrows between shapes:
 	- Be sure to include the shapes' ids as fromId and toId.
 	- Always ensure they are properly connected with bindings.
-	- You can make the arrow curved by using the "bend" property. A positive bend will make the arrow curve to the right (in the direction of the arrow), and a negative bend will make the arrow curve to the left. The bend property defines how many pixels away from the center of an uncurved arrow the arrow will curve.
+	- You can make the arrow curved by using the 'bend' property. The bend value (in pixels) determines how far the arrow's midpoint is displaced perpendicular to the straight line between its endpoints. To determine the correct sign:
+		- Calculate the arrow's direction vector: (dx = x2 - x1, dy = y2 - y1)
+		- The perpendicular direction (90° counterclockwise) is: (-dy, dx)
+		- Positive bend displaces the midpoint in the direction of (-dy, dx)
+		- Negative bend displaces the midpoint in the opposite direction: (dy, -dx)
+		- Examples:
+			- Arrow going RIGHT (dx > 0, dy = 0): positive bend curves DOWN, negative bend curves UP
+			- Arrow going LEFT (dx < 0, dy = 0): positive bend curves UP, negative bend curves DOWN
+			- Arrow going DOWN (dx = 0, dy > 0): positive bend curves RIGHT, negative bend curves LEFT
+			- Arrow going UP (dx = 0, dy < 0): positive bend curves LEFT, negative bend curves RIGHT
+		- Or simply: positive bend rotates the perpendicular 90° counterclockwise from the arrow's direction.
 	- Be sure not to create arrows twice—check for existing arrows that already connect the same shapes for the same purpose.
 	- Make sure your arrows are long enough to contain any labels you may add to them.
 - Labels and text
