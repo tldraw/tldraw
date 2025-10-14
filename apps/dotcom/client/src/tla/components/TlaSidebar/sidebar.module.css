@@ -625,3 +625,63 @@
 	cursor: pointer;
 	color: var(--tla-color-text-1);
 }
+
+.sidebarDotdevLink {
+	position: relative;
+	font-size: 12px;
+	border: 1px solid var(--tla-color-text-2);
+	border-radius: 2px;
+	margin-left: -4px;
+	margin-right: -6px;
+	margin-bottom: 8px;
+	padding: 2px 2px 2px 2px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	background-color: var(--tla-color-sidebar);
+}
+
+.sidebarDotdevLink:after {
+	content: '';
+	position: absolute;
+	top: 4px;
+	left: -4px;
+	right: 4px;
+	bottom: -4px;
+	border-radius: 2px;
+	border: 1px solid var(--tla-color-text-2);
+	z-index: -2;
+	pointer-events: none;
+}
+
+.sidebarDotdevLink a {
+	position: relative;
+	height: 100%;
+	padding: 0px 8px;
+	display: flex;
+	align-items: center;
+	flex: 1;
+	gap: 4px;
+}
+
+.sidebarDotdevLink a div {
+	transform: rotate(180deg);
+}
+
+.sidebarDotDevDismissButton {
+	background: none;
+	border: none;
+	cursor: pointer;
+	position: relative;
+	height: 28px;
+	width: 28px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--tla-color-inactive);
+}
+
+.sidebarDotDevDismissButton div {
+	width: 12px;
+	height: 12px;
+}
