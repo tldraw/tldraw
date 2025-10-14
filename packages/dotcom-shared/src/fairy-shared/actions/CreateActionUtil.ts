@@ -66,6 +66,10 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 			defaultShape: getDefaultShape(action.shape._type),
 		})
 
+		if (!result.shape) {
+			this.agent.schedule({ data: [`Creating shape ${action.shape.shapeId} failed.`] })
+			return
+		}
 		editor.createShape(result.shape)
 
 		// Handle arrow bindings if they exist

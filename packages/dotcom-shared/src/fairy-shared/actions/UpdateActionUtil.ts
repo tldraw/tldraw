@@ -81,6 +81,15 @@ export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
 			defaultShape: existingShape,
 		})
 
+		if (!result.shape) {
+			this.agent.move({
+				x: existingShape.x,
+				y: existingShape.y,
+			})
+			this.agent.schedule({ data: [`Updating shape ${shapeId} failed.`] })
+			return
+		}
+
 		editor.updateShape(result.shape)
 
 		// Handle arrow bindings if they exist

@@ -44,7 +44,7 @@ export function convertFocusedShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLShape; bindings?: TLBindingCreate[] } {
+): { shape: TLShape | null; bindings?: TLBindingCreate[] } {
 	switch (focusedShape._type) {
 		case 'text': {
 			return convertTextShapeToTldrawShape(editor, focusedShape, { defaultShape })
@@ -563,7 +563,7 @@ function convertDrawShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedDrawShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLShape } {
+): { shape: TLShape | null } {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
 	const defaultDrawShape = defaultShape as TLDrawShape
 
@@ -575,6 +575,11 @@ function convertDrawShapeToTldrawShape(
 		fill = defaultDrawShape.props.fill
 	} else {
 		fill = convertSimpleFillToTldrawFill('none')
+	}
+
+	const segments = defaultDrawShape.props?.segments ?? []
+	if (segments.length === 0) {
+		return { shape: null }
 	}
 
 	return {
