@@ -13,8 +13,8 @@ import {
 	TLShape,
 	TLShapeId,
 	TLTextShape,
+	Vec,
 } from '@tldraw/editor'
-import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from 'tldraw'
 import {
 	FocusedArrowShape,
 	FocusedDrawShape,
@@ -22,6 +22,7 @@ import {
 	FocusedLineShape,
 	FocusedNoteShape,
 	FocusedShape,
+	FocusedTextAnchor,
 	FocusedTextShape,
 	FocusedUnknownShape,
 } from './FocusedShape'
@@ -110,44 +111,40 @@ function convertTextShapeToFocused(editor: Editor, shape: TLTextShape): FocusedT
 	const text = util.getText(shape) ?? ''
 	const bounds = getSimpleBounds(editor, shape)
 	const textSize = shape.props.size
-	const textAlign = shape.props.textAlign
-	const font = shape.props.font
 
-	const textFontSize = FONT_SIZES[textSize]
-	const effectiveFontSize = textFontSize * shape.props.scale
-
-	const measurement = editor.textMeasure.measureText(text, {
-		...TEXT_PROPS,
-		fontFamily: FONT_FAMILIES[font as keyof typeof FONT_FAMILIES],
-		fontSize: effectiveFontSize,
-		maxWidth: shape.props.autoSize ? null : bounds.w,
-	})
-
-	const anchorY = bounds.y + measurement.h / 2
-	let anchorX = bounds.x
-	switch (textAlign) {
-		case 'middle':
-			anchorX = bounds.x + measurement.w / 2
+	const position = new Vec()
+	let anchor: FocusedTextAnchor = 'bottom-center'
+	switch (shape.props.textAlign) {
+		case 'middle': {
+			anchor = 'top-center'
+			position.x = bounds.center.x
+			position.y = bounds.top
 			break
-		case 'end':
-			anchorX = bounds.x + measurement.w
+		}
+		case 'end': {
+			anchor = 'top-right'
+			position.x = bounds.right
+			position.y = bounds.top
 			break
-		case 'start':
-		default:
-			anchorX = bounds.x
+		}
+		case 'start': {
+			anchor = 'top-left'
+			position.x = bounds.left
+			position.y = bounds.top
 			break
+		}
 	}
 
 	return {
 		_type: 'text',
+		anchor,
 		color: shape.props.color,
 		fontSize: convertTldrawFontSizeAndScaleToSimpleFontSize(textSize, shape.props.scale),
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: text,
-		textAlign: shape.props.textAlign,
-		x: anchorX,
-		y: anchorY,
+		x: position.x,
+		y: position.y,
 	}
 }
 
@@ -261,19 +258,23 @@ function getSimpleBounds(editor: Editor, shape: TLShape): Box {
 		return bounds
 	}
 
-	// Create a mock shape and get the bounds, then reverse the creation of the mock shape
-	let mockBounds: Box | undefined
+	return getDummyBounds(editor, shape)
+}
+
+export function getDummyBounds(editor: Editor, shape: TLShape): Box {
+	// Create a dummy shape and get the bounds, then reverse the creation of the dummy shape
+	let dummyBounds: Box | undefined
 	const diff = editor.store.extractingChanges(() => {
 		editor.run(
 			() => {
-				const mockId = createShapeId()
+				const dummyId = createShapeId()
 				editor.createShape({
-					id: mockId,
+					id: dummyId,
 					type: shape.type,
 					props: shape.props,
 					meta: shape.meta,
 				})
-				mockBounds = editor.getShapePageBounds(mockId)
+				dummyBounds = editor.getShapePageBounds(dummyId)
 			},
 			{ ignoreShapeLock: false, history: 'ignore' }
 		)
@@ -281,8 +282,8 @@ function getSimpleBounds(editor: Editor, shape: TLShape): Box {
 	const reverseDiff = reverseRecordsDiff(diff)
 	editor.store.applyDiff(reverseDiff)
 
-	if (!mockBounds) {
+	if (!dummyBounds) {
 		throw new Error('Failed to get bounds for shape')
 	}
-	return mockBounds
+	return dummyBounds
 }

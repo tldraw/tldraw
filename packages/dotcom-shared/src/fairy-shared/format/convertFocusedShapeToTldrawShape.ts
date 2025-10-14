@@ -16,7 +16,7 @@ import {
 	Vec,
 	VecLike,
 } from '@tldraw/editor'
-import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from 'tldraw'
+import { FONT_SIZES } from 'tldraw'
 import {
 	FocusedArrowShape,
 	FocusedDrawShape,
@@ -31,6 +31,7 @@ import { asColor } from './SimpleColor'
 import { convertSimpleFillToTldrawFill } from './SimpleFill'
 import { convertSimpleFontSizeToTldrawFontSizeAndScale } from './SimpleFontSize'
 import { SimpleGeoShapeType } from './SimpleGeoShapeType'
+import { getDummyBounds } from './convertTldrawShapeToFocusedShape'
 
 /**
  * Convert a FocusedShape to a shape object to a tldraw shape using defaultShape for fallback values
@@ -156,64 +157,122 @@ function convertTextShapeToTldrawShape(
 		focusedShape.wrap === undefined
 			? (defaultTextShape.props?.autoSize ?? true)
 			: !focusedShape.wrap
-	const textFontSize = FONT_SIZES[textSize]
-	const textAlign = focusedShape.textAlign ?? defaultTextShape.props?.textAlign ?? 'start'
 	const font = defaultTextShape.props?.font ?? 'draw'
 
-	const correctedTextCoords = new Vec()
+	let richText
+	if (focusedShape.text !== undefined) {
+		richText = toRichText(focusedShape.text)
+	} else if (defaultTextShape.props?.richText) {
+		richText = defaultTextShape.props.richText
+	} else {
+		richText = toRichText('')
+	}
 
-	const effectiveFontSize = textFontSize * scale
-
-	const measurement = editor.textMeasure.measureText(focusedShape.text ?? '', {
-		...TEXT_PROPS,
-		fontFamily: FONT_FAMILIES[font as keyof typeof FONT_FAMILIES],
-		fontSize: effectiveFontSize,
-		maxWidth: focusedShape.width ?? Infinity,
-	})
-
-	// Calculate position based on text alignment
-	const baseX = focusedShape.x ?? defaultTextShape.x ?? 0
-	const baseY = focusedShape.y ?? defaultTextShape.y ?? 0
-
-	correctedTextCoords.y = baseY - measurement.h / 2
-	switch (textAlign) {
-		case 'start':
-			correctedTextCoords.x = baseX
+	let textAlign: TLTextShape['props']['textAlign'] = defaultTextShape.props?.textAlign ?? 'start'
+	switch (focusedShape.anchor) {
+		case 'top-left':
+		case 'bottom-left':
+		case 'center-left':
+			textAlign = 'start'
 			break
-		case 'middle':
-			correctedTextCoords.x = baseX - measurement.w / 2
+		case 'top-center':
+		case 'bottom-center':
+		case 'center':
+			textAlign = 'middle'
 			break
-		case 'end':
-			correctedTextCoords.x = baseX - measurement.w
+		case 'top-right':
+		case 'bottom-right':
+		case 'center-right':
+			textAlign = 'end'
 			break
 	}
 
-	return {
-		shape: {
-			id: shapeId,
-			type: 'text',
-			typeName: 'shape',
-			x: correctedTextCoords.x,
-			y: correctedTextCoords.y,
-			rotation: defaultTextShape.rotation ?? 0,
-			index: defaultTextShape.index ?? ('a1' as IndexKey),
-			parentId: defaultTextShape.parentId ?? editor.getCurrentPageId(),
-			isLocked: defaultTextShape.isLocked ?? false,
-			opacity: defaultTextShape.opacity ?? 1,
-			props: {
-				size: textSize,
-				scale,
-				richText: toRichText(focusedShape.text),
-				color: asColor(focusedShape.color ?? defaultTextShape.props?.color ?? 'black'),
-				textAlign,
-				autoSize,
-				w: measurement.w,
-				font,
-			},
-			meta: {
-				note: focusedShape.note ?? defaultTextShape.meta?.note ?? '',
-			},
+	const unpositionedShape: TLTextShape = {
+		id: shapeId,
+		type: 'text',
+		typeName: 'shape',
+		x: 0,
+		y: 0,
+		rotation: defaultTextShape.rotation ?? 0,
+		index: defaultTextShape.index ?? editor.getHighestIndexForParent(editor.getCurrentPageId()),
+		parentId: defaultTextShape.parentId ?? editor.getCurrentPageId(),
+		isLocked: defaultTextShape.isLocked ?? false,
+		opacity: defaultTextShape.opacity ?? 1,
+		props: {
+			size: textSize,
+			scale,
+			richText,
+			color: asColor(focusedShape.color ?? defaultTextShape.props?.color ?? 'black'),
+			textAlign,
+			autoSize,
+			w: focusedShape.width ?? defaultTextShape.props?.w ?? 100,
+			font,
 		},
+		meta: {
+			note: focusedShape.note ?? defaultTextShape.meta?.note ?? '',
+		},
+	}
+
+	const unpositionedBounds = getDummyBounds(editor, unpositionedShape)
+
+	const position = new Vec(defaultTextShape.x ?? 0, defaultTextShape.y ?? 0)
+	const x = focusedShape.x ?? defaultTextShape.x ?? 0
+	const y = focusedShape.y ?? defaultTextShape.y ?? 0
+	switch (focusedShape.anchor) {
+		case 'top-left': {
+			position.x = x
+			position.y = y
+			break
+		}
+		case 'top-center': {
+			position.x = x - unpositionedBounds.w / 2
+			position.y = y
+			break
+		}
+		case 'top-right': {
+			position.x = x - unpositionedBounds.w
+			position.y = y
+			break
+		}
+		case 'bottom-left': {
+			position.x = x
+			position.y = y - unpositionedBounds.h
+			break
+		}
+		case 'bottom-center': {
+			position.x = x - unpositionedBounds.w / 2
+			position.y = y - unpositionedBounds.h
+			break
+		}
+		case 'bottom-right': {
+			position.x = x - unpositionedBounds.w
+			position.y = y - unpositionedBounds.h
+			break
+		}
+		case 'center-left': {
+			position.x = x
+			position.y = y - unpositionedBounds.h / 2
+			break
+		}
+		case 'center-right': {
+			position.x = x - unpositionedBounds.w
+			position.y = y - unpositionedBounds.h / 2
+			break
+		}
+		case 'center': {
+			position.x = focusedShape.x - unpositionedBounds.w / 2
+			position.y = focusedShape.y - unpositionedBounds.h / 2
+			break
+		}
+	}
+	const positionedShape: TLTextShape = {
+		...unpositionedShape,
+		x: position.x,
+		y: position.y,
+	}
+
+	return {
+		shape: positionedShape,
 	}
 }
 
@@ -240,7 +299,7 @@ function convertLineShapeToTldrawShape(
 			x: minX,
 			y: minY,
 			rotation: defaultLineShape.rotation ?? 0,
-			index: defaultLineShape.index ?? ('a1' as IndexKey),
+			index: defaultLineShape.index ?? editor.getHighestIndexForParent(editor.getCurrentPageId()),
 			parentId: defaultLineShape.parentId ?? editor.getCurrentPageId(),
 			isLocked: defaultLineShape.isLocked ?? false,
 			opacity: defaultLineShape.opacity ?? 1,
@@ -304,7 +363,7 @@ function convertArrowShapeToTldrawShape(
 		x: minX,
 		y: minY,
 		rotation: defaultArrowShape.rotation ?? 0,
-		index: defaultArrowShape.index ?? ('a1' as IndexKey),
+		index: defaultArrowShape.index ?? editor.getHighestIndexForParent(editor.getCurrentPageId()),
 		parentId: defaultArrowShape.parentId ?? editor.getCurrentPageId(),
 		isLocked: defaultArrowShape.isLocked ?? false,
 		opacity: defaultArrowShape.opacity ?? 1,
@@ -421,7 +480,7 @@ function convertGeoShapeToTldrawShape(
 			x: focusedShape.x ?? defaultGeoShape.x ?? 0,
 			y: focusedShape.y ?? defaultGeoShape.y ?? 0,
 			rotation: defaultGeoShape.rotation ?? 0,
-			index: defaultGeoShape.index ?? ('a1' as IndexKey),
+			index: defaultGeoShape.index ?? editor.getHighestIndexForParent(editor.getCurrentPageId()),
 			parentId: defaultGeoShape.parentId ?? editor.getCurrentPageId(),
 			isLocked: defaultGeoShape.isLocked ?? false,
 			opacity: defaultGeoShape.opacity ?? 1,
@@ -476,7 +535,7 @@ function convertNoteShapeToTldrawShape(
 			x: focusedShape.x ?? defaultNoteShape.x ?? 0,
 			y: focusedShape.y ?? defaultNoteShape.y ?? 0,
 			rotation: defaultNoteShape.rotation ?? 0,
-			index: defaultNoteShape.index ?? ('a1' as IndexKey),
+			index: defaultNoteShape.index ?? editor.getHighestIndexForParent(editor.getCurrentPageId()),
 			parentId: defaultNoteShape.parentId ?? editor.getCurrentPageId(),
 			isLocked: defaultNoteShape.isLocked ?? false,
 			opacity: defaultNoteShape.opacity ?? 1,
@@ -526,7 +585,7 @@ function convertDrawShapeToTldrawShape(
 			x: defaultDrawShape.x ?? 0,
 			y: defaultDrawShape.y ?? 0,
 			rotation: defaultDrawShape.rotation ?? 0,
-			index: defaultDrawShape.index ?? ('a1' as IndexKey),
+			index: defaultDrawShape.index ?? editor.getHighestIndexForParent(editor.getCurrentPageId()),
 			parentId: defaultDrawShape.parentId ?? editor.getCurrentPageId(),
 			isLocked: defaultDrawShape.isLocked ?? false,
 			opacity: defaultDrawShape.opacity ?? 1,
@@ -556,7 +615,7 @@ function convertUnknownShapeToTldrawShape(
 			x: focusedShape.x ?? defaultShape.x ?? 0,
 			y: focusedShape.y ?? defaultShape.y ?? 0,
 			rotation: defaultShape.rotation ?? 0,
-			index: defaultShape.index ?? ('a1' as IndexKey),
+			index: defaultShape.index ?? editor.getHighestIndexForParent(editor.getCurrentPageId()),
 			parentId: defaultShape.parentId ?? editor.getCurrentPageId(),
 			isLocked: defaultShape.isLocked ?? false,
 			opacity: defaultShape.opacity ?? 1,

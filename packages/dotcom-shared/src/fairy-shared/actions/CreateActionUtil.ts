@@ -113,7 +113,7 @@ const SHAPE_DEFAULTS = {
 			scale: 1,
 			size: 's',
 			textAlign: 'start',
-			w: 0,
+			w: 100,
 		},
 	},
 	line: {

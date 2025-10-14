@@ -47,19 +47,39 @@ const FocusedNoteShape = z.object({
 
 export type FocusedNoteShape = z.infer<typeof FocusedNoteShape>
 
-const FocusedTextShape = z.object({
-	_type: z.literal('text'),
-	color: SimpleColor,
-	fontSize: SimpleFontSize.optional(),
-	note: z.string(),
-	shapeId: z.string(),
-	text: SimpleLabel,
-	textAlign: z.enum(['start', 'middle', 'end']).optional(),
-	width: z.number().optional(),
-	wrap: z.boolean().optional(),
-	x: z.number(),
-	y: z.number(),
-})
+const FocusedTextAnchor = z.enum([
+	'bottom-center',
+	'bottom-left',
+	'bottom-right',
+	'center-left',
+	'center-right',
+	'center',
+	'top-center',
+	'top-left',
+	'top-right',
+])
+
+export type FocusedTextAnchor = z.infer<typeof FocusedTextAnchor>
+
+const FocusedTextShape = z
+	.object({
+		_type: z.literal('text'),
+		anchor: FocusedTextAnchor,
+		color: SimpleColor,
+		fontSize: SimpleFontSize.optional(),
+		note: z.string(),
+		shapeId: z.string(),
+		text: SimpleLabel,
+		width: z.number().optional(),
+		wrap: z.boolean().optional(),
+		x: z.number(),
+		y: z.number(),
+	})
+	.meta({
+		title: 'Text Shape',
+		description:
+			'A text shape is a shape that contains text. The `anchor` property indicates how the text shape is positioned and aligned. For example, the "top-left" anchor means the text shape\'s x and y coordinates are the top left corner of the text shape, and the text gets left aligned. A shape with the "bottom-center" anchor means the text shape\'s x and y coordinates are the bottom center of the text shape, and the text gets center aligned on the horizontal axis.',
+	})
 
 export type FocusedTextShape = z.infer<typeof FocusedTextShape>
 
