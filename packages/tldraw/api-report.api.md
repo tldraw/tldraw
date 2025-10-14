@@ -2728,6 +2728,9 @@ export function StylePanelArrowKindPicker(): JSX_2.Element | null;
 export const StylePanelButtonPicker: <T extends string>(props: StylePanelButtonPickerProps<T>) => React.JSX.Element;
 
 // @public (undocumented)
+export const StylePanelButtonPickerInline: <T extends string>(props: StylePanelButtonPickerProps<T>) => React.JSX.Element;
+
+// @public (undocumented)
 export interface StylePanelButtonPickerProps<T extends string> {
     // (undocumented)
     items: StyleValuesForUi<T>;
@@ -2778,6 +2781,9 @@ export function StylePanelDashPicker(): JSX_2.Element | null;
 export const StylePanelDoubleDropdownPicker: <T extends string>(props: StylePanelDoubleDropdownPickerProps<T>) => React_2.JSX.Element;
 
 // @public (undocumented)
+export const StylePanelDoubleDropdownPickerInline: <T extends string>(props: StylePanelDoubleDropdownPickerProps<T>) => React_2.JSX.Element;
+
+// @public (undocumented)
 export interface StylePanelDoubleDropdownPickerProps<T extends string> {
     // (undocumented)
     itemsA: StyleValuesForUi<T>;
@@ -2807,6 +2813,9 @@ export interface StylePanelDoubleDropdownPickerProps<T extends string> {
 
 // @public (undocumented)
 export const StylePanelDropdownPicker: <T extends string>(props: StylePanelDropdownPickerProps<T>) => React_2.JSX.Element;
+
+// @public (undocumented)
+export const StylePanelDropdownPickerInline: <T extends string>(props: StylePanelDropdownPickerProps<T>) => React_2.JSX.Element;
 
 // @public (undocumented)
 export interface StylePanelDropdownPickerProps<T extends string> {
