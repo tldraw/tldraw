@@ -2,19 +2,22 @@
 
 .context-highlight {
 	pointer-events: none;
-	background-color: gold;
-	opacity: 0.05;
 }
 
-.context-highlight line {
-	stroke-dasharray: 4px;
-	stroke-linecap: round;
-	stroke-width: 1px;
-	color: red;
+.blurry-vision-highlight line {
+	stroke-width: 2px;
+	animation: fade-out 1s ease-in forwards;
+	opacity: 1;
 }
 
-.context-highlight-generating line {
-	animation: dash 100s linear infinite;
+/* animation that fades out */
+@keyframes fade-out {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
 }
 
 .context-highlight circle {
@@ -44,6 +47,12 @@
 	margin-left: -0.5px;
 	pointer-events: none;
 	font-family: 'Inter', sans-serif;
+}
+
+@keyframes dash {
+	to {
+		stroke-dashoffset: -2000;
+	}
 }
 
 /* Fairy Home */

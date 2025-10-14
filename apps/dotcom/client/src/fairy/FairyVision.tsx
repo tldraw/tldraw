@@ -13,8 +13,16 @@ export function FairyVision({ agents }: { agents: TldrawFairyAgent[] }) {
 
 function AgentVision({ agent }: { agent: TldrawFairyAgent }) {
 	const activeRequest = useValue(agent.$activeRequest)
+
 	if (!activeRequest) return null
-	return <AreaHighlight pageBounds={activeRequest.bounds} color="gold" generating={true} />
+	return (
+		<AreaHighlight
+			className="blurry-vision-highlight"
+			pageBounds={activeRequest.bounds}
+			color="var(--tl-color-selected)"
+			generating={true}
+		/>
+	)
 }
 
 interface AreaHighlightProps {
@@ -22,9 +30,16 @@ interface AreaHighlightProps {
 	generating: boolean
 	color: string
 	label?: string
+	className?: string
 }
 
-export function AreaHighlight({ pageBounds, color, generating, label }: AreaHighlightProps) {
+export function AreaHighlight({
+	pageBounds,
+	color,
+	generating,
+	label,
+	className = '',
+}: AreaHighlightProps) {
 	const editor = useEditor()
 	const screenBounds = useValue(
 		'screenBounds',
@@ -47,7 +62,7 @@ export function AreaHighlight({ pageBounds, color, generating, label }: AreaHigh
 	return (
 		<>
 			<SVGContainer
-				className={`context-highlight ${generating ? 'context-highlight-generating' : ''}`}
+				className={`context-highlight ${generating ? 'context-highlight-generating' : ''} ${className}`}
 				style={{
 					top: minY,
 					left: minX,
