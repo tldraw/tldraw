@@ -25,10 +25,13 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiSlider } from '../primitives/TldrawUiSlider'
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
-import { StylePanelButtonPicker } from './StylePanelButtonPicker'
+import { StylePanelButtonPicker, StylePanelButtonPickerInline } from './StylePanelButtonPicker'
 import { useStylePanelContext } from './StylePanelContext'
 import { StylePanelDoubleDropdownPicker } from './StylePanelDoubleDropdownPicker'
-import { StylePanelDropdownPicker } from './StylePanelDropdownPicker'
+import {
+	StylePanelDropdownPicker,
+	StylePanelDropdownPickerInline,
+} from './StylePanelDropdownPicker'
 import { StylePanelSubheading } from './StylePanelSubheading'
 
 /** @public @react */
@@ -232,7 +235,7 @@ export function StylePanelTextAlignPicker() {
 
 	return (
 		<TldrawUiToolbar orientation="horizontal" label={msg('style-panel.align')}>
-			<StylePanelButtonPicker
+			<StylePanelButtonPickerInline
 				title={msg('style-panel.align')}
 				uiType="align"
 				style={DefaultTextAlignStyle}
@@ -261,7 +264,7 @@ export function StylePanelLabelAlignPicker() {
 
 	return (
 		<TldrawUiToolbar orientation="horizontal" label={msg('style-panel.label-align')}>
-			<StylePanelButtonPicker
+			<StylePanelButtonPickerInline
 				title={msg('style-panel.label-align')}
 				uiType="align"
 				style={DefaultHorizontalAlignStyle}
@@ -278,7 +281,7 @@ export function StylePanelLabelAlignPicker() {
 					<TldrawUiButtonIcon icon="vertical-align-middle" />
 				</TldrawUiToolbarButton>
 			) : (
-				<StylePanelDropdownPicker
+				<StylePanelDropdownPickerInline
 					type="icon"
 					id="geo-vertical-alignment"
 					uiType="verticalAlign"

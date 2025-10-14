@@ -2725,7 +2725,7 @@ export function StylePanelArrowheadPicker(): JSX_2.Element | null;
 export function StylePanelArrowKindPicker(): JSX_2.Element | null;
 
 // @public (undocumented)
-export const StylePanelButtonPicker: <T extends string>(props: StylePanelButtonPickerProps<T>) => ReactElement;
+export const StylePanelButtonPicker: <T extends string>(props: StylePanelButtonPickerProps<T>) => React.JSX.Element;
 
 // @public (undocumented)
 export interface StylePanelButtonPickerProps<T extends string> {
