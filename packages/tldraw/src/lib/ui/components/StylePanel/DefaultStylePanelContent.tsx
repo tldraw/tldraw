@@ -228,15 +228,17 @@ export function StylePanelFontPicker() {
 
 /** @public @react */
 export function StylePanelTextAlignPicker() {
-	const { styles } = useStylePanelContext()
+	const { styles, enhancedA11yMode } = useStylePanelContext()
 	const msg = useTranslation()
 	const textAlign = styles.get(DefaultTextAlignStyle)
 	if (textAlign === undefined) return null
+	const title = msg('style-panel.align')
 
 	return (
-		<TldrawUiToolbar orientation="horizontal" label={msg('style-panel.align')}>
+		<TldrawUiToolbar orientation="horizontal" label={title}>
+			{enhancedA11yMode && <StylePanelSubheading>{title}</StylePanelSubheading>}
 			<StylePanelButtonPickerInline
-				title={msg('style-panel.align')}
+				title={title}
 				uiType="align"
 				style={DefaultTextAlignStyle}
 				items={STYLES.textAlign}
@@ -256,16 +258,18 @@ export function StylePanelTextAlignPicker() {
 
 /** @public @react */
 export function StylePanelLabelAlignPicker() {
-	const { styles } = useStylePanelContext()
+	const { styles, enhancedA11yMode } = useStylePanelContext()
 	const msg = useTranslation()
 	const labelAlign = styles.get(DefaultHorizontalAlignStyle)
 	const verticalLabelAlign = styles.get(DefaultVerticalAlignStyle)
 	if (labelAlign === undefined) return null
+	const title = msg('style-panel.label-align')
 
 	return (
-		<TldrawUiToolbar orientation="horizontal" label={msg('style-panel.label-align')}>
+		<TldrawUiToolbar orientation="horizontal" label={title}>
+			{enhancedA11yMode && <StylePanelSubheading>{title}</StylePanelSubheading>}
 			<StylePanelButtonPickerInline
-				title={msg('style-panel.label-align')}
+				title={title}
 				uiType="align"
 				style={DefaultHorizontalAlignStyle}
 				items={STYLES.horizontalAlign}
