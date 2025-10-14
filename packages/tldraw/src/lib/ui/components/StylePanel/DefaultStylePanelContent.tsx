@@ -235,24 +235,26 @@ export function StylePanelTextAlignPicker() {
 	const title = msg('style-panel.align')
 
 	return (
-		<TldrawUiToolbar orientation="horizontal" label={title}>
+		<>
 			{enhancedA11yMode && <StylePanelSubheading>{title}</StylePanelSubheading>}
-			<StylePanelButtonPickerInline
-				title={title}
-				uiType="align"
-				style={DefaultTextAlignStyle}
-				items={STYLES.textAlign}
-				value={textAlign}
-			/>
-			<TldrawUiToolbarButton
-				type="icon"
-				title={msg('style-panel.vertical-align')}
-				data-testid="vertical-align"
-				disabled
-			>
-				<TldrawUiButtonIcon icon="vertical-align-middle" />
-			</TldrawUiToolbarButton>
-		</TldrawUiToolbar>
+			<TldrawUiToolbar orientation="horizontal" label={title}>
+				<StylePanelButtonPickerInline
+					title={title}
+					uiType="align"
+					style={DefaultTextAlignStyle}
+					items={STYLES.textAlign}
+					value={textAlign}
+				/>
+				<TldrawUiToolbarButton
+					type="icon"
+					title={msg('style-panel.vertical-align')}
+					data-testid="vertical-align"
+					disabled
+				>
+					<TldrawUiButtonIcon icon="vertical-align-middle" />
+				</TldrawUiToolbarButton>
+			</TldrawUiToolbar>
+		</>
 	)
 }
 
@@ -266,36 +268,38 @@ export function StylePanelLabelAlignPicker() {
 	const title = msg('style-panel.label-align')
 
 	return (
-		<TldrawUiToolbar orientation="horizontal" label={title}>
+		<>
 			{enhancedA11yMode && <StylePanelSubheading>{title}</StylePanelSubheading>}
-			<StylePanelButtonPickerInline
-				title={title}
-				uiType="align"
-				style={DefaultHorizontalAlignStyle}
-				items={STYLES.horizontalAlign}
-				value={labelAlign}
-			/>
-			{verticalLabelAlign === undefined ? (
-				<TldrawUiToolbarButton
-					type="icon"
-					title={msg('style-panel.vertical-align')}
-					data-testid="vertical-align"
-					disabled
-				>
-					<TldrawUiButtonIcon icon="vertical-align-middle" />
-				</TldrawUiToolbarButton>
-			) : (
-				<StylePanelDropdownPickerInline
-					type="icon"
-					id="geo-vertical-alignment"
-					uiType="verticalAlign"
-					stylePanelType="vertical-align"
-					style={DefaultVerticalAlignStyle}
-					items={STYLES.verticalAlign}
-					value={verticalLabelAlign}
+			<TldrawUiToolbar orientation="horizontal" label={title}>
+				<StylePanelButtonPickerInline
+					title={title}
+					uiType="align"
+					style={DefaultHorizontalAlignStyle}
+					items={STYLES.horizontalAlign}
+					value={labelAlign}
 				/>
-			)}
-		</TldrawUiToolbar>
+				{verticalLabelAlign === undefined ? (
+					<TldrawUiToolbarButton
+						type="icon"
+						title={msg('style-panel.vertical-align')}
+						data-testid="vertical-align"
+						disabled
+					>
+						<TldrawUiButtonIcon icon="vertical-align-middle" />
+					</TldrawUiToolbarButton>
+				) : (
+					<StylePanelDropdownPickerInline
+						type="icon"
+						id="geo-vertical-alignment"
+						uiType="verticalAlign"
+						stylePanelType="vertical-align"
+						style={DefaultVerticalAlignStyle}
+						items={STYLES.verticalAlign}
+						value={verticalLabelAlign}
+					/>
+				)}
+			</TldrawUiToolbar>
+		</>
 	)
 }
 
