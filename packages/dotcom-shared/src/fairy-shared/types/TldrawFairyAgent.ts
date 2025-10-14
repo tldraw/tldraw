@@ -1,7 +1,7 @@
 import { Editor } from '@tldraw/editor'
 import { Atom } from '@tldraw/state'
 import { RecordsDiff } from '@tldraw/store'
-import { TLRecord, VecModel } from '@tldraw/tlschema'
+import { BoxModel, TLRecord, VecModel } from '@tldraw/tlschema'
 import { AgentActionUtil } from '../actions/AgentActionUtil'
 import { AgentHelpers } from '../AgentHelpers'
 import { AgentModelName } from '../models'
@@ -135,4 +135,7 @@ export interface TldrawFairyAgent {
 
 	/** Move the fairy to a new position. */
 	moveToPosition(position: VecModel): void
+
+	/** Move the fairy to a new bounds. */
+	moveToBounds(bounds: BoxModel): void
 }

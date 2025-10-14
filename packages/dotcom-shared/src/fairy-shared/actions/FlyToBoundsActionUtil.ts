@@ -51,6 +51,8 @@ export class FlyToBoundsActionUtil extends AgentActionUtil<FlyToBoundsAction> {
 			h: Math.min(action.h, DEFAULT_FAIRY_VISION.y),
 		})
 
+		this.agent.moveToBounds(bounds)
+
 		this.agent.schedule({
 			bounds,
 			messages: [`Just flew to new area with the intent: ${action.intent}`],
