@@ -674,12 +674,11 @@
 	position: relative;
 	transform: rotate(180deg);
 	flex-shrink: 0;
-	transition: transform 3s ease-in-out;
+	transition: transform 3s ease-in-out 0s;
 }
 .sidebarDotDevLink:hover a div {
 	transform: translate(80px, 0px) rotate(180deg);
-	transition-delay: 2s;
-	transition: transform 6s ease-in-out;
+	transition: transform 6s ease-in-out 1s;
 }
 
 .sidebarDotDevDismissButton {
