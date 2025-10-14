@@ -63,7 +63,11 @@ export const TlaCookieConsent = memo(function TlaCookieConsent() {
 							)}
 							onClick={handleAccept}
 						>
-							<F defaultMessage="Accept all" />
+							<div className={styles.cookieAcceptButtonTextWrapper}>
+								<div className={styles.cookieAcceptButtonText}>
+									<F defaultMessage="Accept all" />
+								</div>
+							</div>
 						</button>
 					</div>
 				</div>
