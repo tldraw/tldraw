@@ -15,7 +15,7 @@ export function TlaSidebarDotdevLink() {
 				<TldrawUiIcon icon="arrow-left" label="Build with the tldraw SDK" small />
 			</ExternalLink>
 			<button
-				title="I would prefer not to build with the tldraw SDK"
+				title="Dismiss"
 				data-testid="tla-sidebar-dotdev-dismiss-button"
 				className={classNames(styles.sidebarDotDevDismissButton, styles.hoverable)}
 				onClick={() => setShowDotdevLink(false)}

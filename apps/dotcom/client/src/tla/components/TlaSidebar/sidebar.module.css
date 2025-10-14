@@ -628,7 +628,7 @@
 
 /* Dot dev link */
 
-.sidebarDotdevLink {
+.sidebarDotDevLink {
 	position: relative;
 	font-size: 12px;
 	border: 1px solid var(--tla-color-text-2);
@@ -636,7 +636,7 @@
 	margin-left: -4px;
 	margin-right: -6px;
 	margin-bottom: 8px;
-	padding: 2px 2px 2px 2px;
+	padding: 2px;
 	display: flex;
 	align-items: center;
 	height: 36px;
@@ -644,7 +644,7 @@
 	background-color: var(--tla-color-sidebar);
 }
 
-.sidebarDotdevLink:after {
+.sidebarDotDevLink:after {
 	content: '';
 	position: absolute;
 	top: 4px;
@@ -657,7 +657,7 @@
 	pointer-events: none;
 }
 
-.sidebarDotdevLink a {
+.sidebarDotDevLink a {
 	position: relative;
 	height: 100%;
 	padding: 0px 8px;
@@ -670,12 +670,12 @@
 	white-space: nowrap;
 }
 
-.sidebarDotdevLink a div {
+.sidebarDotDevLink a div {
 	position: relative;
 	transform: rotate(180deg);
 	flex-shrink: 0;
 }
-.sidebarDotdevLink:hover a div {
+.sidebarDotDevLink:hover a div {
 	transform: translate(80px, 0px) rotate(180deg);
 	transition: transform 6s ease-in-out;
 	transition-delay: 2s;
@@ -700,6 +700,6 @@
 	height: 12px;
 }
 
-.sidebarDotdevLink:has(a:hover) .sidebarDotDevDismissButton {
+.sidebarDotDevLink:has(a:hover) .sidebarDotDevDismissButton {
 	opacity: 0;
 }
