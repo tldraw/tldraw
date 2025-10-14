@@ -703,3 +703,7 @@
 .sidebarDotDevLink:has(a:hover) .sidebarDotDevDismissButton {
 	opacity: 0;
 }
+
+.sidebarDotDevLink:has(a:hover):after {
+	background-color: var(--tla-color-hover-2);
+}
