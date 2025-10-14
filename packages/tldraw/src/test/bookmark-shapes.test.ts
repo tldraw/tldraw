@@ -75,12 +75,12 @@ describe('The URL formatter', () => {
 		const e = editor.getShape<TLBookmarkShape>(ids.e)!
 		const f = editor.getShape<TLBookmarkShape>(ids.f)!
 
-		expect(getHumanReadableAddress(a)).toBe('github.com')
-		expect(getHumanReadableAddress(b)).toBe('github.com')
-		expect(getHumanReadableAddress(c)).toBe('github.com')
-		expect(getHumanReadableAddress(d)).toBe('github.com')
-		expect(getHumanReadableAddress(e)).toBe('github.com')
-		expect(getHumanReadableAddress(f)).toBe('github.com')
+		expect(getHumanReadableAddress(a.props.url)).toBe('github.com')
+		expect(getHumanReadableAddress(b.props.url)).toBe('github.com')
+		expect(getHumanReadableAddress(c.props.url)).toBe('github.com')
+		expect(getHumanReadableAddress(d.props.url)).toBe('github.com')
+		expect(getHumanReadableAddress(e.props.url)).toBe('github.com')
+		expect(getHumanReadableAddress(f.props.url)).toBe('github.com')
 	})
 
 	it("Doesn't resize bookmarks", () => {

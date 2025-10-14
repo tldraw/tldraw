@@ -441,7 +441,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
-            assetId: TLAssetId | null;
+            assetId: null | TLAssetId;
             h: number;
             url: string;
             w: number;
@@ -461,7 +461,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
-            assetId: TLAssetId | null;
+            assetId: null | TLAssetId;
             h: number;
             url: string;
             w: number;
@@ -811,17 +811,6 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly type: "vimeo";
     readonly width: 640;
-}, {
-    readonly doesResize: true;
-    readonly embedOnPaste: true;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    readonly height: 500;
-    readonly hostnames: readonly ["excalidraw.com"];
-    readonly isAspectRatioLocked: true;
-    readonly title: "Excalidraw";
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "excalidraw";
-    readonly width: 720;
 }, {
     readonly backgroundColor: "#fff";
     readonly doesResize: true;
@@ -1401,6 +1390,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     getEmbedDefinition(url: string): TLEmbedResult;
     // (undocumented)
     getEmbedDefinitions(): readonly TLEmbedDefinition[];
+    // (undocumented)
+    getGeometry(shape: TLEmbedShape): Geometry2d;
     // (undocumented)
     getInterpolatedProps(startShape: TLEmbedShape, endShape: TLEmbedShape, t: number): TLEmbedShapeProps;
     // (undocumented)
