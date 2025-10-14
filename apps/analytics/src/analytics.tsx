@@ -163,7 +163,9 @@ export default function Analytics() {
 					className="tl-analytics-button tl-analytics-button-primary"
 					onClick={() => onConsentChanged(true)}
 				>
-					Accept
+					<div className="tl-analytics-button-text-wrapper">
+						<div className="tl-analytics-button-text">Accept all</div>
+					</div>
 				</button>
 			</div>
 		</div>
