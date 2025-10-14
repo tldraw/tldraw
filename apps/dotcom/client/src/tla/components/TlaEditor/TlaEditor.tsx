@@ -11,6 +11,7 @@ import {
 	Tldraw,
 	TldrawUiMenuItem,
 	createSessionStateSnapshotSignal,
+	featureFlags,
 	parseDeepLinkString,
 	react,
 	throttle,
@@ -264,6 +265,8 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const overrides = useFileEditorOverrides({ fileSlug })
 	const extraDragIconOverrides = useExtraDragIconOverrides()
 
+	const showFairies = useValue('show_fairies', () => featureFlags.fairies.get(), [featureFlags])
+
 	// Fairy stuff
 
 	const [agents, setAgents] = useState<TldrawFairyAgent[]>([])
@@ -276,9 +279,9 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	components.InFrontOfTheCanvas = (props) => (
 		<>
 			{OriginalInFrontOfTheCanvas ? <OriginalInFrontOfTheCanvas {...props} /> : null}
-			{agents.length > 0 && <FairyVision agents={agents} />}
-			{agents.length > 0 && <FairyWrapper agents={agents} />}
-			{agents.length > 0 && <FairyHUD agents={agents} />}
+			{agents.length > 0 && showFairies && <FairyVision agents={agents} />}
+			{agents.length > 0 && showFairies && <FairyWrapper agents={agents} />}
+			{agents.length > 0 && showFairies && <FairyHUD agents={agents} />}
 		</>
 	)
 
@@ -304,7 +307,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyFileUpdateHandler fileId={fileId} />
 				<SneakyLargeFileHander />
-				<FairyAppInner setAgents={setAgents} />
+				{showFairies && <FairyAppInner setAgents={setAgents} />}
 			</Tldraw>
 		</TlaEditorWrapper>
 	)

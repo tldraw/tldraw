@@ -8,7 +8,11 @@ import { deleteFromSessionStorage, getFromSessionStorage, setInSessionStorage } 
 // development. Use `createFeatureFlag` to create a boolean flag which will be
 // `true` by default in development and staging, and `false` in production.
 /** @internal */
-export const featureFlags: Record<string, DebugFlag<boolean>> = {}
+export const featureFlags: Record<string, DebugFlag<boolean>> = {
+	fairies: createDebugValue('fairies', {
+		defaults: { all: false },
+	}),
+}
 
 /** @internal */
 export const pointerCaptureTrackingObject = createDebugValue(
