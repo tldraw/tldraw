@@ -4,12 +4,12 @@ import { F } from '../../../utils/i18n'
 import { ExternalLink } from '../../ExternalLink/ExternalLink'
 import styles from '../sidebar.module.css'
 
-export function TlaSidebarDotdevLink() {
-	const [showDotdevLink, setShowDotdevLink] = useLocalStorageState('showDotdevLink', true)
-	if (!showDotdevLink) return null
+export function TlaSidebarDotDevLink() {
+	const [showDotDevLink, setShowDotDevLink] = useLocalStorageState('showDotDevLink', true)
+	if (!showDotDevLink) return null
 
 	return (
-		<div className={styles.sidebarDotdevLink}>
+		<div className={styles.sidebarDotDevLink}>
 			<ExternalLink to="https://tldraw.dev" data-testid="tla-sidebar-dotdev-link">
 				<F defaultMessage="Build with the tldraw SDK" />
 				<TldrawUiIcon icon="arrow-left" label="Build with the tldraw SDK" small />
@@ -18,7 +18,7 @@ export function TlaSidebarDotdevLink() {
 				title="Dismiss"
 				data-testid="tla-sidebar-dotdev-dismiss-button"
 				className={classNames(styles.sidebarDotDevDismissButton, styles.hoverable)}
-				onClick={() => setShowDotdevLink(false)}
+				onClick={() => setShowDotDevLink(false)}
 			>
 				<TldrawUiIcon icon="cross-2" label="Hide" small />
 			</button>
