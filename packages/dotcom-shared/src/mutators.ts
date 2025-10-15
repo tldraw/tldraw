@@ -87,6 +87,61 @@ function assertValidId(id: string) {
 	assert(id.length >= 16, ZErrorCode.bad_request)
 }
 
+/**
+ * Check if a user has the required permissions for a file.
+ * @param tx - The transaction
+ * @param userId - The user ID to check permissions for
+ * @param file - The file to check permissions on
+ * @param allowGuestAccess - If true, shared files are accessible even if user isn't owner/member
+ */
+async function assertUserCanAccessFileInternal(
+	tx: Transaction<TlaSchema>,
+	userId: string,
+	file: TlaFile,
+	allowGuestAccess: boolean
+) {
+	assert(file, ZErrorCode.bad_request)
+	assert(!file.isDeleted, ZErrorCode.bad_request)
+
+	// If shared and we allow shared access, grant access immediately
+	if (allowGuestAccess && file.shared) {
+		return
+	}
+
+	if (file.ownerId) {
+		// Legacy model: user must own the file
+		assert(file.ownerId === userId, ZErrorCode.forbidden)
+	} else if (file.owningGroupId) {
+		// New model: user must be a member of the owning group
+		await assertUserIsGroupMember(tx, userId, file.owningGroupId)
+	} else {
+		// File has neither ownerId nor owningGroupId - invalid state
+		assert(false, ZErrorCode.bad_request)
+	}
+}
+
+/**
+ * Check if a user can access (read) a file.
+ * A user can access a file if:
+ * - They own it (legacy model: file.ownerId matches userId)
+ * - They are a member of the owning group (new model: user is in file.owningGroupId)
+ * - The file is shared (regardless of ownership model)
+ */
+async function assertUserCanAccessFile(tx: Transaction<TlaSchema>, userId: string, file: TlaFile) {
+	await assertUserCanAccessFileInternal(tx, userId, file, true)
+}
+
+/**
+ * Check if a user can update (write to) a file.
+ * A user can update a file if:
+ * - They own it (legacy model: file.ownerId matches userId)
+ * - They are a member of the owning group (new model: user is in file.owningGroupId)
+ * Note: Sharing only grants read access, not write access
+ */
+async function assertUserCanUpdateFile(tx: Transaction<TlaSchema>, userId: string, file: TlaFile) {
+	await assertUserCanAccessFileInternal(tx, userId, file, false)
+}
+
 export function createMutators(userId: string) {
 	const mutators = {
 		user: {
@@ -107,6 +162,7 @@ export function createMutators(userId: string) {
 				tx,
 				{ file, fileState }: { file: TlaFile; fileState: TlaFileState }
 			) => {
+				// User must be the owner for legacy file creation
 				assert(file.ownerId === userId, ZErrorCode.forbidden)
 				await assertNotMaxFiles(tx, userId)
 				assertValidId(file.id)
@@ -133,18 +189,11 @@ export function createMutators(userId: string) {
 			update: async (tx, _file: TlaFilePartial) => {
 				disallowImmutableMutations(_file, immutableColumns.file)
 				const file = await tx.query.file.where('id', '=', _file.id).one().run()
-				assert(file, ZErrorCode.bad_request)
-				assert(!file.isDeleted, ZErrorCode.bad_request)
-				if (file.ownerId) {
-					assert(file.ownerId === userId, ZErrorCode.forbidden)
-				} else {
-					assert(file.owningGroupId, ZErrorCode.bad_request)
-					await assertUserIsGroupMember(tx, userId, file.owningGroupId)
-				}
+				await assertUserCanUpdateFile(tx, userId, file!)
 
 				await tx.mutate.file.update({
 					..._file,
-					id: file.id,
+					id: file!.id,
 				})
 			},
 		},
@@ -153,13 +202,9 @@ export function createMutators(userId: string) {
 			insert: async (tx, fileState: TlaFileState) => {
 				assert(fileState.userId === userId, ZErrorCode.forbidden)
 				if (tx.location === 'server') {
-					// the user won't be able to see the file in the client if they are not the owner
+					// Verify the user has access to this file
 					const file = await tx.query.file.where('id', '=', fileState.fileId).one().run()
-					assert(file, ZErrorCode.bad_request)
-					assert(!file.isDeleted, ZErrorCode.bad_request)
-					if (file?.ownerId !== userId) {
-						assert(file?.shared, ZErrorCode.forbidden)
-					}
+					await assertUserCanAccessFile(tx, userId, file!)
 				}
 				// use upsert under the hood here for a little fault tolerance
 				await tx.mutate.file_state.upsert(fileState)
@@ -170,18 +215,9 @@ export function createMutators(userId: string) {
 				assert(fileState.userId === userId, ZErrorCode.forbidden)
 				disallowImmutableMutations(fileState, immutableColumns.file_state)
 				if (tx.location === 'server') {
-					// the user won't be able to see the file in the client if they are not the owner
+					// Verify the user has access to this file
 					const file = await tx.query.file.where('id', '=', fileState.fileId).one().run()
-					assert(file, ZErrorCode.bad_request)
-					assert(!file.isDeleted, ZErrorCode.bad_request)
-					if (file.ownerId) {
-						assert(file.ownerId === userId || file.shared, ZErrorCode.forbidden)
-					} else {
-						assert(file.owningGroupId, ZErrorCode.bad_request)
-						if (!file.shared) {
-							await assertUserIsGroupMember(tx, userId, file.owningGroupId)
-						}
-					}
+					await assertUserCanAccessFile(tx, userId, file!)
 				}
 				const exists = await tx.query.file_state
 					.where('fileId', '=', fileState.fileId)
@@ -409,11 +445,19 @@ export function createMutators(userId: string) {
 		},
 		onEnterFile: async (tx, { fileId, time }: { fileId: string; time: number }) => {
 			assert(fileId, ZErrorCode.bad_request)
+
+			// Verify the user has permission to access this file
+			const file = await tx.query.file.where('id', '=', fileId).one().run()
+			await assertUserCanAccessFile(tx, userId, file!)
+
+			// If we get here, the user has legitimate access to the file
 			await tx.mutate.file_state.upsert({ fileId, userId, firstVisitAt: time })
+
 			const migrated = await isGroupsMigrated(tx, userId)
 			if (migrated) {
 				const groupFiles = await tx.query.group_file.where('fileId', '=', fileId).run()
 				const userGroups = await tx.query.group_user.where('userId', '=', userId).run()
+				// Only add to home group if not already in any of the user's groups
 				if (!userGroups.some((g) => groupFiles.some((gf) => gf.groupId === g.groupId))) {
 					await tx.mutate.group_file.insert({
 						fileId,
