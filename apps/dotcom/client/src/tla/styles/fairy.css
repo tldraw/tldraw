@@ -247,10 +247,8 @@
 	margin: -10px;
 	margin-right: -5px;
 	background-color: transparent;
-	color: var(--tl-color-panel-contrast);
 	border: none;
 	border-radius: var(--tl-radius-2);
-	/* border-radius: 100%; */
 	cursor: pointer;
 	font-size: 18px;
 	display: flex;
@@ -426,7 +424,7 @@
 	background-color: var(--tl-color-panel);
 	border: 1px solid var(--tl-color-muted-2);
 	border-right: none;
-	border-radius: var(--tl-radius-2) 0 0 var(--tl-radius-2);
+	border-radius: var(--tl-radius-2) var(--tl-radius-2) 0 var(--tl-radius-2);
 	box-shadow: var(--tl-shadow-1);
 	overflow: hidden;
 	pointer-events: auto;
@@ -451,6 +449,11 @@
 	height: 0;
 	scrollbar-width: 8px;
 	scrollbar-color: var(--tl-color-muted-1) transparent;
+}
+
+.fairy-chat-history * {
+	user-select: text;
+	cursor: initial;
 }
 
 .fairy-chat-history::-webkit-scrollbar {

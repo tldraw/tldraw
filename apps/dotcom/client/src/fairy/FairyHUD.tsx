@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import {
+	Box,
 	TldrawUiToolbar,
 	TldrawUiToolbarToggleGroup,
 	TldrawUiToolbarToggleItem,
@@ -61,10 +62,12 @@ function FairyButton({
 	)
 }
 
+type PanelState = 'closed' | 'open'
+
 export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 	const editor = useEditor()
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
-	const [isChatExpanded, setIsChatExpanded] = useState(false)
+	const [panelState, setPanelState] = useState<PanelState>('closed')
 
 	const toolbarMessage = useMsg(fairyMessages.toolbar)
 	const deselectMessage = useMsg(fairyMessages.deselect)
@@ -73,42 +76,39 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 	// At this stage, there is only one fairy
 	const onlyFairy = useValue('only-fairy', () => agents[0], [agents])
 
-	const handleToggle = useCallback(
-		(agent: TldrawFairyAgent) => {
-			const currentlySelected = agent.$fairy.get()?.isSelected
-			// Deselect all other agents
-			agents.forEach((a) => {
-				if (a !== agent) {
-					a.$fairy.update((f) => ({ ...f!, isSelected: false }))
-				}
+	const handleToggle = useCallback(() => {
+		if (panelState === 'closed') {
+			// Open the panel
+			setPanelState('open')
+		} else {
+			// Zoom camera to fairy position
+			const fairyPosition = onlyFairy.$fairy.get().position
+			editor.zoomToBounds(Box.FromCenter(fairyPosition, { x: 100, y: 100 }), {
+				animation: { duration: 220 },
+				targetZoom: 1,
 			})
-			// Toggle the clicked agent
-			agent.$fairy.update((f) => ({ ...f!, isSelected: !currentlySelected }))
-		},
-		[agents]
-	)
+		}
+	}, [panelState, editor, onlyFairy])
 
 	const handleNewChat = useCallback(() => {
 		onlyFairy.cancel()
 		onlyFairy.reset()
 	}, [onlyFairy])
 
-	const toggleChatExpanded = useCallback(
-		(e?: any) => {
-			if (e) {
-				e.preventDefault()
-				e.stopPropagation()
-			}
-			setIsChatExpanded(!isChatExpanded)
-		},
-		[isChatExpanded]
-	)
+	const togglePanel = useCallback((e?: any) => {
+		if (e) {
+			e.preventDefault()
+			e.stopPropagation()
+		}
+		// Toggle between closed and open
+		setPanelState((current) => (current === 'open' ? 'closed' : 'open'))
+	}, [])
 
 	if (!agents || agents.length === 0) return null
 
 	return (
 		<div
-			className="tla-fairy-hud"
+			className={`tla-fairy-hud ${panelState === 'open' ? 'tla-fairy-hud--open' : ''}`}
 			style={{
 				position: 'fixed',
 				bottom: isDebugMode ? '112px' : '72px',
@@ -118,15 +118,21 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 				alignItems: 'flex-end',
 				gap: '0px',
 				pointerEvents: 'auto',
+				zIndex: '99999999',
 			}}
 		>
-			{isChatExpanded && (
-				<div className="fairy-chat-panel" onWheelCapture={(e) => e.stopPropagation()}>
+			{/* Panel with two states: closed (hidden) or open (showing full panel) */}
+			{panelState === 'open' && (
+				<div
+					className="fairy-chat-panel"
+					data-panel-state={panelState}
+					onWheelCapture={(e) => e.stopPropagation()}
+				>
 					<div className="fairy-toolbar-header">
 						<button className="fairy-toolbar-button" onClick={handleNewChat} title="New chat">
 							+
 						</button>
-						{<div className="fairy-id-display">{onlyFairy.id}</div>}
+						<div className="fairy-id-display">{onlyFairy.id}</div>
 					</div>
 					<FairyChatHistory agent={onlyFairy} />
 					<div className="fairy-chat-input-container">
@@ -134,14 +140,15 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 					</div>
 				</div>
 			)}
+
 			<div className="fairy-buttons-container">
 				<div className="fairy-toolbar-stack-header">
 					<button
 						className="fairy-toolbar-button"
 						id="fairy-toolbar-minimize-button"
-						onClick={toggleChatExpanded}
+						onClick={togglePanel}
 					>
-						{isChatExpanded ? '››' : '‹‹'}
+						{panelState === 'open' ? '››' : '‹‹'}
 					</button>
 				</div>
 				<TldrawUiToolbar
@@ -163,7 +170,7 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 							<FairyButton
 								key={agent.id}
 								agent={agent}
-								onClick={() => handleToggle(agent)}
+								onClick={() => handleToggle()}
 								selectMessage={selectMessage}
 								deselectMessage={deselectMessage}
 							/>
