@@ -25,7 +25,7 @@ export interface TldrawFairyAgentOptions {
 	/** A callback for when an error occurs. */
 	onError(e: any): void
 	/** A function to get the authentication token. */
-	getToken?: () => Promise<string | undefined>
+	getToken?(): Promise<string | undefined>
 }
 
 /**

@@ -373,6 +373,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 			// If there no outstanding todo items or requests, finish
 			if (todoItemsRemaining.length === 0 || !this.cancelFn) {
 				this.$fairy.update((fairy) => ({ ...fairy, pose: 'idle' }))
+				this.moveToBounds(request.bounds)
 				return
 			}
 
@@ -401,7 +402,6 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 		// Handle the scheduled request
 		this.$scheduledRequest.set(null)
 		await this.prompt(scheduledRequest)
-		this.moveToBounds(scheduledRequest.bounds)
 	}
 
 	/**
