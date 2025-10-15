@@ -3,5 +3,5 @@
 	"include": ["src", "src/models.ts"],
 	"exclude": ["node_modules", ".tsbuild*"],
 	"compilerOptions": { "outDir": "./.tsbuild", "rootDir": "src" },
-	"references": [{ "path": "../editor" }]
+	"references": [{ "path": "../editor" }, { "path": "../tldraw" }]
 }
