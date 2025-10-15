@@ -1,4 +1,4 @@
-import { FAIRY_POSE, FairyPose } from '@tldraw/dotcom-shared'
+import { FAIRY_POSE, FairyPose } from '@tldraw/fairy-shared'
 import { useEffect, useMemo, useState } from 'react'
 import { FileHelpers, Image } from 'tldraw'
 import { FairyOutfit } from './FairyOutfit'

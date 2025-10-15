@@ -1,6 +1,6 @@
 {
-	"name": "@tldraw/dotcom-shared",
-	"version": "2.0.0",
+	"name": "@tldraw/fairy-shared",
+	"version": "1.0.0",
 	"private": true,
 	"/* NOTE */": "These `main` and `types` fields are rewritten by the build script. They are not the actual values we publish",
 	"main": "./src/index.ts",
@@ -9,12 +9,10 @@
 	"files": [],
 	"type": "module",
 	"dependencies": {
-		"@rocicorp/zero": "0.19.2025050203",
-		"@tldraw/state": "workspace:*",
-		"@tldraw/store": "workspace:*",
-		"@tldraw/tlschema": "workspace:*",
-		"@tldraw/utils": "workspace:*",
-		"@tldraw/validate": "workspace:*"
+		"@tldraw/editor": "workspace:*",
+		"ai": "^5.0.63",
+		"tldraw": "workspace:*",
+		"zod": "^4.1.8"
 	},
 	"peerDependencies": {
 		"react": "^18.2.0 || ^19.0.0",

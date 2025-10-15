@@ -1,4 +1,4 @@
-import { convertTldrawShapeToFocusedShape, DEFAULT_FAIRY_VISION } from '@tldraw/dotcom-shared'
+import { convertTldrawShapeToFocusedShape, DEFAULT_FAIRY_VISION } from '@tldraw/fairy-shared'
 import { FormEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { Box, useValue } from 'tldraw'
 import { TldrawFairyAgent } from '../agent/TldrawFairyAgent'

@@ -3,7 +3,7 @@ import {
 	ChatHistoryContinuationItem,
 	ChatHistoryItem,
 	ChatHistoryPromptItem,
-} from '@tldraw/dotcom-shared'
+} from '@tldraw/fairy-shared'
 import { FairyChatHistoryAction } from './FairyChatHistoryAction'
 import { FairyChatHistoryPrompt } from './FairyChatHistoryPrompt'
 

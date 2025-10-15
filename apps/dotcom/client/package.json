@@ -34,6 +34,7 @@
 		"@sentry/react": "^7.120.3",
 		"@tldraw/assets": "workspace:*",
 		"@tldraw/dotcom-shared": "workspace:*",
+		"@tldraw/fairy-shared": "workspace:*",
 		"@tldraw/sync": "workspace:*",
 		"@tldraw/sync-core": "workspace:*",
 		"@tldraw/utils": "workspace:*",

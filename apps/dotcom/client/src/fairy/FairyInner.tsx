@@ -1,4 +1,4 @@
-import { FairyEntity } from '@tldraw/dotcom-shared'
+import { FairyEntity } from '@tldraw/fairy-shared'
 import { useEffect, useRef } from 'react'
 import { Atom, Box, useEditor, useValue } from 'tldraw'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
