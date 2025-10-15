@@ -6,7 +6,6 @@ import { MinimalConfigPanel } from './minimal/MinimalConfigPanel'
 import { MinimalRenderer } from './minimal/MinimalRenderer'
 import { RainbowConfigPanel } from './rainbow/RainbowConfigPanel'
 import { RainbowRenderer } from './rainbow/RainbowRenderer'
-import './shader.css'
 import { ShadowControlPanel } from './shadow/ShadowControlPanel'
 import { ShadowRenderer } from './shadow/ShadowRenderer'
 
@@ -44,7 +43,7 @@ function App() {
 						return (
 							<div style={{ display: 'flex', flexDirection: 'row' }}>
 								{ConfigComponent && <ConfigComponent />}
-								<div className="tlui-menu shader-example-toggle">
+								<div className="tlui-menu shader-app__example-menu">
 									{options.map((option) => (
 										<TldrawUiButton
 											type="menu"

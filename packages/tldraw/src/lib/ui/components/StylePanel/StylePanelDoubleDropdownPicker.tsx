@@ -29,12 +29,27 @@ export interface StylePanelDoubleDropdownPickerProps<T extends string> {
 	onValueChange?(style: StyleProp<T>, value: T): void
 }
 
-function DoubleDropdownPickerInner<T extends string>(
+function StylePanelDoubleDropdownPickerInner<T extends string>(
+	props: StylePanelDoubleDropdownPickerProps<T>
+) {
+	const msg = useTranslation()
+	return (
+		<div className="tlui-style-panel__double-select-picker">
+			<div title={msg(props.label)} className="tlui-style-panel__double-select-picker-label">
+				{msg(props.label)}
+			</div>
+			<TldrawUiToolbar orientation="horizontal" label={msg(props.label)}>
+				<StylePanelDoubleDropdownPickerInline {...props} />
+			</TldrawUiToolbar>
+		</div>
+	)
+}
+
+function StylePanelDoubleDropdownPickerInlineInner<T extends string>(
 	props: StylePanelDoubleDropdownPickerProps<T>
 ) {
 	const ctx = useStylePanelContext()
 	const {
-		label,
 		uiTypeA,
 		uiTypeB,
 		labelA,
@@ -70,100 +85,100 @@ function DoubleDropdownPickerInner<T extends string>(
 	const idA = `style panel ${uiTypeA} A`
 	const idB = `style panel ${uiTypeB} B`
 	return (
-		<div className="tlui-style-panel__double-select-picker">
-			<div title={msg(label)} className="tlui-style-panel__double-select-picker-label">
-				{msg(label)}
-			</div>
-			<TldrawUiToolbar orientation="horizontal" label={msg(label)}>
-				<TldrawUiPopover id={idA} open={isOpenA} onOpenChange={setIsOpenA}>
-					<TldrawUiPopoverTrigger>
-						<TldrawUiToolbarButton
-							type="icon"
-							data-testid={`style.${uiTypeA}`}
-							title={
-								msg(labelA) +
-								' — ' +
-								(valueA === null || valueA.type === 'mixed'
-									? msg('style-panel.mixed')
-									: msg(`${uiTypeA}-style.${valueA.value}` as TLUiTranslationKey))
-							}
-						>
-							<TldrawUiButtonIcon icon={iconA} small invertIcon />
-						</TldrawUiToolbarButton>
-					</TldrawUiPopoverTrigger>
-					<TldrawUiPopoverContent side="left" align="center" sideOffset={80} alignOffset={0}>
-						<TldrawUiToolbar orientation="grid" label={msg(labelA)}>
-							<TldrawUiMenuContextProvider type="icons" sourceId="style-panel">
-								{itemsA.map((item) => {
-									return (
-										<TldrawUiToolbarButton
-											data-testid={`style.${uiTypeA}.${item.value}`}
-											type="icon"
-											key={item.value}
-											onClick={() => {
-												onValueChange(styleA, item.value)
-												tlmenus.deleteOpenMenu(idA, editor.contextId)
-												setIsOpenA(false)
-											}}
-											title={`${msg(labelA)} — ${msg(`${uiTypeA}-style.${item.value}`)}`}
-										>
-											<TldrawUiButtonIcon icon={item.icon} invertIcon />
-										</TldrawUiToolbarButton>
-									)
-								})}
-							</TldrawUiMenuContextProvider>
-						</TldrawUiToolbar>
-					</TldrawUiPopoverContent>
-				</TldrawUiPopover>
-				<TldrawUiPopover id={idB} open={isOpenB} onOpenChange={setIsOpenB}>
-					<TldrawUiPopoverTrigger>
-						<TldrawUiToolbarButton
-							type="icon"
-							data-testid={`style.${uiTypeB}`}
-							title={
-								msg(labelB) +
-								' — ' +
-								(valueB === null || valueB.type === 'mixed'
-									? msg('style-panel.mixed')
-									: msg(`${uiTypeB}-style.${valueB.value}` as TLUiTranslationKey))
-							}
-						>
-							<TldrawUiButtonIcon icon={iconB} small />
-						</TldrawUiToolbarButton>
-					</TldrawUiPopoverTrigger>
-					<TldrawUiPopoverContent side="left" align="center" sideOffset={116} alignOffset={0}>
-						<TldrawUiToolbar orientation="grid" label={msg(labelB)}>
-							<TldrawUiMenuContextProvider type="icons" sourceId="style-panel">
-								{itemsB.map((item) => {
-									return (
-										<TldrawUiToolbarButton
-											key={item.value}
-											type="icon"
-											title={`${msg(labelB)} — ${msg(`${uiTypeB}-style.${item.value}` as TLUiTranslationKey)}`}
-											data-testid={`style.${uiTypeB}.${item.value}`}
-											onClick={() => {
-												onValueChange(styleB, item.value)
-												tlmenus.deleteOpenMenu(idB, editor.contextId)
-												setIsOpenB(false)
-											}}
-										>
-											<TldrawUiButtonIcon icon={item.icon} />
-										</TldrawUiToolbarButton>
-									)
-								})}
-							</TldrawUiMenuContextProvider>
-						</TldrawUiToolbar>
-					</TldrawUiPopoverContent>
-				</TldrawUiPopover>
-			</TldrawUiToolbar>
-		</div>
+		<>
+			<TldrawUiPopover id={idA} open={isOpenA} onOpenChange={setIsOpenA}>
+				<TldrawUiPopoverTrigger>
+					<TldrawUiToolbarButton
+						type="icon"
+						data-testid={`style.${uiTypeA}`}
+						title={
+							msg(labelA) +
+							' — ' +
+							(valueA === null || valueA.type === 'mixed'
+								? msg('style-panel.mixed')
+								: msg(`${uiTypeA}-style.${valueA.value}` as TLUiTranslationKey))
+						}
+					>
+						<TldrawUiButtonIcon icon={iconA} small invertIcon />
+					</TldrawUiToolbarButton>
+				</TldrawUiPopoverTrigger>
+				<TldrawUiPopoverContent side="left" align="center" sideOffset={80} alignOffset={0}>
+					<TldrawUiToolbar orientation="grid" label={msg(labelA)}>
+						<TldrawUiMenuContextProvider type="icons" sourceId="style-panel">
+							{itemsA.map((item) => {
+								return (
+									<TldrawUiToolbarButton
+										data-testid={`style.${uiTypeA}.${item.value}`}
+										type="icon"
+										key={item.value}
+										onClick={() => {
+											onValueChange(styleA, item.value)
+											tlmenus.deleteOpenMenu(idA, editor.contextId)
+											setIsOpenA(false)
+										}}
+										title={`${msg(labelA)} — ${msg(`${uiTypeA}-style.${item.value}`)}`}
+									>
+										<TldrawUiButtonIcon icon={item.icon} invertIcon />
+									</TldrawUiToolbarButton>
+								)
+							})}
+						</TldrawUiMenuContextProvider>
+					</TldrawUiToolbar>
+				</TldrawUiPopoverContent>
+			</TldrawUiPopover>
+			<TldrawUiPopover id={idB} open={isOpenB} onOpenChange={setIsOpenB}>
+				<TldrawUiPopoverTrigger>
+					<TldrawUiToolbarButton
+						type="icon"
+						data-testid={`style.${uiTypeB}`}
+						title={
+							msg(labelB) +
+							' — ' +
+							(valueB === null || valueB.type === 'mixed'
+								? msg('style-panel.mixed')
+								: msg(`${uiTypeB}-style.${valueB.value}` as TLUiTranslationKey))
+						}
+					>
+						<TldrawUiButtonIcon icon={iconB} small />
+					</TldrawUiToolbarButton>
+				</TldrawUiPopoverTrigger>
+				<TldrawUiPopoverContent side="left" align="center" sideOffset={116} alignOffset={0}>
+					<TldrawUiToolbar orientation="grid" label={msg(labelB)}>
+						<TldrawUiMenuContextProvider type="icons" sourceId="style-panel">
+							{itemsB.map((item) => {
+								return (
+									<TldrawUiToolbarButton
+										key={item.value}
+										type="icon"
+										title={`${msg(labelB)} — ${msg(`${uiTypeB}-style.${item.value}` as TLUiTranslationKey)}`}
+										data-testid={`style.${uiTypeB}.${item.value}`}
+										onClick={() => {
+											onValueChange(styleB, item.value)
+											tlmenus.deleteOpenMenu(idB, editor.contextId)
+											setIsOpenB(false)
+										}}
+									>
+										<TldrawUiButtonIcon icon={item.icon} />
+									</TldrawUiToolbarButton>
+								)
+							})}
+						</TldrawUiMenuContextProvider>
+					</TldrawUiToolbar>
+				</TldrawUiPopoverContent>
+			</TldrawUiPopover>
+		</>
 	)
 }
 
 // need to memo like this to get generics
 /** @public @react */
-export const StylePanelDoubleDropdownPicker = React.memo(DoubleDropdownPickerInner) as <
+export const StylePanelDoubleDropdownPicker = React.memo(StylePanelDoubleDropdownPickerInner) as <
 	T extends string,
 >(
 	props: StylePanelDoubleDropdownPickerProps<T>
 ) => React.JSX.Element
+
+/** @public @react */
+export const StylePanelDoubleDropdownPickerInline = React.memo(
+	StylePanelDoubleDropdownPickerInlineInner
+) as <T extends string>(props: StylePanelDoubleDropdownPickerProps<T>) => React.JSX.Element

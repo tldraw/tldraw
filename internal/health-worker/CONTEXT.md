@@ -10,7 +10,7 @@ A Cloudflare Worker that processes webhooks from [Updown](https://updown.io/) he
 - Transforms health events into Discord message format
 - Forwards formatted messages to Discord via webhook
 
-## Core Components
+## Core components
 
 **src/index.ts** - Main worker handler
 
@@ -26,7 +26,7 @@ A Cloudflare Worker that processes webhooks from [Updown](https://updown.io/) he
 
 **src/updown_types.ts** - Type definitions for Updown webhook payload structure
 
-## Event Types Handled
+## Event types handled
 
 - `check.down` - Service goes down (red alert)
 - `check.up` - Service comes back up (green alert)
@@ -39,7 +39,7 @@ A Cloudflare Worker that processes webhooks from [Updown](https://updown.io/) he
 
 ## Configuration
 
-**Environment Variables**
+**Environment variables**
 
 - `DISCORD_HEALTH_WEBHOOK_URL` - Discord webhook URL for sending alerts
 - `HEALTH_WORKER_UPDOWN_WEBHOOK_PATH` - Secret path for Updown webhooks (security measure)
