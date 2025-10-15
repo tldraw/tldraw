@@ -177,7 +177,7 @@
 
 .fairy-input {
 	background-color: var(--tl-color-muted-1);
-	border-radius: 12px;
+	border-radius: 4px;
 	padding: 8px;
 	pointer-events: auto;
 	position: relative;
@@ -242,12 +242,12 @@
 	width: 16px;
 	height: 16px;
 	padding: 0;
-	background-color: var(--tl-color-primary);
+	background-color: transparent;
 	color: var(--tl-color-panel-contrast);
 	border: none;
 	border-radius: 100%;
 	cursor: pointer;
-	font-size: 10px;
+	font-size: 18px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -259,7 +259,7 @@
 }
 
 .fairy-input__submit:disabled {
-	background-color: var(--tl-color-grid);
+	/* background-color: var(--tl-color-grid); */
 	cursor: not-allowed;
 }
 
@@ -274,4 +274,293 @@
 	pointer-events: none;
 	width: 100%;
 	height: 100%;
+}
+
+/* Fairy Toggle Button */
+
+.fairy-toggle-button {
+	width: 40px !important;
+	height: 40px !important;
+	min-width: 40px !important;
+	min-height: 40px !important;
+}
+
+/* Fairy HUD Container Scrollbar */
+
+.tla-fairy-hud .tlui-toolbar::-webkit-scrollbar {
+	width: 6px;
+}
+
+.tla-fairy-hud .tlui-toolbar::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.tla-fairy-hud .tlui-toolbar::-webkit-scrollbar-thumb {
+	background: var(--tl-color-muted-1);
+	border-radius: 3px;
+}
+
+.tla-fairy-hud .tlui-toolbar {
+	scrollbar-width: thin;
+	scrollbar-color: var(--tl-color-muted-1) transparent;
+}
+
+/* Fairy Toolbar Header */
+
+.fairy-toolbar-header {
+	display: flex;
+	align-items: center;
+	justify-content: start;
+	height: 32px;
+	background-color: var(--tl-color-muted-1);
+	border-bottom: 1px solid var(--tl-color-muted-2);
+	padding: 4px;
+	flex-shrink: 0;
+	gap: 8px;
+}
+
+.fairy-id-display {
+	flex: 1;
+	font-size: 12px;
+	color: var(--tl-color-text-2);
+}
+
+.fairy-toolbar-stack-header {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 32px;
+	background-color: var(--tl-color-muted-1);
+	border-bottom: 1px solid var(--tl-color-muted-2);
+	padding: 4px;
+	flex-shrink: 0;
+}
+
+.fairy-toolbar-button {
+	width: 24px;
+	height: 24px;
+	font-size: 14px;
+	appearance: none;
+	border: 0;
+	border-radius: 4px;
+	cursor: pointer;
+	background: var(--tl-color-panel);
+	color: var(--tl-color-text);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+#fairy-toolbar-minimize-button {
+	flex-grow: 1;
+}
+
+.fairy-toolbar-button:hover:not(:disabled) {
+	background-color: var(--tl-color-muted-2);
+}
+
+.fairy-toolbar-button:disabled {
+	opacity: 0.3;
+	cursor: not-allowed;
+}
+
+.fairy-new-button {
+	width: 40px;
+	height: 40px;
+	font-size: 16px;
+	appearance: none;
+	border: 1px solid var(--tl-color-muted-2);
+	border-radius: 4px;
+	cursor: pointer;
+	background: transparent;
+	color: var(--tl-color-text);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.fairy-new-button:hover:not(:disabled) {
+	background-color: var(--tl-color-muted-1);
+}
+
+.fairy-new-button:disabled {
+	opacity: 0.3;
+	cursor: not-allowed;
+}
+
+/* Fairy Buttons Container */
+
+.fairy-buttons-container {
+	display: flex;
+	flex-direction: column;
+	background-color: var(--tl-color-panel);
+	border: 1px solid var(--tl-color-muted-2);
+	border-radius: var(--tl-radius-2);
+	box-shadow: var(--tl-shadow-1);
+	overflow: hidden;
+	height: 224px;
+}
+
+.tla-fairy-hud:has(.fairy-chat-panel) .fairy-buttons-container {
+	border-left: none;
+	border-radius: 0 var(--tl-radius-2) var(--tl-radius-2) 0;
+}
+
+/* Fairy Chat Panel */
+
+.fairy-chat-panel {
+	display: flex;
+	flex-direction: column;
+	width: 350px;
+	height: 224px;
+	background-color: var(--tl-color-panel);
+	border: 1px solid var(--tl-color-muted-2);
+	border-right: none;
+	border-radius: var(--tl-radius-2) 0 0 var(--tl-radius-2);
+	box-shadow: var(--tl-shadow-1);
+	overflow: hidden;
+	pointer-events: auto;
+}
+
+.fairy-chat-input-container {
+	flex-shrink: 0;
+	padding: 6px;
+	border-top: 1px solid var(--tl-color-muted-2);
+}
+
+/* Fairy Chat History */
+
+.fairy-chat-history {
+	flex: 1;
+	overflow-y: auto;
+	padding: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	min-height: 0;
+	height: 0;
+	scrollbar-width: 8px;
+	scrollbar-color: var(--tl-color-muted-1) transparent;
+}
+
+.fairy-chat-history::-webkit-scrollbar {
+	width: 8px;
+}
+
+.fairy-chat-history::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.fairy-chat-history::-webkit-scrollbar-thumb {
+	background: var(--tl-color-muted-1);
+	border-radius: 4px;
+}
+
+.fairy-chat-history-section {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	flex-shrink: 0;
+}
+
+.fairy-chat-history-prompt-container {
+	flex-shrink: 0;
+}
+
+.fairy-chat-history-prompt-sticky {
+	position: sticky;
+	top: -12px;
+	padding: 8px 0px;
+	margin: -8px 0px;
+	z-index: 10;
+	background-color: var(--tl-color-panel);
+}
+
+.fairy-chat-history-prompt {
+	background-color: var(--tl-color-muted-1);
+	box-shadow: var(--tl-shadow-1);
+	border-radius: 8px;
+	padding: 8px;
+	font-size: 12px;
+	line-height: 1.5;
+	color: var(--tl-color-text-1);
+	word-wrap: break-word;
+	max-height: 150px;
+	overflow-y: auto;
+	scrollbar-color: var(--tl-color-text-3) transparent;
+}
+
+.fairy-chat-history-prompt::-webkit-scrollbar {
+	width: 6px;
+	background: transparent;
+}
+
+.fairy-chat-history-prompt::-webkit-scrollbar-thumb {
+	background: var(--tl-color-text-3);
+	border-radius: 3px;
+}
+
+.fairy-chat-history-prompt-content {
+	white-space: pre-wrap;
+}
+
+.fairy-chat-history-actions {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.fairy-chat-history-action {
+	font-size: 12px;
+	line-height: 1.5;
+	color: var(--tl-color-text-2);
+	padding-left: 8px;
+}
+
+.fairy-chat-history-action-content {
+	white-space: pre-wrap;
+	word-wrap: break-word;
+}
+
+.fairy-chat-history-action-pill-container {
+	display: flex;
+	padding-left: 8px;
+}
+
+.fairy-chat-history-action-pill {
+	display: inline-flex;
+	align-items: center;
+	padding: 4px 10px;
+	background-color: var(--tl-color-muted-1);
+	color: var(--tl-color-text-2);
+	border-radius: 12px;
+	font-size: 11px;
+	font-weight: 500;
+	line-height: 1.2;
+	white-space: nowrap;
+}
+
+.fairy-chat-loading {
+	color: var(--tl-color-text-3);
+	font-size: 12px;
+	text-align: center;
+	padding: 4px;
+}
+
+.fairy-chat-empty {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: 1;
+	height: 100%;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.fairy-chat-empty-text {
+	color: var(--tl-color-text-3);
+	font-size: 12px;
+	text-align: center;
+	height: auto;
+	flex-shrink: 0;
 }

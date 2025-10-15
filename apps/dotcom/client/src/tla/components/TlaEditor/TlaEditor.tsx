@@ -270,12 +270,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	// Fairy stuff
 
 	const [agents, setAgents] = useState<TldrawFairyAgent[]>([])
-	// is there a reason not to use the $fairyAgentsAtom? (fka $agentsAtom) i assume it shouldn't be an editoratom anymore if it can move around to different pages?
 
 	// this is ugly
 	const originalInFrontOfTheCanvasRef = useRef(components.InFrontOfTheCanvas)
 	const OriginalInFrontOfTheCanvas = originalInFrontOfTheCanvasRef.current
-	// is there a reason not to use the $fairyAgentsAtom? (fka $agentsAtom)
+
 	components.InFrontOfTheCanvas = (props) => (
 		<>
 			{OriginalInFrontOfTheCanvas ? <OriginalInFrontOfTheCanvas {...props} /> : null}
