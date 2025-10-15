@@ -8946,7 +8946,7 @@ __metadata:
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
     tldraw: "workspace:*"
-    zod: "npm:^4.1.5"
+    zod: "npm:^4.1.8"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
     react-dom: ^18.2.0 || ^19.0.0
@@ -8972,7 +8972,6 @@ __metadata:
     "@tldraw/worker-shared": "workspace:*"
     "@types/pg": "npm:^8.11.11"
     "@types/react": "npm:^18.3.18"
-    ai: "npm:^5.0.63"
     esbuild: "npm:^0.25.6"
     itty-router: "npm:^5.0.18"
     jose: "npm:^5.9.6"
@@ -26765,7 +26764,7 @@ __metadata:
     typescript: "npm:^5.8.3"
     vite: "npm:^7.0.1"
     wrangler: "npm:^4.37.1"
-    zod: "npm:^4.1.5"
+    zod: "npm:^4.1.8"
   languageName: unknown
   linkType: soft
 
@@ -26789,6 +26788,7 @@ __metadata:
     typescript: "npm:^5.8.3"
     vite: "npm:^7.0.1"
     wrangler: "npm:^4.37.1"
+    zod: "npm:^4.1.8"
   languageName: unknown
   linkType: soft
 
@@ -26809,7 +26809,7 @@ __metadata:
     react-markdown: "npm:^10.1.0"
     tldraw: "workspace:*"
     typescript: "npm:^5.8.3"
-    zod: "npm:^4.1.5"
+    zod: "npm:^4.1.8"
   languageName: unknown
   linkType: soft
 
@@ -29408,10 +29408,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^4.1.5":
-  version: 4.1.5
-  resolution: "zod@npm:4.1.5"
-  checksum: 10/2ac6bef2d6647de6e673b6fa07ee392b71eb6fd6ccb2be8899d8d853084dd8b3992d4d2cf267eba6f8495a35803e2ec254509194fd0849ed0a822dea7ae4a765
+"zod@npm:^4.1.8":
+  version: 4.1.12
+  resolution: "zod@npm:4.1.12"
+  checksum: 10/c5f04e6ac306515c4db6ef73cf7705f521c7a2107c8c8912416a0658d689f361db9bee829b0bf01ef4a22492f1065c5cbcdb523ce532606ac6792fd714f3c326
   languageName: node
   linkType: hard
 
