@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import {
 	TldrawUiToolbar,
 	TldrawUiToolbarToggleGroup,
@@ -69,48 +69,43 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 	const deselectMessage = useMsg(fairyMessages.deselect)
 	const selectMessage = useMsg(fairyMessages.select)
 
-	// Find the selected agent (if any) - use useValue to make it reactive
-	const selectedAgent = useValue(
-		'selected-fairy-agent',
-		() => agents.find((agent) => agent.$fairy.get()?.isSelected),
-		[agents]
-	)
-
 	// At this stage, there is only one fairy
 	const onlyFairy = useValue('only-fairy', () => agents[0], [agents])
 
-	if (!agents || agents.length === 0) return null
+	const handleToggle = useCallback(
+		(agent: TldrawFairyAgent) => {
+			const currentlySelected = agent.$fairy.get()?.isSelected
+			// Deselect all other agents
+			agents.forEach((a) => {
+				if (a !== agent) {
+					a.$fairy.update((f) => ({ ...f!, isSelected: false }))
+				}
+			})
+			// Toggle the clicked agent
+			agent.$fairy.update((f) => ({ ...f!, isSelected: !currentlySelected }))
+		},
+		[agents]
+	)
 
-	const handleToggle = (agent: TldrawFairyAgent) => {
-		const currentlySelected = agent.$fairy.get()?.isSelected
-		// Deselect all other agents
-		agents.forEach((a) => {
-			if (a !== agent) {
-				a.$fairy.update((f) => ({ ...f!, isSelected: false }))
+	const handleNewChat = useCallback(() => {
+		if (onlyFairy) {
+			onlyFairy.cancel()
+			onlyFairy.reset()
+		}
+	}, [onlyFairy])
+
+	const toggleChatExpanded = useCallback(
+		(e?: any) => {
+			if (e) {
+				e.preventDefault()
+				e.stopPropagation()
 			}
-		})
-		// Toggle the clicked agent
-		agent.$fairy.update((f) => ({ ...f!, isSelected: !currentlySelected }))
-	}
+			setIsChatExpanded(!isChatExpanded)
+		},
+		[isChatExpanded]
+	)
 
-	const handleNewChat = () => {
-		if (selectedAgent) {
-			selectedAgent.cancel()
-			selectedAgent.reset()
-		}
-	}
-
-	const toggleChatExpanded = (e?: any) => {
-		if (e) {
-			e.preventDefault()
-			e.stopPropagation()
-		}
-		setIsChatExpanded(!isChatExpanded)
-	}
-
-	const handleWheelCapture = (e: any) => {
-		e.stopPropagation()
-	}
+	if (!agents || agents.length === 0) return null
 
 	return (
 		<div
@@ -127,17 +122,12 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 			}}
 		>
 			{isChatExpanded && (
-				<div className="fairy-chat-panel" onWheelCapture={handleWheelCapture}>
+				<div className="fairy-chat-panel" onWheelCapture={(e) => e.stopPropagation()}>
 					<div className="fairy-toolbar-header">
-						<button
-							className="fairy-toolbar-button"
-							onClick={handleNewChat}
-							disabled={!selectedAgent}
-							title="New chat"
-						>
+						<button className="fairy-toolbar-button" onClick={handleNewChat} title="New chat">
 							+
 						</button>
-						{selectedAgent && <div className="fairy-id-display">{selectedAgent.id}</div>}
+						{<div className="fairy-id-display">{onlyFairy.id}</div>}
 					</div>
 					<FairyChatHistory agent={onlyFairy} />
 					<div className="fairy-chat-input-container">
