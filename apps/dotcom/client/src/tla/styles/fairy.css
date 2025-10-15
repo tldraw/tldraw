@@ -287,6 +287,12 @@
 
 /* Fairy HUD Container Scrollbar */
 
+* {
+	/* Prevent screen bouncing when you scroll up through the chat history */
+	/* Todo: Find a more precise class to apply this to */
+	overscroll-behavior-y: none;
+}
+
 .tla-fairy-hud .tlui-toolbar::-webkit-scrollbar {
 	width: 6px;
 }
@@ -468,10 +474,8 @@
 }
 
 .fairy-chat-history-prompt-sticky {
-	position: sticky;
-	top: -12px;
-	padding: 8px 0px;
-	margin: -8px 0px;
+	margin: -4px 0px 0px 0px;
+	padding: 0px;
 	z-index: 10;
 	background-color: var(--tl-color-panel);
 }
