@@ -441,7 +441,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
-            assetId: TLAssetId | null;
+            assetId: null | TLAssetId;
             h: number;
             url: string;
             w: number;
@@ -461,7 +461,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
-            assetId: TLAssetId | null;
+            assetId: null | TLAssetId;
             h: number;
             url: string;
             w: number;
@@ -811,17 +811,6 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly type: "vimeo";
     readonly width: 640;
-}, {
-    readonly doesResize: true;
-    readonly embedOnPaste: true;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    readonly height: 500;
-    readonly hostnames: readonly ["excalidraw.com"];
-    readonly isAspectRatioLocked: true;
-    readonly title: "Excalidraw";
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "excalidraw";
-    readonly width: 720;
 }, {
     readonly backgroundColor: "#fff";
     readonly doesResize: true;
@@ -1401,6 +1390,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     getEmbedDefinition(url: string): TLEmbedResult;
     // (undocumented)
     getEmbedDefinitions(): readonly TLEmbedDefinition[];
+    // (undocumented)
+    getGeometry(shape: TLEmbedShape): Geometry2d;
     // (undocumented)
     getInterpolatedProps(startShape: TLEmbedShape, endShape: TLEmbedShape, t: number): TLEmbedShapeProps;
     // (undocumented)
@@ -2734,7 +2725,10 @@ export function StylePanelArrowheadPicker(): JSX_2.Element | null;
 export function StylePanelArrowKindPicker(): JSX_2.Element | null;
 
 // @public (undocumented)
-export const StylePanelButtonPicker: <T extends string>(props: StylePanelButtonPickerProps<T>) => ReactElement;
+export const StylePanelButtonPicker: <T extends string>(props: StylePanelButtonPickerProps<T>) => React.JSX.Element;
+
+// @public (undocumented)
+export const StylePanelButtonPickerInline: <T extends string>(props: StylePanelButtonPickerProps<T>) => React.JSX.Element;
 
 // @public (undocumented)
 export interface StylePanelButtonPickerProps<T extends string> {
@@ -2787,6 +2781,9 @@ export function StylePanelDashPicker(): JSX_2.Element | null;
 export const StylePanelDoubleDropdownPicker: <T extends string>(props: StylePanelDoubleDropdownPickerProps<T>) => React_2.JSX.Element;
 
 // @public (undocumented)
+export const StylePanelDoubleDropdownPickerInline: <T extends string>(props: StylePanelDoubleDropdownPickerProps<T>) => React_2.JSX.Element;
+
+// @public (undocumented)
 export interface StylePanelDoubleDropdownPickerProps<T extends string> {
     // (undocumented)
     itemsA: StyleValuesForUi<T>;
@@ -2816,6 +2813,9 @@ export interface StylePanelDoubleDropdownPickerProps<T extends string> {
 
 // @public (undocumented)
 export const StylePanelDropdownPicker: <T extends string>(props: StylePanelDropdownPickerProps<T>) => React_2.JSX.Element;
+
+// @public (undocumented)
+export const StylePanelDropdownPickerInline: <T extends string>(props: StylePanelDropdownPickerProps<T>) => React_2.JSX.Element;
 
 // @public (undocumented)
 export interface StylePanelDropdownPickerProps<T extends string> {

@@ -298,11 +298,11 @@ const template = await groupSelect({
 
 // Project naming with validation and smart defaults
 const name = await text({
-	message: 'Name your package',
+	message: 'Name your app',
 	placeholder: defaultName,
 	validate: (value) => {
 		if (value && !isValidPackageName(value)) {
-			return `Invalid package name: ${value}`
+			return `Invalid name: ${value}`
 		}
 	},
 })

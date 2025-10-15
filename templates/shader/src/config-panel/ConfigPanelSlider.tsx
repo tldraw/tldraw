@@ -24,7 +24,7 @@ export function ConfigPanelSlider({
 	const sliderValue = value != null ? 1 + ((value - min) / (max - min)) * (STEPS - 1) : 1
 
 	return (
-		<div className="shader-slider-container">
+		<div className="shader-config-panel__control shader-config-panel__control--slider">
 			<ConfigPanelLabel>{label}</ConfigPanelLabel>
 			<TldrawUiSlider
 				steps={STEPS}

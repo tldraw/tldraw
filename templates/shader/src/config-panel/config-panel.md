@@ -181,11 +181,13 @@ The config panel uses CSS classes that can be customized:
 - `.shader-config-panel`: Main panel container
 - `.shader-config-panel--expanded`: Applied when expanded
 - `.shader-config-panel--collapsed`: Applied when collapsed
-- `.shader-config-header`: Header with reset and toggle buttons
-- `.shader-config-content`: Content area (only visible when expanded)
-- `.shader-slider-container`: Container for slider controls
-- `.shader-boolean-control`: Container for boolean controls
-- `.shader-boolean-input`: Checkbox input element
+- `.shader-config-panel__header`: Header with reset and toggle buttons
+- `.shader-config-panel__content`: Content area (only visible when expanded)
+- `.shader-config-panel__control`: Base class for individual controls
+- `.shader-config-panel__control--slider`: Modifier for slider controls
+- `.shader-config-panel__control--boolean`: Modifier for boolean controls
+- `.shader-config-panel__boolean-input`: Checkbox input element
+- `.shader-config-panel__label`: Label text for controls
 
 ## Integration with Shader Manager
 
@@ -202,7 +204,7 @@ function MyShaderRenderer({ editor }: { editor: Editor }) {
 		return () => manager.dispose()
 	}, [editor])
 
-	return <canvas ref={canvas} className="shader-canvas" />
+	return <canvas ref={canvas} className="shader-app__canvas" />
 }
 
 export default function ShaderExample() {
