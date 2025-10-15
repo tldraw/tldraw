@@ -25,10 +25,13 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiSlider } from '../primitives/TldrawUiSlider'
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
-import { StylePanelButtonPicker } from './StylePanelButtonPicker'
+import { StylePanelButtonPicker, StylePanelButtonPickerInline } from './StylePanelButtonPicker'
 import { useStylePanelContext } from './StylePanelContext'
 import { StylePanelDoubleDropdownPicker } from './StylePanelDoubleDropdownPicker'
-import { StylePanelDropdownPicker } from './StylePanelDropdownPicker'
+import {
+	StylePanelDropdownPicker,
+	StylePanelDropdownPickerInline,
+} from './StylePanelDropdownPicker'
 import { StylePanelSubheading } from './StylePanelSubheading'
 
 /** @public @react */
@@ -225,50 +228,23 @@ export function StylePanelFontPicker() {
 
 /** @public @react */
 export function StylePanelTextAlignPicker() {
-	const { styles } = useStylePanelContext()
+	const { styles, enhancedA11yMode } = useStylePanelContext()
 	const msg = useTranslation()
 	const textAlign = styles.get(DefaultTextAlignStyle)
 	if (textAlign === undefined) return null
+	const title = msg('style-panel.align')
 
 	return (
-		<TldrawUiToolbar orientation="horizontal" label={msg('style-panel.align')}>
-			<StylePanelButtonPicker
-				title={msg('style-panel.align')}
-				uiType="align"
-				style={DefaultTextAlignStyle}
-				items={STYLES.textAlign}
-				value={textAlign}
-			/>
-			<TldrawUiToolbarButton
-				type="icon"
-				title={msg('style-panel.vertical-align')}
-				data-testid="vertical-align"
-				disabled
-			>
-				<TldrawUiButtonIcon icon="vertical-align-middle" />
-			</TldrawUiToolbarButton>
-		</TldrawUiToolbar>
-	)
-}
-
-/** @public @react */
-export function StylePanelLabelAlignPicker() {
-	const { styles } = useStylePanelContext()
-	const msg = useTranslation()
-	const labelAlign = styles.get(DefaultHorizontalAlignStyle)
-	const verticalLabelAlign = styles.get(DefaultVerticalAlignStyle)
-	if (labelAlign === undefined) return null
-
-	return (
-		<TldrawUiToolbar orientation="horizontal" label={msg('style-panel.label-align')}>
-			<StylePanelButtonPicker
-				title={msg('style-panel.label-align')}
-				uiType="align"
-				style={DefaultHorizontalAlignStyle}
-				items={STYLES.horizontalAlign}
-				value={labelAlign}
-			/>
-			{verticalLabelAlign === undefined ? (
+		<>
+			{enhancedA11yMode && <StylePanelSubheading>{title}</StylePanelSubheading>}
+			<TldrawUiToolbar orientation="horizontal" label={title}>
+				<StylePanelButtonPickerInline
+					title={title}
+					uiType="align"
+					style={DefaultTextAlignStyle}
+					items={STYLES.textAlign}
+					value={textAlign}
+				/>
 				<TldrawUiToolbarButton
 					type="icon"
 					title={msg('style-panel.vertical-align')}
@@ -277,18 +253,53 @@ export function StylePanelLabelAlignPicker() {
 				>
 					<TldrawUiButtonIcon icon="vertical-align-middle" />
 				</TldrawUiToolbarButton>
-			) : (
-				<StylePanelDropdownPicker
-					type="icon"
-					id="geo-vertical-alignment"
-					uiType="verticalAlign"
-					stylePanelType="vertical-align"
-					style={DefaultVerticalAlignStyle}
-					items={STYLES.verticalAlign}
-					value={verticalLabelAlign}
+			</TldrawUiToolbar>
+		</>
+	)
+}
+
+/** @public @react */
+export function StylePanelLabelAlignPicker() {
+	const { styles, enhancedA11yMode } = useStylePanelContext()
+	const msg = useTranslation()
+	const labelAlign = styles.get(DefaultHorizontalAlignStyle)
+	const verticalLabelAlign = styles.get(DefaultVerticalAlignStyle)
+	if (labelAlign === undefined) return null
+	const title = msg('style-panel.label-align')
+
+	return (
+		<>
+			{enhancedA11yMode && <StylePanelSubheading>{title}</StylePanelSubheading>}
+			<TldrawUiToolbar orientation="horizontal" label={title}>
+				<StylePanelButtonPickerInline
+					title={title}
+					uiType="align"
+					style={DefaultHorizontalAlignStyle}
+					items={STYLES.horizontalAlign}
+					value={labelAlign}
 				/>
-			)}
-		</TldrawUiToolbar>
+				{verticalLabelAlign === undefined ? (
+					<TldrawUiToolbarButton
+						type="icon"
+						title={msg('style-panel.vertical-align')}
+						data-testid="vertical-align"
+						disabled
+					>
+						<TldrawUiButtonIcon icon="vertical-align-middle" />
+					</TldrawUiToolbarButton>
+				) : (
+					<StylePanelDropdownPickerInline
+						type="icon"
+						id="geo-vertical-alignment"
+						uiType="verticalAlign"
+						stylePanelType="vertical-align"
+						style={DefaultVerticalAlignStyle}
+						items={STYLES.verticalAlign}
+						value={verticalLabelAlign}
+					/>
+				)}
+			</TldrawUiToolbar>
+		</>
 	)
 }
 
