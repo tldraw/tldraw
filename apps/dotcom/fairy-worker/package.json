@@ -16,11 +16,11 @@
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
-		"@clerk/backend": "^1.1.11",
+		"@clerk/backend": "^1.23.7",
 		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/validate": "workspace:*",
 		"@tldraw/worker-shared": "workspace:*",
-		"esbuild": "^0.25.10",
+		"esbuild": "^0.25.6",
 		"itty-router": "^5.0.18"
 	},
 	"devDependencies": {
