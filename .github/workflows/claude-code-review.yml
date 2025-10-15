@@ -40,7 +40,20 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh pr view ${{ github.event.pull_request.number }} --json comments --jq '.comments[] | select(.body | contains("🤖 Claude Code Review")) | .url | sub(".*issuecomment-"; "")' | xargs -I {} gh api --method DELETE "repos/${{ github.repository }}/issues/comments/{}" 2>/dev/null || true
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          REPO=${{ github.repository }}
+          
+          # Delete issue comments (conversation comments)
+          gh api --paginate "repos/$REPO/issues/$PR_NUMBER/comments" --jq '.[] | select(.body | contains("🤖 Claude Code Review")) | .id' | \
+            xargs -I {} gh api --method DELETE "repos/$REPO/issues/comments/{}" 2>/dev/null || true
+          
+          # Delete review comments (inline code comments)
+          gh api --paginate "repos/$REPO/pulls/$PR_NUMBER/comments" --jq '.[] | select(.body | contains("🤖 Claude Code Review")) | .id' | \
+            xargs -I {} gh api --method DELETE "repos/$REPO/pulls/comments/{}" 2>/dev/null || true
+          
+          # Delete reviews (review summaries)
+          gh api --paginate "repos/$REPO/pulls/$PR_NUMBER/reviews" --jq '.[] | select(.body | contains("🤖 Claude Code Review")) | .id' | \
+            xargs -I {} gh api --method DELETE "repos/$REPO/pulls/$PR_NUMBER/reviews/{}" 2>/dev/null || true
 
       - name: Run Claude Code Review
         id: claude-review
