@@ -100,11 +100,12 @@
 	align-items: center;
 	justify-content: space-between;
 	cursor: pointer;
-	padding: 0 var(--tl-space-4);
+	padding-right: var(--tl-space-4);
 }
 
 .shader-config-panel__boolean-input {
 	accent-color: var(--color-accent);
+	cursor: pointer;
 }
 
 .shader-config-panel__label {
