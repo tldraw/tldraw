@@ -176,33 +176,25 @@
 /* Fairy Input */
 
 .fairy-input {
-	/* background-color: var(--tl-color-muted-1); */
-	/* border-radius: 4px; */
-	/* padding: 8px; */
 	pointer-events: auto;
 	position: relative;
 	display: flex;
 	align-items: center;
 	gap: 12px;
 	padding-right: 8px;
+	height: 41px;
 	border-top: 1px solid var(--tl-color-divider);
-	/* flex: 1; */
 }
 
-/* .fairy-input__form {
+.fairy-input__form {
 	pointer-events: auto;
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	flex: 1;
-} */
+}
 
 .fairy-input__field {
-	flex: 1;
-	/* padding: 15px;
-	margin: -15px; */
-	margin-left: 6px;
-	padding: 0px;
+	padding: 12px;
 	pointer-events: auto;
 	border: none;
 	background: transparent;
@@ -210,7 +202,6 @@
 	font-size: 12px;
 	font-family: inherit;
 	outline: none;
-	/* min-width: 150px; */
 }
 
 .fairy-input__field::placeholder {
