@@ -5,4 +5,6 @@ export interface Environment {
 	GOOGLE_API_KEY: string
 	SENTRY_DSN: string | undefined
 	IS_LOCAL: string | undefined
+	CLERK_SECRET_KEY: string
+	CLERK_PUBLISHABLE_KEY: string
 }

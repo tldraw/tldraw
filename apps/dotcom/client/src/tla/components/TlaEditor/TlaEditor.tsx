@@ -10,8 +10,8 @@ import {
 	TLUiDialogsContextType,
 	Tldraw,
 	TldrawUiMenuItem,
+	createDebugValue,
 	createSessionStateSnapshotSignal,
-	featureFlags,
 	parseDeepLinkString,
 	react,
 	throttle,
@@ -55,6 +55,12 @@ import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
+const customFeatureFlags = {
+	fairies: createDebugValue('fairies', {
+		defaults: { all: false },
+	}),
+}
+
 /** @internal */
 export const components: TLComponents = {
 	ErrorFallback: TlaEditorErrorFallback,
@@ -83,7 +89,7 @@ export const components: TLComponents = {
 						}}
 					/>
 				)}
-				<DefaultDebugMenuContent />
+				<DefaultDebugMenuContent customFeatureFlags={customFeatureFlags} />
 			</DefaultDebugMenu>
 		)
 	},
@@ -265,7 +271,9 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const overrides = useFileEditorOverrides({ fileSlug })
 	const extraDragIconOverrides = useExtraDragIconOverrides()
 
-	const showFairies = useValue('show_fairies', () => featureFlags.fairies.get(), [featureFlags])
+	const showFairies = useValue('show_fairies', () => customFeatureFlags.fairies.get(), [
+		customFeatureFlags,
+	])
 
 	// Fairy stuff
 
@@ -274,13 +282,18 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	// this is ugly
 	const originalInFrontOfTheCanvasRef = useRef(components.InFrontOfTheCanvas)
 	const OriginalInFrontOfTheCanvas = originalInFrontOfTheCanvasRef.current
+	const canShowFairies = agents.length > 0 && showFairies && user?.isTldraw
 
 	components.InFrontOfTheCanvas = (props) => (
 		<>
 			{OriginalInFrontOfTheCanvas ? <OriginalInFrontOfTheCanvas {...props} /> : null}
-			{agents.length > 0 && showFairies && <FairyVision agents={agents} />}
-			{agents.length > 0 && showFairies && <FairyWrapper agents={agents} />}
-			{agents.length > 0 && showFairies && <FairyHUD agents={agents} />}
+			{canShowFairies && (
+				<>
+					<FairyVision agents={agents} />
+					<FairyWrapper agents={agents} />
+					<FairyHUD agents={agents} />
+				</>
+			)}
 		</>
 	)
 

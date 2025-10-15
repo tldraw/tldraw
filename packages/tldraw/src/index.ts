@@ -241,6 +241,7 @@ export {
 	DefaultDebugMenuContent,
 	ExampleDialog,
 	FeatureFlags,
+	type CustomDebugFlags,
 	type ExampleDialogProps,
 } from './lib/ui/components/DebugMenu/DefaultDebugMenuContent'
 export { DefaultMenuPanel } from './lib/ui/components/DefaultMenuPanel'

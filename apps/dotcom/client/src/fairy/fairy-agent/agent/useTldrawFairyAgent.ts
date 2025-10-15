@@ -24,7 +24,8 @@ import { $fairyAgentsAtom } from './fairyAgentsAtom'
  */
 export function useTldrawFairyAgent(
 	editor: Editor,
-	id: string = 'tldraw-fairy-agent'
+	id: string = 'tldraw-fairy-agent',
+	getToken?: () => Promise<string | undefined>
 ): TldrawFairyAgent {
 	const toasts = useToasts()
 
@@ -49,8 +50,8 @@ export function useTldrawFairyAgent(
 		}
 
 		// Create a new agent
-		return new TldrawFairyAgent({ editor, id, onError: handleError })
-	}, [editor, handleError, id])
+		return new TldrawFairyAgent({ editor, id, onError: handleError, getToken })
+	}, [editor, handleError, id, getToken])
 
 	return agent
 }

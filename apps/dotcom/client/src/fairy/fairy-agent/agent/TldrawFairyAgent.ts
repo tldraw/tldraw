@@ -73,6 +73,9 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 	/** A callback for when an error occurs. */
 	onError: (e: any) => void
 
+	/** A function to get the authentication token. */
+	getToken?: () => Promise<string | undefined>
+
 	/**
 	 * An atom containing the currently active request.
 	 * This is mainly used to render highlights and other UI elements.
@@ -130,9 +133,10 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 	/**
 	 * Create a new tldraw agent.
 	 */
-	constructor({ editor, id, onError }: TldrawFairyAgentOptions) {
+	constructor({ editor, id, onError, getToken }: TldrawFairyAgentOptions) {
 		this.editor = editor
 		this.id = id
+		this.getToken = getToken
 
 		const availableActions = DEFAULT_FAIRY_ACTIONS
 		const availableParts = DEFAULT_FAIRY_PROMPT_PARTS
@@ -616,6 +620,18 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 		prompt: BaseAgentPrompt
 		signal: AbortSignal
 	}): AsyncGenerator<Streaming<AgentAction>> {
+		const headers: HeadersInit = {
+			'Content-Type': 'application/json',
+		}
+
+		// Add authentication token if available
+		if (this.getToken) {
+			const token = await this.getToken()
+			if (token) {
+				headers['Authorization'] = `Bearer ${token}`
+			}
+		}
+
 		const res = await fetch(`${FAIRY_WORKER}/stream`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -623,9 +639,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 				actions: this.$fairy.get().actions,
 				parts: this.$fairy.get().parts,
 			}),
-			headers: {
-				'Content-Type': 'application/json',
-			},
+			headers,
 			signal,
 		})
 

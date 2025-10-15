@@ -2,7 +2,8 @@
 /// <reference types="@cloudflare/workers-types" />
 import { createRouter, handleApiRequest, notFound } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
-import { cors } from 'itty-router'
+import { IRequest, cors } from 'itty-router'
+import { getAuth, requireAdminAccess } from './auth'
 import { Environment } from './environment'
 import { stream } from './routes/stream'
 
@@ -14,6 +15,7 @@ export default class extends WorkerEntrypoint<Environment> {
 	readonly router = createRouter<Environment>()
 		.all('*', preflight)
 		.all('*', blockUnknownOrigins)
+		.all('*', requireTldrawEmail)
 		.post('/stream', stream)
 		.all('*', notFound)
 
@@ -57,6 +59,27 @@ async function blockUnknownOrigins(request: Request, env: Environment) {
 
 	// origin doesn't match, so we can continue
 	return undefined
+}
+
+async function requireTldrawEmail(request: IRequest, env: Environment) {
+	// Skip authentication check for OPTIONS requests (CORS preflight)
+	if (request.method === 'OPTIONS') {
+		return undefined
+	}
+
+	try {
+		const auth = await getAuth(request, env)
+		if (!auth || 'userId' in auth === false || auth.userId === null) {
+			throw new Error('Unauthorized')
+		}
+		await requireAdminAccess(env, auth)
+		return undefined
+	} catch (error: any) {
+		console.error('Authentication failed:', error.message)
+		return new Response(error.message || 'Unauthorized', {
+			status: error.status || 403,
+		})
+	}
 }
 
 // Make the durable object available to the cloudflare worker

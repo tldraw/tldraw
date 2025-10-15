@@ -1895,6 +1895,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@clerk/backend@npm:^1.1.11":
+  version: 1.34.0
+  resolution: "@clerk/backend@npm:1.34.0"
+  dependencies:
+    "@clerk/shared": "npm:^3.9.5"
+    "@clerk/types": "npm:^4.59.3"
+    cookie: "npm:1.0.2"
+    snakecase-keys: "npm:8.0.1"
+    tslib: "npm:2.8.1"
+  peerDependencies:
+    svix: ^1.62.0
+  peerDependenciesMeta:
+    svix:
+      optional: true
+  checksum: 10/da0cdc592de2611396eaaa55fe452b0d7335636c0f4d2d22570e9f691d852b80834dc58ddc4f3b02de0855336c0baed4b8df0b9783b83ef5d75927fc011db1b2
+  languageName: node
+  linkType: hard
+
 "@clerk/backend@npm:^1.23.7":
   version: 1.23.7
   resolution: "@clerk/backend@npm:1.23.7"
@@ -1944,6 +1962,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@clerk/shared@npm:^3.9.5":
+  version: 3.27.4
+  resolution: "@clerk/shared@npm:3.27.4"
+  dependencies:
+    "@clerk/types": "npm:^4.93.0"
+    dequal: "npm:2.0.3"
+    glob-to-regexp: "npm:0.4.1"
+    js-cookie: "npm:3.0.5"
+    std-env: "npm:^3.9.0"
+    swr: "npm:2.3.4"
+  peerDependencies:
+    react: ^18.0.0 || ^19.0.0 || ^19.0.0-0
+    react-dom: ^18.0.0 || ^19.0.0 || ^19.0.0-0
+  peerDependenciesMeta:
+    react:
+      optional: true
+    react-dom:
+      optional: true
+  checksum: 10/15124f66b0249317385a61ecf4da78546f7f4c805825eac8322b090e4fb8bc55f718a2fe49b6d1343bb5a7d5f2128466fbf6ecf290157bdb05ff44a0da7c71f5
+  languageName: node
+  linkType: hard
+
 "@clerk/testing@npm:^1.4.15":
   version: 1.4.15
   resolution: "@clerk/testing@npm:1.4.15"
@@ -1970,6 +2010,15 @@ __metadata:
   dependencies:
     csstype: "npm:3.1.1"
   checksum: 10/db18b80b43d3713daccfda09644d09164b19f672616efd12e795884f878ff41444b141d12dd307ae1d85f489933b4ef4bafac1b317a855571ba5ec53cc09a3e3
+  languageName: node
+  linkType: hard
+
+"@clerk/types@npm:^4.59.3, @clerk/types@npm:^4.93.0":
+  version: 4.93.0
+  resolution: "@clerk/types@npm:4.93.0"
+  dependencies:
+    csstype: "npm:3.1.3"
+  checksum: 10/930d07b6538b9abe0f12f6aeecf6f16eca7d646e39ba6f71cab57bf99be5712e1e5162b5283e1eb2a73dc9e017f70c002fc5bd8d4a316af6b3068efa170090e8
   languageName: node
   linkType: hard
 
@@ -13831,7 +13880,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"csstype@npm:^3.0.2, csstype@npm:^3.1.3":
+"csstype@npm:3.1.3, csstype@npm:^3.0.2, csstype@npm:^3.1.3":
   version: 3.1.3
   resolution: "csstype@npm:3.1.3"
   checksum: 10/f593cce41ff5ade23f44e77521e3a1bcc2c64107041e1bf6c3c32adc5187d0d60983292fda326154d20b01079e24931aa5b08e4467cc488b60bb1e7f6d478ade
@@ -14342,6 +14391,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dotcom-fairy-worker@workspace:apps/dotcom/fairy-worker"
   dependencies:
+    "@clerk/backend": "npm:^1.1.11"
     "@cloudflare/workers-types": "npm:^4.20250913.0"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/validate": "workspace:*"
@@ -26682,6 +26732,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"swr@npm:2.3.4":
+  version: 2.3.4
+  resolution: "swr@npm:2.3.4"
+  dependencies:
+    dequal: "npm:^2.0.3"
+    use-sync-external-store: "npm:^1.4.0"
+  peerDependencies:
+    react: ^16.11.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10/a0898f2d8471c03d7e983e0362f88d08ed4d8579ee45e26a4c9bc9e71b342abd821d7b2f2247f96c41534bd7e56ced4d15150c1b21e38a256548e831aa3cdfa6
+  languageName: node
+  linkType: hard
+
 "swr@npm:^2.2.0, swr@npm:^2.2.5":
   version: 2.3.6
   resolution: "swr@npm:2.3.6"
@@ -27634,7 +27696,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:2, tslib@npm:^2.0.0, tslib@npm:^2.0.1, tslib@npm:^2.0.3, tslib@npm:^2.1.0, tslib@npm:^2.3.0, tslib@npm:^2.3.1, tslib@npm:^2.4.0, tslib@npm:^2.5.0, tslib@npm:^2.6.2, tslib@npm:^2.7.0, tslib@npm:^2.8.0, tslib@npm:^2.8.1":
+"tslib@npm:2, tslib@npm:2.8.1, tslib@npm:^2.0.0, tslib@npm:^2.0.1, tslib@npm:^2.0.3, tslib@npm:^2.1.0, tslib@npm:^2.3.0, tslib@npm:^2.3.1, tslib@npm:^2.4.0, tslib@npm:^2.5.0, tslib@npm:^2.6.2, tslib@npm:^2.7.0, tslib@npm:^2.8.0, tslib@npm:^2.8.1":
   version: 2.8.1
   resolution: "tslib@npm:2.8.1"
   checksum: 10/3e2e043d5c2316461cb54e5c7fe02c30ef6dccb3384717ca22ae5c6b5bc95232a6241df19c622d9c73b809bea33b187f6dbc73030963e29950c2141bc32a79f7

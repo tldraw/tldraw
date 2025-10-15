@@ -8,6 +8,16 @@ port = 8789
 [observability]
 enabled = true
 
+# Environment variables (set via wrangler secret or .dev.vars)
+# Required secrets:
+# - CLERK_SECRET_KEY: Clerk secret key for authentication
+# - CLERK_PUBLISHABLE_KEY: Clerk publishable key
+# - OPENAI_API_KEY: OpenAI API key
+# - ANTHROPIC_API_KEY: Anthropic API key
+# - GOOGLE_API_KEY: Google API key
+# - SENTRY_DSN (optional): Sentry DSN for error tracking
+# - IS_LOCAL (optional): Set to "true" for local development
+
 [env.dev]
 name = "fairydraw-dev"
 

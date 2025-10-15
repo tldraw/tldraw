@@ -288,6 +288,8 @@ async function deployFairyWorker({ dryRun }: { dryRun: boolean }) {
 			ANTHROPIC_API_KEY: env.ANTHROPIC_API_KEY,
 			GOOGLE_API_KEY: env.GOOGLE_API_KEY,
 			OPENAI_API_KEY: env.OPENAI_API_KEY,
+			CLERK_SECRET_KEY: env.CLERK_SECRET_KEY,
+			CLERK_PUBLISHABLE_KEY: env.VITE_CLERK_PUBLISHABLE_KEY,
 		},
 		sentry: {
 			project: 'fairy-worker',
