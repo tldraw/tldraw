@@ -652,7 +652,7 @@
 	right: 4px;
 	bottom: -4px;
 	border-radius: 2px;
-	border: 1px solid var(--tla-color-text-2);
+	border: 1px dashed var(--tla-color-text-2);
 	z-index: -2;
 	pointer-events: none;
 }
