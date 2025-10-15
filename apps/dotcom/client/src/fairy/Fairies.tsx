@@ -1,8 +1,8 @@
 import { TldrawFairyAgent } from '@tldraw/fairy-shared'
 import { useMemo } from 'react'
-import FairyInner from './FairyInner'
+import Fairy from './Fairy'
 
-export function FairyWrapper({ agents }: { agents: TldrawFairyAgent[] }) {
+export function Fairies({ agents }: { agents: TldrawFairyAgent[] }) {
 	const activeAgents = useMemo(
 		() => agents.filter((agent) => agent.$fairy.get() !== undefined),
 		[agents]
@@ -11,7 +11,7 @@ export function FairyWrapper({ agents }: { agents: TldrawFairyAgent[] }) {
 	return (
 		<>
 			{activeAgents.map((agent, i) => (
-				<FairyInner key={i} agent={agent} />
+				<Fairy key={i} agent={agent} />
 			))}
 		</>
 	)

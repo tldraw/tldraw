@@ -9,7 +9,7 @@ const FAIRY_CLICKABLE_SIZE_SELECTED = 200
 
 // We use the agent directly here because we need to access the isGenerating method
 // which is not exposed on the fairy atom
-export default function FairyInner({ agent }: { agent: TldrawFairyAgent }) {
+export default function Fairy({ agent }: { agent: TldrawFairyAgent }) {
 	const editor = useEditor()
 	const containerRef = useRef<HTMLDivElement>(null)
 	const fairyRef = useRef<HTMLDivElement>(null)

@@ -51,8 +51,8 @@ import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
 // Lazy load fairy components
-const FairyAppInner = lazy(() =>
-	import('../../../fairy/FairyAppInner').then((m) => ({ default: m.FairyAppInner }))
+const FairyApp = lazy(() =>
+	import('../../../fairy/FairyApp').then((m) => ({ default: m.FairyApp }))
 )
 const FairyHUD = lazy(() =>
 	import('../../../fairy/FairyHUD').then((m) => ({ default: m.FairyHUD }))
@@ -60,9 +60,7 @@ const FairyHUD = lazy(() =>
 const FairyVision = lazy(() =>
 	import('../../../fairy/FairyVision').then((m) => ({ default: m.FairyVision }))
 )
-const FairyWrapper = lazy(() =>
-	import('../../../fairy/FairyWrapper').then((m) => ({ default: m.FairyWrapper }))
-)
+const Fairies = lazy(() => import('../../../fairy/Fairies').then((m) => ({ default: m.Fairies })))
 
 const customFeatureFlags = {
 	fairies: createDebugValue('fairies', {
@@ -276,7 +274,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			{canShowFairies && (
 				<Suspense fallback={<div />}>
 					<FairyVision agents={agents} />
-					<FairyWrapper agents={agents} />
+					<Fairies agents={agents} />
 					<FairyHUD agents={agents} />
 				</Suspense>
 			)}
@@ -308,7 +306,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<SneakyLargeFileHander />
 				{showFairies && (
 					<Suspense fallback={null}>
-						<FairyAppInner setAgents={setAgents} />
+						<FairyApp setAgents={setAgents} />
 					</Suspense>
 				)}
 			</Tldraw>
