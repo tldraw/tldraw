@@ -6,7 +6,7 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
-import '../styles/fairy.css'
+import '../tla/styles/fairy.css'
 import { defineMessages, useMsg } from '../tla/utils/i18n'
 import { TldrawFairyAgent } from './fairy-agent/agent/TldrawFairyAgent'
 import { FairyChatHistory } from './fairy-agent/chat/FairyChatHistory'
