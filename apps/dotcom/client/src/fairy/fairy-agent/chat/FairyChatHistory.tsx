@@ -45,9 +45,7 @@ export function FairyChatHistory({ agent }: { agent: TldrawFairyAgent }) {
 	return (
 		<div className="fairy-chat-history" ref={historyRef} onScroll={handleScroll}>
 			{sections.length === 0 ? (
-				<div className="fairy-chat-empty">
-					<div className="fairy-chat-empty-text">Your fairy experience awaits</div>
-				</div>
+				<div className="fairy-chat-empty"></div>
 			) : (
 				sections.map((section: FairyChatHistorySection, i: number) => {
 					return <FairyChatHistorySection key={'history-section-' + i} section={section} />

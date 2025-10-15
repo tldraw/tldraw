@@ -5,7 +5,7 @@ import { TldrawFairyAgent } from './fairy-agent/agent/TldrawFairyAgent'
 import { useTldrawFairyAgent } from './fairy-agent/agent/useTldrawFairyAgent'
 
 export function FairyAppInner({ setAgents }: { setAgents(agents: TldrawFairyAgent[]): void }) {
-	const FAIRY_ID = 'theOnlyFairy'
+	const FAIRY_ID = 'Huppy'
 	const editor = useEditor()
 	const user = useTldrawUser()
 

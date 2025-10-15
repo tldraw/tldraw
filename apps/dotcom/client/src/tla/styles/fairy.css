@@ -409,7 +409,6 @@
 	border-radius: var(--tl-radius-2);
 	box-shadow: var(--tl-shadow-1);
 	overflow: hidden;
-	height: 224px;
 }
 
 .tla-fairy-hud:has(.fairy-chat-panel) .fairy-buttons-container {

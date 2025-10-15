@@ -89,10 +89,8 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 	)
 
 	const handleNewChat = useCallback(() => {
-		if (onlyFairy) {
-			onlyFairy.cancel()
-			onlyFairy.reset()
-		}
+		onlyFairy.cancel()
+		onlyFairy.reset()
 	}, [onlyFairy])
 
 	const toggleChatExpanded = useCallback(
@@ -142,9 +140,8 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 						className="fairy-toolbar-button"
 						id="fairy-toolbar-minimize-button"
 						onClick={toggleChatExpanded}
-						title={isChatExpanded ? 'Minimize chat' : 'Maximize chat'}
 					>
-						{isChatExpanded ? '←' : '→'}
+						{isChatExpanded ? '››' : '‹‹'}
 					</button>
 				</div>
 				<TldrawUiToolbar
@@ -156,8 +153,7 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 						flexDirection: 'column',
 						gap: '4px',
 						padding: '4px',
-						height: '192px',
-						maxHeight: '192px',
+						// maxHeight: '192px',
 						overflowY: 'auto',
 						border: 'none',
 					}}
@@ -173,9 +169,6 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 							/>
 						)
 					})}
-					<button className="fairy-new-button" disabled title="Add new fairy">
-						+
-					</button>
 				</TldrawUiToolbar>
 			</div>
 		</div>
