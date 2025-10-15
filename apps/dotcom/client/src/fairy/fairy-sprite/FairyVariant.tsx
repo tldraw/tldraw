@@ -1,4 +1,4 @@
-import { FairyPose } from '@tldraw/dotcom-shared'
+import { FairyPose } from '@tldraw/fairy-shared'
 import { FairyPartDefinition, FairyPartType } from './FairyPart'
 
 const FAIRY_HAT_VARIANTS = {

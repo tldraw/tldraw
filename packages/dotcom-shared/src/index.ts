@@ -1,6 +1,5 @@
 /* eslint-disable local/no-export-star */
 export * from './constants'
-export * from './fairy-shared'
 export { default as getLicenseKey } from './license'
 export * from './mutators'
 export * from './OptimisticAppStore'

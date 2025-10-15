@@ -4,7 +4,7 @@
 	"exclude": ["node_modules", "dist", ".tsbuild*"],
 	"compilerOptions": { "noEmit": true, "emitDeclarationOnly": false },
 	"references": [
-		{ "path": "../../../packages/dotcom-shared" },
+		{ "path": "../../../packages/fairy-shared" },
 		{ "path": "../../../packages/worker-shared" }
 	]
 }

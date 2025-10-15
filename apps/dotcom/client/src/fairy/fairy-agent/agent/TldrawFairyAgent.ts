@@ -28,7 +28,7 @@ import {
 	Streaming,
 	TldrawFairyAgentOptions,
 	TodoItem,
-} from '@tldraw/dotcom-shared'
+} from '@tldraw/fairy-shared'
 import {
 	Atom,
 	atom,

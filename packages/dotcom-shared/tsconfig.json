@@ -1,10 +1,9 @@
 {
 	"extends": "../../internal/config/tsconfig.base.json",
-	"include": ["src", "src/fairy-shared"],
+	"include": ["src"],
 	"exclude": ["node_modules", ".tsbuild*"],
 	"compilerOptions": { "outDir": "./.tsbuild", "rootDir": "src" },
 	"references": [
-		{ "path": "../editor" },
 		{ "path": "../state" },
 		{ "path": "../store" },
 		{ "path": "../tldraw" },

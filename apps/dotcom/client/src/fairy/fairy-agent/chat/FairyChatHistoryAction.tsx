@@ -1,4 +1,4 @@
-import { ChatHistoryActionItem } from '@tldraw/dotcom-shared'
+import { ChatHistoryActionItem } from '@tldraw/fairy-shared'
 
 export function FairyChatHistoryAction({ item }: { item: ChatHistoryActionItem }) {
 	const { action } = item

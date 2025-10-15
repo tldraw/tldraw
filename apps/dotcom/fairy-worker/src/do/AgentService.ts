@@ -18,7 +18,7 @@ import {
 	getModelName,
 	PromptPartUtilConstructor,
 	Streaming,
-} from '@tldraw/dotcom-shared'
+} from '@tldraw/fairy-shared'
 import { Environment } from '../environment'
 import { closeAndParseJson } from './closeAndParseJson'
 

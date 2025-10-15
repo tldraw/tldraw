@@ -1,4 +1,4 @@
-import { FairyEntity, TldrawFairyAgent } from '@tldraw/dotcom-shared'
+import { FairyEntity, TldrawFairyAgent } from '@tldraw/fairy-shared'
 import { useMemo } from 'react'
 import { Atom } from 'tldraw'
 import FairyInner from './FairyInner'

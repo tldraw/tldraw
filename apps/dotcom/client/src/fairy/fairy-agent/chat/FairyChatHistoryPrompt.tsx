@@ -1,4 +1,4 @@
-import { ChatHistoryPromptItem } from '@tldraw/dotcom-shared'
+import { ChatHistoryPromptItem } from '@tldraw/fairy-shared'
 
 export function FairyChatHistoryPrompt({ item }: { item: ChatHistoryPromptItem }) {
 	const { message } = item

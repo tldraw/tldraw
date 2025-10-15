@@ -8935,18 +8935,14 @@ __metadata:
   resolution: "@tldraw/dotcom-shared@workspace:packages/dotcom-shared"
   dependencies:
     "@rocicorp/zero": "npm:0.19.2025050203"
-    "@tldraw/editor": "workspace:*"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/react": "npm:^18.3.18"
-    ai: "npm:^5.0.63"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
-    tldraw: "workspace:*"
-    zod: "npm:^4.1.8"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
     react-dom: ^18.2.0 || ^19.0.0
@@ -9020,6 +9016,23 @@ __metadata:
     react-dom: "npm:^18.3.1"
     resize-observer-polyfill: "npm:^1.5.1"
     vitest: "npm:^3.2.4"
+  peerDependencies:
+    react: ^18.2.0 || ^19.0.0
+    react-dom: ^18.2.0 || ^19.0.0
+  languageName: unknown
+  linkType: soft
+
+"@tldraw/fairy-shared@workspace:*, @tldraw/fairy-shared@workspace:packages/fairy-shared":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/fairy-shared@workspace:packages/fairy-shared"
+  dependencies:
+    "@tldraw/editor": "workspace:*"
+    "@types/react": "npm:^18.3.18"
+    ai: "npm:^5.0.63"
+    react: "npm:^18.3.1"
+    react-dom: "npm:^18.3.1"
+    tldraw: "workspace:*"
+    zod: "npm:^4.1.8"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
     react-dom: ^18.2.0 || ^19.0.0
@@ -14133,10 +14146,14 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dotcom-fairy-worker@workspace:apps/dotcom/fairy-worker"
   dependencies:
+    "@ai-sdk/anthropic": "npm:^2.0.2"
+    "@ai-sdk/google": "npm:^2.0.14"
+    "@ai-sdk/openai": "npm:^2.0.24"
     "@clerk/backend": "npm:^1.23.7"
     "@cloudflare/workers-types": "npm:^4.20250913.0"
-    "@tldraw/dotcom-shared": "workspace:*"
+    "@tldraw/fairy-shared": "workspace:*"
     "@tldraw/worker-shared": "workspace:*"
+    ai: "npm:^5.0.63"
     esbuild: "npm:^0.25.6"
     itty-router: "npm:^5.0.18"
     lazyrepo: "npm:0.0.0-alpha.27"
@@ -14159,6 +14176,7 @@ __metadata:
     "@swc/plugin-formatjs": "npm:^5.1.1"
     "@tldraw/assets": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"
+    "@tldraw/fairy-shared": "workspace:*"
     "@tldraw/sync": "workspace:*"
     "@tldraw/sync-core": "workspace:*"
     "@tldraw/utils": "workspace:*"
