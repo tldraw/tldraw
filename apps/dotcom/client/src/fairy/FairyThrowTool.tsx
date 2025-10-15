@@ -1,4 +1,4 @@
-import { FairyEntity } from '@tldraw/dotcom-shared'
+import { FairyEntity } from '@tldraw/fairy-shared'
 import { Atom, StateNode, TLKeyboardEventInfo } from 'tldraw'
 
 export class FairyThrowTool extends StateNode {
