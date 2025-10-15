@@ -842,6 +842,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * after the editor has already been initialized.
 	 *
 	 * @param Tool - The tool to set.
+	 *
+	 * @public
 	 */
 	setTool(Tool: TLStateNodeConstructor) {
 		if (hasOwnProperty(this.root.children!, Tool.id)) {

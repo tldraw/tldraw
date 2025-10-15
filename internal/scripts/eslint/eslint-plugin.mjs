@@ -503,12 +503,11 @@ const rules = {
             return {
                 ImportDeclaration(node) {
                     const importPath = node.source.value;
-                    
                     // Check if the import path contains '/fairy/' or ends with '/fairy'
                     // This catches patterns like:
                     // - '../../../fairy/FairyThrowTool'
                     // - '../../fairy/fairy-agent/agent/TldrawFairyAgent'
-                    if (typeof importPath === 'string' && 
+                    if (typeof importPath === 'string' &&
                         (importPath.includes('/fairy/') || importPath.endsWith('/fairy'))) {
                         context.report({
                             messageId: 'noFairyImports',
