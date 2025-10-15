@@ -1,4 +1,9 @@
-.shader-example-toggle {
+.shader-app {
+	position: fixed;
+	inset: 0;
+}
+
+.shader-app__example-menu {
 	z-index: 1000;
 	margin: 4px;
 	overflow: hidden;
@@ -6,7 +11,7 @@
 	background-color: var(--tl-color-background);
 }
 
-.shader-canvas {
+.shader-app__canvas {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -17,18 +22,13 @@
 }
 
 /* Pixelated rendering - nearest-neighbor instead of smooth interpolation */
-.shader-canvas-pixelated {
+.shader-app__canvas--pixelated {
 	image-rendering: pixelated;
 	image-rendering: -moz-crisp-edges;
 	image-rendering: crisp-edges;
 }
 
-.shader-app {
-	position: fixed;
-	inset: 0;
-}
-
-.shader-app .shader-config-panel {
+.shader-config-panel {
 	width: fit-content;
 	max-width: none;
 	z-index: 1000;
@@ -37,46 +37,40 @@
 	color: var(--color-text);
 }
 
-.shader-app .shader-config-panel--expanded {
+.shader-config-panel--expanded {
 	height: fit-content;
 	min-width: 220px;
-	max-height: 600px;
+	max-height: calc(min(500px, 80vh));
 	overflow-y: auto;
+	padding-bottom: var(--tl-space-3);
 }
 
-.shader-app .shader-config-panel--collapsed {
+.shader-config-panel--collapsed {
 	height: min-content;
 	overflow-y: visible;
 }
 
-.shader-app .shader-config-header {
+.shader-config-panel__header {
 	display: flex;
 	align-items: center;
-	z-index: 200;
 	justify-content: space-between;
 	gap: var(--tl-space-3);
+	z-index: 200;
 	color: var(--color-text);
 	border-bottom: 1px solid var(--color-muted-2);
 	cursor: pointer;
 }
 
-.shader-app .shader-config-chevron {
+.shader-config-panel__toggle {
 	padding: var(--tl-space-4);
 }
 
-.shader-app .shader-config-content {
+.shader-config-panel__content {
 	height: fit-content;
 	padding: 0;
 }
 
-.shader-app .shader-reset-container {
-	margin-bottom: 16px;
-	padding-left: var(--tl-space-4);
-	padding-right: var(--tl-space-4);
-}
-
-.shader-app .shader-reset-button {
-	width: 100%;
+.shader-config-panel__reset-button {
 	height: 32px;
 	background-color: var(--color-accent);
 	color: white;
@@ -87,31 +81,34 @@
 	font-weight: bold;
 }
 
-.shader-app .shader-reset-button:hover {
+.shader-config-panel__reset-button:hover {
 	opacity: 0.8;
 }
 
-.shader-app .shader-slider-container {
+.shader-config-panel__control {
+	height: 44px;
+}
+
+.shader-config-panel__control--slider {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 }
 
-.shader-app .shader-boolean-control {
-	align-items: center;
-	cursor: pointer;
+.shader-config-panel__control--boolean {
 	display: flex;
 	flex-direction: row;
+	align-items: center;
 	justify-content: space-between;
+	cursor: pointer;
 	padding: 0 var(--tl-space-4);
-	height: 40px;
 }
 
-.shader-app .shader-boolean-input {
+.shader-config-panel__boolean-input {
 	accent-color: var(--color-accent);
 }
 
-.shader-app .shader-panel-label {
-	height: 20px;
+.shader-config-panel__label {
 	padding: var(--tl-space-4);
 	font-family: var(--tl-font-mono);
+	display: block;
 }

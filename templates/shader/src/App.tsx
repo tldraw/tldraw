@@ -44,7 +44,7 @@ function App() {
 						return (
 							<div style={{ display: 'flex', flexDirection: 'row' }}>
 								{ConfigComponent && <ConfigComponent />}
-								<div className="tlui-menu shader-example-toggle">
+								<div className="tlui-menu shader-app__example-menu">
 									{options.map((option) => (
 										<TldrawUiButton
 											type="menu"
