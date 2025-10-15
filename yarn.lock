@@ -14136,7 +14136,6 @@ __metadata:
     "@clerk/backend": "npm:^1.23.7"
     "@cloudflare/workers-types": "npm:^4.20250913.0"
     "@tldraw/dotcom-shared": "workspace:*"
-    "@tldraw/validate": "workspace:*"
     "@tldraw/worker-shared": "workspace:*"
     esbuild: "npm:^0.25.6"
     itty-router: "npm:^5.0.18"

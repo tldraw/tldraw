@@ -4,13 +4,12 @@
 	"exclude": ["node_modules", ".tsbuild*"],
 	"compilerOptions": { "outDir": "./.tsbuild", "rootDir": "src" },
 	"references": [
+		{ "path": "../editor" }
 		{ "path": "../state" },
 		{ "path": "../store" },
 		{ "path": "../tldraw" },
 		{ "path": "../tlschema" },
 		{ "path": "../utils" },
 		{ "path": "../validate" },
-		{ "path": "../tldraw" },
-		{ "path": "../editor" }
 	]
 }
