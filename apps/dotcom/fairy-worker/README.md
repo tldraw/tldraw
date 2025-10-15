@@ -70,7 +70,6 @@ Service layer handling:
 **Core tldraw packages:**
 
 - `@tldraw/dotcom-shared` - Shared utilities and types
-- `@tldraw/validate` - Validation utilities
 - `@tldraw/worker-shared` - Worker utilities
 
 **Infrastructure:**

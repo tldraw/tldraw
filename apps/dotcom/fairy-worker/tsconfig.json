@@ -5,8 +5,6 @@
 	"compilerOptions": { "noEmit": true, "emitDeclarationOnly": false },
 	"references": [
 		{ "path": "../../../packages/dotcom-shared" },
-		{ "path": "../../../packages/tlschema" },
-		{ "path": "../../../packages/worker-shared" },
-		{ "path": "../../../packages/tldraw" }
+		{ "path": "../../../packages/worker-shared" }
 	]
 }
