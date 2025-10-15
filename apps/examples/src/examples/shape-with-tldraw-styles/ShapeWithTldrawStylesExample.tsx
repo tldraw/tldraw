@@ -15,7 +15,7 @@ import 'tldraw/tldraw.css'
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		myshape: IMyShape
+		myshapewithtldrawstyles: IMyShape
 	}
 }
 
