@@ -136,7 +136,6 @@ bindings = [
 **Core tldraw packages:**
 
 - `@tldraw/dotcom-shared` - Shared utilities and types
-- `@tldraw/validate` - Validation utilities
 - `@tldraw/worker-shared` - Shared worker utilities
 
 **Infrastructure:**

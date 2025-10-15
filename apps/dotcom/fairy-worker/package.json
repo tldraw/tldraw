@@ -18,7 +18,6 @@
 	"dependencies": {
 		"@clerk/backend": "^1.23.7",
 		"@tldraw/dotcom-shared": "workspace:*",
-		"@tldraw/validate": "workspace:*",
 		"@tldraw/worker-shared": "workspace:*",
 		"esbuild": "^0.25.6",
 		"itty-router": "^5.0.18"
