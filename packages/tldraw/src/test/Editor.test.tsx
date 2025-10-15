@@ -551,6 +551,38 @@ describe('getShapeUtil', () => {
 	})
 })
 
+describe('isShapeOfType', () => {
+	it('returns true for a matching shape type', () => {
+		const id = createShapeId('arrow1')
+		editor.createShape({ type: 'arrow', id, x: 0, y: 0 })
+
+		const shape = editor.getShape(id)!
+		expect(editor.isShapeOfType(shape, 'arrow')).toBe(true)
+	})
+
+	it('returns false for a non-matching shape type', () => {
+		const id = createShapeId('arrow1')
+		editor.createShape({ type: 'arrow', id, x: 0, y: 0 })
+
+		const shape = editor.getShape(id)!
+		expect(editor.isShapeOfType(shape, 'card')).toBe(false)
+	})
+
+	it('narrows down the shape type', () => {
+		const id = createShapeId('arrow1')
+		editor.createShape({ type: 'arrow', id, x: 0, y: 0 })
+
+		const shape = editor.getShape(id)!
+		if (editor.isShapeOfType(shape, 'arrow')) {
+			expect(shape.type === 'arrow').toBe(true)
+			expect(
+				// @ts-expect-error This comparison appears to be unintentional because the types '"arrow"' and '"card"' have no overlap.
+				shape.type === 'card'
+			).toBe(false)
+		}
+	})
+})
+
 describe('snapshots', () => {
 	it('creates and loads a snapshot', () => {
 		const ids = {

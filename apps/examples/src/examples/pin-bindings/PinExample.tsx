@@ -14,7 +14,6 @@ import {
 	TLBaseShape,
 	TLEditorComponents,
 	TLPointerEventInfo,
-	TLShape,
 	TLShapeId,
 	TLShapePartial,
 	TLShapeUtilCanBindOpts,
@@ -248,7 +247,7 @@ class PinBindingUtil extends BindingUtil<PinBinding> {
 			}
 		}
 
-		const updates: TLShapePartial<TLShape>[] = []
+		const updates: TLShapePartial[] = []
 		for (const [shapeId, position] of currentPositions) {
 			const delta = Vec.Sub(position, initialPositions.get(shapeId)!)
 			if (delta.len2() <= 0.01) continue
