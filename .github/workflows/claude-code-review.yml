@@ -12,11 +12,10 @@ on:
 
 jobs:
   claude-review:
-    # Skip if in merge queue or merged to main
+    # Skip if in merge queue
     if: |
       !contains(github.event.pull_request.base.ref, 'gh-readonly-queue') &&
-      !contains(github.event.pull_request.head.ref, 'gh-readonly-queue') &&
-      github.event.pull_request.merged != true
+      !contains(github.event.pull_request.head.ref, 'gh-readonly-queue')
     
     # Optional: Filter by PR author
     # if: |
