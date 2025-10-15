@@ -101,11 +101,6 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 		})
 		// Toggle the clicked agent
 		agent.$fairy.update((f) => ({ ...f!, isSelected: !currentlySelected }))
-
-		// If we're selecting a fairy and the chat is minimized, expand it
-		if (!currentlySelected && !isChatExpanded) {
-			setIsChatExpanded(true)
-		}
 	}
 
 	const handleNewChat = () => {
