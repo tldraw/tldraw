@@ -19,14 +19,20 @@ export class Rotating extends StateNode {
 
 	snapshot = {} as TLRotationSnapshot
 
-	info = {} as Extract<TLPointerEventInfo, { target: 'selection' }> & { onInteractionEnd?: string }
+	info = {} as Extract<TLPointerEventInfo, { target: 'selection' }> & {
+		onInteractionEnd?: string | (() => void)
+	}
 
 	markId = ''
 
-	override onEnter(info: TLPointerEventInfo & { target: 'selection'; onInteractionEnd?: string }) {
+	override onEnter(
+		info: TLPointerEventInfo & { target: 'selection'; onInteractionEnd?: string | (() => void) }
+	) {
 		// Store the event information
 		this.info = info
-		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		if (typeof info.onInteractionEnd === 'string') {
+			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		}
 
 		this.markId = this.editor.markHistoryStoppingPoint('rotate start')
 
@@ -121,11 +127,16 @@ export class Rotating extends StateNode {
 		})
 
 		this.editor.bailToMark(this.markId)
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
-		} else {
-			this.parent.transition('idle', this.info)
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				this.editor.setCurrentTool(onInteractionEnd, this.info)
+			} else {
+				onInteractionEnd()
+			}
+			return
 		}
+		this.parent.transition('idle', this.info)
 	}
 
 	private complete() {
@@ -139,11 +150,16 @@ export class Rotating extends StateNode {
 			this.editor,
 			this.snapshot.shapeSnapshots.map((s) => s.shape.id)
 		)
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
-		} else {
-			this.parent.transition('idle', this.info)
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				this.editor.setCurrentTool(onInteractionEnd, this.info)
+			} else {
+				onInteractionEnd()
+			}
+			return
 		}
+		this.parent.transition('idle', this.info)
 	}
 
 	_getRotationFromPointerPosition({ snapToNearestDegree }: { snapToNearestDegree: boolean }) {
