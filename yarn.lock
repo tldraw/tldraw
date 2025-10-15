@@ -8943,6 +8943,7 @@ __metadata:
     "@types/react": "npm:^18.3.18"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
+    tldraw: "workspace:*"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
     react-dom: ^18.2.0 || ^19.0.0
