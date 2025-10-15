@@ -30,7 +30,7 @@ export function ConfigPanelSlider({
 				steps={STEPS}
 				min={1}
 				value={sliderValue}
-				label={label}
+				label={sliderValue.toFixed(0) + '%'}
 				title={label}
 				onValueChange={(sliderValue) => {
 					// Map slider value (1 to 10) back to actual value (min to max)
