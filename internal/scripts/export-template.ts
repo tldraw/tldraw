@@ -43,16 +43,12 @@ async function main() {
 	if (!exportConfig) {
 		console.log('No export config found in package.json.')
 		console.log(`Please add a "${EXPORT_CONFIG_KEY}" key to your package.json.`)
-		process.exit(1)
-	}
-
-	if (!exportConfig.publish) {
-		console.log('No publish key found in package.json. Skipping export.')
+		console.log('Skipping for now.')
 		process.exit(0)
 	}
 
 	// clone the template repo:
-	const repoUrl = `https://${githubAuth}github.com/${exportConfig.publish.repo}.git`
+	const repoUrl = `https://${githubAuth}github.com/${exportConfig.repo}.git`
 	console.log(`Cloning ${repoUrl}...`)
 	await exec('git', ['clone', repoUrl, workingDir, '--depth', '1'])
 
@@ -128,9 +124,11 @@ async function main() {
 	console.log('Committing...')
 	const latestTldrawVersion = await getLatestPackageVersion('tldraw')
 	await exec('git', ['add', '.'], { pwd: workingDir })
-	await exec('git', ['commit', '-m', `update from tldraw ${latestTldrawVersion}`], {
-		pwd: workingDir,
-	})
+	await exec(
+		'git',
+		['commit', '--allow-empty', '-m', `update from tldraw ${latestTldrawVersion}`],
+		{ pwd: workingDir }
+	)
 
 	console.log('Pushing...')
 	await exec('git', ['push', repoUrl, 'main'], { pwd: workingDir })

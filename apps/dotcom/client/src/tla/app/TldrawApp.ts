@@ -68,8 +68,6 @@ export const PUBLISH_ENDPOINT = `/api/app/publish`
 
 let appId = 0
 const useProperZero = getFromLocalStorage('useProperZero') === 'true'
-// eslint-disable-next-line no-console
-console.log('useProperZero', useProperZero)
 // @ts-expect-error
 window.zero = () => {
 	setInLocalStorage('useProperZero', String(!useProperZero))
@@ -283,7 +281,7 @@ export class TldrawApp {
 			const user = this.getUser()
 
 			const nonNull = Object.fromEntries(
-				Object.entries(others).filter(([_, value]) => value !== null)
+				Object.entries(others).filter(([key, value]) => value !== null || key === 'inputMode')
 			) as Partial<TLUserPreferences>
 
 			this.z.mutate.user.update({
@@ -750,6 +748,7 @@ export class TldrawApp {
 			flags: '',
 			allowAnalyticsCookie: null,
 			...restOfPreferences,
+			inputMode: restOfPreferences.inputMode ?? null,
 			locale: restOfPreferences.locale ?? null,
 			animationSpeed: restOfPreferences.animationSpeed ?? null,
 			areKeyboardShortcutsEnabled: restOfPreferences.areKeyboardShortcutsEnabled ?? null,
@@ -759,7 +758,7 @@ export class TldrawApp {
 			isWrapMode: restOfPreferences.isWrapMode ?? null,
 			isDynamicSizeMode: restOfPreferences.isDynamicSizeMode ?? null,
 			isPasteAtCursorMode: restOfPreferences.isPasteAtCursorMode ?? null,
-			showUiLabels: restOfPreferences.showUiLabels ?? null,
+			enhancedA11yMode: restOfPreferences.enhancedA11yMode ?? null,
 		})
 		if (didCreate) {
 			opts.trackEvent('create-user', { source: 'app' })

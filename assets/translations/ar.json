@@ -81,6 +81,7 @@
 	"action.stretch-horizontal.short": "تمدد أفقي",
 	"action.stretch-vertical": "تمدد عموديًا",
 	"action.stretch-vertical.short": "تمدد عمودي",
+	"action.toggle-auto-none": "تلقائي",
 	"action.toggle-auto-size": "التبديل للحجم التلقائي",
 	"action.toggle-dark-mode": "التبديل للوضع المظلم",
 	"action.toggle-dark-mode.menu": "الوضع المظلم",

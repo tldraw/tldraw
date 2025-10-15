@@ -3,7 +3,6 @@ import {
 	atom,
 	Box,
 	Editor,
-	exhaustiveSwitchError,
 	react,
 	RecordsDiff,
 	reverseRecordsDiff,
@@ -271,7 +270,7 @@ export class TldrawAgent {
 		const transformedParts: PromptPart[] = []
 
 		for (const util of Object.values(promptPartUtils)) {
-			const part = await util.getPart(request, helpers)
+			const part = await util.getPart(structuredClone(request), helpers)
 			if (!part) continue
 			transformedParts.push(part)
 		}
@@ -314,7 +313,7 @@ export class TldrawAgent {
 
 		if (!scheduledRequest) {
 			// If there no outstanding todo items or requests, finish
-			if (todoItemsRemaining.length === 0) {
+			if (todoItemsRemaining.length === 0 || !this.cancelFn) {
 				return
 			}
 
@@ -969,4 +968,15 @@ function persistAtomInLocalStorage<T>(atom: Atom<T>, key: string) {
 	react(`save ${key} to localStorage`, () => {
 		localStorage.setItem(key, JSON.stringify(atom.get()))
 	})
+}
+
+/**
+ * Throw an error if a switch case is not exhaustive.
+ *
+ * This is a helper function that is used internally by the agent.
+ */
+function exhaustiveSwitchError(value: never, property?: string): never {
+	const debugValue =
+		property && value && typeof value === 'object' && property in value ? value[property] : value
+	throw new Error(`Unknown switch case ${debugValue}`)
 }

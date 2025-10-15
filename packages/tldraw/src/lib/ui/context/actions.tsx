@@ -5,6 +5,7 @@ import {
 	Editor,
 	HALF_PI,
 	PageRecordType,
+	Result,
 	TLBookmarkShape,
 	TLEmbedShape,
 	TLFrameShape,
@@ -24,6 +25,7 @@ import {
 	useMaybeEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
+import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { EditLinkDialog } from '../components/EditLinkDialog'
@@ -387,45 +389,39 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'convert-to-bookmark',
 				label: 'action.convert-to-bookmark',
-				onSelect(source) {
+				async onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
-					editor.run(() => {
-						trackEvent('convert-to-bookmark', { source })
-						const shapes = editor.getSelectedShapes()
+					trackEvent('convert-to-bookmark', { source })
+					const shapes = editor.getSelectedShapes()
 
-						const createList: TLShapePartial[] = []
-						const deleteList: TLShapeId[] = []
-						for (const shape of shapes) {
-							if (!shape || !editor.isShapeOfType<TLEmbedShape>(shape, 'embed') || !shape.props.url)
-								continue
+					const markId = editor.markHistoryStoppingPoint('convert shapes to bookmark')
 
-							const newPos = new Vec(shape.x, shape.y)
-							newPos.rot(-shape.rotation)
-							newPos.add(new Vec(shape.props.w / 2 - 300 / 2, shape.props.h / 2 - 320 / 2)) // see bookmark shape util
-							newPos.rot(shape.rotation)
-							const partial: TLShapePartial<TLBookmarkShape> = {
-								id: createShapeId(),
-								type: 'bookmark',
-								rotation: shape.rotation,
-								x: newPos.x,
-								y: newPos.y,
-								opacity: 1,
-								props: {
-									url: shape.props.url,
-								},
-							}
+					const creationPromises: Promise<Result<any, any>>[] = []
 
-							createList.push(partial)
-							deleteList.push(shape.id)
-						}
+					for (const shape of shapes) {
+						if (!shape || !editor.isShapeOfType<TLEmbedShape>(shape, 'embed') || !shape.props.url)
+							continue
 
-						editor.markHistoryStoppingPoint('convert shapes to bookmark')
+						const center = editor.getShapePageBounds(shape)?.center
 
-						// Should be able to create the shape since we're about to delete the other other
-						editor.deleteShapes(deleteList)
-						editor.createShapes(createList)
+						if (!center) continue
+						editor.deleteShapes([shape.id])
+
+						creationPromises.push(
+							createBookmarkFromUrl(editor, { url: shape.props.url, center }).then((res) => {
+								if (!res.ok) {
+									throw new Error(res.error)
+								}
+								return res
+							})
+						)
+					}
+
+					await Promise.all(creationPromises).catch((error) => {
+						editor.bailToMark(markId)
+						console.error(error)
 					})
 				},
 			},
@@ -1270,16 +1266,16 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				checkbox: true,
 			},
 			{
-				id: 'toggle-ui-labels',
+				id: 'enhanced-a11y-mode',
 				label: {
-					default: 'action.toggle-ui-labels',
-					menu: 'action.toggle-ui-labels.menu',
+					default: 'action.enhanced-a11y-mode',
+					menu: 'action.enhanced-a11y-mode.menu',
 				},
 				readonlyOk: true,
 				onSelect(source) {
-					trackEvent('toggle-ui-labels', { source })
+					trackEvent('enhanced-a11y-mode', { source })
 					editor.user.updateUserPreferences({
-						showUiLabels: !editor.user.getShowUiLabels(),
+						enhancedA11yMode: !editor.user.getEnhancedA11yMode(),
 					})
 				},
 				checkbox: true,
@@ -1583,6 +1579,19 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isRequiredA11yAction: true,
 				onSelect: async (source) => {
 					if (!canApplySelectionAction()) return
+
+					const onlySelectedShape = editor.getOnlySelectedShape()
+					if (
+						onlySelectedShape &&
+						(editor.isShapeOfType<TLImageShape>(onlySelectedShape, 'image') ||
+							editor.isShapeOfType<TLVideoShape>(onlySelectedShape, 'video'))
+					) {
+						const firstToolbarButton = editor
+							.getContainer()
+							.querySelector('.tlui-contextual-toolbar button:first-child') as HTMLElement | null
+						firstToolbarButton?.focus()
+						return
+					}
 
 					const firstButton = editor
 						.getContainer()

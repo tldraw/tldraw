@@ -652,11 +652,13 @@ export function ToggleKeyboardShortcutsItem() {
 }
 
 /** @public @react */
-export function ToggleUiLabelsItem() {
+export function ToggleEnhancedA11yModeItem() {
 	const editor = useEditor()
-	const showUiLabels = useValue('showUiLabels', () => editor.user.getShowUiLabels(), [editor])
+	const enhancedA11yMode = useValue('enhancedA11yMode', () => editor.user.getEnhancedA11yMode(), [
+		editor,
+	])
 
-	return <TldrawUiMenuActionCheckboxItem actionId="toggle-ui-labels" checked={showUiLabels} />
+	return <TldrawUiMenuActionCheckboxItem actionId="enhanced-a11y-mode" checked={enhancedA11yMode} />
 }
 
 /** @public @react */

@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test'
-import test from './fixtures/fixtures'
+import test from '../fixtures/fixtures'
 
 // Helper function to set up license testing
 async function setupLicenseTest(page: any, licenseKey: string) {

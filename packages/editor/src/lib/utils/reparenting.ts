@@ -162,7 +162,13 @@ function getOverlappingShapes<T extends TLShape[] | TLShapeId[]>(
 	const parentPageTransform = editor.getShapePageTransform(shape)
 	const parentPageCorners = parentPageTransform.applyToPoints(parentGeometry.vertices)
 
-	const parentPageMaskVertices = editor.getShapeMask(shape)
+	const _shape = editor.getShape(shape)
+	if (!_shape) return EMPTY_ARRAY
+
+	const pageTransform = editor.getShapePageTransform(shape)
+	const clipPath = editor.getShapeUtil(_shape.type).getClipPath?.(_shape)
+
+	const parentPageMaskVertices = clipPath ? pageTransform.applyToPoints(clipPath) : undefined
 	const parentPagePolygon = parentPageMaskVertices
 		? intersectPolygonPolygon(parentPageMaskVertices, parentPageCorners)
 		: parentPageCorners

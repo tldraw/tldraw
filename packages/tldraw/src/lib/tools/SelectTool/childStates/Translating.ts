@@ -28,7 +28,7 @@ export type TranslatingInfo = TLPointerEventInfo & {
 	isCreating?: boolean
 	creatingMarkId?: string
 	onCreate?(): void
-	onInteractionEnd?: string
+	onInteractionEnd?: string | (() => void)
 }
 
 export class Translating extends StateNode {
@@ -59,7 +59,9 @@ export class Translating extends StateNode {
 		}
 
 		this.info = info
-		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		if (typeof info.onInteractionEnd === 'string') {
+			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		}
 		this.isCreating = isCreating
 
 		this.markId = ''
@@ -190,14 +192,23 @@ export class Translating extends StateNode {
 			this.snapshot.movingShapes.map((s) => s.id)
 		)
 
-		if (this.editor.getInstanceState().isToolLocked && this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd)
-		} else {
-			if (this.isCreating) {
-				this.onCreate?.(this.editor.getOnlySelectedShape())
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				if (this.editor.getInstanceState().isToolLocked) {
+					this.editor.setCurrentTool(onInteractionEnd)
+					return
+				}
 			} else {
-				this.parent.transition('idle')
+				onInteractionEnd()
+				return
 			}
+		}
+
+		if (this.isCreating) {
+			this.onCreate?.(this.editor.getOnlySelectedShape())
+		} else {
+			this.parent.transition('idle')
 		}
 	}
 
@@ -214,11 +225,16 @@ export class Translating extends StateNode {
 		})
 
 		this.reset()
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd)
-		} else {
-			this.parent.transition('idle', this.info)
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				this.editor.setCurrentTool(onInteractionEnd)
+			} else {
+				onInteractionEnd()
+			}
+			return
 		}
+		this.parent.transition('idle', this.info)
 	}
 
 	protected handleStart() {

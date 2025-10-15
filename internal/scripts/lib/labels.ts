@@ -1,6 +1,3 @@
-import { join } from 'path'
-import { REPO_ROOT, writeJsonFile } from './file'
-
 interface Label {
 	// this is what the label is 'called' on github
 	name: string
@@ -44,16 +41,4 @@ function formatTemplateOption(label: Label) {
 
 export function formatLabelOptionsForPRTemplate() {
 	return TYPE_LABELS.map(formatTemplateOption).join('\n')
-}
-
-export async function generateAutoRcFile() {
-	const autoRcPath = join(REPO_ROOT, '.autorc')
-	await writeJsonFile(autoRcPath, {
-		plugins: ['npm', '../internal/scripts/lib/auto-plugin.js'],
-		labels: [...TYPE_LABELS.filter((l) => l.name !== 'other')].map(({ name, changelogTitle }) => ({
-			name,
-			changelogTitle,
-			releaseType: 'none',
-		})),
-	})
 }

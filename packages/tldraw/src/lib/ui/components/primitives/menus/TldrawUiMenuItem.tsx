@@ -333,7 +333,7 @@ function useDraggableEvents(
 							type: 'pointer',
 							target: 'canvas',
 							name: 'pointer_down',
-							...getPointerInfo(e),
+							...getPointerInfo(editor, e),
 							point: screenSpaceStart,
 						})
 
@@ -345,7 +345,7 @@ function useDraggableEvents(
 							type: 'pointer',
 							target: 'canvas',
 							name: 'pointer_move',
-							...getPointerInfo(e),
+							...getPointerInfo(editor, e),
 							point: screenSpaceStart,
 						})
 
@@ -365,7 +365,7 @@ function useDraggableEvents(
 				type: 'pointer',
 				target: 'canvas',
 				name: 'pointer_up',
-				...getPointerInfo(e),
+				...getPointerInfo(editor, e),
 			})
 		}
 

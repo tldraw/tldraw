@@ -44,13 +44,13 @@
 		"react-dom": "^18.3.1"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250703.0",
+		"@cloudflare/workers-types": "^4.20250913.0",
 		"@types/pg": "^8.11.11",
 		"@types/react": "^18.3.18",
 		"esbuild": "^0.25.6",
 		"lazyrepo": "0.0.0-alpha.27",
 		"typescript": "^5.8.3",
 		"vitest": "^3.2.4",
-		"wrangler": "^4.23.0"
+		"wrangler": "^4.37.1"
 	}
 }

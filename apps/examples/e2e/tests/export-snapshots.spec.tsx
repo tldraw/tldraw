@@ -21,6 +21,7 @@ import {
 } from 'tldraw'
 import { TL, shapesFromJsx } from 'tldraw/src/test/test-jsx'
 import { EndToEndApi } from '../../src/misc/EndToEndApi'
+import test, { ApiFixture } from '../fixtures/fixtures'
 import { setup } from '../shared-e2e'
 import {
 	convexDrawShape,
@@ -32,7 +33,6 @@ import {
 	richText,
 	richTextForArrow,
 } from './export-snapshots-data'
-import test, { ApiFixture } from './fixtures/fixtures'
 
 declare const editor: Editor
 declare const tldrawApi: EndToEndApi

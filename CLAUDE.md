@@ -34,7 +34,8 @@ This is the tldraw monorepo - an infinite canvas SDK for React applications. It'
 - `yarn format` - Format code with Prettier
 - `yarn api-check` - Validate public API consistency
 
-IMPORTANT: NEVER run bare `tsc` - always use `yarn typecheck`
+IMPORTANT: NEVER run bare `tsc` - always use `yarn typecheck`.
+If the `typecheck` command is not found, it's because you're not running it from the root of the repo.
 
 ## Architecture Overview
 
@@ -133,7 +134,6 @@ packages/
 ├── utils/            # Shared utilities
 ├── validate/         # Lightweight validation library
 ├── assets/           # Icons, fonts, translations
-├── ai/               # AI module SDK addon
 └── create-tldraw/    # npm create tldraw CLI
 
 templates/            # Starter templates for different frameworks

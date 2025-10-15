@@ -1,4 +1,4 @@
-# tldraw agent chat
+# tldraw agent
 
 This starter kit demonstrates how to build an AI agent that can manipulate the [tldraw](https://github.com/tldraw/tldraw) canvas.
 
@@ -648,7 +648,7 @@ Copyright (c) 2025-present tldraw Inc. The tldraw name and logo are trademarks o
 
 ## Distributions
 
-You can find the @tldraw/ai package on npm [here](https://www.npmjs.com/package/@tldraw/ai?activeTab=versions). You can find tldraw on npm [here](https://www.npmjs.com/package/@tldraw/tldraw?activeTab=versions).
+You can find tldraw on npm [here](https://www.npmjs.com/package/@tldraw/tldraw?activeTab=versions).
 
 ## Contribution
 

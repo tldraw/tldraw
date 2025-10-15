@@ -12,14 +12,16 @@ import {
 	snapAngle,
 	sortByIndex,
 	structuredClone,
+	warnOnce,
 } from '@tldraw/editor'
+import { ArrowShapeUtil } from '../../../shapes/arrow/ArrowShapeUtil'
 import { clearArrowTargetState } from '../../../shapes/arrow/arrowTargetState'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 
 export type DraggingHandleInfo = TLPointerEventInfo & {
 	shape: TLArrowShape | TLLineShape
 	target: 'handle'
-	onInteractionEnd?: string
+	onInteractionEnd?: string | (() => void)
 	isCreating?: boolean
 	creatingMarkId?: string
 }
@@ -45,7 +47,9 @@ export class DraggingHandle extends StateNode {
 	override onEnter(info: DraggingHandleInfo) {
 		const { shape, isCreating, creatingMarkId, handle } = info
 		this.info = info
-		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		if (typeof info.onInteractionEnd === 'string') {
+			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		}
 		this.shapeId = shape.id
 		this.markId = ''
 
@@ -135,10 +139,13 @@ export class DraggingHandle extends StateNode {
 	}
 
 	// Only relevant to arrows
-	private exactTimeout = -1 as any
+	private exactTimeout = -1
 
 	// Only relevant to arrows
 	private resetExactTimeout() {
+		const arrowUtil = this.editor.getShapeUtil<ArrowShapeUtil>('arrow')
+		const timeoutValue = arrowUtil.options.pointingPreciseTimeout
+
 		if (this.exactTimeout !== -1) {
 			this.clearExactTimeout()
 		}
@@ -150,7 +157,7 @@ export class DraggingHandle extends StateNode {
 				this.update()
 			}
 			this.exactTimeout = -1
-		}, 750)
+		}, timeoutValue)
 	}
 
 	// Only relevant to arrows
@@ -215,11 +222,17 @@ export class DraggingHandle extends StateNode {
 		}
 
 		const { onInteractionEnd } = this.info
-		if (this.editor.getInstanceState().isToolLocked && onInteractionEnd) {
-			// Return to the tool that was active before this one,
-			// but only if tool lock is turned on!
-			this.editor.setCurrentTool(onInteractionEnd, { shapeId: this.shapeId })
-			return
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				if (this.editor.getInstanceState().isToolLocked && onInteractionEnd) {
+					// Return to the tool that was active before this one but only if tool lock is turned on!
+					this.editor.setCurrentTool(onInteractionEnd, { shapeId: this.shapeId })
+					return
+				}
+			} else {
+				onInteractionEnd?.()
+				return
+			}
 		}
 
 		this.parent.transition('idle')
@@ -244,9 +257,12 @@ export class DraggingHandle extends StateNode {
 
 		const { onInteractionEnd } = this.info
 		if (onInteractionEnd) {
-			// Return to the tool that was active before this one,
-			// whether tool lock is turned on or not!
-			this.editor.setCurrentTool(onInteractionEnd, { shapeId: this.shapeId })
+			if (typeof onInteractionEnd === 'string') {
+				// Return to the tool that was active before this one, whether tool lock is turned on or not!
+				this.editor.setCurrentTool(onInteractionEnd, { shapeId: this.shapeId })
+			} else {
+				onInteractionEnd?.()
+			}
 			return
 		}
 
@@ -290,7 +306,18 @@ export class DraggingHandle extends StateNode {
 
 		let nextHandle = { ...initialHandle, x: point.x, y: point.y }
 
-		if (initialHandle.canSnap && (isSnapMode ? !ctrlKey : ctrlKey)) {
+		let canSnap = false
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		if (initialHandle.canSnap && initialHandle.snapType) {
+			warnOnce(
+				'canSnap is deprecated. Cannot use both canSnap and snapType together - snapping disabled. Please use only snapType.'
+			)
+		} else {
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			canSnap = initialHandle.canSnap || initialHandle.snapType !== undefined
+		}
+
+		if (canSnap && (isSnapMode ? !ctrlKey : ctrlKey)) {
 			// We're snapping
 			const pageTransform = editor.getShapePageTransform(shape.id)
 			if (!pageTransform) throw Error('Expected a page transform')

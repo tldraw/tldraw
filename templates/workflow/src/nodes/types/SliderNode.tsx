@@ -1,7 +1,8 @@
-import { sleep, stopEventPropagation, T, TldrawUiSlider, useEditor } from 'tldraw'
+import { T, TldrawUiSlider, useEditor } from 'tldraw'
 import { SliderIcon } from '../../components/icons/SliderIcon'
 import { NODE_HEADER_HEIGHT_PX, NODE_ROW_HEIGHT_PX, NODE_WIDTH_PX } from '../../constants'
 import { ShapePort } from '../../ports/Port'
+import { sleep } from '../../utils/sleep'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	ExecutionResult,
@@ -21,7 +22,7 @@ export const SliderNode = T.object({
 	value: T.number,
 })
 
-export class SliderNodeType extends NodeDefinition<SliderNode> {
+export class SliderNodeDefinition extends NodeDefinition<SliderNode> {
 	static type = 'slider'
 	static validator = SliderNode
 	title = 'Slider'
@@ -67,7 +68,7 @@ export class SliderNodeType extends NodeDefinition<SliderNode> {
 export function SliderNodeComponent({ shape, node }: NodeComponentProps<SliderNode>) {
 	const editor = useEditor()
 	return (
-		<NodeRow className="SliderNode" onPointerDown={stopEventPropagation}>
+		<NodeRow className="SliderNode" onPointerDown={editor.markEventAsHandled}>
 			<TldrawUiSlider
 				steps={100}
 				value={node.value}

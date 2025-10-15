@@ -2,6 +2,7 @@ name: Deploy .com
 
 on:
   pull_request:
+    types: [opened, synchronize, labeled, unlabeled]
   push:
     branches:
       - main
@@ -27,6 +28,9 @@ jobs:
     runs-on: ubuntu-latest-16-cores-open
     environment: ${{ github.ref == 'refs/heads/production' && 'deploy-production' || 'deploy-staging' }}
     concurrency: dotcom-${{ github.ref == 'refs/heads/production' && 'deploy-production' || github.ref }}
+    if: |
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'dotcom-preview-please'))
 
     steps:
       # - name: Notify initial start
@@ -122,6 +126,8 @@ jobs:
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_DOTCOM_PROJECT_ID }}
 
+          ANALYTICS_API_URL: ${{ secrets.ANALYTICS_API_URL }}
+          ANALYTICS_API_TOKEN: ${{ secrets.ANALYTICS_API_TOKEN }}
           ASSET_UPLOAD_SENTRY_DSN: ${{ secrets.ASSET_UPLOAD_SENTRY_DSN }}
           BOTCOM_POSTGRES_CONNECTION_STRING: ${{ env.NEON_PREVIEW_DB_CONNECTION_STRING || secrets.BOTCOM_POSTGRES_CONNECTION_STRING }}
           BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: ${{ env.NEON_PREVIEW_DB_POOLED_CONNECTION_STRING || secrets.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING }}

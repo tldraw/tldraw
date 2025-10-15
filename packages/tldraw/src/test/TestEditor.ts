@@ -86,8 +86,14 @@ export class TestEditor extends Editor {
 		elm.tabIndex = 0
 		elm.getBoundingClientRect = () => bounds as DOMRect
 
-		const shapeUtilsWithDefaults = [...defaultShapeUtils, ...(options.shapeUtils ?? [])]
-		const bindingUtilsWithDefaults = [...defaultBindingUtils, ...(options.bindingUtils ?? [])]
+		const shapeUtilsWithDefaults = [
+			...defaultShapeUtils.filter((s) => !options.shapeUtils?.some((su) => su.type === s.type)),
+			...(options.shapeUtils ?? []),
+		]
+		const bindingUtilsWithDefaults = [
+			...defaultBindingUtils.filter((b) => !options.bindingUtils?.some((bu) => bu.type === b.type)),
+			...(options.bindingUtils ?? []),
+		]
 
 		super({
 			...options,

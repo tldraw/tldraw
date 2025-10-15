@@ -1,3 +1,35 @@
+/**
+ * @fileoverview
+ * Main entry point for the tldraw schema package. Exports the complete type system,
+ * data structures, validation, and migrations for tldraw's persisted data.
+ *
+ * This package provides:
+ * - Schema creation utilities (createTLSchema, defaultShapeSchemas, defaultBindingSchemas)
+ * - All built-in shape types (TLGeoShape, TLTextShape, TLArrowShape, etc.)
+ * - Asset management types and validators (TLImageAsset, TLVideoAsset, TLBookmarkAsset)
+ * - Binding system for shape relationships (TLArrowBinding)
+ * - Store integration types (TLStore, TLStoreProps, TLStoreSnapshot)
+ * - Style properties for consistent styling (DefaultColorStyle, DefaultSizeStyle, etc.)
+ * - Validation utilities and type guards
+ * - Migration systems for schema evolution
+ * - Geometry and utility types
+ *
+ * @example
+ * ```ts
+ * import { createTLSchema, defaultShapeSchemas, TLStore } from '@tldraw/tlschema'
+ *
+ * // Create a schema with default shapes
+ * const schema = createTLSchema({
+ *   shapes: defaultShapeSchemas
+ * })
+ *
+ * // Use with a store
+ * const store = new Store({ schema })
+ * ```
+ *
+ * @public
+ */
+
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
 export { assetIdValidator, createAssetValidator, type TLBaseAsset } from './assets/TLBaseAsset'
 export { type TLBookmarkAsset } from './assets/TLBookmarkAsset'

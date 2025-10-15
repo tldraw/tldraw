@@ -35,6 +35,9 @@
   "110a4b01be": {
     "translation": "Terbitkan"
   },
+  "12c8a9838c": {
+    "translation": "Cuba tldraw SDK"
+  },
   "13ddd375ad": {
     "translation": "Eksport sebagai"
   },
@@ -94,6 +97,12 @@
   },
   "47839e47a5": {
     "translation": "tldraw"
+  },
+  "7697920637": {
+    "translation": "Sila muat semula"
+  },
+  "764671e008": {
+    "translation": "Berbual dengan kami di Discord"
   },
   "4908687e50": {
     "translation": "Adakah anda pasti mahu melupakan fail ini?"
@@ -190,12 +199,6 @@
   },
   "761e93ede9": {
     "translation": "Uruskan kuki"
-  },
-  "7697920637": {
-    "translation": "Sila muat semula"
-  },
-  "764671e008": {
-    "translation": "Berbual dengan kami di Discord"
   },
   "777f9e90cf": {
     "translation": "Permintaan tidak sah."
@@ -413,6 +416,9 @@
   },
   "ede55d955f": {
     "translation": "Baca <a>dasar kuki</a> kami untuk mengetahui lebih lanjut."
+  },
+  "ef7de3f485": {
+    "translation": "dipilih"
   },
   "f09b16bc5f": {
     "translation": "Kami menggunakan kuki untuk memastikan anda tetap log masuk, menyegerakkan fail anda dan mengumpul analitik untuk membantu kami menambah baik tldraw."

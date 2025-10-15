@@ -81,6 +81,7 @@
 	"action.stretch-horizontal.short": "Yatay esnet",
 	"action.stretch-vertical": "Dikey olarak esnet",
 	"action.stretch-vertical.short": "Dikey esnet",
+	"action.toggle-auto-none": "Otomatik",
 	"action.toggle-auto-size": "Boyutu Uyarla aç/kapat",
 	"action.toggle-dark-mode": "Karanlık moda geçiş yap",
 	"action.toggle-dark-mode.menu": "Karanlık mod",

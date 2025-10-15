@@ -63,7 +63,6 @@ This is a TypeScript monorepo containing the complete tldraw ecosystem - from th
 - `@tldraw/sync` + `@tldraw/sync-core` - Multiplayer collaboration system
 - `@tldraw/utils` - Shared utilities across packages
 - `@tldraw/validate` - Lightweight validation library
-- `@tldraw/ai` - AI module SDK addon
 - `@tldraw/create-tldraw` - npm create tldraw CLI tool
 - `@tldraw/dotcom-shared` - Shared utilities for dotcom application
 - `@tldraw/namespaced-tldraw` - Namespaced tldraw components
@@ -204,7 +203,6 @@ packages/
 ├── utils/            # Shared utilities across packages
 ├── validate/         # Lightweight validation library
 ├── assets/           # Icons, fonts, translations (managed centrally)
-├── ai/               # AI module SDK addon
 ├── create-tldraw/    # npm create tldraw CLI tool
 ├── dotcom-shared/    # Shared utilities for dotcom application
 ├── namespaced-tldraw/ # Namespaced tldraw components
@@ -433,14 +431,6 @@ Custom incremental build system optimized for monorepos:
 - Community-driven with transparent development process
 
 ## Advanced Features and Integrations
-
-### AI Integration (`@tldraw/ai`)
-
-- **Visual AI Understanding**: AI models can see and understand canvas content via screenshots
-- **Streaming Responses**: Real-time AI shape generation and modifications
-- **Transform Pipeline**: Extensible system for customizing AI behavior
-- **Multi-Modal Prompts**: Text and image inputs with structured change outputs
-- **History Integration**: AI changes fully integrated with undo/redo system
 
 ### Asset Management
 

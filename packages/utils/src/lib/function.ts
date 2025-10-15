@@ -6,6 +6,17 @@
  *
  * Only works in platforms that support `Error.captureStackTrace` (ie v8).
  *
+ * @param fn - The function to wrap and exclude from stack traces
+ * @returns A wrapped version of the function that omits itself from error stack traces
+ * @example
+ * ```ts
+ * const assertPositive = omitFromStackTrace((value: number) => {
+ *   if (value <= 0) throw new Error('Value must be positive')
+ *   return value
+ * })
+ *
+ * assertPositive(-1) // Error stack trace will point to this line, not inside assertPositive
+ * ```
  * @internal
  */
 export function omitFromStackTrace<Args extends Array<unknown>, Return>(

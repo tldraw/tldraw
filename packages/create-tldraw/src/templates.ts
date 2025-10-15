@@ -5,60 +5,57 @@ export interface Template {
 	repo: string
 	name: string
 	description: string
-	category: 'framework' | 'app'
+	shortDescription?: string
 	order?: number
 }
 
-export interface Templates {
-	framework: Template[]
-	app: Template[]
-}
-
-export const TEMPLATES: Templates = {
-	app: [
-		{
-			repo: 'tldraw/tldraw-sync-cloudflare',
-			name: 'Multiplayer sync',
-			description:
-				'Self-hosted tldraw with realtime multiplayer, powered by tldraw sync and Cloudflare Durable Objects. Built with Vite and TypeScript.',
-			category: 'app',
-			order: 1,
-		},
-		{
-			repo: 'tldraw/ai-template',
-			name: 'AI starter kit',
-			description:
-				'tldraw + the @tldraw/ai module, built with Vite and TypeScript. This app includes a Cloudflare Worker that connects to the OpenAI API.',
-			category: 'app',
-		},
-		{
-			repo: 'tldraw/branching-chat',
-			name: 'Branching chat starter kit',
-			description: 'A branching chat application using tldraw and OpenAI.',
-			category: 'app',
-		},
-	],
-	framework: [
-		{
-			repo: 'tldraw/vite-template',
-			name: 'Vite + tldraw',
-			description:
-				'The easiest way to get started with tldraw. Built with Vite, React, and TypeScript.',
-			category: 'framework',
-			order: 1,
-		},
-		{
-			repo: 'tldraw/nextjs-template',
-			name: 'Next.js + tldraw',
-			description: 'tldraw in a Next.js app, with TypeScript.',
-			category: 'framework',
-			order: 2,
-		},
-		{
-			repo: 'tldraw/vue-template',
-			name: 'Vue.js + tldraw',
-			description: 'tldraw in a Vue.js app, built with Vite and TypeScript.',
-			category: 'framework',
-		},
-	],
-}
+export const TEMPLATES: Template[] = [
+	{
+		name: 'Basic',
+		description: 'A minimal tldraw template with Vite, React, and TypeScript.',
+		order: 1,
+		repo: 'tldraw/vite-template',
+	},
+	{
+		name: 'Multiplayer',
+		description: 'Real-time multiplayer with a self-hosted backend.',
+		shortDescription: 'Real-time multiplayer.',
+		order: 2,
+		repo: 'tldraw/tldraw-sync-cloudflare',
+	},
+	{
+		name: 'Agent',
+		description: 'Work on the canvas with an AI agent.',
+		shortDescription: 'An AI-powered agent.',
+		order: 3,
+		repo: 'tldraw/agent-template',
+	},
+	{
+		name: 'Workflow',
+		description: 'Create a node-based builder for visual workflows.',
+		shortDescription: 'Visual node-based builder for workflows.',
+		order: 4,
+		repo: 'tldraw/workflow-template',
+	},
+	{
+		name: 'Chat',
+		description: 'Create an AI chat that uses tldraw for sketches and annotations.',
+		shortDescription: 'A chat UI with sketches and images as context for AI.',
+		order: 5,
+		repo: 'tldraw/chat-template',
+	},
+	{
+		name: 'Branching chat',
+		description: 'Chat with an AI using a branching conversation interface.',
+		shortDescription: 'A branching chat interface.',
+		order: 6,
+		repo: 'tldraw/branching-chat-template',
+	},
+	{
+		name: 'Shader',
+		description: 'Create WebGL shaders that respond to shapes on the canvas.',
+		shortDescription: 'Shaders on the canvas.',
+		order: 7,
+		repo: 'tldraw/shader-starter-kit',
+	},
+]

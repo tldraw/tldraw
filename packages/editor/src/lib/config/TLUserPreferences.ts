@@ -24,7 +24,8 @@ export interface TLUserPreferences {
 	isWrapMode?: boolean | null
 	isDynamicSizeMode?: boolean | null
 	isPasteAtCursorMode?: boolean | null
-	showUiLabels?: boolean | null
+	enhancedA11yMode?: boolean | null
+	inputMode?: 'trackpad' | 'mouse' | null
 }
 
 interface UserDataSnapshot {
@@ -53,7 +54,8 @@ export const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUser
 	isWrapMode: T.boolean.nullable().optional(),
 	isDynamicSizeMode: T.boolean.nullable().optional(),
 	isPasteAtCursorMode: T.boolean.nullable().optional(),
-	showUiLabels: T.boolean.nullable().optional(),
+	enhancedA11yMode: T.boolean.nullable().optional(),
+	inputMode: T.literalEnum('trackpad', 'mouse').nullable().optional(),
 })
 
 const Versions = {
@@ -67,6 +69,8 @@ const Versions = {
 	AddPasteAtCursor: 8,
 	AddKeyboardShortcuts: 9,
 	AddShowUiLabels: 10,
+	AddPointerPeripheral: 11,
+	RenameShowUiLabelsToEnhancedA11yMode: 12,
 } as const
 
 const CURRENT_VERSION = Math.max(...Object.values(Versions))
@@ -107,6 +111,14 @@ function migrateSnapshot(data: { version: number; user: any }) {
 	}
 	if (data.version < Versions.AddShowUiLabels) {
 		data.user.showUiLabels = false
+	}
+	if (data.version < Versions.RenameShowUiLabelsToEnhancedA11yMode) {
+		data.user.enhancedA11yMode = data.user.showUiLabels
+		delete data.user.showUiLabels
+	}
+
+	if (data.version < Versions.AddPointerPeripheral) {
+		data.user.inputMode = null
 	}
 
 	// finally
@@ -156,8 +168,9 @@ export const defaultUserPreferences = Object.freeze({
 	isWrapMode: false,
 	isDynamicSizeMode: false,
 	isPasteAtCursorMode: false,
-	showUiLabels: false,
+	enhancedA11yMode: false,
 	colorScheme: 'light',
+	inputMode: null,
 }) satisfies Readonly<Omit<TLUserPreferences, 'id'>>
 
 /** @public */

@@ -81,6 +81,7 @@
 	"action.stretch-horizontal.short": "Regangkan H",
 	"action.stretch-vertical": "Regangkan vertikal",
 	"action.stretch-vertical.short": "Regangkan V",
+	"action.toggle-auto-none": "Otomatis",
 	"action.toggle-auto-size": "Alihkan ukuran otomatis",
 	"action.toggle-dark-mode": "Alihkan mode gelap",
 	"action.toggle-dark-mode.menu": "Mode gelap",

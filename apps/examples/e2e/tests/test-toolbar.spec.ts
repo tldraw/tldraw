@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test'
+import test from '../fixtures/fixtures'
 import { getAllShapeTypes, setup, sleep } from '../shared-e2e'
-import test from './fixtures/fixtures'
 
 test.describe('when selecting a tool from the toolbar', () => {
 	test.beforeEach(setup)

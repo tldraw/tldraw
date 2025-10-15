@@ -172,7 +172,13 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 						<LiveCollaborators />
 					</div>
 				</div>
-				<div className="tl-canvas__in-front">
+				<div
+					className="tl-canvas__in-front"
+					onPointerDown={editor.markEventAsHandled}
+					onPointerUp={editor.markEventAsHandled}
+					onTouchStart={editor.markEventAsHandled}
+					onTouchEnd={editor.markEventAsHandled}
+				>
 					<InFrontOfTheCanvasWrapper />
 				</div>
 				<MovingCameraHitTestBlocker />

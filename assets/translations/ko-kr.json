@@ -96,6 +96,7 @@
 	"action.stretch-horizontal.short": "수평으로 늘리기",
 	"action.stretch-vertical": "수직으로 늘리기",
 	"action.stretch-vertical.short": "수직으로 늘리기",
+	"action.toggle-auto-none": "자동",
 	"action.toggle-auto-size": "자동 크기 전환",
 	"action.toggle-dark-mode": "다크모드 전환",
 	"action.toggle-dark-mode.menu": "다크 모드",

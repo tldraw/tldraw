@@ -1,4 +1,4 @@
-import { sleep, T, useEditor } from 'tldraw'
+import { T, useEditor } from 'tldraw'
 import { DivideIcon } from '../../components/icons/DivideIcon'
 import {
 	NODE_HEADER_HEIGHT_PX,
@@ -7,6 +7,7 @@ import {
 	NODE_WIDTH_PX,
 } from '../../constants'
 import { ShapePort } from '../../ports/Port'
+import { sleep } from '../../utils/sleep'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	areAnyInputsOutOfDate,
@@ -30,7 +31,7 @@ export const DivideNode = T.object({
 	lastResult: T.number.nullable(),
 })
 
-export class DivideNodeType extends NodeDefinition<DivideNode> {
+export class DivideNodeDefinition extends NodeDefinition<DivideNode> {
 	static type = 'divide'
 	static validator = DivideNode
 	title = 'Divide'

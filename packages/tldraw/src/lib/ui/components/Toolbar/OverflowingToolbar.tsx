@@ -101,7 +101,7 @@ export function OverflowingToolbar({
 						items: collectItems(child.children),
 						element: child as HTMLElement,
 					})
-				} else {
+				} else if (!child.hasAttribute('data-radix-popper-content-wrapper')) {
 					items.push({ type: 'item', element: child as HTMLElement })
 				}
 			}

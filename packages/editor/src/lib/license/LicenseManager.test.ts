@@ -36,13 +36,15 @@ describe('LicenseManager', () => {
 	let licenseManager: LicenseManager
 
 	beforeAll(() => {
+		process.env.NODE_ENV = 'production'
 		return new Promise((resolve) => {
 			generateKeyPair().then((kp) => {
 				keyPair = kp
-				licenseManager = new LicenseManager('', keyPair.publicKey, 'production')
+				licenseManager = new LicenseManager('', keyPair.publicKey)
 				resolve(void 0)
 			})
 		})
+		process.env.NODE_ENV = 'test'
 	})
 
 	beforeEach(() => {
@@ -58,7 +60,7 @@ describe('LicenseManager', () => {
 			expect(result).toMatchObject({ isLicenseParseable: false, reason: 'no-key-provided' })
 		})
 
-		it('Signals that it is development mode when appropriate', async () => {
+		it('Signals that it is development mode when localhost', async () => {
 			const schemes = ['http', 'https']
 			for (const scheme of schemes) {
 				// @ts-ignore
@@ -66,7 +68,7 @@ describe('LicenseManager', () => {
 				// @ts-ignore
 				window.location = new URL(`${scheme}://localhost:3000`)
 
-				const testEnvLicenseManager = new LicenseManager('', keyPair.publicKey, 'development')
+				const testEnvLicenseManager = new LicenseManager('', keyPair.publicKey)
 				const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
 				const result = await testEnvLicenseManager.getLicenseFromKey(licenseKey)
 				expect(result).toMatchObject({
@@ -77,6 +79,66 @@ describe('LicenseManager', () => {
 			}
 		})
 
+		it('Signals that it is development mode when NODE_ENV is not production', async () => {
+			process.env.NODE_ENV = 'development'
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL(`https://www.example.com`)
+
+			const testEnvLicenseManager = new LicenseManager('', keyPair.publicKey)
+			const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+			const result = await testEnvLicenseManager.getLicenseFromKey(licenseKey)
+			expect(result).toMatchObject({
+				isLicenseParseable: true,
+				isDomainValid: true,
+				isDevelopment: true,
+			})
+			const licenseState = testEnvLicenseManager.state.get()
+			expect(licenseState).toBe('unlicensed')
+			process.env.NODE_ENV = 'test'
+		})
+
+		it('Signals that it is development mode when NODE_ENV is "test"', async () => {
+			process.env.NODE_ENV = 'test'
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL(`https://www.example.com`)
+
+			const testEnvLicenseManager = new LicenseManager('', keyPair.publicKey)
+			const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+			const result = await testEnvLicenseManager.getLicenseFromKey(licenseKey)
+			expect(result).toMatchObject({
+				isLicenseParseable: true,
+				isDomainValid: true,
+				isDevelopment: true,
+			})
+			const licenseState = testEnvLicenseManager.state.get()
+			expect(licenseState).toBe('unlicensed')
+			process.env.NODE_ENV = 'test'
+		})
+
+		it('Signals that it is not development mode when NODE_ENV is production', async () => {
+			process.env.NODE_ENV = 'production'
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL(`https://www.example.com`)
+
+			const testEnvLicenseManager = new LicenseManager('', keyPair.publicKey)
+			const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+			const result = await testEnvLicenseManager.getLicenseFromKey(licenseKey)
+			expect(result).toMatchObject({
+				isLicenseParseable: true,
+				isDomainValid: true,
+				isDevelopment: false,
+			})
+			const licenseState = testEnvLicenseManager.state.get()
+			expect(licenseState).toBe('unlicensed-production')
+			process.env.NODE_ENV = 'test'
+		})
+
 		it('Cleanses out valid keys that accidentally have zero-width characters or newlines', async () => {
 			const cleanLicenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
 			const dirtyLicenseKey = cleanLicenseKey + '\u200B\u200D\uFEFF\n\r'
@@ -85,10 +147,12 @@ describe('LicenseManager', () => {
 		})
 
 		it('Fails if garbage key provided', async () => {
-			const badPublicKeyLicenseManager = new LicenseManager('', 'badpublickey', 'production')
+			process.env.NODE_ENV = 'production'
+			const badPublicKeyLicenseManager = new LicenseManager('', 'badpublickey')
 			const invalidLicenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
 			const result = await badPublicKeyLicenseManager.getLicenseFromKey(invalidLicenseKey)
 			expect(result).toMatchObject({ isLicenseParseable: false, reason: 'invalid-license-key' })
+			process.env.NODE_ENV = 'test'
 		})
 
 		it('Fails if non-JSON parseable message is provided', async () => {

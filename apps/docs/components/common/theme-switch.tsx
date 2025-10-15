@@ -28,8 +28,8 @@ export function ThemeSwitch() {
 	}
 
 	return (
-		<div className="flex flex-col items-end sm:flex-row sm:items-center gap-4 mt-4 sm:mt-0">
-			<div className="h-px sm:h-5 w-full sm:w-px bg-zinc-100 sm:bg-zinc-200 dark:bg-zinc-800 dark:sm:bg-zinc-700" />
+		<div className="flex flex-col items-end sm:flex-row sm:items-center gap-4 ml-2 md:ml-0">
+			<div className="hidden md:block h-px sm:h-5 w-full sm:w-px bg-zinc-100 sm:bg-zinc-200 dark:bg-zinc-800 dark:sm:bg-zinc-700" />
 			<button
 				onClick={() => setThemeAndPersist()}
 				className="hover:text-zinc-600 dark:hover:text-zinc-100"

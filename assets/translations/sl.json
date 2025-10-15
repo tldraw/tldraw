@@ -81,6 +81,7 @@
 	"action.stretch-horizontal.short": "Raztezanje vodoravno",
 	"action.stretch-vertical": "Raztegni navpično",
 	"action.stretch-vertical.short": "Raztezanje navpično",
+	"action.toggle-auto-none": "Auto",
 	"action.toggle-auto-size": "Preklopi samodejno velikost",
 	"action.toggle-dark-mode": "Preklopi temni način",
 	"action.toggle-dark-mode.menu": "Temni način",

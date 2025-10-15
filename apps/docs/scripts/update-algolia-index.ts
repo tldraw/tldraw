@@ -32,9 +32,14 @@ const sectionConfig: Record<string, SearchConfig | null> = {
 		priority: 8,
 		splitHeadings: false,
 	},
-	reference: {
+	'starter-kits': {
 		index: 'docs',
 		priority: 7,
+		splitHeadings: false,
+	},
+	reference: {
+		index: 'docs',
+		priority: 6,
 		splitHeadings: true,
 		excludeHeadingLevels: [2],
 		formatHeading(article, heading) {
@@ -44,7 +49,7 @@ const sectionConfig: Record<string, SearchConfig | null> = {
 
 	releases: {
 		index: 'docs',
-		priority: 6,
+		priority: 5,
 		splitHeadings: false,
 	},
 	community: {

@@ -102,13 +102,14 @@ export interface TLUiEventMap {
 	'toggle-grid-mode': null
 	'toggle-wrap-mode': null
 	'toggle-focus-mode': null
+	'input-mode': { value: string }
 	'toggle-debug-mode': null
 	'toggle-dynamic-size-mode': null
 	'toggle-paste-at-cursor': null
 	'toggle-lock': null
 	'toggle-reduce-motion': null
 	'toggle-keyboard-shortcuts': null
-	'toggle-ui-labels': null
+	'enhanced-a11y-mode': null
 	'toggle-edge-scrolling': null
 	'color-scheme': { value: string }
 	'exit-pen-mode': null

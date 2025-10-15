@@ -31,6 +31,7 @@ import {
 	toRichText,
 } from '@tldraw/editor'
 import { EmbedDefinition } from './defaultEmbedDefinitions'
+import { createBookmarkFromUrl } from './shapes/bookmark/bookmarks'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { getCroppedImageDataForReplacedImage } from './shapes/shared/crop'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
@@ -382,7 +383,7 @@ export async function defaultHandleExternalFileContent(
 ) {
 	const { acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES, toasts, msg } = options
 	if (files.length > editor.options.maxFilesAtOnce) {
-		toasts.addToast({ title: msg('assets.files.amount-too-big'), severity: 'error' })
+		toasts.addToast({ title: msg('assets.files.amount-too-many'), severity: 'error' })
 		return
 	}
 
@@ -557,7 +558,7 @@ export async function defaultHandleExternalUrlContent(
 	const embedUtil = editor.getShapeUtil('embed') as EmbedShapeUtil | undefined
 	const embedInfo = embedUtil?.getEmbedDefinition(url)
 
-	if (embedInfo) {
+	if (embedInfo && embedInfo.definition.embedOnPaste !== false) {
 		return editor.putExternalContent({
 			type: 'embed',
 			url: embedInfo.url,
@@ -572,42 +573,16 @@ export async function defaultHandleExternalUrlContent(
 			? editor.inputs.currentPagePoint
 			: editor.getViewportPageBounds().center)
 
-	const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
-	const shape = createEmptyBookmarkShape(editor, url, position)
+	// Use the new function to create the bookmark
+	const result = await createBookmarkFromUrl(editor, { url, center: position })
 
-	// Use an existing asset if we have one, or else else create a new one
-	let asset = editor.getAsset(assetId) as TLAsset
-	let shouldAlsoCreateAsset = false
-	if (!asset) {
-		shouldAlsoCreateAsset = true
-		try {
-			const bookmarkAsset = await editor.getAssetForExternalContent({ type: 'url', url })
-			if (!bookmarkAsset) throw Error('Could not create an asset')
-			asset = bookmarkAsset
-		} catch {
-			toasts.addToast({
-				title: msg('assets.url.failed'),
-				severity: 'error',
-			})
-			return
-		}
+	if (!result.ok) {
+		toasts.addToast({
+			title: msg('assets.url.failed'),
+			severity: 'error',
+		})
+		return
 	}
-
-	editor.run(() => {
-		if (shouldAlsoCreateAsset) {
-			editor.createAssets([asset])
-		}
-
-		editor.updateShapes([
-			{
-				id: shape.id,
-				type: shape.type,
-				props: {
-					assetId: asset.id,
-				},
-			},
-		])
-	})
 }
 
 /** @public */
@@ -901,8 +876,22 @@ export function notifyIfFileNotAllowed(file: File, options: TLDefaultExternalCon
 	}
 
 	if (file.size > maxAssetSize) {
+		const formatBytes = (bytes: number): string => {
+			if (bytes === 0) return '0 bytes'
+
+			const units = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB']
+			const base = 1024
+			const unitIndex = Math.floor(Math.log(bytes) / Math.log(base))
+
+			const value = bytes / Math.pow(base, unitIndex)
+			const formatted = value % 1 === 0 ? value.toString() : value.toFixed(1)
+
+			return `${formatted} ${units[unitIndex]}`
+		}
+
 		toasts.addToast({
 			title: msg('assets.files.size-too-big'),
+			description: msg('assets.files.maximum-size').replace('{size}', formatBytes(maxAssetSize)),
 			severity: 'error',
 		})
 		return false

@@ -18,7 +18,6 @@ The workspaces are:
 - apps/bemo-worker: a cloudflare worker hosting a demo server for tldraw sync, our multi-player backend.
 - apps/vscode: the tldraw vscode extension.
 - internal/\*: internal utilities, mostly for running this repo.
-- packages/ai: the tldraw ai module, an sdk addon for working with LLMs.
 - packages/assets: the assets (fonts, icons, images) needed for tldraw.
 - packages/create-tldraw: `npm create tldraw` cli for quickly creating a tldraw app.
 - packages/dotcom-shared: shared utilities used by the `apps/dotcom` workspaces.

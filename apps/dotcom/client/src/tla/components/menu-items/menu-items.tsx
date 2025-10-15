@@ -29,6 +29,7 @@ const messages = defineMessages({
 	accountMenu: { defaultMessage: 'User settings' },
 	signOut: { defaultMessage: 'Sign out' },
 	importFile: { defaultMessage: 'Import file…' },
+	dotdev: { defaultMessage: 'Try the tldraw SDK' },
 	// account menu
 	getHelp: { defaultMessage: 'User manual' },
 	legalSummary: { defaultMessage: 'Legal summary' },
@@ -116,6 +117,21 @@ export function GiveUsFeedbackMenuItem() {
 			readonlyOk
 			onSelect={() => {
 				addDialog({ component: SubmitFeedbackDialog })
+			}}
+		/>
+	)
+}
+
+export function DotDevMenuItem() {
+	const openAndTrack = useOpenUrlAndTrack('main-menu')
+	return (
+		<TldrawUiMenuItem
+			id="tos"
+			label={useMsg(messages.dotdev)}
+			iconLeft="external-link"
+			readonlyOk
+			onSelect={() => {
+				openAndTrack('https://tldraw.dev')
 			}}
 		/>
 	)

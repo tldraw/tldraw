@@ -81,6 +81,7 @@
 	"action.stretch-horizontal.short": "水平に引き伸ばす",
 	"action.stretch-vertical": "垂直に引き伸ばす",
 	"action.stretch-vertical.short": "垂直に引き伸ばす",
+	"action.toggle-auto-none": "自動",
 	"action.toggle-auto-size": "自動サイズ切り替え",
 	"action.toggle-dark-mode": "ダークモード",
 	"action.toggle-dark-mode.menu": "ダークモード",

@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test'
 import { type Editor } from 'tldraw'
+import test from '../fixtures/fixtures'
 import { setup, sleep } from '../shared-e2e'
-import test from './fixtures/fixtures'
 
 declare const editor: Editor
 

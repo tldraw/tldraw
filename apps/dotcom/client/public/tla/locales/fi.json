@@ -35,6 +35,9 @@
   "110a4b01be": {
     "translation": "Julkaista"
   },
+  "12c8a9838c": {
+    "translation": "Kokeile tldraw SDK:ta"
+  },
   "13ddd375ad": {
     "translation": "Vie nimellä"
   },
@@ -94,6 +97,12 @@
   },
   "47839e47a5": {
     "translation": "tldraw"
+  },
+  "7697920637": {
+    "translation": "Lataa uudelleen"
+  },
+  "764671e008": {
+    "translation": "Keskustele kanssamme Discordissa"
   },
   "4908687e50": {
     "translation": "Haluatko varmasti unohtaa tämän tiedoston?"
@@ -190,12 +199,6 @@
   },
   "761e93ede9": {
     "translation": "Hallinnoi evästeitä"
-  },
-  "7697920637": {
-    "translation": "Lataa uudelleen"
-  },
-  "764671e008": {
-    "translation": "Keskustele kanssamme Discordissa"
   },
   "777f9e90cf": {
     "translation": "Virheellinen pyyntö."
@@ -413,6 +416,9 @@
   },
   "ede55d955f": {
     "translation": "Lue lisää <a>evästekäytännöstämme</a>."
+  },
+  "ef7de3f485": {
+    "translation": "valittu"
   },
   "f09b16bc5f": {
     "translation": "Käytämme evästeitä pitääksemme sinut kirjautuneena sisään, synkronoidaksemme tiedostosi ja kerätäksemme analytiikkaa tldrawin parantamiseksi."

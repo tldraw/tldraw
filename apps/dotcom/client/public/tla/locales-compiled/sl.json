@@ -75,6 +75,12 @@
       "value": "Objavi"
     }
   ],
+  "12c8a9838c": [
+    {
+      "type": 0,
+      "value": "Preizkusite SDK tldraw"
+    }
+  ],
   "13ddd375ad": [
     {
       "type": 0,
@@ -943,6 +949,12 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "ef7de3f485": [
+    {
+      "type": 0,
+      "value": "izbrano"
     }
   ],
   "f09b16bc5f": [

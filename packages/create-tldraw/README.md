@@ -8,13 +8,21 @@ A CLI tool for quickly scaffolding a new tldraw project. Inspired by `npm create
 $ npm create tldraw -- --help
 Usage: create-tldraw [OPTION]... [DIRECTORY]
 
-Create a new project using tldraw.
-With no arguments, start the CLI in interactive mode.
+Create a new tldraw project.
+With no arguments, you'll be guided through an interactive setup.
 
 Options:
-  -h, --help                 display this help message
-  -t, --template NAME        use a specific template
-  -o, --overwrite            overwrite the target directory if it exists
+   -h, --help           Display this help message.
+   -t, --template NAME  Use a specific template.
+   -o, --overwrite      Overwrite the target directory if it exists.
+
+Available starter kits:
+ • basic                A minimal tldraw template with Vite, React, and TypeScript.
+ • agent                An AI-powered agent.
+ • branching-chat       A branching chat interface.
+ • chat                 A chat UI with sketches and images as context for AI.
+ • multiplayer          Real-time multiplayer for tldraw, built with Cloudflare Durable Objects.
+ • workflow             Visual node-based builder for workflows.
 ```
 
 ## Development
@@ -29,18 +37,19 @@ This will add a template entry for any workspace in the repo which has a `packag
 
 ```jsonc
 {
+	// indicates that this is a template app and should be published:
 	"tldraw_template": {
-		// indicates that this is a template app and should be published:
-		"publish": {
-			// the github repo to publish this template to
-			"repo": "tldraw/vite-template",
+		// the github repo to publish this template to
+		"repo": "tldraw/vite-template",
+		// if `cli` is present, we'll include this template in `npm create tldraw`
+		"cli": {
 			// the name of this template, as it appears in the CLI tool
 			"name": "Vite + tldraw",
 			// the description of this template as it appears in the CLI tool
 			"description": "The easiest way to get started with tldraw. Built with Vite, React, and TypeScript.",
-			// "framework" or "app". Controls which section of the CLI this is listed in
-			"category": "framework",
-			// where in its category should this template appear? lower numbers appear first
+			// (optional) a shorter description of the template, shown in `--help`
+			"shortDescription": "The easiest way to get started with tldraw.",
+			// (optional) where in its category should this template appear? lower numbers appear first
 			"order": 1,
 		},
 	},

@@ -81,6 +81,7 @@
 	"action.stretch-horizontal.short": "ยืดแนวนอน",
 	"action.stretch-vertical": "ยืดในแนวตั้ง",
 	"action.stretch-vertical.short": "ยืดแนวตั้ง",
+	"action.toggle-auto-none": "อัตโนมัติ",
 	"action.toggle-auto-size": "สลับขนาดอัตโนมัติ",
 	"action.toggle-dark-mode": "โหมดมืด",
 	"action.toggle-dark-mode.menu": "โหมดมืด",

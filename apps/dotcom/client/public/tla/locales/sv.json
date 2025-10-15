@@ -35,6 +35,9 @@
   "110a4b01be": {
     "translation": "Publicera"
   },
+  "12c8a9838c": {
+    "translation": "Testa tldraw SDK:et"
+  },
   "13ddd375ad": {
     "translation": "Exportera som"
   },
@@ -94,6 +97,12 @@
   },
   "47839e47a5": {
     "translation": "tldraw"
+  },
+  "7697920637": {
+    "translation": "Vänligen ladda om"
+  },
+  "764671e008": {
+    "translation": "Chatta med oss ​​på Discord"
   },
   "4908687e50": {
     "translation": "Är du säker på att du vill glömma den här filen?"
@@ -190,12 +199,6 @@
   },
   "761e93ede9": {
     "translation": "Hantera cookies"
-  },
-  "7697920637": {
-    "translation": "Vänligen ladda om"
-  },
-  "764671e008": {
-    "translation": "Chatta med oss ​​på Discord"
   },
   "777f9e90cf": {
     "translation": "Ogiltig begäran."
@@ -413,6 +416,9 @@
   },
   "ede55d955f": {
     "translation": "Läs vår <a>cookiepolicy</a> för att lära dig mer."
+  },
+  "ef7de3f485": {
+    "translation": "vald"
   },
   "f09b16bc5f": {
     "translation": "Vi använder cookies för att hålla dig inloggad, för att synkronisera dina filer och för att samla in analyser som hjälper oss att förbättra tldraw."

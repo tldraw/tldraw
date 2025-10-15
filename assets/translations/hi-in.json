@@ -81,6 +81,7 @@
 	"action.stretch-horizontal.short": "H खींचें",
 	"action.stretch-vertical": "लंबवत खींचे",
 	"action.stretch-vertical.short": "V खींचें",
+	"action.toggle-auto-none": "ऑटो",
 	"action.toggle-auto-size": "ऑटो साइज़ टॉगल करें",
 	"action.toggle-dark-mode": "डार्क मोड टॉगल करें",
 	"action.toggle-dark-mode.menu": "डार्क मोड",

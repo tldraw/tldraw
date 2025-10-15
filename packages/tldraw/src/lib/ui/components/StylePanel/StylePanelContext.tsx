@@ -5,7 +5,7 @@ import { useUiEvents } from '../../context/events'
 /** @public */
 export interface StylePanelContext {
 	styles: ReadonlySharedStyleMap
-	showUiLabels: boolean
+	enhancedA11yMode: boolean
 	onHistoryMark(id: string): void
 	onValueChange<T>(style: StyleProp<T>, value: T): void
 }
@@ -23,7 +23,9 @@ export function StylePanelContextProvider({ children, styles }: StylePanelContex
 	const trackEvent = useUiEvents()
 
 	const onHistoryMark = useCallback((id: string) => editor.markHistoryStoppingPoint(id), [editor])
-	const showUiLabels = useValue('showUiLabels', () => editor.user.getShowUiLabels(), [editor])
+	const enhancedA11yMode = useValue('enhancedA11yMode', () => editor.user.getEnhancedA11yMode(), [
+		editor,
+	])
 	const onValueChange = useCallback(
 		function <T>(style: StyleProp<T>, value: T) {
 			editor.run(() => {
@@ -43,7 +45,7 @@ export function StylePanelContextProvider({ children, styles }: StylePanelContex
 		<StylePanelContext.Provider
 			value={{
 				styles: styles,
-				showUiLabels,
+				enhancedA11yMode,
 				onHistoryMark,
 				onValueChange,
 			}}

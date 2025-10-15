@@ -12,6 +12,7 @@ beforeEach(() => {
 		},
 	})
 	editor.updateViewportScreenBounds(new Box(0, 0, 1600, 900))
+	editor.user.updateUserPreferences({ inputMode: null })
 })
 
 const wheelEvent = {
@@ -200,6 +201,18 @@ describe('CameraOptions.wheelBehavior', () => {
 				...wheelEvent,
 				delta: new Vec(0, 5, 0.01),
 				ctrlKey: true, // zooms
+			})
+			.forceTick()
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 5, z: 1 })
+	})
+
+	it('When input mode is set, camera wheel behavior is ignored', () => {
+		editor.user.updateUserPreferences({ inputMode: 'trackpad' })
+		editor
+			.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, wheelBehavior: 'zoom' })
+			.dispatch({
+				...wheelEvent,
+				delta: new Vec(0, 5, 0.01),
 			})
 			.forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 5, z: 1 })

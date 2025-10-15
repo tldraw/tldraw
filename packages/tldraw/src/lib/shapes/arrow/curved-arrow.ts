@@ -154,7 +154,10 @@ export function getCurvedArrowInfo(
 		}
 		if (!point) {
 			if (isClosed) {
-				const nearestPoint = startShapeInfo.geometry.nearestPoint(startInStartShapeLocalSpace)
+				const nearestPoint = startShapeInfo.geometry.nearestPoint(startInStartShapeLocalSpace, {
+					includeInternal: false,
+					includeLabels: false,
+				})
 				if (Vec.DistMin(nearestPoint, startInStartShapeLocalSpace, 1)) {
 					point = nearestPoint
 				}
@@ -233,7 +236,10 @@ export function getCurvedArrowInfo(
 		}
 		if (!point) {
 			if (isClosed) {
-				const nearestPoint = endShapeInfo.geometry.nearestPoint(endInEndShapeLocalSpace)
+				const nearestPoint = endShapeInfo.geometry.nearestPoint(endInEndShapeLocalSpace, {
+					includeInternal: false,
+					includeLabels: false,
+				})
 				if (Vec.DistMin(nearestPoint, endInEndShapeLocalSpace, 1)) {
 					point = nearestPoint
 				}

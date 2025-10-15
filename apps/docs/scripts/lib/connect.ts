@@ -65,6 +65,7 @@ export async function connect(opts: { reset?: boolean; mode: 'readonly' | 'readw
 			sectionId TEXT NOT NULL,
 			authorId TEXT NOT NULL,
 			title TEXT NOT NULL,
+			sidebarTitle TEXT,
 			description TEXT,
 			hero TEXT,
 			thumbnail TEXT,

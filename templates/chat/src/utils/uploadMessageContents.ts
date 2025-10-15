@@ -55,10 +55,11 @@ export async function uploadMessageContents(messages: UIMessage[]) {
 
 						partToSend.url = data.uploadedUrl
 						if (partToSend.providerMetadata) {
+							partToSend.providerMetadata = { ...partToSend.providerMetadata }
 							delete partToSend.providerMetadata.tldraw_uploaded
 							delete partToSend.providerMetadata.tldraw
 						}
-						partToSave.providerMetadata ??= {}
+						partToSave.providerMetadata = { ...partToSave.providerMetadata }
 						partToSave.providerMetadata.tldraw_uploaded = data as any
 					})()
 
