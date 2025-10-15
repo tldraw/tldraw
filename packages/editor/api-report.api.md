@@ -1444,6 +1444,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     _setShiftKeyTimeout(): void;
     setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLHistoryBatchOptions): this;
     setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): this;
+    setTool(Tool: TLStateNodeConstructor): void;
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
     };

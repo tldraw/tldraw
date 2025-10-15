@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import { Editor, useToasts } from 'tldraw'
+import { FairyThrowTool } from '../../FairyThrowTool'
 import { TldrawFairyAgent } from './TldrawFairyAgent'
 import { $fairyAgentsAtom } from './fairyAgentsAtom'
 
@@ -48,6 +49,8 @@ export function useTldrawFairyAgent(
 		if (existingAgent) {
 			existingAgent.dispose()
 		}
+
+		editor.setTool(FairyThrowTool)
 
 		// Create a new agent
 		return new TldrawFairyAgent({ editor, id, onError: handleError, getToken })
