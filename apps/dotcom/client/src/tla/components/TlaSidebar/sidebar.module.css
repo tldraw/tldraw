@@ -676,10 +676,6 @@
 	flex-shrink: 0;
 	transition: transform 3s ease-in-out 0s;
 }
-.sidebarDotDevLink:hover a div {
-	transform: translate(80px, 0px) rotate(180deg);
-	transition: transform 6s ease-in-out 1s;
-}
 
 .sidebarDotDevDismissButton {
 	background: none;
@@ -700,10 +696,17 @@
 	height: 12px;
 }
 
-.sidebarDotDevLink:has(a:hover) .sidebarDotDevDismissButton {
-	opacity: 0;
-}
+@media (hover: hover) {
+	.sidebarDotDevLink:hover a div {
+		transform: translate(80px, 0px) rotate(180deg);
+		transition: transform 6s ease-in-out 1s;
+	}
 
-.sidebarDotDevLink:has(a:hover):after {
-	background-color: var(--tla-color-hover-2);
+	.sidebarDotDevLink:has(a:hover) .sidebarDotDevDismissButton {
+		opacity: 0;
+	}
+
+	.sidebarDotDevLink:has(a:hover):after {
+		background-color: var(--tla-color-hover-2);
+	}
 }
