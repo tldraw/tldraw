@@ -29,7 +29,7 @@ export type ResizingInfo = TLPointerEventInfo & {
 	creatingMarkId?: string
 	onCreate?(shape: TLShape | null): void
 	creationCursorOffset?: VecLike
-	onInteractionEnd?: string
+	onInteractionEnd?: string | (() => void)
 }
 
 export class Resizing extends StateNode {
@@ -55,7 +55,9 @@ export class Resizing extends StateNode {
 		this.info = info
 		this.didHoldCommand = false
 
-		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		if (typeof info.onInteractionEnd === 'string') {
+			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		}
 		this.creationCursorOffset = creationCursorOffset
 
 		try {
@@ -135,11 +137,16 @@ export class Resizing extends StateNode {
 
 		this.editor.bailToMark(this.markId)
 
-		if (this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
-		} else {
-			this.parent.transition('idle')
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				this.editor.setCurrentTool(onInteractionEnd, {})
+			} else {
+				onInteractionEnd()
+			}
+			return
 		}
+		this.parent.transition('idle')
 	}
 
 	private complete() {
@@ -152,9 +159,17 @@ export class Resizing extends StateNode {
 			return
 		}
 
-		if (this.editor.getInstanceState().isToolLocked && this.info.onInteractionEnd) {
-			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
-			return
+		const { onInteractionEnd } = this.info
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				if (this.editor.getInstanceState().isToolLocked) {
+					this.editor.setCurrentTool(onInteractionEnd, {})
+					return
+				}
+			} else {
+				onInteractionEnd()
+				return
+			}
 		}
 
 		this.parent.transition('idle')

@@ -13,8 +13,9 @@
 		"repo": "tldraw/agent-template",
 		"cli": {
 			"name": "Agent",
-			"description": "Enable AI agents to interpret and interact with canvas drawings and elements.",
-			"shortDescription": "An AI-powered agent."
+			"description": "Work on the canvas with an AI agent.",
+			"shortDescription": "An AI-powered agent.",
+			"order": 3
 		},
 		"scripts": {
 			"lint": null

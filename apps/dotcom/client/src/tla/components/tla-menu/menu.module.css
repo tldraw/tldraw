@@ -391,3 +391,7 @@ div:has(> .menuSelectContent) {
 	height: var(--line-height);
 	background-color: var(--tla-color-hover-1);
 }
+
+.menuLabel + .menuInfoTriggerContainer {
+	margin-left: -4px;
+}

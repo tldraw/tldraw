@@ -59,7 +59,7 @@ export const FluidRenderer = memo(() => {
 	}, [darkMode, editor, config])
 
 	const pixelate = config.pixelate ?? false
-	const canvasClassName = `shader-canvas${pixelate ? ' shader-canvas-pixelated' : ''}`
+	const canvasClassName = `shader-app__canvas${pixelate ? ' shader-app__canvas--pixelated' : ''}`
 
 	return <canvas ref={rCanvas} className={canvasClassName} />
 })
