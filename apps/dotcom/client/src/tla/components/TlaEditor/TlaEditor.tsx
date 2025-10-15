@@ -23,6 +23,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
+import { FairyThrowTool } from '../../../fairy/FairyThrowTool'
 import { TldrawFairyAgent } from '../../../fairy/fairy-agent/agent/TldrawFairyAgent'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
@@ -104,6 +105,8 @@ export const components: TLComponents = {
 		)
 	},
 }
+
+const customTools = [FairyThrowTool]
 
 interface TlaEditorProps {
 	fileSlug: string
@@ -318,6 +321,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
 				components={components}
+				tools={customTools}
 				options={{ actionShortcutsLocation: 'toolbar' }}
 				deepLinks={deepLinks || undefined}
 				overrides={[overrides, extraDragIconOverrides]}
