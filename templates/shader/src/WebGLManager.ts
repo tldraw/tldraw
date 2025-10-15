@@ -102,6 +102,7 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 
 		this.isInitialized = true
 		this.lastFrameTime = performance.now()
+		this.resize()
 
 		// Begin animation loop unless configured to start paused
 		if (!startPaused) {

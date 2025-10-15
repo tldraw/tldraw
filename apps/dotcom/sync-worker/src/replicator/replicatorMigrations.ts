@@ -201,6 +201,11 @@ export async function migrate(sqlite: SqlStorage, log: Logger, test__upTo?: stri
 	}
 
 	for (let i = 0; i < appliedMigrations.length; i++) {
+		if (!migrations[i]) {
+			throw new Error(
+				`TLPostgresReplicator has more applied migrations (${appliedMigrations.length}) than defined migrations (${migrations.length}). Migration ID: ${appliedMigrations[i].id}`
+			)
+		}
 		if (appliedMigrations[i].id !== migrations[i].id) {
 			throw new Error(
 				'TLPostgresReplicator migrations have changed!! this is an append-only array!!'

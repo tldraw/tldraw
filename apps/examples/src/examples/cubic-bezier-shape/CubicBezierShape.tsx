@@ -245,6 +245,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		}
 	}
 
+	// [7]
 	override onTranslateStart(shape: MyBezierCurveShape) {
 		// only bend if we start translating with the command or control key pressed
 		// this avoids bending the curve midway through a translation where the user accidentally
@@ -294,6 +295,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		return
 	}
 
+	// [8]
 	component(shape: MyBezierCurveShape) {
 		const path = this.getGeometry(shape).getSvgPathData(true)
 		const { start, end, cp1, cp2 } = shape.props
@@ -369,17 +371,22 @@ and rendering.
 
 [4]
 Define four interactive handles: start, end, cp1, and cp2. Each has an id, type, position, and index.
+Control point handles automatically hide when within 2 pixels of their associated endpoints.
 
 [5]
 Custom handle snapping: control points can snap to start/end points, useful for creating sharp corners.
 
 [6]
-Handles have a few behaviors:
-1. Pressing meta key while clicking the start handle moves cp1 to coincide with the start point.
-2. Pressing meta key while clicking the end handle moves cp2 to coincide with the end point.
-3. Control point handles that are very close to their endpoints (< 2 units) are automatically hidden.
-4. Moving a start or end handle will move the associated control point with it.
+Handle drag behaviors:
+- Meta key + drag start/end handles repositions the associated control point (cp1 or cp2)
+- Dragging start/end handles moves the associated control point to maintain curve shape
+- Dragging cp1/cp2 directly moves only that control point
 
-This ensures a better editing experience by maintaining the relative position of the 
-control points to the endpoints for smoother curves.
+[7]
+Translation with curve bending: Hold meta key while dragging the curve (not handles) to bend it
+by moving both control points together. This is detected on translate start to avoid accidental bending.
+
+[8]
+Visual feedback: Display dashed lines from start→cp1 and end→cp2 when the shape is selected
+and actively being edited or translated.
 */

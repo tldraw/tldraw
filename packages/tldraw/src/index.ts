@@ -134,6 +134,7 @@ export {
 	getArrowTerminalsInArrowSpace,
 	type TLArrowBindings,
 } from './lib/shapes/arrow/shared'
+export { createBookmarkFromUrl } from './lib/shapes/bookmark/bookmarks'
 export { BookmarkShapeUtil } from './lib/shapes/bookmark/BookmarkShapeUtil'
 export { DrawShapeTool } from './lib/shapes/draw/DrawShapeTool'
 export { DrawShapeUtil, type DrawShapeOptions } from './lib/shapes/draw/DrawShapeUtil'
@@ -464,6 +465,7 @@ export {
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
 export {
 	StylePanelButtonPicker,
+	StylePanelButtonPickerInline,
 	type StylePanelButtonPickerProps,
 } from './lib/ui/components/StylePanel/StylePanelButtonPicker'
 export {
@@ -474,10 +476,12 @@ export {
 } from './lib/ui/components/StylePanel/StylePanelContext'
 export {
 	StylePanelDoubleDropdownPicker,
+	StylePanelDoubleDropdownPickerInline,
 	type StylePanelDoubleDropdownPickerProps,
 } from './lib/ui/components/StylePanel/StylePanelDoubleDropdownPicker'
 export {
 	StylePanelDropdownPicker,
+	StylePanelDropdownPickerInline,
 	type StylePanelDropdownPickerProps,
 } from './lib/ui/components/StylePanel/StylePanelDropdownPicker'
 export {

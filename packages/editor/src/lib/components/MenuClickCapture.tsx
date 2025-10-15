@@ -3,6 +3,7 @@ import { PointerEvent, useCallback, useRef, useState } from 'react'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
 import { Vec } from '../primitives/Vec'
+import { getPointerInfo } from '../utils/getPointerInfo'
 
 /**
  * When a menu is open, this component prevents the user from interacting with the canvas.
@@ -39,35 +40,51 @@ export function MenuClickCapture() {
 					isDragging: false,
 					start: new Vec(e.clientX, e.clientY),
 				}
+				rDidAPointerDownAndDragWhileMenuWasOpen.current = false
 			}
 			editor.menus.clearOpenMenus()
 		},
 		[editor]
 	)
 
+	const rDidAPointerDownAndDragWhileMenuWasOpen = useRef(false)
+
 	const handlePointerMove = useCallback(
 		(e: PointerEvent) => {
 			// Do nothing unless we're pointing
 			if (!rPointerState.current.isDown) return
 
-			if (
-				// We're pointing, but are we dragging?
-				Vec.Dist2(rPointerState.current.start, new Vec(e.clientX, e.clientY)) >
-				editor.options.dragDistanceSquared
-			) {
-				// Wehaddaeventitsadrag
-				rPointerState.current = {
-					...rPointerState.current,
-					isDown: true,
-					isDragging: true,
+			// call the onPointerDown with the original pointer position
+			const { x, y } = rPointerState.current.start
+
+			if (!rDidAPointerDownAndDragWhileMenuWasOpen.current) {
+				if (
+					// We're pointing, but are we dragging?
+					Vec.Dist2(rPointerState.current.start, new Vec(e.clientX, e.clientY)) >
+					editor.options.dragDistanceSquared
+				) {
+					rDidAPointerDownAndDragWhileMenuWasOpen.current = true
+					// Wehaddaeventitsadrag
+					rPointerState.current = {
+						...rPointerState.current,
+						isDown: true,
+						isDragging: true,
+					}
+					canvasEvents.onPointerDown?.({
+						...e,
+						clientX: x,
+						clientY: y,
+						button: 0,
+					})
 				}
-				// call the onPointerDown with the original pointer position
-				const { x, y } = rPointerState.current.start
-				canvasEvents.onPointerDown?.({
-					...e,
-					clientX: x,
-					clientY: y,
-					button: 0,
+			}
+
+			if (rDidAPointerDownAndDragWhileMenuWasOpen.current) {
+				editor.dispatch({
+					type: 'pointer',
+					target: 'canvas',
+					name: 'pointer_move',
+					...getPointerInfo(editor, e),
 				})
 			}
 		},
@@ -86,6 +103,7 @@ export function MenuClickCapture() {
 				isDragging: false,
 				start: new Vec(e.clientX, e.clientY),
 			}
+			rDidAPointerDownAndDragWhileMenuWasOpen.current = false
 		},
 		[canvasEvents]
 	)

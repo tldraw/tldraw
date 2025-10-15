@@ -12,9 +12,10 @@
 	"tldraw_template": {
 		"repo": "tldraw/shader-starter-kit",
 		"cli": {
-			"name": "Shader Starter Kit",
-			"description": "A tldraw template with WebGL shader starter kit that creates dynamic shader effects from shape geometry.",
-			"order": 10
+			"name": "Shader",
+			"description": "Create WebGL shaders that respond to shapes on the canvas.",
+			"shortDescription": "Shaders on the canvas.",
+			"order": 7
 		},
 		"scripts": {
 			"lint": null

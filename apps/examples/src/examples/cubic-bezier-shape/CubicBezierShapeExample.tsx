@@ -8,14 +8,12 @@ export default function BezierCurveShapeExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				// [7]
+				// [9]
 				components={{
 					Handles: CustomHandles,
 				}}
 				shapeUtils={customShapes}
 				onMount={(editor) => {
-					editor.updateInstanceState({ isDebugMode: true })
-
 					const viewportPageBounds = editor.getViewportPageBounds()
 					const centerX = viewportPageBounds.center.x
 					const centerY = viewportPageBounds.center.y
@@ -26,7 +24,7 @@ export default function BezierCurveShapeExample() {
 						y: centerY - 150,
 					})
 
-					// [8]
+					// [10]
 					// Get state nodes with proper type safety
 					const pointingHandleState = editor.getStateDescendant<StateNode>('select.pointing_handle')
 					const editingShapeState = editor.getStateDescendant<StateNode>('select.editing_shape')
@@ -158,10 +156,15 @@ export default function BezierCurveShapeExample() {
 Introduction:
 This example demonstrates how to create a cubic bezier curve shape with interactive handles.
 
-[7]
-Use custom ControlHandles component to control handle visibility based on editor state.
+[9]
+Use custom ControlHandles component to show handles for bezier curves when editing, translating, or
+dragging handles (not just in select.idle like default behavior).
 
-[8]
-Override two original methods of pointing_handle to keep the shape in editing mode after dragging handles,
-allowing continuous handle adjustments, and to collapse control points when clicking on them with the meta/cmd key.
+[10]
+Override state node methods to enable three custom interactions:
+1. Meta + click on cp1/cp2 handles collapses them to their associated start/end points
+2. After dragging any handle, stay in editing mode (instead of returning to select.idle)
+3. Allow translating the curve while in editing mode by detecting drag and transitioning to select.translating
+
+These overrides maintain the editing context, allowing fluid adjustments without losing handle visibility.
 */
