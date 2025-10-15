@@ -80,30 +80,6 @@ export const components: TLComponents = {
 	SharePanel: TlaEditorSharePanel,
 	Dialogs: null,
 	Toasts: null,
-	DebugMenu: () => {
-		const app = useMaybeApp()
-		const openAndTrack = useOpenUrlAndTrack('unknown')
-		const editor = useEditor()
-		const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
-		return (
-			<DefaultDebugMenu>
-				<A11yAudit />
-				{!isReadOnly && app && (
-					<TldrawUiMenuItem
-						id="user-manual"
-						label="File history"
-						readonlyOk
-						onSelect={() => {
-							const url = new URL(window.location.href)
-							url.pathname += '/history'
-							openAndTrack(url.toString())
-						}}
-					/>
-				)}
-				<DefaultDebugMenuContent customFeatureFlags={customFeatureFlags} />
-			</DefaultDebugMenu>
-		)
-	},
 }
 
 const customTools = [FairyThrowTool]
@@ -295,7 +271,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	// this is ugly
 	const originalInFrontOfTheCanvasRef = useRef(components.InFrontOfTheCanvas)
 	const OriginalInFrontOfTheCanvas = originalInFrontOfTheCanvasRef.current
-	const canShowFairies = agents.length > 0 && showFairies && user?.isTldraw
+	const canShowFairies = agents.length > 0 && showFairies && !!user?.isTldraw
 
 	components.InFrontOfTheCanvas = (props) => (
 		<>
@@ -309,6 +285,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			)}
 		</>
 	)
+	components.DebugMenu = () => <CustomDebugMenu canShowFairies={canShowFairies} />
 
 	return (
 		<TlaEditorWrapper>
@@ -365,4 +342,31 @@ function SneakyFileUpdateHandler({ fileId }: { fileId: string }) {
 	}, [app, fileId, editor])
 
 	return null
+}
+
+function CustomDebugMenu({ canShowFairies }: { canShowFairies: boolean }) {
+	const app = useMaybeApp()
+	const openAndTrack = useOpenUrlAndTrack('unknown')
+	const editor = useEditor()
+	const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
+	return (
+		<DefaultDebugMenu>
+			<A11yAudit />
+			{!isReadOnly && app && (
+				<TldrawUiMenuItem
+					id="user-manual"
+					label="File history"
+					readonlyOk
+					onSelect={() => {
+						const url = new URL(window.location.href)
+						url.pathname += '/history'
+						openAndTrack(url.toString())
+					}}
+				/>
+			)}
+			<DefaultDebugMenuContent
+				customFeatureFlags={canShowFairies ? customFeatureFlags : undefined}
+			/>
+		</DefaultDebugMenu>
+	)
 }
