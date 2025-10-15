@@ -10,13 +10,13 @@ export function ConfigPanelBooleanControl({
 	onChange: (prop: string, value: boolean) => void
 }) {
 	return (
-		<label className="shader-boolean-control">
-			{label}
+		<label className="shader-config-panel__control shader-config-panel__control--boolean">
+			<span className="shader-config-panel__label">{label}</span>
 			<input
 				type="checkbox"
 				checked={value ?? false}
 				onChange={(e) => onChange(prop, e.target.checked)}
-				className="shader-boolean-input"
+				className="shader-config-panel__boolean-input"
 			/>
 		</label>
 	)
