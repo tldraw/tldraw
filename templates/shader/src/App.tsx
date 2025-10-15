@@ -6,7 +6,6 @@ import { MinimalConfigPanel } from './minimal/MinimalConfigPanel'
 import { MinimalRenderer } from './minimal/MinimalRenderer'
 import { RainbowConfigPanel } from './rainbow/RainbowConfigPanel'
 import { RainbowRenderer } from './rainbow/RainbowRenderer'
-import './shader.css'
 import { ShadowControlPanel } from './shadow/ShadowControlPanel'
 import { ShadowRenderer } from './shadow/ShadowRenderer'
 
