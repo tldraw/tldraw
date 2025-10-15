@@ -1,19 +1,28 @@
-import { FairyEntity } from '@tldraw/fairy-shared'
+import { TldrawFairyAgent } from '@tldraw/fairy-shared'
 import { useEffect, useRef } from 'react'
-import { Atom, Box, useEditor, useValue } from 'tldraw'
+import { Box, useEditor, useValue } from 'tldraw'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
 
-export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
+const FAIRY_SIZE = 200
+const FAIRY_CLICKABLE_SIZE_DEFAULT = 100
+const FAIRY_CLICKABLE_SIZE_SELECTED = 200
+
+// We use the agent directly here because we need to access the isGenerating method
+// which is not exposed on the fairy atom
+export default function FairyInner({ agent }: { agent: TldrawFairyAgent }) {
 	const editor = useEditor()
 	const containerRef = useRef<HTMLDivElement>(null)
 	const fairyRef = useRef<HTMLDivElement>(null)
+	const fairy = agent.$fairy
 
 	// Track viewport screen bounds to position fairy correctly
 	const screenPosition = useValue(
 		'fairy screen position',
 		() => {
+			const entity = fairy.get()
+			if (!entity) return { x: 0, y: 0 }
 			// Convert page coordinates to screen coordinates
-			const screenPos = editor.pageToScreen(fairy.get().position)
+			const screenPos = editor.pageToScreen(entity.position)
 			const screenBounds = editor.getViewportScreenBounds()
 			return {
 				x: screenPos.x - screenBounds.x,
@@ -23,9 +32,9 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 		[editor, fairy]
 	)
 
-	const flipX = useValue('fairy flipX', () => fairy.get().flipX, [fairy])
-	const isSelected = useValue('fairy isSelected', () => fairy.get().isSelected, [fairy])
-	const pose = useValue('fairy pose', () => fairy.get().pose, [fairy])
+	const flipX = useValue('fairy flipX', () => fairy.get()?.flipX ?? false, [fairy])
+	const isSelected = useValue('fairy isSelected', () => fairy.get()?.isSelected ?? false, [fairy])
+	const pose = useValue('fairy pose', () => fairy.get()?.pose ?? 'idle', [fairy])
 	const isThrowToolActive = useValue(
 		'is throw tool active',
 		() => editor.getCurrentTool().id === 'fairy-throw',
@@ -47,7 +56,7 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 	useEffect(() => {
 		if (brush && !isBrushingRef.current) {
 			// Brushing just started - remember initial selection state
-			wasInitiallySelectedRef.current = fairy.get().isSelected
+			wasInitiallySelectedRef.current = fairy.get()?.isSelected ?? false
 			isBrushingRef.current = true
 		} else if (!brush && isBrushingRef.current) {
 			// Brushing just ended
@@ -76,17 +85,17 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 			currentSelectedCount > 0 &&
 			prevSelectedCountRef.current < currentSelectedCount
 
-		if (wasSelectAllTriggered && !fairy.get().isSelected) {
+		if (wasSelectAllTriggered && !fairy.get()?.isSelected) {
 			// Select the fairy too
-			fairy.update((f) => ({ ...f, isSelected: true }))
+			fairy.update((f) => (f ? { ...f, isSelected: true } : f))
 		}
 
 		// Detect "select none" - if no shapes are selected and previously some were
 		const wasSelectNoneTriggered = currentSelectedCount === 0 && prevSelectedCountRef.current > 0
 
-		if (wasSelectNoneTriggered && fairy.get().isSelected) {
+		if (wasSelectNoneTriggered && fairy.get()?.isSelected) {
 			// Deselect the fairy too
-			fairy.update((f) => ({ ...f, isSelected: false }))
+			fairy.update((f) => (f ? { ...f, isSelected: false } : f))
 		}
 
 		prevSelectedCountRef.current = currentSelectedCount
@@ -95,9 +104,17 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 	useEffect(() => {
 		// Only process when brush is active (not null)
 		if (!brush) return
-		const fairyPosition = fairy.get().position
+		const fairyEntity = fairy.get()
+		if (!fairyEntity) return
+
+		const fairyPosition = fairyEntity.position
 		// Create a bounding box for the fairy (200px x 200px centered on position)
-		const fairyBounds = new Box(fairyPosition.x - 100, fairyPosition.y - 100, 200, 200)
+		const fairyBounds = new Box(
+			fairyPosition.x - FAIRY_SIZE / 2,
+			fairyPosition.y - FAIRY_SIZE / 2,
+			FAIRY_SIZE,
+			FAIRY_SIZE
+		)
 		const brushBox = Box.From(brush)
 
 		// Check if the fairy bounds intersect with the brush box
@@ -116,9 +133,9 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 		}
 
 		// Update selection state if it changed
-		const currentlySelected = fairy.get().isSelected
+		const currentlySelected = fairyEntity.isSelected
 		if (shouldBeSelected !== currentlySelected) {
-			fairy.update((f) => ({ ...f, isSelected: shouldBeSelected }))
+			fairy.update((f) => (f ? { ...f, isSelected: shouldBeSelected } : f))
 		}
 	}, [brush, fairy, editor])
 
@@ -130,7 +147,7 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 				!fairyRef.current.contains(e.target) &&
 				!e.target.closest('.tla-fairy-hud')
 			) {
-				fairy.update((f) => ({ ...f, isSelected: false }))
+				fairy.update((f) => (f ? { ...f, isSelected: false } : f))
 			}
 		}
 
@@ -143,13 +160,21 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 		}
 	}, [isSelected, fairy])
 
+	// Fairy dragging
 	// Handle fairy pointer down, we don't enter fairy throw tool until the user actually moves their mouse
 	const handleFairyPointerDown = (e: any) => {
 		// Don't activate tool immediately - wait for drag to start
+		if (!editor.isIn('select.idle')) return
 		if (editor.getCurrentTool().id === 'fairy-throw') return
 
-		fairy.update((f) => ({ ...f, isSelected: true }))
+		// right now we don't have a way for the fairy to break out of a user's grasp,
+		// but currently the UI is structured such that you cant be dragging the fairy
+		// when you press generate, so this is enough for now
+		if (agent.isGenerating()) return
+
+		fairy.update((f) => (f ? { ...f, isSelected: true } : f))
 		editor.setCursor({ type: 'grabbing', rotation: 20 })
+		editor.setSelectedShapes([])
 
 		const startX = e.clientX
 		const startY = e.clientY
@@ -187,6 +212,10 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 		editor.setCursor({ type: 'grab', rotation: 0 })
 	}
 
+	// Early return if fairy doesn't exist (after all hooks)
+	const fairyEntity = fairy.get()
+	if (!fairyEntity) return null
+
 	return (
 		<div
 			ref={containerRef}
@@ -207,8 +236,8 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 					position: 'absolute',
 					left: screenPosition.x,
 					top: screenPosition.y,
-					width: '200px',
-					height: '200px',
+					width: `${FAIRY_SIZE}px`,
+					height: `${FAIRY_SIZE}px`,
 					transform: `translate(-50%, -50%) scale(max(var(--tl-zoom), 0.4))${flipX ? ' scaleX(-1)' : ''}`,
 					// transition:
 					// 'left 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
@@ -221,6 +250,7 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 					onPointerUp={handleFairyPointerUp}
 					onMouseEnter={() => {
 						if (!isThrowToolActive) {
+							if (!editor.isIn('select.idle')) return
 							editor.setCursor({ type: 'grab', rotation: 0 })
 						}
 					}}
@@ -234,8 +264,8 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 						top: '50%',
 						left: '50%',
 						transform: 'translate(-50%, -50%)',
-						width: '100px',
-						height: '100px',
+						width: `${isSelected ? FAIRY_CLICKABLE_SIZE_SELECTED : FAIRY_CLICKABLE_SIZE_DEFAULT}px`,
+						height: `${isSelected ? FAIRY_CLICKABLE_SIZE_SELECTED : FAIRY_CLICKABLE_SIZE_DEFAULT}px`,
 						pointerEvents: isThrowToolActive ? 'none' : 'auto',
 					}}
 				/>

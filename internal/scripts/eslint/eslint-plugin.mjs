@@ -498,6 +498,36 @@ const rules = {
             };
         },
     }),
+    'no-fairy-imports': ESLintUtils.RuleCreator.withoutDocs({
+        create(context) {
+            return {
+                ImportDeclaration(node) {
+                    const importPath = node.source.value;
+                    
+                    // Check if the import path contains '/fairy/' or ends with '/fairy'
+                    // This catches patterns like:
+                    // - '../../../fairy/FairyThrowTool'
+                    // - '../../fairy/fairy-agent/agent/TldrawFairyAgent'
+                    if (typeof importPath === 'string' && 
+                        (importPath.includes('/fairy/') || importPath.endsWith('/fairy'))) {
+                        context.report({
+                            messageId: 'noFairyImports',
+                            node: node.source,
+                            data: { path: importPath },
+                        });
+                    }
+                },
+            };
+        },
+        meta: {
+            messages: {
+                noFairyImports: 'Direct imports from the fairy directory ({{path}}) are not allowed. This breaks code splitting. Import from a proper package or lazy-load instead.',
+            },
+            type: 'problem',
+            schema: [],
+        },
+        defaultOptions: [],
+    }),
 };
 export default { rules };
 function checkParams(context, node, params, name) {

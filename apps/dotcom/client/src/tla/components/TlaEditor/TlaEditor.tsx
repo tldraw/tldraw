@@ -23,8 +23,6 @@ import {
 	useValue,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
-import { FairyThrowTool } from '../../../fairy/FairyThrowTool'
-import { TldrawFairyAgent } from '../../../fairy/fairy-agent/agent/TldrawFairyAgent'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { useHandleUiEvents } from '../../../utils/analytics'
@@ -80,33 +78,7 @@ export const components: TLComponents = {
 	SharePanel: TlaEditorSharePanel,
 	Dialogs: null,
 	Toasts: null,
-	DebugMenu: () => {
-		const app = useMaybeApp()
-		const openAndTrack = useOpenUrlAndTrack('unknown')
-		const editor = useEditor()
-		const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
-		return (
-			<DefaultDebugMenu>
-				<A11yAudit />
-				{!isReadOnly && app && (
-					<TldrawUiMenuItem
-						id="user-manual"
-						label="File history"
-						readonlyOk
-						onSelect={() => {
-							const url = new URL(window.location.href)
-							url.pathname += '/history'
-							openAndTrack(url.toString())
-						}}
-					/>
-				)}
-				<DefaultDebugMenuContent customFeatureFlags={customFeatureFlags} />
-			</DefaultDebugMenu>
-		)
-	},
 }
-
-const customTools = [FairyThrowTool]
 
 interface TlaEditorProps {
 	fileSlug: string
@@ -290,12 +262,13 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 	// Fairy stuff
 
-	const [agents, setAgents] = useState<TldrawFairyAgent[]>([])
+	// TODO(mime): use TldrawFairyAgent type without importing the whole fairy package
+	const [agents, setAgents] = useState<any[]>([])
 
 	// this is ugly
 	const originalInFrontOfTheCanvasRef = useRef(components.InFrontOfTheCanvas)
 	const OriginalInFrontOfTheCanvas = originalInFrontOfTheCanvasRef.current
-	const canShowFairies = agents.length > 0 && showFairies && user?.isTldraw
+	const canShowFairies = agents.length > 0 && showFairies && !!user?.isTldraw
 
 	components.InFrontOfTheCanvas = (props) => (
 		<>
@@ -309,6 +282,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			)}
 		</>
 	)
+	components.DebugMenu = () => <CustomDebugMenu showFairyFeatureFlags={!!user?.isTldraw} />
 
 	return (
 		<TlaEditorWrapper>
@@ -321,7 +295,6 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
 				components={components}
-				tools={customTools}
 				options={{ actionShortcutsLocation: 'toolbar' }}
 				deepLinks={deepLinks || undefined}
 				overrides={[overrides, extraDragIconOverrides]}
@@ -365,4 +338,31 @@ function SneakyFileUpdateHandler({ fileId }: { fileId: string }) {
 	}, [app, fileId, editor])
 
 	return null
+}
+
+function CustomDebugMenu({ showFairyFeatureFlags }: { showFairyFeatureFlags: boolean }) {
+	const app = useMaybeApp()
+	const openAndTrack = useOpenUrlAndTrack('unknown')
+	const editor = useEditor()
+	const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
+	return (
+		<DefaultDebugMenu>
+			<A11yAudit />
+			{!isReadOnly && app && (
+				<TldrawUiMenuItem
+					id="user-manual"
+					label="File history"
+					readonlyOk
+					onSelect={() => {
+						const url = new URL(window.location.href)
+						url.pathname += '/history'
+						openAndTrack(url.toString())
+					}}
+				/>
+			)}
+			<DefaultDebugMenuContent
+				customFeatureFlags={showFairyFeatureFlags ? customFeatureFlags : undefined}
+			/>
+		</DefaultDebugMenu>
+	)
 }

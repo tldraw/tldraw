@@ -14,7 +14,8 @@
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
-		"@tldraw/validate": "workspace:*"
+		"@tldraw/validate": "workspace:*",
+		"tldraw": "workspace:*"
 	},
 	"peerDependencies": {
 		"react": "^18.2.0 || ^19.0.0",

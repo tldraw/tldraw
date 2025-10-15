@@ -135,9 +135,7 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 						<div className="fairy-id-display">{onlyFairy.id}</div>
 					</div>
 					<FairyChatHistory agent={onlyFairy} />
-					<div className="fairy-chat-input-container">
-						<FairyBasicInput agent={onlyFairy} />
-					</div>
+					<FairyBasicInput agent={onlyFairy} />
 				</div>
 			)}
 
@@ -151,20 +149,7 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 						{panelState === 'open' ? '››' : '‹‹'}
 					</button>
 				</div>
-				<TldrawUiToolbar
-					label={toolbarMessage}
-					style={{
-						borderRadius: '0',
-						boxShadow: 'none',
-						display: 'flex',
-						flexDirection: 'column',
-						gap: '4px',
-						padding: '4px',
-						// maxHeight: '192px',
-						overflowY: 'auto',
-						border: 'none',
-					}}
-				>
+				<TldrawUiToolbar label={toolbarMessage}>
 					{agents.map((agent) => {
 						return (
 							<FairyButton

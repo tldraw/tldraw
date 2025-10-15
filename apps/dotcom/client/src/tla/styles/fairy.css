@@ -177,27 +177,32 @@
 
 .fairy-input {
 	/* background-color: var(--tl-color-muted-1); */
-	border-radius: 4px;
-	padding: 8px;
+	/* border-radius: 4px; */
+	/* padding: 8px; */
 	pointer-events: auto;
 	position: relative;
 	display: flex;
 	align-items: center;
-	gap: 8px;
+	gap: 12px;
+	padding-right: 8px;
+	border-top: 1px solid var(--tl-color-divider);
+	/* flex: 1; */
 }
 
-.fairy-input__form {
+/* .fairy-input__form {
 	pointer-events: auto;
 	display: flex;
 	align-items: center;
 	gap: 8px;
 	flex: 1;
-}
+} */
 
 .fairy-input__field {
 	flex: 1;
-	padding: 15px;
-	margin: -15px;
+	/* padding: 15px;
+	margin: -15px; */
+	margin-left: 6px;
+	padding: 0px;
 	pointer-events: auto;
 	border: none;
 	background: transparent;
@@ -205,7 +210,7 @@
 	font-size: 12px;
 	font-family: inherit;
 	outline: none;
-	min-width: 150px;
+	/* min-width: 150px; */
 }
 
 .fairy-input__field::placeholder {
@@ -321,8 +326,7 @@
 	align-items: center;
 	justify-content: start;
 	height: 32px;
-	background-color: var(--tl-color-muted-1);
-	border-bottom: 1px solid var(--tl-color-muted-2);
+	border-bottom: 1px solid var(--tl-color-divider);
 	padding: 4px;
 	flex-shrink: 0;
 	gap: 8px;
@@ -339,8 +343,7 @@
 	align-items: center;
 	justify-content: center;
 	height: 32px;
-	background-color: var(--tl-color-muted-1);
-	border-bottom: 1px solid var(--tl-color-muted-2);
+	border-bottom: 1px solid var(--tl-color-divider);
 	padding: 4px;
 	flex-shrink: 0;
 }
@@ -403,10 +406,10 @@
 	display: flex;
 	flex-direction: column;
 	background-color: var(--tl-color-panel);
-	border: 1px solid var(--tl-color-muted-2);
 	border-radius: var(--tl-radius-2);
 	box-shadow: var(--tl-shadow-1);
 	overflow: hidden;
+	z-index: 1;
 }
 
 .tla-fairy-hud:has(.fairy-chat-panel) .fairy-buttons-container {
@@ -422,18 +425,11 @@
 	width: 350px;
 	height: 224px;
 	background-color: var(--tl-color-panel);
-	border: 1px solid var(--tl-color-muted-2);
-	border-right: none;
 	border-radius: var(--tl-radius-2) var(--tl-radius-2) 0 var(--tl-radius-2);
 	box-shadow: var(--tl-shadow-1);
 	overflow: hidden;
 	pointer-events: auto;
-}
-
-.fairy-chat-input-container {
-	flex-shrink: 0;
-	padding: 6px;
-	border-top: 1px solid var(--tl-color-muted-2);
+	z-index: 2;
 }
 
 /* Fairy Chat History */

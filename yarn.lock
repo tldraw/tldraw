@@ -8943,6 +8943,7 @@ __metadata:
     "@types/react": "npm:^18.3.18"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
+    tldraw: "workspace:*"
   peerDependencies:
     react: ^18.2.0 || ^19.0.0
     react-dom: ^18.2.0 || ^19.0.0
@@ -9027,6 +9028,10 @@ __metadata:
   resolution: "@tldraw/fairy-shared@workspace:packages/fairy-shared"
   dependencies:
     "@tldraw/editor": "workspace:*"
+    "@tldraw/state": "workspace:*"
+    "@tldraw/store": "workspace:*"
+    "@tldraw/tlschema": "workspace:*"
+    "@tldraw/utils": "workspace:*"
     "@types/react": "npm:^18.3.18"
     ai: "npm:^5.0.63"
     react: "npm:^18.3.1"
