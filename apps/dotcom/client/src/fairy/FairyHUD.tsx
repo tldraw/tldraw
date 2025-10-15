@@ -76,6 +76,9 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 		[agents]
 	)
 
+	// At this stage, there is only one fairy
+	const onlyFairy = useValue('only-fairy', () => agents[0], [agents])
+
 	// Check if selected agent has chat history
 	const hasChatHistory = useValue(
 		'has-chat-history',
@@ -151,18 +154,10 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 						</button>
 						{selectedAgent && <div className="fairy-id-display">{selectedAgent.id}</div>}
 					</div>
-					{selectedAgent ? (
-						<>
-							<FairyChatHistory agent={selectedAgent} />
-							<div className="fairy-chat-input-container">
-								<FairyBasicInput agent={selectedAgent} />
-							</div>
-						</>
-					) : (
-						<div className="fairy-chat-empty">
-							<div className="fairy-chat-empty-text">Select a fairy to chat</div>
-						</div>
-					)}
+					<FairyChatHistory agent={onlyFairy} />
+					<div className="fairy-chat-input-container">
+						<FairyBasicInput agent={onlyFairy} />
+					</div>
 				</div>
 			)}
 			<div className="fairy-buttons-container">
