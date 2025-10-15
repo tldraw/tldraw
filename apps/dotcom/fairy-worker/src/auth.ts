@@ -72,4 +72,3 @@ export async function requireAdminAccess(env: Environment, auth: { userId: strin
 	}
 	return user
 }
-
