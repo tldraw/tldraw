@@ -10,13 +10,17 @@ export function TlaSidebarDotDevLink() {
 
 	return (
 		<div className={styles.sidebarDotDevLink}>
-			<ExternalLink to="https://tldraw.dev" data-testid="tla-sidebar-dotdev-link">
+			<ExternalLink
+				to="https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=sidebar-link"
+				data-testid="tla-sidebar-dotdev-link"
+			>
 				<F defaultMessage="Build with the tldraw SDK" />
 				<TldrawUiIcon icon="arrow-left" label="Build with the tldraw SDK" small />
 			</ExternalLink>
 			<button
 				title="Dismiss"
 				data-testid="tla-sidebar-dotdev-dismiss-button"
+				aria-label="Dismiss"
 				className={classNames(styles.sidebarDotDevDismissButton, styles.hoverable)}
 				onClick={() => setShowDotDevLink(false)}
 			>
