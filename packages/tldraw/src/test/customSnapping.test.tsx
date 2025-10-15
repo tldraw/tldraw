@@ -520,7 +520,7 @@ describe('custom handle snapping', () => {
 		describe('with snapType set to align', () => {
 			beforeEach(() => {
 				editor.updateShape<Test2Shape>({
-					id: ids.test,
+					id: ids.test2,
 					type: 'test2',
 					props: {
 						selfSnapPoints: [
