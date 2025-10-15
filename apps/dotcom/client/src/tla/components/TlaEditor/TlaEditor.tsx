@@ -1,6 +1,6 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
@@ -23,10 +23,6 @@ import {
 	useValue,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
-import { FairyAppInner } from '../../../fairy/FairyAppInner'
-import { FairyHUD } from '../../../fairy/FairyHUD'
-import { FairyVision } from '../../../fairy/FairyVision'
-import { FairyWrapper } from '../../../fairy/FairyWrapper'
 import { TldrawFairyAgent } from '../../../fairy/fairy-agent/agent/TldrawFairyAgent'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
@@ -54,6 +50,20 @@ import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
+
+// Lazy load fairy components
+const FairyAppInner = lazy(() =>
+	import('../../../fairy/FairyAppInner').then((m) => ({ default: m.FairyAppInner }))
+)
+const FairyHUD = lazy(() =>
+	import('../../../fairy/FairyHUD').then((m) => ({ default: m.FairyHUD }))
+)
+const FairyVision = lazy(() =>
+	import('../../../fairy/FairyVision').then((m) => ({ default: m.FairyVision }))
+)
+const FairyWrapper = lazy(() =>
+	import('../../../fairy/FairyWrapper').then((m) => ({ default: m.FairyWrapper }))
+)
 
 const customFeatureFlags = {
 	fairies: createDebugValue('fairies', {
@@ -288,11 +298,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		<>
 			{OriginalInFrontOfTheCanvas ? <OriginalInFrontOfTheCanvas {...props} /> : null}
 			{canShowFairies && (
-				<>
+				<Suspense fallback={<div />}>
 					<FairyVision agents={agents} />
 					<FairyWrapper agents={agents} />
 					<FairyHUD agents={agents} />
-				</>
+				</Suspense>
 			)}
 		</>
 	)
@@ -319,7 +329,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyFileUpdateHandler fileId={fileId} />
 				<SneakyLargeFileHander />
-				{showFairies && <FairyAppInner setAgents={setAgents} />}
+				{showFairies && (
+					<Suspense fallback={null}>
+						<FairyAppInner setAgents={setAgents} />
+					</Suspense>
+				)}
 			</Tldraw>
 		</TlaEditorWrapper>
 	)
