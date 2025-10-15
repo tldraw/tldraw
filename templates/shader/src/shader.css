@@ -34,7 +34,7 @@
 	z-index: 1000;
 	pointer-events: all;
 	font-size: 12px;
-	color: var(--color-text);
+	color: var(--tl-color-text);
 }
 
 .shader-config-panel--expanded {
@@ -56,7 +56,7 @@
 	justify-content: space-between;
 	gap: var(--tl-space-3);
 	z-index: 200;
-	color: var(--color-text);
+	color: var(--tl-color-text);
 	border-bottom: 1px solid var(--color-muted-2);
 	cursor: pointer;
 }
@@ -71,18 +71,12 @@
 }
 
 .shader-config-panel__reset-button {
-	height: 32px;
-	background-color: var(--color-accent);
-	color: white;
+	color: var(--tl-color-text);
 	border: none;
 	border-radius: 4px;
 	cursor: pointer;
 	font-size: 12px;
 	font-weight: bold;
-}
-
-.shader-config-panel__reset-button:hover {
-	opacity: 0.8;
 }
 
 .shader-config-panel__control {
@@ -104,7 +98,6 @@
 }
 
 .shader-config-panel__boolean-input {
-	accent-color: var(--color-accent);
 	cursor: pointer;
 }
 

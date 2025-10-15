@@ -44,9 +44,6 @@ export abstract class WebGLManager<T extends WebGLManagerConfig> {
 				this.resize()
 			})
 		)
-
-		// Resize on page load
-		this.resize()
 	}
 
 	@computed getQuality() {
