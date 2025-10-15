@@ -26,6 +26,11 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 	const flipX = useValue('fairy flipX', () => fairy.get().flipX, [fairy])
 	const isSelected = useValue('fairy isSelected', () => fairy.get().isSelected, [fairy])
 	const pose = useValue('fairy pose', () => fairy.get().pose, [fairy])
+	const isThrowToolActive = useValue(
+		'is throw tool active',
+		() => editor.getCurrentTool().id === 'fairy-throw',
+		[editor]
+	)
 
 	// Listen to brush selection events and update fairy selection
 	const brush = useValue('editor brush', () => editor.getInstanceState().brush, [editor])
@@ -90,7 +95,6 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 	useEffect(() => {
 		// Only process when brush is active (not null)
 		if (!brush) return
-
 		const fairyPosition = fairy.get().position
 		// Create a bounding box for the fairy (200px x 200px centered on position)
 		const fairyBounds = new Box(fairyPosition.x - 100, fairyPosition.y - 100, 200, 200)
@@ -139,9 +143,48 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 		}
 	}, [isSelected, fairy])
 
-	const handleFairyClick = (e: any) => {
-		e.stopPropagation()
-		fairy.update((f) => ({ ...f, isSelected: !f.isSelected }))
+	// Handle fairy pointer down, we don't enter fairy throw tool until the user actually moves their mouse
+	const handleFairyPointerDown = (e: any) => {
+		// Don't activate tool immediately - wait for drag to start
+		if (editor.getCurrentTool().id === 'fairy-throw') return
+
+		fairy.update((f) => ({ ...f, isSelected: true }))
+		editor.setCursor({ type: 'grabbing', rotation: 20 })
+
+		const startX = e.clientX
+		const startY = e.clientY
+
+		const handlePointerMove = (moveEvent: any) => {
+			const deltaX = moveEvent.clientX - startX
+			const deltaY = moveEvent.clientY - startY
+
+			// Start dragging if moved more than 3 pixels
+			if (Math.abs(deltaX) > 1 || Math.abs(deltaY) > 1) {
+				// Clean up listeners
+				document.removeEventListener('pointermove', handlePointerMove)
+				document.removeEventListener('pointerup', handlePointerUp)
+
+				// Activate the tool
+				const tool = editor.getStateDescendant('fairy-throw')
+				if (tool && 'setFairy' in tool) {
+					;(tool as any).setFairy(fairy)
+				}
+				editor.setCurrentTool('fairy-throw')
+			}
+		}
+
+		const handlePointerUp = () => {
+			// Clean up listeners if pointer released without dragging
+			document.removeEventListener('pointermove', handlePointerMove)
+			document.removeEventListener('pointerup', handlePointerUp)
+		}
+
+		document.addEventListener('pointermove', handlePointerMove)
+		document.addEventListener('pointerup', handlePointerUp)
+	}
+
+	const handleFairyPointerUp = () => {
+		editor.setCursor({ type: 'grab', rotation: 0 })
 	}
 
 	return (
@@ -174,7 +217,18 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 			>
 				{/* Fairy clickable zone */}
 				<div
-					onClick={handleFairyClick}
+					onPointerDown={handleFairyPointerDown}
+					onPointerUp={handleFairyPointerUp}
+					onMouseEnter={() => {
+						if (!isThrowToolActive) {
+							editor.setCursor({ type: 'grab', rotation: 0 })
+						}
+					}}
+					onMouseLeave={() => {
+						if (!isThrowToolActive) {
+							editor.setCursor({ type: 'default', rotation: 0 })
+						}
+					}}
 					style={{
 						position: 'absolute',
 						top: '50%',
@@ -182,7 +236,7 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 						transform: 'translate(-50%, -50%)',
 						width: '100px',
 						height: '100px',
-						pointerEvents: 'auto',
+						pointerEvents: isThrowToolActive ? 'none' : 'auto',
 					}}
 				/>
 				<div>
