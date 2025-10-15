@@ -282,7 +282,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			)}
 		</>
 	)
-	components.DebugMenu = () => <CustomDebugMenu canShowFairies={canShowFairies} />
+	components.DebugMenu = () => <CustomDebugMenu showFairyFeatureFlags={!!user?.isTldraw} />
 
 	return (
 		<TlaEditorWrapper>
@@ -340,7 +340,7 @@ function SneakyFileUpdateHandler({ fileId }: { fileId: string }) {
 	return null
 }
 
-function CustomDebugMenu({ canShowFairies }: { canShowFairies: boolean }) {
+function CustomDebugMenu({ showFairyFeatureFlags }: { showFairyFeatureFlags: boolean }) {
 	const app = useMaybeApp()
 	const openAndTrack = useOpenUrlAndTrack('unknown')
 	const editor = useEditor()
@@ -361,7 +361,7 @@ function CustomDebugMenu({ canShowFairies }: { canShowFairies: boolean }) {
 				/>
 			)}
 			<DefaultDebugMenuContent
-				customFeatureFlags={canShowFairies ? customFeatureFlags : undefined}
+				customFeatureFlags={showFairyFeatureFlags ? customFeatureFlags : undefined}
 			/>
 		</DefaultDebugMenu>
 	)
