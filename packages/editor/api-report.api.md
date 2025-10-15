@@ -486,6 +486,12 @@ export const coreShapes: readonly [typeof GroupShapeUtil];
 // @public
 export function counterClockwiseAngleDist(a0: number, a1: number): number;
 
+// @public (undocumented)
+export function createDebugValue<T>(name: string, { defaults, shouldStoreForSession, }: {
+    defaults: DebugFlagDefaults<T>;
+    shouldStoreForSession?: boolean;
+}): DebugFlag<T>;
+
 // @public
 export function createDeepLinkString(deepLink: TLDeepLink): string;
 
@@ -547,13 +553,13 @@ export class CubicSpline2d extends Geometry2d {
 // @public (undocumented)
 export function dataUrlToFile(url: string, filename: string, mimeType: string): Promise<File>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export interface DebugFlag<T> extends DebugFlagDef<T>, Atom<T> {
     // (undocumented)
     reset(): void;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export interface DebugFlagDef<T> {
     // (undocumented)
     defaults: DebugFlagDefaults<T>;
@@ -563,7 +569,7 @@ export interface DebugFlagDef<T> {
     shouldStoreForSession: boolean;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export interface DebugFlagDefaults<T> {
     // (undocumented)
     all: T;
