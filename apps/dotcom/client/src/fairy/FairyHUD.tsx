@@ -63,7 +63,7 @@ function FairyButton({
 export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 	const editor = useEditor()
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
-	const [isChatExpanded, setIsChatExpanded] = useState(true)
+	const [isChatExpanded, setIsChatExpanded] = useState(false)
 
 	const toolbarMessage = useMsg(fairyMessages.toolbar)
 	const deselectMessage = useMsg(fairyMessages.deselect)
