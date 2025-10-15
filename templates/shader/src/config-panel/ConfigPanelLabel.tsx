@@ -1,3 +1,3 @@
 export function ConfigPanelLabel({ children }: { children: React.ReactNode }) {
-	return <div className="shader-panel-label">{children}</div>
+	return <span className="shader-config-panel__label">{children}</span>
 }
