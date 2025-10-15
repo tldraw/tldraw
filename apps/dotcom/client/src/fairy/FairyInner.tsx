@@ -33,11 +33,9 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 	const isBrushingRef = useRef(false)
 
 	// Listen for "select all" events
-	const selectedShapeIds = useValue(
-		'selected shape ids',
-		() => editor.getSelectedShapeIds(),
-		[editor]
-	)
+	const selectedShapeIds = useValue('selected shape ids', () => editor.getSelectedShapeIds(), [
+		editor,
+	])
 	const prevSelectedCountRef = useRef(0)
 
 	// Track when brushing starts
@@ -61,17 +59,17 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 
 		// Get all unlocked shapes on the current page
 		const currentPageId = editor.getCurrentPageId()
-		const allUnlockedShapeIds = editor
-			.getSortedChildIdsForParent(currentPageId)
-			.filter((id) => {
-				const shape = editor.getShape(id)
-				return shape && !editor.isShapeOrAncestorLocked(shape)
-			})
+		const allUnlockedShapeIds = editor.getSortedChildIdsForParent(currentPageId).filter((id) => {
+			const shape = editor.getShape(id)
+			return shape && !editor.isShapeOrAncestorLocked(shape)
+		})
 
 		// Detect "select all" - if all shapes are now selected and previously weren't
 		const allShapesSelected = currentSelectedCount === allUnlockedShapeIds.length
 		const wasSelectAllTriggered =
-			allShapesSelected && currentSelectedCount > 0 && prevSelectedCountRef.current < currentSelectedCount
+			allShapesSelected &&
+			currentSelectedCount > 0 &&
+			prevSelectedCountRef.current < currentSelectedCount
 
 		if (wasSelectAllTriggered && !fairy.get().isSelected) {
 			// Select the fairy too
@@ -162,7 +160,6 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 			{/* Fairy */}
 			<div
 				ref={fairyRef}
-				onClick={handleFairyClick}
 				style={{
 					position: 'absolute',
 					left: screenPosition.x,
@@ -175,7 +172,20 @@ export default function FairyInner({ fairy }: { fairy: Atom<FairyEntity> }) {
 				}}
 				className={isSelected ? 'fairy-selected' : ''}
 			>
-				<div onClick={handleFairyClick}>
+				{/* Fairy clickable zone */}
+				<div
+					onClick={handleFairyClick}
+					style={{
+						position: 'absolute',
+						top: '50%',
+						left: '50%',
+						transform: 'translate(-50%, -50%)',
+						width: '100px',
+						height: '100px',
+						pointerEvents: 'auto',
+					}}
+				/>
+				<div>
 					<FairySpriteComponent
 						pose={pose}
 						outfit={{
