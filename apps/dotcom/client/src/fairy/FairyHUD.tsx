@@ -144,7 +144,7 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 						onClick={toggleChatExpanded}
 						title={isChatExpanded ? 'Minimize chat' : 'Maximize chat'}
 					>
-						{isChatExpanded ? '←' : '→'}
+						{isChatExpanded ? '→' : '←'}
 					</button>
 				</div>
 				<TldrawUiToolbar
