@@ -6,8 +6,9 @@ const COOKIE_CONSENT_KEY = 'tldraw_cookie_consent'
 test.use({ storageState: { cookies: [], origins: [] } })
 
 test.describe('cookie consent banner', () => {
-	test.beforeEach(async ({ page, homePage }) => {
+	test.beforeEach(async ({ page }) => {
 		await page.evaluate((key) => {
+			// eslint-disable-next-line no-restricted-syntax
 			window.localStorage.removeItem(key)
 		}, COOKIE_CONSENT_KEY)
 	})
@@ -63,6 +64,7 @@ test.describe('cookie consent banner', () => {
 
 			await expect(async () => {
 				const storedConsent = await page.evaluate(
+					// eslint-disable-next-line no-restricted-syntax
 					(key) => window.localStorage.getItem(key),
 					COOKIE_CONSENT_KEY
 				)
@@ -84,6 +86,7 @@ test.describe('cookie consent banner', () => {
 
 			await expect(async () => {
 				const storedConsent = await page.evaluate(
+					// eslint-disable-next-line no-restricted-syntax
 					(key) => window.localStorage.getItem(key),
 					COOKIE_CONSENT_KEY
 				)
