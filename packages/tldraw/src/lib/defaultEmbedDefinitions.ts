@@ -428,7 +428,8 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(/\/@([^/]+)\/([^/]+)/)) {
-				return `${url}?embed=true`
+				urlObj.searchParams.append('embed', 'true')
+				return urlObj.href
 			}
 			return
 		},
@@ -521,30 +522,6 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 				if (matches) {
 					return 'https://vimeo.com/' + matches[1]
 				}
-			}
-			return
-		},
-	},
-	{
-		type: 'excalidraw',
-		title: 'Excalidraw',
-		hostnames: ['excalidraw.com'],
-		width: 720,
-		height: 500,
-		doesResize: true,
-		isAspectRatioLocked: true,
-		embedOnPaste: true,
-		toEmbedUrl: (url) => {
-			const urlObj = safeParseUrl(url)
-			if (urlObj && urlObj.hash.match(/#room=/)) {
-				return url
-			}
-			return
-		},
-		fromEmbedUrl: (url) => {
-			const urlObj = safeParseUrl(url)
-			if (urlObj && urlObj.hash.match(/#room=/)) {
-				return url
 			}
 			return
 		},

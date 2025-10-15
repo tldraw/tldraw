@@ -6,9 +6,9 @@ This package provides shared configuration files and utilities for the tldraw mo
 
 The `@internal/config` package centralizes common configuration to ensure consistency across all packages in the monorepo. It includes TypeScript configurations, API documentation settings, and testing utilities.
 
-## Key Files
+## Key files
 
-### TypeScript Configuration
+### TypeScript configuration
 
 - **`tsconfig.base.json`** - Base TypeScript configuration extended by all packages
   - Enables strict mode, composite builds, and declaration generation
@@ -17,11 +17,11 @@ The `@internal/config` package centralizes common configuration to ensure consis
 
 - **`tsconfig.json`** - Package-specific TypeScript configuration
 
-### API Documentation
+### API documentation
 
 - **`api-extractor.json`** - Microsoft API Extractor configuration for generating consistent API documentation and validating public API surfaces across packages
 
-### Testing Configuration
+### Testing configuration
 
 - **`vitest/setup.ts`** - Global test setup and polyfills
   - Canvas mocking for browser-based tests
