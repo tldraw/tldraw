@@ -464,6 +464,7 @@ export {
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
 export {
 	StylePanelButtonPicker,
+	StylePanelButtonPickerInline,
 	type StylePanelButtonPickerProps,
 } from './lib/ui/components/StylePanel/StylePanelButtonPicker'
 export {
@@ -474,10 +475,12 @@ export {
 } from './lib/ui/components/StylePanel/StylePanelContext'
 export {
 	StylePanelDoubleDropdownPicker,
+	StylePanelDoubleDropdownPickerInline,
 	type StylePanelDoubleDropdownPickerProps,
 } from './lib/ui/components/StylePanel/StylePanelDoubleDropdownPicker'
 export {
 	StylePanelDropdownPicker,
+	StylePanelDropdownPickerInline,
 	type StylePanelDropdownPickerProps,
 } from './lib/ui/components/StylePanel/StylePanelDropdownPicker'
 export {
