@@ -12,13 +12,13 @@ export function FairyChatHistoryAction({
 	const { action } = item
 
 	if (action._type === 'message') {
-		return <FairyChatHistoryMessage item={item} agent={agent} />
+		return <FairyChatHistoryMessageDisplay item={item} agent={agent} />
 	}
 
-	return <FairyChatHistoryActionPill item={item} agent={agent} />
+	return <FairyChatHistoryActionDisplay item={item} agent={agent} />
 }
 
-function FairyChatHistoryMessage({
+function FairyChatHistoryMessageDisplay({
 	item,
 	agent,
 }: {
@@ -40,7 +40,7 @@ function FairyChatHistoryMessage({
 	)
 }
 
-function FairyChatHistoryActionPill({
+function FairyChatHistoryActionDisplay({
 	item,
 	agent,
 }: {
@@ -48,6 +48,7 @@ function FairyChatHistoryActionPill({
 	agent: TldrawFairyAgent
 }) {
 	const { action } = item
+	if (action._type === 'update-todo-list') return null
 	const info = getActionInfo(action, agent)
 
 	const displayText =

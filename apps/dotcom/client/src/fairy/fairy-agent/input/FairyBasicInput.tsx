@@ -2,7 +2,6 @@ import { convertTldrawShapeToFocusedShape, DEFAULT_FAIRY_VISION } from '@tldraw/
 import { useCallback, useRef, useState } from 'react'
 import { Box, TldrawUiInput, useValue } from 'tldraw'
 import { TldrawFairyAgent } from '../agent/TldrawFairyAgent'
-import { FairyInputButton } from './FairyInputButton'
 
 export function FairyBasicInput({ agent }: { agent: TldrawFairyAgent }) {
 	const { editor } = agent
@@ -45,6 +44,16 @@ export function FairyBasicInput({ agent }: { agent: TldrawFairyAgent }) {
 		[agent, modelName, editor, fairy]
 	)
 
+	const shouldCancel = isGenerating && inputValue === ''
+
+	const handleButtonClick = () => {
+		if (shouldCancel) {
+			agent.cancel()
+		} else {
+			handleComplete(inputValue)
+		}
+	}
+
 	return (
 		<div className="fairy-input">
 			<TldrawUiInput
@@ -56,11 +65,14 @@ export function FairyBasicInput({ agent }: { agent: TldrawFairyAgent }) {
 				autoFocus
 				className="fairy-input__field"
 			/>
-			<FairyInputButton
-				isGenerating={isGenerating}
-				inputValue={inputValue}
+			<button
+				onClick={handleButtonClick}
 				disabled={inputValue === '' && !isGenerating}
-			/>
+				className="fairy-input__submit"
+				title={shouldCancel ? 'Stop' : 'Send'}
+			>
+				{shouldCancel ? '⏹' : '👄'}
+			</button>
 		</div>
 	)
 }
