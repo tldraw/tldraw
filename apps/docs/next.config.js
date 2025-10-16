@@ -155,9 +155,10 @@ const nextConfig = {
 			},
 			{
 				source: '/codewithjason',
-				destination: '/?utm_source=codewithjason&utm_medium=podcast&utm_campaign=steve_codewithjason_2025',
+				destination:
+					'/?utm_source=codewithjason&utm_medium=podcast&utm_campaign=steve_codewithjason_2025',
 				permanent: true,
-			}
+			},
 		]
 	},
 	async rewrites() {
