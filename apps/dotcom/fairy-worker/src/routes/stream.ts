@@ -1,11 +1,15 @@
-import { IRequest } from 'itty-router'
 import { Environment } from '../environment'
+import { AuthenticatedRequest } from '../worker'
 
-export async function stream(request: IRequest, env: Environment) {
+export async function stream(request: AuthenticatedRequest, env: Environment) {
+	// Auth is already validated and attached by requireTldrawEmail middleware
+	const auth = request.auth
+
 	// Read the body once and convert to string
 	const bodyText = await request.text() // or request.json() then JSON.stringify()
 
-	const id = env.AGENT_DURABLE_OBJECT.idFromName('anonymous')
+	// Use the user's ID for the durable object routing
+	const id = env.AGENT_DURABLE_OBJECT.idFromName(auth.userId)
 	const DO = env.AGENT_DURABLE_OBJECT.get(id)
 
 	// Create a NEW request body from the text we read
