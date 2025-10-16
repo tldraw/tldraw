@@ -1,4 +1,5 @@
-import { StateNode, TLAnyShapeUtilConstructor, Tldraw, TLPointerEventInfo } from 'tldraw'
+import { useEffect } from 'react'
+import { StateNode, TLAnyShapeUtilConstructor, Tldraw, TLPointerEventInfo, useEditor } from 'tldraw'
 import { BezierCurveShapeUtil, MyBezierCurveShape } from './CubicBezierShape'
 import { CustomHandles } from './CustomHandles'
 
@@ -11,6 +12,31 @@ export default function BezierCurveShapeExample() {
 				// [9]
 				components={{
 					Handles: CustomHandles,
+					InFrontOfTheCanvas: () => {
+						const editor = useEditor()
+						useEffect(() => {
+							function handleKeydown(e: KeyboardEvent) {
+								if (e.key === 'z' && (e.metaKey || e.ctrlKey)) {
+									const editingShape = editor.getEditingShape()
+									if (!editingShape) return
+
+									if (e.shiftKey) {
+										editor.redo()
+										editor.setEditingShape(editingShape)
+									} else {
+										editor.undo()
+										editor.setEditingShape(editingShape)
+									}
+								}
+							}
+
+							window.addEventListener('keydown', handleKeydown)
+							return () => {
+								window.removeEventListener('keydown', handleKeydown)
+							}
+						}, [editor])
+						return null
+					},
 				}}
 				shapeUtils={customShapes}
 				onMount={(editor) => {
