@@ -853,6 +853,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Remove a tool. Useful if you need to remove a tool from the state chart on demand,
+	 * after the editor has already been initialized.
+	 *
+	 * @param Tool - The tool to delete.
+	 *
+	 * @public
+	 */
+	removeTool(Tool: TLStateNodeConstructor) {
+		if (hasOwnProperty(this.root.children!, Tool.id)) {
+			delete this.root.children![Tool.id]
+		}
+	}
+
+	/**
 	 * A set of functions to call when the app is disposed.
 	 *
 	 * @public

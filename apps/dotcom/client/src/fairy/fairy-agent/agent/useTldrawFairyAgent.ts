@@ -50,6 +50,7 @@ export function useTldrawFairyAgent(
 			existingAgent.dispose()
 		}
 
+		editor.removeTool(FairyThrowTool)
 		editor.setTool(FairyThrowTool)
 
 		// Create a new agent

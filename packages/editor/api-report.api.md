@@ -1385,6 +1385,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     registerExternalContentHandler<T extends TLExternalContent<E>['type'], E>(type: T, handler: ((info: T extends TLExternalContent<E>['type'] ? Extract<TLExternalContent<E>, {
         type: T;
     }> : TLExternalContent<E>) => void) | null): this;
+    removeTool(Tool: TLStateNodeConstructor): void;
     renamePage(page: TLPage | TLPageId, name: string): this;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
     replaceExternalContent<E>(info: TLExternalContent<E>, opts?: {

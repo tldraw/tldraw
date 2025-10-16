@@ -162,20 +162,3 @@ async function* streamActions(
 		throw error
 	}
 }
-
-// function getMessagesWithoutImages(messages: any[]): any[] {
-// 	return messages.map((message) => {
-// 		if (!message.content) return message
-
-// 		const content = Array.isArray(message.content)
-// 			? message.content.map((item: any) => {
-// 					if (item.type === 'image') {
-// 						return { ...item, image: '<IMAGE_DATA_REMOVED>' }
-// 					}
-// 					return item
-// 				})
-// 			: message.content
-
-// 		return { ...message, content: JSON.stringify(content, null, 2) }
-// 	})
-// }
