@@ -66,6 +66,7 @@ export default [
 			'packages/create-tldraw/cli.cjs',
 			'**/*/vitest.config.ts',
 			'**/*/setupVitest.js',
+			'**/*/zod-locales-shim.js',
 		],
 	},
 	...compat.extends(

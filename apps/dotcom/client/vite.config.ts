@@ -1,6 +1,7 @@
 import react from '@vitejs/plugin-react-swc'
 import { config } from 'dotenv'
 import { defineConfig } from 'vite'
+import { zodLocalePlugin } from './scripts/vite-zod-locale-plugin.js'
 
 config({
 	path: './.env.local',
@@ -28,6 +29,7 @@ function urlOrLocalFallback(mode: string, url: string | undefined, localFallback
 // https://vitejs.dev/config/
 export default defineConfig((env) => ({
 	plugins: [
+		zodLocalePlugin('./scripts/zod-locales-shim.js'),
 		react({
 			tsDecorators: true,
 			plugins: [
@@ -46,8 +48,6 @@ export default defineConfig((env) => ({
 	resolve: {
 		alias: {
 			'@formatjs/icu-messageformat-parser': '@formatjs/icu-messageformat-parser/no-parser',
-			// Only load English locale instead of all 47 locales to reduce bundle size
-			'zod/v4/locales/index.js': new URL('../../../zod-locales-shim.js', import.meta.url).pathname,
 		},
 	},
 	build: {
