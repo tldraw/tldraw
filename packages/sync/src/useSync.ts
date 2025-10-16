@@ -220,7 +220,9 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			TLSocketServerSentEvent<TLRecord>
 		>
 		if (connect) {
-			assert(!uri, 'uri and connect cannot be used together')
+			if (uri) {
+				throw new Error('uri and connect cannot be used together')
+			}
 
 			socket = connect({
 				sessionId: TAB_ID,
@@ -230,7 +232,9 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				TLSocketServerSentEvent<TLRecord>
 			>
 		} else if (uri) {
-			assert(!connect, 'uri and connect cannot be used together')
+			if (connect) {
+				throw new Error('uri and connect cannot be used together')
+			}
 
 			socket = new ClientWebSocketAdapter(async () => {
 				const uriString = typeof uri === 'string' ? uri : await uri()
