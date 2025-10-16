@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
-import { StateNode, TLAnyShapeUtilConstructor, Tldraw, TLPointerEventInfo, useEditor } from 'tldraw'
+import { StateNode, TLAnyShapeUtilConstructor, Tldraw, TLPointerEventInfo } from 'tldraw'
 import { BezierCurveShapeUtil, MyBezierCurveShape } from './CubicBezierShape'
 import { CustomHandles } from './CustomHandles'
+import { SneakyUndoRedoWhileEditing } from './SneakyUndoRedoWhileEditing'
 
 const customShapes: TLAnyShapeUtilConstructor[] = [BezierCurveShapeUtil]
 
@@ -12,31 +12,6 @@ export default function BezierCurveShapeExample() {
 				// [9]
 				components={{
 					Handles: CustomHandles,
-					InFrontOfTheCanvas: () => {
-						const editor = useEditor()
-						useEffect(() => {
-							function handleKeydown(e: KeyboardEvent) {
-								if (e.key === 'z' && (e.metaKey || e.ctrlKey)) {
-									const editingShape = editor.getEditingShape()
-									if (!editingShape) return
-
-									if (e.shiftKey) {
-										editor.redo()
-										editor.setEditingShape(editingShape)
-									} else {
-										editor.undo()
-										editor.setEditingShape(editingShape)
-									}
-								}
-							}
-
-							window.addEventListener('keydown', handleKeydown)
-							return () => {
-								window.removeEventListener('keydown', handleKeydown)
-							}
-						}, [editor])
-						return null
-					},
 				}}
 				shapeUtils={customShapes}
 				onMount={(editor) => {
@@ -173,7 +148,10 @@ export default function BezierCurveShapeExample() {
 						originalHandlers.editingShape.onPointerMove?.(info)
 					}
 				}}
-			/>
+			>
+				{/* 11 */}
+				<SneakyUndoRedoWhileEditing />
+			</Tldraw>
 		</div>
 	)
 }
@@ -191,6 +169,11 @@ Override state node methods to enable three custom interactions:
 1. Meta + click on cp1/cp2 handles collapses them to their associated start/end points
 2. After dragging any handle, stay in editing mode (instead of returning to select.idle)
 3. Allow translating the curve while in editing mode by detecting drag and transitioning to select.translating
+
+[11]
+Add a sneaky undo/redo while editing. This is a hack to allow undo/redo while editing a shape.
+It's not a perfect solution, but it's a workaround for the fact that tldraw doesn't support
+undo/redo while editing a shape. Sometimes you gotta hack it.
 
 These overrides maintain the editing context, allowing fluid adjustments without losing handle visibility.
 */
