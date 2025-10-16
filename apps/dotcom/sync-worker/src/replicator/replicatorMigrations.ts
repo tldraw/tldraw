@@ -163,7 +163,60 @@ const migrations: Migration[] = [
 			sqlite.exec('ALTER TABLE history_new RENAME TO history')
 		},
 	},
+	{
+		id: '007_update_history_subscriptions',
+		// we updated the getSubscriptionChanges function
+		// so we need to regenerate the subscription changes for all existing history rows
+		fn: _updateHistorySubscriptions,
+	},
 ]
+
+function _updateHistorySubscriptions(sqlite: SqlStorage) {
+	// Regenerate subscription changes for all existing history rows
+	// This is needed because the getSubscriptionChanges function was updated
+	// and we need to ensure all history rows have the correct subscription data
+
+	// Iterate over all existing history rows and regenerate subscription changes
+	for (const row of sqlite.exec<{
+		rowid: number
+		changesJson: string
+		newSubscriptions: string | null
+		removedSubscriptions: string | null
+		topics: string
+	}>('SELECT rowid, changesJson, newSubscriptions, removedSubscriptions, topics FROM history')) {
+		// Parse the changes from the existing row
+		const changes = JSON.parse(row.changesJson) as ChangeV2[]
+		// update the topics too
+		changes.forEach((change) => {
+			change.topics = getTopics(change.row, change.event)
+		})
+
+		const newTopics = buildTopicsString(changes)
+
+		// Regenerate subscription changes using the updated function
+		const { newSubscriptions, removedSubscriptions } = getSubscriptionChanges(changes)
+
+		// Serialize the new subscription values
+		const newSubscriptionsStr = newSubscriptions && serializeSubscriptions(newSubscriptions)
+		const removedSubscriptionsStr =
+			removedSubscriptions && serializeSubscriptions(removedSubscriptions)
+
+		// Only update if the values have actually changed
+		if (
+			newSubscriptionsStr !== row.newSubscriptions ||
+			removedSubscriptionsStr !== row.removedSubscriptions ||
+			newTopics !== row.topics
+		) {
+			sqlite.exec(
+				'UPDATE history SET newSubscriptions = ?, removedSubscriptions = ?, topics = ? WHERE rowid = ?',
+				newSubscriptionsStr,
+				removedSubscriptionsStr,
+				buildTopicsString(changes),
+				row.rowid
+			)
+		}
+	}
+}
 
 function _applyMigration(sqlite: SqlStorage, log: Logger, index: number) {
 	log.debug('running migration', migrations[index].id)

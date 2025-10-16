@@ -421,7 +421,23 @@ export class TLDrawDurableObject extends DurableObject {
 						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
 					}
 				}
-				if (file.ownerId !== auth?.userId) {
+				// Check if user has owner access (directly or via group membership)
+				let hasOwnerAccess = false
+				if (file.ownerId && file.ownerId === auth?.userId) {
+					hasOwnerAccess = true
+				} else if (file.owningGroupId && auth?.userId) {
+					// Check if user is a member of the owning group
+					const groupMember = await this.db
+						.selectFrom('group_user')
+						.where('groupId', '=', file.owningGroupId)
+						.where('userId', '=', auth.userId)
+						.executeTakeFirst()
+					if (groupMember) {
+						hasOwnerAccess = true
+					}
+				}
+
+				if (!hasOwnerAccess) {
 					if (!file.shared) {
 						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
 					}
@@ -856,12 +872,14 @@ export class TLDrawDurableObject extends DurableObject {
 		if (this._fileRecordCache) return
 		this._fileRecordCache = file
 
-		this.setDocumentInfo({
-			version: CURRENT_DOCUMENT_INFO_VERSION,
-			slug: file.id,
-			isApp: true,
-			deleted: false,
-		})
+		if (!this._documentInfo) {
+			this.setDocumentInfo({
+				version: CURRENT_DOCUMENT_INFO_VERSION,
+				slug: file.id,
+				isApp: true,
+				deleted: false,
+			})
+		}
 		await this.getRoom()
 	}
 
@@ -899,7 +917,18 @@ export class TLDrawDurableObject extends DurableObject {
 				continue
 			}
 			// allow the owner to stay connected
-			if (session.meta.userId === file.ownerId) continue
+			// Check if user owns the file directly
+			if (file.ownerId && session.meta.userId === file.ownerId) continue
+
+			// Check if user is a member of the owning group
+			if (file.owningGroupId && session.meta.userId) {
+				const groupMember = await this.db
+					.selectFrom('group_user')
+					.where('groupId', '=', file.owningGroupId)
+					.where('userId', '=', session.meta.userId)
+					.executeTakeFirst()
+				if (groupMember) continue
+			}
 
 			if (!file.shared) {
 				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
