@@ -5,4 +5,3 @@ import type { Plugin } from 'vite'
  * @param shimPath - Absolute path to the shim file (use fileURLToPath(new URL('./path', import.meta.url)))
  */
 export function zodLocalePlugin(shimPath: string): Plugin
-

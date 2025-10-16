@@ -1,7 +1,7 @@
 import { cloudflare } from '@cloudflare/vite-plugin'
 import react from '@vitejs/plugin-react-swc'
-import { defineConfig } from 'vite'
 import { fileURLToPath } from 'url'
+import { defineConfig } from 'vite'
 import { zodLocalePlugin } from './scripts/vite-zod-locale-plugin.js'
 
 // https://vitejs.dev/config/

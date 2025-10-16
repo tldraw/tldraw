@@ -76,8 +76,8 @@ async function requireTldrawEmail(request: IRequest, env: Environment) {
 		return undefined
 	} catch (error: any) {
 		console.error('Authentication failed:', error.message)
-		return new Response(error.message || 'Unauthorized', { 
-			status: error.status || 403 
+		return new Response(error.message || 'Unauthorized', {
+			status: error.status || 403,
 		})
 	}
 }
