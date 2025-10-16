@@ -6,11 +6,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 /**
  * Vite plugin to replace zod locale imports with our minimal shim
  * This catches both direct imports and re-exports within the zod package
- * @param {string} shimPath - Path to the shim file
+ * @param {string} shimPath - Absolute path to the shim file
  * @returns {import('vite').Plugin}
  */
 export function zodLocalePlugin(shimPath) {
-	const resolvedShimPath = path.resolve(__dirname, shimPath)
+	// If it's already an absolute path, use it; otherwise resolve relative to cwd
+	const resolvedShimPath = path.isAbsolute(shimPath) ? shimPath : path.resolve(process.cwd(), shimPath)
 	
 	return {
 		name: 'zod-locale-replacer',
