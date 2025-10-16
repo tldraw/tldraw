@@ -238,7 +238,7 @@ export default function Fairy({ agent }: { agent: TldrawFairyAgent }) {
 					top: screenPosition.y,
 					width: `${FAIRY_SIZE}px`,
 					height: `${FAIRY_SIZE}px`,
-					transform: `translate(-50%, -50%) scale(max(var(--tl-zoom), 0.4))${flipX ? ' scaleX(-1)' : ''}`,
+					transform: `translate(-50%, -50%) scale(min(max(var(--tl-zoom), 0.2), 0.7))${flipX ? ' scaleX(-1)' : ''}`,
 					// transition:
 					// 'left 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
 				}}
