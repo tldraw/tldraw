@@ -25,9 +25,10 @@ export class AddDetailActionUtil extends AgentActionUtil<AddDetailAction> {
 	}
 
 	override getInfo(action: Streaming<AddDetailAction>) {
-		const label = 'Adding detail'
+		// const label = 'Adding detail'
 		const text = action.intent?.startsWith('#') ? `\n\n${action.intent}` : action.intent
-		const description = `**${label}:** ${text ?? ''}`
+		// const description = `**${label}:** ${text ?? ''}`
+		const description = `${text ?? ''}`
 
 		return {
 			icon: 'pencil' as const,

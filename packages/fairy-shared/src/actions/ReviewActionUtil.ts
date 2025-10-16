@@ -33,9 +33,10 @@ export class ReviewActionUtil extends AgentActionUtil<ReviewAction> {
 	}
 
 	override getInfo(action: Streaming<ReviewAction>) {
-		const label = action.complete ? 'Review' : 'Reviewing'
+		// const label = action.complete ? 'Review' : 'Reviewing'
 		const text = action.intent?.startsWith('#') ? `\n\n${action.intent}` : action.intent
-		const description = `**${label}:** ${text ?? ''}`
+		// const description = `**${label}:** ${text ?? ''}`
+		const description = `${text ?? ''}`
 
 		return {
 			icon: 'search' as const,

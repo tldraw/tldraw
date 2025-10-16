@@ -19,10 +19,11 @@ export class NoteToSelfActionUtil extends AgentActionUtil<NoteToSelfAction> {
 	static override type = 'noteToSelf' as const
 
 	override getInfo(action: Streaming<NoteToSelfAction>) {
-		const label = action.complete ? 'Note To Self' : 'Noting to self'
+		// const label = action.complete ? 'Note To Self' : 'Noting to self'
 		return {
 			icon: null,
-			description: `**${label}**: ${action.intent ?? ''}`,
+			// description: `**${label}**: ${action.intent ?? ''}`,
+			description: `${action.intent ?? ''}`,
 			pose: 'thinking' as const,
 		}
 	}
