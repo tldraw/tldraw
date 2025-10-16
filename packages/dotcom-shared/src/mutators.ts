@@ -447,8 +447,10 @@ export function createMutators(userId: string) {
 			assert(fileId, ZErrorCode.bad_request)
 
 			// Verify the user has permission to access this file
-			const file = await tx.query.file.where('id', '=', fileId).one().run()
-			await assertUserCanAccessFile(tx, userId, file!)
+			if (tx.location === 'server') {
+				const file = await tx.query.file.where('id', '=', fileId).one().run()
+				await assertUserCanAccessFile(tx, userId, file!)
+			}
 
 			// If we get here, the user has legitimate access to the file
 			await tx.mutate.file_state.upsert({ fileId, userId, firstVisitAt: time })
