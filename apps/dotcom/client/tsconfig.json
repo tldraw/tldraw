@@ -23,6 +23,7 @@
 	"references": [
 		{ "path": "../../../packages/assets" },
 		{ "path": "../../../packages/dotcom-shared" },
+		{ "path": "../../../packages/fairy-shared" },
 		{ "path": "../../../packages/sync" },
 		{ "path": "../../../packages/sync-core" },
 		{ "path": "../../../packages/tldraw" },
