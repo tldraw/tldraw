@@ -1,7 +1,7 @@
 import { TLShapeId } from '@tldraw/editor'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
-import { BaseAgentAction } from '../types/BaseAgentAction'
+// import { BaseAgentAction } from '../types/BaseAgentAction'
 import { Streaming } from '../types/Streaming'
 import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
@@ -29,7 +29,7 @@ export class DeleteActionUtil extends AgentActionUtil<DeleteAction> {
 		return {
 			icon: 'trash' as const,
 			description: action.intent ?? '',
-			canGroup: (other: Streaming<BaseAgentAction>) => other._type === 'delete',
+			//canGroup: (other: Streaming<BaseAgentAction>) => other._type === 'delete',
 		}
 	}
 

@@ -895,7 +895,14 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 	moveToBounds(bounds: BoxModel) {
 		this.$fairy.update((fairy) => {
 			const bottomLeft = new Vec(bounds.x, bounds.y + bounds.h)
-			const offsetPosition = Vec.Add(bottomLeft, this.MOVE_OFFSET)
+			let offsetPosition = Vec.Add(bottomLeft, this.MOVE_OFFSET)
+
+			// Check if the position is offscreen and adjust to keep it onscreen
+			const viewport = this.editor.getViewportPageBounds()
+			if (offsetPosition.x < viewport.x) {
+				offsetPosition = new Vec(viewport.x, offsetPosition.y)
+			}
+
 			return {
 				...fairy,
 				position: offsetPosition,
