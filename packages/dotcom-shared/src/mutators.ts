@@ -390,7 +390,7 @@ export function createMutators(userId: string) {
 
 				await tx.mutate.group_file.update({
 					fileId,
-					groupId: userId,
+					groupId,
 					index: indexToUse,
 				})
 			} else {
