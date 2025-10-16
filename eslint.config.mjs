@@ -67,6 +67,7 @@ export default [
 			'**/*/vitest.config.ts',
 			'**/*/setupVitest.js',
 			'**/*/zod-locales-shim.js',
+			'**/*/scripts/vite-zod-locale-plugin.js',
 		],
 	},
 	...compat.extends(
