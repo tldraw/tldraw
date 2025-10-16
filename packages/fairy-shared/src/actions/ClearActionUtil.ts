@@ -34,7 +34,7 @@ export class ClearActionUtil extends AgentActionUtil<ClearAction> {
 	 */
 	override getInfo() {
 		return {
-			icon: null, //'trash' as const,
+			icon: 'trash' as const,
 			description: 'Cleared the canvas',
 		}
 	}

@@ -30,7 +30,7 @@ export class AddDetailActionUtil extends AgentActionUtil<AddDetailAction> {
 		const description = `**${label}:** ${text ?? ''}`
 
 		return {
-			icon: null, //'pencil' as const,
+			icon: 'pencil' as const,
 			description,
 		}
 	}

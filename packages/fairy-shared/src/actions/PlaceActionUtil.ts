@@ -31,7 +31,7 @@ export class PlaceActionUtil extends AgentActionUtil<PlaceAction> {
 
 	override getInfo(action: Streaming<PlaceAction>) {
 		return {
-			icon: null, //'target' as const,
+			icon: 'target' as const,
 			description: action.intent ?? '',
 		}
 	}

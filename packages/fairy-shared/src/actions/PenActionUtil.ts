@@ -42,7 +42,7 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 
 	override getInfo(action: Streaming<PenAction>) {
 		return {
-			icon: null, //'pencil' as const,
+			icon: 'pencil' as const,
 			description: action.intent ?? '',
 		}
 	}

@@ -27,7 +27,7 @@ export class DeleteActionUtil extends AgentActionUtil<DeleteAction> {
 
 	override getInfo(action: Streaming<DeleteAction>) {
 		return {
-			icon: null, //'trash' as const,
+			icon: 'trash' as const,
 			description: action.intent ?? '',
 			canGroup: (other: Streaming<BaseAgentAction>) => other._type === 'delete',
 		}

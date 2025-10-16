@@ -32,11 +32,11 @@ export class FlyToBoundsActionUtil extends AgentActionUtil<FlyToBoundsAction> {
 	}
 
 	override getInfo(action: Streaming<FlyToBoundsAction>) {
-		const label = action.complete ? 'Fly To Bounds' : 'Flying to bounds'
+		// const label = action.complete ? 'Fly To Bounds' : 'Flying to bounds'
 		const text = action.intent?.startsWith('#') ? `\n\n${action.intent}` : action.intent
 		return {
-			icon: null, //'eye' as const,
-			description: `**${label}**: ${text ?? ''}`,
+			icon: 'eye' as const,
+			description: `${text ?? ''}`,
 		}
 	}
 

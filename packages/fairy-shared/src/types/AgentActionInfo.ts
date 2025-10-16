@@ -1,4 +1,5 @@
 // import { AgentIconType } from '../../client/components/icons/AgentIcon'
+import { AgentIconType } from '../icons/AgentIcon'
 import { BaseAgentAction } from './BaseAgentAction'
 import { FairyPose } from './FairyPose'
 import { Streaming } from './Streaming'
@@ -11,8 +12,8 @@ export interface AgentActionInfo {
 	 * The icon to display in chat history.
 	 * Null to not show an icon.
 	 */
-	// icon: AgentIconType | null
-	icon: null
+	icon: AgentIconType | null
+	// icon: null
 
 	/**
 	 * The description to display in chat history.

@@ -1,7 +1,7 @@
 import { Editor } from '@tldraw/editor'
 import { BoxModel, VecModel } from '@tldraw/tlschema'
-// import { AgentIconType } from '../../client/components/icons/AgentIcon'
 import { FocusedShape } from '../format/FocusedShape'
+import { AgentIconType } from '../icons/AgentIcon'
 
 export type ContextItem = ShapeContextItem | AreaContextItem | PointContextItem | ShapesContextItem
 
@@ -32,12 +32,12 @@ export interface PointContextItem {
 export const CONTEXT_TYPE_DEFINITIONS: Record<
 	ContextItem['type'],
 	{
-		icon: null //AgentIconType
+		icon: AgentIconType
 		name(item: ContextItem, editor: Editor): string
 	}
 > = {
 	shape: {
-		icon: null, //'target',
+		icon: 'target',
 		name: (item: ShapeContextItem) => {
 			let name = item.shape.note
 			if (!name) {
@@ -53,15 +53,15 @@ export const CONTEXT_TYPE_DEFINITIONS: Record<
 		},
 	},
 	area: {
-		icon: null, //'target',
+		icon: 'target',
 		name: () => 'Area',
 	},
 	point: {
-		icon: null, //'target',
+		icon: 'target',
 		name: () => 'Point',
 	},
 	shapes: {
-		icon: null, //'target',
+		icon: 'target',
 		name: (item: ShapesContextItem, editor: Editor) => {
 			const count = item.shapes.length
 			if (count === 1) return CONTEXT_TYPE_DEFINITIONS['shape'].name(item, editor)

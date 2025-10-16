@@ -1,41 +1,69 @@
-import { ChatHistoryActionItem } from '@tldraw/fairy-shared'
+import { ChatHistoryActionItem, TldrawFairyAgent } from '@tldraw/fairy-shared'
+import { AgentIcon } from '@tldraw/fairy-shared/src/icons/AgentIcon'
+import { getActionInfo } from './getActionInfo'
 
-export function FairyChatHistoryAction({ item }: { item: ChatHistoryActionItem }) {
+export function FairyChatHistoryAction({
+	item,
+	agent,
+}: {
+	item: ChatHistoryActionItem
+	agent: TldrawFairyAgent
+}) {
 	const { action } = item
 
 	if (action._type === 'message') {
-		return <FairyChatHistoryMessage item={item} />
+		return <FairyChatHistoryMessage item={item} agent={agent} />
 	}
 
-	return <FairyChatHistoryActionPill item={item} />
+	return <FairyChatHistoryActionPill item={item} agent={agent} />
 }
 
-function FairyChatHistoryMessage({ item }: { item: ChatHistoryActionItem }) {
+function FairyChatHistoryMessage({
+	item,
+	agent,
+}: {
+	item: ChatHistoryActionItem
+	agent: TldrawFairyAgent
+}) {
 	const { action } = item
-	const content = action._type === 'message' ? action.text || '' : ''
+	const info = getActionInfo(action, agent)
+	const content = info.description
 
 	if (!content) return null
 
 	return (
 		<div className="fairy-chat-history-action">
-			<div className="fairy-chat-history-action-content">{content}</div>
+			<div className="fairy-chat-history-action-content fairy-chat-history-action-message">
+				{content}
+			</div>
 		</div>
 	)
 }
 
-function FairyChatHistoryActionPill({ item }: { item: ChatHistoryActionItem }) {
+function FairyChatHistoryActionPill({
+	item,
+	agent,
+}: {
+	item: ChatHistoryActionItem
+	agent: TldrawFairyAgent
+}) {
 	const { action } = item
+	const info = getActionInfo(action, agent)
 
-	const actionName = formatActionName(action._type || 'unknown')
+	const displayText =
+		info.summary || info.description || formatActionName(action._type || 'unknown')
 
 	return (
-		<div className="fairy-chat-history-action-pill-container">
-			<div className="fairy-chat-history-action-pill">{actionName}</div>
+		<div className="fairy-chat-history-action">
+			{info.icon && (
+				<div className="fairy-chat-history-action-icon">
+					<AgentIcon type={info.icon} />
+				</div>
+			)}
+			<p>{displayText}</p>
 		</div>
 	)
 }
-
-// TODO we use getActionInfo to format all of this.
 
 function formatActionName(type: string): string {
 	const sentence = type

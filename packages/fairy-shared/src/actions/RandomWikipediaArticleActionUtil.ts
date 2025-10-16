@@ -29,7 +29,7 @@ export class RandomWikipediaArticleActionUtil extends AgentActionUtil<RandomWiki
 			? 'Got random Wikipedia article'
 			: 'Getting random Wikipedia article'
 		return {
-			icon: null, //'search' as const,
+			icon: 'search' as const,
 			description,
 		}
 	}

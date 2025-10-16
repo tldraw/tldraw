@@ -34,7 +34,7 @@ export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
 
 	override getInfo(action: Streaming<UpdateAction>) {
 		return {
-			icon: null, //'cursor' as const,
+			icon: 'cursor' as const,
 			description: action.intent ?? '',
 		}
 	}

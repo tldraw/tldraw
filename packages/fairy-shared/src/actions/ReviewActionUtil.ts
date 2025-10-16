@@ -38,7 +38,7 @@ export class ReviewActionUtil extends AgentActionUtil<ReviewAction> {
 		const description = `**${label}:** ${text ?? ''}`
 
 		return {
-			icon: null, //'search' as const,
+			icon: 'search' as const,
 			description,
 			pose: 'thinking' as const,
 		}

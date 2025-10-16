@@ -29,7 +29,7 @@ export class CountShapesActionUtil extends AgentActionUtil<CountShapesAction> {
 	override getInfo(action: Streaming<CountShapesAction>) {
 		const description = action.complete ? 'Counted shapes' : 'Counting shapes'
 		return {
-			icon: null, //'search' as const,
+			icon: 'search' as const,
 			description,
 		}
 	}

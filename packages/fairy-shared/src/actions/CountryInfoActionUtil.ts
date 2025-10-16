@@ -29,7 +29,7 @@ export class CountryInfoActionUtil extends AgentActionUtil<CountryInfoAction> {
 	override getInfo(action: Streaming<CountryInfoAction>) {
 		const description = action.complete ? 'Searched for country info' : 'Searching for country info'
 		return {
-			icon: null, //'search' as const,
+			icon: 'search' as const,
 			description,
 		}
 	}

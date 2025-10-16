@@ -30,7 +30,7 @@ export class BringToFrontActionUtil extends AgentActionUtil<BringToFrontAction> 
 
 	override getInfo(action: Streaming<BringToFrontAction>) {
 		return {
-			icon: null, //'cursor' as const,
+			icon: 'cursor' as const,
 			description: action.intent ?? '',
 		}
 	}

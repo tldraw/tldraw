@@ -32,7 +32,7 @@ export class StackActionUtil extends AgentActionUtil<IAgentStackEvent> {
 
 	override getInfo(action: Streaming<IAgentStackEvent>) {
 		return {
-			icon: null, //'cursor' as const,
+			icon: 'cursor' as const,
 			description: action.intent ?? '',
 		}
 	}

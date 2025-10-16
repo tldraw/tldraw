@@ -34,7 +34,7 @@ export class ResizeActionUtil extends AgentActionUtil<ResizeAction> {
 
 	override getInfo(action: Streaming<ResizeAction>) {
 		return {
-			icon: null, //'cursor' as const,
+			icon: 'cursor' as const,
 			description: action.intent ?? '',
 		}
 	}

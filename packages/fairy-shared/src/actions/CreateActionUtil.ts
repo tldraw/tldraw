@@ -31,7 +31,7 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 
 	override getInfo(action: Streaming<CreateAction>) {
 		return {
-			icon: null, //'pencil' as const,
+			icon: 'pencil' as const,
 			description: action.intent ?? '',
 		}
 	}

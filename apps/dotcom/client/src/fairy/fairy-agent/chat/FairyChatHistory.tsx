@@ -8,6 +8,7 @@ export function FairyChatHistory({ agent }: { agent: TldrawFairyAgent }) {
 	const sections = getAgentHistorySections(historyItems)
 	const historyRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)
+	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
 
 	useEffect(() => {
 		if (!historyRef.current) return
@@ -28,9 +29,10 @@ export function FairyChatHistory({ agent }: { agent: TldrawFairyAgent }) {
 
 			if (scrollDistanceFromBottom > 0) {
 				historyRef.current.scrollTo(0, historyRef.current.scrollHeight)
+				previousScrollDistanceFromBottomRef.current = 0
 			}
 		}
-	}, [historyRef, historyItems])
+	}, [historyRef, historyItems, isGenerating])
 
 	const handleScroll = () => {
 		if (!historyRef.current) return
@@ -48,7 +50,15 @@ export function FairyChatHistory({ agent }: { agent: TldrawFairyAgent }) {
 				<div className="fairy-chat-empty"></div>
 			) : (
 				sections.map((section: FairyChatHistorySection, i: number) => {
-					return <FairyChatHistorySection key={'history-section-' + i} section={section} />
+					const isLastSection = i === sections.length - 1
+					return (
+						<FairyChatHistorySection
+							key={'history-section-' + i}
+							section={section}
+							agent={agent}
+							loading={isGenerating && isLastSection}
+						/>
+					)
 				})
 			)}
 		</div>

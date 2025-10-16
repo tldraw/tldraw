@@ -28,7 +28,7 @@ export class MoveActionUtil extends AgentActionUtil<MoveAction> {
 
 	override getInfo(action: Streaming<MoveAction>) {
 		return {
-			icon: null, //'cursor' as const,
+			icon: 'cursor' as const,
 			description: action.intent ?? '',
 		}
 	}

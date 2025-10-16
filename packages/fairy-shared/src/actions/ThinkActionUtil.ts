@@ -28,7 +28,7 @@ export class ThinkActionUtil extends AgentActionUtil<ThinkAction> {
 		if (time === 1) summary = 'Thought for 1 second'
 
 		return {
-			icon: null, //'brain' as const,
+			icon: 'brain' as const,
 			description: action.text ?? (action.complete ? 'Thinking...' : null),
 			summary,
 			pose: 'thinking' as const,

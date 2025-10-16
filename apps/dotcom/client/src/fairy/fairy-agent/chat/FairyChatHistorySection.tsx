@@ -3,8 +3,10 @@ import {
 	ChatHistoryContinuationItem,
 	ChatHistoryItem,
 	ChatHistoryPromptItem,
+	SmallSpinner,
+	TldrawFairyAgent,
 } from '@tldraw/fairy-shared'
-import { FairyChatHistoryAction } from './FairyChatHistoryAction'
+import { FairyChatHistoryGroup, getActionHistoryGroups } from './FairyChatHistoryGroup'
 import { FairyChatHistoryPrompt } from './FairyChatHistoryPrompt'
 
 export interface FairyChatHistorySection {
@@ -12,16 +14,26 @@ export interface FairyChatHistorySection {
 	items: (ChatHistoryActionItem | ChatHistoryContinuationItem)[]
 }
 
-export function FairyChatHistorySection({ section }: { section: FairyChatHistorySection }) {
+export function FairyChatHistorySection({
+	section,
+	agent,
+	loading,
+}: {
+	section: FairyChatHistorySection
+	agent: TldrawFairyAgent
+	loading: boolean
+}) {
 	const actions = section.items.filter((item) => item.type === 'action') as ChatHistoryActionItem[]
+	const groups = getActionHistoryGroups(actions, agent)
 	return (
 		<div className="fairy-chat-history-section">
 			<FairyChatHistoryPrompt item={section.prompt} />
 			<div className="fairy-chat-history-actions">
-				{actions.map((item, i) => (
-					<FairyChatHistoryAction key={'action-' + i} item={item} />
+				{groups.map((group, i) => (
+					<FairyChatHistoryGroup key={'group-' + i} group={group} agent={agent} />
 				))}
 			</div>
+			{loading && <SmallSpinner />}
 		</div>
 	)
 }

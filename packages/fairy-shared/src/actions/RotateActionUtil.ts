@@ -33,7 +33,7 @@ export class RotateActionUtil extends AgentActionUtil<RotateAction> {
 
 	override getInfo(action: Streaming<RotateAction>) {
 		return {
-			icon: null, //'cursor' as const,
+			icon: 'cursor' as const,
 			description: action.intent ?? '',
 		}
 	}

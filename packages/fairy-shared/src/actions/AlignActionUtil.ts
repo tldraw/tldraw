@@ -28,7 +28,7 @@ export class AlignActionUtil extends AgentActionUtil<AlignAction> {
 
 	override getInfo(action: Streaming<AlignAction>) {
 		return {
-			icon: null, //'cursor' as const,
+			icon: 'cursor' as const,
 			description: action.intent ?? '',
 		}
 	}

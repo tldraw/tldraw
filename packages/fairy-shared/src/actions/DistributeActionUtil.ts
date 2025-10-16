@@ -30,7 +30,7 @@ export class DistributeActionUtil extends AgentActionUtil<DistributeAction> {
 
 	override getInfo(action: Streaming<DistributeAction>) {
 		return {
-			icon: null, //'cursor' as const,
+			icon: 'cursor' as const,
 			description: action.intent ?? '',
 		}
 	}

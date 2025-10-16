@@ -30,7 +30,7 @@ export class SendToBackActionUtil extends AgentActionUtil<SendToBackAction> {
 
 	override getInfo(action: Streaming<SendToBackAction>) {
 		return {
-			icon: null, //'cursor' as const,
+			icon: 'cursor' as const,
 			description: action.intent ?? '',
 		}
 	}

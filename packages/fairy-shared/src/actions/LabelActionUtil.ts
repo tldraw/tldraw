@@ -27,7 +27,7 @@ export class LabelActionUtil extends AgentActionUtil<ILabelEvent> {
 
 	override getInfo(action: Streaming<ILabelEvent>) {
 		return {
-			icon: null, //'pencil' as const,
+			icon: 'pencil' as const,
 			description: action.intent ?? '',
 		}
 	}

@@ -508,11 +508,56 @@
 	gap: 6px;
 }
 
-.fairy-chat-history-action {
+.fairy-chat-history-group {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.fairy-chat-history-group-toggle {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 2px 4px;
+	background-color: transparent;
+	border: none;
+	border-radius: 6px;
 	font-size: 12px;
-	line-height: 1.5;
-	color: var(--tl-color-text-2);
-	padding-left: 8px;
+	color: var(--tl-color-text-3);
+	cursor: pointer;
+	margin-left: -4px;
+}
+.fairy-chat-history-group-toggle button {
+	cursor: pointer;
+}
+
+.fairy-chat-history-group-toggle span {
+	cursor: pointer;
+}
+.fairy-chat-history-group-toggle:hover {
+	background-color: var(--tl-color-muted-2);
+}
+
+.fairy-chat-history-group-toggle svg {
+	width: 14px;
+	height: 14px;
+	color: var(--tl-color-text-3);
+	flex-shrink: 0;
+}
+
+.fairy-chat-history-group-summary {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 2px 4px;
+	font-size: 12px;
+	color: var(--tl-color-text-3);
+}
+
+.fairy-chat-history-group-items {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
 }
 
 .fairy-chat-history-action-content {
@@ -520,22 +565,24 @@
 	word-wrap: break-word;
 }
 
-.fairy-chat-history-action-pill-container {
+.fairy-chat-history-action {
 	display: flex;
-	padding-left: 8px;
+	flex-direction: row;
+	align-items: start;
+	gap: 4px;
+	font-size: 12px;
+	line-height: 1.5;
+	color: var(--tl-color-text-3);
 }
 
-.fairy-chat-history-action-pill {
-	display: inline-flex;
-	align-items: center;
-	padding: 4px 10px;
-	background-color: var(--tl-color-muted-1);
-	color: var(--tl-color-text-2);
-	border-radius: 12px;
-	font-size: 11px;
-	font-weight: 500;
-	line-height: 1.2;
-	white-space: nowrap;
+.fairy-chat-history-action-message {
+	color: var(--tl-color-text-1);
+}
+
+.fairy-chat-history-action-icon svg {
+	width: 14px;
+	height: 14px;
+	color: var(--tl-color-text-3);
 }
 
 .fairy-chat-loading {
