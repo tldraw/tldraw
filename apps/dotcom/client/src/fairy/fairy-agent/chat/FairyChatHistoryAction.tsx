@@ -1,5 +1,4 @@
-import { ChatHistoryActionItem, TldrawFairyAgent } from '@tldraw/fairy-shared'
-import { AgentIcon } from '@tldraw/fairy-shared/src/icons/AgentIcon'
+import { AgentIcon, ChatHistoryActionItem, TldrawFairyAgent } from '@tldraw/fairy-shared'
 import { getActionInfo } from './getActionInfo'
 
 export function FairyChatHistoryAction({

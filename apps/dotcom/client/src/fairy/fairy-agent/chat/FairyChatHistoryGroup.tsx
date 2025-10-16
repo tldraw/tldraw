@@ -1,5 +1,4 @@
-import { ChatHistoryActionItem, TldrawFairyAgent } from '@tldraw/fairy-shared'
-import { AgentIcon } from '@tldraw/fairy-shared/src/icons/AgentIcon'
+import { AgentIcon, ChatHistoryActionItem, TldrawFairyAgent } from '@tldraw/fairy-shared'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { FairyChatHistoryAction } from './FairyChatHistoryAction'
 import { getActionInfo } from './getActionInfo'
@@ -40,7 +39,7 @@ export function FairyChatHistoryGroup({
 		return items.every((item) => item.action.complete)
 	}, [items])
 
-	const [tick, setTick] = useState(0)
+	const [_tick, setTick] = useState(0)
 
 	// Track the last time we got an update from the server
 	const lastServerTimeRef = useRef(0)
