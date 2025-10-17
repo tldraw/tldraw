@@ -9,11 +9,17 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		'dangerous-html': IDangerousHtmlShape
+	}
+}
+
 // There's a guide at the bottom of this page!
 
 // [1]
 export type IDangerousHtmlShape = TLBaseShape<
-	'html',
+	'dangerous-html',
 	{
 		w: number
 		h: number
@@ -23,11 +29,11 @@ export type IDangerousHtmlShape = TLBaseShape<
 
 // [2]
 class DangerousHtmlExample extends BaseBoxShapeUtil<IDangerousHtmlShape> {
-	static override type = 'html' as const
+	static override type = 'dangerous-html' as const
 
 	override getDefaultProps() {
 		return {
-			type: 'html',
+			type: 'dangerous-html',
 			w: 500,
 			h: 300,
 			html: '<div>hello</div>',
@@ -61,7 +67,7 @@ export default function ExternalContentSourcesExample() {
 				const center = content.point ?? editor.getViewportPageBounds().center
 
 				editor.createShape({
-					type: 'html',
+					type: 'dangerous-html',
 					x: center.x - 250,
 					y: center.y - 150,
 					props: {
@@ -82,7 +88,7 @@ export default function ExternalContentSourcesExample() {
 	)
 }
 
-/* 
+/*
 Introduction:
 This example shows how to handle content pasted from external sources, this could be
 embeds, files, svgs, text, images, or urls. In this case we will handle text/html content.
@@ -96,11 +102,11 @@ This is our shape util. It's a class that extends BaseBoxShapeUtil. For a more d
 example of how to create a custom shape, see the custom config example.
 
 [3]
-We use the onMount prop to get access to the editor instance via 
-the handleMount callback (check out the API example for a more detailed look at this). Then we 
-call the registerExternalContentHandler method, we could choose to handle embeds, files, svgs, 
+We use the onMount prop to get access to the editor instance via
+the handleMount callback (check out the API example for a more detailed look at this). Then we
+call the registerExternalContentHandler method, we could choose to handle embeds, files, svgs,
 text, images, or urls. For this example we will handle text/html content. The handler is called
-with the point where the user pasted the content and an array of sources. We will find and 
+with the point where the user pasted the content and an array of sources. We will find and
 return the html source, then create a new shape with that html content.
 
 */

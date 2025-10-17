@@ -19,6 +19,12 @@ import {
 } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		'circle-clip': CircleClipShape
+	}
+}
+
 // Custom Circle Clip Shape Definition
 export type CircleClipShape = TLBaseShape<
 	'circle-clip',

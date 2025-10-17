@@ -21,11 +21,18 @@ import {
 import 'tldraw/tldraw.css'
 import snapShot from './snapshot.json'
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		container: ContainerShape
+		element: ElementShape
+	}
+}
+
 // The container shapes that can contain element shapes
 
 const CONTAINER_PADDING = 24
 
-type ContainerShape = TLBaseShape<'element', { height: number; width: number }>
+type ContainerShape = TLBaseShape<'container', { height: number; width: number }>
 
 class ContainerShapeUtil extends ShapeUtil<ContainerShape> {
 	static override type = 'container' as const

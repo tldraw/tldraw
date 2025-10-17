@@ -1529,7 +1529,7 @@ export class FrameShapeTool extends BaseBoxShapeTool {
     // (undocumented)
     onCreate(shape: null | TLShape): void;
     // (undocumented)
-    shapeType: string;
+    shapeType: "frame";
 }
 
 // @public (undocumented)
@@ -2488,7 +2488,11 @@ export interface PlainTextLabelProps {
     // (undocumented)
     textWidth?: number;
     // (undocumented)
-    type: string;
+    type: Extract<TLShape, {
+        props: {
+            text: string;
+        };
+    }>['type'];
     // (undocumented)
     verticalAlign: TLDefaultVerticalAlignStyle;
     // (undocumented)
@@ -2606,7 +2610,11 @@ export interface RichTextLabelProps {
     // (undocumented)
     textWidth?: number;
     // (undocumented)
-    type: string;
+    type: Extract<TLShape, {
+        props: {
+            richText: TLRichText;
+        };
+    }>['type'];
     // (undocumented)
     verticalAlign: TLDefaultVerticalAlignStyle;
     // (undocumented)
@@ -5319,7 +5327,11 @@ export function useDefaultHelpers(): {
 export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
-export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: string): {
+export function useEditablePlainText(shapeId: TLShapeId, type: Extract<TLShape, {
+    props: {
+        text: string;
+    };
+}>['type'], text?: string): {
     handleBlur: () => void;
     handleChange: ({ plaintext }: {
         plaintext: string;
@@ -5338,7 +5350,11 @@ export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: st
 };
 
 // @public (undocumented)
-export function useEditableRichText(shapeId: TLShapeId, type: string, richText?: TLRichText): {
+export function useEditableRichText(shapeId: TLShapeId, type: Extract<TLShape, {
+    props: {
+        richText: TLRichText;
+    };
+}>['type'], richText?: TLRichText): {
     handleBlur: () => void;
     handleChange: ({ richText }: {
         richText: TLRichText;

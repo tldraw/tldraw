@@ -1,5 +1,5 @@
 import { VecModel } from '../misc/geometry-types'
-import { TLBaseShape } from './TLBaseShape'
+import { TLShape } from '../records/TLShape'
 
 /**
  * Defines cropping parameters for shapes that support cropping.
@@ -71,4 +71,7 @@ export interface TLShapeCrop {
  *
  * @public
  */
-export type ShapeWithCrop = TLBaseShape<string, { w: number; h: number; crop: TLShapeCrop | null }>
+export type ShapeWithCrop = Extract<
+	TLShape,
+	{ props: { w: number; h: number; crop: TLShapeCrop | null } }
+>

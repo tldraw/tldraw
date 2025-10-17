@@ -19,7 +19,7 @@ import { EndToEndApi } from './EndToEndApi'
 ;(window as any).__tldraw_ui_event = { id: 'NOTHING_YET' }
 ;(window as any).__tldraw_editor_events = []
 
-type HtmlCssShape = TLBaseShape<'html', { html: string; css: string; w: number; h: number }>
+export type HtmlCssShape = TLBaseShape<'html', { html: string; css: string; w: number; h: number }>
 class HtmlCssShapeUtil extends BaseBoxShapeUtil<HtmlCssShape> {
 	static override type = 'html'
 
