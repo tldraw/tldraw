@@ -354,9 +354,10 @@ BEGIN
 
     -- Acquire an advisory lock based on the user ID to prevent mutations during migration
     -- Convert user ID string to a bigint for the lock key using hashtext
+    -- Using xact lock so it's automatically released when transaction ends
     v_lock_key := hashtext(target_user_id);
     RAISE NOTICE 'Acquiring advisory lock % for user %', v_lock_key, target_user_id;
-    PERFORM pg_advisory_lock(v_lock_key);
+    PERFORM pg_advisory_xact_lock(v_lock_key);
 
     -- Lock acquired, now we can safely migrate
     RAISE NOTICE 'Lock acquired, starting migration for user %', target_user_id;
@@ -402,21 +403,6 @@ BEGIN
     RAISE NOTICE 'Successfully migrated user % to groups model. Files: %, Pinned: %',
                  target_user_id, v_files_migrated, v_pinned_files_migrated;
 
-    -- Release the advisory lock
-    PERFORM pg_advisory_unlock(v_lock_key);
-    RAISE NOTICE 'Advisory lock released for user %', target_user_id;
-
     RETURN QUERY SELECT v_files_migrated, v_pinned_files_migrated, TRUE;
-EXCEPTION
-    WHEN OTHERS THEN
-        -- Make sure to release the lock even if migration fails
-        BEGIN
-            PERFORM pg_advisory_unlock(v_lock_key);
-            RAISE NOTICE 'Advisory lock released (after error) for user %', target_user_id;
-        EXCEPTION
-            WHEN OTHERS THEN
-                -- Ignore errors when unlocking
-        END;
-        RAISE;
 END;
 $$ LANGUAGE plpgsql;
