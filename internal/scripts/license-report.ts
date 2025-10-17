@@ -37,7 +37,7 @@ function parseInlineLicenses(rootDir: string): InlineLicense[] {
 		try {
 			const content = readFileSync(file, 'utf-8')
 
-			// Find all /*! comment blocks in the file (using global flag)
+			// Find all /*! comment blocks in the file (using global flag).
 			const commentMatches = content.matchAll(/\/\*!([\s\S]*?)\*\//g)
 
 			for (const commentMatch of commentMatches) {
