@@ -39,6 +39,7 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import pick from 'lodash.pick'
+import posthog from 'posthog-js'
 import {
 	Atom,
 	Signal,
@@ -60,7 +61,7 @@ import {
 	react,
 	transact,
 } from 'tldraw'
-import { trackEvent } from '../../utils/analytics'
+import { getStoredCookieConsent, trackEvent } from '../../utils/analytics'
 import { MULTIPLAYER_SERVER, ZERO_SERVER } from '../../utils/config'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
@@ -815,6 +816,14 @@ export class TldrawApp {
 			enhancedA11yMode: restOfPreferences.enhancedA11yMode ?? null,
 		})
 		if (didCreate) {
+			const consent = getStoredCookieConsent()
+			if (consent) {
+				posthog.identify(opts.userId, {
+					email: opts.email,
+					name: opts.fullName,
+					analytics_consent: true,
+				})
+			}
 			opts.trackEvent('create-user', { source: 'app' })
 		}
 		return { app, userId: opts.userId }
