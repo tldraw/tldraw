@@ -2,13 +2,11 @@ name: Claude Code Review
 
 on:
   pull_request:
-    types: [opened, synchronize]
-    # Optional: Only run on specific file changes
-    # paths:
-    #   - "src/**/*.ts"
-    #   - "src/**/*.tsx"
-    #   - "src/**/*.js"
-    #   - "src/**/*.jsx"
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   claude-review:
@@ -16,12 +14,6 @@ jobs:
     if: |
       !contains(github.event.pull_request.base.ref, 'gh-readonly-queue') &&
       !contains(github.event.pull_request.head.ref, 'gh-readonly-queue')
-    
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
 
     runs-on: ubuntu-latest
     permissions:
@@ -36,45 +28,13 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Delete previous Claude reviews
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          REPO=${{ github.repository }}
-          
-          # Delete issue comments (conversation comments)
-          gh api --paginate "repos/$REPO/issues/$PR_NUMBER/comments" --jq '.[] | select(.body | contains("🤖 Claude Code Review")) | .id' | \
-            xargs -I {} gh api --method DELETE "repos/$REPO/issues/comments/{}" 2>/dev/null || true
-          
-          # Delete review comments (inline code comments)
-          gh api --paginate "repos/$REPO/pulls/$PR_NUMBER/comments" --jq '.[] | select(.body | contains("🤖 Claude Code Review")) | .id' | \
-            xargs -I {} gh api --method DELETE "repos/$REPO/pulls/comments/{}" 2>/dev/null || true
-          
-          # Delete reviews (review summaries)
-          gh api --paginate "repos/$REPO/pulls/$PR_NUMBER/reviews" --jq '.[] | select(.body | contains("🤖 Claude Code Review")) | .id' | \
-            xargs -I {} gh api --method DELETE "repos/$REPO/pulls/$PR_NUMBER/reviews/{}" 2>/dev/null || true
-
       - name: Run Claude Code Review
         id: claude-review
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          use_sticky_comment: true
           prompt: |
-            Please review this pull request and provide feedback on:
-            - Code quality and best practices
-            - Potential bugs or issues
-            - Performance considerations
-            - Security concerns
-            - Test coverage
-
-            Be terse or omit sections that have no constructive feedback. In your final summary you can add a positive remark.
-            We want to ensure that the Claude reviews are not ignored because of verbosity, the signal-to-noise ratio is important.
-
-            Use the repository's CLAUDE.md for guidance on style and conventions. Be constructive and helpful in your feedback.
-
-            Use `gh pr comment` with your Bash tool to leave your review as a comment on the PR. IMPORTANT: Your comment MUST start with "🤖 Claude Code Review" so it can be identified and cleaned up in future runs.
-
-          # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
-          # or https://docs.anthropic.com/en/docs/claude-code/sdk#command-line for available options
-          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
+            Review this PR for correctness, security, tests, and perf.
+            Keep it concise; use inline comments for concrete issues only.
+            Update the single summary comment (no new comments).
