@@ -1,0 +1,10 @@
+{
+	"extends": "../../../internal/config/tsconfig.base.json",
+	"include": ["src"],
+	"exclude": ["node_modules", "dist", ".tsbuild*"],
+	"compilerOptions": { "noEmit": true, "emitDeclarationOnly": false },
+	"references": [
+		{ "path": "../../../packages/fairy-shared" },
+		{ "path": "../../../packages/worker-shared" }
+	]
+}

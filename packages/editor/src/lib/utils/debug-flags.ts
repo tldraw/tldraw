@@ -92,7 +92,8 @@ if (typeof Element !== 'undefined') {
 
 // --- IMPLEMENTATION ---
 // you probably don't need to read this if you're just using the debug values system
-function createDebugValue<T>(
+/** @public */
+export function createDebugValue<T>(
 	name: string,
 	{
 		defaults,
@@ -193,7 +194,7 @@ function getDefaultValue<T>(def: DebugFlagDef<T>): T {
 	}
 }
 
-/** @internal */
+/** @public */
 export interface DebugFlagDefaults<T> {
 	development?: T
 	staging?: T
@@ -201,14 +202,14 @@ export interface DebugFlagDefaults<T> {
 	all: T
 }
 
-/** @internal */
+/** @public */
 export interface DebugFlagDef<T> {
 	name: string
 	defaults: DebugFlagDefaults<T>
 	shouldStoreForSession: boolean
 }
 
-/** @internal */
+/** @public */
 export interface DebugFlag<T> extends DebugFlagDef<T>, Atom<T> {
 	reset(): void
 }

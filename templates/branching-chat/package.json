@@ -30,14 +30,15 @@
 	"dependencies": {
 		"@ai-sdk/google": "^2.0.14",
 		"@cloudflare/vite-plugin": "^1.13.2",
-		"ai": "^5.0.15",
+		"ai": "^5.0.63",
 		"classnames": "^2.5.1",
 		"itty-router": "^5.0.18",
 		"radix-ui": "^1.4.2",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
 		"tldraw": "workspace:*",
-		"wrangler": "^4.37.1"
+		"wrangler": "^4.37.1",
+		"zod": "^4.1.8"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20250913.0",
