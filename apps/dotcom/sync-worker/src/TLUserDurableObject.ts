@@ -338,6 +338,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 			await client.query('BEGIN')
 
+			// Acquire shared advisory lock to coordinate with migration
+			// This will wait if migrate_user_to_groups is running (which uses exclusive lock)
+			// but won't block other mutations (which also use shared locks)
+			await client.query('SELECT pg_advisory_lock_shared(hashtext($1))', [this.userId])
+
 			const controller = new AbortController()
 			const mutate = this.makeCrud(client, controller.signal, { newFiles })
 			try {
@@ -374,6 +379,9 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				`insert into user_mutation_number ("userId", "mutationNumber") values ($1, 1) on conflict ("userId") do update set "mutationNumber" = user_mutation_number."mutationNumber" + 1 returning "mutationNumber"`,
 				[this.userId]
 			)
+
+			// Release the shared advisory lock
+			await client.query('SELECT pg_advisory_unlock_shared(hashtext($1))', [this.userId])
 
 			const currentMutationNumber = this.cache.mutations.at(-1)?.mutationNumber ?? 0
 			const mutationNumber = res.rows[0].mutationNumber
