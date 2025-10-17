@@ -3,9 +3,9 @@
 
 import { execSync } from 'child_process'
 import { readFileSync, writeFileSync } from 'fs'
+import { glob } from 'glob'
 import { relative } from 'path'
 import { exec } from './lib/exec'
-import { glob } from 'glob'
 
 interface InlineLicense {
 	file: string
@@ -17,7 +17,7 @@ interface InlineLicense {
 
 function parseInlineLicenses(rootDir: string): InlineLicense[] {
 	const licenses: InlineLicense[] = []
-	
+
 	// Find all files with /*! comments
 	const files = glob.sync('**/*.{ts,tsx,js,jsx,css}', {
 		cwd: rootDir,
@@ -32,47 +32,49 @@ function parseInlineLicenses(rootDir: string): InlineLicense[] {
 		],
 		absolute: true,
 	})
-	
+
 	for (const file of files) {
 		try {
 			const content = readFileSync(file, 'utf-8')
-			
+
 			// Find all /*! comment blocks in the file (using global flag)
 			const commentMatches = content.matchAll(/\/\*!([\s\S]*?)\*\//g)
-			
+
 			for (const commentMatch of commentMatches) {
 				const comment = commentMatch[1]
-				
+
 				// Parse license information
 				let licenseType = 'Unknown'
 				let copyright = ''
 				let licenseUrl = ''
 				let sourceUrl = ''
-				
+
 				// Extract license type (MIT License, BSD License, Apache License, etc.)
 				const licenseMatch = comment.match(/(MIT|BSD|Apache|ISC)[\s]*License/i)
 				if (licenseMatch) {
 					licenseType = licenseMatch[0].replace('License', '').trim()
 				}
-				
+
 				// Extract copyright
 				const copyrightMatch = comment.match(/Copyright[\s]*(?:\(c\))?[\s]*(.+?)(?:\n|$)/i)
 				if (copyrightMatch) {
 					copyright = copyrightMatch[1].trim()
 				}
-				
+
 				// Extract license URL
-				const licenseUrlMatch = comment.match(/(?:MIT|BSD|Apache|ISC)[\s]*License:\s*(https?:\/\/[^\s\n]+)/i)
+				const licenseUrlMatch = comment.match(
+					/(?:MIT|BSD|Apache|ISC)[\s]*License:\s*(https?:\/\/[^\s\n]+)/i
+				)
 				if (licenseUrlMatch) {
 					licenseUrl = licenseUrlMatch[1]
 				}
-				
+
 				// Extract source URL
 				const sourceUrlMatch = comment.match(/(?:from|Code:|Originally from)\s*<?([^>\n]+)>?/i)
 				if (sourceUrlMatch) {
 					sourceUrl = sourceUrlMatch[1].trim()
 				}
-				
+
 				const relativePath = relative(rootDir, file)
 				licenses.push({
 					file: relativePath,
@@ -86,7 +88,7 @@ function parseInlineLicenses(rootDir: string): InlineLicense[] {
 			// Skip files that can't be read
 		}
 	}
-	
+
 	return licenses
 }
 
@@ -103,8 +105,15 @@ async function main() {
 	})
 		.split('\n')
 		.map((line) => line.split(': ')[1])
-		.filter((line) => line && line !== '.' && !line.startsWith('apps/') && !line.startsWith('internal/') && !line.startsWith('templates/'))
-		.join('\n');
+		.filter(
+			(line) =>
+				line &&
+				line !== '.' &&
+				!line.startsWith('apps/') &&
+				!line.startsWith('internal/') &&
+				!line.startsWith('templates/')
+		)
+		.join('\n')
 	const lines = workspaceList.split('\n')
 	lines.pop() // remove // Done
 	for (let i = 0; i < lines.length; i++) {
@@ -140,7 +149,7 @@ async function main() {
 				for (const row of rows) {
 					const cells = row.match(/<td[^>]*>(.*?)<\/td>/gs)
 					if (cells) {
-						const cellData = cells.map(cell => {
+						const cellData = cells.map((cell) => {
 							// Remove HTML tags and clean up content
 							let content = cell.replace(/<td[^>]*>/, '').replace(/<\/td>/, '')
 							// Extract text from links
@@ -225,19 +234,32 @@ ${htmlTables.reduce((acc, { content }) => {
 `
 
 	// Generate markdown table
-	const headers = ['Department', 'Package', 'Name', 'License Period', 'Material', 'License Type', 'Link', 'Remote Version', 'Installed Version', 'Defined Version', 'Author', 'Source']
+	const headers = [
+		'Department',
+		'Package',
+		'Name',
+		'License Period',
+		'Material',
+		'License Type',
+		'Link',
+		'Remote Version',
+		'Installed Version',
+		'Defined Version',
+		'Author',
+		'Source',
+	]
 	const markdown = `# License Report
 
 | ${headers.join(' | ')} |
 | ${headers.map(() => '---').join(' | ')} |
-${markdownRows.map(row => `| ${row.map(cell => cell.replace(/\|/g, '\\|')).join(' | ')} |`).join('\n')}
+${markdownRows.map((row) => `| ${row.map((cell) => cell.replace(/\|/g, '\\|')).join(' | ')} |`).join('\n')}
 `
 
 	const suffix = prodOnly ? '-prod' : devOnly ? '-dev' : ''
-	
+
 	writeFileSync(`license-report${suffix}.html`, html)
 	writeFileSync(`license-report${suffix}.md`, markdown)
-	
+
 	console.log(`\nGenerated license-report${suffix}.html and license-report${suffix}.md`)
 }
 
