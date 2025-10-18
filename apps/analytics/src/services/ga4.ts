@@ -44,8 +44,9 @@ class GoogleAnalyticsService extends AnalyticsService {
 			if (typeof window !== 'undefined') {
 				// Initialize dataLayer
 				window.dataLayer = window.dataLayer || []
-				window.gtag = function (...args: any[]) {
-					window.dataLayer!.push(args)
+				window.gtag = function () {
+					// eslint-disable-next-line prefer-rest-params
+					window.dataLayer!.push(arguments)
 				}
 				gtag('js', new Date())
 
@@ -68,6 +69,7 @@ class GoogleAnalyticsService extends AnalyticsService {
 		this.isInitialized = true
 	}
 	override enable() {
+		if (this.isEnabled) return
 		gtag('set', { anonymize_ip: false })
 		gtag('consent', 'update', {
 			ad_user_data: 'granted',
@@ -75,8 +77,10 @@ class GoogleAnalyticsService extends AnalyticsService {
 			ad_storage: 'granted',
 			analytics_storage: 'granted',
 		})
+		this.isEnabled = true
 	}
 	override disable() {
+		if (!this.isEnabled) return
 		// Clear user properties
 		if (this.measurementId) {
 			gtag('config', this.measurementId, {
@@ -91,6 +95,7 @@ class GoogleAnalyticsService extends AnalyticsService {
 			ad_storage: 'denied',
 			analytics_storage: 'denied',
 		})
+		this.isEnabled = false
 	}
 	override identify(userId: string, properties?: { [key: string]: any }) {
 		gtag('set', { user_id: userId })

@@ -21,14 +21,18 @@ class PosthogAnalyticsService extends AnalyticsService {
 		this.isInitialized = true
 	}
 	override enable() {
+		if (this.isEnabled) return
 		_posthog.set_config({ persistence: 'localStorage+cookie' })
 		_posthog.opt_in_capturing()
+		this.isEnabled = true
 	}
 	override disable() {
+		if (!this.isEnabled) return
 		_posthog.setPersonProperties({ analytics_consent: false })
 		_posthog.reset()
 		_posthog.set_config({ persistence: 'memory' })
 		_posthog.opt_out_capturing()
+		this.isEnabled = false
 	}
 	override identify(userId: string, properties?: { [key: string]: any }) {
 		_posthog.identify(userId, {

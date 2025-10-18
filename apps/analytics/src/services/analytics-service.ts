@@ -2,6 +2,7 @@
 
 export class AnalyticsService {
 	protected isInitialized = false
+	protected isEnabled = false
 	// Initialize the service regardless of cookie consent.
 	initialize(): void {}
 	// Enable the service when cookie consent is granted.
