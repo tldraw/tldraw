@@ -1,46 +1,44 @@
-import posthog from 'posthog-js'
-
-let isInitialized = false
+import _posthog from 'posthog-js'
+import { POSTHOG_API_HOST, POSTHOG_TOKEN, POSTHOG_UI_HOST } from './constants'
+import { AnalyticsService } from './types'
 
 // Make posthog available globally
-window.posthog = posthog
+window.posthog = _posthog
 
-export function initializePostHog() {
-	if (isInitialized) return
+export const posthog: AnalyticsService = {
+	_isInitialized: false,
+	initialize() {
+		if (this._isInitialized) return
 
-	posthog.init('phc_i8oKgMzgV38sn3GfjswW9mevQ3gFlo7bJXekZFeDN6', {
-		api_host: 'https://analytics.tldraw.com/i',
-		ui_host: 'https://eu.i.posthog.com',
-		persistence: 'memory',
-		capture_pageview: 'history_change',
-	})
+		_posthog.init(POSTHOG_TOKEN, {
+			api_host: POSTHOG_API_HOST,
+			ui_host: POSTHOG_UI_HOST,
+			persistence: 'memory',
+			capture_pageview: 'history_change',
+		})
 
-	isInitialized = true
-}
-
-export function enablePostHog() {
-	posthog.set_config({ persistence: 'localStorage+cookie' })
-	posthog.opt_in_capturing()
-}
-
-export function disablePostHog() {
-	posthog.setPersonProperties({ analytics_consent: false })
-	posthog.reset()
-	posthog.set_config({ persistence: 'memory' })
-	posthog.opt_out_capturing()
-}
-
-export function identifyPostHog(userId: string, properties?: { [key: string]: any }) {
-	posthog.identify(userId, {
-		...properties,
-		analytics_consent: true,
-	})
-}
-
-export function trackPostHogEvent(name: string, data?: { [key: string]: any }) {
-	posthog.capture(name, data)
-}
-
-export function trackPostHogPageview() {
-	posthog.capture('$pageview')
+		this._isInitialized = true
+	},
+	enable() {
+		_posthog.set_config({ persistence: 'localStorage+cookie' })
+		_posthog.opt_in_capturing()
+	},
+	disable() {
+		_posthog.setPersonProperties({ analytics_consent: false })
+		_posthog.reset()
+		_posthog.set_config({ persistence: 'memory' })
+		_posthog.opt_out_capturing()
+	},
+	identify(userId: string, properties?: { [key: string]: any }) {
+		_posthog.identify(userId, {
+			...properties,
+			analytics_consent: true,
+		})
+	},
+	trackEvent(name: string, data?: { [key: string]: any }) {
+		_posthog.capture(name, data)
+	},
+	trackPageview() {
+		_posthog.capture('$pageview')
+	},
 }

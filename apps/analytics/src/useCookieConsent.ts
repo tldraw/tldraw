@@ -1,7 +1,8 @@
 import Cookies from 'js-cookie'
 import { useSyncExternalStore } from 'react'
 import { applyConsent, track } from './analytics'
-import { CONSENT_COOKIE_NAME, type CookieConsent } from './types'
+import { CONSENT_COOKIE_NAME } from './constants'
+import { type CookieConsent } from './types'
 
 /*
 The `useCookieConsent` hook is used to track the consent of the user. It shares

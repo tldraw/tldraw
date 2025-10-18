@@ -1,67 +1,72 @@
 import ReactGA from 'react-ga4'
+import { AnalyticsService } from './types'
 
-let isInitialized = false
+export const googleAnalytics: AnalyticsService = {
+	_isInitialized: false,
+	initialize() {
+		if (this._isInitialized) return
+		let measurementId: string | undefined
+		let googleAdsId: string | undefined
 
-export function initializeGA4() {
-	if (isInitialized) return
-	if (!window.TL_GA4_MEASUREMENT_ID) return
+		if (typeof window !== 'undefined') {
+			measurementId = window.TL_GA4_MEASUREMENT_ID ?? undefined
+			googleAdsId = window.TL_GOOGLE_ADS_ID ?? undefined
+		}
 
-	ReactGA.gtag('consent', 'default', {
-		ad_storage: 'denied',
-		ad_user_data: 'denied',
-		ad_personalization: 'denied',
-		analytics_storage: 'denied',
-		// Wait for our cookie to load.
-		wait_for_update: 500,
-	})
+		if (measurementId) {
+			ReactGA.gtag('consent', 'default', {
+				ad_storage: 'denied',
+				ad_user_data: 'denied',
+				ad_personalization: 'denied',
+				analytics_storage: 'denied',
+				// Wait for our cookie to load.
+				wait_for_update: 500,
+			})
 
-	ReactGA.initialize(window.TL_GA4_MEASUREMENT_ID, {
-		gaOptions: {
-			anonymize_ip: true,
-		},
-	})
+			ReactGA.initialize(measurementId, {
+				gaOptions: {
+					anonymize_ip: true,
+				},
+			})
+		}
 
-	if (window.TL_GOOGLE_ADS_ID) {
-		ReactGA.gtag('config', window.TL_GOOGLE_ADS_ID)
-	}
+		if (googleAdsId) {
+			ReactGA.gtag('config', googleAdsId)
+		}
 
-	isInitialized = true
-}
-
-export function enableGA4() {
-	ReactGA.set({ anonymize_ip: false })
-	ReactGA.gtag('consent', 'update', {
-		ad_user_data: 'granted',
-		ad_personalization: 'granted',
-		ad_storage: 'granted',
-		analytics_storage: 'granted',
-	})
-}
-
-export function disableGA4() {
-	ReactGA.reset()
-	ReactGA.set({ anonymize_ip: true })
-	ReactGA.gtag('consent', 'update', {
-		ad_user_data: 'denied',
-		ad_personalization: 'denied',
-		ad_storage: 'denied',
-		analytics_storage: 'denied',
-	})
-}
-
-export function identifyGA4(userId: string, properties?: { [key: string]: any }) {
-	ReactGA.set({ userId })
-	if (properties) {
-		ReactGA.set(properties)
-	}
-}
-
-export function trackGA4Event(name: string, data?: { [key: string]: any }) {
-	ReactGA.event(name, data)
-}
-
-export function trackGA4Pageview() {
-	ReactGA.send('pageview')
+		this._isInitialized = true
+	},
+	enable() {
+		ReactGA.set({ anonymize_ip: false })
+		ReactGA.gtag('consent', 'update', {
+			ad_user_data: 'granted',
+			ad_personalization: 'granted',
+			ad_storage: 'granted',
+			analytics_storage: 'granted',
+		})
+	},
+	disable() {
+		ReactGA.reset()
+		ReactGA.set({ anonymize_ip: true })
+		ReactGA.gtag('consent', 'update', {
+			ad_user_data: 'denied',
+			ad_personalization: 'denied',
+			ad_storage: 'denied',
+			analytics_storage: 'denied',
+		})
+	},
+	identify(userId: string, properties?: { [key: string]: any }) {
+		ReactGA.set({ userId })
+		if (properties) {
+			ReactGA.set(properties)
+		}
+	},
+	trackEvent(name: string, data?: { [key: string]: any }) {
+		ReactGA.event(name, data)
+	},
+	trackPageview() {
+		ReactGA.send('pageview')
+	},
 }
 
 export function ga4Gtag(...args: any[]) {

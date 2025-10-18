@@ -1,3 +1,4 @@
+import { DOT_DEV_COOKIE_POLICY_URL } from './constants'
 import { useDocumentTheme } from './theme'
 import { useCookieConsent } from './useCookieConsent'
 
@@ -12,7 +13,7 @@ export function CookieConsentBanner() {
 			<p>
 				We use cookies on this website.
 				<br /> Learn more in our{' '}
-				<a href="https://tldraw.notion.site/devcookiepolicy" target="_blank" rel="noreferrer">
+				<a href={DOT_DEV_COOKIE_POLICY_URL} target="_blank" rel="noreferrer">
 					Cookie Policy
 				</a>
 				.

@@ -15,13 +15,7 @@ export default defineConfig({
 			formats: ['umd'],
 		},
 		rollupOptions: {
-			external: ['react', 'react-dom'],
-			output: {
-				globals: {
-					react: 'React',
-					'react-dom': 'ReactDOM',
-				},
-			},
+			// React and ReactDOM are now bundled instead of external
 		},
 	},
 })

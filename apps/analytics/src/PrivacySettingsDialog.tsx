@@ -1,7 +1,7 @@
 import { Dialog as _Dialog, Switch as _Switch } from 'radix-ui'
 import { useCallback, useState } from 'react'
+import { DOT_DEV_COOKIE_POLICY_URL } from './constants'
 import { useDocumentTheme } from './theme'
-import { DOT_DEV_COOKIE_POLICY_URL } from './urls'
 import { useCookieConsent } from './useCookieConsent'
 
 /*
