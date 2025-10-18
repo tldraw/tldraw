@@ -1,13 +1,13 @@
-import { DOT_DEV_COOKIE_POLICY_URL } from './constants'
-import { cookieConsentState } from './cookie-consent'
-import { documentThemeState } from './theme'
+import { DOT_DEV_COOKIE_POLICY_URL } from '../constants'
+import { cookieConsentState } from '../state/cookie-consent-state'
+import { themeState } from '../state/theme-state'
 
 export function createCookieConsentBanner(): HTMLElement | null {
 	cookieConsentState.initialize()
-	const consent = cookieConsentState.getCurrentConsent()
+	const consent = cookieConsentState.getValue()
 
-	documentThemeState.initialize()
-	const theme = documentThemeState.getCurrentTheme()
+	themeState.initialize()
+	const theme = themeState.getValue()
 
 	// Don't show banner if consent is already given
 	if (consent !== 'unknown') return null
@@ -19,20 +19,20 @@ export function createCookieConsentBanner(): HTMLElement | null {
 
 	// Create content
 	banner.innerHTML = `
-		<p>
+		<p class="tl-analytics-banner__text">
 			We use cookies on this website.
-			<br> Learn more in our 
-			<a href="${DOT_DEV_COOKIE_POLICY_URL}" target="_blank" rel="noreferrer">
+			<br> Learn more in our
+			<a class="tl-analytics-banner__link" href="${DOT_DEV_COOKIE_POLICY_URL}" target="_blank" rel="noreferrer">
 				Cookie Policy
 			</a>.
 		</p>
-		<div class="tl-analytics-buttons">
-			<button class="tl-analytics-button tl-analytics-button-secondary" data-action="opt-out">
+		<div class="tl-analytics-banner__buttons">
+			<button class="tl-analytics-button tl-analytics-button--secondary" data-action="opt-out">
 				Opt out
 			</button>
-			<button class="tl-analytics-button tl-analytics-button-primary" data-action="accept">
-				<div class="tl-analytics-button-text-wrapper">
-					<div class="tl-analytics-button-text">Accept all</div>
+			<button class="tl-analytics-button tl-analytics-button--primary" data-action="accept">
+				<div class="tl-analytics-button__text-wrapper">
+					<div class="tl-analytics-button__text">Accept all</div>
 				</div>
 			</button>
 		</div>
@@ -43,9 +43,9 @@ export function createCookieConsentBanner(): HTMLElement | null {
 		const target = e.target as HTMLElement
 		const action = target.closest('[data-action]')?.getAttribute('data-action')
 		if (action === 'opt-out') {
-			cookieConsentState.setConsent(false)
+			cookieConsentState.setValue('opted-out')
 		} else if (action === 'accept') {
-			cookieConsentState.setConsent(true)
+			cookieConsentState.setValue('opted-in')
 		}
 	})
 
@@ -56,7 +56,7 @@ export function createCookieConsentBanner(): HTMLElement | null {
 	})
 
 	// Watch for theme changes
-	const themeCleanup = documentThemeState.subscribe((theme) => {
+	const themeCleanup = themeState.subscribe((theme) => {
 		banner.setAttribute('data-theme', theme)
 	})
 

@@ -1,59 +1,59 @@
-import { DOT_DEV_COOKIE_POLICY_URL } from './constants'
-import { cookieConsentState } from './cookie-consent'
-import { documentThemeState } from './theme'
+import { DOT_DEV_COOKIE_POLICY_URL } from '../constants'
+import { cookieConsentState } from '../state/cookie-consent-state'
+import { themeState } from '../state/theme-state'
 
 export function createPrivacySettingsDialog(): HTMLElement {
 	cookieConsentState.initialize()
-	const consent = cookieConsentState.getCurrentConsent()
+	const consent = cookieConsentState.getValue()
 
-	documentThemeState.initialize()
-	const theme = documentThemeState.getCurrentTheme()
+	themeState.initialize()
+	const theme = themeState.getValue()
 
 	// Create dialog container
 	const dialogContainer = document.createElement('div')
-	dialogContainer.className = 'tl-analytics-dialog-container'
+	dialogContainer.className = 'tl-analytics-dialog'
 
 	// Create overlay and dialog
 	const overlay = document.createElement('div')
-	overlay.className = 'tl-analytics-dialog'
+	overlay.className = 'tl-analytics-dialog__overlay'
 	overlay.setAttribute('data-theme', theme)
 
 	const dialogWrapper = document.createElement('div')
-	dialogWrapper.className = 'tl-analytics-dialog-wrapper'
+	dialogWrapper.className = 'tl-analytics-dialog__wrapper'
 	dialogWrapper.setAttribute('data-theme', theme)
 
 	const dialog = document.createElement('div')
-	dialog.className = 'tl-analytics-dialog-content'
+	dialog.className = 'tl-analytics-dialog__content'
 
 	// Create dialog content
 	dialog.innerHTML = `
-		<div class="tl-analytics-dialog-header">
-			<h2 class="tl-analytics-dialog-title">Privacy settings</h2>
-			<button class="tl-analytics-dialog-close" aria-label="Close">
+		<div class="tl-analytics-dialog__header">
+			<h2 class="tl-analytics-dialog__title">Privacy settings</h2>
+			<button class="tl-analytics-dialog__close" aria-label="Close">
 				<svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
 				</svg>
 			</button>
 		</div>
-		<p class="tl-analytics-dialog-body">
-			This website uses cookies to collect analytics from visitors. Read our 
-				<a href="${DOT_DEV_COOKIE_POLICY_URL}" target="_blank" rel="noreferrer">cookie policy</a> 
-				to learn more.
-			</p>
-		<div class="tl-analytics-checkbox-group">
-			<label class="tl-analytics-checkbox-label" for="privacy-analytics">
+		<p class="tl-analytics-dialog__body">
+			This website uses cookies to collect analytics from visitors. Read our
+			<a href="${DOT_DEV_COOKIE_POLICY_URL}" target="_blank" rel="noreferrer">cookie policy</a>
+			to learn more.
+		</p>
+		<div class="tl-analytics-dialog__checkbox-group">
+			<label class="tl-analytics-checkbox__label" for="privacy-analytics">
 				<strong>Analytics</strong> help us understand how people use this website so that we can make it better.
 			</label>
 			<div>
 				<button class="tl-analytics-checkbox ${consent === 'opted-in' ? 'checked' : ''}" id="privacy-analytics" role="switch" aria-checked="${consent === 'opted-in'}">
-					<span class="tl-analytics-checkbox-thumb"></span>
+					<span class="tl-analytics-checkbox__thumb"></span>
 				</button>
 			</div>
 		</div>
 	`
 
 	// Add event listeners
-	const closeButton = dialog.querySelector('.tl-analytics-dialog-close') as HTMLButtonElement
+	const closeButton = dialog.querySelector('.tl-analytics-dialog__close') as HTMLButtonElement
 	const switchButton = dialog.querySelector('.tl-analytics-checkbox') as HTMLButtonElement
 
 	function closeDialog() {
@@ -79,9 +79,8 @@ export function createPrivacySettingsDialog(): HTMLElement {
 
 	// Handle switch toggle
 	switchButton.addEventListener('click', () => {
-		const currentConsent = cookieConsentState.getCurrentConsent()
-		const newConsent = currentConsent === 'opted-in' ? false : true
-		cookieConsentState.setConsent(newConsent)
+		const currentConsent = cookieConsentState.getValue()
+		cookieConsentState.setValue(currentConsent)
 	})
 
 	// Watch for consent changes
@@ -96,7 +95,7 @@ export function createPrivacySettingsDialog(): HTMLElement {
 	})
 
 	// Watch for theme changes
-	const cleanupTheme = documentThemeState.subscribe((theme) => {
+	const cleanupTheme = themeState.subscribe((theme) => {
 		overlay.setAttribute('data-theme', theme)
 		dialogWrapper.setAttribute('data-theme', theme)
 	})
@@ -121,7 +120,7 @@ export function createPrivacySettingsDialog(): HTMLElement {
 // Auto-mount function for easy integration
 export function mountPrivacySettingsDialog(container: HTMLElement = document.body): HTMLElement {
 	// If the dialog already exists, remove it
-	const existingDialog = document.querySelector('.tl-analytics-dialog-container')
+	const existingDialog = document.querySelector('.tl-analytics-dialog')
 	if (existingDialog) existingDialog.remove()
 
 	// Create dialog

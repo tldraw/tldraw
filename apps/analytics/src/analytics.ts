@@ -1,9 +1,10 @@
-import { ga4Gtag, googleAnalytics } from './ga4'
-import { hubspot } from './hubspot'
-import { posthog } from './posthog'
-import { reo } from './reo'
+import { AnalyticsService } from './services/analytics-service'
+import { ga4Gtag, googleAnalytics } from './services/ga4'
+import { hubspot } from './services/hubspot'
+import { posthog } from './services/posthog'
+import { reo } from './services/reo'
 import './styles.css'
-import type { AnalyticsService, CookieConsent } from './types'
+import type { CookieConsent } from './types'
 
 let isConfigured = false
 

@@ -1,6 +1,6 @@
 import { gtag, identify, page, track } from './analytics'
-import { mountCookieConsentBanner } from './CookieConsentBanner'
-import { mountPrivacySettingsDialog } from './PrivacySettingsDialog'
+import { mountCookieConsentBanner } from './components/CookieConsentBanner'
+import { mountPrivacySettingsDialog } from './components/PrivacySettingsDialog'
 import styles from './styles.css?inline'
 
 // Inject styles
