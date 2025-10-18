@@ -80,7 +80,7 @@ export function createPrivacySettingsDialog(): HTMLElement {
 	// Handle switch toggle
 	switchButton.addEventListener('click', () => {
 		const currentConsent = cookieConsentState.getValue()
-		cookieConsentState.setValue(currentConsent)
+		cookieConsentState.setValue(currentConsent === 'opted-in' ? 'opted-out' : 'opted-in')
 	})
 
 	// Watch for consent changes

@@ -4,6 +4,7 @@ import { AnalyticsService } from './analytics-service'
 class HubspotAnalyticsService extends AnalyticsService {
 	override enable() {
 		if (this.isInitialized) return
+
 		if (document.getElementById(HUBSPOT_SCRIPT_ID)) return
 
 		const hubspotScriptTag = document.createElement('script')
