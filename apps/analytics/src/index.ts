@@ -1,21 +1,10 @@
+/// <reference types="./types.d.ts" />
 import React from 'react'
 import { createRoot } from 'react-dom/client'
-import Analytics, { gtag, identify, page, PrivacySettings, track } from './analytics'
+import { gtag, identify, page, track } from './analytics'
+import { AnalyticsBanner } from './AnalyticsBanner'
+import { PrivacySettings } from './PrivacySettings'
 import styles from './styles.css?inline'
-
-// Inject styles
-const style = document.createElement('style')
-style.textContent = styles
-document.head.appendChild(style)
-
-// Create a container for our analytics component
-const container = document.createElement('div')
-container.id = 'tl-analytics-root'
-document.body.appendChild(container)
-
-// Initialize the analytics component
-const root = createRoot(container)
-root.render(React.createElement(Analytics))
 
 // Expose global functions
 declare global {
@@ -33,6 +22,20 @@ declare global {
 		posthog: any
 	}
 }
+
+// Inject styles
+const style = document.createElement('style')
+style.textContent = styles
+document.head.appendChild(style)
+
+// Create a container for our analytics component
+const container = document.createElement('div')
+container.id = 'tl-analytics-root'
+document.body.appendChild(container)
+
+// Initialize the analytics component
+const root = createRoot(container)
+root.render(React.createElement(AnalyticsBanner))
 
 // Create a container for the privacy settings dialog
 const privacyContainer = document.createElement('div')
