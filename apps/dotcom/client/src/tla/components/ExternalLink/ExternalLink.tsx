@@ -1,9 +1,18 @@
 import { ComponentProps } from 'react'
 import { Link } from 'react-router-dom'
+import { trackEvent } from '../../../utils/analytics'
 
-export function ExternalLink(props: ComponentProps<typeof Link>) {
+export function ExternalLink(props: ComponentProps<typeof Link> & { eventName?: string }) {
+	const { eventName, ...rest } = props
 	return (
-		<Link {...props} target="_blank" rel="noopener noreferrer">
+		<Link
+			{...rest}
+			target="_blank"
+			rel="noopener noreferrer"
+			onClick={() => {
+				if (eventName) trackEvent(eventName ?? 'link-clicked', { link: rest.to ?? '' })
+			}}
+		>
 			{props.children}
 		</Link>
 	)
