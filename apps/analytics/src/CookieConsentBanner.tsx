@@ -1,26 +1,11 @@
-import { useEffect } from 'react'
-import { applyConsent, track } from './analytics'
-import { useCookieConsent, writeConsentCookie } from './cookies'
 import { useDocumentTheme } from './theme'
-import type { CookieConsent } from './types'
+import { useCookieConsent } from './useCookieConsent'
 
-export function AnalyticsBanner() {
+export function CookieConsentBanner() {
 	const theme = useDocumentTheme()
-	const { consent, isLoaded, updateConsent } = useCookieConsent()
+	const { consent, updateConsent } = useCookieConsent()
 
-	useEffect(() => {
-		applyConsent(consent)
-	}, [consent])
-
-	const onConsentChanged = (allowed: boolean) => {
-		const nextConsent: CookieConsent = allowed ? 'opted-in' : 'opted-out'
-
-		writeConsentCookie(nextConsent)
-		updateConsent(nextConsent)
-		track('consent_changed', { consent: allowed })
-	}
-
-	if (!isLoaded || consent !== 'unknown') return null
+	if (consent !== 'unknown') return null
 
 	return (
 		<div className="tl-analytics-banner" data-theme={theme}>
@@ -35,13 +20,13 @@ export function AnalyticsBanner() {
 			<div className="tl-analytics-buttons">
 				<button
 					className="tl-analytics-button tl-analytics-button-secondary"
-					onClick={() => onConsentChanged(false)}
+					onClick={() => updateConsent(false)}
 				>
 					Opt out
 				</button>
 				<button
 					className="tl-analytics-button tl-analytics-button-primary"
-					onClick={() => onConsentChanged(true)}
+					onClick={() => updateConsent(true)}
 				>
 					<div className="tl-analytics-button-text-wrapper">
 						<div className="tl-analytics-button-text">Accept all</div>

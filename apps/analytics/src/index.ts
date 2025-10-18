@@ -2,8 +2,8 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import { gtag, identify, page, track } from './analytics'
-import { AnalyticsBanner } from './AnalyticsBanner'
-import { PrivacySettings } from './PrivacySettings'
+import { CookieConsentBanner } from './CookieConsentBanner'
+import { PrivacySettingsDialog } from './PrivacySettingsDialog'
 import styles from './styles.css?inline'
 
 // Expose global functions
@@ -35,7 +35,7 @@ document.body.appendChild(container)
 
 // Initialize the analytics component
 const root = createRoot(container)
-root.render(React.createElement(AnalyticsBanner))
+root.render(React.createElement(CookieConsentBanner))
 
 // Create a container for the privacy settings dialog
 const privacyContainer = document.createElement('div')
@@ -47,7 +47,7 @@ const privacyRoot = createRoot(privacyContainer)
 // Expose the global function to open privacy settings
 window.tlanalytics = {
 	openPrivacySettings: () => {
-		privacyRoot.render(React.createElement(PrivacySettings))
+		privacyRoot.render(React.createElement(PrivacySettingsDialog))
 	},
 	page,
 	identify,

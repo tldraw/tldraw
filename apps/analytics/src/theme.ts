@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
 
+// This hook is used to read the theme of the document. When the theme changes, the hook will update the theme state.
+// Since the analytics library is used on many sites, which all may use different themes, we use the most general way
+// of detecting light or dark theme by checking the `color-scheme` CSS property on the `html` element.
+
 function readDocumentTheme(): 'light' | 'dark' {
 	if (typeof document === 'undefined') {
 		return 'light'

@@ -32,7 +32,7 @@ export function disablePostHog() {
 
 export function identifyPostHog(userId: string, properties?: { [key: string]: any }) {
 	posthog.identify(userId, {
-		properties,
+		...properties,
 		analytics_consent: true,
 	})
 }
