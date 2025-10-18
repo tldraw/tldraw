@@ -2774,6 +2774,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     getCurrentToolIdMask(): string | undefined;
     getIsActive(): boolean;
     getPath(): string;
+    getShouldShowIndicators(): boolean;
     // (undocumented)
     handleEvent(info: Exclude<TLEventInfo, TLPinchEventInfo>): void;
     // (undocumented)
