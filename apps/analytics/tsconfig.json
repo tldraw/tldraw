@@ -2,8 +2,12 @@
 	"extends": "../../internal/config/tsconfig.base.json",
 	"compilerOptions": {
 		"moduleResolution": "bundler",
+		"composite": false,
+		"declaration": false,
+		"declarationMap": false,
 		"noEmit": true,
-		"emitDeclarationOnly": false
+		"emitDeclarationOnly": false,
+		"incremental": false
 	},
 	"include": ["src", "./vite.config.ts"],
 	"references": []

@@ -1,12 +1,45 @@
-import ReactGA from 'react-ga4'
 import { AnalyticsService } from './types'
+
+// Extend Window with gtag and dataLayer (other Window properties declared in types.ts)
+declare global {
+	interface Window {
+		gtag?(...args: any[]): void
+		dataLayer?: any[]
+	}
+}
+
+// Helper to safely call gtag
+function gtag(...args: any[]) {
+	if (typeof window !== 'undefined' && window.gtag) {
+		window.gtag(...args)
+	}
+}
+
+// Load the GA4 script
+function loadGA4Script(measurementId: string) {
+	if (typeof window === 'undefined') return
+
+	// Initialize dataLayer
+	window.dataLayer = window.dataLayer || []
+	window.gtag = function (...args: any[]) {
+		window.dataLayer!.push(...args)
+	}
+	gtag('js', new Date())
+
+	// Load the GA4 script
+	const script = document.createElement('script')
+	script.async = true
+	script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`
+	document.head.appendChild(script)
+}
+
+let measurementId: string | undefined
+let googleAdsId: string | undefined
 
 export const googleAnalytics: AnalyticsService = {
 	_isInitialized: false,
 	initialize() {
 		if (this._isInitialized) return
-		let measurementId: string | undefined
-		let googleAdsId: string | undefined
 
 		if (typeof window !== 'undefined') {
 			measurementId = window.TL_GA4_MEASUREMENT_ID ?? undefined
@@ -14,7 +47,7 @@ export const googleAnalytics: AnalyticsService = {
 		}
 
 		if (measurementId) {
-			ReactGA.gtag('consent', 'default', {
+			gtag('consent', 'default', {
 				ad_storage: 'denied',
 				ad_user_data: 'denied',
 				ad_personalization: 'denied',
@@ -23,22 +56,22 @@ export const googleAnalytics: AnalyticsService = {
 				wait_for_update: 500,
 			})
 
-			ReactGA.initialize(measurementId, {
-				gaOptions: {
-					anonymize_ip: true,
-				},
+			loadGA4Script(measurementId)
+
+			gtag('config', measurementId, {
+				anonymize_ip: true,
 			})
 		}
 
 		if (googleAdsId) {
-			ReactGA.gtag('config', googleAdsId)
+			gtag('config', googleAdsId)
 		}
 
 		this._isInitialized = true
 	},
 	enable() {
-		ReactGA.set({ anonymize_ip: false })
-		ReactGA.gtag('consent', 'update', {
+		gtag('set', { anonymize_ip: false })
+		gtag('consent', 'update', {
 			ad_user_data: 'granted',
 			ad_personalization: 'granted',
 			ad_storage: 'granted',
@@ -46,9 +79,15 @@ export const googleAnalytics: AnalyticsService = {
 		})
 	},
 	disable() {
-		ReactGA.reset()
-		ReactGA.set({ anonymize_ip: true })
-		ReactGA.gtag('consent', 'update', {
+		// Clear user properties
+		if (measurementId) {
+			gtag('config', measurementId, {
+				client_id: undefined,
+				user_id: undefined,
+			})
+		}
+		gtag('set', { anonymize_ip: true })
+		gtag('consent', 'update', {
 			ad_user_data: 'denied',
 			ad_personalization: 'denied',
 			ad_storage: 'denied',
@@ -56,20 +95,19 @@ export const googleAnalytics: AnalyticsService = {
 		})
 	},
 	identify(userId: string, properties?: { [key: string]: any }) {
-		ReactGA.set({ userId })
+		gtag('set', { user_id: userId })
 		if (properties) {
-			ReactGA.set(properties)
+			gtag('set', properties)
 		}
 	},
 	trackEvent(name: string, data?: { [key: string]: any }) {
-		ReactGA.event(name, data)
+		gtag('event', name, data)
 	},
 	trackPageview() {
-		ReactGA.send('pageview')
+		gtag('event', 'page_view')
 	},
 }
 
 export function ga4Gtag(...args: any[]) {
-	// @ts-ignore - ReactGA.gtag accepts variable arguments
-	ReactGA.gtag(...args)
+	gtag(...args)
 }
