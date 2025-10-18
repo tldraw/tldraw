@@ -10,10 +10,12 @@ import {
 	schema,
 } from '@tldraw/dotcom-shared'
 import {
+	blockUnknownOrigins,
 	createRouter,
 	createSentry,
 	handleApiRequest,
 	handleUserAssetGet,
+	isAllowedOrigin,
 	notFound,
 } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
@@ -225,42 +227,4 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			}
 		}
 	}
-}
-
-export function isAllowedOrigin(origin: string) {
-	if (!origin) return undefined
-	if (origin === 'http://localhost:3000') return origin
-	if (origin === 'http://localhost:5420') return origin
-	if (origin === 'https://meet.google.com') return origin
-	if (origin.endsWith('.tldraw.com')) return origin
-	if (origin.endsWith('.tldraw.dev')) return origin
-	if (origin.endsWith('.tldraw.club')) return origin
-	if (origin.endsWith('-tldraw.vercel.app')) return origin
-	return undefined
-}
-
-async function blockUnknownOrigins(request: Request, env: Environment) {
-	// allow requests for the same origin (new rewrite routing for SPA)
-	if (request.headers.get('sec-fetch-site') === 'same-origin') {
-		return undefined
-	}
-
-	if (new URL(request.url).pathname === '/auth/callback') {
-		// allow auth callback because we use the special cookie to verify
-		// the request
-		return undefined
-	}
-
-	const origin = request.headers.get('origin')
-
-	// if there's no origin, this cannot be a cross-origin request, so we allow it.
-	if (!origin) return undefined
-
-	if (env.IS_LOCAL !== 'true' && !isAllowedOrigin(origin)) {
-		console.error('Attempting to connect from an invalid origin:', origin, env, request)
-		return new Response('Not allowed', { status: 403 })
-	}
-
-	// origin doesn't match, so we can continue
-	return undefined
 }
