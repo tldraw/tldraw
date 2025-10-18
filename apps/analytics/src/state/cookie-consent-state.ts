@@ -1,5 +1,5 @@
 import Cookies from 'js-cookie'
-import { applyConsent, track } from '../analytics'
+import { track } from '../analytics'
 import { CONSENT_COOKIE_NAME } from '../constants'
 import { type CookieConsent } from '../types'
 import { AnalyticsState } from './state'
@@ -19,9 +19,6 @@ class CookieConsentState extends AnalyticsState<CookieConsent> {
 		const cookieConsent = Cookies.get(CONSENT_COOKIE_NAME)
 		this.value =
 			cookieConsent === 'true' ? 'opted-in' : cookieConsent === 'false' ? 'opted-out' : 'unknown'
-
-		// Apply the initial analytics consent to the analytics services
-		applyConsent(this.value)
 
 		this.initialized = true
 		this.notify()
@@ -48,9 +45,6 @@ class CookieConsentState extends AnalyticsState<CookieConsent> {
 				Cookies.remove(CONSENT_COOKIE_NAME)
 				break
 		}
-
-		// Apply the new analytics consent to the analytics services
-		applyConsent(value)
 
 		// Notify listeners
 		this.notify()

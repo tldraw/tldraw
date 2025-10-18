@@ -45,7 +45,7 @@ class GoogleAnalyticsService extends AnalyticsService {
 				// Initialize dataLayer
 				window.dataLayer = window.dataLayer || []
 				window.gtag = function (...args: any[]) {
-					window.dataLayer!.push(...args)
+					window.dataLayer!.push(args)
 				}
 				gtag('js', new Date())
 

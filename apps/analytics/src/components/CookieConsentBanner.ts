@@ -84,5 +84,6 @@ export function mountCookieConsentBanner(
 	if (banner) {
 		container.appendChild(banner)
 	}
+
 	return banner
 }
