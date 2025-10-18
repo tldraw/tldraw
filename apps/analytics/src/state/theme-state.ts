@@ -18,6 +18,7 @@ class ThemeState extends AnalyticsState<'light' | 'dark'> {
 		// If document is not available, default to light theme
 		if (typeof document === 'undefined') {
 			this.value = 'light'
+			this.initialized = true
 			return
 		}
 

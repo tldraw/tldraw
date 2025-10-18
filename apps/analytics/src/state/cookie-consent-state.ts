@@ -11,6 +11,7 @@ class CookieConsentState extends AnalyticsState<CookieConsent> {
 		if (typeof document === 'undefined') {
 			this.value = 'unknown'
 			this.notify()
+			this.initialized = true
 			return
 		}
 
