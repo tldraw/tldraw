@@ -48,9 +48,7 @@ export function applyConsent(consent: CookieConsent) {
 		}
 
 		// Identify the user
-		if (inMemoryAnalyticsState.userId && inMemoryAnalyticsState.properties) {
-			identify(inMemoryAnalyticsState.userId, inMemoryAnalyticsState.properties)
-		}
+		identify(inMemoryAnalyticsState.userId, inMemoryAnalyticsState.properties)
 	} else {
 		// Disable the analytics services
 		for (const service of ANALYTICS_SERVICES) {
