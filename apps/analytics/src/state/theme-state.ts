@@ -18,7 +18,6 @@ class ThemeState extends AnalyticsState<'light' | 'dark'> {
 		// If document is not available, default to light theme
 		if (typeof document === 'undefined') {
 			this.value = 'light'
-			this.notify()
 			return
 		}
 
@@ -31,10 +30,9 @@ class ThemeState extends AnalyticsState<'light' | 'dark'> {
 		} else {
 			const observer = new MutationObserver((mutations) => {
 				if (mutations.some((mutation) => mutation.attributeName === 'style')) {
-					this.value = docElm.getAttribute('style')?.includes('color-scheme: dark')
-						? 'dark'
-						: 'light'
-					this.notify()
+					this.setValue(
+						docElm.getAttribute('style')?.includes('color-scheme: dark') ? 'dark' : 'light'
+					)
 				}
 			})
 

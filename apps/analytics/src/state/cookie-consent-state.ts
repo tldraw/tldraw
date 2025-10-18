@@ -1,5 +1,4 @@
 import Cookies from 'js-cookie'
-import { track } from '../analytics'
 import { CONSENT_COOKIE_NAME } from '../constants'
 import { type CookieConsent } from '../types'
 import { AnalyticsState } from './state'
@@ -21,32 +20,6 @@ class CookieConsentState extends AnalyticsState<CookieConsent> {
 			cookieConsent === 'true' ? 'opted-in' : cookieConsent === 'false' ? 'opted-out' : 'unknown'
 
 		this.initialized = true
-		this.notify()
-	}
-	override dispose(): void {
-		this.initialized = false
-	}
-	override setValue(value: CookieConsent): void {
-		// Update the state to the new value
-		this.value = value
-
-		// Track the consent change
-		track('consent_changed', { consent: value })
-
-		// Update the cookie
-		switch (value) {
-			case 'opted-in':
-				Cookies.set(CONSENT_COOKIE_NAME, 'true')
-				break
-			case 'opted-out':
-				Cookies.set(CONSENT_COOKIE_NAME, 'false')
-				break
-			case 'unknown':
-				Cookies.remove(CONSENT_COOKIE_NAME)
-				break
-		}
-
-		// Notify listeners
 		this.notify()
 	}
 }
