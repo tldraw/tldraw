@@ -6,7 +6,9 @@ import { reo } from './services/reo'
 import './styles.css'
 import type { CookieConsent } from './types'
 
-let isConfigured = false
+let isInitialized = false
+
+const ANALYTICS_SERVICES: AnalyticsService[] = [posthog, googleAnalytics, hubspot, reo]
 
 const inMemoryAnalyticsState = {
 	userId: '' as string,
@@ -14,66 +16,65 @@ const inMemoryAnalyticsState = {
 	hasConsent: 'unknown' as CookieConsent,
 }
 
-const analyticsServices: AnalyticsService[] = [posthog, googleAnalytics, hubspot, reo]
-
-function ensureAnalyticsConfigured() {
-	if (isConfigured) return
-
-	for (const service of analyticsServices) {
-		service.initialize()
-	}
-
-	isConfigured = true
-}
-
-function enableAnalytics() {
-	for (const service of analyticsServices) {
-		service.enable()
-	}
-
-	if (inMemoryAnalyticsState.userId && inMemoryAnalyticsState.properties) {
-		identify(inMemoryAnalyticsState.userId, inMemoryAnalyticsState.properties)
-	}
-}
-
-function disableAnalytics() {
-	for (const service of analyticsServices) {
-		service.disable()
-	}
-}
-
-export function page() {
-	for (const service of analyticsServices) {
-		service.trackPageview()
-	}
-}
-
+// Identify the user across all analytics services
 export function identify(userId: string, properties?: { [key: string]: any }) {
 	inMemoryAnalyticsState.userId = userId
 	inMemoryAnalyticsState.properties = properties
 
 	if (inMemoryAnalyticsState.hasConsent !== 'opted-in') return
 
-	for (const service of analyticsServices) {
+	for (const service of ANALYTICS_SERVICES) {
 		service.identify(userId, properties)
 	}
 }
 
+// Apply consent and either enable or disable the analytics services
+export function applyConsent(consent: CookieConsent) {
+	inMemoryAnalyticsState.hasConsent = consent
+
+	if (!isInitialized) {
+		// Initialize the analytics services (they should have their own
+		// logic to check if they are already initialized, too), but okay
+		for (const service of ANALYTICS_SERVICES) {
+			service.initialize()
+		}
+		isInitialized = true
+	}
+
+	if (consent === 'opted-in') {
+		// Enable the analytics services
+		for (const service of ANALYTICS_SERVICES) {
+			service.enable()
+		}
+
+		// Identify the user
+		if (inMemoryAnalyticsState.userId && inMemoryAnalyticsState.properties) {
+			identify(inMemoryAnalyticsState.userId, inMemoryAnalyticsState.properties)
+		}
+	} else {
+		// Disable the analytics services
+		for (const service of ANALYTICS_SERVICES) {
+			service.disable()
+		}
+	}
+}
+
+// Track a pageview across all analytics services
+export function page() {
+	for (const service of ANALYTICS_SERVICES) {
+		service.trackPageview()
+	}
+}
+
+// Track an event across all analytics services
 export function track(name: string, data?: { [key: string]: any }) {
-	for (const service of analyticsServices) {
+	for (const service of ANALYTICS_SERVICES) {
 		service.trackEvent(name, data)
 	}
 }
 
+// Direct access to Google Analytics gtag function
 export function gtag(...args: any[]) {
 	if (inMemoryAnalyticsState.hasConsent !== 'opted-in') return
 	ga4Gtag(...args)
-}
-
-export function applyConsent(consent: CookieConsent) {
-	inMemoryAnalyticsState.hasConsent = consent
-	ensureAnalyticsConfigured()
-
-	if (consent === 'opted-in') enableAnalytics()
-	else disableAnalytics()
 }
