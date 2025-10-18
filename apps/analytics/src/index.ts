@@ -1,6 +1,9 @@
-import React from 'react'
-import { createRoot } from 'react-dom/client'
-import Analytics, { gtag, identify, page, PrivacySettings, track } from './analytics'
+import Cookies from 'js-cookie'
+import { applyConsent, gtag, identify, page, track } from './analytics'
+import { mountCookieConsentBanner } from './components/CookieConsentBanner'
+import { mountPrivacySettingsDialog } from './components/PrivacySettingsDialog'
+import { CONSENT_COOKIE_NAME } from './constants'
+import { cookieConsentState } from './state/cookie-consent-state'
 import styles from './styles.css?inline'
 
 // Inject styles
@@ -8,43 +11,38 @@ const style = document.createElement('style')
 style.textContent = styles
 document.head.appendChild(style)
 
-// Create a container for our analytics component
-const container = document.createElement('div')
-container.id = 'tl-analytics-root'
-document.body.appendChild(container)
+// Initialize the cookie consent banner
+mountCookieConsentBanner()
 
-// Initialize the analytics component
-const root = createRoot(container)
-root.render(React.createElement(Analytics))
+// Apply the initial analytics consent to the analytics services
+const consent = cookieConsentState.getValue()
+applyConsent(consent)
 
-// Expose global functions
-declare global {
-	interface Window {
-		tlanalytics: {
-			openPrivacySettings(): void
-			page(): void
-			identify(userId: string, properties?: { [key: string]: any }): void
-			track(name: string, data?: { [key: string]: any }): void
-			gtag(...args: any[]): void
-		}
-		TL_GA4_MEASUREMENT_ID: string | undefined
-		TL_GOOGLE_ADS_ID?: string
-		Reo: any
-		posthog: any
+// Subscribe to consent changes and apply them to the analytics services
+cookieConsentState.subscribe((consent) => {
+	// Track the consent change
+	track('consent_changed', { consent })
+
+	// Update the cookie
+	switch (consent) {
+		case 'opted-in':
+			Cookies.set(CONSENT_COOKIE_NAME, 'true')
+			break
+		case 'opted-out':
+			Cookies.set(CONSENT_COOKIE_NAME, 'false')
+			break
+		case 'unknown':
+			Cookies.remove(CONSENT_COOKIE_NAME)
+			break
 	}
-}
 
-// Create a container for the privacy settings dialog
-const privacyContainer = document.createElement('div')
-privacyContainer.id = 'tl-analytics-privacy-root'
-document.body.appendChild(privacyContainer)
-
-const privacyRoot = createRoot(privacyContainer)
+	applyConsent(consent)
+})
 
 // Expose the global function to open privacy settings
 window.tlanalytics = {
 	openPrivacySettings: () => {
-		privacyRoot.render(React.createElement(PrivacySettings))
+		mountPrivacySettingsDialog()
 	},
 	page,
 	identify,

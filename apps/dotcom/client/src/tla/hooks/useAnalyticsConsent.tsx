@@ -36,6 +36,7 @@ export function useAnalyticsConsent() {
 				// Immediately configure analytics for signed-out users
 				configureAnalytics(newConsent, undefined)
 			}
+
 			trackEvent('consent_changed', { consent: newConsent })
 		},
 		[isSignedIn, user, app]
