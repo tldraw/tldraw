@@ -31,7 +31,7 @@ const sharedCookieConsent = {
 				cookieConsent === 'true' ? 'opted-in' : cookieConsent === 'false' ? 'opted-out' : 'unknown'
 			this._state = { name: 'loaded', value }
 
-			// Apply the initial analytics consent to the analytics services
+			// ! Apply the initial analytics consent to the analytics services
 			applyConsent(value)
 		}
 		return this._state.value
@@ -51,7 +51,7 @@ const sharedCookieConsent = {
 		// Update the state to the new value
 		this._state = { name: 'changed', value: nextConsent, previousValue }
 
-		// Track the consent change
+		// ! Track the consent change
 		track('consent_changed', { consent: nextConsent })
 
 		// Also update the cookie
@@ -67,7 +67,7 @@ const sharedCookieConsent = {
 				break
 		}
 
-		// Apply the new analytics consent to the analytics services
+		// ! Apply the new analytics consent to the analytics services
 		applyConsent(nextConsent)
 
 		// Notify listeners
