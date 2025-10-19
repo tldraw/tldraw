@@ -20,7 +20,7 @@
 	--tl-analytics-text-secondary: hsl(204, 4%, 45%);
 	--tl-analytics-link: #3b82f6;
 	--tl-analytics-link-hover: #2563eb;
-	--tl-analytics-overlay: rgba(0, 0, 0, 0.9);
+	--tl-analytics-overlay: rgba(0, 0, 0, 0.45);
 	--tl-analytics-shadow:
 		0px 0px 2px hsl(0, 0%, 0%, 16%), 0px 2px 3px hsl(0, 0%, 0%, 24%),
 		0px 2px 6px hsl(0, 0%, 0%, 0.1), inset 0px 0px 0px 1px var(--tl-color-panel-contrast);
