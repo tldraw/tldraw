@@ -121,7 +121,7 @@ export function createPrivacySettingsDialog(
 export function mountPrivacySettingsDialog(
 	cookieConsentState: CookieConsentState,
 	themeState: ThemeState,
-	container: HTMLElement = document.body
+	container: HTMLElement
 ): HTMLElement {
 	const existingDialog = document.querySelector('.tl-analytics-dialog')
 	if (existingDialog) existingDialog.remove()

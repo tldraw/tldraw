@@ -21,10 +21,8 @@ export function createCookieConsentBanner(
 	banner.innerHTML = `
 		<p class="tl-analytics-banner__text">
 			We use cookies on this website.
-			<br> Learn more in our
-			<a class="tl-analytics-banner__link" href="${DOT_DEV_COOKIE_POLICY_URL}" target="_blank" rel="noreferrer">
-				Cookie Policy
-			</a>.
+			<br>
+			Learn more in our <a class="tl-analytics-banner__link" href="${DOT_DEV_COOKIE_POLICY_URL}" target="_blank" rel="noreferrer">Cookie Policy</a>.
 		</p>
 		<div class="tl-analytics-banner__buttons">
 			<button class="tl-analytics-button tl-analytics-button--secondary" data-action="opt-out">
@@ -75,7 +73,7 @@ export function createCookieConsentBanner(
 export function mountCookieConsentBanner(
 	cookieConsentState: CookieConsentState,
 	themeState: ThemeState,
-	container: HTMLElement = document.body
+	container: HTMLElement
 ): HTMLElement | null {
 	const existingBanner = document.querySelector('.tl-analytics-banner')
 	if (existingBanner) existingBanner.remove()

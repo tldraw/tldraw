@@ -50,28 +50,24 @@ function track(name: string, data?: { [key: string]: any }) {
 }
 
 function main() {
-	// Expose the global function to open privacy settings
-	window.tlanalytics = {
-		openPrivacySettings() {
-			mountPrivacySettingsDialog(cookieConsentState, themeState)
-		},
-		page() {
-			for (const service of ANALYTICS_SERVICES) {
-				service.trackPageview()
-			}
-		},
-		identify,
-		track,
-		gtag(...args: any[]) {
-			if (inMemoryAnalyticsState.hasConsent !== 'opted-in') return
-			ga4Gtag(...args)
-		},
-	}
-
 	// Inject styles
 	const style = document.createElement('style')
 	style.textContent = styles
 	document.head.appendChild(style)
+
+	// 1. ANALYTICS SERVICES
+
+	// Dispose all of the analytics services
+	for (const service of ANALYTICS_SERVICES) {
+		service.dispose()
+	}
+
+	// Initialize the analytics services
+	for (const service of ANALYTICS_SERVICES) {
+		service.initialize()
+	}
+
+	// 2. STATE
 
 	// Create the cookie consent and theme states
 	const cookieConsentState = new CookieConsentState('unknown')
@@ -84,16 +80,6 @@ function main() {
 	// Initialize the cookie consent and theme states
 	cookieConsentState.initialize()
 	themeState.initialize()
-
-	// Dispose all of the analytics services
-	for (const service of ANALYTICS_SERVICES) {
-		service.dispose()
-	}
-
-	// Initialize the analytics services
-	for (const service of ANALYTICS_SERVICES) {
-		service.initialize()
-	}
 
 	// Subscribe to consent changes and apply them to the analytics services
 	cookieConsentState.subscribe((consent) => {
@@ -109,25 +95,27 @@ function main() {
 		}
 
 		// If the consent is the same as the current consent, do nothing
-		if (consent !== inMemoryAnalyticsState.hasConsent) {
-			inMemoryAnalyticsState.hasConsent = consent
+		if (consent === inMemoryAnalyticsState.hasConsent) return
 
-			if (consent === 'opted-in') {
-				// Enable the analytics services only when consent is granted
-				for (const service of ANALYTICS_SERVICES) {
-					service.enable()
-				}
+		inMemoryAnalyticsState.hasConsent = consent
 
-				// Identify the user
-				identify(inMemoryAnalyticsState.userId, inMemoryAnalyticsState.properties)
-			} else {
-				// Disable the analytics services when consent is revoked or when consent is unknown
-				for (const service of ANALYTICS_SERVICES) {
-					service.disable()
-				}
+		if (consent === 'opted-in') {
+			// Enable the analytics services only when consent is granted
+			for (const service of ANALYTICS_SERVICES) {
+				service.enable()
+			}
+
+			// Identify the user
+			identify(inMemoryAnalyticsState.userId, inMemoryAnalyticsState.properties)
+		} else {
+			// Disable the analytics services when consent is revoked or when consent is unknown
+			for (const service of ANALYTICS_SERVICES) {
+				service.disable()
 			}
 		}
 	})
+
+	// 3. KICKOFF
 
 	// Get the initial analytics consent from the cookie
 	const consent = getCookieValue()
@@ -139,8 +127,29 @@ function main() {
 	// found, or if the value is false, it will be a no-op.
 	cookieConsentState.setValue(cookieConsent)
 
+	// 4. FRONTEND
+
 	// Initialize the cookie consent banner
-	mountCookieConsentBanner(cookieConsentState, themeState)
+	mountCookieConsentBanner(cookieConsentState, themeState, document.body)
+
+	// 5. WINDOW / GLOBALS
+
+	window.tlanalytics = {
+		openPrivacySettings() {
+			mountPrivacySettingsDialog(cookieConsentState, themeState, document.body)
+		},
+		page() {
+			for (const service of ANALYTICS_SERVICES) {
+				service.trackPageview()
+			}
+		},
+		identify,
+		track,
+		gtag(...args: any[]) {
+			if (inMemoryAnalyticsState.hasConsent !== 'opted-in') return
+			ga4Gtag(...args)
+		},
+	}
 }
 
 main()
