@@ -112,15 +112,15 @@
 	display: inline-block;
 	animation: marquee 2.5s linear infinite;
 	white-space: nowrap;
-	transform: translateX(150%);
+	transform: translateX(72px);
 }
 
 @keyframes marquee {
 	0% {
-		transform: translateX(150%);
+		transform: translateX(72px);
 	}
 	100% {
-		transform: translateX(-150%);
+		transform: translateX(-72px);
 	}
 }
 
