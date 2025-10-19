@@ -1,25 +1,29 @@
 :root {
-	--tl-analytics-button-bg: #000000;
-	--tl-analytics-button-text: #ffffff;
-	--tl-analytics-bg: white;
-	--tl-analytics-text: #2e2e2e;
-	--tl-analytics-text-secondary: #a1a1aa;
-	--tl-analytics-link: #3b82f6;
-	--tl-analytics-link-hover: #2563eb;
-	--tl-analytics-overlay: rgba(0, 0, 0, 0.2);
-	--tl-analytics-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.32);
-}
-
-[data-theme='dark'] {
-	--tl-analytics-button-bg: #ffffff;
-	--tl-analytics-button-text: #000000;
-	--tl-analytics-bg: #18181b;
-	--tl-analytics-text: #f4f4f5;
-	--tl-analytics-text-secondary: #a1a1aa;
+	--tl-analytics-button-bg: hsl(0, 0%, 100%);
+	--tl-analytics-button-text: hsl(235, 6.8%, 13.5%);
+	--tl-analytics-bg: hsl(235, 6.8%, 13.5%);
+	--tl-analytics-text: hsl(210, 17%, 98%);
+	--tl-analytics-text-secondary: hsl(204, 4%, 75%);
 	--tl-analytics-link: #60a5fa;
 	--tl-analytics-link-hover: #93c5fd;
 	--tl-analytics-overlay: rgba(0, 0, 0, 0.9);
-	--tl-analytics-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.6);
+	--tl-analytics-shadow:
+		0px 1px 3px hsl(0, 0%, 0%, 66.6%), 0px 2px 6px hsl(0, 0%, 0%, 33%),
+		inset 0px 0px 0px 1px var(--tl-color-panel-contrast);
+}
+
+[data-theme='dark'] {
+	--tl-analytics-button-bg: hsl(0, 0%, 0%);
+	--tl-analytics-button-text: hsl(0, 0%, 100%);
+	--tl-analytics-bg: hsl(0, 0%, 99%);
+	--tl-analytics-text: hsl(0, 0%, 0%);
+	--tl-analytics-text-secondary: hsl(204, 4%, 45%);
+	--tl-analytics-link: #3b82f6;
+	--tl-analytics-link-hover: #2563eb;
+	--tl-analytics-overlay: rgba(0, 0, 0, 0.2);
+	--tl-analytics-shadow:
+		0px 0px 2px hsl(0, 0%, 0%, 16%), 0px 2px 3px hsl(0, 0%, 0%, 24%),
+		0px 2px 6px hsl(0, 0%, 0%, 0.1), inset 0px 0px 0px 1px var(--tl-color-panel-contrast);
 }
 
 .tl-analytics-banner {
@@ -91,6 +95,7 @@
 }
 
 .tl-analytics-button--primary {
+	font-weight: 500;
 	background-color: var(--tl-analytics-button-bg);
 	color: var(--tl-analytics-button-text);
 	overflow: hidden;
