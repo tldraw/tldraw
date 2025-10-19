@@ -50,6 +50,7 @@ class GA4AnalyticsService extends AnalyticsService {
 			// Load the GA4 script
 			const script = document.createElement('script')
 			script.async = true
+			script.id = `gtag-${this.measurementId}`
 			script.src = `https://www.googletagmanager.com/gtag/js?id=${this.measurementId}`
 			document.head.appendChild(script)
 

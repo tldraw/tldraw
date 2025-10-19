@@ -1,4 +1,3 @@
-import { describe, expect, test, vi } from 'vitest'
 import { AnalyticsState } from './state'
 
 describe('mini reactive state', () => {
@@ -9,12 +8,14 @@ describe('mini reactive state', () => {
 		const myOtherState = new MyState(20)
 		expect(myOtherState.getValue()).toBe(20)
 	})
+
 	test('updates the state', () => {
 		class MyState extends AnalyticsState<number> {}
 		const myState = new MyState(10)
 		myState.setValue(20)
 		expect(myState.getValue()).toBe(20)
 	})
+
 	test('handles subscribers', () => {
 		class MyState extends AnalyticsState<number> {}
 		const myState = new MyState(10)
@@ -24,6 +25,7 @@ describe('mini reactive state', () => {
 		expect(fn).toHaveBeenCalledWith(20)
 		expect(fn).toHaveBeenCalledOnce()
 	})
+
 	test('removes subscribers', () => {
 		class MyState extends AnalyticsState<number> {}
 		const myState = new MyState(10)
@@ -33,6 +35,7 @@ describe('mini reactive state', () => {
 		myState.setValue(20)
 		expect(fn).not.toHaveBeenCalled()
 	})
+
 	test('handles initializer / dispose', () => {
 		const someState = {} as { something?: boolean }
 

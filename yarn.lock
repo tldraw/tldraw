@@ -8849,6 +8849,7 @@ __metadata:
     posthog-js: "npm:^1.248.1"
     typescript: "npm:^5.8.3"
     vite: "npm:^7.0.1"
+    vitest: "npm:^3.2.4"
   languageName: unknown
   linkType: soft
 
