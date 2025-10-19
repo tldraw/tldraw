@@ -2,11 +2,11 @@
 	--tl-analytics-button-bg: hsl(0, 0%, 100%);
 	--tl-analytics-button-text: hsl(235, 6.8%, 13.5%);
 	--tl-analytics-bg: hsl(235, 6.8%, 13.5%);
-	--tl-analytics-text: hsl(210, 17%, 98%);
+	--tl-analytics-text: hsl(0, 9%, 94%);
 	--tl-analytics-text-secondary: hsl(204, 4%, 75%);
 	--tl-analytics-link: #60a5fa;
 	--tl-analytics-link-hover: #93c5fd;
-	--tl-analytics-overlay: rgba(0, 0, 0, 0.9);
+	--tl-analytics-overlay: rgba(0, 0, 0, 0.2);
 	--tl-analytics-shadow:
 		0px 1px 3px hsl(0, 0%, 0%, 66.6%), 0px 2px 6px hsl(0, 0%, 0%, 33%),
 		inset 0px 0px 0px 1px var(--tl-color-panel-contrast);
@@ -20,7 +20,7 @@
 	--tl-analytics-text-secondary: hsl(204, 4%, 45%);
 	--tl-analytics-link: #3b82f6;
 	--tl-analytics-link-hover: #2563eb;
-	--tl-analytics-overlay: rgba(0, 0, 0, 0.2);
+	--tl-analytics-overlay: rgba(0, 0, 0, 0.9);
 	--tl-analytics-shadow:
 		0px 0px 2px hsl(0, 0%, 0%, 16%), 0px 2px 3px hsl(0, 0%, 0%, 24%),
 		0px 2px 6px hsl(0, 0%, 0%, 0.1), inset 0px 0px 0px 1px var(--tl-color-panel-contrast);
@@ -110,7 +110,7 @@
 
 .tl-analytics-button__text {
 	display: inline-block;
-	animation: marquee 3s linear infinite;
+	animation: marquee 2.5s linear infinite;
 	white-space: nowrap;
 	transform: translateX(150%);
 }
@@ -144,6 +144,7 @@
 
 .tl-analytics-dialog {
 	font-family: 'Inter', sans-serif;
+	color: var(--tl-analytics-text);
 	position: fixed;
 	inset: 0;
 	z-index: 10000;
@@ -277,7 +278,6 @@
 
 .tl-analytics-checkbox__label {
 	margin: 0;
-	color: var(--tl-analytics-text);
 	font-size: 12px;
 }
 
@@ -286,4 +286,8 @@
 	display: flex;
 	justify-content: flex-end;
 	gap: 4px;
+}
+
+body:has(.tl-analytics-dialog) .tl-analytics-banner {
+	opacity: 0;
 }
