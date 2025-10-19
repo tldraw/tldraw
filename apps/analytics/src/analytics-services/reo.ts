@@ -20,9 +20,9 @@ class ReoAnalyticsService extends AnalyticsService {
 	}
 
 	override dispose() {
-		if (!this.isEnabled) return
 		const reoScriptTag = document.getElementById(REO_SCRIPT_ID)
 		if (reoScriptTag) reoScriptTag.remove()
+		this.isEnabled = false
 	}
 
 	override identify(userId: string, properties?: { [key: string]: any }) {
