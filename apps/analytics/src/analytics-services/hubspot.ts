@@ -14,7 +14,6 @@ class HubspotAnalyticsService extends AnalyticsService {
 	}
 
 	override dispose() {
-		if (!this.isEnabled) return
 		const hubspotScriptTag = document.getElementById(HUBSPOT_SCRIPT_ID)
 		if (hubspotScriptTag) hubspotScriptTag.remove()
 		this.isEnabled = false
