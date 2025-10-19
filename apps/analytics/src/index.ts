@@ -1,12 +1,9 @@
 import Cookies from 'js-cookie'
+import { ga4Gtag } from './analytics-services/ga4'
+import { ANALYTICS_SERVICES } from './analytics-services/services'
 import { mountCookieConsentBanner } from './components/CookieConsentBanner'
 import { mountPrivacySettingsDialog } from './components/PrivacySettingsDialog'
 import { CONSENT_COOKIE_NAME } from './constants'
-import { AnalyticsService } from './services/analytics-service'
-import { ga4Gtag, ga4Service } from './services/ga4'
-import { hubspotService } from './services/hubspot'
-import { posthogService } from './services/posthog'
-import { reoService } from './services/reo'
 import {
 	CookieConsentState,
 	cookieConsentToCookieValue,
@@ -16,13 +13,6 @@ import {
 import { ThemeState } from './state/theme-state'
 import styles from './styles.css?inline'
 import { CookieConsent } from './types'
-
-const ANALYTICS_SERVICES: AnalyticsService[] = [
-	posthogService,
-	ga4Service,
-	hubspotService,
-	reoService,
-]
 
 const inMemoryAnalyticsState = {
 	userId: '' as string,
@@ -135,16 +125,16 @@ function main() {
 	// 5. WINDOW / GLOBALS
 
 	window.tlanalytics = {
-		openPrivacySettings() {
-			mountPrivacySettingsDialog(cookieConsentState, themeState, document.body)
-		},
+		identify,
+		track,
 		page() {
 			for (const service of ANALYTICS_SERVICES) {
 				service.trackPageview()
 			}
 		},
-		identify,
-		track,
+		openPrivacySettings() {
+			mountPrivacySettingsDialog(cookieConsentState, themeState, document.body)
+		},
 		gtag(...args: any[]) {
 			if (inMemoryAnalyticsState.hasConsent !== 'opted-in') return
 			ga4Gtag(...args)
