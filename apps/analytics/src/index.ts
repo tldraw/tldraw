@@ -37,11 +37,9 @@ class Analytics {
 		// Set up our mini reactive states
 
 		const themeState = new ThemeState('light')
-		themeState.dispose()
 		themeState.initialize()
 
 		const cookieConsentState = new CookieConsentState('unknown')
-		cookieConsentState.dispose()
 		cookieConsentState.initialize()
 
 		// Subscribe to consent changes
@@ -89,10 +87,10 @@ class Analytics {
 
 		// ...also we stash a few things onto the window in case we need them elsewhere
 		window.tlanalytics = {
-			identify: this.identify,
-			track: this.track,
-			page: this.page,
-			gtag: this.gtag,
+			identify: this.identify.bind(this),
+			track: this.track.bind(this),
+			page: this.page.bind(this),
+			gtag: this.gtag.bind(this),
 			openPrivacySettings() {
 				mountPrivacySettingsDialog(cookieConsentState, themeState, document.body)
 			},

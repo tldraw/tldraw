@@ -72,7 +72,6 @@ export function createPrivacySettingsDialog(
 	function handleKeyDown(e: KeyboardEvent) {
 		if (e.key === 'Escape') {
 			closeDialog()
-			document.removeEventListener('keydown', handleKeyDown)
 		}
 	}
 	document.addEventListener('keydown', handleKeyDown)
