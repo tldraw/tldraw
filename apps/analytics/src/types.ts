@@ -16,9 +16,3 @@ declare global {
 }
 
 export type CookieConsent = 'unknown' | 'opted-in' | 'opted-out'
-
-export interface InMemoryAnalyticsState {
-	userId: string
-	properties: { [key: string]: any } | undefined
-	hasConsent: CookieConsent
-}

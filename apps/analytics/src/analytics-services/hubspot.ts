@@ -12,6 +12,7 @@ class HubspotAnalyticsService extends AnalyticsService {
 		document.head.appendChild(hubspotScriptTag)
 		this.isEnabled = true
 	}
+
 	override dispose() {
 		if (!this.isEnabled) return
 		const hubspotScriptTag = document.getElementById(HUBSPOT_SCRIPT_ID)

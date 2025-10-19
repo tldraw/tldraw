@@ -12,16 +12,19 @@ class ReoAnalyticsService extends AnalyticsService {
 		document.head.appendChild(reoScriptTag)
 		this.isEnabled = true
 	}
+
 	override disable() {
 		if (!this.isEnabled) return
 		window.Reo?.reset?.()
 		this.isEnabled = false
 	}
+
 	override dispose() {
 		if (!this.isEnabled) return
 		const reoScriptTag = document.getElementById(REO_SCRIPT_ID)
 		if (reoScriptTag) reoScriptTag.remove()
 	}
+
 	override identify(userId: string, properties?: { [key: string]: any }) {
 		window.Reo?.identify?.({
 			...properties,

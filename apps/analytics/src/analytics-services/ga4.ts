@@ -62,10 +62,12 @@ class GA4AnalyticsService extends AnalyticsService {
 			gtag('config', this.googleAdsId)
 		}
 	}
+
 	override dispose() {
 		const script = document.getElementById(`gtag-${this.measurementId}`)
 		if (script) script.remove()
 	}
+
 	override enable() {
 		if (this.isEnabled) return
 		gtag('set', { anonymize_ip: false })
@@ -77,6 +79,7 @@ class GA4AnalyticsService extends AnalyticsService {
 		})
 		this.isEnabled = true
 	}
+
 	override disable() {
 		if (!this.isEnabled) return
 		// Clear user properties
@@ -95,15 +98,18 @@ class GA4AnalyticsService extends AnalyticsService {
 		})
 		this.isEnabled = false
 	}
+
 	override identify(userId: string, properties?: { [key: string]: any }) {
 		gtag('set', { user_id: userId })
 		if (properties) {
 			gtag('set', properties)
 		}
 	}
+
 	override trackEvent(name: string, data?: { [key: string]: any }) {
 		gtag('event', name, data)
 	}
+
 	override trackPageview() {
 		gtag('event', 'page_view')
 	}

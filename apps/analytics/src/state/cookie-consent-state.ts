@@ -22,6 +22,10 @@ export function setCookieValue(value: string): void {
 	Cookies.set(CONSENT_COOKIE_NAME, value)
 }
 
+export function clearCookieValue() {
+	Cookies.remove(CONSENT_COOKIE_NAME)
+}
+
 export function cookieValueToCookieConsent(cookieValue: string | undefined): CookieConsent {
 	if (cookieValue === 'true') return 'opted-in'
 	if (cookieValue === 'false') return 'opted-out'

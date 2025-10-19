@@ -16,12 +16,14 @@ class PosthogAnalyticsService extends AnalyticsService {
 			capture_pageview: 'history_change',
 		})
 	}
+
 	override enable() {
 		if (this.isEnabled) return
 		_posthog.set_config({ persistence: 'localStorage+cookie' })
 		_posthog.opt_in_capturing()
 		this.isEnabled = true
 	}
+
 	override disable() {
 		if (!this.isEnabled) return
 		_posthog.setPersonProperties({ analytics_consent: false })
@@ -30,15 +32,18 @@ class PosthogAnalyticsService extends AnalyticsService {
 		_posthog.opt_out_capturing()
 		this.isEnabled = false
 	}
+
 	override identify(userId: string, properties?: { [key: string]: any }) {
 		_posthog.identify(userId, {
 			...properties,
 			analytics_consent: true,
 		})
 	}
+
 	override trackEvent(name: string, data?: { [key: string]: any }) {
 		_posthog.capture(name, data)
 	}
+
 	override trackPageview() {
 		_posthog.capture('$pageview')
 	}
