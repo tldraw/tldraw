@@ -19,17 +19,15 @@ export function ga4Gtag(...args: any[]) {
 	gtag(...args)
 }
 
-class GoogleAnalyticsService extends AnalyticsService {
+class GA4AnalyticsService extends AnalyticsService {
 	private measurementId: string | undefined
 	private googleAdsId: string | undefined
 
 	override initialize() {
-		if (this.isInitialized) return
+		if (typeof window === 'undefined') return
 
-		if (typeof window !== 'undefined') {
-			this.measurementId = window.TL_GA4_MEASUREMENT_ID ?? undefined
-			this.googleAdsId = window.TL_GOOGLE_ADS_ID ?? undefined
-		}
+		this.measurementId = window.TL_GA4_MEASUREMENT_ID ?? undefined
+		this.googleAdsId = window.TL_GOOGLE_ADS_ID ?? undefined
 
 		if (this.measurementId) {
 			gtag('consent', 'default', {
@@ -41,21 +39,19 @@ class GoogleAnalyticsService extends AnalyticsService {
 				wait_for_update: 500,
 			})
 
-			if (typeof window !== 'undefined') {
-				// Initialize dataLayer
-				window.dataLayer = window.dataLayer || []
-				window.gtag = function () {
-					// eslint-disable-next-line prefer-rest-params
-					window.dataLayer!.push(arguments)
-				}
-				gtag('js', new Date())
-
-				// Load the GA4 script
-				const script = document.createElement('script')
-				script.async = true
-				script.src = `https://www.googletagmanager.com/gtag/js?id=${this.measurementId}`
-				document.head.appendChild(script)
+			// Initialize dataLayer
+			window.dataLayer = window.dataLayer || []
+			window.gtag = function () {
+				// eslint-disable-next-line prefer-rest-params
+				window.dataLayer!.push(arguments)
 			}
+			gtag('js', new Date())
+
+			// Load the GA4 script
+			const script = document.createElement('script')
+			script.async = true
+			script.src = `https://www.googletagmanager.com/gtag/js?id=${this.measurementId}`
+			document.head.appendChild(script)
 
 			gtag('config', this.measurementId, {
 				anonymize_ip: true,
@@ -65,8 +61,10 @@ class GoogleAnalyticsService extends AnalyticsService {
 		if (this.googleAdsId) {
 			gtag('config', this.googleAdsId)
 		}
-
-		this.isInitialized = true
+	}
+	override dispose() {
+		const script = document.getElementById(`gtag-${this.measurementId}`)
+		if (script) script.remove()
 	}
 	override enable() {
 		if (this.isEnabled) return
@@ -111,4 +109,4 @@ class GoogleAnalyticsService extends AnalyticsService {
 	}
 }
 
-export const googleAnalytics = new GoogleAnalyticsService()
+export const ga4Service = new GA4AnalyticsService()

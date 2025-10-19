@@ -2,14 +2,12 @@ import _posthog from 'posthog-js'
 import { POSTHOG_API_HOST, POSTHOG_TOKEN, POSTHOG_UI_HOST } from '../constants'
 import { AnalyticsService } from './analytics-service'
 
-// Make posthog available globally
-if (typeof window !== 'undefined') {
-	window.posthog = _posthog
-}
-
 class PosthogAnalyticsService extends AnalyticsService {
 	override initialize() {
-		if (this.isInitialized) return
+		// Make posthog available globally
+		if (typeof window !== 'undefined') {
+			window.posthog = _posthog
+		}
 
 		_posthog.init(POSTHOG_TOKEN, {
 			api_host: POSTHOG_API_HOST,
@@ -17,8 +15,6 @@ class PosthogAnalyticsService extends AnalyticsService {
 			persistence: 'memory',
 			capture_pageview: 'history_change',
 		})
-
-		this.isInitialized = true
 	}
 	override enable() {
 		if (this.isEnabled) return
@@ -48,4 +44,4 @@ class PosthogAnalyticsService extends AnalyticsService {
 	}
 }
 
-export const posthog = new PosthogAnalyticsService()
+export const posthogService = new PosthogAnalyticsService()

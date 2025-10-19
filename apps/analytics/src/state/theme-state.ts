@@ -5,20 +5,13 @@
 
 import { AnalyticsState } from './state'
 
-class ThemeState extends AnalyticsState<'light' | 'dark'> {
+export class ThemeState extends AnalyticsState<'light' | 'dark'> {
 	private observer: MutationObserver | null = null
 
-	constructor() {
-		super('light')
-	}
-
 	override initialize(): void {
-		if (this.initialized) return
-
 		// If document is not available, default to light theme
 		if (typeof document === 'undefined') {
 			this.value = 'light'
-			this.initialized = true
 			return
 		}
 
@@ -27,7 +20,7 @@ class ThemeState extends AnalyticsState<'light' | 'dark'> {
 		this.value = docElm.getAttribute('style')?.includes('color-scheme: dark') ? 'dark' : 'light'
 
 		if (typeof MutationObserver === 'undefined') {
-			// we just won't set up the observer
+			// weird browser, we just won't set up the observer (we won't be able to detect theme changes)
 		} else {
 			const observer = new MutationObserver((mutations) => {
 				if (mutations.some((mutation) => mutation.attributeName === 'style')) {
@@ -44,16 +37,11 @@ class ThemeState extends AnalyticsState<'light' | 'dark'> {
 
 			this.observer = observer
 		}
-
-		this.initialized = true
 	}
 	override dispose() {
 		if (this.observer) {
 			this.observer.disconnect()
 			this.observer = null
 		}
-		this.initialized = false
 	}
 }
-
-export const themeState = new ThemeState()

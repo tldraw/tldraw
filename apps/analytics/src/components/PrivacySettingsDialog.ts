@@ -1,12 +1,12 @@
 import { DOT_DEV_COOKIE_POLICY_URL } from '../constants'
-import { cookieConsentState } from '../state/cookie-consent-state'
-import { themeState } from '../state/theme-state'
+import { CookieConsentState } from '../state/cookie-consent-state'
+import { ThemeState } from '../state/theme-state'
 
-export function createPrivacySettingsDialog(): HTMLElement {
-	cookieConsentState.initialize()
+export function createPrivacySettingsDialog(
+	cookieConsentState: CookieConsentState,
+	themeState: ThemeState
+): HTMLElement {
 	const consent = cookieConsentState.getValue()
-
-	themeState.initialize()
 	const theme = themeState.getValue()
 
 	// Create dialog container
@@ -118,13 +118,16 @@ export function createPrivacySettingsDialog(): HTMLElement {
 }
 
 // Auto-mount function for easy integration
-export function mountPrivacySettingsDialog(container: HTMLElement = document.body): HTMLElement {
-	// If the dialog already exists, remove it
+export function mountPrivacySettingsDialog(
+	cookieConsentState: CookieConsentState,
+	themeState: ThemeState,
+	container: HTMLElement = document.body
+): HTMLElement {
 	const existingDialog = document.querySelector('.tl-analytics-dialog')
 	if (existingDialog) existingDialog.remove()
 
-	// Create dialog
-	const dialog = createPrivacySettingsDialog()
-	container.appendChild(dialog)
+	const dialog = createPrivacySettingsDialog(cookieConsentState, themeState)
+	if (dialog) container.appendChild(dialog)
+
 	return dialog
 }

@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 export class AnalyticsService {
-	protected isInitialized = false
 	protected isEnabled = false
-	// Initialize the service regardless of cookie consent.
+	// Initialize the service (regardless of cookie consent)
 	initialize(): void {}
+	// Clean up the service.
+	dispose(): void {}
 	// Enable the service when cookie consent is granted.
 	enable(): void {}
 	// Disable the service when cookie consent is revoked.

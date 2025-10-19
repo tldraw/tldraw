@@ -3,26 +3,29 @@ import { CONSENT_COOKIE_NAME } from '../constants'
 import { type CookieConsent } from '../types'
 import { AnalyticsState } from './state'
 
-class CookieConsentState extends AnalyticsState<CookieConsent> {
-	override initialize(): void {
-		if (this.initialized) return
-
-		// If document is not available, default to unknown
-		if (typeof document === 'undefined') {
-			this.value = 'unknown'
-			this.notify()
-			this.initialized = true
-			return
-		}
-
-		// Read initial consent from cookie
-		const cookieConsent = Cookies.get(CONSENT_COOKIE_NAME)
-		this.value =
-			cookieConsent === 'true' ? 'opted-in' : cookieConsent === 'false' ? 'opted-out' : 'unknown'
-
-		this.initialized = true
-		this.notify()
+export function cookieConsentToCookieValue(consent: CookieConsent): string | undefined {
+	switch (consent) {
+		case 'opted-in':
+			return 'true'
+		case 'opted-out':
+			return 'false'
+		case 'unknown':
+			return undefined
 	}
 }
 
-export const cookieConsentState = new CookieConsentState('unknown')
+export function getCookieValue(): string | undefined {
+	return Cookies.get(CONSENT_COOKIE_NAME)
+}
+
+export function setCookieValue(value: string): void {
+	Cookies.set(CONSENT_COOKIE_NAME, value)
+}
+
+export function cookieValueToCookieConsent(cookieValue: string | undefined): CookieConsent {
+	if (cookieValue === 'true') return 'opted-in'
+	if (cookieValue === 'false') return 'opted-out'
+	return 'unknown'
+}
+
+export class CookieConsentState extends AnalyticsState<CookieConsent> {}

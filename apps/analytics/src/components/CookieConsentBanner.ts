@@ -1,12 +1,12 @@
 import { DOT_DEV_COOKIE_POLICY_URL } from '../constants'
-import { cookieConsentState } from '../state/cookie-consent-state'
-import { themeState } from '../state/theme-state'
+import { CookieConsentState } from '../state/cookie-consent-state'
+import { ThemeState } from '../state/theme-state'
 
-export function createCookieConsentBanner(): HTMLElement | null {
-	cookieConsentState.initialize()
+export function createCookieConsentBanner(
+	cookieConsentState: CookieConsentState,
+	themeState: ThemeState
+): HTMLElement | null {
 	const consent = cookieConsentState.getValue()
-
-	themeState.initialize()
 	const theme = themeState.getValue()
 
 	// Don't show banner if consent is already given
@@ -73,17 +73,15 @@ export function createCookieConsentBanner(): HTMLElement | null {
 
 // Auto-mount function for easy integration
 export function mountCookieConsentBanner(
+	cookieConsentState: CookieConsentState,
+	themeState: ThemeState,
 	container: HTMLElement = document.body
 ): HTMLElement | null {
-	// If the banner already exists, remove it
 	const existingBanner = document.querySelector('.tl-analytics-banner')
 	if (existingBanner) existingBanner.remove()
 
-	// Create banner
-	const banner = createCookieConsentBanner()
-	if (banner) {
-		container.appendChild(banner)
-	}
+	const banner = createCookieConsentBanner(cookieConsentState, themeState)
+	if (banner) container.appendChild(banner)
 
 	return banner
 }
