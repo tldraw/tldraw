@@ -89,6 +89,8 @@ class Analytics {
 			initialConsent = requiresConsent ? 'unknown' : 'opted-in'
 		}
 
+		// This will trigger the subscriber we set up earlier, which will
+		// enable/disable the analytics services accordingly
 		cookieConsentState.setValue(initialConsent)
 
 		// Now that we have the consent value in memory, we can initialize
