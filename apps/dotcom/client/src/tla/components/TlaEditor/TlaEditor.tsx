@@ -49,6 +49,7 @@ import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
+import { isDevelopmentEnv } from '../../../utils/env'
 
 // Lazy load fairy components
 const FairyApp = lazy(() =>
@@ -266,7 +267,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	// this is ugly
 	const originalInFrontOfTheCanvasRef = useRef(components.InFrontOfTheCanvas)
 	const OriginalInFrontOfTheCanvas = originalInFrontOfTheCanvasRef.current
-	const canShowFairies = agents.length > 0 && showFairies && !!user?.isTldraw
+	const canShowFairies = agents.length > 0 && showFairies && (!!user?.isTldraw || isDevelopmentEnv)
 
 	components.InFrontOfTheCanvas = (props) => (
 		<>
@@ -280,7 +281,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			)}
 		</>
 	)
-	components.DebugMenu = () => <CustomDebugMenu showFairyFeatureFlags={!!user?.isTldraw} />
+	components.DebugMenu = () => <CustomDebugMenu showFairyFeatureFlags={!!user?.isTldraw || isDevelopmentEnv} />
 
 	return (
 		<TlaEditorWrapper>

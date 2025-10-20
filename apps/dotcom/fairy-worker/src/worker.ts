@@ -77,9 +77,15 @@ async function requireTldrawEmail(request: IRequest, env: Environment) {
 		if (!auth || 'userId' in auth === false || auth.userId === null) {
 			throw new Error('Unauthorized')
 		}
-		await requireAdminAccess(env, auth)
 		// Attach auth to request for downstream use
 		;(request as AuthenticatedRequest).auth = auth
+
+		if (env.IS_LOCAL === 'true') {
+			return undefined
+		}
+
+		await requireAdminAccess(env, auth)
+
 		return undefined
 	} catch (error: any) {
 		console.error('Authentication failed:', error.message)
