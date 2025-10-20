@@ -337,6 +337,7 @@ DECLARE
     v_current_flags TEXT;
     v_file_record RECORD;
     v_now BIGINT := EXTRACT(EPOCH FROM NOW()) * 1000;
+    v_lock_key BIGINT;
 BEGIN
     -- Check if user exists
     IF NOT EXISTS (SELECT 1 FROM public."user" WHERE id = target_user_id) THEN
@@ -350,6 +351,16 @@ BEGIN
       RETURN QUERY SELECT 0, 0, FALSE;
       RETURN;
     END IF;
+
+    -- Acquire an advisory lock based on the user ID to prevent mutations during migration
+    -- Convert user ID string to a bigint for the lock key using hashtext
+    -- Using xact lock so it's automatically released when transaction ends
+    v_lock_key := hashtext(target_user_id);
+    RAISE NOTICE 'Acquiring advisory lock % for user %', v_lock_key, target_user_id;
+    PERFORM pg_advisory_xact_lock(v_lock_key);
+
+    -- Lock acquired, now we can safely migrate
+    RAISE NOTICE 'Lock acquired, starting migration for user %', target_user_id;
 
     -- Create a home group for the user
     INSERT INTO public."group" ("id", "name", "createdAt", "updatedAt", "isDeleted", "inviteSecret")
