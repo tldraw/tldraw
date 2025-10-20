@@ -185,5 +185,9 @@ class Analytics {
 	}
 }
 
-const analytics = new Analytics()
-analytics.initialize()
+try {
+	const analytics = new Analytics()
+	analytics.initialize()
+} catch (error) {
+	console.error('Error initializing analytics manager:', error)
+}
