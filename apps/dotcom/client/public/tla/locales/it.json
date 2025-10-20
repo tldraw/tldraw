@@ -98,12 +98,6 @@
   "47839e47a5": {
     "translation": "tldraw"
   },
-  "7697920637": {
-    "translation": "Per favore ricarica"
-  },
-  "764671e008": {
-    "translation": "Chatta con noi su Discord"
-  },
   "4908687e50": {
     "translation": "Confermi di voler dimenticare questo file?"
   },
@@ -200,6 +194,12 @@
   "761e93ede9": {
     "translation": "Gestisci i cookie"
   },
+  "7697920637": {
+    "translation": "Per favore ricarica"
+  },
+  "764671e008": {
+    "translation": "Chatta con noi su Discord"
+  },
   "777f9e90cf": {
     "translation": "Richiesta non valida."
   },
@@ -256,6 +256,9 @@
   },
   "91e49bb0eb": {
     "translation": "Copia nei miei file"
+  },
+  "95d2109dc8": {
+    "translation": "Costruisci con l'SDK tldraw"
   },
   "96165d6df5": {
     "translation": "Questo mese"

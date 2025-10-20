@@ -31,7 +31,7 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 			link = `https://${link}`
 		}
 
-		textEditor.commands.setLink({ href: link })
+		textEditor.chain().setLink({ href: link }).run()
 		// N.B. We shouldn't focus() on mobile because it causes the
 		// Return key to replace the link with a newline :facepalm:
 		if (editor.getInstanceState().isCoarsePointer) {

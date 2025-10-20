@@ -126,7 +126,7 @@ export function filterEntries<Key extends string, Value>(object: {
 export function fpsThrottle(fn: {
     (): void;
     cancel?(): void;
-}): {
+}, getTargetFps?: () => number): {
     (): void;
     cancel?(): void;
 };
@@ -456,6 +456,11 @@ export function sortById<T extends {
 // @public
 export function sortByIndex<T extends {
     index: IndexKey;
+}>(a: T, b: T): -1 | 0 | 1;
+
+// @public
+export function sortByMaybeIndex<T extends {
+    index?: IndexKey | null;
 }>(a: T, b: T): -1 | 0 | 1;
 
 // @internal

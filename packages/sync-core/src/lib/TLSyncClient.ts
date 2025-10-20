@@ -31,9 +31,15 @@ import {
  * @param cb - Callback function that receives the event value
  * @returns Function to call when you want to unsubscribe from the events
  *
- * @internal
+ * @public
  */
 export type SubscribingFn<T> = (cb: (val: T) => void) => () => void
+
+/** Network sync frame rate when in solo mode (no collaborators) @internal */
+const SOLO_MODE_FPS = 1
+
+/** Network sync frame rate when in collaborative mode (with collaborators) @internal */
+const COLLABORATIVE_MODE_FPS = 30
 
 /**
  * WebSocket close code used by the server to signal a non-recoverable sync error.
@@ -149,9 +155,9 @@ export type TLCustomMessageHandler = (this: null, data: any) => void
  * Event object describing changes in socket connection status.
  * Contains either a basic status change or an error with details.
  *
- * @internal
+ * @public
  */
-export type TlSocketStatusChangeEvent =
+export type TLSocketStatusChangeEvent =
 	| {
 			/** Connection came online or went offline */
 			status: 'online' | 'offline'
@@ -169,7 +175,7 @@ export type TlSocketStatusChangeEvent =
  *
  * @internal
  */
-export type TLSocketStatusListener = (params: TlSocketStatusChangeEvent) => void
+export type TLSocketStatusListener = (params: TLSocketStatusChangeEvent) => void
 
 /**
  * Possible connection states for a persistent client socket.
@@ -183,7 +189,7 @@ export type TLPersistentClientSocketStatus = 'online' | 'offline' | 'error'
  * Mode for handling presence information in sync sessions.
  * Controls whether presence data (cursors, selections) is shared with other clients.
  *
- * @internal
+ * @public
  */
 export type TLPresenceMode =
 	/** No presence sharing - client operates independently */
@@ -217,9 +223,12 @@ export type TLPresenceMode =
  * }
  * ```
  *
- * @internal
+ * @public
  */
-export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecord> {
+export interface TLPersistentClientSocket<
+	ClientSentMessage extends object = object,
+	ServerSentMessage extends object = object,
+> {
 	/** Current connection state - online means actively connected and ready */
 	connectionStatus: 'online' | 'offline' | 'error'
 
@@ -227,27 +236,32 @@ export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecor
 	 * Send a protocol message to the sync server
 	 * @param msg - Message to send (connect, push, ping, etc.)
 	 */
-	sendMessage(msg: TLSocketClientSentEvent<R>): void
+	sendMessage(msg: ClientSentMessage): void
 
 	/**
 	 * Subscribe to messages received from the server
 	 * @param callback - Function called for each received message
 	 * @returns Cleanup function to remove the listener
 	 */
-	onReceiveMessage: SubscribingFn<TLSocketServerSentEvent<R>>
+	onReceiveMessage: SubscribingFn<ServerSentMessage>
 
 	/**
 	 * Subscribe to connection status changes
 	 * @param callback - Function called when connection status changes
 	 * @returns Cleanup function to remove the listener
 	 */
-	onStatusChange: SubscribingFn<TlSocketStatusChangeEvent>
+	onStatusChange: SubscribingFn<TLSocketStatusChangeEvent>
 
 	/**
 	 * Force a connection restart (disconnect then reconnect)
 	 * Used for error recovery or when connection health checks fail
 	 */
 	restart(): void
+
+	/**
+	 * Close the connection
+	 */
+	close(): void
 }
 
 const PING_INTERVAL = 5000
@@ -312,7 +326,7 @@ const MAX_TIME_TO_WAIT_FOR_SERVER_INTERACTION_BEFORE_RESETTING_CONNECTION = PING
  * })
  * ```
  *
- * @internal
+ * @public
  */
 export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
 	/** The last clock time from the most recent server update */
@@ -335,14 +349,19 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 	private disposables: Array<() => void> = []
 
+	/** @internal */
 	readonly store: S
-	readonly socket: TLPersistentClientSocket<R>
+	/** @internal */
+	readonly socket: TLPersistentClientSocket<TLSocketClientSentEvent<R>, TLSocketServerSentEvent<R>>
 
+	/** @internal */
 	readonly presenceState: Signal<R | null> | undefined
+	/** @internal */
 	readonly presenceMode: Signal<TLPresenceMode> | undefined
 
 	// isOnline is true when we have an open socket connection and we have
 	// established a connection with the server room (i.e. we have received a 'connect' message)
+	/** @internal */
 	isConnectedToRoom = false
 
 	/**
@@ -366,7 +385,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 * @param details - Connection details
 	 *   - isReadonly - Whether the connection is in read-only mode
 	 */
-	public readonly onAfterConnect?: (self: this, details: { isReadonly: boolean }) => void
+	private readonly onAfterConnect?: (self: this, details: { isReadonly: boolean }) => void
 
 	private readonly onCustomMessageReceived?: TLCustomMessageHandler
 
@@ -380,7 +399,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 	private readonly presenceType: R['typeName'] | null
 
-	didCancel?: () => boolean
+	private didCancel?: () => boolean
 
 	/**
 	 * Creates a new TLSyncClient instance to manage synchronization with a remote server.
@@ -400,7 +419,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 */
 	constructor(config: {
 		store: S
-		socket: TLPersistentClientSocket<R>
+		socket: TLPersistentClientSocket<any, any>
 		presence: Signal<R | null>
 		presenceMode?: Signal<TLPresenceMode>
 		onLoad(self: TLSyncClient<R, S>): void
@@ -516,6 +535,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 	}
 
+	/** @internal */
 	latestConnectRequestId: string | null = null
 
 	/**
@@ -641,7 +661,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.lastServerClock = event.serverClock
 	}
 
-	incomingDiffBuffer: TLSocketServerSentDataEvent<R>[] = []
+	private incomingDiffBuffer: TLSocketServerSentDataEvent<R>[] = []
 
 	/** Handle events received from the server */
 	private handleServerEvent(event: TLSocketServerSentEvent<R>) {
@@ -701,7 +721,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.scheduleRebase.cancel?.()
 	}
 
-	lastPushedPresenceState: R | null = null
+	private lastPushedPresenceState: R | null = null
 
 	private pushPresence(nextPresence: R | null) {
 		// make sure we push any document changes first
@@ -786,6 +806,11 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.flushPendingPushRequests()
 	}
 
+	/** Get the target FPS for network operations based on presence mode */
+	private getSyncFps(): number {
+		return this.presenceMode?.get() === 'solo' ? SOLO_MODE_FPS : COLLABORATIVE_MODE_FPS
+	}
+
 	/** Send any unsent push requests to the server */
 	private flushPendingPushRequests = fpsThrottle(() => {
 		this.debug('flushing pending push requests', {
@@ -805,7 +830,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				pendingPushRequest.sent = true
 			}
 		}
-	})
+	}, this.getSyncFps.bind(this))
 
 	/**
 	 * Applies a 'network' diff to the store this does value-based equality checking so that if the
@@ -913,5 +938,5 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 	}
 
-	private scheduleRebase = fpsThrottle(this.rebase)
+	private scheduleRebase = fpsThrottle(this.rebase, this.getSyncFps.bind(this))
 }

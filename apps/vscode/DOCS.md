@@ -18,6 +18,7 @@ Install the extension directly from the VS Code marketplace:
 4. Click Install
 
 Alternatively, you can install from a `.vsix` file by running:
+
 ```bash
 code --install-extension tldraw-vscode.vsix
 ```
@@ -43,10 +44,12 @@ You'll immediately have access to the full tldraw toolset: drawing, shapes, text
 The extension provides comprehensive support for tldraw files:
 
 **Supported File Types**
+
 - `.tldr` files - Native tldraw format
 - `.tldr.json` files - JSON representation of tldraw documents
 
 **File Operations**
+
 - Create new tldraw files via Command Palette (`Cmd/Ctrl+Shift+P` → "tldraw: New Project")
 - Open existing `.tldr` files with automatic editor activation
 - Auto-save changes as you work
@@ -57,12 +60,14 @@ The extension provides comprehensive support for tldraw files:
 You have access to tldraw's complete toolset within VS Code:
 
 **Core Drawing Tools**
+
 - **Select Tool** - Move, resize, and modify shapes
 - **Draw Tool** - Freehand drawing with pressure sensitivity support
 - **Eraser Tool** - Remove parts of drawings or entire shapes
 - **Hand Tool** - Pan around the infinite canvas
 
 **Shape Creation**
+
 - **Rectangle** - Perfect for wireframes and layouts
 - **Ellipse** - Circles and ovals for diagrams
 - **Arrow** - Connect ideas with labeled arrows
@@ -71,6 +76,7 @@ You have access to tldraw's complete toolset within VS Code:
 - **Sticky Notes** - Great for brainstorming and annotations
 
 **Advanced Features**
+
 - Infinite canvas with smooth zoom and pan
 - Layer management and grouping
 - Shape styling (colors, fills, strokes)
@@ -82,18 +88,21 @@ You have access to tldraw's complete toolset within VS Code:
 The extension integrates seamlessly with VS Code's interface:
 
 **Custom Editor Provider**
+
 - Native VS Code editor experience for `.tldr` files
 - Appears in editor tabs like any other file
 - Works with VS Code's split-pane layout
 - Respects VS Code's theme settings (light/dark mode)
 
 **Keyboard Shortcuts**
+
 - `Cmd/Ctrl +` - Zoom in
-- `Cmd/Ctrl -` - Zoom out  
+- `Cmd/Ctrl -` - Zoom out
 - `Cmd/Ctrl 0` - Reset zoom to fit content
 - `Cmd/Ctrl D` - Toggle dark mode
 
 **Command Palette Integration**
+
 - "tldraw: New Project" - Create a new `.tldr` file
 - All commands prefixed with "tldraw:" for easy discovery
 
@@ -104,6 +113,7 @@ The extension integrates seamlessly with VS Code's interface:
 You can create new tldraw files in several ways:
 
 **Via Command Palette**
+
 ```bash
 # Open Command Palette
 Cmd/Ctrl + Shift + P
@@ -115,6 +125,7 @@ tldraw: New Project
 This creates a new untitled `.tldr` file and opens it in the tldraw editor.
 
 **Via File Explorer**
+
 ```bash
 # Create an empty .tldr file
 touch project-wireframes.tldr
@@ -130,11 +141,13 @@ You can also create `.tldr` files through VS Code's file system APIs if you're b
 The extension handles file persistence automatically:
 
 **Auto-Save Behavior**
+
 - Changes are automatically saved as you work
 - No need to manually save (Cmd/Ctrl+S) in most cases
 - File modification indicators work as expected in VS Code
 
 **File Format**
+
 - Files are stored in tldraw's native binary format
 - Optimized for performance and file size
 - Maintains full compatibility with tldraw.com
@@ -144,11 +157,13 @@ The extension handles file persistence automatically:
 Your `.tldr` files work seamlessly across platforms:
 
 **Browser Integration**
+
 - Upload files directly to tldraw.com
 - Download files from tldraw.com to edit in VS Code
 - No conversion needed - files are fully compatible
 
 **Sharing and Collaboration**
+
 - Share `.tldr` files like any other project asset
 - Version control friendly (though binary diffs aren't human-readable)
 - Works great in shared repositories and project folders
@@ -160,11 +175,13 @@ Your `.tldr` files work seamlessly across platforms:
 The extension consists of two main components working together:
 
 **Extension Process** (`apps/vscode/extension/`)
+
 - Handles VS Code integration and file system operations
 - Manages the custom editor provider registration
 - Coordinates between VS Code APIs and the webview editor
 
 **Webview Editor** (`apps/vscode/editor/`)
+
 - React-based tldraw editor running in a webview
 - Full tldraw SDK implementation with complete feature set
 - Handles real-time drawing, user interactions, and state management
@@ -174,23 +191,25 @@ The extension consists of two main components working together:
 The extension uses a robust RPC (Remote Procedure Call) system for communication:
 
 **Bidirectional Messaging**
+
 ```ts
 // Extension to webview
 webview.postMessage({
-  type: 'openFile',
-  data: { content: fileContent }
+	type: 'openFile',
+	data: { content: fileContent },
 })
 
-// Webview to extension  
+// Webview to extension
 message.addEventListener('message', (event) => {
-  if (event.data.type === 'fileChanged') {
-    // Save changes to disk
-    saveFile(event.data.content)
-  }
+	if (event.data.type === 'fileChanged') {
+		// Save changes to disk
+		saveFile(event.data.content)
+	}
 })
 ```
 
 **File Change Synchronization**
+
 - Real-time sync between editor state and file system
 - Automatic conflict resolution for external file changes
 - Efficient delta updates to minimize data transfer
@@ -200,6 +219,7 @@ message.addEventListener('message', (event) => {
 For extension developers, the build system supports hot reload:
 
 **Development Setup**
+
 ```bash
 # Start extension development with hot reload
 cd apps/vscode
@@ -210,6 +230,7 @@ yarn dev
 ```
 
 **Development Workflow**
+
 1. Make changes to extension or editor code
 2. Extension automatically recompiles and reloads
 3. Test changes immediately in VS Code Extension Development Host
@@ -220,11 +241,13 @@ yarn dev
 The extension can handle external content intelligently:
 
 **Link Unfurling**
+
 - Paste URLs to automatically create rich link previews
 - Supports common sites with Open Graph metadata
 - Configurable unfurling behavior
 
 **Asset Management**
+
 - Drag and drop images directly into drawings
 - Automatic asset optimization and caching
 - Support for various image formats
@@ -236,16 +259,19 @@ The extension can handle external content intelligently:
 The extension is optimized for performance in VS Code:
 
 **Memory Management**
+
 - Efficient webview lifecycle management
 - Automatic cleanup when files are closed
 - Optimized rendering for large documents
 
 **File Loading**
+
 - Lazy loading of large `.tldr` files
 - Progressive rendering for complex drawings
 - Background processing for file operations
 
 **Zoom and Pan Performance**
+
 - Hardware-accelerated rendering where available
 - Smooth interactions even with complex drawings
 - Efficient viewport culling for large canvases
@@ -255,16 +281,19 @@ The extension is optimized for performance in VS Code:
 The extension works well with VS Code's ecosystem:
 
 **Multi-Root Workspaces**
+
 - Full support for multi-root workspace configurations
 - Proper file path resolution across workspace folders
 - Consistent behavior regardless of workspace setup
 
 **Split Editors**
+
 - Open multiple `.tldr` files in split panes
 - Compare different versions side-by-side
 - Works with VS Code's editor group management
 
 **Extension Compatibility**
+
 - Compatible with other VS Code extensions
 - Respects VS Code's theme and color customizations
 - Works with productivity extensions like project managers
@@ -272,16 +301,19 @@ The extension works well with VS Code's ecosystem:
 ### Troubleshooting Common Issues
 
 **File Won't Open**
+
 - Ensure the file has a `.tldr` or `.tldr.json` extension
 - Check that the file isn't corrupted or empty
 - Try creating a new file to test the extension
 
 **Performance Issues**
+
 - Close unused `.tldr` files to free memory
 - Restart VS Code if webviews become unresponsive
 - Check VS Code's output panel for error messages
 
 **Sync Issues with tldraw.com**
+
 - Verify file format compatibility
 - Try re-saving the file in VS Code
 - Check for any file permission issues
@@ -293,10 +325,12 @@ The extension works well with VS Code's ecosystem:
 To build the extension locally:
 
 **Prerequisites**
+
 - Node.js 16+ and yarn
 - VS Code development environment
 
 **Build Process**
+
 ```bash
 # Install dependencies
 cd apps/vscode
@@ -312,6 +346,7 @@ yarn package
 This creates a `.vsix` file that can be installed locally or distributed.
 
 **Development Testing**
+
 ```bash
 # Start development environment
 yarn dev
@@ -325,11 +360,13 @@ yarn dev
 The extension supports multiple distribution channels:
 
 **VS Code Marketplace**
+
 - Automated publishing from CI/CD pipeline
 - Version tagging based on git branches
 - Pre-release builds available for testing
 
 **Manual Installation**
+
 ```bash
 # Install from local .vsix file
 code --install-extension tldraw-vscode-*.vsix
@@ -338,6 +375,7 @@ code --install-extension tldraw-vscode-*.vsix
 ```
 
 **GitHub Releases**
+
 - Direct `.vsix` downloads from repository releases
 - Includes release notes and compatibility information
 - Tagged versions for stable releases
@@ -347,17 +385,19 @@ code --install-extension tldraw-vscode-*.vsix
 The extension supports customization through VS Code settings:
 
 **Available Settings**
+
 - Theme preferences (auto-detect from VS Code)
 - Default canvas size and grid settings
 - Auto-save behavior configuration
 - Performance optimization toggles
 
 **Settings Access**
+
 ```json
 {
-  "tldraw.theme": "auto",
-  "tldraw.autoSave": true,
-  "tldraw.gridSize": 20
+	"tldraw.theme": "auto",
+	"tldraw.autoSave": true,
+	"tldraw.gridSize": 20
 }
 ```
 
@@ -368,7 +408,7 @@ Access these through VS Code's Settings UI or directly in `settings.json`.
 This extension follows VS Code's development best practices:
 
 - **Accessibility** - Full keyboard navigation and screen reader support
-- **Performance** - Efficient resource usage and memory management  
+- **Performance** - Efficient resource usage and memory management
 - **Security** - Safe handling of user content and external resources
 - **Internationalization** - Ready for localization and global users
 - **Error Handling** - Graceful degradation and helpful error messages
