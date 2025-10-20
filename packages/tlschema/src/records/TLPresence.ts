@@ -7,11 +7,10 @@ import {
 } from '@tldraw/store'
 import { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { BoxModel, boxModelValidator } from '../misc/geometry-types'
+import { BoxModel, boxModelValidator, VecModel, vecModelValidator } from '../misc/geometry-types'
 import { idValidator } from '../misc/id-validator'
 import { cursorTypeValidator, TLCursor } from '../misc/TLCursor'
 import { scribbleValidator, TLScribble } from '../misc/TLScribble'
-import { vecModelValidator, VecModel } from '../misc/geometry-types'
 import { TLPageId } from './TLPage'
 import { TLShapeId } from './TLShape'
 

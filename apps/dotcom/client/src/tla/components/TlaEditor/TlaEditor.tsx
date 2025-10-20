@@ -22,8 +22,8 @@ import {
 	useEditor,
 	useEvent,
 	useValue,
-	type TLStore,
 	type TLPresenceUserInfo,
+	type TLStore,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
@@ -32,6 +32,7 @@ import { useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
+import { isDevelopmentEnv } from '../../../utils/env'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { useMaybeApp } from '../../hooks/useAppState'
@@ -52,7 +53,6 @@ import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
-import { isDevelopmentEnv } from '../../../utils/env'
 
 // Lazy load fairy components
 const FairyApp = lazy(() =>
@@ -227,14 +227,16 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			// Add fairy position to presence if we have an active agent
 			const agent = agentsRef.current?.[0]
 			const fairyEntity = agent?.$fairy?.get?.()
-			
+
 			return {
 				...defaultPresence,
-				fairy: fairyEntity ? {
-					position: fairyEntity.position,
-					flipX: fairyEntity.flipX,
-					pose: fairyEntity.pose,
-				} : null,
+				fairy: fairyEntity
+					? {
+							position: fairyEntity.position,
+							flipX: fairyEntity.flipX,
+							pose: fairyEntity.pose,
+						}
+					: null,
 			}
 		}, []),
 	})
@@ -312,7 +314,9 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			)}
 		</>
 	)
-	components.DebugMenu = () => <CustomDebugMenu showFairyFeatureFlags={!!user?.isTldraw || isDevelopmentEnv} />
+	components.DebugMenu = () => (
+		<CustomDebugMenu showFairyFeatureFlags={!!user?.isTldraw || isDevelopmentEnv} />
+	)
 
 	return (
 		<TlaEditorWrapper>
