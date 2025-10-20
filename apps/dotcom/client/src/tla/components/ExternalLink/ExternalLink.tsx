@@ -9,8 +9,9 @@ export function ExternalLink(props: ComponentProps<typeof Link> & { eventName?: 
 			{...rest}
 			target="_blank"
 			rel="noopener noreferrer"
-			onClick={() => {
+			onClick={(e) => {
 				if (eventName) trackEvent(eventName ?? 'link-clicked', { link: rest.to ?? '' })
+				rest.onClick?.(e)
 			}}
 		>
 			{props.children}
