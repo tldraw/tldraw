@@ -1,4 +1,5 @@
 import { AgentIcon, ChatHistoryActionItem, TldrawFairyAgent } from '@tldraw/fairy-shared'
+import Markdown from 'react-markdown'
 import { getActionInfo } from './getActionInfo'
 
 export function FairyChatHistoryAction({
@@ -33,7 +34,7 @@ function FairyChatHistoryMessageDisplay({
 	return (
 		<div className="fairy-chat-history-action">
 			<div className="fairy-chat-history-action-content fairy-chat-history-action-message">
-				{content}
+				<Markdown>{content}</Markdown>
 			</div>
 		</div>
 	)
@@ -60,7 +61,7 @@ function FairyChatHistoryActionDisplay({
 					<AgentIcon type={info.icon} />
 				</div>
 			)}
-			<p>{displayText}</p>
+			<Markdown>{displayText}</Markdown>
 		</div>
 	)
 }

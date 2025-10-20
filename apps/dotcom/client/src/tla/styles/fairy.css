@@ -446,7 +446,7 @@
 .fairy-chat-history-group {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
+	gap: 6px;
 }
 
 .fairy-chat-history-group-toggle {
@@ -479,6 +479,10 @@
 	color: var(--tl-color-text-1);
 }
 
+.fairy-chat-history-group-toggle * {
+	cursor: pointer;
+}
+
 .fairy-chat-history-group-summary {
 	display: flex;
 	align-items: center;
@@ -486,6 +490,12 @@
 	padding: 2px 4px;
 	font-size: 12px;
 	color: var(--tl-color-text-3);
+}
+
+.fairy-chat-history-group-toggle-and-items {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
 }
 
 .fairy-chat-history-group-items {
@@ -513,6 +523,14 @@
 	color: var(--tl-color-text-1);
 }
 
+.fairy-chat-history-action-message ol, ul {
+	margin-top: -28px;
+}
+
+.fairy-chat-history-action-message li {
+	margin-bottom: -14px;
+}
+
 .fairy-chat-history-action-icon svg {
 	width: 14px;
 	height: 14px;
@@ -525,6 +543,8 @@
 	font-size: 12px;
 	text-align: center;
 	padding: 4px;
+	margin-left: 12px;
+	margin-bottom: 6px;
 }
 
 .fairy-chat-empty {
