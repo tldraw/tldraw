@@ -14,7 +14,8 @@
 		"strict": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
-		"noFallthroughCasesInSwitch": true
+		"noFallthroughCasesInSwitch": true,
+		"experimentalDecorators": true
 	},
 	"include": ["src", "vite.config.ts", "vite-env.d.ts"],
 	"references": [{ "path": "../../packages/tldraw" }]

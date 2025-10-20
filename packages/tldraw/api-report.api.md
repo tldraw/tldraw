@@ -16,6 +16,7 @@ import { Box } from '@tldraw/editor';
 import { Circle2d } from '@tldraw/editor';
 import { ComponentType } from 'react';
 import { CSSProperties } from 'react';
+import { DebugFlag } from '@tldraw/editor';
 import { Editor } from '@tldraw/editor';
 import { ElbowArrowSnap } from '@tldraw/editor';
 import { Extension } from '@tiptap/core';
@@ -602,6 +603,14 @@ export interface CubicBezierToPathBuilderCommand extends PathBuilderCommandBase 
 export function CursorChatItem(): JSX_2.Element | null;
 
 // @public (undocumented)
+export interface CustomDebugFlags {
+    // (undocumented)
+    customDebugFlags?: Record<string, DebugFlag<boolean>>;
+    // (undocumented)
+    customFeatureFlags?: Record<string, DebugFlag<boolean>>;
+}
+
+// @public (undocumented)
 export interface CustomEmbedDefinition extends EmbedDefinition {
     // (undocumented)
     readonly icon: string;
@@ -625,7 +634,13 @@ export interface DashedPathBuilderOpts extends BasePathBuilderOpts {
 }
 
 // @public (undocumented)
-export function DebugFlags(): JSX_2.Element | null;
+export function DebugFlags(props: DebugFlagsProps): JSX_2.Element | null;
+
+// @public (undocumented)
+export interface DebugFlagsProps {
+    // (undocumented)
+    customDebugFlags?: Record<string, DebugFlag<boolean>> | undefined;
+}
 
 // @public (undocumented)
 export const DEFAULT_EMBED_DEFINITIONS: readonly [{
@@ -868,7 +883,7 @@ export function DefaultContextMenuContent(): JSX_2.Element | null;
 export function DefaultDebugMenu({ children }: TLUiDebugMenuProps): JSX_2.Element;
 
 // @public (undocumented)
-export function DefaultDebugMenuContent(): JSX_2.Element;
+export function DefaultDebugMenuContent({ customDebugFlags, customFeatureFlags, }: CustomDebugFlags): JSX_2.Element;
 
 // @public (undocumented)
 export const DefaultDialogs: NamedExoticComponent<object>;
@@ -1478,7 +1493,13 @@ export function ExportFileContentSubMenu(): JSX_2.Element;
 export function ExtrasGroup(): JSX_2.Element;
 
 // @public (undocumented)
-export function FeatureFlags(): JSX_2.Element | null;
+export function FeatureFlags(props: FeatureFlagsProps): JSX_2.Element | null;
+
+// @public (undocumented)
+export interface FeatureFlagsProps {
+    // (undocumented)
+    customFeatureFlags?: Record<string, DebugFlag<boolean>> | undefined;
+}
 
 // @public
 export function fitFrameToContent(editor: Editor, id: TLShapeId, opts?: {

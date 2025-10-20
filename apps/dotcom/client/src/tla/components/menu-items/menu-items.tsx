@@ -131,7 +131,9 @@ export function DotDevMenuItem() {
 			iconLeft="external-link"
 			readonlyOk
 			onSelect={() => {
-				openAndTrack('https://tldraw.dev')
+				openAndTrack(
+					'https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=sidebar-menu'
+				)
 			}}
 		/>
 	)
@@ -179,8 +181,8 @@ export function ImportFileActionItem() {
 						description: 'tldraw project',
 					})
 
-					app.uploadTldrFiles(tldrawFiles, (file) => {
-						navigate(routes.tlaFile(file.id), { state: { mode: 'create' } })
+					app.uploadTldrFiles(tldrawFiles, (fileId) => {
+						navigate(routes.tlaFile(fileId), { state: { mode: 'create' } })
 					})
 				} catch {
 					// user cancelled
