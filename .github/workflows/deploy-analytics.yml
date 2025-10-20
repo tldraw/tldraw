@@ -1,4 +1,6 @@
 name: Deploy analytics worker
+permissions:
+  contents: read
 
 on:
   pull_request:
