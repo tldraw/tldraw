@@ -184,7 +184,7 @@ export function identify(userId: string, properties?: { [key: string]: any }) {
 	if (storedHasConsent !== 'opted-in') return
 
 	posthog.identify(userId, {
-		properties,
+		...properties,
 		analytics_consent: true,
 	})
 	ReactGA.set({ userId })
