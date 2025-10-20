@@ -182,11 +182,11 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			request,
 			env: this.env,
 			ctx: this.ctx,
-			after: (response) => {
+			after: (response, request) => {
 				const setCookies = response.headers.getAll('set-cookie')
 				// unfortunately corsify mishandles the set-cookie header, so
 				// we need to manually add it back in
-				const result = corsify(response)
+				const result = corsify(response, request)
 				if ([...setCookies].length === 0) {
 					return result
 				}
