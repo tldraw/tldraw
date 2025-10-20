@@ -61,8 +61,15 @@ class Analytics {
 					service.enable()
 				}
 
-				// Identify the user
-				this.identify(this.userId, this.userProperties)
+				// Identify the user if we have a userId. Most of the time
+				// identify() should be called off of the window.tlanalytics object, ie. in an app
+				// where we have a user id and properties for that app (like tldraw computer). We do
+				// it here, too, so that we can re-identify a user who has opted out of analytics
+				// and then opts back in within the same session. We would have their user id and properties
+				// in memory (from the first time they called identify) and would re-use them here.
+				if (this.userId) {
+					this.identify(this.userId, this.userProperties)
+				}
 			} else {
 				// Disable the analytics services when consent is revoked or when consent is unknown
 				for (const service of this.services) {
@@ -109,13 +116,24 @@ class Analytics {
 		}
 	}
 
-	// Wrap and guard google analytics tag
+	/**
+	 * Wrap and guard google analytics tag. This should be called from window.tlanalytics, ie. in an app where we have a user id and properties for that app (like tldraw computer).
+	 *
+	 * @param args - The arguments to pass to the google analytics tag
+	 * @returns void
+	 */
 	gtag(...args: any[]) {
 		if (this.consent !== 'opted-in') return
 		ga4Gtag(...args)
 	}
 
-	// Identify the user across all analytics services
+	/**
+	 * Identify the user across all analytics services. This should be called from window.tlanalytics, ie. in an app where we have a user id and properties for that app (like tldraw computer).
+	 *
+	 * @param userId - The user id to identify the user by
+	 * @param properties - The properties to identify the user by
+	 * @returns void
+	 */
 	identify(userId: string, properties?: { [key: string]: any }) {
 		this.userId = userId
 		this.userProperties = properties
@@ -127,14 +145,24 @@ class Analytics {
 		}
 	}
 
-	// Track an event across all analytics services
+	/**
+	 * Track an event across all analytics services. This should be called from window.tlanalytics, ie. in an app where we have a user id and properties for that app (like tldraw computer).
+	 *
+	 * @param name - The name of the event to track
+	 * @param data - The data to track with the event
+	 * @returns void
+	 */
 	track(name: string, data?: { [key: string]: any }) {
 		for (const service of this.services) {
 			service.trackEvent(name, data)
 		}
 	}
 
-	// Track a page view across all analytics services
+	/**
+	 * Track a page view across all analytics services. This should be called from window.tlanalytics, ie. in an app where we have a user id and properties for that app (like tldraw computer).
+	 *
+	 * @returns void
+	 */
 	page() {
 		for (const service of this.services) {
 			service.trackPageview()
