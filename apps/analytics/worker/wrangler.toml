@@ -1,0 +1,14 @@
+main = "worker.ts"
+compatibility_date = "2024-06-20"
+
+# Dev environment
+[env.dev]
+name = "tldraw-consent-dev"
+
+# Staging environment
+[env.staging]
+name = "tldraw-consent-staging"
+
+# Production environment
+[env.production]
+name = "tldraw-consent"

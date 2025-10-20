@@ -15,6 +15,7 @@ import {
 import { ThemeState } from './state/theme-state'
 import styles from './styles.css?inline'
 import { CookieConsent } from './types'
+import { shouldRequireConsent } from './utils/consent-check'
 
 class Analytics {
 	private userId = '' as string
@@ -23,7 +24,7 @@ class Analytics {
 
 	private services = [posthogService, ga4Service, hubspotService, reoService]
 
-	initialize() {
+	async initialize() {
 		// Inject styles
 		const style = document.createElement('style')
 		style.textContent = styles
@@ -73,12 +74,21 @@ class Analytics {
 			this.track('consent_changed', { consent })
 		})
 
-		// Now that we have our subscriber set up, get the initial
-		// analytics consent from the cookie and set it to the cookie
-		// consent state. If we find an 'opt-in' value, then the
-		// callback we just defined will enable the services that require it.
+		// Now that we have our subscriber set up, determine the initial consent state.
+		// If the user has already made a choice (cookie exists), use that.
+		// Otherwise, check their location to determine if we need explicit consent.
 		const initialCookieValue = getCookieValue()
-		const initialConsent = cookieValueToCookieConsent(initialCookieValue)
+		let initialConsent: CookieConsent
+
+		if (initialCookieValue) {
+			// User has previously made a consent decision - respect it
+			initialConsent = cookieValueToCookieConsent(initialCookieValue)
+		} else {
+			// No existing consent decision - check if we need to ask based on location
+			const requiresConsent = await shouldRequireConsent()
+			initialConsent = requiresConsent ? 'unknown' : 'opted-in'
+		}
+
 		cookieConsentState.setValue(initialConsent)
 
 		// Now that we have the consent value in memory, we can initialize
