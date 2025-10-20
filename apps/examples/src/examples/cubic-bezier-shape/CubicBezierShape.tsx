@@ -101,15 +101,6 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 
 	// [4]
 	override getHandles(shape: MyBezierCurveShape): TLHandle[] {
-		const CONTROL_POINT_THRESHOLD = 2
-
-		const pageTransform = this.editor.getShapePageTransform(shape)
-
-		const cp1InPageSpace = pageTransform.applyToPoint(shape.props.cp1)
-		const cp2InPageSpace = pageTransform.applyToPoint(shape.props.cp2)
-		const startInPageSpace = pageTransform.applyToPoint(shape.props.start)
-		const endInPageSpace = pageTransform.applyToPoint(shape.props.end)
-
 		const indices = [ZERO_INDEX_KEY, ...getIndicesAbove(ZERO_INDEX_KEY, 3)]
 
 		let handles: TLHandle[] = [
@@ -147,12 +138,11 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 			},
 		]
 
-		// collapse control points if you drag them to the its associated start or end point
-		if (Vec.Dist(cp1InPageSpace, startInPageSpace) < CONTROL_POINT_THRESHOLD) {
+		if (Vec.Equals(shape.props.cp1, shape.props.start)) {
 			handles = handles.filter((handle) => handle.id !== 'cp1')
 		}
 
-		if (Vec.Dist(cp2InPageSpace, endInPageSpace) < CONTROL_POINT_THRESHOLD) {
+		if (Vec.Equals(shape.props.cp2, shape.props.end)) {
 			handles = handles.filter((handle) => handle.id !== 'cp2')
 		}
 
@@ -281,13 +271,15 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		// bend the curve
 		if (this.isMetaKeyOnTranslateStart && this.didHitCurveOnTranslateStart) {
 			const delta = Vec.Sub(current, initial)
+			const offsetX = Math.round(delta.x)
+			const offsetY = Math.round(delta.y)
 
 			return {
 				...initial,
 				props: {
 					...initial.props,
-					cp1: { x: initial.props.cp1.x + delta.x, y: initial.props.cp1.y + delta.y },
-					cp2: { x: initial.props.cp2.x + delta.x, y: initial.props.cp2.y + delta.y },
+					cp1: { x: initial.props.cp1.x + offsetX, y: initial.props.cp1.y + offsetY },
+					cp2: { x: initial.props.cp2.x + offsetX, y: initial.props.cp2.y + offsetY },
 				},
 			}
 		}
@@ -316,7 +308,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 									y2={cp1.y}
 									stroke="black"
 									strokeWidth={1 / zoomLevel}
-									strokeDasharray="6 6"
+									strokeDasharray={`${6 / zoomLevel} ${6 / zoomLevel}`}
 									opacity={0.5}
 								/>
 								<line
@@ -326,7 +318,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 									y2={cp2.y}
 									stroke="black"
 									strokeWidth={1 / zoomLevel}
-									strokeDasharray="6 6"
+									strokeDasharray={`${6 / zoomLevel} ${6 / zoomLevel}`}
 									opacity={0.5}
 								/>
 							</>
@@ -347,7 +339,6 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		if (!selectedShape) return false
 
 		return this.editor.isInAny(
-			'select.translating',
 			'select.editing_shape',
 			'select.pointing_handle',
 			'select.dragging_handle'
@@ -371,10 +362,13 @@ and rendering.
 
 [4]
 Define four interactive handles: start, end, cp1, and cp2. Each has an id, type, position, and index.
-Control point handles automatically hide when within 2 pixels of their associated endpoints.
+Control point handles are hidden when they're at the same position as their associated endpoints (collapsed).
 
 [5]
-Custom handle snapping: control points can snap to start/end points, useful for creating sharp corners.
+Custom handle snapping via getHandleSnapGeometry: control points (cp1, cp2) can snap to start/end points.
+The snap system automatically handles screen-space thresholds (consistent across zoom levels) and visual 
+snap indicators. When a control point is snapped to an endpoint, it effectively "collapses" the curve at 
+that end, creating a sharp corner.
 
 [6]
 Handle drag behaviors:

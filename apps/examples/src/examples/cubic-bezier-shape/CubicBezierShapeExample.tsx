@@ -15,6 +15,8 @@ export default function BezierCurveShapeExample() {
 				}}
 				shapeUtils={customShapes}
 				onMount={(editor) => {
+					editor.user.updateUserPreferences({ isSnapMode: true })
+
 					const viewportPageBounds = editor.getViewportPageBounds()
 					const centerX = viewportPageBounds.center.x
 					const centerY = viewportPageBounds.center.y
@@ -41,7 +43,6 @@ export default function BezierCurveShapeExample() {
 					const originalHandlers = {
 						pointingHandle: {
 							onPointerMove: pointingHandleState.onPointerMove?.bind(pointingHandleState),
-							onEnter: pointingHandleState.onEnter?.bind(pointingHandleState),
 							onPointerUp: pointingHandleState.onPointerUp?.bind(pointingHandleState),
 						},
 						editingShape: {
@@ -50,8 +51,8 @@ export default function BezierCurveShapeExample() {
 						},
 					}
 
-					// collapse control points
-					pointingHandleState.onEnter = (info: TLPointerEventInfo & { target: 'handle' }) => {
+					// clicking on start or end point should not go to select.idle
+					pointingHandleState.onPointerUp = (info: TLPointerEventInfo & { target: 'handle' }) => {
 						if (!info.shape) return
 
 						if (
@@ -87,14 +88,6 @@ export default function BezierCurveShapeExample() {
 							}
 						}
 
-						originalHandlers.pointingHandle.onEnter?.(info, 'pointing_handle')
-						return
-					}
-
-					// clicking on start or end point should not go to select.idle
-					pointingHandleState.onPointerUp = (info: TLPointerEventInfo & { target: 'handle' }) => {
-						if (!info.shape) return
-
 						if (
 							editor.isShapeOfType<MyBezierCurveShape>(info.shape, 'bezier-curve') &&
 							info.target === 'handle'
@@ -102,6 +95,7 @@ export default function BezierCurveShapeExample() {
 							editor.setEditingShape(info.shape.id)
 							return
 						}
+
 						originalHandlers.pointingHandle.onPointerUp?.(info)
 					}
 
@@ -162,7 +156,7 @@ This example demonstrates how to create a cubic bezier curve shape with interact
 
 [9]
 Use custom ControlHandles component to show handles for bezier curves when editing, translating, or
-dragging handles (not just in select.idle like default behavior).
+dragging handles.
 
 [10]
 Override state node methods to enable three custom interactions:

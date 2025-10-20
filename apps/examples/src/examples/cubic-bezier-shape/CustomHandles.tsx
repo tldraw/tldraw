@@ -12,12 +12,11 @@ export function CustomHandles({ children }: TLHandlesProps) {
 				return editor.isInAny(
 					'select.editing_shape',
 					'select.pointing_handle',
-					'select.dragging_handle',
-					'select.translating'
+					'select.dragging_handle'
 				)
 			}
 
-			// default handle behaviour
+			// default handle behavior
 			if (editor.isInAny('select.idle', 'select.pointing_handle', 'select.pointing_shape')) {
 				return true
 			}
