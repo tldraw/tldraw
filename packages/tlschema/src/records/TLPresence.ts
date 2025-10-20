@@ -11,6 +11,7 @@ import { BoxModel, boxModelValidator } from '../misc/geometry-types'
 import { idValidator } from '../misc/id-validator'
 import { cursorTypeValidator, TLCursor } from '../misc/TLCursor'
 import { scribbleValidator, TLScribble } from '../misc/TLScribble'
+import { vecModelValidator, VecModel } from '../misc/geometry-types'
 import { TLPageId } from './TLPage'
 import { TLShapeId } from './TLShape'
 
@@ -58,6 +59,11 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 	} | null
 	chatMessage: string
 	meta: JsonObject
+	fairy: {
+		position: VecModel
+		flipX: boolean
+		pose: 'idle' | 'active' | 'thinking' | 'acting'
+	} | null
 }
 
 /**
@@ -124,6 +130,11 @@ export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.mode
 		scribbles: T.arrayOf(scribbleValidator),
 		chatMessage: T.string,
 		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
+		fairy: T.object({
+			position: vecModelValidator,
+			flipX: T.boolean,
+			pose: T.literalEnum('idle', 'active', 'thinking', 'acting'),
+		}).nullable(),
 	})
 )
 
@@ -141,6 +152,7 @@ export const instancePresenceVersions = createMigrationIds('com.tldraw.instance_
 	AddMeta: 4,
 	RenameSelectedShapeIds: 5,
 	NullableCameraCursor: 6,
+	AddFairy: 7,
 } as const)
 
 /**
@@ -212,6 +224,12 @@ export const instancePresenceMigrations = createRecordMigrationSequence({
 				}
 			},
 		},
+		{
+			id: instancePresenceVersions.AddFairy,
+			up: (record: any) => {
+				record.fairy = null
+			},
+		},
 	],
 })
 
@@ -254,4 +272,5 @@ export const InstancePresenceRecordType = createRecordType<TLInstancePresence>(
 	scribbles: [],
 	chatMessage: '',
 	meta: {},
+	fairy: null,
 }))

@@ -12,6 +12,7 @@ import {
 	TldrawUiMenuItem,
 	createDebugValue,
 	createSessionStateSnapshotSignal,
+	getDefaultUserPresence,
 	parseDeepLinkString,
 	react,
 	throttle,
@@ -21,6 +22,8 @@ import {
 	useEditor,
 	useEvent,
 	useValue,
+	type TLStore,
+	type TLPresenceUserInfo,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
@@ -62,6 +65,9 @@ const FairyVision = lazy(() =>
 	import('../../../fairy/FairyVision').then((m) => ({ default: m.FairyVision }))
 )
 const Fairies = lazy(() => import('../../../fairy/Fairies').then((m) => ({ default: m.Fairies })))
+const RemoteFairies = lazy(() =>
+	import('../../../fairy/RemoteFairies').then((m) => ({ default: m.RemoteFairies }))
+)
 
 const customFeatureFlags = {
 	fairies: createDebugValue('fairies', {
@@ -201,6 +207,9 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		return multiplayerAssetStore(() => fileId)
 	}, [fileId])
 
+	// Ref to store fairy agents for presence syncing
+	const agentsRef = useRef<any[]>([])
+
 	const store = useSync({
 		uri: useCallback(async () => {
 			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
@@ -211,6 +220,23 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}, [fileSlug, hasUser, getUserToken]),
 		assets,
 		userInfo: app?.tlUser.userPreferences,
+		getUserPresence: useCallback((store: TLStore, userInfo: TLPresenceUserInfo) => {
+			const defaultPresence = getDefaultUserPresence(store, userInfo)
+			if (!defaultPresence) return null
+
+			// Add fairy position to presence if we have an active agent
+			const agent = agentsRef.current?.[0]
+			const fairyEntity = agent?.$fairy?.get?.()
+			
+			return {
+				...defaultPresence,
+				fairy: fairyEntity ? {
+					position: fairyEntity.position,
+					flipX: fairyEntity.flipX,
+					pose: fairyEntity.pose,
+				} : null,
+			}
+		}, []),
 	})
 
 	// we need to prevent calling onFileExit if the store is in an error state
@@ -263,6 +289,10 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 	// TODO(mime): use TldrawFairyAgent type without importing the whole fairy package
 	const [agents, setAgents] = useState<any[]>([])
+	// keep a ref in sync so getUserPresence can read current agents without re-creating the callback
+	useEffect(() => {
+		agentsRef.current = agents
+	}, [agents])
 
 	// this is ugly
 	const originalInFrontOfTheCanvasRef = useRef(components.InFrontOfTheCanvas)
@@ -277,6 +307,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 					<FairyVision agents={agents} />
 					<Fairies agents={agents} />
 					<FairyHUD agents={agents} />
+					<RemoteFairies />
 				</Suspense>
 			)}
 		</>

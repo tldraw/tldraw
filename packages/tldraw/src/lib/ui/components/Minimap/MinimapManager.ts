@@ -295,10 +295,25 @@ export class MinimapManager {
 		const collaborators = this.editor.getCollaboratorsOnCurrentPage()
 		if (!collaborators.length) return
 
-		// just draw a little circle for each collaborator
+		// collect both cursor and fairy points, tracking which are fairies
+		const points: { center: Vec; isFairy: boolean }[] = []
+		const colors: Float32Array[] = []
+		for (const c of collaborators) {
+			if (c.cursor) {
+				points.push({ center: Vec.From(c.cursor), isFairy: false })
+				colors.push(getRgba(c.color))
+			}
+			if (c.fairy) {
+				points.push({ center: Vec.From(c.fairy.position), isFairy: true })
+				colors.push(getRgba(c.color))
+			}
+		}
+
+		if (!points.length) return
+
 		const numSegmentsPerCircle = 20
 		const dataSizePerCircle = numSegmentsPerCircle * 6
-		const totalSize = dataSizePerCircle * collaborators.length
+		const totalSize = dataSizePerCircle * points.length
 
 		// expand vertex array if needed
 		if (this.gl.collaborators.vertices.length < totalSize) {
@@ -308,11 +323,11 @@ export class MinimapManager {
 		const vertices = this.gl.collaborators.vertices
 		let offset = 0
 		const zoom = this.getZoom()
-		for (const { cursor } of collaborators) {
-			if (!cursor) continue
+		for (const { center, isFairy } of points) {
 			pie(vertices, {
-				center: Vec.From(cursor),
-				radius: 3 * zoom,
+				center,
+				// Fairy dots are smaller (1.5 vs 3)
+				radius: (isFairy ? 1.5 : 3) * zoom,
 				offset,
 				numArcSegments: numSegmentsPerCircle,
 			})
@@ -322,8 +337,8 @@ export class MinimapManager {
 		this.gl.prepareTriangles(this.gl.collaborators, totalSize)
 
 		offset = 0
-		for (const { color } of collaborators) {
-			this.gl.setFillColor(getRgba(color))
+		for (const color of colors) {
+			this.gl.setFillColor(color)
 			this.gl.context.drawArrays(this.gl.context.TRIANGLES, offset / 2, dataSizePerCircle / 2)
 			offset += dataSizePerCircle
 		}

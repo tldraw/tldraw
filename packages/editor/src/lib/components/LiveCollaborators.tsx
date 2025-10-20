@@ -72,7 +72,7 @@ const Collaborator = track(function Collaborator({
 
 	const zoomLevel = editor.getZoomLevel()
 	const viewportPageBounds = editor.getViewportPageBounds()
-	const { userId, chatMessage, brush, scribbles, selectedShapeIds, userName, cursor, color } =
+	const { userId, chatMessage, brush, scribbles, selectedShapeIds, userName, cursor, color, fairy } =
 		latestPresence
 
 	if (!cursor) return null
@@ -118,6 +118,20 @@ const Collaborator = track(function Collaborator({
 					color={color}
 					zoom={zoomLevel}
 					viewport={viewportPageBounds}
+				/>
+			) : null}
+
+			{/* Remote fairy presence as a secondary cursor-like indicator */}
+			{fairy && CollaboratorCursor ? (
+				<CollaboratorCursor
+					className="tl-collaborator__cursor tl-collaborator__fairy"
+					key={userId + '_fairy'}
+					userId={userId}
+					point={fairy.position}
+					color={color}
+					zoom={zoomLevel}
+					name={null}
+					chatMessage={''}
 				/>
 			) : null}
 			{CollaboratorScribble && scribbles.length ? (
