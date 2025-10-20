@@ -98,12 +98,6 @@
   "47839e47a5": {
     "translation": "tldraw"
   },
-  "7697920637": {
-    "translation": "Sila muat semula"
-  },
-  "764671e008": {
-    "translation": "Berbual dengan kami di Discord"
-  },
   "4908687e50": {
     "translation": "Adakah anda pasti mahu melupakan fail ini?"
   },
@@ -200,6 +194,12 @@
   "761e93ede9": {
     "translation": "Uruskan kuki"
   },
+  "7697920637": {
+    "translation": "Sila muat semula"
+  },
+  "764671e008": {
+    "translation": "Berbual dengan kami di Discord"
+  },
   "777f9e90cf": {
     "translation": "Permintaan tidak sah."
   },
@@ -256,6 +256,9 @@
   },
   "91e49bb0eb": {
     "translation": "Salin ke fail saya"
+  },
+  "95d2109dc8": {
+    "translation": "Bina dengan tldraw SDK"
   },
   "96165d6df5": {
     "translation": "bulan ini"

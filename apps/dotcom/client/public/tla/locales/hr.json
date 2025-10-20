@@ -98,12 +98,6 @@
   "47839e47a5": {
     "translation": "tldraw"
   },
-  "7697920637": {
-    "translation": "Molimo ponovno učitajte"
-  },
-  "764671e008": {
-    "translation": "Razgovarajte s nama na Discordu"
-  },
   "4908687e50": {
     "translation": "Jeste li sigurni da želite zaboraviti ovu datoteku?"
   },
@@ -200,6 +194,12 @@
   "761e93ede9": {
     "translation": "Upravljanje kolačićima"
   },
+  "7697920637": {
+    "translation": "Molimo ponovno učitajte"
+  },
+  "764671e008": {
+    "translation": "Razgovarajte s nama na Discordu"
+  },
   "777f9e90cf": {
     "translation": "Neispravan zahtjev."
   },
@@ -256,6 +256,9 @@
   },
   "91e49bb0eb": {
     "translation": "Kopiraj u moje datoteke"
+  },
+  "95d2109dc8": {
+    "translation": "Izgradite s tldraw SDK-om"
   },
   "96165d6df5": {
     "translation": "Ovaj mjesec"
