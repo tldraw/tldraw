@@ -2,9 +2,14 @@ import { useCallback, useState } from 'react'
 import {
 	Box,
 	TldrawUiButton,
+	TldrawUiButtonIcon,
+	TldrawUiMenuContextProvider,
+	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
 	TldrawUiToolbar,
 	TldrawUiToolbarToggleGroup,
 	TldrawUiToolbarToggleItem,
+	useContainer,
 	useEditor,
 	useValue,
 } from 'tldraw'
@@ -14,6 +19,8 @@ import { TldrawFairyAgent } from './fairy-agent/agent/TldrawFairyAgent'
 import { FairyChatHistory } from './fairy-agent/chat/FairyChatHistory'
 import { FairyBasicInput } from './fairy-agent/input/FairyBasicInput'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
+
+import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 
 const fairyMessages = defineMessages({
 	toolbar: { defaultMessage: 'Fairies' },
@@ -66,6 +73,8 @@ function FairyButton({
 type PanelState = 'closed' | 'open'
 
 export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
+	const container = useContainer()
+	const [menuPopoverOpen, setMenuPopoverOpen] = useState(false)
 	const editor = useEditor()
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
 	const [panelState, setPanelState] = useState<PanelState>('closed')
@@ -77,19 +86,22 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 	// At this stage, there is only one fairy
 	const onlyFairy = useValue('only-fairy', () => agents[0], [agents])
 
+	const goToFairy = useCallback(() => {
+		editor.zoomToBounds(Box.FromCenter(onlyFairy.$fairy.get().position, { x: 100, y: 100 }), {
+			animation: { duration: 220 },
+			targetZoom: 1,
+		})
+	}, [editor, onlyFairy])
+
 	const handleToggle = useCallback(() => {
 		if (panelState === 'closed') {
 			// Open the panel
 			setPanelState('open')
 		} else {
 			// Zoom camera to fairy position
-			const fairyPosition = onlyFairy.$fairy.get().position
-			editor.zoomToBounds(Box.FromCenter(fairyPosition, { x: 100, y: 100 }), {
-				animation: { duration: 220 },
-				targetZoom: 1,
-			})
+			goToFairy()
 		}
-	}, [panelState, editor, onlyFairy])
+	}, [panelState, goToFairy])
 
 	const handleNewChat = useCallback(() => {
 		onlyFairy.cancel()
@@ -130,6 +142,37 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 					onWheelCapture={(e) => e.stopPropagation()}
 				>
 					<div className="fairy-toolbar-header">
+						<_DropdownMenu.Root dir="ltr" open={menuPopoverOpen} onOpenChange={setMenuPopoverOpen}>
+							<_DropdownMenu.Trigger asChild dir="ltr">
+								<TldrawUiButton type="icon" className="fairy-toolbar-button">
+									<TldrawUiButtonIcon icon="menu" />
+								</TldrawUiButton>
+							</_DropdownMenu.Trigger>
+							<_DropdownMenu.Portal container={container}>
+								<_DropdownMenu.Content
+									side="bottom"
+									align="start"
+									className="tlui-menu"
+									collisionPadding={4}
+									alignOffset={4}
+									sideOffset={4}
+								>
+									<TldrawUiMenuContextProvider type="menu" sourceId="fairy-panel">
+										<TldrawUiMenuGroup id="fairy-menu">
+											<TldrawUiMenuItem id="go-to-fairy" onSelect={goToFairy} label="Go to fairy" />
+											<TldrawUiMenuItem
+												id="toggle-panel"
+												onSelect={() => {
+													alert('Coming soon!')
+												}}
+												label="Change outfit"
+											/>
+											<TldrawUiMenuItem id="new-chat" onSelect={handleNewChat} label="Reset chat" />
+										</TldrawUiMenuGroup>
+									</TldrawUiMenuContextProvider>
+								</_DropdownMenu.Content>
+							</_DropdownMenu.Portal>
+						</_DropdownMenu.Root>
 						<div className="fairy-id-display">{onlyFairy.id}</div>
 						<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={handleNewChat}>
 							+
