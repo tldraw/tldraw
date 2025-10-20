@@ -8851,6 +8851,7 @@ __metadata:
     typescript: "npm:^5.8.3"
     vite: "npm:^7.0.1"
     vitest: "npm:^3.2.4"
+    wrangler: "npm:^4.37.1"
   languageName: unknown
   linkType: soft
 
