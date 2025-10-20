@@ -129,10 +129,10 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 					onWheelCapture={(e) => e.stopPropagation()}
 				>
 					<div className="fairy-toolbar-header">
+						<div className="fairy-id-display">{onlyFairy.id}</div>
 						<button className="fairy-toolbar-button" onClick={handleNewChat}>
 							+
 						</button>
-						<div className="fairy-id-display">{onlyFairy.id}</div>
 					</div>
 					<FairyChatHistory agent={onlyFairy} />
 					<FairyBasicInput agent={onlyFairy} />

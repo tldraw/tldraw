@@ -173,6 +173,11 @@
 	);
 }
 
+.fairy-toggle-button[data-isactive='true']::before,
+.fairy-toggle-button[data-isactive='true']::after {
+	transform: scale(0.9);
+}
+
 /* Fairy Input */
 
 .fairy-input {
@@ -327,6 +332,7 @@
 	flex: 1;
 	font-size: 12px;
 	color: var(--tl-color-text-2);
+	padding: 6px;
 }
 
 .fairy-toolbar-stack-header {
