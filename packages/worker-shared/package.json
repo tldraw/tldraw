@@ -16,10 +16,10 @@
 		"toucan-js": "^3.4.0"
 	},
 	"devDependencies": {
-		"typescript": "^5.8.3",
-		"vitest": "^3.2.4",
+		"@cloudflare/workers-types": "^4.20250913.0",
 		"lazyrepo": "0.0.0-alpha.27",
-		"@cloudflare/workers-types": "^4.20250913.0"
+		"typescript": "^5.8.3",
+		"vitest": "^3.2.4"
 	},
 	"scripts": {
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
