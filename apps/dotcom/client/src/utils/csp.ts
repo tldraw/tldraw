@@ -13,6 +13,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 		`https://*.ingest.sentry.io`,
 		`https://*.ingest.us.sentry.io`,
 		'https://*.analytics.google.com',
+		'https://analytics.google.com',
 		'https://www.google-analytics.com',
 		'https://*.googletagmanager.com',
 		'https://www.googletagmanager.com',
