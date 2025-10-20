@@ -35,6 +35,12 @@ import {
  */
 export type SubscribingFn<T> = (cb: (val: T) => void) => () => void
 
+/** Network sync frame rate when in solo mode (no collaborators) @internal */
+const SOLO_MODE_FPS = 1
+
+/** Network sync frame rate when in collaborative mode (with collaborators) @internal */
+const COLLABORATIVE_MODE_FPS = 30
+
 /**
  * WebSocket close code used by the server to signal a non-recoverable sync error.
  * This close code indicates that the connection is being terminated due to an error
@@ -800,6 +806,11 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.flushPendingPushRequests()
 	}
 
+	/** Get the target FPS for network operations based on presence mode */
+	private getSyncFps(): number {
+		return this.presenceMode?.get() === 'solo' ? SOLO_MODE_FPS : COLLABORATIVE_MODE_FPS
+	}
+
 	/** Send any unsent push requests to the server */
 	private flushPendingPushRequests = fpsThrottle(() => {
 		this.debug('flushing pending push requests', {
@@ -819,7 +830,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				pendingPushRequest.sent = true
 			}
 		}
-	})
+	}, this.getSyncFps.bind(this))
 
 	/**
 	 * Applies a 'network' diff to the store this does value-based equality checking so that if the
@@ -927,5 +938,5 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 	}
 
-	private scheduleRebase = fpsThrottle(this.rebase)
+	private scheduleRebase = fpsThrottle(this.rebase, this.getSyncFps.bind(this))
 }

@@ -98,12 +98,6 @@
   "47839e47a5": {
     "translation": "tldraw"
   },
-  "7697920637": {
-    "translation": "Proszę odświeżyć"
-  },
-  "764671e008": {
-    "translation": "Porozmawiaj z nami na Discordzie"
-  },
   "4908687e50": {
     "translation": "Czy na pewno chcesz zapomnieć ten plik?"
   },
@@ -200,6 +194,12 @@
   "761e93ede9": {
     "translation": "Zarządzaj plikami cookie"
   },
+  "7697920637": {
+    "translation": "Proszę odświeżyć"
+  },
+  "764671e008": {
+    "translation": "Porozmawiaj z nami na Discordzie"
+  },
   "777f9e90cf": {
     "translation": "Nieprawidłowe żądanie."
   },
@@ -256,6 +256,9 @@
   },
   "91e49bb0eb": {
     "translation": "Kopiuj do moich plików"
+  },
+  "95d2109dc8": {
+    "translation": "Kompilacja z użyciem zestawu SDK tldraw"
   },
   "96165d6df5": {
     "translation": "W tym miesiącu"
