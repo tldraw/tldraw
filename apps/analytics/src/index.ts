@@ -107,6 +107,7 @@ class Analytics {
 		// ...also we stash a few things onto the window in case we need them elsewhere
 		window.tlanalytics = {
 			identify: this.identify.bind(this),
+			reset: this.reset.bind(this),
 			track: this.track.bind(this),
 			page: this.page.bind(this),
 			gtag: this.gtag.bind(this),
@@ -142,6 +143,20 @@ class Analytics {
 
 		for (const service of this.services) {
 			service.identify(userId, properties)
+		}
+	}
+
+	/**
+	 * Reset the user identity across all analytics services. This should be called from window.tlanalytics when a user logs out.
+	 *
+	 * @returns void
+	 */
+	reset() {
+		this.userId = ''
+		this.userProperties = undefined
+
+		for (const service of this.services) {
+			service.reset()
 		}
 	}
 

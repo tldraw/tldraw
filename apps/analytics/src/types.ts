@@ -5,6 +5,7 @@ declare global {
 			openPrivacySettings(): void
 			page(): void
 			identify(userId: string, properties?: { [key: string]: any }): void
+			reset(): void
 			track(name: string, data?: { [key: string]: any }): void
 			gtag(...args: any[]): void
 		}

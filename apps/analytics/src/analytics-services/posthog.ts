@@ -40,6 +40,10 @@ class PosthogAnalyticsService extends AnalyticsService {
 		})
 	}
 
+	override reset() {
+		_posthog.reset()
+	}
+
 	override trackEvent(name: string, data?: { [key: string]: any }) {
 		_posthog.capture(name, data)
 	}

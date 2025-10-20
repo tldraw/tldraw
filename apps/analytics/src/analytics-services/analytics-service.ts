@@ -12,6 +12,8 @@ export class AnalyticsService {
 	disable(): void {}
 	// Identify the user.
 	identify(userId: string, properties?: { [key: string]: any }): void {}
+	// Reset the user identity (call on logout).
+	reset(): void {}
 	// Track an event.
 	trackEvent(name: string, data?: { [key: string]: any }): void {}
 	// Track a pageview.
