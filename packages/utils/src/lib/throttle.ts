@@ -65,7 +65,8 @@ function tick(isOnNextFrame = false) {
 }
 
 /**
- * Creates a throttled version of a function that executes at most once per frame (120fps).
+ * Creates a throttled version of a function that executes at most once per frame.
+ * The default target frame rate is 120fps, but can be customized per function.
  * Subsequent calls within the same frame are ignored, ensuring smooth performance
  * for high-frequency events like mouse movements or scroll events.
  *
@@ -75,6 +76,7 @@ function tick(isOnNextFrame = false) {
  *
  * @example
  * ```ts
+ * // Default 120fps throttling
  * const updateCanvas = fpsThrottle(() => {
  *   // This will run at most once per frame (~8.33ms)
  *   redrawCanvas()
@@ -85,6 +87,11 @@ function tick(isOnNextFrame = false) {
  *
  * // Cancel pending calls if needed
  * updateCanvas.cancel?.()
+ *
+ * // Custom FPS throttling for less critical updates
+ * const slowUpdate = fpsThrottle(() => {
+ *   heavyComputation()
+ * }, () => 30) // Throttle to 30fps
  * ```
  *
  * @internal
