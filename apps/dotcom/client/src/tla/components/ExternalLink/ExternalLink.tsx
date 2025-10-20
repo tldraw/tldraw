@@ -13,8 +13,6 @@ export function ExternalLink(props: ComponentProps<typeof Link> & { eventName?: 
 				if (eventName) trackEvent(eventName ?? 'link-clicked', { link: rest.to ?? '' })
 				rest.onClick?.(e)
 			}}
-		>
-			{props.children}
-		</Link>
+		/>
 	)
 }
