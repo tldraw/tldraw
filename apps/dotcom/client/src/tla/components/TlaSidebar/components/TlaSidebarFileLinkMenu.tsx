@@ -6,9 +6,11 @@ import { messages } from './sidebar-shared'
 
 export function TlaSidebarFileLinkMenu({
 	fileId,
+	groupId,
 	onRenameAction,
 }: {
 	fileId: string
+	groupId: string | null
 	onRenameAction(): void
 }) {
 	const fileMenuLbl = useMsg(messages.fileMenu)
@@ -16,6 +18,7 @@ export function TlaSidebarFileLinkMenu({
 	return (
 		<TlaFileMenu
 			fileId={fileId}
+			groupId={groupId}
 			source="sidebar"
 			onRenameAction={onRenameAction}
 			trigger={

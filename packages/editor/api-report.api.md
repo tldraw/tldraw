@@ -486,6 +486,12 @@ export const coreShapes: readonly [typeof GroupShapeUtil];
 // @public
 export function counterClockwiseAngleDist(a0: number, a1: number): number;
 
+// @public (undocumented)
+export function createDebugValue<T>(name: string, { defaults, shouldStoreForSession, }: {
+    defaults: DebugFlagDefaults<T>;
+    shouldStoreForSession?: boolean;
+}): DebugFlag<T>;
+
 // @public
 export function createDeepLinkString(deepLink: TLDeepLink): string;
 
@@ -547,13 +553,13 @@ export class CubicSpline2d extends Geometry2d {
 // @public (undocumented)
 export function dataUrlToFile(url: string, filename: string, mimeType: string): Promise<File>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export interface DebugFlag<T> extends DebugFlagDef<T>, Atom<T> {
     // (undocumented)
     reset(): void;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export interface DebugFlagDef<T> {
     // (undocumented)
     defaults: DebugFlagDefaults<T>;
@@ -563,7 +569,7 @@ export interface DebugFlagDef<T> {
     shouldStoreForSession: boolean;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export interface DebugFlagDefaults<T> {
     // (undocumented)
     all: T;
@@ -1240,7 +1246,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         hitInside?: boolean;
         margin?: number;
     }): TLShape[];
-    // @internal (undocumented)
     getShapesPageBounds(shapeIds: TLShapeId[]): Box | null;
     // @internal (undocumented)
     getShapesRotatedPageBounds(shapeIds: TLShapeId[]): Box | undefined;
@@ -1380,6 +1385,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     registerExternalContentHandler<T extends TLExternalContent<E>['type'], E>(type: T, handler: ((info: T extends TLExternalContent<E>['type'] ? Extract<TLExternalContent<E>, {
         type: T;
     }> : TLExternalContent<E>) => void) | null): this;
+    removeTool(Tool: TLStateNodeConstructor): void;
     renamePage(page: TLPage | TLPageId, name: string): this;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
     replaceExternalContent<E>(info: TLExternalContent<E>, opts?: {
@@ -1439,6 +1445,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     _setShiftKeyTimeout(): void;
     setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLHistoryBatchOptions): this;
     setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): this;
+    setTool(Tool: TLStateNodeConstructor): void;
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
     };
@@ -2610,6 +2617,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     getInterpolatedProps?(startShape: Shape, endShape: Shape, progress: number): Shape['props'];
     // (undocumented)
     getText(_shape: Shape): string | undefined;
+    hideInMinimap?(_shape: Shape): boolean;
     hideResizeHandles(_shape: Shape): boolean;
     hideRotateHandle(_shape: Shape): boolean;
     hideSelectionBoundsBg(_shape: Shape): boolean;

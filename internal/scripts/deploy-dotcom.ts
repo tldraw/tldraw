@@ -32,6 +32,10 @@ const imageResize = path.relative(
 	process.cwd(),
 	path.resolve(REPO_ROOT, './apps/dotcom/image-resize-worker')
 )
+const fairyWorker = path.relative(
+	process.cwd(),
+	path.resolve(REPO_ROOT, './apps/dotcom/fairy-worker')
+)
 const dotcom = path.relative(process.cwd(), path.resolve(REPO_ROOT, './apps/dotcom/client'))
 const zeroCacheFolder = path.relative(
 	process.cwd(),
@@ -50,20 +54,25 @@ const { previewId, sha } = getDeployInfo()
 const env = makeEnv([
 	'ANALYTICS_API_TOKEN',
 	'ANALYTICS_API_URL',
+	'ANTHROPIC_API_KEY',
 	'ASSET_UPLOAD_SENTRY_DSN',
 	'ASSET_UPLOAD',
 	'CLERK_SECRET_KEY',
 	'CLOUDFLARE_ACCOUNT_ID',
 	'CLOUDFLARE_API_TOKEN',
+	'FAIRY_WORKER',
+	'FAIRY_WORKER_SENTRY_DSN',
 	'DISCORD_DEPLOY_WEBHOOK_URL',
 	'DISCORD_FEEDBACK_WEBHOOK_URL',
 	'DISCORD_HEALTH_WEBHOOK_URL',
 	'GC_MAPS_API_KEY',
 	'GH_TOKEN',
+	'GOOGLE_API_KEY',
 	'HEALTH_CHECK_BEARER_TOKEN',
 	'HEALTH_WORKER_UPDOWN_WEBHOOK_PATH',
 	'IMAGE_WORKER',
 	'MULTIPLAYER_SERVER',
+	'OPENAI_API_KEY',
 	'R2_ACCESS_KEY_ID',
 	'R2_ACCESS_KEY_SECRET',
 	'RELEASE_COMMIT_HASH',
@@ -104,6 +113,7 @@ if (previewId) {
 	env.ASSET_UPLOAD = `https://${previewId}-tldraw-assets.tldraw.workers.dev`
 	env.MULTIPLAYER_SERVER = `https://${previewId}-tldraw-multiplayer.tldraw.workers.dev`
 	env.IMAGE_WORKER = `https://${previewId}-images.tldraw.xyz`
+	env.FAIRY_WORKER = `https://${previewId}-fairy.tldraw.xyz`
 }
 
 const zeroPushUrl = `${env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}/app/zero/push`
@@ -138,6 +148,7 @@ async function main() {
 		await deployHealthWorker({ dryRun: true })
 		await deployTlsyncWorker({ dryRun: true })
 		await deployImageResizeWorker({ dryRun: true })
+		await deployFairyWorker({ dryRun: true })
 	})
 
 	// --- point of no return! do the deploy for real --- //
@@ -156,6 +167,9 @@ async function main() {
 	})
 	await discord.step('deploying health worker to cloudflare', async () => {
 		await deployHealthWorker({ dryRun: false })
+	})
+	await discord.step('deploying fairy worker to cloudflare', async () => {
+		await deployFairyWorker({ dryRun: false })
 	})
 
 	// 3. deploy the pre-build dotcom app:
@@ -214,6 +228,7 @@ async function prepareDotcomApp() {
 			NEXT_PUBLIC_TLDRAW_RELEASE_INFO: `${env.RELEASE_COMMIT_HASH} ${new Date().toISOString()}`,
 			ASSET_UPLOAD: env.ASSET_UPLOAD,
 			IMAGE_WORKER: env.IMAGE_WORKER,
+			FAIRY_WORKER: env.FAIRY_WORKER,
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
 			ZERO_SERVER: getZeroUrl(),
 			NEXT_PUBLIC_GC_API_KEY: env.GC_MAPS_API_KEY,
@@ -246,6 +261,38 @@ async function deployAssetUploadWorker({ dryRun }: { dryRun: boolean }) {
 		},
 		sentry: {
 			project: 'asset-upload-worker',
+			authToken: env.SENTRY_AUTH_TOKEN,
+		},
+	})
+}
+
+let didUpdateFairyWorker = false
+async function deployFairyWorker({ dryRun }: { dryRun: boolean }) {
+	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-fairy`
+	if (previewId && !didUpdateFairyWorker) {
+		await setWranglerPreviewConfig(fairyWorker, {
+			name: workerId,
+			customDomain: `${previewId}-fairy.tldraw.xyz`,
+		})
+		didUpdateFairyWorker = true
+	}
+
+	await wranglerDeploy({
+		location: fairyWorker,
+		dryRun,
+		env: env.TLDRAW_ENV,
+		vars: {
+			TLDRAW_ENV: env.TLDRAW_ENV,
+			SENTRY_DSN: env.FAIRY_WORKER_SENTRY_DSN,
+			WORKER_NAME: workerId,
+			ANTHROPIC_API_KEY: env.ANTHROPIC_API_KEY,
+			GOOGLE_API_KEY: env.GOOGLE_API_KEY,
+			OPENAI_API_KEY: env.OPENAI_API_KEY,
+			CLERK_SECRET_KEY: env.CLERK_SECRET_KEY,
+			CLERK_PUBLISHABLE_KEY: env.VITE_CLERK_PUBLISHABLE_KEY,
+		},
+		sentry: {
+			project: 'fairy-worker',
 			authToken: env.SENTRY_AUTH_TOKEN,
 		},
 	})

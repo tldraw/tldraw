@@ -43,16 +43,16 @@ export const TlaCookieConsent = memo(function TlaCookieConsent() {
 				<div className={styles.cookieButtonsRow}>
 					<button
 						className={classNames('tla-button-text', styles.cookieButton, styles.hoverable)}
-						onClick={handleCustomize}
+						onClick={handleReject}
 					>
-						<F defaultMessage="Settings" />
+						<F defaultMessage="Opt out" />
 					</button>
 					<div className={styles.cookieButtons}>
 						<button
 							className={classNames('tla-button-text', styles.cookieButton, styles.hoverable)}
-							onClick={handleReject}
+							onClick={handleCustomize}
 						>
-							<F defaultMessage="Opt out" />
+							<F defaultMessage="Settings" />
 						</button>
 						<button
 							className={classNames(
@@ -63,7 +63,11 @@ export const TlaCookieConsent = memo(function TlaCookieConsent() {
 							)}
 							onClick={handleAccept}
 						>
-							<F defaultMessage="Accept all" />
+							<div className={styles.cookieAcceptButtonTextWrapper}>
+								<div className={styles.cookieAcceptButtonText}>
+									<F defaultMessage="Accept all" />
+								</div>
+							</div>
 						</button>
 					</div>
 				</div>

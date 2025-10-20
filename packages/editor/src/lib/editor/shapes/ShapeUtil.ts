@@ -329,6 +329,16 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	shouldClipChild?(child: TLShape): boolean
 
 	/**
+	 * Whether a specific shape should hide in the minimap.
+	 *
+	 * If not defined, the default behavior is to show all shapes in the minimap.
+	 *
+	 * @returns boolean indicating if this shape should hide in the minimap
+	 * @public
+	 */
+	hideInMinimap?(_shape: Shape): boolean
+
+	/**
 	 * Whether the shape should hide its resize handles when selected.
 	 *
 	 * @public

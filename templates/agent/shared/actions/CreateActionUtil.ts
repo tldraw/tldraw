@@ -1,4 +1,4 @@
-import { IndexKey, toRichText } from 'tldraw'
+import { IndexKey, TLShape, TLShapeId, TLShapePartial, toRichText } from 'tldraw'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import {
@@ -95,11 +95,13 @@ const SHARED_DEFAULTS = {
 	opacity: 1,
 	rotation: 0,
 	meta: {},
+	id: 'shape:shape' as TLShapeId,
 }
 
-const SHAPE_DEFAULTS = {
+const SHAPE_DEFAULTS: Record<TLShape['type'], TLShapePartial> = {
 	text: {
 		...SHARED_DEFAULTS,
+		type: 'text',
 		props: {
 			autoSize: true,
 			color: 'black',
@@ -113,6 +115,7 @@ const SHAPE_DEFAULTS = {
 	},
 	line: {
 		...SHARED_DEFAULTS,
+		type: 'line',
 		props: {
 			size: 's',
 			color: 'black',
@@ -137,6 +140,7 @@ const SHAPE_DEFAULTS = {
 	},
 	arrow: {
 		...SHARED_DEFAULTS,
+		type: 'arrow',
 		props: {
 			arrowheadEnd: 'arrow',
 			arrowheadStart: 'none',
@@ -158,6 +162,7 @@ const SHAPE_DEFAULTS = {
 	},
 	geo: {
 		...SHARED_DEFAULTS,
+		type: 'geo',
 		props: {
 			align: 'middle',
 			color: 'black',
@@ -178,6 +183,7 @@ const SHAPE_DEFAULTS = {
 	},
 	note: {
 		...SHARED_DEFAULTS,
+		type: 'note',
 		props: {
 			color: 'black',
 			richText: toRichText(''),
@@ -194,10 +200,12 @@ const SHAPE_DEFAULTS = {
 	},
 	draw: {
 		...SHARED_DEFAULTS,
+		type: 'draw',
 		props: {},
 	},
 	unknown: {
 		...SHARED_DEFAULTS,
+		type: 'unknown',
 		props: {},
 	},
 }

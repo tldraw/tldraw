@@ -39,7 +39,7 @@ export function TlaEditorTopRightPanel({
 
 	if (isAnonUser) {
 		return (
-			<div ref={ref} className={classNames(styles.topRightPanel)}>
+			<div ref={ref} className={styles.topRightPanel}>
 				<PeopleMenu />
 				<SignedOutShareButton fileId={fileId} context={context} />
 				<SignInButton
@@ -135,8 +135,8 @@ function LegacyImportButton() {
 		const { prefix, id } = roomInfo
 		const res = await app.createFile({ name, createSource: `${prefix}/${id}` })
 		if (res.ok) {
-			const { file } = res.value
-			navigate(routes.tlaFile(file.id))
+			const { fileId } = res.value
+			navigate(routes.tlaFile(fileId))
 			trackEvent('create-file', { source: 'legacy-import-button' })
 		}
 	}, [app, editor, name, navigate, roomInfo, trackEvent])

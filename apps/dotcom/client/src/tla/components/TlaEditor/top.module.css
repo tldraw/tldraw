@@ -77,6 +77,16 @@
 	flex-shrink: 2;
 }
 
+@media (max-width: 550px) {
+	.topLeftPanelButtons:has(.topLeftOfflineLogo) .topLeftInputWrapper {
+		display: none;
+	}
+
+	.topLeftPanelButtons:has(.topLeftOfflineLogo) .topLeftPanelSeparator:has(+ .topLeftInputWrapper) {
+		display: none;
+	}
+}
+
 .topLeftInputWrapper > * {
 	width: 100%;
 	overflow: hidden;
@@ -88,7 +98,7 @@
 	width: fit-content;
 	max-width: 320px;
 	width: 100%;
-	white-space: no-wrap;
+	white-space: nowrap;
 	text-overflow: ellipsis;
 	overflow: hidden;
 	opacity: 0;
@@ -295,5 +305,11 @@ button.topLeftInputNameWidthSetter {
 @media (hover: hover) {
 	.topRightAnonShareButton:hover::after {
 		visibility: visible;
+	}
+}
+
+@media (max-width: 550px) {
+	.topRightAnonShareButton {
+		display: none;
 	}
 }

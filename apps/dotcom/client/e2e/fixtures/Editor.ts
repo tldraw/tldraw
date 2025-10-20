@@ -75,6 +75,7 @@ export class Editor {
 	@step
 	async createNewPage() {
 		await this.page.getByTestId('page-menu.button').click()
+		await expect(this.page.getByTestId('page-menu.create')).toBeVisible()
 		await expect(this.page.getByTestId('page-menu.item').first()).toBeVisible()
 		const count = await this.page.getByTestId('page-menu.item').count()
 		await this.page.getByTestId('page-menu.create').click()

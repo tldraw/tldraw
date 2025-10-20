@@ -16,6 +16,7 @@ import { Box } from '@tldraw/editor';
 import { Circle2d } from '@tldraw/editor';
 import { ComponentType } from 'react';
 import { CSSProperties } from 'react';
+import { DebugFlag } from '@tldraw/editor';
 import { Editor } from '@tldraw/editor';
 import { ElbowArrowSnap } from '@tldraw/editor';
 import { Extension } from '@tiptap/core';
@@ -273,6 +274,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     getInterpolatedProps(startShape: TLArrowShape, endShape: TLArrowShape, progress: number): TLArrowShapeProps;
     // (undocumented)
     getText(shape: TLArrowShape): string;
+    // (undocumented)
+    hideInMinimap(): boolean;
     // (undocumented)
     hideResizeHandles(): boolean;
     // (undocumented)
@@ -561,6 +564,15 @@ export interface CopyAsOptions extends TLImageExportOptions {
 // @public (undocumented)
 export function CopyMenuItem(): JSX_2.Element;
 
+// @public
+export function createBookmarkFromUrl(editor: Editor, { url, center, }: {
+    center?: {
+        x: number;
+        y: number;
+    };
+    url: string;
+}): Promise<Result<TLBookmarkShape, string>>;
+
 // @public (undocumented)
 export function createEmptyBookmarkShape(editor: Editor, url: string, position: VecLike): TLBookmarkShape;
 
@@ -591,6 +603,14 @@ export interface CubicBezierToPathBuilderCommand extends PathBuilderCommandBase 
 export function CursorChatItem(): JSX_2.Element | null;
 
 // @public (undocumented)
+export interface CustomDebugFlags {
+    // (undocumented)
+    customDebugFlags?: Record<string, DebugFlag<boolean>>;
+    // (undocumented)
+    customFeatureFlags?: Record<string, DebugFlag<boolean>>;
+}
+
+// @public (undocumented)
 export interface CustomEmbedDefinition extends EmbedDefinition {
     // (undocumented)
     readonly icon: string;
@@ -614,11 +634,18 @@ export interface DashedPathBuilderOpts extends BasePathBuilderOpts {
 }
 
 // @public (undocumented)
-export function DebugFlags(): JSX_2.Element | null;
+export function DebugFlags(props: DebugFlagsProps): JSX_2.Element | null;
+
+// @public (undocumented)
+export interface DebugFlagsProps {
+    // (undocumented)
+    customDebugFlags?: Record<string, DebugFlag<boolean>> | undefined;
+}
 
 // @public (undocumented)
 export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly doesResize: true;
+    readonly embedOnPaste: false;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["beta.tldraw.com", "tldraw.com", "localhost:3000"];
@@ -633,6 +660,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["figma.com"];
@@ -642,6 +670,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["google.*"];
@@ -654,6 +683,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["val.town"];
@@ -665,6 +695,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["codesandbox.io"];
@@ -676,6 +707,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 400;
     readonly hostnames: readonly ["codepen.io"];
@@ -687,6 +719,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 520;
 }, {
     readonly doesResize: false;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 400;
     readonly hostnames: readonly ["scratch.mit.edu"];
@@ -696,6 +729,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 520;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 450;
     readonly hostnames: readonly ["*.youtube.com", "youtube.com", "youtu.be"];
@@ -710,6 +744,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 800;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["calendar.google.*"];
@@ -725,6 +760,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["docs.google.*"];
@@ -739,6 +775,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["gist.github.com"];
@@ -748,6 +785,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["replit.com"];
@@ -757,6 +795,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["felt.com"];
@@ -766,6 +805,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["open.spotify.com"];
@@ -777,6 +817,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 360;
     readonly hostnames: readonly ["vimeo.com", "player.vimeo.com"];
@@ -786,18 +827,9 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly type: "vimeo";
     readonly width: 640;
 }, {
-    readonly doesResize: true;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    readonly height: 500;
-    readonly hostnames: readonly ["excalidraw.com"];
-    readonly isAspectRatioLocked: true;
-    readonly title: "Excalidraw";
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: "excalidraw";
-    readonly width: 720;
-}, {
     readonly backgroundColor: "#fff";
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
     readonly hostnames: readonly ["observablehq.com"];
@@ -808,6 +840,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
 }, {
     readonly doesResize: true;
+    readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 450;
     readonly hostnames: readonly ["desmos.com"];
@@ -850,7 +883,7 @@ export function DefaultContextMenuContent(): JSX_2.Element | null;
 export function DefaultDebugMenu({ children }: TLUiDebugMenuProps): JSX_2.Element;
 
 // @public (undocumented)
-export function DefaultDebugMenuContent(): JSX_2.Element;
+export function DefaultDebugMenuContent({ customDebugFlags, customFeatureFlags, }: CustomDebugFlags): JSX_2.Element;
 
 // @public (undocumented)
 export const DefaultDialogs: NamedExoticComponent<object>;
@@ -1307,6 +1340,8 @@ export interface EmbedDefinition {
     // (undocumented)
     readonly doesResize: boolean;
     // (undocumented)
+    readonly embedOnPaste?: boolean;
+    // (undocumented)
     readonly fromEmbedUrl: (url: string) => string | undefined;
     // (undocumented)
     readonly height: number;
@@ -1370,6 +1405,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     getEmbedDefinition(url: string): TLEmbedResult;
     // (undocumented)
     getEmbedDefinitions(): readonly TLEmbedDefinition[];
+    // (undocumented)
+    getGeometry(shape: TLEmbedShape): Geometry2d;
     // (undocumented)
     getInterpolatedProps(startShape: TLEmbedShape, endShape: TLEmbedShape, t: number): TLEmbedShapeProps;
     // (undocumented)
@@ -1456,7 +1493,13 @@ export function ExportFileContentSubMenu(): JSX_2.Element;
 export function ExtrasGroup(): JSX_2.Element;
 
 // @public (undocumented)
-export function FeatureFlags(): JSX_2.Element | null;
+export function FeatureFlags(props: FeatureFlagsProps): JSX_2.Element | null;
+
+// @public (undocumented)
+export interface FeatureFlagsProps {
+    // (undocumented)
+    customFeatureFlags?: Record<string, DebugFlag<boolean>> | undefined;
+}
 
 // @public
 export function fitFrameToContent(editor: Editor, id: TLShapeId, opts?: {
@@ -1952,6 +1995,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     getHandleSnapGeometry(shape: TLLineShape): HandleSnapGeometry;
     // (undocumented)
     getInterpolatedProps(startShape: TLLineShape, endShape: TLLineShape, t: number): TLLineShape['props'];
+    // (undocumented)
+    hideInMinimap(): boolean;
     // (undocumented)
     hideResizeHandles(): boolean;
     // (undocumented)
@@ -2701,7 +2746,10 @@ export function StylePanelArrowheadPicker(): JSX_2.Element | null;
 export function StylePanelArrowKindPicker(): JSX_2.Element | null;
 
 // @public (undocumented)
-export const StylePanelButtonPicker: <T extends string>(props: StylePanelButtonPickerProps<T>) => ReactElement;
+export const StylePanelButtonPicker: <T extends string>(props: StylePanelButtonPickerProps<T>) => React.JSX.Element;
+
+// @public (undocumented)
+export const StylePanelButtonPickerInline: <T extends string>(props: StylePanelButtonPickerProps<T>) => React.JSX.Element;
 
 // @public (undocumented)
 export interface StylePanelButtonPickerProps<T extends string> {
@@ -2754,6 +2802,9 @@ export function StylePanelDashPicker(): JSX_2.Element | null;
 export const StylePanelDoubleDropdownPicker: <T extends string>(props: StylePanelDoubleDropdownPickerProps<T>) => React_2.JSX.Element;
 
 // @public (undocumented)
+export const StylePanelDoubleDropdownPickerInline: <T extends string>(props: StylePanelDoubleDropdownPickerProps<T>) => React_2.JSX.Element;
+
+// @public (undocumented)
 export interface StylePanelDoubleDropdownPickerProps<T extends string> {
     // (undocumented)
     itemsA: StyleValuesForUi<T>;
@@ -2783,6 +2834,9 @@ export interface StylePanelDoubleDropdownPickerProps<T extends string> {
 
 // @public (undocumented)
 export const StylePanelDropdownPicker: <T extends string>(props: StylePanelDropdownPickerProps<T>) => React_2.JSX.Element;
+
+// @public (undocumented)
+export const StylePanelDropdownPickerInline: <T extends string>(props: StylePanelDropdownPickerProps<T>) => React_2.JSX.Element;
 
 // @public (undocumented)
 export interface StylePanelDropdownPickerProps<T extends string> {
