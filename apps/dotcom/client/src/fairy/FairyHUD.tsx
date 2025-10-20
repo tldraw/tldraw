@@ -10,11 +10,13 @@ import {
 	TldrawUiToolbarToggleGroup,
 	TldrawUiToolbarToggleItem,
 	useContainer,
+	useDialogs,
 	useEditor,
 	useValue,
 } from 'tldraw'
 import '../tla/styles/fairy.css'
 import { defineMessages, useMsg } from '../tla/utils/i18n'
+import { FairyDebugModal } from './FairyDebugModal'
 import { TldrawFairyAgent } from './fairy-agent/agent/TldrawFairyAgent'
 import { FairyChatHistory } from './fairy-agent/chat/FairyChatHistory'
 import { FairyBasicInput } from './fairy-agent/input/FairyBasicInput'
@@ -76,6 +78,7 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 	const container = useContainer()
 	const [menuPopoverOpen, setMenuPopoverOpen] = useState(false)
 	const editor = useEditor()
+	const { addDialog } = useDialogs()
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
 	const [panelState, setPanelState] = useState<PanelState>('closed')
 
@@ -116,6 +119,15 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 		// Toggle between closed and open
 		setPanelState((current) => (current === 'open' ? 'closed' : 'open'))
 	}, [])
+
+	const openDebugModal = useCallback(() => {
+		addDialog({
+			component: FairyDebugModal,
+			onClose() {
+				// Optional: do something when the modal is closed
+			},
+		})
+	}, [addDialog])
 
 	if (!agents || agents.length === 0) return null
 
@@ -168,6 +180,11 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 												label="Change outfit"
 											/>
 											<TldrawUiMenuItem id="new-chat" onSelect={handleNewChat} label="Reset chat" />
+											<TldrawUiMenuItem
+												id="debug-actions"
+												onSelect={openDebugModal}
+												label="Debug actions"
+											/>
 										</TldrawUiMenuGroup>
 									</TldrawUiMenuContextProvider>
 								</_DropdownMenu.Content>

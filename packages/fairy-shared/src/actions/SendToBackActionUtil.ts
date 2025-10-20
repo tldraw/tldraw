@@ -6,7 +6,7 @@ import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const SendToBackAction = z
 	.object({
-		_type: z.literal('sendToBack'),
+		_type: z.literal('send-to-back'),
 		intent: z.string(),
 		shapeIds: z.array(z.string()),
 	})
@@ -19,10 +19,10 @@ const SendToBackAction = z
 type SendToBackAction = z.infer<typeof SendToBackAction>
 
 export class SendToBackActionUtil extends AgentActionUtil<SendToBackAction> {
-	static override type = 'sendToBack' as const
+	static override type = 'send-to-back' as const
 
 	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
-		if (!actions.includes('sendToBack')) {
+		if (!actions.includes('send-to-back')) {
 			return null
 		}
 		return SendToBackAction

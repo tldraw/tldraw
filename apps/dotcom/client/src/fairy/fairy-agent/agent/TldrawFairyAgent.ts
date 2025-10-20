@@ -171,7 +171,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 		})
 		this.stopReactingToParts = stopReactingToPartsFn
 
-		// Some of this might be vestigal
+		// Some of this might be vestigial
 		this.agentActionUtils = getAgentActionUtilsRecordByTypes(availableActions, this)
 		this.promptPartUtils = getPromptPartUtilsRecordByTypes(availableParts, this)
 		this.unknownActionUtil = this.agentActionUtils.unknown

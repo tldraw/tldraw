@@ -6,7 +6,7 @@ import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const FlyToBoundsAction = z
 	.object({
-		_type: z.literal('flyToBounds'),
+		_type: z.literal('fly-to-bounds'),
 		intent: z.string(),
 		x: z.number(),
 		y: z.number(),
@@ -22,10 +22,10 @@ const FlyToBoundsAction = z
 type FlyToBoundsAction = z.infer<typeof FlyToBoundsAction>
 
 export class FlyToBoundsActionUtil extends AgentActionUtil<FlyToBoundsAction> {
-	static override type = 'flyToBounds' as const
+	static override type = 'fly-to-bounds' as const
 
 	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
-		if (!actions.includes('flyToBounds')) {
+		if (!actions.includes('fly-to-bounds')) {
 			return null
 		}
 		return FlyToBoundsAction

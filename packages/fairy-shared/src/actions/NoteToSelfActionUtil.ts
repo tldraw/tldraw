@@ -4,7 +4,7 @@ import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const NoteToSelfAction = z
 	.object({
-		_type: z.literal('noteToSelf'),
+		_type: z.literal('note-to-self'),
 		note: z.string(),
 		intent: z.string(),
 	})
@@ -16,7 +16,7 @@ const NoteToSelfAction = z
 type NoteToSelfAction = z.infer<typeof NoteToSelfAction>
 
 export class NoteToSelfActionUtil extends AgentActionUtil<NoteToSelfAction> {
-	static override type = 'noteToSelf' as const
+	static override type = 'note-to-self' as const
 
 	override getInfo(action: Streaming<NoteToSelfAction>) {
 		const label = action.complete ? 'Note To Self' : 'Noting to self'
@@ -36,7 +36,7 @@ export class NoteToSelfActionUtil extends AgentActionUtil<NoteToSelfAction> {
 	}
 
 	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
-		if (!actions.includes('noteToSelf')) {
+		if (!actions.includes('note-to-self')) {
 			return null
 		}
 		return NoteToSelfAction

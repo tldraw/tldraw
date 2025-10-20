@@ -6,7 +6,7 @@ import { AgentActionUtil, AgentActionUtilConstructor } from './AgentActionUtil'
 
 const BringToFrontAction = z
 	.object({
-		_type: z.literal('bringToFront'),
+		_type: z.literal('bring-to-front'),
 		intent: z.string(),
 		shapeIds: z.array(z.string()),
 	})
@@ -19,10 +19,10 @@ const BringToFrontAction = z
 type BringToFrontAction = z.infer<typeof BringToFrontAction>
 
 export class BringToFrontActionUtil extends AgentActionUtil<BringToFrontAction> {
-	static override type = 'bringToFront' as const
+	static override type = 'bring-to-front' as const
 
 	override getSchema(actions: AgentActionUtilConstructor['type'][]) {
-		if (!actions.includes('bringToFront')) {
+		if (!actions.includes('bring-to-front')) {
 			return null
 		}
 		return BringToFrontAction
