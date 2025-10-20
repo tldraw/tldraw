@@ -97,7 +97,7 @@ The analytics script is built as a standalone JavaScript bundle that can be incl
 
 ### CloudFlare consent worker
 
-**Worker** (`worker/worker.ts`)
+The consent worker is now maintained in a separate package at `apps/analytics-worker/`.
 
 - Standalone CloudFlare Worker deployed to `tldraw-consent.workers.dev`
 - Returns whether explicit consent is required based on user's geographic location
@@ -181,8 +181,6 @@ Analytics services are configured via constants in `src/constants.ts` and enviro
 - `src/components/CookieConsentBanner.ts` - Consent banner UI
 - `src/components/PrivacySettingsDialog.ts` - Privacy settings dialog UI
 - `src/styles.css` - Component styles (inlined via Vite)
-- `worker/worker.ts` - CloudFlare Worker for geographic consent checking
-- `worker/wrangler.toml` - CloudFlare Worker configuration
 
 ## Dependencies
 

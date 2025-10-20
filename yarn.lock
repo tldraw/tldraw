@@ -8840,6 +8840,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tldraw/analytics-worker@workspace:apps/analytics-worker":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/analytics-worker@workspace:apps/analytics-worker"
+  dependencies:
+    "@cloudflare/workers-types": "npm:^4.20250913.0"
+    esbuild: "npm:^0.25.6"
+    lazyrepo: "npm:0.0.0-alpha.27"
+    typescript: "npm:^5.8.3"
+    wrangler: "npm:^4.37.1"
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/analytics@workspace:apps/analytics":
   version: 0.0.0-use.local
   resolution: "@tldraw/analytics@workspace:apps/analytics"
