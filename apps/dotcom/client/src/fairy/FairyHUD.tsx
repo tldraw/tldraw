@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import {
 	Box,
+	TldrawUiButton,
 	TldrawUiToolbar,
 	TldrawUiToolbarToggleGroup,
 	TldrawUiToolbarToggleItem,
@@ -130,9 +131,9 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 				>
 					<div className="fairy-toolbar-header">
 						<div className="fairy-id-display">{onlyFairy.id}</div>
-						<button className="fairy-toolbar-button" onClick={handleNewChat}>
+						<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={handleNewChat}>
 							+
-						</button>
+						</TldrawUiButton>
 					</div>
 					<FairyChatHistory agent={onlyFairy} />
 					<FairyBasicInput agent={onlyFairy} />
@@ -141,13 +142,13 @@ export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
 
 			<div className="fairy-buttons-container">
 				<div className="fairy-toolbar-stack-header">
-					<button
-						className="fairy-toolbar-button"
-						id="fairy-toolbar-minimize-button"
+					<TldrawUiButton
+						type="icon"
+						className="fairy-toolbar-sidebar-button"
 						onClick={togglePanel}
 					>
 						{panelState === 'open' ? '››' : '‹‹'}
-					</button>
+					</TldrawUiButton>
 				</div>
 				<TldrawUiToolbar label={toolbarMessage}>
 					{agents.map((agent) => {
