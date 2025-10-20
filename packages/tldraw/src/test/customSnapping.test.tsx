@@ -266,7 +266,7 @@ describe('custom handle snapping', () => {
 					a2: { id: 'a2', index: 'a2' as IndexKey, x: 100, y: 100 },
 				}}
 			/>,
-			<TL.test2 ref="test2" x={200} y={200} w={100} h={100} boundsSnapPoints={null} />,
+			<TL.test2 ref="test2" x={200} y={200} w={100} h={100} />,
 		])
 	})
 
