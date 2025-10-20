@@ -917,17 +917,17 @@ describe('instance.isReadonly', () => {
 	})
 })
 
-type MyCustomShape = TLBaseShape<'my-custom-shape', { w: number; h: number }>
+type MyCustomShape = TLBaseShape<'myCustomShape', { w: number; h: number }>
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'my-custom-shape': MyCustomShape
+		myCustomShape: MyCustomShape
 	}
 }
 
 describe('the geometry cache', () => {
 	class CustomShapeUtil extends BaseBoxShapeUtil<MyCustomShape> {
-		static override type = 'custom' as const
+		static override type = 'myCustomShape' as const
 
 		getDefaultProps() {
 			return {
@@ -953,9 +953,11 @@ describe('the geometry cache', () => {
 		editor = new TestEditor({
 			shapeUtils: [CustomShapeUtil],
 		})
-		const { A } = editor.createShapesFromJsx([<TL.custom ref="A" x={0} y={0} w={100} h={100} />])
+		const { A } = editor.createShapesFromJsx([
+			<TL.myCustomShape ref="A" x={0} y={0} w={100} h={100} />,
+		])
 		expect(editor.getShapePageBounds(A)!.width).toBe(100)
-		editor.updateShape({ id: A, type: 'my-custom-shape', meta: { double: true } })
+		editor.updateShape({ id: A, type: 'myCustomShape', meta: { double: true } })
 		expect(editor.getShapePageBounds(A)!.width).toBe(200)
 	})
 })
