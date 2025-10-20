@@ -98,12 +98,6 @@
   "47839e47a5": {
     "translation": "tltegn"
   },
-  "7697920637": {
-    "translation": "Genindlæs venligst"
-  },
-  "764671e008": {
-    "translation": "Chat med os på Discord"
-  },
   "4908687e50": {
     "translation": "Er du sikker på, at du vil glemme denne fil?"
   },
@@ -200,6 +194,12 @@
   "761e93ede9": {
     "translation": "Administrer cookies"
   },
+  "7697920637": {
+    "translation": "Genindlæs venligst"
+  },
+  "764671e008": {
+    "translation": "Chat med os på Discord"
+  },
   "777f9e90cf": {
     "translation": "Ugyldig anmodning."
   },
@@ -256,6 +256,9 @@
   },
   "91e49bb0eb": {
     "translation": "Kopier til mine filer"
+  },
+  "95d2109dc8": {
+    "translation": "Byg med tldraw SDK'et"
   },
   "96165d6df5": {
     "translation": "Denne måned"

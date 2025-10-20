@@ -98,12 +98,6 @@
   "47839e47a5": {
     "translation": "tldraw"
   },
-  "7697920637": {
-    "translation": "Kérjük, töltse újra"
-  },
-  "764671e008": {
-    "translation": "Csevegés velünk a Discordon"
-  },
   "4908687e50": {
     "translation": "Biztosan elfelejti ezt a fájlt?"
   },
@@ -200,6 +194,12 @@
   "761e93ede9": {
     "translation": "Cookie-k kezelése"
   },
+  "7697920637": {
+    "translation": "Kérjük, töltse újra"
+  },
+  "764671e008": {
+    "translation": "Csevegés velünk a Discordon"
+  },
   "777f9e90cf": {
     "translation": "Érvénytelen kérés."
   },
@@ -256,6 +256,9 @@
   },
   "91e49bb0eb": {
     "translation": "Másolás a fájljaim közé"
+  },
+  "95d2109dc8": {
+    "translation": "Fordítás a tldraw SDK-val"
   },
   "96165d6df5": {
     "translation": "Ebben a hónapban"
