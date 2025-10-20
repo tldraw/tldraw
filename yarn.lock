@@ -8844,6 +8844,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/analytics@workspace:apps/analytics"
   dependencies:
+    "@cloudflare/workers-types": "npm:^4.20250913.0"
     "@types/js-cookie": "npm:^3.0.6"
     js-cookie: "npm:^3.0.5"
     posthog-js: "npm:^1.248.1"

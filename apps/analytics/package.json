@@ -17,6 +17,7 @@
 		"posthog-js": "^1.248.1"
 	},
 	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20250913.0",
 		"@types/js-cookie": "^3.0.6",
 		"typescript": "^5.8.3",
 		"vite": "^7.0.1",
