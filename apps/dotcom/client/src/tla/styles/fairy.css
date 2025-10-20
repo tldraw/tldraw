@@ -371,7 +371,9 @@
 	scrollbar-color: var(--tl-color-muted-1) transparent;
 }
 
-.fairy-chat-history * {
+.fairy-chat-history span:not(button *),
+.fairy-chat-history div:not(button *),
+.fairy-chat-history p:not(button *) {
 	user-select: text;
 	cursor: initial;
 }
@@ -409,7 +411,6 @@
 
 .fairy-chat-history-prompt {
 	background-color: var(--tl-color-low);
-	box-shadow: var(--tl-shadow-1);
 	border-radius: 8px;
 	padding: 8px;
 	font-size: 12px;
@@ -460,15 +461,9 @@
 	cursor: pointer;
 	margin-left: -4px;
 }
-.fairy-chat-history-group-toggle button {
-	cursor: pointer;
-}
 
-.fairy-chat-history-group-toggle span {
-	cursor: pointer;
-}
 .fairy-chat-history-group-toggle:hover {
-	background-color: var(--tl-color-muted-2);
+	color: var(--tl-color-text-1);
 }
 
 .fairy-chat-history-group-toggle svg {
@@ -476,6 +471,11 @@
 	height: 14px;
 	color: var(--tl-color-text-3);
 	flex-shrink: 0;
+	cursor: pointer;
+}
+
+.fairy-chat-history-group-toggle:hover svg {
+	color: var(--tl-color-text-1);
 }
 
 .fairy-chat-history-group-summary {
