@@ -31,6 +31,7 @@ export type * from './types/WikipediaArticle'
 
 // Schemas and definitions
 export * from './schema/AgentActionSchema'
+export * from './schema/buildResponseSchema'
 export * from './schema/PromptPartSchema'
 export * from './types/FairyPose'
 
