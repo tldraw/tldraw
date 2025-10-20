@@ -40,7 +40,7 @@ function buildMessagesFromPart(part: PromptPart): AgentMessage[] {
 
 function buildContentFromPart(part: PromptPart): string[] {
 	switch (part.type) {
-		case 'message':
+		case 'messages':
 			return ['Hello world']
 		default:
 			return []

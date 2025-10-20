@@ -2,17 +2,13 @@ import { AgentRequest, BasePromptPart, ContextItem } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { PromptPartUtil } from './PromptPartUtil'
 
-export interface ContextItemsPart extends BasePromptPart<'contextItems'> {
+interface ContextItemsPart extends BasePromptPart<'contextItems'> {
 	items: ContextItem[]
 	requestType: AgentRequest['type']
 }
 
 export class ContextItemsPartUtil extends PromptPartUtil<ContextItemsPart> {
 	static override type = 'contextItems' as const
-
-	// override getPriority() {
-	// 	return 60 // context items in middle (low priority)
-	// }
 
 	override getPart(request: AgentRequest, helpers: AgentHelpers): ContextItemsPart {
 		const items = request.contextItems.map((contextItem) => {

@@ -1,23 +1,14 @@
 import {
 	AgentRequest,
-	BasePromptPart,
 	convertTldrawShapesToPeripheralShapes,
-	PeripheralShapeCluster,
+	PeripheralShapesPart,
 } from '@tldraw/fairy-shared'
 import { Box } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { PromptPartUtil } from './PromptPartUtil'
 
-export interface PeripheralShapesPart extends BasePromptPart<'peripheralShapes'> {
-	clusters: PeripheralShapeCluster[] | null
-}
-
 export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPart> {
 	static override type = 'peripheralShapes' as const
-
-	// override getPriority() {
-	// 	return 65 // peripheral content after viewport shapes (low priority)
-	// }
 
 	override getPart(request: AgentRequest, helpers: AgentHelpers): PeripheralShapesPart {
 		const { editor } = this

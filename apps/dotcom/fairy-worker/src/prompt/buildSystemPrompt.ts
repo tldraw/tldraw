@@ -2,7 +2,7 @@ import {
 	AgentAction,
 	AgentPrompt,
 	buildResponseSchema,
-	getFocusedShapeSchemaNames,
+	FOCUS_SHAPE_TYPES,
 } from '@tldraw/fairy-shared'
 
 /**
@@ -18,8 +18,6 @@ export function buildSystemPrompt(_prompt: AgentPrompt): string {
 	const systemPrompt = getSystemPrompt(['message'])
 	return systemPrompt
 }
-
-const shapeTypeNames = getFocusedShapeSchemaNames()
 
 function getSystemPrompt(actions: AgentAction['_type'][]) {
 	return `# Hello!
@@ -40,11 +38,11 @@ For the full list of events, refer to the JSON schema.
 
 Shapes can be:
 
-${shapeTypeNames.map((type) => `- **${type.charAt(0).toUpperCase() + type.slice(1)} (\`${type}\`)**`).join('\n')}
+${FOCUS_SHAPE_TYPES.map((type) => `- **${type.charAt(0).toUpperCase() + type.slice(1)} (\`${type}\`)**`).join('\n')}
 
 Each shape has:
 
-- \`_type\` (one of ${shapeTypeNames.map((type) => `\`${type}\``).join(', ')})
+- \`_type\` (one of ${FOCUS_SHAPE_TYPES.map((type) => `\`${type}\``).join(', ')})
 - \`x\`, \`y\` (numbers, coordinates, the TOP LEFT corner of the shape) (except for arrows and lines, which have \`x1\`, \`y1\`, \`x2\`, \`y2\`)
 - \`note\` (a description of the shape's purpose or intent) (invisible to the user)
 

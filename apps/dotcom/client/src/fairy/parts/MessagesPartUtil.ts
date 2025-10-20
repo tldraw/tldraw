@@ -1,17 +1,8 @@
-import { AgentRequest, BasePromptPart } from '@tldraw/fairy-shared'
+import { AgentRequest, MessagesPart } from '@tldraw/fairy-shared'
 import { PromptPartUtil } from './PromptPartUtil'
-
-export interface MessagesPart extends BasePromptPart<'messages'> {
-	messages: string[]
-	requestType: AgentRequest['type']
-}
 
 export class MessagesPartUtil extends PromptPartUtil<MessagesPart> {
 	static override type = 'messages' as const
-
-	// override getPriority() {
-	// 	return -Infinity // user message should be last (highest priority)
-	// }
 
 	override getPart(request: AgentRequest): MessagesPart {
 		const { messages, type } = request

@@ -1,4 +1,4 @@
-import { convertTldrawShapeToFocusedShape, FAIRY_VISION_DIMENSIONS } from '@tldraw/fairy-shared'
+import { convertTldrawShapeToFocusShape, FAIRY_VISION_DIMENSIONS } from '@tldraw/fairy-shared'
 import { useCallback, useRef, useState } from 'react'
 import { Box, TldrawUiInput, useValue } from 'tldraw'
 import { FairyAgent } from '../agent/FairyAgent'
@@ -25,7 +25,7 @@ export function FairyBasicInput({ agent }: { agent: FairyAgent }) {
 			// Prompt the agent
 			const selectedShapes = editor
 				.getSelectedShapes()
-				.map((shape) => convertTldrawShapeToFocusedShape(editor, shape))
+				.map((shape) => convertTldrawShapeToFocusShape(editor, shape))
 
 			const fairyPosition = fairy.get().position
 

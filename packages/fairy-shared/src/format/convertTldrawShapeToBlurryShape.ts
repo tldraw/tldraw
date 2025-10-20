@@ -1,10 +1,10 @@
 import { Editor, TLShape } from '@tldraw/editor'
+import { FocusShape } from '../schema/FocusShapeSchema'
 import { BlurryShape } from './BlurryShape'
 import {
 	convertTldrawIdToSimpleId,
-	convertTldrawShapeToSimpleType,
-} from './convertTldrawShapeToFocusedShape'
-import { FocusedShape } from './FocusedShape'
+	convertTldrawShapeToFocusType,
+} from './convertTldrawShapeToFocusShape'
 
 /**
  * Convert a tldraw shape to the blurry shape format
@@ -19,14 +19,14 @@ export function convertTldrawShapeToBlurryShape(
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape)
 
-	const shapeType = convertTldrawShapeToSimpleType(shape)
+	const shapeType = convertTldrawShapeToFocusType(shape)
 
 	return {
 		x: Math.round(bounds.x),
 		y: Math.round(bounds.y),
 		w: Math.round(bounds.w),
 		h: Math.round(bounds.h),
-		type: shapeType as FocusedShape['_type'],
+		type: shapeType as FocusShape['_type'],
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text,
 	}

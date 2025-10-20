@@ -19,7 +19,21 @@ import {
 	ThinkActionSchema,
 	TodoListActionSchema,
 	UpdateActionSchema,
-} from './types/AgentActionSchema'
+} from './AgentActionSchema'
+import {
+	BlurryShapesPartSchema,
+	ChatHistoryPartSchema,
+	ContextItemsPartSchema,
+	DataPartSchema,
+	MessagesPartSchema,
+	PeripheralShapesPartSchema,
+	ScreenshotPartSchema,
+	SelectedShapesPartSchema,
+	TimePartSchema,
+	TodoListPartSchema,
+	UserActionHistoryPartSchema,
+	ViewportBoundsPartSchema,
+} from './PromptPartSchema'
 
 /**
  * Agent action schemas determine what actions the agent can take.
@@ -54,4 +68,22 @@ export const AGENT_ACTION_SCHEMAS = [
 
 	// Drawing
 	PenActionSchema,
+] as const
+
+/**
+ * Prompt part schemas determine what information will be sent to the model.
+ */
+export const PROMPT_PART_SCHEMAS = [
+	BlurryShapesPartSchema,
+	ChatHistoryPartSchema,
+	ContextItemsPartSchema,
+	DataPartSchema,
+	MessagesPartSchema,
+	PeripheralShapesPartSchema,
+	ScreenshotPartSchema,
+	SelectedShapesPartSchema,
+	TimePartSchema,
+	TodoListPartSchema,
+	UserActionHistoryPartSchema,
+	ViewportBoundsPartSchema,
 ] as const

@@ -1,19 +1,19 @@
 import { Editor } from '@tldraw/editor'
 import { BoxModel, VecModel } from '@tldraw/tlschema'
-import { FocusedShape } from '../format/FocusedShape'
 import { AgentIconType } from '../icons/AgentIcon'
+import { FocusShape } from '../schema/FocusShapeSchema'
 
 export type ContextItem = ShapeContextItem | AreaContextItem | PointContextItem | ShapesContextItem
 
 export interface ShapeContextItem {
 	type: 'shape'
-	shape: FocusedShape
+	shape: FocusShape
 	source: 'agent' | 'user'
 }
 
 export interface ShapesContextItem {
 	type: 'shapes'
-	shapes: FocusedShape[]
+	shapes: FocusShape[]
 	source: 'agent' | 'user'
 }
 

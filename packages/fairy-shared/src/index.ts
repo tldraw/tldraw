@@ -1,19 +1,18 @@
 /* eslint-disable local/no-export-star */
 
 // Format
-export type * from './format/BlurryShape'
-export * from './format/convertFocusedShapeToTldrawShape'
+export * from './format/BlurryShape'
+export * from './format/convertFocusShapeToTldrawShape'
 export * from './format/convertTldrawShapesToPeripheralShapes'
 export * from './format/convertTldrawShapeToBlurryShape'
-export * from './format/convertTldrawShapeToFocusedShape'
-export * from './format/FocusedShape'
-export type * from './format/PeripheralShapesCluster'
-export * from './format/SimpleColor'
-export * from './format/SimpleFill'
-export * from './format/SimpleFontSize'
-export * from './format/SimpleGeoShapeType'
+export * from './format/convertTldrawShapeToFocusShape'
+export * from './format/FocusColor'
+export * from './format/FocusFill'
+export * from './format/FocusFontSize'
+export * from './schema/FocusShapeSchema'
 
 // Types (these are type-only exports)
+export type * from './format/PeripheralCluster'
 export type * from './types/AgentAction'
 export type * from './types/AgentActionInfo'
 export type * from './types/AgentInput'
@@ -31,12 +30,13 @@ export type * from './types/TodoItem'
 export type * from './types/WikipediaArticle'
 
 // Schemas and definitions
-export * from './types/AgentActionSchema'
+export * from './schema/AgentActionSchema'
+export * from './schema/PromptPartSchema'
 export * from './types/FairyPose'
 
 // Constants / Defaults
 export * from './constants'
-export * from './FairySchema'
+export * from './schema/FairySchema'
 
 // Icons
 export * from './icons/AgentIcon'

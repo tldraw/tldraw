@@ -1,6 +1,6 @@
 import z from 'zod'
 
-export const SimpleColor = z.enum([
+export const FocusColorSchema = z.enum([
 	'red',
 	'light-red',
 	'green',
@@ -16,11 +16,11 @@ export const SimpleColor = z.enum([
 	'white',
 ])
 
-export type ISimpleColor = z.infer<typeof SimpleColor>
+export type FocusColor = z.infer<typeof FocusColorSchema>
 
-export function asColor(color: string): ISimpleColor {
-	if (SimpleColor.safeParse(color).success) {
-		return color as ISimpleColor
+export function asColor(color: string): FocusColor {
+	if (FocusColorSchema.safeParse(color).success) {
+		return color as FocusColor
 	}
 
 	switch (color) {

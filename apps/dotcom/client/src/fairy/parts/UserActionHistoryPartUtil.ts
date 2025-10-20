@@ -1,38 +1,17 @@
 import {
 	AgentRequest,
-	BasePromptPart,
 	convertTldrawIdToSimpleId,
-	convertTldrawShapeToFocusedShape,
-	convertTldrawShapeToSimpleType,
-	FocusedShape,
+	convertTldrawShapeToFocusShape,
+	convertTldrawShapeToFocusType,
+	FocusShape,
+	UserActionHistoryPart,
 } from '@tldraw/fairy-shared'
 import { squashRecordDiffs } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { PromptPartUtil } from './PromptPartUtil'
 
-export interface UserActionHistoryPart extends BasePromptPart<'userActionHistory'> {
-	added: {
-		shapeId: string
-		type: FocusedShape['_type']
-	}[]
-	removed: {
-		shapeId: string
-		type: FocusedShape['_type']
-	}[]
-	updated: {
-		shapeId: string
-		type: FocusedShape['_type']
-		before: Partial<FocusedShape>
-		after: Partial<FocusedShape>
-	}[]
-}
-
 export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryPart> {
 	static override type = 'userActionHistory' as const
-
-	// override getPriority() {
-	// 	return 40
-	// }
 
 	override getPart(_request: AgentRequest, helpers: AgentHelpers): UserActionHistoryPart {
 		// if (!parts.includes('userActionHistory')) {
@@ -65,14 +44,14 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 			if (shape.typeName !== 'shape') continue
 			part.added.push({
 				shapeId: convertTldrawIdToSimpleId(shape.id),
-				type: convertTldrawShapeToSimpleType(shape),
+				type: convertTldrawShapeToFocusType(shape),
 			})
 		}
 
 		// Collect user-removed shapes
 		for (const shape of Object.values(removed)) {
 			if (shape.typeName !== 'shape') continue
-			const simpleShape = convertTldrawShapeToFocusedShape(editor, shape)
+			const simpleShape = convertTldrawShapeToFocusShape(editor, shape)
 			part.removed.push({
 				shapeId: simpleShape.shapeId,
 				type: simpleShape._type,
@@ -82,8 +61,8 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 		// Collect user-updated shapes
 		for (const [from, to] of Object.values(updated)) {
 			if (from.typeName !== 'shape' || to.typeName !== 'shape') continue
-			const fromSimpleShape = convertTldrawShapeToFocusedShape(editor, from)
-			const toSimpleShape = convertTldrawShapeToFocusedShape(editor, to)
+			const fromSimpleShape = convertTldrawShapeToFocusShape(editor, from)
+			const toSimpleShape = convertTldrawShapeToFocusShape(editor, to)
 
 			const changeSimpleShape = getSimpleShapeChange(fromSimpleShape, toSimpleShape)
 			if (!changeSimpleShape) continue
@@ -121,17 +100,17 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
  * @param to - The new shape.
  * @returns The changed properties.
  */
-function getSimpleShapeChange<T extends FocusedShape['_type']>(
-	from: FocusedShape & { _type: T },
-	to: FocusedShape & { _type: T }
+function getSimpleShapeChange<T extends FocusShape['_type']>(
+	from: FocusShape & { _type: T },
+	to: FocusShape & { _type: T }
 ) {
 	if (from._type !== to._type) {
 		return null
 	}
 
 	const change: {
-		from: Partial<FocusedShape>
-		to: Partial<FocusedShape>
+		from: Partial<FocusShape>
+		to: Partial<FocusShape>
 	} = {
 		from: {},
 		to: {},

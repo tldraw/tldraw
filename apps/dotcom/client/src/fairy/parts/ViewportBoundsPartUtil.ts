@@ -11,10 +11,6 @@ export interface ViewportBoundsPart extends BasePromptPart<'viewportBounds'> {
 export class ViewportBoundsPartUtil extends PromptPartUtil<ViewportBoundsPart> {
 	static override type = 'viewportBounds' as const
 
-	// override getPriority() {
-	// 	return 75 // viewport should go after context bounds (low priority)
-	// }
-
 	override getPart(request: AgentRequest, helpers: AgentHelpers): ViewportBoundsPart {
 		const userBounds = this.agent.editor.getViewportPageBounds()
 		const offsetUserBounds = helpers.applyOffsetToBox(userBounds)

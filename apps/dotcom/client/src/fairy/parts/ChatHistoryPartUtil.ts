@@ -1,18 +1,10 @@
-import { AgentRequest, BasePromptPart, ChatHistoryItem } from '@tldraw/fairy-shared'
+import { AgentRequest, ChatHistoryPart } from '@tldraw/fairy-shared'
 import { structuredClone } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { PromptPartUtil } from './PromptPartUtil'
 
-export interface ChatHistoryPart extends BasePromptPart<'chatHistory'> {
-	items: ChatHistoryItem[] | null
-}
-
 export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 	static override type = 'chatHistory' as const
-
-	// override getPriority() {
-	// 	return Infinity // history should appear first in the prompt (low priority)
-	// }
 
 	override async getPart(_request: AgentRequest, helpers: AgentHelpers) {
 		const items = structuredClone(this.agent.$chatHistory.get())

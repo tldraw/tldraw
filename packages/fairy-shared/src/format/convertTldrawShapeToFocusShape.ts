@@ -16,43 +16,43 @@ import {
 	Vec,
 } from '@tldraw/editor'
 import {
-	FocusedArrowShape,
-	FocusedDrawShape,
-	FocusedGeoShape,
-	FocusedLineShape,
-	FocusedNoteShape,
-	FocusedShape,
-	FocusedTextAnchor,
-	FocusedTextShape,
-	FocusedUnknownShape,
-} from './FocusedShape'
-import { convertTldrawFillToSimpleFill } from './SimpleFill'
-import { convertTldrawFontSizeAndScaleToSimpleFontSize } from './SimpleFontSize'
-import { SimpleGeoShapeType } from './SimpleGeoShapeType'
+	FocusArrowShape,
+	FocusDrawShape,
+	FocusGeoShape,
+	FocusGeoType,
+	FocusLineShape,
+	FocusNoteShape,
+	FocusShape,
+	FocusTextAnchor,
+	FocusTextShape,
+	FocusUnknownShape,
+} from '../schema/FocusShapeSchema'
+import { convertTldrawFillToFocusFill } from './FocusFill'
+import { convertTldrawFontSizeToFocusFontSize } from './FocusFontSize'
 
 /**
  * Convert a tldraw shape to a simple shape
  */
-export function convertTldrawShapeToFocusedShape(editor: Editor, shape: TLShape): FocusedShape {
+export function convertTldrawShapeToFocusShape(editor: Editor, shape: TLShape): FocusShape {
 	switch (shape.type) {
 		case 'text':
-			return convertTextShapeToFocused(editor, shape as TLTextShape)
+			return convertTextShapeToFocus(editor, shape as TLTextShape)
 		case 'geo':
-			return convertGeoShapeToFocused(editor, shape as TLGeoShape)
+			return convertGeoShapeToFocus(editor, shape as TLGeoShape)
 		case 'line':
-			return convertLineShapeToFocused(editor, shape as TLLineShape)
+			return convertLineShapeToFocus(editor, shape as TLLineShape)
 		case 'arrow':
-			return convertArrowShapeToFocused(editor, shape as TLArrowShape)
+			return convertArrowShapeToFocus(editor, shape as TLArrowShape)
 		case 'note':
-			return convertNoteShapeToFocused(editor, shape as TLNoteShape)
+			return convertNoteShapeToFocus(editor, shape as TLNoteShape)
 		case 'draw':
-			return convertDrawShapeToFocused(editor, shape as TLDrawShape)
+			return convertDrawShapeToFocus(editor, shape as TLDrawShape)
 		default:
-			return convertUnknownShapeToFocused(editor, shape)
+			return convertUnknownShapeToFocus(editor, shape)
 	}
 }
 
-export function convertTldrawShapeToSimpleType(shape: TLShape): FocusedShape['_type'] {
+export function convertTldrawShapeToFocusType(shape: TLShape): FocusShape['_type'] {
 	switch (shape.type) {
 		case 'geo': {
 			const geoShape = shape as TLGeoShape
@@ -69,7 +69,7 @@ export function convertTldrawShapeToSimpleType(shape: TLShape): FocusedShape['_t
 	}
 }
 
-const GEO_TO_SIMPLE_TYPES: Record<TLGeoShapeGeoStyle, SimpleGeoShapeType> = {
+const GEO_TO_SIMPLE_TYPES: Record<TLGeoShapeGeoStyle, FocusGeoType> = {
 	rectangle: 'rectangle',
 	ellipse: 'ellipse',
 	triangle: 'triangle',
@@ -96,24 +96,24 @@ export function convertTldrawIdToSimpleId(id: TLShapeId): string {
 	return id.slice('shape:'.length)
 }
 
-function convertDrawShapeToFocused(editor: Editor, shape: TLDrawShape): FocusedDrawShape {
+function convertDrawShapeToFocus(editor: Editor, shape: TLDrawShape): FocusDrawShape {
 	return {
 		_type: 'draw',
 		color: shape.props.color,
-		fill: convertTldrawFillToSimpleFill(shape.props.fill),
+		fill: convertTldrawFillToFocusFill(shape.props.fill),
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 	}
 }
 
-function convertTextShapeToFocused(editor: Editor, shape: TLTextShape): FocusedTextShape {
+function convertTextShapeToFocus(editor: Editor, shape: TLTextShape): FocusTextShape {
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape) ?? ''
 	const bounds = getSimpleBounds(editor, shape)
 	const textSize = shape.props.size
 
 	const position = new Vec()
-	let anchor: FocusedTextAnchor = 'bottom-center'
+	let anchor: FocusTextAnchor = 'bottom-center'
 	switch (shape.props.textAlign) {
 		case 'middle': {
 			anchor = 'top-center'
@@ -139,7 +139,7 @@ function convertTextShapeToFocused(editor: Editor, shape: TLTextShape): FocusedT
 		_type: 'text',
 		anchor,
 		color: shape.props.color,
-		fontSize: convertTldrawFontSizeAndScaleToSimpleFontSize(textSize, shape.props.scale),
+		fontSize: convertTldrawFontSizeToFocusFontSize(textSize, shape.props.scale),
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: text,
@@ -148,13 +148,13 @@ function convertTextShapeToFocused(editor: Editor, shape: TLTextShape): FocusedT
 	}
 }
 
-function convertGeoShapeToFocused(editor: Editor, shape: TLGeoShape): FocusedGeoShape {
+function convertGeoShapeToFocus(editor: Editor, shape: TLGeoShape): FocusGeoShape {
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape)
 	const bounds = getSimpleBounds(editor, shape)
 	const shapeTextAlign = shape.props.align
 
-	let newTextAlign: FocusedGeoShape['textAlign']
+	let newTextAlign: FocusGeoShape['textAlign']
 	switch (shapeTextAlign) {
 		case 'start-legacy':
 			newTextAlign = 'start'
@@ -173,7 +173,7 @@ function convertGeoShapeToFocused(editor: Editor, shape: TLGeoShape): FocusedGeo
 	return {
 		_type: GEO_TO_SIMPLE_TYPES[shape.props.geo],
 		color: shape.props.color,
-		fill: convertTldrawFillToSimpleFill(shape.props.fill),
+		fill: convertTldrawFillToFocusFill(shape.props.fill),
 		h: shape.props.h,
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
@@ -185,7 +185,7 @@ function convertGeoShapeToFocused(editor: Editor, shape: TLGeoShape): FocusedGeo
 	}
 }
 
-function convertLineShapeToFocused(editor: Editor, shape: TLLineShape): FocusedLineShape {
+function convertLineShapeToFocus(editor: Editor, shape: TLLineShape): FocusLineShape {
 	const bounds = getSimpleBounds(editor, shape)
 	const points = Object.values(shape.props.points).sort((a, b) => a.index.localeCompare(b.index))
 	return {
@@ -200,7 +200,7 @@ function convertLineShapeToFocused(editor: Editor, shape: TLLineShape): FocusedL
 	}
 }
 
-function convertArrowShapeToFocused(editor: Editor, shape: TLArrowShape): FocusedArrowShape {
+function convertArrowShapeToFocus(editor: Editor, shape: TLArrowShape): FocusArrowShape {
 	const bounds = getSimpleBounds(editor, shape)
 	const bindings = editor.store.query.records('binding').get()
 	const arrowBindings = bindings.filter(
@@ -225,7 +225,7 @@ function convertArrowShapeToFocused(editor: Editor, shape: TLArrowShape): Focuse
 	}
 }
 
-function convertNoteShapeToFocused(editor: Editor, shape: TLNoteShape): FocusedNoteShape {
+function convertNoteShapeToFocus(editor: Editor, shape: TLNoteShape): FocusNoteShape {
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape)
 	const bounds = getSimpleBounds(editor, shape)
@@ -240,7 +240,7 @@ function convertNoteShapeToFocused(editor: Editor, shape: TLNoteShape): FocusedN
 	}
 }
 
-function convertUnknownShapeToFocused(editor: Editor, shape: TLShape): FocusedUnknownShape {
+function convertUnknownShapeToFocus(editor: Editor, shape: TLShape): FocusUnknownShape {
 	const bounds = getSimpleBounds(editor, shape)
 	return {
 		_type: 'unknown',

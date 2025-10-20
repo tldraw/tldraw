@@ -1,20 +1,11 @@
-import { AgentRequest, BasePromptPart } from '@tldraw/fairy-shared'
-import { JsonValue } from '@tldraw/utils'
+import { AgentRequest, DataPart } from '@tldraw/fairy-shared'
 import { PromptPartUtil } from './PromptPartUtil'
-
-interface DataPart extends BasePromptPart<'data'> {
-	data: JsonValue[]
-}
 
 /**
  * This prompt part collects up data retrieved by agent actions in the previous request.
  */
 export class DataPartUtil extends PromptPartUtil<DataPart> {
 	static override type = 'data' as const
-
-	// override getPriority() {
-	// 	return -200 // API data should come right before the user message but after most other parts
-	// }
 
 	override async getPart(request: AgentRequest): Promise<DataPart> {
 		const { data } = request

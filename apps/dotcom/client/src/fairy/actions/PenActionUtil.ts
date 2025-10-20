@@ -1,4 +1,4 @@
-import { PenAction, Streaming, asColor, convertSimpleFillToTldrawFill } from '@tldraw/fairy-shared'
+import { PenAction, Streaming, asColor, convertFocusFillToTldrawFill } from '@tldraw/fairy-shared'
 import { TLDrawShape, TLDrawShapeSegment, Vec, VecModel, createShapeId, last } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -84,7 +84,7 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 			y: minY,
 			props: {
 				color: asColor(action.color ?? 'black'),
-				fill: convertSimpleFillToTldrawFill(action.fill ?? 'none'),
+				fill: convertFocusFillToTldrawFill(action.fill ?? 'none'),
 				dash: 'draw',
 				size: 's',
 				segments,

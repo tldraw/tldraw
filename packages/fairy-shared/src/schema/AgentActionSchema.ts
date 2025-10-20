@@ -1,10 +1,10 @@
 import z from 'zod'
-import { AGENT_ACTION_SCHEMAS } from '../FairySchema'
-import { FocusedShapeSchema } from '../format/FocusedShape'
-import { SimpleColor } from '../format/SimpleColor'
-import { SimpleFillSchema } from '../format/SimpleFill'
-import { AgentAction } from './AgentAction'
-import { BaseAgentAction } from './BaseAgentAction'
+import { FocusColorSchema } from '../format/FocusColor'
+import { FocusFillSchema } from '../format/FocusFill'
+import { AgentAction } from '../types/AgentAction'
+import { BaseAgentAction } from '../types/BaseAgentAction'
+import { AGENT_ACTION_SCHEMAS } from './FairySchema'
+import { FocusShapeSchema } from './FocusShapeSchema'
 
 export type UnknownAction = BaseAgentAction<'unknown'>
 
@@ -87,7 +87,7 @@ export const CreateActionSchema = z
 	.object({
 		_type: z.literal('create'),
 		intent: z.string(),
-		shape: FocusedShapeSchema,
+		shape: FocusShapeSchema,
 	})
 	.meta({ title: 'Create', description: 'The fairy creates a new shape.' })
 
@@ -182,9 +182,9 @@ export type NoteToSelfAction = z.infer<typeof NoteToSelfActionSchema>
 export const PenActionSchema = z
 	.object({
 		_type: z.literal('pen'),
-		color: SimpleColor,
+		color: FocusColorSchema,
 		closed: z.boolean(),
-		fill: SimpleFillSchema,
+		fill: FocusFillSchema,
 		intent: z.string(),
 		points: z.array(
 			z.object({
@@ -337,7 +337,7 @@ export const UpdateActionSchema = z
 	.object({
 		_type: z.literal('update'),
 		intent: z.string(),
-		update: FocusedShapeSchema,
+		update: FocusShapeSchema,
 	})
 	.meta({
 		title: 'Update',

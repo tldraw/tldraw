@@ -1,14 +1,14 @@
 import { FONT_SIZES } from 'tldraw'
-import { z } from 'zod'
+import z from 'zod'
 
-export const SimpleFontSize = z.number()
+export const FocusFontSizeSchema = z.number()
 
 /**
  * Calculates the closest predefined font size and scale combination to achieve a target font size
  * @param targetFontSize - The desired font size in pixels
  * @returns An object containing the closest predefined font size key and the scale factor
  */
-export function convertSimpleFontSizeToTldrawFontSizeAndScale(targetFontSize: number) {
+export function convertFocusFontSizeToTldrawFontSize(targetFontSize: number) {
 	const fontSizeEntries = Object.entries(FONT_SIZES)
 	let closestSize = fontSizeEntries[0]
 	let minDifference = Math.abs(targetFontSize - closestSize[1])
@@ -34,7 +34,7 @@ export function convertSimpleFontSizeToTldrawFontSizeAndScale(targetFontSize: nu
  * @param scale - The tldraw scale
  * @returns The simple font size
  */
-export function convertTldrawFontSizeAndScaleToSimpleFontSize(
+export function convertTldrawFontSizeToFocusFontSize(
 	textSize: keyof typeof FONT_SIZES,
 	scale: number
 ) {

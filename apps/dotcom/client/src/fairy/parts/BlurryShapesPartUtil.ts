@@ -1,23 +1,14 @@
 import {
 	AgentRequest,
-	BasePromptPart,
-	BlurryShape,
+	BlurryShapesPart,
 	convertTldrawShapeToBlurryShape,
 } from '@tldraw/fairy-shared'
 import { Box } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { PromptPartUtil } from './PromptPartUtil'
 
-export interface BlurryShapesPart extends BasePromptPart<'blurryShapes'> {
-	shapes: BlurryShape[] | null
-}
-
 export class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {
 	static override type = 'blurryShapes' as const
-
-	// override getPriority() {
-	// 	return 70
-	// }
 
 	override getPart(request: AgentRequest, helpers: AgentHelpers): BlurryShapesPart {
 		const { editor } = this

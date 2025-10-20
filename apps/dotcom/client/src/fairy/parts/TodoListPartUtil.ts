@@ -8,10 +8,6 @@ export interface TodoListPart extends BasePromptPart<'todoList'> {
 export class TodoListPartUtil extends PromptPartUtil<TodoListPart> {
 	static override type = 'todoList' as const
 
-	// override getPriority() {
-	// 	return 10
-	// }
-
 	override getPart(): TodoListPart {
 		return {
 			type: 'todoList',

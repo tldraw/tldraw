@@ -1,17 +1,9 @@
-import { AgentRequest, BasePromptPart } from '@tldraw/fairy-shared'
+import { AgentRequest, ScreenshotPart } from '@tldraw/fairy-shared'
 import { Box, FileHelpers } from 'tldraw'
 import { PromptPartUtil } from './PromptPartUtil'
 
-export interface ScreenshotPart extends BasePromptPart<'screenshot'> {
-	screenshot: string | null
-}
-
 export class ScreenshotPartUtil extends PromptPartUtil<ScreenshotPart> {
 	static override type = 'screenshot' as const
-
-	// override getPriority() {
-	// 	return 40 // screenshot after text content (medium priority)
-	// }
 
 	override async getPart(request: AgentRequest): Promise<ScreenshotPart> {
 		const { editor } = this

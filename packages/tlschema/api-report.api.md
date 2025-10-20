@@ -1215,6 +1215,12 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
         y: number;
     } | null;
     // (undocumented)
+    fairy: {
+        flipX: boolean;
+        pose: 'acting' | 'active' | 'idle' | 'thinking';
+        position: VecModel;
+    } | null;
+    // (undocumented)
     followingUserId: null | string;
     // (undocumented)
     lastActivityTimestamp: null | number;

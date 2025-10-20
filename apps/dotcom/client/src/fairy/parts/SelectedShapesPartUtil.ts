@@ -1,33 +1,25 @@
 import {
 	AgentRequest,
-	BasePromptPart,
-	convertTldrawShapeToFocusedShape,
-	FocusedShape,
+	convertTldrawShapeToFocusShape,
+	FocusShape,
+	SelectedShapesPart,
 } from '@tldraw/fairy-shared'
 import { structuredClone } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { PromptPartUtil } from './PromptPartUtil'
 
-export interface SelectedShapesPart extends BasePromptPart<'selectedShapes'> {
-	shapes: FocusedShape[] | null
-}
-
 export class SelectedShapesPartUtil extends PromptPartUtil<SelectedShapesPart> {
 	static override type = 'selectedShapes' as const
-
-	// override getPriority() {
-	// 	return 55 // selected shapes after context items (low priority)
-	// }
 
 	override getPart(_request: AgentRequest, helpers: AgentHelpers): SelectedShapesPart {
 		const { editor } = this
 
 		const userSelectedShapes = editor.getSelectedShapes().map((v) => structuredClone(v)) ?? []
 
-		const simpleShapes: FocusedShape[] = []
+		const simpleShapes: FocusShape[] = []
 		for (const shape of userSelectedShapes) {
 			if (!shape) continue
-			const simpleShape = convertTldrawShapeToFocusedShape(editor, shape)
+			const simpleShape = convertTldrawShapeToFocusShape(editor, shape)
 			if (simpleShape) {
 				simpleShapes.push(simpleShape)
 			}
