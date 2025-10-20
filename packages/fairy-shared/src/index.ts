@@ -1,46 +1,15 @@
 /* eslint-disable local/no-export-star */
 
-// Actions
-export * from './actions/AddDetailActionUtil'
-export * from './actions/AgentActionUtil'
-export * from './actions/AlignActionUtil'
-export * from './actions/BringToFrontActionUtil'
-export * from './actions/ClearActionUtil'
-export * from './actions/CountryInfoActionUtil'
-export * from './actions/CountShapesActionUtil'
-export * from './actions/CreateActionUtil'
-export * from './actions/DeleteActionUtil'
-export * from './actions/DistributeActionUtil'
-export * from './actions/FlyToBoundsActionUtil'
-export * from './actions/LabelActionUtil'
-export * from './actions/MessageActionUtil'
-export * from './actions/MoveActionUtil'
-export * from './actions/NoteToSelfActionUtil'
-export * from './actions/PenActionUtil'
-export * from './actions/PlaceActionUtil'
-export * from './actions/RandomWikipediaArticleActionUtil'
-export * from './actions/ResizeActionUtil'
-export * from './actions/ReviewActionUtil'
-export * from './actions/RotateActionUtil'
-export * from './actions/SendToBackActionUtil'
-export * from './actions/StackActionUtil'
-export * from './actions/ThinkActionUtil'
-export * from './actions/TodoListActionUtil'
-export * from './actions/UnknownActionUtil'
-export * from './actions/UpdateActionUtil'
-
 // Parts
 export * from './parts/BlurryShapesPartUtil'
 export * from './parts/ChatHistoryPartUtil'
 export * from './parts/ContextItemsPartUtil'
 export * from './parts/DataPartUtil'
 export * from './parts/MessagesPartUtil'
-export * from './parts/ModelNamePartUtil'
 export * from './parts/PeripheralShapesPartUtil'
 export * from './parts/PromptPartUtil'
 export * from './parts/ScreenshotPartUtil'
 export * from './parts/SelectedShapesPartUtil'
-export * from './parts/SystemPromptPartUtil'
 export * from './parts/TimePartUtil'
 export * from './parts/TodoListPartUtil'
 export * from './parts/UserActionHistoryPartUtil'
@@ -62,6 +31,7 @@ export * from './format/SimpleGeoShapeType'
 // Types (these are type-only exports)
 export type * from './types/AgentAction'
 export type * from './types/AgentActionInfo'
+export type * from './types/AgentActionSchema'
 export type * from './types/AgentInput'
 export type * from './types/AgentMessage'
 export type * from './types/AgentPrompt'
@@ -80,21 +50,14 @@ export type * from './types/WikipediaArticle'
 export * from './types/FairyPose'
 
 // Utils and Helpers
-export * from './actions/AgentActionUtils'
 export * from './AgentHelpers'
-export * from './parts/PromptPartUtils'
 
 // Models
 export * from './models'
 
-// Prompt
-export * from './prompt/buildMessages'
-export * from './prompt/buildSystemPrompt'
-export * from './prompt/getModelName'
-
 // Constants / Defaults
 export * from './constants'
-export * from './default-utils'
+export * from './FairySchema'
 
 // Icons
 export * from './icons/AgentIcon'

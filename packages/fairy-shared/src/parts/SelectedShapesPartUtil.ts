@@ -4,7 +4,7 @@ import { convertTldrawShapeToFocusedShape } from '../format/convertTldrawShapeTo
 import { FocusedShape } from '../format/FocusedShape'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
-import { PromptPartUtil, PromptPartUtilConstructor } from './PromptPartUtil'
+import { PromptPartUtil } from './PromptPartUtil'
 
 export interface SelectedShapesPart extends BasePromptPart<'selectedShapes'> {
 	shapes: FocusedShape[] | null
@@ -13,19 +13,12 @@ export interface SelectedShapesPart extends BasePromptPart<'selectedShapes'> {
 export class SelectedShapesPartUtil extends PromptPartUtil<SelectedShapesPart> {
 	static override type = 'selectedShapes' as const
 
-	override getPriority() {
-		return 55 // selected shapes after context items (low priority)
-	}
+	// override getPriority() {
+	// 	return 55 // selected shapes after context items (low priority)
+	// }
 
-	override getPart(
-		_request: AgentRequest,
-		helpers: AgentHelpers,
-		parts: PromptPartUtilConstructor['type'][]
-	): SelectedShapesPart {
-		if (!this.agent || !parts.includes('selectedShapes')) {
-			return { type: 'selectedShapes', shapes: null }
-		}
-		const { editor } = this.agent
+	override getPart(_request: AgentRequest, helpers: AgentHelpers): SelectedShapesPart {
+		const { editor } = this
 
 		const userSelectedShapes = editor.getSelectedShapes().map((v) => structuredClone(v)) ?? []
 
@@ -49,14 +42,14 @@ export class SelectedShapesPartUtil extends PromptPartUtil<SelectedShapesPart> {
 		}
 	}
 
-	override buildContent({ shapes }: SelectedShapesPart) {
-		if (!shapes || shapes.length === 0) {
-			return []
-		}
+	// override buildContent({ shapes }: SelectedShapesPart) {
+	// 	if (!shapes || shapes.length === 0) {
+	// 		return []
+	// 	}
 
-		return [
-			'The user has selected these shapes. Focus your task on these shapes where applicable:',
-			shapes.map((shape) => JSON.stringify(shape)).join('\n'),
-		]
-	}
+	// 	return [
+	// 		'The user has selected these shapes. Focus your task on these shapes where applicable:',
+	// 		shapes.map((shape) => JSON.stringify(shape)).join('\n'),
+	// 	]
+	// }
 }

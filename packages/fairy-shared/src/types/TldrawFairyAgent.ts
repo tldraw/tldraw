@@ -2,11 +2,10 @@ import { Editor } from '@tldraw/editor'
 import { Atom } from '@tldraw/state'
 import { RecordsDiff } from '@tldraw/store'
 import { BoxModel, TLRecord, VecModel } from '@tldraw/tlschema'
-import { AgentActionUtil } from '../actions/AgentActionUtil'
+import { AgentActionUtil } from '../../../../apps/dotcom/client/src/fairy/actions/AgentActionUtil'
 import { AgentHelpers } from '../AgentHelpers'
-import { AgentModelName } from '../models'
 import { PromptPartUtil } from '../parts/PromptPartUtil'
-import { AgentAction } from './AgentAction'
+import { AgentAction } from './AgentActionSchema'
 import { AgentInput } from './AgentInput'
 import { AgentPrompt } from './AgentPrompt'
 import { AgentRequest } from './AgentRequest'
@@ -65,9 +64,6 @@ export interface TldrawFairyAgent {
 
 	/** An atom containing currently selected context items. */
 	$contextItems: Atom<ContextItem[]>
-
-	/** An atom containing the model name that the user has selected. */
-	$modelName: Atom<AgentModelName>
 
 	/** A record of the agent's action util instances. */
 	agentActionUtils: Record<AgentAction['_type'], AgentActionUtil<AgentAction>>

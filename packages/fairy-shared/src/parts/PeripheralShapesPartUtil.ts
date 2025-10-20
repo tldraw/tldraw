@@ -4,7 +4,7 @@ import { convertTldrawShapesToPeripheralShapes } from '../format/convertTldrawSh
 import { PeripheralShapeCluster } from '../format/PeripheralShapesCluster'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
-import { PromptPartUtil, PromptPartUtilConstructor } from './PromptPartUtil'
+import { PromptPartUtil } from './PromptPartUtil'
 
 export interface PeripheralShapesPart extends BasePromptPart<'peripheralShapes'> {
 	clusters: PeripheralShapeCluster[] | null
@@ -13,19 +13,12 @@ export interface PeripheralShapesPart extends BasePromptPart<'peripheralShapes'>
 export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPart> {
 	static override type = 'peripheralShapes' as const
 
-	override getPriority() {
-		return 65 // peripheral content after viewport shapes (low priority)
-	}
+	// override getPriority() {
+	// 	return 65 // peripheral content after viewport shapes (low priority)
+	// }
 
-	override getPart(
-		request: AgentRequest,
-		helpers: AgentHelpers,
-		parts: PromptPartUtilConstructor['type'][]
-	): PeripheralShapesPart {
-		if (!this.agent || !parts.includes('peripheralShapes')) {
-			return { type: 'peripheralShapes', clusters: null }
-		}
-		const { editor } = this.agent
+	override getPart(request: AgentRequest, helpers: AgentHelpers): PeripheralShapesPart {
+		const { editor } = this
 
 		const shapes = editor.getCurrentPageShapesSorted()
 		const contextBounds = request.bounds
@@ -61,14 +54,14 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPar
 		}
 	}
 
-	override buildContent({ clusters }: PeripheralShapesPart): string[] {
-		if (!clusters || clusters.length === 0) {
-			return []
-		}
+	// override buildContent({ clusters }: PeripheralShapesPart): string[] {
+	// 	if (!clusters || clusters.length === 0) {
+	// 		return []
+	// 	}
 
-		return [
-			"There are some groups of shapes in your peripheral vision, outside the your main view. You can't make out their details or content. If you want to see their content, you need to get closer. The groups are as follows",
-			JSON.stringify(clusters),
-		]
-	}
+	// 	return [
+	// 		"There are some groups of shapes in your peripheral vision, outside the your main view. You can't make out their details or content. If you want to see their content, you need to get closer. The groups are as follows",
+	// 		JSON.stringify(clusters),
+	// 	]
+	// }
 }

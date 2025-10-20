@@ -1,8 +1,6 @@
-import { AgentHelpers } from '../AgentHelpers'
-import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { TodoItem } from '../types/TodoItem'
-import { PromptPartUtil, PromptPartUtilConstructor } from './PromptPartUtil'
+import { PromptPartUtil } from './PromptPartUtil'
 
 export interface TodoListPart extends BasePromptPart<'todoList'> {
 	items: TodoItem[]
@@ -11,33 +9,22 @@ export interface TodoListPart extends BasePromptPart<'todoList'> {
 export class TodoListPartUtil extends PromptPartUtil<TodoListPart> {
 	static override type = 'todoList' as const
 
-	override getPriority() {
-		return 10
-	}
+	// override getPriority() {
+	// 	return 10
+	// }
 
-	override getPart(
-		_request: AgentRequest,
-		helpers: AgentHelpers,
-		parts: PromptPartUtilConstructor['type'][]
-	): TodoListPart {
-		if (!parts.includes('todoList')) {
-			return {
-				type: 'todoList',
-				items: [],
-			}
-		}
-
+	override getPart(): TodoListPart {
 		return {
 			type: 'todoList',
-			items: helpers.agent.$todoList.get(),
+			items: this.agent.$todoList.get(),
 		}
 	}
 
-	override buildContent({ items }: TodoListPart): string[] {
-		if (items.length === 0)
-			return [
-				'You have no todos yet. Use the `update-todo-list` event with a new id to create a todo.',
-			]
-		return [`Here is your current todo list:`, JSON.stringify(items)]
-	}
+	// override buildContent({ items }: TodoListPart): string[] {
+	// 	if (items.length === 0)
+	// 		return [
+	// 			'You have no todos yet. Use the `update-todo-list` event with a new id to create a todo.',
+	// 		]
+	// 	return [`Here is your current todo list:`, JSON.stringify(items)]
+	// }
 }

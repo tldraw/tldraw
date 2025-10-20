@@ -1,4 +1,4 @@
-import { convertTldrawShapeToFocusedShape, DEFAULT_FAIRY_VISION } from '@tldraw/fairy-shared'
+import { convertTldrawShapeToFocusedShape, FAIRY_VISION_DIMENSIONS } from '@tldraw/fairy-shared'
 import { useCallback, useRef, useState } from 'react'
 import { Box, TldrawUiInput, useValue } from 'tldraw'
 import { TldrawFairyAgent } from '../agent/TldrawFairyAgent'
@@ -8,7 +8,6 @@ export function FairyBasicInput({ agent }: { agent: TldrawFairyAgent }) {
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [inputValue, setInputValue] = useState('')
 	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
-	const modelName = useValue(agent.$modelName)
 
 	const fairy = useValue('fairy', () => agent.$fairy, [agent])
 
@@ -30,18 +29,17 @@ export function FairyBasicInput({ agent }: { agent: TldrawFairyAgent }) {
 
 			const fairyPosition = fairy.get().position
 
-			const fairyVision = Box.FromCenter(fairyPosition, DEFAULT_FAIRY_VISION)
+			const fairyVision = Box.FromCenter(fairyPosition, FAIRY_VISION_DIMENSIONS)
 
 			await agent.prompt({
 				message: value,
 				contextItems: [],
 				bounds: fairyVision,
-				modelName,
 				selectedShapes,
 				type: 'user',
 			})
 		},
-		[agent, modelName, editor, fairy]
+		[agent, editor, fairy]
 	)
 
 	const shouldCancel = isGenerating && inputValue === ''

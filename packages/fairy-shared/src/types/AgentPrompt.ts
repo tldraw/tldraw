@@ -1,5 +1,4 @@
 import { Editor } from '@tldraw/editor'
-import { PROMPT_PART_UTILS as _PROMPT_PART_UTILS } from '../parts/PromptPartUtils'
 import { AgentRequest } from './AgentRequest'
 import { BasePromptPart } from './BasePromptPart'
 import { PromptPart } from './PromptPart'
@@ -20,6 +19,6 @@ export type BaseAgentPrompt<T extends BasePromptPart = BasePromptPart> = {
 }
 
 /**
- * An object with all parts of the prompt, defined by: {@link _PROMPT_PART_UTILS}.
+ * An object with all parts of the prompt.
  */
 export type AgentPrompt = BaseAgentPrompt<PromptPart>

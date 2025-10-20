@@ -1,8 +1,7 @@
 import { JsonValue } from '@tldraw/utils'
-import { AgentHelpers } from '../AgentHelpers'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
-import { PromptPartUtil, PromptPartUtilConstructor } from './PromptPartUtil'
+import { PromptPartUtil } from './PromptPartUtil'
 
 interface DataPart extends BasePromptPart<'data'> {
 	data: JsonValue[]
@@ -14,22 +13,11 @@ interface DataPart extends BasePromptPart<'data'> {
 export class DataPartUtil extends PromptPartUtil<DataPart> {
 	static override type = 'data' as const
 
-	override getPriority() {
-		return -200 // API data should come right before the user message but after most other parts
-	}
+	// override getPriority() {
+	// 	return -200 // API data should come right before the user message but after most other parts
+	// }
 
-	override async getPart(
-		request: AgentRequest,
-		helpers: AgentHelpers,
-		parts: PromptPartUtilConstructor['type'][]
-	): Promise<DataPart> {
-		if (!parts.includes('data')) {
-			return {
-				type: 'data',
-				data: [],
-			}
-		}
-
+	override async getPart(request: AgentRequest): Promise<DataPart> {
 		const { data } = request
 
 		const values = await Promise.all(
@@ -50,13 +38,13 @@ export class DataPartUtil extends PromptPartUtil<DataPart> {
 		}
 	}
 
-	override buildContent({ data }: DataPart) {
-		if (data.length === 0) return []
+	// override buildContent({ data }: DataPart) {
+	// 	if (data.length === 0) return []
 
-		const formattedData = data.map((item) => {
-			return `${JSON.stringify(item)}`
-		})
+	// 	const formattedData = data.map((item) => {
+	// 		return `${JSON.stringify(item)}`
+	// 	})
 
-		return ["Here's the data you requested:", ...formattedData]
-	}
+	// 	return ["Here's the data you requested:", ...formattedData]
+	// }
 }

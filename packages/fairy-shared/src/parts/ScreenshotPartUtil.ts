@@ -1,9 +1,8 @@
 import { Box } from '@tldraw/editor'
 import { FileHelpers } from '@tldraw/utils'
-import { AgentHelpers } from '../AgentHelpers'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
-import { PromptPartUtil, PromptPartUtilConstructor } from './PromptPartUtil'
+import { PromptPartUtil } from './PromptPartUtil'
 
 export interface ScreenshotPart extends BasePromptPart<'screenshot'> {
 	screenshot: string | null
@@ -12,19 +11,12 @@ export interface ScreenshotPart extends BasePromptPart<'screenshot'> {
 export class ScreenshotPartUtil extends PromptPartUtil<ScreenshotPart> {
 	static override type = 'screenshot' as const
 
-	override getPriority() {
-		return 40 // screenshot after text content (medium priority)
-	}
+	// override getPriority() {
+	// 	return 40 // screenshot after text content (medium priority)
+	// }
 
-	override async getPart(
-		request: AgentRequest,
-		helpers: AgentHelpers,
-		parts: PromptPartUtilConstructor['type'][]
-	): Promise<ScreenshotPart> {
-		if (!this.agent || !parts.includes('screenshot')) {
-			return { type: 'screenshot', screenshot: null }
-		}
-		const { editor } = this.agent
+	override async getPart(request: AgentRequest): Promise<ScreenshotPart> {
+		const { editor } = this
 
 		const contextBounds = request.bounds
 
@@ -59,12 +51,12 @@ export class ScreenshotPartUtil extends PromptPartUtil<ScreenshotPart> {
 		}
 	}
 
-	override buildContent({ screenshot }: ScreenshotPart) {
-		if (!screenshot) return []
+	// override buildContent({ screenshot }: ScreenshotPart) {
+	// 	if (!screenshot) return []
 
-		return [
-			'Here is the part of the canvas that you can currently see at this moment. It is not a reference image.',
-			screenshot,
-		]
-	}
+	// 	return [
+	// 		'Here is the part of the canvas that you can currently see at this moment. It is not a reference image.',
+	// 		screenshot,
+	// 	]
+	// }
 }

@@ -4,7 +4,7 @@ import { BlurryShape } from '../format/BlurryShape'
 import { convertTldrawShapeToBlurryShape } from '../format/convertTldrawShapeToBlurryShape'
 import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
-import { PromptPartUtil, PromptPartUtilConstructor } from './PromptPartUtil'
+import { PromptPartUtil } from './PromptPartUtil'
 
 export interface BlurryShapesPart extends BasePromptPart<'blurryShapes'> {
 	shapes: BlurryShape[] | null
@@ -13,19 +13,12 @@ export interface BlurryShapesPart extends BasePromptPart<'blurryShapes'> {
 export class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {
 	static override type = 'blurryShapes' as const
 
-	override getPriority() {
-		return 70
-	}
+	// override getPriority() {
+	// 	return 70
+	// }
 
-	override getPart(
-		request: AgentRequest,
-		helpers: AgentHelpers,
-		parts: PromptPartUtilConstructor['type'][]
-	): BlurryShapesPart {
-		if (!this.agent || !parts.includes('blurryShapes')) {
-			return { type: 'blurryShapes', shapes: null }
-		}
-		const { editor } = this.agent
+	override getPart(request: AgentRequest, helpers: AgentHelpers): BlurryShapesPart {
+		const { editor } = this
 
 		const shapes = editor.getCurrentPageShapesSorted()
 		const contextBoundsBox = Box.From(request.bounds)
@@ -65,9 +58,9 @@ export class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {
 		}
 	}
 
-	override buildContent({ shapes }: BlurryShapesPart): string[] {
-		if (!shapes || shapes.length === 0) return ['There are no shapes in your view at the moment.']
+	// override buildContent({ shapes }: BlurryShapesPart): string[] {
+	// 	if (!shapes || shapes.length === 0) return ['There are no shapes in your view at the moment.']
 
-		return [`These are the shapes you can currently see:`, JSON.stringify(shapes)]
-	}
+	// 	return [`These are the shapes you can currently see:`, JSON.stringify(shapes)]
+	// }
 }

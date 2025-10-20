@@ -1,25 +1,52 @@
 import { ModelMessage, UserContent } from 'ai'
-import { PromptPartUtilConstructor } from '../parts/PromptPartUtil'
-import { getPromptPartUtilsRecordByTypes } from '../parts/PromptPartUtils'
-import { AgentMessage } from '../types/AgentMessage'
+import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { AgentPrompt } from '../types/AgentPrompt'
+import { PromptPart } from '../types/PromptPart'
 
-export function buildMessages(
-	prompt: AgentPrompt,
-	parts: PromptPartUtilConstructor['type'][]
-): ModelMessage[] {
-	const utils = getPromptPartUtilsRecordByTypes(parts)
+export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
 	const allMessages: AgentMessage[] = []
 
 	for (const part of Object.values(prompt)) {
-		const util = utils[part.type]
-		const messages = util.buildMessages(part)
+		const messages = buildMessagesFromPart(part)
 		allMessages.push(...messages)
 	}
 
 	allMessages.sort((a, b) => b.priority - a.priority)
 
 	return toModelMessages(allMessages)
+}
+
+function buildMessagesFromPart(part: PromptPart): AgentMessage[] {
+	const content = buildContentFromPart(part)
+	if (!content || content.length === 0) {
+		return []
+	}
+
+	const messageContent: AgentMessageContent[] = []
+	for (const item of content) {
+		if (typeof item === 'string' && item.startsWith('data:image/')) {
+			messageContent.push({
+				type: 'image',
+				image: item,
+			})
+		} else {
+			messageContent.push({
+				type: 'text',
+				text: item,
+			})
+		}
+	}
+
+	return [{ role: 'user', content: messageContent, priority: 0 }]
+}
+
+function buildContentFromPart(part: PromptPart): string[] {
+	switch (part.type) {
+		case 'message':
+			return ['Hello world']
+		default:
+			return []
+	}
 }
 
 /**

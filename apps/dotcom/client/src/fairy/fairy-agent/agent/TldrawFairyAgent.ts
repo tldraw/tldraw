@@ -4,21 +4,17 @@ import {
 	AgentActionUtil,
 	AgentHelpers,
 	AgentInput,
-	AgentModelName,
 	AgentPrompt,
 	AgentRequest,
 	AreaContextItem,
 	BaseAgentPrompt,
 	ChatHistoryItem,
 	ContextItem,
-	DEFAULT_FAIRY_ACTIONS,
-	DEFAULT_FAIRY_PROMPT_PARTS,
-	DEFAULT_FAIRY_VISION,
-	DEFAULT_MODEL_NAME,
+	FAIRY_VISION_DIMENSIONS,
 	FairyEntity,
 	FocusedShape,
-	getAgentActionUtilsRecordByTypes,
-	getPromptPartUtilsRecordByTypes,
+	getAgentActionUtilsRecord,
+	getPromptPartUtilsRecord,
 	TldrawFairyAgent as ITldrawFairyAgent,
 	PointContextItem,
 	PromptPart,
@@ -34,7 +30,6 @@ import {
 	atom,
 	Box,
 	BoxModel,
-	computed,
 	Editor,
 	fetch,
 	getFromLocalStorage,
@@ -119,18 +114,6 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 	$contextItems = atom<ContextItem[]>('contextItems', [])
 
 	/**
-	 * An atom containing the model name that the user has selected. This gets
-	 * passed through to prompts unless manually overridden.
-	 *
-	 * Note: Prompt part utils may ignore or override this value. See the
-	 * ModelNamePartUtil for an example.
-	 */
-	$modelName = atom<AgentModelName>('modelName', DEFAULT_MODEL_NAME)
-
-	private stopReactingToActions: () => void
-	private stopReactingToParts: () => void
-
-	/**
 	 * Create a new tldraw agent.
 	 */
 	constructor({ editor, id, onError, getToken }: TldrawFairyAgentOptions) {
@@ -138,47 +121,24 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 		this.id = id
 		this.getToken = getToken
 
-		const availableActions = DEFAULT_FAIRY_ACTIONS
-		const availableParts = DEFAULT_FAIRY_PROMPT_PARTS
-
 		this.$fairy = atom<FairyEntity>(`fairy-${id}`, {
 			position: { x: 0, y: 0 },
 			flipX: false,
 			isSelected: false,
 			pose: 'idle',
-			actions: availableActions,
-			parts: availableParts,
 		})
 
 		this.onError = onError
 
 		$fairyAgentsAtom.update(editor, (agents) => [...agents, this])
 
-		// This below can probably be cleaned up a bit
-
-		// Source of truth for the actions and parts are the values in the $fairy atom
-		const computedActions = computed('computedActions', () => this.$fairy.get().actions)
-		const computedParts = computed('computedParts', () => this.$fairy.get().parts)
-
-		// Change the utils only if the actions or parts have changed
-		const stopReactingToActionsFn = react('update available actions', () => {
-			this.agentActionUtils = getAgentActionUtilsRecordByTypes(computedActions.get(), this)
-		})
-		this.stopReactingToActions = stopReactingToActionsFn
-
-		const stopReactingToPartsFn = react('update available parts', () => {
-			this.promptPartUtils = getPromptPartUtilsRecordByTypes(computedParts.get(), this)
-		})
-		this.stopReactingToParts = stopReactingToPartsFn
-
-		// Some of this might be vestigal
-		this.agentActionUtils = getAgentActionUtilsRecordByTypes(availableActions, this)
-		this.promptPartUtils = getPromptPartUtilsRecordByTypes(availableParts, this)
+		// A fairy agent's action utils and prompt part utils are static. They don't change.
+		this.agentActionUtils = getAgentActionUtilsRecord(this)
+		this.promptPartUtils = getPromptPartUtilsRecord(this)
 		this.unknownActionUtil = this.agentActionUtils.unknown
 
 		persistAtomInLocalStorage(this.$chatHistory, `${id}:chat-history`)
 		persistAtomInLocalStorage(this.$chatOrigin, `${id}:chat-origin`)
-		persistAtomInLocalStorage(this.$modelName, `${id}:model-name`)
 		persistAtomInLocalStorage(this.$todoList, `${id}:todo-items`)
 		persistAtomInLocalStorage(this.$contextItems, `${id}:context-items`)
 		persistAtomInLocalStorage(this.$fairy, `${id}:fairy`)
@@ -192,8 +152,6 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 	dispose() {
 		this.cancel()
 		this.stopRecordingUserActions()
-		this.stopReactingToActions()
-		this.stopReactingToParts()
 		$fairyAgentsAtom.update(this.editor, (agents) => agents.filter((agent) => agent.id !== this.id))
 	}
 
@@ -268,9 +226,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 			bounds:
 				request.bounds ??
 				activeRequest?.bounds ??
-				Box.FromCenter(this.$fairy.get().position, DEFAULT_FAIRY_VISION),
-			// this.editor.getViewportPageBounds(),
-			modelName: request.modelName ?? activeRequest?.modelName ?? this.$modelName.get(),
+				Box.FromCenter(this.$fairy.get().position, FAIRY_VISION_DIMENSIONS),
 		}
 	}
 
@@ -325,7 +281,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 		const transformedParts: PromptPart[] = []
 
 		for (const util of Object.values(promptPartUtils)) {
-			const part = await util.getPart(structuredClone(request), helpers, this.$fairy.get().parts)
+			const part = await util.getPart(structuredClone(request), helpers)
 			if (!part) continue
 			transformedParts.push(part)
 		}
@@ -382,7 +338,6 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 				messages: request.messages,
 				contextItems: request.contextItems,
 				bounds: request.bounds,
-				modelName: request.modelName,
 				selectedShapes: request.selectedShapes,
 				data: request.data,
 				type: 'todo',
@@ -486,7 +441,6 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 
 			// Override specific properties
 			bounds: request.bounds ?? scheduledRequest.bounds,
-			modelName: request.modelName ?? scheduledRequest.modelName,
 		})
 	}
 
@@ -634,11 +588,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 
 		const res = await fetch(`${FAIRY_WORKER}/stream`, {
 			method: 'POST',
-			body: JSON.stringify({
-				prompt,
-				actions: this.$fairy.get().actions,
-				parts: this.$fairy.get().parts,
-			}),
+			body: JSON.stringify(prompt),
 			headers,
 			signal,
 		})
@@ -709,7 +659,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 		this.$todoList.set([])
 		this.$userActionHistory.set([])
 
-		const viewport = Box.FromCenter(this.$fairy.get().position, DEFAULT_FAIRY_VISION)
+		const viewport = Box.FromCenter(this.$fairy.get().position, FAIRY_VISION_DIMENSIONS)
 		// const viewport = this.editor.getViewportPageBounds()
 		this.$chatHistory.set([])
 		this.$chatOrigin.set({ x: viewport.x, y: viewport.y })

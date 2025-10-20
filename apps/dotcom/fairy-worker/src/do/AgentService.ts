@@ -9,14 +9,12 @@ import { LanguageModel, streamText } from 'ai'
 
 import {
 	AgentAction,
-	AgentActionUtilConstructor,
 	AgentModelName,
 	AgentPrompt,
 	buildMessages,
 	buildSystemPrompt,
+	DEFAULT_MODEL_NAME,
 	getAgentModelDefinition,
-	getModelName,
-	PromptPartUtilConstructor,
 	Streaming,
 } from '@tldraw/fairy-shared'
 import { Environment } from '../environment'
@@ -39,15 +37,11 @@ export class AgentService {
 		return this[provider](modelDefinition.id)
 	}
 
-	async *stream(
-		prompt: AgentPrompt,
-		actions: AgentActionUtilConstructor['type'][],
-		parts: PromptPartUtilConstructor['type'][]
-	): AsyncGenerator<Streaming<AgentAction>> {
+	async *stream(prompt: AgentPrompt): AsyncGenerator<Streaming<AgentAction>> {
 		try {
-			const modelName = getModelName(prompt)
+			const modelName = DEFAULT_MODEL_NAME
 			const model = this.getModel(modelName)
-			for await (const event of streamActions(model, prompt, actions, parts)) {
+			for await (const event of streamActions(model, prompt)) {
 				yield event
 			}
 		} catch (error: any) {
@@ -59,9 +53,7 @@ export class AgentService {
 
 async function* streamActions(
 	model: LanguageModel,
-	prompt: AgentPrompt,
-	actions: AgentActionUtilConstructor['type'][],
-	parts: PromptPartUtilConstructor['type'][]
+	prompt: AgentPrompt
 ): AsyncGenerator<Streaming<AgentAction>> {
 	if (typeof model === 'string') {
 		throw new Error('Model is a string, not a LanguageModel')
@@ -69,8 +61,8 @@ async function* streamActions(
 
 	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
 
-	const messages = buildMessages(prompt, parts)
-	const systemPrompt = buildSystemPrompt(prompt, actions, parts) || 'You are a helpful assistant.'
+	const messages = buildMessages(prompt)
+	const systemPrompt = buildSystemPrompt(prompt)
 
 	try {
 		messages.push({
