@@ -338,6 +338,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 			await client.query('BEGIN')
 
+			// Acquire shared advisory lock to coordinate with migration
+			// This will wait if migrate_user_to_groups is running (which uses exclusive lock)
+			// but won't block other mutations (which also use shared locks)
+			// Lock will be automatically released when transaction ends
+			await client.query('SELECT pg_advisory_xact_lock_shared(hashtext($1))', [this.userId])
+
 			const controller = new AbortController()
 			const mutate = this.makeCrud(client, controller.signal, { newFiles })
 			try {

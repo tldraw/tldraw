@@ -110,6 +110,7 @@ apps/docs/api
 /vercel.json
 license-report-prod.html
 license-report.html
+license-report.md
 
 .bundle-meta.json
 .zed

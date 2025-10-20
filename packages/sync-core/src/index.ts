@@ -40,7 +40,7 @@ export {
 	type TLPersistentClientSocket,
 	type TLPersistentClientSocketStatus,
 	type TLPresenceMode,
-	type TlSocketStatusChangeEvent,
+	type TLSocketStatusChangeEvent,
 	type TLSocketStatusListener,
 } from './lib/TLSyncClient'
 export {
