@@ -1,5 +1,6 @@
-import { AgentHelpers, RotateAction, Streaming } from '@tldraw/fairy-shared'
+import { RotateAction, Streaming } from '@tldraw/fairy-shared'
 import { TLShapeId } from 'tldraw'
+import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class RotateActionUtil extends AgentActionUtil<RotateAction> {

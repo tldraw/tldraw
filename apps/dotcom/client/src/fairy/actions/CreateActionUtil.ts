@@ -1,5 +1,4 @@
 import {
-	AgentHelpers,
 	convertFocusedShapeToTldrawShape,
 	CreateAction,
 	FocusedShape,
@@ -7,6 +6,7 @@ import {
 	Streaming,
 } from '@tldraw/fairy-shared'
 import { IndexKey, toRichText } from 'tldraw'
+import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class CreateActionUtil extends AgentActionUtil<CreateAction> {

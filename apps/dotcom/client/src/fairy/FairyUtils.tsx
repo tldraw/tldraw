@@ -1,24 +1,4 @@
-import {
-	AgentAction,
-	BaseAgentAction,
-	BasePromptPart,
-	BlurryShapesPartUtil,
-	ChatHistoryPartUtil,
-	ContextItemsPartUtil,
-	DataPartUtil,
-	MessagesPartUtil,
-	PeripheralShapesPartUtil,
-	PromptPart,
-	PromptPartUtil,
-	PromptPartUtilConstructor,
-	ScreenshotPartUtil,
-	SelectedShapesPartUtil,
-	TimePartUtil,
-	TldrawFairyAgent,
-	TodoListPartUtil,
-	UserActionHistoryPartUtil,
-	ViewportBoundsPartUtil,
-} from '@tldraw/fairy-shared'
+import { AgentAction, BaseAgentAction, BasePromptPart, PromptPart } from '@tldraw/fairy-shared'
 import { AgentActionUtil, AgentActionUtilConstructor } from './actions/AgentActionUtil'
 import { AlignActionUtil } from './actions/AlignActionUtil'
 import { BringToFrontActionUtil } from './actions/BringToFrontActionUtil'
@@ -41,6 +21,20 @@ import { ThinkActionUtil } from './actions/ThinkActionUtil'
 import { TodoListActionUtil } from './actions/TodoListActionUtil'
 import { UnknownActionUtil } from './actions/UnknownActionUtil'
 import { UpdateActionUtil } from './actions/UpdateActionUtil'
+import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { BlurryShapesPartUtil } from './parts/BlurryShapesPartUtil'
+import { ChatHistoryPartUtil } from './parts/ChatHistoryPartUtil'
+import { ContextItemsPartUtil } from './parts/ContextItemsPartUtil'
+import { DataPartUtil } from './parts/DataPartUtil'
+import { MessagesPartUtil } from './parts/MessagesPartUtil'
+import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
+import { PromptPartUtil, PromptPartUtilConstructor } from './parts/PromptPartUtil'
+import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
+import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
+import { TimePartUtil } from './parts/TimePartUtil'
+import { TodoListPartUtil } from './parts/TodoListPartUtil'
+import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
+import { ViewportBoundsPartUtil } from './parts/ViewportBoundsPartUtil'
 
 /**
  * Agent action utils determine what actions do.
@@ -113,7 +107,7 @@ export const PROMPT_PART_UTILS = [
 /**
  * Get an object containing all agent action utils.
  */
-export function getAgentActionUtilsRecord(agent: TldrawFairyAgent) {
+export function getAgentActionUtilsRecord(agent: FairyAgent) {
 	const object = {} as Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
 	for (const util of AGENT_ACTION_UTILS) {
 		object[util.type] = new util(agent)
@@ -124,7 +118,7 @@ export function getAgentActionUtilsRecord(agent: TldrawFairyAgent) {
 /**
  * Get an object containing all prompt part utils.
  */
-export function getPromptPartUtilsRecord(agent: TldrawFairyAgent) {
+export function getPromptPartUtilsRecord(agent: FairyAgent) {
 	const object = {} as Record<PromptPart['type'], PromptPartUtil<PromptPart>>
 	for (const util of PROMPT_PART_UTILS) {
 		object[util.type] = new util(agent)

@@ -54,4 +54,4 @@ export const AGENT_ACTION_SCHEMAS = [
 
 	// Drawing
 	PenActionSchema,
-]
+] as const

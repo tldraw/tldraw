@@ -1,7 +1,9 @@
 import z from 'zod'
+import { AGENT_ACTION_SCHEMAS } from '../FairySchema'
 import { FocusedShapeSchema } from '../format/FocusedShape'
 import { SimpleColor } from '../format/SimpleColor'
 import { SimpleFillSchema } from '../format/SimpleFill'
+import { AgentAction } from './AgentAction'
 import { BaseAgentAction } from './BaseAgentAction'
 
 export type UnknownAction = BaseAgentAction<'unknown'>
@@ -343,3 +345,17 @@ export const UpdateActionSchema = z
 	})
 
 export type UpdateAction = z.infer<typeof UpdateActionSchema>
+
+/**
+ * Build the JSON schema for the agent's response format.
+ */
+export function buildResponseSchema(_availableActionTypes: AgentAction['_type'][]) {
+	// Todo: Filter the available action schemas to only include the available action types.
+	const availableActionSchemas = AGENT_ACTION_SCHEMAS
+
+	const schema = z.object({
+		actions: z.array(z.union(availableActionSchemas)),
+	})
+
+	return z.toJSONSchema(schema, { reused: 'ref' })
+}

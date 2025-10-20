@@ -1,13 +1,13 @@
-import { squashRecordDiffs } from '@tldraw/store'
-import { AgentHelpers } from '../AgentHelpers'
 import {
+	AgentRequest,
+	BasePromptPart,
 	convertTldrawIdToSimpleId,
 	convertTldrawShapeToFocusedShape,
 	convertTldrawShapeToSimpleType,
-} from '../format/convertTldrawShapeToFocusedShape'
-import { FocusedShape } from '../format/FocusedShape'
-import { AgentRequest } from '../types/AgentRequest'
-import { BasePromptPart } from '../types/BasePromptPart'
+	FocusedShape,
+} from '@tldraw/fairy-shared'
+import { squashRecordDiffs } from 'tldraw'
+import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export interface UserActionHistoryPart extends BasePromptPart<'userActionHistory'> {

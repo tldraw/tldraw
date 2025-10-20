@@ -1,4 +1,4 @@
-export const DEFAULT_MODEL_NAME = 'claude-4.5-sonnet'
+export const FAIRY_MODEL_NAME = 'claude-4.5-sonnet'
 
 export type AgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
 export type AgentModelProvider = 'openai' | 'anthropic' | 'google'

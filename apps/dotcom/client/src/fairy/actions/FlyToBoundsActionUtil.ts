@@ -1,9 +1,5 @@
-import {
-	AgentHelpers,
-	FAIRY_VISION_DIMENSIONS,
-	FlyToBoundsAction,
-	Streaming,
-} from '@tldraw/fairy-shared'
+import { FAIRY_VISION_DIMENSIONS, FlyToBoundsAction, Streaming } from '@tldraw/fairy-shared'
+import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class FlyToBoundsActionUtil extends AgentActionUtil<FlyToBoundsAction> {

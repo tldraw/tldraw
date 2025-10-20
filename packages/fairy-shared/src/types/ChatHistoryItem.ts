@@ -2,7 +2,7 @@ import { RecordsDiff } from '@tldraw/store'
 import { TLRecord } from '@tldraw/tlschema'
 import { JsonValue } from '@tldraw/utils'
 import { FocusedShape } from '../format/FocusedShape'
-import { AgentAction } from './AgentActionSchema'
+import { AgentAction } from './AgentAction'
 import { ContextItem } from './ContextItem'
 import { Streaming } from './Streaming'
 

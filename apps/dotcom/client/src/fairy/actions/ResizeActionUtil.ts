@@ -1,5 +1,6 @@
-import { AgentHelpers, ResizeAction, Streaming } from '@tldraw/fairy-shared'
+import { ResizeAction, Streaming } from '@tldraw/fairy-shared'
 import { TLShapeId } from 'tldraw'
+import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class ResizeActionUtil extends AgentActionUtil<ResizeAction> {

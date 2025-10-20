@@ -1,8 +1,6 @@
 import {
 	AgentAction,
 	AgentActionInfo,
-	AgentActionUtil,
-	AgentHelpers,
 	AgentInput,
 	AgentPrompt,
 	AgentRequest,
@@ -13,16 +11,11 @@ import {
 	FAIRY_VISION_DIMENSIONS,
 	FairyEntity,
 	FocusedShape,
-	getAgentActionUtilsRecord,
-	getPromptPartUtilsRecord,
-	TldrawFairyAgent as ITldrawFairyAgent,
 	PointContextItem,
 	PromptPart,
-	PromptPartUtil,
 	ShapeContextItem,
 	ShapesContextItem,
 	Streaming,
-	TldrawFairyAgentOptions,
 	TodoItem,
 } from '@tldraw/fairy-shared'
 import {
@@ -43,6 +36,11 @@ import {
 	VecModel,
 } from 'tldraw'
 import { FAIRY_WORKER } from '../../../utils/config'
+import { AgentActionUtil } from '../../actions/AgentActionUtil'
+import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../FairyUtils'
+import { PromptPartUtil } from '../../parts/PromptPartUtil'
+import { AgentHelpers } from './AgentHelpers'
+import { FairyAgentOptions } from './FairyAgentOptions'
 import { $fairyAgentsAtom } from './fairyAgentsAtom'
 
 /**
@@ -55,7 +53,7 @@ import { $fairyAgentsAtom } from './fairyAgentsAtom'
  * agent.prompt({ message: 'Draw a snowman' })
  * ```
  */
-export class TldrawFairyAgent implements ITldrawFairyAgent {
+export class FairyAgent {
 	/** The editor associated with this agent. */
 	editor: Editor
 
@@ -116,7 +114,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
 	/**
 	 * Create a new tldraw agent.
 	 */
-	constructor({ editor, id, onError, getToken }: TldrawFairyAgentOptions) {
+	constructor({ editor, id, onError, getToken }: FairyAgentOptions) {
 		this.editor = editor
 		this.id = id
 		this.getToken = getToken
@@ -867,7 +865,7 @@ export class TldrawFairyAgent implements ITldrawFairyAgent {
  *
  * This is a helper function that is used internally by the agent.
  */
-function requestAgent({ agent, request }: { agent: TldrawFairyAgent; request: AgentRequest }) {
+function requestAgent({ agent, request }: { agent: FairyAgent; request: AgentRequest }) {
 	const { editor } = agent
 
 	// If the request is from the user, add it to chat history

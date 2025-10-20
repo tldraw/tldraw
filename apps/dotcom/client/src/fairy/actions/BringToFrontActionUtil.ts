@@ -1,5 +1,6 @@
-import { AgentHelpers, BringToFrontAction, Streaming } from '@tldraw/fairy-shared'
+import { BringToFrontAction, Streaming } from '@tldraw/fairy-shared'
 import { TLShapeId } from 'tldraw'
+import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class BringToFrontActionUtil extends AgentActionUtil<BringToFrontAction> {

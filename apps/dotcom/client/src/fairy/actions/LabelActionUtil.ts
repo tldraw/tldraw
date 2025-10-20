@@ -1,5 +1,6 @@
-import { AgentHelpers, LabelAction, Streaming } from '@tldraw/fairy-shared'
+import { LabelAction, Streaming } from '@tldraw/fairy-shared'
 import { TLShapeId, toRichText } from 'tldraw'
+import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class LabelActionUtil extends AgentActionUtil<LabelAction> {

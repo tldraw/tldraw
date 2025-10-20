@@ -1,9 +1,11 @@
-import { structuredClone } from '@tldraw/utils'
-import { AgentHelpers } from '../AgentHelpers'
-import { convertTldrawShapeToFocusedShape } from '../format/convertTldrawShapeToFocusedShape'
-import { FocusedShape } from '../format/FocusedShape'
-import { AgentRequest } from '../types/AgentRequest'
-import { BasePromptPart } from '../types/BasePromptPart'
+import {
+	AgentRequest,
+	BasePromptPart,
+	convertTldrawShapeToFocusedShape,
+	FocusedShape,
+} from '@tldraw/fairy-shared'
+import { structuredClone } from 'tldraw'
+import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export interface SelectedShapesPart extends BasePromptPart<'selectedShapes'> {

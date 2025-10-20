@@ -5,20 +5,13 @@ import {
 	GoogleGenerativeAIProviderOptions,
 } from '@ai-sdk/google'
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
+import { AgentAction, AgentPrompt, Streaming } from '@tldraw/fairy-shared'
 import { LanguageModel, streamText } from 'ai'
-
-import {
-	AgentAction,
-	AgentModelName,
-	AgentPrompt,
-	buildMessages,
-	buildSystemPrompt,
-	DEFAULT_MODEL_NAME,
-	getAgentModelDefinition,
-	Streaming,
-} from '@tldraw/fairy-shared'
 import { Environment } from '../environment'
+import { buildMessages } from './buildMessages'
+import { buildSystemPrompt } from './buildSystemPrompt'
 import { closeAndParseJson } from './closeAndParseJson'
+import { AgentModelName, FAIRY_MODEL_NAME, getAgentModelDefinition } from './models'
 
 export class AgentService {
 	openai: OpenAIProvider
@@ -39,8 +32,7 @@ export class AgentService {
 
 	async *stream(prompt: AgentPrompt): AsyncGenerator<Streaming<AgentAction>> {
 		try {
-			const modelName = DEFAULT_MODEL_NAME
-			const model = this.getModel(modelName)
+			const model = this.getModel(FAIRY_MODEL_NAME)
 			for await (const event of streamActions(model, prompt)) {
 				yield event
 			}

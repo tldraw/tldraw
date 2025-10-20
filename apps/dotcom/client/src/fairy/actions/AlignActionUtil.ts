@@ -1,5 +1,6 @@
-import { AgentHelpers, AlignAction, Streaming } from '@tldraw/fairy-shared'
+import { AlignAction, Streaming } from '@tldraw/fairy-shared'
 import { TLShapeId } from 'tldraw'
+import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class AlignActionUtil extends AgentActionUtil<AlignAction> {

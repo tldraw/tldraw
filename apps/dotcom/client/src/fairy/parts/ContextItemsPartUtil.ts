@@ -1,7 +1,5 @@
-import { AgentHelpers } from '../AgentHelpers'
-import { AgentRequest } from '../types/AgentRequest'
-import { BasePromptPart } from '../types/BasePromptPart'
-import { ContextItem } from '../types/ContextItem'
+import { AgentRequest, BasePromptPart, ContextItem } from '@tldraw/fairy-shared'
+import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export interface ContextItemsPart extends BasePromptPart<'contextItems'> {

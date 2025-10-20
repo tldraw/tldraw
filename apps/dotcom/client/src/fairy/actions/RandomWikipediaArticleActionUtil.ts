@@ -1,5 +1,6 @@
-import { AgentHelpers, RandomWikipediaArticleAction, Streaming } from '@tldraw/fairy-shared'
+import { RandomWikipediaArticleAction, Streaming } from '@tldraw/fairy-shared'
 import { fetch } from 'tldraw'
+import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class RandomWikipediaArticleActionUtil extends AgentActionUtil<RandomWikipediaArticleAction> {

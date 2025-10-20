@@ -1,9 +1,11 @@
-import { Box } from '@tldraw/editor'
-import { AgentHelpers } from '../AgentHelpers'
-import { convertTldrawShapesToPeripheralShapes } from '../format/convertTldrawShapesToPeripheralShapes'
-import { PeripheralShapeCluster } from '../format/PeripheralShapesCluster'
-import { AgentRequest } from '../types/AgentRequest'
-import { BasePromptPart } from '../types/BasePromptPart'
+import {
+	AgentRequest,
+	BasePromptPart,
+	convertTldrawShapesToPeripheralShapes,
+	PeripheralShapeCluster,
+} from '@tldraw/fairy-shared'
+import { Box } from 'tldraw'
+import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export interface PeripheralShapesPart extends BasePromptPart<'peripheralShapes'> {

@@ -1,7 +1,5 @@
-import { Box } from '@tldraw/editor'
-import { FileHelpers } from '@tldraw/utils'
-import { AgentRequest } from '../types/AgentRequest'
-import { BasePromptPart } from '../types/BasePromptPart'
+import { AgentRequest, BasePromptPart } from '@tldraw/fairy-shared'
+import { Box, FileHelpers } from 'tldraw'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export interface ScreenshotPart extends BasePromptPart<'screenshot'> {

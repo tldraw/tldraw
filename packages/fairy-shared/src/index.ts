@@ -1,20 +1,5 @@
 /* eslint-disable local/no-export-star */
 
-// Parts
-export * from './parts/BlurryShapesPartUtil'
-export * from './parts/ChatHistoryPartUtil'
-export * from './parts/ContextItemsPartUtil'
-export * from './parts/DataPartUtil'
-export * from './parts/MessagesPartUtil'
-export * from './parts/PeripheralShapesPartUtil'
-export * from './parts/PromptPartUtil'
-export * from './parts/ScreenshotPartUtil'
-export * from './parts/SelectedShapesPartUtil'
-export * from './parts/TimePartUtil'
-export * from './parts/TodoListPartUtil'
-export * from './parts/UserActionHistoryPartUtil'
-export * from './parts/ViewportBoundsPartUtil'
-
 // Format
 export type * from './format/BlurryShape'
 export * from './format/convertFocusedShapeToTldrawShape'
@@ -31,7 +16,6 @@ export * from './format/SimpleGeoShapeType'
 // Types (these are type-only exports)
 export type * from './types/AgentAction'
 export type * from './types/AgentActionInfo'
-export type * from './types/AgentActionSchema'
 export type * from './types/AgentInput'
 export type * from './types/AgentMessage'
 export type * from './types/AgentPrompt'
@@ -43,17 +27,12 @@ export type * from './types/ContextItem'
 export type * from './types/FairyEntity'
 export type * from './types/PromptPart'
 export type * from './types/Streaming'
-export type * from './types/TldrawFairyAgent'
 export type * from './types/TodoItem'
 export type * from './types/WikipediaArticle'
 
+// Schemas and definitions
+export * from './types/AgentActionSchema'
 export * from './types/FairyPose'
-
-// Utils and Helpers
-export * from './AgentHelpers'
-
-// Models
-export * from './models'
 
 // Constants / Defaults
 export * from './constants'

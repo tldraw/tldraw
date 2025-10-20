@@ -1,8 +1,6 @@
-import { structuredClone } from '@tldraw/utils'
-import { AgentHelpers } from '../AgentHelpers'
-import { AgentRequest } from '../types/AgentRequest'
-import { BasePromptPart } from '../types/BasePromptPart'
-import { ChatHistoryItem } from '../types/ChatHistoryItem'
+import { AgentRequest, BasePromptPart, ChatHistoryItem } from '@tldraw/fairy-shared'
+import { structuredClone } from 'tldraw'
+import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export interface ChatHistoryPart extends BasePromptPart<'chatHistory'> {

@@ -1,4 +1,4 @@
-import { BasePromptPart } from '../types/BasePromptPart'
+import { BasePromptPart } from '@tldraw/fairy-shared'
 import { PromptPartUtil } from './PromptPartUtil'
 
 interface TimePart extends BasePromptPart<'time'> {

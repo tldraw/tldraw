@@ -1,4 +1,5 @@
-import { AgentHelpers, CountShapesAction, Streaming } from '@tldraw/fairy-shared'
+import { CountShapesAction, Streaming } from '@tldraw/fairy-shared'
+import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class CountShapesActionUtil extends AgentActionUtil<CountShapesAction> {

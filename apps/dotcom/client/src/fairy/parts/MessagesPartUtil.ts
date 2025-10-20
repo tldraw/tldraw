@@ -1,5 +1,4 @@
-import { AgentRequest } from '../types/AgentRequest'
-import { BasePromptPart } from '../types/BasePromptPart'
+import { AgentRequest, BasePromptPart } from '@tldraw/fairy-shared'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export interface MessagesPart extends BasePromptPart<'messages'> {

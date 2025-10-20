@@ -1,5 +1,4 @@
-import { BasePromptPart } from '../types/BasePromptPart'
-import { TodoItem } from '../types/TodoItem'
+import { BasePromptPart, TodoItem } from '@tldraw/fairy-shared'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export interface TodoListPart extends BasePromptPart<'todoList'> {

@@ -1,6 +1,5 @@
+import { AgentRequest, BasePromptPart } from '@tldraw/fairy-shared'
 import { JsonValue } from '@tldraw/utils'
-import { AgentRequest } from '../types/AgentRequest'
-import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil } from './PromptPartUtil'
 
 interface DataPart extends BasePromptPart<'data'> {

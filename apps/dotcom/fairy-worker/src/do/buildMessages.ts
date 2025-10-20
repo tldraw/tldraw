@@ -1,7 +1,5 @@
+import { AgentMessage, AgentMessageContent, AgentPrompt, PromptPart } from '@tldraw/fairy-shared'
 import { ModelMessage, UserContent } from 'ai'
-import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
-import { AgentPrompt } from '../types/AgentPrompt'
-import { PromptPart } from '../types/PromptPart'
 
 export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
 	const allMessages: AgentMessage[] = []

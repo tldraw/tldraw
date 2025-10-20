@@ -1,16 +1,15 @@
-import { Editor } from '@tldraw/editor'
-import { AgentHelpers } from '../AgentHelpers'
-import { AgentRequest } from '../types/AgentRequest'
-import { BasePromptPart } from '../types/BasePromptPart'
-import { TldrawFairyAgent } from '../types/TldrawFairyAgent'
+import { AgentRequest, BasePromptPart } from '@tldraw/fairy-shared'
+import { Editor } from 'tldraw'
+import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
+import { FairyAgent } from '../fairy-agent/agent/FairyAgent'
 
 export abstract class PromptPartUtil<T extends BasePromptPart = BasePromptPart> {
 	static type: string
 
-	protected agent: TldrawFairyAgent
+	protected agent: FairyAgent
 	protected editor: Editor
 
-	constructor(agent: TldrawFairyAgent) {
+	constructor(agent: FairyAgent) {
 		this.agent = agent
 		this.editor = agent.editor
 	}
@@ -23,6 +22,6 @@ export abstract class PromptPartUtil<T extends BasePromptPart = BasePromptPart> 
 }
 
 export interface PromptPartUtilConstructor<T extends BasePromptPart = BasePromptPart> {
-	new (agent: TldrawFairyAgent): PromptPartUtil<T>
+	new (agent: FairyAgent): PromptPartUtil<T>
 	type: T['type']
 }

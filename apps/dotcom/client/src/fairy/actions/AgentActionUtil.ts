@@ -1,19 +1,15 @@
-import {
-	AgentActionInfo,
-	AgentHelpers,
-	BaseAgentAction,
-	Streaming,
-	TldrawFairyAgent,
-} from '@tldraw/fairy-shared'
+import { AgentActionInfo, BaseAgentAction, Streaming } from '@tldraw/fairy-shared'
 import { Editor } from 'tldraw'
+import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
+import { FairyAgent } from '../fairy-agent/agent/FairyAgent'
 
 export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentAction> {
 	static type: string
 
-	protected agent: TldrawFairyAgent
+	protected agent: FairyAgent
 	protected editor: Editor
 
-	constructor(agent: TldrawFairyAgent) {
+	constructor(agent: FairyAgent) {
 		this.agent = agent
 		this.editor = agent.editor
 	}
@@ -54,6 +50,6 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 }
 
 export interface AgentActionUtilConstructor<T extends BaseAgentAction = BaseAgentAction> {
-	new (agent: TldrawFairyAgent, editor: Editor): AgentActionUtil<T>
+	new (agent: FairyAgent, editor: Editor): AgentActionUtil<T>
 	type: T['_type']
 }

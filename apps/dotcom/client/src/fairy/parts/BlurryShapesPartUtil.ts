@@ -1,9 +1,11 @@
-import { Box } from '@tldraw/editor'
-import { AgentHelpers } from '../AgentHelpers'
-import { BlurryShape } from '../format/BlurryShape'
-import { convertTldrawShapeToBlurryShape } from '../format/convertTldrawShapeToBlurryShape'
-import { AgentRequest } from '../types/AgentRequest'
-import { BasePromptPart } from '../types/BasePromptPart'
+import {
+	AgentRequest,
+	BasePromptPart,
+	BlurryShape,
+	convertTldrawShapeToBlurryShape,
+} from '@tldraw/fairy-shared'
+import { Box } from 'tldraw'
+import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export interface BlurryShapesPart extends BasePromptPart<'blurryShapes'> {

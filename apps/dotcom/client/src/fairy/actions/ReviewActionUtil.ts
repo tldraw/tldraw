@@ -1,5 +1,6 @@
-import { AgentHelpers, AreaContextItem, ReviewAction, Streaming } from '@tldraw/fairy-shared'
+import { AreaContextItem, ReviewAction, Streaming } from '@tldraw/fairy-shared'
 import { Box } from 'tldraw'
+import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class ReviewActionUtil extends AgentActionUtil<ReviewAction> {

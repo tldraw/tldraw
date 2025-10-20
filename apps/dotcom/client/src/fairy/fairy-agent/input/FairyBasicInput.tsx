@@ -1,9 +1,9 @@
 import { convertTldrawShapeToFocusedShape, FAIRY_VISION_DIMENSIONS } from '@tldraw/fairy-shared'
 import { useCallback, useRef, useState } from 'react'
 import { Box, TldrawUiInput, useValue } from 'tldraw'
-import { TldrawFairyAgent } from '../agent/TldrawFairyAgent'
+import { FairyAgent } from '../agent/FairyAgent'
 
-export function FairyBasicInput({ agent }: { agent: TldrawFairyAgent }) {
+export function FairyBasicInput({ agent }: { agent: FairyAgent }) {
 	const { editor } = agent
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [inputValue, setInputValue] = useState('')

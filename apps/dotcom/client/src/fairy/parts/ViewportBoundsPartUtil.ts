@@ -1,7 +1,6 @@
-import { BoxModel } from '@tldraw/editor'
-import { AgentHelpers } from '../AgentHelpers'
-import { AgentRequest } from '../types/AgentRequest'
-import { BasePromptPart } from '../types/BasePromptPart'
+import { AgentRequest, BasePromptPart } from '@tldraw/fairy-shared'
+import { BoxModel } from 'tldraw'
+import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export interface ViewportBoundsPart extends BasePromptPart<'viewportBounds'> {

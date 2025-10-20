@@ -1,9 +1,6 @@
-import { Editor } from '@tldraw/editor'
-import { BoxModel, TLShapeId, VecModel } from '@tldraw/tlschema'
-import { FocusedShape } from './format/FocusedShape'
-import { SimpleFill, SimpleFillSchema } from './format/SimpleFill'
-import { ContextItem } from './types/ContextItem'
-import { TldrawFairyAgent } from './types/TldrawFairyAgent'
+import { ContextItem, FocusedShape, SimpleFill, SimpleFillSchema } from '@tldraw/fairy-shared'
+import { BoxModel, Editor, TLShapeId, VecModel } from 'tldraw'
+import { FairyAgent } from './FairyAgent'
 
 /**
  * This class contains handles the transformations that happen throughout a
@@ -25,14 +22,14 @@ export class AgentHelpers {
 	/**
 	 * The agent that the this intance of AgentHelpers is for.
 	 */
-	agent: TldrawFairyAgent
+	agent: FairyAgent
 
 	/**
 	 * The editor that the this intance of AgentHelpers is for.
 	 */
 	editor: Editor
 
-	constructor(agent: TldrawFairyAgent) {
+	constructor(agent: FairyAgent) {
 		this.agent = agent
 		this.editor = agent.editor
 		const origin = agent.$chatOrigin.get()

@@ -1,5 +1,6 @@
-import { AgentHelpers, PlaceAction, Streaming } from '@tldraw/fairy-shared'
+import { PlaceAction, Streaming } from '@tldraw/fairy-shared'
 import { TLShapeId } from 'tldraw'
+import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class PlaceActionUtil extends AgentActionUtil<PlaceAction> {

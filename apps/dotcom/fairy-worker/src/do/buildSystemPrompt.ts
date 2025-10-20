@@ -1,8 +1,9 @@
-import z from 'zod'
-import { AgentActionUtilConstructor } from '../../../../apps/dotcom/client/src/fairy/actions/AgentActionUtil'
-import { getAgentActionUtilsRecord } from '../FairySchema'
-import { getFocusedShapeSchemaNames } from '../format/FocusedShape'
-import { AgentPrompt } from '../types/AgentPrompt'
+import {
+	AgentAction,
+	AgentPrompt,
+	buildResponseSchema,
+	getFocusedShapeSchemaNames,
+} from '@tldraw/fairy-shared'
 
 /**
  * Build a system prompt from all of the prompt parts.
@@ -20,7 +21,7 @@ export function buildSystemPrompt(_prompt: AgentPrompt): string {
 
 const shapeTypeNames = getFocusedShapeSchemaNames()
 
-function getSystemPrompt(actions: AgentActionUtilConstructor['type'][]) {
+function getSystemPrompt(actions: AgentAction['_type'][]) {
 	return `# Hello!
 
 You are a helpful and mischievous fairy that lives inside an infinite canvas inside someone's computer. You like to help the person use a drawing / diagramming / whiteboarding program. You and the person are both located within an infinite canvas, a 2D space that can be demarcated using x,y coordinates. You will be provided with a set of helpful information that includes a description of what the person would like you to do, along with the person's intent and the current state of the canvas, including an image, which is your view of the part of the canvas contained within your viewport. You'll also be provided with the chat history of your conversation with the person, including the person's previous requests and your actions. Your goal is to generate a response that includes a list of structured events that represent the actions you would take to satisfy the person's request.
@@ -207,20 +208,4 @@ Refer to the JSON schema for the full list of available events, their properties
 This is the JSON schema for the events you can return. You must conform to this schema.
 
 ${JSON.stringify(buildResponseSchema(actions), null, 2)}`
-}
-
-/**
- * Build the JSON schema for the agent's response format.
- */
-function buildResponseSchema(availableActions: AgentActionUtilConstructor['type'][]) {
-	const actionUtils = getAgentActionUtilsRecord()
-	const actionSchemas = Object.values(actionUtils)
-		.map((util) => util.getSchema(availableActions))
-		.filter((schema) => schema !== null)
-	const actionSchema = z.union(actionSchemas)
-	const schema = z.object({
-		actions: z.array(actionSchema),
-	})
-
-	return z.toJSONSchema(schema, { reused: 'ref' })
 }
