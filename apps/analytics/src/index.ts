@@ -81,6 +81,18 @@ class Analytics {
 			this.track('consent_changed', { consent })
 		})
 
+		// ...also we stash a few things onto the window in case we need them elsewhere
+		window.tlanalytics = {
+			identify: this.identify.bind(this),
+			reset: this.reset.bind(this),
+			track: this.track.bind(this),
+			page: this.page.bind(this),
+			gtag: this.gtag.bind(this),
+			openPrivacySettings() {
+				mountPrivacySettingsDialog(cookieConsentState, themeState, document.body)
+			},
+		}
+
 		// Now that we have our subscriber set up, determine the initial consent state.
 		// If the user has already made a choice (cookie exists), use that.
 		// Otherwise, check their location to determine if we need explicit consent.
@@ -93,7 +105,7 @@ class Analytics {
 		} else {
 			// No existing consent decision - check if we need to ask based on location
 			const requiresConsent = await shouldRequireConsent()
-			initialConsent = requiresConsent ? 'unknown' : 'opted-in'
+			initialConsent = requiresConsent === 'requires-consent' ? 'unknown' : 'opted-in'
 		}
 
 		// This will trigger the subscriber we set up earlier, which will
@@ -103,18 +115,6 @@ class Analytics {
 		// Now that we have the consent value in memory, we can initialize
 		// the cookie consent banner and start showing some UI (if consent is unknown)
 		mountCookieConsentBanner(cookieConsentState, themeState, document.body)
-
-		// ...also we stash a few things onto the window in case we need them elsewhere
-		window.tlanalytics = {
-			identify: this.identify.bind(this),
-			reset: this.reset.bind(this),
-			track: this.track.bind(this),
-			page: this.page.bind(this),
-			gtag: this.gtag.bind(this),
-			openPrivacySettings() {
-				mountPrivacySettingsDialog(cookieConsentState, themeState, document.body)
-			},
-		}
 	}
 
 	/**

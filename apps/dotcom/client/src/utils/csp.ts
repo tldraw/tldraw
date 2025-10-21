@@ -28,6 +28,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://zero.tldraw.com',
 		'http://localhost:4848',
 		'https://analytics.tldraw.com',
+		'https://consent.tldraw.xyz',
 		'https://stats.g.doubleclick.net',
 		'https://*.google-analytics.com',
 		'https://api.reo.dev',
