@@ -15,6 +15,8 @@ import {
 	TLTextShape,
 	Vec,
 } from '@tldraw/editor'
+import { convertTldrawFillToFocusFill } from './FocusFill'
+import { convertTldrawFontSizeToFocusFontSize } from './FocusFontSize'
 import {
 	FocusArrowShape,
 	FocusDrawShape,
@@ -26,9 +28,7 @@ import {
 	FocusTextAnchor,
 	FocusTextShape,
 	FocusUnknownShape,
-} from '../schema/FocusShapeSchema'
-import { convertTldrawFillToFocusFill } from './FocusFill'
-import { convertTldrawFontSizeToFocusFontSize } from './FocusFontSize'
+} from './FocusShape'
 
 /**
  * Convert a tldraw shape to a simple shape
