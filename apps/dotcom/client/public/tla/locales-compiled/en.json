@@ -87,6 +87,18 @@
       "value": "Publish"
     }
   ],
+  "129b9e34ea": [
+    {
+      "type": 0,
+      "value": "Leave group"
+    }
+  ],
+  "12a6766ba1": [
+    {
+      "type": 0,
+      "value": "Unpin file"
+    }
+  ],
   "12c8a9838c": [
     {
       "type": 0,
@@ -97,6 +109,18 @@
     {
       "type": 0,
       "value": "Export as"
+    }
+  ],
+  "146ffe2fd9": [
+    {
+      "type": 0,
+      "value": "Show more"
+    }
+  ],
+  "14d65465b7": [
+    {
+      "type": 0,
+      "value": "Delete group"
     }
   ],
   "181b90f889": [
@@ -129,6 +153,12 @@
       "value": "This room is approaching its size limit. Consider removing some content or starting a new file."
     }
   ],
+  "2445e5e347": [
+    {
+      "type": 0,
+      "value": "Create group"
+    }
+  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -139,6 +169,12 @@
     {
       "type": 0,
       "value": "Upload failed"
+    }
+  ],
+  "2c3ef76333": [
+    {
+      "type": 0,
+      "value": "My files"
     }
   ],
   "2deec2cb74": [
@@ -219,10 +255,22 @@
       "value": "tldraw"
     }
   ],
+  "47f493a590": [
+    {
+      "type": 0,
+      "value": "Pin file"
+    }
+  ],
   "4908687e50": [
     {
       "type": 0,
       "value": "Are you sure you want to forget this file?"
+    }
+  ],
+  "49ee308734": [
+    {
+      "type": 0,
+      "value": "Name"
     }
   ],
   "4d0d3ddec9": [
@@ -235,6 +283,18 @@
     {
       "type": 0,
       "value": "Reload"
+    }
+  ],
+  "4da5988a2e": [
+    {
+      "type": 0,
+      "value": "Delete group…"
+    }
+  ],
+  "4e6fbf032b": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete this group? This action cannot be undone."
     }
   ],
   "50db1b7e1e": [
@@ -295,6 +355,40 @@
       "value": "Privacy policy"
     }
   ],
+  "5a86b22fa0": [
+    {
+      "type": 0,
+      "value": "Drag files here, "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "create a file"
+        }
+      ],
+      "type": 8,
+      "value": "create"
+    },
+    {
+      "type": 0,
+      "value": ", or "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "copy invite link"
+        }
+      ],
+      "type": 8,
+      "value": "invite"
+    },
+    {
+      "type": 0,
+      "value": " to get started."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -317,6 +411,12 @@
     {
       "type": 0,
       "value": "Old browser detected. Please update your browser to use this app."
+    }
+  ],
+  "5c6fe42bc2": [
+    {
+      "type": 0,
+      "value": "Revoke this link and create a new one."
     }
   ],
   "5d26ae7550": [
@@ -349,6 +449,12 @@
       "value": "Older"
     }
   ],
+  "639bae9ac6": [
+    {
+      "type": 0,
+      "value": "you"
+    }
+  ],
   "6609dd239e": [
     {
       "type": 0,
@@ -359,6 +465,24 @@
     {
       "type": 0,
       "value": "A new version of tldraw is available. Please reload the page to continue."
+    }
+  ],
+  "68257bb646": [
+    {
+      "type": 0,
+      "value": "You've been invited to group "
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "br"
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "groupName"
     }
   ],
   "6832ac5936": [
@@ -383,6 +507,12 @@
     {
       "type": 0,
       "value": "Follow these steps to import the content manually:"
+    }
+  ],
+  "70222abcfc": [
+    {
+      "type": 0,
+      "value": "Group settings"
     }
   ],
   "70a6facb9d": [
@@ -475,6 +605,12 @@
       "value": "Forget"
     }
   ],
+  "7cfe6c43dc": [
+    {
+      "type": 0,
+      "value": "Leave group…"
+    }
+  ],
   "7daeced9ff": [
     {
       "type": 0,
@@ -553,6 +689,12 @@
       "value": "Rename file"
     }
   ],
+  "8ad4303b83": [
+    {
+      "type": 0,
+      "value": "No thanks"
+    }
+  ],
   "8b1946f965": [
     {
       "type": 0,
@@ -593,6 +735,12 @@
     {
       "type": 0,
       "value": "Copy to my files"
+    }
+  ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Copied invite link"
     }
   ],
   "95aacd4d4a": [
@@ -729,6 +877,12 @@
       "value": "Background"
     }
   ],
+  "aa916767cf": [
+    {
+      "type": 0,
+      "value": "Sign in to accept invitation"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -765,6 +919,12 @@
       "value": "Sign in"
     }
   ],
+  "b6f4a2ec63": [
+    {
+      "type": 0,
+      "value": "Owner"
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -777,10 +937,10 @@
       "value": "Sign in to share"
     }
   ],
-  "bb792693e2": [
+  "bb93a7590f": [
     {
       "type": 0,
-      "value": "Unpin"
+      "value": "Accept and join group"
     }
   ],
   "bbbcefd7ce": [
@@ -835,12 +995,6 @@
       "value": "ownerName"
     }
   ],
-  "bcb62136a3": [
-    {
-      "type": 0,
-      "value": "Upload .tldr files"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -879,6 +1033,12 @@
       "value": "Essential cookies"
     }
   ],
+  "c6155aaecc": [
+    {
+      "type": 0,
+      "value": "Group name"
+    }
+  ],
   "c655b27b1e": [
     {
       "type": 0,
@@ -891,10 +1051,22 @@
       "value": "Invite"
     }
   ],
+  "c74ea6dbff": [
+    {
+      "type": 0,
+      "value": "Show less"
+    }
+  ],
   "c87aacf567": [
     {
       "type": 0,
       "value": "Sign out"
+    }
+  ],
+  "c9cc8cce24": [
+    {
+      "type": 0,
+      "value": "Save"
     }
   ],
   "cceaefbc20": [
@@ -985,6 +1157,12 @@
       "value": "Go here to see the content"
     }
   ],
+  "d9e35d0f55": [
+    {
+      "type": 0,
+      "value": "You have reached the maximum number of groups. You need to delete old groups before creating new ones."
+    }
+  ],
   "dbbebf3c03": [
     {
       "type": 0,
@@ -997,10 +1175,28 @@
       "value": "App debug flags"
     }
   ],
+  "e0c88179b3": [
+    {
+      "type": 0,
+      "value": "Invite members"
+    }
+  ],
+  "e2198d6228": [
+    {
+      "type": 0,
+      "value": "Copy invite link"
+    }
+  ],
   "e2ae80a510": [
     {
       "type": 0,
       "value": "Legal summary"
+    }
+  ],
+  "e3afed0047": [
+    {
+      "type": 0,
+      "value": "Admin"
     }
   ],
   "e404559826": [
@@ -1009,16 +1205,16 @@
       "value": "Terms of service"
     }
   ],
-  "e78e14c5f1": [
-    {
-      "type": 0,
-      "value": "Pin"
-    }
-  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "or"
+    }
+  ],
+  "ea0626ac5a": [
+    {
+      "type": 0,
+      "value": "Danger zone"
     }
   ],
   "ea4788705e": [
@@ -1077,6 +1273,12 @@
       "value": " to learn more."
     }
   ],
+  "ef53538ae4": [
+    {
+      "type": 0,
+      "value": "Members"
+    }
+  ],
   "ef7de3f485": [
     {
       "type": 0,
@@ -1119,6 +1321,12 @@
       "value": "Settings"
     }
   ],
+  "f714e36843": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to leave this group?"
+    }
+  ],
   "fb15c53f22": [
     {
       "type": 0,
@@ -1135,6 +1343,12 @@
     {
       "type": 0,
       "value": "Copied link"
+    }
+  ],
+  "ff7a814974": [
+    {
+      "type": 0,
+      "value": "Add file link…"
     }
   ],
   "ffcd73e997": [

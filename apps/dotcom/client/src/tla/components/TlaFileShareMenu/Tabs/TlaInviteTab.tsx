@@ -37,7 +37,7 @@ export function TlaInviteTab({ fileId }: { fileId: string }) {
 		[app, fileId]
 	)
 
-	const isOwner = useIsFileOwner(fileId)
+	const isOwner = useIsFileOwner(fileId, app.getHomeGroupId())
 	const url = useEditorDeepLink()
 
 	return (

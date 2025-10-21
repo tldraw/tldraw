@@ -1,7 +1,7 @@
 import { useValue } from 'tldraw'
 import { useMaybeApp } from './useAppState'
 
-export function useIsFileOwner(fileId?: string): boolean {
+export function useIsFileOwner(fileId: string, groupId: string): boolean {
 	const app = useMaybeApp()
 	return useValue(
 		'isOwner',
@@ -11,9 +11,9 @@ export function useIsFileOwner(fileId?: string): boolean {
 			const file = app?.getFile(fileId)
 			if (!file) return false
 			if (file.ownerId) return file.ownerId === app.userId
-			if (file.owningGroupId) return file.owningGroupId === app.getHomeGroupId()
+			if (file.owningGroupId) return file.owningGroupId === groupId
 			return false
 		},
-		[app, fileId]
+		[app, fileId, groupId]
 	)
 }

@@ -2,6 +2,9 @@ import fs from 'fs'
 import path from 'path'
 import { FPSMetrics } from './fps-tracker'
 
+const _dirname =
+	typeof __dirname !== 'undefined' ? __dirname : import.meta.url.split('/').slice(0, -1).join('/')
+
 export interface PerformanceBaseline {
 	avgFps: number
 	minFps: number
@@ -44,14 +47,12 @@ export interface Environment {
 	browser: string
 }
 
-const __dirname = path.dirname(new URL(import.meta.url).pathname)
-
 export class BaselineManager {
 	private baselineFilePath: string
 	private regressionThreshold = 15 // Percentage
 	private warningThreshold = 10 // Percentage
 
-	constructor(baselineDir = path.join(__dirname, '..', 'baselines')) {
+	constructor(baselineDir = path.join(_dirname, '..', 'baselines')) {
 		// Ensure baseline directory exists
 		if (!fs.existsSync(baselineDir)) {
 			fs.mkdirSync(baselineDir, { recursive: true })

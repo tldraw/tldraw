@@ -161,10 +161,11 @@ export function TlaEditorTopLeftPanelSignedIn() {
 
 	const isEmbed = !!new URLSearchParams(window.location.search).get('embed')
 
-	const fileSlug = useParams<{ fileSlug: string }>().fileSlug ?? '_not_a_file_' // fall back to a string that will not match any file
-	const isOwner = useIsFileOwner(fileSlug)
-
 	const app = useApp()
+	const groupId = app.getHomeGroupId()
+	const fileSlug = useParams<{ fileSlug: string }>().fileSlug ?? '_not_a_file_' // fall back to a string that will not match any file
+	const isOwner = useIsFileOwner(fileSlug, groupId)
+
 	const fileId = useCurrentFileId()!
 	const fileName = useValue(
 		'fileName',

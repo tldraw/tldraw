@@ -44,7 +44,7 @@ export function TlaFileShareMenu({
 		[]
 	)
 
-	const isOwner = useIsFileOwner(fileId)
+	const isOwner = useIsFileOwner(fileId ?? '', app?.getHomeGroupId() ?? '')
 
 	const file = useValue('file', () => app?.getFile(fileId), [app])
 

@@ -37,7 +37,6 @@ import {
 	getLocalSessionState,
 	updateLocalSessionState,
 } from '../utils/local-session-state'
-import { FileSidebarFocusContextProvider } from './FileInputFocusProvider'
 
 const assetUrls = getAssetUrlsByImport()
 
@@ -237,16 +236,14 @@ function SignedInProvider({
 	}
 
 	return (
-		<FileSidebarFocusContextProvider>
-			<AppStateProvider>
-				<UserProvider>
-					<ThemeContainer onThemeChange={onThemeChange}>
-						<SignedInAnalytics />
-						{children}
-					</ThemeContainer>
-				</UserProvider>
-			</AppStateProvider>
-		</FileSidebarFocusContextProvider>
+		<AppStateProvider>
+			<UserProvider>
+				<ThemeContainer onThemeChange={onThemeChange}>
+					<SignedInAnalytics />
+					{children}
+				</ThemeContainer>
+			</UserProvider>
+		</AppStateProvider>
 	)
 }
 

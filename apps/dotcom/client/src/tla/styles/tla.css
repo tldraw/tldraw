@@ -58,6 +58,7 @@
 	--tla-color-accent-2: hsl(28, 88%, 57%);
 	--tla-color-accent-3: hsl(135, 59%, 49%);
 	--tla-color-warning: hsl(0, 88%, 57%);
+	--tla-color-drop-zone: hsl(204, 16%, 4%, 2.5%);
 	/* Shadows */
 	/* --tla-shadow-primary-highlight: inset 0px 4px 2px -4px hsl(214, 94%, 94%),
 		inset 4px 4px 4px -6px hsl(214, 94%, 100%); */
@@ -101,6 +102,7 @@
 	--tla-color-accent-2: hsl(28, 88%, 47%);
 	--tla-color-accent-3: hsl(135, 59%, 39%);
 	--tla-color-warning: hsl(0, 95%, 65%);
+	--tla-color-drop-zone: hsl(204, 16%, 4%, 2.5%);
 	/* Shadows */
 	/* --tla-shadow-primary-highlight: inset 0px 1px 1px -1px hsl(214, 94%, 72%),
 		inset 4px 4px 4px -6px hsl(214, 94%, 80%); */
