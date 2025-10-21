@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { memo, useCallback } from 'react'
+import { memo, useCallback, useEffect, useState } from 'react'
 import { useDialogs, useValue } from 'tldraw'
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
 import { F } from '../../utils/i18n'
@@ -7,6 +7,32 @@ import styles from './dialogs.module.css'
 import { TlaManageCookiesDialog } from './TlaManageCookiesDialog'
 
 const MANAGE_COOKIES_DIALOG = 'manageCookiesDialog'
+
+/**
+ * Checks if consent is required based on CloudFlare geolocation headers
+ * @returns Promise<boolean> - true if explicit consent is required, false ONLY if confident it's not
+ */
+async function shouldRequireConsent(): Promise<boolean> {
+	try {
+		const response = await fetch('https://consent.tldraw.com', {
+			// Use a short timeout to avoid delaying the page load
+			signal: AbortSignal.timeout(2000),
+		})
+		if (response.ok) {
+			const data = await response.json()
+			// Worker returns { requires_consent: boolean, country_code: string }
+			if (typeof data.requires_consent === 'boolean') {
+				return data.requires_consent
+			}
+		}
+	} catch (error) {
+		// Fetch failed or timed out - will default to requiring consent
+		console.warn('Consent check failed, defaulting to requiring consent:', error)
+	}
+
+	// Conservative default: require consent
+	return true
+}
 
 export const TlaCookieConsent = memo(function TlaCookieConsent() {
 	const { addDialog, dialogs } = useDialogs()
@@ -16,6 +42,12 @@ export const TlaCookieConsent = memo(function TlaCookieConsent() {
 		[dialogs]
 	)
 	const [consent, updateConsent] = useAnalyticsConsent()
+	const [requiresConsent, setRequiresConsent] = useState<boolean | null>(null)
+
+	// Check if consent is required based on user's location
+	useEffect(() => {
+		shouldRequireConsent().then(setRequiresConsent)
+	}, [])
 
 	const handleAccept = useCallback(() => {
 		updateConsent(true)
@@ -32,10 +64,22 @@ export const TlaCookieConsent = memo(function TlaCookieConsent() {
 		})
 	}, [addDialog])
 
-	if (consent !== null || isManageCookiesDialogShown) return null
+	// Don't show banner if:
+	if (
+		// - User has already made a consent choice
+		consent !== null ||
+		// - We haven't determined if consent is required yet
+		requiresConsent === null ||
+		// - Consent is not required in user's region
+		!requiresConsent
+	)
+		return null
 
 	return (
-		<div className={styles.cookieConsentWrapper}>
+		<div
+			className={styles.cookieConsentWrapper}
+			style={{ opacity: isManageCookiesDialogShown ? 0 : 1 }} // If the manage cookies dialog is shown, hide the cookie consent banner but don't remove it or else the animation will replay when it reappears
+		>
 			<div className={styles.cookieConsent} data-testid="tla-cookie-consent">
 				<p className={styles.cookieText}>
 					<F defaultMessage="This site uses cookies to make the app work and to collect analytics." />
