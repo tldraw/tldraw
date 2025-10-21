@@ -12,6 +12,10 @@ name = "tldraw-consent-dev"
 [env.staging]
 name = "tldraw-consent-staging"
 
+# Staging environment
+[env.preview]
+name = "tldraw-consent-preview"
+
 # Production environment
 [env.production]
 name = "tldraw-consent"
