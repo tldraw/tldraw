@@ -27,6 +27,12 @@ import {
 } from 'tldraw'
 import { getSpeechBubbleVertices, getTailIntersectionPoint } from './helpers'
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		'speech-bubble': SpeechBubbleShape
+	}
+}
+
 // Copied from tldraw/tldraw
 export const STROKE_SIZES = {
 	s: 2,

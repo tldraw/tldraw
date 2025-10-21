@@ -10,6 +10,12 @@ import {
 
 // There's a guide at the bottom of this file!
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		PlayingCard: IPlayingCard
+	}
+}
+
 // [1]
 export type IPlayingCard = TLBaseShape<
 	'PlayingCard',

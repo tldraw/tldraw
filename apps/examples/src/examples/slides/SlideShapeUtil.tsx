@@ -14,6 +14,12 @@ import {
 } from 'tldraw'
 import { moveToSlide, useSlides } from './useSlides'
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		slide: SlideShape
+	}
+}
+
 export type SlideShape = TLBaseShape<
 	'slide',
 	{

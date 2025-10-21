@@ -2,6 +2,12 @@ import { BaseBoxShapeUtil, HTMLContainer, RecordProps, T, TLBaseShape } from 'tl
 
 // There's a guide at the bottom of this file!
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		'my-editable-shape': IMyEditableShape
+	}
+}
+
 const ANIMAL_EMOJIS = ['🐶', '🐱', '🐨', '🐮', '🐴']
 
 export type IMyEditableShape = TLBaseShape<

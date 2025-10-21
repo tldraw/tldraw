@@ -14,6 +14,12 @@ import {
 	toDomPrecision,
 } from 'tldraw'
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		'circle-clip': CircleClipShape
+	}
+}
+
 export type CircleClipShape = TLBaseShape<
 	'circle-clip',
 	{
