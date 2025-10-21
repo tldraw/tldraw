@@ -134,7 +134,7 @@ export async function handleApiRequest<
 	request: Request
 	env: Env
 	ctx: Ctx
-	after(response: Response): Response | Promise<Response>
+	after(response: Response, request: Request): Response | Promise<Response>
 }) {
 	let response
 	try {
@@ -152,7 +152,7 @@ export async function handleApiRequest<
 	}
 
 	try {
-		return await after(response)
+		return await after(response, request)
 	} catch (error: any) {
 		console.error(error.stack ?? error)
 		// eslint-disable-next-line @typescript-eslint/no-deprecated

@@ -1,6 +1,12 @@
 import { APP_ASSET_UPLOAD_ENDPOINT } from '@tldraw/dotcom-shared'
 import { T } from '@tldraw/validate'
-import { createRouter, handleApiRequest, notFound, parseRequestQuery } from '@tldraw/worker-shared'
+import {
+	createRouter,
+	handleApiRequest,
+	isAllowedOrigin,
+	notFound,
+	parseRequestQuery,
+} from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 
 declare const fetch: typeof import('@cloudflare/workers-types').fetch
@@ -109,12 +115,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			return true
 		}
 
-		return (
-			origin.endsWith('.tldraw.com') ||
-			origin.endsWith('.tldraw.xyz') ||
-			origin.endsWith('.tldraw.dev') ||
-			origin.endsWith('.tldraw.workers.dev')
-		)
+		return isAllowedOrigin(origin)
 	}
 }
 

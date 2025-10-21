@@ -8840,22 +8840,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tldraw/analytics-worker@workspace:apps/analytics-worker":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/analytics-worker@workspace:apps/analytics-worker"
+  dependencies:
+    "@cloudflare/workers-types": "npm:^4.20250913.0"
+    esbuild: "npm:^0.25.6"
+    lazyrepo: "npm:0.0.0-alpha.27"
+    typescript: "npm:^5.8.3"
+    wrangler: "npm:^4.37.1"
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/analytics@workspace:apps/analytics":
   version: 0.0.0-use.local
   resolution: "@tldraw/analytics@workspace:apps/analytics"
   dependencies:
+    "@cloudflare/workers-types": "npm:^4.20250913.0"
     "@types/js-cookie": "npm:^3.0.6"
-    "@types/react": "npm:^18.3.18"
-    "@types/react-dom": "npm:^18.3.5"
-    "@vitejs/plugin-react": "npm:^4.6.0"
     js-cookie: "npm:^3.0.5"
     posthog-js: "npm:^1.248.1"
-    radix-ui: "npm:^1.4.2"
-    react: "npm:^18.3.1"
-    react-dom: "npm:^18.3.1"
-    react-ga4: "npm:^2.1.0"
     typescript: "npm:^5.8.3"
     vite: "npm:^7.0.1"
+    vitest: "npm:^3.2.4"
+    wrangler: "npm:^4.37.1"
   languageName: unknown
   linkType: soft
 

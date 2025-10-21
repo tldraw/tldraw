@@ -7,6 +7,15 @@ test.use({ storageState: { cookies: [], origins: [] } })
 
 test.describe('cookie consent banner', () => {
 	test.beforeEach(async ({ page }) => {
+		// Mock the consent check to always require consent
+		await page.route('https://consent.tldraw.xyz', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({ requires_consent: true, country_code: 'TEST' }),
+			})
+		})
+
 		await page.evaluate((key) => {
 			// eslint-disable-next-line no-restricted-syntax
 			window.localStorage.removeItem(key)
