@@ -1,6 +1,6 @@
-import { TldrawFairyAgent } from '@tldraw/fairy-shared'
 import { useEffect, useRef } from 'react'
 import { Box, useEditor, useValue } from 'tldraw'
+import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
 
 const FAIRY_SIZE = 200
@@ -9,7 +9,7 @@ const FAIRY_CLICKABLE_SIZE_SELECTED = 200
 
 // We use the agent directly here because we need to access the isGenerating method
 // which is not exposed on the fairy atom
-export default function Fairy({ agent }: { agent: TldrawFairyAgent }) {
+export default function Fairy({ agent }: { agent: FairyAgent }) {
 	const editor = useEditor()
 	const containerRef = useRef<HTMLDivElement>(null)
 	const fairyRef = useRef<HTMLDivElement>(null)

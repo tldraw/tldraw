@@ -1,6 +1,7 @@
-import { AgentIcon, ChatHistoryActionItem, TldrawFairyAgent } from '@tldraw/fairy-shared'
+import { AgentIcon, ChatHistoryActionItem } from '@tldraw/fairy-shared'
 import { useState } from 'react'
 import Markdown from 'react-markdown'
+import { FairyAgent } from '../agent/FairyAgent'
 import { FairyChatHistoryAction } from './FairyChatHistoryAction'
 
 export interface FairyChatHistoryActionGroup {
@@ -12,7 +13,7 @@ export function FairyChatHistoryActionGroup({
 	agent,
 }: {
 	items: ChatHistoryActionItem[]
-	agent: TldrawFairyAgent
+	agent: FairyAgent
 }) {
 	// Track collapsed state for each action segment
 	const [collapsedSegments, setCollapsedSegments] = useState<Record<number, boolean>>({})

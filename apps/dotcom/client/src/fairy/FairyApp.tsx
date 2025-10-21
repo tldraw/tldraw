@@ -1,10 +1,10 @@
 import { useCallback, useEffect } from 'react'
 import { useEditor } from 'tldraw'
 import { useTldrawUser } from '../tla/hooks/useUser'
-import { TldrawFairyAgent } from './fairy-agent/agent/TldrawFairyAgent'
-import { useTldrawFairyAgent } from './fairy-agent/agent/useTldrawFairyAgent'
+import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { useFairyAgent } from './fairy-agent/agent/useFairyAgent'
 
-export function FairyApp({ setAgents }: { setAgents(agents: TldrawFairyAgent[]): void }) {
+export function FairyApp({ setAgents }: { setAgents(agents: FairyAgent[]): void }) {
 	const FAIRY_ID = 'Huppy'
 	const editor = useEditor()
 	const user = useTldrawUser()
@@ -14,7 +14,7 @@ export function FairyApp({ setAgents }: { setAgents(agents: TldrawFairyAgent[]):
 		return await user.getToken()
 	}, [user])
 
-	const agent = useTldrawFairyAgent(editor, FAIRY_ID, getToken)
+	const agent = useFairyAgent(editor, FAIRY_ID, getToken)
 
 	useEffect(() => {
 		if (!editor || !agent) return

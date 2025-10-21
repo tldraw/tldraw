@@ -523,7 +523,8 @@
 	color: var(--tl-color-text-1);
 }
 
-.fairy-chat-history-action-message ol, ul {
+.fairy-chat-history-action-message ol,
+ul {
 	margin-top: -28px;
 }
 
