@@ -112,34 +112,26 @@ const GroupFileList = memo(function GroupFileList({
 
 	return (
 		<Collapsible.Root open={isShowingAll}>
-			{filesToShow.map((file) => (
+			{filesToShow.map((item) => (
 				<TlaSidebarFileLink
 					groupId={groupId}
-					key={`group-file-${file.fileId}`}
+					key={`group-file-${item.fileId}`}
 					className={styles.sidebarGroupItemFile}
-					item={{
-						fileId: file.fileId,
-						date: file.date,
-						isPinned: false,
-					}}
-					testId={`tla-group-file-${file.fileId}`}
+					item={item}
+					testId={`tla-group-file-${item.fileId}`}
 				/>
 			))}
 
 			{isOverflowing && (
 				<>
 					<Collapsible.Content className={styles.CollapsibleContent}>
-						{hiddenFiles.map((file) => (
+						{hiddenFiles.map((item) => (
 							<TlaSidebarFileLink
 								groupId={groupId}
-								key={`group-file-${file.fileId}`}
+								key={`group-file-${item.fileId}`}
 								className={styles.sidebarGroupItemFile}
-								item={{
-									fileId: file.fileId,
-									date: file.date,
-									isPinned: false,
-								}}
-								testId={`tla-group-file-${file.fileId}`}
+								item={item}
+								testId={`tla-group-file-${item.fileId}`}
 							/>
 						))}
 					</Collapsible.Content>

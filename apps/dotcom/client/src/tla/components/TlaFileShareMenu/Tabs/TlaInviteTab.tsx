@@ -4,7 +4,7 @@ import { useEditor, useValue } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useEditorDeepLink } from '../../../hooks/useDeepLink'
-import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
+import { useHasFileAdminRights } from '../../../hooks/useIsFileOwner'
 import { useTldrawUser } from '../../../hooks/useUser'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../../utils/copy'
@@ -37,13 +37,13 @@ export function TlaInviteTab({ fileId }: { fileId: string }) {
 		[app, fileId]
 	)
 
-	const isOwner = useIsFileOwner(fileId, app.getHomeGroupId())
+	const hasAdminRights = useHasFileAdminRights(fileId)
 	const url = useEditorDeepLink()
 
 	return (
 		<>
 			<TlaMenuSection>
-				{isOwner && (
+				{hasAdminRights && (
 					<TlaMenuControlGroup>
 						<TlaSharedToggle isShared={isShared} fileId={fileId} />
 						{isShared && <TlaSelectSharedLinkType fileId={fileId} />}

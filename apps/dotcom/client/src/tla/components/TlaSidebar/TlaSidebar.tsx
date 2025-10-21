@@ -44,7 +44,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 
 	const { onDrop, onDragOver, onDragEnter, onDragLeave } = useTldrFileDrop()
 
-	const hasGroups = useHasFlag('groups_backend')
+	const hasGroups = useHasFlag('groups_frontend')
 	const addDialog = useDialogs().addDialog
 	const app = useApp()
 

@@ -1,3 +1,4 @@
+import { SignInButton } from '@clerk/clerk-react'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -17,14 +18,13 @@ import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	ViewSubmenu,
-	useDialogs,
 	useEditor,
 	usePassThroughWheelEvents,
 	useValue,
 } from 'tldraw'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
-import { useIsFileOwner } from '../../hooks/useIsFileOwner'
+import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
@@ -32,7 +32,6 @@ import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
-import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import {
 	CookieConsentMenuItem,
 	GiveUsFeedbackMenuItem,
@@ -90,7 +89,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 	return (
 		<>
 			<Link to="/" className={styles.topLeftOfflineLogo}>
-				<TlaLogo data-testid="tla-top-left-logo-icon" />
+				<TlaLogo data-testid="tla-sidebar-logo-icon" />
 			</Link>
 			{anonFileName && (
 				<>
@@ -161,11 +160,10 @@ export function TlaEditorTopLeftPanelSignedIn() {
 
 	const isEmbed = !!new URLSearchParams(window.location.search).get('embed')
 
-	const app = useApp()
-	const groupId = app.getHomeGroupId()
 	const fileSlug = useParams<{ fileSlug: string }>().fileSlug ?? '_not_a_file_' // fall back to a string that will not match any file
-	const isOwner = useIsFileOwner(fileSlug, groupId)
+	const isOwner = useHasFileAdminRights(fileSlug)
 
+	const app = useApp()
 	const fileId = useCurrentFileId()!
 	const fileName = useValue(
 		'fileName',
@@ -387,18 +385,16 @@ function TlaFileNameEditorInput({
 
 function SignInMenuItem() {
 	const msg = useMsg(messages.signIn)
-	const { addDialog } = useDialogs()
-
 	return (
-		<TldrawUiButton
-			type="menu"
-			data-testid="tla-sign-in-menu-button"
-			onClick={() => {
-				addDialog({ component: TlaSignInDialog })
-			}}
+		<SignInButton
+			mode="modal"
+			forceRedirectUrl={location.pathname + location.search}
+			signUpForceRedirectUrl={location.pathname + location.search}
 		>
-			<TldrawUiButtonLabel>{msg}</TldrawUiButtonLabel>
-			<TlaIcon icon="sign-in" />
-		</TldrawUiButton>
+			<TldrawUiButton type="menu" data-testid="tla-sign-in-menu-button">
+				<TldrawUiButtonLabel>{msg}</TldrawUiButtonLabel>
+				<TlaIcon icon="sign-in" />
+			</TldrawUiButton>
+		</SignInButton>
 	)
 }

@@ -26,7 +26,7 @@ import { TldrawApp } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useHasFlag } from '../../hooks/useHasFlag'
-import { useIsFileOwner } from '../../hooks/useIsFileOwner'
+import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../hooks/useIsFilePinned'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
@@ -114,10 +114,10 @@ export function FileItems({
 	const { addToast } = useToasts()
 	const trackEvent = useTldrawAppUiEvents()
 	const copiedMsg = useMsg(messages.copied)
-	const isOwner = useIsFileOwner(fileId, groupId ?? '')
+	const hasAdminRights = useHasFileAdminRights(fileId)
 	const isPinned = useIsFilePinned(fileId, groupId ?? '')
 	const isActive = useCurrentFileId() === fileId
-	const hasGroups = useHasFlag('groups_backend')
+	const hasGroups = useHasFlag('groups_frontend')
 
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
 
@@ -188,7 +188,7 @@ export function FileItems({
 	const duplicateMsg = useMsg(messages.duplicate)
 	const pinMsg = useMsg(messages.pin)
 	const unpinMsg = useMsg(messages.unpin)
-	const deleteOrForgetMsg = useMsg(isOwner ? messages.delete : messages.forget)
+	const deleteOrForgetMsg = useMsg(hasAdminRights ? messages.delete : messages.forget)
 	const downloadFile = useMsg(editorMessages.downloadFile)
 	const myFilesMsg = useMsg(messages.myFiles)
 
@@ -202,7 +202,7 @@ export function FileItems({
 					readonlyOk
 					onSelect={handleCopyLinkClick}
 				/>
-				{isOwner && (
+				{hasAdminRights && (
 					<TldrawUiMenuItem label={renameMsg} id="rename" readonlyOk onSelect={onRenameAction} />
 				)}
 				{/* todo: in published rooms, support duplication / forking */}

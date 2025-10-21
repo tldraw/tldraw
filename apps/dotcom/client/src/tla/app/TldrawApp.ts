@@ -49,6 +49,7 @@ import {
 	Atom,
 	Signal,
 	TLDocument,
+	TLSessionStateSnapshot,
 	TLUiToastsContextType,
 	TLUserPreferences,
 	assertExists,
@@ -113,8 +114,8 @@ export class TldrawApp {
 
 	readonly z: ZeroPolyfill | Zero<TlaSchema, TlaMutators>
 
-	private readonly user$: Signal<(TlaUser & { fairies: string }) | undefined>
-	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile; fairyState: string })[]>
+	private readonly user$: Signal<TlaUser | undefined>
+	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
 	private readonly groupMemberships$: Signal<
 		(TlaGroupUser & {
 			group: TlaGroup
@@ -229,14 +230,37 @@ export class TldrawApp {
 			.related('groupMembers')
 	}
 
-	async preload() {
+	async preload(initialUserData: TlaUser) {
+		let didCreate = false
 		await this.userQuery().preload().complete
 		await this.changesFlushed
+		if (!this.user$.get()) {
+			didCreate = true
+
+			// Check localStorage feature flag for new groups initialization
+			const useNewGroupsInit = getFromLocalStorage('tldraw_groups_init') === 'true'
+
+			if (useNewGroupsInit) {
+				// New groups initialization
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				await this.z.mutate.init({ user: initialUserData, time: Date.now() })
+			} else {
+				// Legacy initialization (no groups) - just insert user like before
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				await this.z.mutate.user.insert({ ...initialUserData, flags: '' })
+			}
+
+			updateLocalSessionState((state) => ({ ...state, shouldShowWelcomeDialog: true }))
+		}
 		await new Promise((resolve) => {
 			let unlisten = () => {}
 			unlisten = react('wait for user', () => this.user$.get() && resolve(unlisten()))
 		})
+		if (!this.user$.get()) {
+			throw Error('could not create user')
+		}
 		await this.fileStateQuery().preload().complete
+		return didCreate
 	}
 
 	messages = defineMessages({
@@ -318,7 +342,7 @@ export class TldrawApp {
 	@computed({ isEqual })
 	getUserFlags(): Set<TlaFlags> {
 		const user = this.getUser()
-		return new Set(user.flags?.split(',') ?? []) as Set<TlaFlags>
+		return new Set(user.flags?.trim().split(/[, ]+/) ?? []) as Set<TlaFlags>
 	}
 
 	hasFlag(flag: TlaFlags) {
@@ -571,7 +595,7 @@ export class TldrawApp {
 		name?: string
 		createSource?: string | null
 	} = {}): Promise<Result<{ fileId: string }, 'max number of files reached'>> {
-		if (!this.canCreateNewFile(this.getHomeGroupId())) {
+		if (!this.canCreateNewFile(groupId)) {
 			this.showMaxFilesToast()
 			return Result.err('max number of files reached')
 		}
@@ -746,9 +770,6 @@ export class TldrawApp {
 
 	/**
 	 * Remove a user's file states for a file and delete the file if the user is the owner of the file.
-	 *
-	 * @param fileId - The file id.
-	 * @param groupId - The group id.
 	 */
 	async deleteOrForgetFile(fileId: string, groupId: string = this.getHomeGroupId()) {
 		// Optimistic update, remove file and file states
@@ -786,16 +807,10 @@ export class TldrawApp {
 	}
 
 	updateFileState(fileId: string, partial: Omit<TlaFileStatePartial, 'fileId' | 'userId'>) {
-		// ignore updates to files that have been deleted
-		const file = this.getFile(fileId)
-		if (!file || file.isDeleted) return
 		this.z.mutate.file_state.update({ ...partial, fileId, userId: this.userId })
 	}
 
 	updateFile(fileId: string, partial: Partial<TlaFile>) {
-		// ignore updates to files that have been deleted
-		const file = this.getFile(fileId)
-		if (!file || file.isDeleted) return
 		this.z.mutate.file.update({ id: fileId, ...partial })
 	}
 
@@ -803,10 +818,14 @@ export class TldrawApp {
 		this.z.mutate.onEnterFile({ fileId, time: Date.now() })
 	}
 
-	onFairyStateUpdate(fileId: string, fairyState: any) {
-		this.z.mutate.file_state.updateFairies({
-			fileId,
-			fairyState: JSON.stringify(fairyState),
+	onFileEdit(fileId: string) {
+		this.updateFileState(fileId, { lastEditAt: Date.now() })
+	}
+
+	onFileSessionStateUpdate(fileId: string, sessionState: TLSessionStateSnapshot) {
+		this.updateFileState(fileId, {
+			lastSessionState: JSON.stringify(sessionState),
+			lastVisitAt: Date.now(),
 		})
 	}
 
@@ -816,6 +835,9 @@ export class TldrawApp {
 
 	static async create(opts: {
 		userId: string
+		fullName: string
+		email: string
+		avatar: string
 		getToken(): Promise<string | undefined>
 		onClientTooOld(): void
 		trackEvent: TLAppUiContextType
@@ -835,29 +857,37 @@ export class TldrawApp {
 		)
 		// @ts-expect-error
 		window.app = app
-		await app.preload()
-		const user = app.getUser()
-		if (user.color === '___INIT___') {
-			app.updateUser({
-				color: color ?? defaultUserPreferences.color,
-				...restOfPreferences,
-				inputMode: restOfPreferences.inputMode ?? null,
-				locale: restOfPreferences.locale ?? null,
-				animationSpeed: restOfPreferences.animationSpeed ?? null,
-				areKeyboardShortcutsEnabled: restOfPreferences.areKeyboardShortcutsEnabled ?? null,
-				edgeScrollSpeed: restOfPreferences.edgeScrollSpeed ?? null,
-				colorScheme: restOfPreferences.colorScheme ?? null,
-				isSnapMode: restOfPreferences.isSnapMode ?? null,
-				isWrapMode: restOfPreferences.isWrapMode ?? null,
-				isDynamicSizeMode: restOfPreferences.isDynamicSizeMode ?? null,
-				isPasteAtCursorMode: restOfPreferences.isPasteAtCursorMode ?? null,
-				enhancedA11yMode: restOfPreferences.enhancedA11yMode ?? null,
-			})
-
+		const didCreate = await app.preload({
+			id: opts.userId,
+			name: opts.fullName,
+			email: opts.email,
+			color: color ?? defaultUserPreferences.color,
+			avatar: opts.avatar,
+			exportFormat: 'png',
+			exportTheme: 'light',
+			exportBackground: false,
+			exportPadding: true,
+			createdAt: Date.now(),
+			updatedAt: Date.now(),
+			flags: '',
+			allowAnalyticsCookie: null,
+			...restOfPreferences,
+			inputMode: restOfPreferences.inputMode ?? null,
+			locale: restOfPreferences.locale ?? null,
+			animationSpeed: restOfPreferences.animationSpeed ?? null,
+			areKeyboardShortcutsEnabled: restOfPreferences.areKeyboardShortcutsEnabled ?? null,
+			edgeScrollSpeed: restOfPreferences.edgeScrollSpeed ?? null,
+			colorScheme: restOfPreferences.colorScheme ?? null,
+			isSnapMode: restOfPreferences.isSnapMode ?? null,
+			isWrapMode: restOfPreferences.isWrapMode ?? null,
+			isDynamicSizeMode: restOfPreferences.isDynamicSizeMode ?? null,
+			isPasteAtCursorMode: restOfPreferences.isPasteAtCursorMode ?? null,
+			enhancedA11yMode: restOfPreferences.enhancedA11yMode ?? null,
+		})
+		if (didCreate) {
 			opts.trackEvent('create-user', { source: 'app' })
-			updateLocalSessionState((state) => ({ ...state, shouldShowWelcomeDialog: true }))
 		}
-		return { app, userId: user.id }
+		return { app, userId: opts.userId }
 	}
 
 	getIntl() {
