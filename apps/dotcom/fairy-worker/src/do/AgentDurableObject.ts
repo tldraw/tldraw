@@ -1,13 +1,5 @@
+import { AgentAction, AgentPrompt, Streaming } from '@tldraw/fairy-shared'
 import { DurableObject } from 'cloudflare:workers'
-// import { AutoRouter, error } from 'itty-router'
-
-import {
-	AgentAction,
-	AgentActionUtilConstructor,
-	AgentPrompt,
-	PromptPartUtilConstructor,
-	Streaming,
-} from '@tldraw/fairy-shared'
 import { Environment } from '../environment'
 import { AgentService } from './AgentService'
 
@@ -47,13 +39,9 @@ export class AgentDurableObject extends DurableObject<Environment> {
 		const response: { changes: { text: string }[] } = { changes: [] }
 		;(async () => {
 			try {
-				const { prompt, actions, parts } = (await request.json()) as {
-					prompt: AgentPrompt
-					actions: AgentActionUtilConstructor['type'][]
-					parts: PromptPartUtilConstructor['type'][]
-				}
+				const prompt = (await request.json()) as AgentPrompt
 
-				for await (const change of this.service.streamText(prompt, actions, parts)) {
+				for await (const change of this.service.streamText(prompt)) {
 					response.changes.push(change)
 					const data = `data: ${JSON.stringify(change)}\n\n`
 					await writer.write(encoder.encode(data))
@@ -91,13 +79,9 @@ export class AgentDurableObject extends DurableObject<Environment> {
 
 		;(async () => {
 			try {
-				const { prompt, actions, parts } = (await request.json()) as {
-					prompt: AgentPrompt
-					actions: AgentActionUtilConstructor['type'][]
-					parts: PromptPartUtilConstructor['type'][]
-				}
+				const prompt = (await request.json()) as AgentPrompt
 
-				for await (const change of this.service.stream(prompt, actions, parts)) {
+				for await (const change of this.service.stream(prompt)) {
 					response.changes.push(change)
 					const data = `data: ${JSON.stringify(change)}\n\n`
 					await writer.write(encoder.encode(data))

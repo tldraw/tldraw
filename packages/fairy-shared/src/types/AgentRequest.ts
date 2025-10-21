@@ -1,7 +1,6 @@
 import { BoxModel } from '@tldraw/tlschema'
 import { JsonValue } from '@tldraw/utils'
 import { FocusedShape } from '../format/FocusedShape'
-import { AgentModelName } from '../models'
 import { ContextItem } from './ContextItem'
 
 /**
@@ -33,11 +32,6 @@ export interface AgentRequest {
 	 * The bounds of the request.
 	 */
 	bounds: BoxModel
-
-	/**
-	 * The model to use for the request.
-	 */
-	modelName: AgentModelName
 
 	/**
 	 * The type of request.

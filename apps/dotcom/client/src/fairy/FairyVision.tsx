@@ -1,7 +1,7 @@
 import { Box, BoxModel, SVGContainer, useEditor, useValue } from 'tldraw'
-import { TldrawFairyAgent } from './fairy-agent/agent/TldrawFairyAgent'
+import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 
-export function FairyVision({ agents }: { agents: TldrawFairyAgent[] }) {
+export function FairyVision({ agents }: { agents: FairyAgent[] }) {
 	return (
 		<>
 			{agents.map((agent, i) => (
@@ -11,7 +11,7 @@ export function FairyVision({ agents }: { agents: TldrawFairyAgent[] }) {
 	)
 }
 
-function AgentVision({ agent }: { agent: TldrawFairyAgent }) {
+function AgentVision({ agent }: { agent: FairyAgent }) {
 	const activeRequest = useValue(agent.$activeRequest)
 
 	if (!activeRequest) return null

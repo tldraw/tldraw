@@ -16,11 +16,11 @@ import {
 } from 'tldraw'
 import '../tla/styles/fairy.css'
 import { defineMessages, useMsg } from '../tla/utils/i18n'
-import { FairyDebugModal } from './FairyDebugModal'
-import { TldrawFairyAgent } from './fairy-agent/agent/TldrawFairyAgent'
+import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairyChatHistory } from './fairy-agent/chat/FairyChatHistory'
 import { FairyBasicInput } from './fairy-agent/input/FairyBasicInput'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
+import { FairyDebugModal } from './FairyDebugModal'
 
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 
@@ -36,7 +36,7 @@ function FairyButton({
 	selectMessage,
 	deselectMessage,
 }: {
-	agent: TldrawFairyAgent
+	agent: FairyAgent
 	onClick(): void
 	selectMessage: string
 	deselectMessage: string
@@ -74,7 +74,7 @@ function FairyButton({
 
 type PanelState = 'closed' | 'open'
 
-export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
+export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	const container = useContainer()
 	const [menuPopoverOpen, setMenuPopoverOpen] = useState(false)
 	const editor = useEditor()

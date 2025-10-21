@@ -6,11 +6,11 @@ import {
 } from '@tldraw/fairy-shared'
 import { Fragment, useEffect, useRef } from 'react'
 import { useValue } from 'tldraw'
-import { TldrawFairyAgent } from '../agent/TldrawFairyAgent'
+import { FairyAgent } from '../agent/FairyAgent'
 import { FairyChatHistoryActionGroup } from './FairyChatHistoryActionGroup'
 import { FairyChatHistoryPrompt } from './FairyChatHistoryPrompt'
 
-export function FairyChatHistory({ agent }: { agent: TldrawFairyAgent }) {
+export function FairyChatHistory({ agent }: { agent: FairyAgent }) {
 	const historyItems = useValue(agent.$chatHistory)
 
 	// group adjectent like items in chat history

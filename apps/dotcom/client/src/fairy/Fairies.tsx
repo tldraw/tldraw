@@ -1,8 +1,8 @@
-import { TldrawFairyAgent } from '@tldraw/fairy-shared'
 import { useMemo } from 'react'
 import Fairy from './Fairy'
+import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 
-export function Fairies({ agents }: { agents: TldrawFairyAgent[] }) {
+export function Fairies({ agents }: { agents: FairyAgent[] }) {
 	const activeAgents = useMemo(
 		() => agents.filter((agent) => agent.$fairy.get() !== undefined),
 		[agents]
