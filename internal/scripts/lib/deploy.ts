@@ -189,7 +189,7 @@ ${serviceBinding ? `services = [ {binding = "${serviceBinding.binding}", service
 
 	// Replace the entire [env.preview] section including all its properties
 	// Match from [env.preview] to the next section or end of file
-	const previewSectionRegex = /\n\[env\.preview\]\n(?:[^\[](?:[^\n]*\n)*)?/
+	const previewSectionRegex = /\n\[env\.preview\]\n(?:[^[](?:[^\n]*\n)*)?/
 
 	if (previewSectionRegex.test(data)) {
 		data = data.replace(previewSectionRegex, envPreviewSection)
