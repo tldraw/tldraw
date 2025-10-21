@@ -48,7 +48,11 @@ export const TlaCookieConsent = memo(function TlaCookieConsent() {
 
 		shouldRequireConsent().then((value: boolean) => {
 			setRequiresConsent(value)
-			updateConsent(value)
+
+			// Only update consent if it's not required
+			if (!value) {
+				updateConsent(true)
+			}
 		})
 	}, [consent, updateConsent])
 
