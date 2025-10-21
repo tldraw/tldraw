@@ -1,4 +1,4 @@
-import { TLShapeId, toRichText } from '@tldraw/editor'
+import { TLRichText, TLShape, TLShapeId, toRichText } from '@tldraw/editor'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { Streaming } from '../types/Streaming'
@@ -14,6 +14,20 @@ const LabelAction = z
 	.meta({ title: 'Label', description: "The fairy changes a shape's text." })
 
 type ILabelEvent = z.infer<typeof LabelAction>
+
+type ShapeWithRichText = Extract<TLShape, { props: { richText: TLRichText } }>
+
+function isShapeWithRichText(shape: TLShape | null | undefined): shape is ShapeWithRichText {
+	return !!(shape && 'richText' in shape.props)
+}
+
+function assertShapeWithRichText(
+	shape: TLShape | null | undefined
+): asserts shape is ShapeWithRichText {
+	if (!isShapeWithRichText(shape)) {
+		throw new Error('Shape is not a valid ShapeWithRichText')
+	}
+}
 
 export class LabelActionUtil extends AgentActionUtil<ILabelEvent> {
 	static override type = 'label' as const
@@ -36,7 +50,13 @@ export class LabelActionUtil extends AgentActionUtil<ILabelEvent> {
 		if (!action.complete) return action
 
 		const shapeId = helpers.ensureShapeIdExists(action.shapeId)
-		if (!shapeId) return null
+		if (
+			!shapeId ||
+			!this.agent?.editor ||
+			!isShapeWithRichText(this.agent.editor.getShape(`shape:${action.shapeId}` as TLShapeId))
+		) {
+			return null
+		}
 
 		action.shapeId = shapeId
 		return action
@@ -50,6 +70,8 @@ export class LabelActionUtil extends AgentActionUtil<ILabelEvent> {
 		const shapeId = `shape:${action.shapeId}` as TLShapeId
 		const shape = editor.getShape(shapeId)
 		if (!shape) return
+		assertShapeWithRichText(shape)
+
 		editor.updateShape({
 			id: shapeId,
 			type: shape.type,

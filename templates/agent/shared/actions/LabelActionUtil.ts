@@ -47,7 +47,13 @@ export class LabelActionUtil extends AgentActionUtil<ILabelEvent> {
 		if (!action.complete) return action
 
 		const shapeId = helpers.ensureShapeIdExists(action.shapeId)
-		if (!shapeId) return null
+		if (
+			!shapeId ||
+			!this.agent?.editor ||
+			!isShapeWithRichText(this.agent.editor.getShape(`shape:${action.shapeId}` as TLShapeId))
+		) {
+			return null
+		}
 
 		action.shapeId = shapeId
 		return action
