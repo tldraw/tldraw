@@ -73,18 +73,21 @@ export const FrameLabelInput = forwardRef<
 
 	/* Mobile rename uses window.prompt */
 	useEffect(() => {
+		if (!isEditing) {
+			promptOpen.current = false
+			return
+		}
 		if (isEditing && isMobile && !promptOpen.current) {
 			promptOpen.current = true
 			const newname = window.prompt('Rename frame', name)
-			if (!newname) return
-
+			if (!newname) {
+				promptOpen.current = false
+				editor.setEditingShape(null)
+				return
+			}
 			renameFrame(newname)
 		}
-
-		if (!isEditing) {
-			promptOpen.current = false
-		}
-	}, [isEditing, isMobile, name, renameFrame])
+	}, [isEditing, isMobile, name, renameFrame, editor])
 
 	return (
 		<div className={`tl-frame-label ${isEditing && !isMobile ? 'tl-frame-label__editing' : ''}`}>
