@@ -15,10 +15,7 @@ const MANAGE_COOKIES_DIALOG = 'manageCookiesDialog'
  */
 async function shouldRequireConsent(): Promise<boolean> {
 	try {
-		const response = await fetch('https://consent.tldraw.com', {
-			// Use a short timeout to avoid delaying the page load
-			signal: AbortSignal.timeout(2000),
-		})
+		const response = await fetch('https://consent.tldraw.xyz')
 		if (response.ok) {
 			const data = await response.json()
 			// Worker returns { requires_consent: boolean, country_code: string }
@@ -47,8 +44,13 @@ export const TlaCookieConsent = memo(function TlaCookieConsent() {
 
 	// Check if consent is required based on user's location
 	useEffect(() => {
-		shouldRequireConsent().then(setRequiresConsent)
-	}, [])
+		if (consent !== null) return
+
+		shouldRequireConsent().then((value: boolean) => {
+			setRequiresConsent(value)
+			updateConsent(value)
+		})
+	}, [consent, updateConsent])
 
 	const handleAccept = useCallback(() => {
 		updateConsent(true)

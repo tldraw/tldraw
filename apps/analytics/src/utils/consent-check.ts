@@ -7,10 +7,7 @@ export async function shouldRequireConsent(): Promise<boolean> {
 	// CloudFlare provides the CF-IPCountry header on all requests
 	// Our consent worker checks this and returns whether consent is required
 	try {
-		const response = await fetch('https://tldraw-consent.workers.dev', {
-			// Use a short timeout to avoid delaying the page load
-			signal: AbortSignal.timeout(2000),
-		})
+		const response = await fetch('https://consent.tldraw.xyz')
 		if (response.ok) {
 			const data = await response.json()
 			// Worker returns { requires_consent: boolean, country_code: string }

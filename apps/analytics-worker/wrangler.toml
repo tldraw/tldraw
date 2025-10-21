@@ -20,6 +20,12 @@ name = "tldraw-consent-preview"
 [env.production]
 name = "tldraw-consent"
 
+#################### Routes ####################
+# in production, we use a custom domain. others get a default *.tldraw.workers.dev domain
+[[env.production.routes]]
+pattern = 'consent.tldraw.xyz'
+custom_domain = true
+zone_name = 'tldraw.xyz'
 
 #################### Version metadata ####################
 [version_metadata]
