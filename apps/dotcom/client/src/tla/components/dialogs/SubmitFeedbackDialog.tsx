@@ -50,12 +50,18 @@ function SignedOutSubmitFeedbackDialog() {
 				</p>
 				<ul>
 					<li>
-						<ExternalLink to="https://discord.tldraw.com/?utm_source=dotcom&utm_medium=organic&utm_campaign=dotcom-feedback">
+						<ExternalLink
+							eventName="menu-feedback-discord-link-clicked"
+							to="https://discord.tldraw.com/?utm_source=dotcom&utm_medium=organic&utm_campaign=dotcom-feedback"
+						>
 							<F defaultMessage="Chat with us on Discord" />
 						</ExternalLink>
 					</li>
 					<li>
-						<ExternalLink to="https://github.com/tldraw/tldraw/issues">
+						<ExternalLink
+							eventName="menu-feedback-github-link-clicked"
+							to="https://github.com/tldraw/tldraw/issues"
+						>
 							<F defaultMessage="Submit an issue on GitHub" />
 						</ExternalLink>
 					</li>
@@ -125,14 +131,22 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 						values={{
 							discord: (chunks) => {
 								return (
-									<ExternalLink to="https://discord.tldraw.com/?utm_source=dotcom&utm_medium=organic&utm_campaign=dotcom-feedback">
+									<ExternalLink
+										eventName="menu-feedback-discord-link-clicked"
+										to="https://discord.tldraw.com/?utm_source=dotcom&utm_medium=organic&utm_campaign=dotcom-feedback"
+									>
 										{chunks}
 									</ExternalLink>
 								)
 							},
 							github: (chunks) => {
 								return (
-									<ExternalLink to="https://github.com/tldraw/tldraw/issues">{chunks}</ExternalLink>
+									<ExternalLink
+										eventName="menu-feedback-github-link-clicked"
+										to="https://github.com/tldraw/tldraw/issues"
+									>
+										{chunks}
+									</ExternalLink>
 								)
 							},
 						}}
