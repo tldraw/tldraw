@@ -25,8 +25,8 @@ function RemoteFairy({ userId }: { userId: string }) {
 	const screenPosition = useValue(
 		'remote fairy screen position',
 		() => {
-			if (!presence?.fairy) return { x: 0, y: 0 }
-			const screenPos = editor.pageToScreen(presence.fairy.position)
+			if (!presence?.agent) return { x: 0, y: 0 }
+			const screenPos = editor.pageToScreen(presence.agent.position)
 			const screenBounds = editor.getViewportScreenBounds()
 			return {
 				x: screenPos.x - screenBounds.x,
@@ -41,9 +41,9 @@ function RemoteFairy({ userId }: { userId: string }) {
 		return null
 	}
 
-	const { fairy, color } = presence
+	const { agent, color } = presence
 
-	if (!fairy) {
+	if (!agent) {
 		return null
 	}
 
@@ -66,12 +66,12 @@ function RemoteFairy({ userId }: { userId: string }) {
 					top: screenPosition.y,
 					width: `${FAIRY_SIZE}px`,
 					height: `${FAIRY_SIZE}px`,
-					transform: `translate(-50%, -50%) scale(min(max(var(--tl-zoom), 0.2), 0.7))${fairy.flipX ? ' scaleX(-1)' : ''}`,
+					transform: `translate(-50%, -50%) scale(min(max(var(--tl-zoom), 0.2), 0.7))${agent.flipX ? ' scaleX(-1)' : ''}`,
 					filter: `drop-shadow(4px 8px 2px ${color})`,
 				}}
 			>
 				<FairySpriteComponent
-					pose={fairy.pose}
+					pose={agent.pose}
 					outfit={{
 						body: 'plain',
 						hat: 'pointy',

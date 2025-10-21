@@ -6,6 +6,7 @@ import {
 	DefaultDebugMenuContent,
 	Editor,
 	TLComponents,
+	TLInstancePresence,
 	TLSessionStateSnapshot,
 	TLUiDialogsContextType,
 	Tldraw,
@@ -230,14 +231,14 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 			return {
 				...defaultPresence,
-				fairy: fairyEntity
+				agent: fairyEntity
 					? {
 							position: fairyEntity.position,
 							flipX: fairyEntity.flipX,
 							pose: fairyEntity.pose,
 						}
 					: null,
-			}
+			} as TLInstancePresence
 		}, []),
 	})
 

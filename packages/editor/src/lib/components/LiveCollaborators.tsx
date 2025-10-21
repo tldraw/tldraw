@@ -81,7 +81,7 @@ const Collaborator = track(function Collaborator({
 		userName,
 		cursor,
 		color,
-		fairy,
+		agent,
 	} = latestPresence
 
 	if (!cursor) return null
@@ -130,13 +130,13 @@ const Collaborator = track(function Collaborator({
 				/>
 			) : null}
 
-			{/* Remote fairy presence as a secondary cursor-like indicator */}
-			{fairy && CollaboratorCursor ? (
+			{/* Remote agent presence as a secondary cursor-like indicator */}
+			{agent && CollaboratorCursor ? (
 				<CollaboratorCursor
-					className="tl-collaborator__cursor tl-collaborator__fairy"
-					key={userId + '_fairy'}
+					className="tl-collaborator__cursor tl-collaborator__agent"
+					key={userId + '_agent'}
 					userId={userId}
-					point={fairy.position}
+					point={agent.position}
 					color={color}
 					zoom={zoomLevel}
 					name={null}
