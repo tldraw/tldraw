@@ -1,5 +1,8 @@
 main = "src/worker.ts"
 compatibility_date = "2024-06-20"
+upload_source_maps = true
+
+#################### Environment names ####################
 
 # Dev environment
 [env.dev]
@@ -12,3 +15,20 @@ name = "tldraw-consent-staging"
 # Production environment
 [env.production]
 name = "tldraw-consent"
+
+
+#################### Version metadata ####################
+[version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.dev.version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.preview.version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.staging.version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.production.version_metadata]
+binding = "CF_VERSION_METADATA"
