@@ -72,10 +72,22 @@ This PR cherry-picks the changes from the original PR to the hotfixes branch for
 		nicelog(`Created hotfix PR: ${hotfixBranchName} -> hotfixes`)
 		nicelog(`Waiting for PR #${createdPr.data.number} to be ready for merge...`)
 
+		// Maximum wait time: 15 minutes total (action timeout is 20 mins, we need buffer for Discord notification)
+		const maxWaitTimeMs = 15 * 60 * 1000
+		const startTime = Date.now()
+
 		// Wait for 5 minutes initially, then check every 15 seconds (our checks take at least 5 mins)
 		await new Promise((resolve) => setTimeout(resolve, 5 * 60 * 1000))
 
 		while (true) {
+			// Check if we've exceeded the timeout
+			const elapsedTime = Date.now() - startTime
+			if (elapsedTime >= maxWaitTimeMs) {
+				nicelog(`Timeout: PR #${createdPr.data.number} checks did not complete in time`)
+				throw new Error(
+					`Hotfix PR #${createdPr.data.number} checks timed out after ${Math.round((elapsedTime + 5 * 60 * 1000) / 60000)} minutes. Please check the PR manually: https://github.com/tldraw/tldraw/pull/${createdPr.data.number}`
+				)
+			}
 			const prStatus = await getPrDetailsByNumber(octokit, createdPr.data.number)
 
 			nicelog(`PR #${createdPr.data.number} mergeable_state: ${prStatus.mergeable_state}`)
