@@ -21,6 +21,7 @@ import { Editor } from '@tldraw/editor';
 import { ElbowArrowSnap } from '@tldraw/editor';
 import { Extension } from '@tiptap/core';
 import { Extensions } from '@tiptap/core';
+import { ExtractShapeByProps } from '@tldraw/editor';
 import { ForwardRefExoticComponent } from 'react';
 import { Geometry2d } from '@tldraw/editor';
 import { Geometry2dFilters } from '@tldraw/editor';
@@ -2488,10 +2489,8 @@ export interface PlainTextLabelProps {
     // (undocumented)
     textWidth?: number;
     // (undocumented)
-    type: Extract<TLShape, {
-        props: {
-            text: string;
-        };
+    type: ExtractShapeByProps<{
+        text: string;
     }>['type'];
     // (undocumented)
     verticalAlign: TLDefaultVerticalAlignStyle;
@@ -2610,10 +2609,8 @@ export interface RichTextLabelProps {
     // (undocumented)
     textWidth?: number;
     // (undocumented)
-    type: Extract<TLShape, {
-        props: {
-            richText: TLRichText;
-        };
+    type: ExtractShapeByProps<{
+        richText: TLRichText;
     }>['type'];
     // (undocumented)
     verticalAlign: TLDefaultVerticalAlignStyle;
@@ -5327,10 +5324,8 @@ export function useDefaultHelpers(): {
 export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
-export function useEditablePlainText(shapeId: TLShapeId, type: Extract<TLShape, {
-    props: {
-        text: string;
-    };
+export function useEditablePlainText(shapeId: TLShapeId, type: ExtractShapeByProps<{
+    text: string;
 }>['type'], text?: string): {
     handleBlur: () => void;
     handleChange: ({ plaintext }: {
@@ -5350,10 +5345,8 @@ export function useEditablePlainText(shapeId: TLShapeId, type: Extract<TLShape, 
 };
 
 // @public (undocumented)
-export function useEditableRichText(shapeId: TLShapeId, type: Extract<TLShape, {
-    props: {
-        richText: TLRichText;
-    };
+export function useEditableRichText(shapeId: TLShapeId, type: ExtractShapeByProps<{
+    richText: TLRichText;
 }>['type'], richText?: TLRichText): {
     handleBlur: () => void;
     handleChange: ({ richText }: {

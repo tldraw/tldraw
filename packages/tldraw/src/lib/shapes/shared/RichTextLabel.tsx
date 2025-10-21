@@ -1,13 +1,13 @@
 import {
 	Box,
 	DefaultFontFamilies,
+	ExtractShapeByProps,
 	TLDefaultFillStyle,
 	TLDefaultFontStyle,
 	TLDefaultHorizontalAlignStyle,
 	TLDefaultVerticalAlignStyle,
 	TLEventInfo,
 	TLRichText,
-	TLShape,
 	TLShapeId,
 	preventDefault,
 	useEditor,
@@ -24,7 +24,7 @@ import { useEditableRichText } from './useEditableRichText'
 /** @public */
 export interface RichTextLabelProps {
 	shapeId: TLShapeId
-	type: Extract<TLShape, { props: { richText: TLRichText } }>['type']
+	type: ExtractShapeByProps<{ richText: TLRichText }>['type']
 	font: TLDefaultFontStyle
 	fontSize: number
 	lineHeight: number

@@ -1,4 +1,4 @@
-import { T, TLShape, track, useEditor } from '@tldraw/editor'
+import { ExtractShapeByProps, T, TLShape, track, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { TLUiDialogProps } from '../context/dialogs'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -25,7 +25,7 @@ function validateUrl(url: string) {
 	return { isValid: false, hasProtocol: false }
 }
 
-type ShapeWithUrl = Extract<TLShape, { props: { url: string } }>
+type ShapeWithUrl = ExtractShapeByProps<{ url: string }>
 
 function isShapeWithUrl(shape: TLShape | null | undefined): shape is ShapeWithUrl {
 	return !!(shape && 'url' in shape.props && typeof shape.props.url === 'string')

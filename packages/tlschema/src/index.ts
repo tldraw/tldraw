@@ -146,6 +146,7 @@ export {
 	isShape,
 	isShapeId,
 	rootShapeMigrations,
+	type ExtractShapeByProps,
 	type GlobalShapePropsMap,
 	type TLDefaultShape,
 	type TLParentId,

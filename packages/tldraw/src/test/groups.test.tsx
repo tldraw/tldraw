@@ -1,5 +1,6 @@
 import {
 	Box,
+	ExtractShapeByProps,
 	GroupShapeUtil,
 	TLArrowShape,
 	TLGroupShape,
@@ -35,7 +36,7 @@ const ids = {
 	groupA: createShapeId('groupA'),
 }
 
-type BoxShape = Extract<TLShape, { props: { fill: string } }>
+type BoxShape = ExtractShapeByProps<{ fill: string }>
 
 const box = (
 	id: TLShapeId,

@@ -1,6 +1,6 @@
 import {
 	Editor,
-	TLShape,
+	ExtractShapeByProps,
 	TLShapeId,
 	getPointerInfo,
 	noop,
@@ -15,7 +15,7 @@ import { TextHelpers } from './TextHelpers'
 /** @public */
 export function useEditablePlainText(
 	shapeId: TLShapeId,
-	type: Extract<TLShape, { props: { text: string } }>['type'],
+	type: ExtractShapeByProps<{ text: string }>['type'],
 	text?: string
 ) {
 	const commonUseEditableTextHandlers = useEditableTextCommon(shapeId)

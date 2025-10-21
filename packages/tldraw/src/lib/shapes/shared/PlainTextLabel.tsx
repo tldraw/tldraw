@@ -1,10 +1,10 @@
 import {
 	Box,
+	ExtractShapeByProps,
 	TLDefaultFillStyle,
 	TLDefaultFontStyle,
 	TLDefaultHorizontalAlignStyle,
 	TLDefaultVerticalAlignStyle,
-	TLShape,
 	TLShapeId,
 } from '@tldraw/editor'
 import React from 'react'
@@ -16,7 +16,7 @@ import { useEditablePlainText } from './useEditablePlainText'
 /** @public */
 export interface PlainTextLabelProps {
 	shapeId: TLShapeId
-	type: Extract<TLShape, { props: { text: string } }>['type']
+	type: ExtractShapeByProps<{ text: string }>['type']
 	font: TLDefaultFontStyle
 	fontSize: number
 	lineHeight: number

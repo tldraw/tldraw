@@ -1,4 +1,4 @@
-import { TLRichText, TLShape, TLShapeId, isAccelKey, useEditor } from '@tldraw/editor'
+import { ExtractShapeByProps, TLRichText, TLShapeId, isAccelKey, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
 import { isEmptyRichText } from '../../utils/text/richText'
 import { useEditableTextCommon } from './useEditablePlainText'
@@ -6,7 +6,7 @@ import { useEditableTextCommon } from './useEditablePlainText'
 /** @public */
 export function useEditableRichText(
 	shapeId: TLShapeId,
-	type: Extract<TLShape, { props: { richText: TLRichText } }>['type'],
+	type: ExtractShapeByProps<{ richText: TLRichText }>['type'],
 	richText?: TLRichText
 ) {
 	const commonUseEditableTextHandlers = useEditableTextCommon(shapeId)

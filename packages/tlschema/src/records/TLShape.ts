@@ -143,6 +143,9 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T
 		} & Partial<Omit<T, 'type' | 'id' | 'props' | 'meta'>>
 	: never
 
+/** @internal */
+export type ExtractShapeByProps<P> = Extract<TLShape, { props: P }>
+
 /**
  * A unique identifier for a shape record.
  *

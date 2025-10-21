@@ -298,6 +298,11 @@ export class EnumStyleProp<T> extends StyleProp<T> {
     readonly values: readonly T[];
 }
 
+// @internal (undocumented)
+export type ExtractShapeByProps<P> = Extract<TLShape, {
+    props: P;
+}>;
+
 // @public
 export const frameShapeMigrations: TLPropsMigrations;
 
@@ -765,11 +770,11 @@ export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T ? {
     type: T['type'];
 } & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
 
+// Warning: (ae-incompatible-release-tags) The symbol "TLAssetShape" is marked as @public, but its signature references "ExtractShapeByProps" which is marked as @internal
+//
 // @public
-export type TLAssetShape = Extract<TLShape, {
-    props: {
-        assetId: TLAssetId;
-    };
+export type TLAssetShape = ExtractShapeByProps<{
+    assetId: TLAssetId;
 }>;
 
 // @public
