@@ -17,6 +17,12 @@ import {
 	ZERO_INDEX_KEY,
 } from 'tldraw'
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		'bezier-curve': MyBezierCurveShape
+	}
+}
+
 // [1]
 export type MyBezierCurveShape = TLBaseShape<
 	'bezier-curve',
@@ -366,8 +372,8 @@ Control point handles are hidden when they're at the same position as their asso
 
 [5]
 Custom handle snapping via getHandleSnapGeometry: control points (cp1, cp2) can snap to start/end points.
-The snap system automatically handles screen-space thresholds (consistent across zoom levels) and visual 
-snap indicators. When a control point is snapped to an endpoint, it effectively "collapses" the curve at 
+The snap system automatically handles screen-space thresholds (consistent across zoom levels) and visual
+snap indicators. When a control point is snapped to an endpoint, it effectively "collapses" the curve at
 that end, creating a sharp corner.
 
 [6]
