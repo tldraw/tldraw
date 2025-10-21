@@ -3,7 +3,7 @@ import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class FlyToBoundsActionUtil extends AgentActionUtil<FlyToBoundsAction> {
-	static override type = 'flyToBounds' as const
+	static override type = 'fly-to-bounds' as const
 
 	override getInfo(action: Streaming<FlyToBoundsAction>) {
 		// const label = action.complete ? 'Fly To Bounds' : 'Flying to bounds'

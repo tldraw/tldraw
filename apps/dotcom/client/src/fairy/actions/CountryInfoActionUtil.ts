@@ -3,7 +3,7 @@ import { fetch, JsonValue } from 'tldraw'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class CountryInfoActionUtil extends AgentActionUtil<CountryInfoAction> {
-	static override type = 'countryInfo' as const
+	static override type = 'country-info' as const
 
 	override getInfo(action: Streaming<CountryInfoAction>) {
 		const description = action.complete ? 'Searched for country info' : 'Searching for country info'

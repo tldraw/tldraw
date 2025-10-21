@@ -4,7 +4,7 @@ import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class RandomWikipediaArticleActionUtil extends AgentActionUtil<RandomWikipediaArticleAction> {
-	static override type = 'getInspiration' as const
+	static override type = 'random-wikipedia-article' as const
 
 	override getInfo(action: Streaming<RandomWikipediaArticleAction>) {
 		const description = action.complete

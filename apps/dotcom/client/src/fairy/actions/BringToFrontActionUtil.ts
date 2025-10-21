@@ -4,7 +4,7 @@ import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class BringToFrontActionUtil extends AgentActionUtil<BringToFrontAction> {
-	static override type = 'bringToFront' as const
+	static override type = 'bring-to-front' as const
 
 	override getInfo(action: Streaming<BringToFrontAction>) {
 		return {

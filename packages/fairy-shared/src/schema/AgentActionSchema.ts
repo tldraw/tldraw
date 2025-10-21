@@ -32,7 +32,7 @@ export type AlignAction = z.infer<typeof AlignActionSchema>
 
 export const BringToFrontActionSchema = z
 	.object({
-		_type: z.literal('bringToFront'),
+		_type: z.literal('bring-to-front'),
 		intent: z.string(),
 		shapeIds: z.array(z.string()),
 	})
@@ -57,7 +57,7 @@ export type ClearAction = z.infer<typeof ClearActionSchema>
 
 export const CountryInfoActionSchema = z
 	.object({
-		_type: z.literal('countryInfo'),
+		_type: z.literal('country-info'),
 		code: z.string(),
 	})
 	.meta({
@@ -117,7 +117,7 @@ export type DistributeAction = z.infer<typeof DistributeActionSchema>
 
 export const FlyToBoundsActionSchema = z
 	.object({
-		_type: z.literal('flyToBounds'),
+		_type: z.literal('fly-to-bounds'),
 		intent: z.string(),
 		x: z.number(),
 		y: z.number(),
@@ -166,7 +166,7 @@ export type MoveAction = z.infer<typeof MoveActionSchema>
 
 export const NoteToSelfActionSchema = z
 	.object({
-		_type: z.literal('noteToSelf'),
+		_type: z.literal('note-to-self'),
 		note: z.string(),
 		intent: z.string(),
 	})
@@ -217,10 +217,10 @@ export type PlaceAction = z.infer<typeof PlaceActionSchema>
 
 export const RandomWikipediaArticleActionSchema = z
 	.object({
-		_type: z.literal('getInspiration'),
+		_type: z.literal('random-wikipedia-article'),
 	})
 	.meta({
-		title: 'Get inspiration',
+		title: 'Get random wikipedia article',
 		description: 'The fairy gets inspiration from a random Wikipedia article.',
 	})
 
@@ -280,7 +280,7 @@ export type RotateAction = z.infer<typeof RotateActionSchema>
 
 export const SendToBackActionSchema = z
 	.object({
-		_type: z.literal('sendToBack'),
+		_type: z.literal('send-to-back'),
 		intent: z.string(),
 		shapeIds: z.array(z.string()),
 	})

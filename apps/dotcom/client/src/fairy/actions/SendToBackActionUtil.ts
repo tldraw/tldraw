@@ -4,7 +4,7 @@ import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class SendToBackActionUtil extends AgentActionUtil<SendToBackAction> {
-	static override type = 'sendToBack' as const
+	static override type = 'send-to-back' as const
 
 	override getInfo(action: Streaming<SendToBackAction>) {
 		return {

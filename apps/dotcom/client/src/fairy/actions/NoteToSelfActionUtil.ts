@@ -2,7 +2,7 @@ import { NoteToSelfAction, Streaming } from '@tldraw/fairy-shared'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class NoteToSelfActionUtil extends AgentActionUtil<NoteToSelfAction> {
-	static override type = 'noteToSelf' as const
+	static override type = 'note-to-self' as const
 
 	override getInfo(action: Streaming<NoteToSelfAction>) {
 		const label = action.complete ? 'Note To Self' : 'Noting to self'
