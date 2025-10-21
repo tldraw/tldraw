@@ -8,17 +8,33 @@ import {
 } from '@tldraw/fairy-shared'
 import { ModelMessage, UserContent } from 'ai'
 
-function buildContentFromPart(part: PromptPart): string[] {
-	const schema = PROMPT_PART_SCHEMAS.find((schema) => schema.shape.type.value === part.type)
-	if (!schema) return []
+export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
+	const allMessages: AgentMessage[] = []
 
-	const meta = PromptPartRegistry.get(schema)
-	if (!meta) return []
+	for (const part of Object.values(prompt)) {
+		const messages = buildMessagesFromPart(part)
+		allMessages.push(...messages)
+	}
 
-	return meta.buildContent?.(part) ?? []
+	allMessages.sort((a, b) => a.priority - b.priority)
+
+	return toModelMessages(allMessages)
 }
 
 function buildMessagesFromPart(part: PromptPart): AgentMessage[] {
+	const schema = PROMPT_PART_SCHEMAS.find((schema) => schema.shape.type.value === part.type)
+	if (!schema) return defaultBuildMessagesFromPart(part)
+
+	const meta = PromptPartRegistry.get(schema)
+	if (!meta) return defaultBuildMessagesFromPart(part)
+
+	const buildMessages = meta.buildMessages
+	if (!buildMessages) return defaultBuildMessagesFromPart(part)
+
+	return buildMessages(part)
+}
+
+function defaultBuildMessagesFromPart(part: PromptPart): AgentMessage[] {
 	const content = buildContentFromPart(part)
 	if (!content || content.length === 0) {
 		return []
@@ -42,17 +58,14 @@ function buildMessagesFromPart(part: PromptPart): AgentMessage[] {
 	return [{ role: 'user', content: messageContent, priority: 0 }]
 }
 
-export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
-	const allMessages: AgentMessage[] = []
+function buildContentFromPart(part: PromptPart): string[] {
+	const schema = PROMPT_PART_SCHEMAS.find((schema) => schema.shape.type.value === part.type)
+	if (!schema) return []
 
-	for (const part of Object.values(prompt)) {
-		const messages = buildMessagesFromPart(part)
-		allMessages.push(...messages)
-	}
+	const meta = PromptPartRegistry.get(schema)
+	if (!meta) return []
 
-	allMessages.sort((a, b) => a.priority - b.priority)
-
-	return toModelMessages(allMessages)
+	return meta.buildContent?.(part) ?? []
 }
 
 /**
