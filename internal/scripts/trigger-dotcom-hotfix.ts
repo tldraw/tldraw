@@ -85,7 +85,7 @@ This PR cherry-picks the changes from the original PR to the hotfixes branch for
 			if (elapsedTime >= maxWaitTimeMs) {
 				nicelog(`Timeout: PR #${createdPr.data.number} checks did not complete in time`)
 				throw new Error(
-					`Hotfix PR #${createdPr.data.number} checks timed out after ${Math.round((elapsedTime + 5 * 60 * 1000) / 60000)} minutes. Please check the PR manually: https://github.com/tldraw/tldraw/pull/${createdPr.data.number}`
+					`Hotfix PR #${createdPr.data.number} checks timed out after ${Math.round(elapsedTime / 60000)} minutes. Please check the PR manually: https://github.com/tldraw/tldraw/pull/${createdPr.data.number}`
 				)
 			}
 			const prStatus = await getPrDetailsByNumber(octokit, createdPr.data.number)
