@@ -14279,6 +14279,7 @@ __metadata:
     kysely: "npm:^0.27.5"
     lazyrepo: "npm:0.0.0-alpha.27"
     lodash.pick: "npm:^4.4.0"
+    patchfork: "npm:^0.0.1"
     pg: "npm:^8.13.1"
     posthog-js: "npm:^1.248.1"
     qrcode: "npm:^1.5.4"
@@ -22446,6 +22447,13 @@ __metadata:
   bin:
     patch-package: index.js
   checksum: 10/8714322c35b29266e71c82d58443ce5322400a546a3327f1b8907b8eeb7e366dff33c4fdfbd25e3f0b3a9927189c26e9ac60636ca1e4140d6dbc11cca10f9b5d
+  languageName: node
+  linkType: hard
+
+"patchfork@npm:^0.0.1":
+  version: 0.0.1
+  resolution: "patchfork@npm:0.0.1"
+  checksum: 10/5dff382e8cfb146c8ce7da7a26e159294f2fa13c11b78fc0469bd1be37c93f58157a8372f86da75a50e36ffe84a7833666a06a23634859e53ad7e9cff18504dc
   languageName: node
   linkType: hard
 

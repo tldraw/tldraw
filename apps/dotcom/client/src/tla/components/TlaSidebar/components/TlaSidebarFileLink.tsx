@@ -1,11 +1,13 @@
 import { TlaFile } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
+import { patch } from 'patchfork'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
-import { KeyboardEvent, MouseEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { KeyboardEvent, MouseEvent, useCallback, useEffect, useRef } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
 	TldrawUiMenuContextProvider,
 	TldrawUiTooltip,
+	isEqual,
 	preventDefault,
 	useMaybeEditor,
 	useMenuIsOpen,
@@ -13,8 +15,8 @@ import {
 } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
+import { useDragTracking } from '../../../hooks/useDragTracking'
 import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
-import { useFileSidebarFocusContext } from '../../../providers/FileInputFocusProvider'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F, defineMessages, useIntl } from '../../../utils/i18n'
@@ -24,24 +26,43 @@ import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 import { TlaSidebarFileLinkMenu } from './TlaSidebarFileLinkMenu'
 import { TlaSidebarRenameInline } from './TlaSidebarRenameInline'
+import { pinIcon } from './pinIcon'
 import { RecentFile } from './sidebar-shared'
 
 const ACTIVE_FILE_LINK_ID = 'tla-active-file-link'
+let preventScrollOnNavigation = false
+
 function scrollActiveFileLinkIntoView() {
 	const el = document.getElementById(ACTIVE_FILE_LINK_ID)
 	if (el) {
+		// Check if we should prevent scrolling due to sidebar click
+		if (preventScrollOnNavigation) {
+			return
+		}
 		el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+	}
+}
+
+export function setPreventScrollOnNavigation(value: boolean) {
+	preventScrollOnNavigation = value
+	if (value) {
+		// Clear the flag after a short delay to allow for immediate navigation
+		setTimeout(() => {
+			preventScrollOnNavigation = false
+		}, 100)
 	}
 }
 
 export function TlaSidebarFileLink({
 	item,
 	testId,
+	className,
 	groupId,
 }: {
 	item: RecentFile
 	testId: string
-	groupId: string | null
+	groupId: string
+	className?: string
 }) {
 	const app = useApp()
 	const intl = useIntl()
@@ -54,9 +75,16 @@ export function TlaSidebarFileLink({
 		if (isActive) {
 			scrollActiveFileLinkIntoView()
 		}
-	}, [isActive])
+	}, [isActive, fileId])
 
-	const [isRenaming, setIsRenaming] = useState(false)
+	const isRenaming = useValue(
+		'shouldRename',
+		() => isEqual(app.sidebarState.get().renameState, { fileId, groupId }),
+		[fileId, app]
+	)
+
+	const isPinned = useValue('isPinned', () => !!app.getFileState(fileId)?.isPinned, [fileId, app])
+
 	const handleRenameAction = () => {
 		if (isMobile) {
 			const newName = prompt(intl.formatMessage(sidebarMessages.renameFile), fileName)?.trim()
@@ -64,7 +92,7 @@ export function TlaSidebarFileLink({
 				app.updateFile(fileId, { name: newName })
 			}
 		} else {
-			setIsRenaming(true)
+			patch(app.sidebarState).renameState({ fileId, groupId })
 		}
 	}
 
@@ -77,12 +105,14 @@ export function TlaSidebarFileLink({
 					fileId={fileId}
 					groupId={groupId}
 					fileName={fileName}
+					isPinned={isPinned}
 					testId={testId}
 					isActive={isActive}
 					href={routes.tlaFile(fileId)}
-					onClose={() => setIsRenaming(false)}
+					onClose={() => patch(app.sidebarState).renameState(null)}
 					isRenaming={isRenaming}
 					handleRenameAction={handleRenameAction}
+					className={className}
 				/>
 			</_ContextMenu.Trigger>
 			<_ContextMenu.Content className="tlui-menu tlui-scrollable">
@@ -110,6 +140,7 @@ export const sidebarMessages = defineMessages({
 })
 
 export function TlaSidebarFileLinkInner({
+	isPinned,
 	testId,
 	fileId,
 	isActive,
@@ -119,8 +150,10 @@ export function TlaSidebarFileLinkInner({
 	handleRenameAction,
 	onClose,
 	groupId,
+	className,
 }: {
 	fileId: string
+	isPinned: boolean
 	testId: string | number
 	isActive: boolean
 	fileName: string
@@ -128,12 +161,12 @@ export function TlaSidebarFileLinkInner({
 	isRenaming: boolean
 	handleRenameAction(): void
 	onClose(): void
-	groupId: string | null
+	groupId: string
+	className?: string
 }) {
 	const trackEvent = useTldrawAppUiEvents()
 	const linkRef = useRef<HTMLAnchorElement | null>(null)
 	const app = useApp()
-	const focusCtx = useFileSidebarFocusContext()
 	const isSidebarOpenMobile = useIsSidebarOpenMobile()
 	const editor = useMaybeEditor()
 	const intl = useIntl()
@@ -141,14 +174,7 @@ export function TlaSidebarFileLinkInner({
 		editor,
 	])
 
-	useEffect(() => {
-		// on mount, trigger rename action if this is a new file.
-		if (isActive && focusCtx.shouldRenameNextNewFile) {
-			focusCtx.shouldRenameNextNewFile = false
-			handleRenameAction()
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
+	const { startDragTracking } = useDragTracking()
 
 	const handleKeyDown = (e: KeyboardEvent) => {
 		if (!isActive) return
@@ -161,11 +187,19 @@ export function TlaSidebarFileLinkInner({
 		if (!isActive || !linkRef.current) return
 		// Don't focus if any menus are open to prevent dismissing them
 		if (editor?.menus.hasAnyOpenMenus()) return
-		linkRef.current.focus()
+		linkRef.current.focus({ preventScroll: preventScrollOnNavigation })
 	}, [isActive, linkRef, editor])
 
 	const file = useValue('file', () => app.getFile(fileId), [fileId, app])
-	const isOwnFile = useIsFileOwner(fileId)
+	const isOwnFile = useIsFileOwner(fileId, groupId)
+
+	const isDragging = useValue('isDragging', () => app.sidebarState.get().dragState?.id === fileId, [
+		fileId,
+		app,
+	])
+
+	const wrapperRef = useRef<HTMLDivElement>(null)
+
 	if (!file) return null
 
 	if (isRenaming) {
@@ -174,17 +208,33 @@ export function TlaSidebarFileLinkInner({
 
 	return (
 		<div
-			className={classNames(styles.sidebarFileListItem, styles.hoverable)}
+			className={classNames(styles.sidebarFileListItem, styles.hoverable, className)}
 			data-enhanced-a11y-mode={enhancedA11yMode}
+			ref={wrapperRef}
 			data-active={isActive}
 			data-element="file-link"
 			data-testid={testId}
 			data-is-own-file={isOwnFile}
 			onDoubleClick={isOwnFile ? handleRenameAction : undefined}
+			data-drop-target-id={`file:${fileId}`}
+			data-is-dragging={isDragging}
+			data-is-pinned={isPinned}
 			// We use this id to scroll the active file link into view when creating or deleting files.
 			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
 			role="listitem"
-			draggable={false}
+			draggable={true}
+			onDragStart={(event) => {
+				// Set native drag data for drag-to-new-tab functionality
+				const fileUrl = routes.tlaFile(fileId, { asUrl: true })
+				event.dataTransfer.effectAllowed = 'move'
+				event.dataTransfer.setData('text/uri-list', fileUrl)
+				startDragTracking({
+					groupId,
+					fileId,
+					clientX: event.clientX,
+					clientY: event.clientY,
+				})
+			}}
 		>
 			<Link
 				ref={linkRef}
@@ -197,6 +247,9 @@ export function TlaSidebarFileLinkInner({
 					// unless the user is holding ctrl or cmd to open in a new tab
 					if (isActive && !(event.ctrlKey || event.metaKey)) {
 						preventDefault(event)
+					} else {
+						// Set flag to prevent scrolling when navigation occurs due to sidebar click
+						setPreventScrollOnNavigation(true)
 					}
 					if (isSidebarOpenMobile) {
 						toggleMobileSidebar(false)
@@ -208,6 +261,7 @@ export function TlaSidebarFileLinkInner({
 				draggable={false}
 			/>
 			<div className={styles.sidebarFileListItemContent}>
+				{isPinned && pinIcon}
 				<div
 					className={classNames(
 						styles.sidebarFileListItemLabel,

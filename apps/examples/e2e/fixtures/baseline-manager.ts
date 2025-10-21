@@ -2,6 +2,10 @@ import fs from 'fs'
 import path from 'path'
 import { FPSMetrics } from './fps-tracker'
 
+if (typeof __dirname === 'undefined') {
+	global.__dirname = import.meta.url.split('/').slice(0, -1).join('/')
+}
+
 export interface PerformanceBaseline {
 	avgFps: number
 	minFps: number
