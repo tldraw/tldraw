@@ -533,9 +533,10 @@ function convertDrawShapeToTldrawShape(
 			isLocked: defaultDrawShape.isLocked ?? false,
 			opacity: defaultDrawShape.opacity ?? 1,
 			props: {
+				...editor.getShapeUtil('draw').getDefaultProps(),
 				color: asColor(simpleShape.color ?? defaultDrawShape.props?.color ?? 'black'),
 				fill,
-			} as any,
+			},
 			meta: {
 				note: simpleShape.note ?? defaultDrawShape.meta?.note ?? '',
 			},
