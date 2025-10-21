@@ -46,15 +46,4 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPar
 			clusters: normalizedClusters,
 		}
 	}
-
-	// override buildContent({ clusters }: PeripheralShapesPart): string[] {
-	// 	if (!clusters || clusters.length === 0) {
-	// 		return []
-	// 	}
-
-	// 	return [
-	// 		"There are some groups of shapes in your peripheral vision, outside the your main view. You can't make out their details or content. If you want to see their content, you need to get closer. The groups are as follows",
-	// 		JSON.stringify(clusters),
-	// 	]
-	// }
 }

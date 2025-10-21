@@ -1,4 +1,4 @@
-import { AgentAction, BaseAgentAction, BasePromptPart, PromptPart } from '@tldraw/fairy-shared'
+import { AgentAction, PromptPart } from '@tldraw/fairy-shared'
 import { AgentActionUtil, AgentActionUtilConstructor } from './actions/AgentActionUtil'
 import { AlignActionUtil } from './actions/AlignActionUtil'
 import { BringToFrontActionUtil } from './actions/BringToFrontActionUtil'
@@ -72,7 +72,7 @@ export const AGENT_ACTION_UTILS = [
 
 	// Internal (required)
 	UnknownActionUtil,
-] satisfies AgentActionUtilConstructor<BaseAgentAction>[]
+] satisfies AgentActionUtilConstructor<AgentAction>[]
 
 /**
  * Prompt parts determine what information will be sent to the model.
@@ -102,7 +102,7 @@ export const PROMPT_PART_UTILS = [
 
 	// Metadata
 	TimePartUtil,
-] satisfies PromptPartUtilConstructor<BasePromptPart>[]
+] satisfies PromptPartUtilConstructor<PromptPart>[]
 
 /**
  * Get an object containing all agent action utils.

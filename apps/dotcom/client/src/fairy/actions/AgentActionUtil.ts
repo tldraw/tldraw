@@ -1,10 +1,10 @@
-import { AgentActionInfo, BaseAgentAction, Streaming } from '@tldraw/fairy-shared'
+import { AgentAction, AgentActionInfo, BaseAgentAction, Streaming } from '@tldraw/fairy-shared'
 import { Editor } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { FairyAgent } from '../fairy-agent/agent/FairyAgent'
 
 export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentAction> {
-	static type: string
+	static type: AgentAction['_type']
 
 	protected agent: FairyAgent
 	protected editor: Editor

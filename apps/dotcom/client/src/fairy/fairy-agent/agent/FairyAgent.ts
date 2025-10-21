@@ -311,9 +311,11 @@ export class FairyAgent {
 	 * @returns A promise for when the agent has finished its work.
 	 */
 	async prompt(input: AgentInput) {
-		if (this.$fairy.get().pose === 'idle') {
+		const startingFairy = this.$fairy.get()
+		if (startingFairy.pose === 'idle') {
 			this.$fairy.update((fairy) => ({ ...fairy, pose: 'active' }))
 		}
+
 		const request = this.getFullRequestFromInput(input)
 
 		// Submit the request to the agent.
@@ -327,7 +329,6 @@ export class FairyAgent {
 			// If there no outstanding todo items or requests, finish
 			if (todoItemsRemaining.length === 0 || !this.cancelFn) {
 				this.$fairy.update((fairy) => ({ ...fairy, pose: 'idle' }))
-				this.moveToBounds(request.bounds)
 				return
 			}
 
@@ -842,8 +843,8 @@ export class FairyAgent {
 
 	moveToBounds(bounds: BoxModel) {
 		this.$fairy.update((fairy) => {
-			const bottomLeft = new Vec(bounds.x, bounds.y + bounds.h)
-			let offsetPosition = Vec.Add(bottomLeft, this.MOVE_OFFSET)
+			const middleRight = new Vec(bounds.x + bounds.w, bounds.y + bounds.h / 2)
+			let offsetPosition = Vec.Add(middleRight, this.MOVE_OFFSET)
 
 			// Check if the position is offscreen and adjust to keep it onscreen
 			const viewport = this.editor.getViewportPageBounds()
@@ -854,7 +855,7 @@ export class FairyAgent {
 			return {
 				...fairy,
 				position: offsetPosition,
-				flipX: false,
+				flipX: true,
 			}
 		})
 	}

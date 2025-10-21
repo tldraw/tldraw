@@ -12,42 +12,4 @@ export class MessagesPartUtil extends PromptPartUtil<MessagesPart> {
 			requestType: type,
 		}
 	}
-
-	// override buildContent({ messages, requestType }: MessagesPart) {
-	// 	let responsePart: string[] = []
-	// 	switch (requestType) {
-	// 		case 'user':
-	// 			responsePart = getUserPrompt(messages)
-	// 			break
-	// 		case 'schedule':
-	// 			responsePart = getSchedulePrompt(messages)
-	// 			break
-	// 		case 'todo':
-	// 			responsePart = getTodoPrompt(messages)
-	// 			break
-	// 	}
-
-	// 	return responsePart
-	// }
 }
-
-// function getUserPrompt(message: string[]) {
-// 	return [
-// 		`Using the events provided in the response schema, here's what I want you to do:`,
-// 		...message,
-// 	]
-// }
-
-// function getSchedulePrompt(message: string[]) {
-// 	return [
-// 		"Using the events provided in the response schema, here's what you should do:",
-// 		...message,
-// 	]
-// }
-
-// function getTodoPrompt(message: string[]) {
-// 	return [
-// 		'There are still outstanding todo items. Please continue. For your reference, the most recent message I gave you was this:',
-// 		...message,
-// 	]
-// }

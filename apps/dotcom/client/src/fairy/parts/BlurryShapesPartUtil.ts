@@ -45,15 +45,6 @@ export class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {
 			return { ...shape, x: bounds.x, y: bounds.y, w: bounds.w, h: bounds.h }
 		})
 
-		return {
-			type: 'blurryShapes',
-			shapes: normalizedBlurryShapes,
-		}
+		return { type: 'blurryShapes', shapes: normalizedBlurryShapes }
 	}
-
-	// override buildContent({ shapes }: BlurryShapesPart): string[] {
-	// 	if (!shapes || shapes.length === 0) return ['There are no shapes in your view at the moment.']
-
-	// 	return [`These are the shapes you can currently see:`, JSON.stringify(shapes)]
-	// }
 }

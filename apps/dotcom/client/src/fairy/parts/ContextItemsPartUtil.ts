@@ -1,11 +1,6 @@
-import { AgentRequest, BasePromptPart, ContextItem } from '@tldraw/fairy-shared'
+import { AgentRequest, ContextItemsPart } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { PromptPartUtil } from './PromptPartUtil'
-
-interface ContextItemsPart extends BasePromptPart<'contextItems'> {
-	items: ContextItem[]
-	requestType: AgentRequest['type']
-}
 
 export class ContextItemsPartUtil extends PromptPartUtil<ContextItemsPart> {
 	static override type = 'contextItems' as const

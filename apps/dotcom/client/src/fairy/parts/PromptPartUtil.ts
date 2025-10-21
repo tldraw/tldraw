@@ -1,10 +1,10 @@
-import { AgentRequest, BasePromptPart } from '@tldraw/fairy-shared'
+import { AgentRequest, PromptPart } from '@tldraw/fairy-shared'
 import { Editor } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { FairyAgent } from '../fairy-agent/agent/FairyAgent'
 
-export abstract class PromptPartUtil<T extends BasePromptPart = BasePromptPart> {
-	static type: string
+export abstract class PromptPartUtil<T extends PromptPart> {
+	static type: PromptPart['type']
 
 	protected agent: FairyAgent
 	protected editor: Editor
@@ -21,7 +21,7 @@ export abstract class PromptPartUtil<T extends BasePromptPart = BasePromptPart> 
 	abstract getPart(request: AgentRequest, helpers: AgentHelpers): Promise<T> | T
 }
 
-export interface PromptPartUtilConstructor<T extends BasePromptPart = BasePromptPart> {
+export interface PromptPartUtilConstructor<T extends PromptPart> {
 	new (agent: FairyAgent): PromptPartUtil<T>
 	type: T['type']
 }

@@ -27,14 +27,4 @@ export class DataPartUtil extends PromptPartUtil<DataPart> {
 			data: values,
 		}
 	}
-
-	// override buildContent({ data }: DataPart) {
-	// 	if (data.length === 0) return []
-
-	// 	const formattedData = data.map((item) => {
-	// 		return `${JSON.stringify(item)}`
-	// 	})
-
-	// 	return ["Here's the data you requested:", ...formattedData]
-	// }
 }

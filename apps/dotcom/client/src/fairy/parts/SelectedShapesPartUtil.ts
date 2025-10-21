@@ -35,15 +35,4 @@ export class SelectedShapesPartUtil extends PromptPartUtil<SelectedShapesPart> {
 			shapes: normalizedSimpleShapes,
 		}
 	}
-
-	// override buildContent({ shapes }: SelectedShapesPart) {
-	// 	if (!shapes || shapes.length === 0) {
-	// 		return []
-	// 	}
-
-	// 	return [
-	// 		'The user has selected these shapes. Focus your task on these shapes where applicable:',
-	// 		shapes.map((shape) => JSON.stringify(shape)).join('\n'),
-	// 	]
-	// }
 }

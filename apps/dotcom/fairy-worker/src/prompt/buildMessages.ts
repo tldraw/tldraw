@@ -1,17 +1,21 @@
-import { AgentMessage, AgentMessageContent, AgentPrompt, PromptPart } from '@tldraw/fairy-shared'
+import {
+	AgentMessage,
+	AgentMessageContent,
+	AgentPrompt,
+	PROMPT_PART_SCHEMAS,
+	PromptPart,
+	PromptPartRegistry,
+} from '@tldraw/fairy-shared'
 import { ModelMessage, UserContent } from 'ai'
 
-export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
-	const allMessages: AgentMessage[] = []
+function buildContentFromPart(part: PromptPart): string[] {
+	const schema = PROMPT_PART_SCHEMAS.find((schema) => schema.shape.type.value === part.type)
+	if (!schema) return []
 
-	for (const part of Object.values(prompt)) {
-		const messages = buildMessagesFromPart(part)
-		allMessages.push(...messages)
-	}
+	const meta = PromptPartRegistry.get(schema)
+	if (!meta) return []
 
-	allMessages.sort((a, b) => b.priority - a.priority)
-
-	return toModelMessages(allMessages)
+	return meta.buildContent?.(part) ?? []
 }
 
 function buildMessagesFromPart(part: PromptPart): AgentMessage[] {
@@ -38,13 +42,17 @@ function buildMessagesFromPart(part: PromptPart): AgentMessage[] {
 	return [{ role: 'user', content: messageContent, priority: 0 }]
 }
 
-function buildContentFromPart(part: PromptPart): string[] {
-	switch (part.type) {
-		case 'messages':
-			return ['Hello world']
-		default:
-			return []
+export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
+	const allMessages: AgentMessage[] = []
+
+	for (const part of Object.values(prompt)) {
+		const messages = buildMessagesFromPart(part)
+		allMessages.push(...messages)
 	}
+
+	allMessages.sort((a, b) => a.priority - b.priority)
+
+	return toModelMessages(allMessages)
 }
 
 /**

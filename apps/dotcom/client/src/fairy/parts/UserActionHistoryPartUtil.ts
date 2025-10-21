@@ -14,15 +14,6 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 	static override type = 'userActionHistory' as const
 
 	override getPart(_request: AgentRequest, helpers: AgentHelpers): UserActionHistoryPart {
-		// if (!parts.includes('userActionHistory')) {
-		// 	return {
-		// 		type: 'userActionHistory',
-		// 		added: [],
-		// 		removed: [],
-		// 		updated: [],
-		// 	}
-		// }
-
 		const { editor, agent } = helpers
 
 		// Get the action history and clear it so that we can start tracking changes for the next request
@@ -80,18 +71,6 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 
 		return part
 	}
-
-	// override buildContent(part: UserActionHistoryPart): string[] {
-	// 	const { updated, removed, added } = part
-	// 	if (updated.length === 0 && removed.length === 0 && added.length === 0) {
-	// 		return []
-	// 	}
-
-	// 	return [
-	// 		'Since the previous request, the user has made the following changes to the canvas:',
-	// 		JSON.stringify(part),
-	// 	]
-	// }
 }
 
 /**

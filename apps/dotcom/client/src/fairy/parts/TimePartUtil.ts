@@ -10,8 +10,4 @@ export class TimePartUtil extends PromptPartUtil<TimePart> {
 			time: new Date().toLocaleTimeString(),
 		}
 	}
-
-	// override buildContent({ time }: TimePart) {
-	// 	return ["The user's current time is:", time]
-	// }
 }

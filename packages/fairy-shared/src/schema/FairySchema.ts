@@ -87,3 +87,6 @@ export const PROMPT_PART_SCHEMAS = [
 	UserActionHistoryPartSchema,
 	ViewportBoundsPartSchema,
 ] as const
+
+export const AGENT_ACTION_TYPES = AGENT_ACTION_SCHEMAS.map((schema) => schema.shape._type.value)
+export const PROMPT_PART_TYPES = PROMPT_PART_SCHEMAS.map((schema) => schema.shape.type.value)
