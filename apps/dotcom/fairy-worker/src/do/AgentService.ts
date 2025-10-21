@@ -41,6 +41,63 @@ export class AgentService {
 			throw error
 		}
 	}
+
+	async *streamText(prompt: AgentPrompt): AsyncGenerator<{ text: string }> {
+		try {
+			const model = this.getModel(FAIRY_MODEL_NAME)
+			for await (const text of streamTextModel(model, prompt)) {
+				yield { text: text.text }
+			}
+		} catch (error: any) {
+			console.error('Stream text error:', error)
+			throw error
+		}
+	}
+}
+
+async function* streamTextModel(
+	model: LanguageModel,
+	prompt: AgentPrompt
+): AsyncGenerator<{ text: string }> {
+	if (typeof model === 'string') {
+		throw new Error('Model is a string, not a LanguageModel')
+	}
+
+	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
+
+	const messages = buildMessages(prompt)
+	const systemPrompt = buildSystemPrompt(prompt) || 'You are a helpful assistant.'
+	console.warn('messages', JSON.stringify(messages, null, 2))
+	console.warn('systemPrompt', systemPrompt)
+
+	try {
+		const { textStream } = streamText({
+			model,
+			system: systemPrompt,
+			messages,
+			maxOutputTokens: 8192,
+			temperature: 0,
+			providerOptions: {
+				anthropic: {
+					thinking: { type: 'disabled' },
+				} satisfies AnthropicProviderOptions,
+				google: {
+					thinkingConfig: { thinkingBudget: geminiThinkingBudget },
+				} satisfies GoogleGenerativeAIProviderOptions,
+			},
+			onError: (e) => {
+				console.error('Stream text error:', e)
+				throw e
+			},
+		})
+
+		for await (const text of textStream) {
+			yield { text }
+		}
+	} catch (error: any) {
+		console.error('streamEventsVercel error:', error)
+		throw error
+	}
 }
 
 async function* streamActions(

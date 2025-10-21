@@ -295,16 +295,16 @@ export class MinimapManager {
 		const collaborators = this.editor.getCollaboratorsOnCurrentPage()
 		if (!collaborators.length) return
 
-		// collect both cursor and fairy points, tracking which are fairies
-		const points: { center: Vec; isFairy: boolean }[] = []
+		// collect both cursor and agent points, tracking which are agents
+		const points: { center: Vec; isAgent: boolean }[] = []
 		const colors: Float32Array[] = []
 		for (const c of collaborators) {
 			if (c.cursor) {
-				points.push({ center: Vec.From(c.cursor), isFairy: false })
+				points.push({ center: Vec.From(c.cursor), isAgent: false })
 				colors.push(getRgba(c.color))
 			}
-			if (c.fairy) {
-				points.push({ center: Vec.From(c.fairy.position), isFairy: true })
+			if (c.agent) {
+				points.push({ center: Vec.From(c.agent.position), isAgent: true })
 				colors.push(getRgba(c.color))
 			}
 		}
@@ -323,11 +323,11 @@ export class MinimapManager {
 		const vertices = this.gl.collaborators.vertices
 		let offset = 0
 		const zoom = this.getZoom()
-		for (const { center, isFairy } of points) {
+		for (const { center, isAgent } of points) {
 			pie(vertices, {
 				center,
-				// Fairy dots are smaller (1.5 vs 3)
-				radius: (isFairy ? 1.5 : 3) * zoom,
+				// Agent dots are smaller (1.5 vs 3)
+				radius: (isAgent ? 1.5 : 3) * zoom,
 				offset,
 				numArcSegments: numSegmentsPerCircle,
 			})

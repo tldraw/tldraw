@@ -1194,6 +1194,12 @@ export type TLInstancePageStateId = RecordId<TLInstancePageState>;
 // @public
 export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceID> {
     // (undocumented)
+    agent: {
+        flipX: boolean;
+        pose: 'acting' | 'active' | 'idle' | 'thinking';
+        position: VecModel;
+    } | null;
+    // (undocumented)
     brush: BoxModel | null;
     // (undocumented)
     camera: {
@@ -1213,12 +1219,6 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
         type: TLCursor['type'];
         x: number;
         y: number;
-    } | null;
-    // (undocumented)
-    fairy: {
-        flipX: boolean;
-        pose: 'acting' | 'active' | 'idle' | 'thinking';
-        position: VecModel;
     } | null;
     // (undocumented)
     followingUserId: null | string;

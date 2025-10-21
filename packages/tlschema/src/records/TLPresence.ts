@@ -58,7 +58,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 	} | null
 	chatMessage: string
 	meta: JsonObject
-	fairy: {
+	agent: {
 		position: VecModel
 		flipX: boolean
 		pose: 'idle' | 'active' | 'thinking' | 'acting'
@@ -129,7 +129,7 @@ export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.mode
 		scribbles: T.arrayOf(scribbleValidator),
 		chatMessage: T.string,
 		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
-		fairy: T.object({
+		agent: T.object({
 			position: vecModelValidator,
 			flipX: T.boolean,
 			pose: T.literalEnum('idle', 'active', 'thinking', 'acting'),
@@ -151,7 +151,7 @@ export const instancePresenceVersions = createMigrationIds('com.tldraw.instance_
 	AddMeta: 4,
 	RenameSelectedShapeIds: 5,
 	NullableCameraCursor: 6,
-	AddFairy: 7,
+	AddAgent: 7,
 } as const)
 
 /**
@@ -224,9 +224,9 @@ export const instancePresenceMigrations = createRecordMigrationSequence({
 			},
 		},
 		{
-			id: instancePresenceVersions.AddFairy,
+			id: instancePresenceVersions.AddAgent,
 			up: (record: any) => {
-				record.fairy = null
+				record.agent = null
 			},
 		},
 	],
@@ -271,5 +271,5 @@ export const InstancePresenceRecordType = createRecordType<TLInstancePresence>(
 	scribbles: [],
 	chatMessage: '',
 	meta: {},
-	fairy: null,
+	agent: null,
 }))

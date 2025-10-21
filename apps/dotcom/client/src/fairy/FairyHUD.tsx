@@ -122,12 +122,12 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 
 	const openDebugModal = useCallback(() => {
 		addDialog({
-			component: FairyDebugModal,
+			component: (props) => <FairyDebugModal {...props} agents={agents} />,
 			onClose() {
 				// Optional: do something when the modal is closed
 			},
 		})
-	}, [addDialog])
+	}, [addDialog, agents])
 
 	if (!agents || agents.length === 0) return null
 

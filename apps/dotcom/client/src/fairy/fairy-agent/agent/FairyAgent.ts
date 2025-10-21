@@ -111,6 +111,8 @@ export class FairyAgent {
 	 */
 	$contextItems = atom<ContextItem[]>('contextItems', [])
 
+	$debug_personalityModeEnabled = atom<boolean>('debug_personalityModeEnabled', false)
+
 	/**
 	 * Create a new tldraw agent.
 	 */
@@ -124,6 +126,7 @@ export class FairyAgent {
 			flipX: false,
 			isSelected: false,
 			pose: 'idle',
+			personality: 'helpful but mischievous',
 		})
 
 		this.onError = onError
@@ -225,6 +228,7 @@ export class FairyAgent {
 				request.bounds ??
 				activeRequest?.bounds ??
 				Box.FromCenter(this.$fairy.get().position, FAIRY_VISION_DIMENSIONS),
+			fairyPersonality: request.fairyPersonality ?? this.$fairy.get().personality ?? '', // WIP
 		}
 	}
 
@@ -340,6 +344,7 @@ export class FairyAgent {
 				selectedShapes: request.selectedShapes,
 				data: request.data,
 				type: 'todo',
+				fairyPersonality: '', // WIP
 			}
 		}
 
@@ -633,6 +638,94 @@ export class FairyAgent {
 		}
 	}
 
+	// WIP
+	// TODO, we want the user input to display in the chat panel. the way this works now, the agent's output is what's displayed.
+	async personalityPrompt(input: AgentInput) {
+		const partialRequest = this.getPartialRequestFromInput(input)
+		partialRequest.type = 'augment-user-prompt'
+		const request = this.getFullRequestFromInput(partialRequest)
+		const augmentedPrompt = await this.single(request)
+		if (!augmentedPrompt) return
+		this.prompt(augmentedPrompt)
+	}
+
+	// WIP
+	async single(input: AgentInput) {
+		const request = this.getFullRequestFromInput(input)
+		const { fulltextPromise, cancel: _cancel } = requestAgentSingle({ agent: this, request })
+		return await fulltextPromise
+	}
+
+	// WIP
+	async *streamAgentText({
+		prompt,
+		signal,
+	}: {
+		prompt: BaseAgentPrompt
+		signal: AbortSignal
+	}): AsyncGenerator<Streaming<{ text: string }>> {
+		const headers: HeadersInit = {
+			'Content-Type': 'application/json',
+		}
+
+		// Add authentication token if available
+		if (this.getToken) {
+			const token = await this.getToken()
+			if (token) {
+				headers['Authorization'] = `Bearer ${token}`
+			}
+		}
+
+		const res = await fetch(`${FAIRY_WORKER}/stream-text`, {
+			method: 'POST',
+			body: JSON.stringify({
+				prompt,
+			}),
+			headers,
+			signal,
+		})
+
+		if (!res.body) {
+			throw Error('No body in response')
+		}
+
+		const reader = res.body.getReader()
+		const decoder = new TextDecoder()
+		let buffer = ''
+
+		try {
+			while (true) {
+				const { value, done } = await reader.read()
+				if (done) break
+
+				buffer += decoder.decode(value, { stream: true })
+				const chunks = buffer.split('\n\n')
+				buffer = chunks.pop() || ''
+
+				for (const chunk of chunks) {
+					const match = chunk.match(/^data: (.+)$/m)
+					if (match) {
+						try {
+							const data = JSON.parse(match[1])
+
+							// If the response contains an error, throw it
+							if ('error' in data) {
+								throw new Error(data.error)
+							}
+
+							const text: Streaming<{ text: string }> = data
+							yield text
+						} catch (err: any) {
+							throw new Error(err.message)
+						}
+					}
+				}
+			}
+		} finally {
+			reader.releaseLock()
+		}
+	}
+
 	/**
 	 * A function that cancels the agent's current prompt, if one is active.
 	 */
@@ -859,6 +952,48 @@ export class FairyAgent {
 			}
 		})
 	}
+
+	// WIP
+	setFairyPersonality(personality: string) {
+		this.$fairy.update((fairy) => ({ ...fairy, personality }))
+	}
+
+	// WIP
+	togglePersonalityMode() {
+		this.$debug_personalityModeEnabled.set(!this.$debug_personalityModeEnabled.get())
+	}
+}
+
+// WIP
+function requestAgentSingle({ agent, request }: { agent: FairyAgent; request: AgentRequest }) {
+	let cancelled = false
+	const controller = new AbortController()
+	const signal = controller.signal
+	const helpers = new AgentHelpers(agent)
+
+	const fulltextPromise = (async () => {
+		const prompt = await agent.preparePrompt(request, helpers)
+		let text = ''
+		try {
+			for await (const action of agent.streamAgentText({ prompt, signal })) {
+				if (cancelled) break
+				text += action.text
+			}
+			return text
+		} catch (e) {
+			if (e === 'Cancelled by user' || (e instanceof Error && e.name === 'AbortError')) {
+				return
+			}
+			agent.onError(e)
+		}
+	})()
+
+	const cancel = () => {
+		cancelled = true
+		controller.abort('Cancelled by user')
+	}
+
+	return { fulltextPromise, cancel }
 }
 
 /**

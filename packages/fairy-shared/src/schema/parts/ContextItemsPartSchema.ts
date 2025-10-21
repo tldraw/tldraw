@@ -8,10 +8,11 @@ export interface ContextItemsPart {
 	items: ContextItem[]
 	requestType: AgentRequest['type']
 }
+
 export const ContextItemsPartSchema = z.object({
 	type: z.literal('contextItems'),
 	items: z.array(z.any()),
-	requestType: z.enum(['user', 'schedule', 'todo']),
+	requestType: z.enum(['user', 'schedule', 'todo', 'augment-user-prompt']),
 })
 
 ContextItemsPartSchema.register(PromptPartRegistry, {

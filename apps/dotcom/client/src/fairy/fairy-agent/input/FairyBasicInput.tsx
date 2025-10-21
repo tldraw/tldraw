@@ -9,6 +9,12 @@ export function FairyBasicInput({ agent }: { agent: FairyAgent }) {
 	const [inputValue, setInputValue] = useState('')
 	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
 
+	const usePersonalityAugmentedPrompt = useValue(
+		'usePersonalityAugmentedPrompt',
+		() => agent.$debug_personalityModeEnabled.get(),
+		[agent]
+	)
+
 	const fairy = useValue('fairy', () => agent.$fairy, [agent])
 
 	const handleComplete = useCallback(
@@ -31,15 +37,25 @@ export function FairyBasicInput({ agent }: { agent: FairyAgent }) {
 
 			const fairyVision = Box.FromCenter(fairyPosition, FAIRY_VISION_DIMENSIONS)
 
-			await agent.prompt({
-				message: value,
-				contextItems: [],
-				bounds: fairyVision,
-				selectedShapes,
-				type: 'user',
-			})
+			if (usePersonalityAugmentedPrompt) {
+				await agent.personalityPrompt({
+					message: value,
+					contextItems: [],
+					bounds: fairyVision,
+					selectedShapes,
+					type: 'user',
+				})
+			} else {
+				await agent.prompt({
+					message: value,
+					contextItems: [],
+					bounds: fairyVision,
+					selectedShapes,
+					type: 'user',
+				})
+			}
 		},
-		[agent, editor, fairy]
+		[agent, editor, fairy, usePersonalityAugmentedPrompt]
 	)
 
 	const shouldCancel = isGenerating && inputValue === ''
