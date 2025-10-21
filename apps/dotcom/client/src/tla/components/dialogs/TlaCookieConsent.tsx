@@ -9,18 +9,20 @@ import { TlaManageCookiesDialog } from './TlaManageCookiesDialog'
 
 const MANAGE_COOKIES_DIALOG = 'manageCookiesDialog'
 
+type ConsentCheckResult = 'requires-consent' | 'no-consent-needed'
+
 /**
  * Checks if consent is required based on CloudFlare geolocation headers
- * @returns Promise<boolean> - true if explicit consent is required, false ONLY if confident it's not
+ * @returns Promise<'requires-consent' | 'no-consent-needed'> - 'requires-consent' if explicit consent is required, 'no-consent-needed' if confident it's not
  */
-async function shouldRequireConsent(): Promise<boolean> {
+async function shouldRequireConsent(): Promise<ConsentCheckResult> {
 	try {
 		const response = await fetch('https://consent.tldraw.xyz')
 		if (response.ok) {
 			const data = await response.json()
 			// Worker returns { requires_consent: boolean, country_code: string }
 			if (typeof data.requires_consent === 'boolean') {
-				return data.requires_consent
+				return data.requires_consent ? 'requires-consent' : 'no-consent-needed'
 			}
 		}
 	} catch (error) {
@@ -29,7 +31,7 @@ async function shouldRequireConsent(): Promise<boolean> {
 	}
 
 	// Conservative default: require consent
-	return true
+	return 'requires-consent'
 }
 
 export const TlaCookieConsent = memo(function TlaCookieConsent() {
@@ -40,18 +42,18 @@ export const TlaCookieConsent = memo(function TlaCookieConsent() {
 		[dialogs]
 	)
 	const [consent, updateConsent] = useAnalyticsConsent()
-	const [requiresConsent, setRequiresConsent] = useState<boolean | null>(null)
+	const [requiresConsent, setRequiresConsent] = useState<ConsentCheckResult | null>(null)
 
 	// Check if consent is required based on user's location
 	useEffect(() => {
 		if (consent !== null) return
 
-		shouldRequireConsent().then((value: boolean) => {
+		shouldRequireConsent().then((value: ConsentCheckResult) => {
 			setRequiresConsent(value)
 
 			// Only update consent if it's not required
-			if (!value) {
-				updateConsent(true)
+			if (value === 'no-consent-needed') {
+				updateConsent(true /* opted-in b/c region doesn't require explicit consent */)
 			}
 		})
 	}, [consent, updateConsent])
@@ -78,7 +80,7 @@ export const TlaCookieConsent = memo(function TlaCookieConsent() {
 		// - We haven't determined if consent is required yet
 		requiresConsent === null ||
 		// - Consent is not required in user's region
-		!requiresConsent
+		requiresConsent === 'no-consent-needed'
 	)
 		return null
 

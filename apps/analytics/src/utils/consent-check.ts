@@ -1,9 +1,11 @@
+type ConsentCheckResult = 'requires-consent' | 'no-consent-needed'
+
 /**
  * Checks if consent is required based on CloudFlare geolocation headers
  *
- *  @returns Promise<boolean> - true if explicit consent is required, false ONLY if confident it's not
+ *  @returns Promise<'requires-consent' | 'no-consent-needed'> - 'requires-consent' if explicit consent is required, 'no-consent-needed' if confident it's not
  */
-export async function shouldRequireConsent(): Promise<boolean> {
+export async function shouldRequireConsent(): Promise<ConsentCheckResult> {
 	// CloudFlare provides the CF-IPCountry header on all requests
 	// Our consent worker checks this and returns whether consent is required
 	try {
@@ -12,7 +14,7 @@ export async function shouldRequireConsent(): Promise<boolean> {
 			const data = await response.json()
 			// Worker returns { requires_consent: boolean, country_code: string }
 			if (typeof data.requires_consent === 'boolean') {
-				return data.requires_consent
+				return data.requires_consent ? 'requires-consent' : 'no-consent-needed'
 			}
 		}
 	} catch (error) {
@@ -21,5 +23,5 @@ export async function shouldRequireConsent(): Promise<boolean> {
 	}
 
 	// Conservative default: require consent
-	return true
+	return 'requires-consent'
 }

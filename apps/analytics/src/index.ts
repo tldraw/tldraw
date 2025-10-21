@@ -105,7 +105,7 @@ class Analytics {
 		} else {
 			// No existing consent decision - check if we need to ask based on location
 			const requiresConsent = await shouldRequireConsent()
-			initialConsent = requiresConsent ? 'unknown' : 'opted-in'
+			initialConsent = requiresConsent === 'requires-consent' ? 'unknown' : 'opted-in'
 		}
 
 		// This will trigger the subscriber we set up earlier, which will
