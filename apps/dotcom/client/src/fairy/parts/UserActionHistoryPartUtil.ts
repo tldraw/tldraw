@@ -1,9 +1,9 @@
 import {
 	AgentRequest,
 	convertTldrawIdToSimpleId,
-	convertTldrawShapeToFocusShape,
-	convertTldrawShapeToFocusType,
-	FocusShape,
+	convertTldrawShapeToFocusedShape,
+	convertTldrawShapeToFocusedType,
+	FocusedShape,
 	UserActionHistoryPart,
 } from '@tldraw/fairy-shared'
 import { squashRecordDiffs } from 'tldraw'
@@ -35,14 +35,14 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 			if (shape.typeName !== 'shape') continue
 			part.added.push({
 				shapeId: convertTldrawIdToSimpleId(shape.id),
-				type: convertTldrawShapeToFocusType(shape),
+				type: convertTldrawShapeToFocusedType(shape),
 			})
 		}
 
 		// Collect user-removed shapes
 		for (const shape of Object.values(removed)) {
 			if (shape.typeName !== 'shape') continue
-			const simpleShape = convertTldrawShapeToFocusShape(editor, shape)
+			const simpleShape = convertTldrawShapeToFocusedShape(editor, shape)
 			part.removed.push({
 				shapeId: simpleShape.shapeId,
 				type: simpleShape._type,
@@ -52,8 +52,8 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 		// Collect user-updated shapes
 		for (const [from, to] of Object.values(updated)) {
 			if (from.typeName !== 'shape' || to.typeName !== 'shape') continue
-			const fromSimpleShape = convertTldrawShapeToFocusShape(editor, from)
-			const toSimpleShape = convertTldrawShapeToFocusShape(editor, to)
+			const fromSimpleShape = convertTldrawShapeToFocusedShape(editor, from)
+			const toSimpleShape = convertTldrawShapeToFocusedShape(editor, to)
 
 			const changeSimpleShape = getSimpleShapeChange(fromSimpleShape, toSimpleShape)
 			if (!changeSimpleShape) continue
@@ -79,17 +79,17 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
  * @param to - The new shape.
  * @returns The changed properties.
  */
-function getSimpleShapeChange<T extends FocusShape['_type']>(
-	from: FocusShape & { _type: T },
-	to: FocusShape & { _type: T }
+function getSimpleShapeChange<T extends FocusedShape['_type']>(
+	from: FocusedShape & { _type: T },
+	to: FocusedShape & { _type: T }
 ) {
 	if (from._type !== to._type) {
 		return null
 	}
 
 	const change: {
-		from: Partial<FocusShape>
-		to: Partial<FocusShape>
+		from: Partial<FocusedShape>
+		to: Partial<FocusedShape>
 	} = {
 		from: {},
 		to: {},

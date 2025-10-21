@@ -1,11 +1,11 @@
 import z from 'zod'
-import { FocusShapeSchema } from '../../format/FocusShape'
+import { FocusedShapeSchema } from '../../format/FocusedShape'
 
 export const UpdateActionSchema = z
 	.object({
 		_type: z.literal('update'),
 		intent: z.string(),
-		update: FocusShapeSchema,
+		update: FocusedShapeSchema,
 	})
 	.meta({
 		title: 'Update',

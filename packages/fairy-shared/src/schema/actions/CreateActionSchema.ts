@@ -1,11 +1,11 @@
 import z from 'zod'
-import { FocusShapeSchema } from '../../format/FocusShape'
+import { FocusedShapeSchema } from '../../format/FocusedShape'
 
 export const CreateActionSchema = z
 	.object({
 		_type: z.literal('create'),
 		intent: z.string(),
-		shape: FocusShapeSchema,
+		shape: FocusedShapeSchema,
 	})
 	.meta({ title: 'Create', description: 'The fairy creates a new shape.' })
 

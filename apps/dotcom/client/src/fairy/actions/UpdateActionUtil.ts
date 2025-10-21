@@ -1,5 +1,5 @@
 import {
-	convertFocusShapeToTldrawShape,
+	convertFocusedShapeToTldrawShape,
 	convertSimpleIdToTldrawId,
 	Streaming,
 	UpdateAction,
@@ -60,7 +60,7 @@ export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
 			throw new Error(`Shape ${shapeId} not found in canvas`)
 		}
 
-		const result = convertFocusShapeToTldrawShape(editor, action.update, {
+		const result = convertFocusedShapeToTldrawShape(editor, action.update, {
 			defaultShape: existingShape,
 		})
 

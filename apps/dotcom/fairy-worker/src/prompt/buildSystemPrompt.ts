@@ -2,7 +2,7 @@ import {
 	AGENT_ACTION_TYPES,
 	AgentAction,
 	AgentPrompt,
-	FOCUS_SHAPE_TYPES,
+	FOCUSED_SHAPE_TYPES,
 	PROMPT_PART_TYPES,
 	PromptPart,
 	buildResponseSchema,
@@ -43,11 +43,11 @@ For the full list of events, refer to the JSON schema.
 
 Shapes can be:
 
-${FOCUS_SHAPE_TYPES.map((type) => `- **${type.charAt(0).toUpperCase() + type.slice(1)} (\`${type}\`)**`).join('\n')}
+${FOCUSED_SHAPE_TYPES.map((type) => `- **${type.charAt(0).toUpperCase() + type.slice(1)} (\`${type}\`)**`).join('\n')}
 
 Each shape has:
 
-- \`_type\` (one of ${FOCUS_SHAPE_TYPES.map((type) => `\`${type}\``).join(', ')})
+- \`_type\` (one of ${FOCUSED_SHAPE_TYPES.map((type) => `\`${type}\``).join(', ')})
 - \`x\`, \`y\` (numbers, coordinates, the TOP LEFT corner of the shape) (except for arrows and lines, which have \`x1\`, \`y1\`, \`x2\`, \`y2\`)
 - \`note\` (a description of the shape's purpose or intent) (invisible to the user)
 

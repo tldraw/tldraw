@@ -1,7 +1,7 @@
 import {
-	convertFocusShapeToTldrawShape,
+	convertFocusedShapeToTldrawShape,
 	CreateAction,
-	FocusShape,
+	FocusedShape,
 	SIMPLE_TO_GEO_TYPES,
 	Streaming,
 } from '@tldraw/fairy-shared'
@@ -50,7 +50,7 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 		// Translate the shape back to the chat's position
 		action.shape = helpers.removeOffsetFromShape(action.shape)
 
-		const result = convertFocusShapeToTldrawShape(editor, action.shape, {
+		const result = convertFocusedShapeToTldrawShape(editor, action.shape, {
 			defaultShape: getDefaultShape(action.shape._type),
 		})
 
@@ -80,7 +80,7 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 	}
 }
 
-function getDefaultShape(shapeType: FocusShape['_type']) {
+function getDefaultShape(shapeType: FocusedShape['_type']) {
 	const isGeo = shapeType in SIMPLE_TO_GEO_TYPES
 	return isGeo
 		? SHAPE_DEFAULTS.geo

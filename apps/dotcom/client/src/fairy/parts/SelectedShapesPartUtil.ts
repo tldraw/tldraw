@@ -1,7 +1,7 @@
 import {
 	AgentRequest,
-	convertTldrawShapeToFocusShape,
-	FocusShape,
+	convertTldrawShapeToFocusedShape,
+	FocusedShape,
 	SelectedShapesPart,
 } from '@tldraw/fairy-shared'
 import { structuredClone } from 'tldraw'
@@ -16,10 +16,10 @@ export class SelectedShapesPartUtil extends PromptPartUtil<SelectedShapesPart> {
 
 		const userSelectedShapes = editor.getSelectedShapes().map((v) => structuredClone(v)) ?? []
 
-		const simpleShapes: FocusShape[] = []
+		const simpleShapes: FocusedShape[] = []
 		for (const shape of userSelectedShapes) {
 			if (!shape) continue
-			const simpleShape = convertTldrawShapeToFocusShape(editor, shape)
+			const simpleShape = convertTldrawShapeToFocusedShape(editor, shape)
 			if (simpleShape) {
 				simpleShapes.push(simpleShape)
 			}

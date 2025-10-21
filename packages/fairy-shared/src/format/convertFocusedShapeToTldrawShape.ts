@@ -17,21 +17,21 @@ import {
 	VecLike,
 } from '@tldraw/editor'
 import { FONT_SIZES } from 'tldraw'
-import { getDummyBounds } from './convertTldrawShapeToFocusShape'
+import { getDummyBounds } from './convertTldrawShapeToFocusedShape'
 import { asColor } from './FocusColor'
+import {
+	FocusedArrowShape,
+	FocusedDrawShape,
+	FocusedGeoShape,
+	FocusedGeoType,
+	FocusedLineShape,
+	FocusedNoteShape,
+	FocusedShape,
+	FocusedTextShape,
+	FocusedUnknownShape,
+} from './FocusedShape'
 import { convertFocusFillToTldrawFill } from './FocusFill'
 import { convertFocusFontSizeToTldrawFontSize } from './FocusFontSize'
-import {
-	FocusArrowShape,
-	FocusDrawShape,
-	FocusGeoShape,
-	FocusGeoType,
-	FocusLineShape,
-	FocusNoteShape,
-	FocusShape,
-	FocusTextShape,
-	FocusUnknownShape,
-} from './FocusShape'
 
 /**
  * Convert a FocusedShape to a shape object to a tldraw shape using defaultShape for fallback values
@@ -40,9 +40,9 @@ import {
  * @param defaultShape - The default shape to use for fallback values
  * @returns The converted shape and bindings
  */
-export function convertFocusShapeToTldrawShape(
+export function convertFocusedShapeToTldrawShape(
 	editor: Editor,
-	focusedShape: FocusShape,
+	focusedShape: FocusedShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
 ): { shape: TLShape | null; bindings?: TLBindingCreate[] } {
 	switch (focusedShape._type) {
@@ -94,19 +94,19 @@ export function convertSimpleIdToTldrawId(id: string): TLShapeId {
 }
 
 export function convertSimpleTypeToTldrawType(
-	type: FocusShape['_type']
+	type: FocusedShape['_type']
 ): TLGeoShapeGeoStyle | TLDefaultShape['type'] | 'unknown' {
 	if (type in SIMPLE_TO_GEO_TYPES) {
-		return convertSimpleGeoTypeToTldrawGeoGeoType(type as FocusGeoType) as TLGeoShapeGeoStyle
+		return convertSimpleGeoTypeToTldrawGeoGeoType(type as FocusedGeoType) as TLGeoShapeGeoStyle
 	}
 	return type as TLDefaultShape['type'] | 'unknown'
 }
 
-export function convertSimpleGeoTypeToTldrawGeoGeoType(type: FocusGeoType): TLGeoShapeGeoStyle {
+export function convertSimpleGeoTypeToTldrawGeoGeoType(type: FocusedGeoType): TLGeoShapeGeoStyle {
 	return SIMPLE_TO_GEO_TYPES[type]
 }
 
-export const SIMPLE_TO_GEO_TYPES: Record<FocusGeoType, TLGeoShapeGeoStyle> = {
+export const SIMPLE_TO_GEO_TYPES: Record<FocusedGeoType, TLGeoShapeGeoStyle> = {
 	rectangle: 'rectangle',
 	ellipse: 'ellipse',
 	triangle: 'triangle',
@@ -131,7 +131,7 @@ export const SIMPLE_TO_GEO_TYPES: Record<FocusGeoType, TLGeoShapeGeoStyle> = {
 
 function convertTextShapeToTldrawShape(
 	editor: Editor,
-	focusedShape: FocusTextShape,
+	focusedShape: FocusedTextShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
 ): { shape: TLShape } {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
@@ -276,7 +276,7 @@ function convertTextShapeToTldrawShape(
 
 function convertLineShapeToTldrawShape(
 	editor: Editor,
-	focusedShape: FocusLineShape,
+	focusedShape: FocusedLineShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
 ): { shape: TLShape } {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
@@ -331,7 +331,7 @@ function convertLineShapeToTldrawShape(
 
 function convertArrowShapeToTldrawShape(
 	editor: Editor,
-	focusedShape: FocusArrowShape,
+	focusedShape: FocusedArrowShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
 ): { shape: TLShape; bindings?: TLBindingCreate[] } {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
@@ -443,7 +443,7 @@ function convertArrowShapeToTldrawShape(
 
 function convertGeoShapeToTldrawShape(
 	editor: Editor,
-	focusedShape: FocusGeoShape,
+	focusedShape: FocusedGeoShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
 ): { shape: TLShape } {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
@@ -508,7 +508,7 @@ function convertGeoShapeToTldrawShape(
 
 function convertNoteShapeToTldrawShape(
 	editor: Editor,
-	focusedShape: FocusNoteShape,
+	focusedShape: FocusedNoteShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
 ): { shape: TLShape } {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
@@ -559,7 +559,7 @@ function convertNoteShapeToTldrawShape(
 
 function convertDrawShapeToTldrawShape(
 	editor: Editor,
-	focusedShape: FocusDrawShape,
+	focusedShape: FocusedDrawShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
 ): { shape: TLShape | null } {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
@@ -605,7 +605,7 @@ function convertDrawShapeToTldrawShape(
 
 function convertUnknownShapeToTldrawShape(
 	editor: Editor,
-	focusedShape: FocusUnknownShape,
+	focusedShape: FocusedUnknownShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
 ): { shape: TLShape } {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)

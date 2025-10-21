@@ -1,11 +1,11 @@
 import z from 'zod'
-import { FocusShapeSchema } from '../../format/FocusShape'
+import { FocusedShapeSchema } from '../../format/FocusedShape'
 import { PromptPartRegistry } from '../PromptPartRegistry'
 
 export type SelectedShapesPart = z.infer<typeof SelectedShapesPartSchema>
 export const SelectedShapesPartSchema = z.object({
 	type: z.literal('selectedShapes'),
-	shapes: z.array(FocusShapeSchema).nullable(),
+	shapes: z.array(FocusedShapeSchema).nullable(),
 })
 
 SelectedShapesPartSchema.register(PromptPartRegistry, {

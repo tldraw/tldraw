@@ -2,14 +2,14 @@
 
 // Format
 export * from './format/BlurryShape'
-export * from './format/convertFocusShapeToTldrawShape'
+export * from './format/convertFocusedShapeToTldrawShape'
 export * from './format/convertTldrawShapesToPeripheralShapes'
 export * from './format/convertTldrawShapeToBlurryShape'
-export * from './format/convertTldrawShapeToFocusShape'
+export * from './format/convertTldrawShapeToFocusedShape'
 export * from './format/FocusColor'
+export * from './format/FocusedShape'
 export * from './format/FocusFill'
 export * from './format/FocusFontSize'
-export * from './format/FocusShape'
 
 // Types (these are type-only exports)
 export type * from './format/PeripheralCluster'

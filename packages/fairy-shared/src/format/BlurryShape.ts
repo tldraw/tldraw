@@ -1,10 +1,10 @@
 import z from 'zod'
-import { FocusShapeTypeSchema } from './FocusShape'
+import { FocusedShapeTypeSchema } from './FocusedShape'
 
 export const BlurryShapeSchema = z.object({
 	shapeId: z.string(),
 	text: z.string().optional(),
-	type: FocusShapeTypeSchema,
+	type: FocusedShapeTypeSchema,
 	x: z.number(),
 	y: z.number(),
 	w: z.number(),

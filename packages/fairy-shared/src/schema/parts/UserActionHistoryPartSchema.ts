@@ -1,5 +1,5 @@
 import z from 'zod'
-import { FocusShapePartialSchema, FocusShapeTypeSchema } from '../../format/FocusShape'
+import { FocusedShapePartialSchema, FocusedShapeTypeSchema } from '../../format/FocusedShape'
 import { PromptPartRegistry } from '../PromptPartRegistry'
 
 export type UserActionHistoryPart = z.infer<typeof UserActionHistoryPartSchema>
@@ -8,21 +8,21 @@ export const UserActionHistoryPartSchema = z.object({
 	added: z.array(
 		z.object({
 			shapeId: z.string(),
-			type: FocusShapeTypeSchema,
+			type: FocusedShapeTypeSchema,
 		})
 	),
 	removed: z.array(
 		z.object({
 			shapeId: z.string(),
-			type: FocusShapeTypeSchema,
+			type: FocusedShapeTypeSchema,
 		})
 	),
 	updated: z.array(
 		z.object({
 			shapeId: z.string(),
-			type: FocusShapeTypeSchema,
-			before: FocusShapePartialSchema,
-			after: FocusShapePartialSchema,
+			type: FocusedShapeTypeSchema,
+			before: FocusedShapePartialSchema,
+			after: FocusedShapePartialSchema,
 		})
 	),
 })

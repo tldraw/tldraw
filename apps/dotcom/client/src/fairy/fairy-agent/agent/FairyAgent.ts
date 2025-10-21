@@ -10,7 +10,7 @@ import {
 	ContextItem,
 	FAIRY_VISION_DIMENSIONS,
 	FairyEntity,
-	FocusShape,
+	FocusedShape,
 	PointContextItem,
 	PromptPart,
 	ShapeContextItem,
@@ -997,7 +997,7 @@ function dedupeShapesContextItem(
 		if (contextItem.type === 'shape') {
 			existingShapeIds.add(contextItem.shape.shapeId)
 		} else if (contextItem.type === 'shapes') {
-			contextItem.shapes.forEach((shape: FocusShape) => {
+			contextItem.shapes.forEach((shape: FocusedShape) => {
 				existingShapeIds.add(shape.shapeId)
 			})
 		}
