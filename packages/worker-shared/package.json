@@ -9,16 +9,16 @@
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [],
 	"dependencies": {
-		"@cloudflare/workers-types": "^4.20250913.0",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
 		"cloudflare-workers-unfurl": "^0.0.8",
 		"itty-router": "^5.0.18",
-		"lazyrepo": "0.0.0-alpha.27",
-		"toucan-js": "^3.4.0",
-		"typescript": "^5.8.3"
+		"toucan-js": "^3.4.0"
 	},
 	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20250913.0",
+		"lazyrepo": "0.0.0-alpha.27",
+		"typescript": "^5.8.3",
 		"vitest": "^3.2.4"
 	},
 	"scripts": {

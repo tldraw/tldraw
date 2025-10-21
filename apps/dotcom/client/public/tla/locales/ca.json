@@ -98,12 +98,6 @@
   "47839e47a5": {
     "translation": "tldraw"
   },
-  "7697920637": {
-    "translation": "Torneu a carregar"
-  },
-  "764671e008": {
-    "translation": "Xateja amb nosaltres a Discord"
-  },
   "4908687e50": {
     "translation": "Esteu segur que voleu oblidar aquest fitxer?"
   },
@@ -200,6 +194,12 @@
   "761e93ede9": {
     "translation": "Gestionar cookies"
   },
+  "7697920637": {
+    "translation": "Torneu a carregar"
+  },
+  "764671e008": {
+    "translation": "Xateja amb nosaltres a Discord"
+  },
   "777f9e90cf": {
     "translation": "Sol·licitud no vàlida."
   },
@@ -256,6 +256,9 @@
   },
   "91e49bb0eb": {
     "translation": "Copia als meus fitxers"
+  },
+  "95d2109dc8": {
+    "translation": "Compilar amb el SDK de tldraw"
   },
   "96165d6df5": {
     "translation": "Aquest mes"

@@ -98,12 +98,6 @@
   "47839e47a5": {
     "translation": "tldraw"
   },
-  "7697920637": {
-    "translation": "Vänligen ladda om"
-  },
-  "764671e008": {
-    "translation": "Chatta med oss ​​på Discord"
-  },
   "4908687e50": {
     "translation": "Är du säker på att du vill glömma den här filen?"
   },
@@ -200,6 +194,12 @@
   "761e93ede9": {
     "translation": "Hantera cookies"
   },
+  "7697920637": {
+    "translation": "Vänligen ladda om"
+  },
+  "764671e008": {
+    "translation": "Chatta med oss ​​på Discord"
+  },
   "777f9e90cf": {
     "translation": "Ogiltig begäran."
   },
@@ -256,6 +256,9 @@
   },
   "91e49bb0eb": {
     "translation": "Kopiera till mina filer"
+  },
+  "95d2109dc8": {
+    "translation": "Bygg med tldraw SDK"
   },
   "96165d6df5": {
     "translation": "Denna månad"
