@@ -1,6 +1,6 @@
 import { BoxModel } from '@tldraw/tlschema'
 import { JsonValue } from '@tldraw/utils'
-import { FocusShape } from '../schema/FocusShapeSchema'
+import { FocusShape } from '../format/FocusShape'
 import { ContextItem } from './ContextItem'
 
 /**

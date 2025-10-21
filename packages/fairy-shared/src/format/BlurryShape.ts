@@ -1,5 +1,5 @@
 import z from 'zod'
-import { FocusShapeTypeSchema } from '../schema/FocusShapeSchema'
+import { FocusShapeTypeSchema } from './FocusShape'
 
 export const BlurryShapeSchema = z.object({
 	shapeId: z.string(),

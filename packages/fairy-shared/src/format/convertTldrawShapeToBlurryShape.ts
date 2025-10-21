@@ -1,10 +1,10 @@
 import { Editor, TLShape } from '@tldraw/editor'
-import { FocusShape } from '../schema/FocusShapeSchema'
 import { BlurryShape } from './BlurryShape'
 import {
 	convertTldrawIdToSimpleId,
 	convertTldrawShapeToFocusType,
 } from './convertTldrawShapeToFocusShape'
+import { FocusShape } from './FocusShape'
 
 /**
  * Convert a tldraw shape to the blurry shape format

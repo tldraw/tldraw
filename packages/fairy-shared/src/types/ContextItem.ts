@@ -1,7 +1,7 @@
 import { Editor } from '@tldraw/editor'
 import { BoxModel, VecModel } from '@tldraw/tlschema'
+import { FocusShape } from '../format/FocusShape'
 import { AgentIconType } from '../icons/AgentIcon'
-import { FocusShape } from '../schema/FocusShapeSchema'
 
 export type ContextItem = ShapeContextItem | AreaContextItem | PointContextItem | ShapesContextItem
 

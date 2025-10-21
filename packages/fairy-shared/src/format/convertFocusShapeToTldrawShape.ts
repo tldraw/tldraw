@@ -17,6 +17,10 @@ import {
 	VecLike,
 } from '@tldraw/editor'
 import { FONT_SIZES } from 'tldraw'
+import { getDummyBounds } from './convertTldrawShapeToFocusShape'
+import { asColor } from './FocusColor'
+import { convertFocusFillToTldrawFill } from './FocusFill'
+import { convertFocusFontSizeToTldrawFontSize } from './FocusFontSize'
 import {
 	FocusArrowShape,
 	FocusDrawShape,
@@ -27,11 +31,7 @@ import {
 	FocusShape,
 	FocusTextShape,
 	FocusUnknownShape,
-} from '../schema/FocusShapeSchema'
-import { getDummyBounds } from './convertTldrawShapeToFocusShape'
-import { asColor } from './FocusColor'
-import { convertFocusFillToTldrawFill } from './FocusFill'
-import { convertFocusFontSizeToTldrawFontSize } from './FocusFontSize'
+} from './FocusShape'
 
 /**
  * Convert a FocusedShape to a shape object to a tldraw shape using defaultShape for fallback values

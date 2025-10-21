@@ -5,9 +5,10 @@ import { AGENT_ACTION_SCHEMAS } from './FairySchema'
 /**
  * Build the JSON schema for the agent's response format.
  */
-export function buildResponseSchema(_availableActionTypes: AgentAction['_type'][]) {
-	// Todo: Filter the available action schemas to only include the available action types.
-	const availableActionSchemas = AGENT_ACTION_SCHEMAS
+export function buildResponseSchema(availableActionTypes: AgentAction['_type'][]) {
+	const availableActionSchemas = AGENT_ACTION_SCHEMAS.filter((schema) =>
+		availableActionTypes.includes(schema.shape._type.value)
+	)
 
 	const schema = z.object({
 		actions: z.array(z.union(availableActionSchemas)),

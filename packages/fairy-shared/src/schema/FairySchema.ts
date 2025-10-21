@@ -1,39 +1,35 @@
-import {
-	AlignActionSchema,
-	BringToFrontActionSchema,
-	CreateActionSchema,
-	DeleteActionSchema,
-	DistributeActionSchema,
-	FlyToBoundsActionSchema,
-	LabelActionSchema,
-	MessageActionSchema,
-	MoveActionSchema,
-	NoteToSelfActionSchema,
-	PenActionSchema,
-	PlaceActionSchema,
-	ResizeActionSchema,
-	ReviewActionSchema,
-	RotateActionSchema,
-	SendToBackActionSchema,
-	StackActionSchema,
-	ThinkActionSchema,
-	TodoListActionSchema,
-	UpdateActionSchema,
-} from './AgentActionSchema'
-import {
-	BlurryShapesPartSchema,
-	ChatHistoryPartSchema,
-	ContextItemsPartSchema,
-	DataPartSchema,
-	MessagesPartSchema,
-	PeripheralShapesPartSchema,
-	ScreenshotPartSchema,
-	SelectedShapesPartSchema,
-	TimePartSchema,
-	TodoListPartSchema,
-	UserActionHistoryPartSchema,
-	ViewportBoundsPartSchema,
-} from './PromptPartSchema'
+import { AlignActionSchema } from './actions/AlignActionSchema'
+import { BringToFrontActionSchema } from './actions/BringToFrontActionSchema'
+import { CreateActionSchema } from './actions/CreateActionSchema'
+import { DeleteActionSchema } from './actions/DeleteActionSchema'
+import { DistributeActionSchema } from './actions/DistributeActionSchema'
+import { FlyToBoundsActionSchema } from './actions/FlyToBoundsActionSchema'
+import { LabelActionSchema } from './actions/LabelActionSchema'
+import { MessageActionSchema } from './actions/MessageActionSchema'
+import { MoveActionSchema } from './actions/MoveActionSchema'
+import { NoteToSelfActionSchema } from './actions/NoteToSelfActionSchema'
+import { PenActionSchema } from './actions/PenActionSchema'
+import { PlaceActionSchema } from './actions/PlaceActionSchema'
+import { ResizeActionSchema } from './actions/ResizeActionSchema'
+import { ReviewActionSchema } from './actions/ReviewActionSchema'
+import { RotateActionSchema } from './actions/RotateActionSchema'
+import { SendToBackActionSchema } from './actions/SendToBackActionSchema'
+import { StackActionSchema } from './actions/StackActionSchema'
+import { ThinkActionSchema } from './actions/ThinkActionSchema'
+import { TodoListActionSchema } from './actions/TodoListActionSchema'
+import { UpdateActionSchema } from './actions/UpdateActionSchema'
+import { BlurryShapesPartSchema } from './parts/BlurryShapesPartSchema'
+import { ChatHistoryPartSchema } from './parts/ChatHistoryPartSchema'
+import { ContextItemsPartSchema } from './parts/ContextItemsPartSchema'
+import { DataPartSchema } from './parts/DataPartSchema'
+import { MessagesPartSchema } from './parts/MessagesPartSchema'
+import { PeripheralShapesPartSchema } from './parts/PeripheralShapesPartSchema'
+import { ScreenshotPartSchema } from './parts/ScreenshotPartSchema'
+import { SelectedShapesPartSchema } from './parts/SelectedShapesPartSchema'
+import { TimePartSchema } from './parts/TimePartSchema'
+import { TodoListPartSchema } from './parts/TodoListPartSchema'
+import { UserActionHistoryPartSchema } from './parts/UserActionHistoryPartSchema'
+import { ViewportBoundsPartSchema } from './parts/ViewportBoundsPartSchema'
 
 /**
  * Agent action schemas determine what actions the agent can take.

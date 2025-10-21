@@ -1,7 +1,7 @@
 import { z } from 'zod'
-import { FocusColorSchema } from '../format/FocusColor'
-import { FocusFillSchema } from '../format/FocusFill'
-import { FocusFontSizeSchema } from '../format/FocusFontSize'
+import { FocusColorSchema } from './FocusColor'
+import { FocusFillSchema } from './FocusFill'
+import { FocusFontSizeSchema } from './FocusFontSize'
 
 const FocusLabelSchema = z.string()
 
