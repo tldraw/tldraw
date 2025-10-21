@@ -61,14 +61,14 @@ export const FrameLabelInput = forwardRef<
 		(e: React.FocusEvent<HTMLInputElement>) => {
 			renameFrame(e.currentTarget.value)
 		},
-		[id, editor]
+		[renameFrame]
 	)
 
 	const handleChange = useCallback(
 		(e: React.ChangeEvent<HTMLInputElement>) => {
 			renameFrame(e.currentTarget.value)
 		},
-		[id, editor]
+		[renameFrame]
 	)
 
 	/* Mobile rename uses window.prompt */
@@ -84,7 +84,7 @@ export const FrameLabelInput = forwardRef<
 		if (!isEditing) {
 			promptOpen.current = false
 		}
-	}, [isEditing, isMobile, name, editor, id])
+	}, [isEditing, isMobile, name, renameFrame])
 
 	return (
 		<div className={`tl-frame-label ${isEditing && !isMobile ? 'tl-frame-label__editing' : ''}`}>
