@@ -476,7 +476,7 @@ export function createShapePropsMigrationIds<
  * @internal
  */
 export function createShapeRecordType(shapes: Record<string, SchemaPropsInfo>) {
-	return createRecordType<TLShape>('shape', {
+	return createRecordType('shape', {
 		scope: 'document',
 		validator: T.model(
 			'shape',
@@ -486,7 +486,7 @@ export function createShapeRecordType(shapes: Record<string, SchemaPropsInfo>) {
 					createShapeValidator(type, props, meta)
 				)
 			)
-		) as any,
+		),
 	}).withDefaultProperties(() => ({
 		x: 0,
 		y: 0,
