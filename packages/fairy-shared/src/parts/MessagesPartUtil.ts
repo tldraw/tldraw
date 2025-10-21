@@ -48,10 +48,20 @@ export class MessagesPartUtil extends PromptPartUtil<MessagesPart> {
 			case 'todo':
 				responsePart = getTodoPrompt(messages)
 				break
+			case 'augment-user-prompt':
+				responsePart = getPersonalityPrompt(messages)
+				break
 		}
 
 		return responsePart
 	}
+}
+
+function getPersonalityPrompt(message: string[]) {
+	return [
+		'Please craft more detailed instruvtions to pass onto your computer. Take a swing. Here is what your friend wants you to do.',
+		...message,
+	]
 }
 
 function getUserPrompt(message: string[]) {

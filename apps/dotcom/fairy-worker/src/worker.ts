@@ -6,6 +6,7 @@ import { cors, IRequest } from 'itty-router'
 import { getAuth, requireAdminAccess, SignedInAuth } from './auth'
 import { Environment } from './environment'
 import { stream } from './routes/stream'
+import { streamText } from './routes/stream-text'
 
 // Extend IRequest to include auth
 export interface AuthenticatedRequest extends IRequest {
@@ -22,6 +23,7 @@ export default class extends WorkerEntrypoint<Environment> {
 		.all('*', blockUnknownOrigins)
 		.all('*', requireTldrawEmail)
 		.post('/stream', stream)
+		.post('/stream-text', streamText)
 		.all('*', notFound)
 
 	override async fetch(request: Request): Promise<Response> {

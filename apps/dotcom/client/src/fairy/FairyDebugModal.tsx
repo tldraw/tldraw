@@ -7,9 +7,41 @@ import {
 	TldrawUiDialogFooter,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
+	useValue,
 } from 'tldraw'
+import type { TldrawFairyAgent } from './fairy-agent/agent/TldrawFairyAgent'
 
-export function FairyDebugModal({ onClose }: { onClose(): void }) {
+export function FairyDebugModal({
+	agents,
+	onClose,
+}: {
+	agents: TldrawFairyAgent[]
+	onClose(): void
+}) {
+	// If all agents have personality mode enabled, the button shows "on" checked; otherwise, un-checked
+	const personalityModeEnabled = useValue(
+		'debug-personality-mode',
+		() => agents.every((agent) => agent.$debug_personalityModeEnabled.get()),
+		[agents]
+	)
+
+	const handleTogglePersonalityMode = () => {
+		const shouldEnable = !personalityModeEnabled
+		agents.forEach((agent) => {
+			// Only update if status does not match intent
+			if (agent.$debug_personalityModeEnabled.get() !== shouldEnable) {
+				agent.togglePersonalityMode()
+			}
+		})
+
+		agents.forEach((agent) =>
+			// eslint-disable-next-line no-console
+			console.log(
+				`after toggling personality mode, agent with id ${agent.id} has personality mode enabled ${agent.$debug_personalityModeEnabled.get()}`
+			)
+		)
+	}
+
 	return (
 		<>
 			<TldrawUiDialogHeader>
@@ -18,6 +50,11 @@ export function FairyDebugModal({ onClose }: { onClose(): void }) {
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody style={{ maxWidth: 400 }}>
 				<div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+					<TldrawUiButton type="low" onClick={handleTogglePersonalityMode}>
+						<TldrawUiButtonLabel>
+							{personalityModeEnabled ? '✓ ' : ''}Toggle Personality Mode
+						</TldrawUiButtonLabel>
+					</TldrawUiButton>
 					<TldrawUiButton type="low" onClick={handleDebugSystemPrompt}>
 						<TldrawUiButtonLabel>Print system prompt with randomized flags</TldrawUiButtonLabel>
 					</TldrawUiButton>

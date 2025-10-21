@@ -28,8 +28,55 @@ export class AgentDurableObject extends DurableObject<Environment> {
 			return this.stream(request)
 		}
 
+		if (url.pathname === '/stream-text' && request.method === 'POST') {
+			return this.streamText(request)
+		}
+
 		// For other routes, you can still use the router or return 404
 		return new Response('Not Found', { status: 404 })
+	}
+
+	/**
+	 * Stream text from the model
+	 */
+	private async streamText(request: Request): Promise<Response> {
+		const encoder = new TextEncoder()
+		const { readable, writable } = new TransformStream()
+		const writer = writable.getWriter()
+
+		const response: { changes: { text: string }[] } = { changes: [] }
+		;(async () => {
+			try {
+				const { prompt, actions, parts } = (await request.json()) as {
+					prompt: AgentPrompt
+					actions: AgentActionUtilConstructor['type'][]
+					parts: PromptPartUtilConstructor['type'][]
+				}
+
+				for await (const change of this.service.streamText(prompt, actions, parts)) {
+					response.changes.push(change)
+					const data = `data: ${JSON.stringify(change)}\n\n`
+					await writer.write(encoder.encode(data))
+					await writer.ready
+				}
+				await writer.close()
+			} catch (error: any) {
+				console.error('Stream text error:', error)
+				throw error
+			}
+		})()
+
+		return new Response(readable, {
+			headers: {
+				'Content-Type': 'text/event-stream',
+				'Cache-Control': 'no-cache, no-transform',
+				Connection: 'keep-alive',
+				'X-Accel-Buffering': 'no',
+				'Access-Control-Allow-Origin': '*',
+				'Access-Control-Allow-Methods': 'POST, OPTIONS',
+				'Access-Control-Allow-Headers': 'Content-Type',
+			},
+		})
 	}
 
 	/**

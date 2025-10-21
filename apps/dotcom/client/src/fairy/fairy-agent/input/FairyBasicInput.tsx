@@ -10,6 +10,12 @@ export function FairyBasicInput({ agent }: { agent: TldrawFairyAgent }) {
 	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
 	const modelName = useValue(agent.$modelName)
 
+	const usePersonalityAugmentedPrompt = useValue(
+		'usePersonalityAugmentedPrompt',
+		() => agent.$debug_personalityModeEnabled.get(),
+		[agent]
+	)
+
 	const fairy = useValue('fairy', () => agent.$fairy, [agent])
 
 	const handleComplete = useCallback(
@@ -32,16 +38,27 @@ export function FairyBasicInput({ agent }: { agent: TldrawFairyAgent }) {
 
 			const fairyVision = Box.FromCenter(fairyPosition, DEFAULT_FAIRY_VISION)
 
-			await agent.prompt({
-				message: value,
-				contextItems: [],
-				bounds: fairyVision,
-				modelName,
-				selectedShapes,
-				type: 'user',
-			})
+			if (usePersonalityAugmentedPrompt) {
+				await agent.personalityPrompt({
+					message: value,
+					contextItems: [],
+					bounds: fairyVision,
+					modelName,
+					selectedShapes,
+					type: 'user',
+				})
+			} else {
+				await agent.prompt({
+					message: value,
+					contextItems: [],
+					bounds: fairyVision,
+					modelName,
+					selectedShapes,
+					type: 'user',
+				})
+			}
 		},
-		[agent, modelName, editor, fairy]
+		[agent, modelName, editor, fairy, usePersonalityAugmentedPrompt]
 	)
 
 	const shouldCancel = isGenerating && inputValue === ''

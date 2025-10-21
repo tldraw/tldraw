@@ -10,4 +10,5 @@ export interface FairyEntity {
 	pose: FairyPose
 	actions: AgentActionUtilConstructor['type'][]
 	parts: PromptPartUtilConstructor['type'][]
+	personality: string // WIP
 }

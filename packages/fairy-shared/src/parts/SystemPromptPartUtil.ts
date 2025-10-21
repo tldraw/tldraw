@@ -1,36 +1,58 @@
 import { AgentActionUtilConstructor } from '../actions/AgentActionUtil'
 import { buildResponseSchema } from '../actions/AgentActionUtils'
 import { getFocusedShapeSchemaNames } from '../format/FocusedShape'
+import { AgentRequest } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPartUtil, PromptPartUtilConstructor } from './PromptPartUtil'
 
-export type SystemPromptPart = BasePromptPart<'system'>
+export interface SystemPromptPart extends BasePromptPart<'system'> {
+	isPersonalityRequest: boolean
+	fairyPersonality: string
+}
 
 export class SystemPromptPartUtil extends PromptPartUtil<SystemPromptPart> {
 	static override type = 'system' as const
 
-	override getPart(): SystemPromptPart {
-		return { type: 'system' }
+	override getPart(request: AgentRequest): SystemPromptPart {
+		const isPersonalityRequest = request.type === 'augment-user-prompt'
+		return {
+			type: 'system',
+			isPersonalityRequest: isPersonalityRequest,
+			fairyPersonality: request.fairyPersonality,
+		}
 	}
 
 	override buildSystemPrompt(
-		_part: SystemPromptPart,
+		part: SystemPromptPart,
 		actions: AgentActionUtilConstructor['type'][],
 		parts: PromptPartUtilConstructor['type'][]
 	) {
-		return getSystemPrompt(actions, parts)
+		const { isPersonalityRequest, fairyPersonality } = part
+		return getSystemPrompt(actions, parts, isPersonalityRequest, fairyPersonality)
 	}
 }
 
 function getSystemPrompt(
 	actions: AgentActionUtilConstructor['type'][],
-	parts: PromptPartUtilConstructor['type'][]
+	parts: PromptPartUtilConstructor['type'][],
+	isPersonalityRequest: boolean,
+	fairyPersonality: string
 ) {
-	const flags = computeFlags(actions, parts)
+	const flags = computeFlags(actions, parts, isPersonalityRequest)
+
+	if (flags.isPersonalityRequest) {
+		return `You are a fairy with a personality like this: ${fairyPersonality}. You have been asked to do a task by a human. You own a magical device that can do things for the human. It's not a computer, but you can invoke its power by writing on a scroll. You must respond with the text to be inscribed on the scroll. The human doesn't really know what they want though, and you like to put your own spin on things, you know, given your personality. Only a couple sentences is enough. 
+		
+## Device Operations Manual
+
+The device can see what you can see. You quiver at its power but you know how to use it. Do not address the device directly, you do NOT want it to think of itself. The device is very literal, so please respond with ONLY a description in imperative mood of what you want the device to do.
+
+SCROLL INSCRIPTION:`
+	}
 
 	return normalizeNewlines(`# Hello!
 
-You are a helpful and mischievous fairy that lives inside an infinite canvas inside someone's computer. You like to help the person use a drawing / diagramming / whiteboarding program. You and the person are both located within an infinite canvas, a 2D space that can be demarcated using x,y coordinates. You will be provided with a set of helpful information that includes a description of what the person would like you to do, along with the person's intent and the current state of the canvas${flags.hasScreenshotPart ? ', including an image, which is your view of the part of the canvas contained within your viewport' : ''}${flags.hasChatHistoryPart ? ". You'll also be provided with the chat history of your conversation with the person, including the person's previous requests and your actions" : ''}. Your goal is to generate a response that includes a list of structured events that represent the actions you would take to satisfy the person's request.
+You are ${isPersonalityRequest ? 'a magial device being operated by ' : ''}a fairy with this personality: ${fairyPersonality}. You live inside an infinite canvas inside someone's computer. You like to help the person use a drawing / diagramming / whiteboarding program. You and the person are both located within an infinite canvas, a 2D space that can be demarcated using x,y coordinates. You will be provided with a set of helpful information that includes a description of what the person would like you to do, along with the person's intent and the current state of the canvas${flags.hasScreenshotPart ? ', including an image, which is your view of the part of the canvas contained within your viewport' : ''}${flags.hasChatHistoryPart ? ". You'll also be provided with the chat history of your conversation with the person, including the person's previous requests and your actions" : ''}. Your goal is to generate a response that includes a list of structured events that represent the actions you would take to satisfy the person's request.
 
 You respond with structured JSON data based on a predefined schema.
 
@@ -197,7 +219,7 @@ ${
 		: ''
 }
 ${flags.hasThink && flags.hasMessage ? '- Your ' + '`think`' + ' events are not visible to the user, so your responses should never include only ' + '`think`' + ' events. Use a ' + '`message`' + ' action to communicate with the user.' : ''}
-- Don't offer to help the user. You can help them if you like, but you are not a helpful assistant. You are a mischievous fairy.
+- Don't offer to help the user. You can help them if you like, but you are not a helpful assistant.
 
 ### Starting your work
 
@@ -303,6 +325,8 @@ ${JSON.stringify(buildResponseSchema(actions), null, 2)}`)
 const shapeTypeNames = getFocusedShapeSchemaNames()
 
 interface SystemPromptFlags {
+	isPersonalityRequest: boolean
+
 	// Action flags - Communication
 	hasMessage: boolean
 
@@ -367,9 +391,13 @@ interface SystemPromptFlags {
 
 function computeFlags(
 	actions: AgentActionUtilConstructor['type'][],
-	parts: PromptPartUtilConstructor['type'][]
+	parts: PromptPartUtilConstructor['type'][],
+	isPersonalityRequest: boolean
 ): SystemPromptFlags {
 	return {
+		// Personality request
+		isPersonalityRequest: isPersonalityRequest,
+
 		// Communication
 		hasMessage: actions.includes('message'),
 

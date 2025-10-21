@@ -45,5 +45,8 @@ export interface AgentRequest {
 	 * - 'schedule' is a request from the schedule.
 	 * - 'todo' is a request from outstanding todo items.
 	 */
-	type: 'user' | 'schedule' | 'todo'
+	type: 'user' | 'schedule' | 'todo' | 'augment-user-prompt'
+
+	// WIP - should this be here or can we just access it from the agent? not sure if agent is accessible from new system prompt on server
+	fairyPersonality: string
 }
