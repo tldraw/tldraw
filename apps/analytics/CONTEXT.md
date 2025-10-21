@@ -1,135 +1,201 @@
-# @tldraw/analytics
+# Analytics app
 
-The analytics app provides a privacy-compliant analytics tracking system for tldraw applications. It creates a standalone JavaScript library that can be embedded into websites to handle cookie consent, user tracking, and privacy settings.
+A unified analytics library for tldraw.com that integrates multiple analytics services with cookie consent management.
 
 ## Purpose
 
-This app builds a UMD (Universal Module Definition) library that provides:
+This package provides a single, consolidated analytics interface that:
 
-- Cookie consent banner with opt-in/opt-out functionality
-- Privacy settings dialog
-- Integration with multiple analytics providers (PostHog, Google Analytics 4, HubSpot, Reo)
-- GDPR-compliant tracking with user consent management
+- Integrates multiple analytics providers (PostHog, Google Analytics 4, HubSpot, Reo)
+- Manages cookie consent with a UI banner and privacy settings dialog
+- Exposes a unified API for tracking events, page views, and user identification
+- Ensures analytics only run when users have opted in
+
+The analytics script is built as a standalone JavaScript bundle that can be included in any tldraw web application.
 
 ## Architecture
 
-### Build System
+### Core components
 
-- **Vite-based build**: Creates a single UMD library (`tl-analytics.js`)
-- **React components**: Built with React 18 but bundled for standalone usage
-- **CSS injection**: Styles are inlined and injected at runtime
-- **External globals**: React and ReactDOM are expected as global dependencies
+**Analytics class** (`src/index.ts`)
 
-### Core Components
+- Main entry point that orchestrates all analytics services
+- Manages consent state and enables/disables services accordingly
+- Exposes global `window.tlanalytics` API with methods:
+  - `identify(userId, properties)` - Identify a user across all services
+  - `reset()` - Reset user identity across all services (called on logout)
+  - `track(name, data)` - Track an event
+  - `page()` - Track a page view
+  - `gtag(...args)` - Access Google Analytics gtag function
+  - `openPrivacySettings()` - Show privacy settings dialog
 
-**Analytics.tsx** - Main analytics component
+**Analytics services** (`src/analytics-services/`)
 
-- Cookie consent banner with theme detection
-- Consent state management using cookies
-- Integration with multiple analytics providers
-- Conditional loading of tracking scripts based on consent
+- Base `AnalyticsService` class defines common interface
+- Each service (PostHog, GA4, HubSpot, Reo) extends the base class
+- Lifecycle methods:
+  - `initialize()` - Set up service (runs regardless of consent)
+  - `enable()` - Enable tracking when consent is granted
+  - `disable()` - Disable tracking when consent is revoked
+  - `identify(userId, properties)` - Identify user
+  - `reset()` - Reset user identity (called on logout)
+  - `trackEvent(name, data)` - Track custom event
+  - `trackPageview()` - Track page view
 
-**PrivacySettings.tsx** - Privacy settings dialog
+**State management** (`src/state/`)
 
-- User-facing privacy controls
-- Toggle analytics consent on/off
-- Accessible dialog implementation using Radix UI
+- `AnalyticsState<T>` - Simple reactive state class with subscribe/notify pattern
+- `CookieConsentState` - Manages consent state ('unknown' | 'opted-in' | 'opted-out')
+- `ThemeState` - Manages theme for UI components ('light' | 'dark')
 
-**index.ts** - Entry point and global API
+**UI components** (`src/components/`)
 
-- Exposes global `window.tlanalytics` object
-- Provides functions: `page()`, `identify()`, `track()`, `gtag()`, `openPrivacySettings()`
-- Handles DOM injection and component initialization
+- `CookieConsentBanner` - Shows cookie consent prompt when consent is unknown
+- `PrivacySettingsDialog` - Allows users to review and change their consent preferences
 
-### Analytics Providers
+### Consent flow
 
-**PostHog**
+1. On initialization, analytics reads consent from `allowTracking` cookie
+2. If no existing consent decision:
+   - Check user location via CloudFlare worker (`shouldRequireConsent()`)
+   - Users in GDPR/LGPD regions default to 'unknown' (must opt in)
+   - Users in other regions default to 'opted-in' (implicit consent)
+3. If consent is unknown, banner is shown
+4. User actions (accept/opt-out) update the consent state
+5. Consent state changes trigger enable/disable on all services
+6. Only opted-in users have their events tracked
 
-- Primary analytics provider
-- Hosted at `https://analytics.tldraw.com/i`
-- Memory-only persistence when consent is denied
-- Full localStorage+cookie persistence when opted in
+**Geographic consent checking** (`src/utils/consent-check.ts`)
 
-**Google Analytics 4**
+- Calls CloudFlare worker at `https://tldraw-consent.workers.dev`
+- Worker uses `CF-IPCountry` header to determine user's country
+- Requires explicit consent for EU, EEA, UK, Switzerland, Brazil
+- Falls back to requiring consent if check fails or times out (2s timeout)
+- Conservative default ensures compliance with privacy regulations
 
-- Configured via `window.TL_GA4_MEASUREMENT_ID`
-- Supports Google Ads integration via `window.TL_GOOGLE_ADS_ID`
-- Consent-aware configuration
-- Anonymized IP when consent is denied
+### Integration with services
 
-**HubSpot**
+**PostHog** (`src/analytics-services/posthog.ts`)
 
-- Loaded conditionally with consent
-- EU-hosted (js-eu1.hs-scripts.com)
-- Account ID: 145620695
+- Product analytics and session recording
+- Switches between memory and localStorage persistence based on consent
 
-**Reo Analytics**
+**Google Analytics 4** (`src/analytics-services/ga4.ts`)
 
-- User session recording and analytics
-- Client ID: 47839e47a5ed202
-- Conditional loading based on consent
+- Web analytics via gtag.js
+- Measurement ID provided via `window.TL_GA4_MEASUREMENT_ID`
+
+**HubSpot** (`src/analytics-services/hubspot.ts`)
+
+- Marketing automation and CRM tracking
+- Loaded via external script
+
+**Reo** (`src/analytics-services/reo.ts`)
+
+- Analytics service
+- Loaded via external script
+
+### CloudFlare consent worker
+
+The consent worker is now maintained in a separate package at `apps/analytics-worker/`.
+
+- Standalone CloudFlare Worker deployed to `tldraw-consent.workers.dev`
+- Returns whether explicit consent is required based on user's geographic location
+- Uses CloudFlare's `CF-IPCountry` header to detect country
+- Returns JSON: `{ requires_consent: boolean, country_code: string }`
+- CORS-enabled for cross-origin requests from tldraw domains
+- Cached for 1 hour to reduce load
+- Countries requiring explicit consent:
+  - EU member states (GDPR)
+  - EEA/EFTA countries (GDPR)
+  - United Kingdom (UK PECR)
+  - Switzerland (FADP)
+  - Brazil (LGPD)
 
 ## Development
 
-### Scripts
+### Running the app
 
-- `yarn dev` - Start development server with Vite
-- `yarn build` - Build UMD library to `public/tl-analytics.js`
-- `yarn lint` - Run ESLint
-- `yarn test` - Run Vitest (currently no tests)
+```bash
+yarn dev              # Start development server
+yarn build            # Build for production
+yarn test             # Run tests
+```
 
-### Dependencies
+### Testing
 
-- **js-cookie**: Cookie management
-- **posthog-js**: PostHog analytics client
-- **radix-ui**: Accessible UI primitives for dialogs and switches
-- **react-ga4**: Google Analytics 4 integration
-- **react/react-dom**: UI framework
+Uses Vitest for unit testing. Test files are colocated with source files (e.g., `state.test.ts`).
+
+### Build output
+
+Vite builds the app into two outputs:
+
+1. JavaScript bundle in `public/` directory (via `vite build --outDir public`)
+2. TypeScript compiled output in `dist/` (via `tsc`)
+
+The built script can be included in HTML via:
+
+```html
+<script src="/analytics.js"></script>
+```
 
 ## Usage
 
-The built library is designed to be included via script tag:
+After the script loads, use the global API:
 
-```html
-<script src="path/to/tl-analytics.js"></script>
-<script>
-	// Optional: Set GA4 measurement ID
-	window.TL_GA4_MEASUREMENT_ID = 'G-XXXXXXXXXX'
+```javascript
+// Identify a user
+window.tlanalytics.identify('user-123', { plan: 'pro' })
 
-	// Track page view
-	window.tlanalytics.page()
+// Reset user identity (on logout)
+window.tlanalytics.reset()
 
-	// Identify user
-	window.tlanalytics.identify('user-id', { name: 'User Name' })
+// Track an event
+window.tlanalytics.track('button_clicked', { button: 'upgrade' })
 
-	// Track custom event
-	window.tlanalytics.track('button_click', { button_name: 'signup' })
+// Track a page view
+window.tlanalytics.page()
 
-	// Open privacy settings
-	window.tlanalytics.openPrivacySettings()
-</script>
+// Open privacy settings
+window.tlanalytics.openPrivacySettings()
 ```
 
-## Privacy & Compliance
+## Configuration
 
-### Cookie Management
+Analytics services are configured via constants in `src/constants.ts` and environment variables:
 
-- Uses `allowTracking` cookie to store consent
-- Three states: 'unknown', 'opted-in', 'opted-out'
-- Consent banner appears only for 'unknown' state
+- `window.TL_GA4_MEASUREMENT_ID` - Google Analytics measurement ID
+- `window.TL_GOOGLE_ADS_ID` - Google Ads ID (optional)
+- PostHog, HubSpot, and Reo use hardcoded configuration in constants
 
-### Data Collection
+## Key files
 
-- **Without consent**: Anonymous, memory-only tracking
-- **With consent**: Full tracking with persistent storage
-- **GDPR compliance**: User can opt-out at any time via privacy settings
+- `src/index.ts` - Main Analytics class and initialization
+- `src/types.ts` - TypeScript types and global declarations
+- `src/analytics-services/analytics-service.ts` - Base service class
+- `src/analytics-services/*.ts` - Individual service implementations (PostHog, GA4, HubSpot, Reo)
+- `src/state/state.ts` - Reactive state base class
+- `src/state/cookie-consent-state.ts` - Consent management
+- `src/state/theme-state.ts` - Theme management for UI components
+- `src/utils/consent-check.ts` - Geographic consent checking utility
+- `src/components/CookieConsentBanner.ts` - Consent banner UI
+- `src/components/PrivacySettingsDialog.ts` - Privacy settings dialog UI
+- `src/styles.css` - Component styles (inlined via Vite)
 
-### Theme Support
+## Dependencies
 
-- Automatic theme detection from document root styles
-- Observes changes to `color-scheme` CSS property
-- Applies appropriate styling for light/dark themes
+- `posthog-js` - PostHog SDK
+- `js-cookie` - Cookie management
+- `vite` - Build tool
+- `vitest` - Testing framework
 
-## Deployment
+## Notes
 
-The built library (`public/tl-analytics.js`) is deployed via Vercel configuration and can be hosted on CDN for inclusion in other tldraw applications and websites.
+- This app does NOT use tldraw's `@tldraw/state` library - it has its own simple reactive state implementation
+- The app is framework-agnostic - uses vanilla JavaScript/TypeScript
+- All UI is created with vanilla DOM manipulation (no React)
+- Styles are injected at runtime from the bundled CSS
+- Services are enabled/disabled dynamically based on consent without page reload
+- Error handling is implemented during initialization to prevent analytics failures from breaking the page
+- User identity persists in memory during session for re-identification if consent changes
+- Geographic consent checking uses a conservative approach - defaults to requiring consent on failure
