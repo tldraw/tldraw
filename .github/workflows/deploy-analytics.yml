@@ -1,0 +1,49 @@
+name: Deploy analytics worker
+permissions:
+  contents: read
+  deployments: write
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - production
+
+env:
+  CI: 1
+  PRINT_GITHUB_ANNOTATIONS: 1
+  TLDRAW_ENV: ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview'  }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  deploy:
+    name: Deploy analytics worker to ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview'  }}
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/production' && 'deploy-production' || 'deploy-staging' }}
+    concurrency: analytics-worker-${{ github.ref == 'refs/heads/production' && 'deploy-production' || github.ref }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - uses: ./.github/actions/setup
+
+      - name: Build types
+        run: yarn build-types
+
+      - name: Deploy
+        run: yarn tsx internal/scripts/deploy-analytics.ts
+        env:
+          RELEASE_COMMIT_HASH: ${{ github.sha }}
+          GH_TOKEN: ${{ github.token }}
+
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
