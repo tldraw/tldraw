@@ -16,7 +16,7 @@ import {
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useDragTracking } from '../../../hooks/useDragTracking'
-import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
+import { useHasFileAdminRights } from '../../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F, defineMessages, useIntl } from '../../../utils/i18n'
@@ -191,7 +191,7 @@ export function TlaSidebarFileLinkInner({
 	}, [isActive, linkRef, editor])
 
 	const file = useValue('file', () => app.getFile(fileId), [fileId, app])
-	const isOwnFile = useIsFileOwner(fileId, groupId)
+	const hasAdminRights = useHasFileAdminRights(fileId)
 
 	const isDragging = useValue('isDragging', () => app.sidebarState.get().dragState?.id === fileId, [
 		fileId,
@@ -203,7 +203,14 @@ export function TlaSidebarFileLinkInner({
 	if (!file) return null
 
 	if (isRenaming) {
-		return <TlaSidebarRenameInline source="sidebar" fileId={fileId} onClose={onClose} />
+		return (
+			<TlaSidebarRenameInline
+				source="sidebar"
+				fileId={fileId}
+				groupId={groupId}
+				onClose={onClose}
+			/>
+		)
 	}
 
 	return (
@@ -214,8 +221,8 @@ export function TlaSidebarFileLinkInner({
 			data-active={isActive}
 			data-element="file-link"
 			data-testid={testId}
-			data-is-own-file={isOwnFile}
-			onDoubleClick={isOwnFile ? handleRenameAction : undefined}
+			data-is-own-file={hasAdminRights}
+			onDoubleClick={hasAdminRights ? handleRenameAction : undefined}
 			data-drop-target-id={`file:${fileId}`}
 			data-is-dragging={isDragging}
 			data-is-pinned={isPinned}
@@ -272,7 +279,7 @@ export function TlaSidebarFileLinkInner({
 				>
 					{fileName}
 				</div>
-				{!isOwnFile && <GuestBadge file={file} href={href} />}
+				{!hasAdminRights && <GuestBadge file={file} href={href} />}
 			</div>
 			<TlaSidebarFileLinkMenu
 				groupId={groupId}

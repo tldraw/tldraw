@@ -346,7 +346,7 @@ BEGIN
 
     -- Check if user already has groups flag
     SELECT flags INTO v_current_flags FROM public."user" WHERE id = target_user_id;
-    IF v_current_flags LIKE '%groups%' THEN
+    IF v_current_flags LIKE '%groups_backend%' THEN
       RAISE NOTICE 'User % already has groups flag, skipping migration', target_user_id;
       RETURN QUERY SELECT 0, 0, FALSE;
       RETURN;
@@ -393,7 +393,7 @@ BEGIN
     ) AS fs
     WHERE gf."fileId" = fs."fileId" AND gf."groupId" = target_user_id;
 
-    -- Add 'groups' flag to user
+    -- Add 'groups_backend' flag to user
     IF v_current_flags IS NULL OR v_current_flags = '' THEN
         UPDATE public."user" SET flags = 'groups_backend' WHERE id = target_user_id;
     ELSE

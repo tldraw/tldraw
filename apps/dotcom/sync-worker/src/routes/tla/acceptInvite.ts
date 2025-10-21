@@ -1,4 +1,4 @@
-import { AcceptInviteResponseBody, TlaFlags } from '@tldraw/dotcom-shared'
+import { AcceptInviteResponseBody } from '@tldraw/dotcom-shared'
 import { getIndexBelow, IndexKey } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { sql } from 'kysely'
@@ -71,6 +71,15 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 					{ status: 404 }
 				)
 			}
+			if (!user.flags.includes('groups_backend')) {
+				return Response.json(
+					{
+						error: true,
+						message: 'User is not migrated to the groups model',
+					} satisfies AcceptInviteResponseBody,
+					{ status: 400 }
+				)
+			}
 
 			// Get the lowest index to place new group at the top
 			const lowestIndexGroup = await sql<{
@@ -105,15 +114,6 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 					updatedAt: Date.now(),
 				})
 				.execute()
-
-			// give user the groups flag if they don't have it yet
-			if (!user.flags.includes('groups_backend' satisfies TlaFlags)) {
-				await tx
-					.updateTable('user')
-					.set({ flags: (user.flags + ' groups').trim() })
-					.where('id', '=', auth.userId)
-					.execute()
-			}
 
 			return Response.json({
 				error: false,

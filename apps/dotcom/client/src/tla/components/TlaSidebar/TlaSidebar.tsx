@@ -44,7 +44,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 
 	const { onDrop, onDragOver, onDragEnter, onDragLeave } = useTldrFileDrop()
 
-	const hasGroups = useHasFlag('groups_backend')
+	const hasGroups = useHasFlag('groups_frontend')
 	const addDialog = useDialogs().addDialog
 	const app = useApp()
 
@@ -118,9 +118,9 @@ function LegacySidebarLayout() {
 
 import { uniqueId, useDialogs } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
+import { useHasFlag } from '../../hooks/useHasFlag'
 import { CreateGroupDialog } from '../dialogs/CreateGroupDialog'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
-import { useHasFlag } from '../../hooks/useHasFlag'
 
 function NewSidebarLayout() {
 	return (

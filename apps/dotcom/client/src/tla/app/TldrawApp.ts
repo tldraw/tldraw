@@ -5,9 +5,9 @@ import {
 	AcceptInviteResponseBody,
 	CreateFilesResponseBody,
 	CreateSnapshotRequestBody,
-	FILE_PREFIX,
 	DragFileOperation,
 	DragReorderOperation,
+	FILE_PREFIX,
 	LOCAL_FILE_PREFIX,
 	MAX_NUMBER_OF_FILES,
 	ROOM_PREFIX,
@@ -30,7 +30,6 @@ import {
 import {
 	Result,
 	assert,
-	compact,
 	fetch,
 	getFromLocalStorage,
 	isEqual,
@@ -265,7 +264,8 @@ export class TldrawApp {
 
 	messages = defineMessages({
 		max_groups_reached: {
-			defaultMessage: 'You have reached the maximum number of groups. You need to delete old groups before creating new ones.',
+			defaultMessage:
+				'You have reached the maximum number of groups. You need to delete old groups before creating new ones.',
 		},
 		// toast title
 		mutation_error_toast_title: { defaultMessage: 'Error' },
@@ -341,7 +341,7 @@ export class TldrawApp {
 	@computed({ isEqual })
 	getUserFlags(): Set<TlaFlags> {
 		const user = this.getUser()
-		return new Set(user.flags?.split(',') ?? []) as Set<TlaFlags>
+		return new Set(user.flags?.trim().split(/[, ]+/) ?? []) as Set<TlaFlags>
 	}
 
 	hasFlag(flag: TlaFlags) {
@@ -594,7 +594,7 @@ export class TldrawApp {
 		name?: string
 		createSource?: string | null
 	} = {}): Promise<Result<{ fileId: string }, 'max number of files reached'>> {
-		if (!this.canCreateNewFile(this.getHomeGroupId())) {
+		if (!this.canCreateNewFile(groupId)) {
 			this.showMaxFilesToast()
 			return Result.err('max number of files reached')
 		}
@@ -769,8 +769,6 @@ export class TldrawApp {
 
 	/**
 	 * Remove a user's file states for a file and delete the file if the user is the owner of the file.
-	 *
-	 * @param fileId - The file id.
 	 */
 	async deleteOrForgetFile(fileId: string, groupId: string = this.getHomeGroupId()) {
 		// Optimistic update, remove file and file states

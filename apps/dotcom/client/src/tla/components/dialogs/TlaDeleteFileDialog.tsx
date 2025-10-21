@@ -12,7 +12,7 @@ import {
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useApp } from '../../hooks/useAppState'
-import { useIsFileOwner } from '../../hooks/useIsFileOwner'
+import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { F } from '../../utils/i18n'
 
@@ -30,7 +30,7 @@ export function TlaDeleteFileDialog({
 	const trackEvent = useTldrawAppUiEvents()
 	const auth = useAuth()
 
-	const isOwner = useIsFileOwner(fileId, groupId)
+	const isOwner = useHasFileAdminRights(fileId)
 
 	const handleDelete = useCallback(async () => {
 		const token = await auth.getToken()

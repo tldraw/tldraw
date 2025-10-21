@@ -101,19 +101,21 @@ export function TlaSidebarRecentFilesNew() {
 				)}
 			</div>
 			<div style={{ height: 12 }}></div>
-			{groupMemberships.map((group, i) => (
-				// Include the array index in the key to force a remount when the order changes
-				// this prevents a bug where the collapsible open animation replays when react moves
-				// an open group item within the list. I guess the browser thinks it's a new dom node
-				// or whatever.
-				// If radix's Collapsible had 'opening' and 'closing' states instead of just 'open' and 'closed'
-				// we wouldn't need this.
-				<TlaSidebarGroupItem
-					key={`group-${group.group.id}-${i}`}
-					groupId={group.group.id}
-					index={i}
-				/>
-			))}
+			{groupMemberships.map((group, i) =>
+				group.groupId === app.getHomeGroupId() ? null : (
+					// Include the array index in the key to force a remount when the order changes
+					// this prevents a bug where the collapsible open animation replays when react moves
+					// an open group item within the list. I guess the browser thinks it's a new dom node
+					// or whatever.
+					// If radix's Collapsible had 'opening' and 'closing' states instead of just 'open' and 'closed'
+					// we wouldn't need this.
+					<TlaSidebarGroupItem
+						key={`group-${group.group.id}-${i}`}
+						groupId={group.group.id}
+						index={i}
+					/>
+				)
+			)}
 			{/* Global drag cursor for group reordering */}
 			<ReorderCursor />
 		</Fragment>

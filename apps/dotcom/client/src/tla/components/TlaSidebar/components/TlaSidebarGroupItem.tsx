@@ -75,8 +75,8 @@ const GroupFileList = memo(function GroupFileList({
 		'group files',
 		() => {
 			const groupFiles = app.getGroupFilesSorted(groupId)
-			const pinned = groupFiles.filter((f) => !!app.getFileState(f.id)?.isPinned)
-			const unpinned = groupFiles.filter((f) => !app.getFileState(f.id)?.isPinned)
+			const pinned = groupFiles.filter((f) => !!app.getFileState(f.fileId)?.isPinned)
+			const unpinned = groupFiles.filter((f) => !app.getFileState(f.fileId)?.isPinned)
 			return pinned.concat(unpinned)
 		},
 		[app, groupId]
@@ -99,7 +99,7 @@ const GroupFileList = memo(function GroupFileList({
 
 	if (!group) return null
 
-	const numPinnedFiles = files.filter((f) => !!app.getFileState(f.id)?.isPinned).length
+	const numPinnedFiles = files.filter((f) => !!app.getFileState(f.fileId)?.isPinned).length
 
 	const MAX_FILES_TO_SHOW = numPinnedFiles + 4
 	const slop = 2
@@ -112,34 +112,26 @@ const GroupFileList = memo(function GroupFileList({
 
 	return (
 		<Collapsible.Root open={isShowingAll}>
-			{filesToShow.map((file) => (
+			{filesToShow.map((item) => (
 				<TlaSidebarFileLink
 					groupId={groupId}
-					key={`group-file-${file.id}`}
+					key={`group-file-${item.fileId}`}
 					className={styles.sidebarGroupItemFile}
-					item={{
-						fileId: file.id,
-						date: file.createdAt,
-						isPinned: false,
-					}}
-					testId={`tla-group-file-${file.id}`}
+					item={item}
+					testId={`tla-group-file-${item.fileId}`}
 				/>
 			))}
 
 			{isOverflowing && (
 				<>
 					<Collapsible.Content className={styles.CollapsibleContent}>
-						{hiddenFiles.map((file) => (
+						{hiddenFiles.map((item) => (
 							<TlaSidebarFileLink
 								groupId={groupId}
-								key={`group-file-${file.id}`}
+								key={`group-file-${item.fileId}`}
 								className={styles.sidebarGroupItemFile}
-								item={{
-									fileId: file.id,
-									date: file.createdAt,
-									isPinned: false,
-								}}
-								testId={`tla-group-file-${file.id}`}
+								item={item}
+								testId={`tla-group-file-${item.fileId}`}
 							/>
 						))}
 					</Collapsible.Content>
@@ -298,7 +290,7 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 	const handleCreateFile = useCallback(async () => {
 		if (!rCanCreate.current) return
 
-		const res = await app.createGroupFile(groupId)
+		const res = await app.createFile({ groupId })
 
 		if (res.ok) {
 			const isMobile = getIsCoarsePointer()
