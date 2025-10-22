@@ -13,12 +13,12 @@ export class OtherFairiesPartUtil extends PromptPartUtil<OtherFairiesPart> {
 
 		const otherFairiesData = otherFairies.map((agent) => ({
 			name: agent.$fairyConfig.get().name,
-			position: helpers.applyOffsetToVec(agent.$fairy.get().position),
+			position: helpers.applyOffsetToVec(agent.$fairyEntity.get().position),
 		}))
 
 		const thisFairyData = {
 			name: this.agent.$fairyConfig.get().name,
-			position: helpers.applyOffsetToVec(this.agent.$fairy.get().position),
+			position: helpers.applyOffsetToVec(this.agent.$fairyEntity.get().position),
 		}
 
 		return {
