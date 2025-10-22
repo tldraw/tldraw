@@ -143,7 +143,20 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T
 		} & Partial<Omit<T, 'type' | 'id' | 'props' | 'meta'>>
 	: never
 
-/** @internal */
+/**
+ * Extract a shape type by its props.
+ *
+ * This utility type takes a props object type and returns the corresponding shape type
+ * from the TLShape union whose props match the given type.
+ *
+ * @example
+ * ```ts
+ * type MyShape = ExtractShapeByProps<{ w: number; h: number }>
+ * // MyShape is now the type of shape(s) that have props with w and h as numbers
+ * ```
+ *
+ * @public
+ */
 export type ExtractShapeByProps<P> = Extract<TLShape, { props: P }>
 
 /**
