@@ -98,12 +98,6 @@
   "47839e47a5": {
     "translation": "tldraw"
   },
-  "7697920637": {
-    "translation": "Vui lòng tải lại"
-  },
-  "764671e008": {
-    "translation": "Trò chuyện với chúng tôi trên Discord"
-  },
   "4908687e50": {
     "translation": "Bạn có chắc chắn muốn quên tệp này không?"
   },
@@ -200,6 +194,12 @@
   "761e93ede9": {
     "translation": "Quản lý cookie"
   },
+  "7697920637": {
+    "translation": "Vui lòng tải lại"
+  },
+  "764671e008": {
+    "translation": "Trò chuyện với chúng tôi trên Discord"
+  },
   "777f9e90cf": {
     "translation": "Yêu cầu không hợp lệ."
   },
@@ -256,6 +256,9 @@
   },
   "91e49bb0eb": {
     "translation": "Sao chép vào tệp của tôi"
+  },
+  "95d2109dc8": {
+    "translation": "Xây dựng với SDK tldraw"
   },
   "96165d6df5": {
     "translation": "Tháng này"

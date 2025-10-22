@@ -28,7 +28,7 @@ export function applyObjectDiff<T extends object>(object: T, objectDiff: ObjectD
 export function chunk(msg: string, maxSafeMessageSize?: number): string[];
 
 // @internal
-export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord> {
+export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLSocketClientSentEvent<TLRecord>, TLSocketServerSentEvent<TLRecord>> {
     constructor(getUri: () => Promise<string> | string);
     close(): void;
     // (undocumented)
@@ -195,7 +195,7 @@ export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
     put(record: R): void;
 }
 
-// @internal
+// @public
 export type SubscribingFn<T> = (cb: (val: T) => void) => () => void;
 
 // @internal
@@ -226,13 +226,14 @@ export const TLIncompatibilityReason: {
 // @internal @deprecated
 export type TLIncompatibilityReason = (typeof TLIncompatibilityReason)[keyof typeof TLIncompatibilityReason];
 
-// @internal
-export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecord> {
+// @public
+export interface TLPersistentClientSocket<ClientSentMessage extends object = object, ServerSentMessage extends object = object> {
+    close(): void;
     connectionStatus: 'error' | 'offline' | 'online';
-    onReceiveMessage: SubscribingFn<TLSocketServerSentEvent<R>>;
-    onStatusChange: SubscribingFn<TlSocketStatusChangeEvent>;
+    onReceiveMessage: SubscribingFn<ServerSentMessage>;
+    onStatusChange: SubscribingFn<TLSocketStatusChangeEvent>;
     restart(): void;
-    sendMessage(msg: TLSocketClientSentEvent<R>): void;
+    sendMessage(msg: ClientSentMessage): void;
 }
 
 // @internal
@@ -244,7 +245,7 @@ export interface TLPingRequest {
     type: 'ping';
 }
 
-// @internal
+// @public
 export type TLPresenceMode =
 /** No presence sharing - client operates independently */
 'full'
@@ -406,8 +407,8 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> = {
     type: 'pong';
 } | TLSocketServerSentDataEvent<R>;
 
-// @internal
-export type TlSocketStatusChangeEvent = {
+// @public
+export type TLSocketStatusChangeEvent = {
     status: 'offline' | 'online';
 } | {
     status: 'error';
@@ -415,9 +416,9 @@ export type TlSocketStatusChangeEvent = {
 };
 
 // @internal
-export type TLSocketStatusListener = (params: TlSocketStatusChangeEvent) => void;
+export type TLSocketStatusListener = (params: TLSocketStatusChangeEvent) => void;
 
-// @internal
+// @public
 export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
     constructor(config: {
         didCancel?(): boolean;
@@ -429,30 +430,21 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
         onSyncError(reason: string): void;
         presence: Signal<null | R>;
         presenceMode?: Signal<TLPresenceMode>;
-        socket: TLPersistentClientSocket<R>;
+        socket: TLPersistentClientSocket<any, any>;
         store: S;
     });
     close(): void;
-    // (undocumented)
-    didCancel?: () => boolean;
-    // (undocumented)
-    incomingDiffBuffer: TLSocketServerSentDataEvent<R>[];
-    // (undocumented)
+    // @internal (undocumented)
     isConnectedToRoom: boolean;
-    // (undocumented)
-    lastPushedPresenceState: null | R;
-    // (undocumented)
+    // @internal (undocumented)
     latestConnectRequestId: null | string;
-    readonly onAfterConnect?: (self: this, details: {
-        isReadonly: boolean;
-    }) => void;
-    // (undocumented)
+    // @internal (undocumented)
     readonly presenceMode: Signal<TLPresenceMode> | undefined;
-    // (undocumented)
+    // @internal (undocumented)
     readonly presenceState: Signal<null | R> | undefined;
-    // (undocumented)
-    readonly socket: TLPersistentClientSocket<R>;
-    // (undocumented)
+    // @internal (undocumented)
+    readonly socket: TLPersistentClientSocket<TLSocketClientSentEvent<R>, TLSocketServerSentEvent<R>>;
+    // @internal (undocumented)
     readonly store: S;
 }
 

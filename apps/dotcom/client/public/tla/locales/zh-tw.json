@@ -98,12 +98,6 @@
   "47839e47a5": {
     "translation": "tldraw"
   },
-  "7697920637": {
-    "translation": "請重新加載"
-  },
-  "764671e008": {
-    "translation": "在 Discord 上與我們聊天"
-  },
   "4908687e50": {
     "translation": "您確定要遺忘此檔案嗎？"
   },
@@ -200,6 +194,12 @@
   "761e93ede9": {
     "translation": "管理cookies"
   },
+  "7697920637": {
+    "translation": "請重新加載"
+  },
+  "764671e008": {
+    "translation": "在 Discord 上與我們聊天"
+  },
   "777f9e90cf": {
     "translation": "無效的請求。"
   },
@@ -256,6 +256,9 @@
   },
   "91e49bb0eb": {
     "translation": "複製到我的檔案"
+  },
+  "95d2109dc8": {
+    "translation": "使用 tldraw SDK 構建"
   },
   "96165d6df5": {
     "translation": "本月"

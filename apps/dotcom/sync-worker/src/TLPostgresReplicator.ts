@@ -19,7 +19,12 @@ import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { LiveChangeCollator, buildTopicsString, getTopics } from './replicator/ChangeCollator'
-import { getSubscriptionChanges, serializeSubscriptions } from './replicator/Subscription'
+import {
+	TopicSubscriptionTree,
+	getSubscriptionChanges,
+	parseTopicSubscriptionTree,
+	serializeSubscriptions,
+} from './replicator/Subscription'
 import { getResumeType } from './replicator/getResumeType'
 import { pruneTopicSubscriptionsSql } from './replicator/pruneTopicSubscriptions'
 import { migrate } from './replicator/replicatorMigrations'
@@ -93,7 +98,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private readonly slotName
 	private readonly wal2jsonPlugin = new Wal2JsonPlugin({
 		addTables:
-			'public.user,public.file,public.file_state,public.user_mutation_number,public.replicator_boot_id',
+			'public.user,public.file,public.file_state,public.user_mutation_number,public.replicator_boot_id,public.group,public.group_user,public.group_file',
 	})
 
 	private readonly db: Kysely<DB>
@@ -629,21 +634,25 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	async registerUser({
 		userId,
 		lsn,
+		topicSubscriptions,
 		guestFileIds,
 		bootId,
 	}: {
 		userId: string
 		lsn: string
-		guestFileIds: string[]
+		topicSubscriptions: TopicSubscriptionTree
+		guestFileIds?: never
 		bootId: string
 	}): Promise<{ type: 'done'; sequenceId: string; sequenceNumber: number } | { type: 'reboot' }> {
+		if (guestFileIds) throw new Error('guestFileIds is no longer supported')
+
 		try {
 			while (!this.getCurrentLsn()) {
 				// this should only happen once per slot name change, which should never happen!
 				await sleep(100)
 			}
 
-			this.log.debug('registering user', userId, lsn, bootId, guestFileIds)
+			this.log.debug('registering user', userId, lsn, bootId, topicSubscriptions)
 			this.logEvent({ type: 'register_user' })
 
 			// clear user and subscriptions
@@ -658,16 +667,16 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			// Clear existing subscriptions for this user
 			this.sqlite.exec(`DELETE FROM topic_subscription WHERE fromTopic = ?`, `user:${userId}`)
 
-			// Add direct subscriptions for all files the user cares about (both owned and guest)
-			for (const fileId of guestFileIds) {
+			const subscriptions = parseTopicSubscriptionTree(topicSubscriptions, `user:${userId}`)
+			for (const subscription of subscriptions) {
 				this.sqlite.exec(
 					`INSERT INTO topic_subscription (fromTopic, toTopic) VALUES (?, ?) ON CONFLICT (fromTopic, toTopic) DO NOTHING`,
-					`user:${userId}`,
-					`file:${fileId}`
+					subscription.fromTopic,
+					subscription.toTopic
 				)
 			}
 
-			this.log.debug('inserted guest file subscriptions', guestFileIds.length)
+			this.log.debug('inserted guest file subscriptions', Object.keys(topicSubscriptions).length)
 
 			this.reportActiveUsers()
 			this.log.debug('inserted active user')

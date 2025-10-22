@@ -73,6 +73,7 @@ export function TlaSidebarRecentFiles() {
 							key={'file_link_pinned_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-pinned-${i}`}
+							groupId={app.userId}
 						/>
 					))}
 				</TlaSidebarFileSection>
@@ -84,6 +85,7 @@ export function TlaSidebarRecentFiles() {
 							key={'file_link_today_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-today-${i}`}
+							groupId={app.userId}
 						/>
 					))}
 				</TlaSidebarFileSection>
@@ -95,6 +97,7 @@ export function TlaSidebarRecentFiles() {
 							key={'file_link_yesterday_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-yesterday-${i}`}
+							groupId={app.userId}
 						/>
 					))}
 				</TlaSidebarFileSection>
@@ -106,6 +109,7 @@ export function TlaSidebarRecentFiles() {
 							key={'file_link_this-week_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-this-week-${i}`}
+							groupId={app.userId}
 						/>
 					))}
 				</TlaSidebarFileSection>
@@ -117,6 +121,7 @@ export function TlaSidebarRecentFiles() {
 							key={'file_link_this-month_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-this-month-${i}`}
+							groupId={app.userId}
 						/>
 					))}
 				</TlaSidebarFileSection>
@@ -130,6 +135,7 @@ export function TlaSidebarRecentFiles() {
 								key={'file_link_older' + item.fileId}
 								item={item}
 								testId={`tla-file-link-older-${i}`}
+								groupId={app.userId}
 							/>
 						))}
 				</TlaSidebarFileSection>

@@ -20,11 +20,12 @@
 		"test": "yarn run -T vitest --passWithNoTests",
 		"i18n:extract": "formatjs extract 'src/{tla,pages,components}/**/*.ts*' --out-file public/tla/locales/en.json --additional-component-names F --id-interpolation-pattern '[md5:contenthash:hex:10]' --format lokalise",
 		"i18n:compile": "formatjs compile-folder public/tla/locales public/tla/locales-compiled --format lokalise --ast",
-		"e2e": "NODE_OPTIONS='--no-experimental-strip-types' rm -rf 'e2e/.auth' && yarn playwright test --project=chromium",
+		"e2e": "NODE_OPTIONS='--no-experimental-strip-types' rm -rf 'e2e/.auth' && yarn playwright test --project=chromium --workers=1",
 		"e2e-x10": "NODE_OPTIONS='--no-experimental-strip-types' yarn playwright test --project=chromium --repeat-each=10",
 		"e2e-debug": "NODE_OPTIONS='--no-experimental-strip-types' yarn playwright test --project=chromium --debug",
 		"e2e-ui": "NODE_OPTIONS='--no-experimental-strip-types' yarn playwright test --project=chromium --ui",
 		"e2e-staging": "NODE_OPTIONS='--no-experimental-strip-types' yarn playwright test --project=staging",
+		"e2e-both-modes": "./e2e/run-both-modes.sh",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"dependencies": {
@@ -34,6 +35,7 @@
 		"@sentry/react": "^7.120.3",
 		"@tldraw/assets": "workspace:*",
 		"@tldraw/dotcom-shared": "workspace:*",
+		"@tldraw/fairy-shared": "workspace:*",
 		"@tldraw/sync": "workspace:*",
 		"@tldraw/sync-core": "workspace:*",
 		"@tldraw/utils": "workspace:*",

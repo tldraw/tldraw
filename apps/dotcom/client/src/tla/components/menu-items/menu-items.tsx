@@ -181,8 +181,8 @@ export function ImportFileActionItem() {
 						description: 'tldraw project',
 					})
 
-					app.uploadTldrFiles(tldrawFiles, (file) => {
-						navigate(routes.tlaFile(file.id), { state: { mode: 'create' } })
+					app.uploadTldrFiles(tldrawFiles, (fileId) => {
+						navigate(routes.tlaFile(fileId), { state: { mode: 'create' } })
 					})
 				} catch {
 					// user cancelled

@@ -98,12 +98,6 @@
   "47839e47a5": {
     "translation": "tldra"
   },
-  "7697920637": {
-    "translation": "Last inn på nytt"
-  },
-  "764671e008": {
-    "translation": "Chat med oss ​​på Discord"
-  },
   "4908687e50": {
     "translation": "Er du sikker på at du vil glemme denne filen?"
   },
@@ -200,6 +194,12 @@
   "761e93ede9": {
     "translation": "Administrer informasjonskapsler"
   },
+  "7697920637": {
+    "translation": "Last inn på nytt"
+  },
+  "764671e008": {
+    "translation": "Chat med oss ​​på Discord"
+  },
   "777f9e90cf": {
     "translation": "Ugyldig forespørsel."
   },
@@ -256,6 +256,9 @@
   },
   "91e49bb0eb": {
     "translation": "Kopier til filene mine"
+  },
+  "95d2109dc8": {
+    "translation": "Bygg med tldraw SDK"
   },
   "96165d6df5": {
     "translation": "Denne måneden"

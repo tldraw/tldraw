@@ -110,7 +110,7 @@ function FPS() {
 					isSlow = !isSlow
 				}
 
-				fpsRef.current!.innerHTML = `FPS ${fps.toString()}`
+				fpsRef.current!.innerHTML = `FPS ${fps.toString()} (max: ${maxKnownFps})`
 				fpsRef.current!.className =
 					`tlui-debug-panel__fps` + (isSlow ? ` tlui-debug-panel__fps__slow` : ``)
 

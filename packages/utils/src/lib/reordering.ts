@@ -178,3 +178,22 @@ export function sortByIndex<T extends { index: IndexKey }>(a: T, b: T) {
 	}
 	return 0
 }
+
+/**
+ * Sort by index, or null.
+ * @param a - An object with an index property.
+ * @param b - An object with an index property.
+ * @public
+ */
+export function sortByMaybeIndex<T extends { index?: IndexKey | null }>(a: T, b: T) {
+	if (a.index && b.index) {
+		return a.index < b.index ? -1 : 1
+	}
+	if (a.index && b.index == null) {
+		return -1
+	}
+	if (a.index == null && b.index == null) {
+		return 0
+	}
+	return 1
+}
