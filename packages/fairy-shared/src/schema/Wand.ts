@@ -1,6 +1,5 @@
 import { AgentAction } from '../types/AgentAction'
-import { PromptPart } from '../types/PromptPart'
-import { AGENT_ACTION_TYPES, PROMPT_PART_TYPES } from './FairySchema'
+import { AGENT_ACTION_TYPES } from './FairySchema'
 
 /**
  * The base type for a wand.
@@ -14,8 +13,9 @@ interface BaseWand {
 	description: string
 	/** Whether the wand is available in the user-facing config. */
 	isAvailableInConfig: boolean
+	// TODO: Enable prompt part sets too
 	/** The prompt parts that the wand allows the fairy to see. */
-	availableParts: PromptPart['type'][]
+	// availableParts: PromptPart['type'][]
 	/** The actions that the wand allows the fairy to take. */
 	availableActions: AgentAction['_type'][]
 }
@@ -34,7 +34,6 @@ export const WAND_DEFINITIONS = [
 		name: 'Almighty Wand',
 		description: 'A wand that allows the agent to perform any action. Use with caution.',
 		isAvailableInConfig: false,
-		availableParts: PROMPT_PART_TYPES,
 		availableActions: AGENT_ACTION_TYPES,
 	},
 	{
@@ -43,7 +42,6 @@ export const WAND_DEFINITIONS = [
 		isAvailableInConfig: false,
 		description:
 			"A wand for taking a user prompt and imbuing it with the fairy's personality. Used internally.",
-		availableParts: PROMPT_PART_TYPES,
 		availableActions: ['think', 'imbue-personality'],
 	},
 	{
@@ -51,7 +49,6 @@ export const WAND_DEFINITIONS = [
 		name: 'Pen Wand',
 		description: 'A wand well-suited for drawing pictures with the pen.',
 		isAvailableInConfig: true,
-		availableParts: PROMPT_PART_TYPES,
 		availableActions: [
 			'message',
 			'think',
@@ -74,7 +71,6 @@ export const WAND_DEFINITIONS = [
 		name: 'The Destroyer',
 		description: 'A wand for deleting only.',
 		isAvailableInConfig: true,
-		availableParts: PROMPT_PART_TYPES,
 		availableActions: [
 			'message',
 			'think',
@@ -91,7 +87,6 @@ export const WAND_DEFINITIONS = [
 		description:
 			"A wand with a mouth on the end. With this wand, your fairy will speak with you, but won't be able to edit the canvas.",
 		isAvailableInConfig: true,
-		availableParts: PROMPT_PART_TYPES,
 		availableActions: [
 			'message',
 			'think',
@@ -106,7 +101,6 @@ export const WAND_DEFINITIONS = [
 		name: 'Diagram Wand',
 		description: 'A wand well-suited for creating diagrams.',
 		isAvailableInConfig: true,
-		availableParts: PROMPT_PART_TYPES,
 		availableActions: [
 			'message',
 			'think',
@@ -114,6 +108,28 @@ export const WAND_DEFINITIONS = [
 			'update-todo-list',
 			'fly-to-bounds',
 			'note-to-self',
-		],
+			'create',
+			'delete',
+			'update',
+			'move',
+			'bring-to-front',
+			'send-to-back',
+			'rotate',
+			'resize',
+			'align',
+			'distribute',
+			'stack',
+		] as const,
 	},
 ] as const satisfies BaseWand[]
+
+export const WAND_TYPES = WAND_DEFINITIONS.map((wand) => wand.type)
+export const WAND_DEFINITIONS_MAP = Object.fromEntries(
+	WAND_DEFINITIONS.map((wand) => [wand.type, wand])
+)
+
+export function getWand(type: Wand['type']): Wand {
+	const wand = WAND_DEFINITIONS_MAP[type]
+	if (!wand) throw new Error(`Unknown wand: ${type}`)
+	return wand
+}

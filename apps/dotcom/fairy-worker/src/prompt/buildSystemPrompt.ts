@@ -1,11 +1,12 @@
 import {
-	AGENT_ACTION_TYPES,
 	AgentAction,
 	AgentPrompt,
 	FOCUSED_SHAPE_TYPES,
 	PROMPT_PART_TYPES,
 	PromptPart,
+	Wand,
 	buildResponseSchema,
+	getWand,
 } from '@tldraw/fairy-shared'
 
 /**
@@ -17,9 +18,9 @@ import {
  * @param prompt - The prompt to build a system prompt for.
  * @returns The system prompt.
  */
-export function buildSystemPrompt(_prompt: AgentPrompt): string {
-	// Todo: Dynamically generate the list of available actions and parts from the prompt object
-	const systemPrompt = getSystemPrompt(AGENT_ACTION_TYPES, PROMPT_PART_TYPES)
+export function buildSystemPrompt(prompt: AgentPrompt): string {
+	const wand = getWand(prompt.wand.wand as Wand['type'])
+	const systemPrompt = getSystemPrompt(wand.availableActions, PROMPT_PART_TYPES)
 	return systemPrompt
 }
 

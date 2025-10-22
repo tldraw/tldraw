@@ -32,6 +32,7 @@ import { TimePartSchema } from './parts/TimePartSchema'
 import { TodoListPartSchema } from './parts/TodoListPartSchema'
 import { UserActionHistoryPartSchema } from './parts/UserActionHistoryPartSchema'
 import { ViewportBoundsPartSchema } from './parts/ViewportBoundsPartSchema'
+import { WandPartSchema } from './parts/WandPartSchema'
 
 /**
  * Agent action schemas determine what actions the agent can take.
@@ -88,6 +89,7 @@ export const PROMPT_PART_SCHEMAS = [
 	UserActionHistoryPartSchema,
 	ViewportBoundsPartSchema,
 	OtherFairiesPartSchema,
+	WandPartSchema,
 ] as const
 
 export const AGENT_ACTION_TYPES = AGENT_ACTION_SCHEMAS.map((schema) => schema.shape._type.value)

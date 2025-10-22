@@ -13,7 +13,7 @@ const FAIRY_1_CONFIG: FairyConfig = {
 		wings: 'plain',
 	},
 	personality: 'intelligent but cold, calculating, and aloof',
-	wand: 'diagram',
+	wand: 'god',
 }
 
 const FAIRY_2_CONFIG: FairyConfig = {
@@ -24,7 +24,7 @@ const FAIRY_2_CONFIG: FairyConfig = {
 		wings: 'plain',
 	},
 	personality: 'artistic, creative, and neurotic',
-	wand: 'pen',
+	wand: 'god',
 }
 
 export function FairyApp({ setAgents }: { setAgents(agents: FairyAgent[]): void }) {

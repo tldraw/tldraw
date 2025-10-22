@@ -11,6 +11,7 @@ import {
 	FAIRY_VISION_DIMENSIONS,
 	FairyEntity,
 	FocusedShape,
+	getWand,
 	PointContextItem,
 	PromptPart,
 	ShapeContextItem,
@@ -225,7 +226,7 @@ export class FairyAgent {
 		const activeRequest = this.$activeRequest.get()
 		return {
 			type: request.type ?? 'user',
-			wand: request.wand ?? 'god',
+			wand: request.wand ?? this.$fairyConfig.get().wand,
 			messages: request.messages ?? [],
 			data: request.data ?? [],
 			selectedShapes: request.selectedShapes ?? [],
@@ -1030,6 +1031,7 @@ function requestAgentActions({ agent, request }: { agent: FairyAgent; request: A
 	const controller = new AbortController()
 	const signal = controller.signal
 	const helpers = new AgentHelpers(agent)
+	const wand = getWand(request.wand)
 
 	const requestPromise = (async () => {
 		const prompt = await agent.preparePrompt(request, helpers)
@@ -1041,7 +1043,13 @@ function requestAgentActions({ agent, request }: { agent: FairyAgent; request: A
 
 				editor.run(
 					() => {
+						const actionUtilType = agent.getAgentActionUtilType(action._type)
 						const actionUtil = agent.getAgentActionUtil(action._type)
+
+						// If the action is not in the wand's available actions, skip it
+						if (!(wand.availableActions as string[]).includes(actionUtilType)) {
+							return
+						}
 
 						// helpers the agent's action
 						const transformedAction = actionUtil.sanitizeAction(action, helpers)

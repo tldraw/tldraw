@@ -67,6 +67,7 @@ export * from './schema/parts/TimePartSchema'
 export * from './schema/parts/TodoListPartSchema'
 export * from './schema/parts/UserActionHistoryPartSchema'
 export * from './schema/parts/ViewportBoundsPartSchema'
+export * from './schema/parts/WandPartSchema'
 
 export * from './schema/PromptPartRegistry'
 export * from './types/FairyPose'
@@ -74,7 +75,7 @@ export * from './types/FairyPose'
 // Constants / Defaults
 export * from './constants'
 export * from './schema/FairySchema'
-export type * from './schema/Wand'
+export * from './schema/Wand'
 
 // Icons
 export * from './icons/AgentIcon'

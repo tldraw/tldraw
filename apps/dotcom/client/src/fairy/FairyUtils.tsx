@@ -36,6 +36,7 @@ import { TimePartUtil } from './parts/TimePartUtil'
 import { TodoListPartUtil } from './parts/TodoListPartUtil'
 import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
 import { ViewportBoundsPartUtil } from './parts/ViewportBoundsPartUtil'
+import { WandPartUtil } from './parts/WandPartUtil'
 
 /**
  * Agent action utils determine what actions do.
@@ -104,8 +105,9 @@ export const PROMPT_PART_UTILS = [
 	// Metadata
 	TimePartUtil,
 
-	// Collaboration
+	// Fairy-specific
 	OtherFairiesPartUtil,
+	WandPartUtil,
 ] satisfies PromptPartUtilConstructor<PromptPart>[]
 
 /**
