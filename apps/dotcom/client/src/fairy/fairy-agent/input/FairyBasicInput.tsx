@@ -72,7 +72,7 @@ export function FairyBasicInput({ agent }: { agent: FairyAgent }) {
 		<div className="fairy-input">
 			<TldrawUiInput
 				ref={inputRef}
-				placeholder={`Whisper to ${agent.id}...`}
+				placeholder={`Whisper to ${agent.$fairyConfig.get().name}...`}
 				value={inputValue}
 				onValueChange={setInputValue}
 				onComplete={handleComplete}

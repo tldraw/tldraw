@@ -66,6 +66,7 @@ export * from './schema/parts/UserActionHistoryPartSchema'
 export * from './schema/parts/ViewportBoundsPartSchema'
 export * from './schema/PromptPartRegistry'
 export * from './types/FairyPose'
+export * from './types/Wand'
 
 // Constants / Defaults
 export * from './constants'

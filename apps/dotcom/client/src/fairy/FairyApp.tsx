@@ -1,5 +1,6 @@
+import { Wand, WAND_DEFINITIONS } from '@tldraw/fairy-shared'
 import { useCallback, useEffect, useMemo } from 'react'
-import { useEditor } from 'tldraw'
+import { uniqueId, useEditor } from 'tldraw'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { useFairyAgent } from './fairy-agent/agent/useFairyAgent'
@@ -15,9 +16,9 @@ export function FairyApp({ setAgents }: { setAgents(agents: FairyAgent[]): void 
 	}, [user])
 
 	// eslint-disable-next-line no-restricted-properties
-	const FAIRY_1_ID = useMemo(() => crypto.randomUUID(), [])
+	const FAIRY_1_ID = useMemo(() => uniqueId(), [])
 	// eslint-disable-next-line no-restricted-properties
-	const FAIRY_2_ID = useMemo(() => crypto.randomUUID(), [])
+	const FAIRY_2_ID = useMemo(() => uniqueId(), [])
 
 	const FAIRY_1_CONFIG: FairyConfig = useMemo(
 		() => ({
@@ -28,19 +29,21 @@ export function FairyApp({ setAgents }: { setAgents(agents: FairyAgent[]): void 
 				wings: 'plain',
 			},
 			personality: 'artistic, creative, and neurotic',
+			wand: WAND_DEFINITIONS.find((wand) => wand.type === 'god') as Wand,
 		}),
 		[]
 	)
 
 	const FAIRY_2_CONFIG: FairyConfig = useMemo(
 		() => ({
-			name: 'Hoppy',
+			name: 'Yppuh',
 			outfit: {
 				body: 'plain',
 				hat: 'top',
 				wings: 'plain',
 			},
 			personality: 'intelligent but cold, calculating, and aloof',
+			wand: WAND_DEFINITIONS.find((wand) => wand.type === 'pen') as Wand,
 		}),
 		[]
 	)

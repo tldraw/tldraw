@@ -1,6 +1,7 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
 	Box,
+	react,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
 	TldrawUiMenuContextProvider,
@@ -81,30 +82,72 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	const deselectMessage = useMsg(fairyMessages.deselect)
 	const selectMessage = useMsg(fairyMessages.select)
 
-	// At this stage, there is only one fairy
-	const onlyFairy = useValue('only-fairy', () => agents[0], [agents])
+	// Create a reactive value that tracks which fairies are selected
+	const selectedFairies = useValue(
+		'selected-fairies',
+		() => {
+			return agents.filter((agent) => agent.$fairy.get()?.isSelected ?? false)
+		},
+		[agents]
+	)
 
-	const goToFairy = useCallback(() => {
-		editor.zoomToBounds(Box.FromCenter(onlyFairy.$fairy.get().position, { x: 100, y: 100 }), {
-			animation: { duration: 220 },
-			targetZoom: 1,
+	// Single selected fairy for operations
+	const singleSelectedFairy = selectedFairies.length === 1 ? selectedFairies[0] : null
+
+	// Close panel when no fairies are selected
+	useEffect(() => {
+		return react('close-panel-on-deselect', () => {
+			const currentSelectedCount = agents.filter(
+				(agent) => agent.$fairy.get()?.isSelected ?? false
+			).length
+
+			if (currentSelectedCount === 0) {
+				setPanelState('closed')
+			}
 		})
-	}, [editor, onlyFairy])
+	}, [agents])
 
-	const handleToggle = useCallback(() => {
-		if (panelState === 'closed') {
-			// Open the panel
-			setPanelState('open')
-		} else {
-			// Zoom camera to fairy position
-			goToFairy()
-		}
-	}, [panelState, goToFairy])
+	const goToFairy = useCallback(
+		(fairy: FairyAgent) => {
+			editor.zoomToBounds(Box.FromCenter(fairy.$fairy.get().position, { x: 100, y: 100 }), {
+				animation: { duration: 220 },
+				targetZoom: 1,
+			})
+		},
+		[editor]
+	)
+
+	const handleToggle = useCallback(
+		(clickedAgent: FairyAgent) => {
+			const isClickedAgentSelected = clickedAgent.$fairy.get()?.isSelected ?? false
+
+			if (!isClickedAgentSelected) {
+				// Deselect all fairies
+				agents.forEach((agent) => {
+					agent.$fairy.update((f) => (f ? { ...f, isSelected: false } : f))
+				})
+				// Select the clicked fairy
+				clickedAgent.$fairy.update((f) => (f ? { ...f, isSelected: true } : f))
+				// Open the panel
+				setPanelState('open')
+			} else {
+				// If already selected, zoom to fairy or toggle panel
+				if (panelState === 'closed') {
+					setPanelState('open')
+				} else {
+					goToFairy(clickedAgent)
+				}
+			}
+		},
+		[panelState, goToFairy, agents]
+	)
 
 	const handleNewChat = useCallback(() => {
-		onlyFairy.cancel()
-		onlyFairy.reset()
-	}, [onlyFairy])
+		if (singleSelectedFairy) {
+			singleSelectedFairy.cancel()
+			singleSelectedFairy.reset()
+		}
+	}, [singleSelectedFairy])
 
 	const togglePanel = useCallback((e?: any) => {
 		if (e) {
@@ -148,50 +191,89 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 					data-panel-state={panelState}
 					onWheelCapture={(e) => e.stopPropagation()}
 				>
-					<div className="fairy-toolbar-header">
-						<_DropdownMenu.Root dir="ltr" open={menuPopoverOpen} onOpenChange={setMenuPopoverOpen}>
-							<_DropdownMenu.Trigger asChild dir="ltr">
-								<TldrawUiButton type="icon" className="fairy-toolbar-button">
-									<TldrawUiButtonIcon icon="menu" />
-								</TldrawUiButton>
-							</_DropdownMenu.Trigger>
-							<_DropdownMenu.Portal container={container}>
-								<_DropdownMenu.Content
-									side="bottom"
-									align="start"
-									className="tlui-menu"
-									collisionPadding={4}
-									alignOffset={4}
-									sideOffset={4}
+					{/* Handle 0 fairies selected */}
+					{selectedFairies.length === 0 && (
+						<div className="fairy-no-selection" style={{ padding: '20px', textAlign: 'center' }}>
+							<p>No fairy selected</p>
+							<p>Click a fairy button below to select one</p>
+						</div>
+					)}
+
+					{/* Handle 1 fairy selected */}
+					{singleSelectedFairy && (
+						<>
+							<div className="fairy-toolbar-header">
+								<_DropdownMenu.Root
+									dir="ltr"
+									open={menuPopoverOpen}
+									onOpenChange={setMenuPopoverOpen}
 								>
-									<TldrawUiMenuContextProvider type="menu" sourceId="fairy-panel">
-										<TldrawUiMenuGroup id="fairy-menu">
-											<TldrawUiMenuItem id="go-to-fairy" onSelect={goToFairy} label="Go to fairy" />
-											<TldrawUiMenuItem
-												id="toggle-panel"
-												onSelect={() => {
-													alert('Coming soon!')
-												}}
-												label="Change outfit"
-											/>
-											<TldrawUiMenuItem id="new-chat" onSelect={handleNewChat} label="Reset chat" />
-											<TldrawUiMenuItem
-												id="debug-actions"
-												onSelect={openDebugModal}
-												label="Debug"
-											/>
-										</TldrawUiMenuGroup>
-									</TldrawUiMenuContextProvider>
-								</_DropdownMenu.Content>
-							</_DropdownMenu.Portal>
-						</_DropdownMenu.Root>
-						<div className="fairy-id-display">{onlyFairy.id}</div>
-						<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={handleNewChat}>
-							+
-						</TldrawUiButton>
-					</div>
-					<FairyChatHistory agent={onlyFairy} />
-					<FairyBasicInput agent={onlyFairy} />
+									<_DropdownMenu.Trigger asChild dir="ltr">
+										<TldrawUiButton type="icon" className="fairy-toolbar-button">
+											<TldrawUiButtonIcon icon="menu" />
+										</TldrawUiButton>
+									</_DropdownMenu.Trigger>
+									<_DropdownMenu.Portal container={container}>
+										<_DropdownMenu.Content
+											side="bottom"
+											align="start"
+											className="tlui-menu"
+											collisionPadding={4}
+											alignOffset={4}
+											sideOffset={4}
+										>
+											<TldrawUiMenuContextProvider type="menu" sourceId="fairy-panel">
+												<TldrawUiMenuGroup id="fairy-menu">
+													<TldrawUiMenuItem
+														id="go-to-fairy"
+														onSelect={() => goToFairy(singleSelectedFairy)}
+														label="Go to fairy"
+													/>
+													<TldrawUiMenuItem
+														id="toggle-panel"
+														onSelect={() => {
+															alert('Coming soon!')
+														}}
+														label="Change outfit"
+													/>
+													<TldrawUiMenuItem
+														id="new-chat"
+														onSelect={handleNewChat}
+														label="Reset chat"
+													/>
+													<TldrawUiMenuItem
+														id="debug-actions"
+														onSelect={openDebugModal}
+														label="Debug"
+													/>
+												</TldrawUiMenuGroup>
+											</TldrawUiMenuContextProvider>
+										</_DropdownMenu.Content>
+									</_DropdownMenu.Portal>
+								</_DropdownMenu.Root>
+								<div className="fairy-id-display">
+									{singleSelectedFairy.$fairyConfig.get().name}
+								</div>
+								<TldrawUiButton
+									type="icon"
+									className="fairy-toolbar-button"
+									onClick={handleNewChat}
+								>
+									+
+								</TldrawUiButton>
+							</div>
+							<FairyChatHistory agent={singleSelectedFairy} />
+							<FairyBasicInput agent={singleSelectedFairy} />
+						</>
+					)}
+
+					{/* Handle 2+ fairies selected */}
+					{selectedFairies.length > 1 && (
+						<div className="fairy-no-selection" style={{ padding: '20px', textAlign: 'center' }}>
+							<p>Multiple fairies selected</p>
+							<p>Group chat coming soon!</p>
+						</div>
+					)}
 				</div>
 			)}
 
@@ -205,13 +287,13 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 						{panelState === 'open' ? '››' : '‹‹'}
 					</TldrawUiButton>
 				</div>
-				<TldrawUiToolbar label={toolbarMessage}>
+				<TldrawUiToolbar label={toolbarMessage} orientation="vertical">
 					{agents.map((agent) => {
 						return (
 							<FairyButton
 								key={agent.id}
 								agent={agent}
-								onClick={() => handleToggle()}
+								onClick={() => handleToggle(agent)}
 								selectMessage={selectMessage}
 								deselectMessage={deselectMessage}
 							/>
