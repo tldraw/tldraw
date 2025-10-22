@@ -30,11 +30,11 @@ export class AgentService {
 		return this[provider](modelDefinition.id)
 	}
 
-	async *stream(prompt: AgentPrompt): AsyncGenerator<Streaming<AgentAction>> {
+	async *streamActions(prompt: AgentPrompt): AsyncGenerator<Streaming<AgentAction>> {
 		try {
 			const model = this.getModel(FAIRY_MODEL_NAME)
-			for await (const event of streamActions(model, prompt)) {
-				yield event
+			for await (const action of _streamActions(model, prompt)) {
+				yield action
 			}
 		} catch (error: any) {
 			console.error('Stream error:', error)
@@ -42,11 +42,11 @@ export class AgentService {
 		}
 	}
 
-	async *streamText(prompt: AgentPrompt): AsyncGenerator<{ text: string }> {
+	async *streamText(prompt: AgentPrompt): AsyncGenerator<string> {
 		try {
 			const model = this.getModel(FAIRY_MODEL_NAME)
-			for await (const text of streamTextModel(model, prompt)) {
-				yield { text: text.text }
+			for await (const text of _streamText(model, prompt)) {
+				yield text
 			}
 		} catch (error: any) {
 			console.error('Stream text error:', error)
@@ -55,10 +55,7 @@ export class AgentService {
 	}
 }
 
-async function* streamTextModel(
-	model: LanguageModel,
-	prompt: AgentPrompt
-): AsyncGenerator<{ text: string }> {
+async function* _streamText(model: LanguageModel, prompt: AgentPrompt): AsyncGenerator<string> {
 	if (typeof model === 'string') {
 		throw new Error('Model is a string, not a LanguageModel')
 	}
@@ -67,8 +64,6 @@ async function* streamTextModel(
 
 	const messages = buildMessages(prompt)
 	const systemPrompt = buildSystemPrompt(prompt) || 'You are a helpful assistant.'
-	console.warn('messages', JSON.stringify(messages, null, 2))
-	console.warn('systemPrompt', systemPrompt)
 
 	try {
 		const { textStream } = streamText({
@@ -92,7 +87,7 @@ async function* streamTextModel(
 		})
 
 		for await (const text of textStream) {
-			yield { text }
+			yield text
 		}
 	} catch (error: any) {
 		console.error('streamEventsVercel error:', error)
@@ -100,7 +95,7 @@ async function* streamTextModel(
 	}
 }
 
-async function* streamActions(
+async function* _streamActions(
 	model: LanguageModel,
 	prompt: AgentPrompt
 ): AsyncGenerator<Streaming<AgentAction>> {

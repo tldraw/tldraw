@@ -11,7 +11,7 @@ export function FairyBasicInput({ agent }: { agent: FairyAgent }) {
 
 	const usePersonalityAugmentedPrompt = useValue(
 		'usePersonalityAugmentedPrompt',
-		() => agent.$debug_personalityModeEnabled.get(),
+		() => agent.$personalityModeEnabled.get(),
 		[agent]
 	)
 

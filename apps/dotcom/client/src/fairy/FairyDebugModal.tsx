@@ -14,7 +14,7 @@ export function FairyDebugModal({ agents, onClose }: { agents: FairyAgent[]; onC
 	// If all agents have personality mode enabled, the button shows "on" checked; otherwise, un-checked
 	const personalityModeEnabled = useValue(
 		'debug-personality-mode',
-		() => agents.every((agent) => agent.$debug_personalityModeEnabled.get()),
+		() => agents.every((agent) => agent.$personalityModeEnabled.get()),
 		[agents]
 	)
 
@@ -22,7 +22,7 @@ export function FairyDebugModal({ agents, onClose }: { agents: FairyAgent[]; onC
 		const shouldEnable = !personalityModeEnabled
 		agents.forEach((agent) => {
 			// Only update if status does not match intent
-			if (agent.$debug_personalityModeEnabled.get() !== shouldEnable) {
+			if (agent.$personalityModeEnabled.get() !== shouldEnable) {
 				agent.togglePersonalityMode()
 			}
 		})
@@ -30,7 +30,7 @@ export function FairyDebugModal({ agents, onClose }: { agents: FairyAgent[]; onC
 		agents.forEach((agent) =>
 			// eslint-disable-next-line no-console
 			console.log(
-				`after toggling personality mode, agent with id ${agent.id} has personality mode enabled ${agent.$debug_personalityModeEnabled.get()}`
+				`after toggling personality mode, agent with id ${agent.id} has personality mode enabled ${agent.$personalityModeEnabled.get()}`
 			)
 		)
 	}
@@ -38,14 +38,16 @@ export function FairyDebugModal({ agents, onClose }: { agents: FairyAgent[]; onC
 	return (
 		<>
 			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>Fairy Debug Actions</TldrawUiDialogTitle>
+				<TldrawUiDialogTitle>Fairy debug</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody style={{ maxWidth: 400 }}>
 				<div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
 					<TldrawUiButton type="low" onClick={handleTogglePersonalityMode}>
 						<TldrawUiButtonLabel>
-							{personalityModeEnabled ? '✓ ' : ''}Toggle Personality Mode
+							{personalityModeEnabled ? '✓ ' : ''}Custom personality mode
+							<br />
+							(defaults to helpful but mischievous)
 						</TldrawUiButtonLabel>
 					</TldrawUiButton>
 				</div>

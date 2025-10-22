@@ -16,8 +16,8 @@ export class AgentDurableObject extends DurableObject<Environment> {
 		const url = new URL(request.url)
 
 		// Handle the stream endpoint directly without router
-		if (url.pathname === '/stream' && request.method === 'POST') {
-			return this.stream(request)
+		if (url.pathname === '/stream-actions' && request.method === 'POST') {
+			return this.streamActions(request)
 		}
 
 		if (url.pathname === '/stream-text' && request.method === 'POST') {
@@ -36,14 +36,14 @@ export class AgentDurableObject extends DurableObject<Environment> {
 		const { readable, writable } = new TransformStream()
 		const writer = writable.getWriter()
 
-		const response: { changes: { text: string }[] } = { changes: [] }
+		const response: string[] = []
 		;(async () => {
 			try {
 				const prompt = (await request.json()) as AgentPrompt
 
-				for await (const change of this.service.streamText(prompt)) {
-					response.changes.push(change)
-					const data = `data: ${JSON.stringify(change)}\n\n`
+				for await (const text of this.service.streamText(prompt)) {
+					response.push(text)
+					const data = `data: ${text}\n\n`
 					await writer.write(encoder.encode(data))
 					await writer.ready
 				}
@@ -68,22 +68,22 @@ export class AgentDurableObject extends DurableObject<Environment> {
 	}
 
 	/**
-	 * Stream changes from the model.
+	 * Stream actions from the model.
 	 */
-	private async stream(request: Request): Promise<Response> {
+	private async streamActions(request: Request): Promise<Response> {
 		const encoder = new TextEncoder()
 		const { readable, writable } = new TransformStream()
 		const writer = writable.getWriter()
 
-		const response: { changes: Streaming<AgentAction>[] } = { changes: [] }
+		const response: { actions: Streaming<AgentAction>[] } = { actions: [] }
 
 		;(async () => {
 			try {
 				const prompt = (await request.json()) as AgentPrompt
 
-				for await (const change of this.service.stream(prompt)) {
-					response.changes.push(change)
-					const data = `data: ${JSON.stringify(change)}\n\n`
+				for await (const action of this.service.streamActions(prompt)) {
+					response.actions.push(action)
+					const data = `data: ${JSON.stringify(action)}\n\n`
 					await writer.write(encoder.encode(data))
 					await writer.ready
 				}

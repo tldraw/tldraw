@@ -111,7 +111,12 @@ export class FairyAgent {
 	 */
 	$contextItems = atom<ContextItem[]>('contextItems', [])
 
-	$debug_personalityModeEnabled = atom<boolean>('debug_personalityModeEnabled', false)
+	/**
+	 * Whether a fairy agent should use a pre-step before each request to augment the request with the agent's personality.
+	 *
+	 * TODO: Move this to fairy configuration.
+	 */
+	$personalityModeEnabled = atom<boolean>('personalityModeEnabled', false)
 
 	/**
 	 * Create a new tldraw agent.
@@ -143,6 +148,7 @@ export class FairyAgent {
 		persistAtomInLocalStorage(this.$todoList, `${id}:todo-items`)
 		persistAtomInLocalStorage(this.$contextItems, `${id}:context-items`)
 		persistAtomInLocalStorage(this.$fairy, `${id}:fairy`)
+		persistAtomInLocalStorage(this.$personalityModeEnabled, `${id}:personality-mode-enabled`)
 
 		this.stopRecordingFn = this.startRecordingUserActions()
 	}
@@ -387,7 +393,7 @@ export class FairyAgent {
 		this.$activeRequest.set(request)
 
 		// Call an external helper function to request the agent
-		const { promise, cancel } = requestAgent({ agent: this, request })
+		const { promise, cancel } = requestAgentActions({ agent: this, request })
 
 		this.cancelFn = cancel
 		promise.finally(() => {
@@ -590,7 +596,7 @@ export class FairyAgent {
 			}
 		}
 
-		const res = await fetch(`${FAIRY_WORKER}/stream`, {
+		const res = await fetch(`${FAIRY_WORKER}/stream-actions`, {
 			method: 'POST',
 			body: JSON.stringify(prompt),
 			headers,
@@ -638,21 +644,28 @@ export class FairyAgent {
 		}
 	}
 
-	// WIP
-	// TODO, we want the user input to display in the chat panel. the way this works now, the agent's output is what's displayed.
+	/**
+	 * Augment the user's prompt with the agent's personality, then pass it on to the normal agent.
+	 */
 	async personalityPrompt(input: AgentInput) {
 		const partialRequest = this.getPartialRequestFromInput(input)
 		partialRequest.type = 'augment-user-prompt'
 		const request = this.getFullRequestFromInput(partialRequest)
-		const augmentedPrompt = await this.single(request)
-		if (!augmentedPrompt) return
+		const augmentedPrompt = await this.requestText(request)
+		if (!augmentedPrompt) {
+			throw new Error('Failed to get prompt')
+		}
 		this.prompt(augmentedPrompt)
 	}
 
-	// WIP
-	async single(input: AgentInput) {
+	/**
+	 * Request a text response from the model.
+	 * @param input - The input to form the request from.
+	 * @returns The text response from the model.
+	 */
+	async requestText(input: AgentInput) {
 		const request = this.getFullRequestFromInput(input)
-		const { fulltextPromise, cancel: _cancel } = requestAgentSingle({ agent: this, request })
+		const { fulltextPromise, cancel: _cancel } = requestAgentText({ agent: this, request })
 		return await fulltextPromise
 	}
 
@@ -663,7 +676,7 @@ export class FairyAgent {
 	}: {
 		prompt: BaseAgentPrompt
 		signal: AbortSignal
-	}): AsyncGenerator<Streaming<{ text: string }>> {
+	}): AsyncGenerator<string> {
 		const headers: HeadersInit = {
 			'Content-Type': 'application/json',
 		}
@@ -678,9 +691,7 @@ export class FairyAgent {
 
 		const res = await fetch(`${FAIRY_WORKER}/stream-text`, {
 			method: 'POST',
-			body: JSON.stringify({
-				prompt,
-			}),
+			body: JSON.stringify(prompt),
 			headers,
 			signal,
 		})
@@ -706,15 +717,7 @@ export class FairyAgent {
 					const match = chunk.match(/^data: (.+)$/m)
 					if (match) {
 						try {
-							const data = JSON.parse(match[1])
-
-							// If the response contains an error, throw it
-							if ('error' in data) {
-								throw new Error(data.error)
-							}
-
-							const text: Streaming<{ text: string }> = data
-							yield text
+							yield match[1]
 						} catch (err: any) {
 							throw new Error(err.message)
 						}
@@ -899,6 +902,11 @@ export class FairyAgent {
 		return false
 	}
 
+	/**
+	 * Get information about an agent action, mostly used to display actions within the chat history UI.
+	 * @param action - The action to get information about.
+	 * @returns The information about the action.
+	 */
 	getActionInfo(action: Streaming<AgentAction>): AgentActionInfo {
 		const util = this.getAgentActionUtil(action._type)
 		const info = util.getInfo(action) ?? {}
@@ -919,8 +927,15 @@ export class FairyAgent {
 		}
 	}
 
+	/**
+	 * How much to offset the fairy's position by.
+	 */
 	MOVE_OFFSET = { x: -70, y: 70 }
 
+	/**
+	 * Move the fairy to a position.
+	 * @param position - The position to move the fairy to.
+	 */
 	moveToPosition(position: VecModel) {
 		this.$fairy.update((fairy) => {
 			const offsetPosition = Vec.Add(position, this.MOVE_OFFSET)
@@ -934,6 +949,10 @@ export class FairyAgent {
 		})
 	}
 
+	/**
+	 * Move the fairy to the side of an area.
+	 * @param bounds - The area to move the fairy to the side of.
+	 */
 	moveToBounds(bounds: BoxModel) {
 		this.$fairy.update((fairy) => {
 			const middleRight = new Vec(bounds.x + bounds.w, bounds.y + bounds.h / 2)
@@ -960,12 +979,15 @@ export class FairyAgent {
 
 	// WIP
 	togglePersonalityMode() {
-		this.$debug_personalityModeEnabled.set(!this.$debug_personalityModeEnabled.get())
+		this.$personalityModeEnabled.update((enabled) => !enabled)
 	}
 }
 
-// WIP
-function requestAgentSingle({ agent, request }: { agent: FairyAgent; request: AgentRequest }) {
+/**
+ * Send a request for a text response from the model and return its response.
+ * @returns A promise for the text response from the model and a function to cancel the request.
+ */
+function requestAgentText({ agent, request }: { agent: FairyAgent; request: AgentRequest }) {
 	let cancelled = false
 	const controller = new AbortController()
 	const signal = controller.signal
@@ -975,9 +997,9 @@ function requestAgentSingle({ agent, request }: { agent: FairyAgent; request: Ag
 		const prompt = await agent.preparePrompt(request, helpers)
 		let text = ''
 		try {
-			for await (const action of agent.streamAgentText({ prompt, signal })) {
+			for await (const v of agent.streamAgentText({ prompt, signal })) {
 				if (cancelled) break
-				text += action.text
+				text += v
 			}
 			return text
 		} catch (e) {
@@ -1001,7 +1023,7 @@ function requestAgentSingle({ agent, request }: { agent: FairyAgent; request: Ag
  *
  * This is a helper function that is used internally by the agent.
  */
-function requestAgent({ agent, request }: { agent: FairyAgent; request: AgentRequest }) {
+function requestAgentActions({ agent, request }: { agent: FairyAgent; request: AgentRequest }) {
 	const { editor } = agent
 
 	// If the request is from the user, add it to chat history

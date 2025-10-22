@@ -1,7 +1,7 @@
 import { Environment } from '../environment'
 import { AuthenticatedRequest } from '../worker'
 
-export async function streamText(request: AuthenticatedRequest, env: Environment) {
+export async function streamTextHandler(request: AuthenticatedRequest, env: Environment) {
 	// Auth is already validated and attached by requireTldrawEmail middleware
 	const auth = request.auth
 

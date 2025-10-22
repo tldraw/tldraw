@@ -183,7 +183,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 											<TldrawUiMenuItem
 												id="debug-actions"
 												onSelect={openDebugModal}
-												label="Debug actions"
+												label="Debug"
 											/>
 										</TldrawUiMenuGroup>
 									</TldrawUiMenuContextProvider>
