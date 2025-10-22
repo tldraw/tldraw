@@ -4,6 +4,7 @@ import { CreateActionSchema } from './actions/CreateActionSchema'
 import { DeleteActionSchema } from './actions/DeleteActionSchema'
 import { DistributeActionSchema } from './actions/DistributeActionSchema'
 import { FlyToBoundsActionSchema } from './actions/FlyToBoundsActionSchema'
+import { ImbuePersonalityActionSchema } from './actions/ImbuePersonalityActionSchema'
 import { LabelActionSchema } from './actions/LabelActionSchema'
 import { MessageActionSchema } from './actions/MessageActionSchema'
 import { MoveActionSchema } from './actions/MoveActionSchema'
@@ -65,6 +66,9 @@ export const AGENT_ACTION_SCHEMAS = [
 
 	// Drawing
 	PenActionSchema,
+
+	// Fairy-specific
+	ImbuePersonalityActionSchema,
 ] as const
 
 /**

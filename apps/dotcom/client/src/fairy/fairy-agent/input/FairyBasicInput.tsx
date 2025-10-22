@@ -3,19 +3,13 @@ import { useCallback, useRef, useState } from 'react'
 import { Box, TldrawUiInput, useValue } from 'tldraw'
 import { FairyAgent } from '../agent/FairyAgent'
 
-export function FairyBasicInput({ agent }: { agent: FairyAgent }) {
+export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCancel(): void }) {
 	const { editor } = agent
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [inputValue, setInputValue] = useState('')
 	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
 
-	const usePersonalityAugmentedPrompt = useValue(
-		'usePersonalityAugmentedPrompt',
-		() => agent.$personalityModeEnabled.get(),
-		[agent]
-	)
-
-	const fairy = useValue('fairy', () => agent.$fairy, [agent])
+	const fairy = useValue('fairy', () => agent.$fairyEntity, [agent])
 
 	const handleComplete = useCallback(
 		async (value: string) => {
@@ -37,25 +31,15 @@ export function FairyBasicInput({ agent }: { agent: FairyAgent }) {
 
 			const fairyVision = Box.FromCenter(fairyPosition, FAIRY_VISION_DIMENSIONS)
 
-			if (usePersonalityAugmentedPrompt) {
-				await agent.personalityPrompt({
-					message: value,
-					contextItems: [],
-					bounds: fairyVision,
-					selectedShapes,
-					type: 'user',
-				})
-			} else {
-				await agent.prompt({
-					message: value,
-					contextItems: [],
-					bounds: fairyVision,
-					selectedShapes,
-					type: 'user',
-				})
-			}
+			await agent.prompt({
+				message: value,
+				contextItems: [],
+				bounds: fairyVision,
+				selectedShapes,
+				type: 'user',
+			})
 		},
-		[agent, editor, fairy, usePersonalityAugmentedPrompt]
+		[agent, editor, fairy]
 	)
 
 	const shouldCancel = isGenerating && inputValue === ''
@@ -76,6 +60,7 @@ export function FairyBasicInput({ agent }: { agent: FairyAgent }) {
 				value={inputValue}
 				onValueChange={setInputValue}
 				onComplete={handleComplete}
+				onCancel={onCancel}
 				autoFocus
 				className="fairy-input__field"
 			/>

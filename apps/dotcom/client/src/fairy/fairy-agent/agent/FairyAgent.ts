@@ -61,8 +61,8 @@ export class FairyAgent {
 	/** An id to differentiate the agent from other agents. */
 	id: string
 
-	/** The fairy associated with this agent. */
-	$fairy: Atom<FairyEntity>
+	/** The fairy entity associated with this agent. */
+	$fairyEntity: Atom<FairyEntity>
 
 	/** The fairy configuration associated with this agent. */
 	$fairyConfig: Atom<FairyConfig>
@@ -116,13 +116,6 @@ export class FairyAgent {
 	$contextItems = atom<ContextItem[]>('contextItems', [])
 
 	/**
-	 * Whether a fairy agent should use a pre-step before each request to augment the request with the agent's personality.
-	 *
-	 * TODO: Move this to fairy configuration.
-	 */
-	$personalityModeEnabled = atom<boolean>('personalityModeEnabled', false)
-
-	/**
 	 * Create a new tldraw agent.
 	 */
 	constructor({ id, fairyConfig, editor, onError, getToken }: FairyAgentOptions) {
@@ -132,7 +125,7 @@ export class FairyAgent {
 
 		const spawnPoint = findFairySpawnPoint({ x: 0, y: 0 }, editor)
 
-		this.$fairy = atom<FairyEntity>(`fairy-${id}`, {
+		this.$fairyEntity = atom<FairyEntity>(`fairy-${id}`, {
 			position: spawnPoint,
 			flipX: false,
 			isSelected: false,
@@ -154,8 +147,7 @@ export class FairyAgent {
 		persistAtomInLocalStorage(this.$chatOrigin, `${id}:chat-origin`)
 		persistAtomInLocalStorage(this.$todoList, `${id}:todo-items`)
 		persistAtomInLocalStorage(this.$contextItems, `${id}:context-items`)
-		persistAtomInLocalStorage(this.$fairy, `${id}:fairy`)
-		persistAtomInLocalStorage(this.$personalityModeEnabled, `${id}:personality-mode-enabled`)
+		persistAtomInLocalStorage(this.$fairyEntity, `${id}:fairy`)
 
 		this.stopRecordingFn = this.startRecordingUserActions()
 	}
@@ -233,6 +225,7 @@ export class FairyAgent {
 		const activeRequest = this.$activeRequest.get()
 		return {
 			type: request.type ?? 'user',
+			wand: request.wand ?? 'god',
 			messages: request.messages ?? [],
 			data: request.data ?? [],
 			selectedShapes: request.selectedShapes ?? [],
@@ -240,8 +233,7 @@ export class FairyAgent {
 			bounds:
 				request.bounds ??
 				activeRequest?.bounds ??
-				Box.FromCenter(this.$fairy.get().position, FAIRY_VISION_DIMENSIONS),
-			fairyPersonality: request.fairyPersonality ?? this.$fairyConfig.get().personality ?? '', // WIP
+				Box.FromCenter(this.$fairyEntity.get().position, FAIRY_VISION_DIMENSIONS),
 		}
 	}
 
@@ -328,9 +320,9 @@ export class FairyAgent {
 	 * @returns A promise for when the agent has finished its work.
 	 */
 	async prompt(input: AgentInput) {
-		const startingFairy = this.$fairy.get()
+		const startingFairy = this.$fairyEntity.get()
 		if (startingFairy.pose === 'idle') {
-			this.$fairy.update((fairy) => ({ ...fairy, pose: 'active' }))
+			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'active' }))
 		}
 
 		const request = this.getFullRequestFromInput(input)
@@ -345,7 +337,7 @@ export class FairyAgent {
 		if (!scheduledRequest) {
 			// If there no outstanding todo items or requests, finish
 			if (todoItemsRemaining.length === 0 || !this.cancelFn) {
-				this.$fairy.update((fairy) => ({ ...fairy, pose: 'idle' }))
+				this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
 				return
 			}
 
@@ -357,7 +349,7 @@ export class FairyAgent {
 				selectedShapes: request.selectedShapes,
 				data: request.data,
 				type: 'todo',
-				fairyPersonality: '', // WIP
+				wand: 'god',
 			}
 		}
 
@@ -535,7 +527,7 @@ export class FairyAgent {
 		this.isActing = true
 
 		const actionInfo = this.getActionInfo(action)
-		this.$fairy.update((fairy) => ({ ...fairy, pose: actionInfo.pose }))
+		this.$fairyEntity.update((fairy) => ({ ...fairy, pose: actionInfo.pose }))
 
 		let promise: Promise<void> | null = null
 		let diff: RecordsDiff<TLRecord>
@@ -582,9 +574,10 @@ export class FairyAgent {
 	 * Stream a response from the model.
 	 * Act on the model's events as they come in.
 	 *
+	 * Not to be called directly. Use `prompt` instead.
 	 * This is a helper function that is used internally by the agent.
 	 */
-	async *streamAgent({
+	async *_streamActions({
 		prompt,
 		signal,
 	}: {
@@ -652,20 +645,6 @@ export class FairyAgent {
 	}
 
 	/**
-	 * Augment the user's prompt with the agent's personality, then pass it on to the normal agent.
-	 */
-	async personalityPrompt(input: AgentInput) {
-		const partialRequest = this.getPartialRequestFromInput(input)
-		partialRequest.type = 'augment-user-prompt'
-		const request = this.getFullRequestFromInput(partialRequest)
-		const augmentedPrompt = await this.requestText(request)
-		if (!augmentedPrompt) {
-			throw new Error('Failed to get prompt')
-		}
-		this.prompt(augmentedPrompt)
-	}
-
-	/**
 	 * Request a text response from the model.
 	 * @param input - The input to form the request from.
 	 * @returns The text response from the model.
@@ -676,8 +655,12 @@ export class FairyAgent {
 		return await fulltextPromise
 	}
 
-	// WIP
-	async *streamAgentText({
+	/**
+	 * Stream a text response from the model.
+	 * Not to be called directly. Use `requestText` instead.
+	 * This is a helper function that is used internally by the agent.
+	 */
+	async *_streamText({
 		prompt,
 		signal,
 	}: {
@@ -761,7 +744,7 @@ export class FairyAgent {
 		this.$todoList.set([])
 		this.$userActionHistory.set([])
 
-		const viewport = Box.FromCenter(this.$fairy.get().position, FAIRY_VISION_DIMENSIONS)
+		const viewport = Box.FromCenter(this.$fairyEntity.get().position, FAIRY_VISION_DIMENSIONS)
 		this.$chatHistory.set([])
 		this.$chatOrigin.set({ x: viewport.x, y: viewport.y })
 	}
@@ -943,7 +926,7 @@ export class FairyAgent {
 	 * @param position - The position to move the fairy to.
 	 */
 	moveToPosition(position: VecModel) {
-		this.$fairy.update((fairy) => {
+		this.$fairyEntity.update((fairy) => {
 			const offsetPosition = Vec.Add(position, this.MOVE_OFFSET)
 
 			// const isMovingLeft = offsetPosition.x < fairy.position.x
@@ -960,7 +943,7 @@ export class FairyAgent {
 	 * @param bounds - The area to move the fairy to the side of.
 	 */
 	moveToBounds(bounds: BoxModel) {
-		this.$fairy.update((fairy) => {
+		this.$fairyEntity.update((fairy) => {
 			const middleRight = new Vec(bounds.x + bounds.w, bounds.y + bounds.h / 2)
 			let offsetPosition = Vec.Add(middleRight, this.MOVE_OFFSET)
 
@@ -978,19 +961,19 @@ export class FairyAgent {
 		})
 	}
 
-	// WIP
+	/**
+	 * Set the fairy's personality.
+	 * @param personality - A description of the fairy's personality.
+	 */
 	setFairyPersonality(personality: string) {
-		this.$fairy.update((fairy) => ({ ...fairy, personality }))
-	}
-
-	// WIP
-	togglePersonalityMode() {
-		this.$personalityModeEnabled.update((enabled) => !enabled)
+		this.$fairyConfig.update((fairy): FairyConfig => ({ ...fairy, personality }))
 	}
 }
 
 /**
  * Send a request for a text response from the model and return its response.
+ * Note: You probably want to setup a custom system prompt to get any use out of this.
+ *
  * @returns A promise for the text response from the model and a function to cancel the request.
  */
 function requestAgentText({ agent, request }: { agent: FairyAgent; request: AgentRequest }) {
@@ -1003,7 +986,7 @@ function requestAgentText({ agent, request }: { agent: FairyAgent; request: Agen
 		const prompt = await agent.preparePrompt(request, helpers)
 		let text = ''
 		try {
-			for await (const v of agent.streamAgentText({ prompt, signal })) {
+			for await (const v of agent._streamText({ prompt, signal })) {
 				if (cancelled) break
 				text += v
 			}
@@ -1053,7 +1036,7 @@ function requestAgentActions({ agent, request }: { agent: FairyAgent; request: A
 		let incompleteDiff: RecordsDiff<TLRecord> | null = null
 		const actionPromises: Promise<void>[] = []
 		try {
-			for await (const action of agent.streamAgent({ prompt, signal })) {
+			for await (const action of agent._streamActions({ prompt, signal })) {
 				if (cancelled) break
 
 				editor.run(
@@ -1241,7 +1224,7 @@ function findFairySpawnPoint(initialPosition: VecModel, editor: Editor): VecMode
 	while (attempts < MAX_ATTEMPTS) {
 		// Check if the candidate is far enough from all existing fairies
 		const tooClose = existingAgents.some((agent) => {
-			const otherPosition = agent.$fairy.get().position
+			const otherPosition = agent.$fairyEntity.get().position
 			const distance = Math.sqrt(
 				Math.pow(candidate.x - otherPosition.x, 2) + Math.pow(candidate.y - otherPosition.y, 2)
 			)

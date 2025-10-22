@@ -13,7 +13,7 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 	const editor = useEditor()
 	const containerRef = useRef<HTMLDivElement>(null)
 	const fairyRef = useRef<HTMLDivElement>(null)
-	const fairy = agent.$fairy
+	const fairy = agent.$fairyEntity
 	const fairyConfig = agent.$fairyConfig
 
 	// Track viewport screen bounds to position fairy correctly

@@ -1,10 +1,31 @@
-import { Wand, WAND_DEFINITIONS } from '@tldraw/fairy-shared'
 import { useCallback, useEffect, useMemo } from 'react'
 import { uniqueId, useEditor } from 'tldraw'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { useFairyAgent } from './fairy-agent/agent/useFairyAgent'
 import { FairyConfig } from './FairyConfig'
+
+const FAIRY_1_CONFIG: FairyConfig = {
+	name: 'Huppy',
+	outfit: {
+		body: 'plain',
+		hat: 'pointy',
+		wings: 'plain',
+	},
+	personality: 'intelligent but cold, calculating, and aloof',
+	wand: 'diagram',
+}
+
+const FAIRY_2_CONFIG: FairyConfig = {
+	name: 'Yppuh',
+	outfit: {
+		body: 'plain',
+		hat: 'top',
+		wings: 'plain',
+	},
+	personality: 'artistic, creative, and neurotic',
+	wand: 'pen',
+}
 
 export function FairyApp({ setAgents }: { setAgents(agents: FairyAgent[]): void }) {
 	const editor = useEditor()
@@ -15,38 +36,8 @@ export function FairyApp({ setAgents }: { setAgents(agents: FairyAgent[]): void 
 		return await user.getToken()
 	}, [user])
 
-	// eslint-disable-next-line no-restricted-properties
 	const FAIRY_1_ID = useMemo(() => uniqueId(), [])
-	// eslint-disable-next-line no-restricted-properties
 	const FAIRY_2_ID = useMemo(() => uniqueId(), [])
-
-	const FAIRY_1_CONFIG: FairyConfig = useMemo(
-		() => ({
-			name: 'Huppy',
-			outfit: {
-				body: 'plain',
-				hat: 'pointy',
-				wings: 'plain',
-			},
-			personality: 'artistic, creative, and neurotic',
-			wand: WAND_DEFINITIONS.find((wand) => wand.type === 'god') as Wand,
-		}),
-		[]
-	)
-
-	const FAIRY_2_CONFIG: FairyConfig = useMemo(
-		() => ({
-			name: 'Yppuh',
-			outfit: {
-				body: 'plain',
-				hat: 'top',
-				wings: 'plain',
-			},
-			personality: 'intelligent but cold, calculating, and aloof',
-			wand: WAND_DEFINITIONS.find((wand) => wand.type === 'pen') as Wand,
-		}),
-		[]
-	)
 
 	const agent1 = useFairyAgent({ id: FAIRY_1_ID, fairyConfig: FAIRY_1_CONFIG, editor, getToken })
 	const agent2 = useFairyAgent({ id: FAIRY_2_ID, fairyConfig: FAIRY_2_CONFIG, editor, getToken })

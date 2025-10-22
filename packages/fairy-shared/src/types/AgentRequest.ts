@@ -1,6 +1,7 @@
 import { BoxModel } from '@tldraw/tlschema'
 import { JsonValue } from '@tldraw/utils'
 import { FocusedShape } from '../format/FocusedShape'
+import { Wand } from '../schema/Wand'
 import { ContextItem } from './ContextItem'
 
 /**
@@ -39,8 +40,10 @@ export interface AgentRequest {
 	 * - 'schedule' is a request from the schedule.
 	 * - 'todo' is a request from outstanding todo items.
 	 */
-	type: 'user' | 'schedule' | 'todo' | 'augment-user-prompt'
+	type: 'user' | 'schedule' | 'todo'
 
-	// WIP - should this be here or can we just access it from the agent? not sure if agent is accessible from new system prompt on server
-	fairyPersonality: string
+	/**
+	 * Which wand (set of actions) to use for this request.
+	 */
+	wand: Wand['type']
 }

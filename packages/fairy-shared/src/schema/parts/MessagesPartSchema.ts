@@ -5,7 +5,7 @@ export type MessagesPart = z.infer<typeof MessagesPartSchema>
 export const MessagesPartSchema = z.object({
 	type: z.literal('messages'),
 	messages: z.array(z.string()),
-	requestType: z.enum(['user', 'schedule', 'todo', 'augment-user-prompt']),
+	requestType: z.enum(['user', 'schedule', 'todo']),
 })
 
 MessagesPartSchema.register(PromptPartRegistry, {
@@ -27,12 +27,6 @@ MessagesPartSchema.register(PromptPartRegistry, {
 					'There are still outstanding todo items. Please continue. For your reference, the most recent message I gave you was this:',
 					...messages,
 				]
-			case 'augment-user-prompt':
-				return [
-					'Please craft more detailed instructions to pass onto your computer. Take a swing. Here is what your friend wants you to do.',
-					...messages,
-				]
-				break
 		}
 	},
 })

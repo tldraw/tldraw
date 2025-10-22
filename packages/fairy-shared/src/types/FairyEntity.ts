@@ -2,7 +2,7 @@ import { VecModel } from '@tldraw/tlschema'
 import { FairyPose } from './FairyPose'
 
 /**
- * An object representing the fairy's game entity.
+ * An object representing the fairy's game object, such as its position in the world.
  * This should not contain anything to do with the agent.
  */
 export interface FairyEntity {
@@ -14,5 +14,4 @@ export interface FairyEntity {
 	isSelected: boolean
 	/** The fairy's current pose, eg. 'thinking'. */
 	pose: FairyPose
-	// personality: string // WIP
 }
