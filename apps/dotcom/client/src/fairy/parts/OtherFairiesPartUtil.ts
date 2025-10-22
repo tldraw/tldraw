@@ -6,14 +6,14 @@ import { PromptPartUtil } from './PromptPartUtil'
 export class OtherFairiesPartUtil extends PromptPartUtil<OtherFairiesPart> {
 	static override type = 'otherFairies' as const
 
-	override getPart(_request: AgentRequest, _helpers: AgentHelpers): OtherFairiesPart {
+	override getPart(_request: AgentRequest, helpers: AgentHelpers): OtherFairiesPart {
 		const otherFairies = $fairyAgentsAtom
 			.get(this.editor)
 			.filter((agent) => agent.id !== this.agent.id)
 
 		const otherFairiesData = otherFairies.map((agent) => ({
 			name: agent.$fairyConfig.get().name,
-			position: agent.$fairy.get().position,
+			position: helpers.removeOffsetFromVec(agent.$fairy.get().position),
 		}))
 
 		return {
