@@ -48,24 +48,6 @@ export type QueryExpression<R extends object> = {
 		: QueryValueMatcher<R[k]>
 }
 
-/**
- * Tests whether an object matches the given query expression by checking each property
- * against its corresponding matcher criteria.
- *
- * @param query - The query expression containing matching criteria for object properties
- * @param object - The object to test against the query
- * @returns True if the object matches all criteria in the query, false otherwise
- *
- * @example
- * ```ts
- * const book = { title: '1984', publishedYear: 1949, inStock: true }
- * const query = { publishedYear: { gt: 1945 }, inStock: { eq: true } }
- *
- * const matches = objectMatchesQuery(query, book) // true
- * ```
- *
- * @public
- */
 function isQueryValueMatcher(value: unknown): value is QueryValueMatcher<unknown> {
 	if (typeof value !== 'object' || value === null) return false
 	return 'eq' in value || 'neq' in value || 'gt' in value
