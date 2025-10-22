@@ -27,6 +27,7 @@ import { ChatHistoryPartUtil } from './parts/ChatHistoryPartUtil'
 import { ContextItemsPartUtil } from './parts/ContextItemsPartUtil'
 import { DataPartUtil } from './parts/DataPartUtil'
 import { MessagesPartUtil } from './parts/MessagesPartUtil'
+import { OtherFairiesPartUtil } from './parts/OtherFairiesPartUtil'
 import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
 import { PromptPartUtil, PromptPartUtilConstructor } from './parts/PromptPartUtil'
 import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
@@ -102,6 +103,9 @@ export const PROMPT_PART_UTILS = [
 
 	// Metadata
 	TimePartUtil,
+
+	// Collaboration
+	OtherFairiesPartUtil,
 ] satisfies PromptPartUtilConstructor<PromptPart>[]
 
 /**

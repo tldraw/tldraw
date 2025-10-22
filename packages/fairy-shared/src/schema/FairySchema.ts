@@ -23,6 +23,7 @@ import { ChatHistoryPartSchema } from './parts/ChatHistoryPartSchema'
 import { ContextItemsPartSchema } from './parts/ContextItemsPartSchema'
 import { DataPartSchema } from './parts/DataPartSchema'
 import { MessagesPartSchema } from './parts/MessagesPartSchema'
+import { OtherFairiesPartSchema } from './parts/OtherFairiesPartSchema'
 import { PeripheralShapesPartSchema } from './parts/PeripheralShapesPartSchema'
 import { ScreenshotPartSchema } from './parts/ScreenshotPartSchema'
 import { SelectedShapesPartSchema } from './parts/SelectedShapesPartSchema'
@@ -82,6 +83,7 @@ export const PROMPT_PART_SCHEMAS = [
 	TodoListPartSchema,
 	UserActionHistoryPartSchema,
 	ViewportBoundsPartSchema,
+	OtherFairiesPartSchema,
 ] as const
 
 export const AGENT_ACTION_TYPES = AGENT_ACTION_SCHEMAS.map((schema) => schema.shape._type.value)
