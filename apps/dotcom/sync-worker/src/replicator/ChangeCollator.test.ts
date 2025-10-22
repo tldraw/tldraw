@@ -44,6 +44,7 @@ describe('ChangeCollator', () => {
 					firstVisitAt: null,
 					lastEditAt: null,
 					lastSessionState: null,
+					fairyState: null,
 					lastVisitAt: null,
 					isFileOwner: false,
 					isPinned: null,

@@ -26,11 +26,8 @@ import {
 	BoxModel,
 	Editor,
 	fetch,
-	getFromLocalStorage,
-	react,
 	RecordsDiff,
 	reverseRecordsDiff,
-	setInLocalStorage,
 	structuredClone,
 	TLRecord,
 	Vec,
@@ -144,11 +141,12 @@ export class FairyAgent {
 		this.promptPartUtils = getPromptPartUtilsRecord(this)
 		this.unknownActionUtil = this.agentActionUtils.unknown
 
-		persistAtomInLocalStorage(this.$chatHistory, `${id}:chat-history`)
-		persistAtomInLocalStorage(this.$chatOrigin, `${id}:chat-origin`)
-		persistAtomInLocalStorage(this.$todoList, `${id}:todo-items`)
-		persistAtomInLocalStorage(this.$contextItems, `${id}:context-items`)
-		persistAtomInLocalStorage(this.$fairyEntity, `${id}:fairy`)
+		// Fairy state is now persisted to the backend database via FairyApp
+		// persistAtomInLocalStorage(this.$chatHistory, `${id}:chat-history`)
+		// persistAtomInLocalStorage(this.$chatOrigin, `${id}:chat-origin`)
+		// persistAtomInLocalStorage(this.$todoList, `${id}:todo-items`)
+		// persistAtomInLocalStorage(this.$contextItems, `${id}:context-items`)
+		// persistAtomInLocalStorage(this.$fairyEntity, `${id}:fairy`)
 
 		this.stopRecordingFn = this.startRecordingUserActions()
 	}
@@ -160,6 +158,48 @@ export class FairyAgent {
 		this.cancel()
 		this.stopRecordingUserActions()
 		$fairyAgentsAtom.update(this.editor, (agents) => agents.filter((agent) => agent.id !== this.id))
+	}
+
+	/**
+	 * Serialize the fairy agent's state to a plain object for persistence.
+	 * This is stored in the database as JSON.
+	 */
+	serializeState() {
+		return {
+			fairyEntity: this.$fairyEntity.get(),
+			chatHistory: this.$chatHistory.get(),
+			chatOrigin: this.$chatOrigin.get(),
+			todoList: this.$todoList.get(),
+			contextItems: this.$contextItems.get(),
+		}
+	}
+
+	/**
+	 * Load previously persisted state into the fairy agent.
+	 * This is called when opening a file to restore the fairy's state.
+	 */
+	loadState(state: {
+		fairyEntity?: FairyEntity
+		chatHistory?: ChatHistoryItem[]
+		chatOrigin?: VecModel
+		todoList?: TodoItem[]
+		contextItems?: ContextItem[]
+	}) {
+		if (state.fairyEntity) {
+			this.$fairyEntity.set(state.fairyEntity)
+		}
+		if (state.chatHistory) {
+			this.$chatHistory.set(state.chatHistory)
+		}
+		if (state.chatOrigin) {
+			this.$chatOrigin.set(state.chatOrigin)
+		}
+		if (state.todoList) {
+			this.$todoList.set(state.todoList)
+		}
+		if (state.contextItems) {
+			this.$contextItems.set(state.contextItems)
+		}
 	}
 
 	/**
@@ -1190,21 +1230,21 @@ function dedupeShapesContextItem(
  *
  * This is a helper function that is used internally by the agent.
  */
-function persistAtomInLocalStorage<T>(atom: Atom<T>, key: string) {
-	try {
-		const stored = getFromLocalStorage(key)
-		if (stored) {
-			const value = JSON.parse(stored) as T
-			atom.set(value)
-		}
-	} catch {
-		console.warn(`Couldn't load ${key} from localStorage`)
-	}
+// function persistAtomInLocalStorage<T>(atom: Atom<T>, key: string) {
+// 	try {
+// 		const stored = getFromLocalStorage(key)
+// 		if (stored) {
+// 			const value = JSON.parse(stored) as T
+// 			atom.set(value)
+// 		}
+// 	} catch {
+// 		console.warn(`Couldn't load ${key} from localStorage`)
+// 	}
 
-	react(`save ${key} to localStorage`, () => {
-		setInLocalStorage(key, JSON.stringify(atom.get()))
-	})
-}
+// 	react(`save ${key} to localStorage`, () => {
+// 		setInLocalStorage(key, JSON.stringify(atom.get()))
+// 	})
+// }
 
 /**
  * Find a spawn point for the fairy that is at least 200px away from other fairies.

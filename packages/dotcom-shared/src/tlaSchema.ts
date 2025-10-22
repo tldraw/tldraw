@@ -57,6 +57,7 @@ export const file_state = table('file_state')
 		lastVisitAt: number().optional(),
 		isFileOwner: boolean().optional(),
 		isPinned: boolean().optional(),
+		fairyState: string().optional(),
 	})
 	.primaryKey('userId', 'fileId')
 

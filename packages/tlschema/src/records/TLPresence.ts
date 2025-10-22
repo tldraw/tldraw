@@ -61,7 +61,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 	agent: {
 		position: VecModel
 		flipX: boolean
-		pose: 'idle' | 'active' | 'thinking' | 'acting'
+		state: 'idle' | 'active' | 'thinking' | 'acting'
 	} | null
 }
 
@@ -132,7 +132,7 @@ export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.mode
 		agent: T.object({
 			position: vecModelValidator,
 			flipX: T.boolean,
-			pose: T.literalEnum('idle', 'active', 'thinking', 'acting'),
+			state: T.literalEnum('idle', 'active', 'thinking', 'acting'),
 		}).nullable(),
 	})
 )

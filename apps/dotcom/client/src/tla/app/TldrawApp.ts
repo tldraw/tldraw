@@ -766,6 +766,13 @@ export class TldrawApp {
 		})
 	}
 
+	onFairyStateUpdate(fileId: string, fairyState: any) {
+		this.updateFileState(fileId, {
+			fairyState: JSON.stringify(fairyState),
+			lastVisitAt: Date.now(),
+		})
+	}
+
 	onFileExit(fileId: string) {
 		this.updateFileState(fileId, { lastVisitAt: Date.now() })
 	}

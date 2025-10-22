@@ -307,6 +307,7 @@ export function createMutators(userId: string) {
 						lastVisitAt: null,
 						isFileOwner: true,
 						isPinned: false,
+						fairyState: null,
 					},
 				})
 				return
@@ -359,6 +360,7 @@ export function createMutators(userId: string) {
 				lastVisitAt: null,
 				firstVisitAt: null,
 				lastSessionState: null,
+				fairyState: null,
 				// isFileOwner is no longer used in new model.
 				isFileOwner: false,
 			})

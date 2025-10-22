@@ -71,7 +71,7 @@ function RemoteFairy({ userId }: { userId: string }) {
 				}}
 			>
 				<FairySpriteComponent
-					pose={agent.pose}
+					pose={agent.state}
 					outfit={{
 						body: 'plain',
 						hat: 'pointy',

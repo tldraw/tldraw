@@ -90,7 +90,7 @@ describe('instancePresenceValidator', () => {
 			agent: {
 				position: { x: 150, y: 250 },
 				flipX: true,
-				pose: 'thinking',
+				state: 'thinking',
 			},
 		}
 
@@ -99,19 +99,19 @@ describe('instancePresenceValidator', () => {
 		expect(validated.agent).toEqual({
 			position: { x: 150, y: 250 },
 			flipX: true,
-			pose: 'thinking',
+			state: 'thinking',
 		})
 	})
 
-	it('should validate all agent poses', () => {
-		const poses: Array<'idle' | 'active' | 'thinking' | 'acting'> = [
+	it('should validate all agent states', () => {
+		const states: Array<'idle' | 'active' | 'thinking' | 'acting'> = [
 			'idle',
 			'active',
 			'thinking',
 			'acting',
 		]
 
-		poses.forEach((pose) => {
+		states.forEach((state) => {
 			const presence = {
 				typeName: 'instance_presence',
 				id: 'instance_presence:test' as TLInstancePresenceID,
@@ -132,7 +132,7 @@ describe('instancePresenceValidator', () => {
 				agent: {
 					position: { x: 100, y: 200 },
 					flipX: false,
-					pose,
+					state,
 				},
 			}
 
@@ -140,7 +140,7 @@ describe('instancePresenceValidator', () => {
 		})
 	})
 
-	it('should reject invalid agent pose', () => {
+	it('should reject invalid agent state', () => {
 		const invalidPresence = {
 			typeName: 'instance_presence',
 			id: 'instance_presence:test' as TLInstancePresenceID,
@@ -161,7 +161,7 @@ describe('instancePresenceValidator', () => {
 			agent: {
 				position: { x: 100, y: 200 },
 				flipX: false,
-				pose: 'invalid-pose',
+				state: 'invalid-state',
 			},
 		}
 

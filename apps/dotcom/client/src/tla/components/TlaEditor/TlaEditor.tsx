@@ -343,7 +343,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<SneakyLargeFileHander />
 				{showFairies && (
 					<Suspense fallback={null}>
-						<FairyApp setAgents={setAgents} />
+						<FairyApp setAgents={setAgents} fileId={fileId} />
 					</Suspense>
 				)}
 			</Tldraw>
