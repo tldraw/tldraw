@@ -1,4 +1,5 @@
 import { FAIRY_VISION_DIMENSIONS, FlyToBoundsAction, Streaming } from '@tldraw/fairy-shared'
+import { Box } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -25,11 +26,13 @@ export class FlyToBoundsActionUtil extends AgentActionUtil<FlyToBoundsAction> {
 			h: Math.min(action.h, FAIRY_VISION_DIMENSIONS.y),
 		})
 
-		this.agent.moveToBounds(bounds)
+		this.agent.moveToPosition(Box.From(bounds).center)
 
 		this.agent.schedule({
 			bounds,
-			messages: [`Just flew to new area with the intent: ${action.intent}`],
+			messages: [
+				`Just flew to new area with the intent: ${action.intent}. The new area is at (${bounds.x}, ${bounds.y}).`,
+			],
 		})
 	}
 }

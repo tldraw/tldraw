@@ -12,7 +12,7 @@ export * from './format/FocusFill'
 export * from './format/FocusFontSize'
 
 // Types (these are type-only exports)
-export type * from './format/OtherFairies'
+export type * from './format/OtherFairy'
 export type * from './format/PeripheralCluster'
 export type * from './types/AgentAction'
 export type * from './types/AgentActionInfo'

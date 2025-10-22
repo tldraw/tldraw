@@ -762,7 +762,6 @@ export class FairyAgent {
 		this.$userActionHistory.set([])
 
 		const viewport = Box.FromCenter(this.$fairy.get().position, FAIRY_VISION_DIMENSIONS)
-		// const viewport = this.editor.getViewportPageBounds()
 		this.$chatHistory.set([])
 		this.$chatOrigin.set({ x: viewport.x, y: viewport.y })
 	}

@@ -5,9 +5,9 @@ export const VecModelSchema = z.object({
 	y: z.number(),
 })
 
-export const OtherFairiesSchema = z.object({
+export const OtherFairySchema = z.object({
 	name: z.string(),
 	position: VecModelSchema,
 })
 
-export type OtherFairies = z.infer<typeof OtherFairiesSchema>
+export type OtherFairy = z.infer<typeof OtherFairySchema>
