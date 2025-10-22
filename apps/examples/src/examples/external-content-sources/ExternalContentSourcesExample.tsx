@@ -4,28 +4,21 @@ import {
 	defaultHandleExternalTextContent,
 	Editor,
 	HTMLContainer,
-	TLBaseShape,
 	Tldraw,
+	TLShape,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'dangerous-html': IDangerousHtmlShape
+		'dangerous-html': { w: number; h: number; html: string }
 	}
 }
 
 // There's a guide at the bottom of this page!
 
 // [1]
-export type IDangerousHtmlShape = TLBaseShape<
-	'dangerous-html',
-	{
-		w: number
-		h: number
-		html: string
-	}
->
+export type IDangerousHtmlShape = TLShape<'dangerous-html'>
 
 // [2]
 class DangerousHtmlExample extends BaseBoxShapeUtil<IDangerousHtmlShape> {

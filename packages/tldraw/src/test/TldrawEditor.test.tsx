@@ -5,7 +5,7 @@ import {
 	Editor,
 	HTMLContainer,
 	TLAssetStore,
-	TLBaseShape,
+	TLShape,
 	TldrawEditor,
 	createShapeId,
 	createTLStore,
@@ -413,17 +413,11 @@ describe('<TldrawEditor />', () => {
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		card: CardShape
+		card: { w: number; h: number }
 	}
 }
 
-type CardShape = TLBaseShape<
-	'card',
-	{
-		w: number
-		h: number
-	}
->
+type CardShape = TLShape<'card'>
 
 describe('Custom shapes', () => {
 	class CardUtil extends BaseBoxShapeUtil<CardShape> {

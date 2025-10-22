@@ -7,10 +7,10 @@ import {
 	HTMLContainer,
 	RecordProps,
 	ShapeUtil,
-	TLBaseShape,
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
+	TLShape,
 	Vec,
 	VecLike,
 	vecModelValidator,
@@ -19,20 +19,12 @@ import {
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'bezier-curve': MyBezierCurveShape
+		'bezier-curve': { start: VecLike; cp1: VecLike; cp2: VecLike; end: VecLike }
 	}
 }
 
 // [1]
-export type MyBezierCurveShape = TLBaseShape<
-	'bezier-curve',
-	{
-		start: VecLike
-		cp1: VecLike
-		cp2: VecLike
-		end: VecLike
-	}
->
+export type MyBezierCurveShape = TLShape<'bezier-curve'>
 
 // [2]
 export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {

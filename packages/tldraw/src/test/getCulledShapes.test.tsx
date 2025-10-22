@@ -3,7 +3,7 @@ import {
 	Box,
 	RecordProps,
 	T,
-	TLBaseShape,
+	TLShape,
 	TLShapeId,
 	createShapeId,
 } from '@tldraw/editor'
@@ -13,12 +13,12 @@ import { TL } from './test-jsx'
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		uncullable: UncullableShape
+		uncullable: { w: number; h: number }
 	}
 }
 
 // Custom uncullable shape type for testing canCull override
-type UncullableShape = TLBaseShape<'uncullable', { w: number; h: number }>
+type UncullableShape = TLShape<'uncullable'>
 
 class UncullableShapeUtil extends BaseBoxShapeUtil<UncullableShape> {
 	static override type = 'uncullable' as const

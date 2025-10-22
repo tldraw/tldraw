@@ -11,9 +11,9 @@ import {
 	ShapeUtil,
 	StateNode,
 	TLBaseBinding,
-	TLBaseShape,
 	TLEditorComponents,
 	TLPointerEventInfo,
+	TLShape,
 	TLShapeId,
 	TLShapePartial,
 	TLShapeUtilCanBindOpts,
@@ -33,12 +33,12 @@ import 'tldraw/tldraw.css'
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		pin: PinShape
+		// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+		pin: {}
 	}
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-type PinShape = TLBaseShape<'pin', {}>
+type PinShape = TLShape<'pin'>
 
 const offsetX = -16
 const offsetY = -26

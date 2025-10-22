@@ -1,22 +1,14 @@
-import { BaseBoxShapeUtil, HTMLContainer, RecordProps, T, TLBaseShape } from 'tldraw'
+import { BaseBoxShapeUtil, HTMLContainer, RecordProps, T, TLShape } from 'tldraw'
 
 // There's a guide at the bottom of this file!
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'my-interactive-shape': IMyInteractiveShape
+		'my-interactive-shape': { w: number; h: number; checked: boolean; text: string }
 	}
 }
 
-export type IMyInteractiveShape = TLBaseShape<
-	'my-interactive-shape',
-	{
-		w: number
-		h: number
-		checked: boolean
-		text: string
-	}
->
+export type IMyInteractiveShape = TLShape<'my-interactive-shape'>
 
 export class myInteractiveShape extends BaseBoxShapeUtil<IMyInteractiveShape> {
 	static override type = 'my-interactive-shape' as const

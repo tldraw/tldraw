@@ -5,7 +5,6 @@ import {
 	RecordProps,
 	SVGContainer,
 	T,
-	TLBaseShape,
 	TLResizeInfo,
 	TLShape,
 	Vec,
@@ -16,17 +15,14 @@ import {
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'circle-clip': CircleClipShape
+		'circle-clip': {
+			w: number
+			h: number
+		}
 	}
 }
 
-export type CircleClipShape = TLBaseShape<
-	'circle-clip',
-	{
-		w: number
-		h: number
-	}
->
+export type CircleClipShape = TLShape<'circle-clip'>
 
 export const isClippingEnabled$ = atom('isClippingEnabled', true)
 

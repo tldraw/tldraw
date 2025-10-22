@@ -13,10 +13,10 @@ import {
 	ShapeUtil,
 	T,
 	TEXT_PROPS,
-	TLBaseShape,
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
+	TLShape,
 	Vec,
 	ZERO_INDEX_KEY,
 	getColorValue,
@@ -29,7 +29,7 @@ import { getSpeechBubbleVertices, getTailIntersectionPoint } from './helpers'
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'speech-bubble': SpeechBubbleShape
+		'speech-bubble': SpeechBubbleShapeProps
 	}
 }
 
@@ -59,7 +59,7 @@ export const speechBubbleShapeProps = {
 }
 
 export type SpeechBubbleShapeProps = RecordPropsType<typeof speechBubbleShapeProps>
-export type SpeechBubbleShape = TLBaseShape<'speech-bubble', SpeechBubbleShapeProps>
+export type SpeechBubbleShape = TLShape<'speech-bubble'>
 
 export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	static override type = 'speech-bubble' as const

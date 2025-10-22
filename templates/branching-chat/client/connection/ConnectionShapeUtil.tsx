@@ -8,9 +8,9 @@ import {
 	RecordProps,
 	SVGContainer,
 	ShapeUtil,
-	TLBaseShape,
 	TLHandle,
 	TLHandleDragInfo,
+	TLShape,
 	Vec,
 	VecLike,
 	VecModel,
@@ -39,7 +39,7 @@ import { insertNodeWithinConnection } from './insertNodeWithinConnection'
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		connection: ConnectionShape
+		connection: { start: VecModel; end: VecModel }
 	}
 }
 
@@ -52,13 +52,7 @@ declare module '@tldraw/tlschema' {
  * the connection, but only when there isn't a binding (ie while dragging the connection). When the
  * ends are bound, the position is derived from the connected shape instead.
  */
-export type ConnectionShape = TLBaseShape<
-	'connection',
-	{
-		start: VecModel
-		end: VecModel
-	}
->
+export type ConnectionShape = TLShape<'connection'>
 
 export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 	static override type = 'connection' as const

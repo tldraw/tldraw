@@ -4,7 +4,6 @@ import {
 	Geometry2d,
 	PageRecordType,
 	Rectangle2d,
-	TLBaseShape,
 	TLGeoShapeProps,
 	TLShape,
 	TldrawEditorProps,
@@ -475,13 +474,7 @@ describe('isFocused', () => {
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		blorg: TLBaseShape<
-			'blorg',
-			{
-				w: number
-				h: number
-			}
-		>
+		blorg: { w: number; h: number }
 	}
 }
 
@@ -917,11 +910,11 @@ describe('instance.isReadonly', () => {
 	})
 })
 
-type MyCustomShape = TLBaseShape<'myCustomShape', { w: number; h: number }>
+type MyCustomShape = TLShape<'myCustomShape'>
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		myCustomShape: MyCustomShape
+		myCustomShape: { w: number; h: number }
 	}
 }
 

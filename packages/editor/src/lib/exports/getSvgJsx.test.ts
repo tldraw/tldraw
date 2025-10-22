@@ -1,12 +1,4 @@
-import {
-	Geometry2d,
-	RecordProps,
-	Rectangle2d,
-	ShapeUtil,
-	T,
-	TLBaseShape,
-	createShapeId,
-} from '../..'
+import { Geometry2d, RecordProps, Rectangle2d, ShapeUtil, T, TLShape, createShapeId } from '../..'
 import { createTLStore } from '../config/createTLStore'
 import { Editor } from '../editor/Editor'
 import { Box } from '../primitives/Box'
@@ -14,20 +6,11 @@ import { getExportDefaultBounds } from './getSvgJsx'
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'test-shape': ITestShape
+		'test-shape': { w: number; h: number; x: number; y: number; isContainer?: boolean }
 	}
 }
 
-type ITestShape = TLBaseShape<
-	'test-shape',
-	{
-		w: number
-		h: number
-		x: number
-		y: number
-		isContainer?: boolean
-	}
->
+type ITestShape = TLShape<'test-shape'>
 
 class TestShape extends ShapeUtil<ITestShape> {
 	static override type = 'test-shape' as const

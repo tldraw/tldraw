@@ -3,8 +3,8 @@ import { useEffect, useLayoutEffect } from 'react'
 import {
 	BaseBoxShapeUtil,
 	TLArrowShape,
-	TLBaseShape,
 	TLGeoShape,
+	TLShape,
 	Tldraw,
 	createShapeId,
 	exportAs,
@@ -19,7 +19,13 @@ import { EndToEndApi } from './EndToEndApi'
 ;(window as any).__tldraw_ui_event = { id: 'NOTHING_YET' }
 ;(window as any).__tldraw_editor_events = []
 
-export type HtmlCssShape = TLBaseShape<'html', { html: string; css: string; w: number; h: number }>
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		html: { html: string; css: string; w: number; h: number }
+	}
+}
+
+export type HtmlCssShape = TLShape<'html'>
 class HtmlCssShapeUtil extends BaseBoxShapeUtil<HtmlCssShape> {
 	static override type = 'html'
 

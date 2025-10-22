@@ -1,21 +1,14 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useEffect, useRef, useState } from 'react'
-import { BaseBoxShapeUtil, HTMLContainer, RecordProps, T, TLBaseShape } from 'tldraw'
+import { BaseBoxShapeUtil, HTMLContainer, RecordProps, T, TLShape } from 'tldraw'
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'my-popup-shape': IMyPopupShape
+		'my-popup-shape': { w: number; h: number; animal: number }
 	}
 }
 
-export type IMyPopupShape = TLBaseShape<
-	'my-popup-shape',
-	{
-		w: number
-		h: number
-		animal: number
-	}
->
+export type IMyPopupShape = TLShape<'my-popup-shape'>
 
 export class PopupShapeUtil extends BaseBoxShapeUtil<IMyPopupShape> {
 	static override type = 'my-popup-shape' as const

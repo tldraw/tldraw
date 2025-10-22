@@ -5,17 +5,22 @@ import {
 	getColorValue,
 	HTMLContainer,
 	T,
-	TLBaseShape,
 	TLDefaultColorStyle,
 	TLDefaultSizeStyle,
 	Tldraw,
+	TLShape,
 	useDefaultColorTheme,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		myshapewithtldrawstyles: IMyShape
+		myshapewithtldrawstyles: {
+			w: number
+			h: number
+			size: TLDefaultSizeStyle
+			color: TLDefaultColorStyle
+		}
 	}
 }
 
@@ -28,16 +33,7 @@ const FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 	xl: 48,
 }
 
-type IMyShape = TLBaseShape<
-	'myshapewithtldrawstyles',
-	{
-		w: number
-		h: number
-		// [1]
-		size: TLDefaultSizeStyle
-		color: TLDefaultColorStyle
-	}
->
+type IMyShape = TLShape<'myshapewithtldrawstyles'>
 
 class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 	static override type = 'myshapewithtldrawstyles' as const

@@ -5,8 +5,8 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	T,
-	TLBaseShape,
 	TLResizeInfo,
+	TLShape,
 	Tldraw,
 	Vec,
 	resizeBox,
@@ -16,7 +16,7 @@ import 'tldraw/tldraw.css'
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		house: HouseShape
+		house: HouseShapeProps
 	}
 }
 
@@ -26,7 +26,7 @@ const houseShapeProps = {
 }
 
 type HouseShapeProps = RecordPropsType<typeof houseShapeProps>
-type HouseShape = TLBaseShape<'house', HouseShapeProps>
+type HouseShape = TLShape<'house'>
 class HouseShapeUtil extends ShapeUtil<HouseShape> {
 	static override type = 'house' as const
 	static override props = houseShapeProps

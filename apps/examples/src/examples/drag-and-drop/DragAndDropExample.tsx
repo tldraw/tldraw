@@ -4,7 +4,6 @@ import {
 	HTMLContainer,
 	Rectangle2d,
 	ShapeUtil,
-	TLBaseShape,
 	TLDragShapesOutInfo,
 	TLShape,
 	Tldraw,
@@ -13,14 +12,14 @@ import 'tldraw/tldraw.css'
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'my-grid-shape': MyGridShape
-		'my-counter-shape': MyCounterShape
+		'my-grid-shape': Record<string, never>
+		'my-counter-shape': Record<string, never>
 	}
 }
 
 // [1]
-type MyGridShape = TLBaseShape<'my-grid-shape', Record<string, never>>
-type MyCounterShape = TLBaseShape<'my-counter-shape', Record<string, never>>
+type MyGridShape = TLShape<'my-grid-shape'>
+type MyCounterShape = TLShape<'my-counter-shape'>
 
 // [2]
 const SLOT_SIZE = 100

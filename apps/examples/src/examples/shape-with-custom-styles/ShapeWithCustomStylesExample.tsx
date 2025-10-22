@@ -5,8 +5,8 @@ import {
 	HTMLContainer,
 	StyleProp,
 	T,
-	TLBaseShape,
 	Tldraw,
+	TLShape,
 	useEditor,
 	useRelevantStyles,
 } from 'tldraw'
@@ -14,7 +14,11 @@ import 'tldraw/tldraw.css'
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		myshapewithcustomstyles: IMyShape
+		myshapewithcustomstyles: {
+			w: number
+			h: number
+			rating: MyRatingStyle
+		}
 	}
 }
 
@@ -27,14 +31,7 @@ const myRatingStyle = StyleProp.defineEnum('example:rating', {
 // [2]
 type MyRatingStyle = T.TypeOf<typeof myRatingStyle>
 
-type IMyShape = TLBaseShape<
-	'myshapewithcustomstyles',
-	{
-		w: number
-		h: number
-		rating: MyRatingStyle
-	}
->
+type IMyShape = TLShape<'myshapewithcustomstyles'>
 
 class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 	static override type = 'myshapewithcustomstyles' as const

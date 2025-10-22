@@ -2,8 +2,8 @@ import {
 	BaseBoxShapeUtil,
 	HTMLContainer,
 	T,
-	TLBaseShape,
 	TLResizeInfo,
+	TLShape,
 	TLStoreSnapshot,
 	Tldraw,
 	createShapePropsMigrationIds,
@@ -15,20 +15,13 @@ import snapshot from './snapshot.json'
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		myshapewithmigrations: IMyShape
+		myshapewithmigrations: { w: number; h: number; color: string }
 	}
 }
 
 // There's a guide at the bottom of this file!
 
-export type IMyShape = TLBaseShape<
-	'myshapewithmigrations',
-	{
-		w: number
-		h: number
-		color: string
-	}
->
+export type IMyShape = TLShape<'myshapewithmigrations'>
 
 // [1]
 const versions = createShapePropsMigrationIds(

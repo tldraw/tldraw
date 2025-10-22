@@ -1,12 +1,12 @@
-import { BaseBoxShapeUtil, TLBaseShape } from 'tldraw'
+import { BaseBoxShapeUtil, TLShape } from 'tldraw'
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		error: ErrorShape
+		error: { w: number; h: number }
 	}
 }
 
-export type ErrorShape = TLBaseShape<'error', { w: number; h: number }>
+export type ErrorShape = TLShape<'error'>
 
 export class ErrorShapeUtil extends BaseBoxShapeUtil<ErrorShape> {
 	static override type = 'error' as const

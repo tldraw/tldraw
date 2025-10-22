@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { AgGridReact } from 'ag-grid-react'
-import { BaseBoxShapeUtil, TLBaseShape, Tldraw, createShapeId, useDelaySvgExport } from 'tldraw'
+import { BaseBoxShapeUtil, TLShape, Tldraw, createShapeId, useDelaySvgExport } from 'tldraw'
 
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-quartz.css'
@@ -8,14 +8,12 @@ import 'tldraw/tldraw.css'
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'ag-grid': AgGridShape
+		'ag-grid': { w: number; h: number; rowData: any[]; columnDefs: any[] }
 	}
 }
 
-type AgGridShape = TLBaseShape<
-	'ag-grid',
-	{ w: number; h: number; rowData: any[]; columnDefs: any[] }
->
+type AgGridShape = TLShape<'ag-grid'>
+
 class AgGridShapeUtil extends BaseBoxShapeUtil<AgGridShape> {
 	static override type = 'ag-grid'
 

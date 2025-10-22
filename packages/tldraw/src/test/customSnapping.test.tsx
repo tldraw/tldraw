@@ -3,10 +3,10 @@ import {
 	IndexKey,
 	Polyline2d,
 	TLAnyShapeUtilConstructor,
-	TLBaseShape,
 	TLHandle,
 	TLHandleDragInfo,
 	TLLineShape,
+	TLShape,
 	TLShapeId,
 	Vec,
 	VecModel,
@@ -17,14 +17,11 @@ import { TL } from './test-jsx'
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		test1: Test1Shape
+		test1: { w: number; h: number; boundsSnapPoints: VecModel[] | null }
 	}
 }
 
-type Test1Shape = TLBaseShape<
-	'test1',
-	{ w: number; h: number; boundsSnapPoints: VecModel[] | null }
->
+type Test1Shape = TLShape<'test1'>
 
 describe('custom shape bounds snapping - translate', () => {
 	class TestShapeUtil extends BaseBoxShapeUtil<Test1Shape> {
@@ -171,23 +168,20 @@ describe('custom shape bounds snapping - translate', () => {
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		test2: Test2Shape
+		test2: {
+			w: number
+			h: number
+			ownHandle: VecModel
+			handleOutline: VecModel[] | 'default' | null
+			handlePoints: VecModel[] | 'default'
+			selfSnapOutline: VecModel[] | 'default'
+			selfSnapPoints: VecModel[] | 'default'
+			handleSnapType?: 'point' | 'align'
+		}
 	}
 }
 
-type Test2Shape = TLBaseShape<
-	'test2',
-	{
-		w: number
-		h: number
-		ownHandle: VecModel
-		handleOutline: VecModel[] | 'default' | null
-		handlePoints: VecModel[] | 'default'
-		selfSnapOutline: VecModel[] | 'default'
-		selfSnapPoints: VecModel[] | 'default'
-		handleSnapType?: 'point' | 'align'
-	}
->
+type Test2Shape = TLShape<'test2'>
 
 describe('custom handle snapping', () => {
 	class TestShapeUtil extends BaseBoxShapeUtil<Test2Shape> {

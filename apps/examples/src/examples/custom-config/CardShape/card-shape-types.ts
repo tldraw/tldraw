@@ -1,17 +1,10 @@
-import { TLBaseShape, TLDefaultColorStyle } from 'tldraw'
+import { TLDefaultColorStyle, TLShape } from 'tldraw'
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		card: ICardShape
+		card: { w: number; h: number; color: TLDefaultColorStyle }
 	}
 }
 
 // A type for our custom card shape
-export type ICardShape = TLBaseShape<
-	'card',
-	{
-		w: number
-		h: number
-		color: TLDefaultColorStyle
-	}
->
+export type ICardShape = TLShape<'card'>

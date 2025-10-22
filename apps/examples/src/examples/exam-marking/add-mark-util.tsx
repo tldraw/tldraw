@@ -1,21 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
-import { HTMLContainer, RecordProps, Rectangle2d, ShapeUtil, T, TLBaseShape } from 'tldraw'
+import { HTMLContainer, RecordProps, Rectangle2d, ShapeUtil, T, TLShape } from 'tldraw'
 
 export const EXAM_MARK_WIDTH = 80
 export const EXAM_MARK_HEIGHT = 40
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'exam-mark': IExamMarkShape
+		'exam-mark': {
+			score: number
+		}
 	}
 }
 
-export type IExamMarkShape = TLBaseShape<
-	'exam-mark',
-	{
-		score: number
-	}
->
+export type IExamMarkShape = TLShape<'exam-mark'>
 
 export const examMarkShapeDefaultProps: IExamMarkShape['props'] = {
 	score: 0,

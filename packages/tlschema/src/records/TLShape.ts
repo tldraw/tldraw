@@ -83,6 +83,16 @@ export type TLUnknownShape = TLBaseShape<string, object>
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface GlobalShapePropsMap {}
 
+type IndexByProp<T extends Record<P, string>, P extends keyof T> = {
+	[E in T as E[P]]: E
+}
+
+type AllTLShapes =
+	| TLDefaultShape
+	| {
+			[K in keyof GlobalShapePropsMap]: TLBaseShape<K, GlobalShapePropsMap[K]>
+	  }[keyof GlobalShapePropsMap]
+
 /**
  * The set of all shapes that are available in the editor, including unknown shapes.
  *
@@ -103,7 +113,9 @@ export interface GlobalShapePropsMap {}
  *
  * @public
  */
-export type TLShape = TLDefaultShape | GlobalShapePropsMap[keyof GlobalShapePropsMap]
+export type TLShape<
+	K extends keyof IndexByProp<AllTLShapes, 'type'> = keyof IndexByProp<AllTLShapes, 'type'>,
+> = IndexByProp<AllTLShapes, 'type'>[K]
 
 /**
  * A partial version of a shape, useful for updates and patches.

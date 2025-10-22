@@ -5,26 +5,23 @@ import {
 	RecordProps,
 	Rectangle2d,
 	T,
-	TLBaseShape,
+	TLShape,
 } from 'tldraw'
 
 // There's a guide at the bottom of this file!
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		PlayingCard: IPlayingCard
+		PlayingCard: {
+			w: number
+			h: number
+			suit: string
+		}
 	}
 }
 
 // [1]
-export type IPlayingCard = TLBaseShape<
-	'PlayingCard',
-	{
-		w: number
-		h: number
-		suit: string
-	}
->
+export type IPlayingCard = TLShape<'PlayingCard'>
 
 export class PlayingCardUtil extends BaseBoxShapeUtil<IPlayingCard> {
 	// [2]

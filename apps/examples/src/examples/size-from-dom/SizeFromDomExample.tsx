@@ -7,8 +7,8 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	T,
-	TLBaseShape,
 	Tldraw,
+	TLShape,
 	TLShapeId,
 	useEditor,
 } from 'tldraw'
@@ -17,7 +17,7 @@ import { contents } from './contents'
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'dynamic-size': DynamicSizeShape
+		'dynamic-size': { contents: string[] }
 	}
 }
 
@@ -26,7 +26,7 @@ declare module '@tldraw/tlschema' {
 const SHAPE_WIDTH_PX = 150
 
 // [1]
-type DynamicSizeShape = TLBaseShape<'dynamic-size', { contents: string[] }>
+type DynamicSizeShape = TLShape<'dynamic-size'>
 
 // [2]
 const ShapeSizes = new EditorAtom('shape sizes', (editor) => {

@@ -7,8 +7,8 @@ import {
 	Rectangle2d,
 	resizeBox,
 	ShapeUtil,
-	TLBaseShape,
 	TLResizeInfo,
+	TLShape,
 	useEditor,
 	useUniqueSafeId,
 	useValue,
@@ -27,12 +27,12 @@ import {
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		node: NodeShape
+		node: { node: NodeType }
 	}
 }
 
 // Define our custom node shape type that extends tldraw's base shape system
-export type NodeShape = TLBaseShape<'node', { node: NodeType }>
+export type NodeShape = TLShape<'node'>
 
 // This class extends tldraw's ShapeUtil to define how our custom node shapes behave
 export class NodeShapeUtil extends ShapeUtil<NodeShape> {

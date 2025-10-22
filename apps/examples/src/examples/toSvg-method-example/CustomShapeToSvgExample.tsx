@@ -7,26 +7,20 @@ import {
 	ShapeUtil,
 	SvgExportContext,
 	T,
-	TLBaseShape,
 	Tldraw,
+	TLShape,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'my-custom-shape': ICustomShape
+		'my-custom-shape': { w: number; h: number }
 	}
 }
 
 // There's a guide at the bottom of this file!
 
-type ICustomShape = TLBaseShape<
-	'my-custom-shape',
-	{
-		w: number
-		h: number
-	}
->
+type ICustomShape = TLShape<'my-custom-shape'>
 
 const LIGHT_FILL = '#ff8888'
 const DARK_FILL = '#ffcccc'

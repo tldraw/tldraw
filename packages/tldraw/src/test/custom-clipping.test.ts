@@ -8,7 +8,6 @@ import {
 	resizeBox,
 	StateNode,
 	T,
-	TLBaseShape,
 	TLEventHandlers,
 	TLGeoShape,
 	TLResizeInfo,
@@ -21,18 +20,12 @@ import { TestEditor } from './TestEditor'
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'circle-clip': CircleClipShape
+		'circle-clip': { w: number; h: number }
 	}
 }
 
 // Custom Circle Clip Shape Definition
-export type CircleClipShape = TLBaseShape<
-	'circle-clip',
-	{
-		w: number
-		h: number
-	}
->
+export type CircleClipShape = TLShape<'circle-clip'>
 
 export const isClippingEnabled$ = atom('isClippingEnabled', true)
 

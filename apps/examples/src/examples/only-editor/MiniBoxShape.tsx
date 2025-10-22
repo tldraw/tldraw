@@ -1,15 +1,15 @@
-import { BaseBoxShapeUtil, HTMLContainer, TLBaseShape } from 'tldraw'
+import { BaseBoxShapeUtil, HTMLContainer, TLShape } from 'tldraw'
 
 // There's a guide at the bottom of this page!
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		box: MiniBoxShape
+		box: { w: number; h: number; color: string }
 	}
 }
 
 // [1]
-export type MiniBoxShape = TLBaseShape<'box', { w: number; h: number; color: string }>
+export type MiniBoxShape = TLShape<'box'>
 
 // [2]
 export class MiniBoxShapeUtil extends BaseBoxShapeUtil<MiniBoxShape> {

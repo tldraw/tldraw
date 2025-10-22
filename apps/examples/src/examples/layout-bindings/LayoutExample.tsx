@@ -12,6 +12,7 @@ import {
 	T,
 	TLBaseBinding,
 	TLBaseShape,
+	TLShape,
 	Tldraw,
 	Vec,
 	clamp,
@@ -23,8 +24,8 @@ import snapShot from './snapshot.json'
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		container: ContainerShape
-		element: ElementShape
+		container: { height: number; width: number }
+		element: { color: string }
 	}
 }
 
@@ -32,7 +33,7 @@ declare module '@tldraw/tlschema' {
 
 const CONTAINER_PADDING = 24
 
-type ContainerShape = TLBaseShape<'container', { height: number; width: number }>
+type ContainerShape = TLShape<'container'>
 
 class ContainerShapeUtil extends ShapeUtil<ContainerShape> {
 	static override type = 'container' as const
