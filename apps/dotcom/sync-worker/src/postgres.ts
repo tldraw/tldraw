@@ -13,7 +13,7 @@ pg.types.setTypeParser(int8TypeId, (val) => {
 	return parseInt(val, 10)
 })
 
-export function createPostgresConnectionPool(env: Environment, name: string, max: number = 3) {
+export function createPostgresConnectionPool(env: Environment, name: string, max: number = 1) {
 	class LoggingClient extends pg.Client {
 		constructor(config?: string | pg.ClientConfig) {
 			super(config)
