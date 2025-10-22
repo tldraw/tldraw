@@ -41,10 +41,11 @@ export type QueryValueMatcher<T> = { eq: T } | { neq: T } | { gt: number }
  *
  * @public
  */
+/** @public */
 export type QueryExpression<R extends object> = {
-	[k in keyof R & string]?: QueryValueMatcher<R[k]>
-	// todo: handle nesting
-	// | (R[k] extends object ? { match: QueryExpression<R[k]> } : never)
+	[k in keyof R & string]?: R[k] extends object
+		? QueryValueMatcher<R[k]> | QueryExpression<R[k]>
+		: QueryValueMatcher<R[k]>
 }
 
 /**
@@ -65,16 +66,33 @@ export type QueryExpression<R extends object> = {
  *
  * @public
  */
+function isQueryValueMatcher(value: unknown): value is QueryValueMatcher<unknown> {
+	if (typeof value !== 'object' || value === null) return false
+	return 'eq' in value || 'neq' in value || 'gt' in value
+}
+
 export function objectMatchesQuery<T extends object>(query: QueryExpression<T>, object: T) {
-	for (const [key, _matcher] of Object.entries(query)) {
-		const matcher = _matcher as QueryValueMatcher<T>
+	for (const [key, matcher] of Object.entries(query)) {
 		const value = object[key as keyof T]
 		// if you add matching logic here, make sure you also update executeQuery,
 		// where initial data is pulled out of the indexes, since that requires different
 		// matching logic
-		if ('eq' in matcher && value !== matcher.eq) return false
-		if ('neq' in matcher && value === matcher.neq) return false
-		if ('gt' in matcher && (typeof value !== 'number' || value <= matcher.gt)) return false
+		if (isQueryValueMatcher(matcher)) {
+			if ('eq' in matcher && value !== matcher.eq) return false
+			if ('neq' in matcher && value === matcher.neq) return false
+			if ('gt' in matcher && (typeof value !== 'number' || value <= matcher.gt)) return false
+			continue
+		}
+
+		if (typeof value !== 'object' || value === null) return false
+		if (
+			!objectMatchesQuery(
+				matcher as QueryExpression<Record<string, unknown>>,
+				value as Record<string, unknown>
+			)
+		) {
+			return false
+		}
 	}
 	return true
 }
@@ -109,37 +127,64 @@ export function executeQuery<R extends UnknownRecord, TypeName extends R['typeNa
 	typeName: TypeName,
 	query: QueryExpression<Extract<R, { typeName: TypeName }>>
 ): Set<IdOf<Extract<R, { typeName: TypeName }>>> {
-	const matchIds = Object.fromEntries(Object.keys(query).map((key) => [key, new Set()]))
+	type S = Extract<R, { typeName: TypeName }>
+	if (Object.keys(query).length === 0) {
+		return new Set()
+	}
+	const candidateSets: Array<Set<IdOf<S>>> = []
 
-	for (const [k, matcher] of Object.entries(query)) {
+	for (const property of Object.keys(query) as Array<keyof S & string>) {
+		const matcherOrNested = query[property]
+		if (!isQueryValueMatcher(matcherOrNested)) continue
+
+		const matcher = matcherOrNested as QueryValueMatcher<S[typeof property]>
+		const matches = new Set<IdOf<S>>()
+		const index = store.index(typeName, property)
+
 		if ('eq' in matcher) {
-			const index = store.index(typeName, k as any)
 			const ids = index.get().get(matcher.eq)
 			if (ids) {
 				for (const id of ids) {
-					matchIds[k].add(id)
+					matches.add(id)
 				}
 			}
 		} else if ('neq' in matcher) {
-			const index = store.index(typeName, k as any)
 			for (const [value, ids] of index.get()) {
 				if (value !== matcher.neq) {
 					for (const id of ids) {
-						matchIds[k].add(id)
+						matches.add(id)
 					}
 				}
 			}
 		} else if ('gt' in matcher) {
-			const index = store.index(typeName, k as any)
 			for (const [value, ids] of index.get()) {
-				if (value > matcher.gt) {
+				if (typeof value === 'number' && value > matcher.gt) {
 					for (const id of ids) {
-						matchIds[k].add(id)
+						matches.add(id)
 					}
 				}
 			}
 		}
+
+		candidateSets.push(matches)
 	}
 
-	return intersectSets(Object.values(matchIds)) as Set<IdOf<Extract<R, { typeName: TypeName }>>>
+	let candidateIds: Set<IdOf<S>>
+	if (candidateSets.length > 0) {
+		candidateIds = intersectSets(candidateSets) as Set<IdOf<S>>
+	} else {
+		candidateIds = store.getAllIdsForType(typeName)
+	}
+
+	if (candidateIds.size === 0) return candidateIds
+
+	const result = new Set<IdOf<S>>()
+	for (const id of candidateIds) {
+		const record = store.getRecordById(typeName, id)
+		if (record && objectMatchesQuery(query, record)) {
+			result.add(id)
+		}
+	}
+
+	return result
 }

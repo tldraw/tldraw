@@ -221,9 +221,9 @@ export function parseMigrationId(id: MigrationId): {
     version: number;
 };
 
-// @public
+// @public (undocumented)
 export type QueryExpression<R extends object> = {
-    [k in keyof R & string]?: QueryValueMatcher<R[k]>;
+    [k in keyof R & string]?: R[k] extends object ? QueryExpression<R[k]> | QueryValueMatcher<R[k]> : QueryValueMatcher<R[k]>;
 };
 
 // @public
@@ -468,6 +468,16 @@ export class StoreQueries<R extends UnknownRecord> {
     filterHistory<TypeName extends R['typeName']>(typeName: TypeName): Computed<number, RecordsDiff<Extract<R, {
         typeName: TypeName;
     }>>>;
+    // @internal (undocumented)
+    getAllIdsForType<TypeName extends R['typeName']>(typeName: TypeName): Set<IdOf<Extract<R, {
+        typeName: TypeName;
+    }>>>;
+    // @internal (undocumented)
+    getRecordById<TypeName extends R['typeName']>(typeName: TypeName, id: IdOf<Extract<R, {
+        typeName: TypeName;
+    }>>): Extract<R, {
+        typeName: TypeName;
+    }> | undefined;
     ids<TypeName extends R['typeName']>(typeName: TypeName, queryCreator?: () => QueryExpression<Extract<R, {
         typeName: TypeName;
     }>>, name?: string): Computed<Set<IdOf<Extract<R, {

@@ -22,6 +22,12 @@ interface Book extends BaseRecord<'book', RecordId<Book>> {
 	rating: number
 	category: string
 	price: number
+	metadata: {
+		sessionId: string
+		extras: {
+			region: string
+		}
+	}
 }
 
 interface Review extends BaseRecord<'review', RecordId<Review>> {
@@ -62,6 +68,15 @@ const Book = createRecordType<Book>('book', {
 			if (!book.authorId.startsWith('author')) throw Error('Invalid authorId')
 			if (!Number.isFinite(book.publishedYear)) throw Error('Invalid publishedYear')
 			if (typeof book.inStock !== 'boolean') throw Error('Invalid inStock')
+			if (typeof book.metadata !== 'object' || book.metadata === null)
+				throw Error('Invalid metadata')
+			if (typeof book.metadata.sessionId !== 'string') throw Error('Invalid sessionId')
+			if (
+				typeof book.metadata.extras !== 'object' ||
+				book.metadata.extras === null ||
+				typeof book.metadata.extras.region !== 'string'
+			)
+				throw Error('Invalid extras')
 			return book
 		},
 	},
@@ -70,6 +85,12 @@ const Book = createRecordType<Book>('book', {
 	rating: 0,
 	category: 'fiction',
 	price: 10.99,
+	metadata: {
+		sessionId: 'session:default',
+		extras: {
+			region: 'global',
+		},
+	},
 }))
 
 const Review = createRecordType<Review>('review', {
@@ -142,6 +163,10 @@ const books = {
 		rating: 5,
 		category: 'sci-fi',
 		price: 12.99,
+		metadata: {
+			sessionId: 'session:alpha',
+			extras: { region: 'us' },
+		},
 	}),
 	neuromancer: Book.create({
 		title: 'Neuromancer',
@@ -151,6 +176,10 @@ const books = {
 		rating: 5,
 		category: 'cyberpunk',
 		price: 14.99,
+		metadata: {
+			sessionId: 'session:beta',
+			extras: { region: 'us' },
+		},
 	}),
 	dune: Book.create({
 		title: 'Dune',
@@ -160,6 +189,10 @@ const books = {
 		rating: 5,
 		category: 'sci-fi',
 		price: 13.99,
+		metadata: {
+			sessionId: 'session:beta',
+			extras: { region: 'eu' },
+		},
 	}),
 	fahrenheit451: Book.create({
 		title: 'Fahrenheit 451',
@@ -169,6 +202,10 @@ const books = {
 		rating: 4,
 		category: 'dystopian',
 		price: 11.99,
+		metadata: {
+			sessionId: 'session:beta',
+			extras: { region: 'us' },
+		},
 	}),
 	childhood: Book.create({
 		title: "Childhood's End",
@@ -178,6 +215,10 @@ const books = {
 		rating: 4,
 		category: 'sci-fi',
 		price: 10.99,
+		metadata: {
+			sessionId: 'session:gamma',
+			extras: { region: 'global' },
+		},
 	}),
 	hitchhiker: Book.create({
 		title: "The Hitchhiker's Guide to the Galaxy",
@@ -187,6 +228,10 @@ const books = {
 		rating: 5,
 		category: 'comedy-sci-fi',
 		price: 9.99,
+		metadata: {
+			sessionId: 'session:alpha',
+			extras: { region: 'uk' },
+		},
 	}),
 	robots: Book.create({
 		title: 'I, Robot',
@@ -196,6 +241,10 @@ const books = {
 		rating: 4,
 		category: 'sci-fi',
 		price: 12.99,
+		metadata: {
+			sessionId: 'session:alpha',
+			extras: { region: 'us' },
+		},
 	}),
 }
 
@@ -328,6 +377,37 @@ describe('objectMatchesQuery', () => {
 		})
 	})
 
+	describe('nested object matching', () => {
+		it('should match when nested property satisfies criteria', () => {
+			const query = { metadata: { sessionId: { eq: 'session:alpha' } } }
+
+			expect(objectMatchesQuery(query, books.foundation)).toBe(true)
+		})
+
+		it('should not match when nested property fails criteria', () => {
+			const query = { metadata: { sessionId: { eq: 'session:alpha' } } }
+
+			expect(objectMatchesQuery(query, books.neuromancer)).toBe(false)
+		})
+
+		it('should match deeply nested properties', () => {
+			const query = { metadata: { extras: { region: { eq: 'eu' } } } }
+
+			expect(objectMatchesQuery(query, books.dune)).toBe(true)
+		})
+
+		it('should return false when nested object is missing', () => {
+			const book = {
+				typeName: 'book',
+				id: 'book:custom',
+				metadata: {},
+			} as Book
+			const query = { metadata: { sessionId: { eq: 'session:alpha' } } }
+
+			expect(objectMatchesQuery(query, book)).toBe(false)
+		})
+	})
+
 	describe('edge cases', () => {
 		it('should return true for empty query', () => {
 			const book = books.foundation
@@ -428,6 +508,45 @@ describe('executeQuery', () => {
 			])
 
 			expect(result).toEqual(expectedIds)
+		})
+	})
+
+	describe('nested object queries', () => {
+		it('should filter records using nested properties', () => {
+			const query = { metadata: { sessionId: { eq: 'session:alpha' } } }
+			const result = executeQuery(store.query, 'book', query)
+
+			const expectedIds = new Set([books.foundation.id, books.hitchhiker.id, books.robots.id])
+
+			expect(result).toEqual(expectedIds)
+		})
+
+		it('should combine nested and top-level criteria', () => {
+			const query = {
+				authorId: { eq: authors.asimov.id },
+				metadata: { sessionId: { eq: 'session:alpha' } },
+			}
+			const result = executeQuery(store.query, 'book', query)
+
+			const expectedIds = new Set([books.foundation.id, books.robots.id])
+
+			expect(result).toEqual(expectedIds)
+		})
+
+		it('should support deeper nested criteria', () => {
+			const query = { metadata: { extras: { region: { eq: 'eu' } } } }
+			const result = executeQuery(store.query, 'book', query)
+
+			expect(result).toEqual(new Set([books.dune.id]))
+		})
+
+		it('should work with reactive ids queries', () => {
+			const query = { metadata: { sessionId: { eq: 'session:beta' } } }
+			const idsQuery = store.query.ids('book', () => query)
+
+			expect(idsQuery.get()).toEqual(
+				new Set([books.neuromancer.id, books.dune.id, books.fahrenheit451.id])
+			)
 		})
 	})
 

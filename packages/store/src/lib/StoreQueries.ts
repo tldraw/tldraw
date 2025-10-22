@@ -122,6 +122,36 @@ export class StoreQueries<R extends UnknownRecord> {
 	private historyCache = new Map<string, Computed<number, RecordsDiff<R>>>()
 
 	/**
+	 * @internal
+	 */
+	public getAllIdsForType<TypeName extends R['typeName']>(
+		typeName: TypeName
+	): Set<IdOf<Extract<R, { typeName: TypeName }>>> {
+		type S = Extract<R, { typeName: TypeName }>
+		const ids = new Set<IdOf<S>>()
+		for (const record of this.recordMap.values()) {
+			if (record.typeName === typeName) {
+				ids.add(record.id as IdOf<S>)
+			}
+		}
+		return ids
+	}
+
+	/**
+	 * @internal
+	 */
+	public getRecordById<TypeName extends R['typeName']>(
+		typeName: TypeName,
+		id: IdOf<Extract<R, { typeName: TypeName }>>
+	): Extract<R, { typeName: TypeName }> | undefined {
+		const record = this.recordMap.get(id as IdOf<R>)
+		if (record && record.typeName === typeName) {
+			return record as Extract<R, { typeName: TypeName }>
+		}
+		return undefined
+	}
+
+	/**
 	 * Creates a reactive computed that tracks the change history for records of a specific type.
 	 * The returned computed provides incremental diffs showing what records of the given type
 	 * have been added, updated, or removed.
@@ -513,11 +543,7 @@ export class StoreQueries<R extends UnknownRecord> {
 			typeHistory.get()
 			const query: QueryExpression<S> = queryCreator()
 			if (Object.keys(query).length === 0) {
-				const ids = new Set<IdOf<S>>()
-				for (const record of this.recordMap.values()) {
-					if (record.typeName === typeName) ids.add(record.id)
-				}
-				return ids
+				return this.getAllIdsForType(typeName)
 			}
 
 			return executeQuery(this, typeName, query)
