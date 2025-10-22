@@ -83,22 +83,31 @@ export class DraggingHandle extends StateNode {
 		// Find the adjacent handle
 		this.initialAdjacentHandle = null
 
-		// Start from the handle and work forward
-		for (let i = index + 1; i < handles.length; i++) {
-			const handle = handles[i]
-			if (handle.type === 'vertex' && handle.id !== 'middle' && handle.id !== info.handle.id) {
-				this.initialAdjacentHandle = handle
-				break
-			}
-		}
-
-		// If still no handle, start from the end and work backward
-		if (!this.initialAdjacentHandle) {
-			for (let i = handles.length - 1; i >= 0; i--) {
+		// First, check if the shape util provides a custom adjacent handle
+		const shapeUtil = this.editor.getShapeUtil(shape)
+		const customAdjacentHandle = shapeUtil.getAdjacentHandleForShiftSnapping(shape, info.handle)
+		
+		if (customAdjacentHandle) {
+			this.initialAdjacentHandle = customAdjacentHandle
+		} else {
+			// Fall back to default behavior: find the next adjacent vertex handle
+			// Start from the handle and work forward
+			for (let i = index + 1; i < handles.length; i++) {
 				const handle = handles[i]
 				if (handle.type === 'vertex' && handle.id !== 'middle' && handle.id !== info.handle.id) {
 					this.initialAdjacentHandle = handle
 					break
+				}
+			}
+
+			// If still no handle, start from the end and work backward
+			if (!this.initialAdjacentHandle) {
+				for (let i = handles.length - 1; i >= 0; i--) {
+					const handle = handles[i]
+					if (handle.type === 'vertex' && handle.id !== 'middle' && handle.id !== info.handle.id) {
+						this.initialAdjacentHandle = handle
+						break
+					}
 				}
 			}
 		}

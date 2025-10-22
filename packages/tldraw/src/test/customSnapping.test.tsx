@@ -541,3 +541,194 @@ describe('custom handle snapping', () => {
 		})
 	})
 })
+
+describe('custom adjacent handle for shift snapping', () => {
+	type BezierShape = TLBaseShape<
+		'bezier',
+		{
+			start: VecModel
+			cp1: VecModel
+			cp2: VecModel
+			end: VecModel
+		}
+	>
+
+	class BezierShapeUtil extends BaseBoxShapeUtil<BezierShape> {
+		static override type = 'bezier'
+		override getDefaultProps() {
+			return {
+				start: { x: 0, y: 0 },
+				cp1: { x: 50, y: 0 },
+				cp2: { x: 50, y: 100 },
+				end: { x: 100, y: 100 },
+			}
+		}
+		override component() {
+			throw new Error('Method not implemented.')
+		}
+		override indicator() {
+			throw new Error('Method not implemented.')
+		}
+
+		override getHandles(shape: BezierShape): TLHandle[] {
+			return [
+				{
+					id: 'start',
+					type: 'vertex',
+					index: 'a0' as IndexKey,
+					x: shape.props.start.x,
+					y: shape.props.start.y,
+				},
+				{
+					id: 'cp1',
+					type: 'vertex',
+					index: 'a1' as IndexKey,
+					x: shape.props.cp1.x,
+					y: shape.props.cp1.y,
+				},
+				{
+					id: 'cp2',
+					type: 'vertex',
+					index: 'a2' as IndexKey,
+					x: shape.props.cp2.x,
+					y: shape.props.cp2.y,
+				},
+				{
+					id: 'end',
+					type: 'vertex',
+					index: 'a3' as IndexKey,
+					x: shape.props.end.x,
+					y: shape.props.end.y,
+				},
+			]
+		}
+
+		override onHandleDrag(shape: BezierShape, { handle }: TLHandleDragInfo<BezierShape>) {
+			return {
+				...shape,
+				props: {
+					...shape.props,
+					[handle.id]: { x: handle.x, y: handle.y },
+				},
+			}
+		}
+
+		// Custom implementation: cp1 should snap relative to start, cp2 should snap relative to end
+		override getAdjacentHandleForShiftSnapping(shape: BezierShape, handle: TLHandle) {
+			const handles = this.getHandles(shape)
+			if (handle.id === 'cp1') {
+				return handles.find((h) => h.id === 'start') ?? null
+			}
+			if (handle.id === 'cp2') {
+				return handles.find((h) => h.id === 'end') ?? null
+			}
+			return null // use default behavior for other handles
+		}
+	}
+
+	const shapeUtils = [BezierShapeUtil] as TLAnyShapeUtilConstructor[]
+
+	let editor: TestEditor
+	let ids: Record<string, TLShapeId>
+
+	beforeEach(() => {
+		editor = new TestEditor({ shapeUtils })
+		ids = editor.createShapesFromJsx([
+			<TL.bezier
+				ref="bezier"
+				x={0}
+				y={0}
+				w={100}
+				h={100}
+				start={{ x: 0, y: 0 }}
+				cp1={{ x: 50, y: 0 }}
+				cp2={{ x: 50, y: 100 }}
+				end={{ x: 100, y: 100 }}
+			/>,
+		])
+	})
+
+	test('cp1 snaps angle relative to start point when using custom adjacent handle', () => {
+		editor.select(ids.bezier)
+		const bezier = editor.getShape<BezierShape>(ids.bezier)!
+		const cp1Handle = editor.getShapeHandles(bezier)!.find((h) => h.id === 'cp1')!
+
+		// Start dragging cp1 handle
+		editor.pointerDown(cp1Handle.x, cp1Handle.y, {
+			target: 'handle',
+			shape: bezier,
+			handle: cp1Handle,
+		})
+
+		// Move with shift key - should snap angle relative to start (0, 0) not cp2
+		editor.pointerMove(60, 20, { shiftKey: true })
+
+		const updatedBezier = editor.getShape<BezierShape>(ids.bezier)!
+		const cp1Pos = updatedBezier.props.cp1
+		const startPos = updatedBezier.props.start
+
+		// The angle from start to cp1 should be snapped to nearest 15 degrees
+		const angle = Math.atan2(cp1Pos.y - startPos.y, cp1Pos.x - startPos.x)
+		const degrees = (angle * 180) / Math.PI
+
+		// Should snap to a multiple of 15 degrees (snapAngle uses 24 divisions = 15 degrees)
+		const remainder = ((degrees % 15) + 15) % 15
+		expect(Math.min(remainder, 15 - remainder)).toBeLessThan(1)
+	})
+
+	test('cp2 snaps angle relative to end point when using custom adjacent handle', () => {
+		editor.select(ids.bezier)
+		const bezier = editor.getShape<BezierShape>(ids.bezier)!
+		const cp2Handle = editor.getShapeHandles(bezier)!.find((h) => h.id === 'cp2')!
+
+		// Start dragging cp2 handle
+		editor.pointerDown(cp2Handle.x, cp2Handle.y, {
+			target: 'handle',
+			shape: bezier,
+			handle: cp2Handle,
+		})
+
+		// Move with shift key - should snap angle relative to end (100, 100)
+		editor.pointerMove(80, 80, { shiftKey: true })
+
+		const updatedBezier = editor.getShape<BezierShape>(ids.bezier)!
+		const cp2Pos = updatedBezier.props.cp2
+		const endPos = updatedBezier.props.end
+
+		// The angle from end to cp2 should be snapped to nearest 15 degrees
+		const angle = Math.atan2(cp2Pos.y - endPos.y, cp2Pos.x - endPos.x)
+		const degrees = (angle * 180) / Math.PI
+
+		// Should snap to a multiple of 15 degrees
+		const remainder = ((degrees % 15) + 15) % 15
+		expect(Math.min(remainder, 15 - remainder)).toBeLessThan(1)
+	})
+
+	test('default handles use default adjacent handle logic', () => {
+		editor.select(ids.bezier)
+		const bezier = editor.getShape<BezierShape>(ids.bezier)!
+		const startHandle = editor.getShapeHandles(bezier)!.find((h) => h.id === 'start')!
+
+		// Start dragging start handle
+		editor.pointerDown(startHandle.x, startHandle.y, {
+			target: 'handle',
+			shape: bezier,
+			handle: startHandle,
+		})
+
+		// Move with shift key - should use default logic (next vertex handle = cp1)
+		editor.pointerMove(10, 10, { shiftKey: true })
+
+		const updatedBezier = editor.getShape<BezierShape>(ids.bezier)!
+		const startPos = updatedBezier.props.start
+		const cp1Pos = updatedBezier.props.cp1
+
+		// The angle from cp1 to start should be snapped to nearest 15 degrees
+		const angle = Math.atan2(startPos.y - cp1Pos.y, startPos.x - cp1Pos.x)
+		const degrees = (angle * 180) / Math.PI
+
+		// Should snap to a multiple of 15 degrees
+		const remainder = ((degrees % 15) + 15) % 15
+		expect(Math.min(remainder, 15 - remainder)).toBeLessThan(1)
+	})
+})
