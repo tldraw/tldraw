@@ -330,17 +330,20 @@ export class TLDrawDurableObject extends DurableObject {
 	// this might return null if the file doesn't exist yet in the backend, or if it was deleted
 	_fileRecordCache: TlaFile | null = null
 	async getAppFileRecord(): Promise<TlaFile | null> {
+		const timer = this.timer()
 		try {
-			return await retry(
+			const result = await retry(
 				async () => {
 					if (this._fileRecordCache) {
 						return this._fileRecordCache
 					}
+
 					const result = await this.db
 						.selectFrom('file')
 						.where('id', '=', this.documentInfo.slug)
 						.selectAll()
 						.executeTakeFirst()
+
 					if (!result) {
 						throw new Error('File not found')
 					}
@@ -352,12 +355,18 @@ export class TLDrawDurableObject extends DurableObject {
 					waitDuration: 100,
 				}
 			)
+
+			timer.report('get_file_record')
+			return result
 		} catch (_e) {
+			timer.report('get_file_record_error')
 			return null
 		}
 	}
 
 	async onRequest(req: IRequest, openMode: RoomOpenMode) {
+		const requestTimer = this.timer()
+
 		// extract query params from request, should include instanceId
 		const url = new URL(req.url)
 		const params = Object.fromEntries(url.searchParams.entries())
@@ -381,7 +390,10 @@ export class TLDrawDurableObject extends DurableObject {
 			return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 		}
 
+		const authTimer = this.timer()
 		const auth = await getAuth(req, this.env)
+		authTimer.report('on_request_auth')
+
 		if (this.documentInfo.isApp) {
 			openMode = ROOM_OPEN_MODE.READ_WRITE
 			const file = await this.getAppFileRecord()
@@ -398,6 +410,8 @@ export class TLDrawDurableObject extends DurableObject {
 				if (!auth && !file.shared) {
 					return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
 				}
+
+				const rateLimitTimer = this.timer()
 				if (auth?.userId) {
 					const rateLimited = await isRateLimited(this.env, auth?.userId)
 					if (rateLimited) {
@@ -421,17 +435,22 @@ export class TLDrawDurableObject extends DurableObject {
 						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
 					}
 				}
+				rateLimitTimer.report('on_request_rate_limit')
+
 				// Check if user has owner access (directly or via group membership)
 				let hasOwnerAccess = false
 				if (file.ownerId && file.ownerId === auth?.userId) {
 					hasOwnerAccess = true
 				} else if (file.owningGroupId && auth?.userId) {
 					// Check if user is a member of the owning group
+					const groupCheckTimer = this.timer()
 					const groupMember = await this.db
 						.selectFrom('group_user')
 						.where('groupId', '=', file.owningGroupId)
 						.where('userId', '=', auth.userId)
 						.executeTakeFirst()
+					groupCheckTimer.report('on_request_group_check')
+
 					if (groupMember) {
 						hasOwnerAccess = true
 					}
@@ -452,7 +471,10 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 
 		try {
+			const getRoomTimer = this.timer()
 			const room = await this.getRoom()
+			getRoomTimer.report('on_request_get_room')
+
 			// Don't connect if we're already at max connections
 			if (room.getNumActiveSessions() > MAX_CONNECTIONS) {
 				return closeSocket(TLSyncErrorCloseEventReason.ROOM_FULL)
@@ -484,6 +506,9 @@ export class TLDrawDurableObject extends DurableObject {
 				instanceId: sessionId,
 				localClientId: storeId,
 			})
+
+			requestTimer.report('on_request_total')
+
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		} catch (e) {
 			if (e === ROOM_NOT_FOUND) {
@@ -545,12 +570,18 @@ export class TLDrawDurableObject extends DurableObject {
 
 		let data: RoomSnapshot | string | null | undefined = undefined
 		const [prefix, id] = split
+		const fetchTimer = this.timer()
 		switch (prefix) {
 			case FILE_PREFIX: {
+				const awaitPersistTimer = this.timer()
 				await getRoomDurableObject(this.env, id).awaitPersist()
+				awaitPersistTimer.report('create_from_source_await_persist')
+
+				const r2FetchTimer = this.timer()
 				data = await this.r2.rooms
 					.get(getR2KeyForRoom({ slug: id, isApp: true }))
 					.then((r) => r?.text())
+				r2FetchTimer.report('create_from_source_r2_fetch')
 				break
 			}
 			case ROOM_PREFIX:
@@ -573,13 +604,19 @@ export class TLDrawDurableObject extends DurableObject {
 				data = new TLSyncRoom({ schema: createTLSchema() }).getSnapshot()
 				break
 		}
+		fetchTimer.report('create_from_source_fetch_total')
 
 		if (!data) {
 			return { type: 'room_not_found' as const }
 		}
+
 		const serialized = typeof data === 'string' ? data : JSON.stringify(data)
 		const snapshot = typeof data === 'string' ? JSON.parse(data) : data
+
+		const putTimer = this.timer()
 		const roomObject = await this.r2.rooms.put(this._fileRecordCache.id, serialized)
+		putTimer.report('create_from_source_r2_put')
+
 		return {
 			type: 'room_found' as const,
 			snapshot,
@@ -589,32 +626,51 @@ export class TLDrawDurableObject extends DurableObject {
 
 	// Load the room's drawing data. First we check the R2 bucket, then we fallback to supabase (legacy).
 	async loadFromDatabase(slug: string): Promise<DBLoadResult> {
+		const loadTimer = this.timer()
 		try {
 			const key = getR2KeyForRoom({ slug, isApp: this.documentInfo.isApp })
+
 			// when loading, prefer to fetch documents from the bucket
+			const r2FetchTimer = this.timer()
 			const roomFromBucket = await this.r2.rooms.get(key)
+			r2FetchTimer.report('db_load_r2_fetch')
+
 			if (roomFromBucket) {
+				const snapshot = (await roomFromBucket.json()) as RoomSnapshot
+				loadTimer.report('db_load_total')
+
 				return {
 					type: 'room_found',
-					snapshot: await roomFromBucket.json(),
+					snapshot,
 					roomSizeMB: roomFromBucket.size / MB,
 				}
 			}
+
 			if (this._fileRecordCache?.createSource) {
+				const createFromSourceTimer = this.timer()
 				const res = await this.handleFileCreateFromSource()
+
+				createFromSourceTimer.report('db_load_create_from_source')
+
 				if (res.type === 'room_found') {
 					// save it to the bucket so we don't try to create from source again
 					await this.r2.rooms.put(key, JSON.stringify(res.snapshot))
 				}
+
+				loadTimer.report('db_load_total')
+
 				return res
 			}
 
 			if (this.documentInfo.isApp) {
 				// finally check whether the file exists in the DB but not in R2 yet
 				const file = await this.getAppFileRecord()
+
+				loadTimer.report('db_load_total')
 				if (!file) {
 					return { type: 'room_not_found' }
 				}
+
 				return {
 					type: 'room_found',
 					snapshot: new TLSyncRoom({ schema: createTLSchema() }).getSnapshot(),
@@ -623,30 +679,54 @@ export class TLDrawDurableObject extends DurableObject {
 			}
 
 			// if we don't have a room in the bucket, try to load from supabase
-			if (!this.supabaseClient) return { type: 'room_not_found' }
+			if (!this.supabaseClient) {
+				return { type: 'room_not_found' }
+			}
+
+			const supabaseFetchTimer = this.timer()
 			const { data, error } = await this.supabaseClient
 				.from(this.supabaseTable)
 				.select('*')
 				.eq('slug', slug)
 
+			supabaseFetchTimer.report('db_load_supabase_fetch')
+
 			if (error) {
 				this.logEvent({ type: 'room', roomId: slug, name: 'failed_load_from_db' })
+
+				loadTimer.report('db_load_total')
 
 				console.error('failed to retrieve document', slug, error)
 				return { type: 'error', error: new Error(error.message) }
 			}
 			// if it didn't find a document, data will be an empty array
 			if (data.length === 0) {
+				loadTimer.report('db_load_total')
 				return { type: 'room_not_found' }
 			}
 
 			const roomFromSupabase = data[0] as PersistedRoomSnapshotForSupabase
+			loadTimer.report('db_load_total')
+
 			return { type: 'room_found', snapshot: roomFromSupabase.drawing, roomSizeMB: 0 }
 		} catch (error) {
 			this.logEvent({ type: 'room', roomId: slug, name: 'failed_load_from_db' })
 
+			loadTimer.report('db_load_total_error')
+
 			console.error('failed to fetch doc', slug, error)
 			return { type: 'error', error: error as Error }
+		}
+	}
+
+	timer() {
+		const start = Date.now()
+		return {
+			report: (name: string) => {
+				this.writeEvent(name, {
+					doubles: [Date.now() - start],
+				})
+			},
 		}
 	}
 
