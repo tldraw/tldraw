@@ -14,5 +14,5 @@ export interface FairyEntity {
 	isSelected: boolean
 	/** The fairy's current pose, eg. 'thinking'. */
 	pose: FairyPose
-	personality: string // WIP
+	// personality: string // WIP
 }

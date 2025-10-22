@@ -14,6 +14,7 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const fairyRef = useRef<HTMLDivElement>(null)
 	const fairy = agent.$fairy
+	const fairyConfig = agent.$fairyConfig
 
 	// Track viewport screen bounds to position fairy correctly
 	const screenPosition = useValue(
@@ -212,6 +213,8 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 		editor.setCursor({ type: 'grab', rotation: 0 })
 	}
 
+	const fairyOutfit = useValue('fairy outfit', () => fairyConfig.get()?.outfit, [fairyConfig])
+
 	// Early return if fairy doesn't exist (after all hooks)
 	const fairyEntity = fairy.get()
 	if (!fairyEntity) return null
@@ -270,14 +273,7 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 					}}
 				/>
 				<div>
-					<FairySpriteComponent
-						pose={pose}
-						outfit={{
-							body: 'plain',
-							hat: 'pointy',
-							wings: 'plain',
-						}}
-					/>
+					<FairySpriteComponent pose={pose} outfit={fairyOutfit} />
 				</div>
 			</div>
 		</div>

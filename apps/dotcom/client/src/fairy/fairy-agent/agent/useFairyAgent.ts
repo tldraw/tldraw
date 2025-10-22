@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import { Editor, useToasts } from 'tldraw'
+import { FairyConfig } from '../../FairyConfig'
 import { FairyThrowTool } from '../../FairyThrowTool'
 import { FairyAgent } from './FairyAgent'
 import { $fairyAgentsAtom } from './fairyAgentsAtom'
@@ -11,23 +12,29 @@ import { $fairyAgentsAtom } from './fairyAgentsAtom'
  *
  * @example
  * ```tsx
- * const agent = useTldrawAgent(editor)
+ * const agent = useFairyAgent({ fairyConfig, editor, id: 'fairy-agent', getToken })
  * agent.prompt({ message: 'Draw a snowman' })
  * ```
  *
  * @example
  * ```tsx
- * const agent1 = useTldrawAgent(editor, 'agent-1')
- * const agent2 = useTldrawAgent(editor, 'agent-2')
+ * const agent1 = useFairyAgent({ fairyConfig, editor, id: 'agent-1' })
+ * const agent2 = useFairyAgent({ fairyConfig, editor, id: 'agent-2' })
  * agent1.prompt({ message: 'Draw a snowman on the left' })
  * agent2.prompt({ message: 'Draw a snowman on the right' })
  * ```
  */
-export function useFairyAgent(
-	editor: Editor,
-	id: string = 'tldraw-fairy-agent',
-	getToken?: () => Promise<string | undefined>
-): FairyAgent {
+export function useFairyAgent({
+	id,
+	fairyConfig,
+	editor,
+	getToken,
+}: {
+	id: string
+	fairyConfig: FairyConfig
+	editor: Editor
+	getToken(): Promise<string | undefined>
+}): FairyAgent {
 	const toasts = useToasts()
 
 	const handleError = useCallback(
@@ -54,8 +61,8 @@ export function useFairyAgent(
 		editor.setTool(FairyThrowTool)
 
 		// Create a new agent
-		return new FairyAgent({ editor, id, onError: handleError, getToken })
-	}, [editor, handleError, id, getToken])
+		return new FairyAgent({ id, fairyConfig, editor, onError: handleError, getToken })
+	}, [editor, handleError, id, getToken, fairyConfig])
 
 	return agent
 }

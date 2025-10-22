@@ -48,6 +48,8 @@ function FairyButton({
 		[agent]
 	)
 
+	const fairyOutfit = useValue('fairy outfit', () => agent.$fairyConfig.get()?.outfit, [agent])
+
 	return (
 		<TldrawUiToolbarToggleGroup type="single" value={fairyIsSelected ? 'on' : 'off'} asChild>
 			<TldrawUiToolbarToggleItem
@@ -59,14 +61,7 @@ function FairyButton({
 				aria-label={fairyIsSelected ? deselectMessage : selectMessage}
 				value="on"
 			>
-				<FairySpriteComponent
-					pose="idle"
-					outfit={{
-						body: 'plain',
-						hat: 'pointy',
-						wings: 'plain',
-					}}
-				/>
+				<FairySpriteComponent pose="idle" outfit={fairyOutfit} />
 			</TldrawUiToolbarToggleItem>
 		</TldrawUiToolbarToggleGroup>
 	)

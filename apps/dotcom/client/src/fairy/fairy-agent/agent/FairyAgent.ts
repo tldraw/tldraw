@@ -37,6 +37,7 @@ import {
 } from 'tldraw'
 import { FAIRY_WORKER } from '../../../utils/config'
 import { AgentActionUtil } from '../../actions/AgentActionUtil'
+import { FairyConfig } from '../../FairyConfig'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../FairyUtils'
 import { PromptPartUtil } from '../../parts/PromptPartUtil'
 import { AgentHelpers } from './AgentHelpers'
@@ -62,6 +63,9 @@ export class FairyAgent {
 
 	/** The fairy associated with this agent. */
 	$fairy: Atom<FairyEntity>
+
+	/** The fairy configuration associated with this agent. */
+	$fairyConfig: Atom<FairyConfig>
 
 	/** A callback for when an error occurs. */
 	onError: (e: any) => void
@@ -121,18 +125,21 @@ export class FairyAgent {
 	/**
 	 * Create a new tldraw agent.
 	 */
-	constructor({ editor, id, onError, getToken }: FairyAgentOptions) {
+	constructor({ id, fairyConfig, editor, onError, getToken }: FairyAgentOptions) {
 		this.editor = editor
 		this.id = id
 		this.getToken = getToken
 
+		const spawnPoint = findFairySpawnPoint({ x: 0, y: 0 }, editor)
+
 		this.$fairy = atom<FairyEntity>(`fairy-${id}`, {
-			position: { x: 0, y: 0 },
+			position: spawnPoint,
 			flipX: false,
 			isSelected: false,
 			pose: 'idle',
-			personality: 'helpful but mischievous',
 		})
+
+		this.$fairyConfig = atom<FairyConfig>(`fairy-config-${id}`, fairyConfig)
 
 		this.onError = onError
 
@@ -234,7 +241,7 @@ export class FairyAgent {
 				request.bounds ??
 				activeRequest?.bounds ??
 				Box.FromCenter(this.$fairy.get().position, FAIRY_VISION_DIMENSIONS),
-			fairyPersonality: request.fairyPersonality ?? this.$fairy.get().personality ?? '', // WIP
+			fairyPersonality: request.fairyPersonality ?? this.$fairyConfig.get().personality ?? '', // WIP
 		}
 	}
 
@@ -1207,6 +1214,61 @@ function persistAtomInLocalStorage<T>(atom: Atom<T>, key: string) {
 	react(`save ${key} to localStorage`, () => {
 		setInLocalStorage(key, JSON.stringify(atom.get()))
 	})
+}
+
+/**
+ * Find a spawn point for the fairy that is at least 200px away from other fairies.
+ */
+function findFairySpawnPoint(initialPosition: VecModel, editor: Editor): VecModel {
+	const existingAgents = $fairyAgentsAtom.get(editor)
+	const MIN_DISTANCE = 200
+	const INITIAL_BOX_SIZE = 200
+	const BOX_EXPANSION = 100
+
+	// Start with the provided initial position
+	let candidate = { x: initialPosition.x, y: initialPosition.y }
+	const viewportCenter = editor.getViewportPageBounds().center
+
+	// If no other fairies exist, use the center
+	if (existingAgents.length === 0) {
+		return candidate
+	}
+
+	// Try to find a valid spawn point
+	let boxSize = INITIAL_BOX_SIZE
+	let attempts = 0
+	const MAX_ATTEMPTS = 100
+
+	while (attempts < MAX_ATTEMPTS) {
+		// Check if the candidate is far enough from all existing fairies
+		const tooClose = existingAgents.some((agent) => {
+			const otherPosition = agent.$fairy.get().position
+			const distance = Math.sqrt(
+				Math.pow(candidate.x - otherPosition.x, 2) + Math.pow(candidate.y - otherPosition.y, 2)
+			)
+			return distance < MIN_DISTANCE
+		})
+
+		if (!tooClose) {
+			return candidate
+		}
+
+		// Generate a new random point in an expanding box around the viewport center
+		candidate = {
+			x: viewportCenter.x + (Math.random() - 0.5) * boxSize,
+			y: viewportCenter.y + (Math.random() - 0.5) * boxSize,
+		}
+
+		// Expand the search area after every 10 attempts
+		if (attempts % 10 === 9) {
+			boxSize += BOX_EXPANSION
+		}
+
+		attempts++
+	}
+
+	// If we couldn't find a good spot, just return the candidate anyway
+	return candidate
 }
 
 /**

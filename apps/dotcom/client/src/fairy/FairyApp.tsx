@@ -1,11 +1,11 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { useEditor } from 'tldraw'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { useFairyAgent } from './fairy-agent/agent/useFairyAgent'
+import { FairyConfig } from './FairyConfig'
 
 export function FairyApp({ setAgents }: { setAgents(agents: FairyAgent[]): void }) {
-	const FAIRY_ID = 'Huppy'
 	const editor = useEditor()
 	const user = useTldrawUser()
 
@@ -14,13 +14,46 @@ export function FairyApp({ setAgents }: { setAgents(agents: FairyAgent[]): void 
 		return await user.getToken()
 	}, [user])
 
-	const agent = useFairyAgent(editor, FAIRY_ID, getToken)
+	// eslint-disable-next-line no-restricted-properties
+	const FAIRY_1_ID = useMemo(() => crypto.randomUUID(), [])
+	// eslint-disable-next-line no-restricted-properties
+	const FAIRY_2_ID = useMemo(() => crypto.randomUUID(), [])
+
+	const FAIRY_1_CONFIG: FairyConfig = useMemo(
+		() => ({
+			name: 'Huppy',
+			outfit: {
+				body: 'plain',
+				hat: 'pointy',
+				wings: 'plain',
+			},
+			personality: 'artistic, creative, and neurotic',
+		}),
+		[]
+	)
+
+	const FAIRY_2_CONFIG: FairyConfig = useMemo(
+		() => ({
+			name: 'Hoppy',
+			outfit: {
+				body: 'plain',
+				hat: 'top',
+				wings: 'plain',
+			},
+			personality: 'intelligent but cold, calculating, and aloof',
+		}),
+		[]
+	)
+
+	const agent1 = useFairyAgent({ id: FAIRY_1_ID, fairyConfig: FAIRY_1_CONFIG, editor, getToken })
+	const agent2 = useFairyAgent({ id: FAIRY_2_ID, fairyConfig: FAIRY_2_CONFIG, editor, getToken })
 
 	useEffect(() => {
-		if (!editor || !agent) return
-		setAgents([agent])
-		;(window as any).agent = agent
-	}, [agent, editor, setAgents])
+		if (!editor || !agent1 || !agent2) return
+		setAgents([agent1, agent2])
+		;(window as any).agent = agent1
+		;(window as any).agents = [agent1, agent2]
+	}, [agent1, agent2, editor, setAgents])
 
 	return null
 }
