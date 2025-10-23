@@ -25,13 +25,15 @@ OtherFairiesPartSchema.register(PromptPartRegistry, {
 				`There is one other fairy working at the moment: ${otherFairyName} is at (${otherFairyX}, ${otherFairyY}).`
 			)
 		}
-		content.push(`There are ${otherFairies.length} other fairies working at the moment.`)
-		otherFairies.forEach((otherFairy) => {
-			const otherFairyName = otherFairy.name
-			const otherFairyX = otherFairy.position.x
-			const otherFairyY = otherFairy.position.y
-			content.push(`${otherFairyName} is at (${otherFairyX}, ${otherFairyY}).`)
-		})
+		if (otherFairies.length > 1) {
+			content.push(`There are ${otherFairies.length} other fairies working at the moment.`)
+			otherFairies.forEach((otherFairy) => {
+				const otherFairyName = otherFairy.name
+				const otherFairyX = otherFairy.position.x
+				const otherFairyY = otherFairy.position.y
+				content.push(`${otherFairyName} is at (${otherFairyX}, ${otherFairyY}).`)
+			})
+		}
 
 		return content
 	},
