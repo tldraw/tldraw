@@ -2,6 +2,7 @@ import {
 	BaseBoxShapeUtil,
 	IndexKey,
 	Polyline2d,
+	ShapeUtil,
 	TLAnyShapeUtilConstructor,
 	TLBaseShape,
 	TLHandle,
@@ -553,7 +554,7 @@ describe('custom adjacent handle for shift snapping', () => {
 		}
 	>
 
-	class BezierShapeUtil extends BaseBoxShapeUtil<BezierShape> {
+	class BezierShapeUtil extends ShapeUtil<BezierShape> {
 		static override type = 'bezier'
 		override getDefaultProps() {
 			return {
@@ -568,6 +569,9 @@ describe('custom adjacent handle for shift snapping', () => {
 		}
 		override indicator() {
 			throw new Error('Method not implemented.')
+		}
+		override getGeometry() {
+			return new Polyline2d({ points: [] })
 		}
 
 		override getHandles(shape: BezierShape): TLHandle[] {
@@ -585,6 +589,7 @@ describe('custom adjacent handle for shift snapping', () => {
 					index: 'a1' as IndexKey,
 					x: shape.props.cp1.x,
 					y: shape.props.cp1.y,
+					snapReferenceHandleId: 'start', // cp1 snaps relative to start
 				},
 				{
 					id: 'cp2',
@@ -592,6 +597,7 @@ describe('custom adjacent handle for shift snapping', () => {
 					index: 'a2' as IndexKey,
 					x: shape.props.cp2.x,
 					y: shape.props.cp2.y,
+					snapReferenceHandleId: 'end', // cp2 snaps relative to end
 				},
 				{
 					id: 'end',
@@ -611,18 +617,6 @@ describe('custom adjacent handle for shift snapping', () => {
 					[handle.id]: { x: handle.x, y: handle.y },
 				},
 			}
-		}
-
-		// Custom implementation: cp1 should snap relative to start, cp2 should snap relative to end
-		override getAdjacentHandleForShiftSnapping(shape: BezierShape, handle: TLHandle) {
-			const handles = this.getHandles(shape)
-			if (handle.id === 'cp1') {
-				return handles.find((h) => h.id === 'start') ?? null
-			}
-			if (handle.id === 'cp2') {
-				return handles.find((h) => h.id === 'end') ?? null
-			}
-			return null // use default behavior for other handles
 		}
 	}
 

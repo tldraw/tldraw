@@ -502,31 +502,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 		return {}
 	}
 
-	/**
-	 * Get the handle to use as a relative snap point when dragging a handle with the shift modifier.
-	 * When a user drags a handle while holding shift, the angle is snapped relative to another handle.
-	 * By default, this uses the next adjacent vertex handle. Override this to customize the behavior
-	 * for your shape.
-	 *
-	 * @param _shape - The shape being manipulated
-	 * @param _handle - The handle being dragged
-	 * @returns The handle to snap relative to, or null to use the default behavior
-	 *
-	 * @example
-	 * ```ts
-	 * // For a bezier curve, snap the first control point relative to the start point
-	 * getAdjacentHandleForShiftSnapping(shape, handle) {
-	 *   if (handle.id === 'cp1') {
-	 *     return this.getHandles(shape).find(h => h.id === 'start') ?? null
-	 *   }
-	 *   return null // use default behavior for other handles
-	 * }
-	 * ```
-	 */
-	getAdjacentHandleForShiftSnapping(_shape: Shape, _handle: TLHandle): TLHandle | null {
-		return null
-	}
-
 	getText(_shape: Shape): string | undefined {
 		return undefined
 	}
