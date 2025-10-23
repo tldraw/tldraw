@@ -191,7 +191,13 @@ export class FairyAgent {
 		contextItems?: ContextItem[]
 	}) {
 		if (state.fairyEntity) {
-			this.$fairyEntity.set(state.fairyEntity)
+			this.$fairyEntity.update((entity) => {
+				return {
+					...entity,
+					position: state.fairyEntity?.position ?? entity.position,
+					flipX: state.fairyEntity?.flipX ?? entity.flipX,
+				}
+			})
 		}
 		if (state.chatHistory) {
 			this.$chatHistory.set(state.chatHistory)
@@ -586,12 +592,11 @@ ${JSON.stringify($sharedTodoList.get())}`
 			}
 		}
 
-		if (this.isActing) {
+		if (this.isGenerating()) {
 			this.schedule({
 				messages: [helpOutMessage],
 			})
 		} else {
-			this.reset()
 			this.prompt(helpOutRequest)
 		}
 	}
@@ -846,6 +851,8 @@ ${JSON.stringify($sharedTodoList.get())}`
 	/**
 	 * Whether the agent is currently acting on the editor or not.
 	 * This flag is used to prevent agent actions from being recorded as user actions.
+	 *
+	 * Do not use this to check if the agent is currently working on a request. Use `isGenerating` instead.
 	 */
 	private isActing = false
 
