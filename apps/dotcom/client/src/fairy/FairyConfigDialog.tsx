@@ -9,22 +9,22 @@ import {
 } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 
-export function FairyDebugModal({
-	agents: _agents,
+export function FairyConfigDialog({
+	agent: _agent,
 	onClose,
 }: {
-	agents: FairyAgent[]
+	agent: FairyAgent
 	onClose(): void
 }) {
 	return (
 		<>
 			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>Fairy debug</TldrawUiDialogTitle>
+				<TldrawUiDialogTitle>Fairy configuration</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody style={{ maxWidth: 400 }}>
 				<div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-					There are, sadly, no fairy debug options at this moment in time.
+					There are, sadly, no fairy configuration options at this moment in time.
 				</div>
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
