@@ -7,7 +7,6 @@ export class FlyToBoundsActionUtil extends AgentActionUtil<FlyToBoundsAction> {
 	static override type = 'fly-to-bounds' as const
 
 	override getInfo(action: Streaming<FlyToBoundsAction>) {
-		// const label = action.complete ? 'Fly To Bounds' : 'Flying to bounds'
 		const text = action.intent?.startsWith('#') ? `\n\n${action.intent}` : action.intent
 		return {
 			icon: 'eye' as const,

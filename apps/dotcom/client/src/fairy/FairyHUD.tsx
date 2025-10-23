@@ -241,24 +241,24 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 																label="Go to fairy"
 															/>
 															<TldrawUiMenuItem
+																id="help-out"
+																onSelect={() => chosenFairy.helpOut()}
+																label="Ask for help"
+															/>
+															<TldrawUiMenuItem
 																id="summon-fairy"
 																onSelect={() => summonFairy(chosenFairy)}
-																label="Summon fairy"
+																label="Summon"
 															/>
 															<TldrawUiMenuItem
 																id="configure-fairy"
 																onSelect={handleConfigureFairy}
-																label="Configure fairy"
+																label="Customize"
 															/>
 															<TldrawUiMenuItem
 																id="new-chat"
 																onSelect={handleNewChat}
 																label="Reset chat"
-															/>
-															<TldrawUiMenuItem
-																id="help-out"
-																onSelect={() => chosenFairy.helpOut()}
-																label="Request help"
 															/>
 														</TldrawUiMenuGroup>
 													</TldrawUiMenuContextProvider>
