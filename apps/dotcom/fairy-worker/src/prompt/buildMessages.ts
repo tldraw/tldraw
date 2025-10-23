@@ -55,7 +55,15 @@ function defaultBuildMessagesFromPart(part: PromptPart): AgentMessage[] {
 		}
 	}
 
-	return [{ role: 'user', content: messageContent, priority: 0 }]
+	const schema = PROMPT_PART_SCHEMAS.find((schema) => schema.shape.type.value === part.type)
+	if (!schema) return defaultBuildMessagesFromPart(part)
+
+	const meta = PromptPartRegistry.get(schema)
+	if (!meta) return defaultBuildMessagesFromPart(part)
+
+	const priority = meta.priority ?? 0
+
+	return [{ role: 'user', content: messageContent, priority }]
 }
 
 function buildContentFromPart(part: PromptPart): string[] {
