@@ -2,7 +2,6 @@ import {
 	AgentAction,
 	AgentPrompt,
 	FOCUSED_SHAPE_TYPES,
-	PROMPT_PART_TYPES,
 	PromptPart,
 	Wand,
 	buildResponseSchema,
@@ -19,8 +18,10 @@ import {
  * @returns The system prompt.
  */
 export function buildSystemPrompt(prompt: AgentPrompt): string {
-	const wand = getWand(prompt.wand.wand as Wand['type'])
-	const systemPrompt = getSystemPrompt(wand.availableActions, PROMPT_PART_TYPES)
+	const wandName = prompt.wand?.wand
+	if (!wandName) throw new Error('A wand is required.')
+	const wand = getWand(wandName as Wand['type'])
+	const systemPrompt = getSystemPrompt(wand.availableActions, wand.availableParts)
 	return systemPrompt
 }
 

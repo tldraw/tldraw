@@ -331,7 +331,14 @@ export class FairyAgent {
 		const { promptPartUtils } = this
 		const transformedParts: PromptPart[] = []
 
-		for (const util of Object.values(promptPartUtils)) {
+		const wand = getWand(request.wand)
+		const availablePromptPartUtils = []
+		for (const part of wand.availableParts) {
+			const util = promptPartUtils[part]
+			if (util) availablePromptPartUtils.push(util)
+		}
+
+		for (const util of availablePromptPartUtils) {
 			const part = await util.getPart(structuredClone(request), helpers)
 			if (!part) continue
 			transformedParts.push(part)

@@ -1,5 +1,6 @@
 import { AgentAction } from '../types/AgentAction'
-import { AGENT_ACTION_TYPES } from './FairySchema'
+import { PromptPart } from '../types/PromptPart'
+import { AGENT_ACTION_TYPES, PROMPT_PART_TYPES } from './FairySchema'
 
 /**
  * The base type for a wand.
@@ -15,7 +16,7 @@ interface BaseWand {
 	isAvailableInConfig: boolean
 	// TODO: Enable prompt part sets too
 	/** The prompt parts that the wand allows the fairy to see. */
-	// availableParts: PromptPart['type'][]
+	availableParts: PromptPart['type'][]
 	/** The actions that the wand allows the fairy to take. */
 	availableActions: AgentAction['_type'][]
 }
@@ -26,6 +27,11 @@ interface BaseWand {
 export type Wand = (typeof WAND_DEFINITIONS)[number]
 
 /**
+ * The default prompt part set is the set of prompt parts that are available to all wands.
+ */
+const DEFAULT_PROMPT_PART_SET = PROMPT_PART_TYPES.filter((type) => type !== 'todoList')
+
+/**
  * Wand definitions determine what wands are available to the agent.
  */
 export const WAND_DEFINITIONS = [
@@ -34,6 +40,16 @@ export const WAND_DEFINITIONS = [
 		name: 'Almighty Wand',
 		description: 'A wand that allows the agent to perform any action. Use with caution.',
 		isAvailableInConfig: false,
+		availableParts: DEFAULT_PROMPT_PART_SET,
+		availableActions: AGENT_ACTION_TYPES,
+	},
+	{
+		type: 'blindfold',
+		name: 'Blindfold Wand',
+		description:
+			'A wand that allows the agent to perform any action, but without any letting it see anything.',
+		isAvailableInConfig: false,
+		availableParts: ['wand', 'messages'],
 		availableActions: AGENT_ACTION_TYPES,
 	},
 	{
@@ -42,6 +58,7 @@ export const WAND_DEFINITIONS = [
 		isAvailableInConfig: false,
 		description:
 			"A wand for taking a user prompt and imbuing it with the fairy's personality. Used internally.",
+		availableParts: DEFAULT_PROMPT_PART_SET,
 		availableActions: ['think', 'imbue-personality'],
 	},
 	{
@@ -49,6 +66,7 @@ export const WAND_DEFINITIONS = [
 		name: 'Pen Wand',
 		description: 'A wand well-suited for drawing pictures with the pen.',
 		isAvailableInConfig: true,
+		availableParts: DEFAULT_PROMPT_PART_SET,
 		availableActions: [
 			'message',
 			'think',
@@ -71,6 +89,7 @@ export const WAND_DEFINITIONS = [
 		name: 'The Destroyer',
 		description: 'A wand for deleting only.',
 		isAvailableInConfig: true,
+		availableParts: DEFAULT_PROMPT_PART_SET,
 		availableActions: [
 			'message',
 			'think',
@@ -87,6 +106,7 @@ export const WAND_DEFINITIONS = [
 		description:
 			"A wand with a mouth on the end. With this wand, your fairy will speak with you, but won't be able to edit the canvas.",
 		isAvailableInConfig: true,
+		availableParts: DEFAULT_PROMPT_PART_SET,
 		availableActions: [
 			'message',
 			'think',
@@ -101,6 +121,7 @@ export const WAND_DEFINITIONS = [
 		name: 'Diagram Wand',
 		description: 'A wand well-suited for creating diagrams.',
 		isAvailableInConfig: true,
+		availableParts: DEFAULT_PROMPT_PART_SET,
 		availableActions: [
 			'message',
 			'think',
