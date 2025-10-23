@@ -6,6 +6,7 @@ import { useTldrawUser } from '../tla/hooks/useUser'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { useFairyAgent } from './fairy-agent/agent/useFairyAgent'
 import { FairyConfig } from './FairyConfig'
+import { $sharedTodoList } from './SharedTodoList'
 
 const FAIRY_1_CONFIG: FairyConfig = {
 	name: 'Huppy',
@@ -15,7 +16,7 @@ const FAIRY_1_CONFIG: FairyConfig = {
 		wings: 'plain',
 	},
 	personality: 'intelligent but cold, calculating, and aloof',
-	wand: 'blindfold',
+	wand: 'god',
 }
 
 const FAIRY_2_CONFIG: FairyConfig = {
@@ -64,7 +65,7 @@ export function FairyApp({
 
 	// Load fairy state from backend when agents are created
 	useEffect(() => {
-		if (!app || !agent1 || !agent2 || !fileId) return
+		if (!app || !agent1 || !agent2 || !$sharedTodoList || !fileId) return
 
 		const fileState = app.getFileState(fileId)
 		if (fileState?.fairyState) {
@@ -82,6 +83,10 @@ export function FairyApp({
 					agent2.loadState(fairyState.agents[FAIRY_2_ID])
 				}
 
+				if (fairyState.sharedTodoList) {
+					$sharedTodoList.set(fairyState.sharedTodoList)
+				}
+
 				// Allow a tick for state to settle before allowing saves
 				setTimeout(() => {
 					isLoadingStateRef.current = false
@@ -95,7 +100,7 @@ export function FairyApp({
 
 	// Save fairy state to backend periodically
 	useEffect(() => {
-		if (!app || !agent1 || !agent2 || !fileId) return
+		if (!app || !agent1 || !agent2 || !$sharedTodoList || !fileId) return
 
 		const updateFairyState = throttle(() => {
 			// Don't save if we're currently loading state
@@ -106,6 +111,7 @@ export function FairyApp({
 					[FAIRY_1_ID]: agent1.serializeState(),
 					[FAIRY_2_ID]: agent2.serializeState(),
 				},
+				sharedTodoList: $sharedTodoList.get(),
 			}
 			app.onFairyStateUpdate(fileId, fairyState)
 		}, 5000) // Save every 5 seconds
@@ -127,10 +133,16 @@ export function FairyApp({
 			updateFairyState()
 		})
 
+		const cleanupSharedTodoList = react('shared todo list', () => {
+			$sharedTodoList.get()
+			updateFairyState()
+		})
+
 		return () => {
 			updateFairyState.flush()
 			cleanup1()
 			cleanup2()
+			cleanupSharedTodoList()
 		}
 	}, [app, agent1, agent2, fileId, FAIRY_1_ID, FAIRY_2_ID])
 

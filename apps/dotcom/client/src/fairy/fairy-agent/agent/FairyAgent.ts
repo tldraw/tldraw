@@ -17,6 +17,7 @@ import {
 	PromptPart,
 	ShapeContextItem,
 	ShapesContextItem,
+	SharedTodoItem,
 	Streaming,
 	TodoItem,
 } from '@tldraw/fairy-shared'
@@ -39,6 +40,7 @@ import { AgentActionUtil } from '../../actions/AgentActionUtil'
 import { FairyConfig } from '../../FairyConfig'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../FairyUtils'
 import { PromptPartUtil } from '../../parts/PromptPartUtil'
+import { $sharedTodoList } from '../../SharedTodoList'
 import { AgentHelpers } from './AgentHelpers'
 import { FairyAgentOptions } from './FairyAgentOptions'
 import { $fairyAgentsAtom } from './fairyAgentsAtom'
@@ -558,6 +560,40 @@ export class FairyAgent {
 			]
 		})
 		return id
+	}
+
+	helpOut(todoItems?: SharedTodoItem[]) {
+		let helpOutMessage = ''
+		let helpOutRequest: Partial<AgentRequest> = {}
+
+		if (todoItems && todoItems.length > 0) {
+			helpOutMessage = `You've asked to help out with the following todo ${todoItems.length > 1 ? 'items' : 'item'}. Make sure to always set the todo you're currently working on as "in-progress" when you start working on it.
+Todo ${todoItems.length > 1 ? 'items' : 'item'}: 
+${JSON.stringify(todoItems)}`
+
+			helpOutRequest = {
+				type: 'schedule',
+				messages: [helpOutMessage],
+			}
+		} else {
+			helpOutMessage = `Take a look at the shared todo list and see if there are any tasks that you can help with. Make sure to always set the todo you're currently working on as "in-progress" when you start working on it.
+shared todo list: 
+${JSON.stringify($sharedTodoList.get())}`
+
+			helpOutRequest = {
+				type: 'schedule',
+				messages: [helpOutMessage],
+			}
+		}
+
+		if (this.isActing) {
+			this.schedule({
+				messages: [helpOutMessage],
+			})
+		} else {
+			this.reset()
+			this.prompt(helpOutRequest)
+		}
 	}
 
 	/**

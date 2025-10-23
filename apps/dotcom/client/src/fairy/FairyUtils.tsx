@@ -16,6 +16,7 @@ import { ResizeActionUtil } from './actions/ResizeActionUtil'
 import { ReviewActionUtil } from './actions/ReviewActionUtil'
 import { RotateActionUtil } from './actions/RotateActionUtil'
 import { SendToBackActionUtil } from './actions/SendToBackActionUtil'
+import { SharedTodoListActionUtil } from './actions/SharedTodoListActionUtil'
 import { StackActionUtil } from './actions/StackActionUtil'
 import { ThinkActionUtil } from './actions/ThinkActionUtil'
 import { TodoListActionUtil } from './actions/TodoListActionUtil'
@@ -32,6 +33,7 @@ import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
 import { PromptPartUtil, PromptPartUtilConstructor } from './parts/PromptPartUtil'
 import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
 import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
+import { SharedTodoListPartUtil } from './parts/SharedTodoListPartUtil'
 import { TimePartUtil } from './parts/TimePartUtil'
 import { TodoListPartUtil } from './parts/TodoListPartUtil'
 import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
@@ -74,6 +76,9 @@ export const AGENT_ACTION_UTILS = [
 
 	// Internal (required)
 	UnknownActionUtil,
+
+	// shared todo List
+	SharedTodoListActionUtil,
 ] satisfies AgentActionUtilConstructor<AgentAction>[]
 
 /**
@@ -108,6 +113,9 @@ export const PROMPT_PART_UTILS = [
 	// Fairy-specific
 	OtherFairiesPartUtil,
 	WandPartUtil,
+
+	// shared todo List
+	SharedTodoListPartUtil,
 ] satisfies PromptPartUtilConstructor<PromptPart>[]
 
 /**

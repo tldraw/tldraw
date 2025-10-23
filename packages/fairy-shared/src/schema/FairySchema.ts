@@ -15,6 +15,7 @@ import { ResizeActionSchema } from './actions/ResizeActionSchema'
 import { ReviewActionSchema } from './actions/ReviewActionSchema'
 import { RotateActionSchema } from './actions/RotateActionSchema'
 import { SendToBackActionSchema } from './actions/SendToBackActionSchema'
+import { SharedTodoListActionSchema } from './actions/SharedTodoListActionSchema'
 import { StackActionSchema } from './actions/StackActionSchema'
 import { ThinkActionSchema } from './actions/ThinkActionSchema'
 import { TodoListActionSchema } from './actions/TodoListActionSchema'
@@ -28,6 +29,7 @@ import { OtherFairiesPartSchema } from './parts/OtherFairiesPartSchema'
 import { PeripheralShapesPartSchema } from './parts/PeripheralShapesPartSchema'
 import { ScreenshotPartSchema } from './parts/ScreenshotPartSchema'
 import { SelectedShapesPartSchema } from './parts/SelectedShapesPartSchema'
+import { SharedTodoListPartSchema } from './parts/SharedTodoListPartSchema'
 import { TimePartSchema } from './parts/TimePartSchema'
 import { TodoListPartSchema } from './parts/TodoListPartSchema'
 import { UserActionHistoryPartSchema } from './parts/UserActionHistoryPartSchema'
@@ -70,6 +72,9 @@ export const AGENT_ACTION_SCHEMAS = [
 
 	// Fairy-specific
 	ImbuePersonalityActionSchema,
+
+	// shared todo List
+	SharedTodoListActionSchema,
 ] as const
 
 /**
@@ -90,6 +95,9 @@ export const PROMPT_PART_SCHEMAS = [
 	ViewportBoundsPartSchema,
 	OtherFairiesPartSchema,
 	WandPartSchema,
+
+	// shared todo List
+	SharedTodoListPartSchema,
 ] as const
 
 export const AGENT_ACTION_TYPES = AGENT_ACTION_SCHEMAS.map((schema) => schema.shape._type.value)
