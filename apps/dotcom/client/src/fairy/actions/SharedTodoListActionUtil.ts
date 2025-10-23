@@ -20,19 +20,55 @@ export class SharedTodoListActionUtil extends AgentActionUtil<SharedTodoListActi
 		if (!action.complete) return
 		if (!this.agent) return
 
-		const todoItem = {
+		const proposedTodoItem = {
 			id: action.id,
 			status: action.status,
 			text: action.text,
 			claimedBy: action.claimedBy,
 		}
 
+		const fairyName = this.agent.$fairyConfig.get().name
+		const sharedTodoList = $sharedTodoList.get()
+		const itemToUpdate = sharedTodoList.find((item) => item.id === proposedTodoItem.id)
+
+		// Check for claiming conflicts
+		if (itemToUpdate) {
+			const fairyIsClaimingItem = proposedTodoItem.claimedBy === fairyName
+			const claimedByAnotherFairy =
+				itemToUpdate.claimedBy &&
+				itemToUpdate.claimedBy !== '' &&
+				itemToUpdate.claimedBy !== fairyName
+
+			// TODO improve this logic: it shouldnt say none are left if this fairy has some items calimed already.
+			// TODO can agent.prompt have a flag that's like 'dont log to chat'? how does shcedule do it?
+
+			if (fairyIsClaimingItem && claimedByAnotherFairy) {
+				this.agent.cancel()
+				const unclaimedTodoItems = sharedTodoList.filter(
+					(item) => !item.claimedBy || item.claimedBy === ''
+				)
+				let message = `I'm sorry, but ${itemToUpdate.claimedBy} has already claimed this todo item with id ${itemToUpdate.id}. `
+				if (unclaimedTodoItems.length === 0) {
+					message += 'There are no unclaimed todo items remaining. You can stop working.'
+				} else {
+					message += `Please try to claim another todo item. Current shared todo list: ${JSON.stringify(sharedTodoList)}`
+				}
+				this.agent.prompt({ message })
+				return
+			}
+		}
+
+		// Update or add the item
 		$sharedTodoList.update((sharedTodoItems) => {
 			const index = sharedTodoItems.findIndex((item) => item.id === action.id)
 			if (index !== -1) {
-				return [...sharedTodoItems.slice(0, index), todoItem, ...sharedTodoItems.slice(index + 1)]
+				return [
+					...sharedTodoItems.slice(0, index),
+					proposedTodoItem,
+					...sharedTodoItems.slice(index + 1),
+				]
 			} else {
-				return [...sharedTodoItems, todoItem]
+				return [...sharedTodoItems, proposedTodoItem]
 			}
 		})
 	}
