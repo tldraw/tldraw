@@ -237,11 +237,22 @@
 	min-height: 40px !important;
 }
 
+/* Fairy HUD */
+
+.tla-fairy-hud {
+	position: fixed;
+	right: 6px;
+	display: flex;
+	flex-direction: row;
+	align-items: flex-end;
+	gap: 0px;
+	z-index: 99999999;
+}
+
 /* Fairy HUD Container Scrollbar */
 
 * {
 	/* Prevent screen bouncing when you scroll up through the chat history */
-	/* Todo: Find a more precise class to apply this to */
 	overscroll-behavior-y: none;
 }
 

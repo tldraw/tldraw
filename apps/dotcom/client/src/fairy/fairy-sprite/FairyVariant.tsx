@@ -2,8 +2,8 @@ import { FairyPose } from '@tldraw/fairy-shared'
 import { FairyPartDefinition, FairyPartType } from './FairyPart'
 
 const FAIRY_HAT_VARIANTS = {
-	top: { idle: ['/fairy/fairy-hat-top.png'] },
-	pointy: { idle: ['/fairy/fairy-hat-point.png'] },
+	top: { idle: ['/fairy/fairy-hat-top.png'], poof: ['/fairy/fairy-loading.png'] },
+	pointy: { idle: ['/fairy/fairy-hat-point.png'], poof: ['/fairy/fairy-loading.png'] },
 } as const satisfies FairyPartDefinition
 
 const FAIRY_WINGS_VARIANTS = {
@@ -11,6 +11,7 @@ const FAIRY_WINGS_VARIANTS = {
 		idle: ['/fairy/fairy-wing-0.png'],
 		active: ['/fairy/fairy-wing-0.png', '/fairy/fairy-wing-1.png'],
 		thinking: ['/fairy/fairy-wing-0.png', '/fairy/fairy-wing-1.png'],
+		poof: ['/fairy/fairy-loading.png'],
 	},
 } as const satisfies FairyPartDefinition
 
@@ -18,6 +19,7 @@ const FAIRY_BODY_VARIANTS = {
 	plain: {
 		idle: ['/fairy/fairy-body-default.png'],
 		thinking: ['/fairy/fairy-body-think.png'],
+		poof: ['/fairy/fairy-loading.png'],
 	},
 } as const satisfies FairyPartDefinition
 

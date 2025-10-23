@@ -747,7 +747,8 @@ describe('isReadonly', () => {
 					agent: {
 						position: { x: 100, y: 200 },
 						flipX: false,
-						state: 'thinking',
+						pose: 'thinking',
+						gesture: null,
 					},
 				}),
 			],

@@ -1,3 +1,5 @@
+import { getValidGesture, getValidPose } from '@tldraw/fairy-shared'
+import { useMemo } from 'react'
 import { useEditor, usePeerIds, usePresence, useValue } from 'tldraw'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
 
@@ -36,6 +38,12 @@ function RemoteFairy({ userId }: { userId: string }) {
 		[editor, presence]
 	)
 
+	const validPose = useMemo(() => getValidPose(presence?.agent?.pose), [presence?.agent?.pose])
+	const validGesture = useMemo(
+		() => getValidGesture(presence?.agent?.gesture),
+		[presence?.agent?.gesture]
+	)
+
 	// Only render if the user is on the same page and has an active fairy
 	if (!presence || presence.currentPageId !== editor.getCurrentPageId()) {
 		return null
@@ -71,7 +79,14 @@ function RemoteFairy({ userId }: { userId: string }) {
 				}}
 			>
 				<FairySpriteComponent
-					pose={agent.state}
+					animated={true}
+					entity={{
+						position: agent.position,
+						flipX: agent.flipX,
+						isSelected: false,
+						pose: validPose,
+						gesture: validGesture,
+					}}
 					outfit={{
 						body: 'plain',
 						hat: 'pointy',

@@ -35,7 +35,6 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 
 	const flipX = useValue('fairy flipX', () => fairy.get()?.flipX ?? false, [fairy])
 	const isSelected = useValue('fairy isSelected', () => fairy.get()?.isSelected ?? false, [fairy])
-	const pose = useValue('fairy pose', () => fairy.get()?.pose ?? 'idle', [fairy])
 	const isThrowToolActive = useValue(
 		'is throw tool active',
 		() => editor.getCurrentTool().id === 'fairy-throw',
@@ -273,7 +272,14 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 					}}
 				/>
 				<div>
-					<FairySpriteComponent pose={pose} outfit={fairyOutfit} />
+					<FairySpriteComponent
+						entity={fairyEntity}
+						outfit={fairyOutfit}
+						animated={true}
+						onGestureEnd={() => {
+							fairy.update((f) => (f ? { ...f, gesture: null } : f))
+						}}
+					/>
 				</div>
 			</div>
 		</div>

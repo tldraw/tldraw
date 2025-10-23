@@ -10,6 +10,7 @@ import {
 	ContextItem,
 	FAIRY_VISION_DIMENSIONS,
 	FairyEntity,
+	FairyPose,
 	FocusedShape,
 	getWand,
 	PointContextItem,
@@ -121,13 +122,15 @@ export class FairyAgent {
 		this.id = id
 		this.getToken = getToken
 
-		const spawnPoint = findFairySpawnPoint({ x: 0, y: 0 }, editor)
+		const center = editor.getViewportPageBounds().center
+		const spawnPoint = findFairySpawnPoint(center, editor)
 
 		this.$fairyEntity = atom<FairyEntity>(`fairy-${id}`, {
 			position: spawnPoint,
 			flipX: false,
 			isSelected: false,
 			pose: 'idle',
+			gesture: null,
 		})
 
 		this.$fairyConfig = atom<FairyConfig>(`fairy-config-${id}`, fairyConfig)
@@ -1000,6 +1003,14 @@ export class FairyAgent {
 				flipX: true,
 			}
 		})
+	}
+
+	/**
+	 * Set the fairy's gesture.
+	 * @param gesture - The gesture to set the fairy to.
+	 */
+	setGesture(gesture: FairyPose | null) {
+		this.$fairyEntity.update((fairy) => ({ ...fairy, gesture }))
 	}
 
 	/**

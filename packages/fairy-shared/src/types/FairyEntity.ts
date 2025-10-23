@@ -14,4 +14,6 @@ export interface FairyEntity {
 	isSelected: boolean
 	/** The fairy's current pose, eg. 'thinking'. */
 	pose: FairyPose
+	/** A one-off gesture that the fairy is doing. This overrides the current pose until the gesture is complete. */
+	gesture: FairyPose | null
 }

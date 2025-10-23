@@ -47,6 +47,7 @@ function FairyButton({
 	)
 
 	const fairyOutfit = useValue('fairy outfit', () => agent.$fairyConfig.get()?.outfit, [agent])
+	const fairyEntity = useValue('fairy entity', () => agent.$fairyEntity.get(), [agent])
 
 	return (
 		<TldrawUiToolbarToggleGroup type="single" value={fairyIsSelected ? 'on' : 'off'} asChild>
@@ -59,7 +60,7 @@ function FairyButton({
 				aria-label={fairyIsSelected ? deselectMessage : selectMessage}
 				value="on"
 			>
-				<FairySpriteComponent pose="idle" outfit={fairyOutfit} />
+				<FairySpriteComponent entity={fairyEntity} outfit={fairyOutfit} animated={true} />
 			</TldrawUiToolbarToggleItem>
 		</TldrawUiToolbarToggleGroup>
 	)
@@ -135,6 +136,10 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		}
 	}, [chosenFairy])
 
+	const handleConfigureFairy = useCallback(() => {
+		// todo
+	}, [])
+
 	const togglePanel = useCallback((e?: any) => {
 		if (e) {
 			e.preventDefault()
@@ -144,21 +149,21 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		setIsPanelOpen((current) => !current)
 	}, [])
 
+	const summonFairy = useCallback(
+		(agent: FairyAgent) => {
+			const position = editor.getViewportPageBounds().center
+			agent.$fairyEntity.update((f) => (f ? { ...f, position, gesture: 'poof' } : f))
+		},
+		[editor]
+	)
+
 	if (!agents || agents.length === 0) return null
 
 	return (
 		<div
 			className={`tla-fairy-hud ${isPanelOpen ? 'tla-fairy-hud--open' : ''}`}
 			style={{
-				position: 'fixed',
 				bottom: isDebugMode ? '112px' : '72px',
-				right: '6px',
-				display: 'flex',
-				flexDirection: 'row',
-				alignItems: 'flex-end',
-				gap: '0px',
-				pointerEvents: 'auto',
-				zIndex: '99999999',
 			}}
 		>
 			{/* Panel with two states: closed (hidden) or open (showing full panel) */}
@@ -196,6 +201,16 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 													id="go-to-fairy"
 													onSelect={() => goToFairy(chosenFairy)}
 													label="Go to fairy"
+												/>
+												<TldrawUiMenuItem
+													id="summon-fairy"
+													onSelect={() => summonFairy(chosenFairy)}
+													label="Summon fairy"
+												/>
+												<TldrawUiMenuItem
+													id="configure-fairy"
+													onSelect={handleConfigureFairy}
+													label="Configure fairy"
 												/>
 												<TldrawUiMenuItem
 													id="new-chat"
