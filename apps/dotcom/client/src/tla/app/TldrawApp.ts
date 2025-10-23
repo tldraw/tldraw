@@ -807,6 +807,7 @@ export class TldrawApp {
 			createdAt: Date.now(),
 			updatedAt: Date.now(),
 			flags: '',
+			fairies: null,
 			allowAnalyticsCookie: null,
 			...restOfPreferences,
 			inputMode: restOfPreferences.inputMode ?? null,
