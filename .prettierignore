@@ -30,6 +30,7 @@ apps/docs/content/reference/**/*
 **/.out/*
 **/.temp/*
 apps/dotcom/client/public/**/*.*
+apps/analytics/public/**/*
 
 **/.clasp.json
 

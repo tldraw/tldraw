@@ -1,8 +1,7 @@
-import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-	plugins: [react()],
+	plugins: [],
 	define: {
 		'process.env.NODE_ENV': JSON.stringify('production'),
 	},
@@ -15,12 +14,7 @@ export default defineConfig({
 			formats: ['umd'],
 		},
 		rollupOptions: {
-			output: {
-				globals: {
-					react: 'React',
-					'react-dom': 'ReactDOM',
-				},
-			},
+			// React and ReactDOM are now bundled instead of external
 		},
 	},
 })

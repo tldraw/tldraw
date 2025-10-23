@@ -181,9 +181,11 @@ function configurePosthog(options: AnalyticsOptions) {
 				analytics_consent: true,
 			})
 		}
+		posthog.opt_in_capturing()
 	} else if (currentOptionsPosthog?.optedIn) {
 		posthog.setPersonProperties({ analytics_consent: false })
 		posthog.reset()
+		posthog.opt_out_capturing()
 	}
 
 	posthog.set_config(config)
