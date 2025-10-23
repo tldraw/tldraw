@@ -40,7 +40,7 @@ import { AgentActionUtil } from '../../actions/AgentActionUtil'
 import { FairyConfig } from '../../FairyConfig'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../FairyUtils'
 import { PromptPartUtil } from '../../parts/PromptPartUtil'
-import { $sharedTodoList, clearSharedTodoList } from '../../SharedTodoList'
+import { $sharedTodoList } from '../../SharedTodoList'
 import { AgentHelpers } from './AgentHelpers'
 import { FairyAgentOptions } from './FairyAgentOptions'
 import { $fairyAgentsAtom } from './fairyAgentsAtom'
@@ -379,11 +379,6 @@ export class FairyAgent {
 	 * @returns A promise for when the agent has finished its work.
 	 */
 	async prompt(input: AgentInput) {
-		// If all shared todo items are done, clear them
-		if ($sharedTodoList.get().every((item) => item.status === 'done')) {
-			clearSharedTodoList()
-		}
-
 		const startingFairy = this.$fairyEntity.get()
 		if (startingFairy.pose === 'idle') {
 			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'active' }))

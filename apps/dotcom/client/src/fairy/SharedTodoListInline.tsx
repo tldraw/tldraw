@@ -49,6 +49,17 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 			const agent = agents.find((a) => a.$fairyConfig.get().name === todo.claimedBy) // TODO Matching by name is bad
 			if (agent) {
 				agent.helpOut([todo])
+			} else {
+				// Get a free agent
+				const freeAgent = agents.find((v) => !v.isGenerating())
+				if (freeAgent) {
+					freeAgent.helpOut([todo])
+				} else {
+					// If no free agent is found, ask everyone to help
+					agents.forEach((agent) => {
+						agent.helpOut([todo])
+					})
+				}
 			}
 		},
 		[agents]
@@ -101,14 +112,14 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 										onChange={(e) => handleAssignFairy(todo.id, e.target.value)}
 										className="shared-todo-item-fairy-select"
 									>
-										<option value="">Unassigned</option>
+										<option value="">Auto</option>
 										{agents.map((agent) => (
 											<option key={agent.id} value={agent.$fairyConfig.get().name}>
 												{agent.$fairyConfig.get().name}
 											</option>
 										))}
 									</select>
-									{todo.claimedBy && (
+									{
 										<button
 											className="shared-todo-item-help-button"
 											onClick={() => handleHelpOut(todo)}
@@ -116,7 +127,7 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 										>
 											Request help
 										</button>
-									)}
+									}
 								</div>
 							</div>
 						)

@@ -25,7 +25,7 @@ import { SharedTodoListInline } from './SharedTodoListInline'
 
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { FairyConfigDialog } from './FairyConfigDialog'
-import { clearSharedTodoList } from './SharedTodoList'
+import { $sharedTodoList, clearSharedTodoList } from './SharedTodoList'
 
 const fairyMessages = defineMessages({
 	toolbar: { defaultMessage: 'Fairies' },
@@ -132,6 +132,9 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	)
 
 	const requestHelpFromEveryone = useCallback(() => {
+		if ($sharedTodoList.get().every((item) => item.status === 'done')) {
+			clearSharedTodoList()
+		}
 		agents.forEach((agent) => {
 			agent.helpOut()
 		})
@@ -229,7 +232,14 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 															/>
 															<TldrawUiMenuItem
 																id="help-out"
-																onSelect={() => chosenFairy.helpOut()}
+																onSelect={() => {
+																	if (
+																		$sharedTodoList.get().every((item) => item.status === 'done')
+																	) {
+																		clearSharedTodoList()
+																	}
+																	chosenFairy.helpOut()
+																}}
 																label="Ask for help"
 															/>
 															<TldrawUiMenuItem
@@ -305,7 +315,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 													<TldrawUiMenuItem
 														id="ask-for-help-from-everyone"
 														onSelect={requestHelpFromEveryone}
-														label="Request help"
+														label="Request help from everyone"
 													/>
 												</TldrawUiMenuGroup>
 												<TldrawUiMenuItem
