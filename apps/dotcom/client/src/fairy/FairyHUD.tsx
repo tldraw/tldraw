@@ -267,7 +267,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 												className="fairy-toolbar-button"
 												onClick={resetChat}
 											>
-												+
+												<TldrawUiIcon icon="plus" label="Reset chat" />
 											</TldrawUiButton>
 										</div>
 										<FairyChatHistory agent={chosenFairy} />
