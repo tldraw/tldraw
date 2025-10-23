@@ -10,7 +10,7 @@ import {
 	TldrawUiToolbarToggleGroup,
 	TldrawUiToolbarToggleItem,
 	useEditor,
-	useReactor,
+	useQuickReactor,
 	useValue,
 } from 'tldraw'
 import '../tla/styles/fairy.css'
@@ -85,7 +85,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	)
 
 	// Update the chosen fairy when the selected fairies change
-	useReactor(
+	useQuickReactor(
 		'update-chosen-fairy',
 		() => {
 			const currentSelectedFairies = agents.filter(
@@ -110,16 +110,20 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 
 	const handleToggle = useCallback(
 		(clickedAgent: FairyAgent) => {
-			// Deselect all fairies
-			agents.forEach((agent) => {
-				agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
-			})
+			const isSelected = clickedAgent.$fairyEntity.get().isSelected
+			const isChosen = clickedAgent.id === chosenFairy.id
 
 			// Select the clicked fairy
 			clickedAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
 
-			// If the clicked fairy is already chosen, toggle the panel. Otherwise, keep the panel open.
-			setIsPanelOpen((v) => (clickedAgent.id === chosenFairy.id ? !v : true))
+			// Deselect all other fairies
+			agents.forEach((agent) => {
+				if (agent.id === clickedAgent.id) return
+				agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+			})
+
+			// If the clicked fairy is already chosen and selected, toggle the panel. Otherwise, keep the panel open.
+			setIsPanelOpen((v) => (isChosen && isSelected ? !v : true))
 		},
 		[agents, chosenFairy.id]
 	)

@@ -1196,8 +1196,8 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
     // (undocumented)
     agent: {
         flipX: boolean;
-        pose: 'acting' | 'active' | 'idle' | 'thinking';
         position: VecModel;
+        state: 'acting' | 'active' | 'idle' | 'thinking';
     } | null;
     // (undocumented)
     brush: BoxModel | null;
