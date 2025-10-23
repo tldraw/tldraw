@@ -9,6 +9,7 @@ import {
 	TldrawUiToolbar,
 	TldrawUiToolbarToggleGroup,
 	TldrawUiToolbarToggleItem,
+	useDefaultHelpers,
 	useEditor,
 	useQuickReactor,
 	useValue,
@@ -22,6 +23,7 @@ import { FairySpriteComponent } from './fairy-sprite/FairySprite'
 import { SharedTodoListInline } from './SharedTodoListInline'
 
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
+import { FairyConfigDialog } from './FairyConfigDialog'
 
 const fairyMessages = defineMessages({
 	toolbar: { defaultMessage: 'Fairies' },
@@ -73,6 +75,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
 	const [isPanelOpen, setIsPanelOpen] = useState(false)
 	const [viewMode, setViewMode] = useState<'conversation' | 'info'>('conversation')
+	const { addDialog } = useDefaultHelpers()
 
 	const toolbarMessage = useMsg(fairyMessages.toolbar)
 	const deselectMessage = useMsg(fairyMessages.deselect)
@@ -139,8 +142,10 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	}, [chosenFairy])
 
 	const handleConfigureFairy = useCallback(() => {
-		// todo
-	}, [])
+		addDialog({
+			component: ({ onClose }) => <FairyConfigDialog agent={chosenFairy} onClose={onClose} />,
+		})
+	}, [addDialog, chosenFairy])
 
 	const togglePanel = useCallback((e?: any) => {
 		if (e) {
