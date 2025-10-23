@@ -181,6 +181,8 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		[editor]
 	)
 
+	const fairyConfig = useValue('fairy config', () => chosenFairy.$fairyConfig.get(), [chosenFairy])
+
 	if (!agents || agents.length === 0) return null
 
 	return (
@@ -262,7 +264,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 													</TldrawUiMenuContextProvider>
 												</_DropdownMenu.Content>
 											</_DropdownMenu.Root>
-											<div className="fairy-id-display">{chosenFairy?.$fairyConfig.get().name}</div>
+											<div className="fairy-id-display">{fairyConfig.name}</div>
 											<TldrawUiButton
 												type="icon"
 												className="fairy-toolbar-button"

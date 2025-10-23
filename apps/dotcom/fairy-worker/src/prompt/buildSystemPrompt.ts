@@ -21,7 +21,7 @@ export function buildSystemPrompt(prompt: AgentPrompt): string {
 	const wandName = prompt.wand?.wand
 	if (!wandName) throw new Error('A wand is required.')
 	const wand = getWand(wandName as Wand['type'])
-	const systemPrompt = getSystemPrompt(wand.availableActions, wand.availableParts)
+	const systemPrompt = getSystemPrompt(wand.actions, wand.parts)
 	return systemPrompt
 }
 

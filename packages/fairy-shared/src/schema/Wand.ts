@@ -13,12 +13,11 @@ interface BaseWand {
 	/** A brief description of the wand can do. */
 	description: string
 	/** Whether the wand is available in the user-facing config. */
-	isAvailableInConfig: boolean
-	// TODO: Enable prompt part sets too
+	available: boolean
 	/** The prompt parts that the wand allows the fairy to see. */
-	availableParts: PromptPart['type'][]
+	parts: PromptPart['type'][]
 	/** The actions that the wand allows the fairy to take. */
-	availableActions: AgentAction['_type'][]
+	actions: AgentAction['_type'][]
 }
 
 /**
@@ -45,40 +44,30 @@ export const WAND_DEFINITIONS = [
 	{
 		type: 'god',
 		name: 'Almighty Wand',
-		description: 'A wand that allows the agent to perform any action. Use with caution.',
-		isAvailableInConfig: false,
-		availableParts: DEFAULT_PROMPT_PART_SET,
-		availableActions: DEFAULT_AGENT_ACTION_SET,
-	},
-	{
-		type: 'blindfold',
-		name: 'Blindfold Wand',
-		description:
-			'A wand that allows the agent to perform any action, but without any letting it see anything.',
-		isAvailableInConfig: false,
-		availableParts: ['wand', 'messages'],
-		availableActions: DEFAULT_AGENT_ACTION_SET,
+		description: 'A wand that allows the fairy to perform any action.',
+		available: true,
+		parts: DEFAULT_PROMPT_PART_SET,
+		actions: DEFAULT_AGENT_ACTION_SET,
 	},
 	{
 		type: 'personality',
 		name: 'Personality Wand',
-		isAvailableInConfig: false,
+		available: false,
 		description:
 			"A wand for taking a user prompt and imbuing it with the fairy's personality. Used internally.",
-		availableParts: DEFAULT_PROMPT_PART_SET,
-		availableActions: ['think', 'imbue-personality'],
+		parts: DEFAULT_PROMPT_PART_SET,
+		actions: ['think', 'imbue-personality'],
 	},
 	{
 		type: 'pen',
 		name: 'Pen Wand',
-		description: 'A wand well-suited for drawing pictures with the pen.',
-		isAvailableInConfig: true,
-		availableParts: DEFAULT_PROMPT_PART_SET,
-		availableActions: [
+		description: 'A wand for drawing pictures with a pen.',
+		available: true,
+		parts: DEFAULT_PROMPT_PART_SET,
+		actions: [
 			'message',
 			'think',
 			'review',
-			// 'update-todo-list',
 			'update-shared-todo-list',
 			'fly-to-bounds',
 			'note-to-self',
@@ -95,14 +84,13 @@ export const WAND_DEFINITIONS = [
 	{
 		type: 'destroy',
 		name: 'The Destroyer',
-		description: 'A wand for deleting only.',
-		isAvailableInConfig: true,
-		availableParts: DEFAULT_PROMPT_PART_SET,
-		availableActions: [
+		description: 'A wand that can only delete.',
+		available: true,
+		parts: DEFAULT_PROMPT_PART_SET,
+		actions: [
 			'message',
 			'think',
 			'review',
-			// 'update-todo-list',
 			'update-shared-todo-list',
 			'fly-to-bounds',
 			'note-to-self',
@@ -114,13 +102,12 @@ export const WAND_DEFINITIONS = [
 		name: 'Mouth Wand',
 		description:
 			"A wand with a mouth on the end. With this wand, your fairy will speak with you, but won't be able to edit the canvas.",
-		isAvailableInConfig: true,
-		availableParts: DEFAULT_PROMPT_PART_SET,
-		availableActions: [
+		available: true,
+		parts: DEFAULT_PROMPT_PART_SET,
+		actions: [
 			'message',
 			'think',
 			'review',
-			// 'update-todo-list',
 			'update-shared-todo-list',
 			'fly-to-bounds',
 			'note-to-self',
@@ -128,15 +115,15 @@ export const WAND_DEFINITIONS = [
 	},
 	{
 		type: 'diagram',
-		name: 'Diagram Wand',
-		description: 'A wand well-suited for creating diagrams.',
-		isAvailableInConfig: true,
-		availableParts: DEFAULT_PROMPT_PART_SET,
-		availableActions: [
+		name: 'Diagramming Wand',
+		description:
+			'A wand for creating diagrams. It can manipulate shapes, but cannot draw with the pen.',
+		available: true,
+		parts: DEFAULT_PROMPT_PART_SET,
+		actions: [
 			'message',
 			'think',
 			'review',
-			// 'update-todo-list',
 			'update-shared-todo-list',
 			'fly-to-bounds',
 			'note-to-self',
@@ -152,6 +139,15 @@ export const WAND_DEFINITIONS = [
 			'distribute',
 			'stack',
 		] as const,
+	},
+	{
+		type: 'blindfold',
+		name: 'Blindfolded Wand',
+		description:
+			'A wand that allows the fairy to perform any action, but prevents the fairy from seeing anything.',
+		available: true,
+		parts: ['wand', 'messages'],
+		actions: DEFAULT_AGENT_ACTION_SET,
 	},
 ] as const satisfies BaseWand[]
 

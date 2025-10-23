@@ -335,7 +335,7 @@ export class FairyAgent {
 
 		const wand = getWand(request.wand)
 		const availablePromptPartUtils = []
-		for (const part of wand.availableParts) {
+		for (const part of wand.parts) {
 			const util = promptPartUtils[part]
 			if (util) availablePromptPartUtils.push(util)
 		}
@@ -1141,7 +1141,7 @@ function requestAgentActions({ agent, request }: { agent: FairyAgent; request: A
 						const actionUtil = agent.getAgentActionUtil(action._type)
 
 						// If the action is not in the wand's available actions, skip it
-						if (!(wand.availableActions as string[]).includes(actionUtilType)) {
+						if (!(wand.actions as string[]).includes(actionUtilType)) {
 							return
 						}
 
