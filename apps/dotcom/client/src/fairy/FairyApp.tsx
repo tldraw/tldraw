@@ -15,7 +15,7 @@ const FAIRY_1_CONFIG: FairyConfig = {
 		wings: 'plain',
 	},
 	personality: 'intelligent but cold, calculating, and aloof',
-	wand: 'blindfold',
+	wand: 'god',
 }
 
 const FAIRY_2_CONFIG: FairyConfig = {
