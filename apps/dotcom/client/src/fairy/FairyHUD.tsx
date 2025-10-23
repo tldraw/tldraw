@@ -332,7 +332,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 										className="fairy-toolbar-button"
 										onClick={requestHelpFromEveryone}
 									>
-										Go!
+										<TldrawUiIcon icon="geo-arrow-up" label="Request help from everyone" />
 									</TldrawUiButton>
 								</div>
 								<SharedTodoListInline agents={agents} />
