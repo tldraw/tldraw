@@ -31,10 +31,10 @@ import { CollectionDiff } from './Store'
  *
  * @public
  */
-export type RSIndexDiff<
-	R extends UnknownRecord,
-	Property extends string & keyof R = string & keyof R,
-> = Map<R[Property], CollectionDiff<IdOf<R>>>
+export type RSIndexDiff<R extends UnknownRecord, Property extends string = string & keyof R> = Map<
+	any,
+	CollectionDiff<IdOf<R>>
+>
 
 /**
  * A type representing a reactive store index as a map from property values to sets of record IDs.
@@ -51,10 +51,10 @@ export type RSIndexDiff<
  *
  * @public
  */
-export type RSIndexMap<
-	R extends UnknownRecord,
-	Property extends string & keyof R = string & keyof R,
-> = Map<R[Property], Set<IdOf<R>>>
+export type RSIndexMap<R extends UnknownRecord, Property extends string = string & keyof R> = Map<
+	any,
+	Set<IdOf<R>>
+>
 
 /**
  * A reactive computed index that provides efficient lookups of records by property values.
@@ -71,10 +71,10 @@ export type RSIndexMap<
  *
  * @public
  */
-export type RSIndex<
-	R extends UnknownRecord,
-	Property extends string & keyof R = string & keyof R,
-> = Computed<RSIndexMap<R, Property>, RSIndexDiff<R, Property>>
+export type RSIndex<R extends UnknownRecord, Property extends string = string & keyof R> = Computed<
+	RSIndexMap<R, Property>,
+	RSIndexDiff<R, Property>
+>
 
 /**
  * A class that provides reactive querying capabilities for a record store.
@@ -149,6 +149,19 @@ export class StoreQueries<R extends UnknownRecord> {
 			return record as Extract<R, { typeName: TypeName }>
 		}
 		return undefined
+	}
+
+	/**
+	 * Helper to extract nested property value using pre-split path parts.
+	 * @internal
+	 */
+	private getNestedValue(obj: any, pathParts: string[]): any {
+		let current = obj
+		for (const part of pathParts) {
+			if (current == null || typeof current !== 'object') return undefined
+			current = current[part]
+		}
+		return current
 	}
 
 	/**
@@ -267,8 +280,10 @@ export class StoreQueries<R extends UnknownRecord> {
 	 * The index automatically updates when records are added, updated, or removed, and results are cached
 	 * for performance.
 	 *
+	 * Supports nested property paths using backslash separator (e.g., 'metadata\\sessionId').
+	 *
 	 * @param typeName - The type name of records to index
-	 * @param property - The property name to index by
+	 * @param property - The property name or backslash-delimited path to index by
 	 * @returns A reactive computed containing the index map with change diffs
 	 *
 	 * @example
@@ -280,17 +295,17 @@ export class StoreQueries<R extends UnknownRecord> {
 	 * const authorBooks = booksByAuthor.get().get('author:leguin')
 	 * console.log(authorBooks) // Set<RecordId<Book>>
 	 *
-	 * // Index by title for quick title lookups
-	 * const booksByTitle = store.query.index('book', 'title')
-	 * const booksLatheOfHeaven = booksByTitle.get().get('The Lathe of Heaven')
+	 * // Index by nested property using backslash separator
+	 * const booksBySession = store.query.index('book', 'metadata\\sessionId')
+	 * const sessionBooks = booksBySession.get().get('session:alpha')
 	 * ```
 	 *
 	 * @public
 	 */
-	public index<
-		TypeName extends R['typeName'],
-		Property extends string & keyof Extract<R, { typeName: TypeName }>,
-	>(typeName: TypeName, property: Property): RSIndex<Extract<R, { typeName: TypeName }>, Property> {
+	public index<TypeName extends R['typeName'], Property extends string>(
+		typeName: TypeName,
+		property: Property
+	): RSIndex<Extract<R, { typeName: TypeName }>, Property> {
 		const cacheKey = typeName + ':' + property
 
 		if (this.indexCache.has(cacheKey)) {
@@ -308,32 +323,43 @@ export class StoreQueries<R extends UnknownRecord> {
 	 * Creates a new index without checking the cache. This method performs the actual work
 	 * of building the reactive index computation that tracks property values to record ID sets.
 	 *
+	 * Supports nested property paths using backslash separator.
+	 *
 	 * @param typeName - The type name of records to index
-	 * @param property - The property name to index by
+	 * @param property - The property name or backslash-delimited path to index by
 	 * @returns A reactive computed containing the index map with change diffs
 	 *
 	 * @internal
 	 */
-	__uncached_createIndex<
-		TypeName extends R['typeName'],
-		Property extends string & keyof Extract<R, { typeName: TypeName }>,
-	>(typeName: TypeName, property: Property): RSIndex<Extract<R, { typeName: TypeName }>, Property> {
+	__uncached_createIndex<TypeName extends R['typeName'], Property extends string>(
+		typeName: TypeName,
+		property: Property
+	): RSIndex<Extract<R, { typeName: TypeName }>, Property> {
 		type S = Extract<R, { typeName: TypeName }>
 
 		const typeHistory = this.filterHistory(typeName)
+
+		// Create closure for efficient property value extraction
+		const pathParts = property.split('\\')
+		const getPropertyValue =
+			pathParts.length > 1
+				? (obj: S) => this.getNestedValue(obj, pathParts)
+				: (obj: S) => obj[property as keyof S]
 
 		const fromScratch = () => {
 			// deref typeHistory early so that the first time the incremental version runs
 			// it gets a diff to work with instead of having to bail to this from-scratch version
 			typeHistory.get()
-			const res = new Map<S[Property], Set<IdOf<S>>>()
+			const res = new Map<any, Set<IdOf<S>>>()
 			for (const record of this.recordMap.values()) {
 				if (record.typeName === typeName) {
-					const value = (record as S)[property]
-					if (!res.has(value)) {
-						res.set(value, new Set())
+					const value = getPropertyValue(record as S)
+					if (value !== undefined) {
+						if (!res.has(value)) {
+							res.set(value, new Set())
+						}
+						res.get(value)!.add(record.id)
 					}
-					res.get(value)!.add(record.id)
 				}
 			}
 
@@ -352,7 +378,7 @@ export class StoreQueries<R extends UnknownRecord> {
 
 				const setConstructors = new Map<any, IncrementalSetConstructor<IdOf<S>>>()
 
-				const add = (value: S[Property], id: IdOf<S>) => {
+				const add = (value: any, id: IdOf<S>) => {
 					let setConstructor = setConstructors.get(value)
 					if (!setConstructor)
 						setConstructor = new IncrementalSetConstructor<IdOf<S>>(
@@ -362,7 +388,7 @@ export class StoreQueries<R extends UnknownRecord> {
 					setConstructors.set(value, setConstructor)
 				}
 
-				const remove = (value: S[Property], id: IdOf<S>) => {
+				const remove = (value: any, id: IdOf<S>) => {
 					let set = setConstructors.get(value)
 					if (!set) set = new IncrementalSetConstructor<IdOf<S>>(prevValue.get(value) ?? new Set())
 					set.remove(id)
@@ -372,24 +398,32 @@ export class StoreQueries<R extends UnknownRecord> {
 				for (const changes of history) {
 					for (const record of objectMapValues(changes.added)) {
 						if (record.typeName === typeName) {
-							const value = (record as S)[property]
-							add(value, record.id)
+							const value = getPropertyValue(record as S)
+							if (value !== undefined) {
+								add(value, record.id)
+							}
 						}
 					}
 					for (const [from, to] of objectMapValues(changes.updated)) {
 						if (to.typeName === typeName) {
-							const prev = (from as S)[property]
-							const next = (to as S)[property]
+							const prev = getPropertyValue(from as S)
+							const next = getPropertyValue(to as S)
 							if (prev !== next) {
-								remove(prev, to.id)
-								add(next, to.id)
+								if (prev !== undefined) {
+									remove(prev, to.id)
+								}
+								if (next !== undefined) {
+									add(next, to.id)
+								}
 							}
 						}
 					}
 					for (const record of objectMapValues(changes.removed)) {
 						if (record.typeName === typeName) {
-							const value = (record as S)[property]
-							remove(value, record.id)
+							const value = getPropertyValue(record as S)
+							if (value !== undefined) {
+								remove(value, record.id)
+							}
 						}
 					}
 				}
