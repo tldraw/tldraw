@@ -31,6 +31,7 @@ import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
+import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
@@ -156,21 +157,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			} else if (deepLink) {
 				editor.navigateToDeepLink(parseDeepLinkString(deepLink))
 			}
-			const sessionState$ = createSessionStateSnapshotSignal(editor.store)
-			const updateSessionState = throttle((state: TLSessionStateSnapshot) => {
-				app.onFileSessionStateUpdate(fileId, state)
-			}, 5000)
-			// don't want to update if they only open the file and didn't look around
-			let firstTime = true
-			const cleanup = react('update session state', () => {
-				const state = sessionState$.get()
-				if (!state) return
-				if (firstTime) {
-					firstTime = false
-					return
-				}
-				updateSessionState(state)
-			})
+			const fileStateUpdater = new FileStateUpdater(app, fileId, editor)
 
 			const abortController = new AbortController()
 			maybeSlurp({
@@ -183,9 +170,8 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			}).then(setIsReady)
 
 			return () => {
-				updateSessionState.flush()
+				fileStateUpdater.dispose()
 				abortController.abort()
-				cleanup()
 			}
 		},
 		[addDialog, trackRoomLoaded, trackNewRoomCreation, app, fileId, remountImageShapes, setIsReady]
@@ -302,7 +288,6 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<SneakyDarkModeSync />
 				<SneakyToolSwitcher />
 				{app && <SneakyTldrawFileDropHandler />}
-				<SneakyFileUpdateHandler fileId={fileId} />
 				<SneakyLargeFileHander />
 				{showFairies && (
 					<Suspense fallback={null}>
@@ -312,30 +297,6 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			</Tldraw>
 		</TlaEditorWrapper>
 	)
-}
-
-function SneakyFileUpdateHandler({ fileId }: { fileId: string }) {
-	const app = useMaybeApp()
-	const editor = useEditor()
-	useEffect(() => {
-		const onChange = throttle(
-			() => {
-				if (!app) return
-				app.onFileEdit(fileId)
-			},
-			// This is used to update the lastEditAt time in the database, and to let the local
-			// room know that an edit has been made.
-			// It doesn't need to be super fast or accurate so we can throttle it a lot
-			10_000
-		)
-		const unsub = editor.store.listen(onChange, { scope: 'document', source: 'user' })
-		return () => {
-			onChange.flush()
-			unsub()
-		}
-	}, [app, fileId, editor])
-
-	return null
 }
 
 function CustomDebugMenu({ showFairyFeatureFlags }: { showFairyFeatureFlags: boolean }) {
@@ -363,4 +324,64 @@ function CustomDebugMenu({ showFairyFeatureFlags }: { showFairyFeatureFlags: boo
 			/>
 		</DefaultDebugMenu>
 	)
+}
+
+const FILE_STATE_UPDATE_INTERVAL = 10_000
+class FileStateUpdater {
+	disposables = new Set<() => void>()
+	constructor(
+		private readonly app: TldrawApp,
+		private readonly fileId: string,
+		editor: Editor
+	) {
+		this.disposables.add(
+			editor.store.listen(
+				() => {
+					this.didDocumentChange = true
+					this.update()
+				},
+				{ scope: 'document', source: 'user' }
+			)
+		)
+		const sessionState$ = createSessionStateSnapshotSignal(editor.store)
+		let firstTime = true
+		this.disposables.add(
+			react('update session state', () => {
+				const state = sessionState$.get()
+				if (firstTime) {
+					firstTime = false
+					return
+				}
+				if (!state) return
+				this.nextSessionState = state
+				this.update()
+			})
+		)
+	}
+
+	private nextSessionState: TLSessionStateSnapshot | null = null
+	private didDocumentChange = false
+
+	private update = throttle(
+		() => {
+			if (!this.nextSessionState && !this.didDocumentChange) return
+			const state = this.nextSessionState
+			this.nextSessionState = null
+			const didChange = this.didDocumentChange
+			this.didDocumentChange = false
+			this.app.updateFileState(this.fileId, {
+				lastSessionState: state ? JSON.stringify(state) : undefined,
+				lastEditAt: didChange ? Date.now() : undefined,
+				lastVisitAt: Date.now(),
+			})
+		},
+		FILE_STATE_UPDATE_INTERVAL,
+		{ trailing: true, leading: false }
+	)
+
+	dispose() {
+		this.update.flush()
+		this.disposables.forEach((dispose) => dispose())
+		this.disposables.clear()
+	}
 }
