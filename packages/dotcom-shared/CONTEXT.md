@@ -40,7 +40,6 @@ const user = table('user')
 		isPasteAtCursorMode: boolean().optional(),
 		enhancedA11yMode: boolean().optional(),
 		allowAnalyticsCookie: boolean().optional(),
-		fairies: string().optional(),
 	})
 	.primaryKey('id')
 

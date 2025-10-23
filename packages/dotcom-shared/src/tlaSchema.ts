@@ -44,7 +44,6 @@ export const user = table('user')
 		inputMode: string().optional(),
 		enhancedA11yMode: boolean().optional(),
 		allowAnalyticsCookie: boolean().optional(),
-		fairies: string().optional(),
 	})
 	.primaryKey('id')
 

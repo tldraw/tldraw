@@ -1,5 +1,5 @@
 import { PersistedFairyState } from '@tldraw/fairy-shared'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { react, throttle, useEditor } from 'tldraw'
 import { useMaybeApp } from '../tla/hooks/useAppState'
 import { useTldrawUser } from '../tla/hooks/useUser'
@@ -7,7 +7,7 @@ import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { useFairyAgent } from './fairy-agent/agent/useFairyAgent'
 import { FairyConfig } from './FairyConfig'
 
-const DEFAULT_FAIRY_1_CONFIG: FairyConfig = {
+const FAIRY_1_CONFIG: FairyConfig = {
 	name: 'Huppy',
 	outfit: {
 		body: 'plain',
@@ -18,7 +18,7 @@ const DEFAULT_FAIRY_1_CONFIG: FairyConfig = {
 	wand: 'god',
 }
 
-const DEFAULT_FAIRY_2_CONFIG: FairyConfig = {
+const FAIRY_2_CONFIG: FairyConfig = {
 	name: 'Yppuh',
 	outfit: {
 		body: 'plain',
@@ -27,10 +27,6 @@ const DEFAULT_FAIRY_2_CONFIG: FairyConfig = {
 	},
 	personality: 'artistic, creative, and neurotic',
 	wand: 'god',
-}
-
-interface PersistedFairyConfigs {
-	[fairyId: string]: FairyConfig
 }
 
 export function FairyApp({
@@ -49,42 +45,12 @@ export function FairyApp({
 		return await user.getToken()
 	}, [user])
 
-	// Use stable IDs for fairies so state persists across sessions
+	// TODO: we need to use stable/hard-coded id's for fairies (not random) so state persists across sessions
 	const FAIRY_1_ID = 'fairy-1'
 	const FAIRY_2_ID = 'fairy-2'
 
-	// Load fairy configs from user preferences, falling back to defaults
-	const fairyConfigs = useMemo(() => {
-		if (!app) return { [FAIRY_1_ID]: DEFAULT_FAIRY_1_CONFIG, [FAIRY_2_ID]: DEFAULT_FAIRY_2_CONFIG }
-
-		try {
-			const user = app.getUser()
-			if (user.fairies) {
-				const parsed: PersistedFairyConfigs = JSON.parse(user.fairies)
-				return {
-					[FAIRY_1_ID]: parsed[FAIRY_1_ID] || DEFAULT_FAIRY_1_CONFIG,
-					[FAIRY_2_ID]: parsed[FAIRY_2_ID] || DEFAULT_FAIRY_2_CONFIG,
-				}
-			}
-		} catch (e) {
-			console.error('Failed to load fairy configs:', e)
-		}
-
-		return { [FAIRY_1_ID]: DEFAULT_FAIRY_1_CONFIG, [FAIRY_2_ID]: DEFAULT_FAIRY_2_CONFIG }
-	}, [app])
-
-	const agent1 = useFairyAgent({
-		id: FAIRY_1_ID,
-		fairyConfig: fairyConfigs[FAIRY_1_ID],
-		editor,
-		getToken,
-	})
-	const agent2 = useFairyAgent({
-		id: FAIRY_2_ID,
-		fairyConfig: fairyConfigs[FAIRY_2_ID],
-		editor,
-		getToken,
-	})
+	const agent1 = useFairyAgent({ id: FAIRY_1_ID, fairyConfig: FAIRY_1_CONFIG, editor, getToken })
+	const agent2 = useFairyAgent({ id: FAIRY_2_ID, fairyConfig: FAIRY_2_CONFIG, editor, getToken })
 
 	// Track whether we're currently loading state to prevent premature saves
 	const isLoadingStateRef = useRef(false)
@@ -167,48 +133,6 @@ export function FairyApp({
 			cleanup2()
 		}
 	}, [app, agent1, agent2, fileId, FAIRY_1_ID, FAIRY_2_ID])
-
-	// Save fairy configs to user preferences when they change
-	useEffect(() => {
-		if (!app || !agent1 || !agent2) return
-
-		const updateFairyConfigs = throttle(() => {
-			// Don't save if we're currently loading state
-			if (isLoadingStateRef.current) return
-
-			const configs: PersistedFairyConfigs = {
-				[FAIRY_1_ID]: agent1.$fairyConfig.get(),
-				[FAIRY_2_ID]: agent2.$fairyConfig.get(),
-			}
-
-			try {
-				const user = app.getUser()
-				app.z.mutate.user.update({
-					id: user.id,
-					fairies: JSON.stringify(configs),
-				})
-			} catch (e) {
-				console.error('Failed to save fairy configs:', e)
-			}
-		}, 5000) // Save every 5 seconds
-
-		// Watch for changes in fairy config atoms
-		const cleanup1 = react('fairy 1 config', () => {
-			agent1.$fairyConfig.get()
-			updateFairyConfigs()
-		})
-
-		const cleanup2 = react('fairy 2 config', () => {
-			agent2.$fairyConfig.get()
-			updateFairyConfigs()
-		})
-
-		return () => {
-			updateFairyConfigs.flush()
-			cleanup1()
-			cleanup2()
-		}
-	}, [app, agent1, agent2, FAIRY_1_ID, FAIRY_2_ID])
 
 	return null
 }
