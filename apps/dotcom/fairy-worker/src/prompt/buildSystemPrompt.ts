@@ -136,7 +136,7 @@ ${
 		: ''
 }
 ${
-	flags.hasCreate || flags.hasUpdate
+	flags.hasCreate
 		? `- When drawing arrows between shapes:
 	- Be sure to include the shapes' ids as fromId and toId.
 	- Always ensure they are properly connected with bindings.

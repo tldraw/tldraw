@@ -767,8 +767,8 @@ ul {
 .shared-todo-input {
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	padding: 8px;
+	gap: 6px;
+	padding: 6px;
 	border-bottom: 1px solid var(--tl-color-divider);
 	flex-shrink: 0;
 }
@@ -794,14 +794,15 @@ ul {
 }
 
 .shared-todo-input-submit {
-	width: 24px;
-	height: 24px;
 	flex-shrink: 0;
+	width: 32px;
+	height: 100%;
 	background-color: var(--tl-color-primary);
 	color: white;
 	border: none;
 	border-radius: 4px;
 	cursor: pointer;
+	padding: 0;
 	font-size: 18px;
 	display: flex;
 	align-items: center;
@@ -810,7 +811,7 @@ ul {
 }
 
 .shared-todo-input-submit:hover:not(:disabled) {
-	background-color: var(--tl-color-primary-hover);
+	background-color: var(--tl-color-focus);
 }
 
 .shared-todo-input-submit:disabled {

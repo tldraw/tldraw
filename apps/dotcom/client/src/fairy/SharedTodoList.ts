@@ -18,3 +18,7 @@ export function addSharedTodoItem(text: string) {
 export function deleteSharedTodoItem(id: number) {
 	$sharedTodoList.update((todos) => todos.filter((t) => t.id !== id))
 }
+
+export function clearSharedTodoList() {
+	$sharedTodoList.set([])
+}

@@ -17,7 +17,7 @@ export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClo
 	return (
 		<>
 			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>Fairy configuration</TldrawUiDialogTitle>
+				<TldrawUiDialogTitle>Fairy customization</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody style={{ maxWidth: 400 }}>
