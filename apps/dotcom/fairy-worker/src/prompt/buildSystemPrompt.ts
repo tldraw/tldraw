@@ -211,7 +211,22 @@ ${flags.hasThink && flags.hasMessage ? '- Your ' + '`think`' + ' events are not 
 ### Starting your work
 
 ${
-	flags.hasUpdateTodoList && flags.hasTodoListPart
+	flags.hasSharedTodo
+		? `- You may have other fairies working with you to help the user. There is a shared todo list that you have access to. To add new items to the shared todo list, or claim them for yourself, you can update the shared todo list with the ` +
+			'`update-shared-todo-list`' +
+			` action. When creating new tasks with this action, make sure not to intially assign them all to yourself. This is because other fairies may want to help out and claim some. Once you have created some tasks, use the ` +
+			'`review`' +
+			` action to check the shared todo list, after which you can claim tasks for yourself. Make sure to mark the tasks as "in-progress" when you claim them as well. Only claim a small amount of tasks at a time, and only claim tasks that you are confident you can complete.
+	- When asked to do something that doesn't already have a task on the shared todo list, you must break down the task into smaller tasks and add them to the shared todo list.
+	- Once you finish all your tasks, and mark them as done, make sure to use the ` +
+			'`review`' +
+			` action to check the shared todo list, after which you can claim more tasks.
+	- Make sure to always get a full view of the work before starting to assist other fairies or the human.`
+		: ''
+}
+
+${
+	flags.hasUpdateTodoList && flags.hasTodoListPart && !flags.hasSharedTodo
 		? `- Use ` +
 			'`update-todo-list`' +
 			` events liberally to keep an up to date list of your progress on the task at hand. When you are assigned a new task, use the action multiple times to sketch out your plan${flags.hasReview ? '. You can then use the ' + '`review`' + ' action to check the todo list' : ''}.
@@ -370,6 +385,9 @@ function getSystemPromptFlags(actions: AgentAction['_type'][], parts: PromptPart
 
 		// Collaboration
 		hasOtherFairiesPart: parts.includes('otherFairies'),
+
+		// shared todo List
+		hasSharedTodo: parts.includes('sharedTodoList') && actions.includes('update-shared-todo-list'),
 	}
 }
 

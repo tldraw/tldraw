@@ -32,6 +32,13 @@ export type Wand = (typeof WAND_DEFINITIONS)[number]
 const DEFAULT_PROMPT_PART_SET = PROMPT_PART_TYPES.filter((type) => type !== 'todoList')
 
 /**
+ * The default agent action set is the set of agent actions that are available to all wands.
+ */
+const DEFAULT_AGENT_ACTION_SET = AGENT_ACTION_TYPES.filter(
+	(action) => action !== 'update-todo-list' && action !== 'note-to-self'
+)
+
+/**
  * Wand definitions determine what wands are available to the agent.
  */
 export const WAND_DEFINITIONS = [
@@ -41,7 +48,7 @@ export const WAND_DEFINITIONS = [
 		description: 'A wand that allows the agent to perform any action. Use with caution.',
 		isAvailableInConfig: false,
 		availableParts: DEFAULT_PROMPT_PART_SET,
-		availableActions: AGENT_ACTION_TYPES,
+		availableActions: DEFAULT_AGENT_ACTION_SET,
 	},
 	{
 		type: 'blindfold',
@@ -50,7 +57,7 @@ export const WAND_DEFINITIONS = [
 			'A wand that allows the agent to perform any action, but without any letting it see anything.',
 		isAvailableInConfig: false,
 		availableParts: ['wand', 'messages'],
-		availableActions: AGENT_ACTION_TYPES,
+		availableActions: DEFAULT_AGENT_ACTION_SET,
 	},
 	{
 		type: 'personality',
@@ -71,7 +78,8 @@ export const WAND_DEFINITIONS = [
 			'message',
 			'think',
 			'review',
-			'update-todo-list',
+			// 'update-todo-list',
+			'update-shared-todo-list',
 			'fly-to-bounds',
 			'note-to-self',
 			'pen',
@@ -94,7 +102,8 @@ export const WAND_DEFINITIONS = [
 			'message',
 			'think',
 			'review',
-			'update-todo-list',
+			// 'update-todo-list',
+			'update-shared-todo-list',
 			'fly-to-bounds',
 			'note-to-self',
 			'delete',
@@ -111,7 +120,8 @@ export const WAND_DEFINITIONS = [
 			'message',
 			'think',
 			'review',
-			'update-todo-list',
+			// 'update-todo-list',
+			'update-shared-todo-list',
 			'fly-to-bounds',
 			'note-to-self',
 		],
@@ -126,7 +136,8 @@ export const WAND_DEFINITIONS = [
 			'message',
 			'think',
 			'review',
-			'update-todo-list',
+			// 'update-todo-list',
+			'update-shared-todo-list',
 			'fly-to-bounds',
 			'note-to-self',
 			'create',

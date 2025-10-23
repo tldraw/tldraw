@@ -1,6 +1,7 @@
 import { AreaContextItem, ReviewAction, Streaming } from '@tldraw/fairy-shared'
 import { Box } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
+import { $sharedTodoList } from '../SharedTodoList'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class ReviewActionUtil extends AgentActionUtil<ReviewAction> {
@@ -61,6 +62,8 @@ export class ReviewActionUtil extends AgentActionUtil<ReviewAction> {
 
 function getReviewMessage(intent: string) {
 	return `Examine the actions that you (the agent) took since the most recent user message, with the intent: "${intent}". What's next?
+
+- Here are the current shared todo items: ${JSON.stringify($sharedTodoList.get())}
 
 - Are you awaiting a response from the user? If so, there's no need to do or say anything.
 - Is there still more work to do? If so, continue it.
