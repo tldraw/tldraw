@@ -343,6 +343,13 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 
 				<div className="fairy-buttons-container">
 					<div className="fairy-toolbar-stack-header">
+						{/* <TldrawUiButton
+							type="icon"
+							className="fairy-toolbar-sidebar-button"
+							onClick={() => setPanelState((v) => (v === 'closed' ? 'todo-list' : 'closed'))}
+						>
+							{panelState === 'closed' ? '‹‹' : '››'}
+						</TldrawUiButton> */}
 						<TldrawUiButton
 							type="icon"
 							className="fairy-toolbar-sidebar-button"
