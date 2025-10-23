@@ -105,6 +105,7 @@ const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
 	shouldNotify: env.TLDRAW_ENV === 'production',
 	totalSteps: previewId ? 10 : 9,
+	messagePrefix: '[DOTCOM]',
 })
 
 const sentryReleaseName = `${env.TLDRAW_ENV}-${previewId ? previewId + '-' : ''}-${sha}`
