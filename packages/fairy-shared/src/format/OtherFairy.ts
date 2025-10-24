@@ -1,4 +1,5 @@
 import z from 'zod'
+import { BoxModelSchema } from './PeripheralCluster'
 
 export const VecModelSchema = z.object({
 	x: z.number(),
@@ -6,8 +7,12 @@ export const VecModelSchema = z.object({
 })
 
 export const OtherFairySchema = z.object({
+	id: z.string(),
 	name: z.string(),
 	position: VecModelSchema,
+	isGenerating: z.boolean(),
+	bounds: BoxModelSchema.nullable(),
+	personality: z.string(),
 })
 
 export type OtherFairy = z.infer<typeof OtherFairySchema>

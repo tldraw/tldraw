@@ -212,7 +212,7 @@ ${flags.hasThink && flags.hasMessage ? '- Your ' + '`think`' + ' events are not 
 
 ${
 	flags.hasSharedTodo
-		? `- You may have other fairies working with you to help the user. There is a shared todo list that you have access to. To add new items to the shared todo list, or claim them for yourself, you can update the shared todo list with the ` +
+		? `- You may have other fairies working with you to help the user. If you do, you must use the shared todo list to coordinate your work. To add new items to the shared todo list, or claim them for yourself, you can update the shared todo list with the ` +
 			'`update-shared-todo-list`' +
 			` action. When creating new tasks with this action, make sure not to intially assign them all to yourself. This is because other fairies may want to help out and claim some. Once you have created some tasks, use the ` +
 			'`review`' +
