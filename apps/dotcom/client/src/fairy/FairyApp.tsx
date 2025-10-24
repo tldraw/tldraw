@@ -1,6 +1,6 @@
 import { PersistedFairyState } from '@tldraw/fairy-shared'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
-import { react, useEditor } from 'tldraw'
+import { react, throttle, useEditor } from 'tldraw'
 import { useMaybeApp } from '../tla/hooks/useAppState'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
@@ -136,7 +136,7 @@ export function FairyApp({
 	useEffect(() => {
 		if (!app || !agent1 || !agent2 || !$sharedTodoList || !fileId) return
 
-		const updateFairyState = () => {
+		const updateFairyState = throttle(() => {
 			// Don't save if we're currently loading state
 			if (isLoadingStateRef.current) return
 
@@ -148,7 +148,7 @@ export function FairyApp({
 				sharedTodoList: $sharedTodoList.get(),
 			}
 			app.onFairyStateUpdate(fileId, fairyState)
-		}
+		}, 500) // Save every 0.5 seconds
 
 		// Watch for changes in fairy atoms
 		const cleanup1 = react('fairy 1 state', () => {
@@ -173,6 +173,7 @@ export function FairyApp({
 		})
 
 		return () => {
+			updateFairyState.flush()
 			cleanup1()
 			cleanup2()
 			cleanupSharedTodoList()
@@ -183,7 +184,7 @@ export function FairyApp({
 	useEffect(() => {
 		if (!app || !agent1 || !agent2) return
 
-		const updateFairyConfigs = () => {
+		const updateFairyConfigs = throttle(() => {
 			// Don't save if we're currently loading state
 			if (isLoadingStateRef.current) return
 
@@ -201,7 +202,7 @@ export function FairyApp({
 			} catch (e) {
 				console.error('Failed to save fairy configs:', e)
 			}
-		}
+		}, 500) // Save every 0.5 seconds
 
 		// Watch for changes in fairy config atoms
 		const cleanup1 = react('fairy 1 config', () => {
@@ -215,6 +216,7 @@ export function FairyApp({
 		})
 
 		return () => {
+			updateFairyConfigs.flush()
 			cleanup1()
 			cleanup2()
 		}
