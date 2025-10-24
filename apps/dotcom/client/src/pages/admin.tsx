@@ -227,6 +227,12 @@ export function Component() {
 					</section>
 				)}
 
+				{/* Batch Migration Section */}
+				<section className={styles.adminSection}>
+					<h3 className="tla-text_ui__title">Batch Migration</h3>
+					<BatchMigrateUsersToGroups />
+				</section>
+
 				{/* File Operations Section */}
 				<section className={styles.adminSection}>
 					<h3 className="tla-text_ui__title">File Operations</h3>
@@ -473,6 +479,198 @@ function MigrateUserToGroups({
 			>
 				{isMigrating ? 'Migrating...' : 'Migrate to Groups'}
 			</TlaButton>
+		</div>
+	)
+}
+
+function BatchMigrateUsersToGroups() {
+	const [isMigrating, setIsMigrating] = useState(false)
+	const [progressLog, setProgressLog] = useState<string[]>([])
+	const [error, setError] = useState(null as string | null)
+	const [isComplete, setIsComplete] = useState(false)
+	const [stats, setStats] = useState({ successCount: 0, failureCount: 0, totalUsers: 0 })
+	const [unmigratedCount, setUnmigratedCount] = useState<number | null>(null)
+	const [isLoadingCount, setIsLoadingCount] = useState(false)
+	const [eventSource, setEventSource] = useState<EventSource | null>(null)
+
+	const fetchUnmigratedCount = useCallback(async () => {
+		setIsLoadingCount(true)
+		setError(null)
+		try {
+			const res = await fetch('/api/app/admin/unmigrated_users_count')
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			const data = await res.json()
+			setUnmigratedCount(data.count)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to fetch count')
+		} finally {
+			setIsLoadingCount(false)
+		}
+	}, [])
+
+	const stopMigration = useCallback(() => {
+		if (eventSource) {
+			eventSource.close()
+			setEventSource(null)
+			setIsMigrating(false)
+		}
+	}, [eventSource])
+
+	const onMigrate = useCallback(async () => {
+		if (
+			!window.confirm(
+				`Are you sure you want to migrate ALL users without the groups_backend flag? This action cannot be undone.`
+			)
+		) {
+			return
+		}
+
+		setIsMigrating(true)
+		setError(null)
+		setProgressLog([])
+		setIsComplete(false)
+		setStats({ successCount: 0, failureCount: 0, totalUsers: 0 })
+
+		try {
+			const es = new EventSource(`/api/app/admin/migrate_users_batch`)
+			setEventSource(es)
+
+			es.onmessage = (event) => {
+				const data = JSON.parse(event.data)
+
+				const timestamp = new Date(data.timestamp).toLocaleTimeString()
+				const logEntry = `[${timestamp}] ${data.message}`
+
+				setProgressLog((prev) => [...prev, logEntry])
+
+				// Update stats from details
+				if (data.details) {
+					if (data.details.totalUsers !== undefined) {
+						setStats((prev) => ({ ...prev, totalUsers: data.details.totalUsers }))
+					}
+					if (data.details.successCount !== undefined && data.details.failureCount !== undefined) {
+						setStats({
+							totalUsers: data.details.totalUsers || 0,
+							successCount: data.details.successCount,
+							failureCount: data.details.failureCount,
+						})
+					}
+				}
+
+				if (data.type === 'complete' || data.step === 'stopped') {
+					setIsComplete(true)
+					setIsMigrating(false)
+					es.close()
+					setEventSource(null)
+				} else if (data.type === 'error') {
+					setError(data.message)
+					setIsMigrating(false)
+					es.close()
+					setEventSource(null)
+				}
+			}
+
+			es.onerror = () => {
+				setError('Connection failed')
+				setIsMigrating(false)
+				es.close()
+				setEventSource(null)
+			}
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Unknown error occurred')
+			setIsMigrating(false)
+			setEventSource(null)
+		}
+	}, [])
+
+	return (
+		<div className={styles.migrationSection}>
+			<h4 className="tla-text_ui__medium">Migrate All Users to Groups Backend</h4>
+			<p className="tla-text_ui__small">
+				This will migrate all users who don't have the groups_backend flag. The process will run
+				sequentially and report progress in real-time.
+			</p>
+
+			{error && <div className={styles.errorMessage}>{error}</div>}
+			{isComplete && (
+				<div className={styles.successMessage}>
+					Batch migration completed! Success: {stats.successCount}, Failed: {stats.failureCount}
+				</div>
+			)}
+
+			{/* Unmigrated Users Count */}
+			<div className={styles.countContainer}>
+				<TlaButton
+					onClick={fetchUnmigratedCount}
+					variant="secondary"
+					isLoading={isLoadingCount}
+					disabled={isMigrating}
+				>
+					Check Unmigrated Users Count
+				</TlaButton>
+				{unmigratedCount !== null && (
+					<span className={styles.countDisplay}>
+						{unmigratedCount} user{unmigratedCount !== 1 ? 's' : ''} need migration
+					</span>
+				)}
+			</div>
+
+			{/* Stats Display */}
+			{stats.totalUsers > 0 && (
+				<div className={styles.statsContainer}>
+					<div className={styles.statItem}>
+						<span className={styles.statLabel}>Total Users:</span>
+						<span className={styles.statValue}>{stats.totalUsers}</span>
+					</div>
+					<div className={styles.statItem}>
+						<span className={styles.statLabel}>Succeeded:</span>
+						<span className={styles.statValue}>{stats.successCount}</span>
+					</div>
+					<div className={styles.statItem}>
+						<span className={styles.statLabel}>Failed:</span>
+						<span className={styles.statValue}>{stats.failureCount}</span>
+					</div>
+					<div className={styles.statItem}>
+						<span className={styles.statLabel}>Progress:</span>
+						<span className={styles.statValue}>
+							{Math.round(((stats.successCount + stats.failureCount) / stats.totalUsers) * 100)}%
+						</span>
+					</div>
+				</div>
+			)}
+
+			<div className={styles.buttonGroup}>
+				<TlaButton
+					onClick={onMigrate}
+					variant="primary"
+					disabled={isMigrating}
+					isLoading={isMigrating}
+				>
+					{isMigrating ? 'Migrating...' : 'Start Batch Migration'}
+				</TlaButton>
+				{isMigrating && (
+					<TlaButton onClick={stopMigration} variant="warning">
+						Stop Migration
+					</TlaButton>
+				)}
+			</div>
+
+			{/* Progress Log */}
+			{progressLog.length > 0 && (
+				<div className={styles.progressLog}>
+					<h5>Migration Progress:</h5>
+					<div className={styles.logContainer}>
+						{progressLog.map((log, index) => (
+							<div key={index} className={styles.logEntry}>
+								{log}
+							</div>
+						))}
+					</div>
+				</div>
+			)}
 		</div>
 	)
 }
