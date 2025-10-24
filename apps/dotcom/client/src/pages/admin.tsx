@@ -559,7 +559,11 @@ function BatchMigrateUsersToGroups() {
 				const timestamp = new Date(data.timestamp).toLocaleTimeString()
 				const logEntry = `[${timestamp}] ${data.message}`
 
-				setProgressLog((prev) => [...prev, logEntry])
+				// Keep only the last 500 log entries to prevent memory issues
+				setProgressLog((prev) => {
+					const updated = [...prev, logEntry]
+					return updated.length > 500 ? updated.slice(-500) : updated
+				})
 
 				// Update stats from details
 				if (data.details) {
