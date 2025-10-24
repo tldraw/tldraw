@@ -492,6 +492,8 @@ function BatchMigrateUsersToGroups() {
 	const [unmigratedCount, setUnmigratedCount] = useState<number | null>(null)
 	const [isLoadingCount, setIsLoadingCount] = useState(false)
 	const [eventSource, setEventSource] = useState<EventSource | null>(null)
+	const [batchSize, setBatchSize] = useState(100)
+	const [batchSleepMs, setBatchSleepMs] = useState(100)
 
 	// Cleanup EventSource on unmount
 	useEffect(() => {
@@ -544,7 +546,11 @@ function BatchMigrateUsersToGroups() {
 		setStats({ successCount: 0, failureCount: 0, totalUsers: 0 })
 
 		try {
-			const es = new EventSource(`/api/app/admin/migrate_users_batch`)
+			const params = new URLSearchParams({
+				batchSize: batchSize.toString(),
+				batchSleepMs: batchSleepMs.toString(),
+			})
+			const es = new EventSource(`/api/app/admin/migrate_users_batch?${params}`)
 			setEventSource(es)
 
 			es.onmessage = (event) => {
@@ -593,7 +599,7 @@ function BatchMigrateUsersToGroups() {
 			setIsMigrating(false)
 			setEventSource(null)
 		}
-	}, [])
+	}, [batchSize, batchSleepMs])
 
 	return (
 		<div className={styles.dangerZone}>
@@ -609,6 +615,36 @@ function BatchMigrateUsersToGroups() {
 					Batch migration completed! Success: {stats.successCount}, Failed: {stats.failureCount}
 				</div>
 			)}
+
+			{/* Configuration Inputs */}
+			<div className={styles.configContainer}>
+				<div>
+					<label htmlFor="batchSize">Batch size:</label>
+					<input
+						id="batchSize"
+						type="number"
+						value={batchSize}
+						onChange={(e) => setBatchSize(Number(e.target.value))}
+						disabled={isMigrating}
+						min={1}
+						className={styles.searchInput}
+						style={{ width: '100px', marginLeft: '8px' }}
+					/>
+				</div>
+				<div>
+					<label htmlFor="batchSleepMs">Sleep between batches (ms):</label>
+					<input
+						id="batchSleepMs"
+						type="number"
+						value={batchSleepMs}
+						onChange={(e) => setBatchSleepMs(Number(e.target.value))}
+						disabled={isMigrating}
+						min={0}
+						className={styles.searchInput}
+						style={{ width: '100px', marginLeft: '8px' }}
+					/>
+				</div>
+			</div>
 
 			{/* Unmigrated Users Count */}
 			<div className={styles.countContainer}>

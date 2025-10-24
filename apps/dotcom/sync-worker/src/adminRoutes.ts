@@ -67,8 +67,12 @@ export const adminRoutes = createRouter<Environment>()
 		const users = await getUnmigratedUsers(pg)
 		return json({ count: users.length })
 	})
-	.get('/app/admin/migrate_users_batch', async (_res, env) => {
+	.get('/app/admin/migrate_users_batch', async (res, env) => {
 		let stopRequested = false
+
+		// Parse query parameters for batch configuration
+		const batchSize = parseInt((res.query['batchSize'] as string) || '100')
+		const batchSleepMs = parseInt((res.query['batchSleepMs'] as string) || '100')
 
 		return new Response(
 			new ReadableStream({
@@ -90,7 +94,7 @@ export const adminRoutes = createRouter<Environment>()
 
 						sendProgress('starting', 'Beginning batch user migration process...')
 
-						await performBatchUserMigration(env, sendProgress, shouldStop)
+						await performBatchUserMigration(env, sendProgress, shouldStop, batchSize, batchSleepMs)
 
 						// Send completion event
 						const completionEvent = {
@@ -396,9 +400,10 @@ async function getUnmigratedUsers(pg: ReturnType<typeof createPostgresConnection
 async function performBatchUserMigration(
 	env: Environment,
 	sendProgress: (step: string, message: string, details?: any) => void,
-	shouldStop: () => boolean
+	shouldStop: () => boolean,
+	batchSize: number = 100,
+	batchSleepMs: number = 100
 ) {
-	const BATCH_SIZE = 100
 	const pg = createPostgresConnectionPool(env, '/app/admin/migrate_users_batch')
 
 	sendProgress('query', 'Fetching users without groups_backend flag...')
@@ -482,14 +487,14 @@ async function performBatchUserMigration(
 		}
 
 		// Brief pause between migrations to avoid overwhelming the system
-		if ((i + 1) % BATCH_SIZE === 0) {
-			sendProgress('batch_complete', `Completed batch of ${BATCH_SIZE} users`, {
+		if ((i + 1) % batchSize === 0) {
+			sendProgress('batch_complete', `Completed batch of ${batchSize} users`, {
 				progress: i + 1,
 				totalUsers,
 				successCount,
 				failureCount,
 			})
-			await sleep(100)
+			await sleep(batchSleepMs)
 		}
 	}
 
