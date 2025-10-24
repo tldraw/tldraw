@@ -1,5 +1,5 @@
 import { convertTldrawShapeToFocusedShape, FAIRY_VISION_DIMENSIONS } from '@tldraw/fairy-shared'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Box, TldrawUiInput, useValue } from 'tldraw'
 import { FairyAgent } from '../agent/FairyAgent'
 
@@ -10,6 +10,12 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
 
 	const fairy = useValue('fairy', () => agent.$fairyEntity, [agent])
+
+	useEffect(() => {
+		if (inputRef.current) {
+			inputRef.current.spellcheck = false
+		}
+	}, [])
 
 	const handleComplete = useCallback(
 		async (value: string) => {
