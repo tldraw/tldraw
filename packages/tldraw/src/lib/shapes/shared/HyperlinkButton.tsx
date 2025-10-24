@@ -21,7 +21,7 @@ export function HyperlinkButton({ url }: { url: string }) {
 			})}
 			href={url}
 			target="_blank"
-			rel="noopener"
+			rel="noopener noreferrer"
 			onPointerDown={markAsHandledOnShiftKey}
 			onPointerUp={markAsHandledOnShiftKey}
 			title={url}
