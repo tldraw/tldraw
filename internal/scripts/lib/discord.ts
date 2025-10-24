@@ -12,16 +12,23 @@ function sanitizeVariables(errorOutput: string): string {
 export class Discord {
 	static AT_TEAM_MENTION = '<@&959380625100513310>'
 
-	constructor(opts: { webhookUrl: string; shouldNotify: boolean; totalSteps?: number }) {
+	constructor(opts: {
+		webhookUrl: string
+		shouldNotify: boolean
+		totalSteps?: number
+		messagePrefix?: string
+	}) {
 		this.webhookUrl = opts.webhookUrl
 		this.shouldNotify = opts.shouldNotify
 		this.totalSteps = opts.totalSteps ?? 0
+		this.messagePrefix = opts.messagePrefix ?? ''
 	}
 
 	webhookUrl: string
 	shouldNotify: boolean
 	totalSteps: number
 	currentStep = 0
+	messagePrefix: string
 
 	private async send(method: string, url: string, body: unknown): Promise<any> {
 		const response = await fetch(`${this.webhookUrl}${url}`, {
@@ -44,12 +51,18 @@ export class Discord {
 			}
 		}
 
-		const message = await this.send('POST', '?wait=true', { content: sanitizeVariables(content) })
+		const prefixedContent = this.messagePrefix ? `${this.messagePrefix} ${content}` : content
+		const message = await this.send('POST', '?wait=true', {
+			content: sanitizeVariables(prefixedContent),
+		})
 
 		return {
 			edit: async (newContent: string) => {
+				const prefixedNewContent = this.messagePrefix
+					? `${this.messagePrefix} ${newContent}`
+					: newContent
 				await this.send('PATCH', `/messages/${message.id}`, {
-					content: sanitizeVariables(newContent),
+					content: sanitizeVariables(prefixedNewContent),
 				})
 			},
 		}
