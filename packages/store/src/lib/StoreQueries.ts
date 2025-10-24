@@ -31,10 +31,7 @@ import { CollectionDiff } from './Store'
  *
  * @public
  */
-export type RSIndexDiff<R extends UnknownRecord> = Map<
-	any,
-	CollectionDiff<IdOf<R>>
->
+export type RSIndexDiff<R extends UnknownRecord> = Map<any, CollectionDiff<IdOf<R>>>
 
 /**
  * A type representing a reactive store index as a map from property values to sets of record IDs.
