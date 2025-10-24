@@ -64,14 +64,8 @@ export const adminRoutes = createRouter<Environment>()
 	})
 	.get('/app/admin/unmigrated_users_count', async (_res, env) => {
 		const pg = createPostgresConnectionPool(env, '/app/admin/unmigrated_users_count')
-
-		const result = await pg
-			.selectFrom('user')
-			.where((eb) => eb.or([eb('flags', 'not like', '%groups_backend%'), eb('flags', 'is', null)]))
-			.select((eb) => eb.fn.count('id').as('count'))
-			.executeTakeFirst()
-
-		return json({ count: Number(result?.count || 0) })
+		const users = await getUnmigratedUsers(pg)
+		return json({ count: users.length })
 	})
 	.get('/app/admin/migrate_users_batch', async (_res, env) => {
 		let stopRequested = false
@@ -391,6 +385,14 @@ async function performUserDeletion(
 	await user.admin_delete(userRow.id)
 }
 
+async function getUnmigratedUsers(pg: ReturnType<typeof createPostgresConnectionPool>) {
+	return await pg
+		.selectFrom('user')
+		.where((eb) => eb.or([eb('flags', 'not like', '%groups_backend%'), eb('flags', 'is', null)]))
+		.select(['id', 'email', 'name'])
+		.execute()
+}
+
 async function performBatchUserMigration(
 	env: Environment,
 	sendProgress: (step: string, message: string, details?: any) => void,
@@ -401,12 +403,7 @@ async function performBatchUserMigration(
 
 	sendProgress('query', 'Fetching users without groups_backend flag...')
 
-	// Get all users that don't have the groups_backend flag
-	const usersToMigrate = await pg
-		.selectFrom('user')
-		.where((eb) => eb.or([eb('flags', 'not like', '%groups_backend%'), eb('flags', 'is', null)]))
-		.select(['id', 'email', 'name'])
-		.execute()
+	const usersToMigrate = await getUnmigratedUsers(pg)
 
 	const totalUsers = usersToMigrate.length
 	sendProgress('query', `Found ${totalUsers} users to migrate`, { totalUsers })
