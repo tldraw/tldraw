@@ -288,11 +288,24 @@
 }
 
 .fairy-id-display {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
 	flex: 1;
 	font-size: 12px;
 	color: var(--tl-color-text-2);
 	padding: 0px 6px;
 	text-align: center;
+	margin-left: 16px;
+}
+
+.fairy-spinner-container {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 16px;
+	height: 16px;
 }
 
 .fairy-toolbar-stack-header {

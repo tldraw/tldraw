@@ -1,9 +1,4 @@
-import {
-	ChatHistoryActionItem,
-	ChatHistoryItem,
-	ChatHistoryPromptItem,
-	SmallSpinner,
-} from '@tldraw/fairy-shared'
+import { ChatHistoryActionItem, ChatHistoryItem, ChatHistoryPromptItem } from '@tldraw/fairy-shared'
 import { Fragment, useEffect, useRef } from 'react'
 import { useValue } from 'tldraw'
 import { FairyAgent } from '../agent/FairyAgent'
@@ -94,11 +89,11 @@ export function FairyChatHistory({ agent }: { agent: FairyAgent }) {
 				})}
 			</div>
 
-			{isGenerating && (
+			{/* {isGenerating && (
 				<div className="fairy-chat-loading">
 					<SmallSpinner />
 				</div>
-			)}
+			)} */}
 		</>
 	)
 }

@@ -23,6 +23,7 @@ import { FairyBasicInput } from './fairy-agent/input/FairyBasicInput'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
 import { SharedTodoListInline } from './SharedTodoListInline'
 
+import { SmallSpinner } from '@tldraw/fairy-shared'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { FairyConfigDialog } from './FairyConfigDialog'
 import { $sharedTodoList, clearSharedTodoList } from './SharedTodoList'
@@ -305,7 +306,15 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 													</TldrawUiMenuContextProvider>
 												</_DropdownMenu.Content>
 											</_DropdownMenu.Root>
-											<div className="fairy-id-display">{fairyConfig.name}</div>
+											<div className="fairy-id-display">
+												{fairyConfig.name}
+												<div
+													className="fairy-spinner-container"
+													style={{ visibility: chosenFairy.isGenerating() ? 'visible' : 'hidden' }}
+												>
+													<SmallSpinner />
+												</div>
+											</div>
 											<TldrawUiButton
 												type="icon"
 												className="fairy-toolbar-button"
