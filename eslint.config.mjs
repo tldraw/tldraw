@@ -208,8 +208,8 @@ export default [
 	},
 	{
 		files: ['packages/editor/**/*', 'packages/tldraw/**/*', 'packages/utils/**/*'],
-
 		rules: {
+			'react/jsx-no-target-blank': 'error',
 			'no-restricted-globals': [
 				'error',
 				{
