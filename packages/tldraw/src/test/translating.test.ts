@@ -198,6 +198,51 @@ describe('When translating...', () => {
 			.pointerUp()
 			.expectShapeToMatch({ id: ids.box1, x: 60, y: 60 }, { id: ids.box2, x: 250, y: 250 })
 	})
+
+	it('fires translation lifecycle callbacks for grouped descendants', () => {
+		const groupId = createShapeId('group_translate_case')
+		const arrowId = createShapeId('group_translate_arrow')
+
+		const arrowUtil = editor.getShapeUtil<TLArrowShape>('arrow')
+		const translateStartSpy = vi.spyOn(arrowUtil, 'onTranslateStart' as any)
+		const translateSpy = vi.spyOn(arrowUtil, 'onTranslate' as any)
+
+		const groupUtil = editor.getShapeUtil('group') as { onTranslateStart?(...args: any[]): void }
+		const originalGroupTranslateStart = groupUtil.onTranslateStart
+		const groupTranslateStartSpy = vi.fn()
+		groupUtil.onTranslateStart = groupTranslateStartSpy
+
+		try {
+			editor
+				.createShapes([
+					{
+						id: arrowId,
+						type: 'arrow',
+						x: 60,
+						y: 60,
+						props: {
+							start: { x: 0, y: 0 },
+							end: { x: 60, y: 0 },
+						},
+					},
+				])
+				.groupShapes([ids.box1, arrowId], { groupId })
+
+			editor
+				.pointerDown(60, 60, { target: 'shape', shape: editor.getShape(groupId)! })
+				.pointerMove(90, 60)
+				.expectToBeIn('select.translating')
+				.pointerUp()
+
+			expect(translateStartSpy).toHaveBeenCalledTimes(1)
+			expect(translateSpy).toHaveBeenCalled()
+			expect(groupTranslateStartSpy).not.toHaveBeenCalled()
+		} finally {
+			translateStartSpy.mockRestore()
+			translateSpy.mockRestore()
+			groupUtil.onTranslateStart = originalGroupTranslateStart
+		}
+	})
 })
 
 describe('When cloning...', () => {

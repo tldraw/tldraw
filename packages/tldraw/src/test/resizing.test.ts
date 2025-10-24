@@ -181,6 +181,47 @@ describe('When dragging a resize handle...', () => {
 	})
 })
 
+describe('When resizing a group', () => {
+	it('skips the group shell and resizes its descendants', () => {
+		const groupId = createShapeId('group_resize_case')
+		const childA = createShapeId('group_resize_child_a')
+		const childB = createShapeId('group_resize_child_b')
+
+		const groupUtil = editor.getShapeUtil('group') as { onResize?(...args: any[]): void }
+		const originalGroupOnResize = groupUtil.onResize
+		const groupResizeSpy = vi.fn()
+		groupUtil.onResize = groupResizeSpy
+
+		const geoUtil = editor.getShapeUtil<TLGeoShape>('geo')
+		const geoResizeSpy = vi.spyOn(geoUtil, 'onResize' as any)
+
+		try {
+			editor
+				.createShapes([
+					{ id: childA, type: 'geo', x: 0, y: 0, props: { w: 40, h: 40 } },
+					{ id: childB, type: 'geo', x: 80, y: 0, props: { w: 40, h: 40 } },
+				])
+				.groupShapes([childA, childB], { groupId })
+
+			editor
+				.pointerDown(20, 20, {
+					target: 'selection',
+					handle: 'bottom_right',
+				})
+				.pointerMove(80, 80)
+				.expectToBeIn('select.resizing')
+				.pointerUp()
+
+			const resizedIds = geoResizeSpy.mock.calls.map(([shape]: any) => shape.id)
+			expect(resizedIds).toEqual(expect.arrayContaining([childA, childB]))
+			expect(groupResizeSpy).not.toHaveBeenCalled()
+		} finally {
+			groupUtil.onResize = originalGroupOnResize
+			geoResizeSpy.mockRestore()
+		}
+	})
+})
+
 describe('When resizing...', () => {
 	it('Resizes a single shape from the top left', () => {
 		editor
