@@ -493,6 +493,15 @@ function BatchMigrateUsersToGroups() {
 	const [isLoadingCount, setIsLoadingCount] = useState(false)
 	const [eventSource, setEventSource] = useState<EventSource | null>(null)
 
+	// Cleanup EventSource on unmount
+	useEffect(() => {
+		return () => {
+			if (eventSource) {
+				eventSource.close()
+			}
+		}
+	}, [eventSource])
+
 	const fetchUnmigratedCount = useCallback(async () => {
 		setIsLoadingCount(true)
 		setError(null)
@@ -560,7 +569,7 @@ function BatchMigrateUsersToGroups() {
 					}
 				}
 
-				if (data.type === 'complete' || data.step === 'stopped') {
+				if (data.type === 'complete') {
 					setIsComplete(true)
 					setIsMigrating(false)
 					es.close()
