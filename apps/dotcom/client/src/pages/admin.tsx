@@ -494,6 +494,7 @@ function BatchMigrateUsersToGroups() {
 	const [eventSource, setEventSource] = useState<EventSource | null>(null)
 	const [batchSize, setBatchSize] = useState(100)
 	const [batchSleepMs, setBatchSleepMs] = useState(100)
+	const [maxUsers, setMaxUsers] = useState<number | ''>('')
 
 	// Cleanup EventSource on unmount
 	useEffect(() => {
@@ -531,11 +532,11 @@ function BatchMigrateUsersToGroups() {
 	}, [eventSource])
 
 	const onMigrate = useCallback(async () => {
-		if (
-			!window.confirm(
-				`Are you sure you want to migrate ALL users without the groups_backend flag? This action cannot be undone.`
-			)
-		) {
+		const migrationMessage = maxUsers
+			? `Are you sure you want to migrate up to ${maxUsers} users without the groups_backend flag? This action cannot be undone.`
+			: `Are you sure you want to migrate ALL users without the groups_backend flag? This action cannot be undone.`
+
+		if (!window.confirm(migrationMessage)) {
 			return
 		}
 
@@ -550,6 +551,9 @@ function BatchMigrateUsersToGroups() {
 				batchSize: batchSize.toString(),
 				batchSleepMs: batchSleepMs.toString(),
 			})
+			if (maxUsers) {
+				params.set('maxUsers', maxUsers.toString())
+			}
 			const es = new EventSource(`/api/app/admin/migrate_users_batch?${params}`)
 			setEventSource(es)
 
@@ -603,7 +607,7 @@ function BatchMigrateUsersToGroups() {
 			setIsMigrating(false)
 			setEventSource(null)
 		}
-	}, [batchSize, batchSleepMs])
+	}, [batchSize, batchSleepMs, maxUsers])
 
 	return (
 		<div className={styles.dangerZone}>
@@ -629,7 +633,8 @@ function BatchMigrateUsersToGroups() {
 			<p className="tla-text_ui__small">
 				This will migrate all users who don&apos;t have the groups_backend flag. The process will
 				run sequentially and report progress in real-time. Configure the batch size (number of users
-				processed before a pause) and sleep duration (milliseconds to wait between batches) below.
+				processed before a pause), sleep duration (milliseconds to wait between batches), and max
+				users (limit for incremental rollout, leave empty to migrate all) below.
 			</p>
 
 			{error && <div className={styles.errorMessage}>{error}</div>}
@@ -658,6 +663,20 @@ function BatchMigrateUsersToGroups() {
 						onChange={(e) => setBatchSleepMs(Number(e.target.value))}
 						disabled={isMigrating}
 						min={0}
+						className={styles.searchInput}
+						style={{ width: '100px', marginLeft: '8px' }}
+					/>
+				</div>
+				<div>
+					<label htmlFor="maxUsers">Max users (leave empty for all):</label>
+					<input
+						id="maxUsers"
+						type="number"
+						value={maxUsers}
+						onChange={(e) => setMaxUsers(e.target.value === '' ? '' : Number(e.target.value))}
+						disabled={isMigrating}
+						min={1}
+						placeholder="All users"
 						className={styles.searchInput}
 						style={{ width: '100px', marginLeft: '8px' }}
 					/>

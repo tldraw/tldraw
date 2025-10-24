@@ -73,6 +73,7 @@ export const adminRoutes = createRouter<Environment>()
 		// Parse query parameters for batch configuration
 		const batchSize = parseInt((res.query['batchSize'] as string) || '100')
 		const batchSleepMs = parseInt((res.query['batchSleepMs'] as string) || '100')
+		const maxUsers = res.query['maxUsers'] ? parseInt(res.query['maxUsers'] as string) : undefined
 
 		return new Response(
 			new ReadableStream({
@@ -94,7 +95,14 @@ export const adminRoutes = createRouter<Environment>()
 
 						sendProgress('starting', 'Beginning batch user migration process...')
 
-						await performBatchUserMigration(env, sendProgress, shouldStop, batchSize, batchSleepMs)
+						await performBatchUserMigration(
+							env,
+							sendProgress,
+							shouldStop,
+							batchSize,
+							batchSleepMs,
+							maxUsers
+						)
 
 						// Send completion event
 						const completionEvent = {
@@ -402,16 +410,27 @@ async function performBatchUserMigration(
 	sendProgress: (step: string, message: string, details?: any) => void,
 	shouldStop: () => boolean,
 	batchSize: number = 100,
-	batchSleepMs: number = 100
+	batchSleepMs: number = 100,
+	maxUsers?: number
 ) {
 	const pg = createPostgresConnectionPool(env, '/app/admin/migrate_users_batch')
 
 	sendProgress('query', 'Fetching users without groups_backend flag...')
 
-	const usersToMigrate = await getUnmigratedUsers(pg)
+	const allUsersToMigrate = await getUnmigratedUsers(pg)
+
+	// Limit the number of users if maxUsers is specified
+	const usersToMigrate = maxUsers ? allUsersToMigrate.slice(0, maxUsers) : allUsersToMigrate
 
 	const totalUsers = usersToMigrate.length
-	sendProgress('query', `Found ${totalUsers} users to migrate`, { totalUsers })
+	const totalAvailable = allUsersToMigrate.length
+	sendProgress(
+		'query',
+		maxUsers
+			? `Found ${totalAvailable} users to migrate (limiting to ${totalUsers})`
+			: `Found ${totalUsers} users to migrate`,
+		{ totalUsers, totalAvailable }
+	)
 
 	if (totalUsers === 0) {
 		sendProgress('complete', 'No users to migrate')
