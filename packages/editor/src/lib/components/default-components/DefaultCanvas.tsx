@@ -3,7 +3,7 @@ import { useQuickReactor, useValue } from '@tldraw/state-react'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
-import { Fragment, JSX, useEffect, useRef, useState } from 'react'
+import { Fragment, JSX, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { tlenv } from '../../globals/environment'
 import { useCanvasEvents } from '../../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../../hooks/useCoarsePointer'
@@ -127,6 +127,8 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 		[editor]
 	)
 
+	const { leaderRef, followerRef } = useSizeMatching()
+
 	return (
 		<>
 			<div
@@ -157,7 +159,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					{SelectionBackground && <SelectionBackgroundWrapper />}
 					{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
 				</div>
-				<div className="tl-overlays">
+				<div ref={leaderRef} className="tl-overlays">
 					<div ref={rHtmlLayer2} className="tl-html-layer">
 						{debugGeometry ? <GeometryDebuggingView /> : null}
 						<BrushWrapper />
@@ -172,18 +174,19 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 						<LiveCollaborators />
 					</div>
 				</div>
-				<div
-					className="tl-canvas__in-front"
-					onPointerDown={editor.markEventAsHandled}
-					onPointerUp={editor.markEventAsHandled}
-					onTouchStart={editor.markEventAsHandled}
-					onTouchEnd={editor.markEventAsHandled}
-				>
-					<InFrontOfTheCanvasWrapper />
-				</div>
 				<MovingCameraHitTestBlocker />
 			</div>
 			<MenuClickCapture />
+			<div
+				ref={followerRef}
+				className="tl-canvas__in-front"
+				onPointerDown={editor.markEventAsHandled}
+				onPointerUp={editor.markEventAsHandled}
+				onTouchStart={editor.markEventAsHandled}
+				onTouchEnd={editor.markEventAsHandled}
+			>
+				<InFrontOfTheCanvasWrapper />
+			</div>
 		</>
 	)
 }
@@ -614,4 +617,56 @@ function MovingCameraHitTestBlocker() {
 			})}
 		/>
 	)
+}
+
+/**
+ * useSizeMatching is used to make sure that the InFrontOfTheCanvasWrapper is the same size as the canvas.
+ * Normally you'd simply make the InFrontOfTheCanvasWrapper a child of the canvas, but this messes up how we
+ * block pointer events to the canvas when menus are open because it puts the MenuClickCapture and the InFrontOfTheCanvasWrapper
+ * in different stacking contexts so anything rendered in the InFrontOfTheCanvasWrapper will be rendered below the MenuClickCapture
+ * regardless of z-indexes. This would mean if you open a menu you can't click on anything in the menu.
+ */
+function useSizeMatching() {
+	const leaderRef = useRef<HTMLDivElement>(null)
+	const followerRef = useRef<HTMLDivElement>(null)
+
+	useLayoutEffect(() => {
+		const leader = leaderRef.current
+		const follower = followerRef.current
+
+		if (!leader || !follower) return
+
+		const updateFollower = () => {
+			const leaderRect = leader.getBoundingClientRect()
+			const followerRect = follower.getBoundingClientRect()
+
+			// Set dimensions
+			follower.style.width = `${leaderRect.width}px`
+			follower.style.height = `${leaderRect.height}px`
+
+			// Calculate position delta from current position to desired position
+			const deltaTop = leaderRect.top - followerRect.top
+			const deltaLeft = leaderRect.left - followerRect.left
+
+			// Apply the delta to move follower to match leader in viewport space
+			const currentTop = parseFloat(follower.style.top) || 0
+			const currentLeft = parseFloat(follower.style.left) || 0
+
+			follower.style.top = `${currentTop + deltaTop}px`
+			follower.style.left = `${currentLeft + deltaLeft}px`
+		}
+
+		// ResizeObserver for size changes
+		const resizeObserver = new ResizeObserver(updateFollower)
+		resizeObserver.observe(leader)
+
+		// Initial update
+		updateFollower()
+
+		return () => {
+			resizeObserver.disconnect()
+		}
+	}, [])
+
+	return { leaderRef, followerRef }
 }
