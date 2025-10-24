@@ -623,8 +623,8 @@ function BatchMigrateUsersToGroups() {
 			</div>
 
 			<p className="tla-text_ui__small">
-				This will migrate all users who don't have the groups_backend flag. The process will run
-				sequentially and report progress in real-time. Configure the batch size (number of users
+				This will migrate all users who don&apos;t have the groups_backend flag. The process will
+				run sequentially and report progress in real-time. Configure the batch size (number of users
 				processed before a pause) and sleep duration (milliseconds to wait between batches) below.
 			</p>
 
