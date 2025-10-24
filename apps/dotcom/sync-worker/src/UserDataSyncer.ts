@@ -408,6 +408,7 @@ export class UserDataSyncer {
 				lastSequenceNumber: resumeData.lastSequenceNumber,
 			}))
 		) {
+			// TODO: investigate how this returns without group_user, or suck that 'group_user is not iterable'
 			const initialData = this.store.getCommittedData()!
 			const topicSubscriptions: TopicSubscriptionTree = {}
 			const groupFileIds = new Set()

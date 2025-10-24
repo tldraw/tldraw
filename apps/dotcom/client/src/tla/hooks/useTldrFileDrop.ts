@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/clerk-react'
-import { DragEvent, useCallback, useState } from 'react'
+import { DragEvent, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { tlmenus } from 'tldraw'
 import { routes } from '../../routeDefs'
@@ -9,14 +9,10 @@ export function useTldrFileDrop() {
 	const app = useApp()
 	const navigate = useNavigate()
 
-	const [isDraggingOver, setIsDraggingOver] = useState(false)
-
 	const auth = useAuth()
 
 	const onDrop = useCallback(
 		async (e: DragEvent) => {
-			setIsDraggingOver(false)
-
 			const token = await auth.getToken()
 			if (!token) {
 				return
@@ -40,7 +36,6 @@ export function useTldrFileDrop() {
 	}, [])
 
 	const onDragEnter = useCallback(() => {
-		setIsDraggingOver(true)
 		tlmenus.hideOpenMenus()
 	}, [])
 
@@ -48,9 +43,8 @@ export function useTldrFileDrop() {
 		if (e.relatedTarget && e.currentTarget.contains(e.relatedTarget as any)) {
 			return
 		}
-		setIsDraggingOver(false)
 		tlmenus.showOpenMenus()
 	}, [])
 
-	return { onDrop, onDragOver, onDragEnter, onDragLeave, isDraggingOver }
+	return { onDrop, onDragOver, onDragEnter, onDragLeave }
 }

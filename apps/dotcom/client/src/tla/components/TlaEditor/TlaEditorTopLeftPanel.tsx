@@ -24,7 +24,7 @@ import {
 } from 'tldraw'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
-import { useIsFileOwner } from '../../hooks/useIsFileOwner'
+import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
@@ -161,7 +161,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	const isEmbed = !!new URLSearchParams(window.location.search).get('embed')
 
 	const fileSlug = useParams<{ fileSlug: string }>().fileSlug ?? '_not_a_file_' // fall back to a string that will not match any file
-	const isOwner = useIsFileOwner(fileSlug)
+	const isOwner = useHasFileAdminRights(fileSlug)
 
 	const app = useApp()
 	const fileId = useCurrentFileId()!

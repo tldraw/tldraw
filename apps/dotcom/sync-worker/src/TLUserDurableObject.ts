@@ -565,6 +565,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	async admin_migrateToGroups(userId: string, inviteSecret: string | null = null) {
+		console.error('admin_migrateToGroups', userId, inviteSecret)
 		this.userId ??= userId
 
 		// Call the Postgres migration function
@@ -573,6 +574,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			pinned_files_migrated: number
 			flag_added: boolean
 		}>`SELECT * FROM migrate_user_to_groups(${userId}, ${inviteSecret})`.execute(this.db)
+		console.error('admin_migrateToGroups result', result.rows)
 
 		// Reboot the user's cache to pick up the new data structure
 		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })

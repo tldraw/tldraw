@@ -11,6 +11,7 @@ export const ROUTES = {
 	tlaLocalFileIndex: `/lf`,
 	tlaLocalFile: `/lf/:fileSlug`,
 	tlaPublish: `/p/:fileSlug`,
+	tlaInvite: `/invite/:token`,
 	// Legacy routes
 	tlaLegacyRoom: '/r/:roomId',
 	tlaLegacyRoomHistory: '/r/:boardId/history',
