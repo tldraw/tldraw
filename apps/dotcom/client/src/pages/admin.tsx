@@ -587,7 +587,7 @@ function BatchMigrateUsersToGroups() {
 	}, [])
 
 	return (
-		<div className={styles.migrationSection}>
+		<div className={styles.dangerZone}>
 			<h4 className="tla-text_ui__medium">Migrate All Users to Groups Backend</h4>
 			<p className="tla-text_ui__small">
 				This will migrate all users who don't have the groups_backend flag. The process will run
@@ -642,20 +642,15 @@ function BatchMigrateUsersToGroups() {
 				</div>
 			)}
 
-			<div className={styles.buttonGroup}>
+			<div className={styles.deleteContainer}>
 				<TlaButton
-					onClick={onMigrate}
-					variant="primary"
-					disabled={isMigrating}
-					isLoading={isMigrating}
+					onClick={isMigrating ? stopMigration : onMigrate}
+					variant="warning"
+					className={styles.deleteButton}
+					disabled={!isMigrating && isLoadingCount}
 				>
-					{isMigrating ? 'Migrating...' : 'Start Batch Migration'}
+					{isMigrating ? 'Stop Migration' : 'Start Batch Migration'}
 				</TlaButton>
-				{isMigrating && (
-					<TlaButton onClick={stopMigration} variant="warning">
-						Stop Migration
-					</TlaButton>
-				)}
 			</div>
 
 			{/* Progress Log */}
