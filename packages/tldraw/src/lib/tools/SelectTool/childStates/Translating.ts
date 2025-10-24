@@ -5,9 +5,11 @@ import {
 	MatModel,
 	PageRecordType,
 	StateNode,
+	TLGroupShape,
 	TLNoteShape,
 	TLPointerEventInfo,
 	TLShape,
+	TLShapeId,
 	TLShapePartial,
 	TLTickEventInfo,
 	Vec,
@@ -359,30 +361,43 @@ function getTranslatingSnapshot(editor: Editor) {
 	const pagePoints: Vec[] = []
 
 	const selectedShapeIds = editor.getSelectedShapeIds()
-	const shapeSnapshots = compact(
-		selectedShapeIds.map((id): null | MovingShapeSnapshot => {
-			const shape = editor.getShape(id)
-			if (!shape) return null
-			movingShapes.push(shape)
+	const shapeSnapshots: MovingShapeSnapshot[] = []
 
-			const pageTransform = editor.getShapePageTransform(id)
-			const pagePoint = pageTransform.point()
-			const pageRotation = pageTransform.rotation()
+	function addShapeSnapshot(id: TLShapeId) {
+		const shape = editor.getShape(id)
+		if (!shape) return
 
-			pagePoints.push(pagePoint)
-
-			const parentTransform = PageRecordType.isId(shape.parentId)
-				? null
-				: Mat.Inverse(editor.getShapePageTransform(shape.parentId)!)
-
-			return {
-				shape,
-				pagePoint,
-				pageRotation,
-				parentTransform,
+		if (editor.isShapeOfType<TLGroupShape>(shape, 'group')) {
+			const children = editor.getSortedChildIdsForParent(shape.id)
+			for (const childId of children) {
+				addShapeSnapshot(childId)
 			}
+			return
+		}
+
+		movingShapes.push(shape)
+
+		const pageTransform = editor.getShapePageTransform(id)
+		const pagePoint = pageTransform.point()
+		const pageRotation = pageTransform.rotation()
+
+		pagePoints.push(pagePoint)
+
+		const parentTransform = PageRecordType.isId(shape.parentId)
+			? null
+			: Mat.Inverse(editor.getShapePageTransform(shape.parentId)!)
+
+		shapeSnapshots.push({
+			shape,
+			pagePoint,
+			pageRotation,
+			parentTransform,
 		})
-	)
+	}
+
+	for (const id of selectedShapeIds) {
+		addShapeSnapshot(id)
+	}
 
 	const onlySelectedShape = editor.getOnlySelectedShape()
 

@@ -8,6 +8,7 @@ import {
 	SelectionEdge,
 	StateNode,
 	TLFrameShape,
+	TLGroupShape,
 	TLPointerEventInfo,
 	TLShape,
 	TLShapeId,
@@ -511,7 +512,7 @@ export class Resizing extends StateNode {
 			const util = editor.getShapeUtil(shape)
 
 			// If the shape can resize, add it to the resizing shapes snapshots
-			if (util.canResize(shape)) {
+			if (util.canResize(shape) && !editor.isShapeOfType<TLGroupShape>(shape, 'group')) {
 				const pageTransform = editor.getShapePageTransform(shape)!
 				shapeSnapshots.set(shape.id, {
 					shape,

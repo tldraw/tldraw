@@ -30,14 +30,27 @@ export function getRotationSnapshot({
 		.clone()
 		.rotWith(rotatedPageBounds.point, rotation)
 
+	const shapeSnapshots: TLRotationSnapshot['shapeSnapshots'] = []
+
+	function addShapeSnapshot(id: TLShapeId) {
+		const shape = editor.getShape(id)
+		if (!shape) return
+		// todo: consider rotating the children of a group and deriving the group's rotation from its children's common rotation
+		shapeSnapshots.push({
+			shape,
+			initialPagePoint: editor.getShapePageTransform(id)!.point(),
+		})
+	}
+
+	for (const shape of shapes) {
+		addShapeSnapshot(shape.id)
+	}
+
 	return {
 		initialPageCenter,
 		initialCursorAngle: initialPageCenter.angle(editor.inputs.originPagePoint),
 		initialShapesRotation: rotation,
-		shapeSnapshots: shapes.map((shape) => ({
-			shape,
-			initialPagePoint: editor.getShapePageTransform(shape.id)!.point(),
-		})),
+		shapeSnapshots,
 	}
 }
 
