@@ -604,17 +604,31 @@ function BatchMigrateUsersToGroups() {
 	return (
 		<div className={styles.dangerZone}>
 			<h4 className="tla-text_ui__medium">Migrate All Users to Groups Backend</h4>
+
+			{/* Unmigrated Users Count */}
+			<div className={styles.countContainer}>
+				<TlaButton
+					onClick={fetchUnmigratedCount}
+					variant="secondary"
+					isLoading={isLoadingCount}
+					disabled={isMigrating}
+				>
+					Check Unmigrated Users Count
+				</TlaButton>
+				{unmigratedCount !== null && (
+					<span className={styles.countDisplay}>
+						{unmigratedCount} user{unmigratedCount !== 1 ? 's' : ''} need migration
+					</span>
+				)}
+			</div>
+
 			<p className="tla-text_ui__small">
 				This will migrate all users who don't have the groups_backend flag. The process will run
-				sequentially and report progress in real-time.
+				sequentially and report progress in real-time. Configure the batch size (number of users
+				processed before a pause) and sleep duration (milliseconds to wait between batches) below.
 			</p>
 
 			{error && <div className={styles.errorMessage}>{error}</div>}
-			{isComplete && (
-				<div className={styles.successMessage}>
-					Batch migration completed! Success: {stats.successCount}, Failed: {stats.failureCount}
-				</div>
-			)}
 
 			{/* Configuration Inputs */}
 			<div className={styles.configContainer}>
@@ -644,23 +658,6 @@ function BatchMigrateUsersToGroups() {
 						style={{ width: '100px', marginLeft: '8px' }}
 					/>
 				</div>
-			</div>
-
-			{/* Unmigrated Users Count */}
-			<div className={styles.countContainer}>
-				<TlaButton
-					onClick={fetchUnmigratedCount}
-					variant="secondary"
-					isLoading={isLoadingCount}
-					disabled={isMigrating}
-				>
-					Check Unmigrated Users Count
-				</TlaButton>
-				{unmigratedCount !== null && (
-					<span className={styles.countDisplay}>
-						{unmigratedCount} user{unmigratedCount !== 1 ? 's' : ''} need migration
-					</span>
-				)}
 			</div>
 
 			{/* Stats Display */}
@@ -697,6 +694,12 @@ function BatchMigrateUsersToGroups() {
 					{isMigrating ? 'Stop Migration' : 'Start Batch Migration'}
 				</TlaButton>
 			</div>
+
+			{isComplete && (
+				<div className={styles.successMessage}>
+					Batch migration completed! Success: {stats.successCount}, Failed: {stats.failureCount}
+				</div>
+			)}
 
 			{/* Progress Log */}
 			{progressLog.length > 0 && (
