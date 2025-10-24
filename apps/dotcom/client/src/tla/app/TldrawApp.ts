@@ -215,10 +215,10 @@ export class TldrawApp {
 			if (useNewGroupsInit) {
 				// New groups initialization
 				await this.z.mutate.init({ user: initialUserData, time: Date.now() })
-		} else {
-			// Legacy initialization (no groups) - just insert user like before
-			await this.z.mutate.user.insert({ ...initialUserData, flags: '' })
-		}
+			} else {
+				// Legacy initialization (no groups) - just insert user like before
+				await this.z.mutate.user.insert({ ...initialUserData, flags: '' })
+			}
 
 			updateLocalSessionState((state) => ({ ...state, shouldShowWelcomeDialog: true }))
 		}
