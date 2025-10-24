@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	Box,
 	TldrawUiButton,
@@ -36,11 +36,13 @@ const fairyMessages = defineMessages({
 function FairyButton({
 	agent,
 	onClick,
+	onDoubleClick,
 	selectMessage,
 	deselectMessage,
 }: {
 	agent: FairyAgent
 	onClick(): void
+	onDoubleClick(): void
 	selectMessage: string
 	deselectMessage: string
 }) {
@@ -54,11 +56,46 @@ function FairyButton({
 	const fairyOutfit = useValue('fairy outfit', () => agent.$fairyConfig.get()?.outfit, [agent])
 	const fairyEntity = useValue('fairy entity', () => agent.$fairyEntity.get(), [agent])
 
+	// Double click logic to prevent single click from firing
+	const clickTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+	const handleClick = useCallback(() => {
+		// Clear any existing timer
+		if (clickTimerRef.current) {
+			clearTimeout(clickTimerRef.current)
+		}
+
+		// Set a new timer to execute onClick after a delay
+		clickTimerRef.current = setTimeout(() => {
+			onClick()
+			clickTimerRef.current = null
+		}, 150)
+	}, [onClick])
+
+	const handleDoubleClick = useCallback(() => {
+		// Clear the single-click timer to prevent it from firing
+		if (clickTimerRef.current) {
+			clearTimeout(clickTimerRef.current)
+			clickTimerRef.current = null
+		}
+		onDoubleClick()
+	}, [onDoubleClick])
+
+	// Cleanup on unmount
+	useEffect(() => {
+		return () => {
+			if (clickTimerRef.current) {
+				clearTimeout(clickTimerRef.current)
+			}
+		}
+	}, [])
+
 	return (
 		<TldrawUiToolbarToggleGroup type="single" value={fairyIsSelected ? 'on' : 'off'} asChild>
 			<TldrawUiToolbarToggleItem
 				className="fairy-toggle-button"
-				onClick={onClick}
+				onClick={handleClick}
+				onDoubleClick={handleDoubleClick}
 				type="icon"
 				data-state={fairyIsSelected ? 'on' : 'off'}
 				data-isactive={fairyIsSelected}
@@ -165,6 +202,13 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 			setPanelState((v) => (isChosen && isSelected && v === 'fairy' ? 'closed' : 'fairy'))
 		},
 		[agents, chosenFairy.id]
+	)
+
+	const handleDoubleClickFairy = useCallback(
+		(clickedAgent: FairyAgent) => {
+			goToFairy(clickedAgent)
+		},
+		[goToFairy]
 	)
 
 	const handleClickTodoList = useCallback(() => {
@@ -365,6 +409,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 									key={agent.id}
 									agent={agent}
 									onClick={() => handleClickFairy(agent)}
+									onDoubleClick={() => handleDoubleClickFairy(agent)}
 									selectMessage={selectMessage}
 									deselectMessage={deselectMessage}
 								/>
