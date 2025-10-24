@@ -87,17 +87,10 @@ export function FairyChatHistoryActionGroup({
 							className="fairy-chat-history-group-toggle-and-items"
 							key={`segment-${segmentIdx}-actions`}
 						>
-							{/* Show toggle if complete, or just the summary if incomplete */}
-							{segmentComplete ? (
-								<button className="fairy-chat-history-group-toggle" onClick={toggleCollapsed}>
-									<AgentIcon type={isCollapsed ? 'chevron-right' : 'chevron-down'} />
-									<Markdown>{segmentSummary}</Markdown>
-								</button>
-							) : (
-								<div className="fairy-chat-history-group-summary">
-									<Markdown>{segmentSummary}</Markdown>
-								</div>
-							)}
+							<button className="fairy-chat-history-group-toggle" onClick={toggleCollapsed}>
+								<AgentIcon type={isCollapsed ? 'chevron-right' : 'chevron-down'} />
+								<Markdown>{segmentSummary}</Markdown>
+							</button>
 							{!isCollapsed && (
 								<div className="fairy-chat-history-group-items">
 									{segmentItems.map((item, i) => {
