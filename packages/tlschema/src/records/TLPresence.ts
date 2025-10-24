@@ -61,7 +61,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 	agent: {
 		position: VecModel
 		flipX: boolean
-		pose: string
+		state: string
 		gesture: string | null
 	} | null
 }
@@ -133,7 +133,7 @@ export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.mode
 		agent: T.object({
 			position: vecModelValidator,
 			flipX: T.boolean,
-			pose: T.string,
+			state: T.string,
 			gesture: T.string.nullable(),
 		}).nullable(),
 	})
@@ -154,7 +154,6 @@ export const instancePresenceVersions = createMigrationIds('com.tldraw.instance_
 	RenameSelectedShapeIds: 5,
 	NullableCameraCursor: 6,
 	AddAgent: 7,
-	AddGesture: 8,
 } as const)
 
 /**
@@ -230,24 +229,6 @@ export const instancePresenceMigrations = createRecordMigrationSequence({
 			id: instancePresenceVersions.AddAgent,
 			up: (record: any) => {
 				record.agent = null
-			},
-		},
-		{
-			id: instancePresenceVersions.AddGesture,
-			up: (record: any) => {
-				record.agent = {
-					position: record.agent.position,
-					flipX: record.agent.flipX,
-					pose: record.agent.state,
-					gesture: null,
-				}
-			},
-			down: (record: any) => {
-				record.agent = {
-					position: record.agent.position,
-					flipX: record.agent.flipX,
-					state: record.agent.pose,
-				}
 			},
 		},
 	],

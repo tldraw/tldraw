@@ -6,7 +6,6 @@ import {
 	DefaultDebugMenuContent,
 	Editor,
 	TLComponents,
-	TLInstancePresence,
 	TLSessionStateSnapshot,
 	TLUiDialogsContextType,
 	Tldraw,
@@ -209,6 +208,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	}, [fileId])
 
 	// Ref to store fairy agents for presence syncing
+	// TODO(mime): use TldrawFairyAgent[] type when ready
 	const agentsRef = useRef<any[]>([])
 
 	const store = useSync({
@@ -227,7 +227,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 			// Add fairy position to presence if we have an active agent
 			const agent = agentsRef.current?.[0]
-			const fairyEntity = agent?.$fairy?.get?.()
+			const fairyEntity = agent?.$fairyEntity?.get?.()
 
 			return {
 				...defaultPresence,
@@ -235,10 +235,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 					? {
 							position: fairyEntity.position,
 							flipX: fairyEntity.flipX,
-							pose: fairyEntity.pose,
+							state: fairyEntity.pose,
+							gesture: fairyEntity.gesture,
 						}
 					: null,
-			} as TLInstancePresence
+			}
 		}, []),
 	})
 
@@ -290,7 +291,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 	// Fairy stuff
 
-	// TODO(mime): use TldrawFairyAgent type without importing the whole fairy package
+	// TODO(mime): use TldrawFairyAgent[] type when ready
 	const [agents, setAgents] = useState<any[]>([])
 	// keep a ref in sync so getUserPresence can read current agents without re-creating the callback
 	useEffect(() => {

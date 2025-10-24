@@ -38,7 +38,7 @@ function RemoteFairy({ userId }: { userId: string }) {
 		[editor, presence]
 	)
 
-	const validPose = useMemo(() => getValidPose(presence?.agent?.pose), [presence?.agent?.pose])
+	const validPose = useMemo(() => getValidPose(presence?.agent?.state), [presence?.agent?.state])
 	const validGesture = useMemo(
 		() => getValidGesture(presence?.agent?.gesture),
 		[presence?.agent?.gesture]
