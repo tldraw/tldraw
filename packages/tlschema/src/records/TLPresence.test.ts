@@ -25,7 +25,7 @@ describe('instancePresenceValidator', () => {
 			cursor: null,
 			chatMessage: '',
 			meta: {},
-			agent: null,
+			agents: [],
 		}
 
 		expect(() => instancePresenceValidator.validate(validPresence)).not.toThrow()
@@ -63,14 +63,14 @@ describe('instancePresenceValidator', () => {
 			cursor: { x: 300, y: 400, type: 'pointer', rotation: 45 },
 			chatMessage: 'Working on design!',
 			meta: { team: 'design', role: 'designer' },
-			agent: null,
+			agents: [],
 		}
 
 		expect(() => instancePresenceValidator.validate(complexPresence)).not.toThrow()
 	})
 
-	it('should validate presence with agent data', () => {
-		const presenceWithAgent = {
+	it('should validate presence with agents data', () => {
+		const presenceWithAgents = {
 			typeName: 'instance_presence',
 			id: 'instance_presence:agent' as TLInstancePresenceID,
 			userId: 'agent123',
@@ -87,20 +87,26 @@ describe('instancePresenceValidator', () => {
 			cursor: null,
 			chatMessage: '',
 			meta: {},
-			agent: {
+			agents: [
+				{
+					position: { x: 150, y: 250 },
+					flipX: true,
+					state: 'thinking',
+					gesture: null,
+				},
+			],
+		}
+
+		expect(() => instancePresenceValidator.validate(presenceWithAgents)).not.toThrow()
+		const validated = instancePresenceValidator.validate(presenceWithAgents)
+		expect(validated.agents).toEqual([
+			{
 				position: { x: 150, y: 250 },
 				flipX: true,
 				state: 'thinking',
+				gesture: null,
 			},
-		}
-
-		expect(() => instancePresenceValidator.validate(presenceWithAgent)).not.toThrow()
-		const validated = instancePresenceValidator.validate(presenceWithAgent)
-		expect(validated.agent).toEqual({
-			position: { x: 150, y: 250 },
-			flipX: true,
-			state: 'thinking',
-		})
+		])
 	})
 
 	it('should validate all agent states', () => {
@@ -129,19 +135,22 @@ describe('instancePresenceValidator', () => {
 				cursor: null,
 				chatMessage: '',
 				meta: {},
-				agent: {
-					position: { x: 100, y: 200 },
-					flipX: false,
-					state,
-				},
+				agents: [
+					{
+						position: { x: 100, y: 200 },
+						flipX: false,
+						state,
+						gesture: null,
+					},
+				],
 			}
 
 			expect(() => instancePresenceValidator.validate(presence)).not.toThrow()
 		})
 	})
 
-	it('should reject invalid agent state', () => {
-		const invalidPresence = {
+	it('should validate presence with multiple agents', () => {
+		const presenceWithMultipleAgents = {
 			typeName: 'instance_presence',
 			id: 'instance_presence:test' as TLInstancePresenceID,
 			userId: 'user123',
@@ -158,14 +167,25 @@ describe('instancePresenceValidator', () => {
 			cursor: null,
 			chatMessage: '',
 			meta: {},
-			agent: {
-				position: { x: 100, y: 200 },
-				flipX: false,
-				state: 'invalid-state',
-			},
+			agents: [
+				{
+					position: { x: 100, y: 200 },
+					flipX: false,
+					state: 'idle',
+					gesture: null,
+				},
+				{
+					position: { x: 300, y: 400 },
+					flipX: true,
+					state: 'thinking',
+					gesture: 'wave',
+				},
+			],
 		}
 
-		expect(() => instancePresenceValidator.validate(invalidPresence)).toThrow()
+		expect(() => instancePresenceValidator.validate(presenceWithMultipleAgents)).not.toThrow()
+		const validated = instancePresenceValidator.validate(presenceWithMultipleAgents)
+		expect(validated.agents).toHaveLength(2)
 	})
 
 	it('should reject invalid typeName', () => {
@@ -289,13 +309,13 @@ describe('instancePresenceMigrations', () => {
 		expect(record.screenBounds).toEqual({ x: 0, y: 0, w: 1, h: 1 })
 	})
 
-	it('should migrate AddAgent correctly', () => {
+	it('should migrate AddAgents correctly', () => {
 		const migration = instancePresenceMigrations.sequence.find(
-			(m) => m.id === instancePresenceVersions.AddAgent
+			(m) => m.id === instancePresenceVersions.AddAgents
 		)!
 		const oldRecord: any = { id: 'instance_presence:test' }
 		migration.up(oldRecord)
 
-		expect(oldRecord.agent).toBeNull()
+		expect(oldRecord.agents).toEqual([])
 	})
 })

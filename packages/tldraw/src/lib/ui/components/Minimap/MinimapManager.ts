@@ -303,8 +303,8 @@ export class MinimapManager {
 				points.push({ center: Vec.From(c.cursor), isAgent: false })
 				colors.push(getRgba(c.color))
 			}
-			if (c.agent) {
-				points.push({ center: Vec.From(c.agent.position), isAgent: true })
+			for (const agent of c.agents) {
+				points.push({ center: Vec.From(agent.position), isAgent: true })
 				colors.push(getRgba(c.color))
 			}
 		}

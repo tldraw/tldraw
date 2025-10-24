@@ -211,20 +211,25 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			const defaultPresence = getDefaultUserPresence(store, userInfo)
 			if (!defaultPresence) return null
 
-			// Add fairy position to presence if we have an active agent
-			const agent = agentsRef.current?.[0]
-			const fairyEntity = agent?.$fairyEntity?.get?.()
+			// Add fairy positions to presence for all active agents
+			const agents =
+				agentsRef.current
+					?.map((agent) => {
+						const fairyEntity = agent?.$fairyEntity?.get?.()
+						return fairyEntity
+							? {
+									position: fairyEntity.position,
+									flipX: fairyEntity.flipX,
+									state: fairyEntity.pose,
+									gesture: fairyEntity.gesture,
+								}
+							: null
+					})
+					.filter((agent): agent is NonNullable<typeof agent> => agent !== null) ?? []
 
 			return {
 				...defaultPresence,
-				agent: fairyEntity
-					? {
-							position: fairyEntity.position,
-							flipX: fairyEntity.flipX,
-							state: fairyEntity.pose,
-							gesture: fairyEntity.gesture,
-						}
-					: null,
+				agents,
 			}
 		}, []),
 	})

@@ -23,37 +23,61 @@ function RemoteFairy({ userId }: { userId: string }) {
 	const editor = useEditor()
 	const presence = usePresence(userId)
 
+	// Only render if the user is on the same page and has active agents
+	if (!presence || presence.currentPageId !== editor.getCurrentPageId()) {
+		return null
+	}
+
+	const { agents, color } = presence
+
+	if (!agents || agents.length === 0) {
+		return null
+	}
+
+	return (
+		<>
+			{agents.map((agent, index) => (
+				<RemoteFairyAgent
+					key={`${userId}_agent_${index}`}
+					agent={agent}
+					color={color}
+					editor={editor}
+				/>
+			))}
+		</>
+	)
+}
+
+function RemoteFairyAgent({
+	agent,
+	color,
+	editor,
+}: {
+	agent: {
+		position: { x: number; y: number }
+		flipX: boolean
+		state: string
+		gesture: string | null
+	}
+	color: string
+	editor: ReturnType<typeof useEditor>
+}) {
 	// Use useValue to reactively update screen position when camera moves
 	const screenPosition = useValue(
 		'remote fairy screen position',
 		() => {
-			if (!presence?.agent) return { x: 0, y: 0 }
-			const screenPos = editor.pageToScreen(presence.agent.position)
+			const screenPos = editor.pageToScreen(agent.position)
 			const screenBounds = editor.getViewportScreenBounds()
 			return {
 				x: screenPos.x - screenBounds.x,
 				y: screenPos.y - screenBounds.y,
 			}
 		},
-		[editor, presence]
+		[editor, agent.position]
 	)
 
-	const validPose = useMemo(() => getValidPose(presence?.agent?.state), [presence?.agent?.state])
-	const validGesture = useMemo(
-		() => getValidGesture(presence?.agent?.gesture),
-		[presence?.agent?.gesture]
-	)
-
-	// Only render if the user is on the same page and has an active fairy
-	if (!presence || presence.currentPageId !== editor.getCurrentPageId()) {
-		return null
-	}
-
-	const { agent, color } = presence
-
-	if (!agent) {
-		return null
-	}
+	const validPose = useMemo(() => getValidPose(agent.state), [agent.state])
+	const validGesture = useMemo(() => getValidGesture(agent.gesture), [agent.gesture])
 
 	return (
 		<div

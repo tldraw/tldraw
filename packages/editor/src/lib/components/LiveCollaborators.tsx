@@ -81,7 +81,7 @@ const Collaborator = track(function Collaborator({
 		userName,
 		cursor,
 		color,
-		agent,
+		agents,
 	} = latestPresence
 
 	if (!cursor) return null
@@ -131,18 +131,20 @@ const Collaborator = track(function Collaborator({
 			) : null}
 
 			{/* Remote agent presence as a secondary cursor-like indicator */}
-			{agent && CollaboratorCursor ? (
-				<CollaboratorCursor
-					className="tl-collaborator__cursor tl-collaborator__agent"
-					key={userId + '_agent'}
-					userId={userId}
-					point={agent.position}
-					color={color}
-					zoom={zoomLevel}
-					name={null}
-					chatMessage={''}
-				/>
-			) : null}
+			{agents.map((agent, index) =>
+				CollaboratorCursor ? (
+					<CollaboratorCursor
+						className="tl-collaborator__cursor tl-collaborator__agent"
+						key={userId + '_agent_' + index}
+						userId={userId}
+						point={agent.position}
+						color={color}
+						zoom={zoomLevel}
+						name={null}
+						chatMessage={''}
+					/>
+				) : null
+			)}
 			{CollaboratorScribble && scribbles.length ? (
 				<>
 					{scribbles.map((scribble) => (

@@ -2242,11 +2242,11 @@ describe('TLVideoAsset AddAutoplay', () => {
 	})
 })
 
-describe('TLPresence AddAgent', () => {
-	const { up } = getTestMigration(instancePresenceVersions.AddAgent)
+describe('TLPresence AddAgents', () => {
+	const { up } = getTestMigration(instancePresenceVersions.AddAgents)
 
 	test('up works as expected', () => {
-		expect(up({})).toEqual({ agent: null })
+		expect(up({})).toEqual({ agents: [] })
 	})
 })
 

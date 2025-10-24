@@ -704,7 +704,7 @@ describe('isReadonly', () => {
 		        "instance_presence:id_0": [
 		          "put",
 		          {
-		            "agent": null,
+		            "agents": [],
 		            "brush": null,
 		            "camera": null,
 		            "chatMessage": "",
@@ -733,8 +733,8 @@ describe('isReadonly', () => {
 	`)
 	})
 
-	it('handles presence updates with agent data', async () => {
-		const presenceWithAgent: TLPushRequest<any> = {
+	it('handles presence updates with agents data', async () => {
+		const presenceWithAgents: TLPushRequest<any> = {
 			clientClock: 0,
 			diff: undefined,
 			presence: [
@@ -744,18 +744,20 @@ describe('isReadonly', () => {
 					currentPageId: 'page:page_2' as any,
 					userId: 'agent',
 					userName: 'AI Assistant',
-					agent: {
-						position: { x: 100, y: 200 },
-						flipX: false,
-						state: 'thinking',
-						gesture: null,
-					},
+					agents: [
+						{
+							position: { x: 100, y: 200 },
+							flipX: false,
+							state: 'thinking',
+							gesture: null,
+						},
+					],
 				}),
 			],
 			type: 'push',
 		}
 
-		room.handleMessage(sessionBId, presenceWithAgent)
+		room.handleMessage(sessionBId, presenceWithAgents)
 
 		// commit for sessionB
 		expect(socketB.__lastMessage?.type).toBe('data')
@@ -768,11 +770,14 @@ describe('isReadonly', () => {
 		const patchData = socketA.__lastMessage as any
 		expect(patchData.data[0].type).toBe('patch')
 		const presenceRecord = patchData.data[0].diff['instance_presence:id_1'][1]
-		expect(presenceRecord.agent).toEqual({
-			position: { x: 100, y: 200 },
-			flipX: false,
-			state: 'thinking',
-		})
+		expect(presenceRecord.agents).toEqual([
+			{
+				position: { x: 100, y: 200 },
+				flipX: false,
+				state: 'thinking',
+				gesture: null,
+			},
+		])
 	})
 
 	describe('Backward compatibility with existing snapshots', () => {
