@@ -170,7 +170,7 @@ export type ZErrorCode = keyof typeof ZErrorCode
 // increment this to force clients to reload
 // e.g. if we make backwards-incompatible changes to the schema
 export const Z_PROTOCOL_VERSION = 3
-export const MIN_Z_PROTOCOL_VERSION = 3
+export const MIN_Z_PROTOCOL_VERSION = 2
 
 export type ZServerSentPacket =
 	| {
