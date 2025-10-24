@@ -209,17 +209,8 @@ export class TldrawApp {
 		if (!this.user$.get()) {
 			didCreate = true
 
-			// Check localStorage feature flag for new groups initialization
-			const useNewGroupsInit = getFromLocalStorage('tldraw_groups_init') === 'true'
-
-			if (useNewGroupsInit) {
-				// New groups initialization
-				await this.z.mutate.init({ user: initialUserData, time: Date.now() })
-			} else {
-				// Legacy initialization (no groups) - just insert user like before
-				// eslint-disable-next-line @typescript-eslint/no-deprecated
-				await this.z.mutate.user.insert({ ...initialUserData, flags: '' })
-			}
+			// Always use new groups initialization for new users (protocol v3+)
+			await this.z.mutate.init({ user: initialUserData, time: Date.now() })
 
 			updateLocalSessionState((state) => ({ ...state, shouldShowWelcomeDialog: true }))
 		}
