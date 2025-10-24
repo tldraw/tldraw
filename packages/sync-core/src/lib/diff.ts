@@ -107,6 +107,7 @@ export const ValueOpType = {
 	Put: 'put',
 	Delete: 'delete',
 	Append: 'append',
+	Stream: 'stream',
 	Patch: 'patch',
 } as const
 /**
@@ -129,6 +130,12 @@ export type PutOp = [type: typeof ValueOpType.Put, value: unknown]
  */
 export type AppendOp = [type: typeof ValueOpType.Append, values: unknown[], offset: number]
 /**
+ * Operation that appends text to the end of a string.
+ *
+ * @internal
+ */
+export type StreamOp = [type: typeof ValueOpType.Stream, appendedText: string, offset: number]
+/**
  * Operation that applies a nested diff to an object or array.
  *
  * @internal
@@ -146,7 +153,7 @@ export type DeleteOp = [type: typeof ValueOpType.Delete]
  *
  * @internal
  */
-export type ValueOp = PutOp | AppendOp | PatchOp | DeleteOp
+export type ValueOp = PutOp | AppendOp | StreamOp | PatchOp | DeleteOp
 
 /**
  * Represents the differences between two objects as a mapping of property names
@@ -213,6 +220,15 @@ function diffObject(prev: object, next: object, nestedKeys?: Set<string>): Objec
 					if (!result) result = {}
 					result[key] = op
 				}
+			} else if (typeof prevVal === 'string' && typeof nextVal === 'string') {
+				if (nextVal.startsWith(prevVal)) {
+					const appendedText = nextVal.slice(prevVal.length)
+					if (!result) result = {}
+					result[key] = [ValueOpType.Stream, appendedText, prevVal.length]
+				} else {
+					if (!result) result = {}
+					result[key] = [ValueOpType.Put, nextVal]
+				}
 			} else {
 				if (!result) result = {}
 				result[key] = [ValueOpType.Put, nextVal]
@@ -233,6 +249,12 @@ function diffValue(valueA: unknown, valueB: unknown): ValueOp | null {
 	if (Object.is(valueA, valueB)) return null
 	if (Array.isArray(valueA) && Array.isArray(valueB)) {
 		return diffArray(valueA, valueB)
+	} else if (typeof valueA === 'string' && typeof valueB === 'string') {
+		if (valueB.startsWith(valueA)) {
+			const appendedText = valueB.slice(valueA.length)
+			return [ValueOpType.Stream, appendedText, valueA.length]
+		}
+		return [ValueOpType.Put, valueB]
 	} else if (!valueA || !valueB || typeof valueA !== 'object' || typeof valueB !== 'object') {
 		return isEqual(valueA, valueB) ? null : [ValueOpType.Put, valueB]
 	} else {
@@ -347,6 +369,16 @@ export function applyObjectDiff<T extends object>(object: T, objectDiff: ObjectD
 				if (Array.isArray(arr) && arr.length === offset) {
 					set(key, [...arr, ...values])
 				}
+				break
+			}
+			case ValueOpType.Stream: {
+				const appendedText = op[1]
+				const offset = op[2]
+				const currentValue = object[key as keyof T]
+				if (typeof currentValue === 'string' && currentValue.length === offset) {
+					set(key, currentValue + appendedText)
+				}
+				// If validation fails (not a string or length mismatch), silently ignore
 				break
 			}
 			case ValueOpType.Patch: {

@@ -408,6 +408,155 @@ describe('array diffing comprehensive', () => {
 	})
 })
 
+describe('string streaming', () => {
+	describe('basic string streaming', () => {
+		it('should handle string appends', () => {
+			const prev = { text: 'Hello' }
+			const next = { text: 'Hello world' }
+
+			expect(diffRecord(prev, next)).toEqual({
+				text: [ValueOpType.Stream, ' world', 5],
+			})
+		})
+
+		it('should handle empty string to non-empty', () => {
+			const prev = { text: '' }
+			const next = { text: 'Hello' }
+
+			expect(diffRecord(prev, next)).toEqual({
+				text: [ValueOpType.Stream, 'Hello', 0],
+			})
+		})
+
+		it('should use put when string is replaced (not appended)', () => {
+			const prev = { text: 'Hello' }
+			const next = { text: 'Goodbye' }
+
+			expect(diffRecord(prev, next)).toEqual({
+				text: [ValueOpType.Put, 'Goodbye'],
+			})
+		})
+
+		it('should use put when string is shortened', () => {
+			const prev = { text: 'Hello world' }
+			const next = { text: 'Hello' }
+
+			expect(diffRecord(prev, next)).toEqual({
+				text: [ValueOpType.Put, 'Hello'],
+			})
+		})
+
+		it('should handle identical strings', () => {
+			const prev = { text: 'Hello' }
+			const next = { text: 'Hello' }
+
+			expect(diffRecord(prev, next)).toBeNull()
+		})
+
+		it('should handle large text append', () => {
+			const prev = { text: 'Start' }
+			const longText = ' '.repeat(1000) + 'end'
+			const next = { text: 'Start' + longText }
+
+			const diff = diffRecord(prev, next)
+			expect(diff).toEqual({
+				text: [ValueOpType.Stream, longText, 5],
+			})
+		})
+	})
+
+	describe('string streaming in nested props', () => {
+		it('should handle string streaming in nested props', () => {
+			const prev = { id: 'test:1', props: { label: 'Hello' } }
+			const next = { id: 'test:1', props: { label: 'Hello world' } }
+
+			expect(diffRecord(prev, next)).toEqual({
+				props: [ValueOpType.Patch, { label: [ValueOpType.Stream, ' world', 5] }],
+			})
+		})
+
+		it('should combine string streaming with other property changes', () => {
+			const prev = { text: 'Hello', x: 100 }
+			const next = { text: 'Hello world', x: 200 }
+
+			expect(diffRecord(prev, next)).toEqual({
+				text: [ValueOpType.Stream, ' world', 5],
+				x: [ValueOpType.Put, 200],
+			})
+		})
+	})
+
+	describe('apply string streaming', () => {
+		it('should apply stream operations correctly', () => {
+			const obj = { text: 'Hello' }
+			const diff: ObjectDiff = {
+				text: [ValueOpType.Stream, ' world', 5],
+			}
+
+			const result = applyObjectDiff(obj, diff)
+			expect(result).toEqual({ text: 'Hello world' })
+			expect(result).not.toBe(obj)
+		})
+
+		it('should handle stream from empty string', () => {
+			const obj = { text: '' }
+			const diff: ObjectDiff = {
+				text: [ValueOpType.Stream, 'Hello', 0],
+			}
+
+			const result = applyObjectDiff(obj, diff)
+			expect(result).toEqual({ text: 'Hello' })
+		})
+
+		it('should ignore stream operation with wrong offset', () => {
+			const obj = { text: 'Hello' }
+			const diff: ObjectDiff = {
+				text: [ValueOpType.Stream, ' world', 10], // Wrong offset
+			}
+
+			const result = applyObjectDiff(obj, diff)
+			expect(result).toBe(obj) // No change, same reference
+		})
+
+		it('should ignore stream operation on non-string value', () => {
+			const obj = { text: 123 }
+			const diff: ObjectDiff = {
+				text: [ValueOpType.Stream, ' world', 3],
+			}
+
+			const result = applyObjectDiff(obj, diff)
+			expect(result).toBe(obj) // No change, same reference
+		})
+
+		it('should handle multiple stream operations', () => {
+			const obj = { a: 'Hello', b: 'Foo' }
+			const diff: ObjectDiff = {
+				a: [ValueOpType.Stream, ' world', 5],
+				b: [ValueOpType.Stream, 'bar', 3],
+			}
+
+			const result = applyObjectDiff(obj, diff)
+			expect(result).toEqual({ a: 'Hello world', b: 'Foobar' })
+		})
+
+		it('should integrate with network diff workflow', () => {
+			const prev = { id: 'shape:1', type: 'text', text: 'Hello' }
+			const next = { id: 'shape:1', type: 'text', text: 'Hello world' }
+
+			const recordsDiff = {
+				added: {},
+				updated: { 'shape:1': [prev, next] },
+				removed: {},
+			}
+
+			const networkDiff = getNetworkDiff(recordsDiff)
+			expect(networkDiff).toEqual({
+				'shape:1': [RecordOpType.Patch, { text: [ValueOpType.Stream, ' world', 5] }],
+			})
+		})
+	})
+})
+
 describe('applyObjectDiff comprehensive', () => {
 	describe('basic operations', () => {
 		it('should create new object when changes are needed', () => {
