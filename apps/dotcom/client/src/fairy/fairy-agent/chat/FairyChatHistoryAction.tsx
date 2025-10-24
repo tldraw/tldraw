@@ -1,7 +1,6 @@
 import { AgentIcon, ChatHistoryActionItem } from '@tldraw/fairy-shared'
 import Markdown from 'react-markdown'
 import { FairyAgent } from '../agent/FairyAgent'
-import { getActionInfo } from './getActionInfo'
 
 export function FairyChatHistoryAction({
 	item,
@@ -27,7 +26,7 @@ function FairyChatHistoryMessageDisplay({
 	agent: FairyAgent
 }) {
 	const { action } = item
-	const info = getActionInfo(action, agent)
+	const info = agent.getActionInfo(action)
 	const content = info.description
 
 	if (!content) return null
@@ -50,7 +49,7 @@ function FairyChatHistoryActionDisplay({
 }) {
 	const { action } = item
 	if (action._type === 'update-todo-list') return null
-	const info = getActionInfo(action, agent)
+	const info = agent.getActionInfo(action)
 
 	const displayText =
 		info.summary || info.description || formatActionName(action._type || 'unknown')

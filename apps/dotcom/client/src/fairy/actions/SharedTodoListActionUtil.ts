@@ -35,25 +35,24 @@ export class SharedTodoListActionUtil extends AgentActionUtil<SharedTodoListActi
 		if (itemToUpdate) {
 			const fairyIsClaimingItem = proposedTodoItem.claimedBy === fairyName
 			const claimedByAnotherFairy =
-				itemToUpdate.claimedBy &&
-				itemToUpdate.claimedBy !== '' &&
-				itemToUpdate.claimedBy !== fairyName
+				itemToUpdate.claimedBy !== '' && itemToUpdate.claimedBy !== fairyName
 
 			// TODO improve this logic: it shouldnt say none are left if this fairy has some items calimed already.
-			// TODO can agent.prompt have a flag that's like 'dont log to chat'? how does shcedule do it?
 
 			if (fairyIsClaimingItem && claimedByAnotherFairy) {
 				this.agent.cancel()
-				const unclaimedTodoItems = sharedTodoList.filter(
-					(item) => !item.claimedBy || item.claimedBy === ''
+				const unclaimedTodoItems = sharedTodoList.filter((item) => !item.claimedBy)
+				const todoItemsClaimedByThisFairy = sharedTodoList.filter(
+					(item) => item.claimedBy === fairyName
 				)
+
 				let message = `I'm sorry, but ${itemToUpdate.claimedBy} has already claimed this todo item with id ${itemToUpdate.id}. `
-				if (unclaimedTodoItems.length === 0) {
+				if (unclaimedTodoItems.length === 0 && todoItemsClaimedByThisFairy.length === 0) {
 					message += 'There are no unclaimed todo items remaining. You can stop working.'
 				} else {
-					message += `Please try to claim another todo item. Current shared todo list: ${JSON.stringify(sharedTodoList)}`
+					message += `Please try to claim another todo item${todoItemsClaimedByThisFairy.length > 0 ? ` or work on one of your already claimed items` : ''}. Current shared todo list: ${JSON.stringify(sharedTodoList)}`
 				}
-				this.agent.prompt({ message })
+				this.agent.prompt({ messages: [message], type: 'schedule' })
 				return
 			}
 		}
