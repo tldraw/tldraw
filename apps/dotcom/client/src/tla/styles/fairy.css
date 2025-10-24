@@ -831,3 +831,14 @@ ul {
 	opacity: 0.3;
 	cursor: not-allowed;
 }
+
+.fairy-todo-unread-indicator {
+	position: absolute;
+	top: 4px;
+	right: 6px;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background-color: #ff8c00;
+	pointer-events: none;
+}

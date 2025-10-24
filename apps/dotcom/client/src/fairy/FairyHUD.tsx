@@ -1,3 +1,5 @@
+import { SharedTodoItem, SmallSpinner } from '@tldraw/fairy-shared'
+import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	Box,
@@ -21,12 +23,9 @@ import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairyChatHistory } from './fairy-agent/chat/FairyChatHistory'
 import { FairyBasicInput } from './fairy-agent/input/FairyBasicInput'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
-import { SharedTodoListInline } from './SharedTodoListInline'
-
-import { SmallSpinner } from '@tldraw/fairy-shared'
-import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { FairyConfigDialog } from './FairyConfigDialog'
 import { $sharedTodoList, clearSharedTodoList } from './SharedTodoList'
+import { SharedTodoListInline } from './SharedTodoListInline'
 
 const fairyMessages = defineMessages({
 	toolbar: { defaultMessage: 'Fairies' },
@@ -212,9 +211,33 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		[goToFairy]
 	)
 
+	const [todoLastChecked, setTodoLastChecked] = useState<SharedTodoItem[]>([])
+
 	const handleClickTodoList = useCallback(() => {
 		setPanelState((v) => (v === 'todo-list' ? 'closed' : 'todo-list'))
+		setTodoLastChecked($sharedTodoList.get())
 	}, [])
+
+	// Keep todoLastChecked in sync when the panel is open
+	useQuickReactor(
+		'update-todo-last-checked',
+		() => {
+			if (panelState === 'todo-list') {
+				setTodoLastChecked($sharedTodoList.get())
+			}
+		},
+		[panelState]
+	)
+
+	const hasUnreadTodos = useValue(
+		'has-unread-todos',
+		() => {
+			const currentList = $sharedTodoList.get()
+			if (currentList.length !== todoLastChecked.length) return true
+			return JSON.stringify(currentList) !== JSON.stringify(todoLastChecked)
+		},
+		[todoLastChecked]
+	)
 
 	const fairyConfig = useValue('fairy config', () => chosenFairy.$fairyConfig.get(), [chosenFairy])
 
@@ -403,13 +426,16 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 						>
 							{panelState === 'closed' ? '‹‹' : '››'}
 						</TldrawUiButton> */}
-						<TldrawUiButton
-							type="icon"
-							className="fairy-toolbar-sidebar-button"
-							onClick={handleClickTodoList}
-						>
-							<TldrawUiIcon icon="clipboard-copied" label="Todo list" />
-						</TldrawUiButton>
+						<div style={{ position: 'relative' }}>
+							<TldrawUiButton
+								type="icon"
+								className="fairy-toolbar-sidebar-button"
+								onClick={handleClickTodoList}
+							>
+								<TldrawUiIcon icon="clipboard-copied" label="Todo list" />
+							</TldrawUiButton>
+							{hasUnreadTodos && <div className="fairy-todo-unread-indicator" />}
+						</div>
 					</div>
 					<TldrawUiToolbar label={toolbarMessage} orientation="vertical">
 						{agents.map((agent) => {
