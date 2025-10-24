@@ -14,7 +14,7 @@ export function usePassThroughMouseOverEvents(ref: RefObject<HTMLElement>) {
 			if (!editor?.getInstanceState().isFocused) return
 			if ((e as any).isSpecialRedispatchedEvent) return
 			preventDefault(e)
-			const cvs = container.querySelector('.tl-canvas')
+			const cvs = container.querySelector('.tl-canvas__inner')
 			if (!cvs) return
 			const newEvent = new PointerEvent(e.type, e as any)
 			;(newEvent as any).isSpecialRedispatchedEvent = true

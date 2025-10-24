@@ -129,14 +129,14 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 
 	return (
 		<>
-			<div
-				draggable={false}
-				data-iseditinganything={isEditingAnything}
-				data-isselectinganything={isSelectingAnything}
-				className={classNames('tl-canvas', className)}
-				data-testid="canvas"
-			>
-				<div style={{ width: '100%', height: '100%' }} ref={rCanvas} {...events}>
+			<div draggable={false} className={classNames('tl-canvas', className)} data-testid="canvas">
+				<div
+					data-iseditinganything={isEditingAnything}
+					data-isselectinganything={isSelectingAnything}
+					className="tl-canvas__inner"
+					ref={rCanvas}
+					{...events}
+				>
 					<svg className="tl-svg-context" aria-hidden="true">
 						<defs>
 							{shapeSvgDefs}
@@ -180,8 +180,8 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					>
 						<InFrontOfTheCanvasWrapper />
 					</div>
+					<MovingCameraHitTestBlocker />
 				</div>
-				<MovingCameraHitTestBlocker />
 				<MenuClickCapture />
 			</div>
 		</>
