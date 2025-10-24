@@ -294,8 +294,13 @@ input,
 	cursor: var(--tl-cursor);
 	overflow: clip;
 	content-visibility: auto;
-	touch-action: none;
 	contain: strict;
+}
+
+.tl-canvas__inner {
+	height: 100%;
+	width: 100%;
+	touch-action: none;
 }
 
 .tl-canvas__in-front {
@@ -847,7 +852,7 @@ input,
  *  - draw/line shapes, because it feels restrictive to have them be 'in the way' of clicking on a textfield
  *  - shapes that are not filled
  */
-.tl-canvas:is([data-iseditinganything='true'], [data-isselectinganything='true'])
+.tl-canvas__inner:is([data-iseditinganything='true'], [data-isselectinganything='true'])
 	.tl-shape:not(
 		[data-shape-type='arrow'],
 		[data-shape-type='draw'],
@@ -1789,7 +1794,7 @@ it from receiving any pointer events or affecting the cursor. */
 
 	/* These three rules help preserve clicking into specific points in text areas *while*
  * already in edit mode when jumping from shape to shape. */
-	.tl-canvas[data-iseditinganything='true'] .tl-text-wrapper:hover .tl-text-input {
+	.tl-canvas__inner[data-iseditinganything='true'] .tl-text-wrapper:hover .tl-text-input {
 		z-index: var(--tl-layer-text-editor);
 		pointer-events: all;
 	}

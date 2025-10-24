@@ -166,7 +166,7 @@ export function useDragToCreate<T = any>(config: DragToCreateConfig<T>) {
 				el.style.opacity = ''
 
 				// Move the pointer capture to the canvas so tldraw can handle subsequent events
-				const cvs = document.querySelector('.tl-canvas') as HTMLDivElement
+				const cvs = document.querySelector('.tl-canvas__inner') as HTMLDivElement
 				if (cvs) cvs.setPointerCapture(down.pointerId)
 			}
 
