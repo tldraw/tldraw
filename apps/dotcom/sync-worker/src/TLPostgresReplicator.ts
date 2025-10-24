@@ -635,13 +635,17 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		userId,
 		lsn,
 		topicSubscriptions,
+		guestFileIds,
 		bootId,
 	}: {
 		userId: string
 		lsn: string
 		topicSubscriptions: TopicSubscriptionTree
+		guestFileIds?: never
 		bootId: string
 	}): Promise<{ type: 'done'; sequenceId: string; sequenceNumber: number } | { type: 'reboot' }> {
+		if (guestFileIds) throw new Error('guestFileIds is no longer supported')
+
 		try {
 			while (!this.getCurrentLsn()) {
 				// this should only happen once per slot name change, which should never happen!
