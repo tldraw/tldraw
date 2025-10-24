@@ -771,7 +771,7 @@ describe('isReadonly', () => {
 		expect(presenceRecord.agent).toEqual({
 			position: { x: 100, y: 200 },
 			flipX: false,
-			pose: 'thinking',
+			state: 'thinking',
 		})
 	})
 
