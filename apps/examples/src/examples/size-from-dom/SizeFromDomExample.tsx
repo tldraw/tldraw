@@ -15,6 +15,12 @@ import {
 import 'tldraw/tldraw.css'
 import { contents } from './contents'
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		'dynamic-size': DynamicSizeShape
+	}
+}
+
 // There's a guide at the bottom of this file!
 
 const SHAPE_WIDTH_PX = 150
@@ -194,22 +200,22 @@ can be adapted for other shapes that need DOM-driven sizing.
 Define the shape type. This shape only stores content data - its size is determined dynamically by
 measuring the DOM element that renders the content.
 
-[2] 
+[2]
 ShapeSizes is a global EditorAtom that stores size information for shapes by their ID. This is the key
 piece that makes DOM-driven sizing work:
-	
+
 	[a] We register a cleanup handler to remove size data when shapes are deleted, preventing memory leaks.
 
 [3]
 useDynamicShapeSize is a reusable hook that measures DOM elements and updates the shape size data:
 
 	[a] We measure the actual DOM dimensions using offsetWidth/offsetHeight
-	
+
 	[b] We store these dimensions in our global ShapeSizes atom. The atom will trigger re-renders of
 	    components that depend on this data when the size changes.
-	
+
 	[c] We measure immediately on every render to ensure we have current size data
-	
+
 	[d] We use ResizeObserver to watch for size changes and update accordingly. This is what makes
 	    the shape truly dynamic - it will update whenever the DOM content changes size.
 
@@ -217,22 +223,22 @@ useDynamicShapeSize is a reusable hook that measures DOM elements and updates th
 The shape util defines how our dynamic-size shape behaves:
 
 	[a] Standard shape type and props definition. Note we only store content, not size.
-	
+
 	[b] Default props with some sample content
 
 	[c] Prevent the shape from being culled when it's outside the viewport, which would break our measurements
-	
+
 	[d] Shape behavior: not editable, not resizable (since size comes from DOM), aspect ratio locked
-	
+
 	[e] getGeometry uses the size from our ShapeSizes atom. This is where the DOM-measured size gets
 	    used by the editor for hit-testing, selection bounds, etc.
-	
+
 	[f] The component renders the content and uses our hook to measure it:
-	
+
 		[i] We animate the text content to demonstrate the dynamic sizing in action
-		
+
 		[ii] The ref from useDynamicShapeSize is attached to the DOM element we want to measure
-	
+
 	[g] Standard indicator for selection outline
 
 [5]

@@ -299,6 +299,11 @@ export class EnumStyleProp<T> extends StyleProp<T> {
 }
 
 // @public
+export type ExtractShapeByProps<P> = Extract<TLShape, {
+    props: P;
+}>;
+
+// @public
 export const frameShapeMigrations: TLPropsMigrations;
 
 // @public
@@ -353,6 +358,10 @@ export function getDefaultUserPresence(store: TLStore, user: TLPresenceUserInfo)
 
 // @internal
 export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>>): Map<StyleProp<unknown>, string>;
+
+// @public (undocumented)
+export interface GlobalShapePropsMap {
+}
 
 // @public
 export const groupShapeMigrations: TLPropsMigrations;
@@ -626,10 +635,12 @@ export type SetValue<T extends Set<any>> = T extends Set<infer U> ? U : never;
 export const shapeIdValidator: T.Validator<TLShapeId>;
 
 // @public
-export type ShapeWithCrop = TLBaseShape<string, {
-    crop: null | TLShapeCrop;
-    h: number;
-    w: number;
+export type ShapeWithCrop = Extract<TLShape, {
+    props: {
+        crop: null | TLShapeCrop;
+        h: number;
+        w: number;
+    };
 }>;
 
 // @public
@@ -760,10 +771,8 @@ export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T ? {
 } & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
 
 // @public
-export type TLAssetShape = Extract<TLShape, {
-    props: {
-        assetId: TLAssetId;
-    };
+export type TLAssetShape = ExtractShapeByProps<{
+    assetId: TLAssetId;
 }>;
 
 // @public
@@ -1370,7 +1379,7 @@ export interface TLScribble {
 export type TLSerializedStore = SerializedStore<TLRecord>;
 
 // @public
-export type TLShape = TLDefaultShape | TLUnknownShape;
+export type TLShape = GlobalShapePropsMap[keyof GlobalShapePropsMap] | TLDefaultShape;
 
 // @public
 export interface TLShapeCrop {
@@ -1383,7 +1392,7 @@ export interface TLShapeCrop {
 }
 
 // @public
-export type TLShapeId = RecordId<TLUnknownShape>;
+export type TLShapeId = RecordId<TLShape>;
 
 // @public
 export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {

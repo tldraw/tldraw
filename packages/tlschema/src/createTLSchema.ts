@@ -22,8 +22,9 @@ import {
 	getShapePropKeysByStyle,
 	rootShapeMigrations,
 } from './records/TLShape'
-import { TLPropsMigrations, processPropsMigrations } from './recordsWithProps'
+import { RecordProps, TLPropsMigrations, processPropsMigrations } from './recordsWithProps'
 import { arrowShapeMigrations, arrowShapeProps } from './shapes/TLArrowShape'
+import { TLBaseShape } from './shapes/TLBaseShape'
 import { bookmarkShapeMigrations, bookmarkShapeProps } from './shapes/TLBookmarkShape'
 import { drawShapeMigrations, drawShapeProps } from './shapes/TLDrawShape'
 import { embedShapeMigrations, embedShapeProps } from './shapes/TLEmbedShape'
@@ -147,7 +148,12 @@ export const defaultShapeSchemas = {
 	note: { migrations: noteShapeMigrations, props: noteShapeProps },
 	text: { migrations: textShapeMigrations, props: textShapeProps },
 	video: { migrations: videoShapeMigrations, props: videoShapeProps },
-} satisfies { [T in TLDefaultShape['type']]: SchemaPropsInfo }
+} satisfies {
+	[T in TLDefaultShape['type']]: {
+		migrations: SchemaPropsInfo['migrations']
+		props: RecordProps<TLBaseShape<T, Extract<TLDefaultShape, { type: T }>['props']>>
+	}
+}
 
 /**
  * Default binding schema configurations for all built-in tldraw binding types.

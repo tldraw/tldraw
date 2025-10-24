@@ -4,6 +4,7 @@ import {
 	Geometry2d,
 	PageRecordType,
 	Rectangle2d,
+	TLBaseShape,
 	TLGeoShapeProps,
 	TLShape,
 	TldrawEditorProps,
@@ -472,6 +473,18 @@ describe('isFocused', () => {
 	})
 })
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		blorg: TLBaseShape<
+			'blorg',
+			{
+				w: number
+				h: number
+			}
+		>
+	}
+}
+
 describe('getShapeUtil', () => {
 	let myUtil: any
 
@@ -519,16 +532,54 @@ describe('getShapeUtil', () => {
 	})
 
 	it('throws if that shape type isnt registered', () => {
-		const myMissingShape = { type: 'missing' } as TLShape
-		expect(() => editor.getShapeUtil(myMissingShape)).toThrowErrorMatchingInlineSnapshot(
-			`[Error: No shape util found for type "missing"]`
-		)
+		const myMissingShape = { type: 'missing' }
+		expect(() =>
+			editor.getShapeUtil(
+				// @ts-expect-error
+				myMissingShape
+			)
+		).toThrowErrorMatchingInlineSnapshot(`[Error: No shape util found for type "missing"]`)
 	})
 
 	it('throws if that type isnt registered', () => {
-		expect(() => editor.getShapeUtil('missing')).toThrowErrorMatchingInlineSnapshot(
-			`[Error: No shape util found for type "missing"]`
-		)
+		expect(() =>
+			editor.getShapeUtil(
+				// @ts-expect-error
+				'missing'
+			)
+		).toThrowErrorMatchingInlineSnapshot(`[Error: No shape util found for type "missing"]`)
+	})
+})
+
+describe('isShapeOfType', () => {
+	it('returns true for a matching shape type', () => {
+		const id = createShapeId('arrow1')
+		editor.createShape({ type: 'arrow', id, x: 0, y: 0 })
+
+		const shape = editor.getShape(id)!
+		expect(editor.isShapeOfType(shape, 'arrow')).toBe(true)
+	})
+
+	it('returns false for a non-matching shape type', () => {
+		const id = createShapeId('arrow1')
+		editor.createShape({ type: 'arrow', id, x: 0, y: 0 })
+
+		const shape = editor.getShape(id)!
+		expect(editor.isShapeOfType(shape, 'card')).toBe(false)
+	})
+
+	it('narrows down the shape type', () => {
+		const id = createShapeId('arrow1')
+		editor.createShape({ type: 'arrow', id, x: 0, y: 0 })
+
+		const shape = editor.getShape(id)!
+		if (editor.isShapeOfType(shape, 'arrow')) {
+			expect(shape.type === 'arrow').toBe(true)
+			expect(
+				// @ts-expect-error This comparison appears to be unintentional because the types '"arrow"' and '"card"' have no overlap.
+				shape.type === 'card'
+			).toBe(false)
+		}
 	})
 })
 
@@ -866,9 +917,17 @@ describe('instance.isReadonly', () => {
 	})
 })
 
+type MyCustomShape = TLBaseShape<'myCustomShape', { w: number; h: number }>
+
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		myCustomShape: MyCustomShape
+	}
+}
+
 describe('the geometry cache', () => {
-	class CustomShapeUtil extends BaseBoxShapeUtil<any> {
-		static override type = 'custom'
+	class CustomShapeUtil extends BaseBoxShapeUtil<MyCustomShape> {
+		static override type = 'myCustomShape' as const
 
 		getDefaultProps() {
 			return {
@@ -894,9 +953,11 @@ describe('the geometry cache', () => {
 		editor = new TestEditor({
 			shapeUtils: [CustomShapeUtil],
 		})
-		const { A } = editor.createShapesFromJsx([<TL.custom ref="A" x={0} y={0} w={100} h={100} />])
+		const { A } = editor.createShapesFromJsx([
+			<TL.myCustomShape ref="A" x={0} y={0} w={100} h={100} />,
+		])
 		expect(editor.getShapePageBounds(A)!.width).toBe(100)
-		editor.updateShape({ id: A, type: 'custom', meta: { double: true } })
+		editor.updateShape({ id: A, type: 'myCustomShape', meta: { double: true } })
 		expect(editor.getShapePageBounds(A)!.width).toBe(200)
 	})
 })

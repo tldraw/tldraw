@@ -470,7 +470,7 @@ describe('When interacting with a shape...', () => {
 	})
 
 	it('Fires handle dragging cancel events', () => {
-		const util = editor.getShapeUtil<TLLineShape>('line')
+		const util = editor.getShapeUtil('line')
 
 		const calls: string[] = []
 

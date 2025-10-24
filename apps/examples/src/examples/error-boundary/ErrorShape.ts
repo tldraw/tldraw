@@ -1,5 +1,11 @@
 import { BaseBoxShapeUtil, TLBaseShape } from 'tldraw'
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		error: ErrorShape
+	}
+}
+
 export type ErrorShape = TLBaseShape<'error', { w: number; h: number }>
 
 export class ErrorShapeUtil extends BaseBoxShapeUtil<ErrorShape> {

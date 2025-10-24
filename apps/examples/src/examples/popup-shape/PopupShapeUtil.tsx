@@ -2,7 +2,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { BaseBoxShapeUtil, HTMLContainer, RecordProps, T, TLBaseShape } from 'tldraw'
 
-type IMyPopupShape = TLBaseShape<
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		'my-popup-shape': IMyPopupShape
+	}
+}
+
+export type IMyPopupShape = TLBaseShape<
 	'my-popup-shape',
 	{
 		w: number

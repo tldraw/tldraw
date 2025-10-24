@@ -10,8 +10,14 @@ import {
 
 // There's a guide at the bottom of this file!
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		PlayingCard: IPlayingCard
+	}
+}
+
 // [1]
-type IPlayingCard = TLBaseShape<
+export type IPlayingCard = TLBaseShape<
 	'PlayingCard',
 	{
 		w: number
@@ -99,8 +105,8 @@ export class PlayingCardUtil extends BaseBoxShapeUtil<IPlayingCard> {
 	}
 }
 
-/* 
-This is a utility class for the PlayingCard shape. This is where you define the shape's behavior, 
+/*
+This is a utility class for the PlayingCard shape. This is where you define the shape's behavior,
 how it renders (its component and indicator), and how it handles different events. The most relevant
 part of the code to custom snapping can be found in [6].
 
@@ -111,7 +117,7 @@ and width for this shape.
 
 [2]
 We define the shape's type and props for the editor. We can use tldraw's validator library to
-make sure that the store always has shape data we can trust. In this case, we define the width 
+make sure that the store always has shape data we can trust. In this case, we define the width
 and height properties as numbers and assign a validator from tldraw's library to them.
 
 [3]

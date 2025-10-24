@@ -12,6 +12,12 @@ import { Editor } from '../editor/Editor'
 import { Box } from '../primitives/Box'
 import { getExportDefaultBounds } from './getSvgJsx'
 
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		'test-shape': ITestShape
+	}
+}
+
 type ITestShape = TLBaseShape<
 	'test-shape',
 	{
