@@ -2517,7 +2517,7 @@ export function rotateSelectionHandle(handle: SelectionHandle, rotation: number)
 // @public (undocumented)
 export const runtime: {
     hardReset(): void;
-    openWindow(url: string, target: string): void;
+    openWindow(url: string, target: string, allowReferrer?: boolean): void;
     refreshPage(): void;
 };
 

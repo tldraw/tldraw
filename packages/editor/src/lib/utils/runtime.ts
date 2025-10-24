@@ -1,11 +1,11 @@
 /** @public */
 export const runtime: {
-	openWindow(url: string, target: string): void
+	openWindow(url: string, target: string, allowReferrer?: boolean): void
 	refreshPage(): void
 	hardReset(): void
 } = {
-	openWindow(url, target) {
-		window.open(url, target, 'noopener noreferrer')
+	openWindow(url, target, allowReferrer = false) {
+		window.open(url, target, allowReferrer ? 'noopener' : 'noopener noreferrer')
 	},
 	refreshPage() {
 		window.location.reload()
