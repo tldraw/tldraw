@@ -178,7 +178,7 @@ export function BookmarkShapeComponent({
 							className="tl-bookmark__link"
 							href={url || ''}
 							target="_blank"
-							rel="noopener"
+							rel="noopener noreferrer"
 							draggable={false}
 							onPointerDown={markAsHandledOnShiftKey}
 							onPointerUp={markAsHandledOnShiftKey}

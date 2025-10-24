@@ -11,7 +11,7 @@ export function SocialLink({
 	href: string
 }) {
 	return (
-		<Link href={href} target="_blank" rel="noreferrer">
+		<Link href={href} target="_blank" rel="noopener">
 			<span className="sr-only">{caption}</span>
 			<Icon icon={icon} className="h-4" />
 		</Link>

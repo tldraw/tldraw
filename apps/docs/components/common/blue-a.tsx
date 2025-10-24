@@ -13,7 +13,7 @@ export function BlueA({
 		<TldrawLink
 			href={href}
 			target={newTab ? '_blank' : undefined}
-			rel={newTab ? 'noreferrer' : undefined}
+			rel={newTab ? 'noopener' : undefined}
 			className="text-blue-500 hover:text-blue-600"
 		>
 			{children}

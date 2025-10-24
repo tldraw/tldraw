@@ -37,7 +37,7 @@ export function createPrivacySettingsDialog(
 		</div>
 		<p class="tl-analytics-dialog__body">
 			This website uses cookies to collect analytics from visitors. Read our
-			<a href="${DOT_DEV_COOKIE_POLICY_URL}" target="_blank" rel="noreferrer">cookie policy</a>
+			<a href="${DOT_DEV_COOKIE_POLICY_URL}" target="_blank" rel="noopener">cookie policy</a>
 			to learn more.
 		</p>
 		<div class="tl-analytics-dialog__checkbox-group">

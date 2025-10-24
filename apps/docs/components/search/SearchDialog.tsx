@@ -155,7 +155,7 @@ function Results({ items, sendEvent }: { items: Hit<SearchEntry>[]; sendEvent: S
 							className="text-blue-500 hover:text-blue-600"
 							target="_blank"
 							href="https://discord.tldraw.com/?utm_source=blog&utm_medium=search&utm_campaign=no-results-found"
-							rel="noreferrer"
+							rel="noopener"
 						>
 							discord
 						</a>

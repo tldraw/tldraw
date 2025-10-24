@@ -58,7 +58,7 @@ export function PrItem({
 					}}
 					target="_blank"
 					href={`https://github.com/tldraw/tldraw/pull/${prNumber}`}
-					rel="noreferrer"
+					rel="noopener"
 				>
 					{text}
 				</a>
@@ -72,7 +72,7 @@ export function PrItem({
 							}}
 							target="_blank"
 							href={`https://pr-${prNumber}-preview-deploy.tldraw.com/`}
-							rel="noreferrer"
+							rel="noopener"
 						>
 							(preview)
 						</a>

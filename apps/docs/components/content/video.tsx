@@ -20,7 +20,7 @@ export function Video({
 			<TldrawLink
 				href={href ?? src}
 				target="_blank"
-				rel="noreferrer"
+				rel="noopener"
 				className="block bg-zinc-100 dark:bg-zinc-800 py-1 sm:rounded-2xl sm:px-1"
 			>
 				<video

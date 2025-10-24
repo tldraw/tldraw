@@ -22,7 +22,7 @@ export function createCookieConsentBanner(
 		<p class="tl-analytics-banner__text">
 			We use cookies on this website.
 			<br>
-			Learn more in our <a class="tl-analytics-banner__link" href="${DOT_DEV_COOKIE_POLICY_URL}" target="_blank" rel="noreferrer">Cookie Policy</a>.
+			Learn more in our <a class="tl-analytics-banner__link" href="${DOT_DEV_COOKIE_POLICY_URL}" target="_blank" rel="noopener">Cookie Policy</a>.
 		</p>
 		<div class="tl-analytics-banner__buttons">
 			<button class="tl-analytics-button tl-analytics-button--secondary" data-action="opt-out">
