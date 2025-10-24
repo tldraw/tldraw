@@ -217,7 +217,6 @@ export class TldrawApp {
 				await this.z.mutate.init({ user: initialUserData, time: Date.now() })
 			} else {
 				// Legacy initialization (no groups) - just insert user like before
-				// eslint-disable-next-line @typescript-eslint/no-deprecated
 				await this.z.mutate.user.insert({ ...initialUserData, flags: '' })
 			}
 
@@ -754,6 +753,13 @@ export class TldrawApp {
 		this.z.mutate.onEnterFile({ fileId, time: Date.now() })
 	}
 
+	onFairyStateUpdate(fileId: string, fairyState: any) {
+		this.updateFileState(fileId, {
+			fairyState: JSON.stringify(fairyState),
+			lastVisitAt: Date.now(),
+		})
+	}
+
 	onFileExit(fileId: string) {
 		this.updateFileState(fileId, { lastVisitAt: Date.now() })
 	}
@@ -788,6 +794,7 @@ export class TldrawApp {
 			createdAt: Date.now(),
 			updatedAt: Date.now(),
 			flags: '',
+			fairies: null,
 			allowAnalyticsCookie: null,
 			...restOfPreferences,
 			inputMode: restOfPreferences.inputMode ?? null,

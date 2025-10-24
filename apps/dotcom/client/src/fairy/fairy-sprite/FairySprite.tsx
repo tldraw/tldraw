@@ -1,5 +1,5 @@
-import { FAIRY_POSE, FairyPose } from '@tldraw/fairy-shared'
-import { useEffect, useMemo, useState } from 'react'
+import { FAIRY_POSE, FairyEntity, FairyPose } from '@tldraw/fairy-shared'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { FileHelpers, Image } from 'tldraw'
 import { FairyOutfit } from './FairyOutfit'
 import { FAIRY_VARIANTS, FairyVariantDefinition } from './FairyVariant'
@@ -208,25 +208,57 @@ class FairySprite {
 	}
 }
 
-export function FairySpriteComponent({ pose, outfit }: { pose: FairyPose; outfit: FairyOutfit }) {
-	const [frameNumber, setFrameNumber] = useState(0)
+export function FairySpriteComponent({
+	entity,
+	outfit,
+	onGestureEnd,
+	animated,
+}: {
+	entity: FairyEntity
+	outfit: FairyOutfit
+	onGestureEnd?(): void
+	animated: boolean
+}) {
+	const { pose, gesture } = entity
 	const sprite = useMemo(() => getFairySprite(outfit), [outfit])
-	const [poseFrames, setPoseFrames] = useState<string[]>([])
+
+	const imageRef = useRef<HTMLImageElement>(null)
+	const startTimeRef = useRef(Date.now())
 
 	const FRAME_DURATION = 400
+	const INTERVAL_DURATION = 32
 
 	useEffect(() => {
-		const frames = sprite.getPoseFrames(pose)
-		setPoseFrames(frames)
+		startTimeRef.current = Date.now()
+	}, [gesture, pose])
+
+	const updateFrame = useCallback(
+		(timeElapsed: number) => {
+			if (!imageRef.current) return
+			const poseFrames = sprite.getPoseFrames(pose)
+			const gestureFrames = gesture ? sprite.getPoseFrames(gesture) : null
+			const unwrappedFrameNumber = Math.floor(timeElapsed / FRAME_DURATION)
+
+			const poseFrame = poseFrames[unwrappedFrameNumber % poseFrames.length]
+			const gestureFrame = gestureFrames ? gestureFrames[unwrappedFrameNumber] : null
+			if (gesture && !gestureFrame) {
+				onGestureEnd?.()
+			}
+
+			const frame = gestureFrame ?? poseFrame
+			imageRef.current.src = frame
+		},
+		[pose, gesture, sprite, onGestureEnd]
+	)
+
+	useEffect(() => {
+		updateFrame(Date.now() - startTimeRef.current)
+		if (!animated) return
 		const timer = setInterval(() => {
-			const frames = sprite.getPoseFrames(pose)
-			setPoseFrames(frames)
-			setFrameNumber((frameNumber) => (frameNumber + 1) % frames.length)
-		}, FRAME_DURATION)
+			updateFrame(Date.now() - startTimeRef.current)
+		}, INTERVAL_DURATION)
 		return () => clearInterval(timer)
-	}, [pose, sprite, sprite.loadingState])
+	}, [updateFrame, animated])
 
-	const frame = poseFrames[frameNumber % poseFrames.length]
-
-	return <img className="fairy-sprite" src={frame} />
+	return <img className="fairy-sprite" ref={imageRef} />
 }

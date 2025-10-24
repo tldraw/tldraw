@@ -79,6 +79,7 @@ CREATE TABLE "file_state" (
   "firstVisitAt" BIGINT,
   "lastEditAt" BIGINT,
   "lastSessionState" VARCHAR,
+  "fairyState" VARCHAR,
   "lastVisitAt" BIGINT,
   PRIMARY KEY ("userId", "fileId"),
   FOREIGN KEY ("userId") REFERENCES "user" ("id") ON DELETE CASCADE,

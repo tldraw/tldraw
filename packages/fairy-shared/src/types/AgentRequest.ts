@@ -1,7 +1,7 @@
 import { BoxModel } from '@tldraw/tlschema'
 import { JsonValue } from '@tldraw/utils'
 import { FocusedShape } from '../format/FocusedShape'
-import { AgentModelName } from '../models'
+import { Wand } from '../schema/Wand'
 import { ContextItem } from './ContextItem'
 
 /**
@@ -35,15 +35,15 @@ export interface AgentRequest {
 	bounds: BoxModel
 
 	/**
-	 * The model to use for the request.
-	 */
-	modelName: AgentModelName
-
-	/**
 	 * The type of request.
 	 * - 'user' is a request from the user.
 	 * - 'schedule' is a request from the schedule.
 	 * - 'todo' is a request from outstanding todo items.
 	 */
 	type: 'user' | 'schedule' | 'todo'
+
+	/**
+	 * Which wand (set of actions) to use for this request.
+	 */
+	wand: Wand['type']
 }

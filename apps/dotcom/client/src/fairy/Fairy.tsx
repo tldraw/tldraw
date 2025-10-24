@@ -1,6 +1,6 @@
-import { TldrawFairyAgent } from '@tldraw/fairy-shared'
 import { useEffect, useRef } from 'react'
 import { Box, useEditor, useValue } from 'tldraw'
+import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
 
 const FAIRY_SIZE = 200
@@ -9,11 +9,12 @@ const FAIRY_CLICKABLE_SIZE_SELECTED = 200
 
 // We use the agent directly here because we need to access the isGenerating method
 // which is not exposed on the fairy atom
-export default function Fairy({ agent }: { agent: TldrawFairyAgent }) {
+export default function Fairy({ agent }: { agent: FairyAgent }) {
 	const editor = useEditor()
 	const containerRef = useRef<HTMLDivElement>(null)
 	const fairyRef = useRef<HTMLDivElement>(null)
-	const fairy = agent.$fairy
+	const fairy = agent.$fairyEntity
+	const fairyConfig = agent.$fairyConfig
 
 	// Track viewport screen bounds to position fairy correctly
 	const screenPosition = useValue(
@@ -34,7 +35,6 @@ export default function Fairy({ agent }: { agent: TldrawFairyAgent }) {
 
 	const flipX = useValue('fairy flipX', () => fairy.get()?.flipX ?? false, [fairy])
 	const isSelected = useValue('fairy isSelected', () => fairy.get()?.isSelected ?? false, [fairy])
-	const pose = useValue('fairy pose', () => fairy.get()?.pose ?? 'idle', [fairy])
 	const isThrowToolActive = useValue(
 		'is throw tool active',
 		() => editor.getCurrentTool().id === 'fairy-throw',
@@ -212,6 +212,8 @@ export default function Fairy({ agent }: { agent: TldrawFairyAgent }) {
 		editor.setCursor({ type: 'grab', rotation: 0 })
 	}
 
+	const fairyOutfit = useValue('fairy outfit', () => fairyConfig.get()?.outfit, [fairyConfig])
+
 	// Early return if fairy doesn't exist (after all hooks)
 	const fairyEntity = fairy.get()
 	if (!fairyEntity) return null
@@ -271,11 +273,11 @@ export default function Fairy({ agent }: { agent: TldrawFairyAgent }) {
 				/>
 				<div>
 					<FairySpriteComponent
-						pose={pose}
-						outfit={{
-							body: 'plain',
-							hat: 'pointy',
-							wings: 'plain',
+						entity={fairyEntity}
+						outfit={fairyOutfit}
+						animated={true}
+						onGestureEnd={() => {
+							fairy.update((f) => (f ? { ...f, gesture: null } : f))
 						}}
 					/>
 				</div>

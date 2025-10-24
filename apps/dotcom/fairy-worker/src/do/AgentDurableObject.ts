@@ -1,13 +1,5 @@
+import { AgentAction, AgentPrompt, Streaming } from '@tldraw/fairy-shared'
 import { DurableObject } from 'cloudflare:workers'
-// import { AutoRouter, error } from 'itty-router'
-
-import {
-	AgentAction,
-	AgentActionUtilConstructor,
-	AgentPrompt,
-	PromptPartUtilConstructor,
-	Streaming,
-} from '@tldraw/fairy-shared'
 import { Environment } from '../environment'
 import { AgentService } from './AgentService'
 
@@ -24,8 +16,12 @@ export class AgentDurableObject extends DurableObject<Environment> {
 		const url = new URL(request.url)
 
 		// Handle the stream endpoint directly without router
-		if (url.pathname === '/stream' && request.method === 'POST') {
-			return this.stream(request)
+		if (url.pathname === '/stream-actions' && request.method === 'POST') {
+			return this.streamActions(request)
+		}
+
+		if (url.pathname === '/stream-text' && request.method === 'POST') {
+			return this.streamText(request)
 		}
 
 		// For other routes, you can still use the router or return 404
@@ -33,26 +29,61 @@ export class AgentDurableObject extends DurableObject<Environment> {
 	}
 
 	/**
-	 * Stream changes from the model.
+	 * Stream text from the model
 	 */
-	private async stream(request: Request): Promise<Response> {
+	private async streamText(request: Request): Promise<Response> {
 		const encoder = new TextEncoder()
 		const { readable, writable } = new TransformStream()
 		const writer = writable.getWriter()
 
-		const response: { changes: Streaming<AgentAction>[] } = { changes: [] }
+		const response: string[] = []
+		;(async () => {
+			try {
+				const prompt = (await request.json()) as AgentPrompt
+
+				for await (const text of this.service.streamText(prompt)) {
+					response.push(text)
+					const data = `data: ${text}\n\n`
+					await writer.write(encoder.encode(data))
+					await writer.ready
+				}
+				await writer.close()
+			} catch (error: any) {
+				console.error('Stream text error:', error)
+				throw error
+			}
+		})()
+
+		return new Response(readable, {
+			headers: {
+				'Content-Type': 'text/event-stream',
+				'Cache-Control': 'no-cache, no-transform',
+				Connection: 'keep-alive',
+				'X-Accel-Buffering': 'no',
+				'Access-Control-Allow-Origin': '*',
+				'Access-Control-Allow-Methods': 'POST, OPTIONS',
+				'Access-Control-Allow-Headers': 'Content-Type',
+			},
+		})
+	}
+
+	/**
+	 * Stream actions from the model.
+	 */
+	private async streamActions(request: Request): Promise<Response> {
+		const encoder = new TextEncoder()
+		const { readable, writable } = new TransformStream()
+		const writer = writable.getWriter()
+
+		const response: { actions: Streaming<AgentAction>[] } = { actions: [] }
 
 		;(async () => {
 			try {
-				const { prompt, actions, parts } = (await request.json()) as {
-					prompt: AgentPrompt
-					actions: AgentActionUtilConstructor['type'][]
-					parts: PromptPartUtilConstructor['type'][]
-				}
+				const prompt = (await request.json()) as AgentPrompt
 
-				for await (const change of this.service.stream(prompt, actions, parts)) {
-					response.changes.push(change)
-					const data = `data: ${JSON.stringify(change)}\n\n`
+				for await (const action of this.service.streamActions(prompt)) {
+					response.actions.push(action)
+					const data = `data: ${JSON.stringify(action)}\n\n`
 					await writer.write(encoder.encode(data))
 					await writer.ready
 				}

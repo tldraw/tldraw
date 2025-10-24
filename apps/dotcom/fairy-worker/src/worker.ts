@@ -5,7 +5,8 @@ import { WorkerEntrypoint } from 'cloudflare:workers'
 import { cors, IRequest } from 'itty-router'
 import { getAuth, requireAdminAccess, SignedInAuth } from './auth'
 import { Environment } from './environment'
-import { stream } from './routes/stream'
+import { streamActionsHandler } from './routes/stream-actions'
+import { streamTextHandler } from './routes/stream-text'
 
 // Extend IRequest to include auth
 export interface AuthenticatedRequest extends IRequest {
@@ -21,7 +22,8 @@ export default class extends WorkerEntrypoint<Environment> {
 		.all('*', preflight)
 		.all('*', blockUnknownOrigins)
 		.all('*', requireTldrawEmail)
-		.post('/stream', stream)
+		.post('/stream-actions', streamActionsHandler)
+		.post('/stream-text', streamTextHandler)
 		.all('*', notFound)
 
 	override async fetch(request: Request): Promise<Response> {
@@ -77,9 +79,15 @@ async function requireTldrawEmail(request: IRequest, env: Environment) {
 		if (!auth || 'userId' in auth === false || auth.userId === null) {
 			throw new Error('Unauthorized')
 		}
-		await requireAdminAccess(env, auth)
 		// Attach auth to request for downstream use
 		;(request as AuthenticatedRequest).auth = auth
+
+		if (env.IS_LOCAL === 'true') {
+			return undefined
+		}
+
+		await requireAdminAccess(env, auth)
+
 		return undefined
 	} catch (error: any) {
 		console.error('Authentication failed:', error.message)

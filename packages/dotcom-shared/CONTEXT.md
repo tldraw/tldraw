@@ -40,6 +40,7 @@ const user = table('user')
 		isPasteAtCursorMode: boolean().optional(),
 		enhancedA11yMode: boolean().optional(),
 		allowAnalyticsCookie: boolean().optional(),
+		fairies: string().optional(),
 	})
 	.primaryKey('id')
 
@@ -76,6 +77,7 @@ const file_state = table('file_state')
 		lastVisitAt: number().optional(),
 		isFileOwner: boolean().optional(),
 		isPinned: boolean().optional(),
+		fairyState: string().optional(),
 	})
 	.primaryKey('userId', 'fileId')
 ```

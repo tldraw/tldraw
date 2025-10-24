@@ -44,6 +44,7 @@ export const user = table('user')
 		inputMode: string().optional(),
 		enhancedA11yMode: boolean().optional(),
 		allowAnalyticsCookie: boolean().optional(),
+		fairies: string().optional(),
 	})
 	.primaryKey('id')
 
@@ -57,6 +58,7 @@ export const file_state = table('file_state')
 		lastVisitAt: number().optional(),
 		isFileOwner: boolean().optional(),
 		isPinned: boolean().optional(),
+		fairyState: string().optional(),
 	})
 	.primaryKey('userId', 'fileId')
 

@@ -15,10 +15,13 @@ import {
 	TLTextShape,
 	Vec,
 } from '@tldraw/editor'
+import { convertTldrawFillToFocusFill } from './FocusFill'
+import { convertTldrawFontSizeToFocusFontSize } from './FocusFontSize'
 import {
 	FocusedArrowShape,
 	FocusedDrawShape,
 	FocusedGeoShape,
+	FocusedGeoType,
 	FocusedLineShape,
 	FocusedNoteShape,
 	FocusedShape,
@@ -26,12 +29,9 @@ import {
 	FocusedTextShape,
 	FocusedUnknownShape,
 } from './FocusedShape'
-import { convertTldrawFillToSimpleFill } from './SimpleFill'
-import { convertTldrawFontSizeAndScaleToSimpleFontSize } from './SimpleFontSize'
-import { SimpleGeoShapeType } from './SimpleGeoShapeType'
 
 /**
- * Convert a tldraw shape to a simple shape
+ * Convert a tldraw shape to a focused shape
  */
 export function convertTldrawShapeToFocusedShape(editor: Editor, shape: TLShape): FocusedShape {
 	switch (shape.type) {
@@ -52,7 +52,7 @@ export function convertTldrawShapeToFocusedShape(editor: Editor, shape: TLShape)
 	}
 }
 
-export function convertTldrawShapeToSimpleType(shape: TLShape): FocusedShape['_type'] {
+export function convertTldrawShapeToFocusedType(shape: TLShape): FocusedShape['_type'] {
 	switch (shape.type) {
 		case 'geo': {
 			const geoShape = shape as TLGeoShape
@@ -69,7 +69,7 @@ export function convertTldrawShapeToSimpleType(shape: TLShape): FocusedShape['_t
 	}
 }
 
-const GEO_TO_SIMPLE_TYPES: Record<TLGeoShapeGeoStyle, SimpleGeoShapeType> = {
+const GEO_TO_SIMPLE_TYPES: Record<TLGeoShapeGeoStyle, FocusedGeoType> = {
 	rectangle: 'rectangle',
 	ellipse: 'ellipse',
 	triangle: 'triangle',
@@ -100,7 +100,7 @@ function convertDrawShapeToFocused(editor: Editor, shape: TLDrawShape): FocusedD
 	return {
 		_type: 'draw',
 		color: shape.props.color,
-		fill: convertTldrawFillToSimpleFill(shape.props.fill),
+		fill: convertTldrawFillToFocusFill(shape.props.fill),
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 	}
@@ -139,7 +139,7 @@ function convertTextShapeToFocused(editor: Editor, shape: TLTextShape): FocusedT
 		_type: 'text',
 		anchor,
 		color: shape.props.color,
-		fontSize: convertTldrawFontSizeAndScaleToSimpleFontSize(textSize, shape.props.scale),
+		fontSize: convertTldrawFontSizeToFocusFontSize(textSize, shape.props.scale),
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: text,
@@ -173,7 +173,7 @@ function convertGeoShapeToFocused(editor: Editor, shape: TLGeoShape): FocusedGeo
 	return {
 		_type: GEO_TO_SIMPLE_TYPES[shape.props.geo],
 		color: shape.props.color,
-		fill: convertTldrawFillToSimpleFill(shape.props.fill),
+		fill: convertTldrawFillToFocusFill(shape.props.fill),
 		h: shape.props.h,
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),

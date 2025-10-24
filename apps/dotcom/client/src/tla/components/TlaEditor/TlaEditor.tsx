@@ -12,6 +12,7 @@ import {
 	TldrawUiMenuItem,
 	createDebugValue,
 	createSessionStateSnapshotSignal,
+	getDefaultUserPresence,
 	parseDeepLinkString,
 	react,
 	throttle,
@@ -21,6 +22,8 @@ import {
 	useEditor,
 	useEvent,
 	useValue,
+	type TLPresenceUserInfo,
+	type TLStore,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
@@ -29,6 +32,7 @@ import { useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
+import { isDevelopmentEnv } from '../../../utils/env'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { TldrawApp } from '../../app/TldrawApp'
@@ -62,6 +66,9 @@ const FairyVision = lazy(() =>
 	import('../../../fairy/FairyVision').then((m) => ({ default: m.FairyVision }))
 )
 const Fairies = lazy(() => import('../../../fairy/Fairies').then((m) => ({ default: m.Fairies })))
+const RemoteFairies = lazy(() =>
+	import('../../../fairy/RemoteFairies').then((m) => ({ default: m.RemoteFairies }))
+)
 
 const customFeatureFlags = {
 	fairies: createDebugValue('fairies', {
@@ -186,6 +193,10 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		return multiplayerAssetStore(() => fileId)
 	}, [fileId])
 
+	// Ref to store fairy agents for presence syncing
+	// TODO(mime): use TldrawFairyAgent[] type when ready
+	const agentsRef = useRef<any[]>([])
+
 	const store = useSync({
 		uri: useCallback(async () => {
 			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
@@ -196,6 +207,26 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}, [fileSlug, hasUser, getUserToken]),
 		assets,
 		userInfo: app?.tlUser.userPreferences,
+		getUserPresence: useCallback((store: TLStore, userInfo: TLPresenceUserInfo) => {
+			const defaultPresence = getDefaultUserPresence(store, userInfo)
+			if (!defaultPresence) return null
+
+			// Add fairy position to presence if we have an active agent
+			const agent = agentsRef.current?.[0]
+			const fairyEntity = agent?.$fairyEntity?.get?.()
+
+			return {
+				...defaultPresence,
+				agent: fairyEntity
+					? {
+							position: fairyEntity.position,
+							flipX: fairyEntity.flipX,
+							state: fairyEntity.pose,
+							gesture: fairyEntity.gesture,
+						}
+					: null,
+			}
+		}, []),
 	})
 
 	// we need to prevent calling onFileExit if the store is in an error state
@@ -246,13 +277,17 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 	// Fairy stuff
 
-	// TODO(mime): use TldrawFairyAgent type without importing the whole fairy package
+	// TODO(mime): use TldrawFairyAgent[] type when ready
 	const [agents, setAgents] = useState<any[]>([])
+	// keep a ref in sync so getUserPresence can read current agents without re-creating the callback
+	useEffect(() => {
+		agentsRef.current = agents
+	}, [agents])
 
 	// this is ugly
 	const originalInFrontOfTheCanvasRef = useRef(components.InFrontOfTheCanvas)
 	const OriginalInFrontOfTheCanvas = originalInFrontOfTheCanvasRef.current
-	const canShowFairies = agents.length > 0 && showFairies && !!user?.isTldraw
+	const canShowFairies = agents.length > 0 && showFairies && (!!user?.isTldraw || isDevelopmentEnv)
 
 	components.InFrontOfTheCanvas = (props) => (
 		<>
@@ -262,11 +297,14 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 					<FairyVision agents={agents} />
 					<Fairies agents={agents} />
 					<FairyHUD agents={agents} />
+					<RemoteFairies />
 				</Suspense>
 			)}
 		</>
 	)
-	components.DebugMenu = () => <CustomDebugMenu showFairyFeatureFlags={!!user?.isTldraw} />
+	components.DebugMenu = () => (
+		<CustomDebugMenu showFairyFeatureFlags={!!user?.isTldraw || isDevelopmentEnv} />
+	)
 
 	return (
 		<TlaEditorWrapper>
@@ -291,7 +329,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<SneakyLargeFileHander />
 				{showFairies && (
 					<Suspense fallback={null}>
-						<FairyApp setAgents={setAgents} />
+						<FairyApp setAgents={setAgents} fileId={fileId} />
 					</Suspense>
 				)}
 			</Tldraw>

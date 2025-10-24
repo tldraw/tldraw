@@ -1,22 +1,22 @@
-import { convertTldrawShapeToFocusedShape, DEFAULT_FAIRY_VISION } from '@tldraw/fairy-shared'
+import { convertTldrawShapeToFocusedShape, FAIRY_VISION_DIMENSIONS } from '@tldraw/fairy-shared'
 import { useCallback, useRef, useState } from 'react'
 import { Box, TldrawUiInput, useValue } from 'tldraw'
-import { TldrawFairyAgent } from '../agent/TldrawFairyAgent'
+import { FairyAgent } from '../agent/FairyAgent'
 
-export function FairyBasicInput({ agent }: { agent: TldrawFairyAgent }) {
+export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCancel(): void }) {
 	const { editor } = agent
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [inputValue, setInputValue] = useState('')
 	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
-	const modelName = useValue(agent.$modelName)
 
-	const fairy = useValue('fairy', () => agent.$fairy, [agent])
+	const fairy = useValue('fairy', () => agent.$fairyEntity, [agent])
 
 	const handleComplete = useCallback(
 		async (value: string) => {
+			agent.cancel()
+
 			// If the user's message is empty, just cancel the current request (if there is one)
 			if (value === '') {
-				agent.cancel()
 				return
 			}
 
@@ -30,18 +30,17 @@ export function FairyBasicInput({ agent }: { agent: TldrawFairyAgent }) {
 
 			const fairyPosition = fairy.get().position
 
-			const fairyVision = Box.FromCenter(fairyPosition, DEFAULT_FAIRY_VISION)
+			const fairyVision = Box.FromCenter(fairyPosition, FAIRY_VISION_DIMENSIONS)
 
 			await agent.prompt({
 				message: value,
 				contextItems: [],
 				bounds: fairyVision,
-				modelName,
 				selectedShapes,
 				type: 'user',
 			})
 		},
-		[agent, modelName, editor, fairy]
+		[agent, editor, fairy]
 	)
 
 	const shouldCancel = isGenerating && inputValue === ''
@@ -58,10 +57,11 @@ export function FairyBasicInput({ agent }: { agent: TldrawFairyAgent }) {
 		<div className="fairy-input">
 			<TldrawUiInput
 				ref={inputRef}
-				placeholder={`Whisper to ${agent.id}...`}
+				placeholder={`Whisper to ${agent.$fairyConfig.get().name}...`}
 				value={inputValue}
 				onValueChange={setInputValue}
 				onComplete={handleComplete}
+				onCancel={onCancel}
 				autoFocus
 				className="fairy-input__field"
 			/>

@@ -1,6 +1,5 @@
-import { AgentActionUtilConstructor } from '../actions/AgentActionUtil'
-import { AGENT_ACTION_UTILS } from '../actions/AgentActionUtils'
+import z from 'zod'
+import { AGENT_ACTION_SCHEMAS } from '../schema/FairySchema'
+import { UnknownAction } from '../schema/actions/UnknownAction'
 
-type ExtractAgentActionType<T> = T extends AgentActionUtilConstructor<infer U> ? U : never
-
-export type AgentAction = ExtractAgentActionType<(typeof AGENT_ACTION_UTILS)[number]>
+export type AgentAction = z.infer<(typeof AGENT_ACTION_SCHEMAS)[number]> | UnknownAction

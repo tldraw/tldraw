@@ -2,7 +2,7 @@ import { Editor, TLShape } from '@tldraw/editor'
 import { BlurryShape } from './BlurryShape'
 import {
 	convertTldrawIdToSimpleId,
-	convertTldrawShapeToSimpleType,
+	convertTldrawShapeToFocusedType,
 } from './convertTldrawShapeToFocusedShape'
 import { FocusedShape } from './FocusedShape'
 
@@ -19,7 +19,7 @@ export function convertTldrawShapeToBlurryShape(
 	const util = editor.getShapeUtil(shape)
 	const text = util.getText(shape)
 
-	const shapeType = convertTldrawShapeToSimpleType(shape)
+	const shapeType = convertTldrawShapeToFocusedType(shape)
 
 	return {
 		x: Math.round(bounds.x),

@@ -5,22 +5,13 @@ import {
 	GoogleGenerativeAIProviderOptions,
 } from '@ai-sdk/google'
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
+import { AgentAction, AgentPrompt, Streaming } from '@tldraw/fairy-shared'
 import { LanguageModel, streamText } from 'ai'
-
-import {
-	AgentAction,
-	AgentActionUtilConstructor,
-	AgentModelName,
-	AgentPrompt,
-	buildMessages,
-	buildSystemPrompt,
-	getAgentModelDefinition,
-	getModelName,
-	PromptPartUtilConstructor,
-	Streaming,
-} from '@tldraw/fairy-shared'
 import { Environment } from '../environment'
+import { buildMessages } from '../prompt/buildMessages'
+import { buildSystemPrompt } from '../prompt/buildSystemPrompt'
 import { closeAndParseJson } from './closeAndParseJson'
+import { AgentModelName, FAIRY_MODEL_NAME, getAgentModelDefinition } from './models'
 
 export class AgentService {
 	openai: OpenAIProvider
@@ -39,29 +30,74 @@ export class AgentService {
 		return this[provider](modelDefinition.id)
 	}
 
-	async *stream(
-		prompt: AgentPrompt,
-		actions: AgentActionUtilConstructor['type'][],
-		parts: PromptPartUtilConstructor['type'][]
-	): AsyncGenerator<Streaming<AgentAction>> {
+	async *streamActions(prompt: AgentPrompt): AsyncGenerator<Streaming<AgentAction>> {
 		try {
-			const modelName = getModelName(prompt)
-			const model = this.getModel(modelName)
-			for await (const event of streamActions(model, prompt, actions, parts)) {
-				yield event
+			const model = this.getModel(FAIRY_MODEL_NAME)
+			for await (const action of _streamActions(model, prompt)) {
+				yield action
 			}
 		} catch (error: any) {
 			console.error('Stream error:', error)
 			throw error
 		}
 	}
+
+	async *streamText(prompt: AgentPrompt): AsyncGenerator<string> {
+		try {
+			const model = this.getModel(FAIRY_MODEL_NAME)
+			for await (const text of _streamText(model, prompt)) {
+				yield text
+			}
+		} catch (error: any) {
+			console.error('Stream text error:', error)
+			throw error
+		}
+	}
 }
 
-async function* streamActions(
+async function* _streamText(model: LanguageModel, prompt: AgentPrompt): AsyncGenerator<string> {
+	if (typeof model === 'string') {
+		throw new Error('Model is a string, not a LanguageModel')
+	}
+
+	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
+
+	const messages = buildMessages(prompt)
+	const systemPrompt = buildSystemPrompt(prompt) || 'You are a helpful assistant.'
+
+	try {
+		const { textStream } = streamText({
+			model,
+			system: systemPrompt,
+			messages,
+			maxOutputTokens: 8192,
+			temperature: 0,
+			providerOptions: {
+				anthropic: {
+					thinking: { type: 'disabled' },
+				} satisfies AnthropicProviderOptions,
+				google: {
+					thinkingConfig: { thinkingBudget: geminiThinkingBudget },
+				} satisfies GoogleGenerativeAIProviderOptions,
+			},
+			onError: (e) => {
+				console.error('Stream text error:', e)
+				throw e
+			},
+		})
+
+		for await (const text of textStream) {
+			yield text
+		}
+	} catch (error: any) {
+		console.error('streamEventsVercel error:', error)
+		throw error
+	}
+}
+
+async function* _streamActions(
 	model: LanguageModel,
-	prompt: AgentPrompt,
-	actions: AgentActionUtilConstructor['type'][],
-	parts: PromptPartUtilConstructor['type'][]
+	prompt: AgentPrompt
 ): AsyncGenerator<Streaming<AgentAction>> {
 	if (typeof model === 'string') {
 		throw new Error('Model is a string, not a LanguageModel')
@@ -69,8 +105,8 @@ async function* streamActions(
 
 	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
 
-	const messages = buildMessages(prompt, parts)
-	const systemPrompt = buildSystemPrompt(prompt, actions, parts) || 'You are a helpful assistant.'
+	const messages = buildMessages(prompt)
+	const systemPrompt = buildSystemPrompt(prompt)
 
 	try {
 		messages.push({
