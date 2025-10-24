@@ -180,6 +180,7 @@ export class LicenseManager {
 						: 'unknown'
 			url.searchParams.set('sku', sku)
 		}
+		url.searchParams.set('url', window.location.href)
 		if (process.env.NODE_ENV) {
 			url.searchParams.set('environment', process.env.NODE_ENV)
 		}
