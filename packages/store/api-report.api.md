@@ -289,7 +289,7 @@ export function reverseRecordsDiff(diff: RecordsDiff<any>): RecordsDiff<any>;
 export type RSIndex<R extends UnknownRecord> = Computed<RSIndexMap<R>, RSIndexDiff<R>>;
 
 // @public
-export type RSIndexDiff<R extends UnknownRecord, Property extends string = string & keyof R> = Map<any, CollectionDiff<IdOf<R>>>;
+export type RSIndexDiff<R extends UnknownRecord> = Map<any, CollectionDiff<IdOf<R>>>;
 
 // @public
 export type RSIndexMap<R extends UnknownRecord> = Map<any, Set<IdOf<R>>>;

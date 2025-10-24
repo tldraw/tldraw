@@ -31,7 +31,7 @@ import { CollectionDiff } from './Store'
  *
  * @public
  */
-export type RSIndexDiff<R extends UnknownRecord, Property extends string = string & keyof R> = Map<
+export type RSIndexDiff<R extends UnknownRecord> = Map<
 	any,
 	CollectionDiff<IdOf<R>>
 >
@@ -320,7 +320,7 @@ export class StoreQueries<R extends UnknownRecord> {
 	 * Supports nested property paths using backslash separator.
 	 *
 	 * @param typeName - The type name of records to index
-	 * @param property - The property name or backslash-delimited path to index by
+	 * @param path - The property name or backslash-delimited path to index by
 	 * @returns A reactive computed containing the index map with change diffs
 	 *
 	 * @internal
