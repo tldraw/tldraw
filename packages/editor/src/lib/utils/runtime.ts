@@ -5,7 +5,7 @@ export const runtime: {
 	hardReset(): void
 } = {
 	openWindow(url, target, allowReferrer = false) {
-		window.open(url, target, allowReferrer ? 'noopener' : 'noopener noreferrer')
+		return window.open(url, target, allowReferrer ? 'noopener' : 'noopener noreferrer')
 	},
 	refreshPage() {
 		window.location.reload()
