@@ -1,7 +1,7 @@
 import { SerializedSchema, UnknownRecord } from '@tldraw/store'
 import { NetworkDiff, ObjectDiff, RecordOpType } from './diff'
 
-const TLSYNC_PROTOCOL_VERSION = 7
+const TLSYNC_PROTOCOL_VERSION = 8
 
 /**
  * Gets the current tldraw sync protocol version number.
