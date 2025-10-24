@@ -51,10 +51,7 @@ export type RSIndexDiff<R extends UnknownRecord, Property extends string = strin
  *
  * @public
  */
-export type RSIndexMap<R extends UnknownRecord, Property extends string = string & keyof R> = Map<
-	any,
-	Set<IdOf<R>>
->
+export type RSIndexMap<R extends UnknownRecord> = Map<any, Set<IdOf<R>>>
 
 /**
  * A reactive computed index that provides efficient lookups of records by property values.
@@ -71,10 +68,7 @@ export type RSIndexMap<R extends UnknownRecord, Property extends string = string
  *
  * @public
  */
-export type RSIndex<R extends UnknownRecord, Property extends string = string & keyof R> = Computed<
-	RSIndexMap<R, Property>,
-	RSIndexDiff<R, Property>
->
+export type RSIndex<R extends UnknownRecord> = Computed<RSIndexMap<R>, RSIndexDiff<R>>
 
 /**
  * A class that provides reactive querying capabilities for a record store.
@@ -283,7 +277,7 @@ export class StoreQueries<R extends UnknownRecord> {
 	 * Supports nested property paths using backslash separator (e.g., 'metadata\\sessionId').
 	 *
 	 * @param typeName - The type name of records to index
-	 * @param property - The property name or backslash-delimited path to index by
+	 * @param path - The property name or backslash-delimited path to index by
 	 * @returns A reactive computed containing the index map with change diffs
 	 *
 	 * @example
@@ -302,17 +296,17 @@ export class StoreQueries<R extends UnknownRecord> {
 	 *
 	 * @public
 	 */
-	public index<TypeName extends R['typeName'], Property extends string>(
+	public index<TypeName extends R['typeName']>(
 		typeName: TypeName,
-		property: Property
-	): RSIndex<Extract<R, { typeName: TypeName }>, Property> {
-		const cacheKey = typeName + ':' + property
+		path: string
+	): RSIndex<Extract<R, { typeName: TypeName }>> {
+		const cacheKey = typeName + ':' + path
 
 		if (this.indexCache.has(cacheKey)) {
 			return this.indexCache.get(cacheKey) as any
 		}
 
-		const index = this.__uncached_createIndex(typeName, property)
+		const index = this.__uncached_createIndex(typeName, path)
 
 		this.indexCache.set(cacheKey, index as any)
 
@@ -331,20 +325,20 @@ export class StoreQueries<R extends UnknownRecord> {
 	 *
 	 * @internal
 	 */
-	__uncached_createIndex<TypeName extends R['typeName'], Property extends string>(
+	__uncached_createIndex<TypeName extends R['typeName']>(
 		typeName: TypeName,
-		property: Property
-	): RSIndex<Extract<R, { typeName: TypeName }>, Property> {
+		path: string
+	): RSIndex<Extract<R, { typeName: TypeName }>> {
 		type S = Extract<R, { typeName: TypeName }>
 
 		const typeHistory = this.filterHistory(typeName)
 
 		// Create closure for efficient property value extraction
-		const pathParts = property.split('\\')
+		const pathParts = path.split('\\')
 		const getPropertyValue =
 			pathParts.length > 1
 				? (obj: S) => this.getNestedValue(obj, pathParts)
-				: (obj: S) => obj[property as keyof S]
+				: (obj: S) => obj[path as keyof S]
 
 		const fromScratch = () => {
 			// deref typeHistory early so that the first time the incremental version runs
@@ -366,8 +360,8 @@ export class StoreQueries<R extends UnknownRecord> {
 			return res
 		}
 
-		return computed<RSIndexMap<S, Property>, RSIndexDiff<S, Property>>(
-			'index:' + typeName + ':' + property,
+		return computed<RSIndexMap<S>, RSIndexDiff<S>>(
+			'index:' + typeName + ':' + path,
 			(prevValue, lastComputedEpoch) => {
 				if (isUninitialized(prevValue)) return fromScratch()
 
@@ -428,8 +422,8 @@ export class StoreQueries<R extends UnknownRecord> {
 					}
 				}
 
-				let nextValue: undefined | RSIndexMap<S, Property> = undefined
-				let nextDiff: undefined | RSIndexDiff<S, Property> = undefined
+				let nextValue: undefined | RSIndexMap<S> = undefined
+				let nextDiff: undefined | RSIndexDiff<S> = undefined
 
 				for (const [value, setConstructor] of setConstructors) {
 					const result = setConstructor.get()

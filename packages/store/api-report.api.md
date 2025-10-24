@@ -286,13 +286,13 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
 export function reverseRecordsDiff(diff: RecordsDiff<any>): RecordsDiff<any>;
 
 // @public
-export type RSIndex<R extends UnknownRecord, Property extends string = string & keyof R> = Computed<RSIndexMap<R, Property>, RSIndexDiff<R, Property>>;
+export type RSIndex<R extends UnknownRecord> = Computed<RSIndexMap<R>, RSIndexDiff<R>>;
 
 // @public
 export type RSIndexDiff<R extends UnknownRecord, Property extends string = string & keyof R> = Map<any, CollectionDiff<IdOf<R>>>;
 
 // @public
-export type RSIndexMap<R extends UnknownRecord, Property extends string = string & keyof R> = Map<any, Set<IdOf<R>>>;
+export type RSIndexMap<R extends UnknownRecord> = Map<any, Set<IdOf<R>>>;
 
 // @public
 export type SerializedSchema = SerializedSchemaV1 | SerializedSchemaV2;
@@ -455,9 +455,9 @@ export class StoreQueries<R extends UnknownRecord> {
     // @internal
     constructor(recordMap: AtomMap<IdOf<R>, R>, history: Atom<number, RecordsDiff<R>>);
     // @internal
-    __uncached_createIndex<TypeName extends R['typeName'], Property extends string>(typeName: TypeName, property: Property): RSIndex<Extract<R, {
+    __uncached_createIndex<TypeName extends R['typeName']>(typeName: TypeName, path: string): RSIndex<Extract<R, {
         typeName: TypeName;
-    }>, Property>;
+    }>>;
     exec<TypeName extends R['typeName']>(typeName: TypeName, query: QueryExpression<Extract<R, {
         typeName: TypeName;
     }>>): Array<Extract<R, {
@@ -483,9 +483,9 @@ export class StoreQueries<R extends UnknownRecord> {
     }>>>, CollectionDiff<IdOf<Extract<R, {
         typeName: TypeName;
     }>>>>;
-    index<TypeName extends R['typeName'], Property extends string>(typeName: TypeName, property: Property): RSIndex<Extract<R, {
+    index<TypeName extends R['typeName']>(typeName: TypeName, path: string): RSIndex<Extract<R, {
         typeName: TypeName;
-    }>, Property>;
+    }>>;
     record<TypeName extends R['typeName']>(typeName: TypeName, queryCreator?: () => QueryExpression<Extract<R, {
         typeName: TypeName;
     }>>, name?: string): Computed<Extract<R, {
