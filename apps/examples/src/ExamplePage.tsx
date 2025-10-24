@@ -57,7 +57,7 @@ export function ExamplePage({
 						<div className="example__sidebar__header__socials">
 							<a
 								target="_blank"
-								href="https://twitter.com/tldraw"
+								href="https://x.com/tldraw"
 								rel="noopener"
 								title="twitter"
 								className="hoverable"

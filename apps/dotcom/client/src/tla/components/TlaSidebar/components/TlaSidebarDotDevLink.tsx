@@ -15,9 +15,8 @@ export function TlaSidebarDotDevLink() {
 				to="https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=sidebar-link"
 				data-testid="tla-sidebar-dotdev-link"
 				eventName="sidebar-dotdev-link-clicked"
-				onClick={() => {
-					setShowDotDevLink(false)
-				}}
+				onClick={() => setShowDotDevLink(false)}
+				allowReferrer
 			>
 				<F defaultMessage="Build with the tldraw SDK" />
 				<TldrawUiIcon icon="arrow-left" label="Build with the tldraw SDK" small />

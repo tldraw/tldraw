@@ -1,5 +1,4 @@
-import { TldrawUiMenuGroup, TldrawUiMenuItem } from 'tldraw'
-import { openUrl } from './utils/url'
+import { runtime, TldrawUiMenuGroup, TldrawUiMenuItem } from 'tldraw'
 
 export function Links() {
 	return (
@@ -10,8 +9,10 @@ export function Links() {
 					label="help-menu.terms"
 					readonlyOk
 					onSelect={() => {
-						openUrl(
-							'https://github.com/tldraw/tldraw/blob/main/apps/dotcom/client/TERMS_OF_SERVICE.md'
+						runtime.openWindow(
+							'https://github.com/tldraw/tldraw/blob/main/apps/dotcom/client/TERMS_OF_SERVICE.md',
+							'_blank',
+							false
 						)
 					}}
 				/>
@@ -20,8 +21,10 @@ export function Links() {
 					label="help-menu.privacy"
 					readonlyOk
 					onSelect={() => {
-						openUrl(
-							'https://github.com/tldraw/tldraw/blob/main/apps/dotcom/client/PRIVACY_POLICY.md'
+						runtime.openWindow(
+							'https://github.com/tldraw/tldraw/blob/main/apps/dotcom/client/PRIVACY_POLICY.md',
+							'_blank',
+							false
 						)
 					}}
 				/>
@@ -32,7 +35,7 @@ export function Links() {
 					label="help-menu.about"
 					readonlyOk
 					onSelect={() => {
-						openUrl('https://tldraw.dev')
+						runtime.openWindow('https://tldraw.dev', '_blank', true) // allow referrer
 					}}
 				/>
 			</TldrawUiMenuGroup>

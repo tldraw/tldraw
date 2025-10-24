@@ -21,6 +21,7 @@ import {
 	DefaultToolbarContent,
 	DefaultZoomMenu,
 	DefaultZoomMenuContent,
+	runtime,
 	TLComponents,
 	Tldraw,
 	TldrawUiButton,
@@ -49,7 +50,7 @@ function CustomActionsMenu() {
 						icon="external-link"
 						readonlyOk
 						onSelect={() => {
-							window.open('https://x.com/tldraw', '_blank')
+							runtime.openWindow('https://x.com/tldraw', '_blank', false)
 						}}
 					/>
 				</div>
@@ -70,7 +71,7 @@ function CustomContextMenu(props: TLUiContextMenuProps) {
 						icon="external-link"
 						readonlyOk
 						onSelect={() => {
-							window.open('https://x.com/tldraw', '_blank')
+							runtime.openWindow('https://x.com/tldraw', '_blank', false)
 						}}
 					/>
 				</div>
@@ -93,7 +94,7 @@ function CustomDebugMenu() {
 							icon="external-link"
 							readonlyOk
 							onSelect={() => {
-								window.open('https://x.com/tldraw', '_blank')
+								runtime.openWindow('https://x.com/tldraw', '_blank', false)
 							}}
 						/>
 					</TldrawUiMenuGroup>
@@ -114,7 +115,7 @@ function CustomHelpMenu() {
 						icon="external-link"
 						readonlyOk
 						onSelect={() => {
-							window.open('https://x.com/tldraw', '_blank')
+							runtime.openWindow('https://x.com/tldraw', '_blank', false)
 						}}
 					/>
 				</TldrawUiMenuGroup>
@@ -135,7 +136,7 @@ function CustomKeyboardShortcutsDialog(props: TLUiKeyboardShortcutsDialogProps) 
 					readonlyOk
 					kbd=":)"
 					onSelect={() => {
-						window.open('https://x.com/tldraw', '_blank')
+						runtime.openWindow('https://x.com/tldraw', '_blank', false)
 					}}
 				/>
 			</div>
@@ -155,7 +156,7 @@ function CustomMainMenu() {
 						icon="external-link"
 						readonlyOk
 						onSelect={() => {
-							window.open('https://x.com/tldraw', '_blank')
+							runtime.openWindow('https://x.com/tldraw', '_blank', false)
 						}}
 					/>
 				</TldrawUiMenuGroup>
@@ -252,7 +253,7 @@ function CustomZoomMenu() {
 						icon="external-link"
 						readonlyOk
 						onSelect={() => {
-							window.open('https://x.com/tldraw', '_blank')
+							runtime.openWindow('https://x.com/tldraw', '_blank', false)
 						}}
 					/>
 				</TldrawUiMenuGroup>

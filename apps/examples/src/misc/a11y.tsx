@@ -40,7 +40,7 @@ export const A11yResultTable = memo(({ results }: { results: any }) => {
 							</td>
 							<td>
 								{issue.helpUrl ? (
-									<a href={issue.helpUrl} target="_blank" rel="noopener">
+									<a href={issue.helpUrl} target="_blank" rel="noopener noreferrer">
 										More info
 									</a>
 								) : null}

@@ -26,7 +26,7 @@ import { registerExternalUrlContentHandler } from './utils/externalUrlContentHan
 import { vscode } from './utils/vscode'
 
 setRuntimeOverrides({
-	openWindow: (url, target) => {
+	openWindow: (url, target, _allowReferrer) => {
 		vscode.postMessage({
 			type: 'vscode:open-window',
 			data: {

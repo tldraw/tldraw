@@ -314,7 +314,7 @@ function CreateLegacyFile() {
 		try {
 			const res = await fetch(`/api/app/admin/create_legacy_file`, { method: 'POST' })
 			const { slug } = await res.json()
-			window.open(`/r/${slug}`, '_blank')?.focus()
+			window.open(`/r/${slug}`, '_blank', 'noopener noreferrer')?.focus()
 		} catch (err) {
 			console.error('Failed to create legacy file:', err)
 		} finally {

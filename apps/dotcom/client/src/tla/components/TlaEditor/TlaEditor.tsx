@@ -315,7 +315,7 @@ function CustomDebugMenu({ showFairyFeatureFlags }: { showFairyFeatureFlags: boo
 					onSelect={() => {
 						const url = new URL(window.location.href)
 						url.pathname += '/history'
-						openAndTrack(url.toString())
+						openAndTrack(url.toString(), { allowReferrer: true })
 					}}
 				/>
 			)}

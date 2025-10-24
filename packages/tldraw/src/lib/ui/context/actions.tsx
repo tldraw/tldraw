@@ -21,7 +21,7 @@ import {
 	compact,
 	createShapeId,
 	kickoutOccludedShapes,
-	openWindow,
+	runtime,
 	useMaybeEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
@@ -367,7 +367,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						return
 					}
 
-					openWindow(shape.props.url, '_blank')
+					runtime.openWindow(shape.props.url, '_blank', false)
 				},
 			},
 			{

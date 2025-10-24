@@ -44,7 +44,7 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 
 	const handleVisitLink = () => {
 		trackEvent('rich-text', { operation: 'link-visit', source })
-		window.open(linkifiedValue, '_blank', 'noopener, noreferrer')
+		window.open(linkifiedValue, '_blank', 'noopener noreferrer')
 		onClose()
 	}
 

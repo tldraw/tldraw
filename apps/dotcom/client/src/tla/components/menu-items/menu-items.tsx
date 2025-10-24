@@ -132,7 +132,8 @@ export function DotDevMenuItem() {
 			readonlyOk
 			onSelect={() => {
 				openAndTrack(
-					'https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=sidebar-menu'
+					'https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=sidebar-menu',
+					{ allowReferrer: true }
 				)
 			}}
 		/>
