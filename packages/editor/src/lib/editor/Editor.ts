@@ -8097,7 +8097,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 		)
 		const sortedShapeIds = shapesToGroup.sort(sortByIndex).map((s) => s.id)
-		const pageBounds = Box.Common(compact(shapesToGroup.map((id) => this.getShapePageBounds(id))))
+		const childBounds = compact(shapesToGroup.map((shape) => this.getShapePageBounds(shape)))
+		const pageBounds = Box.Common(childBounds)
+
+		if (!pageBounds.isValid()) {
+			throw Error(`Editor.groupShapes: group bounds are invalid (NaN).`)
+		}
 
 		const { x, y } = pageBounds.point
 

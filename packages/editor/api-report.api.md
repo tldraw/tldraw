@@ -325,6 +325,8 @@ export class Box {
     // (undocumented)
     includes(B: Box): boolean;
     // (undocumented)
+    isValid(): boolean;
+    // (undocumented)
     get left(): number;
     // (undocumented)
     get maxX(): number;
