@@ -31,7 +31,7 @@ export function ApiMemberTitle({
 						</Tag>
 					))}
 					{source && (
-						<a href={source} target="_blank" rel="noopener noreferrer" title="Source code">
+						<a href={source} target="_blank" rel="noopener" title="Source code">
 							<CodeBracketIcon className="size-20" />
 						</a>
 					)}

@@ -63,7 +63,7 @@ export function Button({
 			<Link
 				href={href}
 				target={newTab ? '_blank' : undefined}
-				rel={newTab ? 'noopener noreferrer' : undefined}
+				rel={newTab ? 'noopener' : undefined}
 				className={className}
 				onClick={(e) => {
 					onClick?.(e)

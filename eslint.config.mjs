@@ -112,7 +112,7 @@ export default [
 			'@next/next/no-html-link-for-pages': 'off',
 			'no-non-null-assertion': 'off',
 			'no-fallthrough': 'off',
-			'react/jsx-no-target-blank': 'error',
+			'react/jsx-no-target-blank': ['error', { allowReferrer: true }],
 			'react/react-in-jsx-scope': 'off',
 			'@typescript-eslint/no-fallthrough': 'off',
 			'@typescript-eslint/no-non-null-assertion': 'off',

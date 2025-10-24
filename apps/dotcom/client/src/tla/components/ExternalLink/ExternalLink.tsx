@@ -8,7 +8,7 @@ export function ExternalLink(props: ComponentProps<typeof Link> & { eventName?: 
 		<Link
 			{...rest}
 			target="_blank"
-			rel="noopener noreferrer"
+			rel="noopener"
 			onClick={(e) => {
 				if (eventName) trackEvent(eventName, { link: rest.to ?? '' })
 				rest.onClick?.(e)

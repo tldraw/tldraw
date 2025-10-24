@@ -58,7 +58,7 @@ export function ExamplePage({
 							<a
 								target="_blank"
 								href="https://twitter.com/tldraw"
-								rel="noopener noreferrer"
+								rel="noopener"
 								title="twitter"
 								className="hoverable"
 							>
@@ -67,7 +67,7 @@ export function ExamplePage({
 							<a
 								target="_blank"
 								href="https://github.com/tldraw/tldraw"
-								rel="noopener noreferrer"
+								rel="noopener"
 								title="github"
 								className="hoverable"
 							>
@@ -76,7 +76,7 @@ export function ExamplePage({
 							<a
 								target="_blank"
 								href="https://discord.tldraw.com/?utm_source=examples&utm_medium=organic&utm_campaign=examples"
-								rel="noopener noreferrer"
+								rel="noopener"
 								title="discord"
 								className="hoverable"
 							>
@@ -131,7 +131,7 @@ export function ExamplePage({
 						<a
 							className="example__sidebar__footer-link example__sidebar__footer-link--grey"
 							target="_blank"
-							rel="noopener noreferrer"
+							rel="noopener"
 							href="https://github.com/tldraw/tldraw/issues/new?assignees=&labels=Example%20Request&projects=&template=example_request.yml&title=%5BExample Request%5D%3A+"
 						>
 							Request an example
@@ -139,7 +139,7 @@ export function ExamplePage({
 						<a
 							className="example__sidebar__footer-link example__sidebar__footer-link--grey"
 							target="_blank"
-							rel="noopener noreferrer"
+							rel="noopener"
 							href="https://tldraw.dev/?utm_source=examples&utm_medium=organic&utm_campaign=examples"
 						>
 							Visit the docs

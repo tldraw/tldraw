@@ -74,7 +74,7 @@ export const richText = {
 											attrs: {
 												href: 'https://tldraw.dev',
 												target: '_blank',
-												rel: 'noopener noreferrer nofollow',
+												rel: 'noopener nofollow',
 												class: null,
 											},
 										},

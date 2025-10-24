@@ -92,7 +92,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 									<>
 										<a
 											target="_blank"
-											rel="noopener noreferrer"
+											rel="noopener"
 											href={embedDefinition.instructionLink}
 											className="tlui-embed-dialog__instruction__link"
 										>
