@@ -214,6 +214,7 @@ export const UserPreferencesKeys = [
 	'inputMode',
 	'name',
 	'color',
+	'avatar',
 ] as const satisfies Array<keyof TlaUser>
 
 export interface SubmitFeedbackRequestBody {

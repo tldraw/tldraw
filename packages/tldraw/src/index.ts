@@ -442,8 +442,15 @@ export {
 	type TLUiQuickActionsProps,
 } from './lib/ui/components/QuickActions/DefaultQuickActions'
 export { DefaultQuickActionsContent } from './lib/ui/components/QuickActions/DefaultQuickActionsContent'
-export { DefaultSharePanel } from './lib/ui/components/SharePanel/DefaultSharePanel'
-export { PeopleMenu, type PeopleMenuProps } from './lib/ui/components/SharePanel/PeopleMenu'
+export {
+	DefaultSharePanel,
+	type DefaultSharePanelProps,
+} from './lib/ui/components/SharePanel/DefaultSharePanel'
+export {
+	PeopleMenu,
+	type AvatarSize,
+	type PeopleMenuProps,
+} from './lib/ui/components/SharePanel/PeopleMenu'
 export { Spinner } from './lib/ui/components/Spinner'
 export {
 	DefaultStylePanel,

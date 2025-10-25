@@ -402,6 +402,9 @@ export function AssetUrlsProvider({ assetUrls, children, }: {
 }): JSX_2.Element;
 
 // @public (undocumented)
+export type AvatarSize = 'lg' | 'md' | 'sm' | 'xl';
+
+// @public (undocumented)
 export interface BasePathBuilderOpts {
     // (undocumented)
     forceSolid?: boolean;
@@ -1033,7 +1036,11 @@ export const defaultShapeTools: readonly [typeof TextShapeTool, typeof DrawShape
 export const defaultShapeUtils: readonly [typeof TextShapeUtil, typeof BookmarkShapeUtil, typeof DrawShapeUtil, typeof GeoShapeUtil, typeof NoteShapeUtil, typeof LineShapeUtil, typeof FrameShapeUtil, typeof ArrowShapeUtil, typeof HighlightShapeUtil, typeof EmbedShapeUtil, typeof ImageShapeUtil, typeof VideoShapeUtil];
 
 // @public (undocumented)
-export function DefaultSharePanel(): JSX_2.Element;
+export function DefaultSharePanel(props: DefaultSharePanelProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface DefaultSharePanelProps extends PeopleMenuProps {
+}
 
 // @public (undocumented)
 export const DefaultStylePanel: NamedExoticComponent<TLUiStylePanelProps>;
@@ -2439,10 +2446,13 @@ export interface PathBuilderToDOpts {
 }
 
 // @public (undocumented)
-export function PeopleMenu({ children }: PeopleMenuProps): JSX_2.Element | null;
+export function PeopleMenu({ children, allowChangeColor, allowChangeName, avatarSize, }: PeopleMenuProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export interface PeopleMenuProps {
+    allowChangeColor?: boolean;
+    allowChangeName?: boolean;
+    avatarSize?: AvatarSize;
     // (undocumented)
     children?: ReactNode;
 }

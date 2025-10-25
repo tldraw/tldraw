@@ -202,18 +202,21 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	useEffect(() => {
 		const storeId = uniqueId()
 
-		const userPreferences = computed<{ id: string; color: string; name: string }>(
-			'userPreferences',
-			() => {
-				const userStuff = userAtom.get()
-				const user = (isSignal(userStuff) ? userStuff.get() : userStuff) ?? getUserPreferences()
-				return {
-					id: user.id,
-					color: user.color ?? defaultUserPreferences.color,
-					name: user.name ?? defaultUserPreferences.name,
-				}
+		const userPreferences = computed<{
+			id: string
+			color: string
+			name: string
+			avatar: string | null
+		}>('userPreferences', () => {
+			const userStuff = userAtom.get()
+			const user = (isSignal(userStuff) ? userStuff.get() : userStuff) ?? getUserPreferences()
+			return {
+				id: user.id,
+				color: user.color ?? defaultUserPreferences.color,
+				avatar: user.avatar ?? defaultUserPreferences.avatar,
+				name: user.name ?? defaultUserPreferences.name,
 			}
-		)
+		})
 
 		let socket: TLPersistentClientSocket<
 			TLSocketClientSentEvent<TLRecord>,

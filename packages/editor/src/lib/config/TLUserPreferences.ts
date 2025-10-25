@@ -14,6 +14,7 @@ export interface TLUserPreferences {
 	id: string
 	name?: string | null
 	color?: string | null
+	avatar?: string | null
 	// N.B. These are duplicated in TLdrawAppUser.
 	locale?: string | null
 	animationSpeed?: number | null
@@ -44,6 +45,7 @@ export const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUser
 	id: T.string,
 	name: T.string.nullable().optional(),
 	color: T.string.nullable().optional(),
+	avatar: T.string.nullable().optional(),
 	// N.B. These are duplicated in TLdrawAppUser.
 	locale: T.string.nullable().optional(),
 	animationSpeed: T.number.nullable().optional(),
@@ -157,6 +159,7 @@ export function userPrefersReducedMotion() {
 /** @public */
 export const defaultUserPreferences = Object.freeze({
 	name: '',
+	avatar: null,
 	locale: getDefaultTranslationLocale(),
 	color: getRandomColor(),
 

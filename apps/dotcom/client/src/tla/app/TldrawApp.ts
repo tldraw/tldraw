@@ -762,7 +762,13 @@ export class TldrawApp {
 		// Could be just old accounts since before the server had a version
 		// of the store... but we should probably identify that better.
 
-		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
+		const {
+			id: _id,
+			name: _name,
+			color,
+			avatar: _avatar,
+			...restOfPreferences
+		} = getUserPreferences()
 		const app = new TldrawApp(opts.userId, opts.getToken, opts.onClientTooOld, opts.trackEvent)
 		// @ts-expect-error
 		window.app = app
