@@ -47,10 +47,6 @@ export function PeopleMenu({
 
 	if (!userIds.length) return null
 
-	console.log('Current user avatar:', userAvatar)
-	console.log('Current user name:', userName)
-	console.log('Current user color:', userColor)
-
 	return (
 		<_Popover.Root onOpenChange={onOpenChange} open={isOpen}>
 			<_Popover.Trigger dir="ltr" asChild>
