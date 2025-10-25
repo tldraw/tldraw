@@ -43,6 +43,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 	userName: string
 	lastActivityTimestamp: number | null
 	color: string // can be any hex color
+	avatar: string | null
 	camera: { x: number; y: number; z: number } | null
 	selectedShapeIds: TLShapeId[]
 	currentPageId: TLPageId
@@ -112,6 +113,7 @@ export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.mode
 			rotation: T.number,
 		}).nullable(),
 		color: T.string,
+		avatar: T.string.nullable(),
 		camera: T.object({
 			x: T.number,
 			y: T.number,
@@ -246,6 +248,7 @@ export const InstancePresenceRecordType = createRecordType<TLInstancePresence>(
 	lastActivityTimestamp: null,
 	followingUserId: null,
 	color: '#FF0000',
+	avatar: null,
 	camera: null,
 	cursor: null,
 	screenBounds: null,

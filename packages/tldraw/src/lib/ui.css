@@ -1865,6 +1865,30 @@ tldraw? probably.
 	margin-left: -12px;
 }
 
+.tlui-people-menu__avatar--sm {
+	height: 20px;
+	width: 20px;
+	font-size: 8px;
+}
+
+.tlui-people-menu__avatar--md {
+	height: 24px;
+	width: 24px;
+	font-size: 10px;
+}
+
+.tlui-people-menu__avatar--lg {
+	height: 32px;
+	width: 32px;
+	font-size: 12px;
+}
+
+.tlui-people-menu__avatar--xl {
+	height: 40px;
+	width: 40px;
+	font-size: 16px;
+}
+
 .tlui-people-menu__avatars-button[data-state='open'] {
 	opacity: 1;
 }

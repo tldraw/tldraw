@@ -730,6 +730,7 @@ export const defaultTldrawOptions: {
 export const defaultUserPreferences: Readonly<{
     animationSpeed: 0 | 1;
     areKeyboardShortcutsEnabled: true;
+    avatar: null;
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
     colorScheme: "light";
     edgeScrollSpeed: 1;
@@ -4347,6 +4348,8 @@ export interface TLUserPreferences {
     // (undocumented)
     areKeyboardShortcutsEnabled?: boolean | null;
     // (undocumented)
+    avatar?: null | string;
+    // (undocumented)
     color?: null | string;
     // (undocumented)
     colorScheme?: 'dark' | 'light' | 'system';
@@ -4527,6 +4530,8 @@ export class UserPreferencesManager {
     // (undocumented)
     getAreKeyboardShortcutsEnabled(): boolean;
     // (undocumented)
+    getAvatar(): null | string;
+    // (undocumented)
     getColor(): string;
     getEdgeScrollSpeed(): number;
     // (undocumented)
@@ -4553,6 +4558,7 @@ export class UserPreferencesManager {
     getUserPreferences(): {
         animationSpeed: number;
         areKeyboardShortcutsEnabled: boolean;
+        avatar: null | string;
         color: string;
         colorScheme: "dark" | "light" | "system" | undefined;
         enhancedA11yMode: boolean;

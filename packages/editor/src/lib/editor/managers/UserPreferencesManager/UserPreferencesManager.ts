@@ -42,6 +42,7 @@ export class UserPreferencesManager {
 			name: this.getName(),
 			locale: this.getLocale(),
 			color: this.getColor(),
+			avatar: this.getAvatar(),
 			animationSpeed: this.getAnimationSpeed(),
 			areKeyboardShortcutsEnabled: this.getAreKeyboardShortcutsEnabled(),
 			isSnapMode: this.getIsSnapMode(),
@@ -99,6 +100,10 @@ export class UserPreferencesManager {
 
 	@computed getColor() {
 		return this.user.userPreferences.get().color ?? defaultUserPreferences.color
+	}
+
+	@computed getAvatar() {
+		return this.user.userPreferences.get().avatar ?? defaultUserPreferences.avatar
 	}
 
 	@computed getIsSnapMode() {

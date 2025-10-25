@@ -5,24 +5,39 @@ import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { PeopleMenuAvatar } from './PeopleMenuAvatar'
+import { AvatarSize, PeopleMenuAvatar } from './PeopleMenuAvatar'
 import { PeopleMenuItem } from './PeopleMenuItem'
 import { PeopleMenuMore } from './PeopleMenuMore'
 import { UserPresenceEditor } from './UserPresenceEditor'
 
 /** @public */
+export type { AvatarSize }
+
+/** @public */
 export interface PeopleMenuProps {
 	children?: ReactNode
+	/** Whether users can change their color. Defaults to true. */
+	allowChangeColor?: boolean
+	/** Whether users can change their username. Defaults to true. */
+	allowChangeName?: boolean
+	/** Size of the avatars. Defaults to 'md'. */
+	avatarSize?: AvatarSize
 }
 
 /** @public @react */
-export function PeopleMenu({ children }: PeopleMenuProps) {
+export function PeopleMenu({
+	children,
+	allowChangeColor = true,
+	allowChangeName = true,
+	avatarSize = 'md',
+}: PeopleMenuProps) {
 	const msg = useTranslation()
 
 	const container = useContainer()
 	const editor = useEditor()
 
 	const userIds = usePeerIds()
+	const userAvatar = useValue('user', () => editor.user.getAvatar(), [editor])
 	const userColor = useValue('user', () => editor.user.getColor(), [editor])
 	const userName = useValue('user', () => editor.user.getName(), [editor])
 
@@ -32,22 +47,29 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 
 	if (!userIds.length) return null
 
+	console.log('Current user avatar:', userAvatar)
+	console.log('Current user name:', userName)
+	console.log('Current user color:', userColor)
+
 	return (
 		<_Popover.Root onOpenChange={onOpenChange} open={isOpen}>
 			<_Popover.Trigger dir="ltr" asChild>
 				<button className="tlui-people-menu__avatars-button" title={msg('people-menu.title')}>
 					<div className="tlui-people-menu__avatars">
 						{userIds.slice(-maxAvatars).map((userId) => (
-							<PeopleMenuAvatar key={userId} userId={userId} />
+							<PeopleMenuAvatar key={userId} userId={userId} size={avatarSize} />
 						))}
 						{userIds.length > 0 && (
 							<div
-								className="tlui-people-menu__avatar"
+								className={`tlui-people-menu__avatar tlui-people-menu__avatar--${avatarSize}`}
 								style={{
-									backgroundColor: userColor,
+									backgroundColor: userAvatar ? 'transparent' : userColor,
+									backgroundImage: userAvatar ? `url(${userAvatar})` : undefined,
+									backgroundSize: 'cover',
+									backgroundPosition: 'center',
 								}}
 							>
-								{userName?.[0] ?? ''}
+								{!userAvatar && (userName?.[0] ?? '')}
 							</div>
 						)}
 						{userIds.length > maxAvatars && <PeopleMenuMore count={userIds.length - maxAvatars} />}
@@ -64,7 +86,10 @@ export function PeopleMenu({ children }: PeopleMenuProps) {
 				>
 					<div className="tlui-people-menu__wrapper">
 						<div className="tlui-people-menu__section">
-							<UserPresenceEditor />
+							<UserPresenceEditor
+								allowChangeColor={allowChangeColor}
+								allowChangeName={allowChangeName}
+							/>
 						</div>
 						{userIds.length > 0 && (
 							<div className="tlui-people-menu__section">

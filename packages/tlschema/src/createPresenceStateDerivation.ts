@@ -23,6 +23,10 @@ export interface TLPresenceUserInfo {
 	 * The user's color. If not given, a random color will be assigned.
 	 */
 	color?: string | null
+	/**
+	 * The user's avatar URL.
+	 */
+	avatar?: string | null
 }
 
 /**
@@ -144,6 +148,7 @@ export function getDefaultUserPresence(store: TLStore, user: TLPresenceUserInfo)
 			z: camera.z,
 		},
 		color: user.color ?? '#FF0000',
+		avatar: user.avatar,
 		currentPageId: instance.currentPageId,
 		cursor: {
 			x: pointer.x,

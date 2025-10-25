@@ -1,10 +1,13 @@
-import { PeopleMenu } from './PeopleMenu'
+import { PeopleMenu, PeopleMenuProps } from './PeopleMenu'
+
+/** @public */
+export interface DefaultSharePanelProps extends PeopleMenuProps {}
 
 /** @public @react */
-export function DefaultSharePanel() {
+export function DefaultSharePanel(props: DefaultSharePanelProps) {
 	return (
 		<div className="tlui-share-zone" draggable={false}>
-			<PeopleMenu />
+			<PeopleMenu {...props} />
 		</div>
 	)
 }
