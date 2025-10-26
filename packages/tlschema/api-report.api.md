@@ -802,7 +802,9 @@ export interface TLBaseBinding<Type extends string, Props extends object> extend
 }
 
 // @public
-export interface TLBaseShape<Type extends string, Props extends object> extends BaseRecord<'shape', TLShapeId> {
+export interface TLBaseShape<Type extends string, Props extends object> {
+    // (undocumented)
+    readonly id: TLShapeId;
     // (undocumented)
     index: IndexKey;
     // (undocumented)
@@ -819,6 +821,8 @@ export interface TLBaseShape<Type extends string, Props extends object> extends 
     rotation: number;
     // (undocumented)
     type: Type;
+    // (undocumented)
+    readonly typeName: 'shape';
     // (undocumented)
     x: number;
     // (undocumented)
@@ -1379,7 +1383,7 @@ export interface TLScribble {
 export type TLSerializedStore = SerializedStore<TLRecord>;
 
 // @public
-export type TLShape = GlobalShapePropsMap[keyof GlobalShapePropsMap] | TLDefaultShape;
+export type TLShape<K extends keyof IndexByProp<AllTLShapes, 'type'> = keyof IndexByProp<AllTLShapes, 'type'>> = IndexByProp<AllTLShapes, 'type'>[K];
 
 // @public
 export interface TLShapeCrop {
