@@ -6026,7 +6026,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const toShapeType = typeof toShape === 'string' ? toShape : toShape.type
 		const bindingType = typeof binding === 'string' ? binding : binding.type
 
-		const canBindOpts = { fromShapeType, toShapeType, bindingType }
+		const canBindOpts = { fromShapeType, toShapeType, bindingType } as const
 
 		if (fromShapeType === toShapeType) {
 			return this.getShapeUtil(fromShapeType).canBind(canBindOpts)

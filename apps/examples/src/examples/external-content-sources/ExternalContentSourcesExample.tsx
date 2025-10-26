@@ -26,7 +26,7 @@ export type IDangerousHtmlShape = TLShape<typeof DANGEROUS_HTML_TYPE>
 class DangerousHtmlExample extends BaseBoxShapeUtil<IDangerousHtmlShape> {
 	static override type = DANGEROUS_HTML_TYPE
 
-	override getDefaultProps()s {
+	override getDefaultProps() {
 		return {
 			type: DANGEROUS_HTML_TYPE,
 			w: 500,
