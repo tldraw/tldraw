@@ -2329,8 +2329,8 @@ export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent
     z: number;
 };
 
-// @public (undocumented)
-export function openWindow(url: string, target?: string): void;
+// @public
+export function openWindow(url: string, target?: string, allowReferrer?: boolean): void;
 
 // @internal (undocumented)
 export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<TLErrorBoundaryProps, 'fallback'> & {
@@ -2539,7 +2539,7 @@ export function rotateSelectionHandle(handle: SelectionHandle, rotation: number)
 // @public (undocumented)
 export const runtime: {
     hardReset(): void;
-    openWindow(url: string, target: string): void;
+    openWindow(url: string, target: string, allowReferrer?: boolean): void;
     refreshPage(): void;
 };
 

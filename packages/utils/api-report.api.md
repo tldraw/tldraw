@@ -126,7 +126,7 @@ export function filterEntries<Key extends string, Value>(object: {
 export function fpsThrottle(fn: {
     (): void;
     cancel?(): void;
-}, getTargetFps?: () => number): {
+}): {
     (): void;
     cancel?(): void;
 };

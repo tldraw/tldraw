@@ -275,6 +275,46 @@ BEFORE UPDATE ON public."group_file"
 FOR EACH ROW
 EXECUTE FUNCTION update_group_file_timestamp();
 
+-- Create a function to sync home group name with user name on update
+-- When a user's name is updated, update the corresponding home group's name
+CREATE OR REPLACE FUNCTION update_home_group_name() RETURNS TRIGGER AS $$
+BEGIN
+  -- Update the group name where the group id matches the user id (home group)
+  UPDATE "group"
+  SET "name" = NEW.name
+  WHERE "id" = NEW.id;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create a trigger to sync home group name when user name is updated
+CREATE TRIGGER "update_home_group_name_trigger"
+AFTER UPDATE OF "name" ON public."user"
+FOR EACH ROW
+WHEN (OLD."name" IS DISTINCT FROM NEW."name")
+EXECUTE FUNCTION update_home_group_name();
+
+-- Create a function to initialize group name from user name on group creation
+-- When a group is created with an id matching a user id, set the group name to the user's name
+CREATE OR REPLACE FUNCTION initialize_home_group_name() RETURNS TRIGGER AS $$
+BEGIN
+  -- If there's a user with the same id as the group, update the group name to match
+  UPDATE "group"
+  SET "name" = u."name"
+  FROM public."user" u
+  WHERE u."id" = NEW."id" AND "group"."id" = NEW."id";
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create a trigger to initialize group name from user name on group creation
+CREATE TRIGGER "initialize_home_group_name_trigger"
+AFTER INSERT ON public."group"
+FOR EACH ROW
+EXECUTE FUNCTION initialize_home_group_name();
+
 -- Create a function to validate group_file associations
 CREATE OR REPLACE FUNCTION validate_group_file_association() RETURNS TRIGGER AS $$
 BEGIN
@@ -346,7 +386,7 @@ BEGIN
 
     -- Check if user already has groups flag
     SELECT flags INTO v_current_flags FROM public."user" WHERE id = target_user_id;
-    IF v_current_flags LIKE '%groups%' THEN
+    IF v_current_flags LIKE '%groups_backend%' THEN
       RAISE NOTICE 'User % already has groups flag, skipping migration', target_user_id;
       RETURN QUERY SELECT 0, 0, FALSE;
       RETURN;

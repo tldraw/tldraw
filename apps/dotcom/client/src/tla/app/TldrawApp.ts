@@ -43,7 +43,6 @@ import {
 	Atom,
 	Signal,
 	TLDocument,
-	TLSessionStateSnapshot,
 	TLUiToastsContextType,
 	TLUserPreferences,
 	assertExists,
@@ -210,17 +209,8 @@ export class TldrawApp {
 		if (!this.user$.get()) {
 			didCreate = true
 
-			// Check localStorage feature flag for new groups initialization
-			const useNewGroupsInit = getFromLocalStorage('tldraw_groups_init') === 'true'
-
-			if (useNewGroupsInit) {
-				// New groups initialization
-				await this.z.mutate.init({ user: initialUserData, time: Date.now() })
-			} else {
-				// Legacy initialization (no groups) - just insert user like before
-				// eslint-disable-next-line @typescript-eslint/no-deprecated
-				await this.z.mutate.user.insert({ ...initialUserData, flags: '' })
-			}
+			// Always use new groups initialization for new users (protocol v3+)
+			await this.z.mutate.init({ user: initialUserData, time: Date.now() })
 
 			updateLocalSessionState((state) => ({ ...state, shouldShowWelcomeDialog: true }))
 		}
@@ -753,17 +743,6 @@ export class TldrawApp {
 
 	async onFileEnter(fileId: string) {
 		this.z.mutate.onEnterFile({ fileId, time: Date.now() })
-	}
-
-	onFileEdit(fileId: string) {
-		this.updateFileState(fileId, { lastEditAt: Date.now() })
-	}
-
-	onFileSessionStateUpdate(fileId: string, sessionState: TLSessionStateSnapshot) {
-		this.updateFileState(fileId, {
-			lastSessionState: JSON.stringify(sessionState),
-			lastVisitAt: Date.now(),
-		})
 	}
 
 	onFileExit(fileId: string) {
