@@ -13,21 +13,23 @@ import {
 	toDomPrecision,
 } from 'tldraw'
 
+const CIRCLE_CLIP_TYPE = 'circle-clip'
+
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'circle-clip': {
+		[CIRCLE_CLIP_TYPE]: {
 			w: number
 			h: number
 		}
 	}
 }
 
-export type CircleClipShape = TLShape<'circle-clip'>
+export type CircleClipShape = TLShape<typeof CIRCLE_CLIP_TYPE>
 
 export const isClippingEnabled$ = atom('isClippingEnabled', true)
 
 export class CircleClipShapeUtil extends BaseBoxShapeUtil<CircleClipShape> {
-	static override type = 'circle-clip' as const
+	static override type = CIRCLE_CLIP_TYPE
 	static override props: RecordProps<CircleClipShape> = {
 		w: T.number,
 		h: T.number,

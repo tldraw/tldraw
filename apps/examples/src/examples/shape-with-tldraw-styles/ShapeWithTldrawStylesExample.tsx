@@ -13,9 +13,11 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
+const MY_SHAPE_WITH_TLDRAW_STYLES_TYPE = 'myshapewithtldrawstyles' as const
+
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		myshapewithtldrawstyles: {
+		[MY_SHAPE_WITH_TLDRAW_STYLES_TYPE]: {
 			w: number
 			h: number
 			size: TLDefaultSizeStyle
@@ -33,10 +35,10 @@ const FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 	xl: 48,
 }
 
-type IMyShape = TLShape<'myshapewithtldrawstyles'>
+type IMyShape = TLShape<typeof MY_SHAPE_WITH_TLDRAW_STYLES_TYPE>
 
 class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
-	static override type = 'myshapewithtldrawstyles' as const
+	static override type = MY_SHAPE_WITH_TLDRAW_STYLES_TYPE
 
 	// [2]
 	static override props = {

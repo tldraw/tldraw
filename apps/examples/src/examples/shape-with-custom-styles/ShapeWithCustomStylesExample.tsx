@@ -12,9 +12,11 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
+const MY_SHAPE_WITH_CUSTOM_STYLES_TYPE = 'myshapewithcustomstyles'
+
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		myshapewithcustomstyles: {
+		[MY_SHAPE_WITH_CUSTOM_STYLES_TYPE]: {
 			w: number
 			h: number
 			rating: MyRatingStyle
@@ -31,10 +33,10 @@ const myRatingStyle = StyleProp.defineEnum('example:rating', {
 // [2]
 type MyRatingStyle = T.TypeOf<typeof myRatingStyle>
 
-type IMyShape = TLShape<'myshapewithcustomstyles'>
+type IMyShape = TLShape<typeof MY_SHAPE_WITH_CUSTOM_STYLES_TYPE>
 
 class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
-	static override type = 'myshapewithcustomstyles' as const
+	static override type = MY_SHAPE_WITH_CUSTOM_STYLES_TYPE
 
 	// [3]
 	static override props = {

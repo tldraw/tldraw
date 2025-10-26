@@ -11,17 +11,19 @@ import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 
+const UNCULLABLE_TYPE = 'uncullable'
+
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		uncullable: { w: number; h: number }
+		[UNCULLABLE_TYPE]: { w: number; h: number }
 	}
 }
 
 // Custom uncullable shape type for testing canCull override
-type UncullableShape = TLShape<'uncullable'>
+type UncullableShape = TLShape<typeof UNCULLABLE_TYPE>
 
 class UncullableShapeUtil extends BaseBoxShapeUtil<UncullableShape> {
-	static override type = 'uncullable' as const
+	static override type = UNCULLABLE_TYPE
 	static override props: RecordProps<UncullableShape> = {
 		w: T.number,
 		h: T.number,

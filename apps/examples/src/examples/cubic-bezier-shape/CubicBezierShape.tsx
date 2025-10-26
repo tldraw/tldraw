@@ -17,18 +17,20 @@ import {
 	ZERO_INDEX_KEY,
 } from 'tldraw'
 
+const BEZIER_CURVE_TYPE = 'bezier-curve'
+
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'bezier-curve': { start: VecLike; cp1: VecLike; cp2: VecLike; end: VecLike }
+		[BEZIER_CURVE_TYPE]: { start: VecLike; cp1: VecLike; cp2: VecLike; end: VecLike }
 	}
 }
 
 // [1]
-export type MyBezierCurveShape = TLShape<'bezier-curve'>
+export type MyBezierCurveShape = TLShape<typeof BEZIER_CURVE_TYPE>
 
 // [2]
 export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
-	static override type = 'bezier-curve' as const
+	static override type = BEZIER_CURVE_TYPE
 	static override props: RecordProps<MyBezierCurveShape> = {
 		start: vecModelValidator,
 		cp1: vecModelValidator,

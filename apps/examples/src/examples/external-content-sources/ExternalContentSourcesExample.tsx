@@ -9,24 +9,26 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
+const DANGEROUS_HTML_TYPE = 'dangerous-html'
+
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'dangerous-html': { w: number; h: number; html: string }
+		[DANGEROUS_HTML_TYPE]: { w: number; h: number; html: string }
 	}
 }
 
 // There's a guide at the bottom of this page!
 
 // [1]
-export type IDangerousHtmlShape = TLShape<'dangerous-html'>
+export type IDangerousHtmlShape = TLShape<typeof DANGEROUS_HTML_TYPE>
 
 // [2]
 class DangerousHtmlExample extends BaseBoxShapeUtil<IDangerousHtmlShape> {
-	static override type = 'dangerous-html' as const
+	static override type = DANGEROUS_HTML_TYPE
 
-	override getDefaultProps() {
+	override getDefaultProps()s {
 		return {
-			type: 'dangerous-html',
+			type: DANGEROUS_HTML_TYPE,
 			w: 500,
 			h: 300,
 			html: '<div>hello</div>',

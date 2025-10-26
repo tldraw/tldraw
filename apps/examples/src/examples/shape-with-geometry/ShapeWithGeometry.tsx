@@ -14,9 +14,11 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
+const HOUSE_TYPE = 'house'
+
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		house: HouseShapeProps
+		[HOUSE_TYPE]: HouseShapeProps
 	}
 }
 
@@ -26,9 +28,9 @@ const houseShapeProps = {
 }
 
 type HouseShapeProps = RecordPropsType<typeof houseShapeProps>
-type HouseShape = TLShape<'house'>
+type HouseShape = TLShape<typeof HOUSE_TYPE>
 class HouseShapeUtil extends ShapeUtil<HouseShape> {
-	static override type = 'house' as const
+	static override type = HOUSE_TYPE
 	static override props = houseShapeProps
 
 	override canResize() {

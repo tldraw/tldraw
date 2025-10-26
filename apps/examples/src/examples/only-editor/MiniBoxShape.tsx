@@ -2,19 +2,21 @@ import { BaseBoxShapeUtil, HTMLContainer, TLShape } from 'tldraw'
 
 // There's a guide at the bottom of this page!
 
+const BOX_TYPE = 'box'
+
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		box: { w: number; h: number; color: string }
+		[BOX_TYPE]: { w: number; h: number; color: string }
 	}
 }
 
 // [1]
-export type MiniBoxShape = TLShape<'box'>
+export type MiniBoxShape = TLShape<typeof BOX_TYPE>
 
 // [2]
 export class MiniBoxShapeUtil extends BaseBoxShapeUtil<MiniBoxShape> {
 	//[a]
-	static override type = 'box'
+	static override type = BOX_TYPE
 	//[b]
 	override getDefaultProps(): MiniBoxShape['props'] {
 		return { w: 100, h: 100, color: '#efefef' }

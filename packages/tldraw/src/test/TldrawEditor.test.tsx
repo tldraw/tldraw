@@ -411,17 +411,19 @@ describe('<TldrawEditor />', () => {
 	})
 })
 
+const CARD_TYPE = 'card'
+
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		card: { w: number; h: number }
+		[CARD_TYPE]: { w: number; h: number }
 	}
 }
 
-type CardShape = TLShape<'card'>
+type CardShape = TLShape<typeof CARD_TYPE>
 
 describe('Custom shapes', () => {
 	class CardUtil extends BaseBoxShapeUtil<CardShape> {
-		static override type = 'card' as const
+		static override type = CARD_TYPE
 
 		override isAspectRatioLocked(_shape: CardShape) {
 			return false

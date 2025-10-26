@@ -10,9 +10,11 @@ import {
 
 // There's a guide at the bottom of this file!
 
+const PLAYING_CARD_TYPE = 'PlayingCard'
+
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		PlayingCard: {
+		[PLAYING_CARD_TYPE]: {
 			w: number
 			h: number
 			suit: string
@@ -21,11 +23,11 @@ declare module '@tldraw/tlschema' {
 }
 
 // [1]
-export type IPlayingCard = TLShape<'PlayingCard'>
+export type IPlayingCard = TLShape<typeof PLAYING_CARD_TYPE>
 
 export class PlayingCardUtil extends BaseBoxShapeUtil<IPlayingCard> {
 	// [2]
-	static override type = 'PlayingCard' as const
+	static override type = PLAYING_CARD_TYPE
 	static override props: RecordProps<IPlayingCard> = {
 		w: T.number,
 		h: T.number,

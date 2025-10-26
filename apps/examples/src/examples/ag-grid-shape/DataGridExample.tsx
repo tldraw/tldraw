@@ -6,16 +6,18 @@ import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-quartz.css'
 import 'tldraw/tldraw.css'
 
+const AG_GRID_TYPE = 'ag-grid'
+
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'ag-grid': { w: number; h: number; rowData: any[]; columnDefs: any[] }
+		[AG_GRID_TYPE]: { w: number; h: number; rowData: any[]; columnDefs: any[] }
 	}
 }
 
-type AgGridShape = TLShape<'ag-grid'>
+type AgGridShape = TLShape<typeof AG_GRID_TYPE>
 
 class AgGridShapeUtil extends BaseBoxShapeUtil<AgGridShape> {
-	static override type = 'ag-grid'
+	static override type = AG_GRID_TYPE
 
 	override canScroll(): boolean {
 		return true

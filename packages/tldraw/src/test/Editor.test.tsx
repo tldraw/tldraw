@@ -472,9 +472,11 @@ describe('isFocused', () => {
 	})
 })
 
+const BLORG_TYPE = 'blorg'
+
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		blorg: { w: number; h: number }
+		[BLORG_TYPE]: { w: number; h: number }
 	}
 }
 
@@ -483,7 +485,7 @@ describe('getShapeUtil', () => {
 
 	beforeEach(() => {
 		class _MyFakeShapeUtil extends BaseBoxShapeUtil<any> {
-			static override type = 'blorg'
+			static override type = BLORG_TYPE
 
 			getDefaultProps() {
 				return {
@@ -910,17 +912,19 @@ describe('instance.isReadonly', () => {
 	})
 })
 
-type MyCustomShape = TLShape<'myCustomShape'>
+const MY_CUSTOM_SHAPE_TYPE = 'myCustomShape'
+
+type MyCustomShape = TLShape<typeof MY_CUSTOM_SHAPE_TYPE>
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		myCustomShape: { w: number; h: number }
+		[MY_CUSTOM_SHAPE_TYPE]: { w: number; h: number }
 	}
 }
 
 describe('the geometry cache', () => {
 	class CustomShapeUtil extends BaseBoxShapeUtil<MyCustomShape> {
-		static override type = 'myCustomShape' as const
+		static override type = MY_CUSTOM_SHAPE_TYPE
 
 		getDefaultProps() {
 			return {

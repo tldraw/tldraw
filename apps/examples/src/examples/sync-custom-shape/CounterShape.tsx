@@ -1,16 +1,18 @@
 import { MouseEvent } from 'react'
 import { BaseBoxShapeTool, BaseBoxShapeUtil, HTMLContainer, T, TLShape } from 'tldraw'
 
+const COUNTER_TYPE = 'counter'
+
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		counter: { w: number; h: number; count: number }
+		[COUNTER_TYPE]: { w: number; h: number; count: number }
 	}
 }
 
-export type CounterShape = TLShape<'counter'>
+export type CounterShape = TLShape<typeof COUNTER_TYPE>
 
 export class CounterShapeUtil extends BaseBoxShapeUtil<CounterShape> {
-	static override type = 'counter' as const
+	static override type = COUNTER_TYPE
 	static override props = {
 		w: T.positiveNumber,
 		h: T.positiveNumber,
@@ -30,7 +32,7 @@ export class CounterShapeUtil extends BaseBoxShapeUtil<CounterShape> {
 			event.stopPropagation()
 			this.editor.updateShape({
 				id: shape.id,
-				type: 'counter',
+				type: COUNTER_TYPE,
 				props: { count: shape.props.count + change },
 			})
 		}

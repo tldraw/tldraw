@@ -10,21 +10,24 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
+const MY_GRID_SHAPE_TYPE = 'my-grid-shape'
+const MY_COUNTER_SHAPE_TYPE = 'my-counter-shape'
+
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'my-grid-shape': Record<string, never>
-		'my-counter-shape': Record<string, never>
+		[MY_GRID_SHAPE_TYPE]: Record<string, never>
+		[MY_COUNTER_SHAPE_TYPE]: Record<string, never>
 	}
 }
 
 // [1]
-type MyGridShape = TLShape<'my-grid-shape'>
-type MyCounterShape = TLShape<'my-counter-shape'>
+type MyGridShape = TLShape<typeof MY_GRID_SHAPE_TYPE>
+type MyCounterShape = TLShape<typeof MY_COUNTER_SHAPE_TYPE>
 
 // [2]
 const SLOT_SIZE = 100
 class MyCounterShapeUtil extends ShapeUtil<MyCounterShape> {
-	static override type = 'my-counter-shape' as const
+	static override type = MY_COUNTER_SHAPE_TYPE
 
 	override canResize() {
 		return false

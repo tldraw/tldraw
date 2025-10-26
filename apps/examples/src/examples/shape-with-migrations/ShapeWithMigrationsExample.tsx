@@ -13,20 +13,22 @@ import {
 import 'tldraw/tldraw.css'
 import snapshot from './snapshot.json'
 
+const MY_SHAPE_WITH_MIGRATIONS_TYPE = 'myshapewithmigrations' as const
+
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		myshapewithmigrations: { w: number; h: number; color: string }
+		[MY_SHAPE_WITH_MIGRATIONS_TYPE]: { w: number; h: number; color: string }
 	}
 }
 
 // There's a guide at the bottom of this file!
 
-export type IMyShape = TLShape<'myshapewithmigrations'>
+export type IMyShape = TLShape<typeof MY_SHAPE_WITH_MIGRATIONS_TYPE>
 
 // [1]
 const versions = createShapePropsMigrationIds(
 	// this must match the shape type in the shape definition
-	'myshapewithmigrations',
+	MY_SHAPE_WITH_MIGRATIONS_TYPE,
 	{
 		AddColor: 1,
 	}
@@ -49,7 +51,7 @@ export const cardShapeMigrations = createShapePropsMigrationSequence({
 })
 
 export class MigratedShapeUtil extends BaseBoxShapeUtil<IMyShape> {
-	static override type = 'myshapewithmigrations' as const
+	static override type = MY_SHAPE_WITH_MIGRATIONS_TYPE
 
 	static override props = {
 		w: T.number,

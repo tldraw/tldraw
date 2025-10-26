@@ -4,15 +4,17 @@ import { HTMLContainer, RecordProps, Rectangle2d, ShapeUtil, T, TLShape } from '
 export const EXAM_MARK_WIDTH = 80
 export const EXAM_MARK_HEIGHT = 40
 
+const EXAM_MARK_TYPE = 'exam-mark'
+
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'exam-mark': {
+		[EXAM_MARK_TYPE]: {
 			score: number
 		}
 	}
 }
 
-export type IExamMarkShape = TLShape<'exam-mark'>
+export type IExamMarkShape = TLShape<typeof EXAM_MARK_TYPE>
 
 export const examMarkShapeDefaultProps: IExamMarkShape['props'] = {
 	score: 0,

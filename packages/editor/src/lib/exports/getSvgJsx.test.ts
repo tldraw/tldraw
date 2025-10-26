@@ -4,16 +4,18 @@ import { Editor } from '../editor/Editor'
 import { Box } from '../primitives/Box'
 import { getExportDefaultBounds } from './getSvgJsx'
 
+const TEST_SHAPE_TYPE = 'test-shape'
+
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'test-shape': { w: number; h: number; x: number; y: number; isContainer?: boolean }
+		[TEST_SHAPE_TYPE]: { w: number; h: number; x: number; y: number; isContainer?: boolean }
 	}
 }
 
-type ITestShape = TLShape<'test-shape'>
+type ITestShape = TLShape<typeof TEST_SHAPE_TYPE>
 
 class TestShape extends ShapeUtil<ITestShape> {
-	static override type = 'test-shape' as const
+	static override type = TEST_SHAPE_TYPE
 	static override props: RecordProps<ITestShape> = {
 		w: T.number,
 		h: T.number,

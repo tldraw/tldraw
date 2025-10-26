@@ -2,16 +2,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { BaseBoxShapeUtil, HTMLContainer, RecordProps, T, TLShape } from 'tldraw'
 
+const MY_POPUP_SHAPE_TYPE = 'my-popup-shape'
+
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'my-popup-shape': { w: number; h: number; animal: number }
+		[MY_POPUP_SHAPE_TYPE]: { w: number; h: number; animal: number }
 	}
 }
 
-export type IMyPopupShape = TLShape<'my-popup-shape'>
+export type IMyPopupShape = TLShape<typeof MY_POPUP_SHAPE_TYPE>
 
 export class PopupShapeUtil extends BaseBoxShapeUtil<IMyPopupShape> {
-	static override type = 'my-popup-shape' as const
+	static override type = MY_POPUP_SHAPE_TYPE
 	static override props: RecordProps<IMyPopupShape> = {
 		w: T.number,
 		h: T.number,

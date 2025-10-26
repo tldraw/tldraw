@@ -15,9 +15,11 @@ import {
 import 'tldraw/tldraw.css'
 import { contents } from './contents'
 
+const DYNAMIC_SIZE_TYPE = 'dynamic-size'
+
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'dynamic-size': { contents: string[] }
+		[DYNAMIC_SIZE_TYPE]: { contents: string[] }
 	}
 }
 
@@ -26,7 +28,7 @@ declare module '@tldraw/tlschema' {
 const SHAPE_WIDTH_PX = 150
 
 // [1]
-type DynamicSizeShape = TLShape<'dynamic-size'>
+type DynamicSizeShape = TLShape<typeof DYNAMIC_SIZE_TYPE>
 
 // [2]
 const ShapeSizes = new EditorAtom('shape sizes', (editor) => {
@@ -81,7 +83,7 @@ function useDynamicShapeSize(shape: DynamicSizeShape) {
 // [4]
 export class DynamicSizeShapeUtil extends ShapeUtil<DynamicSizeShape> {
 	// [a]
-	static override type = 'dynamic-size' as const
+	static override type = DYNAMIC_SIZE_TYPE
 	static override props: RecordProps<DynamicSizeShape> = {
 		contents: T.arrayOf(T.string),
 	}

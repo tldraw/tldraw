@@ -2,9 +2,11 @@ import { BaseBoxShapeUtil, HTMLContainer, RecordProps, T, TLShape } from 'tldraw
 
 // There's a guide at the bottom of this file!
 
+const MY_EDITABLE_SHAPE_TYPE = 'my-editable-shape'
+
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'my-editable-shape': {
+		[MY_EDITABLE_SHAPE_TYPE]: {
 			w: number
 			h: number
 			animal: number
@@ -14,10 +16,10 @@ declare module '@tldraw/tlschema' {
 
 const ANIMAL_EMOJIS = ['🐶', '🐱', '🐨', '🐮', '🐴']
 
-export type IMyEditableShape = TLShape<'my-editable-shape'>
+export type IMyEditableShape = TLShape<typeof MY_EDITABLE_SHAPE_TYPE>
 
 export class EditableShapeUtil extends BaseBoxShapeUtil<IMyEditableShape> {
-	static override type = 'my-editable-shape' as const
+	static override type = MY_EDITABLE_SHAPE_TYPE
 	static override props: RecordProps<IMyEditableShape> = {
 		w: T.number,
 		h: T.number,

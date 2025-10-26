@@ -12,16 +12,18 @@ import {
 } from '../..'
 import { Editor } from './Editor'
 
+const MY_CUSTOM_SHAPE_TYPE = 'my-custom-shape'
+
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		'my-custom-shape': { w: number; h: number; text: string | undefined; isFilled: boolean }
+		[MY_CUSTOM_SHAPE_TYPE]: { w: number; h: number; text: string | undefined; isFilled: boolean }
 	}
 }
 
-type ICustomShape = TLShape<'my-custom-shape'>
+type ICustomShape = TLShape<typeof MY_CUSTOM_SHAPE_TYPE>
 
 class CustomShape extends ShapeUtil<ICustomShape> {
-	static override type = 'my-custom-shape' as const
+	static override type = MY_CUSTOM_SHAPE_TYPE
 	static override props: RecordProps<ICustomShape> = {
 		w: T.number,
 		h: T.number,

@@ -15,17 +15,19 @@ import {
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 
+const TEST1_TYPE = 'test1'
+
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		test1: { w: number; h: number; boundsSnapPoints: VecModel[] | null }
+		[TEST1_TYPE]: { w: number; h: number; boundsSnapPoints: VecModel[] | null }
 	}
 }
 
-type Test1Shape = TLShape<'test1'>
+type Test1Shape = TLShape<typeof TEST1_TYPE>
 
 describe('custom shape bounds snapping - translate', () => {
 	class TestShapeUtil extends BaseBoxShapeUtil<Test1Shape> {
-		static override type = 'test1'
+		static override type = TEST1_TYPE
 		override getDefaultProps() {
 			return { w: 100, h: 100, boundsSnapPoints: null }
 		}
@@ -166,9 +168,11 @@ describe('custom shape bounds snapping - translate', () => {
 	})
 })
 
+const TEST2_TYPE = 'test2'
+
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		test2: {
+		[TEST2_TYPE]: {
 			w: number
 			h: number
 			ownHandle: VecModel
@@ -181,11 +185,11 @@ declare module '@tldraw/tlschema' {
 	}
 }
 
-type Test2Shape = TLShape<'test2'>
+type Test2Shape = TLShape<typeof TEST2_TYPE>
 
 describe('custom handle snapping', () => {
 	class TestShapeUtil extends BaseBoxShapeUtil<Test2Shape> {
-		static override type = 'test2'
+		static override type = TEST2_TYPE
 		override getDefaultProps(): Test2Shape['props'] {
 			return {
 				w: 100,
