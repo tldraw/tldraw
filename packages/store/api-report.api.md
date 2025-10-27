@@ -221,9 +221,9 @@ export function parseMigrationId(id: MigrationId): {
     version: number;
 };
 
-// @public
+// @public (undocumented)
 export type QueryExpression<R extends object> = {
-    [k in keyof R & string]?: QueryValueMatcher<R[k]>;
+    [k in keyof R & string]?: R[k] extends boolean | null | number | string | undefined ? QueryValueMatcher<R[k]> : R[k] extends object ? QueryExpression<R[k]> : QueryValueMatcher<R[k]>;
 };
 
 // @public
@@ -286,13 +286,13 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
 export function reverseRecordsDiff(diff: RecordsDiff<any>): RecordsDiff<any>;
 
 // @public
-export type RSIndex<R extends UnknownRecord, Property extends string & keyof R = string & keyof R> = Computed<RSIndexMap<R, Property>, RSIndexDiff<R, Property>>;
+export type RSIndex<R extends UnknownRecord> = Computed<RSIndexMap<R>, RSIndexDiff<R>>;
 
 // @public
-export type RSIndexDiff<R extends UnknownRecord, Property extends string & keyof R = string & keyof R> = Map<R[Property], CollectionDiff<IdOf<R>>>;
+export type RSIndexDiff<R extends UnknownRecord> = Map<any, CollectionDiff<IdOf<R>>>;
 
 // @public
-export type RSIndexMap<R extends UnknownRecord, Property extends string & keyof R = string & keyof R> = Map<R[Property], Set<IdOf<R>>>;
+export type RSIndexMap<R extends UnknownRecord> = Map<any, Set<IdOf<R>>>;
 
 // @public
 export type SerializedSchema = SerializedSchemaV1 | SerializedSchemaV2;
@@ -455,11 +455,9 @@ export class StoreQueries<R extends UnknownRecord> {
     // @internal
     constructor(recordMap: AtomMap<IdOf<R>, R>, history: Atom<number, RecordsDiff<R>>);
     // @internal
-    __uncached_createIndex<TypeName extends R['typeName'], Property extends string & keyof Extract<R, {
+    __uncached_createIndex<TypeName extends R['typeName']>(typeName: TypeName, path: string): RSIndex<Extract<R, {
         typeName: TypeName;
-    }>>(typeName: TypeName, property: Property): RSIndex<Extract<R, {
-        typeName: TypeName;
-    }>, Property>;
+    }>>;
     exec<TypeName extends R['typeName']>(typeName: TypeName, query: QueryExpression<Extract<R, {
         typeName: TypeName;
     }>>): Array<Extract<R, {
@@ -468,6 +466,16 @@ export class StoreQueries<R extends UnknownRecord> {
     filterHistory<TypeName extends R['typeName']>(typeName: TypeName): Computed<number, RecordsDiff<Extract<R, {
         typeName: TypeName;
     }>>>;
+    // @internal (undocumented)
+    getAllIdsForType<TypeName extends R['typeName']>(typeName: TypeName): Set<IdOf<Extract<R, {
+        typeName: TypeName;
+    }>>>;
+    // @internal (undocumented)
+    getRecordById<TypeName extends R['typeName']>(typeName: TypeName, id: IdOf<Extract<R, {
+        typeName: TypeName;
+    }>>): Extract<R, {
+        typeName: TypeName;
+    }> | undefined;
     ids<TypeName extends R['typeName']>(typeName: TypeName, queryCreator?: () => QueryExpression<Extract<R, {
         typeName: TypeName;
     }>>, name?: string): Computed<Set<IdOf<Extract<R, {
@@ -475,11 +483,9 @@ export class StoreQueries<R extends UnknownRecord> {
     }>>>, CollectionDiff<IdOf<Extract<R, {
         typeName: TypeName;
     }>>>>;
-    index<TypeName extends R['typeName'], Property extends string & keyof Extract<R, {
+    index<TypeName extends R['typeName']>(typeName: TypeName, path: string): RSIndex<Extract<R, {
         typeName: TypeName;
-    }>>(typeName: TypeName, property: Property): RSIndex<Extract<R, {
-        typeName: TypeName;
-    }>, Property>;
+    }>>;
     record<TypeName extends R['typeName']>(typeName: TypeName, queryCreator?: () => QueryExpression<Extract<R, {
         typeName: TypeName;
     }>>, name?: string): Computed<Extract<R, {
