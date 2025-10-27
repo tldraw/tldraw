@@ -1194,13 +1194,6 @@ export type TLInstancePageStateId = RecordId<TLInstancePageState>;
 // @public
 export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceID> {
     // (undocumented)
-    agents: Array<{
-        flipX: boolean;
-        gesture: null | string;
-        position: VecModel;
-        state: string;
-    }>;
-    // (undocumented)
     brush: BoxModel | null;
     // (undocumented)
     camera: {

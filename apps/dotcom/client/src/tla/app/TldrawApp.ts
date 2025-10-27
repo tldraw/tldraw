@@ -217,6 +217,7 @@ export class TldrawApp {
 				await this.z.mutate.init({ user: initialUserData, time: Date.now() })
 			} else {
 				// Legacy initialization (no groups) - just insert user like before
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
 				await this.z.mutate.user.insert({ ...initialUserData, flags: '' })
 			}
 
