@@ -408,7 +408,7 @@ export class FairyAgent {
 				selectedShapes: request.selectedShapes,
 				data: request.data,
 				type: 'todo',
-				wand: 'god',
+				wand: request.wand,
 			}
 		}
 

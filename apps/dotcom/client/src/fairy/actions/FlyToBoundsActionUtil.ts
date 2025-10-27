@@ -1,4 +1,4 @@
-import { FAIRY_VISION_DIMENSIONS, FlyToBoundsAction, Streaming } from '@tldraw/fairy-shared'
+import { FlyToBoundsAction, Streaming } from '@tldraw/fairy-shared'
 import { Box } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -21,8 +21,8 @@ export class FlyToBoundsActionUtil extends AgentActionUtil<FlyToBoundsAction> {
 		const bounds = helpers.removeOffsetFromBox({
 			x: action.x,
 			y: action.y,
-			w: Math.min(action.w, FAIRY_VISION_DIMENSIONS.x),
-			h: Math.min(action.h, FAIRY_VISION_DIMENSIONS.y),
+			w: action.w,
+			h: action.h,
 		})
 
 		this.agent.moveToPosition(Box.From(bounds).center)
