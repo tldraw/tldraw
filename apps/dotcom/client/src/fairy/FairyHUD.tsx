@@ -184,31 +184,39 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		}
 	}, [chosenFairy])
 
+	const selectFairy = useCallback(
+		(selectedAgent: FairyAgent) => {
+			// Select the specified fairy
+			selectedAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
+
+			// Deselect all other fairies
+			agents.forEach((agent) => {
+				if (agent.id === selectedAgent.id) return
+				agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+			})
+		},
+		[agents]
+	)
+
 	const handleClickFairy = useCallback(
 		(clickedAgent: FairyAgent) => {
 			const isSelected = clickedAgent.$fairyEntity.get().isSelected
 			const isChosen = clickedAgent.id === chosenFairy.id
 
-			// Select the clicked fairy
-			clickedAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
-
-			// Deselect all other fairies
-			agents.forEach((agent) => {
-				if (agent.id === clickedAgent.id) return
-				agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
-			})
+			selectFairy(clickedAgent)
 
 			// If the clicked fairy is already chosen and selected, toggle the panel. Otherwise, keep the panel open.
 			setPanelState((v) => (isChosen && isSelected && v === 'fairy' ? 'closed' : 'fairy'))
 		},
-		[agents, chosenFairy.id]
+		[selectFairy, chosenFairy.id]
 	)
 
 	const handleDoubleClickFairy = useCallback(
 		(clickedAgent: FairyAgent) => {
 			goToFairy(clickedAgent)
+			selectFairy(clickedAgent)
 		},
-		[goToFairy]
+		[goToFairy, selectFairy]
 	)
 
 	const [todoLastChecked, setTodoLastChecked] = useState<SharedTodoItem[]>([])
