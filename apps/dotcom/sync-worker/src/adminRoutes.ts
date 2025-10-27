@@ -507,7 +507,7 @@ async function performBatchUserMigration(
 
 		// Brief pause between migrations to avoid overwhelming the system
 		if ((i + 1) % batchSize === 0) {
-			sendProgress('batch_complete', `Completed batch of ${batchSize} users`, {
+			sendProgress('batch_complete', `Completed ${i + 1} of ${totalUsers} users`, {
 				progress: i + 1,
 				totalUsers,
 				successCount,

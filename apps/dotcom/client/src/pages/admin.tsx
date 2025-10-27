@@ -699,6 +699,10 @@ function BatchMigrateUsersToGroups() {
 						<span className={styles.statValue}>{stats.totalUsers}</span>
 					</div>
 					<div className={styles.statItem}>
+						<span className={styles.statLabel}>Completed:</span>
+						<span className={styles.statValue}>{stats.successCount + stats.failureCount}</span>
+					</div>
+					<div className={styles.statItem}>
 						<span className={styles.statLabel}>Succeeded:</span>
 						<span className={styles.statValue}>{stats.successCount}</span>
 					</div>
@@ -728,7 +732,8 @@ function BatchMigrateUsersToGroups() {
 
 			{isComplete && (
 				<div className={styles.successMessage}>
-					Batch migration completed! Success: {stats.successCount}, Failed: {stats.failureCount}
+					Migration completed! {stats.successCount} user{stats.successCount !== 1 ? 's' : ''}{' '}
+					migrated successfully, {stats.failureCount} failed
 				</div>
 			)}
 
@@ -736,7 +741,7 @@ function BatchMigrateUsersToGroups() {
 			{progressLog.length > 0 && (
 				<div className={styles.progressLog}>
 					<h5>Migration Progress:</h5>
-					<div className={styles.logContainer}>
+					<div ref={logContainerRef} className={styles.logContainer}>
 						{progressLog.map((log, index) => (
 							<div key={index} className={styles.logEntry}>
 								{log}
