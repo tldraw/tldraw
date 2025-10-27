@@ -23,6 +23,6 @@ export const fairyEntityValidator: T.ObjectValidator<FairyEntity> = T.object({
 	position: vecModelValidator,
 	flipX: T.boolean,
 	isSelected: T.boolean,
-	pose: T.setEnum(new Set(FAIRY_POSE)),
-	gesture: T.setEnum(new Set(FAIRY_POSE)).nullable(),
+	pose: T.literalEnum(...FAIRY_POSE),
+	gesture: T.literalEnum(...FAIRY_POSE).nullable(),
 })

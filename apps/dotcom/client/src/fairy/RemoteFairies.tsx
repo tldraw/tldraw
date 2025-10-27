@@ -1,5 +1,6 @@
 import { FairyEntity, fairyEntityValidator } from '@tldraw/fairy-shared'
-import { useEditor, usePeerIds, usePresence, useValue } from 'tldraw'
+import { T, useEditor, usePeerIds, usePresence, useValue } from 'tldraw'
+import { FairyOutfit, fairyOutfitValidator } from './fairy-sprite/FairyOutfit'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
 
 const FAIRY_SIZE = 200
@@ -18,6 +19,16 @@ export function RemoteFairies() {
 	)
 }
 
+interface FairyPresence {
+	entity: FairyEntity
+	outfit: FairyOutfit
+}
+
+const fairyPresenceValidator: T.ObjectValidator<FairyPresence> = T.object({
+	entity: fairyEntityValidator,
+	outfit: fairyOutfitValidator,
+})
+
 function RemoteFairy({ userId }: { userId: string }) {
 	const editor = useEditor()
 	const presence = usePresence(userId)
@@ -32,20 +43,18 @@ function RemoteFairy({ userId }: { userId: string }) {
 		return null
 	}
 
-	const fairies = meta.fairies
-		.map((fairy) => {
-			if (!fairyEntityValidator.isValid(fairy)) return null
-			return fairyEntityValidator.validate(fairy)
-		})
-		.filter((fairy) => fairy !== null)
+	const fairyPresences = meta.fairies
+		.map((fairy) => fairyPresenceValidator.validate(fairy))
+		.filter((fairyPresence) => fairyPresence !== null)
 
 	return (
 		<>
-			{fairies.map((fairy, index) => {
+			{fairyPresences.map((fairyPresence, index) => {
 				return (
 					<RemoteFairyIndicator
 						key={`${userId}_fairy_${index}`}
-						fairy={fairy}
+						entity={fairyPresence.entity}
+						outfit={fairyPresence.outfit}
 						color={color}
 						editor={editor}
 					/>
@@ -56,11 +65,13 @@ function RemoteFairy({ userId }: { userId: string }) {
 }
 
 function RemoteFairyIndicator({
-	fairy,
+	entity,
+	outfit,
 	color,
 	editor,
 }: {
-	fairy: FairyEntity
+	entity: FairyEntity
+	outfit: FairyOutfit
 	color: string
 	editor: ReturnType<typeof useEditor>
 }) {
@@ -68,14 +79,14 @@ function RemoteFairyIndicator({
 	const screenPosition = useValue(
 		'remote fairy screen position',
 		() => {
-			const screenPos = editor.pageToScreen(fairy.position)
+			const screenPos = editor.pageToScreen(entity.position)
 			const screenBounds = editor.getViewportScreenBounds()
 			return {
 				x: screenPos.x - screenBounds.x,
 				y: screenPos.y - screenBounds.y,
 			}
 		},
-		[editor, fairy.position]
+		[editor, entity.position]
 	)
 
 	return (
@@ -97,24 +108,20 @@ function RemoteFairyIndicator({
 					top: screenPosition.y,
 					width: `${FAIRY_SIZE}px`,
 					height: `${FAIRY_SIZE}px`,
-					transform: `translate(-50%, -50%) scale(min(max(var(--tl-zoom), 0.2), 0.7))${fairy.flipX ? ' scaleX(-1)' : ''}`,
+					transform: `translate(-50%, -50%) scale(min(max(var(--tl-zoom), 0.2), 0.7))${entity.flipX ? ' scaleX(-1)' : ''}`,
 					// filter: `drop-shadow(4px 8px 2px ${color})`,
 				}}
 			>
 				<FairySpriteComponent
 					animated={true}
 					entity={{
-						position: fairy.position,
-						flipX: fairy.flipX,
+						position: entity.position,
+						flipX: entity.flipX,
 						isSelected: false,
-						pose: fairy.pose,
-						gesture: fairy.gesture,
+						pose: entity.pose,
+						gesture: entity.gesture,
 					}}
-					outfit={{
-						body: 'plain',
-						hat: 'pointy',
-						wings: 'plain',
-					}}
+					outfit={outfit}
 					tint={color}
 				/>
 			</div>

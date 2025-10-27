@@ -215,12 +215,17 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				if (!defaultPresence) return null
 
 				// Add fairy positions to presence for all active agents
-				const fairies =
+				const fairyPresences =
 					agentsRef.current
-						?.map((agent) => agent?.$fairyEntity?.get?.() as FairyEntity | undefined)
+						?.map((agent) => {
+							const entity = agent?.$fairyEntity?.get?.() as FairyEntity | undefined
+							const outfit = agent?.$fairyConfig?.get?.()?.outfit as string | undefined
+							if (!entity || !outfit) return null
+							return { entity, outfit }
+						})
 						.filter((agent): agent is NonNullable<typeof agent> => agent !== null) ?? []
 
-				defaultPresence.meta = { ...defaultPresence.meta, fairies }
+				defaultPresence.meta = { ...defaultPresence.meta, fairies: fairyPresences }
 				return defaultPresence
 			},
 			[]
