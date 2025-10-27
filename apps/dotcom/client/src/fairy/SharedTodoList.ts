@@ -12,7 +12,7 @@ export function addSharedTodoItem(text: string) {
 				id: maxId + 1,
 				text,
 				status: 'todo',
-				claimedBy: '',
+				claimedBy: null,
 			},
 		]
 	})

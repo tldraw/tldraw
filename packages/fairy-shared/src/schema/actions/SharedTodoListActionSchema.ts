@@ -6,7 +6,12 @@ export const SharedTodoListActionSchema = z
 		id: z.number(),
 		status: z.enum(['todo', 'in-progress', 'done']),
 		text: z.string(),
-		claimedBy: z.string(),
+		claimedBy: z
+			.object({
+				id: z.string(),
+				name: z.string(),
+			})
+			.nullable(),
 	})
 	.meta({
 		title: 'Update shared todo List',

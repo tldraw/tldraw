@@ -38,15 +38,25 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 		deleteSharedTodoItem(id)
 	}, [])
 
-	const handleAssignFairy = useCallback((todoId: number, fairyName: string) => {
-		$sharedTodoList.update((todos) =>
-			todos.map((t) => (t.id === todoId ? { ...t, claimedBy: fairyName } : t))
-		)
-	}, [])
+	const handleAssignFairy = useCallback(
+		(todoId: number, fairyId: string) => {
+			const agent = agents.find((a) => a.id === fairyId)
+			if (!agent) return
+
+			$sharedTodoList.update((todos) =>
+				todos.map((t) =>
+					t.id === todoId
+						? { ...t, claimedBy: { id: agent.id, name: agent.$fairyConfig.get().name } }
+						: t
+				)
+			)
+		},
+		[agents]
+	)
 
 	const handleHelpOut = useCallback(
 		(todo: SharedTodoItem) => {
-			const agent = agents.find((a) => a.$fairyConfig.get().name === todo.claimedBy) // TODO Matching by name is bad
+			const agent = agents.find((a) => a.id === todo.claimedBy?.id)
 			if (agent) {
 				agent.helpOut([todo])
 			} else {
@@ -108,13 +118,13 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 								</div>
 								<div className="shared-todo-item-assign">
 									<select
-										value={todo.claimedBy || ''}
+										value={todo.claimedBy?.id || ''}
 										onChange={(e) => handleAssignFairy(todo.id, e.target.value)}
 										className="shared-todo-item-fairy-select"
 									>
 										<option value="">Auto</option>
 										{agents.map((agent) => (
-											<option key={agent.id} value={agent.$fairyConfig.get().name}>
+											<option key={agent.id} value={agent.id}>
 												{agent.$fairyConfig.get().name}
 											</option>
 										))}

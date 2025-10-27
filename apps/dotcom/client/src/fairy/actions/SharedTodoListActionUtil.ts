@@ -10,7 +10,7 @@ export class SharedTodoListActionUtil extends AgentActionUtil<SharedTodoListActi
 			icon: 'pencil' as const,
 			description: 'Update shared todo list',
 			summary: action.complete
-				? `Updated shared todo item ${action.id}: "${action.text}", with status "${action.status}", ${action.claimedBy ? `claimed by ${action.claimedBy}` : ''}`
+				? `Updated shared todo item ${action.id}: "${action.text}", with status "${action.status}", ${action.claimedBy ? `claimed by ${action.claimedBy.name} (id: ${action.claimedBy.id})` : ''}`
 				: 'Updating shared todo list...',
 			pose: 'thinking' as const,
 		}
@@ -27,26 +27,26 @@ export class SharedTodoListActionUtil extends AgentActionUtil<SharedTodoListActi
 			claimedBy: action.claimedBy,
 		}
 
-		const fairyName = this.agent.$fairyConfig.get().name
+		const fairyId = this.agent.id
 		const sharedTodoList = $sharedTodoList.get()
 		const itemToUpdate = sharedTodoList.find((item) => item.id === proposedTodoItem.id)
 
 		// Check for claiming conflicts
 		if (itemToUpdate) {
-			const fairyIsClaimingItem = proposedTodoItem.claimedBy === fairyName
+			const fairyIsClaimingItem = proposedTodoItem.claimedBy?.id === fairyId
 			const claimedByAnotherFairy =
-				itemToUpdate.claimedBy !== '' && itemToUpdate.claimedBy !== fairyName
+				itemToUpdate.claimedBy !== null && itemToUpdate.claimedBy.id !== fairyId
 
 			// TODO improve this logic: it shouldnt say none are left if this fairy has some items calimed already.
 
-			if (fairyIsClaimingItem && claimedByAnotherFairy) {
+			if (fairyIsClaimingItem && claimedByAnotherFairy && itemToUpdate.claimedBy) {
 				this.agent.cancel()
-				const unclaimedTodoItems = sharedTodoList.filter((item) => !item.claimedBy)
+				const unclaimedTodoItems = sharedTodoList.filter((item) => item.claimedBy === null)
 				const todoItemsClaimedByThisFairy = sharedTodoList.filter(
-					(item) => item.claimedBy === fairyName
+					(item) => item.claimedBy?.id === fairyId
 				)
 
-				let message = `I'm sorry, but ${itemToUpdate.claimedBy} has already claimed this todo item with id ${itemToUpdate.id}. `
+				let message = `I'm sorry, but ${itemToUpdate.claimedBy.name} (id: ${itemToUpdate.claimedBy.id}) has already claimed this todo item with id ${itemToUpdate.id}. `
 				if (unclaimedTodoItems.length === 0 && todoItemsClaimedByThisFairy.length === 0) {
 					message += 'There are no unclaimed todo items remaining. You can stop working.'
 				} else {
