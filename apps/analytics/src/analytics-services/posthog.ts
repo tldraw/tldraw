@@ -12,7 +12,6 @@ class PosthogAnalyticsService extends AnalyticsService {
 		_posthog.init(POSTHOG_TOKEN, {
 			api_host: POSTHOG_API_HOST,
 			ui_host: POSTHOG_UI_HOST,
-			persistence: 'memory',
 			capture_pageview: 'history_change',
 			cookieless_mode: 'on_reject',
 		})
@@ -20,7 +19,6 @@ class PosthogAnalyticsService extends AnalyticsService {
 
 	override enable() {
 		if (this.isEnabled) return
-		_posthog.set_config({ persistence: 'localStorage+cookie' })
 		_posthog.opt_in_capturing()
 		this.isEnabled = true
 	}
@@ -28,8 +26,6 @@ class PosthogAnalyticsService extends AnalyticsService {
 	override disable() {
 		if (!this.isEnabled) return
 		_posthog.setPersonProperties({ analytics_consent: false })
-		_posthog.reset()
-		_posthog.set_config({ persistence: 'memory' })
 		_posthog.opt_out_capturing()
 		this.isEnabled = false
 	}
