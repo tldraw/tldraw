@@ -287,27 +287,29 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		agentsRef.current = agents
 	}, [agents])
 
-	// this is ugly
-	const originalInFrontOfTheCanvasRef = useRef(components.InFrontOfTheCanvas)
-	const OriginalInFrontOfTheCanvas = originalInFrontOfTheCanvasRef.current
-	const canShowFairies = agents.length > 0 && showFairies && (!!user?.isTldraw || isDevelopmentEnv)
+	const instanceComponents = useMemo((): TLComponents => {
+		const canShowFairies =
+			agents.length > 0 && showFairies && (!!user?.isTldraw || isDevelopmentEnv)
 
-	components.InFrontOfTheCanvas = (props) => (
-		<>
-			{OriginalInFrontOfTheCanvas ? <OriginalInFrontOfTheCanvas {...props} /> : null}
-			{canShowFairies && (
-				<Suspense fallback={<div />}>
-					<FairyVision agents={agents} />
-					<RemoteFairies />
-					<Fairies agents={agents} />
-					<FairyHUD agents={agents} />
-				</Suspense>
-			)}
-		</>
-	)
-	components.DebugMenu = () => (
-		<CustomDebugMenu showFairyFeatureFlags={!!user?.isTldraw || isDevelopmentEnv} />
-	)
+		return {
+			...components,
+			InFrontOfTheCanvas: () => (
+				<>
+					{canShowFairies && (
+						<Suspense fallback={<div />}>
+							<FairyVision agents={agents} />
+							<RemoteFairies />
+							<Fairies agents={agents} />
+							<FairyHUD agents={agents} />
+						</Suspense>
+					)}
+				</>
+			),
+			DebugMenu: () => (
+				<CustomDebugMenu showFairyFeatureFlags={!!user?.isTldraw || isDevelopmentEnv} />
+			),
+		}
+	}, [agents, showFairies, user?.isTldraw])
 
 	return (
 		<TlaEditorWrapper>
@@ -319,7 +321,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
-				components={components}
+				components={instanceComponents}
 				options={{ actionShortcutsLocation: 'toolbar' }}
 				deepLinks={deepLinks || undefined}
 				overrides={[overrides, extraDragIconOverrides]}
