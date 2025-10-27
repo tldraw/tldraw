@@ -17,7 +17,7 @@ export function TlaSidebarRenameInline({
 }) {
 	const app = useApp()
 	const trackEvent = useTldrawAppUiEvents()
-	const isPinned = useIsFilePinned(fileId, groupId)
+	const isPinned = useIsFilePinned(fileId, app.resolveGroupId(groupId))
 
 	const handleComplete = useCallback(
 		(name: string) => {

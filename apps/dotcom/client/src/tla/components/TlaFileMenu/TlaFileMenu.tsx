@@ -115,7 +115,7 @@ export function FileItems({
 	const trackEvent = useTldrawAppUiEvents()
 	const copiedMsg = useMsg(messages.copied)
 	const hasAdminRights = useHasFileAdminRights(fileId)
-	const isPinned = useIsFilePinned(fileId, groupId ?? '')
+	const isPinned = useIsFilePinned(fileId, groupId ? app.resolveGroupId(groupId) : '')
 	const isActive = useCurrentFileId() === fileId
 	const hasGroups = useHasFlag('groups_frontend')
 
@@ -140,10 +140,11 @@ export function FileItems({
 
 	const handlePinUnpinClick = useCallback(async () => {
 		if (!groupId) return
-		if (app.isPinned(fileId, groupId)) {
-			app.z.mutate.unpinFile({ fileId, groupId })
+		const actualGroupId = app.resolveGroupId(groupId)
+		if (app.isPinned(fileId, actualGroupId)) {
+			app.z.mutate.unpinFile({ fileId, groupId: actualGroupId })
 		} else {
-			app.z.mutate.pinFile({ fileId, groupId })
+			app.z.mutate.pinFile({ fileId, groupId: actualGroupId })
 		}
 	}, [app, fileId, groupId])
 
@@ -173,10 +174,14 @@ export function FileItems({
 		if (!groupId) return
 		addDialog({
 			component: ({ onClose }) => (
-				<TlaDeleteFileDialog groupId={groupId} fileId={fileId} onClose={onClose} />
+				<TlaDeleteFileDialog
+					groupId={app.resolveGroupId(groupId)}
+					fileId={fileId}
+					onClose={onClose}
+				/>
 			),
 		})
-	}, [fileId, addDialog, groupId])
+	}, [fileId, addDialog, groupId, app])
 
 	const untitledProject = useMsg(editorMessages.untitledProject)
 	const handleDownloadClick = useCallback(async () => {

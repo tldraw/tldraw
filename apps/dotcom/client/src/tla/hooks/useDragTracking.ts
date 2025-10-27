@@ -145,7 +145,22 @@ async function executeFileOperations(
 	operation: DragFileOperation
 ) {
 	if (operation.move || operation.reorder) {
-		app.z.mutate.handleFileDragOperation({ fileId, groupId, operation })
+		// Translate "my-files" to actual home group ID
+		const actualGroupId = app.resolveGroupId(groupId)
+		// Also translate targetId if it's "my-files"
+		const actualOperation = {
+			...operation,
+			move: operation.move
+				? {
+						targetId: app.resolveGroupId(operation.move.targetId),
+					}
+				: undefined,
+		}
+		app.z.mutate.handleFileDragOperation({
+			fileId,
+			groupId: actualGroupId,
+			operation: actualOperation,
+		})
 	}
 }
 

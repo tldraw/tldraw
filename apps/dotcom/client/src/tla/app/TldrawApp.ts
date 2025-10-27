@@ -366,6 +366,14 @@ export class TldrawApp {
 		return this.userId
 	}
 
+	/**
+	 * Translates UI-level "my-files" identifier to actual home group ID.
+	 * Use this when passing groupId to backend operations that expect actual IDs.
+	 */
+	resolveGroupId(groupId: string): string {
+		return groupId === 'my-files' ? this.getHomeGroupId() : groupId
+	}
+
 	@computed({ isEqual })
 	getGroupMemberships() {
 		return this.groupMemberships$.get().slice(0).sort(sortByIndex)
