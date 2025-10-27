@@ -141,7 +141,6 @@ export const instancePresenceVersions = createMigrationIds('com.tldraw.instance_
 	AddMeta: 4,
 	RenameSelectedShapeIds: 5,
 	NullableCameraCursor: 6,
-	AddAgents: 7,
 } as const)
 
 /**

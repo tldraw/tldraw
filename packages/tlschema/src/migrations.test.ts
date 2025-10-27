@@ -2242,14 +2242,6 @@ describe('TLVideoAsset AddAutoplay', () => {
 	})
 })
 
-describe('TLPresence AddAgents', () => {
-	const { up } = getTestMigration(instancePresenceVersions.AddAgents)
-
-	test('up works as expected', () => {
-		expect(up({})).toEqual({ agents: [] })
-	})
-})
-
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 // check that all migrator fns were called at least once
