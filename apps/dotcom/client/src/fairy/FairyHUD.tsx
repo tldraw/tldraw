@@ -81,14 +81,15 @@ function FairyButton({
 		onDoubleClick()
 	}, [onDoubleClick])
 
-	// Cleanup on unmount
+	// Cleanup double click timer
 	useEffect(() => {
 		return () => {
 			if (clickTimerRef.current) {
 				clearTimeout(clickTimerRef.current)
+				clickTimerRef.current = null
 			}
 		}
-	}, [])
+	}, [handleClick, handleDoubleClick])
 
 	return (
 		<TldrawUiToolbarToggleGroup type="single" value={fairyIsSelected ? 'on' : 'off'} asChild>
