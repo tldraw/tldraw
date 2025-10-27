@@ -296,11 +296,11 @@ export class MinimapManager {
 		if (!collaborators.length) return
 
 		// collect both cursor and agent points, tracking which are agents
-		const points: { center: Vec; isAgent: boolean }[] = []
+		const points: { center: Vec }[] = []
 		const colors: Float32Array[] = []
 		for (const c of collaborators) {
 			if (c.cursor) {
-				points.push({ center: Vec.From(c.cursor), isAgent: false })
+				points.push({ center: Vec.From(c.cursor) })
 				colors.push(getRgba(c.color))
 			}
 		}
@@ -319,11 +319,10 @@ export class MinimapManager {
 		const vertices = this.gl.collaborators.vertices
 		let offset = 0
 		const zoom = this.getZoom()
-		for (const { center, isAgent } of points) {
+		for (const { center } of points) {
 			pie(vertices, {
 				center,
-				// Agent dots are smaller (1.5 vs 3)
-				radius: (isAgent ? 1.5 : 3) * zoom,
+				radius: 3 * zoom,
 				offset,
 				numArcSegments: numSegmentsPerCircle,
 			})
