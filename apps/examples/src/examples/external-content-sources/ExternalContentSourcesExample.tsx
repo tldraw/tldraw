@@ -28,7 +28,6 @@ class DangerousHtmlExample extends BaseBoxShapeUtil<IDangerousHtmlShape> {
 
 	override getDefaultProps() {
 		return {
-			type: DANGEROUS_HTML_TYPE,
 			w: 500,
 			h: 300,
 			html: '<div>hello</div>',
