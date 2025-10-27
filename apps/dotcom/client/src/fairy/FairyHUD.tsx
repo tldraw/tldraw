@@ -135,9 +135,6 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	)
 
 	const requestHelpFromEveryone = useCallback(() => {
-		if ($sharedTodoList.get().every((item) => item.status === 'done')) {
-			clearSharedTodoList()
-		}
 		agents.forEach((agent) => {
 			agent.helpOut()
 		})
@@ -276,11 +273,6 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 															<TldrawUiMenuItem
 																id="help-out"
 																onSelect={() => {
-																	if (
-																		$sharedTodoList.get().every((item) => item.status === 'done')
-																	) {
-																		clearSharedTodoList()
-																	}
 																	chosenFairy.helpOut()
 																}}
 																label="Ask for help"
