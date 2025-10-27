@@ -253,6 +253,7 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 					onMouseEnter={() => {
 						if (!isThrowToolActive) {
 							if (!editor.isIn('select.idle')) return
+							if (agent.isGenerating()) return
 							editor.setCursor({ type: 'grab', rotation: 0 })
 						}
 					}}
