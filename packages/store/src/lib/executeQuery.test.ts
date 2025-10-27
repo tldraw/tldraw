@@ -24,6 +24,8 @@ interface Book extends BaseRecord<'book', RecordId<Book>> {
 	price: number
 	metadata: {
 		sessionId: string
+		status?: 'published' | 'draft' | 'archived'
+		copies?: number
 		extras: {
 			region: string
 		}
@@ -346,7 +348,7 @@ describe('objectMatchesQuery', () => {
 		})
 
 		it('should not match when property is not a number', () => {
-			const book = { title: '1984', publishedYear: '1984' as any }
+			const book = { title: '1984', publishedYear: '1984' }
 			const query = { publishedYear: { gt: 1980 } }
 
 			expect(objectMatchesQuery(query, book)).toBe(false)
@@ -417,10 +419,16 @@ describe('objectMatchesQuery', () => {
 		})
 
 		it('should handle missing properties gracefully', () => {
-			const book = { title: 'Test' } as any
+			const book = { title: 'Test' }
 			const query = { nonexistentProperty: { eq: 'value' } }
 
-			expect(objectMatchesQuery(query, book)).toBe(false)
+			expect(
+				objectMatchesQuery(
+					// @ts-expect-error - query is not a valid query expression for books
+					query,
+					book
+				)
+			).toBe(false)
 		})
 	})
 })
@@ -568,7 +576,12 @@ describe('executeQuery', () => {
 			expect(result).toEqual(expectedIds)
 
 			// Same query on books should return empty
-			const bookResult = executeQuery(store.query, 'book', query as any)
+			const bookResult = executeQuery(
+				store.query,
+				'book',
+				// @ts-expect-error - query is not a valid query expression for books
+				query
+			)
 			expect(bookResult).toEqual(new Set())
 		})
 	})
@@ -971,18 +984,6 @@ describe('reactive nested queries', () => {
 
 	describe('query operators with nested properties', () => {
 		it('should handle gt operator on nested properties', () => {
-			// First, create a test with books that have numeric nested properties
-			// We'll add a 'copies' field to the metadata
-			interface BookWithCopies extends Book {
-				metadata: {
-					sessionId: string
-					copies?: number
-					extras: {
-						region: string
-					}
-				}
-			}
-
 			// Add some books with different copy counts
 			const bookLowCopies = Book.create({
 				title: 'Low Copies Book',
@@ -994,7 +995,7 @@ describe('reactive nested queries', () => {
 					copies: 5,
 					extras: { region: 'us' },
 				},
-			} as any)
+			})
 
 			const bookHighCopies = Book.create({
 				title: 'High Copies Book',
@@ -1006,7 +1007,7 @@ describe('reactive nested queries', () => {
 					copies: 100,
 					extras: { region: 'us' },
 				},
-			} as any)
+			})
 
 			const bookMidCopies = Book.create({
 				title: 'Mid Copies Book',
@@ -1018,13 +1019,13 @@ describe('reactive nested queries', () => {
 					copies: 50,
 					extras: { region: 'us' },
 				},
-			} as any)
+			})
 
 			store.put([bookLowCopies, bookHighCopies, bookMidCopies])
 
 			// Query for books with more than 25 copies
 			const query = { metadata: { copies: { gt: 25 } } }
-			const idsQuery = store.query.ids('book', () => query as any)
+			const idsQuery = store.query.ids('book', () => query)
 
 			// Should include only books with > 25 copies
 			const expectedIds = new Set([bookHighCopies.id, bookMidCopies.id])
@@ -1038,7 +1039,7 @@ describe('reactive nested queries', () => {
 						...bookMidCopies.metadata,
 						copies: 10,
 					},
-				} as any,
+				},
 			])
 
 			// Should no longer include bookMidCopies
@@ -1087,7 +1088,7 @@ describe('reactive nested queries', () => {
 					status: 'published',
 					extras: { region: 'us' },
 				},
-			} as any)
+			})
 
 			const bookWithDifferentStatus = Book.create({
 				title: 'Book With Different Status',
@@ -1099,7 +1100,7 @@ describe('reactive nested queries', () => {
 					status: 'draft',
 					extras: { region: 'us' },
 				},
-			} as any)
+			})
 
 			const bookWithoutStatus = Book.create({
 				title: 'Book Without Status',
@@ -1110,7 +1111,7 @@ describe('reactive nested queries', () => {
 					sessionId: 'session:test',
 					extras: { region: 'us' },
 				},
-			} as any)
+			})
 
 			store.put([bookWithStatus, bookWithDifferentStatus, bookWithoutStatus])
 
@@ -1118,7 +1119,11 @@ describe('reactive nested queries', () => {
 			// Note: Records with undefined nested values are not indexed, so they won't appear in neq results
 			// This is because the index only tracks records with defined values
 			const query = { metadata: { status: { neq: 'published' } } }
-			const idsQuery = store.query.ids('book', () => query as any)
+			const idsQuery = store.query.ids(
+				'book',
+				// @ts-expect-error - query is not a valid query expression for books
+				() => query
+			)
 
 			// Should include only books with a defined status that is not 'published'
 			// bookWithoutStatus is not in the index since its status is undefined
