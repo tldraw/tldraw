@@ -175,6 +175,11 @@ export function executeQuery<R extends UnknownRecord, TypeName extends R['typeNa
 				}
 			}
 		}
+
+		// Short-circuit if this set is empty - intersection will be empty
+		if (matchIds[path].size === 0) {
+			return new Set()
+		}
 	}
 
 	// Intersect all the match sets

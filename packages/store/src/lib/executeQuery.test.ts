@@ -970,6 +970,81 @@ describe('reactive nested queries', () => {
 	})
 
 	describe('query operators with nested properties', () => {
+		it('should handle gt operator on nested properties', () => {
+			// First, create a test with books that have numeric nested properties
+			// We'll add a 'copies' field to the metadata
+			interface BookWithCopies extends Book {
+				metadata: {
+					sessionId: string
+					copies?: number
+					extras: {
+						region: string
+					}
+				}
+			}
+
+			// Add some books with different copy counts
+			const bookLowCopies = Book.create({
+				title: 'Low Copies Book',
+				authorId: authors.asimov.id,
+				publishedYear: 2020,
+				inStock: true,
+				metadata: {
+					sessionId: 'session:test',
+					copies: 5,
+					extras: { region: 'us' },
+				},
+			} as any)
+
+			const bookHighCopies = Book.create({
+				title: 'High Copies Book',
+				authorId: authors.gibson.id,
+				publishedYear: 2021,
+				inStock: true,
+				metadata: {
+					sessionId: 'session:test',
+					copies: 100,
+					extras: { region: 'us' },
+				},
+			} as any)
+
+			const bookMidCopies = Book.create({
+				title: 'Mid Copies Book',
+				authorId: authors.herbert.id,
+				publishedYear: 2022,
+				inStock: true,
+				metadata: {
+					sessionId: 'session:test',
+					copies: 50,
+					extras: { region: 'us' },
+				},
+			} as any)
+
+			store.put([bookLowCopies, bookHighCopies, bookMidCopies])
+
+			// Query for books with more than 25 copies
+			const query = { metadata: { copies: { gt: 25 } } }
+			const idsQuery = store.query.ids('book', () => query as any)
+
+			// Should include only books with > 25 copies
+			const expectedIds = new Set([bookHighCopies.id, bookMidCopies.id])
+			expect(idsQuery.get()).toEqual(expectedIds)
+
+			// Update one book to have fewer copies
+			store.put([
+				{
+					...bookMidCopies,
+					metadata: {
+						...bookMidCopies.metadata,
+						copies: 10,
+					},
+				} as any,
+			])
+
+			// Should no longer include bookMidCopies
+			expect(idsQuery.get()).toEqual(new Set([bookHighCopies.id]))
+		})
+
 		it('should handle neq operator on nested properties with updates', () => {
 			const query = { metadata: { sessionId: { neq: 'session:alpha' } } }
 			const idsQuery = store.query.ids('book', () => query)
@@ -998,6 +1073,88 @@ describe('reactive nested queries', () => {
 			expect(idsQuery.get()).toEqual(
 				new Set([books.dune.id, books.fahrenheit451.id, books.childhood.id])
 			)
+		})
+
+		it('should handle neq with undefined nested values', () => {
+			// Create books where some have a nested optional property and others don't
+			const bookWithStatus = Book.create({
+				title: 'Book With Status',
+				authorId: authors.asimov.id,
+				publishedYear: 2020,
+				inStock: true,
+				metadata: {
+					sessionId: 'session:test',
+					status: 'published',
+					extras: { region: 'us' },
+				},
+			} as any)
+
+			const bookWithDifferentStatus = Book.create({
+				title: 'Book With Different Status',
+				authorId: authors.gibson.id,
+				publishedYear: 2021,
+				inStock: true,
+				metadata: {
+					sessionId: 'session:test',
+					status: 'draft',
+					extras: { region: 'us' },
+				},
+			} as any)
+
+			const bookWithoutStatus = Book.create({
+				title: 'Book Without Status',
+				authorId: authors.herbert.id,
+				publishedYear: 2022,
+				inStock: true,
+				metadata: {
+					sessionId: 'session:test',
+					extras: { region: 'us' },
+				},
+			} as any)
+
+			store.put([bookWithStatus, bookWithDifferentStatus, bookWithoutStatus])
+
+			// Query for books where status is not 'published'
+			// Note: Records with undefined nested values are not indexed, so they won't appear in neq results
+			// This is because the index only tracks records with defined values
+			const query = { metadata: { status: { neq: 'published' } } }
+			const idsQuery = store.query.ids('book', () => query as any)
+
+			// Should include only books with a defined status that is not 'published'
+			// bookWithoutStatus is not in the index since its status is undefined
+			expect(idsQuery.get()).toEqual(new Set([bookWithDifferentStatus.id]))
+
+			// Update bookWithDifferentStatus to be 'published'
+			store.put([
+				{
+					...bookWithDifferentStatus,
+					metadata: {
+						...bookWithDifferentStatus.metadata,
+						status: 'published',
+					},
+				} as any,
+			])
+
+			// Should now be empty (bookWithoutStatus still not in index)
+			expect(idsQuery.get()).toEqual(new Set())
+
+			// Add a third status to verify the index still works
+			const bookWithArchivedStatus = Book.create({
+				title: 'Book With Archived Status',
+				authorId: authors.bradbury.id,
+				publishedYear: 2023,
+				inStock: true,
+				metadata: {
+					sessionId: 'session:test',
+					status: 'archived',
+					extras: { region: 'us' },
+				},
+			} as any)
+
+			store.put([bookWithArchivedStatus])
+
+			// Should now include only the archived book
+			expect(idsQuery.get()).toEqual(new Set([bookWithArchivedStatus.id]))
 		})
 
 		it('should handle multiple nested criteria with updates', () => {
