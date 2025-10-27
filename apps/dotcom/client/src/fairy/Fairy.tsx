@@ -3,9 +3,9 @@ import { Box, useEditor, useValue } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
 
-const FAIRY_SIZE = 200
-const FAIRY_CLICKABLE_SIZE_DEFAULT = 100
-const FAIRY_CLICKABLE_SIZE_SELECTED = 200
+export const FAIRY_SIZE = 70
+const FAIRY_CLICKABLE_SIZE_DEFAULT = 70
+const FAIRY_CLICKABLE_SIZE_SELECTED = 70
 
 // We use the agent directly here because we need to access the isGenerating method
 // which is not exposed on the fairy atom
@@ -240,7 +240,7 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 					top: screenPosition.y,
 					width: `${FAIRY_SIZE}px`,
 					height: `${FAIRY_SIZE}px`,
-					transform: `translate(-50%, -50%) scale(min(max(var(--tl-zoom), 0.2), 0.7))${flipX ? ' scaleX(-1)' : ''}`,
+					transform: `translate(-75%, -25%) ${flipX ? ' scaleX(-1)' : ''}`,
 					// transition:
 					// 'left 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
 				}}

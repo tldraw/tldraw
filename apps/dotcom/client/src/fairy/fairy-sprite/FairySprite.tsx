@@ -1,8 +1,13 @@
-import { FAIRY_POSE, FairyEntity, FairyPose } from '@tldraw/fairy-shared'
+import {
+	FAIRY_POSE,
+	FAIRY_VARIANTS,
+	FairyEntity,
+	FairyOutfit,
+	FairyPose,
+	FairyVariantDefinition,
+} from '@tldraw/fairy-shared'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { FileHelpers, Image } from 'tldraw'
-import { FairyOutfit } from './FairyOutfit'
-import { FAIRY_VARIANTS, FairyVariantDefinition } from './FairyVariant'
 
 /**
  * This file contains a rough skeleton for some sprite and animation management.

@@ -25,7 +25,6 @@ import {
 	Atom,
 	atom,
 	Box,
-	BoxModel,
 	Editor,
 	fetch,
 	RecordsDiff,
@@ -829,9 +828,9 @@ ${JSON.stringify($sharedTodoList.get())}`
 		this.$todoList.set([])
 		this.$userActionHistory.set([])
 
-		const viewport = Box.FromCenter(this.$fairyEntity.get().position, FAIRY_VISION_DIMENSIONS)
 		this.$chatHistory.set([])
-		this.$chatOrigin.set({ x: viewport.x, y: viewport.y })
+		// TODO: Move this onto the fairies' shared data
+		this.$chatOrigin.set({ x: 0, y: 0 })
 	}
 
 	/**
@@ -1004,46 +1003,15 @@ ${JSON.stringify($sharedTodoList.get())}`
 	}
 
 	/**
-	 * How much to offset the fairy's position by.
-	 */
-	MOVE_OFFSET = { x: -70, y: 70 }
-
-	/**
 	 * Move the fairy to a position.
 	 * @param position - The position to move the fairy to.
 	 */
 	moveToPosition(position: VecModel) {
 		this.$fairyEntity.update((fairy) => {
-			const offsetPosition = Vec.Add(position, this.MOVE_OFFSET)
-
-			// const isMovingLeft = offsetPosition.x < fairy.position.x
 			return {
 				...fairy,
-				position: offsetPosition,
+				position,
 				flipX: false,
-			}
-		})
-	}
-
-	/**
-	 * Move the fairy to the side of an area.
-	 * @param bounds - The area to move the fairy to the side of.
-	 */
-	moveToBounds(bounds: BoxModel) {
-		this.$fairyEntity.update((fairy) => {
-			const middleRight = new Vec(bounds.x + bounds.w, bounds.y + bounds.h / 2)
-			let offsetPosition = Vec.Add(middleRight, this.MOVE_OFFSET)
-
-			// Check if the position is offscreen and adjust to keep it onscreen
-			const viewport = this.editor.getViewportPageBounds()
-			if (offsetPosition.x < viewport.x) {
-				offsetPosition = new Vec(viewport.x, offsetPosition.y)
-			}
-
-			return {
-				...fairy,
-				position: offsetPosition,
-				flipX: true,
 			}
 		})
 	}

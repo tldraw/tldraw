@@ -70,7 +70,9 @@ export * from './schema/parts/ViewportBoundsPartSchema'
 export * from './schema/parts/WandPartSchema'
 export * from './schema/PromptPartRegistry'
 export * from './types/FairyEntity'
+export * from './types/FairyOutfit'
 export * from './types/FairyPose'
+export * from './types/FairyVariant'
 
 // Constants / Defaults
 export * from './constants'

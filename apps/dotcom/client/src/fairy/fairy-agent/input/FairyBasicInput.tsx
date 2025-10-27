@@ -1,6 +1,7 @@
 import { convertTldrawShapeToFocusedShape, FAIRY_VISION_DIMENSIONS } from '@tldraw/fairy-shared'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Box, TldrawUiInput, useValue } from 'tldraw'
+import { $sharedTodoList } from '../../SharedTodoList'
 import { FairyAgent } from '../agent/FairyAgent'
 
 export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCancel(): void }) {
@@ -35,8 +36,15 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 				.map((shape) => convertTldrawShapeToFocusedShape(editor, shape))
 
 			const fairyPosition = fairy.get().position
-
 			const fairyVision = Box.FromCenter(fairyPosition, FAIRY_VISION_DIMENSIONS)
+
+			// Clear the shared todo list if it's all completed - same as the agent starter kit's behavior
+			$sharedTodoList.update((todoList) => {
+				if (todoList.every((item) => item.status === 'done')) {
+					return []
+				}
+				return todoList
+			})
 
 			await agent.prompt({
 				message: value,

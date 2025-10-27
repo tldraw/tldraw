@@ -1,9 +1,12 @@
-import { FairyEntity, fairyEntityValidator } from '@tldraw/fairy-shared'
+import {
+	FairyEntity,
+	fairyEntityValidator,
+	FairyOutfit,
+	fairyOutfitValidator,
+} from '@tldraw/fairy-shared'
 import { T, useEditor, usePeerIds, usePresence, useValue } from 'tldraw'
-import { FairyOutfit, fairyOutfitValidator } from './fairy-sprite/FairyOutfit'
+import { FAIRY_SIZE } from './Fairy'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
-
-const FAIRY_SIZE = 200
 
 /**
  * Component that renders fairies for all remote users who have an active fairy.
@@ -108,7 +111,7 @@ function RemoteFairyIndicator({
 					top: screenPosition.y,
 					width: `${FAIRY_SIZE}px`,
 					height: `${FAIRY_SIZE}px`,
-					transform: `translate(-50%, -50%) scale(min(max(var(--tl-zoom), 0.2), 0.7))${entity.flipX ? ' scaleX(-1)' : ''}`,
+					transform: `translate(-50%, -50%) ${entity.flipX ? ' scaleX(-1)' : ''}`,
 					// filter: `drop-shadow(4px 8px 2px ${color})`,
 				}}
 			>

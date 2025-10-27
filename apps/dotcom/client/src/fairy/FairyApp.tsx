@@ -148,7 +148,7 @@ export function FairyApp({
 				sharedTodoList: $sharedTodoList.get(),
 			}
 			app.onFairyStateUpdate(fileId, fairyState)
-		}, 500) // Save every 0.5 seconds
+		}, 1000) // Save every 1 second
 
 		// Watch for changes in fairy atoms
 		const cleanup1 = react('fairy 1 state', () => {

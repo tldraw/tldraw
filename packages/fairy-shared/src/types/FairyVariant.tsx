@@ -1,5 +1,5 @@
-import { FairyPose } from '@tldraw/fairy-shared'
 import { FairyPartDefinition, FairyPartType } from './FairyPart'
+import { FairyPose } from './FairyPose'
 
 const FAIRY_HAT_VARIANTS = {
 	top: { idle: ['/fairy/fairy-hat-top.png'], poof: ['/fairy/fairy-loading.png'] },
