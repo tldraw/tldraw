@@ -495,6 +495,7 @@ function BatchMigrateUsersToGroups() {
 	const [batchSize, setBatchSize] = useState(100)
 	const [batchSleepMs, setBatchSleepMs] = useState(100)
 	const [maxUsers, setMaxUsers] = useState<number | ''>('')
+	const logContainerRef = useRef<HTMLDivElement>(null)
 
 	// Cleanup EventSource on unmount
 	useEffect(() => {
@@ -504,6 +505,13 @@ function BatchMigrateUsersToGroups() {
 			}
 		}
 	}, [eventSource])
+
+	// Auto-scroll log container to bottom when new entries are added
+	useEffect(() => {
+		if (logContainerRef.current) {
+			logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight
+		}
+	}, [progressLog])
 
 	const fetchUnmigratedCount = useCallback(async () => {
 		setIsLoadingCount(true)
