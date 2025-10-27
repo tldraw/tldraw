@@ -734,19 +734,21 @@ export class TldrawApp {
 	}
 
 	updateFileState(fileId: string, partial: Omit<TlaFileStatePartial, 'fileId' | 'userId'>) {
+		// ignore updates to files that have been deleted
+		const file = this.getFile(fileId)
+		if (!file || file.isDeleted) return
 		this.z.mutate.file_state.update({ ...partial, fileId, userId: this.userId })
 	}
 
 	updateFile(fileId: string, partial: Partial<TlaFile>) {
+		// ignore updates to files that have been deleted
+		const file = this.getFile(fileId)
+		if (!file || file.isDeleted) return
 		this.z.mutate.file.update({ id: fileId, ...partial })
 	}
 
 	async onFileEnter(fileId: string) {
 		this.z.mutate.onEnterFile({ fileId, time: Date.now() })
-	}
-
-	onFileExit(fileId: string) {
-		this.updateFileState(fileId, { lastVisitAt: Date.now() })
 	}
 
 	static async create(opts: {
