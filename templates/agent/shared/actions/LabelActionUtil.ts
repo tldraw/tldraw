@@ -50,7 +50,7 @@ export class LabelActionUtil extends AgentActionUtil<ILabelEvent> {
 		if (
 			!shapeId ||
 			!this.agent?.editor ||
-			!isShapeWithRichText(this.agent.editor.getShape(`shape:${action.shapeId}` as TLShapeId))
+			!isShapeWithRichText(this.agent.editor.getShape(`shape:${shapeId}` as TLShapeId))
 		) {
 			return null
 		}
