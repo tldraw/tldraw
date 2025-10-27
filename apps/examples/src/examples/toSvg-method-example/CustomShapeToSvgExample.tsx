@@ -12,23 +12,23 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-const MY_CUSTOM_SHAPE_TYPE = 'my-custom-shape'
+const MY_CUSTOM_SHAPE_TO_SVG_TYPE = 'my-custom-shape-to-svg'
 
 declare module '@tldraw/tlschema' {
 	export interface GlobalShapePropsMap {
-		[MY_CUSTOM_SHAPE_TYPE]: { w: number; h: number }
+		[MY_CUSTOM_SHAPE_TO_SVG_TYPE]: { w: number; h: number }
 	}
 }
 
 // There's a guide at the bottom of this file!
 
-type ICustomShape = TLShape<typeof MY_CUSTOM_SHAPE_TYPE>
+type ICustomShape = TLShape<typeof MY_CUSTOM_SHAPE_TO_SVG_TYPE>
 
 const LIGHT_FILL = '#ff8888'
 const DARK_FILL = '#ffcccc'
 
 export class MyShapeUtil extends ShapeUtil<ICustomShape> {
-	static override type = MY_CUSTOM_SHAPE_TYPE
+	static override type = MY_CUSTOM_SHAPE_TO_SVG_TYPE
 	static override props: RecordProps<ICustomShape> = {
 		w: T.number,
 		h: T.number,
