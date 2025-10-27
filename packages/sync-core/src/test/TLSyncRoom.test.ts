@@ -733,53 +733,6 @@ describe('isReadonly', () => {
 	`)
 	})
 
-	it('handles presence updates with agents data', async () => {
-		const presenceWithAgents: TLPushRequest<any> = {
-			clientClock: 0,
-			diff: undefined,
-			presence: [
-				'put',
-				InstancePresenceRecordType.create({
-					id: InstancePresenceRecordType.createId('agent'),
-					currentPageId: 'page:page_2' as any,
-					userId: 'agent',
-					userName: 'AI Assistant',
-					agents: [
-						{
-							position: { x: 100, y: 200 },
-							flipX: false,
-							state: 'thinking',
-							gesture: null,
-						},
-					],
-				}),
-			],
-			type: 'push',
-		}
-
-		room.handleMessage(sessionBId, presenceWithAgents)
-
-		// commit for sessionB
-		expect(socketB.__lastMessage?.type).toBe('data')
-		const data = socketB.__lastMessage as any
-		expect(data.data[0].type).toBe('push_result')
-		expect(data.data[0].action).toBe('commit')
-
-		// patch for sessionA
-		expect(socketA.__lastMessage?.type).toBe('data')
-		const patchData = socketA.__lastMessage as any
-		expect(patchData.data[0].type).toBe('patch')
-		const presenceRecord = patchData.data[0].diff['instance_presence:id_1'][1]
-		expect(presenceRecord.agents).toEqual([
-			{
-				position: { x: 100, y: 200 },
-				flipX: false,
-				state: 'thinking',
-				gesture: null,
-			},
-		])
-	})
-
 	describe('Backward compatibility with existing snapshots', () => {
 		it('can load snapshot without documentClock field', () => {
 			const legacySnapshot = makeLegacySnapshot(records)

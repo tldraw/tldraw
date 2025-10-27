@@ -72,17 +72,8 @@ const Collaborator = track(function Collaborator({
 
 	const zoomLevel = editor.getZoomLevel()
 	const viewportPageBounds = editor.getViewportPageBounds()
-	const {
-		userId,
-		chatMessage,
-		brush,
-		scribbles,
-		selectedShapeIds,
-		userName,
-		cursor,
-		color,
-		agents,
-	} = latestPresence
+	const { userId, chatMessage, brush, scribbles, selectedShapeIds, userName, cursor, color } =
+		latestPresence
 
 	if (!cursor) return null
 
@@ -129,22 +120,6 @@ const Collaborator = track(function Collaborator({
 					viewport={viewportPageBounds}
 				/>
 			) : null}
-
-			{/* Remote agent presence as a secondary cursor-like indicator */}
-			{agents.map((agent, index) =>
-				CollaboratorCursor ? (
-					<CollaboratorCursor
-						className="tl-collaborator__cursor tl-collaborator__agent"
-						key={userId + '_agent_' + index}
-						userId={userId}
-						point={agent.position}
-						color={color}
-						zoom={zoomLevel}
-						name={null}
-						chatMessage={''}
-					/>
-				) : null
-			)}
 			{CollaboratorScribble && scribbles.length ? (
 				<>
 					{scribbles.map((scribble) => (

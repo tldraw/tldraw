@@ -269,18 +269,17 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 						width: `${isSelected ? FAIRY_CLICKABLE_SIZE_SELECTED : FAIRY_CLICKABLE_SIZE_DEFAULT}px`,
 						height: `${isSelected ? FAIRY_CLICKABLE_SIZE_SELECTED : FAIRY_CLICKABLE_SIZE_DEFAULT}px`,
 						pointerEvents: isThrowToolActive ? 'none' : 'auto',
+						zIndex: 0,
 					}}
 				/>
-				<div>
-					<FairySpriteComponent
-						entity={fairyEntity}
-						outfit={fairyOutfit}
-						animated={true}
-						onGestureEnd={() => {
-							fairy.update((f) => (f ? { ...f, gesture: null } : f))
-						}}
-					/>
-				</div>
+				<FairySpriteComponent
+					entity={fairyEntity}
+					outfit={fairyOutfit}
+					animated={true}
+					onGestureEnd={() => {
+						fairy.update((f) => (f ? { ...f, gesture: null } : f))
+					}}
+				/>
 			</div>
 		</div>
 	)

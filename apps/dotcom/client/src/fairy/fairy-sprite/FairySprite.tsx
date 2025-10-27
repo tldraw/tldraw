@@ -21,11 +21,11 @@ const fairySpriteMap = new Map<string, FairySprite>()
  * If we've already initialized this sprite, get the existing one.
  * If we haven't yet, initialize it and return the new one.
  */
-export function getFairySprite(variants: FairyOutfit) {
-	const key = JSON.stringify(variants)
+function getFairySprite({ outfit, tint }: { outfit: FairyOutfit; tint?: string | null }) {
+	const key = JSON.stringify({ outfit, tint })
 	const existingSprite = fairySpriteMap.get(key)
 	if (!existingSprite) {
-		const newSprite = new FairySprite(variants)
+		const newSprite = new FairySprite(outfit, tint ?? null)
 		fairySpriteMap.set(key, newSprite)
 		return newSprite
 	}
@@ -55,15 +55,25 @@ const offscreenContext = offscreenCanvas.getContext('2d')!
 offscreenContext.imageSmoothingEnabled = false
 
 /**
+ * A temporary canvas for storing alpha masks when tinting
+ */
+const offscreenCanvasBuffer = new OffscreenCanvas(OFFSCREEN_CANVAS_SIZE, OFFSCREEN_CANVAS_SIZE)
+const tempContext = offscreenCanvasBuffer.getContext('2d')!
+tempContext.imageSmoothingEnabled = false
+
+/**
  * A fairy sprite that we can render on the screen.
  */
 class FairySprite {
-	constructor(public definition: FairyOutfit) {
+	constructor(
+		public outfit: FairyOutfit,
+		public tint: string | null
+	) {
 		fairySpriteMap.set(this.getKey(), this)
 		this.variants = {
-			body: FAIRY_VARIANTS.body[definition.body],
-			hat: FAIRY_VARIANTS.hat[definition.hat],
-			wings: FAIRY_VARIANTS.wings[definition.wings],
+			body: FAIRY_VARIANTS.body[outfit.body],
+			hat: FAIRY_VARIANTS.hat[outfit.hat],
+			wings: FAIRY_VARIANTS.wings[outfit.wings],
 		}
 
 		this.generateAllPosesFrames()
@@ -158,6 +168,34 @@ class FairySprite {
 			offscreenContext.drawImage(wingsFrameImages[i % wingsFrameImages.length], 0, 0)
 			offscreenContext.drawImage(bodyFrameImages[i % bodyFrameImages.length], 0, 0)
 			offscreenContext.drawImage(hatFrameImages[i % hatFrameImages.length], 0, 0)
+
+			// Apply tint to black parts only using screen blend mode, preserving alpha
+			if (this.tint) {
+				// Save the original composite to temp canvas for alpha masking
+				tempContext.clearRect(0, 0, OFFSCREEN_CANVAS_SIZE, OFFSCREEN_CANVAS_SIZE)
+				tempContext.drawImage(offscreenCanvas, 0, 0)
+
+				// Apply screen blend to tint the black parts
+				offscreenContext.globalCompositeOperation = 'screen'
+				offscreenContext.fillStyle = this.tint
+				offscreenContext.fillRect(0, 0, 200, 200)
+
+				// Mask the result using the original alpha channel
+				offscreenContext.globalCompositeOperation = 'destination-in'
+				offscreenContext.drawImage(
+					offscreenCanvasBuffer,
+					0,
+					0,
+					OFFSCREEN_CANVAS_SIZE,
+					OFFSCREEN_CANVAS_SIZE,
+					0,
+					0,
+					200,
+					200
+				)
+				offscreenContext.globalCompositeOperation = 'source-over'
+			}
+
 			offscreenContext.scale(1 / FAIRY_ASSET_SCALE, 1 / FAIRY_ASSET_SCALE)
 
 			const blob = await offscreenCanvas.convertToBlob()
@@ -213,14 +251,16 @@ export function FairySpriteComponent({
 	outfit,
 	onGestureEnd,
 	animated,
+	tint,
 }: {
 	entity: FairyEntity
 	outfit: FairyOutfit
 	onGestureEnd?(): void
 	animated: boolean
+	tint?: string | null
 }) {
 	const { pose, gesture } = entity
-	const sprite = useMemo(() => getFairySprite(outfit), [outfit])
+	const sprite = useMemo(() => getFairySprite({ outfit, tint }), [outfit, tint])
 
 	const imageRef = useRef<HTMLImageElement>(null)
 	const startTimeRef = useRef(Date.now())

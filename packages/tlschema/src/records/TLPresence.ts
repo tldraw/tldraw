@@ -7,7 +7,7 @@ import {
 } from '@tldraw/store'
 import { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { BoxModel, boxModelValidator, VecModel, vecModelValidator } from '../misc/geometry-types'
+import { BoxModel, boxModelValidator } from '../misc/geometry-types'
 import { idValidator } from '../misc/id-validator'
 import { cursorTypeValidator, TLCursor } from '../misc/TLCursor'
 import { scribbleValidator, TLScribble } from '../misc/TLScribble'
@@ -58,12 +58,6 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 	} | null
 	chatMessage: string
 	meta: JsonObject
-	agents: Array<{
-		position: VecModel
-		flipX: boolean
-		state: string
-		gesture: string | null
-	}>
 }
 
 /**
@@ -130,14 +124,6 @@ export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.mode
 		scribbles: T.arrayOf(scribbleValidator),
 		chatMessage: T.string,
 		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
-		agents: T.arrayOf(
-			T.object({
-				position: vecModelValidator,
-				flipX: T.boolean,
-				state: T.string,
-				gesture: T.string.nullable(),
-			})
-		),
 	})
 )
 
@@ -227,12 +213,6 @@ export const instancePresenceMigrations = createRecordMigrationSequence({
 				}
 			},
 		},
-		{
-			id: instancePresenceVersions.AddAgents,
-			up: (record: any) => {
-				record.agents = []
-			},
-		},
 	],
 })
 
@@ -275,5 +255,4 @@ export const InstancePresenceRecordType = createRecordType<TLInstancePresence>(
 	scribbles: [],
 	chatMessage: '',
 	meta: {},
-	agents: [],
 }))

@@ -1,5 +1,4 @@
-import { getValidGesture, getValidPose } from '@tldraw/fairy-shared'
-import { useMemo } from 'react'
+import { FairyEntity, fairyEntityValidator } from '@tldraw/fairy-shared'
 import { useEditor, usePeerIds, usePresence, useValue } from 'tldraw'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
 
@@ -28,37 +27,40 @@ function RemoteFairy({ userId }: { userId: string }) {
 		return null
 	}
 
-	const { agents, color } = presence
-
-	if (!agents || agents.length === 0) {
+	const { meta, color } = presence
+	if (!meta.fairies || !Array.isArray(meta.fairies) || meta.fairies.length === 0) {
 		return null
 	}
 
+	const fairies = meta.fairies
+		.map((fairy) => {
+			if (!fairyEntityValidator.isValid(fairy)) return null
+			return fairyEntityValidator.validate(fairy)
+		})
+		.filter((fairy) => fairy !== null)
+
 	return (
 		<>
-			{agents.map((agent, index) => (
-				<RemoteFairyAgent
-					key={`${userId}_agent_${index}`}
-					agent={agent}
-					color={color}
-					editor={editor}
-				/>
-			))}
+			{fairies.map((fairy, index) => {
+				return (
+					<RemoteFairyIndicator
+						key={`${userId}_fairy_${index}`}
+						fairy={fairy}
+						color={color}
+						editor={editor}
+					/>
+				)
+			})}
 		</>
 	)
 }
 
-function RemoteFairyAgent({
-	agent,
+function RemoteFairyIndicator({
+	fairy,
 	color,
 	editor,
 }: {
-	agent: {
-		position: { x: number; y: number }
-		flipX: boolean
-		state: string
-		gesture: string | null
-	}
+	fairy: FairyEntity
 	color: string
 	editor: ReturnType<typeof useEditor>
 }) {
@@ -66,18 +68,15 @@ function RemoteFairyAgent({
 	const screenPosition = useValue(
 		'remote fairy screen position',
 		() => {
-			const screenPos = editor.pageToScreen(agent.position)
+			const screenPos = editor.pageToScreen(fairy.position)
 			const screenBounds = editor.getViewportScreenBounds()
 			return {
 				x: screenPos.x - screenBounds.x,
 				y: screenPos.y - screenBounds.y,
 			}
 		},
-		[editor, agent.position]
+		[editor, fairy.position]
 	)
-
-	const validPose = useMemo(() => getValidPose(agent.state), [agent.state])
-	const validGesture = useMemo(() => getValidGesture(agent.gesture), [agent.gesture])
 
 	return (
 		<div
@@ -98,24 +97,25 @@ function RemoteFairyAgent({
 					top: screenPosition.y,
 					width: `${FAIRY_SIZE}px`,
 					height: `${FAIRY_SIZE}px`,
-					transform: `translate(-50%, -50%) scale(min(max(var(--tl-zoom), 0.2), 0.7))${agent.flipX ? ' scaleX(-1)' : ''}`,
-					filter: `drop-shadow(4px 8px 2px ${color})`,
+					transform: `translate(-50%, -50%) scale(min(max(var(--tl-zoom), 0.2), 0.7))${fairy.flipX ? ' scaleX(-1)' : ''}`,
+					// filter: `drop-shadow(4px 8px 2px ${color})`,
 				}}
 			>
 				<FairySpriteComponent
 					animated={true}
 					entity={{
-						position: agent.position,
-						flipX: agent.flipX,
+						position: fairy.position,
+						flipX: fairy.flipX,
 						isSelected: false,
-						pose: validPose,
-						gesture: validGesture,
+						pose: fairy.pose,
+						gesture: fairy.gesture,
 					}}
 					outfit={{
 						body: 'plain',
 						hat: 'pointy',
 						wings: 'plain',
 					}}
+					tint={color}
 				/>
 			</div>
 		</div>

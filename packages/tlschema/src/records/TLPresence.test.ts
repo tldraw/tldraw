@@ -25,7 +25,6 @@ describe('instancePresenceValidator', () => {
 			cursor: null,
 			chatMessage: '',
 			meta: {},
-			agents: [],
 		}
 
 		expect(() => instancePresenceValidator.validate(validPresence)).not.toThrow()
@@ -63,129 +62,9 @@ describe('instancePresenceValidator', () => {
 			cursor: { x: 300, y: 400, type: 'pointer', rotation: 45 },
 			chatMessage: 'Working on design!',
 			meta: { team: 'design', role: 'designer' },
-			agents: [],
 		}
 
 		expect(() => instancePresenceValidator.validate(complexPresence)).not.toThrow()
-	})
-
-	it('should validate presence with agents data', () => {
-		const presenceWithAgents = {
-			typeName: 'instance_presence',
-			id: 'instance_presence:agent' as TLInstancePresenceID,
-			userId: 'agent123',
-			userName: 'AI Assistant',
-			lastActivityTimestamp: Date.now(),
-			color: '#00FF00',
-			camera: null,
-			selectedShapeIds: [],
-			currentPageId: 'page:main' as any,
-			brush: null,
-			scribbles: [],
-			screenBounds: null,
-			followingUserId: null,
-			cursor: null,
-			chatMessage: '',
-			meta: {},
-			agents: [
-				{
-					position: { x: 150, y: 250 },
-					flipX: true,
-					state: 'thinking',
-					gesture: null,
-				},
-			],
-		}
-
-		expect(() => instancePresenceValidator.validate(presenceWithAgents)).not.toThrow()
-		const validated = instancePresenceValidator.validate(presenceWithAgents)
-		expect(validated.agents).toEqual([
-			{
-				position: { x: 150, y: 250 },
-				flipX: true,
-				state: 'thinking',
-				gesture: null,
-			},
-		])
-	})
-
-	it('should validate all agent states', () => {
-		const states: Array<'idle' | 'active' | 'thinking' | 'acting'> = [
-			'idle',
-			'active',
-			'thinking',
-			'acting',
-		]
-
-		states.forEach((state) => {
-			const presence = {
-				typeName: 'instance_presence',
-				id: 'instance_presence:test' as TLInstancePresenceID,
-				userId: 'user123',
-				userName: 'Test User',
-				lastActivityTimestamp: null,
-				color: '#007AFF',
-				camera: null,
-				selectedShapeIds: [],
-				currentPageId: 'page:main' as any,
-				brush: null,
-				scribbles: [],
-				screenBounds: null,
-				followingUserId: null,
-				cursor: null,
-				chatMessage: '',
-				meta: {},
-				agents: [
-					{
-						position: { x: 100, y: 200 },
-						flipX: false,
-						state,
-						gesture: null,
-					},
-				],
-			}
-
-			expect(() => instancePresenceValidator.validate(presence)).not.toThrow()
-		})
-	})
-
-	it('should validate presence with multiple agents', () => {
-		const presenceWithMultipleAgents = {
-			typeName: 'instance_presence',
-			id: 'instance_presence:test' as TLInstancePresenceID,
-			userId: 'user123',
-			userName: 'Test User',
-			lastActivityTimestamp: null,
-			color: '#007AFF',
-			camera: null,
-			selectedShapeIds: [],
-			currentPageId: 'page:main' as any,
-			brush: null,
-			scribbles: [],
-			screenBounds: null,
-			followingUserId: null,
-			cursor: null,
-			chatMessage: '',
-			meta: {},
-			agents: [
-				{
-					position: { x: 100, y: 200 },
-					flipX: false,
-					state: 'idle',
-					gesture: null,
-				},
-				{
-					position: { x: 300, y: 400 },
-					flipX: true,
-					state: 'thinking',
-					gesture: 'wave',
-				},
-			],
-		}
-
-		expect(() => instancePresenceValidator.validate(presenceWithMultipleAgents)).not.toThrow()
-		const validated = instancePresenceValidator.validate(presenceWithMultipleAgents)
-		expect(validated.agents).toHaveLength(2)
 	})
 
 	it('should reject invalid typeName', () => {
@@ -307,15 +186,5 @@ describe('instancePresenceMigrations', () => {
 		expect(record.lastActivityTimestamp).toBe(0)
 		expect(record.cursor).toEqual({ type: 'default', x: 0, y: 0, rotation: 0 })
 		expect(record.screenBounds).toEqual({ x: 0, y: 0, w: 1, h: 1 })
-	})
-
-	it('should migrate AddAgents correctly', () => {
-		const migration = instancePresenceMigrations.sequence.find(
-			(m) => m.id === instancePresenceVersions.AddAgents
-		)!
-		const oldRecord: any = { id: 'instance_presence:test' }
-		migration.up(oldRecord)
-
-		expect(oldRecord.agents).toEqual([])
 	})
 })

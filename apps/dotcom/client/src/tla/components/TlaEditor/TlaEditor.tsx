@@ -1,4 +1,5 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
+import { FairyEntity } from '@tldraw/fairy-shared'
 import { useSync } from '@tldraw/sync'
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -6,6 +7,7 @@ import {
 	DefaultDebugMenuContent,
 	Editor,
 	TLComponents,
+	TLPresenceStateInfo,
 	TLSessionStateSnapshot,
 	TLUiDialogsContextType,
 	Tldraw,
@@ -193,7 +195,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		return multiplayerAssetStore(() => fileId)
 	}, [fileId])
 
-	// Ref to store fairy agents for presence syncing
+	// Ref to store agents for presence syncing
 	// TODO(mime): use TldrawFairyAgent[] type when ready
 	const agentsRef = useRef<any[]>([])
 
@@ -207,31 +209,22 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}, [fileSlug, hasUser, getUserToken]),
 		assets,
 		userInfo: app?.tlUser.userPreferences,
-		getUserPresence: useCallback((store: TLStore, userInfo: TLPresenceUserInfo) => {
-			const defaultPresence = getDefaultUserPresence(store, userInfo)
-			if (!defaultPresence) return null
+		getUserPresence: useCallback(
+			(store: TLStore, userInfo: TLPresenceUserInfo): TLPresenceStateInfo | null => {
+				const defaultPresence = getDefaultUserPresence(store, userInfo)
+				if (!defaultPresence) return null
 
-			// Add fairy positions to presence for all active agents
-			const agents =
-				agentsRef.current
-					?.map((agent) => {
-						const fairyEntity = agent?.$fairyEntity?.get?.()
-						return fairyEntity
-							? {
-									position: fairyEntity.position,
-									flipX: fairyEntity.flipX,
-									state: fairyEntity.pose,
-									gesture: fairyEntity.gesture,
-								}
-							: null
-					})
-					.filter((agent): agent is NonNullable<typeof agent> => agent !== null) ?? []
+				// Add fairy positions to presence for all active agents
+				const fairies =
+					agentsRef.current
+						?.map((agent) => agent?.$fairyEntity?.get?.() as FairyEntity | undefined)
+						.filter((agent): agent is NonNullable<typeof agent> => agent !== null) ?? []
 
-			return {
-				...defaultPresence,
-				agents,
-			}
-		}, []),
+				defaultPresence.meta = { ...defaultPresence.meta, fairies }
+				return defaultPresence
+			},
+			[]
+		),
 	})
 
 	// we need to prevent calling onFileExit if the store is in an error state
@@ -300,9 +293,9 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			{canShowFairies && (
 				<Suspense fallback={<div />}>
 					<FairyVision agents={agents} />
+					<RemoteFairies />
 					<Fairies agents={agents} />
 					<FairyHUD agents={agents} />
-					<RemoteFairies />
 				</Suspense>
 			)}
 		</>

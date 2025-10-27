@@ -146,13 +146,6 @@ export class FairyAgent {
 		this.promptPartUtils = getPromptPartUtilsRecord(this)
 		this.unknownActionUtil = this.agentActionUtils.unknown
 
-		// Fairy state is now persisted to the backend database via FairyApp
-		// persistAtomInLocalStorage(this.$chatHistory, `${id}:chat-history`)
-		// persistAtomInLocalStorage(this.$chatOrigin, `${id}:chat-origin`)
-		// persistAtomInLocalStorage(this.$todoList, `${id}:todo-items`)
-		// persistAtomInLocalStorage(this.$contextItems, `${id}:context-items`)
-		// persistAtomInLocalStorage(this.$fairyEntity, `${id}:fairy`)
-
 		this.stopRecordingFn = this.startRecordingUserActions()
 	}
 

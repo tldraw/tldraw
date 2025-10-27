@@ -25,7 +25,6 @@ export type * from './types/BaseAgentAction'
 export type * from './types/BasePromptPart'
 export type * from './types/ChatHistoryItem'
 export type * from './types/ContextItem'
-export type * from './types/FairyEntity'
 export type * from './types/PersistedFairyState'
 export type * from './types/PromptPart'
 export type * from './types/Streaming'
@@ -69,8 +68,8 @@ export * from './schema/parts/TodoListPartSchema'
 export * from './schema/parts/UserActionHistoryPartSchema'
 export * from './schema/parts/ViewportBoundsPartSchema'
 export * from './schema/parts/WandPartSchema'
-
 export * from './schema/PromptPartRegistry'
+export * from './types/FairyEntity'
 export * from './types/FairyPose'
 
 // Constants / Defaults
