@@ -1309,6 +1309,7 @@ function dedupeShapesContextItem(
 
 /**
  * Find a spawn point for the fairy that is at least 200px away from other fairies.
+ * Note: If no space can be easily found, fairies may still overlap.
  */
 function findFairySpawnPoint(initialPosition: VecModel, editor: Editor): VecModel {
 	const existingAgents = $fairyAgentsAtom.get(editor)
