@@ -14,6 +14,7 @@ class PosthogAnalyticsService extends AnalyticsService {
 			ui_host: POSTHOG_UI_HOST,
 			persistence: 'memory',
 			capture_pageview: 'history_change',
+			cookieless_mode: 'on_reject',
 		})
 	}
 

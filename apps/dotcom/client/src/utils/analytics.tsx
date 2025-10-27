@@ -143,6 +143,7 @@ function configurePosthog(options: AnalyticsOptions) {
 		api_host: 'https://analytics.tldraw.com/i',
 		ui_host: 'https://eu.i.posthog.com',
 		capture_pageview: false,
+		cookieless_mode: 'on_reject',
 		persistence: options.optedIn ? 'localStorage+cookie' : 'memory',
 		before_send: (payload) => {
 			if (!payload) return null
