@@ -112,7 +112,6 @@ function RemoteFairyIndicator({
 					width: `${FAIRY_SIZE}px`,
 					height: `${FAIRY_SIZE}px`,
 					transform: `translate(-50%, -50%) ${entity.flipX ? ' scaleX(-1)' : ''}`,
-					// filter: `drop-shadow(4px 8px 2px ${color})`,
 				}}
 			>
 				<FairySpriteComponent

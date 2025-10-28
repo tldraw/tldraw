@@ -173,6 +173,8 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 		editor.setSelectedShapes([])
 
 		editor.setCursor({ type: 'grabbing', rotation: 0 })
+		e.preventDefault()
+		e.stopPropagation()
 
 		const startX = e.clientX
 		const startY = e.clientY
