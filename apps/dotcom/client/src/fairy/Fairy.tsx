@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import { Box, useEditor, useValue } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { $fairyAgentsAtom } from './fairy-agent/agent/fairyAgentsAtom'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
 import { FairyThrowTool } from './FairyThrowTool'
 
@@ -40,12 +41,6 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 	const wasInitiallySelectedRef = useRef(false)
 	const isBrushingRef = useRef(false)
 
-	// Listen for "select all" events
-	const selectedShapeIds = useValue('selected shape ids', () => editor.getSelectedShapeIds(), [
-		editor,
-	])
-	const prevSelectedCountRef = useRef(0)
-
 	// Track when brushing starts
 	useEffect(() => {
 		if (brush && !isBrushingRef.current) {
@@ -57,43 +52,6 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 			isBrushingRef.current = false
 		}
 	}, [brush, fairy])
-
-	// Detect "select all" or "select none" events
-	useEffect(() => {
-		// Don't process during brushing (handled by brush logic)
-		if (brush) return
-
-		const currentSelectedCount = selectedShapeIds.length
-
-		// Get all unlocked shapes on the current page
-		const currentPageId = editor.getCurrentPageId()
-		const allUnlockedShapeIds = editor.getSortedChildIdsForParent(currentPageId).filter((id) => {
-			const shape = editor.getShape(id)
-			return shape && !editor.isShapeOrAncestorLocked(shape)
-		})
-
-		// Detect "select all" - if all shapes are now selected and previously weren't
-		const allShapesSelected = currentSelectedCount === allUnlockedShapeIds.length
-		const wasSelectAllTriggered =
-			allShapesSelected &&
-			currentSelectedCount > 0 &&
-			prevSelectedCountRef.current < currentSelectedCount
-
-		if (wasSelectAllTriggered && !fairy.get()?.isSelected) {
-			// Select the fairy too
-			fairy.update((f) => (f ? { ...f, isSelected: true } : f))
-		}
-
-		// Detect "select none" - if no shapes are selected and previously some were
-		const wasSelectNoneTriggered = currentSelectedCount === 0 && prevSelectedCountRef.current > 0
-
-		if (wasSelectNoneTriggered && fairy.get()?.isSelected) {
-			// Deselect the fairy too
-			fairy.update((f) => (f ? { ...f, isSelected: false } : f))
-		}
-
-		prevSelectedCountRef.current = currentSelectedCount
-	}, [selectedShapeIds, brush, fairy, editor])
 
 	useEffect(() => {
 		// Only process when brush is active (not null)
@@ -168,7 +126,15 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 		// when you press generate, so this is enough for now
 		if (agent.isGenerating()) return
 
-		fairy.update((f) => (f ? { ...f, isSelected: true } : f))
+		const fairyAgents = $fairyAgentsAtom.get(editor)
+		fairyAgents.forEach((a) => {
+			if (a.id === agent.id) {
+				a.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
+			} else if (!e.shiftKey && !e.ctrlKey && !e.metaKey) {
+				a.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+			}
+		})
+
 		editor.setSelectedShapes([])
 
 		editor.setCursor({ type: 'grabbing', rotation: 0 })
