@@ -1,4 +1,9 @@
-import { SharedTodoItem, SmallSpinner } from '@tldraw/fairy-shared'
+import {
+	FAIRY_VARIANTS,
+	FairyVariantType,
+	SharedTodoItem,
+	SmallSpinner,
+} from '@tldraw/fairy-shared'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { useCallback, useState } from 'react'
 import {
@@ -12,6 +17,7 @@ import {
 	TldrawUiToolbar,
 	TldrawUiToolbarToggleGroup,
 	TldrawUiToolbarToggleItem,
+	uniqueId,
 	useDefaultHelpers,
 	useEditor,
 	useQuickReactor,
@@ -74,16 +80,66 @@ function FairyButton({
 	)
 }
 
+function NewFairyButton({
+	agents,
+	onAddFairyConfig,
+}: {
+	agents: FairyAgent[]
+	onAddFairyConfig(id: string, config: any): void
+}) {
+	const handleClick = useCallback(() => {
+		const randomOutfit = {
+			body: Object.keys(FAIRY_VARIANTS.body)[
+				Math.floor(Math.random() * Object.keys(FAIRY_VARIANTS.body).length)
+			] as FairyVariantType<'body'>,
+			hat: Object.keys(FAIRY_VARIANTS.hat)[
+				Math.floor(Math.random() * Object.keys(FAIRY_VARIANTS.hat).length)
+			] as FairyVariantType<'hat'>,
+			wings: Object.keys(FAIRY_VARIANTS.wings)[
+				Math.floor(Math.random() * Object.keys(FAIRY_VARIANTS.wings).length)
+			] as FairyVariantType<'wings'>,
+		}
+
+		// Create a unique ID for the new fairy
+		const id = uniqueId()
+
+		// Create the config for the new fairy
+		const config = {
+			name: 'New Fairy ' + `${agents.length + 1}`,
+			outfit: randomOutfit,
+			personality: 'Friendly and helpful',
+			wand: 'god',
+		}
+
+		// Add the config, which will trigger agent creation in FairyApp
+		onAddFairyConfig(id, config)
+	}, [onAddFairyConfig, agents.length])
+
+	return (
+		<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={handleClick}>
+			<TldrawUiIcon icon="plus" label="New fairy" />
+		</TldrawUiButton>
+	)
+}
+
 type PanelState = 'todo-list' | 'fairy' | 'closed'
 
-export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
+export function FairyHUD({
+	agents,
+	onAddFairyConfig,
+	onDeleteFairyConfig,
+}: {
+	agents: FairyAgent[]
+	onAddFairyConfig(id: string, config: any): void
+	onDeleteFairyConfig(id: string): void
+}) {
 	const editor = useEditor()
 	const { addDialog } = useDefaultHelpers()
 	const [menuPopoverOpen, setMenuPopoverOpen] = useState(false)
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
 
 	const [panelState, setPanelState] = useState<PanelState>('closed')
-	const [chosenFairy, setChosenFairy] = useState<FairyAgent>(agents[0])
+	const [shownFairy, setShownFairy] = useState<FairyAgent | null>(null)
 
 	const toolbarMessage = useMsg(fairyMessages.toolbar)
 	const deselectMessage = useMsg(fairyMessages.deselect)
@@ -104,7 +160,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 				(agent) => agent.$fairyEntity.get()?.isSelected ?? false
 			)
 			if (currentSelectedFairies.length === 1) {
-				setChosenFairy(currentSelectedFairies[0])
+				setShownFairy(currentSelectedFairies[0])
 			}
 		},
 		[agents]
@@ -121,10 +177,12 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	)
 
 	const configureFairy = useCallback(() => {
+		if (!shownFairy) return
+
 		addDialog({
-			component: ({ onClose }) => <FairyConfigDialog agent={chosenFairy} onClose={onClose} />,
+			component: ({ onClose }) => <FairyConfigDialog agent={shownFairy} onClose={onClose} />,
 		})
-	}, [addDialog, chosenFairy])
+	}, [addDialog, shownFairy])
 
 	const summonFairy = useCallback(
 		(agent: FairyAgent) => {
@@ -141,11 +199,11 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	}, [agents])
 
 	const resetChat = useCallback(() => {
-		if (chosenFairy) {
-			chosenFairy.cancel()
-			chosenFairy.reset()
+		if (shownFairy) {
+			shownFairy.cancel()
+			shownFairy.reset()
 		}
-	}, [chosenFairy])
+	}, [shownFairy])
 
 	const selectFairy = useCallback(
 		(selectedAgent: FairyAgent) => {
@@ -161,17 +219,32 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		[agents]
 	)
 
+	const deleteFairy = useCallback(() => {
+		if (!shownFairy) return
+
+		setPanelState('closed')
+
+		if (agents.length === 1) {
+			//set shown fairy to null if you've jsut deleted the last fairy
+			setShownFairy(null)
+		}
+
+		// Delete the fairy config (which will trigger disposal in FairyApp)
+		onDeleteFairyConfig(shownFairy.id)
+	}, [shownFairy, onDeleteFairyConfig, agents.length])
+
 	const handleClickFairy = useCallback(
 		(clickedAgent: FairyAgent) => {
+			selectFairy(clickedAgent)
 			const isSelected = clickedAgent.$fairyEntity.get().isSelected
-			const isChosen = clickedAgent.id === chosenFairy.id
+			const isChosen = clickedAgent.id === shownFairy?.id
 
 			selectFairy(clickedAgent)
 
 			// If the clicked fairy is already chosen and selected, toggle the panel. Otherwise, keep the panel open.
 			setPanelState((v) => (isChosen && isSelected && v === 'fairy' ? 'closed' : 'fairy'))
 		},
-		[selectFairy, chosenFairy.id]
+		[selectFairy, shownFairy]
 	)
 
 	const handleDoubleClickFairy = useCallback(
@@ -211,9 +284,9 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		[todoLastChecked]
 	)
 
-	const fairyConfig = useValue('fairy config', () => chosenFairy.$fairyConfig.get(), [chosenFairy])
+	const fairyConfig = useValue('fairy config', () => shownFairy?.$fairyConfig.get(), [shownFairy])
 
-	if (!agents || agents.length === 0) return null
+	// if (!agents || agents.length === 0) return null
 
 	return (
 		<>
@@ -267,19 +340,17 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 														<TldrawUiMenuGroup id="fairy-menu">
 															<TldrawUiMenuItem
 																id="go-to-fairy"
-																onSelect={() => goToFairy(chosenFairy)}
+																onSelect={() => (shownFairy ? goToFairy(shownFairy) : undefined)}
 																label="Go to fairy"
 															/>
 															<TldrawUiMenuItem
 																id="help-out"
-																onSelect={() => {
-																	chosenFairy.helpOut()
-																}}
+																onSelect={() => (shownFairy ? shownFairy.helpOut() : undefined)}
 																label="Ask for help"
 															/>
 															<TldrawUiMenuItem
 																id="summon-fairy"
-																onSelect={() => summonFairy(chosenFairy)}
+																onSelect={() => (shownFairy ? summonFairy(shownFairy) : undefined)}
 																label="Summon"
 															/>
 															<TldrawUiMenuItem
@@ -292,18 +363,29 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 																onSelect={resetChat}
 																label="Reset chat"
 															/>
+															<TldrawUiMenuItem
+																id="delete-fairy"
+																onSelect={deleteFairy}
+																label="Delete fairy"
+															/>
 														</TldrawUiMenuGroup>
 													</TldrawUiMenuContextProvider>
 												</_DropdownMenu.Content>
 											</_DropdownMenu.Root>
 											<div className="fairy-id-display">
-												{fairyConfig.name}
-												<div
-													className="fairy-spinner-container"
-													style={{ visibility: chosenFairy.isGenerating() ? 'visible' : 'hidden' }}
-												>
-													<SmallSpinner />
-												</div>
+												{shownFairy && fairyConfig && (
+													<>
+														{fairyConfig.name}
+														<div
+															className="fairy-spinner-container"
+															style={{
+																visibility: shownFairy.isGenerating() ? 'visible' : 'hidden',
+															}}
+														>
+															<SmallSpinner />
+														</div>
+													</>
+												)}
 											</div>
 											<TldrawUiButton
 												type="icon"
@@ -313,8 +395,15 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 												<TldrawUiIcon icon="plus" label="Reset chat" />
 											</TldrawUiButton>
 										</div>
-										<FairyChatHistory agent={chosenFairy} />
-										<FairyBasicInput agent={chosenFairy} onCancel={() => setPanelState('closed')} />
+										{shownFairy && (
+											<>
+												<FairyChatHistory agent={shownFairy} />
+												<FairyBasicInput
+													agent={shownFairy}
+													onCancel={() => setPanelState('closed')}
+												/>
+											</>
+										)}
 									</>
 								)}
 
@@ -417,6 +506,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 								/>
 							)
 						})}
+						<NewFairyButton agents={agents} onAddFairyConfig={onAddFairyConfig} />
 					</TldrawUiToolbar>
 				</div>
 			</div>

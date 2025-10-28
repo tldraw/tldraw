@@ -287,9 +287,45 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		agentsRef.current = agents
 	}, [agents])
 
+	// Manage fairy configs - load from user prefs
+	const [fairyConfigs, setFairyConfigs] = useState<any>(null)
+
+	// Load fairy configs from user preferences
+	useEffect(() => {
+		;(async () => {
+			if (!app) return
+
+			try {
+				const appUser = app.getUser()
+				if (appUser.fairies) {
+					setFairyConfigs(JSON.parse(appUser.fairies))
+				} else {
+					setFairyConfigs({})
+				}
+			} catch (e) {
+				console.error('Failed to load fairy configs:', e)
+				setFairyConfigs({})
+			}
+		})()
+	}, [app])
+
+	const onAddFairyConfig = useCallback((id: string, config: any) => {
+		setFairyConfigs((prev: any) => ({
+			...prev,
+			[id]: config,
+		}))
+	}, [])
+
+	const onDeleteFairyConfig = useCallback((id: string) => {
+		setFairyConfigs((prev: any) => {
+			const newConfigs = { ...prev }
+			delete newConfigs[id]
+			return newConfigs
+		})
+	}, [])
+
 	const instanceComponents = useMemo((): TLComponents => {
-		const canShowFairies =
-			agents.length > 0 && showFairies && (!!user?.isTldraw || isDevelopmentEnv)
+		const canShowFairies = agents && showFairies && (!!user?.isTldraw || isDevelopmentEnv)
 
 		return {
 			...components,
@@ -308,7 +344,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<>
 					{canShowFairies && (
 						<Suspense fallback={<div />}>
-							<FairyHUD agents={agents} />
+							<FairyHUD
+								agents={agents}
+								onAddFairyConfig={onAddFairyConfig}
+								onDeleteFairyConfig={onDeleteFairyConfig}
+							/>
 						</Suspense>
 					)}
 				</>
@@ -317,7 +357,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<CustomDebugMenu showFairyFeatureFlags={!!user?.isTldraw || isDevelopmentEnv} />
 			),
 		}
-	}, [agents, showFairies, user?.isTldraw])
+	}, [agents, showFairies, user?.isTldraw, onAddFairyConfig, onDeleteFairyConfig])
 
 	return (
 		<TlaEditorWrapper>
@@ -340,9 +380,9 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<SneakyToolSwitcher />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
-				{showFairies && (
+				{showFairies && fairyConfigs && (
 					<Suspense fallback={null}>
-						<FairyApp setAgents={setAgents} fileId={fileId} />
+						<FairyApp setAgents={setAgents} fairyConfigs={fairyConfigs} fileId={fileId} />
 					</Suspense>
 				)}
 			</Tldraw>

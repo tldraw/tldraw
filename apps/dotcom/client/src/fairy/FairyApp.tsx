@@ -1,44 +1,24 @@
-import { PersistedFairyState } from '@tldraw/fairy-shared'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { PersistedFairyAgentState, PersistedFairyState } from '@tldraw/fairy-shared'
+import { useCallback, useEffect, useRef } from 'react'
 import { react, throttle, useEditor } from 'tldraw'
 import { useMaybeApp } from '../tla/hooks/useAppState'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
-import { useFairyAgent } from './fairy-agent/agent/useFairyAgent'
 import { FairyConfig } from './FairyConfig'
+import { FairyThrowTool } from './FairyThrowTool'
 import { $sharedTodoList } from './SharedTodoList'
 
-const DEFAULT_FAIRY_1_CONFIG: FairyConfig = {
-	name: 'Huppy',
-	outfit: {
-		body: 'plain',
-		hat: 'pointy',
-		wings: 'plain',
-	},
-	personality: 'intelligent but cold, calculating, and aloof',
-	wand: 'god',
-}
-
-const DEFAULT_FAIRY_2_CONFIG: FairyConfig = {
-	name: 'Yppuh',
-	outfit: {
-		body: 'plain',
-		hat: 'top',
-		wings: 'plain',
-	},
-	personality: 'artistic, creative, and neurotic',
-	wand: 'god',
-}
-
-interface PersistedFairyConfigs {
+export interface PersistedFairyConfigs {
 	[fairyId: string]: FairyConfig
 }
 
 export function FairyApp({
 	setAgents,
+	fairyConfigs,
 	fileId,
 }: {
 	setAgents(agents: FairyAgent[]): void
+	fairyConfigs: PersistedFairyConfigs
 	fileId: string
 }) {
 	const editor = useEditor()
@@ -50,56 +30,72 @@ export function FairyApp({
 		return await user.getToken()
 	}, [user])
 
-	// Use stable IDs for fairies so state persists across sessions
-	const FAIRY_1_ID = 'fairy-1'
-	const FAIRY_2_ID = 'fairy-2'
-
-	// Load fairy configs from user preferences, falling back to defaults
-	const fairyConfigs = useMemo(() => {
-		if (!app) return { [FAIRY_1_ID]: DEFAULT_FAIRY_1_CONFIG, [FAIRY_2_ID]: DEFAULT_FAIRY_2_CONFIG }
-
-		try {
-			const user = app.getUser()
-			if (user.fairies) {
-				const parsed: PersistedFairyConfigs = JSON.parse(user.fairies)
-				return {
-					[FAIRY_1_ID]: parsed[FAIRY_1_ID] || DEFAULT_FAIRY_1_CONFIG,
-					[FAIRY_2_ID]: parsed[FAIRY_2_ID] || DEFAULT_FAIRY_2_CONFIG,
-				}
-			}
-		} catch (e) {
-			console.error('Failed to load fairy configs:', e)
-		}
-
-		return { [FAIRY_1_ID]: DEFAULT_FAIRY_1_CONFIG, [FAIRY_2_ID]: DEFAULT_FAIRY_2_CONFIG }
-	}, [app])
-
-	const agent1 = useFairyAgent({
-		id: FAIRY_1_ID,
-		fairyConfig: fairyConfigs[FAIRY_1_ID],
-		editor,
-		getToken,
-	})
-	const agent2 = useFairyAgent({
-		id: FAIRY_2_ID,
-		fairyConfig: fairyConfigs[FAIRY_2_ID],
-		editor,
-		getToken,
-	})
+	const handleError = useCallback((e: any) => {
+		console.error('Error:', e)
+	}, [])
 
 	// Track whether we're currently loading state to prevent premature saves
 	const isLoadingStateRef = useRef(false)
+	// Keep a ref to agents so effects can access them
+	const agentsRef = useRef<FairyAgent[]>([])
+	// Track which agents have been loaded to avoid reloading existing agents
+	const loadedAgentIdsRef = useRef<Set<string>>(new Set())
+	const sharedTodoListLoadedRef = useRef(false)
 
+	// Create agents dynamically from configs
 	useEffect(() => {
-		if (!editor || !agent1 || !agent2) return
-		setAgents([agent1, agent2])
-		;(window as any).agent = agent1
-		;(window as any).agents = [agent1, agent2]
-	}, [agent1, agent2, editor, setAgents])
+		if (!editor) return
+
+		// Register the FairyThrowTool
+		editor.removeTool(FairyThrowTool)
+		editor.setTool(FairyThrowTool)
+
+		const configIds = Object.keys(fairyConfigs)
+		const existingAgents = agentsRef.current
+		const existingIds = new Set(existingAgents.map((a) => a.id))
+
+		// Find agents to create (new configs that don't have agents yet)
+		const idsToCreate = configIds.filter((id) => !existingIds.has(id))
+
+		// Find agents to dispose (agents that no longer have configs)
+		const configIdsSet = new Set(configIds)
+		const agentsToDispose = existingAgents.filter((agent) => !configIdsSet.has(agent.id))
+
+		// Dispose removed agents and clean up tracking
+		agentsToDispose.forEach((agent) => {
+			agent.dispose()
+			loadedAgentIdsRef.current.delete(agent.id)
+		})
+
+		// Create new agents
+		const newAgents = idsToCreate.map((id) => {
+			return new FairyAgent({
+				id,
+				fairyConfig: fairyConfigs[id],
+				editor,
+				onError: handleError,
+				getToken,
+			})
+		})
+
+		// Keep existing agents that are still in config, add new ones
+		const updatedAgents = [
+			...existingAgents.filter((agent) => configIdsSet.has(agent.id)),
+			...newAgents,
+		]
+
+		agentsRef.current = updatedAgents
+		setAgents(updatedAgents)
+
+		// Cleanup: dispose all agents when component unmounts
+		return () => {
+			updatedAgents.forEach((agent) => agent.dispose())
+		}
+	}, [fairyConfigs, editor, getToken, handleError, setAgents])
 
 	// Load fairy state from backend when agents are created
 	useEffect(() => {
-		if (!app || !agent1 || !agent2 || !$sharedTodoList || !fileId) return
+		if (!app || agentsRef.current.length === 0 || !$sharedTodoList || !fileId) return
 
 		const fileState = app.getFileState(fileId)
 		if (fileState?.fairyState) {
@@ -109,16 +105,22 @@ export function FairyApp({
 				// Mark that we're loading to prevent save watchers from firing
 				isLoadingStateRef.current = true
 
-				// Restore state for each agent
-				if (fairyState.agents[FAIRY_1_ID]) {
-					agent1.loadState(fairyState.agents[FAIRY_1_ID])
-				}
-				if (fairyState.agents[FAIRY_2_ID]) {
-					agent2.loadState(fairyState.agents[FAIRY_2_ID])
-				}
+				// Only restore state for agents that haven't been loaded yet
+				agentsRef.current.forEach((agent) => {
+					// Skip if already loaded
+					if (loadedAgentIdsRef.current.has(agent.id)) return
 
-				if (fairyState.sharedTodoList) {
+					const persistedAgent = fairyState.agents[agent.id]
+					if (persistedAgent) {
+						agent.loadState(persistedAgent)
+						loadedAgentIdsRef.current.add(agent.id)
+					}
+				})
+
+				// Load shared todo list only once
+				if (fairyState.sharedTodoList && !sharedTodoListLoadedRef.current) {
 					$sharedTodoList.set(fairyState.sharedTodoList)
+					sharedTodoListLoadedRef.current = true
 				}
 
 				// Allow a tick for state to settle before allowing saves
@@ -130,42 +132,41 @@ export function FairyApp({
 				isLoadingStateRef.current = false
 			}
 		}
-	}, [app, agent1, agent2, fileId])
+	}, [app, fairyConfigs, fileId])
 
 	// Todo: Use FileStateUpdater for this
 	// Save fairy state to backend periodically
 	useEffect(() => {
-		if (!app || !agent1 || !agent2 || !$sharedTodoList || !fileId) return
+		if (!app || agentsRef.current.length === 0 || !$sharedTodoList || !fileId) return
 
 		const updateFairyState = throttle(() => {
 			// Don't save if we're currently loading state
 			if (isLoadingStateRef.current) return
 
 			const fairyState: PersistedFairyState = {
-				agents: {
-					[FAIRY_1_ID]: agent1.serializeState(),
-					[FAIRY_2_ID]: agent2.serializeState(),
-				},
+				agents: agentsRef.current.reduce(
+					(acc, agent) => {
+						acc[agent.id] = agent.serializeState()
+						return acc
+					},
+					{} as Record<string, PersistedFairyAgentState>
+				),
 				sharedTodoList: $sharedTodoList.get(),
 			}
 			app.onFairyStateUpdate(fileId, fairyState)
 		}, 2000) // Save maximum every 2 seconds
 
 		// Watch for changes in fairy atoms
-		const cleanup1 = react('fairy 1 state', () => {
-			agent1.$fairyEntity.get()
-			agent1.$chatHistory.get()
-			agent1.$todoList.get()
-			agent1.$contextItems.get()
-			updateFairyState()
-		})
-
-		const cleanup2 = react('fairy 2 state', () => {
-			agent2.$fairyEntity.get()
-			agent2.$chatHistory.get()
-			agent2.$todoList.get()
-			agent2.$contextItems.get()
-			updateFairyState()
+		const fairyCleanupFns: (() => void)[] = []
+		agentsRef.current.forEach((agent) => {
+			const cleanup = react(`${agent.id} state`, () => {
+				agent.$fairyEntity.get()
+				agent.$chatHistory.get()
+				agent.$todoList.get()
+				agent.$contextItems.get()
+				updateFairyState()
+			})
+			fairyCleanupFns.push(cleanup)
 		})
 
 		const cleanupSharedTodoList = react('shared todo list', () => {
@@ -175,24 +176,23 @@ export function FairyApp({
 
 		return () => {
 			updateFairyState.flush()
-			cleanup1()
-			cleanup2()
 			cleanupSharedTodoList()
+			fairyCleanupFns.forEach((cleanup) => cleanup())
 		}
-	}, [app, agent1, agent2, fileId])
+	}, [app, fairyConfigs, fileId])
 
 	// Save fairy configs to user preferences when they change
 	useEffect(() => {
-		if (!app || !agent1 || !agent2) return
+		if (!app || agentsRef.current.length === 0) return
 
 		const updateFairyConfigs = throttle(() => {
 			// Don't save if we're currently loading state
 			if (isLoadingStateRef.current) return
 
-			const configs: PersistedFairyConfigs = {
-				[FAIRY_1_ID]: agent1.$fairyConfig.get(),
-				[FAIRY_2_ID]: agent2.$fairyConfig.get(),
-			}
+			const configs: PersistedFairyConfigs = {}
+			agentsRef.current.forEach((agent) => {
+				configs[agent.id] = agent.$fairyConfig.get()
+			})
 
 			try {
 				const user = app.getUser()
@@ -206,22 +206,23 @@ export function FairyApp({
 		}, 500) // Save every 0.5 seconds
 
 		// Watch for changes in fairy config atoms
-		const cleanup1 = react('fairy 1 config', () => {
-			agent1.$fairyConfig.get()
-			updateFairyConfigs()
+		const cleanupFns: (() => void)[] = []
+		agentsRef.current.forEach((agent) => {
+			const cleanup = react(`${agent.id} config`, () => {
+				agent.$fairyConfig.get()
+				updateFairyConfigs()
+			})
+			cleanupFns.push(cleanup)
 		})
 
-		const cleanup2 = react('fairy 2 config', () => {
-			agent2.$fairyConfig.get()
-			updateFairyConfigs()
-		})
+		// Trigger an immediate save when fairyConfigs changes (handles additions/deletions)
+		updateFairyConfigs()
 
 		return () => {
 			updateFairyConfigs.flush()
-			cleanup1()
-			cleanup2()
+			cleanupFns.forEach((cleanup) => cleanup())
 		}
-	}, [app, agent1, agent2])
+	}, [app, fairyConfigs])
 
 	return null
 }
