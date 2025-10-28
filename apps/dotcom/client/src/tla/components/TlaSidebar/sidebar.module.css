@@ -83,7 +83,7 @@
 	flex-direction: column;
 	flex: 1 1 auto;
 	margin: 0px -12px;
-	padding: 0px 12px 40px 12px;
+	padding: 2px 12px 40px 12px;
 	overflow-y: scroll;
 	overflow-x: visible;
 	-ms-overflow-style: none; /* IE and Edge */
