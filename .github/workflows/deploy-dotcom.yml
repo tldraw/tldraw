@@ -158,3 +158,4 @@ jobs:
           VITE_GA4_MEASUREMENT_ID: ${{ secrets.VITE_GA4_MEASUREMENT_ID }}
           WORKER_SENTRY_DSN: ${{ secrets.WORKER_SENTRY_DSN }}
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          PIERRE_KEY: ${{ secrets.PIERRE_KEY }}
