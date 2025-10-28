@@ -32,14 +32,9 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 
 	const flipX = useValue('fairy flipX', () => fairy.get()?.flipX ?? false, [fairy])
 	const isSelected = useValue('fairy isSelected', () => fairy.get()?.isSelected ?? false, [fairy])
-
 	const isInSelectTool = useValue('is in select tool', () => editor.isIn('select.idle'), [editor])
-
-	const isFairyGrabbable = useValue(
-		'is fairy grabbable',
-		() => !agent.isGenerating() && isInSelectTool,
-		[agent, isInSelectTool]
-	)
+	const isGenerating = useValue('is generating', () => agent.isGenerating(), [agent])
+	const isFairyGrabbable = !isGenerating && isInSelectTool
 
 	// Listen to brush selection events and update fairy selection
 	const brush = useValue('editor brush', () => editor.getInstanceState().brush, [editor])
@@ -241,6 +236,7 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 					height: `${FAIRY_SIZE}px`,
 					transform: `translate(-75%, -25%) scale(var(--tl-scale)) ${flipX ? ' scaleX(-1)' : ''}`,
 					transformOrigin: '75% 25%',
+					transition: isGenerating ? 'left 0.1s ease-in-out, top 0.1s ease-in-out' : 'none',
 				}}
 				className={isSelected ? 'fairy-selected' : ''}
 			>
