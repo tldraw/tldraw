@@ -221,7 +221,7 @@ export function FairyApp({
 			cleanup1()
 			cleanup2()
 		}
-	}, [app, agent1, agent2, FAIRY_1_ID, FAIRY_2_ID])
+	}, [app, agent1, agent2])
 
 	return null
 }
