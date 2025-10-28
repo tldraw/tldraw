@@ -1622,7 +1622,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					// Dispatch a contextmenu event directly at the center of the selection
 					editor
 						.getContainer()
-						.querySelector('.tl-canvas')
+						.querySelector('.tl-canvas__inner')
 						?.dispatchEvent(
 							new PointerEvent('contextmenu', {
 								clientX: screenPoint.x,

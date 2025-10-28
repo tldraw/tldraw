@@ -30,7 +30,7 @@ export function useDocumentEvents() {
 			if ((e as any).isSpecialRedispatchedEvent) return
 			preventDefault(e)
 			e.stopPropagation()
-			const cvs = container.querySelector('.tl-canvas')
+			const cvs = container.querySelector('.tl-canvas__inner')
 			if (!cvs) return
 			const newEvent = new DragEvent(e.type, e)
 			;(newEvent as any).isSpecialRedispatchedEvent = true

@@ -129,61 +129,61 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 
 	return (
 		<>
-			<div
-				ref={rCanvas}
-				draggable={false}
-				data-iseditinganything={isEditingAnything}
-				data-isselectinganything={isSelectingAnything}
-				className={classNames('tl-canvas', className)}
-				data-testid="canvas"
-				{...events}
-			>
-				<svg className="tl-svg-context" aria-hidden="true">
-					<defs>
-						{shapeSvgDefs}
-						<CursorDef />
-						<CollaboratorHintDef />
-						{SvgDefs && <SvgDefs />}
-					</defs>
-				</svg>
-				{Background && (
-					<div className="tl-background__wrapper">
-						<Background />
-					</div>
-				)}
-				<GridWrapper />
-				<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
-					<OnTheCanvasWrapper />
-					{SelectionBackground && <SelectionBackgroundWrapper />}
-					{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
-				</div>
-				<div className="tl-overlays">
-					<div ref={rHtmlLayer2} className="tl-html-layer">
-						{debugGeometry ? <GeometryDebuggingView /> : null}
-						<BrushWrapper />
-						<ScribbleWrapper />
-						<ZoomBrushWrapper />
-						{ShapeIndicators && <ShapeIndicators />}
-						<HintedShapeIndicator />
-						<SnapIndicatorWrapper />
-						<SelectionForegroundWrapper />
-						<HandlesWrapper />
-						<OverlaysWrapper />
-						<LiveCollaborators />
-					</div>
-				</div>
+			<div draggable={false} className={classNames('tl-canvas', className)} data-testid="canvas">
 				<div
-					className="tl-canvas__in-front"
-					onPointerDown={editor.markEventAsHandled}
-					onPointerUp={editor.markEventAsHandled}
-					onTouchStart={editor.markEventAsHandled}
-					onTouchEnd={editor.markEventAsHandled}
+					data-iseditinganything={isEditingAnything}
+					data-isselectinganything={isSelectingAnything}
+					className="tl-canvas__inner"
+					ref={rCanvas}
+					{...events}
 				>
-					<InFrontOfTheCanvasWrapper />
+					<svg className="tl-svg-context" aria-hidden="true">
+						<defs>
+							{shapeSvgDefs}
+							<CursorDef />
+							<CollaboratorHintDef />
+							{SvgDefs && <SvgDefs />}
+						</defs>
+					</svg>
+					{Background && (
+						<div className="tl-background__wrapper">
+							<Background />
+						</div>
+					)}
+					<GridWrapper />
+					<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
+						<OnTheCanvasWrapper />
+						{SelectionBackground && <SelectionBackgroundWrapper />}
+						{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
+					</div>
+					<div className="tl-overlays">
+						<div ref={rHtmlLayer2} className="tl-html-layer">
+							{debugGeometry ? <GeometryDebuggingView /> : null}
+							<BrushWrapper />
+							<ScribbleWrapper />
+							<ZoomBrushWrapper />
+							{ShapeIndicators && <ShapeIndicators />}
+							<HintedShapeIndicator />
+							<SnapIndicatorWrapper />
+							<SelectionForegroundWrapper />
+							<HandlesWrapper />
+							<OverlaysWrapper />
+							<LiveCollaborators />
+						</div>
+					</div>
+					<div
+						className="tl-canvas__in-front"
+						onPointerDown={editor.markEventAsHandled}
+						onPointerUp={editor.markEventAsHandled}
+						onTouchStart={editor.markEventAsHandled}
+						onTouchEnd={editor.markEventAsHandled}
+					>
+						<InFrontOfTheCanvasWrapper />
+					</div>
+					<MovingCameraHitTestBlocker />
 				</div>
-				<MovingCameraHitTestBlocker />
+				<MenuClickCapture />
 			</div>
-			<MenuClickCapture />
 		</>
 	)
 }

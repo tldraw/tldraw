@@ -23,7 +23,7 @@ export function usePassThroughWheelEvents(ref: RefObject<HTMLElement>) {
 			}
 
 			preventDefault(e)
-			const cvs = container.querySelector('.tl-canvas')
+			const cvs = container.querySelector('.tl-canvas__inner')
 			if (!cvs) return
 			const newEvent = new WheelEvent('wheel', e as any)
 			;(newEvent as any).isSpecialRedispatchedEvent = true
