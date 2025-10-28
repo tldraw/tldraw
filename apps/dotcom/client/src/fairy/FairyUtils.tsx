@@ -9,7 +9,6 @@ import { FlyToBoundsActionUtil } from './actions/FlyToBoundsActionUtil'
 import { LabelActionUtil } from './actions/LabelActionUtil'
 import { MessageActionUtil } from './actions/MessageActionUtil'
 import { MoveActionUtil } from './actions/MoveActionUtil'
-import { NoteToSelfActionUtil } from './actions/NoteToSelfActionUtil'
 import { PenActionUtil } from './actions/PenActionUtil'
 import { PlaceActionUtil } from './actions/PlaceActionUtil'
 import { ResizeActionUtil } from './actions/ResizeActionUtil'
@@ -19,7 +18,6 @@ import { SendToBackActionUtil } from './actions/SendToBackActionUtil'
 import { SharedTodoListActionUtil } from './actions/SharedTodoListActionUtil'
 import { StackActionUtil } from './actions/StackActionUtil'
 import { ThinkActionUtil } from './actions/ThinkActionUtil'
-import { TodoListActionUtil } from './actions/TodoListActionUtil'
 import { UnknownActionUtil } from './actions/UnknownActionUtil'
 import { UpdateActionUtil } from './actions/UpdateActionUtil'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
@@ -35,7 +33,6 @@ import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
 import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
 import { SharedTodoListPartUtil } from './parts/SharedTodoListPartUtil'
 import { TimePartUtil } from './parts/TimePartUtil'
-import { TodoListPartUtil } from './parts/TodoListPartUtil'
 import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
 import { ViewportBoundsPartUtil } from './parts/ViewportBoundsPartUtil'
 import { WandPartUtil } from './parts/WandPartUtil'
@@ -50,9 +47,8 @@ export const AGENT_ACTION_UTILS = [
 	// Planning
 	ThinkActionUtil,
 	ReviewActionUtil,
-	TodoListActionUtil,
+	SharedTodoListActionUtil,
 	FlyToBoundsActionUtil,
-	NoteToSelfActionUtil,
 
 	// Individual shapes
 	CreateActionUtil,
@@ -76,9 +72,6 @@ export const AGENT_ACTION_UTILS = [
 
 	// Internal (required)
 	UnknownActionUtil,
-
-	// shared todo List
-	SharedTodoListActionUtil,
 ] satisfies AgentActionUtilConstructor<AgentAction>[]
 
 /**
@@ -105,7 +98,7 @@ export const PROMPT_PART_UTILS = [
 	// History
 	ChatHistoryPartUtil,
 	UserActionHistoryPartUtil,
-	TodoListPartUtil,
+	SharedTodoListPartUtil,
 
 	// Metadata
 	TimePartUtil,
@@ -113,9 +106,6 @@ export const PROMPT_PART_UTILS = [
 	// Fairy-specific
 	OtherFairiesPartUtil,
 	WandPartUtil,
-
-	// shared todo List
-	SharedTodoListPartUtil,
 ] satisfies PromptPartUtilConstructor<PromptPart>[]
 
 /**

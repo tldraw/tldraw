@@ -28,14 +28,12 @@ export type Wand = (typeof WAND_DEFINITIONS)[number]
 /**
  * The default prompt part set is the set of prompt parts that are available to all wands.
  */
-const DEFAULT_PROMPT_PART_SET = PROMPT_PART_TYPES.filter((type) => type !== 'todoList')
+const DEFAULT_PROMPT_PART_SET = PROMPT_PART_TYPES
 
 /**
  * The default agent action set is the set of agent actions that are available to all wands.
  */
-const DEFAULT_AGENT_ACTION_SET = AGENT_ACTION_TYPES.filter(
-	(action) => action !== 'update-todo-list' && action !== 'note-to-self'
-)
+const DEFAULT_AGENT_ACTION_SET = AGENT_ACTION_TYPES
 
 /**
  * Wand definitions determine what wands are available to the agent.
@@ -70,7 +68,6 @@ export const WAND_DEFINITIONS = [
 			'review',
 			'update-todo-list',
 			'fly-to-bounds',
-			'note-to-self',
 			'pen',
 			'delete',
 			'update',
@@ -87,15 +84,7 @@ export const WAND_DEFINITIONS = [
 		description: 'A wand that can only delete.',
 		available: true,
 		parts: DEFAULT_PROMPT_PART_SET,
-		actions: [
-			'message',
-			'think',
-			'review',
-			'update-todo-list',
-			'fly-to-bounds',
-			'note-to-self',
-			'delete',
-		],
+		actions: ['message', 'think', 'review', 'update-todo-list', 'fly-to-bounds', 'delete'],
 	},
 	{
 		type: 'mouth',
@@ -104,7 +93,7 @@ export const WAND_DEFINITIONS = [
 			"A wand with a mouth on the end. With this wand, your fairy will speak with you, but won't be able to edit the canvas.",
 		available: true,
 		parts: DEFAULT_PROMPT_PART_SET,
-		actions: ['message', 'think', 'review', 'update-todo-list', 'fly-to-bounds', 'note-to-self'],
+		actions: ['message', 'think', 'review', 'update-todo-list', 'fly-to-bounds'],
 	},
 	{
 		type: 'diagram',
@@ -119,7 +108,6 @@ export const WAND_DEFINITIONS = [
 			'review',
 			'update-todo-list',
 			'fly-to-bounds',
-			'note-to-self',
 			'create',
 			'delete',
 			'update',
