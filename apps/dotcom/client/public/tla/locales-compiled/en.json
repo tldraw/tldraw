@@ -93,6 +93,12 @@
       "value": "Create file"
     }
   ],
+  "1c0b8f236c": [
+    {
+      "type": 0,
+      "value": "Resend"
+    }
+  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -153,10 +159,22 @@
       "value": "Please try refreshing the page."
     }
   ],
+  "340bcdbecf": [
+    {
+      "type": 0,
+      "value": "Before you start, please accept our terms and privacy policy."
+    }
+  ],
   "344a7f427f": [
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "383fe2dd68": [
+    {
+      "type": 0,
+      "value": "Continue to tldraw"
     }
   ],
   "3bd1b98dbd": [
@@ -169,6 +187,12 @@
     {
       "type": 0,
       "value": "Pinned"
+    }
+  ],
+  "3c627add70": [
+    {
+      "type": 0,
+      "value": "Enter verification code"
     }
   ],
   "3d0238bf16": [
@@ -241,6 +265,12 @@
     {
       "type": 0,
       "value": "Please slow down."
+    }
+  ],
+  "54d32ee7ea": [
+    {
+      "type": 0,
+      "value": "Welcome to tldraw"
     }
   ],
   "554a05155c": [
@@ -341,6 +371,12 @@
     {
       "type": 0,
       "value": "A new version of tldraw is available. Please reload the page to continue."
+    }
+  ],
+  "6832ac5936": [
+    {
+      "type": 0,
+      "value": "Enter your email address"
     }
   ],
   "6a26f54883": [
@@ -613,6 +649,12 @@
       "value": "Opt out"
     }
   ],
+  "a0bfb8e59e": [
+    {
+      "type": 0,
+      "value": "Continue"
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -635,6 +677,12 @@
     {
       "type": 0,
       "value": "The file you are looking for does not exist."
+    }
+  ],
+  "a1e3ec36cf": [
+    {
+      "type": 0,
+      "value": "Didn't receive a code?"
     }
   ],
   "a239905023": [
@@ -667,10 +715,22 @@
       "value": "Analytics"
     }
   ],
+  "a7f3dfc629": [
+    {
+      "type": 0,
+      "value": "Continue with Google"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
       "value": "Background"
+    }
+  ],
+  "aa94a67c0c": [
+    {
+      "type": 0,
+      "value": "tldraw is a free and instant virtual whiteboarding with online collaboration."
     }
   ],
   "ab0df9ba36": [
@@ -695,6 +755,12 @@
     {
       "type": 0,
       "value": "Guest user"
+    }
+  ],
+  "b357b524e7": [
+    {
+      "type": 0,
+      "value": "Email address"
     }
   ],
   "b6d4223e60": [
@@ -845,6 +911,12 @@
       "value": "Toggle sidebar"
     }
   ],
+  "d500a7b1df": [
+    {
+      "type": 0,
+      "value": "Enter the verification code sent to your email"
+    }
+  ],
   "d721757161": [
     {
       "type": 0,
@@ -891,6 +963,42 @@
     {
       "type": 0,
       "value": "Pin"
+    }
+  ],
+  "e81c4e4f2b": [
+    {
+      "type": 0,
+      "value": "or"
+    }
+  ],
+  "e84b97b1d0": [
+    {
+      "type": 0,
+      "value": "I agree to the "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Terms of Service"
+        }
+      ],
+      "type": 8,
+      "value": "tos"
+    },
+    {
+      "type": 0,
+      "value": " and "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Privacy Policy"
+        }
+      ],
+      "type": 8,
+      "value": "privacy"
     }
   ],
   "ea4788705e": [

@@ -1,0 +1,262 @@
+/* Utility Classes */
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border-width: 0;
+}
+
+/* Auth Dialog Container */
+.authContainer {
+	width: 450px;
+	max-width: 95vw;
+}
+
+.authBody {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tl-space-5);
+	padding: var(--tl-space-8) var(--tl-space-9);
+}
+
+/* Logo */
+.authLogoWrapper {
+	display: flex;
+	justify-content: center;
+	margin-bottom: var(--tl-space-3);
+}
+
+.authLogo {
+	width: 56px;
+	height: 56px;
+	border-radius: var(--tl-radius-3);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.authLogo span {
+  width: 100%;
+  height: 100%;
+}
+
+.authLogoIcon {
+	width: 40px;
+	height: 40px;
+}
+
+/* Description Text */
+.authDescription {
+	text-align: center;
+	color: var(--tl-color-text-2);
+	font-size: 12px;
+	margin: 0;
+	line-height: 1.5;
+}
+
+/* Google Button */
+.authGoogleButtonWrapper {
+	width: 100%;
+}
+
+.authGoogleButtonWrapper button {
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--tl-space-3);
+	padding: var(--tl-space-2) var(--tl-space-4);
+	background-color: var(--tl-color-background);
+	border: 1px solid var(--tl-color-muted-2);
+	border-radius: var(--tl-radius-2);
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--tl-color-text-0);
+	cursor: pointer;
+	transition: all 0.15s ease;
+}
+
+.authGoogleButtonWrapper button:hover {
+	background-color: var(--tl-color-muted-0);
+	border-color: var(--tl-color-muted-1);
+}
+
+.authGoogleButtonWrapper button:active {
+	transform: scale(0.98);
+}
+
+/* Divider */
+.authDivider {
+	display: flex;
+	align-items: center;
+	text-align: center;
+	color: var(--tl-color-text-3);
+	font-size: 12px;
+	margin: var(--tl-space-2) 0;
+}
+
+.authDivider::before,
+.authDivider::after {
+	content: '';
+	flex: 1;
+	border-bottom: 1px solid var(--tl-color-muted-2);
+}
+
+.authDivider span {
+	padding: 0 var(--tl-space-3);
+}
+
+/* Form Field */
+.authField {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tl-space-2);
+}
+
+.authLabel {
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--tl-color-text-1);
+}
+
+.authInput {
+	width: 100%;
+	padding: var(--tl-space-2) var(--tl-space-4);
+	background-color: var(--tl-color-muted-0);
+	border: 1px solid var(--tl-color-muted-2);
+	border-radius: var(--tl-radius-2);
+	font-size: 14px;
+	color: var(--tl-color-text-0);
+	transition: all 0.15s ease;
+}
+
+.authInput:focus {
+	outline: none;
+	border-color: var(--tl-color-focus);
+	background-color: var(--tl-color-background);
+}
+
+.authInput::placeholder {
+	color: var(--tl-color-text-3);
+}
+
+/* Error Message */
+.authError {
+	font-size: 12px;
+	color: var(--tl-color-warn);
+	margin-top: var(--tl-space-1);
+}
+
+/* Continue Button */
+.authContinueButton {
+	width: 100%;
+	position: relative;
+	padding: 0;
+	font-size: 14px;
+	font-weight: 500;
+	justify-content: center;
+}
+
+.authContinueButton::after {
+  inset: 4px 0;
+}
+
+.authContinueButton:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.authButtonArrow {
+	margin-left: var(--tl-space-2);
+	font-size: 12px;
+}
+
+/* Checkbox */
+.authCheckboxLabel {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--tl-space-3);
+	cursor: pointer;
+	font-size: 14px;
+	color: var(--tl-color-text-1);
+	line-height: 1.5;
+}
+
+.authCheckboxLabel a {
+	color: var(--tl-color-selected);
+	text-decoration: underline;
+}
+
+.authCheckbox {
+	width: 18px;
+	height: 18px;
+	min-width: 18px;
+	margin-top: 2px;
+	cursor: pointer;
+	accent-color: var(--tl-color-selected);
+}
+
+/* Verification Code */
+.authVerificationWrapper {
+	display: flex;
+	justify-content: center;
+	margin: var(--tl-space-4) 0;
+}
+
+.authVerificationInput {
+	text-align: center;
+	font-size: 24px;
+	letter-spacing: 0.5em;
+	font-weight: 500;
+  border: 0;
+	padding: var(--tl-space-2) var(--tl-space-4);
+}
+
+/* Resend Code */
+.authResendWrapper {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: var(--tl-space-2);
+	font-size: 13px;
+	margin-top: var(--tl-space-3);
+}
+
+.authResendText {
+	color: var(--tl-color-text-2);
+}
+
+.authResendButton {
+	background: none;
+	border: none;
+	color: var(--tl-color-selected);
+	text-decoration: underline;
+	cursor: pointer;
+	padding: 0;
+	font-size: 13px;
+	font-weight: 500;
+}
+
+/* Switch Mode */
+.authSwitchMode {
+	text-align: center;
+	font-size: 13px;
+	color: var(--tl-color-text-2);
+	margin-top: var(--tl-space-2);
+}
+
+.authSwitchModeButton {
+	background: none;
+	border: none;
+	color: var(--tl-color-selected);
+	text-decoration: underline;
+	cursor: pointer;
+	padding: 0;
+	font-size: 13px;
+	font-weight: 500;
+}

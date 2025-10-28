@@ -1,4 +1,3 @@
-import { SignInButton } from '@clerk/clerk-react'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
@@ -18,6 +17,7 @@ import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	ViewSubmenu,
+	useDialogs,
 	useEditor,
 	usePassThroughWheelEvents,
 	useValue,
@@ -32,6 +32,7 @@ import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
+import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import {
 	CookieConsentMenuItem,
 	GiveUsFeedbackMenuItem,
@@ -385,16 +386,18 @@ function TlaFileNameEditorInput({
 
 function SignInMenuItem() {
 	const msg = useMsg(messages.signIn)
+	const { addDialog } = useDialogs()
+
 	return (
-		<SignInButton
-			mode="modal"
-			forceRedirectUrl={location.pathname + location.search}
-			signUpForceRedirectUrl={location.pathname + location.search}
+		<TldrawUiButton
+			type="menu"
+			data-testid="tla-sign-in-menu-button"
+			onClick={() => {
+				addDialog({ component: TlaSignInDialog })
+			}}
 		>
-			<TldrawUiButton type="menu" data-testid="tla-sign-in-menu-button">
-				<TldrawUiButtonLabel>{msg}</TldrawUiButtonLabel>
-				<TlaIcon icon="sign-in" />
-			</TldrawUiButton>
-		</SignInButton>
+			<TldrawUiButtonLabel>{msg}</TldrawUiButtonLabel>
+			<TlaIcon icon="sign-in" />
+		</TldrawUiButton>
 	)
 }
