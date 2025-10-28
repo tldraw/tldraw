@@ -368,8 +368,11 @@ export class TldrawApp {
 	}
 
 	/**
-	 * Translates UI-level "my-files" identifier to actual home group ID.
-	 * Use this when passing groupId to backend operations that expect actual IDs.
+	 * Resolves a group ID for backend operations.
+	 * Translates "my-files" to the home group ID (user ID), passes through actual group IDs unchanged.
+	 *
+	 * @param groupId - Either "my-files" or an actual group ID
+	 * @returns The actual group ID to use in backend operations
 	 */
 	resolveGroupId(groupId: string): string {
 		return groupId === 'my-files' ? this.getHomeGroupId() : groupId
