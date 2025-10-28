@@ -266,7 +266,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		return () => {
 			clearTimeout(timer)
 			if (didEnter && !storeError.current) {
-				app.onFileExit(fileId)
+				app.updateFileState(fileId, { lastVisitAt: Date.now() })
 			}
 		}
 	}, [app, fileId, store.status])

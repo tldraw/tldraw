@@ -28,7 +28,7 @@ async function main() {
 
 	const discord = new Discord({
 		webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
-		totalSteps: 3,
+		totalSteps: 4,
 		shouldNotify: true,
 	})
 	await discord.message(`🚀 Triggering dotcom hotfix for PR #${pr.number}...`)
@@ -122,6 +122,10 @@ Original Author: @${pr.user?.login}`,
 				continue
 			}
 		}
+	})
+
+	await discord.step('Checks have passed, deploy will start soon', async () => {
+		// This step just provides user feedback after successful merge
 	})
 }
 

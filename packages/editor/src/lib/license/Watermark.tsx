@@ -70,7 +70,7 @@ const UnlicensedWatermark = memo(function UnlicensedWatermark({
 					preventDefault(e)
 				}}
 				title="The tldraw SDK requires a license key to work in production. You can get a free 100-day trial license at tldraw.dev/pricing."
-				onClick={() => runtime.openWindow(url, '_blank')}
+				onClick={() => runtime.openWindow(url, '_blank', true)} // allow referrer
 			>
 				Get a license for production
 			</button>
