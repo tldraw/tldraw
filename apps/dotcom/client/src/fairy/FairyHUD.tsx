@@ -300,7 +300,6 @@ export function FairyHUD({
 					flexDirection: 'row',
 					alignItems: 'flex-end',
 					gap: '0px',
-					pointerEvents: 'auto',
 					zIndex: '99999999',
 				}}
 			>
