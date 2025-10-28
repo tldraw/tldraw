@@ -122,6 +122,8 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 			if (notFound) {
 				try {
 					setIsSignUpFlow(true)
+					// Initialize sign up with the email before preparing verification
+					await client.signUp.create({ emailAddress: identifier })
 					// Always prepare & go to code first; legal acceptance handled after verification if required
 					await client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
 					setStage('enterCode')
@@ -175,6 +177,10 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 	async function handleResend() {
 		try {
 			if (isSignUpFlow) {
+				// Ensure email is set on signUp in case the client lost state
+				if (!(client.signUp as any)?.emailAddress && identifier) {
+					await client.signUp.update({ emailAddress: identifier } as any)
+				}
 				await client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
 			} else if (signIn && emailAddressId) {
 				await signIn.prepareFirstFactor({ strategy: 'email_code', emailAddressId })
@@ -243,7 +249,21 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 				onContinue={async () => {
 					if (!termsChecked) return
 					try {
-						await client.signUp.update({ legalAccepted: true } as any)
+						const su: any = await client.signUp.update({ legalAccepted: true } as any)
+						if (su?.status === 'complete' && su?.createdSessionId) {
+							await setActive({ session: su.createdSessionId })
+							onClose?.()
+							return
+						}
+						const needsEmail = (su?.missingFields || su?.missing_fields || []).includes?.(
+							'email_address'
+						)
+						if (needsEmail) {
+							if (!(client.signUp as any)?.emailAddress && identifier) {
+								await client.signUp.update({ emailAddress: identifier } as any)
+							}
+							await client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
+						}
 						setStage('enterCode')
 						setError(null)
 					} catch (_e: any) {
