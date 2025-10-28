@@ -201,6 +201,7 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 			// Clean up listeners if pointer released without dragging
 			document.removeEventListener('pointermove', handlePointerMove)
 			document.removeEventListener('pointerup', handlePointerUp)
+			editor.setCursor({ type: 'default', rotation: 0 })
 		}
 
 		document.addEventListener('pointermove', handlePointerMove)
