@@ -50,7 +50,7 @@ export function TlaEditorTopRightPanel({
 				<PeopleMenu />
 				<SignedOutShareButton fileId={fileId} context={context} />
 				<TlaCtaButton
-					data-testid="tla-sign-up"
+					data-testid="tla-sign-in-button"
 					onClick={() => {
 						trackEvent('sign-up-clicked', {
 							source: 'anon-landing-page',

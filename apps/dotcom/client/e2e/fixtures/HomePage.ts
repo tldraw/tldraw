@@ -43,7 +43,8 @@ export class HomePage {
 		await this.page.getByLabel('Email address').fill(email)
 		await this.page.getByRole('button', { name: 'Continue', exact: true }).click()
 		await this.page.waitForTimeout(1000)
-		await this.page.getByRole('textbox', { name: 'Enter verification code' }).fill('424242')
+		await this.page.locator('#tla-verification-code').fill('424242')
+		await this.page.getByRole('button', { name: 'Continue', exact: true }).click()
 		await expect(async () => {
 			await expect(this.page.getByTestId('tla-sidebar-toggle')).toBeVisible()
 		}).toPass()

@@ -105,7 +105,7 @@ function NotAuthenticatedError() {
 			para1={<F defaultMessage="You need to sign in to view this file." />}
 			cta={
 				<TlaCtaButton
-					data-testid="tla-sign-up"
+					data-testid="tla-sign-in-button"
 					onClick={() => dialogs.addDialog({ component: TlaSignInDialog })}
 				>
 					<F defaultMessage="Sign in" />
