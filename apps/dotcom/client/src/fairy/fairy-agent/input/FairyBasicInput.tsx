@@ -10,7 +10,8 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 	const [inputValue, setInputValue] = useState('')
 	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
 
-	const fairy = useValue('fairy', () => agent.$fairyEntity, [agent])
+	const fairyEntity = useValue(agent.$fairyEntity)
+	const fairyConfig = useValue(agent.$fairyConfig)
 
 	useEffect(() => {
 		if (inputRef.current) {
@@ -35,7 +36,7 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 				.getSelectedShapes()
 				.map((shape) => convertTldrawShapeToFocusedShape(editor, shape))
 
-			const fairyPosition = fairy.get().position
+			const fairyPosition = fairyEntity.position
 			const fairyVision = Box.FromCenter(fairyPosition, FAIRY_VISION_DIMENSIONS)
 
 			// Clear the shared todo list if it's all completed - same as the agent starter kit's behavior
@@ -54,7 +55,7 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 				type: 'user',
 			})
 		},
-		[agent, editor, fairy]
+		[agent, editor, fairyEntity]
 	)
 
 	const shouldCancel = isGenerating && inputValue === ''
@@ -71,7 +72,7 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 		<div className="fairy-input">
 			<TldrawUiInput
 				ref={inputRef}
-				placeholder={`Whisper to ${agent.$fairyConfig.get().name}...`}
+				placeholder={`Whisper to ${fairyConfig.name}...`}
 				value={inputValue}
 				onValueChange={setInputValue}
 				onComplete={handleComplete}
