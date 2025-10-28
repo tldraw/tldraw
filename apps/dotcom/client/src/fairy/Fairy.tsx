@@ -12,7 +12,6 @@ const FAIRY_CLICKABLE_SIZE_SELECTED = 70
 // which is not exposed on the fairy atom
 export default function Fairy({ agent }: { agent: FairyAgent }) {
 	const editor = useEditor()
-	const containerRef = useRef<HTMLDivElement>(null)
 	const fairyRef = useRef<HTMLDivElement>(null)
 	const fairy = agent.$fairyEntity
 	const fairyConfig = agent.$fairyConfig
@@ -216,52 +215,38 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 
 	return (
 		<div
-			ref={containerRef}
+			ref={fairyRef}
 			style={{
-				position: 'fixed',
-				top: 0,
-				left: 0,
-				width: '100vw',
-				height: '100vh',
-				pointerEvents: 'none',
-				overflow: 'visible',
+				position: 'absolute',
+				left: position.x,
+				top: position.y,
+				width: `${FAIRY_SIZE}px`,
+				height: `${FAIRY_SIZE}px`,
+				transform: `translate(-75%, -25%) scale(var(--tl-scale)) ${flipX ? ' scaleX(-1)' : ''}`,
+				transformOrigin: '75% 25%',
+				transition: isGenerating ? 'left 0.1s ease-in-out, top 0.1s ease-in-out' : 'none',
 			}}
+			className={isSelected ? 'fairy-selected' : ''}
 		>
-			{/* Fairy */}
+			{/* Fairy clickable zone */}
 			<div
-				ref={fairyRef}
+				onPointerDown={handleFairyPointerDown}
 				style={{
 					position: 'absolute',
-					left: position.x,
-					top: position.y,
-					width: `${FAIRY_SIZE}px`,
-					height: `${FAIRY_SIZE}px`,
-					transform: `translate(-75%, -25%) scale(var(--tl-scale)) ${flipX ? ' scaleX(-1)' : ''}`,
-					transformOrigin: '75% 25%',
-					transition: isGenerating ? 'left 0.1s ease-in-out, top 0.1s ease-in-out' : 'none',
+					width: `${isSelected ? FAIRY_CLICKABLE_SIZE_SELECTED : FAIRY_CLICKABLE_SIZE_DEFAULT}px`,
+					height: `${isSelected ? FAIRY_CLICKABLE_SIZE_SELECTED : FAIRY_CLICKABLE_SIZE_DEFAULT}px`,
+					pointerEvents: isFairyGrabbable ? 'all' : 'none',
+					cursor: isFairyGrabbable ? 'grab' : 'default',
 				}}
-				className={isSelected ? 'fairy-selected' : ''}
-			>
-				{/* Fairy clickable zone */}
-				<div
-					onPointerDown={handleFairyPointerDown}
-					style={{
-						position: 'absolute',
-						width: `${isSelected ? FAIRY_CLICKABLE_SIZE_SELECTED : FAIRY_CLICKABLE_SIZE_DEFAULT}px`,
-						height: `${isSelected ? FAIRY_CLICKABLE_SIZE_SELECTED : FAIRY_CLICKABLE_SIZE_DEFAULT}px`,
-						pointerEvents: isFairyGrabbable ? 'all' : 'none',
-						cursor: isFairyGrabbable ? 'grab' : 'default',
-					}}
-				/>
-				<FairySpriteComponent
-					entity={fairyEntity}
-					outfit={fairyOutfit}
-					animated={true}
-					onGestureEnd={() => {
-						fairy.update((f) => (f ? { ...f, gesture: null } : f))
-					}}
-				/>
-			</div>
+			/>
+			<FairySpriteComponent
+				entity={fairyEntity}
+				outfit={fairyOutfit}
+				animated={true}
+				onGestureEnd={() => {
+					fairy.update((f) => (f ? { ...f, gesture: null } : f))
+				}}
+			/>
 		</div>
 	)
 }
