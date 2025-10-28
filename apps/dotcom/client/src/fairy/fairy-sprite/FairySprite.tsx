@@ -27,7 +27,7 @@ const fairySpriteMap = new Map<string, FairySprite>()
  * If we haven't yet, initialize it and return the new one.
  */
 function getFairySprite({ outfit, tint }: { outfit: FairyOutfit; tint?: string | null }) {
-	const key = JSON.stringify({ outfit, tint })
+	const key = getFairySpriteCacheKey({ outfit, tint })
 	const existingSprite = fairySpriteMap.get(key)
 	if (!existingSprite) {
 		const newSprite = new FairySprite(outfit, tint ?? null)
@@ -39,14 +39,10 @@ function getFairySprite({ outfit, tint }: { outfit: FairyOutfit; tint?: string |
 }
 
 /**
- * Dispose of a fairy sprite to free up memory.
+ * Get a cache key for a fairy sprite.
  */
-export function disposeFairySprite(variants: FairyOutfit) {
-	const key = JSON.stringify(variants)
-	const sprite = fairySpriteMap.get(key)
-	if (sprite) {
-		sprite.dispose()
-	}
+function getFairySpriteCacheKey({ outfit, tint }: { outfit: FairyOutfit; tint?: string | null }) {
+	return JSON.stringify({ outfit, tint })
 }
 
 const OFFSCREEN_CANVAS_SIZE = 1200
@@ -247,7 +243,10 @@ class FairySprite {
 	 * Get the key for the fairy sprite.
 	 */
 	getKey() {
-		return JSON.stringify(this.variants)
+		return getFairySpriteCacheKey({
+			outfit: this.outfit,
+			tint: this.tint,
+		})
 	}
 }
 
