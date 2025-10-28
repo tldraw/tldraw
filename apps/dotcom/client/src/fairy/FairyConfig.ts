@@ -1,5 +1,4 @@
-import { Wand } from '@tldraw/fairy-shared'
-import { FairyOutfit } from '@tldraw/fairy-shared/src/types/FairyOutfit'
+import { FairyOutfit, Wand } from '@tldraw/fairy-shared'
 
 export interface FairyConfig {
 	name: string
