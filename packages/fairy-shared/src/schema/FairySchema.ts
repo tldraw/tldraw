@@ -8,7 +8,6 @@ import { ImbuePersonalityActionSchema } from './actions/ImbuePersonalityActionSc
 import { LabelActionSchema } from './actions/LabelActionSchema'
 import { MessageActionSchema } from './actions/MessageActionSchema'
 import { MoveActionSchema } from './actions/MoveActionSchema'
-import { NoteToSelfActionSchema } from './actions/NoteToSelfActionSchema'
 import { PenActionSchema } from './actions/PenActionSchema'
 import { PlaceActionSchema } from './actions/PlaceActionSchema'
 import { ResizeActionSchema } from './actions/ResizeActionSchema'
@@ -18,7 +17,6 @@ import { SendToBackActionSchema } from './actions/SendToBackActionSchema'
 import { SharedTodoListActionSchema } from './actions/SharedTodoListActionSchema'
 import { StackActionSchema } from './actions/StackActionSchema'
 import { ThinkActionSchema } from './actions/ThinkActionSchema'
-import { TodoListActionSchema } from './actions/TodoListActionSchema'
 import { UpdateActionSchema } from './actions/UpdateActionSchema'
 import { BlurryShapesPartSchema } from './parts/BlurryShapesPartSchema'
 import { ChatHistoryPartSchema } from './parts/ChatHistoryPartSchema'
@@ -31,7 +29,6 @@ import { ScreenshotPartSchema } from './parts/ScreenshotPartSchema'
 import { SelectedShapesPartSchema } from './parts/SelectedShapesPartSchema'
 import { SharedTodoListPartSchema } from './parts/SharedTodoListPartSchema'
 import { TimePartSchema } from './parts/TimePartSchema'
-import { TodoListPartSchema } from './parts/TodoListPartSchema'
 import { UserActionHistoryPartSchema } from './parts/UserActionHistoryPartSchema'
 import { ViewportBoundsPartSchema } from './parts/ViewportBoundsPartSchema'
 import { WandPartSchema } from './parts/WandPartSchema'
@@ -46,9 +43,8 @@ export const AGENT_ACTION_SCHEMAS = [
 	// Planning
 	ThinkActionSchema,
 	ReviewActionSchema,
-	TodoListActionSchema,
+	SharedTodoListActionSchema,
 	FlyToBoundsActionSchema,
-	NoteToSelfActionSchema,
 
 	// Individual shapes
 	CreateActionSchema,
@@ -72,9 +68,6 @@ export const AGENT_ACTION_SCHEMAS = [
 
 	// Fairy-specific
 	ImbuePersonalityActionSchema,
-
-	// shared todo List
-	SharedTodoListActionSchema,
 ] as const
 
 /**
@@ -90,14 +83,11 @@ export const PROMPT_PART_SCHEMAS = [
 	ScreenshotPartSchema,
 	SelectedShapesPartSchema,
 	TimePartSchema,
-	TodoListPartSchema,
+	SharedTodoListPartSchema,
 	UserActionHistoryPartSchema,
 	ViewportBoundsPartSchema,
 	OtherFairiesPartSchema,
 	WandPartSchema,
-
-	// shared todo List
-	SharedTodoListPartSchema,
 ] as const
 
 export const AGENT_ACTION_TYPES = AGENT_ACTION_SCHEMAS.map((schema) => schema.shape._type.value)

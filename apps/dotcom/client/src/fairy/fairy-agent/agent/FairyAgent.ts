@@ -371,6 +371,12 @@ export class FairyAgent {
 	 * @returns A promise for when the agent has finished its work.
 	 */
 	async prompt(input: AgentInput) {
+		if (this.isActing) {
+			throw new Error(
+				"Agent is already acting. It's illegal to prompt an agent during an action. Please use schedule instead."
+			)
+		}
+
 		const startingFairy = this.$fairyEntity.get()
 		if (startingFairy.pose === 'idle') {
 			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'active' }))

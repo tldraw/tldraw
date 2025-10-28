@@ -218,7 +218,7 @@ ${
 - You have access to a todo list that is shared between all fairies in this document. You can freely add to and claim unclaimed tasks from this list.
 - If you're asked to do something that doesn't already have a task on the shared todo list, you must break down the task into smaller tasks and add them to the shared todo list. Making tasks is cheap and should always be done unless the work the work is confined to an entity small enough that coordinating would do more harm than good.
 - When working with other fairies, you must use the shared todo list to coordinate your work. To add new items to the shared todo list, or claim them for yourself, you can update the shared todo list with the ` +
-			'`update-shared-todo-list`' +
+			'`update-todo-list`' +
 			` action. When creating new tasks with this action, make sure not to intially assign them all to yourself. This is because other fairies may want to help out and claim some. Once you have created some tasks, use the ` +
 			'`review`' +
 			` action to check the shared todo list, after which you can claim tasks for yourself. Make sure to mark the tasks as "in-progress" when you claim them as well. Only claim a small amount of tasks at a time, and only claim tasks that you are confident you can complete.
@@ -230,30 +230,18 @@ ${
 }
 
 ${
-	flags.hasNormalTodo
+	flags.hasSharedTodo
 		? `- Use ` +
 			'`update-todo-list`' +
 			` events liberally to keep an up to date list of your progress on the task at hand. When you are assigned a new task, use the action multiple times to sketch out your plan${flags.hasReview ? '. You can then use the ' + '`review`' + ' action to check the todo list' : ''}.
-	- Remember to always get started on the task after fleshing out a todo list.${
-		flags.hasMessage
-			? `
-	- NEVER make a todo for waiting for the user to do something. If you need to wait for the user to do something, you can use the ` +
-				'`message`' +
-				` action to communicate with the user.`
-			: ''
-	}
-	${
-		flags.hasSharedTodo
-			? '- Use your personal todo list to keep track of your progress on the current task.'
-			: ''
-	}`
+	- Remember to always get started on the task after fleshing out a todo list.
+	- Use your personal todo list to keep track of your progress on the current task.`
 		: ''
 }
 ${flags.hasThink ? '- Use ' + '`think`' + ' events liberally to work through each step of your strategy.' : ''}
 ${flags.hasScreenshotPart && (flags.hasBlurryShapesPart || flags.hasPeripheralShapesPart || flags.hasSelectedShapesPart || flags.hasContextItemsPart) ? '- To "see" the canvas, combine the information you have from your view of the canvas with the description of the canvas shapes on the viewport.' : ''}
 ${(flags.hasDistribute || flags.hasStack || flags.hasAlign || flags.hasPlace) && (flags.hasCreate || flags.hasUpdate || flags.hasMove) ? `- Carefully plan which action types to use. For example, the higher level events like ${[flags.hasDistribute && '`distribute`', flags.hasStack && '`stack`', flags.hasAlign && '`align`', flags.hasPlace && '`place`'].filter(Boolean).join(', ')} can at times be better than the lower level events like ${[flags.hasCreate && '`create`', flags.hasUpdate && '`update`', flags.hasMove && '`move`'].filter(Boolean).join(', ')} because they're more efficient and more accurate. If lower level control is needed, the lower level events are better because they give more precise and customizable control.` : ''}
 ${flags.hasSelectedShapesPart ? "- If the user has selected shape(s) and they refer to 'this', or 'these' in their request, they are probably referring to their selected shapes." : ''}
-${flags.hasNoteToSelf ? `- Use ` + '`note-to-self`' + ` events to leave notes for yourself to remember something next time. You should only use these if you're using the ${[flags.hasFlyToBounds && '`fly-to-bounds`', flags.hasReview && '`review`'].filter(Boolean).join(' or ')} action, as you will be able to see the note on your next turn.` : ''}
 
 ${
 	flags.hasViewportBoundsPart || flags.hasFlyToBounds
@@ -267,7 +255,7 @@ ${
 			'`fly-to-bounds`' +
 			` action to change your viewport to navigate to other areas of the canvas if needed. This will also move you physically to the x,y coordinates of the center of the bounds. This will provide you with an updated view of the canvas. You can also use this to functionally zoom in or out. You have a maximum bounds size of 1920x1080. If you want to look at something that doesn't fit in your viewport, you can look at part of it with the ` +
 			'`fly-to-bounds`' +
-			` action${flags.hasNoteToSelf ? ', then use the ' + '`note-to-self`' + ' action to leave a note for yourself to remember what you saw' : ''}.
+			` action.
 - Never send any events after you have used the ` +
 			'`fly-to-bounds`' +
 			` action. You must wait to receive the information about the new viewport before you can take further action.`
@@ -344,7 +332,6 @@ function getSystemPromptFlags(actions: AgentAction['_type'][], parts: PromptPart
 		hasThink: actions.includes('think'),
 		hasReview: actions.includes('review'),
 		hasFlyToBounds: actions.includes('fly-to-bounds'),
-		hasNoteToSelf: actions.includes('note-to-self'),
 
 		// Individual shapes
 		hasCreate: actions.includes('create'),
@@ -394,9 +381,7 @@ function getSystemPromptFlags(actions: AgentAction['_type'][], parts: PromptPart
 		hasOtherFairiesPart: parts.includes('otherFairies'),
 
 		// shared todo list
-		hasSharedTodo: parts.includes('sharedTodoList') && actions.includes('update-shared-todo-list'),
-		// normal todo list
-		hasNormalTodo: parts.includes('todoList') && actions.includes('update-todo-list'),
+		hasSharedTodo: parts.includes('sharedTodoList') && actions.includes('update-todo-list'),
 	}
 }
 
