@@ -63,7 +63,7 @@ class MyCounterShapeUtil extends ShapeUtil<MyCounterShape> {
 
 // [3]
 class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
-	static override type = 'my-grid-shape' as const
+	static override type = MY_GRID_SHAPE_TYPE
 
 	getDefaultProps(): MyGridShape['props'] {
 		return {}

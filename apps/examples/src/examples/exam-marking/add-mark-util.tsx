@@ -21,7 +21,7 @@ export const examMarkShapeDefaultProps: IExamMarkShape['props'] = {
 }
 
 export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
-	static override type = 'exam-mark' as const
+	static override type = EXAM_MARK_TYPE
 	static override props: RecordProps<IExamMarkShape> = {
 		score: T.number,
 	}
@@ -68,7 +68,7 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 			if (!isNaN(num)) {
 				this.editor.updateShape({
 					id: shape.id,
-					type: 'exam-mark',
+					type: EXAM_MARK_TYPE,
 					props: {
 						score: num,
 					},
