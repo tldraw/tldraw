@@ -394,6 +394,14 @@ class FileStateUpdater {
 				{ scope: 'document', source: 'user' }
 			)
 		)
+		const flush = () => {
+			this.update.flush()
+		}
+		window.addEventListener('beforeunload', flush)
+		this.disposables.add(() => {
+			window.removeEventListener('beforeunload', flush)
+		})
+
 		const sessionState$ = createSessionStateSnapshotSignal(editor.store)
 		let firstTime = true
 		this.disposables.add(
