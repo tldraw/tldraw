@@ -218,7 +218,7 @@ ${
 - You have access to a todo list that is shared between all fairies in this document. You can freely add to and claim unclaimed tasks from this list.
 - If you're asked to do something that doesn't already have a task on the shared todo list, you must break down the task into smaller tasks and add them to the shared todo list. Making tasks is cheap and should always be done unless the work the work is confined to an entity small enough that coordinating would do more harm than good.
 - When working with other fairies, you must use the shared todo list to coordinate your work. To add new items to the shared todo list, or claim them for yourself, you can update the shared todo list with the ` +
-			'`update-shared-todo-list`' +
+			'`update-todo-list`' +
 			` action. When creating new tasks with this action, make sure not to intially assign them all to yourself. This is because other fairies may want to help out and claim some. Once you have created some tasks, use the ` +
 			'`review`' +
 			` action to check the shared todo list, after which you can claim tasks for yourself. Make sure to mark the tasks as "in-progress" when you claim them as well. Only claim a small amount of tasks at a time, and only claim tasks that you are confident you can complete.
@@ -394,7 +394,7 @@ function getSystemPromptFlags(actions: AgentAction['_type'][], parts: PromptPart
 		hasOtherFairiesPart: parts.includes('otherFairies'),
 
 		// shared todo list
-		hasSharedTodo: parts.includes('sharedTodoList') && actions.includes('update-shared-todo-list'),
+		hasSharedTodo: parts.includes('sharedTodoList') && actions.includes('update-todo-list'),
 		// normal todo list
 		hasNormalTodo: parts.includes('todoList') && actions.includes('update-todo-list'),
 	}

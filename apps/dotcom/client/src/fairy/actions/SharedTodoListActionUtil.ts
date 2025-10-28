@@ -3,15 +3,15 @@ import { $sharedTodoList } from '../SharedTodoList'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class SharedTodoListActionUtil extends AgentActionUtil<SharedTodoListAction> {
-	static override type = 'update-shared-todo-list' as const
+	static override type = 'update-todo-list' as const
 
 	override getInfo(action: Streaming<SharedTodoListAction>) {
 		return {
 			icon: 'pencil' as const,
-			description: 'Update shared todo list',
+			description: 'Update todo list',
 			summary: action.complete
-				? `Updated shared todo item ${action.id}: "${action.text}", with status "${action.status}", ${action.claimedBy ? `claimed by ${action.claimedBy.name} (id: ${action.claimedBy.id})` : ''}`
-				: 'Updating shared todo list...',
+				? `Updated todo item ${action.id}: "${action.text}", with status "${action.status}", ${action.claimedBy ? `claimed by ${action.claimedBy.name} (id: ${action.claimedBy.id})` : ''}`
+				: 'Updating todo list...',
 			pose: 'thinking' as const,
 		}
 	}
@@ -52,7 +52,7 @@ export class SharedTodoListActionUtil extends AgentActionUtil<SharedTodoListActi
 				} else {
 					message += `Please try to claim another todo item${todoItemsClaimedByThisFairy.length > 0 ? ` or work on one of your already claimed items` : ''}. Current shared todo list: ${JSON.stringify(sharedTodoList)}`
 				}
-				this.agent.prompt({ messages: [message], type: 'schedule' })
+				this.agent.schedule({ messages: [message] })
 				return
 			}
 		}
