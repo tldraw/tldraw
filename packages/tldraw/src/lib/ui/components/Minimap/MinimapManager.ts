@@ -249,12 +249,6 @@ export class MinimapManager {
 
 			const len = geometry.length
 
-			const shape = this.editor.getShape(shapeId)
-			if (shape) {
-				const shapeUtil = this.editor.getShapeUtil(shape.type)
-				if (shapeUtil.hideInMinimap?.(shape)) continue
-			}
-
 			if (selectedShapes.has(shapeId)) {
 				appendVertices(this.gl.selectedShapes, selectedShapeOffset, geometry)
 				selectedShapeOffset += len
@@ -295,21 +289,10 @@ export class MinimapManager {
 		const collaborators = this.editor.getCollaboratorsOnCurrentPage()
 		if (!collaborators.length) return
 
-		// collect both cursor and agent points, tracking which are agents
-		const points: { center: Vec }[] = []
-		const colors: Float32Array[] = []
-		for (const c of collaborators) {
-			if (c.cursor) {
-				points.push({ center: Vec.From(c.cursor) })
-				colors.push(getRgba(c.color))
-			}
-		}
-
-		if (!points.length) return
-
+		// just draw a little circle for each collaborator
 		const numSegmentsPerCircle = 20
 		const dataSizePerCircle = numSegmentsPerCircle * 6
-		const totalSize = dataSizePerCircle * points.length
+		const totalSize = dataSizePerCircle * collaborators.length
 
 		// expand vertex array if needed
 		if (this.gl.collaborators.vertices.length < totalSize) {
@@ -319,9 +302,10 @@ export class MinimapManager {
 		const vertices = this.gl.collaborators.vertices
 		let offset = 0
 		const zoom = this.getZoom()
-		for (const { center } of points) {
+		for (const { cursor } of collaborators) {
+			if (!cursor) continue
 			pie(vertices, {
-				center,
+				center: Vec.From(cursor),
 				radius: 3 * zoom,
 				offset,
 				numArcSegments: numSegmentsPerCircle,
@@ -332,8 +316,8 @@ export class MinimapManager {
 		this.gl.prepareTriangles(this.gl.collaborators, totalSize)
 
 		offset = 0
-		for (const color of colors) {
-			this.gl.setFillColor(color)
+		for (const { color } of collaborators) {
+			this.gl.setFillColor(getRgba(color))
 			this.gl.context.drawArrays(this.gl.context.TRIANGLES, offset / 2, dataSizePerCircle / 2)
 			offset += dataSizePerCircle
 		}
