@@ -75,13 +75,15 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 	const { setActive, client } = useClerk()
 	const enterEmailAddressMsg = useMsg(messages.enterEmailAddress)
 
-	const [stage, setStage] = useState<'enterEmail' | 'enterCode'>('enterEmail')
+	const [stage, setStage] = useState<'enterEmail' | 'terms' | 'enterCode'>('enterEmail')
 	const [identifier, setIdentifier] = useState('')
 	const [code, setCode] = useState('')
 	const [emailAddressId, setEmailAddressId] = useState<string | undefined>(undefined)
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 	const [isSignUpFlow, setIsSignUpFlow] = useState(false)
+	const [isCodeFocused, setIsCodeFocused] = useState(false)
+	const [termsChecked, setTermsChecked] = useState(false)
 
 	async function handleEmailSubmit(e: FormEvent) {
 		e.preventDefault()
@@ -119,9 +121,9 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 			)
 			if (notFound) {
 				try {
-					await client.signUp.create({ emailAddress: identifier })
-					await client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
 					setIsSignUpFlow(true)
+					// Always prepare & go to code first; legal acceptance handled after verification if required
+					await client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
 					setStage('enterCode')
 				} catch (e: any) {
 					setError(e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Something went wrong')
@@ -140,7 +142,15 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 		setError(null)
 		try {
 			if (isSignUpFlow) {
-				const s = await client.signUp.attemptEmailAddressVerification({ code })
+				const s: any = await client.signUp.attemptEmailAddressVerification({ code })
+				// If legal acceptance is still required, show terms now
+				const needsLegal = (s?.missingFields || s?.missing_fields || []).includes?.(
+					'legal_accepted'
+				)
+				if (needsLegal) {
+					setStage('terms')
+					return
+				}
 				if (s.status === 'complete') {
 					await setActive({ session: s.createdSessionId })
 					onClose?.()
@@ -176,7 +186,7 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 
 	if (stage === 'enterEmail') {
 		return (
-			<TlaAuthStep onClose={onClose}>
+			<TlaAuthStep onClose={onClose} showDescription>
 				<div className={styles.authGoogleButtonWrapper}>
 					{/* @ts-ignore this is fine */}
 					<Clerk.Connection name="google">
@@ -225,25 +235,70 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 		)
 	}
 
+	if (stage === 'terms') {
+		return (
+			<TlaTermsAcceptance
+				hasAccepted={termsChecked}
+				onAcceptedChange={setTermsChecked}
+				onContinue={async () => {
+					if (!termsChecked) return
+					try {
+						await client.signUp.update({ legalAccepted: true } as any)
+						setStage('enterCode')
+						setError(null)
+					} catch (_e: any) {
+						const e = _e as any
+						setError(
+							e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Something went wrong'
+						)
+					}
+				}}
+				onClose={onClose}
+			/>
+		)
+	}
+
 	return (
 		<TlaAuthStep onClose={onClose}>
 			<p className={styles.authDescription}>
 				<F defaultMessage="Enter the verification code sent to your email" />
 			</p>
 
-			<div className={styles.authVerificationWrapper}>
-				<label htmlFor="tla-verification-code" className="sr-only">
-					<F defaultMessage="Enter verification code" />
-				</label>
+			<div
+				className={styles.authVerificationWrapper}
+				onClick={() => {
+					const el = document.getElementById('tla-verification-code') as HTMLInputElement | null
+					el?.focus()
+				}}
+			>
+				<div className={styles.authOtpBoxes} aria-hidden>
+					{Array.from({ length: 6 }).map((_, i) => (
+						<div
+							key={i}
+							className={
+								code[i] ? `${styles.authOtpBox} ${styles.authOtpBoxFilled}` : styles.authOtpBox
+							}
+						>
+							{code[i] || ''}
+							{isCodeFocused && code.length < 6 && i === code.length ? (
+								<span className={styles.authOtpCaret} />
+							) : null}
+						</div>
+					))}
+				</div>
 				<input
 					id="tla-verification-code"
 					type="text"
 					inputMode="numeric"
 					autoFocus
-					className={styles.authVerificationInput}
-					placeholder="••••••"
+					className={styles.authOtpHiddenInput}
 					value={code}
-					onChange={(e) => setCode(e.target.value)}
+					onChange={(e) => {
+						const next = e.target.value.replace(/[^0-9]/g, '').slice(0, 6)
+						setCode(next)
+					}}
+					onFocus={() => setIsCodeFocused(true)}
+					onBlur={() => setIsCodeFocused(false)}
 					maxLength={6}
 				/>
 			</div>
@@ -342,7 +397,15 @@ function TlaTermsAcceptance({
 	)
 }
 
-function TlaAuthStep({ children, onClose }: { children: ReactNode; onClose?(): void }) {
+function TlaAuthStep({
+	children,
+	onClose,
+	showDescription = false,
+}: {
+	children: ReactNode
+	onClose?(): void
+	showDescription?: boolean
+}) {
 	return (
 		<>
 			<TldrawUiDialogHeader>
@@ -355,9 +418,11 @@ function TlaAuthStep({ children, onClose }: { children: ReactNode; onClose?(): v
 						<TlaIcon icon="tldraw" />
 					</div>
 				</div>
-				<div className={styles.authDescription}>
-					<F defaultMessage="tldraw is a free and instant virtual whiteboarding with online collaboration." />
-				</div>
+				{showDescription && (
+					<div className={styles.authDescription}>
+						<F defaultMessage="tldraw is a free and instant virtual whiteboarding with online collaboration." />
+					</div>
+				)}
 
 				{children}
 			</TldrawUiDialogBody>
