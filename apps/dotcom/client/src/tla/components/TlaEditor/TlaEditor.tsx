@@ -293,13 +293,21 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 		return {
 			...components,
-			InFrontOfTheCanvas: () => (
+			Overlays: () => (
 				<>
 					{canShowFairies && (
 						<Suspense fallback={<div />}>
 							<FairyVision agents={agents} />
 							<RemoteFairies />
 							<Fairies agents={agents} />
+						</Suspense>
+					)}
+				</>
+			),
+			InFrontOfTheCanvas: () => (
+				<>
+					{canShowFairies && (
+						<Suspense fallback={<div />}>
 							<FairyHUD agents={agents} />
 						</Suspense>
 					)}

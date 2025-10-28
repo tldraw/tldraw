@@ -1,10 +1,11 @@
-import { useEffect, useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Box, useEditor, useValue } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
+import { FairyThrowTool } from './FairyThrowTool'
 
 export const FAIRY_SIZE = 70
-const FAIRY_CLICKABLE_SIZE_DEFAULT = 70
+const FAIRY_CLICKABLE_SIZE_DEFAULT = 60
 const FAIRY_CLICKABLE_SIZE_SELECTED = 70
 
 // We use the agent directly here because we need to access the isGenerating method
@@ -16,18 +17,14 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 	const fairy = agent.$fairyEntity
 	const fairyConfig = agent.$fairyConfig
 
-	// Track viewport screen bounds to position fairy correctly
-	const screenPosition = useValue(
-		'fairy screen position',
+	const position = useValue(
+		'fairy position',
 		() => {
 			const entity = fairy.get()
 			if (!entity) return { x: 0, y: 0 }
-			// Convert page coordinates to screen coordinates
-			const screenPos = editor.pageToScreen(entity.position)
-			const screenBounds = editor.getViewportScreenBounds()
 			return {
-				x: screenPos.x - screenBounds.x,
-				y: screenPos.y - screenBounds.y,
+				x: entity.position.x,
+				y: entity.position.y,
 			}
 		},
 		[editor, fairy]
@@ -35,10 +32,13 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 
 	const flipX = useValue('fairy flipX', () => fairy.get()?.flipX ?? false, [fairy])
 	const isSelected = useValue('fairy isSelected', () => fairy.get()?.isSelected ?? false, [fairy])
-	const isThrowToolActive = useValue(
-		'is throw tool active',
-		() => editor.getCurrentTool().id === 'fairy-throw',
-		[editor]
+
+	const isInSelectTool = useValue('is in select tool', () => editor.isIn('select.idle'), [editor])
+
+	const isFairyGrabbable = useValue(
+		'is fairy grabbable',
+		() => !agent.isGenerating() && isInSelectTool,
+		[agent, isInSelectTool]
 	)
 
 	// Listen to brush selection events and update fairy selection
@@ -108,12 +108,13 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 		if (!fairyEntity) return
 
 		const fairyPosition = fairyEntity.position
-		// Create a bounding box for the fairy (200px x 200px centered on position)
+		const scaledFairySize = FAIRY_SIZE / editor.getZoomLevel()
+		// Create a bounding box for the fairy
 		const fairyBounds = new Box(
-			fairyPosition.x - FAIRY_SIZE / 2,
-			fairyPosition.y - FAIRY_SIZE / 2,
-			FAIRY_SIZE,
-			FAIRY_SIZE
+			fairyPosition.x - scaledFairySize * 0.75,
+			fairyPosition.y - scaledFairySize * 0.25,
+			scaledFairySize,
+			scaledFairySize
 		)
 		const brushBox = Box.From(brush)
 
@@ -141,9 +142,10 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 
 	useEffect(() => {
 		// Deselect fairy when clicking outside
-		const handleClickOutside = (e: any) => {
+		const handleClickOutside = (e: PointerEvent) => {
 			if (
 				fairyRef.current &&
+				e.target instanceof HTMLElement &&
 				!fairyRef.current.contains(e.target) &&
 				!e.target.closest('.tla-fairy-hud')
 			) {
@@ -152,17 +154,17 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 		}
 
 		if (isSelected) {
-			document.addEventListener('mousedown', handleClickOutside)
+			document.addEventListener('pointerdown', handleClickOutside)
 		}
 
 		return () => {
-			document.removeEventListener('mousedown', handleClickOutside)
+			document.removeEventListener('pointerdown', handleClickOutside)
 		}
 	}, [isSelected, fairy])
 
 	// Fairy dragging
 	// Handle fairy pointer down, we don't enter fairy throw tool until the user actually moves their mouse
-	const handleFairyPointerDown = (e: any) => {
+	const handleFairyPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
 		// Don't activate tool immediately - wait for drag to start
 		if (!editor.isIn('select.idle')) return
 		if (editor.getCurrentTool().id === 'fairy-throw') return
@@ -173,13 +175,14 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 		if (agent.isGenerating()) return
 
 		fairy.update((f) => (f ? { ...f, isSelected: true } : f))
-		editor.setCursor({ type: 'grabbing', rotation: 20 })
 		editor.setSelectedShapes([])
+
+		editor.setCursor({ type: 'grabbing', rotation: 0 })
 
 		const startX = e.clientX
 		const startY = e.clientY
 
-		const handlePointerMove = (moveEvent: any) => {
+		const handlePointerMove = (moveEvent: PointerEvent) => {
 			const deltaX = moveEvent.clientX - startX
 			const deltaY = moveEvent.clientY - startY
 
@@ -192,7 +195,7 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 				// Activate the tool
 				const tool = editor.getStateDescendant('fairy-throw')
 				if (tool && 'setFairy' in tool) {
-					;(tool as any).setFairy(fairy)
+					;(tool as FairyThrowTool).setFairy(fairy)
 				}
 				editor.setCurrentTool('fairy-throw')
 			}
@@ -206,10 +209,6 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 
 		document.addEventListener('pointermove', handlePointerMove)
 		document.addEventListener('pointerup', handlePointerUp)
-	}
-
-	const handleFairyPointerUp = () => {
-		editor.setCursor({ type: 'grab', rotation: 0 })
 	}
 
 	const fairyOutfit = useValue('fairy outfit', () => fairyConfig.get()?.outfit, [fairyConfig])
@@ -228,7 +227,7 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 				width: '100vw',
 				height: '100vh',
 				pointerEvents: 'none',
-				overflow: 'hidden',
+				overflow: 'visible',
 			}}
 		>
 			{/* Fairy */}
@@ -236,41 +235,24 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 				ref={fairyRef}
 				style={{
 					position: 'absolute',
-					left: screenPosition.x,
-					top: screenPosition.y,
+					left: position.x,
+					top: position.y,
 					width: `${FAIRY_SIZE}px`,
 					height: `${FAIRY_SIZE}px`,
-					transform: `translate(-75%, -25%) ${flipX ? ' scaleX(-1)' : ''}`,
-					// transition:
-					// 'left 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
+					transform: `translate(-75%, -25%) scale(var(--tl-scale)) ${flipX ? ' scaleX(-1)' : ''}`,
+					transformOrigin: '75% 25%',
 				}}
 				className={isSelected ? 'fairy-selected' : ''}
 			>
 				{/* Fairy clickable zone */}
 				<div
 					onPointerDown={handleFairyPointerDown}
-					onPointerUp={handleFairyPointerUp}
-					onMouseEnter={() => {
-						if (!isThrowToolActive) {
-							if (!editor.isIn('select.idle')) return
-							if (agent.isGenerating()) return
-							editor.setCursor({ type: 'grab', rotation: 0 })
-						}
-					}}
-					onMouseLeave={() => {
-						if (!isThrowToolActive) {
-							editor.setCursor({ type: 'default', rotation: 0 })
-						}
-					}}
 					style={{
 						position: 'absolute',
-						top: '50%',
-						left: '50%',
-						transform: 'translate(-50%, -50%)',
 						width: `${isSelected ? FAIRY_CLICKABLE_SIZE_SELECTED : FAIRY_CLICKABLE_SIZE_DEFAULT}px`,
 						height: `${isSelected ? FAIRY_CLICKABLE_SIZE_SELECTED : FAIRY_CLICKABLE_SIZE_DEFAULT}px`,
-						pointerEvents: isThrowToolActive ? 'none' : 'auto',
-						zIndex: 0,
+						pointerEvents: isFairyGrabbable ? 'all' : 'none',
+						cursor: isFairyGrabbable ? 'grab' : 'default',
 					}}
 				/>
 				<FairySpriteComponent

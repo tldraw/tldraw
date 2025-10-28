@@ -130,7 +130,7 @@ export function FairyApp({
 				isLoadingStateRef.current = false
 			}
 		}
-	}, [app, agent1, agent2, fileId, FAIRY_1_ID, FAIRY_2_ID])
+	}, [app, agent1, agent2, fileId])
 
 	// Todo: Use FileStateUpdater for this
 	// Save fairy state to backend periodically
@@ -179,7 +179,7 @@ export function FairyApp({
 			cleanup2()
 			cleanupSharedTodoList()
 		}
-	}, [app, agent1, agent2, fileId, FAIRY_1_ID, FAIRY_2_ID])
+	}, [app, agent1, agent2, fileId])
 
 	// Save fairy configs to user preferences when they change
 	useEffect(() => {
