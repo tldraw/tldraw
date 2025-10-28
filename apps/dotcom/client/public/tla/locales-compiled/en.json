@@ -189,16 +189,30 @@
       "value": "Pinned"
     }
   ],
-  "3c627add70": [
-    {
-      "type": 0,
-      "value": "Enter verification code"
-    }
-  ],
   "3d0238bf16": [
     {
       "type": 0,
       "value": "Accept all"
+    }
+  ],
+  "3f9ecc46fa": [
+    {
+      "type": 0,
+      "value": "Allow analytics to help improve tldraw ("
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "learn more"
+        }
+      ],
+      "type": 8,
+      "value": "cookies"
+    },
+    {
+      "type": 0,
+      "value": ")"
     }
   ],
   "42e53c47c1": [

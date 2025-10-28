@@ -8,6 +8,7 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 } from 'tldraw'
+import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
 import { F, defineMessages, useMsg } from '../../utils/i18n'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './auth.module.css'
@@ -20,6 +21,8 @@ export function TlaSignInDialog({ onClose }: { onClose?(): void }) {
 	const { user, isLoaded } = useUser()
 	const [showTerms, setShowTerms] = useState(false)
 	const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false)
+	const [analyticsOptIn, setAnalyticsOptIn] = useState(false)
+	const [, updateAnalyticsConsent] = useAnalyticsConsent()
 
 	// Check if user has accepted legal terms
 	useEffect(() => {
@@ -37,6 +40,9 @@ export function TlaSignInDialog({ onClose }: { onClose?(): void }) {
 
 	const handleAcceptTerms = async () => {
 		if (!user || !hasAcceptedTerms) return
+
+		// Persist analytics choice before redirecting
+		updateAnalyticsConsent(analyticsOptIn)
 
 		// Store acceptance in user metadata
 		await user.update({
@@ -56,6 +62,8 @@ export function TlaSignInDialog({ onClose }: { onClose?(): void }) {
 				<TlaTermsAcceptance
 					hasAccepted={hasAcceptedTerms}
 					onAcceptedChange={setHasAcceptedTerms}
+					analyticsOptIn={analyticsOptIn}
+					onAnalyticsChange={setAnalyticsOptIn}
 					onContinue={handleAcceptTerms}
 					onClose={onClose}
 				/>
@@ -84,6 +92,8 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 	const [isSignUpFlow, setIsSignUpFlow] = useState(false)
 	const [isCodeFocused, setIsCodeFocused] = useState(false)
 	const [termsChecked, setTermsChecked] = useState(false)
+	const [analyticsOptIn, setAnalyticsOptIn] = useState(false)
+	const [, updateAnalyticsConsent] = useAnalyticsConsent()
 
 	async function handleEmailSubmit(e: FormEvent) {
 		e.preventDefault()
@@ -249,6 +259,9 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 				onContinue={async () => {
 					if (!termsChecked) return
 					try {
+						// Persist analytics choice before completing sign-up / redirecting
+						updateAnalyticsConsent(analyticsOptIn)
+
 						const su: any = await client.signUp.update({ legalAccepted: true } as any)
 						if (su?.status === 'complete' && su?.createdSessionId) {
 							await setActive({ session: su.createdSessionId })
@@ -273,6 +286,8 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 						)
 					}
 				}}
+				analyticsOptIn={analyticsOptIn}
+				onAnalyticsChange={setAnalyticsOptIn}
 				onClose={onClose}
 			/>
 		)
@@ -353,11 +368,15 @@ function TlaTermsAcceptance({
 	onAcceptedChange,
 	onContinue,
 	onClose,
+	analyticsOptIn,
+	onAnalyticsChange,
 }: {
 	hasAccepted: boolean
 	onAcceptedChange(accepted: boolean): void
 	onContinue(): void
 	onClose?(): void
+	analyticsOptIn: boolean
+	onAnalyticsChange(accepted: boolean): void
 }) {
 	return (
 		<>
@@ -396,6 +415,27 @@ function TlaTermsAcceptance({
 								),
 								privacy: (chunks) => (
 									<a href="/privacy.html" target="_blank" rel="noopener noreferrer">
+										{chunks}
+									</a>
+								),
+							}}
+						/>
+					</span>
+				</label>
+
+				<label className={styles.authCheckboxLabel}>
+					<input
+						type="checkbox"
+						checked={analyticsOptIn}
+						onChange={(e) => onAnalyticsChange(e.target.checked)}
+						className={styles.authCheckbox}
+					/>
+					<span>
+						<F
+							defaultMessage="Allow analytics to help improve tldraw (<cookies>learn more</cookies>)"
+							values={{
+								cookies: (chunks) => (
+									<a href="/cookies.html" target="_blank" rel="noopener noreferrer">
 										{chunks}
 									</a>
 								),
