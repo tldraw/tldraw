@@ -384,10 +384,18 @@ export class FairyAgent {
 		// After the request is handled, check if there are any outstanding todo items or requests
 		let scheduledRequest = this.$scheduledRequest.get()
 		const todoItemsRemaining = this.$todoList.get().filter((item) => item.status !== 'done')
+		const sharedTodoItemsRemaining = $sharedTodoList.get().filter((item) => {
+			if (item.status === 'done') return false
+			if (item.claimedBy && item.claimedBy.id !== this.id) return false
+			return true
+		})
 
 		if (!scheduledRequest) {
 			// If there no outstanding todo items or requests, finish
-			if (todoItemsRemaining.length === 0 || !this.cancelFn) {
+			if (
+				(sharedTodoItemsRemaining.length === 0 && todoItemsRemaining.length === 0) ||
+				!this.cancelFn
+			) {
 				this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
 				return
 			}
@@ -417,6 +425,7 @@ export class FairyAgent {
 		// Handle the scheduled request
 		this.$scheduledRequest.set(null)
 		await this.prompt(scheduledRequest)
+		this.cancelFn = null
 	}
 
 	/**
@@ -446,9 +455,9 @@ export class FairyAgent {
 		const { promise, cancel } = requestAgentActions({ agent: this, request })
 
 		this.cancelFn = cancel
-		promise.finally(() => {
-			this.cancelFn = null
-		})
+		// promise.finally(() => {
+		// 	this.cancelFn = null
+		// })
 
 		const results = await promise
 		this.$activeRequest.set(null)
