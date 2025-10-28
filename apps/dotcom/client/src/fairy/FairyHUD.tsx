@@ -105,7 +105,7 @@ function NewFairyButton({
 
 		// Create the config for the new fairy
 		const config = {
-			name: 'New Fairy ' + `${agents.length + 1}`,
+			name: 'New fairy ' + `${agents.length + 1}`,
 			outfit: randomOutfit,
 			personality: 'Friendly and helpful',
 			wand: 'god',
