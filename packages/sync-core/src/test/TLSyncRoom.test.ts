@@ -704,7 +704,6 @@ describe('isReadonly', () => {
 		        "instance_presence:id_0": [
 		          "put",
 		          {
-		            "agents": [],
 		            "brush": null,
 		            "camera": null,
 		            "chatMessage": "",
