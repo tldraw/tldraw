@@ -1,4 +1,4 @@
-import { Wand, WAND_DEFINITIONS } from '@tldraw/fairy-shared'
+import { FAIRY_VARIANTS, FairyVariantType, Wand, WAND_DEFINITIONS } from '@tldraw/fairy-shared'
 import {
 	TldrawUiButton,
 	TldrawUiButtonLabel,
@@ -21,14 +21,42 @@ export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClo
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody style={{ maxWidth: 400 }}>
-				<div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+				<div
+					className="fairy-config-dialog"
+					style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+				>
 					<label htmlFor="name">Name</label>
 					<TldrawUiInput
+						className="fairy-config-input"
 						value={config.name}
 						onValueChange={(value) => agent.$fairyConfig.set({ ...config, name: value })}
 						placeholder="Fairy's name"
 					/>
-					<label htmlFor="wand">Different wands for debugging purposes</label>
+					<label htmlFor="name">Personality (coming soon)</label>
+					<TldrawUiInput
+						className="fairy-config-input"
+						value={config.personality}
+						onValueChange={(value) => agent.$fairyConfig.set({ ...config, personality: value })}
+						placeholder="Fairy's personality"
+					/>
+					<label htmlFor="hat">Hat</label>
+					<select
+						id="hat"
+						value={config.outfit.hat}
+						onChange={(e) => {
+							agent.$fairyConfig.set({
+								...config,
+								outfit: { ...config.outfit, hat: e.target.value as FairyVariantType<'hat'> },
+							})
+						}}
+					>
+						{Object.keys(FAIRY_VARIANTS.hat).map((hat) => (
+							<option key={hat} value={hat}>
+								{hat.charAt(0).toUpperCase() + hat.slice(1)}
+							</option>
+						))}
+					</select>
+					<label htmlFor="wand">Wand</label>
 					<select
 						id="wand"
 						value={config.wand}

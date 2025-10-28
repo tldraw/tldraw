@@ -842,3 +842,32 @@
 	background-color: #ff8c00;
 	pointer-events: none;
 }
+
+/* Fairy config dialog */
+
+.fairy-config-input {
+	background-color: var(--tl-color-low);
+	padding: 8px;
+	border-radius: var(--tl-radius-2);
+	border: 1px solid var(--tl-color-muted-2);
+}
+
+.fairy-config-dialog select {
+	background-color: var(--tl-color-low);
+	padding: 9px 8px;
+	border-radius: var(--tl-radius-2);
+	border: 1px solid var(--tl-color-muted-2);
+	color: var(--tl-color-text);
+	font-size: 12px;
+	font-family: inherit;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+	outline: none;
+	appearance: none;
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+	background-repeat: no-repeat;
+	background-position: right 8px center;
+	background-size: 16px;
+	padding-right: 32px;
+}

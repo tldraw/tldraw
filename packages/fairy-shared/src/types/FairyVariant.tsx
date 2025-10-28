@@ -1,4 +1,4 @@
-import { FairyPartDefinition, FairyPartType } from './FairyPart'
+import { FairyPartDefinition, FairyPartType } from './FairyPartType'
 import { FairyPose } from './FairyPose'
 
 const FAIRY_HAT_VARIANTS = {
