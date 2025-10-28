@@ -121,8 +121,12 @@ export function FileItems({
 
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
 
-	// Get groups data
-	const groupMemberships = useValue('groupMembers', () => app.getGroupMemberships(), [app])
+	// Get groups data (excluding the home group, which is shown as "My files")
+	const groupMemberships = useValue(
+		'groupMembers',
+		() => app.getGroupMemberships().filter((g) => g.groupId !== app.getHomeGroupId()),
+		[app]
+	)
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = routes.tlaFile(fileId, { asUrl: true })
