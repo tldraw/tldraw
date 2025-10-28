@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 // todo: remove tailwind
 
 interface BoardHistoryLogProps {
-	data: string[]
+	data: { timestamp: string; href?: string }[]
 	hasMore?: boolean
 	onLoadMore?(): void
 	isLoading?: boolean
@@ -18,16 +18,16 @@ function getMonthYear(timestamp: string): string {
 }
 
 function groupTimestampsByMonth(
-	timestamps: string[]
-): Array<{ month: string; timestamps: string[] }> {
-	const groups: { [key: string]: string[] } = {}
+	timestamps: { timestamp: string; href?: string }[]
+): Array<{ month: string; timestamps: { timestamp: string; href?: string }[] }> {
+	const groups: { [key: string]: { timestamp: string; href?: string }[] } = {}
 
-	timestamps.forEach((timestamp) => {
+	timestamps.forEach(({ timestamp, href }) => {
 		const monthKey = getMonthYear(timestamp)
 		if (!groups[monthKey]) {
 			groups[monthKey] = []
 		}
-		groups[monthKey].push(timestamp)
+		groups[monthKey].push({ timestamp, href })
 	})
 
 	return Object.entries(groups).map(([month, timestamps]) => ({
@@ -56,11 +56,10 @@ export function BoardHistoryLog({ data, hasMore, onLoadMore, isLoading }: BoardH
 					<div key={groupIndex} className="board-history__month-group">
 						<h3 className="board-history__month-header">{group.month}</h3>
 						<ol className="board-history__list">
-							{group.timestamps.map((v, i) => {
-								const timeStamp = v.split('/').pop()
+							{group.timestamps.map(({ timestamp, href }, i) => {
 								return (
 									<li key={i}>
-										<Link to={`./${timeStamp}`}>{formatDate(timeStamp!)}</Link>
+										<Link to={href || `./${timestamp}`}>{formatDate(timestamp)}</Link>
 									</li>
 								)
 							})}

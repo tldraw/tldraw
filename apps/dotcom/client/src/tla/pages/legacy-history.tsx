@@ -62,7 +62,9 @@ export function Component({ error: _error }: { error?: unknown }) {
 				<TlaFileError error={error} />
 			) : (
 				<TlaAnonLayout>
-					<BoardHistoryLog data={data.data} />
+					<BoardHistoryLog
+						data={data.data.map((timestamp) => ({ timestamp, href: `./${timestamp}` }))}
+					/>
 				</TlaAnonLayout>
 			)}
 		</>

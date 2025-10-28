@@ -78,6 +78,14 @@ export const router = createRoutesFromElements(
 					path={ROUTES.tlaFileHistorySnapshot}
 					lazy={() => import('./tla/pages/file-history-snapshot')}
 				/>
+				<Route
+					path={ROUTES.tlaFilePierreHistory}
+					lazy={() => import('./tla/pages/file-pierre-history')}
+				/>
+				<Route
+					path={ROUTES.tlaFilePierreHistorySnapshot}
+					lazy={() => import('./tla/pages/file-pierre-history-snapshot')}
+				/>
 
 				<Route path={ROUTES.tlaPublish} lazy={() => import('./tla/pages/publish')} />
 				{/* Legacy room */}
