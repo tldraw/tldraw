@@ -132,6 +132,7 @@ export function FairyApp({
 		}
 	}, [app, agent1, agent2, fileId, FAIRY_1_ID, FAIRY_2_ID])
 
+	// Todo: Use FileStateUpdater for this
 	// Save fairy state to backend periodically
 	useEffect(() => {
 		if (!app || !agent1 || !agent2 || !$sharedTodoList || !fileId) return
@@ -148,7 +149,7 @@ export function FairyApp({
 				sharedTodoList: $sharedTodoList.get(),
 			}
 			app.onFairyStateUpdate(fileId, fairyState)
-		}, 1000) // Save every 1 second
+		}, 2000) // Save maximum every 2 seconds
 
 		// Watch for changes in fairy atoms
 		const cleanup1 = react('fairy 1 state', () => {
