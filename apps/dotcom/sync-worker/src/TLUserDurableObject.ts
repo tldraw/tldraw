@@ -3,7 +3,6 @@ import type { SchemaCRUD, SchemaQuery } from '@rocicorp/zero/out/zql/src/mutate/
 import {
 	DB,
 	MIN_Z_PROTOCOL_VERSION,
-	TlaFile,
 	TlaSchema,
 	TlaUserPartial,
 	ZClientSentMessage,
@@ -23,10 +22,9 @@ import { Logger } from './Logger'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
 import { Analytics, Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
-import { getRoomDurableObject } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
-import { PerfHackHooks, ServerCRUD } from './zero/ServerCrud'
+import { ChangeAccumulator, ServerCRUD } from './zero/ServerCrud'
 import { ServerQuery } from './zero/ServerQuery'
 import { ZMutationError } from './zero/ZMutationError'
 
@@ -156,11 +154,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private makeCrud(
 		client: PoolClient,
 		signal: AbortSignal,
-		perfHackHooks: PerfHackHooks
+		changeAccumulator: ChangeAccumulator
 	): SchemaCRUD<TlaSchema> {
 		return mapObjectMapValues(
 			schema.tables,
-			(_, table) => new ServerCRUD(client, table, signal, perfHackHooks)
+			(_, table) => new ServerCRUD(client, table, signal, changeAccumulator)
 		)
 	}
 
@@ -334,7 +332,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		const client = await this.pool.connect()
 
 		try {
-			const newFiles = [] as TlaFile[]
+			const changeAccumulator: ChangeAccumulator = {
+				file: { added: [] },
+				user_fairies: { added: [], updated: [], removed: [] },
+				file_fairies: { added: [], updated: [], removed: [] },
+			}
 
 			await client.query('BEGIN')
 
@@ -345,7 +347,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			await client.query('SELECT pg_advisory_xact_lock_shared(hashtext($1))', [this.userId])
 
 			const controller = new AbortController()
-			const mutate = this.makeCrud(client, controller.signal, { newFiles })
+			const mutate = this.makeCrud(client, controller.signal, changeAccumulator)
 			try {
 				// new
 				const mutators = createMutators(this.userId!)
@@ -396,11 +398,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 			await client.query('COMMIT')
 
-			for (const file of newFiles) {
-				// if this is a legacy guest file, add it to the cache
-				this.cache?.addGuestFile(file)
-				getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
-			}
+			await this.cache?.incorporateUnsyncedChanges(changeAccumulator)
 		} catch (e) {
 			await client.query('ROLLBACK')
 			throw e

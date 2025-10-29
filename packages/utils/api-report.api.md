@@ -319,9 +319,7 @@ export function modulate(value: number, rangeA: number[], rangeB: number[], clam
 export const noop: () => void;
 
 // @internal
-export function objectMapEntries<Key extends string, Value>(object: {
-    [K in Key]: Value;
-}): Array<[Key, Value]>;
+export function objectMapEntries<Obj extends object>(object: Obj): Array<[keyof Obj, Obj[keyof Obj]]>;
 
 // @internal
 export function objectMapEntriesIterable<Key extends string, Value>(object: {
