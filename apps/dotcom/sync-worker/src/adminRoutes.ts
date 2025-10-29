@@ -62,6 +62,90 @@ export const adminRoutes = createRouter<Environment>()
 		const result = await user.admin_migrateToGroups(userRow.id, uniqueId())
 		return json(result)
 	})
+	.get('/app/admin/unmigrated_users_count', async (_res, env) => {
+		const pg = createPostgresConnectionPool(env, '/app/admin/unmigrated_users_count')
+		const users = await getUnmigratedUsers(pg)
+		return json({ count: users.length })
+	})
+	.get('/app/admin/migrate_users_batch', async (res, env) => {
+		let stopRequested = false
+
+		// Parse query parameters for batch configuration
+		const batchSize = parseInt((res.query['batchSize'] as string) || '100')
+		const batchSleepMs = parseInt((res.query['batchSleepMs'] as string) || '100')
+		const maxUsers = res.query['maxUsers'] ? parseInt(res.query['maxUsers'] as string) : undefined
+
+		return new Response(
+			new ReadableStream({
+				async start(controller) {
+					try {
+						// Helper function to send progress events
+						const sendProgress = (step: string, message: string, details?: any) => {
+							const event = {
+								type: 'progress',
+								step,
+								message,
+								timestamp: Date.now(),
+								details,
+							}
+							controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(event)}\n\n`))
+						}
+
+						const shouldStop = () => stopRequested
+
+						sendProgress('starting', 'Beginning batch user migration process...')
+
+						await performBatchUserMigration(
+							env,
+							sendProgress,
+							shouldStop,
+							batchSize,
+							batchSleepMs,
+							maxUsers
+						)
+
+						// Send completion event
+						const completionEvent = {
+							type: 'complete',
+							step: 'finished',
+							message: stopRequested
+								? 'Batch migration stopped by user'
+								: 'Batch migration completed successfully',
+							timestamp: Date.now(),
+						}
+						controller.enqueue(
+							new TextEncoder().encode(`data: ${JSON.stringify(completionEvent)}\n\n`)
+						)
+					} catch (error) {
+						// Send error event
+						const errorEvent = {
+							type: 'error',
+							step: 'error',
+							message: error instanceof Error ? error.message : 'Unknown error occurred',
+							timestamp: Date.now(),
+							details: { error: error instanceof Error ? error.stack : String(error) },
+						}
+						controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(errorEvent)}\n\n`))
+					} finally {
+						controller.close()
+					}
+				},
+				cancel() {
+					// Called when client closes the EventSource connection
+					stopRequested = true
+				},
+			}),
+			{
+				headers: {
+					'Content-Type': 'text/event-stream',
+					'Cache-Control': 'no-cache',
+					Connection: 'keep-alive',
+					'Access-Control-Allow-Origin': '*',
+					'Access-Control-Allow-Headers': 'Cache-Control',
+				},
+			}
+		)
+	})
 	.post('/app/admin/create_legacy_file', async (_res, env) => {
 		const slug = uniqueId()
 		await getRoomDurableObject(env, slug).__admin__createLegacyRoom(slug)
@@ -311,4 +395,132 @@ async function performUserDeletion(
 	// Clean up user durable object state and R2 data
 	const user = getUserDurableObject(env, userRow.id)
 	await user.admin_delete(userRow.id)
+}
+
+async function getUnmigratedUsers(pg: ReturnType<typeof createPostgresConnectionPool>) {
+	return await pg
+		.selectFrom('user')
+		.where((eb) => eb.or([eb('flags', 'not like', '%groups_backend%'), eb('flags', 'is', null)]))
+		.select(['id', 'email', 'name'])
+		.execute()
+}
+
+async function performBatchUserMigration(
+	env: Environment,
+	sendProgress: (step: string, message: string, details?: any) => void,
+	shouldStop: () => boolean,
+	batchSize: number = 100,
+	batchSleepMs: number = 100,
+	maxUsers?: number
+) {
+	const pg = createPostgresConnectionPool(env, '/app/admin/migrate_users_batch')
+
+	sendProgress('query', 'Fetching users without groups_backend flag...')
+
+	const allUsersToMigrate = await getUnmigratedUsers(pg)
+
+	// Limit the number of users if maxUsers is specified
+	const usersToMigrate = maxUsers ? allUsersToMigrate.slice(0, maxUsers) : allUsersToMigrate
+
+	const totalUsers = usersToMigrate.length
+	const totalAvailable = allUsersToMigrate.length
+	sendProgress(
+		'query',
+		maxUsers
+			? `Found ${totalAvailable} users to migrate (limiting to ${totalUsers})`
+			: `Found ${totalUsers} users to migrate`,
+		{ totalUsers, totalAvailable }
+	)
+
+	if (totalUsers === 0) {
+		sendProgress('complete', 'No users to migrate')
+		return
+	}
+
+	let successCount = 0
+	let failureCount = 0
+	const failures: Array<{ userId: string; email: string; error: string }> = []
+
+	// Process users in batches
+	for (let i = 0; i < usersToMigrate.length; i++) {
+		// Check if we should stop
+		if (shouldStop()) {
+			sendProgress('stopped', 'Migration stopped by user', {
+				totalUsers,
+				successCount,
+				failureCount,
+				processed: i,
+				remaining: totalUsers - i,
+			})
+			break
+		}
+
+		const userRow = usersToMigrate[i]
+		const progress = i + 1
+
+		sendProgress('migrating', `Migrating user ${progress}/${totalUsers}: ${userRow.email}`, {
+			userId: userRow.id,
+			email: userRow.email,
+			progress,
+			totalUsers,
+			successCount,
+			failureCount,
+		})
+
+		try {
+			const user = getUserDurableObject(env, userRow.id)
+			const result = await user.admin_migrateToGroups(userRow.id, uniqueId())
+
+			successCount++
+			sendProgress(
+				'success',
+				`Successfully migrated user ${progress}/${totalUsers}: ${userRow.email}`,
+				{
+					userId: userRow.id,
+					email: userRow.email,
+					result,
+					successCount,
+					failureCount,
+				}
+			)
+		} catch (error) {
+			failureCount++
+			const errorMessage = error instanceof Error ? error.message : String(error)
+			failures.push({
+				userId: userRow.id,
+				email: userRow.email,
+				error: errorMessage,
+			})
+
+			sendProgress(
+				'failure',
+				`Failed to migrate user ${progress}/${totalUsers}: ${userRow.email}`,
+				{
+					userId: userRow.id,
+					email: userRow.email,
+					error: errorMessage,
+					successCount,
+					failureCount,
+				}
+			)
+		}
+
+		// Brief pause between migrations to avoid overwhelming the system
+		if ((i + 1) % batchSize === 0) {
+			sendProgress('batch_complete', `Completed ${i + 1} of ${totalUsers} users`, {
+				progress: i + 1,
+				totalUsers,
+				successCount,
+				failureCount,
+			})
+			await sleep(batchSleepMs)
+		}
+	}
+
+	sendProgress('summary', 'Migration batch complete', {
+		totalUsers,
+		successCount,
+		failureCount,
+		failures: failures.length > 0 ? failures : undefined,
+	})
 }
