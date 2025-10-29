@@ -569,6 +569,7 @@
 	width: 14px;
 	height: 14px;
 	color: var(--tl-color-text-3);
+	margin-top: 2px;
 }
 
 .fairy-chat-history-action-icon {
