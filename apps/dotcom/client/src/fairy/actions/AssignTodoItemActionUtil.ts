@@ -8,11 +8,8 @@ export class AssignTodoItemActionUtil extends AgentActionUtil<AssignTodoItemActi
 
 	override getInfo(action: Streaming<AssignTodoItemAction>) {
 		let otherFairyName = 'a fairy'
-		let actionTodoItemIds: number[] = []
 
 		if (action.complete) {
-			actionTodoItemIds = action.todoItemIds
-
 			const otherFairy = $fairyAgentsAtom
 				.get(this.editor)
 				.find((fairy) => fairy.id === action.otherFairyId)
@@ -20,13 +17,12 @@ export class AssignTodoItemActionUtil extends AgentActionUtil<AssignTodoItemActi
 		}
 
 		const text = action.complete
-			? `Asking for help...`
-			: `Asked ${otherFairyName} for help with todo item(s) ${actionTodoItemIds ? actionTodoItemIds.join(', ') : ''}.`
+			? `Asked ${otherFairyName} for help.`
+			: `Asking ${otherFairyName} for help...`
 
 		return {
 			icon: 'pencil' as const,
 			description: text,
-			summary: text,
 		}
 	}
 

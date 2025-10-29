@@ -61,7 +61,9 @@ function FairyChatHistoryActionDisplay({
 					<AgentIcon type={info.icon} />
 				</div>
 			)}
-			<Markdown>{displayText}</Markdown>
+			<div>
+				<Markdown>{displayText}</Markdown>
+			</div>
 		</div>
 	)
 }

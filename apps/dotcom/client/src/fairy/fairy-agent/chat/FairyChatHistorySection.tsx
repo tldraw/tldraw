@@ -6,10 +6,9 @@ import {
 } from '@tldraw/fairy-shared'
 import { FairyAgent } from '../agent/FairyAgent'
 import { FairyChatHistoryGroup, getActionHistoryGroups } from './FairyChatHistoryGroup'
-import { FairyChatHistoryPrompt } from './FairyChatHistoryPrompt'
 
 export interface FairyChatHistorySection {
-	prompt: ChatHistoryPromptItem
+	prompt: ChatHistoryPromptItem | null
 	items: (ChatHistoryActionItem | ChatHistoryContinuationItem)[]
 }
 
@@ -25,7 +24,13 @@ export function FairyChatHistorySection({
 
 	return (
 		<div className="fairy-chat-history-section">
-			<FairyChatHistoryPrompt item={section.prompt} />
+			<div className="fairy-chat-history-prompt-container fairy-chat-history-prompt-sticky">
+				<div className="fairy-chat-history-prompt">
+					<div className="fairy-chat-history-prompt-content">
+						{section.prompt?.message ?? 'Awakened... I must complete my mission.'}
+					</div>
+				</div>
+			</div>
 			{groups.map((group, i) => {
 				return <FairyChatHistoryGroup key={'chat-history-group-' + i} group={group} agent={agent} />
 			})}
@@ -44,6 +49,8 @@ export function getAgentHistorySections(items: ChatHistoryItem[]): FairyChatHist
 
 		if (sections.length > 0) {
 			sections[sections.length - 1].items.push(item)
+		} else {
+			sections.push({ prompt: null, items: [item] })
 		}
 	}
 

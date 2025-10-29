@@ -423,11 +423,15 @@
 	flex-direction: column;
 	gap: 8px;
 	flex-shrink: 0;
+	padding-top: 4px;
+}
+
+.fairy-chat-history-section:not(:first-child) {
 	padding-top: 8px;
 }
 
 .fairy-chat-history-section:last-child {
-	min-height: 132px;
+	min-height: 100%;
 }
 
 .fairy-chat-history-prompt-container {
