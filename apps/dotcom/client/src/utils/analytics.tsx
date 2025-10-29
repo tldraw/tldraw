@@ -363,3 +363,8 @@ function useTrackPageViews() {
 		trackEvent('$pageview')
 	}, [location])
 }
+
+export function signoutAnalytics() {
+	if (shouldUsePosthog) posthog.reset()
+	if (shouldUseGA4) ReactGA.reset()
+}
