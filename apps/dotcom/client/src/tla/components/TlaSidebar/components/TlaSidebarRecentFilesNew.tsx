@@ -29,6 +29,7 @@ export function TlaSidebarRecentFilesNew() {
 	const groupMemberships = useValue('groupMemberships', () => app.getGroupMemberships(), [app])
 
 	const files = useValue('my files', () => app.getMyFiles(), [app])
+	const homeGroupId = app.getHomeGroupId()
 	const showMyFilesDropState = useValue(
 		'showMyFilesDropState',
 		() => {
@@ -36,11 +37,11 @@ export function TlaSidebarRecentFilesNew() {
 			if (!dragState) return false
 			return (
 				dragState.type === 'file' &&
-				dragState.operation.move?.targetId === 'my-files' &&
+				dragState.operation.move?.targetId === homeGroupId &&
 				!dragState.operation.reorder
 			)
 		},
-		[app]
+		[app, homeGroupId]
 	)
 
 	if (!files) throw Error('Could not get files')
@@ -57,7 +58,10 @@ export function TlaSidebarRecentFilesNew() {
 
 	return (
 		<Fragment>
-			<div data-drop-target-id="my-files" className={showMyFilesDropState ? styles.dropping : ''}>
+			<div
+				data-drop-target-id={homeGroupId}
+				className={showMyFilesDropState ? styles.dropping : ''}
+			>
 				<div
 					style={{ fontSize: 12, paddingLeft: 6, paddingTop: 12, color: 'var(--tla-color-text-3)' }}
 				>
@@ -67,7 +71,7 @@ export function TlaSidebarRecentFilesNew() {
 				{filesToShow.length > 0 &&
 					filesToShow.map((item, i) => (
 						<TlaSidebarFileLink
-							groupId="my-files"
+							groupId={homeGroupId}
 							key={'file_link_today_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-today-${i}`}
@@ -78,7 +82,7 @@ export function TlaSidebarRecentFilesNew() {
 						<Collapsible.Content className={styles.CollapsibleContent}>
 							{hiddenFiles.map((item, i) => (
 								<TlaSidebarFileLink
-									groupId="my-files"
+									groupId={homeGroupId}
 									key={'file_link_today_' + item.fileId}
 									item={item}
 									testId={`tla-file-link-today-${i}`}

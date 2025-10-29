@@ -17,6 +17,7 @@ import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useDragTracking } from '../../../hooks/useDragTracking'
 import { useHasFileAdminRights } from '../../../hooks/useIsFileOwner'
+import { useIsFilePinned } from '../../../hooks/useIsFilePinned'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F, defineMessages, useIntl } from '../../../utils/i18n'
@@ -83,7 +84,7 @@ export function TlaSidebarFileLink({
 		[fileId, app]
 	)
 
-	const isPinned = useValue('isPinned', () => !!app.getFileState(fileId)?.isPinned, [fileId, app])
+	const isPinned = useIsFilePinned(fileId, groupId)
 
 	const handleRenameAction = () => {
 		if (isMobile) {
