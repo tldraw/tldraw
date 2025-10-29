@@ -2000,16 +2000,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@clerk/types@npm:^4.44.0, @clerk/types@npm:^4.44.2":
-  version: 4.44.2
-  resolution: "@clerk/types@npm:4.44.2"
-  dependencies:
-    csstype: "npm:3.1.1"
-  checksum: 10/db18b80b43d3713daccfda09644d09164b19f672616efd12e795884f878ff41444b141d12dd307ae1d85f489933b4ef4bafac1b317a855571ba5ec53cc09a3e3
-  languageName: node
-  linkType: hard
-
-"@clerk/types@npm:^4.95.1":
+"@clerk/types@npm:^4.44.0, @clerk/types@npm:^4.44.2, @clerk/types@npm:^4.95.1":
   version: 4.95.1
   resolution: "@clerk/types@npm:4.95.1"
   dependencies:
@@ -13823,13 +13814,6 @@ __metadata:
     "@asamuzakjp/css-color": "npm:^3.2.0"
     rrweb-cssom: "npm:^0.8.0"
   checksum: 10/1cb25c9d66b87adb165f978b75cdeb6f225d7e31ba30a8934666046a0be037e4e7200d359bfa79d4f1a4aef1083ea09633b81bcdb36a2f2ac888e8c73ea3a289
-  languageName: node
-  linkType: hard
-
-"csstype@npm:3.1.1":
-  version: 3.1.1
-  resolution: "csstype@npm:3.1.1"
-  checksum: 10/a945162578fe5a90d40950646ab289cec8966dfacc7e5220be832d87773684c969d91920e0d5f9a0c4503aca1f9fa91134a822ebc9c2f9e01e3836ebc6369b25
   languageName: node
   linkType: hard
 

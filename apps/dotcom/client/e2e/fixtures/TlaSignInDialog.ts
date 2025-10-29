@@ -8,7 +8,6 @@ export class TlaSignInDialog {
   public readonly continueButton: Locator
   public readonly codeInput: Locator
   public readonly resendButton: Locator
-  public readonly termsTitle: Locator
   public readonly termsCheckbox: Locator
   public readonly analyticsCheckbox: Locator
   public readonly continueToTldrawButton: Locator
@@ -19,7 +18,6 @@ export class TlaSignInDialog {
     this.continueButton = this.page.getByRole('button', { name: 'Continue', exact: true })
     this.codeInput = this.page.locator('#tla-verification-code')
     this.resendButton = this.page.getByRole('button', { name: 'Resend' })
-    this.termsTitle = this.page.getByRole('heading', { name: 'Welcome to tldraw' })
     this.termsCheckbox = this.page.getByRole('checkbox', {
       name: 'I agree to the Terms of Service and Privacy Policy',
     })
@@ -69,7 +67,6 @@ export class TlaSignInDialog {
 
   @step
   async expectTermsStageVisible() {
-    await expect(this.termsTitle).toBeVisible()
     await expect(this.termsCheckbox).toBeVisible()
     await expect(this.analyticsCheckbox).toBeVisible()
     await expect(this.continueToTldrawButton).toBeVisible()
