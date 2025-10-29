@@ -711,6 +711,7 @@ export function createMutators(userId: string) {
 				groupId,
 				createdAt: Date.now(),
 				updatedAt: Date.now(),
+				index: null,
 			})
 		},
 		updateOwnGroupUser: async (tx, { groupId, index }: { groupId: string; index: IndexKey }) => {
