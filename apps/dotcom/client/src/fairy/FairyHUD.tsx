@@ -15,8 +15,6 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiToolbar,
-	TldrawUiToolbarToggleGroup,
-	TldrawUiToolbarToggleItem,
 	uniqueId,
 	useDefaultHelpers,
 	useEditor,
@@ -29,8 +27,8 @@ import { defineMessages, useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairyChatHistory } from './fairy-agent/chat/FairyChatHistory'
 import { FairyBasicInput } from './fairy-agent/input/FairyBasicInput'
-import { FairySpriteComponent } from './fairy-sprite/FairySprite'
 import { FairyConfigDialog } from './FairyConfigDialog'
+import { FairySidebarButton } from './FairySidebarButton'
 import { getRandomFairyName } from './getRandomFairyName'
 import { $sharedTodoList, clearSharedTodoList } from './SharedTodoList'
 import { SharedTodoListInline } from './SharedTodoListInline'
@@ -40,47 +38,6 @@ const fairyMessages = defineMessages({
 	deselect: { defaultMessage: 'Deselect fairy' },
 	select: { defaultMessage: 'Select fairy' },
 })
-
-function FairyButton({
-	agent,
-	onClick,
-	onDoubleClick,
-	selectMessage,
-	deselectMessage,
-}: {
-	agent: FairyAgent
-	onClick(): void
-	onDoubleClick(): void
-	selectMessage: string
-	deselectMessage: string
-}) {
-	// Use useValue to make the component reactive
-	const fairyIsSelected = useValue(
-		'fairy-button-selected',
-		() => agent.$fairyEntity.get()?.isSelected ?? false,
-		[agent]
-	)
-
-	const fairyOutfit = useValue('fairy outfit', () => agent.$fairyConfig.get()?.outfit, [agent])
-	const fairyEntity = useValue('fairy entity', () => agent.$fairyEntity.get(), [agent])
-
-	return (
-		<TldrawUiToolbarToggleGroup type="single" value={fairyIsSelected ? 'on' : 'off'} asChild>
-			<TldrawUiToolbarToggleItem
-				className="fairy-toggle-button"
-				onClick={onClick}
-				onDoubleClick={onDoubleClick}
-				type="icon"
-				data-state={fairyIsSelected ? 'on' : 'off'}
-				data-isactive={fairyIsSelected}
-				aria-label={fairyIsSelected ? deselectMessage : selectMessage}
-				value="on"
-			>
-				<FairySpriteComponent entity={fairyEntity} outfit={fairyOutfit} animated={true} />
-			</TldrawUiToolbarToggleItem>
-		</TldrawUiToolbarToggleGroup>
-	)
-}
 
 function NewFairyButton({
 	agents,
@@ -481,13 +438,6 @@ export function FairyHUD({
 
 				<div className="fairy-buttons-container">
 					<div className="fairy-toolbar-stack-header">
-						{/* <TldrawUiButton
-							type="icon"
-							className="fairy-toolbar-sidebar-button"
-							onClick={() => setPanelState((v) => (v === 'closed' ? 'todo-list' : 'closed'))}
-						>
-							{panelState === 'closed' ? '‹‹' : '››'}
-						</TldrawUiButton> */}
 						<div style={{ position: 'relative' }}>
 							<TldrawUiButton
 								type="icon"
@@ -502,13 +452,14 @@ export function FairyHUD({
 					<TldrawUiToolbar label={toolbarMessage} orientation="vertical">
 						{agents.map((agent) => {
 							return (
-								<FairyButton
+								<FairySidebarButton
 									key={agent.id}
 									agent={agent}
 									onClick={() => handleClickFairy(agent)}
 									onDoubleClick={() => handleDoubleClickFairy(agent)}
 									selectMessage={selectMessage}
 									deselectMessage={deselectMessage}
+									onDeleteFairyConfig={onDeleteFairyConfig}
 								/>
 							)
 						})}
