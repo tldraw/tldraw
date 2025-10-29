@@ -44,7 +44,6 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import pick from 'lodash.pick'
-import { patch } from 'patchfork'
 import { useNavigate } from 'react-router-dom'
 import {
 	Atom,
@@ -1071,9 +1070,9 @@ export class TldrawApp {
 	}
 
 	sidebarState = atom('sidebar state', {
-		expandedGroups: new Map<string, 'closed' | 'expanded_show_less' | 'expanded_show_more'>(),
+		expandedGroups: {} as Record<string, 'closed' | 'expanded_show_less' | 'expanded_show_more'>,
 		recentFilesShowMore: false,
-		noAnimationGroups: new Set<string>(),
+		noAnimationGroups: [] as string[],
 		renameState: null as null | {
 			fileId: string
 			groupId: string
@@ -1082,9 +1081,12 @@ export class TldrawApp {
 	})
 
 	ensureSidebarGroupExpanded(groupId: string) {
-		const currentExpansionState = this.sidebarState.get().expandedGroups.get(groupId)
+		const currentExpansionState = this.sidebarState.get().expandedGroups[groupId]
 		if (!currentExpansionState || currentExpansionState === 'closed') {
-			patch(this.sidebarState).expandedGroups.set(groupId, 'expanded_show_less')
+			this.sidebarState.update((prev) => ({
+				...prev,
+				expandedGroups: { ...prev.expandedGroups, [groupId]: 'expanded_show_less' },
+			}))
 		}
 	}
 
@@ -1108,7 +1110,10 @@ export class TldrawApp {
 
 			if (fileIndex >= MAX_FILES_TO_SHOW) {
 				// File is in the "show more" section, expand fully
-				patch(this.sidebarState).expandedGroups.set(file.owningGroupId, 'expanded_show_more')
+				this.sidebarState.update((prev) => ({
+					...prev,
+					expandedGroups: { ...prev.expandedGroups, [file.owningGroupId!]: 'expanded_show_more' },
+				}))
 			} else {
 				// File is in the "show less" section, ensure group is expanded
 				this.ensureSidebarGroupExpanded(file.owningGroupId)
@@ -1180,7 +1185,10 @@ export class TldrawApp {
 			await sleep(50)
 		}
 
-		patch(this.sidebarState).expandedGroups.set(payload.groupId, 'expanded_show_less')
+		this.sidebarState.update((prev) => ({
+			...prev,
+			expandedGroups: { ...prev.expandedGroups, [payload.groupId]: 'expanded_show_less' },
+		}))
 
 		// Clear any existing ordering for this new group to get fresh ordering
 		this.lastGroupFileOrderings.delete(payload.groupId)

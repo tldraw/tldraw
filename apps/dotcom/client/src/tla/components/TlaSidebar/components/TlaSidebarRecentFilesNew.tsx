@@ -1,4 +1,3 @@
-import { patch } from 'patchfork'
 import { Collapsible } from 'radix-ui'
 import { Fragment } from 'react'
 import { useValue } from 'tldraw'
@@ -18,11 +17,11 @@ export function TlaSidebarRecentFilesNew() {
 	])
 
 	const handleShowMore = () => {
-		patch(app.sidebarState).recentFilesShowMore(true)
+		app.sidebarState.update((prev) => ({ ...prev, recentFilesShowMore: true }))
 	}
 
 	const handleShowLess = () => {
-		patch(app.sidebarState).recentFilesShowMore(false)
+		app.sidebarState.update((prev) => ({ ...prev, recentFilesShowMore: false }))
 	}
 
 	// Get group memberships from the server
