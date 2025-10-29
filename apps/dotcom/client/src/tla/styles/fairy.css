@@ -423,6 +423,11 @@
 	flex-direction: column;
 	gap: 8px;
 	flex-shrink: 0;
+	padding-top: 8px;
+}
+
+.fairy-chat-history-section:last-child {
+	min-height: 132px;
 }
 
 .fairy-chat-history-prompt-container {
@@ -479,7 +484,6 @@
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	/* padding: 2px 4px; */
 	background-color: transparent;
 	border: none;
 	border-radius: 6px;
@@ -487,6 +491,8 @@
 	color: var(--tl-color-text-3);
 	cursor: pointer;
 	margin-left: -4px;
+	text-align: left;
+	align-items: start;
 }
 
 .fairy-chat-history-group-toggle:hover {
@@ -528,6 +534,7 @@
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
+	padding-left: 2px;
 }
 
 .fairy-chat-history-action-content {
@@ -562,7 +569,21 @@
 	width: 14px;
 	height: 14px;
 	color: var(--tl-color-text-3);
-	margin-top: 2px;
+}
+
+.fairy-chat-history-action-icon {
+	/* margin-top: 2px; */
+	padding-top: 2px;
+}
+
+.fairy-chat-history-item-container {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.fairy-chat-history-item-container > .fairy-chat-history-action {
+	padding-left: 2px;
 }
 
 .fairy-chat-loading {

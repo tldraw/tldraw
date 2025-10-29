@@ -52,7 +52,7 @@ function FairyChatHistoryActionDisplay({
 	const info = agent.getActionInfo(action)
 
 	const displayText =
-		info.summary || info.description || formatActionName(action._type || 'unknown')
+		info.description || info.summary || formatActionName(action._type || 'unknown')
 
 	return (
 		<div className="fairy-chat-history-action">
