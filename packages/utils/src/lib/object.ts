@@ -108,10 +108,10 @@ export function objectMapValues<Key extends string, Value>(object: {
  * ```
  * @internal
  */
-export function objectMapEntries<Key extends string, Value>(object: {
-	[K in Key]: Value
-}): Array<[Key, Value]> {
-	return Object.entries(object) as [Key, Value][]
+export function objectMapEntries<Obj extends object>(
+	object: Obj
+): Array<[keyof Obj, Obj[keyof Obj]]> {
+	return Object.entries(object) as [keyof Obj, Obj[keyof Obj]][]
 }
 
 /**

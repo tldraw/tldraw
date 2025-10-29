@@ -2,18 +2,15 @@ import { stringEnum } from '@tldraw/utils'
 import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
 import {
 	TlaFile,
-	TlaFilePartial,
+	TlaFileFairy,
 	TlaFileState,
-	TlaFileStatePartial,
 	TlaGroup,
 	TlaGroupFile,
-	TlaGroupFilePartial,
-	TlaGroupPartial,
 	TlaGroupUser,
-	TlaGroupUserPartial,
 	TlaRow,
+	TlaRowPartial,
 	TlaUser,
-	TlaUserPartial,
+	TlaUserFairy,
 } from './tlaSchema'
 
 export interface Snapshot {
@@ -127,6 +124,8 @@ export interface ZStoreData {
 	group: TlaGroup[]
 	group_user: TlaGroupUser[]
 	group_file: TlaGroupFile[]
+	user_fairies: TlaUserFairy[]
+	file_fairies: TlaFileFairy[]
 	lsn: string
 }
 
@@ -139,18 +138,20 @@ export interface ZRowInsert {
 }
 
 export interface ZRowDeleteOrUpdate {
-	row:
-		| TlaFilePartial
-		| TlaFileStatePartial
-		| TlaUserPartial
-		| TlaGroupPartial
-		| TlaGroupUserPartial
-		| TlaGroupFilePartial
+	row: TlaRowPartial
 	table: ZTable
 	event: 'update' | 'delete'
 }
 
-export type ZTable = 'file' | 'file_state' | 'user' | 'group' | 'group_user' | 'group_file'
+export type ZTable =
+	| 'file'
+	| 'file_state'
+	| 'user'
+	| 'group'
+	| 'group_user'
+	| 'group_file'
+	| 'user_fairies'
+	| 'file_fairies'
 
 export type ZEvent = 'insert' | 'update' | 'delete'
 
