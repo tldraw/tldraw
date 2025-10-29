@@ -86,12 +86,14 @@ export function FairyApp({
 
 		agentsRef.current = updatedAgents
 		setAgents(updatedAgents)
-
-		// Cleanup: dispose all agents when component unmounts
-		return () => {
-			updatedAgents.forEach((agent) => agent.dispose())
-		}
 	}, [fairyConfigs, editor, getToken, handleError, setAgents])
+
+	// Cleanup: dispose all agents only when component unmounts
+	useEffect(() => {
+		return () => {
+			agentsRef.current.forEach((agent) => agent.dispose())
+		}
+	}, [])
 
 	// Load fairy state from backend when agents are created
 	useEffect(() => {
