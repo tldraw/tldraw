@@ -9,10 +9,14 @@ export function getLocalFiles(options?: {
 		input.type = 'file'
 		input.accept = mimeTypes?.join(',')
 		input.multiple = allowMultiple
+		input.style.display = 'none'
 
 		async function onchange(e: Event) {
 			const fileList = (e.target as HTMLInputElement).files
-			if (!fileList || fileList.length === 0) return
+			if (!fileList || fileList.length === 0) {
+				resolve([])
+				return
+			}
 			const files = Array.from(fileList)
 			input.value = ''
 			resolve(files)
@@ -20,6 +24,7 @@ export function getLocalFiles(options?: {
 			input.remove()
 		}
 
+		document.body.appendChild(input)
 		input.addEventListener('change', onchange)
 		input?.click()
 	})
