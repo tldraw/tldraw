@@ -1,5 +1,5 @@
 import { AssignTodoItemAction, Streaming } from '@tldraw/fairy-shared'
-import { $fairyAgentsAtom } from '../fairy-agent/agent/fairyAgentsAtom'
+import { $fairyAgentsAtom, getFairyAgentById } from '../fairy-agent/agent/fairyAgentsAtom'
 import { $sharedTodoList } from '../SharedTodoList'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -32,7 +32,7 @@ export class AssignTodoItemActionUtil extends AgentActionUtil<AssignTodoItemActi
 
 		const { otherFairyId, todoItemIds } = action
 
-		const otherFairy = $fairyAgentsAtom.get(this.editor).find((fairy) => fairy.id === otherFairyId)
+		const otherFairy = getFairyAgentById(otherFairyId, this.editor)
 		if (!otherFairy) {
 			this.agent.cancel()
 			this.agent.schedule(
@@ -71,6 +71,10 @@ export class AssignTodoItemActionUtil extends AgentActionUtil<AssignTodoItemActi
 		)
 
 		if (validTodoItems.length === 0) return
+
+		validTodoItems.forEach((item) => {
+			item.claimedBy = { id: otherFairyId, name: otherFairy.$fairyConfig.get().name }
+		})
 
 		otherFairy.helpOut(validTodoItems)
 	}

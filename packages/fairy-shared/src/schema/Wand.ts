@@ -122,6 +122,38 @@ export const WAND_DEFINITIONS = [
 		] as const,
 	},
 	{
+		type: 'orchestrator',
+		name: 'Orchestrator Wand',
+		description: 'A wand that allows the fairy to orchestrate other fairies.',
+		available: true,
+		parts: DEFAULT_PROMPT_PART_SET,
+		actions: [
+			'message',
+			'think',
+			'review',
+			'update-todo-list',
+			'fly-to-bounds',
+			'assign-todo-item',
+		],
+	},
+	{
+		type: 'drone',
+		name: 'Drone Wand',
+		description: 'A wand that allows the fairy to perform simple actions.',
+		available: true,
+		parts: [
+			'messages',
+			'wand',
+			'blurryShapes',
+			'peripheralShapes',
+			'screenshot',
+			'viewportBounds',
+			'chatHistory',
+			'sharedTodoList',
+		],
+		actions: DEFAULT_AGENT_ACTION_SET.filter((action) => action !== 'assign-todo-item'),
+	},
+	{
 		type: 'blindfold',
 		name: 'Blindfolded Wand',
 		description:

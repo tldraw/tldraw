@@ -54,7 +54,9 @@ For the full list of events, refer to the JSON schema.
 
 ## Shapes
 
-Shapes can be:
+${
+	flags.canEdit
+		? `Shapes can be:
 
 ${FOCUSED_SHAPE_TYPES.map((type) => `- **${type.charAt(0).toUpperCase() + type.slice(1)} (\`${type}\`)**`).join('\n')}
 
@@ -89,6 +91,10 @@ Arrows and lines have:
 - \`y1\` (the y coordinate of the first point of the line)
 - \`x2\` (the x coordinate of the second point of the line)
 - \`y2\` (the y coordinate of the second point of the line)
+`
+		: `What you need to know about shapes is that they exist on the canvas and have x,y coordinates, as well as many different types, colors, and fills. There are also arrows that can connect two shapes. You can't create or edit them, but other fairies can.
+`
+}
 
 ## Event schema
 
@@ -98,8 +104,8 @@ Refer to the JSON schema for the full list of available events, their properties
 
 1. **Always return a valid JSON object conforming to the schema.**
 2. **Do not generate extra fields or omit required fields.**
-3. **Ensure each \`shapeId\` is unique and consistent across related events.**
-4. **Use meaningful \`intent\` descriptions for all actions.**
+3. **Use meaningful \`intent\` descriptions for all actions.**
+${flags.canEdit ? '4. **Ensure each `shapeId` is unique and consistent across related events.**' : ''}
 
 ## Useful notes
 
@@ -109,7 +115,9 @@ Refer to the JSON schema for the full list of available events, their properties
 - The x and y define the top left corner of the shape. The shape's origin is in its top left corner.
 - Note shapes are 50x50. They're sticky notes and are only suitable for tiny sentences. Use a geometric shape or text shape if you need to write more.
 
-### Tips for creating and updating shapes
+${
+	flags.canEdit
+		? `### Tips for creating and updating shapes
 
 ${
 	flags.hasMove
@@ -182,6 +190,9 @@ ${
 			` as the color. This makes sure there is a border around the shape, making it easier to distinguish from the background.`
 		: ''
 }
+`
+		: ''
+}
 
 ### Communicating with the user
 
@@ -218,13 +229,15 @@ ${
 - You have access to a todo list that is shared between all fairies in this document. You can freely add to and claim unclaimed tasks from this list.
 - You should always ask other fairies to help out with a todo item. This will help you get work done faster. To do this, you can use the ` +
 			'`assign-todo-item`' +
-			` action, which will asign it to them and ask them to help out.
+			` action, which will assign it to them and ask them to help out with it.
 - If you're asked to do something that doesn't already have a task on the shared todo list, you must break down the task into smaller tasks and add them to the shared todo list. Making tasks is cheap and should always be done unless the work the work is confined to an entity small enough that coordinating would do more harm than good.
+	- Never mention coordinates or positions when creating todo items. They are not needed.
 - When working with other fairies, you must use the shared todo list to coordinate your work. To add new items to the shared todo list, or claim them for yourself, you can update the shared todo list with the ` +
 			'`update-todo-list`' +
 			` action. When creating new tasks with this action, make sure not to intially assign them all to yourself. This is because other fairies may want to help out and claim some. Once you have created some tasks, use the ` +
 			'`review`' +
 			` action to check the shared todo list, after which you can claim tasks for yourself. Make sure to mark the tasks as "in-progress" when you claim them as well. Only claim a small amount of tasks at a time, and only claim tasks that you are confident you can complete.
+	- ONLY claim tasks that you are confident you can complete, given the actions you have available to you.
 - Once you finish all your tasks, and mark them as done, make sure to use the ` +
 			'`review`' +
 			` action to check the shared todo list, after which you can claim more tasks.
@@ -256,7 +269,7 @@ ${
 	flags.hasFlyToBounds
 		? `- You can use the ` +
 			'`fly-to-bounds`' +
-			` action to change your viewport to navigate to other areas of the canvas if needed. This will also move you physically to the x,y coordinates of the center of the bounds. This will provide you with an updated view of the canvas. You can also use this to functionally zoom in or out. If you want to look at something that doesn't fit in your viewport, you can look at part of it with the ` +
+			` action to change your viewport to see other areas of the canvas if needed. This will provide you with an updated view of the canvas. You can also use this to functionally zoom in or out. If you want to look at something that doesn't fit in your viewport, you can look at part of it with the ` +
 			'`fly-to-bounds`' +
 			` action.
 - Never send any events after you have used the ` +
@@ -319,7 +332,9 @@ ${
 
 ## JSON schema
 
-This is the JSON schema for the events you can return. You must conform to this schema.`)
+This is the JSON schema for the events you can return. You must conform to this schema.${!flags.hasCreate ? ' You cannot create shapes, so you should not include any events that create shapes in your response.' : ''}`)
+
+	// console.warn('promptwithoutschema', promptWithoutSchema)
 
 	return promptWithoutSchema + '\n' + JSON.stringify(buildResponseSchema(actions), null, 2)
 }
@@ -388,6 +403,20 @@ function getSystemPromptFlags(actions: AgentAction['_type'][], parts: PromptPart
 
 		// assign todo item
 		hasAssignTodoItem: actions.includes('assign-todo-item'),
+
+		canEdit:
+			actions.includes('update') ||
+			actions.includes('delete') ||
+			actions.includes('move') ||
+			actions.includes('label') ||
+			actions.includes('place') ||
+			actions.includes('bring-to-front') ||
+			actions.includes('send-to-back') ||
+			actions.includes('resize') ||
+			actions.includes('rotate') ||
+			actions.includes('align') ||
+			actions.includes('distribute') ||
+			actions.includes('stack'),
 	}
 }
 

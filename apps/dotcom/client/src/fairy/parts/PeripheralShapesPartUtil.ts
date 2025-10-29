@@ -20,7 +20,6 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPar
 
 		// Get all shapes that are outside the context bounds (these are what we want to peripheralize)
 		const shapesOutsideViewport = shapes.filter((shape) => {
-			if (!editor) return false
 			const bounds = editor.getShapeMaskedPageBounds(shape)
 			if (!bounds) return false
 			if (contextBoundsBox.includes(bounds)) return false
