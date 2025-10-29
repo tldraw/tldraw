@@ -45,11 +45,11 @@ export function getElbowArrowSnapLines(editor: Editor) {
 
 			const unselectedArrowShapeIds = editor.store.query.ids('shape', () => {
 				const activeArrowShapeId = currentSelectedArrowShape.get()
-				if (!activeArrowShapeId) return { type: { eq: 'arrow' } }
+				if (!activeArrowShapeId) return { type: { eq: 'arrow' } } as const
 				return {
 					type: { eq: 'arrow' },
 					id: { neq: activeArrowShapeId },
-				}
+				} as const
 			})
 
 			return computed('elbow arrow snap lines', () => {

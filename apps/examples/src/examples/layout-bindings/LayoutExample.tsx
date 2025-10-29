@@ -11,7 +11,7 @@ import {
 	ShapeUtil,
 	T,
 	TLBaseBinding,
-	TLBaseShape,
+	TLShape,
 	Tldraw,
 	Vec,
 	clamp,
@@ -21,14 +21,24 @@ import {
 import 'tldraw/tldraw.css'
 import snapShot from './snapshot.json'
 
+const CONTAINER_TYPE = 'container'
+const ELEMENT_TYPE = 'element'
+
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		[CONTAINER_TYPE]: { height: number; width: number }
+		[ELEMENT_TYPE]: { color: string }
+	}
+}
+
 // The container shapes that can contain element shapes
 
 const CONTAINER_PADDING = 24
 
-type ContainerShape = TLBaseShape<'element', { height: number; width: number }>
+type ContainerShape = TLShape<typeof CONTAINER_TYPE>
 
 class ContainerShapeUtil extends ShapeUtil<ContainerShape> {
-	static override type = 'container' as const
+	static override type = CONTAINER_TYPE
 	static override props: RecordProps<ContainerShape> = { height: T.number, width: T.number }
 
 	override getDefaultProps() {
@@ -89,10 +99,10 @@ class ContainerShapeUtil extends ShapeUtil<ContainerShape> {
 
 // The element shapes that can be placed inside the container shapes
 
-type ElementShape = TLBaseShape<'element', { color: string }>
+type ElementShape = TLShape<typeof ELEMENT_TYPE>
 
 class ElementShapeUtil extends ShapeUtil<ElementShape> {
-	static override type = 'element' as const
+	static override type = ELEMENT_TYPE
 	static override props: RecordProps<ElementShape> = {
 		color: T.string,
 	}

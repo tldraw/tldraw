@@ -1,20 +1,25 @@
-import { BaseBoxShapeUtil, HTMLContainer, RecordProps, T, TLBaseShape } from 'tldraw'
+import { BaseBoxShapeUtil, HTMLContainer, RecordProps, T, TLShape } from 'tldraw'
 
 // There's a guide at the bottom of this file!
 
+const MY_EDITABLE_SHAPE_TYPE = 'my-editable-shape'
+
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		[MY_EDITABLE_SHAPE_TYPE]: {
+			w: number
+			h: number
+			animal: number
+		}
+	}
+}
+
 const ANIMAL_EMOJIS = ['🐶', '🐱', '🐨', '🐮', '🐴']
 
-type IMyEditableShape = TLBaseShape<
-	'my-editable-shape',
-	{
-		w: number
-		h: number
-		animal: number
-	}
->
+export type IMyEditableShape = TLShape<typeof MY_EDITABLE_SHAPE_TYPE>
 
 export class EditableShapeUtil extends BaseBoxShapeUtil<IMyEditableShape> {
-	static override type = 'my-editable-shape' as const
+	static override type = MY_EDITABLE_SHAPE_TYPE
 	static override props: RecordProps<IMyEditableShape> = {
 		w: T.number,
 		h: T.number,
@@ -89,28 +94,28 @@ export class EditableShapeUtil extends BaseBoxShapeUtil<IMyEditableShape> {
 	}
 }
 
-/* 
+/*
 
-This is our shape util, which defines how our shape renders and behaves. For 
+This is our shape util, which defines how our shape renders and behaves. For
 more information on the shape util, check out the custom shape example.
 
 [1]
 We override the canEdit method to allow the shape to enter the editing state.
 
 [2]
-We want to conditionally render the component based on whether it is being 
+We want to conditionally render the component based on whether it is being
 edited or not.
 
 	[a] We can check whether our shape is being edited by comparing the
 		editing shape id to the shape's id.
-	
+
 	[b] We want to allow pointer events when the shape is being edited,
 		and stop event propagation on pointer down. Check out the interactive
 		shape example for more information on this.
 
 	[c] We render a button to change the animal emoji when the shape is being
-		edited. 
-		
+		edited.
+
 	[e]	We also render a message when the shape is not being edited.
 
 [3]

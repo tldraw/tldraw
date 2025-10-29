@@ -1,5 +1,5 @@
 import { StateNode, TLAnyShapeUtilConstructor, Tldraw, TLPointerEventInfo } from 'tldraw'
-import { BezierCurveShapeUtil, MyBezierCurveShape } from './CubicBezierShape'
+import { BezierCurveShapeUtil } from './CubicBezierShape'
 import { CustomHandles } from './CustomHandles'
 import { SneakyUndoRedoWhileEditing } from './SneakyUndoRedoWhileEditing'
 
@@ -57,12 +57,12 @@ export default function BezierCurveShapeExample() {
 
 						if (
 							info.accelKey &&
-							editor.isShapeOfType<MyBezierCurveShape>(info.shape, 'bezier-curve') &&
+							editor.isShapeOfType(info.shape, 'bezier-curve') &&
 							info.target === 'handle'
 						) {
 							switch (info.handle.id) {
 								case 'cp1': {
-									editor.updateShape<MyBezierCurveShape>({
+									editor.updateShape({
 										id: info.shape.id,
 										type: 'bezier-curve',
 										props: {
@@ -74,7 +74,7 @@ export default function BezierCurveShapeExample() {
 									return
 								}
 								case 'cp2': {
-									editor.updateShape<MyBezierCurveShape>({
+									editor.updateShape({
 										id: info.shape.id,
 										type: 'bezier-curve',
 										props: {
@@ -88,10 +88,7 @@ export default function BezierCurveShapeExample() {
 							}
 						}
 
-						if (
-							editor.isShapeOfType<MyBezierCurveShape>(info.shape, 'bezier-curve') &&
-							info.target === 'handle'
-						) {
+						if (editor.isShapeOfType(info.shape, 'bezier-curve') && info.target === 'handle') {
 							editor.setEditingShape(info.shape.id)
 							return
 						}
@@ -103,7 +100,7 @@ export default function BezierCurveShapeExample() {
 					pointingHandleState.onPointerMove = (info: TLPointerEventInfo) => {
 						if (!info.shape) return
 
-						if (editor.isShapeOfType<MyBezierCurveShape>(info.shape, 'bezier-curve')) {
+						if (editor.isShapeOfType(info.shape, 'bezier-curve')) {
 							editor.updateInstanceState({ isToolLocked: true })
 							editor.setCurrentTool('select.dragging_handle', {
 								...info,
@@ -121,10 +118,7 @@ export default function BezierCurveShapeExample() {
 					editingShapeState.onPointerMove = (info: TLPointerEventInfo) => {
 						if (editor.inputs.isDragging) {
 							const editingShape = editor.getEditingShape()
-							if (
-								editingShape &&
-								editor.isShapeOfType<MyBezierCurveShape>(editingShape, 'bezier-curve')
-							) {
+							if (editingShape && editor.isShapeOfType(editingShape, 'bezier-curve')) {
 								editor.updateInstanceState({ isToolLocked: true })
 
 								editor.setCurrentTool('select.translating', {

@@ -7,30 +7,30 @@ import {
 	HTMLContainer,
 	RecordProps,
 	ShapeUtil,
-	TLBaseShape,
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
+	TLShape,
 	Vec,
 	VecLike,
 	vecModelValidator,
 	ZERO_INDEX_KEY,
 } from 'tldraw'
 
-// [1]
-export type MyBezierCurveShape = TLBaseShape<
-	'bezier-curve',
-	{
-		start: VecLike
-		cp1: VecLike
-		cp2: VecLike
-		end: VecLike
+const BEZIER_CURVE_TYPE = 'bezier-curve'
+
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		[BEZIER_CURVE_TYPE]: { start: VecLike; cp1: VecLike; cp2: VecLike; end: VecLike }
 	}
->
+}
+
+// [1]
+export type MyBezierCurveShape = TLShape<typeof BEZIER_CURVE_TYPE>
 
 // [2]
 export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
-	static override type = 'bezier-curve' as const
+	static override type = BEZIER_CURVE_TYPE
 	static override props: RecordProps<MyBezierCurveShape> = {
 		start: vecModelValidator,
 		cp1: vecModelValidator,
@@ -366,8 +366,8 @@ Control point handles are hidden when they're at the same position as their asso
 
 [5]
 Custom handle snapping via getHandleSnapGeometry: control points (cp1, cp2) can snap to start/end points.
-The snap system automatically handles screen-space thresholds (consistent across zoom levels) and visual 
-snap indicators. When a control point is snapped to an endpoint, it effectively "collapses" the curve at 
+The snap system automatically handles screen-space thresholds (consistent across zoom levels) and visual
+snap indicators. When a control point is snapped to an endpoint, it effectively "collapses" the curve at
 that end, creating a sharp corner.
 
 [6]

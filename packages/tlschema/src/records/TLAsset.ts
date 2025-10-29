@@ -9,7 +9,7 @@ import { TLBaseAsset } from '../assets/TLBaseAsset'
 import { bookmarkAssetValidator, TLBookmarkAsset } from '../assets/TLBookmarkAsset'
 import { imageAssetValidator, TLImageAsset } from '../assets/TLImageAsset'
 import { TLVideoAsset, videoAssetValidator } from '../assets/TLVideoAsset'
-import { TLShape } from './TLShape'
+import { ExtractShapeByProps } from './TLShape'
 
 /**
  * Union type representing all possible asset types in tldraw.
@@ -222,4 +222,4 @@ export type TLAssetId = RecordId<TLBaseAsset<any, any>>
  *
  * @public
  */
-export type TLAssetShape = Extract<TLShape, { props: { assetId: TLAssetId } }>
+export type TLAssetShape = ExtractShapeByProps<{ assetId: TLAssetId }>

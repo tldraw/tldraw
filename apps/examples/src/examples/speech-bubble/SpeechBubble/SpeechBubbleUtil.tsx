@@ -13,10 +13,10 @@ import {
 	ShapeUtil,
 	T,
 	TEXT_PROPS,
-	TLBaseShape,
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
+	TLShape,
 	Vec,
 	ZERO_INDEX_KEY,
 	getColorValue,
@@ -26,6 +26,14 @@ import {
 	vecModelValidator,
 } from 'tldraw'
 import { getSpeechBubbleVertices, getTailIntersectionPoint } from './helpers'
+
+const SPEECH_BUBBLE_TYPE = 'speech-bubble'
+
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		[SPEECH_BUBBLE_TYPE]: SpeechBubbleShapeProps
+	}
+}
 
 // Copied from tldraw/tldraw
 export const STROKE_SIZES = {
@@ -53,10 +61,10 @@ export const speechBubbleShapeProps = {
 }
 
 export type SpeechBubbleShapeProps = RecordPropsType<typeof speechBubbleShapeProps>
-export type SpeechBubbleShape = TLBaseShape<'speech-bubble', SpeechBubbleShapeProps>
+export type SpeechBubbleShape = TLShape<typeof SPEECH_BUBBLE_TYPE>
 
 export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
-	static override type = 'speech-bubble' as const
+	static override type = SPEECH_BUBBLE_TYPE
 
 	// [2]
 	static override props = speechBubbleShapeProps

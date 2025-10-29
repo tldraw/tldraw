@@ -1,7 +1,7 @@
 import {
 	Editor,
+	ExtractShapeByProps,
 	TLShapeId,
-	TLUnknownShape,
 	getPointerInfo,
 	noop,
 	preventDefault,
@@ -13,7 +13,11 @@ import React, { useCallback, useEffect, useRef } from 'react'
 import { TextHelpers } from './TextHelpers'
 
 /** @public */
-export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: string) {
+export function useEditablePlainText(
+	shapeId: TLShapeId,
+	type: ExtractShapeByProps<{ text: string }>['type'],
+	text?: string
+) {
 	const commonUseEditableTextHandlers = useEditableTextCommon(shapeId)
 	const isEditing = commonUseEditableTextHandlers.isEditing
 	const editor = useEditor()
@@ -75,7 +79,7 @@ export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: st
 			if (editor.getEditingShapeId() !== shapeId) return
 
 			const normalizedPlaintext = TextHelpers.normalizeText(plaintext || '')
-			editor.updateShape<TLUnknownShape & { props: { text: string } }>({
+			editor.updateShape({
 				id: shapeId,
 				type,
 				props: { text: normalizedPlaintext },

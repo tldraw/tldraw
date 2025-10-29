@@ -299,6 +299,11 @@ export class EnumStyleProp<T> extends StyleProp<T> {
 }
 
 // @public
+export type ExtractShapeByProps<P> = Extract<TLShape, {
+    props: P;
+}>;
+
+// @public
 export const frameShapeMigrations: TLPropsMigrations;
 
 // @public
@@ -353,6 +358,10 @@ export function getDefaultUserPresence(store: TLStore, user: TLPresenceUserInfo)
 
 // @internal
 export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>>): Map<StyleProp<unknown>, string>;
+
+// @public (undocumented)
+export interface GlobalShapePropsMap {
+}
 
 // @public
 export const groupShapeMigrations: TLPropsMigrations;
@@ -626,10 +635,12 @@ export type SetValue<T extends Set<any>> = T extends Set<infer U> ? U : never;
 export const shapeIdValidator: T.Validator<TLShapeId>;
 
 // @public
-export type ShapeWithCrop = TLBaseShape<string, {
-    crop: null | TLShapeCrop;
-    h: number;
-    w: number;
+export type ShapeWithCrop = Extract<TLShape, {
+    props: {
+        crop: null | TLShapeCrop;
+        h: number;
+        w: number;
+    };
 }>;
 
 // @public
@@ -760,10 +771,8 @@ export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T ? {
 } & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
 
 // @public
-export type TLAssetShape = Extract<TLShape, {
-    props: {
-        assetId: TLAssetId;
-    };
+export type TLAssetShape = ExtractShapeByProps<{
+    assetId: TLAssetId;
 }>;
 
 // @public
@@ -793,7 +802,9 @@ export interface TLBaseBinding<Type extends string, Props extends object> extend
 }
 
 // @public
-export interface TLBaseShape<Type extends string, Props extends object> extends BaseRecord<'shape', TLShapeId> {
+export interface TLBaseShape<Type extends string, Props extends object> {
+    // (undocumented)
+    readonly id: TLShapeId;
     // (undocumented)
     index: IndexKey;
     // (undocumented)
@@ -810,6 +821,8 @@ export interface TLBaseShape<Type extends string, Props extends object> extends 
     rotation: number;
     // (undocumented)
     type: Type;
+    // (undocumented)
+    readonly typeName: 'shape';
     // (undocumented)
     x: number;
     // (undocumented)
@@ -1370,7 +1383,7 @@ export interface TLScribble {
 export type TLSerializedStore = SerializedStore<TLRecord>;
 
 // @public
-export type TLShape = TLDefaultShape | TLUnknownShape;
+export type TLShape<K extends keyof IndexByProp<AllTLShapes, 'type'> = keyof IndexByProp<AllTLShapes, 'type'>> = IndexByProp<AllTLShapes, 'type'>[K];
 
 // @public
 export interface TLShapeCrop {
@@ -1383,7 +1396,7 @@ export interface TLShapeCrop {
 }
 
 // @public
-export type TLShapeId = RecordId<TLUnknownShape>;
+export type TLShapeId = RecordId<TLShape>;
 
 // @public
 export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {

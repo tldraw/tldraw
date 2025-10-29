@@ -5,24 +5,29 @@ import {
 	RecordProps,
 	Rectangle2d,
 	T,
-	TLBaseShape,
+	TLShape,
 } from 'tldraw'
 
 // There's a guide at the bottom of this file!
 
-// [1]
-type IPlayingCard = TLBaseShape<
-	'PlayingCard',
-	{
-		w: number
-		h: number
-		suit: string
+const PLAYING_CARD_TYPE = 'PlayingCard'
+
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		[PLAYING_CARD_TYPE]: {
+			w: number
+			h: number
+			suit: string
+		}
 	}
->
+}
+
+// [1]
+export type IPlayingCard = TLShape<typeof PLAYING_CARD_TYPE>
 
 export class PlayingCardUtil extends BaseBoxShapeUtil<IPlayingCard> {
 	// [2]
-	static override type = 'PlayingCard' as const
+	static override type = PLAYING_CARD_TYPE
 	static override props: RecordProps<IPlayingCard> = {
 		w: T.number,
 		h: T.number,
@@ -99,8 +104,8 @@ export class PlayingCardUtil extends BaseBoxShapeUtil<IPlayingCard> {
 	}
 }
 
-/* 
-This is a utility class for the PlayingCard shape. This is where you define the shape's behavior, 
+/*
+This is a utility class for the PlayingCard shape. This is where you define the shape's behavior,
 how it renders (its component and indicator), and how it handles different events. The most relevant
 part of the code to custom snapping can be found in [6].
 
@@ -111,7 +116,7 @@ and width for this shape.
 
 [2]
 We define the shape's type and props for the editor. We can use tldraw's validator library to
-make sure that the store always has shape data we can trust. In this case, we define the width 
+make sure that the store always has shape data we can trust. In this case, we define the width
 and height properties as numbers and assign a validator from tldraw's library to them.
 
 [3]

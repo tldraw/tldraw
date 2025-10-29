@@ -6,24 +6,29 @@ import {
 	SVGContainer,
 	ShapeUtil,
 	T,
-	TLBaseShape,
 	TLResizeInfo,
+	TLShape,
 	getPerfectDashProps,
 	resizeBox,
 	useValue,
 } from 'tldraw'
 import { moveToSlide, useSlides } from './useSlides'
 
-export type SlideShape = TLBaseShape<
-	'slide',
-	{
-		w: number
-		h: number
+const SLIDE_TYPE = 'slide'
+
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		[SLIDE_TYPE]: {
+			w: number
+			h: number
+		}
 	}
->
+}
+
+export type SlideShape = TLShape<typeof SLIDE_TYPE>
 
 export class SlideShapeUtil extends ShapeUtil<SlideShape> {
-	static override type = 'slide' as const
+	static override type = SLIDE_TYPE
 	static override props: RecordProps<SlideShape> = {
 		w: T.number,
 		h: T.number,

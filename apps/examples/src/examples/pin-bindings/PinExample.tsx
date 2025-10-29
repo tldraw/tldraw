@@ -11,10 +11,11 @@ import {
 	ShapeUtil,
 	StateNode,
 	TLBaseBinding,
-	TLBaseShape,
 	TLEditorComponents,
 	TLPointerEventInfo,
+	TLShape,
 	TLShapeId,
+	TLShapePartial,
 	TLShapeUtilCanBindOpts,
 	TLUiComponents,
 	TLUiOverrides,
@@ -30,13 +31,21 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-type PinShape = TLBaseShape<'pin', {}>
+const PIN_TYPE = 'pin'
+
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+		[PIN_TYPE]: {}
+	}
+}
+
+type PinShape = TLShape<typeof PIN_TYPE>
 
 const offsetX = -16
 const offsetY = -26
 class PinShapeUtil extends ShapeUtil<PinShape> {
-	static override type = 'pin' as const
+	static override type = PIN_TYPE
 	static override props: RecordProps<PinShape> = {}
 
 	override getDefaultProps() {
@@ -46,7 +55,7 @@ class PinShapeUtil extends ShapeUtil<PinShape> {
 	override canBind({ toShapeType, bindingType }: TLShapeUtilCanBindOpts<PinShape>) {
 		if (bindingType === 'pin') {
 			// pins cannot bind to other pins!
-			return toShapeType !== 'pin'
+			return toShapeType !== PIN_TYPE
 		}
 		// Allow pins to participate in other bindings, e.g. arrows
 		return true
@@ -240,15 +249,15 @@ class PinBindingUtil extends BindingUtil<PinBinding> {
 			}
 		}
 
-		const updates = []
+		const updates: TLShapePartial[] = []
 		for (const [shapeId, position] of currentPositions) {
 			const delta = Vec.Sub(position, initialPositions.get(shapeId)!)
 			if (delta.len2() <= 0.01) continue
 
 			const newPosition = this.editor.getPointInParentSpace(shapeId, position)
 			updates.push({
+				...this.editor.getShape(shapeId)!,
 				id: shapeId,
-				type: this.editor.getShape(shapeId)!.type,
 				x: newPosition.x,
 				y: newPosition.y,
 			})

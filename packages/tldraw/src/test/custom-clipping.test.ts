@@ -8,7 +8,6 @@ import {
 	resizeBox,
 	StateNode,
 	T,
-	TLBaseShape,
 	TLEventHandlers,
 	TLGeoShape,
 	TLResizeInfo,
@@ -19,19 +18,21 @@ import {
 } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
-// Custom Circle Clip Shape Definition
-export type CircleClipShape = TLBaseShape<
-	'circle-clip',
-	{
-		w: number
-		h: number
+const CIRCLE_CLIP_TYPE = 'circle-clip'
+
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		[CIRCLE_CLIP_TYPE]: { w: number; h: number }
 	}
->
+}
+
+// Custom Circle Clip Shape Definition
+export type CircleClipShape = TLShape<typeof CIRCLE_CLIP_TYPE>
 
 export const isClippingEnabled$ = atom('isClippingEnabled', true)
 
 export class CircleClipShapeUtil extends BaseBoxShapeUtil<CircleClipShape> {
-	static override type = 'circle-clip' as const
+	static override type = CIRCLE_CLIP_TYPE
 	static override props: RecordProps<CircleClipShape> = {
 		w: T.number,
 		h: T.number,
