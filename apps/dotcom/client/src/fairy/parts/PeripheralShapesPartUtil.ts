@@ -22,8 +22,8 @@ export class PeripheralShapesPartUtil extends PromptPartUtil<PeripheralShapesPar
 		const shapesOutsideViewport = shapes.filter((shape) => {
 			if (!editor) return false
 			const bounds = editor.getShapeMaskedPageBounds(shape)
-			if (!bounds) return
-			if (contextBoundsBox.includes(bounds)) return
+			if (!bounds) return false
+			if (contextBoundsBox.includes(bounds)) return false
 			return true
 		})
 

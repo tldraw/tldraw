@@ -31,6 +31,7 @@ import { FairyChatHistory } from './fairy-agent/chat/FairyChatHistory'
 import { FairyBasicInput } from './fairy-agent/input/FairyBasicInput'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
 import { FairyConfigDialog } from './FairyConfigDialog'
+import { getRandomFairyName } from './getRandomFairyName'
 import { $sharedTodoList, clearSharedTodoList } from './SharedTodoList'
 import { SharedTodoListInline } from './SharedTodoListInline'
 
@@ -106,7 +107,7 @@ function NewFairyButton({
 
 		// Create the config for the new fairy
 		const config = {
-			name: 'New fairy ' + `${agents.length + 1}`,
+			name: getRandomFairyName(),
 			outfit: randomOutfit,
 			personality: 'Friendly and helpful',
 			wand: 'god',
@@ -114,7 +115,7 @@ function NewFairyButton({
 
 		// Add the config, which will trigger agent creation in FairyApp
 		onAddFairyConfig(id, config)
-	}, [onAddFairyConfig, agents.length])
+	}, [onAddFairyConfig])
 
 	return (
 		<TldrawUiButton
