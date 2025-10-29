@@ -208,7 +208,15 @@ function diffObject(prev: object, next: object, nestedKeys?: Set<string>): Objec
 		const prevVal = (prev as any)[key]
 		const nextVal = (next as any)[key]
 		if (!isEqual(prevVal, nextVal)) {
-			if (nestedKeys?.has(key) && prevVal && nextVal) {
+			if (
+				nestedKeys?.has(key) &&
+				prevVal &&
+				nextVal &&
+				typeof prevVal === 'object' &&
+				typeof nextVal === 'object' &&
+				!Array.isArray(prevVal) &&
+				!Array.isArray(nextVal)
+			) {
 				const diff = diffObject(prevVal, nextVal)
 				if (diff) {
 					if (!result) result = {}

@@ -731,3 +731,54 @@ describe('complex scenarios', () => {
 		})
 	})
 })
+
+describe('nested key primitive value bug', () => {
+	it('should handle string changes in nested keys', () => {
+		// This tests the bug where nested keys (like 'props') with primitive values
+		// are silently dropped instead of being diffed properly
+		const prev = { id: 'shape:1', props: 'hello' }
+		const next = { id: 'shape:1', props: 'world' }
+
+		const diff = diffRecord(prev, next)
+
+		// The diff should contain a 'put' operation for props
+		expect(diff).toEqual({
+			props: [ValueOpType.Put, 'world'],
+		})
+	})
+
+	it('should handle string streaming in nested keys', () => {
+		const prev = { id: 'shape:1', props: 'hello' }
+		const next = { id: 'shape:1', props: 'hello world' }
+
+		const diff = diffRecord(prev, next)
+
+		// The diff should contain a 'stream' operation for props
+		expect(diff).toEqual({
+			props: [ValueOpType.Stream, ' world', 5],
+		})
+	})
+
+	it('should handle number changes in nested keys', () => {
+		const prev = { id: 'shape:1', props: 42 }
+		const next = { id: 'shape:1', props: 100 }
+
+		const diff = diffRecord(prev, next)
+
+		expect(diff).toEqual({
+			props: [ValueOpType.Put, 100],
+		})
+	})
+
+	it('should still handle object changes in nested keys normally', () => {
+		const prev = { id: 'shape:1', props: { color: 'red' } }
+		const next = { id: 'shape:1', props: { color: 'blue' } }
+
+		const diff = diffRecord(prev, next)
+
+		// Objects in nested keys should still use patch
+		expect(diff).toEqual({
+			props: [ValueOpType.Patch, { color: [ValueOpType.Put, 'blue'] }],
+		})
+	})
+})
