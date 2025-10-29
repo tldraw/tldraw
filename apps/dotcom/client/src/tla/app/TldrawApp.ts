@@ -25,6 +25,7 @@ import {
 	ZErrorCode,
 	Z_PROTOCOL_VERSION,
 	createMutators,
+	parseFlags,
 	schema as zeroSchema,
 } from '@tldraw/dotcom-shared'
 import {
@@ -342,7 +343,7 @@ export class TldrawApp {
 	@computed({ isEqual })
 	getUserFlags(): Set<TlaFlags> {
 		const user = this.getUser()
-		return new Set(user.flags?.trim().split(/[, ]+/) ?? []) as Set<TlaFlags>
+		return new Set(parseFlags(user.flags)) as Set<TlaFlags>
 	}
 
 	hasFlag(flag: TlaFlags) {

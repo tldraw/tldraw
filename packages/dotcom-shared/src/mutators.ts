@@ -24,10 +24,30 @@ import {
 } from './tlaSchema'
 import { ZErrorCode } from './types'
 
+/**
+ * Parse a flags string into an array of individual flags.
+ * Supports flags separated by commas, spaces, or both.
+ * @param flags - The flags string to parse (e.g., "flag1,flag2" or "flag1 flag2")
+ * @returns Array of individual flag strings
+ */
+export function parseFlags(flags: string | null | undefined): string[] {
+	return flags?.split(/[,\s]+/).filter(Boolean) ?? []
+}
+
+/**
+ * Check if a flags string contains a specific flag.
+ * @param flags - The flags string to check
+ * @param flag - The flag to look for
+ * @returns true if the flag is present
+ */
+export function userHasFlag(flags: string | null | undefined, flag: TlaFlags): boolean {
+	return parseFlags(flags).includes(flag)
+}
+
 async function assertUserHasFlag(tx: Transaction<TlaSchema>, userId: string, flag: TlaFlags) {
 	const user = await tx.query.user.where('id', '=', userId).one().run()
 	assert(user, ZErrorCode.bad_request)
-	const flags = user.flags?.split(',') ?? []
+	const flags = parseFlags(user.flags)
 	assert(flags.includes(flag), ZErrorCode.forbidden)
 }
 
@@ -43,7 +63,7 @@ export type TlaMutators = ReturnType<typeof createMutators>
 
 async function isGroupsMigrated(tx: Transaction<TlaSchema>, userId: string): Promise<boolean> {
 	const user = await tx.query.user.where('id', '=', userId).one().run()
-	return user?.flags?.includes('groups_backend') ?? false
+	return userHasFlag(user?.flags, 'groups_backend')
 }
 
 function ensureSensibleTimestamp(time: number) {

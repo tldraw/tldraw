@@ -121,8 +121,11 @@ export function FileItems({
 
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
 
-	// Get groups data
+	// Get all group memberships (including home group which we'll filter in UI)
 	const groupMemberships = useValue('groupMembers', () => app.getGroupMemberships(), [app])
+
+	// Filter out home group for the "Move to" menu
+	const nonHomeGroups = groupMemberships.filter((g) => g.groupId !== app.getHomeGroupId())
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = routes.tlaFile(fileId, { asUrl: true })
@@ -160,7 +163,7 @@ export function FileItems({
 		})
 		if (res.ok) {
 			app.ensureFileVisibleInSidebar(newFileId)
-			patch(app.sidebarState).renameState({ fileId: newFileId, groupId: 'my-files' })
+			patch(app.sidebarState).renameState({ fileId: newFileId, groupId: app.getHomeGroupId() })
 			navigate(routes.tlaFile(newFileId))
 		}
 	}, [app, fileId, navigate, trackEvent, source])
@@ -244,14 +247,10 @@ export function FileItems({
 									<TldrawUiButtonCheck
 										checked={
 											app.canUpdateFile(fileId)
-												? // if we can update the file then either it is ours or it is in a group we are a member of
-													!groupMemberships.some(
-														(groupUser) => groupUser.group.id === file?.owningGroupId
-													)
-												: // if it's just a shared file we got a link to, then we need to check whether there's a group_file for it
-													!groupMemberships.some((groupUser) =>
-														groupUser.groupFiles.some((g) => g.fileId === fileId)
-													)
+												? file?.owningGroupId === app.getHomeGroupId()
+												: (groupMemberships
+														.find((g) => g.groupId === app.getHomeGroupId())
+														?.groupFiles.some((g) => g.fileId === fileId) ?? false)
 										}
 									/>
 								}
@@ -261,9 +260,9 @@ export function FileItems({
 								}}
 							/>
 						</TldrawUiMenuGroup>
-						{groupMemberships.length > 0 && (
+						{nonHomeGroups.length > 0 && (
 							<TldrawUiMenuGroup id="my-groups">
-								{groupMemberships.map((groupUser) => (
+								{nonHomeGroups.map((groupUser) => (
 									<TldrawUiMenuItem
 										key={groupUser.groupId}
 										label={groupUser.group.name}

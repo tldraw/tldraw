@@ -1,4 +1,4 @@
-import { AcceptInviteResponseBody } from '@tldraw/dotcom-shared'
+import { AcceptInviteResponseBody, userHasFlag } from '@tldraw/dotcom-shared'
 import { getIndexBelow, IndexKey } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { sql } from 'kysely'
@@ -71,7 +71,7 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 					{ status: 404 }
 				)
 			}
-			if (!user.flags.includes('groups_backend')) {
+			if (!userHasFlag(user.flags, 'groups_backend')) {
 				return Response.json(
 					{
 						error: true,
