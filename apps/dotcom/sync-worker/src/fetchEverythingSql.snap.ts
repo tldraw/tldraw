@@ -11,7 +11,9 @@ WITH
   all_group_users AS (SELECT ug.* FROM my_groups mg JOIN public."group_user" ug ON ug."groupId" = mg."id"),
   group_file_ownership AS (SELECT fg.* FROM my_groups mg JOIN public."group_file" fg ON fg."groupId" = mg."id"),
   group_files AS (SELECT f.* FROM group_file_ownership gfo JOIN public."file" f ON f.id = gfo."fileId"),
-  all_files AS (SELECT * from legacy_my_own_files UNION SELECT * from legacy_files_shared_with_me UNION SELECT * from group_files)
+  all_files AS (SELECT * from legacy_my_own_files UNION SELECT * from legacy_files_shared_with_me UNION SELECT * from group_files),
+  my_fairies AS (SELECT * FROM public."user_fairies" WHERE "userId" = $1),
+  file_fairies AS (SELECT * FROM public."file_fairies" WHERE "userId" = $1)
 SELECT
   'user' as "table",
   "allowAnalyticsCookie"::boolean as "0",
@@ -56,10 +58,10 @@ SELECT
   "lastEditAt"::bigint as "10",
   "lastVisitAt"::bigint as "11",
   null::bigint as "12",
-  "fairyState"::text as "13",
-  "fileId"::text as "14",
-  "lastSessionState"::text as "15",
-  "userId"::text as "16",
+  "fileId"::text as "13",
+  "lastSessionState"::text as "14",
+  "userId"::text as "15",
+  null::text as "16",
   null::text as "17",
   null::text as "18",
   null::text as "19",
@@ -182,6 +184,62 @@ SELECT
 FROM all_group_users
 UNION ALL
 SELECT
+  'user_fairies' as "table",
+  null::boolean as "0",
+  null::boolean as "1",
+  null::boolean as "2",
+  null::boolean as "3",
+  null::boolean as "4",
+  null::boolean as "5",
+  null::boolean as "6",
+  null::boolean as "7",
+  null::boolean as "8",
+  null::bigint as "9",
+  null::bigint as "10",
+  null::bigint as "11",
+  null::bigint as "12",
+  "fairies"::text as "13",
+  "userId"::text as "14",
+  null::text as "15",
+  null::text as "16",
+  null::text as "17",
+  null::text as "18",
+  null::text as "19",
+  null::text as "20",
+  null::text as "21",
+  null::text as "22",
+  null::text as "23"
+FROM my_fairies
+UNION ALL
+SELECT
+  'file_fairies' as "table",
+  null::boolean as "0",
+  null::boolean as "1",
+  null::boolean as "2",
+  null::boolean as "3",
+  null::boolean as "4",
+  null::boolean as "5",
+  null::boolean as "6",
+  null::boolean as "7",
+  null::boolean as "8",
+  null::bigint as "9",
+  null::bigint as "10",
+  null::bigint as "11",
+  null::bigint as "12",
+  "fairyState"::text as "13",
+  "fileId"::text as "14",
+  "userId"::text as "15",
+  null::text as "16",
+  null::text as "17",
+  null::text as "18",
+  null::text as "19",
+  null::text as "20",
+  null::text as "21",
+  null::text as "22",
+  null::text as "23"
+FROM file_fairies
+UNION ALL
+SELECT
   'user_mutation_number' as "table",
   null::boolean as "0",
   null::boolean as "1",
@@ -271,10 +329,9 @@ export const columnNamesByAlias = {
 		'9': 'firstVisitAt',
 		'10': 'lastEditAt',
 		'11': 'lastVisitAt',
-		'13': 'fairyState',
-		'14': 'fileId',
-		'15': 'lastSessionState',
-		'16': 'userId',
+		'13': 'fileId',
+		'14': 'lastSessionState',
+		'15': 'userId',
 	},
 	file: {
 		'0': 'isDeleted',
@@ -319,6 +376,15 @@ export const columnNamesByAlias = {
 		'16': 'userColor',
 		'17': 'userId',
 		'18': 'userName',
+	},
+	user_fairies: {
+		'13': 'fairies',
+		'14': 'userId',
+	},
+	file_fairies: {
+		'13': 'fairyState',
+		'14': 'fileId',
+		'15': 'userId',
 	},
 	user_mutation_number: {
 		'9': 'mutationNumber',

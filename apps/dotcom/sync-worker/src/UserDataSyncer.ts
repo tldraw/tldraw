@@ -3,16 +3,24 @@ import {
 	OptimisticAppStore,
 	TlaFile,
 	TlaFileState,
-	TlaRow,
+	TlaGroup,
+	TlaGroupFile,
+	TlaGroupUser,
 	TlaUser,
 	ZEvent,
 	ZRowUpdate,
 	ZServerSentPacket,
 	ZStoreData,
-	ZTable,
 } from '@tldraw/dotcom-shared'
 import { react, transact } from '@tldraw/state'
-import { ExecutionQueue, assert, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
+import {
+	ExecutionQueue,
+	assert,
+	objectMapEntries,
+	promiseWithResolve,
+	sleep,
+	uniqueId,
+} from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { CompiledQuery, Kysely, sql } from 'kysely'
 import throttle from 'lodash.throttle'
@@ -20,15 +28,17 @@ import { Logger } from './Logger'
 import { fetchEverythingSql } from './fetchEverythingSql.snap'
 import { parseResultRow } from './parseResultRow'
 import { TopicSubscriptionTree, getSubscriptionChanges } from './replicator/Subscription'
+import { ReplicatedRow, ReplicatedTable } from './replicator/replicatorTypes'
 import { Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { getReplicator, getStatsDurableObjct } from './utils/durableObjects'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
+import { ChangeAccumulator } from './zero/ServerCrud'
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
 export interface ZRowUpdateEvent {
 	type: 'row_update'
-	row: TlaRow
-	table: ZTable
+	row: ReplicatedRow
+	table: ReplicatedTable
 	event: ZEvent
 }
 
@@ -79,7 +89,7 @@ type BootState =
 			lastSequenceNumber: number
 	  }
 
-const stateVersion = 3
+const stateVersion = 4
 interface StateSnapshot {
 	version: number
 	initialData: ZStoreData
@@ -104,6 +114,16 @@ interface LegacyZStoreDataV1 {
 	file: TlaFile[]
 	file_state: TlaFileState[]
 	user: TlaUser[]
+	lsn: string
+}
+
+interface LegacyZStoreDataV3 {
+	file: TlaFile[]
+	file_state: TlaFileState[]
+	user: TlaUser[]
+	group: TlaGroup[]
+	group_user: TlaGroupUser[]
+	group_file: TlaGroupFile[]
 	lsn: string
 }
 
@@ -136,6 +156,22 @@ function migrateStateSnapshot(snapshot: any) {
 			group: [],
 			group_user: [],
 			group_file: [],
+		} satisfies LegacyZStoreDataV3
+	}
+
+	if (snapshot.version === 3) {
+		snapshot.version = 4
+		const data = snapshot.initialData as LegacyZStoreDataV3
+		snapshot.initialData = {
+			lsn: data.lsn,
+			user: data.user,
+			file: data.file,
+			file_state: data.file_state,
+			group: data.group,
+			group_user: data.group_user,
+			group_file: data.group_file,
+			user_fairies: [],
+			file_fairies: [],
 		} satisfies ZStoreData
 	}
 }
@@ -299,6 +335,8 @@ export class UserDataSyncer {
 			group: [],
 			group_user: [],
 			group_file: [],
+			user_fairies: [],
+			file_fairies: [],
 			lsn: '0/0',
 			mutationNumber: 0,
 		}
@@ -484,7 +522,7 @@ export class UserDataSyncer {
 			) {
 				throw new Error(`Unhandled table: ${event.table}`)
 			}
-			this.store.updateCommittedData(event)
+			this.store.updateCommittedData(event as ZRowUpdate)
 			this.broadcast({
 				type: 'update',
 				update: {
@@ -610,24 +648,22 @@ export class UserDataSyncer {
 		})
 	}
 
-	async addGuestFile(fileOrId: string | TlaFile) {
-		assert('bootId' in this.state, 'bootId should be in state')
-		const bootId = this.state.bootId
-		const fileId = typeof fileOrId === 'string' ? fileOrId : fileOrId.id
-		if (this.store.getFullData()?.file.find((f) => f.id === fileId)) return
-		const file =
-			typeof fileOrId === 'string'
-				? await this.db.selectFrom('file').where('id', '=', fileOrId).selectAll().executeTakeFirst()
-				: fileOrId
-		if (!file) return
-		if (this.state.bootId !== bootId) return
-		const update: ZRowUpdate = {
-			event: 'insert',
-			row: file,
-			table: 'file',
+	async incorporateUnsyncedChanges(changes: ChangeAccumulator) {
+		const apply = (update: ZRowUpdate) => {
+			this.store.updateCommittedData(update)
+			this.broadcast({ type: 'update', update })
 		}
-		this.store.updateCommittedData(update)
-		this.broadcast({ type: 'update', update })
+		for (const [table, diff] of objectMapEntries(changes)) {
+			for (const newRow of diff?.added ?? []) {
+				apply({ event: 'insert', row: newRow, table })
+			}
+			for (const updatedRow of diff?.updated ?? []) {
+				apply({ event: 'update', row: updatedRow, table })
+			}
+			for (const removedRow of diff?.removed ?? []) {
+				apply({ event: 'delete', row: removedRow, table })
+			}
+		}
 	}
 
 	async removeGuestFile(id: string) {

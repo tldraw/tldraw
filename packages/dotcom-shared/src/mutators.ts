@@ -155,6 +155,9 @@ export function createMutators(userId: string) {
 				disallowImmutableMutations(user, immutableColumns.user)
 				await tx.mutate.user.update(user)
 			},
+			updateFairies: async (tx, { fairies }: { fairies: string }) => {
+				await tx.mutate.user_fairies.upsert({ userId, fairies })
+			},
 		},
 		file: {
 			/** @deprecated */
@@ -232,6 +235,9 @@ export function createMutators(userId: string) {
 
 				await tx.mutate.file_state.upsert(fileState)
 			},
+			updateFairies: async (tx, { fileId, fairyState }: { fileId: string; fairyState: string }) => {
+				await tx.mutate.file_fairies.upsert({ fileId, userId, fairyState })
+			},
 		},
 
 		init: async (tx, { user, time }: { user: TlaUser; time: number }) => {
@@ -307,7 +313,6 @@ export function createMutators(userId: string) {
 						lastVisitAt: null,
 						isFileOwner: true,
 						isPinned: false,
-						fairyState: null,
 					},
 				})
 				return
@@ -360,7 +365,6 @@ export function createMutators(userId: string) {
 				lastVisitAt: null,
 				firstVisitAt: null,
 				lastSessionState: null,
-				fairyState: null,
 				// isFileOwner is no longer used in new model.
 				isFileOwner: false,
 			})
