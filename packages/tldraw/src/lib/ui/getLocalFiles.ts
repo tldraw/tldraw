@@ -21,6 +21,7 @@ export function getLocalFiles(options?: {
 			const fileList = (e.target as HTMLInputElement).files
 			if (!fileList || fileList.length === 0) {
 				resolve([])
+				dispose()
 				return
 			}
 			const files = Array.from(fileList)
