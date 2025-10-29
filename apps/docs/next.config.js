@@ -159,6 +159,11 @@ const nextConfig = {
 					'/?utm_source=codewithjason&utm_medium=podcast&utm_campaign=steve_codewithjason_2025',
 				permanent: true,
 			},
+			{
+				source: '/diveclub',
+				destination: '/?utm_source=diveclub&utm_medium=podcast&utm_campaign=steve_diveclub_2025',
+				permanent: true,
+			},
 		]
 	},
 	async rewrites() {
