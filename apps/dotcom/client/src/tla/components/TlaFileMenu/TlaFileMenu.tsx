@@ -115,18 +115,17 @@ export function FileItems({
 	const trackEvent = useTldrawAppUiEvents()
 	const copiedMsg = useMsg(messages.copied)
 	const hasAdminRights = useHasFileAdminRights(fileId)
-	const isPinned = useIsFilePinned(fileId, groupId ? app.resolveGroupId(groupId) : '')
+	const isPinned = useIsFilePinned(fileId, groupId ?? '')
 	const isActive = useCurrentFileId() === fileId
 	const hasGroups = useHasFlag('groups_frontend')
 
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
 
-	// Get groups data (excluding the home group, which is shown as "My files")
-	const groupMemberships = useValue(
-		'groupMembers',
-		() => app.getGroupMemberships().filter((g) => g.groupId !== app.getHomeGroupId()),
-		[app]
-	)
+	// Get all group memberships (including home group which we'll filter in UI)
+	const groupMemberships = useValue('groupMembers', () => app.getGroupMemberships(), [app])
+
+	// Filter out home group for the "Move to" menu
+	const nonHomeGroups = groupMemberships.filter((g) => g.groupId !== app.getHomeGroupId())
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = routes.tlaFile(fileId, { asUrl: true })
@@ -140,11 +139,10 @@ export function FileItems({
 
 	const handlePinUnpinClick = useCallback(async () => {
 		if (!groupId) return
-		const actualGroupId = app.resolveGroupId(groupId)
-		if (app.isPinned(fileId, actualGroupId)) {
-			app.z.mutate.unpinFile({ fileId, groupId: actualGroupId })
+		if (app.isPinned(fileId, groupId)) {
+			app.z.mutate.unpinFile({ fileId, groupId })
 		} else {
-			app.z.mutate.pinFile({ fileId, groupId: actualGroupId })
+			app.z.mutate.pinFile({ fileId, groupId })
 		}
 	}, [app, fileId, groupId])
 
@@ -165,7 +163,7 @@ export function FileItems({
 		})
 		if (res.ok) {
 			app.ensureFileVisibleInSidebar(newFileId)
-			patch(app.sidebarState).renameState({ fileId: newFileId, groupId: 'my-files' })
+			patch(app.sidebarState).renameState({ fileId: newFileId, groupId: app.getHomeGroupId() })
 			navigate(routes.tlaFile(newFileId))
 		}
 	}, [app, fileId, navigate, trackEvent, source])
@@ -174,14 +172,10 @@ export function FileItems({
 		if (!groupId) return
 		addDialog({
 			component: ({ onClose }) => (
-				<TlaDeleteFileDialog
-					groupId={app.resolveGroupId(groupId)}
-					fileId={fileId}
-					onClose={onClose}
-				/>
+				<TlaDeleteFileDialog groupId={groupId} fileId={fileId} onClose={onClose} />
 			),
 		})
-	}, [fileId, addDialog, groupId, app])
+	}, [fileId, addDialog, groupId])
 
 	const untitledProject = useMsg(editorMessages.untitledProject)
 	const handleDownloadClick = useCallback(async () => {
@@ -253,14 +247,10 @@ export function FileItems({
 									<TldrawUiButtonCheck
 										checked={
 											app.canUpdateFile(fileId)
-												? // if we can update the file then either it is ours or it is in a group we are a member of
-													!groupMemberships.some(
-														(groupUser) => groupUser.group.id === file?.owningGroupId
-													)
-												: // if it's just a shared file we got a link to, then we need to check whether there's a group_file for it
-													!groupMemberships.some((groupUser) =>
-														groupUser.groupFiles.some((g) => g.fileId === fileId)
-													)
+												? file?.owningGroupId === app.getHomeGroupId()
+												: (groupMemberships
+														.find((g) => g.groupId === app.getHomeGroupId())
+														?.groupFiles.some((g) => g.fileId === fileId) ?? false)
 										}
 									/>
 								}
@@ -270,9 +260,9 @@ export function FileItems({
 								}}
 							/>
 						</TldrawUiMenuGroup>
-						{groupMemberships.length > 0 && (
+						{nonHomeGroups.length > 0 && (
 							<TldrawUiMenuGroup id="my-groups">
-								{groupMemberships.map((groupUser) => (
+								{nonHomeGroups.map((groupUser) => (
 									<TldrawUiMenuItem
 										key={groupUser.groupId}
 										label={groupUser.group.name}

@@ -84,7 +84,7 @@ export function TlaSidebarFileLink({
 		[fileId, app]
 	)
 
-	const isPinned = useIsFilePinned(fileId, app.resolveGroupId(groupId))
+	const isPinned = useIsFilePinned(fileId, groupId)
 
 	const handleRenameAction = () => {
 		if (isMobile) {

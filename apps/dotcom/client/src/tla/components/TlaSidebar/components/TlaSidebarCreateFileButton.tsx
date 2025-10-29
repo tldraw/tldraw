@@ -26,7 +26,10 @@ export function TlaSidebarCreateFileButton() {
 		if (res.ok) {
 			const isMobile = getIsCoarsePointer()
 			if (!isMobile) {
-				patch(app.sidebarState).renameState({ fileId: res.value.fileId, groupId: 'my-files' })
+				patch(app.sidebarState).renameState({
+					fileId: res.value.fileId,
+					groupId: app.getHomeGroupId(),
+				})
 			}
 			const { fileId } = res.value
 			app.ensureFileVisibleInSidebar(fileId)

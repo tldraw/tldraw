@@ -32,7 +32,7 @@ function detectFileOperations(
 	// Check for move operation - mouse over different group
 	const hoveredGroupId = findHoveredGroupId(elements, mousePosition)
 	const group =
-		hoveredGroupId === 'my-files'
+		hoveredGroupId === elements.myFiles.id
 			? elements.myFiles
 			: elements.groups.find((g) => g.id === hoveredGroupId)!
 	const isPinned = elements.draggedElement.getAttribute('data-is-pinned') === 'true'
@@ -45,7 +45,7 @@ function detectFileOperations(
 
 	if (containsDraggedElement) {
 		const reorderOp = detectFileReorderOperation(
-			hoveredGroupId === 'my-files'
+			hoveredGroupId === elements.myFiles.id
 				? elements.myFiles
 				: elements.groups.find((g) => g.id === hoveredGroupId)!,
 			mousePosition
@@ -74,9 +74,9 @@ function findHoveredGroupId(
 	elements: DragElements,
 	mousePosition: { x: number; y: number }
 ): string | null {
-	// Find group or my-files target that contains the mouse
+	// Find group or home group target that contains the mouse
 	if (isPointInRect(mousePosition, elements.myFiles.element.getBoundingClientRect())) {
-		return 'my-files'
+		return elements.myFiles.id
 	}
 
 	return (
@@ -145,21 +145,10 @@ async function executeFileOperations(
 	operation: DragFileOperation
 ) {
 	if (operation.move || operation.reorder) {
-		// Translate "my-files" to actual home group ID
-		const actualGroupId = app.resolveGroupId(groupId)
-		// Also translate targetId if it's "my-files"
-		const actualOperation = {
-			...operation,
-			move: operation.move
-				? {
-						targetId: app.resolveGroupId(operation.move.targetId),
-					}
-				: undefined,
-		}
 		app.z.mutate.handleFileDragOperation({
 			fileId,
-			groupId: actualGroupId,
-			operation: actualOperation,
+			groupId,
+			operation,
 		})
 	}
 }
@@ -199,7 +188,8 @@ export function useDragTracking() {
 
 			// Query all drop target elements
 			const groupElements = document.querySelectorAll('[data-drop-target-id^="group:"]')
-			const myFilesElement = document.querySelector('[data-drop-target-id="my-files"]')
+			const homeGroupId = app.getHomeGroupId()
+			const myFilesElement = document.querySelector(`[data-drop-target-id="${homeGroupId}"]`)
 
 			assert(myFilesElement, 'myFilesElement not found')
 
@@ -226,7 +216,7 @@ export function useDragTracking() {
 					`[data-drop-target-id="${dragType}:${dragId}"]`
 				) as HTMLElement,
 				groupId,
-				myFiles: getGroupElements('my-files', myFilesElement as HTMLElement),
+				myFiles: getGroupElements(app.getHomeGroupId(), myFilesElement as HTMLElement),
 				groups: [...groupElements].map((element) =>
 					getGroupElements(element.getAttribute('data-group-id')!, element as HTMLElement)
 				),
