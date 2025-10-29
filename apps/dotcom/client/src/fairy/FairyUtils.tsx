@@ -1,6 +1,7 @@
 import { AgentAction, PromptPart } from '@tldraw/fairy-shared'
 import { AgentActionUtil, AgentActionUtilConstructor } from './actions/AgentActionUtil'
 import { AlignActionUtil } from './actions/AlignActionUtil'
+import { AssignTodoItemActionUtil } from './actions/AssignTodoItemActionUtil'
 import { BringToFrontActionUtil } from './actions/BringToFrontActionUtil'
 import { CreateActionUtil } from './actions/CreateActionUtil'
 import { DeleteActionUtil } from './actions/DeleteActionUtil'
@@ -72,6 +73,9 @@ export const AGENT_ACTION_UTILS = [
 
 	// Internal (required)
 	UnknownActionUtil,
+
+	// Assign todo item
+	AssignTodoItemActionUtil,
 ] satisfies AgentActionUtilConstructor<AgentAction>[]
 
 /**

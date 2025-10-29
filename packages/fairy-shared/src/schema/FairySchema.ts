@@ -1,4 +1,5 @@
 import { AlignActionSchema } from './actions/AlignActionSchema'
+import { AssignTodoItemActionSchema } from './actions/AssignTodoItemActionSchema'
 import { BringToFrontActionSchema } from './actions/BringToFrontActionSchema'
 import { CreateActionSchema } from './actions/CreateActionSchema'
 import { DeleteActionSchema } from './actions/DeleteActionSchema'
@@ -68,6 +69,9 @@ export const AGENT_ACTION_SCHEMAS = [
 
 	// Fairy-specific
 	ImbuePersonalityActionSchema,
+
+	// Assign todo item
+	AssignTodoItemActionSchema,
 ] as const
 
 /**
