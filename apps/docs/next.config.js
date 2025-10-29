@@ -178,6 +178,10 @@ const nextConfig = {
 					destination: `https://${REWRITE_DOMAIN}/404`,
 				},
 				{
+					source: '/accessibility',
+					destination: `https://${REWRITE_DOMAIN}/accessibility`,
+				},
+				{
 					source: '/blog/announcements',
 					destination: `https://${REWRITE_DOMAIN}/blog/category/announcements`,
 				},
