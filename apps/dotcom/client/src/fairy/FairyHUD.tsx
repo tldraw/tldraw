@@ -23,6 +23,7 @@ import {
 	useQuickReactor,
 	useValue,
 } from 'tldraw'
+import { MAX_FAIRY_COUNT } from '../tla/components/TlaEditor/TlaEditor'
 import '../tla/styles/fairy.css'
 import { defineMessages, useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
@@ -116,7 +117,12 @@ function NewFairyButton({
 	}, [onAddFairyConfig, agents.length])
 
 	return (
-		<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={handleClick}>
+		<TldrawUiButton
+			type="icon"
+			className="fairy-toolbar-sidebar-button"
+			onClick={handleClick}
+			disabled={agents.length >= MAX_FAIRY_COUNT}
+		>
 			<TldrawUiIcon icon="plus" label="New fairy" />
 		</TldrawUiButton>
 	)

@@ -58,8 +58,11 @@ import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
 // Lazy load fairy components
+export const MAX_FAIRY_COUNT = 10
 const FairyApp = lazy(() =>
-	import('../../../fairy/FairyApp').then((m) => ({ default: m.FairyApp }))
+	import('../../../fairy/FairyApp').then((m) => ({
+		default: m.FairyApp,
+	}))
 )
 const FairyHUD = lazy(() =>
 	import('../../../fairy/FairyHUD').then((m) => ({ default: m.FairyHUD }))
@@ -310,10 +313,16 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	}, [app])
 
 	const onAddFairyConfig = useCallback((id: string, config: any) => {
-		setFairyConfigs((prev: any) => ({
-			...prev,
-			[id]: config,
-		}))
+		setFairyConfigs((prev: any) => {
+			const fairyCount = Object.keys(prev).length
+			if (fairyCount >= MAX_FAIRY_COUNT) {
+				return prev
+			}
+			return {
+				...prev,
+				[id]: config,
+			}
+		})
 	}, [])
 
 	const onDeleteFairyConfig = useCallback((id: string) => {
