@@ -89,8 +89,8 @@ export class TldrawApp {
 
 	readonly z: ZeroPolyfill | Zero<TlaSchema, TlaMutators>
 
-	private readonly user$: Signal<TlaUser | undefined>
-	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
+	private readonly user$: Signal<(TlaUser & { fairies: string }) | undefined>
+	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile; fairyState: string })[]>
 	private readonly groupMemberships$: Signal<
 		(TlaGroupUser & {
 			group: TlaGroup
@@ -752,9 +752,9 @@ export class TldrawApp {
 	}
 
 	onFairyStateUpdate(fileId: string, fairyState: any) {
-		this.updateFileState(fileId, {
+		this.z.mutate.file_state.updateFairies({
+			fileId,
 			fairyState: JSON.stringify(fairyState),
-			lastVisitAt: Date.now(),
 		})
 	}
 
@@ -792,7 +792,6 @@ export class TldrawApp {
 			createdAt: Date.now(),
 			updatedAt: Date.now(),
 			flags: '',
-			fairies: null,
 			allowAnalyticsCookie: null,
 			...restOfPreferences,
 			inputMode: restOfPreferences.inputMode ?? null,

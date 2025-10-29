@@ -44,7 +44,6 @@ export const user = table('user')
 		inputMode: string().optional(),
 		enhancedA11yMode: boolean().optional(),
 		allowAnalyticsCookie: boolean().optional(),
-		fairies: string().optional(),
 	})
 	.primaryKey('id')
 
@@ -58,7 +57,6 @@ export const file_state = table('file_state')
 		lastVisitAt: number().optional(),
 		isFileOwner: boolean().optional(),
 		isPinned: boolean().optional(),
-		fairyState: string().optional(),
 	})
 	.primaryKey('userId', 'fileId')
 
@@ -117,6 +115,21 @@ export const group_file = table('group_file')
 		index: string<IndexKey>().optional(),
 	})
 	.primaryKey('fileId', 'groupId')
+
+export const user_fairies = table('user_fairies')
+	.columns({
+		userId: string(),
+		fairies: string(),
+	})
+	.primaryKey('userId')
+
+export const file_fairies = table('file_fairies')
+	.columns({
+		fileId: string(),
+		userId: string(),
+		fairyState: string(),
+	})
+	.primaryKey('fileId', 'userId')
 
 const fileRelationships = relationships(file, ({ one, many }) => ({
 	owner: one({
@@ -229,7 +242,33 @@ export type TlaGroupFilePartial = Partial<TlaGroupFile> & {
 	groupId: TlaGroupFile['groupId']
 }
 
-export type TlaRow = TlaFile | TlaFileState | TlaUser | TlaGroup | TlaGroupUser | TlaGroupFile
+export type TlaUserFairyPartial = Partial<TlaUserFairy> & {
+	userId: TlaUserFairy['userId']
+}
+
+export type TlaFileFairyPartial = Partial<TlaFileFairy> & {
+	fileId: TlaFileFairy['fileId']
+	userId: TlaFileFairy['userId']
+}
+
+export type TlaRow =
+	| TlaFile
+	| TlaFileState
+	| TlaUser
+	| TlaGroup
+	| TlaGroupUser
+	| TlaGroupFile
+	| TlaUserFairy
+	| TlaFileFairy
+export type TlaRowPartial =
+	| TlaFilePartial
+	| TlaFileStatePartial
+	| TlaUserPartial
+	| TlaGroupPartial
+	| TlaGroupUserPartial
+	| TlaGroupFilePartial
+	| TlaUserFairyPartial
+	| TlaFileFairyPartial
 export interface TlaUserMutationNumber {
 	userId: string
 	mutationNumber: number
@@ -269,12 +308,14 @@ export interface DB {
 	group: TlaGroup
 	group_user: TlaGroupUser
 	group_file: TlaGroupFile
+	user_fairies: TlaUserFairy
+	file_fairies: TlaFileFairy
 	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
 }
 
 export const schema = createSchema({
-	tables: [user, file, file_state, group, group_user, group_file],
+	tables: [user, file, file_state, group, group_user, group_file, user_fairies, file_fairies],
 	relationships: [
 		fileRelationships,
 		fileStateRelationships,
@@ -291,6 +332,8 @@ export type TlaFileState = Row<typeof schema.tables.file_state>
 export type TlaGroup = Row<typeof schema.tables.group>
 export type TlaGroupUser = Row<typeof schema.tables.group_user>
 export type TlaGroupFile = Row<typeof schema.tables.group_file>
+export type TlaUserFairy = Row<typeof schema.tables.user_fairies>
+export type TlaFileFairy = Row<typeof schema.tables.file_fairies>
 
 interface AuthData {
 	sub: string | null

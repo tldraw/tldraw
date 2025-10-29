@@ -195,9 +195,7 @@ export function FairyApp({
 			})
 
 			try {
-				const user = app.getUser()
-				app.z.mutate.user.update({
-					id: user.id,
+				app.z.mutate.user.updateFairies({
 					fairies: JSON.stringify(configs),
 				})
 			} catch (e) {
