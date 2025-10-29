@@ -903,3 +903,122 @@
 	background-size: 16px;
 	padding-right: 32px;
 }
+
+/* Fairy Group Chat */
+
+.fairy-group-chat {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	overflow: hidden;
+}
+
+.fairy-group-chat-leader-toggle-container {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 8px;
+	flex: 0 0 65%;
+	min-height: 0;
+}
+
+.fairy-group-chat-leader-info {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 4px 0;
+	font-size: 11px;
+	color: var(--tl-color-text-3);
+}
+
+.fairy-group-chat-leader-info p {
+	margin: 0;
+	line-height: 1.4;
+}
+
+/* Fairy Group Chat Input */
+
+.fairy-group-chat-input {
+	pointer-events: auto;
+	position: relative;
+	display: flex;
+	align-items: start;
+	gap: 8px;
+	padding: 8px 8px 8px 12px;
+	border-top: 1px solid var(--tl-color-divider);
+	flex: 0 0 35%;
+	min-height: 0;
+}
+
+.fairy-group-chat-input__wrapper {
+	flex: 1;
+	display: flex;
+	align-items: start;
+	min-height: 0;
+	height: 100%;
+}
+
+.fairy-group-chat-input__field {
+	pointer-events: auto;
+	border: none;
+	background: transparent;
+	color: var(--tl-color-text);
+	font-size: 12px;
+	font-family: inherit;
+	outline: none;
+	width: 100%;
+	height: 100%;
+	resize: none;
+	overflow-y: auto;
+	line-height: 1.5;
+	scrollbar-width: thin;
+	scrollbar-color: var(--tl-color-muted-1) transparent;
+}
+
+.fairy-group-chat-input__field::-webkit-scrollbar {
+	width: 6px;
+	background: transparent;
+}
+
+.fairy-group-chat-input__field::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.fairy-group-chat-input__field::-webkit-scrollbar-thumb {
+	background: var(--tl-color-muted-1);
+	border-radius: 3px;
+}
+
+.fairy-group-chat-input__field::placeholder {
+	color: var(--tl-color-text-3);
+}
+
+.fairy-group-chat-input__submit {
+	pointer-events: auto;
+	width: 30px;
+	height: 30px;
+	flex-shrink: 0;
+	padding: 0;
+	margin: 0;
+	background-color: transparent;
+	border: none;
+	border-radius: var(--tl-radius-2);
+	cursor: pointer;
+	font-size: 18px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	align-self: flex-start;
+	transition: background-color 0.1s ease;
+}
+
+.fairy-group-chat-input__submit:hover:not(:disabled) {
+	background-color: var(--tl-color-hint);
+}
+
+.fairy-group-chat-input__submit:disabled {
+	filter: grayscale(100%);
+	cursor: not-allowed;
+	opacity: 0.5;
+}

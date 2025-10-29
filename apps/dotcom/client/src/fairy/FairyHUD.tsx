@@ -28,6 +28,7 @@ import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairyChatHistory } from './fairy-agent/chat/FairyChatHistory'
 import { FairyBasicInput } from './fairy-agent/input/FairyBasicInput'
 import { FairyConfigDialog } from './FairyConfigDialog'
+import { FairyGroupChat } from './FairyGroupChat'
 import { FairySidebarButton } from './FairySidebarButton'
 import { getRandomFairyName } from './getRandomFairyName'
 import { $sharedTodoList, clearSharedTodoList } from './SharedTodoList'
@@ -102,7 +103,7 @@ export function FairyHUD({
 	const [menuPopoverOpen, setMenuPopoverOpen] = useState(false)
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
 
-	const [panelState, setPanelState] = useState<PanelState>('closed')
+	const [panelState, setPanelState] = useState<PanelState>('fairy')
 	const [shownFairy, setShownFairy] = useState<FairyAgent | null>(null)
 
 	const toolbarMessage = useMsg(fairyMessages.toolbar)
@@ -372,13 +373,12 @@ export function FairyHUD({
 
 								{/* Handle 2+ fairies selected */}
 								{selectedFairies.length > 1 && (
-									<div
-										className="fairy-no-selection"
-										style={{ padding: '20px', textAlign: 'center' }}
-									>
-										<p>Multiple fairies selected</p>
-										<p>Group chat coming soon!</p>
-									</div>
+									<>
+										<div className="fairy-toolbar-header">
+											<div className="fairy-id-display">Group chat</div>
+										</div>
+										<FairyGroupChat agents={selectedFairies} />
+									</>
 								)}
 							</>
 						)}
