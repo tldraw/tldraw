@@ -25,11 +25,15 @@ export function FairyChatHistorySection({
 	return (
 		<div className="fairy-chat-history-section">
 			<div className="fairy-chat-history-prompt-container fairy-chat-history-prompt-sticky">
-				<div className="fairy-chat-history-prompt">
-					<div className="fairy-chat-history-prompt-content">
-						{section.prompt?.message ?? 'Awakened... I must complete my mission.'}
+				{section.prompt?.message ? (
+					<div className="fairy-chat-history-prompt">
+						<div className="fairy-chat-history-prompt-content">{section.prompt?.message}</div>
 					</div>
-				</div>
+				) : (
+					<div className="fairy-chat-history-prompt-fairy">
+						<div className="fairy-chat-history-prompt-content">Awakened by another fairy...</div>
+					</div>
+				)}
 			</div>
 			{groups.map((group, i) => {
 				return <FairyChatHistoryGroup key={'chat-history-group-' + i} group={group} agent={agent} />

@@ -445,7 +445,8 @@
 	background-color: var(--tl-color-panel);
 }
 
-.fairy-chat-history-prompt {
+.fairy-chat-history-prompt,
+.fairy-chat-history-prompt-fairy {
 	background-color: var(--tl-color-low);
 	border-radius: 8px;
 	padding: 8px;
@@ -456,6 +457,11 @@
 	max-height: 150px;
 	overflow-y: auto;
 	scrollbar-color: var(--tl-color-text-3) transparent;
+}
+
+.fairy-chat-history-prompt-fairy {
+	color: var(--tl-color-text-3);
+	font-style: italic;
 }
 
 .fairy-chat-history-prompt::-webkit-scrollbar {
