@@ -161,8 +161,7 @@ const nextConfig = {
 			},
 			{
 				source: '/diveclub',
-				destination:
-					'/?utm_source=diveclub&utm_medium=podcast&utm_campaign=steve_diveclub_2025',
+				destination: '/?utm_source=diveclub&utm_medium=podcast&utm_campaign=steve_diveclub_2025',
 				permanent: true,
 			},
 		]
