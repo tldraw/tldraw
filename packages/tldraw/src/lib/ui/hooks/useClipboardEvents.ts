@@ -820,16 +820,16 @@ export function useNativeClipboardEvents() {
 			trackEvent('paste', { source: 'kbd' })
 		}
 
-		ownerDocument.addEventListener('copy', copy)
-		ownerDocument.addEventListener('cut', cut)
-		ownerDocument.addEventListener('paste', paste)
-		ownerDocument.addEventListener('pointerup', pointerUpHandler)
+		ownerDocument?.addEventListener('copy', copy)
+		ownerDocument?.addEventListener('cut', cut)
+		ownerDocument?.addEventListener('paste', paste)
+		ownerDocument?.addEventListener('pointerup', pointerUpHandler)
 
 		return () => {
-			ownerDocument.removeEventListener('copy', copy)
-			ownerDocument.removeEventListener('cut', cut)
-			ownerDocument.removeEventListener('paste', paste)
-			ownerDocument.removeEventListener('pointerup', pointerUpHandler)
+			ownerDocument?.removeEventListener('copy', copy)
+			ownerDocument?.removeEventListener('cut', cut)
+			ownerDocument?.removeEventListener('paste', paste)
+			ownerDocument?.removeEventListener('pointerup', pointerUpHandler)
 		}
 	}, [editor, trackEvent, appIsFocused, ownerDocument])
 }
