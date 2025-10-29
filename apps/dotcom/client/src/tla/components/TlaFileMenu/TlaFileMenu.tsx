@@ -1,7 +1,6 @@
 /* ---------------------- Menu ---------------------- */
 
 import { FILE_PREFIX, TlaFile } from '@tldraw/dotcom-shared'
-import { patch } from 'patchfork'
 import { Fragment, ReactNode, useCallback, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -163,7 +162,10 @@ export function FileItems({
 		})
 		if (res.ok) {
 			app.ensureFileVisibleInSidebar(newFileId)
-			patch(app.sidebarState).renameState({ fileId: newFileId, groupId: app.getHomeGroupId() })
+			app.sidebarState.update((prev) => ({
+				...prev,
+				renameState: { fileId: newFileId, groupId: app.getHomeGroupId() },
+			}))
 			navigate(routes.tlaFile(newFileId))
 		}
 	}, [app, fileId, navigate, trackEvent, source])

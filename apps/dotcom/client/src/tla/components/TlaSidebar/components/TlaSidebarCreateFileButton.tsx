@@ -1,4 +1,3 @@
-import { patch } from 'patchfork'
 import { useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { tltime } from 'tldraw'
@@ -26,10 +25,10 @@ export function TlaSidebarCreateFileButton() {
 		if (res.ok) {
 			const isMobile = getIsCoarsePointer()
 			if (!isMobile) {
-				patch(app.sidebarState).renameState({
-					fileId: res.value.fileId,
-					groupId: app.getHomeGroupId(),
-				})
+				app.sidebarState.update((prev) => ({
+					...prev,
+					renameState: { fileId: res.value.fileId, groupId: app.getHomeGroupId() },
+				}))
 			}
 			const { fileId } = res.value
 			app.ensureFileVisibleInSidebar(fileId)

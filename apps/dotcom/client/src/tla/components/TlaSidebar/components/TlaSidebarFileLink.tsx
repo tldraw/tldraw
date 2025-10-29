@@ -1,6 +1,5 @@
 import { TlaFile } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
-import { patch } from 'patchfork'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { KeyboardEvent, MouseEvent, useCallback, useEffect, useRef } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -93,7 +92,7 @@ export function TlaSidebarFileLink({
 				app.updateFile(fileId, { name: newName })
 			}
 		} else {
-			patch(app.sidebarState).renameState({ fileId, groupId })
+			app.sidebarState.update((prev) => ({ ...prev, renameState: { fileId, groupId } }))
 		}
 	}
 
@@ -110,7 +109,7 @@ export function TlaSidebarFileLink({
 					testId={testId}
 					isActive={isActive}
 					href={routes.tlaFile(fileId)}
-					onClose={() => patch(app.sidebarState).renameState(null)}
+					onClose={() => app.sidebarState.update((prev) => ({ ...prev, renameState: null }))}
 					isRenaming={isRenaming}
 					handleRenameAction={handleRenameAction}
 					className={className}

@@ -1,5 +1,4 @@
 import classNames from 'classnames'
-import { patch } from 'patchfork'
 import { Collapsible, ContextMenu as _ContextMenu } from 'radix-ui'
 import { memo, useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -83,18 +82,24 @@ const GroupFileList = memo(function GroupFileList({
 	)
 	const expansionState = useValue(
 		'expansionState',
-		() => app.sidebarState.get().expandedGroups.get(groupId) ?? 'closed',
+		() => app.sidebarState.get().expandedGroups[groupId] ?? 'closed',
 		[app, groupId]
 	)
 
 	const isShowingAll = expansionState === 'expanded_show_more'
 
 	const handleShowMore = useCallback(() => {
-		patch(app.sidebarState).expandedGroups.set(groupId, 'expanded_show_more')
+		app.sidebarState.update((prev) => ({
+			...prev,
+			expandedGroups: { ...prev.expandedGroups, [groupId]: 'expanded_show_more' },
+		}))
 	}, [app, groupId])
 
 	const handleShowLess = useCallback(() => {
-		patch(app.sidebarState).expandedGroups.set(groupId, 'expanded_show_less')
+		app.sidebarState.update((prev) => ({
+			...prev,
+			expandedGroups: { ...prev.expandedGroups, [groupId]: 'expanded_show_less' },
+		}))
 	}, [app, groupId])
 
 	if (!group) return null
@@ -252,7 +257,7 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 	const expansionState = useValue(
 		'expansionState',
 		() => {
-			return app.sidebarState.get().expandedGroups.get(groupId) ?? 'closed'
+			return app.sidebarState.get().expandedGroups[groupId] ?? 'closed'
 		},
 		[app, groupId]
 	)
@@ -261,13 +266,16 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 
 	const isNoAnimation = useValue(
 		'isNoAnimation',
-		() => app.sidebarState.get().noAnimationGroups.has(groupId),
+		() => app.sidebarState.get().noAnimationGroups.includes(groupId),
 		[app, groupId]
 	)
 	useEffect(() => {
 		if (isNoAnimation) {
 			setTimeout(() => {
-				patch(app.sidebarState).noAnimationGroups.delete(groupId)
+				app.sidebarState.update((prev) => ({
+					...prev,
+					noAnimationGroups: prev.noAnimationGroups.filter((id) => id !== groupId),
+				}))
 			}, 350)
 		}
 	}, [isNoAnimation, app, groupId])
@@ -275,11 +283,17 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 	const setIsExpanded = useCallback(
 		(isExpanded: boolean) => {
 			if (isExpanded) {
-				patch(app.sidebarState).expandedGroups.set(groupId, 'expanded_show_less')
+				app.sidebarState.update((prev) => ({
+					...prev,
+					expandedGroups: { ...prev.expandedGroups, [groupId]: 'expanded_show_less' },
+				}))
 				// Clear group file ordering when expanding to refresh the order (like recent files on page reload)
 				app.clearGroupFileOrdering(groupId)
 			} else {
-				patch(app.sidebarState).expandedGroups.delete(groupId)
+				app.sidebarState.update((prev) => ({
+					...prev,
+					expandedGroups: { ...prev.expandedGroups, [groupId]: 'closed' },
+				}))
 			}
 		},
 		[app, groupId]
@@ -295,7 +309,10 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 		if (res.ok) {
 			const isMobile = getIsCoarsePointer()
 			if (!isMobile) {
-				patch(app.sidebarState).renameState({ fileId: res.value.fileId, groupId })
+				app.sidebarState.update((prev) => ({
+					...prev,
+					renameState: { fileId: res.value.fileId, groupId },
+				}))
 			}
 			app.ensureFileVisibleInSidebar(res.value.fileId)
 			navigate(routes.tlaFile(res.value.fileId))
