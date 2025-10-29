@@ -61,7 +61,8 @@ jobs:
 
           ### Change type
 
-          - [x] \`improvement\`"
+          - [x] \`improvement\`" \
+            --label "docs-hotfix-please"
 
       - name: No changes detected
         if: steps.before.outputs.BEFORE_HASH == steps.after.outputs.AFTER_HASH
