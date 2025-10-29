@@ -210,20 +210,20 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 							}}
 						/>
 						<TldrawUiTooltip content={<F {...messages.regenerateInviteLinkHelp} />}>
-								<TldrawUiButton
-									type="normal"
-									aria-label="Regenerate invite link"
-									onClick={handleRegenerateInviteLink}
-									disabled={isRegenerating}
-									style={{
-										transform: 'scale(0.9)',
-									}}
-								>
-									<TlaIcon
-										icon={showRefreshSuccess ? 'check' : 'refresh'}
-										className={showRefreshSuccess ? styles.disabledIcon : undefined}
-									/>
-								</TldrawUiButton>
+							<TldrawUiButton
+								type="normal"
+								aria-label="Regenerate invite link"
+								onClick={handleRegenerateInviteLink}
+								disabled={isRegenerating}
+								style={{
+									transform: 'scale(0.9)',
+								}}
+							>
+								<TlaIcon
+									icon={showRefreshSuccess ? 'check' : 'refresh'}
+									className={showRefreshSuccess ? styles.disabledIcon : undefined}
+								/>
+							</TldrawUiButton>
 						</TldrawUiTooltip>
 					</div>
 					<TlaButton
