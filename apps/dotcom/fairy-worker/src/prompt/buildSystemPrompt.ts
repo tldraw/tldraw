@@ -250,13 +250,13 @@ ${
 	flags.hasViewportBoundsPart || flags.hasFlyToBounds
 		? `### Navigating the canvas
 
-${flags.hasViewportBoundsPart ? "- Your viewport may be different from the user's viewport (you will be informed if this is the case)." : ''}
+${flags.hasViewportBoundsPart ? "- Your viewport may be different from the user's viewport (you will be informed if this is the case). It's perfectly acceptable to work outside of their view though." : ''}
 ${flags.hasPeripheralShapesPart ? '- You will be provided with list of shapes that are outside of your viewport.' : ''}
 ${
 	flags.hasFlyToBounds
 		? `- You can use the ` +
 			'`fly-to-bounds`' +
-			` action to change your viewport to navigate to other areas of the canvas if needed. This will also move you physically to the x,y coordinates of the center of the bounds. This will provide you with an updated view of the canvas. You can also use this to functionally zoom in or out. You have a maximum bounds size of 1920x1080. If you want to look at something that doesn't fit in your viewport, you can look at part of it with the ` +
+			` action to change your viewport to navigate to other areas of the canvas if needed. This will also move you physically to the x,y coordinates of the center of the bounds. This will provide you with an updated view of the canvas. You can also use this to functionally zoom in or out. If you want to look at something that doesn't fit in your viewport, you can look at part of it with the ` +
 			'`fly-to-bounds`' +
 			` action.
 - Never send any events after you have used the ` +
