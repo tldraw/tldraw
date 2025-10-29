@@ -901,7 +901,11 @@ export class TldrawApp {
 		return createIntl()!
 	}
 
-	async uploadTldrFiles(files: File[], onFirstFileUploaded?: (fileId: string) => void) {
+	async uploadTldrFiles(
+		files: File[],
+		onFirstFileUploaded?: (fileId: string) => void,
+		groupId?: string
+	) {
 		const totalFiles = files.length
 		let uploadedFiles = 0
 		if (totalFiles === 0) return
@@ -952,10 +956,14 @@ export class TldrawApp {
 		}
 
 		for (const f of files) {
-			const res = await this.uploadTldrFile(f, (bytes) => {
-				bytesUploaded += bytes
-				updateProgress()
-			}).catch((e) => Result.err(e))
+			const res = await this.uploadTldrFile(
+				f,
+				(bytes) => {
+					bytesUploaded += bytes
+					updateProgress()
+				},
+				groupId
+			).catch((e) => Result.err(e))
 			if (!res.ok) {
 				clearTimeout(uploadingToastTimeout)
 				if (uploadingToastId) this.toasts?.removeToast(uploadingToastId)
@@ -997,7 +1005,8 @@ export class TldrawApp {
 
 	private async uploadTldrFile(
 		file: File,
-		onProgress?: (bytesUploadedSinceLastProgressUpdate: number) => void
+		onProgress?: (bytesUploadedSinceLastProgressUpdate: number) => void,
+		groupId?: string
 	) {
 		const json = await file.text()
 		const parseFileResult = parseTldrawJsonFile({
@@ -1065,7 +1074,7 @@ export class TldrawApp {
 			Object.values(snapshot.store).find((d): d is TLDocument => d.typeName === 'document')?.name ??
 			''
 
-		return this.createFile({ fileId, name })
+		return this.createFile({ fileId, name, groupId })
 	}
 
 	sidebarState = atom('sidebar state', {
