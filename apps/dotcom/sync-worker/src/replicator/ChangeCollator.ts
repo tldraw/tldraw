@@ -7,13 +7,19 @@ import {
 	TlaRow,
 	TlaUser,
 	TlaUserMutationNumber,
-	ZTable,
 } from '@tldraw/dotcom-shared'
 import { exhaustiveSwitchError } from '@tldraw/utils'
 import { DurableObject } from 'cloudflare:workers'
 import { ZReplicationChange } from '../UserDataSyncer'
 import { Subscription } from './Subscription'
-import { ChangeV2, ReplicationEvent, ReplicatorEffect, Topic } from './replicatorTypes'
+import {
+	ChangeV2,
+	ReplicatedRow,
+	ReplicatedTable,
+	ReplicationEvent,
+	ReplicatorEffect,
+	Topic,
+} from './replicatorTypes'
 
 /**
  * Interface for collecting and organizing database changes for delivery to users.
@@ -217,8 +223,8 @@ export class LiveChangeCollator implements ChangeCollator {
 					}
 				: {
 						type: 'row_update',
-						row: change.row,
-						table: table as ZTable,
+						row: change.row as ReplicatedRow,
+						table: table as ReplicatedTable,
 						event: command,
 					}
 

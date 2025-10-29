@@ -113,7 +113,6 @@ export class OptimisticAppStore {
 			case 'insert':
 				return { ...prev, [table]: [...rows.filter((r) => !matchExisting(r)), row] }
 			case 'update':
-				assert(rows.some(matchExisting), 'row not found ' + table + ' ' + JSON.stringify(row))
 				return {
 					...prev,
 					[table]: rows.map((existing) => {

@@ -1,8 +1,13 @@
-import { FAIRY_POSE, FairyPose } from '@tldraw/fairy-shared'
-import { useEffect, useMemo, useState } from 'react'
+import {
+	FAIRY_POSE,
+	FAIRY_VARIANTS,
+	FairyEntity,
+	FairyOutfit,
+	FairyPose,
+	FairyVariantDefinition,
+} from '@tldraw/fairy-shared'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { FileHelpers, Image } from 'tldraw'
-import { FairyOutfit } from './FairyOutfit'
-import { FAIRY_VARIANTS, FairyVariantDefinition } from './FairyVariant'
 
 /**
  * This file contains a rough skeleton for some sprite and animation management.
@@ -21,11 +26,11 @@ const fairySpriteMap = new Map<string, FairySprite>()
  * If we've already initialized this sprite, get the existing one.
  * If we haven't yet, initialize it and return the new one.
  */
-export function getFairySprite(variants: FairyOutfit) {
-	const key = JSON.stringify(variants)
+function getFairySprite({ outfit, tint }: { outfit: FairyOutfit; tint?: string | null }) {
+	const key = getFairySpriteCacheKey({ outfit, tint })
 	const existingSprite = fairySpriteMap.get(key)
 	if (!existingSprite) {
-		const newSprite = new FairySprite(variants)
+		const newSprite = new FairySprite(outfit, tint ?? null)
 		fairySpriteMap.set(key, newSprite)
 		return newSprite
 	}
@@ -34,14 +39,10 @@ export function getFairySprite(variants: FairyOutfit) {
 }
 
 /**
- * Dispose of a fairy sprite to free up memory.
+ * Get a cache key for a fairy sprite.
  */
-export function disposeFairySprite(variants: FairyOutfit) {
-	const key = JSON.stringify(variants)
-	const sprite = fairySpriteMap.get(key)
-	if (sprite) {
-		sprite.dispose()
-	}
+function getFairySpriteCacheKey({ outfit, tint }: { outfit: FairyOutfit; tint?: string | null }) {
+	return JSON.stringify({ outfit, tint })
 }
 
 const OFFSCREEN_CANVAS_SIZE = 1200
@@ -55,15 +56,25 @@ const offscreenContext = offscreenCanvas.getContext('2d')!
 offscreenContext.imageSmoothingEnabled = false
 
 /**
+ * A temporary canvas for storing alpha masks when tinting
+ */
+const offscreenCanvasBuffer = new OffscreenCanvas(OFFSCREEN_CANVAS_SIZE, OFFSCREEN_CANVAS_SIZE)
+const tempContext = offscreenCanvasBuffer.getContext('2d')!
+tempContext.imageSmoothingEnabled = false
+
+/**
  * A fairy sprite that we can render on the screen.
  */
 class FairySprite {
-	constructor(public definition: FairyOutfit) {
+	constructor(
+		public outfit: FairyOutfit,
+		public tint: string | null
+	) {
 		fairySpriteMap.set(this.getKey(), this)
 		this.variants = {
-			body: FAIRY_VARIANTS.body[definition.body],
-			hat: FAIRY_VARIANTS.hat[definition.hat],
-			wings: FAIRY_VARIANTS.wings[definition.wings],
+			body: FAIRY_VARIANTS.body[outfit.body],
+			hat: FAIRY_VARIANTS.hat[outfit.hat],
+			wings: FAIRY_VARIANTS.wings[outfit.wings],
 		}
 
 		this.generateAllPosesFrames()
@@ -158,6 +169,34 @@ class FairySprite {
 			offscreenContext.drawImage(wingsFrameImages[i % wingsFrameImages.length], 0, 0)
 			offscreenContext.drawImage(bodyFrameImages[i % bodyFrameImages.length], 0, 0)
 			offscreenContext.drawImage(hatFrameImages[i % hatFrameImages.length], 0, 0)
+
+			// Apply tint to black parts only using screen blend mode, preserving alpha
+			if (this.tint) {
+				// Save the original composite to temp canvas for alpha masking
+				tempContext.clearRect(0, 0, OFFSCREEN_CANVAS_SIZE, OFFSCREEN_CANVAS_SIZE)
+				tempContext.drawImage(offscreenCanvas, 0, 0)
+
+				// Apply screen blend to tint the black parts
+				offscreenContext.globalCompositeOperation = 'screen'
+				offscreenContext.fillStyle = this.tint
+				offscreenContext.fillRect(0, 0, 200, 200)
+
+				// Mask the result using the original alpha channel
+				offscreenContext.globalCompositeOperation = 'destination-in'
+				offscreenContext.drawImage(
+					offscreenCanvasBuffer,
+					0,
+					0,
+					OFFSCREEN_CANVAS_SIZE,
+					OFFSCREEN_CANVAS_SIZE,
+					0,
+					0,
+					200,
+					200
+				)
+				offscreenContext.globalCompositeOperation = 'source-over'
+			}
+
 			offscreenContext.scale(1 / FAIRY_ASSET_SCALE, 1 / FAIRY_ASSET_SCALE)
 
 			const blob = await offscreenCanvas.convertToBlob()
@@ -204,29 +243,66 @@ class FairySprite {
 	 * Get the key for the fairy sprite.
 	 */
 	getKey() {
-		return JSON.stringify(this.variants)
+		return getFairySpriteCacheKey({
+			outfit: this.outfit,
+			tint: this.tint,
+		})
 	}
 }
 
-export function FairySpriteComponent({ pose, outfit }: { pose: FairyPose; outfit: FairyOutfit }) {
-	const [frameNumber, setFrameNumber] = useState(0)
-	const sprite = useMemo(() => getFairySprite(outfit), [outfit])
-	const [poseFrames, setPoseFrames] = useState<string[]>([])
+export function FairySpriteComponent({
+	entity,
+	outfit,
+	onGestureEnd,
+	animated,
+	tint,
+}: {
+	entity: FairyEntity
+	outfit: FairyOutfit
+	onGestureEnd?(): void
+	animated: boolean
+	tint?: string | null
+}) {
+	const { pose, gesture } = entity
+	const sprite = useMemo(() => getFairySprite({ outfit, tint }), [outfit, tint])
+
+	const imageRef = useRef<HTMLImageElement>(null)
+	const startTimeRef = useRef(Date.now())
 
 	const FRAME_DURATION = 400
+	const INTERVAL_DURATION = 32
 
 	useEffect(() => {
-		const frames = sprite.getPoseFrames(pose)
-		setPoseFrames(frames)
+		startTimeRef.current = Date.now()
+	}, [gesture, pose])
+
+	const updateFrame = useCallback(
+		(timeElapsed: number) => {
+			if (!imageRef.current) return
+			const poseFrames = sprite.getPoseFrames(pose)
+			const gestureFrames = gesture ? sprite.getPoseFrames(gesture) : null
+			const unwrappedFrameNumber = Math.floor(timeElapsed / FRAME_DURATION)
+
+			const poseFrame = poseFrames[unwrappedFrameNumber % poseFrames.length]
+			const gestureFrame = gestureFrames ? gestureFrames[unwrappedFrameNumber] : null
+			if (gesture && !gestureFrame) {
+				onGestureEnd?.()
+			}
+
+			const frame = gestureFrame ?? poseFrame
+			imageRef.current.src = frame
+		},
+		[pose, gesture, sprite, onGestureEnd]
+	)
+
+	useEffect(() => {
+		updateFrame(Date.now() - startTimeRef.current)
+		if (!animated) return
 		const timer = setInterval(() => {
-			const frames = sprite.getPoseFrames(pose)
-			setPoseFrames(frames)
-			setFrameNumber((frameNumber) => (frameNumber + 1) % frames.length)
-		}, FRAME_DURATION)
+			updateFrame(Date.now() - startTimeRef.current)
+		}, INTERVAL_DURATION)
 		return () => clearInterval(timer)
-	}, [pose, sprite, sprite.loadingState])
+	}, [updateFrame, animated])
 
-	const frame = poseFrames[frameNumber % poseFrames.length]
-
-	return <img className="fairy-sprite" src={frame} />
+	return <img className="fairy-sprite" ref={imageRef} />
 }
