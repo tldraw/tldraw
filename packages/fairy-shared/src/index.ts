@@ -102,3 +102,6 @@ export * from './icons/TrashIcon'
 export * from './schema/actions/SharedTodoListActionSchema'
 export * from './schema/parts/SharedTodoListPartSchema'
 export type * from './types/SharedTodoItem'
+
+// Assign todo item
+export * from './schema/actions/AssignTodoItemActionSchema'
