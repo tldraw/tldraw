@@ -6,7 +6,6 @@ import {
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
-	TldrawUiDialogTitle,
 } from 'tldraw'
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
 import { F, defineMessages, useMsg } from '../../utils/i18n'
@@ -381,9 +380,7 @@ function TlaTermsAcceptance({
 	return (
 		<>
 			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>
-					<F defaultMessage="Welcome to tldraw" />
-				</TldrawUiDialogTitle>
+				<span style={{ flex: 1 }} />
 				{onClose && <TldrawUiDialogCloseButton />}
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className={styles.authBody}>
