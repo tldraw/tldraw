@@ -11,6 +11,12 @@ export function getLocalFiles(options?: {
 		input.multiple = allowMultiple
 		input.style.display = 'none'
 
+		function dispose() {
+			input.removeEventListener('change', onchange)
+			input.removeEventListener('cancel', oncancel)
+			input.remove()
+		}
+
 		async function onchange(e: Event) {
 			const fileList = (e.target as HTMLInputElement).files
 			if (!fileList || fileList.length === 0) {
@@ -20,11 +26,16 @@ export function getLocalFiles(options?: {
 			const files = Array.from(fileList)
 			input.value = ''
 			resolve(files)
-			input.removeEventListener('change', onchange)
-			input.remove()
+			dispose()
+		}
+
+		function oncancel() {
+			resolve([])
+			dispose()
 		}
 
 		document.body.appendChild(input)
+		input.addEventListener('cancel', oncancel)
 		input.addEventListener('change', onchange)
 		input?.click()
 	})
