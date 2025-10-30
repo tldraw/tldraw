@@ -1,4 +1,4 @@
-import { SharedTodoListAction, Streaming } from '@tldraw/fairy-shared'
+import { SharedTodoItem, SharedTodoListAction, Streaming } from '@tldraw/fairy-shared'
 import { $sharedTodoList } from '../SharedTodoList'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -10,7 +10,7 @@ export class SharedTodoListActionUtil extends AgentActionUtil<SharedTodoListActi
 			icon: 'pencil' as const,
 			description: 'Update todo list',
 			summary: action.complete
-				? `Updated todo item ${action.id}: "${action.text}", with status "${action.status}", ${action.claimedBy ? `claimed by ${action.claimedBy.name} (id: ${action.claimedBy.id})` : ''}`
+				? `Updated todo item ${action.id}: "${action.text}", with status "${action.status}", ${action.claimedById ? `claimed by ${action.claimedById}` : ''}`
 				: 'Updating todo list...',
 			pose: 'thinking' as const,
 		}
@@ -20,11 +20,13 @@ export class SharedTodoListActionUtil extends AgentActionUtil<SharedTodoListActi
 		if (!action.complete) return
 		if (!this.agent) return
 
-		const proposedTodoItem = {
+		const proposedTodoItem: SharedTodoItem = {
 			id: action.id,
 			status: action.status,
 			text: action.text,
-			claimedBy: action.claimedBy,
+			claimedById: action.claimedById,
+			x: action.x,
+			y: action.y,
 		}
 
 		const fairyId = this.agent.id
@@ -33,20 +35,21 @@ export class SharedTodoListActionUtil extends AgentActionUtil<SharedTodoListActi
 
 		// Check for claiming conflicts
 		if (itemToUpdate) {
-			const fairyIsClaimingItem = proposedTodoItem.claimedBy?.id === fairyId
+			const fairyIsClaimingItem = proposedTodoItem.claimedById === fairyId
 			const claimedByAnotherFairy =
-				itemToUpdate.claimedBy !== null && itemToUpdate.claimedBy.id !== fairyId
+				itemToUpdate.claimedById !== undefined && itemToUpdate.claimedById !== fairyId
 
 			// TODO improve this logic: it shouldnt say none are left if this fairy has some items calimed already.
 
-			if (fairyIsClaimingItem && claimedByAnotherFairy && itemToUpdate.claimedBy) {
+			if (fairyIsClaimingItem && claimedByAnotherFairy && itemToUpdate.claimedById) {
 				this.agent.cancel()
-				const unclaimedTodoItems = sharedTodoList.filter((item) => item.claimedBy === null)
+				const unclaimedTodoItems = sharedTodoList.filter((item) => !item.claimedById)
 				const todoItemsClaimedByThisFairy = sharedTodoList.filter(
-					(item) => item.claimedBy?.id === fairyId
+					(item) => item.claimedById === fairyId
 				)
 
-				let message = `I'm sorry, but ${itemToUpdate.claimedBy.name} (id: ${itemToUpdate.claimedBy.id}) has already claimed this todo item with id ${itemToUpdate.id}. `
+				// For now, just use the ID since we don't have easy access to agent names here
+				let message = `I'm sorry, but fairy with id ${itemToUpdate.claimedById} has already claimed this todo item with id ${itemToUpdate.id}. `
 				if (unclaimedTodoItems.length === 0 && todoItemsClaimedByThisFairy.length === 0) {
 					message += 'There are no unclaimed todo items remaining. You can stop working.'
 				} else {

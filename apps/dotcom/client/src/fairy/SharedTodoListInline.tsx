@@ -28,7 +28,6 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 			if (!newTodoText.trim()) return
 
 			addSharedTodoItem(newTodoText.trim())
-
 			setNewTodoText('')
 		},
 		[newTodoText]
@@ -41,14 +40,10 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 	const handleAssignFairy = useCallback(
 		(todoId: number, fairyId: string) => {
 			const agent = agents.find((a) => a.id === fairyId)
-			if (!agent) return
+			if (!agent && fairyId !== '') return
 
 			$sharedTodoList.update((todos) =>
-				todos.map((t) =>
-					t.id === todoId
-						? { ...t, claimedBy: { id: agent.id, name: agent.$fairyConfig.get().name } }
-						: t
-				)
+				todos.map((t) => (t.id === todoId ? { ...t, claimedById: fairyId || undefined } : t))
 			)
 		},
 		[agents]
@@ -56,7 +51,7 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 
 	const handleHelpOut = useCallback(
 		(todo: SharedTodoItem) => {
-			const agent = agents.find((a) => a.id === todo.claimedBy?.id)
+			const agent = todo.claimedById ? agents.find((a) => a.id === todo.claimedById) : undefined
 			if (agent) {
 				agent.helpOut([todo])
 			} else {
@@ -107,6 +102,12 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 									<span className="shared-todo-item-icon">{icon}</span>
 									<span className="shared-todo-item-text">
 										{todo.id}. {todo.text}
+										{todo.x != null && todo.y != null && (
+											<span className="shared-todo-item-coords">
+												{' '}
+												({Math.round(todo.x)}, {Math.round(todo.y)})
+											</span>
+										)}
 									</span>
 									<button
 										className="shared-todo-item-delete"
@@ -118,7 +119,7 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 								</div>
 								<div className="shared-todo-item-assign">
 									<select
-										value={todo.claimedBy?.id || ''}
+										value={todo.claimedById || ''}
 										onChange={(e) => handleAssignFairy(todo.id, e.target.value)}
 										className="shared-todo-item-fairy-select"
 									>

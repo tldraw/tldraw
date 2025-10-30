@@ -392,7 +392,7 @@ export class FairyAgent {
 		const todoItemsRemaining = this.$todoList.get().filter((item) => item.status !== 'done')
 		const sharedTodoItemsRemaining = $sharedTodoList.get().filter((item) => {
 			if (item.status === 'done') return false
-			if (item.claimedBy && item.claimedBy.id !== this.id) return false
+			if (item.claimedById && item.claimedById !== this.id) return false
 			return true
 		})
 

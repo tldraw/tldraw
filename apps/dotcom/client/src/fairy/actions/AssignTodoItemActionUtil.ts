@@ -46,7 +46,7 @@ export class AssignTodoItemActionUtil extends AgentActionUtil<AssignTodoItemActi
 			(id) => !todoItems.some((item) => item.id === id)
 		)
 		const todoIdsThatAreAlreadyClaimed = todoItems
-			.filter((item) => item.claimedBy !== null && item.claimedBy.id !== '')
+			.filter((item) => item.claimedById !== undefined && item.claimedById !== '')
 			.map((item) => item.id)
 
 		if (todoIdsThatDontExist.length > 0) {
@@ -58,9 +58,17 @@ export class AssignTodoItemActionUtil extends AgentActionUtil<AssignTodoItemActi
 		}
 
 		if (todoIdsThatAreAlreadyClaimed.length > 0) {
+			const claimedByNames = todoItems
+				.filter((item) => todoIdsThatAreAlreadyClaimed.includes(item.id))
+				.map((item) => {
+					const claimingAgent = getFairyAgentById(item.claimedById || '', this.editor)
+					return claimingAgent
+						? claimingAgent.$fairyConfig.get().name
+						: `fairy with id ${item.claimedById}`
+				})
 			this.agent.cancel()
 			this.agent.schedule(
-				`Todo item(s) with id(s) ${todoIdsThatAreAlreadyClaimed.join(', ')} are already claimed by ${todoItems.map((item) => item.claimedBy?.name).join(', ')}.`
+				`Todo item(s) with id(s) ${todoIdsThatAreAlreadyClaimed.join(', ')} are already claimed by ${claimedByNames.join(', ')}.`
 			)
 			return
 		}
@@ -72,10 +80,21 @@ export class AssignTodoItemActionUtil extends AgentActionUtil<AssignTodoItemActi
 
 		if (validTodoItems.length === 0) return
 
-		validTodoItems.forEach((item) => {
-			item.claimedBy = { id: otherFairyId, name: otherFairy.$fairyConfig.get().name }
+		// Update the shared todo list with the new claimedById
+		$sharedTodoList.update((sharedTodoItems) => {
+			return sharedTodoItems.map((item) => {
+				if (validTodoItems.some((validItem) => validItem.id === item.id)) {
+					return { ...item, claimedById: otherFairyId }
+				}
+				return item
+			})
 		})
 
-		otherFairy.helpOut(validTodoItems)
+		// Get updated items for helpOut
+		const updatedItems = $sharedTodoList
+			.get()
+			.filter((item) => validTodoItems.some((validItem) => validItem.id === item.id))
+
+		otherFairy.helpOut(updatedItems)
 	}
 }

@@ -3,7 +3,7 @@ import { atom } from 'tldraw'
 
 export const $sharedTodoList = atom<SharedTodoItem[]>('sharedTodoList', [])
 
-export function addSharedTodoItem(text: string) {
+export function addSharedTodoItem(text: string, x?: number, y?: number) {
 	$sharedTodoList.update((todos) => {
 		const maxId = todos.length === 0 ? 0 : Math.max(...todos.map((t) => t.id))
 		return [
@@ -11,8 +11,9 @@ export function addSharedTodoItem(text: string) {
 			{
 				id: maxId + 1,
 				text,
-				status: 'todo',
-				claimedBy: null,
+				status: 'todo' as const,
+				x: x ?? undefined,
+				y: y ?? undefined,
 			},
 		]
 	})
