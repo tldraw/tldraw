@@ -11,9 +11,6 @@ import {
 	TldrawUiButton,
 	TldrawUiButtonIcon,
 	TldrawUiIcon,
-	TldrawUiMenuContextProvider,
-	TldrawUiMenuGroup,
-	TldrawUiMenuItem,
 	TldrawUiToolbar,
 	uniqueId,
 	useEditor,
@@ -26,11 +23,14 @@ import { defineMessages, useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairyChatHistory } from './fairy-agent/chat/FairyChatHistory'
 import { FairyBasicInput } from './fairy-agent/input/FairyBasicInput'
+import { FairyDropdownContent } from './FairyDropdownContent'
 import { FairyGroupChat } from './FairyGroupChat'
-import { FairyDropdownContent, FairySidebarButton } from './FairySidebarButton'
+import { FairySidebarButton } from './FairySidebarButton'
 import { getRandomFairyName } from './getRandomFairyName'
-import { $sharedTodoList, clearSharedTodoList } from './SharedTodoList'
+import { $sharedTodoList } from './SharedTodoList'
 import { SharedTodoListInline } from './SharedTodoListInline'
+import { TodoListDropdownContent } from './TodoListDropdownContent'
+import { TodoListSidebarButton } from './TodoListSidebarButton'
 
 const fairyMessages = defineMessages({
 	toolbar: { defaultMessage: 'Fairies' },
@@ -98,6 +98,7 @@ export function FairyHUD({
 }) {
 	const editor = useEditor()
 	const [menuPopoverOpen, setMenuPopoverOpen] = useState(false)
+	const [todoMenuPopoverOpen, setTodoMenuPopoverOpen] = useState(false)
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
 
 	const [panelState, setPanelState] = useState<PanelState>('closed')
@@ -265,6 +266,7 @@ export function FairyHUD({
 														onDeleteFairyConfig={onDeleteFairyConfig}
 														alignOffset={4}
 														sideOffset={4}
+														side="bottom"
 													/>
 												)}
 											</_DropdownMenu.Root>
@@ -321,38 +323,20 @@ export function FairyHUD({
 								<div className="fairy-toolbar-header">
 									<_DropdownMenu.Root
 										dir="ltr"
-										open={menuPopoverOpen}
-										onOpenChange={setMenuPopoverOpen}
+										open={todoMenuPopoverOpen}
+										onOpenChange={setTodoMenuPopoverOpen}
 									>
 										<_DropdownMenu.Trigger asChild dir="ltr">
 											<TldrawUiButton type="icon" className="fairy-toolbar-button">
 												<TldrawUiButtonIcon icon="menu" />
 											</TldrawUiButton>
 										</_DropdownMenu.Trigger>
-										<_DropdownMenu.Content
-											side="bottom"
-											align="start"
-											className="tlui-menu"
-											collisionPadding={4}
+										<TodoListDropdownContent
+											onRequestHelpFromEveryone={requestHelpFromEveryone}
 											alignOffset={4}
 											sideOffset={4}
-											style={{ zIndex: 100000000 }}
-										>
-											<TldrawUiMenuContextProvider type="menu" sourceId="fairy-panel">
-												<TldrawUiMenuGroup id="fairy-menu">
-													<TldrawUiMenuItem
-														id="ask-for-help-from-everyone"
-														onSelect={requestHelpFromEveryone}
-														label="Request help from everyone"
-													/>
-												</TldrawUiMenuGroup>
-												<TldrawUiMenuItem
-													id="clear-todo-list"
-													onSelect={() => clearSharedTodoList()}
-													label="Clear list"
-												/>
-											</TldrawUiMenuContextProvider>
-										</_DropdownMenu.Content>
+											side="bottom"
+										/>
 									</_DropdownMenu.Root>
 									<div className="fairy-id-display">Todo list</div>
 									<TldrawUiButton
@@ -371,16 +355,11 @@ export function FairyHUD({
 
 				<div className="fairy-buttons-container">
 					<div className="fairy-toolbar-stack-header">
-						<div style={{ position: 'relative' }}>
-							<TldrawUiButton
-								type="icon"
-								className="fairy-toolbar-sidebar-button"
-								onClick={handleClickTodoList}
-							>
-								<TldrawUiIcon icon="clipboard-copied" label="Todo list" />
-							</TldrawUiButton>
-							{hasUnreadTodos && <div className="fairy-todo-unread-indicator" />}
-						</div>
+						<TodoListSidebarButton
+							onClick={handleClickTodoList}
+							hasUnreadTodos={hasUnreadTodos}
+							onRequestHelpFromEveryone={requestHelpFromEveryone}
+						/>
 					</div>
 					<TldrawUiToolbar label={toolbarMessage} orientation="vertical">
 						{agents.map((agent) => {
