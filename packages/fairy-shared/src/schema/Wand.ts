@@ -143,9 +143,10 @@ export const WAND_DEFINITIONS = [
 		available: true,
 		parts: [
 			'messages',
+			'personality',
 			'wand',
 			'blurryShapes',
-			'peripheralShapes',
+			// 'peripheralShapes',
 			'screenshot',
 			'viewportBounds',
 			'chatHistory',

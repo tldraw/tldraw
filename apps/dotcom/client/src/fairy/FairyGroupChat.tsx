@@ -3,7 +3,7 @@ import {
 	TldrawUiToolbar,
 	TldrawUiToolbarToggleGroup,
 	TldrawUiToolbarToggleItem,
-	uniqueId,
+	// uniqueId,
 	useValue,
 } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
@@ -14,28 +14,24 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 	const [instruction, setInstruction] = useState('')
 	const instructionTextareaRef = useRef<HTMLTextAreaElement>(null)
 
-	// Get the leader agent reactively
 	const leaderAgent = useValue(
 		'leader-agent',
 		() => (leaderAgentId ? (agents.find((agent) => agent.id === leaderAgentId) ?? null) : null),
 		[agents, leaderAgentId]
 	)
 
-	// Get follower agents reactively (excluding leader)
 	const followerAgents = useValue(
 		'follower-agents',
 		() => (leaderAgentId ? agents.filter((agent) => agent.id !== leaderAgentId) : []),
 		[agents, leaderAgentId]
 	)
 
-	// Get leader agent config reactively
 	const leaderConfig = useValue('leader-config', () => leaderAgent?.$fairyConfig.get() ?? null, [
 		leaderAgent,
 	])
 
-	// Check if any agent is generating
-	const isGenerating = useValue(
-		'isGenerating',
+	const areAnyGenerating = useValue(
+		'areAnyGenerating',
 		() => agents.some((agent) => agent.isGenerating()),
 		[agents]
 	)
@@ -45,8 +41,6 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 			instructionTextareaRef.current.spellcheck = false
 		}
 	}, [])
-
-	// No need for auto-resize since textarea now fills container
 
 	const handleSetLeader = (agent: FairyAgent) => {
 		setLeaderAgentId(agent.id)
@@ -63,8 +57,9 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
             You are in charge of making sure the other fairies follow your instructions and complete the project together. Your teammates are:
             ${followerNames}
             You are to complete the project together.
-            This project has id: ${uniqueId(5)}, all todo items you create should be prefixed with this id. 
+			Make sure to give the approximate locations of the work to be done, if relevant, in order to make sure fairies dont get confused if there are multiple tasks to be done.
         `
+			// This project has id: ${uniqueId(5)}, all todo items you create should be prefixed with this id.
 			return prompt
 		},
 		[followerAgents]
@@ -106,7 +101,7 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 		[agents, getGroupChatPrompt, leaderAgent, followerAgents]
 	)
 
-	const shouldCancel = isGenerating && instruction === ''
+	const shouldCancel = areAnyGenerating && instruction === ''
 
 	const handleButtonClick = () => {
 		handleInstructGroupChat(instruction)
@@ -165,7 +160,7 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 				</div>
 				<button
 					onClick={handleButtonClick}
-					disabled={!leaderAgent || (instruction === '' && !isGenerating)}
+					disabled={!leaderAgent || (instruction === '' && !areAnyGenerating)}
 					className="fairy-group-chat-input__submit"
 					title={shouldCancel ? 'Stop' : 'Send'}
 				>

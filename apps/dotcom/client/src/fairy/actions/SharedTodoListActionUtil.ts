@@ -1,32 +1,47 @@
 import { SharedTodoItem, SharedTodoListAction, Streaming } from '@tldraw/fairy-shared'
 import { $sharedTodoList } from '../SharedTodoList'
+import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
+import { getFairyAgentById } from '../fairy-agent/agent/fairyAgentsAtom'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class SharedTodoListActionUtil extends AgentActionUtil<SharedTodoListAction> {
 	static override type = 'update-todo-list' as const
 
 	override getInfo(action: Streaming<SharedTodoListAction>) {
+		let claimedByName = ''
+		if (action.complete && action.claimedById) {
+			const claimingAgent = getFairyAgentById(action.claimedById, this.editor)
+			claimedByName = claimingAgent
+				? claimingAgent.$fairyConfig.get().name
+				: `fairy with id ${action.claimedById}`
+		}
+
 		return {
 			icon: 'pencil' as const,
 			description: 'Update todo list',
 			summary: action.complete
-				? `Updated todo item ${action.id}: "${action.text}", with status "${action.status}", ${action.claimedById ? `claimed by ${action.claimedById}` : ''}`
+				? `Updated todo item ${action.id}: "${action.text}", with status "${action.status}", ${claimedByName ? `claimed by ${claimedByName}` : ''}`
 				: 'Updating todo list...',
 			pose: 'thinking' as const,
 		}
 	}
 
-	override applyAction(action: Streaming<SharedTodoListAction>) {
+	override applyAction(action: Streaming<SharedTodoListAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
 		if (!this.agent) return
+
+		// Remove the offset from coordinates, and only include x and y if they are defined
+		const coords =
+			action.x !== undefined && action.y !== undefined
+				? helpers.removeOffsetFromVec({ x: action.x, y: action.y })
+				: undefined
 
 		const proposedTodoItem: SharedTodoItem = {
 			id: action.id,
 			status: action.status,
 			text: action.text,
 			claimedById: action.claimedById,
-			x: action.x,
-			y: action.y,
+			...(coords ? { x: coords.x, y: coords.y } : {}),
 		}
 
 		const fairyId = this.agent.id

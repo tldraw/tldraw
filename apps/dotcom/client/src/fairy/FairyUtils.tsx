@@ -29,6 +29,7 @@ import { DataPartUtil } from './parts/DataPartUtil'
 import { MessagesPartUtil } from './parts/MessagesPartUtil'
 import { OtherFairiesPartUtil } from './parts/OtherFairiesPartUtil'
 import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
+import { PersonalityPartUtil } from './parts/PersonalityPartUtil'
 import { PromptPartUtil, PromptPartUtilConstructor } from './parts/PromptPartUtil'
 import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
 import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
@@ -110,6 +111,7 @@ export const PROMPT_PART_UTILS = [
 	// Fairy-specific
 	OtherFairiesPartUtil,
 	WandPartUtil,
+	PersonalityPartUtil,
 ] satisfies PromptPartUtilConstructor<PromptPart>[]
 
 /**
