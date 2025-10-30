@@ -1,5 +1,6 @@
 import { useClerk, useSignIn, useUser } from '@clerk/clerk-react'
 import * as Clerk from '@clerk/elements/common'
+import * as SignIn from '@clerk/elements/sign-in'
 import { ReactNode, useEffect, useState, type FormEvent } from 'react'
 import {
 	TldrawUiButton,
@@ -202,15 +203,19 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 	if (stage === 'enterEmail') {
 		return (
 			<TlaAuthStep onClose={onClose} showDescription>
-				<div className={styles.authGoogleButtonWrapper}>
-					{/* @ts-ignore this is fine */}
-					<Clerk.Connection name="google">
-						<>
-							<Clerk.Icon icon="google" />
-							<F defaultMessage="Continue with Google" />
-						</>
-					</Clerk.Connection>
-				</div>
+				<SignIn.Root routing="virtual">
+					<SignIn.Step name="start">
+						<div className={styles.authGoogleButtonWrapper}>
+							{/* @ts-ignore this is fine */}
+							<Clerk.Connection name="google">
+								<>
+									<Clerk.Icon icon="google" />
+									<F defaultMessage="Continue with Google" />
+								</>
+							</Clerk.Connection>
+						</div>
+					</SignIn.Step>
+				</SignIn.Root>
 
 				<div className={styles.authDivider}>
 					<span>
