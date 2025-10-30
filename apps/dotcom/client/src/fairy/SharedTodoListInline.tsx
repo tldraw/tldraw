@@ -1,11 +1,13 @@
 import { SharedTodoItem } from '@tldraw/fairy-shared'
 import React, { useCallback, useState } from 'react'
-import { useValue } from 'tldraw'
+import { useEditor, useValue } from 'tldraw'
 import '../tla/styles/fairy.css'
-import { $sharedTodoList, addSharedTodoItem, deleteSharedTodoItem } from './SharedTodoList'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { $sharedTodoList, addSharedTodoItem, deleteSharedTodoItem } from './SharedTodoList'
+import { TodoDragTool } from './TodoDragTool'
 
 export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
+	const editor = useEditor()
 	const todos = useValue('shared-todo-list', () => $sharedTodoList.get(), [$sharedTodoList])
 	const [newTodoText, setNewTodoText] = useState('')
 
@@ -70,6 +72,87 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 		[agents]
 	)
 
+	const handleDragStart = useCallback(
+		(e: React.PointerEvent, todoId: number) => {
+			const todo = todos.find((t) => t.id === todoId)
+			if (!todo) return
+
+			// If todo has coordinates and this is just a click (no movement), remove them
+			if (todo.x != null && todo.y != null) {
+				// Check if this will be a drag by tracking movement
+				const startX = e.clientX
+				const startY = e.clientY
+				let hasMoved = false
+
+				const handlePointerMove = (moveEvent: PointerEvent) => {
+					const deltaX = moveEvent.clientX - startX
+					const deltaY = moveEvent.clientY - startY
+
+					// If moved more than 1 pixel, treat as drag
+					if (Math.abs(deltaX) > 1 || Math.abs(deltaY) > 1) {
+						hasMoved = true
+						document.removeEventListener('pointermove', handlePointerMove)
+						document.removeEventListener('pointerup', handlePointerUp)
+
+						// Activate drag tool for repositioning
+						const tool = editor.getStateDescendant('todo-drag')
+						if (tool && 'setTodoId' in tool) {
+							;(tool as TodoDragTool).setTodoId(todoId)
+							editor.setCurrentTool('todo-drag')
+						}
+					}
+				}
+
+				const handlePointerUp = () => {
+					document.removeEventListener('pointermove', handlePointerMove)
+					document.removeEventListener('pointerup', handlePointerUp)
+
+					// If didn't move, remove coordinates (simple click)
+					if (!hasMoved) {
+						$sharedTodoList.update((todos) =>
+							todos.map((t) => (t.id === todoId ? { ...t, x: undefined, y: undefined } : t))
+						)
+					}
+				}
+
+				document.addEventListener('pointermove', handlePointerMove)
+				document.addEventListener('pointerup', handlePointerUp)
+				return
+			}
+
+			// If no coordinates, set up drag to place
+			const startX = e.clientX
+			const startY = e.clientY
+
+			const handlePointerMove = (moveEvent: PointerEvent) => {
+				const deltaX = moveEvent.clientX - startX
+				const deltaY = moveEvent.clientY - startY
+
+				// Start dragging if moved more than 1 pixel
+				if (Math.abs(deltaX) > 1 || Math.abs(deltaY) > 1) {
+					document.removeEventListener('pointermove', handlePointerMove)
+					document.removeEventListener('pointerup', handlePointerUp)
+
+					// Activate the drag tool
+					const tool = editor.getStateDescendant('todo-drag')
+					if (tool && 'setTodoId' in tool) {
+						;(tool as TodoDragTool).setTodoId(todoId)
+						editor.setCurrentTool('todo-drag')
+					}
+				}
+			}
+
+			const handlePointerUp = () => {
+				document.removeEventListener('pointermove', handlePointerMove)
+				document.removeEventListener('pointerup', handlePointerUp)
+			}
+
+			document.addEventListener('pointermove', handlePointerMove)
+			document.addEventListener('pointerup', handlePointerUp)
+		},
+		[editor, todos]
+	)
+
 	return (
 		<div className="shared-todo-list-inline">
 			<form onSubmit={handleAddTodo} className="shared-todo-input">
@@ -109,6 +192,21 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 											</span>
 										)}
 									</span>
+									<button
+										className="shared-todo-item-drag"
+										onPointerDown={(e) => {
+											e.preventDefault()
+											e.stopPropagation()
+											handleDragStart(e, todo.id)
+										}}
+										title={
+											todo.x != null && todo.y != null
+												? 'Click to remove or drag to move'
+												: 'Drag to canvas'
+										}
+									>
+										⇄
+									</button>
 									<button
 										className="shared-todo-item-delete"
 										onClick={() => handleDeleteTodo(todo.id)}

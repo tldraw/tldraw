@@ -745,6 +745,33 @@
 	color: var(--tl-color-text);
 }
 
+.shared-todo-item-drag {
+	appearance: none;
+	background: none;
+	border: none;
+	width: 16px;
+	height: 16px;
+	flex-shrink: 0;
+	padding: 0;
+	margin: 0;
+	margin-left: 4px;
+	cursor: grab;
+	color: var(--tl-color-text-3);
+	font-size: 14px;
+	line-height: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.shared-todo-item-drag:hover {
+	color: var(--tl-color-text);
+}
+
+.shared-todo-item-drag:active {
+	cursor: grabbing;
+}
+
 .shared-todo-item-assign {
 	padding-left: 20px;
 	padding-bottom: 6px;
@@ -1039,7 +1066,7 @@
 	position: absolute;
 	transform: translate(-75%, -25%) scale(var(--tl-scale));
 	transform-origin: 75% 25%;
-	transition: left 0.1s ease-in-out, top 0.1s ease-in-out;
+	/* transition: left 0.1s ease-in-out, top 0.1s ease-in-out; */
 	display: flex;
 	align-items: center;
 	gap: 6px;
@@ -1053,6 +1080,38 @@
 	pointer-events: none;
 	white-space: nowrap;
 	user-select: none;
+}
+
+.in-canvas-todo-item:hover {
+	pointer-events: auto;
+}
+
+.in-canvas-todo-item-delete {
+	appearance: none;
+	background: none;
+	border: none;
+	width: 16px;
+	height: 16px;
+	flex-shrink: 0;
+	padding: 0;
+	margin: 0;
+	margin-left: 4px;
+	cursor: pointer;
+	color: var(--tl-color-text-3);
+	font-size: 16px;
+	line-height: 1;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	pointer-events: auto;
+}
+
+.in-canvas-todo-item:hover .in-canvas-todo-item-delete {
+	display: flex;
+}
+
+.in-canvas-todo-item-delete:hover {
+	color: var(--tl-color-text);
 }
 
 .in-canvas-todo-item-icon {

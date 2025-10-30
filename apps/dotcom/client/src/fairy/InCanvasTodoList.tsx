@@ -1,6 +1,6 @@
 import { SharedTodoItem } from '@tldraw/fairy-shared'
 import { useValue } from 'tldraw'
-import { $sharedTodoList } from './SharedTodoList'
+import { $sharedTodoList, deleteSharedTodoItem } from './SharedTodoList'
 
 export function InCanvasTodoList() {
 	const todos = useValue('shared-todo-list', () => $sharedTodoList.get(), [$sharedTodoList])
@@ -50,6 +50,17 @@ function InCanvasTodoItem({ todo }: { todo: SharedTodoItem }) {
 		>
 			<span className="in-canvas-todo-item-icon">{icon}</span>
 			<span className="in-canvas-todo-item-text">{todo.text}</span>
+			<button
+				className="in-canvas-todo-item-delete"
+				onClick={(e) => {
+					e.preventDefault()
+					e.stopPropagation()
+					deleteSharedTodoItem(todo.id)
+				}}
+				title="Delete todo"
+			>
+				×
+			</button>
 		</div>
 	)
 }

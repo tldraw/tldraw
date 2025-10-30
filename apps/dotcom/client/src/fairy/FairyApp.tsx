@@ -7,6 +7,7 @@ import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairyConfig } from './FairyConfig'
 import { FairyThrowTool } from './FairyThrowTool'
 import { $sharedTodoList } from './SharedTodoList'
+import { TodoDragTool } from './TodoDragTool'
 
 export interface PersistedFairyConfigs {
 	[fairyId: string]: FairyConfig
@@ -49,6 +50,10 @@ export function FairyApp({
 		// Register the FairyThrowTool
 		editor.removeTool(FairyThrowTool)
 		editor.setTool(FairyThrowTool)
+
+		// Register the TodoDragTool
+		editor.removeTool(TodoDragTool)
+		editor.setTool(TodoDragTool)
 
 		const configIds = Object.keys(fairyConfigs)
 		const existingAgents = agentsRef.current
