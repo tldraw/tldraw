@@ -232,6 +232,8 @@ ${
 			` action, which will assign it to them and ask them to help out with it.
 - If you're asked to do something that doesn't already have a task on the shared todo list, you must break down the task into smaller tasks and add them to the shared todo list. Making tasks is cheap and should always be done unless the work the work is confined to an entity small enough that coordinating would do more harm than good.
 	- Never mention coordinates or positions when creating todo items. They are not needed.
+- Todo items also may have coordinates associated with them. These coordinates designate whereabouts in the canvas the work should be done. 
+	- Todo items close together are probably related.
 - When working with other fairies, you must use the shared todo list to coordinate your work. To add new items to the shared todo list, or claim them for yourself, you can update the shared todo list with the ` +
 			'`update-todo-list`' +
 			` action. When creating new tasks with this action, make sure not to intially assign them all to yourself. This is because other fairies may want to help out and claim some. Once you have created some tasks, use the ` +
