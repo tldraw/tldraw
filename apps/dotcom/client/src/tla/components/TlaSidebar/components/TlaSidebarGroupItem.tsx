@@ -254,6 +254,14 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 
 	const { startDragTracking } = useDragTracking()
 
+	const isDragging = useValue(
+		'isDragging',
+		() =>
+			app.sidebarState.get().dragState?.hasDragStarted &&
+			app.sidebarState.get().dragState?.id === groupId,
+		[groupId, app]
+	)
+
 	const expansionState = useValue(
 		'expansionState',
 		() => {
@@ -358,6 +366,7 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 					data-group-id={group.groupId}
 					data-drop-target-id={`group:${group.groupId}`}
 					data-no-animation={isNoAnimation}
+					data-is-dragging={isDragging}
 				>
 					<Collapsible.Trigger asChild>
 						<div

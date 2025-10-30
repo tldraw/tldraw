@@ -193,10 +193,13 @@ export function TlaSidebarFileLinkInner({
 	const file = useValue('file', () => app.getFile(fileId), [fileId, app])
 	const hasAdminRights = useHasFileAdminRights(fileId)
 
-	const isDragging = useValue('isDragging', () => app.sidebarState.get().dragState?.id === fileId, [
-		fileId,
-		app,
-	])
+	const isDragging = useValue(
+		'isDragging',
+		() =>
+			app.sidebarState.get().dragState?.hasDragStarted &&
+			app.sidebarState.get().dragState?.id === fileId,
+		[fileId, app]
+	)
 
 	const wrapperRef = useRef<HTMLDivElement>(null)
 
