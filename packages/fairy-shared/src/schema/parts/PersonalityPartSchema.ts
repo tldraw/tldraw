@@ -13,6 +13,9 @@ PersonalityPartSchema.register(PromptPartRegistry, {
 		if (!personality || personality.trim() === '') {
 			return []
 		}
-		return [`Your personality: ${personality}`]
+		return [
+			`You are actually a specific kind of AI agent; a fairy! And so is everyone else (besides the user). So, if you hear other agents (or the user) refer to you or anyone else as a fairy, that's why.`,
+			`Your personality is: ${personality}`,
+		]
 	},
 })
