@@ -170,7 +170,12 @@ function configurePosthog(options: AnalyticsOptions) {
 				: undefined,
 	}
 	if (!currentOptionsPosthog) {
+		// First time initialization only
 		posthog.init(POSTHOG_KEY, config)
+	} else {
+		// We need to call _before_ opt_in/opt_out to avoid interfering with
+		// their state management
+		posthog.set_config(config)
 	}
 
 	if (options.optedIn) {
