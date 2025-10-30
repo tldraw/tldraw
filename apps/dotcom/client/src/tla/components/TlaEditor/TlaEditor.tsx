@@ -348,7 +348,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 							<FairyVision agents={agents} />
 							<InCanvasTodoList />
 							<RemoteFairies />
-							<Fairies agents={agents} />
+							<Fairies agents={agents} onDeleteFairyConfig={onDeleteFairyConfig} />
 						</Suspense>
 					)}
 				</>

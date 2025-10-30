@@ -1,37 +1,27 @@
-import { DropdownMenu as _DropdownMenu } from 'radix-ui'
+import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { useContainer } from 'tldraw'
 import { TodoListMenuContent } from './TodoListMenuContent'
 
-export function TodoListDropdownContent({
+export function TodoListContextMenuContent({
 	onRequestHelpFromEveryone,
-	alignOffset,
-	sideOffset,
-	side = 'top',
 }: {
 	onRequestHelpFromEveryone(): void
-	alignOffset: number
-	sideOffset: number
-	side?: 'top' | 'bottom' | 'left' | 'right'
 }) {
 	const container = useContainer()
 
 	return (
-		<_DropdownMenu.Portal container={container}>
-			<_DropdownMenu.Content
-				side={side}
-				align="start"
+		<_ContextMenu.Portal container={container}>
+			<_ContextMenu.Content
 				className="tlui-menu fairy-sidebar-dropdown"
 				collisionPadding={4}
-				alignOffset={alignOffset}
-				sideOffset={sideOffset}
 				onClick={(e) => e.stopPropagation()}
 				style={{ zIndex: 100000000 }}
 			>
 				<TodoListMenuContent
 					onRequestHelpFromEveryone={onRequestHelpFromEveryone}
-					menuType="menu"
+					menuType="context-menu"
 				/>
-			</_DropdownMenu.Content>
-		</_DropdownMenu.Portal>
+			</_ContextMenu.Content>
+		</_ContextMenu.Portal>
 	)
 }
