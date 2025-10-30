@@ -18,9 +18,8 @@ export function TodoListMenuContent({
 		})
 	}, [agents])
 
-	const resetAllFairies = useCallback(() => {
+	const resetAllWands = useCallback(() => {
 		agents.forEach((agent) => {
-			agent.reset()
 			const config = agent.$fairyConfig.get()
 			if (config) {
 				agent.$fairyConfig.set({ ...config, wand: 'god' })
@@ -52,7 +51,7 @@ export function TodoListMenuContent({
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="fairy-management-menu">
 				<TldrawUiMenuItem id="reset-chats" onSelect={resetAllChats} label="Reset all chats" />
-				<TldrawUiMenuItem id="reset-fairies" onSelect={resetAllFairies} label="Reset all fairies" />
+				<TldrawUiMenuItem id="reset-wands" onSelect={resetAllWands} label="Reset all wands" />
 				<TldrawUiMenuItem
 					id="delete-fairies"
 					onSelect={deleteAllFairies}
