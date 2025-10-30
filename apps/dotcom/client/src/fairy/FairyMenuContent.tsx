@@ -65,16 +65,24 @@ export function FairyMenuContent({
 
 	return (
 		<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">
-			<TldrawUiMenuGroup id="fairy-menu">
+			<TldrawUiMenuGroup id="fairy-movement-menu">
 				<TldrawUiMenuItem id="go-to-fairy" onSelect={() => goToFairy(agent)} label="Go to fairy" />
+				<TldrawUiMenuItem
+					id="summon-fairy"
+					onSelect={() => summonFairy(agent)}
+					label="Summon fairy"
+				/>
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="fairy-chat-menu">
 				<TldrawUiMenuItem id="help-out" onSelect={() => agent.helpOut()} label="Ask for help" />
-				<TldrawUiMenuItem id="summon-fairy" onSelect={() => summonFairy(agent)} label="Summon" />
+				<TldrawUiMenuItem id="new-chat" onSelect={() => resetChat(agent)} label="Reset chat" />
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="fairy-config-menu">
 				<TldrawUiMenuItem
 					id="configure-fairy"
 					onSelect={() => configureFairy(agent)}
-					label="Customize"
+					label="Customize fairy"
 				/>
-				<TldrawUiMenuItem id="new-chat" onSelect={() => resetChat(agent)} label="Reset chat" />
 				<TldrawUiMenuItem
 					id="delete-fairy"
 					onSelect={() => deleteFairy(agent)}

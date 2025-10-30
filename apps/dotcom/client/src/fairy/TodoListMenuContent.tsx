@@ -23,10 +23,12 @@ export function TodoListMenuContent({
 				<TldrawUiMenuItem
 					id="ask-for-help-from-everyone"
 					onSelect={requestHelpFromEveryone}
-					label="Request help from everyone"
+					label="Ask for help"
 				/>
 			</TldrawUiMenuGroup>
-			<TldrawUiMenuItem id="clear-todo-list" onSelect={clearList} label="Clear list" />
+			<TldrawUiMenuGroup id="todo-list-config-menu">
+				<TldrawUiMenuItem id="clear-todo-list" onSelect={clearList} label="Clear list" />
+			</TldrawUiMenuGroup>
 		</TldrawUiMenuContextProvider>
 	)
 }
