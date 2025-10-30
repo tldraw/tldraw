@@ -7,9 +7,9 @@ import { FairySpriteComponent } from './fairy-sprite/FairySprite'
 import { FairyContextMenuContent } from './FairyContextMenuContent'
 import { FairyThrowTool } from './FairyThrowTool'
 
-export const FAIRY_SIZE = 70
-const FAIRY_CLICKABLE_SIZE_DEFAULT = 60
-const FAIRY_CLICKABLE_SIZE_SELECTED = 70
+export const FAIRY_SIZE = 60
+const FAIRY_CLICKABLE_SIZE_DEFAULT = 50
+const FAIRY_CLICKABLE_SIZE_SELECTED = 60
 
 // We use the agent directly here because we need to access the isGenerating method
 // which is not exposed on the fairy atom
