@@ -47,13 +47,13 @@ function InCanvasTodoItem({ todo }: { todo: SharedTodoItem }) {
 				left: todo.x,
 				top: todo.y,
 			}}
+			onWheelCapture={(e) => e.stopPropagation()}
 		>
 			<span className="in-canvas-todo-item-icon">{icon}</span>
 			<span className="in-canvas-todo-item-text">{todo.text}</span>
 			<button
 				className="in-canvas-todo-item-delete"
-				onClick={(e) => {
-					e.preventDefault()
+				onPointerDown={(e) => {
 					e.stopPropagation()
 					deleteSharedTodoItem(todo.id)
 				}}

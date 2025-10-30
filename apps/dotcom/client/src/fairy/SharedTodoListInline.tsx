@@ -205,7 +205,7 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 												: 'Drag to canvas'
 										}
 									>
-										⇄
+										{todo.x != null && todo.y != null ? '⊖' : '◎'}
 									</button>
 									<button
 										className="shared-todo-item-delete"
