@@ -76,7 +76,6 @@ function detectGroupOperation(
 	}
 
 	const startTop = otherGroups[0].element.getBoundingClientRect().top
-	const endBottom = otherGroups[otherGroups.length - 1].element.getBoundingClientRect().bottom
 
 	let insertBeforeId = null as null | string
 	let indicatorY = null as null | number
