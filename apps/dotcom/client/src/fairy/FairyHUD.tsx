@@ -16,7 +16,6 @@ import {
 	TldrawUiMenuItem,
 	TldrawUiToolbar,
 	uniqueId,
-	useDefaultHelpers,
 	useEditor,
 	useQuickReactor,
 	useValue,
@@ -27,9 +26,8 @@ import { defineMessages, useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairyChatHistory } from './fairy-agent/chat/FairyChatHistory'
 import { FairyBasicInput } from './fairy-agent/input/FairyBasicInput'
-import { FairyConfigDialog } from './FairyConfigDialog'
 import { FairyGroupChat } from './FairyGroupChat'
-import { FairySidebarButton } from './FairySidebarButton'
+import { FairyDropdownContent, FairySidebarButton } from './FairySidebarButton'
 import { getRandomFairyName } from './getRandomFairyName'
 import { $sharedTodoList, clearSharedTodoList } from './SharedTodoList'
 import { SharedTodoListInline } from './SharedTodoListInline'
@@ -99,11 +97,10 @@ export function FairyHUD({
 	onDeleteFairyConfig(id: string): void
 }) {
 	const editor = useEditor()
-	const { addDialog } = useDefaultHelpers()
 	const [menuPopoverOpen, setMenuPopoverOpen] = useState(false)
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
 
-	const [panelState, setPanelState] = useState<PanelState>('fairy')
+	const [panelState, setPanelState] = useState<PanelState>('closed')
 	const [shownFairy, setShownFairy] = useState<FairyAgent | null>(null)
 
 	const toolbarMessage = useMsg(fairyMessages.toolbar)
@@ -141,22 +138,6 @@ export function FairyHUD({
 		[editor]
 	)
 
-	const configureFairy = useCallback(() => {
-		if (!shownFairy) return
-
-		addDialog({
-			component: ({ onClose }) => <FairyConfigDialog agent={shownFairy} onClose={onClose} />,
-		})
-	}, [addDialog, shownFairy])
-
-	const summonFairy = useCallback(
-		(agent: FairyAgent) => {
-			const position = editor.getViewportPageBounds().center
-			agent.$fairyEntity.update((f) => (f ? { ...f, position, gesture: 'poof' } : f))
-		},
-		[editor]
-	)
-
 	const requestHelpFromEveryone = useCallback(() => {
 		agents.forEach((agent) => {
 			agent.helpOut()
@@ -183,20 +164,6 @@ export function FairyHUD({
 		},
 		[agents]
 	)
-
-	const deleteFairy = useCallback(() => {
-		if (!shownFairy) return
-
-		setPanelState('closed')
-
-		if (agents.length === 1) {
-			//set shown fairy to null if you've jsut deleted the last fairy
-			setShownFairy(null)
-		}
-
-		// Delete the fairy config (which will trigger disposal in FairyApp)
-		onDeleteFairyConfig(shownFairy.id)
-	}, [shownFairy, onDeleteFairyConfig, agents.length])
 
 	const handleClickFairy = useCallback(
 		(clickedAgent: FairyAgent) => {
@@ -292,49 +259,14 @@ export function FairyHUD({
 														<TldrawUiButtonIcon icon="menu" />
 													</TldrawUiButton>
 												</_DropdownMenu.Trigger>
-												<_DropdownMenu.Content
-													side="bottom"
-													align="start"
-													className="tlui-menu"
-													collisionPadding={4}
-													alignOffset={4}
-													sideOffset={4}
-												>
-													<TldrawUiMenuContextProvider type="menu" sourceId="fairy-panel">
-														<TldrawUiMenuGroup id="fairy-menu">
-															<TldrawUiMenuItem
-																id="go-to-fairy"
-																onSelect={() => (shownFairy ? goToFairy(shownFairy) : undefined)}
-																label="Go to fairy"
-															/>
-															<TldrawUiMenuItem
-																id="help-out"
-																onSelect={() => (shownFairy ? shownFairy.helpOut() : undefined)}
-																label="Ask for help"
-															/>
-															<TldrawUiMenuItem
-																id="summon-fairy"
-																onSelect={() => (shownFairy ? summonFairy(shownFairy) : undefined)}
-																label="Summon"
-															/>
-															<TldrawUiMenuItem
-																id="configure-fairy"
-																onSelect={configureFairy}
-																label="Customize"
-															/>
-															<TldrawUiMenuItem
-																id="new-chat"
-																onSelect={resetChat}
-																label="Reset chat"
-															/>
-															<TldrawUiMenuItem
-																id="delete-fairy"
-																onSelect={deleteFairy}
-																label="Delete fairy"
-															/>
-														</TldrawUiMenuGroup>
-													</TldrawUiMenuContextProvider>
-												</_DropdownMenu.Content>
+												{shownFairy && (
+													<FairyDropdownContent
+														agent={shownFairy}
+														onDeleteFairyConfig={onDeleteFairyConfig}
+														alignOffset={4}
+														sideOffset={4}
+													/>
+												)}
 											</_DropdownMenu.Root>
 											<div className="fairy-id-display">
 												{shownFairy && fairyConfig && (
@@ -404,6 +336,7 @@ export function FairyHUD({
 											collisionPadding={4}
 											alignOffset={4}
 											sideOffset={4}
+											style={{ zIndex: 100000000 }}
 										>
 											<TldrawUiMenuContextProvider type="menu" sourceId="fairy-panel">
 												<TldrawUiMenuGroup id="fairy-menu">

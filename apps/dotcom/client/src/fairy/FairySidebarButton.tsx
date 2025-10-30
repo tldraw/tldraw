@@ -7,6 +7,7 @@ import {
 	TldrawUiMenuItem,
 	TldrawUiToolbarToggleGroup,
 	TldrawUiToolbarToggleItem,
+	useContainer,
 	useDefaultHelpers,
 	useEditor,
 	useValue,
@@ -30,9 +31,6 @@ export function FairySidebarButton({
 	deselectMessage: string
 	onDeleteFairyConfig(id: string): void
 }) {
-	const editor = useEditor()
-	const { addDialog } = useDefaultHelpers()
-	// Use useValue to make the component reactive
 	const fairyIsSelected = useValue(
 		'fairy-button-selected',
 		() => agent.$fairyEntity.get()?.isSelected ?? false,
@@ -48,6 +46,51 @@ export function FairySidebarButton({
 		e.stopPropagation()
 		setDropdownMenuOpen(true)
 	}, [])
+
+	return (
+		<TldrawUiToolbarToggleGroup type="single" value={fairyIsSelected ? 'on' : 'off'} asChild>
+			<TldrawUiToolbarToggleItem
+				className="fairy-toggle-button"
+				onClick={onClick}
+				onDoubleClick={onDoubleClick}
+				type="icon"
+				data-state={fairyIsSelected ? 'on' : 'off'}
+				data-isactive={fairyIsSelected}
+				aria-label={fairyIsSelected ? deselectMessage : selectMessage}
+				value="on"
+				onContextMenu={handleContextMenu}
+			>
+				<FairySpriteComponent entity={fairyEntity} outfit={fairyOutfit} animated={true} />
+				<_DropdownMenu.Root dir="ltr" open={dropdownMenuOpen} onOpenChange={setDropdownMenuOpen}>
+					<_DropdownMenu.Trigger asChild>
+						<div style={{ position: 'fixed', zIndex: 99999999999 }}></div>
+					</_DropdownMenu.Trigger>
+					<FairyDropdownContent
+						agent={agent}
+						onDeleteFairyConfig={onDeleteFairyConfig}
+						alignOffset={20}
+						sideOffset={20}
+					/>
+				</_DropdownMenu.Root>
+			</TldrawUiToolbarToggleItem>
+		</TldrawUiToolbarToggleGroup>
+	)
+}
+
+export function FairyDropdownContent({
+	agent,
+	onDeleteFairyConfig,
+	alignOffset,
+	sideOffset,
+}: {
+	agent: FairyAgent
+	onDeleteFairyConfig(id: string): void
+	alignOffset: number
+	sideOffset: number
+}) {
+	const editor = useEditor()
+	const container = useContainer()
+	const { addDialog } = useDefaultHelpers()
 
 	const goToFairy = useCallback(
 		(fairy: FairyAgent) => {
@@ -89,78 +132,45 @@ export function FairySidebarButton({
 		},
 		[onDeleteFairyConfig]
 	)
-
 	return (
-		<>
-			<TldrawUiToolbarToggleGroup type="single" value={fairyIsSelected ? 'on' : 'off'} asChild>
-				<TldrawUiToolbarToggleItem
-					className="fairy-toggle-button"
-					onClick={onClick}
-					onDoubleClick={onDoubleClick}
-					type="icon"
-					data-state={fairyIsSelected ? 'on' : 'off'}
-					data-isactive={fairyIsSelected}
-					aria-label={fairyIsSelected ? deselectMessage : selectMessage}
-					value="on"
-					onContextMenu={handleContextMenu}
-				>
-					<_DropdownMenu.Root
-						dir="ltr"
-						open={dropdownMenuOpen}
-						onOpenChange={setDropdownMenuOpen}
-						defaultOpen={true}
-					>
-						<_DropdownMenu.Trigger asChild>
-							<div style={{ position: 'fixed', zIndex: 99999999999 }}></div>
-						</_DropdownMenu.Trigger>
-						<_DropdownMenu.Content
-							side="top"
-							align="start"
-							className="tlui-menu"
-							collisionPadding={4}
-							alignOffset={20}
-							sideOffset={20}
-							onClick={(e) => e.stopPropagation()}
-						>
-							<TldrawUiMenuContextProvider type="menu" sourceId="fairy-panel">
-								<TldrawUiMenuGroup id="fairy-menu">
-									<TldrawUiMenuItem
-										id="go-to-fairy"
-										onSelect={() => goToFairy(agent)}
-										label="Go to fairy"
-									/>
-									<TldrawUiMenuItem
-										id="help-out"
-										onSelect={() => agent.helpOut()}
-										label="Ask for help"
-									/>
-									<TldrawUiMenuItem
-										id="summon-fairy"
-										onSelect={() => summonFairy(agent)}
-										label="Summon"
-									/>
-									<TldrawUiMenuItem
-										id="configure-fairy"
-										onSelect={() => configureFairy(agent)}
-										label="Customize"
-									/>
-									<TldrawUiMenuItem
-										id="new-chat"
-										onSelect={() => resetChat(agent)}
-										label="Reset chat"
-									/>
-									<TldrawUiMenuItem
-										id="delete-fairy"
-										onSelect={() => deleteFairy(agent)}
-										label="Delete fairy"
-									/>
-								</TldrawUiMenuGroup>
-							</TldrawUiMenuContextProvider>
-						</_DropdownMenu.Content>
-					</_DropdownMenu.Root>
-					<FairySpriteComponent entity={fairyEntity} outfit={fairyOutfit} animated={true} />
-				</TldrawUiToolbarToggleItem>
-			</TldrawUiToolbarToggleGroup>
-		</>
+		<_DropdownMenu.Portal container={container}>
+			<_DropdownMenu.Content
+				side="top"
+				align="start"
+				className="tlui-menu fairy-sidebar-dropdown"
+				collisionPadding={4}
+				alignOffset={alignOffset}
+				sideOffset={sideOffset}
+				onClick={(e) => e.stopPropagation()}
+				style={{ zIndex: 100000000 }}
+			>
+				<TldrawUiMenuContextProvider type="menu" sourceId="fairy-panel">
+					<TldrawUiMenuGroup id="fairy-menu">
+						<TldrawUiMenuItem
+							id="go-to-fairy"
+							onSelect={() => goToFairy(agent)}
+							label="Go to fairy"
+						/>
+						<TldrawUiMenuItem id="help-out" onSelect={() => agent.helpOut()} label="Ask for help" />
+						<TldrawUiMenuItem
+							id="summon-fairy"
+							onSelect={() => summonFairy(agent)}
+							label="Summon"
+						/>
+						<TldrawUiMenuItem
+							id="configure-fairy"
+							onSelect={() => configureFairy(agent)}
+							label="Customize"
+						/>
+						<TldrawUiMenuItem id="new-chat" onSelect={() => resetChat(agent)} label="Reset chat" />
+						<TldrawUiMenuItem
+							id="delete-fairy"
+							onSelect={() => deleteFairy(agent)}
+							label="Delete fairy"
+						/>
+					</TldrawUiMenuGroup>
+				</TldrawUiMenuContextProvider>
+			</_DropdownMenu.Content>
+		</_DropdownMenu.Portal>
 	)
 }

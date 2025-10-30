@@ -360,7 +360,7 @@
 	background-color: var(--tl-color-panel);
 	border-radius: var(--tl-radius-2);
 	box-shadow: var(--tl-shadow-1);
-	z-index: 1;
+	z-index: 0;
 }
 
 .tla-fairy-hud:has(.fairy-chat-panel) .fairy-buttons-container {
@@ -381,6 +381,16 @@
 	overflow: hidden;
 	pointer-events: auto;
 	z-index: 2;
+}
+
+/* Fairy Sidebar Dropdown - Must be above chat panel */
+.fairy-sidebar-dropdown {
+	z-index: 100000000 !important;
+}
+
+/* Ensure Radix portal for sidebar dropdowns has proper z-index */
+[data-radix-portal] .fairy-sidebar-dropdown {
+	z-index: 100000000 !important;
 }
 
 /* Fairy Chat History */
