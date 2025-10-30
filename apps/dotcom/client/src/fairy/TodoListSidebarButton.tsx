@@ -1,15 +1,20 @@
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { TldrawUiButton, TldrawUiIcon } from 'tldraw'
+import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { TodoListContextMenuContent } from './TodoListContextMenuContent'
 
 export function TodoListSidebarButton({
 	onClick,
 	hasUnreadTodos,
 	onRequestHelpFromEveryone,
+	agents,
+	onDeleteFairyConfig,
 }: {
 	onClick(): void
 	hasUnreadTodos: boolean
 	onRequestHelpFromEveryone(): void
+	agents: FairyAgent[]
+	onDeleteFairyConfig(id: string): void
 }) {
 	return (
 		<div style={{ position: 'relative' }}>
@@ -19,7 +24,11 @@ export function TodoListSidebarButton({
 						<TldrawUiIcon icon="clipboard-copied" label="Todo list" />
 					</TldrawUiButton>
 				</_ContextMenu.Trigger>
-				<TodoListContextMenuContent onRequestHelpFromEveryone={onRequestHelpFromEveryone} />
+				<TodoListContextMenuContent
+					onRequestHelpFromEveryone={onRequestHelpFromEveryone}
+					agents={agents}
+					onDeleteFairyConfig={onDeleteFairyConfig}
+				/>
 			</_ContextMenu.Root>
 			{hasUnreadTodos && <div className="fairy-todo-unread-indicator" />}
 		</div>

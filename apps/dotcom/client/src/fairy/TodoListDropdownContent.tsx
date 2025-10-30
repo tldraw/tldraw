@@ -1,14 +1,19 @@
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { useContainer } from 'tldraw'
+import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { TodoListMenuContent } from './TodoListMenuContent'
 
 export function TodoListDropdownContent({
 	onRequestHelpFromEveryone,
+	agents,
+	onDeleteFairyConfig,
 	alignOffset,
 	sideOffset,
 	side = 'top',
 }: {
 	onRequestHelpFromEveryone(): void
+	agents: FairyAgent[]
+	onDeleteFairyConfig(id: string): void
 	alignOffset: number
 	sideOffset: number
 	side?: 'top' | 'bottom' | 'left' | 'right'
@@ -29,6 +34,8 @@ export function TodoListDropdownContent({
 			>
 				<TodoListMenuContent
 					onRequestHelpFromEveryone={onRequestHelpFromEveryone}
+					agents={agents}
+					onDeleteFairyConfig={onDeleteFairyConfig}
 					menuType="menu"
 				/>
 			</_DropdownMenu.Content>

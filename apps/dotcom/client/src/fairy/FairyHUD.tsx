@@ -333,6 +333,8 @@ export function FairyHUD({
 										</_DropdownMenu.Trigger>
 										<TodoListDropdownContent
 											onRequestHelpFromEveryone={requestHelpFromEveryone}
+											agents={agents}
+											onDeleteFairyConfig={onDeleteFairyConfig}
 											alignOffset={4}
 											sideOffset={4}
 											side="bottom"
@@ -359,6 +361,8 @@ export function FairyHUD({
 							onClick={handleClickTodoList}
 							hasUnreadTodos={hasUnreadTodos}
 							onRequestHelpFromEveryone={requestHelpFromEveryone}
+							agents={agents}
+							onDeleteFairyConfig={onDeleteFairyConfig}
 						/>
 					</div>
 					<TldrawUiToolbar label={toolbarMessage} orientation="vertical">

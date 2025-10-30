@@ -32,7 +32,7 @@ export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClo
 						onValueChange={(value) => agent.$fairyConfig.set({ ...config, name: value })}
 						placeholder="Fairy's name"
 					/>
-					<label htmlFor="name">Personality (coming soon)</label>
+					<label htmlFor="name">Personality</label>
 					<TldrawUiInput
 						className="fairy-config-input"
 						value={config.personality}

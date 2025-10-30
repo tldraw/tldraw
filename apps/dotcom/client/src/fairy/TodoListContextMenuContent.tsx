@@ -1,11 +1,16 @@
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { useContainer } from 'tldraw'
+import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { TodoListMenuContent } from './TodoListMenuContent'
 
 export function TodoListContextMenuContent({
 	onRequestHelpFromEveryone,
+	agents,
+	onDeleteFairyConfig,
 }: {
 	onRequestHelpFromEveryone(): void
+	agents: FairyAgent[]
+	onDeleteFairyConfig(id: string): void
 }) {
 	const container = useContainer()
 
@@ -19,6 +24,8 @@ export function TodoListContextMenuContent({
 			>
 				<TodoListMenuContent
 					onRequestHelpFromEveryone={onRequestHelpFromEveryone}
+					agents={agents}
+					onDeleteFairyConfig={onDeleteFairyConfig}
 					menuType="context-menu"
 				/>
 			</_ContextMenu.Content>
