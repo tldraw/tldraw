@@ -82,7 +82,7 @@ export async function getPierreHistory(
 		}
 
 		// Check if there are more commits
-		const hasMore = commitsResult.commits.length === limit && !!commitsResult.nextCursor
+		const hasMore = !!commitsResult.nextCursor
 
 		const response = {
 			entries,
