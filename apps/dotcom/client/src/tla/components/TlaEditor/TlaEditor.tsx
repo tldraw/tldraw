@@ -346,7 +346,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 					{canShowFairies && (
 						<Suspense fallback={<div />}>
 							<FairyVision agents={agents} />
-							<InCanvasTodoList />
+							<InCanvasTodoList agents={agents} />
 							<RemoteFairies />
 							<Fairies agents={agents} onDeleteFairyConfig={onDeleteFairyConfig} />
 						</Suspense>
