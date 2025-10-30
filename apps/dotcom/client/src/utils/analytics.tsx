@@ -143,7 +143,7 @@ function configurePosthog(options: AnalyticsOptions) {
 		api_host: 'https://analytics.tldraw.com/i',
 		ui_host: 'https://eu.i.posthog.com',
 		capture_pageview: false,
-		persistence: options.optedIn ? 'localStorage+cookie' : 'memory',
+		cookieless_mode: 'on_reject',
 		before_send: (payload) => {
 			if (!payload) return null
 			payload.properties.is_signed_in = !!options.user
@@ -184,11 +184,9 @@ function configurePosthog(options: AnalyticsOptions) {
 		posthog.opt_in_capturing()
 	} else if (currentOptionsPosthog?.optedIn) {
 		posthog.setPersonProperties({ analytics_consent: false })
-		posthog.reset()
 		posthog.opt_out_capturing()
 	}
 
-	posthog.set_config(config)
 	currentOptionsPosthog = options
 	eventBufferPosthog?.forEach((event) => posthog.capture(event.name, event.data))
 	eventBufferPosthog = null

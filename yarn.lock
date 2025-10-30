@@ -5316,6 +5316,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@posthog/core@npm:1.4.0":
+  version: 1.4.0
+  resolution: "@posthog/core@npm:1.4.0"
+  checksum: 10/af18ac7fd26b902abacf96a19383b6062300011812c8ea16e890ef9c607fdb31c5b8c0e245a27a55d2f20bc98e4ad5f7342027f902cf5071f0d88f2682b47cd5
+  languageName: node
+  linkType: hard
+
 "@protobufjs/aspromise@npm:^1.1.1, @protobufjs/aspromise@npm:^1.1.2":
   version: 1.1.2
   resolution: "@protobufjs/aspromise@npm:1.1.2"
@@ -8859,7 +8866,7 @@ __metadata:
     "@cloudflare/workers-types": "npm:^4.20250913.0"
     "@types/js-cookie": "npm:^3.0.6"
     js-cookie: "npm:^3.0.5"
-    posthog-js: "npm:^1.248.1"
+    posthog-js: "npm:^1.281.0"
     typescript: "npm:^5.8.3"
     vite: "npm:^7.0.1"
     vitest: "npm:^3.2.4"
@@ -14288,7 +14295,7 @@ __metadata:
     lazyrepo: "npm:0.0.0-alpha.27"
     lodash.pick: "npm:^4.4.0"
     pg: "npm:^8.13.1"
-    posthog-js: "npm:^1.248.1"
+    posthog-js: "npm:^1.281.0"
     qrcode: "npm:^1.5.4"
     radix-ui: "npm:^1.4.2"
     react: "npm:^18.3.1"
@@ -23082,23 +23089,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"posthog-js@npm:^1.248.1":
-  version: 1.248.1
-  resolution: "posthog-js@npm:1.248.1"
+"posthog-js@npm:^1.281.0":
+  version: 1.281.0
+  resolution: "posthog-js@npm:1.281.0"
   dependencies:
+    "@posthog/core": "npm:1.4.0"
     core-js: "npm:^3.38.1"
     fflate: "npm:^0.4.8"
     preact: "npm:^10.19.3"
     web-vitals: "npm:^4.2.4"
-  peerDependencies:
-    "@rrweb/types": 2.0.0-alpha.17
-    rrweb-snapshot: 2.0.0-alpha.17
-  peerDependenciesMeta:
-    "@rrweb/types":
-      optional: true
-    rrweb-snapshot:
-      optional: true
-  checksum: 10/b9a11b29eb13fac827138e5e9e008b07bad3f7e3cf0bbd5acdac662982006ccc525c7a4d728b81149642428745714ee4c47a01ab70ecff767714bf3161b6e587
+  checksum: 10/2f5f4c64d95bdb99958a04f3744bf0c3445d51921f26889de682c394212672539589372b37b9090ad6de1f873a4b4effbe8fb2e02081a5bbfd5538bfca50b561
   languageName: node
   linkType: hard
 
