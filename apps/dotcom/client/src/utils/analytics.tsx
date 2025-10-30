@@ -209,6 +209,12 @@ function configureGA4(options: AnalyticsOptions) {
 			wait_for_update: 500,
 		})
 
+		// Set up conversion linker for cross-domain tracking with tldraw.dev
+		// Must be set before ReactGA.initialize() to ensure it's configured before gtag('config')
+		ReactGA.gtag('set', 'linker', {
+			domains: ['tldraw.dev'],
+		})
+
 		ReactGA.initialize(GA4_MEASUREMENT_ID, {
 			gtagOptions: {
 				send_page_view: false,
