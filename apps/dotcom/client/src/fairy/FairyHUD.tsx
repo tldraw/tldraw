@@ -7,7 +7,6 @@ import {
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { useCallback, useState } from 'react'
 import {
-	Box,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
 	TldrawUiIcon,
@@ -27,7 +26,7 @@ import { FairyDropdownContent } from './FairyDropdownContent'
 import { FairyGroupChat } from './FairyGroupChat'
 import { FairySidebarButton } from './FairySidebarButton'
 import { getRandomFairyName } from './getRandomFairyName'
-import { $sharedTodoList } from './SharedTodoList'
+import { $sharedTodoList, requestHelpFromEveryone } from './SharedTodoList'
 import { SharedTodoListInline } from './SharedTodoListInline'
 import { TodoListDropdownContent } from './TodoListDropdownContent'
 import { TodoListSidebarButton } from './TodoListSidebarButton'
@@ -129,29 +128,6 @@ export function FairyHUD({
 		[agents]
 	)
 
-	const goToFairy = useCallback(
-		(fairy: FairyAgent) => {
-			editor.zoomToBounds(Box.FromCenter(fairy.$fairyEntity.get().position, { x: 100, y: 100 }), {
-				animation: { duration: 220 },
-				targetZoom: 1,
-			})
-		},
-		[editor]
-	)
-
-	const requestHelpFromEveryone = useCallback(() => {
-		agents.forEach((agent) => {
-			agent.helpOut()
-		})
-	}, [agents])
-
-	const resetChat = useCallback(() => {
-		if (shownFairy) {
-			shownFairy.cancel()
-			shownFairy.reset()
-		}
-	}, [shownFairy])
-
 	const selectFairy = useCallback(
 		(selectedAgent: FairyAgent) => {
 			// Select the specified fairy
@@ -182,11 +158,11 @@ export function FairyHUD({
 
 	const handleDoubleClickFairy = useCallback(
 		(clickedAgent: FairyAgent) => {
-			goToFairy(clickedAgent)
+			clickedAgent.zoomTo()
 			selectFairy(clickedAgent)
 			setPanelState('fairy')
 		},
-		[goToFairy, selectFairy]
+		[selectFairy]
 	)
 
 	const [todoLastChecked, setTodoLastChecked] = useState<SharedTodoItem[]>([])
@@ -218,8 +194,6 @@ export function FairyHUD({
 	)
 
 	const fairyConfig = useValue('fairy config', () => shownFairy?.$fairyConfig.get(), [shownFairy])
-
-	// if (!agents || agents.length === 0) return null
 
 	return (
 		<>
@@ -288,7 +262,7 @@ export function FairyHUD({
 											<TldrawUiButton
 												type="icon"
 												className="fairy-toolbar-button"
-												onClick={resetChat}
+												onClick={() => shownFairy?.reset()}
 											>
 												<TldrawUiIcon icon="plus" label="Reset chat" />
 											</TldrawUiButton>
@@ -332,7 +306,6 @@ export function FairyHUD({
 											</TldrawUiButton>
 										</_DropdownMenu.Trigger>
 										<TodoListDropdownContent
-											onRequestHelpFromEveryone={requestHelpFromEveryone}
 											agents={agents}
 											onDeleteFairyConfig={onDeleteFairyConfig}
 											alignOffset={4}
@@ -344,7 +317,7 @@ export function FairyHUD({
 									<TldrawUiButton
 										type="icon"
 										className="fairy-toolbar-button"
-										onClick={requestHelpFromEveryone}
+										onClick={() => requestHelpFromEveryone(agents)}
 									>
 										<TldrawUiIcon icon="geo-arrow-up" label="Request help from everyone" />
 									</TldrawUiButton>
@@ -360,7 +333,6 @@ export function FairyHUD({
 						<TodoListSidebarButton
 							onClick={handleClickTodoList}
 							hasUnreadTodos={hasUnreadTodos}
-							onRequestHelpFromEveryone={requestHelpFromEveryone}
 							agents={agents}
 							onDeleteFairyConfig={onDeleteFairyConfig}
 						/>

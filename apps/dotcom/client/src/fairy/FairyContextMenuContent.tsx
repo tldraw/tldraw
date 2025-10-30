@@ -18,7 +18,7 @@ export function FairyContextMenuContent({
 				className="tlui-menu fairy-sidebar-dropdown"
 				collisionPadding={4}
 				onClick={(e) => e.stopPropagation()}
-				style={{ zIndex: 100000000 }}
+				style={{ zIndex: 10000000 }}
 			>
 				<FairyMenuContent
 					agent={agent}

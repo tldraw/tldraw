@@ -3,7 +3,12 @@ import React, { useCallback, useState } from 'react'
 import { useEditor, useValue } from 'tldraw'
 import '../tla/styles/fairy.css'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
-import { $sharedTodoList, addSharedTodoItem, deleteSharedTodoItem } from './SharedTodoList'
+import {
+	$sharedTodoList,
+	addSharedTodoItem,
+	assignAgentToTodo,
+	deleteSharedTodoItem,
+} from './SharedTodoList'
 import { TodoDragTool } from './TodoDragTool'
 
 export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
@@ -33,22 +38,6 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 			setNewTodoText('')
 		},
 		[newTodoText]
-	)
-
-	const handleDeleteTodo = useCallback((id: number) => {
-		deleteSharedTodoItem(id)
-	}, [])
-
-	const handleAssignFairy = useCallback(
-		(todoId: number, fairyId: string) => {
-			const agent = agents.find((a) => a.id === fairyId)
-			if (!agent && fairyId !== '') return
-
-			$sharedTodoList.update((todos) =>
-				todos.map((t) => (t.id === todoId ? { ...t, claimedById: fairyId || undefined } : t))
-			)
-		},
-		[agents]
 	)
 
 	const handleHelpOut = useCallback(
@@ -209,7 +198,7 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 									</button>
 									<button
 										className="shared-todo-item-delete"
-										onClick={() => handleDeleteTodo(todo.id)}
+										onClick={() => deleteSharedTodoItem(todo.id)}
 										title="Delete todo"
 									>
 										×
@@ -218,7 +207,7 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 								<div className="shared-todo-item-assign">
 									<select
 										value={todo.claimedById || ''}
-										onChange={(e) => handleAssignFairy(todo.id, e.target.value)}
+										onChange={(e) => assignAgentToTodo(todo.id, e.target.value, agents)}
 										className="shared-todo-item-fairy-select"
 									>
 										<option value="">Auto</option>

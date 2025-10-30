@@ -1051,6 +1051,24 @@ ${JSON.stringify($sharedTodoList.get())}`)
 	setFairyPersonality(personality: string) {
 		this.$fairyConfig.update((fairy): FairyConfig => ({ ...fairy, personality }))
 	}
+
+	/**
+	 * Move the camera to the fairy's position.
+	 */
+	zoomTo() {
+		this.editor.zoomToBounds(Box.FromCenter(this.$fairyEntity.get().position, { x: 100, y: 100 }), {
+			animation: { duration: 220 },
+			targetZoom: 1,
+		})
+	}
+
+	/**
+	 * Instantly move the fairy to the center of the screen.
+	 */
+	summon() {
+		const position = this.editor.getViewportPageBounds().center
+		this.$fairyEntity.update((f) => (f ? { ...f, position, gesture: 'poof' } : f))
+	}
 }
 
 /**

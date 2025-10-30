@@ -4,11 +4,9 @@ import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { TodoListMenuContent } from './TodoListMenuContent'
 
 export function TodoListContextMenuContent({
-	onRequestHelpFromEveryone,
 	agents,
 	onDeleteFairyConfig,
 }: {
-	onRequestHelpFromEveryone(): void
 	agents: FairyAgent[]
 	onDeleteFairyConfig(id: string): void
 }) {
@@ -23,7 +21,6 @@ export function TodoListContextMenuContent({
 				style={{ zIndex: 100000000 }}
 			>
 				<TodoListMenuContent
-					onRequestHelpFromEveryone={onRequestHelpFromEveryone}
 					agents={agents}
 					onDeleteFairyConfig={onDeleteFairyConfig}
 					menuType="context-menu"

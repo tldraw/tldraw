@@ -1,7 +1,6 @@
 import { SharedTodoItem } from '@tldraw/fairy-shared'
-import { useCallback } from 'react'
 import { useValue } from 'tldraw'
-import { $sharedTodoList, deleteSharedTodoItem } from './SharedTodoList'
+import { $sharedTodoList, deleteSharedTodoItem, requestHelpWithTodo } from './SharedTodoList'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 
 export function InCanvasTodoList({ agents }: { agents: FairyAgent[] }) {
@@ -40,24 +39,6 @@ function InCanvasTodoItem({ agents, todo }: { agents: FairyAgent[]; todo: Shared
 
 	const icon = getStatusIcon(todo.status)
 
-	const askForHelp = useCallback(() => {
-		const agent = todo.claimedById ? agents.find((a) => a.id === todo.claimedById) : undefined
-		if (agent) {
-			agent.helpOut([todo])
-		} else {
-			// Get a free agent
-			const freeAgent = agents.find((v) => !v.isGenerating())
-			if (freeAgent) {
-				freeAgent.helpOut([todo])
-			} else {
-				// If no free agent is found, ask everyone to help
-				agents.forEach((agent) => {
-					agent.helpOut([todo])
-				})
-			}
-		}
-	}, [todo, agents])
-
 	if (!todo.x || !todo.y) return null
 
 	return (
@@ -72,7 +53,7 @@ function InCanvasTodoItem({ agents, todo }: { agents: FairyAgent[]; todo: Shared
 				className="in-canvas-todo-item-icon"
 				onPointerDown={(e) => {
 					e.stopPropagation()
-					askForHelp()
+					requestHelpWithTodo(todo.id, agents)
 				}}
 			>
 				{icon}

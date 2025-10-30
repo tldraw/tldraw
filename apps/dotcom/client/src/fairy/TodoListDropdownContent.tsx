@@ -4,14 +4,12 @@ import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { TodoListMenuContent } from './TodoListMenuContent'
 
 export function TodoListDropdownContent({
-	onRequestHelpFromEveryone,
 	agents,
 	onDeleteFairyConfig,
 	alignOffset,
 	sideOffset,
 	side = 'top',
 }: {
-	onRequestHelpFromEveryone(): void
 	agents: FairyAgent[]
 	onDeleteFairyConfig(id: string): void
 	alignOffset: number
@@ -33,7 +31,6 @@ export function TodoListDropdownContent({
 				style={{ zIndex: 100000000 }}
 			>
 				<TodoListMenuContent
-					onRequestHelpFromEveryone={onRequestHelpFromEveryone}
 					agents={agents}
 					onDeleteFairyConfig={onDeleteFairyConfig}
 					menuType="menu"
