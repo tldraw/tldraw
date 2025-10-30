@@ -85,7 +85,7 @@ export class DraggingHandle extends StateNode {
 
 		// First, check if the handle specifies a custom reference handle
 		if (info.handle.snapReferenceHandleId) {
-			const customHandle = handles.find(h => h.id === info.handle.snapReferenceHandleId)
+			const customHandle = handles.find((h) => h.id === info.handle.snapReferenceHandleId)
 			if (customHandle) {
 				this.initialAdjacentHandle = customHandle
 			}
