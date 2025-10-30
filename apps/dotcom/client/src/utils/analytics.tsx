@@ -282,6 +282,15 @@ export function trackEvent(name: string, data?: { [key: string]: any }) {
 	if (name === '$pageview') {
 		getGA4()?.event('page_view', data)
 	}
+
+	// Track watermark clicks in GA4
+	if (name === 'click-watermark' && data?.url) {
+		if (getGA4()) {
+			ReactGA.gtag('event', 'click_tldraw_dev', {
+				link_url: data.url,
+			})
+		}
+	}
 }
 
 export function useHandleUiEvents() {
