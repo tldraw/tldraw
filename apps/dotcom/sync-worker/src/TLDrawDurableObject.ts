@@ -876,9 +876,6 @@ export class TLDrawDurableObject extends DurableObject {
 		snapshot: RoomSnapshot,
 		key: string
 	) {
-		if (this.numPersistRetries < PERSIST_RETRIES_NOTIFY_THRESHOLD + 4) {
-			throw new Error('test')
-		}
 		// Upload to rooms bucket first
 		const roomSizeMB = await this._uploadSnapshotToBucket(this.r2.rooms, snapshot, key)
 		// Update storage percentage
