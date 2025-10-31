@@ -801,6 +801,7 @@ export class TLDrawDurableObject extends DurableObject {
 		})
 	}
 
+	numPersistRetries = 0
 	// Save the room to r2
 	async persistToDatabase() {
 		try {
@@ -820,6 +821,7 @@ export class TLDrawDurableObject extends DurableObject {
 				await this._uploadSnapshotToR2(room, snapshot, key)
 
 				this._lastPersistedClock = clock
+				this.numPersistRetries = 0
 
 				// Update the updatedAt timestamp in the database
 				if (this.documentInfo.isApp) {
@@ -837,6 +839,19 @@ export class TLDrawDurableObject extends DurableObject {
 			})
 		} catch (e) {
 			this.reportError(e)
+			if (this.numPersistRetries > 0) {
+				this.reportError(
+					new Error(`Failed to persist to database after ${this.numPersistRetries} retries`)
+				)
+			}
+			this.numPersistRetries++
+			if (this.numPersistRetries > 100) {
+				// i don't think it's gonna work...
+				return
+			}
+			setTimeout(() => {
+				this.persistToDatabase()
+			}, 1000)
 		}
 	}
 
