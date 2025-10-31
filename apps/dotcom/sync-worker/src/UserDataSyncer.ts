@@ -226,7 +226,7 @@ export class UserDataSyncer {
 			this.ctx.abort()
 			return
 		}
-		this.log.debug('rebooting', source)
+		this.log.debug('rebooting', source, 'hard:', hard, 'delay:', delay)
 		this.logEvent({ type: 'reboot', id: this.userId })
 		await this.queue.push(async () => {
 			if (delay) {
