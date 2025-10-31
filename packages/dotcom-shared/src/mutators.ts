@@ -240,6 +240,7 @@ export function createMutators(userId: string) {
 			},
 		},
 
+		/** @deprecated */
 		init: async (tx, { user, time }: { user: TlaUser; time: number }) => {
 			assert(user.id === userId, ZErrorCode.forbidden)
 			time = ensureSensibleTimestamp(time)

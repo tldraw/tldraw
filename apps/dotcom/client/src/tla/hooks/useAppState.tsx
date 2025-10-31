@@ -33,9 +33,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			if (!token) throw new Error('no token')
 			TldrawApp.create({
 				userId: auth.userId,
-				fullName: user.fullName || '',
-				email: user.emailAddresses[0]?.emailAddress || '',
-				avatar: user.imageUrl || '',
 				getToken: async () => {
 					const token = await auth.getToken()
 					return token || undefined
