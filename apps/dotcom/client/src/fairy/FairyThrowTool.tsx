@@ -10,23 +10,24 @@ export class FairyThrowTool extends StateNode {
 
 	static override isLockable = false
 
-	fairy: Atom<FairyEntity> | null = null
+	fairies: Atom<FairyEntity>[] = []
 
-	clickOffset = { x: 0, y: 0 }
+	clickOffsets = new Map<Atom<FairyEntity>, { x: number; y: number }>()
 
 	override onEnter() {
-		if (!this.fairy) return
-		this.fairy.update((f) => ({ ...f, isSelected: true }))
+		if (this.fairies.length === 0) return
+		for (const fairy of this.fairies) {
+			fairy.update((f) => ({ ...f, isSelected: true }))
+		}
 		this.setCurrentToolIdMask('select')
 	}
 
 	override onExit() {
-		if (!this.fairy) return
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
-	setFairy(fairy: Atom<FairyEntity>) {
-		this.fairy = fairy
+	setFairies(fairies: Atom<FairyEntity>[]) {
+		this.fairies = fairies
 	}
 }
 
@@ -37,15 +38,21 @@ class PointingState extends StateNode {
 		const tool = this.parent as FairyThrowTool
 		const { editor } = this
 
-		if (!tool.fairy) return
+		if (tool.fairies.length === 0) return
 
-		// Calculate offset between click position and fairy position
+		// Calculate offset between click position and each fairy position
 		const originPagePoint = editor.inputs.currentPagePoint
-		const fairyPosition = tool.fairy.get().position
+		tool.clickOffsets.clear()
 
-		tool.clickOffset = {
-			x: fairyPosition.x - originPagePoint.x,
-			y: fairyPosition.y - originPagePoint.y,
+		for (const fairy of tool.fairies) {
+			const fairyEntity = fairy.get()
+			if (!fairyEntity) continue
+
+			const fairyPosition = fairyEntity.position
+			tool.clickOffsets.set(fairy, {
+				x: fairyPosition.x - originPagePoint.x,
+				y: fairyPosition.y - originPagePoint.y,
+			})
 		}
 	}
 
@@ -73,7 +80,7 @@ class ThrowingState extends StateNode {
 		const tool = this.parent as FairyThrowTool
 		const { editor } = this
 
-		if (!tool.fairy) return
+		if (tool.fairies.length === 0) return
 		// Get current pointer position and convert to page space
 		const screenPoint = editor.inputs.currentScreenPoint
 		const { screenBounds } = editor.getInstanceState()
@@ -82,16 +89,21 @@ class ThrowingState extends StateNode {
 			y: screenPoint.y + screenBounds.y,
 		})
 
-		const newPosition = {
-			x: pagePoint.x + tool.clickOffset.x,
-			y: pagePoint.y + tool.clickOffset.y,
-		}
+		// Update positions for all fairies
+		for (const fairy of tool.fairies) {
+			const offset = tool.clickOffsets.get(fairy)
+			if (!offset) continue
 
-		// Update fairy position
-		tool.fairy.update((f) => ({
-			...f,
-			position: newPosition,
-		}))
+			const newPosition = {
+				x: pagePoint.x + offset.x,
+				y: pagePoint.y + offset.y,
+			}
+
+			fairy.update((f) => ({
+				...f,
+				position: newPosition,
+			}))
+		}
 	}
 
 	override onPointerUp() {

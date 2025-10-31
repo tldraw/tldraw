@@ -1,4 +1,5 @@
 import { AlignActionSchema } from './actions/AlignActionSchema'
+import { AssignTodoItemActionSchema } from './actions/AssignTodoItemActionSchema'
 import { BringToFrontActionSchema } from './actions/BringToFrontActionSchema'
 import { CreateActionSchema } from './actions/CreateActionSchema'
 import { DeleteActionSchema } from './actions/DeleteActionSchema'
@@ -25,6 +26,7 @@ import { DataPartSchema } from './parts/DataPartSchema'
 import { MessagesPartSchema } from './parts/MessagesPartSchema'
 import { OtherFairiesPartSchema } from './parts/OtherFairiesPartSchema'
 import { PeripheralShapesPartSchema } from './parts/PeripheralShapesPartSchema'
+import { PersonalityPartSchema } from './parts/PersonalityPartSchema'
 import { ScreenshotPartSchema } from './parts/ScreenshotPartSchema'
 import { SelectedShapesPartSchema } from './parts/SelectedShapesPartSchema'
 import { SharedTodoListPartSchema } from './parts/SharedTodoListPartSchema'
@@ -68,6 +70,9 @@ export const AGENT_ACTION_SCHEMAS = [
 
 	// Fairy-specific
 	ImbuePersonalityActionSchema,
+
+	// Assign todo item
+	AssignTodoItemActionSchema,
 ] as const
 
 /**
@@ -88,6 +93,7 @@ export const PROMPT_PART_SCHEMAS = [
 	ViewportBoundsPartSchema,
 	OtherFairiesPartSchema,
 	WandPartSchema,
+	PersonalityPartSchema,
 ] as const
 
 export const AGENT_ACTION_TYPES = AGENT_ACTION_SCHEMAS.map((schema) => schema.shape._type.value)

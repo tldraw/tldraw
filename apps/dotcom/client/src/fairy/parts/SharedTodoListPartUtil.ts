@@ -1,4 +1,5 @@
-import { BasePromptPart, SharedTodoItem } from '@tldraw/fairy-shared'
+import { AgentRequest, BasePromptPart, SharedTodoItem } from '@tldraw/fairy-shared'
+import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { $sharedTodoList } from '../SharedTodoList'
 import { PromptPartUtil } from './PromptPartUtil'
 
@@ -9,10 +10,23 @@ export interface SharedTodoListPart extends BasePromptPart<'sharedTodoList'> {
 export class SharedTodoListPartUtil extends PromptPartUtil<SharedTodoListPart> {
 	static override type = 'sharedTodoList' as const
 
-	override getPart(): SharedTodoListPart {
+	override getPart(_request: AgentRequest, helpers: AgentHelpers): SharedTodoListPart {
+		const offsetTodoItems = $sharedTodoList.get().map((todoItem) => {
+			// offset the coords, and only send x and y if they are defined
+			const coords =
+				todoItem.x !== undefined && todoItem.y !== undefined
+					? helpers.applyOffsetToVec({ x: todoItem.x, y: todoItem.y })
+					: undefined
+			const { x: _x, y: _y, ...rest } = todoItem
+			return {
+				...rest,
+				...(coords ? { x: coords.x, y: coords.y } : {}),
+			}
+		})
+
 		return {
 			type: 'sharedTodoList',
-			items: $sharedTodoList.get(),
+			items: offsetTodoItems,
 		}
 	}
 }

@@ -1,6 +1,7 @@
 import { AgentAction, PromptPart } from '@tldraw/fairy-shared'
 import { AgentActionUtil, AgentActionUtilConstructor } from './actions/AgentActionUtil'
 import { AlignActionUtil } from './actions/AlignActionUtil'
+import { AssignTodoItemActionUtil } from './actions/AssignTodoItemActionUtil'
 import { BringToFrontActionUtil } from './actions/BringToFrontActionUtil'
 import { CreateActionUtil } from './actions/CreateActionUtil'
 import { DeleteActionUtil } from './actions/DeleteActionUtil'
@@ -28,6 +29,7 @@ import { DataPartUtil } from './parts/DataPartUtil'
 import { MessagesPartUtil } from './parts/MessagesPartUtil'
 import { OtherFairiesPartUtil } from './parts/OtherFairiesPartUtil'
 import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
+import { PersonalityPartUtil } from './parts/PersonalityPartUtil'
 import { PromptPartUtil, PromptPartUtilConstructor } from './parts/PromptPartUtil'
 import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
 import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
@@ -72,6 +74,9 @@ export const AGENT_ACTION_UTILS = [
 
 	// Internal (required)
 	UnknownActionUtil,
+
+	// Assign todo item
+	AssignTodoItemActionUtil,
 ] satisfies AgentActionUtilConstructor<AgentAction>[]
 
 /**
@@ -106,6 +111,7 @@ export const PROMPT_PART_UTILS = [
 	// Fairy-specific
 	OtherFairiesPartUtil,
 	WandPartUtil,
+	PersonalityPartUtil,
 ] satisfies PromptPartUtilConstructor<PromptPart>[]
 
 /**

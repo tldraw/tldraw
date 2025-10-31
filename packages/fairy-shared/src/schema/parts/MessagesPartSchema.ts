@@ -13,15 +13,9 @@ MessagesPartSchema.register(PromptPartRegistry, {
 	buildContent({ messages, requestType }: MessagesPart) {
 		switch (requestType) {
 			case 'user':
-				return [
-					"Using the events provided in the response schema, here's what I want you to do:",
-					...messages,
-				]
+				return ['User message', ...messages]
 			case 'schedule':
-				return [
-					"Using the events provided in the response schema, here's what you should do:",
-					...messages,
-				]
+				return [...messages]
 			case 'todo':
 				return [
 					'There are still outstanding todo items. Please continue. For your reference, the most recent message I gave you was this:',

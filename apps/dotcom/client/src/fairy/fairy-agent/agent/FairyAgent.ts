@@ -42,7 +42,7 @@ import { PromptPartUtil } from '../../parts/PromptPartUtil'
 import { $sharedTodoList } from '../../SharedTodoList'
 import { AgentHelpers } from './AgentHelpers'
 import { FairyAgentOptions } from './FairyAgentOptions'
-import { $fairyAgentsAtom } from './fairyAgentsAtom'
+import { $fairyAgentsAtom, getFairyAgentById } from './fairyAgentsAtom'
 
 /**
  * An agent that can be prompted to edit the canvas.
@@ -392,7 +392,7 @@ export class FairyAgent {
 		const todoItemsRemaining = this.$todoList.get().filter((item) => item.status !== 'done')
 		const sharedTodoItemsRemaining = $sharedTodoList.get().filter((item) => {
 			if (item.status === 'done') return false
-			if (item.claimedBy && item.claimedBy.id !== this.id) return false
+			if (item.claimedById && item.claimedById !== this.id) return false
 			return true
 		})
 
@@ -575,36 +575,41 @@ export class FairyAgent {
 		return id
 	}
 
-	helpOut(todoItems?: SharedTodoItem[]) {
-		let helpOutMessage = ''
-		let helpOutRequest: Partial<AgentRequest> = {}
+	helpOut(todoItems?: SharedTodoItem[], sourceFairyId?: string) {
+		const helpOutMessages: string[] = []
 
 		if (todoItems && todoItems.length > 0) {
-			helpOutMessage = `You've asked to help out with the following todo ${todoItems.length > 1 ? 'items' : 'item'}. Make sure to always set the todo you're currently working on as "in-progress" when you start working on it.
+			helpOutMessages.push(`You've asked to help out with the following todo ${todoItems.length > 1 ? 'items' : 'item'}. Make sure to always set the todo you're currently working on as "in-progress" when you start working on it.
 Todo ${todoItems.length > 1 ? 'items' : 'item'}: 
-${JSON.stringify(todoItems)}`
-
-			helpOutRequest = {
-				type: 'schedule',
-				messages: [helpOutMessage],
-			}
+${JSON.stringify(todoItems)}`)
 		} else {
-			helpOutMessage = `Take a look at the shared todo list and see if there are any tasks that you can help with. Make sure to always set the todo you're currently working on as "in-progress" when you start working on it.
+			helpOutMessages.push(`Take a look at the shared todo list and see if there are any tasks that you can help with. Make sure to always set the todo you're currently working on as "in-progress" when you start working on it.
 shared todo list: 
-${JSON.stringify($sharedTodoList.get())}`
+${JSON.stringify($sharedTodoList.get())}`)
+		}
 
-			helpOutRequest = {
-				type: 'schedule',
-				messages: [helpOutMessage],
+		if (sourceFairyId) {
+			const sourceFairy = getFairyAgentById(sourceFairyId, this.editor)
+			if (sourceFairy) {
+				helpOutMessages.push(
+					`This ask for assistance was made by fairy ${sourceFairy.$fairyConfig.get().name}.`
+				)
+			} else {
+				helpOutMessages.push(
+					`This ask for assistance was made by a fairy with id ${sourceFairyId}.`
+				)
 			}
 		}
 
 		if (this.isGenerating()) {
 			this.schedule({
-				messages: [helpOutMessage],
+				messages: helpOutMessages,
 			})
 		} else {
-			this.prompt(helpOutRequest)
+			this.prompt({
+				type: 'schedule',
+				messages: helpOutMessages,
+			})
 		}
 	}
 
@@ -1045,6 +1050,24 @@ ${JSON.stringify($sharedTodoList.get())}`
 	 */
 	setFairyPersonality(personality: string) {
 		this.$fairyConfig.update((fairy): FairyConfig => ({ ...fairy, personality }))
+	}
+
+	/**
+	 * Move the camera to the fairy's position.
+	 */
+	zoomTo() {
+		this.editor.zoomToBounds(Box.FromCenter(this.$fairyEntity.get().position, { x: 100, y: 100 }), {
+			animation: { duration: 220 },
+			targetZoom: 1,
+		})
+	}
+
+	/**
+	 * Instantly move the fairy to the center of the screen.
+	 */
+	summon() {
+		const position = this.editor.getViewportPageBounds().center
+		this.$fairyEntity.update((f) => (f ? { ...f, position, gesture: 'poof' } : f))
 	}
 }
 

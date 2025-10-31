@@ -49,6 +49,21 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 			if (shape.toId) {
 				shape.toId = helpers.ensureShapeIdExists(shape.toId)
 			}
+			if ('x1' in shape) {
+				shape.x1 = helpers.ensureValueIsNumber(shape.x1) ?? 0
+			}
+			if ('y1' in shape) {
+				shape.y1 = helpers.ensureValueIsNumber(shape.y1) ?? 0
+			}
+			if ('x2' in shape) {
+				shape.x2 = helpers.ensureValueIsNumber(shape.x2) ?? 0
+			}
+			if ('y2' in shape) {
+				shape.y2 = helpers.ensureValueIsNumber(shape.y2) ?? 0
+			}
+			if ('bend' in shape) {
+				shape.bend = helpers.ensureValueIsNumber(shape.bend) ?? 0
+			}
 		}
 
 		return action
