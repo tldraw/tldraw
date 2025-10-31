@@ -813,8 +813,8 @@ export class TLDrawDurableObject extends DurableObject {
 	numPersistRetries = 0
 	// Save the room to r2
 	async persistToDatabase() {
-		try {
-			await this.executionQueue.push(async () => {
+		await this.executionQueue.push(async () => {
+			try {
 				// check whether the worker was woken up to persist after having gone to sleep
 				if (!this._room) return
 				const slug = this.documentInfo.slug
@@ -848,27 +848,27 @@ export class TLDrawDurableObject extends DurableObject {
 						.execute()
 						.catch((e) => this.reportError(e))
 				}
-			})
-		} catch (e) {
-			this.reportError(e)
-			if (this.numPersistRetries > 0) {
-				this.reportError(
-					new Error(`Failed to persist to database after ${this.numPersistRetries} retries`)
-				)
+			} catch (e) {
+				this.reportError(e)
+				if (this.numPersistRetries > 0) {
+					this.reportError(
+						new Error(`Failed to persist to database after ${this.numPersistRetries} retries`)
+					)
+				}
+				this.numPersistRetries++
+				if (this.numPersistRetries > PERSIST_RETRIES_NOTIFY_THRESHOLD) {
+					this.broadcastPersistenceEvent({ type: 'persistence_bad' })
+				}
+				if (this.numPersistRetries > PERSIST_RETRIES_MAX) {
+					// i don't think it's gonna work...
+					// TODO: fallback to some other blob storage provider?
+					return
+				}
+				setTimeout(() => {
+					this.persistToDatabase()
+				}, 2000)
 			}
-			this.numPersistRetries++
-			if (this.numPersistRetries > PERSIST_RETRIES_NOTIFY_THRESHOLD) {
-				this.broadcastPersistenceEvent({ type: 'persistence_bad' })
-			}
-			if (this.numPersistRetries > PERSIST_RETRIES_MAX) {
-				// i don't think it's gonna work...
-				// TODO: fallback to some other blob storage provider?
-				return
-			}
-			setTimeout(() => {
-				this.persistToDatabase()
-			}, 2000)
-		}
+		})
 	}
 
 	private async _uploadSnapshotToR2(
