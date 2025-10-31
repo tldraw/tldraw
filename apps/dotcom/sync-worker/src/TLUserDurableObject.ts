@@ -565,6 +565,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	async admin_migrateToGroups(userId: string, inviteSecret: string | null = null) {
 		this.userId ??= userId
 
+		this.log.debug('migrating to groups', userId, inviteSecret)
 		// Call the Postgres migration function
 		const result = await sql<{
 			files_migrated: number
@@ -572,8 +573,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			flag_added: boolean
 		}>`SELECT * FROM migrate_user_to_groups(${userId}, ${inviteSecret})`.execute(this.db)
 
-		// Reboot the user's cache to pick up the new data structure
+		this.log.debug('migration result', result.rows[0])
+
+		await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
 		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
+
+		this.log.debug('migration complete, user rebooted')
 
 		return result.rows[0]
 	}
