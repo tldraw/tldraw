@@ -5,13 +5,16 @@ import {
 	AgentPrompt,
 	AgentRequest,
 	AreaContextItem,
+	AvailableWandsForMode,
 	BaseAgentPrompt,
 	ChatHistoryItem,
 	ContextItem,
 	FAIRY_VISION_DIMENSIONS,
 	FairyEntity,
+	FairyMode,
 	FairyPose,
 	FocusedShape,
+	getFairyMode,
 	getWand,
 	PointContextItem,
 	PromptPart,
@@ -20,7 +23,7 @@ import {
 	SharedTodoItem,
 	Streaming,
 	TodoItem,
-	// Wand,
+	Wand,
 } from '@tldraw/fairy-shared'
 import {
 	Atom,
@@ -44,7 +47,6 @@ import { $sharedTodoList } from '../../SharedTodoList'
 import { AgentHelpers } from './AgentHelpers'
 import { FairyAgentOptions } from './FairyAgentOptions'
 import { $fairyAgentsAtom, getFairyAgentById } from './fairyAgentsAtom'
-import { FairyMode, getFairyMode } from './FairyMode'
 
 /**
  * An agent that can be prompted to edit the canvas.
@@ -137,8 +139,6 @@ export class FairyAgent {
 		})
 
 		this.$fairyConfig = atom<FairyConfig>(`fairy-config-${id}`, fairyConfig)
-		// this.mode = getFairyMode('default')
-		// this.setMode(this.mode.id)
 
 		this.onError = onError
 
@@ -263,6 +263,31 @@ export class FairyAgent {
 	promptPartUtils: Record<PromptPart['type'], PromptPartUtil<PromptPart>>
 
 	/**
+	 * Validate and normalize wand, ensuring it is available for the given mode.
+	 * @param candidateWand - The wand to validate
+	 * @param mode - The mode to validate against
+	 * @returns The validated wand
+	 */
+	private validateWandForMode<ModeId extends FairyMode['id']>(
+		candidateWand: Wand['type'],
+		mode: ModeId
+	): AvailableWandsForMode<ModeId> {
+		const modeInfo = getFairyMode(mode)
+		const wand = (modeInfo.availableWands as readonly Wand['type'][]).includes(candidateWand)
+			? candidateWand
+			: modeInfo.defaultWand
+
+		//todo remove before shipping
+		if (wand !== candidateWand) {
+			console.warn(
+				`Wand ${candidateWand} is not available in mode ${mode}. Using default wand ${modeInfo.defaultWand}.`
+			)
+		}
+
+		return wand as AvailableWandsForMode<ModeId>
+	}
+
+	/**
 	 * Get a full agent request from a user input by filling out any missing
 	 * values with defaults.
 	 * @param input - A partial agent request or a string message.
@@ -271,9 +296,15 @@ export class FairyAgent {
 		const request = this.getPartialRequestFromInput(input)
 
 		const activeRequest = this.$activeRequest.get()
+
+		const mode = request.mode ?? this.$fairyConfig.get().mode
+		const candidateWand = request.wand ?? this.$fairyConfig.get().wand
+		const validatedWand = this.validateWandForMode(candidateWand, mode)
+
 		return {
 			type: request.type ?? 'user',
-			wand: request.wand ?? this.$fairyConfig.get().wand,
+			wand: validatedWand,
+			mode,
 			messages: request.messages ?? [],
 			data: request.data ?? [],
 			selectedShapes: request.selectedShapes ?? [],
@@ -282,7 +313,7 @@ export class FairyAgent {
 				request.bounds ??
 				activeRequest?.bounds ??
 				Box.FromCenter(this.$fairyEntity.get().position, FAIRY_VISION_DIMENSIONS),
-		}
+		} as AgentRequest
 	}
 
 	/**
@@ -410,6 +441,8 @@ export class FairyAgent {
 				return
 			}
 
+			const validatedWand = this.validateWandForMode(request.wand, request.mode)
+
 			// If there are outstanding todo items, schedule a request
 			scheduledRequest = {
 				messages: request.messages,
@@ -418,8 +451,9 @@ export class FairyAgent {
 				selectedShapes: request.selectedShapes,
 				data: request.data,
 				type: 'todo',
-				wand: request.wand,
-			}
+				wand: validatedWand,
+				mode: request.mode,
+			} as AgentRequest
 		}
 
 		// Add the scheduled request to chat history
@@ -1084,7 +1118,9 @@ ${JSON.stringify($sharedTodoList.get())}`)
 	 */
 	setMode(id: FairyMode['id']) {
 		const mode = getFairyMode(id)
-		this.$fairyConfig.update((fairy): FairyConfig => ({ ...fairy, mode: id, wand: mode.wand }))
+		this.$fairyConfig.update(
+			(fairy): FairyConfig => ({ ...fairy, mode: id, wand: mode.defaultWand })
+		)
 	}
 }
 

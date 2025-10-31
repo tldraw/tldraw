@@ -1,21 +1,29 @@
-import { Wand } from "@tldraw/fairy-shared"
+import { Wand, WAND_TYPES } from './Wand'
 
 interface BaseFairyMode {
-    id: string
-    wand: Wand['type']
+	id: string
+	availableWands: Wand['type'][]
+	defaultWand: Wand['type']
 }
 
 export type FairyMode = (typeof FAIRY_MODE_DEFINITIONS)[number]
 
 export const FAIRY_MODE_DEFINITIONS = [
-    {
-        id: 'default',
-        wand: 'god',
-    },
-    {
-        id: 'orchestrator',
-        wand: 'orchestrator',
-    },
+	{
+		id: 'default',
+		availableWands: WAND_TYPES.filter((wand) => wand !== 'orchestrator' && wand !== 'drone'),
+		defaultWand: 'god',
+	},
+	{
+		id: 'orchestrator',
+		availableWands: ['orchestrator'],
+		defaultWand: 'orchestrator',
+	},
+	{
+		id: 'drone',
+		availableWands: ['drone'],
+		defaultWand: 'drone',
+	},
 ] as const satisfies BaseFairyMode[]
 
 export const FAIRY_MODE_IDS = FAIRY_MODE_DEFINITIONS.map((mode) => mode.id)

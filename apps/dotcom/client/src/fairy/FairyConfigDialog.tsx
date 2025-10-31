@@ -1,4 +1,11 @@
-import { FAIRY_VARIANTS, FairyVariantType, Wand, WAND_DEFINITIONS } from '@tldraw/fairy-shared'
+import {
+	FAIRY_MODE_DEFINITIONS,
+	FAIRY_VARIANTS,
+	FairyVariantType,
+	getFairyMode,
+	Wand,
+	WAND_DEFINITIONS,
+} from '@tldraw/fairy-shared'
 import {
 	TldrawUiButton,
 	TldrawUiButtonLabel,
@@ -14,6 +21,9 @@ import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 
 export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClose(): void }) {
 	const config = useValue(agent.$fairyConfig)
+	const currentMode = getFairyMode(config.mode)
+	const availableWands = currentMode.availableWands
+
 	return (
 		<>
 			<TldrawUiDialogHeader>
@@ -39,6 +49,29 @@ export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClo
 						onValueChange={(value) => agent.$fairyConfig.set({ ...config, personality: value })}
 						placeholder="Fairy's personality"
 					/>
+					<label htmlFor="mode">Mode</label>
+					<select
+						id="mode"
+						value={config.mode}
+						onChange={(e) => {
+							const newMode = getFairyMode(e.target.value as typeof config.mode)
+							const newConfig = {
+								...config,
+								mode: newMode.id,
+								// If current wand isn't available in new mode, use the mode's default wand
+								wand: (newMode.availableWands as readonly Wand['type'][]).includes(config.wand)
+									? config.wand
+									: newMode.defaultWand,
+							}
+							agent.$fairyConfig.set(newConfig)
+						}}
+					>
+						{FAIRY_MODE_DEFINITIONS.map((mode) => (
+							<option key={mode.id} value={mode.id}>
+								{mode.id.charAt(0).toUpperCase() + mode.id.slice(1)}
+							</option>
+						))}
+					</select>
 					<label htmlFor="hat">Hat</label>
 					<select
 						id="hat"
@@ -64,11 +97,14 @@ export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClo
 							agent.$fairyConfig.set({ ...config, wand: e.target.value as Wand['type'] })
 						}}
 					>
-						{WAND_DEFINITIONS.map((wand) => (
-							<option key={wand.type} value={wand.type}>
-								{wand.name} — {wand.description}
-							</option>
-						))}
+						{WAND_DEFINITIONS.map((wand) => {
+							const isAvailable = (availableWands as readonly Wand['type'][]).includes(wand.type)
+							return (
+								<option key={wand.type} value={wand.type} disabled={!isAvailable}>
+									{wand.name} — {wand.description}
+								</option>
+							)
+						})}
 					</select>
 				</div>
 			</TldrawUiDialogBody>
