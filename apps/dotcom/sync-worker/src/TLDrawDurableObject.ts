@@ -14,6 +14,7 @@ import {
 	ROOM_PREFIX,
 	ROOM_SIZE_LIMIT_MB,
 	SNAPSHOT_PREFIX,
+	TLCustomServerEvent,
 	TlaFile,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
@@ -801,6 +802,14 @@ export class TLDrawDurableObject extends DurableObject {
 		})
 	}
 
+	broadcastPersistenceEvent(event: TLCustomServerEvent) {
+		this._room?.then((r) => {
+			for (const session of r.getSessions()) {
+				r.sendCustomMessage(session.sessionId, event)
+			}
+		})
+	}
+
 	numPersistRetries = 0
 	// Save the room to r2
 	async persistToDatabase() {
@@ -821,6 +830,9 @@ export class TLDrawDurableObject extends DurableObject {
 				await this._uploadSnapshotToR2(room, snapshot, key)
 
 				this._lastPersistedClock = clock
+				if (this.numPersistRetries > PERSIST_RETRIES_NOTIFY_THRESHOLD) {
+					this.broadcastPersistenceEvent({ type: 'persistence_good' })
+				}
 				this.numPersistRetries = 0
 
 				// Update the updatedAt timestamp in the database
@@ -845,13 +857,17 @@ export class TLDrawDurableObject extends DurableObject {
 				)
 			}
 			this.numPersistRetries++
-			if (this.numPersistRetries > 100) {
+			if (this.numPersistRetries > PERSIST_RETRIES_NOTIFY_THRESHOLD) {
+				this.broadcastPersistenceEvent({ type: 'persistence_bad' })
+			}
+			if (this.numPersistRetries > PERSIST_RETRIES_MAX) {
 				// i don't think it's gonna work...
+				// TODO: fallback to some other blob storage provider?
 				return
 			}
 			setTimeout(() => {
 				this.persistToDatabase()
-			}, 1000)
+			}, 2000)
 		}
 	}
 
@@ -860,6 +876,9 @@ export class TLDrawDurableObject extends DurableObject {
 		snapshot: RoomSnapshot,
 		key: string
 	) {
+		if (this.numPersistRetries < PERSIST_RETRIES_NOTIFY_THRESHOLD + 4) {
+			throw new Error('test')
+		}
 		// Upload to rooms bucket first
 		const roomSizeMB = await this._uploadSnapshotToBucket(this.r2.rooms, snapshot, key)
 		// Update storage percentage
@@ -1158,3 +1177,6 @@ async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promise<stri
 
 	return keys
 }
+
+const PERSIST_RETRIES_NOTIFY_THRESHOLD = 10
+const PERSIST_RETRIES_MAX = 100
