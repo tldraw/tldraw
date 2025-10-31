@@ -2,6 +2,7 @@ import { TlaFile } from '@tldraw/dotcom-shared'
 import { assert, sleep, uniqueId } from '@tldraw/utils'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
+import { sql } from 'kysely'
 import { createPostgresConnectionPool } from './postgres'
 import { returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
@@ -469,7 +470,13 @@ async function performBatchUserMigration(
 
 		try {
 			const user = getUserDurableObject(env, userRow.id)
-			const result = await user.admin_migrateToGroups(userRow.id, uniqueId())
+
+			const result = await sql<{
+				files_migrated: number
+				pinned_files_migrated: number
+				flag_added: boolean
+			}>`SELECT * FROM migrate_user_to_groups(${userRow.id}, ${uniqueId()})`.execute(pg)
+			await user.admin_forceHardReboot(userRow.id)
 
 			successCount++
 			sendProgress(
@@ -478,7 +485,7 @@ async function performBatchUserMigration(
 				{
 					userId: userRow.id,
 					email: userRow.email,
-					result,
+					result: result.rows[0],
 					successCount,
 					failureCount,
 				}
