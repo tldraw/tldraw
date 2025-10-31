@@ -437,7 +437,7 @@ async function startUserMigration(
 
 	sendProgress('query', `${usersToMigrate}/${totalUsers} users left to migrate`, getStats())
 
-	if (totalUsers === 0) {
+	if (usersToMigrate === 0) {
 		sendProgress('complete', 'No users to migrate')
 		return
 	}
@@ -457,15 +457,11 @@ async function startUserMigration(
 			break
 		}
 
-		sendProgress(
-			'migrating',
-			`Migrating user ${usersToMigrate + successCount}/${totalUsers}: ${userRow.email}`,
-			{
-				userId: userRow.id,
-				email: userRow.email,
-				...getStats(),
-			}
-		)
+		sendProgress('migrating', `Migrating user ${userRow.email}`, {
+			userId: userRow.id,
+			email: userRow.email,
+			...getStats(),
+		})
 
 		try {
 			const user = getUserDurableObject(env, userRow.id)
@@ -477,17 +473,13 @@ async function startUserMigration(
 			}>`SELECT * FROM migrate_user_to_groups(${userRow.id}, ${uniqueId()})`.execute(pg)
 			await user.admin_forceHardReboot(userRow.id)
 
-			sendProgress(
-				'success',
-				`Successfully migrated user ${usersToMigrate - successCount}/${totalUsers}: ${userRow.email}`,
-				{
-					userId: userRow.id,
-					email: userRow.email,
-					result: result.rows[0],
-					...getStats(),
-				}
-			)
 			successCount++
+			sendProgress('success', `Successfully migrated user ${userRow.email}`, {
+				userId: userRow.id,
+				email: userRow.email,
+				result: result.rows[0],
+				...getStats(),
+			})
 		} catch (error) {
 			failureCount++
 			const errorMessage = error instanceof Error ? error.message : String(error)
@@ -497,7 +489,7 @@ async function startUserMigration(
 				error: errorMessage,
 			})
 
-			sendProgress('failure', `Failed to migrate ${failureCount}: ${userRow.email}`, {
+			sendProgress('failure', `Failed to migrate ${userRow.email}`, {
 				userId: userRow.id,
 				email: userRow.email,
 				error: errorMessage,
