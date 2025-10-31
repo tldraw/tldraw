@@ -15,6 +15,7 @@ import {
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useDragTracking } from '../../../hooks/useDragTracking'
+import { useIsDragging } from '../../../hooks/useIsDragging'
 import { useHasFileAdminRights } from '../../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../../hooks/useIsFilePinned'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
@@ -193,13 +194,7 @@ export function TlaSidebarFileLinkInner({
 	const file = useValue('file', () => app.getFile(fileId), [fileId, app])
 	const hasAdminRights = useHasFileAdminRights(fileId)
 
-	const isDragging = useValue(
-		'isDragging',
-		() =>
-			app.sidebarState.get().dragState?.hasDragStarted &&
-			app.sidebarState.get().dragState?.id === fileId,
-		[fileId, app]
-	)
+	const isDragging = useIsDragging(fileId)
 
 	const wrapperRef = useRef<HTMLDivElement>(null)
 

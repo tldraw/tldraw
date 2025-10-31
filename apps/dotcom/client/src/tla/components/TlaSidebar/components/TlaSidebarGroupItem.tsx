@@ -17,6 +17,7 @@ import {
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useDragTracking } from '../../../hooks/useDragTracking'
+import { useIsDragging } from '../../../hooks/useIsDragging'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F, defineMessages, useMsg } from '../../../utils/i18n'
@@ -254,13 +255,7 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 
 	const { startDragTracking } = useDragTracking()
 
-	const isDragging = useValue(
-		'isDragging',
-		() =>
-			app.sidebarState.get().dragState?.hasDragStarted &&
-			app.sidebarState.get().dragState?.id === groupId,
-		[groupId, app]
-	)
+	const isDragging = useIsDragging(groupId)
 
 	const expansionState = useValue(
 		'expansionState',
