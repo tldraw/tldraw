@@ -1496,6 +1496,22 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'select-fill-lined-fill',
+				label: 'fill-style.lined-fill',
+				kbd: 'alt+shift+f',
+				onSelect(source) {
+					const style = DefaultFillStyle
+					editor.run(() => {
+						editor.markHistoryStoppingPoint('change-fill')
+						if (editor.isIn('select')) {
+							editor.setStyleForSelectedShapes(style, 'lined-fill')
+						}
+						editor.setStyleForNextShapes(style, 'lined-fill')
+					})
+					trackEvent('set-style', { source, id: style.id, value: 'lined-fill' })
+				},
+			},
+			{
 				id: 'flatten-to-image',
 				label: 'action.flatten-to-image',
 				kbd: 'shift+f',

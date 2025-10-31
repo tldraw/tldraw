@@ -154,6 +154,7 @@ export type TLUiTranslationKey =
 	| 'fill-style.solid'
 	| 'fill-style.pattern'
 	| 'fill-style.fill'
+	| 'fill-style.lined-fill'
 	| 'dash-style.dashed'
 	| 'dash-style.dotted'
 	| 'dash-style.draw'

@@ -7,7 +7,7 @@ export type SimpleFill = z.infer<typeof SimpleFillSchema>
 
 const SIMPLE_TO_SHAPE_FILLS: Record<SimpleFill, TLDefaultFillStyle> = {
 	none: 'none',
-	solid: 'fill',
+	solid: 'lined-fill',
 	background: 'semi',
 	tint: 'solid',
 	pattern: 'pattern',
@@ -16,6 +16,7 @@ const SIMPLE_TO_SHAPE_FILLS: Record<SimpleFill, TLDefaultFillStyle> = {
 const SHAPE_TO_SIMPLE_FILLS: Record<TLDefaultFillStyle, SimpleFill> = {
 	none: 'none',
 	fill: 'solid',
+	'lined-fill': 'solid',
 	semi: 'background',
 	solid: 'tint',
 	pattern: 'pattern',
