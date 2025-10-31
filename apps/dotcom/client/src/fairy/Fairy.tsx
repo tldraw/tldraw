@@ -1,6 +1,7 @@
+import { FairyEntity } from '@tldraw/fairy-shared'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import React, { useEffect, useRef } from 'react'
-import { Box, useEditor, useValue } from 'tldraw'
+import { Atom, Box, useEditor, useValue } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { $fairyAgentsAtom } from './fairy-agent/agent/fairyAgentsAtom'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
@@ -136,9 +137,48 @@ export default function Fairy({
 		// when you press generate, so this is enough for now
 		if (agent.isGenerating()) return
 
+		// Determine which fairies to drag before updating selection
 		const fairyAgents = $fairyAgentsAtom.get(editor)
+		const clickedFairyEntity = fairy.get()
+		const wasClickedFairySelected = clickedFairyEntity?.isSelected ?? false
+
+		// Only drag multiple fairies if the clicked fairy was already selected
+		// and there are other selected fairies
+		let fairiesToDrag: Atom<FairyEntity>[]
+		if (wasClickedFairySelected) {
+			// Collect all currently selected fairies
+			const selectedFairies: Atom<FairyEntity>[] = []
+			fairyAgents.forEach((a) => {
+				const entity = a.$fairyEntity.get()
+				if (entity?.isSelected) {
+					selectedFairies.push(a.$fairyEntity)
+				}
+			})
+			fairiesToDrag = selectedFairies
+		} else {
+			// Only drag the clicked fairy
+			fairiesToDrag = [fairy]
+		}
+
+		// Update selection state
+		// If dragging multiple fairies, keep them all selected
+		// Otherwise, update selection as normal
+		const isDraggingMultiple = fairiesToDrag.length > 1
+		const fairiesToDragIds = new Set(
+			fairiesToDrag
+				.map((f) => {
+					// We need to get the agent ID for each fairy to match
+					const agentForFairy = fairyAgents.find((a) => a.$fairyEntity === f)
+					return agentForFairy?.id
+				})
+				.filter((id): id is string => id !== undefined)
+		)
+
 		fairyAgents.forEach((a) => {
-			if (a.id === agent.id) {
+			if (isDraggingMultiple && fairiesToDragIds.has(a.id)) {
+				// Keep all fairies that will be dragged selected
+				a.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
+			} else if (a.id === agent.id) {
 				a.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
 			} else if (!e.shiftKey && !e.ctrlKey && !e.metaKey) {
 				a.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
@@ -164,10 +204,10 @@ export default function Fairy({
 				document.removeEventListener('pointermove', handlePointerMove)
 				document.removeEventListener('pointerup', handlePointerUp)
 
-				// Activate the tool
+				// Activate the tool with all fairies that were selected at pointer down
 				const tool = editor.getStateDescendant('fairy-throw')
-				if (tool && 'setFairy' in tool) {
-					;(tool as FairyThrowTool).setFairy(fairy)
+				if (tool && 'setFairies' in tool) {
+					;(tool as FairyThrowTool).setFairies(fairiesToDrag)
 				}
 				editor.setCurrentTool('fairy-throw')
 			}
