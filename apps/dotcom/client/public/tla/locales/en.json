@@ -44,6 +44,9 @@
   "181b90f889": {
     "translation": "Create file"
   },
+  "1c0b8f236c": {
+    "translation": "Resend"
+  },
   "1da2e8106b": {
     "translation": "An unexpected error occurred."
   },
@@ -74,8 +77,14 @@
   "335defdafe": {
     "translation": "Please try refreshing the page."
   },
+  "340bcdbecf": {
+    "translation": "Before you start, please accept our terms and privacy policy."
+  },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "383fe2dd68": {
+    "translation": "Continue to tldraw"
   },
   "3bd1b98dbd": {
     "translation": "Unable to publish the changes."
@@ -85,6 +94,9 @@
   },
   "3d0238bf16": {
     "translation": "Accept all"
+  },
+  "3f9ecc46fa": {
+    "translation": "Allow analytics to help improve tldraw (<cookies>learn more</cookies>)"
   },
   "42e53c47c1": {
     "translation": "Contact the owner to request access."
@@ -163,6 +175,9 @@
   },
   "6637a98151": {
     "translation": "A new version of tldraw is available. Please reload the page to continue."
+  },
+  "6832ac5936": {
+    "translation": "Enter your email address"
   },
   "6a26f54883": {
     "translation": "Help"
@@ -281,6 +296,9 @@
   "9e93c98d88": {
     "translation": "Opt out"
   },
+  "a0bfb8e59e": {
+    "translation": "Continue"
+  },
   "a0da245992": {
     "translation": "Export the content as a .tldr file: Select 'Download' in the top left menu."
   },
@@ -292,6 +310,9 @@
   },
   "a1c915578c": {
     "translation": "The file you are looking for does not exist."
+  },
+  "a1e3ec36cf": {
+    "translation": "Didn't receive a code?"
   },
   "a239905023": {
     "translation": "Export image"
@@ -308,8 +329,14 @@
   "a768caa988": {
     "translation": "Analytics"
   },
+  "a7f3dfc629": {
+    "translation": "Continue with Google"
+  },
   "a9ded1e5ce": {
     "translation": "Background"
+  },
+  "aa94a67c0c": {
+    "translation": "tldraw is a free and instant virtual whiteboarding with online collaboration."
   },
   "ab0df9ba36": {
     "translation": "File limit reached"
@@ -320,6 +347,9 @@
   },
   "b028909917": {
     "translation": "Guest user"
+  },
+  "b357b524e7": {
+    "translation": "Email address"
   },
   "b6d4223e60": {
     "translation": "Sign in"
@@ -375,6 +405,9 @@
   "d4bbf74f3e": {
     "translation": "Toggle sidebar"
   },
+  "d500a7b1df": {
+    "translation": "Enter the verification code sent to your email"
+  },
   "d721757161": {
     "translation": "Theme"
   },
@@ -398,6 +431,12 @@
   },
   "e78e14c5f1": {
     "translation": "Pin"
+  },
+  "e81c4e4f2b": {
+    "translation": "or"
+  },
+  "e84b97b1d0": {
+    "translation": "I agree to the <tos>Terms of Service</tos> and <privacy>Privacy Policy</privacy>"
   },
   "ea4788705e": {
     "translation": "Cancel"

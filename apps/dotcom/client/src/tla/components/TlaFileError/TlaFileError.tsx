@@ -1,4 +1,3 @@
-import { SignInButton } from '@clerk/clerk-react'
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { ReactElement, useEffect } from 'react'
 import { TldrawUiButton, useDialogs } from 'tldraw'
@@ -7,6 +6,7 @@ import { useSetIsReady } from '../../hooks/useIsReady'
 import { F } from '../../utils/i18n'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { SubmitFeedbackDialog } from '../dialogs/SubmitFeedbackDialog'
+import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import styles from './TlaFileError.module.css'
 
 function DefaultError() {
@@ -53,23 +53,7 @@ export function TlaFileError({ error }: { error: unknown }) {
 			)
 		}
 		case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED: {
-			return (
-				<TlaFileErrorContent
-					header={<F defaultMessage="Sign in" />}
-					para1={<F defaultMessage="You need to sign in to view this file." />}
-					cta={
-						<SignInButton
-							mode="modal"
-							forceRedirectUrl={location.pathname + location.search}
-							signUpForceRedirectUrl={location.pathname + location.search}
-						>
-							<TlaCtaButton data-testid="tla-sign-up">
-								<F defaultMessage="Sign in" />
-							</TlaCtaButton>
-						</SignInButton>
-					}
-				/>
-			)
+			return <NotAuthenticatedError />
 		}
 		case TLSyncErrorCloseEventReason.FORBIDDEN: {
 			return (
@@ -111,6 +95,24 @@ export function TlaFileError({ error }: { error: unknown }) {
 		default:
 			return <DefaultError />
 	}
+}
+
+function NotAuthenticatedError() {
+	const dialogs = useDialogs()
+	return (
+		<TlaFileErrorContent
+			header={<F defaultMessage="Sign in" />}
+			para1={<F defaultMessage="You need to sign in to view this file." />}
+			cta={
+				<TlaCtaButton
+					data-testid="tla-sign-in-button"
+					onClick={() => dialogs.addDialog({ component: TlaSignInDialog })}
+				>
+					<F defaultMessage="Sign in" />
+				</TlaCtaButton>
+			}
+		/>
+	)
 }
 
 function TlaFileErrorContent({

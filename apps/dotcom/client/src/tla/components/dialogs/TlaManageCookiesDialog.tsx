@@ -16,7 +16,7 @@ import {
 } from '../tla-menu/tla-menu'
 import styles from './dialogs.module.css'
 
-const COOKIE_POLICY_URL = 'https://tldraw.notion.site/cookie-policy'
+const COOKIE_POLICY_URL = '/cookies.html'
 
 export function TlaManageCookiesDialog() {
 	const [consent, updateConsent] = useAnalyticsConsent()
