@@ -421,7 +421,11 @@ export const Result: {
 };
 
 // @internal
-export function retry<T>(fn: () => Promise<T>, { attempts, waitDuration, abortSignal, matchError, }?: {
+export function retry<T>(fn: (args: {
+    attempt: number;
+    remaining: number;
+    total: number;
+}) => Promise<T>, { attempts, waitDuration, abortSignal, matchError, }?: {
     abortSignal?: AbortSignal;
     attempts?: number;
     matchError?(error: unknown): boolean;

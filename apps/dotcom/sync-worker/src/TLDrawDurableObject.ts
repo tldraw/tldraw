@@ -1,6 +1,7 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
 
+import { R2Bucket } from '@cloudflare/workers-types'
 import { SupabaseClient } from '@supabase/supabase-js'
 import {
 	APP_ASSET_UPLOAD_ENDPOINT,
@@ -810,64 +811,52 @@ export class TLDrawDurableObject extends DurableObject {
 		})
 	}
 
-	numPersistRetries = 0
 	// Save the room to r2
 	async persistToDatabase() {
 		await this.executionQueue.push(async () => {
-			try {
-				// check whether the worker was woken up to persist after having gone to sleep
-				if (!this._room) return
-				const slug = this.documentInfo.slug
-				const room = await this.getRoom()
-				const clock = room.getCurrentDocumentClock()
-				if (this._lastPersistedClock === clock) return
-				if (this._isRestoring) return
+			await retry(
+				async ({ attempt }) => {
+					if (attempt === PERSIST_RETRIES_NOTIFY_THRESHOLD) {
+						this.broadcastPersistenceEvent({ type: 'persistence_bad' })
+					}
+					if (attempt > 2) {
+						this.reportError(new Error(`Failed to persist to database after ${attempt} retries`))
+					}
+					// check whether the worker was woken up to persist after having gone to sleep
+					if (!this._room) return
+					const slug = this.documentInfo.slug
+					const room = await this.getRoom()
+					const clock = room.getCurrentDocumentClock()
+					if (this._lastPersistedClock === clock) return
+					if (this._isRestoring) return
 
-				const snapshot = room.getCurrentSnapshot()
-				this.maybeAssociateFileAssets()
+					const snapshot = room.getCurrentSnapshot()
+					this.maybeAssociateFileAssets()
 
-				const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
-				await this._uploadSnapshotToR2(room, snapshot, key)
+					const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
+					await this._uploadSnapshotToR2(room, snapshot, key)
 
-				this._lastPersistedClock = clock
-				if (this.numPersistRetries > PERSIST_RETRIES_NOTIFY_THRESHOLD) {
-					this.broadcastPersistenceEvent({ type: 'persistence_good' })
-				}
-				this.numPersistRetries = 0
+					this._lastPersistedClock = clock
+					if (attempt > PERSIST_RETRIES_NOTIFY_THRESHOLD) {
+						this.broadcastPersistenceEvent({ type: 'persistence_good' })
+					}
 
-				// Update the updatedAt timestamp in the database
-				if (this.documentInfo.isApp) {
-					// don't await on this because otherwise
-					// if this logic is invoked during another db transaction
-					// (e.g. when publishing a file)
-					// that transaction will deadlock
-					this.db
-						.updateTable('file')
-						.set({ updatedAt: new Date().getTime() })
-						.where('id', '=', this.documentInfo.slug)
-						.execute()
-						.catch((e) => this.reportError(e))
-				}
-			} catch (e) {
-				this.reportError(e)
-				if (this.numPersistRetries > 0) {
-					this.reportError(
-						new Error(`Failed to persist to database after ${this.numPersistRetries} retries`)
-					)
-				}
-				this.numPersistRetries++
-				if (this.numPersistRetries > PERSIST_RETRIES_NOTIFY_THRESHOLD) {
-					this.broadcastPersistenceEvent({ type: 'persistence_bad' })
-				}
-				if (this.numPersistRetries > PERSIST_RETRIES_MAX) {
-					// i don't think it's gonna work...
-					// TODO: fallback to some other blob storage provider?
-					return
-				}
-				setTimeout(() => {
-					this.persistToDatabase()
-				}, 2000)
-			}
+					// Update the updatedAt timestamp in the database
+					if (this.documentInfo.isApp) {
+						// don't await on this because otherwise
+						// if this logic is invoked during another db transaction
+						// (e.g. when publishing a file)
+						// that transaction will deadlock
+						this.db
+							.updateTable('file')
+							.set({ updatedAt: new Date().getTime() })
+							.where('id', '=', this.documentInfo.slug)
+							.execute()
+							.catch((e) => this.reportError(e))
+					}
+				},
+				{ attempts: PERSIST_RETRIES_MAX, waitDuration: 2000 }
+			)
 		})
 	}
 
