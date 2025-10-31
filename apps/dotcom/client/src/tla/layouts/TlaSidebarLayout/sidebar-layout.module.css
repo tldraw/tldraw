@@ -69,6 +69,6 @@
 .toggleContainer {
 	position: absolute;
 	top: 4px;
-	margin-left: 2px;
+	margin-left: 4px;
 	z-index: 1;
 }

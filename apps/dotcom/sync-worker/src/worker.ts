@@ -37,8 +37,10 @@ import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
 import { getRoomSnapshot } from './routes/getRoomSnapshot'
 import { joinExistingRoom } from './routes/joinExistingRoom'
 import { submitFeedback } from './routes/submitFeedback'
+import { acceptInvite } from './routes/tla/acceptInvite'
 import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
+import { getInviteInfo } from './routes/tla/getInviteInfo'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
@@ -123,6 +125,8 @@ const router = createRouter<Environment>()
 		})
 	})
 	.post('/app/uploads/:objectName', upload)
+	.get('/app/invite/:token', getInviteInfo)
+	.post('/app/invite/:token/accept', acceptInvite)
 	.all('/app/__test__/*', testRoutes.fetch)
 	.get('/app/__debug-tail', (req, env) => {
 		if (isDebugLogging(env)) {

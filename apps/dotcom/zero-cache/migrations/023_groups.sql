@@ -433,7 +433,7 @@ BEGIN
     ) AS fs
     WHERE gf."fileId" = fs."fileId" AND gf."groupId" = target_user_id;
 
-    -- Add 'groups' flag to user
+    -- Add 'groups_backend' flag to user
     IF v_current_flags IS NULL OR v_current_flags = '' THEN
         UPDATE public."user" SET flags = 'groups_backend' WHERE id = target_user_id;
     ELSE

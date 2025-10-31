@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test'
-import { DB } from '@tldraw/dotcom-shared'
+import { DB, userHasFlag } from '@tldraw/dotcom-shared'
 import fs from 'fs'
 import { Kysely, PostgresDialect, sql } from 'kysely'
 import pg from 'pg'
@@ -49,7 +49,7 @@ export class Database {
 			flags: string | null
 		}>`SELECT flags FROM public.user WHERE id = ${id}`.execute(db)
 
-		return result.rows[0]?.flags?.includes('groups_backend') ?? false
+		return userHasFlag(result.rows[0]?.flags, 'groups_backend')
 	}
 
 	/**
