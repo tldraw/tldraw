@@ -7,7 +7,17 @@ import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiInput } from '../primitives/TldrawUiInput'
 import { UserPresenceColorPicker } from './UserPresenceColorPicker'
 
-export function UserPresenceEditor() {
+export interface UserPresenceEditorProps {
+	/** Whether users can change their color. Defaults to true. */
+	allowChangeColor?: boolean
+	/** Whether users can change their username. Defaults to true. */
+	allowChangeName?: boolean
+}
+
+export function UserPresenceEditor({
+	allowChangeColor = true,
+	allowChangeName = true,
+}: UserPresenceEditorProps) {
 	const editor = useEditor()
 	const trackEvent = useUiEvents()
 	const userName = useValue('userName', () => editor.user.getName(), [])
@@ -44,8 +54,8 @@ export function UserPresenceEditor() {
 
 	return (
 		<div className="tlui-people-menu__user">
-			<UserPresenceColorPicker />
-			{isEditingName ? (
+			{allowChangeColor && <UserPresenceColorPicker />}
+			{allowChangeName && isEditingName ? (
 				<TldrawUiInput
 					className="tlui-people-menu__user__input"
 					defaultValue={userName}
@@ -57,7 +67,7 @@ export function UserPresenceEditor() {
 					autoFocus
 					autoSelect
 				/>
-			) : (
+			) : allowChangeName ? (
 				<>
 					<div
 						className="tlui-people-menu__user__name"
@@ -71,16 +81,22 @@ export function UserPresenceEditor() {
 						<div className="tlui-people-menu__user__label">{msg('people-menu.user')}</div>
 					) : null}
 				</>
+			) : (
+				<div className="tlui-people-menu__user__name">
+					{userName || msg('people-menu.anonymous-user')}
+				</div>
 			)}
-			<TldrawUiButton
-				type="icon"
-				className="tlui-people-menu__user__edit"
-				data-testid="people-menu.change-name"
-				title={msg('people-menu.change-name')}
-				onClick={toggleEditingName}
-			>
-				<TldrawUiButtonIcon icon={isEditingName ? 'check' : 'edit'} />
-			</TldrawUiButton>
+			{allowChangeName && (
+				<TldrawUiButton
+					type="icon"
+					className="tlui-people-menu__user__edit"
+					data-testid="people-menu.change-name"
+					title={msg('people-menu.change-name')}
+					onClick={toggleEditingName}
+				>
+					<TldrawUiButtonIcon icon={isEditingName ? 'check' : 'edit'} />
+				</TldrawUiButton>
+			)}
 		</div>
 	)
 }
