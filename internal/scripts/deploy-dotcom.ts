@@ -96,6 +96,9 @@ const env = makeEnv([
 const deployZero = env.DEPLOY_ZERO === 'false' ? false : (env.DEPLOY_ZERO as 'flyio' | 'sst')
 const flyioAppName = deployZero === 'flyio' ? `${previewId}-zero-cache` : undefined
 
+// pierre is not in production yet, so get the key directly from process.env
+const pierreKey = process.env.PIERRE_KEY ?? ''
+
 const clerkJWKSUrl =
 	env.TLDRAW_ENV === 'production'
 		? 'https://clerk.tldraw.com/.well-known/jwks.json'
@@ -334,6 +337,7 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			SUPABASE_KEY: env.SUPABASE_LITE_ANON_KEY,
 			SENTRY_DSN: env.WORKER_SENTRY_DSN,
 			TLDRAW_ENV: env.TLDRAW_ENV,
+			PIERRE_KEY: pierreKey,
 			ASSET_UPLOAD_ORIGIN: env.ASSET_UPLOAD,
 			WORKER_NAME: workerId,
 			CLERK_SECRET_KEY: env.CLERK_SECRET_KEY,
