@@ -7,6 +7,7 @@ export const SharedTodoItemSchema = z.object({
 	claimedById: z.string().optional(),
 	x: z.number().optional(),
 	y: z.number().optional(),
+	projectId: z.string().optional(),
 })
 
 export type SharedTodoItem = z.infer<typeof SharedTodoItemSchema>

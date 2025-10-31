@@ -4,6 +4,8 @@ import { BringToFrontActionSchema } from './actions/BringToFrontActionSchema'
 import { CreateActionSchema } from './actions/CreateActionSchema'
 import { DeleteActionSchema } from './actions/DeleteActionSchema'
 import { DistributeActionSchema } from './actions/DistributeActionSchema'
+import { EndCurrentProjectActionSchema } from './actions/EndCurrentProjectActionSchema'
+import { EnterOrchestrationModeActionSchema } from './actions/EnterOrchestrationModeActionSchema'
 import { FlyToBoundsActionSchema } from './actions/FlyToBoundsActionSchema'
 import { ImbuePersonalityActionSchema } from './actions/ImbuePersonalityActionSchema'
 import { LabelActionSchema } from './actions/LabelActionSchema'
@@ -17,11 +19,13 @@ import { RotateActionSchema } from './actions/RotateActionSchema'
 import { SendToBackActionSchema } from './actions/SendToBackActionSchema'
 import { SharedTodoListActionSchema } from './actions/SharedTodoListActionSchema'
 import { StackActionSchema } from './actions/StackActionSchema'
+import { StartProjectActionSchema } from './actions/StartProjectActionSchema'
 import { ThinkActionSchema } from './actions/ThinkActionSchema'
 import { UpdateActionSchema } from './actions/UpdateActionSchema'
 import { BlurryShapesPartSchema } from './parts/BlurryShapesPartSchema'
 import { ChatHistoryPartSchema } from './parts/ChatHistoryPartSchema'
 import { ContextItemsPartSchema } from './parts/ContextItemsPartSchema'
+import { CurrentProjectPartSchema } from './parts/CurrentProjectPartSchema'
 import { DataPartSchema } from './parts/DataPartSchema'
 import { MessagesPartSchema } from './parts/MessagesPartSchema'
 import { OtherFairiesPartSchema } from './parts/OtherFairiesPartSchema'
@@ -47,6 +51,7 @@ export const AGENT_ACTION_SCHEMAS = [
 	ReviewActionSchema,
 	SharedTodoListActionSchema,
 	FlyToBoundsActionSchema,
+	EnterOrchestrationModeActionSchema,
 
 	// Individual shapes
 	CreateActionSchema,
@@ -70,6 +75,9 @@ export const AGENT_ACTION_SCHEMAS = [
 
 	// Fairy-specific
 	ImbuePersonalityActionSchema,
+	EnterOrchestrationModeActionSchema,
+	StartProjectActionSchema,
+	EndCurrentProjectActionSchema,
 
 	// Assign todo item
 	AssignTodoItemActionSchema,
@@ -82,6 +90,7 @@ export const PROMPT_PART_SCHEMAS = [
 	BlurryShapesPartSchema,
 	ChatHistoryPartSchema,
 	ContextItemsPartSchema,
+	CurrentProjectPartSchema,
 	DataPartSchema,
 	MessagesPartSchema,
 	PeripheralShapesPartSchema,

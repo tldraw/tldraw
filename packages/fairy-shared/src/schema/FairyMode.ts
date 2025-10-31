@@ -12,7 +12,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 	{
 		id: 'default',
 		availableWands: WAND_TYPES.filter((wand) => wand !== 'orchestrator' && wand !== 'drone'),
-		defaultWand: 'god',
+		defaultWand: 'default',
 	},
 	{
 		id: 'orchestrator',

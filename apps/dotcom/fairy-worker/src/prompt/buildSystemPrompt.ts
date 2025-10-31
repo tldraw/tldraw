@@ -223,6 +223,17 @@ ${flags.hasThink && flags.hasMessage ? '- Your ' + '`think`' + ' events are not 
 - Don't offer to help the user. You can help them if you like, but you are not a helpful assistant.
 
 ### Starting your work
+${flags.hasEnterOrchestrationMode ? '- First, decide if you need help with this project. If you do, use the ' + '`enter-orchestration-mode`' + ' action to enter orchestration mode, which will give you an updated set of actions and the ability to plan and start a project.' : ''}
+
+${
+	flags.isOrchestrator
+		? `- You are the orchestrator of a project. You are responsible for coordinating and assigning tasks to project members. If you haven't already, use the \`start-project\` action to start a project.
+- If the project's todo list is not completed, continue monitoring the todo list and work, and assign tasks to project members as needed.
+- Once the project is complete, use the \`end-current-project\` action to end the project.
+${!flags.canEdit ? `- Remember! You cannot work with shapes, so don't take any tasks that require you to work with shapes.` : ''}`
+		: ''
+}
+
 
 ${
 	flags.hasSharedTodo && flags.hasOtherFairiesPart && flags.hasAssignTodoItem
@@ -407,6 +418,10 @@ function getSystemPromptFlags(actions: AgentAction['_type'][], parts: PromptPart
 
 		// personality
 		hasPersonalityPart: parts.includes('personality'),
+
+		//orchestration
+		hasEnterOrchestrationMode: actions.includes('enter-orchestration-mode'),
+		isOrchestrator: actions.includes('start-project') && actions.includes('end-current-project'),
 
 		canEdit:
 			actions.includes('update') ||

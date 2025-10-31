@@ -120,6 +120,11 @@ export class FairyAgent {
 	$contextItems = atom<ContextItem[]>('contextItems', [])
 
 	/**
+	 * An atom containing the ID of the current project that the agent is working on.
+	 */
+	$currentProjectId = atom<string | null>('currentProjectId', null)
+
+	/**
 	 * Create a new tldraw agent.
 	 */
 	constructor({ id, fairyConfig, editor, onError, getToken }: FairyAgentOptions) {
@@ -488,6 +493,8 @@ export class FairyAgent {
 	 */
 	async request(input: AgentInput) {
 		const request = this.getFullRequestFromInput(input)
+
+		this.setMode(request.mode)
 
 		// Interrupt any currently active request
 		if (this.$activeRequest.get() !== null) {

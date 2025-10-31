@@ -231,10 +231,32 @@
 }
 
 .fairy-toggle-button {
+	position: relative;
 	width: 40px !important;
 	height: 40px !important;
 	min-width: 40px !important;
 	min-height: 40px !important;
+}
+
+.fairy-button-project-indicator {
+	position: absolute;
+	top: 2px;
+	right: 2px;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	border: 1.5px solid;
+	pointer-events: none;
+	z-index: 10;
+}
+
+.fairy-button-project-indicator--orchestrator {
+	background-color: transparent !important;
+	border-width: 2px;
+	width: 10px;
+	height: 10px;
+	top: 1px;
+	right: 1px;
 }
 
 /* Fairy HUD */
@@ -692,6 +714,7 @@
 }
 
 .shared-todo-item {
+	position: relative;
 	display: flex;
 	flex-direction: column;
 	gap: 2px;
@@ -842,6 +865,18 @@
 .shared-todo-item--done .shared-todo-item-text {
 	color: var(--tl-color-text-2);
 	text-decoration: line-through;
+}
+
+.shared-todo-item-project-indicator {
+	position: absolute;
+	top: -2px;
+	left: -2px;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	border: 2px solid var(--tl-color-panel);
+	pointer-events: none;
+	z-index: 1;
 }
 
 /* shared todo Input */
@@ -1174,4 +1209,16 @@
 
 .in-canvas-todo-item-icon:hover {
 	color: var(--tl-color-text);
+}
+
+.in-canvas-todo-item-project-indicator {
+	position: absolute;
+	top: -2px;
+	left: -2px;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	border: 2px solid var(--tl-color-panel);
+	pointer-events: none;
+	z-index: 1;
 }

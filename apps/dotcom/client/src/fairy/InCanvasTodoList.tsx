@@ -1,7 +1,9 @@
 import { SharedTodoItem } from '@tldraw/fairy-shared'
 import { useValue } from 'tldraw'
+import { getProjectById } from './Projects'
 import { $sharedTodoList, deleteSharedTodoItem, requestHelpWithTodo } from './SharedTodoList'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { getProjectColor } from './getProjectColor'
 
 export function InCanvasTodoList({ agents }: { agents: FairyAgent[] }) {
 	const todos = useValue('shared-todo-list', () => $sharedTodoList.get(), [$sharedTodoList])
@@ -38,6 +40,9 @@ function InCanvasTodoItem({ agents, todo }: { agents: FairyAgent[]; todo: Shared
 				: 'in-canvas-todo-item--todo'
 
 	const icon = getStatusIcon(todo.status)
+	const project = todo.projectId ? getProjectById(todo.projectId) : undefined
+	const projectColor =
+		project && agents.length > 0 ? getProjectColor(agents[0].editor, project.color) : undefined
 
 	if (!todo.x || !todo.y) return null
 
@@ -49,6 +54,12 @@ function InCanvasTodoItem({ agents, todo }: { agents: FairyAgent[]; todo: Shared
 				top: todo.y,
 			}}
 		>
+			{projectColor && (
+				<div
+					className="in-canvas-todo-item-project-indicator"
+					style={{ backgroundColor: projectColor }}
+				/>
+			)}
 			<button
 				className="in-canvas-todo-item-icon"
 				onPointerDown={(e) => {
