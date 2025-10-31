@@ -20,6 +20,7 @@ import {
 	SharedTodoItem,
 	Streaming,
 	TodoItem,
+	// Wand,
 } from '@tldraw/fairy-shared'
 import {
 	Atom,
@@ -43,6 +44,7 @@ import { $sharedTodoList } from '../../SharedTodoList'
 import { AgentHelpers } from './AgentHelpers'
 import { FairyAgentOptions } from './FairyAgentOptions'
 import { $fairyAgentsAtom, getFairyAgentById } from './fairyAgentsAtom'
+import { FairyMode, getFairyMode } from './FairyMode'
 
 /**
  * An agent that can be prompted to edit the canvas.
@@ -135,6 +137,8 @@ export class FairyAgent {
 		})
 
 		this.$fairyConfig = atom<FairyConfig>(`fairy-config-${id}`, fairyConfig)
+		// this.mode = getFairyMode('default')
+		// this.setMode(this.mode.id)
 
 		this.onError = onError
 
@@ -1052,6 +1056,10 @@ ${JSON.stringify($sharedTodoList.get())}`)
 		this.$fairyConfig.update((fairy): FairyConfig => ({ ...fairy, personality }))
 	}
 
+	// setWand(wand: Wand['type']) {
+	// 	this.$fairyConfig.update((fairy): FairyConfig => ({ ...fairy, wand }))
+	// }
+
 	/**
 	 * Move the camera to the fairy's position.
 	 */
@@ -1068,6 +1076,15 @@ ${JSON.stringify($sharedTodoList.get())}`)
 	summon() {
 		const position = this.editor.getViewportPageBounds().center
 		this.$fairyEntity.update((f) => (f ? { ...f, position, gesture: 'poof' } : f))
+	}
+
+	/**
+	 * Set the mode of the fairy agent.
+	 * @param id - The id of the mode to set the fairy agent to.
+	 */
+	setMode(id: FairyMode['id']) {
+		const mode = getFairyMode(id)
+		this.$fairyConfig.update((fairy): FairyConfig => ({ ...fairy, mode: id, wand: mode.wand }))
 	}
 }
 

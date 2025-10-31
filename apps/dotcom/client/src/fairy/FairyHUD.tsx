@@ -30,6 +30,7 @@ import { $sharedTodoList, requestHelpFromEveryone } from './SharedTodoList'
 import { SharedTodoListInline } from './SharedTodoListInline'
 import { TodoListDropdownContent } from './TodoListDropdownContent'
 import { TodoListSidebarButton } from './TodoListSidebarButton'
+import { FairyConfig } from './FairyConfig'
 
 const fairyMessages = defineMessages({
 	toolbar: { defaultMessage: 'Fairies' },
@@ -61,10 +62,11 @@ function NewFairyButton({
 		const id = uniqueId()
 
 		// Create the config for the new fairy
-		const config = {
+		const config: FairyConfig = {
 			name: getRandomFairyName(),
 			outfit: randomOutfit,
 			personality: 'Friendly and helpful',
+			mode: 'default',
 			wand: 'god',
 		}
 

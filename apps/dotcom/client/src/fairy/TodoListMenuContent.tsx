@@ -33,6 +33,14 @@ export function TodoListMenuContent({
 		})
 	}, [agents, onDeleteFairyConfig])
 
+	const logFairies = useCallback(() => {
+		agents.forEach((agent) => {
+			// eslint-disable-next-line no-console
+			console.log(agent.$fairyConfig.get())
+			;(window as any).agents = agents
+		})
+	}, [agents])
+
 	return (
 		<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">
 			<TldrawUiMenuGroup id="todo-menu">
@@ -57,6 +65,7 @@ export function TodoListMenuContent({
 					onSelect={deleteAllFairies}
 					label="Delete all fairies"
 				/>
+				<TldrawUiMenuItem id="log-fairies" onSelect={logFairies} label="Log fairies" />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuContextProvider>
 	)
