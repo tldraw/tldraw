@@ -224,3 +224,5 @@ export interface SubmitFeedbackRequestBody {
 }
 
 export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000
+
+export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persistence_bad' }
