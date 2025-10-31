@@ -33,7 +33,7 @@ export function TlaSidebarRecentFilesNew() {
 		'showMyFilesDropState',
 		() => {
 			const dragState = app.sidebarState.get().dragState
-			if (!dragState) return false
+			if (!dragState?.hasDragStarted) return false
 			return (
 				dragState.type === 'file' &&
 				dragState.operation.move?.targetId === homeGroupId &&

@@ -854,6 +854,10 @@
 	visibility: visible;
 }
 
+.sidebarGroupItem[data-is-dragging='true'] {
+	opacity: 0.5;
+}
+
 .sidebarGroupItemHeader {
 	background: none;
 	border: none;

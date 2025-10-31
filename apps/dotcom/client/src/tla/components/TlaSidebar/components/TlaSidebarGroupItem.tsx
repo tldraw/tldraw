@@ -17,6 +17,7 @@ import {
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useDragTracking } from '../../../hooks/useDragTracking'
+import { useIsDragging } from '../../../hooks/useIsDragging'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F, defineMessages, useMsg } from '../../../utils/i18n'
@@ -254,6 +255,8 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 
 	const { startDragTracking } = useDragTracking()
 
+	const isDragging = useIsDragging(groupId)
+
 	const expansionState = useValue(
 		'expansionState',
 		() => {
@@ -358,6 +361,7 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 					data-group-id={group.groupId}
 					data-drop-target-id={`group:${group.groupId}`}
 					data-no-animation={isNoAnimation}
+					data-is-dragging={isDragging}
 				>
 					<Collapsible.Trigger asChild>
 						<div
