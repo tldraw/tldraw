@@ -3541,6 +3541,10 @@ export interface TLEventMap {
     // (undocumented)
     'before-event': [TLEventInfo];
     // (undocumented)
+    'click-watermark': [{
+        url: string;
+    }];
+    // (undocumented)
     'created-shapes': [TLRecord[]];
     // (undocumented)
     'deleted-shapes': [TLShapeId[]];
