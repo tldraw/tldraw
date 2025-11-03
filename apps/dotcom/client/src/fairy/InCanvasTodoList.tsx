@@ -1,14 +1,25 @@
 import { SharedTodoItem } from '@tldraw/fairy-shared'
 import { useValue } from 'tldraw'
 import { getProjectById } from './Projects'
-import { $sharedTodoList, deleteSharedTodoItem, requestHelpWithTodo } from './SharedTodoList'
+import {
+	$sharedTodoList,
+	$showCanvasTodos,
+	deleteSharedTodoItem,
+	requestHelpWithTodo,
+} from './SharedTodoList'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { getProjectColor } from './getProjectColor'
 
 export function InCanvasTodoList({ agents }: { agents: FairyAgent[] }) {
 	const todos = useValue('shared-todo-list', () => $sharedTodoList.get(), [$sharedTodoList])
+	const showCanvasTodos = useValue('show-canvas-todos', () => $showCanvasTodos.get(), [
+		$showCanvasTodos,
+	])
 
 	const inCanvasTodos = todos.filter((todo) => todo.x && todo.y)
+
+	if (!showCanvasTodos) return null
+
 	return (
 		<>
 			{inCanvasTodos.map((todo) => (

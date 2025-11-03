@@ -1,5 +1,6 @@
 import {
 	FAIRY_VARIANTS,
+	FairyConfig,
 	FairyVariantType,
 	SharedTodoItem,
 	SmallSpinner,
@@ -26,11 +27,10 @@ import { FairyDropdownContent } from './FairyDropdownContent'
 import { FairyGroupChat } from './FairyGroupChat'
 import { FairySidebarButton } from './FairySidebarButton'
 import { getRandomFairyName } from './getRandomFairyName'
-import { $sharedTodoList, requestHelpFromEveryone } from './SharedTodoList'
+import { $sharedTodoList, $showCanvasTodos } from './SharedTodoList'
 import { SharedTodoListInline } from './SharedTodoListInline'
 import { TodoListDropdownContent } from './TodoListDropdownContent'
 import { TodoListSidebarButton } from './TodoListSidebarButton'
-import { FairyConfig } from './FairyConfig'
 
 const fairyMessages = defineMessages({
 	toolbar: { defaultMessage: 'Fairies' },
@@ -195,6 +195,10 @@ export function FairyHUD({
 		[todoLastChecked]
 	)
 
+	const showCanvasTodos = useValue('show-canvas-todos', () => $showCanvasTodos.get(), [
+		$showCanvasTodos,
+	])
+
 	const fairyConfig = useValue('fairy config', () => shownFairy?.$fairyConfig.get(), [shownFairy])
 
 	return (
@@ -319,9 +323,12 @@ export function FairyHUD({
 									<TldrawUiButton
 										type="icon"
 										className="fairy-toolbar-button"
-										onClick={() => requestHelpFromEveryone(agents)}
+										onClick={() => $showCanvasTodos.update((v) => !v)}
 									>
-										<TldrawUiIcon icon="geo-arrow-up" label="Request help from everyone" />
+										<TldrawUiIcon
+											icon={showCanvasTodos ? 'toggle-on' : 'toggle-off'}
+											label={showCanvasTodos ? 'Hide todos on canvas' : 'Show todos on canvas'}
+										/>
 									</TldrawUiButton>
 								</div>
 								<SharedTodoListInline agents={agents} />

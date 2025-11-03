@@ -162,6 +162,7 @@ ${
 			- Arrow going DOWN (dx = 0, dy > 0): positive bend curves RIGHT, negative bend curves LEFT
 			- Arrow going UP (dx = 0, dy < 0): positive bend curves LEFT, negative bend curves RIGHT
 		- Or simply: positive bend rotates the perpendicular 90° counterclockwise from the arrow's direction.
+		- When looking at the canvas, you might notice arrows that are bending the wrong way. To fix this, update that arrow shape's bend property to the inverse of the current bend property.
 	- Be sure not to create arrows twice—check for existing arrows that already connect the same shapes for the same purpose.
 	- Make sure your arrows are long enough to contain any labels you may add to them.
 - Labels and text

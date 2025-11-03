@@ -5,6 +5,7 @@ import { $fairyAgentsAtom } from './fairy-agent/agent/fairyAgentsAtom'
 import { clearProjects } from './Projects'
 
 export const $sharedTodoList = atom<SharedTodoItem[]>('sharedTodoList', [])
+export const $showCanvasTodos = atom<boolean>('showCanvasTodos', false)
 
 export function addSharedTodoItem(text: string, x?: number, y?: number) {
 	$sharedTodoList.update((todos) => {

@@ -25,6 +25,7 @@ import {
 	TodoItem,
 	Wand,
 } from '@tldraw/fairy-shared'
+import { FairyConfig } from '@tldraw/fairy-shared/src/types/FairyConfig'
 import {
 	Atom,
 	atom,
@@ -40,7 +41,6 @@ import {
 } from 'tldraw'
 import { FAIRY_WORKER } from '../../../utils/config'
 import { AgentActionUtil } from '../../actions/AgentActionUtil'
-import { FairyConfig } from '../../FairyConfig'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../FairyUtils'
 import { PromptPartUtil } from '../../parts/PromptPartUtil'
 import { $sharedTodoList } from '../../SharedTodoList'

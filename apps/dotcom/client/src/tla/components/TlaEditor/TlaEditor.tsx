@@ -1,5 +1,5 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
-import { FairyEntity } from '@tldraw/fairy-shared'
+import { FairyConfig, FairyEntity, PersistedFairyConfigs } from '@tldraw/fairy-shared'
 import { useSync } from '@tldraw/sync'
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -249,7 +249,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		if (!app) return
 		if (store.status !== 'synced-remote') return
 		let didEnter = false
-		let timer: any
+		let timer: number
 
 		const fileState = app.getFileState(fileId)
 
@@ -294,7 +294,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	}, [agents])
 
 	// Manage fairy configs - load from user prefs
-	const [fairyConfigs, setFairyConfigs] = useState<any>(null)
+	const [fairyConfigs, setFairyConfigs] = useState<PersistedFairyConfigs>({})
 
 	// Load fairy configs from user preferences
 	useEffect(() => {
@@ -315,8 +315,8 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		})()
 	}, [app])
 
-	const onAddFairyConfig = useCallback((id: string, config: any) => {
-		setFairyConfigs((prev: any) => {
+	const onAddFairyConfig = useCallback((id: string, config: FairyConfig) => {
+		setFairyConfigs((prev: PersistedFairyConfigs) => {
 			const fairyCount = Object.keys(prev).length
 			if (fairyCount >= MAX_FAIRY_COUNT) {
 				return prev
@@ -329,7 +329,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	}, [])
 
 	const onDeleteFairyConfig = useCallback((id: string) => {
-		setFairyConfigs((prev: any) => {
+		setFairyConfigs((prev: PersistedFairyConfigs) => {
 			const newConfigs = { ...prev }
 			delete newConfigs[id]
 			return newConfigs
