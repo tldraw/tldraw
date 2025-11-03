@@ -26,6 +26,7 @@ import {
 	TodoItem,
 	Wand,
 } from '@tldraw/fairy-shared'
+import console from 'console'
 import {
 	Atom,
 	atom,
@@ -430,6 +431,11 @@ export class FairyAgent {
 		// After the request is handled, check if there are any outstanding todo items or requests
 		let scheduledRequest = this.$scheduledRequest.get()
 		if (!scheduledRequest) {
+			if (!this.cancelFn) {
+				this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
+				return
+			}
+
 			const isOrchestratorWithProject =
 				this.$fairyConfig.get().mode === 'orchestrator' && this.$currentProjectId.get()
 			const projectId = this.$currentProjectId.get()
