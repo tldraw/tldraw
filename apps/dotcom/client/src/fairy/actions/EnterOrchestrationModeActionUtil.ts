@@ -1,6 +1,7 @@
-import { EnterOrchestrationModeAction, Streaming } from '@tldraw/fairy-shared'
+import { EnterOrchestrationModeAction, FairyProject, Streaming } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { getFairyAgents } from '../fairy-agent/agent/fairyAgentsAtom'
+import { $projects } from '../Projects'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class EnterOrchestrationModeActionUtil extends AgentActionUtil<EnterOrchestrationModeAction> {
@@ -30,14 +31,24 @@ export class EnterOrchestrationModeActionUtil extends AgentActionUtil<EnterOrche
 		}
 
 		this.agent.schedule({
-			messages: [getEnteringOrchestrationModePrompt(action)],
+			messages: [getEnteringOrchestrationModePrompt(action, $projects.get())],
 			mode: 'orchestrator',
 		})
 	}
 }
 
-function getEnteringOrchestrationModePrompt(_action: EnterOrchestrationModeAction) {
+function getEnteringOrchestrationModePrompt(
+	_action: EnterOrchestrationModeAction,
+	projects: FairyProject[]
+) {
 	return `You have just elected to enter orchestration mode in order to complete a project. 
     You should start by thinking about the project and how to complete it, then you should create a project plan, deciding on who should help you, and what the initial tasks for other fairies are. Do not recruit more fairies than you need to complete the project.
-    `
+	${
+		projects.length > 0
+			? `Current projects: 
+${JSON.stringify(projects)}. 
+Do not recruit any fairies that are already part of a project. Do not choose a color that is already used by a project.
+	`
+			: ``
+	}`
 }

@@ -133,7 +133,6 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 	return (
 		<div className="fairy-group-chat">
 			<div className="fairy-group-chat-leader-toggle-container">
-				{/* <p>Select leader fairy</p> */}
 				<p>Leader fairy will be given orchestration power</p>
 				<TldrawUiToolbar orientation="horizontal" label="Leader fairy selection">
 					{agents.map((agent) => (
@@ -202,9 +201,7 @@ function FairyLeaderToggle({
 	return (
 		<TldrawUiToolbarToggleGroup type="single" value={agentIsSetAsLeader ? 'on' : 'off'} asChild>
 			<TldrawUiToolbarToggleItem
-				// className="fairy-toggle-button"
 				onClick={onClick}
-				// onDoubleClick={onDoubleClick}
 				type="icon"
 				data-state={agentIsSetAsLeader ? 'on' : 'off'}
 				data-isactive={agentIsSetAsLeader}

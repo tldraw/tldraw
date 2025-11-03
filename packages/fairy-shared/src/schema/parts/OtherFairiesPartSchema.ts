@@ -12,9 +12,11 @@ export const OtherFairiesPartSchema = z.object({
 OtherFairiesPartSchema.register(PromptPartRegistry, {
 	priority: 100,
 	buildContent({ otherFairies, thisFairy }: OtherFairiesPart) {
-		return [
-			`You: ${JSON.stringify(thisFairy)}`,
-			`Other fairies in this document: ${JSON.stringify(otherFairies)}`,
-		]
+		const messages = [`You: ${JSON.stringify(thisFairy)}`]
+		if (otherFairies.length > 0) {
+			messages.push(`Other fairies in this document: ${JSON.stringify(otherFairies)}`)
+		}
+
+		return messages
 	},
 })

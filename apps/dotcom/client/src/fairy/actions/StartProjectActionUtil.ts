@@ -55,7 +55,6 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 		})
 
 		this.agent.$currentProjectId.set(projectId)
-		this.agent.cancel()
 		this.agent.schedule({
 			messages: [
 				`Started project: ${action.projectName}: ${action.projectDescription}`,
