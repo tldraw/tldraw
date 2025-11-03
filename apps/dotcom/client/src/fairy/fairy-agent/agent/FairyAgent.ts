@@ -438,6 +438,7 @@ export class FairyAgent {
 
 		if (!scheduledRequest) {
 			// If there no outstanding todo items or requests, finish
+			// TODO, rethink this?
 			if (
 				(sharedTodoItemsRemaining.length === 0 && todoItemsRemaining.length === 0) ||
 				!this.cancelFn
@@ -448,17 +449,41 @@ export class FairyAgent {
 
 			const validatedWand = this.validateWandForMode(request.wand, request.mode)
 
-			// If there are outstanding todo items, schedule a request
-			scheduledRequest = {
-				messages: request.messages,
-				contextItems: request.contextItems,
-				bounds: request.bounds,
-				selectedShapes: request.selectedShapes,
-				data: request.data,
-				type: 'todo',
-				wand: validatedWand,
-				mode: request.mode,
-			} as AgentRequest
+			const projectId = this.$currentProjectId.get()
+			// If the agent is in orchestrator mode and has an active project, prompt it to keep going
+			if (projectId && this.$fairyConfig.get().mode === 'orchestrator') {
+				const projectTodoItems = $sharedTodoList
+					.get()
+					.filter((item) => item.projectId === projectId)
+				const incompleteTodoItems = projectTodoItems.filter((item) => item.status !== 'done')
+
+				request.messages.push(
+					`You are the orchestrator of your current project. ${incompleteTodoItems.length > 0 ? `There are ${incompleteTodoItems.length} outstanding todo items to be completed. Please continue to review the work being done until the project has finished.` : 'There are no outstanding todo items to be completed. If there is no more work to be assigned, it is probably time to end the project.'}`
+				) // should this be special kind of request type like todo?
+
+				scheduledRequest = {
+					messages: request.messages,
+					contextItems: request.contextItems,
+					bounds: request.bounds,
+					selectedShapes: request.selectedShapes,
+					data: request.data,
+					type: 'schedule',
+					wand: validatedWand,
+					mode: request.mode,
+				} as AgentRequest
+			} else {
+				// If the agent is not in orchestrator mode or does not have an active project, schedule a todo request
+				scheduledRequest = {
+					messages: request.messages,
+					contextItems: request.contextItems,
+					bounds: request.bounds,
+					selectedShapes: request.selectedShapes,
+					data: request.data,
+					type: 'todo',
+					wand: validatedWand,
+					mode: request.mode,
+				} as AgentRequest
+			}
 		}
 
 		// Add the scheduled request to chat history
