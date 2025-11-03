@@ -475,7 +475,7 @@ export class FairyAgent {
 		}
 
 		// if scheduled request didn't get defined in the above block OR if the user has cancelled the request, return and go idle
-		if (!scheduledRequest || !this.cancelFn) {
+		if (!scheduledRequest) {
 			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
 			return
 		}

@@ -139,7 +139,7 @@ export class SharedTodoListActionUtil extends AgentActionUtil<SharedTodoListActi
 			const claimedByAnotherFairy =
 				itemToUpdate.claimedById !== undefined && itemToUpdate.claimedById !== fairyId
 
-			// TODO improve this logic: it shouldnt say none are left if this fairy has some items calimed already.
+			// TODO improve this logic: it shouldnt say none are left if this fairy has some items claimed already.
 
 			if (fairyIsClaimingItem && claimedByAnotherFairy && itemToUpdate.claimedById) {
 				this.agent.cancel()
