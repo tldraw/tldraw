@@ -24,6 +24,7 @@ import { Analytics, Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey 
 import { EventData, writeDataPoint } from './utils/analytics'
 import { isRateLimited } from './utils/rateLimit'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
+import { getClerkClient } from './utils/tla/getAuth'
 import { ChangeAccumulator, ServerCRUD } from './zero/ServerCrud'
 import { ServerQuery } from './zero/ServerQuery'
 import { ZMutationError } from './zero/ZMutationError'
@@ -77,7 +78,63 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	readonly router = Router()
 		.all('/app/:userId/*', async (req) => {
 			if (!this.userId) {
-				this.userId = req.params.userId
+				const id = (this.userId = req.params.userId)
+				const user = await this.db
+					.selectFrom('user')
+					.where('id', '=', id)
+					.select('id')
+					.executeTakeFirst()
+				if (!user) {
+					// auth is checked in the main worker, before it gets here, so the clerk
+					// user definitely exists at this point.
+					const clerk = getClerkClient(this.env)
+					const clerkUser = await clerk.users.getUser(id)
+					assert(clerkUser, 'Clerk user not found')
+					await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, id))
+					await this.db.transaction().execute(async (tx) => {
+						await tx
+							.insertInto('user')
+							.values({
+								id,
+								name: clerkUser.fullName ?? '',
+								email: clerkUser.emailAddresses[0].emailAddress,
+								avatar: clerkUser.imageUrl,
+								color: '___INIT___',
+								exportFormat: 'png',
+								exportTheme: 'light',
+								exportBackground: true,
+								exportPadding: true,
+								createdAt: Date.now(),
+								updatedAt: Date.now(),
+								flags: '',
+							})
+							.execute()
+						await tx
+							.insertInto('group')
+							.values({
+								id,
+								name: clerkUser.fullName ?? '',
+								createdAt: Date.now(),
+								updatedAt: Date.now(),
+								isDeleted: false,
+								inviteSecret: null,
+							})
+							.execute()
+						await tx
+							.insertInto('group_user')
+							.values({
+								userId: id,
+								groupId: id,
+								createdAt: Date.now(),
+								updatedAt: Date.now(),
+								role: 'owner',
+								index: 'a1' as IndexKey,
+								userName: clerkUser.fullName ?? '',
+								userColor: '',
+							})
+							.execute()
+					})
+				}
 			}
 			const rateLimited = await isRateLimited(this.env, this.userId!)
 			if (rateLimited) {
