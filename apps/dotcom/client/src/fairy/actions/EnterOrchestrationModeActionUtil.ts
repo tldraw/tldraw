@@ -38,6 +38,6 @@ export class EnterOrchestrationModeActionUtil extends AgentActionUtil<EnterOrche
 
 function getEnteringOrchestrationModePrompt(_action: EnterOrchestrationModeAction) {
 	return `You have just elected to enter orchestration mode in order to complete a project. 
-    You should start by thinking about the project and how to complete it, then you should create a project plan, deciding on who should help you, and what the initial tasks for other fairies are.
+    You should start by thinking about the project and how to complete it, then you should create a project plan, deciding on who should help you, and what the initial tasks for other fairies are. Do not recruit more fairies than you need to complete the project.
     `
 }

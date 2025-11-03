@@ -429,38 +429,21 @@ export class FairyAgent {
 
 		// After the request is handled, check if there are any outstanding todo items or requests
 		let scheduledRequest = this.$scheduledRequest.get()
-		const todoItemsRemaining = this.$todoList.get().filter((item) => item.status !== 'done')
-		const sharedTodoItemsRemaining = $sharedTodoList.get().filter((item) => {
-			if (item.status === 'done') return false
-			if (item.claimedById && item.claimedById !== this.id) return false
-			return true
-		})
-
 		if (!scheduledRequest) {
-			// If there no outstanding todo items or requests, finish
-			// TODO, rethink this?
-			if (
-				(sharedTodoItemsRemaining.length === 0 && todoItemsRemaining.length === 0) ||
-				!this.cancelFn
-			) {
-				this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
-				return
-			}
-
+			const isOrchestratorWithProject =
+				this.$fairyConfig.get().mode === 'orchestrator' && this.$currentProjectId.get()
+			const projectId = this.$currentProjectId.get()
 			const validatedWand = this.validateWandForMode(request.wand, request.mode)
 
-			const projectId = this.$currentProjectId.get()
-			// If the agent is in orchestrator mode and has an active project, prompt it to keep going
-			if (projectId && this.$fairyConfig.get().mode === 'orchestrator') {
-				// TODO: Move project management to the orchestration action
+			if (isOrchestratorWithProject) {
+				// if the fairy is an orchestrator with an active project, prompt it to keep going
+
 				const projectTodoItems = $sharedTodoList
 					.get()
 					.filter((item) => item.projectId === projectId)
-				const incompleteTodoItems = projectTodoItems.filter((item) => item.status !== 'done')
-
-				request.messages.push(
-					`You are the orchestrator of your current project. ${incompleteTodoItems.length > 0 ? `There are ${incompleteTodoItems.length} outstanding todo items to be completed. Please continue to review the work being done until the project has finished.` : 'There are no outstanding todo items to be completed. If there is no more work to be assigned, it is probably time to end the project.'}`
-				) // should this be special kind of request type like todo?
+				const incompleteProjectTodoItems = projectTodoItems.filter((item) => item.status !== 'done')
+				const message = `You are the orchestrator of your current project. ${incompleteProjectTodoItems.length > 0 ? `There are ${incompleteProjectTodoItems.length} outstanding todo items to be completed. Please continue to review the work being done until the project has finished.` : 'There are no outstanding todo items to be completed. If there is no more work to be assigned, it is probably time to end the project.'}`
+				request.messages.push(message)
 
 				scheduledRequest = {
 					messages: request.messages,
@@ -473,18 +456,32 @@ export class FairyAgent {
 					mode: request.mode,
 				} as AgentRequest
 			} else {
-				// If the agent is not in orchestrator mode or does not have an active project, schedule a todo request
-				scheduledRequest = {
-					messages: request.messages,
-					contextItems: request.contextItems,
-					bounds: request.bounds,
-					selectedShapes: request.selectedShapes,
-					data: request.data,
-					type: 'todo',
-					wand: validatedWand,
-					mode: request.mode,
-				} as AgentRequest
+				// if the fairy is not an orchestrator or does not have an active project, check if there are todos it can do
+				const sharedTodoItemsRemaining = $sharedTodoList.get().filter((item) => {
+					if (item.status === 'done') return false
+					if (item.claimedById && item.claimedById !== this.id) return false
+					if (item.projectId || item.projectId !== projectId) return false // do not count todos that are part of a project, or part of a different project
+					return true
+				})
+				if (sharedTodoItemsRemaining.length > 0) {
+					scheduledRequest = {
+						messages: request.messages,
+						contextItems: request.contextItems,
+						bounds: request.bounds,
+						selectedShapes: request.selectedShapes,
+						data: request.data,
+						type: 'todo',
+						wand: validatedWand,
+						mode: request.mode,
+					} as AgentRequest
+				}
 			}
+		}
+
+		// if scheduled request didn't get defined in the above block OR if the user has cancelled the request, return and go idle
+		if (!scheduledRequest || !this.cancelFn) {
+			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
+			return
 		}
 
 		// Add the scheduled request to chat history
