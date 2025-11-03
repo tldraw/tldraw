@@ -1,5 +1,5 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
-import { FairyEntity } from '@tldraw/fairy-shared'
+import { FairyConfig, FairyEntity, PersistedFairyConfigs } from '@tldraw/fairy-shared'
 import { useSync } from '@tldraw/sync'
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -294,7 +294,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	}, [agents])
 
 	// Manage fairy configs - load from user prefs
-	const [fairyConfigs, setFairyConfigs] = useState<any>(null)
+	const [fairyConfigs, setFairyConfigs] = useState<PersistedFairyConfigs>({})
 
 	// Load fairy configs from user preferences
 	useEffect(() => {
@@ -315,9 +315,10 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		})()
 	}, [app])
 
-	const onAddFairyConfig = useCallback((id: string, config: any) => {
-		setFairyConfigs((prev: any) => {
-			const fairyCount = Object.keys(prev).length
+	// Unknown type is used to avoid importing
+	const onAddFairyConfig = useCallback((id: string, config: FairyConfig) => {
+		setFairyConfigs((prev: PersistedFairyConfigs) => {
+			const fairyCount = Object.keys(prev ?? {}).length
 			if (fairyCount >= MAX_FAIRY_COUNT) {
 				return prev
 			}

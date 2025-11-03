@@ -1,17 +1,16 @@
-import { PersistedFairyAgentState, PersistedFairyState } from '@tldraw/fairy-shared'
+import {
+	PersistedFairyAgentState,
+	PersistedFairyConfigs,
+	PersistedFairyState,
+} from '@tldraw/fairy-shared'
 import { useCallback, useEffect, useRef } from 'react'
 import { react, throttle, useEditor } from 'tldraw'
 import { useMaybeApp } from '../tla/hooks/useAppState'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
-import { FairyConfig } from './FairyConfig'
 import { FairyThrowTool } from './FairyThrowTool'
 import { $sharedTodoList, $showCanvasTodos } from './SharedTodoList'
 import { TodoDragTool } from './TodoDragTool'
-
-export interface PersistedFairyConfigs {
-	[fairyId: string]: FairyConfig
-}
 
 export function FairyApp({
 	setAgents,
