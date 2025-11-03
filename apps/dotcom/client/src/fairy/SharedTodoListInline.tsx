@@ -7,6 +7,7 @@ import { getProjectColor } from './getProjectColor'
 import { getProjectById } from './Projects'
 import {
 	$sharedTodoList,
+	$showCanvasTodos,
 	addSharedTodoItem,
 	assignAgentToTodo,
 	deleteSharedTodoItem,
@@ -84,6 +85,9 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 						hasMoved = true
 						document.removeEventListener('pointermove', handlePointerMove)
 						document.removeEventListener('pointerup', handlePointerUp)
+
+						// Show todo items in canvas
+						$showCanvasTodos.set(true)
 
 						// Activate drag tool for repositioning
 						const tool = editor.getStateDescendant('todo-drag')
