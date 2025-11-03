@@ -438,11 +438,7 @@ export class FairyAgent {
 			if (isOrchestratorWithProject) {
 				// if the fairy is an orchestrator with an active project, prompt it to keep going
 
-				const projectTodoItems = $sharedTodoList
-					.get()
-					.filter((item) => item.projectId === projectId)
-				const incompleteProjectTodoItems = projectTodoItems.filter((item) => item.status !== 'done')
-				const message = `You are the orchestrator of your current project. ${incompleteProjectTodoItems.length > 0 ? `There are ${incompleteProjectTodoItems.length} outstanding todo items to be completed. Please continue to review the work being done until the project has finished.` : 'There are no outstanding todo items to be completed. If there is no more work to be assigned, it is probably time to end the project.'}`
+				const message = `You are the orchestrator of your current project. Please continue the project or end it.`
 				request.messages.push(message)
 
 				scheduledRequest = {
