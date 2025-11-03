@@ -25,7 +25,7 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 		const thisFairyName = getFairyNameById(this.agent.id, this.editor)
 		const thisFairyId = this.agent.id
 
-		const projectId = uniqueId()
+		const projectId = uniqueId(5)
 		const project: FairyProject = {
 			id: projectId,
 			orchestratorId: this.agent.id,
