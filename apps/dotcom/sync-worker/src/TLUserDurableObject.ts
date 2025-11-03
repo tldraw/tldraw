@@ -92,6 +92,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					assert(clerkUser, 'Clerk user not found')
 					await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, id))
 					await this.db.transaction().execute(async (tx) => {
+						// check that user wasn't added by another request in between the auth check and the snapshot deletion
+						if (await tx.selectFrom('user').where('id', '=', id).select('id').executeTakeFirst()) {
+							return
+						}
 						await tx
 							.insertInto('user')
 							.values({
