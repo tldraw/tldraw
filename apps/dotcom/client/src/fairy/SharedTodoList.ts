@@ -3,6 +3,7 @@ import { atom } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 
 export const $sharedTodoList = atom<SharedTodoItem[]>('sharedTodoList', [])
+export const $showCanvasTodos = atom<boolean>('showCanvasTodos', false)
 
 export function addSharedTodoItem(text: string, x?: number, y?: number) {
 	$sharedTodoList.update((todos) => {

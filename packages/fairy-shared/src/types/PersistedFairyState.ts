@@ -23,4 +23,5 @@ export interface PersistedFairyAgentState {
 export interface PersistedFairyState {
 	agents: Record<string, PersistedFairyAgentState>
 	sharedTodoList: SharedTodoItem[]
+	showCanvasTodos: boolean
 }
