@@ -33,6 +33,5 @@ export const FAIRY_MODE_DEFINITIONS_MAP = Object.fromEntries(
 
 export function getFairyMode(id: FairyMode['id']): FairyMode {
 	const mode = FAIRY_MODE_DEFINITIONS_MAP[id]
-	if (!mode) throw new Error(`Unknown fairy mode: ${id}`)
-	return mode
+	return mode ?? FAIRY_MODE_DEFINITIONS_MAP.default
 }
