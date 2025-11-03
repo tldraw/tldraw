@@ -4,7 +4,6 @@ import {
 	FairyVariantType,
 	getFairyMode,
 	Wand,
-	WAND_DEFINITIONS,
 } from '@tldraw/fairy-shared'
 import {
 	TldrawUiButton,
@@ -21,8 +20,8 @@ import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 
 export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClose(): void }) {
 	const config = useValue(agent.$fairyConfig)
-	const currentMode = getFairyMode(config.mode)
-	const availableWands = currentMode.availableWands
+	// const currentMode = getFairyMode(config.mode)
+	// const availableWands = currentMode.availableWands
 
 	return (
 		<>
@@ -89,7 +88,7 @@ export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClo
 							</option>
 						))}
 					</select>
-					<label htmlFor="wand">Wand</label>
+					{/* <label htmlFor="wand">Wand</label>
 					<select
 						id="wand"
 						value={config.wand}
@@ -105,7 +104,7 @@ export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClo
 								</option>
 							)
 						})}
-					</select>
+					</select> */}
 				</div>
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">

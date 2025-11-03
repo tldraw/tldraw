@@ -614,11 +614,6 @@
 	margin-top: 2px;
 }
 
-.fairy-chat-history-action-icon {
-	/* margin-top: 2px; */
-	padding-top: 2px;
-}
-
 .fairy-chat-history-item-container {
 	display: flex;
 	flex-direction: column;
