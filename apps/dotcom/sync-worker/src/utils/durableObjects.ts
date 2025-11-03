@@ -1,5 +1,6 @@
 import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
 import { TLDrawDurableObject } from '../TLDrawDurableObject'
+import { TLFileDurableObject } from '../TLFileDurableObject'
 import { TLLoggerDurableObject } from '../TLLoggerDurableObject'
 import type { TLPostgresReplicator } from '../TLPostgresReplicator'
 import { TLStatsDurableObject } from '../TLStatsDurableObject'
@@ -21,9 +22,14 @@ export function getLogger(env: Environment) {
 }
 
 export function getRoomDurableObject(env: Environment, roomId: string) {
-	return env.TLDR_DOC.get(
-		env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${roomId}`)
-	) as any as TLDrawDurableObject
+	const roomName = `/${ROOM_PREFIX}/${roomId}`
+
+	// Check if we should use the new SQLite-backed durable object
+	if (env.ENABLE_FILE_DURABLE_OBJECT === 'true') {
+		return env.TL_FILE_DO.get(env.TL_FILE_DO.idFromName(roomName)) as any as TLFileDurableObject
+	}
+
+	return env.TLDR_DOC.get(env.TLDR_DOC.idFromName(roomName)) as any as TLDrawDurableObject
 }
 
 function shouldRecordStats(env: Environment): boolean {

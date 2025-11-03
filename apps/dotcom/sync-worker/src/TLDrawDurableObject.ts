@@ -19,6 +19,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import {
 	RoomSnapshot,
+	SyncDiff,
 	TLSocketRoom,
 	TLSyncErrorCloseEventCode,
 	TLSyncErrorCloseEventReason,
@@ -49,10 +50,10 @@ import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
-import { throttle } from './utils/throttle'
 import { getAuth, requireAdminAccess, requireWriteAccessToFile } from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 import { isTestFile } from './utils/tla/isTestFile'
+import { throttle } from './utils/throttle'
 
 const MAX_CONNECTIONS = 50
 
@@ -134,7 +135,8 @@ export class TLDrawDurableObject extends DurableObject {
 								this.logEvent({ type: 'room', roomId: slug, name: 'room_empty' })
 								room.close()
 							},
-							onDataChange: () => {
+							onDataChange: (diff) => {
+								this.handleDataChange(diff)
 								this.triggerPersist()
 							},
 							onBeforeSendMessage: ({ message, stringified }) => {
@@ -217,6 +219,10 @@ export class TLDrawDurableObject extends DurableObject {
 			}
 		})
 		this.db = createPostgresConnectionPool(env, 'TLDrawDurableObject')
+	}
+
+	protected handleDataChange(_diff: SyncDiff<TLRecord>) {
+		// noop, used by subclass
 	}
 
 	readonly router = Router()
@@ -588,7 +594,7 @@ export class TLDrawDurableObject extends DurableObject {
 	}
 
 	// Load the room's drawing data. First we check the R2 bucket, then we fallback to supabase (legacy).
-	async loadFromDatabase(slug: string): Promise<DBLoadResult> {
+	protected async loadFromDatabase(slug: string): Promise<DBLoadResult> {
 		try {
 			const key = getR2KeyForRoom({ slug, isApp: this.documentInfo.isApp })
 			// when loading, prefer to fetch documents from the bucket
@@ -722,7 +728,7 @@ export class TLDrawDurableObject extends DurableObject {
 	}
 
 	// Save the room to r2
-	async persistToDatabase() {
+	private async persistToDatabase() {
 		try {
 			await this.executionQueue.push(async () => {
 				// check whether the worker was woken up to persist after having gone to sleep
@@ -862,7 +868,7 @@ export class TLDrawDurableObject extends DurableObject {
 		return null
 	}
 
-	private reportError(e: unknown) {
+	protected reportError(e: unknown) {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.captureException(e)
 		console.error(e)

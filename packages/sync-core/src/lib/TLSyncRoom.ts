@@ -24,15 +24,6 @@ import {
 } from '@tldraw/utils'
 import { createNanoEvents } from 'nanoevents'
 import {
-	RoomSession,
-	RoomSessionState,
-	SESSION_IDLE_TIMEOUT,
-	SESSION_REMOVAL_WAIT_TIME,
-	SESSION_START_WAIT_TIME,
-} from './RoomSession'
-import { TLSyncLog } from './TLSocketRoom'
-import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from './TLSyncClient'
-import {
 	NetworkDiff,
 	ObjectDiff,
 	RecordOp,
@@ -50,6 +41,16 @@ import {
 	TLSocketServerSentEvent,
 	getTlsyncProtocolVersion,
 } from './protocol'
+import {
+	RoomSession,
+	RoomSessionState,
+	SESSION_IDLE_TIMEOUT,
+	SESSION_REMOVAL_WAIT_TIME,
+	SESSION_START_WAIT_TIME,
+} from './RoomSession'
+import { SyncDiff, emptySyncDiff } from './SyncDiff'
+import { TLSyncLog } from './TLSocketRoom'
+import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from './TLSyncClient'
 
 /**
  * WebSocket interface for server-side room connections. This defines the contract
@@ -339,14 +340,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	readonly presenceType: RecordType<R, any> | null
 	private log?: TLSyncLog
 	public readonly schema: StoreSchema<R, any>
-	private onDataChange?(): void
+	private onDataChange?(diff: SyncDiff<R>): void
 	private onPresenceChange?(): void
 
 	constructor(opts: {
 		log?: TLSyncLog
 		schema: StoreSchema<R, any>
 		snapshot?: RoomSnapshot
-		onDataChange?(): void
+		onDataChange?(diff: SyncDiff<R>): void
 		onPresenceChange?(): void
 	}) {
 		this.schema = opts.schema
@@ -402,6 +403,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.clock = snapshot.clock
 
 		let didIncrementClock = false
+		const syncDiff: SyncDiff<R> = emptySyncDiff()
 		const ensureClockDidIncrement = (_reason: string) => {
 			if (!didIncrementClock) {
 				didIncrementClock = true
@@ -428,6 +430,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						] as const
 					} else {
 						ensureClockDidIncrement('doc type was not doc type')
+						syncDiff.removed[doc.state.id as IdOf<R>] = [doc.state as R, this.clock]
 						this.tombstones.set(doc.state.id, this.clock)
 					}
 				}
@@ -457,7 +460,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// only bother allocating a snapshot if there are migrations to apply
 				const store = {} as Record<IdOf<R>, R>
 				for (const [k, v] of this.documents.entries()) {
-					store[k as IdOf<R>] = v.state
+					store[k as IdOf<R>] = structuredClone(v.state)
 				}
 
 				const migrationResult = this.schema.migrateStoreSnapshot(
@@ -481,6 +484,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					if (!existing || !isEqual(existing.state, r)) {
 						// record was added or updated during migration
 						ensureClockDidIncrement('record was added or updated during migration')
+						if (!existing) {
+							syncDiff.added[id as IdOf<R>] = [r, this.clock]
+						} else {
+							syncDiff.updated[id as IdOf<R>] = [existing.state, r, this.clock]
+						}
 						this.documents.set(
 							r.id,
 							DocumentState.createWithoutValidating(
@@ -496,21 +504,26 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					if (!migrationResult.value[id as keyof typeof migrationResult.value]) {
 						// record was removed during migration
 						ensureClockDidIncrement('record was removed during migration')
+						syncDiff.removed[id as IdOf<R>] = [this.documents.get(id)!.state, this.clock]
 						this.tombstones.set(id, this.clock)
 						this.documents.delete(id)
 					}
 				}
 			}
-
-			this.pruneTombstones()
 		})
 
 		if (didIncrementClock) {
 			this.documentClock = this.clock
-			opts.onDataChange?.()
+			syncDiff.serverClock = this.clock
+			syncDiff.documentClock = this.clock
+			syncDiff.tombstoneHistoryStartsAt = this.tombstoneHistoryStartsAtClock
+			opts.onDataChange?.(syncDiff)
 		} else {
 			this.documentClock = getDocumentClock(snapshot)
 		}
+
+		// important for this to happen after the onDataChange callback is called
+		this.pruneTombstones()
 	}
 
 	private didSchedulePrune = true
@@ -532,6 +545,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 			this.tombstoneHistoryStartsAtClock = cullClock + 1
 			this.tombstones.deleteMany(keysToDelete)
+			this.onDataChange?.({
+				...emptySyncDiff(),
+				tombstoneHistoryStartsAt: this.tombstoneHistoryStartsAtClock,
+				serverClock: this.clock,
+			})
 		}
 	}
 
@@ -1149,6 +1167,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		const initialDocumentClock = this.documentClock
 		let didPresenceChange = false
+		// Initialize SyncDiff to track full before/after states with clock values for persistence
+		const syncDiff: SyncDiff<R> = {
+			...emptySyncDiff(),
+			tombstoneHistoryStartsAt: this.tombstoneHistoryStartsAtClock,
+			documentClock: this.clock,
+			serverClock: this.clock,
+		}
 		transaction((rollback) => {
 			// collect actual ops that resulted from the push
 			// these will be broadcast to other users
@@ -1194,8 +1219,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 				// Get the existing document, if any
 				const doc = this.getDocument(id)
+				const currentClock = this.clock // Capture clock at operation time
 
 				if (doc) {
+					// Capture before state for SyncDiff
+					const beforeState = doc.state
 					// If there's an existing document, replace it with the new state
 					// but propagate a diff rather than the entire value
 					const diff = doc.replaceState(state, this.clock)
@@ -1205,6 +1233,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					if (diff.value) {
 						this.documents.set(id, diff.value[1])
 						propagateOp(changes, id, [RecordOpType.Patch, diff.value[0]])
+						// Track update in SyncDiff (only for document scope, not presence)
+						if (this.documentTypes.has(state.typeName)) {
+							syncDiff.updated[id as IdOf<R>] = [beforeState, state, currentClock]
+						}
 					}
 				} else {
 					// Otherwise, if we don't already have a document with this id
@@ -1214,6 +1246,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						return fail(TLSyncErrorCloseEventReason.INVALID_RECORD)
 					}
 					propagateOp(changes, id, [RecordOpType.Put, state])
+					// Track addition in SyncDiff (only for document scope, not presence)
+					if (this.documentTypes.has(state.typeName)) {
+						syncDiff.added[id as IdOf<R>] = [state, currentClock]
+					}
 				}
 
 				return Result.ok(undefined)
@@ -1227,6 +1263,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// if it was already deleted, there's no need to apply the patch
 				const doc = this.getDocument(id)
 				if (!doc) return Result.ok(undefined)
+				const currentClock = this.clock // Capture clock at operation time
+				// Capture before state for SyncDiff
+				const beforeState = doc.state
 				// If the client's version of the record is older than ours,
 				// we apply the patch to the downgraded version of the record
 				const downgraded = session
@@ -1243,8 +1282,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						return fail(TLSyncErrorCloseEventReason.INVALID_RECORD)
 					}
 					if (diff.value) {
+						const afterState = diff.value[1].state
 						this.documents.set(id, diff.value[1])
 						propagateOp(changes, id, [RecordOpType.Patch, diff.value[0]])
+						// Track update in SyncDiff (only for document scope, not presence)
+						if (this.documentTypes.has(afterState.typeName)) {
+							syncDiff.updated[id as IdOf<R>] = [beforeState, afterState, currentClock]
+						}
 					}
 				} else {
 					// need to apply the patch to the downgraded version and then upgrade it
@@ -1265,8 +1309,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						return fail(TLSyncErrorCloseEventReason.INVALID_RECORD)
 					}
 					if (diff.value) {
+						const afterState = diff.value[1].state
 						this.documents.set(id, diff.value[1])
 						propagateOp(changes, id, [RecordOpType.Patch, diff.value[0]])
+						// Track update in SyncDiff (only for document scope, not presence)
+						if (this.documentTypes.has(afterState.typeName)) {
+							syncDiff.updated[id as IdOf<R>] = [beforeState, afterState, currentClock]
+						}
 					}
 				}
 
@@ -1331,10 +1380,17 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								continue
 							}
 
+							const currentClock = this.clock // Capture clock at operation time
+							// Capture before state for SyncDiff
+							const removedState = doc.state
 							// Delete the document and propagate the delete op
 							this.removeDocument(id, this.clock)
 							// Schedule a pruneTombstones call to happen on the next call stack
 							propagateOp(docChanges, id, op)
+							// Track removal in SyncDiff (only for document scope, not presence)
+							if (this.documentTypes.has(removedState.typeName)) {
+								syncDiff.removed[id as IdOf<R>] = [removedState, currentClock]
+							}
 							break
 						}
 					}
@@ -1420,7 +1476,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		// if it threw the changes will have been rolled back and the document clock will not have been incremented
 		if (this.documentClock !== initialDocumentClock) {
-			this.onDataChange?.()
+			this.onDataChange?.(syncDiff)
 		}
 
 		if (didPresenceChange) {

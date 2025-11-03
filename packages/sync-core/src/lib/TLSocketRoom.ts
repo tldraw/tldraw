@@ -1,12 +1,13 @@
 import type { StoreSchema, UnknownRecord } from '@tldraw/store'
 import { TLStoreSnapshot, createTLSchema } from '@tldraw/tlschema'
 import { objectMapValues, structuredClone } from '@tldraw/utils'
-import { RoomSessionState } from './RoomSession'
-import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
-import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, RoomStoreMethods, TLSyncRoom } from './TLSyncRoom'
 import { JsonChunkAssembler } from './chunk'
 import { TLSocketServerSentEvent } from './protocol'
+import { RoomSessionState } from './RoomSession'
+import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
+import { SyncDiff } from './SyncDiff'
+import { TLSyncErrorCloseEventReason } from './TLSyncClient'
+import { RoomSnapshot, RoomStoreMethods, TLSyncRoom } from './TLSyncRoom'
 
 /**
  * Logging interface for TLSocketRoom operations. Provides optional methods
@@ -74,6 +75,30 @@ export interface TLSyncLog {
  *
  * @example
  * ```ts
+ * // Room with diff-based persistence
+ * const room = new TLSocketRoom({
+ *   onDataChange: (diff) => {
+ *     if (diff) {
+ *       // Incremental persistence using structured diff with per-record clocks
+ *       for (const [id, [record, clock]] of Object.entries(diff.added)) {
+ *         console.log('Added:', record, 'at clock', clock)
+ *       }
+ *       for (const [id, [from, to, clock]] of Object.entries(diff.updated)) {
+ *         console.log('Updated:', id, 'from', from, 'to', to, 'at clock', clock)
+ *       }
+ *       for (const [id, [record, clock]] of Object.entries(diff.removed)) {
+ *         console.log('Removed:', record, 'at clock', clock)
+ *       }
+ *     } else {
+ *       // Legacy callback without diff parameter
+ *       console.log('Document changed, full snapshot needed')
+ *     }
+ *   }
+ * })
+ * ```
+ *
+ * @example
+ * ```ts
  * // Room with initial snapshot and schema
  * const room = new TLSocketRoom({
  *   initialSnapshot: existingSnapshot,
@@ -106,7 +131,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	>()
 	readonly log?: TLSyncLog
 	private readonly syncCallbacks: {
-		onDataChange?(): void
+		onDataChange?(diff: SyncDiff<R>): void
 		onPresenceChange?(): void
 	}
 
@@ -121,7 +146,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 *   - onSessionRemoved - Called when a client session is removed
 	 *   - onBeforeSendMessage - Called before sending messages to clients
 	 *   - onAfterReceiveMessage - Called after receiving messages from clients
-	 *   - onDataChange - Called when document data changes
+	 *   - onDataChange - Called when document data changes, optionally receives a SyncDiff with per-record clock values
 	 *   - onPresenceChange - Called when presence data changes
 	 */
 	constructor(
@@ -154,7 +179,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				stringified: string
 				meta: SessionMeta
 			}) => void
-			onDataChange?(): void
+			onDataChange?(diff: SyncDiff<R>): void
 			/** @internal */
 			onPresenceChange?(): void
 		}

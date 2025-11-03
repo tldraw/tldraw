@@ -3,6 +3,7 @@
 import { Queue } from '@cloudflare/workers-types'
 import type { RoomSnapshot } from '@tldraw/sync-core'
 import type { TLDrawDurableObject } from './TLDrawDurableObject'
+import type { TLFileDurableObject } from './TLFileDurableObject'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
 import type { TLPostgresReplicator } from './TLPostgresReplicator'
 import { TLStatsDurableObject } from './TLStatsDurableObject'
@@ -20,6 +21,7 @@ export interface Analytics {
 export interface Environment {
 	// bindings
 	TLDR_DOC: DurableObjectNamespace<TLDrawDurableObject>
+	TL_FILE_DO: DurableObjectNamespace<TLFileDurableObject>
 	TL_PG_REPLICATOR: DurableObjectNamespace<TLPostgresReplicator>
 	TL_USER: DurableObjectNamespace<TLUserDurableObject>
 	TL_LOGGER: DurableObjectNamespace<TLLoggerDurableObject>
@@ -65,6 +67,9 @@ export interface Environment {
 
 	ANALYTICS_API_URL: string | undefined
 	ANALYTICS_API_TOKEN: string | undefined
+
+	// Feature flags
+	ENABLE_FILE_DURABLE_OBJECT: string | undefined
 
 	RATE_LIMITER: RateLimit
 

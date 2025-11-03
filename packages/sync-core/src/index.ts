@@ -29,6 +29,7 @@ export {
 export { RoomSessionState, type RoomSession } from './lib/RoomSession'
 export type { PersistedRoomSnapshotForSupabase } from './lib/server-types'
 export type { WebSocketMinimal } from './lib/ServerSocketAdapter'
+export { squashSyncDiffsMutable, type SyncDiff } from './lib/SyncDiff'
 export { TLRemoteSyncError } from './lib/TLRemoteSyncError'
 export { TLSocketRoom, type OmitVoid, type TLSyncLog } from './lib/TLSocketRoom'
 export {

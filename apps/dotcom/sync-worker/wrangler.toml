@@ -42,6 +42,10 @@ new_sqlite_classes = ["TLStatsDurableObject"]
 tag = "v8"
 deleted_classes = ["TLAppDurableObject"]
 
+[[migrations]]
+tag = "v9"
+new_sqlite_classes = ["TLFileDurableObject"]
+
 [[analytics_engine_datasets]]
 binding = "MEASURE"
 
@@ -92,6 +96,7 @@ pattern = "sync.tldraw.xyz"
 [env.dev.durable_objects]
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
+	{ name = "TL_FILE_DO", class_name = "TLFileDurableObject" },
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
 	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
@@ -101,6 +106,7 @@ bindings = [
 [durable_objects]
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
+	{ name = "TL_FILE_DO", class_name = "TLFileDurableObject" },
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
 	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
@@ -110,6 +116,7 @@ bindings = [
 [env.preview.durable_objects]
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
+	{ name = "TL_FILE_DO", class_name = "TLFileDurableObject" },
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
 	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
@@ -119,6 +126,7 @@ bindings = [
 [env.staging.durable_objects]
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
+	{ name = "TL_FILE_DO", class_name = "TLFileDurableObject" },
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
 	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
@@ -128,6 +136,7 @@ bindings = [
 [env.production.durable_objects]
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
+	{ name = "TL_FILE_DO", class_name = "TLFileDurableObject" },
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
 	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
