@@ -59,38 +59,40 @@ function InCanvasTodoItem({ agents, todo }: { agents: FairyAgent[]; todo: Shared
 
 	return (
 		<div
-			className={`in-canvas-todo-item ${statusClass}`}
+			className="in-canvas-todo-item-wrapper"
 			style={{
 				left: todo.x,
 				top: todo.y,
 			}}
 		>
-			{projectColor && (
-				<div
-					className="in-canvas-todo-item-project-indicator"
-					style={{ backgroundColor: projectColor }}
-				/>
-			)}
-			<button
-				className="in-canvas-todo-item-icon"
-				onPointerDown={(e) => {
-					e.stopPropagation()
-					requestHelpWithTodo(todo.id, agents)
-				}}
-			>
-				{icon}
-			</button>
-			<span className="in-canvas-todo-item-text">{todo.text}</span>
-			<button
-				className="in-canvas-todo-item-delete"
-				onPointerDown={(e) => {
-					e.stopPropagation()
-					deleteSharedTodoItem(todo.id)
-				}}
-				title="Delete todo"
-			>
-				×
-			</button>
+			<div className={`in-canvas-todo-item ${statusClass}`}>
+				{projectColor && (
+					<div
+						className="in-canvas-todo-item-project-indicator"
+						style={{ backgroundColor: projectColor }}
+					/>
+				)}
+				<button
+					className="in-canvas-todo-item-icon"
+					onPointerDown={(e) => {
+						e.stopPropagation()
+						requestHelpWithTodo(todo.id, agents)
+					}}
+				>
+					{icon}
+				</button>
+				<span className="in-canvas-todo-item-text">{todo.text}</span>
+				<button
+					className="in-canvas-todo-item-delete"
+					onPointerDown={(e) => {
+						e.stopPropagation()
+						deleteSharedTodoItem(todo.id)
+					}}
+					title="Delete todo"
+				>
+					×
+				</button>
+			</div>
 		</div>
 	)
 }
