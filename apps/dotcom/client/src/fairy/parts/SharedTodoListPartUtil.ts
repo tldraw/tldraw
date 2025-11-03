@@ -11,7 +11,12 @@ export class SharedTodoListPartUtil extends PromptPartUtil<SharedTodoListPart> {
 	static override type = 'sharedTodoList' as const
 
 	override getPart(_request: AgentRequest, helpers: AgentHelpers): SharedTodoListPart {
-		const offsetTodoItems = $sharedTodoList.get().map((todoItem) => {
+		const projectId = this.agent.$currentProjectId.get()
+		const todoItems = projectId
+			? $sharedTodoList.get().filter((item) => item.projectId === projectId)
+			: $sharedTodoList.get()
+
+		const offsetTodoItems = todoItems.map((todoItem) => {
 			// offset the coords, and only send x and y if they are defined
 			const coords =
 				todoItem.x !== undefined && todoItem.y !== undefined

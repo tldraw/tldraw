@@ -3,6 +3,8 @@ import { TldrawUiToolbarToggleGroup, TldrawUiToolbarToggleItem, useValue } from 
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
 import { FairyContextMenuContent } from './FairyContextMenuContent'
+import { getProjectColor } from './getProjectColor'
+import { getProjectById } from './Projects'
 
 export function FairySidebarButton({
 	agent,
@@ -27,6 +29,13 @@ export function FairySidebarButton({
 
 	const fairyOutfit = useValue('fairy outfit', () => agent.$fairyConfig.get()?.outfit, [agent])
 	const fairyEntity = useValue('fairy entity', () => agent.$fairyEntity.get(), [agent])
+	const currentProjectId = useValue('current-project-id', () => agent.$currentProjectId.get(), [
+		agent,
+	])
+
+	const project = currentProjectId ? getProjectById(currentProjectId) : undefined
+	const isOrchestrator = project ? project.orchestratorId === agent.id : false
+	const projectColor = project ? getProjectColor(agent.editor, project.color) : undefined
 
 	return (
 		<_ContextMenu.Root dir="ltr">
@@ -43,6 +52,15 @@ export function FairySidebarButton({
 						value="on"
 					>
 						<FairySpriteComponent entity={fairyEntity} outfit={fairyOutfit} animated={true} />
+						{projectColor && (
+							<div
+								className={`fairy-button-project-indicator ${isOrchestrator ? 'fairy-button-project-indicator--orchestrator' : ''}`}
+								style={{
+									backgroundColor: isOrchestrator ? 'transparent' : projectColor,
+									borderColor: projectColor,
+								}}
+							/>
+						)}
 					</TldrawUiToolbarToggleItem>
 				</TldrawUiToolbarToggleGroup>
 			</_ContextMenu.Trigger>

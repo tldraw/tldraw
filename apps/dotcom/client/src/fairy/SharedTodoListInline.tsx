@@ -3,8 +3,11 @@ import React, { useCallback, useState } from 'react'
 import { useEditor, useValue } from 'tldraw'
 import '../tla/styles/fairy.css'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { getProjectColor } from './getProjectColor'
+import { getProjectById } from './Projects'
 import {
 	$sharedTodoList,
+	$showCanvasTodos,
 	addSharedTodoItem,
 	assignAgentToTodo,
 	deleteSharedTodoItem,
@@ -82,6 +85,9 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 						hasMoved = true
 						document.removeEventListener('pointermove', handlePointerMove)
 						document.removeEventListener('pointerup', handlePointerUp)
+
+						// Show todo items in canvas
+						$showCanvasTodos.set(true)
 
 						// Activate drag tool for repositioning
 						const tool = editor.getStateDescendant('todo-drag')
@@ -167,9 +173,17 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 									: 'shared-todo-item--todo'
 
 						const icon = getStatusIcon(todo.status)
+						const project = todo.projectId ? getProjectById(todo.projectId) : undefined
+						const projectColor = project ? getProjectColor(editor, project.color) : undefined
 
 						return (
 							<div key={todo.id} className={`shared-todo-item ${statusClass}`}>
+								{projectColor && (
+									<div
+										className="shared-todo-item-project-indicator"
+										style={{ backgroundColor: projectColor }}
+									/>
+								)}
 								<div className="shared-todo-item-main">
 									<span className="shared-todo-item-icon">{icon}</span>
 									<span className="shared-todo-item-text">

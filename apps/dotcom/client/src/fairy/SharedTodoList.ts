@@ -1,6 +1,8 @@
 import { SharedTodoItem } from '@tldraw/fairy-shared'
 import { atom } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { $fairyAgentsAtom } from './fairy-agent/agent/fairyAgentsAtom'
+import { clearProjects } from './Projects'
 
 export const $sharedTodoList = atom<SharedTodoItem[]>('sharedTodoList', [])
 export const $showCanvasTodos = atom<boolean>('showCanvasTodos', false)
@@ -25,8 +27,23 @@ export function deleteSharedTodoItem(id: number) {
 	$sharedTodoList.update((todos) => todos.filter((t) => t.id !== id))
 }
 
-export function clearSharedTodoList() {
+export function clearSharedTodoList(agents?: FairyAgent[]) {
 	$sharedTodoList.set([])
+
+	// Clear all projects
+	clearProjects()
+
+	// Reset all active projects from all fairies
+	if (agents && agents.length > 0) {
+		// Get all agents from the editor to ensure we reset all of them
+		const editor = agents[0].editor
+		const allAgents = $fairyAgentsAtom.get(editor)
+
+		allAgents.forEach((agent) => {
+			agent.$currentProjectId.set(null)
+			agent.setMode('default')
+		})
+	}
 }
 
 export function requestHelpWithTodo(todoId: number, agents: FairyAgent[]) {

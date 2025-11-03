@@ -1,13 +1,15 @@
+import { FocusColor } from '@tldraw/fairy-shared'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	TldrawUiToolbar,
 	TldrawUiToolbarToggleGroup,
 	TldrawUiToolbarToggleItem,
-	// uniqueId,
+	uniqueId,
 	useValue,
 } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
+import { addProject } from './Projects'
 
 export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 	const [leaderAgentId, setLeaderAgentId] = useState<string | null>(null)
@@ -51,15 +53,13 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 			const followerNames = followerAgents
 				.map((agent) => `- name: ${agent.$fairyConfig.get()?.name} (id: ${agent.id})`)
 				.join(', ')
-			const prompt = `
-            You are the leader of a group of fairies who have been instructed to do this project:
+			const prompt = `You are the leader of a group of fairies who have been instructed to do this project:
             ${instruction}. 
-            You are in charge of making sure the other fairies follow your instructions and complete the project together. Your teammates are:
+            A project has automatically been created, so no need to create one yourself. You have been placed into orchestrator mode. You are in charge of making sure the other fairies follow your instructions and complete the project together. Your teammates are:
             ${followerNames}
-            You are to complete the project together.
+			You are to complete the project together.
 			Make sure to give the approximate locations of the work to be done, if relevant, in order to make sure fairies dont get confused if there are multiple tasks to be done.
         `
-			// This project has id: ${uniqueId(5)}, all todo items you create should be prefixed with this id.
 			return prompt
 		},
 		[followerAgents]
@@ -85,13 +85,29 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 				agent.$fairyConfig.update((config) => ({
 					...config,
 					wand: 'drone',
+					mode: 'drone',
 				}))
 			})
+
+			const newProjectId = uniqueId(5)
+			const newProject = {
+				id: newProjectId,
+				orchestratorId: leaderAgent.id,
+				name: `Project: ${value}`,
+				description: '',
+				color: 'red' as FocusColor,
+				memberIds: followerAgents.map((agent) => agent.id),
+			}
+
+			addProject(newProject)
+			leaderAgent.$currentProjectId.set(newProjectId)
+			followerAgents.forEach((agent) => agent.$currentProjectId.set(newProjectId))
 
 			// Send the prompt to the leader
 			const prompt = getGroupChatPrompt(value)
 			leaderAgent.prompt({
 				type: 'schedule',
+				mode: 'orchestrator',
 				messages: [prompt],
 			})
 
@@ -119,7 +135,7 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 			<div className="fairy-group-chat-leader-toggle-container">
 				{/* <p>Select leader fairy</p> */}
 				<p>Leader fairy will be given orchestration power</p>
-				<TldrawUiToolbar orientation="horizontal" label="Queen fairy selection">
+				<TldrawUiToolbar orientation="horizontal" label="Leader fairy selection">
 					{agents.map((agent) => (
 						<FairyLeaderToggle
 							key={agent.id}

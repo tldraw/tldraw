@@ -1,5 +1,6 @@
 import {
 	FAIRY_VARIANTS,
+	FairyConfig,
 	FairyVariantType,
 	SharedTodoItem,
 	SmallSpinner,
@@ -61,10 +62,11 @@ function NewFairyButton({
 		const id = uniqueId()
 
 		// Create the config for the new fairy
-		const config = {
+		const config: FairyConfig = {
 			name: getRandomFairyName(),
 			outfit: randomOutfit,
 			personality: 'Friendly and helpful',
+			mode: 'default',
 			wand: 'god',
 		}
 

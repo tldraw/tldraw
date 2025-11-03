@@ -45,7 +45,7 @@ export function TodoListMenuContent({
 			<TldrawUiMenuGroup id="todo-list-config-menu">
 				<TldrawUiMenuItem
 					id="clear-todo-list"
-					onSelect={() => clearSharedTodoList()}
+					onSelect={() => clearSharedTodoList(agents)}
 					label="Clear todo list"
 				/>
 			</TldrawUiMenuGroup>
