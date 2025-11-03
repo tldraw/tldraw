@@ -529,6 +529,10 @@ export class TLDrawDurableObject extends DurableObject {
 
 	logEvent(event: TLServerEvent) {
 		switch (event.type) {
+			case 'persist_success': {
+				this.writeEvent(event.type, { doubles: [event.attempts] })
+				break
+			}
 			case 'room': {
 				// we would add user/connection ids here if we could
 				this.writeEvent(event.name, { blobs: [event.roomId] })
@@ -819,9 +823,6 @@ export class TLDrawDurableObject extends DurableObject {
 						if (attempt === PERSIST_RETRIES_NOTIFY_THRESHOLD) {
 							this.broadcastPersistenceEvent({ type: 'persistence_bad' })
 						}
-						if (attempt > 2) {
-							this.reportError(new Error(`Failed to persist to database after ${attempt} retries`))
-						}
 						// check whether the worker was woken up to persist after having gone to sleep
 						if (!this._room) return
 						const slug = this.documentInfo.slug
@@ -836,6 +837,7 @@ export class TLDrawDurableObject extends DurableObject {
 						const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
 						await this._uploadSnapshotToR2(room, snapshot, key)
 
+						this.logEvent({ type: 'persist_success', attempts: attempt })
 						this._lastPersistedClock = clock
 						if (attempt >= PERSIST_RETRIES_NOTIFY_THRESHOLD) {
 							this.broadcastPersistenceEvent({ type: 'persistence_good' })
@@ -852,13 +854,23 @@ export class TLDrawDurableObject extends DurableObject {
 								.set({ updatedAt: new Date().getTime() })
 								.where('id', '=', this.documentInfo.slug)
 								.execute()
-								.catch((e) => this.reportError(e))
+								.catch((e) => {
+									this.logEvent({
+										type: 'room',
+										roomId: this.documentInfo.slug,
+										name: 'failed_persist_to_db',
+									})
+									this.reportError(e)
+								})
 						}
 					},
 					{ attempts: PERSIST_RETRIES_MAX, waitDuration: 2000 }
 				)
 			})
-			.catch((e) => this.reportError(e))
+			.catch((e) => {
+				this.logEvent({ type: 'room', roomId: this.documentInfo.slug, name: 'fail_persist' })
+				this.reportError(e)
+			})
 	}
 
 	private async _uploadSnapshotToR2(
