@@ -58,9 +58,8 @@ async function main() {
 			const bodyAfterHeader = pr.body.split(apiChangesHeader)[1]
 			// Extract until next ### header or end of body
 			const nextHeaderIndex = bodyAfterHeader.indexOf('\n###')
-			apiChangesSection = nextHeaderIndex > -1
-				? bodyAfterHeader.slice(0, nextHeaderIndex)
-				: bodyAfterHeader
+			apiChangesSection =
+				nextHeaderIndex > -1 ? bodyAfterHeader.slice(0, nextHeaderIndex) : bodyAfterHeader
 			apiChangesSection = `\n\n${apiChangesHeader}\n${apiChangesSection.trim()}\n`
 		}
 
