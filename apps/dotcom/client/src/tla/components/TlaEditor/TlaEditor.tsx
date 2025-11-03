@@ -249,7 +249,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		if (!app) return
 		if (store.status !== 'synced-remote') return
 		let didEnter = false
-		let timer: any
+		let timer: number
 
 		const fileState = app.getFileState(fileId)
 
@@ -315,10 +315,9 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		})()
 	}, [app])
 
-	// Unknown type is used to avoid importing
 	const onAddFairyConfig = useCallback((id: string, config: FairyConfig) => {
 		setFairyConfigs((prev: PersistedFairyConfigs) => {
-			const fairyCount = Object.keys(prev ?? {}).length
+			const fairyCount = Object.keys(prev).length
 			if (fairyCount >= MAX_FAIRY_COUNT) {
 				return prev
 			}
@@ -330,7 +329,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	}, [])
 
 	const onDeleteFairyConfig = useCallback((id: string) => {
-		setFairyConfigs((prev: any) => {
+		setFairyConfigs((prev: PersistedFairyConfigs) => {
 			const newConfigs = { ...prev }
 			delete newConfigs[id]
 			return newConfigs
