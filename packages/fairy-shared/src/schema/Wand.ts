@@ -73,6 +73,7 @@ export const WAND_DEFINITIONS = [
 		parts: ALL_PROMPT_PARTS_SET,
 		actions: [
 			'message',
+			'proximity-chat',
 			'think',
 			'review',
 			'update-todo-list',
@@ -90,6 +91,8 @@ export const WAND_DEFINITIONS = [
 		parts: [
 			'messages',
 			'personality',
+			'heardMessages',
+			'otherFairies',
 			'wand',
 			'blurryShapes',
 			'screenshot',

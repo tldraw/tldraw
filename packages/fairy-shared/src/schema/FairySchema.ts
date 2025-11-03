@@ -1,6 +1,7 @@
 import { AlignActionSchema } from './actions/AlignActionSchema'
 import { AssignTodoItemActionSchema } from './actions/AssignTodoItemActionSchema'
 import { BringToFrontActionSchema } from './actions/BringToFrontActionSchema'
+import { ChatActionSchema } from './actions/ChatActionSchema'
 import { CreateActionSchema } from './actions/CreateActionSchema'
 import { DeleteActionSchema } from './actions/DeleteActionSchema'
 import { DistributeActionSchema } from './actions/DistributeActionSchema'
@@ -27,6 +28,7 @@ import { ChatHistoryPartSchema } from './parts/ChatHistoryPartSchema'
 import { ContextItemsPartSchema } from './parts/ContextItemsPartSchema'
 import { CurrentProjectPartSchema } from './parts/CurrentProjectPartSchema'
 import { DataPartSchema } from './parts/DataPartSchema'
+import { HeardMessagesPartSchema } from './parts/HeardMessagesPartSchema'
 import { MessagesPartSchema } from './parts/MessagesPartSchema'
 import { OtherFairiesPartSchema } from './parts/OtherFairiesPartSchema'
 import { PeripheralShapesPartSchema } from './parts/PeripheralShapesPartSchema'
@@ -45,6 +47,7 @@ import { WandPartSchema } from './parts/WandPartSchema'
 export const AGENT_ACTION_SCHEMAS = [
 	// Communication
 	MessageActionSchema,
+	ChatActionSchema,
 
 	// Planning
 	ThinkActionSchema,
@@ -92,6 +95,7 @@ export const PROMPT_PART_SCHEMAS = [
 	ContextItemsPartSchema,
 	CurrentProjectPartSchema,
 	DataPartSchema,
+	HeardMessagesPartSchema,
 	MessagesPartSchema,
 	PeripheralShapesPartSchema,
 	ScreenshotPartSchema,

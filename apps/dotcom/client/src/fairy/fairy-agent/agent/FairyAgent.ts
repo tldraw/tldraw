@@ -19,6 +19,7 @@ import {
 	getWand,
 	PointContextItem,
 	PromptPart,
+	ProximityChatMessage,
 	ShapeContextItem,
 	ShapesContextItem,
 	SharedTodoItem,
@@ -123,6 +124,8 @@ export class FairyAgent {
 	 * An atom containing the ID of the current project that the agent is working on.
 	 */
 	$currentProjectId = atom<string | null>('currentProjectId', null)
+
+	$heardMessages = atom<ProximityChatMessage[]>('heardMessages', [])
 
 	/**
 	 * Create a new tldraw agent.
@@ -909,7 +912,7 @@ ${JSON.stringify($sharedTodoList.get())}`)
 		this.$contextItems.set([])
 		this.$todoList.set([])
 		this.$userActionHistory.set([])
-
+		this.$heardMessages.set([])
 		this.$chatHistory.set([])
 		// TODO: Move this onto the fairies' shared data
 		this.$chatOrigin.set({ x: 0, y: 0 })
@@ -1082,6 +1085,14 @@ ${JSON.stringify($sharedTodoList.get())}`)
 			canGroup,
 			pose,
 		}
+	}
+
+	/**
+	 * Add a heard message to the agent's heard messages.
+	 * @param message - The message to add.
+	 */
+	addHeardMessage(message: ProximityChatMessage) {
+		this.$heardMessages.update((messages) => [...messages, message])
 	}
 
 	/**

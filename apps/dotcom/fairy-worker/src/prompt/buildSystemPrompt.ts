@@ -235,7 +235,6 @@ ${!flags.canEdit ? `- Remember! You cannot work with shapes, so don't take any t
 		: ''
 }
 
-
 ${
 	flags.hasSharedTodo && flags.hasOtherFairiesPart && flags.hasAssignTodoItem
 		? `#### Collaborating with other agents
@@ -258,6 +257,14 @@ ${
 			'`review`' +
 			` action to check the shared todo list, after which you can claim more tasks.
 - Make sure to always get a full view of any in-progress work before starting to assist other agents or the human to make sure that you can match the style / layout / color schemes / etc. of the work.`
+		: ''
+}
+${
+	flags.hasProximityChat
+		? `- You can use the ` +
+			'`proximity-chat`' +
+			` action to send messages to nearby agents. When you send a message, it will be heard by nearby fairies, and they will be able to see the message.
+	- You can use \`@\` followed by the agent's id (NOT their name) to mention them in the message. This will wake them up if they are idle, and if they aren't idle it will give them a notification that they were mentioned. `
 		: ''
 }
 
@@ -423,6 +430,10 @@ function getSystemPromptFlags(actions: AgentAction['_type'][], parts: PromptPart
 		//orchestration
 		hasEnterOrchestrationMode: actions.includes('enter-orchestration-mode'),
 		isOrchestrator: actions.includes('start-project') && actions.includes('end-current-project'),
+
+		// proximity chat
+		hasProximityChat: actions.includes('proximity-chat'),
+		hasHeardMessagesPart: parts.includes('heardMessages'),
 
 		canEdit:
 			actions.includes('update') ||

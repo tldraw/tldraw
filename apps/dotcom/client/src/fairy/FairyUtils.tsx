@@ -3,6 +3,7 @@ import { AgentActionUtil, AgentActionUtilConstructor } from './actions/AgentActi
 import { AlignActionUtil } from './actions/AlignActionUtil'
 import { AssignTodoItemActionUtil } from './actions/AssignTodoItemActionUtil'
 import { BringToFrontActionUtil } from './actions/BringToFrontActionUtil'
+import { ChatActionUtil } from './actions/ChatActionUtil'
 import { CreateActionUtil } from './actions/CreateActionUtil'
 import { DeleteActionUtil } from './actions/DeleteActionUtil'
 import { DistributeActionUtil } from './actions/DistributeActionUtil'
@@ -30,6 +31,7 @@ import { ChatHistoryPartUtil } from './parts/ChatHistoryPartUtil'
 import { ContextItemsPartUtil } from './parts/ContextItemsPartUtil'
 import { CurrentProjectPartUtil } from './parts/CurrentProjectPartUtil'
 import { DataPartUtil } from './parts/DataPartUtil'
+import { HeardMessagesPartUtil } from './parts/HeardMessagesPartUtil'
 import { MessagesPartUtil } from './parts/MessagesPartUtil'
 import { OtherFairiesPartUtil } from './parts/OtherFairiesPartUtil'
 import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
@@ -49,6 +51,7 @@ import { WandPartUtil } from './parts/WandPartUtil'
 export const AGENT_ACTION_UTILS = [
 	// Communication
 	MessageActionUtil,
+	ChatActionUtil,
 
 	// Planning
 	ThinkActionUtil,
@@ -114,6 +117,7 @@ export const PROMPT_PART_UTILS = [
 	ChatHistoryPartUtil,
 	UserActionHistoryPartUtil,
 	SharedTodoListPartUtil,
+	HeardMessagesPartUtil,
 
 	// Metadata
 	TimePartUtil,

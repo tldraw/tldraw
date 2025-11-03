@@ -59,7 +59,7 @@ function NewFairyButton({
 		}
 
 		// Create a unique ID for the new fairy
-		const id = uniqueId()
+		const id = uniqueId(8) // is 8 enough? fairies are gong to be generating text that includes the ids of other fairies these quite a bit so it's probably best to make them shorter
 
 		// Create the config for the new fairy
 		const config: FairyConfig = {

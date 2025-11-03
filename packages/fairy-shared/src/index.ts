@@ -36,6 +36,7 @@ export type * from './types/WikipediaArticle'
 // Schemas and definitions
 export * from './schema/actions/AlignActionSchema'
 export * from './schema/actions/BringToFrontActionSchema'
+export * from './schema/actions/ChatActionSchema'
 export * from './schema/actions/CreateActionSchema'
 export * from './schema/actions/DeleteActionSchema'
 export * from './schema/actions/DistributeActionSchema'
@@ -63,6 +64,7 @@ export * from './schema/parts/ChatHistoryPartSchema'
 export * from './schema/parts/ContextItemsPartSchema'
 export * from './schema/parts/CurrentProjectPartSchema'
 export * from './schema/parts/DataPartSchema'
+export * from './schema/parts/HeardMessagesPartSchema'
 export * from './schema/parts/MessagesPartSchema'
 export * from './schema/parts/OtherFairiesPartSchema'
 export * from './schema/parts/PeripheralShapesPartSchema'
@@ -116,3 +118,6 @@ export * from './schema/actions/AssignTodoItemActionSchema'
 
 // Fairy Project
 export * from './schema/FairyProject'
+
+// Proximity Chat
+export type * from './schema/ProximityChat'
