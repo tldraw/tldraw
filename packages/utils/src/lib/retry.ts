@@ -48,7 +48,7 @@ import { sleep } from './control'
  * @internal
  */
 export async function retry<T>(
-	fn: () => Promise<T>,
+	fn: (args: { attempt: number; remaining: number; total: number }) => Promise<T>,
 	{
 		attempts = 3,
 		waitDuration = 1000,
@@ -65,7 +65,7 @@ export async function retry<T>(
 	for (let i = 0; i < attempts; i++) {
 		if (abortSignal?.aborted) throw new Error('aborted')
 		try {
-			return await fn()
+			return await fn({ attempt: i, remaining: attempts - i, total: attempts })
 		} catch (e) {
 			if (matchError && !matchError(e)) throw e
 			error = e
