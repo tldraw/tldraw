@@ -66,6 +66,7 @@ import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TLAppUiContextType } from '../utils/app-ui-events'
 import { getDateFormat } from '../utils/dates'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
+import { updateLocalSessionState } from '../utils/local-session-state'
 import { Zero as ZeroPolyfill } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
@@ -782,6 +783,7 @@ export class TldrawApp {
 			})
 
 			opts.trackEvent('create-user', { source: 'app' })
+			updateLocalSessionState((state) => ({ ...state, shouldShowWelcomeDialog: true }))
 		}
 		return { app, userId: user.id }
 	}
