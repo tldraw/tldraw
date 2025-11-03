@@ -10,6 +10,7 @@ import {
 	ChatHistoryItem,
 	ContextItem,
 	FAIRY_VISION_DIMENSIONS,
+	FairyConfig,
 	FairyEntity,
 	FairyMode,
 	FairyPose,
@@ -25,7 +26,6 @@ import {
 	TodoItem,
 	Wand,
 } from '@tldraw/fairy-shared'
-import { FairyConfig } from '@tldraw/fairy-shared/src/types/FairyConfig'
 import {
 	Atom,
 	atom,
