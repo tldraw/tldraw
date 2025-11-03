@@ -92,6 +92,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					assert(clerkUser, 'Clerk user not found')
 					await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, id))
 					await this.db.transaction().execute(async (tx) => {
+						// check that user wasn't added by another request in between the auth check and the snapshot deletion
+						if (await tx.selectFrom('user').where('id', '=', id).select('id').executeTakeFirst()) {
+							return
+						}
+						const now = Date.now()
 						await tx
 							.insertInto('user')
 							.values({
@@ -104,8 +109,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 								exportTheme: 'light',
 								exportBackground: true,
 								exportPadding: true,
-								createdAt: Date.now(),
-								updatedAt: Date.now(),
+								createdAt: now,
+								updatedAt: now,
 								flags: '',
 							})
 							.execute()
@@ -114,8 +119,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							.values({
 								id,
 								name: clerkUser.fullName ?? '',
-								createdAt: Date.now(),
-								updatedAt: Date.now(),
+								createdAt: now,
+								updatedAt: now,
 								isDeleted: false,
 								inviteSecret: null,
 							})
@@ -125,8 +130,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							.values({
 								userId: id,
 								groupId: id,
-								createdAt: Date.now(),
-								updatedAt: Date.now(),
+								createdAt: now,
+								updatedAt: now,
 								role: 'owner',
 								index: 'a1' as IndexKey,
 								userName: clerkUser.fullName ?? '',
