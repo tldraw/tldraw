@@ -9,6 +9,10 @@ import { FairyAgent } from './FairyAgent'
  */
 export const $fairyAgentsAtom = new EditorAtom<FairyAgent[]>('agents', () => [])
 
+export function getFairyAgents(editor: Editor) {
+	return $fairyAgentsAtom.get(editor)
+}
+
 export function getFairyAgentById(id: string, editor: Editor) {
 	return $fairyAgentsAtom.get(editor).find((agent) => agent.id === id)
 }

@@ -452,6 +452,7 @@ export class FairyAgent {
 			const projectId = this.$currentProjectId.get()
 			// If the agent is in orchestrator mode and has an active project, prompt it to keep going
 			if (projectId && this.$fairyConfig.get().mode === 'orchestrator') {
+				// TODO: Move project management to the orchestration action
 				const projectTodoItems = $sharedTodoList
 					.get()
 					.filter((item) => item.projectId === projectId)

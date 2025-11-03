@@ -1,5 +1,6 @@
 import { EnterOrchestrationModeAction, Streaming } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
+import { getFairyAgents } from '../fairy-agent/agent/fairyAgentsAtom'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class EnterOrchestrationModeActionUtil extends AgentActionUtil<EnterOrchestrationModeAction> {
@@ -8,9 +9,7 @@ export class EnterOrchestrationModeActionUtil extends AgentActionUtil<EnterOrche
 	override getInfo(action: Streaming<EnterOrchestrationModeAction>) {
 		return {
 			icon: 'note' as const,
-			description: action.complete
-				? 'Entered orchestration mode'
-				: 'Entering orchestration mode...',
+			description: action.complete ? 'Created a project' : 'Creating a project...',
 			pose: 'thinking' as const,
 		}
 	}
@@ -18,6 +17,17 @@ export class EnterOrchestrationModeActionUtil extends AgentActionUtil<EnterOrche
 	override applyAction(action: Streaming<EnterOrchestrationModeAction>, _helpers: AgentHelpers) {
 		if (!action.complete) return
 		if (!this.agent) return
+
+		// If it's the only fairy, don't allow it to enter orchestration mode
+		if (getFairyAgents(this.editor).length < 2) {
+			this.agent.schedule({
+				messages: [
+					'You have elected to enter orchestration mode, but there are no other fairies on the canvas that you can orchestrate. Instead, you should carry out the task by yourself.',
+				],
+				mode: 'default',
+			})
+			return
+		}
 
 		this.agent.schedule({
 			messages: [getEnteringOrchestrationModePrompt(action)],
