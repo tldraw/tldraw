@@ -1154,7 +1154,6 @@
 	padding: 0px 0px;
 	margin: -3px;
 	margin-top: -3px;
-	cursor: pointer;
 	color: var(--tl-color-text-3);
 	font-size: 10px;
 	line-height: 1;
@@ -1224,10 +1223,6 @@
 .in-canvas-todo-item--done .in-canvas-todo-item-text {
 	color: var(--tl-color-text-2);
 	text-decoration: line-through;
-}
-
-.in-canvas-todo-item-icon:hover {
-	color: var(--tl-color-text);
 }
 
 .in-canvas-todo-item-project-indicator {
