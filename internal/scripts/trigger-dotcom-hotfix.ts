@@ -61,7 +61,7 @@ async function main() {
 			apiChangesSection = nextHeaderIndex > -1
 				? bodyAfterHeader.slice(0, nextHeaderIndex)
 				: bodyAfterHeader
-			apiChangesSection = `\n\n${apiChangesHeader}${apiChangesSection.trim()}\n`
+			apiChangesSection = `\n\n${apiChangesHeader}\n${apiChangesSection.trim()}\n`
 		}
 
 		const prBody = `This is an automated hotfix PR for dotcom deployment.
