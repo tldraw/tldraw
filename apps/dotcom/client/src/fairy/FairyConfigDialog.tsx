@@ -1,4 +1,4 @@
-import { FAIRY_VARIANTS, FairyVariantType, Wand, WAND_DEFINITIONS } from '@tldraw/fairy-shared'
+import { FAIRY_VARIANTS, FairyVariantType } from '@tldraw/fairy-shared'
 import {
 	TldrawUiButton,
 	TldrawUiButtonLabel,
@@ -56,7 +56,7 @@ export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClo
 							</option>
 						))}
 					</select>
-					<label htmlFor="wand">Wand</label>
+					{/* <label htmlFor="wand">Wand</label>
 					<select
 						id="wand"
 						value={config.wand}
@@ -69,7 +69,7 @@ export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClo
 								{wand.name} — {wand.description}
 							</option>
 						))}
-					</select>
+					</select> */}
 				</div>
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
