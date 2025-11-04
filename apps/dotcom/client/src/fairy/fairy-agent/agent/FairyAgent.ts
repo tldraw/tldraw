@@ -44,6 +44,7 @@ import {
 import { TldrawApp } from '../../../tla/app/TldrawApp'
 import { FAIRY_WORKER } from '../../../utils/config'
 import { AgentActionUtil } from '../../actions/AgentActionUtil'
+import { $fairyIsApplyingAction } from '../../FairyIsApplyingAction'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../FairyUtils'
 import { PromptPartUtil } from '../../parts/PromptPartUtil'
 import { $sharedTodoList } from '../../SharedTodoList'
@@ -777,7 +778,9 @@ ${JSON.stringify($sharedTodoList.get())}`)
 		let diff: RecordsDiff<TLRecord>
 		try {
 			diff = editor.store.extractingChanges(() => {
+				$fairyIsApplyingAction.set(true)
 				promise = util.applyAction(structuredClone(action), helpers) ?? null
+				$fairyIsApplyingAction.set(false)
 			})
 		} finally {
 			this.isActing = false
@@ -1022,6 +1025,7 @@ ${JSON.stringify($sharedTodoList.get())}`)
 			(shape, source) => {
 				if (source !== 'user') return
 				if (this.isActing) return
+				if ($fairyIsApplyingAction.get()) return
 				const change = {
 					added: { [shape.id]: shape },
 					updated: {},
@@ -1037,6 +1041,7 @@ ${JSON.stringify($sharedTodoList.get())}`)
 			(shape, source) => {
 				if (source !== 'user') return
 				if (this.isActing) return
+				if ($fairyIsApplyingAction.get()) return
 				const change = {
 					added: {},
 					updated: {},
@@ -1052,6 +1057,7 @@ ${JSON.stringify($sharedTodoList.get())}`)
 			(prev, next, source) => {
 				if (source !== 'user') return
 				if (this.isActing) return
+				if ($fairyIsApplyingAction.get()) return
 				const change: RecordsDiff<TLRecord> = {
 					added: {},
 					updated: { [prev.id]: [prev, next] },
