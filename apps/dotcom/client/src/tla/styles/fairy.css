@@ -463,7 +463,7 @@
 }
 
 .fairy-chat-history-section:last-child {
-	min-height: 100%;
+	min-height: calc(100% + 4px);
 }
 
 .fairy-chat-history-prompt-container {
