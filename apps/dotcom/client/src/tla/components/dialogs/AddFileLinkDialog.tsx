@@ -8,6 +8,8 @@ import {
 	TldrawUiDialogTitle,
 	TldrawUiInput,
 } from 'tldraw'
+import { useApp } from '../../hooks/useAppState'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
 import styles from './dialogs.module.css'
 
@@ -19,11 +21,6 @@ const messages = defineMessages({
 	add: { defaultMessage: 'Add link' },
 	invalidUrl: { defaultMessage: 'Invalid tldraw file URL' },
 })
-
-interface AddFileLinkDialogProps {
-	onClose(): void
-	onAdd(fileId: string): void
-}
 
 function extractFileIdFromUrl(url: string): string | null {
 	try {
@@ -40,15 +37,18 @@ function extractFileIdFromUrl(url: string): string | null {
 	}
 }
 
-export function AddFileLinkDialog({ onClose, onAdd }: AddFileLinkDialogProps) {
+export function AddFileLinkDialog({ onClose, groupId }: { onClose(): void; groupId: string }) {
+	const app = useApp()
+	const trackEvent = useTldrawAppUiEvents()
 	const [fileUrl, setFileUrl] = useState('')
 	const [error, setError] = useState(false)
 	const placeholderMsg = useMsg(messages.placeholder)
 
-	const handleAdd = () => {
+	const handleAdd = async () => {
 		const fileId = extractFileIdFromUrl(fileUrl)
 		if (fileId) {
-			onAdd(fileId)
+			await app.addFileLinkToGroup(fileId, groupId)
+			trackEvent('add-file-link', { source: 'sidebar' })
 			onClose()
 		} else {
 			setError(true)

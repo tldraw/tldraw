@@ -223,17 +223,9 @@ function GroupMenuContent({ groupId }: { groupId: string }) {
 
 	const handleAddLinkToSharedFileClick = useCallback(() => {
 		addDialog({
-			component: ({ onClose }) => (
-				<AddFileLinkDialog
-					onClose={onClose}
-					onAdd={async (fileId) => {
-						await app.addFileLinkToGroup(fileId, groupId)
-						trackEvent('add-file-link', { source: 'sidebar' })
-					}}
-				/>
-			),
+			component: ({ onClose }) => <AddFileLinkDialog onClose={onClose} groupId={groupId} />,
 		})
-	}, [addDialog, app, groupId, trackEvent])
+	}, [addDialog, groupId])
 
 	return (
 		<>
