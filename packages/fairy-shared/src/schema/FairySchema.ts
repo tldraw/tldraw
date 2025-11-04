@@ -24,22 +24,24 @@ import {
 	ThinkActionSchema,
 	UpdateActionSchema,
 } from './actions/ActionSchemas'
-import { BlurryShapesPartSchema } from './parts/BlurryShapesPartSchema'
-import { ChatHistoryPartSchema } from './parts/ChatHistoryPartSchema'
-import { ContextItemsPartSchema } from './parts/ContextItemsPartSchema'
-import { CurrentProjectPartSchema } from './parts/CurrentProjectPartSchema'
-import { DataPartSchema } from './parts/DataPartSchema'
-import { MessagesPartSchema } from './parts/MessagesPartSchema'
-import { OtherFairiesPartSchema } from './parts/OtherFairiesPartSchema'
-import { PeripheralShapesPartSchema } from './parts/PeripheralShapesPartSchema'
-import { PersonalityPartSchema } from './parts/PersonalityPartSchema'
-import { ScreenshotPartSchema } from './parts/ScreenshotPartSchema'
-import { SelectedShapesPartSchema } from './parts/SelectedShapesPartSchema'
-import { SharedTodoListPartSchema } from './parts/SharedTodoListPartSchema'
-import { TimePartSchema } from './parts/TimePartSchema'
-import { UserActionHistoryPartSchema } from './parts/UserActionHistoryPartSchema'
-import { ViewportBoundsPartSchema } from './parts/ViewportBoundsPartSchema'
-import { WandPartSchema } from './parts/WandPartSchema'
+import {
+	BlurryShapesPartSchema,
+	ChatHistoryPartSchema,
+	ContextItemsPartSchema,
+	CurrentProjectPartSchema,
+	DataPartSchema,
+	MessagesPartSchema,
+	OtherFairiesPartSchema,
+	PeripheralShapesPartSchema,
+	PersonalityPartSchema,
+	ScreenshotPartSchema,
+	SelectedShapesPartSchema,
+	SharedTodoListPartSchema,
+	TimePartSchema,
+	UserActionHistoryPartSchema,
+	ViewportBoundsPartSchema,
+	WandPartSchema,
+} from './parts/PartSchemas'
 
 /**
  * Agent action schemas determine what actions the agent can take.
