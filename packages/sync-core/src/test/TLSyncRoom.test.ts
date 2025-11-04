@@ -321,7 +321,7 @@ describe('TLSyncRoom.updateStore', () => {
 			          "patch",
 			          {
 			            "name": [
-			              "stream",
+			              "append",
 			              "My lovely document",
 			              0,
 			            ],

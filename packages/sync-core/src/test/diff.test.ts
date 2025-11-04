@@ -408,14 +408,14 @@ describe('array diffing comprehensive', () => {
 	})
 })
 
-describe('string streaming', () => {
-	describe('basic string streaming', () => {
+describe('string appending', () => {
+	describe('basic string appending', () => {
 		it('should handle string appends', () => {
 			const prev = { text: 'Hello' }
 			const next = { text: 'Hello world' }
 
 			expect(diffRecord(prev, next)).toEqual({
-				text: [ValueOpType.Stream, ' world', 5],
+				text: [ValueOpType.Append, ' world', 5],
 			})
 		})
 
@@ -424,7 +424,7 @@ describe('string streaming', () => {
 			const next = { text: 'Hello' }
 
 			expect(diffRecord(prev, next)).toEqual({
-				text: [ValueOpType.Stream, 'Hello', 0],
+				text: [ValueOpType.Append, 'Hello', 0],
 			})
 		})
 
@@ -460,37 +460,37 @@ describe('string streaming', () => {
 
 			const diff = diffRecord(prev, next)
 			expect(diff).toEqual({
-				text: [ValueOpType.Stream, longText, 5],
+				text: [ValueOpType.Append, longText, 5],
 			})
 		})
 	})
 
-	describe('string streaming in nested props', () => {
-		it('should handle string streaming in nested props', () => {
+	describe('string appending in nested props', () => {
+		it('should handle string appending in nested props', () => {
 			const prev = { id: 'test:1', props: { label: 'Hello' } }
 			const next = { id: 'test:1', props: { label: 'Hello world' } }
 
 			expect(diffRecord(prev, next)).toEqual({
-				props: [ValueOpType.Patch, { label: [ValueOpType.Stream, ' world', 5] }],
+				props: [ValueOpType.Patch, { label: [ValueOpType.Append, ' world', 5] }],
 			})
 		})
 
-		it('should combine string streaming with other property changes', () => {
+		it('should combine string appending with other property changes', () => {
 			const prev = { text: 'Hello', x: 100 }
 			const next = { text: 'Hello world', x: 200 }
 
 			expect(diffRecord(prev, next)).toEqual({
-				text: [ValueOpType.Stream, ' world', 5],
+				text: [ValueOpType.Append, ' world', 5],
 				x: [ValueOpType.Put, 200],
 			})
 		})
 	})
 
-	describe('apply string streaming', () => {
-		it('should apply stream operations correctly', () => {
+	describe('apply string appending', () => {
+		it('should apply append operations correctly', () => {
 			const obj = { text: 'Hello' }
 			const diff: ObjectDiff = {
-				text: [ValueOpType.Stream, ' world', 5],
+				text: [ValueOpType.Append, ' world', 5],
 			}
 
 			const result = applyObjectDiff(obj, diff)
@@ -498,30 +498,30 @@ describe('string streaming', () => {
 			expect(result).not.toBe(obj)
 		})
 
-		it('should handle stream from empty string', () => {
+		it('should handle append from empty string', () => {
 			const obj = { text: '' }
 			const diff: ObjectDiff = {
-				text: [ValueOpType.Stream, 'Hello', 0],
+				text: [ValueOpType.Append, 'Hello', 0],
 			}
 
 			const result = applyObjectDiff(obj, diff)
 			expect(result).toEqual({ text: 'Hello' })
 		})
 
-		it('should ignore stream operation with wrong offset', () => {
+		it('should ignore append operation with wrong offset', () => {
 			const obj = { text: 'Hello' }
 			const diff: ObjectDiff = {
-				text: [ValueOpType.Stream, ' world', 10], // Wrong offset
+				text: [ValueOpType.Append, ' world', 10], // Wrong offset
 			}
 
 			const result = applyObjectDiff(obj, diff)
 			expect(result).toBe(obj) // No change, same reference
 		})
 
-		it('should ignore stream operation on non-string value', () => {
+		it('should ignore append operation on non-string value', () => {
 			const obj = { text: 123 }
 			const diff: ObjectDiff = {
-				text: [ValueOpType.Stream, ' world', 3],
+				text: [ValueOpType.Append, ' world', 3],
 			}
 
 			const result = applyObjectDiff(obj, diff)
@@ -531,8 +531,8 @@ describe('string streaming', () => {
 		it('should handle multiple stream operations', () => {
 			const obj = { a: 'Hello', b: 'Foo' }
 			const diff: ObjectDiff = {
-				a: [ValueOpType.Stream, ' world', 5],
-				b: [ValueOpType.Stream, 'bar', 3],
+				a: [ValueOpType.Append, ' world', 5],
+				b: [ValueOpType.Append, 'bar', 3],
 			}
 
 			const result = applyObjectDiff(obj, diff)
@@ -551,7 +551,7 @@ describe('string streaming', () => {
 
 			const networkDiff = getNetworkDiff(recordsDiff)
 			expect(networkDiff).toEqual({
-				'shape:1': [RecordOpType.Patch, { text: [ValueOpType.Stream, ' world', 5] }],
+				'shape:1': [RecordOpType.Patch, { text: [ValueOpType.Append, ' world', 5] }],
 			})
 		})
 	})
@@ -747,15 +747,15 @@ describe('nested key primitive value bug', () => {
 		})
 	})
 
-	it('should handle string streaming in nested keys', () => {
+	it('should handle string appending in nested keys', () => {
 		const prev = { id: 'shape:1', props: 'hello' }
 		const next = { id: 'shape:1', props: 'hello world' }
 
 		const diff = diffRecord(prev, next)
 
-		// The diff should contain a 'stream' operation for props
+		// The diff should contain an 'append' operation for props
 		expect(diff).toEqual({
-			props: [ValueOpType.Stream, ' world', 5],
+			props: [ValueOpType.Append, ' world', 5],
 		})
 	})
 
