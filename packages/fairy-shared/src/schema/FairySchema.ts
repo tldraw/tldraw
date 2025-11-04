@@ -1,27 +1,29 @@
-import { AlignActionSchema } from './actions/AlignActionSchema'
-import { AssignTodoItemActionSchema } from './actions/AssignTodoItemActionSchema'
-import { BringToFrontActionSchema } from './actions/BringToFrontActionSchema'
-import { CreateActionSchema } from './actions/CreateActionSchema'
-import { DeleteActionSchema } from './actions/DeleteActionSchema'
-import { DistributeActionSchema } from './actions/DistributeActionSchema'
-import { EndCurrentProjectActionSchema } from './actions/EndCurrentProjectActionSchema'
-import { EnterOrchestrationModeActionSchema } from './actions/EnterOrchestrationModeActionSchema'
-import { FlyToBoundsActionSchema } from './actions/FlyToBoundsActionSchema'
-import { ImbuePersonalityActionSchema } from './actions/ImbuePersonalityActionSchema'
-import { LabelActionSchema } from './actions/LabelActionSchema'
-import { MessageActionSchema } from './actions/MessageActionSchema'
-import { MoveActionSchema } from './actions/MoveActionSchema'
-import { PenActionSchema } from './actions/PenActionSchema'
-import { PlaceActionSchema } from './actions/PlaceActionSchema'
-import { ResizeActionSchema } from './actions/ResizeActionSchema'
-import { ReviewActionSchema } from './actions/ReviewActionSchema'
-import { RotateActionSchema } from './actions/RotateActionSchema'
-import { SendToBackActionSchema } from './actions/SendToBackActionSchema'
-import { SharedTodoListActionSchema } from './actions/SharedTodoListActionSchema'
-import { StackActionSchema } from './actions/StackActionSchema'
-import { StartProjectActionSchema } from './actions/StartProjectActionSchema'
-import { ThinkActionSchema } from './actions/ThinkActionSchema'
-import { UpdateActionSchema } from './actions/UpdateActionSchema'
+import {
+	AlignActionSchema,
+	AssignTodoItemActionSchema,
+	BringToFrontActionSchema,
+	CreateActionSchema,
+	DeleteActionSchema,
+	DistributeActionSchema,
+	EndCurrentProjectActionSchema,
+	EnterOrchestrationModeActionSchema,
+	FlyToBoundsActionSchema,
+	ImbuePersonalityActionSchema,
+	LabelActionSchema,
+	MessageActionSchema,
+	MoveActionSchema,
+	PenActionSchema,
+	PlaceActionSchema,
+	ResizeActionSchema,
+	ReviewActionSchema,
+	RotateActionSchema,
+	SendToBackActionSchema,
+	SharedTodoListActionSchema,
+	StackActionSchema,
+	StartProjectActionSchema,
+	ThinkActionSchema,
+	UpdateActionSchema,
+} from './actions/ActionSchemas'
 import { BlurryShapesPartSchema } from './parts/BlurryShapesPartSchema'
 import { ChatHistoryPartSchema } from './parts/ChatHistoryPartSchema'
 import { ContextItemsPartSchema } from './parts/ContextItemsPartSchema'
@@ -75,7 +77,6 @@ export const AGENT_ACTION_SCHEMAS = [
 
 	// Fairy-specific
 	ImbuePersonalityActionSchema,
-	EnterOrchestrationModeActionSchema,
 	StartProjectActionSchema,
 	EndCurrentProjectActionSchema,
 
