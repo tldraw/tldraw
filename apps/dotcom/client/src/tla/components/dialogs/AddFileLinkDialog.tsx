@@ -29,10 +29,6 @@ function extractFileIdFromUrl(url: string): string | null {
 		const match = urlObj.pathname.match(/^\/f\/([a-zA-Z0-9_-]+)/)
 		return match ? match[1] : null
 	} catch {
-		// Try as plain file ID
-		if (/^[a-zA-Z0-9_-]+$/.test(url.trim())) {
-			return url.trim()
-		}
 		return null
 	}
 }
