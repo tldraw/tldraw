@@ -1,16 +1,15 @@
 import { useCallback } from 'react'
 import { TldrawUiMenuContextProvider, TldrawUiMenuGroup, TldrawUiMenuItem } from 'tldraw'
+import { useApp } from '../tla/hooks/useAppState'
 import { clearSharedTodoList, requestHelpFromEveryone } from './SharedTodoList'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 
 export function TodoListMenuContent({
 	agents,
 	menuType = 'menu',
-	onDeleteFairyConfig,
 }: {
 	agents: FairyAgent[]
 	menuType?: 'menu' | 'context-menu'
-	onDeleteFairyConfig(id: string): void
 }) {
 	const resetAllChats = useCallback(() => {
 		agents.forEach((agent) => {
@@ -20,18 +19,17 @@ export function TodoListMenuContent({
 
 	const resetAllWands = useCallback(() => {
 		agents.forEach((agent) => {
-			const config = agent.$fairyConfig.get()
-			if (config) {
-				agent.$fairyConfig.set({ ...config, wand: 'god' })
-			}
+			agent.updateFairyConfig({ wand: 'god' })
 		})
 	}, [agents])
 
+	const app = useApp()
 	const deleteAllFairies = useCallback(() => {
+		app.z.mutate.user.deleteAllFairyConfigs()
 		agents.forEach((agent) => {
-			onDeleteFairyConfig(agent.id)
+			agent.dispose()
 		})
-	}, [agents, onDeleteFairyConfig])
+	}, [app, agents])
 
 	return (
 		<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">

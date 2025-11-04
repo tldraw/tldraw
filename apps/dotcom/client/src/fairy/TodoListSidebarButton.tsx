@@ -7,12 +7,10 @@ export function TodoListSidebarButton({
 	onClick,
 	hasUnreadTodos,
 	agents,
-	onDeleteFairyConfig,
 }: {
 	onClick(): void
 	hasUnreadTodos: boolean
 	agents: FairyAgent[]
-	onDeleteFairyConfig(id: string): void
 }) {
 	return (
 		<div style={{ position: 'relative' }}>
@@ -22,7 +20,7 @@ export function TodoListSidebarButton({
 						<TldrawUiIcon icon="clipboard-copied" label="Todo list" />
 					</TldrawUiButton>
 				</_ContextMenu.Trigger>
-				<TodoListContextMenuContent agents={agents} onDeleteFairyConfig={onDeleteFairyConfig} />
+				<TodoListContextMenuContent agents={agents} />
 			</_ContextMenu.Root>
 			{hasUnreadTodos && <div className="fairy-todo-unread-indicator" />}
 		</div>
