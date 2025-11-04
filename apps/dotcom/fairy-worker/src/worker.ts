@@ -88,6 +88,9 @@ async function requireTldrawEmail(request: IRequest, env: Environment) {
 
 		await requireAdminAccess(env, auth)
 
+		// TODO: update this if requireAdminAccess is removed above.
+		;(request as AuthenticatedRequest).isAdmin = true
+
 		return undefined
 	} catch (error: any) {
 		console.error('Authentication failed:', error.message)

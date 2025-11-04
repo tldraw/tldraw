@@ -1,6 +1,7 @@
 import { AgentAction, AgentPrompt, Streaming } from '@tldraw/fairy-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { Environment } from '../environment'
+import { AuthenticatedRequest } from '../worker'
 import { AgentService } from './AgentService'
 
 export class AgentDurableObject extends DurableObject<Environment> {
@@ -81,7 +82,8 @@ export class AgentDurableObject extends DurableObject<Environment> {
 			try {
 				const prompt = (await request.json()) as AgentPrompt
 
-				for await (const action of this.service.streamActions(prompt)) {
+				const isAdmin = (request as AuthenticatedRequest).isAdmin
+				for await (const action of this.service.streamActions(prompt, isAdmin)) {
 					response.actions.push(action)
 					const data = `data: ${JSON.stringify(action)}\n\n`
 					await writer.write(encoder.encode(data))

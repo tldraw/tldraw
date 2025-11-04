@@ -125,6 +125,25 @@ export class FairyAgent {
 	$currentProjectId = atom<string | null>('currentProjectId', null)
 
 	/**
+	 * Cumulative token usage tracking for this chat session.
+	 * Separated by tier to handle Claude 4.5 Sonnet's tiered pricing.
+	 */
+	cumulativeUsage = {
+		// Tier 1: Prompts ≤ 200K tokens
+		tier1: {
+			promptTokens: 0,
+			completionTokens: 0,
+		},
+		// Tier 2: Prompts > 200K tokens
+		tier2: {
+			promptTokens: 0,
+			completionTokens: 0,
+		},
+		// Total across all tiers
+		totalTokens: 0,
+	}
+
+	/**
 	 * Create a new tldraw agent.
 	 */
 	constructor({ id, fairyConfig, editor, onError, getToken }: FairyAgentOptions) {
@@ -212,6 +231,57 @@ export class FairyAgent {
 		if (state.contextItems) {
 			this.$contextItems.set(state.contextItems)
 		}
+	}
+
+	/**
+	 * Reset the cumulative usage tracking for this fairy agent.
+	 * Useful when starting a new chat session.
+	 */
+	resetCumulativeUsage() {
+		this.cumulativeUsage = {
+			tier1: {
+				promptTokens: 0,
+				completionTokens: 0,
+			},
+			tier2: {
+				promptTokens: 0,
+				completionTokens: 0,
+			},
+			totalTokens: 0,
+		}
+	}
+
+	/**
+	 * Get the current cumulative cost for this fairy agent.
+	 * Based on Claude 4.5 Sonnet tiered pricing:
+	 * - Tier 1 (≤ 200K tokens): $3 input / $15 output per million tokens
+	 * - Tier 2 (> 200K tokens): $6 input / $22.50 output per million tokens
+	 * @returns An object with input cost, output cost, and total cost in USD.
+	 */
+	getCumulativeCost() {
+		// Claude 4.5 Sonnet pricing per million tokens
+		// Tier 1: Prompts ≤ 200K tokens
+		const tier1InputPrice = 3 // $3 per million input tokens
+		const tier1OutputPrice = 15 // $15 per million output tokens
+
+		// Tier 2: Prompts > 200K tokens
+		const tier2InputPrice = 6 // $6 per million input tokens
+		const tier2OutputPrice = 22.5 // $22.50 per million output tokens
+
+		// Calculate costs for each tier
+		const tier1InputCost = (this.cumulativeUsage.tier1.promptTokens / 1_000_000) * tier1InputPrice
+		const tier1OutputCost =
+			(this.cumulativeUsage.tier1.completionTokens / 1_000_000) * tier1OutputPrice
+
+		const tier2InputCost = (this.cumulativeUsage.tier2.promptTokens / 1_000_000) * tier2InputPrice
+		const tier2OutputCost =
+			(this.cumulativeUsage.tier2.completionTokens / 1_000_000) * tier2OutputPrice
+
+		const inputCost = tier1InputCost + tier2InputCost
+		const outputCost = tier1OutputCost + tier2OutputCost
+		const totalCost = inputCost + outputCost
+
+		return { inputCost, outputCost, totalCost }
 	}
 
 	/**
@@ -913,6 +983,9 @@ ${JSON.stringify($sharedTodoList.get())}`)
 		this.$chatHistory.set([])
 		// TODO: Move this onto the fairies' shared data
 		this.$chatOrigin.set({ x: 0, y: 0 })
+
+		// Reset cumulative usage tracking when starting a new chat
+		this.resetCumulativeUsage()
 	}
 
 	/**
@@ -1217,6 +1290,50 @@ function requestAgentActions({ agent, request }: { agent: FairyAgent; request: A
 		try {
 			for await (const action of agent._streamActions({ prompt, signal })) {
 				if (cancelled) break
+
+				// Handle usage information
+				if ((action as any)._type === '__usage__') {
+					const usage = (action as any).usage
+					if (usage) {
+						// AI SDK returns: { inputTokens, outputTokens, totalTokens, cachedInputTokens }
+						const promptTokens = usage.inputTokens || 0
+						const completionTokens = usage.outputTokens || 0
+
+						// Determine which tier this request falls into
+						// Tier 1: ≤ 200K tokens, Tier 2: > 200K tokens
+						const TIER_THRESHOLD = 200_000
+						if (promptTokens <= TIER_THRESHOLD) {
+							agent.cumulativeUsage.tier1.promptTokens += promptTokens
+							agent.cumulativeUsage.tier1.completionTokens += completionTokens
+						} else {
+							agent.cumulativeUsage.tier2.promptTokens += promptTokens
+							agent.cumulativeUsage.tier2.completionTokens += completionTokens
+						}
+
+						agent.cumulativeUsage.totalTokens += usage.totalTokens || 0
+
+						// Calculate cumulative costs
+						const { inputCost, outputCost, totalCost } = agent.getCumulativeCost()
+
+						// Calculate total prompt and completion tokens across both tiers
+						const totalPromptTokens =
+							agent.cumulativeUsage.tier1.promptTokens + agent.cumulativeUsage.tier2.promptTokens
+						const totalCompletionTokens =
+							agent.cumulativeUsage.tier1.completionTokens +
+							agent.cumulativeUsage.tier2.completionTokens
+
+						// eslint-disable-next-line no-console
+						console.debug(
+							`🧚 Fairy "${agent.$fairyConfig.get().name}" Cumulative Usage:\n` +
+								`  Prompt tokens: ${totalPromptTokens.toLocaleString()}\n` +
+								`  Completion tokens: ${totalCompletionTokens.toLocaleString()}\n` +
+								`  Total tokens: ${agent.cumulativeUsage.totalTokens.toLocaleString()}\n` +
+								`  💰 Cumulative Cost: $${totalCost.toFixed(4)}\n` +
+								`     (Input: $${inputCost.toFixed(4)}, Output: $${outputCost.toFixed(4)})`
+						)
+					}
+					continue
+				}
 
 				editor.run(
 					() => {

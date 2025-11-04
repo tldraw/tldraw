@@ -30,10 +30,13 @@ export class AgentService {
 		return this[provider](modelDefinition.id)
 	}
 
-	async *streamActions(prompt: AgentPrompt): AsyncGenerator<Streaming<AgentAction>> {
+	async *streamActions(
+		prompt: AgentPrompt,
+		isAdmin = false
+	): AsyncGenerator<Streaming<AgentAction>> {
 		try {
 			const model = this.getModel(FAIRY_MODEL_NAME)
-			for await (const action of _streamActions(model, prompt)) {
+			for await (const action of _streamActions(model, prompt, isAdmin)) {
 				yield action
 			}
 		} catch (error: any) {
@@ -66,7 +69,7 @@ async function* _streamText(model: LanguageModel, prompt: AgentPrompt): AsyncGen
 	const systemPrompt = buildSystemPrompt(prompt) || 'You are a helpful assistant.'
 
 	try {
-		const { textStream } = streamText({
+		const result = streamText({
 			model,
 			system: systemPrompt,
 			messages,
@@ -86,9 +89,13 @@ async function* _streamText(model: LanguageModel, prompt: AgentPrompt): AsyncGen
 			},
 		})
 
-		for await (const text of textStream) {
+		for await (const text of result.textStream) {
 			yield text
 		}
+
+		// After streaming is complete, get usage information
+		await result.usage
+		// Note: Usage is tracked but not currently logged for text streams
 	} catch (error: any) {
 		console.error('streamEventsVercel error:', error)
 		throw error
@@ -97,7 +104,8 @@ async function* _streamText(model: LanguageModel, prompt: AgentPrompt): AsyncGen
 
 async function* _streamActions(
 	model: LanguageModel,
-	prompt: AgentPrompt
+	prompt: AgentPrompt,
+	isAdmin: boolean
 ): AsyncGenerator<Streaming<AgentAction>> {
 	if (typeof model === 'string') {
 		throw new Error('Model is a string, not a LanguageModel')
@@ -113,7 +121,7 @@ async function* _streamActions(
 			role: 'assistant',
 			content: '{"actions": [{"_type":',
 		})
-		const { textStream } = streamText({
+		const result = streamText({
 			model,
 			system: systemPrompt,
 			messages,
@@ -140,7 +148,7 @@ async function* _streamActions(
 		let maybeIncompleteAction: AgentAction | null = null
 
 		let startTime = Date.now()
-		for await (const text of textStream) {
+		for await (const text of result.textStream) {
 			buffer += text
 
 			const partialObject = closeAndParseJson(buffer)
@@ -192,6 +200,19 @@ async function* _streamActions(
 				complete: true,
 				time: Date.now() - startTime,
 			}
+		}
+
+		// After streaming is complete, get usage information and yield it (only for admins)
+		if (isAdmin) {
+			const usage = await result.usage
+
+			// Yield usage information as a special metadata action (only for @tldraw.com admins)
+			yield {
+				_type: '__usage__',
+				complete: true,
+				time: 0,
+				usage,
+			} as any
 		}
 	} catch (error: any) {
 		console.error('streamEventsVercel error:', error)
