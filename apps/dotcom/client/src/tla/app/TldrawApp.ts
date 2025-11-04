@@ -242,11 +242,11 @@ export class TldrawApp {
 
 			if (useNewGroupsInit) {
 				// New groups initialization
-				await this.z.mutate.init({ user: initialUserData, time: Date.now() })
+				this.z.mutate.init({ user: initialUserData, time: Date.now() })
 			} else {
 				// Legacy initialization (no groups) - just insert user like before
 				// eslint-disable-next-line @typescript-eslint/no-deprecated
-				await this.z.mutate.user.insert({ ...initialUserData, flags: '' })
+				this.z.mutate.user.insert({ ...initialUserData, flags: '' })
 			}
 
 			updateLocalSessionState((state) => ({ ...state, shouldShowWelcomeDialog: true }))
@@ -258,7 +258,6 @@ export class TldrawApp {
 		if (!this.user$.get()) {
 			throw Error('could not create user')
 		}
-
 		await this.fileStateQuery().preload().complete
 		return didCreate
 	}
@@ -773,11 +772,11 @@ export class TldrawApp {
 	 */
 	async deleteOrForgetFile(fileId: string, groupId: string = this.getHomeGroupId()) {
 		// Optimistic update, remove file and file states
-		await this.z.mutate.removeFileFromGroup({ fileId, groupId })
+		this.z.mutate.removeFileFromGroup({ fileId, groupId })
 	}
 
 	async addFileLinkToGroup(fileId: string, groupId: string) {
-		await this.z.mutate.addFileLinkToGroup({ fileId, groupId })
+		this.z.mutate.addFileLinkToGroup({ fileId, groupId })
 	}
 
 	setFileSharedLinkType(fileId: string, sharedLinkType: TlaFile['sharedLinkType'] | 'no-access') {
