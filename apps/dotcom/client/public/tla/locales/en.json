@@ -89,6 +89,9 @@
   "31418ce4ad": {
     "translation": "i18n: Highlight Missing"
   },
+  "32210b37e4": {
+    "translation": "Add link"
+  },
   "335defdafe": {
     "translation": "Please try refreshing the page."
   },
@@ -118,6 +121,9 @@
   },
   "47f493a590": {
     "translation": "Pin file"
+  },
+  "49049467ff": {
+    "translation": "Paste tldraw file URL..."
   },
   "4908687e50": {
     "translation": "Are you sure you want to forget this file?"
@@ -317,6 +323,9 @@
   "96165d6df5": {
     "translation": "This month"
   },
+  "98c997a27e": {
+    "translation": "Add file link"
+  },
   "9914a0ce04": {
     "translation": "Light"
   },
@@ -377,6 +386,9 @@
   },
   "b028909917": {
     "translation": "Guest user"
+  },
+  "b3d2db69fe": {
+    "translation": "File URL"
   },
   "b6d4223e60": {
     "translation": "Sign in"
@@ -455,6 +467,9 @@
   },
   "dbbebf3c03": {
     "translation": "Invite only"
+  },
+  "dcdaa754fe": {
+    "translation": "Invalid tldraw file URL"
   },
   "dfdb78a4e4": {
     "translation": "App debug flags"
