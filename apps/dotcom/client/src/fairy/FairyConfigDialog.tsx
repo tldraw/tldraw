@@ -1,10 +1,4 @@
-import {
-	FAIRY_MODE_DEFINITIONS,
-	FAIRY_VARIANTS,
-	FairyVariantType,
-	getFairyMode,
-	Wand,
-} from '@tldraw/fairy-shared'
+import { FAIRY_VARIANTS, FairyVariantType } from '@tldraw/fairy-shared'
 import {
 	TldrawUiButton,
 	TldrawUiButtonLabel,
@@ -48,7 +42,7 @@ export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClo
 						onValueChange={(value) => agent.$fairyConfig.set({ ...config, personality: value })}
 						placeholder="Fairy's personality"
 					/>
-					<label htmlFor="mode">Mode</label>
+					{/* <label htmlFor="mode">Mode</label>
 					<select
 						id="mode"
 						value={config.mode}
@@ -70,7 +64,7 @@ export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClo
 								{mode.id.charAt(0).toUpperCase() + mode.id.slice(1)}
 							</option>
 						))}
-					</select>
+					</select> */}
 					<label htmlFor="hat">Hat</label>
 					<select
 						id="hat"
