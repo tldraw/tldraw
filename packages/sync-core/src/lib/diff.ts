@@ -221,7 +221,11 @@ function diffObject(prev: object, next: object, nestedKeys?: Set<string>): Objec
 					if (!result) result = {}
 					result[key] = op
 				}
-			} else if (typeof prevVal === 'string' && typeof nextVal === 'string' && nextVal.startsWith(prevVal)) {
+			} else if (
+				typeof prevVal === 'string' &&
+				typeof nextVal === 'string' &&
+				nextVal.startsWith(prevVal)
+			) {
 				const appendedText = nextVal.slice(prevVal.length)
 				if (!result) result = {}
 				result[key] = [ValueOpType.Append, appendedText, prevVal.length]
