@@ -51,6 +51,8 @@ export {
 	type RoomStoreMethods,
 	type TLRoomSocket,
 } from './lib/TLSyncRoom'
+export { InMemorySyncStorage } from './lib/InMemorySyncStorage'
+export type { TLSyncStorage, TLSyncStorageTransaction } from './lib/TLSyncStorage'
 
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,
