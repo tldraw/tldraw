@@ -17,6 +17,7 @@ export async function streamActionsHandler(request: AuthenticatedRequest, env: E
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
+			'X-Is-Admin': request.isAdmin.toString(),
 		},
 		body: bodyText, // Pass the string, not the consumed stream
 	})
