@@ -168,6 +168,7 @@ export class FairyAgent {
 			isSelected: false,
 			pose: 'idle',
 			gesture: null,
+			currentPageId: editor.getCurrentPageId(),
 		})
 
 		this.$fairyConfig = computed<FairyConfig>(
@@ -784,6 +785,9 @@ ${JSON.stringify($sharedTodoList.get())}`)
 		const actionInfo = this.getActionInfo(action)
 		this.$fairyEntity.update((fairy) => ({ ...fairy, pose: actionInfo.pose }))
 
+		// Ensure the fairy is on the correct page before performing the action
+		this.ensureFairyIsOnCorrectPage(action)
+
 		let promise: Promise<void> | null = null
 		let diff: RecordsDiff<TLRecord>
 		try {
@@ -1193,6 +1197,61 @@ ${JSON.stringify($sharedTodoList.get())}`)
 				flipX: false,
 			}
 		})
+	}
+
+	/**
+	 * Ensures the fairy is on the correct page before performing an action.
+	 * For actions that work with existing shapes, switches to the shape's page.
+	 * For actions that create new content, ensures the fairy is on the current editor page.
+	 */
+	private ensureFairyIsOnCorrectPage(action: Streaming<AgentAction>) {
+		const { editor } = this
+		const fairyEntity = this.$fairyEntity.get()
+		if (!fairyEntity) return
+
+		// Extract shape IDs from the action based on action type
+		let shapeIds: string[] = []
+
+		// Actions with single shapeId
+		if ('shapeId' in action && typeof action.shapeId === 'string') {
+			shapeIds = [action.shapeId]
+		}
+		// Actions with shapeIds array
+		else if ('shapeIds' in action && Array.isArray(action.shapeIds)) {
+			shapeIds = action.shapeIds as string[]
+		}
+		// Update action has shape in 'update' property
+		else if (
+			action._type === 'update' &&
+			'update' in action &&
+			action.update &&
+			typeof action.update === 'object' &&
+			'shapeId' in action.update
+		) {
+			shapeIds = [action.update.shapeId as string]
+		}
+
+		// If we have shape IDs, ensure the fairy is on the same page as the first shape
+		if (shapeIds.length > 0) {
+			const firstShapeId = shapeIds[0].startsWith('shape:') ? shapeIds[0] : `shape:${shapeIds[0]}`
+			const shape = editor.getShape(firstShapeId as any)
+
+			if (shape) {
+				const shapePageId = editor.getAncestorPageId(shape)
+				if (shapePageId && fairyEntity.currentPageId !== shapePageId) {
+					// Switch to the shape's page
+					editor.setCurrentPage(shapePageId)
+					this.$fairyEntity.update((f) => (f ? { ...f, currentPageId: shapePageId } : f))
+				}
+			}
+		}
+		// For create actions or actions without shape IDs, ensure fairy is on the current editor page
+		else if (action._type === 'create' || action._type === 'pen') {
+			const currentPageId = editor.getCurrentPageId()
+			if (fairyEntity.currentPageId !== currentPageId) {
+				this.$fairyEntity.update((f) => (f ? { ...f, currentPageId } : f))
+			}
+		}
 	}
 
 	/**

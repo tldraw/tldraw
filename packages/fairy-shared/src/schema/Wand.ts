@@ -80,6 +80,8 @@ export const WAND_DEFINITIONS = [
 			'assign-todo-item',
 			'start-project',
 			'end-current-project',
+			'change-page',
+			'create-page',
 		],
 	},
 	{
@@ -131,6 +133,8 @@ export const WAND_DEFINITIONS = [
 			'send-to-back',
 			'rotate',
 			'resize',
+			'change-page',
+			'create-page',
 		],
 	},
 	{
@@ -174,6 +178,8 @@ export const WAND_DEFINITIONS = [
 			'align',
 			'distribute',
 			'stack',
+			'change-page',
+			'create-page',
 		] as const,
 	},
 	{

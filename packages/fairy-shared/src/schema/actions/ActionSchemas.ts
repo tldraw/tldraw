@@ -370,4 +370,33 @@ export const UpdateActionSchema = z
 
 export type UpdateAction = z.infer<typeof UpdateActionSchema>
 
+export const ChangePageActionSchema = z
+	.object({
+		_type: z.literal('change-page'),
+		pageName: z.string(),
+		intent: z.string(),
+	})
+	.meta({
+		title: 'Change Page',
+		description:
+			'The fairy changes to a different page by name. Use this to navigate between existing pages.',
+	})
+
+export type ChangePageAction = z.infer<typeof ChangePageActionSchema>
+
+export const CreatePageActionSchema = z
+	.object({
+		_type: z.literal('create-page'),
+		pageName: z.string(),
+		intent: z.string(),
+		switchToPage: z.boolean(),
+	})
+	.meta({
+		title: 'Create Page',
+		description:
+			'The fairy creates a new page with the specified name. If switchToPage is true, the fairy will also navigate to the newly created page.',
+	})
+
+export type CreatePageAction = z.infer<typeof CreatePageActionSchema>
+
 export type UnknownAction = BaseAgentAction<'unknown'>

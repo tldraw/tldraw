@@ -535,3 +535,34 @@ export const WandPartSchema = z.object({
 	type: z.literal('wand'),
 	wand: z.string(),
 })
+
+// PagesPartSchema
+export type PagesPart = z.infer<typeof PagesPartSchema>
+export const PagesPartSchema = z.object({
+	type: z.literal('pages'),
+	pages: z.array(
+		z.object({
+			id: z.string(),
+			name: z.string(),
+		})
+	),
+	currentPageId: z.string(),
+	currentPageName: z.string(),
+})
+
+PagesPartSchema.register(PromptPartRegistry, {
+	priority: -60,
+	buildContent(part: PagesPart) {
+		const { pages, currentPageName } = part
+		if (!pages || pages.length === 0) {
+			return ['There are no pages available.']
+		}
+
+		const pageList = pages.map((p) => `- ${p.name}`).join('\n')
+		return [
+			`You are currently on page "${currentPageName}".`,
+			`Available pages:\n${pageList}`,
+			'You can change to a different page using the "change-page" action, or create a new page using the "create-page" action.',
+		]
+	},
+})

@@ -3,7 +3,9 @@ import { AgentActionUtil, AgentActionUtilConstructor } from './actions/AgentActi
 import { AlignActionUtil } from './actions/AlignActionUtil'
 import { AssignTodoItemActionUtil } from './actions/AssignTodoItemActionUtil'
 import { BringToFrontActionUtil } from './actions/BringToFrontActionUtil'
+import { ChangePageActionUtil } from './actions/ChangePageActionUtil'
 import { CreateActionUtil } from './actions/CreateActionUtil'
+import { CreatePageActionUtil } from './actions/CreatePageActionUtil'
 import { DeleteActionUtil } from './actions/DeleteActionUtil'
 import { DistributeActionUtil } from './actions/DistributeActionUtil'
 import { EndCurrentProjectActionUtil } from './actions/EndCurrentProjectActionUtil'
@@ -32,6 +34,7 @@ import { CurrentProjectPartUtil } from './parts/CurrentProjectPartUtil'
 import { DataPartUtil } from './parts/DataPartUtil'
 import { MessagesPartUtil } from './parts/MessagesPartUtil'
 import { OtherFairiesPartUtil } from './parts/OtherFairiesPartUtil'
+import { PagesPartUtil } from './parts/PagesPartUtil'
 import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
 import { PersonalityPartUtil } from './parts/PersonalityPartUtil'
 import { PromptPartUtil, PromptPartUtilConstructor } from './parts/PromptPartUtil'
@@ -77,6 +80,10 @@ export const AGENT_ACTION_UTILS = [
 	// Drawing
 	PenActionUtil,
 
+	// Page navigation
+	ChangePageActionUtil,
+	CreatePageActionUtil,
+
 	// Internal (required)
 	UnknownActionUtil,
 
@@ -117,6 +124,7 @@ export const PROMPT_PART_UTILS = [
 
 	// Metadata
 	TimePartUtil,
+	PagesPartUtil,
 
 	// Fairy-specific
 	OtherFairiesPartUtil,

@@ -2,7 +2,9 @@ import {
 	AlignActionSchema,
 	AssignTodoItemActionSchema,
 	BringToFrontActionSchema,
+	ChangePageActionSchema,
 	CreateActionSchema,
+	CreatePageActionSchema,
 	DeleteActionSchema,
 	DistributeActionSchema,
 	EndCurrentProjectActionSchema,
@@ -32,6 +34,7 @@ import {
 	DataPartSchema,
 	MessagesPartSchema,
 	OtherFairiesPartSchema,
+	PagesPartSchema,
 	PeripheralShapesPartSchema,
 	PersonalityPartSchema,
 	ScreenshotPartSchema,
@@ -77,6 +80,10 @@ export const AGENT_ACTION_SCHEMAS = [
 	// Drawing
 	PenActionSchema,
 
+	// Page navigation
+	ChangePageActionSchema,
+	CreatePageActionSchema,
+
 	// Fairy-specific
 	ImbuePersonalityActionSchema,
 	StartProjectActionSchema,
@@ -96,6 +103,7 @@ export const PROMPT_PART_SCHEMAS = [
 	CurrentProjectPartSchema,
 	DataPartSchema,
 	MessagesPartSchema,
+	PagesPartSchema,
 	PeripheralShapesPartSchema,
 	ScreenshotPartSchema,
 	SelectedShapesPartSchema,

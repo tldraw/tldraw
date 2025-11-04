@@ -35,6 +35,7 @@ export class LabelActionUtil extends AgentActionUtil<LabelAction> {
 			console.warn(`Shape type "${shape.type}" does not support richText labels`)
 			return
 		}
+
 		editor.updateShape({
 			id: shapeId,
 			type: shape.type,
