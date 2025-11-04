@@ -282,13 +282,6 @@ export class FairyAgent {
 			? candidateWand
 			: modeInfo.defaultWand
 
-		//todo remove before shipping
-		if (wand !== candidateWand) {
-			console.warn(
-				`Wand ${candidateWand} is not available in mode ${mode}. Using default wand ${modeInfo.defaultWand}.`
-			)
-		}
-
 		return wand as AvailableWandsForMode<ModeId>
 	}
 
