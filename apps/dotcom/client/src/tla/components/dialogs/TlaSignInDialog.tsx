@@ -1,12 +1,13 @@
 import { useClerk, useSignIn } from '@clerk/clerk-react'
 import * as Clerk from '@clerk/elements/common'
 import * as SignIn from '@clerk/elements/sign-in'
-import { ReactNode, useState, type FormEvent } from 'react'
+import { ReactNode, useCallback, useEffect, useState, type FormEvent } from 'react'
 import {
 	TldrawUiButton,
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
 } from 'tldraw'
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
 import { F, defineMessages, useMsg } from '../../utils/i18n'
@@ -39,8 +40,8 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 	const [isSignUpFlow, setIsSignUpFlow] = useState(false)
 	const [isCodeFocused, setIsCodeFocused] = useState(false)
 	const [termsChecked, setTermsChecked] = useState(false)
-	const [analyticsOptIn, setAnalyticsOptIn] = useState(false)
-	const [, updateAnalyticsConsent] = useAnalyticsConsent()
+	const [currentConsent, updateAnalyticsConsent] = useAnalyticsConsent()
+	const [analyticsOptIn, setAnalyticsOptIn] = useState(currentConsent)
 
 	async function handleEmailSubmit(e: FormEvent) {
 		e.preventDefault()
@@ -95,41 +96,50 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 		}
 	}
 
-	async function handleCodeSubmit(e: FormEvent) {
-		e.preventDefault()
-		setIsSubmitting(true)
-		setError(null)
-		try {
-			if (isSignUpFlow) {
-				const s: any = await client.signUp.attemptEmailAddressVerification({ code })
-				// If legal acceptance is still required, show terms now
-				const needsLegal = (s?.missingFields || s?.missing_fields || []).includes?.(
-					'legal_accepted'
-				)
-				if (needsLegal) {
-					setStage('terms')
-					return
+	const handleCodeSubmit = useCallback(
+		async (e?: FormEvent) => {
+			e?.preventDefault()
+			setIsSubmitting(true)
+			setError(null)
+			try {
+				if (isSignUpFlow) {
+					const s: any = await client.signUp.attemptEmailAddressVerification({ code })
+					// If legal acceptance is still required, show terms now
+					const needsLegal = (s?.missingFields || s?.missing_fields || []).includes?.(
+						'legal_accepted'
+					)
+					if (needsLegal) {
+						setStage('terms')
+						return
+					}
+					if (s.status === 'complete') {
+						await setActive({ session: s.createdSessionId })
+						onClose?.()
+						return
+					}
+				} else if (signIn) {
+					const r = await signIn.attemptFirstFactor({ strategy: 'email_code', code })
+					if (r.status === 'complete') {
+						await setActive({ session: r.createdSessionId })
+						onClose?.()
+						return
+					}
 				}
-				if (s.status === 'complete') {
-					await setActive({ session: s.createdSessionId })
-					onClose?.()
-					return
-				}
-			} else if (signIn) {
-				const r = await signIn.attemptFirstFactor({ strategy: 'email_code', code })
-				if (r.status === 'complete') {
-					await setActive({ session: r.createdSessionId })
-					onClose?.()
-					return
-				}
+			} catch (_e: any) {
+				const e = _e as any
+				setError(e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Invalid code')
+			} finally {
+				setIsSubmitting(false)
 			}
-		} catch (_e: any) {
-			const e = _e as any
-			setError(e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Invalid code')
-		} finally {
-			setIsSubmitting(false)
+		},
+		[client.signUp, isSignUpFlow, signIn, code, onClose, setActive]
+	)
+
+	useEffect(() => {
+		if (code.length === 6) {
+			handleCodeSubmit()
 		}
-	}
+	}, [code, handleCodeSubmit])
 
 	async function handleResend() {
 		try {
@@ -211,7 +221,9 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 					if (!termsChecked) return
 					try {
 						// Persist analytics choice before completing sign-up / redirecting
-						updateAnalyticsConsent(analyticsOptIn)
+						if (analyticsOptIn !== null) {
+							updateAnalyticsConsent(analyticsOptIn)
+						}
 
 						const su: any = await client.signUp.update({ legalAccepted: true } as any)
 						if (su?.status === 'complete' && su?.createdSessionId) {
@@ -285,6 +297,7 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 					}}
 					onFocus={() => setIsCodeFocused(true)}
 					onBlur={() => setIsCodeFocused(false)}
+					disabled={isSubmitting}
 					maxLength={6}
 				/>
 			</div>
@@ -326,13 +339,15 @@ export function TlaTermsAcceptance({
 	onAcceptedChange(accepted: boolean): void
 	onContinue(): void
 	onClose?(): void
-	analyticsOptIn: boolean
+	analyticsOptIn: boolean | null
 	onAnalyticsChange(accepted: boolean): void
 }) {
 	return (
 		<>
 			<TldrawUiDialogHeader>
-				<span style={{ flex: 1 }} />
+				<TldrawUiDialogTitle>
+					<F defaultMessage="Log in to tldraw" />
+				</TldrawUiDialogTitle>
 				{onClose && <TldrawUiDialogCloseButton />}
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className={styles.authBody}>
@@ -372,26 +387,28 @@ export function TlaTermsAcceptance({
 					</span>
 				</label>
 
-				<label className={styles.authCheckboxLabel}>
-					<input
-						type="checkbox"
-						checked={analyticsOptIn}
-						onChange={(e) => onAnalyticsChange(e.target.checked)}
-						className={styles.authCheckbox}
-					/>
-					<span>
-						<F
-							defaultMessage="Allow analytics to help improve tldraw (<cookies>learn more</cookies>)"
-							values={{
-								cookies: (chunks) => (
-									<a href="/cookies.html" target="_blank" rel="noopener noreferrer">
-										{chunks}
-									</a>
-								),
-							}}
+				{analyticsOptIn !== true && (
+					<label className={styles.authCheckboxLabel}>
+						<input
+							type="checkbox"
+							checked={!!analyticsOptIn}
+							onChange={(e) => onAnalyticsChange(e.target.checked)}
+							className={styles.authCheckbox}
 						/>
-					</span>
-				</label>
+						<span>
+							<F
+								defaultMessage="Allow analytics to help improve tldraw (<cookies>learn more</cookies>)"
+								values={{
+									cookies: (chunks) => (
+										<a href="/cookies.html" target="_blank" rel="noopener noreferrer">
+											{chunks}
+										</a>
+									),
+								}}
+							/>
+						</span>
+					</label>
+				)}
 
 				<TldrawUiButton
 					type="primary"
@@ -418,7 +435,9 @@ function TlaAuthStep({
 	return (
 		<>
 			<TldrawUiDialogHeader>
-				<span style={{ flex: 1 }} />
+				<TldrawUiDialogTitle>
+					<F defaultMessage="Log in to tldraw" />
+				</TldrawUiDialogTitle>
 				{onClose && <TldrawUiDialogCloseButton />}
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className={styles.authBody}>

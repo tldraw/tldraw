@@ -7,14 +7,16 @@ import { TlaTermsAcceptance } from './TlaSignInDialog'
 export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 	const { user } = useUser()
 	const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false)
-	const [analyticsOptIn, setAnalyticsOptIn] = useState(false)
-	const [, updateAnalyticsConsent] = useAnalyticsConsent()
+	const [currentConsent, updateAnalyticsConsent] = useAnalyticsConsent()
+	const [analyticsOptIn, setAnalyticsOptIn] = useState(currentConsent)
 
 	const handleAcceptTerms = async () => {
 		if (!user || !hasAcceptedTerms) return
 
 		// Persist analytics choice before redirecting
-		updateAnalyticsConsent(analyticsOptIn)
+		if (analyticsOptIn !== null) {
+			updateAnalyticsConsent(analyticsOptIn)
+		}
 
 		// Store acceptance in user metadata
 		await user.update({

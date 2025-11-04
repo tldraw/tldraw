@@ -55,9 +55,10 @@
 .authDescription {
 	text-align: center;
 	color: var(--tl-color-text-2);
-	font-size: 12px;
+	font-size: 14px;
 	margin: 0;
 	line-height: 1.5;
+	text-wrap: balance;
 }
 
 /* Google Button */
@@ -97,7 +98,7 @@
 	align-items: center;
 	text-align: center;
 	color: var(--tl-color-text-3);
-	font-size: 12px;
+	font-size: 14px;
 	margin: var(--tl-space-2) 0;
 }
 
@@ -148,7 +149,7 @@
 
 /* Error Message */
 .authError {
-	font-size: 12px;
+	font-size: 14px;
 	color: var(--tl-color-warn);
 	margin-top: var(--tl-space-1);
 }
@@ -174,7 +175,7 @@
 
 .authButtonArrow {
 	margin-left: var(--tl-space-2);
-	font-size: 12px;
+	font-size: 14px;
 }
 
 /* Checkbox */
@@ -268,7 +269,7 @@
 	justify-content: center;
 	align-items: center;
 	gap: var(--tl-space-2);
-	font-size: 13px;
+	font-size: 14px;
 	margin-top: var(--tl-space-3);
 }
 
@@ -283,14 +284,14 @@
 	text-decoration: underline;
 	cursor: pointer;
 	padding: 0;
-	font-size: 13px;
+	font-size: 14px;
 	font-weight: 500;
 }
 
 /* Switch Mode */
 .authSwitchMode {
 	text-align: center;
-	font-size: 13px;
+	font-size: 14px;
 	color: var(--tl-color-text-2);
 	margin-top: var(--tl-space-2);
 }
@@ -302,6 +303,6 @@
 	text-decoration: underline;
 	cursor: pointer;
 	padding: 0;
-	font-size: 13px;
+	font-size: 14px;
 	font-weight: 500;
 }
