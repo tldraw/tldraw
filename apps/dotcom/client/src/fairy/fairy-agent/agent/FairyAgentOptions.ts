@@ -1,4 +1,4 @@
-import { FairyConfig } from '@tldraw/fairy-shared/src/types/FairyConfig'
+import { FairyConfig } from '@tldraw/fairy-shared'
 import { Editor } from 'tldraw'
 
 export interface FairyAgentOptions {
