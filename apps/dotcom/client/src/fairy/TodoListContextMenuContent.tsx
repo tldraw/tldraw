@@ -3,13 +3,7 @@ import { useContainer } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { TodoListMenuContent } from './TodoListMenuContent'
 
-export function TodoListContextMenuContent({
-	agents,
-	onDeleteFairyConfig,
-}: {
-	agents: FairyAgent[]
-	onDeleteFairyConfig(id: string): void
-}) {
+export function TodoListContextMenuContent({ agents }: { agents: FairyAgent[] }) {
 	const container = useContainer()
 
 	return (
@@ -20,11 +14,7 @@ export function TodoListContextMenuContent({
 				onClick={(e) => e.stopPropagation()}
 				style={{ zIndex: 100000000 }}
 			>
-				<TodoListMenuContent
-					agents={agents}
-					onDeleteFairyConfig={onDeleteFairyConfig}
-					menuType="context-menu"
-				/>
+				<TodoListMenuContent agents={agents} menuType="context-menu" />
 			</_ContextMenu.Content>
 		</_ContextMenu.Portal>
 	)

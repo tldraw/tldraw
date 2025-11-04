@@ -5,13 +5,11 @@ import { TodoListMenuContent } from './TodoListMenuContent'
 
 export function TodoListDropdownContent({
 	agents,
-	onDeleteFairyConfig,
 	alignOffset,
 	sideOffset,
 	side = 'top',
 }: {
 	agents: FairyAgent[]
-	onDeleteFairyConfig(id: string): void
 	alignOffset: number
 	sideOffset: number
 	side?: 'top' | 'bottom' | 'left' | 'right'
@@ -30,11 +28,7 @@ export function TodoListDropdownContent({
 				onClick={(e) => e.stopPropagation()}
 				style={{ zIndex: 100000000 }}
 			>
-				<TodoListMenuContent
-					agents={agents}
-					onDeleteFairyConfig={onDeleteFairyConfig}
-					menuType="menu"
-				/>
+				<TodoListMenuContent agents={agents} menuType="menu" />
 			</_DropdownMenu.Content>
 		</_DropdownMenu.Portal>
 	)

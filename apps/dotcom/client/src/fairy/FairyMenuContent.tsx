@@ -10,11 +10,9 @@ import { FairyConfigDialog } from './FairyConfigDialog'
 
 export function FairyMenuContent({
 	agent,
-	onDeleteFairyConfig,
 	menuType = 'menu',
 }: {
 	agent: FairyAgent
-	onDeleteFairyConfig(id: string): void
 	menuType?: 'menu' | 'context-menu'
 }) {
 	const { addDialog } = useDefaultHelpers()
@@ -27,13 +25,10 @@ export function FairyMenuContent({
 		[addDialog]
 	)
 
-	const deleteFairy = useCallback(
-		(agent: FairyAgent) => {
-			agent.dispose()
-			onDeleteFairyConfig(agent.id)
-		},
-		[onDeleteFairyConfig]
-	)
+	const deleteFairy = useCallback(() => {
+		agent.dispose()
+		agent.deleteFairyConfig()
+	}, [agent])
 
 	return (
 		<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">
@@ -51,11 +46,7 @@ export function FairyMenuContent({
 					onSelect={() => configureFairy(agent)}
 					label="Customize fairy"
 				/>
-				<TldrawUiMenuItem
-					id="delete-fairy"
-					onSelect={() => deleteFairy(agent)}
-					label="Delete fairy"
-				/>
+				<TldrawUiMenuItem id="delete-fairy" onSelect={deleteFairy} label="Delete fairy" />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuContextProvider>
 	)

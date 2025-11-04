@@ -30,6 +30,8 @@ import {
 	Atom,
 	atom,
 	Box,
+	computed,
+	Computed,
 	Editor,
 	fetch,
 	RecordsDiff,
@@ -39,6 +41,7 @@ import {
 	Vec,
 	VecModel,
 } from 'tldraw'
+import { TldrawApp } from '../../../tla/app/TldrawApp'
 import { FAIRY_WORKER } from '../../../utils/config'
 import { AgentActionUtil } from '../../actions/AgentActionUtil'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../FairyUtils'
@@ -61,6 +64,7 @@ import { $fairyAgentsAtom, getFairyAgentById } from './fairyAgentsAtom'
 export class FairyAgent {
 	/** The editor associated with this agent. */
 	editor: Editor
+	app: TldrawApp
 
 	/** An id to differentiate the agent from other agents. */
 	id: string
@@ -69,7 +73,7 @@ export class FairyAgent {
 	$fairyEntity: Atom<FairyEntity>
 
 	/** The fairy configuration associated with this agent. */
-	$fairyConfig: Atom<FairyConfig>
+	$fairyConfig: Computed<FairyConfig>
 
 	/** A callback for when an error occurs. */
 	onError: (e: any) => void
@@ -127,8 +131,9 @@ export class FairyAgent {
 	/**
 	 * Create a new tldraw agent.
 	 */
-	constructor({ id, fairyConfig, editor, onError, getToken }: FairyAgentOptions) {
+	constructor({ id, editor, app, onError, getToken }: FairyAgentOptions) {
 		this.editor = editor
+		this.app = app
 		this.id = id
 		this.getToken = getToken
 
@@ -143,7 +148,10 @@ export class FairyAgent {
 			gesture: null,
 		})
 
-		this.$fairyConfig = atom<FairyConfig>(`fairy-config-${id}`, fairyConfig)
+		this.$fairyConfig = computed<FairyConfig>(
+			`fairy-config-${id}`,
+			() => JSON.parse(app.getUser().fairies || '{}')[id] as FairyConfig
+		)
 
 		this.onError = onError
 
@@ -1106,12 +1114,23 @@ ${JSON.stringify($sharedTodoList.get())}`)
 		this.$fairyEntity.update((fairy) => ({ ...fairy, gesture }))
 	}
 
+	updateFairyConfig(partial: Partial<FairyConfig>) {
+		this.app.z.mutate.user.updateFairyConfig({
+			id: this.id,
+			properties: partial,
+		})
+	}
+
+	public deleteFairyConfig() {
+		this.app.z.mutate.user.deleteFairyConfig({ id: this.id })
+	}
+
 	/**
 	 * Set the fairy's personality.
 	 * @param personality - A description of the fairy's personality.
 	 */
 	setFairyPersonality(personality: string) {
-		this.$fairyConfig.update((fairy): FairyConfig => ({ ...fairy, personality }))
+		this.updateFairyConfig({ personality })
 	}
 
 	// setWand(wand: Wand['type']) {
@@ -1142,9 +1161,7 @@ ${JSON.stringify($sharedTodoList.get())}`)
 	 */
 	setMode(id: FairyMode['id']) {
 		const mode = getFairyMode(id)
-		this.$fairyConfig.update(
-			(fairy): FairyConfig => ({ ...fairy, mode: id, wand: mode.defaultWand })
-		)
+		this.updateFairyConfig({ mode: id, wand: mode.defaultWand })
 	}
 }
 

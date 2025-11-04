@@ -5,13 +5,11 @@ import { FairyMenuContent } from './FairyMenuContent'
 
 export function FairyDropdownContent({
 	agent,
-	onDeleteFairyConfig,
 	alignOffset,
 	sideOffset,
 	side = 'top',
 }: {
 	agent: FairyAgent
-	onDeleteFairyConfig(id: string): void
 	alignOffset: number
 	sideOffset: number
 	side?: 'top' | 'bottom' | 'left' | 'right'
@@ -30,7 +28,7 @@ export function FairyDropdownContent({
 				onClick={(e) => e.stopPropagation()}
 				style={{ zIndex: 100000000 }}
 			>
-				<FairyMenuContent agent={agent} onDeleteFairyConfig={onDeleteFairyConfig} menuType="menu" />
+				<FairyMenuContent agent={agent} menuType="menu" />
 			</_DropdownMenu.Content>
 		</_DropdownMenu.Portal>
 	)

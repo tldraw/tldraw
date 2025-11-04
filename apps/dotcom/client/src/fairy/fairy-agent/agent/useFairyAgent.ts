@@ -1,6 +1,6 @@
-import { FairyConfig } from '@tldraw/fairy-shared'
 import { useCallback, useMemo } from 'react'
 import { Editor, useToasts } from 'tldraw'
+import { useApp } from '../../../tla/hooks/useAppState'
 import { FairyThrowTool } from '../../FairyThrowTool'
 import { FairyAgent } from './FairyAgent'
 import { $fairyAgentsAtom } from './fairyAgentsAtom'
@@ -26,16 +26,15 @@ import { $fairyAgentsAtom } from './fairyAgentsAtom'
  */
 export function useFairyAgent({
 	id,
-	fairyConfig,
 	editor,
 	getToken,
 }: {
 	id: string
-	fairyConfig: FairyConfig
 	editor: Editor
 	getToken(): Promise<string | undefined>
 }): FairyAgent {
 	const toasts = useToasts()
+	const app = useApp()
 
 	const handleError = useCallback(
 		(e: any) => {
@@ -61,8 +60,8 @@ export function useFairyAgent({
 		editor.setTool(FairyThrowTool)
 
 		// Create a new agent
-		return new FairyAgent({ id, fairyConfig, editor, onError: handleError, getToken })
-	}, [editor, handleError, id, getToken, fairyConfig])
+		return new FairyAgent({ id, editor, app, onError: handleError, getToken })
+	}, [editor, handleError, id, getToken, app])
 
 	return agent
 }
