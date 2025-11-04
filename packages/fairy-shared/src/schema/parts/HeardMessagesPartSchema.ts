@@ -10,6 +10,7 @@ export const HeardMessagesPartSchema = z.object({
 			senderName: z.string(),
 			message: z.string(),
 			timestamp: z.number(),
+			response_requested: z.boolean(),
 		})
 	),
 })
@@ -23,7 +24,8 @@ HeardMessagesPartSchema.register(PromptPartRegistry, {
 
 		const lines = ['## Recent proximity chat messages you have heard:']
 		for (const msg of heardMessages) {
-			lines.push(`[${msg.senderName} (${msg.senderId})]: ${msg.message}`)
+			const responseIndicator = msg.response_requested ? ' (response requested)' : ''
+			lines.push(`[${msg.senderName} (${msg.senderId})]: ${msg.message}${responseIndicator}`)
 		}
 
 		return lines

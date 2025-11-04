@@ -16,7 +16,7 @@ export class ChatActionUtil extends AgentActionUtil<ChatAction> {
 		return {
 			icon: 'pencil' as const,
 			description: action.complete
-				? 'Sent a chat message to nearby fairies'
+				? `Sent: ${action.text}`
 				: 'Sending a chat message to nearby fairies...',
 			pose: 'thinking' as const,
 		}
@@ -33,7 +33,10 @@ export class ChatActionUtil extends AgentActionUtil<ChatAction> {
 			senderId: this.agent.id,
 			message: action.text,
 			timestamp: Date.now(),
+			response_requested: action.response_requested,
 		}
+
+		// console.log('message from ', senderName, ':', message.message)
 
 		// Find all nearby fairies within the shouting box
 		const shoutingBox = Box.FromCenter(senderPosition, FAIRY_SHOUTING_DIMENSIONS)

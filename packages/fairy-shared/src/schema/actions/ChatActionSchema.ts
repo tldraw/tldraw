@@ -4,6 +4,7 @@ export const ChatActionSchema = z
 	.object({
 		_type: z.literal('proximity-chat'),
 		text: z.string(),
+		response_requested: z.boolean(),
 	})
 	.meta({
 		title: 'Chat',

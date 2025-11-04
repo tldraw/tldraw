@@ -9,8 +9,10 @@ export class HeardMessagesPartUtil extends PromptPartUtil<HeardMessagesPart> {
 	override getPart(_request: AgentRequest, _helpers: AgentHelpers): HeardMessagesPart {
 		const allHeardMessages = this.agent.$heardMessages.get()
 
-		// Get the 12 most recent messages (sorted by timestamp descending)
+		// Filter out messages older than 5 minutes
+		const fiveMinutesAgo = Date.now() - 5 * 60 * 1000
 		const recentMessages = allHeardMessages
+			.filter((msg) => msg.timestamp >= fiveMinutesAgo)
 			.sort((a, b) => b.timestamp - a.timestamp)
 			.slice(0, 12)
 			.map((msg) => {
@@ -20,6 +22,7 @@ export class HeardMessagesPartUtil extends PromptPartUtil<HeardMessagesPart> {
 					senderName,
 					message: msg.message,
 					timestamp: msg.timestamp,
+					response_requested: msg.response_requested,
 				}
 			})
 

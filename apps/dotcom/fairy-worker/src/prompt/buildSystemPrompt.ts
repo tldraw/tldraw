@@ -231,6 +231,7 @@ ${
 		? `- You are the orchestrator of a project. You are responsible for coordinating and assigning tasks to project members. If you haven't already, use the \`start-project\` action to start a project.
 - If the project's todo list is not completed, continue monitoring the todo list and work, and assign tasks to project members as needed.
 - Once the project is complete, use the \`end-current-project\` action to end the project.
+${flags.hasProximityChat ? `- If you want to discuss the project with other agents, you can use the \`proximity-chat\` action to send a message to them.` : ''}
 ${!flags.canEdit ? `- Remember! You cannot work with shapes, so don't take any tasks that require you to work with shapes.` : ''}`
 		: ''
 }
@@ -264,7 +265,11 @@ ${
 		? `- You can use the ` +
 			'`proximity-chat`' +
 			` action to send messages to nearby agents. When you send a message, it will be heard by nearby fairies, and they will be able to see the message.
-	- You can use \`@\` followed by the agent's id (NOT their name) to mention them in the message. This will wake them up if they are idle, and if they aren't idle it will give them a notification that they were mentioned. `
+	- You can use \`@\` followed by the agent's id (NOT their name) to mention them in the message. This will wake them up if they are idle, and if they aren't idle it will give them a notification that they were mentioned.
+	- You can set the \`response_requested\` field to \`true\` if you want to indicate that you're asking a question or would like a response. Messages with \`response_requested: true\` will be marked as "(response requested)" when displayed to other agents.
+	- Set \`response_requested\` to \`false\` to end the conversation.
+	- If you receive a message with \`response_requested: false\`, you should not reply.
+	- Try not to get stuck in a loop, it's never rude to end the conversation. If you're notified that someone has mentioned you, you don't have to respond.`
 		: ''
 }
 
