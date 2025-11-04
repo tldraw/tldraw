@@ -195,6 +195,12 @@
       "value": "i18n: Highlight Missing"
     }
   ],
+  "32210b37e4": [
+    {
+      "type": 0,
+      "value": "Add link"
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
@@ -259,6 +265,12 @@
     {
       "type": 0,
       "value": "Pin file"
+    }
+  ],
+  "49049467ff": [
+    {
+      "type": 0,
+      "value": "Paste tldraw file URL..."
     }
   ],
   "4908687e50": [
@@ -761,6 +773,12 @@
       "value": "This month"
     }
   ],
+  "98c997a27e": [
+    {
+      "type": 0,
+      "value": "Add file link"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
@@ -911,6 +929,12 @@
     {
       "type": 0,
       "value": "Email address"
+    }
+  ],
+  "b3d2db69fe": [
+    {
+      "type": 0,
+      "value": "File URL"
     }
   ],
   "b6d4223e60": [
@@ -1167,6 +1191,12 @@
     {
       "type": 0,
       "value": "Invite only"
+    }
+  ],
+  "dcdaa754fe": [
+    {
+      "type": 0,
+      "value": "Invalid tldraw file URL"
     }
   ],
   "dfdb78a4e4": [

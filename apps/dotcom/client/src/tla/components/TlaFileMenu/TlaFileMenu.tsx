@@ -146,12 +146,14 @@ export function FileItems({
 	}, [app, fileId, groupId])
 
 	const handleDuplicateClick = useCallback(async () => {
+		if (!groupId) return
 		const newFileId = uniqueId()
 		const file = app.getFile(fileId)
 		if (!file) return
 		trackEvent('duplicate-file', { source })
 		const res = await app.createFile({
 			fileId: newFileId,
+			groupId,
 			name: getDuplicateName(file, app),
 			createSource: `${FILE_PREFIX}/${fileId}`,
 		})
@@ -164,11 +166,11 @@ export function FileItems({
 			app.ensureFileVisibleInSidebar(newFileId)
 			app.sidebarState.update((prev) => ({
 				...prev,
-				renameState: { fileId: newFileId, groupId: app.getHomeGroupId() },
+				renameState: { fileId: newFileId, groupId },
 			}))
 			navigate(routes.tlaFile(newFileId))
 		}
-	}, [app, fileId, navigate, trackEvent, source])
+	}, [app, fileId, groupId, navigate, trackEvent, source])
 
 	const handleDeleteClick = useCallback(() => {
 		if (!groupId) return
