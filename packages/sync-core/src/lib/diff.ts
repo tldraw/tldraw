@@ -182,7 +182,7 @@ export interface ObjectDiff {
  * @internal
  */
 export function diffRecord(prev: object, next: object): ObjectDiff | null {
-	return diffObject(prev, next, new Set(['props']))
+	return diffObject(prev, next, new Set(['props', 'meta']))
 }
 
 function diffObject(prev: object, next: object, nestedKeys?: Set<string>): ObjectDiff | null {
