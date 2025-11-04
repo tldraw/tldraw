@@ -507,7 +507,7 @@ export class Idle extends StateNode {
 			}
 			case 'Tab': {
 				const selectedShapes = this.editor.getSelectedShapes()
-				if (selectedShapes.length) {
+				if (selectedShapes.length && !info.altKey) {
 					this.editor.selectAdjacentShape(info.shiftKey ? 'prev' : 'next')
 				}
 				break
@@ -557,7 +557,7 @@ export class Idle extends StateNode {
 			}
 			case 'Tab': {
 				const selectedShapes = this.editor.getSelectedShapes()
-				if (selectedShapes.length) {
+				if (selectedShapes.length && !info.altKey) {
 					this.editor.selectAdjacentShape(info.shiftKey ? 'prev' : 'next')
 				}
 				break

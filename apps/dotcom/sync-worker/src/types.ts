@@ -124,6 +124,10 @@ export type TLServerEvent =
 			messageType: string
 			messageLength: number
 	  }
+	| {
+			type: 'persist_success'
+			attempts: number
+	  }
 
 export type TLPostgresReplicatorRebootSource =
 	| 'constructor'

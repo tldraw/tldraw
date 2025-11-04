@@ -171,7 +171,7 @@ export type ZErrorCode = keyof typeof ZErrorCode
 // increment this to force clients to reload
 // e.g. if we make backwards-incompatible changes to the schema
 export const Z_PROTOCOL_VERSION = 3
-export const MIN_Z_PROTOCOL_VERSION = 2
+export const MIN_Z_PROTOCOL_VERSION = 3
 
 export type ZServerSentPacket =
 	| {
@@ -224,3 +224,5 @@ export interface SubmitFeedbackRequestBody {
 }
 
 export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000
+
+export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persistence_bad' }

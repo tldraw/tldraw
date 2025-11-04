@@ -202,27 +202,14 @@ export class TldrawApp {
 			.related('groupMembers')
 	}
 
-	async preload(initialUserData: TlaUser) {
-		let didCreate = false
+	async preload() {
 		await this.userQuery().preload().complete
 		await this.changesFlushed
-		if (!this.user$.get()) {
-			didCreate = true
-
-			// Always use new groups initialization for new users (protocol v3+)
-			await this.z.mutate.init({ user: initialUserData, time: Date.now() })
-
-			updateLocalSessionState((state) => ({ ...state, shouldShowWelcomeDialog: true }))
-		}
 		await new Promise((resolve) => {
 			let unlisten = () => {}
 			unlisten = react('wait for user', () => this.user$.get() && resolve(unlisten()))
 		})
-		if (!this.user$.get()) {
-			throw Error('could not create user')
-		}
 		await this.fileStateQuery().preload().complete
-		return didCreate
 	}
 
 	messages = defineMessages({
@@ -764,9 +751,6 @@ export class TldrawApp {
 
 	static async create(opts: {
 		userId: string
-		fullName: string
-		email: string
-		avatar: string
 		getToken(): Promise<string | undefined>
 		onClientTooOld(): void
 		trackEvent: TLAppUiContextType
@@ -779,37 +763,29 @@ export class TldrawApp {
 		const app = new TldrawApp(opts.userId, opts.getToken, opts.onClientTooOld, opts.trackEvent)
 		// @ts-expect-error
 		window.app = app
-		const didCreate = await app.preload({
-			id: opts.userId,
-			name: opts.fullName,
-			email: opts.email,
-			color: color ?? defaultUserPreferences.color,
-			avatar: opts.avatar,
-			exportFormat: 'png',
-			exportTheme: 'light',
-			exportBackground: false,
-			exportPadding: true,
-			createdAt: Date.now(),
-			updatedAt: Date.now(),
-			flags: '',
-			allowAnalyticsCookie: null,
-			...restOfPreferences,
-			inputMode: restOfPreferences.inputMode ?? null,
-			locale: restOfPreferences.locale ?? null,
-			animationSpeed: restOfPreferences.animationSpeed ?? null,
-			areKeyboardShortcutsEnabled: restOfPreferences.areKeyboardShortcutsEnabled ?? null,
-			edgeScrollSpeed: restOfPreferences.edgeScrollSpeed ?? null,
-			colorScheme: restOfPreferences.colorScheme ?? null,
-			isSnapMode: restOfPreferences.isSnapMode ?? null,
-			isWrapMode: restOfPreferences.isWrapMode ?? null,
-			isDynamicSizeMode: restOfPreferences.isDynamicSizeMode ?? null,
-			isPasteAtCursorMode: restOfPreferences.isPasteAtCursorMode ?? null,
-			enhancedA11yMode: restOfPreferences.enhancedA11yMode ?? null,
-		})
-		if (didCreate) {
+		await app.preload()
+		const user = app.getUser()
+		if (user.color === '___INIT___') {
+			app.updateUser({
+				color: color ?? defaultUserPreferences.color,
+				...restOfPreferences,
+				inputMode: restOfPreferences.inputMode ?? null,
+				locale: restOfPreferences.locale ?? null,
+				animationSpeed: restOfPreferences.animationSpeed ?? null,
+				areKeyboardShortcutsEnabled: restOfPreferences.areKeyboardShortcutsEnabled ?? null,
+				edgeScrollSpeed: restOfPreferences.edgeScrollSpeed ?? null,
+				colorScheme: restOfPreferences.colorScheme ?? null,
+				isSnapMode: restOfPreferences.isSnapMode ?? null,
+				isWrapMode: restOfPreferences.isWrapMode ?? null,
+				isDynamicSizeMode: restOfPreferences.isDynamicSizeMode ?? null,
+				isPasteAtCursorMode: restOfPreferences.isPasteAtCursorMode ?? null,
+				enhancedA11yMode: restOfPreferences.enhancedA11yMode ?? null,
+			})
+
 			opts.trackEvent('create-user', { source: 'app' })
+			updateLocalSessionState((state) => ({ ...state, shouldShowWelcomeDialog: true }))
 		}
-		return { app, userId: opts.userId }
+		return { app, userId: user.id }
 	}
 
 	getIntl() {

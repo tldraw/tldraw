@@ -1,4 +1,4 @@
-import { getLicenseKey } from '@tldraw/dotcom-shared'
+import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
 import { FairyConfig, FairyEntity, PersistedFairyConfigs } from '@tldraw/fairy-shared'
 import { useSync } from '@tldraw/sync'
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -30,7 +30,7 @@ import {
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
-import { useHandleUiEvents } from '../../../utils/analytics'
+import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
@@ -215,6 +215,9 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}, [fileSlug, hasUser, getUserToken]),
 		assets,
 		userInfo: app?.tlUser.userPreferences,
+		onCustomMessageReceived: useCallback((message: TLCustomServerEvent) => {
+			trackEvent(message.type)
+		}, []),
 		getUserPresence: useCallback(
 			(store: TLStore, userInfo: TLPresenceUserInfo): TLPresenceStateInfo | null => {
 				const defaultPresence = getDefaultUserPresence(store, userInfo)
