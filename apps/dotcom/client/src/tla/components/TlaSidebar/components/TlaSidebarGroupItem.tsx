@@ -23,6 +23,7 @@ import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F, defineMessages, useMsg } from '../../../utils/i18n'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
+import { AddFileLinkDialog } from '../../dialogs/AddFileLinkDialog'
 import { GroupSettingsDialog } from '../../dialogs/GroupSettingsDialog'
 import styles from '../sidebar.module.css'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
@@ -221,9 +222,18 @@ function GroupMenuContent({ groupId }: { groupId: string }) {
 	}, [trackEvent, app, navigate, groupId])
 
 	const handleAddLinkToSharedFileClick = useCallback(() => {
-		// TODO: Implement add link to shared file functionality
-		trackEvent('copy-file-link', { source: 'sidebar' })
-	}, [trackEvent])
+		addDialog({
+			component: ({ onClose }) => (
+				<AddFileLinkDialog
+					onClose={onClose}
+					onAdd={async (fileId) => {
+						await app.addFileLinkToGroup(fileId, groupId)
+						trackEvent('add-file-link', { source: 'sidebar' })
+					}}
+				/>
+			),
+		})
+	}, [addDialog, app, groupId, trackEvent])
 
 	return (
 		<>

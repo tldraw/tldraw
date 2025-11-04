@@ -258,6 +258,7 @@ export class TldrawApp {
 		if (!this.user$.get()) {
 			throw Error('could not create user')
 		}
+
 		await this.fileStateQuery().preload().complete
 		return didCreate
 	}
@@ -773,6 +774,10 @@ export class TldrawApp {
 	async deleteOrForgetFile(fileId: string, groupId: string = this.getHomeGroupId()) {
 		// Optimistic update, remove file and file states
 		await this.z.mutate.removeFileFromGroup({ fileId, groupId })
+	}
+
+	async addFileLinkToGroup(fileId: string, groupId: string) {
+		await this.z.mutate.addFileLinkToGroup({ fileId, groupId })
 	}
 
 	setFileSharedLinkType(fileId: string, sharedLinkType: TlaFile['sharedLinkType'] | 'no-access') {
