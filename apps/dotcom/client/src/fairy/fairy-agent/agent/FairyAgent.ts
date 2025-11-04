@@ -33,7 +33,9 @@ import {
 	computed,
 	Computed,
 	Editor,
+	EditorAtom,
 	fetch,
+	react,
 	RecordsDiff,
 	reverseRecordsDiff,
 	structuredClone,
@@ -191,6 +193,10 @@ export class FairyAgent {
 	dispose() {
 		this.cancel()
 		this.stopRecordingUserActions()
+		// Stop following this fairy if it's currently being followed
+		if (getFollowingFairyId(this.editor) === this.id) {
+			stopFollowingFairy(this.editor)
+		}
 		$fairyAgentsAtom.update(this.editor, (agents) => agents.filter((agent) => agent.id !== this.id))
 	}
 
@@ -1218,20 +1224,32 @@ ${JSON.stringify($sharedTodoList.get())}`)
 
 	/**
 	 * Move the camera to the fairy's position.
+	 * Also switches to the page where the fairy is located.
 	 */
 	zoomTo() {
-		this.editor.zoomToBounds(Box.FromCenter(this.$fairyEntity.get().position, { x: 100, y: 100 }), {
+		const entity = this.$fairyEntity.get()
+		if (!entity) return
+
+		// Switch to the fairy's page
+		if (entity.currentPageId !== this.editor.getCurrentPageId()) {
+			this.editor.setCurrentPage(entity.currentPageId)
+		}
+
+		// Zoom to the fairy's position
+		this.editor.zoomToBounds(Box.FromCenter(entity.position, { x: 100, y: 100 }), {
 			animation: { duration: 220 },
 			targetZoom: 1,
 		})
 	}
 
 	/**
-	 * Instantly move the fairy to the center of the screen.
+	 * Instantly move the fairy to the center of the screen on the current page.
+	 * Updates the fairy's currentPageId to match the current editor page.
 	 */
 	summon() {
 		const position = this.editor.getViewportPageBounds().center
-		this.$fairyEntity.update((f) => (f ? { ...f, position, gesture: 'poof' } : f))
+		const currentPageId = this.editor.getCurrentPageId()
+		this.$fairyEntity.update((f) => (f ? { ...f, position, gesture: 'poof', currentPageId } : f))
 	}
 
 	/**
@@ -1241,6 +1259,27 @@ ${JSON.stringify($sharedTodoList.get())}`)
 	setMode(id: FairyMode['id']) {
 		const mode = getFairyMode(id)
 		this.updateFairyConfig({ mode: id, wand: mode.defaultWand })
+	}
+
+	/**
+	 * Start following this fairy with the camera.
+	 */
+	startFollowing() {
+		startFollowingFairy(this.editor, this.id)
+	}
+
+	/**
+	 * Stop following this fairy with the camera.
+	 */
+	stopFollowing() {
+		stopFollowingFairy(this.editor)
+	}
+
+	/**
+	 * Check if this fairy is currently being followed.
+	 */
+	isFollowing() {
+		return getFollowingFairyId(this.editor) === this.id
 	}
 }
 
@@ -1588,4 +1627,121 @@ function exhaustiveSwitchError(value: never, property?: string): never {
 	const debugValue =
 		property && value && typeof value === 'object' && property in value ? value[property] : value
 	throw new Error(`Unknown switch case ${debugValue}`)
+}
+
+/**
+ * Atom to track which fairy is currently being followed by the camera.
+ * Maps from Editor instance to the fairy ID being followed, or null if not following any fairy.
+ */
+export const $followingFairyId = new EditorAtom<string | null>('followingFairyId', () => null)
+
+/**
+ * Store for the reactive dispose functions so we can properly clean them up.
+ */
+const followDisposeHandlers = new WeakMap<Editor, () => void>()
+
+/**
+ * Get the ID of the fairy currently being followed for a given editor.
+ */
+export function getFollowingFairyId(editor: Editor): string | null {
+	return $followingFairyId.get(editor)
+}
+
+/**
+ * Start following a fairy with the camera.
+ * Similar to editor.startFollowingUser but for fairies.
+ */
+export function startFollowingFairy(editor: Editor, fairyId: string) {
+	stopFollowingFairy(editor)
+
+	const agent = getFairyAgentById(fairyId, editor)
+	if (!agent) {
+		console.warn('Could not find fairy agent with id:', fairyId)
+		return
+	}
+
+	$followingFairyId.update(editor, () => fairyId)
+
+	// Track last seen position/page to avoid redundant zooms and feedback loops
+	let lastX: number | null = null
+	let lastY: number | null = null
+	let lastPageId: string | null = null
+
+	const disposeFollow = react('follow fairy', () => {
+		const currentFairyId = getFollowingFairyId(editor)
+		if (currentFairyId !== fairyId) {
+			// We're no longer following this fairy
+			return
+		}
+
+		const currentAgent = getFairyAgentById(fairyId, editor)
+		if (!currentAgent) {
+			stopFollowingFairy(editor)
+			return
+		}
+
+		const fairyEntity = currentAgent.$fairyEntity.get()
+		if (!fairyEntity) {
+			stopFollowingFairy(editor)
+			return
+		}
+
+		// Only react when position or page actually changes
+		const { x, y } = fairyEntity.position
+		const pageId = fairyEntity.currentPageId
+		const EPS = 0.5
+		const samePage = lastPageId === pageId
+		const sameX = lastX !== null && Math.abs(lastX - x) < EPS
+		const sameY = lastY !== null && Math.abs(lastY - y) < EPS
+		if (samePage && sameX && sameY) return
+
+		lastX = x
+		lastY = y
+		lastPageId = pageId
+
+		currentAgent.zoomTo()
+	})
+
+	// Listen for user input events that should stop following
+	const onWheel = () => stopFollowingFairy(editor)
+	document.addEventListener('wheel', onWheel, { passive: false, capture: true })
+
+	// Also stop following when the user manually changes pages
+	const disposePageChange = react('stop following on page change', () => {
+		const currentPageId = editor.getCurrentPageId()
+
+		// Skip initial page check
+		if (!lastPageId) {
+			return
+		}
+
+		// If user changed page manually (not from following), stop following
+		const currentAgent = getFairyAgentById(fairyId, editor)
+		if (currentAgent) {
+			const fairyPageId = currentAgent.$fairyEntity.get()?.currentPageId
+			if (currentPageId !== fairyPageId && currentPageId !== lastPageId) {
+				stopFollowingFairy(editor)
+			}
+		}
+	})
+
+	// Store dispose functions so we can clean them up later
+	const dispose = () => {
+		disposeFollow()
+		disposePageChange()
+		document.removeEventListener('wheel', onWheel)
+	}
+	followDisposeHandlers.set(editor, dispose)
+}
+
+/**
+ * Stop following any fairy with the camera.
+ */
+export function stopFollowingFairy(editor: Editor) {
+	const dispose = followDisposeHandlers.get(editor)
+	if (dispose) {
+		dispose()
+		followDisposeHandlers.delete(editor)
+	}
+	$followingFairyId.update(editor, () => null)
 }
