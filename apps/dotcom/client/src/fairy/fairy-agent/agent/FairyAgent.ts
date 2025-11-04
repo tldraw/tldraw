@@ -26,7 +26,6 @@ import {
 	TodoItem,
 	Wand,
 } from '@tldraw/fairy-shared'
-import console from 'console'
 import {
 	Atom,
 	atom,
