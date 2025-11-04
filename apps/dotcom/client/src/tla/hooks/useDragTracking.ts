@@ -69,19 +69,18 @@ function detectGroupOperation(
 	draggedGroupId: string
 ): DragGroupOperation {
 	// Filter out the dragged group itself
-	const otherGroups = groupItems.filter((g) => g.id !== draggedGroupId)
 
-	if (otherGroups.length === 0) {
+	if (groupItems.filter((g) => g.id !== draggedGroupId).length === 0) {
 		return {}
 	}
 
-	const startTop = otherGroups[0].element.getBoundingClientRect().top
+	const startTop = groupItems[0].element.getBoundingClientRect().top
 
 	let insertBeforeId = null as null | string
 	let indicatorY = null as null | number
 	let prevBottom = startTop - REORDER_BOUNDARY_INDICATOR_OFFSET * 2
 
-	for (const target of otherGroups) {
+	for (const target of groupItems) {
 		const rect = target.element.getBoundingClientRect()
 		const midY = rect.top + rect.height / 2
 		if (mousePosition.y < midY) {
