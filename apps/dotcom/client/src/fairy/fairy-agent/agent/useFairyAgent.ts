@@ -1,4 +1,4 @@
-import { FairyConfig } from '@tldraw/fairy-shared/src/types/FairyConfig'
+import { FairyConfig } from '@tldraw/fairy-shared'
 import { useCallback, useMemo } from 'react'
 import { Editor, useToasts } from 'tldraw'
 import { FairyThrowTool } from '../../FairyThrowTool'
