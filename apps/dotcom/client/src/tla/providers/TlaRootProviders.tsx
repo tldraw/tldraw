@@ -14,6 +14,7 @@ import {
 	TldrawUiA11yProvider,
 	TldrawUiContextProvider,
 	fetch,
+	useDialogs,
 	useToasts,
 	useValue,
 } from 'tldraw'
@@ -24,6 +25,7 @@ import { globalEditor } from '../../utils/globalEditor'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
+import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
@@ -81,6 +83,7 @@ export function Component() {
 							<ContainerProvider container={container}>
 								<InsideOfContainerContext>
 									<Outlet />
+									<LegalTermsAcceptance />
 								</InsideOfContainerContext>
 							</ContainerProvider>
 						)}
@@ -225,6 +228,26 @@ function SignedInProvider({
 			</AppStateProvider>
 		</FileSidebarFocusContextProvider>
 	)
+}
+
+function LegalTermsAcceptance() {
+	const { user } = useClerkUser()
+	const { addDialog } = useDialogs()
+
+	useEffect(() => {
+		if (user && !user.legalAcceptedAt && !user.unsafeMetadata?.legal_accepted_at) {
+			addDialog({
+				component: TlaLegalAcceptance,
+				onClose: () => {
+					if (user && !user.legalAcceptedAt && !user.unsafeMetadata?.legal_accepted_at) {
+						window.location.reload()
+					}
+				},
+			})
+		}
+	}, [addDialog, user])
+
+	return null
 }
 
 function ThemeContainer({
