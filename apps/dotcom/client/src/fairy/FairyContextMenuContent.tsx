@@ -3,13 +3,7 @@ import { useContainer } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairyMenuContent } from './FairyMenuContent'
 
-export function FairyContextMenuContent({
-	agent,
-	onDeleteFairyConfig,
-}: {
-	agent: FairyAgent
-	onDeleteFairyConfig(id: string): void
-}) {
+export function FairyContextMenuContent({ agent }: { agent: FairyAgent }) {
 	const container = useContainer()
 
 	return (
@@ -20,11 +14,7 @@ export function FairyContextMenuContent({
 				onClick={(e) => e.stopPropagation()}
 				style={{ zIndex: 10000000 }}
 			>
-				<FairyMenuContent
-					agent={agent}
-					onDeleteFairyConfig={onDeleteFairyConfig}
-					menuType="context-menu"
-				/>
+				<FairyMenuContent agent={agent} menuType="context-menu" />
 			</_ContextMenu.Content>
 		</_ContextMenu.Portal>
 	)

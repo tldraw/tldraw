@@ -14,13 +14,7 @@ const FAIRY_CLICKABLE_SIZE_SELECTED = 60
 
 // We use the agent directly here because we need to access the isGenerating method
 // which is not exposed on the fairy atom
-export default function Fairy({
-	agent,
-	onDeleteFairyConfig,
-}: {
-	agent: FairyAgent
-	onDeleteFairyConfig(id: string): void
-}) {
+export default function Fairy({ agent }: { agent: FairyAgent }) {
 	const editor = useEditor()
 	const fairyRef = useRef<HTMLDivElement>(null)
 	const fairy = agent.$fairyEntity
@@ -228,7 +222,6 @@ export default function Fairy({
 
 	// Early return if fairy doesn't exist (after all hooks)
 	const fairyEntity = fairy.get()
-	if (!fairyEntity) return null
 
 	return (
 		<_ContextMenu.Root dir="ltr">
@@ -268,7 +261,7 @@ export default function Fairy({
 					/>
 				</div>
 			</_ContextMenu.Trigger>
-			<FairyContextMenuContent agent={agent} onDeleteFairyConfig={onDeleteFairyConfig} />
+			<FairyContextMenuContent agent={agent} />
 		</_ContextMenu.Root>
 	)
 }

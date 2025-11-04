@@ -4,8 +4,8 @@ import {
 	PersistedFairyState,
 } from '@tldraw/fairy-shared'
 import { useCallback, useEffect, useRef } from 'react'
-import { react, throttle, useEditor } from 'tldraw'
-import { useMaybeApp } from '../tla/hooks/useAppState'
+import { react, throttle, useEditor, useValue } from 'tldraw'
+import { useApp } from '../tla/hooks/useAppState'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairyThrowTool } from './FairyThrowTool'
@@ -14,16 +14,19 @@ import { TodoDragTool } from './TodoDragTool'
 
 export function FairyApp({
 	setAgents,
-	fairyConfigs,
 	fileId,
 }: {
 	setAgents(agents: FairyAgent[]): void
-	fairyConfigs: PersistedFairyConfigs
 	fileId: string
 }) {
 	const editor = useEditor()
 	const user = useTldrawUser()
-	const app = useMaybeApp()
+	const app = useApp()
+	const fairyConfigs = useValue(
+		'fairyConfigs',
+		() => JSON.parse(app?.getUser().fairies || '{}') as PersistedFairyConfigs,
+		[app]
+	)
 
 	const getToken = useCallback(async () => {
 		if (!user) return undefined
@@ -76,7 +79,7 @@ export function FairyApp({
 		const newAgents = idsToCreate.map((id) => {
 			return new FairyAgent({
 				id,
-				fairyConfig: fairyConfigs[id],
+				app,
 				editor,
 				onError: handleError,
 				getToken,
@@ -91,7 +94,7 @@ export function FairyApp({
 
 		agentsRef.current = updatedAgents
 		setAgents(updatedAgents)
-	}, [fairyConfigs, editor, getToken, handleError, setAgents])
+	}, [fairyConfigs, editor, getToken, handleError, setAgents, app])
 
 	// Cleanup: dispose all agents only when component unmounts
 	useEffect(() => {
@@ -202,47 +205,6 @@ export function FairyApp({
 			fairyCleanupFns.forEach((cleanup) => cleanup())
 		}
 	}, [app, fairyConfigs, fileId])
-
-	// Save fairy configs to user preferences when they change
-	useEffect(() => {
-		if (!app || agentsRef.current.length === 0) return
-
-		const updateFairyConfigs = throttle(() => {
-			// Don't save if we're currently loading state
-			if (isLoadingStateRef.current) return
-
-			const configs: PersistedFairyConfigs = {}
-			agentsRef.current.forEach((agent) => {
-				configs[agent.id] = agent.$fairyConfig.get()
-			})
-
-			try {
-				app.z.mutate.user.updateFairies({
-					fairies: JSON.stringify(configs),
-				})
-			} catch (e) {
-				console.error('Failed to save fairy configs:', e)
-			}
-		}, 500) // Save every 0.5 seconds
-
-		// Watch for changes in fairy config atoms
-		const cleanupFns: (() => void)[] = []
-		agentsRef.current.forEach((agent) => {
-			const cleanup = react(`${agent.id} config`, () => {
-				agent.$fairyConfig.get()
-				updateFairyConfigs()
-			})
-			cleanupFns.push(cleanup)
-		})
-
-		// Trigger an immediate save when fairyConfigs changes (handles additions/deletions)
-		updateFairyConfigs()
-
-		return () => {
-			updateFairyConfigs.flush()
-			cleanupFns.forEach((cleanup) => cleanup())
-		}
-	}, [app, fairyConfigs])
 
 	return null
 }

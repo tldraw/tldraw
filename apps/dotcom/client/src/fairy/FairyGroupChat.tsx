@@ -75,18 +75,11 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 			}
 
 			// Set leader as orchestrator
-			leaderAgent.$fairyConfig.update((config) => ({
-				...config,
-				wand: 'orchestrator',
-			}))
+			leaderAgent.updateFairyConfig({ wand: 'orchestrator' })
 
 			// Set followers as drones
 			followerAgents.forEach((agent) => {
-				agent.$fairyConfig.update((config) => ({
-					...config,
-					wand: 'drone',
-					mode: 'drone',
-				}))
+				agent.updateFairyConfig({ wand: 'drone' })
 			})
 
 			const newProjectId = uniqueId(5)

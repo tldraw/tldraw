@@ -12,14 +12,12 @@ export function FairySidebarButton({
 	onDoubleClick,
 	selectMessage,
 	deselectMessage,
-	onDeleteFairyConfig,
 }: {
 	agent: FairyAgent
 	onClick(): void
 	onDoubleClick(): void
 	selectMessage: string
 	deselectMessage: string
-	onDeleteFairyConfig(id: string): void
 }) {
 	const fairyIsSelected = useValue(
 		'fairy-button-selected',
@@ -36,6 +34,8 @@ export function FairySidebarButton({
 	const project = currentProjectId ? getProjectById(currentProjectId) : undefined
 	const isOrchestrator = project ? project.orchestratorId === agent.id : false
 	const projectColor = project ? getProjectColor(agent.editor, project.color) : undefined
+
+	if (!fairyEntity || !fairyOutfit) return null
 
 	return (
 		<_ContextMenu.Root dir="ltr">
@@ -64,7 +64,7 @@ export function FairySidebarButton({
 					</TldrawUiToolbarToggleItem>
 				</TldrawUiToolbarToggleGroup>
 			</_ContextMenu.Trigger>
-			<FairyContextMenuContent agent={agent} onDeleteFairyConfig={onDeleteFairyConfig} />
+			<FairyContextMenuContent agent={agent} />
 		</_ContextMenu.Root>
 	)
 }
