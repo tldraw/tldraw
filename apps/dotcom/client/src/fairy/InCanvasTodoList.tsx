@@ -11,7 +11,7 @@ export function InCanvasTodoList({ agents }: { agents: FairyAgent[] }) {
 		$showCanvasTodos,
 	])
 
-	const inCanvasTodos = todos.filter((todo) => todo.x && todo.y)
+	const inCanvasTodos = todos.filter((todo) => todo.x != null && todo.y != null)
 
 	if (!showCanvasTodos) return null
 
@@ -50,7 +50,7 @@ function InCanvasTodoItem({ agents, todo }: { agents: FairyAgent[]; todo: Shared
 	const projectColor =
 		project && agents.length > 0 ? getProjectColor(agents[0].editor, project.color) : undefined
 
-	if (!todo.x || !todo.y) return null
+	if (todo.x == null || todo.y == null) return null
 
 	return (
 		<div
