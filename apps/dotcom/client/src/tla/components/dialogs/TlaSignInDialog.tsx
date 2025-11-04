@@ -1,7 +1,7 @@
-import { useClerk, useSignIn, useUser } from '@clerk/clerk-react'
+import { useClerk, useSignIn } from '@clerk/clerk-react'
 import * as Clerk from '@clerk/elements/common'
 import * as SignIn from '@clerk/elements/sign-in'
-import { ReactNode, useEffect, useState, type FormEvent } from 'react'
+import { ReactNode, useState, type FormEvent } from 'react'
 import {
 	TldrawUiButton,
 	TldrawUiDialogBody,
@@ -18,59 +18,6 @@ const messages = defineMessages({
 })
 
 export function TlaSignInDialog({ onClose }: { onClose?(): void }) {
-	const { user, isLoaded } = useUser()
-	const [showTerms, setShowTerms] = useState(false)
-	const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false)
-	const [analyticsOptIn, setAnalyticsOptIn] = useState(false)
-	const [, updateAnalyticsConsent] = useAnalyticsConsent()
-
-	// Check if user has accepted legal terms
-	useEffect(() => {
-		if (isLoaded && user) {
-			const hasAcceptedLegal = user.unsafeMetadata?.legal_accepted_at
-
-			if (!hasAcceptedLegal) {
-				setShowTerms(true)
-			} else {
-				// User already accepted terms
-				onClose?.()
-			}
-		}
-	}, [isLoaded, user, onClose])
-
-	const handleAcceptTerms = async () => {
-		if (!user || !hasAcceptedTerms) return
-
-		// Persist analytics choice before redirecting
-		updateAnalyticsConsent(analyticsOptIn)
-
-		// Store acceptance in user metadata
-		await user.update({
-			unsafeMetadata: {
-				...user.unsafeMetadata,
-				legal_accepted_at: new Date().toISOString(),
-			},
-		})
-
-		onClose?.()
-	}
-
-	// If user just signed up and hasn't accepted terms, show terms screen
-	if (showTerms && user) {
-		return (
-			<div className={styles.authContainer}>
-				<TlaTermsAcceptance
-					hasAccepted={hasAcceptedTerms}
-					onAcceptedChange={setHasAcceptedTerms}
-					analyticsOptIn={analyticsOptIn}
-					onAnalyticsChange={setAnalyticsOptIn}
-					onContinue={handleAcceptTerms}
-					onClose={onClose}
-				/>
-			</div>
-		)
-	}
-
 	return (
 		<div className={styles.authContainer}>
 			<TlaLoginFlow onClose={onClose} />
