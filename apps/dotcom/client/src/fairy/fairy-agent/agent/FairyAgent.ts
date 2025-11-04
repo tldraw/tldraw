@@ -231,6 +231,10 @@ export class FairyAgent {
 					...entity,
 					position: state.fairyEntity?.position ?? entity.position,
 					flipX: state.fairyEntity?.flipX ?? entity.flipX,
+					currentPageId: state.fairyEntity?.currentPageId ?? entity.currentPageId,
+					isSelected: state.fairyEntity?.isSelected ?? entity.isSelected,
+					pose: state.fairyEntity?.pose ?? entity.pose,
+					gesture: state.fairyEntity?.gesture ?? entity.gesture,
 				}
 			})
 		}
