@@ -68,8 +68,6 @@ function detectGroupOperation(
 	mousePosition: { x: number; y: number },
 	draggedGroupId: string
 ): DragGroupOperation {
-	// Filter out the dragged group itself
-
 	if (groupItems.filter((g) => g.id !== draggedGroupId).length === 0) {
 		return {}
 	}
