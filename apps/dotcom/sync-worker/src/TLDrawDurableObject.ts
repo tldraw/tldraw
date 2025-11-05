@@ -46,6 +46,7 @@ import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { generateSnapshotChunks } from './snapshotUtils'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
+import { createPierreClient } from './utils/createPierreClient'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
@@ -174,6 +175,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 	// For persistence
 	supabaseClient: SupabaseClient | void
+	pierreClient: ReturnType<typeof createPierreClient>
 
 	// For analytics
 	measure: Analytics | undefined
@@ -202,6 +204,7 @@ export class TLDrawDurableObject extends DurableObject {
 		this.measure = env.MEASURE
 		this.sentry = createSentry(this.state, this.env)
 		this.supabaseClient = createSupabaseClient(env)
+		this.pierreClient = createPierreClient(env)
 
 		this.supabaseTable = env.TLDRAW_ENV === 'production' ? 'drawings' : 'drawings_staging'
 		this.r2 = {
@@ -251,6 +254,11 @@ export class TLDrawDurableObject extends DurableObject {
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
 			(req) => this.onRestore(req)
 		)
+		.post(
+			`/app/file/:roomId/pierre-restore`,
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
+			(req) => this.onRestore(req, true)
+		)
 		.all('*', () => new Response('Not found', { status: 404 }))
 
 	// eslint-disable-next-line no-restricted-syntax
@@ -298,23 +306,49 @@ export class TLDrawDurableObject extends DurableObject {
 	}
 
 	_isRestoring = false
-	async onRestore(req: IRequest) {
+	async onRestore(req: IRequest, isPierre: boolean = false) {
 		this._isRestoring = true
 		try {
+			if (isPierre && !this.documentInfo.isApp) {
+				return new Response('Pierre restore must be for an app file', { status: 400 })
+			}
 			if (this.documentInfo.isApp) {
 				await requireWriteAccessToFile(req, this.env, this.documentInfo.slug)
 			}
+			let dataText = ''
 			const roomId = this.documentInfo.slug
 			const roomKey = getR2KeyForRoom({ slug: roomId, isApp: this.documentInfo.isApp })
-			const timestamp = ((await req.json()) as any).timestamp
-			if (!timestamp) {
-				return new Response('Missing timestamp', { status: 400 })
+			if (isPierre) {
+				const commitHash = ((await req.json()) as any).commitHash
+				if (!commitHash) {
+					return new Response('Missing commit hash', { status: 400 })
+				}
+				const repo = await this.getPierreRepo()
+				if (!repo) {
+					return new Response('Pierre not available', { status: 503 })
+				}
+				const fileStream = await repo.getFileStream({
+					path: SNAPSHOT_FILE_NAME,
+					ref: commitHash,
+				})
+				dataText = await fileStream.text()
+				await repo.restoreCommit({
+					targetCommitSha: commitHash,
+					targetBranch: 'main',
+					author: PIERRE_AUTHOR,
+				})
+			} else {
+				const timestamp = ((await req.json()) as any).timestamp
+				if (!timestamp) {
+					return new Response('Missing timestamp', { status: 400 })
+				}
+				const data = await this.r2.versionCache.get(`${roomKey}/${timestamp}`)
+				if (!data) {
+					return new Response('Version not found', { status: 400 })
+				}
+				dataText = await data.text()
 			}
-			const data = await this.r2.versionCache.get(`${roomKey}/${timestamp}`)
-			if (!data) {
-				return new Response('Version not found', { status: 400 })
-			}
-			const dataText = await data.text()
+
 			await this.r2.rooms.put(roomKey, dataText)
 			const room = await this.getRoom()
 
@@ -891,6 +925,7 @@ export class TLDrawDurableObject extends DurableObject {
 		// Then upload to version cache
 		const versionKey = `${key}/${new Date().toISOString()}`
 		await this._uploadSnapshotToBucket(this.r2.versionCache, snapshot, versionKey)
+		await this.persistToPierre(versionKey)
 	}
 
 	private async _uploadSnapshotToBucket(bucket: R2Bucket, snapshot: RoomSnapshot, key: string) {
@@ -976,6 +1011,51 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 
 		return null
+	}
+
+	private async getPierreRepo() {
+		if (
+			!this.pierreClient ||
+			!this.documentInfo.isApp ||
+			!this.env.TLDRAW_ENV ||
+			this.env.TLDRAW_ENV === 'production'
+		) {
+			return null
+		}
+		const repoId = `${this.env.TLDRAW_ENV}/snapshots/${this.documentInfo.slug}`
+		return (
+			(await this.pierreClient.findOne({ id: repoId })) ??
+			(await this.pierreClient.createRepo({ id: repoId }))
+		)
+	}
+
+	private async persistToPierre(key: string) {
+		try {
+			const repo = await this.getPierreRepo()
+			if (!repo) return
+
+			// Get the snapshot from R2 to create a readable stream
+			const r2Object = await this.r2.versionCache.get(key)
+			if (!r2Object) {
+				console.warn('Failed to get R2 object for Pierre upload:', key)
+				return
+			}
+
+			// Create commit with the snapshot
+			const timestamp = new Date().toISOString()
+			await repo
+				.createCommit({
+					targetBranch: 'main',
+					commitMessage: `Snapshot at ${timestamp}`,
+					author: PIERRE_AUTHOR,
+				})
+				.addFile(SNAPSHOT_FILE_NAME, r2Object.body)
+				.send()
+		} catch (error) {
+			// Log but don't fail the main persist operation
+			console.error('Failed to persist to Pierre:', error)
+			this.reportError(error)
+		}
 	}
 
 	private reportError(e: unknown) {
@@ -1182,3 +1262,6 @@ async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promise<stri
 
 const PERSIST_RETRIES_NOTIFY_THRESHOLD = 10
 const PERSIST_RETRIES_MAX = 100
+
+const SNAPSHOT_FILE_NAME = 'snapshot.json'
+const PIERRE_AUTHOR = { email: 'huppy@tldraw.com', name: 'huppy [bot]' }

@@ -1,24 +1,28 @@
 import { captureException } from '@sentry/react'
-import { type HistoryResponseBody } from '@tldraw/dotcom-shared'
 import { useEffect, useState } from 'react'
 import { useRouteError } from 'react-router-dom'
 import { BoardHistoryLog } from '../../components/BoardHistoryLog/BoardHistoryLog'
 import { defineLoader } from '../../utils/defineLoader'
-import { fetchHistory } from '../../utils/fetchHistory'
+import { fetchPierreHistory } from '../../utils/fetchHistory'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
 import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { toggleSidebar } from '../utils/local-session-state'
+
+interface PierreHistoryData {
+	entries: Array<{ timestamp: string; commitHash: string }>
+	nextCursor?: string | null
+}
 
 const { loader, useData } = defineLoader(async (args) => {
 	const fileSlug = args.params.fileSlug
 
 	if (!fileSlug) return null
 
-	const data = await fetchHistory(fileSlug)
+	const data = await fetchPierreHistory(fileSlug)
 	if (!data) return null
 
-	return { data, fileSlug } as { data: HistoryResponseBody; fileSlug: string }
+	return { data, fileSlug } as { data: PierreHistoryData; fileSlug: string }
 })
 
 export { loader }
@@ -33,8 +37,10 @@ export function ErrorBoundary() {
 
 export function Component({ error: _error }: { error?: unknown }) {
 	const data = useData()
-	const [allTimestamps, setAllTimestamps] = useState<string[]>([])
-	const [hasMore, setHasMore] = useState(false)
+	const [allEntries, setAllEntries] = useState<Array<{ timestamp: string; commitHash: string }>>(
+		data?.data.entries || []
+	)
+	const [nextCursor, setNextCursor] = useState<string | null>(data?.data?.nextCursor || null)
 	const [isLoading, setIsLoading] = useState(false)
 
 	const userId = useMaybeApp()?.userId
@@ -48,31 +54,20 @@ export function Component({ error: _error }: { error?: unknown }) {
 		}
 	}, [error, userId])
 
-	// Initialize with first batch of data
-	useEffect(() => {
-		if (data?.data) {
-			setAllTimestamps(data.data.timestamps)
-			setHasMore(data.data.hasMore)
-		}
-	}, [data?.data])
-
 	const handleLoadMore = async () => {
 		if (!data?.fileSlug || isLoading) return
 
 		setIsLoading(true)
 		try {
-			// Get the earliest timestamp from the current list
-			const earliestTimestamp = allTimestamps[allTimestamps.length - 1]
-
-			const newData = await fetchHistory(data.fileSlug, earliestTimestamp)
+			const newData = await fetchPierreHistory(data.fileSlug, nextCursor)
 
 			if (newData) {
-				// Filter out any timestamps that already exist to prevent duplicates
-				const uniqueNewTimestamps = newData.timestamps.filter(
-					(timestamp) => !allTimestamps.includes(timestamp)
+				// Filter out any entries that already exist to prevent duplicates
+				const uniqueNewEntries = newData.entries.filter(
+					(entry) => !allEntries.some((e) => e.commitHash === entry.commitHash)
 				)
-				setAllTimestamps((prev) => [...prev, ...uniqueNewTimestamps])
-				setHasMore(newData.hasMore)
+				setAllEntries((prev) => [...prev, ...uniqueNewEntries])
+				setNextCursor(newData.nextCursor ?? null)
 			}
 		} catch (err) {
 			console.error('Failed to load more history:', err)
@@ -88,8 +83,11 @@ export function Component({ error: _error }: { error?: unknown }) {
 			) : (
 				<TlaAnonLayout>
 					<BoardHistoryLog
-						data={allTimestamps.map((timestamp) => ({ timestamp, href: `./${timestamp}` }))}
-						hasMore={hasMore}
+						data={allEntries.map((record) => ({
+							timestamp: record.timestamp,
+							href: `./${record.commitHash}`,
+						}))}
+						hasMore={!!nextCursor}
 						onLoadMore={handleLoadMore}
 						isLoading={isLoading}
 					/>

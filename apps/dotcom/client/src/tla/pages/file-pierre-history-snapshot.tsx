@@ -21,17 +21,17 @@ export function ErrorBoundary() {
 
 const { loader, useData } = defineLoader(async (args) => {
 	const fileSlug = args.params.fileSlug
-	const timestamp = args.params.timestamp
+	const commitHash = args.params.commitHash
 
-	if (!fileSlug) return null
+	if (!fileSlug || !commitHash) return null
 
-	const result = await fetch(`/api/${FILE_PREFIX}/${fileSlug}/history/${timestamp}`, {
+	const result = await fetch(`/api/${FILE_PREFIX}/${fileSlug}/pierre-history/${commitHash}`, {
 		headers: {},
 	})
 	if (!result.ok) return null
 	const data = (await result.json()) as RoomSnapshot
 
-	return { data, fileSlug, timestamp }
+	return { data, fileSlug, commitHash }
 })
 
 export { loader }
@@ -54,8 +54,7 @@ export function Component({ error: _error }: { error?: unknown }) {
 		} as TLStoreSnapshot
 	}, [result])
 
-	const ts = result?.timestamp
-	const error = _error || !result || !ts || !snapshot
+	const error = _error || !result || !snapshot
 
 	useEffect(() => {
 		if (error && userId) {
@@ -74,12 +73,12 @@ export function Component({ error: _error }: { error?: unknown }) {
 						fileSlug={result.fileSlug}
 						snapshot={snapshot}
 						onRestore={async () => {
-							const res = await fetch(`/api/app/file/${result.fileSlug}/restore`, {
+							const res = await fetch(`/api/app/file/${result.fileSlug}/pierre-restore`, {
 								method: 'POST',
 								headers: {
 									'Content-Type': 'application/json',
 								},
-								body: JSON.stringify({ timestamp: ts }),
+								body: JSON.stringify({ commitHash: result.commitHash }),
 							})
 							if (!res.ok) {
 								throw new Error('Failed to restore version: ' + (await res.text()))
