@@ -127,6 +127,8 @@ class Analytics {
 					if (index > -1) this.consentCallbacks.splice(index, 1)
 				}
 			},
+			trackCopyCode: this.trackCopyCode.bind(this),
+			trackFormSubmission: this.trackFormSubmission.bind(this),
 			openPrivacySettings() {
 				mountPrivacySettingsDialog(cookieConsentState, themeState, document.body)
 			},
@@ -235,6 +237,47 @@ class Analytics {
 	page() {
 		for (const service of this.services) {
 			service.trackPageview()
+		}
+	}
+
+	/**
+	 * Track code copy event. This should be called from window.tlanalytics when a user copies a code snippet.
+	 *
+	 * @param data - The code copy event data
+	 * @returns void
+	 */
+	trackCopyCode(data: {
+		page_category: string
+		text_snippet: string
+		user_email?: string
+		user_email_sha256?: string
+		user_first_name?: string
+		user_last_name?: string
+		user_phone_number?: string
+	}) {
+		for (const service of this.services) {
+			service.trackCopyCode?.(data)
+		}
+	}
+
+	/**
+	 * Track form submission event. This should be called from window.tlanalytics when a user submits a form.
+	 *
+	 * @param data - The form submission event data
+	 * @returns void
+	 */
+	trackFormSubmission(data: {
+		enquiry_type: string
+		company_size?: string
+		company_website?: string
+		user_email: string
+		user_email_sha256: string
+		user_first_name: string
+		user_last_name: string
+		user_phone_number?: string
+	}) {
+		for (const service of this.services) {
+			service.trackFormSubmission?.(data)
 		}
 	}
 }

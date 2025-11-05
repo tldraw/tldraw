@@ -26,4 +26,25 @@ export class AnalyticsService {
 		consent_marketing: 'granted' | 'denied'
 		consent_opt_in_type: 'manual' | 'auto'
 	}): void
+	// Track when user copies a code snippet.
+	trackCopyCode?(data: {
+		page_category: string
+		text_snippet: string
+		user_email?: string
+		user_email_sha256?: string
+		user_first_name?: string
+		user_last_name?: string
+		user_phone_number?: string
+	}): void
+	// Track when user submits a form.
+	trackFormSubmission?(data: {
+		enquiry_type: string
+		company_size?: string
+		company_website?: string
+		user_email: string
+		user_email_sha256: string
+		user_first_name: string
+		user_last_name: string
+		user_phone_number?: string
+	}): void
 }
