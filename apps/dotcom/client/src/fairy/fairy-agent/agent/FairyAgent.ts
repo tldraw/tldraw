@@ -1343,9 +1343,11 @@ ${JSON.stringify(todoItems)}`)
 	/**
 	 * Instantly move the fairy to the center of the screen on the current page.
 	 * Updates the fairy's currentPageId to match the current editor page.
+	 * @param offset Optional offset from the center position
 	 */
-	summon() {
-		const position = this.editor.getViewportPageBounds().center
+	summon(offset?: { x: number; y: number }) {
+		const center = this.editor.getViewportPageBounds().center
+		const position = offset ? { x: center.x + offset.x, y: center.y + offset.y } : center
 		const currentPageId = this.editor.getCurrentPageId()
 		this.$fairyEntity.update((f) => (f ? { ...f, position, gesture: 'poof', currentPageId } : f))
 	}

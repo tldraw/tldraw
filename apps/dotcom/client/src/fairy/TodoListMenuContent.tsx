@@ -45,6 +45,24 @@ export function TodoListMenuContent({
 		})
 	}, [addDialog, agents])
 
+	const summonAllFairies = useCallback(() => {
+		const spacing = 150 // Distance between fairies
+		agents.forEach((agent, index) => {
+			if (agents.length === 1) {
+				agent.summon()
+			} else {
+				// Arrange fairies in a circle around the center
+				const angleStep = (2 * Math.PI) / agents.length
+				const angle = index * angleStep
+				const offset = {
+					x: Math.cos(angle) * spacing,
+					y: Math.sin(angle) * spacing,
+				}
+				agent.summon(offset)
+			}
+		})
+	}, [agents])
+
 	return (
 		<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">
 			<TldrawUiMenuGroup id="todo-menu">
@@ -52,6 +70,11 @@ export function TodoListMenuContent({
 					id="ask-for-help-from-everyone"
 					onSelect={() => requestHelpFromEveryone(agents)}
 					label="Ask for help"
+				/>
+				<TldrawUiMenuItem
+					id="summon-all-fairies"
+					onSelect={summonAllFairies}
+					label="Summon all fairies"
 				/>
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="todo-list-config-menu">
