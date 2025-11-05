@@ -13,6 +13,7 @@ export const OtherFairySchema = z.object({
 	isGenerating: z.boolean(),
 	bounds: BoxModelSchema.nullable(),
 	personality: z.string(),
+	currentProjectId: z.string().nullable(),
 })
 
 export type OtherFairy = z.infer<typeof OtherFairySchema>
