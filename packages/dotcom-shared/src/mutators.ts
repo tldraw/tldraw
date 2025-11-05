@@ -155,8 +155,30 @@ export function createMutators(userId: string) {
 				disallowImmutableMutations(user, immutableColumns.user)
 				await tx.mutate.user.update(user)
 			},
-			updateFairies: async (tx, { fairies }: { fairies: string }) => {
-				await tx.mutate.user_fairies.upsert({ userId, fairies })
+			updateFairyConfig: async (tx, { id, properties }: { id: string; properties: object }) => {
+				const current = await tx.query.user_fairies.where('userId', '=', userId).one().run()
+				const currentConfig = JSON.parse(current?.fairies || '{}')
+				await tx.mutate.user_fairies.upsert({
+					userId,
+					fairies: JSON.stringify({
+						...currentConfig,
+						[id]: {
+							...currentConfig[id],
+							...properties,
+						},
+					}),
+				})
+			},
+			deleteFairyConfig: async (tx, { id }: { id: string }) => {
+				const current = await tx.query.user_fairies.where('userId', '=', userId).one().run()
+				const currentConfig = JSON.parse(current?.fairies || '{}')
+				await tx.mutate.user_fairies.upsert({
+					userId,
+					fairies: JSON.stringify({ ...currentConfig, [id]: undefined }),
+				})
+			},
+			deleteAllFairyConfigs: async (tx) => {
+				await tx.mutate.user_fairies.upsert({ userId, fairies: '{}' })
 			},
 		},
 		file: {
@@ -240,6 +262,7 @@ export function createMutators(userId: string) {
 			},
 		},
 
+		/** @deprecated */
 		init: async (tx, { user, time }: { user: TlaUser; time: number }) => {
 			assert(user.id === userId, ZErrorCode.forbidden)
 			time = ensureSensibleTimestamp(time)

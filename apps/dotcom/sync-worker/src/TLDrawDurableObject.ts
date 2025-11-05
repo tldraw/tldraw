@@ -1,6 +1,6 @@
 /// <reference no-default-lib="true"/>
-/// <reference types="@cloudflare/workers-types" />
 
+import { R2Bucket } from '@cloudflare/workers-types'
 import { SupabaseClient } from '@supabase/supabase-js'
 import {
 	APP_ASSET_UPLOAD_ENDPOINT,
@@ -14,6 +14,7 @@ import {
 	ROOM_PREFIX,
 	ROOM_SIZE_LIMIT_MB,
 	SNAPSHOT_PREFIX,
+	TLCustomServerEvent,
 	TlaFile,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
@@ -528,6 +529,10 @@ export class TLDrawDurableObject extends DurableObject {
 
 	logEvent(event: TLServerEvent) {
 		switch (event.type) {
+			case 'persist_success': {
+				this.writeEvent(event.type, { doubles: [event.attempts] })
+				break
+			}
 			case 'room': {
 				// we would add user/connection ids here if we could
 				this.writeEvent(event.name, { blobs: [event.roomId] })
@@ -801,43 +806,74 @@ export class TLDrawDurableObject extends DurableObject {
 		})
 	}
 
+	broadcastPersistenceEvent(event: TLCustomServerEvent) {
+		this._room?.then((r) => {
+			for (const session of r.getSessions()) {
+				r.sendCustomMessage(session.sessionId, event)
+			}
+		})
+	}
+	persistenceBad = false
+
 	// Save the room to r2
 	async persistToDatabase() {
-		try {
-			await this.executionQueue.push(async () => {
-				// check whether the worker was woken up to persist after having gone to sleep
-				if (!this._room) return
-				const slug = this.documentInfo.slug
-				const room = await this.getRoom()
-				const clock = room.getCurrentDocumentClock()
-				if (this._lastPersistedClock === clock) return
-				if (this._isRestoring) return
+		await this.executionQueue
+			.push(async () => {
+				await retry(
+					async ({ attempt }) => {
+						if (attempt === PERSIST_RETRIES_NOTIFY_THRESHOLD && !this.persistenceBad) {
+							this.broadcastPersistenceEvent({ type: 'persistence_bad' })
+							this.persistenceBad = true
+						}
+						// check whether the worker was woken up to persist after having gone to sleep
+						if (!this._room) return
+						const slug = this.documentInfo.slug
+						const room = await this.getRoom()
+						const clock = room.getCurrentDocumentClock()
+						if (this._lastPersistedClock === clock) return
+						if (this._isRestoring) return
 
-				const snapshot = room.getCurrentSnapshot()
-				this.maybeAssociateFileAssets()
+						const snapshot = room.getCurrentSnapshot()
+						this.maybeAssociateFileAssets()
 
-				const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
-				await this._uploadSnapshotToR2(room, snapshot, key)
+						const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
+						await this._uploadSnapshotToR2(room, snapshot, key)
 
-				this._lastPersistedClock = clock
+						this.logEvent({ type: 'persist_success', attempts: attempt })
+						this._lastPersistedClock = clock
+						if (this.persistenceBad) {
+							this.broadcastPersistenceEvent({ type: 'persistence_good' })
+							this.persistenceBad = false
+						}
 
-				// Update the updatedAt timestamp in the database
-				if (this.documentInfo.isApp) {
-					// don't await on this because otherwise
-					// if this logic is invoked during another db transaction
-					// (e.g. when publishing a file)
-					// that transaction will deadlock
-					this.db
-						.updateTable('file')
-						.set({ updatedAt: new Date().getTime() })
-						.where('id', '=', this.documentInfo.slug)
-						.execute()
-						.catch((e) => this.reportError(e))
-				}
+						// Update the updatedAt timestamp in the database
+						if (this.documentInfo.isApp) {
+							// don't await on this because otherwise
+							// if this logic is invoked during another db transaction
+							// (e.g. when publishing a file)
+							// that transaction will deadlock
+							this.db
+								.updateTable('file')
+								.set({ updatedAt: new Date().getTime() })
+								.where('id', '=', this.documentInfo.slug)
+								.execute()
+								.catch((e) => {
+									this.logEvent({
+										type: 'room',
+										roomId: this.documentInfo.slug,
+										name: 'failed_persist_to_db',
+									})
+									this.reportError(e)
+								})
+						}
+					},
+					{ attempts: PERSIST_RETRIES_MAX, waitDuration: 2000 }
+				)
 			})
-		} catch (e) {
-			this.reportError(e)
-		}
+			.catch((e) => {
+				this.logEvent({ type: 'room', roomId: this.documentInfo.slug, name: 'fail_persist' })
+				this.reportError(e)
+			})
 	}
 
 	private async _uploadSnapshotToR2(
@@ -1143,3 +1179,6 @@ async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promise<stri
 
 	return keys
 }
+
+const PERSIST_RETRIES_NOTIFY_THRESHOLD = 10
+const PERSIST_RETRIES_MAX = 100

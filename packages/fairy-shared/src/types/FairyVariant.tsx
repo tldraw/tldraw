@@ -1,9 +1,14 @@
-import { FairyPartDefinition, FairyPartType } from './FairyPart'
+import { FairyPartDefinition, FairyPartType } from './FairyPartType'
 import { FairyPose } from './FairyPose'
 
 const FAIRY_HAT_VARIANTS = {
 	top: { idle: ['/fairy/fairy-hat-top.png'], poof: ['/fairy/fairy-loading.png'] },
 	pointy: { idle: ['/fairy/fairy-hat-point.png'], poof: ['/fairy/fairy-loading.png'] },
+	bald: { idle: ['/fairy/fairy-hat-bald.png'], poof: ['/fairy/fairy-loading.png'] },
+	antenna: { idle: ['/fairy/fairy-hat-antenna.png'], poof: ['/fairy/fairy-loading.png'] },
+	spiky: { idle: ['/fairy/fairy-hat-spiky.png'], poof: ['/fairy/fairy-loading.png'] },
+	hair: { idle: ['/fairy/fairy-hat-hair.png'], poof: ['/fairy/fairy-loading.png'] },
+	ears: { idle: ['/fairy/fairy-hat-ears.png'], poof: ['/fairy/fairy-loading.png'] },
 } as const satisfies FairyPartDefinition
 
 const FAIRY_WINGS_VARIANTS = {
