@@ -1,3 +1,4 @@
+import { compact } from '@tldraw/utils'
 import { notFound } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
 import { Environment } from '../types'
@@ -39,7 +40,7 @@ export async function getPierreHistory(
 			return new Response(
 				JSON.stringify({
 					entries: [],
-					hasMore: false,
+					nextCursor: null,
 				}),
 				{
 					headers: { 'content-type': 'application/json' },
@@ -49,44 +50,25 @@ export async function getPierreHistory(
 
 		// Get commits with pagination
 		const limit = 1000
-		const offset = request.query?.offset as string | undefined
+		const nextCursor = request.query?.nextCursor as string | undefined
 
-		const commitsResult = await repo.listCommits({
-			branch: 'main',
-			limit,
-		})
+		const commitsResult = await repo.listCommits({ branch: 'main', limit, cursor: nextCursor })
 
 		// Extract timestamps from commit messages and return with commit hashes
 		// Commit messages have format: "Snapshot at {ISO timestamp}"
-		const entries: Array<{ timestamp: string; commitHash: string }> = []
-		let foundOffset = !offset // If no offset, include from start
-
-		for (const commit of commitsResult.commits) {
-			const sha = commit.sha
-
-			if (!foundOffset) {
-				// Still looking for the offset point (offset is a commit SHA)
-				if (sha === offset) {
-					foundOffset = true
-					// Don't include the offset commit itself
-				}
-				continue
-			}
-
-			// Extract timestamp from commit message
-			const match = commit.message.match(/Snapshot at (.+Z)/)
-			if (!match) continue
-
-			const timestamp = match[1]
-			entries.push({ timestamp, commitHash: sha })
-		}
+		const entries: Array<{ timestamp: string; commitHash: string }> = compact(
+			commitsResult.commits.map((commit) => {
+				// Extract timestamp from commit message
+				const timestamp = commit.message.match(/Snapshot at (.+Z)/)?.[1]
+				return timestamp ? { timestamp, commitHash: commit.sha } : null
+			})
+		)
 
 		// Check if there are more commits
-		const hasMore = !!commitsResult.nextCursor
 
 		const response = {
 			entries,
-			hasMore,
+			nextCursor: commitsResult.nextCursor,
 		}
 
 		return new Response(JSON.stringify(response), {

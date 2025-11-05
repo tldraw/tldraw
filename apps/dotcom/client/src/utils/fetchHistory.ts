@@ -25,11 +25,14 @@ export async function fetchHistory(
 // Helper function to fetch Pierre history data
 export async function fetchPierreHistory(
 	fileSlug: string,
-	offset?: string
-): Promise<{ entries: Array<{ timestamp: string; commitHash: string }>; hasMore: boolean } | null> {
+	nextCursor?: string | null
+): Promise<{
+	entries: Array<{ timestamp: string; commitHash: string }>
+	nextCursor?: string | null
+} | null> {
 	try {
-		const url = offset
-			? `/api/${FILE_PREFIX}/${fileSlug}/pierre-history?offset=${offset}`
+		const url = nextCursor
+			? `/api/${FILE_PREFIX}/${fileSlug}/pierre-history?nextCursor=${nextCursor}`
 			: `/api/${FILE_PREFIX}/${fileSlug}/pierre-history`
 
 		const result = await fetch(url)

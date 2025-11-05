@@ -34,7 +34,7 @@ import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
-import { isDevelopmentEnv } from '../../../utils/env'
+import { isDevelopmentEnv, isProductionEnv } from '../../../utils/env'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { TldrawApp } from '../../app/TldrawApp'
@@ -362,17 +362,32 @@ function CustomDebugMenu({ showFairyFeatureFlags }: { showFairyFeatureFlags: boo
 		<DefaultDebugMenu>
 			<A11yAudit />
 			{!isReadOnly && app && (
-				<TldrawUiMenuItem
-					id="user-manual"
-					label="File history"
-					readonlyOk
-					onSelect={() => {
-						const url = new URL(window.location.href)
-						url.pathname += '/history'
-						openAndTrack(url.toString())
-					}}
-				/>
+				<>
+					<TldrawUiMenuItem
+						id="user-manual"
+						label="File history"
+						readonlyOk
+						onSelect={() => {
+							const url = new URL(window.location.href)
+							url.pathname += '/history'
+							openAndTrack(url.toString())
+						}}
+					/>
+					{!isProductionEnv && (
+						<TldrawUiMenuItem
+							id="user-manual"
+							label="File history (pierre)"
+							readonlyOk
+							onSelect={() => {
+								const url = new URL(window.location.href)
+								url.pathname += '/pierre-history'
+								openAndTrack(url.toString())
+							}}
+						/>
+					)}
+				</>
 			)}
+
 			<DefaultDebugMenuContent
 				customFeatureFlags={showFairyFeatureFlags ? customFeatureFlags : undefined}
 			/>

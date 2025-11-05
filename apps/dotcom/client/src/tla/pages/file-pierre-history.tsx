@@ -11,7 +11,7 @@ import { toggleSidebar } from '../utils/local-session-state'
 
 interface PierreHistoryData {
 	entries: Array<{ timestamp: string; commitHash: string }>
-	hasMore: boolean
+	nextCursor?: string | null
 }
 
 const { loader, useData } = defineLoader(async (args) => {
@@ -37,8 +37,10 @@ export function ErrorBoundary() {
 
 export function Component({ error: _error }: { error?: unknown }) {
 	const data = useData()
-	const [allEntries, setAllEntries] = useState<Array<{ timestamp: string; commitHash: string }>>([])
-	const [hasMore, setHasMore] = useState(false)
+	const [allEntries, setAllEntries] = useState<Array<{ timestamp: string; commitHash: string }>>(
+		data?.data.entries || []
+	)
+	const [nextCursor, setNextCursor] = useState<string | null>(data?.data?.nextCursor || null)
 	const [isLoading, setIsLoading] = useState(false)
 
 	const userId = useMaybeApp()?.userId
@@ -52,23 +54,12 @@ export function Component({ error: _error }: { error?: unknown }) {
 		}
 	}, [error, userId])
 
-	// Initialize with first batch of data
-	useEffect(() => {
-		if (data?.data) {
-			setAllEntries(data.data.entries)
-			setHasMore(data.data.hasMore)
-		}
-	}, [data?.data])
-
 	const handleLoadMore = async () => {
 		if (!data?.fileSlug || isLoading) return
 
 		setIsLoading(true)
 		try {
-			// Get the last commit hash from the current list for pagination
-			const lastCommitHash = allEntries[allEntries.length - 1]?.commitHash
-
-			const newData = await fetchPierreHistory(data.fileSlug, lastCommitHash)
+			const newData = await fetchPierreHistory(data.fileSlug, nextCursor)
 
 			if (newData) {
 				// Filter out any entries that already exist to prevent duplicates
@@ -76,7 +67,7 @@ export function Component({ error: _error }: { error?: unknown }) {
 					(entry) => !allEntries.some((e) => e.commitHash === entry.commitHash)
 				)
 				setAllEntries((prev) => [...prev, ...uniqueNewEntries])
-				setHasMore(newData.hasMore)
+				setNextCursor(newData.nextCursor ?? null)
 			}
 		} catch (err) {
 			console.error('Failed to load more history:', err)
@@ -96,7 +87,7 @@ export function Component({ error: _error }: { error?: unknown }) {
 							timestamp: record.timestamp,
 							href: `./${record.commitHash}`,
 						}))}
-						hasMore={hasMore}
+						hasMore={!!nextCursor}
 						onLoadMore={handleLoadMore}
 						isLoading={isLoading}
 					/>
