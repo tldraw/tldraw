@@ -125,6 +125,26 @@ class GTMAnalyticsService extends AnalyticsService {
 			event: 'page_view',
 		})
 	}
+
+	override trackConsentBannerDisplayed(data: { consent_opt_in_type: 'manual' | 'auto' }) {
+		dataLayerPush({
+			event: 'display_consent_banner',
+			id: crypto.randomUUID(),
+			data,
+		})
+	}
+
+	override trackConsentBannerSelected(data: {
+		consent_analytics: 'granted' | 'denied'
+		consent_marketing: 'granted' | 'denied'
+		consent_opt_in_type: 'manual' | 'auto'
+	}) {
+		dataLayerPush({
+			event: 'select_consent_banner',
+			id: crypto.randomUUID(),
+			data,
+		})
+	}
 }
 
 export const gtmService = new GTMAnalyticsService()

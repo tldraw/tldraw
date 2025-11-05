@@ -18,4 +18,12 @@ export class AnalyticsService {
 	trackEvent(name: string, data?: { [key: string]: any }): void {}
 	// Track a pageview.
 	trackPageview(): void {}
+	// Track when consent banner is displayed (called before consent is granted).
+	trackConsentBannerDisplayed?(data: { consent_opt_in_type: 'manual' | 'auto' }): void
+	// Track when user selects consent preferences (called before consent is granted).
+	trackConsentBannerSelected?(data: {
+		consent_analytics: 'granted' | 'denied'
+		consent_marketing: 'granted' | 'denied'
+		consent_opt_in_type: 'manual' | 'auto'
+	}): void
 }

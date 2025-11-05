@@ -25,10 +25,6 @@ function cookieConsentToPreferences(consent: CookieConsent): ConsentPreferences 
 	return { analytics: 'denied', marketing: 'denied' }
 }
 
-function generateEventId(): string {
-	return crypto.randomUUID()
-}
-
 class Analytics {
 	private userId = '' as string
 	private userProperties = {} as { [key: string]: any } | undefined
@@ -95,18 +91,14 @@ class Analytics {
 			// Track the consent change (after enabling or disabling)
 			this.track('consent_changed', { consent })
 
-			// Fire GTM event if user made a selection (not initial unknown state)
+			// Track consent selection if user made a selection (not initial unknown state)
 			if (wasUnknown && consent !== 'unknown') {
 				const preferences = cookieConsentToPreferences(consent)
-				if (window.dataLayer) {
-					window.dataLayer.push({
-						event: 'select_consent_banner',
-						id: generateEventId(),
-						data: {
-							consent_analytics: preferences.analytics,
-							consent_marketing: preferences.marketing,
-							consent_opt_in_type: this.consentOptInType,
-						},
+				for (const service of this.services) {
+					service.trackConsentBannerSelected?.({
+						consent_analytics: preferences.analytics,
+						consent_marketing: preferences.marketing,
+						consent_opt_in_type: this.consentOptInType,
 					})
 				}
 			}
@@ -169,15 +161,13 @@ class Analytics {
 		// the cookie consent banner and start showing some UI (if consent is unknown)
 		const banner = mountCookieConsentBanner(cookieConsentState, themeState, document.body)
 
-		// Fire display_consent_banner event if banner was shown
-		if (banner && window.dataLayer) {
-			window.dataLayer.push({
-				event: 'display_consent_banner',
-				id: generateEventId(),
-				data: {
+		// Track banner display if banner was shown
+		if (banner) {
+			for (const service of this.services) {
+				service.trackConsentBannerDisplayed?.({
 					consent_opt_in_type: this.consentOptInType,
-				},
-			})
+				})
+			}
 		}
 	}
 
