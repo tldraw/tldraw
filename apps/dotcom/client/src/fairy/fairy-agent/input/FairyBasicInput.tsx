@@ -21,6 +21,7 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 
 	const handleComplete = useCallback(
 		async (value: string) => {
+			inputRef.current?.focus()
 			agent.cancel()
 
 			// If the user's message is empty, just cancel the current request (if there is one)

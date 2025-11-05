@@ -19,7 +19,6 @@ export class FairyThrowTool extends StateNode {
 		for (const fairy of this.fairies) {
 			fairy.update((f) => ({ ...f, isSelected: true }))
 		}
-		this.setCurrentToolIdMask('select')
 	}
 
 	override onExit() {
@@ -58,7 +57,7 @@ class PointingState extends StateNode {
 
 	override onPointerUp() {
 		// User released without moving - cancel the tool
-		this.editor.setCurrentTool('select')
+		this.editor.setCurrentTool('select.idle')
 	}
 
 	override onPointerMove() {
@@ -68,7 +67,7 @@ class PointingState extends StateNode {
 
 	override onKeyDown(info: TLKeyboardEventInfo): void {
 		if (info.key === 'Escape') {
-			this.editor.setCurrentTool('select')
+			this.editor.setCurrentTool('select.idle')
 		}
 	}
 }
@@ -111,6 +110,6 @@ class ThrowingState extends StateNode {
 	}
 
 	cancel() {
-		this.editor.setCurrentTool('select')
+		this.editor.setCurrentTool('select.idle')
 	}
 }

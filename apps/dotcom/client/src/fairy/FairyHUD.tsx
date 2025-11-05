@@ -6,7 +6,7 @@ import {
 	SmallSpinner,
 } from '@tldraw/fairy-shared'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
-import { useCallback, useState } from 'react'
+import { MouseEvent, useCallback, useState } from 'react'
 import {
 	TldrawUiButton,
 	TldrawUiButtonIcon,
@@ -162,6 +162,10 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		setTodoLastChecked($sharedTodoList.get())
 	}, [])
 
+	const handleContextMenu = (e: MouseEvent<HTMLDivElement>) => {
+		e.stopPropagation()
+	}
+
 	// Keep todoLastChecked in sync when the panel is open
 	useQuickReactor(
 		'update-todo-last-checked',
@@ -203,6 +207,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 					gap: '0px',
 					zIndex: '99999999',
 				}}
+				onContextMenu={handleContextMenu}
 			>
 				{/* Panel with two states: closed (hidden) or open (showing full panel) */}
 				{panelState !== 'closed' && (
