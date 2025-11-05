@@ -133,17 +133,26 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	)
 
 	const handleClickFairy = useCallback(
-		(clickedAgent: FairyAgent) => {
-			selectFairy(clickedAgent)
+		(clickedAgent: FairyAgent, event: MouseEvent) => {
+			const isMultiSelect = event.shiftKey || event.metaKey || event.ctrlKey
 			const isSelected = clickedAgent.$fairyEntity.get().isSelected
 			const isChosen = clickedAgent.id === shownFairy?.id
 
-			selectFairy(clickedAgent)
-
-			// If the clicked fairy is already chosen and selected, toggle the panel. Otherwise, keep the panel open.
-			setPanelState((v) => (isChosen && isSelected && v === 'fairy' ? 'closed' : 'fairy'))
+			if (isMultiSelect) {
+				// Toggle selection without deselecting others
+				clickedAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: !isSelected } : f))
+				// Keep panel open if there are selected fairies
+				if (!isSelected || selectedFairies.length > 1) {
+					setPanelState('fairy')
+				}
+			} else {
+				// Single select mode - deselect all others
+				selectFairy(clickedAgent)
+				// If the clicked fairy is already chosen and selected, toggle the panel. Otherwise, keep the panel open.
+				setPanelState((v) => (isChosen && isSelected && v === 'fairy' ? 'closed' : 'fairy'))
+			}
 		},
-		[selectFairy, shownFairy]
+		[selectFairy, shownFairy, selectedFairies]
 	)
 
 	const handleDoubleClickFairy = useCallback(
@@ -342,7 +351,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 								<FairySidebarButton
 									key={agent.id}
 									agent={agent}
-									onClick={() => handleClickFairy(agent)}
+									onClick={(e) => handleClickFairy(agent, e)}
 									onDoubleClick={() => handleDoubleClickFairy(agent)}
 									selectMessage={selectMessage}
 									deselectMessage={deselectMessage}

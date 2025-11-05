@@ -1,4 +1,5 @@
 import { ContextMenu as _ContextMenu } from 'radix-ui'
+import { MouseEvent } from 'react'
 import { TldrawUiToolbarToggleGroup, TldrawUiToolbarToggleItem, useValue } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
@@ -13,7 +14,7 @@ export function FairySidebarButton({
 	deselectMessage,
 }: {
 	agent: FairyAgent
-	onClick(): void
+	onClick(e: MouseEvent): void
 	onDoubleClick(): void
 	selectMessage: string
 	deselectMessage: string
