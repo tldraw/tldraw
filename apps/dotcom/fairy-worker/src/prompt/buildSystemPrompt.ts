@@ -25,7 +25,30 @@ export function buildSystemPrompt(prompt: AgentPrompt): string {
 	return systemPrompt
 }
 
+/**
+ * Get the system prompt without the JSON schema appended.
+ * This is useful for debugging/logging purposes.
+ *
+ * @param prompt - The prompt to build a system prompt for.
+ * @returns The system prompt without the schema.
+ */
+export function buildSystemPromptWithoutSchema(prompt: AgentPrompt): string {
+	const wandName = prompt.wand?.wand
+	if (!wandName) throw new Error('A wand is required.')
+	const wand = getWand(wandName as Wand['type'])
+	const promptWithoutSchema = getSystemPromptWithoutSchema(wand.actions, wand.parts)
+	return promptWithoutSchema
+}
+
 function getSystemPrompt(actions: AgentAction['_type'][], parts: PromptPart['type'][]) {
+	const promptWithoutSchema = getSystemPromptWithoutSchema(actions, parts)
+	return promptWithoutSchema + '\n' + JSON.stringify(buildResponseSchema(actions), null, 2)
+}
+
+function getSystemPromptWithoutSchema(
+	actions: AgentAction['_type'][],
+	parts: PromptPart['type'][]
+) {
 	const flags = getSystemPromptFlags(actions, parts)
 
 	const promptWithoutSchema = normalizeNewlines(`# Hello!
@@ -341,7 +364,7 @@ ${
 
 This is the JSON schema for the events you can return. You must conform to this schema.${!flags.hasCreate ? ' You cannot create shapes, so you should not include any events that create shapes in your response.' : ''}`)
 
-	return promptWithoutSchema + '\n' + JSON.stringify(buildResponseSchema(actions), null, 2)
+	return promptWithoutSchema
 }
 
 export type SystemPromptFlags = ReturnType<typeof getSystemPromptFlags>

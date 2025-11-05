@@ -572,3 +572,19 @@ PagesPartSchema.register(PromptPartRegistry, {
 		]
 	},
 })
+
+// DebugPartSchema
+export type DebugPart = z.infer<typeof DebugPartSchema>
+export const DebugPartSchema = z.object({
+	type: z.literal('debug'),
+	logSystemPrompt: z.boolean(),
+	logMessages: z.boolean(),
+})
+
+DebugPartSchema.register(PromptPartRegistry, {
+	priority: 0,
+	buildMessages() {
+		// Return empty array - this part is only used for metadata, not for building messages
+		return []
+	},
+})

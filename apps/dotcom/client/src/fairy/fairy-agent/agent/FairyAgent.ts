@@ -128,6 +128,14 @@ export class FairyAgent {
 	$contextItems = atom<ContextItem[]>('contextItems', [])
 
 	/**
+	 * Debug flags for controlling logging behavior in the worker.
+	 */
+	$debugFlags = atom<{ logSystemPrompt: boolean; logMessages: boolean }>('debugFlags', {
+		logSystemPrompt: false,
+		logMessages: false,
+	})
+
+	/**
 	 * Get the current project that the agent is working on.
 	 */
 	getCurrentProject(): FairyProject | null {

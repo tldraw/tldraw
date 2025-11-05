@@ -33,6 +33,7 @@ import { ChatHistoryPartUtil } from './parts/ChatHistoryPartUtil'
 import { ContextItemsPartUtil } from './parts/ContextItemsPartUtil'
 import { CurrentProjectPartUtil } from './parts/CurrentProjectPartUtil'
 import { DataPartUtil } from './parts/DataPartUtil'
+import { DebugPartUtil } from './parts/DebugPartUtil'
 import { MessagesPartUtil } from './parts/MessagesPartUtil'
 import { OtherFairiesPartUtil } from './parts/OtherFairiesPartUtil'
 import { PagesPartUtil } from './parts/PagesPartUtil'
@@ -130,6 +131,9 @@ export const PROMPT_PART_UTILS = [
 	WandPartUtil,
 	PersonalityPartUtil,
 	CurrentProjectPartUtil,
+
+	// Debug
+	DebugPartUtil,
 ] satisfies PromptPartUtilConstructor<PromptPart>[]
 
 /**

@@ -1291,6 +1291,7 @@
 
 .fairy-debug-view-dropdown {
 	padding: 8px;
+	max-width: 200px;
 }
 
 .fairy-debug-view-label {
@@ -1460,4 +1461,37 @@
 
 .fairy-debug-shared-todo-separator {
 	margin: 8px 0;
+}
+
+.fairy-debug-flags-section {
+	padding: 8px;
+}
+
+.fairy-debug-flags-checkboxes {
+	display: flex;
+	flex-direction: column;
+	/* gap: 8px; */
+}
+
+.fairy-debug-flags-checkbox {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	cursor: pointer;
+	border-radius: 4px;
+}
+
+.fairy-debug-flags-checkbox:hover {
+	background: var(--color-hovered);
+}
+
+.fairy-debug-flags-checkbox input[type="checkbox"] {
+	cursor: pointer;
+	margin: 0;
+}
+
+.fairy-debug-flags-checkbox span {
+	/* font-size: 13px; */
+	color: var(--color-text);
+	user-select: none;
 }

@@ -92,7 +92,7 @@ export function FairyDebugDialog({ agents, onClose }: { agents: FairyAgent[]; on
 			{/* Tabs: click to choose between home debug view and debug view for specific agents */}
 			<div className="fairy-debug-tabs">
 				<TldrawUiButton
-					type="normal"
+					type="low"
 					isActive={selectedTabId === 'home'}
 					title="Home"
 					onClick={() => setSelectedTabId('home')}
@@ -104,7 +104,7 @@ export function FairyDebugDialog({ agents, onClose }: { agents: FairyAgent[]; on
 					return (
 						<TldrawUiButton
 							key={agent.id}
-							type="normal"
+							type="low"
 							isActive={selectedTabId === agent.id}
 							title={config.name || agent.id}
 							onClick={() => setSelectedTabId(agent.id)}
@@ -115,12 +115,19 @@ export function FairyDebugDialog({ agents, onClose }: { agents: FairyAgent[]; on
 				})}
 			</div>
 
+			{/* Debug Flags: always visible when viewing an agent */}
+			{!isHomeTab && selectedAgent && (
+				<div className="fairy-debug-flags-section">
+					<FlagsInspector agent={selectedAgent} />
+				</div>
+			)}
+
 			{/* View Dropdown: choose between different inspectable views for the given tab */}
 			<div className="fairy-debug-view-dropdown">
 				<label className="fairy-debug-view-label">View:</label>
 				<TldrawUiDropdownMenuRoot id="debug-view-select">
 					<TldrawUiDropdownMenuTrigger>
-						<TldrawUiButton type="normal" className="fairy-debug-view-button">
+						<TldrawUiButton type="low" className="fairy-debug-view-button">
 							<TldrawUiButtonLabel>
 								{isHomeTab
 									? HOME_DEBUG_INSPECTOR_LABELS[homeDebugInspectorType]
@@ -252,6 +259,44 @@ function SharedTodoListInspector() {
 					</div>
 				))
 			)}
+		</div>
+	)
+}
+
+function FlagsInspector({ agent }: { agent: FairyAgent }) {
+	const debugFlags = useValue(agent.$debugFlags)
+
+	return (
+		<div className="fairy-debug-flags-container">
+			<p>Debug Flags</p>
+			<div className="fairy-debug-flags-checkboxes">
+				<label className="fairy-debug-flags-checkbox">
+					<input
+						type="checkbox"
+						checked={debugFlags.logSystemPrompt}
+						onChange={(e) => {
+							agent.$debugFlags.set({
+								...debugFlags,
+								logSystemPrompt: e.target.checked,
+							})
+						}}
+					/>
+					<span>Log System Prompt</span>
+				</label>
+				<label className="fairy-debug-flags-checkbox">
+					<input
+						type="checkbox"
+						checked={debugFlags.logMessages}
+						onChange={(e) => {
+							agent.$debugFlags.set({
+								...debugFlags,
+								logMessages: e.target.checked,
+							})
+						}}
+					/>
+					<span>Log Messages</span>
+				</label>
+			</div>
 		</div>
 	)
 }
