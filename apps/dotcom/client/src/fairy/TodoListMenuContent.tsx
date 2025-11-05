@@ -19,7 +19,7 @@ export function TodoListMenuContent({
 
 	const resetAllWands = useCallback(() => {
 		agents.forEach((agent) => {
-			agent.updateFairyConfig({ wand: 'god' })
+			agent.updateFairyConfig({ wand: 'default' })
 		})
 	}, [agents])
 
@@ -43,7 +43,7 @@ export function TodoListMenuContent({
 			<TldrawUiMenuGroup id="todo-list-config-menu">
 				<TldrawUiMenuItem
 					id="clear-todo-list"
-					onSelect={() => clearSharedTodoList(agents)}
+					onSelect={() => clearSharedTodoList()}
 					label="Clear todo list"
 				/>
 			</TldrawUiMenuGroup>

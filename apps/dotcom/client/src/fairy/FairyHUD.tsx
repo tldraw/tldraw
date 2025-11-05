@@ -63,8 +63,7 @@ function NewFairyButton({ agents }: { agents: FairyAgent[] }) {
 			name: getRandomFairyName(),
 			outfit: randomOutfit,
 			personality: 'Friendly and helpful',
-			mode: 'default',
-			wand: 'god',
+			wand: 'default',
 		}
 
 		// Add the config, which will trigger agent creation in FairyApp

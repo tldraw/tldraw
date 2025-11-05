@@ -1,7 +1,7 @@
 import { EndCurrentProjectAction, Streaming } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { getFairyAgentById } from '../fairy-agent/agent/fairyAgentsAtom'
-import { deleteProject, getProjectById } from '../Projects'
+import { deleteProject } from '../Projects'
 import { $sharedTodoList } from '../SharedTodoList'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -20,30 +20,23 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 		if (!action.complete) return
 		if (!this.agent) return
 
-		const projectId = this.agent.$currentProjectId.get()
-		if (!projectId) return
-
-		const project = getProjectById(projectId)
+		const project = this.agent.getCurrentProject()
 		if (!project) return
-
-		this.agent.$currentProjectId.set(null)
-		this.agent.setMode('default')
 
 		const otherMemberFairies = project.memberIds
 			.filter((id) => id !== this.agent.id)
 			.map((id) => getFairyAgentById(id, this.editor))
 			.filter((fairy) => fairy !== undefined)
 
+		// Wipe the chat history of all other the project's fairies
 		otherMemberFairies.forEach((fairy) => {
-			fairy.$currentProjectId.set(null)
-			fairy.setMode('default')
-			fairy.reset() // lol do we want to do this
+			fairy.reset()
 		})
 
 		$sharedTodoList.update((sharedTodoItems) => {
-			return sharedTodoItems.filter((item) => item.projectId !== projectId)
+			return sharedTodoItems.filter((item) => item.projectId !== project.id)
 		})
 
-		deleteProject(projectId)
+		deleteProject(project.id)
 	}
 }

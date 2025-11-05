@@ -82,6 +82,8 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 				agent.updateFairyConfig({ wand: 'drone' })
 			})
 
+			const memberIds = [leaderAgent.id, ...followerAgents.map((agent) => agent.id)]
+
 			const newProjectId = uniqueId(5)
 			const newProject = {
 				id: newProjectId,
@@ -89,12 +91,10 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 				name: `Project: ${value}`,
 				description: '',
 				color: 'red' as FocusColor,
-				memberIds: followerAgents.map((agent) => agent.id),
+				memberIds,
 			}
 
 			addProject(newProject)
-			leaderAgent.$currentProjectId.set(newProjectId)
-			followerAgents.forEach((agent) => agent.$currentProjectId.set(newProjectId))
 
 			// Send the prompt to the leader
 			const prompt = getGroupChatPrompt(value)

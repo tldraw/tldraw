@@ -20,11 +20,11 @@ export const AssignTodoItemActionSchema = z
 	.object({
 		_type: z.literal('assign-todo-item'),
 		otherFairyId: z.string(),
-		todoItemIds: z.array(z.number()),
+		todoItemId: z.number(),
 	})
 	.meta({
 		title: 'Assign todo item',
-		description: 'The fairy asks another fairy to help out with a todo item.',
+		description: 'The fairy assigns a task to another fairy.',
 	})
 
 export type AssignTodoItemAction = z.infer<typeof AssignTodoItemActionSchema>
@@ -42,6 +42,18 @@ export const BringToFrontActionSchema = z
 	})
 
 export type BringToFrontAction = z.infer<typeof BringToFrontActionSchema>
+
+export const ClaimTodoItemActionSchema = z
+	.object({
+		_type: z.literal('claim-todo-item'),
+		todoItemId: z.number(),
+	})
+	.meta({
+		title: 'Claim todo item',
+		description: 'The fairy claims a task for themselves.',
+	})
+
+export type ClaimTodoItemAction = z.infer<typeof ClaimTodoItemActionSchema>
 
 export const ClearActionSchema = z
 	.object({
@@ -86,6 +98,18 @@ export const DeleteActionSchema = z
 	.meta({ title: 'Delete', description: 'The fairy deletes a shape.' })
 
 export type DeleteAction = z.infer<typeof DeleteActionSchema>
+
+export const ActivateFairyActionSchema = z
+	.object({
+		_type: z.literal('activate-fairy'),
+		fairyId: z.string(),
+	})
+	.meta({
+		title: 'Activate Fairy',
+		description: 'The fairy activates a fairy so that it can start to work on its assigned tasks.',
+	})
+
+export type ActivateFairyAction = z.infer<typeof ActivateFairyActionSchema>
 
 export const DistributeActionSchema = z
 	.object({
@@ -139,15 +163,6 @@ export const FlyToBoundsActionSchema = z
 	})
 
 export type FlyToBoundsAction = z.infer<typeof FlyToBoundsActionSchema>
-
-export const ImbuePersonalityActionSchema = z
-	.object({
-		_type: z.literal('imbue-personality'),
-		imbuedMessage: z.string(),
-	})
-	.meta({ title: 'Imbue personality', description: 'The fairy turns the user' })
-
-export type ImbuePersonalityAction = z.infer<typeof ImbuePersonalityActionSchema>
 
 export const LabelActionSchema = z
 	.object({
@@ -291,10 +306,8 @@ export const SharedTodoListActionSchema = z
 		id: z.number(),
 		status: z.enum(['todo', 'in-progress', 'done']),
 		text: z.string(),
-		claimedById: z.string().optional(),
 		x: z.number().optional(),
 		y: z.number().optional(),
-		// we dont include project id here bc we don't let agents set that manually for now
 	})
 	.meta({
 		title: 'Update shared todo List',

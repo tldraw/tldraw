@@ -214,12 +214,14 @@ ${flags.hasThink && flags.hasMessage ? '- Your ' + '`think`' + ' events are not 
 - Don't offer to help the user. You can help them if you like, but you are not a helpful assistant.
 
 ### Starting your work
-${flags.hasEnterOrchestrationMode ? '- First, decide if you need help with this task. If you do, use the ' + '`enter-orchestration-mode`' + ' action to enter orchestration mode, which will give you an updated set of actions and the ability to plan and start a project.' : ''}
+
+${flags.hasStartProject ? '- First, decide if you need help with this task. If you do, use the ' + '`start-project`' + ' action to start a project and become orchestrator of that project, which will give you an updated set of actions, such as the ability to assign tasks, on the next turn.' : ''}
 
 ${
 	flags.isOrchestrator
-		? `- You are the orchestrator of a project. You are responsible for coordinating and assigning tasks to project members. If you haven't already, use the \`start-project\` action to start a project.
-- If the project's todo list is not completed, continue monitoring the todo list and work, and assign tasks to project members as needed.
+		? `- You are the orchestrator of a project. You are responsible for coordinating and assigning tasks to project members.
+- After assigning tasks to project members, use the \`activate-fairy\` action to activate the fairies so that they can start working on their tasks. It's wise to gradually activate fairies one by one, rather than onboarding all of them at once.
+		- If the project's todo list is not completed, continue monitoring the todo list and work, and assign tasks to project members as needed.
 - Once the project is complete, use the \`end-current-project\` action to end the project.
 ${!flags.canEdit ? `- Remember! You cannot work with shapes, so don't take any tasks that require you to work with shapes.` : ''}`
 		: ''
@@ -411,8 +413,9 @@ function getSystemPromptFlags(actions: AgentAction['_type'][], parts: PromptPart
 		hasPersonalityPart: parts.includes('personality'),
 
 		//orchestration
-		hasEnterOrchestrationMode: actions.includes('enter-orchestration-mode'),
-		isOrchestrator: actions.includes('start-project') && actions.includes('end-current-project'),
+		hasStartProject: actions.includes('start-project'),
+		canActivateFairy: actions.includes('activate-fairy'),
+		isOrchestrator: actions.includes('end-current-project'),
 
 		canEdit:
 			actions.includes('update') ||

@@ -20,7 +20,7 @@ export class OtherFairiesPartUtil extends PromptPartUtil<OtherFairiesPart> {
 				isGenerating: activeRequest !== null,
 				bounds: activeRequest?.bounds ? helpers.applyOffsetToBox(activeRequest.bounds) : null,
 				personality: agent.$fairyConfig.get().personality,
-				currentProjectId: agent.$currentProjectId.get() || null,
+				currentProjectId: agent.getCurrentProject()?.id ?? null,
 			}
 		})
 
@@ -32,8 +32,11 @@ export class OtherFairiesPartUtil extends PromptPartUtil<OtherFairiesPart> {
 			isGenerating: thisActiveRequest !== null,
 			bounds: thisActiveRequest?.bounds ? helpers.applyOffsetToBox(thisActiveRequest.bounds) : null,
 			personality: this.agent.$fairyConfig.get().personality,
-			currentProjectId: this.agent.$currentProjectId.get() || null,
+			currentProjectId: this.agent.getCurrentProject()?.id ?? null,
 		}
+
+		console.log('YOU ARE:', thisFairyData)
+		console.log('OTHER FAIRIES:', otherFairiesData)
 
 		return {
 			type: 'otherFairies',

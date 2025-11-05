@@ -5,7 +5,6 @@ import {
 	AgentPrompt,
 	AgentRequest,
 	AreaContextItem,
-	AvailableWandsForMode,
 	BaseAgentPrompt,
 	ChatHistoryItem,
 	ContextItem,
@@ -14,6 +13,7 @@ import {
 	FairyEntity,
 	FairyMode,
 	FairyPose,
+	FairyProject,
 	FocusedShape,
 	getFairyMode,
 	getWand,
@@ -49,6 +49,7 @@ import { AgentActionUtil } from '../../actions/AgentActionUtil'
 import { $fairyIsApplyingAction } from '../../FairyIsApplyingAction'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../FairyUtils'
 import { PromptPartUtil } from '../../parts/PromptPartUtil'
+import { $projects, deleteProject } from '../../Projects'
 import { $sharedTodoList } from '../../SharedTodoList'
 import { AgentHelpers } from './AgentHelpers'
 import { FairyAgentOptions } from './FairyAgentOptions'
@@ -127,9 +128,22 @@ export class FairyAgent {
 	$contextItems = atom<ContextItem[]>('contextItems', [])
 
 	/**
-	 * An atom containing the ID of the current project that the agent is working on.
+	 * Get the current project that the agent is working on.
 	 */
-	$currentProjectId = atom<string | null>('currentProjectId', null)
+	getCurrentProject(): FairyProject | null {
+		const projects = $projects.get()
+		const fairyProjects = projects.filter((project) => project.memberIds.includes(this.id))
+		if (fairyProjects.length === 0) return null
+		if (fairyProjects.length === 1) return fairyProjects[0]
+
+		// If the fairy is in multiple projects, return the first one, and delete all the other invalid ones
+		const validProject = fairyProjects[0]
+		const invalidProjects = fairyProjects.slice(1)
+		invalidProjects.forEach((project) => {
+			deleteProject(project.id)
+		})
+		return validProject
+	}
 
 	/**
 	 * Cumulative token usage tracking for this chat session.
@@ -366,13 +380,24 @@ export class FairyAgent {
 	private validateWandForMode<ModeId extends FairyMode['id']>(
 		candidateWand: Wand['type'],
 		mode: ModeId
-	): AvailableWandsForMode<ModeId> {
+	): Wand['type'] {
 		const modeInfo = getFairyMode(mode)
 		const wand = (modeInfo.availableWands as readonly Wand['type'][]).includes(candidateWand)
 			? candidateWand
 			: modeInfo.defaultWand
 
-		return wand as AvailableWandsForMode<ModeId>
+		return wand
+	}
+
+	/**
+	 * Get the mode of the fairy agent, which is determined by their current project.
+	 * @returns The mode of the fairy agent, which is either 'orchestrator', 'drone', or 'default'.
+	 */
+	getMode() {
+		const project = this.getCurrentProject()
+		if (!project) return 'default'
+		if (project.orchestratorId === this.id) return 'orchestrator'
+		return 'drone'
 	}
 
 	/**
@@ -385,7 +410,7 @@ export class FairyAgent {
 
 		const activeRequest = this.$activeRequest.get()
 
-		const mode = request.mode ?? this.$fairyConfig.get().mode
+		const mode = request.mode ?? this.getMode()
 		const candidateWand = request.wand ?? this.$fairyConfig.get().wand
 		const validatedWand = this.validateWandForMode(candidateWand, mode)
 
@@ -518,12 +543,11 @@ export class FairyAgent {
 				return
 			}
 
-			const isOrchestratorWithProject =
-				this.$fairyConfig.get().mode === 'orchestrator' && this.$currentProjectId.get()
-			const projectId = this.$currentProjectId.get()
+			const isOrchestrator = this.getMode() === 'orchestrator'
+			const project = this.getCurrentProject()
 			const validatedWand = this.validateWandForMode(request.wand, request.mode)
 
-			if (isOrchestratorWithProject) {
+			if (isOrchestrator) {
 				// if the fairy is an orchestrator with an active project, prompt it to keep going
 
 				const message = `You are the orchestrator of your current project. Please continue the project or end it.`
@@ -543,8 +567,15 @@ export class FairyAgent {
 				// if the fairy is not an orchestrator or does not have an active project, check if there are todos it can do
 				const sharedTodoItemsRemaining = $sharedTodoList.get().filter((item) => {
 					if (item.status === 'done') return false
-					if (item.claimedById && item.claimedById !== this.id) return false
-					if (item.projectId || item.projectId !== projectId) return false // do not count todos that are part of a project, or part of a different project
+					if (item.assignedById && item.assignedById !== this.id) return false
+
+					// If the fairy is in a project, only count todos that are part of that project
+					if (project && !item.projectId) return false
+					if (project && item.projectId && item.projectId !== project.id) return false
+
+					// If the fairy is not in a project, only count todos that are not part of a project
+					if (!project && item.projectId) return false
+
 					return true
 				})
 				if (sharedTodoItemsRemaining.length > 0) {
@@ -600,8 +631,6 @@ export class FairyAgent {
 	 */
 	async request(input: AgentInput) {
 		const request = this.getFullRequestFromInput(input)
-
-		this.setMode(request.mode)
 
 		// Interrupt any currently active request
 		if (this.$activeRequest.get() !== null) {
@@ -731,13 +760,11 @@ export class FairyAgent {
 		const helpOutMessages: string[] = []
 
 		if (todoItems && todoItems.length > 0) {
-			helpOutMessages.push(`You've asked to help out with the following todo ${todoItems.length > 1 ? 'items' : 'item'}. Make sure to always set the todo you're currently working on as "in-progress" when you start working on it.
+			helpOutMessages.push(`You've been asked to help out with the following todo ${todoItems.length > 1 ? 'items' : 'item'}. Make sure to always set the todo you're currently working on as "in-progress" when you start working on it.
 Todo ${todoItems.length > 1 ? 'items' : 'item'}: 
 ${JSON.stringify(todoItems)}`)
 		} else {
-			helpOutMessages.push(`Take a look at the shared todo list and see if there are any tasks that you can help with. Make sure to always set the todo you're currently working on as "in-progress" when you start working on it.
-shared todo list: 
-${JSON.stringify($sharedTodoList.get())}`)
+			helpOutMessages.push(`Please carry out any incomplete tasks that are assigned to you.`)
 		}
 
 		if (sourceFairyId) {
@@ -1313,15 +1340,6 @@ ${JSON.stringify($sharedTodoList.get())}`)
 		const position = this.editor.getViewportPageBounds().center
 		const currentPageId = this.editor.getCurrentPageId()
 		this.$fairyEntity.update((f) => (f ? { ...f, position, gesture: 'poof', currentPageId } : f))
-	}
-
-	/**
-	 * Set the mode of the fairy agent.
-	 * @param id - The id of the mode to set the fairy agent to.
-	 */
-	setMode(id: FairyMode['id']) {
-		const mode = getFairyMode(id)
-		this.updateFairyConfig({ mode: id, wand: mode.defaultWand })
 	}
 
 	/**

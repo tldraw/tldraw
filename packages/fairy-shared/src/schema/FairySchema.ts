@@ -1,16 +1,16 @@
 import {
+	ActivateFairyActionSchema,
 	AlignActionSchema,
 	AssignTodoItemActionSchema,
 	BringToFrontActionSchema,
 	ChangePageActionSchema,
+	ClaimTodoItemActionSchema,
 	CreateActionSchema,
 	CreatePageActionSchema,
 	DeleteActionSchema,
 	DistributeActionSchema,
 	EndCurrentProjectActionSchema,
-	EnterOrchestrationModeActionSchema,
 	FlyToBoundsActionSchema,
-	ImbuePersonalityActionSchema,
 	LabelActionSchema,
 	MessageActionSchema,
 	MoveActionSchema,
@@ -56,9 +56,7 @@ export const AGENT_ACTION_SCHEMAS = [
 	// Planning
 	ThinkActionSchema,
 	ReviewActionSchema,
-	SharedTodoListActionSchema,
 	FlyToBoundsActionSchema,
-	EnterOrchestrationModeActionSchema,
 
 	// Individual shapes
 	CreateActionSchema,
@@ -84,13 +82,13 @@ export const AGENT_ACTION_SCHEMAS = [
 	ChangePageActionSchema,
 	CreatePageActionSchema,
 
-	// Fairy-specific
-	ImbuePersonalityActionSchema,
+	// Project management
+	SharedTodoListActionSchema,
+	ClaimTodoItemActionSchema,
+	AssignTodoItemActionSchema,
 	StartProjectActionSchema,
 	EndCurrentProjectActionSchema,
-
-	// Assign todo item
-	AssignTodoItemActionSchema,
+	ActivateFairyActionSchema,
 ] as const
 
 /**

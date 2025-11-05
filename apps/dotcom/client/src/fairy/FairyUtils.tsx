@@ -1,15 +1,16 @@
 import { AgentAction, PromptPart } from '@tldraw/fairy-shared'
+import { ActivateFairyActionUtil } from './actions/ActivateFairyActionUtil'
 import { AgentActionUtil, AgentActionUtilConstructor } from './actions/AgentActionUtil'
 import { AlignActionUtil } from './actions/AlignActionUtil'
 import { AssignTodoItemActionUtil } from './actions/AssignTodoItemActionUtil'
 import { BringToFrontActionUtil } from './actions/BringToFrontActionUtil'
 import { ChangePageActionUtil } from './actions/ChangePageActionUtil'
+import { ClaimTodoItemActionUtil } from './actions/ClaimTodoItemActionUtil'
 import { CreateActionUtil } from './actions/CreateActionUtil'
 import { CreatePageActionUtil } from './actions/CreatePageActionUtil'
 import { DeleteActionUtil } from './actions/DeleteActionUtil'
 import { DistributeActionUtil } from './actions/DistributeActionUtil'
 import { EndCurrentProjectActionUtil } from './actions/EndCurrentProjectActionUtil'
-import { EnterOrchestrationModeActionUtil } from './actions/EnterOrchestrationModeActionUtil'
 import { FlyToBoundsActionUtil } from './actions/FlyToBoundsActionUtil'
 import { LabelActionUtil } from './actions/LabelActionUtil'
 import { MessageActionUtil } from './actions/MessageActionUtil'
@@ -56,9 +57,7 @@ export const AGENT_ACTION_UTILS = [
 	// Planning
 	ThinkActionUtil,
 	ReviewActionUtil,
-	SharedTodoListActionUtil,
 	FlyToBoundsActionUtil,
-	EnterOrchestrationModeActionUtil,
 
 	// Individual shapes
 	CreateActionUtil,
@@ -84,16 +83,16 @@ export const AGENT_ACTION_UTILS = [
 	ChangePageActionUtil,
 	CreatePageActionUtil,
 
-	// Internal (required)
-	UnknownActionUtil,
-
-	// Fairy-specific orchestration
-	EnterOrchestrationModeActionUtil,
+	// Project management
+	SharedTodoListActionUtil,
+	ActivateFairyActionUtil,
+	AssignTodoItemActionUtil,
+	ClaimTodoItemActionUtil,
 	StartProjectActionUtil,
 	EndCurrentProjectActionUtil,
 
-	// Assign todo item
-	AssignTodoItemActionUtil,
+	// Internal (required)
+	UnknownActionUtil,
 ] satisfies AgentActionUtilConstructor<AgentAction>[]
 
 /**

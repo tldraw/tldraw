@@ -45,7 +45,7 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 
 	const handleHelpOut = useCallback(
 		(todo: SharedTodoItem) => {
-			const agent = todo.claimedById ? agents.find((a) => a.id === todo.claimedById) : undefined
+			const agent = todo.assignedById ? agents.find((a) => a.id === todo.assignedById) : undefined
 			if (agent) {
 				agent.helpOut([todo])
 			} else {
@@ -220,7 +220,7 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 								</div>
 								<div className="shared-todo-item-assign">
 									<select
-										value={todo.claimedById || ''}
+										value={todo.assignedById || ''}
 										onChange={(e) => assignAgentToTodo(todo.id, e.target.value, agents)}
 										className="shared-todo-item-fairy-select"
 									>

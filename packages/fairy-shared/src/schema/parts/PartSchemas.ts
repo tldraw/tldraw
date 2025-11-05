@@ -421,7 +421,7 @@ export type SharedTodoListPart = z.infer<typeof SharedTodoListPartSchema>
 export const SharedTodoListPartSchema = z
 	.object({
 		type: z.literal('sharedTodoList'),
-		items: z.array(SharedTodoItemSchema),
+		items: z.array(z.intersection(SharedTodoItemSchema, z.object({ fairyName: z.string() }))),
 	})
 	.meta({
 		priority: -10,
@@ -430,7 +430,13 @@ export const SharedTodoListPartSchema = z
 SharedTodoListPartSchema.register(PromptPartRegistry, {
 	priority: -10,
 	buildContent(part: SharedTodoListPart) {
-		return ["Here's the current todo list:", JSON.stringify(part.items)]
+		if (part.items.length === 0) {
+			return ['There are no todo list items at the moment.']
+		}
+
+		return part.items.map((item) => {
+			return `Todo item ${item.id} [${item.status}]: "${item.text}", assigned to ${item.fairyName}`
+		})
 	},
 })
 

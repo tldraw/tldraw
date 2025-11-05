@@ -1,4 +1,5 @@
 import { VecModel } from '@tldraw/tlschema'
+import { FairyProject } from '../schema/FairyProject'
 import { ChatHistoryItem } from './ChatHistoryItem'
 import { ContextItem } from './ContextItem'
 import { FairyEntity } from './FairyEntity'
@@ -24,4 +25,5 @@ export interface PersistedFairyState {
 	agents: Record<string, PersistedFairyAgentState>
 	sharedTodoList: SharedTodoItem[]
 	showCanvasTodos: boolean
+	projects: FairyProject[]
 }

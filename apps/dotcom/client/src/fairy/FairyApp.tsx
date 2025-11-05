@@ -9,6 +9,7 @@ import { useApp } from '../tla/hooks/useAppState'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairyThrowTool } from './FairyThrowTool'
+import { $projects } from './Projects'
 import { $sharedTodoList, $showCanvasTodos } from './SharedTodoList'
 import { TodoDragTool } from './TodoDragTool'
 
@@ -55,6 +56,7 @@ export function FairyApp({
 	const loadedAgentIdsRef = useRef<Set<string>>(new Set())
 	const sharedTodoListLoadedRef = useRef(false)
 	const showCanvasTodosLoadedRef = useRef(false)
+	const projectsLoadedRef = useRef(false)
 
 	// Create agents dynamically from configs
 	useEffect(() => {
@@ -150,6 +152,12 @@ export function FairyApp({
 					showCanvasTodosLoadedRef.current = true
 				}
 
+				// Load projects only once
+				if (fairyState.projects && !projectsLoadedRef.current) {
+					$projects.set(fairyState.projects)
+					projectsLoadedRef.current = true
+				}
+
 				// Allow a tick for state to settle before allowing saves
 				setTimeout(() => {
 					isLoadingStateRef.current = false
@@ -164,8 +172,7 @@ export function FairyApp({
 	// Todo: Use FileStateUpdater for this
 	// Save fairy state to backend periodically
 	useEffect(() => {
-		if (!app || agentsRef.current.length === 0 || !$sharedTodoList || !$showCanvasTodos || !fileId)
-			return
+		if (!app || agentsRef.current.length === 0 || !fileId) return
 
 		const updateFairyState = throttle(() => {
 			// Don't save if we're currently loading state
@@ -181,6 +188,7 @@ export function FairyApp({
 				),
 				sharedTodoList: $sharedTodoList.get(),
 				showCanvasTodos: $showCanvasTodos.get(),
+				projects: $projects.get(),
 			}
 			app.onFairyStateUpdate(fileId, fairyState)
 		}, 2000) // Save maximum every 2 seconds
@@ -198,20 +206,16 @@ export function FairyApp({
 			fairyCleanupFns.push(cleanup)
 		})
 
-		const cleanupSharedTodoList = react('shared todo list', () => {
+		const cleanupSharedFairyState = react('shared fairy atom state', () => {
 			$sharedTodoList.get()
-			updateFairyState()
-		})
-
-		const cleanupShowCanvasTodos = react('show canvas todos', () => {
 			$showCanvasTodos.get()
+			$projects.get()
 			updateFairyState()
 		})
 
 		return () => {
 			updateFairyState.flush()
-			cleanupSharedTodoList()
-			cleanupShowCanvasTodos()
+			cleanupSharedFairyState()
 			fairyCleanupFns.forEach((cleanup) => cleanup())
 		}
 	}, [app, fairyConfigs, fileId])
