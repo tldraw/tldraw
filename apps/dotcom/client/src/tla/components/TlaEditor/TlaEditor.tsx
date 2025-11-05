@@ -38,7 +38,7 @@ import { isDevelopmentEnv } from '../../../utils/env'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { TldrawApp } from '../../app/TldrawApp'
-import { useApp } from '../../hooks/useAppState'
+import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawUser } from '../../hooks/useUser'
@@ -114,7 +114,7 @@ export function TlaEditor(props: TlaEditorProps) {
 
 function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const handleUiEvent = useHandleUiEvents()
-	const app = useApp()
+	const app = useMaybeApp()
 
 	const fileId = fileSlug
 
@@ -362,7 +362,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 }
 
 function CustomDebugMenu({ showFairyFeatureFlags }: { showFairyFeatureFlags: boolean }) {
-	const app = useApp()
+	const app = useMaybeApp()
 	const openAndTrack = useOpenUrlAndTrack('unknown')
 	const editor = useEditor()
 	const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
