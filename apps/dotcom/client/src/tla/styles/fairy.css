@@ -415,6 +415,32 @@
 	z-index: 100000000 !important;
 }
 
+/* Fairy Debug Dropdown - Must be above dialog */
+.fairy-debug-dropdown {
+	z-index: 100000000 !important;
+}
+
+/* Ensure Radix portal for debug dropdowns has proper z-index */
+[data-radix-portal] .fairy-debug-dropdown {
+	z-index: 100000000 !important;
+}
+
+/* Fairy Debug Dialog - Fixed width and height */
+.fairy-debug-dialog-wrapper {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	width: 100%;
+}
+
+/* Make the dialog content fixed size */
+.tlui-dialog__content:has(.fairy-debug-dialog-wrapper) {
+	width: 800px;
+	height: 600px;
+	max-width: 800px;
+	max-height: 600px;
+}
+
 /* Fairy Chat History */
 
 .fairy-chat-history {
@@ -1235,4 +1261,203 @@
 	border: 2px solid var(--tl-color-panel);
 	pointer-events: none;
 	z-index: 1;
+}
+
+/* Fairy Debug Dialog Styles */
+
+.fairy-debug-json-display {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-family: monospace;
+	font-size: 12px;
+	background: var(--color-low);
+	padding: 8px;
+	border-radius: 4px;
+}
+
+.fairy-debug-pre {
+	margin: 0;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.fairy-debug-tabs {
+	display: flex;
+	flex-direction: row;
+	gap: 8px;
+	padding: 8px;
+}
+
+.fairy-debug-view-dropdown {
+	padding: 8px;
+}
+
+.fairy-debug-view-label {
+	display: block;
+	margin-bottom: 4px;
+}
+
+.fairy-debug-view-button {
+	width: 100%;
+}
+
+.fairy-debug-dialog-body {
+	flex: 1 1 0;
+	min-height: 0;
+	overflow: auto;
+}
+
+.fairy-debug-view-container {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.fairy-debug-container {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-family: monospace;
+	font-size: 12px;
+	background: var(--color-low);
+	padding: 8px;
+	border-radius: 4px;
+}
+
+.fairy-debug-header {
+	font-weight: bold;
+	color: var(--color-text-2);
+	margin-bottom: 4px;
+}
+
+.fairy-debug-empty {
+	color: var(--color-text-3);
+	font-style: italic;
+}
+
+.fairy-debug-item {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.fairy-debug-key-value {
+	display: flex;
+	gap: 8px;
+}
+
+.fairy-debug-label {
+	font-weight: bold;
+	color: var(--color-text-2);
+}
+
+.fairy-debug-config-container {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-family: monospace;
+	font-size: 12px;
+	background: var(--color-low);
+	padding: 8px;
+	border-radius: 4px;
+}
+
+.fairy-debug-projects-container {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	font-family: monospace;
+	font-size: 12px;
+}
+
+.fairy-debug-projects-header {
+	font-weight: bold;
+	color: var(--color-text-2);
+	margin-bottom: 4px;
+}
+
+.fairy-debug-projects-empty {
+	color: var(--color-text-3);
+	font-style: italic;
+}
+
+.fairy-debug-project-card {
+	background: var(--color-low);
+	padding: 8px;
+	border-radius: 4px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.fairy-debug-project-name {
+	font-weight: bold;
+	color: var(--color-text-2);
+}
+
+.fairy-debug-project-details {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.fairy-debug-project-todos-section {
+	margin-top: 8px;
+}
+
+.fairy-debug-project-todos-header {
+	font-weight: bold;
+	color: var(--color-text-2);
+	margin-bottom: 4px;
+}
+
+.fairy-debug-project-todos-empty {
+	color: var(--color-text-3);
+	font-style: italic;
+	font-size: 11px;
+}
+
+.fairy-debug-project-todos-list {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	background: var(--color-panel);
+	padding: 8px;
+	border-radius: 4px;
+}
+
+.fairy-debug-project-todo-item {
+	font-size: 11px;
+}
+
+.fairy-debug-project-separator {
+	margin: 8px 0;
+}
+
+.fairy-debug-shared-todos-container {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-family: monospace;
+	font-size: 12px;
+}
+
+.fairy-debug-shared-todos-header {
+	font-weight: bold;
+	color: var(--color-text-2);
+	margin-bottom: 4px;
+}
+
+.fairy-debug-shared-todos-empty {
+	color: var(--color-text-3);
+	font-style: italic;
+}
+
+.fairy-debug-shared-todo-item {
+	margin-bottom: 8px;
+}
+
+.fairy-debug-shared-todo-separator {
+	margin: 8px 0;
 }
