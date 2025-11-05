@@ -28,7 +28,7 @@ import {
 import { getResumeType } from './replicator/getResumeType'
 import { pruneTopicSubscriptionsSql } from './replicator/pruneTopicSubscriptions'
 import { migrate } from './replicator/replicatorMigrations'
-import { ChangeV2, ReplicationEvent, relevantTables } from './replicator/replicatorTypes'
+import { ChangeV2, ReplicationEvent, replicatedTables } from './replicator/replicatorTypes'
 import {
 	Analytics,
 	Environment,
@@ -476,7 +476,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private parseChange(change: Wal2Json.Change): ChangeV2 | null {
 		const table = change.table as ReplicationEvent['table']
-		if (change.kind === 'truncate' || change.kind === 'message' || !(table in relevantTables)) {
+		if (change.kind === 'truncate' || change.kind === 'message' || !(table in replicatedTables)) {
 			return null
 		}
 

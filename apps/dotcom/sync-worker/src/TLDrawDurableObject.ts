@@ -821,7 +821,7 @@ export class TLDrawDurableObject extends DurableObject {
 			.push(async () => {
 				await retry(
 					async ({ attempt }) => {
-						if (attempt === PERSIST_RETRIES_NOTIFY_THRESHOLD) {
+						if (attempt === PERSIST_RETRIES_NOTIFY_THRESHOLD && !this.persistenceBad) {
 							this.broadcastPersistenceEvent({ type: 'persistence_bad' })
 							this.persistenceBad = true
 						}

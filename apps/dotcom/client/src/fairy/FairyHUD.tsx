@@ -1,168 +1,425 @@
+import { SharedTodoItem, SmallSpinner } from '@tldraw/fairy-shared'
+import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { useCallback, useState } from 'react'
 import {
 	Box,
+	TldrawUiButton,
+	TldrawUiButtonIcon,
+	TldrawUiIcon,
+	TldrawUiMenuContextProvider,
+	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
 	TldrawUiToolbar,
 	TldrawUiToolbarToggleGroup,
 	TldrawUiToolbarToggleItem,
+	useDefaultHelpers,
 	useEditor,
+	useQuickReactor,
 	useValue,
 } from 'tldraw'
 import '../tla/styles/fairy.css'
 import { defineMessages, useMsg } from '../tla/utils/i18n'
-import { TldrawFairyAgent } from './fairy-agent/agent/TldrawFairyAgent'
+import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairyChatHistory } from './fairy-agent/chat/FairyChatHistory'
 import { FairyBasicInput } from './fairy-agent/input/FairyBasicInput'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
+import { FairyConfigDialog } from './FairyConfigDialog'
+import { $sharedTodoList, clearSharedTodoList } from './SharedTodoList'
+import { SharedTodoListInline } from './SharedTodoListInline'
 
 const fairyMessages = defineMessages({
 	toolbar: { defaultMessage: 'Fairies' },
-	deselect: { defaultMessage: 'Deselect Fairy' },
-	select: { defaultMessage: 'Select Fairy' },
+	deselect: { defaultMessage: 'Deselect fairy' },
+	select: { defaultMessage: 'Select fairy' },
 })
 
 function FairyButton({
 	agent,
 	onClick,
+	onDoubleClick,
 	selectMessage,
 	deselectMessage,
 }: {
-	agent: TldrawFairyAgent
+	agent: FairyAgent
 	onClick(): void
+	onDoubleClick(): void
 	selectMessage: string
 	deselectMessage: string
 }) {
 	// Use useValue to make the component reactive
 	const fairyIsSelected = useValue(
 		'fairy-button-selected',
-		() => agent.$fairy.get()?.isSelected ?? false,
+		() => agent.$fairyEntity.get()?.isSelected ?? false,
 		[agent]
 	)
+
+	const fairyOutfit = useValue('fairy outfit', () => agent.$fairyConfig.get()?.outfit, [agent])
+	const fairyEntity = useValue('fairy entity', () => agent.$fairyEntity.get(), [agent])
 
 	return (
 		<TldrawUiToolbarToggleGroup type="single" value={fairyIsSelected ? 'on' : 'off'} asChild>
 			<TldrawUiToolbarToggleItem
 				className="fairy-toggle-button"
 				onClick={onClick}
+				onDoubleClick={onDoubleClick}
 				type="icon"
 				data-state={fairyIsSelected ? 'on' : 'off'}
 				data-isactive={fairyIsSelected}
 				aria-label={fairyIsSelected ? deselectMessage : selectMessage}
 				value="on"
 			>
-				<FairySpriteComponent
-					pose="idle"
-					outfit={{
-						body: 'plain',
-						hat: 'pointy',
-						wings: 'plain',
-					}}
-				/>
+				<FairySpriteComponent entity={fairyEntity} outfit={fairyOutfit} animated={true} />
 			</TldrawUiToolbarToggleItem>
 		</TldrawUiToolbarToggleGroup>
 	)
 }
 
-type PanelState = 'closed' | 'open'
+type PanelState = 'todo-list' | 'fairy' | 'closed'
 
-export function FairyHUD({ agents }: { agents: TldrawFairyAgent[] }) {
+export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	const editor = useEditor()
+	const { addDialog } = useDefaultHelpers()
+	const [menuPopoverOpen, setMenuPopoverOpen] = useState(false)
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
+
 	const [panelState, setPanelState] = useState<PanelState>('closed')
+	const [chosenFairy, setChosenFairy] = useState<FairyAgent>(agents[0])
 
 	const toolbarMessage = useMsg(fairyMessages.toolbar)
 	const deselectMessage = useMsg(fairyMessages.deselect)
 	const selectMessage = useMsg(fairyMessages.select)
 
-	// At this stage, there is only one fairy
-	const onlyFairy = useValue('only-fairy', () => agents[0], [agents])
+	// Create a reactive value that tracks which fairies are selected
+	const selectedFairies = useValue(
+		'selected-fairies',
+		() => agents.filter((agent) => agent.$fairyEntity.get()?.isSelected ?? false),
+		[agents]
+	)
 
-	const handleToggle = useCallback(() => {
-		if (panelState === 'closed') {
-			// Open the panel
-			setPanelState('open')
-		} else {
-			// Zoom camera to fairy position
-			const fairyPosition = onlyFairy.$fairy.get().position
-			editor.zoomToBounds(Box.FromCenter(fairyPosition, { x: 100, y: 100 }), {
+	// Update the chosen fairy when the selected fairies change
+	useQuickReactor(
+		'update-chosen-fairy',
+		() => {
+			const currentSelectedFairies = agents.filter(
+				(agent) => agent.$fairyEntity.get()?.isSelected ?? false
+			)
+			if (currentSelectedFairies.length === 1) {
+				setChosenFairy(currentSelectedFairies[0])
+			}
+		},
+		[agents]
+	)
+
+	const goToFairy = useCallback(
+		(fairy: FairyAgent) => {
+			editor.zoomToBounds(Box.FromCenter(fairy.$fairyEntity.get().position, { x: 100, y: 100 }), {
 				animation: { duration: 220 },
 				targetZoom: 1,
 			})
-		}
-	}, [panelState, editor, onlyFairy])
+		},
+		[editor]
+	)
 
-	const handleNewChat = useCallback(() => {
-		onlyFairy.cancel()
-		onlyFairy.reset()
-	}, [onlyFairy])
+	const configureFairy = useCallback(() => {
+		addDialog({
+			component: ({ onClose }) => <FairyConfigDialog agent={chosenFairy} onClose={onClose} />,
+		})
+	}, [addDialog, chosenFairy])
 
-	const togglePanel = useCallback((e?: any) => {
-		if (e) {
-			e.preventDefault()
-			e.stopPropagation()
+	const summonFairy = useCallback(
+		(agent: FairyAgent) => {
+			const position = editor.getViewportPageBounds().center
+			agent.$fairyEntity.update((f) => (f ? { ...f, position, gesture: 'poof' } : f))
+		},
+		[editor]
+	)
+
+	const requestHelpFromEveryone = useCallback(() => {
+		agents.forEach((agent) => {
+			agent.helpOut()
+		})
+	}, [agents])
+
+	const resetChat = useCallback(() => {
+		if (chosenFairy) {
+			chosenFairy.cancel()
+			chosenFairy.reset()
 		}
-		// Toggle between closed and open
-		setPanelState((current) => (current === 'open' ? 'closed' : 'open'))
+	}, [chosenFairy])
+
+	const selectFairy = useCallback(
+		(selectedAgent: FairyAgent) => {
+			// Select the specified fairy
+			selectedAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
+
+			// Deselect all other fairies
+			agents.forEach((agent) => {
+				if (agent.id === selectedAgent.id) return
+				agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+			})
+		},
+		[agents]
+	)
+
+	const handleClickFairy = useCallback(
+		(clickedAgent: FairyAgent) => {
+			const isSelected = clickedAgent.$fairyEntity.get().isSelected
+			const isChosen = clickedAgent.id === chosenFairy.id
+
+			selectFairy(clickedAgent)
+
+			// If the clicked fairy is already chosen and selected, toggle the panel. Otherwise, keep the panel open.
+			setPanelState((v) => (isChosen && isSelected && v === 'fairy' ? 'closed' : 'fairy'))
+		},
+		[selectFairy, chosenFairy.id]
+	)
+
+	const handleDoubleClickFairy = useCallback(
+		(clickedAgent: FairyAgent) => {
+			goToFairy(clickedAgent)
+			selectFairy(clickedAgent)
+			setPanelState('fairy')
+		},
+		[goToFairy, selectFairy]
+	)
+
+	const [todoLastChecked, setTodoLastChecked] = useState<SharedTodoItem[]>([])
+
+	const handleClickTodoList = useCallback(() => {
+		setPanelState((v) => (v === 'todo-list' ? 'closed' : 'todo-list'))
+		setTodoLastChecked($sharedTodoList.get())
 	}, [])
+
+	// Keep todoLastChecked in sync when the panel is open
+	useQuickReactor(
+		'update-todo-last-checked',
+		() => {
+			if (panelState === 'todo-list') {
+				setTodoLastChecked($sharedTodoList.get())
+			}
+		},
+		[panelState]
+	)
+
+	const hasUnreadTodos = useValue(
+		'has-unread-todos',
+		() => {
+			const currentList = $sharedTodoList.get()
+			if (currentList.length !== todoLastChecked.length) return true
+			return JSON.stringify(currentList) !== JSON.stringify(todoLastChecked)
+		},
+		[todoLastChecked]
+	)
+
+	const fairyConfig = useValue('fairy config', () => chosenFairy.$fairyConfig.get(), [chosenFairy])
 
 	if (!agents || agents.length === 0) return null
 
 	return (
-		<div
-			className={`tla-fairy-hud ${panelState === 'open' ? 'tla-fairy-hud--open' : ''}`}
-			style={{
-				position: 'fixed',
-				bottom: isDebugMode ? '112px' : '72px',
-				right: '6px',
-				display: 'flex',
-				flexDirection: 'row',
-				alignItems: 'flex-end',
-				gap: '0px',
-				pointerEvents: 'auto',
-				zIndex: '99999999',
-			}}
-		>
-			{/* Panel with two states: closed (hidden) or open (showing full panel) */}
-			{panelState === 'open' && (
-				<div
-					className="fairy-chat-panel"
-					data-panel-state={panelState}
-					onWheelCapture={(e) => e.stopPropagation()}
-				>
-					<div className="fairy-toolbar-header">
-						<button className="fairy-toolbar-button" onClick={handleNewChat}>
-							+
-						</button>
-						<div className="fairy-id-display">{onlyFairy.id}</div>
-					</div>
-					<FairyChatHistory agent={onlyFairy} />
-					<FairyBasicInput agent={onlyFairy} />
-				</div>
-			)}
-
-			<div className="fairy-buttons-container">
-				<div className="fairy-toolbar-stack-header">
-					<button
-						className="fairy-toolbar-button"
-						id="fairy-toolbar-minimize-button"
-						onClick={togglePanel}
+		<>
+			<div
+				className={`tla-fairy-hud ${panelState !== 'closed' ? 'tla-fairy-hud--open' : ''}`}
+				style={{
+					position: 'fixed',
+					bottom: isDebugMode ? '112px' : '72px',
+					right: '6px',
+					display: 'flex',
+					flexDirection: 'row',
+					alignItems: 'flex-end',
+					gap: '0px',
+					pointerEvents: 'auto',
+					zIndex: '99999999',
+				}}
+			>
+				{/* Panel with two states: closed (hidden) or open (showing full panel) */}
+				{panelState !== 'closed' && (
+					<div
+						className="fairy-chat-panel"
+						data-panel-state="open"
+						onWheelCapture={(e) => e.stopPropagation()}
 					>
-						{panelState === 'open' ? '››' : '‹‹'}
-					</button>
+						{/* Conversation View */}
+						{panelState === 'fairy' && (
+							<>
+								{/* Handle 1 fairy selected */}
+								{selectedFairies.length <= 1 && (
+									<>
+										<div className="fairy-toolbar-header">
+											<_DropdownMenu.Root
+												dir="ltr"
+												open={menuPopoverOpen}
+												onOpenChange={setMenuPopoverOpen}
+											>
+												<_DropdownMenu.Trigger asChild dir="ltr">
+													<TldrawUiButton type="icon" className="fairy-toolbar-button">
+														<TldrawUiButtonIcon icon="menu" />
+													</TldrawUiButton>
+												</_DropdownMenu.Trigger>
+												<_DropdownMenu.Content
+													side="bottom"
+													align="start"
+													className="tlui-menu"
+													collisionPadding={4}
+													alignOffset={4}
+													sideOffset={4}
+												>
+													<TldrawUiMenuContextProvider type="menu" sourceId="fairy-panel">
+														<TldrawUiMenuGroup id="fairy-menu">
+															<TldrawUiMenuItem
+																id="go-to-fairy"
+																onSelect={() => goToFairy(chosenFairy)}
+																label="Go to fairy"
+															/>
+															<TldrawUiMenuItem
+																id="help-out"
+																onSelect={() => {
+																	chosenFairy.helpOut()
+																}}
+																label="Ask for help"
+															/>
+															<TldrawUiMenuItem
+																id="summon-fairy"
+																onSelect={() => summonFairy(chosenFairy)}
+																label="Summon"
+															/>
+															<TldrawUiMenuItem
+																id="configure-fairy"
+																onSelect={configureFairy}
+																label="Customize"
+															/>
+															<TldrawUiMenuItem
+																id="new-chat"
+																onSelect={resetChat}
+																label="Reset chat"
+															/>
+														</TldrawUiMenuGroup>
+													</TldrawUiMenuContextProvider>
+												</_DropdownMenu.Content>
+											</_DropdownMenu.Root>
+											<div className="fairy-id-display">
+												{fairyConfig.name}
+												<div
+													className="fairy-spinner-container"
+													style={{ visibility: chosenFairy.isGenerating() ? 'visible' : 'hidden' }}
+												>
+													<SmallSpinner />
+												</div>
+											</div>
+											<TldrawUiButton
+												type="icon"
+												className="fairy-toolbar-button"
+												onClick={resetChat}
+											>
+												<TldrawUiIcon icon="plus" label="Reset chat" />
+											</TldrawUiButton>
+										</div>
+										<FairyChatHistory agent={chosenFairy} />
+										<FairyBasicInput agent={chosenFairy} onCancel={() => setPanelState('closed')} />
+									</>
+								)}
+
+								{/* Handle 2+ fairies selected */}
+								{selectedFairies.length > 1 && (
+									<div
+										className="fairy-no-selection"
+										style={{ padding: '20px', textAlign: 'center' }}
+									>
+										<p>Multiple fairies selected</p>
+										<p>Group chat coming soon!</p>
+									</div>
+								)}
+							</>
+						)}
+
+						{/* Info View */}
+						{panelState === 'todo-list' && (
+							<div className="fairy-info-view">
+								<div className="fairy-toolbar-header">
+									<_DropdownMenu.Root
+										dir="ltr"
+										open={menuPopoverOpen}
+										onOpenChange={setMenuPopoverOpen}
+									>
+										<_DropdownMenu.Trigger asChild dir="ltr">
+											<TldrawUiButton type="icon" className="fairy-toolbar-button">
+												<TldrawUiButtonIcon icon="menu" />
+											</TldrawUiButton>
+										</_DropdownMenu.Trigger>
+										<_DropdownMenu.Content
+											side="bottom"
+											align="start"
+											className="tlui-menu"
+											collisionPadding={4}
+											alignOffset={4}
+											sideOffset={4}
+										>
+											<TldrawUiMenuContextProvider type="menu" sourceId="fairy-panel">
+												<TldrawUiMenuGroup id="fairy-menu">
+													<TldrawUiMenuItem
+														id="ask-for-help-from-everyone"
+														onSelect={requestHelpFromEveryone}
+														label="Request help from everyone"
+													/>
+												</TldrawUiMenuGroup>
+												<TldrawUiMenuItem
+													id="clear-todo-list"
+													onSelect={() => clearSharedTodoList()}
+													label="Clear list"
+												/>
+											</TldrawUiMenuContextProvider>
+										</_DropdownMenu.Content>
+									</_DropdownMenu.Root>
+									<div className="fairy-id-display">Todo list</div>
+									<TldrawUiButton
+										type="icon"
+										className="fairy-toolbar-button"
+										onClick={requestHelpFromEveryone}
+									>
+										<TldrawUiIcon icon="geo-arrow-up" label="Request help from everyone" />
+									</TldrawUiButton>
+								</div>
+								<SharedTodoListInline agents={agents} />
+							</div>
+						)}
+					</div>
+				)}
+
+				<div className="fairy-buttons-container">
+					<div className="fairy-toolbar-stack-header">
+						{/* <TldrawUiButton
+							type="icon"
+							className="fairy-toolbar-sidebar-button"
+							onClick={() => setPanelState((v) => (v === 'closed' ? 'todo-list' : 'closed'))}
+						>
+							{panelState === 'closed' ? '‹‹' : '››'}
+						</TldrawUiButton> */}
+						<div style={{ position: 'relative' }}>
+							<TldrawUiButton
+								type="icon"
+								className="fairy-toolbar-sidebar-button"
+								onClick={handleClickTodoList}
+							>
+								<TldrawUiIcon icon="clipboard-copied" label="Todo list" />
+							</TldrawUiButton>
+							{hasUnreadTodos && <div className="fairy-todo-unread-indicator" />}
+						</div>
+					</div>
+					<TldrawUiToolbar label={toolbarMessage} orientation="vertical">
+						{agents.map((agent) => {
+							return (
+								<FairyButton
+									key={agent.id}
+									agent={agent}
+									onClick={() => handleClickFairy(agent)}
+									onDoubleClick={() => handleDoubleClickFairy(agent)}
+									selectMessage={selectMessage}
+									deselectMessage={deselectMessage}
+								/>
+							)
+						})}
+					</TldrawUiToolbar>
 				</div>
-				<TldrawUiToolbar label={toolbarMessage}>
-					{agents.map((agent) => {
-						return (
-							<FairyButton
-								key={agent.id}
-								agent={agent}
-								onClick={() => handleToggle()}
-								selectMessage={selectMessage}
-								deselectMessage={deselectMessage}
-							/>
-						)
-					})}
-				</TldrawUiToolbar>
 			</div>
-		</div>
+		</>
 	)
 }

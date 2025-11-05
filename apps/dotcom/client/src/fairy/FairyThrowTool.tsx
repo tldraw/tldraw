@@ -8,6 +8,8 @@ export class FairyThrowTool extends StateNode {
 	}
 	static override initial = 'pointing'
 
+	static override isLockable = false
+
 	fairy: Atom<FairyEntity> | null = null
 
 	clickOffset = { x: 0, y: 0 }
@@ -15,7 +17,12 @@ export class FairyThrowTool extends StateNode {
 	override onEnter() {
 		if (!this.fairy) return
 		this.fairy.update((f) => ({ ...f, isSelected: true }))
-		this.editor.setCursor({ type: 'grabbing', rotation: 0 })
+		this.setCurrentToolIdMask('select')
+	}
+
+	override onExit() {
+		if (!this.fairy) return
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
 	setFairy(fairy: Atom<FairyEntity>) {
@@ -93,6 +100,5 @@ class ThrowingState extends StateNode {
 
 	cancel() {
 		this.editor.setCurrentTool('select')
-		this.editor.setCursor({ type: 'grab', rotation: 0 })
 	}
 }
