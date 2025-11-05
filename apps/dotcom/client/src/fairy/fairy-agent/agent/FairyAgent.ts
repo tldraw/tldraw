@@ -173,6 +173,10 @@ export class FairyAgent {
 		totalTokens: 0,
 	}
 
+	/**
+	 * An atom containing the messages that the fairy has heard.
+	 * NOTE: these are not currently used. HeardMessagesPart and ProximityChatAction are filtered out all wands.
+	 */
 	$heardMessages = atom<ProximityChatMessage[]>('heardMessages', [])
 
 	/**

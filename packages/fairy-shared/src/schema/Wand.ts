@@ -25,14 +25,17 @@ export type Wand = (typeof WAND_DEFINITIONS)[number]
 export const WAND_DEFINITIONS = [
 	{
 		type: 'default',
-		parts: PROMPT_PART_TYPES,
+		parts: PROMPT_PART_TYPES.filter((part) => part !== 'heardMessages'),
 		actions: AGENT_ACTION_TYPES.filter(
-			(action) => action !== 'end-current-project' && action !== 'assign-todo-item'
+			(action) =>
+				action !== 'end-current-project' &&
+				action !== 'assign-todo-item' &&
+				action !== 'proximity-chat'
 		),
 	},
 	{
 		type: 'orchestrator',
-		parts: PROMPT_PART_TYPES,
+		parts: PROMPT_PART_TYPES.filter((part) => part !== 'heardMessages'),
 		actions: [
 			'message',
 			'proximity-chat',
@@ -67,7 +70,8 @@ export const WAND_DEFINITIONS = [
 			(action) =>
 				action !== 'assign-todo-item' &&
 				action !== 'start-project' &&
-				action !== 'end-current-project'
+				action !== 'end-current-project' &&
+				action !== 'proximity-chat'
 		),
 	},
 ] as const satisfies BaseWand[]

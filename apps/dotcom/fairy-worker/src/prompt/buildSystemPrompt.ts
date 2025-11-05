@@ -453,6 +453,7 @@ function getSystemPromptFlags(actions: AgentAction['_type'][], parts: PromptPart
 		isOrchestrator: actions.includes('end-current-project'),
 
 		// proximity chat
+		// these are currently filterd out of Wand.ts
 		hasProximityChat: actions.includes('proximity-chat'),
 		hasHeardMessagesPart: parts.includes('heardMessages'),
 

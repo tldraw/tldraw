@@ -36,8 +36,6 @@ export class ChatActionUtil extends AgentActionUtil<ChatAction> {
 			response_requested: action.response_requested,
 		}
 
-		// console.log('message from ', senderName, ':', message.message)
-
 		// Find all nearby fairies within the shouting box
 		const shoutingBox = Box.FromCenter(senderPosition, FAIRY_SHOUTING_DIMENSIONS)
 		const allFairies = getFairyAgents(this.editor)
