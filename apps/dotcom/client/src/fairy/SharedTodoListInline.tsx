@@ -90,10 +90,10 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 						$showCanvasTodos.set(true)
 
 						// Activate drag tool for repositioning
-						const tool = editor.getStateDescendant('todo-drag')
+						const tool = editor.getStateDescendant('select.todo-drag')
 						if (tool && 'setTodoId' in tool) {
 							;(tool as TodoDragTool).setTodoId(todoId)
-							editor.setCurrentTool('todo-drag')
+							editor.setCurrentTool('select.todo-drag')
 						}
 					}
 				}
@@ -129,10 +129,10 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 					document.removeEventListener('pointerup', handlePointerUp)
 
 					// Activate the drag tool
-					const tool = editor.getStateDescendant('todo-drag')
+					const tool = editor.getStateDescendant('select.todo-drag')
 					if (tool && 'setTodoId' in tool) {
 						;(tool as TodoDragTool).setTodoId(todoId)
-						editor.setCurrentTool('todo-drag')
+						editor.setCurrentTool('select.todo-drag')
 					}
 				}
 			}

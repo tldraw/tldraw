@@ -63,12 +63,13 @@ export function FairyApp({
 		if (!editor) return
 
 		// Register the FairyThrowTool
-		editor.removeTool(FairyThrowTool)
-		editor.setTool(FairyThrowTool)
+		const selectTool = editor.root.children!.select
+		editor.removeTool(FairyThrowTool, selectTool)
+		editor.setTool(FairyThrowTool, selectTool)
 
 		// Register the TodoDragTool
-		editor.removeTool(TodoDragTool)
-		editor.setTool(TodoDragTool)
+		editor.removeTool(TodoDragTool, selectTool)
+		editor.setTool(TodoDragTool, selectTool)
 
 		const configIds = Object.keys(fairyConfigs)
 		const existingAgents = agentsRef.current

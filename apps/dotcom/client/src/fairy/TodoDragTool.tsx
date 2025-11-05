@@ -12,10 +12,6 @@ export class TodoDragTool extends StateNode {
 
 	todoId: number | null = null
 
-	override onEnter() {
-		this.setCurrentToolIdMask('select')
-	}
-
 	override onExit() {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
@@ -40,12 +36,12 @@ class PointingState extends StateNode {
 
 	override onPointerUp() {
 		// User released without interacting - cancel the tool
-		this.editor.setCurrentTool('select')
+		this.editor.setCurrentTool('select.idle')
 	}
 
 	override onKeyDown(info: TLKeyboardEventInfo): void {
 		if (info.key === 'Escape') {
-			this.editor.setCurrentTool('select')
+			this.editor.setCurrentTool('select.idle')
 		}
 	}
 }
@@ -78,12 +74,12 @@ class DraggingState extends StateNode {
 
 	override onPointerUp() {
 		// Return to select tool (coordinates already updated in onPointerMove)
-		this.editor.setCurrentTool('select')
+		this.editor.setCurrentTool('select.idle')
 	}
 
 	override onKeyDown(info: TLKeyboardEventInfo): void {
 		if (info.key === 'Escape') {
-			this.editor.setCurrentTool('select')
+			this.editor.setCurrentTool('select.idle')
 		}
 	}
 }

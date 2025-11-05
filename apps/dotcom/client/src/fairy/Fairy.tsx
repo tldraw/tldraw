@@ -36,7 +36,9 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 	const flipX = useValue('fairy flipX', () => fairy.get()?.flipX ?? false, [fairy])
 	const isSelected = useValue('fairy isSelected', () => fairy.get()?.isSelected ?? false, [fairy])
 	const isInSelectTool = useValue('is in select tool', () => editor.isIn('select.idle'), [editor])
-	const isInThrowTool = useValue('is in throw tool', () => editor.isIn('fairy-throw'), [editor])
+	const isInThrowTool = useValue('is in throw tool', () => editor.isIn('select.fairy-throw'), [
+		editor,
+	])
 	const isGenerating = useValue('is generating', () => agent.isGenerating(), [agent])
 	const isFairyGrabbable = isInSelectTool
 
@@ -125,7 +127,7 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 		// Skip dragging behavior on right-click (context menu will handle it)
 		if (e.button === 2) return
 		if (!editor.isIn('select.idle')) return
-		if (editor.getCurrentTool().id === 'fairy-throw') return
+		if (editor.isIn('select.fairy-throw')) return
 
 		// Determine which fairies to drag before updating selection
 		const fairyAgents = $fairyAgentsAtom.get(editor)
@@ -195,11 +197,11 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 				document.removeEventListener('pointerup', handlePointerUp)
 
 				// Activate the tool with all fairies that were selected at pointer down
-				const tool = editor.getStateDescendant('fairy-throw')
+				const tool = editor.getStateDescendant('select.fairy-throw')
 				if (tool && 'setFairies' in tool) {
 					;(tool as FairyThrowTool).setFairies(fairiesToDrag)
 				}
-				editor.setCurrentTool('fairy-throw')
+				editor.setCurrentTool('select.fairy-throw')
 			}
 		}
 
