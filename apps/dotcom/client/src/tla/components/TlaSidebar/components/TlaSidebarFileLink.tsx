@@ -195,6 +195,8 @@ export function TlaSidebarFileLinkInner({
 	const hasAdminRights = useHasFileAdminRights(fileId)
 
 	const isDragging = useIsDragging(fileId)
+	// disable dragging on mobile
+	const isCoarsePointer = getIsCoarsePointer()
 
 	const wrapperRef = useRef<HTMLDivElement>(null)
 
@@ -227,19 +229,23 @@ export function TlaSidebarFileLinkInner({
 			// We use this id to scroll the active file link into view when creating or deleting files.
 			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
 			role="listitem"
-			draggable={true}
-			onDragStart={(event) => {
-				// Set native drag data for drag-to-new-tab functionality
-				const fileUrl = routes.tlaFile(fileId, { asUrl: true })
-				event.dataTransfer.effectAllowed = 'move'
-				event.dataTransfer.setData('text/uri-list', fileUrl)
-				startDragTracking({
-					groupId,
-					fileId,
-					clientX: event.clientX,
-					clientY: event.clientY,
-				})
-			}}
+			draggable={!isCoarsePointer}
+			onDragStart={
+				isCoarsePointer
+					? undefined
+					: (event) => {
+							// Set native drag data for drag-to-new-tab functionality
+							const fileUrl = routes.tlaFile(fileId, { asUrl: true })
+							event.dataTransfer.effectAllowed = 'move'
+							event.dataTransfer.setData('text/uri-list', fileUrl)
+							startDragTracking({
+								groupId,
+								fileId,
+								clientX: event.clientX,
+								clientY: event.clientY,
+							})
+						}
+			}
 		>
 			<Link
 				ref={linkRef}
