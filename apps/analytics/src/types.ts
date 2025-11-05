@@ -11,6 +11,7 @@ declare global {
 		}
 		TL_GA4_MEASUREMENT_ID: string | undefined
 		TL_GOOGLE_ADS_ID?: string
+		TL_GTM_CONTAINER_ID?: string
 		Reo: any
 		posthog: any
 	}

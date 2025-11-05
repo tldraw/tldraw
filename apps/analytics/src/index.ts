@@ -1,4 +1,5 @@
 import { ga4Gtag, ga4Service } from './analytics-services/ga4'
+import { gtmService } from './analytics-services/gtm'
 import { hubspotService } from './analytics-services/hubspot'
 import { posthogService } from './analytics-services/posthog'
 import { reoService } from './analytics-services/reo'
@@ -22,7 +23,7 @@ class Analytics {
 	private userProperties = {} as { [key: string]: any } | undefined
 	private consent = 'unknown' as CookieConsent
 
-	private services = [posthogService, ga4Service, hubspotService, reoService]
+	private services = [posthogService, ga4Service, gtmService, hubspotService, reoService]
 
 	async initialize() {
 		// Inject styles

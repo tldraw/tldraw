@@ -7,6 +7,7 @@ export default function Analytics() {
 	useEffect(() => {
 		window.TL_GA4_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID
 		window.TL_GOOGLE_ADS_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID
+		window.TL_GTM_CONTAINER_ID = process.env.NEXT_PUBLIC_GTM_CONTAINER_ID
 	}, [])
 
 	useEffect(() => {
@@ -33,6 +34,11 @@ export default function Analytics() {
 		}
 	}, [])
 
+	const analyticsScriptSrc =
+		process.env.NODE_ENV === 'development'
+			? 'http://localhost:5173/tl-analytics.js'
+			: 'https://analytics.tldraw.com/tl-analytics.js'
+
 	return (
 		<>
 			<Script
@@ -41,7 +47,7 @@ export default function Analytics() {
 				strategy="afterInteractive"
 				async
 				defer
-				src="https://analytics.tldraw.com/tl-analytics.js"
+				src={analyticsScriptSrc}
 			/>
 		</>
 	)
@@ -56,6 +62,7 @@ declare global {
 		}
 		TL_GA4_MEASUREMENT_ID: string | undefined
 		TL_GOOGLE_ADS_ID?: string
+		TL_GTM_CONTAINER_ID?: string
 		posthog: any
 	}
 }

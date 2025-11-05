@@ -18,3 +18,7 @@ export const REO_SCRIPT_URL = `https://static.reo.dev/${REO_CLIENT_ID}/reo.js`
 export const POSTHOG_TOKEN = 'phc_i8oKgMzgV38sn3GfjswW9mevQ3gFlo7bJXekZFeDN6'
 export const POSTHOG_API_HOST = 'https://analytics.tldraw.com/i'
 export const POSTHOG_UI_HOST = 'https://eu.i.posthog.com'
+
+// Google Tag Manager configuration.
+export const GTM_SCRIPT_ID = 'gtm-script-loader'
+export const GTM_NOSCRIPT_ID = 'gtm-noscript-loader'
