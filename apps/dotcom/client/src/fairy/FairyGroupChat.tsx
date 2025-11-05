@@ -7,7 +7,9 @@ import {
 	uniqueId,
 	useValue,
 } from 'tldraw'
+import { F, useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { fairyMessages } from './fairy-messages'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
 import { addProject } from './Projects'
 
@@ -116,18 +118,28 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 		handleInstructGroupChat(instruction)
 	}
 
+	const leaderFairySelectionLabel = useMsg(fairyMessages.leaderFairySelection)
+	const instructGroupPlaceholder = useMsg(fairyMessages.instructGroupPlaceholder)
+	const selectLeaderFirstPlaceholder = useMsg(fairyMessages.selectLeaderFirstPlaceholder)
+	const stopTitle = useMsg(fairyMessages.stopTitle)
+	const sendTitle = useMsg(fairyMessages.sendTitle)
+
 	if (agents.length === 0)
 		return (
 			<div>
-				<p>No fairies selected</p>
+				<p>
+					<F defaultMessage="No fairies selected" />
+				</p>
 			</div>
 		)
 
 	return (
 		<div className="fairy-group-chat">
 			<div className="fairy-group-chat-leader-toggle-container">
-				<p>Leader fairy will be given orchestration power</p>
-				<TldrawUiToolbar orientation="horizontal" label="Leader fairy selection">
+				<p>
+					<F defaultMessage="Leader fairy will be given orchestration power" />
+				</p>
+				<TldrawUiToolbar orientation="horizontal" label={leaderFairySelectionLabel}>
 					{agents.map((agent) => (
 						<FairyLeaderToggle
 							key={agent.id}
@@ -140,11 +152,17 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 				<div className="fairy-group-chat-leader-info">
 					{leaderConfig ? (
 						<>
-							<p>Name: {leaderConfig.name}</p>
-							<p>Personality: {leaderConfig.personality}</p>
+							<p>
+								<F defaultMessage="Name:" /> {leaderConfig.name}
+							</p>
+							<p>
+								<F defaultMessage="Personality:" /> {leaderConfig.personality}
+							</p>
 						</>
 					) : (
-						<p>No leader selected</p>
+						<p>
+							<F defaultMessage="No leader selected" />
+						</p>
 					)}
 				</div>
 			</div>
@@ -152,7 +170,7 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 				<div className="fairy-group-chat-input__wrapper">
 					<textarea
 						ref={instructionTextareaRef}
-						placeholder={leaderAgent ? 'Instruct the group...' : 'Select a leader first...'}
+						placeholder={leaderAgent ? instructGroupPlaceholder : selectLeaderFirstPlaceholder}
 						value={instruction}
 						onChange={(e) => setInstruction(e.target.value)}
 						onKeyDown={(e) => {
@@ -170,7 +188,7 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 					onClick={handleButtonClick}
 					disabled={!leaderAgent || (instruction === '' && !areAnyGenerating)}
 					className="fairy-group-chat-input__submit"
-					title={shouldCancel ? 'Stop' : 'Send'}
+					title={shouldCancel ? stopTitle : sendTitle}
 				>
 					{shouldCancel ? '⏹' : '📣'}
 				</button>
@@ -190,6 +208,8 @@ function FairyLeaderToggle({
 }) {
 	const fairyOutfit = useValue('fairy outfit', () => agent.$fairyConfig.get()?.outfit, [agent])
 	const fairyEntity = useValue('fairy entity', () => agent.$fairyEntity.get(), [agent])
+	const selectLeaderLabel = useMsg(fairyMessages.selectLeader)
+	const deselectLeaderLabel = useMsg(fairyMessages.deselectLeader)
 
 	return (
 		<TldrawUiToolbarToggleGroup type="single" value={agentIsSetAsLeader ? 'on' : 'off'} asChild>
@@ -198,7 +218,7 @@ function FairyLeaderToggle({
 				type="icon"
 				data-state={agentIsSetAsLeader ? 'on' : 'off'}
 				data-isactive={agentIsSetAsLeader}
-				aria-label={agentIsSetAsLeader ? 'Deselect leader' : 'Select leader'}
+				aria-label={agentIsSetAsLeader ? deselectLeaderLabel : selectLeaderLabel}
 				value="on"
 			>
 				<FairySpriteComponent entity={fairyEntity} outfit={fairyOutfit} animated={false} />

@@ -1,9 +1,11 @@
 import { SharedTodoItem } from '@tldraw/fairy-shared'
 import { useValue } from 'tldraw'
+import { useMsg } from '../tla/utils/i18n'
+import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { fairyMessages } from './fairy-messages'
+import { getProjectColor } from './getProjectColor'
 import { getProjectById } from './Projects'
 import { $sharedTodoList, $showCanvasTodos, deleteSharedTodoItem } from './SharedTodoList'
-import { FairyAgent } from './fairy-agent/agent/FairyAgent'
-import { getProjectColor } from './getProjectColor'
 
 export function InCanvasTodoList({ agents }: { agents: FairyAgent[] }) {
 	const todos = useValue('shared-todo-list', () => $sharedTodoList.get(), [$sharedTodoList])
@@ -38,6 +40,8 @@ function getStatusIcon(status: SharedTodoItem['status']) {
 }
 
 function InCanvasTodoItem({ agents, todo }: { agents: FairyAgent[]; todo: SharedTodoItem }) {
+	const deleteTodoLabel = useMsg(fairyMessages.deleteTodo)
+
 	const statusClass =
 		todo.status === 'done'
 			? 'in-canvas-todo-item--done'
@@ -75,7 +79,7 @@ function InCanvasTodoItem({ agents, todo }: { agents: FairyAgent[]; todo: Shared
 						e.stopPropagation()
 						deleteSharedTodoItem(todo.id)
 					}}
-					title="Delete todo"
+					title={deleteTodoLabel}
 				>
 					×
 				</button>

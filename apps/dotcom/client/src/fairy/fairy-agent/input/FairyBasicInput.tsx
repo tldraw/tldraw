@@ -1,6 +1,8 @@
 import { convertTldrawShapeToFocusedShape, FAIRY_VISION_DIMENSIONS } from '@tldraw/fairy-shared'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Box, TldrawUiInput, useValue } from 'tldraw'
+import { useMsg } from '../../../tla/utils/i18n'
+import { fairyMessages } from '../../fairy-messages'
 import { $sharedTodoList } from '../../SharedTodoList'
 import { FairyAgent } from '../agent/FairyAgent'
 
@@ -69,11 +71,15 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 		}
 	}
 
+	const whisperPlaceholder = useMsg(fairyMessages.whisperToFairy, { name: fairyConfig.name })
+	const stopLabel = useMsg(fairyMessages.stopLabel)
+	const sendLabel = useMsg(fairyMessages.sendLabel)
+
 	return (
 		<div className="fairy-input">
 			<TldrawUiInput
 				ref={inputRef}
-				placeholder={`Whisper to ${fairyConfig.name}...`}
+				placeholder={whisperPlaceholder}
 				value={inputValue}
 				onValueChange={setInputValue}
 				onComplete={handleComplete}
@@ -85,7 +91,7 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 				onClick={handleButtonClick}
 				disabled={inputValue === '' && !isGenerating}
 				className="fairy-input__submit"
-				title={shouldCancel ? 'Stop' : 'Send'}
+				title={shouldCancel ? stopLabel : sendLabel}
 			>
 				{shouldCancel ? '⏹' : '👄'}
 			</button>

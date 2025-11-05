@@ -2,7 +2,9 @@ import { SharedTodoItem } from '@tldraw/fairy-shared'
 import React, { useCallback, useState } from 'react'
 import { useEditor, useValue } from 'tldraw'
 import '../tla/styles/fairy.css'
+import { F, useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { fairyMessages } from './fairy-messages'
 import { getProjectColor } from './getProjectColor'
 import { getProjectById } from './Projects'
 import {
@@ -18,6 +20,10 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 	const editor = useEditor()
 	const todos = useValue('shared-todo-list', () => $sharedTodoList.get(), [$sharedTodoList])
 	const [newTodoText, setNewTodoText] = useState('')
+	const addTodoPlaceholder = useMsg(fairyMessages.addTodoPlaceholder)
+	const dragToCanvas = useMsg(fairyMessages.dragToCanvas)
+	const clickToRemoveOrDrag = useMsg(fairyMessages.clickToRemoveOrDrag)
+	const deleteTodo = useMsg(fairyMessages.deleteTodo)
 
 	const getStatusIcon = (status: string) => {
 		switch (status) {
@@ -155,7 +161,7 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 					type="text"
 					value={newTodoText}
 					onChange={(e) => setNewTodoText(e.target.value)}
-					placeholder="Add a new todo..."
+					placeholder={addTodoPlaceholder}
 					className="shared-todo-input-field"
 				/>
 				<button type="submit" className="shared-todo-input-submit" disabled={!newTodoText.trim()}>
@@ -202,18 +208,14 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 											e.stopPropagation()
 											handleDragStart(e, todo.id)
 										}}
-										title={
-											todo.x != null && todo.y != null
-												? 'Click to remove or drag to move'
-												: 'Drag to canvas'
-										}
+										title={todo.x != null && todo.y != null ? clickToRemoveOrDrag : dragToCanvas}
 									>
 										{todo.x != null && todo.y != null ? '⊖' : '◎'}
 									</button>
 									<button
 										className="shared-todo-item-delete"
 										onClick={() => deleteSharedTodoItem(todo.id)}
-										title="Delete todo"
+										title={deleteTodo}
 									>
 										×
 									</button>
@@ -224,7 +226,9 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 										onChange={(e) => assignAgentToTodo(todo.id, e.target.value, agents)}
 										className="shared-todo-item-fairy-select"
 									>
-										<option value="">Auto</option>
+										<option value="">
+											<F defaultMessage="Auto" />
+										</option>
 										{agents.map((agent) => (
 											<option key={agent.id} value={agent.id}>
 												{agent.$fairyConfig.get().name}
@@ -235,9 +239,8 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 										<button
 											className="shared-todo-item-help-button"
 											onClick={() => handleHelpOut(todo)}
-											title="Request help with this task"
 										>
-											Request help
+											<F defaultMessage="Request help" />
 										</button>
 									}
 								</div>

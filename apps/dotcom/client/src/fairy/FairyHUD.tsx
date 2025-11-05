@@ -20,10 +20,11 @@ import {
 import { MAX_FAIRY_COUNT } from '../tla/components/TlaEditor/TlaEditor'
 import { useApp } from '../tla/hooks/useAppState'
 import '../tla/styles/fairy.css'
-import { defineMessages, useMsg } from '../tla/utils/i18n'
+import { F, useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairyChatHistory } from './fairy-agent/chat/FairyChatHistory'
 import { FairyBasicInput } from './fairy-agent/input/FairyBasicInput'
+import { fairyMessages } from './fairy-messages'
 import { FairyDropdownContent } from './FairyDropdownContent'
 import { FairyGroupChat } from './FairyGroupChat'
 import { FairySidebarButton } from './FairySidebarButton'
@@ -32,12 +33,6 @@ import { $sharedTodoList, $showCanvasTodos } from './SharedTodoList'
 import { SharedTodoListInline } from './SharedTodoListInline'
 import { TodoListDropdownContent } from './TodoListDropdownContent'
 import { TodoListSidebarButton } from './TodoListSidebarButton'
-
-const fairyMessages = defineMessages({
-	toolbar: { defaultMessage: 'Fairies' },
-	deselect: { defaultMessage: 'Deselect fairy' },
-	select: { defaultMessage: 'Select fairy' },
-})
 
 function NewFairyButton({ agents }: { agents: FairyAgent[] }) {
 	const app = useApp()
@@ -70,6 +65,8 @@ function NewFairyButton({ agents }: { agents: FairyAgent[] }) {
 		app.z.mutate.user.updateFairyConfig({ id, properties: config })
 	}, [app])
 
+	const newFairyLabel = useMsg(fairyMessages.newFairy)
+
 	return (
 		<TldrawUiButton
 			type="icon"
@@ -77,7 +74,7 @@ function NewFairyButton({ agents }: { agents: FairyAgent[] }) {
 			onClick={handleClick}
 			disabled={agents.length >= MAX_FAIRY_COUNT}
 		>
-			<TldrawUiIcon icon="plus" label="New fairy" />
+			<TldrawUiIcon icon="plus" label={newFairyLabel} />
 		</TldrawUiButton>
 	)
 }
@@ -94,8 +91,11 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	const [shownFairy, setShownFairy] = useState<FairyAgent | null>(null)
 
 	const toolbarMessage = useMsg(fairyMessages.toolbar)
-	const deselectMessage = useMsg(fairyMessages.deselect)
-	const selectMessage = useMsg(fairyMessages.select)
+	const deselectMessage = useMsg(fairyMessages.deselectFairy)
+	const selectMessage = useMsg(fairyMessages.selectFairy)
+	const resetChatLabel = useMsg(fairyMessages.resetChat)
+	const showTodosOnCanvas = useMsg(fairyMessages.showTodosOnCanvas)
+	const hideTodosOnCanvas = useMsg(fairyMessages.hideTodosOnCanvas)
 
 	// Create a reactive value that tracks which fairies are selected
 	const selectedFairies = useValue(
@@ -271,7 +271,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 												className="fairy-toolbar-button"
 												onClick={() => shownFairy?.reset()}
 											>
-												<TldrawUiIcon icon="plus" label="Reset chat" />
+												<TldrawUiIcon icon="plus" label={resetChatLabel} />
 											</TldrawUiButton>
 										</div>
 										{shownFairy && (
@@ -290,7 +290,9 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 								{selectedFairies.length > 1 && (
 									<>
 										<div className="fairy-toolbar-header">
-											<div className="fairy-id-display">Group chat</div>
+											<div className="fairy-id-display">
+												<F defaultMessage="Group chat" />
+											</div>
 										</div>
 										<FairyGroupChat agents={selectedFairies} />
 									</>
@@ -319,7 +321,9 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 											side="bottom"
 										/>
 									</_DropdownMenu.Root>
-									<div className="fairy-id-display">Todo list</div>
+									<div className="fairy-id-display">
+										<F defaultMessage="Todo list" />
+									</div>
 									<TldrawUiButton
 										type="icon"
 										className="fairy-toolbar-button"
@@ -327,7 +331,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 									>
 										<TldrawUiIcon
 											icon={showCanvasTodos ? 'toggle-on' : 'toggle-off'}
-											label={showCanvasTodos ? 'Hide todos on canvas' : 'Show todos on canvas'}
+											label={showCanvasTodos ? hideTodosOnCanvas : showTodosOnCanvas}
 										/>
 									</TldrawUiButton>
 								</div>
