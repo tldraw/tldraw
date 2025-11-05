@@ -4,7 +4,7 @@ import {
 	PersistedFairyState,
 } from '@tldraw/fairy-shared'
 import { useCallback, useEffect, useRef } from 'react'
-import { react, throttle, useEditor, useValue } from 'tldraw'
+import { react, throttle, useEditor, useToasts, useValue } from 'tldraw'
 import { useApp } from '../tla/hooks/useAppState'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
@@ -22,6 +22,7 @@ export function FairyApp({
 	const editor = useEditor()
 	const user = useTldrawUser()
 	const app = useApp()
+	const toasts = useToasts()
 	const fairyConfigs = useValue(
 		'fairyConfigs',
 		() => JSON.parse(app?.getUser().fairies || '{}') as PersistedFairyConfigs,
@@ -33,9 +34,18 @@ export function FairyApp({
 		return await user.getToken()
 	}, [user])
 
-	const handleError = useCallback((e: any) => {
-		console.error('Error:', e)
-	}, [])
+	const handleError = useCallback(
+		(e: any) => {
+			const message = typeof e === 'string' ? e : e instanceof Error && e.message
+			toasts.addToast({
+				title: 'Error',
+				description: message || 'An error occurred',
+				severity: 'error',
+			})
+			console.error(e)
+		},
+		[toasts]
+	)
 
 	// Track whether we're currently loading state to prevent premature saves
 	const isLoadingStateRef = useRef(false)
