@@ -53,12 +53,19 @@ export default function Analytics() {
 	)
 }
 
+type ConsentPreferences = {
+	analytics: 'granted' | 'denied'
+	marketing: 'granted' | 'denied'
+}
+
 declare global {
 	interface Window {
 		tlanalytics: {
 			openPrivacySettings(): void
 			track(name: string, data?: { [key: string]: any }): void
 			gtag(...args: any[]): void
+			getConsentState(): ConsentPreferences
+			onConsentUpdate(callback: (preferences: ConsentPreferences) => void): () => void
 		}
 		TL_GA4_MEASUREMENT_ID: string | undefined
 		TL_GOOGLE_ADS_ID?: string

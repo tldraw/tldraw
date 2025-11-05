@@ -15,13 +15,26 @@ import {
 } from './state/cookie-consent-state'
 import { ThemeState } from './state/theme-state'
 import styles from './styles.css?inline'
-import { CookieConsent } from './types'
+import { ConsentPreferences, CookieConsent } from './types'
 import { shouldRequireConsent } from './utils/consent-check'
+
+function cookieConsentToPreferences(consent: CookieConsent): ConsentPreferences {
+	if (consent === 'opted-in') {
+		return { analytics: 'granted', marketing: 'granted' }
+	}
+	return { analytics: 'denied', marketing: 'denied' }
+}
+
+function generateEventId(): string {
+	return crypto.randomUUID()
+}
 
 class Analytics {
 	private userId = '' as string
 	private userProperties = {} as { [key: string]: any } | undefined
 	private consent = 'unknown' as CookieConsent
+	private consentOptInType: 'manual' | 'auto' = 'manual'
+	private consentCallbacks: Array<(preferences: ConsentPreferences) => void> = []
 
 	private services = [posthogService, ga4Service, gtmService, hubspotService, reoService]
 
@@ -54,6 +67,7 @@ class Analytics {
 			// If the consent is the same as the current consent, do nothing
 			if (consent === this.consent) return
 
+			const wasUnknown = this.consent === 'unknown'
 			this.consent = consent
 
 			if (this.consent === 'opted-in') {
@@ -80,6 +94,30 @@ class Analytics {
 
 			// Track the consent change (after enabling or disabling)
 			this.track('consent_changed', { consent })
+
+			// Fire GTM event if user made a selection (not initial unknown state)
+			if (wasUnknown && consent !== 'unknown') {
+				const preferences = cookieConsentToPreferences(consent)
+				if (window.dataLayer) {
+					window.dataLayer.push({
+						event: 'select_consent_banner',
+						id: generateEventId(),
+						data: {
+							consent_analytics: preferences.analytics,
+							consent_marketing: preferences.marketing,
+							consent_opt_in_type: this.consentOptInType,
+						},
+					})
+				}
+			}
+
+			// Notify consent callbacks
+			if (consent !== 'unknown') {
+				const preferences = cookieConsentToPreferences(consent)
+				for (const callback of this.consentCallbacks) {
+					callback(preferences)
+				}
+			}
 		})
 
 		// ...also we stash a few things onto the window in case we need them elsewhere
@@ -89,6 +127,14 @@ class Analytics {
 			track: this.track.bind(this),
 			page: this.page.bind(this),
 			gtag: this.gtag.bind(this),
+			getConsentState: () => cookieConsentToPreferences(this.consent),
+			onConsentUpdate: (callback: (preferences: ConsentPreferences) => void) => {
+				this.consentCallbacks.push(callback)
+				return () => {
+					const index = this.consentCallbacks.indexOf(callback)
+					if (index > -1) this.consentCallbacks.splice(index, 1)
+				}
+			},
 			openPrivacySettings() {
 				mountPrivacySettingsDialog(cookieConsentState, themeState, document.body)
 			},
@@ -106,7 +152,13 @@ class Analytics {
 		} else {
 			// No existing consent decision - check if we need to ask based on location
 			const requiresConsent = await shouldRequireConsent()
-			initialConsent = requiresConsent === 'requires-consent' ? 'unknown' : 'opted-in'
+			if (requiresConsent === 'requires-consent') {
+				initialConsent = 'unknown'
+				this.consentOptInType = 'manual'
+			} else {
+				initialConsent = 'opted-in'
+				this.consentOptInType = 'auto'
+			}
 		}
 
 		// This will trigger the subscriber we set up earlier, which will
@@ -115,7 +167,18 @@ class Analytics {
 
 		// Now that we have the consent value in memory, we can initialize
 		// the cookie consent banner and start showing some UI (if consent is unknown)
-		mountCookieConsentBanner(cookieConsentState, themeState, document.body)
+		const banner = mountCookieConsentBanner(cookieConsentState, themeState, document.body)
+
+		// Fire display_consent_banner event if banner was shown
+		if (banner && window.dataLayer) {
+			window.dataLayer.push({
+				event: 'display_consent_banner',
+				id: generateEventId(),
+				data: {
+					consent_opt_in_type: this.consentOptInType,
+				},
+			})
+		}
 	}
 
 	/**
