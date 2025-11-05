@@ -1,7 +1,6 @@
 import { SharedTodoItem } from '@tldraw/fairy-shared'
 import { atom } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
-import { $fairyAgentsAtom } from './fairy-agent/agent/fairyAgentsAtom'
 import { clearProjects } from './Projects'
 
 export const $sharedTodoList = atom<SharedTodoItem[]>('sharedTodoList', [])
@@ -27,23 +26,11 @@ export function deleteSharedTodoItem(id: number) {
 	$sharedTodoList.update((todos) => todos.filter((t) => t.id !== id))
 }
 
-export function clearSharedTodoList(agents?: FairyAgent[]) {
+export function clearSharedTodoList() {
 	$sharedTodoList.set([])
 
 	// Clear all projects
 	clearProjects()
-
-	// Reset all active projects from all fairies
-	if (agents && agents.length > 0) {
-		// Get all agents from the editor to ensure we reset all of them
-		const editor = agents[0].editor
-		const allAgents = $fairyAgentsAtom.get(editor)
-
-		allAgents.forEach((agent) => {
-			agent.$currentProjectId.set(null)
-			agent.setMode('default')
-		})
-	}
 }
 
 export function requestHelpWithTodo(todoId: number, agents: FairyAgent[]) {
@@ -51,7 +38,9 @@ export function requestHelpWithTodo(todoId: number, agents: FairyAgent[]) {
 	if (!todo) return
 
 	// If there's an assigned agent, ask them to help
-	const assignedAgent = todo.claimedById ? agents.find((a) => a.id === todo.claimedById) : undefined
+	const assignedAgent = todo.assignedById
+		? agents.find((a) => a.id === todo.assignedById)
+		: undefined
 	if (assignedAgent) {
 		assignedAgent.helpOut([todo])
 		return
@@ -76,7 +65,7 @@ export function assignAgentToTodo(todoId: number, agentId: string, agents: Fairy
 	if (!agent && agentId !== '') return
 
 	$sharedTodoList.update((todos) =>
-		todos.map((t) => (t.id === todoId ? { ...t, claimedById: agentId || undefined } : t))
+		todos.map((t) => (t.id === todoId ? { ...t, assignedById: agentId || undefined } : t))
 	)
 }
 

@@ -813,6 +813,7 @@ export class TLDrawDurableObject extends DurableObject {
 			}
 		})
 	}
+	persistenceBad = false
 
 	// Save the room to r2
 	async persistToDatabase() {
@@ -822,6 +823,7 @@ export class TLDrawDurableObject extends DurableObject {
 					async ({ attempt }) => {
 						if (attempt === PERSIST_RETRIES_NOTIFY_THRESHOLD) {
 							this.broadcastPersistenceEvent({ type: 'persistence_bad' })
+							this.persistenceBad = true
 						}
 						// check whether the worker was woken up to persist after having gone to sleep
 						if (!this._room) return
@@ -839,8 +841,9 @@ export class TLDrawDurableObject extends DurableObject {
 
 						this.logEvent({ type: 'persist_success', attempts: attempt })
 						this._lastPersistedClock = clock
-						if (attempt >= PERSIST_RETRIES_NOTIFY_THRESHOLD) {
+						if (this.persistenceBad) {
 							this.broadcastPersistenceEvent({ type: 'persistence_good' })
+							this.persistenceBad = false
 						}
 
 						// Update the updatedAt timestamp in the database

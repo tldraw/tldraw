@@ -18,6 +18,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { MAX_FAIRY_COUNT } from '../tla/components/TlaEditor/TlaEditor'
+import { useApp } from '../tla/hooks/useAppState'
 import '../tla/styles/fairy.css'
 import { defineMessages, useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
@@ -38,14 +39,10 @@ const fairyMessages = defineMessages({
 	select: { defaultMessage: 'Select fairy' },
 })
 
-function NewFairyButton({
-	agents,
-	onAddFairyConfig,
-}: {
-	agents: FairyAgent[]
-	onAddFairyConfig(id: string, config: any): void
-}) {
+function NewFairyButton({ agents }: { agents: FairyAgent[] }) {
+	const app = useApp()
 	const handleClick = useCallback(() => {
+		if (!app) return
 		const randomOutfit = {
 			body: Object.keys(FAIRY_VARIANTS.body)[
 				Math.floor(Math.random() * Object.keys(FAIRY_VARIANTS.body).length)
@@ -66,13 +63,12 @@ function NewFairyButton({
 			name: getRandomFairyName(),
 			outfit: randomOutfit,
 			personality: 'Friendly and helpful',
-			mode: 'default',
-			wand: 'god',
+			wand: 'default',
 		}
 
 		// Add the config, which will trigger agent creation in FairyApp
-		onAddFairyConfig(id, config)
-	}, [onAddFairyConfig])
+		app.z.mutate.user.updateFairyConfig({ id, properties: config })
+	}, [app])
 
 	return (
 		<TldrawUiButton
@@ -88,15 +84,7 @@ function NewFairyButton({
 
 type PanelState = 'todo-list' | 'fairy' | 'closed'
 
-export function FairyHUD({
-	agents,
-	onAddFairyConfig,
-	onDeleteFairyConfig,
-}: {
-	agents: FairyAgent[]
-	onAddFairyConfig(id: string, config: any): void
-	onDeleteFairyConfig(id: string): void
-}) {
+export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	const editor = useEditor()
 	const [menuPopoverOpen, setMenuPopoverOpen] = useState(false)
 	const [todoMenuPopoverOpen, setTodoMenuPopoverOpen] = useState(false)
@@ -243,7 +231,6 @@ export function FairyHUD({
 												{shownFairy && (
 													<FairyDropdownContent
 														agent={shownFairy}
-														onDeleteFairyConfig={onDeleteFairyConfig}
 														alignOffset={4}
 														sideOffset={4}
 														side="bottom"
@@ -313,7 +300,6 @@ export function FairyHUD({
 										</_DropdownMenu.Trigger>
 										<TodoListDropdownContent
 											agents={agents}
-											onDeleteFairyConfig={onDeleteFairyConfig}
 											alignOffset={4}
 											sideOffset={4}
 											side="bottom"
@@ -343,7 +329,6 @@ export function FairyHUD({
 							onClick={handleClickTodoList}
 							hasUnreadTodos={hasUnreadTodos}
 							agents={agents}
-							onDeleteFairyConfig={onDeleteFairyConfig}
 						/>
 					</div>
 					<TldrawUiToolbar label={toolbarMessage} orientation="vertical">
@@ -356,11 +341,10 @@ export function FairyHUD({
 									onDoubleClick={() => handleDoubleClickFairy(agent)}
 									selectMessage={selectMessage}
 									deselectMessage={deselectMessage}
-									onDeleteFairyConfig={onDeleteFairyConfig}
 								/>
 							)
 						})}
-						<NewFairyButton agents={agents} onAddFairyConfig={onAddFairyConfig} />
+						<NewFairyButton agents={agents} />
 					</TldrawUiToolbar>
 				</div>
 			</div>

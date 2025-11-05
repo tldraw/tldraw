@@ -1,4 +1,4 @@
-import { VecModel, vecModelValidator } from '@tldraw/tlschema'
+import { pageIdValidator, TLPageId, VecModel, vecModelValidator } from '@tldraw/tlschema'
 import { T } from 'tldraw'
 import { FAIRY_POSE, FairyPose } from './FairyPose'
 
@@ -17,6 +17,8 @@ export interface FairyEntity {
 	pose: FairyPose
 	/** A one-off gesture that the fairy is doing. This overrides the current pose until the gesture is complete. */
 	gesture: FairyPose | null
+	/** The ID of the page that the fairy is currently on. */
+	currentPageId: TLPageId
 }
 
 export const fairyEntityValidator: T.ObjectValidator<FairyEntity> = T.object({
@@ -25,4 +27,5 @@ export const fairyEntityValidator: T.ObjectValidator<FairyEntity> = T.object({
 	isSelected: T.boolean,
 	pose: T.literalEnum(...FAIRY_POSE),
 	gesture: T.literalEnum(...FAIRY_POSE).nullable(),
+	currentPageId: pageIdValidator,
 })

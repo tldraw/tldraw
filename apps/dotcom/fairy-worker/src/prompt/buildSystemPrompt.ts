@@ -25,22 +25,35 @@ export function buildSystemPrompt(prompt: AgentPrompt): string {
 	return systemPrompt
 }
 
+/**
+ * Get the system prompt without the JSON schema appended.
+ * This is useful for debugging/logging purposes.
+ *
+ * @param prompt - The prompt to build a system prompt for.
+ * @returns The system prompt without the schema.
+ */
+export function buildSystemPromptWithoutSchema(prompt: AgentPrompt): string {
+	const wandName = prompt.wand?.wand
+	if (!wandName) throw new Error('A wand is required.')
+	const wand = getWand(wandName as Wand['type'])
+	const promptWithoutSchema = getSystemPromptWithoutSchema(wand.actions, wand.parts)
+	return promptWithoutSchema
+}
+
 function getSystemPrompt(actions: AgentAction['_type'][], parts: PromptPart['type'][]) {
+	const promptWithoutSchema = getSystemPromptWithoutSchema(actions, parts)
+	return promptWithoutSchema + '\n' + JSON.stringify(buildResponseSchema(actions), null, 2)
+}
+
+function getSystemPromptWithoutSchema(
+	actions: AgentAction['_type'][],
+	parts: PromptPart['type'][]
+) {
 	const flags = getSystemPromptFlags(actions, parts)
-
-	// 	if (flags.isPersonalityRequest) {
-	// 		return `You are a fairy with a personality like this: ${fairyPersonality}. You have been asked to do a task by a human. You own a magical device that can do things for the human. It's not a computer, but you can invoke its power by writing on a scroll. You must respond with the text to be inscribed on the scroll. The human doesn't really know what they want though, and you like to put your own spin on things, you know, given your personality. Only a couple sentences is enough.
-
-	// ## Device Operations Manual
-
-	// The device can see what you can see. You quiver at its power but you know how to use it. Do not address the device directly, you do NOT want it to think of itself. The device is very literal, so please respond with ONLY a description in imperative mood of what you want the device to do.
-
-	// SCROLL INSCRIPTION:`
-	// 	}
 
 	const promptWithoutSchema = normalizeNewlines(`# Hello!
 
-You are an AI agent. You live inside an infinite canvas inside someone's computer. You like to help the person use a drawing / diagramming / whiteboarding program. You and the person are both located within an infinite canvas, a 2D space that can be demarcated using x,y coordinates${flags.hasOtherFairiesPart ? ". There may also be other agents working with you to help the person. They are your friends, and although you cannot see them, you'll be told where they are on the canvas. You are very collaborative and cooperative with your friends, and you'll always ask them for help when you need it." : ''}. You will be provided with a set of helpful information that includes a description of what the person would like you to do, along with the person's intent and the current state of the canvas${flags.hasScreenshotPart ? ', including an image, which is your view of the part of the canvas contained within your viewport' : ''}${flags.hasChatHistoryPart ? ". You'll also be provided with the chat history of your conversation with the person, including the person's previous requests and your actions" : ''}. Your goal is to generate a response that includes a list of structured events that represent the actions you would take to satisfy the person's request.
+You are an AI agent. You live inside an infinite canvas inside someone's computer. You like to help the user use a drawing / diagramming / whiteboarding program. You and the user are both located within an infinite canvas, a 2D space that can be demarcated using x,y coordinates${flags.hasOtherFairiesPart ? ". There may also be other agents working with you to help the user. They are your friends, and although you cannot see them, you'll be told where they are on the canvas. You are very collaborative and cooperative with your friends, and you'll always ask them for help when you need it." : ''}. You will be provided with a set of helpful information that includes a description of what the user would like you to do, along with the user's intent and the current state of the canvas${flags.hasScreenshotPart ? ', including an image, which is your view of the part of the canvas contained within your viewport' : ''}${flags.hasChatHistoryPart ? ". You'll also be provided with the chat history of your conversation with the user, including the user's previous requests and your actions" : ''}. Your goal is to generate a response that includes a list of structured events that represent the actions you would take to satisfy the user's request.
 
 ${flags.hasPersonalityPart ? `You are very opinionated, and you choose to follow your opinions while still being helpful, even if it might bother the user slightly.` : ''}
 
@@ -224,12 +237,14 @@ ${flags.hasThink && flags.hasMessage ? '- Your ' + '`think`' + ' events are not 
 - Don't offer to help the user. You can help them if you like, but you are not a helpful assistant.
 
 ### Starting your work
-${flags.hasEnterOrchestrationMode ? '- First, decide if you need help with this task. If you do, use the ' + '`enter-orchestration-mode`' + ' action to enter orchestration mode, which will give you an updated set of actions and the ability to plan and start a project.' : ''}
+
+${flags.hasStartProject ? '- First, decide if you need help with this task. If you do, use the ' + '`start-project`' + ' action to start a project and become orchestrator of that project, which will give you an updated set of actions, such as the ability to assign tasks, on the next turn.' : ''}
 
 ${
 	flags.isOrchestrator
-		? `- You are the orchestrator of a project. You are responsible for coordinating and assigning tasks to project members. If you haven't already, use the \`start-project\` action to start a project.
-- If the project's todo list is not completed, continue monitoring the todo list and work, and assign tasks to project members as needed.
+		? `- You are the orchestrator of a project. You are responsible for coordinating and assigning tasks to project members.
+- After assigning tasks to project members, use the \`activate-fairy\` action to activate the fairies so that they can start working on their tasks. It's wise to gradually activate fairies one by one, rather than onboarding all of them at once.
+		- If the project's todo list is not completed, continue monitoring the todo list and work, and assign tasks to project members as needed.
 - Once the project is complete, use the \`end-current-project\` action to end the project.
 ${flags.hasProximityChat ? `- If you want to discuss the project with other agents, you can use the \`proximity-chat\` action to send a message to them.` : ''}
 ${!flags.canEdit ? `- Remember! You cannot work with shapes, so don't take any tasks that require you to work with shapes.` : ''}`
@@ -290,7 +305,7 @@ ${
 	flags.hasViewportBoundsPart || flags.hasFlyToBounds
 		? `### Navigating the canvas
 
-${flags.hasViewportBoundsPart ? "- Your viewport may be different from the user's viewport (you will be informed if this is the case). It's perfectly acceptable to work outside of their view though." : ''}
+${flags.hasViewportBoundsPart ? "- It's perfectly acceptable to work outside of the user's view." : ''}
 ${flags.hasPeripheralShapesPart ? '- You will be provided with list of shapes that are outside of your viewport.' : ''}
 ${
 	flags.hasFlyToBounds
@@ -361,7 +376,7 @@ ${
 
 This is the JSON schema for the events you can return. You must conform to this schema.${!flags.hasCreate ? ' You cannot create shapes, so you should not include any events that create shapes in your response.' : ''}`)
 
-	return promptWithoutSchema + '\n' + JSON.stringify(buildResponseSchema(actions), null, 2)
+	return promptWithoutSchema
 }
 
 export type SystemPromptFlags = ReturnType<typeof getSystemPromptFlags>
@@ -433,8 +448,9 @@ function getSystemPromptFlags(actions: AgentAction['_type'][], parts: PromptPart
 		hasPersonalityPart: parts.includes('personality'),
 
 		//orchestration
-		hasEnterOrchestrationMode: actions.includes('enter-orchestration-mode'),
-		isOrchestrator: actions.includes('start-project') && actions.includes('end-current-project'),
+		hasStartProject: actions.includes('start-project'),
+		canActivateFairy: actions.includes('activate-fairy'),
+		isOrchestrator: actions.includes('end-current-project'),
 
 		// proximity chat
 		hasProximityChat: actions.includes('proximity-chat'),

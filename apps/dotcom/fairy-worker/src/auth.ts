@@ -63,12 +63,19 @@ export async function requireAdminAccess(env: Environment, auth: { userId: strin
 	if (!auth?.userId) {
 		throw new StatusError(403, 'Unauthorized')
 	}
-	const user = await getClerkClient(env).users.getUser(auth.userId)
-	if (
-		!user.primaryEmailAddress?.emailAddress.endsWith('@tldraw.com') ||
-		user.primaryEmailAddress?.verification?.status !== 'verified'
-	) {
+	const hasAdminStatus = await isAdmin(env, auth)
+	if (!hasAdminStatus) {
 		throw new StatusError(403, 'Unauthorized - @tldraw.com email required')
 	}
-	return user
+}
+
+export async function isAdmin(env: Environment, auth: { userId: string } | null) {
+	if (!auth?.userId) {
+		return false
+	}
+	const user = await getClerkClient(env).users.getUser(auth.userId)
+	return !!(
+		user.primaryEmailAddress?.emailAddress.endsWith('@tldraw.com') &&
+		user.primaryEmailAddress?.verification?.status === 'verified'
+	)
 }

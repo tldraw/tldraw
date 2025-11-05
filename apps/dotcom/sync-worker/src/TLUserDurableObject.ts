@@ -11,7 +11,11 @@ import {
 	createMutators,
 	schema,
 } from '@tldraw/dotcom-shared'
-import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
+import {
+	JsonChunkAssembler,
+	TLSyncErrorCloseEventCode,
+	TLSyncErrorCloseEventReason,
+} from '@tldraw/sync-core'
 import { ExecutionQueue, IndexKey, assert, mapObjectMapValues, sleep } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
@@ -295,13 +299,24 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		}
 
-		serverWebSocket.addEventListener('message', (e) =>
+		const assembler = new JsonChunkAssembler()
+		serverWebSocket.addEventListener('message', (e) => {
+			const res = assembler.handleMessage(e.data.toString())
+			if (!res) {
+				// not enough chunks yet
+				return
+			}
+			if ('error' in res) {
+				this.captureException(res.error, { source: 'serverWebSocket "message" event, bad chunk' })
+				return
+			}
+
 			this.messageQueue.push(() =>
-				this.handleSocketMessage(serverWebSocket, e.data.toString()).catch((e) =>
+				this.handleSocketMessage(serverWebSocket, res.stringified).catch((e) =>
 					this.captureException(e, { source: 'serverWebSocket "message" event' })
 				)
 			)
-		)
+		})
 		serverWebSocket.addEventListener('close', () => {
 			this.sockets.delete(serverWebSocket)
 		})

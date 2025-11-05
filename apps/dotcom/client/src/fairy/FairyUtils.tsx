@@ -1,14 +1,17 @@
 import { AgentAction, PromptPart } from '@tldraw/fairy-shared'
+import { ActivateFairyActionUtil } from './actions/ActivateFairyActionUtil'
 import { AgentActionUtil, AgentActionUtilConstructor } from './actions/AgentActionUtil'
 import { AlignActionUtil } from './actions/AlignActionUtil'
 import { AssignTodoItemActionUtil } from './actions/AssignTodoItemActionUtil'
 import { BringToFrontActionUtil } from './actions/BringToFrontActionUtil'
+import { ChangePageActionUtil } from './actions/ChangePageActionUtil'
 import { ChatActionUtil } from './actions/ChatActionUtil'
+import { ClaimTodoItemActionUtil } from './actions/ClaimTodoItemActionUtil'
 import { CreateActionUtil } from './actions/CreateActionUtil'
+import { CreatePageActionUtil } from './actions/CreatePageActionUtil'
 import { DeleteActionUtil } from './actions/DeleteActionUtil'
 import { DistributeActionUtil } from './actions/DistributeActionUtil'
 import { EndCurrentProjectActionUtil } from './actions/EndCurrentProjectActionUtil'
-import { EnterOrchestrationModeActionUtil } from './actions/EnterOrchestrationModeActionUtil'
 import { FlyToBoundsActionUtil } from './actions/FlyToBoundsActionUtil'
 import { LabelActionUtil } from './actions/LabelActionUtil'
 import { MessageActionUtil } from './actions/MessageActionUtil'
@@ -31,9 +34,11 @@ import { ChatHistoryPartUtil } from './parts/ChatHistoryPartUtil'
 import { ContextItemsPartUtil } from './parts/ContextItemsPartUtil'
 import { CurrentProjectPartUtil } from './parts/CurrentProjectPartUtil'
 import { DataPartUtil } from './parts/DataPartUtil'
+import { DebugPartUtil } from './parts/DebugPartUtil'
 import { HeardMessagesPartUtil } from './parts/HeardMessagesPartUtil'
 import { MessagesPartUtil } from './parts/MessagesPartUtil'
 import { OtherFairiesPartUtil } from './parts/OtherFairiesPartUtil'
+import { PagesPartUtil } from './parts/PagesPartUtil'
 import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
 import { PersonalityPartUtil } from './parts/PersonalityPartUtil'
 import { PromptPartUtil, PromptPartUtilConstructor } from './parts/PromptPartUtil'
@@ -56,9 +61,7 @@ export const AGENT_ACTION_UTILS = [
 	// Planning
 	ThinkActionUtil,
 	ReviewActionUtil,
-	SharedTodoListActionUtil,
 	FlyToBoundsActionUtil,
-	EnterOrchestrationModeActionUtil,
 
 	// Individual shapes
 	CreateActionUtil,
@@ -80,16 +83,20 @@ export const AGENT_ACTION_UTILS = [
 	// Drawing
 	PenActionUtil,
 
-	// Internal (required)
-	UnknownActionUtil,
+	// Page navigation
+	ChangePageActionUtil,
+	CreatePageActionUtil,
 
-	// Fairy-specific orchestration
-	EnterOrchestrationModeActionUtil,
+	// Project management
+	SharedTodoListActionUtil,
+	ActivateFairyActionUtil,
+	AssignTodoItemActionUtil,
+	ClaimTodoItemActionUtil,
 	StartProjectActionUtil,
 	EndCurrentProjectActionUtil,
 
-	// Assign todo item
-	AssignTodoItemActionUtil,
+	// Internal (required)
+	UnknownActionUtil,
 ] satisfies AgentActionUtilConstructor<AgentAction>[]
 
 /**
@@ -121,12 +128,16 @@ export const PROMPT_PART_UTILS = [
 
 	// Metadata
 	TimePartUtil,
+	PagesPartUtil,
 
 	// Fairy-specific
 	OtherFairiesPartUtil,
 	WandPartUtil,
 	PersonalityPartUtil,
 	CurrentProjectPartUtil,
+
+	// Debug
+	DebugPartUtil,
 ] satisfies PromptPartUtilConstructor<PromptPart>[]
 
 /**

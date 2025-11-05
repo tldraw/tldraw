@@ -75,19 +75,14 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 			}
 
 			// Set leader as orchestrator
-			leaderAgent.$fairyConfig.update((config) => ({
-				...config,
-				wand: 'orchestrator',
-			}))
+			leaderAgent.updateFairyConfig({ wand: 'orchestrator' })
 
 			// Set followers as drones
 			followerAgents.forEach((agent) => {
-				agent.$fairyConfig.update((config) => ({
-					...config,
-					wand: 'drone',
-					mode: 'drone',
-				}))
+				agent.updateFairyConfig({ wand: 'drone' })
 			})
+
+			const memberIds = [leaderAgent.id, ...followerAgents.map((agent) => agent.id)]
 
 			const newProjectId = uniqueId(5)
 			const newProject = {
@@ -96,12 +91,10 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 				name: `Project: ${value}`,
 				description: '',
 				color: 'red' as FocusColor,
-				memberIds: followerAgents.map((agent) => agent.id),
+				memberIds,
 			}
 
 			addProject(newProject)
-			leaderAgent.$currentProjectId.set(newProjectId)
-			followerAgents.forEach((agent) => agent.$currentProjectId.set(newProjectId))
 
 			// Send the prompt to the leader
 			const prompt = getGroupChatPrompt(value)

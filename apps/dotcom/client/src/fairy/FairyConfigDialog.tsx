@@ -32,14 +32,14 @@ export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClo
 					<TldrawUiInput
 						className="fairy-config-input"
 						value={config.name}
-						onValueChange={(value) => agent.$fairyConfig.set({ ...config, name: value })}
+						onValueChange={(value) => agent.updateFairyConfig({ name: value })}
 						placeholder="Fairy's name"
 					/>
 					<label htmlFor="name">Personality</label>
 					<TldrawUiInput
 						className="fairy-config-input"
 						value={config.personality}
-						onValueChange={(value) => agent.$fairyConfig.set({ ...config, personality: value })}
+						onValueChange={(value) => agent.updateFairyConfig({ personality: value })}
 						placeholder="Fairy's personality"
 					/>
 					{/* <label htmlFor="mode">Mode</label>
@@ -70,8 +70,7 @@ export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClo
 						id="hat"
 						value={config.outfit.hat}
 						onChange={(e) => {
-							agent.$fairyConfig.set({
-								...config,
+							agent.updateFairyConfig({
 								outfit: { ...config.outfit, hat: e.target.value as FairyVariantType<'hat'> },
 							})
 						}}

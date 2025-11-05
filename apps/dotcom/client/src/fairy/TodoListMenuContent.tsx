@@ -1,17 +1,24 @@
 import { useCallback } from 'react'
-import { TldrawUiMenuContextProvider, TldrawUiMenuGroup, TldrawUiMenuItem } from 'tldraw'
-import { clearSharedTodoList, requestHelpFromEveryone } from './SharedTodoList'
+import {
+	TldrawUiMenuContextProvider,
+	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
+	useDefaultHelpers,
+} from 'tldraw'
+import { useApp } from '../tla/hooks/useAppState'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { FairyDebugDialog } from './FairyDebugDialog'
+import { clearSharedTodoList, requestHelpFromEveryone } from './SharedTodoList'
 
 export function TodoListMenuContent({
 	agents,
 	menuType = 'menu',
-	onDeleteFairyConfig,
 }: {
 	agents: FairyAgent[]
 	menuType?: 'menu' | 'context-menu'
-	onDeleteFairyConfig(id: string): void
 }) {
+	const { addDialog } = useDefaultHelpers()
+
 	const resetAllChats = useCallback(() => {
 		agents.forEach((agent) => {
 			agent.reset()
@@ -20,18 +27,23 @@ export function TodoListMenuContent({
 
 	const resetAllWands = useCallback(() => {
 		agents.forEach((agent) => {
-			const config = agent.$fairyConfig.get()
-			if (config) {
-				agent.$fairyConfig.set({ ...config, wand: 'god' })
-			}
+			agent.updateFairyConfig({ wand: 'default' })
 		})
 	}, [agents])
 
+	const app = useApp()
 	const deleteAllFairies = useCallback(() => {
+		app.z.mutate.user.deleteAllFairyConfigs()
 		agents.forEach((agent) => {
-			onDeleteFairyConfig(agent.id)
+			agent.dispose()
 		})
-	}, [agents, onDeleteFairyConfig])
+	}, [app, agents])
+
+	const openDebugDialog = useCallback(() => {
+		addDialog({
+			component: ({ onClose }) => <FairyDebugDialog agents={agents} onClose={onClose} />,
+		})
+	}, [addDialog, agents])
 
 	return (
 		<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">
@@ -45,7 +57,7 @@ export function TodoListMenuContent({
 			<TldrawUiMenuGroup id="todo-list-config-menu">
 				<TldrawUiMenuItem
 					id="clear-todo-list"
-					onSelect={() => clearSharedTodoList(agents)}
+					onSelect={() => clearSharedTodoList()}
 					label="Clear todo list"
 				/>
 			</TldrawUiMenuGroup>
@@ -57,6 +69,7 @@ export function TodoListMenuContent({
 					onSelect={deleteAllFairies}
 					label="Delete all fairies"
 				/>
+				<TldrawUiMenuItem id="debug-fairies" onSelect={openDebugDialog} label="Debug view" />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuContextProvider>
 	)
