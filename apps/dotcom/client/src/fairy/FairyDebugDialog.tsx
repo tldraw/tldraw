@@ -273,7 +273,7 @@ function FairyDebugView({
 	const todoList = useValue(agent.$todoList)
 	const userActionHistory = useValue(agent.$userActionHistory)
 	const contextItems = useValue(agent.$contextItems)
-	const currentProjectId = useValue(agent.$currentProjectId)
+	const currentProjectId = agent.getCurrentProject()?.id
 	const cumulativeUsage = agent.cumulativeUsage
 
 	if (inspectorType === 'config') {
