@@ -62,7 +62,7 @@ export function TlaSidebarRecentFilesNew() {
 				className={showMyFilesDropState ? styles.dropping : ''}
 			>
 				<div
-					style={{ fontSize: 12, paddingLeft: 6, paddingTop: 12, color: 'var(--tla-color-text-3)' }}
+					style={{ fontSize: 12, paddingLeft: 8, paddingTop: 12, color: 'var(--tla-color-text-3)' }}
 				>
 					<F defaultMessage="My files" />
 				</div>
