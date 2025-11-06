@@ -203,41 +203,10 @@ function diffObject(prev: object, next: object, legacyAppendMode: boolean): Obje
 			continue
 		}
 		// if key is in both places, then compare values
-		const prevVal = (prev as any)[key]
-		const nextVal = (next as any)[key]
-		if (!isEqual(prevVal, nextVal)) {
-			if (
-				prevVal &&
-				nextVal &&
-				typeof prevVal === 'object' &&
-				typeof nextVal === 'object' &&
-				!Array.isArray(prevVal) &&
-				!Array.isArray(nextVal)
-			) {
-				const diff = diffObject(prevVal, nextVal, legacyAppendMode)
-				if (diff) {
-					if (!result) result = {}
-					result[key] = [ValueOpType.Patch, diff]
-				}
-			} else if (Array.isArray(nextVal) && Array.isArray(prevVal)) {
-				const op = diffArray(prevVal, nextVal, legacyAppendMode)
-				if (op) {
-					if (!result) result = {}
-					result[key] = op
-				}
-			} else if (
-				typeof prevVal === 'string' &&
-				typeof nextVal === 'string' &&
-				nextVal.startsWith(prevVal) &&
-				!legacyAppendMode
-			) {
-				const appendedText = nextVal.slice(prevVal.length)
-				if (!result) result = {}
-				result[key] = [ValueOpType.Append, appendedText, prevVal.length]
-			} else {
-				if (!result) result = {}
-				result[key] = [ValueOpType.Put, nextVal]
-			}
+		const diff = diffValue((prev as any)[key], (next as any)[key], legacyAppendMode)
+		if (diff) {
+			if (!result) result = {}
+			result[key] = diff
 		}
 	}
 	for (const key of Object.keys(next)) {
@@ -255,7 +224,7 @@ function diffValue(valueA: unknown, valueB: unknown, legacyAppendMode: boolean):
 	if (Array.isArray(valueA) && Array.isArray(valueB)) {
 		return diffArray(valueA, valueB, legacyAppendMode)
 	} else if (typeof valueA === 'string' && typeof valueB === 'string') {
-		if (valueB.startsWith(valueA)) {
+		if (!legacyAppendMode && valueB.startsWith(valueA)) {
 			const appendedText = valueB.slice(valueA.length)
 			return [ValueOpType.Append, appendedText, valueA.length]
 		}
