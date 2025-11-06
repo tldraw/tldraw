@@ -147,15 +147,15 @@ export type RoomSession<R extends UnknownRecord, Meta> = (RoomSessionBase<R, Met
 });
 
 // @internal
-export type RoomSessionBase<R extends UnknownRecord, Meta> = {
+export interface RoomSessionBase<R extends UnknownRecord, Meta> {
+    isReadonly: boolean;
     meta: Meta;
     presenceId: null | string;
+    requiresLegacyRejection: boolean;
     sessionId: string;
     socket: TLRoomSocket<R>;
-    isReadonly: boolean;
-    requiresLegacyRejection: boolean;
     supportsStringAppend: boolean;
-};
+}
 
 // @internal
 export const RoomSessionState: {

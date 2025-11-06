@@ -69,7 +69,7 @@ export const SESSION_IDLE_TIMEOUT = 20000
  *
  * @internal
  */
-export type RoomSessionBase<R extends UnknownRecord, Meta> = {
+export interface RoomSessionBase<R extends UnknownRecord, Meta> {
 	/** Unique identifier for this session */
 	sessionId: string
 	/** Presence identifier for live cursor/selection tracking, if available */

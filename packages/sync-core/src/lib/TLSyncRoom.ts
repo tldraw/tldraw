@@ -178,6 +178,7 @@ export class DocumentState<R extends UnknownRecord> {
 	 *
 	 * @param diff - The object diff to apply
 	 * @param clock - The new clock value
+	 * @param legacyAppendMode - If true, string append operations will be converted to Put operations
 	 * @returns Result containing the final diff and new DocumentState, or null if no changes, or validation error
 	 */
 	mergeDiff(
