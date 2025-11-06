@@ -1,6 +1,6 @@
 import { Box, BoxModel, JsonValue } from 'tldraw'
 import { BlurryShape } from '../format/BlurryShape'
-import { FocusedShape, FocusedShapePartial, FocusedShapeType } from '../format/FocusedShape'
+import { FocusedShapePartial, FocusedShapeType } from '../format/FocusedShape'
 import { OtherFairy } from '../format/OtherFairy'
 import { PeripheralCluster } from '../format/PeripheralCluster'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
@@ -269,40 +269,44 @@ export const ScreenshotPartDefinition: PromptPartDefinition<ScreenshotPart> = {
 // SelectedShapesPart
 export interface SelectedShapesPart {
 	type: 'selectedShapes'
-	shapes: FocusedShape[] | null
+	shapeIds: string[]
 }
 
 export const SelectedShapesPartDefinition: PromptPartDefinition<SelectedShapesPart> = {
 	type: 'selectedShapes',
 	priority: -55,
-	buildContent({ shapes }: SelectedShapesPart) {
-		if (!shapes || shapes.length === 0) {
+	buildContent({ shapeIds }: SelectedShapesPart) {
+		if (!shapeIds || shapeIds.length === 0) {
 			return []
 		}
-		return [
-			'The user has selected these shapes. Focus your task on these shapes where applicable:',
-			JSON.stringify(shapes),
-		]
+
+		if (shapeIds.length === 1) {
+			return [`The user has this shape selected: ${shapeIds[0]}`]
+		}
+
+		return [`The user has these shapes selected: ${shapeIds.join(', ')}`]
 	},
 }
 
 // SharedTodoListPart
-export interface SharedTodoListPart {
-	type: 'sharedTodoList'
-	items: Array<FairyTask & { fairyName: string }>
+export interface SoloTasksPart {
+	type: 'soloTasks'
+	tasks: Array<FairyTask>
 }
 
-export const SharedTodoListPartDefinition: PromptPartDefinition<SharedTodoListPart> = {
-	type: 'sharedTodoList',
+export const SoloTasksPartDefinition: PromptPartDefinition<SoloTasksPart> = {
+	type: 'soloTasks',
 	priority: -10,
-	buildContent(part: SharedTodoListPart) {
-		if (part.items.length === 0) {
-			return ['There are no todo list items at the moment.']
+	buildContent(part: SoloTasksPart) {
+		if (part.tasks.length === 0) {
+			return ['There are no tasks at the moment.']
 		}
 
-		return part.items.map((item) => {
-			return `Todo item ${item.id} [${item.status}]: "${item.text}", assigned to ${item.fairyName}`
+		const taskContent = part.tasks.map((task) => {
+			return `Task ${task.id} [${task.status}]: "${task.text}"`
 		})
+
+		return [`Here are all the tasks assigned to you:`, ...taskContent]
 	},
 }
 

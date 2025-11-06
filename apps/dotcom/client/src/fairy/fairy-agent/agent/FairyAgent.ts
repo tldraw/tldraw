@@ -44,7 +44,7 @@ import { PromptPartUtil } from '../../parts/PromptPartUtil'
 import { AgentHelpers } from './AgentHelpers'
 import { FairyAgentOptions } from './FairyAgentOptions'
 import { $fairyAgentsAtom, getFairyAgentById } from './fairyAgentsAtom'
-import { FAIRY_MODE_CHART } from './FairyModeChart'
+import { FAIRY_MODE_CHART } from './FairyModeNode'
 
 /**
  * An agent that can be prompted to edit the canvas.
@@ -529,44 +529,18 @@ export class FairyAgent {
 
 		// Submit the request to the agent.
 		await this.request(request)
+		if (!this.cancelFn) {
+			await node.onRequestComplete?.(this)
+		}
 
 		// After the request is handled, check if there are any outstanding todo items or requests
 		const scheduledRequest = this.$scheduledRequest.get()
-		// if (!scheduledRequest) {
-		// 	if (!this.cancelFn) {
-		// 		this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
-		// 		return
-		// 	}
-
-		// 	// if the fairy is not an orchestrator or does not have an active project, check if there are todos it can do
-		// 	const sharedTodoItemsRemaining = $sharedTodoList.get().filter((item) => {
-		// 		if (item.status === 'done') return false
-		// 		if (item.assignedTo && item.assignedTo !== this.id) return false
-
-		// 		// If the fairy is in a project, only count todos that are part of that project
-		// 		if (project && !item.projectId) return false
-		// 		if (project && item.projectId && item.projectId !== project.id) return false
-
-		// 		// If the fairy is not in a project, only count todos that are not part of a project
-		// 		if (!project && item.projectId) return false
-
-		// 		return true
-		// 	})
-		// 	if (sharedTodoItemsRemaining.length > 0) {
-		// 		scheduledRequest = {
-		// 			messages: request.messages,
-		// 			bounds: request.bounds,
-		// 			data: request.data,
-		// 			task: null,
-		// 			project: null,
-		// 		} satisfies AgentRequest
-		// 	}
-		// }
 
 		// If there's no schedule request...
 		// Exit the mode
 		if (!scheduledRequest) {
 			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
+			await node.onPromptEnd?.(this)
 			return
 		}
 

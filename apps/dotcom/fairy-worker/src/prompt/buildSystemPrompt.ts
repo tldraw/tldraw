@@ -260,37 +260,39 @@ ${!flags.canEdit ? `- Remember! You cannot work with shapes, so don't take any t
 
 
 ${
-	flags.hasSharedTodo && flags.hasOtherFairiesPart && flags.hasAssignTodoItem
-		? `#### Collaborating with other agents
+	// 	flags.hasSharedTodo && flags.hasOtherFairiesPart && flags.hasAssignTodoItem
+	// 		? `#### Collaborating with other agents
 
-- You have access to a todo list that is shared between all agents in this document. You can freely add to and claim unclaimed tasks from this list.
-- You should always ask other agents to help out with a todo item. This will help you get work done faster. To do this, you can use the ` +
-			'`assign-todo-item`' +
-			` action, which will assign it to them and ask them to help out with it.
-- If you're asked to do something that doesn't already have a task on the shared todo list, you must break down the task into smaller tasks and add them to the shared todo list. Making tasks is cheap and should always be done unless the work the work is confined to an entity small enough that coordinating would do more harm than good.
-- Todo items also may have x and y coordinates associated with them. These coordinates designate whereabouts in the canvas the work should be done. 
-	- When making a todo item, specify coordinates if relevant, for example if the work is part of a larger task that should be done in a specific area of the canvas.
-	- Todo items close together are probably related.
-- When working with other agents, you must use the shared todo list to coordinate your work. To add new items to the shared todo list, or claim them for yourself, you can update the shared todo list with the ` +
-			'`update-todo-list`' +
-			` action. When creating new tasks with this action, make sure not to intially assign them all to yourself. This is because other agents may want to help out and claim some. Once you have created some tasks, use the ` +
-			'`review`' +
-			` action to check the shared todo list, after which you can claim tasks for yourself. Make sure to mark the tasks as "in-progress" when you claim them as well. Only claim a small amount of tasks at a time, and only claim tasks that you are confident you can complete.
-	- ONLY claim tasks that you are confident you can complete, given the actions you have available to you.
-- Once you finish all your tasks, and mark them as done, make sure to use the ` +
-			'`review`' +
-			` action to check the shared todo list, after which you can claim more tasks.
-- Make sure to always get a full view of any in-progress work before starting to assist other agents or the human to make sure that you can match the style / layout / color schemes / etc. of the work.`
-		: ''
+	// - You have access to a todo list that is shared between all agents in this document. You can freely add to and claim unclaimed tasks from this list.
+	// - You should always ask other agents to help out with a todo item. This will help you get work done faster. To do this, you can use the ` +
+	// 			'`assign-todo-item`' +
+	// 			` action, which will assign it to them and ask them to help out with it.
+	// - If you're asked to do something that doesn't already have a task on the shared todo list, you must break down the task into smaller tasks and add them to the shared todo list. Making tasks is cheap and should always be done unless the work the work is confined to an entity small enough that coordinating would do more harm than good.
+	// - Todo items also may have x and y coordinates associated with them. These coordinates designate whereabouts in the canvas the work should be done.
+	// 	- When making a todo item, specify coordinates if relevant, for example if the work is part of a larger task that should be done in a specific area of the canvas.
+	// 	- Todo items close together are probably related.
+	// - When working with other agents, you must use the shared todo list to coordinate your work. To add new items to the shared todo list, or claim them for yourself, you can update the shared todo list with the ` +
+	// 			'`update-todo-list`' +
+	// 			` action. When creating new tasks with this action, make sure not to intially assign them all to yourself. This is because other agents may want to help out and claim some. Once you have created some tasks, use the ` +
+	// 			'`review`' +
+	// 			` action to check the shared todo list, after which you can claim tasks for yourself. Make sure to mark the tasks as "in-progress" when you claim them as well. Only claim a small amount of tasks at a time, and only claim tasks that you are confident you can complete.
+	// 	- ONLY claim tasks that you are confident you can complete, given the actions you have available to you.
+	// - Once you finish all your tasks, and mark them as done, make sure to use the ` +
+	// 			'`review`' +
+	// 			` action to check the shared todo list, after which you can claim more tasks.
+	// - Make sure to always get a full view of any in-progress work before starting to assist other agents or the human to make sure that you can match the style / layout / color schemes / etc. of the work.`
+	// 		: ''
+	''
 }
 
 ${
-	flags.hasSharedTodo
-		? `- Use ` +
-			'`update-todo-list`' +
-			` events liberally to keep an up to date list of your progress on the task at hand. When you are assigned a new task, use the action multiple times to sketch out your plan${flags.hasReview ? '. You can then use the ' + '`review`' + ' action to check the todo list' : ''}.
-	- Remember to always get started on the task after fleshing out a todo list.`
-		: ''
+	// 	flags.hasSharedTodo
+	// 		? `- Use ` +
+	// 			'`update-todo-list`' +
+	// 			` events liberally to keep an up to date list of your progress on the task at hand. When you are assigned a new task, use the action multiple times to sketch out your plan${flags.hasReview ? '. You can then use the ' + '`review`' + ' action to check the todo list' : ''}.
+	// 	- Remember to always get started on the task after fleshing out a todo list.`
+	// 		: ''
+	''
 }
 ${flags.hasThink ? '- Use ' + '`think`' + ' events liberally to work through each step of your strategy.' : ''}
 ${flags.hasScreenshotPart && (flags.hasBlurryShapesPart || flags.hasPeripheralShapesPart || flags.hasSelectedShapesPart) ? '- To "see" the canvas, combine the information you have from your view of the canvas with the description of the canvas shapes on the viewport.' : ''}
@@ -434,7 +436,7 @@ function getSystemPromptFlags(actions: AgentAction['_type'][], parts: PromptPart
 		hasOtherFairiesPart: parts.includes('otherFairies'),
 
 		// shared todo list
-		hasSharedTodo: parts.includes('sharedTodoList') && actions.includes('update-todo-list'),
+		// hasSharedTodo: parts.includes('sharedTodoList') && actions.includes('update-todo-list'),
 
 		// assign todo item
 		hasAssignTodoItem: actions.includes('assign-todo-item'),
@@ -444,7 +446,7 @@ function getSystemPromptFlags(actions: AgentAction['_type'][], parts: PromptPart
 
 		//orchestration
 		hasStartProject: actions.includes('start-project'),
-		canActivateFairy: actions.includes('activate-fairy'),
+		// canActivateFairy: actions.includes('activate-fairy'),
 		isOrchestrator: actions.includes('end-project'),
 
 		canEdit:

@@ -7,6 +7,7 @@ import { ChangePageActionUtil } from './actions/ChangePageActionUtil'
 import { ClaimTodoItemActionUtil } from './actions/ClaimTodoItemActionUtil'
 import { CreateActionUtil } from './actions/CreateActionUtil'
 import { CreatePageActionUtil } from './actions/CreatePageActionUtil'
+import { CreateTaskActionUtil } from './actions/CreateTaskActionUtil'
 import { DeleteActionUtil } from './actions/DeleteActionUtil'
 import { DistributeActionUtil } from './actions/DistributeActionUtil'
 import { EndCurrentProjectActionUtil } from './actions/EndCurrentProjectActionUtil'
@@ -23,6 +24,7 @@ import { SendToBackActionUtil } from './actions/SendToBackActionUtil'
 import { SharedTodoListActionUtil } from './actions/SharedTodoListActionUtil'
 import { StackActionUtil } from './actions/StackActionUtil'
 import { StartProjectActionUtil } from './actions/StartProjectActionUtil'
+import { StartTaskActionUtil } from './actions/StartTaskActionUtil'
 import { ThinkActionUtil } from './actions/ThinkActionUtil'
 import { UnknownActionUtil } from './actions/UnknownActionUtil'
 import { UpdateActionUtil } from './actions/UpdateActionUtil'
@@ -40,7 +42,7 @@ import { PersonalityPartUtil } from './parts/PersonalityPartUtil'
 import { PromptPartUtil, PromptPartUtilConstructor } from './parts/PromptPartUtil'
 import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
 import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
-import { SharedTodoListPartUtil } from './parts/SharedTodoListPartUtil'
+import { SoloTasksPartUtil } from './parts/SoloTasksPartUtil'
 import { TimePartUtil } from './parts/TimePartUtil'
 import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
 import { ViewportBoundsPartUtil } from './parts/ViewportBoundsPartUtil'
@@ -87,6 +89,8 @@ export const AGENT_ACTION_UTILS = [
 	ClaimTodoItemActionUtil,
 	StartProjectActionUtil,
 	EndCurrentProjectActionUtil,
+	CreateTaskActionUtil,
+	StartTaskActionUtil,
 
 	// Internal (required)
 	UnknownActionUtil,
@@ -115,7 +119,7 @@ export const PROMPT_PART_UTILS = [
 	// History
 	ChatHistoryPartUtil,
 	UserActionHistoryPartUtil,
-	SharedTodoListPartUtil,
+	SoloTasksPartUtil,
 
 	// Metadata
 	TimePartUtil,

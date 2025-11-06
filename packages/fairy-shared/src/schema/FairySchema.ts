@@ -9,6 +9,7 @@ import {
 	ClaimTodoItemActionSchema,
 	CreateActionSchema,
 	CreatePageActionSchema,
+	CreateTaskActionSchema,
 	DeleteActionSchema,
 	DistributeActionSchema,
 	EndCurrentProjectActionSchema,
@@ -25,6 +26,7 @@ import {
 	SharedTodoListActionSchema,
 	StackActionSchema,
 	StartProjectActionSchema,
+	StartTaskActionSchema,
 	ThinkActionSchema,
 	UpdateActionSchema,
 } from './AgentActionSchemas'
@@ -42,7 +44,7 @@ import {
 	PromptPartDefinition,
 	ScreenshotPartDefinition,
 	SelectedShapesPartDefinition,
-	SharedTodoListPartDefinition,
+	SoloTasksPartDefinition,
 	TimePartDefinition,
 	UserActionHistoryPartDefinition,
 	ViewportBoundsPartDefinition,
@@ -91,6 +93,8 @@ export const AGENT_ACTION_SCHEMAS = [
 	StartProjectActionSchema,
 	EndCurrentProjectActionSchema,
 	ActivateFairyActionSchema,
+	CreateTaskActionSchema,
+	StartTaskActionSchema,
 ] as const
 
 /**
@@ -107,7 +111,7 @@ export const PROMPT_PART_DEFINITIONS = [
 	ScreenshotPartDefinition,
 	SelectedShapesPartDefinition,
 	TimePartDefinition,
-	SharedTodoListPartDefinition,
+	SoloTasksPartDefinition,
 	UserActionHistoryPartDefinition,
 	ViewportBoundsPartDefinition,
 	OtherFairiesPartDefinition,
