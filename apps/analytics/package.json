@@ -14,7 +14,7 @@
 	},
 	"dependencies": {
 		"js-cookie": "^3.0.5",
-		"posthog-js": "^1.248.1"
+		"posthog-js": "^1.281.0"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20250913.0",

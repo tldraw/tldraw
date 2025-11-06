@@ -72,7 +72,8 @@
 		"e2e-dotcom-x10": "lazy e2e-x10 --filter='apps/dotcom/*'",
 		"i18n-check": "i18n-check",
 		"i18n-upload-strings": "tsx internal/scripts/i18n-upload-strings.ts",
-		"i18n-download-strings": "tsx internal/scripts/i18n-download-strings.ts"
+		"i18n-download-strings": "tsx internal/scripts/i18n-download-strings.ts",
+		"add-framer-rewrites": "tsx apps/docs/scripts/add-framer-rewrites.ts"
 	},
 	"engines": {
 		"npm": ">=7.0.0",

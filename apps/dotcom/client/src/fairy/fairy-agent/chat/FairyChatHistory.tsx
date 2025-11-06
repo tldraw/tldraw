@@ -1,26 +1,52 @@
 import { useEffect, useRef } from 'react'
 import { useValue } from 'tldraw'
-import { TldrawFairyAgent } from '../agent/TldrawFairyAgent'
+import { FairyAgent } from '../agent/FairyAgent'
 import { FairyChatHistorySection, getAgentHistorySections } from './FairyChatHistorySection'
 
-export function FairyChatHistory({ agent }: { agent: TldrawFairyAgent }) {
+/*
+Chat history is stored as a list of history items.
+
+Within the UI, we split this list of items into sections.
+Each section contains a user prompt item, and all the agent's actions that follow it.
+
+Each section is rendered as a separate component.
+The model's actions are grouped together into collapsible groups if appropriate.
+
+
+Here's an example of how the UI might look:
+
+- Chat history
+	- Section 
+		- Prompt
+		- Action group
+			- Action
+			- Action
+		- Action group
+			- Action
+	- Section
+		- Prompt
+		- Action group
+			- Action
+
+*/
+
+export function FairyChatHistory({ agent }: { agent: FairyAgent }) {
 	const historyItems = useValue(agent.$chatHistory)
 	const sections = getAgentHistorySections(historyItems)
 	const historyRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)
-	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
 
 	useEffect(() => {
 		if (!historyRef.current) return
 
+		// If a new prompt is submitted by the user, scroll to the bottom
 		if (historyItems.at(-1)?.type === 'prompt') {
-			if (previousScrollDistanceFromBottomRef.current <= 0) {
-				historyRef.current.scrollTo(0, historyRef.current.scrollHeight)
-				previousScrollDistanceFromBottomRef.current = 0
-			}
+			historyRef.current.scrollTo(0, historyRef.current.scrollHeight)
+			previousScrollDistanceFromBottomRef.current = 0
 			return
 		}
 
+		// If the user is scrolled to the bottom, keep them there while new actions appear
 		if (previousScrollDistanceFromBottomRef.current <= 0) {
 			const scrollDistanceFromBottom =
 				historyRef.current.scrollHeight -
@@ -29,11 +55,11 @@ export function FairyChatHistory({ agent }: { agent: TldrawFairyAgent }) {
 
 			if (scrollDistanceFromBottom > 0) {
 				historyRef.current.scrollTo(0, historyRef.current.scrollHeight)
-				previousScrollDistanceFromBottomRef.current = 0
 			}
 		}
-	}, [historyRef, historyItems, isGenerating])
+	}, [historyRef, historyItems])
 
+	// Keep track of the user's scroll position
 	const handleScroll = () => {
 		if (!historyRef.current) return
 		const scrollDistanceFromBottom =
@@ -46,21 +72,11 @@ export function FairyChatHistory({ agent }: { agent: TldrawFairyAgent }) {
 
 	return (
 		<div className="fairy-chat-history" ref={historyRef} onScroll={handleScroll}>
-			{sections.length === 0 ? (
-				<div className="fairy-chat-empty"></div>
-			) : (
-				sections.map((section: FairyChatHistorySection, i: number) => {
-					const isLastSection = i === sections.length - 1
-					return (
-						<FairyChatHistorySection
-							key={'history-section-' + i}
-							section={section}
-							agent={agent}
-							loading={isGenerating && isLastSection}
-						/>
-					)
-				})
-			)}
+			{sections.map((section, i) => {
+				return (
+					<FairyChatHistorySection key={'history-section-' + i} section={section} agent={agent} />
+				)
+			})}
 		</div>
 	)
 }

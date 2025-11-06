@@ -1060,6 +1060,7 @@ export interface TLHandle {
     id: string;
     index: IndexKey;
     label?: string;
+    snapReferenceHandleId?: string;
     snapType?: 'align' | 'point';
     type: TLHandleType;
     x: number;
