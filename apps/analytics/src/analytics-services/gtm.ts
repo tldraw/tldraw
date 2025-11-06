@@ -1,4 +1,4 @@
-import { GTM_NOSCRIPT_ID, GTM_SCRIPT_ID } from '../constants'
+import { GTM_SCRIPT_ID } from '../constants'
 import { AnalyticsService } from './analytics-service'
 
 // Extend Window with dataLayer (other Window properties declared in types.ts)
@@ -49,26 +49,11 @@ class GTMAnalyticsService extends AnalyticsService {
 		script.id = GTM_SCRIPT_ID
 		script.src = `https://www.googletagmanager.com/gtm.js?id=${this.gtmContainerId}`
 		document.head.appendChild(script)
-
-		// Add noscript iframe
-		const noscript = document.createElement('noscript')
-		noscript.id = GTM_NOSCRIPT_ID
-		const iframe = document.createElement('iframe')
-		iframe.src = `https://www.googletagmanager.com/ns.html?id=${this.gtmContainerId}`
-		iframe.height = '0'
-		iframe.width = '0'
-		iframe.style.display = 'none'
-		iframe.style.visibility = 'hidden'
-		noscript.appendChild(iframe)
-		document.body.insertBefore(noscript, document.body.firstChild)
 	}
 
 	override dispose() {
 		const script = document.getElementById(GTM_SCRIPT_ID)
 		if (script) script.remove()
-
-		const noscript = document.getElementById(GTM_NOSCRIPT_ID)
-		if (noscript) noscript.remove()
 	}
 
 	override enable() {

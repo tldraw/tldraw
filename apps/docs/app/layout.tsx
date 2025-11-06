@@ -70,6 +70,14 @@ export default async function Layout({ children }: { children: React.ReactNode }
 				className={cn(GeistSans.variable, ShantellSans.variable, 'font-sans antialiased')}
 			>
 				<body className="overflow-x-hidden bg-white text-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
+					<noscript>
+						<iframe
+							src="https://www.googletagmanager.com/ns.html?id=GTM-PJDV58LL"
+							height="0"
+							width="0"
+							style={{ display: 'none', visibility: 'hidden' }}
+						/>
+					</noscript>
 					<ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
 						<Header />
 						{children}

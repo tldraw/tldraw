@@ -21,4 +21,3 @@ export const POSTHOG_UI_HOST = 'https://eu.i.posthog.com'
 
 // Google Tag Manager configuration.
 export const GTM_SCRIPT_ID = 'gtm-script-loader'
-export const GTM_NOSCRIPT_ID = 'gtm-noscript-loader'
