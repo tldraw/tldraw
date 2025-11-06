@@ -849,3 +849,6 @@ export interface DragFileOperation {
 	move?: { targetId: string }
 	reorder?: DragReorderOperation
 }
+export interface DragGroupOperation {
+	reorder?: DragReorderOperation
+}

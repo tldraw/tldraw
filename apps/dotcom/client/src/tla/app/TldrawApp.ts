@@ -87,11 +87,13 @@ export type DragState =
 			type: 'file'
 			id: string
 			operation: DragFileOperation
+			hasDragStarted: boolean
 	  }
 	| {
 			type: 'group'
 			id: string
 			operation: DragGroupOperation
+			hasDragStarted: boolean
 	  }
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
