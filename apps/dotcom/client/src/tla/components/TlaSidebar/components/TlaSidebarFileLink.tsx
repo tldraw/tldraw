@@ -15,6 +15,7 @@ import {
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useDragTracking } from '../../../hooks/useDragTracking'
+import { useIsDragging } from '../../../hooks/useIsDragging'
 import { useHasFileAdminRights } from '../../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../../hooks/useIsFilePinned'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
@@ -193,10 +194,9 @@ export function TlaSidebarFileLinkInner({
 	const file = useValue('file', () => app.getFile(fileId), [fileId, app])
 	const hasAdminRights = useHasFileAdminRights(fileId)
 
-	const isDragging = useValue('isDragging', () => app.sidebarState.get().dragState?.id === fileId, [
-		fileId,
-		app,
-	])
+	const isDragging = useIsDragging(fileId)
+	// disable dragging on mobile
+	const isCoarsePointer = getIsCoarsePointer()
 
 	const wrapperRef = useRef<HTMLDivElement>(null)
 
@@ -229,19 +229,23 @@ export function TlaSidebarFileLinkInner({
 			// We use this id to scroll the active file link into view when creating or deleting files.
 			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
 			role="listitem"
-			draggable={true}
-			onDragStart={(event) => {
-				// Set native drag data for drag-to-new-tab functionality
-				const fileUrl = routes.tlaFile(fileId, { asUrl: true })
-				event.dataTransfer.effectAllowed = 'move'
-				event.dataTransfer.setData('text/uri-list', fileUrl)
-				startDragTracking({
-					groupId,
-					fileId,
-					clientX: event.clientX,
-					clientY: event.clientY,
-				})
-			}}
+			draggable={!isCoarsePointer}
+			onDragStart={
+				isCoarsePointer
+					? undefined
+					: (event) => {
+							// Set native drag data for drag-to-new-tab functionality
+							const fileUrl = routes.tlaFile(fileId, { asUrl: true })
+							event.dataTransfer.effectAllowed = 'move'
+							event.dataTransfer.setData('text/uri-list', fileUrl)
+							startDragTracking({
+								groupId,
+								fileId,
+								clientX: event.clientX,
+								clientY: event.clientY,
+							})
+						}
+			}
 		>
 			<Link
 				ref={linkRef}
