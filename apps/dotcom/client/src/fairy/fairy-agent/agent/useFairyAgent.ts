@@ -1,7 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import { Editor, useToasts } from 'tldraw'
 import { useApp } from '../../../tla/hooks/useAppState'
-import { FairyThrowTool } from '../../FairyThrowTool'
 import { FairyAgent } from './FairyAgent'
 import { $fairyAgentsAtom } from './fairyAgentsAtom'
 
@@ -55,9 +54,6 @@ export function useFairyAgent({
 		if (existingAgent) {
 			existingAgent.dispose()
 		}
-
-		editor.removeTool(FairyThrowTool)
-		editor.setTool(FairyThrowTool)
 
 		// Create a new agent
 		return new FairyAgent({ id, editor, app, onError: handleError, getToken })

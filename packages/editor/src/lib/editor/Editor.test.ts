@@ -11,6 +11,7 @@ import {
 	createTLStore,
 } from '../..'
 import { Editor } from './Editor'
+import { StateNode } from './tools/StateNode'
 
 type ICustomShape = TLBaseShape<
 	'my-custom-shape',
@@ -921,5 +922,272 @@ describe('replaceExternalContent', () => {
 		await editor.replaceExternalContent(info, { force: false })
 
 		expect(mockHandler).toHaveBeenCalledWith(info)
+	})
+})
+
+describe('setTool', () => {
+	class CustomToolA extends StateNode {
+		static override id = 'custom-tool-a'
+	}
+
+	class CustomToolB extends StateNode {
+		static override id = 'custom-tool-b'
+	}
+
+	class CustomToolC extends StateNode {
+		static override id = 'custom-tool-c'
+	}
+
+	class ParentTool extends StateNode {
+		static override id = 'parent-tool'
+		static override initial = 'child-tool-1'
+		static override children() {
+			return [ChildTool1]
+		}
+	}
+
+	class ChildTool1 extends StateNode {
+		static override id = 'child-tool-1'
+	}
+
+	class ChildTool2 extends StateNode {
+		static override id = 'child-tool-2'
+	}
+
+	let toolEditor: Editor
+
+	beforeEach(() => {
+		toolEditor = new Editor({
+			shapeUtils: [],
+			bindingUtils: [],
+			tools: [CustomToolA, ParentTool],
+			store: createTLStore({ shapeUtils: [], bindingUtils: [] }),
+			getContainer: () => document.body,
+		})
+	})
+
+	it('should add a tool to the root state', () => {
+		// Initially CustomToolB should not exist
+		expect(toolEditor.root.children!['custom-tool-b']).toBeUndefined()
+
+		// Add CustomToolB
+		toolEditor.setTool(CustomToolB)
+
+		// CustomToolB should now exist in root
+		expect(toolEditor.root.children!['custom-tool-b']).toBeDefined()
+		expect(toolEditor.root.children!['custom-tool-b']).toBeInstanceOf(CustomToolB)
+	})
+
+	it('should add a tool to a specific parent state', () => {
+		const parentTool = toolEditor.root.children!['parent-tool'] as ParentTool
+
+		// Initially should only have child-tool-1
+		expect(Object.keys(parentTool.children!)).toHaveLength(1)
+		expect(parentTool.children!['child-tool-1']).toBeDefined()
+		expect(parentTool.children!['child-tool-2']).toBeUndefined()
+
+		// Add ChildTool2 to ParentTool
+		toolEditor.setTool(ChildTool2, parentTool)
+
+		// Should now have both children
+		expect(Object.keys(parentTool.children!)).toHaveLength(2)
+		expect(parentTool.children!['child-tool-1']).toBeDefined()
+		expect(parentTool.children!['child-tool-2']).toBeDefined()
+		expect(parentTool.children!['child-tool-2']).toBeInstanceOf(ChildTool2)
+	})
+
+	it('should throw an error when trying to override an existing tool', () => {
+		// CustomToolA is already in the root (added in beforeEach)
+		expect(toolEditor.root.children!['custom-tool-a']).toBeDefined()
+
+		// Should throw error when trying to add another tool with the same ID
+		expect(() => {
+			toolEditor.setTool(CustomToolA)
+		}).toThrow('Can\'t override tool with id "custom-tool-a"')
+	})
+
+	it('should allow transitioning to a newly added tool', () => {
+		// Add CustomToolB
+		toolEditor.setTool(CustomToolB)
+
+		// Should be able to transition to the new tool
+		expect(() => {
+			toolEditor.setCurrentTool('custom-tool-b')
+		}).not.toThrow()
+
+		// Should now be on the new tool
+		expect(toolEditor.getCurrentToolId()).toBe('custom-tool-b')
+	})
+
+	it('should create the tool with the correct editor and parent', () => {
+		// Add CustomToolB to root
+		toolEditor.setTool(CustomToolB)
+
+		const customToolB = toolEditor.root.children!['custom-tool-b'] as CustomToolB
+
+		expect(customToolB.editor).toBe(toolEditor)
+		expect(customToolB.parent).toBe(toolEditor.root)
+	})
+
+	it('should maintain existing tools when adding new ones', () => {
+		const originalTool = toolEditor.root.children!['custom-tool-a']
+
+		// Add CustomToolB
+		toolEditor.setTool(CustomToolB)
+
+		// Original tool should still exist
+		expect(toolEditor.root.children!['custom-tool-a']).toBe(originalTool)
+		expect(toolEditor.root.children!['custom-tool-a']).toBeInstanceOf(CustomToolA)
+	})
+
+	it('should allow adding multiple tools', () => {
+		// Add multiple tools
+		toolEditor.setTool(CustomToolB)
+		toolEditor.setTool(CustomToolC)
+
+		// All tools should exist
+		expect(toolEditor.root.children!['custom-tool-a']).toBeDefined()
+		expect(toolEditor.root.children!['custom-tool-b']).toBeDefined()
+		expect(toolEditor.root.children!['custom-tool-c']).toBeDefined()
+		expect(toolEditor.root.children!['custom-tool-b']).toBeInstanceOf(CustomToolB)
+		expect(toolEditor.root.children!['custom-tool-c']).toBeInstanceOf(CustomToolC)
+	})
+})
+
+describe('removeTool', () => {
+	class CustomToolA extends StateNode {
+		static override id = 'custom-tool-a'
+	}
+
+	class CustomToolB extends StateNode {
+		static override id = 'custom-tool-b'
+	}
+
+	class CustomToolC extends StateNode {
+		static override id = 'custom-tool-c'
+	}
+
+	class ParentTool extends StateNode {
+		static override id = 'parent-tool'
+		static override initial = 'child-tool-1'
+		static override children() {
+			return [ChildTool1, ChildTool2]
+		}
+	}
+
+	class ChildTool1 extends StateNode {
+		static override id = 'child-tool-1'
+	}
+
+	class ChildTool2 extends StateNode {
+		static override id = 'child-tool-2'
+	}
+
+	let toolEditor: Editor
+
+	beforeEach(() => {
+		toolEditor = new Editor({
+			shapeUtils: [],
+			bindingUtils: [],
+			tools: [CustomToolA, CustomToolB, CustomToolC, ParentTool],
+			store: createTLStore({ shapeUtils: [], bindingUtils: [] }),
+			getContainer: () => document.body,
+		})
+	})
+
+	it('should remove a tool from the root state', () => {
+		// CustomToolB should exist initially
+		expect(toolEditor.root.children!['custom-tool-b']).toBeDefined()
+
+		// Remove CustomToolB
+		toolEditor.removeTool(CustomToolB)
+
+		// CustomToolB should no longer exist
+		expect(toolEditor.root.children!['custom-tool-b']).toBeUndefined()
+	})
+
+	it('should remove a tool from a specific parent state', () => {
+		const parentTool = toolEditor.root.children!['parent-tool'] as ParentTool
+
+		// Initially should have both children
+		expect(Object.keys(parentTool.children!)).toHaveLength(2)
+		expect(parentTool.children!['child-tool-1']).toBeDefined()
+		expect(parentTool.children!['child-tool-2']).toBeDefined()
+
+		// Remove ChildTool2 from ParentTool
+		toolEditor.removeTool(ChildTool2, parentTool)
+
+		// Should now only have child-tool-1
+		expect(Object.keys(parentTool.children!)).toHaveLength(1)
+		expect(parentTool.children!['child-tool-1']).toBeDefined()
+		expect(parentTool.children!['child-tool-2']).toBeUndefined()
+	})
+
+	it('should not throw an error when trying to remove a non-existent tool', () => {
+		// First remove CustomToolB
+		toolEditor.removeTool(CustomToolB)
+		expect(toolEditor.root.children!['custom-tool-b']).toBeUndefined()
+
+		// Trying to remove it again should not throw
+		expect(() => {
+			toolEditor.removeTool(CustomToolB)
+		}).not.toThrow()
+	})
+
+	it('should maintain other tools when removing one', () => {
+		const originalToolA = toolEditor.root.children!['custom-tool-a']
+		const originalToolC = toolEditor.root.children!['custom-tool-c']
+
+		// Remove CustomToolB
+		toolEditor.removeTool(CustomToolB)
+
+		// Other tools should still exist
+		expect(toolEditor.root.children!['custom-tool-a']).toBe(originalToolA)
+		expect(toolEditor.root.children!['custom-tool-c']).toBe(originalToolC)
+		expect(toolEditor.root.children!['custom-tool-a']).toBeInstanceOf(CustomToolA)
+		expect(toolEditor.root.children!['custom-tool-c']).toBeInstanceOf(CustomToolC)
+	})
+
+	it('should not be able to transition to a removed tool', () => {
+		// Remove CustomToolB
+		toolEditor.removeTool(CustomToolB)
+
+		// Should throw when trying to transition to removed tool
+		expect(() => {
+			toolEditor.setCurrentTool('custom-tool-b')
+		}).toThrow()
+	})
+
+	it('should allow removing multiple tools', () => {
+		// Remove multiple tools
+		toolEditor.removeTool(CustomToolB)
+		toolEditor.removeTool(CustomToolC)
+
+		// Removed tools should not exist
+		expect(toolEditor.root.children!['custom-tool-b']).toBeUndefined()
+		expect(toolEditor.root.children!['custom-tool-c']).toBeUndefined()
+
+		// Other tools should still exist
+		expect(toolEditor.root.children!['custom-tool-a']).toBeDefined()
+		expect(toolEditor.root.children!['parent-tool']).toBeDefined()
+	})
+
+	it('should allow re-adding a tool after removing it', () => {
+		// Remove CustomToolB
+		toolEditor.removeTool(CustomToolB)
+		expect(toolEditor.root.children!['custom-tool-b']).toBeUndefined()
+
+		// Re-add CustomToolB
+		toolEditor.setTool(CustomToolB)
+
+		// CustomToolB should exist again
+		expect(toolEditor.root.children!['custom-tool-b']).toBeDefined()
+		expect(toolEditor.root.children!['custom-tool-b']).toBeInstanceOf(CustomToolB)
+
+		// Should be able to transition to it
+		expect(() => {
+			toolEditor.setCurrentTool('custom-tool-b')
+		}).not.toThrow()
+		expect(toolEditor.getCurrentToolId()).toBe('custom-tool-b')
 	})
 })

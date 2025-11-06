@@ -5,11 +5,11 @@ import {
 	GoogleGenerativeAIProviderOptions,
 } from '@ai-sdk/google'
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
-import { AgentAction, AgentPrompt, Streaming } from '@tldraw/fairy-shared'
+import { AgentAction, AgentPrompt, DebugPart, Streaming } from '@tldraw/fairy-shared'
 import { LanguageModel, streamText } from 'ai'
 import { Environment } from '../environment'
 import { buildMessages } from '../prompt/buildMessages'
-import { buildSystemPrompt } from '../prompt/buildSystemPrompt'
+import { buildSystemPrompt, buildSystemPromptWithoutSchema } from '../prompt/buildSystemPrompt'
 import { closeAndParseJson } from './closeAndParseJson'
 import { AgentModelName, FAIRY_MODEL_NAME, getAgentModelDefinition } from './models'
 
@@ -68,6 +68,19 @@ async function* _streamText(model: LanguageModel, prompt: AgentPrompt): AsyncGen
 	const messages = buildMessages(prompt)
 	const systemPrompt = buildSystemPrompt(prompt) || 'You are a helpful assistant.'
 
+	// Debug logging
+	const debugPart = prompt.debug
+	if (debugPart) {
+		if (debugPart.logSystemPrompt) {
+			const promptWithoutSchema = buildSystemPromptWithoutSchema(prompt)
+			console.warn('[DEBUG] System Prompt (without schema):\n', promptWithoutSchema)
+		}
+		if (debugPart.logMessages) {
+			const sanitizedMessages = sanitizeMessagesForLogging(messages)
+			console.warn('[DEBUG] Messages:\n', JSON.stringify(sanitizedMessages, null, 2))
+		}
+	}
+
 	try {
 		const result = streamText({
 			model,
@@ -115,6 +128,19 @@ async function* _streamActions(
 
 	const messages = buildMessages(prompt)
 	const systemPrompt = buildSystemPrompt(prompt)
+
+	// Check for debug flags
+	const debugPart = prompt.debug as DebugPart | undefined
+	if (debugPart) {
+		if (debugPart.logSystemPrompt) {
+			const promptWithoutSchema = buildSystemPromptWithoutSchema(prompt)
+			console.warn('[DEBUG] System Prompt (without schema):\n', promptWithoutSchema)
+		}
+		if (debugPart.logMessages) {
+			const sanitizedMessages = sanitizeMessagesForLogging(messages)
+			console.warn('[DEBUG] Messages:\n', JSON.stringify(sanitizedMessages, null, 2))
+		}
+	}
 
 	try {
 		messages.push({
@@ -218,4 +244,30 @@ async function* _streamActions(
 		console.error('streamEventsVercel error:', error)
 		throw error
 	}
+}
+
+/**
+ * Sanitize messages for logging by replacing image content with "<image data removed>"
+ */
+function sanitizeMessagesForLogging(messages: any[]): any[] {
+	return messages.map((message) => {
+		if (!message.content || !Array.isArray(message.content)) {
+			return message
+		}
+
+		const sanitizedContent = message.content.map((item: any) => {
+			if (item.type === 'image') {
+				return {
+					...item,
+					image: '<image data removed>',
+				}
+			}
+			return item
+		})
+
+		return {
+			...message,
+			content: sanitizedContent,
+		}
+	})
 }

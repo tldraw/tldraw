@@ -116,6 +116,14 @@ export class FairyAgent {
 	private $mode = atom<FairyModeDefinition['type']>('fairyMode', 'idling')
 
 	/**
+	 * Debug flags for controlling logging behavior in the worker.
+	 */
+	$debugFlags = atom<{ logSystemPrompt: boolean; logMessages: boolean }>('debugFlags', {
+		logSystemPrompt: false,
+		logMessages: false,
+	})
+
+	/**
 	 * Change the mode of the agent.
 	 * @param mode - The mode to set.
 	 */
@@ -173,6 +181,14 @@ export class FairyAgent {
 			project: null,
 			tasks: [],
 		}
+	}
+
+	/**
+	 * Get the project that the agent is currently working on.
+	 * @returns The project.
+	 */
+	getCurrentProject(): FairyProject | null {
+		return null
 	}
 
 	/**
@@ -1200,9 +1216,11 @@ export class FairyAgent {
 	/**
 	 * Instantly move the fairy to the center of the screen on the current page.
 	 * Updates the fairy's currentPageId to match the current editor page.
+	 * @param offset Optional offset from the center position
 	 */
-	summon() {
-		const position = this.editor.getViewportPageBounds().center
+	summon(offset?: { x: number; y: number }) {
+		const center = this.editor.getViewportPageBounds().center
+		const position = offset ? { x: center.x + offset.x, y: center.y + offset.y } : center
 		const currentPageId = this.editor.getCurrentPageId()
 		this.$fairyEntity.update((f) => (f ? { ...f, position, gesture: 'poof', currentPageId } : f))
 	}

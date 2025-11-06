@@ -420,3 +420,14 @@ export interface ModePart {
 export const ModePartDefinition: PromptPartDefinition<ModePart> = {
 	type: 'mode',
 }
+
+// DebugPart
+export interface DebugPart {
+	type: 'debug'
+	logSystemPrompt: boolean
+	logMessages: boolean
+}
+
+export const DebugPartDefinition: PromptPartDefinition<DebugPart> = {
+	type: 'debug',
+}

@@ -7,7 +7,9 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
+import { useMsg } from '../tla/utils/i18n'
 import { FairyAgent, getFollowingFairyId } from './fairy-agent/agent/FairyAgent'
+import { fairyMessages } from './fairy-messages'
 import { FairyConfigDialog } from './FairyConfigDialog'
 
 export function FairyMenuContent({
@@ -49,27 +51,39 @@ export function FairyMenuContent({
 		}
 	}, [agent, isFollowing])
 
+	const goToFairyLabel = useMsg(fairyMessages.goToFairy)
+	const summonFairyLabel = useMsg(fairyMessages.summonFairy)
+	const followFairyLabel = useMsg(fairyMessages.followFairy)
+	const unfollowFairyLabel = useMsg(fairyMessages.unfollowFairy)
+	const resetChatLabel = useMsg(fairyMessages.resetChat)
+	const customizeFairyLabel = useMsg(fairyMessages.customizeFairy)
+	const deleteFairyLabel = useMsg(fairyMessages.deleteFairy)
+
 	return (
 		<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">
 			<TldrawUiMenuGroup id="fairy-movement-menu">
-				<TldrawUiMenuItem id="go-to-fairy" onSelect={() => agent.zoomTo()} label="Go to fairy" />
-				<TldrawUiMenuItem id="summon-fairy" onSelect={() => agent.summon()} label="Summon fairy" />
+				<TldrawUiMenuItem id="go-to-fairy" onSelect={() => agent.zoomTo()} label={goToFairyLabel} />
+				<TldrawUiMenuItem
+					id="summon-fairy"
+					onSelect={() => agent.summon()}
+					label={summonFairyLabel}
+				/>
 				<TldrawUiMenuItem
 					id="follow-fairy"
 					onSelect={toggleFollow}
-					label={isFollowing ? 'Unfollow fairy' : 'Follow fairy'}
+					label={isFollowing ? unfollowFairyLabel : followFairyLabel}
 				/>
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="fairy-chat-menu">
-				<TldrawUiMenuItem id="new-chat" onSelect={() => agent.reset()} label="Reset chat" />
+				<TldrawUiMenuItem id="new-chat" onSelect={() => agent.reset()} label={resetChatLabel} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="fairy-config-menu">
 				<TldrawUiMenuItem
 					id="configure-fairy"
 					onSelect={() => configureFairy(agent)}
-					label="Customize fairy"
+					label={customizeFairyLabel}
 				/>
-				<TldrawUiMenuItem id="delete-fairy" onSelect={deleteFairy} label="Delete fairy" />
+				<TldrawUiMenuItem id="delete-fairy" onSelect={deleteFairy} label={deleteFairyLabel} />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuContextProvider>
 	)

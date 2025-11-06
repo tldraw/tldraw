@@ -1,7 +1,9 @@
 import React, { useCallback, useState } from 'react'
 import { useEditor, useValue } from 'tldraw'
 import '../tla/styles/fairy.css'
+import { F, useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { fairyMessages } from './fairy-messages'
 import { getProjectById } from './FairyProjects'
 import { getProjectColor } from './getProjectColor'
 import {
@@ -17,6 +19,10 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 	const editor = useEditor()
 	const todos = useValue('shared-todo-list', () => $sharedTodoList.get(), [$sharedTodoList])
 	const [newTodoText, setNewTodoText] = useState('')
+	const addTodoPlaceholder = useMsg(fairyMessages.addTodoPlaceholder)
+	const dragToCanvas = useMsg(fairyMessages.dragToCanvas)
+	const clickToRemoveOrDrag = useMsg(fairyMessages.clickToRemoveOrDrag)
+	const deleteTodo = useMsg(fairyMessages.deleteTodo)
 
 	const getStatusIcon = (status: string) => {
 		switch (status) {
@@ -68,10 +74,10 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 						$showCanvasTodos.set(true)
 
 						// Activate drag tool for repositioning
-						const tool = editor.getStateDescendant('todo-drag')
+						const tool = editor.getStateDescendant('select.todo-drag')
 						if (tool && 'setTodoId' in tool) {
 							;(tool as TodoDragTool).setTodoId(todoId)
-							editor.setCurrentTool('todo-drag')
+							editor.setCurrentTool('select.todo-drag')
 						}
 					}
 				}
@@ -107,10 +113,10 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 					document.removeEventListener('pointerup', handlePointerUp)
 
 					// Activate the drag tool
-					const tool = editor.getStateDescendant('todo-drag')
+					const tool = editor.getStateDescendant('select.todo-drag')
 					if (tool && 'setTodoId' in tool) {
 						;(tool as TodoDragTool).setTodoId(todoId)
-						editor.setCurrentTool('todo-drag')
+						editor.setCurrentTool('select.todo-drag')
 					}
 				}
 			}
@@ -133,7 +139,7 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 					type="text"
 					value={newTodoText}
 					onChange={(e) => setNewTodoText(e.target.value)}
-					placeholder="Add a new todo..."
+					placeholder={addTodoPlaceholder}
 					className="shared-todo-input-field"
 				/>
 				<button type="submit" className="shared-todo-input-submit" disabled={!newTodoText.trim()}>
@@ -180,18 +186,14 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 											e.stopPropagation()
 											handleDragStart(e, todo.id)
 										}}
-										title={
-											todo.x != null && todo.y != null
-												? 'Click to remove or drag to move'
-												: 'Drag to canvas'
-										}
+										title={todo.x != null && todo.y != null ? clickToRemoveOrDrag : dragToCanvas}
 									>
 										{todo.x != null && todo.y != null ? '⊖' : '◎'}
 									</button>
 									<button
 										className="shared-todo-item-delete"
 										onClick={() => deleteSharedTodoItem(todo.id)}
-										title="Delete todo"
+										title={deleteTodo}
 									>
 										×
 									</button>
@@ -202,7 +204,9 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 										onChange={(e) => assignAgentToTodo(todo.id, e.target.value, agents)}
 										className="shared-todo-item-fairy-select"
 									>
-										<option value="">Auto</option>
+										<option value="">
+											<F defaultMessage="Auto" />
+										</option>
 										{agents.map((agent) => (
 											<option key={agent.id} value={agent.id}>
 												{agent.$fairyConfig.get().name}

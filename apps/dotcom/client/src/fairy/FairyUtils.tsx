@@ -30,6 +30,7 @@ import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { BlurryShapesPartUtil } from './parts/BlurryShapesPartUtil'
 import { ChatHistoryPartUtil } from './parts/ChatHistoryPartUtil'
 import { DataPartUtil } from './parts/DataPartUtil'
+import { DebugPartUtil } from './parts/DebugPartUtil'
 import { MessagesPartUtil } from './parts/MessagesPartUtil'
 import { ModePartUtil } from './parts/ModePartUtil'
 import { OtherFairiesPartUtil } from './parts/OtherFairiesPartUtil'
@@ -124,6 +125,9 @@ export const PROMPT_PART_UTILS = [
 	OtherFairiesPartUtil,
 	PersonalityPartUtil,
 	ModePartUtil,
+
+	// Debug
+	DebugPartUtil,
 ] as const satisfies PromptPartUtilConstructor<PromptPart>[]
 
 /**
