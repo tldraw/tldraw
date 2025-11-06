@@ -1263,6 +1263,10 @@
 	max-width: 200px;
 }
 
+.fairy-debug-dropdown {
+	z-index: var(--tl-layer-canvas-in-front) !important;
+}
+
 .fairy-debug-view-label {
 	display: block;
 	margin-bottom: 4px;
@@ -1436,10 +1440,22 @@
 	padding: 8px;
 }
 
+.fairy-debug-flags-row {
+	display: flex;
+	flex-direction: row;
+	align-items: flex-start;
+	gap: 8px;
+}
+
 .fairy-debug-flags-checkboxes {
 	display: flex;
 	flex-direction: column;
 	/* gap: 8px; */
+}
+
+.fairy-debug-flags-button {
+	flex-shrink: 0;
+	width: auto;
 }
 
 .fairy-debug-flags-checkbox {

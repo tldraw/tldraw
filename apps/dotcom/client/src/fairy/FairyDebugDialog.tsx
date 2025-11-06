@@ -302,37 +302,50 @@ function FlagsInspector({ agent }: { agent: FairyAgent }) {
 			<p>
 				<F defaultMessage="Debug Flags" />
 			</p>
-			<div className="fairy-debug-flags-checkboxes">
-				<label className="fairy-debug-flags-checkbox">
-					<input
-						type="checkbox"
-						checked={debugFlags.logSystemPrompt}
-						onChange={(e) => {
-							agent.$debugFlags.set({
-								...debugFlags,
-								logSystemPrompt: e.target.checked,
-							})
-						}}
-					/>
-					<span>
-						<F defaultMessage="Log System Prompt" />
-					</span>
-				</label>
-				<label className="fairy-debug-flags-checkbox">
-					<input
-						type="checkbox"
-						checked={debugFlags.logMessages}
-						onChange={(e) => {
-							agent.$debugFlags.set({
-								...debugFlags,
-								logMessages: e.target.checked,
-							})
-						}}
-					/>
-					<span>
-						<F defaultMessage="Log Messages" />
-					</span>
-				</label>
+			<div className="fairy-debug-flags-row">
+				<div className="fairy-debug-flags-checkboxes">
+					<label className="fairy-debug-flags-checkbox">
+						<input
+							type="checkbox"
+							checked={debugFlags.logSystemPrompt}
+							onChange={(e) => {
+								agent.$debugFlags.set({
+									...debugFlags,
+									logSystemPrompt: e.target.checked,
+								})
+							}}
+						/>
+						<span>
+							<F defaultMessage="Log System Prompt" />
+						</span>
+					</label>
+					<label className="fairy-debug-flags-checkbox">
+						<input
+							type="checkbox"
+							checked={debugFlags.logMessages}
+							onChange={(e) => {
+								agent.$debugFlags.set({
+									...debugFlags,
+									logMessages: e.target.checked,
+								})
+							}}
+						/>
+						<span>
+							<F defaultMessage="Log Messages" />
+						</span>
+					</label>
+				</div>
+				<TldrawUiButton
+					type="low"
+					className="fairy-debug-flags-button"
+					onClick={() => {
+						;(window as any).agent = agent
+					}}
+				>
+					<TldrawUiButtonLabel>
+						<F defaultMessage="Set window.agent" />
+					</TldrawUiButtonLabel>
+				</TldrawUiButton>
 			</div>
 		</div>
 	)
