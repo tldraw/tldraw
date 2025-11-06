@@ -48,13 +48,7 @@ class GTMAnalyticsService extends AnalyticsService {
 		script.async = true
 		script.id = GTM_SCRIPT_ID
 		script.src = `https://www.googletagmanager.com/gtm.js?id=${this.gtmContainerId}`
-
-		const firstScript = document.getElementsByTagName('script')[0]
-		if (firstScript?.parentNode) {
-			firstScript.parentNode.insertBefore(script, firstScript)
-		} else {
-			document.head.appendChild(script)
-		}
+		document.head.appendChild(script)
 
 		// Add noscript iframe
 		const noscript = document.createElement('noscript')
