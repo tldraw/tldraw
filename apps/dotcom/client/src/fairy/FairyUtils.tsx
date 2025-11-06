@@ -22,6 +22,7 @@ import { ReviewActionUtil } from './actions/ReviewActionUtil'
 import { RotateActionUtil } from './actions/RotateActionUtil'
 import { SendToBackActionUtil } from './actions/SendToBackActionUtil'
 import { SharedTodoListActionUtil } from './actions/SharedTodoListActionUtil'
+import { SleepActionUtil } from './actions/SleepActionUtil'
 import { StackActionUtil } from './actions/StackActionUtil'
 import { StartProjectActionUtil } from './actions/StartProjectActionUtil'
 import { StartTaskActionUtil } from './actions/StartTaskActionUtil'
@@ -58,6 +59,7 @@ export const AGENT_ACTION_UTILS = [
 	ThinkActionUtil,
 	ReviewActionUtil,
 	FlyToBoundsActionUtil,
+	SleepActionUtil,
 
 	// Individual shapes
 	CreateActionUtil,

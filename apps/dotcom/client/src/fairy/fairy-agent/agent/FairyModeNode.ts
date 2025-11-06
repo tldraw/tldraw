@@ -18,7 +18,7 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			agent.setMode('idling')
 		},
 		onRequestComplete(agent) {
-			agent.schedule('Whats the meaning of life?')
+			agent.schedule([])
 		},
 	},
 	working: {},

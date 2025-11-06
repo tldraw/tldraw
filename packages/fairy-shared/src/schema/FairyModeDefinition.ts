@@ -61,12 +61,21 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'personality',
 			'debug',
 		],
-		actions: (_work: FairyWork) => ['message', 'think', 'create-task', 'start-task'],
+		actions: (_work: FairyWork) => ['message', 'think', 'create-task', 'start-task', 'sleep'],
 	},
 	{
 		type: 'working',
 		active: true,
-		parts: () => [],
+		parts: () => [
+			// 'mode',
+			// 'messages',
+			// 'screenshot',
+			// 'blurryShapes',
+			// 'chatHistory',
+			// // 'workingTasks',
+			// 'personality',
+			// 'debug',
+		],
 		actions: () => [],
 	},
 	{

@@ -442,4 +442,15 @@ export const StartTaskActionSchema = z
 
 export type StartTaskAction = z.infer<typeof StartTaskActionSchema>
 
+export const SleepActionSchema = z
+	.object({
+		_type: z.literal('sleep'),
+	})
+	.meta({
+		title: 'Sleep',
+		description: 'The agent goes back to idle mode, stopping its current work.',
+	})
+
+export type SleepAction = z.infer<typeof SleepActionSchema>
+
 export type UnknownAction = BaseAgentAction<'unknown'>

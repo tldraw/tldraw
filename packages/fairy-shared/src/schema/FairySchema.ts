@@ -24,6 +24,7 @@ import {
 	RotateActionSchema,
 	SendToBackActionSchema,
 	SharedTodoListActionSchema,
+	SleepActionSchema,
 	StackActionSchema,
 	StartProjectActionSchema,
 	StartTaskActionSchema,
@@ -94,6 +95,7 @@ export const AGENT_ACTION_SCHEMAS = [
 	EndCurrentProjectActionSchema,
 	ActivateFairyActionSchema,
 	CreateTaskActionSchema,
+	SleepActionSchema,
 	StartTaskActionSchema,
 ] as const
 
