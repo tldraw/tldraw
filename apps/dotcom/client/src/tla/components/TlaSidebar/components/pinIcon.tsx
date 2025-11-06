@@ -3,7 +3,7 @@ export const pinIcon = (
 		style={{
 			position: 'relative',
 			top: '1.5px',
-			left: '-0.5px',
+			left: '0px',
 			flex: '0 0 auto',
 		}}
 		width="7"
