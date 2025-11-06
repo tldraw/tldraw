@@ -31,6 +31,7 @@ class Analytics {
 	private consent = 'unknown' as CookieConsent
 	private consentOptInType: 'manual' | 'auto' = 'manual'
 	private consentCallbacks: Array<(preferences: ConsentPreferences) => void> = []
+	private isInitialized = false
 
 	private services = [posthogService, ga4Service, gtmService, hubspotService, reoService]
 
@@ -91,8 +92,8 @@ class Analytics {
 			// Track the consent change (after enabling or disabling)
 			this.track('consent_changed', { consent })
 
-			// Track consent selection if user made a selection (not initial unknown state)
-			if (wasUnknown && consent !== 'unknown') {
+			// Track consent selection only if user actually interacted with banner (not during initialization)
+			if (this.isInitialized && wasUnknown && consent !== 'unknown') {
 				const preferences = cookieConsentToPreferences(consent)
 				for (const service of this.services) {
 					service.trackConsentBannerSelected?.({
@@ -171,6 +172,9 @@ class Analytics {
 				})
 			}
 		}
+
+		// Mark initialization as complete - any consent changes after this are user interactions
+		this.isInitialized = true
 	}
 
 	/**
