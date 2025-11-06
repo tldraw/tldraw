@@ -99,6 +99,7 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 	const handleCodeSubmit = useCallback(
 		async (e?: FormEvent) => {
 			e?.preventDefault()
+			if (isSubmitting) return
 			setIsSubmitting(true)
 			setError(null)
 			try {
@@ -132,7 +133,7 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 				setIsSubmitting(false)
 			}
 		},
-		[client.signUp, isSignUpFlow, signIn, code, onClose, setActive]
+		[client.signUp, isSignUpFlow, signIn, code, onClose, setActive, isSubmitting]
 	)
 
 	useEffect(() => {
