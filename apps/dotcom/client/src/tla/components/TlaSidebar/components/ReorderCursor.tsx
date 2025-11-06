@@ -8,6 +8,7 @@ export function ReorderCursor() {
 		'reorder cursor position',
 		() => {
 			const dragState = app.sidebarState.get().dragState
+			if (!dragState?.hasDragStarted) return null
 			return dragState?.operation?.reorder?.indicatorY ?? null
 		},
 		[app]

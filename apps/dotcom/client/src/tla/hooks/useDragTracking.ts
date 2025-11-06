@@ -1,6 +1,8 @@
-import { DragFileOperation, DragReorderOperation } from '@tldraw/dotcom-shared'
+import { DragFileOperation, DragGroupOperation, DragReorderOperation } from '@tldraw/dotcom-shared'
+import { getIndexAbove, getIndexBetween, IndexKey } from '@tldraw/utils'
 import assert from 'assert'
 import { useCallback, useEffect, useRef } from 'react'
+import { Vec } from 'tldraw'
 import { TldrawApp } from '../app/TldrawApp'
 import { useApp } from './useAppState'
 
@@ -15,11 +17,11 @@ function detectDragOperations(
 	mousePosition: { x: number; y: number },
 	dragType: 'file' | 'group',
 	dragId: string
-): any {
+): DragFileOperation | DragGroupOperation {
 	if (dragType === 'file') {
 		return detectFileOperations(elements, mousePosition)
 	} else {
-		return detectGroupOperations(elements, mousePosition, dragId)
+		return detectGroupOperation(elements.groupItems ?? [], mousePosition, dragId)
 	}
 }
 
@@ -61,13 +63,38 @@ function detectFileOperations(
 	return operations
 }
 
-function detectGroupOperations(
-	_elements: DragElements,
-	_mousePosition: { x: number; y: number },
-	_groupId: string
-): any {
-	// TODO: Implement group reordering
-	return {}
+function detectGroupOperation(
+	groupItems: Array<{ id: string; element: HTMLElement }>,
+	mousePosition: { x: number; y: number },
+	draggedGroupId: string
+): DragGroupOperation {
+	if (groupItems.filter((g) => g.id !== draggedGroupId).length === 0) {
+		return {}
+	}
+
+	const startTop = groupItems[0].element.getBoundingClientRect().top
+
+	let insertBeforeId = null as null | string
+	let indicatorY = null as null | number
+	let prevBottom = startTop - REORDER_BOUNDARY_INDICATOR_OFFSET * 2
+
+	for (const target of groupItems) {
+		const rect = target.element.getBoundingClientRect()
+		const midY = rect.top + rect.height / 2
+		if (mousePosition.y < midY) {
+			insertBeforeId = target.id
+			indicatorY = (rect.top + prevBottom) / 2
+			break
+		}
+		prevBottom = rect.bottom
+	}
+
+	return {
+		reorder: {
+			insertBeforeId,
+			indicatorY: indicatorY ?? prevBottom + REORDER_BOUNDARY_INDICATOR_OFFSET,
+		},
+	}
 }
 
 function findHoveredGroupId(
@@ -86,8 +113,13 @@ function findHoveredGroupId(
 	)
 }
 
-const PINNED_FILE_INDICATOR_OFFSET = 2
-const PINNED_FILE_INDICATOR_THRESHOLD = 15
+// This adds a little bit of an offset to the indicator
+// so it doesn't hug the top or bottom edge of the adjacent
+// item too closely if it's at the top or bottom of the list.
+const REORDER_BOUNDARY_INDICATOR_OFFSET = 2
+// This cuts off the reorder operation for pinned files if the mouse
+// strays too far above or below the pinned file section.
+const REORDER_PINNED_BOUNDARY_INDICATOR_THRESHOLD = 15
 
 function detectFileReorderOperation(
 	groupElements: GroupElements,
@@ -105,15 +137,15 @@ function detectFileReorderOperation(
 			.bottom ?? groupElements.topUnpinnedFile!.element.getBoundingClientRect().top
 
 	if (
-		mousePosition.y < startTop - PINNED_FILE_INDICATOR_THRESHOLD ||
-		mousePosition.y > endBottom + PINNED_FILE_INDICATOR_THRESHOLD
+		mousePosition.y < startTop - REORDER_PINNED_BOUNDARY_INDICATOR_THRESHOLD ||
+		mousePosition.y > endBottom + REORDER_PINNED_BOUNDARY_INDICATOR_THRESHOLD
 	) {
 		return null
 	}
 
 	let insertBeforeId = null as null | string
 	let indicatorY = null as null | number
-	let prevBottom = startTop - PINNED_FILE_INDICATOR_OFFSET
+	let prevBottom = startTop - REORDER_BOUNDARY_INDICATOR_OFFSET
 
 	for (const target of groupElements.pinnedFiles) {
 		const rect = target.element.getBoundingClientRect()
@@ -128,7 +160,7 @@ function detectFileReorderOperation(
 
 	return {
 		insertBeforeId,
-		indicatorY: indicatorY ?? prevBottom + PINNED_FILE_INDICATOR_OFFSET,
+		indicatorY: indicatorY ?? prevBottom + REORDER_BOUNDARY_INDICATOR_OFFSET,
 	}
 }
 
@@ -153,6 +185,33 @@ async function executeFileOperations(
 	}
 }
 
+async function executeGroupOperations(app: TldrawApp, groupId: string, operation: any) {
+	if (operation.reorder) {
+		const { insertBeforeId } = operation.reorder
+
+		// Get all group memberships sorted by current index
+		const allGroups = app.getGroupMemberships()
+		const sortedGroups = allGroups.filter((g) => g.groupId !== app.getHomeGroupId())
+
+		// Calculate the new index for the group
+		let newIndex: IndexKey
+
+		if (insertBeforeId === null) {
+			// Insert at end - get index above the last group
+			const lastGroup = sortedGroups[sortedGroups.length - 1]
+			newIndex = lastGroup?.index ? getIndexAbove(lastGroup.index) : ('a0' as IndexKey)
+		} else {
+			// Insert before specific group
+			const targetIdx = sortedGroups.findIndex((g) => g.groupId === insertBeforeId)
+			const afterGroup = sortedGroups[targetIdx]
+			const beforeGroup = sortedGroups[targetIdx - 1]
+			newIndex = getIndexBetween(beforeGroup?.index, afterGroup?.index)
+		}
+
+		await app.z.mutate.updateOwnGroupUser({ groupId, index: newIndex })
+	}
+}
+
 interface GroupElements {
 	id: string
 	element: HTMLElement
@@ -164,6 +223,7 @@ interface DragElements {
 	groupId: string
 	myFiles: GroupElements
 	groups: GroupElements[]
+	groupItems?: Array<{ id: string; element: HTMLElement }>
 }
 
 export function useDragTracking() {
@@ -220,13 +280,26 @@ export function useDragTracking() {
 				groups: [...groupElements].map((element) =>
 					getGroupElements(element.getAttribute('data-group-id')!, element as HTMLElement)
 				),
+				// For group dragging, collect all group item elements for reordering
+				groupItems:
+					dragType === 'group'
+						? [...groupElements].map((element) => ({
+								id: element.getAttribute('data-group-id')!,
+								element: element as HTMLElement,
+							}))
+						: undefined,
 			}
 			const mousePosition = { x: clientX, y: clientY }
+			const startMousePosition = { x: clientX, y: clientY }
+			let hasDragStarted = false
 
 			// Add global mouse move listener to track mouse position
 			const handleMouseMove = (e: MouseEvent) => {
 				mousePosition.x = e.clientX
 				mousePosition.y = e.clientY
+				if (Vec.Dist(startMousePosition, mousePosition) > 5) {
+					hasDragStarted = true
+				}
 			}
 
 			window.addEventListener('drag', handleMouseMove)
@@ -244,6 +317,7 @@ export function useDragTracking() {
 				app.sidebarState.set({
 					...app.sidebarState.get(),
 					dragState: {
+						hasDragStarted,
 						type: dragType,
 						id: dragId,
 						operation,
@@ -284,6 +358,8 @@ export function useDragTracking() {
 					// Execute operations before clearing drag state
 					if (dragState && fileId) {
 						executeFileOperations(app, fileId, groupId, dragState.operation)
+					} else if (dragState && dragState.type === 'group') {
+						executeGroupOperations(app, dragState.id, dragState.operation)
 					}
 				}
 			}

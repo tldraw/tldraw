@@ -152,7 +152,7 @@ export function TlaMenuSelect<T extends string>({
 			}}
 		>
 			<_Select.Root
-				open={true}
+				open={isOpen}
 				value={value}
 				onOpenChange={handleOpenChange}
 				onValueChange={handleChange}

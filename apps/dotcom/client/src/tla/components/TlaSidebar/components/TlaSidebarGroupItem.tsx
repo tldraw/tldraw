@@ -1,8 +1,10 @@
+import { fileOpen } from 'browser-fs-access'
 import classNames from 'classnames'
 import { Collapsible, ContextMenu as _ContextMenu } from 'radix-ui'
 import { memo, useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+	TLDRAW_FILE_EXTENSION,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -17,10 +19,12 @@ import {
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useDragTracking } from '../../../hooks/useDragTracking'
+import { useIsDragging } from '../../../hooks/useIsDragging'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F, defineMessages, useMsg } from '../../../utils/i18n'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
+import { AddFileLinkDialog } from '../../dialogs/AddFileLinkDialog'
 import { GroupSettingsDialog } from '../../dialogs/GroupSettingsDialog'
 import styles from '../sidebar.module.css'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
@@ -178,6 +182,7 @@ function GroupMenuContent({ groupId }: { groupId: string }) {
 	const app = useApp()
 	const { addDialog } = useDialogs()
 	const trackEvent = useTldrawAppUiEvents()
+	const navigate = useNavigate()
 	const copyInviteLinkMsg = useMsg(groupMessages.copyInviteLink)
 	const settingsMsg = useMsg(groupMessages.settings)
 	const importFilesMsg = useMsg(groupMessages.importFiles)
@@ -194,15 +199,34 @@ function GroupMenuContent({ groupId }: { groupId: string }) {
 		trackEvent('open-share-menu', { source: 'sidebar' })
 	}, [addDialog, groupId, trackEvent])
 
-	const handleImportFilesClick = useCallback(() => {
-		// TODO: Implement file import functionality
-		trackEvent('create-file', { source: 'sidebar' })
-	}, [trackEvent])
+	const handleImportFilesClick = useCallback(async () => {
+		trackEvent('import-tldr-file', { source: 'sidebar' })
+
+		try {
+			const tldrawFiles = await fileOpen({
+				extensions: [TLDRAW_FILE_EXTENSION],
+				multiple: true,
+				description: 'tldraw project',
+			})
+
+			app.uploadTldrFiles(
+				tldrawFiles,
+				(fileId) => {
+					navigate(routes.tlaFile(fileId), { state: { mode: 'create' } })
+				},
+				groupId
+			)
+		} catch {
+			// user cancelled
+			return
+		}
+	}, [trackEvent, app, navigate, groupId])
 
 	const handleAddLinkToSharedFileClick = useCallback(() => {
-		// TODO: Implement add link to shared file functionality
-		trackEvent('copy-file-link', { source: 'sidebar' })
-	}, [trackEvent])
+		addDialog({
+			component: ({ onClose }) => <AddFileLinkDialog onClose={onClose} groupId={groupId} />,
+		})
+	}, [addDialog, groupId])
 
 	return (
 		<>
@@ -253,6 +277,10 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 	const rCanCreate = useRef(true)
 
 	const { startDragTracking } = useDragTracking()
+
+	const isDragging = useIsDragging(groupId)
+	// disable dragging on mobile
+	const isCoarsePointer = getIsCoarsePointer()
 
 	const expansionState = useValue(
 		'expansionState',
@@ -358,6 +386,7 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 					data-group-id={group.groupId}
 					data-drop-target-id={`group:${group.groupId}`}
 					data-no-animation={isNoAnimation}
+					data-is-dragging={isDragging}
 				>
 					<Collapsible.Trigger asChild>
 						<div
@@ -371,18 +400,22 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 								}
 							}}
 							style={{ cursor: 'default' }}
-							draggable={true}
+							draggable={!isCoarsePointer}
 							onClick={() => setIsExpanded(!isExpanded)}
-							onDragStart={(event) => {
-								event.dataTransfer.effectAllowed = 'move'
-								event.dataTransfer.setData('text/plain', group.groupId)
-								event.dataTransfer.setDragImage(blankImg, 0, 0)
-								startDragTracking({
-									groupId: group.groupId,
-									clientX: event.clientX,
-									clientY: event.clientY,
-								})
-							}}
+							onDragStart={
+								isCoarsePointer
+									? undefined
+									: (event) => {
+											event.dataTransfer.effectAllowed = 'move'
+											event.dataTransfer.setData('text/plain', group.groupId)
+											event.dataTransfer.setDragImage(blankImg, 0, 0)
+											startDragTracking({
+												groupId: group.groupId,
+												clientX: event.clientX,
+												clientY: event.clientY,
+											})
+										}
+							}
 						>
 							<div
 								className={styles.sidebarGroupItemTitle}
