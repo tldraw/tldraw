@@ -17,21 +17,21 @@ import {
 	VecLike,
 } from '@tldraw/editor'
 import { FONT_SIZES } from 'tldraw'
+import { getDummyBounds } from './convertTldrawShapeToFocusedShape'
+import { asColor } from './FocusColor'
 import {
 	FocusedArrowShape,
 	FocusedDrawShape,
 	FocusedGeoShape,
+	FocusedGeoType,
 	FocusedLineShape,
 	FocusedNoteShape,
 	FocusedShape,
 	FocusedTextShape,
 	FocusedUnknownShape,
 } from './FocusedShape'
-import { asColor } from './SimpleColor'
-import { convertSimpleFillToTldrawFill } from './SimpleFill'
-import { convertSimpleFontSizeToTldrawFontSizeAndScale } from './SimpleFontSize'
-import { SimpleGeoShapeType } from './SimpleGeoShapeType'
-import { getDummyBounds } from './convertTldrawShapeToFocusedShape'
+import { convertFocusFillToTldrawFill } from './FocusFill'
+import { convertFocusFontSizeToTldrawFontSize } from './FocusFontSize'
 
 /**
  * Convert a FocusedShape to a shape object to a tldraw shape using defaultShape for fallback values
@@ -97,18 +97,16 @@ export function convertSimpleTypeToTldrawType(
 	type: FocusedShape['_type']
 ): TLGeoShapeGeoStyle | TLDefaultShape['type'] | 'unknown' {
 	if (type in SIMPLE_TO_GEO_TYPES) {
-		return convertSimpleGeoTypeToTldrawGeoGeoType(type as SimpleGeoShapeType) as TLGeoShapeGeoStyle
+		return convertSimpleGeoTypeToTldrawGeoGeoType(type as FocusedGeoType) as TLGeoShapeGeoStyle
 	}
 	return type as TLDefaultShape['type'] | 'unknown'
 }
 
-export function convertSimpleGeoTypeToTldrawGeoGeoType(
-	type: SimpleGeoShapeType
-): TLGeoShapeGeoStyle {
+export function convertSimpleGeoTypeToTldrawGeoGeoType(type: FocusedGeoType): TLGeoShapeGeoStyle {
 	return SIMPLE_TO_GEO_TYPES[type]
 }
 
-export const SIMPLE_TO_GEO_TYPES: Record<SimpleGeoShapeType, TLGeoShapeGeoStyle> = {
+export const SIMPLE_TO_GEO_TYPES: Record<FocusedGeoType, TLGeoShapeGeoStyle> = {
 	rectangle: 'rectangle',
 	ellipse: 'ellipse',
 	triangle: 'triangle',
@@ -145,7 +143,7 @@ function convertTextShapeToTldrawShape(
 
 	if (focusedShape.fontSize) {
 		const { textSize: calculatedTextSize, scale: calculatedScale } =
-			convertSimpleFontSizeToTldrawFontSizeAndScale(focusedShape.fontSize)
+			convertFocusFontSizeToTldrawFontSize(focusedShape.fontSize)
 		textSize = calculatedTextSize
 		scale = calculatedScale
 	} else if (defaultTextShape.props?.size) {
@@ -465,11 +463,11 @@ function convertGeoShapeToTldrawShape(
 	// Handle fill properly - simpleShape takes priority
 	let fill
 	if (focusedShape.fill !== undefined) {
-		fill = convertSimpleFillToTldrawFill(focusedShape.fill)
+		fill = convertFocusFillToTldrawFill(focusedShape.fill)
 	} else if (defaultGeoShape.props?.fill) {
 		fill = defaultGeoShape.props.fill
 	} else {
-		fill = convertSimpleFillToTldrawFill('none')
+		fill = convertFocusFillToTldrawFill('none')
 	}
 
 	return {
@@ -570,11 +568,11 @@ function convertDrawShapeToTldrawShape(
 	// Handle fill properly - simpleShape takes priority
 	let fill
 	if (focusedShape.fill !== undefined) {
-		fill = convertSimpleFillToTldrawFill(focusedShape.fill)
+		fill = convertFocusFillToTldrawFill(focusedShape.fill)
 	} else if (defaultDrawShape.props?.fill) {
 		fill = defaultDrawShape.props.fill
 	} else {
-		fill = convertSimpleFillToTldrawFill('none')
+		fill = convertFocusFillToTldrawFill('none')
 	}
 
 	const segments = defaultDrawShape.props?.segments ?? []

@@ -21,3 +21,27 @@ export async function fetchHistory(
 		return null
 	}
 }
+
+// Helper function to fetch Pierre history data
+export async function fetchPierreHistory(
+	fileSlug: string,
+	nextCursor?: string | null
+): Promise<{
+	entries: Array<{ timestamp: string; commitHash: string }>
+	nextCursor?: string | null
+} | null> {
+	try {
+		const url = nextCursor
+			? `/api/${FILE_PREFIX}/${fileSlug}/pierre-history?nextCursor=${nextCursor}`
+			: `/api/${FILE_PREFIX}/${fileSlug}/pierre-history`
+
+		const result = await fetch(url)
+
+		if (!result.ok) return null
+
+		return await result.json()
+	} catch (err) {
+		console.error('Failed to fetch Pierre history:', err)
+		return null
+	}
+}

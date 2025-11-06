@@ -79,6 +79,14 @@ const withs = [
 		expression:
 			'SELECT * from legacy_my_own_files UNION SELECT * from legacy_files_shared_with_me UNION SELECT * from group_files',
 	},
+	{
+		alias: 'my_fairies',
+		expression: 'SELECT * FROM public."user_fairies" WHERE "userId" = $1',
+	},
+	{
+		alias: 'file_fairies',
+		expression: 'SELECT * FROM public."file_fairies" WHERE "userId" = $1',
+	},
 ] as const satisfies WithClause[]
 
 type WithTable = (typeof withs)[number]['alias']
@@ -121,6 +129,16 @@ const selects: SelectClause[] = [
 		from: 'all_group_users',
 		outputTableName: 'group_user',
 		columns: makeColumnStuff(schema.tables.group_user),
+	},
+	{
+		from: 'my_fairies',
+		outputTableName: 'user_fairies',
+		columns: makeColumnStuff(schema.tables.user_fairies),
+	},
+	{
+		from: 'file_fairies',
+		outputTableName: 'file_fairies',
+		columns: makeColumnStuff(schema.tables.file_fairies),
 	},
 	{
 		from: 'public."user_mutation_number"',

@@ -1,12 +1,13 @@
-import { AgentIcon, ChatHistoryActionItem, TldrawFairyAgent } from '@tldraw/fairy-shared'
-import { getActionInfo } from './getActionInfo'
+import { AgentIcon, ChatHistoryActionItem } from '@tldraw/fairy-shared'
+import Markdown from 'react-markdown'
+import { FairyAgent } from '../agent/FairyAgent'
 
 export function FairyChatHistoryAction({
 	item,
 	agent,
 }: {
 	item: ChatHistoryActionItem
-	agent: TldrawFairyAgent
+	agent: FairyAgent
 }) {
 	const { action } = item
 
@@ -22,10 +23,10 @@ function FairyChatHistoryMessageDisplay({
 	agent,
 }: {
 	item: ChatHistoryActionItem
-	agent: TldrawFairyAgent
+	agent: FairyAgent
 }) {
 	const { action } = item
-	const info = getActionInfo(action, agent)
+	const info = agent.getActionInfo(action)
 	const content = info.description
 
 	if (!content) return null
@@ -33,7 +34,7 @@ function FairyChatHistoryMessageDisplay({
 	return (
 		<div className="fairy-chat-history-action">
 			<div className="fairy-chat-history-action-content fairy-chat-history-action-message">
-				{content}
+				<Markdown>{content}</Markdown>
 			</div>
 		</div>
 	)
@@ -44,14 +45,14 @@ function FairyChatHistoryActionDisplay({
 	agent,
 }: {
 	item: ChatHistoryActionItem
-	agent: TldrawFairyAgent
+	agent: FairyAgent
 }) {
 	const { action } = item
 	if (action._type === 'update-todo-list') return null
-	const info = getActionInfo(action, agent)
+	const info = agent.getActionInfo(action)
 
 	const displayText =
-		info.summary || info.description || formatActionName(action._type || 'unknown')
+		info.description || info.summary || formatActionName(action._type || 'unknown')
 
 	return (
 		<div className="fairy-chat-history-action">
@@ -60,7 +61,9 @@ function FairyChatHistoryActionDisplay({
 					<AgentIcon type={info.icon} />
 				</div>
 			)}
-			<p>{displayText}</p>
+			<div>
+				<Markdown>{displayText}</Markdown>
+			</div>
 		</div>
 	)
 }

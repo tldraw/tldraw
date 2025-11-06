@@ -1,13 +1,21 @@
 import { BoxModel } from '@tldraw/tlschema'
 import { JsonValue } from '@tldraw/utils'
 import { FocusedShape } from '../format/FocusedShape'
-import { AgentModelName } from '../models'
+import { FAIRY_MODE_DEFINITIONS, FairyMode } from '../schema/FairyMode'
 import { ContextItem } from './ContextItem'
 
 /**
- * A request that we send to the agent.
+ * Helper type that extracts the available wands for a given mode ID.
  */
-export interface AgentRequest {
+export type AvailableWandsForMode<ModeId extends FairyMode['id']> = Extract<
+	(typeof FAIRY_MODE_DEFINITIONS)[number],
+	{ id: ModeId }
+>['availableWands'][number]
+
+/**
+ * Base properties shared by all agent requests.
+ */
+interface BaseAgentRequest {
 	/**
 	 * Messages associated with the request.
 	 */
@@ -35,11 +43,6 @@ export interface AgentRequest {
 	bounds: BoxModel
 
 	/**
-	 * The model to use for the request.
-	 */
-	modelName: AgentModelName
-
-	/**
 	 * The type of request.
 	 * - 'user' is a request from the user.
 	 * - 'schedule' is a request from the schedule.
@@ -47,3 +50,21 @@ export interface AgentRequest {
 	 */
 	type: 'user' | 'schedule' | 'todo'
 }
+
+/**
+ * A request that we send to the agent.
+ * The wand type is constrained to only include wands available in the specified mode.
+ */
+export type AgentRequest = {
+	[K in FairyMode['id']]: BaseAgentRequest & {
+		/**
+		 * Which mode to enter for this request.
+		 */
+		mode: K
+		/**
+		 * Which wand (set of actions) to use for this request.
+		 * Must be one of the wands available in the specified mode.
+		 */
+		wand: AvailableWandsForMode<K>
+	}
+}[FairyMode['id']]
