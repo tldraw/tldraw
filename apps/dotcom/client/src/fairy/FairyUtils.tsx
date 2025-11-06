@@ -13,6 +13,7 @@ import { DistributeActionUtil } from './actions/DistributeActionUtil'
 import { EndCurrentProjectActionUtil } from './actions/EndCurrentProjectActionUtil'
 import { FlyToBoundsActionUtil } from './actions/FlyToBoundsActionUtil'
 import { LabelActionUtil } from './actions/LabelActionUtil'
+import { MarkTaskDoneActionUtil } from './actions/MarkTaskDoneActionUtil'
 import { MessageActionUtil } from './actions/MessageActionUtil'
 import { MoveActionUtil } from './actions/MoveActionUtil'
 import { PenActionUtil } from './actions/PenActionUtil'
@@ -47,6 +48,7 @@ import { SoloTasksPartUtil } from './parts/SoloTasksPartUtil'
 import { TimePartUtil } from './parts/TimePartUtil'
 import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
 import { ViewportBoundsPartUtil } from './parts/ViewportBoundsPartUtil'
+import { WorkingTasksPartUtil } from './parts/WorkingTasksPartUtil'
 
 /**
  * Agent action utils determine what actions do.
@@ -93,6 +95,7 @@ export const AGENT_ACTION_UTILS = [
 	EndCurrentProjectActionUtil,
 	CreateTaskActionUtil,
 	StartTaskActionUtil,
+	MarkTaskDoneActionUtil,
 
 	// Internal (required)
 	UnknownActionUtil,
@@ -122,6 +125,7 @@ export const PROMPT_PART_UTILS = [
 	ChatHistoryPartUtil,
 	UserActionHistoryPartUtil,
 	SoloTasksPartUtil,
+	WorkingTasksPartUtil,
 
 	// Metadata
 	TimePartUtil,

@@ -510,8 +510,8 @@ export class FairyAgent {
 			)
 		}
 
-		const node = FAIRY_MODE_CHART[this.getMode()]
-		await node.onPromptStart?.(this)
+		const startingNode = FAIRY_MODE_CHART[this.getMode()]
+		await startingNode.onPromptStart?.(this)
 
 		const mode = getFairyModeDefinition(this.getMode())
 		if (!mode.active) {
@@ -529,7 +529,8 @@ export class FairyAgent {
 
 		// Submit the request to the agent.
 		await this.request(request)
-		if (!this.cancelFn) {
+		if (this.cancelFn) {
+			const node = FAIRY_MODE_CHART[this.getMode()]
 			await node.onRequestComplete?.(this)
 		}
 
@@ -540,6 +541,7 @@ export class FairyAgent {
 		// Exit the mode
 		if (!scheduledRequest) {
 			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
+			const node = FAIRY_MODE_CHART[this.getMode()]
 			await node.onPromptEnd?.(this)
 			return
 		}

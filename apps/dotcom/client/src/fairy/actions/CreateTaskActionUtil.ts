@@ -3,6 +3,7 @@ import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { createFairyTask } from '../FairyTaskList'
 import { AgentActionUtil } from './AgentActionUtil'
 
+// Creates a task for themselves
 export class CreateTaskActionUtil extends AgentActionUtil<CreateTaskAction> {
 	static override type = 'create-task' as const
 
@@ -22,6 +23,10 @@ export class CreateTaskActionUtil extends AgentActionUtil<CreateTaskAction> {
 			text: action.text,
 			assignedTo: this.agent.id,
 			status: 'todo',
+			x: action.x,
+			y: action.y,
+			w: action.w,
+			h: action.h,
 		})
 	}
 }

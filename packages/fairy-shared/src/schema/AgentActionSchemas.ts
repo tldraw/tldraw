@@ -424,7 +424,7 @@ export const CreateTaskActionSchema = z
 	.meta({
 		title: 'Create Task',
 		description:
-			"The agent describes a new task that they'd like to do, and the area in which it should be done. A task should be a small amount of work that can be done in a single turn. It's okay to create many tasks. Note: Tasks get an automatic ID that's used to reference them. They're one-indexed.",
+			"The agent describes one new task that they'd like to do at some point in the future, as well as the area in which it should be done. Each task should represent one step in the longer process. It's okay to create many tasks. Note: Creating a task does not automatically start it. You must use the 'start-task' action to start a task. This is to allow you to create multiple tasks ahead of time, and then pick one to start with. Also note: Tasks get an automatic ID that's used to reference them. They start at 1, and then increment by 1 for each new task.",
 	})
 
 export type CreateTaskAction = z.infer<typeof CreateTaskActionSchema>
@@ -441,6 +441,19 @@ export const StartTaskActionSchema = z
 	})
 
 export type StartTaskAction = z.infer<typeof StartTaskActionSchema>
+
+export const MarkTaskDoneActionSchema = z
+	.object({
+		_type: z.literal('mark-task-done'),
+		taskId: z.number(),
+	})
+	.meta({
+		title: 'Mark Task Done',
+		description:
+			'The agent marks a task as completed. This action should be used when the agent has finished working on a task.',
+	})
+
+export type MarkTaskDoneAction = z.infer<typeof MarkTaskDoneActionSchema>
 
 export const SleepActionSchema = z
 	.object({

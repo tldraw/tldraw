@@ -15,6 +15,7 @@ import {
 	EndCurrentProjectActionSchema,
 	FlyToBoundsActionSchema,
 	LabelActionSchema,
+	MarkTaskDoneActionSchema,
 	MessageActionSchema,
 	MoveActionSchema,
 	PenActionSchema,
@@ -49,6 +50,7 @@ import {
 	TimePartDefinition,
 	UserActionHistoryPartDefinition,
 	ViewportBoundsPartDefinition,
+	WorkingTasksPartDefinition,
 } from './PromptPartDefinitions'
 
 /**
@@ -97,6 +99,7 @@ export const AGENT_ACTION_SCHEMAS = [
 	CreateTaskActionSchema,
 	SleepActionSchema,
 	StartTaskActionSchema,
+	MarkTaskDoneActionSchema,
 ] as const
 
 /**
@@ -116,6 +119,7 @@ export const PROMPT_PART_DEFINITIONS = [
 	SoloTasksPartDefinition,
 	UserActionHistoryPartDefinition,
 	ViewportBoundsPartDefinition,
+	WorkingTasksPartDefinition,
 	OtherFairiesPartDefinition,
 	PersonalityPartDefinition,
 	ModePartDefinition,

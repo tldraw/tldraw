@@ -1,4 +1,5 @@
 import { FairyModeDefinition } from '@tldraw/fairy-shared'
+import { $fairyTasks } from '../../FairyTaskList'
 import { FairyAgent } from './FairyAgent'
 
 export interface FairyModeNode {
@@ -18,10 +19,20 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			agent.setMode('idling')
 		},
 		onRequestComplete(agent) {
-			agent.schedule([])
+			// Continue if there are outstanding tasks
+			const myTasks = $fairyTasks.get().filter((task) => task.assignedTo === agent.id)
+			const incompleteTasks = myTasks.filter((task) => task.status !== 'done')
+			if (incompleteTasks.length > 0) {
+				agent.schedule('Continue until all tasks are complete.')
+			}
 		},
 	},
-	working: {},
+	working: {
+		onRequestComplete(agent) {
+			// Keep going until the task is complete
+			agent.schedule('Continue until the task is done.')
+		},
+	},
 	['standing-by']: {},
 	orchestrating: {},
 }

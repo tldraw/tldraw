@@ -306,7 +306,41 @@ export const SoloTasksPartDefinition: PromptPartDefinition<SoloTasksPart> = {
 			return `Task ${task.id} [${task.status}]: "${task.text}"`
 		})
 
+		if (taskContent.length === 1) {
+			return [`Here is the task assigned to you:`, taskContent[0]]
+		}
+
 		return [`Here are all the tasks assigned to you:`, ...taskContent]
+	},
+}
+
+// WorkingTasksPart
+export interface WorkingTasksPart {
+	type: 'workingTasks'
+	tasks: Array<FairyTask>
+}
+
+export const WorkingTasksPartDefinition: PromptPartDefinition<WorkingTasksPart> = {
+	type: 'workingTasks',
+	priority: -10,
+	buildContent(part: WorkingTasksPart) {
+		if (part.tasks.length === 0) {
+			return ['There are no tasks currently in progress.']
+		}
+
+		const taskContent = part.tasks.map((task) => {
+			let text = `Task ${task.id}: "${task.text}"`
+			if (task.x && task.y && task.w && task.h) {
+				text += ` (within bounds: x: ${task.x}, y: ${task.y}, w: ${task.w}, h: ${task.h})`
+			}
+			return text
+		})
+
+		if (taskContent.length === 1) {
+			return [`Here is the task you are currently working on:`, taskContent[0]]
+		}
+
+		return [`Here are the tasks you are currently working on:`, ...taskContent]
 	},
 }
 

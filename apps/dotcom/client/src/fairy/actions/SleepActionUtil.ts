@@ -5,12 +5,8 @@ import { AgentActionUtil } from './AgentActionUtil'
 export class SleepActionUtil extends AgentActionUtil<SleepAction> {
 	static override type = 'sleep' as const
 
-	override getInfo(action: Streaming<SleepAction>) {
-		return {
-			icon: 'note' as const,
-			description: action.complete ? 'Stopped' : 'Stopping...',
-			pose: 'idle' as const,
-		}
+	override getInfo(_action: Streaming<SleepAction>) {
+		return null
 	}
 
 	override applyAction(action: Streaming<SleepAction>, _helpers: AgentHelpers) {
