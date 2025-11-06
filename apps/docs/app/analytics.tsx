@@ -61,7 +61,7 @@ export default function Analytics() {
 	)
 }
 
-type ConsentPreferences = {
+interface ConsentPreferences {
 	analytics: 'granted' | 'denied'
 	marketing: 'granted' | 'denied'
 }
