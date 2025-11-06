@@ -117,7 +117,7 @@ export default function CustomShapeToSvgExample() {
 			<Tldraw
 				shapeUtils={customShape}
 				onMount={(editor) => {
-					editor.createShape({ type: 'my-custom-shape', x: 100, y: 100 })
+					editor.createShape({ type: MY_CUSTOM_SHAPE_TO_SVG_TYPE, x: 100, y: 100 })
 				}}
 			/>
 		</div>
