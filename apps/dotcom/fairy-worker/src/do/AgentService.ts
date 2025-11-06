@@ -11,6 +11,7 @@ import { Environment } from '../environment'
 import { buildMessages } from '../prompt/buildMessages'
 import { buildSystemPrompt, buildSystemPromptWithoutSchema } from '../prompt/buildSystemPrompt'
 import { closeAndParseJson } from './closeAndParseJson'
+import { createNotionMCPClient } from './mcp'
 import { AgentModelName, FAIRY_MODEL_NAME, getAgentModelDefinition } from './models'
 
 export class AgentService {
@@ -28,6 +29,10 @@ export class AgentService {
 		const modelDefinition = getAgentModelDefinition(modelName)
 		const provider = modelDefinition.provider
 		return this[provider](modelDefinition.id)
+	}
+
+	async testNotionMCP() {
+		await createNotionMCPClient()
 	}
 
 	async *streamActions(

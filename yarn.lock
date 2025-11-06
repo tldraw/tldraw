@@ -83,6 +83,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ai-sdk/mcp@npm:^0.0.7":
+  version: 0.0.7
+  resolution: "@ai-sdk/mcp@npm:0.0.7"
+  dependencies:
+    "@ai-sdk/provider": "npm:2.0.0"
+    "@ai-sdk/provider-utils": "npm:3.0.16"
+    pkce-challenge: "npm:^5.0.0"
+  peerDependencies:
+    zod: ^3.25.76 || ^4.1.8
+  checksum: 10/d6b3eb8a633f94ba5595e77cb9e1c247f886eaf24455c59de5e0954f790af090e2f4bf8df658449e8118248820723d20484f5bbdc126f6429b9e9ab3254c899b
+  languageName: node
+  linkType: hard
+
 "@ai-sdk/openai@npm:^2.0.24":
   version: 2.0.24
   resolution: "@ai-sdk/openai@npm:2.0.24"
@@ -105,6 +118,19 @@ __metadata:
   peerDependencies:
     zod: ^3.25.76 || ^4.1.8
   checksum: 10/e9bc15098b3a07db0a0c6b6194c18afcf9f470728ab940fdc77f09328e4f47d89167e0f7ce57a67cb966f5e06cfdb4f64cb6d50bd65109556f9345bf08193500
+  languageName: node
+  linkType: hard
+
+"@ai-sdk/provider-utils@npm:3.0.16":
+  version: 3.0.16
+  resolution: "@ai-sdk/provider-utils@npm:3.0.16"
+  dependencies:
+    "@ai-sdk/provider": "npm:2.0.0"
+    "@standard-schema/spec": "npm:^1.0.0"
+    eventsource-parser: "npm:^3.0.6"
+  peerDependencies:
+    zod: ^3.25.76 || ^4.1.8
+  checksum: 10/3f3838a139ac58e9df16c42e5cdc772eecb6f0c6b10a14c687af91ed8dd4acb34b34cc1ced82106270c8e925c4bbc13b35d1f9cf60df4b150987cb9caaec34a3
   languageName: node
   linkType: hard
 
@@ -14242,6 +14268,7 @@ __metadata:
   dependencies:
     "@ai-sdk/anthropic": "npm:^2.0.2"
     "@ai-sdk/google": "npm:^2.0.14"
+    "@ai-sdk/mcp": "npm:^0.0.7"
     "@ai-sdk/openai": "npm:^2.0.24"
     "@clerk/backend": "npm:^1.23.7"
     "@cloudflare/workers-types": "npm:^4.20250913.0"
@@ -15717,7 +15744,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eventsource-parser@npm:^3.0.0, eventsource-parser@npm:^3.0.3, eventsource-parser@npm:^3.0.5":
+"eventsource-parser@npm:^3.0.0, eventsource-parser@npm:^3.0.3, eventsource-parser@npm:^3.0.5, eventsource-parser@npm:^3.0.6":
   version: 3.0.6
   resolution: "eventsource-parser@npm:3.0.6"
   checksum: 10/febf7058b9c2168ecbb33e92711a1646e06bd1568f60b6eb6a01a8bf9f8fcd29cc8320d57247059cacf657a296280159f21306d2e3ff33309a9552b2ef889387
@@ -22866,6 +22893,13 @@ __metadata:
   version: 4.1.0
   resolution: "pkce-challenge@npm:4.1.0"
   checksum: 10/65169cf048cc472357c16685c56d6295f9f84809a058d397f9bf4dbc0efc3a12ff78d5f033d1f372a791b984749c6edbb7f746e5f3a5333524bed45ce3db79c5
+  languageName: node
+  linkType: hard
+
+"pkce-challenge@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "pkce-challenge@npm:5.0.0"
+  checksum: 10/e60c06a0e0481cb82f80072053d5c479a7490758541c4226460450285dd5d72a995c44b3c553731ca7c2f64cc34b35f1d2e5f9de08d276b59899298f9efe1ddf
   languageName: node
   linkType: hard
 

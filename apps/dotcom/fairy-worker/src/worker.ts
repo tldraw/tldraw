@@ -7,6 +7,7 @@ import { getAuth, isAdmin, requireAdminAccess, SignedInAuth } from './auth'
 import { Environment } from './environment'
 import { streamActionsHandler } from './routes/stream-actions'
 import { streamTextHandler } from './routes/stream-text'
+import { testNotionMCPHandler } from './routes/test-notion-mcp'
 
 // Extend IRequest to include auth
 export interface AuthenticatedRequest extends IRequest {
@@ -25,6 +26,7 @@ export default class extends WorkerEntrypoint<Environment> {
 		.all('*', requireTldrawEmail)
 		.post('/stream-actions', streamActionsHandler)
 		.post('/stream-text', streamTextHandler)
+		.get('/test-notion-mcp', testNotionMCPHandler)
 		.all('*', notFound)
 
 	override async fetch(request: Request): Promise<Response> {
@@ -33,7 +35,12 @@ export default class extends WorkerEntrypoint<Environment> {
 			request,
 			env: this.env,
 			ctx: this.ctx,
-			after: corsify,
+			after: (response, request) => {
+				// Create a new Response with mutable headers before passing to corsify
+				// to avoid "Can't modify immutable headers" error
+				const mutableResponse = new Response(response.body, response)
+				return corsify(mutableResponse, request)
+			},
 		})
 	}
 }

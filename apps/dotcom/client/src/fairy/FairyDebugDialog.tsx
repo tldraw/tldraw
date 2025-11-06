@@ -1,6 +1,7 @@
 import { ChatHistoryItem } from '@tldraw/fairy-shared'
 import { ReactNode, useState } from 'react'
 import {
+	fetch,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
 	TldrawUiButtonLabel,
@@ -15,7 +16,9 @@ import {
 	TldrawUiDropdownMenuTrigger,
 	useValue,
 } from 'tldraw'
+import { useTldrawUser } from '../tla/hooks/useUser'
 import { F } from '../tla/utils/i18n'
+import { FAIRY_WORKER } from '../utils/config'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { $projects } from './Projects'
 import { $sharedTodoList } from './SharedTodoList'
@@ -204,6 +207,9 @@ function HomeDebugView({
 }) {
 	return (
 		<div className="fairy-debug-view-container">
+			<div className="fairy-debug-home-actions">
+				<TestNotionMCPButton />
+			</div>
 			{homeDebugInspectorType === 'projects' && <ProjectsInspector />}
 			{homeDebugInspectorType === 'sharedTodoList' && <SharedTodoListInspector />}
 		</div>
@@ -289,6 +295,83 @@ function SharedTodoListInspector() {
 						{index < sharedTodos.length - 1 && <hr className="fairy-debug-shared-todo-separator" />}
 					</div>
 				))
+			)}
+		</div>
+	)
+}
+
+function TestNotionMCPButton() {
+	const user = useTldrawUser()
+	const [isLoading, setIsLoading] = useState(false)
+	const [result, setResult] = useState<{
+		success: boolean
+		message?: string
+		error?: string
+	} | null>(null)
+
+	const handleTest = async () => {
+		if (!user) {
+			setResult({ success: false, error: 'User not available' })
+			return
+		}
+
+		setIsLoading(true)
+		setResult(null)
+
+		try {
+			const headers: HeadersInit = {}
+
+			// Add authentication token if available
+			const token = await user.getToken()
+			if (token) {
+				headers['Authorization'] = `Bearer ${token}`
+			}
+
+			const res = await fetch(`${FAIRY_WORKER}/test-notion-mcp`, {
+				method: 'GET',
+				headers,
+			})
+
+			const data = await res.json()
+
+			if (res.ok && data.success) {
+				setResult({
+					success: true,
+					message: data.message || 'Notion MCP client created successfully',
+				})
+			} else {
+				setResult({ success: false, error: data.error || 'Failed to create Notion MCP client' })
+			}
+		} catch (error: any) {
+			setResult({ success: false, error: error.message || 'An error occurred' })
+		} finally {
+			setIsLoading(false)
+		}
+	}
+
+	return (
+		<div className="fairy-debug-test-mcp-container">
+			<TldrawUiButton type="normal" onClick={handleTest} disabled={isLoading || !user}>
+				<TldrawUiButtonLabel>
+					{isLoading ? <F defaultMessage="Testing..." /> : <F defaultMessage="Test Notion MCP" />}
+				</TldrawUiButtonLabel>
+			</TldrawUiButton>
+			{result && (
+				<div
+					className={`fairy-debug-test-mcp-result ${
+						result.success ? 'fairy-debug-test-mcp-success' : 'fairy-debug-test-mcp-error'
+					}`}
+				>
+					{result.success ? (
+						<div>
+							<F defaultMessage="Success: {message}" values={{ message: result.message || '' }} />
+						</div>
+					) : (
+						<div>
+							<F defaultMessage="Error: {error}" values={{ error: result.error || '' }} />
+						</div>
+					)}
+				</div>
 			)}
 		</div>
 	)

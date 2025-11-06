@@ -24,8 +24,44 @@ export class AgentDurableObject extends DurableObject<Environment> {
 			return this.streamText(request)
 		}
 
+		if (url.pathname === '/test-notion-mcp' && request.method === 'GET') {
+			return this.testNotionMCP()
+		}
+
 		// For other routes, you can still use the router or return 404
 		return new Response('Not Found', { status: 404 })
+	}
+
+	private async testNotionMCP() {
+		try {
+			await this.service.testNotionMCP()
+			return new Response(
+				JSON.stringify({
+					success: true,
+					message: 'Notion MCP client created successfully',
+				}),
+				{
+					status: 200,
+					headers: {
+						'Content-Type': 'application/json',
+					},
+				}
+			)
+		} catch (error: any) {
+			console.error('Test Notion MCP error:', error)
+			return new Response(
+				JSON.stringify({
+					success: false,
+					error: error.message || 'Failed to create Notion MCP client',
+				}),
+				{
+					status: 500,
+					headers: {
+						'Content-Type': 'application/json',
+					},
+				}
+			)
+		}
 	}
 
 	/**

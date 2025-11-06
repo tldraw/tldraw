@@ -18,6 +18,7 @@
 	"dependencies": {
 		"@ai-sdk/anthropic": "^2.0.2",
 		"@ai-sdk/google": "^2.0.14",
+		"@ai-sdk/mcp": "^0.0.7",
 		"@ai-sdk/openai": "^2.0.24",
 		"@clerk/backend": "^1.23.7",
 		"@tldraw/fairy-shared": "workspace:*",

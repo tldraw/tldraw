@@ -27,6 +27,7 @@ interface Context {
 export interface SentryEnvironment {
 	readonly SENTRY_DSN?: string | undefined
 	readonly TLDRAW_ENV?: string | undefined
+	readonly IS_LOCAL?: string | undefined
 	readonly WORKER_NAME?: string | undefined
 	readonly CF_VERSION_METADATA?: WorkerVersionMetadata
 }
@@ -65,7 +66,7 @@ export interface SentryEnvironment {
  * @public
  */
 export function createSentry(ctx: Context, env: SentryEnvironment, request?: Request) {
-	if (!env.SENTRY_DSN && env.TLDRAW_ENV === 'development') {
+	if (!env.SENTRY_DSN && (env.TLDRAW_ENV === 'development' || env.IS_LOCAL === 'true')) {
 		return null
 	}
 
