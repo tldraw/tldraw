@@ -104,6 +104,9 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public
+export type CoreShape<T> = T | typeof tlCoreShape;
+
+// @public
 export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<Expand<    { [P in "id" | "meta" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: {
 id: TLAssetId;
 meta: JsonObject;
@@ -297,6 +300,11 @@ export class EnumStyleProp<T> extends StyleProp<T> {
     // (undocumented)
     readonly values: readonly T[];
 }
+
+// @public
+export type ExtractShapeByProps<P> = Extract<TLShape, {
+    props: P;
+}>;
 
 // @public
 export const frameShapeMigrations: TLPropsMigrations;
@@ -571,6 +579,9 @@ export const noteShapeProps: RecordProps<TLNoteShape>;
 export const opacityValidator: T.Validator<number>;
 
 // @public
+export type OverwritableDefaultShape<T> = null | T | typeof tlDefaultShape | undefined;
+
+// @public
 export const pageIdValidator: T.Validator<TLPageId>;
 
 // @public
@@ -626,7 +637,7 @@ export type SetValue<T extends Set<any>> = T extends Set<infer U> ? U : never;
 export const shapeIdValidator: T.Validator<TLShapeId>;
 
 // @public
-export type ShapeWithCrop = TLBaseShape<string, {
+export type ShapeWithCrop = ExtractShapeByProps<{
     crop: null | TLShapeCrop;
     h: number;
     w: number;
@@ -760,10 +771,8 @@ export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T ? {
 } & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
 
 // @public
-export type TLAssetShape = Extract<TLShape, {
-    props: {
-        assetId: TLAssetId;
-    };
+export type TLAssetShape = ExtractShapeByProps<{
+    assetId: TLAssetId;
 }>;
 
 // @public
@@ -793,7 +802,9 @@ export interface TLBaseBinding<Type extends string, Props extends object> extend
 }
 
 // @public
-export interface TLBaseShape<Type extends string, Props extends object> extends BaseRecord<'shape', TLShapeId> {
+export interface TLBaseShape<Type extends string, Props extends object> {
+    // (undocumented)
+    readonly id: TLShapeId;
     // (undocumented)
     index: IndexKey;
     // (undocumented)
@@ -810,6 +821,8 @@ export interface TLBaseShape<Type extends string, Props extends object> extends 
     rotation: number;
     // (undocumented)
     type: Type;
+    // (undocumented)
+    readonly typeName: 'shape';
     // (undocumented)
     x: number;
     // (undocumented)
@@ -947,6 +960,36 @@ export type TLDefaultHorizontalAlignStyle = T.TypeOf<typeof DefaultHorizontalAli
 export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
 
 // @public
+export interface TLDefaultShapePropsMap {
+    // (undocumented)
+    arrow: OverwritableDefaultShape<TLArrowShapeProps>;
+    // (undocumented)
+    bookmark: OverwritableDefaultShape<TLBookmarkShapeProps>;
+    // (undocumented)
+    draw: OverwritableDefaultShape<TLDrawShapeProps>;
+    // (undocumented)
+    embed: OverwritableDefaultShape<TLEmbedShapeProps>;
+    // (undocumented)
+    frame: OverwritableDefaultShape<TLFrameShapeProps>;
+    // (undocumented)
+    geo: OverwritableDefaultShape<TLGeoShapeProps>;
+    // (undocumented)
+    group: CoreShape<TLGroupShapeProps>;
+    // (undocumented)
+    highlight: OverwritableDefaultShape<TLHighlightShapeProps>;
+    // (undocumented)
+    image: OverwritableDefaultShape<TLImageShapeProps>;
+    // (undocumented)
+    line: OverwritableDefaultShape<TLLineShapeProps>;
+    // (undocumented)
+    note: OverwritableDefaultShape<TLNoteShapeProps>;
+    // (undocumented)
+    text: OverwritableDefaultShape<TLTextShapeProps>;
+    // (undocumented)
+    video: OverwritableDefaultShape<TLVideoShapeProps>;
+}
+
+// @public
 export type TLDefaultSizeStyle = T.TypeOf<typeof DefaultSizeStyle>;
 
 // @public
@@ -1033,6 +1076,10 @@ export interface TLGeoShapeProps {
     w: number;
 }
 
+// @public (undocumented)
+export interface TLGlobalShapePropsMap extends TLDefaultShapePropsMap {
+}
+
 // @public
 export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>;
 
@@ -1096,6 +1143,17 @@ export interface TLImageShapeProps {
     url: string;
     w: number;
 }
+
+// @public (undocumented)
+export type TLIndexedShapes = {
+    [K in keyof TLGlobalShapePropsMap as K extends keyof TLDefaultShapePropsMap ? typeof tlCoreShape extends TLDefaultShapePropsMap[K] ? K : TLGlobalShapePropsMap[K] extends null | undefined ? never : K : K]: K extends keyof {
+        [K2 in keyof TLDefaultShapePropsMap as typeof tlCoreShape extends TLDefaultShapePropsMap[K2] ? K2 : never]: TLDefaultShapePropsMap[K2];
+    } ? Extract<TLDefaultShape, {
+        type: K;
+    }> : typeof tlDefaultShape extends TLGlobalShapePropsMap[K & keyof TLDefaultShapePropsMap] ? Extract<TLDefaultShape, {
+        type: K;
+    }> : TLBaseShape<K, NonNullable<TLGlobalShapePropsMap[K]>>;
+};
 
 // @public
 export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
@@ -1371,7 +1429,7 @@ export interface TLScribble {
 export type TLSerializedStore = SerializedStore<TLRecord>;
 
 // @public
-export type TLShape = TLDefaultShape | TLUnknownShape;
+export type TLShape<K extends keyof TLIndexedShapes = keyof TLIndexedShapes> = TLIndexedShapes[K];
 
 // @public
 export interface TLShapeCrop {
@@ -1384,7 +1442,7 @@ export interface TLShapeCrop {
 }
 
 // @public
-export type TLShapeId = RecordId<TLUnknownShape>;
+export type TLShapeId = RecordId<TLShape>;
 
 // @public
 export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {

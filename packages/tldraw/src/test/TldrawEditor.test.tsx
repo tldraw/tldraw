@@ -5,7 +5,7 @@ import {
 	Editor,
 	HTMLContainer,
 	TLAssetStore,
-	TLBaseShape,
+	TLShape,
 	TLShapeId,
 	TldrawEditor,
 	createShapeId,
@@ -456,17 +456,19 @@ describe('<TldrawEditor />', () => {
 	})
 })
 
-describe('Custom shapes', () => {
-	type CardShape = TLBaseShape<
-		'card',
-		{
-			w: number
-			h: number
-		}
-	>
+const CARD_TYPE = 'card'
 
+declare module '@tldraw/tlschema' {
+	export interface TLGlobalShapePropsMap {
+		[CARD_TYPE]: { w: number; h: number }
+	}
+}
+
+type CardShape = TLShape<typeof CARD_TYPE>
+
+describe('Custom shapes', () => {
 	class CardUtil extends BaseBoxShapeUtil<CardShape> {
-		static override type = 'card' as const
+		static override type = CARD_TYPE
 
 		override isAspectRatioLocked(_shape: CardShape) {
 			return false
@@ -508,7 +510,7 @@ describe('Custom shapes', () => {
 	class CardTool extends BaseBoxShapeTool {
 		static override id = 'card'
 		static override initial = 'idle'
-		override shapeType = 'card'
+		override shapeType = 'card' as const
 	}
 
 	const tools = [CardTool]

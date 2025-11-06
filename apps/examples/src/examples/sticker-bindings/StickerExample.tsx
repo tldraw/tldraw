@@ -10,8 +10,8 @@ import {
 	ShapeUtil,
 	StateNode,
 	TLBaseBinding,
-	TLBaseShape,
 	TLPointerEventInfo,
+	TLShape,
 	TLUiComponents,
 	TLUiOverrides,
 	Tldraw,
@@ -25,13 +25,21 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-type StickerShape = TLBaseShape<'sticker', {}>
+const STICKER_TYPE = 'sticker'
+
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+		[STICKER_TYPE]: {}
+	}
+}
+
+type StickerShape = TLShape<typeof STICKER_TYPE>
 
 const offsetX = -16
 const offsetY = -26
 class StickerShapeUtil extends ShapeUtil<StickerShape> {
-	static override type = 'sticker' as const
+	static override type = STICKER_TYPE
 	static override props: RecordProps<StickerShape> = {}
 
 	override getDefaultProps() {

@@ -159,7 +159,7 @@ function moveNodesIfNeeded(editor: Editor, newNodeId: TLShapeId, rootNodeId: TLS
 				},
 				...Array.from(toNudgeRight.entries()).map(([id, nudge]) => ({
 					id,
-					type: 'node',
+					type: 'node' as const,
 					x: nudge.initialX + nudge.amount,
 				})),
 			],

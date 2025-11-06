@@ -1,4 +1,4 @@
-import { IndexKey, TLShape, TLShapeId, TLShapePartial, toRichText } from 'tldraw'
+import { IndexKey, TLShapeId, toRichText } from 'tldraw'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import {
@@ -113,10 +113,9 @@ const SHARED_DEFAULTS = {
 	id: 'shape:shape' as TLShapeId,
 }
 
-const SHAPE_DEFAULTS: Record<TLShape['type'], TLShapePartial> = {
+const SHAPE_DEFAULTS = {
 	text: {
 		...SHARED_DEFAULTS,
-		type: 'text',
 		props: {
 			autoSize: true,
 			color: 'black',
@@ -130,7 +129,6 @@ const SHAPE_DEFAULTS: Record<TLShape['type'], TLShapePartial> = {
 	},
 	line: {
 		...SHARED_DEFAULTS,
-		type: 'line',
 		props: {
 			size: 's',
 			color: 'black',
@@ -155,7 +153,6 @@ const SHAPE_DEFAULTS: Record<TLShape['type'], TLShapePartial> = {
 	},
 	arrow: {
 		...SHARED_DEFAULTS,
-		type: 'arrow',
 		props: {
 			arrowheadEnd: 'arrow',
 			arrowheadStart: 'none',
@@ -177,7 +174,6 @@ const SHAPE_DEFAULTS: Record<TLShape['type'], TLShapePartial> = {
 	},
 	geo: {
 		...SHARED_DEFAULTS,
-		type: 'geo',
 		props: {
 			align: 'middle',
 			color: 'black',
@@ -198,7 +194,6 @@ const SHAPE_DEFAULTS: Record<TLShape['type'], TLShapePartial> = {
 	},
 	note: {
 		...SHARED_DEFAULTS,
-		type: 'note',
 		props: {
 			color: 'black',
 			richText: toRichText(''),
@@ -215,12 +210,10 @@ const SHAPE_DEFAULTS: Record<TLShape['type'], TLShapePartial> = {
 	},
 	draw: {
 		...SHARED_DEFAULTS,
-		type: 'draw',
 		props: {},
 	},
 	unknown: {
 		...SHARED_DEFAULTS,
-		type: 'unknown',
 		props: {},
 	},
 }

@@ -168,10 +168,10 @@ describe('Snapping', () => {
 			type: 'line',
 			props: {
 				points: {
-					a1: { id: 'a1', index: 'a1', x: 0, y: 0 },
-					a2: { id: 'a2', index: 'a2', x: 100, y: 0 },
-					a3: { id: 'a3', index: 'a3', x: 100, y: 100 },
-					a4: { id: 'a4', index: 'a4', x: 0, y: 100 },
+					a1: { id: 'a1', index: 'a1' as IndexKey, x: 0, y: 0 },
+					a2: { id: 'a2', index: 'a2' as IndexKey, x: 100, y: 0 },
+					a3: { id: 'a3', index: 'a3' as IndexKey, x: 100, y: 100 },
+					a4: { id: 'a4', index: 'a4' as IndexKey, x: 0, y: 100 },
 				},
 			},
 		})
