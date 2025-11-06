@@ -164,6 +164,11 @@ const nextConfig = {
 				destination: '/?utm_source=diveclub&utm_medium=podcast&utm_campaign=steve_diveclub_2025',
 				permanent: true,
 			},
+			{
+				source: '/shoptalk',
+				destination: '/?utm_source=shoptalk&utm_medium=podcast&utm_campaign=steve_shoptalk_2025',
+				permanent: true,
+			},
 		]
 	},
 	async rewrites() {
