@@ -761,11 +761,9 @@ export function createMutators(userId: string) {
 				if (insertBeforeId === null) {
 					// insert at end
 					const lastPinnedFile = (
-						await tx.query.group_file
-							.where('groupId', '=', finalGroupId)
-							.where('fileId', '=', fileId)
-							.run()
+						await tx.query.group_file.where('groupId', '=', finalGroupId).run()
 					)
+						.filter((f) => f.index !== null)
 						.sort(sortByMaybeIndex)
 						.pop()
 					if (lastPinnedFile) {
@@ -773,12 +771,9 @@ export function createMutators(userId: string) {
 					}
 				} else {
 					// insert before specific file
-					const files = (
-						await tx.query.group_file
-							.where('groupId', '=', finalGroupId)
-							.where('fileId', '=', fileId)
-							.run()
-					).sort(sortByMaybeIndex)
+					const files = (await tx.query.group_file.where('groupId', '=', finalGroupId).run())
+						.filter((f) => f.index !== null)
+						.sort(sortByMaybeIndex)
 					const targetIdx = files.findIndex((f) => f.fileId === insertBeforeId)
 					const afterIndex = files[targetIdx]?.index
 					const beforeIndex = files[targetIdx - 1]?.index
