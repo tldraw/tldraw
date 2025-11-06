@@ -31,11 +31,10 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
-import { useCallback } from 'react'
+import { useCallback, useContext } from 'react'
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
 import {
-	TLUiTranslationContextType,
-	useCurrentTranslation,
+	TranslationsContext,
 } from '../../ui/hooks/useTranslation/useTranslation'
 import {
 	isEmptyRichText,
@@ -497,12 +496,7 @@ function getLabelSize(editor: Editor, shape: TLNoteShape) {
 function useNoteKeydownHandler(id: TLShapeId) {
 	const editor = useEditor()
 	// Try to get the translation context, but fallback to ltr if it doesn't exist
-	let translation: TLUiTranslationContextType | null = null
-	try {
-		translation = useCurrentTranslation()
-	} catch (_e) {
-		// Translation context doesn't exist, will use default fallback
-	}
+	const translation = useContext(TranslationsContext)
 
 	return useCallback(
 		(e: KeyboardEvent) => {
