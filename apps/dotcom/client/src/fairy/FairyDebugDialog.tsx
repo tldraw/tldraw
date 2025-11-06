@@ -17,8 +17,8 @@ import {
 } from 'tldraw'
 import { F } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
-import { $projects } from './FairyProjects'
-import { $sharedTodoList } from './SharedTodoList'
+import { $fairyProjects } from './FairyProjects'
+import { $fairyTasks } from './FairyTaskList'
 
 // # Home Debug Inspector Types and Labels
 type HomeDebugInspectorType = 'projects' | 'sharedTodoList'
@@ -210,8 +210,8 @@ function HomeDebugView({
 // ## Home debug view inspector components
 
 function ProjectsInspector() {
-	const projects = useValue($projects)
-	const sharedTodos = useValue($sharedTodoList)
+	const projects = useValue($fairyProjects)
+	const sharedTodos = useValue($fairyTasks)
 
 	return (
 		<div className="fairy-debug-projects-container">
@@ -268,7 +268,7 @@ function ProjectsInspector() {
 }
 
 function SharedTodoListInspector() {
-	const sharedTodos = useValue($sharedTodoList)
+	const sharedTodos = useValue($fairyTasks)
 
 	return (
 		<div className="fairy-debug-shared-todos-container">

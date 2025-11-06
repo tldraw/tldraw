@@ -4,23 +4,23 @@ import { useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { fairyMessages } from './fairy-messages'
 import { getProjectById } from './FairyProjects'
+import { $fairyTasks, $showCanvasFairyTasks, deleteFairyTask } from './FairyTaskList'
 import { getProjectColor } from './getProjectColor'
-import { $sharedTodoList, $showCanvasTodos, deleteSharedTodoItem } from './SharedTodoList'
 
-export function InCanvasTodoList({ agents }: { agents: FairyAgent[] }) {
-	const todos = useValue('shared-todo-list', () => $sharedTodoList.get(), [$sharedTodoList])
-	const showCanvasTodos = useValue('show-canvas-todos', () => $showCanvasTodos.get(), [
-		$showCanvasTodos,
+export function InCanvasTaskList({ agents }: { agents: FairyAgent[] }) {
+	const tasks = useValue('fairy-tasks-list', () => $fairyTasks.get(), [$fairyTasks])
+	const showCanvasTodos = useValue('show-canvas-todos', () => $showCanvasFairyTasks.get(), [
+		$showCanvasFairyTasks,
 	])
 
-	const inCanvasTodos = todos.filter((todo) => todo.x != null && todo.y != null)
+	const inCanvasTasks = tasks.filter((task) => task.x != null && task.y != null)
 
 	if (!showCanvasTodos) return null
 
 	return (
 		<>
-			{inCanvasTodos.map((todo) => (
-				<InCanvasTodoItem key={todo.id} agents={agents} todo={todo} />
+			{inCanvasTasks.map((task) => (
+				<InCanvasTaskItem key={task.id} agents={agents} task={task} />
 			))}
 		</>
 	)
@@ -39,28 +39,28 @@ function getStatusIcon(status: FairyTask['status']) {
 	}
 }
 
-function InCanvasTodoItem({ agents, todo }: { agents: FairyAgent[]; todo: FairyTask }) {
-	const deleteTodoLabel = useMsg(fairyMessages.deleteTodo)
+function InCanvasTaskItem({ agents, task }: { agents: FairyAgent[]; task: FairyTask }) {
+	const deleteTaskLabel = useMsg(fairyMessages.deleteTask)
 	const statusClass =
-		todo.status === 'done'
+		task.status === 'done'
 			? 'in-canvas-todo-item--done'
-			: todo.status === 'in-progress'
+			: task.status === 'in-progress'
 				? 'in-canvas-todo-item--in-progress'
 				: 'in-canvas-todo-item--todo'
 
-	const icon = getStatusIcon(todo.status)
-	const project = todo.projectId ? getProjectById(todo.projectId) : undefined
+	const icon = getStatusIcon(task.status)
+	const project = task.projectId ? getProjectById(task.projectId) : undefined
 	const projectColor =
 		project && agents.length > 0 ? getProjectColor(agents[0].editor, project.color) : undefined
 
-	if (todo.x == null || todo.y == null) return null
+	if (task.x == null || task.y == null) return null
 
 	return (
 		<div
 			className="in-canvas-todo-item-wrapper"
 			style={{
-				left: todo.x,
-				top: todo.y,
+				left: task.x,
+				top: task.y,
 			}}
 		>
 			<div className={`in-canvas-todo-item ${statusClass}`}>
@@ -71,14 +71,14 @@ function InCanvasTodoItem({ agents, todo }: { agents: FairyAgent[]; todo: FairyT
 					/>
 				)}
 				<div className="in-canvas-todo-item-icon">{icon}</div>
-				<span className="in-canvas-todo-item-text">{todo.text}</span>
+				<span className="in-canvas-todo-item-text">{task.text}</span>
 				<button
 					className="in-canvas-todo-item-delete"
 					onPointerDown={(e) => {
 						e.stopPropagation()
-						deleteSharedTodoItem(todo.id)
+						deleteFairyTask(task.id)
 					}}
-					title={deleteTodoLabel}
+					title={deleteTaskLabel}
 				>
 					×
 				</button>

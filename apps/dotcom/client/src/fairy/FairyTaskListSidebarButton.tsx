@@ -3,30 +3,30 @@ import { TldrawUiButton, TldrawUiIcon } from 'tldraw'
 import { useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { fairyMessages } from './fairy-messages'
-import { TodoListContextMenuContent } from './TodoListContextMenuContent'
+import { FairyTaskListContextMenuContent } from './FairyTaskListContextMenuContent'
 
-export function TodoListSidebarButton({
+export function FairyTaskListSidebarButton({
 	onClick,
-	hasUnreadTodos,
+	hasUnreadTasks,
 	agents,
 }: {
 	onClick(): void
-	hasUnreadTodos: boolean
+	hasUnreadTasks: boolean
 	agents: FairyAgent[]
 }) {
-	const todoListLabel = useMsg(fairyMessages.todoList)
+	const taskListLabel = useMsg(fairyMessages.taskList)
 
 	return (
 		<div style={{ position: 'relative' }}>
 			<_ContextMenu.Root dir="ltr">
 				<_ContextMenu.Trigger asChild>
 					<TldrawUiButton type="icon" className="fairy-toolbar-sidebar-button" onClick={onClick}>
-						<TldrawUiIcon icon="clipboard-copied" label={todoListLabel} />
+						<TldrawUiIcon icon="clipboard-copied" label={taskListLabel} />
 					</TldrawUiButton>
 				</_ContextMenu.Trigger>
-				<TodoListContextMenuContent agents={agents} />
+				<FairyTaskListContextMenuContent agents={agents} />
 			</_ContextMenu.Root>
-			{hasUnreadTodos && <div className="fairy-todo-unread-indicator" />}
+			{hasUnreadTasks && <div className="fairy-todo-unread-indicator" />}
 		</div>
 	)
 }

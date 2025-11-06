@@ -541,7 +541,7 @@ export class FairyAgent {
 		// 	// if the fairy is not an orchestrator or does not have an active project, check if there are todos it can do
 		// 	const sharedTodoItemsRemaining = $sharedTodoList.get().filter((item) => {
 		// 		if (item.status === 'done') return false
-		// 		if (item.assignedById && item.assignedById !== this.id) return false
+		// 		if (item.assignedTo && item.assignedTo !== this.id) return false
 
 		// 		// If the fairy is in a project, only count todos that are part of that project
 		// 		if (project && !item.projectId) return false

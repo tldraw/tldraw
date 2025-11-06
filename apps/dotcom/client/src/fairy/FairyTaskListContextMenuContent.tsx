@@ -1,9 +1,9 @@
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { useContainer } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
-import { TodoListMenuContent } from './TodoListMenuContent'
+import { FairyTaskListMenuContent } from './FairyTaskListMenuContent'
 
-export function TodoListContextMenuContent({ agents }: { agents: FairyAgent[] }) {
+export function FairyTaskListContextMenuContent({ agents }: { agents: FairyAgent[] }) {
 	const container = useContainer()
 
 	return (
@@ -14,7 +14,7 @@ export function TodoListContextMenuContent({ agents }: { agents: FairyAgent[] })
 				onClick={(e) => e.stopPropagation()}
 				style={{ zIndex: 100000000 }}
 			>
-				<TodoListMenuContent agents={agents} menuType="context-menu" />
+				<FairyTaskListMenuContent agents={agents} menuType="context-menu" />
 			</_ContextMenu.Content>
 		</_ContextMenu.Portal>
 	)

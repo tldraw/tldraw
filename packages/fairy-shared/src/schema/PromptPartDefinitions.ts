@@ -6,9 +6,9 @@ import { PeripheralCluster } from '../format/PeripheralCluster'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { ChatHistoryItem } from '../types/ChatHistoryItem'
+import { FairyTask } from '../types/FairyTask'
 import { FairyWork } from '../types/FairyWork'
 import { ActiveFairyModeDefinition } from './FairyModeDefinition'
-import { FairyTask } from './FairyTask'
 
 export interface PromptPartDefinition<T extends BasePromptPart> {
 	/**

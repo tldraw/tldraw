@@ -75,7 +75,7 @@ const RemoteFairies = lazy(() =>
 	import('../../../fairy/RemoteFairies').then((m) => ({ default: m.RemoteFairies }))
 )
 const InCanvasTodoList = lazy(() =>
-	import('../../../fairy/InCanvasTodoList').then((m) => ({ default: m.InCanvasTodoList }))
+	import('../../../fairy/InCanvasTaskList').then((m) => ({ default: m.InCanvasTaskList }))
 )
 
 const customFeatureFlags = {

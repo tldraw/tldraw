@@ -10,9 +10,9 @@ import { useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { fairyMessages } from './fairy-messages'
 import { FairyDebugDialog } from './FairyDebugDialog'
-import { clearSharedTodoList } from './SharedTodoList'
+import { clearFairyTasks } from './FairyTaskList'
 
-export function TodoListMenuContent({
+export function FairyTaskListMenuContent({
 	agents,
 	menuType = 'menu',
 }: {
@@ -60,7 +60,7 @@ export function TodoListMenuContent({
 	}, [agents])
 
 	const summonAllFairiesLabel = useMsg(fairyMessages.summonAllFairies)
-	const clearTodoListLabel = useMsg(fairyMessages.clearTodoList)
+	const clearTaskListLabel = useMsg(fairyMessages.clearTaskList)
 	const resetAllChatsLabel = useMsg(fairyMessages.resetAllChats)
 	const deleteAllFairiesLabel = useMsg(fairyMessages.deleteAllFairies)
 	const debugViewLabel = useMsg(fairyMessages.debugView)
@@ -77,8 +77,8 @@ export function TodoListMenuContent({
 			<TldrawUiMenuGroup id="todo-list-config-menu">
 				<TldrawUiMenuItem
 					id="clear-todo-list"
-					onSelect={() => clearSharedTodoList()}
-					label={clearTodoListLabel}
+					onSelect={() => clearFairyTasks()}
+					label={clearTaskListLabel}
 				/>
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="fairy-management-menu">

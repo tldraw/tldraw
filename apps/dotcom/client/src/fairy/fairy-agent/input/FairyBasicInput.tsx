@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Box, TldrawUiInput, useValue } from 'tldraw'
 import { useMsg } from '../../../tla/utils/i18n'
 import { fairyMessages } from '../../fairy-messages'
-import { $sharedTodoList } from '../../SharedTodoList'
+import { $fairyTasks } from '../../FairyTaskList'
 import { FairyAgent } from '../agent/FairyAgent'
 
 export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCancel(): void }) {
@@ -38,7 +38,7 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 			const fairyVision = Box.FromCenter(fairyPosition, FAIRY_VISION_DIMENSIONS)
 
 			// Clear the shared todo list if it's all completed - same as the agent starter kit's behavior
-			$sharedTodoList.update((todoList) => {
+			$fairyTasks.update((todoList) => {
 				if (todoList.every((item) => item.status === 'done')) {
 					return []
 				}

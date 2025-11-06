@@ -8,10 +8,10 @@ import { react, throttle, useEditor, useToasts, useValue } from 'tldraw'
 import { useApp } from '../tla/hooks/useAppState'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
-import { $projects } from './FairyProjects'
+import { $fairyProjects } from './FairyProjects'
+import { FairyTaskDragTool } from './FairyTaskDragTool'
+import { $fairyTasks, $showCanvasFairyTasks } from './FairyTaskList'
 import { FairyThrowTool } from './FairyThrowTool'
-import { $sharedTodoList, $showCanvasTodos } from './SharedTodoList'
-import { TodoDragTool } from './TodoDragTool'
 
 export function FairyApp({
 	setAgents,
@@ -68,8 +68,8 @@ export function FairyApp({
 		editor.setTool(FairyThrowTool, selectTool)
 
 		// Register the TodoDragTool
-		editor.removeTool(TodoDragTool, selectTool)
-		editor.setTool(TodoDragTool, selectTool)
+		editor.removeTool(FairyTaskDragTool, selectTool)
+		editor.setTool(FairyTaskDragTool, selectTool)
 
 		const configIds = Object.keys(fairyConfigs)
 		const existingAgents = agentsRef.current
@@ -118,7 +118,7 @@ export function FairyApp({
 
 	// Load fairy state from backend when agents are created
 	useEffect(() => {
-		if (!app || agentsRef.current.length === 0 || !$sharedTodoList || !$showCanvasTodos || !fileId)
+		if (!app || agentsRef.current.length === 0 || !$fairyTasks || !$showCanvasFairyTasks || !fileId)
 			return
 
 		const fileState = app.getFileState(fileId)
@@ -143,19 +143,19 @@ export function FairyApp({
 
 				// Load shared todo list only once
 				if (fairyState.sharedTodoList && !sharedTodoListLoadedRef.current) {
-					$sharedTodoList.set(fairyState.sharedTodoList)
+					$fairyTasks.set(fairyState.sharedTodoList)
 					sharedTodoListLoadedRef.current = true
 				}
 
 				// Load show canvas todos only once
 				if (fairyState.showCanvasTodos && !showCanvasTodosLoadedRef.current) {
-					$showCanvasTodos.set(fairyState.showCanvasTodos)
+					$showCanvasFairyTasks.set(fairyState.showCanvasTodos)
 					showCanvasTodosLoadedRef.current = true
 				}
 
 				// Load projects only once
 				if (fairyState.projects && !projectsLoadedRef.current) {
-					$projects.set(fairyState.projects)
+					$fairyProjects.set(fairyState.projects)
 					projectsLoadedRef.current = true
 				}
 
@@ -187,9 +187,9 @@ export function FairyApp({
 					},
 					{} as Record<string, PersistedFairyAgentState>
 				),
-				sharedTodoList: $sharedTodoList.get(),
-				showCanvasTodos: $showCanvasTodos.get(),
-				projects: $projects.get(),
+				sharedTodoList: $fairyTasks.get(),
+				showCanvasTodos: $showCanvasFairyTasks.get(),
+				projects: $fairyProjects.get(),
 			}
 			app.onFairyStateUpdate(fileId, fairyState)
 		}, 2000) // Save maximum every 2 seconds
@@ -207,9 +207,9 @@ export function FairyApp({
 		})
 
 		const cleanupSharedFairyState = react('shared fairy atom state', () => {
-			$sharedTodoList.get()
-			$showCanvasTodos.get()
-			$projects.get()
+			$fairyTasks.get()
+			$showCanvasFairyTasks.get()
+			$fairyProjects.get()
 			updateFairyState()
 		})
 

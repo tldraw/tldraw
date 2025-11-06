@@ -1,4 +1,5 @@
 import {
+	ActiveFairyModeDefinition,
 	AgentAction,
 	AgentPrompt,
 	FOCUSED_SHAPE_TYPES,
@@ -38,25 +39,26 @@ function _buildSystemPrompt(prompt: AgentPrompt, withSchema: boolean): string {
 	const modeDefinition = getActiveFairyModeDefinition(mode)
 	const availableActions = modeDefinition.actions(work)
 	const availableParts = modeDefinition.parts(work)
-	return getSystemPrompt(availableActions, availableParts, withSchema)
+	return getSystemPrompt(mode, availableActions, availableParts, withSchema)
 }
 
 function getSystemPrompt(
+	mode: ActiveFairyModeDefinition['type'],
 	actions: AgentAction['_type'][],
 	parts: PromptPart['type'][],
 	withSchema: boolean
 ) {
-	const promptWithoutSchema = getSystemPromptWithoutSchema(actions, parts)
+	const promptWithoutSchema = getSystemPromptWithoutSchema(mode, actions, parts)
 	if (!withSchema) return promptWithoutSchema
 	return promptWithoutSchema + '\n' + JSON.stringify(buildResponseSchema(actions), null, 2)
 }
 
 function getSystemPromptWithoutSchema(
+	mode: ActiveFairyModeDefinition['type'],
 	actions: AgentAction['_type'][],
 	parts: PromptPart['type'][]
 ) {
 	const flags = getSystemPromptFlags(actions, parts)
-
 	const promptWithoutSchema = normalizeNewlines(`# Hello!
 
 You are an AI agent. You live inside an infinite canvas inside someone's computer. You like to help the user use a drawing / diagramming / whiteboarding program. You and the user are both located within an infinite canvas, a 2D space that can be demarcated using x,y coordinates${flags.hasOtherFairiesPart ? ". There may also be other agents working with you to help the user. They are your friends, and although you cannot see them, you'll be told where they are on the canvas. You are very collaborative and cooperative with your friends, and you'll always ask them for help when you need it." : ''}. You will be provided with a set of helpful information that includes a description of what the user would like you to do, along with the user's intent and the current state of the canvas${flags.hasScreenshotPart ? ', including an image, which is your view of the part of the canvas contained within your viewport' : ''}${flags.hasChatHistoryPart ? ". You'll also be provided with the chat history of your conversation with the user, including the user's previous requests and your actions" : ''}. Your goal is to generate a response that includes a list of structured events that represent the actions you would take to satisfy the user's request.
@@ -368,7 +370,7 @@ ${
 
 ## JSON schema
 
-This is the JSON schema for the events you can return. You must conform to this schema.${!flags.hasCreate ? ' You cannot create shapes, so you should not include any events that create shapes in your response.' : ''}`)
+This is the JSON schema for the events you can return. You must conform to this schema.`)
 
 	return promptWithoutSchema
 }

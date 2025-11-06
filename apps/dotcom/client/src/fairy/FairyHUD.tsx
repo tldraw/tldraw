@@ -28,11 +28,11 @@ import { fairyMessages } from './fairy-messages'
 import { FairyDropdownContent } from './FairyDropdownContent'
 import { FairyGroupChat } from './FairyGroupChat'
 import { FairySidebarButton } from './FairySidebarButton'
+import { $fairyTasks, $showCanvasFairyTasks } from './FairyTaskList'
+import { FairyTaskListDropdownContent } from './FairyTaskListDropdownContent'
+import { FairyTaskListInline } from './FairyTaskListInline'
+import { FairyTaskListSidebarButton } from './FairyTaskListSidebarButton'
 import { getRandomFairyName } from './getRandomFairyName'
-import { $sharedTodoList, $showCanvasTodos } from './SharedTodoList'
-import { SharedTodoListInline } from './SharedTodoListInline'
-import { TodoListDropdownContent } from './TodoListDropdownContent'
-import { TodoListSidebarButton } from './TodoListSidebarButton'
 
 function NewFairyButton({ agents }: { agents: FairyAgent[] }) {
 	const app = useApp()
@@ -93,8 +93,8 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	const deselectMessage = useMsg(fairyMessages.deselectFairy)
 	const selectMessage = useMsg(fairyMessages.selectFairy)
 	const resetChatLabel = useMsg(fairyMessages.resetChat)
-	const showTodosOnCanvas = useMsg(fairyMessages.showTodosOnCanvas)
-	const hideTodosOnCanvas = useMsg(fairyMessages.hideTodosOnCanvas)
+	const showTasksOnCanvas = useMsg(fairyMessages.showTasksOnCanvas)
+	const hideTasksOnCanvas = useMsg(fairyMessages.hideTasksOnCanvas)
 
 	// Create a reactive value that tracks which fairies are selected
 	const selectedFairies = useValue(
@@ -167,7 +167,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 
 	const handleClickTodoList = useCallback(() => {
 		setPanelState((v) => (v === 'todo-list' ? 'closed' : 'todo-list'))
-		setTodoLastChecked($sharedTodoList.get())
+		setTodoLastChecked($fairyTasks.get())
 	}, [])
 
 	const handleContextMenu = (e: MouseEvent<HTMLDivElement>) => {
@@ -179,7 +179,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		'update-todo-last-checked',
 		() => {
 			if (panelState === 'todo-list') {
-				setTodoLastChecked($sharedTodoList.get())
+				setTodoLastChecked($fairyTasks.get())
 			}
 		},
 		[panelState]
@@ -188,15 +188,15 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	const hasUnreadTodos = useValue(
 		'has-unread-todos',
 		() => {
-			const currentList = $sharedTodoList.get()
+			const currentList = $fairyTasks.get()
 			if (currentList.length !== todoLastChecked.length) return true
 			return JSON.stringify(currentList) !== JSON.stringify(todoLastChecked)
 		},
 		[todoLastChecked]
 	)
 
-	const showCanvasTodos = useValue('show-canvas-todos', () => $showCanvasTodos.get(), [
-		$showCanvasTodos,
+	const showCanvasTodos = useValue('show-canvas-todos', () => $showCanvasFairyTasks.get(), [
+		$showCanvasFairyTasks,
 	])
 
 	const fairyConfig = useValue('fairy config', () => shownFairy?.$fairyConfig.get(), [shownFairy])
@@ -313,7 +313,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 												<TldrawUiButtonIcon icon="menu" />
 											</TldrawUiButton>
 										</_DropdownMenu.Trigger>
-										<TodoListDropdownContent
+										<FairyTaskListDropdownContent
 											agents={agents}
 											alignOffset={4}
 											sideOffset={4}
@@ -321,20 +321,20 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 										/>
 									</_DropdownMenu.Root>
 									<div className="fairy-id-display">
-										<F defaultMessage="Todo list" />
+										<F defaultMessage="Task list" />
 									</div>
 									<TldrawUiButton
 										type="icon"
 										className="fairy-toolbar-button"
-										onClick={() => $showCanvasTodos.update((v) => !v)}
+										onClick={() => $showCanvasFairyTasks.update((v) => !v)}
 									>
 										<TldrawUiIcon
 											icon={showCanvasTodos ? 'toggle-on' : 'toggle-off'}
-											label={showCanvasTodos ? hideTodosOnCanvas : showTodosOnCanvas}
+											label={showCanvasTodos ? hideTasksOnCanvas : showTasksOnCanvas}
 										/>
 									</TldrawUiButton>
 								</div>
-								<SharedTodoListInline agents={agents} />
+								<FairyTaskListInline agents={agents} />
 							</div>
 						)}
 					</div>
@@ -342,9 +342,9 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 
 				<div className="fairy-buttons-container">
 					<div className="fairy-toolbar-stack-header">
-						<TodoListSidebarButton
+						<FairyTaskListSidebarButton
 							onClick={handleClickTodoList}
-							hasUnreadTodos={hasUnreadTodos}
+							hasUnreadTasks={hasUnreadTodos}
 							agents={agents}
 						/>
 					</div>

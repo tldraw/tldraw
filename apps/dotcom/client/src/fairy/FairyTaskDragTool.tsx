@@ -1,8 +1,8 @@
 import { StateNode, TLKeyboardEventInfo } from 'tldraw'
-import { $sharedTodoList } from './SharedTodoList'
+import { $fairyTasks } from './FairyTaskList'
 
-export class TodoDragTool extends StateNode {
-	static override id = 'todo-drag'
+export class FairyTaskDragTool extends StateNode {
+	static override id = 'task-drag'
 	static override children() {
 		return [PointingState, DraggingState]
 	}
@@ -55,7 +55,7 @@ class DraggingState extends StateNode {
 	}
 
 	override onPointerMove() {
-		const tool = this.parent as TodoDragTool
+		const tool = this.parent as FairyTaskDragTool
 		if (tool.todoId === null) return
 
 		// Get current pointer position and convert to page space
@@ -67,7 +67,7 @@ class DraggingState extends StateNode {
 		})
 
 		// Update todo coordinates continuously during drag
-		$sharedTodoList.update((todos) =>
+		$fairyTasks.update((todos) =>
 			todos.map((t) => (t.id === tool.todoId ? { ...t, x: pagePoint.x, y: pagePoint.y } : t))
 		)
 	}

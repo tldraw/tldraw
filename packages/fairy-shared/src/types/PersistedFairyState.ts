@@ -1,8 +1,8 @@
 import { VecModel } from '@tldraw/tlschema'
-import { FairyProject } from '../schema/FairyProject'
-import { FairyTask } from '../schema/FairyTask'
 import { ChatHistoryItem } from './ChatHistoryItem'
 import { FairyEntity } from './FairyEntity'
+import { FairyProject } from './FairyProject'
+import { FairyTask } from './FairyTask'
 import { TodoItem } from './TodoItem'
 
 /**

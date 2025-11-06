@@ -1,5 +1,5 @@
-import { FairyProject } from '../schema/FairyProject'
-import { FairyTask } from '../schema/FairyTask'
+import { FairyProject } from './FairyProject'
+import { FairyTask } from './FairyTask'
 
 /**
  * A unit of work that a fairy agent might have on their desk.
