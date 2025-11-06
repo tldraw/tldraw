@@ -95,8 +95,8 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 					const indexes = getIndicesBetween(undefined, lowestIndex, shapes.length)
 					editor.updateShapes(
 						shapes.map((shape, i) => ({
+							...shape,
 							id: shape.id,
-							type: shape.type,
 							isLocked: shape.isLocked,
 							index: indexes[i],
 						}))

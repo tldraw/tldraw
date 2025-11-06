@@ -4,30 +4,30 @@ import {
 	defaultHandleExternalTextContent,
 	Editor,
 	HTMLContainer,
-	TLBaseShape,
 	Tldraw,
+	TLShape,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+
+const DANGEROUS_HTML_TYPE = 'dangerous-html'
+
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		[DANGEROUS_HTML_TYPE]: { w: number; h: number; html: string }
+	}
+}
 
 // There's a guide at the bottom of this page!
 
 // [1]
-export type IDangerousHtmlShape = TLBaseShape<
-	'html',
-	{
-		w: number
-		h: number
-		html: string
-	}
->
+export type IDangerousHtmlShape = TLShape<typeof DANGEROUS_HTML_TYPE>
 
 // [2]
 class DangerousHtmlExample extends BaseBoxShapeUtil<IDangerousHtmlShape> {
-	static override type = 'html' as const
+	static override type = DANGEROUS_HTML_TYPE
 
 	override getDefaultProps() {
 		return {
-			type: 'html',
 			w: 500,
 			h: 300,
 			html: '<div>hello</div>',
@@ -61,7 +61,7 @@ export default function ExternalContentSourcesExample() {
 				const center = content.point ?? editor.getViewportPageBounds().center
 
 				editor.createShape({
-					type: 'html',
+					type: 'dangerous-html',
 					x: center.x - 250,
 					y: center.y - 150,
 					props: {
@@ -82,7 +82,7 @@ export default function ExternalContentSourcesExample() {
 	)
 }
 
-/* 
+/*
 Introduction:
 This example shows how to handle content pasted from external sources, this could be
 embeds, files, svgs, text, images, or urls. In this case we will handle text/html content.
@@ -96,11 +96,11 @@ This is our shape util. It's a class that extends BaseBoxShapeUtil. For a more d
 example of how to create a custom shape, see the custom config example.
 
 [3]
-We use the onMount prop to get access to the editor instance via 
-the handleMount callback (check out the API example for a more detailed look at this). Then we 
-call the registerExternalContentHandler method, we could choose to handle embeds, files, svgs, 
+We use the onMount prop to get access to the editor instance via
+the handleMount callback (check out the API example for a more detailed look at this). Then we
+call the registerExternalContentHandler method, we could choose to handle embeds, files, svgs,
 text, images, or urls. For this example we will handle text/html content. The handler is called
-with the point where the user pasted the content and an array of sources. We will find and 
+with the point where the user pasted the content and an array of sources. We will find and
 return the html source, then create a new shape with that html content.
 
 */

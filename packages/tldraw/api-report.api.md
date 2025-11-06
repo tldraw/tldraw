@@ -21,6 +21,7 @@ import { Editor } from '@tldraw/editor';
 import { ElbowArrowSnap } from '@tldraw/editor';
 import { Extension } from '@tiptap/core';
 import { Extensions } from '@tiptap/core';
+import { ExtractShapeByProps } from '@tldraw/editor';
 import { ForwardRefExoticComponent } from 'react';
 import { Geometry2d } from '@tldraw/editor';
 import { Geometry2dFilters } from '@tldraw/editor';
@@ -1529,7 +1530,7 @@ export class FrameShapeTool extends BaseBoxShapeTool {
     // (undocumented)
     onCreate(shape: null | TLShape): void;
     // (undocumented)
-    shapeType: string;
+    shapeType: "frame";
 }
 
 // @public (undocumented)
@@ -2488,7 +2489,9 @@ export interface PlainTextLabelProps {
     // (undocumented)
     textWidth?: number;
     // (undocumented)
-    type: string;
+    type: ExtractShapeByProps<{
+        text: string;
+    }>['type'];
     // (undocumented)
     verticalAlign: TLDefaultVerticalAlignStyle;
     // (undocumented)
@@ -2606,7 +2609,9 @@ export interface RichTextLabelProps {
     // (undocumented)
     textWidth?: number;
     // (undocumented)
-    type: string;
+    type: ExtractShapeByProps<{
+        richText: TLRichText;
+    }>['type'];
     // (undocumented)
     verticalAlign: TLDefaultVerticalAlignStyle;
     // (undocumented)
@@ -5319,7 +5324,9 @@ export function useDefaultHelpers(): {
 export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
-export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: string): {
+export function useEditablePlainText(shapeId: TLShapeId, type: ExtractShapeByProps<{
+    text: string;
+}>['type'], text?: string): {
     handleBlur: () => void;
     handleChange: ({ plaintext }: {
         plaintext: string;
@@ -5338,7 +5345,9 @@ export function useEditablePlainText(shapeId: TLShapeId, type: string, text?: st
 };
 
 // @public (undocumented)
-export function useEditableRichText(shapeId: TLShapeId, type: string, richText?: TLRichText): {
+export function useEditableRichText(shapeId: TLShapeId, type: ExtractShapeByProps<{
+    richText: TLRichText;
+}>['type'], richText?: TLRichText): {
     handleBlur: () => void;
     handleChange: ({ richText }: {
         richText: TLRichText;

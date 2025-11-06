@@ -22,7 +22,7 @@
 			"opacity": 1,
 			"meta": {},
 			"id": "shape:BqG5uIAa9ig2-ukfnxwBX",
-			"type": "myshape",
+			"type": "myshapewithmigrations",
 			"parentId": "page:page",
 			"index": "a1",
 			"props": {
@@ -77,7 +77,7 @@
 					"embed": 4,
 					"image": 3,
 					"video": 2,
-					"myshape": 0
+					"myshapewithmigrations": 0
 				}
 			},
 			"instance_presence": {

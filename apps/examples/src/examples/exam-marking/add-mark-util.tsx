@@ -1,22 +1,27 @@
 import { useEffect, useRef, useState } from 'react'
-import { HTMLContainer, RecordProps, Rectangle2d, ShapeUtil, T, TLBaseShape } from 'tldraw'
+import { HTMLContainer, RecordProps, Rectangle2d, ShapeUtil, T, TLShape } from 'tldraw'
 
 export const EXAM_MARK_WIDTH = 80
 export const EXAM_MARK_HEIGHT = 40
 
-export type IExamMarkShape = TLBaseShape<
-	'exam-mark',
-	{
-		score: number
+const EXAM_MARK_TYPE = 'exam-mark'
+
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		[EXAM_MARK_TYPE]: {
+			score: number
+		}
 	}
->
+}
+
+export type IExamMarkShape = TLShape<typeof EXAM_MARK_TYPE>
 
 export const examMarkShapeDefaultProps: IExamMarkShape['props'] = {
 	score: 0,
 }
 
 export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
-	static override type = 'exam-mark' as const
+	static override type = EXAM_MARK_TYPE
 	static override props: RecordProps<IExamMarkShape> = {
 		score: T.number,
 	}
@@ -63,7 +68,7 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 			if (!isNaN(num)) {
 				this.editor.updateShape({
 					id: shape.id,
-					type: 'exam-mark',
+					type: EXAM_MARK_TYPE,
 					props: {
 						score: num,
 					},
@@ -131,16 +136,16 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 	}
 }
 
-/* 
+/*
 A utility class for the exam mark shape. This is where you define the shape's behavior, how it renders (its component and indicator), and how it handles different events. For more details on how to create a custom shape utility, check out the `custom-config` example.
 
 [1] We allow this component to be editable. This gives us some behavior for free, namely double clicking the shape will start editing the shape, which we can access using `editor.getEditingShapeId()`. With this, we can focus the input when the shape is double clicked. See [1][a] and [1][c] for more details.
 
-[2] Render method — the React component that will be rendered for the shape. It takes the shape as an argument. HTMLContainer is just a div that's being used to wrap the input. 
+[2] Render method — the React component that will be rendered for the shape. It takes the shape as an argument. HTMLContainer is just a div that's being used to wrap the input.
 
  - [a] To control behavior, we need to know if the shape is being edited. We can access this using `editor.getEditingShapeId()`.
 
- - [b] The important part of this shape utility is how it handles the score input. We know we want the ExamScoreLabel component to be able to access the score of the shape, so we want the score to be a prop for the shape. 
+ - [b] The important part of this shape utility is how it handles the score input. We know we want the ExamScoreLabel component to be able to access the score of the shape, so we want the score to be a prop for the shape.
  Annoying: eslint sometimes thinks this is a class component, but it's not.
 
  - [c] When the shape is mounted, we set it to be in editing mode.

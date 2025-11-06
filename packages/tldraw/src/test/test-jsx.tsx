@@ -6,7 +6,7 @@ import {
 	TLBindingCreate,
 	TLBindingId,
 	TLDefaultBinding,
-	TLDefaultShape,
+	TLShape,
 	TLShapeId,
 	TLShapePartial,
 	ZERO_INDEX_KEY,
@@ -34,7 +34,7 @@ interface CommonShapeProps {
 	opacity?: number
 }
 
-type ShapeByType<Type extends TLDefaultShape['type']> = Extract<TLDefaultShape, { type: Type }>
+type ShapeByType<Type extends TLShape['type']> = Extract<TLShape, { type: Type }>
 type FormatShapeProps<Props extends object> = {
 	[K in keyof Props]?: Props[K] extends TLAssetId
 		? TLAssetId | React.JSX.Element
@@ -42,9 +42,8 @@ type FormatShapeProps<Props extends object> = {
 			? TLAssetId | React.JSX.Element | null
 			: Props[K]
 }
-type PropsForShape<Type extends string> = Type extends TLDefaultShape['type']
-	? CommonShapeProps & FormatShapeProps<ShapeByType<Type>['props']>
-	: CommonShapeProps & Record<string, unknown>
+type PropsForShape<Type extends TLShape['type']> = CommonShapeProps &
+	FormatShapeProps<ShapeByType<Type>['props']>
 
 type AssetByType<Type extends TLAsset['type']> = Extract<TLAsset, { type: Type }>
 type PropsForAsset<Type extends string> = Type extends TLAsset['type']
@@ -112,8 +111,8 @@ export const TL = new Proxy(
 		},
 	}
 ) as { asset: typeof tlAsset; binding: typeof tlBinding } & {
-	[K in TLDefaultShape['type']]: (props: PropsForShape<K>) => null
-} & Record<string, (props: PropsForShape<string>) => null>
+	[K in TLShape['type']]: (props: PropsForShape<K>) => null
+}
 
 export function shapesFromJsx(shapes: React.JSX.Element | Array<React.JSX.Element>, idPrefix = '') {
 	const ids = { bindings: {} } as Record<string, TLShapeId> & {

@@ -79,6 +79,22 @@ export type TLDefaultShape =
  */
 export type TLUnknownShape = TLBaseShape<string, object>
 
+/** @public */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface GlobalShapePropsMap {}
+
+/** @public */
+export type IndexByProp<T extends Record<P, string>, P extends keyof T> = {
+	[E in T as E[P]]: E
+}
+
+/** @public */
+export type AllTLShapes =
+	| TLDefaultShape
+	| {
+			[K in keyof GlobalShapePropsMap]: TLBaseShape<K, GlobalShapePropsMap[K]>
+	  }[keyof GlobalShapePropsMap]
+
 /**
  * The set of all shapes that are available in the editor, including unknown shapes.
  *
@@ -99,7 +115,9 @@ export type TLUnknownShape = TLBaseShape<string, object>
  *
  * @public
  */
-export type TLShape = TLDefaultShape | TLUnknownShape
+export type TLShape<
+	K extends keyof IndexByProp<AllTLShapes, 'type'> = keyof IndexByProp<AllTLShapes, 'type'>,
+> = IndexByProp<AllTLShapes, 'type'>[K]
 
 /**
  * A partial version of a shape, useful for updates and patches.
@@ -140,6 +158,22 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T
 	: never
 
 /**
+ * Extract a shape type by its props.
+ *
+ * This utility type takes a props object type and returns the corresponding shape type
+ * from the TLShape union whose props match the given type.
+ *
+ * @example
+ * ```ts
+ * type MyShape = ExtractShapeByProps<{ w: number; h: number }>
+ * // MyShape is now the type of shape(s) that have props with w and h as numbers
+ * ```
+ *
+ * @public
+ */
+export type ExtractShapeByProps<P> = Extract<TLShape, { props: P }>
+
+/**
  * A unique identifier for a shape record.
  *
  * Shape IDs are branded strings that start with "shape:" followed by a unique identifier.
@@ -153,7 +187,7 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T
  *
  * @public
  */
-export type TLShapeId = RecordId<TLUnknownShape>
+export type TLShapeId = RecordId<TLShape>
 
 /**
  * The ID of a shape's parent, which can be either a page or another shape.
@@ -195,7 +229,7 @@ export const rootShapeVersions = createMigrationIds('com.tldraw.shape', {
 	HoistOpacity: 2,
 	AddMeta: 3,
 	AddWhite: 4,
-} as const)
+})
 
 /**
  * Migration sequence for the root shape record type.
@@ -469,7 +503,7 @@ export function createShapePropsMigrationIds<
  * @internal
  */
 export function createShapeRecordType(shapes: Record<string, SchemaPropsInfo>) {
-	return createRecordType<TLShape>('shape', {
+	return createRecordType('shape', {
 		scope: 'document',
 		validator: T.model(
 			'shape',

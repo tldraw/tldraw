@@ -133,6 +133,7 @@ export async function putExcalidrawContent(
 					...base,
 					type: 'geo',
 					props: {
+						...editor.getShapeUtil('geo').getDefaultProps(),
 						geo: element.type,
 						url: element.link ?? '',
 						w: element.width,
@@ -152,6 +153,7 @@ export async function putExcalidrawContent(
 					...base,
 					type: 'draw',
 					props: {
+						...editor.getShapeUtil('draw').getDefaultProps(),
 						dash: getDash(element),
 						size: strokeWidthsToSizes[element.strokeWidth],
 						color: colorsToColors[element.strokeColor] ?? 'black',
@@ -180,6 +182,7 @@ export async function putExcalidrawContent(
 					...base,
 					type: 'line',
 					props: {
+						...editor.getShapeUtil('line').getDefaultProps(),
 						dash: getDash(element),
 						size: strokeWidthsToSizes[element.strokeWidth],
 						color: colorsToColors[element.strokeColor] ?? 'black',
@@ -221,6 +224,7 @@ export async function putExcalidrawContent(
 					...base,
 					type: 'arrow',
 					props: {
+						...editor.getShapeUtil('arrow').getDefaultProps(),
 						richText: toRichText(text),
 						kind: element.elbowed ? 'elbow' : 'arc',
 						bend: getBend(element, start, end),
@@ -275,6 +279,7 @@ export async function putExcalidrawContent(
 					...base,
 					type: 'text',
 					props: {
+						...editor.getShapeUtil('text').getDefaultProps(),
 						size,
 						scale,
 						font: fontFamilyToFontType[element.fontFamily] ?? 'draw',
@@ -310,6 +315,7 @@ export async function putExcalidrawContent(
 					...base,
 					type: 'image',
 					props: {
+						...editor.getShapeUtil('image').getDefaultProps(),
 						w: element.width,
 						h: element.height,
 						assetId,

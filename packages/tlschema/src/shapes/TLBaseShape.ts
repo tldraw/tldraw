@@ -1,4 +1,3 @@
-import { BaseRecord } from '@tldraw/store'
 import { IndexKey, JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { TLOpacityType, opacityValidator } from '../misc/TLOpacity'
@@ -38,8 +37,12 @@ import { TLParentId, TLShapeId } from '../records/TLShape'
  *
  * @public
  */
-export interface TLBaseShape<Type extends string, Props extends object>
-	extends BaseRecord<'shape', TLShapeId> {
+export interface TLBaseShape<Type extends string, Props extends object> {
+	// using real `extends BaseRecord<'shape', TLShapeId>` introduces a circularity in the types
+	// and for that reason those "base members" have to be declared manually here
+	readonly id: TLShapeId
+	readonly typeName: 'shape'
+
 	type: Type
 	x: number
 	y: number
