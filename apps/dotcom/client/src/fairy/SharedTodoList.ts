@@ -1,9 +1,9 @@
-import { SharedTodoItem } from '@tldraw/fairy-shared'
+import { FairyTask } from '@tldraw/fairy-shared'
 import { atom } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
-import { clearProjects } from './Projects'
+import { clearProjects } from './FairyProjects'
 
-export const $sharedTodoList = atom<SharedTodoItem[]>('sharedTodoList', [])
+export const $sharedTodoList = atom<FairyTask[]>('sharedTodoList', [])
 export const $showCanvasTodos = atom<boolean>('showCanvasTodos', false)
 
 export function addSharedTodoItem(text: string, x?: number, y?: number) {
@@ -33,33 +33,6 @@ export function clearSharedTodoList() {
 	clearProjects()
 }
 
-export function requestHelpWithTodo(todoId: number, agents: FairyAgent[]) {
-	const todo = $sharedTodoList.get().find((t) => t.id === todoId)
-	if (!todo) return
-
-	// If there's an assigned agent, ask them to help
-	const assignedAgent = todo.assignedById
-		? agents.find((a) => a.id === todo.assignedById)
-		: undefined
-	if (assignedAgent) {
-		assignedAgent.helpOut([todo])
-		return
-	}
-
-	// If there's a free agent, ask them to help
-	const freeAgent = agents.find((v) => !v.isGenerating())
-	if (freeAgent) {
-		freeAgent.helpOut([todo])
-		return
-	}
-
-	// If no free agent is found, ask a random agent to help
-	const randomAgent = agents[Math.floor(Math.random() * agents.length)]
-	if (randomAgent) {
-		randomAgent.helpOut([todo])
-	}
-}
-
 export function assignAgentToTodo(todoId: number, agentId: string, agents: FairyAgent[]) {
 	const agent = agents.find((a) => a.id === agentId)
 	if (!agent && agentId !== '') return
@@ -67,10 +40,4 @@ export function assignAgentToTodo(todoId: number, agentId: string, agents: Fairy
 	$sharedTodoList.update((todos) =>
 		todos.map((t) => (t.id === todoId ? { ...t, assignedById: agentId || undefined } : t))
 	)
-}
-
-export function requestHelpFromEveryone(agents: FairyAgent[]) {
-	agents.forEach((agent) => {
-		agent.helpOut()
-	})
 }

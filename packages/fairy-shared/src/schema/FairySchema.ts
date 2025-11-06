@@ -1,3 +1,5 @@
+import { BasePromptPart } from '../types/BasePromptPart'
+import { PromptPart } from '../types/PromptPart'
 import {
 	ActivateFairyActionSchema,
 	AlignActionSchema,
@@ -25,26 +27,25 @@ import {
 	StartProjectActionSchema,
 	ThinkActionSchema,
 	UpdateActionSchema,
-} from './actions/ActionSchemas'
+} from './AgentActionSchemas'
 import {
-	BlurryShapesPartSchema,
-	ChatHistoryPartSchema,
-	ContextItemsPartSchema,
-	CurrentProjectPartSchema,
-	DataPartSchema,
-	MessagesPartSchema,
-	OtherFairiesPartSchema,
-	PagesPartSchema,
-	PeripheralShapesPartSchema,
-	PersonalityPartSchema,
-	ScreenshotPartSchema,
-	SelectedShapesPartSchema,
-	SharedTodoListPartSchema,
-	TimePartSchema,
-	UserActionHistoryPartSchema,
-	ViewportBoundsPartSchema,
-	WandPartSchema,
-} from './parts/PartSchemas'
+	BlurryShapesPartDefinition,
+	ChatHistoryPartDefinition,
+	DataPartDefinition,
+	MessagesPartDefinition,
+	ModePartDefinition,
+	OtherFairiesPartDefinition,
+	PagesPartDefinition,
+	PeripheralShapesPartDefinition,
+	PersonalityPartDefinition,
+	PromptPartDefinition,
+	ScreenshotPartDefinition,
+	SelectedShapesPartDefinition,
+	SharedTodoListPartDefinition,
+	TimePartDefinition,
+	UserActionHistoryPartDefinition,
+	ViewportBoundsPartDefinition,
+} from './PromptPartDefinitions'
 
 /**
  * Agent action schemas determine what actions the agent can take.
@@ -94,25 +95,30 @@ export const AGENT_ACTION_SCHEMAS = [
 /**
  * Prompt part schemas determine what information will be sent to the model.
  */
-export const PROMPT_PART_SCHEMAS = [
-	BlurryShapesPartSchema,
-	ChatHistoryPartSchema,
-	ContextItemsPartSchema,
-	CurrentProjectPartSchema,
-	DataPartSchema,
-	MessagesPartSchema,
-	PagesPartSchema,
-	PeripheralShapesPartSchema,
-	ScreenshotPartSchema,
-	SelectedShapesPartSchema,
-	TimePartSchema,
-	SharedTodoListPartSchema,
-	UserActionHistoryPartSchema,
-	ViewportBoundsPartSchema,
-	OtherFairiesPartSchema,
-	WandPartSchema,
-	PersonalityPartSchema,
-] as const
+export const PROMPT_PART_DEFINITIONS = [
+	BlurryShapesPartDefinition,
+	ChatHistoryPartDefinition,
+	DataPartDefinition,
+	MessagesPartDefinition,
+	PagesPartDefinition,
+	PeripheralShapesPartDefinition,
+	ScreenshotPartDefinition,
+	SelectedShapesPartDefinition,
+	TimePartDefinition,
+	SharedTodoListPartDefinition,
+	UserActionHistoryPartDefinition,
+	ViewportBoundsPartDefinition,
+	OtherFairiesPartDefinition,
+	PersonalityPartDefinition,
+	ModePartDefinition,
+] as const satisfies PromptPartDefinition<BasePromptPart>[]
 
 export const AGENT_ACTION_TYPES = AGENT_ACTION_SCHEMAS.map((schema) => schema.shape._type.value)
-export const PROMPT_PART_TYPES = PROMPT_PART_SCHEMAS.map((schema) => schema.shape.type.value)
+export const PROMPT_PART_TYPES = PROMPT_PART_DEFINITIONS.map((definition) => definition.type)
+
+export function getPromptPartDefinition<T extends PromptPart>(
+	type: T['type']
+): PromptPartDefinition<T> {
+	const definition = PROMPT_PART_DEFINITIONS.find((definition) => definition.type === type)
+	return definition as PromptPartDefinition<T>
+}

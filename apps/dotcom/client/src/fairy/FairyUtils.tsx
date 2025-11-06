@@ -1,5 +1,4 @@
 import { AgentAction, PromptPart } from '@tldraw/fairy-shared'
-import { ActivateFairyActionUtil } from './actions/ActivateFairyActionUtil'
 import { AgentActionUtil, AgentActionUtilConstructor } from './actions/AgentActionUtil'
 import { AlignActionUtil } from './actions/AlignActionUtil'
 import { AssignTodoItemActionUtil } from './actions/AssignTodoItemActionUtil'
@@ -30,10 +29,9 @@ import { UpdateActionUtil } from './actions/UpdateActionUtil'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { BlurryShapesPartUtil } from './parts/BlurryShapesPartUtil'
 import { ChatHistoryPartUtil } from './parts/ChatHistoryPartUtil'
-import { ContextItemsPartUtil } from './parts/ContextItemsPartUtil'
-import { CurrentProjectPartUtil } from './parts/CurrentProjectPartUtil'
 import { DataPartUtil } from './parts/DataPartUtil'
 import { MessagesPartUtil } from './parts/MessagesPartUtil'
+import { ModePartUtil } from './parts/ModePartUtil'
 import { OtherFairiesPartUtil } from './parts/OtherFairiesPartUtil'
 import { PagesPartUtil } from './parts/PagesPartUtil'
 import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
@@ -45,7 +43,6 @@ import { SharedTodoListPartUtil } from './parts/SharedTodoListPartUtil'
 import { TimePartUtil } from './parts/TimePartUtil'
 import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
 import { ViewportBoundsPartUtil } from './parts/ViewportBoundsPartUtil'
-import { WandPartUtil } from './parts/WandPartUtil'
 
 /**
  * Agent action utils determine what actions do.
@@ -85,7 +82,6 @@ export const AGENT_ACTION_UTILS = [
 
 	// Project management
 	SharedTodoListActionUtil,
-	ActivateFairyActionUtil,
 	AssignTodoItemActionUtil,
 	ClaimTodoItemActionUtil,
 	StartProjectActionUtil,
@@ -105,7 +101,6 @@ export const PROMPT_PART_UTILS = [
 	// Request
 	MessagesPartUtil,
 	DataPartUtil,
-	ContextItemsPartUtil,
 
 	// Viewport
 	ScreenshotPartUtil,
@@ -127,10 +122,9 @@ export const PROMPT_PART_UTILS = [
 
 	// Fairy-specific
 	OtherFairiesPartUtil,
-	WandPartUtil,
 	PersonalityPartUtil,
-	CurrentProjectPartUtil,
-] satisfies PromptPartUtilConstructor<PromptPart>[]
+	ModePartUtil,
+] as const satisfies PromptPartUtilConstructor<PromptPart>[]
 
 /**
  * Get an object containing all agent action utils.

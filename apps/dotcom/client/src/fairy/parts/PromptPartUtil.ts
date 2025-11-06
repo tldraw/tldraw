@@ -3,7 +3,7 @@ import { Editor } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { FairyAgent } from '../fairy-agent/agent/FairyAgent'
 
-export abstract class PromptPartUtil<T extends PromptPart> {
+export abstract class PromptPartUtil<T extends PromptPart = PromptPart> {
 	static type: PromptPart['type']
 
 	protected agent: FairyAgent

@@ -8,8 +8,8 @@ import { react, throttle, useEditor, useToasts, useValue } from 'tldraw'
 import { useApp } from '../tla/hooks/useAppState'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { $projects } from './FairyProjects'
 import { FairyThrowTool } from './FairyThrowTool'
-import { $projects } from './Projects'
 import { $sharedTodoList, $showCanvasTodos } from './SharedTodoList'
 import { TodoDragTool } from './TodoDragTool'
 
@@ -200,7 +200,6 @@ export function FairyApp({
 				agent.$fairyEntity.get()
 				agent.$chatHistory.get()
 				agent.$todoList.get()
-				agent.$contextItems.get()
 				updateFairyState()
 			})
 			fairyCleanupFns.push(cleanup)

@@ -1,4 +1,6 @@
-import z from 'zod'
-import { PROMPT_PART_SCHEMAS } from '../schema/FairySchema'
+import { PROMPT_PART_DEFINITIONS } from '../schema/FairySchema'
+import { PromptPartDefinition } from '../schema/PromptPartDefinitions'
 
-export type PromptPart = z.infer<(typeof PROMPT_PART_SCHEMAS)[number]>
+type ExtractPromptPartType<T> = T extends PromptPartDefinition<infer U> ? U : never
+
+export type PromptPart = ExtractPromptPartType<(typeof PROMPT_PART_DEFINITIONS)[number]>

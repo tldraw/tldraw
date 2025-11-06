@@ -26,9 +26,9 @@ export function FairySidebarButton({
 
 	const fairyOutfit = useValue('fairy outfit', () => agent.$fairyConfig.get()?.outfit, [agent])
 	const fairyEntity = useValue('fairy entity', () => agent.$fairyEntity.get(), [agent])
-	const project = useValue('current-project', () => agent.getCurrentProject(), [agent])
+	const project = useValue('current-project', () => agent.getProject(), [agent])
 
-	const isOrchestrator = useValue('is-orchestrator', () => agent.getMode() === 'orchestrator', [
+	const isOrchestrator = useValue('is-orchestrator', () => agent.getRole() === 'orchestrator', [
 		agent,
 	])
 	const projectColor = project ? getProjectColor(agent.editor, project.color) : undefined

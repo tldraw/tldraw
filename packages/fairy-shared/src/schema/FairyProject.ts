@@ -1,13 +1,16 @@
-import z from 'zod'
-import { FocusColorSchema } from '../format/FocusColor'
+import { FocusColor } from '../format/FocusColor'
 
-export const FairyProjectSchema = z.object({
-	id: z.string(),
-	orchestratorId: z.string(),
-	name: z.string(),
-	description: z.string(),
-	color: FocusColorSchema,
-	memberIds: z.array(z.string()),
-})
+export interface FairyProject {
+	id: string
+	title: string
+	description: string
+	color: FocusColor
+	members: FairyProjectMember[]
+}
 
-export type FairyProject = z.infer<typeof FairyProjectSchema>
+export interface FairyProjectMember {
+	id: string
+	role: FairyProjectRole
+}
+
+export type FairyProjectRole = 'orchestrator' | 'drone'

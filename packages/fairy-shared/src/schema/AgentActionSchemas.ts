@@ -1,8 +1,8 @@
 import z from 'zod'
-import { FocusColorSchema } from '../../format/FocusColor'
-import { FocusFillSchema } from '../../format/FocusFill'
-import { FocusedShapeSchema } from '../../format/FocusedShape'
-import { BaseAgentAction } from '../../types/BaseAgentAction'
+import { FocusColorSchema } from '../format/FocusColor'
+import { FocusFillSchema } from '../format/FocusFill'
+import { FocusedShapeSchema } from '../format/FocusedShape'
+import { BaseAgentAction } from '../types/BaseAgentAction'
 
 export const AlignActionSchema = z
 	.object({
@@ -127,7 +127,7 @@ export type DistributeAction = z.infer<typeof DistributeActionSchema>
 
 export const EndCurrentProjectActionSchema = z
 	.object({
-		_type: z.literal('end-current-project'),
+		_type: z.literal('end-project'),
 	})
 	.meta({
 		title: 'End Current Project',

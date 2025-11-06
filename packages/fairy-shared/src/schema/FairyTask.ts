@@ -1,6 +1,6 @@
 import z from 'zod'
 
-export const SharedTodoItemSchema = z.object({
+export const FairyTaskSchema = z.object({
 	id: z.number(),
 	text: z.string(),
 	status: z.enum(['todo', 'in-progress', 'done']),
@@ -10,4 +10,4 @@ export const SharedTodoItemSchema = z.object({
 	projectId: z.string().optional(),
 })
 
-export type SharedTodoItem = z.infer<typeof SharedTodoItemSchema>
+export type FairyTask = z.infer<typeof FairyTaskSchema>

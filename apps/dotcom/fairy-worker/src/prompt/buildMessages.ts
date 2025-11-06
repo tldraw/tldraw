@@ -2,9 +2,9 @@ import {
 	AgentMessage,
 	AgentMessageContent,
 	AgentPrompt,
-	PROMPT_PART_SCHEMAS,
+	getPromptPartDefinition,
+	PROMPT_PART_DEFINITIONS,
 	PromptPart,
-	PromptPartRegistry,
 } from '@tldraw/fairy-shared'
 import { ModelMessage, UserContent } from 'ai'
 
@@ -22,19 +22,18 @@ export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
 }
 
 function buildMessagesFromPart(part: PromptPart): AgentMessage[] {
-	const schema = PROMPT_PART_SCHEMAS.find((schema) => schema.shape.type.value === part.type)
-	if (!schema) return defaultBuildMessagesFromPart(part)
-
-	const meta = PromptPartRegistry.get(schema)
-	if (!meta) return defaultBuildMessagesFromPart(part)
-
-	const buildMessages = meta.buildMessages
-	if (!buildMessages) return defaultBuildMessagesFromPart(part)
-
-	return buildMessages(part)
+	const definition = getPromptPartDefinition(part.type)
+	if (!definition.buildMessages) return defaultBuildMessagesFromPart(part)
+	return definition.buildMessages(part)
 }
 
-function defaultBuildMessagesFromPart(part: PromptPart): AgentMessage[] {
+function buildContentFromPart(part: PromptPart): string[] {
+	const definition = getPromptPartDefinition(part.type)
+	if (!definition.buildContent) return []
+	return definition.buildContent(part)
+}
+
+export function defaultBuildMessagesFromPart<T extends PromptPart>(part: T): AgentMessage[] {
 	const content = buildContentFromPart(part)
 	if (!content || content.length === 0) {
 		return []
@@ -55,25 +54,10 @@ function defaultBuildMessagesFromPart(part: PromptPart): AgentMessage[] {
 		}
 	}
 
-	const schema = PROMPT_PART_SCHEMAS.find((schema) => schema.shape.type.value === part.type)
-	if (!schema) return defaultBuildMessagesFromPart(part)
-
-	const meta = PromptPartRegistry.get(schema)
-	if (!meta) return defaultBuildMessagesFromPart(part)
-
-	const priority = meta.priority ?? 0
+	const definition = PROMPT_PART_DEFINITIONS.find((definition) => definition.type === part.type)
+	const priority = definition?.priority ?? 0
 
 	return [{ role: 'user', content: messageContent, priority }]
-}
-
-function buildContentFromPart(part: PromptPart): string[] {
-	const schema = PROMPT_PART_SCHEMAS.find((schema) => schema.shape.type.value === part.type)
-	if (!schema) return []
-
-	const meta = PromptPartRegistry.get(schema)
-	if (!meta) return []
-
-	return meta.buildContent?.(part) ?? []
 }
 
 /**

@@ -1,6 +1,6 @@
-import { SharedTodoItem } from '@tldraw/fairy-shared'
+import { FairyTask } from '@tldraw/fairy-shared'
 import { useValue } from 'tldraw'
-import { getProjectById } from './Projects'
+import { getProjectById } from './FairyProjects'
 import { $sharedTodoList, $showCanvasTodos, deleteSharedTodoItem } from './SharedTodoList'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { getProjectColor } from './getProjectColor'
@@ -24,7 +24,7 @@ export function InCanvasTodoList({ agents }: { agents: FairyAgent[] }) {
 	)
 }
 
-function getStatusIcon(status: SharedTodoItem['status']) {
+function getStatusIcon(status: FairyTask['status']) {
 	switch (status) {
 		case 'todo':
 			return '○'
@@ -37,7 +37,7 @@ function getStatusIcon(status: SharedTodoItem['status']) {
 	}
 }
 
-function InCanvasTodoItem({ agents, todo }: { agents: FairyAgent[]; todo: SharedTodoItem }) {
+function InCanvasTodoItem({ agents, todo }: { agents: FairyAgent[]; todo: FairyTask }) {
 	const statusClass =
 		todo.status === 'done'
 			? 'in-canvas-todo-item--done'

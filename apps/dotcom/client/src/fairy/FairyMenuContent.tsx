@@ -61,7 +61,6 @@ export function FairyMenuContent({
 				/>
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="fairy-chat-menu">
-				<TldrawUiMenuItem id="help-out" onSelect={() => agent.helpOut()} label="Ask for help" />
 				<TldrawUiMenuItem id="new-chat" onSelect={() => agent.reset()} label="Reset chat" />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="fairy-config-menu">

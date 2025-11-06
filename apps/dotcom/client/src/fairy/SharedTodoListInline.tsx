@@ -1,10 +1,9 @@
-import { SharedTodoItem } from '@tldraw/fairy-shared'
 import React, { useCallback, useState } from 'react'
 import { useEditor, useValue } from 'tldraw'
 import '../tla/styles/fairy.css'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { getProjectById } from './FairyProjects'
 import { getProjectColor } from './getProjectColor'
-import { getProjectById } from './Projects'
 import {
 	$sharedTodoList,
 	$showCanvasTodos,
@@ -41,27 +40,6 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 			setNewTodoText('')
 		},
 		[newTodoText]
-	)
-
-	const handleHelpOut = useCallback(
-		(todo: SharedTodoItem) => {
-			const agent = todo.assignedById ? agents.find((a) => a.id === todo.assignedById) : undefined
-			if (agent) {
-				agent.helpOut([todo])
-			} else {
-				// Get a free agent
-				const freeAgent = agents.find((v) => !v.isGenerating())
-				if (freeAgent) {
-					freeAgent.helpOut([todo])
-				} else {
-					// If no free agent is found, ask everyone to help
-					agents.forEach((agent) => {
-						agent.helpOut([todo])
-					})
-				}
-			}
-		},
-		[agents]
 	)
 
 	const handleDragStart = useCallback(
@@ -231,15 +209,6 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 											</option>
 										))}
 									</select>
-									{
-										<button
-											className="shared-todo-item-help-button"
-											onClick={() => handleHelpOut(todo)}
-											title="Request help with this task"
-										>
-											Request help
-										</button>
-									}
 								</div>
 							</div>
 						)

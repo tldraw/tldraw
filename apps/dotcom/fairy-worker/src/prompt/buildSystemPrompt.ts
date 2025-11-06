@@ -3,9 +3,8 @@ import {
 	AgentPrompt,
 	FOCUSED_SHAPE_TYPES,
 	PromptPart,
-	Wand,
 	buildResponseSchema,
-	getWand,
+	getActiveFairyModeDefinition,
 } from '@tldraw/fairy-shared'
 
 /**
@@ -18,11 +17,13 @@ import {
  * @returns The system prompt.
  */
 export function buildSystemPrompt(prompt: AgentPrompt): string {
-	const wandName = prompt.wand?.wand
-	if (!wandName) throw new Error('A wand is required.')
-	const wand = getWand(wandName as Wand['type'])
-	const systemPrompt = getSystemPrompt(wand.actions, wand.parts)
-	return systemPrompt
+	const modePart = prompt.mode
+	if (!modePart) throw new Error('A mode part is always required.')
+	const { mode, work } = modePart
+	const modeDefinition = getActiveFairyModeDefinition(mode)
+	const availableActions = modeDefinition.actions(work)
+	const availableParts = modeDefinition.parts(work)
+	return getSystemPrompt(availableActions, availableParts)
 }
 
 function getSystemPrompt(actions: AgentAction['_type'][], parts: PromptPart['type'][]) {
@@ -222,7 +223,7 @@ ${
 		? `- You are the orchestrator of a project. You are responsible for coordinating and assigning tasks to project members.
 - After assigning tasks to project members, use the \`activate-fairy\` action to activate the fairies so that they can start working on their tasks. It's wise to gradually activate fairies one by one, rather than onboarding all of them at once.
 		- If the project's todo list is not completed, continue monitoring the todo list and work, and assign tasks to project members as needed.
-- Once the project is complete, use the \`end-current-project\` action to end the project.
+- Once the project is complete, use the \`end-project\` action to end the project.
 ${!flags.canEdit ? `- Remember! You cannot work with shapes, so don't take any tasks that require you to work with shapes.` : ''}`
 		: ''
 }
@@ -262,7 +263,7 @@ ${
 		: ''
 }
 ${flags.hasThink ? '- Use ' + '`think`' + ' events liberally to work through each step of your strategy.' : ''}
-${flags.hasScreenshotPart && (flags.hasBlurryShapesPart || flags.hasPeripheralShapesPart || flags.hasSelectedShapesPart || flags.hasContextItemsPart) ? '- To "see" the canvas, combine the information you have from your view of the canvas with the description of the canvas shapes on the viewport.' : ''}
+${flags.hasScreenshotPart && (flags.hasBlurryShapesPart || flags.hasPeripheralShapesPart || flags.hasSelectedShapesPart) ? '- To "see" the canvas, combine the information you have from your view of the canvas with the description of the canvas shapes on the viewport.' : ''}
 ${(flags.hasDistribute || flags.hasStack || flags.hasAlign || flags.hasPlace) && (flags.hasCreate || flags.hasUpdate || flags.hasMove) ? `- Carefully plan which action types to use. For example, the higher level events like ${[flags.hasDistribute && '`distribute`', flags.hasStack && '`stack`', flags.hasAlign && '`align`', flags.hasPlace && '`place`'].filter(Boolean).join(', ')} can at times be better than the lower level events like ${[flags.hasCreate && '`create`', flags.hasUpdate && '`update`', flags.hasMove && '`move`'].filter(Boolean).join(', ')} because they're more efficient and more accurate. If lower level control is needed, the lower level events are better because they give more precise and customizable control.` : ''}
 ${flags.hasSelectedShapesPart ? "- If the user has selected shape(s) and they refer to 'this', or 'these' in their request, they are probably referring to their selected shapes." : ''}
 
@@ -382,7 +383,6 @@ function getSystemPromptFlags(actions: AgentAction['_type'][], parts: PromptPart
 		// Request
 		hasMessagesPart: parts.includes('messages'),
 		hasDataPart: parts.includes('data'),
-		hasContextItemsPart: parts.includes('contextItems'),
 
 		// Viewport
 		hasScreenshotPart: parts.includes('screenshot'),
@@ -415,7 +415,7 @@ function getSystemPromptFlags(actions: AgentAction['_type'][], parts: PromptPart
 		//orchestration
 		hasStartProject: actions.includes('start-project'),
 		canActivateFairy: actions.includes('activate-fairy'),
-		isOrchestrator: actions.includes('end-current-project'),
+		isOrchestrator: actions.includes('end-project'),
 
 		canEdit:
 			actions.includes('update') ||

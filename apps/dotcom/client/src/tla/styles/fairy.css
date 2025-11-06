@@ -420,7 +420,7 @@
 .fairy-chat-history {
 	flex: 1;
 	overflow-y: auto;
-	padding: 12px;
+	padding: 8px;
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
@@ -462,7 +462,7 @@
 	padding-top: 8px;
 }
 
-.fairy-chat-history-section:last-child {
+.fairy-chat-history-section:last-child:not(:only-child) {
 	min-height: calc(100% + 4px);
 }
 

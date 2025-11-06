@@ -1,4 +1,4 @@
-import { FocusColor } from '@tldraw/fairy-shared'
+import { FairyProject } from '@tldraw/fairy-shared'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	TldrawUiToolbar,
@@ -9,7 +9,7 @@ import {
 } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
-import { addProject } from './Projects'
+import { addProject } from './FairyProjects'
 
 export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 	const [leaderAgentId, setLeaderAgentId] = useState<string | null>(null)
@@ -74,34 +74,33 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 				return
 			}
 
-			// Set leader as orchestrator
-			leaderAgent.updateFairyConfig({ wand: 'orchestrator' })
-
-			// Set followers as drones
-			followerAgents.forEach((agent) => {
-				agent.updateFairyConfig({ wand: 'drone' })
-			})
-
-			const memberIds = [leaderAgent.id, ...followerAgents.map((agent) => agent.id)]
-
 			const newProjectId = uniqueId(5)
-			const newProject = {
+			const newProject: FairyProject = {
 				id: newProjectId,
-				orchestratorId: leaderAgent.id,
-				name: `Project: ${value}`,
+				title: `Project: ${value}`,
 				description: '',
-				color: 'red' as FocusColor,
-				memberIds,
+				color: 'red',
+				members: [
+					{ id: leaderAgent.id, role: 'orchestrator' },
+					...followerAgents.map((agent) => ({ id: agent.id, role: 'drone' as const })),
+				],
 			}
 
 			addProject(newProject)
 
+			// Set leader as orchestrator
+			leaderAgent.setMode('orchestrating')
+
+			// Set followers as drones
+			followerAgents.forEach((agent) => {
+				agent.setMode('standing-by')
+			})
+
 			// Send the prompt to the leader
 			const prompt = getGroupChatPrompt(value)
 			leaderAgent.prompt({
-				type: 'schedule',
-				mode: 'orchestrator',
-				messages: [prompt],
+				source: 'user',
+				message: prompt,
 			})
 
 			// Clear the input

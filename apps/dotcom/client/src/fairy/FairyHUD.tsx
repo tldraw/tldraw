@@ -1,8 +1,8 @@
 import {
 	FAIRY_VARIANTS,
 	FairyConfig,
+	FairyTask,
 	FairyVariantType,
-	SharedTodoItem,
 	SmallSpinner,
 } from '@tldraw/fairy-shared'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
@@ -63,7 +63,6 @@ function NewFairyButton({ agents }: { agents: FairyAgent[] }) {
 			name: getRandomFairyName(),
 			outfit: randomOutfit,
 			personality: 'Friendly and helpful',
-			wand: 'default',
 		}
 
 		// Add the config, which will trigger agent creation in FairyApp
@@ -155,7 +154,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		[selectFairy]
 	)
 
-	const [todoLastChecked, setTodoLastChecked] = useState<SharedTodoItem[]>([])
+	const [todoLastChecked, setTodoLastChecked] = useState<FairyTask[]>([])
 
 	const handleClickTodoList = useCallback(() => {
 		setPanelState((v) => (v === 'todo-list' ? 'closed' : 'todo-list'))
