@@ -145,7 +145,7 @@ function detectFileReorderOperation(
 
 	let insertBeforeId = null as null | string
 	let indicatorY = null as null | number
-	let prevBottom = startTop - REORDER_BOUNDARY_INDICATOR_OFFSET * 2 // * 2 because we center the indicator between the prevBottom and nextTop
+	let prevBottom = startTop - REORDER_BOUNDARY_INDICATOR_OFFSET
 
 	for (const target of groupElements.pinnedFiles) {
 		const rect = target.element.getBoundingClientRect()
