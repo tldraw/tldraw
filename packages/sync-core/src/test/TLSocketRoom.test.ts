@@ -159,7 +159,7 @@ describe(TLSocketRoom, () => {
 			type: 'connect' as const,
 			connectRequestId: 'connect-1',
 			lastServerClock: 0,
-			protocolVersion: 7,
+			protocolVersion: 8,
 			schema: store.schema.serialize(),
 		}
 		room.handleSocketMessage(sessionId1, JSON.stringify(connectRequest1))
@@ -168,7 +168,7 @@ describe(TLSocketRoom, () => {
 			type: 'connect' as const,
 			connectRequestId: 'connect-2',
 			lastServerClock: 0,
-			protocolVersion: 7,
+			protocolVersion: 8,
 			schema: store.schema.serialize(),
 		}
 		room.handleSocketMessage(sessionId2, JSON.stringify(connectRequest2))
