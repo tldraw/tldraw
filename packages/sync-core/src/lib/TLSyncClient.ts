@@ -659,7 +659,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 	/** Handle events received from the server */
 	private handleServerEvent(event: TLSocketServerSentEvent<R>) {
-		this.debug('received server event', event)
+		console.log('received server event', event)
 		this.lastServerInteractionTimestamp = Date.now()
 		// always update the lastServerClock when it is present
 		switch (event.type) {

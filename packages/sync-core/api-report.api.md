@@ -19,7 +19,7 @@ import { TLStoreSnapshot } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
 
 // @internal
-export type AppendOp = [type: typeof ValueOpType.Append, values: unknown[], offset: number];
+export type AppendOp = [type: typeof ValueOpType.Append, value: string | unknown[], offset: number];
 
 // @internal
 export function applyObjectDiff<T extends object>(object: T, objectDiff: ObjectDiff): T;
@@ -54,7 +54,7 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLSocket
 export type DeleteOp = [type: typeof ValueOpType.Delete];
 
 // @internal
-export function diffRecord(prev: object, next: object): null | ObjectDiff;
+export function diffRecord(prev: object, next: object, legacyAppendMode?: boolean): null | ObjectDiff;
 
 // @internal
 export class DocumentState<R extends UnknownRecord> {
@@ -62,8 +62,8 @@ export class DocumentState<R extends UnknownRecord> {
     static createWithoutValidating<R extends UnknownRecord>(state: R, lastChangedClock: number, recordType: RecordType<R, any>): DocumentState<R>;
     // (undocumented)
     readonly lastChangedClock: number;
-    mergeDiff(diff: ObjectDiff, clock: number): Result<[ObjectDiff, DocumentState<R>] | null, Error>;
-    replaceState(state: R, clock: number): Result<[ObjectDiff, DocumentState<R>] | null, Error>;
+    mergeDiff(diff: ObjectDiff, clock: number, legacyAppendMode?: boolean): Result<[ObjectDiff, DocumentState<R>] | null, Error>;
+    replaceState(state: R, clock: number, legacyAppendMode?: boolean): Result<[ObjectDiff, DocumentState<R>] | null, Error>;
     // (undocumented)
     readonly state: R;
 }
@@ -132,36 +132,29 @@ export const RecordOpType: {
 export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType];
 
 // @internal
-export type RoomSession<R extends UnknownRecord, Meta> = {
+export type RoomSession<R extends UnknownRecord, Meta> = (RoomSessionBase<R, Meta> & {
     state: typeof RoomSessionState.AwaitingConnectMessage;
-    meta: Meta;
-    presenceId: null | string;
     sessionStartTime: number;
-    sessionId: string;
-    socket: TLRoomSocket<R>;
-    isReadonly: boolean;
-    requiresLegacyRejection: boolean;
-} | {
+}) | (RoomSessionBase<R, Meta> & {
     state: typeof RoomSessionState.AwaitingRemoval;
-    meta: Meta;
-    presenceId: null | string;
     cancellationTime: number;
-    sessionId: string;
-    socket: TLRoomSocket<R>;
-    isReadonly: boolean;
-    requiresLegacyRejection: boolean;
-} | {
+}) | (RoomSessionBase<R, Meta> & {
     state: typeof RoomSessionState.Connected;
-    meta: Meta;
-    presenceId: null | string;
     outstandingDataMessages: TLSocketServerSentDataEvent<R>[];
     serializedSchema: SerializedSchema;
     debounceTimer: null | ReturnType<typeof setTimeout>;
     lastInteractionTime: number;
+});
+
+// @internal
+export type RoomSessionBase<R extends UnknownRecord, Meta> = {
+    meta: Meta;
+    presenceId: null | string;
     sessionId: string;
     socket: TLRoomSocket<R>;
     isReadonly: boolean;
     requiresLegacyRejection: boolean;
+    supportsStringAppend: boolean;
 };
 
 // @internal
@@ -505,6 +498,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     }>;
     // (undocumented)
     _flushDataMessages(sessionId: string): void;
+    getCanEmitStringAppend(): boolean;
     getSnapshot(): RoomSnapshot;
     handleClose(sessionId: string): void;
     handleMessage(sessionId: string, message: TLSocketClientSentEvent<R>): Promise<void>;

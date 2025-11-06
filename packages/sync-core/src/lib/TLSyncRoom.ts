@@ -156,10 +156,15 @@ export class DocumentState<R extends UnknownRecord> {
 	 *
 	 * @param state - The new record state
 	 * @param clock - The new clock value
+	 * @param legacyAppendMode - If true, string append operations will be converted to Put operations
 	 * @returns Result containing the diff and new DocumentState, or null if no changes, or validation error
 	 */
-	replaceState(state: R, clock: number): Result<[ObjectDiff, DocumentState<R>] | null, Error> {
-		const diff = diffRecord(this.state, state)
+	replaceState(
+		state: R,
+		clock: number,
+		legacyAppendMode = false
+	): Result<[ObjectDiff, DocumentState<R>] | null, Error> {
+		const diff = diffRecord(this.state, state, legacyAppendMode)
 		if (!diff) return Result.ok(null)
 		try {
 			this.recordType.validate(state)
@@ -175,9 +180,13 @@ export class DocumentState<R extends UnknownRecord> {
 	 * @param clock - The new clock value
 	 * @returns Result containing the final diff and new DocumentState, or null if no changes, or validation error
 	 */
-	mergeDiff(diff: ObjectDiff, clock: number): Result<[ObjectDiff, DocumentState<R>] | null, Error> {
+	mergeDiff(
+		diff: ObjectDiff,
+		clock: number,
+		legacyAppendMode = false
+	): Result<[ObjectDiff, DocumentState<R>] | null, Error> {
 		const newState = applyObjectDiff(this.state, diff)
-		return this.replaceState(newState, clock)
+		return this.replaceState(newState, clock, legacyAppendMode)
 	}
 }
 
@@ -720,6 +729,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			meta: session.meta,
 			isReadonly: session.isReadonly,
 			requiresLegacyRejection: session.requiresLegacyRejection,
+			supportsStringAppend: session.supportsStringAppend,
 		})
 
 		try {
@@ -843,8 +853,26 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			isReadonly: isReadonly ?? false,
 			// this gets set later during handleConnectMessage
 			requiresLegacyRejection: false,
+			supportsStringAppend: true,
 		})
 		return this
+	}
+
+	/**
+	 * Checks if all connected sessions support string append operations (protocol version 8+).
+	 * If any client is on an older version, returns false to enable legacy append mode.
+	 *
+	 * @returns True if all connected sessions are on protocol version 8 or higher
+	 */
+	getCanEmitStringAppend(): boolean {
+		for (const session of this.sessions.values()) {
+			if (session.state === RoomSessionState.Connected) {
+				if (!session.supportsStringAppend) {
+					return false
+				}
+			}
+		}
+		return true
 	}
 
 	/**
@@ -1010,6 +1038,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (theirProtocolVersion === 6) {
 			theirProtocolVersion++
 		}
+		if (theirProtocolVersion === 7) {
+			theirProtocolVersion++
+			session.supportsStringAppend = false
+		}
 
 		if (theirProtocolVersion == null || theirProtocolVersion < getTlsyncProtocolVersion()) {
 			this.rejectSession(session.sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
@@ -1045,6 +1077,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				lastInteractionTime: Date.now(),
 				debounceTimer: null,
 				outstandingDataMessages: [],
+				supportsStringAppend: session.supportsStringAppend,
 				meta: session.meta,
 				isReadonly: session.isReadonly,
 				requiresLegacyRejection: session.requiresLegacyRejection,
@@ -1150,6 +1183,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		const initialDocumentClock = this.documentClock
 		let didPresenceChange = false
 		transaction((rollback) => {
+			const legacyAppendMode = !this.getCanEmitStringAppend()
 			// collect actual ops that resulted from the push
 			// these will be broadcast to other users
 			interface ActualChanges {
@@ -1198,7 +1232,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				if (doc) {
 					// If there's an existing document, replace it with the new state
 					// but propagate a diff rather than the entire value
-					const diff = doc.replaceState(state, this.clock)
+					const diff = doc.replaceState(state, this.clock, legacyAppendMode)
 					if (!diff.ok) {
 						return fail(TLSyncErrorCloseEventReason.INVALID_RECORD)
 					}
@@ -1238,7 +1272,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 				if (downgraded.value === doc.state) {
 					// If the versions are compatible, apply the patch and propagate the patch op
-					const diff = doc.mergeDiff(patch, this.clock)
+					const diff = doc.mergeDiff(patch, this.clock, legacyAppendMode)
 					if (!diff.ok) {
 						return fail(TLSyncErrorCloseEventReason.INVALID_RECORD)
 					}
@@ -1260,7 +1294,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						return fail(TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 					}
 					// replace the state with the upgraded version and propagate the patch op
-					const diff = doc.replaceState(upgraded.value, this.clock)
+					const diff = doc.replaceState(upgraded.value, this.clock, legacyAppendMode)
 					if (!diff.ok) {
 						return fail(TLSyncErrorCloseEventReason.INVALID_RECORD)
 					}

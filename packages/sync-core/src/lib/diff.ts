@@ -165,6 +165,7 @@ export interface ObjectDiff {
  *
  * @param prev - The previous version of the record
  * @param next - The next version of the record
+ * @param legacyAppendMode - If true, string append operations will be converted to Put operations
  * @returns An ObjectDiff describing the changes, or null if no changes exist
  *
  * @example
@@ -181,11 +182,15 @@ export interface ObjectDiff {
  *
  * @internal
  */
-export function diffRecord(prev: object, next: object): ObjectDiff | null {
-	return diffObject(prev, next, new Set(['props', 'meta']))
+export function diffRecord(
+	prev: object,
+	next: object,
+	legacyAppendMode = false
+): ObjectDiff | null {
+	return diffObject(prev, next, legacyAppendMode)
 }
 
-function diffObject(prev: object, next: object, nestedKeys?: Set<string>): ObjectDiff | null {
+function diffObject(prev: object, next: object, legacyAppendMode: boolean): ObjectDiff | null {
 	if (prev === next) {
 		return null
 	}
@@ -202,7 +207,6 @@ function diffObject(prev: object, next: object, nestedKeys?: Set<string>): Objec
 		const nextVal = (next as any)[key]
 		if (!isEqual(prevVal, nextVal)) {
 			if (
-				nestedKeys?.has(key) &&
 				prevVal &&
 				nextVal &&
 				typeof prevVal === 'object' &&
@@ -210,13 +214,13 @@ function diffObject(prev: object, next: object, nestedKeys?: Set<string>): Objec
 				!Array.isArray(prevVal) &&
 				!Array.isArray(nextVal)
 			) {
-				const diff = diffObject(prevVal, nextVal)
+				const diff = diffObject(prevVal, nextVal, legacyAppendMode)
 				if (diff) {
 					if (!result) result = {}
 					result[key] = [ValueOpType.Patch, diff]
 				}
 			} else if (Array.isArray(nextVal) && Array.isArray(prevVal)) {
-				const op = diffArray(prevVal, nextVal)
+				const op = diffArray(prevVal, nextVal, legacyAppendMode)
 				if (op) {
 					if (!result) result = {}
 					result[key] = op
@@ -224,7 +228,8 @@ function diffObject(prev: object, next: object, nestedKeys?: Set<string>): Objec
 			} else if (
 				typeof prevVal === 'string' &&
 				typeof nextVal === 'string' &&
-				nextVal.startsWith(prevVal)
+				nextVal.startsWith(prevVal) &&
+				!legacyAppendMode
 			) {
 				const appendedText = nextVal.slice(prevVal.length)
 				if (!result) result = {}
@@ -245,10 +250,10 @@ function diffObject(prev: object, next: object, nestedKeys?: Set<string>): Objec
 	return result
 }
 
-function diffValue(valueA: unknown, valueB: unknown): ValueOp | null {
+function diffValue(valueA: unknown, valueB: unknown, legacyAppendMode: boolean): ValueOp | null {
 	if (Object.is(valueA, valueB)) return null
 	if (Array.isArray(valueA) && Array.isArray(valueB)) {
-		return diffArray(valueA, valueB)
+		return diffArray(valueA, valueB, legacyAppendMode)
 	} else if (typeof valueA === 'string' && typeof valueB === 'string') {
 		if (valueB.startsWith(valueA)) {
 			const appendedText = valueB.slice(valueA.length)
@@ -258,12 +263,16 @@ function diffValue(valueA: unknown, valueB: unknown): ValueOp | null {
 	} else if (!valueA || !valueB || typeof valueA !== 'object' || typeof valueB !== 'object') {
 		return isEqual(valueA, valueB) ? null : [ValueOpType.Put, valueB]
 	} else {
-		const diff = diffObject(valueA, valueB)
+		const diff = diffObject(valueA, valueB, legacyAppendMode)
 		return diff ? [ValueOpType.Patch, diff] : null
 	}
 }
 
-function diffArray(prevArray: unknown[], nextArray: unknown[]): PutOp | AppendOp | PatchOp | null {
+function diffArray(
+	prevArray: unknown[],
+	nextArray: unknown[],
+	legacyAppendMode: boolean
+): PutOp | AppendOp | PatchOp | null {
 	if (Object.is(prevArray, nextArray)) return null
 	// if lengths are equal, check for patch operation
 	if (prevArray.length === nextArray.length) {
@@ -289,7 +298,7 @@ function diffArray(prevArray: unknown[], nextArray: unknown[]): PutOp | AppendOp
 			if (!prevItem || !nextItem) {
 				diff[i] = [ValueOpType.Put, nextItem]
 			} else if (typeof prevItem === 'object' && typeof nextItem === 'object') {
-				const op = diffValue(prevItem, nextItem)
+				const op = diffValue(prevItem, nextItem, legacyAppendMode)
 				if (op) {
 					diff[i] = op
 				}
