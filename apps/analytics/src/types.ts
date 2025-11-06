@@ -40,7 +40,7 @@ declare global {
 
 export type CookieConsent = 'unknown' | 'opted-in' | 'opted-out'
 
-export type ConsentPreferences = {
+export interface ConsentPreferences {
 	analytics: 'granted' | 'denied'
 	marketing: 'granted' | 'denied'
 }
