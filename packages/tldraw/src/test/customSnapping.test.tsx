@@ -555,19 +555,24 @@ describe('custom handle snapping', () => {
 	})
 })
 
-describe('custom adjacent handle for shift snapping', () => {
-	type BezierShape = TLBaseShape<
-		'bezier',
-		{
+const BEZIER_TYPE = 'bezier'
+
+declare module '@tldraw/tlschema' {
+	export interface GlobalShapePropsMap {
+		[BEZIER_TYPE]: {
 			start: VecModel
 			cp1: VecModel
 			cp2: VecModel
 			end: VecModel
 		}
-	>
+	}
+}
 
+type BezierShape = TLShape<typeof BEZIER_TYPE>
+
+describe('custom adjacent handle for shift snapping', () => {
 	class BezierShapeUtil extends ShapeUtil<BezierShape> {
-		static override type = 'bezier'
+		static override type = BEZIER_TYPE
 		override getDefaultProps() {
 			return {
 				start: { x: 0, y: 0 },
@@ -644,8 +649,6 @@ describe('custom adjacent handle for shift snapping', () => {
 				ref="bezier"
 				x={0}
 				y={0}
-				w={100}
-				h={100}
 				start={{ x: 0, y: 0 }}
 				cp1={{ x: 50, y: 0 }}
 				cp2={{ x: 50, y: 100 }}
