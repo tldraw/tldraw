@@ -33,9 +33,7 @@ import {
 } from '@tldraw/editor'
 import { useCallback, useContext } from 'react'
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
-import {
-	TranslationsContext,
-} from '../../ui/hooks/useTranslation/useTranslation'
+import { TranslationsContext } from '../../ui/hooks/useTranslation/useTranslation'
 import {
 	isEmptyRichText,
 	renderHtmlFromRichTextForMeasurement,
