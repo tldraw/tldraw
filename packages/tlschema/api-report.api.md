@@ -24,7 +24,7 @@ import { StoreValidator } from '@tldraw/store';
 import { T } from '@tldraw/validate';
 import { UnknownRecord } from '@tldraw/store';
 
-// @internal (undocumented)
+// @public (undocumented)
 export type AllTLShapes = {
     [K in keyof GlobalShapePropsMap]: TLBaseShape<K, GlobalShapePropsMap[K]>;
 }[keyof GlobalShapePropsMap] | TLDefaultShape;
@@ -392,7 +392,7 @@ export const imageShapeMigrations: TLPropsMigrations;
 // @public
 export const imageShapeProps: RecordProps<TLImageShape>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export type IndexByProp<T extends Record<P, string>, P extends keyof T> = {
     [E in T as E[P]]: E;
 };
@@ -1393,9 +1393,6 @@ export interface TLScribble {
 // @public
 export type TLSerializedStore = SerializedStore<TLRecord>;
 
-// Warning: (ae-incompatible-release-tags) The symbol "TLShape" is marked as @public, but its signature references "IndexByProp" which is marked as @internal
-// Warning: (ae-incompatible-release-tags) The symbol "TLShape" is marked as @public, but its signature references "AllTLShapes" which is marked as @internal
-//
 // @public
 export type TLShape<K extends keyof IndexByProp<AllTLShapes, 'type'> = keyof IndexByProp<AllTLShapes, 'type'>> = IndexByProp<AllTLShapes, 'type'>[K];
 

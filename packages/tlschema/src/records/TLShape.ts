@@ -83,12 +83,12 @@ export type TLUnknownShape = TLBaseShape<string, object>
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface GlobalShapePropsMap {}
 
-/** @internal */
+/** @public */
 export type IndexByProp<T extends Record<P, string>, P extends keyof T> = {
 	[E in T as E[P]]: E
 }
 
-/** @internal */
+/** @public */
 export type AllTLShapes =
 	| TLDefaultShape
 	| {
