@@ -26,7 +26,7 @@ export function TodoListDropdownContent({
 				alignOffset={alignOffset}
 				sideOffset={sideOffset}
 				onClick={(e) => e.stopPropagation()}
-				style={{ zIndex: 100000000 }}
+				style={{ zIndex: 'var(--tl-layer-canvas-in-front)' }}
 			>
 				<TodoListMenuContent agents={agents} menuType="menu" />
 			</_DropdownMenu.Content>
