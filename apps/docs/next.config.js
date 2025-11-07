@@ -171,7 +171,8 @@ const nextConfig = {
 			},
 			{
 				source: '/hanselminutes',
-				destination: '/?utm_source=hanselminutes&utm_medium=paid_podcast&utm_campaign=ad_hanselminutes_2025',
+				destination:
+					'/?utm_source=hanselminutes&utm_medium=paid_podcast&utm_campaign=ad_hanselminutes_2025',
 				permanent: true,
 			},
 		]
