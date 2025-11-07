@@ -1,5 +1,5 @@
 import { TlaFile } from '@tldraw/dotcom-shared'
-import { assert, sleep, uniqueId } from '@tldraw/utils'
+import { assert, retry, sleep, uniqueId } from '@tldraw/utils'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
 import { sql } from 'kysely'
@@ -467,21 +467,23 @@ async function startUserMigration(
 		})
 
 		try {
-			const user = getUserDurableObject(env, userRow.id)
+			await retry(async () => {
+				const user = getUserDurableObject(env, userRow.id)
 
-			const result = await sql<{
-				files_migrated: number
-				pinned_files_migrated: number
-				flag_added: boolean
-			}>`SELECT * FROM migrate_user_to_groups(${userRow.id}, ${uniqueId()})`.execute(pg)
-			await user.admin_forceHardReboot(userRow.id)
+				const result = await sql<{
+					files_migrated: number
+					pinned_files_migrated: number
+					flag_added: boolean
+				}>`SELECT * FROM migrate_user_to_groups(${userRow.id}, ${uniqueId()})`.execute(pg)
+				await user.admin_forceHardReboot(userRow.id)
 
-			successCount++
-			sendProgress('success', `Successfully migrated user ${userRow.email}`, {
-				userId: userRow.id,
-				email: userRow.email,
-				result: result.rows[0],
-				...getStats(),
+				successCount++
+				sendProgress('success', `Successfully migrated user ${userRow.email}`, {
+					userId: userRow.id,
+					email: userRow.email,
+					result: result.rows[0],
+					...getStats(),
+				})
 			})
 		} catch (error) {
 			failureCount++
