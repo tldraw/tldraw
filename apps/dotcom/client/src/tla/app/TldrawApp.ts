@@ -774,11 +774,11 @@ export class TldrawApp {
 	 */
 	async deleteOrForgetFile(fileId: string, groupId: string = this.getHomeGroupId()) {
 		// Optimistic update, remove file and file states
-		this.z.mutate.removeFileFromGroup({ fileId, groupId })
+		await this.z.mutate.removeFileFromGroup({ fileId, groupId })
 	}
 
 	async addFileLinkToGroup(fileId: string, groupId: string) {
-		this.z.mutate.addFileLinkToGroup({ fileId, groupId })
+		await this.z.mutate.addFileLinkToGroup({ fileId, groupId })
 	}
 
 	setFileSharedLinkType(fileId: string, sharedLinkType: TlaFile['sharedLinkType'] | 'no-access') {
