@@ -8,37 +8,21 @@ import { TldrawUiIcon } from './TldrawUiIcon'
 
 /** @public */
 export interface TLUiInputProps {
-	/** Whether the input is disabled. */
 	disabled?: boolean
-	/** The label text for the input, can be a translation key or a string. */
 	label?: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>
-	/** Icon to display on the right side of the input. */
 	icon?: TLUiIconType | Exclude<string, TLUiIconType>
-	/** Icon to display on the left side of the input. */
 	iconLeft?: TLUiIconType | Exclude<string, TLUiIconType>
-	/** Label for the icon (used for accessibility), can be a translation key or a string. */
 	iconLabel?: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>
-	/** Whether the input should automatically receive focus when mounted. */
 	autoFocus?: boolean
-	/** Whether to automatically select all text when the input receives focus. */
 	autoSelect?: boolean
-	/** Child elements to render inside the input wrapper. */
 	children?: React.ReactNode
-	/** The default value for an uncontrolled input. */
 	defaultValue?: string
-	/** Placeholder text to display when the input is empty. */
 	placeholder?: string
-	/** Callback fired when the user presses Enter to complete editing. */
 	onComplete?(value: string): void
-	/** Callback fired whenever the input value changes. */
 	onValueChange?(value: string): void
-	/** Callback fired when the user presses Escape to cancel editing. */
 	onCancel?(value: string): void
-	/** Callback fired when the input loses focus. */
 	onBlur?(value: string): void
-	/** Callback fired when the input gains focus. */
 	onFocus?(): void
-	/** Additional CSS class names to apply to the input element. */
 	className?: string
 	/**
 	 * Usually on iOS when you focus an input, the browser will adjust the viewport to bring the input
@@ -49,11 +33,8 @@ export interface TLUiInputProps {
 	 * looks nicer in scenarios where it's sufficient.
 	 */
 	shouldManuallyMaintainScrollPositionWhenFocused?: boolean
-	/** The controlled value of the input. */
 	value?: string
-	/** Test ID for the input element. */
 	'data-testid'?: string
-	/** Accessibility label for the input element. */
 	'aria-label'?: string
 }
 
