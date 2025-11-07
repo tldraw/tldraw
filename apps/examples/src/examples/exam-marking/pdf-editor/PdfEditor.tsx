@@ -190,7 +190,6 @@ const PageOverlayScreen = track(function PageOverlayScreen({ pdf }: { pdf: Pdf }
 
 	const viewportPageBounds = editor.getViewportPageBounds()
 
-	// Filter to only pages visible in viewport
 	const relevantPageBounds = pdf.pages
 		.map((page) => {
 			if (!viewportPageBounds.collides(page.bounds)) return null
@@ -202,7 +201,6 @@ const PageOverlayScreen = track(function PageOverlayScreen({ pdf }: { pdf: Pdf }
 		return `M ${bounds.x} ${bounds.y} L ${bounds.maxX} ${bounds.y} L ${bounds.maxX} ${bounds.maxY} L ${bounds.x} ${bounds.maxY} Z`
 	}
 
-	// Create a large viewport path in page coordinates
 	const viewportPath = `M ${viewportPageBounds.x} ${viewportPageBounds.y} L ${viewportPageBounds.maxX} ${viewportPageBounds.y} L ${viewportPageBounds.maxX} ${viewportPageBounds.maxY} L ${viewportPageBounds.x} ${viewportPageBounds.maxY} Z`
 
 	return (
