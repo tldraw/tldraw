@@ -300,10 +300,10 @@ export function FileItems({
 										component: ({ onClose }) => (
 											<CreateGroupDialog
 												onClose={onClose}
-												onCreate={(name) => {
+												onCreate={async (name) => {
 													const id = uniqueId()
-													app.z.mutate.createGroup({ id, name })
-													app.z.mutate.moveFileToGroup({ fileId, groupId: id })
+													await app.z.mutate.createGroup({ id, name }).client
+													await app.z.mutate.moveFileToGroup({ fileId, groupId: id }).client
 													app.ensureSidebarGroupExpanded(id)
 												}}
 											/>
