@@ -16,6 +16,8 @@ import {
 	deferAsyncEffects,
 	mapObjectMapValues,
 	objectMapKeys,
+	promiseWithResolve,
+	react,
 	sleep,
 	transact,
 	uniqueId,
@@ -92,8 +94,9 @@ export class Zero {
 		})
 		const mutationQueue = new ExecutionQueue()
 		const mutatorWrapper = (name: string, mutatorFn: any) => {
-			return async (props: any) => {
-				await mutationQueue.push(async () => {
+			return (props: any) => {
+				const server = promiseWithResolve()
+				const client = mutationQueue.push(async () => {
 					if (this.clientTooOld) {
 						this.opts.onMutationRejected('client_too_old')
 						return
@@ -110,6 +113,15 @@ export class Zero {
 					} finally {
 						controller.abort()
 					}
+					const unlisten = react('resolve server promise', () => {
+						if (
+							this.store.getOptimisticUpdates().filter((u) => u.mutationId === mutationId)
+								.length === 0
+						) {
+							server.resolve(null)
+							unlisten()
+						}
+					})
 					this.pendingUpdates.push({
 						type: 'mutator',
 						mutationId,
@@ -122,6 +134,7 @@ export class Zero {
 						}, 50)
 					}
 				})
+				return { client, server }
 			}
 		}
 		const mutators = createMutators(opts.userId) as any
