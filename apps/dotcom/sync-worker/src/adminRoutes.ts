@@ -492,12 +492,19 @@ async function startUserMigration(
 				error: errorMessage,
 			})
 
+			// Send failure event to client so it can be stored in the log
 			sendProgress('failure', `Failed to migrate ${userRow.email}`, {
 				userId: userRow.id,
 				email: userRow.email,
 				error: errorMessage,
 				...getStats(),
 			})
+
+			// Stop processing immediately after reporting the failure
+			sendProgress('summary', 'Migration stopped due to failure', {
+				failures: failures.length > 0 ? failures : undefined,
+			})
+			return false
 		}
 
 		processedCount++
