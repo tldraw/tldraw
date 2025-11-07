@@ -4237,44 +4237,25 @@ export interface TLUiImageToolbarProps {
 
 // @public (undocumented)
 export interface TLUiInputProps {
-    // (undocumented)
     'aria-label'?: string;
-    // (undocumented)
     'data-testid'?: string;
-    // (undocumented)
     autoFocus?: boolean;
-    // (undocumented)
     autoSelect?: boolean;
-    // (undocumented)
     children?: React_2.ReactNode;
-    // (undocumented)
     className?: string;
-    // (undocumented)
     defaultValue?: string;
-    // (undocumented)
     disabled?: boolean;
-    // (undocumented)
     icon?: Exclude<string, TLUiIconType> | TLUiIconType;
-    // (undocumented)
     iconLabel?: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
-    // (undocumented)
     iconLeft?: Exclude<string, TLUiIconType> | TLUiIconType;
-    // (undocumented)
     label?: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
-    // (undocumented)
     onBlur?(value: string): void;
-    // (undocumented)
     onCancel?(value: string): void;
-    // (undocumented)
     onComplete?(value: string): void;
-    // (undocumented)
     onFocus?(): void;
-    // (undocumented)
     onValueChange?(value: string): void;
-    // (undocumented)
     placeholder?: string;
     shouldManuallyMaintainScrollPositionWhenFocused?: boolean;
-    // (undocumented)
     value?: string;
 }
 

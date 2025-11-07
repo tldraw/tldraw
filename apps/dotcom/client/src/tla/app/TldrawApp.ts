@@ -136,6 +136,10 @@ export class TldrawApp {
 
 	toasts: TLUiToastsContextType | null = null
 	trackEvent: TLAppUiContextType
+	sidebarSearch = atom<{
+		query: string
+		isFocused: boolean
+	}>('search', { query: '', isFocused: false })
 
 	private constructor(
 		public readonly userId: string,
@@ -325,8 +329,36 @@ export class TldrawApp {
 		const group = this.getGroupMembership(groupId)
 		if (!group) return []
 
-		const pinned = group.groupFiles.filter((f) => f.index !== null)
-		const unpinned = group.groupFiles.filter((f) => f.index === null)
+		const searchQuery = this.sidebarSearch.get().query
+
+		const pinned = group.groupFiles.filter((f) => {
+			if (f.index === null) return false
+			if (searchQuery) {
+				if (
+					!f.file.name
+						.toLowerCase()
+						.replace(/\s/g, '')
+						.includes(searchQuery.toLowerCase().replace(/\s/g, ''))
+				) {
+					return false
+				}
+			}
+			return true
+		})
+		const unpinned = group.groupFiles.filter((f) => {
+			if (f.index !== null) return false
+			if (searchQuery) {
+				if (
+					!f.file.name
+						.toLowerCase()
+						.replace(/\s/g, '')
+						.includes(searchQuery.toLowerCase().replace(/\s/g, ''))
+				) {
+					return false
+				}
+			}
+			return true
+		})
 
 		const lastOrdering = this.lastGroupFileOrderings.get(groupId)
 		const retainedOrdering =
@@ -417,6 +449,8 @@ export class TldrawApp {
 
 	@computed({ isEqual })
 	getUserRecentFiles() {
+		const searchQuery = this.sidebarSearch.get().query
+
 		if (this.isGroupsMigrated()) {
 			return this.getGroupFilesSorted(this.getHomeGroupId())
 		}
@@ -444,6 +478,19 @@ export class TldrawApp {
 				// if the file is deleted, we don't want to show it in the recent files
 				continue
 			}
+
+			// Super simple search
+			if (searchQuery) {
+				if (
+					!file.name
+						.toLowerCase()
+						.replace(/\s/g, '')
+						.includes(searchQuery.toLowerCase().replace(/\s/g, ''))
+				) {
+					continue
+				}
+			}
+
 			const existing = this.lastRecentFileOrdering?.find((f) => f.fileId === fileId)
 			if (existing && existing.isPinned === state.isPinned) {
 				nextRecentFileOrdering.push(existing)

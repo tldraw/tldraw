@@ -3,6 +3,7 @@ import { useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { getRelevantDates } from '../../../utils/dates'
 import { F } from '../../../utils/i18n'
+import styles from '../sidebar.module.css'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
 import { TlaSidebarFileSection } from './TlaSidebarFileSection'
 import { RecentFile } from './sidebar-shared'
@@ -53,6 +54,7 @@ export function TlaSidebarRecentFiles() {
 				thisWeekFiles,
 				thisMonthFiles,
 				olderFiles,
+				noResults: recentFiles.length === 0,
 			}
 		},
 		[app]
@@ -140,6 +142,15 @@ export function TlaSidebarRecentFiles() {
 						))}
 				</TlaSidebarFileSection>
 			) : null}
+			{results.noResults ? <TlaSidebarNoFilesMessage /> : null}
 		</Fragment>
+	)
+}
+
+function TlaSidebarNoFilesMessage() {
+	return (
+		<div className={styles.sidebarNoFilesMessage}>
+			<F defaultMessage={'No results.'} />
+		</div>
 	)
 }
