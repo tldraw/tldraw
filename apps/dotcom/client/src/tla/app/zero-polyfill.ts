@@ -93,9 +93,9 @@ export class Zero {
 			})
 		})
 		const mutationQueue = new ExecutionQueue()
-		const server = promiseWithResolve()
 		const mutatorWrapper = (name: string, mutatorFn: any) => {
 			return (props: any) => {
+				const server = promiseWithResolve()
 				const client = mutationQueue.push(async () => {
 					if (this.clientTooOld) {
 						this.opts.onMutationRejected('client_too_old')
