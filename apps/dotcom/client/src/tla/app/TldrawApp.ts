@@ -774,7 +774,7 @@ export class TldrawApp {
 	 */
 	async deleteOrForgetFile(fileId: string, groupId: string = this.getHomeGroupId()) {
 		// Optimistic update, remove file and file states
-		this.z.mutate.removeFileFromGroup({ fileId, groupId })
+		await this.z.mutate.removeFileFromGroup({ fileId, groupId })
 	}
 
 	async addFileLinkToGroup(fileId: string, groupId: string) {
