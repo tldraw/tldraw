@@ -625,7 +625,7 @@ function BatchMigrateUsersToGroups() {
 
 		try {
 			await startBatch()
-		} catch (err) {
+		} catch (_err) {
 			// Error already handled in startBatch
 		}
 	}, [sleepMs])
