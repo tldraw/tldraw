@@ -208,7 +208,7 @@ async function executeGroupOperations(app: TldrawApp, groupId: string, operation
 			newIndex = getIndexBetween(beforeGroup?.index, afterGroup?.index)
 		}
 
-		await app.z.mutate.updateOwnGroupUser({ groupId, index: newIndex })
+		await app.z.mutate.updateOwnGroupUser({ groupId, index: newIndex }).client
 	}
 }
 

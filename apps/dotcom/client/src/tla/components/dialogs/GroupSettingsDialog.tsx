@@ -103,7 +103,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 
 	const handleLeaveGroup = async () => {
 		try {
-			await app.z.mutate.leaveGroup({ groupId })
+			await app.z.mutate.leaveGroup({ groupId }).client
 			onClose()
 		} catch (error) {
 			console.error('Error leaving group:', error)
@@ -114,7 +114,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 		try {
 			const isCurrentlyOnAFileInThisGroup =
 				currentFileId && app.getFile(currentFileId)?.owningGroupId === groupId
-			await app.z.mutate.deleteGroup({ id: groupId })
+			await app.z.mutate.deleteGroup({ id: groupId }).client
 			onClose()
 			if (isCurrentlyOnAFileInThisGroup) {
 				navigate('/')
@@ -282,7 +282,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 														groupId,
 														targetUserId: member.userId,
 														role: value,
-													})
+													}).client
 												} catch (err) {
 													console.error('Failed to change member role', err)
 												}
