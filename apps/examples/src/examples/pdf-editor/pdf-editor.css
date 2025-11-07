@@ -41,7 +41,6 @@
 .PdfEditor .PageOverlayScreen-outline {
 	position: absolute;
 	pointer-events: none;
-	/* border: 1px solid var(--tl-color-overlay); */
 	box-shadow: var(--tl-shadow-2);
 }
 .PdfEditor .ExportPdfButton {

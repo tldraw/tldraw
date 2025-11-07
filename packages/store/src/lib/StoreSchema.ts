@@ -3,11 +3,10 @@ import {
 	assert,
 	exhaustiveSwitchError,
 	getOwnProperty,
+	isEqual,
 	structuredClone,
 } from '@tldraw/utils'
 import { UnknownRecord } from './BaseRecord'
-import { RecordType } from './RecordType'
-import { SerializedStore, Store, StoreSnapshot } from './Store'
 import {
 	Migration,
 	MigrationFailureReason,
@@ -18,6 +17,9 @@ import {
 	sortMigrations,
 	validateMigrations,
 } from './migrate'
+import { RecordType } from './RecordType'
+import { SerializedStore, Store, StoreSnapshot } from './Store'
+import { MetadataKeys, TLPersistentStorageTransaction } from './TLPersistentStorage'
 
 /**
  * Version 1 format for serialized store schema information.
@@ -541,7 +543,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		}
 
 		if (direction === 'down') {
-			if (!migrationsToApply.every((m) => m.down)) {
+			if (!migrationsToApply.every((m) => m.scope === 'record' && m.down)) {
 				return {
 					type: 'error',
 					reason: MigrationFailureReason.TargetVersionTooOld,
@@ -567,6 +569,42 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		}
 
 		return { type: 'success', value: record }
+	}
+
+	migratePersistentStorage(txn: TLPersistentStorageTransaction<R>) {
+		const schema = JSON.parse(txn.getMetadata(MetadataKeys.schema) ?? 'null')
+		assert(schema, 'Schema is missing.')
+
+		const migrations = this.getMigrationsSince(schema)
+		if (!migrations.ok) {
+			console.error('Error migrating store', migrations.error)
+			throw new Error(migrations.error)
+		}
+		const migrationsToApply = migrations.value
+		if (migrationsToApply.length === 0) {
+			return
+		}
+
+		txn.setMetadata(MetadataKeys.schema, JSON.stringify(this.serialize()))
+
+		for (const migration of migrationsToApply) {
+			if (migration.scope === 'record') {
+				for (const [id, { state }] of txn.documents()) {
+					const shouldApply = migration.filter ? migration.filter(state) : true
+					if (!shouldApply) continue
+					const record = structuredClone(state)
+					const result = migration.up!(record as any) ?? record
+					if (!isEqual(result, state)) {
+						txn.setDocument(id, result as R)
+					}
+				}
+			} else if (migration.scope === 'store') {
+				assert('upStorage' in migration, 'upStorage is missing')
+				migration.upStorage(txn)
+			} else {
+				exhaustiveSwitchError(migration)
+			}
+		}
 	}
 
 	/**
@@ -632,6 +670,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 						}
 					}
 				} else if (migration.scope === 'store') {
+					assert('up' in migration, 'up is missing')
 					const result = migration.up!(store)
 					if (result) {
 						store = result as any

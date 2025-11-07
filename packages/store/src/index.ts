@@ -66,6 +66,15 @@ export {
 	type StoreBeforeDeleteHandler,
 	type StoreOperationCompleteHandler,
 } from './lib/StoreSideEffects'
+export {
+	MetadataKeys,
+	type TLPersistentStorage,
+	type TLPersistentStorageGetChangesSinceResult,
+	type TLPersistentStorageOnChangeCallbackProps,
+	type TLPersistentStorageTransaction,
+	type TLPersistentStorageTransactionOptions,
+	type TLPersistentStorageTransactionResult,
+} from './lib/TLPersistentStorage'
 
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,

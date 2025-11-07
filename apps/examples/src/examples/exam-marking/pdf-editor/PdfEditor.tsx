@@ -28,7 +28,7 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 	const pdfEditorComponents = useMemo<TLComponents>(
 		() => ({
 			PageMenu: null,
-			InFrontOfTheCanvas: () => <PageOverlayScreen pdf={pdf} />,
+			Overlays: () => <PageOverlayScreen pdf={pdf} />,
 			SharePanel: () => (
 				<div
 					style={{
@@ -189,14 +189,11 @@ const PageOverlayScreen = track(function PageOverlayScreen({ pdf }: { pdf: Pdf }
 	const editor = useEditor()
 
 	const viewportPageBounds = editor.getViewportPageBounds()
-	const viewportScreenBounds = editor.getViewportScreenBounds()
 
 	const relevantPageBounds = pdf.pages
 		.map((page) => {
 			if (!viewportPageBounds.collides(page.bounds)) return null
-			const topLeft = editor.pageToViewport(page.bounds)
-			const bottomRight = editor.pageToViewport({ x: page.bounds.maxX, y: page.bounds.maxY })
-			return new Box(topLeft.x, topLeft.y, bottomRight.x - topLeft.x, bottomRight.y - topLeft.y)
+			return page.bounds
 		})
 		.filter((bounds): bounds is Box => bounds !== null)
 
@@ -204,7 +201,7 @@ const PageOverlayScreen = track(function PageOverlayScreen({ pdf }: { pdf: Pdf }
 		return `M ${bounds.x} ${bounds.y} L ${bounds.maxX} ${bounds.y} L ${bounds.maxX} ${bounds.maxY} L ${bounds.x} ${bounds.maxY} Z`
 	}
 
-	const viewportPath = `M 0 0 L ${viewportScreenBounds.w} 0 L ${viewportScreenBounds.w} ${viewportScreenBounds.h} L 0 ${viewportScreenBounds.h} Z`
+	const viewportPath = `M ${viewportPageBounds.x} ${viewportPageBounds.y} L ${viewportPageBounds.maxX} ${viewportPageBounds.y} L ${viewportPageBounds.maxX} ${viewportPageBounds.maxY} L ${viewportPageBounds.x} ${viewportPageBounds.maxY} Z`
 
 	return (
 		<>
