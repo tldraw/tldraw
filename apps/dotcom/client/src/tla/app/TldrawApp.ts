@@ -778,7 +778,7 @@ export class TldrawApp {
 	}
 
 	async addFileLinkToGroup(fileId: string, groupId: string) {
-		this.z.mutate.addFileLinkToGroup({ fileId, groupId })
+		await this.z.mutate.addFileLinkToGroup({ fileId, groupId })
 	}
 
 	setFileSharedLinkType(fileId: string, sharedLinkType: TlaFile['sharedLinkType'] | 'no-access') {
