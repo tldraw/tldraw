@@ -5,6 +5,7 @@ import { fetch } from 'tldraw'
 import { TlaButton } from '../tla/components/TlaButton/TlaButton'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import styles from './admin.module.css'
+import { saveMigrationLog } from './migrationLogsDB'
 
 // Helper component for structured data display
 function StructuredDataDisplay({ data }: { data: ZStoreData }) {
@@ -570,7 +571,7 @@ function BatchMigrateUsersToGroups() {
 					const es = new EventSource(`/api/app/admin/migrate_users_batch?${params}`)
 					setEventSource(es)
 
-					es.onmessage = (event) => {
+					es.onmessage = async (event) => {
 						const data = JSON.parse(event.data)
 
 						const timestamp = new Date(data.timestamp).toLocaleTimeString()
@@ -581,6 +582,15 @@ function BatchMigrateUsersToGroups() {
 							const updated = [...prev, logEntry]
 							return updated.length > 500 ? updated.slice(-500) : updated
 						})
+
+						// Save failure events to IndexedDB
+						if (data.step === 'failure') {
+							try {
+								await saveMigrationLog(data)
+							} catch (err) {
+								console.error('Failed to save migration log to IndexedDB:', err)
+							}
+						}
 
 						// Update stats from details
 						if (data.details) {
