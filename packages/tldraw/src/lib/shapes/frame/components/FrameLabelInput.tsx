@@ -1,7 +1,8 @@
-import { TLFrameShape, TLShapeId, useEditor } from '@tldraw/editor'
+import { TLFrameShape, TLShapeId, useEditor, useValue } from '@tldraw/editor'
 import { forwardRef, useCallback, useEffect, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../../ui/constants'
 import { useBreakpoint } from '../../../ui/context/breakpoints'
+import { useTranslation } from '../../../ui/hooks/useTranslation/useTranslation'
 import { defaultEmptyAs } from '../FrameShapeUtil'
 
 export const FrameLabelInput = forwardRef<
@@ -10,8 +11,14 @@ export const FrameLabelInput = forwardRef<
 >(({ id, name, isEditing }, ref) => {
 	const editor = useEditor()
 	const breakpoint = useBreakpoint()
-	const isMobile = breakpoint <= PORTRAIT_BREAKPOINT.MOBILE
+	const isCoarsePointer = useValue(
+		'isCoarsePointer',
+		() => editor.getInstanceState().isCoarsePointer,
+		[editor]
+	)
+	const shouldUseWindowPrompt = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && isCoarsePointer
 	const promptOpen = useRef<boolean>(false)
+	const msg = useTranslation()
 
 	const handlePointerDown = useCallback(
 		(e: React.PointerEvent) => {
@@ -34,23 +41,18 @@ export const FrameLabelInput = forwardRef<
 	)
 
 	const renameFrame = useCallback(
-		(value: string | undefined) => {
-			if (!value) return
-
-			const trimmed = value.trim()
-			if (!trimmed) return
-
+		(value: string) => {
 			const shape = editor.getShape<TLFrameShape>(id)
 			if (!shape) return
 
 			const name = shape.props.name
-			if (name === trimmed) return
+			if (name === value) return
 
 			editor.updateShapes([
 				{
 					id,
 					type: 'frame',
-					props: { name: trimmed },
+					props: { name: value },
 				},
 			])
 		},
@@ -77,28 +79,27 @@ export const FrameLabelInput = forwardRef<
 			promptOpen.current = false
 			return
 		}
-		if (isEditing && isMobile && !promptOpen.current) {
+		if (isEditing && shouldUseWindowPrompt && !promptOpen.current) {
 			promptOpen.current = true
-			const newname = window.prompt('Rename frame', name)
-			if (!newname) {
-				promptOpen.current = false
-				editor.setEditingShape(null)
-				return
-			}
-			renameFrame(newname)
+			const newName = window.prompt(msg('action.rename'), name)
+			promptOpen.current = false
+			if (newName !== null) renameFrame(newName)
+			editor.setEditingShape(null)
 		}
-	}, [isEditing, isMobile, name, renameFrame, editor])
+	}, [isEditing, shouldUseWindowPrompt, name, msg, renameFrame, editor])
 
 	return (
-		<div className={`tl-frame-label ${isEditing && !isMobile ? 'tl-frame-label__editing' : ''}`}>
+		<div
+			className={`tl-frame-label ${isEditing && !shouldUseWindowPrompt ? 'tl-frame-label__editing' : ''}`}
+		>
 			<input
 				className="tl-frame-name-input"
 				ref={ref}
-				disabled={!isEditing || isMobile}
-				readOnly={!isEditing && !isMobile}
+				disabled={!isEditing || shouldUseWindowPrompt}
+				readOnly={!isEditing && !shouldUseWindowPrompt}
 				style={{ display: isEditing ? undefined : 'none' }}
 				value={name}
-				autoFocus={!isMobile}
+				autoFocus={!shouldUseWindowPrompt}
 				onKeyDown={handleKeyDown}
 				onBlur={handleBlur}
 				onChange={handleChange}
