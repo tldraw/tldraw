@@ -279,8 +279,6 @@ export function createMutators(userId: string) {
 				if (tx.location === 'server') {
 					// Verify the user has access to this file
 					const file = await tx.query.file.where('id', '=', fileState.fileId).one().run()
-					// If file is deleted, silently ignore the update
-					if (!file || file.isDeleted) return
 					await assertUserCanAccessFile(tx, userId, file!)
 				}
 				const exists = await tx.query.file_state
