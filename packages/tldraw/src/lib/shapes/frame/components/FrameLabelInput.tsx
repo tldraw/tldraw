@@ -81,12 +81,14 @@ export const FrameLabelInput = forwardRef<
 		}
 		if (isEditing && shouldUseWindowPrompt && !promptOpen.current) {
 			promptOpen.current = true
-			const newName = window.prompt(msg('action.rename'), name)
+			const shape = editor.getShape<TLFrameShape>(id)
+			const currentName = shape?.props.name ?? ''
+			const newName = window.prompt(msg('action.rename'), currentName)
 			promptOpen.current = false
 			if (newName !== null) renameFrame(newName)
 			editor.setEditingShape(null)
 		}
-	}, [isEditing, shouldUseWindowPrompt, name, msg, renameFrame, editor])
+	}, [isEditing, shouldUseWindowPrompt, id, msg, renameFrame, editor])
 
 	return (
 		<div
