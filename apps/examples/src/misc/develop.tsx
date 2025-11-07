@@ -4,7 +4,9 @@ import {
 	DefaultContextMenuContent,
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
+	Editor,
 	ExampleDialog,
+	react,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuActionCheckboxItem,
@@ -95,6 +97,14 @@ function afterChangeHandler(prev: any, next: any) {
 	}
 }
 
+function getToolState(editor: Editor) {
+	const toolId = editor.getCurrentToolId()
+	const stylesForNextShape = editor.getInstanceState().stylesForNextShape
+	return { toolId, stylesForNextShape }
+}
+
+type ToolState = ReturnType<typeof getToolState>
+
 export default function Develop() {
 	const performanceOverrides = usePerformance()
 	const debuggingOverrides = useDebugging()
@@ -108,6 +118,27 @@ export default function Develop() {
 				onMount={(editor) => {
 					;(window as any).app = editor
 					;(window as any).editor = editor
+
+					// restore tool state from localStorage
+					const toolState = JSON.parse(
+						localStorage.getItem('toolState') || '{}'
+					) as Partial<ToolState>
+					try {
+						if (toolState.toolId) {
+							editor.setCurrentTool(toolState.toolId)
+						}
+						if (toolState.stylesForNextShape) {
+							editor.updateInstanceState({ stylesForNextShape: toolState.stylesForNextShape })
+						}
+					} catch (e) {
+						console.error('Error restoring tool state', e)
+						// this would probably only happen if a tool/style is renamed or removed
+						// which is very unlikely
+					}
+
+					const unsub = react('save tool state', () => {
+						localStorage.setItem('toolState', JSON.stringify(getToolState(editor)))
+					})
 
 					Object.defineProperty(window, '$s', {
 						get: function () {
@@ -123,6 +154,7 @@ export default function Develop() {
 					)
 					return () => {
 						dispose()
+						unsub()
 					}
 				}}
 				components={components}
