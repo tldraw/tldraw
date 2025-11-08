@@ -232,6 +232,46 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 		}
 	}, [state, client.signUp, signIn])
 
+	const handleTermsSubmit = useCallback(async () => {
+		if (state.name !== 'terms') return
+
+		try {
+			// Persist analytics choice before completing sign-up / redirecting
+			if (state.analyticsOptIn !== null) {
+				updateAnalyticsConsent(state.analyticsOptIn)
+			}
+
+			const su: any = await client.signUp.update({ legalAccepted: true } as any)
+			if (su?.status === 'complete' && su?.createdSessionId) {
+				await setActive({ session: su.createdSessionId })
+				onClose?.()
+				return
+			}
+			const needsEmail = (su?.missingFields || su?.missing_fields || []).includes?.('email_address')
+			if (needsEmail) {
+				if (!(client.signUp as any)?.emailAddress && state.identifier) {
+					await client.signUp.update({ emailAddress: state.identifier } as any)
+				}
+				await client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
+			}
+			setState({
+				name: 'enterCode',
+				identifier: state.identifier,
+				code: state.code,
+				isCodeFocused: false,
+				isSignUpFlow: true,
+				isSubmitting: false,
+				error: null,
+			})
+		} catch (_e: any) {
+			const e = _e as any
+			setState({
+				...state,
+				error: e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Something went wrong',
+			})
+		}
+	}, [state, client.signUp, onClose, setActive, updateAnalyticsConsent])
+
 	const enterEmailAddressMsg = useMsg(messages.enterEmailAddress)
 
 	if (state.name === 'enterEmail') {
@@ -243,7 +283,7 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 							{/* @ts-ignore this is fine */}
 							<Clerk.Connection name="google">
 								<>
-									<Clerk.Icon icon="google" />
+									<Clerk.Icon icon="google" style={{ width: '16px', height: '16px' }} />
 									<F defaultMessage="Continue with Google" />
 								</>
 							</Clerk.Connection>
@@ -292,46 +332,7 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 	if (state.name === 'terms') {
 		return (
 			<TlaTermsAcceptance
-				onContinue={async () => {
-					try {
-						// Persist analytics choice before completing sign-up / redirecting
-						if (state.analyticsOptIn !== null) {
-							updateAnalyticsConsent(state.analyticsOptIn)
-						}
-
-						const su: any = await client.signUp.update({ legalAccepted: true } as any)
-						if (su?.status === 'complete' && su?.createdSessionId) {
-							await setActive({ session: su.createdSessionId })
-							onClose?.()
-							return
-						}
-						const needsEmail = (su?.missingFields || su?.missing_fields || []).includes?.(
-							'email_address'
-						)
-						if (needsEmail) {
-							if (!(client.signUp as any)?.emailAddress && state.identifier) {
-								await client.signUp.update({ emailAddress: state.identifier } as any)
-							}
-							await client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
-						}
-						setState({
-							name: 'enterCode',
-							identifier: state.identifier,
-							code: state.code,
-							isCodeFocused: false,
-							isSignUpFlow: true,
-							isSubmitting: false,
-							error: null,
-						})
-					} catch (_e: any) {
-						const e = _e as any
-						setState({
-							...state,
-							error:
-								e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Something went wrong',
-						})
-					}
-				}}
+				onContinue={handleTermsSubmit}
 				analyticsOptIn={state.analyticsOptIn}
 				onAnalyticsChange={(checked) => setState({ ...state, analyticsOptIn: checked })}
 				onClose={onClose}
