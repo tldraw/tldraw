@@ -34,90 +34,150 @@ export function TlaSignInDialog({ onClose }: { onClose?(): void }) {
 	)
 }
 
+type AuthState =
+	| {
+			name: 'enterEmail'
+			identifier: string
+			isSubmitting: boolean
+			error: string | null
+	  }
+	| {
+			name: 'enterCode'
+			identifier: string
+			code: string
+			isCodeFocused: boolean
+			emailAddressId?: string
+			isSignUpFlow: boolean
+			isSubmitting: boolean
+			error: string | null
+	  }
+	| {
+			name: 'terms'
+			identifier: string
+			code: string
+			analyticsOptIn: boolean | null
+			error: string | null
+	  }
+
 function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 	const { signIn, isLoaded: isSignInLoaded } = useSignIn()
 	const { setActive, client } = useClerk()
-	const enterEmailAddressMsg = useMsg(messages.enterEmailAddress)
-
-	const [stage, setStage] = useState<'enterEmail' | 'terms' | 'enterCode'>('enterEmail')
-	const [identifier, setIdentifier] = useState('')
-	const [code, setCode] = useState('')
-	const [emailAddressId, setEmailAddressId] = useState<string | undefined>(undefined)
-	const [isSubmitting, setIsSubmitting] = useState(false)
-	const [error, setError] = useState<string | null>(null)
-	const [isSignUpFlow, setIsSignUpFlow] = useState(false)
-	const [isCodeFocused, setIsCodeFocused] = useState(false)
 	const [currentConsent, updateAnalyticsConsent] = useAnalyticsConsent()
-	const [analyticsOptIn, setAnalyticsOptIn] = useState(currentConsent)
 
-	async function handleEmailSubmit(e: FormEvent) {
-		e.preventDefault()
-		if (!isSignInLoaded || !signIn || !identifier) return
-		setIsSubmitting(true)
-		setError(null)
-		try {
-			const res = await signIn.create({ identifier })
-			if (res.status === 'complete') {
-				await setActive({ session: res.createdSessionId })
-				onClose?.()
-				return
-			}
-			// Prepare email code and move to code stage
-			const emailCodeFactor = (res as any).supportedFirstFactors?.find(
-				(ff: any) => ff.strategy === 'email_code'
-			)
-			const id = emailCodeFactor?.emailAddressId as string | undefined
-			if (!id) {
-				setError('Email verification is not available for this account.')
-				return
-			}
-			setEmailAddressId(id)
-			await signIn.prepareFirstFactor({ strategy: 'email_code', emailAddressId: id })
-			setIsSignUpFlow(false)
-			setStage('enterCode')
-		} catch (err: any) {
-			const apiErrors = err?.errors as Array<{
-				code?: string
-				message?: string
-				longMessage?: string
-			}>
-			const notFound = apiErrors?.find(
-				(e) => e.code === 'form_identifier_not_found' || e.code === 'invitation_account_not_exists'
-			)
-			if (notFound) {
-				try {
-					setIsSignUpFlow(true)
-					// Initialize sign up with the email before preparing verification
-					await client.signUp.create({ emailAddress: identifier })
-					// Always prepare & go to code first; legal acceptance handled after verification if required
-					await client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
-					setStage('enterCode')
-				} catch (e: any) {
-					setError(e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Something went wrong')
+	const [state, setState] = useState<AuthState>({
+		name: 'enterEmail',
+		identifier: '',
+		isSubmitting: false,
+		error: null,
+	})
+
+	const handleEmailSubmit = useCallback(
+		async (e: FormEvent) => {
+			e.preventDefault()
+			if (state.name !== 'enterEmail') return
+			if (!isSignInLoaded || !signIn || !state.identifier) return
+
+			setState({ ...state, isSubmitting: true, error: null })
+
+			try {
+				const res = await signIn.create({ identifier: state.identifier })
+				if (res.status === 'complete') {
+					await setActive({ session: res.createdSessionId })
+					onClose?.()
+					return
 				}
-			} else {
-				setError(apiErrors?.[0]?.longMessage || apiErrors?.[0]?.message || 'Something went wrong')
+				// Prepare email code and move to code stage
+				const emailCodeFactor = (res as any).supportedFirstFactors?.find(
+					(ff: any) => ff.strategy === 'email_code'
+				)
+				const id = emailCodeFactor?.emailAddressId as string | undefined
+				if (!id) {
+					setState({
+						...state,
+						isSubmitting: false,
+						error: 'Email verification is not available for this account.',
+					})
+					return
+				}
+				await signIn.prepareFirstFactor({ strategy: 'email_code', emailAddressId: id })
+				setState({
+					name: 'enterCode',
+					identifier: state.identifier,
+					code: '',
+					isCodeFocused: false,
+					emailAddressId: id,
+					isSignUpFlow: false,
+					isSubmitting: false,
+					error: null,
+				})
+			} catch (err: any) {
+				const apiErrors = err?.errors as Array<{
+					code?: string
+					message?: string
+					longMessage?: string
+				}>
+				const notFound = apiErrors?.find(
+					(e) =>
+						e.code === 'form_identifier_not_found' || e.code === 'invitation_account_not_exists'
+				)
+				if (notFound) {
+					try {
+						// Initialize sign up with the email before preparing verification
+						await client.signUp.create({ emailAddress: state.identifier })
+						// Always prepare & go to code first; legal acceptance handled after verification if required
+						await client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
+						setState({
+							name: 'enterCode',
+							identifier: state.identifier,
+							code: '',
+							isCodeFocused: false,
+							isSignUpFlow: true,
+							isSubmitting: false,
+							error: null,
+						})
+					} catch (e: any) {
+						setState({
+							...state,
+							isSubmitting: false,
+							error:
+								e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Something went wrong',
+						})
+					}
+				} else {
+					setState({
+						...state,
+						isSubmitting: false,
+						error: apiErrors?.[0]?.longMessage || apiErrors?.[0]?.message || 'Something went wrong',
+					})
+				}
 			}
-		} finally {
-			setIsSubmitting(false)
-		}
-	}
+		},
+		[state, client.signUp, signIn, onClose, setActive, isSignInLoaded]
+	)
 
 	const handleCodeSubmit = useCallback(
 		async (e?: FormEvent) => {
 			e?.preventDefault()
-			if (isSubmitting) return
-			setIsSubmitting(true)
-			setError(null)
+			if (state.name !== 'enterCode') return
+			if (state.isSubmitting) return
+
+			setState({ ...state, isSubmitting: true, error: null })
+
 			try {
-				if (isSignUpFlow) {
-					const s: any = await client.signUp.attemptEmailAddressVerification({ code })
+				if (state.isSignUpFlow) {
+					const s: any = await client.signUp.attemptEmailAddressVerification({ code: state.code })
 					// If legal acceptance is still required, show terms now
 					const needsLegal = (s?.missingFields || s?.missing_fields || []).includes?.(
 						'legal_accepted'
 					)
 					if (needsLegal) {
-						setStage('terms')
+						setState({
+							name: 'terms',
+							identifier: state.identifier,
+							code: state.code,
+							analyticsOptIn: currentConsent,
+							error: null,
+						})
 						return
 					}
 					if (s.status === 'complete') {
@@ -126,7 +186,7 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 						return
 					}
 				} else if (signIn) {
-					const r = await signIn.attemptFirstFactor({ strategy: 'email_code', code })
+					const r = await signIn.attemptFirstFactor({ strategy: 'email_code', code: state.code })
 					if (r.status === 'complete') {
 						await setActive({ session: r.createdSessionId })
 						onClose?.()
@@ -135,37 +195,46 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 				}
 			} catch (_e: any) {
 				const e = _e as any
-				setError(e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Invalid code')
-			} finally {
-				setIsSubmitting(false)
+				setState({
+					...state,
+					isSubmitting: false,
+					error: e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Invalid code',
+				})
 			}
 		},
-		[client.signUp, isSignUpFlow, signIn, code, onClose, setActive, isSubmitting]
+		[state, client.signUp, signIn, onClose, setActive, currentConsent]
 	)
 
 	useEffect(() => {
-		if (code.length === 6) {
+		if (state.name === 'enterCode' && state.code.length === 6) {
 			handleCodeSubmit()
 		}
-	}, [code, handleCodeSubmit])
+	}, [state, handleCodeSubmit])
 
-	async function handleResend() {
+	const handleResend = useCallback(async () => {
+		if (state.name !== 'enterCode') return
+
 		try {
-			if (isSignUpFlow) {
+			if (state.isSignUpFlow) {
 				// Ensure email is set on signUp in case the client lost state
-				if (!(client.signUp as any)?.emailAddress && identifier) {
-					await client.signUp.update({ emailAddress: identifier } as any)
+				if (!(client.signUp as any)?.emailAddress && state.identifier) {
+					await client.signUp.update({ emailAddress: state.identifier } as any)
 				}
 				await client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
-			} else if (signIn && emailAddressId) {
-				await signIn.prepareFirstFactor({ strategy: 'email_code', emailAddressId })
+			} else if (signIn && state.emailAddressId) {
+				await signIn.prepareFirstFactor({
+					strategy: 'email_code',
+					emailAddressId: state.emailAddressId,
+				})
 			}
 		} catch (_e) {
 			// noop
 		}
-	}
+	}, [state, client.signUp, signIn])
 
-	if (stage === 'enterEmail') {
+	const enterEmailAddressMsg = useMsg(messages.enterEmailAddress)
+
+	if (state.name === 'enterEmail') {
 		return (
 			<TlaAuthStep onClose={onClose} showDescription>
 				<SignIn.Root routing="virtual">
@@ -197,21 +266,21 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 							id="tla-identifier"
 							name="identifier"
 							type="email"
-							value={identifier}
-							onChange={(e) => setIdentifier(e.target.value)}
+							value={state.identifier}
+							onChange={(e) => setState({ ...state, identifier: e.target.value })}
 							placeholder={enterEmailAddressMsg}
 							className={styles.authInput}
 							required
-							disabled={isSubmitting}
+							disabled={state.isSubmitting}
 						/>
-						{error && <div className={styles.authError}>{error}</div>}
+						{state.error && <div className={styles.authError}>{state.error}</div>}
 					</div>
 
 					<TldrawUiButton
 						type="primary"
 						htmlButtonType="submit"
 						className={styles.authContinueButton}
-						disabled={isSubmitting || !identifier}
+						disabled={state.isSubmitting || !state.identifier}
 					>
 						<F defaultMessage="Continue" />
 					</TldrawUiButton>
@@ -220,14 +289,14 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 		)
 	}
 
-	if (stage === 'terms') {
+	if (state.name === 'terms') {
 		return (
 			<TlaTermsAcceptance
 				onContinue={async () => {
 					try {
 						// Persist analytics choice before completing sign-up / redirecting
-						if (analyticsOptIn !== null) {
-							updateAnalyticsConsent(analyticsOptIn)
+						if (state.analyticsOptIn !== null) {
+							updateAnalyticsConsent(state.analyticsOptIn)
 						}
 
 						const su: any = await client.signUp.update({ legalAccepted: true } as any)
@@ -240,26 +309,38 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 							'email_address'
 						)
 						if (needsEmail) {
-							if (!(client.signUp as any)?.emailAddress && identifier) {
-								await client.signUp.update({ emailAddress: identifier } as any)
+							if (!(client.signUp as any)?.emailAddress && state.identifier) {
+								await client.signUp.update({ emailAddress: state.identifier } as any)
 							}
 							await client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
 						}
-						setStage('enterCode')
-						setError(null)
+						setState({
+							name: 'enterCode',
+							identifier: state.identifier,
+							code: state.code,
+							isCodeFocused: false,
+							isSignUpFlow: true,
+							isSubmitting: false,
+							error: null,
+						})
 					} catch (_e: any) {
 						const e = _e as any
-						setError(
-							e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Something went wrong'
-						)
+						setState({
+							...state,
+							error:
+								e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Something went wrong',
+						})
 					}
 				}}
-				analyticsOptIn={analyticsOptIn}
-				onAnalyticsChange={setAnalyticsOptIn}
+				analyticsOptIn={state.analyticsOptIn}
+				onAnalyticsChange={(checked) => setState({ ...state, analyticsOptIn: checked })}
 				onClose={onClose}
 			/>
 		)
 	}
+
+	// Default to enterCode stage
+	if (state.name !== 'enterCode') return null
 
 	return (
 		<TlaAuthStep onClose={onClose}>
@@ -279,11 +360,13 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 						<div
 							key={i}
 							className={
-								code[i] ? `${styles.authOtpBox} ${styles.authOtpBoxFilled}` : styles.authOtpBox
+								state.code[i]
+									? `${styles.authOtpBox} ${styles.authOtpBoxFilled}`
+									: styles.authOtpBox
 							}
 						>
-							{code[i] || ''}
-							{isCodeFocused && code.length < 6 && i === code.length ? (
+							{state.code[i] || ''}
+							{state.isCodeFocused && state.code.length < 6 && i === state.code.length ? (
 								<span className={styles.authOtpCaret} />
 							) : null}
 						</div>
@@ -295,19 +378,19 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 					inputMode="numeric"
 					autoFocus
 					className={styles.authOtpHiddenInput}
-					value={code}
+					value={state.code}
 					onChange={(e) => {
 						const next = e.target.value.replace(/[^0-9]/g, '').slice(0, 6)
-						setCode(next)
+						setState({ ...state, code: next })
 					}}
-					onFocus={() => setIsCodeFocused(true)}
-					onBlur={() => setIsCodeFocused(false)}
-					disabled={isSubmitting}
+					onFocus={() => setState({ ...state, isCodeFocused: true })}
+					onBlur={() => setState({ ...state, isCodeFocused: false })}
+					disabled={state.isSubmitting}
 					maxLength={6}
 				/>
 			</div>
 
-			{error && <div className={styles.authError}>{error}</div>}
+			{state.error && <div className={styles.authError}>{state.error}</div>}
 
 			<div className={styles.authResendWrapper}>
 				<span className={styles.authResendText}>
@@ -323,7 +406,7 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 					type="primary"
 					htmlButtonType="submit"
 					className={styles.authContinueButton}
-					disabled={isSubmitting || code.length < 6}
+					disabled={state.isSubmitting || state.code.length < 6}
 				>
 					<F defaultMessage="Continue" />
 				</TldrawUiButton>

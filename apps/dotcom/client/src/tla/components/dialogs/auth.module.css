@@ -34,7 +34,6 @@
 .authLogo {
 	width: 128px;
 	height: 36px;
-	border-radius: var(--tl-radius-3);
 	display: flex;
 	align-items: center;
 	justify-content: center;
