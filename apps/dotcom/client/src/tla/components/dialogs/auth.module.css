@@ -21,34 +21,29 @@
 .authBody {
 	display: flex;
 	flex-direction: column;
-	gap: var(--tl-space-5);
-	padding: var(--tl-space-8) var(--tl-space-9);
+	padding: 8px 40px 44px 40px;
+	gap: 24px;
 }
 
 /* Logo */
 .authLogoWrapper {
 	display: flex;
 	justify-content: center;
-	margin-bottom: var(--tl-space-3);
 }
 
 .authLogo {
-	width: 56px;
-	height: 56px;
+	width: 128px;
+	height: 36px;
 	border-radius: var(--tl-radius-3);
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	margin-bottom: 8px;
 }
 
 .authLogo span {
 	width: 100%;
 	height: 100%;
-}
-
-.authLogoIcon {
-	width: 40px;
-	height: 40px;
 }
 
 /* Description Text */
@@ -162,6 +157,17 @@
 	font-size: 14px;
 	font-weight: 500;
 	justify-content: center;
+	color: var(--tl-color-selected-contrast);
+	background-color: var(--tl-color-selected);
+	border-radius: var(--tl-radius-2);
+	margin-top: 16px;
+}
+
+@media (hover: hover) {
+	/* .authContinueButton:hover {
+		color: var(--tl-color-selected-contrast);
+		background-color: var(--tl-color-selected);
+	} */
 }
 
 .authContinueButton::after {
@@ -182,7 +188,8 @@
 .authCheckboxLabel {
 	display: flex;
 	align-items: flex-start;
-	gap: var(--tl-space-3);
+	justify-content: center;
+	gap: var(--tl-space-4);
 	cursor: pointer;
 	font-size: 14px;
 	color: var(--tl-color-text-1);
@@ -191,7 +198,6 @@
 
 .authCheckboxLabel a {
 	color: var(--tl-color-selected);
-	text-decoration: underline;
 }
 
 .authCheckbox {

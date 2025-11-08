@@ -159,22 +159,10 @@
       "value": "Please try refreshing the page."
     }
   ],
-  "340bcdbecf": [
-    {
-      "type": 0,
-      "value": "Before you start, please accept our terms and privacy policy."
-    }
-  ],
   "344a7f427f": [
     {
       "type": 0,
       "value": "Editor"
-    }
-  ],
-  "383fe2dd68": [
-    {
-      "type": 0,
-      "value": "Continue to tldraw"
     }
   ],
   "3bd1b98dbd": [
@@ -193,26 +181,6 @@
     {
       "type": 0,
       "value": "Accept all"
-    }
-  ],
-  "3f9ecc46fa": [
-    {
-      "type": 0,
-      "value": "Allow analytics to help improve tldraw ("
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "learn more"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": ")"
     }
   ],
   "42e53c47c1": [
@@ -853,16 +821,30 @@
       "value": "Upload .tldr files"
     }
   ],
-  "c0538d92fa": [
-    {
-      "type": 0,
-      "value": "Log in to tldraw"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Learn more about sharing."
+    }
+  ],
+  "c28aed8348": [
+    {
+      "type": 0,
+      "value": "Allow "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "analytics"
+        }
+      ],
+      "type": 8,
+      "value": "cookies"
+    },
+    {
+      "type": 0,
+      "value": " to help us improve tldraw."
     }
   ],
   "c303bd1095": [
@@ -931,6 +913,40 @@
       "value": "Enter the verification code sent to your email"
     }
   ],
+  "d638a3344b": [
+    {
+      "type": 0,
+      "value": "Before you start, please accept our "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "terms of use"
+        }
+      ],
+      "type": 8,
+      "value": "tos"
+    },
+    {
+      "type": 0,
+      "value": " and "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "privacy policy"
+        }
+      ],
+      "type": 8,
+      "value": "privacy"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "d721757161": [
     {
       "type": 0,
@@ -941,6 +957,12 @@
     {
       "type": 0,
       "value": "Try Again"
+    }
+  ],
+  "d88ad2dc74": [
+    {
+      "type": 0,
+      "value": "Accept and continue"
     }
   ],
   "d9100f3e10": [
@@ -983,36 +1005,6 @@
     {
       "type": 0,
       "value": "or"
-    }
-  ],
-  "e84b97b1d0": [
-    {
-      "type": 0,
-      "value": "I agree to the "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "Terms of Service"
-        }
-      ],
-      "type": 8,
-      "value": "tos"
-    },
-    {
-      "type": 0,
-      "value": " and "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "Privacy Policy"
-        }
-      ],
-      "type": 8,
-      "value": "privacy"
     }
   ],
   "ea4788705e": [

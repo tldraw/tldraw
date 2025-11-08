@@ -11,11 +11,19 @@ import {
 } from 'tldraw'
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
 import { F, defineMessages, useMsg } from '../../utils/i18n'
-import { TlaIcon } from '../TlaIcon/TlaIcon'
+import { TlaMenuSwitch } from '../tla-menu/tla-menu'
+import { TlaLogo } from '../TlaLogo/TlaLogo'
 import styles from './auth.module.css'
 
 const messages = defineMessages({
 	enterEmailAddress: { defaultMessage: 'Enter your email address' },
+	termsAcceptance: {
+		defaultMessage:
+			'Before you start, please accept our <tos>terms of use</tos> and <privacy>privacy policy</privacy>.',
+	},
+	allowAnalytics: {
+		defaultMessage: 'Allow <cookies>analytics</cookies> to help us improve tldraw.',
+	},
 })
 
 export function TlaSignInDialog({ onClose }: { onClose?(): void }) {
@@ -39,7 +47,6 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 	const [error, setError] = useState<string | null>(null)
 	const [isSignUpFlow, setIsSignUpFlow] = useState(false)
 	const [isCodeFocused, setIsCodeFocused] = useState(false)
-	const [termsChecked, setTermsChecked] = useState(false)
 	const [currentConsent, updateAnalyticsConsent] = useAnalyticsConsent()
 	const [analyticsOptIn, setAnalyticsOptIn] = useState(currentConsent)
 
@@ -216,10 +223,7 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 	if (stage === 'terms') {
 		return (
 			<TlaTermsAcceptance
-				hasAccepted={termsChecked}
-				onAcceptedChange={setTermsChecked}
 				onContinue={async () => {
-					if (!termsChecked) return
 					try {
 						// Persist analytics choice before completing sign-up / redirecting
 						if (analyticsOptIn !== null) {
@@ -329,15 +333,11 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 }
 
 export function TlaTermsAcceptance({
-	hasAccepted,
-	onAcceptedChange,
 	onContinue,
 	onClose,
 	analyticsOptIn,
 	onAnalyticsChange,
 }: {
-	hasAccepted: boolean
-	onAcceptedChange(accepted: boolean): void
 	onContinue(): void
 	onClose?(): void
 	analyticsOptIn: boolean | null
@@ -347,58 +347,40 @@ export function TlaTermsAcceptance({
 		<>
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle>
-					<F defaultMessage="Log in to tldraw" />
+					<span />
 				</TldrawUiDialogTitle>
 				{onClose && <TldrawUiDialogCloseButton />}
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className={styles.authBody}>
 				<div className={styles.authLogoWrapper}>
 					<div className={styles.authLogo}>
-						<TlaIcon icon="tldraw" />
+						<TlaLogo />
 					</div>
 				</div>
 
 				<p className={styles.authDescription}>
-					<F defaultMessage="Before you start, please accept our terms and privacy policy." />
-				</p>
-
-				<label className={styles.authCheckboxLabel}>
-					<input
-						type="checkbox"
-						checked={hasAccepted}
-						onChange={(e) => onAcceptedChange(e.target.checked)}
-						className={styles.authCheckbox}
+					<F
+						{...messages.termsAcceptance}
+						values={{
+							tos: (chunks) => (
+								<a href="/tos.html" target="_blank" rel="noopener noreferrer">
+									{chunks}
+								</a>
+							),
+							privacy: (chunks) => (
+								<a href="/privacy.html" target="_blank" rel="noopener noreferrer">
+									{chunks}
+								</a>
+							),
+						}}
 					/>
-					<span>
-						<F
-							defaultMessage="I agree to the <tos>Terms of Service</tos> and <privacy>Privacy Policy</privacy>"
-							values={{
-								tos: (chunks) => (
-									<a href="/tos.html" target="_blank" rel="noopener noreferrer">
-										{chunks}
-									</a>
-								),
-								privacy: (chunks) => (
-									<a href="/privacy.html" target="_blank" rel="noopener noreferrer">
-										{chunks}
-									</a>
-								),
-							}}
-						/>
-					</span>
-				</label>
+				</p>
 
 				{analyticsOptIn !== true && (
 					<label className={styles.authCheckboxLabel}>
-						<input
-							type="checkbox"
-							checked={!!analyticsOptIn}
-							onChange={(e) => onAnalyticsChange(e.target.checked)}
-							className={styles.authCheckbox}
-						/>
 						<span>
 							<F
-								defaultMessage="Allow analytics to help improve tldraw (<cookies>learn more</cookies>)"
+								{...messages.allowAnalytics}
 								values={{
 									cookies: (chunks) => (
 										<a href="/cookies.html" target="_blank" rel="noopener noreferrer">
@@ -408,16 +390,15 @@ export function TlaTermsAcceptance({
 								}}
 							/>
 						</span>
+						<TlaMenuSwitch
+							id="tla-analytics-switch"
+							checked={!!analyticsOptIn}
+							onChange={(checked) => onAnalyticsChange(checked)}
+						/>
 					</label>
 				)}
-
-				<TldrawUiButton
-					type="primary"
-					onClick={onContinue}
-					disabled={!hasAccepted}
-					className={styles.authContinueButton}
-				>
-					<F defaultMessage="Continue to tldraw" />
+				<TldrawUiButton type="normal" onClick={onContinue} className={styles.authContinueButton}>
+					<F defaultMessage="Accept and continue" />
 				</TldrawUiButton>
 			</TldrawUiDialogBody>
 		</>
@@ -437,14 +418,14 @@ function TlaAuthStep({
 		<>
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle>
-					<F defaultMessage="Log in to tldraw" />
+					<span />
 				</TldrawUiDialogTitle>
 				{onClose && <TldrawUiDialogCloseButton />}
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className={styles.authBody}>
 				<div className={styles.authLogoWrapper}>
 					<div className={styles.authLogo}>
-						<TlaIcon icon="tldraw" />
+						<TlaLogo />
 					</div>
 				</div>
 				{showDescription && (

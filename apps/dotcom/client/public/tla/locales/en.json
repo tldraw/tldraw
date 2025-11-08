@@ -77,14 +77,8 @@
   "335defdafe": {
     "translation": "Please try refreshing the page."
   },
-  "340bcdbecf": {
-    "translation": "Before you start, please accept our terms and privacy policy."
-  },
   "344a7f427f": {
     "translation": "Editor"
-  },
-  "383fe2dd68": {
-    "translation": "Continue to tldraw"
   },
   "3bd1b98dbd": {
     "translation": "Unable to publish the changes."
@@ -94,9 +88,6 @@
   },
   "3d0238bf16": {
     "translation": "Accept all"
-  },
-  "3f9ecc46fa": {
-    "translation": "Allow analytics to help improve tldraw (<cookies>learn more</cookies>)"
   },
   "42e53c47c1": {
     "translation": "Contact the owner to request access."
@@ -372,11 +363,11 @@
   "bcb62136a3": {
     "translation": "Upload .tldr files"
   },
-  "c0538d92fa": {
-    "translation": "Log in to tldraw"
-  },
   "c2276c9127": {
     "translation": "Learn more about sharing."
+  },
+  "c28aed8348": {
+    "translation": "Allow <cookies>analytics</cookies> to help us improve tldraw."
   },
   "c303bd1095": {
     "translation": "Unable to publish the file."
@@ -411,11 +402,17 @@
   "d500a7b1df": {
     "translation": "Enter the verification code sent to your email"
   },
+  "d638a3344b": {
+    "translation": "Before you start, please accept our <tos>terms of use</tos> and <privacy>privacy policy</privacy>."
+  },
   "d721757161": {
     "translation": "Theme"
   },
   "d876a9fe1a": {
     "translation": "Try Again"
+  },
+  "d88ad2dc74": {
+    "translation": "Accept and continue"
   },
   "d9100f3e10": {
     "translation": "Go here to see the content"
@@ -437,9 +434,6 @@
   },
   "e81c4e4f2b": {
     "translation": "or"
-  },
-  "e84b97b1d0": {
-    "translation": "I agree to the <tos>Terms of Service</tos> and <privacy>Privacy Policy</privacy>"
   },
   "ea4788705e": {
     "translation": "Cancel"

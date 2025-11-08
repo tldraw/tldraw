@@ -6,12 +6,11 @@ import { TlaTermsAcceptance } from './TlaSignInDialog'
 
 export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 	const { user } = useUser()
-	const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false)
 	const [currentConsent, updateAnalyticsConsent] = useAnalyticsConsent()
 	const [analyticsOptIn, setAnalyticsOptIn] = useState(currentConsent)
 
 	const handleAcceptTerms = async () => {
-		if (!user || !hasAcceptedTerms) return
+		if (!user) return
 
 		// Persist analytics choice before redirecting
 		if (analyticsOptIn !== null) {
@@ -32,8 +31,6 @@ export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 	return (
 		<div className={styles.authContainer}>
 			<TlaTermsAcceptance
-				hasAccepted={hasAcceptedTerms}
-				onAcceptedChange={setHasAcceptedTerms}
 				analyticsOptIn={analyticsOptIn}
 				onAnalyticsChange={setAnalyticsOptIn}
 				onContinue={handleAcceptTerms}
