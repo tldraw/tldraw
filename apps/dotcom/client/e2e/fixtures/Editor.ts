@@ -63,7 +63,7 @@ export class Editor {
 	@step
 	async rename(newName: string) {
 		await this.fileName.click()
-		await this.page.getByRole('textbox').fill(newName)
+		await this.page.getByTestId('tla-file-name-input').fill(newName)
 		await this.page.keyboard.press('Enter')
 	}
 
