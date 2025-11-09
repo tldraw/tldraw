@@ -2,7 +2,7 @@ import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import classNames from 'classnames'
 import { Tooltip as _Tooltip } from 'radix-ui'
-import { ReactNode, useCallback, useEffect, useState } from 'react'
+import { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import {
 	ContainerProvider,
@@ -233,19 +233,33 @@ function SignedInProvider({
 function LegalTermsAcceptance() {
 	const { user } = useClerkUser()
 	const { addDialog } = useDialogs()
+	const userRef = useRef(user)
+
+	// Keep the ref updated with the latest user
+	useEffect(() => {
+		userRef.current = user
+	}, [user])
 
 	useEffect(() => {
-		if (user && !user.legalAcceptedAt && !user.unsafeMetadata?.legal_accepted_at) {
-			addDialog({
-				component: TlaLegalAcceptance,
-				onClose: () => {
-					if (user && !user.legalAcceptedAt && !user.unsafeMetadata?.legal_accepted_at) {
-						window.location.reload()
-					}
-				},
-			})
+		function showDialogMaybe() {
+			const currentUser = userRef.current
+			if (
+				currentUser &&
+				!currentUser.legalAcceptedAt &&
+				!currentUser.unsafeMetadata?.legal_accepted_at
+			) {
+				addDialog({
+					component: TlaLegalAcceptance,
+					onClose: () => {
+						// If the user closes the dialog and it's not accepted, show it again
+						showDialogMaybe()
+					},
+				})
+			}
 		}
-	}, [addDialog, user])
+
+		showDialogMaybe()
+	}, [addDialog, user?.id])
 
 	return null
 }
