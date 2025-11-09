@@ -201,6 +201,7 @@ test.describe('SignInDialog', () => {
 
 		await page.evaluate(
 			([key, value]) => {
+				// eslint-disable-next-line no-restricted-syntax
 				window.localStorage.setItem(key, value)
 			},
 			['tldraw_cookie_consent', JSON.stringify({ analytics: true })]
