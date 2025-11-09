@@ -90,7 +90,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 	return (
 		<>
 			<Link to="/" className={styles.topLeftOfflineLogo}>
-				<TlaLogo data-testid="tla-sidebar-logo-icon" />
+				<TlaLogo data-testid="tla-top-left-logo-icon" />
 			</Link>
 			{anonFileName && (
 				<>

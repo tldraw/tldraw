@@ -360,6 +360,7 @@ function TlaEnterEmailStep({
 							id="tla-identifier"
 							name="identifier"
 							type="email"
+							data-testid="tla-identifier-input"
 							value={state.identifier}
 							onChange={(e) => setState((s) => ({ ...s, identifier: e.target.value }))}
 							placeholder={enterEmailAddressMsg}
@@ -374,6 +375,7 @@ function TlaEnterEmailStep({
 						data-testid="tla-continue-with-email-button"
 						className={classNames(styles.authContinueWithEmailButton, styles.authCtaButton)}
 						disabled={state.isSubmitting}
+						onClick={handleEmailSubmit}
 						secondary
 					>
 						<F defaultMessage="Continue with email" />
@@ -566,6 +568,7 @@ function TlaVerificationCodeStep({
 					</div>
 					<input
 						id="tla-verification-code"
+						data-testid="tla-verification-code-input"
 						type="text"
 						inputMode="numeric"
 						autoFocus

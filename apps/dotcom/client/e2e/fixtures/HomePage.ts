@@ -42,21 +42,13 @@ export class HomePage {
 
 		await expect(this.signInButton).toBeVisible()
 
-		// Wait for any dialog overlays to be gone before clicking
-		await this.page.waitForTimeout(500)
-		const dialogOverlay = this.page.locator('.tlui-dialog__overlay')
-		if ((await dialogOverlay.count()) > 0) {
-			await expect(dialogOverlay).not.toBeVisible({ timeout: 5000 })
-		}
-
 		await this.signInButton.click({ force: true })
-		await this.page.getByLabel('Email address').fill(email)
+		await this.page.getByTestId('tla-identifier-input').fill(email)
 		await this.page.getByTestId('tla-continue-with-email-button').click()
-		await this.page.waitForTimeout(1000)
-		await this.page.locator('#tla-verification-code').fill('424242')
+		// will go to
+		await this.page.getByTestId('tla-verification-code-input').fill('424242')
 		// Wait till we're on a file page, e.g. /f/:someId
 		await this.page.waitForURL(new RegExp(`${rootUrl}f/.*`))
-		await this.handleTermsIfNeeded()
 		await expect(async () => {
 			await expect(this.page.getByTestId('tla-sidebar-toggle')).toBeVisible()
 		}).toPass()
