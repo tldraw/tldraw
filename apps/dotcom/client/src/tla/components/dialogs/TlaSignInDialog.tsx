@@ -246,7 +246,7 @@ function TlaEnterEmailStep({
 			e.preventDefault()
 			if (!isSignInLoaded || !signIn || !state.identifier || state.isSubmitting) return
 
-			setState({ ...state, isSubmitting: true, error: null })
+			setState((s) => ({ ...s, isSubmitting: true, error: null }))
 
 			try {
 				const res = await signIn.create({ identifier: state.identifier })
@@ -429,7 +429,7 @@ function TlaVerificationCodeStep({
 			if (next.length > 6) return
 			if (state.isSubmitting) return
 
-			setState({ ...state, error: '', code: next })
+			setState((s) => ({ ...s, error: '', code: next }))
 
 			// If the length is 6, we need to submit the code
 			if (next.length === 6) {
@@ -575,8 +575,8 @@ function TlaVerificationCodeStep({
 						className={styles.authOtpHiddenInput}
 						value={state.code}
 						onChange={handleCodeChange}
-						onFocus={() => setState({ ...state, isCodeFocused: true })}
-						onBlur={() => setState({ ...state, isCodeFocused: false })}
+						onFocus={() => setState((s) => ({ ...s, isCodeFocused: true }))}
+						onBlur={() => setState((s) => ({ ...s, isCodeFocused: false }))}
 						disabled={state.isSubmitting}
 						maxLength={6}
 					/>
