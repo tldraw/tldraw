@@ -72,7 +72,7 @@ async function setupSignUpWithLegalAcceptance(page: Page, sessionId: string) {
 	})
 }
 
-test.describe('TlaSignInDialog', () => {
+test.describe('SignInDialog', () => {
 	test('renders initial elements and validates email input', async ({ homePage, signInDialog }) => {
 		await homePage.expectSignInButtonVisible()
 		await homePage.signInButton.click()
