@@ -83,22 +83,33 @@ export class DraggingHandle extends StateNode {
 		// Find the adjacent handle
 		this.initialAdjacentHandle = null
 
-		// Start from the handle and work forward
-		for (let i = index + 1; i < handles.length; i++) {
-			const handle = handles[i]
-			if (handle.type === 'vertex' && handle.id !== 'middle' && handle.id !== info.handle.id) {
-				this.initialAdjacentHandle = handle
-				break
+		// First, check if the handle specifies a custom reference handle
+		if (info.handle.snapReferenceHandleId) {
+			const customHandle = handles.find((h) => h.id === info.handle.snapReferenceHandleId)
+			if (customHandle) {
+				this.initialAdjacentHandle = customHandle
 			}
 		}
 
-		// If still no handle, start from the end and work backward
+		// If no custom reference handle, use default behavior
 		if (!this.initialAdjacentHandle) {
-			for (let i = handles.length - 1; i >= 0; i--) {
+			// Start from the handle and work forward
+			for (let i = index + 1; i < handles.length; i++) {
 				const handle = handles[i]
 				if (handle.type === 'vertex' && handle.id !== 'middle' && handle.id !== info.handle.id) {
 					this.initialAdjacentHandle = handle
 					break
+				}
+			}
+
+			// If still no handle, start from the end and work backward
+			if (!this.initialAdjacentHandle) {
+				for (let i = handles.length - 1; i >= 0; i--) {
+					const handle = handles[i]
+					if (handle.type === 'vertex' && handle.id !== 'middle' && handle.id !== info.handle.id) {
+						this.initialAdjacentHandle = handle
+						break
+					}
 				}
 			}
 		}

@@ -65,6 +65,28 @@ export const SESSION_REMOVAL_WAIT_TIME = 5000
 export const SESSION_IDLE_TIMEOUT = 20000
 
 /**
+ * Base properties shared by all room session states.
+ *
+ * @internal
+ */
+export interface RoomSessionBase<R extends UnknownRecord, Meta> {
+	/** Unique identifier for this session */
+	sessionId: string
+	/** Presence identifier for live cursor/selection tracking, if available */
+	presenceId: string | null
+	/** WebSocket connection wrapper for this session */
+	socket: TLRoomSocket<R>
+	/** Custom metadata associated with this session */
+	meta: Meta
+	/** Whether this session has read-only permissions */
+	isReadonly: boolean
+	/** Whether this session requires legacy protocol rejection handling */
+	requiresLegacyRejection: boolean
+	/** Whether this session supports string append operations */
+	supportsStringAppend: boolean
+}
+
+/**
  * Represents a client session within a collaborative room, tracking the connection
  * state, permissions, and synchronization details for a single user.
  *
@@ -93,51 +115,21 @@ export const SESSION_IDLE_TIMEOUT = 20000
  * @internal
  */
 export type RoomSession<R extends UnknownRecord, Meta> =
-	| {
+	| (RoomSessionBase<R, Meta> & {
 			/** Current state of the session */
 			state: typeof RoomSessionState.AwaitingConnectMessage
-			/** Unique identifier for this session */
-			sessionId: string
-			/** Presence identifier for live cursor/selection tracking, if available */
-			presenceId: string | null
-			/** WebSocket connection wrapper for this session */
-			socket: TLRoomSocket<R>
 			/** Timestamp when the session was created */
 			sessionStartTime: number
-			/** Custom metadata associated with this session */
-			meta: Meta
-			/** Whether this session has read-only permissions */
-			isReadonly: boolean
-			/** Whether this session requires legacy protocol rejection handling */
-			requiresLegacyRejection: boolean
-	  }
-	| {
+	  })
+	| (RoomSessionBase<R, Meta> & {
 			/** Current state of the session */
 			state: typeof RoomSessionState.AwaitingRemoval
-			/** Unique identifier for this session */
-			sessionId: string
-			/** Presence identifier for live cursor/selection tracking, if available */
-			presenceId: string | null
-			/** WebSocket connection wrapper for this session */
-			socket: TLRoomSocket<R>
 			/** Timestamp when the session was marked for removal */
 			cancellationTime: number
-			/** Custom metadata associated with this session */
-			meta: Meta
-			/** Whether this session has read-only permissions */
-			isReadonly: boolean
-			/** Whether this session requires legacy protocol rejection handling */
-			requiresLegacyRejection: boolean
-	  }
-	| {
+	  })
+	| (RoomSessionBase<R, Meta> & {
 			/** Current state of the session */
 			state: typeof RoomSessionState.Connected
-			/** Unique identifier for this session */
-			sessionId: string
-			/** Presence identifier for live cursor/selection tracking, if available */
-			presenceId: string | null
-			/** WebSocket connection wrapper for this session */
-			socket: TLRoomSocket<R>
 			/** Serialized schema information for this connected session */
 			serializedSchema: SerializedSchema
 			/** Timestamp of the last interaction or message from this session */
@@ -146,10 +138,4 @@ export type RoomSession<R extends UnknownRecord, Meta> =
 			debounceTimer: ReturnType<typeof setTimeout> | null
 			/** Queue of data messages waiting to be sent to this session */
 			outstandingDataMessages: TLSocketServerSentDataEvent<R>[]
-			/** Custom metadata associated with this session */
-			meta: Meta
-			/** Whether this session has read-only permissions */
-			isReadonly: boolean
-			/** Whether this session requires legacy protocol rejection handling */
-			requiresLegacyRejection: boolean
-	  }
+	  })

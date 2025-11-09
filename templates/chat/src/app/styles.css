@@ -542,7 +542,8 @@ body {
 		padding: var(--padding-y) var(--padding-x);
 	}
 
-	.modal-overlay .tl-canvas {
+	.modal-overlay .tl-canvas,
+	.modal-overlay .tl-canvas__in-front {
 		border-radius: var(--tl-radius-4);
 		box-shadow: var(--tl-shadow-2);
 		bottom: calc(var(--canvas-inset-bottom) + var(--padding-y));

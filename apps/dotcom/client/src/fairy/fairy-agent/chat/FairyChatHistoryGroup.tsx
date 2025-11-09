@@ -1,7 +1,7 @@
-import { AgentIcon, ChatHistoryActionItem, TldrawFairyAgent } from '@tldraw/fairy-shared'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { AgentIcon, ChatHistoryActionItem } from '@tldraw/fairy-shared'
+import { useMemo, useState } from 'react'
+import { FairyAgent } from '../agent/FairyAgent'
 import { FairyChatHistoryAction } from './FairyChatHistoryAction'
-import { getActionInfo } from './getActionInfo'
 
 export interface FairyChatHistoryGroup {
 	items: ChatHistoryActionItem[]
@@ -12,26 +12,16 @@ export function FairyChatHistoryGroup({
 	agent,
 }: {
 	group: FairyChatHistoryGroup
-	agent: TldrawFairyAgent
+	agent: FairyAgent
 }) {
 	const { items } = group
 
 	const nonEmptyItems = useMemo(() => {
 		return items.filter((item) => {
-			const { description } = getActionInfo(item.action, agent)
+			const { description } = agent.getActionInfo(item.action)
 			return description !== null
 		})
 	}, [items, agent])
-
-	// For rendering, only show complete actions (but keep incomplete ones in items for timing)
-	const completeNonEmptyItems = useMemo(() => {
-		return nonEmptyItems.filter((item) => {
-			// Always show messages, even if incomplete
-			if (item.action._type === 'message') return true
-			// Only show other actions if they're complete
-			return item.action.complete
-		})
-	}, [nonEmptyItems])
 
 	const [collapsed, setCollapsed] = useState(true)
 
@@ -39,52 +29,23 @@ export function FairyChatHistoryGroup({
 		return items.every((item) => item.action.complete)
 	}, [items])
 
-	const [_tick, setTick] = useState(0)
+	const summary = useMemo(() => {
+		const time = Math.floor(items.reduce((acc, item) => acc + item.action.time, 0) / 1000)
+		if (time === 0) return 'Worked for less than a second'
+		if (time === 1) return 'Worked for 1 second'
+		return `Worked for ${time} seconds`
+	}, [items])
 
-	// Track the last time we got an update from the server
-	const lastServerTimeRef = useRef(0)
-	const lastUpdateAtRef = useRef(Date.now())
-
-	const currentServerTime = items.reduce((acc, item) => acc + item.action.time, 0)
-	if (currentServerTime !== lastServerTimeRef.current) {
-		lastServerTimeRef.current = currentServerTime
-		lastUpdateAtRef.current = Date.now()
-	}
-
-	// Update every second while incomplete to keep the time display fresh
-	useEffect(() => {
-		if (complete) return
-
-		const interval = setInterval(() => {
-			setTick((t) => t + 1)
-		}, 1000)
-
-		return () => clearInterval(interval)
-	}, [complete])
-
-	// Calculate elapsed time: server time + time since last update
-	const timeSinceLastUpdate = complete ? 0 : Date.now() - lastUpdateAtRef.current
-	const totalTime = currentServerTime + timeSinceLastUpdate
-	const time = Math.floor(totalTime / 1000)
-
-	const summary =
-		time === 0
-			? 'Worked for less than a second'
-			: time === 1
-				? 'Worked for 1 second'
-				: `Worked for ${time} seconds`
-
-	if (completeNonEmptyItems.length === 0) {
+	if (nonEmptyItems.length === 0) {
 		return null
 	}
 
-	// Messages are rendered without group UI
-	const isMessage = completeNonEmptyItems[0]?.action._type === 'message'
-	if (isMessage) {
+	// If there's only one item, render it directly without grouping UI
+	if (nonEmptyItems.length < 2) {
 		return (
 			<div className="fairy-chat-history-group">
-				{completeNonEmptyItems.map((item, i) => {
-					return <FairyChatHistoryAction item={item} agent={agent} key={'action-' + i} />
+				{nonEmptyItems.map((item, i) => {
+					return <FairyChatHistoryItem item={item} agent={agent} key={'action-' + i} />
 				})}
 			</div>
 		)
@@ -94,20 +55,17 @@ export function FairyChatHistoryGroup({
 
 	return (
 		<div className="fairy-chat-history-group">
-			{/* Show toggle if complete, or just the summary if incomplete */}
-			{complete ? (
+			{complete && (
 				<button className="fairy-chat-history-group-toggle" onClick={() => setCollapsed((v) => !v)}>
-					<AgentIcon type={showContent ? 'chevron-down' : 'chevron-right'} />
-					<span>{summary}</span>
+					<div className="fairy-chat-history-action-icon">
+						<AgentIcon type={showContent ? 'chevron-down' : 'chevron-right'} />
+					</div>
+					{summary}
 				</button>
-			) : (
-				<div className="fairy-chat-history-group-summary">
-					<span>{summary}</span>
-				</div>
 			)}
 			{showContent && (
 				<div className="fairy-chat-history-group-items">
-					{completeNonEmptyItems.map((item, i) => {
+					{nonEmptyItems.map((item, i) => {
 						return <FairyChatHistoryAction item={item} agent={agent} key={'action-' + i} />
 					})}
 				</div>
@@ -116,29 +74,42 @@ export function FairyChatHistoryGroup({
 	)
 }
 
+function FairyChatHistoryItem({ item, agent }: { item: ChatHistoryActionItem; agent: FairyAgent }) {
+	const { action } = item
+	const { description, summary } = agent.getActionInfo(action)
+	const collapsible = summary !== null
+	const [collapsed, setCollapsed] = useState(collapsible)
+
+	if (!description) return null
+
+	return (
+		<div className="fairy-chat-history-item-container">
+			{action.complete && collapsible && (
+				<button className="fairy-chat-history-group-toggle" onClick={() => setCollapsed((v) => !v)}>
+					<div className="fairy-chat-history-action-icon">
+						<AgentIcon type={collapsed ? 'chevron-right' : 'chevron-down'} />
+					</div>
+					{summary}
+				</button>
+			)}
+
+			{(!collapsed || !action.complete) && <FairyChatHistoryAction item={item} agent={agent} />}
+		</div>
+	)
+}
+
 /**
  * Merge adjacent actions into groups where possible.
- * Messages are never grouped - they're always rendered individually.
  */
 export function getActionHistoryGroups(
 	items: ChatHistoryActionItem[],
-	agent: TldrawFairyAgent
+	agent: FairyAgent
 ): FairyChatHistoryGroup[] {
 	const groups: FairyChatHistoryGroup[] = []
 
 	for (const item of items) {
-		const { description } = getActionInfo(item.action, agent)
+		const { description } = agent.getActionInfo(item.action)
 		if (description === null) {
-			continue
-		}
-
-		// Note: We now show incomplete actions so the timer can run in real-time
-
-		// Messages are never grouped - always create a new group for them
-		if (item.action._type === 'message') {
-			groups.push({
-				items: [item],
-			})
 			continue
 		}
 
@@ -165,16 +136,19 @@ export function canActionBeGrouped({
 }: {
 	item: ChatHistoryActionItem
 	group: FairyChatHistoryGroup
-	agent: TldrawFairyAgent
+	agent: FairyAgent
 }) {
 	if (!item.action.complete) return false
 	if (!group) return false
 
+	const groupAcceptance = group.items[0]?.acceptance
+	if (groupAcceptance !== item.acceptance) return false
+
 	const prevAction = group.items.at(-1)?.action
 	if (!prevAction) return false
 
-	const actionInfo = getActionInfo(item.action, agent)
-	const prevActionInfo = getActionInfo(prevAction, agent)
+	const actionInfo = agent.getActionInfo(item.action)
+	const prevActionInfo = agent.getActionInfo(prevAction)
 
 	if (actionInfo.canGroup(prevAction) && prevActionInfo.canGroup(item.action)) {
 		return true

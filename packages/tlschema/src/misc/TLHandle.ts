@@ -102,6 +102,8 @@ export interface TLHandle {
 	canSnap?: boolean
 	/** The type of snap to use for this handle */
 	snapType?: 'point' | 'align'
+	/** The ID of the handle to use as reference point for shift-modifier angle snapping */
+	snapReferenceHandleId?: string
 	/** The fractional index used for ordering handles */
 	index: IndexKey
 	/** The x-coordinate of the handle in the shape's local coordinate system */

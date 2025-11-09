@@ -1,6 +1,6 @@
-import { getLicenseKey, ROOM_PREFIX } from '@tldraw/dotcom-shared'
-import { createContext, useCallback, useContext } from 'react'
-import { Editor, fetch, TLComponents, Tldraw, TLStoreSnapshot } from 'tldraw'
+import { getLicenseKey } from '@tldraw/dotcom-shared'
+import { useCallback, useMemo } from 'react'
+import { Editor, TLComponents, Tldraw, TLStoreSnapshot } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
 import { useHandleUiEvents } from '../../../utils/analytics'
@@ -18,82 +18,32 @@ import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
-const TlaHistorySnapshotEditorContext = createContext<{
-	fileSlug: string
-	timestamp: string
-	isApp: boolean
-}>({
-	fileSlug: '',
-	timestamp: '',
-	isApp: false,
-})
-
-/** @internal */
-export const components: TLComponents = {
-	ErrorFallback: TlaEditorErrorFallback,
-	SharePanel: () => {
-		const { fileSlug, timestamp, isApp } = useContext(TlaHistorySnapshotEditorContext)
-
-		const restoreVersion = useCallback(async () => {
-			const sure = window.confirm('Are you sure?')
-			if (!sure) return
-
-			const res = await fetch(
-				isApp ? `/api/app/file/${fileSlug}/restore` : `/api/${ROOM_PREFIX}/${fileSlug}/restore`,
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ timestamp }),
-				}
-			)
-
-			if (!res.ok) {
-				window.alert('Something went wrong!')
-				return
-			}
-
-			window.alert('done')
-		}, [fileSlug, timestamp, isApp])
-
-		return (
-			<TlaCtaButton
-				canvas
-				style={{
-					pointerEvents: 'all',
-					margin: 6,
-				}}
-				onClick={restoreVersion}
-			>
-				<F defaultMessage="Restore version"></F>
-			</TlaCtaButton>
-		)
-	},
-}
-
 export function TlaHistorySnapshotEditor({
 	fileSlug,
 	snapshot,
-	timestamp,
-	isApp,
+	onRestore,
 }: {
 	fileSlug: string
 	snapshot: TLStoreSnapshot
-	timestamp: string
-	isApp: boolean
+	onRestore(): Promise<void>
 }) {
 	return (
-		<TlaHistorySnapshotEditorContext.Provider value={{ fileSlug, timestamp, isApp }}>
+		<>
 			<SneakySetDocumentTitle />
 			<ReadyWrapper key={fileSlug}>
-				<TlaEditorInner snapshot={snapshot} />
+				<TlaEditorInner snapshot={snapshot} onRestore={onRestore} />
 			</ReadyWrapper>
-		</TlaHistorySnapshotEditorContext.Provider>
+		</>
 	)
 }
 
-function TlaEditorInner({ snapshot }: { snapshot: TLStoreSnapshot }) {
+function TlaEditorInner({
+	snapshot,
+	onRestore,
+}: {
+	snapshot: TLStoreSnapshot
+	onRestore(): Promise<void>
+}) {
 	const app = useMaybeApp()
 
 	const setIsReady = useSetIsReady()
@@ -116,6 +66,34 @@ function TlaEditorInner({ snapshot }: { snapshot: TLStoreSnapshot }) {
 		},
 		[setIsReady]
 	)
+
+	const components = useMemo((): TLComponents => {
+		return {
+			ErrorFallback: TlaEditorErrorFallback,
+			SharePanel: () => (
+				<TlaCtaButton
+					style={{
+						pointerEvents: 'all',
+						margin: 6,
+					}}
+					onClick={() => {
+						const sure = window.confirm('Are you sure?')
+						if (!sure) return
+						onRestore()
+							.then(() => {
+								window.alert('done')
+							})
+							.catch((error) => {
+								window.alert('Something went wrong!')
+								console.error(error)
+							})
+					}}
+				>
+					<F defaultMessage="Restore version"></F>
+				</TlaCtaButton>
+			),
+		}
+	}, [onRestore])
 
 	return (
 		<TlaEditorWrapper>

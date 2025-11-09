@@ -23,6 +23,9 @@
   "08bd40c754": {
     "translation": "Account"
   },
+  "08d2d725a9": {
+    "translation": "Create a free account to save your work, collaborate in real-time, and more."
+  },
   "0b27918290": {
     "translation": "File"
   },
@@ -43,9 +46,6 @@
   },
   "181b90f889": {
     "translation": "Create file"
-  },
-  "1c0b8f236c": {
-    "translation": "Resend"
   },
   "1da2e8106b": {
     "translation": "An unexpected error occurred."
@@ -79,6 +79,9 @@
   },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "3bc7d6ea2f": {
+    "translation": "Continue with email"
   },
   "3bd1b98dbd": {
     "translation": "Unable to publish the changes."
@@ -248,6 +251,9 @@
   "8b1946f965": {
     "translation": "To continue editing please copy the room to your files."
   },
+  "8c2d3d730c": {
+    "translation": "Check your email for a verification code."
+  },
   "8eb2c00e96": {
     "translation": "Shared with you"
   },
@@ -262,6 +268,9 @@
   },
   "91e49bb0eb": {
     "translation": "Copy to my files"
+  },
+  "95aacd4d4a": {
+    "translation": "Sign in with Google"
   },
   "95d2109dc8": {
     "translation": "Build with the tldraw SDK"
@@ -287,9 +296,6 @@
   "9e93c98d88": {
     "translation": "Opt out"
   },
-  "a0bfb8e59e": {
-    "translation": "Continue"
-  },
   "a0da245992": {
     "translation": "Export the content as a .tldr file: Select 'Download' in the top left menu."
   },
@@ -301,9 +307,6 @@
   },
   "a1c915578c": {
     "translation": "The file you are looking for does not exist."
-  },
-  "a1e3ec36cf": {
-    "translation": "Didn't receive a code?"
   },
   "a239905023": {
     "translation": "Export image"
@@ -320,14 +323,8 @@
   "a768caa988": {
     "translation": "Analytics"
   },
-  "a7f3dfc629": {
-    "translation": "Continue with Google"
-  },
   "a9ded1e5ce": {
     "translation": "Background"
-  },
-  "aa94a67c0c": {
-    "translation": "tldraw is a free and instant virtual whiteboarding with online collaboration."
   },
   "ab0df9ba36": {
     "translation": "File limit reached"
@@ -399,9 +396,6 @@
   "d4bbf74f3e": {
     "translation": "Toggle sidebar"
   },
-  "d500a7b1df": {
-    "translation": "Enter the verification code sent to your email"
-  },
   "d638a3344b": {
     "translation": "Before you start, please accept our <tos>terms of use</tos> and <privacy>privacy policy</privacy>."
   },
@@ -434,6 +428,9 @@
   },
   "e81c4e4f2b": {
     "translation": "or"
+  },
+  "ea1b1a54d0": {
+    "translation": "Didn't receive a code? <resend>Resend</resend>."
   },
   "ea4788705e": {
     "translation": "Cancel"

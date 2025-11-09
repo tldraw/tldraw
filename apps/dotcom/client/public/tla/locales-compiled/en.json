@@ -51,6 +51,12 @@
       "value": "Account"
     }
   ],
+  "08d2d725a9": [
+    {
+      "type": 0,
+      "value": "Create a free account to save your work, collaborate in real-time, and more."
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
@@ -91,12 +97,6 @@
     {
       "type": 0,
       "value": "Create file"
-    }
-  ],
-  "1c0b8f236c": [
-    {
-      "type": 0,
-      "value": "Resend"
     }
   ],
   "1da2e8106b": [
@@ -163,6 +163,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "3bc7d6ea2f": [
+    {
+      "type": 0,
+      "value": "Continue with email"
     }
   ],
   "3bd1b98dbd": [
@@ -547,6 +553,12 @@
       "value": "To continue editing please copy the room to your files."
     }
   ],
+  "8c2d3d730c": [
+    {
+      "type": 0,
+      "value": "Check your email for a verification code."
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -575,6 +587,12 @@
     {
       "type": 0,
       "value": "Copy to my files"
+    }
+  ],
+  "95aacd4d4a": [
+    {
+      "type": 0,
+      "value": "Sign in with Google"
     }
   ],
   "95d2109dc8": [
@@ -625,12 +643,6 @@
       "value": "Opt out"
     }
   ],
-  "a0bfb8e59e": [
-    {
-      "type": 0,
-      "value": "Continue"
-    }
-  ],
   "a0da245992": [
     {
       "type": 0,
@@ -653,12 +665,6 @@
     {
       "type": 0,
       "value": "The file you are looking for does not exist."
-    }
-  ],
-  "a1e3ec36cf": [
-    {
-      "type": 0,
-      "value": "Didn't receive a code?"
     }
   ],
   "a239905023": [
@@ -691,22 +697,10 @@
       "value": "Analytics"
     }
   ],
-  "a7f3dfc629": [
-    {
-      "type": 0,
-      "value": "Continue with Google"
-    }
-  ],
   "a9ded1e5ce": [
     {
       "type": 0,
       "value": "Background"
-    }
-  ],
-  "aa94a67c0c": [
-    {
-      "type": 0,
-      "value": "tldraw is a free and instant virtual whiteboarding with online collaboration."
     }
   ],
   "ab0df9ba36": [
@@ -907,12 +901,6 @@
       "value": "Toggle sidebar"
     }
   ],
-  "d500a7b1df": [
-    {
-      "type": 0,
-      "value": "Enter the verification code sent to your email"
-    }
-  ],
   "d638a3344b": [
     {
       "type": 0,
@@ -1005,6 +993,26 @@
     {
       "type": 0,
       "value": "or"
+    }
+  ],
+  "ea1b1a54d0": [
+    {
+      "type": 0,
+      "value": "Didn't receive a code? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Resend"
+        }
+      ],
+      "type": 8,
+      "value": "resend"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "ea4788705e": [

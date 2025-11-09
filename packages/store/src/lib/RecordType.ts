@@ -105,7 +105,7 @@ export class RecordType<
 		const ephemeralKeySet = new Set<string>()
 		if (config.ephemeralKeys) {
 			for (const [key, isEphemeral] of objectMapEntries(config.ephemeralKeys)) {
-				if (isEphemeral) ephemeralKeySet.add(key)
+				if (isEphemeral) ephemeralKeySet.add(key as string)
 			}
 		}
 		this.ephemeralKeySet = ephemeralKeySet

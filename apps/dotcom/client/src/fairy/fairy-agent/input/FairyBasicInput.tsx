@@ -1,22 +1,30 @@
-import { convertTldrawShapeToFocusedShape, DEFAULT_FAIRY_VISION } from '@tldraw/fairy-shared'
-import { useCallback, useRef, useState } from 'react'
+import { convertTldrawShapeToFocusedShape, FAIRY_VISION_DIMENSIONS } from '@tldraw/fairy-shared'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Box, TldrawUiInput, useValue } from 'tldraw'
-import { TldrawFairyAgent } from '../agent/TldrawFairyAgent'
+import { $sharedTodoList } from '../../SharedTodoList'
+import { FairyAgent } from '../agent/FairyAgent'
 
-export function FairyBasicInput({ agent }: { agent: TldrawFairyAgent }) {
+export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCancel(): void }) {
 	const { editor } = agent
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [inputValue, setInputValue] = useState('')
 	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
-	const modelName = useValue(agent.$modelName)
 
-	const fairy = useValue('fairy', () => agent.$fairy, [agent])
+	const fairyEntity = useValue(agent.$fairyEntity)
+	const fairyConfig = useValue(agent.$fairyConfig)
+
+	useEffect(() => {
+		if (inputRef.current) {
+			inputRef.current.spellcheck = false
+		}
+	}, [])
 
 	const handleComplete = useCallback(
 		async (value: string) => {
+			agent.cancel()
+
 			// If the user's message is empty, just cancel the current request (if there is one)
 			if (value === '') {
-				agent.cancel()
 				return
 			}
 
@@ -28,20 +36,26 @@ export function FairyBasicInput({ agent }: { agent: TldrawFairyAgent }) {
 				.getSelectedShapes()
 				.map((shape) => convertTldrawShapeToFocusedShape(editor, shape))
 
-			const fairyPosition = fairy.get().position
+			const fairyPosition = fairyEntity.position
+			const fairyVision = Box.FromCenter(fairyPosition, FAIRY_VISION_DIMENSIONS)
 
-			const fairyVision = Box.FromCenter(fairyPosition, DEFAULT_FAIRY_VISION)
+			// Clear the shared todo list if it's all completed - same as the agent starter kit's behavior
+			$sharedTodoList.update((todoList) => {
+				if (todoList.every((item) => item.status === 'done')) {
+					return []
+				}
+				return todoList
+			})
 
 			await agent.prompt({
 				message: value,
 				contextItems: [],
 				bounds: fairyVision,
-				modelName,
 				selectedShapes,
 				type: 'user',
 			})
 		},
-		[agent, modelName, editor, fairy]
+		[agent, editor, fairyEntity]
 	)
 
 	const shouldCancel = isGenerating && inputValue === ''
@@ -58,10 +72,11 @@ export function FairyBasicInput({ agent }: { agent: TldrawFairyAgent }) {
 		<div className="fairy-input">
 			<TldrawUiInput
 				ref={inputRef}
-				placeholder={`Whisper to ${agent.id}...`}
+				placeholder={`Whisper to ${fairyConfig.name}...`}
 				value={inputValue}
 				onValueChange={setInputValue}
 				onComplete={handleComplete}
+				onCancel={onCancel}
 				autoFocus
 				className="fairy-input__field"
 			/>

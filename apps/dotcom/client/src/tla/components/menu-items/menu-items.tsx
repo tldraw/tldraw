@@ -15,6 +15,7 @@ import {
 } from 'tldraw'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { routes } from '../../../routeDefs'
+import { signoutAnalytics } from '../../../utils/analytics'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
@@ -54,6 +55,7 @@ export function SignOutMenuItem() {
 	const label = useMsg(messages.signOut)
 
 	const handleSignout = useCallback(() => {
+		signoutAnalytics()
 		auth.signOut().then(clearLocalSessionState)
 		trackEvent('sign-out-clicked', { source: 'sidebar' })
 	}, [auth, trackEvent])
@@ -132,7 +134,8 @@ export function DotDevMenuItem() {
 			readonlyOk
 			onSelect={() => {
 				openAndTrack(
-					'https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=sidebar-menu'
+					'https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=sidebar-menu',
+					true
 				)
 			}}
 		/>

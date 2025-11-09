@@ -1,4 +1,4 @@
-import { preventDefault, TiptapEditor, useEditor } from '@tldraw/editor'
+import { openWindow, preventDefault, TiptapEditor, useEditor } from '@tldraw/editor'
 import { useEffect, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -44,7 +44,7 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 
 	const handleVisitLink = () => {
 		trackEvent('rich-text', { operation: 'link-visit', source })
-		window.open(linkifiedValue, '_blank', 'noopener, noreferrer')
+		openWindow(linkifiedValue, '_blank')
 		onClose()
 	}
 

@@ -89,8 +89,8 @@ export class TldrawApp {
 
 	readonly z: ZeroPolyfill | Zero<TlaSchema, TlaMutators>
 
-	private readonly user$: Signal<TlaUser | undefined>
-	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
+	private readonly user$: Signal<(TlaUser & { fairies: string }) | undefined>
+	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile; fairyState: string })[]>
 	private readonly groupMemberships$: Signal<
 		(TlaGroupUser & {
 			group: TlaGroup
@@ -202,36 +202,14 @@ export class TldrawApp {
 			.related('groupMembers')
 	}
 
-	async preload(initialUserData: TlaUser) {
-		let didCreate = false
+	async preload() {
 		await this.userQuery().preload().complete
 		await this.changesFlushed
-		if (!this.user$.get()) {
-			didCreate = true
-
-			// Check localStorage feature flag for new groups initialization
-			const useNewGroupsInit = getFromLocalStorage('tldraw_groups_init') === 'true'
-
-			if (useNewGroupsInit) {
-				// New groups initialization
-				await this.z.mutate.init({ user: initialUserData, time: Date.now() })
-			} else {
-				// Legacy initialization (no groups) - just insert user like before
-				// eslint-disable-next-line @typescript-eslint/no-deprecated
-				await this.z.mutate.user.insert({ ...initialUserData, flags: '' })
-			}
-
-			updateLocalSessionState((state) => ({ ...state, shouldShowWelcomeDialog: true }))
-		}
 		await new Promise((resolve) => {
 			let unlisten = () => {}
 			unlisten = react('wait for user', () => this.user$.get() && resolve(unlisten()))
 		})
-		if (!this.user$.get()) {
-			throw Error('could not create user')
-		}
 		await this.fileStateQuery().preload().complete
-		return didCreate
 	}
 
 	messages = defineMessages({
@@ -743,15 +721,28 @@ export class TldrawApp {
 	}
 
 	updateFileState(fileId: string, partial: Omit<TlaFileStatePartial, 'fileId' | 'userId'>) {
+		// ignore updates to files that have been deleted
+		const file = this.getFile(fileId)
+		if (!file || file.isDeleted) return
 		this.z.mutate.file_state.update({ ...partial, fileId, userId: this.userId })
 	}
 
 	updateFile(fileId: string, partial: Partial<TlaFile>) {
+		// ignore updates to files that have been deleted
+		const file = this.getFile(fileId)
+		if (!file || file.isDeleted) return
 		this.z.mutate.file.update({ id: fileId, ...partial })
 	}
 
 	async onFileEnter(fileId: string) {
 		this.z.mutate.onEnterFile({ fileId, time: Date.now() })
+	}
+
+	onFairyStateUpdate(fileId: string, fairyState: any) {
+		this.z.mutate.file_state.updateFairies({
+			fileId,
+			fairyState: JSON.stringify(fairyState),
+		})
 	}
 
 	onFileExit(fileId: string) {
@@ -760,9 +751,6 @@ export class TldrawApp {
 
 	static async create(opts: {
 		userId: string
-		fullName: string
-		email: string
-		avatar: string
 		getToken(): Promise<string | undefined>
 		onClientTooOld(): void
 		trackEvent: TLAppUiContextType
@@ -775,37 +763,29 @@ export class TldrawApp {
 		const app = new TldrawApp(opts.userId, opts.getToken, opts.onClientTooOld, opts.trackEvent)
 		// @ts-expect-error
 		window.app = app
-		const didCreate = await app.preload({
-			id: opts.userId,
-			name: opts.fullName,
-			email: opts.email,
-			color: color ?? defaultUserPreferences.color,
-			avatar: opts.avatar,
-			exportFormat: 'png',
-			exportTheme: 'light',
-			exportBackground: false,
-			exportPadding: true,
-			createdAt: Date.now(),
-			updatedAt: Date.now(),
-			flags: '',
-			allowAnalyticsCookie: null,
-			...restOfPreferences,
-			inputMode: restOfPreferences.inputMode ?? null,
-			locale: restOfPreferences.locale ?? null,
-			animationSpeed: restOfPreferences.animationSpeed ?? null,
-			areKeyboardShortcutsEnabled: restOfPreferences.areKeyboardShortcutsEnabled ?? null,
-			edgeScrollSpeed: restOfPreferences.edgeScrollSpeed ?? null,
-			colorScheme: restOfPreferences.colorScheme ?? null,
-			isSnapMode: restOfPreferences.isSnapMode ?? null,
-			isWrapMode: restOfPreferences.isWrapMode ?? null,
-			isDynamicSizeMode: restOfPreferences.isDynamicSizeMode ?? null,
-			isPasteAtCursorMode: restOfPreferences.isPasteAtCursorMode ?? null,
-			enhancedA11yMode: restOfPreferences.enhancedA11yMode ?? null,
-		})
-		if (didCreate) {
+		await app.preload()
+		const user = app.getUser()
+		if (user.color === '___INIT___') {
+			app.updateUser({
+				color: color ?? defaultUserPreferences.color,
+				...restOfPreferences,
+				inputMode: restOfPreferences.inputMode ?? null,
+				locale: restOfPreferences.locale ?? null,
+				animationSpeed: restOfPreferences.animationSpeed ?? null,
+				areKeyboardShortcutsEnabled: restOfPreferences.areKeyboardShortcutsEnabled ?? null,
+				edgeScrollSpeed: restOfPreferences.edgeScrollSpeed ?? null,
+				colorScheme: restOfPreferences.colorScheme ?? null,
+				isSnapMode: restOfPreferences.isSnapMode ?? null,
+				isWrapMode: restOfPreferences.isWrapMode ?? null,
+				isDynamicSizeMode: restOfPreferences.isDynamicSizeMode ?? null,
+				isPasteAtCursorMode: restOfPreferences.isPasteAtCursorMode ?? null,
+				enhancedA11yMode: restOfPreferences.enhancedA11yMode ?? null,
+			})
+
 			opts.trackEvent('create-user', { source: 'app' })
+			updateLocalSessionState((state) => ({ ...state, shouldShowWelcomeDialog: true }))
 		}
-		return { app, userId: opts.userId }
+		return { app, userId: user.id }
 	}
 
 	getIntl() {
