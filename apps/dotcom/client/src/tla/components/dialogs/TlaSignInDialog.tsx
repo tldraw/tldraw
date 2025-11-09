@@ -96,7 +96,7 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 export function TlaAcceptTermsStep({
 	onClose,
 	identifier,
-	isSignUpFlow: _isSignUpFlow,
+	isSignUpFlow,
 	analyticsOptIn,
 	onAnalyticsChange,
 	onContinue,
@@ -124,6 +124,9 @@ export function TlaAcceptTermsStep({
 				await onContinue()
 				return
 			}
+
+			// Note: Legal acceptance is only handled for sign-up flow
+			// Sign-in users should have already accepted terms when they signed up
 			const su: any = await client.signUp.update({ legalAccepted: true } as any)
 			if (su?.status === 'complete' && su?.createdSessionId) {
 				await setActive({ session: su.createdSessionId })
@@ -477,7 +480,7 @@ function TlaVerificationCodeStep({
 							strategy: 'email_code',
 							code: next,
 						})
-						.then((r) => {
+						.then((r: any) => {
 							if (r.status === 'complete') {
 								setActive({ session: r.createdSessionId })
 								onClose?.()
