@@ -4,8 +4,8 @@ import styles from './cta-button.module.css'
 
 export const TlaCtaButton = forwardRef<
 	HTMLButtonElement,
-	ButtonHTMLAttributes<HTMLButtonElement> & { canvas?: boolean }
->(function TlaCtaButton({ className, canvas = false, ...props }, ref) {
+	ButtonHTMLAttributes<HTMLButtonElement> & { canvas?: boolean; secondary?: boolean }
+>(function TlaCtaButton({ className, canvas = false, secondary = false, ...props }, ref) {
 	return (
 		<button
 			ref={ref}
@@ -16,6 +16,7 @@ export const TlaCtaButton = forwardRef<
 				styles.ctaButton,
 				{
 					[styles.ctaButtonCanvas]: canvas,
+					[styles.ctaButtonSecondary]: secondary,
 				},
 				className
 			)}

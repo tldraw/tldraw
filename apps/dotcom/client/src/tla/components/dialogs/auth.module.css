@@ -164,15 +164,8 @@
 	margin-top: 16px;
 } */
 
-@media (hover: hover) {
-	/* .authContinueButton:hover {
-		background-color: var(--tl-color-muted-1);
-	} */
-}
-
-.authContinueButton::after {
-	inset: 0px;
-	border-radius: var(--tl-radius-2);
+.authContinueWithEmailButton {
+	margin-top: var(--tl-space-4);
 }
 
 .authButtonArrow {

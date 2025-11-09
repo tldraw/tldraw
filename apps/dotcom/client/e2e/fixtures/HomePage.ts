@@ -54,6 +54,8 @@ export class HomePage {
 		await this.page.getByTestId('tla-continue-with-email-button').click()
 		await this.page.waitForTimeout(1000)
 		await this.page.locator('#tla-verification-code').fill('424242')
+		// Wait till we're on a file page, e.g. /f/:someId
+		await this.page.waitForURL(new RegExp(`${rootUrl}f/.*`))
 		await this.handleTermsIfNeeded()
 		await expect(async () => {
 			await expect(this.page.getByTestId('tla-sidebar-toggle')).toBeVisible()
@@ -87,7 +89,10 @@ export class HomePage {
 		await this.page.waitForTimeout(500)
 		if ((await acceptAndContinueButton.count()) === 0) return
 		await expect(acceptAndContinueButton).toBeVisible()
+		await expect(acceptAndContinueButton).toBeEnabled()
 		await acceptAndContinueButton.click()
+		// Wait for the button click to complete
+		await this.page.waitForTimeout(500)
 	}
 
 	async expectSignInButtonVisible() {

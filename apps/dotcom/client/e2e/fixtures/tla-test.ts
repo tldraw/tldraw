@@ -8,7 +8,7 @@ import { Editor } from './Editor'
 import { HomePage } from './HomePage'
 import { ShareMenu } from './ShareMenu'
 import { Sidebar } from './Sidebar'
-import { TlaSignInDialog } from './TlaSignInDialog'
+import { SignInDialog } from './SignInDialog'
 import { getStorageStateFileName } from './helpers'
 
 interface TlaFixtures {
@@ -18,7 +18,7 @@ interface TlaFixtures {
 	shareMenu: ShareMenu
 	database: Database
 	deleteFileDialog: DeleteFileDialog
-	signInDialog: TlaSignInDialog
+	signInDialog: SignInDialog
 	setupAndCleanup: void
 	retry(fn: () => Promise<void>): Promise<void>
 }
@@ -47,7 +47,7 @@ export const test = base.extend<TlaFixtures, TlaWorkerFixtures>({
 		await testUse(new DeleteFileDialog(page))
 	},
 	signInDialog: async ({ page }, testUse) => {
-		await testUse(new TlaSignInDialog(page))
+		await testUse(new SignInDialog(page))
 	},
 	// This is an auto fixture which makes sure that we are on the home page when the test starts
 	// and that we clean up when the tests completes

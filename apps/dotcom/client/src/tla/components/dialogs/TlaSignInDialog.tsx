@@ -5,7 +5,6 @@ import classNames from 'classnames'
 import { ChangeEvent, useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import {
 	exhaustiveSwitchError,
-	TldrawUiButton,
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
@@ -371,15 +370,14 @@ function TlaEnterEmailStep({
 						{state.error && <div className={styles.authError}>{state.error}</div>}
 					</div>
 
-					<TldrawUiButton
-						type="normal"
-						htmlButtonType="submit"
+					<TlaCtaButton
 						data-testid="tla-continue-with-email-button"
-						className={styles.authContinueButton}
+						className={classNames(styles.authContinueWithEmailButton, styles.authCtaButton)}
 						disabled={state.isSubmitting}
+						secondary
 					>
 						<F defaultMessage="Continue with email" />
-					</TldrawUiButton>
+					</TlaCtaButton>
 				</form>
 			</TldrawUiDialogBody>
 		</>

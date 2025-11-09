@@ -2,7 +2,7 @@ import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
 import { step } from './tla-test'
 
-export class TlaSignInDialog {
+export class SignInDialog {
 	public readonly googleButton: Locator
 	public readonly emailInput: Locator
 	public readonly continueWithEmailButton: Locator
