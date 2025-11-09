@@ -375,8 +375,8 @@ function TlaEnterEmailStep({
 						data-testid="tla-continue-with-email-button"
 						className={classNames(styles.authContinueWithEmailButton, styles.authCtaButton)}
 						disabled={state.isSubmitting}
-						onClick={handleEmailSubmit}
 						secondary
+						type="submit"
 					>
 						<F defaultMessage="Continue with email" />
 					</TlaCtaButton>
