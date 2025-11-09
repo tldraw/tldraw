@@ -5,42 +5,36 @@ import { step } from './tla-test'
 export class TlaSignInDialog {
 	public readonly googleButton: Locator
 	public readonly emailInput: Locator
-	public readonly continueButton: Locator
+	public readonly continueWithEmailButton: Locator
 	public readonly codeInput: Locator
 	public readonly resendButton: Locator
-	public readonly termsCheckbox: Locator
 	public readonly analyticsCheckbox: Locator
-	public readonly continueToTldrawButton: Locator
+	public readonly acceptAndContinueButton: Locator
 
 	constructor(private readonly page: Page) {
-		this.googleButton = this.page.getByRole('button', { name: 'Continue with Google' })
+		this.googleButton = this.page.getByTestId('tla-google-sign-in-button')
 		this.emailInput = this.page.getByLabel('Email address')
-		this.continueButton = this.page.getByRole('button', { name: 'Continue', exact: true })
+		this.continueWithEmailButton = this.page.getByTestId('tla-continue-with-email-button')
 		this.codeInput = this.page.locator('#tla-verification-code')
-		this.resendButton = this.page.getByRole('button', { name: 'Resend' })
-		this.termsCheckbox = this.page.getByRole('checkbox', {
-			name: 'I agree to the Terms of Service and Privacy Policy',
-		})
+		this.resendButton = this.page.getByTestId('tla-resend-code-button')
 		this.analyticsCheckbox = this.page.getByRole('checkbox', {
 			name: /Allow analytics to help improve tldraw/i,
 		})
-		this.continueToTldrawButton = this.page.getByRole('button', {
-			name: 'Continue to tldraw',
-		})
+		this.acceptAndContinueButton = this.page.getByTestId('tla-accept-and-continue-button')
 	}
 
 	@step
 	async expectInitialElements() {
 		await expect(this.googleButton).toBeVisible()
 		await expect(this.emailInput).toBeVisible()
-		await expect(this.continueButton).toBeVisible()
+		await expect(this.continueWithEmailButton).toBeVisible()
 	}
 
 	@step
 	async continueWithEmail(email: string) {
 		await this.emailInput.fill(email)
-		await expect(this.continueButton).toBeEnabled()
-		await this.continueButton.click()
+		await expect(this.continueWithEmailButton).toBeEnabled()
+		await this.continueWithEmailButton.click()
 	}
 
 	@step
@@ -60,15 +54,8 @@ export class TlaSignInDialog {
 	}
 
 	@step
-	async submitCode() {
-		await expect(this.continueButton).toBeEnabled()
-		await this.continueButton.click()
-	}
-
-	@step
 	async expectTermsStageVisible() {
-		await expect(this.termsCheckbox).toBeVisible()
-		await expect(this.continueToTldrawButton).toBeVisible()
+		await expect(this.acceptAndContinueButton).toBeVisible()
 	}
 
 	@step
@@ -82,13 +69,8 @@ export class TlaSignInDialog {
 	}
 
 	@step
-	async expectContinueToTldrawDisabled() {
-		await expect(this.continueToTldrawButton).toBeDisabled()
-	}
-
-	@step
-	async acceptTerms() {
-		await this.termsCheckbox.check()
+	async expectAcceptAndContinueDisabled() {
+		await expect(this.acceptAndContinueButton).toBeDisabled()
 	}
 
 	@step
@@ -102,7 +84,7 @@ export class TlaSignInDialog {
 	}
 
 	@step
-	async continueToTldraw() {
-		await this.continueToTldrawButton.click()
+	async acceptAndContinue() {
+		await this.acceptAndContinueButton.click()
 	}
 }

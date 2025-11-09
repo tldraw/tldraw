@@ -208,6 +208,7 @@ export function TlaAcceptTermsStep({
 
 				{error && <div className={styles.authError}>{error}</div>}
 				<TlaCtaButton
+					data-testid="tla-accept-and-continue-button"
 					onClick={handleContinue}
 					disabled={isSubmitting}
 					className={classNames(styles.authCtaButton, styles.authTermsAcceptAndContinueButton)}
@@ -329,7 +330,10 @@ function TlaEnterEmailStep({
 						<div className={styles.authGoogleButtonWrapper}>
 							{/* @ts-ignore this is fine */}
 							<Clerk.Connection name="google" asChild>
-								<TlaCtaButton className={styles.authCtaButton}>
+								<TlaCtaButton
+									data-testid="tla-google-sign-in-button"
+									className={styles.authCtaButton}
+								>
 									<Clerk.Icon icon="google" />
 									<F defaultMessage="Sign in with Google" />
 								</TlaCtaButton>
@@ -370,6 +374,7 @@ function TlaEnterEmailStep({
 					<TldrawUiButton
 						type="normal"
 						htmlButtonType="submit"
+						data-testid="tla-continue-with-email-button"
 						className={styles.authContinueButton}
 						disabled={state.isSubmitting}
 					>
@@ -587,6 +592,7 @@ function TlaVerificationCodeStep({
 								resend: (chunks) => (
 									<button
 										type="button"
+										data-testid="tla-resend-code-button"
 										onClick={handleResend}
 										className={styles.authResendButton}
 										disabled={resendCooldown > 0 || state.isSubmitting}

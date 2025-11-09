@@ -80,9 +80,9 @@ test.describe('TlaSignInDialog', () => {
 		await signInDialog.expectInitialElements()
 
 		// Continue should be disabled until email entered
-		await expect(signInDialog.continueButton).toBeDisabled()
+		await expect(signInDialog.continueWithEmailButton).toBeDisabled()
 		await signInDialog.emailInput.fill('user@example.com')
-		await expect(signInDialog.continueButton).toBeEnabled()
+		await expect(signInDialog.continueWithEmailButton).toBeEnabled()
 	})
 
 	test('can sign in via email code using the custom dialog', async ({
@@ -99,7 +99,6 @@ test.describe('TlaSignInDialog', () => {
 		await signInDialog.expectCodeStageVisible()
 
 		await signInDialog.fillCode('424242')
-		await signInDialog.submitCode()
 
 		await editor.isLoaded()
 		await expect(homePage.signInButton).not.toBeVisible()
@@ -114,8 +113,8 @@ test.describe('TlaSignInDialog', () => {
 		await signInDialog.expectCodeStageVisible()
 		await signInDialog.clickResend()
 
-		// Continue remains disabled until a full 6-digit code is entered
-		await expect(signInDialog.continueButton).toBeDisabled()
+		// Code input should still be visible and empty after resend
+		await expect(signInDialog.codeInput).toBeVisible()
 	})
 
 	test('requires legal acceptance on sign-up before continuing', async ({
@@ -133,13 +132,10 @@ test.describe('TlaSignInDialog', () => {
 		await signInDialog.continueWithEmail(uniqueEmail)
 		await signInDialog.expectCodeStageVisible()
 		await signInDialog.fillCode('424242')
-		await signInDialog.submitCode()
 
 		await signInDialog.expectTermsStageVisible()
 		await signInDialog.expectAnalyticsToggleVisible()
-		await signInDialog.expectContinueToTldrawDisabled()
-		await signInDialog.acceptTerms()
-		await signInDialog.continueToTldraw()
+		await signInDialog.acceptAndContinue()
 	})
 
 	test('hides analytics toggle when consent already granted', async ({
@@ -164,12 +160,10 @@ test.describe('TlaSignInDialog', () => {
 		await signInDialog.continueWithEmail(uniqueEmail)
 		await signInDialog.expectCodeStageVisible()
 		await signInDialog.fillCode('424242')
-		await signInDialog.submitCode()
 
 		await signInDialog.expectTermsStageVisible()
 		await signInDialog.expectAnalyticsToggleHidden()
-		await signInDialog.acceptTerms()
-		await signInDialog.continueToTldraw()
+		await signInDialog.acceptAndContinue()
 	})
 
 	test('opt-in analytics persists to localStorage on sign-up', async ({
@@ -187,13 +181,11 @@ test.describe('TlaSignInDialog', () => {
 		await signInDialog.continueWithEmail(uniqueEmail)
 		await signInDialog.expectCodeStageVisible()
 		await signInDialog.fillCode('424242')
-		await signInDialog.submitCode()
 
 		await signInDialog.expectTermsStageVisible()
 		await signInDialog.expectAnalyticsToggleVisible()
 		await signInDialog.setAnalyticsOptIn(true)
-		await signInDialog.acceptTerms()
-		await signInDialog.continueToTldraw()
+		await signInDialog.acceptAndContinue()
 
 		const storedConsent = await page.evaluate(() => {
 			try {

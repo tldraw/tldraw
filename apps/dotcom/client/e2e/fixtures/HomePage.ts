@@ -51,9 +51,10 @@ export class HomePage {
 
 		await this.signInButton.click({ force: true })
 		await this.page.getByLabel('Email address').fill(email)
-		await this.page.getByRole('button', { name: 'Continue with email' }).click()
+		await this.page.getByTestId('tla-continue-with-email-button').click()
 		await this.page.waitForTimeout(1000)
 		await this.page.locator('#tla-verification-code').fill('424242')
+		await this.handleTermsIfNeeded()
 		await expect(async () => {
 			await expect(this.page.getByTestId('tla-sidebar-toggle')).toBeVisible()
 		}).toPass()
@@ -66,23 +67,27 @@ export class HomePage {
 		await expect(this.signInButton).toBeVisible()
 		await this.signInButton.click()
 		await this.page.getByLabel('Email address').fill(email)
-		await this.page.getByRole('button', { name: 'Continue', exact: true }).click()
+		// Note: This method is for staging/production Clerk flows that use passwords
+		// The password field appears after clicking continue on email
+		await this.page.getByTestId('tla-continue-with-email-button').click()
+		await this.page.waitForTimeout(500)
 		await this.page.getByRole('textbox', { name: 'Password' }).fill(password)
+		// After entering password, look for any Continue button (Clerk's default buttons don't have test IDs)
 		await this.page.getByRole('button', { name: 'Continue', exact: true }).click()
 		await this.page.waitForTimeout(1000)
+		await this.handleTermsIfNeeded()
 		await expect(async () => {
 			await expect(this.page.getByTestId('tla-sidebar-toggle')).toBeVisible()
 		}).toPass()
 	}
 
 	private async handleTermsIfNeeded() {
-		const continueToTldrawButton = this.page.getByRole('button', { name: 'Continue to tldraw' })
-		if ((await continueToTldrawButton.count()) === 0) return
-		const termsCheckbox = this.page.getByRole('checkbox', {
-			name: 'I agree to the Terms of Service and Privacy Policy',
-		})
-		await termsCheckbox.check()
-		await continueToTldrawButton.click()
+		const acceptAndContinueButton = this.page.getByTestId('tla-accept-and-continue-button')
+		// Wait a bit for the dialog to potentially appear
+		await this.page.waitForTimeout(500)
+		if ((await acceptAndContinueButton.count()) === 0) return
+		await expect(acceptAndContinueButton).toBeVisible()
+		await acceptAndContinueButton.click()
 	}
 
 	async expectSignInButtonVisible() {
