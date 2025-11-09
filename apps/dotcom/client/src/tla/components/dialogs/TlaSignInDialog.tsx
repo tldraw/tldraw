@@ -261,11 +261,11 @@ function TlaEnterEmailStep({
 				)
 				const id = emailCodeFactor?.emailAddressId as string | undefined
 				if (!id) {
-					setState({
-						...state,
+					setState((s) => ({
+						...s,
 						isSubmitting: false,
 						error: 'Email verification is not available for this account.',
-					})
+					}))
 					return
 				}
 				await signIn.prepareFirstFactor({ strategy: 'email_code', emailAddressId: id })
@@ -288,19 +288,19 @@ function TlaEnterEmailStep({
 						await client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
 						onComplete(state.identifier, true, undefined)
 					} catch (e: any) {
-						setState({
-							...state,
+						setState((s) => ({
+							...s,
 							isSubmitting: false,
 							error:
 								e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Something went wrong',
-						})
+						}))
 					}
 				} else {
-					setState({
-						...state,
+					setState((s) => ({
+						...s,
 						isSubmitting: false,
 						error: apiErrors?.[0]?.longMessage || apiErrors?.[0]?.message || 'Something went wrong',
-					})
+					}))
 				}
 			}
 		},
