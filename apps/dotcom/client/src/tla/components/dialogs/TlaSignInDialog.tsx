@@ -96,7 +96,6 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 export function TlaAcceptTermsStep({
 	onClose,
 	identifier,
-	isSignUpFlow,
 	analyticsOptIn,
 	onAnalyticsChange,
 	onContinue,
