@@ -235,16 +235,16 @@ function LegalTermsAcceptance() {
 	const { addDialog } = useDialogs()
 
 	useEffect(() => {
-		if (user && !user.legalAcceptedAt && !user.unsafeMetadata?.legal_accepted_at) {
-			addDialog({
-				component: TlaLegalAcceptance,
-				onClose: () => {
-					if (user && !user.legalAcceptedAt && !user.unsafeMetadata?.legal_accepted_at) {
-						window.location.reload()
-					}
-				},
-			})
-		}
+		// if (user && !user.legalAcceptedAt && !user.unsafeMetadata?.legal_accepted_at) {
+		addDialog({
+			component: TlaLegalAcceptance,
+			onClose: () => {
+				if (user && !user.legalAcceptedAt && !user.unsafeMetadata?.legal_accepted_at) {
+					window.location.reload()
+				}
+			},
+		})
+		// }
 	}, [addDialog, user])
 
 	return null

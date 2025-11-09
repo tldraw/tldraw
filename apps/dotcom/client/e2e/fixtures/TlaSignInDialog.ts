@@ -68,8 +68,17 @@ export class TlaSignInDialog {
 	@step
 	async expectTermsStageVisible() {
 		await expect(this.termsCheckbox).toBeVisible()
-		await expect(this.analyticsCheckbox).toBeVisible()
 		await expect(this.continueToTldrawButton).toBeVisible()
+	}
+
+	@step
+	async expectAnalyticsToggleVisible() {
+		await expect(this.analyticsCheckbox).toBeVisible()
+	}
+
+	@step
+	async expectAnalyticsToggleHidden() {
+		await expect(this.analyticsCheckbox).toHaveCount(0)
 	}
 
 	@step
@@ -84,6 +93,7 @@ export class TlaSignInDialog {
 
 	@step
 	async setAnalyticsOptIn(optIn: boolean) {
+		if ((await this.analyticsCheckbox.count()) === 0) return
 		if (optIn) {
 			await this.analyticsCheckbox.check()
 		} else {

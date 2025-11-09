@@ -136,7 +136,38 @@ test.describe('TlaSignInDialog', () => {
 		await signInDialog.submitCode()
 
 		await signInDialog.expectTermsStageVisible()
+		await signInDialog.expectAnalyticsToggleVisible()
 		await signInDialog.expectContinueToTldrawDisabled()
+		await signInDialog.acceptTerms()
+		await signInDialog.continueToTldraw()
+	})
+
+	test('hides analytics toggle when consent already granted', async ({
+		homePage,
+		signInDialog,
+		page,
+	}) => {
+		const uniqueEmail = `playwright-analytics-hidden-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`
+
+		await setupSignUpWithLegalAcceptance(page, 'session_mock_analytics_hidden')
+
+		await page.evaluate(
+			([key, value]) => {
+				window.localStorage.setItem(key, value)
+			},
+			['tldraw_cookie_consent', JSON.stringify({ analytics: true })]
+		)
+
+		await homePage.expectSignInButtonVisible()
+		await homePage.signInButton.click()
+
+		await signInDialog.continueWithEmail(uniqueEmail)
+		await signInDialog.expectCodeStageVisible()
+		await signInDialog.fillCode('424242')
+		await signInDialog.submitCode()
+
+		await signInDialog.expectTermsStageVisible()
+		await signInDialog.expectAnalyticsToggleHidden()
 		await signInDialog.acceptTerms()
 		await signInDialog.continueToTldraw()
 	})
@@ -159,6 +190,7 @@ test.describe('TlaSignInDialog', () => {
 		await signInDialog.submitCode()
 
 		await signInDialog.expectTermsStageVisible()
+		await signInDialog.expectAnalyticsToggleVisible()
 		await signInDialog.setAnalyticsOptIn(true)
 		await signInDialog.acceptTerms()
 		await signInDialog.continueToTldraw()

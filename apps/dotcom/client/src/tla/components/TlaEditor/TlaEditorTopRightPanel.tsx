@@ -50,6 +50,7 @@ export function TlaEditorTopRightPanel({
 				<PeopleMenu />
 				<SignedOutShareButton fileId={fileId} context={context} />
 				<TlaCtaButton
+					canvas
 					data-testid="tla-sign-in-button"
 					onClick={() => {
 						trackEvent('sign-up-clicked', {
@@ -72,6 +73,7 @@ export function TlaEditorTopRightPanel({
 			{context !== 'legacy' && (
 				<TlaFileShareMenu fileId={fileId!} source="file-header" context={context}>
 					<TlaCtaButton
+						canvas
 						data-testid="tla-share-button"
 						onClick={() => trackEvent('open-share-menu', { source: 'top-bar' })}
 					>
@@ -143,7 +145,7 @@ function LegacyImportButton() {
 	}, [app, editor, name, navigate, roomInfo, trackEvent])
 
 	return (
-		<TlaCtaButton data-testid="tla-import-button" onClick={handleClick}>
+		<TlaCtaButton canvas data-testid="tla-import-button" onClick={handleClick}>
 			<F defaultMessage="Copy to my files" />
 		</TlaCtaButton>
 	)

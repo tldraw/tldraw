@@ -1,5 +1,5 @@
 import { useUser } from '@clerk/clerk-react'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
 import styles from './auth.module.css'
 import { TlaAcceptTermsStep } from './TlaSignInDialog'
@@ -9,7 +9,7 @@ export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 	const [currentConsent, updateAnalyticsConsent] = useAnalyticsConsent()
 	const [analyticsOptIn, setAnalyticsOptIn] = useState(currentConsent)
 
-	const handleAcceptTerms = async () => {
+	const handleAcceptTerms = useCallback(async () => {
 		if (!user) return
 
 		// Persist analytics choice before redirecting
@@ -26,7 +26,7 @@ export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 		})
 
 		onClose?.()
-	}
+	}, [analyticsOptIn, onClose, updateAnalyticsConsent, user])
 
 	return (
 		<div className={styles.authContainer}>

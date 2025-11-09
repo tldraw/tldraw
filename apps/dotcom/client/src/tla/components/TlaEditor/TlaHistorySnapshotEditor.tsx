@@ -59,6 +59,7 @@ export const components: TLComponents = {
 
 		return (
 			<TlaCtaButton
+				canvas
 				style={{
 					pointerEvents: 'all',
 					margin: 6,

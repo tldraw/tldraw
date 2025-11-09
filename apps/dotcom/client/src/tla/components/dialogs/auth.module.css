@@ -65,42 +65,22 @@
 	text-wrap: balance;
 }
 
-/* Google Button */
-.authGoogleButtonWrapper {
-	width: 100%;
-}
-
-.authGoogleButtonWrapper button {
-	width: 100%;
+/* Cta button */
+.authCtaButton {
 	height: 40px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: var(--tl-space-3);
-	padding: var(--tl-space-2) var(--tl-space-4);
-	background-color: var(--tl-color-panel);
-	border: 1px solid var(--tl-color-muted-2);
-	box-shadow:
-		0px 0px 3px 0px var(--tl-color-muted-1),
-		0px 1px 1px 0px var(--tl-color-overlay);
-	border: 1px solid var(--tl-color-panel-contrast);
-	border-radius: var(--tl-radius-2);
+	width: 100%;
 	font-size: 14px;
 	font-weight: 500;
-	color: var(--tl-color-text-0);
-	cursor: pointer;
-	transition: all 0.15s ease;
 }
 
-.authGoogleButtonWrapper button:hover {
-	background-color: var(--tl-color-panel-contrast);
-	box-shadow:
-		0px 0px 3px 0px var(--tl-color-muted-1),
-		0px 2px 3px 0px var(--tl-color-muted-1);
-}
-
-.authGoogleButtonWrapper button:active {
-	transform: scale(0.98);
+/* The google logo in the cta button on the sign in dialog */
+.authCtaButton img {
+	width: 22px;
+	height: 22px;
+	padding: 4px;
+	z-index: 2;
+	background-color: var(--tl-color-selected-contrast);
+	border-radius: 100%;
 }
 
 /* Divider */
@@ -161,7 +141,7 @@
 /* Error Message */
 .authError {
 	font-size: 12px;
-	color: var(--tl-color-warning);
+	color: var(--tl-color-danger);
 	margin-top: var(--tl-space-1);
 	text-align: center;
 	text-wrap: balance;
@@ -169,7 +149,7 @@
 }
 
 /* Continue Button */
-.authContinueButton {
+/* .authContinueButton {
 	width: 100%;
 	position: relative;
 	padding: 0;
@@ -182,7 +162,7 @@
 	border-radius: var(--tl-radius-2);
 	transition: background-color 0.12s ease;
 	margin-top: 16px;
-}
+} */
 
 @media (hover: hover) {
 	/* .authContinueButton:hover {
@@ -311,6 +291,11 @@
 	font-weight: 500;
 }
 
+.authResendButton:disabled {
+	color: var(--tl-color-text-3);
+	cursor: not-allowed;
+}
+
 /* Switch Mode */
 .authSwitchMode {
 	text-align: center;
@@ -328,4 +313,8 @@
 	padding: 0;
 	font-size: 14px;
 	font-weight: 500;
+}
+
+.authTermsAcceptAndContinueButton {
+	margin-top: var(--tl-space-4);
 }

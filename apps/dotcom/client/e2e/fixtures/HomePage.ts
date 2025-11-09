@@ -32,19 +32,28 @@ export class HomePage {
 
 	@step
 	async loginAs(email: string) {
-		const isSideBarToggleVisible = await this.editor.sidebarToggle.isVisible()
-		// We are already signed in
-		if (isSideBarToggleVisible) return
 		if (this.page.url() !== rootUrl) {
 			await this.goto()
 		}
+		await this.page.waitForLoadState('domcontentloaded')
+		const isSideBarToggleVisible =
+			(await this.editor.sidebarToggle.isVisible().catch(() => false)) ?? false
+		if (isSideBarToggleVisible) return
+
 		await expect(this.signInButton).toBeVisible()
-		await this.signInButton.click()
+
+		// Wait for any dialog overlays to be gone before clicking
+		await this.page.waitForTimeout(500)
+		const dialogOverlay = this.page.locator('.tlui-dialog__overlay')
+		if ((await dialogOverlay.count()) > 0) {
+			await expect(dialogOverlay).not.toBeVisible({ timeout: 5000 })
+		}
+
+		await this.signInButton.click({ force: true })
 		await this.page.getByLabel('Email address').fill(email)
-		await this.page.getByRole('button', { name: 'Continue', exact: true }).click()
+		await this.page.getByRole('button', { name: 'Continue with email' }).click()
 		await this.page.waitForTimeout(1000)
 		await this.page.locator('#tla-verification-code').fill('424242')
-		await this.page.getByRole('button', { name: 'Continue', exact: true }).click()
 		await expect(async () => {
 			await expect(this.page.getByTestId('tla-sidebar-toggle')).toBeVisible()
 		}).toPass()
@@ -64,6 +73,16 @@ export class HomePage {
 		await expect(async () => {
 			await expect(this.page.getByTestId('tla-sidebar-toggle')).toBeVisible()
 		}).toPass()
+	}
+
+	private async handleTermsIfNeeded() {
+		const continueToTldrawButton = this.page.getByRole('button', { name: 'Continue to tldraw' })
+		if ((await continueToTldrawButton.count()) === 0) return
+		const termsCheckbox = this.page.getByRole('checkbox', {
+			name: 'I agree to the Terms of Service and Privacy Policy',
+		})
+		await termsCheckbox.check()
+		await continueToTldrawButton.click()
 	}
 
 	async expectSignInButtonVisible() {

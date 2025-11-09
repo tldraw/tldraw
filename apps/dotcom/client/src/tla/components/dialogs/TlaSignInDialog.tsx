@@ -2,8 +2,9 @@ import { useClerk, useSignIn } from '@clerk/clerk-react'
 import * as Clerk from '@clerk/elements/common'
 import * as SignIn from '@clerk/elements/sign-in'
 import classNames from 'classnames'
-import { ChangeEvent, ReactNode, useCallback, useState, type FormEvent } from 'react'
+import { ChangeEvent, useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import {
+	exhaustiveSwitchError,
 	TldrawUiButton,
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
@@ -11,8 +12,9 @@ import {
 	TldrawUiDialogTitle,
 } from 'tldraw'
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
-import { F, defineMessages, useMsg } from '../../utils/i18n'
+import { defineMessages, F, useMsg } from '../../utils/i18n'
 import { TlaMenuSwitch } from '../tla-menu/tla-menu'
+import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
 import styles from './auth.module.css'
 
@@ -38,219 +40,91 @@ export function TlaSignInDialog({ onClose }: { onClose?(): void }) {
 	)
 }
 
-type AuthState =
-	| {
-			name: 'enterEmail'
-			identifier: string
-			isSubmitting: boolean
-			error: string | null
-	  }
-	| {
-			name: 'enterCode'
-			identifier: string
-			code: string
-			isCodeFocused: boolean
-			emailAddressId?: string
-			isSignUpFlow: boolean
-			isSubmitting: boolean
-			error: string | null
-	  }
-	| {
-			name: 'terms'
-			identifier: string
-			code: string
-			error: string | null
-	  }
-
 function TlaLoginFlow({ onClose }: { onClose?(): void }) {
-	const { signIn, isLoaded: isSignInLoaded } = useSignIn()
-	const { setActive, client } = useClerk()
-
 	const [analyticsOptIn, updateAnalyticsConsent] = useAnalyticsConsent()
 
-	const [state, setState] = useState<AuthState>({
-		name: 'enterEmail',
-		identifier: '',
-		isSubmitting: false,
-		error: null,
-	})
+	const [stage, setStage] = useState<'enterEmail' | 'enterCode' | 'terms'>('enterEmail')
+	const [identifier, setIdentifier] = useState('')
+	const [isSignUpFlow, setIsSignUpFlow] = useState(false)
+	const [emailAddressId, setEmailAddressId] = useState<string | undefined>(undefined)
 
-	const handleEmailSubmit = useCallback(
-		async (e: FormEvent) => {
-			e.preventDefault()
-			if (state.name !== 'enterEmail') return
-			if (!isSignInLoaded || !signIn || !state.identifier) return
+	switch (stage) {
+		case 'enterEmail':
+			return (
+				<TlaEnterEmailStep
+					onClose={onClose}
+					onComplete={(identifier, isSignUp, emailId) => {
+						setIdentifier(identifier)
+						setIsSignUpFlow(isSignUp)
+						setEmailAddressId(emailId)
+						setStage('enterCode')
+					}}
+				/>
+			)
+		case 'enterCode':
+			return (
+				<TlaVerificationCodeStep
+					identifier={identifier}
+					isSignUpFlow={isSignUpFlow}
+					emailAddressId={emailAddressId}
+					onComplete={(needsTerms) => {
+						if (needsTerms) {
+							setStage('terms')
+							return
+						}
+						onClose?.()
+					}}
+					onClose={onClose}
+				/>
+			)
+		case 'terms':
+			return (
+				<TlaAcceptTermsStep
+					analyticsOptIn={analyticsOptIn}
+					isSignUpFlow={isSignUpFlow}
+					identifier={identifier}
+					onAnalyticsChange={(checked) => {
+						updateAnalyticsConsent(checked)
+					}}
+					onClose={onClose}
+				/>
+			)
+		default:
+			throw exhaustiveSwitchError(stage)
+	}
+}
 
-			setState({ ...state, isSubmitting: true, error: null })
+export function TlaAcceptTermsStep({
+	onClose,
+	identifier,
+	isSignUpFlow: _isSignUpFlow,
+	analyticsOptIn,
+	onAnalyticsChange,
+	onContinue,
+}: {
+	onClose?(): void
+	identifier?: string | null
+	isSignUpFlow?: boolean
+	analyticsOptIn: boolean | null
+	onAnalyticsChange(accepted: boolean): void
+	onContinue?(): Promise<void> | void
+}) {
+	const { client, setActive } = useClerk()
+	const initialAnalyticsOptIn = useRef(analyticsOptIn)
+	const showAnalyticsToggle = initialAnalyticsOptIn.current !== true
 
-			try {
-				const res = await signIn.create({ identifier: state.identifier })
-				if (res.status === 'complete') {
-					await setActive({ session: res.createdSessionId })
-					onClose?.()
-					return
-				}
-				// Prepare email code and move to code stage
-				const emailCodeFactor = (res as any).supportedFirstFactors?.find(
-					(ff: any) => ff.strategy === 'email_code'
-				)
-				const id = emailCodeFactor?.emailAddressId as string | undefined
-				if (!id) {
-					setState({
-						...state,
-						isSubmitting: false,
-						error: 'Email verification is not available for this account.',
-					})
-					return
-				}
-				await signIn.prepareFirstFactor({ strategy: 'email_code', emailAddressId: id })
-				setState({
-					name: 'enterCode',
-					identifier: state.identifier,
-					code: '',
-					isCodeFocused: false,
-					emailAddressId: id,
-					isSignUpFlow: false,
-					isSubmitting: false,
-					error: null,
-				})
-			} catch (err: any) {
-				const apiErrors = err?.errors as Array<{
-					code?: string
-					message?: string
-					longMessage?: string
-				}>
-				const notFound = apiErrors?.find(
-					(e) =>
-						e.code === 'form_identifier_not_found' || e.code === 'invitation_account_not_exists'
-				)
-				if (notFound) {
-					try {
-						// Initialize sign up with the email before preparing verification
-						await client.signUp.create({ emailAddress: state.identifier })
-						// Always prepare & go to code first; legal acceptance handled after verification if required
-						await client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
-						setState({
-							name: 'enterCode',
-							identifier: state.identifier,
-							code: '',
-							isCodeFocused: false,
-							isSignUpFlow: true,
-							isSubmitting: false,
-							error: null,
-						})
-					} catch (e: any) {
-						setState({
-							...state,
-							isSubmitting: false,
-							error:
-								e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Something went wrong',
-						})
-					}
-				} else {
-					setState({
-						...state,
-						isSubmitting: false,
-						error: apiErrors?.[0]?.longMessage || apiErrors?.[0]?.message || 'Something went wrong',
-					})
-				}
-			}
-		},
-		[state, client.signUp, signIn, onClose, setActive, isSignInLoaded]
-	)
+	const [isSubmitting, setIsSubmitting] = useState(false)
+	const [error, setError] = useState<string | null>(null)
 
-	const handleCodeChange = useCallback(
-		(e: ChangeEvent<HTMLInputElement>) => {
-			if (state.name !== 'enterCode') return
-			const next = e.target.value.replace(/[^0-9]/g, '').slice(0, 6)
-			if (next.length > 6) return
-
-			setState({ ...state, code: next })
-
-			// If the length is 6, we need to submit the code
-			if (next.length === 6) {
-				if (state.name !== 'enterCode') return
-				if (state.isSubmitting) return
-
-				setState((s) => ({ ...s, isSubmitting: true, error: null }))
-
-				if (state.isSignUpFlow) {
-					client.signUp
-						.attemptEmailAddressVerification({
-							code: state.code,
-						})
-						.then((s) => {
-							if (s.status === 'complete') {
-								setActive({ session: s.createdSessionId })
-								onClose?.()
-								return
-							}
-						})
-						.catch((e) => {
-							const error = e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Invalid code'
-							setState((s) => ({
-								...s,
-								code: '',
-								isSubmitting: false,
-								error,
-							}))
-						})
-					return
-				}
-
-				if (signIn) {
-					signIn
-						.attemptFirstFactor({
-							strategy: 'email_code',
-							code: state.code,
-						})
-						.then((r) => {
-							if (r.status === 'complete') {
-								setActive({ session: r.createdSessionId })
-								onClose?.()
-								return
-							}
-						})
-						.catch((e) => {
-							const error = e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Invalid code'
-							setState((s) => ({
-								...s,
-								code: '',
-								isSubmitting: false,
-								error,
-							}))
-						})
-				}
-			}
-		},
-		[state, client.signUp, signIn, onClose, setActive]
-	)
-
-	const handleResend = useCallback(async () => {
-		if (state.name !== 'enterCode') return
-
+	const handleContinue = useCallback(async () => {
+		if (isSubmitting) return
+		setIsSubmitting(true)
+		setError(null)
 		try {
-			if (state.isSignUpFlow) {
-				// Ensure email is set on signUp in case the client lost state
-				if (!(client.signUp as any)?.emailAddress && state.identifier) {
-					await client.signUp.update({ emailAddress: state.identifier } as any)
-				}
-				await client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
-			} else if (signIn && state.emailAddressId) {
-				await signIn.prepareFirstFactor({
-					strategy: 'email_code',
-					emailAddressId: state.emailAddressId,
-				})
+			if (onContinue) {
+				await onContinue()
+				return
 			}
-		} catch (_e) {
-			// noop
-		}
-	}, [state, client.signUp, signIn])
-
-	const handleTermsSubmit = useCallback(async () => {
-		if (state.name !== 'terms') return
-
-		try {
 			const su: any = await client.signUp.update({ legalAccepted: true } as any)
 			if (su?.status === 'complete' && su?.createdSessionId) {
 				await setActive({ session: su.createdSessionId })
@@ -259,81 +133,24 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 			}
 			const needsEmail = (su?.missingFields || su?.missing_fields || []).includes?.('email_address')
 			if (needsEmail) {
-				if (!(client.signUp as any)?.emailAddress && state.identifier) {
-					await client.signUp.update({ emailAddress: state.identifier } as any)
+				if (!(client.signUp as any)?.emailAddress && identifier) {
+					await client.signUp.update({ emailAddress: identifier } as any)
 				}
 				await client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
 			}
-			setState({
-				name: 'enterCode',
-				identifier: state.identifier,
-				code: state.code,
-				isCodeFocused: false,
-				isSignUpFlow: true,
-				isSubmitting: false,
-				error: null,
-			})
 		} catch (_e: any) {
 			const e = _e as any
-			setState({
-				...state,
-				error: e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Something went wrong',
-			})
+			setError(
+				e?.errors?.[0]?.longMessage ||
+					e?.errors?.[0]?.message ||
+					e?.message ||
+					'Something went wrong'
+			)
+		} finally {
+			setIsSubmitting(false)
 		}
-	}, [state, client.signUp, onClose, setActive])
+	}, [client, identifier, isSubmitting, onClose, onContinue, setActive])
 
-	if (state.name === 'enterEmail') {
-		return (
-			<TlaEnterEmailStep
-				state={state}
-				onClose={onClose}
-				onIdentifierChange={(e) => setState((s) => ({ ...s, identifier: e.target.value }))}
-				handleEmailSubmit={handleEmailSubmit}
-			/>
-		)
-	}
-
-	if (state.name === 'terms') {
-		return (
-			<TlaAcceptTermsStep
-				onContinue={handleTermsSubmit}
-				analyticsOptIn={analyticsOptIn}
-				onAnalyticsChange={(checked) => {
-					updateAnalyticsConsent(checked)
-				}}
-				onClose={onClose}
-			/>
-		)
-	}
-
-	// Default to enterCode stage
-	if (state.name === 'enterCode') {
-		return (
-			<TlaVerificationCodeStep
-				onClose={onClose}
-				state={state}
-				handleCodeChange={handleCodeChange}
-				setState={setState}
-				handleResend={handleResend}
-			/>
-		)
-	}
-
-	// Wrong state...
-	return null
-}
-
-export function TlaAcceptTermsStep({
-	onContinue,
-	onClose,
-	analyticsOptIn,
-	onAnalyticsChange,
-}: {
-	onContinue(): void
-	onClose?(): void
-	analyticsOptIn: boolean | null
-	onAnalyticsChange(accepted: boolean): void
-}) {
 	return (
 		<>
 			<TldrawUiDialogHeader>
@@ -367,7 +184,7 @@ export function TlaAcceptTermsStep({
 					/>
 				</p>
 
-				{analyticsOptIn !== true && (
+				{showAnalyticsToggle && (
 					<label className={styles.authCheckboxLabel}>
 						<span>
 							<F
@@ -388,91 +205,322 @@ export function TlaAcceptTermsStep({
 						/>
 					</label>
 				)}
-				<TldrawUiButton type="normal" onClick={onContinue} className={styles.authContinueButton}>
+
+				{error && <div className={styles.authError}>{error}</div>}
+				<TlaCtaButton
+					onClick={handleContinue}
+					disabled={isSubmitting}
+					className={classNames(styles.authCtaButton, styles.authTermsAcceptAndContinueButton)}
+				>
 					<F defaultMessage="Accept and continue" />
-				</TldrawUiButton>
+				</TlaCtaButton>
 			</TldrawUiDialogBody>
 		</>
 	)
 }
 
 function TlaEnterEmailStep({
-	state,
 	onClose,
-	onIdentifierChange,
-	handleEmailSubmit,
+	onComplete,
 }: {
-	state: AuthState & { name: 'enterEmail' }
 	onClose?(): void
-	onIdentifierChange(e: ChangeEvent<HTMLInputElement>): void
-	handleEmailSubmit(e: FormEvent): void
+	onComplete(identifier: string, isSignUpFlow: boolean, emailAddressId?: string): void
 }) {
+	const { signIn, isLoaded: isSignInLoaded } = useSignIn()
+	const { setActive, client } = useClerk()
+
 	const enterEmailAddressMsg = useMsg(messages.enterEmailAddress)
+
+	const [state, setState] = useState<{
+		identifier: string
+		isSubmitting: boolean
+		error: string | null
+	}>({
+		identifier: '',
+		isSubmitting: false,
+		error: null,
+	})
+
+	const handleEmailSubmit = useCallback(
+		async (e: FormEvent) => {
+			e.preventDefault()
+			if (!isSignInLoaded || !signIn || !state.identifier || state.isSubmitting) return
+
+			setState({ ...state, isSubmitting: true, error: null })
+
+			try {
+				const res = await signIn.create({ identifier: state.identifier })
+				if (res.status === 'complete') {
+					await setActive({ session: res.createdSessionId })
+					onClose?.()
+					return
+				}
+				// Prepare email code and move to code stage
+				const emailCodeFactor = (res as any).supportedFirstFactors?.find(
+					(ff: any) => ff.strategy === 'email_code'
+				)
+				const id = emailCodeFactor?.emailAddressId as string | undefined
+				if (!id) {
+					setState({
+						...state,
+						isSubmitting: false,
+						error: 'Email verification is not available for this account.',
+					})
+					return
+				}
+				await signIn.prepareFirstFactor({ strategy: 'email_code', emailAddressId: id })
+				onComplete(state.identifier, false, id)
+			} catch (err: any) {
+				const apiErrors = err?.errors as Array<{
+					code?: string
+					message?: string
+					longMessage?: string
+				}>
+				const notFound = apiErrors?.find(
+					(e) =>
+						e.code === 'form_identifier_not_found' || e.code === 'invitation_account_not_exists'
+				)
+				if (notFound) {
+					try {
+						// Initialize sign up with the email before preparing verification
+						await client.signUp.create({ emailAddress: state.identifier })
+						// Always prepare & go to code first; legal acceptance handled after verification if required
+						await client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
+						onComplete(state.identifier, true, undefined)
+					} catch (e: any) {
+						setState({
+							...state,
+							isSubmitting: false,
+							error:
+								e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Something went wrong',
+						})
+					}
+				} else {
+					setState({
+						...state,
+						isSubmitting: false,
+						error: apiErrors?.[0]?.longMessage || apiErrors?.[0]?.message || 'Something went wrong',
+					})
+				}
+			}
+		},
+		[state, client.signUp, signIn, onClose, setActive, isSignInLoaded, onComplete]
+	)
+
 	return (
-		<TlaAuthStep onClose={onClose}>
-			<div className={styles.authDescription}>
-				<F defaultMessage="Create a free account to save your work, collaborate in real-time, and more." />
-			</div>
-			<SignIn.Root routing="virtual">
-				<SignIn.Step name="start">
-					<div className={styles.authGoogleButtonWrapper}>
-						{/* @ts-ignore this is fine */}
-						<Clerk.Connection name="google">
-							<>
-								<Clerk.Icon icon="google" style={{ width: '16px', height: '16px' }} />
-								<F defaultMessage="Continue with Google" />
-							</>
-						</Clerk.Connection>
+		<>
+			<TldrawUiDialogHeader>
+				<TldrawUiDialogTitle>
+					<span />
+				</TldrawUiDialogTitle>
+				{onClose && <TldrawUiDialogCloseButton />}
+			</TldrawUiDialogHeader>
+			<TldrawUiDialogBody className={styles.authBody}>
+				<div className={styles.authLogoWrapper}>
+					<div className={styles.authLogo}>
+						<TlaLogo />
 					</div>
-				</SignIn.Step>
-			</SignIn.Root>
+				</div>
+				<div className={styles.authDescription}>
+					<F defaultMessage="Create a free account to save your work, collaborate in real-time, and more." />
+				</div>
+				<SignIn.Root routing="virtual">
+					<SignIn.Step name="start">
+						<div className={styles.authGoogleButtonWrapper}>
+							{/* @ts-ignore this is fine */}
+							<Clerk.Connection name="google" asChild>
+								<TlaCtaButton className={styles.authCtaButton}>
+									<Clerk.Icon icon="google" />
+									<F defaultMessage="Sign in with Google" />
+								</TlaCtaButton>
+								{/* <>
+									<Clerk.Icon icon="google" />
+									<F defaultMessage="Sign in with Google" />
+								</> */}
+							</Clerk.Connection>
+						</div>
+					</SignIn.Step>
+				</SignIn.Root>
 
-			<div className={styles.authDivider}>
-				<span>
-					<F defaultMessage="or" />
-				</span>
-			</div>
-
-			<form onSubmit={handleEmailSubmit}>
-				<div className={styles.authField}>
-					<label htmlFor="tla-identifier" className={styles.authLabel}>
-						<F defaultMessage="Email address" />
-					</label>
-					<input
-						id="tla-identifier"
-						name="identifier"
-						type="email"
-						value={state.identifier}
-						onChange={onIdentifierChange}
-						placeholder={enterEmailAddressMsg}
-						className={styles.authInput}
-						required
-						disabled={state.isSubmitting}
-					/>
-					{state.error && <div className={styles.authError}>{state.error}</div>}
+				<div className={styles.authDivider}>
+					<span>
+						<F defaultMessage="or" />
+					</span>
 				</div>
 
-				<TldrawUiButton type="normal" htmlButtonType="submit" className={styles.authContinueButton}>
-					<F defaultMessage="Continue with email" />
-				</TldrawUiButton>
-			</form>
-		</TlaAuthStep>
+				<form onSubmit={handleEmailSubmit}>
+					<div className={styles.authField}>
+						<label htmlFor="tla-identifier" className={styles.authLabel}>
+							<F defaultMessage="Email address" />
+						</label>
+						<input
+							id="tla-identifier"
+							name="identifier"
+							type="email"
+							value={state.identifier}
+							onChange={(e) => setState((s) => ({ ...s, identifier: e.target.value }))}
+							placeholder={enterEmailAddressMsg}
+							className={styles.authInput}
+							required
+							disabled={state.isSubmitting}
+						/>
+						{state.error && <div className={styles.authError}>{state.error}</div>}
+					</div>
+
+					<TldrawUiButton
+						type="normal"
+						htmlButtonType="submit"
+						className={styles.authContinueButton}
+						disabled={state.isSubmitting}
+					>
+						<F defaultMessage="Continue with email" />
+					</TldrawUiButton>
+				</form>
+			</TldrawUiDialogBody>
+		</>
 	)
 }
 
 function TlaVerificationCodeStep({
+	isSignUpFlow,
+	identifier,
+	emailAddressId,
 	onClose,
-	state,
-	handleCodeChange,
-	setState,
-	handleResend,
+	onComplete,
 }: {
+	isSignUpFlow: boolean
 	onClose?(): void
-	state: AuthState & { name: 'enterCode' }
-	handleCodeChange(e: ChangeEvent<HTMLInputElement>): void
-	setState(state: AuthState): void
-	handleResend(): void
+	identifier: string
+	emailAddressId: string | undefined
+	onComplete(needsTerms: boolean): void
 }) {
+	const [state, setState] = useState<{
+		code: string
+		isCodeFocused: boolean
+		isSubmitting: boolean
+		error: string | null
+	}>({
+		code: '',
+		isCodeFocused: false,
+		isSubmitting: false,
+		error: null,
+	})
+
+	const { setActive, client } = useClerk()
+	const [resendCooldown, setResendCooldown] = useState(0)
+	const [resendError, setResendError] = useState<string | null>(null)
+
+	useEffect(() => {
+		if (resendCooldown <= 0 || typeof window === 'undefined') return
+		const timer = window.setInterval(() => {
+			setResendCooldown((prev) => (prev <= 1 ? 0 : prev - 1))
+		}, 1000)
+		return () => window.clearInterval(timer)
+	}, [resendCooldown])
+
+	const handleCodeChange = useCallback(
+		(e: ChangeEvent<HTMLInputElement>) => {
+			const next = e.target.value.replace(/[^0-9]/g, '').slice(0, 6)
+			if (next.length > 6) return
+			if (state.isSubmitting) return
+
+			setState({ ...state, error: '', code: next })
+
+			// If the length is 6, we need to submit the code
+			if (next.length === 6) {
+				if (state.isSubmitting) return
+
+				setState((s) => ({ ...s, isSubmitting: true, error: null }))
+
+				if (isSignUpFlow) {
+					client.signUp
+						.attemptEmailAddressVerification({
+							code: next,
+						})
+						.then((s) => {
+							const needsLegal = (s?.missingFields || (s as any)?.missing_fields || []).includes?.(
+								'legal_accepted'
+							)
+							if (needsLegal) {
+								setState((prev) => ({ ...prev, isSubmitting: false }))
+								onComplete(true)
+								return
+							}
+							if (s.status === 'complete') {
+								setActive({ session: s.createdSessionId })
+								onClose?.()
+								return
+							}
+							setState((prev) => ({ ...prev, isSubmitting: false }))
+							onComplete(false)
+						})
+						.catch((e) => {
+							const error = e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Invalid code'
+							setState((s) => ({
+								...s,
+								code: '',
+								isSubmitting: false,
+								error,
+							}))
+						})
+					return
+				}
+
+				if (client.signIn) {
+					client.signIn
+						.attemptFirstFactor({
+							strategy: 'email_code',
+							code: next,
+						})
+						.then((r) => {
+							if (r.status === 'complete') {
+								setActive({ session: r.createdSessionId })
+								onClose?.()
+								return
+							}
+							setState((prev) => ({ ...prev, isSubmitting: false }))
+							onComplete(false)
+						})
+						.catch((e) => {
+							const error = e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Invalid code'
+							setState((s) => ({
+								...s,
+								code: '',
+								isSubmitting: false,
+								error,
+							}))
+						})
+				}
+			}
+		},
+		[state, client, onClose, isSignUpFlow, setActive, onComplete]
+	)
+
+	const handleResend = useCallback(async () => {
+		if (resendCooldown > 0 || state.isSubmitting) return
+		setResendError(null)
+		try {
+			if (isSignUpFlow) {
+				// Ensure email is set on signUp in case the client lost state
+				if (!(client.signUp as any)?.emailAddress && identifier) {
+					await client.signUp.update({ emailAddress: identifier } as any)
+				}
+				await client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
+			} else if (client.signIn && emailAddressId) {
+				await client.signIn.prepareFirstFactor({
+					strategy: 'email_code',
+					emailAddressId,
+				})
+			}
+			setResendCooldown(30)
+		} catch (_e: any) {
+			const e = _e as any
+			setResendError(
+				e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Unable to resend code'
+			)
+		}
+	}, [client, emailAddressId, identifier, isSignUpFlow, resendCooldown, state.isSubmitting])
+
 	return (
 		<>
 			<TldrawUiDialogHeader>
@@ -529,6 +577,7 @@ function TlaVerificationCodeStep({
 				</div>
 
 				{state.error && <div className={styles.authError}>{state.error}</div>}
+				{resendError && <div className={styles.authError}>{resendError}</div>}
 
 				<div className={styles.authResendWrapper}>
 					<span className={styles.authResendText}>
@@ -536,35 +585,26 @@ function TlaVerificationCodeStep({
 							{...messages.didNotReceiveCode}
 							values={{
 								resend: (chunks) => (
-									<button type="button" onClick={handleResend} className={styles.authResendButton}>
-										{chunks}
+									<button
+										type="button"
+										onClick={handleResend}
+										className={styles.authResendButton}
+										disabled={resendCooldown > 0 || state.isSubmitting}
+									>
+										{resendCooldown > 0 ? (
+											<>
+												{/* eslint-disable-next-line react/jsx-no-literals */}
+												{chunks} ({resendCooldown})
+											</>
+										) : (
+											chunks
+										)}
 									</button>
 								),
 							}}
 						/>
 					</span>
 				</div>
-			</TldrawUiDialogBody>
-		</>
-	)
-}
-
-function TlaAuthStep({ children, onClose }: { children: ReactNode; onClose?(): void }) {
-	return (
-		<>
-			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>
-					<span />
-				</TldrawUiDialogTitle>
-				{onClose && <TldrawUiDialogCloseButton />}
-			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody className={styles.authBody}>
-				<div className={styles.authLogoWrapper}>
-					<div className={styles.authLogo}>
-						<TlaLogo />
-					</div>
-				</div>
-				{children}
 			</TldrawUiDialogBody>
 		</>
 	)
