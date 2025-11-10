@@ -7,7 +7,7 @@ export type FocusFill = z.infer<typeof FocusFillSchema>
 
 const FOCUS_TO_TLDRAW_FILLS: Record<FocusFill, TLDefaultFillStyle> = {
 	none: 'none',
-	solid: 'fill',
+	solid: 'lined-fill',
 	background: 'semi',
 	tint: 'solid',
 	pattern: 'pattern',
@@ -16,6 +16,7 @@ const FOCUS_TO_TLDRAW_FILLS: Record<FocusFill, TLDefaultFillStyle> = {
 const TLDRAW_TO_FOCUS_FILLS: Record<TLDefaultFillStyle, FocusFill> = {
 	none: 'none',
 	fill: 'solid',
+	'lined-fill': 'solid',
 	semi: 'background',
 	solid: 'tint',
 	pattern: 'pattern',
