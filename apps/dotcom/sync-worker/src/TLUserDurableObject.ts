@@ -111,7 +111,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 								exportPadding: true,
 								createdAt: now,
 								updatedAt: now,
-								flags: '',
+								flags: 'groups_backend',
 							})
 							.execute()
 						await tx
