@@ -10,7 +10,6 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 } from 'tldraw'
-import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
@@ -29,8 +28,6 @@ export function TlaSignInDialog({ onClose }: { onClose?(): void }) {
 }
 
 function TlaLoginFlow({ onClose }: { onClose?(): void }) {
-	const [analyticsOptIn, updateAnalyticsConsent] = useAnalyticsConsent()
-
 	const [stage, setStage] = useState<'enterEmail' | 'enterCode'>('enterEmail')
 	const [identifier, setIdentifier] = useState('')
 	const [isSignUpFlow, setIsSignUpFlow] = useState(false)

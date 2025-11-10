@@ -232,7 +232,7 @@ function SignedInProvider({
 
 function LegalTermsAcceptance() {
 	const { user } = useClerkUser()
-	const { addDialog, clearDialogs } = useDialogs()
+	const { addDialog } = useDialogs()
 	const userRef = useRef(user)
 
 	// Keep the ref updated with the latest user
