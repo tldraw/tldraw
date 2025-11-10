@@ -6,6 +6,7 @@ import { PeripheralCluster } from '../format/PeripheralCluster'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { ChatHistoryItem } from '../types/ChatHistoryItem'
+import { FairyProject } from '../types/FairyProject'
 import { FairyTask } from '../types/FairyTask'
 import { FairyWork } from '../types/FairyWork'
 import { ActiveFairyModeDefinition } from './FairyModeDefinition'
@@ -341,6 +342,31 @@ export const WorkingTasksPartDefinition: PromptPartDefinition<WorkingTasksPart> 
 		}
 
 		return [`Here are the tasks you are currently working on:`, ...taskContent]
+	},
+}
+
+// ProjectsPart
+export interface ProjectsPart {
+	type: 'activeProject'
+	currentProject: FairyProject | null
+}
+
+export const ProjectsPartDefinition: PromptPartDefinition<ProjectsPart> = {
+	type: 'activeProject',
+	priority: -5,
+	buildContent(part: ProjectsPart) {
+		const { currentProject } = part
+
+		if (!currentProject) {
+			return ['There is no current project.']
+		}
+
+		return [
+			`You are currently working on project "${currentProject.title}".`,
+			`Project description: ${currentProject.description}`,
+			`Project color: ${currentProject.color}`,
+			`Project members: ${currentProject.members.map((m) => `${m.id} (${m.role})`).join(', ')}`,
+		]
 	},
 }
 

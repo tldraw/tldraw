@@ -1,13 +1,13 @@
-import { CreateTaskAction, Streaming } from '@tldraw/fairy-shared'
+import { CreateTaskAction as CreateSoloTaskAction, Streaming } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { createFairyTask } from '../FairyTaskList'
 import { AgentActionUtil } from './AgentActionUtil'
 
 // Creates a task for themselves
-export class CreateTaskActionUtil extends AgentActionUtil<CreateTaskAction> {
-	static override type = 'create-task' as const
+export class CreateSoloTaskActionUtil extends AgentActionUtil<CreateSoloTaskAction> {
+	static override type = 'create-solo-task' as const
 
-	override getInfo(action: Streaming<CreateTaskAction>) {
+	override getInfo(action: Streaming<CreateSoloTaskAction>) {
 		const label = action.complete ? 'Created task' : 'Creating task'
 		return {
 			icon: 'note' as const,
@@ -16,7 +16,7 @@ export class CreateTaskActionUtil extends AgentActionUtil<CreateTaskAction> {
 		}
 	}
 
-	override applyAction(action: Streaming<CreateTaskAction>, _helpers: AgentHelpers) {
+	override applyAction(action: Streaming<CreateSoloTaskAction>, _helpers: AgentHelpers) {
 		if (!action.complete) return
 
 		createFairyTask({

@@ -36,6 +36,7 @@ type FairyDebugInspectorType =
 	| 'userActionHistory'
 	| 'currentProjectId'
 	| 'cumulativeUsage'
+	| 'mode'
 
 const FAIRY_DEBUG_INSPECTOR_TYPES: FairyDebugInspectorType[] = [
 	'config',
@@ -48,6 +49,7 @@ const FAIRY_DEBUG_INSPECTOR_TYPES: FairyDebugInspectorType[] = [
 	'userActionHistory',
 	'currentProjectId',
 	'cumulativeUsage',
+	'mode',
 ]
 
 // # Main dialog component
@@ -188,6 +190,7 @@ function DebugInspectorLabel({
 		if (fairyType === 'userActionHistory') return <F defaultMessage="User Action History" />
 		if (fairyType === 'currentProjectId') return <F defaultMessage="Current Project ID" />
 		if (fairyType === 'cumulativeUsage') return <F defaultMessage="Cumulative Usage" />
+		if (fairyType === 'mode') return <F defaultMessage="Mode" />
 	}
 	return null
 }
@@ -354,8 +357,9 @@ function FairyDebugView({
 	const chatOrigin = useValue(agent.$chatOrigin)
 	const todoList = useValue(agent.$todoList)
 	const userActionHistory = useValue(agent.$userActionHistory)
-	const currentProjectId = agent.getCurrentProject()?.id
+	const currentProjectId = agent.getProject()?.id
 	const cumulativeUsage = agent.cumulativeUsage
+	const mode = agent.getMode()
 
 	if (inspectorType === 'config') {
 		return (
@@ -382,6 +386,7 @@ function FairyDebugView({
 		userActionHistory,
 		currentProjectId,
 		cumulativeUsage,
+		mode,
 	}
 
 	const value = valueMap[inspectorType as Exclude<FairyDebugInspectorType, 'config' | 'actions'>]

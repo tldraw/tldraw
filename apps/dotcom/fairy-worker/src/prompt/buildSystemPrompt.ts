@@ -439,7 +439,7 @@ function getSystemPromptFlags(actions: AgentAction['_type'][], parts: PromptPart
 		// hasSharedTodo: parts.includes('sharedTodoList') && actions.includes('update-todo-list'),
 
 		// assign todo item
-		hasAssignTodoItem: actions.includes('assign-todo-item'),
+		hasAssignTodoItem: actions.includes('direct-to-start-project-task'),
 
 		// personality
 		hasPersonalityPart: parts.includes('personality'),

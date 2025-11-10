@@ -1,5 +1,7 @@
 import { EndCurrentProjectAction, Streaming } from '@tldraw/fairy-shared'
+import { deleteProject } from '../FairyProjects'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
+import { $fairyAgentsAtom } from '../fairy-agent/agent/fairyAgentsAtom'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProjectAction> {
@@ -17,6 +19,18 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 		if (!action.complete) return
 		if (!this.agent) return
 
-		// Todo
+		const project = this.agent.getProject()
+		if (!project) return // todo error
+
+		const membersIds = project.members.map((member) => member.id)
+		const memberAgents = $fairyAgentsAtom
+			.get(this.editor)
+			.filter((agent) => membersIds.includes(agent.id))
+
+		memberAgents.forEach((memberAgent) => {
+			memberAgent.setMode('idling')
+		})
+
+		deleteProject(project.id)
 	}
 }

@@ -13,6 +13,7 @@ import {
 	FairyPose,
 	FairyProject,
 	FairyProjectRole,
+	FairyTask,
 	FairyWork,
 	getFairyModeDefinition,
 	PromptPart,
@@ -39,6 +40,8 @@ import { TldrawApp } from '../../../tla/app/TldrawApp'
 import { FAIRY_WORKER } from '../../../utils/config'
 import { AgentActionUtil } from '../../actions/AgentActionUtil'
 import { $fairyIsApplyingAction } from '../../FairyIsApplyingAction'
+import { getProjectByAgentId } from '../../FairyProjects'
+import { $fairyTasks } from '../../FairyTaskList'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../FairyUtils'
 import { PromptPartUtil } from '../../parts/PromptPartUtil'
 import { AgentHelpers } from './AgentHelpers'
@@ -162,14 +165,23 @@ export class FairyAgent {
 	 * Get the current project that the agent is working on.
 	 */
 	getProject(): FairyProject | null {
-		return null
+		return getProjectByAgentId(this.id) ?? null
+	}
+
+	/**
+	 * Get the tasks that the agent is working on.
+	 */
+	getTasks(): FairyTask[] {
+		return $fairyTasks.get().filter((task) => task.assignedTo === this.id)
 	}
 
 	/**
 	 * Get the role of the agent within its current project.
 	 */
 	getRole(): FairyProjectRole | null {
-		return null
+		const project = this.getProject()
+		if (!project) return null
+		return project.members.find((member) => member.id === this.id)?.role ?? null
 	}
 
 	/**
@@ -178,17 +190,9 @@ export class FairyAgent {
 	 */
 	getWork(): FairyWork {
 		return {
-			project: null,
-			tasks: [],
+			project: this.getProject(),
+			tasks: this.getTasks(),
 		}
-	}
-
-	/**
-	 * Get the project that the agent is currently working on.
-	 * @returns The project.
-	 */
-	getCurrentProject(): FairyProject | null {
-		return null
 	}
 
 	/**

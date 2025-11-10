@@ -1,13 +1,14 @@
 import { AgentAction, PromptPart } from '@tldraw/fairy-shared'
 import { AgentActionUtil, AgentActionUtilConstructor } from './actions/AgentActionUtil'
 import { AlignActionUtil } from './actions/AlignActionUtil'
-import { AssignTodoItemActionUtil } from './actions/AssignTodoItemActionUtil'
+import { AssignTaskActionUtil } from './actions/AssignTaskActionUtil'
 import { BringToFrontActionUtil } from './actions/BringToFrontActionUtil'
 import { ChangePageActionUtil } from './actions/ChangePageActionUtil'
 import { ClaimTodoItemActionUtil } from './actions/ClaimTodoItemActionUtil'
 import { CreateActionUtil } from './actions/CreateActionUtil'
 import { CreatePageActionUtil } from './actions/CreatePageActionUtil'
-import { CreateTaskActionUtil } from './actions/CreateTaskActionUtil'
+import { CreateProjectTaskActionUtil } from './actions/CreateProjectTaskActionUtil'
+import { CreateSoloTaskActionUtil } from './actions/CreateSoloTaskActionUtil'
 import { DeleteActionUtil } from './actions/DeleteActionUtil'
 import { DistributeActionUtil } from './actions/DistributeActionUtil'
 import { EndCurrentProjectActionUtil } from './actions/EndCurrentProjectActionUtil'
@@ -41,6 +42,7 @@ import { OtherFairiesPartUtil } from './parts/OtherFairiesPartUtil'
 import { PagesPartUtil } from './parts/PagesPartUtil'
 import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
 import { PersonalityPartUtil } from './parts/PersonalityPartUtil'
+import { ProjectsPartUtil } from './parts/ProjectsPartUtil'
 import { PromptPartUtil, PromptPartUtilConstructor } from './parts/PromptPartUtil'
 import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
 import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
@@ -88,14 +90,20 @@ export const AGENT_ACTION_UTILS = [
 	CreatePageActionUtil,
 
 	// Project management
-	SharedTodoListActionUtil,
-	AssignTodoItemActionUtil,
-	ClaimTodoItemActionUtil,
-	StartProjectActionUtil,
-	EndCurrentProjectActionUtil,
-	CreateTaskActionUtil,
+
+	// working
+	CreateSoloTaskActionUtil,
 	StartTaskActionUtil,
 	MarkTaskDoneActionUtil,
+	ClaimTodoItemActionUtil, // todo, do we need?
+
+	// orchestrating
+	StartProjectActionUtil,
+	CreateProjectTaskActionUtil,
+	AssignTaskActionUtil,
+	EndCurrentProjectActionUtil,
+
+	SharedTodoListActionUtil, // todo, do we need?
 
 	// Internal (required)
 	UnknownActionUtil,
@@ -135,6 +143,7 @@ export const PROMPT_PART_UTILS = [
 	OtherFairiesPartUtil,
 	PersonalityPartUtil,
 	ModePartUtil,
+	ProjectsPartUtil,
 
 	// Debug
 	DebugPartUtil,

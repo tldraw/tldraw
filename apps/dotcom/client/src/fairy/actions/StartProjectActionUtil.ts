@@ -1,5 +1,6 @@
 import { StartProjectAction, Streaming } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
+import { getProjectByAgentId, updateProject } from '../FairyProjects'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> {
@@ -19,6 +20,18 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 		if (!action.complete) return
 		if (!this.agent) return
 
-		// Todo
+		// Assumptions:
+		// FairyGroupChat already handles creating the project, assigning roles programmatically as well as prompting the orchestrator
+
+		const { projectName, projectDescription, projectColor } = action
+
+		const project = getProjectByAgentId(this.agent.id)
+		if (!project) return // todo error
+
+		updateProject(project.id, {
+			title: projectName,
+			description: projectDescription,
+			color: projectColor,
+		})
 	}
 }

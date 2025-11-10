@@ -64,7 +64,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 		actions: (_work: FairyWork) => [
 			'message',
 			'think',
-			'create-task',
+			'create-solo-task',
 			'start-task',
 			'fly-to-bounds',
 			'change-page',
@@ -111,8 +111,39 @@ export const FAIRY_MODE_DEFINITIONS = [
 	{
 		type: 'orchestrating',
 		active: true,
-		parts: () => [],
-		actions: () => [],
+		parts: () => [
+			'mode',
+			'messages',
+			'screenshot',
+			'viewportBounds',
+			'blurryShapes',
+			'peripheralShapes',
+			'selectedShapes',
+			'chatHistory',
+			'userActionHistory',
+			// 'soloTasks',
+			'time',
+			// 'pages',
+			'otherFairies',
+			'personality',
+			'activeProject',
+			'debug',
+		],
+		actions: () => [
+			'message',
+			'think',
+			'review',
+			'fly-to-bounds',
+			'sleep',
+			// 'change-page',
+			// 'create-page',
+
+			// Project management
+			'start-project',
+			'end-project',
+			'create-project-task',
+			'direct-to-start-project-task',
+		],
 	},
 ] as const satisfies BaseFairyModeDefinition[]
 

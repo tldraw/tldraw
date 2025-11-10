@@ -17,6 +17,10 @@ export function getProjectById(id: string): FairyProject | undefined {
 	return $fairyProjects.get().find((p) => p.id === id)
 }
 
+export function getProjectByAgentId(agentId: string): FairyProject | undefined {
+	return $fairyProjects.get().find((p) => p.members.some((m) => m.id === agentId))
+}
+
 export function updateProject(projectId: string, updates: Partial<FairyProject>) {
 	$fairyProjects.update((projects) =>
 		projects.map((p) => (p.id === projectId ? { ...p, ...updates } : p))

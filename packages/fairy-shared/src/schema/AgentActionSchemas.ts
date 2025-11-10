@@ -16,18 +16,19 @@ export const AlignActionSchema = z
 
 export type AlignAction = z.infer<typeof AlignActionSchema>
 
-export const AssignTodoItemActionSchema = z
+export const AssignTaskActionSchema = z
 	.object({
-		_type: z.literal('assign-todo-item'),
+		_type: z.literal('direct-to-start-project-task'),
 		otherFairyId: z.string(),
-		todoItemId: z.number(),
+		taskId: z.number(),
 	})
 	.meta({
-		title: 'Assign todo item',
-		description: 'The agent assigns a task to another agent.',
+		title: 'Direct to start project task',
+		description:
+			'The agent directs another agent to start working on a specific task within the current project. Only do this once the task is ready to be started.',
 	})
 
-export type AssignTodoItemAction = z.infer<typeof AssignTodoItemActionSchema>
+export type AssignTaskAction = z.infer<typeof AssignTaskActionSchema>
 
 export const BringToFrontActionSchema = z
 	.object({
@@ -131,7 +132,7 @@ export const EndCurrentProjectActionSchema = z
 	})
 	.meta({
 		title: 'End Current Project',
-		description: 'The agent ends the currently active project.',
+		description: 'The agent ends the currently active project once all tasks are complete.',
 	})
 
 export type EndCurrentProjectAction = z.infer<typeof EndCurrentProjectActionSchema>
@@ -338,7 +339,7 @@ export const StartProjectActionSchema = z
 		projectName: z.string(),
 		projectDescription: z.string(),
 		projectColor: FocusColorSchema,
-		projectMemberIds: z.array(z.string()),
+		// projectMemberIds: z.array(z.string()),
 	})
 	.meta({
 		title: 'Start Project',
@@ -412,9 +413,9 @@ export const CreatePageActionSchema = z
 
 export type CreatePageAction = z.infer<typeof CreatePageActionSchema>
 
-export const CreateTaskActionSchema = z
+export const CreateSoloTaskActionSchema = z
 	.object({
-		_type: z.literal('create-task'),
+		_type: z.literal('create-solo-task'),
 		text: z.string(),
 		x: z.number(),
 		y: z.number(),
@@ -427,7 +428,25 @@ export const CreateTaskActionSchema = z
 			"The agent describes one new task that they'd like to do at some point in the future, as well as the area in which it should be done. Each task should represent one step in the longer process. It's okay to create many tasks. Note: Creating a task does not automatically start it. You must use the 'start-task' action to start a task. This is to allow you to create multiple tasks ahead of time, and then pick one to start with. Also note: Tasks get an automatic ID that's used to reference them. They start at 1, and then increment by 1 for each new task.",
 	})
 
-export type CreateTaskAction = z.infer<typeof CreateTaskActionSchema>
+export type CreateTaskAction = z.infer<typeof CreateSoloTaskActionSchema>
+
+export const CreateProjectTaskActionSchema = z
+	.object({
+		_type: z.literal('create-project-task'),
+		text: z.string(),
+		assignedTo: z.string(),
+		x: z.number(),
+		y: z.number(),
+		w: z.number(),
+		h: z.number(),
+	})
+	.meta({
+		title: 'Create Project Task',
+		description:
+			"The agent creates a new task within the current project and assigns it to a specific agent. The task will automatically be associated with the current project. Each task should represent one step in the longer process. It's okay to create many tasks. Note: Creating a task and assigning it to another agentdoes not automatically start it. You must use the 'direct-to-start-project-task' action to get another agent to start a task. Also note: Tasks get an automatic ID that's used to reference them. They start at 1, and then increment by 1 for each new task.",
+	})
+
+export type CreateProjectTaskAction = z.infer<typeof CreateProjectTaskActionSchema>
 
 export const StartTaskActionSchema = z
 	.object({

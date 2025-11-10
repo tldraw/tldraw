@@ -57,7 +57,7 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 				.join(', ')
 			const prompt = `You are the leader of a group of fairies who have been instructed to do this project:
             ${instruction}. 
-            A project has automatically been created, so no need to create one yourself. You have been placed into orchestrator mode. You are in charge of making sure the other fairies follow your instructions and complete the project together. Your teammates are:
+            A project has automatically been created, but you need to start it yourself. You have been placed into orchestrator mode. You are in charge of making sure the other fairies follow your instructions and complete the project together. Your teammates are:
             ${followerNames}
 			You are to complete the project together.
 			Make sure to give the approximate locations of the work to be done, if relevant, in order to make sure fairies dont get confused if there are multiple tasks to be done.
@@ -79,9 +79,9 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 			const newProjectId = uniqueId(5)
 			const newProject: FairyProject = {
 				id: newProjectId,
-				title: `Project: ${value}`,
+				title: '',
 				description: '',
-				color: 'red',
+				color: 'grey',
 				members: [
 					{ id: leaderAgent.id, role: 'orchestrator' },
 					...followerAgents.map((agent) => ({ id: agent.id, role: 'drone' as const })),
@@ -101,7 +101,7 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 			// Send the prompt to the leader
 			const prompt = getGroupChatPrompt(value)
 			leaderAgent.prompt({
-				source: 'user',
+				source: 'self',
 				message: prompt,
 			})
 

@@ -1,4 +1,4 @@
-import { FairyTask } from '@tldraw/fairy-shared'
+import { FairyTask, FairyTaskStatus } from '@tldraw/fairy-shared'
 import { atom } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { clearProjects } from './FairyProjects'
@@ -23,6 +23,14 @@ export function createFairyTask(partial: Partial<Omit<FairyTask, 'id'>>) {
 
 export function deleteFairyTask(id: number) {
 	$fairyTasks.update((todos) => todos.filter((t) => t.id !== id))
+}
+
+export function setFairyTaskStatus(id: number, status: FairyTaskStatus) {
+	$fairyTasks.update((todos) => todos.map((t) => (t.id === id ? { ...t, status } : t)))
+}
+
+export function getFairyTaskById(id: number): FairyTask | undefined {
+	return $fairyTasks.get().find((t) => t.id === id)
 }
 
 export function clearFairyTasks() {
