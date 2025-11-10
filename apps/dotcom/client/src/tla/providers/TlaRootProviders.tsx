@@ -245,8 +245,8 @@ function LegalTermsAcceptance() {
 			const currentUser = userRef.current
 			if (
 				currentUser &&
-				!currentUser.legalAcceptedAt &&
-				!currentUser.unsafeMetadata?.legal_accepted_at
+				!currentUser.legalAcceptedAt && // Clerk's new metadata key
+				!currentUser.unsafeMetadata?.legal_accepted_at // our legacy metadata key
 			) {
 				addDialog({
 					component: TlaLegalAcceptance,

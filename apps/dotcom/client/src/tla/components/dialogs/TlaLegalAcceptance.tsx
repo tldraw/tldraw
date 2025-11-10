@@ -17,13 +17,16 @@ export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 			updateAnalyticsConsent(analyticsOptIn)
 		}
 
-		// Store acceptance in user metadata
+		// Store acceptance in user metadata and mark it on Clerk's canonical field
 		await user.update({
 			unsafeMetadata: {
 				...user.unsafeMetadata,
 				legal_accepted_at: new Date().toISOString(),
 			},
-		})
+			legalAccepted: true,
+			// Clerk's public types don't yet expose legalAccepted
+		} as any)
+		await user.reload()
 
 		onClose?.()
 	}, [analyticsOptIn, onClose, updateAnalyticsConsent, user])

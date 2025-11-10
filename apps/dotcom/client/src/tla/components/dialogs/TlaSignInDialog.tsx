@@ -480,6 +480,20 @@ function TlaVerificationCodeStep({
 							code: next,
 						})
 						.then((r: any) => {
+							const missingFields =
+								r?.missingFields ||
+								r?.missing_fields ||
+								r?.response?.missingFields ||
+								r?.response?.missing_fields ||
+								[]
+							const needsLegal =
+								missingFields.includes?.('legal_accepted') ||
+								missingFields.includes?.('legalAccepted')
+							if (needsLegal) {
+								setState((prev) => ({ ...prev, isSubmitting: false }))
+								onComplete(true)
+								return
+							}
 							if (r.status === 'complete') {
 								setActive({ session: r.createdSessionId })
 								onClose?.()
