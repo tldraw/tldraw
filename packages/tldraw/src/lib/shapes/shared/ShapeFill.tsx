@@ -41,6 +41,9 @@ export const ShapeFill = React.memo(function ShapeFill({
 		case 'pattern': {
 			return <PatternFill theme={theme} color={color} fill={fill} d={d} scale={scale} />
 		}
+		case 'lined-fill': {
+			return <path fill={getColorValue(theme, color, 'linedFill')} d={d} />
+		}
 	}
 })
 
