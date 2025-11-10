@@ -29,8 +29,7 @@ const STICKER_TYPE = 'sticker'
 
 declare module 'tldraw' {
 	export interface TLGlobalShapePropsMap {
-		// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-		[STICKER_TYPE]: {}
+		[STICKER_TYPE]: Record<string, never>
 	}
 }
 

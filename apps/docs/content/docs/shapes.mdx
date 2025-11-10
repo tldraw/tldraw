@@ -95,7 +95,7 @@ You can create your own custom shapes. In the examples below, we will create a c
 
 In tldraw's data model, each shape is represented by a JSON object. Let's first create a type that describes what this object will look like.
 
-First, we need to declare a module augmentation to register our shape's props:
+First, we register the shape's props using TypeScript module augmentation:
 
 ```ts
 const CARD_TYPE = 'card'

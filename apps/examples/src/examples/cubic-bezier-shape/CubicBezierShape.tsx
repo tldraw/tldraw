@@ -100,7 +100,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		return <path d={path} stroke="black" fill="transparent" strokeWidth={2} />
 	}
 
-	// [4]
+	// [5]
 	override getHandles(shape: MyBezierCurveShape): TLHandle[] {
 		const indices = [ZERO_INDEX_KEY, ...getIndicesAbove(ZERO_INDEX_KEY, 3)]
 
@@ -150,7 +150,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		return handles
 	}
 
-	// [5]
+	// [6]
 	override getHandleSnapGeometry(shape: MyBezierCurveShape): HandleSnapGeometry {
 		return {
 			points: [shape.props.start, shape.props.end],
@@ -164,7 +164,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		}
 	}
 
-	// [6]
+	// [7]
 	override onHandleDrag(shape: MyBezierCurveShape, info: TLHandleDragInfo<MyBezierCurveShape>) {
 		const { handle } = info
 		const { id, x, y } = handle
@@ -236,7 +236,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		}
 	}
 
-	// [7]
+	// [8]
 	override onTranslateStart(shape: MyBezierCurveShape) {
 		// only bend if we start translating with the command or control key pressed
 		// this avoids bending the curve midway through a translation where the user accidentally
@@ -288,7 +288,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		return
 	}
 
-	// [8]
+	// [9]
 	component(shape: MyBezierCurveShape) {
 		const path = this.getGeometry(shape).getSvgPathData(true)
 		const { start, end, cp1, cp2 } = shape.props
