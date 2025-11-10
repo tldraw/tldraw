@@ -20,43 +20,30 @@ export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 
-	const handleAcceptTerms = useCallback(async () => {
-		if (!user) return
-
-		// Persist analytics choice before redirecting
-		if (analyticsOptIn !== null) {
-			updateAnalyticsConsent(analyticsOptIn)
-		}
-
-		// Store acceptance in user metadata
-		await user.update({
-			unsafeMetadata: {
-				...user.unsafeMetadata,
-				legal_accepted_at: new Date().toISOString(),
-			},
-		} as any)
-		await user.reload()
-
-		onClose()
-	}, [analyticsOptIn, onClose, updateAnalyticsConsent, user])
-
 	const handleContinue = useCallback(async () => {
 		if (isSubmitting) return
+
 		setIsSubmitting(true)
 		setError(null)
+
 		try {
-			if (handleAcceptTerms) {
-				await handleAcceptTerms()
-				return
+			if (!user) return
+
+			// Persist analytics choice before redirecting
+			if (analyticsOptIn !== null) {
+				updateAnalyticsConsent(analyticsOptIn)
 			}
 
-			// Note: Legal acceptance is only handled for sign-up flow
-			// Sign-in users should have already accepted terms when they signed up
-			const su: any = await client.signUp.update({ legalAccepted: true } as any)
-			if (su?.status === 'complete' && su?.createdSessionId) {
-				await setActive({ session: su.createdSessionId })
-				onClose()
-			}
+			// Store acceptance in user metadata
+			await user.update({
+				unsafeMetadata: {
+					...user.unsafeMetadata,
+					legal_accepted_at: new Date().toISOString(),
+				},
+			} as any)
+			await user.reload()
+
+			onClose()
 		} catch (_e: any) {
 			const e = _e as any
 			setError(
@@ -68,7 +55,7 @@ export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 		} finally {
 			setIsSubmitting(false)
 		}
-	}, [client, isSubmitting, onClose, handleAcceptTerms, setActive])
+	}, [client, isSubmitting, onClose, setActive])
 
 	return (
 		<div className={styles.authContainer}>
