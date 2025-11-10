@@ -175,6 +175,12 @@ const nextConfig = {
 					'/?utm_source=hanselminutes&utm_medium=paid_podcast&utm_campaign=ad_hanselminutes_2025',
 				permanent: true,
 			},
+			{
+				source: '/mostlytechnical',
+				destination:
+					'/?utm_source=mostlytechnical&utm_medium=paid_podcast&utm_campaign=ad_mostlytechnical_2025',
+				permanent: true,
+			},
 		]
 	},
 	async rewrites() {
