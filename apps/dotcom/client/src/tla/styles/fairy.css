@@ -55,29 +55,6 @@
 	}
 }
 
-/* Fairy Home */
-
-.fairy-home {
-	position: fixed;
-	bottom: 48px;
-	right: 20px;
-	pointer-events: auto;
-	z-index: 1000;
-}
-
-.fairy-home__stack {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	pointer-events: auto;
-	height: 182px; /* 50px * 3 + 8px * 2 (gaps) + 16px (padding) */
-	overflow-y: auto;
-	background-color: var(--tl-color-panel);
-	padding: 8px;
-	border-radius: 8px;
-	border: 1px solid var(--tl-color-muted-2);
-}
-
 /* Fairy Row */
 
 .fairy-row {
@@ -265,10 +242,20 @@
 	position: fixed;
 	right: 6px;
 	display: flex;
-	flex-direction: row;
+	flex-direction: column;
 	align-items: flex-end;
+	border-radius: var(--tl-radius-2);
+	box-shadow: var(--tl-shadow-1);
+	border-radius: var(--tl-radius-2);
 	gap: 0px;
-	z-index: 99999999;
+	z-index: var(--tl-layer-canvas-in-front);
+}
+
+.tla-fairy-hud-content {
+	display: flex;
+	flex-direction: row;
+	align-items: stretch;
+	gap: 0px;
 }
 
 /* Fairy HUD Container Scrollbar */
@@ -381,13 +368,23 @@
 	flex-direction: column;
 	background-color: var(--tl-color-panel);
 	border-radius: var(--tl-radius-2);
-	box-shadow: var(--tl-shadow-1);
 	z-index: 0;
 }
 
-.tla-fairy-hud:has(.fairy-chat-panel) .fairy-buttons-container {
-	border-left: none;
+.fairy-chat-panel[data-panel-state="open"] + .fairy-buttons-container {
+	border-left: 1px solid var(--tl-color-divider);
 	border-radius: 0 var(--tl-radius-2) var(--tl-radius-2) 0;
+}
+
+.fairy-list-scrollable {
+	height: calc(48px * 3 + 11px); /* 4 fairies max visible */
+	overflow-y: auto;
+	scrollbar-width: none; /* Firefox */
+	-ms-overflow-style: none; /* IE and Edge */
+}
+
+.fairy-list-scrollable::-webkit-scrollbar {
+	display: none; /* Chrome, Safari, Opera */
 }
 
 /* Fairy Chat Panel */
@@ -398,31 +395,10 @@
 	width: 350px;
 	height: 224px;
 	background-color: var(--tl-color-panel);
-	border-radius: var(--tl-radius-2) var(--tl-radius-2) 0 var(--tl-radius-2);
-	box-shadow: var(--tl-shadow-1);
+	border-radius: var(--tl-radius-2);
 	overflow: hidden;
 	pointer-events: auto;
 	z-index: 2;
-}
-
-/* Fairy Sidebar Dropdown - Must be above chat panel */
-.fairy-sidebar-dropdown {
-	z-index: 100000000 !important;
-}
-
-/* Ensure Radix portal for sidebar dropdowns has proper z-index */
-[data-radix-portal] .fairy-sidebar-dropdown {
-	z-index: 100000000 !important;
-}
-
-/* Fairy Debug Dropdown - Must be above dialog */
-.fairy-debug-dropdown {
-	z-index: 100000000 !important;
-}
-
-/* Ensure Radix portal for debug dropdowns has proper z-index */
-[data-radix-portal] .fairy-debug-dropdown {
-	z-index: 100000000 !important;
 }
 
 /* Fairy Debug Dialog - Fixed width and height */
@@ -675,6 +651,13 @@
 	text-align: center;
 	height: auto;
 	flex-shrink: 0;
+}
+
+.fairy-chat-empty-message {
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 /* Fairy Info View */
@@ -1011,7 +994,7 @@
 	flex-direction: column;
 	gap: 4px;
 	padding: 8px;
-	flex: 0 0 65%;
+	flex: 1;
 	min-height: 0;
 }
 
@@ -1039,8 +1022,7 @@
 	gap: 8px;
 	padding: 8px 8px 8px 12px;
 	border-top: 1px solid var(--tl-color-divider);
-	flex: 0 0 35%;
-	min-height: 0;
+	height: 41px;
 }
 
 .fairy-group-chat-input__wrapper {
@@ -1294,6 +1276,10 @@
 	max-width: 200px;
 }
 
+.fairy-debug-dropdown {
+	z-index: var(--tl-layer-canvas-in-front) !important;
+}
+
 .fairy-debug-view-label {
 	display: block;
 	margin-bottom: 4px;
@@ -1467,10 +1453,22 @@
 	padding: 8px;
 }
 
+.fairy-debug-flags-row {
+	display: flex;
+	flex-direction: row;
+	align-items: flex-start;
+	gap: 8px;
+}
+
 .fairy-debug-flags-checkboxes {
 	display: flex;
 	flex-direction: column;
 	/* gap: 8px; */
+}
+
+.fairy-debug-flags-button {
+	flex-shrink: 0;
+	width: auto;
 }
 
 .fairy-debug-flags-checkbox {
@@ -1485,7 +1483,7 @@
 	background: var(--color-hovered);
 }
 
-.fairy-debug-flags-checkbox input[type="checkbox"] {
+.fairy-debug-flags-checkbox input[type='checkbox'] {
 	cursor: pointer;
 	margin: 0;
 }

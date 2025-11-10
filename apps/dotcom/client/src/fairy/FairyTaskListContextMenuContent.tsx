@@ -12,7 +12,7 @@ export function FairyTaskListContextMenuContent({ agents }: { agents: FairyAgent
 				className="tlui-menu fairy-sidebar-dropdown"
 				collisionPadding={4}
 				onClick={(e) => e.stopPropagation()}
-				style={{ zIndex: 100000000 }}
+				style={{ zIndex: 'var(--tl-layer-canvas-in-front)' }}
 			>
 				<FairyTaskListMenuContent agents={agents} menuType="context-menu" />
 			</_ContextMenu.Content>
