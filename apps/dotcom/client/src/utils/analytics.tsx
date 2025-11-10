@@ -205,6 +205,12 @@ function configureGA4(options: AnalyticsOptions) {
 			wait_for_update: 500,
 		})
 
+		// Set up conversion linker for cross-domain tracking with tldraw.dev
+		// Must be set before ReactGA.initialize() to ensure it's configured before gtag('config')
+		ReactGA.gtag('set', 'linker', {
+			domains: ['tldraw.dev'],
+		})
+
 		ReactGA.initialize(GA4_MEASUREMENT_ID, {
 			gtagOptions: {
 				send_page_view: false,
@@ -271,6 +277,15 @@ export function trackEvent(name: string, data?: { [key: string]: any }) {
 	// Send pageviews to both platforms, but other app-specific events only to PostHog
 	if (name === '$pageview') {
 		getGA4()?.event('page_view', data)
+	}
+
+	// Track watermark clicks in GA4
+	if (name === 'click-watermark' && data?.url) {
+		if (getGA4()) {
+			ReactGA.gtag('event', 'click_tldraw_dev', {
+				link_url: data.url,
+			})
+		}
 	}
 }
 

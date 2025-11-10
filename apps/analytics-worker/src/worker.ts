@@ -13,6 +13,7 @@
 function isAllowedOrigin(origin: string | null): string | undefined {
 	if (!origin) return undefined
 	if (origin === 'http://localhost:3000') return origin
+	if (origin === 'http://localhost:3001') return origin
 	if (origin === 'http://localhost:5420') return origin
 	if (origin === 'https://meet.google.com') return origin
 	if (origin.endsWith('.tldraw.com')) return origin

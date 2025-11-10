@@ -2509,7 +2509,7 @@ export function rotateSelectionHandle(handle: SelectionHandle, rotation: number)
 // @public (undocumented)
 export const runtime: {
     hardReset(): void;
-    openWindow(url: string, target: string): void;
+    openWindow(url: string, target: string, allowReferrer?: boolean): void;
     refreshPage(): void;
 };
 
@@ -3532,6 +3532,10 @@ export type TLEventInfo = TLCancelEventInfo | TLClickEventInfo | TLCompleteEvent
 export interface TLEventMap {
     // (undocumented)
     'before-event': [TLEventInfo];
+    // (undocumented)
+    'click-watermark': [{
+        url: string;
+    }];
     // (undocumented)
     'created-shapes': [TLRecord[]];
     // (undocumented)

@@ -22,6 +22,7 @@ export interface TLEventMap {
 	'edited-shapes': [TLRecord[]]
 	'deleted-shapes': [TLShapeId[]]
 	edit: []
+	'click-watermark': [{ url: string }]
 }
 
 /** @public */
