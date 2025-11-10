@@ -30,7 +30,7 @@ export function FairyListSidebar({
 		<div className="fairy-buttons-container">
 			<div className="fairy-toolbar-header">
 				<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onTogglePanel}>
-					<TldrawUiButtonIcon icon={'fairy' === panelState ? 'chevron-right' : 'chevron-left'} />
+					<TldrawUiButtonIcon icon={panelState !== 'closed' ? 'chevron-right' : 'chevron-left'} />
 				</TldrawUiButton>
 			</div>
 			<div className="fairy-list-scrollable">

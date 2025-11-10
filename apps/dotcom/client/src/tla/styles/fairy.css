@@ -379,6 +379,12 @@
 .fairy-list-scrollable {
 	height: calc(48px * 3 + 11px); /* 4 fairies max visible */
 	overflow-y: auto;
+	scrollbar-width: none; /* Firefox */
+	-ms-overflow-style: none; /* IE and Edge */
+}
+
+.fairy-list-scrollable::-webkit-scrollbar {
+	display: none; /* Chrome, Safari, Opera */
 }
 
 /* Fairy Chat Panel */
@@ -645,6 +651,13 @@
 	text-align: center;
 	height: auto;
 	flex-shrink: 0;
+}
+
+.fairy-chat-empty-message {
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 /* Fairy Info View */
