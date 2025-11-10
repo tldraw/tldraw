@@ -269,10 +269,8 @@ export function getDummyBounds(editor: Editor, shape: TLShape): Box {
 			() => {
 				const dummyId = createShapeId()
 				editor.createShape({
+					...shape,
 					id: dummyId,
-					type: shape.type,
-					props: shape.props,
-					meta: shape.meta,
 				})
 				dummyBounds = editor.getShapePageBounds(dummyId)
 			},

@@ -256,10 +256,8 @@ function getSimpleBounds(editor: Editor, shape: TLShape): Box {
 			() => {
 				const mockId = createShapeId()
 				editor.createShape({
+					...shape,
 					id: mockId,
-					type: shape.type,
-					props: shape.props,
-					meta: shape.meta,
 				})
 				mockBounds = editor.getShapePageBounds(mockId)
 			},

@@ -147,32 +147,32 @@ export default function CustomClippingExample() {
 /*
 Introduction:
 
-This example demonstrates the extensible clipping system in tldraw, showing how to create custom shapes 
-that can clip their children with any polygon geometry. The clipping system uses two key methods: 
+This example demonstrates the extensible clipping system in tldraw, showing how to create custom shapes
+that can clip their children with any polygon geometry. The clipping system uses two key methods:
 `getClipPath` to define the clip boundary and `shouldClipChild` to control which children get clipped.
 
-[1] 
-We define arrays to hold our custom shape util and tool. It's important to do this outside of any React 
+[1]
+We define arrays to hold our custom shape util and tool. It's important to do this outside of any React
 component so that these arrays don't get redefined on every render.
 
 [2]
-Here we define UI overrides to add our custom circle clip tool to the toolbar. The `tools` override 
+Here we define UI overrides to add our custom circle clip tool to the toolbar. The `tools` override
 allows us to add new tools with custom icons, labels, and keyboard shortcuts.
 
 [3]
-The ToggleClippingButton component demonstrates how to create global state management for clipping. 
+The ToggleClippingButton component demonstrates how to create global state management for clipping.
 It uses the `isClippingEnabled$` atom to toggle clipping on/off for all circle clip shapes.
 
 [4]
-The CustomToolbar component shows how to integrate custom tools into the main toolbar. We use 
+The CustomToolbar component shows how to integrate custom tools into the main toolbar. We use
 `useIsToolSelected` to highlight the active tool and `TldrawUiMenuItem` to render the tool button.
 
 [5]
-We define custom components to override the default toolbar and add our toggle button in front of 
+We define custom components to override the default toolbar and add our toggle button in front of
 the canvas. The `components` prop allows us to customize various parts of the tldraw UI.
 
 [6]
-This is where we render the Tldraw component with our custom shape utils, tools, components, and 
+This is where we render the Tldraw component with our custom shape utils, tools, components, and
 overrides. The onMount callback sets up the initial demo content.
 
 For more details on the clipping implementation, see CircleClipShapeUtil.tsx and CircleClipShapeTool.tsx.

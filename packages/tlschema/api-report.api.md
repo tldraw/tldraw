@@ -892,6 +892,13 @@ export type TLCameraId = RecordId<TLCamera>;
 export type TLCanvasUiColor = SetValue<typeof TL_CANVAS_UI_COLOR_TYPES>;
 
 // @public
+export type TLCreateShapePartial<T extends TLShape = TLShape> = T extends T ? {
+    meta?: Partial<T['meta']>;
+    props?: Partial<T['props']>;
+    type: T['type'];
+} & Partial<Omit<T, 'meta' | 'props' | 'type'>> : never;
+
+// @public
 export interface TLCursor {
     rotation: number;
     type: TLCursorType;

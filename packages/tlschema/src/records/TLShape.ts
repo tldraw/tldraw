@@ -208,6 +208,41 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T
 	: never
 
 /**
+ * A partial version of a shape, useful for creating shapes.
+ *
+ * This type represents a shape where all properties except `type` are optional.
+ * It's commonly used when creating shapes.
+ *
+ * @example
+ * ```ts
+ * // Create a shape
+ * const shapeCreate: TLCreateShapePartial = {
+ *   type: 'geo',
+ *   x: 100,
+ *   y: 200
+ * }
+ *
+ * // Create shape properties
+ * const propsCreate: TLCreateShapePartial<TLGeoShape> = {
+ *   type: 'geo',
+ *   props: {
+ *     w: 150,
+ *     h: 100
+ *   }
+ * }
+ * ```
+ *
+ * @public
+ */
+export type TLCreateShapePartial<T extends TLShape = TLShape> = T extends T
+	? {
+			type: T['type']
+			props?: Partial<T['props']>
+			meta?: Partial<T['meta']>
+		} & Partial<Omit<T, 'type' | 'props' | 'meta'>>
+	: never
+
+/**
  * Extract a shape type by its props.
  *
  * This utility type takes a props object type and returns the corresponding shape type

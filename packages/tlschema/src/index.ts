@@ -149,6 +149,7 @@ export {
 	type CoreShape,
 	type ExtractShapeByProps,
 	type OverwritableDefaultShape,
+	type TLCreateShapePartial,
 	type TLDefaultShape,
 	type TLDefaultShapePropsMap,
 	type TLGlobalShapePropsMap,

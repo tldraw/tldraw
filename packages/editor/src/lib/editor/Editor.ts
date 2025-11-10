@@ -30,6 +30,7 @@ import {
 	TLBindingId,
 	TLBindingUpdate,
 	TLCamera,
+	TLCreateShapePartial,
 	TLCursor,
 	TLCursorType,
 	TLDOCUMENT_ID,
@@ -7718,7 +7719,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	createShape<TShape extends TLShape>(shape: OptionalKeys<TLShapePartial<TShape>, 'id'>): this {
+	createShape<TShape extends TLShape>(shape: TLCreateShapePartial<TShape>): this {
 		this.createShapes([shape])
 		return this
 	}

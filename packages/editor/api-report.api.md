@@ -55,6 +55,7 @@ import { TLBindingId } from '@tldraw/tlschema';
 import { TLBindingUpdate } from '@tldraw/tlschema';
 import { TLBookmarkAsset } from '@tldraw/tlschema';
 import { TLCamera } from '@tldraw/tlschema';
+import { TLCreateShapePartial } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLCursorType } from '@tldraw/tlschema';
 import { TLDefaultDashStyle } from '@tldraw/tlschema';
@@ -1104,7 +1105,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         };
     };
     createPage(page: Partial<TLPage>): this;
-    createShape<TShape extends TLShape>(shape: OptionalKeys<TLShapePartial<TShape>, 'id'>): this;
+    createShape<TShape extends TLShape>(shape: TLCreateShapePartial<TShape>): this;
     createShapes<TShape extends TLShape = TLShape>(shapes: OptionalKeys<TLShapePartial<TShape>, 'id'>[]): this;
     createTemporaryAssetPreview(assetId: TLAssetId, file: File): string | undefined;
     // (undocumented)
