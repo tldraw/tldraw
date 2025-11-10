@@ -1,4 +1,4 @@
-import { useClerk, useUser } from '@clerk/clerk-react'
+import { useUser } from '@clerk/clerk-react'
 import classNames from 'classnames'
 import { useCallback, useRef, useState } from 'react'
 import { TldrawUiDialogBody, TldrawUiDialogHeader, TldrawUiDialogTitle } from 'tldraw'
@@ -13,7 +13,6 @@ export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 	const { user } = useUser()
 	const [currentConsent, updateAnalyticsConsent] = useAnalyticsConsent()
 	const [analyticsOptIn, setAnalyticsOptIn] = useState(currentConsent)
-	const { client, setActive } = useClerk()
 	const initialAnalyticsOptIn = useRef(analyticsOptIn)
 	const showAnalyticsToggle = initialAnalyticsOptIn.current !== true
 
@@ -55,7 +54,7 @@ export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 		} finally {
 			setIsSubmitting(false)
 		}
-	}, [client, isSubmitting, onClose, setActive])
+	}, [isSubmitting, onClose, analyticsOptIn, updateAnalyticsConsent, user])
 
 	return (
 		<div className={styles.authContainer}>
