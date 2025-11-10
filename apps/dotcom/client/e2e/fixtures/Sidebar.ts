@@ -167,7 +167,7 @@ export class Sidebar {
 	@step
 	async renameFromFileMenu(name: string) {
 		await this.page.getByRole('menuitem', { name: 'Rename' }).click()
-		const input = this.page.getByRole('textbox')
+		const input = this.page.getByTestId('tla-sidebar-rename-input')
 		await input.fill(name)
 		await this.page.keyboard.press('Enter')
 		await this.mutationResolution()

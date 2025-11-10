@@ -375,6 +375,7 @@ function TlaFileNameEditorInput({
 				onBlur={handleBlur}
 				autoSelect
 				autoFocus
+				data-testid="tla-file-name-input"
 			/>
 			<div className={styles.topLeftInputNameWidthSetter}>
 				{temporaryFileName.replace(/ /g, '\u00a0')}

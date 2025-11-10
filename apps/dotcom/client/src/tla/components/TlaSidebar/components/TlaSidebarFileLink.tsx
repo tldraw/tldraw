@@ -161,8 +161,9 @@ export function TlaSidebarFileLinkInner({
 		if (!isActive || !linkRef.current) return
 		// Don't focus if any menus are open to prevent dismissing them
 		if (editor?.menus.hasAnyOpenMenus()) return
+		if (app.sidebarSearch.get().isFocused) return
 		linkRef.current.focus()
-	}, [isActive, linkRef, editor])
+	}, [isActive, linkRef, editor, app.sidebarSearch])
 
 	const file = useValue('file', () => app.getFile(fileId), [fileId, app])
 	const isOwnFile = useIsFileOwner(fileId)

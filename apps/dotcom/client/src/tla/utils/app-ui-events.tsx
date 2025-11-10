@@ -64,6 +64,8 @@ export interface TLAppUiEventMap {
 	'create-user': null
 	'room-size-warning-dialog-shown': null
 	'room-size-limit-dialog-shown': null
+	'sidebar-search': null
+	'sidebar-search-clear': null
 }
 
 /** @public */

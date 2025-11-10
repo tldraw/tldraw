@@ -13,6 +13,7 @@
 	background: var(--tla-color-sidebar);
 	border-right: 1px solid transparent;
 	transition: transform 0.16s ease-in-out;
+	--gap-after-left-icon: 6px;
 }
 
 .sidebarDragOverlay {
@@ -208,6 +209,81 @@
 	flex-direction: row;
 	align-items: center;
 	flex: 0 0 auto;
+}
+
+/* ------------------- Search bar ------------------- */
+
+.sidebarSearchBar {
+	display: flex;
+	align-items: center;
+	position: relative;
+	height: 36px;
+	margin: 8px 0px 8px 0px;
+	padding: 0px 0px 0px 8px;
+	background-color: var(--tla-color-sidebar);
+	color: var(--tla-color-text-3);
+	transition: border-color 0.1s ease;
+}
+
+.sidebarSearchBar:has(input:focus-visible) {
+	color: var(--tla-color-text-1);
+}
+
+.sidebarSearchBar::after {
+	content: '';
+	position: absolute;
+	inset: 2px 0px 2px 0px;
+	border-radius: 4px;
+	background-color: var(--tla-color-hover-1);
+	transition: opacity 0.1s ease;
+	z-index: 0;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.sidebarSearchBar:has(input:not(:placeholder-shown))::after,
+.sidebarSearchBar:hover::after,
+.sidebarSearchBar:has(input:focus-visible)::after {
+	opacity: 1;
+	visibility: visible;
+}
+
+.sidebarSearchBarIcon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	pointer-events: none;
+	margin-right: var(--gap-after-left-icon);
+}
+
+.sidebarSearchBar input[type='text'] {
+	font-size: 14px;
+}
+
+.sidebarSearchBarClearButton {
+	height: 100%;
+	width: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+	z-index: 3;
+	cursor: pointer;
+	background: none;
+	border: none;
+	color: var(--tla-color-text-3);
+}
+
+@media (hover: hover) {
+	.sidebarSearchBarClearButton:hover {
+		color: var(--tla-color-text-1);
+	}
+}
+
+.sidebarSearchBarClearButton span[role='img'] {
+	width: 12px;
+	height: 12px;
 }
 
 /* Workspace link (sort of) */
@@ -429,7 +505,7 @@
 	flex-direction: row;
 	align-items: center;
 	overflow: hidden;
-	gap: 4px;
+	gap: var(--gap-after-left-icon);
 	font-weight: bold;
 	color: var(--tla-color-text-3);
 }
@@ -464,7 +540,7 @@
 	flex-direction: row;
 	align-items: center;
 	justify-content: flex-start;
-	gap: 8px;
+	gap: var(--gap-after-left-icon);
 	position: relative;
 	pointer-events: none;
 	z-index: 2;
@@ -709,4 +785,14 @@
 	.sidebarDotDevLink:has(a:hover):after {
 		background-color: var(--tla-color-hover-2);
 	}
+}
+
+.sidebarNoFilesMessage {
+	height: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--tla-color-text-3);
+	font-size: 13px;
+	margin-top: 8px;
 }

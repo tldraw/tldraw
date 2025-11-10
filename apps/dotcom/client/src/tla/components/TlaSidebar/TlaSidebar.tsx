@@ -14,6 +14,7 @@ import { TlaSidebarCreateFileButton } from './components/TlaSidebarCreateFileBut
 import { TlaSidebarDotDevLink } from './components/TlaSidebarDotDevLink'
 import { TlaSidebarHelpMenu } from './components/TlaSidebarHelpMenu'
 import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
+import { TlaSidebarSearchBar } from './components/TlaSidebarSearchBar'
 import { TlaUserSettingsMenu } from './components/TlaSidebarUserSettingsMenu'
 import { TlaSidebarWorkspaceLink } from './components/TlaSidebarWorkspaceLink'
 import styles from './sidebar.module.css'
@@ -92,6 +93,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 					<TlaSidebarWorkspaceLink />
 					<TlaSidebarCreateFileButton />
 				</div>
+				<TlaSidebarSearchBar />
 				<div className={styles.sidebarContent}>
 					<TlaSidebarRecentFiles />
 				</div>

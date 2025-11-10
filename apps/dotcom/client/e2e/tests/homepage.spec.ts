@@ -103,7 +103,7 @@ test.describe('sidebar actions', () => {
 		const newName = getRandomName()
 		await test.step('change the name', async () => {
 			await fileLink.dblclick()
-			const input = page.getByRole('textbox')
+			const input = page.getByTestId('tla-sidebar-rename-input')
 			await input?.fill(newName)
 			await page.keyboard.press('Enter')
 		})
