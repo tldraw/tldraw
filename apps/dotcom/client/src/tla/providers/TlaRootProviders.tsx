@@ -232,7 +232,7 @@ function SignedInProvider({
 
 function LegalTermsAcceptance() {
 	const { user } = useClerkUser()
-	const { addDialog } = useDialogs()
+	const { addDialog, clearDialogs } = useDialogs()
 	const userRef = useRef(user)
 
 	// Keep the ref updated with the latest user
@@ -241,24 +241,24 @@ function LegalTermsAcceptance() {
 	}, [user])
 
 	useEffect(() => {
-		function showDialogMaybe() {
+		function maybeShowDialog() {
 			const currentUser = userRef.current
 			if (
 				currentUser &&
-				!currentUser.legalAcceptedAt && // Clerk's new metadata key
-				!currentUser.unsafeMetadata?.legal_accepted_at // our legacy metadata key
+				!currentUser.legalAcceptedAt && // Clerk's canonical metadata key (older accounts)
+				!currentUser.unsafeMetadata?.legal_accepted_at // our metadata key (newer accounts)
 			) {
 				addDialog({
 					component: TlaLegalAcceptance,
 					onClose: () => {
 						// If the user closes the dialog and it's not accepted, show it again
-						showDialogMaybe()
+						maybeShowDialog()
 					},
 				})
 			}
 		}
 
-		showDialogMaybe()
+		maybeShowDialog()
 	}, [addDialog, user?.id])
 
 	return null

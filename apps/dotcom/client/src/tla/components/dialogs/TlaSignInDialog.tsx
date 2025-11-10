@@ -2,7 +2,7 @@ import { useClerk, useSignIn } from '@clerk/clerk-react'
 import * as Clerk from '@clerk/elements/common'
 import * as SignIn from '@clerk/elements/sign-in'
 import classNames from 'classnames'
-import { ChangeEvent, useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
+import { ChangeEvent, useCallback, useEffect, useState, type FormEvent } from 'react'
 import {
 	exhaustiveSwitchError,
 	TldrawUiDialogBody,
@@ -12,23 +12,12 @@ import {
 } from 'tldraw'
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
-import { TlaMenuSwitch } from '../tla-menu/tla-menu'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
 import styles from './auth.module.css'
 
 const messages = defineMessages({
 	enterEmailAddress: { defaultMessage: 'Enter your email address' },
-	termsAcceptance: {
-		defaultMessage:
-			'Before you start, please accept our <tos>terms of use</tos> and <privacy>privacy policy</privacy>.',
-	},
-	allowAnalytics: {
-		defaultMessage: 'Allow <cookies>analytics</cookies> to help us improve tldraw.',
-	},
-	didNotReceiveCode: {
-		defaultMessage: "Didn't receive a code? <resend>Resend</resend>.",
-	},
 })
 
 export function TlaSignInDialog({ onClose }: { onClose?(): void }) {
@@ -42,7 +31,7 @@ export function TlaSignInDialog({ onClose }: { onClose?(): void }) {
 function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 	const [analyticsOptIn, updateAnalyticsConsent] = useAnalyticsConsent()
 
-	const [stage, setStage] = useState<'enterEmail' | 'enterCode' | 'terms'>('enterEmail')
+	const [stage, setStage] = useState<'enterEmail' | 'enterCode'>('enterEmail')
 	const [identifier, setIdentifier] = useState('')
 	const [isSignUpFlow, setIsSignUpFlow] = useState(false)
 	const [emailAddressId, setEmailAddressId] = useState<string | undefined>(undefined)
@@ -66,24 +55,8 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 					identifier={identifier}
 					isSignUpFlow={isSignUpFlow}
 					emailAddressId={emailAddressId}
-					onComplete={(needsTerms) => {
-						if (needsTerms) {
-							setStage('terms')
-							return
-						}
+					onComplete={() => {
 						onClose?.()
-					}}
-					onClose={onClose}
-				/>
-			)
-		case 'terms':
-			return (
-				<TlaAcceptTermsStep
-					analyticsOptIn={analyticsOptIn}
-					isSignUpFlow={isSignUpFlow}
-					identifier={identifier}
-					onAnalyticsChange={(checked) => {
-						updateAnalyticsConsent(checked)
 					}}
 					onClose={onClose}
 				/>
@@ -91,134 +64,6 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 		default:
 			throw exhaustiveSwitchError(stage)
 	}
-}
-
-export function TlaAcceptTermsStep({
-	onClose,
-	identifier,
-	analyticsOptIn,
-	onAnalyticsChange,
-	onContinue,
-}: {
-	onClose?(): void
-	identifier?: string | null
-	isSignUpFlow?: boolean
-	analyticsOptIn: boolean | null
-	onAnalyticsChange(accepted: boolean): void
-	onContinue?(): Promise<void> | void
-}) {
-	const { client, setActive } = useClerk()
-	const initialAnalyticsOptIn = useRef(analyticsOptIn)
-	const showAnalyticsToggle = initialAnalyticsOptIn.current !== true
-
-	const [isSubmitting, setIsSubmitting] = useState(false)
-	const [error, setError] = useState<string | null>(null)
-
-	const handleContinue = useCallback(async () => {
-		if (isSubmitting) return
-		setIsSubmitting(true)
-		setError(null)
-		try {
-			if (onContinue) {
-				await onContinue()
-				return
-			}
-
-			// Note: Legal acceptance is only handled for sign-up flow
-			// Sign-in users should have already accepted terms when they signed up
-			const su: any = await client.signUp.update({ legalAccepted: true } as any)
-			if (su?.status === 'complete' && su?.createdSessionId) {
-				await setActive({ session: su.createdSessionId })
-				onClose?.()
-				return
-			}
-			const needsEmail = (su?.missingFields || su?.missing_fields || []).includes?.('email_address')
-			if (needsEmail) {
-				if (!(client.signUp as any)?.emailAddress && identifier) {
-					await client.signUp.update({ emailAddress: identifier } as any)
-				}
-				await client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
-			}
-		} catch (_e: any) {
-			const e = _e as any
-			setError(
-				e?.errors?.[0]?.longMessage ||
-					e?.errors?.[0]?.message ||
-					e?.message ||
-					'Something went wrong'
-			)
-		} finally {
-			setIsSubmitting(false)
-		}
-	}, [client, identifier, isSubmitting, onClose, onContinue, setActive])
-
-	return (
-		<>
-			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>
-					<span />
-				</TldrawUiDialogTitle>
-				{onClose && <TldrawUiDialogCloseButton />}
-			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody className={styles.authBody}>
-				<div className={styles.authLogoWrapper}>
-					<div className={styles.authLogo}>
-						<TlaLogo />
-					</div>
-				</div>
-
-				<p className={styles.authDescription}>
-					<F
-						{...messages.termsAcceptance}
-						values={{
-							tos: (chunks) => (
-								<a href="/tos.html" target="_blank" rel="noopener noreferrer">
-									{chunks}
-								</a>
-							),
-							privacy: (chunks) => (
-								<a href="/privacy.html" target="_blank" rel="noopener noreferrer">
-									{chunks}
-								</a>
-							),
-						}}
-					/>
-				</p>
-
-				{showAnalyticsToggle && (
-					<label className={styles.authCheckboxLabel}>
-						<span>
-							<F
-								{...messages.allowAnalytics}
-								values={{
-									cookies: (chunks) => (
-										<a href="/cookies.html" target="_blank" rel="noopener noreferrer">
-											{chunks}
-										</a>
-									),
-								}}
-							/>
-						</span>
-						<TlaMenuSwitch
-							id="tla-analytics-switch"
-							checked={!!analyticsOptIn}
-							onChange={(checked) => onAnalyticsChange(checked)}
-						/>
-					</label>
-				)}
-
-				{error && <div className={styles.authError}>{error}</div>}
-				<TlaCtaButton
-					data-testid="tla-accept-and-continue-button"
-					onClick={handleContinue}
-					disabled={isSubmitting}
-					className={classNames(styles.authCtaButton, styles.authTermsAcceptAndContinueButton)}
-				>
-					<F defaultMessage="Accept and continue" />
-				</TlaCtaButton>
-			</TldrawUiDialogBody>
-		</>
-	)
 }
 
 function TlaEnterEmailStep({
@@ -324,6 +169,9 @@ function TlaEnterEmailStep({
 					</div>
 				</div>
 				<div className={styles.authDescription}>
+					<F defaultMessage="tldraw is a free and instant virtual whiteboard." />
+					<br />
+					<br />
 					<F defaultMessage="Create a free account to save your work, collaborate in real-time, and more." />
 				</div>
 				<SignIn.Root routing="virtual">
@@ -338,10 +186,6 @@ function TlaEnterEmailStep({
 									<Clerk.Icon icon="google" />
 									<F defaultMessage="Sign in with Google" />
 								</TlaCtaButton>
-								{/* <>
-									<Clerk.Icon icon="google" />
-									<F defaultMessage="Sign in with Google" />
-								</> */}
 							</Clerk.Connection>
 						</div>
 					</SignIn.Step>
@@ -399,7 +243,7 @@ function TlaVerificationCodeStep({
 	onClose?(): void
 	identifier: string
 	emailAddressId: string | undefined
-	onComplete(needsTerms: boolean): void
+	onComplete(): void
 }) {
 	const [state, setState] = useState<{
 		code: string
@@ -445,21 +289,13 @@ function TlaVerificationCodeStep({
 							code: next,
 						})
 						.then((s) => {
-							const needsLegal = (s?.missingFields || (s as any)?.missing_fields || []).includes?.(
-								'legal_accepted'
-							)
-							if (needsLegal) {
-								setState((prev) => ({ ...prev, isSubmitting: false }))
-								onComplete(true)
-								return
-							}
 							if (s.status === 'complete') {
 								setActive({ session: s.createdSessionId })
 								onClose?.()
 								return
 							}
 							setState((prev) => ({ ...prev, isSubmitting: false }))
-							onComplete(false)
+							onComplete()
 						})
 						.catch((e) => {
 							const error = e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Invalid code'
@@ -480,27 +316,13 @@ function TlaVerificationCodeStep({
 							code: next,
 						})
 						.then((r: any) => {
-							const missingFields =
-								r?.missingFields ||
-								r?.missing_fields ||
-								r?.response?.missingFields ||
-								r?.response?.missing_fields ||
-								[]
-							const needsLegal =
-								missingFields.includes?.('legal_accepted') ||
-								missingFields.includes?.('legalAccepted')
-							if (needsLegal) {
-								setState((prev) => ({ ...prev, isSubmitting: false }))
-								onComplete(true)
-								return
-							}
 							if (r.status === 'complete') {
 								setActive({ session: r.createdSessionId })
 								onClose?.()
 								return
 							}
 							setState((prev) => ({ ...prev, isSubmitting: false }))
-							onComplete(false)
+							onComplete()
 						})
 						.catch((e) => {
 							const error = e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Invalid code'
@@ -604,7 +426,7 @@ function TlaVerificationCodeStep({
 				<div className={styles.authResendWrapper}>
 					<span className={styles.authResendText}>
 						<F
-							{...messages.didNotReceiveCode}
+							defaultMessage="Didn’t receive a code? <resend>Resend</resend>."
 							values={{
 								resend: (chunks) => (
 									<button

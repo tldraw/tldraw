@@ -69,6 +69,12 @@
       "value": "File menu"
     }
   ],
+  "0beb3ca97b": [
+    {
+      "type": 0,
+      "value": "tldraw is a free and instant virtual whiteboard."
+    }
+  ],
   "0d1f2bb523": [
     {
       "type": 0,
@@ -613,6 +619,26 @@
       "value": "Light"
     }
   ],
+  "9b33f5c63c": [
+    {
+      "type": 0,
+      "value": "Didn’t receive a code? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Resend"
+        }
+      ],
+      "type": 8,
+      "value": "resend"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "9bef626805": [
     {
       "type": 0,
@@ -993,26 +1019,6 @@
     {
       "type": 0,
       "value": "or"
-    }
-  ],
-  "ea1b1a54d0": [
-    {
-      "type": 0,
-      "value": "Didn't receive a code? "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "Resend"
-        }
-      ],
-      "type": 8,
-      "value": "resend"
-    },
-    {
-      "type": 0,
-      "value": "."
     }
   ],
   "ea4788705e": [

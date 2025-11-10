@@ -32,6 +32,9 @@
   "0b9a4cde72": {
     "translation": "File menu"
   },
+  "0beb3ca97b": {
+    "translation": "tldraw is a free and instant virtual whiteboard."
+  },
   "0d1f2bb523": {
     "translation": "Send feedback"
   },
@@ -281,6 +284,9 @@
   "9914a0ce04": {
     "translation": "Light"
   },
+  "9b33f5c63c": {
+    "translation": "Didn’t receive a code? <resend>Resend</resend>."
+  },
   "9bef626805": {
     "translation": "Delete file"
   },
@@ -428,9 +434,6 @@
   },
   "e81c4e4f2b": {
     "translation": "or"
-  },
-  "ea1b1a54d0": {
-    "translation": "Didn't receive a code? <resend>Resend</resend>."
   },
   "ea4788705e": {
     "translation": "Cancel"
