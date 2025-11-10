@@ -21,14 +21,14 @@ export function CopyButton({
 		const isInstall = code.trim() === 'npm install tldraw'
 		track('docs.copy.code-block', { isInstall, codeBlockId: name })
 
-		// Track Google Ads conversion for code block copies
-		if (window.tlanalytics?.gtag) {
-			window.tlanalytics.gtag('event', 'conversion', {
-				send_to: 'AW-17268182782/qIuDCMnhl_EaEP6djqpA',
-				value: 1.0,
-				currency: 'USD',
+		// Track via GTM trackCopyCode method
+		if (window.tlanalytics?.trackCopyCode) {
+			window.tlanalytics.trackCopyCode({
+				page_category: 'docs',
+				text_snippet: code,
 			})
 		}
+
 		setCopied(true)
 		setTimeout(() => setCopied(false), 1500)
 	}, [copy, name])

@@ -70,7 +70,10 @@ const UnlicensedWatermark = memo(function UnlicensedWatermark({
 					preventDefault(e)
 				}}
 				title="The tldraw SDK requires a license key to work in production. You can get a free 100-day trial license at tldraw.dev/pricing."
-				onClick={() => runtime.openWindow(url, '_blank', true)} // allow referrer
+				onClick={() => {
+					editor.emit('click-watermark', { url })
+					runtime.openWindow(url, '_blank', true)
+				}} // allow referrer
 			>
 				Get a license for production
 			</button>
@@ -120,7 +123,10 @@ const WatermarkInner = memo(function WatermarkInner({
 					preventDefault(e)
 				}}
 				title="Build infinite canvas applications with the tldraw SDK. Learn more at https://tldraw.dev."
-				onClick={() => runtime.openWindow(url, '_blank')}
+				onClick={() => {
+					editor.emit('click-watermark', { url })
+					runtime.openWindow(url, '_blank')
+				}}
 				style={{ mask: maskCss, WebkitMask: maskCss }}
 			/>
 		</div>
