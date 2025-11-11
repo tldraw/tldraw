@@ -124,16 +124,33 @@ export class HeavyBoardGenerator {
 						}
 
 						case 'draw': {
-							// Create a simple drawn shape with some points
+							// Create a simple drawn shape with delta-encoded points
 							const numPoints = random.range(3, 8)
-							const points: Array<{ x: number; y: number; z: number }> = []
-							for (let p = 0; p < numPoints; p++) {
-								points.push({
-									x: random.range(0, width),
-									y: random.range(0, height),
-									z: 0.5,
-								})
+							const firstX = random.range(0, width)
+							const firstY = random.range(0, height)
+							const firstZ = 0.5
+
+							// Generate delta-encoded points (pen format: dx, dy, dz, ...)
+							const deltas: number[] = []
+							let prevX = firstX
+							let prevY = firstY
+							let prevZ = firstZ
+
+							for (let p = 1; p < numPoints; p++) {
+								const nextX = random.range(0, width)
+								const nextY = random.range(0, height)
+								const nextZ = 0.5
+
+								// Calculate deltas and scale by zoom factor (10 * zoom, default zoom is 1)
+								deltas.push((nextX - prevX) * 10)
+								deltas.push((nextY - prevY) * 10)
+								deltas.push((nextZ - prevZ) * 10)
+
+								prevX = nextX
+								prevY = nextY
+								prevZ = nextZ
 							}
+
 							shape = {
 								id: `shape:${i}`,
 								type: 'draw',
@@ -143,7 +160,8 @@ export class HeavyBoardGenerator {
 									segments: [
 										{
 											type: 'free',
-											points,
+											firstPoint: { x: firstX, y: firstY, z: firstZ },
+											points: deltas,
 										},
 									],
 									color: random.choice(['black', 'blue', 'green', 'red']),
