@@ -3,7 +3,6 @@ import { PromptPart } from '../types/PromptPart'
 import {
 	ActivateFairyActionSchema,
 	AlignActionSchema,
-	AssignTaskActionSchema,
 	BringToFrontActionSchema,
 	ChangePageActionSchema,
 	ClaimTodoItemActionSchema,
@@ -12,6 +11,7 @@ import {
 	CreateProjectTaskActionSchema,
 	CreateSoloTaskActionSchema,
 	DeleteActionSchema,
+	DirectToStartTaskActionSchema,
 	DistributeActionSchema,
 	EndCurrentProjectActionSchema,
 	FlyToBoundsActionSchema,
@@ -36,6 +36,7 @@ import {
 import {
 	BlurryShapesPartDefinition,
 	ChatHistoryPartDefinition,
+	CurrentProjectPartDefinition,
 	DataPartDefinition,
 	DebugPartDefinition,
 	MessagesPartDefinition,
@@ -44,7 +45,6 @@ import {
 	PagesPartDefinition,
 	PeripheralShapesPartDefinition,
 	PersonalityPartDefinition,
-	ProjectsPartDefinition,
 	PromptPartDefinition,
 	ScreenshotPartDefinition,
 	SelectedShapesPartDefinition,
@@ -94,7 +94,7 @@ export const AGENT_ACTION_SCHEMAS = [
 	// Project management
 	SharedTodoListActionSchema,
 	ClaimTodoItemActionSchema,
-	AssignTaskActionSchema,
+	DirectToStartTaskActionSchema,
 	StartProjectActionSchema,
 	EndCurrentProjectActionSchema,
 	ActivateFairyActionSchema,
@@ -126,7 +126,7 @@ export const PROMPT_PART_DEFINITIONS = [
 	OtherFairiesPartDefinition,
 	PersonalityPartDefinition,
 	ModePartDefinition,
-	ProjectsPartDefinition,
+	CurrentProjectPartDefinition,
 ] as const satisfies PromptPartDefinition<BasePromptPart>[]
 
 export const AGENT_ACTION_TYPES = AGENT_ACTION_SCHEMAS.map((schema) => schema.shape._type.value)

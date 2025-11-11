@@ -126,7 +126,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			// 'pages',
 			'otherFairies',
 			'personality',
-			'activeProject',
+			'currentProject',
 			'debug',
 		],
 		actions: () => [

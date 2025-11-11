@@ -1,7 +1,6 @@
 import { AgentAction, PromptPart } from '@tldraw/fairy-shared'
 import { AgentActionUtil, AgentActionUtilConstructor } from './actions/AgentActionUtil'
 import { AlignActionUtil } from './actions/AlignActionUtil'
-import { AssignTaskActionUtil } from './actions/AssignTaskActionUtil'
 import { BringToFrontActionUtil } from './actions/BringToFrontActionUtil'
 import { ChangePageActionUtil } from './actions/ChangePageActionUtil'
 import { ClaimTodoItemActionUtil } from './actions/ClaimTodoItemActionUtil'
@@ -10,6 +9,7 @@ import { CreatePageActionUtil } from './actions/CreatePageActionUtil'
 import { CreateProjectTaskActionUtil } from './actions/CreateProjectTaskActionUtil'
 import { CreateSoloTaskActionUtil } from './actions/CreateSoloTaskActionUtil'
 import { DeleteActionUtil } from './actions/DeleteActionUtil'
+import { DirectToStartTaskActionUtil } from './actions/DirectToStartTaskActionUtil'
 import { DistributeActionUtil } from './actions/DistributeActionUtil'
 import { EndCurrentProjectActionUtil } from './actions/EndCurrentProjectActionUtil'
 import { FlyToBoundsActionUtil } from './actions/FlyToBoundsActionUtil'
@@ -34,6 +34,7 @@ import { UpdateActionUtil } from './actions/UpdateActionUtil'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { BlurryShapesPartUtil } from './parts/BlurryShapesPartUtil'
 import { ChatHistoryPartUtil } from './parts/ChatHistoryPartUtil'
+import { CurrentProjectPartUtil } from './parts/CurrentProjectPartUtil'
 import { DataPartUtil } from './parts/DataPartUtil'
 import { DebugPartUtil } from './parts/DebugPartUtil'
 import { MessagesPartUtil } from './parts/MessagesPartUtil'
@@ -42,7 +43,6 @@ import { OtherFairiesPartUtil } from './parts/OtherFairiesPartUtil'
 import { PagesPartUtil } from './parts/PagesPartUtil'
 import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
 import { PersonalityPartUtil } from './parts/PersonalityPartUtil'
-import { ProjectsPartUtil } from './parts/ProjectsPartUtil'
 import { PromptPartUtil, PromptPartUtilConstructor } from './parts/PromptPartUtil'
 import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
 import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
@@ -100,7 +100,7 @@ export const AGENT_ACTION_UTILS = [
 	// orchestrating
 	StartProjectActionUtil,
 	CreateProjectTaskActionUtil,
-	AssignTaskActionUtil,
+	DirectToStartTaskActionUtil,
 	EndCurrentProjectActionUtil,
 
 	SharedTodoListActionUtil, // todo, do we need?
@@ -143,7 +143,7 @@ export const PROMPT_PART_UTILS = [
 	OtherFairiesPartUtil,
 	PersonalityPartUtil,
 	ModePartUtil,
-	ProjectsPartUtil,
+	CurrentProjectPartUtil,
 
 	// Debug
 	DebugPartUtil,

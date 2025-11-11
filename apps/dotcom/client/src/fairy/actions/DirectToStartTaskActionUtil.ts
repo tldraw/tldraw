@@ -1,12 +1,12 @@
-import { AgentRequest, AssignTaskAction, Streaming } from '@tldraw/fairy-shared'
+import { AgentRequest, DirectToStartTaskAction, Streaming } from '@tldraw/fairy-shared'
 import { $fairyAgentsAtom } from '../fairy-agent/agent/fairyAgentsAtom'
 import { assignFairyToTask, getFairyTaskById, setFairyTaskStatus } from '../FairyTaskList'
 import { AgentActionUtil } from './AgentActionUtil'
 
-export class AssignTaskActionUtil extends AgentActionUtil<AssignTaskAction> {
+export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTaskAction> {
 	static override type = 'direct-to-start-project-task' as const
 
-	override getInfo(action: Streaming<AssignTaskAction>) {
+	override getInfo(action: Streaming<DirectToStartTaskAction>) {
 		let otherFairyName = 'a fairy'
 
 		if (action.complete) {
@@ -17,8 +17,8 @@ export class AssignTaskActionUtil extends AgentActionUtil<AssignTaskAction> {
 		}
 
 		const text = action.complete
-			? `Assigned task ${action.taskId} to ${otherFairyName}.`
-			: `Assigning task ${action.taskId} to ${otherFairyName}...`
+			? `Directed ${otherFairyName} to start task ${action.taskId}.`
+			: `Directing ${otherFairyName} to start task ${action.taskId}...`
 
 		return {
 			icon: 'pencil' as const,
@@ -26,7 +26,7 @@ export class AssignTaskActionUtil extends AgentActionUtil<AssignTaskAction> {
 		}
 	}
 
-	override applyAction(action: Streaming<AssignTaskAction>) {
+	override applyAction(action: Streaming<DirectToStartTaskAction>) {
 		if (!action.complete) return
 		if (!this.agent) return
 

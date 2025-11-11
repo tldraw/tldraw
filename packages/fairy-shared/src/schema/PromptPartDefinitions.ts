@@ -345,16 +345,16 @@ export const WorkingTasksPartDefinition: PromptPartDefinition<WorkingTasksPart> 
 	},
 }
 
-// ProjectsPart
-export interface ProjectsPart {
-	type: 'activeProject'
+// CurrentProjectPart
+export interface CurrentProjectPart {
+	type: 'currentProject'
 	currentProject: FairyProject | null
 }
 
-export const ProjectsPartDefinition: PromptPartDefinition<ProjectsPart> = {
-	type: 'activeProject',
+export const CurrentProjectPartDefinition: PromptPartDefinition<CurrentProjectPart> = {
+	type: 'currentProject',
 	priority: -5,
-	buildContent(part: ProjectsPart) {
+	buildContent(part: CurrentProjectPart) {
 		const { currentProject } = part
 
 		if (!currentProject) {

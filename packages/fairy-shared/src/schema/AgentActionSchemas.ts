@@ -16,7 +16,7 @@ export const AlignActionSchema = z
 
 export type AlignAction = z.infer<typeof AlignActionSchema>
 
-export const AssignTaskActionSchema = z
+export const DirectToStartTaskActionSchema = z
 	.object({
 		_type: z.literal('direct-to-start-project-task'),
 		otherFairyId: z.string(),
@@ -28,7 +28,7 @@ export const AssignTaskActionSchema = z
 			'The agent directs another agent to start working on a specific task within the current project. Only do this once the task is ready to be started.',
 	})
 
-export type AssignTaskAction = z.infer<typeof AssignTaskActionSchema>
+export type DirectToStartTaskAction = z.infer<typeof DirectToStartTaskActionSchema>
 
 export const BringToFrontActionSchema = z
 	.object({
