@@ -78,6 +78,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 		parts: (_work: FairyWork) => [
 			'mode',
 			'messages',
+			'viewportBounds',
 			'screenshot',
 			'blurryShapes',
 			'chatHistory',
@@ -135,6 +136,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'review',
 			'fly-to-bounds',
 			'sleep',
+			// 'start-task',
 			// 'change-page',
 			// 'create-page',
 

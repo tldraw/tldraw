@@ -41,6 +41,10 @@ export function clearFairyTasks() {
 	clearProjects()
 }
 
+export function getFairyTasksByProjectId(projectId: string): FairyTask[] {
+	return $fairyTasks.get().filter((t) => t.projectId === projectId)
+}
+
 export function assignFairyToTask(taskId: number, fairyId: string, agents: FairyAgent[]) {
 	const agent = agents.find((a) => a.id === fairyId)
 	if (!agent && fairyId !== '') return

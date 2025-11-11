@@ -1,5 +1,6 @@
 import { CreateProjectTaskAction, Streaming } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
+import { getProjectByAgentId } from '../FairyProjects'
 import { createFairyTask } from '../FairyTaskList'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -21,6 +22,16 @@ export class CreateProjectTaskActionUtil extends AgentActionUtil<CreateProjectTa
 
 		const project = this.agent.getProject()
 		if (!project) return // todo error
+
+		const assignedToId = action.assignedTo
+		const assignedAgentsProject = getProjectByAgentId(assignedToId)
+		if (!assignedAgentsProject || assignedAgentsProject.id !== project.id) {
+			this.agent.cancel()
+			this.agent.schedule(
+				`Fairy ${assignedToId} is not in the same project as you. You may only assign tasks to fairies in the same project.`
+			)
+			return
+		}
 
 		// todo don't allow them to assign to themselves for now
 

@@ -32,13 +32,25 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 
 		const { otherFairyId, taskId } = action
 
+		const project = this.agent.getProject()
+		if (!project) return // shouldn't be possible
+
 		const otherFairy = $fairyAgentsAtom.get(this.editor).find((fairy) => fairy.id === otherFairyId)
 		if (!otherFairy) return // todo error
 
 		const task = getFairyTaskById(taskId)
+		if (!task) return // todo error
+
+		if (task.projectId !== project.id) {
+			this.agent.cancel()
+			this.agent.schedule(
+				`Task ${taskId} is not in the same project as you. Please take another look at the task list and try again.`
+			)
+			return
+		}
+
 		assignFairyToTask(taskId, otherFairyId, $fairyAgentsAtom.get(this.editor))
 		setFairyTaskStatus(taskId, 'in-progress')
-		if (!task) return // todo error
 
 		const otherFairyPrompt: Partial<AgentRequest> = {
 			messages: [`You have been asked to complete task ${taskId}. Please complete it.`],

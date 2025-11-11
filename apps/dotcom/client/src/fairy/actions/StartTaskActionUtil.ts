@@ -20,6 +20,18 @@ export class StartTaskActionUtil extends AgentActionUtil<StartTaskAction> {
 
 	override applyAction(action: Streaming<StartTaskAction>, _helpers: AgentHelpers) {
 		if (!action.complete) return
+
+		const task = $fairyTasks.get().find((task) => task.id === action.taskId)
+		if (!task) return
+
+		if (task.assignedTo !== this.agent.id) {
+			this.agent.cancel()
+			this.agent.schedule(
+				`Task "${task.text}" with id ${action.taskId} is not assigned to you. Please take another look at the task list and try again.`
+			)
+			return
+		}
+
 		$fairyTasks.update((tasks) =>
 			tasks.map((task) =>
 				task.id === action.taskId ? { ...task, status: 'in-progress' as const } : task
@@ -28,9 +40,6 @@ export class StartTaskActionUtil extends AgentActionUtil<StartTaskAction> {
 
 		const currentBounds = this.agent.$activeRequest.get()?.bounds
 		if (!currentBounds) return
-
-		const task = $fairyTasks.get().find((task) => task.id === action.taskId)
-		if (!task) return
 
 		this.agent.cancel()
 		this.agent.setMode('working')

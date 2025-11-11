@@ -1,17 +1,11 @@
 import { FairyProject } from '@tldraw/fairy-shared'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import {
-	TldrawUiToolbar,
-	TldrawUiToolbarToggleGroup,
-	TldrawUiToolbarToggleItem,
-	uniqueId,
-	useValue,
-} from 'tldraw'
+import { TldrawUiToolbar, TldrawUiToolbarButton, uniqueId, useValue } from 'tldraw'
 import { F, useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { fairyMessages } from './fairy-messages'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
-import { addProject } from './FairyProjects'
+import { $fairyProjects, addProject, getProjectByAgentId } from './FairyProjects'
 
 export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 	const [leaderAgentId, setLeaderAgentId] = useState<string | null>(null)
@@ -24,20 +18,27 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 		[agents, leaderAgentId]
 	)
 
-	const followerAgents = useValue(
-		'follower-agents',
-		() => (leaderAgentId ? agents.filter((agent) => agent.id !== leaderAgentId) : []),
-		[agents, leaderAgentId]
-	)
-
 	const leaderConfig = useValue('leader-config', () => leaderAgent?.$fairyConfig.get() ?? null, [
 		leaderAgent,
 	])
 
-	const areAnyGenerating = useValue(
-		'areAnyGenerating',
-		() => agents.some((agent) => agent.isGenerating()),
-		[agents]
+	// TODO clean up logic for how we split out "available" agents, "project" agents, etc
+
+	const followerAgents = useValue(
+		'follower-agents',
+		() =>
+			leaderAgentId
+				? agents.filter(
+						(agent) => agent.id !== leaderAgentId && getProjectByAgentId(agent.id) === undefined
+					)
+				: [],
+		[agents, leaderAgentId]
+	)
+
+	const areAnyProjectAgentsGenerating = useValue(
+		'areAnyProjectAgentsGenerating',
+		() => followerAgents.some((agent) => agent.isGenerating()) || leaderAgent?.isGenerating(),
+		[followerAgents, leaderAgent]
 	)
 
 	useEffect(() => {
@@ -50,28 +51,21 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 		setLeaderAgentId(agent.id)
 	}
 
-	const getGroupChatPrompt = useCallback(
-		(instruction: string) => {
-			const followerNames = followerAgents
-				.map((agent) => `- name: ${agent.$fairyConfig.get()?.name} (id: ${agent.id})`)
-				.join(', ')
-			const prompt = `You are the leader of a group of fairies who have been instructed to do this project:
-            ${instruction}. 
-            A project has automatically been created, but you need to start it yourself. You have been placed into orchestrator mode. You are in charge of making sure the other fairies follow your instructions and complete the project together. Your teammates are:
-            ${followerNames}
-			You are to complete the project together.
-			Make sure to give the approximate locations of the work to be done, if relevant, in order to make sure fairies dont get confused if there are multiple tasks to be done.
-        `
-			return prompt
-		},
-		[followerAgents]
-	)
+	const getGroupChatPrompt = useCallback((instruction: string, followerAgents: FairyAgent[]) => {
+		const followerNames = followerAgents
+			.map((agent) => `- name: ${agent.$fairyConfig.get()?.name} (id: ${agent.id})`)
+			.join('\n')
+		const prompt = `You are the leader of a group of fairies who have been instructed to do this project:
+${instruction}. 
+A project has automatically been created, but you need to start it yourself. You have been placed into orchestrator mode. You are in charge of making sure the other fairies follow your instructions and complete the project together. Your teammates are:
+${followerNames}
+You are to complete the project together.
+Make sure to give the approximate locations of the work to be done, if relevant, in order to make sure fairies dont get confused if there are multiple tasks to be done.`
+		return prompt
+	}, [])
 
 	const handleInstructGroupChat = useCallback(
 		async (value: string) => {
-			// Cancel all agents
-			agents.forEach((agent) => agent.cancel())
-
 			if (!leaderAgent || !value.trim()) {
 				return
 			}
@@ -91,15 +85,17 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 			addProject(newProject)
 
 			// Set leader as orchestrator
+			leaderAgent.cancel()
 			leaderAgent.setMode('orchestrating')
 
 			// Set followers as drones
 			followerAgents.forEach((agent) => {
+				agent.cancel()
 				agent.setMode('standing-by')
 			})
 
 			// Send the prompt to the leader
-			const prompt = getGroupChatPrompt(value)
+			const prompt = getGroupChatPrompt(value, followerAgents)
 			leaderAgent.prompt({
 				source: 'self',
 				message: prompt,
@@ -108,10 +104,10 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 			// Clear the input
 			setInstruction('')
 		},
-		[agents, getGroupChatPrompt, leaderAgent, followerAgents]
+		[getGroupChatPrompt, leaderAgent, followerAgents]
 	)
 
-	const shouldCancel = areAnyGenerating && instruction === ''
+	const shouldCancel = areAnyProjectAgentsGenerating && instruction === ''
 
 	const handleButtonClick = () => {
 		handleInstructGroupChat(instruction)
@@ -185,7 +181,7 @@ export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
 				</div>
 				<button
 					onClick={handleButtonClick}
-					disabled={!leaderAgent || (instruction === '' && !areAnyGenerating)}
+					disabled={!leaderAgent || (instruction === '' && !areAnyProjectAgentsGenerating)}
 					className="fairy-group-chat-input__submit"
 					title={shouldCancel ? stopTitle : sendTitle}
 				>
@@ -210,18 +206,26 @@ function FairyLeaderToggle({
 	const selectLeaderLabel = useMsg(fairyMessages.selectLeader)
 	const deselectLeaderLabel = useMsg(fairyMessages.deselectLeader)
 
+	const fairyHasProject = useValue(
+		'fairy has project',
+		() => getProjectByAgentId(agent.id) !== undefined,
+		[$fairyProjects]
+	)
+
 	return (
-		<TldrawUiToolbarToggleGroup type="single" value={agentIsSetAsLeader ? 'on' : 'off'} asChild>
-			<TldrawUiToolbarToggleItem
-				onClick={onClick}
-				type="icon"
-				data-state={agentIsSetAsLeader ? 'on' : 'off'}
-				data-isactive={agentIsSetAsLeader}
-				aria-label={agentIsSetAsLeader ? deselectLeaderLabel : selectLeaderLabel}
-				value="on"
-			>
-				<FairySpriteComponent entity={fairyEntity} outfit={fairyOutfit} animated={false} />
-			</TldrawUiToolbarToggleItem>
-		</TldrawUiToolbarToggleGroup>
+		<TldrawUiToolbarButton
+			onClick={onClick}
+			type="icon"
+			isActive={agentIsSetAsLeader}
+			aria-label={agentIsSetAsLeader ? deselectLeaderLabel : selectLeaderLabel}
+			disabled={fairyHasProject}
+		>
+			<FairySpriteComponent
+				entity={fairyEntity}
+				outfit={fairyOutfit}
+				animated={false}
+				tint={fairyHasProject ? 'gray' : undefined}
+			/>
+		</TldrawUiToolbarButton>
 	)
 }

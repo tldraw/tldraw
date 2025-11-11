@@ -1,6 +1,6 @@
 import { StartProjectAction, Streaming } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
-import { getProjectByAgentId, updateProject } from '../FairyProjects'
+import { $fairyProjects, getProjectByAgentId, updateProject } from '../FairyProjects'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> {
@@ -27,6 +27,15 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 
 		const project = getProjectByAgentId(this.agent.id)
 		if (!project) return // todo error
+
+		const colorAlreadyChosen = $fairyProjects.get().some((p) => p.color === projectColor)
+		if (colorAlreadyChosen) {
+			this.agent.cancel()
+			this.agent.schedule(
+				`The color ${projectColor} has already been chosen for another project. Please choose a different color.`
+			)
+			return
+		}
 
 		updateProject(project.id, {
 			title: projectName,

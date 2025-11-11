@@ -382,13 +382,14 @@ export const SharedTodoListPartDefinition: PromptPartDefinition<SharedTodoListPa
 export interface CurrentProjectPart {
 	type: 'currentProject'
 	currentProject: FairyProject | null
+	currentProjectTasks: FairyTask[]
 }
 
 export const CurrentProjectPartDefinition: PromptPartDefinition<CurrentProjectPart> = {
 	type: 'currentProject',
 	priority: -5,
 	buildContent(part: CurrentProjectPart) {
-		const { currentProject } = part
+		const { currentProject, currentProjectTasks } = part
 
 		if (!currentProject) {
 			return ['There is no current project.']
@@ -399,6 +400,7 @@ export const CurrentProjectPartDefinition: PromptPartDefinition<CurrentProjectPa
 			`Project description: ${currentProject.description}`,
 			`Project color: ${currentProject.color}`,
 			`Project members: ${currentProject.members.map((m) => `${m.id} (${m.role})`).join(', ')}`,
+			`${currentProjectTasks.length > 0 ? `Tasks in the project and their status:\n${currentProjectTasks.map((t) => `id: ${t.id}, ${t.text}, status: ${t.status}`).join(', ')}` : 'There are no tasks in the project.'}`,
 		]
 	},
 }

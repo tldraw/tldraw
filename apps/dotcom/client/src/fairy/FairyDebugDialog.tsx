@@ -17,7 +17,7 @@ import {
 } from 'tldraw'
 import { F } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
-import { $fairyProjects } from './FairyProjects'
+import { $fairyProjects, addAgentToDummyProject } from './FairyProjects'
 import { $fairyTasks } from './FairyTaskList'
 
 // # Home Debug Inspector Types and Labels
@@ -219,7 +219,7 @@ function ProjectsInspector() {
 	return (
 		<div className="fairy-debug-projects-container">
 			<div className="fairy-debug-projects-header">
-				<F defaultMessage="Projects: {count}" values={{ count: projects.length }} />
+				<F defaultMessage="Projects:" values={{ count: projects.length }} />
 			</div>
 			{projects.length === 0 ? (
 				<div className="fairy-debug-projects-empty">
@@ -242,10 +242,7 @@ function ProjectsInspector() {
 							</div>
 							<div className="fairy-debug-project-todos-section">
 								<div className="fairy-debug-project-todos-header">
-									<F
-										defaultMessage="Associated Todos: {count}"
-										values={{ count: projectTodos.length }}
-									/>
+									<F defaultMessage="Associated Todos:" values={{ count: projectTodos.length }} />
 								</div>
 								{projectTodos.length === 0 ? (
 									<div className="fairy-debug-project-todos-empty">
@@ -276,7 +273,7 @@ function SharedTodoListInspector() {
 	return (
 		<div className="fairy-debug-shared-todos-container">
 			<div className="fairy-debug-shared-todos-header">
-				<F defaultMessage="Shared Todo List: {count}" values={{ count: sharedTodos.length }} />
+				<F defaultMessage="Shared Todo List:" values={{ count: sharedTodos.length }} />
 			</div>
 			{sharedTodos.length === 0 ? (
 				<div className="fairy-debug-shared-todos-empty">
@@ -337,6 +334,11 @@ function FlagsInspector({ agent }: { agent: FairyAgent }) {
 					</span>
 				</label>
 			</div>
+			<TldrawUiButton type="low" onClick={() => addAgentToDummyProject(agent.id)}>
+				<TldrawUiButtonLabel>
+					<F defaultMessage="Add to Dummy Project" />
+				</TldrawUiButtonLabel>
+			</TldrawUiButton>
 		</div>
 	)
 }
@@ -426,7 +428,7 @@ function ActionsInspector({ agent }: { agent: FairyAgent }) {
 	return (
 		<div className="fairy-debug-container">
 			<div className="fairy-debug-header">
-				<F defaultMessage="Chat History: {count}" values={{ count: items.length }} />
+				<F defaultMessage="Chat History" values={{ count: items.length }} />
 			</div>
 			{items.length === 0 ? (
 				<div className="fairy-debug-empty">
