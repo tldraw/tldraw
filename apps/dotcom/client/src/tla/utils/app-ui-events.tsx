@@ -32,7 +32,6 @@ export interface TLAppUiEventMap {
 	'drop-tldr-file': null
 	'import-tldr-file': null
 	'change-user-name': null
-	'click-watermark': null
 	'open-share-menu': null
 	'change-share-menu-tab': { tab: TldrawAppSessionState['shareMenuActiveTab'] }
 	'copy-share-link': null

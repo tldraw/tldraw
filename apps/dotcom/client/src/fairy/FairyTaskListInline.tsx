@@ -42,10 +42,11 @@ export function FairyTaskListInline({ agents }: { agents: FairyAgent[] }) {
 			e.preventDefault()
 			if (!newTaskText.trim()) return
 
-			createFairyTask({ text: newTaskText.trim() })
+			const currentPageId = editor.getCurrentPageId()
+			createFairyTask({ text: newTaskText.trim(), pageId: currentPageId })
 			setNewTaskText('')
 		},
-		[newTaskText]
+		[newTaskText, editor]
 	)
 
 	const handleDragStart = useCallback(
@@ -86,10 +87,12 @@ export function FairyTaskListInline({ agents }: { agents: FairyAgent[] }) {
 					document.removeEventListener('pointermove', handlePointerMove)
 					document.removeEventListener('pointerup', handlePointerUp)
 
-					// If didn't move, remove coordinates (simple click)
+					// If didn't move, remove coordinates and pageId (simple click)
 					if (!hasMoved) {
 						$fairyTasks.update((todos) =>
-							todos.map((t) => (t.id === taskId ? { ...t, x: undefined, y: undefined } : t))
+							todos.map((t) =>
+								t.id === taskId ? { ...t, x: undefined, y: undefined, pageId: undefined } : t
+							)
 						)
 					}
 				}

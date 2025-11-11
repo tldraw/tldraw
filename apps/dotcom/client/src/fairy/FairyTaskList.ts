@@ -15,6 +15,7 @@ export function createFairyTask(partial: Partial<Omit<FairyTask, 'id'>>) {
 			projectId: null,
 			assignedTo: null,
 			status: 'todo' as const,
+			pageId: undefined,
 			...partial,
 		}
 		return [...tasks, task]

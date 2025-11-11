@@ -226,17 +226,28 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 					setPanelState('fairy')
 				}
 			} else {
-				// Single select mode - deselect all others
-				selectFairy(clickedAgent)
-				// If the clicked fairy is already chosen and selected, toggle the panel. Otherwise, keep the panel open.
-				setPanelState((v) =>
-					isChosen && isSelected && v === 'fairy' && selectedFairies.length <= 1
-						? 'closed'
-						: 'fairy'
-				)
+				// Single select mode
+				if (selectedFairies.length > 1 && panelState !== 'fairy') {
+					// Multiple fairies already selected, panel not open - keep them all selected and show group chat
+					setShownFairy(clickedAgent)
+					setPanelState('fairy')
+				} else if (selectedFairies.length > 1 && panelState === 'fairy') {
+					// Multiple fairies selected, panel already open in group chat - switch to single fairy mode
+					selectFairy(clickedAgent)
+					setPanelState('fairy')
+				} else {
+					// Normal single select behavior - deselect all others
+					selectFairy(clickedAgent)
+					// If the clicked fairy is already chosen and selected, toggle the panel. Otherwise, keep the panel open.
+					setPanelState((v) =>
+						isChosen && isSelected && v === 'fairy' && selectedFairies.length <= 1
+							? 'closed'
+							: 'fairy'
+					)
+				}
 			}
 		},
-		[selectFairy, shownFairy, selectedFairies]
+		[selectFairy, shownFairy, selectedFairies, panelState]
 	)
 
 	const handleDoubleClickFairy = useCallback(

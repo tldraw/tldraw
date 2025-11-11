@@ -8,6 +8,7 @@ export interface FairyTask {
 	y?: number
 	w?: number
 	h?: number
+	pageId?: string
 }
 
 export type FairyTaskStatus = 'todo' | 'in-progress' | 'done'

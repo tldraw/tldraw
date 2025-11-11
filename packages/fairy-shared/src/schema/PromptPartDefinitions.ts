@@ -345,6 +345,39 @@ export const WorkingTasksPartDefinition: PromptPartDefinition<WorkingTasksPart> 
 	},
 }
 
+// SharedTodoListPart
+export interface SharedTodoListPart {
+	type: 'sharedTodoList'
+	items: Array<FairyTask & { fairyName: string }>
+}
+
+export const SharedTodoListPartDefinition: PromptPartDefinition<SharedTodoListPart> = {
+	type: 'sharedTodoList',
+	priority: -10,
+	buildContent(part: SharedTodoListPart) {
+		if (part.items.length === 0) {
+			return ['There are no shared todo items at the moment.']
+		}
+
+		const itemContent = part.items.map((item) => {
+			let text = `Todo ${item.id} [${item.status}]: "${item.text}"`
+			if (item.fairyName) {
+				text += ` (assigned to: ${item.fairyName})`
+			}
+			if (item.x && item.y) {
+				text += ` (position: x: ${item.x}, y: ${item.y})`
+			}
+			return text
+		})
+
+		if (itemContent.length === 1) {
+			return [`Here is the shared todo item:`, itemContent[0]]
+		}
+
+		return [`Here are all the shared todo items:`, ...itemContent]
+	},
+}
+
 // CurrentProjectPart
 export interface CurrentProjectPart {
 	type: 'currentProject'

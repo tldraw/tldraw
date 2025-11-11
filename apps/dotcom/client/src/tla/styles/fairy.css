@@ -1113,7 +1113,6 @@
 	align-items: flex-start;
 	gap: 6px;
 	background-color: var(--tl-color-panel);
-	border: 1px solid var(--tl-color-muted-2);
 	border-radius: 6px;
 	padding: 6px;
 	font-size: 12px;
@@ -1125,10 +1124,6 @@
 	overflow: hidden;
 	opacity: 0.67;
 	margin: -6px; /* offset mouseover padding to top left of todo item is in correct position */
-}
-
-.in-canvas-todo-item-wrapper:hover .in-canvas-todo-item {
-	opacity: 1;
 }
 
 .in-canvas-todo-item-delete {
@@ -1149,10 +1144,6 @@
 	flex-shrink: 0;
 }
 
-.in-canvas-todo-item-wrapper:hover .in-canvas-todo-item-delete {
-	display: block;
-}
-
 .in-canvas-todo-item-icon {
 	appearance: none;
 	background: none;
@@ -1171,7 +1162,19 @@
 	justify-content: center;
 }
 
-.in-canvas-todo-item-delete:hover {
+.in-canvas-todo-list:not(.in-canvas-todo-list--dragging) .in-canvas-todo-item-wrapper:hover .in-canvas-todo-item {
+	opacity: 1;
+}
+
+.in-canvas-todo-list:not(.in-canvas-todo-list--dragging) .in-canvas-todo-item-wrapper:hover .in-canvas-todo-item-text {
+	display: block;
+}
+
+.in-canvas-todo-list:not(.in-canvas-todo-list--dragging) .in-canvas-todo-item-wrapper:hover .in-canvas-todo-item-delete {
+	display: block;
+}
+
+.in-canvas-todo-list:not(.in-canvas-todo-list--dragging) .in-canvas-todo-item-wrapper:hover .in-canvas-todo-item-delete:hover {
 	color: var(--tl-color-text);
 }
 
@@ -1190,10 +1193,6 @@
 	scrollbar-color: var(--tl-color-muted-1) transparent;
 	display: none;
 	flex-shrink: 0;
-}
-
-.in-canvas-todo-item-wrapper:hover .in-canvas-todo-item-text {
-	display: block;
 }
 
 .in-canvas-todo-item-text::-webkit-scrollbar {

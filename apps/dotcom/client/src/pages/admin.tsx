@@ -5,6 +5,7 @@ import { fetch } from 'tldraw'
 import { TlaButton } from '../tla/components/TlaButton/TlaButton'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import styles from './admin.module.css'
+import { saveMigrationLog } from './migrationLogsDB'
 
 // Helper component for structured data display
 function StructuredDataDisplay({ data }: { data: ZStoreData }) {
@@ -502,6 +503,7 @@ function BatchMigrateUsersToGroups() {
 	const [eventSource, setEventSource] = useState<EventSource | null>(null)
 	const [sleepMs, setSleepMs] = useState(100)
 	const logContainerRef = useRef<HTMLDivElement>(null)
+	const shouldContinueRef = useRef(true)
 
 	// Cleanup EventSource on unmount
 	useEffect(() => {
@@ -538,6 +540,7 @@ function BatchMigrateUsersToGroups() {
 	}, [])
 
 	const stopMigration = useCallback(() => {
+		shouldContinueRef.current = false
 		if (eventSource) {
 			eventSource.close()
 			setEventSource(null)
@@ -553,58 +556,87 @@ function BatchMigrateUsersToGroups() {
 		}
 
 		setIsMigrating(true)
+		shouldContinueRef.current = true
 		setError(null)
 		setProgressLog([])
 		setIsComplete(false)
 		setStats({ successCount: 0, failureCount: 0, totalUsers: 0, usersToMigrate: 0, progress: 0 })
 
-		try {
-			const params = new URLSearchParams({
-				sleepMs: sleepMs.toString(),
+		const startBatch = () => {
+			return new Promise<void>((resolve, reject) => {
+				try {
+					const params = new URLSearchParams({
+						sleepMs: sleepMs.toString(),
+					})
+					const es = new EventSource(`/api/app/admin/migrate_users_batch?${params}`)
+					setEventSource(es)
+
+					es.onmessage = async (event) => {
+						const data = JSON.parse(event.data)
+
+						const timestamp = new Date(data.timestamp).toLocaleTimeString()
+						const logEntry = `[${timestamp}] ${data.message}`
+
+						// Keep only the last 500 log entries to prevent memory issues
+						setProgressLog((prev) => {
+							const updated = [...prev, logEntry]
+							return updated.length > 500 ? updated.slice(-500) : updated
+						})
+
+						// Save failure events to IndexedDB
+						if (data.step === 'failure') {
+							try {
+								await saveMigrationLog(data)
+							} catch (err) {
+								console.error('Failed to save migration log to IndexedDB:', err)
+							}
+						}
+
+						// Update stats from details
+						if (data.details) {
+							setStats(data.details)
+						}
+
+						if (data.type === 'complete') {
+							es.close()
+							setEventSource(null)
+							if (data.hasMore && shouldContinueRef.current) {
+								// Start next batch
+								setTimeout(() => startBatch().then(resolve).catch(reject), 100)
+							} else {
+								setIsComplete(true)
+								setIsMigrating(false)
+								resolve()
+							}
+						} else if (data.type === 'error') {
+							setError(data.message)
+							setIsMigrating(false)
+							es.close()
+							setEventSource(null)
+							reject(new Error(data.message))
+						}
+					}
+
+					es.onerror = () => {
+						setError('Connection failed')
+						setIsMigrating(false)
+						es.close()
+						setEventSource(null)
+						reject(new Error('Connection failed'))
+					}
+				} catch (err) {
+					setError(err instanceof Error ? err.message : 'Unknown error occurred')
+					setIsMigrating(false)
+					setEventSource(null)
+					reject(err)
+				}
 			})
-			const es = new EventSource(`/api/app/admin/migrate_users_batch?${params}`)
-			setEventSource(es)
+		}
 
-			es.onmessage = (event) => {
-				const data = JSON.parse(event.data)
-
-				const timestamp = new Date(data.timestamp).toLocaleTimeString()
-				const logEntry = `[${timestamp}] ${data.message}`
-
-				// Keep only the last 500 log entries to prevent memory issues
-				setProgressLog((prev) => {
-					const updated = [...prev, logEntry]
-					return updated.length > 500 ? updated.slice(-500) : updated
-				})
-
-				// Update stats from details
-				if (data.details) {
-					setStats(data.details)
-				}
-
-				if (data.type === 'complete') {
-					setIsComplete(true)
-					setIsMigrating(false)
-					es.close()
-					setEventSource(null)
-				} else if (data.type === 'error') {
-					setError(data.message)
-					setIsMigrating(false)
-					es.close()
-					setEventSource(null)
-				}
-			}
-
-			es.onerror = () => {
-				setError('Connection failed')
-				setIsMigrating(false)
-				es.close()
-				setEventSource(null)
-			}
-		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Unknown error occurred')
-			setIsMigrating(false)
-			setEventSource(null)
+		try {
+			await startBatch()
+		} catch (_err) {
+			// Error already handled in startBatch
 		}
 	}, [sleepMs])
 
