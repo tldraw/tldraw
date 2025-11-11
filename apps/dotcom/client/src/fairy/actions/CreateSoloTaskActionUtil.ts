@@ -16,17 +16,24 @@ export class CreateSoloTaskActionUtil extends AgentActionUtil<CreateSoloTaskActi
 		}
 	}
 
-	override applyAction(action: Streaming<CreateSoloTaskAction>, _helpers: AgentHelpers) {
+	override applyAction(action: Streaming<CreateSoloTaskAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
+
+		const bounds = helpers.removeOffsetFromBox({
+			x: action.x,
+			y: action.y,
+			w: action.w,
+			h: action.h,
+		})
 
 		createFairyTask({
 			text: action.text,
 			assignedTo: this.agent.id,
 			status: 'todo',
-			x: action.x,
-			y: action.y,
-			w: action.w,
-			h: action.h,
+			x: bounds.x,
+			y: bounds.y,
+			w: bounds.w,
+			h: bounds.h,
 		})
 	}
 }

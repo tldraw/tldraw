@@ -16,7 +16,7 @@ export class CreateProjectTaskActionUtil extends AgentActionUtil<CreateProjectTa
 		}
 	}
 
-	override applyAction(action: Streaming<CreateProjectTaskAction>, _helpers: AgentHelpers) {
+	override applyAction(action: Streaming<CreateProjectTaskAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
 
 		const project = this.agent.getProject()
@@ -24,15 +24,22 @@ export class CreateProjectTaskActionUtil extends AgentActionUtil<CreateProjectTa
 
 		// todo don't allow them to assign to themselves for now
 
+		const bounds = helpers.removeOffsetFromBox({
+			x: action.x,
+			y: action.y,
+			w: action.w,
+			h: action.h,
+		})
+
 		createFairyTask({
 			text: action.text,
 			assignedTo: action.assignedTo,
 			projectId: project.id,
 			status: 'todo',
-			x: action.x,
-			y: action.y,
-			w: action.w,
-			h: action.h,
+			x: bounds.x,
+			y: bounds.y,
+			w: bounds.w,
+			h: bounds.h,
 		})
 	}
 }
