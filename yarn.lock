@@ -1896,21 +1896,47 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@clerk/clerk-react@npm:^5.22.8":
-  version: 5.22.8
-  resolution: "@clerk/clerk-react@npm:5.22.8"
+"@clerk/clerk-react@npm:^5.53.3":
+  version: 5.53.3
+  resolution: "@clerk/clerk-react@npm:5.53.3"
   dependencies:
-    "@clerk/shared": "npm:^2.20.16"
-    "@clerk/types": "npm:^4.44.2"
-    tslib: "npm:2.4.1"
+    "@clerk/shared": "npm:^3.28.3"
+    "@clerk/types": "npm:^4.95.1"
+    tslib: "npm:2.8.1"
   peerDependencies:
     react: ^18.0.0 || ^19.0.0 || ^19.0.0-0
     react-dom: ^18.0.0 || ^19.0.0 || ^19.0.0-0
-  checksum: 10/5d693ca70dd4abaa564996f88d34325fa2c660215f15581114db801bc39ceb1f240061ae1175a9d1784db91e01e22349000dd646f2e80a618a1bd9f9e8a0cf98
+  checksum: 10/29e76f59885108e7aa56f503585efdc90605f4c306babbe236976f761fe5d005ed3550cf9c76ca1ffca0603ea52a813c9779b289fb9023ec27f8b97b6155dbf2
   languageName: node
   linkType: hard
 
-"@clerk/shared@npm:^2.20.14, @clerk/shared@npm:^2.20.16":
+"@clerk/elements@npm:^0.23.74":
+  version: 0.23.74
+  resolution: "@clerk/elements@npm:0.23.74"
+  dependencies:
+    "@clerk/clerk-react": "npm:^5.53.3"
+    "@clerk/shared": "npm:^3.28.3"
+    "@clerk/types": "npm:^4.95.1"
+    "@radix-ui/primitive": "npm:^1.1.3"
+    "@radix-ui/react-form": "npm:^0.1.8"
+    "@radix-ui/react-slot": "npm:^1.2.3"
+    "@xstate/react": "npm:^6.0.0"
+    client-only: "npm:^0.0.1"
+    tslib: "npm:2.8.1"
+    type-fest: "npm:^4.41.0"
+    xstate: "npm:^5.20.2"
+  peerDependencies:
+    next: ^13.5.4 || ^14.0.3 || ^15
+    react: ^18.0.0 || ^19.0.0 || ^19.0.0-0
+    react-dom: ^18.0.0 || ^19.0.0 || ^19.0.0-0
+  peerDependenciesMeta:
+    next:
+      optional: true
+  checksum: 10/c11247cda6825a2e844368a9b4e9cad539cb5f8cef851d5108547b8ee9326ca95bed80bc76d2aba2d3d2eb37eb44b538074cbe12f5be4ab1c572210c4eb5a589
+  languageName: node
+  linkType: hard
+
+"@clerk/shared@npm:^2.20.14":
   version: 2.20.16
   resolution: "@clerk/shared@npm:2.20.16"
   dependencies:
@@ -1929,6 +1955,28 @@ __metadata:
     react-dom:
       optional: true
   checksum: 10/54f3dc047b29a6653ab438aa0131ef8ee94e92c6bbddebb4c210a78a75e518473fe806061c63aaaffb84cb05cc8e689dfa9cfa7b203d0ac15c292384cb105b51
+  languageName: node
+  linkType: hard
+
+"@clerk/shared@npm:^3.28.3":
+  version: 3.28.3
+  resolution: "@clerk/shared@npm:3.28.3"
+  dependencies:
+    "@clerk/types": "npm:^4.95.1"
+    dequal: "npm:2.0.3"
+    glob-to-regexp: "npm:0.4.1"
+    js-cookie: "npm:3.0.5"
+    std-env: "npm:^3.9.0"
+    swr: "npm:2.3.4"
+  peerDependencies:
+    react: ^18.0.0 || ^19.0.0 || ^19.0.0-0
+    react-dom: ^18.0.0 || ^19.0.0 || ^19.0.0-0
+  peerDependenciesMeta:
+    react:
+      optional: true
+    react-dom:
+      optional: true
+  checksum: 10/9145532d1f030fa83a37fa0f7ae9702a29333169f354f369a8d730d4e01582e239a4c22d023f7894b822807b3024e915f8170f8c1425429a3b6f6471e37c27a0
   languageName: node
   linkType: hard
 
@@ -1952,12 +2000,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@clerk/types@npm:^4.44.0, @clerk/types@npm:^4.44.2":
-  version: 4.44.2
-  resolution: "@clerk/types@npm:4.44.2"
+"@clerk/types@npm:^4.44.0, @clerk/types@npm:^4.44.2, @clerk/types@npm:^4.95.1":
+  version: 4.95.1
+  resolution: "@clerk/types@npm:4.95.1"
   dependencies:
-    csstype: "npm:3.1.1"
-  checksum: 10/db18b80b43d3713daccfda09644d09164b19f672616efd12e795884f878ff41444b141d12dd307ae1d85f489933b4ef4bafac1b317a855571ba5ec53cc09a3e3
+    csstype: "npm:3.1.3"
+  checksum: 10/9a7f3ee66a331575801ccef60ecd39800155d0b3b61bbc832f91004e9223f42923786d452ceff738897b11c4b3b562785df2b05c637387d57c02ebd08923a799
   languageName: node
   linkType: hard
 
@@ -5421,6 +5469,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@radix-ui/primitive@npm:1.1.3, @radix-ui/primitive@npm:^1.1.3":
+  version: 1.1.3
+  resolution: "@radix-ui/primitive@npm:1.1.3"
+  checksum: 10/ee27abbff0d6d305816e9314655eb35e72478ba47416bc9d5cb0581728be35e3408cfc0748313837561d635f0cb7dfaae26e61831f0e16c0fd7d669a612f2cb0
+  languageName: node
+  linkType: hard
+
 "@radix-ui/react-accessible-icon@npm:1.1.7":
   version: 1.1.7
   resolution: "@radix-ui/react-accessible-icon@npm:1.1.7"
@@ -5824,6 +5879,30 @@ __metadata:
     "@types/react-dom":
       optional: true
   checksum: 10/f7897fd26680a69d57748e5a1b095f86dbeeaaf20c190ea31147d72eb990fea90ca8c25848d7272cedd3acfc95527018368409e3ce29aee5217cc479d538469b
+  languageName: node
+  linkType: hard
+
+"@radix-ui/react-form@npm:^0.1.8":
+  version: 0.1.8
+  resolution: "@radix-ui/react-form@npm:0.1.8"
+  dependencies:
+    "@radix-ui/primitive": "npm:1.1.3"
+    "@radix-ui/react-compose-refs": "npm:1.1.2"
+    "@radix-ui/react-context": "npm:1.1.2"
+    "@radix-ui/react-id": "npm:1.1.1"
+    "@radix-ui/react-label": "npm:2.1.7"
+    "@radix-ui/react-primitive": "npm:2.1.3"
+  peerDependencies:
+    "@types/react": "*"
+    "@types/react-dom": "*"
+    react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
+  checksum: 10/62b57000820150b7938e71f324abcf562cec69e3352b52b6d28436bffc52243ae938e6b22555118431c973491f48050a959c4489880b2af113729af59a8489f8
   languageName: node
   linkType: hard
 
@@ -6349,7 +6428,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-slot@npm:1.2.3":
+"@radix-ui/react-slot@npm:1.2.3, @radix-ui/react-slot@npm:^1.2.3":
   version: 1.2.3
   resolution: "@radix-ui/react-slot@npm:1.2.3"
   dependencies:
@@ -11355,6 +11434,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@xstate/react@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "@xstate/react@npm:6.0.0"
+  dependencies:
+    use-isomorphic-layout-effect: "npm:^1.1.2"
+    use-sync-external-store: "npm:^1.2.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    xstate: ^5.20.0
+  peerDependenciesMeta:
+    xstate:
+      optional: true
+  checksum: 10/bf6cbc5f8c3972c3e3c77935102297c2db524b7d4c2e07655c46d5a3800abede627ad86fc023e3666306bd60f520a18143fe408a06eb4e8483c42aadfb2a24e9
+  languageName: node
+  linkType: hard
+
 "@xtuc/ieee754@npm:^1.2.0":
   version: 1.2.0
   resolution: "@xtuc/ieee754@npm:1.2.0"
@@ -13163,7 +13258,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"client-only@npm:0.0.1":
+"client-only@npm:0.0.1, client-only@npm:^0.0.1":
   version: 0.0.1
   resolution: "client-only@npm:0.0.1"
   checksum: 10/0c16bf660dadb90610553c1d8946a7fdfb81d624adea073b8440b7d795d5b5b08beb3c950c6a2cf16279365a3265158a236876d92bce16423c485c322d7dfaf8
@@ -13748,14 +13843,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"csstype@npm:3.1.1":
-  version: 3.1.1
-  resolution: "csstype@npm:3.1.1"
-  checksum: 10/a945162578fe5a90d40950646ab289cec8966dfacc7e5220be832d87773684c969d91920e0d5f9a0c4503aca1f9fa91134a822ebc9c2f9e01e3836ebc6369b25
-  languageName: node
-  linkType: hard
-
-"csstype@npm:^3.0.2, csstype@npm:^3.1.3":
+"csstype@npm:3.1.3, csstype@npm:^3.0.2, csstype@npm:^3.1.3":
   version: 3.1.3
   resolution: "csstype@npm:3.1.3"
   checksum: 10/f593cce41ff5ade23f44e77521e3a1bcc2c64107041e1bf6c3c32adc5187d0d60983292fda326154d20b01079e24931aa5b08e4467cc488b60bb1e7f6d478ade
@@ -14278,7 +14366,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dotcom@workspace:apps/dotcom/client"
   dependencies:
-    "@clerk/clerk-react": "npm:^5.22.8"
+    "@clerk/clerk-react": "npm:^5.53.3"
+    "@clerk/elements": "npm:^0.23.74"
     "@clerk/testing": "npm:^1.4.15"
     "@formatjs/cli": "npm:^6.5.1"
     "@playwright/test": "npm:^1.50.0"
@@ -26575,6 +26664,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"swr@npm:2.3.4":
+  version: 2.3.4
+  resolution: "swr@npm:2.3.4"
+  dependencies:
+    dequal: "npm:^2.0.3"
+    use-sync-external-store: "npm:^1.4.0"
+  peerDependencies:
+    react: ^16.11.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10/a0898f2d8471c03d7e983e0362f88d08ed4d8579ee45e26a4c9bc9e71b342abd821d7b2f2247f96c41534bd7e56ced4d15150c1b21e38a256548e831aa3cdfa6
+  languageName: node
+  linkType: hard
+
 "swr@npm:^2.2.0, swr@npm:^2.2.5":
   version: 2.3.6
   resolution: "swr@npm:2.3.6"
@@ -27519,7 +27620,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:2, tslib@npm:^2.0.0, tslib@npm:^2.0.1, tslib@npm:^2.0.3, tslib@npm:^2.1.0, tslib@npm:^2.3.0, tslib@npm:^2.3.1, tslib@npm:^2.4.0, tslib@npm:^2.5.0, tslib@npm:^2.6.2, tslib@npm:^2.7.0, tslib@npm:^2.8.0, tslib@npm:^2.8.1":
+"tslib@npm:2, tslib@npm:2.8.1, tslib@npm:^2.0.0, tslib@npm:^2.0.1, tslib@npm:^2.0.3, tslib@npm:^2.1.0, tslib@npm:^2.3.0, tslib@npm:^2.3.1, tslib@npm:^2.4.0, tslib@npm:^2.5.0, tslib@npm:^2.6.2, tslib@npm:^2.7.0, tslib@npm:^2.8.0, tslib@npm:^2.8.1":
   version: 2.8.1
   resolution: "tslib@npm:2.8.1"
   checksum: 10/3e2e043d5c2316461cb54e5c7fe02c30ef6dccb3384717ca22ae5c6b5bc95232a6241df19c622d9c73b809bea33b187f6dbc73030963e29950c2141bc32a79f7
@@ -27613,7 +27714,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"type-fest@npm:^4.15.0, type-fest@npm:^4.26.1, type-fest@npm:^4.31.0":
+"type-fest@npm:^4.15.0, type-fest@npm:^4.26.1, type-fest@npm:^4.31.0, type-fest@npm:^4.41.0":
   version: 4.41.0
   resolution: "type-fest@npm:4.41.0"
   checksum: 10/617ace794ac0893c2986912d28b3065ad1afb484cad59297835a0807dc63286c39e8675d65f7de08fafa339afcb8fe06a36e9a188b9857756ae1e92ee8bda212
@@ -28200,6 +28301,18 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 10/adf06a7b6a27d3651c325ac9b66d2b82ccacaed7450b85b211d123e91d9a23cb5a587fcc6db5b4fd07ac7233e5abf024d30cf02ddc2ec46bca712151c0836151
+  languageName: node
+  linkType: hard
+
+"use-isomorphic-layout-effect@npm:^1.1.2":
+  version: 1.2.1
+  resolution: "use-isomorphic-layout-effect@npm:1.2.1"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 10/a52155ffa7d67a5107ef2033ae2c63f5290c3e3b198de30d4d4f78cd7921e1ab1ea31eeec387defb67ef61adb672d3b8d25b54b7dcc089bacc4f885abde96e9d
   languageName: node
   linkType: hard
 
@@ -29293,6 +29406,13 @@ __metadata:
   version: 2.1.2
   resolution: "xmlhttprequest-ssl@npm:2.1.2"
   checksum: 10/708a177fe41c6c8cd4ec7c04d965b4c01801d87f44383ec639be58bdc14418142969841659e0850db44feee8bec0a3d3e7d33fed22519415f3d0daab04d3f160
+  languageName: node
+  linkType: hard
+
+"xstate@npm:^5.20.2":
+  version: 5.23.0
+  resolution: "xstate@npm:5.23.0"
+  checksum: 10/b39d6b354460b48b1abafec1ec67d874ea8eea0674c0a85bcfef2d1f50be7c5b07632fbc07e32f163d4b11e8f1d75cf1ed0c91180e9759acd64b4bbde6fa580d
   languageName: node
   linkType: hard
 

@@ -23,6 +23,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://*.clerk.accounts.dev',
 		'https://clerk.tldraw.com',
 		'https://clerk.staging.tldraw.com',
+		'https://clerk-telemetry.com',
 		// zero
 		'https://*.zero.tldraw.com',
 		'https://zero.tldraw.com',
