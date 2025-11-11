@@ -54,7 +54,7 @@ export class Drawing extends StateNode {
 	/**
 	 * Converts an array of VecModel points to the delta format (firstPoint + deltas array)
 	 */
-	private pointsToSegment(points: VecModel[], isPen: boolean, zoom: number): TLDrawShapeSegment {
+	private pointsToSegment(points: VecModel[], isPen: boolean): TLDrawShapeSegment {
 		if (points.length === 0) {
 			throw Error('Cannot create segment from empty points array')
 		}
@@ -72,9 +72,9 @@ export class Drawing extends StateNode {
 				const dx = point.x - px
 				const dy = point.y - py
 				const dz = (point.z ?? 0.5) - pz
-				deltas.push(Math.round(dx * 10 * zoom))
-				deltas.push(Math.round(dy * 10 * zoom))
-				deltas.push(Math.round(dz * 10 * zoom))
+				deltas.push(Math.round(dx * 10))
+				deltas.push(Math.round(dy * 10))
+				deltas.push(Math.round(dz * 10))
 				px += dx
 				py += dy
 				pz += dz
@@ -87,8 +87,8 @@ export class Drawing extends StateNode {
 				const point = points[i]
 				const dx = point.x - px
 				const dy = point.y - py
-				deltas.push(Math.round(dx * 10 * zoom))
-				deltas.push(Math.round(dy * 10 * zoom))
+				deltas.push(Math.round(dx * 10))
+				deltas.push(Math.round(dy * 10))
 				px += dx
 				py += dy
 			}
@@ -109,16 +109,15 @@ export class Drawing extends StateNode {
 	private createStraightSegment(
 		firstPoint: VecModel,
 		secondPoint: VecModel,
-		isPen: boolean,
-		zoom: number
+		isPen: boolean
 	): TLDrawShapeSegment {
 		const dx = secondPoint.x - firstPoint.x
 		const dy = secondPoint.y - firstPoint.y
-		const deltas: number[] = [Math.round(dx * 10 * zoom), Math.round(dy * 10 * zoom)]
+		const deltas: number[] = [Math.round(dx * 10), Math.round(dy * 10)]
 
 		if (isPen) {
 			const dz = (secondPoint.z ?? 0.5) - (firstPoint.z ?? 0.5)
-			deltas.push(Math.round(dz * 10 * zoom))
+			deltas.push(Math.round(dz * 10))
 		}
 
 		return {
@@ -133,7 +132,7 @@ export class Drawing extends StateNode {
 	/**
 	 * Gets the last point from a segment (reconstructs it from firstPoint + deltas)
 	 */
-	private getLastPointFromSegment(segment: TLDrawShapeSegment, zoom: number): VecModel {
+	private getLastPointFromSegment(segment: TLDrawShapeSegment): VecModel {
 		const isPen = segment.firstPoint.z !== undefined
 
 		if (segment.points.length === 0) {
@@ -146,9 +145,9 @@ export class Drawing extends StateNode {
 			let pz = segment.firstPoint.z ?? 0.5
 
 			for (let i = 0; i < segment.points.length; i += 3) {
-				const dx = segment.points[i] / (10 * zoom)
-				const dy = segment.points[i + 1] / (10 * zoom)
-				const dz = segment.points[i + 2] / (10 * zoom)
+				const dx = segment.points[i] / 10
+				const dy = segment.points[i + 1] / 10
+				const dz = segment.points[i + 2] / 10
 				px += dx
 				py += dy
 				pz += dz
@@ -160,8 +159,8 @@ export class Drawing extends StateNode {
 			let py = segment.firstPoint.y
 
 			for (let i = 0; i < segment.points.length; i += 2) {
-				const dx = segment.points[i] / (10 * zoom)
-				const dy = segment.points[i + 1] / (10 * zoom)
+				const dx = segment.points[i] / 10
+				const dy = segment.points[i + 1] / 10
 				px += dx
 				py += dy
 			}
@@ -257,18 +256,13 @@ export class Drawing extends StateNode {
 		return this.shapeType !== 'highlight'
 	}
 
-	getIsClosed(
-		segments: TLDrawShapeSegment[],
-		size: TLDefaultSizeStyle,
-		scale: number,
-		zoom: number
-	) {
+	getIsClosed(segments: TLDrawShapeSegment[], size: TLDefaultSizeStyle, scale: number) {
 		if (!this.canClose()) return false
 
 		const strokeWidth = STROKE_SIZES[size]
 		const firstPoint = segments[0].firstPoint
 		const lastSegment = segments[segments.length - 1]
-		const lastPoint = this.getLastPointFromSegment(lastSegment, zoom)
+		const lastPoint = this.getLastPointFromSegment(lastSegment)
 
 		return (
 			(firstPoint.x !== lastPoint.x ||
@@ -316,7 +310,7 @@ export class Drawing extends StateNode {
 
 				const prevSegment = last(shape.props.segments)
 				if (!prevSegment) throw Error('Expected a previous segment!')
-				const prevPoint = this.getLastPointFromSegment(prevSegment, shape.props.zoom)
+				const prevPoint = this.getLastPointFromSegment(prevSegment)
 
 				const { x, y } = this.editor.getPointInShapeSpace(shape, originPagePoint).toFixed()
 
@@ -326,12 +320,7 @@ export class Drawing extends StateNode {
 					z: this.isPenOrStylus ? +pressure.toFixed(2) : undefined,
 				}
 
-				const newSegment = this.createStraightSegment(
-					prevPoint,
-					newPoint,
-					this.isPenOrStylus,
-					shape.props.zoom
-				)
+				const newSegment = this.createStraightSegment(prevPoint, newPoint, this.isPenOrStylus)
 
 				// Convert prevPoint to page space
 				const prevPointPageSpace = Mat.applyToPoint(
@@ -343,7 +332,7 @@ export class Drawing extends StateNode {
 				const segments = [...shape.props.segments, newSegment]
 
 				if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
-					this.currentLineLength = this.getLineLength(segments, shape.props.zoom)
+					this.currentLineLength = this.getLineLength(segments)
 				}
 
 				const shapePartial: TLShapePartial<DrawableShape> = {
@@ -358,8 +347,7 @@ export class Drawing extends StateNode {
 					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 						segments,
 						shape.props.size,
-						shape.props.scale,
-						shape.props.zoom
+						shape.props.scale
 					)
 				}
 
@@ -457,7 +445,7 @@ export class Drawing extends StateNode {
 					const prevSegment = last(segments)
 					if (!prevSegment) throw Error('Expected a previous segment!')
 
-					const prevLastPoint = this.getLastPointFromSegment(prevSegment, shape.props.zoom)
+					const prevLastPoint = this.getLastPointFromSegment(prevSegment)
 
 					let newSegment: TLDrawShapeSegment
 
@@ -469,12 +457,7 @@ export class Drawing extends StateNode {
 					if (prevSegment.type === 'straight') {
 						this.currentLineLength += Vec.Dist(Vec.Cast(prevLastPoint), Vec.Cast(newLastPoint))
 
-						newSegment = this.createStraightSegment(
-							prevLastPoint,
-							newLastPoint,
-							this.isPenOrStylus,
-							shape.props.zoom
-						)
+						newSegment = this.createStraightSegment(prevLastPoint, newLastPoint, this.isPenOrStylus)
 
 						const transform = this.editor.getShapePageTransform(shape)!
 
@@ -487,12 +470,7 @@ export class Drawing extends StateNode {
 							...newPoint,
 							z: this.isPenOrStylus ? newPoint.z : undefined,
 						}
-						newSegment = this.createStraightSegment(
-							newLastPoint,
-							newPointModel,
-							this.isPenOrStylus,
-							shape.props.zoom
-						)
+						newSegment = this.createStraightSegment(newLastPoint, newPointModel, this.isPenOrStylus)
 					}
 
 					const shapePartial: TLShapePartial<DrawableShape> = {
@@ -507,8 +485,7 @@ export class Drawing extends StateNode {
 						;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 							segments,
 							size,
-							scale,
-							shape.props.zoom
+							scale
 						)
 					}
 
@@ -540,7 +517,7 @@ export class Drawing extends StateNode {
 
 					const newSegments = segments.slice()
 					const prevStraightSegment = newSegments[newSegments.length - 1]
-					const prevPoint = this.getLastPointFromSegment(prevStraightSegment, shape.props.zoom)
+					const prevPoint = this.getLastPointFromSegment(prevStraightSegment)
 
 					// Create the new free segment and interpolate the points between where the last line
 					// ended and where the pointer is now
@@ -553,17 +530,13 @@ export class Drawing extends StateNode {
 						y: toFixed(p.y),
 						z: this.isPenOrStylus ? toFixed(p.z) : undefined,
 					}))
-					const newFreeSegment = this.pointsToSegment(
-						interpolatedPoints,
-						this.isPenOrStylus,
-						shape.props.zoom
-					)
+					const newFreeSegment = this.pointsToSegment(interpolatedPoints, this.isPenOrStylus)
 					newFreeSegment.type = 'free'
 
 					const finalSegments = [...newSegments, newFreeSegment]
 
 					if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
-						this.currentLineLength = this.getLineLength(finalSegments, shape.props.zoom)
+						this.currentLineLength = this.getLineLength(finalSegments)
 					}
 
 					const shapePartial: TLShapePartial<DrawableShape> = {
@@ -578,8 +551,7 @@ export class Drawing extends StateNode {
 						;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 							finalSegments,
 							size,
-							scale,
-							shape.props.zoom
+							scale
 						)
 					}
 
@@ -632,7 +604,7 @@ export class Drawing extends StateNode {
 							if (segment.type === 'free') continue
 
 							const first = segment.firstPoint
-							const lastPoint = this.getLastPointFromSegment(segment, shape.props.zoom)
+							const lastPoint = this.getLastPointFromSegment(segment)
 
 							// Snap to the nearest point on the segment, if it's closer than the previous snapped point
 							const nearestPointOnSegment = Vec.NearestPointOnLineSegment(
@@ -659,7 +631,7 @@ export class Drawing extends StateNode {
 				if (didSnap && snapSegment) {
 					const transform = this.editor.getShapePageTransform(shape)!
 					const first = snapSegment.firstPoint
-					const lastPoint = this.getLastPointFromSegment(snapSegment, shape.props.zoom)
+					const lastPoint = this.getLastPointFromSegment(snapSegment)
 
 					const A = Mat.applyToPoint(transform, Vec.Cast(first))
 
@@ -710,8 +682,7 @@ export class Drawing extends StateNode {
 				newSegments[newSegments.length - 1] = this.createStraightSegment(
 					segmentFirstPoint,
 					newPointModel,
-					this.isPenOrStylus,
-					shape.props.zoom
+					this.isPenOrStylus
 				)
 
 				const shapePartial: TLShapePartial<DrawableShape> = {
@@ -726,8 +697,7 @@ export class Drawing extends StateNode {
 					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 						segments,
 						size,
-						scale,
-						shape.props.zoom
+						scale
 					)
 				}
 
@@ -799,15 +769,11 @@ export class Drawing extends StateNode {
 				}
 
 				// Convert back to segment format
-				newSegments[newSegments.length - 1] = this.pointsToSegment(
-					currentPoints,
-					isPen,
-					shape.props.zoom
-				)
+				newSegments[newSegments.length - 1] = this.pointsToSegment(currentPoints, isPen)
 				newSegments[newSegments.length - 1].type = 'free'
 
 				if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
-					this.currentLineLength = this.getLineLength(newSegments, shape.props.zoom)
+					this.currentLineLength = this.getLineLength(newSegments)
 				}
 
 				const shapePartial: TLShapePartial<DrawableShape> = {
@@ -822,8 +788,7 @@ export class Drawing extends StateNode {
 					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 						newSegments,
 						size,
-						scale,
-						shape.props.zoom
+						scale
 					)
 				}
 
@@ -886,7 +851,7 @@ export class Drawing extends StateNode {
 		}
 	}
 
-	private getLineLength(segments: TLDrawShapeSegment[], zoom: number) {
+	private getLineLength(segments: TLDrawShapeSegment[]) {
 		let length = 0
 
 		for (const segment of segments) {
@@ -898,9 +863,9 @@ export class Drawing extends StateNode {
 
 			if (isPen) {
 				for (let i = 0; i < segment.points.length; i += 3) {
-					const dx = segment.points[i] / (10 * zoom)
-					const dy = segment.points[i + 1] / (10 * zoom)
-					const dz = segment.points[i + 2] / (10 * zoom)
+					const dx = segment.points[i] / 10
+					const dy = segment.points[i + 1] / 10
+					const dz = segment.points[i + 2] / 10
 					px += dx
 					py += dy
 					pz += dz
@@ -910,8 +875,8 @@ export class Drawing extends StateNode {
 				}
 			} else {
 				for (let i = 0; i < segment.points.length; i += 2) {
-					const dx = segment.points[i] / (10 * zoom)
-					const dy = segment.points[i + 1] / (10 * zoom)
+					const dx = segment.points[i] / 10
+					const dy = segment.points[i + 1] / 10
 					px += dx
 					py += dy
 					const currentPoint = new Vec(px, py)

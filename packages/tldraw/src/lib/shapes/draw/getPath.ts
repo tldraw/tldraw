@@ -101,7 +101,7 @@ export function getFreehandOptions(
 	return { ...solidSettings(strokeWidth), last }
 }
 
-export function getPointsFromSegments(segments: TLDrawShapeSegment[], zoom: number) {
+export function getPointsFromSegments(segments: TLDrawShapeSegment[]) {
 	const points: Vec[] = []
 
 	for (const segment of segments) {
@@ -121,9 +121,9 @@ export function getPointsFromSegments(segments: TLDrawShapeSegment[], zoom: numb
 			let pz = segment.firstPoint.z ?? 0.5
 
 			for (let i = 0; i < segment.points.length; i += 3) {
-				const dx = segment.points[i] / (10 * zoom)
-				const dy = segment.points[i + 1] / (10 * zoom)
-				const dz = segment.points[i + 2] / (10 * zoom)
+				const dx = segment.points[i] / 10
+				const dy = segment.points[i + 1] / 10
+				const dz = segment.points[i + 2] / 10
 				px += dx
 				py += dy
 				pz += dz
@@ -135,8 +135,8 @@ export function getPointsFromSegments(segments: TLDrawShapeSegment[], zoom: numb
 			let py = segment.firstPoint.y
 
 			for (let i = 0; i < segment.points.length; i += 2) {
-				const dx = segment.points[i] / (10 * zoom)
-				const dy = segment.points[i + 1] / (10 * zoom)
+				const dx = segment.points[i] / 10
+				const dy = segment.points[i + 1] / 10
 				px += dx
 				py += dy
 				reconstructedPoints.push(new Vec(px, py))

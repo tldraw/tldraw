@@ -10,8 +10,8 @@ export const interpolateSegments = (
 	endZoom: number
 ): TLDrawShapeSegment[] => {
 	// Extract all points from startSegments and endSegments
-	const startPoints = getPointsFromSegments(startSegments, startZoom).map((v) => v.toJson())
-	const endPoints = getPointsFromSegments(endSegments, endZoom).map((v) => v.toJson())
+	const startPoints = getPointsFromSegments(startSegments).map((v) => v.toJson())
+	const endPoints = getPointsFromSegments(endSegments).map((v) => v.toJson())
 
 	const maxLength = Math.max(startPoints.length, endPoints.length)
 	const pointsToUseStart: VecModel[] = []
