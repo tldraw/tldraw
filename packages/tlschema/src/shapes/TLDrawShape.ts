@@ -210,7 +210,7 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 							z: pz,
 						}
 
-						for (let i = 0; i < segment.points.length; i++) {
+						for (let i = 1; i < segment.points.length; i++) {
 							const point = segment.points[i]
 							const dx = point.x - px
 							const dy = point.y - py
@@ -228,7 +228,7 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 							y: py,
 						}
 
-						for (let i = 0; i < segment.points.length; i++) {
+						for (let i = 1; i < segment.points.length; i++) {
 							const point = segment.points[i]
 							const dx = point.x - px
 							const dy = point.y - py

@@ -68,15 +68,15 @@ export function CustomRenderer() {
 
 						if (segment.type === 'straight') {
 							// For straight segments, there should be 2 deltas (dx, dy) for the end point
-							const dx = segment.points[2] / (10 * shape.props.zoom)
-							const dy = segment.points[3] / (10 * shape.props.zoom)
+							const dx = segment.points[2] / 10
+							const dy = segment.points[3] / 10
 							ctx.lineTo(px + dx, py + dy)
 						} else {
 							// For free segments, accumulate deltas to get actual points
 							const pointsPerStep = shape.props.isPen ? 3 : 2 // pen has x,y,z deltas, mouse has x,y
 							for (let i = pointsPerStep; i < segment.points.length; i += pointsPerStep) {
-								const dx = segment.points[i] / (10 * shape.props.zoom)
-								const dy = segment.points[i + 1] / (10 * shape.props.zoom)
+								const dx = segment.points[i] / 10
+								const dy = segment.points[i + 1] / 10
 								px += dx
 								py += dy
 								ctx.lineTo(px, py)

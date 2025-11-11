@@ -22,7 +22,7 @@ export function useExtraDragIconOverrides() {
 								id,
 								type: 'draw',
 								props: {
-									segments: [pointsToSegment(POINTER_POINTS, SCALES[sizeStyle], zoom)],
+									segments: [pointsToSegment(POINTER_POINTS, SCALES[sizeStyle])],
 									isClosed: true,
 									zoom,
 								},
@@ -42,7 +42,7 @@ export function useExtraDragIconOverrides() {
 								id,
 								type: 'draw',
 								props: {
-									segments: [pointsToSegment(HAND_POINTS, SCALES[sizeStyle], zoom)],
+									segments: [pointsToSegment(HAND_POINTS, SCALES[sizeStyle])],
 									isClosed: true,
 									zoom,
 								},
@@ -62,7 +62,7 @@ export function useExtraDragIconOverrides() {
 								id,
 								type: 'draw',
 								props: {
-									segments: [pointsToSegment(DRAW_POINTS, SCALES[sizeStyle], zoom)],
+									segments: [pointsToSegment(DRAW_POINTS, SCALES[sizeStyle])],
 									isClosed: true,
 									zoom,
 								},
@@ -238,7 +238,7 @@ for (const point of DRAW_POINTS) {
  * Convert an array of VecModel points into a TLDrawShapeSegment with delta encoding.
  * Points are stored as deltas (differences between consecutive points) multiplied by 10.
  */
-function pointsToSegment(points: VecModel[], scale: number, zoom: number): TLDrawShapeSegment {
+function pointsToSegment(points: VecModel[], scale: number): TLDrawShapeSegment {
 	const scaledPoints = points.map((p) => ({
 		x: p.x * scale,
 		y: p.y * scale,
@@ -256,8 +256,8 @@ function pointsToSegment(points: VecModel[], scale: number, zoom: number): TLDra
 		const point = scaledPoints[i]
 		const dx = point.x - px
 		const dy = point.y - py
-		deltas.push(Math.round(dx * 10 * zoom))
-		deltas.push(Math.round(dy * 10 * zoom))
+		deltas.push(Math.round(dx * 10))
+		deltas.push(Math.round(dy * 10))
 		px = point.x
 		py = point.y
 	}

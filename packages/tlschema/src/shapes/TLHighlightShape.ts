@@ -146,7 +146,7 @@ export const highlightShapeMigrations = createShapePropsMigrationSequence({
 							z: pz,
 						}
 
-						for (let i = 0; i < segment.points.length; i++) {
+						for (let i = 1; i < segment.points.length; i++) {
 							const point = segment.points[i]
 							const dx = point.x - px
 							const dy = point.y - py
@@ -164,7 +164,7 @@ export const highlightShapeMigrations = createShapePropsMigrationSequence({
 							y: py,
 						}
 
-						for (let i = 0; i < segment.points.length; i++) {
+						for (let i = 1; i < segment.points.length; i++) {
 							const point = segment.points[i]
 							const dx = point.x - px
 							const dy = point.y - py
@@ -188,8 +188,7 @@ export const highlightShapeMigrations = createShapePropsMigrationSequence({
 
 						points.push({ x: px, y: py, z: pz })
 
-						// Skip the first delta (which is always 0,0,0) and process the rest
-						for (let i = 3; i < segment.points.length; i += 3) {
+						for (let i = 0; i < segment.points.length; i += 3) {
 							const dx = segment.points[i] / 10
 							const dy = segment.points[i + 1] / 10
 							const dz = segment.points[i + 2] / 10
@@ -204,8 +203,7 @@ export const highlightShapeMigrations = createShapePropsMigrationSequence({
 
 						points.push({ x: px, y: py })
 
-						// Skip the first delta (which is always 0,0) and process the rest
-						for (let i = 2; i < segment.points.length; i += 2) {
+						for (let i = 0; i < segment.points.length; i += 2) {
 							const dx = segment.points[i] / 10
 							const dy = segment.points[i + 1] / 10
 							px += dx

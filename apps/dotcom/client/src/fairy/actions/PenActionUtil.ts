@@ -90,9 +90,9 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 			const dx = point.x - px
 			const dy = point.y - py
 			const dz = (point.z ?? 0.5) - pz
-			deltas.push(Math.round(dx * 10 * zoom))
-			deltas.push(Math.round(dy * 10 * zoom))
-			deltas.push(Math.round(dz * 10 * zoom))
+			deltas.push(Math.round(dx * 10))
+			deltas.push(Math.round(dy * 10))
+			deltas.push(Math.round(dz * 10))
 			px += dx
 			py += dy
 			pz += dz
