@@ -3958,10 +3958,6 @@ export interface TLUiEventMap {
     // (undocumented)
     'change-user-name': null;
     // (undocumented)
-    'click-watermark': {
-        url: string;
-    };
-    // (undocumented)
     'close-menu': {
         id: string;
     };
