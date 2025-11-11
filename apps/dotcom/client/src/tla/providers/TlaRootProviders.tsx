@@ -14,6 +14,8 @@ import {
 	TldrawUiA11yProvider,
 	TldrawUiContextProvider,
 	fetch,
+	runtime,
+	setRuntimeOverrides,
 	useToasts,
 	useValue,
 } from 'tldraw'
@@ -36,6 +38,22 @@ import {
 import { FileSidebarFocusContextProvider } from './FileInputFocusProvider'
 
 const assetUrls = getAssetUrlsByImport()
+
+// Override watermark URLs globally for all dotcom editors
+function WatermarkOverride() {
+	useEffect(() => {
+		const originalOpenWindow = runtime.openWindow
+		setRuntimeOverrides({
+			openWindow(url: string, target: string, allowReferrer?: boolean) {
+				if (url.includes('utm_campaign=watermark')) {
+					url = url.replace('utm_source=sdk', 'utm_source=dotcom')
+				}
+				originalOpenWindow(url, target, allowReferrer)
+			},
+		})
+	}, [])
+	return null
+}
 
 export const appMessages = defineMessages({
 	oldBrowser: {
@@ -87,6 +105,7 @@ export function Component() {
 					</SignedInProvider>
 				</MaybeForceUserRefresh>
 			</IntlWrapper>
+			<WatermarkOverride />
 		</div>
 	)
 }
