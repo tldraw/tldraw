@@ -251,8 +251,8 @@ function pointsToSegment(points: VecModel[], scale: number): TLDrawShapeSegment 
 	let px = firstPoint.x
 	let py = firstPoint.y
 
-	// Process all points and convert to deltas
-	for (let i = 0; i < scaledPoints.length; i++) {
+	// Process all points and convert to deltas (skip first point since it's stored separately)
+	for (let i = 1; i < scaledPoints.length; i++) {
 		const point = scaledPoints[i]
 		const dx = point.x - px
 		const dy = point.y - py

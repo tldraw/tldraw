@@ -252,8 +252,8 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 
 						points.push({ x: px, y: py, z: pz })
 
-						// Skip the first delta (which is always 0,0,0) and process the rest
-						for (let i = 3; i < segment.points.length; i += 3) {
+						// Process all deltas starting from the first one
+						for (let i = 0; i < segment.points.length; i += 3) {
 							const dx = segment.points[i] / 10
 							const dy = segment.points[i + 1] / 10
 							const dz = segment.points[i + 2] / 10
@@ -268,8 +268,8 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 
 						points.push({ x: px, y: py })
 
-						// Skip the first delta (which is always 0,0) and process the rest
-						for (let i = 2; i < segment.points.length; i += 2) {
+						// Process all deltas starting from the first one
+						for (let i = 0; i < segment.points.length; i += 2) {
 							const dx = segment.points[i] / 10
 							const dy = segment.points[i + 1] / 10
 							px += dx

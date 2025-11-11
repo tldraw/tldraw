@@ -2015,7 +2015,7 @@ describe('Add efficiency to draw shape', () => {
 					{
 						type: 'free' as const,
 						firstPoint: { x: 10, y: 20, z: 0.5 },
-						points: [0, 0, 0, 50, 50, 1, 50, 50, 1], // deltas: (0,0,0) from first point, (5,5,0.1) -> (50,50,1), (5,5,0.1) -> (50,50,1)
+						points: [50, 50, 1, 50, 50, 1], // deltas: (0,0,0) from first point, (5,5,0.1) -> (50,50,1), (5,5,0.1) -> (50,50,1)
 					},
 				],
 			},
@@ -2049,7 +2049,7 @@ describe('Add efficiency to draw shape', () => {
 					{
 						type: 'free' as const,
 						firstPoint: { x: 10, y: 20 },
-						points: [0, 0, 50, 50, 50, 50], // deltas: (0,0) from first point, (5,5) -> (50,50), (5,5) -> (50,50)
+						points: [50, 50, 50, 50], // deltas: (0,0) from first point, (5,5) -> (50,50), (5,5) -> (50,50)
 					},
 				],
 			},
@@ -2089,12 +2089,12 @@ describe('Add efficiency to draw shape', () => {
 					{
 						type: 'free' as const,
 						firstPoint: { x: 0, y: 0 },
-						points: [0, 0, 100, 100], // deltas: (0,0) from first point, (10,10) -> (100,100)
+						points: [100, 100], // deltas: (0,0) from first point, (10,10) -> (100,100)
 					},
 					{
 						type: 'straight' as const,
 						firstPoint: { x: 20, y: 20 },
-						points: [0, 0, 100, 100], // deltas: (0,0) from first point, (10,10) -> (100,100)
+						points: [100, 100], // deltas: (0,0) from first point, (10,10) -> (100,100)
 					},
 				],
 			},
@@ -2112,7 +2112,7 @@ describe('Add efficiency to draw shape', () => {
 					{
 						type: 'free' as const,
 						firstPoint: { x: 10, y: 20, z: 0.5 },
-						points: [0, 0, 0, 50, 50, 1, 50, 50, 1], // deltas: (0,0,0), (5,5,0.1) -> (50,50,1), (5,5,0.1) -> (50,50,1)
+						points: [50, 50, 1, 50, 50, 1], // deltas: (0,0,0), (5,5,0.1) -> (50,50,1), (5,5,0.1) -> (50,50,1)
 					},
 				],
 			},
@@ -2146,7 +2146,7 @@ describe('Add efficiency to draw shape', () => {
 					{
 						type: 'free' as const,
 						firstPoint: { x: 10, y: 20 },
-						points: [0, 0, 50, 50, 50, 50], // deltas: (0,0), (5,5) -> (50,50), (5,5) -> (50,50)
+						points: [50, 50, 50, 50], // deltas: (0,0), (5,5) -> (50,50), (5,5) -> (50,50)
 					},
 				],
 			},
@@ -2254,7 +2254,7 @@ describe('Add efficiency to highlight shape', () => {
 					{
 						type: 'free' as const,
 						firstPoint: { x: 10, y: 20, z: 0.5 },
-						points: [0, 0, 0, 50, 50, 1, 50, 50, 1], // deltas: (0,0,0) from first point, (5,5,0.1) -> (50,50,1), (5,5,0.1) -> (50,50,1)
+						points: [50, 50, 1, 50, 50, 1], // deltas: (0,0,0) from first point, (5,5,0.1) -> (50,50,1), (5,5,0.1) -> (50,50,1)
 					},
 				],
 			},
@@ -2288,7 +2288,7 @@ describe('Add efficiency to highlight shape', () => {
 					{
 						type: 'free' as const,
 						firstPoint: { x: 10, y: 20 },
-						points: [0, 0, 50, 50, 50, 50], // deltas: (0,0) from first point, (5,5) -> (50,50), (5,5) -> (50,50)
+						points: [50, 50, 50, 50], // deltas: (0,0) from first point, (5,5) -> (50,50), (5,5) -> (50,50)
 					},
 				],
 			},
@@ -2328,12 +2328,12 @@ describe('Add efficiency to highlight shape', () => {
 					{
 						type: 'free' as const,
 						firstPoint: { x: 0, y: 0 },
-						points: [0, 0, 100, 100], // deltas: (0,0) from first point, (10,10) -> (100,100)
+						points: [100, 100], // deltas: (0,0) from first point, (10,10) -> (100,100)
 					},
 					{
 						type: 'straight' as const,
 						firstPoint: { x: 20, y: 20 },
-						points: [0, 0, 100, 100], // deltas: (0,0) from first point, (10,10) -> (100,100)
+						points: [100, 100], // deltas: (0,0) from first point, (10,10) -> (100,100)
 					},
 				],
 			},
@@ -2351,7 +2351,7 @@ describe('Add efficiency to highlight shape', () => {
 					{
 						type: 'free' as const,
 						firstPoint: { x: 10, y: 20, z: 0.5 },
-						points: [0, 0, 0, 50, 50, 1, 50, 50, 1], // deltas: (0,0,0), (5,5,0.1) -> (50,50,1), (5,5,0.1) -> (50,50,1)
+						points: [50, 50, 1, 50, 50, 1], // deltas: (0,0,0), (5,5,0.1) -> (50,50,1), (5,5,0.1) -> (50,50,1)
 					},
 				],
 			},
@@ -2385,7 +2385,7 @@ describe('Add efficiency to highlight shape', () => {
 					{
 						type: 'free' as const,
 						firstPoint: { x: 10, y: 20 },
-						points: [0, 0, 50, 50, 50, 50], // deltas: (0,0), (5,5) -> (50,50), (5,5) -> (50,50)
+						points: [50, 50, 50, 50], // deltas: (0,0), (5,5) -> (50,50), (5,5) -> (50,50)
 					},
 				],
 			},

@@ -363,7 +363,7 @@ describe('TLHighlightShape', () => {
 						{
 							type: 'free' as const,
 							firstPoint: { x: 10, y: 20, z: 0.5 },
-							points: [0, 0, 0, 50, 50, 1, 50, 50, 1],
+							points: [50, 50, 1, 50, 50, 1],
 						},
 					],
 				},
@@ -397,7 +397,7 @@ describe('TLHighlightShape', () => {
 						{
 							type: 'free' as const,
 							firstPoint: { x: 10, y: 20 },
-							points: [0, 0, 50, 50, 50, 50],
+							points: [50, 50, 50, 50],
 						},
 					],
 				},
@@ -415,7 +415,7 @@ describe('TLHighlightShape', () => {
 						{
 							type: 'free' as const,
 							firstPoint: { x: 10, y: 20, z: 0.5 },
-							points: [0, 0, 0, 50, 50, 1, 50, 50, 1],
+							points: [50, 50, 1, 50, 50, 1],
 						},
 					],
 				},
@@ -449,7 +449,7 @@ describe('TLHighlightShape', () => {
 						{
 							type: 'free' as const,
 							firstPoint: { x: 10, y: 20 },
-							points: [0, 0, 50, 50, 50, 50],
+							points: [50, 50, 50, 50],
 						},
 					],
 				},

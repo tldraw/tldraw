@@ -224,7 +224,7 @@ describe('TLDrawShape', () => {
 						{
 							type: 'free' as const,
 							firstPoint: { x: 10, y: 20, z: 0.5 },
-							points: [0, 0, 0, 50, 50, 1, 50, 50, 1],
+							points: [50, 50, 1, 50, 50, 1],
 						},
 					],
 				},
@@ -258,7 +258,7 @@ describe('TLDrawShape', () => {
 						{
 							type: 'free' as const,
 							firstPoint: { x: 10, y: 20 },
-							points: [0, 0, 50, 50, 50, 50],
+							points: [50, 50, 50, 50],
 						},
 					],
 				},
@@ -276,7 +276,7 @@ describe('TLDrawShape', () => {
 						{
 							type: 'free' as const,
 							firstPoint: { x: 10, y: 20, z: 0.5 },
-							points: [0, 0, 0, 50, 50, 1, 50, 50, 1],
+							points: [50, 50, 0, 100, 70, 0],
 						},
 					],
 				},
@@ -290,8 +290,8 @@ describe('TLDrawShape', () => {
 							type: 'free' as const,
 							points: [
 								{ x: 10, y: 20, z: 0.5 },
-								{ x: 15, y: 25, z: 0.6 },
-								{ x: 20, y: 30, z: 0.7 },
+								{ x: 15, y: 25, z: 0.5 },
+								{ x: 25, y: 32, z: 0.5 },
 							],
 						},
 					],
@@ -310,7 +310,7 @@ describe('TLDrawShape', () => {
 						{
 							type: 'free' as const,
 							firstPoint: { x: 10, y: 20 },
-							points: [0, 0, 50, 50, 50, 50],
+							points: [50, 50, 50, 50],
 						},
 					],
 				},
