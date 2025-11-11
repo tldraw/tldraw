@@ -48,8 +48,7 @@ const UnlicensedWatermark = memo(function UnlicensedWatermark({
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 
-	const url =
-		'https://tldraw.dev/pricing?utm_source=dotcom&utm_medium=organic&utm_campaign=watermark'
+	const url = 'https://tldraw.dev/pricing?utm_source=sdk&utm_medium=organic&utm_campaign=watermark'
 
 	return (
 		<div
@@ -99,7 +98,7 @@ const WatermarkInner = memo(function WatermarkInner({
 	usePassThroughWheelEvents(ref)
 
 	const maskCss = `url('${src}') center 100% / 100% no-repeat`
-	const url = 'https://tldraw.dev/?utm_source=dotcom&utm_medium=organic&utm_campaign=watermark'
+	const url = 'https://tldraw.dev/?utm_source=sdk&utm_medium=organic&utm_campaign=watermark'
 
 	if (isUnlicensed) {
 		return <UnlicensedWatermark isDebugMode={isDebugMode} isMobile={isMobile} />
