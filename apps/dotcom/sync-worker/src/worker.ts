@@ -31,6 +31,8 @@ import { healthCheckRoutes } from './healthCheckRoutes'
 import { createPostgresConnectionPool, makePostgresConnector } from './postgres'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
+import { getPierreHistory } from './routes/getPierreHistory'
+import { getPierreHistorySnapshot } from './routes/getPierreHistorySnapshot'
 import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
 import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
@@ -81,11 +83,17 @@ const router = createRouter<Environment>()
 		getRoomHistorySnapshot(req, env, true)
 	)
 
+	.get(`/${FILE_PREFIX}/:roomId/pierre-history`, (req, env) => getPierreHistory(req, env, true))
+	.get(`/${FILE_PREFIX}/:roomId/pierre-history/:timestamp`, (req, env) =>
+		getPierreHistorySnapshot(req, env, true)
+	)
+
 	.get('/readonly-slug/:roomId', getReadonlySlug)
 	.get('/unfurl', extractBookmarkMetadata)
 	.post('/unfurl', extractBookmarkMetadata)
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
 	.post(`/app/file/:roomId/restore`, forwardRoomRequest)
+	.post(`/app/file/:roomId/pierre-restore`, forwardRoomRequest)
 	.get('/app/:userId/connect', async (req, env) => {
 		// forward req to the user durable object
 		const auth = await getAuth(req, env)

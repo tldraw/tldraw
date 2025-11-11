@@ -31,9 +31,9 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
-import { useCallback } from 'react'
+import { useCallback, useContext } from 'react'
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
-import { useCurrentTranslation } from '../../ui/hooks/useTranslation/useTranslation'
+import { TranslationsContext } from '../../ui/hooks/useTranslation/useTranslation'
 import {
 	isEmptyRichText,
 	renderHtmlFromRichTextForMeasurement,
@@ -493,7 +493,8 @@ function getLabelSize(editor: Editor, shape: TLNoteShape) {
 
 function useNoteKeydownHandler(id: TLShapeId) {
 	const editor = useEditor()
-	const translation = useCurrentTranslation()
+	// Try to get the translation context, but fallback to ltr if it doesn't exist
+	const translation = useContext(TranslationsContext)
 
 	return useCallback(
 		(e: KeyboardEvent) => {
@@ -512,7 +513,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				// tab controls x axis (shift inverts direction set by RTL)
 				// cmd enter is the y axis (shift inverts direction)
 				const isRTL = !!(
-					translation.dir === 'rtl' ||
+					translation?.dir === 'rtl' ||
 					// todo: can we check a partial of the text, so that we don't have to render the whole thing?
 					isRightToLeftLanguage(renderPlaintextFromRichText(editor, shape.props.richText))
 				)
@@ -540,7 +541,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				}
 			}
 		},
-		[id, editor, translation.dir]
+		[id, editor, translation?.dir]
 	)
 }
 

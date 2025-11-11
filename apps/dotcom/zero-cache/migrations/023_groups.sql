@@ -404,11 +404,13 @@ BEGIN
 
     -- Create a home group for the user
     INSERT INTO public."group" ("id", "name", "createdAt", "updatedAt", "isDeleted", "inviteSecret")
-    VALUES (target_user_id, target_user_id, v_now, v_now, FALSE, invite_secret);
+    VALUES (target_user_id, target_user_id, v_now, v_now, FALSE, invite_secret)
+    ON CONFLICT DO NOTHING;
 
     -- Make the user a member of the home group
     INSERT INTO public."group_user" ("userId", "groupId", "createdAt", "updatedAt", "role", "index", "userName", "userColor")
-    VALUES (target_user_id, target_user_id, v_now, v_now, 'owner', 'a1', '', '');
+    VALUES (target_user_id, target_user_id, v_now, v_now, 'owner', 'a1', '', '')
+    ON CONFLICT DO NOTHING;
 
     -- For any files owned by the user, change the owningGroupId to the home group and set the ownerId to null
     UPDATE public."file"
@@ -420,7 +422,8 @@ BEGIN
     INSERT INTO public."group_file" ("fileId", "groupId", "createdAt", "updatedAt")
     SELECT fs."fileId", target_user_id, COALESCE(fs."firstVisitAt", f."createdAt", v_now), COALESCE(fs."lastEditAt", fs."firstVisitAt", f."updatedAt", f."createdAt", v_now)
     FROM public."file_state" fs JOIN public."file" f ON fs."fileId" = f."id"
-    WHERE fs."userId" = target_user_id;
+    WHERE fs."userId" = target_user_id
+    ON CONFLICT DO NOTHING;
 
     -- Update indexes for the group_file entries
     UPDATE public."group_file" gf
@@ -433,7 +436,7 @@ BEGIN
     ) AS fs
     WHERE gf."fileId" = fs."fileId" AND gf."groupId" = target_user_id;
 
-    -- Add 'groups' flag to user
+    -- Add 'groups_backend' flag to user
     IF v_current_flags IS NULL OR v_current_flags = '' THEN
         UPDATE public."user" SET flags = 'groups_backend' WHERE id = target_user_id;
     ELSE

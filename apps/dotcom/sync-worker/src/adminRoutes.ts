@@ -1,5 +1,5 @@
 import { TlaFile } from '@tldraw/dotcom-shared'
-import { assert, sleep, uniqueId } from '@tldraw/utils'
+import { assert, retry, sleep, uniqueId } from '@tldraw/utils'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
 import { sql } from 'kysely'
@@ -93,7 +93,7 @@ export const adminRoutes = createRouter<Environment>()
 
 						sendProgress('starting', 'Beginning batch user migration process...')
 
-						await startUserMigration(env, sendProgress, shouldStop, sleepMs)
+						const hasMore = await startUserMigration(env, sendProgress, shouldStop, sleepMs)
 
 						// Send completion event
 						const completionEvent = {
@@ -103,6 +103,7 @@ export const adminRoutes = createRouter<Environment>()
 								? 'Batch migration stopped by user'
 								: 'Batch migration completed successfully',
 							timestamp: Date.now(),
+							hasMore,
 						}
 						controller.enqueue(
 							new TextEncoder().encode(`data: ${JSON.stringify(completionEvent)}\n\n`)
@@ -415,7 +416,8 @@ async function startUserMigration(
 	sendProgress: (step: string, message: string, details?: any) => void,
 	shouldStop: () => boolean,
 	sleepTime: number = 100
-) {
+): Promise<boolean> {
+	const batchSize = 50
 	const pg = createPostgresConnectionPool(env, '/app/admin/migrate_users_batch')
 
 	sendProgress('query', 'Fetching users without groups_backend flag...')
@@ -439,13 +441,14 @@ async function startUserMigration(
 
 	if (usersToMigrate === 0) {
 		sendProgress('complete', 'No users to migrate')
-		return
+		return false
 	}
 
 	const failures: Array<{ userId: string; email: string; error: string }> = []
+	let processedCount = 0
 
 	// Process users in batches
-	while (true) {
+	while (processedCount < batchSize) {
 		const userRow = await getNextUnmigratedUser(pg)
 		if (!userRow) {
 			break
@@ -464,21 +467,23 @@ async function startUserMigration(
 		})
 
 		try {
-			const user = getUserDurableObject(env, userRow.id)
+			await retry(async () => {
+				const user = getUserDurableObject(env, userRow.id)
 
-			const result = await sql<{
-				files_migrated: number
-				pinned_files_migrated: number
-				flag_added: boolean
-			}>`SELECT * FROM migrate_user_to_groups(${userRow.id}, ${uniqueId()})`.execute(pg)
-			await user.admin_forceHardReboot(userRow.id)
+				const result = await sql<{
+					files_migrated: number
+					pinned_files_migrated: number
+					flag_added: boolean
+				}>`SELECT * FROM migrate_user_to_groups(${userRow.id}, ${uniqueId()})`.execute(pg)
+				await user.admin_forceHardReboot(userRow.id)
 
-			successCount++
-			sendProgress('success', `Successfully migrated user ${userRow.email}`, {
-				userId: userRow.id,
-				email: userRow.email,
-				result: result.rows[0],
-				...getStats(),
+				successCount++
+				sendProgress('success', `Successfully migrated user ${userRow.email}`, {
+					userId: userRow.id,
+					email: userRow.email,
+					result: result.rows[0],
+					...getStats(),
+				})
 			})
 		} catch (error) {
 			failureCount++
@@ -489,13 +494,22 @@ async function startUserMigration(
 				error: errorMessage,
 			})
 
+			// Send failure event to client so it can be stored in the log
 			sendProgress('failure', `Failed to migrate ${userRow.email}`, {
 				userId: userRow.id,
 				email: userRow.email,
 				error: errorMessage,
 				...getStats(),
 			})
+
+			// Stop processing immediately after reporting the failure
+			sendProgress('summary', 'Migration stopped due to failure', {
+				failures: failures.length > 0 ? failures : undefined,
+			})
+			return false
 		}
+
+		processedCount++
 
 		// Brief pause between migrations to avoid overwhelming the system
 		await sleep(sleepTime)
@@ -504,4 +518,8 @@ async function startUserMigration(
 	sendProgress('summary', 'Migration batch complete', {
 		failures: failures.length > 0 ? failures : undefined,
 	})
+
+	// Check if there are more users to migrate
+	const remainingUsers = await getNumUnmigratedUsers(pg)
+	return remainingUsers > 0
 }
