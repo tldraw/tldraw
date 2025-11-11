@@ -50,7 +50,6 @@ export const interpolateSegments = (
 	const firstPoint = interpolatedPoints[0]
 	const isPen = firstPoint.z !== undefined
 	const deltas: number[] = []
-	const interpolatedZoom = lerp(startZoom, endZoom, progress)
 
 	if (isPen) {
 		let px = firstPoint.x
@@ -62,9 +61,9 @@ export const interpolateSegments = (
 			const dx = point.x - px
 			const dy = point.y - py
 			const dz = (point.z ?? 0.5) - pz
-			deltas.push(Math.round(dx * 10 * interpolatedZoom))
-			deltas.push(Math.round(dy * 10 * interpolatedZoom))
-			deltas.push(Math.round(dz * 10 * interpolatedZoom))
+			deltas.push(Math.round(dx * 10 * startZoom)) // for now, use the initial zoom level
+			deltas.push(Math.round(dy * 10 * startZoom))
+			deltas.push(Math.round(dz * 10 * startZoom))
 			px += dx
 			py += dy
 			pz += dz
@@ -77,8 +76,8 @@ export const interpolateSegments = (
 			const point = interpolatedPoints[i]
 			const dx = point.x - px
 			const dy = point.y - py
-			deltas.push(Math.round(dx * 10 * interpolatedZoom))
-			deltas.push(Math.round(dy * 10 * interpolatedZoom))
+			deltas.push(Math.round(dx * 10 * startZoom)) // for now, use the initial zoom level
+			deltas.push(Math.round(dy * 10 * startZoom))
 			px += dx
 			py += dy
 		}
