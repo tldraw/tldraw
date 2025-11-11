@@ -727,27 +727,24 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "dash": "solid",
       "fill": "none",
       "isClosed": false,
-      "isComplete": false,
+      "isComplete": true,
       "isPen": false,
       "scale": 1,
       "segments": [
         {
+          "firstPoint": {
+            "x": 0,
+            "y": 0,
+          },
           "points": [
-            {
-              "x": 0,
-              "y": 0,
-              "z": 0.5,
-            },
-            {
-              "x": 0.0001,
-              "y": 0.0001,
-              "z": 0.5,
-            },
+            0,
+            0,
           ],
           "type": "free",
         },
       ],
       "size": "s",
+      "zoom": 1,
     },
     "rotation": 0,
     "type": "draw",
@@ -767,27 +764,24 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "dash": "solid",
       "fill": "none",
       "isClosed": false,
-      "isComplete": false,
+      "isComplete": true,
       "isPen": false,
       "scale": 1,
       "segments": [
         {
+          "firstPoint": {
+            "x": 0,
+            "y": 0,
+          },
           "points": [
-            {
-              "x": 0,
-              "y": 0,
-              "z": 0.5,
-            },
-            {
-              "x": 0.0001,
-              "y": 0.0001,
-              "z": 0.5,
-            },
+            0,
+            0,
           ],
           "type": "free",
         },
       ],
       "size": "s",
+      "zoom": 1,
     },
     "rotation": 0,
     "type": "draw",
@@ -1390,27 +1384,24 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "dash": "solid",
       "fill": "none",
       "isClosed": false,
-      "isComplete": false,
+      "isComplete": true,
       "isPen": false,
       "scale": 1,
       "segments": [
         {
+          "firstPoint": {
+            "x": 0,
+            "y": 0,
+          },
           "points": [
-            {
-              "x": 0,
-              "y": 0,
-              "z": 0.5,
-            },
-            {
-              "x": 0.0001,
-              "y": 0.0001,
-              "z": 0.5,
-            },
+            0,
+            0,
           ],
           "type": "free",
         },
       ],
       "size": "s",
+      "zoom": 1,
     },
     "rotation": 0,
     "type": "draw",
@@ -1430,27 +1421,24 @@ exports[`putExcalidrawContent test fixtures > line-drawing.json 1`] = `
       "dash": "solid",
       "fill": "none",
       "isClosed": false,
-      "isComplete": false,
+      "isComplete": true,
       "isPen": false,
       "scale": 1,
       "segments": [
         {
+          "firstPoint": {
+            "x": 0,
+            "y": 0,
+          },
           "points": [
-            {
-              "x": 0,
-              "y": 0,
-              "z": 0.5,
-            },
-            {
-              "x": 0.0001,
-              "y": 0.0001,
-              "z": 0.5,
-            },
+            0,
+            0,
           ],
           "type": "free",
         },
       ],
       "size": "s",
+      "zoom": 1,
     },
     "rotation": 0,
     "type": "draw",

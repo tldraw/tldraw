@@ -101,18 +101,56 @@ export function getFreehandOptions(
 	return { ...solidSettings(strokeWidth), last }
 }
 
-export function getPointsFromSegments(segments: TLDrawShapeSegment[]) {
+export function getPointsFromSegments(segments: TLDrawShapeSegment[], zoom: number) {
 	const points: Vec[] = []
 
 	for (const segment of segments) {
-		if (segment.type === 'free' || segment.points.length < 2) {
-			points.push(...segment.points.map(Vec.Cast))
+		const isPen = segment.firstPoint.z !== undefined
+
+		// Reconstruct points from firstPoint + deltas
+		const reconstructedPoints: Vec[] = []
+
+		// Start with the first point
+		reconstructedPoints.push(Vec.Cast(segment.firstPoint))
+
+		// Reconstruct remaining points from deltas
+		if (isPen) {
+			// Pen format: [dx, dy, dz, dx, dy, dz, ...]
+			let px = segment.firstPoint.x
+			let py = segment.firstPoint.y
+			let pz = segment.firstPoint.z ?? 0.5
+
+			for (let i = 0; i < segment.points.length; i += 3) {
+				const dx = segment.points[i] / (10 * zoom)
+				const dy = segment.points[i + 1] / (10 * zoom)
+				const dz = segment.points[i + 2] / (10 * zoom)
+				px += dx
+				py += dy
+				pz += dz
+				reconstructedPoints.push(new Vec(px, py, pz))
+			}
 		} else {
-			const pointsToInterpolate = Math.max(
-				4,
-				Math.floor(Vec.Dist(segment.points[0], segment.points[1]) / 16)
-			)
-			points.push(...Vec.PointsBetween(segment.points[0], segment.points[1], pointsToInterpolate))
+			// Non-pen format: [dx, dy, dx, dy, ...]
+			let px = segment.firstPoint.x
+			let py = segment.firstPoint.y
+
+			for (let i = 0; i < segment.points.length; i += 2) {
+				const dx = segment.points[i] / (10 * zoom)
+				const dy = segment.points[i + 1] / (10 * zoom)
+				px += dx
+				py += dy
+				reconstructedPoints.push(new Vec(px, py))
+			}
+		}
+
+		if (segment.type === 'free' || reconstructedPoints.length < 2) {
+			points.push(...reconstructedPoints)
+		} else {
+			// For straight segments, interpolate between first and last point
+			const firstPoint = reconstructedPoints[0]
+			const lastPoint = reconstructedPoints[reconstructedPoints.length - 1]
+			const pointsToInterpolate = Math.max(4, Math.floor(Vec.Dist(firstPoint, lastPoint) / 16))
+			points.push(...Vec.PointsBetween(firstPoint, lastPoint, pointsToInterpolate))
 		}
 	}
 

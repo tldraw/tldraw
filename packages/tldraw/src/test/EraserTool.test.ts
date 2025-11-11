@@ -72,15 +72,20 @@ beforeEach(() => {
 			x: 0,
 			y: 300,
 			props: {
+				zoom: 1,
 				segments: [
 					{
 						type: 'free',
+						firstPoint: { x: 0, y: 0 },
 						points: [
-							{ x: 0, y: 0 },
-							{ x: 2, y: 50 },
-							{ x: 10, y: 100 },
-							{ x: 48, y: 100 },
-							{ x: 100, y: 100 },
+							Math.round((2 - 0) * 10), // dx
+							Math.round((50 - 0) * 10), // dy
+							Math.round((10 - 2) * 10), // dx
+							Math.round((100 - 50) * 10), // dy
+							Math.round((48 - 10) * 10), // dx
+							Math.round((100 - 100) * 10), // dy
+							Math.round((100 - 48) * 10), // dx
+							Math.round((100 - 100) * 10), // dy
 						],
 					},
 				],

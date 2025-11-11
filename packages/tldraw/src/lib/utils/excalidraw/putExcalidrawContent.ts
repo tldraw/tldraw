@@ -148,6 +148,57 @@ export async function putExcalidrawContent(
 				break
 			}
 			case 'freedraw': {
+				const excalidrawPoints = element.points.map(([x, y, z = 0.5]: number[]) => ({
+					x,
+					y,
+					z,
+				}))
+
+				if (excalidrawPoints.length === 0) {
+					break
+				}
+
+				// Check if this is a pen shape (has varying pressure)
+				const hasPressure = excalidrawPoints.some(
+					(p: { x: number; y: number; z: number }) => p.z !== 0.5
+				)
+				const firstPoint = excalidrawPoints[0]
+				const deltas: number[] = []
+
+				if (hasPressure) {
+					// Pen format: [dx, dy, dz, dx, dy, dz, ...]
+					let px = firstPoint.x
+					let py = firstPoint.y
+					let pz = firstPoint.z
+
+					for (let i = 1; i < excalidrawPoints.length; i++) {
+						const point = excalidrawPoints[i]
+						const dx = point.x - px
+						const dy = point.y - py
+						const dz = point.z - pz
+						deltas.push(Math.round(dx * 10))
+						deltas.push(Math.round(dy * 10))
+						deltas.push(Math.round(dz * 10))
+						px = point.x
+						py = point.y
+						pz = point.z
+					}
+				} else {
+					// Non-pen format: [dx, dy, dx, dy, ...]
+					let px = firstPoint.x
+					let py = firstPoint.y
+
+					for (let i = 1; i < excalidrawPoints.length; i++) {
+						const point = excalidrawPoints[i]
+						const dx = point.x - px
+						const dy = point.y - py
+						deltas.push(Math.round(dx * 10))
+						deltas.push(Math.round(dy * 10))
+						px = point.x
+						py = point.y
+					}
+				}
+
 				tldrawContent.shapes.push({
 					...base,
 					type: 'draw',
@@ -155,14 +206,19 @@ export async function putExcalidrawContent(
 						dash: getDash(element),
 						size: strokeWidthsToSizes[element.strokeWidth],
 						color: colorsToColors[element.strokeColor] ?? 'black',
+						fill: 'none',
+						isPen: hasPressure,
+						isComplete: true,
+						isClosed: false,
+						scale: 1,
+						zoom: 1,
 						segments: [
 							{
 								type: 'free',
-								points: element.points.map(([x, y, z = 0.5]: number[]) => ({
-									x,
-									y,
-									z,
-								})),
+								firstPoint: hasPressure
+									? { x: firstPoint.x, y: firstPoint.y, z: firstPoint.z }
+									: { x: firstPoint.x, y: firstPoint.y },
+								points: deltas,
 							},
 						],
 					},

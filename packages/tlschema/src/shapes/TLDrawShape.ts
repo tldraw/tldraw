@@ -17,7 +17,9 @@ export interface TLDrawShapeSegment {
 	/** Type of drawing segment - 'free' for freehand curves, 'straight' for line segments */
 	type: 'free' | 'straight'
 	/** Array of points defining the segment path with x, y coordinates and pressure (z) */
-	points: VecModel[]
+	points: number[]
+	/** First point of the segment */
+	firstPoint: VecModel
 }
 
 /**
@@ -35,7 +37,8 @@ export interface TLDrawShapeSegment {
  */
 export const DrawShapeSegment: T.ObjectValidator<TLDrawShapeSegment> = T.object({
 	type: T.literalEnum('free', 'straight'),
-	points: T.arrayOf(vecModelValidator),
+	points: T.arrayOf(T.number),
+	firstPoint: vecModelValidator,
 })
 
 /**
@@ -62,6 +65,8 @@ export interface TLDrawShapeProps {
 	isPen: boolean
 	/** Scale factor applied to the drawing */
 	scale: number
+	/** Zoom factor when the draw shape was started, used to expand integers into floats for precision */
+	zoom: number
 }
 
 /**
@@ -91,6 +96,7 @@ export interface TLDrawShapeProps {
  *       type: 'free',
  *       points: [{ x: 0, y: 0, z: 0.5 }, { x: 20, y: 15, z: 0.6 }]
  *     }],
+ *     zoom: 1,
  *     isComplete: true,
  *     isClosed: false,
  *     isPen: false,
@@ -128,11 +134,13 @@ export const drawShapeProps: RecordProps<TLDrawShape> = {
 	isClosed: T.boolean,
 	isPen: T.boolean,
 	scale: T.nonZeroNumber,
+	zoom: T.nonZeroNumber,
 }
 
 const Versions = createShapePropsMigrationIds('draw', {
 	AddInPen: 1,
 	AddScale: 2,
+	AddEfficiency: 3,
 })
 
 /**
@@ -182,6 +190,96 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (props) => {
 				delete props.scale
+			},
+		},
+		{
+			id: Versions.AddEfficiency,
+			up: (props) => {
+				props.zoom = 1
+				for (const segment of props.segments) {
+					const deltas: number[] = []
+					let px = segment.points[0].x
+					let py = segment.points[0].y
+
+					if (props.isPen) {
+						let pz = segment.points[0].z ?? 0.5
+
+						segment.firstPoint = {
+							x: px,
+							y: py,
+							z: pz,
+						}
+
+						for (let i = 0; i < segment.points.length; i++) {
+							const point = segment.points[i]
+							const dx = point.x - px
+							const dy = point.y - py
+							const dz = (point.z ? point.z : 0.5) - pz
+							deltas.push(Math.round(dx * 10))
+							deltas.push(Math.round(dy * 10))
+							deltas.push(Math.round(dz * 10))
+							px += dx
+							py += dy
+							pz += dz
+						}
+					} else {
+						segment.firstPoint = {
+							x: px,
+							y: py,
+						}
+
+						for (let i = 0; i < segment.points.length; i++) {
+							const point = segment.points[i]
+							const dx = point.x - px
+							const dy = point.y - py
+							deltas.push(Math.round(dx * 10))
+							deltas.push(Math.round(dy * 10))
+							px += dx
+							py += dy
+						}
+					}
+					segment.points = deltas
+				}
+			},
+			down: (props) => {
+				delete props.zoom
+				for (const segment of props.segments) {
+					const points: VecModel[] = []
+					if (props.isPen) {
+						let px = segment.firstPoint.x
+						let py = segment.firstPoint.y
+						let pz = segment.firstPoint.z ?? 0.5
+
+						points.push({ x: px, y: py, z: pz })
+
+						// Skip the first delta (which is always 0,0,0) and process the rest
+						for (let i = 3; i < segment.points.length; i += 3) {
+							const dx = segment.points[i] / 10
+							const dy = segment.points[i + 1] / 10
+							const dz = segment.points[i + 2] / 10
+							px += dx
+							py += dy
+							pz += dz
+							points.push({ x: px, y: py, z: pz })
+						}
+					} else {
+						let px = segment.firstPoint.x
+						let py = segment.firstPoint.y
+
+						points.push({ x: px, y: py })
+
+						// Skip the first delta (which is always 0,0) and process the rest
+						for (let i = 2; i < segment.points.length; i += 2) {
+							const dx = segment.points[i] / 10
+							const dy = segment.points[i + 1] / 10
+							px += dx
+							py += dy
+							points.push({ x: px, y: py })
+						}
+					}
+					segment.points = points
+					delete segment.firstPoint
+				}
 			},
 		},
 	],

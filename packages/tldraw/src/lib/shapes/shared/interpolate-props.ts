@@ -1,17 +1,17 @@
-import { TLDrawShapeSegment, VecModel, lerp } from '@tldraw/editor'
+import { lerp, TLDrawShapeSegment, VecModel } from '@tldraw/editor'
+import { getPointsFromSegments } from '../draw/getPath'
 
 /** @public */
 export const interpolateSegments = (
 	startSegments: TLDrawShapeSegment[],
 	endSegments: TLDrawShapeSegment[],
-	progress: number
+	progress: number,
+	startZoom: number,
+	endZoom: number
 ): TLDrawShapeSegment[] => {
-	const startPoints: VecModel[] = []
-	const endPoints: VecModel[] = []
-
 	// Extract all points from startSegments and endSegments
-	startSegments.forEach((segment) => startPoints.push(...segment.points))
-	endSegments.forEach((segment) => endPoints.push(...segment.points))
+	const startPoints = getPointsFromSegments(startSegments, startZoom).map((v) => v.toJson())
+	const endPoints = getPointsFromSegments(endSegments, endZoom).map((v) => v.toJson())
 
 	const maxLength = Math.max(startPoints.length, endPoints.length)
 	const pointsToUseStart: VecModel[] = []
@@ -36,10 +36,61 @@ export const interpolateSegments = (
 		}
 	})
 	// Return all interpolated points in a single segment
+	// Convert points back to segment format (firstPoint + deltas)
+	if (interpolatedPoints.length === 0) {
+		return [
+			{
+				type: 'free' as const,
+				firstPoint: { x: 0, y: 0 },
+				points: [],
+			},
+		]
+	}
+
+	const firstPoint = interpolatedPoints[0]
+	const isPen = firstPoint.z !== undefined
+	const deltas: number[] = []
+	const interpolatedZoom = lerp(startZoom, endZoom, progress)
+
+	if (isPen) {
+		let px = firstPoint.x
+		let py = firstPoint.y
+		let pz = firstPoint.z ?? 0.5
+
+		for (let i = 1; i < interpolatedPoints.length; i++) {
+			const point = interpolatedPoints[i]
+			const dx = point.x - px
+			const dy = point.y - py
+			const dz = (point.z ?? 0.5) - pz
+			deltas.push(Math.round(dx * 10 * interpolatedZoom))
+			deltas.push(Math.round(dy * 10 * interpolatedZoom))
+			deltas.push(Math.round(dz * 10 * interpolatedZoom))
+			px += dx
+			py += dy
+			pz += dz
+		}
+	} else {
+		let px = firstPoint.x
+		let py = firstPoint.y
+
+		for (let i = 1; i < interpolatedPoints.length; i++) {
+			const point = interpolatedPoints[i]
+			const dx = point.x - px
+			const dy = point.y - py
+			deltas.push(Math.round(dx * 10 * interpolatedZoom))
+			deltas.push(Math.round(dy * 10 * interpolatedZoom))
+			px += dx
+			py += dy
+		}
+	}
+
 	return [
 		{
-			type: 'free',
-			points: interpolatedPoints,
+			type: 'free' as const,
+			firstPoint: isPen
+				? { x: firstPoint.x, y: firstPoint.y, z: firstPoint.z ?? 0.5 }
+				: { x: firstPoint.x, y: firstPoint.y },
+			points: deltas,
 		},
 	]
 }

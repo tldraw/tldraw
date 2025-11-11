@@ -375,6 +375,29 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 								break
 							}
 
+							// Convert v1 points to VecModel array
+							const points = v1Shape.points.map(getV2Point)
+
+							// Convert to new segment format: firstPoint + deltas
+							const firstPoint = points[0]
+							const deltas: number[] = []
+							let px = firstPoint.x
+							let py = firstPoint.y
+							let pz = firstPoint.z ?? 0.5
+
+							for (let i = 1; i < points.length; i++) {
+								const point = points[i]
+								const dx = point.x - px
+								const dy = point.y - py
+								const dz = (point.z ?? 0.5) - pz
+								deltas.push(Math.round(dx * 10))
+								deltas.push(Math.round(dy * 10))
+								deltas.push(Math.round(dz * 10))
+								px += dx
+								py += dy
+								pz += dz
+							}
+
 							editor.createShapes<TLDrawShape>([
 								{
 									...inCommon,
@@ -386,7 +409,13 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 										dash: getV2Dash(v1Shape.style.dash),
 										isPen: false,
 										isComplete: v1Shape.isComplete,
-										segments: [{ type: 'free', points: v1Shape.points.map(getV2Point) }],
+										segments: [
+											{
+												type: 'free',
+												firstPoint: { x: firstPoint.x, y: firstPoint.y, z: firstPoint.z ?? 0.5 },
+												points: deltas,
+											},
+										],
 									},
 								},
 							])

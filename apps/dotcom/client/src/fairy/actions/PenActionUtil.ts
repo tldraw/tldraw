@@ -61,19 +61,48 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 			})
 			points.push(...pointsToAdd)
 		}
+		// Add the last point
+		if (action.points.length > 0) {
+			points.push(action.points[action.points.length - 1])
+		}
 
 		if (points.length <= 1) {
 			return
 		}
 
+		// Convert points to shape space (relative to minX, minY)
+		const shapeSpacePoints: VecModel[] = points.map((point) => ({
+			x: point.x - minX,
+			y: point.y - minY,
+			z: 0.75,
+		}))
+
+		// Convert to segment format: firstPoint + deltas
+		const zoom = this.agent.editor.getZoomLevel()
+		const firstPoint = shapeSpacePoints[0]
+		const deltas: number[] = []
+		let px = firstPoint.x
+		let py = firstPoint.y
+		let pz = firstPoint.z ?? 0.5
+
+		for (let i = 1; i < shapeSpacePoints.length; i++) {
+			const point = shapeSpacePoints[i]
+			const dx = point.x - px
+			const dy = point.y - py
+			const dz = (point.z ?? 0.5) - pz
+			deltas.push(Math.round(dx * 10 * zoom))
+			deltas.push(Math.round(dy * 10 * zoom))
+			deltas.push(Math.round(dz * 10 * zoom))
+			px += dx
+			py += dy
+			pz += dz
+		}
+
 		const segments: TLDrawShapeSegment[] = [
 			{
 				type: 'free',
-				points: points.map((point) => ({
-					x: point.x - minX,
-					y: point.y - minY,
-					z: 0.75,
-				})),
+				firstPoint: { x: firstPoint.x, y: firstPoint.y, z: firstPoint.z ?? 0.5 },
+				points: deltas,
 			},
 		]
 
@@ -91,6 +120,7 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 				isComplete: action.complete,
 				isClosed: action.closed,
 				isPen: true,
+				zoom,
 			},
 		})
 

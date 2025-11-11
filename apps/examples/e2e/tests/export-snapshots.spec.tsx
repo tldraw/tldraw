@@ -96,35 +96,28 @@ const snapshots: Snapshots = {
 					<TL.draw
 						fill={fill}
 						color="light-violet"
+						zoom={1}
 						segments={[
-							{ type: 'straight', points: [{ x: 0, y: 0 }] },
+							{ type: 'straight', firstPoint: { x: 0, y: 0 }, points: [0, 0] },
 							{
 								type: 'straight',
-								points: [
-									{ x: 0, y: 0 },
-									{ x: 100, y: 0 },
-								],
+								firstPoint: { x: 0, y: 0 },
+								points: [0, 0, 1000, 0],
 							},
 							{
 								type: 'straight',
-								points: [
-									{ x: 100, y: 0 },
-									{ x: 0, y: 100 },
-								],
+								firstPoint: { x: 100, y: 0 },
+								points: [0, 0, -1000, 1000],
 							},
 							{
 								type: 'straight',
-								points: [
-									{ x: 0, y: 100 },
-									{ x: 100, y: 100 },
-								],
+								firstPoint: { x: 0, y: 100 },
+								points: [0, 0, 1000, 0],
 							},
 							{
 								type: 'straight',
-								points: [
-									{ x: 100, y: 100 },
-									{ x: 0, y: 0 },
-								],
+								firstPoint: { x: 100, y: 100 },
+								points: [0, 0, -1000, -1000],
 							},
 						]}
 						isClosed

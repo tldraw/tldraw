@@ -1987,6 +1987,221 @@ describe('Add scale to draw shape', () => {
 	})
 })
 
+describe('Add efficiency to draw shape', () => {
+	const { up, down } = getTestMigration(drawShapeVersions.AddEfficiency)
+
+	test('up works as expected for pen shape', () => {
+		const oldShape = {
+			props: {
+				isPen: true,
+				segments: [
+					{
+						type: 'free' as const,
+						points: [
+							{ x: 10, y: 20, z: 0.5 },
+							{ x: 15, y: 25, z: 0.6 },
+							{ x: 20, y: 30, z: 0.7 },
+						],
+					},
+				],
+			},
+		}
+
+		const newShape = {
+			props: {
+				isPen: true,
+				zoom: 1,
+				segments: [
+					{
+						type: 'free' as const,
+						firstPoint: { x: 10, y: 20, z: 0.5 },
+						points: [0, 0, 0, 50, 50, 1, 50, 50, 1], // deltas: (0,0,0) from first point, (5,5,0.1) -> (50,50,1), (5,5,0.1) -> (50,50,1)
+					},
+				],
+			},
+		}
+
+		expect(up(oldShape)).toEqual(newShape)
+	})
+
+	test('up works as expected for non-pen shape', () => {
+		const oldShape = {
+			props: {
+				isPen: false,
+				segments: [
+					{
+						type: 'free' as const,
+						points: [
+							{ x: 10, y: 20 },
+							{ x: 15, y: 25 },
+							{ x: 20, y: 30 },
+						],
+					},
+				],
+			},
+		}
+
+		const newShape = {
+			props: {
+				isPen: false,
+				zoom: 1,
+				segments: [
+					{
+						type: 'free' as const,
+						firstPoint: { x: 10, y: 20 },
+						points: [0, 0, 50, 50, 50, 50], // deltas: (0,0) from first point, (5,5) -> (50,50), (5,5) -> (50,50)
+					},
+				],
+			},
+		}
+
+		expect(up(oldShape)).toEqual(newShape)
+	})
+
+	test('up works as expected with multiple segments', () => {
+		const oldShape = {
+			props: {
+				isPen: false,
+				segments: [
+					{
+						type: 'free' as const,
+						points: [
+							{ x: 0, y: 0 },
+							{ x: 10, y: 10 },
+						],
+					},
+					{
+						type: 'straight' as const,
+						points: [
+							{ x: 20, y: 20 },
+							{ x: 30, y: 30 },
+						],
+					},
+				],
+			},
+		}
+
+		const newShape = {
+			props: {
+				isPen: false,
+				zoom: 1,
+				segments: [
+					{
+						type: 'free' as const,
+						firstPoint: { x: 0, y: 0 },
+						points: [0, 0, 100, 100], // deltas: (0,0) from first point, (10,10) -> (100,100)
+					},
+					{
+						type: 'straight' as const,
+						firstPoint: { x: 20, y: 20 },
+						points: [0, 0, 100, 100], // deltas: (0,0) from first point, (10,10) -> (100,100)
+					},
+				],
+			},
+		}
+
+		expect(up(oldShape)).toEqual(newShape)
+	})
+
+	test('down works as expected for pen shape', () => {
+		const newShape = {
+			props: {
+				isPen: true,
+				zoom: 1,
+				segments: [
+					{
+						type: 'free' as const,
+						firstPoint: { x: 10, y: 20, z: 0.5 },
+						points: [0, 0, 0, 50, 50, 1, 50, 50, 1], // deltas: (0,0,0), (5,5,0.1) -> (50,50,1), (5,5,0.1) -> (50,50,1)
+					},
+				],
+			},
+		}
+
+		const oldShape = {
+			props: {
+				isPen: true,
+				segments: [
+					{
+						type: 'free' as const,
+						points: [
+							{ x: 10, y: 20, z: 0.5 },
+							{ x: 15, y: 25, z: 0.6 },
+							{ x: 20, y: 30, z: 0.7 },
+						],
+					},
+				],
+			},
+		}
+
+		expect(down(newShape)).toEqual(oldShape)
+	})
+
+	test('down works as expected for non-pen shape', () => {
+		const newShape = {
+			props: {
+				isPen: false,
+				zoom: 1,
+				segments: [
+					{
+						type: 'free' as const,
+						firstPoint: { x: 10, y: 20 },
+						points: [0, 0, 50, 50, 50, 50], // deltas: (0,0), (5,5) -> (50,50), (5,5) -> (50,50)
+					},
+				],
+			},
+		}
+
+		const oldShape = {
+			props: {
+				isPen: false,
+				segments: [
+					{
+						type: 'free' as const,
+						points: [
+							{ x: 10, y: 20 },
+							{ x: 15, y: 25 },
+							{ x: 20, y: 30 },
+						],
+					},
+				],
+			},
+		}
+
+		expect(down(newShape)).toEqual(oldShape)
+	})
+
+	test('down works as expected with single point segment', () => {
+		const newShape = {
+			props: {
+				isPen: false,
+				zoom: 1,
+				segments: [
+					{
+						type: 'free' as const,
+						firstPoint: { x: 10, y: 20 },
+						points: [], // no deltas, just the first point
+					},
+				],
+			},
+		}
+
+		const oldShape = {
+			props: {
+				isPen: false,
+				segments: [
+					{
+						type: 'free' as const,
+						points: [{ x: 10, y: 20 }],
+					},
+				],
+			},
+		}
+
+		expect(down(newShape)).toEqual(oldShape)
+	})
+})
+
 describe('Add scale to highlight shape', () => {
 	const { up, down } = getTestMigration(highlightShapeVersions.AddScale)
 
@@ -2008,6 +2223,221 @@ describe('Add scale to geo shape', () => {
 
 	test('down works as expected', () => {
 		expect(down({ props: { scale: 1 } })).toEqual({ props: {} })
+	})
+})
+
+describe('Add efficiency to highlight shape', () => {
+	const { up, down } = getTestMigration(highlightShapeVersions.AddEfficiency)
+
+	test('up works as expected for pen shape', () => {
+		const oldShape = {
+			props: {
+				isPen: true,
+				segments: [
+					{
+						type: 'free' as const,
+						points: [
+							{ x: 10, y: 20, z: 0.5 },
+							{ x: 15, y: 25, z: 0.6 },
+							{ x: 20, y: 30, z: 0.7 },
+						],
+					},
+				],
+			},
+		}
+
+		const newShape = {
+			props: {
+				isPen: true,
+				zoom: 1,
+				segments: [
+					{
+						type: 'free' as const,
+						firstPoint: { x: 10, y: 20, z: 0.5 },
+						points: [0, 0, 0, 50, 50, 1, 50, 50, 1], // deltas: (0,0,0) from first point, (5,5,0.1) -> (50,50,1), (5,5,0.1) -> (50,50,1)
+					},
+				],
+			},
+		}
+
+		expect(up(oldShape)).toEqual(newShape)
+	})
+
+	test('up works as expected for non-pen shape', () => {
+		const oldShape = {
+			props: {
+				isPen: false,
+				segments: [
+					{
+						type: 'free' as const,
+						points: [
+							{ x: 10, y: 20 },
+							{ x: 15, y: 25 },
+							{ x: 20, y: 30 },
+						],
+					},
+				],
+			},
+		}
+
+		const newShape = {
+			props: {
+				isPen: false,
+				zoom: 1,
+				segments: [
+					{
+						type: 'free' as const,
+						firstPoint: { x: 10, y: 20 },
+						points: [0, 0, 50, 50, 50, 50], // deltas: (0,0) from first point, (5,5) -> (50,50), (5,5) -> (50,50)
+					},
+				],
+			},
+		}
+
+		expect(up(oldShape)).toEqual(newShape)
+	})
+
+	test('up works as expected with multiple segments', () => {
+		const oldShape = {
+			props: {
+				isPen: false,
+				segments: [
+					{
+						type: 'free' as const,
+						points: [
+							{ x: 0, y: 0 },
+							{ x: 10, y: 10 },
+						],
+					},
+					{
+						type: 'straight' as const,
+						points: [
+							{ x: 20, y: 20 },
+							{ x: 30, y: 30 },
+						],
+					},
+				],
+			},
+		}
+
+		const newShape = {
+			props: {
+				isPen: false,
+				zoom: 1,
+				segments: [
+					{
+						type: 'free' as const,
+						firstPoint: { x: 0, y: 0 },
+						points: [0, 0, 100, 100], // deltas: (0,0) from first point, (10,10) -> (100,100)
+					},
+					{
+						type: 'straight' as const,
+						firstPoint: { x: 20, y: 20 },
+						points: [0, 0, 100, 100], // deltas: (0,0) from first point, (10,10) -> (100,100)
+					},
+				],
+			},
+		}
+
+		expect(up(oldShape)).toEqual(newShape)
+	})
+
+	test('down works as expected for pen shape', () => {
+		const newShape = {
+			props: {
+				isPen: true,
+				zoom: 1,
+				segments: [
+					{
+						type: 'free' as const,
+						firstPoint: { x: 10, y: 20, z: 0.5 },
+						points: [0, 0, 0, 50, 50, 1, 50, 50, 1], // deltas: (0,0,0), (5,5,0.1) -> (50,50,1), (5,5,0.1) -> (50,50,1)
+					},
+				],
+			},
+		}
+
+		const oldShape = {
+			props: {
+				isPen: true,
+				segments: [
+					{
+						type: 'free' as const,
+						points: [
+							{ x: 10, y: 20, z: 0.5 },
+							{ x: 15, y: 25, z: 0.6 },
+							{ x: 20, y: 30, z: 0.7 },
+						],
+					},
+				],
+			},
+		}
+
+		expect(down(newShape)).toEqual(oldShape)
+	})
+
+	test('down works as expected for non-pen shape', () => {
+		const newShape = {
+			props: {
+				isPen: false,
+				zoom: 1,
+				segments: [
+					{
+						type: 'free' as const,
+						firstPoint: { x: 10, y: 20 },
+						points: [0, 0, 50, 50, 50, 50], // deltas: (0,0), (5,5) -> (50,50), (5,5) -> (50,50)
+					},
+				],
+			},
+		}
+
+		const oldShape = {
+			props: {
+				isPen: false,
+				segments: [
+					{
+						type: 'free' as const,
+						points: [
+							{ x: 10, y: 20 },
+							{ x: 15, y: 25 },
+							{ x: 20, y: 30 },
+						],
+					},
+				],
+			},
+		}
+
+		expect(down(newShape)).toEqual(oldShape)
+	})
+
+	test('down works as expected with single point segment', () => {
+		const newShape = {
+			props: {
+				isPen: false,
+				zoom: 1,
+				segments: [
+					{
+						type: 'free' as const,
+						firstPoint: { x: 10, y: 20 },
+						points: [], // no deltas, just the first point
+					},
+				],
+			},
+		}
+
+		const oldShape = {
+			props: {
+				isPen: false,
+				segments: [
+					{
+						type: 'free' as const,
+						points: [{ x: 10, y: 20 }],
+					},
+				],
+			},
+		}
+
+		expect(down(newShape)).toEqual(oldShape)
 	})
 })
 

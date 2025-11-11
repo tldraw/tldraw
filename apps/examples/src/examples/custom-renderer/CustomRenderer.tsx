@@ -61,12 +61,25 @@ export function CustomRenderer() {
 				if (editor.isShapeOfType<TLDrawShape>(shape, 'draw')) {
 					// Draw a freehand shape
 					for (const segment of shape.props.segments) {
-						ctx.moveTo(segment.points[0].x, segment.points[0].y)
+						// Start from the first point
+						let px = segment.firstPoint.x
+						let py = segment.firstPoint.y
+						ctx.moveTo(px, py)
+
 						if (segment.type === 'straight') {
-							ctx.lineTo(segment.points[1].x, segment.points[1].y)
+							// For straight segments, there should be 2 deltas (dx, dy) for the end point
+							const dx = segment.points[2] / (10 * shape.props.zoom)
+							const dy = segment.points[3] / (10 * shape.props.zoom)
+							ctx.lineTo(px + dx, py + dy)
 						} else {
-							for (const point of segment.points.slice(1)) {
-								ctx.lineTo(point.x, point.y)
+							// For free segments, accumulate deltas to get actual points
+							const pointsPerStep = shape.props.isPen ? 3 : 2 // pen has x,y,z deltas, mouse has x,y
+							for (let i = pointsPerStep; i < segment.points.length; i += pointsPerStep) {
+								const dx = segment.points[i] / (10 * shape.props.zoom)
+								const dy = segment.points[i + 1] / (10 * shape.props.zoom)
+								px += dx
+								py += dy
+								ctx.lineTo(px, py)
 							}
 						}
 					}

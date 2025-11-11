@@ -10,6 +10,7 @@ import {
 	TLHighlightShapeProps,
 	TLResizeInfo,
 	VecLike,
+	VecModel,
 	getColorValue,
 	highlightShapeMigrations,
 	highlightShapeProps,
@@ -70,6 +71,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 			isComplete: false,
 			isPen: false,
 			scale: 1,
+			zoom: 1,
 		}
 	}
 
@@ -130,7 +132,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		const strokeWidth = getStrokeWidth(shape)
 
 		const { strokePoints, sw } = getHighlightStrokePoints(shape, strokeWidth, forceSolid)
-		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
+		const allPointsFromSegments = getPointsFromSegments(shape.props.segments, shape.props.zoom)
 
 		let strokePath
 		if (strokePoints.length < 2) {
@@ -180,15 +182,86 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		const newSegments: TLDrawShapeSegment[] = []
 
 		for (const segment of shape.props.segments) {
+			const isPen = segment.firstPoint.z !== undefined
+
+			// Reconstruct points
+			const points: VecModel[] = [segment.firstPoint]
+			if (isPen) {
+				let px = segment.firstPoint.x
+				let py = segment.firstPoint.y
+				let pz = segment.firstPoint.z ?? 0.5
+
+				for (let i = 0; i < segment.points.length; i += 3) {
+					const dx = segment.points[i] / 10
+					const dy = segment.points[i + 1] / 10
+					const dz = segment.points[i + 2] / 10
+					px += dx
+					py += dy
+					pz += dz
+					points.push({ x: px, y: py, z: pz })
+				}
+			} else {
+				let px = segment.firstPoint.x
+				let py = segment.firstPoint.y
+
+				for (let i = 0; i < segment.points.length; i += 2) {
+					const dx = segment.points[i] / 10
+					const dy = segment.points[i + 1] / 10
+					px += dx
+					py += dy
+					points.push({ x: px, y: py })
+				}
+			}
+
+			// Scale points
+			const scaledPoints = points.map((p) => ({
+				x: scaleX * p.x,
+				y: scaleY * p.y,
+				z: p.z,
+			}))
+
+			// Convert back to deltas
+			const firstPoint = scaledPoints[0]
+			const deltas: number[] = []
+
+			if (isPen) {
+				let px = firstPoint.x
+				let py = firstPoint.y
+				let pz = firstPoint.z ?? 0.5
+
+				for (let i = 1; i < scaledPoints.length; i++) {
+					const point = scaledPoints[i]
+					const dx = point.x - px
+					const dy = point.y - py
+					const dz = (point.z ?? 0.5) - pz
+					deltas.push(Math.round(dx * 10))
+					deltas.push(Math.round(dy * 10))
+					deltas.push(Math.round(dz * 10))
+					px += dx
+					py += dy
+					pz += dz
+				}
+			} else {
+				let px = firstPoint.x
+				let py = firstPoint.y
+
+				for (let i = 1; i < scaledPoints.length; i++) {
+					const point = scaledPoints[i]
+					const dx = point.x - px
+					const dy = point.y - py
+					deltas.push(Math.round(dx * 10))
+					deltas.push(Math.round(dy * 10))
+					px += dx
+					py += dy
+				}
+			}
+
 			newSegments.push({
 				...segment,
-				points: segment.points.map(({ x, y, z }) => {
-					return {
-						x: scaleX * x,
-						y: scaleY * y,
-						z,
-					}
-				}),
+				firstPoint: isPen
+					? { x: firstPoint.x, y: firstPoint.y, z: firstPoint.z ?? 0.5 }
+					: { x: firstPoint.x, y: firstPoint.y },
+				points: deltas,
 			})
 		}
 
@@ -206,7 +279,13 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		return {
 			...(t > 0.5 ? endShape.props : startShape.props),
 			...endShape.props,
-			segments: interpolateSegments(startShape.props.segments, endShape.props.segments, t),
+			segments: interpolateSegments(
+				startShape.props.segments,
+				endShape.props.segments,
+				t,
+				startShape.props.zoom,
+				endShape.props.zoom
+			),
 			scale: lerp(startShape.props.scale, endShape.props.scale, t),
 		}
 	}
@@ -231,7 +310,7 @@ function getHighlightStrokePoints(
 	strokeWidth: number,
 	forceSolid: boolean
 ) {
-	const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
+	const allPointsFromSegments = getPointsFromSegments(shape.props.segments, shape.props.zoom)
 	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
 
 	let sw = strokeWidth
@@ -254,7 +333,7 @@ function getStrokeWidth(shape: TLHighlightShape) {
 }
 
 function getIsDot(shape: TLHighlightShape) {
-	return shape.props.segments.length === 1 && shape.props.segments[0].points.length < 2
+	return shape.props.segments.length === 1 && shape.props.segments[0].points.length === 0
 }
 
 function HighlightRenderer({
@@ -270,7 +349,7 @@ function HighlightRenderer({
 }) {
 	const theme = useDefaultColorTheme()
 
-	const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
+	const allPointsFromSegments = getPointsFromSegments(shape.props.segments, shape.props.zoom)
 
 	let sw = strokeWidth
 	if (!forceSolid && !shape.props.isPen && allPointsFromSegments.length === 1) {
@@ -287,7 +366,7 @@ function HighlightRenderer({
 	const solidStrokePath =
 		strokePoints.length > 1
 			? getSvgPathFromStrokePoints(strokePoints, false)
-			: getShapeDot(shape.props.segments[0].points[0])
+			: getShapeDot(shape.props.segments[0].firstPoint)
 
 	const colorSpace = useColorSpace()
 

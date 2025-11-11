@@ -77,8 +77,9 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			const segment = shape.props.segments[0]
 			expect(segment.type).toBe('straight')
 
-			const points = segment.points
-			expect(points.length).toBe(2)
+			// For straight segments, points should contain deltas (2 numbers for non-pen, 3 for pen)
+			const isPen = segment.firstPoint.z !== undefined
+			expect(segment.points.length).toBe(isPen ? 3 : 2)
 		})
 
 		it('Switches between segment types when shift is pressed / released  (starting with shift up)', () => {
@@ -176,8 +177,14 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment = shape.props.segments[0]
-			expect(segment.points[1].x).toBeCloseTo(snappedX)
-			expect(segment.points[1].y).toBeCloseTo(snappedY)
+			// Reconstruct the last point from firstPoint + deltas
+			const dx = segment.points[0] / 10
+			const dy = segment.points[1] / 10
+			const lastX = segment.firstPoint.x + dx
+			const lastY = segment.firstPoint.y + dy
+			// Use 1 decimal place tolerance (0.05) to account for rounding errors from Math.round(dx * 10)
+			expect(lastX).toBeCloseTo(snappedX, 1)
+			expect(lastY).toBeCloseTo(snappedY, 1)
 		})
 
 		it('Doesnt snap to 15 degree angle when cmd is held', () => {
@@ -190,8 +197,14 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment = shape.props.segments[0]
-			expect(segment.points[1].x).toBeCloseTo(x)
-			expect(segment.points[1].y).toBeCloseTo(y)
+			// Reconstruct the last point from firstPoint + deltas
+			const dx = segment.points[0] / 10
+			const dy = segment.points[1] / 10
+			const lastX = segment.firstPoint.x + dx
+			const lastY = segment.firstPoint.y + dy
+			// Use 1 decimal place tolerance (0.05) to account for rounding errors from Math.round(dx * 10)
+			expect(lastX).toBeCloseTo(x, 1)
+			expect(lastY).toBeCloseTo(y, 1)
 		})
 
 		it('Snaps to start or end of straight segments in self when shift + cmd is held', () => {
@@ -209,14 +222,18 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 			const shape1 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment1 = last(shape1.props.segments)!
-			const point1 = last(segment1.points)!
-			expect(point1.x).toBe(1)
+			// Reconstruct last point from firstPoint + deltas
+			const dx1 = segment1.points[0] / 10
+			const point1X = segment1.firstPoint.x + dx1
+			expect(point1X).toBe(1)
 
 			editor.keyDown('Meta')
 			const shape2 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment2 = last(shape2.props.segments)!
-			const point2 = last(segment2.points)!
-			expect(point2.x).toBe(0)
+			// Reconstruct last point from firstPoint + deltas
+			const dx2 = segment2.points[0] / 10
+			const point2X = segment2.firstPoint.x + dx2
+			expect(point2X).toBe(0)
 		})
 
 		it('Snaps to position along straight segments in self when shift + cmd is held', () => {
@@ -234,14 +251,18 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 			const shape1 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment1 = last(shape1.props.segments)!
-			const point1 = last(segment1.points)!
-			expect(point1.x).toBe(1)
+			// Reconstruct last point from firstPoint + deltas
+			const dx1 = segment1.points[0] / 10
+			const point1X = segment1.firstPoint.x + dx1
+			expect(point1X).toBe(1)
 
 			editor.keyDown('Meta')
 			const shape2 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment2 = last(shape2.props.segments)!
-			const point2 = last(segment2.points)!
-			expect(point2.x).toBe(0)
+			// Reconstruct last point from firstPoint + deltas
+			const dx2 = segment2.points[0] / 10
+			const point2X = segment2.firstPoint.x + dx2
+			expect(point2X).toBe(0)
 		})
 
 		it('Deletes very short lines on interrupt', () => {

@@ -16,12 +16,14 @@ describe('TLHighlightShape', () => {
 				segments: [
 					{
 						type: 'free' as const,
-						points: [{ x: 0, y: 0, z: 0.5 }],
+						firstPoint: { x: 0, y: 0, z: 0.5 },
+						points: [],
 					},
 				],
 				isComplete: true,
 				isPen: false,
 				scale: 1,
+				zoom: 1,
 			}
 
 			const fullValidator = T.object(highlightShapeProps)
@@ -50,7 +52,15 @@ describe('TLHighlightShape', () => {
 				[
 					{
 						type: 'free' as const,
-						points: [{ x: 0, y: 0, z: 0.5 }],
+						firstPoint: { x: 0, y: 0 },
+						points: [],
+					},
+				],
+				[
+					{
+						type: 'straight' as const,
+						firstPoint: { x: 0, y: 0, z: 0.5 },
+						points: [10, 20, 5],
 					},
 				],
 			]
@@ -63,7 +73,8 @@ describe('TLHighlightShape', () => {
 				'not-array',
 				null,
 				undefined,
-				[{ type: 'invalid', points: [] }], // Invalid segment type
+				[{ type: 'invalid', firstPoint: { x: 0, y: 0 }, points: [] }], // Invalid segment type
+				[{ type: 'free', points: [{ x: 0, y: 0 }] }], // Missing firstPoint
 			]
 
 			invalidSegmentArrays.forEach((segments) => {
@@ -99,6 +110,19 @@ describe('TLHighlightShape', () => {
 			expect(() => highlightShapeProps.scale.validate(null)).toThrow()
 		})
 
+		it('should validate zoom as nonZeroNumber', () => {
+			// Valid non-zero positive numbers
+			expect(() => highlightShapeProps.zoom.validate(0.1)).not.toThrow()
+			expect(() => highlightShapeProps.zoom.validate(1)).not.toThrow()
+			expect(() => highlightShapeProps.zoom.validate(2)).not.toThrow()
+
+			// Invalid zoom values (zero, negative, and non-numbers)
+			expect(() => highlightShapeProps.zoom.validate(0)).toThrow()
+			expect(() => highlightShapeProps.zoom.validate(-1)).toThrow()
+			expect(() => highlightShapeProps.zoom.validate('not-number')).toThrow()
+			expect(() => highlightShapeProps.zoom.validate(null)).toThrow()
+		})
+
 		it('should reject objects with missing properties', () => {
 			const fullValidator = T.object(highlightShapeProps)
 
@@ -130,7 +154,10 @@ describe('TLHighlightShape', () => {
 		})
 
 		it('should have all expected migration versions', () => {
-			const expectedVersions: Array<keyof typeof highlightShapeVersions> = ['AddScale']
+			const expectedVersions: Array<keyof typeof highlightShapeVersions> = [
+				'AddScale',
+				'AddEfficiency',
+			]
 
 			expectedVersions.forEach((version) => {
 				expect(highlightShapeVersions[version]).toBeDefined()
@@ -180,7 +207,8 @@ describe('TLHighlightShape', () => {
 						segments: [
 							{
 								type: 'free',
-								points: [{ x: 0, y: 0, z: 0.5 }],
+								firstPoint: { x: 0, y: 0 },
+								points: [],
 							},
 						],
 						isComplete: true,
@@ -201,10 +229,8 @@ describe('TLHighlightShape', () => {
 						segments: [
 							{
 								type: 'straight',
-								points: [
-									{ x: 10, y: 20 },
-									{ x: 100, y: 150 },
-								],
+								firstPoint: { x: 10, y: 20 },
+								points: [900, 1300], // deltas for (100, 150)
 							},
 						],
 						isComplete: true,
@@ -232,7 +258,8 @@ describe('TLHighlightShape', () => {
 						segments: [
 							{
 								type: 'free',
-								points: [{ x: 0, y: 0, z: 0.5 }],
+								firstPoint: { x: 0, y: 0 },
+								points: [],
 							},
 						],
 						isComplete: true,
@@ -256,10 +283,8 @@ describe('TLHighlightShape', () => {
 						segments: [
 							{
 								type: 'straight',
-								points: [
-									{ x: 0, y: 0 },
-									{ x: 200, y: 0 },
-								],
+								firstPoint: { x: 0, y: 0 },
+								points: [2000, 0], // deltas for (200, 0)
 							},
 						],
 						isComplete: true,
@@ -287,7 +312,8 @@ describe('TLHighlightShape', () => {
 					segments: [
 						{
 							type: 'free',
-							points: [{ x: 0, y: 0, z: 0.5 }],
+							firstPoint: { x: 0, y: 0 },
+							points: [],
 						},
 					],
 					isComplete: true,
@@ -309,8 +335,148 @@ describe('TLHighlightShape', () => {
 		})
 	})
 
+	describe('highlightShapeMigrations - AddEfficiency migration', () => {
+		const { up, down } = getTestMigration(highlightShapeVersions.AddEfficiency)
+
+		test('up works as expected for pen shape', () => {
+			const oldShape = {
+				props: {
+					isPen: true,
+					segments: [
+						{
+							type: 'free' as const,
+							points: [
+								{ x: 10, y: 20, z: 0.5 },
+								{ x: 15, y: 25, z: 0.6 },
+								{ x: 20, y: 30, z: 0.7 },
+							],
+						},
+					],
+				},
+			}
+
+			const newShape = {
+				props: {
+					isPen: true,
+					zoom: 1,
+					segments: [
+						{
+							type: 'free' as const,
+							firstPoint: { x: 10, y: 20, z: 0.5 },
+							points: [0, 0, 0, 50, 50, 1, 50, 50, 1],
+						},
+					],
+				},
+			}
+
+			expect(up(oldShape)).toEqual(newShape)
+		})
+
+		test('up works as expected for non-pen shape', () => {
+			const oldShape = {
+				props: {
+					isPen: false,
+					segments: [
+						{
+							type: 'free' as const,
+							points: [
+								{ x: 10, y: 20 },
+								{ x: 15, y: 25 },
+								{ x: 20, y: 30 },
+							],
+						},
+					],
+				},
+			}
+
+			const newShape = {
+				props: {
+					isPen: false,
+					zoom: 1,
+					segments: [
+						{
+							type: 'free' as const,
+							firstPoint: { x: 10, y: 20 },
+							points: [0, 0, 50, 50, 50, 50],
+						},
+					],
+				},
+			}
+
+			expect(up(oldShape)).toEqual(newShape)
+		})
+
+		test('down works as expected for pen shape', () => {
+			const newShape = {
+				props: {
+					isPen: true,
+					zoom: 1,
+					segments: [
+						{
+							type: 'free' as const,
+							firstPoint: { x: 10, y: 20, z: 0.5 },
+							points: [0, 0, 0, 50, 50, 1, 50, 50, 1],
+						},
+					],
+				},
+			}
+
+			const oldShape = {
+				props: {
+					isPen: true,
+					segments: [
+						{
+							type: 'free' as const,
+							points: [
+								{ x: 10, y: 20, z: 0.5 },
+								{ x: 15, y: 25, z: 0.6 },
+								{ x: 20, y: 30, z: 0.7 },
+							],
+						},
+					],
+				},
+			}
+
+			expect(down(newShape)).toEqual(oldShape)
+		})
+
+		test('down works as expected for non-pen shape', () => {
+			const newShape = {
+				props: {
+					isPen: false,
+					zoom: 1,
+					segments: [
+						{
+							type: 'free' as const,
+							firstPoint: { x: 10, y: 20 },
+							points: [0, 0, 50, 50, 50, 50],
+						},
+					],
+				},
+			}
+
+			const oldShape = {
+				props: {
+					isPen: false,
+					segments: [
+						{
+							type: 'free' as const,
+							points: [
+								{ x: 10, y: 20 },
+								{ x: 15, y: 25 },
+								{ x: 20, y: 30 },
+							],
+						},
+					],
+				},
+			}
+
+			expect(down(newShape)).toEqual(oldShape)
+		})
+	})
+
 	test('should handle all migration versions in correct order', () => {
-		const expectedOrder: Array<keyof typeof highlightShapeVersions> = ['AddScale']
+		const expectedOrder: Array<keyof typeof highlightShapeVersions> = ['AddScale', 'AddEfficiency']
 
 		const migrationIds = highlightShapeMigrations.sequence
 			.filter((migration) => 'id' in migration)

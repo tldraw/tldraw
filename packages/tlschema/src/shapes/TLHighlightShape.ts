@@ -1,4 +1,5 @@
 import { T } from '@tldraw/validate'
+import { VecModel } from '../misc/geometry-types'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
 import { DefaultColorStyle, TLDefaultColorStyle } from '../styles/TLColorStyle'
@@ -19,6 +20,7 @@ import { DrawShapeSegment, TLDrawShapeSegment } from './TLDrawShape'
  *   segments: [{ type: 'straight', points: [{ x: 0, y: 0, z: 0.5 }] }],
  *   isComplete: true,
  *   isPen: false,
+ *   zoom: 1,
  *   scale: 1
  * }
  * ```
@@ -34,6 +36,8 @@ export interface TLHighlightShapeProps {
 	isComplete: boolean
 	/** Whether the highlight was drawn with a pen/stylus (affects rendering style) */
 	isPen: boolean
+	/** Zoom factor when the highlight shape was started, used to expand integers into floats for precision */
+	zoom: number
 	/** Scale factor applied to the highlight shape for display */
 	scale: number
 }
@@ -91,10 +95,12 @@ export const highlightShapeProps: RecordProps<TLHighlightShape> = {
 	isComplete: T.boolean,
 	isPen: T.boolean,
 	scale: T.nonZeroNumber,
+	zoom: T.nonZeroNumber,
 }
 
 const Versions = createShapePropsMigrationIds('highlight', {
 	AddScale: 1,
+	AddEfficiency: 2,
 })
 
 /**
@@ -120,6 +126,96 @@ export const highlightShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (props) => {
 				delete props.scale
+			},
+		},
+		{
+			id: Versions.AddEfficiency,
+			up: (props) => {
+				props.zoom = 1
+				for (const segment of props.segments) {
+					const deltas: number[] = []
+					let px = segment.points[0].x
+					let py = segment.points[0].y
+
+					if (props.isPen) {
+						let pz = segment.points[0].z ?? 0.5
+
+						segment.firstPoint = {
+							x: px,
+							y: py,
+							z: pz,
+						}
+
+						for (let i = 0; i < segment.points.length; i++) {
+							const point = segment.points[i]
+							const dx = point.x - px
+							const dy = point.y - py
+							const dz = (point.z ? point.z : 0.5) - pz
+							deltas.push(Math.round(dx * 10))
+							deltas.push(Math.round(dy * 10))
+							deltas.push(Math.round(dz * 10))
+							px += dx
+							py += dy
+							pz += dz
+						}
+					} else {
+						segment.firstPoint = {
+							x: px,
+							y: py,
+						}
+
+						for (let i = 0; i < segment.points.length; i++) {
+							const point = segment.points[i]
+							const dx = point.x - px
+							const dy = point.y - py
+							deltas.push(Math.round(dx * 10))
+							deltas.push(Math.round(dy * 10))
+							px += dx
+							py += dy
+						}
+					}
+					segment.points = deltas
+				}
+			},
+			down: (props) => {
+				delete props.zoom
+				for (const segment of props.segments) {
+					const points: VecModel[] = []
+					if (props.isPen) {
+						let px = segment.firstPoint.x
+						let py = segment.firstPoint.y
+						let pz = segment.firstPoint.z ?? 0.5
+
+						points.push({ x: px, y: py, z: pz })
+
+						// Skip the first delta (which is always 0,0,0) and process the rest
+						for (let i = 3; i < segment.points.length; i += 3) {
+							const dx = segment.points[i] / 10
+							const dy = segment.points[i + 1] / 10
+							const dz = segment.points[i + 2] / 10
+							px += dx
+							py += dy
+							pz += dz
+							points.push({ x: px, y: py, z: pz })
+						}
+					} else {
+						let px = segment.firstPoint.x
+						let py = segment.firstPoint.y
+
+						points.push({ x: px, y: py })
+
+						// Skip the first delta (which is always 0,0) and process the rest
+						for (let i = 2; i < segment.points.length; i += 2) {
+							const dx = segment.points[i] / 10
+							const dy = segment.points[i + 1] / 10
+							px += dx
+							py += dy
+							points.push({ x: px, y: py })
+						}
+					}
+					segment.points = points
+					delete segment.firstPoint
+				}
 			},
 		},
 	],

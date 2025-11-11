@@ -1,3 +1,4 @@
+import type { TLDrawShapeSegment } from '@tldraw/tlschema'
 import { useMemo } from 'react'
 import {
 	DefaultSizeStyle,
@@ -16,17 +17,14 @@ export function useExtraDragIconOverrides() {
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) => {
 							const sizeStyle = editor.getStyleForNextShape(DefaultSizeStyle)
+							const zoom = editor.getZoomLevel()
 							return editor.createShape<TLDrawShape>({
 								id,
 								type: 'draw',
 								props: {
-									segments: [
-										{
-											type: 'free',
-											points: scalePoints(POINTER_POINTS, SCALES[sizeStyle]),
-										},
-									],
+									segments: [pointsToSegment(POINTER_POINTS, SCALES[sizeStyle], zoom)],
 									isClosed: true,
+									zoom,
 								},
 							})
 						},
@@ -39,17 +37,14 @@ export function useExtraDragIconOverrides() {
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) => {
 							const sizeStyle = editor.getStyleForNextShape(DefaultSizeStyle)
+							const zoom = editor.getZoomLevel()
 							return editor.createShape<TLDrawShape>({
 								id,
 								type: 'draw',
 								props: {
-									segments: [
-										{
-											type: 'free',
-											points: scalePoints(HAND_POINTS, SCALES[sizeStyle]),
-										},
-									],
+									segments: [pointsToSegment(HAND_POINTS, SCALES[sizeStyle], zoom)],
 									isClosed: true,
+									zoom,
 								},
 							})
 						},
@@ -62,17 +57,14 @@ export function useExtraDragIconOverrides() {
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) => {
 							const sizeStyle = editor.getStyleForNextShape(DefaultSizeStyle)
+							const zoom = editor.getZoomLevel()
 							return editor.createShape<TLDrawShape>({
 								id,
 								type: 'draw',
 								props: {
-									segments: [
-										{
-											type: 'free',
-											points: scalePoints(DRAW_POINTS, SCALES[sizeStyle]),
-										},
-									],
+									segments: [pointsToSegment(DRAW_POINTS, SCALES[sizeStyle], zoom)],
 									isClosed: true,
+									zoom,
 								},
 							})
 						},
@@ -242,12 +234,39 @@ for (const point of DRAW_POINTS) {
 	point.y = Number(((point.y / maxY) * desiredH).toFixed(2))
 }
 
-function scalePoints(points: VecModel[], scale: number) {
-	return points.map((p) => ({
+/**
+ * Convert an array of VecModel points into a TLDrawShapeSegment with delta encoding.
+ * Points are stored as deltas (differences between consecutive points) multiplied by 10.
+ */
+function pointsToSegment(points: VecModel[], scale: number, zoom: number): TLDrawShapeSegment {
+	const scaledPoints = points.map((p) => ({
 		x: p.x * scale,
 		y: p.y * scale,
 		z: p.z,
 	}))
+
+	const firstPoint = scaledPoints[0]
+	const deltas: number[] = []
+
+	let px = firstPoint.x
+	let py = firstPoint.y
+
+	// Process all points and convert to deltas
+	for (let i = 0; i < scaledPoints.length; i++) {
+		const point = scaledPoints[i]
+		const dx = point.x - px
+		const dy = point.y - py
+		deltas.push(Math.round(dx * 10 * zoom))
+		deltas.push(Math.round(dy * 10 * zoom))
+		px = point.x
+		py = point.y
+	}
+
+	return {
+		type: 'free',
+		points: deltas,
+		firstPoint: { x: firstPoint.x, y: firstPoint.y },
+	}
 }
 
 const SCALES = {
