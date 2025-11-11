@@ -4,13 +4,14 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	useDefaultHelpers,
+	useValue,
 } from 'tldraw'
 import { useApp } from '../tla/hooks/useAppState'
 import { useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { fairyMessages } from './fairy-messages'
 import { FairyDebugDialog } from './FairyDebugDialog'
-import { clearFairyTasks } from './FairyTaskList'
+import { $showCanvasFairyTasks, clearFairyTasks } from './FairyTaskList'
 
 export function FairyTaskListMenuContent({
 	agents,
@@ -20,6 +21,11 @@ export function FairyTaskListMenuContent({
 	menuType?: 'menu' | 'context-menu'
 }) {
 	const { addDialog } = useDefaultHelpers()
+	const showCanvasTasks = useValue('show-canvas-tasks', () => $showCanvasFairyTasks.get(), [
+		$showCanvasFairyTasks,
+	])
+	const showTasksOnCanvas = useMsg(fairyMessages.showTasksOnCanvas)
+	const hideTasksOnCanvas = useMsg(fairyMessages.hideTasksOnCanvas)
 
 	const resetAllChats = useCallback(() => {
 		agents.forEach((agent) => {
@@ -79,6 +85,13 @@ export function FairyTaskListMenuContent({
 					id="clear-todo-list"
 					onSelect={() => clearFairyTasks()}
 					label={clearTaskListLabel}
+				/>
+				<TldrawUiMenuItem
+					id="toggle-canvas-todos"
+					onSelect={() => {
+						$showCanvasFairyTasks.update((v) => !v)
+					}}
+					label={showCanvasTasks ? hideTasksOnCanvas : showTasksOnCanvas}
 				/>
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="fairy-management-menu">
