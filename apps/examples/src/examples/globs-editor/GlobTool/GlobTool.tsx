@@ -6,10 +6,12 @@ import {
 	TLPointerEventInfo,
 	TLShapeId,
 	Vec,
+	VecLike,
 } from 'tldraw'
 import { GlobBinding } from '../GlobBindingUtil'
 import { GlobShape } from '../GlobShapeUtil'
 import { NodeShape } from '../NodeShapeUtil'
+import { getStartAndEndNodes } from '../shared'
 import { getOuterTangentPoints } from '../utils'
 
 export class GlobTool extends StateNode {
@@ -73,6 +75,7 @@ export class NodeState extends StateNode {
 		const node = this.editor.getShape<NodeShape>(this.ghostShapeId)!
 		if (!node) return
 
+		// if we try place another node such that it overlaps with an existing node radii, don't allow it
 		const pagePoint = this.editor.screenToPage(info.point)
 		const shapes = this.editor
 			.getShapesAtPoint(pagePoint, {
@@ -96,6 +99,7 @@ export class NodeState extends StateNode {
 				opacity: 1,
 			},
 		})
+
 		this.ghostShapeId = null
 
 		this.complete()
@@ -167,7 +171,7 @@ export class ConnectState extends StateNode {
 			y: pagePoint.y,
 		})
 
-		// if there are no ghost globs, create them
+		// if there are no ghost globs, create them, we could be ghosting a whole selection of nodes
 		if (!this.ghostGlobIds.length) {
 			for (let i = 0; i < this.selectedNodeIds.length; i++) {
 				const id = createShapeId()
@@ -212,40 +216,17 @@ export class ConnectState extends StateNode {
 			const selectedNode = this.editor.getShape<NodeShape>(this.selectedNodeIds[i])
 			if (!selectedNode) continue
 
-			const mid = Vec.Average([pagePoint, selectedNode])
-
-			const localStartNode = Vec.Sub(selectedNode, mid)
-			const localEndNode = Vec.Sub(pagePoint, mid)
-
-			const tangentPoints = getOuterTangentPoints(
-				localStartNode,
+			const update = getGlobTangentUpdate(
+				selectedNode,
 				selectedNode.props.radius,
-				localEndNode,
+				pagePoint,
 				selectedNode.props.radius
 			)
-
-			const d0 = Vec.Lrp(tangentPoints[0], tangentPoints[1], 0.5)
-			const d1 = Vec.Lrp(tangentPoints[2], tangentPoints[3], 0.5)
 
 			this.editor.updateShape<GlobShape>({
 				id: this.ghostGlobIds[i],
 				type: 'glob',
-				x: mid.x,
-				y: mid.y,
-				props: {
-					edges: {
-						edgeA: {
-							d: { x: d0.x, y: d0.y },
-							tensionRatioA: 0.5,
-							tensionRatioB: 0.5,
-						},
-						edgeB: {
-							d: { x: d1.x, y: d1.y },
-							tensionRatioA: 0.5,
-							tensionRatioB: 0.5,
-						},
-					},
-				},
+				...update,
 			})
 		}
 	}
@@ -254,21 +235,32 @@ export class ConnectState extends StateNode {
 		if (!this.ghostNodeId) return
 
 		const pagePoint = this.editor.screenToPage(info.point)
-
 		const shapes = this.editor.getShapesAtPoint(pagePoint, {
 			hitInside: true,
 		})
 
+		// find any existing node we may be trying to connect to
 		const nodes = shapes.filter(
 			(shape) =>
 				this.editor.isShapeOfType<NodeShape>(shape, 'node') && shape.id !== this.ghostNodeId
 		)
-		if (!nodes.length) return
 
+		// if we don't find a node, just place the ghost node and complete
+		if (!nodes.length) {
+			this.complete()
+			return
+		}
+
+		// we found a node, we need to update the bindings to connect to the existing node,
+		// recalculate the tangent points for the glob, with different radii as well as the bindings
 		const updates: TLBindingUpdate[] = []
 		const bindings = this.editor.getBindingsToShape(this.ghostNodeId, 'glob')
-		if (!bindings.length) return
+		if (!bindings.length) {
+			this.complete()
+			return
+		}
 
+		// update all current bindings to connect to the existing node
 		for (const binding of bindings) {
 			updates.push({
 				...binding,
@@ -277,22 +269,29 @@ export class ConnectState extends StateNode {
 		}
 
 		this.editor.updateBindings(updates)
-		if (this.ghostNodeId) {
-			this.editor.deleteShape(this.ghostNodeId)
+
+		// update the outer tangents because the radii may have changed
+		for (const glob of this.ghostGlobIds) {
+			const globShape = this.editor.getShape<GlobShape>(glob)
+			if (!globShape) continue
+
+			const nodes = getStartAndEndNodes(this.editor, glob)
+			if (!nodes) continue
+
+			const update = getGlobTangentUpdate(
+				nodes.startNodeShape,
+				nodes.startNodeShape.props.radius,
+				nodes.endNodeShape,
+				nodes.endNodeShape.props.radius
+			)
+			this.editor.updateShape<GlobShape>({
+				...globShape,
+				...update,
+			})
 		}
 
-		this.complete()
-	}
-
-	override onPointerUp() {
-		if (!this.ghostGlobIds.length) return
-
-		for (let i = 0; i < this.ghostGlobIds.length; i++) {
-			this.editor.updateShape<GlobShape>({
-				id: this.ghostGlobIds[i],
-				type: 'glob',
-				props: { isGhosting: false },
-			})
+		if (this.ghostNodeId) {
+			this.editor.deleteShape(this.ghostNodeId)
 		}
 
 		this.complete()
@@ -301,12 +300,14 @@ export class ConnectState extends StateNode {
 	override onCancel() {
 		if (this.ghostGlobIds.length) {
 			this.editor.deleteShapes(this.ghostGlobIds)
+			this.ghostGlobIds = []
 		}
 		if (this.ghostNodeId) {
 			this.editor.deleteShapes([this.ghostNodeId])
+			this.ghostNodeId = null
 		}
 
-		this.complete()
+		this.editor.setCurrentTool('select')
 	}
 
 	override onComplete() {
@@ -314,11 +315,48 @@ export class ConnectState extends StateNode {
 	}
 
 	private complete() {
+		// remove the ghosting from the globs
+		for (let i = 0; i < this.ghostGlobIds.length; i++) {
+			this.editor.updateShape<GlobShape>({
+				id: this.ghostGlobIds[i],
+				type: 'glob',
+				props: { isGhosting: false },
+			})
+		}
+
 		this.ghostNodeId = null
 
+		this.editor.setSelectedShapes(this.ghostGlobIds)
 		this.selectedNodeIds = []
 		this.ghostGlobIds = []
 
 		this.editor.setCurrentTool('select')
+	}
+}
+
+export const getGlobTangentUpdate = (
+	startNode: VecLike,
+	startRadius: number,
+	endNode: VecLike,
+	endRadius: number
+) => {
+	const mid = Vec.Average([startNode, endNode])
+	const localStartNode = Vec.Sub(startNode, mid)
+	const localEndNode = Vec.Sub(endNode, mid)
+
+	const tangentPoints = getOuterTangentPoints(localStartNode, startRadius, localEndNode, endRadius)
+
+	const d0 = Vec.Lrp(tangentPoints[0], tangentPoints[1], 0.5)
+	const d1 = Vec.Lrp(tangentPoints[2], tangentPoints[3], 0.5)
+
+	return {
+		x: mid.x,
+		y: mid.y,
+		props: {
+			edges: {
+				edgeA: { d: { x: d0.x, y: d0.y }, tensionRatioA: 0.5, tensionRatioB: 0.5 },
+				edgeB: { d: { x: d1.x, y: d1.y }, tensionRatioA: 0.5, tensionRatioB: 0.5 },
+			},
+		},
 	}
 }

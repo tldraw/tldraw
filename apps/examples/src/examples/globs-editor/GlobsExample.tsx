@@ -2,6 +2,7 @@ import { useState } from 'react'
 import {
 	DefaultToolbar,
 	DefaultToolbarContent,
+	StateNode,
 	TLComponents,
 	Tldraw,
 	TldrawUiButtonIcon,
@@ -11,7 +12,10 @@ import {
 	TldrawUiPopoverTrigger,
 	TldrawUiToolbar,
 	TldrawUiToolbarButton,
+	TLKeyboardEventInfo,
 	tlmenus,
+	TLShape,
+	TLShapeId,
 	TLUiAssetUrlOverrides,
 	TLUiOverrides,
 	track,
@@ -20,8 +24,8 @@ import {
 	useValue,
 } from 'tldraw'
 import { CustomHandles } from './CustomHandles'
-import { GlobBindingUtil } from './GlobBindingUtil'
-import { GlobShapeUtil } from './GlobShapeUtil'
+import { GlobBinding, GlobBindingUtil } from './GlobBindingUtil'
+import { GlobShape, GlobShapeUtil } from './GlobShapeUtil'
 import { GlobTool } from './GlobTool/GlobTool'
 import { NodeShape, NodeShapeUtil } from './NodeShapeUtil'
 
@@ -160,9 +164,59 @@ export default function GlobsExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				persistenceKey="globs-example"
 				onMount={(editor) => {
 					editor.updateInstanceState({ isDebugMode: true })
-					editor.user.updateUserPreferences({ isSnapMode: true })
+
+					// Override dragging_handle state to prevent space from interrupting handle dragging
+					const draggingHandleState = editor.getStateDescendant<StateNode>('select.dragging_handle')
+
+					if (draggingHandleState) {
+						const originalOnKeyDown = draggingHandleState.onKeyDown?.bind(draggingHandleState)
+
+						draggingHandleState.onKeyDown = (info: TLKeyboardEventInfo) => {
+							// If space is pressed while dragging a glob handle, disable panning
+							const shape = editor.getShape(editor.getOnlySelectedShapeId()!)
+							if (
+								shape &&
+								editor.isShapeOfType<GlobShape>(shape, 'glob') &&
+								info.code === 'Space'
+							) {
+								// Prevent space from activating panning
+								editor.inputs.isPanning = false
+								editor.inputs.isSpacebarPanning = false
+								return
+							}
+
+							originalOnKeyDown?.(info)
+						}
+					}
+
+					// if we have a just a glob selected, expand the selection to include the nodes it's connected to
+					const originalGetContent = editor.getContentFromCurrentPage.bind(editor)
+					editor.getContentFromCurrentPage = (shapes) => {
+						// Extract shape IDs
+						const ids =
+							typeof shapes[0] === 'string'
+								? (shapes as TLShapeId[])
+								: (shapes as TLShape[]).map((s) => s.id)
+
+						// Expand selection to include bound nodes for any globs
+						const expandedIds = new Set(ids)
+
+						for (const id of ids) {
+							const shape = editor.getShape(id)
+							if (shape && editor.isShapeOfType<GlobShape>(shape, 'glob')) {
+								const bindings = editor.getBindingsFromShape<GlobBinding>(id, 'glob')
+								for (const binding of bindings) {
+									expandedIds.add(binding.toId)
+								}
+							}
+						}
+
+						// Call original with expanded selection
+						return originalGetContent(Array.from(expandedIds))
+					}
 				}}
 				shapeUtils={shapes}
 				tools={tools}

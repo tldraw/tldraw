@@ -74,3 +74,9 @@ export const circleCentresOverlap = (c0: VecModel, r0: number, c1: VecModel) => 
 	const d = Vec.Dist(c0, c1)
 	return d <= r0
 }
+
+export const getClosestPointOnCircle = (c: VecModel, r: number, p: VecModel) => {
+	const pDirection = Vec.Sub(p, c).uni()
+
+	return Vec.Add(c, Vec.Mul(pDirection, r + 1)).toJson()
+}

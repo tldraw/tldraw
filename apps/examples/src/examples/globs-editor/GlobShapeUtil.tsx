@@ -1,12 +1,14 @@
+import { round } from 'lodash'
 import { useEffect, useState } from 'react'
 import {
 	createComputedCache,
+	Edge2d,
 	Editor,
 	getIndicesAbove,
-	Group2d,
 	HandleSnapGeometry,
+	Mat,
 	PathBuilder,
-	Polyline2d,
+	PointsSnapIndicator,
 	RecordProps,
 	Rectangle2d,
 	ShapeUtil,
@@ -15,7 +17,11 @@ import {
 	TLBaseShape,
 	TLHandle,
 	TLHandleDragInfo,
+	TLResizeInfo,
+	TLShapePartial,
 	toDomPrecision,
+	track,
+	uniqueId,
 	useEditor,
 	Vec,
 	VecModel,
@@ -23,8 +29,8 @@ import {
 	ZERO_INDEX_KEY,
 } from 'tldraw'
 import { GlobBinding } from './GlobBindingUtil'
-import { NodeShape } from './NodeShapeUtil'
-import { getArcFlag, getGlobEndPoint, projectTensionPoint } from './utils'
+import { getStartAndEndNodes } from './shared'
+import { getArcFlag, getClosestPointOnCircle, getGlobEndPoint, projectTensionPoint } from './utils'
 
 export interface NodeGeometry {
 	position: VecModel
@@ -61,6 +67,11 @@ export interface GlobProps {
 
 export type GlobShape = TLBaseShape<'glob', GlobProps>
 
+interface SnapData {
+	nudge: VecModel
+	indicators: PointsSnapIndicator[]
+}
+
 const edgeCurveValidator = T.object({
 	d: vecModelValidator,
 	tensionRatioA: T.number,
@@ -70,19 +81,10 @@ const edgeCurveValidator = T.object({
 const globInfoCache = createComputedCache<Editor, GlobGeometry | null, GlobShape>(
 	'glob info',
 	(editor: Editor, shape: GlobShape): GlobGeometry | null => {
-		const bindings = editor.getBindingsFromShape<GlobBinding>(shape.id, 'glob')
-		const startBinding = bindings.find((b) => b.props.terminal === 'start')
-		if (!startBinding) return null
+		const nodes = getStartAndEndNodes(editor, shape.id)
+		if (!nodes) return null
 
-		const startNodeShape = editor.getShape<NodeShape>(startBinding.toId)
-		if (!startNodeShape) return null
-
-		const endBinding = bindings.find((b) => b.props.terminal === 'end')
-		if (!endBinding) return null
-
-		const endNodeShape = editor.getShape<NodeShape>(endBinding.toId)
-		if (!endNodeShape) return null
-
+		const { startNodeShape, endNodeShape } = nodes
 		const localStartNode = Vec.Sub(startNodeShape, shape)
 		const localEndNode = Vec.Sub(endNodeShape, shape)
 
@@ -113,6 +115,7 @@ const globInfoCache = createComputedCache<Editor, GlobGeometry | null, GlobShape
 			0
 		)
 
+		// if we drag a node over an existing d handle, the solution does not exist so collapse the points
 		if (!tangentA_A && tangentA_B) {
 			tangentA_A = tangentA_B
 		} else if (!tangentA_B && tangentA_A) {
@@ -218,8 +221,83 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 		return true
 	}
 
+	override onResize(_shape: GlobShape, info: TLResizeInfo<GlobShape>) {
+		const { scaleX, scaleY, initialShape } = info
+
+		const scaledEdgeA_d = {
+			x: initialShape.props.edges.edgeA.d.x * scaleX,
+			y: initialShape.props.edges.edgeA.d.y * scaleY,
+		}
+		const scaledEdgeB_d = {
+			x: initialShape.props.edges.edgeB.d.x * scaleX,
+			y: initialShape.props.edges.edgeB.d.y * scaleY,
+		}
+
+		const didFlipX = scaleX < 0
+		const didFlipY = scaleY < 0
+
+		const shouldSwap = didFlipX !== didFlipY
+
+		const finalEdgeA = shouldSwap
+			? {
+					...initialShape.props.edges.edgeB,
+					d: scaledEdgeB_d,
+				}
+			: {
+					...initialShape.props.edges.edgeA,
+					d: scaledEdgeA_d,
+				}
+
+		const finalEdgeB = shouldSwap
+			? {
+					...initialShape.props.edges.edgeA,
+					d: scaledEdgeA_d,
+				}
+			: {
+					...initialShape.props.edges.edgeB,
+					d: scaledEdgeB_d,
+				}
+
+		return {
+			props: {
+				edges: {
+					edgeA: finalEdgeA,
+					edgeB: finalEdgeB,
+				},
+			},
+		}
+	}
+
+	override onRotate(initial: GlobShape, current: GlobShape): TLShapePartial<GlobShape> {
+		const delta = current.rotation - initial.rotation
+
+		const rotatedDA = Vec.Rot(initial.props.edges.edgeA.d, delta).toJson()
+		const rotatedDB = Vec.Rot(initial.props.edges.edgeB.d, delta).toJson()
+
+		return {
+			id: current.id,
+			type: current.type,
+			rotation: 0,
+			props: {
+				edges: {
+					edgeA: {
+						...initial.props.edges.edgeA,
+						d: rotatedDA,
+					},
+					edgeB: {
+						...initial.props.edges.edgeB,
+						d: rotatedDB,
+					},
+				},
+			},
+		}
+	}
+
 	override getGeometry(shape: GlobShape) {
-		const pathBuilder = this.buildGlobPath(shape, true)
+		const globPoints = getGlobInfo(this.editor, shape)
+		if (!globPoints) return new Rectangle2d({ width: 1, height: 1, isFilled: false })
+
+		const pathBuilder = buildGlobPath(globPoints, true)
 		if (!pathBuilder) return new Rectangle2d({ width: 1, height: 1, isFilled: false })
 
 		return pathBuilder.toGeometry()
@@ -242,7 +320,7 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 			x: shape.props.edges.edgeA.d.x,
 			y: shape.props.edges.edgeA.d.y,
 			index: indices[idx++],
-			snapType: 'align',
+			snapType: 'point',
 		})
 		handles.push({
 			id: 'edgeB.d',
@@ -250,7 +328,7 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 			x: shape.props.edges.edgeB.d.x,
 			y: shape.props.edges.edgeB.d.y,
 			index: indices[idx++],
-			snapType: 'align',
+			snapType: 'point',
 		})
 
 		const tensions = [
@@ -266,7 +344,7 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 					x: globPoints[edge][tension].x,
 					y: globPoints[edge][tension].y,
 					index: indices[idx++],
-					snapType: 'align',
+					snapType: 'point',
 				})
 			}
 		}
@@ -274,14 +352,118 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 		return handles
 	}
 
+	override getHandleSnapGeometry(shape: GlobShape): HandleSnapGeometry {
+		const editor = this.editor
+		const globPoints = getGlobInfo(editor, shape)
+		if (!globPoints) return {}
+
+		return {
+			getSelfSnapPoints(handle) {
+				const { edgeType, point } = getHandleData(handle.id)
+
+				switch (point) {
+					case 'tensionA': {
+						const mid = Vec.Lrp(globPoints[edgeType].tangentA, shape.props.edges[edgeType].d, 0.5)
+						return [mid]
+					}
+					case 'tensionB': {
+						const mid = Vec.Lrp(globPoints[edgeType].tangentB, shape.props.edges[edgeType].d, 0.5)
+						return [mid]
+					}
+				}
+				return []
+			},
+		}
+	}
+
 	override onHandleDrag(shape: GlobShape, info: TLHandleDragInfo<GlobShape>) {
-		const { handle } = info
-		const { id } = handle
-		const [edgeType, point] = id.split('.') as [EdgeCurveType, keyof EdgeGeometry | keyof EdgeProps]
+		const { handle, initial } = info
+		if (!initial) return shape
+
+		const globPoints = getGlobInfo(this.editor, shape)
+		if (!globPoints) return shape
+
+		const { edgeType, point } = getHandleData(handle.id)
 		const edge = shape.props.edges[edgeType]
+
+		const oppositeEdgeType = edgeType === 'edgeA' ? 'edgeB' : 'edgeA'
+
+		const initialEdge = initial.props.edges[edgeType]
+		const initialOppositeEdge = initial.props.edges[oppositeEdgeType]
 
 		switch (point) {
 			case 'd': {
+				let d = { x: handle.x, y: handle.y }
+
+				this.editor.snaps.clearIndicators()
+				const snapPoint = this.getSnap(shape, handle)
+
+				const isSnapMode = this.editor.user.getIsSnapMode()
+				if (
+					snapPoint &&
+					!this.editor.inputs.metaKey &&
+					(isSnapMode ? !this.editor.inputs.ctrlKey : this.editor.inputs.ctrlKey)
+				) {
+					this.editor.snaps.setIndicators(snapPoint.indicators)
+
+					return {
+						...shape,
+						props: {
+							...shape.props,
+							edges: {
+								...shape.props.edges,
+								[edgeType]: {
+									...edge,
+									d: Vec.Add(d, snapPoint.nudge).toJson(),
+								},
+							},
+						},
+					}
+				}
+
+				// constraint the d handle around the circle if we try drag it inside a node
+				const distStart = Vec.Dist(handle, globPoints.startNode.position)
+				if (distStart <= globPoints.startNode.radius) {
+					d = getClosestPointOnCircle(
+						globPoints.startNode.position,
+						globPoints.startNode.radius,
+						handle
+					)
+				}
+
+				// constraint the d handle around the circle if we try drag it inside a node
+				const distEnd = Vec.Dist(handle, globPoints.endNode.position)
+				if (distEnd <= globPoints.endNode.radius) {
+					d = getClosestPointOnCircle(
+						globPoints.endNode.position,
+						globPoints.endNode.radius,
+						handle
+					)
+				}
+
+				// drag both d handles at the same time
+				if (this.editor.inputs.metaKey) {
+					const delta = Vec.Sub(handle, initialEdge.d)
+
+					return {
+						...shape,
+						props: {
+							...shape.props,
+							edges: {
+								...shape.props.edges,
+								[oppositeEdgeType]: {
+									...initialOppositeEdge,
+									d: Vec.Add(initialOppositeEdge.d, delta).toJson(),
+								},
+								[edgeType]: {
+									...edge,
+									d: d,
+								},
+							},
+						},
+					}
+				}
+
 				return {
 					...shape,
 					props: {
@@ -290,19 +472,39 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 							...shape.props.edges,
 							[edgeType]: {
 								...edge,
-								d: { x: handle.x, y: handle.y },
+								d: d,
+							},
+							[oppositeEdgeType]: {
+								...initialOppositeEdge,
 							},
 						},
 					},
 				}
 			}
 			case 'tensionA': {
-				const globPoints = getGlobInfo(this.editor, shape)
-				if (!globPoints) return shape
-
-				const lineStart = globPoints.edgeA.tangentA
+				const lineStart = globPoints[edgeType].tangentA
 				const lineEnd = shape.props.edges[edgeType].d
 				const projectedPoint = projectTensionPoint(lineStart, lineEnd, handle)
+
+				// drag both tension handles at the same time
+				if (this.editor.inputs.metaKey) {
+					const delta = projectedPoint - initialEdge.tensionRatioA
+
+					return {
+						...shape,
+						props: {
+							...shape.props,
+							edges: {
+								...shape.props.edges,
+								[edgeType]: {
+									...initialEdge,
+									tensionRatioA: projectedPoint,
+									tensionRatioB: initialEdge.tensionRatioB - delta,
+								},
+							},
+						},
+					}
+				}
 
 				return {
 					...shape,
@@ -319,12 +521,29 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 				}
 			}
 			case 'tensionB': {
-				const globPoints = getGlobInfo(this.editor, shape)
-				if (!globPoints) return shape
-
 				const lineStart = shape.props.edges[edgeType].d
-				const lineEnd = globPoints.edgeB.tangentB
+				const lineEnd = globPoints[edgeType].tangentB
 				const projectedPoint = projectTensionPoint(lineStart, lineEnd, handle)
+
+				// drag both tension handles at the same time
+				if (this.editor.inputs.metaKey) {
+					const delta = projectedPoint - initialEdge.tensionRatioB
+
+					return {
+						...shape,
+						props: {
+							...shape.props,
+							edges: {
+								...shape.props.edges,
+								[edgeType]: {
+									...initialEdge,
+									tensionRatioA: initialEdge.tensionRatioA - delta,
+									tensionRatioB: projectedPoint,
+								},
+							},
+						},
+					}
+				}
 
 				return {
 					...shape,
@@ -346,38 +565,6 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 	}
 
 	override component(shape: GlobShape) {
-		const zoomLevel = this.editor.getZoomLevel()
-
-		const [fillGlob, setFillGlob] = useState(false)
-
-		useEffect(() => {
-			const handleKeyDown = (e: KeyboardEvent) => {
-				if (e.code === 'Space') {
-					setFillGlob(true)
-				}
-			}
-
-			const handleKeyUp = (e: KeyboardEvent) => {
-				if (e.code === 'Space') {
-					setFillGlob(false)
-				}
-			}
-
-			const container = this.editor.getContainer()
-			const doc = container.ownerDocument
-
-			doc.addEventListener('keydown', handleKeyDown)
-			doc.addEventListener('keyup', handleKeyUp)
-
-			return () => {
-				doc.removeEventListener('keydown', handleKeyDown)
-				doc.removeEventListener('keyup', handleKeyUp)
-			}
-		}, [])
-
-		const pathBuilder = this.buildGlobPath(shape)
-		if (!pathBuilder) return null
-
 		const showControlLines =
 			this.editor.isInAny(
 				'select.idle',
@@ -386,49 +573,16 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 				'select.dragging_handle'
 			) && this.editor.getOnlySelectedShape() === shape
 
-		const globPoints = getGlobInfo(this.editor, shape)
-		if (!globPoints) return null
-
-		const dxA = toDomPrecision(shape.props.edges.edgeA.d.x)
-		const dxY = toDomPrecision(shape.props.edges.edgeA.d.y)
-		const dxB = toDomPrecision(shape.props.edges.edgeB.d.x)
-		const dyB = toDomPrecision(shape.props.edges.edgeB.d.y)
-
-		const txAA = toDomPrecision(globPoints.edgeA.tangentA.x)
-		const tyAA = toDomPrecision(globPoints.edgeA.tangentA.y)
-		const txAB = toDomPrecision(globPoints.edgeA.tangentB.x)
-		const tyAB = toDomPrecision(globPoints.edgeA.tangentB.y)
-
-		const txBA = toDomPrecision(globPoints.edgeB.tangentA.x)
-		const tyBA = toDomPrecision(globPoints.edgeB.tangentA.y)
-		const txBB = toDomPrecision(globPoints.edgeB.tangentB.x)
-		const tyBB = toDomPrecision(globPoints.edgeB.tangentB.y)
-
-		return (
-			<SVGContainer>
-				{showControlLines && (
-					<>
-						<ControlLine x1={dxA} y1={dxY} x2={txAA} y2={tyAA} />
-						<ControlLine x1={dxA} y1={dxY} x2={txAB} y2={tyAB} />
-						<ControlLine x1={dxB} y1={dyB} x2={txBA} y2={tyBA} />
-						<ControlLine x1={dxB} y1={dyB} x2={txBB} y2={tyBB} />
-					</>
-				)}
-				<path
-					d={pathBuilder.toD()}
-					stroke="black"
-					fill={fillGlob ? 'black' : 'white'}
-					opacity={fillGlob ? 1 : 0.75}
-					strokeWidth={2 / zoomLevel}
-				/>
-			</SVGContainer>
-		)
+		return <GlobShape shape={shape} showControlLines={showControlLines} />
 	}
 
 	override indicator(shape: GlobShape) {
 		const zoomLevel = this.editor.getZoomLevel()
 
-		const pathBuilder = this.buildGlobPath(shape)
+		const globPoints = getGlobInfo(this.editor, shape)
+		if (!globPoints) return null
+
+		const pathBuilder = buildGlobPath(globPoints)
 		if (!pathBuilder) return null
 
 		return (
@@ -445,130 +599,287 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 		)
 	}
 
-	override getHandleSnapGeometry(shape: GlobShape): HandleSnapGeometry {
-		const globPoints = getGlobInfo(this.editor, shape)
-		if (!globPoints) {
-			return { points: [shape.props.edges.edgeA.d, shape.props.edges.edgeB.d] }
-		}
-
-		// Helper to extend a line segment far in both directions
-		const extendLine = (start: VecModel, end: VecModel): Vec[] => {
-			const direction = Vec.Sub(end, start)
-			const length = Vec.Len(direction)
-			if (length === 0) return [Vec.From(start), Vec.From(end)] // Avoid division by zero
-
-			const unitDir = Vec.Div(direction, length)
-			const EXTEND = 10000 // Large enough to cover any viewport
-
-			return [Vec.Sub(start, Vec.Mul(unitDir, EXTEND)), Vec.Add(end, Vec.Mul(unitDir, EXTEND))]
-		}
-
-		// Create extended control lines for all segments
-		const edgeALine1 = extendLine(globPoints.edgeA.tangentA, shape.props.edges.edgeA.d)
-		const edgeALine2 = extendLine(shape.props.edges.edgeA.d, globPoints.edgeA.tangentB)
-		const edgeBLine1 = extendLine(globPoints.edgeB.tangentA, shape.props.edges.edgeB.d)
-		const edgeBLine2 = extendLine(shape.props.edges.edgeB.d, globPoints.edgeB.tangentB)
-
-		const snapGeometry = new Group2d({
-			children: [
-				new Polyline2d({ points: edgeALine1 }),
-				new Polyline2d({ points: edgeALine2 }),
-				new Polyline2d({ points: edgeBLine1 }),
-				new Polyline2d({ points: edgeBLine2 }),
-			],
-		})
-
-		return {
-			// Snap to d points and tangent points
-			points: [
-				shape.props.edges.edgeA.d,
-				shape.props.edges.edgeB.d,
-				globPoints.edgeA.tangentA,
-				globPoints.edgeA.tangentB,
-				globPoints.edgeB.tangentA,
-				globPoints.edgeB.tangentB,
-			],
-			// Snap to extended control lines
-			outline: snapGeometry,
-			// Prevent snapping to own shape's opposite edge while dragging
-			getSelfSnapPoints(handle) {
-				if (handle.id === 'edgeA.d') {
-					return [shape.props.edges.edgeB.d]
-				}
-				if (handle.id === 'edgeB.d') {
-					return [shape.props.edges.edgeA.d]
-				}
-				return []
-			},
-			getSelfSnapOutline(handle) {
-				// Return null to prevent self-snapping to outlines (or customize as needed)
-				return null
-			},
-		}
-	}
-
-	private buildGlobPath(shape: GlobShape, geometry: boolean = false) {
+	override toSvg(shape: GlobShape) {
 		const globPoints = getGlobInfo(this.editor, shape)
 		if (!globPoints) return null
 
-		const pathBuilder = new PathBuilder()
-		pathBuilder.moveTo(globPoints.edgeA.tangentA.x, globPoints.edgeA.tangentA.y, {
-			geometry: { isFilled: true },
+		const pathBuilder = buildGlobPath(globPoints)
+		if (!pathBuilder) return null
+
+		return pathBuilder.toSvg({
+			style: 'solid',
+			strokeWidth: 2,
+			forceSolid: false,
+			props: { stroke: 'black', fill: 'black' },
 		})
+	}
 
-		const arcFlagA = getArcFlag(
-			globPoints.startNode.position,
-			globPoints.edgeA.tangentA,
-			globPoints.edgeB.tangentA
+	private getSnap(shape: GlobShape, handle: TLHandle): SnapData | null {
+		const INFINITE_LENGTH = 100000
+		const pageToCurrentShape = this.editor.getShapePageTransform(shape.id).clone().invert()
+
+		const neighborGlobs: Set<GlobShape> = getNeighborGlobs(this.editor, shape)
+
+		// infinite lines going from direction of d handles to tangent points
+		// for neighboring globs of the selected glob
+		const snapEdges: { edge: Edge2d; d: VecModel }[] = []
+		for (const neighborGlob of neighborGlobs) {
+			const transform = Mat.Compose(
+				pageToCurrentShape,
+				this.editor.getShapePageTransform(neighborGlob.id)
+			)
+			const neighborGeo = getGlobInfo(this.editor, neighborGlob)
+			if (!neighborGeo) continue
+
+			for (const edge of ['edgeA', 'edgeB'] as const) {
+				for (const tangent of ['tangentA', 'tangentB'] as const) {
+					const dLocal = neighborGlob.props.edges[edge].d
+					const tangentLocal = neighborGeo[edge][tangent]
+					const direction = Vec.Sub(tangentLocal, dLocal).uni()
+
+					const infiniteEndPoint = Vec.Add(dLocal, Vec.Mul(direction, INFINITE_LENGTH))
+
+					const p1Transformed = transform.applyToPoint(dLocal)
+					const p2Transformed = transform.applyToPoint(infiniteEndPoint)
+
+					snapEdges.push({
+						edge: new Edge2d({ start: p1Transformed, end: p2Transformed }),
+						d: p1Transformed,
+					})
+				}
+			}
+		}
+
+		let nearestPoint: Vec | null = null
+		const endPoints: VecModel[] = []
+		let minDistance = this.editor.snaps.getSnapThreshold()
+
+		for (const { edge, d } of snapEdges) {
+			const snapPoint = edge.nearestPoint(handle)
+			const distance = Vec.Dist(handle, snapPoint)
+
+			if (round(distance) <= round(minDistance)) {
+				if (round(distance) < round(minDistance)) {
+					endPoints.length = 0
+					minDistance = distance
+					nearestPoint = snapPoint
+				}
+				endPoints.push(d)
+			}
+		}
+
+		if (!nearestPoint) return null
+
+		const getShapePageTransform = this.editor.getShapePageTransform(shape.id)
+		const handleInPageSpace = getShapePageTransform.applyToPoint(handle)
+		const nearestPointInPageSpace = getShapePageTransform.applyToPoint(nearestPoint)
+
+		const snappedHandle = Vec.Add(
+			handleInPageSpace,
+			Vec.Sub(nearestPointInPageSpace, handleInPageSpace)
 		)
 
-		const arcFlagB = getArcFlag(
-			globPoints.endNode.position,
-			globPoints.edgeB.tangentB,
-			globPoints.edgeA.tangentB
-		)
+		const indicators: PointsSnapIndicator[] = endPoints.map((endPoint) => ({
+			id: uniqueId(),
+			type: 'points',
+			points: [getShapePageTransform.applyToPoint(endPoint), snappedHandle],
+		}))
 
-		pathBuilder.circularArcTo(
-			globPoints.startNode.radius,
-			geometry ? !arcFlagA : arcFlagA,
-			geometry ? false : true,
-			globPoints.edgeB.tangentA.x,
-			globPoints.edgeB.tangentA.y
-		)
+		// // gets outer tangent points
+		// const globInfo = getGlobInfo(this.editor, shape)
+		// if (!globInfo) return null
+		//
+		// const outerTangentPoints = getOuterTangentPoints(
+		// 	globInfo.startNode.position,
+		// 	globInfo.startNode.radius,
+		// 	globInfo.endNode.position,
+		// 	globInfo.endNode.radius
+		// )
+		//
+		// const endPointOne = outerTangentPoints[0]
+		// const endPointTwo = outerTangentPoints[1]
+		//
+		// const midD = Vec.Lrp(endPointOne, endPointTwo, 0.5)
+		// const outerLine = Vec.Sub(endPointOne, endPointTwo).uni()
+		// const perpendicularOuterLine = Vec.Per(outerLine).uni()
+		//
+		// const normalDEnd = Vec.Add(midD, Vec.Mul(perpendicularOuterLine, INFINITE_LENGTH))
+		// // const normalDEnd = Vec.Add(midD, Vec.Mul(perpendicularOuterLine, -INFINITE_LENGTH))
+		//
+		// indicators.push({
+		// 	id: uniqueId(),
+		// 	type: 'points',
+		// 	points: [
+		// 		getShapePageTransform.applyToPoint(endPointOne),
+		// 		getShapePageTransform.applyToPoint(endPointTwo),
+		// 	],
+		// })
+		//
+		// indicators.push({
+		// 	id: uniqueId(),
+		// 	type: 'points',
+		// 	points: [
+		// 		getShapePageTransform.applyToPoint(midD),
+		// 		getShapePageTransform.applyToPoint(normalDEnd),
+		// 	],
+		// })
 
-		pathBuilder.cubicBezierTo(
-			globPoints.edgeB.tangentB.x,
-			globPoints.edgeB.tangentB.y,
-			globPoints.edgeB.tensionA.x,
-			globPoints.edgeB.tensionA.y,
-			globPoints.edgeB.tensionB.x,
-			globPoints.edgeB.tensionB.y
-		)
-
-		pathBuilder.circularArcTo(
-			globPoints.endNode.radius,
-			geometry ? !arcFlagB : arcFlagB,
-			geometry ? false : true,
-			globPoints.edgeA.tangentB.x,
-			globPoints.edgeA.tangentB.y
-		)
-
-		pathBuilder.cubicBezierTo(
-			globPoints.edgeA.tangentA.x,
-			globPoints.edgeA.tangentA.y,
-			globPoints.edgeA.tensionB.x,
-			globPoints.edgeA.tensionB.y,
-			globPoints.edgeA.tensionA.x,
-			globPoints.edgeA.tensionA.y
-		)
-
-		pathBuilder.close()
-
-		return pathBuilder
+		return {
+			nudge: Vec.Sub(nearestPoint, handle),
+			indicators,
+		}
 	}
 }
 
-function ControlLine({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y2: number }) {
+function buildGlobPath(globPoints: GlobGeometry, geometry: boolean = false) {
+	const pathBuilder = new PathBuilder()
+	pathBuilder.moveTo(globPoints.edgeA.tangentA.x, globPoints.edgeA.tangentA.y, {
+		geometry: { isFilled: true },
+	})
+
+	const arcFlagA = getArcFlag(
+		globPoints.startNode.position,
+		globPoints.edgeA.tangentA,
+		globPoints.edgeB.tangentA
+	)
+
+	const arcFlagB = getArcFlag(
+		globPoints.endNode.position,
+		globPoints.edgeB.tangentB,
+		globPoints.edgeA.tangentB
+	)
+
+	pathBuilder.circularArcTo(
+		globPoints.startNode.radius,
+		geometry ? !arcFlagA : arcFlagA,
+		geometry ? false : true,
+		globPoints.edgeB.tangentA.x,
+		globPoints.edgeB.tangentA.y
+	)
+
+	pathBuilder.cubicBezierTo(
+		globPoints.edgeB.tangentB.x,
+		globPoints.edgeB.tangentB.y,
+		globPoints.edgeB.tensionA.x,
+		globPoints.edgeB.tensionA.y,
+		globPoints.edgeB.tensionB.x,
+		globPoints.edgeB.tensionB.y
+	)
+
+	pathBuilder.circularArcTo(
+		globPoints.endNode.radius,
+		geometry ? !arcFlagB : arcFlagB,
+		geometry ? false : true,
+		globPoints.edgeA.tangentB.x,
+		globPoints.edgeA.tangentB.y
+	)
+
+	pathBuilder.cubicBezierTo(
+		globPoints.edgeA.tangentA.x,
+		globPoints.edgeA.tangentA.y,
+		globPoints.edgeA.tensionB.x,
+		globPoints.edgeA.tensionB.y,
+		globPoints.edgeA.tensionA.x,
+		globPoints.edgeA.tensionA.y
+	)
+
+	pathBuilder.close()
+
+	return pathBuilder
+}
+
+export const GlobShape = track(function GlobShape({
+	shape,
+	showControlLines,
+}: {
+	shape: GlobShape
+	showControlLines: boolean
+}) {
+	const editor = useEditor()
+	const zoomLevel = editor.getZoomLevel()
+
+	const [fillGlob, setFillGlob] = useState(false)
+
+	// a small hack because editor inputs are not reactive, we need to use a keyboard event to fill the glob
+	// when space is pressed, fill the glob
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.code === 'Space') {
+				setFillGlob(true)
+			}
+		}
+
+		const handleKeyUp = (e: KeyboardEvent) => {
+			if (e.code === 'Space') {
+				setFillGlob(false)
+			}
+		}
+
+		const container = editor.getContainer()
+		const doc = container.ownerDocument
+
+		doc.addEventListener('keydown', handleKeyDown)
+		doc.addEventListener('keyup', handleKeyUp)
+
+		return () => {
+			doc.removeEventListener('keydown', handleKeyDown)
+			doc.removeEventListener('keyup', handleKeyUp)
+		}
+	})
+
+	const globPoints = getGlobInfo(editor, shape)
+	if (!globPoints) return null
+
+	const pathBuilder = buildGlobPath(globPoints)
+	if (!pathBuilder) return null
+
+	const dxA = toDomPrecision(shape.props.edges.edgeA.d.x)
+	const dxY = toDomPrecision(shape.props.edges.edgeA.d.y)
+	const dxB = toDomPrecision(shape.props.edges.edgeB.d.x)
+	const dyB = toDomPrecision(shape.props.edges.edgeB.d.y)
+
+	const txAA = toDomPrecision(globPoints.edgeA.tangentA.x)
+	const tyAA = toDomPrecision(globPoints.edgeA.tangentA.y)
+	const txAB = toDomPrecision(globPoints.edgeA.tangentB.x)
+	const tyAB = toDomPrecision(globPoints.edgeA.tangentB.y)
+
+	const txBA = toDomPrecision(globPoints.edgeB.tangentA.x)
+	const tyBA = toDomPrecision(globPoints.edgeB.tangentA.y)
+	const txBB = toDomPrecision(globPoints.edgeB.tangentB.x)
+	const tyBB = toDomPrecision(globPoints.edgeB.tangentB.y)
+
+	return (
+		<SVGContainer>
+			{showControlLines && (
+				<>
+					<ControlLine x1={dxA} y1={dxY} x2={txAA} y2={tyAA} />
+					<ControlLine x1={dxA} y1={dxY} x2={txAB} y2={tyAB} />
+					<ControlLine x1={dxB} y1={dyB} x2={txBA} y2={tyBA} />
+					<ControlLine x1={dxB} y1={dyB} x2={txBB} y2={tyBB} />
+				</>
+			)}
+			<path
+				d={pathBuilder.toD()}
+				stroke="black"
+				fill={fillGlob ? 'black' : 'white'}
+				opacity={fillGlob ? 1 : 0.75}
+				strokeWidth={2 / zoomLevel}
+			/>
+		</SVGContainer>
+	)
+})
+
+export function ControlLine({
+	x1,
+	y1,
+	x2,
+	y2,
+}: {
+	x1: number
+	y1: number
+	x2: number
+	y2: number
+}) {
 	const editor = useEditor()
 	const zoomLevel = editor.getZoomLevel()
 	const dashArray = `${3 / zoomLevel} ${3 / zoomLevel}`
@@ -586,4 +897,31 @@ function ControlLine({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y
 			/>
 		</>
 	)
+}
+
+const getHandleData = (id: string) => {
+	const [edgeType, point] = id.split('.') as [EdgeCurveType, keyof EdgeGeometry | keyof EdgeProps]
+
+	return { edgeType, point }
+}
+
+export const getNeighborGlobs = (editor: Editor, shape: GlobShape) => {
+	const currentGlobBindings = editor.getBindingsFromShape<GlobBinding>(shape.id, 'glob')
+
+	const neighborGlobs: Set<GlobShape> = new Set()
+	// try find nodes that attach to other globs
+	for (const binding of currentGlobBindings) {
+		const nodeBindings = editor.getBindingsToShape<GlobBinding>(binding.toId, 'glob')
+		for (const nodeBinding of nodeBindings) {
+			const neighborGlob = editor.getShape<GlobShape>(nodeBinding.fromId)
+
+			// if this is the glob we selecting or a glob we've already added, skip
+			if (!neighborGlob || neighborGlob.id === shape.id) continue
+			if (neighborGlobs.has(neighborGlob)) continue
+
+			neighborGlobs.add(neighborGlob)
+		}
+	}
+
+	return neighborGlobs
 }

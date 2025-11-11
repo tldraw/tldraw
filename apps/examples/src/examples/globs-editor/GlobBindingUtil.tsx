@@ -29,18 +29,28 @@ export class GlobBindingUtil extends BindingUtil<GlobBinding> {
 	}: BindingOnShapeChangeOptions<GlobBinding>): void {
 		const glob = this.editor.getShape<GlobShape>(binding.fromId)
 		const node = this.editor.getShape<NodeShape>(binding.toId)
+
 		if (!glob || !node) return
-		//
 		if (glob.props.isGhosting) return
+
+		// Check if the node is also part of the current operation (being moved directly)
+		// If so, skip the binding update to avoid double movement
+		const selectedIds = this.editor.getSelectedShapeIds()
+		if (selectedIds.includes(node.id)) return
 
 		const delta = Vec.Sub(shapeAfter, shapeBefore)
 
-		this.editor.updateShape<NodeShape>({
-			id: node.id,
-			type: 'node',
-			x: node.x + delta.x,
-			y: node.y + delta.y,
-		})
+		this.editor.run(
+			() => {
+				this.editor.updateShape<NodeShape>({
+					id: node.id,
+					type: 'node',
+					x: node.x + delta.x,
+					y: node.y + delta.y,
+				})
+			},
+			{ history: 'ignore' }
+		)
 	}
 
 	override onBeforeDeleteToShape({ binding }: BindingOnShapeDeleteOptions<GlobBinding>): void {
