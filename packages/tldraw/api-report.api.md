@@ -3646,6 +3646,8 @@ export interface TLUiButtonProps extends React_2.HTMLAttributes<HTMLButtonElemen
     // (undocumented)
     disabled?: boolean;
     // (undocumented)
+    htmlButtonType?: 'button' | 'reset' | 'submit';
+    // (undocumented)
     isActive?: boolean;
     // (undocumented)
     type: 'danger' | 'help' | 'icon' | 'low' | 'menu' | 'normal' | 'primary' | 'tool';

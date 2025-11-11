@@ -2,7 +2,7 @@ import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import classNames from 'classnames'
 import { Tooltip as _Tooltip } from 'radix-ui'
-import { ReactNode, useCallback, useEffect, useState } from 'react'
+import { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import {
 	ContainerProvider,
@@ -16,6 +16,7 @@ import {
 	fetch,
 	runtime,
 	setRuntimeOverrides,
+	useDialogs,
 	useToasts,
 	useValue,
 } from 'tldraw'
@@ -26,6 +27,7 @@ import { globalEditor } from '../../utils/globalEditor'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
+import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
@@ -100,6 +102,7 @@ export function Component() {
 							<ContainerProvider container={container}>
 								<InsideOfContainerContext>
 									<Outlet />
+									<LegalTermsAcceptance />
 								</InsideOfContainerContext>
 							</ContainerProvider>
 						)}
@@ -245,6 +248,40 @@ function SignedInProvider({
 			</AppStateProvider>
 		</FileSidebarFocusContextProvider>
 	)
+}
+
+function LegalTermsAcceptance() {
+	const { user } = useClerkUser()
+	const { addDialog } = useDialogs()
+	const userRef = useRef(user)
+
+	// Keep the ref updated with the latest user
+	useEffect(() => {
+		userRef.current = user
+	}, [user])
+
+	useEffect(() => {
+		function maybeShowDialog() {
+			const currentUser = userRef.current
+			if (
+				currentUser &&
+				!currentUser.legalAcceptedAt && // Clerk's canonical metadata key (older accounts)
+				!currentUser.unsafeMetadata?.legal_accepted_at // our metadata key (newer accounts)
+			) {
+				addDialog({
+					component: TlaLegalAcceptance,
+					onClose: () => {
+						// If the user closes the dialog and it's not accepted, show it again
+						maybeShowDialog()
+					},
+				})
+			}
+		}
+
+		maybeShowDialog()
+	}, [addDialog, user?.id])
+
+	return null
 }
 
 function ThemeContainer({
