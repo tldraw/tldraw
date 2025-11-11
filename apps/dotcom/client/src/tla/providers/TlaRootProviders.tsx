@@ -21,7 +21,7 @@ import {
 } from 'tldraw'
 import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
 import { ErrorPage } from '../../components/ErrorPage/ErrorPage'
-import { SignedInAnalytics, SignedOutAnalytics } from '../../utils/analytics'
+import { SignedInAnalytics, SignedOutAnalytics, trackEvent } from '../../utils/analytics'
 import { globalEditor } from '../../utils/globalEditor'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
@@ -47,6 +47,7 @@ function WatermarkOverride() {
 			openWindow(url: string, target: string, allowReferrer?: boolean) {
 				if (url.includes('utm_campaign=watermark')) {
 					url = url.replace('utm_source=sdk', 'utm_source=dotcom')
+					trackEvent('click-watermark', { url })
 				}
 				originalOpenWindow(url, target, allowReferrer)
 			},
