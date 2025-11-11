@@ -257,13 +257,6 @@ function InsideOfEditorAndUiContext({
 
 		editor.once('edit', () => trackEvent('edit', { source: 'unknown' }))
 
-		// Forward watermark click events from editor to UI event system
-		const handleWatermarkClick = (info: { url: string }) => {
-			trackEvent('click-watermark', { source: 'unknown', url: info.url })
-		}
-		editor.on('click-watermark', handleWatermarkClick)
-		unsubs.push(() => editor.off('click-watermark', handleWatermarkClick))
-
 		// for content handling, first we register the default handlers...
 		registerDefaultExternalContentHandlers(editor, {
 			maxImageDimension,

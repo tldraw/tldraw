@@ -48,8 +48,7 @@ const UnlicensedWatermark = memo(function UnlicensedWatermark({
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 
-	const url =
-		'https://tldraw.dev/pricing?utm_source=dotcom&utm_medium=organic&utm_campaign=watermark'
+	const url = 'https://tldraw.dev/pricing?utm_source=sdk&utm_medium=organic&utm_campaign=watermark'
 
 	return (
 		<div
@@ -71,7 +70,6 @@ const UnlicensedWatermark = memo(function UnlicensedWatermark({
 				}}
 				title="The tldraw SDK requires a license key to work in production. You can get a free 100-day trial license at tldraw.dev/pricing."
 				onClick={() => {
-					editor.emit('click-watermark', { url })
 					runtime.openWindow(url, '_blank', true)
 				}} // allow referrer
 			>
@@ -99,7 +97,7 @@ const WatermarkInner = memo(function WatermarkInner({
 	usePassThroughWheelEvents(ref)
 
 	const maskCss = `url('${src}') center 100% / 100% no-repeat`
-	const url = 'https://tldraw.dev/?utm_source=dotcom&utm_medium=organic&utm_campaign=watermark'
+	const url = 'https://tldraw.dev/?utm_source=sdk&utm_medium=organic&utm_campaign=watermark'
 
 	if (isUnlicensed) {
 		return <UnlicensedWatermark isDebugMode={isDebugMode} isMobile={isMobile} />
@@ -124,7 +122,6 @@ const WatermarkInner = memo(function WatermarkInner({
 				}}
 				title="Build infinite canvas applications with the tldraw SDK. Learn more at https://tldraw.dev."
 				onClick={() => {
-					editor.emit('click-watermark', { url })
 					runtime.openWindow(url, '_blank')
 				}}
 				style={{ mask: maskCss, WebkitMask: maskCss }}

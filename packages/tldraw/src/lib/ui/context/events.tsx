@@ -145,7 +145,6 @@ export interface TLUiEventMap {
 			| 'bulletList'
 	}
 	edit: null
-	'click-watermark': { url: string }
 }
 
 /** @public */
