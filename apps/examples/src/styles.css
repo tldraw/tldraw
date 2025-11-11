@@ -27,25 +27,6 @@ body {
 	overscroll-behavior: none;
 	background-color: var(--background);
 	color: var(--text);
-
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-	-webkit-overflow-scrolling: touch;
-	font-family:
-		SF Pro Display,
-		-apple-system,
-		BlinkMacSystemFont,
-		Segoe UI,
-		sans-serif;
-	font-style: normal;
-	font-weight: 400;
-	height: 100dvh;
-	height: -webkit-fill-available;
-	letter-spacing: 0.04rem;
-	margin: 0;
-	overflow-x: hidden;
-	overflow-y: hidden;
-	padding: 0;
 }
 @media screen and (max-width: 600px) {
 	html,
