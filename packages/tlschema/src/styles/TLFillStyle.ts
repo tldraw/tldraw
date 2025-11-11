@@ -36,7 +36,7 @@ import { StyleProp } from './StyleProp'
  */
 export const DefaultFillStyle = StyleProp.defineEnum('tldraw:fill', {
 	defaultValue: 'none',
-	values: ['none', 'semi', 'solid', 'pattern', 'fill'],
+	values: ['none', 'semi', 'solid', 'pattern', 'fill', 'lined-fill'],
 })
 
 /**

@@ -66,6 +66,8 @@ export interface Environment {
 	ANALYTICS_API_URL: string | undefined
 	ANALYTICS_API_TOKEN: string | undefined
 
+	PIERRE_KEY: string | undefined
+
 	RATE_LIMITER: RateLimit
 
 	QUEUE: Queue<QueueMessage>
