@@ -6,7 +6,7 @@ import { clearProjects } from './Projects'
 export const $sharedTodoList = atom<SharedTodoItem[]>('sharedTodoList', [])
 export const $showCanvasTodos = atom<boolean>('showCanvasTodos', false)
 
-export function addSharedTodoItem(text: string, x?: number, y?: number) {
+export function addSharedTodoItem(text: string, x?: number, y?: number, pageId?: string) {
 	$sharedTodoList.update((todos) => {
 		const maxId = todos.length === 0 ? 0 : Math.max(...todos.map((t) => t.id))
 		return [
@@ -17,6 +17,7 @@ export function addSharedTodoItem(text: string, x?: number, y?: number) {
 				status: 'todo' as const,
 				x: x ?? undefined,
 				y: y ?? undefined,
+				pageId: pageId ?? undefined,
 			},
 		]
 	})

@@ -43,10 +43,11 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 			e.preventDefault()
 			if (!newTodoText.trim()) return
 
-			addSharedTodoItem(newTodoText.trim())
+			const currentPageId = editor.getCurrentPageId()
+			addSharedTodoItem(newTodoText.trim(), undefined, undefined, currentPageId)
 			setNewTodoText('')
 		},
-		[newTodoText]
+		[newTodoText, editor]
 	)
 
 	const handleHelpOut = useCallback(
@@ -108,10 +109,12 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 					document.removeEventListener('pointermove', handlePointerMove)
 					document.removeEventListener('pointerup', handlePointerUp)
 
-					// If didn't move, remove coordinates (simple click)
+					// If didn't move, remove coordinates and pageId (simple click)
 					if (!hasMoved) {
 						$sharedTodoList.update((todos) =>
-							todos.map((t) => (t.id === todoId ? { ...t, x: undefined, y: undefined } : t))
+							todos.map((t) =>
+								t.id === todoId ? { ...t, x: undefined, y: undefined, pageId: undefined } : t
+							)
 						)
 					}
 				}

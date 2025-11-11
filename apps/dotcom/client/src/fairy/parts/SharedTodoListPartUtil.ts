@@ -13,9 +13,18 @@ export class SharedTodoListPartUtil extends PromptPartUtil<SharedTodoListPart> {
 
 	override getPart(_request: AgentRequest, helpers: AgentHelpers): SharedTodoListPart {
 		const project = this.agent.getCurrentProject()
-		const todoItems = project
-			? $sharedTodoList.get().filter((item) => item.projectId === project.id)
-			: $sharedTodoList.get()
+		const fairyPageId = this.agent.$fairyEntity.get()?.currentPageId
+
+		// Filter todos: by project (if in one), and by current page (or no pageId for backwards compatibility)
+		let todoItems = $sharedTodoList.get()
+
+		if (project) {
+			todoItems = todoItems.filter((item) => item.projectId === project.id)
+		}
+
+		if (fairyPageId) {
+			todoItems = todoItems.filter((item) => !item.pageId || item.pageId === fairyPageId)
+		}
 
 		const offsetTodoItems = todoItems.map((todoItem) => {
 			// offset the coords, and only send x and y if they are defined

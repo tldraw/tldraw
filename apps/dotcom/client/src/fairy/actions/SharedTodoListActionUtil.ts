@@ -39,15 +39,16 @@ export class SharedTodoListActionUtil extends AgentActionUtil<SharedTodoListActi
 			return
 		}
 
-		const proposedTodoItem: SharedTodoItem = {
-			id: action.id,
-			status: action.status,
-			text: action.text,
-			assignedById: existingTodoItem?.assignedById,
-			projectId: project?.id,
-			x: coords?.x,
-			y: coords?.y,
-		}
+	const proposedTodoItem: SharedTodoItem = {
+		id: action.id,
+		status: action.status,
+		text: action.text,
+		assignedById: existingTodoItem?.assignedById,
+		projectId: project?.id,
+		x: coords?.x,
+		y: coords?.y,
+		pageId: existingTodoItem?.pageId,
+	}
 
 		if (existingTodoItem) {
 			$sharedTodoList.update((sharedTodoItems) => {

@@ -66,9 +66,14 @@ class DraggingState extends StateNode {
 			y: screenPoint.y + screenBounds.y,
 		})
 
-		// Update todo coordinates continuously during drag
+		// Get current page ID to associate the todo with the page
+		const currentPageId = this.editor.getCurrentPageId()
+
+		// Update todo coordinates and page ID continuously during drag
 		$sharedTodoList.update((todos) =>
-			todos.map((t) => (t.id === tool.todoId ? { ...t, x: pagePoint.x, y: pagePoint.y } : t))
+			todos.map((t) =>
+				t.id === tool.todoId ? { ...t, x: pagePoint.x, y: pagePoint.y, pageId: currentPageId } : t
+			)
 		)
 	}
 
