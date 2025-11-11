@@ -6,8 +6,7 @@ export const interpolateSegments = (
 	startSegments: TLDrawShapeSegment[],
 	endSegments: TLDrawShapeSegment[],
 	progress: number,
-	startZoom: number,
-	endZoom: number
+	startZoom: number
 ): TLDrawShapeSegment[] => {
 	// Extract all points from startSegments and endSegments
 	const startPoints = getPointsFromSegments(startSegments).map((v) => v.toJson())

@@ -283,8 +283,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 				startShape.props.segments,
 				endShape.props.segments,
 				t,
-				startShape.props.zoom,
-				endShape.props.zoom
+				startShape.props.zoom
 			),
 			scale: lerp(startShape.props.scale, endShape.props.scale, t),
 		}

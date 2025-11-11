@@ -292,8 +292,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 				startShape.props.segments,
 				endShape.props.segments,
 				t,
-				startShape.props.zoom,
-				endShape.props.zoom
+				startShape.props.zoom
 			),
 			scale: lerp(startShape.props.scale, endShape.props.scale, t),
 		}
