@@ -644,7 +644,7 @@ export class FairyAgent {
 
 			// Override other properties
 			bounds: request.bounds ?? scheduledRequest.bounds,
-			source: request.source ?? scheduledRequest.source ?? 'schedule',
+			source: request.source ?? scheduledRequest.source ?? 'self',
 		})
 	}
 

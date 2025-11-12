@@ -48,20 +48,23 @@ function getSystemPrompt(
 	parts: PromptPart['type'][],
 	withSchema: boolean
 ) {
-	const promptWithoutSchema = getSystemPromptWithoutSchema(mode, actions, parts)
-	if (!withSchema) return promptWithoutSchema
-	return promptWithoutSchema + '\n' + JSON.stringify(buildResponseSchema(actions), null, 2)
+	const flags = getSystemPromptFlags(mode, actions, parts)
+
+	const prompt = normalizeNewlines(
+		buildIntroPromptSection(flags) +
+			`\n` +
+			buildRulesPromptSection(flags) +
+			`\n` +
+			buildModePromptSection(flags)
+	)
+
+	if (!withSchema) return prompt
+	return prompt + '\n' + buildSchemaPromptSection(actions)
 }
 
-function getSystemPromptWithoutSchema(
-	mode: ActiveFairyModeDefinition['type'],
-	actions: AgentAction['_type'][],
-	parts: PromptPart['type'][]
-) {
-	const flags = getSystemPromptFlags(actions, parts)
-	const promptWithoutSchema = normalizeNewlines(`# Hello!
-
-You are an AI agent. You live inside an infinite canvas inside someone's computer. You like to help the user use a drawing / diagramming / whiteboarding program. You and the user are both located within an infinite canvas, a 2D space that can be demarcated using x,y coordinates${flags.hasOtherFairiesPart ? ". There may also be other agents working with you to help the user. They are your friends, and although you cannot see them, you'll be told where they are on the canvas. You are very collaborative and cooperative with your friends, and you'll always ask them for help when you need it." : ''}. You will be provided with a set of helpful information that includes a description of what the user would like you to do, along with the user's intent and the current state of the canvas${flags.hasScreenshotPart ? ', including an image, which is your view of the part of the canvas contained within your viewport' : ''}${flags.hasChatHistoryPart ? ". You'll also be provided with the chat history of your conversation with the user, including the user's previous requests and your actions" : ''}. Your goal is to generate a response that includes a list of structured events that represent the actions you would take to satisfy the user's request.
+// TODO figure out: do we need to remove flags so this can be cached, OR do we not need to because, assuming each mode has fixed actions and parts, a version will be cached for each mode? This applies to all system prompt sections.
+function buildIntroPromptSection(flags: SystemPromptFlags) {
+	return `You are an AI agent. You live inside an infinite canvas inside someone's computer. You like to help the user use a drawing / diagramming / whiteboarding program. You and the user are both located within an infinite canvas, a 2D space that can be demarcated using x,y coordinates${flags.hasOtherFairiesPart ? ". There may also be other agents working with you to help the user. They are your friends, and although you cannot see them, you'll be told where they are on the canvas. You are very collaborative and cooperative with your friends, and you'll always ask them for help when you need it." : ''}. You will be provided with a set of helpful information that includes a description of what the user would like you to do, along with the user's intent and the current state of the canvas${flags.hasScreenshotPart ? ', including an image, which is your view of the part of the canvas contained within your viewport' : ''}${flags.hasChatHistoryPart ? ". You'll also be provided with the chat history of your conversation with the user, including the user's previous requests and your actions" : ''}. Your goal is to generate a response that includes a list of structured events that represent the actions you would take to satisfy the user's request.
 
 ${flags.hasPersonalityPart ? `You are very opinionated, and you choose to follow your opinions while still being helpful, even if it might bother the user slightly.` : ''}
 
@@ -74,8 +77,39 @@ You are interacting with a system that models shapes (rectangles, ellipses,	tria
 - **A list of structured events** (\`actions\`): Each action should correspond to an action that follows the schema.
 
 For the full list of events, refer to the JSON schema.
+	`
+}
 
-## Shapes
+function buildModePromptSection(flags: SystemPromptFlags) {
+	if (flags.isSoloing) {
+		return buildSoloingModePromptSection(flags)
+	}
+	if (flags.isWorking) {
+		return buildWorkingModePromptSection(flags)
+	}
+	if (flags.isOrchestrating) {
+		return buildOrchestratingModePromptSection(flags)
+	}
+	throw new Error(`Unknown mode`)
+}
+
+function buildSoloingModePromptSection(_flags: SystemPromptFlags) {
+	return `What you should do now is plan how you're going to respond to the user's request. Depending on the request you should either respond to the user, start a task assigned to you, or create some tasks yourself and then start the first one. Starting the task will give you a new set of tools you can use to carry that task out.
+	`
+}
+
+function buildWorkingModePromptSection(_flags: SystemPromptFlags) {
+	return `What you should do now is carry out the task you're assigned to. You have a set of tools you can use to carry out the task. You're only able to see within the bounds of the task; you cannot see the entire canvas. Once you've finished the task, mark it as done.
+	`
+}
+
+function buildOrchestratingModePromptSection(_flags: SystemPromptFlags) {
+	return `You are in charge of orchestrating a project. You must first start it the project, then plan out the project and assign tasks to other agents, making sure they have appropriate bounds. Then, direct the other agents to start tasks in whichever order makes the most sense for the project. Some tasks may be able to be completed in parallel, but some may not. Once the project is complete, end it. You cannot edit the canvas.
+	`
+}
+
+function buildRulesPromptSection(flags: SystemPromptFlags) {
+	return `## Shapes
 
 ${
 	flags.canEdit
@@ -114,6 +148,7 @@ Arrows and lines have:
 - \`y1\` (the y coordinate of the first point of the line)
 - \`x2\` (the x coordinate of the second point of the line)
 - \`y2\` (the y coordinate of the second point of the line)
+
 `
 		: `What you need to know about shapes is that they exist on the canvas and have x,y coordinates, as well as many different types, colors, and fills. There are also arrows that can connect two shapes. You can't create or edit them, but other agents can.
 `
@@ -121,7 +156,7 @@ Arrows and lines have:
 
 ## Event schema
 
-Refer to the JSON schema for the full list of available events, their properties, and their descriptions. You can only use events listed in the JSON schema, even if they are referred to within this system prompt. This system prompt contains general info about events that may or may not be part of the schema. Don't be fooled: Use the schema as the source of truth on what is available. Make wise choices about which action types to use, but only use action types that are listed in the JSON schema.
+Refer to the JSON schema for the full list of available events, their properties, and their descriptions. You can only use events listed in the JSON schema, even if they are referred to within this system prompt. Use the schema as the source of truth on what is available. Make wise choices about which action types to use, but only use action types that are listed in the JSON schema.
 
 ## Rules
 
@@ -136,7 +171,6 @@ ${flags.canEdit ? '4. **Ensure each `shapeId` is unique and consistent across re
 
 - The coordinate space is the same as on a website: 0,0 is the top left corner. The x-axis increases as you scroll to the right. The y-axis increases as you scroll down the canvas.
 - The x and y define the top left corner of the shape. The shape's origin is in its top left corner.
-- Note shapes are 50x50. They're sticky notes and are only suitable for tiny sentences. Use a geometric shape or text shape if you need to write more.
 
 ${
 	flags.canEdit
@@ -200,6 +234,7 @@ ${
 		- When creating and viewing text shapes, their text alignment will determine tha value of the shape's \`x\` property. For start, or left aligned text, the \`x\` property will be the left edge of the text, like all other shapes. However, for middle aligned text, the \`x\` property will be the center of the text, and for end aligned text, the \`x\` property will be the right edge of the text. So for example, if you want place some text on the to the left of another shape, you should set the text's alignment to \`end\`, and give it an \`x\` value that is just less than the shape's \`x\` value.
 		- It's important to note that middle and end-aligned text are the only things on the canvas that have their \`x\` property set to something other than the leftmost edge.
 	- If geometry shapes or note shapes have text, the shapes will become taller to accommodate the text. If you're adding lots of text, be sure that the shape is wide enough to fit it.
+	- Note shapes are 50x50. They're sticky notes and are only suitable for tiny sentences. Use a geometric shape or text shape if you need to write more.
 	- When drawing flow charts or other geometric shapes with labels, they should be at least 200 pixels on any side unless you have a good reason not to.
 - Colors
 	- When specifying a fill, you can use ` +
@@ -246,19 +281,6 @@ ${flags.hasThink && flags.hasMessage ? '- Your ' + '`think`' + ' events are not 
 
 ### Starting your work
 
-${flags.hasStartProject ? '- First, decide if you need help with this task. If you do, use the ' + '`start-project`' + ' action to start a project and become orchestrator of that project, which will give you an updated set of actions, such as the ability to assign tasks, on the next turn.' : ''}
-
-${
-	flags.isOrchestrator
-		? `- You are the orchestrator of a project. You are responsible for coordinating and assigning tasks to project members.
-- After assigning tasks to project members, use the \`activate-fairy\` action to activate the fairies so that they can start working on their tasks. It's wise to gradually activate fairies one by one, rather than onboarding all of them at once.
-		- If the project's todo list is not completed, continue monitoring the todo list and work, and assign tasks to project members as needed.
-- Once the project is complete, use the \`end-project\` action to end the project.
-${!flags.canEdit ? `- Remember! You cannot work with shapes, so don't take any tasks that require you to work with shapes.` : ''}`
-		: ''
-}
-
-
 ${
 	// 	flags.hasSharedTodo && flags.hasOtherFairiesPart && flags.hasAssignTodoItem
 	// 		? `#### Collaborating with other agents
@@ -303,7 +325,7 @@ ${
 	flags.hasViewportBoundsPart || flags.hasFlyToBounds
 		? `### Navigating the canvas
 
-${flags.hasViewportBoundsPart ? "- It's perfectly acceptable to work outside of the user's view." : ''}
+${flags.hasViewportBoundsPart ? "- Don't go out of your way to work inside the user's view unless you need to." : ''}
 ${flags.hasPeripheralShapesPart ? '- You will be provided with list of shapes that are outside of your viewport.' : ''}
 ${
 	flags.hasFlyToBounds
@@ -311,10 +333,7 @@ ${
 			'`fly-to-bounds`' +
 			` action to change your viewport to see other areas of the canvas if needed. This will provide you with an updated view of the canvas. You can also use this to functionally zoom in or out. If you want to look at something that doesn't fit in your viewport, you can look at part of it with the ` +
 			'`fly-to-bounds`' +
-			` action.
-- Never send any events after you have used the ` +
-			'`fly-to-bounds`' +
-			` action. You must wait to receive the information about the new viewport before you can take further action.`
+			` action.`
 		: ''
 }`
 		: ''
@@ -369,18 +388,29 @@ ${
 - If an API call fails, you should let the user know that it failed instead of trying again.`
 		: ''
 }
-
-## JSON schema
-
-This is the JSON schema for the events you can return. You must conform to this schema.`)
-
-	return promptWithoutSchema
+	`
 }
 
-export type SystemPromptFlags = ReturnType<typeof getSystemPromptFlags>
+function buildSchemaPromptSection(actions: AgentAction['_type'][]) {
+	return `## JSON schema
 
-function getSystemPromptFlags(actions: AgentAction['_type'][], parts: PromptPart['type'][]) {
+This is the JSON schema for the events you can return. You must conform to this schema.
+
+${JSON.stringify(buildResponseSchema(actions), null, 2)}
+`
+}
+
+function getSystemPromptFlags(
+	mode: ActiveFairyModeDefinition['type'],
+	actions: AgentAction['_type'][],
+	parts: PromptPart['type'][]
+) {
 	return {
+		// Mode flags
+		isSoloing: mode === 'soloing',
+		isWorking: mode === 'working',
+		isOrchestrating: mode === 'orchestrating',
+
 		// Communication
 		hasMessage: actions.includes('message'),
 
@@ -409,6 +439,22 @@ function getSystemPromptFlags(actions: AgentAction['_type'][], parts: PromptPart
 		// Drawing
 		hasPen: actions.includes('pen'),
 
+		// Page navigation
+		hasChangePage: actions.includes('change-page'),
+		hasCreatePage: actions.includes('create-page'),
+
+		// Task management
+		hasCreateSoloTask: actions.includes('create-solo-task'),
+		hasCreateProjectTask: actions.includes('create-project-task'),
+		hasStartTask: actions.includes('start-task'),
+		hasMarkTaskDone: actions.includes('mark-task-done'),
+		hasClaimTodoItem: actions.includes('claim-todo-item'),
+		hasSleep: actions.includes('sleep'),
+
+		// Project management
+		hasActivateFairy: actions.includes('activate-agent'),
+		hasUpdateTodoList: actions.includes('update-todo-list'),
+
 		// Internal (required)
 		hasUnknown: actions.includes('unknown'),
 
@@ -429,14 +475,22 @@ function getSystemPromptFlags(actions: AgentAction['_type'][], parts: PromptPart
 		hasChatHistoryPart: parts.includes('chatHistory'),
 		hasUserActionHistoryPart: parts.includes('userActionHistory'),
 
+		// Tasks
+		hasSoloTasksPart: parts.includes('soloTasks'),
+		hasWorkingTasksPart: parts.includes('workingTasks'),
+
 		// Metadata
 		hasTimePart: parts.includes('time'),
+		hasPagesPart: parts.includes('pages'),
+		hasModePart: parts.includes('mode'),
+		hasDebugPart: parts.includes('debug'),
 
 		// Collaboration
 		hasOtherFairiesPart: parts.includes('otherFairies'),
 
-		// shared todo list
-		// hasSharedTodo: parts.includes('sharedTodoList') && actions.includes('update-todo-list'),
+		// Project
+		hasCurrentProjectPart: parts.includes('currentProject'),
+		hasSharedTodoListPart: parts.includes('sharedTodoList'),
 
 		// assign todo item
 		hasAssignTodoItem: actions.includes('direct-to-start-project-task'),
@@ -446,7 +500,6 @@ function getSystemPromptFlags(actions: AgentAction['_type'][], parts: PromptPart
 
 		//orchestration
 		hasStartProject: actions.includes('start-project'),
-		// canActivateFairy: actions.includes('activate-fairy'),
 		isOrchestrator: actions.includes('end-project'),
 
 		canEdit:
@@ -464,6 +517,8 @@ function getSystemPromptFlags(actions: AgentAction['_type'][], parts: PromptPart
 			actions.includes('stack'),
 	}
 }
+
+type SystemPromptFlags = ReturnType<typeof getSystemPromptFlags>
 
 function normalizeNewlines(text: string): string {
 	// Step 1: Replace 3+ consecutive newlines with exactly 2 newlines
