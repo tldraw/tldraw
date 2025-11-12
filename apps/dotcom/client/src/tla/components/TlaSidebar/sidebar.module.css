@@ -774,7 +774,7 @@
 .sidebarFileSectionDivider {
 	border: 0;
 	margin: 0;
-	border-top: 1px solid var(--color-low-border);
+	border-top: 1px solid var(--tl-color-low-border);
 	margin-top: 24px;
 	display: none;
 }
