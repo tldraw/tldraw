@@ -9,6 +9,7 @@ import {
 	modulate,
 } from '@tldraw/editor'
 import { StrokeOptions } from '../shared/freehand/types'
+import { decompressDrawPoints } from '@tldraw/tlschema'
 
 const PEN_EASING = (t: number) => t * 0.65 + SIN((t * PI) / 2) * 0.35
 
@@ -101,10 +102,27 @@ export function getFreehandOptions(
 	return { ...solidSettings(strokeWidth), last }
 }
 
-export function getPointsFromSegments(segments: TLDrawShapeSegment[]) {
+export function getPointsFromSegments(shapeProps: {
+	segments: TLDrawShapeSegment[]
+	compressedPoints?: number[]
+	hasPressure?: boolean
+	isScaled?: boolean
+	scale: number
+}) {
+	// Check if we have compressed points - use them if available
+	if (shapeProps.compressedPoints && shapeProps.compressedPoints.length > 0) {
+		return decompressDrawPoints(
+			shapeProps.compressedPoints,
+			shapeProps.hasPressure ?? false,
+			shapeProps.isScaled ?? false,
+			shapeProps.scale
+		).map(Vec.Cast)
+	}
+
+	// Fall back to legacy segments format
 	const points: Vec[] = []
 
-	for (const segment of segments) {
+	for (const segment of shapeProps.segments) {
 		if (segment.type === 'free' || segment.points.length < 2) {
 			points.push(...segment.points.map(Vec.Cast))
 		} else {
