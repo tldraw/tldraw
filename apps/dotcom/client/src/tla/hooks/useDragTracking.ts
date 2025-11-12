@@ -182,6 +182,15 @@ async function executeFileOperations(
 			groupId,
 			operation,
 		})
+
+		// Expand the target group if it's collapsed
+		if (operation.move) {
+			const targetGroupId = operation.move.targetId
+			const homeGroupId = app.getHomeGroupId()
+			if (targetGroupId !== homeGroupId) {
+				app.ensureSidebarGroupExpanded(targetGroupId)
+			}
+		}
 	}
 }
 
