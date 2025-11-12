@@ -207,16 +207,22 @@ function diffObject(
 			result[key] = [ValueOpType.Delete]
 			continue
 		}
-		if (nestedKeys?.has(key)) {
+		const prevValue = (prev as any)[key]
+		const nextValue = (next as any)[key]
+		if (
+			nestedKeys?.has(key) ||
+			(Array.isArray(prevValue) && Array.isArray(nextValue)) ||
+			(typeof prevValue === 'string' && typeof nextValue === 'string')
+		) {
 			// if key is in both places, then compare values
-			const diff = diffValue((prev as any)[key], (next as any)[key], legacyAppendMode)
+			const diff = diffValue(prevValue, nextValue, legacyAppendMode)
 			if (diff) {
 				if (!result) result = {}
 				result[key] = diff
 			}
-		} else if (!isEqual((prev as any)[key], (next as any)[key])) {
+		} else if (!isEqual(prevValue, nextValue)) {
 			if (!result) result = {}
-			result[key] = [ValueOpType.Put, (next as any)[key]]
+			result[key] = [ValueOpType.Put, nextValue]
 		}
 	}
 	for (const key of Object.keys(next)) {
