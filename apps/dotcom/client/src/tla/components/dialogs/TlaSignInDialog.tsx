@@ -2,7 +2,7 @@ import { useClerk, useSignIn } from '@clerk/clerk-react'
 import * as Clerk from '@clerk/elements/common'
 import * as SignIn from '@clerk/elements/sign-in'
 import classNames from 'classnames'
-import { ChangeEvent, useCallback, useEffect, useState, type FormEvent } from 'react'
+import { ChangeEvent, ReactNode, useCallback, useEffect, useState, type FormEvent } from 'react'
 import {
 	exhaustiveSwitchError,
 	TldrawUiDialogBody,
@@ -20,22 +20,16 @@ const messages = defineMessages({
 })
 
 export function TlaSignInDialog({ onClose }: { onClose?(): void }) {
-	return (
-		<div className={styles.authContainer}>
-			<TlaLoginFlow onClose={onClose} />
-		</div>
-	)
-}
-
-function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 	const [stage, setStage] = useState<'enterEmail' | 'enterCode'>('enterEmail')
 	const [identifier, setIdentifier] = useState('')
 	const [isSignUpFlow, setIsSignUpFlow] = useState(false)
 	const [emailAddressId, setEmailAddressId] = useState<string | undefined>(undefined)
 
+	let innerContent: ReactNode
+
 	switch (stage) {
 		case 'enterEmail':
-			return (
+			innerContent = (
 				<TlaEnterEmailStep
 					onClose={onClose}
 					onComplete={(identifier, isSignUp, emailId) => {
@@ -46,8 +40,9 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 					}}
 				/>
 			)
+			break
 		case 'enterCode':
-			return (
+			innerContent = (
 				<TlaVerificationCodeStep
 					identifier={identifier}
 					isSignUpFlow={isSignUpFlow}
@@ -58,9 +53,27 @@ function TlaLoginFlow({ onClose }: { onClose?(): void }) {
 					onClose={onClose}
 				/>
 			)
+			break
 		default:
 			throw exhaustiveSwitchError(stage)
 	}
+
+	return (
+		<div className={styles.authContainer}>
+			<TldrawUiDialogHeader>
+				<TldrawUiDialogTitle>
+					<span />
+				</TldrawUiDialogTitle>
+				{onClose && <TldrawUiDialogCloseButton />}
+			</TldrawUiDialogHeader>
+			<TldrawUiDialogBody className={styles.authBody}>
+				{innerContent}
+
+				{/* Clerk's CAPTCHA widget */}
+				<div id="clerk-captcha" />
+			</TldrawUiDialogBody>
+		</div>
+	)
 }
 
 function TlaEnterEmailStep({
@@ -153,78 +166,70 @@ function TlaEnterEmailStep({
 
 	return (
 		<>
-			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>
-					<span />
-				</TldrawUiDialogTitle>
-				{onClose && <TldrawUiDialogCloseButton />}
-			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody className={styles.authBody}>
-				<div className={styles.authLogoWrapper}>
-					<div className={styles.authLogo}>
-						<TlaLogo />
+			<div className={styles.authLogoWrapper}>
+				<div className={styles.authLogo}>
+					<TlaLogo />
+				</div>
+			</div>
+			<div className={styles.authDescription}>
+				<F defaultMessage="tldraw is a free and instant virtual whiteboard." />
+				<br />
+				<br />
+				<F defaultMessage="Create a free account to save your work, collaborate in real-time, and more." />
+			</div>
+			<SignIn.Root routing="virtual">
+				<SignIn.Step name="start">
+					<div className={styles.authGoogleButtonWrapper}>
+						{/* @ts-ignore this is fine */}
+						<Clerk.Connection name="google" asChild>
+							<TlaCtaButton
+								data-testid="tla-google-sign-in-button"
+								className={styles.authCtaButton}
+							>
+								<Clerk.Icon icon="google" />
+								<F defaultMessage="Sign in with Google" />
+							</TlaCtaButton>
+						</Clerk.Connection>
 					</div>
-				</div>
-				<div className={styles.authDescription}>
-					<F defaultMessage="tldraw is a free and instant virtual whiteboard." />
-					<br />
-					<br />
-					<F defaultMessage="Create a free account to save your work, collaborate in real-time, and more." />
-				</div>
-				<SignIn.Root routing="virtual">
-					<SignIn.Step name="start">
-						<div className={styles.authGoogleButtonWrapper}>
-							{/* @ts-ignore this is fine */}
-							<Clerk.Connection name="google" asChild>
-								<TlaCtaButton
-									data-testid="tla-google-sign-in-button"
-									className={styles.authCtaButton}
-								>
-									<Clerk.Icon icon="google" />
-									<F defaultMessage="Sign in with Google" />
-								</TlaCtaButton>
-							</Clerk.Connection>
-						</div>
-					</SignIn.Step>
-				</SignIn.Root>
+				</SignIn.Step>
+			</SignIn.Root>
 
-				<div className={styles.authDivider}>
-					<span>
-						<F defaultMessage="or" />
-					</span>
-				</div>
+			<div className={styles.authDivider}>
+				<span>
+					<F defaultMessage="or" />
+				</span>
+			</div>
 
-				<form onSubmit={handleEmailSubmit}>
-					<div className={styles.authField}>
-						<label htmlFor="tla-identifier" className={styles.authLabel}>
-							<F defaultMessage="Email address" />
-						</label>
-						<input
-							id="tla-identifier"
-							name="identifier"
-							type="email"
-							data-testid="tla-identifier-input"
-							value={state.identifier}
-							onChange={(e) => setState((s) => ({ ...s, identifier: e.target.value }))}
-							placeholder={enterEmailAddressMsg}
-							className={styles.authInput}
-							required
-							disabled={state.isSubmitting}
-						/>
-						{state.error && <div className={styles.authError}>{state.error}</div>}
-					</div>
-
-					<TlaCtaButton
-						data-testid="tla-continue-with-email-button"
-						className={classNames(styles.authContinueWithEmailButton, styles.authCtaButton)}
+			<form onSubmit={handleEmailSubmit}>
+				<div className={styles.authField}>
+					<label htmlFor="tla-identifier" className={styles.authLabel}>
+						<F defaultMessage="Email address" />
+					</label>
+					<input
+						id="tla-identifier"
+						name="identifier"
+						type="email"
+						data-testid="tla-identifier-input"
+						value={state.identifier}
+						onChange={(e) => setState((s) => ({ ...s, identifier: e.target.value }))}
+						placeholder={enterEmailAddressMsg}
+						className={styles.authInput}
+						required
 						disabled={state.isSubmitting}
-						secondary
-						type="submit"
-					>
-						<F defaultMessage="Continue with email" />
-					</TlaCtaButton>
-				</form>
-			</TldrawUiDialogBody>
+					/>
+					{state.error && <div className={styles.authError}>{state.error}</div>}
+				</div>
+
+				<TlaCtaButton
+					data-testid="tla-continue-with-email-button"
+					className={classNames(styles.authContinueWithEmailButton, styles.authCtaButton)}
+					disabled={state.isSubmitting}
+					secondary
+					type="submit"
+				>
+					<F defaultMessage="Continue with email" />
+				</TlaCtaButton>
+			</form>
 		</>
 	)
 }
@@ -363,91 +368,83 @@ function TlaVerificationCodeStep({
 
 	return (
 		<>
-			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>
-					<span />
-				</TldrawUiDialogTitle>
-				{onClose && <TldrawUiDialogCloseButton />}
-			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody className={styles.authBody}>
-				<p className={styles.authDescription}>
-					<F defaultMessage="Check your email for a verification code." />
-				</p>
+			<p className={styles.authDescription}>
+				<F defaultMessage="Check your email for a verification code." />
+			</p>
 
-				<div
-					className={styles.authVerificationWrapper}
-					onClick={() => {
-						const el = document.getElementById('tla-verification-code') as HTMLInputElement | null
-						el?.focus()
-					}}
-				>
-					<div className={styles.authOtpBoxes} aria-hidden>
-						{Array.from({ length: 6 }).map((_, i) => {
-							const isFilled = state.code[i]
-							const isFocused =
-								state.isCodeFocused && state.code.length < 6 && i === state.code.length
+			<div
+				className={styles.authVerificationWrapper}
+				onClick={() => {
+					const el = document.getElementById('tla-verification-code') as HTMLInputElement | null
+					el?.focus()
+				}}
+			>
+				<div className={styles.authOtpBoxes} aria-hidden>
+					{Array.from({ length: 6 }).map((_, i) => {
+						const isFilled = state.code[i]
+						const isFocused =
+							state.isCodeFocused && state.code.length < 6 && i === state.code.length
 
-							return (
-								<div
-									key={i}
-									className={classNames(styles.authOtpBox, {
-										[styles.authOtpBoxFilled]: isFilled,
-										[styles.authOtpBoxFocused]: isFocused,
-									})}
+						return (
+							<div
+								key={i}
+								className={classNames(styles.authOtpBox, {
+									[styles.authOtpBoxFilled]: isFilled,
+									[styles.authOtpBoxFocused]: isFocused,
+								})}
+							>
+								{isFilled || ''}
+								{isFocused ? <span className={styles.authOtpCaret} /> : null}
+							</div>
+						)
+					})}
+				</div>
+				<input
+					id="tla-verification-code"
+					data-testid="tla-verification-code-input"
+					type="text"
+					inputMode="numeric"
+					autoFocus
+					className={styles.authOtpHiddenInput}
+					value={state.code}
+					onChange={handleCodeChange}
+					onFocus={() => setState((s) => ({ ...s, isCodeFocused: true }))}
+					onBlur={() => setState((s) => ({ ...s, isCodeFocused: false }))}
+					disabled={state.isSubmitting}
+					maxLength={6}
+				/>
+			</div>
+
+			{state.error && <div className={styles.authError}>{state.error}</div>}
+			{resendError && <div className={styles.authError}>{resendError}</div>}
+
+			<div className={styles.authResendWrapper}>
+				<span className={styles.authResendText}>
+					<F
+						defaultMessage="Didn’t receive a code? <resend>Resend</resend>."
+						values={{
+							resend: (chunks) => (
+								<button
+									type="button"
+									data-testid="tla-resend-code-button"
+									onClick={handleResend}
+									className={styles.authResendButton}
+									disabled={resendCooldown > 0 || state.isSubmitting}
 								>
-									{isFilled || ''}
-									{isFocused ? <span className={styles.authOtpCaret} /> : null}
-								</div>
-							)
-						})}
-					</div>
-					<input
-						id="tla-verification-code"
-						data-testid="tla-verification-code-input"
-						type="text"
-						inputMode="numeric"
-						autoFocus
-						className={styles.authOtpHiddenInput}
-						value={state.code}
-						onChange={handleCodeChange}
-						onFocus={() => setState((s) => ({ ...s, isCodeFocused: true }))}
-						onBlur={() => setState((s) => ({ ...s, isCodeFocused: false }))}
-						disabled={state.isSubmitting}
-						maxLength={6}
+									{resendCooldown > 0 ? (
+										<>
+											{/* eslint-disable-next-line react/jsx-no-literals */}
+											{chunks} ({resendCooldown})
+										</>
+									) : (
+										chunks
+									)}
+								</button>
+							),
+						}}
 					/>
-				</div>
-
-				{state.error && <div className={styles.authError}>{state.error}</div>}
-				{resendError && <div className={styles.authError}>{resendError}</div>}
-
-				<div className={styles.authResendWrapper}>
-					<span className={styles.authResendText}>
-						<F
-							defaultMessage="Didn’t receive a code? <resend>Resend</resend>."
-							values={{
-								resend: (chunks) => (
-									<button
-										type="button"
-										data-testid="tla-resend-code-button"
-										onClick={handleResend}
-										className={styles.authResendButton}
-										disabled={resendCooldown > 0 || state.isSubmitting}
-									>
-										{resendCooldown > 0 ? (
-											<>
-												{/* eslint-disable-next-line react/jsx-no-literals */}
-												{chunks} ({resendCooldown})
-											</>
-										) : (
-											chunks
-										)}
-									</button>
-								),
-							}}
-						/>
-					</span>
-				</div>
-			</TldrawUiDialogBody>
+				</span>
+			</div>
 		</>
 	)
 }
