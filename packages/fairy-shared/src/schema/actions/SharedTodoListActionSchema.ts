@@ -6,12 +6,10 @@ export const SharedTodoListActionSchema = z
 		id: z.number(),
 		status: z.enum(['todo', 'in-progress', 'done']),
 		text: z.string(),
-		claimedBy: z
-			.object({
-				id: z.string(),
-				name: z.string(),
-			})
-			.nullable(),
+		claimedById: z.string().optional(),
+		x: z.number().optional(),
+		y: z.number().optional(),
+		// we dont include project id here bc we don't let agents set that manually for now
 	})
 	.meta({
 		title: 'Update shared todo List',

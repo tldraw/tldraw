@@ -54,6 +54,22 @@ export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
 			if (update.toId) {
 				update.toId = helpers.ensureShapeIdExists(update.toId)
 			}
+
+			if ('x1' in update) {
+				update.x1 = helpers.ensureValueIsNumber(update.x1) ?? 0
+			}
+			if ('y1' in update) {
+				update.y1 = helpers.ensureValueIsNumber(update.y1) ?? 0
+			}
+			if ('x2' in update) {
+				update.x2 = helpers.ensureValueIsNumber(update.x2) ?? 0
+			}
+			if ('y2' in update) {
+				update.y2 = helpers.ensureValueIsNumber(update.y2) ?? 0
+			}
+			if ('bend' in update) {
+				update.bend = helpers.ensureValueIsNumber(update.bend) ?? 0
+			}
 		}
 
 		// Unround the shape to restore the original values

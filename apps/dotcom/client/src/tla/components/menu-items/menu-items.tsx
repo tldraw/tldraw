@@ -150,7 +150,7 @@ export function LegalSummaryMenuItem() {
 			label={useMsg(messages.legalSummary)}
 			readonlyOk
 			onSelect={() => {
-				openAndTrack('https://tldraw.notion.site/legal')
+				openAndTrack('/legal.html')
 			}}
 		/>
 	)

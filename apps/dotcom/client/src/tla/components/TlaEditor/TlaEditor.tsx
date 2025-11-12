@@ -34,7 +34,7 @@ import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
-import { isDevelopmentEnv } from '../../../utils/env'
+import { isDevelopmentEnv, isProductionEnv } from '../../../utils/env'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { TldrawApp } from '../../app/TldrawApp'
@@ -58,8 +58,11 @@ import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
 // Lazy load fairy components
+export const MAX_FAIRY_COUNT = 10
 const FairyApp = lazy(() =>
-	import('../../../fairy/FairyApp').then((m) => ({ default: m.FairyApp }))
+	import('../../../fairy/FairyApp').then((m) => ({
+		default: m.FairyApp,
+	}))
 )
 const FairyHUD = lazy(() =>
 	import('../../../fairy/FairyHUD').then((m) => ({ default: m.FairyHUD }))
@@ -70,6 +73,9 @@ const FairyVision = lazy(() =>
 const Fairies = lazy(() => import('../../../fairy/Fairies').then((m) => ({ default: m.Fairies })))
 const RemoteFairies = lazy(() =>
 	import('../../../fairy/RemoteFairies').then((m) => ({ default: m.RemoteFairies }))
+)
+const InCanvasTodoList = lazy(() =>
+	import('../../../fairy/InCanvasTodoList').then((m) => ({ default: m.InCanvasTodoList }))
 )
 
 const customFeatureFlags = {
@@ -246,7 +252,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		if (!app) return
 		if (store.status !== 'synced-remote') return
 		let didEnter = false
-		let timer: any
+		let timer: number
 
 		const fileState = app.getFileState(fileId)
 
@@ -277,22 +283,23 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const overrides = useFileEditorOverrides({ fileSlug })
 	const extraDragIconOverrides = useExtraDragIconOverrides()
 
-	const showFairies = useValue('show_fairies', () => customFeatureFlags.fairies.get(), [
+	const hasFairiesFlag = useValue('show_fairies', () => customFeatureFlags.fairies.get(), [
 		customFeatureFlags,
 	])
 
 	// Fairy stuff
 
 	// TODO(mime): use TldrawFairyAgent[] type when ready
-	const [agents, setAgents] = useState<any[]>([])
+	const [_agents, setAgents] = useState<any[]>([])
+	// filter out deleted fairies (setAgents gets called after a fairy has been deleted)
+	const agents = useValue('agents', () => _agents.filter((a) => a.$fairyConfig.get()), [_agents])
 	// keep a ref in sync so getUserPresence can read current agents without re-creating the callback
 	useEffect(() => {
 		agentsRef.current = agents
 	}, [agents])
 
 	const instanceComponents = useMemo((): TLComponents => {
-		const canShowFairies =
-			agents.length > 0 && showFairies && (!!user?.isTldraw || isDevelopmentEnv)
+		const canShowFairies = app && agents && hasFairiesFlag && (!!user?.isTldraw || isDevelopmentEnv)
 
 		return {
 			...components,
@@ -301,6 +308,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 					{canShowFairies && (
 						<Suspense fallback={<div />}>
 							<FairyVision agents={agents} />
+							<InCanvasTodoList agents={agents} />
 							<RemoteFairies />
 							<Fairies agents={agents} />
 						</Suspense>
@@ -320,7 +328,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<CustomDebugMenu showFairyFeatureFlags={!!user?.isTldraw || isDevelopmentEnv} />
 			),
 		}
-	}, [agents, showFairies, user?.isTldraw])
+	}, [agents, hasFairiesFlag, user?.isTldraw, app])
 
 	return (
 		<TlaEditorWrapper>
@@ -343,7 +351,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<SneakyToolSwitcher />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
-				{showFairies && (
+				{app && hasFairiesFlag && (
 					<Suspense fallback={null}>
 						<FairyApp setAgents={setAgents} fileId={fileId} />
 					</Suspense>
@@ -362,17 +370,32 @@ function CustomDebugMenu({ showFairyFeatureFlags }: { showFairyFeatureFlags: boo
 		<DefaultDebugMenu>
 			<A11yAudit />
 			{!isReadOnly && app && (
-				<TldrawUiMenuItem
-					id="user-manual"
-					label="File history"
-					readonlyOk
-					onSelect={() => {
-						const url = new URL(window.location.href)
-						url.pathname += '/history'
-						openAndTrack(url.toString())
-					}}
-				/>
+				<>
+					<TldrawUiMenuItem
+						id="user-manual"
+						label="File history"
+						readonlyOk
+						onSelect={() => {
+							const url = new URL(window.location.href)
+							url.pathname += '/history'
+							openAndTrack(url.toString())
+						}}
+					/>
+					{!isProductionEnv && (
+						<TldrawUiMenuItem
+							id="user-manual"
+							label="File history (pierre)"
+							readonlyOk
+							onSelect={() => {
+								const url = new URL(window.location.href)
+								url.pathname += '/pierre-history'
+								openAndTrack(url.toString())
+							}}
+						/>
+					)}
+				</>
 			)}
+
 			<DefaultDebugMenuContent
 				customFeatureFlags={showFairyFeatureFlags ? customFeatureFlags : undefined}
 			/>

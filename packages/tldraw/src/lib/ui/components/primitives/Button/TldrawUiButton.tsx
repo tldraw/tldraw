@@ -6,6 +6,7 @@ export interface TLUiButtonProps extends React.HTMLAttributes<HTMLButtonElement>
 	disabled?: boolean
 	isActive?: boolean
 	type: 'normal' | 'primary' | 'danger' | 'low' | 'icon' | 'tool' | 'menu' | 'help'
+	htmlButtonType?: 'button' | 'submit' | 'reset'
 }
 
 const namedClassNamesSoThatICanGrepForThis = {
@@ -21,11 +22,11 @@ const namedClassNamesSoThatICanGrepForThis = {
 
 /** @public @react */
 export const TldrawUiButton = React.forwardRef<HTMLButtonElement, TLUiButtonProps>(
-	function TldrawUiButton({ children, type, isActive, ...props }, ref) {
+	function TldrawUiButton({ children, type, htmlButtonType, isActive, ...props }, ref) {
 		return (
 			<button
 				ref={ref}
-				type="button"
+				type={htmlButtonType || 'button'}
 				draggable={false}
 				data-isactive={isActive}
 				{...props}

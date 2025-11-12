@@ -5,13 +5,17 @@ import {
 	AgentPrompt,
 	AgentRequest,
 	AreaContextItem,
+	AvailableWandsForMode,
 	BaseAgentPrompt,
 	ChatHistoryItem,
 	ContextItem,
 	FAIRY_VISION_DIMENSIONS,
+	FairyConfig,
 	FairyEntity,
+	FairyMode,
 	FairyPose,
 	FocusedShape,
+	getFairyMode,
 	getWand,
 	PointContextItem,
 	PromptPart,
@@ -20,11 +24,14 @@ import {
 	SharedTodoItem,
 	Streaming,
 	TodoItem,
+	Wand,
 } from '@tldraw/fairy-shared'
 import {
 	Atom,
 	atom,
 	Box,
+	computed,
+	Computed,
 	Editor,
 	fetch,
 	RecordsDiff,
@@ -34,15 +41,15 @@ import {
 	Vec,
 	VecModel,
 } from 'tldraw'
+import { TldrawApp } from '../../../tla/app/TldrawApp'
 import { FAIRY_WORKER } from '../../../utils/config'
 import { AgentActionUtil } from '../../actions/AgentActionUtil'
-import { FairyConfig } from '../../FairyConfig'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../FairyUtils'
 import { PromptPartUtil } from '../../parts/PromptPartUtil'
 import { $sharedTodoList } from '../../SharedTodoList'
 import { AgentHelpers } from './AgentHelpers'
 import { FairyAgentOptions } from './FairyAgentOptions'
-import { $fairyAgentsAtom } from './fairyAgentsAtom'
+import { $fairyAgentsAtom, getFairyAgentById } from './fairyAgentsAtom'
 
 /**
  * An agent that can be prompted to edit the canvas.
@@ -57,6 +64,7 @@ import { $fairyAgentsAtom } from './fairyAgentsAtom'
 export class FairyAgent {
 	/** The editor associated with this agent. */
 	editor: Editor
+	app: TldrawApp
 
 	/** An id to differentiate the agent from other agents. */
 	id: string
@@ -65,7 +73,7 @@ export class FairyAgent {
 	$fairyEntity: Atom<FairyEntity>
 
 	/** The fairy configuration associated with this agent. */
-	$fairyConfig: Atom<FairyConfig>
+	$fairyConfig: Computed<FairyConfig>
 
 	/** A callback for when an error occurs. */
 	onError: (e: any) => void
@@ -116,10 +124,16 @@ export class FairyAgent {
 	$contextItems = atom<ContextItem[]>('contextItems', [])
 
 	/**
+	 * An atom containing the ID of the current project that the agent is working on.
+	 */
+	$currentProjectId = atom<string | null>('currentProjectId', null)
+
+	/**
 	 * Create a new tldraw agent.
 	 */
-	constructor({ id, fairyConfig, editor, onError, getToken }: FairyAgentOptions) {
+	constructor({ id, editor, app, onError, getToken }: FairyAgentOptions) {
 		this.editor = editor
+		this.app = app
 		this.id = id
 		this.getToken = getToken
 
@@ -134,7 +148,10 @@ export class FairyAgent {
 			gesture: null,
 		})
 
-		this.$fairyConfig = atom<FairyConfig>(`fairy-config-${id}`, fairyConfig)
+		this.$fairyConfig = computed<FairyConfig>(
+			`fairy-config-${id}`,
+			() => JSON.parse(app.getUser().fairies || '{}')[id] as FairyConfig
+		)
 
 		this.onError = onError
 
@@ -259,6 +276,24 @@ export class FairyAgent {
 	promptPartUtils: Record<PromptPart['type'], PromptPartUtil<PromptPart>>
 
 	/**
+	 * Validate and normalize wand, ensuring it is available for the given mode.
+	 * @param candidateWand - The wand to validate
+	 * @param mode - The mode to validate against
+	 * @returns The validated wand
+	 */
+	private validateWandForMode<ModeId extends FairyMode['id']>(
+		candidateWand: Wand['type'],
+		mode: ModeId
+	): AvailableWandsForMode<ModeId> {
+		const modeInfo = getFairyMode(mode)
+		const wand = (modeInfo.availableWands as readonly Wand['type'][]).includes(candidateWand)
+			? candidateWand
+			: modeInfo.defaultWand
+
+		return wand as AvailableWandsForMode<ModeId>
+	}
+
+	/**
 	 * Get a full agent request from a user input by filling out any missing
 	 * values with defaults.
 	 * @param input - A partial agent request or a string message.
@@ -267,9 +302,15 @@ export class FairyAgent {
 		const request = this.getPartialRequestFromInput(input)
 
 		const activeRequest = this.$activeRequest.get()
+
+		const mode = request.mode ?? this.$fairyConfig.get().mode
+		const candidateWand = request.wand ?? this.$fairyConfig.get().wand
+		const validatedWand = this.validateWandForMode(candidateWand, mode)
+
 		return {
 			type: request.type ?? 'user',
-			wand: request.wand ?? this.$fairyConfig.get().wand,
+			wand: validatedWand,
+			mode,
 			messages: request.messages ?? [],
 			data: request.data ?? [],
 			selectedShapes: request.selectedShapes ?? [],
@@ -278,7 +319,7 @@ export class FairyAgent {
 				request.bounds ??
 				activeRequest?.bounds ??
 				Box.FromCenter(this.$fairyEntity.get().position, FAIRY_VISION_DIMENSIONS),
-		}
+		} as AgentRequest
 	}
 
 	/**
@@ -389,33 +430,60 @@ export class FairyAgent {
 
 		// After the request is handled, check if there are any outstanding todo items or requests
 		let scheduledRequest = this.$scheduledRequest.get()
-		const todoItemsRemaining = this.$todoList.get().filter((item) => item.status !== 'done')
-		const sharedTodoItemsRemaining = $sharedTodoList.get().filter((item) => {
-			if (item.status === 'done') return false
-			if (item.claimedBy && item.claimedBy.id !== this.id) return false
-			return true
-		})
-
 		if (!scheduledRequest) {
-			// If there no outstanding todo items or requests, finish
-			if (
-				(sharedTodoItemsRemaining.length === 0 && todoItemsRemaining.length === 0) ||
-				!this.cancelFn
-			) {
+			if (!this.cancelFn) {
 				this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
 				return
 			}
 
-			// If there are outstanding todo items, schedule a request
-			scheduledRequest = {
-				messages: request.messages,
-				contextItems: request.contextItems,
-				bounds: request.bounds,
-				selectedShapes: request.selectedShapes,
-				data: request.data,
-				type: 'todo',
-				wand: request.wand,
+			const isOrchestratorWithProject =
+				this.$fairyConfig.get().mode === 'orchestrator' && this.$currentProjectId.get()
+			const projectId = this.$currentProjectId.get()
+			const validatedWand = this.validateWandForMode(request.wand, request.mode)
+
+			if (isOrchestratorWithProject) {
+				// if the fairy is an orchestrator with an active project, prompt it to keep going
+
+				const message = `You are the orchestrator of your current project. Please continue the project or end it.`
+				request.messages.push(message)
+
+				scheduledRequest = {
+					messages: request.messages,
+					contextItems: request.contextItems,
+					bounds: request.bounds,
+					selectedShapes: request.selectedShapes,
+					data: request.data,
+					type: 'schedule',
+					wand: validatedWand,
+					mode: request.mode,
+				} as AgentRequest
+			} else {
+				// if the fairy is not an orchestrator or does not have an active project, check if there are todos it can do
+				const sharedTodoItemsRemaining = $sharedTodoList.get().filter((item) => {
+					if (item.status === 'done') return false
+					if (item.claimedById && item.claimedById !== this.id) return false
+					if (item.projectId || item.projectId !== projectId) return false // do not count todos that are part of a project, or part of a different project
+					return true
+				})
+				if (sharedTodoItemsRemaining.length > 0) {
+					scheduledRequest = {
+						messages: request.messages,
+						contextItems: request.contextItems,
+						bounds: request.bounds,
+						selectedShapes: request.selectedShapes,
+						data: request.data,
+						type: 'todo',
+						wand: validatedWand,
+						mode: request.mode,
+					} as AgentRequest
+				}
 			}
+		}
+
+		// if scheduled request didn't get defined in the above block OR if the user has cancelled the request, return and go idle
+		if (!scheduledRequest) {
+			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
+			return
 		}
 
 		// Add the scheduled request to chat history
@@ -450,6 +518,8 @@ export class FairyAgent {
 	 */
 	async request(input: AgentInput) {
 		const request = this.getFullRequestFromInput(input)
+
+		this.setMode(request.mode)
 
 		// Interrupt any currently active request
 		if (this.$activeRequest.get() !== null) {
@@ -575,36 +645,41 @@ export class FairyAgent {
 		return id
 	}
 
-	helpOut(todoItems?: SharedTodoItem[]) {
-		let helpOutMessage = ''
-		let helpOutRequest: Partial<AgentRequest> = {}
+	helpOut(todoItems?: SharedTodoItem[], sourceFairyId?: string) {
+		const helpOutMessages: string[] = []
 
 		if (todoItems && todoItems.length > 0) {
-			helpOutMessage = `You've asked to help out with the following todo ${todoItems.length > 1 ? 'items' : 'item'}. Make sure to always set the todo you're currently working on as "in-progress" when you start working on it.
+			helpOutMessages.push(`You've asked to help out with the following todo ${todoItems.length > 1 ? 'items' : 'item'}. Make sure to always set the todo you're currently working on as "in-progress" when you start working on it.
 Todo ${todoItems.length > 1 ? 'items' : 'item'}: 
-${JSON.stringify(todoItems)}`
-
-			helpOutRequest = {
-				type: 'schedule',
-				messages: [helpOutMessage],
-			}
+${JSON.stringify(todoItems)}`)
 		} else {
-			helpOutMessage = `Take a look at the shared todo list and see if there are any tasks that you can help with. Make sure to always set the todo you're currently working on as "in-progress" when you start working on it.
+			helpOutMessages.push(`Take a look at the shared todo list and see if there are any tasks that you can help with. Make sure to always set the todo you're currently working on as "in-progress" when you start working on it.
 shared todo list: 
-${JSON.stringify($sharedTodoList.get())}`
+${JSON.stringify($sharedTodoList.get())}`)
+		}
 
-			helpOutRequest = {
-				type: 'schedule',
-				messages: [helpOutMessage],
+		if (sourceFairyId) {
+			const sourceFairy = getFairyAgentById(sourceFairyId, this.editor)
+			if (sourceFairy) {
+				helpOutMessages.push(
+					`This ask for assistance was made by fairy ${sourceFairy.$fairyConfig.get().name}.`
+				)
+			} else {
+				helpOutMessages.push(
+					`This ask for assistance was made by a fairy with id ${sourceFairyId}.`
+				)
 			}
 		}
 
 		if (this.isGenerating()) {
 			this.schedule({
-				messages: [helpOutMessage],
+				messages: helpOutMessages,
 			})
 		} else {
-			this.prompt(helpOutRequest)
+			this.prompt({
+				type: 'schedule',
+				messages: helpOutMessages,
+			})
 		}
 	}
 
@@ -1039,12 +1114,54 @@ ${JSON.stringify($sharedTodoList.get())}`
 		this.$fairyEntity.update((fairy) => ({ ...fairy, gesture }))
 	}
 
+	updateFairyConfig(partial: Partial<FairyConfig>) {
+		this.app.z.mutate.user.updateFairyConfig({
+			id: this.id,
+			properties: partial,
+		})
+	}
+
+	public deleteFairyConfig() {
+		this.app.z.mutate.user.deleteFairyConfig({ id: this.id })
+	}
+
 	/**
 	 * Set the fairy's personality.
 	 * @param personality - A description of the fairy's personality.
 	 */
 	setFairyPersonality(personality: string) {
-		this.$fairyConfig.update((fairy): FairyConfig => ({ ...fairy, personality }))
+		this.updateFairyConfig({ personality })
+	}
+
+	// setWand(wand: Wand['type']) {
+	// 	this.$fairyConfig.update((fairy): FairyConfig => ({ ...fairy, wand }))
+	// }
+
+	/**
+	 * Move the camera to the fairy's position.
+	 */
+	zoomTo() {
+		this.editor.zoomToBounds(Box.FromCenter(this.$fairyEntity.get().position, { x: 100, y: 100 }), {
+			animation: { duration: 220 },
+			targetZoom: 1,
+		})
+	}
+
+	/**
+	 * Instantly move the fairy to the center of the screen.
+	 */
+	summon() {
+		const position = this.editor.getViewportPageBounds().center
+		this.$fairyEntity.update((f) => (f ? { ...f, position, gesture: 'poof' } : f))
+	}
+
+	/**
+	 * Set the mode of the fairy agent.
+	 * @param id - The id of the mode to set the fairy agent to.
+	 */
+	setMode(id: FairyMode['id']) {
+		const mode = getFairyMode(id)
+		this.updateFairyConfig({ mode: id, wand: mode.defaultWand })
 	}
 }
 
