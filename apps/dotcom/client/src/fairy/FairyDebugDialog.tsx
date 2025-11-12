@@ -1,4 +1,4 @@
-import { ChatHistoryItem } from '@tldraw/fairy-shared'
+import { ChatHistoryItem, PROMPT_PART_DEFINITIONS } from '@tldraw/fairy-shared'
 import { ReactNode, useState } from 'react'
 import {
 	TldrawUiButton,
@@ -203,10 +203,17 @@ function HomeDebugView({
 	homeDebugInspectorType: HomeDebugInspectorType
 }) {
 	return (
-		<div className="fairy-debug-view-container">
-			{homeDebugInspectorType === 'projects' && <ProjectsInspector />}
-			{homeDebugInspectorType === 'sharedTodoList' && <SharedTodoListInspector />}
-		</div>
+		<>
+			<TldrawUiButton type="low" onClick={logPartDefinitionsByPriority}>
+				<TldrawUiButtonLabel>
+					<F defaultMessage="Log Part Definitions by Priority" />
+				</TldrawUiButtonLabel>
+			</TldrawUiButton>
+			<div className="fairy-debug-view-container">
+				{homeDebugInspectorType === 'projects' && <ProjectsInspector />}
+				{homeDebugInspectorType === 'sharedTodoList' && <SharedTodoListInspector />}
+			</div>
+		</>
 	)
 }
 
@@ -507,6 +514,38 @@ function ActionsInspector({ agent }: { agent: FairyAgent }) {
 }
 
 // # Utility functions
+
+/**
+ * Logs all prompt part definitions ranked by priority.
+ */
+function logPartDefinitionsByPriority() {
+	// Sort by priority (undefined priorities go to the top, then lower priority first)
+	const sorted = [...PROMPT_PART_DEFINITIONS].sort((a, b) => {
+		const aHasPriority = a.priority !== undefined
+		const bHasPriority = b.priority !== undefined
+
+		// If one has priority and the other doesn't, undefined goes first
+		if (aHasPriority && !bHasPriority) return 1
+		if (!aHasPriority && bHasPriority) return -1
+
+		// If both have priority, sort by priority value
+		if (aHasPriority && bHasPriority) {
+			return a.priority! - b.priority!
+		}
+
+		// If neither has priority, maintain original order
+		return 0
+	})
+
+	/* eslint-disable no-console */
+	console.group('Prompt Part Definitions (ranked by priority)')
+	sorted.forEach((def, index) => {
+		const priority = def.priority !== undefined ? def.priority : 'N/A'
+		console.log(`${index + 1}. ${def.type}: ${priority}`)
+	})
+	console.groupEnd()
+	/* eslint-enable no-console */
+}
 
 /**
  * Format a value as a string for display in the debug view.

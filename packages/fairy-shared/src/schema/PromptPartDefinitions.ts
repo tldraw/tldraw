@@ -58,9 +58,11 @@ export interface ChatHistoryPart {
 	items: ChatHistoryItem[] | null
 }
 
+const CHAT_HISTORY_PRIORITY = 999999
+
 export const ChatHistoryPartDefinition: PromptPartDefinition<ChatHistoryPart> = {
 	type: 'chatHistory',
-	priority: -Infinity,
+	priority: CHAT_HISTORY_PRIORITY,
 	buildContent() {
 		return []
 	},
@@ -68,7 +70,7 @@ export const ChatHistoryPartDefinition: PromptPartDefinition<ChatHistoryPart> = 
 		if (!items) return []
 
 		const messages: AgentMessage[] = []
-		const priority = -Infinity
+		const priority = CHAT_HISTORY_PRIORITY
 
 		// If the last message is from the user, skip it
 		const lastIndex = items.length - 1
@@ -180,7 +182,7 @@ export const MessagesPartDefinition: PromptPartDefinition<MessagesPart> = {
 	buildContent({ messages, source }: MessagesPart) {
 		switch (source) {
 			case 'user':
-				return ['User message: ', ...messages]
+				return [...messages]
 			case 'self':
 				return [...messages]
 			case 'other-agent':
@@ -504,7 +506,7 @@ export const PagesPartDefinition: PromptPartDefinition<PagesPart> = {
 		return [
 			`You are currently on page "${currentPageName}".`,
 			`Available pages:\n${pageList}`,
-			'You can change to a different page using the "change-page" action, or create a new page using the "create-page" action.',
+			//'You can change to a different page using the "change-page" action, or create a new page using the "create-page" action.',
 		]
 	},
 }
