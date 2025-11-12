@@ -187,10 +187,15 @@ export function diffRecord(
 	next: object,
 	legacyAppendMode = false
 ): ObjectDiff | null {
-	return diffObject(prev, next, legacyAppendMode)
+	return diffObject(prev, next, new Set(['props', 'meta']), legacyAppendMode)
 }
 
-function diffObject(prev: object, next: object, legacyAppendMode: boolean): ObjectDiff | null {
+function diffObject(
+	prev: object,
+	next: object,
+	nestedKeys: Set<string> | undefined,
+	legacyAppendMode: boolean
+): ObjectDiff | null {
 	if (prev === next) {
 		return null
 	}
@@ -202,11 +207,16 @@ function diffObject(prev: object, next: object, legacyAppendMode: boolean): Obje
 			result[key] = [ValueOpType.Delete]
 			continue
 		}
-		// if key is in both places, then compare values
-		const diff = diffValue((prev as any)[key], (next as any)[key], legacyAppendMode)
-		if (diff) {
+		if (nestedKeys?.has(key)) {
+			// if key is in both places, then compare values
+			const diff = diffValue((prev as any)[key], (next as any)[key], legacyAppendMode)
+			if (diff) {
+				if (!result) result = {}
+				result[key] = diff
+			}
+		} else if (!isEqual((prev as any)[key], (next as any)[key])) {
 			if (!result) result = {}
-			result[key] = diff
+			result[key] = [ValueOpType.Put, (next as any)[key]]
 		}
 	}
 	for (const key of Object.keys(next)) {
@@ -232,7 +242,7 @@ function diffValue(valueA: unknown, valueB: unknown, legacyAppendMode: boolean):
 	} else if (!valueA || !valueB || typeof valueA !== 'object' || typeof valueB !== 'object') {
 		return isEqual(valueA, valueB) ? null : [ValueOpType.Put, valueB]
 	} else {
-		const diff = diffObject(valueA, valueB, legacyAppendMode)
+		const diff = diffObject(valueA, valueB, undefined, legacyAppendMode)
 		return diff ? [ValueOpType.Patch, diff] : null
 	}
 }
