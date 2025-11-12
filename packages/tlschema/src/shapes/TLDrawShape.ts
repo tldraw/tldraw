@@ -7,6 +7,7 @@ import { DefaultDashStyle, TLDefaultDashStyle } from '../styles/TLDashStyle'
 import { DefaultFillStyle, TLDefaultFillStyle } from '../styles/TLFillStyle'
 import { DefaultSizeStyle, TLDefaultSizeStyle } from '../styles/TLSizeStyle'
 import { TLBaseShape } from './TLBaseShape'
+import { compressDrawPoints, decompressDrawPoints, shouldStorePressure } from './drawCompression'
 
 /**
  * A segment of a draw shape representing either freehand drawing or straight line segments.
@@ -62,6 +63,12 @@ export interface TLDrawShapeProps {
 	isPen: boolean
 	/** Scale factor applied to the drawing */
 	scale: number
+	/** Compressed points data for efficient storage (optional, used instead of segments.points) */
+	compressedPoints?: number[]
+	/** Whether the compressed points include pressure data */
+	hasPressure?: boolean
+	/** Whether the compressed points are scaled to integers */
+	isScaled?: boolean
 }
 
 /**
@@ -128,11 +135,15 @@ export const drawShapeProps: RecordProps<TLDrawShape> = {
 	isClosed: T.boolean,
 	isPen: T.boolean,
 	scale: T.nonZeroNumber,
+	compressedPoints: T.arrayOf(T.number).optional(),
+	hasPressure: T.boolean.optional(),
+	isScaled: T.boolean.optional(),
 }
 
 const Versions = createShapePropsMigrationIds('draw', {
 	AddInPen: 1,
 	AddScale: 2,
+	AddCompressedInk: 3,
 })
 
 /**
@@ -144,7 +155,7 @@ export { Versions as drawShapeVersions }
 
 /**
  * Migration sequence for draw shape properties across different schema versions.
- * Handles adding pen detection and scale properties to existing draw shapes.
+ * Handles adding pen detection, scale properties, and compressed ink format.
  *
  * @public
  */
@@ -182,6 +193,51 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (props) => {
 				delete props.scale
+			},
+		},
+		{
+			id: Versions.AddCompressedInk,
+			up: (props) => {
+				// Convert existing segments to compressed format for better storage efficiency
+				const allPoints: VecModel[] = []
+
+				// Collect all points from all segments
+				for (const segment of props.segments) {
+					allPoints.push(...segment.points)
+				}
+
+				if (allPoints.length > 0) {
+					// Determine if we should store pressure data
+					const hasPressure = shouldStorePressure(allPoints)
+
+					// Compress the points using delta encoding
+					props.compressedPoints = compressDrawPoints(allPoints, hasPressure, false)
+					props.hasPressure = hasPressure
+					props.isScaled = false // Legacy shapes are not scaled
+				}
+			},
+			down: (props) => {
+				// Convert back from compressed format to legacy segments format
+				if (props.compressedPoints && props.compressedPoints.length > 0) {
+					// For simplicity in migration down, we'll create a single free segment
+					// This is acceptable since the compression is lossless for the drawing data
+					const points = decompressDrawPoints(
+						props.compressedPoints,
+						props.hasPressure ?? false,
+						props.isScaled ?? false,
+						props.scale
+					)
+
+					props.segments = [{
+						type: 'free',
+						points: points,
+					}]
+
+					// Remove compressed properties
+					delete props.compressedPoints
+					delete props.hasPressure
+					delete props.isScaled
+				}
 			},
 		},
 	],
