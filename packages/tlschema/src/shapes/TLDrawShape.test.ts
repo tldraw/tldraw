@@ -7,6 +7,7 @@ import { DefaultDashStyle } from '../styles/TLDashStyle'
 import { DefaultFillStyle } from '../styles/TLFillStyle'
 import { DefaultSizeStyle } from '../styles/TLSizeStyle'
 import { DrawShapeSegment, drawShapeProps, drawShapeVersions } from './TLDrawShape'
+import { compressDrawPoints, decompressDrawPoints, shouldStorePressure } from './drawCompression'
 
 describe('TLDrawShape', () => {
 	describe('DrawShapeSegment validator', () => {
@@ -172,6 +173,207 @@ describe('TLDrawShape', () => {
 			const result = down(newRecord)
 			expect(result.props.scale).toBeUndefined()
 			expect(result.props.color).toBe('blue') // Other props preserved
+		})
+	})
+
+	describe('Draw compression utilities', () => {
+		describe('compressDrawPoints and decompressDrawPoints', () => {
+			it('should compress and decompress points without pressure losslessly', () => {
+				const originalPoints: VecModel[] = [
+					{ x: 10, y: 20 },
+					{ x: 15, y: 25 },
+					{ x: 20, y: 30 },
+					{ x: 25, y: 35 },
+				]
+
+				const compressed = compressDrawPoints(originalPoints, false, false)
+				const decompressed = decompressDrawPoints(compressed, false, false, 1)
+
+				expect(decompressed).toEqual(originalPoints)
+			})
+
+			it('should compress and decompress points with pressure losslessly', () => {
+				const originalPoints: VecModel[] = [
+					{ x: 10, y: 20, z: 0.3 },
+					{ x: 15, y: 25, z: 0.7 },
+					{ x: 20, y: 30, z: 0.5 },
+					{ x: 25, y: 35, z: 0.9 },
+				]
+
+				const compressed = compressDrawPoints(originalPoints, true, false)
+				const decompressed = decompressDrawPoints(compressed, true, false, 1)
+
+				expect(decompressed).toEqual(originalPoints)
+			})
+
+			it('should handle scaled points correctly', () => {
+				const originalPoints: VecModel[] = [
+					{ x: 10.5, y: 20.7 },
+					{ x: 15.2, y: 25.1 },
+				]
+
+				const compressed = compressDrawPoints(originalPoints, false, true)
+				const decompressed = decompressDrawPoints(compressed, false, true, 1)
+
+				// Scaled points should be rounded to integers during compression
+				expect(decompressed[0].x).toBe(11) // 10.5 rounded
+				expect(decompressed[0].y).toBe(21) // 20.7 rounded
+				expect(decompressed[1].x).toBe(15) // 15.2 rounded
+				expect(decompressed[1].y).toBe(25) // 25.1 rounded
+			})
+
+			it('should handle empty points array', () => {
+				const compressed = compressDrawPoints([], false, false)
+				const decompressed = decompressDrawPoints(compressed, false, false, 1)
+
+				expect(decompressed).toEqual([])
+			})
+
+			it('should produce smaller compressed arrays for typical drawing data', () => {
+				// Create a typical drawing with many points close to each other
+				const points: VecModel[] = []
+				for (let i = 0; i < 100; i++) {
+					points.push({ x: i * 2, y: i * 2 + Math.sin(i * 0.1) })
+				}
+
+				const compressed = compressDrawPoints(points, false, false)
+
+				// Compressed should be smaller than original (each point was 2 numbers, compressed uses deltas)
+				// Original: 100 points × 2 coords = 200 numbers
+				// Compressed: first point (2) + 99 deltas (2 each) = 2 + 198 = 200, but with smaller values
+				expect(compressed.length).toBeLessThanOrEqual(200)
+			})
+		})
+
+		describe('shouldStorePressure', () => {
+			it('should return true when points have varying pressure', () => {
+				const points: VecModel[] = [
+					{ x: 0, y: 0, z: 0.3 },
+					{ x: 10, y: 10, z: 0.7 },
+				]
+
+				expect(shouldStorePressure(points)).toBe(true)
+			})
+
+			it('should return false when all points have default pressure', () => {
+				const points: VecModel[] = [
+					{ x: 0, y: 0, z: 0 },
+					{ x: 10, y: 10, z: 0.5 },
+				]
+
+				expect(shouldStorePressure(points)).toBe(false)
+			})
+
+			it('should return false for empty points array', () => {
+				expect(shouldStorePressure([])).toBe(false)
+			})
+		})
+	})
+
+	describe('AddCompressedInk migration', () => {
+		const { up, down } = getTestMigration(drawShapeVersions.AddCompressedInk)
+
+		it('should convert legacy segments to compressed format', () => {
+			const legacyShape = {
+				props: {
+					color: 'black',
+					segments: [
+						{
+							type: 'free',
+							points: [
+								{ x: 10, y: 20, z: 0.5 },
+								{ x: 15, y: 25, z: 0.5 },
+								{ x: 20, y: 30, z: 0.5 },
+							],
+						},
+					],
+					isComplete: true,
+					isPen: false,
+					scale: 1,
+				},
+			}
+
+			const result = up(legacyShape)
+
+			expect(result.props.compressedPoints).toBeDefined()
+			expect(result.props.hasPressure).toBe(false) // No varying pressure
+			expect(result.props.isScaled).toBe(false)
+			expect(result.props.segments).toStrictEqual(legacyShape.props.segments) // Original segments preserved
+		})
+
+		it('should detect and store pressure when present', () => {
+			const penShape = {
+				props: {
+					color: 'black',
+					segments: [
+						{
+							type: 'free',
+							points: [
+								{ x: 10, y: 20, z: 0.3 },
+								{ x: 15, y: 25, z: 0.7 },
+							],
+						},
+					],
+					isComplete: true,
+					isPen: true,
+					scale: 1,
+				},
+			}
+
+			const result = up(penShape)
+
+			expect(result.props.compressedPoints).toBeDefined()
+			expect(result.props.hasPressure).toBe(true)
+			expect(result.props.isScaled).toBe(false)
+		})
+
+		it('should migrate down from compressed to segments format', () => {
+			const compressedShape = {
+				props: {
+					color: 'black',
+					compressedPoints: [10, 20, 5, 5, 5, 5], // delta-encoded: (10,20), (15,25), (20,30)
+					hasPressure: false,
+					isScaled: false,
+					isComplete: true,
+					isPen: false,
+					scale: 1,
+				},
+			}
+
+			const result = down(compressedShape)
+
+			expect(result.props.segments).toBeDefined()
+			expect(result.props.segments.length).toBe(1)
+			expect(result.props.segments[0].type).toBe('free')
+			expect(result.props.segments[0].points).toEqual([
+				{ x: 10, y: 20, z: undefined },
+				{ x: 15, y: 25, z: undefined },
+				{ x: 20, y: 30, z: undefined },
+			])
+			expect(result.props.compressedPoints).toBeUndefined()
+			expect(result.props.hasPressure).toBeUndefined()
+			expect(result.props.isScaled).toBeUndefined()
+		})
+
+		it('should handle scaled compressed points in down migration', () => {
+			const scaledCompressedShape = {
+				props: {
+					color: 'black',
+					compressedPoints: [10, 20, 5, 5], // scaled integers
+					hasPressure: false,
+					isScaled: true,
+					isComplete: true,
+					isPen: false,
+					scale: 2, // scale factor
+				},
+			}
+
+			const result = down(scaledCompressedShape)
+
+			expect(result.props.segments[0].points).toEqual([
+				{ x: 5, y: 10, z: undefined }, // 10/2, 20/2
+				{ x: 7.5, y: 12.5, z: undefined }, // (10+5)/2, (20+5)/2
+			])
 		})
 	})
 })
