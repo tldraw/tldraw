@@ -39,4 +39,7 @@ export default defineConfig({
 			'~': path.resolve(process.cwd(), 'src'),
 		},
 	},
+	ssr: {
+		noExternal: ['@tiptap/react'],
+	},
 })

@@ -31,6 +31,7 @@ import {
 	toRichText,
 } from '@tldraw/editor'
 import { EmbedDefinition } from './defaultEmbedDefinitions'
+import { createBookmarkFromUrl } from './shapes/bookmark/bookmarks'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { getCroppedImageDataForReplacedImage } from './shapes/shared/crop'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
@@ -557,7 +558,7 @@ export async function defaultHandleExternalUrlContent(
 	const embedUtil = editor.getShapeUtil('embed') as EmbedShapeUtil | undefined
 	const embedInfo = embedUtil?.getEmbedDefinition(url)
 
-	if (embedInfo && embedInfo.definition.embedOnPaste) {
+	if (embedInfo && embedInfo.definition.embedOnPaste !== false) {
 		return editor.putExternalContent({
 			type: 'embed',
 			url: embedInfo.url,
@@ -572,42 +573,16 @@ export async function defaultHandleExternalUrlContent(
 			? editor.inputs.currentPagePoint
 			: editor.getViewportPageBounds().center)
 
-	const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
-	const shape = createEmptyBookmarkShape(editor, url, position)
+	// Use the new function to create the bookmark
+	const result = await createBookmarkFromUrl(editor, { url, center: position })
 
-	// Use an existing asset if we have one, or else else create a new one
-	let asset = editor.getAsset(assetId) as TLAsset
-	let shouldAlsoCreateAsset = false
-	if (!asset) {
-		shouldAlsoCreateAsset = true
-		try {
-			const bookmarkAsset = await editor.getAssetForExternalContent({ type: 'url', url })
-			if (!bookmarkAsset) throw Error('Could not create an asset')
-			asset = bookmarkAsset
-		} catch {
-			toasts.addToast({
-				title: msg('assets.url.failed'),
-				severity: 'error',
-			})
-			return
-		}
+	if (!result.ok) {
+		toasts.addToast({
+			title: msg('assets.url.failed'),
+			severity: 'error',
+		})
+		return
 	}
-
-	editor.run(() => {
-		if (shouldAlsoCreateAsset) {
-			editor.createAssets([asset])
-		}
-
-		editor.updateShapes([
-			{
-				id: shape.id,
-				type: shape.type,
-				props: {
-					assetId: asset.id,
-				},
-			},
-		])
-	})
 }
 
 /** @public */

@@ -1,4 +1,4 @@
-import { IndexKey, toRichText } from 'tldraw'
+import { IndexKey, TLShape, TLShapeId, TLShapePartial, toRichText } from 'tldraw'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import {
@@ -49,6 +49,21 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 			if (shape.toId) {
 				shape.toId = helpers.ensureShapeIdExists(shape.toId)
 			}
+			if ('x1' in shape) {
+				shape.x1 = helpers.ensureValueIsNumber(shape.x1) ?? 0
+			}
+			if ('y1' in shape) {
+				shape.y1 = helpers.ensureValueIsNumber(shape.y1) ?? 0
+			}
+			if ('x2' in shape) {
+				shape.x2 = helpers.ensureValueIsNumber(shape.x2) ?? 0
+			}
+			if ('y2' in shape) {
+				shape.y2 = helpers.ensureValueIsNumber(shape.y2) ?? 0
+			}
+			if ('bend' in shape) {
+				shape.bend = helpers.ensureValueIsNumber(shape.bend) ?? 0
+			}
 		}
 
 		return action
@@ -95,11 +110,13 @@ const SHARED_DEFAULTS = {
 	opacity: 1,
 	rotation: 0,
 	meta: {},
+	id: 'shape:shape' as TLShapeId,
 }
 
-const SHAPE_DEFAULTS = {
+const SHAPE_DEFAULTS: Record<TLShape['type'], TLShapePartial> = {
 	text: {
 		...SHARED_DEFAULTS,
+		type: 'text',
 		props: {
 			autoSize: true,
 			color: 'black',
@@ -113,6 +130,7 @@ const SHAPE_DEFAULTS = {
 	},
 	line: {
 		...SHARED_DEFAULTS,
+		type: 'line',
 		props: {
 			size: 's',
 			color: 'black',
@@ -137,6 +155,7 @@ const SHAPE_DEFAULTS = {
 	},
 	arrow: {
 		...SHARED_DEFAULTS,
+		type: 'arrow',
 		props: {
 			arrowheadEnd: 'arrow',
 			arrowheadStart: 'none',
@@ -158,6 +177,7 @@ const SHAPE_DEFAULTS = {
 	},
 	geo: {
 		...SHARED_DEFAULTS,
+		type: 'geo',
 		props: {
 			align: 'middle',
 			color: 'black',
@@ -178,6 +198,7 @@ const SHAPE_DEFAULTS = {
 	},
 	note: {
 		...SHARED_DEFAULTS,
+		type: 'note',
 		props: {
 			color: 'black',
 			richText: toRichText(''),
@@ -194,10 +215,12 @@ const SHAPE_DEFAULTS = {
 	},
 	draw: {
 		...SHARED_DEFAULTS,
+		type: 'draw',
 		props: {},
 	},
 	unknown: {
 		...SHARED_DEFAULTS,
+		type: 'unknown',
 		props: {},
 	},
 }

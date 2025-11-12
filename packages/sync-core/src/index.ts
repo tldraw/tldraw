@@ -26,7 +26,7 @@ export {
 	type TLSocketServerSentDataEvent,
 	type TLSocketServerSentEvent,
 } from './lib/protocol'
-export { RoomSessionState, type RoomSession } from './lib/RoomSession'
+export { RoomSessionState, type RoomSession, type RoomSessionBase } from './lib/RoomSession'
 export type { PersistedRoomSnapshotForSupabase } from './lib/server-types'
 export type { WebSocketMinimal } from './lib/ServerSocketAdapter'
 export { TLRemoteSyncError } from './lib/TLRemoteSyncError'
@@ -40,7 +40,7 @@ export {
 	type TLPersistentClientSocket,
 	type TLPersistentClientSocketStatus,
 	type TLPresenceMode,
-	type TlSocketStatusChangeEvent,
+	type TLSocketStatusChangeEvent,
 	type TLSocketStatusListener,
 } from './lib/TLSyncClient'
 export {

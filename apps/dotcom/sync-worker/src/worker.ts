@@ -10,10 +10,12 @@ import {
 	schema,
 } from '@tldraw/dotcom-shared'
 import {
+	blockUnknownOrigins,
 	createRouter,
 	createSentry,
 	handleApiRequest,
 	handleUserAssetGet,
+	isAllowedOrigin,
 	notFound,
 } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
@@ -29,6 +31,8 @@ import { healthCheckRoutes } from './healthCheckRoutes'
 import { createPostgresConnectionPool, makePostgresConnector } from './postgres'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
+import { getPierreHistory } from './routes/getPierreHistory'
+import { getPierreHistorySnapshot } from './routes/getPierreHistorySnapshot'
 import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
 import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
@@ -79,11 +83,17 @@ const router = createRouter<Environment>()
 		getRoomHistorySnapshot(req, env, true)
 	)
 
+	.get(`/${FILE_PREFIX}/:roomId/pierre-history`, (req, env) => getPierreHistory(req, env, true))
+	.get(`/${FILE_PREFIX}/:roomId/pierre-history/:timestamp`, (req, env) =>
+		getPierreHistorySnapshot(req, env, true)
+	)
+
 	.get('/readonly-slug/:roomId', getReadonlySlug)
 	.get('/unfurl', extractBookmarkMetadata)
 	.post('/unfurl', extractBookmarkMetadata)
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
 	.post(`/app/file/:roomId/restore`, forwardRoomRequest)
+	.post(`/app/file/:roomId/pierre-restore`, forwardRoomRequest)
 	.get('/app/:userId/connect', async (req, env) => {
 		// forward req to the user durable object
 		const auth = await getAuth(req, env)
@@ -180,11 +190,14 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			request,
 			env: this.env,
 			ctx: this.ctx,
-			after: (response) => {
+			after: (response, request) => {
 				const setCookies = response.headers.getAll('set-cookie')
+				// Create a new Response with mutable headers before passing to corsify
+				// to avoid "Can't modify immutable headers" error
+				const mutableResponse = new Response(response.body, response)
 				// unfortunately corsify mishandles the set-cookie header, so
 				// we need to manually add it back in
-				const result = corsify(response)
+				const result = corsify(mutableResponse, request)
 				if ([...setCookies].length === 0) {
 					return result
 				}
@@ -225,42 +238,4 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			}
 		}
 	}
-}
-
-export function isAllowedOrigin(origin: string) {
-	if (!origin) return undefined
-	if (origin === 'http://localhost:3000') return origin
-	if (origin === 'http://localhost:5420') return origin
-	if (origin === 'https://meet.google.com') return origin
-	if (origin.endsWith('.tldraw.com')) return origin
-	if (origin.endsWith('.tldraw.dev')) return origin
-	if (origin.endsWith('.tldraw.club')) return origin
-	if (origin.endsWith('-tldraw.vercel.app')) return origin
-	return undefined
-}
-
-async function blockUnknownOrigins(request: Request, env: Environment) {
-	// allow requests for the same origin (new rewrite routing for SPA)
-	if (request.headers.get('sec-fetch-site') === 'same-origin') {
-		return undefined
-	}
-
-	if (new URL(request.url).pathname === '/auth/callback') {
-		// allow auth callback because we use the special cookie to verify
-		// the request
-		return undefined
-	}
-
-	const origin = request.headers.get('origin')
-
-	// if there's no origin, this cannot be a cross-origin request, so we allow it.
-	if (!origin) return undefined
-
-	if (env.IS_LOCAL !== 'true' && !isAllowedOrigin(origin)) {
-		console.error('Attempting to connect from an invalid origin:', origin, env, request)
-		return new Response('Not allowed', { status: 403 })
-	}
-
-	// origin doesn't match, so we can continue
-	return undefined
 }

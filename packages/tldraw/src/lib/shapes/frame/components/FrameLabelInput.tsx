@@ -1,5 +1,8 @@
-import { TLFrameShape, TLShapeId, useEditor } from '@tldraw/editor'
-import { forwardRef, useCallback } from 'react'
+import { TLFrameShape, TLShapeId, useEditor, useValue } from '@tldraw/editor'
+import { forwardRef, useCallback, useEffect, useRef } from 'react'
+import { PORTRAIT_BREAKPOINT } from '../../../ui/constants'
+import { useBreakpoint } from '../../../ui/context/breakpoints'
+import { useTranslation } from '../../../ui/hooks/useTranslation/useTranslation'
 import { defaultEmptyAs } from '../FrameShapeUtil'
 
 export const FrameLabelInput = forwardRef<
@@ -7,6 +10,15 @@ export const FrameLabelInput = forwardRef<
 	{ id: TLShapeId; name: string; isEditing: boolean }
 >(({ id, name, isEditing }, ref) => {
 	const editor = useEditor()
+	const breakpoint = useBreakpoint()
+	const isCoarsePointer = useValue(
+		'isCoarsePointer',
+		() => editor.getInstanceState().isCoarsePointer,
+		[editor]
+	)
+	const shouldUseWindowPrompt = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && isCoarsePointer
+	const promptOpen = useRef<boolean>(false)
+	const msg = useTranslation()
 
 	const handlePointerDown = useCallback(
 		(e: React.PointerEvent) => {
@@ -28,13 +40,12 @@ export const FrameLabelInput = forwardRef<
 		[editor]
 	)
 
-	const handleBlur = useCallback(
-		(e: React.FocusEvent<HTMLInputElement>) => {
+	const renameFrame = useCallback(
+		(value: string) => {
 			const shape = editor.getShape<TLFrameShape>(id)
 			if (!shape) return
 
 			const name = shape.props.name
-			const value = e.currentTarget.value.trim()
 			if (name === value) return
 
 			editor.updateShapes([
@@ -46,38 +57,51 @@ export const FrameLabelInput = forwardRef<
 			])
 		},
 		[id, editor]
+	)
+
+	const handleBlur = useCallback(
+		(e: React.FocusEvent<HTMLInputElement>) => {
+			renameFrame(e.currentTarget.value)
+		},
+		[renameFrame]
 	)
 
 	const handleChange = useCallback(
 		(e: React.ChangeEvent<HTMLInputElement>) => {
-			const shape = editor.getShape<TLFrameShape>(id)
-			if (!shape) return
-
-			const name = shape.props.name
-			const value = e.currentTarget.value
-			if (name === value) return
-
-			editor.updateShapes([
-				{
-					id,
-					type: 'frame',
-					props: { name: value },
-				},
-			])
+			renameFrame(e.currentTarget.value)
 		},
-		[id, editor]
+		[renameFrame]
 	)
 
+	/* Mobile rename uses window.prompt */
+	useEffect(() => {
+		if (!isEditing) {
+			promptOpen.current = false
+			return
+		}
+		if (isEditing && shouldUseWindowPrompt && !promptOpen.current) {
+			promptOpen.current = true
+			const shape = editor.getShape<TLFrameShape>(id)
+			const currentName = shape?.props.name ?? ''
+			const newName = window.prompt(msg('action.rename'), currentName)
+			promptOpen.current = false
+			if (newName !== null) renameFrame(newName)
+			editor.setEditingShape(null)
+		}
+	}, [isEditing, shouldUseWindowPrompt, id, msg, renameFrame, editor])
+
 	return (
-		<div className={`tl-frame-label ${isEditing ? 'tl-frame-label__editing' : ''}`}>
+		<div
+			className={`tl-frame-label ${isEditing && !shouldUseWindowPrompt ? 'tl-frame-label__editing' : ''}`}
+		>
 			<input
 				className="tl-frame-name-input"
 				ref={ref}
-				disabled={!isEditing}
-				readOnly={!isEditing}
+				disabled={!isEditing || shouldUseWindowPrompt}
+				readOnly={!isEditing || shouldUseWindowPrompt}
 				style={{ display: isEditing ? undefined : 'none' }}
 				value={name}
-				autoFocus
+				autoFocus={!shouldUseWindowPrompt}
 				onKeyDown={handleKeyDown}
 				onBlur={handleBlur}
 				onChange={handleChange}

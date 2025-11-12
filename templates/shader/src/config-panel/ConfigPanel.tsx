@@ -24,18 +24,26 @@ export function ConfigPanel({
 			}}
 		>
 			{/* Header with collapse/expand button */}
-			<div className="shader-config-header">
+			<div className="shader-config-panel__header">
 				{isExpanded && (
-					<TldrawUiButton type="normal" onClick={onReset}>
+					<TldrawUiButton
+						type="normal"
+						onClick={onReset}
+						className="shader-config-panel__reset-button"
+					>
 						Reset
 					</TldrawUiButton>
 				)}
-				<TldrawUiButton type="icon" onClick={toggleExpanded}>
+				<TldrawUiButton
+					type="icon"
+					onClick={toggleExpanded}
+					className="shader-config-panel__toggle"
+				>
 					<TldrawUiIcon icon={<MixerIcon />} small label="Expand / collapse" />
 				</TldrawUiButton>
 			</div>
 
-			{isExpanded && <div className="shader-config-content">{children}</div>}
+			{isExpanded && <div className="shader-config-panel__content">{children}</div>}
 		</div>
 	)
 }

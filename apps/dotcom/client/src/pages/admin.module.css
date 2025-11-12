@@ -227,6 +227,64 @@
 	word-break: break-word;
 }
 
+/* Migration Section */
+.migrationSection {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 16px;
+	background-color: var(--tla-color-panel);
+	border: 1px solid var(--tla-color-primary);
+	border-radius: var(--tla-radius-2);
+	margin-top: 16px;
+}
+
+/* Stats Display */
+.statsContainer {
+	display: flex;
+	gap: 16px;
+	padding: 12px;
+	flex-wrap: wrap;
+}
+
+.statItem {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.statLabel {
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--tla-color-text-3);
+	text-transform: uppercase;
+}
+
+.statValue {
+	font-size: 16px;
+	font-weight: 600;
+	color: var(--tla-color-text-1);
+}
+
+/* Count Container */
+.countContainer {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+}
+
+.countDisplay {
+	font-size: 12px;
+	color: var(--tla-color-text-2);
+}
+
+/* Config Container */
+.configContainer {
+	display: flex;
+	gap: 16px;
+	flex-wrap: wrap;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
 	.adminHeader {

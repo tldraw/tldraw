@@ -1,4 +1,4 @@
-import { preventDefault, TiptapEditor, useEditor } from '@tldraw/editor'
+import { openWindow, preventDefault, TiptapEditor, useEditor } from '@tldraw/editor'
 import { useEffect, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -31,7 +31,7 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 			link = `https://${link}`
 		}
 
-		textEditor.commands.setLink({ href: link })
+		textEditor.chain().setLink({ href: link }).run()
 		// N.B. We shouldn't focus() on mobile because it causes the
 		// Return key to replace the link with a newline :facepalm:
 		if (editor.getInstanceState().isCoarsePointer) {
@@ -44,7 +44,7 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 
 	const handleVisitLink = () => {
 		trackEvent('rich-text', { operation: 'link-visit', source })
-		window.open(linkifiedValue, '_blank', 'noopener, noreferrer')
+		openWindow(linkifiedValue, '_blank')
 		onClose()
 	}
 

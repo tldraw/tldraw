@@ -49,7 +49,7 @@ export function toValidPackageName(projectName: string) {
 }
 
 export function cancel(): never {
-	outro('Setup cancelled.\n   No worries, come back anytime!')
+	outro('Setup cancelled.\n   Try again or visit https://tldraw.dev/docs to learn more.')
 	process.exit(1)
 }
 

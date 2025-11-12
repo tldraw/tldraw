@@ -1,5 +1,5 @@
 ---
-title: Custom error fallback
+title: Error boundary
 component: ./ErrorBoundaryExample.tsx
 category: ui
 priority: 2

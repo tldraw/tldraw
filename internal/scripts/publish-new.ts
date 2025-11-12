@@ -40,22 +40,30 @@ function getReleaseType(): ReleaseType {
 	throw new Error('Invalid bump argument ' + JSON.stringify(arg))
 }
 
-async function getReleaseNotes(): Promise<string> {
-	const arg = minimist(process.argv.slice(2))['release_notes_url']?.trim()
-	if (!arg) {
-		throw new Error('Must provide a --release_notes_url argument')
+async function getDraftRelease(version: string, octokit: Octokit) {
+	const expectedVersion = `v${version}`
+
+	// Fetch all releases with pagination
+	const releases = await octokit.paginate(octokit.rest.repos.listReleases, {
+		owner: 'tldraw',
+		repo: 'tldraw',
+		per_page: 100, // Maximum per page to reduce API calls
+	})
+
+	const draftRelease = releases.find((release) => release.draft && release.name === expectedVersion)
+
+	if (!draftRelease) {
+		const availableDrafts = releases
+			.filter((r) => r.draft)
+			.map((r) => r.name)
+			.join(', ')
+		throw new Error(
+			`No draft release found named ${expectedVersion}. Available draft releases: ${availableDrafts || 'none'}`
+		)
 	}
 
-	const match = arg.match(/^https:\/\/gist\.github\.com\/[^/]+\/([^/]+)(\/raw)?$/)
-	assert(match, 'Release notes URL must be a gist URL')
-
-	const gistId = match[1]
-
-	const rawUrl = `https://gist.github.com/raw/${gistId}`
-	const response = await fetch(rawUrl)
-	assert(response.ok, 'Failed to fetch release notes')
-	const text = await response.text()
-	return text
+	assert(draftRelease.body, `Draft release ${expectedVersion} has no body/release notes`)
+	return draftRelease
 }
 
 async function getNextVersion(releaseType: ReleaseType): Promise<string> {
@@ -89,8 +97,6 @@ async function main() {
 		throw new Error('Must be on production branch to publish')
 	}
 
-	const releaseNotes = await getReleaseNotes()
-
 	const releaseType = getReleaseType()
 	const nextVersion = await getNextVersion(releaseType)
 
@@ -98,6 +104,11 @@ async function main() {
 	assert(!isPrerelease, 'Prerelease versions are no longer supported for new releases')
 
 	console.log('Releasing version', nextVersion)
+
+	// Check that a draft release exists early, before doing any work
+	const octokit = new Octokit({ auth: env.GH_TOKEN })
+	const draftRelease = await getDraftRelease(nextVersion, octokit)
+	nicelog('Found draft release:', draftRelease)
 
 	await setAllVersions(nextVersion, { stageChanges: true })
 
@@ -108,20 +119,19 @@ async function main() {
 	const { major, minor } = parse(nextVersion)!
 	const branchName = `v${major}.${minor}.x`
 	// create and push a new tag to the release branch
-	await exec('git', ['tag', '-f', gitTag])
+	await exec('git', ['tag', '-a', gitTag, '-m', gitTag, '-f'])
 	await exec('git', ['push', 'origin', `${gitTag}:refs/heads/${branchName}`])
 	await exec('git', ['push', 'origin', 'tag', gitTag, '-f'])
 	await publishProductionDocsAndExamplesAndBemo()
 
-	// create a release on github
-	const octokit = new Octokit({ auth: env.GH_TOKEN })
-	await octokit.rest.repos.createRelease({
+	// convert draft release to published release
+	await octokit.rest.repos.updateRelease({
 		owner: 'tldraw',
 		repo: 'tldraw',
+		release_id: draftRelease.id,
+		draft: false,
 		tag_name: gitTag,
 		name: gitTag,
-		body: releaseNotes,
-		prerelease: isPrerelease,
 	})
 
 	// upload static assets

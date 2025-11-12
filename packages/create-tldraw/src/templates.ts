@@ -17,51 +17,41 @@ export const TEMPLATES: Template[] = [
 		repo: 'tldraw/vite-template',
 	},
 	{
-		name: 'v0',
-		description: 'A tldraw template optimized for v0.dev development environment.',
-		shortDescription: 'tldraw for v0.dev',
-		order: 2,
-		repo: 'tldraw/v0-template',
-	},
-	{
-		name: 'Shader Starter Kit',
-		description:
-			'A tldraw template with WebGL shader starter kit that creates dynamic shader effects from shape geometry.',
-		order: 10,
-		repo: 'tldraw/shader-starter-kit',
+
 	},
 	{
 		name: 'Agent',
-		description: 'Enable AI agents to interpret and interact with canvas drawings and elements.',
+		description: 'Work on the canvas with an AI agent.',
 		shortDescription: 'An AI-powered agent.',
+		order: 3,
 		repo: 'tldraw/agent-template',
 	},
 	{
-		name: 'Branching chat',
-		description:
-			'Create interactive chat trees using visual branching conversation interface with AI integration.',
-		shortDescription: 'A branching chat interface.',
-		repo: 'tldraw/branching-chat-template',
+		name: 'Workflow',
+		description: 'Create a node-based builder for visual workflows.',
+		shortDescription: 'Visual node-based builder for workflows.',
+		order: 4,
+		repo: 'tldraw/workflow-template',
 	},
 	{
 		name: 'Chat',
-		description:
-			'Use tldraw to add sketches and annotated images as visual context in an LLM chat interface.',
+		description: 'Create an AI chat that uses tldraw for sketches and annotations.',
 		shortDescription: 'A chat UI with sketches and images as context for AI.',
+		order: 5,
 		repo: 'tldraw/chat-template',
 	},
 	{
-		name: 'Multiplayer',
-		description:
-			'Bring multiplayer mode to your tldraw canvas app. Self-hosted and powered by tldraw sync and Cloudflare Durable Objects.',
-		shortDescription: 'Real-time multiplayer for tldraw, built with Cloudflare Durable Objects.',
-		repo: 'tldraw/tldraw-sync-cloudflare',
+		name: 'Branching chat',
+		description: 'Chat with an AI using a branching conversation interface.',
+		shortDescription: 'A branching chat interface.',
+		order: 6,
+		repo: 'tldraw/branching-chat-template',
 	},
 	{
-		name: 'Workflow',
-		description:
-			'Build visual tools where users drag and connect nodes, think automation builders with a canvas interface.',
-		shortDescription: 'Visual node-based builder for workflows.',
-		repo: 'tldraw/workflow-template',
+		name: 'Shader',
+		description: 'Create WebGL shaders that respond to shapes on the canvas.',
+		shortDescription: 'Shaders on the canvas.',
+		order: 7,
+		repo: 'tldraw/shader-starter-kit',
 	},
 ]

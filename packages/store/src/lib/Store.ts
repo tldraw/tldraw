@@ -20,105 +20,328 @@ import { SerializedSchema, StoreSchema } from './StoreSchema'
 import { StoreSideEffects } from './StoreSideEffects'
 import { devFreeze } from './devFreeze'
 
-/** @public */
+/**
+ * Extracts the record type from a record ID type.
+ *
+ * @example
+ * ```ts
+ * type BookId = RecordId<Book>
+ * type BookType = RecordFromId<BookId> // Book
+ * ```
+ *
+ * @public
+ */
 export type RecordFromId<K extends RecordId<UnknownRecord>> =
 	K extends RecordId<infer R> ? R : never
 
 /**
  * A diff describing the changes to a collection.
  *
+ * @example
+ * ```ts
+ * const diff: CollectionDiff<string> = {
+ *   added: new Set(['newItem']),
+ *   removed: new Set(['oldItem'])
+ * }
+ * ```
+ *
  * @public
  */
 export interface CollectionDiff<T> {
+	/** Items that were added to the collection */
 	added?: Set<T>
+	/** Items that were removed from the collection */
 	removed?: Set<T>
 }
 
-/** @public */
+/**
+ * The source of a change to the store.
+ * - `'user'` - Changes originating from local user actions
+ * - `'remote'` - Changes originating from remote synchronization
+ *
+ * @public
+ */
 export type ChangeSource = 'user' | 'remote'
 
-/** @public */
+/**
+ * Filters for store listeners to control which changes trigger the listener.
+ *
+ * @example
+ * ```ts
+ * const filters: StoreListenerFilters = {
+ *   source: 'user', // Only listen to user changes
+ *   scope: 'document' // Only listen to document-scoped records
+ * }
+ * ```
+ *
+ * @public
+ */
 export interface StoreListenerFilters {
+	/** Filter by the source of changes */
 	source: ChangeSource | 'all'
+	/** Filter by the scope of records */
 	scope: RecordScope | 'all'
 }
 
 /**
  * An entry containing changes that originated either by user actions or remote changes.
+ * History entries are used to track and replay changes to the store.
+ *
+ * @example
+ * ```ts
+ * const entry: HistoryEntry<Book> = {
+ *   changes: {
+ *     added: { 'book:123': bookRecord },
+ *     updated: {},
+ *     removed: {}
+ *   },
+ *   source: 'user'
+ * }
+ * ```
  *
  * @public
  */
 export interface HistoryEntry<R extends UnknownRecord = UnknownRecord> {
+	/** The changes that occurred in this history entry */
 	changes: RecordsDiff<R>
+	/** The source of these changes */
 	source: ChangeSource
 }
 
 /**
  * A function that will be called when the history changes.
  *
+ * @example
+ * ```ts
+ * const listener: StoreListener<Book> = (entry) => {
+ *   console.log('Changes:', entry.changes)
+ *   console.log('Source:', entry.source)
+ * }
+ *
+ * store.listen(listener)
+ * ```
+ *
+ * @param entry - The history entry containing the changes
+ *
  * @public
  */
 export type StoreListener<R extends UnknownRecord> = (entry: HistoryEntry<R>) => void
 
 /**
- * A record store is a collection of records of different types.
+ * A computed cache that stores derived data for records.
+ * The cache automatically updates when underlying records change and cleans up when records are deleted.
+ *
+ * @example
+ * ```ts
+ * const expensiveCache = store.createComputedCache(
+ *   'expensive',
+ *   (book: Book) => performExpensiveCalculation(book)
+ * )
+ *
+ * const result = expensiveCache.get(bookId)
+ * ```
  *
  * @public
  */
 export interface ComputedCache<Data, R extends UnknownRecord> {
+	/**
+	 * Get the cached data for a record by its ID.
+	 *
+	 * @param id - The ID of the record
+	 * @returns The cached data or undefined if the record doesn't exist
+	 */
 	get(id: IdOf<R>): Data | undefined
 }
 
-/** @public */
+/**
+ * Options for creating a computed cache.
+ *
+ * @example
+ * ```ts
+ * const options: CreateComputedCacheOpts<string[], Book> = {
+ *   areRecordsEqual: (a, b) => a.title === b.title,
+ *   areResultsEqual: (a, b) => JSON.stringify(a) === JSON.stringify(b)
+ * }
+ * ```
+ *
+ * @public
+ */
 export interface CreateComputedCacheOpts<Data, R extends UnknownRecord> {
+	/** Custom equality function for comparing records */
 	areRecordsEqual?(a: R, b: R): boolean
+	/** Custom equality function for comparing results */
 	areResultsEqual?(a: Data, b: Data): boolean
 }
 
 /**
  * A serialized snapshot of the record store's values.
+ * This is a plain JavaScript object that can be saved to storage or transmitted over the network.
+ *
+ * @example
+ * ```ts
+ * const serialized: SerializedStore<Book> = {
+ *   'book:123': { id: 'book:123', typeName: 'book', title: 'The Lathe of Heaven' },
+ *   'book:456': { id: 'book:456', typeName: 'book', title: 'The Left Hand of Darkness' }
+ * }
+ * ```
  *
  * @public
  */
 export type SerializedStore<R extends UnknownRecord> = Record<IdOf<R>, R>
 
-/** @public */
+/**
+ * A snapshot of the store including both data and schema information.
+ * This enables proper migration when loading data from different schema versions.
+ *
+ * @example
+ * ```ts
+ * const snapshot = store.getStoreSnapshot()
+ * // Later...
+ * store.loadStoreSnapshot(snapshot)
+ * ```
+ *
+ * @public
+ */
 export interface StoreSnapshot<R extends UnknownRecord> {
+	/** The serialized store data */
 	store: SerializedStore<R>
+	/** The serialized schema information */
 	schema: SerializedSchema
 }
 
-/** @public */
+/**
+ * A validator for store records that ensures data integrity.
+ * Validators are called when records are created or updated.
+ *
+ * @example
+ * ```ts
+ * const bookValidator: StoreValidator<Book> = {
+ *   validate(record: unknown): Book {
+ *     // Validate and return the record
+ *     if (typeof record !== 'object' || !record.title) {
+ *       throw new Error('Invalid book')
+ *     }
+ *     return record as Book
+ *   }
+ * }
+ * ```
+ *
+ * @public
+ */
 export interface StoreValidator<R extends UnknownRecord> {
+	/**
+	 * Validate a record.
+	 *
+	 * @param record - The record to validate
+	 * @returns The validated record
+	 * @throws When validation fails
+	 */
 	validate(record: unknown): R
+	/**
+	 * Validate a record using a known good version for reference.
+	 *
+	 * @param knownGoodVersion - A known valid version of the record
+	 * @param record - The record to validate
+	 * @returns The validated record
+	 */
 	validateUsingKnownGoodVersion?(knownGoodVersion: R, record: unknown): R
 }
 
-/** @public */
+/**
+ * A map of validators for each record type in the store.
+ *
+ * @example
+ * ```ts
+ * const validators: StoreValidators<Book | Author> = {
+ *   book: bookValidator,
+ *   author: authorValidator
+ * }
+ * ```
+ *
+ * @public
+ */
 export type StoreValidators<R extends UnknownRecord> = {
 	[K in R['typeName']]: StoreValidator<Extract<R, { typeName: K }>>
 }
 
-/** @public */
+/**
+ * Information about an error that occurred in the store.
+ *
+ * @example
+ * ```ts
+ * const error: StoreError = {
+ *   error: new Error('Validation failed'),
+ *   phase: 'updateRecord',
+ *   recordBefore: oldRecord,
+ *   recordAfter: newRecord,
+ *   isExistingValidationIssue: false
+ * }
+ * ```
+ *
+ * @public
+ */
 export interface StoreError {
+	/** The error that occurred */
 	error: Error
+	/** The phase during which the error occurred */
 	phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests'
+	/** The record state before the operation (if applicable) */
 	recordBefore?: unknown
+	/** The record state after the operation */
 	recordAfter: unknown
+	/** Whether this is an existing validation issue */
 	isExistingValidationIssue: boolean
 }
 
-/** @internal */
+/**
+ * Extract the record type from a Store type.
+ * Used internally for type inference.
+ *
+ * @internal
+ */
 export type StoreRecord<S extends Store<any>> = S extends Store<infer R> ? R : never
 
 /**
- * A store of records.
+ * A reactive store that manages collections of typed records.
+ *
+ * The Store is the central container for your application's data, providing:
+ * - Reactive state management with automatic updates
+ * - Type-safe record operations
+ * - History tracking and change notifications
+ * - Schema validation and migrations
+ * - Side effects and business logic hooks
+ * - Efficient querying and indexing
+ *
+ * @example
+ * ```ts
+ * // Create a store with schema
+ * const schema = StoreSchema.create({
+ *   book: Book,
+ *   author: Author
+ * })
+ *
+ * const store = new Store({
+ *   schema,
+ *   props: {}
+ * })
+ *
+ * // Add records
+ * const book = Book.create({ title: 'The Lathe of Heaven', author: 'Le Guin' })
+ * store.put([book])
+ *
+ * // Listen to changes
+ * store.listen((entry) => {
+ *   console.log('Changes:', entry.changes)
+ * })
+ * ```
  *
  * @public
  */
 export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	/**
-	 * The random id of the store.
+	 * The unique identifier of the store instance.
+	 *
+	 * @public
 	 */
 	public readonly id: string
 	/**
@@ -140,7 +363,19 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	})
 
 	/**
-	 * A StoreQueries instance for this store.
+	 * Reactive queries and indexes for efficiently accessing store data.
+	 * Provides methods for filtering, indexing, and subscribing to subsets of records.
+	 *
+	 * @example
+	 * ```ts
+	 * // Create an index by a property
+	 * const booksByAuthor = store.query.index('book', 'author')
+	 *
+	 * // Get records matching criteria
+	 * const inStockBooks = store.query.records('book', () => ({
+	 *   inStock: { eq: true }
+	 * }))
+	 * ```
 	 *
 	 * @public
 	 * @readonly
@@ -178,23 +413,65 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		/* noop */
 	}
 
+	/**
+	 * The schema that defines the structure and validation rules for records in this store.
+	 *
+	 * @public
+	 */
 	readonly schema: StoreSchema<R, Props>
 
+	/**
+	 * Custom properties associated with this store instance.
+	 *
+	 * @public
+	 */
 	readonly props: Props
 
+	/**
+	 * A mapping of record scopes to the set of record type names that belong to each scope.
+	 * Used to filter records by their persistence and synchronization behavior.
+	 *
+	 * @public
+	 */
 	public readonly scopedTypes: { readonly [K in RecordScope]: ReadonlySet<R['typeName']> }
 
+	/**
+	 * Side effects manager that handles lifecycle events for record operations.
+	 * Allows registration of callbacks for create, update, delete, and validation events.
+	 *
+	 * @example
+	 * ```ts
+	 * store.sideEffects.registerAfterCreateHandler('book', (book) => {
+	 *   console.log('Book created:', book.title)
+	 * })
+	 * ```
+	 *
+	 * @public
+	 */
 	public readonly sideEffects = new StoreSideEffects<R>(this)
 
+	/**
+	 * Creates a new Store instance.
+	 *
+	 * @example
+	 * ```ts
+	 * const store = new Store({
+	 *   schema: StoreSchema.create({ book: Book }),
+	 *   props: { appName: 'MyLibrary' },
+	 *   initialData: savedData
+	 * })
+	 * ```
+	 *
+	 * @param config - Configuration object for the store
+	 */
 	constructor(config: {
+		/** Optional unique identifier for the store */
 		id?: string
-		/** The store's initial data. */
+		/** The store's initial data to populate on creation */
 		initialData?: SerializedStore<R>
-		/**
-		 * A map of validators for each record type. A record's validator will be called when the record
-		 * is created or updated. It should throw an error if the record is invalid.
-		 */
+		/** The schema defining record types, validation, and migrations */
 		schema: StoreSchema<R, Props>
+		/** Custom properties for the store instance */
 		props: Props
 	}) {
 		const { initialData, schema, id } = config
@@ -327,10 +604,21 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	/**
-	 * Add some records to the store. It's an error if they already exist.
+	 * Add or update records in the store. If a record with the same ID already exists, it will be updated.
+	 * Otherwise, a new record will be created.
 	 *
-	 * @param records - The records to add.
-	 * @param phaseOverride - The phase override.
+	 * @example
+	 * ```ts
+	 * // Add new records
+	 * const book = Book.create({ title: 'Lathe Of Heaven', author: 'Le Guin' })
+	 * store.put([book])
+	 *
+	 * // Update existing record
+	 * store.put([{ ...book, title: 'The Lathe of Heaven' }])
+	 * ```
+	 *
+	 * @param records - The records to add or update
+	 * @param phaseOverride - Override the validation phase (used internally)
 	 * @public
 	 */
 	put(records: R[], phaseOverride?: 'initialize'): void {
@@ -411,9 +699,18 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	/**
-	 * Remove some records from the store via their ids.
+	 * Remove records from the store by their IDs.
 	 *
-	 * @param ids - The ids of the records to remove.
+	 * @example
+	 * ```ts
+	 * // Remove a single record
+	 * store.remove([book.id])
+	 *
+	 * // Remove multiple records
+	 * store.remove([book1.id, book2.id, book3.id])
+	 * ```
+	 *
+	 * @param ids - The IDs of the records to remove
 	 * @public
 	 */
 	remove(ids: IdOf<R>[]): void {
@@ -447,9 +744,18 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	/**
-	 * Get the value of a store record by its id.
+	 * Get a record by its ID. This creates a reactive subscription to the record.
 	 *
-	 * @param id - The id of the record to get.
+	 * @example
+	 * ```ts
+	 * const book = store.get(bookId)
+	 * if (book) {
+	 *   console.log(book.title)
+	 * }
+	 * ```
+	 *
+	 * @param id - The ID of the record to get
+	 * @returns The record if it exists, undefined otherwise
 	 * @public
 	 */
 	get<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined {
@@ -457,9 +763,17 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	/**
-	 * Get the value of a store record by its id without updating its epoch.
+	 * Get a record by its ID without creating a reactive subscription.
+	 * Use this when you need to access a record but don't want reactive updates.
 	 *
-	 * @param id - The id of the record to get.
+	 * @example
+	 * ```ts
+	 * // Won't trigger reactive updates when this record changes
+	 * const book = store.unsafeGetWithoutCapture(bookId)
+	 * ```
+	 *
+	 * @param id - The ID of the record to get
+	 * @returns The record if it exists, undefined otherwise
 	 * @public
 	 */
 	unsafeGetWithoutCapture<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined {
@@ -467,10 +781,21 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	/**
-	 * Creates a JSON payload from the record store.
+	 * Serialize the store's records to a plain JavaScript object.
+	 * Only includes records matching the specified scope.
 	 *
-	 * @param scope - The scope of records to serialize. Defaults to 'document'.
-	 * @returns The record store snapshot as a JSON payload.
+	 * @example
+	 * ```ts
+	 * // Serialize only document records (default)
+	 * const documentData = store.serialize('document')
+	 *
+	 * // Serialize all records
+	 * const allData = store.serialize('all')
+	 * ```
+	 *
+	 * @param scope - The scope of records to serialize. Defaults to 'document'
+	 * @returns The serialized store data
+	 * @public
 	 */
 	serialize(scope: RecordScope | 'all' = 'document'): SerializedStore<R> {
 		const result = {} as SerializedStore<R>
@@ -484,14 +809,20 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 	/**
 	 * Get a serialized snapshot of the store and its schema.
+	 * This includes both the data and schema information needed for proper migration.
 	 *
+	 * @example
 	 * ```ts
 	 * const snapshot = store.getStoreSnapshot()
-	 * store.loadStoreSnapshot(snapshot)
+	 * localStorage.setItem('myApp', JSON.stringify(snapshot))
+	 *
+	 * // Later...
+	 * const saved = JSON.parse(localStorage.getItem('myApp'))
+	 * store.loadStoreSnapshot(saved)
 	 * ```
 	 *
-	 * @param scope - The scope of records to serialize. Defaults to 'document'.
-	 *
+	 * @param scope - The scope of records to serialize. Defaults to 'document'
+	 * @returns A snapshot containing both store data and schema information
 	 * @public
 	 */
 	getStoreSnapshot(scope: RecordScope | 'all' = 'document'): StoreSnapshot<R> {
@@ -502,14 +833,18 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	/**
-	 * Migrate a serialized snapshot of the store and its schema.
+	 * Migrate a serialized snapshot to the current schema version.
+	 * This applies any necessary migrations to bring old data up to date.
 	 *
+	 * @example
 	 * ```ts
-	 * const snapshot = store.getStoreSnapshot()
-	 * store.migrateSnapshot(snapshot)
+	 * const oldSnapshot = JSON.parse(localStorage.getItem('myApp'))
+	 * const migratedSnapshot = store.migrateSnapshot(oldSnapshot)
 	 * ```
 	 *
-	 * @param snapshot - The snapshot to load.
+	 * @param snapshot - The snapshot to migrate
+	 * @returns The migrated snapshot with current schema version
+	 * @throws Error if migration fails
 	 * @public
 	 */
 	migrateSnapshot(snapshot: StoreSnapshot<R>): StoreSnapshot<R> {
@@ -526,14 +861,17 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	/**
-	 * Load a serialized snapshot.
+	 * Load a serialized snapshot into the store, replacing all current data.
+	 * The snapshot will be automatically migrated to the current schema version if needed.
 	 *
+	 * @example
 	 * ```ts
-	 * const snapshot = store.getStoreSnapshot()
+	 * const snapshot = JSON.parse(localStorage.getItem('myApp'))
 	 * store.loadStoreSnapshot(snapshot)
 	 * ```
 	 *
-	 * @param snapshot - The snapshot to load.
+	 * @param snapshot - The snapshot to load
+	 * @throws Error if migration fails or snapshot is invalid
 	 * @public
 	 */
 	loadStoreSnapshot(snapshot: StoreSnapshot<R>): void {
@@ -557,9 +895,15 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	/**
-	 * Get an array of all values in the store.
+	 * Get an array of all records in the store.
 	 *
-	 * @returns An array of all values in the store.
+	 * @example
+	 * ```ts
+	 * const allRecords = store.allRecords()
+	 * const books = allRecords.filter(r => r.typeName === 'book')
+	 * ```
+	 *
+	 * @returns An array containing all records in the store
 	 * @public
 	 */
 	allRecords(): R[] {
@@ -567,7 +911,13 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	/**
-	 * Removes all records from the store.
+	 * Remove all records from the store.
+	 *
+	 * @example
+	 * ```ts
+	 * store.clear()
+	 * console.log(store.allRecords().length) // 0
+	 * ```
 	 *
 	 * @public
 	 */
@@ -576,11 +926,20 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	/**
-	 * Update a record. To update multiple records at once, use the `update` method of the
-	 * `TypedStore` class.
+	 * Update a single record using an updater function. To update multiple records at once,
+	 * use the `update` method of the `TypedStore` class.
 	 *
-	 * @param id - The id of the record to update.
-	 * @param updater - A function that updates the record.
+	 * @example
+	 * ```ts
+	 * store.update(book.id, (book) => ({
+	 *   ...book,
+	 *   title: 'Updated Title'
+	 * }))
+	 * ```
+	 *
+	 * @param id - The ID of the record to update
+	 * @param updater - A function that receives the current record and returns the updated record
+	 * @public
 	 */
 	update<K extends IdOf<R>>(id: K, updater: (record: RecordFromId<K>) => RecordFromId<K>) {
 		const existing = this.unsafeGetWithoutCapture(id)
@@ -593,9 +952,17 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	/**
-	 * Get whether the record store has a id.
+	 * Check whether a record with the given ID exists in the store.
 	 *
-	 * @param id - The id of the record to check.
+	 * @example
+	 * ```ts
+	 * if (store.has(bookId)) {
+	 *   console.log('Book exists!')
+	 * }
+	 * ```
+	 *
+	 * @param id - The ID of the record to check
+	 * @returns True if the record exists, false otherwise
 	 * @public
 	 */
 	has<K extends IdOf<R>>(id: K): boolean {
@@ -603,11 +970,30 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	/**
-	 * Add a new listener to the store.
+	 * Add a listener that will be called when the store changes.
+	 * Returns a function to remove the listener.
 	 *
-	 * @param onHistory - The listener to call when the store updates.
-	 * @param filters - Filters to apply to the listener.
-	 * @returns A function to remove the listener.
+	 * @example
+	 * ```ts
+	 * const removeListener = store.listen((entry) => {
+	 *   console.log('Changes:', entry.changes)
+	 *   console.log('Source:', entry.source)
+	 * })
+	 *
+	 * // Listen only to user changes to document records
+	 * const removeDocumentListener = store.listen(
+	 *   (entry) => console.log('Document changed:', entry),
+	 *   { source: 'user', scope: 'document' }
+	 * )
+	 *
+	 * // Later, remove the listener
+	 * removeListener()
+	 * ```
+	 *
+	 * @param onHistory - The listener function to call when changes occur
+	 * @param filters - Optional filters to control when the listener is called
+	 * @returns A function that removes the listener when called
+	 * @public
 	 */
 	listen(onHistory: StoreListener<R>, filters?: Partial<StoreListenerFilters>) {
 		// flush history so that this listener's history starts from exactly now
@@ -640,9 +1026,19 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	private isMergingRemoteChanges = false
 
 	/**
-	 * Merge changes from a remote source
+	 * Merge changes from a remote source. Changes made within the provided function
+	 * will be marked with source 'remote' instead of 'user'.
 	 *
-	 * @param fn - A function that merges the external changes.
+	 * @example
+	 * ```ts
+	 * // Changes from sync/collaboration
+	 * store.mergeRemoteChanges(() => {
+	 *   store.put(remoteRecords)
+	 *   store.remove(deletedIds)
+	 * })
+	 * ```
+	 *
+	 * @param fn - A function that applies the remote changes
 	 * @public
 	 */
 	mergeRemoteChanges(fn: () => void) {
@@ -888,12 +1284,25 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 }
 
 /**
- * Collect all history entries by their adjacent sources.
- * For example, [user, user, remote, remote, user] would result in [user, remote, user],
- * with adjacent entries of the same source squashed into a single entry.
+ * Collect and squash history entries by their adjacent sources.
+ * Adjacent entries from the same source are combined into a single entry.
  *
- * @param entries - The array of history entries.
- * @returns A map of history entries by their sources.
+ * For example: [user, user, remote, remote, user] becomes [user, remote, user]
+ *
+ * @example
+ * ```ts
+ * const entries = [
+ *   { source: 'user', changes: userChanges1 },
+ *   { source: 'user', changes: userChanges2 },
+ *   { source: 'remote', changes: remoteChanges }
+ * ]
+ *
+ * const squashed = squashHistoryEntries(entries)
+ * // Results in 2 entries: combined user changes + remote changes
+ * ```
+ *
+ * @param entries - The array of history entries to squash
+ * @returns An array of squashed history entries
  * @public
  */
 function squashHistoryEntries<T extends UnknownRecord>(
@@ -924,11 +1333,21 @@ function squashHistoryEntries<T extends UnknownRecord>(
 	)
 }
 
+/**
+ * Internal class that accumulates history entries before they are flushed to listeners.
+ * Handles batching and squashing of adjacent entries from the same source.
+ *
+ * @internal
+ */
 class HistoryAccumulator<T extends UnknownRecord> {
 	private _history: HistoryEntry<T>[] = []
 
 	private _interceptors: Set<(entry: HistoryEntry<T>) => void> = new Set()
 
+	/**
+	 * Add an interceptor that will be called for each history entry.
+	 * Returns a function to remove the interceptor.
+	 */
 	addInterceptor(fn: (entry: HistoryEntry<T>) => void) {
 		this._interceptors.add(fn)
 		return () => {
@@ -936,6 +1355,10 @@ class HistoryAccumulator<T extends UnknownRecord> {
 		}
 	}
 
+	/**
+	 * Add a history entry to the accumulator.
+	 * Calls all registered interceptors with the entry.
+	 */
 	add(entry: HistoryEntry<T>) {
 		this._history.push(entry)
 		for (const interceptor of this._interceptors) {
@@ -943,39 +1366,82 @@ class HistoryAccumulator<T extends UnknownRecord> {
 		}
 	}
 
+	/**
+	 * Flush all accumulated history entries, squashing adjacent entries from the same source.
+	 * Clears the internal history buffer.
+	 */
 	flush() {
 		const history = squashHistoryEntries(this._history)
 		this._history = []
 		return history
 	}
 
+	/**
+	 * Clear all accumulated history entries without flushing.
+	 */
 	clear() {
 		this._history = []
 	}
 
+	/**
+	 * Check if there are any accumulated history entries.
+	 */
 	hasChanges() {
 		return this._history.length > 0
 	}
 }
 
-/** @public */
+/**
+ * A store or an object containing a store.
+ * This type is used for APIs that can accept either a store directly or an object with a store property.
+ *
+ * @example
+ * ```ts
+ * function useStore(storeOrObject: StoreObject<MyRecord>) {
+ *   const store = storeOrObject instanceof Store ? storeOrObject : storeOrObject.store
+ *   return store
+ * }
+ * ```
+ *
+ * @public
+ */
 export type StoreObject<R extends UnknownRecord> = Store<R> | { store: Store<R> }
-/** @public */
+/**
+ * Extract the record type from a StoreObject.
+ *
+ * @example
+ * ```ts
+ * type MyStoreObject = { store: Store<Book | Author> }
+ * type Records = StoreObjectRecordType<MyStoreObject> // Book | Author
+ * ```
+ *
+ * @public
+ */
 export type StoreObjectRecordType<Context extends StoreObject<any>> =
 	Context extends Store<infer R> ? R : Context extends { store: Store<infer R> } ? R : never
 
 /**
- * Free version of {@link Store.createComputedCache}.
+ * Create a computed cache that works with any StoreObject (store or object containing a store).
+ * This is a standalone version of Store.createComputedCache that can work with multiple store instances.
  *
  * @example
  * ```ts
- * const myCache = createComputedCache('myCache', (editor: Editor, shape: TLShape) => {
- *     return editor.getSomethingExpensive(shape)
- * })
+ * const expensiveCache = createComputedCache(
+ *   'expensiveData',
+ *   (context: { store: Store<Book> }, book: Book) => {
+ *     return performExpensiveCalculation(book)
+ *   }
+ * )
  *
- * myCache.get(editor, shape.id)
+ * // Use with different store instances
+ * const result1 = expensiveCache.get(storeObject1, bookId)
+ * const result2 = expensiveCache.get(storeObject2, bookId)
  * ```
  *
+ * @param name - A unique name for the cache (used for debugging)
+ * @param derive - Function that derives a value from the context and record
+ * @param opts - Optional configuration for equality checks
+ * @returns A cache that can be used with multiple store instances
  * @public
  */
 export function createComputedCache<

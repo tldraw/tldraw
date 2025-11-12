@@ -34,12 +34,19 @@ function scrollActiveFileLinkIntoView() {
 	}
 }
 
-export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId: string }) {
+export function TlaSidebarFileLink({
+	item,
+	testId,
+	groupId,
+}: {
+	item: RecentFile
+	testId: string
+	groupId: string | null
+}) {
 	const app = useApp()
 	const intl = useIntl()
 	const { fileSlug } = useParams<{ fileSlug: string }>()
 	const { fileId } = item
-	const isOwnFile = useIsFileOwner(fileId)
 	const isActive = fileSlug === fileId
 	const fileName = useValue('file name', () => app.getFileName(fileId), [fileId, app])
 	const isMobile = getIsCoarsePointer()
@@ -68,10 +75,10 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 			<_ContextMenu.Trigger>
 				<TlaSidebarFileLinkInner
 					fileId={fileId}
+					groupId={groupId}
 					fileName={fileName}
 					testId={testId}
 					isActive={isActive}
-					isOwnFile={isOwnFile}
 					href={routes.tlaFile(fileId)}
 					onClose={() => setIsRenaming(false)}
 					isRenaming={isRenaming}
@@ -87,6 +94,7 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 								source="sidebar-context-menu"
 								fileId={fileId}
 								onRenameAction={handleRenameAction}
+								groupId={groupId}
 							/>
 						</FileItemsWrapper>
 					</TldrawUiMenuContextProvider>
@@ -105,23 +113,22 @@ export function TlaSidebarFileLinkInner({
 	testId,
 	fileId,
 	isActive,
-	isOwnFile,
-	// owner,
 	fileName,
 	href,
 	isRenaming,
 	handleRenameAction,
 	onClose,
+	groupId,
 }: {
 	fileId: string
 	testId: string | number
 	isActive: boolean
-	isOwnFile: boolean
 	fileName: string
 	href: string
 	isRenaming: boolean
 	handleRenameAction(): void
 	onClose(): void
+	groupId: string | null
 }) {
 	const trackEvent = useTldrawAppUiEvents()
 	const linkRef = useRef<HTMLAnchorElement | null>(null)
@@ -152,10 +159,13 @@ export function TlaSidebarFileLinkInner({
 
 	useEffect(() => {
 		if (!isActive || !linkRef.current) return
+		// Don't focus if any menus are open to prevent dismissing them
+		if (editor?.menus.hasAnyOpenMenus()) return
 		linkRef.current.focus()
-	}, [isActive, linkRef])
+	}, [isActive, linkRef, editor])
 
 	const file = useValue('file', () => app.getFile(fileId), [fileId, app])
+	const isOwnFile = useIsFileOwner(fileId)
 	if (!file) return null
 
 	if (isRenaming) {
@@ -210,7 +220,11 @@ export function TlaSidebarFileLinkInner({
 				</div>
 				{!isOwnFile && <GuestBadge file={file} href={href} />}
 			</div>
-			<TlaSidebarFileLinkMenu fileId={fileId} onRenameAction={handleRenameAction} />
+			<TlaSidebarFileLinkMenu
+				groupId={groupId}
+				fileId={fileId}
+				onRenameAction={handleRenameAction}
+			/>
 		</div>
 	)
 }

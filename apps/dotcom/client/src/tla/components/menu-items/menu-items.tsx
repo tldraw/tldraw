@@ -15,6 +15,7 @@ import {
 } from 'tldraw'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { routes } from '../../../routeDefs'
+import { signoutAnalytics } from '../../../utils/analytics'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
@@ -54,6 +55,7 @@ export function SignOutMenuItem() {
 	const label = useMsg(messages.signOut)
 
 	const handleSignout = useCallback(() => {
+		signoutAnalytics()
 		auth.signOut().then(clearLocalSessionState)
 		trackEvent('sign-out-clicked', { source: 'sidebar' })
 	}, [auth, trackEvent])
@@ -131,7 +133,10 @@ export function DotDevMenuItem() {
 			iconLeft="external-link"
 			readonlyOk
 			onSelect={() => {
-				openAndTrack('https://tldraw.dev')
+				openAndTrack(
+					'https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=sidebar-menu',
+					true
+				)
 			}}
 		/>
 	)
@@ -145,7 +150,7 @@ export function LegalSummaryMenuItem() {
 			label={useMsg(messages.legalSummary)}
 			readonlyOk
 			onSelect={() => {
-				openAndTrack('https://tldraw.notion.site/legal')
+				openAndTrack('/legal.html')
 			}}
 		/>
 	)
@@ -179,8 +184,8 @@ export function ImportFileActionItem() {
 						description: 'tldraw project',
 					})
 
-					app.uploadTldrFiles(tldrawFiles, (file) => {
-						navigate(routes.tlaFile(file.id), { state: { mode: 'create' } })
+					app.uploadTldrFiles(tldrawFiles, (fileId) => {
+						navigate(routes.tlaFile(fileId), { state: { mode: 'create' } })
 					})
 				} catch {
 					// user cancelled

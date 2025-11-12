@@ -6,16 +6,12 @@
 
 // @internal
 export class ArraySet<T> {
-    // (undocumented)
     [Symbol.iterator](): Generator<T, void, unknown>;
     add(elem: T): boolean;
-    // (undocumented)
     clear(): void;
-    // (undocumented)
     has(elem: T): boolean;
     get isEmpty(): boolean;
     remove(elem: T): boolean;
-    // (undocumented)
     size(): number;
     visit(visitor: (item: T) => void): void;
 }
@@ -39,21 +35,14 @@ export interface AtomOptions<Value, Diff> {
     isEqual?(a: any, b: any): boolean;
 }
 
-// @internal (undocumented)
+// @internal
 export interface Child {
-    // (undocumented)
     __debug_ancestor_epochs__: Map<Signal<any, any>, number> | null;
-    // (undocumented)
     isActivelyListening: boolean;
-    // (undocumented)
     lastTraversedEpoch: number;
-    // (undocumented)
     readonly name: string;
-    // (undocumented)
     readonly parentEpochs: number[];
-    // (undocumented)
     readonly parents: Signal<any, any>[];
-    // (undocumented)
     readonly parentSet: ArraySet<Signal<any, any>>;
 }
 
@@ -90,7 +79,7 @@ export interface ComputedOptions<Value, Diff> {
     isEqual?(a: any, b: any): boolean;
 }
 
-// @internal (undocumented)
+// @internal
 export function deferAsyncEffects<T>(fn: () => Promise<T>): Promise<T | undefined>;
 
 // @public
@@ -137,7 +126,7 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
 // @public
 export function isAtom(value: unknown): value is Atom<unknown>;
 
-// @public (undocumented)
+// @public
 export function isSignal(value: any): value is Signal<any>;
 
 // @public
@@ -161,10 +150,10 @@ export interface Reactor<T = unknown> {
 // @public
 export function reactor<Result>(name: string, fn: (lastReactedEpoch: number) => Result, options?: EffectSchedulerOptions): Reactor<Result>;
 
-// @public (undocumented)
+// @public
 export const RESET_VALUE: unique symbol;
 
-// @public (undocumented)
+// @public
 export type RESET_VALUE = typeof RESET_VALUE;
 
 // @public
@@ -184,7 +173,7 @@ export function transact<T>(fn: () => T): T;
 // @public
 export function transaction<T>(fn: (rollback: () => void) => T): T;
 
-// @public (undocumented)
+// @public
 export const UNINITIALIZED: unique symbol;
 
 // @public
@@ -196,7 +185,7 @@ export function unsafe__withoutCapture<T>(fn: () => T): T;
 // @public
 export function whyAmIRunning(): void;
 
-// @public (undocumented)
+// @public
 export const WithDiff: {
     new <Value, Diff>(value: Value, diff: Diff): {
         diff: Diff;
@@ -204,11 +193,9 @@ export const WithDiff: {
     };
 };
 
-// @public (undocumented)
+// @public
 export interface WithDiff<Value, Diff> {
-    // (undocumented)
     diff: Diff;
-    // (undocumented)
     value: Value;
 }
 

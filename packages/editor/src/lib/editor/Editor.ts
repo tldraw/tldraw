@@ -69,6 +69,7 @@ import {
 	JsonObject,
 	PerformanceTracker,
 	Result,
+	ZERO_INDEX_KEY,
 	annotateError,
 	assert,
 	assertExists,
@@ -835,6 +836,35 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly root: StateNode
+
+	/**
+	 * Set a tool. Useful if you need to add a tool to the state chart on demand,
+	 * after the editor has already been initialized.
+	 *
+	 * @param Tool - The tool to set.
+	 *
+	 * @public
+	 */
+	setTool(Tool: TLStateNodeConstructor) {
+		if (hasOwnProperty(this.root.children!, Tool.id)) {
+			throw Error(`Can't override tool with id "${Tool.id}"`)
+		}
+		this.root.children![Tool.id] = new Tool(this, this.root)
+	}
+
+	/**
+	 * Remove a tool. Useful if you need to remove a tool from the state chart on demand,
+	 * after the editor has already been initialized.
+	 *
+	 * @param Tool - The tool to delete.
+	 *
+	 * @public
+	 */
+	removeTool(Tool: TLStateNodeConstructor) {
+		if (hasOwnProperty(this.root.children!, Tool.id)) {
+			delete this.root.children![Tool.id]
+		}
+	}
 
 	/**
 	 * A set of functions to call when the app is disposed.
@@ -5663,7 +5693,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const children = this._parentIdsToChildIds.get()[parentId]
 
 		if (!children || children.length === 0) {
-			return 'a1' as IndexKey
+			return getIndexAbove(ZERO_INDEX_KEY)
 		}
 		const shape = this.getShape(children[children.length - 1])!
 		return getIndexAbove(shape.index)

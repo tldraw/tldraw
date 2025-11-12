@@ -73,6 +73,7 @@ export {
 	getIndicesBelow,
 	getIndicesBetween,
 	sortByIndex,
+	sortByMaybeIndex,
 	validateIndexKey,
 	ZERO_INDEX_KEY,
 	type IndexKey,

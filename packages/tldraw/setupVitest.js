@@ -1,3 +1,31 @@
+import { vi } from 'vitest'
+
+// Mock the breakpoints context to provide a default breakpoint value in tests
+// This prevents errors when components use useBreakpoint() without a BreakpointProvider
+vi.mock('./src/lib/ui/context/breakpoints', async () => {
+	const actual = await vi.importActual('./src/lib/ui/context/breakpoints')
+	return {
+		...actual,
+		useBreakpoint: () => 7, // PORTRAIT_BREAKPOINT.DESKTOP
+	}
+})
+
+// Mock the translation hooks to provide default translation functions in tests
+// This prevents errors when components use useTranslation() without a TldrawUiTranslationProvider
+vi.mock('./src/lib/ui/hooks/useTranslation/useTranslation', async () => {
+	const actual = await vi.importActual('./src/lib/ui/hooks/useTranslation/useTranslation')
+	return {
+		...actual,
+		useCurrentTranslation: () => ({
+			locale: 'en',
+			label: 'English',
+			dir: 'ltr',
+			messages: {},
+		}),
+		useTranslation: () => (key) => key || '', // Return the key itself as the translation
+	}
+})
+
 // Vitest setup file for tldraw package
 // Converted from setupTests.js to provide the same polyfills and global setup
 

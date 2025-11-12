@@ -313,27 +313,28 @@ describe('TLSyncRoom.updateStore', () => {
 		expect(documentClock).toBeLessThan(room.documentClock)
 
 		expect(socketA.__lastMessage).toMatchInlineSnapshot(`
-		{
-		  "data": [
-		    {
-		      "diff": {
-		        "document:document": [
-		          "patch",
-		          {
-		            "name": [
-		              "put",
-		              "My lovely document",
-		            ],
-		          },
-		        ],
-		      },
-		      "serverClock": 1,
-		      "type": "patch",
-		    },
-		  ],
-		  "type": "data",
-		}
-	`)
+			{
+			  "data": [
+			    {
+			      "diff": {
+			        "document:document": [
+			          "patch",
+			          {
+			            "name": [
+			              "append",
+			              "My lovely document",
+			              0,
+			            ],
+			          },
+			        ],
+			      },
+			      "serverClock": 1,
+			      "type": "patch",
+			    },
+			  ],
+			  "type": "data",
+			}
+		`)
 		expect(socketB.__lastMessage).toEqual(socketA.__lastMessage)
 	})
 

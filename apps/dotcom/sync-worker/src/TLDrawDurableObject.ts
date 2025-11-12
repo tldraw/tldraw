@@ -1,6 +1,6 @@
 /// <reference no-default-lib="true"/>
-/// <reference types="@cloudflare/workers-types" />
 
+import { R2Bucket } from '@cloudflare/workers-types'
 import { SupabaseClient } from '@supabase/supabase-js'
 import {
 	APP_ASSET_UPLOAD_ENDPOINT,
@@ -14,6 +14,7 @@ import {
 	ROOM_PREFIX,
 	ROOM_SIZE_LIMIT_MB,
 	SNAPSHOT_PREFIX,
+	TLCustomServerEvent,
 	TlaFile,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
@@ -45,6 +46,7 @@ import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { generateSnapshotChunks } from './snapshotUtils'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
+import { createPierreClient } from './utils/createPierreClient'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
@@ -173,6 +175,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 	// For persistence
 	supabaseClient: SupabaseClient | void
+	pierreClient: ReturnType<typeof createPierreClient>
 
 	// For analytics
 	measure: Analytics | undefined
@@ -201,6 +204,7 @@ export class TLDrawDurableObject extends DurableObject {
 		this.measure = env.MEASURE
 		this.sentry = createSentry(this.state, this.env)
 		this.supabaseClient = createSupabaseClient(env)
+		this.pierreClient = createPierreClient(env)
 
 		this.supabaseTable = env.TLDRAW_ENV === 'production' ? 'drawings' : 'drawings_staging'
 		this.r2 = {
@@ -250,6 +254,11 @@ export class TLDrawDurableObject extends DurableObject {
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
 			(req) => this.onRestore(req)
 		)
+		.post(
+			`/app/file/:roomId/pierre-restore`,
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
+			(req) => this.onRestore(req, true)
+		)
 		.all('*', () => new Response('Not found', { status: 404 }))
 
 	// eslint-disable-next-line no-restricted-syntax
@@ -297,23 +306,49 @@ export class TLDrawDurableObject extends DurableObject {
 	}
 
 	_isRestoring = false
-	async onRestore(req: IRequest) {
+	async onRestore(req: IRequest, isPierre: boolean = false) {
 		this._isRestoring = true
 		try {
+			if (isPierre && !this.documentInfo.isApp) {
+				return new Response('Pierre restore must be for an app file', { status: 400 })
+			}
 			if (this.documentInfo.isApp) {
 				await requireWriteAccessToFile(req, this.env, this.documentInfo.slug)
 			}
+			let dataText = ''
 			const roomId = this.documentInfo.slug
 			const roomKey = getR2KeyForRoom({ slug: roomId, isApp: this.documentInfo.isApp })
-			const timestamp = ((await req.json()) as any).timestamp
-			if (!timestamp) {
-				return new Response('Missing timestamp', { status: 400 })
+			if (isPierre) {
+				const commitHash = ((await req.json()) as any).commitHash
+				if (!commitHash) {
+					return new Response('Missing commit hash', { status: 400 })
+				}
+				const repo = await this.getPierreRepo()
+				if (!repo) {
+					return new Response('Pierre not available', { status: 503 })
+				}
+				const fileStream = await repo.getFileStream({
+					path: SNAPSHOT_FILE_NAME,
+					ref: commitHash,
+				})
+				dataText = await fileStream.text()
+				await repo.restoreCommit({
+					targetCommitSha: commitHash,
+					targetBranch: 'main',
+					author: PIERRE_AUTHOR,
+				})
+			} else {
+				const timestamp = ((await req.json()) as any).timestamp
+				if (!timestamp) {
+					return new Response('Missing timestamp', { status: 400 })
+				}
+				const data = await this.r2.versionCache.get(`${roomKey}/${timestamp}`)
+				if (!data) {
+					return new Response('Version not found', { status: 400 })
+				}
+				dataText = await data.text()
 			}
-			const data = await this.r2.versionCache.get(`${roomKey}/${timestamp}`)
-			if (!data) {
-				return new Response('Version not found', { status: 400 })
-			}
-			const dataText = await data.text()
+
 			await this.r2.rooms.put(roomKey, dataText)
 			const room = await this.getRoom()
 
@@ -330,17 +365,20 @@ export class TLDrawDurableObject extends DurableObject {
 	// this might return null if the file doesn't exist yet in the backend, or if it was deleted
 	_fileRecordCache: TlaFile | null = null
 	async getAppFileRecord(): Promise<TlaFile | null> {
+		const timer = this.timer()
 		try {
-			return await retry(
+			const result = await retry(
 				async () => {
 					if (this._fileRecordCache) {
 						return this._fileRecordCache
 					}
+
 					const result = await this.db
 						.selectFrom('file')
 						.where('id', '=', this.documentInfo.slug)
 						.selectAll()
 						.executeTakeFirst()
+
 					if (!result) {
 						throw new Error('File not found')
 					}
@@ -352,12 +390,18 @@ export class TLDrawDurableObject extends DurableObject {
 					waitDuration: 100,
 				}
 			)
+
+			timer.report('get_file_record')
+			return result
 		} catch (_e) {
+			timer.report('get_file_record_error')
 			return null
 		}
 	}
 
 	async onRequest(req: IRequest, openMode: RoomOpenMode) {
+		const requestTimer = this.timer()
+
 		// extract query params from request, should include instanceId
 		const url = new URL(req.url)
 		const params = Object.fromEntries(url.searchParams.entries())
@@ -381,7 +425,10 @@ export class TLDrawDurableObject extends DurableObject {
 			return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 		}
 
+		const authTimer = this.timer()
 		const auth = await getAuth(req, this.env)
+		authTimer.report('on_request_auth')
+
 		if (this.documentInfo.isApp) {
 			openMode = ROOM_OPEN_MODE.READ_WRITE
 			const file = await this.getAppFileRecord()
@@ -398,6 +445,8 @@ export class TLDrawDurableObject extends DurableObject {
 				if (!auth && !file.shared) {
 					return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
 				}
+
+				const rateLimitTimer = this.timer()
 				if (auth?.userId) {
 					const rateLimited = await isRateLimited(this.env, auth?.userId)
 					if (rateLimited) {
@@ -421,7 +470,28 @@ export class TLDrawDurableObject extends DurableObject {
 						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
 					}
 				}
-				if (file.ownerId !== auth?.userId) {
+				rateLimitTimer.report('on_request_rate_limit')
+
+				// Check if user has owner access (directly or via group membership)
+				let hasOwnerAccess = false
+				if (file.ownerId && file.ownerId === auth?.userId) {
+					hasOwnerAccess = true
+				} else if (file.owningGroupId && auth?.userId) {
+					// Check if user is a member of the owning group
+					const groupCheckTimer = this.timer()
+					const groupMember = await this.db
+						.selectFrom('group_user')
+						.where('groupId', '=', file.owningGroupId)
+						.where('userId', '=', auth.userId)
+						.executeTakeFirst()
+					groupCheckTimer.report('on_request_group_check')
+
+					if (groupMember) {
+						hasOwnerAccess = true
+					}
+				}
+
+				if (!hasOwnerAccess) {
 					if (!file.shared) {
 						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
 					}
@@ -436,7 +506,10 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 
 		try {
+			const getRoomTimer = this.timer()
 			const room = await this.getRoom()
+			getRoomTimer.report('on_request_get_room')
+
 			// Don't connect if we're already at max connections
 			if (room.getNumActiveSessions() > MAX_CONNECTIONS) {
 				return closeSocket(TLSyncErrorCloseEventReason.ROOM_FULL)
@@ -468,6 +541,9 @@ export class TLDrawDurableObject extends DurableObject {
 				instanceId: sessionId,
 				localClientId: storeId,
 			})
+
+			requestTimer.report('on_request_total')
+
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		} catch (e) {
 			if (e === ROOM_NOT_FOUND) {
@@ -487,6 +563,10 @@ export class TLDrawDurableObject extends DurableObject {
 
 	logEvent(event: TLServerEvent) {
 		switch (event.type) {
+			case 'persist_success': {
+				this.writeEvent(event.type, { doubles: [event.attempts] })
+				break
+			}
 			case 'room': {
 				// we would add user/connection ids here if we could
 				this.writeEvent(event.name, { blobs: [event.roomId] })
@@ -529,12 +609,18 @@ export class TLDrawDurableObject extends DurableObject {
 
 		let data: RoomSnapshot | string | null | undefined = undefined
 		const [prefix, id] = split
+		const fetchTimer = this.timer()
 		switch (prefix) {
 			case FILE_PREFIX: {
+				const awaitPersistTimer = this.timer()
 				await getRoomDurableObject(this.env, id).awaitPersist()
+				awaitPersistTimer.report('create_from_source_await_persist')
+
+				const r2FetchTimer = this.timer()
 				data = await this.r2.rooms
 					.get(getR2KeyForRoom({ slug: id, isApp: true }))
 					.then((r) => r?.text())
+				r2FetchTimer.report('create_from_source_r2_fetch')
 				break
 			}
 			case ROOM_PREFIX:
@@ -557,13 +643,19 @@ export class TLDrawDurableObject extends DurableObject {
 				data = new TLSyncRoom({ schema: createTLSchema() }).getSnapshot()
 				break
 		}
+		fetchTimer.report('create_from_source_fetch_total')
 
 		if (!data) {
 			return { type: 'room_not_found' as const }
 		}
+
 		const serialized = typeof data === 'string' ? data : JSON.stringify(data)
 		const snapshot = typeof data === 'string' ? JSON.parse(data) : data
+
+		const putTimer = this.timer()
 		const roomObject = await this.r2.rooms.put(this._fileRecordCache.id, serialized)
+		putTimer.report('create_from_source_r2_put')
+
 		return {
 			type: 'room_found' as const,
 			snapshot,
@@ -573,32 +665,51 @@ export class TLDrawDurableObject extends DurableObject {
 
 	// Load the room's drawing data. First we check the R2 bucket, then we fallback to supabase (legacy).
 	async loadFromDatabase(slug: string): Promise<DBLoadResult> {
+		const loadTimer = this.timer()
 		try {
 			const key = getR2KeyForRoom({ slug, isApp: this.documentInfo.isApp })
+
 			// when loading, prefer to fetch documents from the bucket
+			const r2FetchTimer = this.timer()
 			const roomFromBucket = await this.r2.rooms.get(key)
+			r2FetchTimer.report('db_load_r2_fetch')
+
 			if (roomFromBucket) {
+				const snapshot = (await roomFromBucket.json()) as RoomSnapshot
+				loadTimer.report('db_load_total')
+
 				return {
 					type: 'room_found',
-					snapshot: await roomFromBucket.json(),
+					snapshot,
 					roomSizeMB: roomFromBucket.size / MB,
 				}
 			}
+
 			if (this._fileRecordCache?.createSource) {
+				const createFromSourceTimer = this.timer()
 				const res = await this.handleFileCreateFromSource()
+
+				createFromSourceTimer.report('db_load_create_from_source')
+
 				if (res.type === 'room_found') {
 					// save it to the bucket so we don't try to create from source again
 					await this.r2.rooms.put(key, JSON.stringify(res.snapshot))
 				}
+
+				loadTimer.report('db_load_total')
+
 				return res
 			}
 
 			if (this.documentInfo.isApp) {
 				// finally check whether the file exists in the DB but not in R2 yet
 				const file = await this.getAppFileRecord()
+
+				loadTimer.report('db_load_total')
 				if (!file) {
 					return { type: 'room_not_found' }
 				}
+
 				return {
 					type: 'room_found',
 					snapshot: new TLSyncRoom({ schema: createTLSchema() }).getSnapshot(),
@@ -607,30 +718,54 @@ export class TLDrawDurableObject extends DurableObject {
 			}
 
 			// if we don't have a room in the bucket, try to load from supabase
-			if (!this.supabaseClient) return { type: 'room_not_found' }
+			if (!this.supabaseClient) {
+				return { type: 'room_not_found' }
+			}
+
+			const supabaseFetchTimer = this.timer()
 			const { data, error } = await this.supabaseClient
 				.from(this.supabaseTable)
 				.select('*')
 				.eq('slug', slug)
 
+			supabaseFetchTimer.report('db_load_supabase_fetch')
+
 			if (error) {
 				this.logEvent({ type: 'room', roomId: slug, name: 'failed_load_from_db' })
+
+				loadTimer.report('db_load_total')
 
 				console.error('failed to retrieve document', slug, error)
 				return { type: 'error', error: new Error(error.message) }
 			}
 			// if it didn't find a document, data will be an empty array
 			if (data.length === 0) {
+				loadTimer.report('db_load_total')
 				return { type: 'room_not_found' }
 			}
 
 			const roomFromSupabase = data[0] as PersistedRoomSnapshotForSupabase
+			loadTimer.report('db_load_total')
+
 			return { type: 'room_found', snapshot: roomFromSupabase.drawing, roomSizeMB: 0 }
 		} catch (error) {
 			this.logEvent({ type: 'room', roomId: slug, name: 'failed_load_from_db' })
 
+			loadTimer.report('db_load_total_error')
+
 			console.error('failed to fetch doc', slug, error)
 			return { type: 'error', error: error as Error }
+		}
+	}
+
+	timer() {
+		const start = Date.now()
+		return {
+			report: (name: string) => {
+				this.writeEvent(name, {
+					doubles: [Date.now() - start],
+				})
+			},
 		}
 	}
 
@@ -705,43 +840,74 @@ export class TLDrawDurableObject extends DurableObject {
 		})
 	}
 
+	broadcastPersistenceEvent(event: TLCustomServerEvent) {
+		this._room?.then((r) => {
+			for (const session of r.getSessions()) {
+				r.sendCustomMessage(session.sessionId, event)
+			}
+		})
+	}
+	persistenceBad = false
+
 	// Save the room to r2
 	async persistToDatabase() {
-		try {
-			await this.executionQueue.push(async () => {
-				// check whether the worker was woken up to persist after having gone to sleep
-				if (!this._room) return
-				const slug = this.documentInfo.slug
-				const room = await this.getRoom()
-				const clock = room.getCurrentDocumentClock()
-				if (this._lastPersistedClock === clock) return
-				if (this._isRestoring) return
+		await this.executionQueue
+			.push(async () => {
+				await retry(
+					async ({ attempt }) => {
+						if (attempt === PERSIST_RETRIES_NOTIFY_THRESHOLD && !this.persistenceBad) {
+							this.broadcastPersistenceEvent({ type: 'persistence_bad' })
+							this.persistenceBad = true
+						}
+						// check whether the worker was woken up to persist after having gone to sleep
+						if (!this._room) return
+						const slug = this.documentInfo.slug
+						const room = await this.getRoom()
+						const clock = room.getCurrentDocumentClock()
+						if (this._lastPersistedClock === clock) return
+						if (this._isRestoring) return
 
-				const snapshot = room.getCurrentSnapshot()
-				this.maybeAssociateFileAssets()
+						const snapshot = room.getCurrentSnapshot()
+						this.maybeAssociateFileAssets()
 
-				const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
-				await this._uploadSnapshotToR2(room, snapshot, key)
+						const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
+						await this._uploadSnapshotToR2(room, snapshot, key)
 
-				this._lastPersistedClock = clock
+						this.logEvent({ type: 'persist_success', attempts: attempt })
+						this._lastPersistedClock = clock
+						if (this.persistenceBad) {
+							this.broadcastPersistenceEvent({ type: 'persistence_good' })
+							this.persistenceBad = false
+						}
 
-				// Update the updatedAt timestamp in the database
-				if (this.documentInfo.isApp) {
-					// don't await on this because otherwise
-					// if this logic is invoked during another db transaction
-					// (e.g. when publishing a file)
-					// that transaction will deadlock
-					this.db
-						.updateTable('file')
-						.set({ updatedAt: new Date().getTime() })
-						.where('id', '=', this.documentInfo.slug)
-						.execute()
-						.catch((e) => this.reportError(e))
-				}
+						// Update the updatedAt timestamp in the database
+						if (this.documentInfo.isApp) {
+							// don't await on this because otherwise
+							// if this logic is invoked during another db transaction
+							// (e.g. when publishing a file)
+							// that transaction will deadlock
+							this.db
+								.updateTable('file')
+								.set({ updatedAt: new Date().getTime() })
+								.where('id', '=', this.documentInfo.slug)
+								.execute()
+								.catch((e) => {
+									this.logEvent({
+										type: 'room',
+										roomId: this.documentInfo.slug,
+										name: 'failed_persist_to_db',
+									})
+									this.reportError(e)
+								})
+						}
+					},
+					{ attempts: PERSIST_RETRIES_MAX, waitDuration: 2000 }
+				)
 			})
-		} catch (e) {
-			this.reportError(e)
-		}
+			.catch((e) => {
+				this.logEvent({ type: 'room', roomId: this.documentInfo.slug, name: 'fail_persist' })
+				this.reportError(e)
+			})
 	}
 
 	private async _uploadSnapshotToR2(
@@ -759,6 +925,7 @@ export class TLDrawDurableObject extends DurableObject {
 		// Then upload to version cache
 		const versionKey = `${key}/${new Date().toISOString()}`
 		await this._uploadSnapshotToBucket(this.r2.versionCache, snapshot, versionKey)
+		await this.persistToPierre(versionKey)
 	}
 
 	private async _uploadSnapshotToBucket(bucket: R2Bucket, snapshot: RoomSnapshot, key: string) {
@@ -846,6 +1013,51 @@ export class TLDrawDurableObject extends DurableObject {
 		return null
 	}
 
+	private async getPierreRepo() {
+		if (
+			!this.pierreClient ||
+			!this.documentInfo.isApp ||
+			!this.env.TLDRAW_ENV ||
+			this.env.TLDRAW_ENV === 'production'
+		) {
+			return null
+		}
+		const repoId = `${this.env.TLDRAW_ENV}/snapshots/${this.documentInfo.slug}`
+		return (
+			(await this.pierreClient.findOne({ id: repoId })) ??
+			(await this.pierreClient.createRepo({ id: repoId }))
+		)
+	}
+
+	private async persistToPierre(key: string) {
+		try {
+			const repo = await this.getPierreRepo()
+			if (!repo) return
+
+			// Get the snapshot from R2 to create a readable stream
+			const r2Object = await this.r2.versionCache.get(key)
+			if (!r2Object) {
+				console.warn('Failed to get R2 object for Pierre upload:', key)
+				return
+			}
+
+			// Create commit with the snapshot
+			const timestamp = new Date().toISOString()
+			await repo
+				.createCommit({
+					targetBranch: 'main',
+					commitMessage: `Snapshot at ${timestamp}`,
+					author: PIERRE_AUTHOR,
+				})
+				.addFile(SNAPSHOT_FILE_NAME, r2Object.body)
+				.send()
+		} catch (error) {
+			// Log but don't fail the main persist operation
+			console.error('Failed to persist to Pierre:', error)
+			this.reportError(error)
+		}
+	}
+
 	private reportError(e: unknown) {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.captureException(e)
@@ -856,12 +1068,14 @@ export class TLDrawDurableObject extends DurableObject {
 		if (this._fileRecordCache) return
 		this._fileRecordCache = file
 
-		this.setDocumentInfo({
-			version: CURRENT_DOCUMENT_INFO_VERSION,
-			slug: file.id,
-			isApp: true,
-			deleted: false,
-		})
+		if (!this._documentInfo) {
+			this.setDocumentInfo({
+				version: CURRENT_DOCUMENT_INFO_VERSION,
+				slug: file.id,
+				isApp: true,
+				deleted: false,
+			})
+		}
 		await this.getRoom()
 	}
 
@@ -899,7 +1113,18 @@ export class TLDrawDurableObject extends DurableObject {
 				continue
 			}
 			// allow the owner to stay connected
-			if (session.meta.userId === file.ownerId) continue
+			// Check if user owns the file directly
+			if (file.ownerId && session.meta.userId === file.ownerId) continue
+
+			// Check if user is a member of the owning group
+			if (file.owningGroupId && session.meta.userId) {
+				const groupMember = await this.db
+					.selectFrom('group_user')
+					.where('groupId', '=', file.owningGroupId)
+					.where('userId', '=', session.meta.userId)
+					.executeTakeFirst()
+				if (groupMember) continue
+			}
 
 			if (!file.shared) {
 				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
@@ -1034,3 +1259,9 @@ async function listAllObjectKeys(bucket: R2Bucket, prefix: string): Promise<stri
 
 	return keys
 }
+
+const PERSIST_RETRIES_NOTIFY_THRESHOLD = 10
+const PERSIST_RETRIES_MAX = 100
+
+const SNAPSHOT_FILE_NAME = 'snapshot.json'
+const PIERRE_AUTHOR = { email: 'huppy@tldraw.com', name: 'huppy [bot]' }
