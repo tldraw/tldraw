@@ -1,7 +1,7 @@
 import { SharedTodoListAction, Streaming } from '@tldraw/fairy-shared'
+import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { $fairyTasks } from '../FairyTaskList'
 import { AgentActionUtil } from './AgentActionUtil'
-import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 
 export class SharedTodoListActionUtil extends AgentActionUtil<SharedTodoListAction> {
 	static override type = 'update-todo-list' as const

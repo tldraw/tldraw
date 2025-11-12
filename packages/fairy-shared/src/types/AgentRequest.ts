@@ -24,5 +24,5 @@ export interface AgentRequest {
 	/**
 	 * Where the request came from.
 	 */
-	source: 'user' | 'self' | 'other-agent'
+	source: 'user' | 'self' | 'other-agent' | 'schedule'
 }

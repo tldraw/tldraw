@@ -14,7 +14,11 @@ export function InCanvasTaskList({ agents }: { agents: FairyAgent[] }) {
 		$showCanvasFairyTasks,
 	])
 	const currentPageId = useValue('current page id', () => editor.getCurrentPageId(), [editor])
-	const isInTodoDragTool = useValue('is-in-todo-drag-tool', () => editor.isIn('select.task-drag.dragging'), [editor])
+	const isInTodoDragTool = useValue(
+		'is-in-todo-drag-tool',
+		() => editor.isIn('select.task-drag.dragging'),
+		[editor]
+	)
 
 	// Filter tasks that are on canvas (have x/y coordinates) AND are on the current page
 	const inCanvasTasks = useValue(
@@ -34,7 +38,9 @@ export function InCanvasTaskList({ agents }: { agents: FairyAgent[] }) {
 	if (!showCanvasTodos) return null
 
 	return (
-		<div className={`in-canvas-todo-list ${isInTodoDragTool ? 'in-canvas-todo-list--dragging' : ''}`}>
+		<div
+			className={`in-canvas-todo-list ${isInTodoDragTool ? 'in-canvas-todo-list--dragging' : ''}`}
+		>
 			{inCanvasTasks.map((task) => (
 				<InCanvasTaskItem key={task.id} agents={agents} task={task} />
 			))}
