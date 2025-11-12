@@ -154,7 +154,7 @@
 .dialogInput {
 	border: 1px solid var(--tla-color-border);
 	border-radius: var(--tl-radius-2);
-	padding: 0px var(--tl-space-4);
+	padding: 0px var(--tl-space-3);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -222,8 +222,8 @@
 	margin-bottom: 8px;
 	border: 1px solid var(--tla-color-border);
 	border-radius: var(--tl-radius-2);
-	padding: 0px 0px 0px var(--tl-space-4);
-	height: 36px;
+	padding: 0px 0px 0px var(--tl-space-3);
+	height: 40px;
 }
 
 .divider {
