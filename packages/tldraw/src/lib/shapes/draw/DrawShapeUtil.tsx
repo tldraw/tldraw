@@ -32,6 +32,7 @@ import { svgInk } from '../shared/freehand/svgInk'
 import { interpolateSegments } from '../shared/interpolate-props'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments } from './getPath'
+import { compressDrawPoints, decompressDrawPoints } from '@tldraw/tlschema'
 
 /** @public */
 export interface DrawShapeOptions {
@@ -77,12 +78,15 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	getGeometry(shape: TLDrawShape) {
-		const points = getPointsFromSegments(shape.props.segments)
+		const points = getPointsFromSegments(shape.props)
 
 		const sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
 
-		// A dot
-		if (shape.props.segments.length === 1) {
+		// A dot - check if we have compressed points or legacy segments
+		const isCompressed = shape.props.compressedPoints && shape.props.compressedPoints.length > 0
+		const segmentCount = isCompressed ? 1 : shape.props.segments.length // Compressed points are treated as single segment
+
+		if (segmentCount === 1) {
 			const box = Box.FromPoints(points)
 			if (box.width < sw * 2 && box.height < sw * 2) {
 				return new Circle2d({
@@ -131,7 +135,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	indicator(shape: TLDrawShape) {
-		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
+		const allPointsFromSegments = getPointsFromSegments(shape.props)
 
 		let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
 
@@ -154,7 +158,9 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			sw += rng(shape.id)() * (sw / 6)
 		}
 
-		const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
+		// For compressed points, we treat them as a single free segment that's always complete
+		const isCompressed = shape.props.compressedPoints && shape.props.compressedPoints.length > 0
+		const showAsComplete = shape.props.isComplete || (!isCompressed && last(shape.props.segments)?.type === 'straight')
 		const options = getFreehandOptions(shape.props, sw, showAsComplete, true)
 		const strokePoints = getStrokePoints(allPointsFromSegments, options)
 		const solidStrokePath =
@@ -182,6 +188,32 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	override onResize(shape: TLDrawShape, info: TLResizeInfo<TLDrawShape>) {
 		const { scaleX, scaleY } = info
 
+		// Handle compressed points if they exist
+		if (shape.props.compressedPoints && shape.props.compressedPoints.length > 0) {
+			const points = decompressDrawPoints(
+				shape.props.compressedPoints,
+				shape.props.hasPressure ?? false,
+				shape.props.isScaled ?? false,
+				shape.props.scale
+			)
+
+			const scaledPoints = points.map(({ x, y, z }) => ({
+				x: toFixed(scaleX * x),
+				y: toFixed(scaleY * y),
+				z,
+			}))
+
+			const hasPressure = shape.props.hasPressure ?? false
+			const isScaled = shape.props.isScaled ?? false
+
+			return {
+				props: {
+					compressedPoints: compressDrawPoints(scaledPoints, hasPressure, isScaled),
+				},
+			}
+		}
+
+		// Fall back to legacy segments format
 		const newSegments: TLDrawShapeSegment[] = []
 
 		for (const segment of shape.props.segments) {
@@ -229,6 +261,14 @@ function getDot(point: VecLike, sw: number) {
 }
 
 function getIsDot(shape: TLDrawShape) {
+	// Check compressed points first
+	if (shape.props.compressedPoints && shape.props.compressedPoints.length > 0) {
+		// Compressed points: 2 values per point without pressure (x,y), 3 with pressure (x,y,z)
+		const stride = shape.props.hasPressure ? 3 : 2
+		return shape.props.compressedPoints.length < stride * 2 // Less than 2 points
+	}
+
+	// Fall back to legacy segments check
 	return shape.props.segments.length === 1 && shape.props.segments[0].points.length < 2
 }
 
@@ -236,9 +276,11 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 	const theme = useDefaultColorTheme()
 	const editor = useEditor()
 
-	const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
+	const allPointsFromSegments = getPointsFromSegments(shape.props)
 
-	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
+	// For compressed points, we treat them as a single free segment that's always complete
+	const isCompressed = shape.props.compressedPoints && shape.props.compressedPoints.length > 0
+	const showAsComplete = shape.props.isComplete || (!isCompressed && last(shape.props.segments)?.type === 'straight')
 
 	let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
 	const forceSolid = useValue(
