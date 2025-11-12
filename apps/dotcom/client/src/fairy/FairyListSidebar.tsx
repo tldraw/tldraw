@@ -1,11 +1,13 @@
+import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { MouseEvent, ReactNode } from 'react'
 import { TldrawUiButton, TldrawUiButtonIcon, TldrawUiToolbar } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairySidebarButton } from './FairySidebarButton'
+import { FairyTaskListContextMenuContent } from './FairyTaskListContextMenuContent'
 
 interface FairyListSidebarProps {
 	agents: FairyAgent[]
-	panelState: 'todo-list' | 'fairy' | 'closed'
+	panelState: 'task-list' | 'fairy' | 'closed'
 	toolbarMessage: string
 	selectMessage: string
 	deselectMessage: string
@@ -29,9 +31,16 @@ export function FairyListSidebar({
 	return (
 		<div className="fairy-buttons-container">
 			<div className="fairy-toolbar-header">
-				<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onTogglePanel}>
-					<TldrawUiButtonIcon icon={panelState !== 'closed' ? 'chevron-right' : 'chevron-left'} />
-				</TldrawUiButton>
+				<_ContextMenu.Root dir="ltr">
+					<_ContextMenu.Trigger asChild>
+						<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onTogglePanel}>
+							<TldrawUiButtonIcon
+								icon={panelState !== 'closed' ? 'chevron-right' : 'chevron-left'}
+							/>
+						</TldrawUiButton>
+					</_ContextMenu.Trigger>
+					<FairyTaskListContextMenuContent agents={agents} />
+				</_ContextMenu.Root>
 			</div>
 			<div className="fairy-list-scrollable">
 				<TldrawUiToolbar label={toolbarMessage} orientation="vertical">

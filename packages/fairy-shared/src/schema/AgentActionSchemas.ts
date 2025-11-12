@@ -1,8 +1,8 @@
 import z from 'zod'
-import { FocusColorSchema } from '../../format/FocusColor'
-import { FocusFillSchema } from '../../format/FocusFill'
-import { FocusedShapeSchema } from '../../format/FocusedShape'
-import { BaseAgentAction } from '../../types/BaseAgentAction'
+import { FocusColorSchema } from '../format/FocusColor'
+import { FocusFillSchema } from '../format/FocusFill'
+import { FocusedShapeSchema } from '../format/FocusedShape'
+import { BaseAgentAction } from '../types/BaseAgentAction'
 
 export const AlignActionSchema = z
 	.object({
@@ -12,22 +12,23 @@ export const AlignActionSchema = z
 		intent: z.string(),
 		shapeIds: z.array(z.string()),
 	})
-	.meta({ title: 'Align', description: 'The fairy aligns shapes to each other on an axis.' })
+	.meta({ title: 'Align', description: 'The agent aligns shapes to each other on an axis.' })
 
 export type AlignAction = z.infer<typeof AlignActionSchema>
 
-export const AssignTodoItemActionSchema = z
+export const DirectToStartTaskActionSchema = z
 	.object({
-		_type: z.literal('assign-todo-item'),
+		_type: z.literal('direct-to-start-project-task'),
 		otherFairyId: z.string(),
-		todoItemId: z.number(),
+		taskId: z.number(),
 	})
 	.meta({
-		title: 'Assign todo item',
-		description: 'The fairy assigns a task to another fairy.',
+		title: 'Direct to start project task',
+		description:
+			'The agent directs another agent to start working on a specific task within the current project. Only do this once the task is ready to be started.',
 	})
 
-export type AssignTodoItemAction = z.infer<typeof AssignTodoItemActionSchema>
+export type DirectToStartTaskAction = z.infer<typeof DirectToStartTaskActionSchema>
 
 export const BringToFrontActionSchema = z
 	.object({
@@ -38,7 +39,7 @@ export const BringToFrontActionSchema = z
 	.meta({
 		title: 'Bring to Front',
 		description:
-			'The fairy brings one or more shapes to the front so that they appear in front of everything else.',
+			'The agent brings one or more shapes to the front so that they appear in front of everything else.',
 	})
 
 export type BringToFrontAction = z.infer<typeof BringToFrontActionSchema>
@@ -50,7 +51,7 @@ export const ClaimTodoItemActionSchema = z
 	})
 	.meta({
 		title: 'Claim todo item',
-		description: 'The fairy claims a task for themselves.',
+		description: 'The agent claims a task for themselves.',
 	})
 
 export type ClaimTodoItemAction = z.infer<typeof ClaimTodoItemActionSchema>
@@ -74,7 +75,7 @@ export const CountryInfoActionSchema = z
 	.meta({
 		title: 'Country info',
 		description:
-			'The fairy gets information about a country by providing its country code, eg: "de" for Germany.',
+			'The agent gets information about a country by providing its country code, eg: "de" for Germany.',
 	})
 
 export type CountryInfoAction = z.infer<typeof CountryInfoActionSchema>
@@ -85,7 +86,7 @@ export const CreateActionSchema = z
 		intent: z.string(),
 		shape: FocusedShapeSchema,
 	})
-	.meta({ title: 'Create', description: 'The fairy creates a new shape.' })
+	.meta({ title: 'Create', description: 'The agent creates a new shape.' })
 
 export type CreateAction = z.infer<typeof CreateActionSchema>
 
@@ -95,18 +96,18 @@ export const DeleteActionSchema = z
 		intent: z.string(),
 		shapeId: z.string(),
 	})
-	.meta({ title: 'Delete', description: 'The fairy deletes a shape.' })
+	.meta({ title: 'Delete', description: 'The agent deletes a shape.' })
 
 export type DeleteAction = z.infer<typeof DeleteActionSchema>
 
 export const ActivateFairyActionSchema = z
 	.object({
-		_type: z.literal('activate-fairy'),
+		_type: z.literal('activate-agent'),
 		fairyId: z.string(),
 	})
 	.meta({
-		title: 'Activate Fairy',
-		description: 'The fairy activates a fairy so that it can start to work on its assigned tasks.',
+		title: 'Activate agent',
+		description: 'The agent activates a agent so that it can start to work on its assigned tasks.',
 	})
 
 export type ActivateFairyAction = z.infer<typeof ActivateFairyActionSchema>
@@ -120,18 +121,18 @@ export const DistributeActionSchema = z
 	})
 	.meta({
 		title: 'Distribute',
-		description: 'The fairy distributes shapes horizontally or vertically.',
+		description: 'The agent distributes shapes horizontally or vertically.',
 	})
 
 export type DistributeAction = z.infer<typeof DistributeActionSchema>
 
 export const EndCurrentProjectActionSchema = z
 	.object({
-		_type: z.literal('end-current-project'),
+		_type: z.literal('end-project'),
 	})
 	.meta({
 		title: 'End Current Project',
-		description: 'The fairy ends the currently active project.',
+		description: 'The agent ends the currently active project once all tasks are complete.',
 	})
 
 export type EndCurrentProjectAction = z.infer<typeof EndCurrentProjectActionSchema>
@@ -142,7 +143,7 @@ export const EnterOrchestrationModeActionSchema = z
 	})
 	.meta({
 		title: 'Enter Orchestration Mode',
-		description: 'The fairy schedules a request to enter orchestration mode.',
+		description: 'The agent schedules a request to enter orchestration mode.',
 	})
 
 export type EnterOrchestrationModeAction = z.infer<typeof EnterOrchestrationModeActionSchema>
@@ -159,7 +160,7 @@ export const FlyToBoundsActionSchema = z
 	.meta({
 		title: 'Fly To Bounds',
 		description:
-			'The fairy flies to the specified bounds of the canvas to navigate to other areas of the canvas if needed.',
+			'The agent flies to the specified bounds of the canvas to navigate to other areas of the canvas if needed.',
 	})
 
 export type FlyToBoundsAction = z.infer<typeof FlyToBoundsActionSchema>
@@ -171,7 +172,7 @@ export const LabelActionSchema = z
 		shapeId: z.string(),
 		text: z.string(),
 	})
-	.meta({ title: 'Label', description: "The fairy changes a shape's text." })
+	.meta({ title: 'Label', description: "The agent changes a shape's text." })
 
 export type LabelAction = z.infer<typeof LabelActionSchema>
 
@@ -180,7 +181,7 @@ export const MessageActionSchema = z
 		_type: z.literal('message'),
 		text: z.string(),
 	})
-	.meta({ title: 'Message', description: 'The fairy sends a message to the user.' })
+	.meta({ title: 'Message', description: 'The agent sends a message to the user.' })
 
 export type MessageAction = z.infer<typeof MessageActionSchema>
 
@@ -192,7 +193,7 @@ export const MoveActionSchema = z
 		x: z.number(),
 		y: z.number(),
 	})
-	.meta({ title: 'Move', description: 'The fairy moves a shape to a new position.' })
+	.meta({ title: 'Move', description: 'The agent moves a shape to a new position.' })
 
 export type MoveAction = z.infer<typeof MoveActionSchema>
 
@@ -214,7 +215,7 @@ export const PenActionSchema = z
 	.meta({
 		title: 'Pen',
 		description:
-			'The fairy draws a freeform line with a pen. This is useful for drawing custom paths that are not available with the other available shapes. The "smooth" style will automatically smooth the line between points. The "straight" style will render a straight line between points. The "closed" property will determine if the drawn line gets automatically closed to form a complete shape or not. Remember that the pen will be *down* until the action is over. If you want to lift up the pen, start a new pen action.',
+			'The agent draws a freeform line with a pen. This is useful for drawing custom paths that are not available with the other available shapes. The "smooth" style will automatically smooth the line between points. The "straight" style will render a straight line between points. The "closed" property will determine if the drawn line gets automatically closed to form a complete shape or not. Remember that the pen will be *down* until the action is over. If you want to lift up the pen, start a new pen action.',
 	})
 
 export type PenAction = z.infer<typeof PenActionSchema>
@@ -230,7 +231,7 @@ export const PlaceActionSchema = z
 		sideOffset: z.number(),
 		shapeId: z.string(),
 	})
-	.meta({ title: 'Place', description: 'The fairy places a shape relative to another shape.' })
+	.meta({ title: 'Place', description: 'The agent places a shape relative to another shape.' })
 
 export type PlaceAction = z.infer<typeof PlaceActionSchema>
 
@@ -247,7 +248,7 @@ export const ResizeActionSchema = z
 	.meta({
 		title: 'Resize',
 		description:
-			'The fairy resizes one or more shapes, with the resize operation being performed relative to an origin point.',
+			'The agent resizes one or more shapes, with the resize operation being performed relative to an origin point.',
 	})
 
 export type ResizeAction = z.infer<typeof ResizeActionSchema>
@@ -264,7 +265,7 @@ export const ReviewActionSchema = z
 	.meta({
 		title: 'Review',
 		description:
-			'The fairy schedules further work or a review so that it can look at the results of its work so far and take further action, such as reviewing what it has done or taking further steps that would benefit from seeing the results of its work so far.',
+			'The agent schedules further work or a review so that it can look at the results of its work so far and take further action, such as reviewing what it has done or taking further steps that would benefit from seeing the results of its work so far.',
 	})
 
 export type ReviewAction = z.infer<typeof ReviewActionSchema>
@@ -281,7 +282,7 @@ export const RotateActionSchema = z
 	})
 	.meta({
 		title: 'Rotate',
-		description: 'The fairy rotates one or more shapes around an origin point.',
+		description: 'The agent rotates one or more shapes around an origin point.',
 	})
 
 export type RotateAction = z.infer<typeof RotateActionSchema>
@@ -295,7 +296,7 @@ export const SendToBackActionSchema = z
 	.meta({
 		title: 'Send to Back',
 		description:
-			'The fairy sends one or more shapes to the back so that they appear behind everything else.',
+			'The agent sends one or more shapes to the back so that they appear behind everything else.',
 	})
 
 export type SendToBackAction = z.infer<typeof SendToBackActionSchema>
@@ -311,7 +312,7 @@ export const SharedTodoListActionSchema = z
 	})
 	.meta({
 		title: 'Update shared todo List',
-		description: 'The fairy updates a current shared todo list item or creates a new one',
+		description: 'The agent updates a current shared todo list item or creates a new one',
 	})
 
 export type SharedTodoListAction = z.infer<typeof SharedTodoListActionSchema>
@@ -327,7 +328,7 @@ export const StackActionSchema = z
 	.meta({
 		title: 'Stack',
 		description:
-			"The fairy stacks shapes horizontally or vertically. Note that this doesn't align shapes, it only stacks them along one axis.",
+			"The agent stacks shapes horizontally or vertically. Note that this doesn't align shapes, it only stacks them along one axis.",
 	})
 
 export type StackAction = z.infer<typeof StackActionSchema>
@@ -338,11 +339,11 @@ export const StartProjectActionSchema = z
 		projectName: z.string(),
 		projectDescription: z.string(),
 		projectColor: FocusColorSchema,
-		projectMemberIds: z.array(z.string()),
+		// projectMemberIds: z.array(z.string()),
 	})
 	.meta({
 		title: 'Start Project',
-		description: 'The fairy starts and defines a new project.',
+		description: 'The agent starts and defines a new project.',
 	})
 
 export type StartProjectAction = z.infer<typeof StartProjectActionSchema>
@@ -352,7 +353,7 @@ export const ThinkActionSchema = z
 		_type: z.literal('think'),
 		text: z.string(),
 	})
-	.meta({ title: 'Think', description: 'The fairy describes its intent or reasoning.' })
+	.meta({ title: 'Think', description: 'The agent describes its intent or reasoning.' })
 
 export type ThinkAction = z.infer<typeof ThinkActionSchema>
 
@@ -365,7 +366,7 @@ export const TodoListActionSchema = z
 	})
 	.meta({
 		title: 'Update Todo List',
-		description: 'The fairy updates a current todo list item or creates a new one',
+		description: 'The agent updates a current todo list item or creates a new one',
 	})
 
 export type TodoListAction = z.infer<typeof TodoListActionSchema>
@@ -378,7 +379,7 @@ export const UpdateActionSchema = z
 	})
 	.meta({
 		title: 'Update',
-		description: 'The fairy updates an existing shape.',
+		description: 'The agent updates an existing shape.',
 	})
 
 export type UpdateAction = z.infer<typeof UpdateActionSchema>
@@ -392,7 +393,7 @@ export const ChangePageActionSchema = z
 	.meta({
 		title: 'Change Page',
 		description:
-			'The fairy changes to a different page by name. Use this to navigate between existing pages.',
+			'The agent changes to a different page by name. Use this to navigate between existing pages.',
 	})
 
 export type ChangePageAction = z.infer<typeof ChangePageActionSchema>
@@ -407,9 +408,81 @@ export const CreatePageActionSchema = z
 	.meta({
 		title: 'Create Page',
 		description:
-			'The fairy creates a new page with the specified name. If switchToPage is true, the fairy will also navigate to the newly created page.',
+			'The agent creates a new page with the specified name. If switchToPage is true, the agent will also navigate to the newly created page.',
 	})
 
 export type CreatePageAction = z.infer<typeof CreatePageActionSchema>
+
+export const CreateSoloTaskActionSchema = z
+	.object({
+		_type: z.literal('create-solo-task'),
+		text: z.string(),
+		x: z.number(),
+		y: z.number(),
+		w: z.number(),
+		h: z.number(),
+	})
+	.meta({
+		title: 'Create Task',
+		description:
+			"The agent describes one new task that they'd like to do at some point in the future, as well as the area in which it should be done. Each task should represent one step in the longer process. It's okay to create many tasks. Note: Creating a task does not automatically start it. You must use the 'start-task' action to start a task. This is to allow you to create multiple tasks ahead of time, and then pick one to start with. Also note: Tasks get an automatic ID that's used to reference them. They start at 1, and then increment by 1 for each new task.",
+	})
+
+export type CreateTaskAction = z.infer<typeof CreateSoloTaskActionSchema>
+
+export const CreateProjectTaskActionSchema = z
+	.object({
+		_type: z.literal('create-project-task'),
+		text: z.string(),
+		assignedTo: z.string(),
+		x: z.number(),
+		y: z.number(),
+		w: z.number(),
+		h: z.number(),
+	})
+	.meta({
+		title: 'Create Project Task',
+		description:
+			"The agent creates a new task within the current project and assigns it to a specific agent. The task will automatically be associated with the current project. Each task should represent one step in the longer process. It's okay to create many tasks. Note: Creating a task and assigning it to another agentdoes not automatically start it. You must use the 'direct-to-start-project-task' action to get another agent to start a task. Also note: Tasks get an automatic ID that's used to reference them. They start at 1, and then increment by 1 for each new task.",
+	})
+
+export type CreateProjectTaskAction = z.infer<typeof CreateProjectTaskActionSchema>
+
+export const StartTaskActionSchema = z
+	.object({
+		_type: z.literal('start-task'),
+		taskId: z.number(),
+	})
+	.meta({
+		title: 'Start Task',
+		description:
+			'The agent begins working on a task. This action immediately gives the agent the abilities required to complete the task, such as the ability to manipulate the canvas. Upon performing this action, the agent will immediately receive instructions on how to use those abilities.',
+	})
+
+export type StartTaskAction = z.infer<typeof StartTaskActionSchema>
+
+export const MarkTaskDoneActionSchema = z
+	.object({
+		_type: z.literal('mark-task-done'),
+		taskId: z.number(),
+	})
+	.meta({
+		title: 'Mark Task Done',
+		description:
+			'The agent marks a task as completed. This action should be used when the agent has finished working on a task.',
+	})
+
+export type MarkTaskDoneAction = z.infer<typeof MarkTaskDoneActionSchema>
+
+export const SleepActionSchema = z
+	.object({
+		_type: z.literal('sleep'),
+	})
+	.meta({
+		title: 'Sleep',
+		description: 'The agent goes back to idle mode, stopping its current work.',
+	})
+
+export type SleepAction = z.infer<typeof SleepActionSchema>
 
 export type UnknownAction = BaseAgentAction<'unknown'>

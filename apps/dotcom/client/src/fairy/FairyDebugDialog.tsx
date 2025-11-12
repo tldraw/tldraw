@@ -17,8 +17,8 @@ import {
 } from 'tldraw'
 import { F } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
-import { $projects } from './Projects'
-import { $sharedTodoList } from './SharedTodoList'
+import { $fairyProjects, addAgentToDummyProject } from './FairyProjects'
+import { $fairyTasks } from './FairyTaskList'
 
 // # Home Debug Inspector Types and Labels
 type HomeDebugInspectorType = 'projects' | 'sharedTodoList'
@@ -34,9 +34,9 @@ type FairyDebugInspectorType =
 	| 'chatOrigin'
 	| 'todoList'
 	| 'userActionHistory'
-	| 'contextItems'
 	| 'currentProjectId'
 	| 'cumulativeUsage'
+	| 'mode'
 
 const FAIRY_DEBUG_INSPECTOR_TYPES: FairyDebugInspectorType[] = [
 	'config',
@@ -47,9 +47,9 @@ const FAIRY_DEBUG_INSPECTOR_TYPES: FairyDebugInspectorType[] = [
 	'chatOrigin',
 	'todoList',
 	'userActionHistory',
-	'contextItems',
 	'currentProjectId',
 	'cumulativeUsage',
+	'mode',
 ]
 
 // # Main dialog component
@@ -188,9 +188,9 @@ function DebugInspectorLabel({
 		if (fairyType === 'chatOrigin') return <F defaultMessage="Chat Origin" />
 		if (fairyType === 'todoList') return <F defaultMessage="Todo List" />
 		if (fairyType === 'userActionHistory') return <F defaultMessage="User Action History" />
-		if (fairyType === 'contextItems') return <F defaultMessage="Context Items" />
 		if (fairyType === 'currentProjectId') return <F defaultMessage="Current Project ID" />
 		if (fairyType === 'cumulativeUsage') return <F defaultMessage="Cumulative Usage" />
+		if (fairyType === 'mode') return <F defaultMessage="Mode" />
 	}
 	return null
 }
@@ -213,13 +213,13 @@ function HomeDebugView({
 // ## Home debug view inspector components
 
 function ProjectsInspector() {
-	const projects = useValue($projects)
-	const sharedTodos = useValue($sharedTodoList)
+	const projects = useValue($fairyProjects)
+	const sharedTodos = useValue($fairyTasks)
 
 	return (
 		<div className="fairy-debug-projects-container">
 			<div className="fairy-debug-projects-header">
-				<F defaultMessage="Projects: {count}" values={{ count: projects.length }} />
+				<F defaultMessage="Projects:" values={{ count: projects.length }} />
 			</div>
 			{projects.length === 0 ? (
 				<div className="fairy-debug-projects-empty">
@@ -230,19 +230,19 @@ function ProjectsInspector() {
 					const projectTodos = sharedTodos.filter((todo) => todo.projectId === project.id)
 					return (
 						<div key={project.id} className="fairy-debug-project-card">
-							<div className="fairy-debug-project-name">{project.name}</div>
+							<div className="fairy-debug-project-name">{project.title}</div>
 							<div className="fairy-debug-project-details">
 								<KeyValuePair label="id" value={project.id} />
 								<KeyValuePair label="description" value={project.description} />
-								<KeyValuePair label="orchestratorId" value={project.orchestratorId} />
-								<KeyValuePair label="memberIds" value={project.memberIds} />
+								<KeyValuePair
+									label="orchestrator"
+									value={project.members.find((member) => member.role === 'orchestrator')?.id}
+								/>
+								<KeyValuePair label="members" value={project.members} />
 							</div>
 							<div className="fairy-debug-project-todos-section">
 								<div className="fairy-debug-project-todos-header">
-									<F
-										defaultMessage="Associated Todos: {count}"
-										values={{ count: projectTodos.length }}
-									/>
+									<F defaultMessage="Associated Todos:" values={{ count: projectTodos.length }} />
 								</div>
 								{projectTodos.length === 0 ? (
 									<div className="fairy-debug-project-todos-empty">
@@ -268,12 +268,12 @@ function ProjectsInspector() {
 }
 
 function SharedTodoListInspector() {
-	const sharedTodos = useValue($sharedTodoList)
+	const sharedTodos = useValue($fairyTasks)
 
 	return (
 		<div className="fairy-debug-shared-todos-container">
 			<div className="fairy-debug-shared-todos-header">
-				<F defaultMessage="Shared Todo List: {count}" values={{ count: sharedTodos.length }} />
+				<F defaultMessage="Shared Todo List:" values={{ count: sharedTodos.length }} />
 			</div>
 			{sharedTodos.length === 0 ? (
 				<div className="fairy-debug-shared-todos-empty">
@@ -302,51 +302,43 @@ function FlagsInspector({ agent }: { agent: FairyAgent }) {
 			<p>
 				<F defaultMessage="Debug Flags" />
 			</p>
-			<div className="fairy-debug-flags-row">
-				<div className="fairy-debug-flags-checkboxes">
-					<label className="fairy-debug-flags-checkbox">
-						<input
-							type="checkbox"
-							checked={debugFlags.logSystemPrompt}
-							onChange={(e) => {
-								agent.$debugFlags.set({
-									...debugFlags,
-									logSystemPrompt: e.target.checked,
-								})
-							}}
-						/>
-						<span>
-							<F defaultMessage="Log System Prompt" />
-						</span>
-					</label>
-					<label className="fairy-debug-flags-checkbox">
-						<input
-							type="checkbox"
-							checked={debugFlags.logMessages}
-							onChange={(e) => {
-								agent.$debugFlags.set({
-									...debugFlags,
-									logMessages: e.target.checked,
-								})
-							}}
-						/>
-						<span>
-							<F defaultMessage="Log Messages" />
-						</span>
-					</label>
-				</div>
-				<TldrawUiButton
-					type="low"
-					className="fairy-debug-flags-button"
-					onClick={() => {
-						;(window as any).agent = agent
-					}}
-				>
-					<TldrawUiButtonLabel>
-						<F defaultMessage="Set window.agent" />
-					</TldrawUiButtonLabel>
-				</TldrawUiButton>
+			<div className="fairy-debug-flags-checkboxes">
+				<label className="fairy-debug-flags-checkbox">
+					<input
+						type="checkbox"
+						checked={debugFlags.logSystemPrompt}
+						onChange={(e) => {
+							agent.$debugFlags.set({
+								...debugFlags,
+								logSystemPrompt: e.target.checked,
+							})
+						}}
+					/>
+					<span>
+						<F defaultMessage="Log System Prompt" />
+					</span>
+				</label>
+				<label className="fairy-debug-flags-checkbox">
+					<input
+						type="checkbox"
+						checked={debugFlags.logMessages}
+						onChange={(e) => {
+							agent.$debugFlags.set({
+								...debugFlags,
+								logMessages: e.target.checked,
+							})
+						}}
+					/>
+					<span>
+						<F defaultMessage="Log Messages" />
+					</span>
+				</label>
 			</div>
+			<TldrawUiButton type="low" onClick={() => addAgentToDummyProject(agent.id)}>
+				<TldrawUiButtonLabel>
+					<F defaultMessage="Add to Dummy Project" />
+				</TldrawUiButtonLabel>
+			</TldrawUiButton>
 		</div>
 	)
 }
@@ -367,9 +359,9 @@ function FairyDebugView({
 	const chatOrigin = useValue(agent.$chatOrigin)
 	const todoList = useValue(agent.$todoList)
 	const userActionHistory = useValue(agent.$userActionHistory)
-	const contextItems = useValue(agent.$contextItems)
-	const currentProjectId = agent.getCurrentProject()?.id
+	const currentProjectId = agent.getProject()?.id
 	const cumulativeUsage = agent.cumulativeUsage
+	const mode = agent.getMode()
 
 	if (inspectorType === 'config') {
 		return (
@@ -394,9 +386,9 @@ function FairyDebugView({
 		chatOrigin,
 		todoList,
 		userActionHistory,
-		contextItems,
 		currentProjectId,
 		cumulativeUsage,
+		mode,
 	}
 
 	const value = valueMap[inspectorType as Exclude<FairyDebugInspectorType, 'config' | 'actions'>]
@@ -436,7 +428,7 @@ function ActionsInspector({ agent }: { agent: FairyAgent }) {
 	return (
 		<div className="fairy-debug-container">
 			<div className="fairy-debug-header">
-				<F defaultMessage="Chat History: {count}" values={{ count: items.length }} />
+				<F defaultMessage="Chat History" values={{ count: items.length }} />
 			</div>
 			{items.length === 0 ? (
 				<div className="fairy-debug-empty">
@@ -472,8 +464,6 @@ function ActionsInspector({ agent }: { agent: FairyAgent }) {
 				<div className="fairy-debug-item">
 					<KeyValuePair label="type" value={item.type} />
 					<KeyValuePair label="message" value={item.message} />
-					<KeyValuePair label="contextItems" value={item.contextItems} />
-					<KeyValuePair label="selectedShapes" value={item.selectedShapes} />
 				</div>
 				{!isLast && <hr />}
 			</>

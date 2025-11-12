@@ -1,9 +1,9 @@
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { useContainer } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
-import { TodoListMenuContent } from './TodoListMenuContent'
+import { FairyTaskListMenuContent } from './FairyTaskListMenuContent'
 
-export function TodoListDropdownContent({
+export function FairyTaskListDropdownContent({
 	agents,
 	alignOffset,
 	sideOffset,
@@ -28,7 +28,7 @@ export function TodoListDropdownContent({
 				onClick={(e) => e.stopPropagation()}
 				style={{ zIndex: 'var(--tl-layer-canvas-in-front)' }}
 			>
-				<TodoListMenuContent agents={agents} menuType="menu" />
+				<FairyTaskListMenuContent agents={agents} menuType="menu" />
 			</_DropdownMenu.Content>
 		</_DropdownMenu.Portal>
 	)

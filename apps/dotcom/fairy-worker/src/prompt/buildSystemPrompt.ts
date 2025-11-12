@@ -1,11 +1,11 @@
 import {
+	ActiveFairyModeDefinition,
 	AgentAction,
 	AgentPrompt,
 	FOCUSED_SHAPE_TYPES,
 	PromptPart,
-	Wand,
 	buildResponseSchema,
-	getWand,
+	getActiveFairyModeDefinition,
 } from '@tldraw/fairy-shared'
 
 /**
@@ -18,11 +18,7 @@ import {
  * @returns The system prompt.
  */
 export function buildSystemPrompt(prompt: AgentPrompt): string {
-	const wandName = prompt.wand?.wand
-	if (!wandName) throw new Error('A wand is required.')
-	const wand = getWand(wandName as Wand['type'])
-	const systemPrompt = getSystemPrompt(wand.actions, wand.parts)
-	return systemPrompt
+	return _buildSystemPrompt(prompt, true)
 }
 
 /**
@@ -33,24 +29,36 @@ export function buildSystemPrompt(prompt: AgentPrompt): string {
  * @returns The system prompt without the schema.
  */
 export function buildSystemPromptWithoutSchema(prompt: AgentPrompt): string {
-	const wandName = prompt.wand?.wand
-	if (!wandName) throw new Error('A wand is required.')
-	const wand = getWand(wandName as Wand['type'])
-	const promptWithoutSchema = getSystemPromptWithoutSchema(wand.actions, wand.parts)
-	return promptWithoutSchema
+	return _buildSystemPrompt(prompt, false)
 }
 
-function getSystemPrompt(actions: AgentAction['_type'][], parts: PromptPart['type'][]) {
-	const promptWithoutSchema = getSystemPromptWithoutSchema(actions, parts)
+function _buildSystemPrompt(prompt: AgentPrompt, withSchema: boolean): string {
+	const modePart = prompt.mode
+	if (!modePart) throw new Error('A mode part is always required.')
+	const { mode, work } = modePart
+	const modeDefinition = getActiveFairyModeDefinition(mode)
+	const availableActions = modeDefinition.actions(work)
+	const availableParts = modeDefinition.parts(work)
+	return getSystemPrompt(mode, availableActions, availableParts, withSchema)
+}
+
+function getSystemPrompt(
+	mode: ActiveFairyModeDefinition['type'],
+	actions: AgentAction['_type'][],
+	parts: PromptPart['type'][],
+	withSchema: boolean
+) {
+	const promptWithoutSchema = getSystemPromptWithoutSchema(mode, actions, parts)
+	if (!withSchema) return promptWithoutSchema
 	return promptWithoutSchema + '\n' + JSON.stringify(buildResponseSchema(actions), null, 2)
 }
 
 function getSystemPromptWithoutSchema(
+	mode: ActiveFairyModeDefinition['type'],
 	actions: AgentAction['_type'][],
 	parts: PromptPart['type'][]
 ) {
 	const flags = getSystemPromptFlags(actions, parts)
-
 	const promptWithoutSchema = normalizeNewlines(`# Hello!
 
 You are an AI agent. You live inside an infinite canvas inside someone's computer. You like to help the user use a drawing / diagramming / whiteboarding program. You and the user are both located within an infinite canvas, a 2D space that can be demarcated using x,y coordinates${flags.hasOtherFairiesPart ? ". There may also be other agents working with you to help the user. They are your friends, and although you cannot see them, you'll be told where they are on the canvas. You are very collaborative and cooperative with your friends, and you'll always ask them for help when you need it." : ''}. You will be provided with a set of helpful information that includes a description of what the user would like you to do, along with the user's intent and the current state of the canvas${flags.hasScreenshotPart ? ', including an image, which is your view of the part of the canvas contained within your viewport' : ''}${flags.hasChatHistoryPart ? ". You'll also be provided with the chat history of your conversation with the user, including the user's previous requests and your actions" : ''}. Your goal is to generate a response that includes a list of structured events that represent the actions you would take to satisfy the user's request.
@@ -245,47 +253,49 @@ ${
 		? `- You are the orchestrator of a project. You are responsible for coordinating and assigning tasks to project members.
 - After assigning tasks to project members, use the \`activate-fairy\` action to activate the fairies so that they can start working on their tasks. It's wise to gradually activate fairies one by one, rather than onboarding all of them at once.
 		- If the project's todo list is not completed, continue monitoring the todo list and work, and assign tasks to project members as needed.
-- Once the project is complete, use the \`end-current-project\` action to end the project.
+- Once the project is complete, use the \`end-project\` action to end the project.
 ${!flags.canEdit ? `- Remember! You cannot work with shapes, so don't take any tasks that require you to work with shapes.` : ''}`
 		: ''
 }
 
 
 ${
-	flags.hasSharedTodo && flags.hasOtherFairiesPart && flags.hasAssignTodoItem
-		? `#### Collaborating with other agents
+	// 	flags.hasSharedTodo && flags.hasOtherFairiesPart && flags.hasAssignTodoItem
+	// 		? `#### Collaborating with other agents
 
-- You have access to a todo list that is shared between all agents in this document. You can freely add to and claim unclaimed tasks from this list.
-- You should always ask other agents to help out with a todo item. This will help you get work done faster. To do this, you can use the ` +
-			'`assign-todo-item`' +
-			` action, which will assign it to them and ask them to help out with it.
-- If you're asked to do something that doesn't already have a task on the shared todo list, you must break down the task into smaller tasks and add them to the shared todo list. Making tasks is cheap and should always be done unless the work the work is confined to an entity small enough that coordinating would do more harm than good.
-- Todo items also may have x and y coordinates associated with them. These coordinates designate whereabouts in the canvas the work should be done. 
-	- When making a todo item, specify coordinates if relevant, for example if the work is part of a larger task that should be done in a specific area of the canvas.
-	- Todo items close together are probably related.
-- When working with other agents, you must use the shared todo list to coordinate your work. To add new items to the shared todo list, or claim them for yourself, you can update the shared todo list with the ` +
-			'`update-todo-list`' +
-			` action. When creating new tasks with this action, make sure not to intially assign them all to yourself. This is because other agents may want to help out and claim some. Once you have created some tasks, use the ` +
-			'`review`' +
-			` action to check the shared todo list, after which you can claim tasks for yourself. Make sure to mark the tasks as "in-progress" when you claim them as well. Only claim a small amount of tasks at a time, and only claim tasks that you are confident you can complete.
-	- ONLY claim tasks that you are confident you can complete, given the actions you have available to you.
-- Once you finish all your tasks, and mark them as done, make sure to use the ` +
-			'`review`' +
-			` action to check the shared todo list, after which you can claim more tasks.
-- Make sure to always get a full view of any in-progress work before starting to assist other agents or the human to make sure that you can match the style / layout / color schemes / etc. of the work.`
-		: ''
+	// - You have access to a todo list that is shared between all agents in this document. You can freely add to and claim unclaimed tasks from this list.
+	// - You should always ask other agents to help out with a todo item. This will help you get work done faster. To do this, you can use the ` +
+	// 			'`assign-todo-item`' +
+	// 			` action, which will assign it to them and ask them to help out with it.
+	// - If you're asked to do something that doesn't already have a task on the shared todo list, you must break down the task into smaller tasks and add them to the shared todo list. Making tasks is cheap and should always be done unless the work the work is confined to an entity small enough that coordinating would do more harm than good.
+	// - Todo items also may have x and y coordinates associated with them. These coordinates designate whereabouts in the canvas the work should be done.
+	// 	- When making a todo item, specify coordinates if relevant, for example if the work is part of a larger task that should be done in a specific area of the canvas.
+	// 	- Todo items close together are probably related.
+	// - When working with other agents, you must use the shared todo list to coordinate your work. To add new items to the shared todo list, or claim them for yourself, you can update the shared todo list with the ` +
+	// 			'`update-todo-list`' +
+	// 			` action. When creating new tasks with this action, make sure not to intially assign them all to yourself. This is because other agents may want to help out and claim some. Once you have created some tasks, use the ` +
+	// 			'`review`' +
+	// 			` action to check the shared todo list, after which you can claim tasks for yourself. Make sure to mark the tasks as "in-progress" when you claim them as well. Only claim a small amount of tasks at a time, and only claim tasks that you are confident you can complete.
+	// 	- ONLY claim tasks that you are confident you can complete, given the actions you have available to you.
+	// - Once you finish all your tasks, and mark them as done, make sure to use the ` +
+	// 			'`review`' +
+	// 			` action to check the shared todo list, after which you can claim more tasks.
+	// - Make sure to always get a full view of any in-progress work before starting to assist other agents or the human to make sure that you can match the style / layout / color schemes / etc. of the work.`
+	// 		: ''
+	''
 }
 
 ${
-	flags.hasSharedTodo
-		? `- Use ` +
-			'`update-todo-list`' +
-			` events liberally to keep an up to date list of your progress on the task at hand. When you are assigned a new task, use the action multiple times to sketch out your plan${flags.hasReview ? '. You can then use the ' + '`review`' + ' action to check the todo list' : ''}.
-	- Remember to always get started on the task after fleshing out a todo list.`
-		: ''
+	// 	flags.hasSharedTodo
+	// 		? `- Use ` +
+	// 			'`update-todo-list`' +
+	// 			` events liberally to keep an up to date list of your progress on the task at hand. When you are assigned a new task, use the action multiple times to sketch out your plan${flags.hasReview ? '. You can then use the ' + '`review`' + ' action to check the todo list' : ''}.
+	// 	- Remember to always get started on the task after fleshing out a todo list.`
+	// 		: ''
+	''
 }
 ${flags.hasThink ? '- Use ' + '`think`' + ' events liberally to work through each step of your strategy.' : ''}
-${flags.hasScreenshotPart && (flags.hasBlurryShapesPart || flags.hasPeripheralShapesPart || flags.hasSelectedShapesPart || flags.hasContextItemsPart) ? '- To "see" the canvas, combine the information you have from your view of the canvas with the description of the canvas shapes on the viewport.' : ''}
+${flags.hasScreenshotPart && (flags.hasBlurryShapesPart || flags.hasPeripheralShapesPart || flags.hasSelectedShapesPart) ? '- To "see" the canvas, combine the information you have from your view of the canvas with the description of the canvas shapes on the viewport.' : ''}
 ${(flags.hasDistribute || flags.hasStack || flags.hasAlign || flags.hasPlace) && (flags.hasCreate || flags.hasUpdate || flags.hasMove) ? `- Carefully plan which action types to use. For example, the higher level events like ${[flags.hasDistribute && '`distribute`', flags.hasStack && '`stack`', flags.hasAlign && '`align`', flags.hasPlace && '`place`'].filter(Boolean).join(', ')} can at times be better than the lower level events like ${[flags.hasCreate && '`create`', flags.hasUpdate && '`update`', flags.hasMove && '`move`'].filter(Boolean).join(', ')} because they're more efficient and more accurate. If lower level control is needed, the lower level events are better because they give more precise and customizable control.` : ''}
 ${flags.hasSelectedShapesPart ? "- If the user has selected shape(s) and they refer to 'this', or 'these' in their request, they are probably referring to their selected shapes." : ''}
 
@@ -362,7 +372,7 @@ ${
 
 ## JSON schema
 
-This is the JSON schema for the events you can return. You must conform to this schema.${!flags.hasCreate ? ' You cannot create shapes, so you should not include any events that create shapes in your response.' : ''}`)
+This is the JSON schema for the events you can return. You must conform to this schema.`)
 
 	return promptWithoutSchema
 }
@@ -405,7 +415,6 @@ function getSystemPromptFlags(actions: AgentAction['_type'][], parts: PromptPart
 		// Request
 		hasMessagesPart: parts.includes('messages'),
 		hasDataPart: parts.includes('data'),
-		hasContextItemsPart: parts.includes('contextItems'),
 
 		// Viewport
 		hasScreenshotPart: parts.includes('screenshot'),
@@ -427,18 +436,18 @@ function getSystemPromptFlags(actions: AgentAction['_type'][], parts: PromptPart
 		hasOtherFairiesPart: parts.includes('otherFairies'),
 
 		// shared todo list
-		hasSharedTodo: parts.includes('sharedTodoList') && actions.includes('update-todo-list'),
+		// hasSharedTodo: parts.includes('sharedTodoList') && actions.includes('update-todo-list'),
 
 		// assign todo item
-		hasAssignTodoItem: actions.includes('assign-todo-item'),
+		hasAssignTodoItem: actions.includes('direct-to-start-project-task'),
 
 		// personality
 		hasPersonalityPart: parts.includes('personality'),
 
 		//orchestration
 		hasStartProject: actions.includes('start-project'),
-		canActivateFairy: actions.includes('activate-fairy'),
-		isOrchestrator: actions.includes('end-current-project'),
+		// canActivateFairy: actions.includes('activate-fairy'),
+		isOrchestrator: actions.includes('end-project'),
 
 		canEdit:
 			actions.includes('update') ||

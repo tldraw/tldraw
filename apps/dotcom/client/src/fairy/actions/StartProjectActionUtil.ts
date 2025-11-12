@@ -1,7 +1,6 @@
-import { FairyProject, StartProjectAction, Streaming } from '@tldraw/fairy-shared'
-import { uniqueId } from 'tldraw'
+import { StartProjectAction, Streaming } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
-import { addProject } from '../Projects'
+import { $fairyProjects, getProjectByAgentId, updateProject } from '../FairyProjects'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> {
@@ -21,27 +20,27 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 		if (!action.complete) return
 		if (!this.agent) return
 
-		const projectId = uniqueId(5)
+		// Assumptions:
+		// FairyGroupChat already handles creating the project, assigning roles programmatically as well as prompting the orchestrator
 
-		// Make sure to include self in the project member ids
-		if (!action.projectMemberIds.includes(this.agent.id)) {
-			action.projectMemberIds.push(this.agent.id)
+		const { projectName, projectDescription, projectColor } = action
+
+		const project = getProjectByAgentId(this.agent.id)
+		if (!project) return // todo error
+
+		const colorAlreadyChosen = $fairyProjects.get().some((p) => p.color === projectColor)
+		if (colorAlreadyChosen) {
+			this.agent.cancel()
+			this.agent.schedule(
+				`The color ${projectColor} has already been chosen for another project. Please choose a different color.`
+			)
+			return
 		}
 
-		const project: FairyProject = {
-			id: projectId,
-			orchestratorId: this.agent.id,
-			name: action.projectName,
-			description: action.projectDescription,
-			color: action.projectColor,
-			memberIds: action.projectMemberIds,
-		}
-
-		// Add project to shared projects atom
-		addProject(project)
-
-		this.agent.schedule(
-			`Project ${action.projectName} started. You are now the orchestrator of the project.`
-		)
+		updateProject(project.id, {
+			title: projectName,
+			description: projectDescription,
+			color: projectColor,
+		})
 	}
 }

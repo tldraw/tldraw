@@ -1,29 +1,28 @@
-import { SharedTodoItem } from '@tldraw/fairy-shared'
 import React, { useCallback, useState } from 'react'
 import { useEditor, useValue } from 'tldraw'
 import '../tla/styles/fairy.css'
 import { F, useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { fairyMessages } from './fairy-messages'
-import { getProjectColor } from './getProjectColor'
-import { getProjectById } from './Projects'
+import { getProjectById } from './FairyProjects'
+import { FairyTaskDragTool } from './FairyTaskDragTool'
 import {
-	$sharedTodoList,
-	$showCanvasTodos,
-	addSharedTodoItem,
-	assignAgentToTodo,
-	deleteSharedTodoItem,
-} from './SharedTodoList'
-import { TodoDragTool } from './TodoDragTool'
+	$fairyTasks,
+	$showCanvasFairyTasks,
+	assignFairyToTask,
+	createFairyTask,
+	deleteFairyTask,
+} from './FairyTaskList'
+import { getProjectColor } from './getProjectColor'
 
-export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
+export function FairyTaskListInline({ agents }: { agents: FairyAgent[] }) {
 	const editor = useEditor()
-	const todos = useValue('shared-todo-list', () => $sharedTodoList.get(), [$sharedTodoList])
-	const [newTodoText, setNewTodoText] = useState('')
-	const addTodoPlaceholder = useMsg(fairyMessages.addTodoPlaceholder)
+	const tasks = useValue('fairy-tasks-list', () => $fairyTasks.get(), [$fairyTasks])
+	const [newTaskText, setNewTaskText] = useState('')
+	const addTaskPlaceholder = useMsg(fairyMessages.addTaskPlaceholder)
 	const dragToCanvas = useMsg(fairyMessages.dragToCanvas)
 	const clickToRemoveOrDrag = useMsg(fairyMessages.clickToRemoveOrDrag)
-	const deleteTodo = useMsg(fairyMessages.deleteTodo)
+	const deleteTask = useMsg(fairyMessages.deleteTask)
 
 	const getStatusIcon = (status: string) => {
 		switch (status) {
@@ -38,46 +37,25 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 		}
 	}
 
-	const handleAddTodo = useCallback(
+	const handleAddTask = useCallback(
 		(e: React.FormEvent<HTMLFormElement>) => {
 			e.preventDefault()
-			if (!newTodoText.trim()) return
+			if (!newTaskText.trim()) return
 
 			const currentPageId = editor.getCurrentPageId()
-			addSharedTodoItem(newTodoText.trim(), undefined, undefined, currentPageId)
-			setNewTodoText('')
+			createFairyTask({ text: newTaskText.trim(), pageId: currentPageId })
+			setNewTaskText('')
 		},
-		[newTodoText, editor]
-	)
-
-	const handleHelpOut = useCallback(
-		(todo: SharedTodoItem) => {
-			const agent = todo.assignedById ? agents.find((a) => a.id === todo.assignedById) : undefined
-			if (agent) {
-				agent.helpOut([todo])
-			} else {
-				// Get a free agent
-				const freeAgent = agents.find((v) => !v.isGenerating())
-				if (freeAgent) {
-					freeAgent.helpOut([todo])
-				} else {
-					// If no free agent is found, ask everyone to help
-					agents.forEach((agent) => {
-						agent.helpOut([todo])
-					})
-				}
-			}
-		},
-		[agents]
+		[newTaskText, editor]
 	)
 
 	const handleDragStart = useCallback(
-		(e: React.PointerEvent, todoId: number) => {
-			const todo = todos.find((t) => t.id === todoId)
-			if (!todo) return
+		(e: React.PointerEvent, taskId: number) => {
+			const task = tasks.find((t) => t.id === taskId)
+			if (!task) return
 
-			// If todo has coordinates and this is just a click (no movement), remove them
-			if (todo.x != null && todo.y != null) {
+			// If task has coordinates and this is just a click (no movement), remove them
+			if (task.x != null && task.y != null) {
 				// Check if this will be a drag by tracking movement
 				const startX = e.clientX
 				const startY = e.clientY
@@ -94,13 +72,13 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 						document.removeEventListener('pointerup', handlePointerUp)
 
 						// Show todo items in canvas
-						$showCanvasTodos.set(true)
+						$showCanvasFairyTasks.set(true)
 
 						// Activate drag tool for repositioning
-						const tool = editor.getStateDescendant('select.todo-drag')
+						const tool = editor.getStateDescendant('select.task-drag')
 						if (tool && 'setTodoId' in tool) {
-							;(tool as TodoDragTool).setTodoId(todoId)
-							editor.setCurrentTool('select.todo-drag')
+							;(tool as FairyTaskDragTool).setTodoId(taskId)
+							editor.setCurrentTool('select.task-drag')
 						}
 					}
 				}
@@ -111,9 +89,9 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 
 					// If didn't move, remove coordinates and pageId (simple click)
 					if (!hasMoved) {
-						$sharedTodoList.update((todos) =>
+						$fairyTasks.update((todos) =>
 							todos.map((t) =>
-								t.id === todoId ? { ...t, x: undefined, y: undefined, pageId: undefined } : t
+								t.id === taskId ? { ...t, x: undefined, y: undefined, pageId: undefined } : t
 							)
 						)
 					}
@@ -138,10 +116,10 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 					document.removeEventListener('pointerup', handlePointerUp)
 
 					// Activate the drag tool
-					const tool = editor.getStateDescendant('select.todo-drag')
+					const tool = editor.getStateDescendant('select.task-drag')
 					if (tool && 'setTodoId' in tool) {
-						;(tool as TodoDragTool).setTodoId(todoId)
-						editor.setCurrentTool('select.todo-drag')
+						;(tool as FairyTaskDragTool).setTodoId(taskId)
+						editor.setCurrentTool('select.task-drag')
 					}
 				}
 			}
@@ -154,39 +132,39 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 			document.addEventListener('pointermove', handlePointerMove)
 			document.addEventListener('pointerup', handlePointerUp)
 		},
-		[editor, todos]
+		[editor, tasks]
 	)
 
 	return (
 		<div className="shared-todo-list-inline">
-			<form onSubmit={handleAddTodo} className="shared-todo-input">
+			<form onSubmit={handleAddTask} className="shared-todo-input">
 				<input
 					type="text"
-					value={newTodoText}
-					onChange={(e) => setNewTodoText(e.target.value)}
-					placeholder={addTodoPlaceholder}
+					value={newTaskText}
+					onChange={(e) => setNewTaskText(e.target.value)}
+					placeholder={addTaskPlaceholder}
 					className="shared-todo-input-field"
 				/>
-				<button type="submit" className="shared-todo-input-submit" disabled={!newTodoText.trim()}>
+				<button type="submit" className="shared-todo-input-submit" disabled={!newTaskText.trim()}>
 					+
 				</button>
 			</form>
-			{todos.length > 0 && (
+			{tasks.length > 0 && (
 				<div className="shared-todo-list-items">
-					{todos.map((todo) => {
+					{tasks.map((task) => {
 						const statusClass =
-							todo.status === 'done'
+							task.status === 'done'
 								? 'shared-todo-item--done'
-								: todo.status === 'in-progress'
+								: task.status === 'in-progress'
 									? 'shared-todo-item--in-progress'
 									: 'shared-todo-item--todo'
 
-						const icon = getStatusIcon(todo.status)
-						const project = todo.projectId ? getProjectById(todo.projectId) : undefined
+						const icon = getStatusIcon(task.status)
+						const project = task.projectId ? getProjectById(task.projectId) : undefined
 						const projectColor = project ? getProjectColor(editor, project.color) : undefined
 
 						return (
-							<div key={todo.id} className={`shared-todo-item ${statusClass}`}>
+							<div key={task.id} className={`shared-todo-item ${statusClass}`}>
 								{projectColor && (
 									<div
 										className="shared-todo-item-project-indicator"
@@ -196,11 +174,11 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 								<div className="shared-todo-item-main">
 									<span className="shared-todo-item-icon">{icon}</span>
 									<span className="shared-todo-item-text">
-										{todo.id}. {todo.text}
-										{todo.x != null && todo.y != null && (
+										{task.id}. {task.text}
+										{task.x != null && task.y != null && (
 											<span className="shared-todo-item-coords">
 												{' '}
-												({Math.round(todo.x)}, {Math.round(todo.y)})
+												({Math.round(task.x)}, {Math.round(task.y)})
 											</span>
 										)}
 									</span>
@@ -209,24 +187,24 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 										onPointerDown={(e) => {
 											e.preventDefault()
 											e.stopPropagation()
-											handleDragStart(e, todo.id)
+											handleDragStart(e, task.id)
 										}}
-										title={todo.x != null && todo.y != null ? clickToRemoveOrDrag : dragToCanvas}
+										title={task.x != null && task.y != null ? clickToRemoveOrDrag : dragToCanvas}
 									>
-										{todo.x != null && todo.y != null ? '⊖' : '◎'}
+										{task.x != null && task.y != null ? '⊖' : '◎'}
 									</button>
 									<button
 										className="shared-todo-item-delete"
-										onClick={() => deleteSharedTodoItem(todo.id)}
-										title={deleteTodo}
+										onClick={() => deleteFairyTask(task.id)}
+										title={deleteTask}
 									>
 										×
 									</button>
 								</div>
 								<div className="shared-todo-item-assign">
 									<select
-										value={todo.assignedById || ''}
-										onChange={(e) => assignAgentToTodo(todo.id, e.target.value, agents)}
+										value={task.assignedTo || ''}
+										onChange={(e) => assignFairyToTask(task.id, e.target.value, agents)}
 										className="shared-todo-item-fairy-select"
 									>
 										<option value="">
@@ -238,14 +216,6 @@ export function SharedTodoListInline({ agents }: { agents: FairyAgent[] }) {
 											</option>
 										))}
 									</select>
-									{
-										<button
-											className="shared-todo-item-help-button"
-											onClick={() => handleHelpOut(todo)}
-										>
-											<F defaultMessage="Request help" />
-										</button>
-									}
 								</div>
 							</div>
 						)

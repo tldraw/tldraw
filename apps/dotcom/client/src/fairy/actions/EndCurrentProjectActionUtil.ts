@@ -1,12 +1,11 @@
 import { EndCurrentProjectAction, Streaming } from '@tldraw/fairy-shared'
+import { deleteProject } from '../FairyProjects'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
-import { getFairyAgentById } from '../fairy-agent/agent/fairyAgentsAtom'
-import { deleteProject } from '../Projects'
-import { $sharedTodoList } from '../SharedTodoList'
+import { $fairyAgentsAtom } from '../fairy-agent/agent/fairyAgentsAtom'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProjectAction> {
-	static override type = 'end-current-project' as const
+	static override type = 'end-project' as const
 
 	override getInfo(action: Streaming<EndCurrentProjectAction>) {
 		return {
@@ -20,21 +19,16 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 		if (!action.complete) return
 		if (!this.agent) return
 
-		const project = this.agent.getCurrentProject()
-		if (!project) return
+		const project = this.agent.getProject()
+		if (!project) return // todo error
 
-		const otherMemberFairies = project.memberIds
-			.filter((id) => id !== this.agent.id)
-			.map((id) => getFairyAgentById(id, this.editor))
-			.filter((fairy) => fairy !== undefined)
+		const membersIds = project.members.map((member) => member.id)
+		const memberAgents = $fairyAgentsAtom
+			.get(this.editor)
+			.filter((agent) => membersIds.includes(agent.id))
 
-		// Wipe the chat history of all other the project's fairies
-		otherMemberFairies.forEach((fairy) => {
-			fairy.reset()
-		})
-
-		$sharedTodoList.update((sharedTodoItems) => {
-			return sharedTodoItems.filter((item) => item.projectId !== project.id)
+		memberAgents.forEach((memberAgent) => {
+			memberAgent.setMode('idling')
 		})
 
 		deleteProject(project.id)

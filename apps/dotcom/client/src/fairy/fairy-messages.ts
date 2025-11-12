@@ -3,19 +3,19 @@ import { defineMessages } from '../tla/utils/i18n'
 export const fairyMessages = defineMessages({
 	// Toolbar and navigation (aria-labels)
 	toolbar: { defaultMessage: 'Fairies' },
-	todoList: { defaultMessage: 'Todo list' },
+	taskList: { defaultMessage: 'Task list' },
 	newFairy: { defaultMessage: 'New fairy' },
 	selectFairy: { defaultMessage: 'Select fairy' },
 	deselectFairy: { defaultMessage: 'Deselect fairy' },
 	resetChat: { defaultMessage: 'Reset chat' },
 
-	// Todo list (titles and placeholders)
-	addTodoPlaceholder: { defaultMessage: 'Add a new todo…' },
+	// Task list (titles and placeholders)
+	addTaskPlaceholder: { defaultMessage: 'Add a new task…' },
 	dragToCanvas: { defaultMessage: 'Drag to canvas' },
 	clickToRemoveOrDrag: { defaultMessage: 'Click to remove or drag to move' },
-	deleteTodo: { defaultMessage: 'Delete todo' },
-	showTodosOnCanvas: { defaultMessage: 'Show todos on canvas' },
-	hideTodosOnCanvas: { defaultMessage: 'Hide todos on canvas' },
+	deleteTask: { defaultMessage: 'Delete task' },
+	showTasksOnCanvas: { defaultMessage: 'Show tasks on canvas' },
+	hideTasksOnCanvas: { defaultMessage: 'Hide tasks on canvas' },
 
 	// Fairy menu (labels)
 	goToFairy: { defaultMessage: 'Go to fairy' },
@@ -26,10 +26,10 @@ export const fairyMessages = defineMessages({
 	customizeFairy: { defaultMessage: 'Customize fairy' },
 	deleteFairy: { defaultMessage: 'Delete fairy' },
 
-	// Todo list menu (labels)
+	// Task list menu (labels)
 	askForHelpFromEveryone: { defaultMessage: 'Ask for help' },
 	summonAllFairies: { defaultMessage: 'Summon all fairies' },
-	clearTodoList: { defaultMessage: 'Clear todo list' },
+	clearTaskList: { defaultMessage: 'Clear task list' },
 	resetAllChats: { defaultMessage: 'Reset all chats' },
 	resetAllWands: { defaultMessage: 'Reset all wands' },
 	deleteAllFairies: { defaultMessage: 'Delete all fairies' },

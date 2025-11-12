@@ -55,7 +55,6 @@ export function FairyMenuContent({
 	const summonFairyLabel = useMsg(fairyMessages.summonFairy)
 	const followFairyLabel = useMsg(fairyMessages.followFairy)
 	const unfollowFairyLabel = useMsg(fairyMessages.unfollowFairy)
-	const askForHelpLabel = useMsg(fairyMessages.askForHelp)
 	const resetChatLabel = useMsg(fairyMessages.resetChat)
 	const customizeFairyLabel = useMsg(fairyMessages.customizeFairy)
 	const deleteFairyLabel = useMsg(fairyMessages.deleteFairy)
@@ -76,7 +75,6 @@ export function FairyMenuContent({
 				/>
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="fairy-chat-menu">
-				<TldrawUiMenuItem id="help-out" onSelect={() => agent.helpOut()} label={askForHelpLabel} />
 				<TldrawUiMenuItem id="new-chat" onSelect={() => agent.reset()} label={resetChatLabel} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="fairy-config-menu">

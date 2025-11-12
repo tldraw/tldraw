@@ -16,8 +16,6 @@ import { fairyMessages } from './fairy-messages'
 
 export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClose(): void }) {
 	const config = useValue(agent.$fairyConfig)
-	// const currentMode = getFairyMode(config.mode)
-	// const availableWands = currentMode.availableWands
 
 	const fairyNamePlaceholder = useMsg(fairyMessages.fairyNamePlaceholder)
 	const fairyPersonalityPlaceholder = useMsg(fairyMessages.fairyPersonalityPlaceholder)
@@ -53,29 +51,6 @@ export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClo
 						onValueChange={(value) => agent.updateFairyConfig({ personality: value })}
 						placeholder={fairyPersonalityPlaceholder}
 					/>
-					{/* <label htmlFor="mode">Mode</label>
-					<select
-						id="mode"
-						value={config.mode}
-						onChange={(e) => {
-							const newMode = getFairyMode(e.target.value as typeof config.mode)
-							const newConfig = {
-								...config,
-								mode: newMode.id,
-								// If current wand isn't available in new mode, use the mode's default wand
-								wand: (newMode.availableWands as readonly Wand['type'][]).includes(config.wand)
-									? config.wand
-									: newMode.defaultWand,
-							}
-							agent.$fairyConfig.set(newConfig)
-						}}
-					>
-						{FAIRY_MODE_DEFINITIONS.map((mode) => (
-							<option key={mode.id} value={mode.id}>
-								{mode.id.charAt(0).toUpperCase() + mode.id.slice(1)}
-							</option>
-						))}
-					</select> */}
 					<label htmlFor="hat">
 						<F defaultMessage="Hat" />
 					</label>
@@ -94,23 +69,6 @@ export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClo
 							</option>
 						))}
 					</select>
-					{/* <label htmlFor="wand">Wand</label>
-					<select
-						id="wand"
-						value={config.wand}
-						onChange={(e) => {
-							agent.$fairyConfig.set({ ...config, wand: e.target.value as Wand['type'] })
-						}}
-					>
-						{WAND_DEFINITIONS.map((wand) => {
-							const isAvailable = (availableWands as readonly Wand['type'][]).includes(wand.type)
-							return (
-								<option key={wand.type} value={wand.type} disabled={!isAvailable}>
-									{wand.name} — {wand.description}
-								</option>
-							)
-						})}
-					</select> */}
 				</div>
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">

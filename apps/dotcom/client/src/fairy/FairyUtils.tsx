@@ -1,18 +1,20 @@
 import { AgentAction, PromptPart } from '@tldraw/fairy-shared'
-import { ActivateFairyActionUtil } from './actions/ActivateFairyActionUtil'
 import { AgentActionUtil, AgentActionUtilConstructor } from './actions/AgentActionUtil'
 import { AlignActionUtil } from './actions/AlignActionUtil'
-import { AssignTodoItemActionUtil } from './actions/AssignTodoItemActionUtil'
 import { BringToFrontActionUtil } from './actions/BringToFrontActionUtil'
 import { ChangePageActionUtil } from './actions/ChangePageActionUtil'
 import { ClaimTodoItemActionUtil } from './actions/ClaimTodoItemActionUtil'
 import { CreateActionUtil } from './actions/CreateActionUtil'
 import { CreatePageActionUtil } from './actions/CreatePageActionUtil'
+import { CreateProjectTaskActionUtil } from './actions/CreateProjectTaskActionUtil'
+import { CreateSoloTaskActionUtil } from './actions/CreateSoloTaskActionUtil'
 import { DeleteActionUtil } from './actions/DeleteActionUtil'
+import { DirectToStartTaskActionUtil } from './actions/DirectToStartTaskActionUtil'
 import { DistributeActionUtil } from './actions/DistributeActionUtil'
 import { EndCurrentProjectActionUtil } from './actions/EndCurrentProjectActionUtil'
 import { FlyToBoundsActionUtil } from './actions/FlyToBoundsActionUtil'
 import { LabelActionUtil } from './actions/LabelActionUtil'
+import { MarkTaskDoneActionUtil } from './actions/MarkTaskDoneActionUtil'
 import { MessageActionUtil } from './actions/MessageActionUtil'
 import { MoveActionUtil } from './actions/MoveActionUtil'
 import { PenActionUtil } from './actions/PenActionUtil'
@@ -22,19 +24,21 @@ import { ReviewActionUtil } from './actions/ReviewActionUtil'
 import { RotateActionUtil } from './actions/RotateActionUtil'
 import { SendToBackActionUtil } from './actions/SendToBackActionUtil'
 import { SharedTodoListActionUtil } from './actions/SharedTodoListActionUtil'
+import { SleepActionUtil } from './actions/SleepActionUtil'
 import { StackActionUtil } from './actions/StackActionUtil'
 import { StartProjectActionUtil } from './actions/StartProjectActionUtil'
+import { StartTaskActionUtil } from './actions/StartTaskActionUtil'
 import { ThinkActionUtil } from './actions/ThinkActionUtil'
 import { UnknownActionUtil } from './actions/UnknownActionUtil'
 import { UpdateActionUtil } from './actions/UpdateActionUtil'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { BlurryShapesPartUtil } from './parts/BlurryShapesPartUtil'
 import { ChatHistoryPartUtil } from './parts/ChatHistoryPartUtil'
-import { ContextItemsPartUtil } from './parts/ContextItemsPartUtil'
 import { CurrentProjectPartUtil } from './parts/CurrentProjectPartUtil'
 import { DataPartUtil } from './parts/DataPartUtil'
 import { DebugPartUtil } from './parts/DebugPartUtil'
 import { MessagesPartUtil } from './parts/MessagesPartUtil'
+import { ModePartUtil } from './parts/ModePartUtil'
 import { OtherFairiesPartUtil } from './parts/OtherFairiesPartUtil'
 import { PagesPartUtil } from './parts/PagesPartUtil'
 import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
@@ -42,11 +46,11 @@ import { PersonalityPartUtil } from './parts/PersonalityPartUtil'
 import { PromptPartUtil, PromptPartUtilConstructor } from './parts/PromptPartUtil'
 import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
 import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
-import { SharedTodoListPartUtil } from './parts/SharedTodoListPartUtil'
+import { SoloTasksPartUtil } from './parts/SoloTasksPartUtil'
 import { TimePartUtil } from './parts/TimePartUtil'
 import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
 import { ViewportBoundsPartUtil } from './parts/ViewportBoundsPartUtil'
-import { WandPartUtil } from './parts/WandPartUtil'
+import { WorkingTasksPartUtil } from './parts/WorkingTasksPartUtil'
 
 /**
  * Agent action utils determine what actions do.
@@ -59,6 +63,7 @@ export const AGENT_ACTION_UTILS = [
 	ThinkActionUtil,
 	ReviewActionUtil,
 	FlyToBoundsActionUtil,
+	SleepActionUtil,
 
 	// Individual shapes
 	CreateActionUtil,
@@ -85,12 +90,20 @@ export const AGENT_ACTION_UTILS = [
 	CreatePageActionUtil,
 
 	// Project management
-	SharedTodoListActionUtil,
-	ActivateFairyActionUtil,
-	AssignTodoItemActionUtil,
-	ClaimTodoItemActionUtil,
+
+	// working
+	CreateSoloTaskActionUtil,
+	StartTaskActionUtil,
+	MarkTaskDoneActionUtil,
+	ClaimTodoItemActionUtil, // todo, do we need?
+
+	// orchestrating
 	StartProjectActionUtil,
+	CreateProjectTaskActionUtil,
+	DirectToStartTaskActionUtil,
 	EndCurrentProjectActionUtil,
+
+	SharedTodoListActionUtil, // todo, do we need?
 
 	// Internal (required)
 	UnknownActionUtil,
@@ -106,7 +119,6 @@ export const PROMPT_PART_UTILS = [
 	// Request
 	MessagesPartUtil,
 	DataPartUtil,
-	ContextItemsPartUtil,
 
 	// Viewport
 	ScreenshotPartUtil,
@@ -120,7 +132,8 @@ export const PROMPT_PART_UTILS = [
 	// History
 	ChatHistoryPartUtil,
 	UserActionHistoryPartUtil,
-	SharedTodoListPartUtil,
+	SoloTasksPartUtil,
+	WorkingTasksPartUtil,
 
 	// Metadata
 	TimePartUtil,
@@ -128,13 +141,13 @@ export const PROMPT_PART_UTILS = [
 
 	// Fairy-specific
 	OtherFairiesPartUtil,
-	WandPartUtil,
 	PersonalityPartUtil,
+	ModePartUtil,
 	CurrentProjectPartUtil,
 
 	// Debug
 	DebugPartUtil,
-] satisfies PromptPartUtilConstructor<PromptPart>[]
+] as const satisfies PromptPartUtilConstructor<PromptPart>[]
 
 /**
  * Get an object containing all agent action utils.
