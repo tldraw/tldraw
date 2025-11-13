@@ -104,9 +104,6 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public
-export type CoreShape<T> = T | typeof tlCoreShape;
-
-// @public
 export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<Expand<    { [P in "id" | "meta" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: {
 id: TLAssetId;
 meta: JsonObject;
@@ -579,9 +576,6 @@ export const noteShapeProps: RecordProps<TLNoteShape>;
 export const opacityValidator: T.Validator<number>;
 
 // @public
-export type OverwritableDefaultShape<T> = null | T | typeof tlDefaultShape | undefined;
-
-// @public
 export const pageIdValidator: T.Validator<TLPageId>;
 
 // @public
@@ -969,36 +963,6 @@ export type TLDefaultHorizontalAlignStyle = T.TypeOf<typeof DefaultHorizontalAli
 export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
 
 // @public
-export interface TLDefaultShapePropsMap {
-    // (undocumented)
-    arrow: OverwritableDefaultShape<TLArrowShapeProps>;
-    // (undocumented)
-    bookmark: OverwritableDefaultShape<TLBookmarkShapeProps>;
-    // (undocumented)
-    draw: OverwritableDefaultShape<TLDrawShapeProps>;
-    // (undocumented)
-    embed: OverwritableDefaultShape<TLEmbedShapeProps>;
-    // (undocumented)
-    frame: OverwritableDefaultShape<TLFrameShapeProps>;
-    // (undocumented)
-    geo: OverwritableDefaultShape<TLGeoShapeProps>;
-    // (undocumented)
-    group: CoreShape<TLGroupShapeProps>;
-    // (undocumented)
-    highlight: OverwritableDefaultShape<TLHighlightShapeProps>;
-    // (undocumented)
-    image: OverwritableDefaultShape<TLImageShapeProps>;
-    // (undocumented)
-    line: OverwritableDefaultShape<TLLineShapeProps>;
-    // (undocumented)
-    note: OverwritableDefaultShape<TLNoteShapeProps>;
-    // (undocumented)
-    text: OverwritableDefaultShape<TLTextShapeProps>;
-    // (undocumented)
-    video: OverwritableDefaultShape<TLVideoShapeProps>;
-}
-
-// @public
 export type TLDefaultSizeStyle = T.TypeOf<typeof DefaultSizeStyle>;
 
 // @public
@@ -1086,7 +1050,7 @@ export interface TLGeoShapeProps {
 }
 
 // @public (undocumented)
-export interface TLGlobalShapePropsMap extends TLDefaultShapePropsMap {
+export interface TLGlobalShapePropsMap {
 }
 
 // @public
@@ -1155,13 +1119,11 @@ export interface TLImageShapeProps {
 
 // @public (undocumented)
 export type TLIndexedShapes = {
-    [K in keyof TLGlobalShapePropsMap as K extends keyof TLDefaultShapePropsMap ? typeof tlCoreShape extends TLDefaultShapePropsMap[K] ? K : TLGlobalShapePropsMap[K] extends null | undefined ? never : K : K]: K extends keyof {
-        [K2 in keyof TLDefaultShapePropsMap as typeof tlCoreShape extends TLDefaultShapePropsMap[K2] ? K2 : never]: TLDefaultShapePropsMap[K2];
-    } ? Extract<TLDefaultShape, {
+    [K in keyof TLGlobalShapePropsMap | TLDefaultShape['type'] as K extends TLDefaultShape['type'] ? K extends 'group' ? K : K extends keyof TLGlobalShapePropsMap ? TLGlobalShapePropsMap[K] extends null | undefined ? never : K : K : K]: K extends 'group' ? Extract<TLDefaultShape, {
         type: K;
-    }> : typeof tlDefaultShape extends TLGlobalShapePropsMap[K & keyof TLDefaultShapePropsMap] ? Extract<TLDefaultShape, {
+    }> : K extends TLDefaultShape['type'] ? K extends keyof TLGlobalShapePropsMap ? TLBaseShape<K, TLGlobalShapePropsMap[K]> : Extract<TLDefaultShape, {
         type: K;
-    }> : TLBaseShape<K, NonNullable<TLGlobalShapePropsMap[K]>>;
+    }> : TLBaseShape<K, TLGlobalShapePropsMap[K & keyof TLGlobalShapePropsMap]>;
 };
 
 // @public

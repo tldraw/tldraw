@@ -9,20 +9,20 @@ import { mapObjectMapValues, uniqueId } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { SchemaPropsInfo } from '../createTLSchema'
 import { TLPropsMigrations } from '../recordsWithProps'
-import { TLArrowShape, TLArrowShapeProps } from '../shapes/TLArrowShape'
+import { TLArrowShape } from '../shapes/TLArrowShape'
 import { TLBaseShape, createShapeValidator } from '../shapes/TLBaseShape'
-import { TLBookmarkShape, TLBookmarkShapeProps } from '../shapes/TLBookmarkShape'
-import { TLDrawShape, TLDrawShapeProps } from '../shapes/TLDrawShape'
-import { TLEmbedShape, TLEmbedShapeProps } from '../shapes/TLEmbedShape'
-import { TLFrameShape, TLFrameShapeProps } from '../shapes/TLFrameShape'
-import { TLGeoShape, TLGeoShapeProps } from '../shapes/TLGeoShape'
-import { TLGroupShape, TLGroupShapeProps } from '../shapes/TLGroupShape'
-import { TLHighlightShape, TLHighlightShapeProps } from '../shapes/TLHighlightShape'
-import { TLImageShape, TLImageShapeProps } from '../shapes/TLImageShape'
-import { TLLineShape, TLLineShapeProps } from '../shapes/TLLineShape'
-import { TLNoteShape, TLNoteShapeProps } from '../shapes/TLNoteShape'
-import { TLTextShape, TLTextShapeProps } from '../shapes/TLTextShape'
-import { TLVideoShape, TLVideoShapeProps } from '../shapes/TLVideoShape'
+import { TLBookmarkShape } from '../shapes/TLBookmarkShape'
+import { TLDrawShape } from '../shapes/TLDrawShape'
+import { TLEmbedShape } from '../shapes/TLEmbedShape'
+import { TLFrameShape } from '../shapes/TLFrameShape'
+import { TLGeoShape } from '../shapes/TLGeoShape'
+import { TLGroupShape } from '../shapes/TLGroupShape'
+import { TLHighlightShape } from '../shapes/TLHighlightShape'
+import { TLImageShape } from '../shapes/TLImageShape'
+import { TLLineShape } from '../shapes/TLLineShape'
+import { TLNoteShape } from '../shapes/TLNoteShape'
+import { TLTextShape } from '../shapes/TLTextShape'
+import { TLVideoShape } from '../shapes/TLVideoShape'
 import { StyleProp } from '../styles/StyleProp'
 import { TLPageId } from './TLPage'
 
@@ -79,63 +79,39 @@ export type TLDefaultShape =
  */
 export type TLUnknownShape = TLBaseShape<string, object>
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-declare const tlCoreShape: unique symbol
-
-/** @public (undocumented) */
-export type CoreShape<T> = T | typeof tlCoreShape // core shapes cannot be overridden
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-declare const tlDefaultShape: unique symbol
-
-/** @public (undocumented) */
-export type OverwritableDefaultShape<T> = T | null | undefined | typeof tlDefaultShape
-
-/** @public (undocumented) */
-export interface TLDefaultShapePropsMap {
-	arrow: OverwritableDefaultShape<TLArrowShapeProps>
-	bookmark: OverwritableDefaultShape<TLBookmarkShapeProps>
-	draw: OverwritableDefaultShape<TLDrawShapeProps>
-	embed: OverwritableDefaultShape<TLEmbedShapeProps>
-	frame: OverwritableDefaultShape<TLFrameShapeProps>
-	geo: OverwritableDefaultShape<TLGeoShapeProps>
-	group: CoreShape<TLGroupShapeProps>
-	highlight: OverwritableDefaultShape<TLHighlightShapeProps>
-	image: OverwritableDefaultShape<TLImageShapeProps>
-	line: OverwritableDefaultShape<TLLineShapeProps>
-	note: OverwritableDefaultShape<TLNoteShapeProps>
-	text: OverwritableDefaultShape<TLTextShapeProps>
-	video: OverwritableDefaultShape<TLVideoShapeProps>
-}
-
 /** @public */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface TLGlobalShapePropsMap extends TLDefaultShapePropsMap {}
+export interface TLGlobalShapePropsMap {}
 
 /** @public */
 // prettier-ignore
 export type TLIndexedShapes = {
-	// in the `as` clause we want to filter out disabled shapes
-	[K in keyof TLGlobalShapePropsMap as K extends keyof TLDefaultShapePropsMap
+	// We iterate over a union of augmented keys and default shape types.
+	// This allows us to include (or conditionally exclude or override) the default shapes in one go.
+	//
+	// In the `as` clause we are filtering out disabled shapes.
+	[K in keyof TLGlobalShapePropsMap | TLDefaultShape['type'] as K extends TLDefaultShape['type']
 		? // core shapes are always available and cannot be overridden so we just include them
-			typeof tlCoreShape extends TLDefaultShapePropsMap[K]
+			K extends 'group'
 			? K
-			: // if it extends a nullish value the user has disabled this shape type so we filter it out with never
-				TLGlobalShapePropsMap[K] extends null | undefined
-				? never
+			: K extends keyof TLGlobalShapePropsMap
+				? // if it extends a nullish value the user has disabled this shape type so we filter it out with never
+					TLGlobalShapePropsMap[K] extends null | undefined
+					? never
+					: K
 				: K
-		: K]: // core shapes are always available and cannot be overridden
-	K extends keyof { [K2 in keyof TLDefaultShapePropsMap as typeof tlCoreShape extends TLDefaultShapePropsMap[K2] ? K2 : never]: TLDefaultShapePropsMap[K2] }
-		? Extract<TLDefaultShape, { type: K }>
-		: // if the symbol is still there, it means the user has not overwritten it
-			// `K & keyof TLDefaultShapePropsMap` trick is used here to ensure this branch only applies to the default shape types,
-			// otherwise custom ones defined like `pin: {}` would pass this check
-			typeof tlDefaultShape extends TLGlobalShapePropsMap[K & keyof TLDefaultShapePropsMap]
-			? // using `TLBaseShape<K, Exclude<GlobalShapePropsMap[K], null | undefined | typeof tlDefaultShape>>` would work here
-				// but to make type displays more concise, we use the corresponding defined type aliases
-				Extract<TLDefaultShape, { type: K }>
-			: // finally, we reach the custom shapes here, the disabled shapes were already filtered out by the `as` clause
-				TLBaseShape<K, NonNullable<TLGlobalShapePropsMap[K]>>;
+		: K]: K extends 'group'
+		? // core shapes are always available and cannot be overridden so we just include them
+			Extract<TLDefaultShape, { type: K }>
+		: K extends TLDefaultShape['type']
+			? // if it's a default shape type we need to check if it's been overridden
+				K extends keyof TLGlobalShapePropsMap
+				? // if it has been overriden then use the custom shape definition
+					TLBaseShape<K, TLGlobalShapePropsMap[K]>
+				: // if it has not been overriden then reuse existing type aliases for better type display
+					Extract<TLDefaultShape, { type: K }>
+			: // use the custom shape definition
+				TLBaseShape<K, TLGlobalShapePropsMap[K & keyof TLGlobalShapePropsMap]>
 }
 
 /**
