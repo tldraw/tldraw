@@ -339,6 +339,7 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	color: var(--tla-color-text-1);
 }
 
 .sidebarUserSettingsIcon {
