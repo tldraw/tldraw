@@ -98,12 +98,6 @@
   "47839e47a5": {
     "translation": "tldraw"
   },
-  "7697920637": {
-    "translation": "请重新加载"
-  },
-  "764671e008": {
-    "translation": "在 Discord 上与我们聊天"
-  },
   "4908687e50": {
     "translation": "确定要忘记该文件吗？"
   },
@@ -200,6 +194,12 @@
   "761e93ede9": {
     "translation": "管理 Cookie"
   },
+  "7697920637": {
+    "translation": "请重新加载"
+  },
+  "764671e008": {
+    "translation": "在 Discord 上与我们聊天"
+  },
   "777f9e90cf": {
     "translation": "无效请求。"
   },
@@ -256,6 +256,9 @@
   },
   "91e49bb0eb": {
     "translation": "复制到我的文件"
+  },
+  "95d2109dc8": {
+    "translation": "使用 tldraw SDK 构建"
   },
   "96165d6df5": {
     "translation": "本月"

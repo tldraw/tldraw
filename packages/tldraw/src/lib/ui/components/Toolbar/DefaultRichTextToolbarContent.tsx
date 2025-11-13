@@ -54,6 +54,9 @@ export function DefaultRichTextToolbarContent({
 	// todo: we could make this a prop
 	const actions = useMemo(() => {
 		function handleOp(name: string, op: string) {
+			// Check if the editor view is available before calling operations
+			if (!textEditor.view) return
+
 			trackEvent('rich-text', { operation: name as any, source })
 			// @ts-expect-error typing this is annoying at the moment.
 			textEditor.chain().focus()[op]().run()
@@ -109,7 +112,7 @@ export function DefaultRichTextToolbarContent({
 	}, [textEditor, trackEvent, onEditLinkStart])
 
 	return actions.map(({ name, attrs, onSelect }) => {
-		const isActive = textEditor.isActive(name, attrs)
+		const isActive = textEditor.view ? textEditor.isActive(name, attrs) : false
 		return (
 			<TldrawUiToolbarButton
 				key={name}

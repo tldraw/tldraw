@@ -224,8 +224,10 @@
 	max-width: 100%;
 	min-width: 0px;
 	height: auto;
-	overflow: hidden;
 	position: relative;
+
+	/* Stop helper buttons getting cut off by the top right panel */
+	overflow: visible;
 }
 
 .tlui-layout__top__right {

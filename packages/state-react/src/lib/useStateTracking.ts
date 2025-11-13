@@ -8,6 +8,11 @@ import React from 'react'
  *
  * See the `track` component wrapper, which uses this under the hood.
  *
+ * @param name - A debug name for the reactive tracking context
+ * @param render - The render function that accesses reactive values
+ * @param deps - Optional dependency array to control when the tracking context is recreated
+ * @returns The result of calling the render function
+ *
  * @example
  * ```ts
  * function MyComponent() {

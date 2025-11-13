@@ -144,6 +144,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override hideSelectionBoundsFg() {
 		return true
 	}
+	override hideInMinimap() {
+		return true
+	}
 
 	override canBeLaidOut(shape: TLArrowShape, info: TLShapeUtilCanBeLaidOutOpts) {
 		if (info.type === 'flip') {

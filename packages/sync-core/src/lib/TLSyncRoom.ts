@@ -51,24 +51,71 @@ import {
 	getTlsyncProtocolVersion,
 } from './protocol'
 
-/** @internal */
+/**
+ * WebSocket interface for server-side room connections. This defines the contract
+ * that socket implementations must follow to work with TLSyncRoom.
+ *
+ * @internal
+ */
 export interface TLRoomSocket<R extends UnknownRecord> {
+	/**
+	 * Whether the socket connection is currently open and ready to send messages.
+	 */
 	isOpen: boolean
+	/**
+	 * Send a message to the connected client through this socket.
+	 *
+	 * @param msg - The server-sent event message to transmit
+	 */
 	sendMessage(msg: TLSocketServerSentEvent<R>): void
+	/**
+	 * Close the socket connection with optional status code and reason.
+	 *
+	 * @param code - WebSocket close code (optional)
+	 * @param reason - Human-readable close reason (optional)
+	 */
 	close(code?: number, reason?: string): void
 }
 
-// the max number of tombstones to keep in the store
+/**
+ * The maximum number of tombstone records to keep in memory. Tombstones track
+ * deleted records to prevent resurrection during sync operations.
+ * @public
+ */
 export const MAX_TOMBSTONES = 3000
-// the number of tombstones to delete when the max is reached
+
+/**
+ * The number of tombstones to delete when pruning occurs after reaching MAX_TOMBSTONES.
+ * This buffer prevents frequent pruning operations.
+ * @public
+ */
 export const TOMBSTONE_PRUNE_BUFFER_SIZE = 300
-// the minimum time between data-related messages to the clients
+
+/**
+ * The minimum time interval (in milliseconds) between sending batched data messages
+ * to clients. This debouncing prevents overwhelming clients with rapid updates.
+ * @public
+ */
 export const DATA_MESSAGE_DEBOUNCE_INTERVAL = 1000 / 60
 
 const timeSince = (time: number) => Date.now() - time
 
-/** @internal */
+/**
+ * Represents the state of a document record within a sync room, including
+ * its current data and the clock value when it was last modified.
+ *
+ * @internal
+ */
 export class DocumentState<R extends UnknownRecord> {
+	/**
+	 * Create a DocumentState instance without validating the record data.
+	 * Used for performance when validation has already been performed.
+	 *
+	 * @param state - The record data
+	 * @param lastChangedClock - Clock value when this record was last modified
+	 * @param recordType - The record type definition for validation
+	 * @returns A new DocumentState instance
+	 */
 	static createWithoutValidating<R extends UnknownRecord>(
 		state: R,
 		lastChangedClock: number,
@@ -77,6 +124,14 @@ export class DocumentState<R extends UnknownRecord> {
 		return new DocumentState(state, lastChangedClock, recordType)
 	}
 
+	/**
+	 * Create a DocumentState instance with validation of the record data.
+	 *
+	 * @param state - The record data to validate
+	 * @param lastChangedClock - Clock value when this record was last modified
+	 * @param recordType - The record type definition for validation
+	 * @returns Result containing the DocumentState or validation error
+	 */
 	static createAndValidate<R extends UnknownRecord>(
 		state: R,
 		lastChangedClock: number,
@@ -96,8 +151,20 @@ export class DocumentState<R extends UnknownRecord> {
 		private readonly recordType: RecordType<R, any>
 	) {}
 
-	replaceState(state: R, clock: number): Result<[ObjectDiff, DocumentState<R>] | null, Error> {
-		const diff = diffRecord(this.state, state)
+	/**
+	 * Replace the current state with new state and calculate the diff.
+	 *
+	 * @param state - The new record state
+	 * @param clock - The new clock value
+	 * @param legacyAppendMode - If true, string append operations will be converted to Put operations
+	 * @returns Result containing the diff and new DocumentState, or null if no changes, or validation error
+	 */
+	replaceState(
+		state: R,
+		clock: number,
+		legacyAppendMode = false
+	): Result<[ObjectDiff, DocumentState<R>] | null, Error> {
+		const diff = diffRecord(this.state, state, legacyAppendMode)
 		if (!diff) return Result.ok(null)
 		try {
 			this.recordType.validate(state)
@@ -106,19 +173,54 @@ export class DocumentState<R extends UnknownRecord> {
 		}
 		return Result.ok([diff, new DocumentState(state, clock, this.recordType)])
 	}
-	mergeDiff(diff: ObjectDiff, clock: number): Result<[ObjectDiff, DocumentState<R>] | null, Error> {
+	/**
+	 * Apply a diff to the current state and return the resulting changes.
+	 *
+	 * @param diff - The object diff to apply
+	 * @param clock - The new clock value
+	 * @param legacyAppendMode - If true, string append operations will be converted to Put operations
+	 * @returns Result containing the final diff and new DocumentState, or null if no changes, or validation error
+	 */
+	mergeDiff(
+		diff: ObjectDiff,
+		clock: number,
+		legacyAppendMode = false
+	): Result<[ObjectDiff, DocumentState<R>] | null, Error> {
 		const newState = applyObjectDiff(this.state, diff)
-		return this.replaceState(newState, clock)
+		return this.replaceState(newState, clock, legacyAppendMode)
 	}
 }
 
-/** @public */
+/**
+ * Snapshot of a room's complete state that can be persisted and restored.
+ * Contains all documents, tombstones, and metadata needed to reconstruct the room.
+ *
+ * @public
+ */
 export interface RoomSnapshot {
+	/**
+	 * The current logical clock value for the room
+	 */
 	clock: number
+	/**
+	 * Clock value when document data was last changed (optional for backwards compatibility)
+	 */
 	documentClock?: number
+	/**
+	 * Array of all document records with their last modification clocks
+	 */
 	documents: Array<{ state: UnknownRecord; lastChangedClock: number }>
+	/**
+	 * Map of deleted record IDs to their deletion clock values (optional)
+	 */
 	tombstones?: Record<string, number>
+	/**
+	 * Clock value where tombstone history begins - older deletions are not tracked (optional)
+	 */
 	tombstoneHistoryStartsAtClock?: number
+	/**
+	 * Serialized schema used when creating this snapshot (optional)
+	 */
 	schema?: SerializedSchema
 }
 
@@ -137,8 +239,27 @@ function getDocumentClock(snapshot: RoomSnapshot) {
 }
 
 /**
- * A room is a workspace for a group of clients. It allows clients to collaborate on documents
- * within that workspace.
+ * A collaborative workspace that manages multiple client sessions and synchronizes
+ * document changes between them. The room serves as the authoritative source for
+ * all document state and handles conflict resolution, schema migrations, and
+ * real-time data distribution.
+ *
+ * @example
+ * ```ts
+ * const room = new TLSyncRoom({
+ *   schema: mySchema,
+ *   onDataChange: () => saveToDatabase(room.getSnapshot()),
+ *   onPresenceChange: () => updateLiveCursors()
+ * })
+ *
+ * // Handle new client connections
+ * room.handleNewSession({
+ *   sessionId: 'user-123',
+ *   socket: webSocketAdapter,
+ *   meta: { userId: '123', name: 'Alice' },
+ *   isReadonly: false
+ * })
+ * ```
  *
  * @internal
  */
@@ -183,6 +304,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	private _isClosed = false
 
+	/**
+	 * Close the room and clean up all resources. Disconnects all sessions
+	 * and stops background processes.
+	 */
 	close() {
 		this.disposables.forEach((d) => d())
 		this.sessions.forEach((session) => {
@@ -191,6 +316,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this._isClosed = true
 	}
 
+	/**
+	 * Check if the room has been closed and is no longer accepting connections.
+	 *
+	 * @returns True if the room is closed
+	 */
 	isClosed() {
 		return this._isClosed
 	}
@@ -442,6 +572,23 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 	}
 
+	/**
+	 * Get a complete snapshot of the current room state that can be persisted
+	 * and later used to restore the room.
+	 *
+	 * @returns Room snapshot containing all documents, tombstones, and metadata
+	 * @example
+	 * ```ts
+	 * const snapshot = room.getSnapshot()
+	 * await database.saveRoomSnapshot(roomId, snapshot)
+	 *
+	 * // Later, restore from snapshot
+	 * const restoredRoom = new TLSyncRoom({
+	 *   schema: mySchema,
+	 *   snapshot: snapshot
+	 * })
+	 * ```
+	 */
 	getSnapshot(): RoomSnapshot {
 		const tombstones = Object.fromEntries(this.tombstones.entries())
 		const documents = []
@@ -583,6 +730,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			meta: session.meta,
 			isReadonly: session.isReadonly,
 			requiresLegacyRejection: session.requiresLegacyRejection,
+			supportsStringAppend: session.supportsStringAppend,
 		})
 
 		try {
@@ -594,8 +742,19 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	/**
 	 * Broadcast a patch to all connected clients except the one with the sessionId provided.
+	 * Automatically handles schema migration for clients on different versions.
 	 *
-	 * @param message - The message to broadcast.
+	 * @param message - The broadcast message
+	 *   - diff - The network diff to broadcast to all clients
+	 *   - sourceSessionId - Optional ID of the session that originated this change (excluded from broadcast)
+	 * @returns This room instance for method chaining
+	 * @example
+	 * ```ts
+	 * room.broadcastPatch({
+	 *   diff: { 'shape:123': [RecordOpType.Put, newShapeData] },
+	 *   sourceSessionId: 'user-456' // This user won't receive the broadcast
+	 * })
+	 * ```
 	 */
 	broadcastPatch(message: { diff: NetworkDiff<R>; sourceSessionId?: string }) {
 		const { diff, sourceSessionId } = message
@@ -630,18 +789,50 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	/**
-	 * Send a custom message to a connected client.
+	 * Send a custom message to a connected client. Useful for application-specific
+	 * communication that doesn't involve document synchronization.
 	 *
-	 * @param sessionId - The id of the session to send the message to.
-	 * @param data - The payload to send.
+	 * @param sessionId - The ID of the session to send the message to
+	 * @param data - The custom payload to send (will be JSON serialized)
+	 * @example
+	 * ```ts
+	 * // Send a custom notification
+	 * room.sendCustomMessage('user-123', {
+	 *   type: 'notification',
+	 *   message: 'Document saved successfully'
+	 * })
+	 *
+	 * // Send user-specific data
+	 * room.sendCustomMessage('user-456', {
+	 *   type: 'user_permissions',
+	 *   canEdit: true,
+	 *   canDelete: false
+	 * })
+	 * ```
 	 */
 	sendCustomMessage(sessionId: string, data: any): void {
 		this.sendMessage(sessionId, { type: 'custom', data })
 	}
 
 	/**
-	 * When a client connects to the room, add them to the list of clients and then merge the history
-	 * down into the snapshots.
+	 * Register a new client session with the room. The session will be in an awaiting
+	 * state until it sends a connect message with protocol handshake.
+	 *
+	 * @param opts - Session configuration
+	 *   - sessionId - Unique identifier for this session
+	 *   - socket - WebSocket adapter for communication
+	 *   - meta - Application-specific metadata for this session
+	 *   - isReadonly - Whether this session can modify documents
+	 * @returns This room instance for method chaining
+	 * @example
+	 * ```ts
+	 * room.handleNewSession({
+	 *   sessionId: crypto.randomUUID(),
+	 *   socket: new WebSocketAdapter(ws),
+	 *   meta: { userId: '123', name: 'Alice', avatar: 'url' },
+	 *   isReadonly: !hasEditPermission
+	 * })
+	 * ```
 	 *
 	 * @internal
 	 */
@@ -663,8 +854,26 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			isReadonly: isReadonly ?? false,
 			// this gets set later during handleConnectMessage
 			requiresLegacyRejection: false,
+			supportsStringAppend: true,
 		})
 		return this
+	}
+
+	/**
+	 * Checks if all connected sessions support string append operations (protocol version 8+).
+	 * If any client is on an older version, returns false to enable legacy append mode.
+	 *
+	 * @returns True if all connected sessions are on protocol version 8 or higher
+	 */
+	getCanEmitStringAppend(): boolean {
+		for (const session of this.sessions.values()) {
+			if (session.state === RoomSessionState.Connected) {
+				if (!session.supportsStringAppend) {
+					return false
+				}
+			}
+		}
+		return true
 	}
 
 	/**
@@ -714,11 +923,19 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	/**
-	 * When the server receives a message from the clients Currently, supports connect and patches.
-	 * Invalid messages types throws an error. Currently, doesn't validate data.
+	 * Process an incoming message from a client session. Handles connection requests,
+	 * data synchronization pushes, and ping/pong for connection health.
 	 *
-	 * @param sessionId - The session that sent the message
-	 * @param message - The message that was sent
+	 * @param sessionId - The ID of the session that sent the message
+	 * @param message - The client message to process
+	 * @example
+	 * ```ts
+	 * // Typically called by WebSocket message handlers
+	 * websocket.onMessage((data) => {
+	 *   const message = JSON.parse(data)
+	 *   room.handleMessage(sessionId, message)
+	 * })
+	 * ```
 	 */
 	async handleMessage(sessionId: string, message: TLSocketClientSentEvent<R>) {
 		const session = this.sessions.get(sessionId)
@@ -745,7 +962,21 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 	}
 
-	/** If the client is out of date, or we are out of date, we need to let them know */
+	/**
+	 * Reject and disconnect a session due to incompatibility or other fatal errors.
+	 * Sends appropriate error messages before closing the connection.
+	 *
+	 * @param sessionId - The session to reject
+	 * @param fatalReason - The reason for rejection (optional)
+	 * @example
+	 * ```ts
+	 * // Reject due to version mismatch
+	 * room.rejectSession('user-123', TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+	 *
+	 * // Reject due to permission issue
+	 * room.rejectSession('user-456', 'Insufficient permissions')
+	 * ```
+	 */
 	rejectSession(sessionId: string, fatalReason?: TLSyncErrorCloseEventReason | string) {
 		const session = this.sessions.get(sessionId)
 		if (!session) return
@@ -808,6 +1039,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (theirProtocolVersion === 6) {
 			theirProtocolVersion++
 		}
+		if (theirProtocolVersion === 7) {
+			theirProtocolVersion++
+			session.supportsStringAppend = false
+		}
 
 		if (theirProtocolVersion == null || theirProtocolVersion < getTlsyncProtocolVersion()) {
 			this.rejectSession(session.sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
@@ -843,6 +1078,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				lastInteractionTime: Date.now(),
 				debounceTimer: null,
 				outstandingDataMessages: [],
+				supportsStringAppend: session.supportsStringAppend,
 				meta: session.meta,
 				isReadonly: session.isReadonly,
 				requiresLegacyRejection: session.requiresLegacyRejection,
@@ -948,6 +1184,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		const initialDocumentClock = this.documentClock
 		let didPresenceChange = false
 		transaction((rollback) => {
+			const legacyAppendMode = !this.getCanEmitStringAppend()
 			// collect actual ops that resulted from the push
 			// these will be broadcast to other users
 			interface ActualChanges {
@@ -996,7 +1233,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				if (doc) {
 					// If there's an existing document, replace it with the new state
 					// but propagate a diff rather than the entire value
-					const diff = doc.replaceState(state, this.clock)
+					const diff = doc.replaceState(state, this.clock, legacyAppendMode)
 					if (!diff.ok) {
 						return fail(TLSyncErrorCloseEventReason.INVALID_RECORD)
 					}
@@ -1036,7 +1273,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 				if (downgraded.value === doc.state) {
 					// If the versions are compatible, apply the patch and propagate the patch op
-					const diff = doc.mergeDiff(patch, this.clock)
+					const diff = doc.mergeDiff(patch, this.clock, legacyAppendMode)
 					if (!diff.ok) {
 						return fail(TLSyncErrorCloseEventReason.INVALID_RECORD)
 					}
@@ -1058,7 +1295,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						return fail(TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 					}
 					// replace the state with the upgraded version and propagate the patch op
-					const diff = doc.replaceState(upgraded.value, this.clock)
+					const diff = doc.replaceState(upgraded.value, this.clock, legacyAppendMode)
 					if (!diff.ok) {
 						return fail(TLSyncErrorCloseEventReason.INVALID_RECORD)
 					}
@@ -1227,18 +1464,41 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	/**
-	 * Handle the event when a client disconnects.
+	 * Handle the event when a client disconnects. Cleans up the session and
+	 * removes any presence information.
 	 *
-	 * @param sessionId - The session that disconnected.
+	 * @param sessionId - The session that disconnected
+	 * @example
+	 * ```ts
+	 * websocket.onClose(() => {
+	 *   room.handleClose(sessionId)
+	 * })
+	 * ```
 	 */
 	handleClose(sessionId: string) {
 		this.cancelSession(sessionId)
 	}
 
 	/**
-	 * Allow applying changes to the store in a transactional way.
-	 * @param updater - A function that will be called with a store object that can be used to make changes.
-	 * @returns A promise that resolves when the transaction is complete.
+	 * Apply changes to the room's store in a transactional way. Changes are
+	 * automatically synchronized to all connected clients.
+	 *
+	 * @param updater - Function that receives store methods to make changes
+	 * @returns Promise that resolves when the transaction is complete
+	 * @example
+	 * ```ts
+	 * // Add multiple shapes atomically
+	 * await room.updateStore((store) => {
+	 *   store.put(createShape({ type: 'geo', x: 100, y: 100 }))
+	 *   store.put(createShape({ type: 'text', x: 200, y: 200 }))
+	 * })
+	 *
+	 * // Async operations are supported
+	 * await room.updateStore(async (store) => {
+	 *   const template = await loadTemplate()
+	 *   template.shapes.forEach(shape => store.put(shape))
+	 * })
+	 * ```
 	 */
 	async updateStore(updater: (store: RoomStoreMethods<R>) => void | Promise<void>) {
 		if (this._isClosed) {
@@ -1263,12 +1523,47 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 }
 
 /**
+ * Interface for making transactional changes to room store data. Used within
+ * updateStore transactions to modify documents atomically.
+ *
+ * @example
+ * ```ts
+ * await room.updateStore((store) => {
+ *   const shape = store.get('shape:123')
+ *   if (shape) {
+ *     store.put({ ...shape, x: shape.x + 10 })
+ *   }
+ *   store.delete('shape:456')
+ * })
+ * ```
+ *
  * @public
  */
 export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
+	/**
+	 * Add or update a record in the store.
+	 *
+	 * @param record - The record to store
+	 */
 	put(record: R): void
+	/**
+	 * Delete a record from the store.
+	 *
+	 * @param recordOrId - The record or record ID to delete
+	 */
 	delete(recordOrId: R | string): void
+	/**
+	 * Get a record by its ID.
+	 *
+	 * @param id - The record ID
+	 * @returns The record or null if not found
+	 */
 	get(id: string): R | null
+	/**
+	 * Get all records in the store.
+	 *
+	 * @returns Array of all records
+	 */
 	getAll(): R[]
 }
 

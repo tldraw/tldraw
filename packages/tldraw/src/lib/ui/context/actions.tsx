@@ -5,6 +5,7 @@ import {
 	Editor,
 	HALF_PI,
 	PageRecordType,
+	Result,
 	TLBookmarkShape,
 	TLEmbedShape,
 	TLFrameShape,
@@ -24,6 +25,7 @@ import {
 	useMaybeEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
+import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { EditLinkDialog } from '../components/EditLinkDialog'
@@ -387,45 +389,39 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'convert-to-bookmark',
 				label: 'action.convert-to-bookmark',
-				onSelect(source) {
+				async onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
-					editor.run(() => {
-						trackEvent('convert-to-bookmark', { source })
-						const shapes = editor.getSelectedShapes()
+					trackEvent('convert-to-bookmark', { source })
+					const shapes = editor.getSelectedShapes()
 
-						const createList: TLShapePartial[] = []
-						const deleteList: TLShapeId[] = []
-						for (const shape of shapes) {
-							if (!shape || !editor.isShapeOfType<TLEmbedShape>(shape, 'embed') || !shape.props.url)
-								continue
+					const markId = editor.markHistoryStoppingPoint('convert shapes to bookmark')
 
-							const newPos = new Vec(shape.x, shape.y)
-							newPos.rot(-shape.rotation)
-							newPos.add(new Vec(shape.props.w / 2 - 300 / 2, shape.props.h / 2 - 320 / 2)) // see bookmark shape util
-							newPos.rot(shape.rotation)
-							const partial: TLShapePartial<TLBookmarkShape> = {
-								id: createShapeId(),
-								type: 'bookmark',
-								rotation: shape.rotation,
-								x: newPos.x,
-								y: newPos.y,
-								opacity: 1,
-								props: {
-									url: shape.props.url,
-								},
-							}
+					const creationPromises: Promise<Result<any, any>>[] = []
 
-							createList.push(partial)
-							deleteList.push(shape.id)
-						}
+					for (const shape of shapes) {
+						if (!shape || !editor.isShapeOfType<TLEmbedShape>(shape, 'embed') || !shape.props.url)
+							continue
 
-						editor.markHistoryStoppingPoint('convert shapes to bookmark')
+						const center = editor.getShapePageBounds(shape)?.center
 
-						// Should be able to create the shape since we're about to delete the other other
-						editor.deleteShapes(deleteList)
-						editor.createShapes(createList)
+						if (!center) continue
+						editor.deleteShapes([shape.id])
+
+						creationPromises.push(
+							createBookmarkFromUrl(editor, { url: shape.props.url, center }).then((res) => {
+								if (!res.ok) {
+									throw new Error(res.error)
+								}
+								return res
+							})
+						)
+					}
+
+					await Promise.all(creationPromises).catch((error) => {
+						editor.bailToMark(markId)
+						console.error(error)
 					})
 				},
 			},
@@ -1497,6 +1493,22 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						editor.setStyleForNextShapes(style, 'fill')
 					})
 					trackEvent('set-style', { source, id: style.id, value: 'fill' })
+				},
+			},
+			{
+				id: 'select-fill-lined-fill',
+				label: 'fill-style.lined-fill',
+				kbd: 'alt+shift+f',
+				onSelect(source) {
+					const style = DefaultFillStyle
+					editor.run(() => {
+						editor.markHistoryStoppingPoint('change-fill')
+						if (editor.isIn('select')) {
+							editor.setStyleForSelectedShapes(style, 'lined-fill')
+						}
+						editor.setStyleForNextShapes(style, 'lined-fill')
+					})
+					trackEvent('set-style', { source, id: style.id, value: 'lined-fill' })
 				},
 			},
 			{

@@ -507,7 +507,7 @@ export class Idle extends StateNode {
 			}
 			case 'Tab': {
 				const selectedShapes = this.editor.getSelectedShapes()
-				if (selectedShapes.length) {
+				if (selectedShapes.length && !info.altKey) {
 					this.editor.selectAdjacentShape(info.shiftKey ? 'prev' : 'next')
 				}
 				break
@@ -516,7 +516,7 @@ export class Idle extends StateNode {
 	}
 
 	override onKeyUp(info: TLKeyboardEventInfo) {
-		switch (info.code) {
+		switch (info.key) {
 			case 'Enter': {
 				// Because Enter onKeyDown can happen outside the canvas (but then focus the canvas potentially),
 				// we need to check if the canvas was initially selecting something before continuing.
@@ -557,7 +557,7 @@ export class Idle extends StateNode {
 			}
 			case 'Tab': {
 				const selectedShapes = this.editor.getSelectedShapes()
-				if (selectedShapes.length) {
+				if (selectedShapes.length && !info.altKey) {
 					this.editor.selectAdjacentShape(info.shiftKey ? 'prev' : 'next')
 				}
 				break

@@ -51,6 +51,12 @@
       "value": "Account"
     }
   ],
+  "08d2d725a9": [
+    {
+      "type": 0,
+      "value": "Create a free account to save your work, collaborate in real-time, and more."
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
@@ -61,6 +67,12 @@
     {
       "type": 0,
       "value": "File menu"
+    }
+  ],
+  "0beb3ca97b": [
+    {
+      "type": 0,
+      "value": "tldraw is a free and instant virtual whiteboard."
     }
   ],
   "0d1f2bb523": [
@@ -157,6 +169,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "3bc7d6ea2f": [
+    {
+      "type": 0,
+      "value": "Continue with email"
     }
   ],
   "3bd1b98dbd": [
@@ -341,6 +359,12 @@
     {
       "type": 0,
       "value": "A new version of tldraw is available. Please reload the page to continue."
+    }
+  ],
+  "6832ac5936": [
+    {
+      "type": 0,
+      "value": "Enter your email address"
     }
   ],
   "6a26f54883": [
@@ -535,6 +559,12 @@
       "value": "To continue editing please copy the room to your files."
     }
   ],
+  "8c2d3d730c": [
+    {
+      "type": 0,
+      "value": "Check your email for a verification code."
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -565,6 +595,18 @@
       "value": "Copy to my files"
     }
   ],
+  "95aacd4d4a": [
+    {
+      "type": 0,
+      "value": "Sign in with Google"
+    }
+  ],
+  "95d2109dc8": [
+    {
+      "type": 0,
+      "value": "Build with the tldraw SDK"
+    }
+  ],
   "96165d6df5": [
     {
       "type": 0,
@@ -575,6 +617,26 @@
     {
       "type": 0,
       "value": "Light"
+    }
+  ],
+  "9b33f5c63c": [
+    {
+      "type": 0,
+      "value": "Didn’t receive a code? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Resend"
+        }
+      ],
+      "type": 8,
+      "value": "resend"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "9bef626805": [
@@ -691,6 +753,12 @@
       "value": "Guest user"
     }
   ],
+  "b357b524e7": [
+    {
+      "type": 0,
+      "value": "Email address"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -779,6 +847,26 @@
       "value": "Learn more about sharing."
     }
   ],
+  "c28aed8348": [
+    {
+      "type": 0,
+      "value": "Allow "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "analytics"
+        }
+      ],
+      "type": 8,
+      "value": "cookies"
+    },
+    {
+      "type": 0,
+      "value": " to help us improve tldraw."
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -839,6 +927,40 @@
       "value": "Toggle sidebar"
     }
   ],
+  "d638a3344b": [
+    {
+      "type": 0,
+      "value": "Before you start, please accept our "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "terms of use"
+        }
+      ],
+      "type": 8,
+      "value": "tos"
+    },
+    {
+      "type": 0,
+      "value": " and "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "privacy policy"
+        }
+      ],
+      "type": 8,
+      "value": "privacy"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "d721757161": [
     {
       "type": 0,
@@ -849,6 +971,12 @@
     {
       "type": 0,
       "value": "Try Again"
+    }
+  ],
+  "d88ad2dc74": [
+    {
+      "type": 0,
+      "value": "Accept and continue"
     }
   ],
   "d9100f3e10": [
@@ -885,6 +1013,12 @@
     {
       "type": 0,
       "value": "Pin"
+    }
+  ],
+  "e81c4e4f2b": [
+    {
+      "type": 0,
+      "value": "or"
     }
   ],
   "ea4788705e": [

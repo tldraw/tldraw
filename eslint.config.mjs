@@ -66,6 +66,8 @@ export default [
 			'packages/create-tldraw/cli.cjs',
 			'**/*/vitest.config.ts',
 			'**/*/setupVitest.js',
+			'**/*/zod-locales-shim.js',
+			'**/*/scripts/vite-zod-locale-plugin.js',
 		],
 	},
 	...compat.extends(
@@ -295,6 +297,7 @@ export default [
 		files: ['apps/dotcom/client/**/*'],
 
 		rules: {
+			'local/no-fairy-imports': 'error',
 			'no-restricted-globals': [
 				'error',
 				{
@@ -401,6 +404,7 @@ export default [
 			'no-restricted-syntax': 'off',
 			'no-console': 'off',
 			'@typescript-eslint/method-signature-style': 'off',
+			'local/no-at-internal': 'error',
 		},
 	},
 ]

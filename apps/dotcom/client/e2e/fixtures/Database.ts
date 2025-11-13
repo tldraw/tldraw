@@ -18,28 +18,6 @@ const db = new Kysely<DB>({
 	log: ['error'],
 })
 
-const defaultUser = {
-	color: 'salmon',
-	avatar: '',
-	exportFormat: 'png',
-	exportTheme: 'light',
-	exportBackground: false,
-	exportPadding: false,
-	createdAt: 1731610733963,
-	updatedAt: 1731610733963,
-	flags: '',
-	locale: null,
-	animationSpeed: null,
-	areKeyboardShortcutsEnabled: true,
-	edgeScrollSpeed: null,
-	colorScheme: null,
-	isSnapMode: null,
-	isWrapMode: null,
-	isDynamicSizeMode: null,
-	isPasteAtCursorMode: null,
-	enhancedA11yMode: null,
-}
-
 export class Database {
 	constructor(
 		readonly page: Page,
@@ -60,16 +38,45 @@ export class Database {
 		return dbUser.rows[0].id
 	}
 
+	/**
+	 * Check if a user is migrated to the groups model
+	 */
+	async isUserMigrated(isOther: boolean = false): Promise<boolean> {
+		const id = await this.getUserId(isOther)
+		if (!id) return false
+
+		const result = await sql<{
+			flags: string | null
+		}>`SELECT flags FROM public.user WHERE id = ${id}`.execute(db)
+
+		return result.rows[0]?.flags?.includes('groups_backend') ?? false
+	}
+
+	/**
+	 * Migrate a user to the groups model
+	 */
+	async migrateUser(isOther: boolean = false): Promise<void> {
+		const id = await this.getUserId(isOther)
+		const inviteSecret = 'test' + Math.random().toString(36).substring(2, 15)
+		if (!id) throw new Error('User not found')
+
+		// Call the migration function
+		await sql`SELECT * FROM migrate_user_to_groups(${id}, ${inviteSecret})`.execute(db)
+	}
+
 	private async cleanUpUser(isOther: boolean) {
 		const fileName = getStorageStateFileName(this.parallelIndex, isOther ? 'suppy' : 'huppy')
 		if (!fs.existsSync(fileName)) return
 		const id = await this.getUserId(isOther)
 		if (!id) return
 		try {
-			await db.updateTable('user').set(defaultUser).where('id', '=', id).execute()
-
-			await sql`DELETE FROM public.file WHERE "ownerId" = ${id}`.execute(db)
-			// await fetch(`http://localhost:3000/api/app/__test__/user/${id}/reboot`)
+			// eslint-disable-next-line no-restricted-globals
+			await fetch(`http://localhost:3000/api/app/__test__/user/${id}/prepare-for-test`, {
+				method: 'POST',
+				headers: {
+					'x-legacy': process.env.TLDRAW_INIT_MODE === 'new' ? 'false' : 'true',
+				},
+			})
 		} catch (e) {
 			console.error('Error', e)
 		}

@@ -16,30 +16,83 @@ import { RecordsDiff } from './RecordsDiff'
 import { diffSets } from './setUtils'
 import { CollectionDiff } from './Store'
 
-/** @public */
-export type RSIndexDiff<
-	R extends UnknownRecord,
-	Property extends string & keyof R = string & keyof R,
-> = Map<R[Property], CollectionDiff<IdOf<R>>>
-
-/** @public */
-export type RSIndexMap<
-	R extends UnknownRecord,
-	Property extends string & keyof R = string & keyof R,
-> = Map<R[Property], Set<IdOf<R>>>
-
-/** @public */
-export type RSIndex<
-	R extends UnknownRecord,
-	Property extends string & keyof R = string & keyof R,
-> = Computed<RSIndexMap<R, Property>, RSIndexDiff<R, Property>>
+/**
+ * A type representing the diff of changes to a reactive store index.
+ * Maps property values to the collection differences for record IDs that have that property value.
+ *
+ * @example
+ * ```ts
+ * // For an index on book titles, the diff might look like:
+ * const titleIndexDiff: RSIndexDiff<Book, 'title'> = new Map([
+ *   ['The Lathe of Heaven', { added: new Set(['book:1']), removed: new Set() }],
+ *   ['Animal Farm', { added: new Set(), removed: new Set(['book:2']) }]
+ * ])
+ * ```
+ *
+ * @public
+ */
+export type RSIndexDiff<R extends UnknownRecord> = Map<any, CollectionDiff<IdOf<R>>>
 
 /**
- * A class that provides a 'namespace' for the various kinds of indexes one may wish to derive from
- * the record store.
+ * A type representing a reactive store index as a map from property values to sets of record IDs.
+ * This is used to efficiently look up records by a specific property value.
+ *
+ * @example
+ * ```ts
+ * // Index mapping book titles to the IDs of books with that title
+ * const titleIndex: RSIndexMap<Book, 'title'> = new Map([
+ *   ['The Lathe of Heaven', new Set(['book:1'])],
+ *   ['Animal Farm', new Set(['book:2', 'book:3'])]
+ * ])
+ * ```
+ *
+ * @public
+ */
+export type RSIndexMap<R extends UnknownRecord> = Map<any, Set<IdOf<R>>>
+
+/**
+ * A reactive computed index that provides efficient lookups of records by property values.
+ * Returns a computed value containing an RSIndexMap with diffs for change tracking.
+ *
+ * @example
+ * ```ts
+ * // Create an index on book authors
+ * const authorIndex: RSIndex<Book, 'authorId'> = store.query.index('book', 'authorId')
+ *
+ * // Get all books by a specific author
+ * const leguinBooks = authorIndex.get().get('author:leguin')
+ * ```
+ *
+ * @public
+ */
+export type RSIndex<R extends UnknownRecord> = Computed<RSIndexMap<R>, RSIndexDiff<R>>
+
+/**
+ * A class that provides reactive querying capabilities for a record store.
+ * Offers methods to create indexes, filter records, and perform efficient lookups with automatic cache management.
+ * All queries are reactive and will automatically update when the underlying store data changes.
+ *
+ * @example
+ * ```ts
+ * // Create a store with books
+ * const store = new Store({ schema: StoreSchema.create({ book: Book, author: Author }) })
+ *
+ * // Get reactive queries for books
+ * const booksByAuthor = store.query.index('book', 'authorId')
+ * const inStockBooks = store.query.records('book', () => ({ inStock: { eq: true } }))
+ * ```
+ *
  * @public
  */
 export class StoreQueries<R extends UnknownRecord> {
+	/**
+	 * Creates a new StoreQueries instance.
+	 *
+	 * recordMap - The atom map containing all records in the store
+	 * history - The atom tracking the store's change history with diffs
+	 *
+	 * @internal
+	 */
 	constructor(
 		private readonly recordMap: AtomMap<IdOf<R>, R>,
 		private readonly history: Atom<number, RecordsDiff<R>>
@@ -60,10 +113,68 @@ export class StoreQueries<R extends UnknownRecord> {
 	private historyCache = new Map<string, Computed<number, RecordsDiff<R>>>()
 
 	/**
-	 * Create a derivation that contains the history for a given type
+	 * @internal
+	 */
+	public getAllIdsForType<TypeName extends R['typeName']>(
+		typeName: TypeName
+	): Set<IdOf<Extract<R, { typeName: TypeName }>>> {
+		type S = Extract<R, { typeName: TypeName }>
+		const ids = new Set<IdOf<S>>()
+		for (const record of this.recordMap.values()) {
+			if (record.typeName === typeName) {
+				ids.add(record.id as IdOf<S>)
+			}
+		}
+		return ids
+	}
+
+	/**
+	 * @internal
+	 */
+	public getRecordById<TypeName extends R['typeName']>(
+		typeName: TypeName,
+		id: IdOf<Extract<R, { typeName: TypeName }>>
+	): Extract<R, { typeName: TypeName }> | undefined {
+		const record = this.recordMap.get(id as IdOf<R>)
+		if (record && record.typeName === typeName) {
+			return record as Extract<R, { typeName: TypeName }>
+		}
+		return undefined
+	}
+
+	/**
+	 * Helper to extract nested property value using pre-split path parts.
+	 * @internal
+	 */
+	private getNestedValue(obj: any, pathParts: string[]): any {
+		let current = obj
+		for (const part of pathParts) {
+			if (current == null || typeof current !== 'object') return undefined
+			current = current[part]
+		}
+		return current
+	}
+
+	/**
+	 * Creates a reactive computed that tracks the change history for records of a specific type.
+	 * The returned computed provides incremental diffs showing what records of the given type
+	 * have been added, updated, or removed.
 	 *
-	 * @param typeName - The name of the type to filter by.
-	 * @returns A derivation that returns the ids of all records of the given type.
+	 * @param typeName - The type name to filter the history by
+	 * @returns A computed value containing the current epoch and diffs of changes for the specified type
+	 *
+	 * @example
+	 * ```ts
+	 * // Track changes to book records only
+	 * const bookHistory = store.query.filterHistory('book')
+	 *
+	 * // React to book changes
+	 * react('book-changes', () => {
+	 *   const currentEpoch = bookHistory.get()
+	 *   console.log('Books updated at epoch:', currentEpoch)
+	 * })
+	 * ```
+	 *
 	 * @public
 	 */
 	public filterHistory<TypeName extends R['typeName']>(
@@ -156,23 +267,43 @@ export class StoreQueries<R extends UnknownRecord> {
 	}
 
 	/**
-	 * Create a derivation that returns an index on a property for the given type.
+	 * Creates a reactive index that maps property values to sets of record IDs for efficient lookups.
+	 * The index automatically updates when records are added, updated, or removed, and results are cached
+	 * for performance.
 	 *
-	 * @param typeName - The name of the type.
-	 * @param property - The name of the property.
+	 * Supports nested property paths using backslash separator (e.g., 'metadata\\sessionId').
+	 *
+	 * @param typeName - The type name of records to index
+	 * @param path - The property name or backslash-delimited path to index by
+	 * @returns A reactive computed containing the index map with change diffs
+	 *
+	 * @example
+	 * ```ts
+	 * // Create an index of books by author ID
+	 * const booksByAuthor = store.query.index('book', 'authorId')
+	 *
+	 * // Get all books by a specific author
+	 * const authorBooks = booksByAuthor.get().get('author:leguin')
+	 * console.log(authorBooks) // Set<RecordId<Book>>
+	 *
+	 * // Index by nested property using backslash separator
+	 * const booksBySession = store.query.index('book', 'metadata\\sessionId')
+	 * const sessionBooks = booksBySession.get().get('session:alpha')
+	 * ```
+	 *
 	 * @public
 	 */
-	public index<
-		TypeName extends R['typeName'],
-		Property extends string & keyof Extract<R, { typeName: TypeName }>,
-	>(typeName: TypeName, property: Property): RSIndex<Extract<R, { typeName: TypeName }>, Property> {
-		const cacheKey = typeName + ':' + property
+	public index<TypeName extends R['typeName']>(
+		typeName: TypeName,
+		path: string
+	): RSIndex<Extract<R, { typeName: TypeName }>> {
+		const cacheKey = typeName + ':' + path
 
 		if (this.indexCache.has(cacheKey)) {
 			return this.indexCache.get(cacheKey) as any
 		}
 
-		const index = this.__uncached_createIndex(typeName, property)
+		const index = this.__uncached_createIndex(typeName, path)
 
 		this.indexCache.set(cacheKey, index as any)
 
@@ -180,40 +311,54 @@ export class StoreQueries<R extends UnknownRecord> {
 	}
 
 	/**
-	 * Create a derivation that returns an index on a property for the given type.
+	 * Creates a new index without checking the cache. This method performs the actual work
+	 * of building the reactive index computation that tracks property values to record ID sets.
 	 *
-	 * @param typeName - The name of the type?.
-	 * @param property - The name of the property?.
+	 * Supports nested property paths using backslash separator.
+	 *
+	 * @param typeName - The type name of records to index
+	 * @param path - The property name or backslash-delimited path to index by
+	 * @returns A reactive computed containing the index map with change diffs
+	 *
 	 * @internal
 	 */
-	__uncached_createIndex<
-		TypeName extends R['typeName'],
-		Property extends string & keyof Extract<R, { typeName: TypeName }>,
-	>(typeName: TypeName, property: Property): RSIndex<Extract<R, { typeName: TypeName }>, Property> {
+	__uncached_createIndex<TypeName extends R['typeName']>(
+		typeName: TypeName,
+		path: string
+	): RSIndex<Extract<R, { typeName: TypeName }>> {
 		type S = Extract<R, { typeName: TypeName }>
 
 		const typeHistory = this.filterHistory(typeName)
+
+		// Create closure for efficient property value extraction
+		const pathParts = path.split('\\')
+		const getPropertyValue =
+			pathParts.length > 1
+				? (obj: S) => this.getNestedValue(obj, pathParts)
+				: (obj: S) => obj[path as keyof S]
 
 		const fromScratch = () => {
 			// deref typeHistory early so that the first time the incremental version runs
 			// it gets a diff to work with instead of having to bail to this from-scratch version
 			typeHistory.get()
-			const res = new Map<S[Property], Set<IdOf<S>>>()
+			const res = new Map<any, Set<IdOf<S>>>()
 			for (const record of this.recordMap.values()) {
 				if (record.typeName === typeName) {
-					const value = (record as S)[property]
-					if (!res.has(value)) {
-						res.set(value, new Set())
+					const value = getPropertyValue(record as S)
+					if (value !== undefined) {
+						if (!res.has(value)) {
+							res.set(value, new Set())
+						}
+						res.get(value)!.add(record.id)
 					}
-					res.get(value)!.add(record.id)
 				}
 			}
 
 			return res
 		}
 
-		return computed<RSIndexMap<S, Property>, RSIndexDiff<S, Property>>(
-			'index:' + typeName + ':' + property,
+		return computed<RSIndexMap<S>, RSIndexDiff<S>>(
+			'index:' + typeName + ':' + path,
 			(prevValue, lastComputedEpoch) => {
 				if (isUninitialized(prevValue)) return fromScratch()
 
@@ -224,7 +369,7 @@ export class StoreQueries<R extends UnknownRecord> {
 
 				const setConstructors = new Map<any, IncrementalSetConstructor<IdOf<S>>>()
 
-				const add = (value: S[Property], id: IdOf<S>) => {
+				const add = (value: any, id: IdOf<S>) => {
 					let setConstructor = setConstructors.get(value)
 					if (!setConstructor)
 						setConstructor = new IncrementalSetConstructor<IdOf<S>>(
@@ -234,7 +379,7 @@ export class StoreQueries<R extends UnknownRecord> {
 					setConstructors.set(value, setConstructor)
 				}
 
-				const remove = (value: S[Property], id: IdOf<S>) => {
+				const remove = (value: any, id: IdOf<S>) => {
 					let set = setConstructors.get(value)
 					if (!set) set = new IncrementalSetConstructor<IdOf<S>>(prevValue.get(value) ?? new Set())
 					set.remove(id)
@@ -244,30 +389,38 @@ export class StoreQueries<R extends UnknownRecord> {
 				for (const changes of history) {
 					for (const record of objectMapValues(changes.added)) {
 						if (record.typeName === typeName) {
-							const value = (record as S)[property]
-							add(value, record.id)
+							const value = getPropertyValue(record as S)
+							if (value !== undefined) {
+								add(value, record.id)
+							}
 						}
 					}
 					for (const [from, to] of objectMapValues(changes.updated)) {
 						if (to.typeName === typeName) {
-							const prev = (from as S)[property]
-							const next = (to as S)[property]
+							const prev = getPropertyValue(from as S)
+							const next = getPropertyValue(to as S)
 							if (prev !== next) {
-								remove(prev, to.id)
-								add(next, to.id)
+								if (prev !== undefined) {
+									remove(prev, to.id)
+								}
+								if (next !== undefined) {
+									add(next, to.id)
+								}
 							}
 						}
 					}
 					for (const record of objectMapValues(changes.removed)) {
 						if (record.typeName === typeName) {
-							const value = (record as S)[property]
-							remove(value, record.id)
+							const value = getPropertyValue(record as S)
+							if (value !== undefined) {
+								remove(value, record.id)
+							}
 						}
 					}
 				}
 
-				let nextValue: undefined | RSIndexMap<S, Property> = undefined
-				let nextDiff: undefined | RSIndexDiff<S, Property> = undefined
+				let nextValue: undefined | RSIndexMap<S> = undefined
+				let nextDiff: undefined | RSIndexDiff<S> = undefined
 
 				for (const [value, setConstructor] of setConstructors) {
 					const result = setConstructor.get()
@@ -293,13 +446,26 @@ export class StoreQueries<R extends UnknownRecord> {
 	}
 
 	/**
-	 * Create a derivation that will return a signle record matching the given query.
+	 * Creates a reactive query that returns the first record matching the given query criteria.
+	 * Returns undefined if no matching record is found. The query automatically updates
+	 * when records change.
 	 *
-	 * It will return undefined if there is no matching record
+	 * @param typeName - The type name of records to query
+	 * @param queryCreator - Function that returns the query expression object to match against
+	 * @param name - Optional name for the query computation (used for debugging)
+	 * @returns A computed value containing the first matching record or undefined
 	 *
-	 * @param typeName - The name of the type?
-	 * @param queryCreator - A function that returns the query expression.
-	 * @param name - (optional) The name of the query.
+	 * @example
+	 * ```ts
+	 * // Find the first book with a specific title
+	 * const bookLatheOfHeaven = store.query.record('book', () => ({ title: { eq: 'The Lathe of Heaven' } }))
+	 * console.log(bookLatheOfHeaven.get()?.title) // 'The Lathe of Heaven' or undefined
+	 *
+	 * // Find any book in stock
+	 * const anyInStockBook = store.query.record('book', () => ({ inStock: { eq: true } }))
+	 * ```
+	 *
+	 * @public
 	 */
 	record<TypeName extends R['typeName']>(
 		typeName: TypeName,
@@ -318,11 +484,28 @@ export class StoreQueries<R extends UnknownRecord> {
 	}
 
 	/**
-	 * Create a derivation that will return an array of records matching the given query
+	 * Creates a reactive query that returns an array of all records matching the given query criteria.
+	 * The array automatically updates when records are added, updated, or removed.
 	 *
-	 * @param typeName - The name of the type?
-	 * @param queryCreator - A function that returns the query expression.
-	 * @param name - (optinal) The name of the query.
+	 * @param typeName - The type name of records to query
+	 * @param queryCreator - Function that returns the query expression object to match against
+	 * @param name - Optional name for the query computation (used for debugging)
+	 * @returns A computed value containing an array of all matching records
+	 *
+	 * @example
+	 * ```ts
+	 * // Get all books in stock
+	 * const inStockBooks = store.query.records('book', () => ({ inStock: { eq: true } }))
+	 * console.log(inStockBooks.get()) // Book[]
+	 *
+	 * // Get all books by a specific author
+	 * const leguinBooks = store.query.records('book', () => ({ authorId: { eq: 'author:leguin' } }))
+	 *
+	 * // Get all books (no filter)
+	 * const allBooks = store.query.records('book')
+	 * ```
+	 *
+	 * @public
 	 */
 	records<TypeName extends R['typeName']>(
 		typeName: TypeName,
@@ -344,11 +527,29 @@ export class StoreQueries<R extends UnknownRecord> {
 	}
 
 	/**
-	 * Create a derivation that will return the ids of all records of the given type.
+	 * Creates a reactive query that returns a set of record IDs matching the given query criteria.
+	 * This is more efficient than `records()` when you only need the IDs and not the full record objects.
+	 * The set automatically updates with collection diffs when records change.
 	 *
-	 * @param typeName - The name of the type.
-	 * @param queryCreator - A function that returns the query expression.
-	 * @param name - (optinal) The name of the query.
+	 * @param typeName - The type name of records to query
+	 * @param queryCreator - Function that returns the query expression object to match against
+	 * @param name - Optional name for the query computation (used for debugging)
+	 * @returns A computed value containing a set of matching record IDs with collection diffs
+	 *
+	 * @example
+	 * ```ts
+	 * // Get IDs of all books in stock
+	 * const inStockBookIds = store.query.ids('book', () => ({ inStock: { eq: true } }))
+	 * console.log(inStockBookIds.get()) // Set<RecordId<Book>>
+	 *
+	 * // Get all book IDs (no filter)
+	 * const allBookIds = store.query.ids('book')
+	 *
+	 * // Use with other queries for efficient lookups
+	 * const authorBookIds = store.query.ids('book', () => ({ authorId: { eq: 'author:leguin' } }))
+	 * ```
+	 *
+	 * @public
 	 */
 	ids<TypeName extends R['typeName']>(
 		typeName: TypeName,
@@ -367,11 +568,7 @@ export class StoreQueries<R extends UnknownRecord> {
 			typeHistory.get()
 			const query: QueryExpression<S> = queryCreator()
 			if (Object.keys(query).length === 0) {
-				const ids = new Set<IdOf<S>>()
-				for (const record of this.recordMap.values()) {
-					if (record.typeName === typeName) ids.add(record.id)
-				}
-				return ids
+				return this.getAllIdsForType(typeName)
 			}
 
 			return executeQuery(this, typeName, query)
@@ -446,6 +643,27 @@ export class StoreQueries<R extends UnknownRecord> {
 		)
 	}
 
+	/**
+	 * Executes a one-time query against the current store state and returns matching records.
+	 * This is a non-reactive query that returns results immediately without creating a computed value.
+	 * Use this when you need a snapshot of data at a specific point in time.
+	 *
+	 * @param typeName - The type name of records to query
+	 * @param query - The query expression object to match against
+	 * @returns An array of records that match the query at the current moment
+	 *
+	 * @example
+	 * ```ts
+	 * // Get current in-stock books (non-reactive)
+	 * const currentInStockBooks = store.query.exec('book', { inStock: { eq: true } })
+	 * console.log(currentInStockBooks) // Book[]
+	 *
+	 * // Unlike records(), this won't update when the data changes
+	 * const staticBookList = store.query.exec('book', { authorId: { eq: 'author:leguin' } })
+	 * ```
+	 *
+	 * @public
+	 */
 	exec<TypeName extends R['typeName']>(
 		typeName: TypeName,
 		query: QueryExpression<Extract<R, { typeName: TypeName }>>
