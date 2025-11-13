@@ -109,12 +109,11 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 
 	// Focus the input when the dialog opens, select all text
 	useEffect(() => {
-		requestAnimationFrame(() => {
-			const input = rInput.current
-			if (input) {
-				input.select()
-			}
-		})
+		const input = rInput.current
+		if (input) {
+			input.focus()
+			input.select()
+		}
 	}, [])
 
 	return (
