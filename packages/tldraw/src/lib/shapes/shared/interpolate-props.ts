@@ -23,15 +23,15 @@ export const interpolateSegments = (
 
 	// Interpolate points
 	const interpolatedPoints = pointsToUseStart.map((point, k) => {
-		let z = 0.5
-		if (pointsToUseEnd[k].z !== undefined && point.z !== undefined) {
-			z = lerp(point.z, pointsToUseEnd[k].z as number, progress)
-		}
-		return {
+		const result: VecModel = {
 			x: lerp(point.x, pointsToUseEnd[k].x, progress),
 			y: lerp(point.y, pointsToUseEnd[k].y, progress),
-			z,
 		}
+		// Only include z if both start and end points have z values (pen input)
+		if (pointsToUseEnd[k].z !== undefined && point.z !== undefined) {
+			result.z = lerp(point.z, pointsToUseEnd[k].z as number, progress)
+		}
+		return result
 	})
 	// Return all interpolated points in a single segment
 	// Convert points back to segment format (firstPoint + deltas)
