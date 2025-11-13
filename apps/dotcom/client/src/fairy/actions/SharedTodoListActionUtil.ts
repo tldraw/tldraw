@@ -30,8 +30,12 @@ export class SharedTodoListActionUtil extends AgentActionUtil<SharedTodoListActi
 		const existingTask = $fairyTasks.get().find((item) => item.id === action.id)
 		const project = this.agent.getProject()
 
+		// Normalize both values to null so that null and undefined are treated as equivalent (both mean "no project")
+		const existingProjectId = existingTask?.projectId ?? null
+		const currentProjectId = project?.id ?? null
+
 		// Only allow updating todo items that are in the current project
-		if (existingTask && existingTask.projectId !== project?.id) {
+		if (existingTask && existingProjectId !== currentProjectId) {
 			this.agent.cancel()
 			this.agent.schedule(
 				`Task with id ${action.id} is not in your project so you aren't allowed to update it.`
