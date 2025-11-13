@@ -16,6 +16,7 @@ export {
 	type RecordOp,
 	type ValueOp,
 } from './lib/diff'
+export { InMemorySyncStorage } from './lib/InMemorySyncStorage'
 export {
 	getTlsyncProtocolVersion,
 	TLIncompatibilityReason,
@@ -43,13 +44,7 @@ export {
 	type TLSocketStatusChangeEvent,
 	type TLSocketStatusListener,
 } from './lib/TLSyncClient'
-export {
-	DocumentState,
-	TLSyncRoom,
-	type RoomSnapshot,
-	type RoomStoreMethods,
-	type TLRoomSocket,
-} from './lib/TLSyncRoom'
+export { TLSyncRoom, type RoomSnapshot, type TLRoomSocket } from './lib/TLSyncRoom'
 
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,

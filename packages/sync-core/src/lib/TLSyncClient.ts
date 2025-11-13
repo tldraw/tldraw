@@ -109,6 +109,15 @@ export const TLSyncErrorCloseEventReason = {
 	/** Room has reached maximum capacity */
 	ROOM_FULL: 'ROOM_FULL',
 } as const
+
+/**
+ * @internal
+ */
+export class TLSyncError extends Error {
+	constructor(message: string, public reason: TLSyncErrorCloseEventReason) {
+		super(message)
+	}
+}
 /**
  * Union type of all possible server connection close reasons.
  * Represents the string values that can be passed when a server closes

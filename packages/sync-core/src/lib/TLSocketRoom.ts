@@ -1,6 +1,7 @@
 import type { StoreSchema, UnknownRecord } from '@tldraw/store'
 import { TLStoreSnapshot, createTLSchema } from '@tldraw/tlschema'
 import { objectMapValues, structuredClone } from '@tldraw/utils'
+import { InMemorySyncStorage } from './InMemorySyncStorage'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
@@ -171,8 +172,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		this.room = new TLSyncRoom<R, SessionMeta>({
 			...this.syncCallbacks,
 			schema: opts.schema ?? (createTLSchema() as any),
-			snapshot: initialSnapshot,
 			log: opts.log,
+			storage: new InMemorySyncStorage(initialSnapshot),
 		})
 		this.room.events.on('session_removed', (args) => {
 			this.sessions.delete(args.sessionId)
@@ -381,24 +382,6 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	handleSocketClose(sessionId: string) {
 		this.room.handleClose(sessionId)
 	}
-
-	/**
-	 * Returns the current document clock value. The clock is a monotonically increasing
-	 * integer that increments with each document change, providing a consistent ordering
-	 * of changes across the distributed system.
-	 *
-	 * @returns The current document clock value
-	 *
-	 * @example
-	 * ```ts
-	 * const clock = room.getCurrentDocumentClock()
-	 * console.log(`Document is at version ${clock}`)
-	 * ```
-	 */
-	getCurrentDocumentClock() {
-		return this.room.documentClock
-	}
-
 	/**
 	 * Retrieves a deeply cloned copy of a record from the document store.
 	 * Returns undefined if the record doesn't exist. The returned record is
