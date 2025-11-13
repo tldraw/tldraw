@@ -4,13 +4,14 @@ import {
 	PersistedFairyState,
 } from '@tldraw/fairy-shared'
 import { useCallback, useEffect, useRef } from 'react'
-import { react, throttle, useEditor, useValue } from 'tldraw'
+import { react, throttle, useEditor, useToasts, useValue } from 'tldraw'
 import { useApp } from '../tla/hooks/useAppState'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { $fairyProjects } from './FairyProjects'
+import { FairyTaskDragTool } from './FairyTaskDragTool'
+import { $fairyTasks, $showCanvasFairyTasks } from './FairyTaskList'
 import { FairyThrowTool } from './FairyThrowTool'
-import { $sharedTodoList, $showCanvasTodos } from './SharedTodoList'
-import { TodoDragTool } from './TodoDragTool'
 
 export function FairyApp({
 	setAgents,
@@ -22,6 +23,7 @@ export function FairyApp({
 	const editor = useEditor()
 	const user = useTldrawUser()
 	const app = useApp()
+	const toasts = useToasts()
 	const fairyConfigs = useValue(
 		'fairyConfigs',
 		() => JSON.parse(app?.getUser().fairies || '{}') as PersistedFairyConfigs,
@@ -33,9 +35,18 @@ export function FairyApp({
 		return await user.getToken()
 	}, [user])
 
-	const handleError = useCallback((e: any) => {
-		console.error('Error:', e)
-	}, [])
+	const handleError = useCallback(
+		(e: any) => {
+			const message = typeof e === 'string' ? e : e instanceof Error && e.message
+			toasts.addToast({
+				title: 'Error',
+				description: message || 'An error occurred',
+				severity: 'error',
+			})
+			console.error(e)
+		},
+		[toasts]
+	)
 
 	// Track whether we're currently loading state to prevent premature saves
 	const isLoadingStateRef = useRef(false)
@@ -45,18 +56,20 @@ export function FairyApp({
 	const loadedAgentIdsRef = useRef<Set<string>>(new Set())
 	const sharedTodoListLoadedRef = useRef(false)
 	const showCanvasTodosLoadedRef = useRef(false)
+	const projectsLoadedRef = useRef(false)
 
 	// Create agents dynamically from configs
 	useEffect(() => {
 		if (!editor) return
 
 		// Register the FairyThrowTool
-		editor.removeTool(FairyThrowTool)
-		editor.setTool(FairyThrowTool)
+		const selectTool = editor.root.children!.select
+		editor.removeTool(FairyThrowTool, selectTool)
+		editor.setTool(FairyThrowTool, selectTool)
 
 		// Register the TodoDragTool
-		editor.removeTool(TodoDragTool)
-		editor.setTool(TodoDragTool)
+		editor.removeTool(FairyTaskDragTool, selectTool)
+		editor.setTool(FairyTaskDragTool, selectTool)
 
 		const configIds = Object.keys(fairyConfigs)
 		const existingAgents = agentsRef.current
@@ -105,7 +118,7 @@ export function FairyApp({
 
 	// Load fairy state from backend when agents are created
 	useEffect(() => {
-		if (!app || agentsRef.current.length === 0 || !$sharedTodoList || !$showCanvasTodos || !fileId)
+		if (!app || agentsRef.current.length === 0 || !$fairyTasks || !$showCanvasFairyTasks || !fileId)
 			return
 
 		const fileState = app.getFileState(fileId)
@@ -130,14 +143,20 @@ export function FairyApp({
 
 				// Load shared todo list only once
 				if (fairyState.sharedTodoList && !sharedTodoListLoadedRef.current) {
-					$sharedTodoList.set(fairyState.sharedTodoList)
+					$fairyTasks.set(fairyState.sharedTodoList)
 					sharedTodoListLoadedRef.current = true
 				}
 
 				// Load show canvas todos only once
 				if (fairyState.showCanvasTodos && !showCanvasTodosLoadedRef.current) {
-					$showCanvasTodos.set(fairyState.showCanvasTodos)
+					$showCanvasFairyTasks.set(fairyState.showCanvasTodos)
 					showCanvasTodosLoadedRef.current = true
+				}
+
+				// Load projects only once
+				if (fairyState.projects && !projectsLoadedRef.current) {
+					$fairyProjects.set(fairyState.projects)
+					projectsLoadedRef.current = true
 				}
 
 				// Allow a tick for state to settle before allowing saves
@@ -154,8 +173,7 @@ export function FairyApp({
 	// Todo: Use FileStateUpdater for this
 	// Save fairy state to backend periodically
 	useEffect(() => {
-		if (!app || agentsRef.current.length === 0 || !$sharedTodoList || !$showCanvasTodos || !fileId)
-			return
+		if (!app || agentsRef.current.length === 0 || !fileId) return
 
 		const updateFairyState = throttle(() => {
 			// Don't save if we're currently loading state
@@ -169,8 +187,9 @@ export function FairyApp({
 					},
 					{} as Record<string, PersistedFairyAgentState>
 				),
-				sharedTodoList: $sharedTodoList.get(),
-				showCanvasTodos: $showCanvasTodos.get(),
+				sharedTodoList: $fairyTasks.get(),
+				showCanvasTodos: $showCanvasFairyTasks.get(),
+				projects: $fairyProjects.get(),
 			}
 			app.onFairyStateUpdate(fileId, fairyState)
 		}, 2000) // Save maximum every 2 seconds
@@ -182,26 +201,21 @@ export function FairyApp({
 				agent.$fairyEntity.get()
 				agent.$chatHistory.get()
 				agent.$todoList.get()
-				agent.$contextItems.get()
 				updateFairyState()
 			})
 			fairyCleanupFns.push(cleanup)
 		})
 
-		const cleanupSharedTodoList = react('shared todo list', () => {
-			$sharedTodoList.get()
-			updateFairyState()
-		})
-
-		const cleanupShowCanvasTodos = react('show canvas todos', () => {
-			$showCanvasTodos.get()
+		const cleanupSharedFairyState = react('shared fairy atom state', () => {
+			$fairyTasks.get()
+			$showCanvasFairyTasks.get()
+			$fairyProjects.get()
 			updateFairyState()
 		})
 
 		return () => {
 			updateFairyState.flush()
-			cleanupSharedTodoList()
-			cleanupShowCanvasTodos()
+			cleanupSharedFairyState()
 			fairyCleanupFns.forEach((cleanup) => cleanup())
 		}
 	}, [app, fairyConfigs, fileId])

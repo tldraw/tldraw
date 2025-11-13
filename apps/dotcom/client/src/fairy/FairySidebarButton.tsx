@@ -1,10 +1,10 @@
 import { ContextMenu as _ContextMenu } from 'radix-ui'
+import { MouseEvent } from 'react'
 import { TldrawUiToolbarToggleGroup, TldrawUiToolbarToggleItem, useValue } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
 import { FairyContextMenuContent } from './FairyContextMenuContent'
 import { getProjectColor } from './getProjectColor'
-import { getProjectById } from './Projects'
 
 export function FairySidebarButton({
 	agent,
@@ -14,7 +14,7 @@ export function FairySidebarButton({
 	deselectMessage,
 }: {
 	agent: FairyAgent
-	onClick(): void
+	onClick(e: MouseEvent): void
 	onDoubleClick(): void
 	selectMessage: string
 	deselectMessage: string
@@ -27,12 +27,11 @@ export function FairySidebarButton({
 
 	const fairyOutfit = useValue('fairy outfit', () => agent.$fairyConfig.get()?.outfit, [agent])
 	const fairyEntity = useValue('fairy entity', () => agent.$fairyEntity.get(), [agent])
-	const currentProjectId = useValue('current-project-id', () => agent.$currentProjectId.get(), [
+	const project = useValue('current-project', () => agent.getProject(), [agent])
+
+	const isOrchestrator = useValue('is-orchestrator', () => agent.getRole() === 'orchestrator', [
 		agent,
 	])
-
-	const project = currentProjectId ? getProjectById(currentProjectId) : undefined
-	const isOrchestrator = project ? project.orchestratorId === agent.id : false
 	const projectColor = project ? getProjectColor(agent.editor, project.color) : undefined
 
 	if (!fairyEntity || !fairyOutfit) return null

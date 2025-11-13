@@ -3,7 +3,7 @@
 import { createRouter, handleApiRequest, notFound } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { cors, IRequest } from 'itty-router'
-import { getAuth, requireAdminAccess, SignedInAuth } from './auth'
+import { getAuth, isAdmin, requireAdminAccess, SignedInAuth } from './auth'
 import { Environment } from './environment'
 import { streamActionsHandler } from './routes/stream-actions'
 import { streamTextHandler } from './routes/stream-text'
@@ -11,6 +11,7 @@ import { streamTextHandler } from './routes/stream-text'
 // Extend IRequest to include auth
 export interface AuthenticatedRequest extends IRequest {
 	auth: SignedInAuth
+	isAdmin: boolean
 }
 
 const { preflight, corsify } = cors({
@@ -81,12 +82,15 @@ async function requireTldrawEmail(request: IRequest, env: Environment) {
 		}
 		// Attach auth to request for downstream use
 		;(request as AuthenticatedRequest).auth = auth
+		const hasAdminStatus = await isAdmin(env, auth)
 
 		if (env.IS_LOCAL === 'true') {
+			;(request as AuthenticatedRequest).isAdmin = hasAdminStatus
 			return undefined
 		}
 
 		await requireAdminAccess(env, auth)
+		;(request as AuthenticatedRequest).isAdmin = hasAdminStatus
 
 		return undefined
 	} catch (error: any) {
