@@ -12,9 +12,12 @@ export class WorkingTasksPartUtil extends PromptPartUtil<WorkingTasksPart> {
 			.filter((task) => task.assignedTo === this.agent.id && task.status === 'in-progress')
 			.map((task) => {
 				const transformedTaskBounds =
-					task.x && task.y && task.w && task.h
+					task.x !== undefined &&
+					task.y !== undefined &&
+					task.w !== undefined &&
+					task.h !== undefined
 						? helpers.applyOffsetToBox({ x: task.x, y: task.y, w: task.w, h: task.h })
-						: task.x && task.y
+						: task.x !== undefined && task.y !== undefined
 							? helpers.applyOffsetToVec({ x: task.x, y: task.y })
 							: { x: task.x, y: task.y, w: task.w, h: task.h }
 
