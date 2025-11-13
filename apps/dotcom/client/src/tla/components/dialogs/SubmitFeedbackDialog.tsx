@@ -160,7 +160,6 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 					}}
 					className={styles.feedbackDialogTextArea}
 					ref={rInput}
-					autoFocus
 				/>
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
