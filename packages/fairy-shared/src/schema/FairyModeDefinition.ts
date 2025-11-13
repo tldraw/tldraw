@@ -78,6 +78,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 		parts: (_work: FairyWork) => [
 			'mode',
 			'messages',
+			'todoList',
 			'viewportBounds',
 			'screenshot',
 			'blurryShapes',
@@ -88,6 +89,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 		],
 		actions: (_work: FairyWork) => [
 			'mark-task-done',
+			'update-personal-todo-list',
 			'think',
 			'create',
 			'delete',

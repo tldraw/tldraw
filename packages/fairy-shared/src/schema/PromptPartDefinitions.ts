@@ -7,7 +7,7 @@ import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { ChatHistoryItem } from '../types/ChatHistoryItem'
 import { FairyProject } from '../types/FairyProject'
-import { FairyTask } from '../types/FairyTask'
+import { FairyTask, FairyTodoItem } from '../types/FairyTask'
 import { FairyWork } from '../types/FairyWork'
 import { ActiveFairyModeDefinition } from './FairyModeDefinition'
 
@@ -377,6 +377,26 @@ export const SharedTodoListPartDefinition: PromptPartDefinition<SharedTodoListPa
 		}
 
 		return [`Here are all the shared todo items:`, ...itemContent]
+	},
+}
+
+// TodoListPart
+export interface TodoListPart {
+	type: 'todoList'
+	items: FairyTodoItem[]
+}
+
+export const TodoListPartDefinition: PromptPartDefinition<TodoListPart> = {
+	type: 'todoList',
+	priority: 10,
+	buildContent(part: TodoListPart) {
+		if (part.items.length === 0) {
+			return ['You have no todos yet. Use the `update-personal-todo-list` action to create a todo.']
+		}
+		return [
+			`Here is your current personal todo list for the task at hand:`,
+			JSON.stringify(part.items),
+		]
 	},
 }
 

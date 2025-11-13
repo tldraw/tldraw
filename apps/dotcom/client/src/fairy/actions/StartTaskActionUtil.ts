@@ -44,6 +44,7 @@ export class StartTaskActionUtil extends AgentActionUtil<StartTaskAction> {
 		this.agent.cancel()
 		this.agent.setMode('working')
 		this.agent.schedule({
+			messages: [`You have started working on task "${task.text}" with id ${task.id}.`],
 			bounds: {
 				x: task.x ?? currentBounds.x,
 				y: task.y ?? currentBounds.y,

@@ -14,11 +14,11 @@ import {
 	FairyProject,
 	FairyProjectRole,
 	FairyTask,
+	FairyTodoItem,
 	FairyWork,
 	getFairyModeDefinition,
 	PromptPart,
 	Streaming,
-	TodoItem,
 } from '@tldraw/fairy-shared'
 import {
 	Atom,
@@ -105,7 +105,7 @@ export class FairyAgent {
 	/**
 	 * An atom containing the agent's todo list.
 	 */
-	$todoList = atom<TodoItem[]>('todoList', [])
+	$todoList = atom<FairyTodoItem[]>('todoList', [])
 
 	/**
 	 * An atom that's used to store document changes made by the user since the
@@ -131,6 +131,17 @@ export class FairyAgent {
 	 * @param mode - The mode to set.
 	 */
 	setMode(mode: FairyModeDefinition['type']) {
+		const fromMode = this.getMode()
+		const fromModeNode = FAIRY_MODE_CHART[fromMode]
+		const toModeNode = FAIRY_MODE_CHART[mode]
+
+		if (fromModeNode) {
+			fromModeNode.exit?.(this, mode)
+		}
+		if (toModeNode) {
+			toModeNode.enter?.(this, fromMode)
+		}
+
 		this.$mode.set(mode)
 	}
 
@@ -267,7 +278,7 @@ export class FairyAgent {
 		fairyEntity?: FairyEntity
 		chatHistory?: ChatHistoryItem[]
 		chatOrigin?: VecModel
-		todoList?: TodoItem[]
+		todoList?: FairyTodoItem[]
 	}) {
 		if (state.fairyEntity) {
 			this.$fairyEntity.update((entity) => {
@@ -711,6 +722,20 @@ export class FairyAgent {
 			]
 		})
 		return id
+	}
+
+	updateTodo({ id, text, status }: FairyTodoItem) {
+		this.$todoList.update((todoItems) => {
+			const index = todoItems.findIndex((item) => item.id === id)
+			if (index !== -1) {
+				return [
+					...todoItems.slice(0, index),
+					{ ...todoItems[index], text, status },
+					...todoItems.slice(index + 1),
+				]
+			}
+			return todoItems
+		})
 	}
 
 	/**

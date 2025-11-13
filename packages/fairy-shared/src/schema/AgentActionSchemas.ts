@@ -359,14 +359,15 @@ export type ThinkAction = z.infer<typeof ThinkActionSchema>
 
 export const TodoListActionSchema = z
 	.object({
-		_type: z.literal('update-todo-list'),
-		id: z.number(),
+		_type: z.literal('update-personal-todo-list'),
+		id: z.number().optional(),
 		status: z.enum(['todo', 'in-progress', 'done']),
 		text: z.string(),
 	})
 	.meta({
-		title: 'Update Todo List',
-		description: 'The agent updates a current todo list item or creates a new one',
+		title: 'Update Personal Todo List',
+		description:
+			'The agent updates its personal todo list item or creates a new todo item. If the id is provided, the todo item is updated. If the id is not provided, a new todo item is created.',
 	})
 
 export type TodoListAction = z.infer<typeof TodoListActionSchema>

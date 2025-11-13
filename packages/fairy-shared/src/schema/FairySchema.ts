@@ -31,6 +31,7 @@ import {
 	StartProjectActionSchema,
 	StartTaskActionSchema,
 	ThinkActionSchema,
+	TodoListActionSchema,
 	UpdateActionSchema,
 } from './AgentActionSchemas'
 import {
@@ -51,6 +52,7 @@ import {
 	SharedTodoListPartDefinition,
 	SoloTasksPartDefinition,
 	TimePartDefinition,
+	TodoListPartDefinition,
 	UserActionHistoryPartDefinition,
 	ViewportBoundsPartDefinition,
 	WorkingTasksPartDefinition,
@@ -67,6 +69,7 @@ export const AGENT_ACTION_SCHEMAS = [
 	ThinkActionSchema,
 	ReviewActionSchema,
 	FlyToBoundsActionSchema,
+	TodoListActionSchema,
 
 	// Individual shapes
 	CreateActionSchema,
@@ -93,8 +96,8 @@ export const AGENT_ACTION_SCHEMAS = [
 	CreatePageActionSchema,
 
 	// Project management
-	SharedTodoListActionSchema,
-	ClaimTodoItemActionSchema,
+	SharedTodoListActionSchema, // not in use atm
+	ClaimTodoItemActionSchema, // not in use atm
 	DirectToStartTaskActionSchema,
 	StartProjectActionSchema,
 	EndCurrentProjectActionSchema,
@@ -122,6 +125,7 @@ export const PROMPT_PART_DEFINITIONS = [
 	TimePartDefinition,
 	SoloTasksPartDefinition,
 	SharedTodoListPartDefinition,
+	TodoListPartDefinition,
 	UserActionHistoryPartDefinition,
 	ViewportBoundsPartDefinition,
 	WorkingTasksPartDefinition,

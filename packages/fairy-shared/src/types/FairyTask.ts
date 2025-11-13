@@ -12,3 +12,6 @@ export interface FairyTask {
 }
 
 export type FairyTaskStatus = 'todo' | 'in-progress' | 'done'
+
+// todos are personal, tasks are high level
+export type FairyTodoItem = Pick<FairyTask, 'id' | 'text' | 'status'>

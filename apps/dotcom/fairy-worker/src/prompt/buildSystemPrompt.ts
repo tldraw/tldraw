@@ -58,6 +58,9 @@ function getSystemPrompt(
 			buildModePromptSection(flags)
 	)
 
+	if (mode === 'working') {
+		console.warn(buildSchemaPromptSection(actions))
+	}
 	if (!withSchema) return prompt
 	return prompt + '\n' + buildSchemaPromptSection(actions)
 }
@@ -99,7 +102,7 @@ function buildSoloingModePromptSection(_flags: SystemPromptFlags) {
 }
 
 function buildWorkingModePromptSection(_flags: SystemPromptFlags) {
-	return `What you should do now is carry out the task you're assigned to. You have a set of tools you can use to carry out the task. You're only able to see within the bounds of the task; you cannot see the entire canvas. Once you've finished the task, mark it as done.
+	return `What you should do now is carry out the task you're assigned to. You have a set of tools you can use to carry out the task. You're only able to see within the bounds of the task; you cannot see the entire canvas. Once you've finished the task, mark it as done. You also have access to a personal todo list that you should use to plan out how to solve the task.
 	`
 }
 
@@ -308,13 +311,12 @@ ${
 }
 
 ${
-	// 	flags.hasSharedTodo
-	// 		? `- Use ` +
-	// 			'`update-todo-list`' +
-	// 			` events liberally to keep an up to date list of your progress on the task at hand. When you are assigned a new task, use the action multiple times to sketch out your plan${flags.hasReview ? '. You can then use the ' + '`review`' + ' action to check the todo list' : ''}.
-	// 	- Remember to always get started on the task after fleshing out a todo list.`
-	// 		: ''
-	''
+	flags.hasUpdateTodoList
+		? `- Use ` +
+			'`update-personal-todo-list`' +
+			` events liberally to keep an up to date list of your progress on the task at hand. When you are assigned a new task, use the action multiple times to sketch out your plan${flags.hasReview ? '. You can then use the ' + '`review`' + ' action to check the todo list' : ''}.
+		- Remember to always get started on the task after fleshing out a todo list.`
+		: ''
 }
 ${flags.hasThink ? '- Use ' + '`think`' + ' events liberally to work through each step of your strategy.' : ''}
 ${flags.hasScreenshotPart && (flags.hasBlurryShapesPart || flags.hasPeripheralShapesPart || flags.hasSelectedShapesPart) ? '- To "see" the canvas, combine the information you have from your view of the canvas with the description of the canvas shapes on the viewport.' : ''}
@@ -392,6 +394,7 @@ ${
 }
 
 function buildSchemaPromptSection(actions: AgentAction['_type'][]) {
+	// console.warn('buildSchemaPromptSection actions ', actions,JSON.stringify(buildResponseSchema(actions), null, 2))
 	return `## JSON schema
 
 This is the JSON schema for the events you can return. You must conform to this schema.

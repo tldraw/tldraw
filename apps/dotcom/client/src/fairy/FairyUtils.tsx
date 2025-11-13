@@ -29,6 +29,7 @@ import { StackActionUtil } from './actions/StackActionUtil'
 import { StartProjectActionUtil } from './actions/StartProjectActionUtil'
 import { StartTaskActionUtil } from './actions/StartTaskActionUtil'
 import { ThinkActionUtil } from './actions/ThinkActionUtil'
+import { TodoListActionUtil } from './actions/TodoListActionUtil'
 import { UnknownActionUtil } from './actions/UnknownActionUtil'
 import { UpdateActionUtil } from './actions/UpdateActionUtil'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
@@ -48,6 +49,7 @@ import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
 import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
 import { SoloTasksPartUtil } from './parts/SoloTasksPartUtil'
 import { TimePartUtil } from './parts/TimePartUtil'
+import { TodoListPartUtil } from './parts/TodoListPartUtil'
 import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
 import { ViewportBoundsPartUtil } from './parts/ViewportBoundsPartUtil'
 import { WorkingTasksPartUtil } from './parts/WorkingTasksPartUtil'
@@ -64,6 +66,7 @@ export const AGENT_ACTION_UTILS = [
 	ReviewActionUtil,
 	FlyToBoundsActionUtil,
 	SleepActionUtil,
+	TodoListActionUtil,
 
 	// Individual shapes
 	CreateActionUtil,
@@ -134,6 +137,7 @@ export const PROMPT_PART_UTILS = [
 	UserActionHistoryPartUtil,
 	SoloTasksPartUtil,
 	WorkingTasksPartUtil,
+	TodoListPartUtil,
 
 	// Metadata
 	TimePartUtil,
