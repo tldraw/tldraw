@@ -102,22 +102,22 @@ const snapshots: Snapshots = {
 							{
 								type: 'straight',
 								firstPoint: { x: 0, y: 0 },
-								points: [0, 0, 1000, 0],
+								points: [1000, 0],
 							},
 							{
 								type: 'straight',
 								firstPoint: { x: 100, y: 0 },
-								points: [0, 0, -1000, 1000],
+								points: [-1000, 1000],
 							},
 							{
 								type: 'straight',
 								firstPoint: { x: 0, y: 100 },
-								points: [0, 0, 1000, 0],
+								points: [1000, 0],
 							},
 							{
 								type: 'straight',
 								firstPoint: { x: 100, y: 100 },
-								points: [0, 0, -1000, -1000],
+								points: [-1000, -1000],
 							},
 						]}
 						isClosed

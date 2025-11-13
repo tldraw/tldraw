@@ -197,6 +197,15 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 			up: (props) => {
 				props.zoom = 1
 				for (const segment of props.segments) {
+					if (!segment.points.length) {
+						segment.firstPoint = {
+							x: 0,
+							y: 0,
+						}
+						segment.points = []
+						continue
+					}
+
 					const deltas: number[] = []
 					let px = segment.points[0].x
 					let py = segment.points[0].y

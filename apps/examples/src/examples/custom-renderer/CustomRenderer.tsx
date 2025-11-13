@@ -67,9 +67,9 @@ export function CustomRenderer() {
 						ctx.moveTo(px, py)
 
 						if (segment.type === 'straight') {
-							// For straight segments, there should be 2 deltas (dx, dy) for the end point
-							const dx = segment.points[2] / 10
-							const dy = segment.points[3] / 10
+							// For straight segments, there should be 2 deltas (dx, dy) for non-pen or 3 (dx, dy, dz) for pen
+							const dx = segment.points[0] / 10
+							const dy = segment.points[1] / 10
 							ctx.lineTo(px + dx, py + dy)
 						} else {
 							// For free segments, accumulate deltas to get actual points
