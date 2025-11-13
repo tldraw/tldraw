@@ -59,9 +59,55 @@ const { preflight, corsify } = cors({
 
 const QUEUE_BASE_DELAY = 2
 
+/**
+ * Middleware to strip large Clerk cookies that can exceed Cloudflare's 8KB header limit.
+ * Clerk's __session cookies can grow to 4-6KB, causing Worker crashes when combined with
+ * other headers. This middleware keeps only the essential __client_uat cookie for Clerk
+ * authentication, while allowing JWT-based auth via Authorization header or accessToken
+ * query parameter (already supported in getAuth).
+ *
+ * This fixes the issue where large Clerk session cookies (__session, __handshake, etc.)
+ * combined with Cloudflare headers exceed the 8KB total request header limit, causing
+ * the Worker to crash before it can process authentication.
+ *
+ * @see apps/dotcom/sync-worker/src/utils/tla/getAuth.ts - Supports JWT via Authorization header
+ */
+async function stripLargeClerkCookies(request: Request): Promise<Request> {
+	const cookieHeader = request.headers.get('cookie')
+	if (!cookieHeader) return request
+
+	// Parse cookies and keep only small essential ones
+	const cookies = cookieHeader.split(';').map((c: string) => c.trim())
+	const allowedCookies = cookies.filter((cookie: string) => {
+		const [name] = cookie.split('=')
+		// Keep only small essential cookies, strip large Clerk session cookies
+		// __client_uat is small and needed for some Clerk functionality
+		// All other Clerk cookies (__session*, __handshake) are too large (4-6KB each)
+		return name === '__client_uat' || !name.startsWith('__')
+	})
+
+	// Create new request with filtered cookies
+	const newHeaders = new Headers(request.headers)
+	if (allowedCookies.length > 0) {
+		newHeaders.set('cookie', allowedCookies.join('; '))
+	} else {
+		newHeaders.delete('cookie')
+	}
+
+	// Create new Request with filtered headers
+	// Note: We need to handle body carefully for POST requests
+	const hasBody = request.method !== 'GET' && request.method !== 'HEAD' && request.body
+	return new Request(request.url, {
+		method: request.method,
+		headers: newHeaders,
+		body: hasBody ? request.body : null,
+	})
+}
+
 const router = createRouter<Environment>()
 	.all('*', preflight)
 	.all('*', blockUnknownOrigins)
+	.all('*', stripLargeClerkCookies)
 	.post('/snapshots', createRoomSnapshot)
 	.get('/snapshot/:roomId', getRoomSnapshot)
 	.get(`/${ROOM_PREFIX}/:roomId`, (req, env) =>
