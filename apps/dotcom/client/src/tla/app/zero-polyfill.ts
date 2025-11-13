@@ -113,13 +113,16 @@ export class Zero {
 					} finally {
 						controller.abort()
 					}
+					let didResolve = false
 					const unlisten = react('resolve server promise', () => {
 						if (
+							!didResolve &&
 							this.store.getOptimisticUpdates().filter((u) => u.mutationId === mutationId)
 								.length === 0
 						) {
+							didResolve = true
 							server.resolve(null)
-							unlisten()
+							queueMicrotask(() => unlisten?.())
 						}
 					})
 					this.pendingUpdates.push({
