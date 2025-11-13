@@ -200,7 +200,11 @@ function TlaEnterEmailStep({
 					className={styles.authCtaButton}
 					onClick={handleGoogleSignIn}
 				>
-					<img src="https://img.clerk.com/static/google.svg" alt="Google" />
+					<img
+						src="https://img.clerk.com/static/google.svg"
+						alt="Google"
+						referrerPolicy="strict-origin-when-cross-origin"
+					/>
 					<F defaultMessage="Sign in with Google" />
 				</TlaCtaButton>
 			</div>
