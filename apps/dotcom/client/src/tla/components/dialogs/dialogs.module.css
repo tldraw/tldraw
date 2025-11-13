@@ -153,8 +153,8 @@
 
 .dialogInput {
 	border: 1px solid var(--tla-color-border);
-	border-radius: var(--radius-2);
-	padding: 0px var(--space-3);
+	border-radius: var(--tl-radius-2);
+	padding: 0px var(--tl-space-3);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -221,8 +221,8 @@
 	align-items: center;
 	margin-bottom: 8px;
 	border: 1px solid var(--tla-color-border);
-	border-radius: var(--radius-2);
-	padding: 0px 0px 0px var(--space-3);
+	border-radius: var(--tl-radius-2);
+	padding: 0px 0px 0px var(--tl-space-3);
 	height: 40px;
 }
 
@@ -343,7 +343,7 @@
 	position: absolute;
 	inset: 0px -6px 0px 0px;
 	background-color: var(--tla-color-hover-2);
-	border-radius: var(--radius-1);
+	border-radius: var(--tl-radius-1);
 }
 
 .menuSelectChevron {
