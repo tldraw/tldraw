@@ -74,6 +74,20 @@ export function getNetworkDiff<R extends UnknownRecord>(diff: RecordsDiff<R>): N
 // @internal
 export function getTlsyncProtocolVersion(): number;
 
+// @public
+export class JsonChunkAssembler {
+    handleMessage(msg: string): {
+        data: object;
+        stringified: string;
+    } | {
+        error: Error;
+    } | null;
+    state: 'idle' | {
+        chunksReceived: string[];
+        totalChunks: number;
+    };
+}
+
 // @internal
 export interface NetworkDiff<R extends UnknownRecord> {
     // (undocumented)
