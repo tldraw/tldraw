@@ -100,10 +100,17 @@ export function FairyDebugDialog({ agents, onClose }: { agents: FairyAgent[]; on
 				})}
 			</div>
 
-			{/* Debug Flags: always visible when viewing an agent */}
-			{!isHomeTab && selectedAgent && (
-				<div className="fairy-debug-flags-section">
-					<FlagsInspector agent={selectedAgent} />
+			{/* Fairy Debug Options: always visible when viewing an agent */}
+			{!isHomeTab && selectedAgent && <FairyDebugOptions agent={selectedAgent} />}
+
+			{/* Home debug options: always visible when viewing the home tab */}
+			{isHomeTab && (
+				<div className="home-debug-options-container">
+					<TldrawUiButton type="low" onClick={logPartDefinitionsByPriority}>
+						<TldrawUiButtonLabel>
+							<F defaultMessage="Log Part Definitions by Priority" />
+						</TldrawUiButtonLabel>
+					</TldrawUiButton>
 				</div>
 			)}
 
@@ -203,17 +210,10 @@ function HomeDebugView({
 	homeDebugInspectorType: HomeDebugInspectorType
 }) {
 	return (
-		<>
-			<TldrawUiButton type="low" onClick={logPartDefinitionsByPriority}>
-				<TldrawUiButtonLabel>
-					<F defaultMessage="Log Part Definitions by Priority" />
-				</TldrawUiButtonLabel>
-			</TldrawUiButton>
-			<div className="fairy-debug-view-container">
-				{homeDebugInspectorType === 'projects' && <ProjectsInspector />}
-				{homeDebugInspectorType === 'sharedTodoList' && <SharedTodoListInspector />}
-			</div>
-		</>
+		<div className="fairy-debug-view-container">
+			{homeDebugInspectorType === 'projects' && <ProjectsInspector />}
+			{homeDebugInspectorType === 'sharedTodoList' && <SharedTodoListInspector />}
+		</div>
 	)
 }
 
@@ -301,51 +301,61 @@ function SharedTodoListInspector() {
 	)
 }
 
-function FlagsInspector({ agent }: { agent: FairyAgent }) {
+function FairyDebugOptions({ agent }: { agent: FairyAgent }) {
 	const debugFlags = useValue(agent.$debugFlags)
 
 	return (
-		<div className="fairy-debug-flags-container">
-			<p>
-				<F defaultMessage="Debug Flags" />
-			</p>
-			<div className="fairy-debug-flags-checkboxes">
-				<label className="fairy-debug-flags-checkbox">
-					<input
-						type="checkbox"
-						checked={debugFlags.logSystemPrompt}
-						onChange={(e) => {
-							agent.$debugFlags.set({
-								...debugFlags,
-								logSystemPrompt: e.target.checked,
-							})
-						}}
-					/>
-					<span>
-						<F defaultMessage="Log System Prompt" />
-					</span>
-				</label>
-				<label className="fairy-debug-flags-checkbox">
-					<input
-						type="checkbox"
-						checked={debugFlags.logMessages}
-						onChange={(e) => {
-							agent.$debugFlags.set({
-								...debugFlags,
-								logMessages: e.target.checked,
-							})
-						}}
-					/>
-					<span>
-						<F defaultMessage="Log Messages" />
-					</span>
-				</label>
+		<div className="fairy-debug-options-container">
+			<div className="fairy-debug-flags-container">
+				<p>
+					<F defaultMessage="Debug Flags" />
+				</p>
+				<div className="fairy-debug-flags-checkboxes">
+					<label className="fairy-debug-flags-checkbox">
+						<input
+							type="checkbox"
+							checked={debugFlags.logSystemPrompt}
+							onChange={(e) => {
+								agent.$debugFlags.set({
+									...debugFlags,
+									logSystemPrompt: e.target.checked,
+								})
+							}}
+						/>
+						<span>
+							<F defaultMessage="Log System Prompt" />
+						</span>
+					</label>
+					<label className="fairy-debug-flags-checkbox">
+						<input
+							type="checkbox"
+							checked={debugFlags.logMessages}
+							onChange={(e) => {
+								agent.$debugFlags.set({
+									...debugFlags,
+									logMessages: e.target.checked,
+								})
+							}}
+						/>
+						<span>
+							<F defaultMessage="Log Messages" />
+						</span>
+					</label>
+				</div>
 			</div>
-			<TldrawUiButton type="low" onClick={() => addAgentToDummyProject(agent.id)}>
-				<TldrawUiButtonLabel>
-					<F defaultMessage="Add to Dummy Project" />
-				</TldrawUiButtonLabel>
-			</TldrawUiButton>
+
+			<div className="fairy-debug-options-buttons">
+				<TldrawUiButton type="low" onClick={() => addAgentToDummyProject(agent.id)}>
+					<TldrawUiButtonLabel>
+						<F defaultMessage="Add to Dummy Project" />
+					</TldrawUiButtonLabel>
+				</TldrawUiButton>
+				<TldrawUiButton type="low" onClick={() => ((window as any).agent = agent)}>
+					<TldrawUiButtonLabel>
+						<F defaultMessage="Set window.agent" />
+					</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			</div>
 		</div>
 	)
 }
