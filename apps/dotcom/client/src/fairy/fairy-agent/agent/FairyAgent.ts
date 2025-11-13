@@ -710,7 +710,8 @@ export class FairyAgent {
 	 * @returns The id of the todo item.
 	 */
 	addTodo(text: string) {
-		const id = this.$todoList.get().length
+		const todoItems = this.$todoList.get()
+		const id = todoItems.length === 0 ? 0 : Math.max(...todoItems.map((t) => t.id)) + 1
 		this.$todoList.update((todoItems) => {
 			return [
 				...todoItems,

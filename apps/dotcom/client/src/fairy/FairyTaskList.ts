@@ -47,8 +47,8 @@ export function getFairyTasksByProjectId(projectId: string): FairyTask[] {
 
 export function assignFairyToTask(taskId: number, fairyId: string, agents: FairyAgent[]) {
 	const agent = agents.find((a) => a.id === fairyId)
-	if (!agent && fairyId !== '') return
+	if (fairyId !== '' && !agent) return
 	$fairyTasks.update((todos) =>
-		todos.map((t) => (t.id === taskId ? { ...t, assignedTo: fairyId } : t))
+		todos.map((t) => (t.id === taskId ? { ...t, assignedTo: fairyId || null } : t))
 	)
 }
