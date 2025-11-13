@@ -58,7 +58,8 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 			: bounds.clone().expandBy(expandOutlineBy).zeroFix()
 
 	const selectionRotation = editor.getSelectionRotation()
-	const isShapeTooCloseToContextualToolbar = selectionRotation / HALF_PI > 1.6 && selectionRotation / HALF_PI < 2.4
+	const isShapeTooCloseToContextualToolbar =
+		selectionRotation / HALF_PI > 1.6 && selectionRotation / HALF_PI < 2.4
 	useTransform(rSvg, bounds?.x, bounds?.y, 1, selectionRotation, {
 		x: expandedBounds.x - bounds.x,
 		y: expandedBounds.y - bounds.y,
