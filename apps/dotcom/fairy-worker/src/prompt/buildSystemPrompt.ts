@@ -58,9 +58,6 @@ function getSystemPrompt(
 			buildModePromptSection(flags)
 	)
 
-	if (mode === 'working') {
-		console.warn(buildSchemaPromptSection(actions))
-	}
 	if (!withSchema) return prompt
 	return prompt + '\n' + buildSchemaPromptSection(actions)
 }
@@ -394,7 +391,6 @@ ${
 }
 
 function buildSchemaPromptSection(actions: AgentAction['_type'][]) {
-	// console.warn('buildSchemaPromptSection actions ', actions,JSON.stringify(buildResponseSchema(actions), null, 2))
 	return `## JSON schema
 
 This is the JSON schema for the events you can return. You must conform to this schema.
