@@ -5,8 +5,7 @@ import { getPointsFromSegments } from '../draw/getPath'
 export const interpolateSegments = (
 	startSegments: TLDrawShapeSegment[],
 	endSegments: TLDrawShapeSegment[],
-	progress: number,
-	startZoom: number
+	progress: number
 ): TLDrawShapeSegment[] => {
 	// Extract all points from startSegments and endSegments
 	const startPoints = getPointsFromSegments(startSegments).map((v) => v.toJson())
@@ -60,9 +59,9 @@ export const interpolateSegments = (
 			const dx = point.x - px
 			const dy = point.y - py
 			const dz = (point.z ?? 0.5) - pz
-			deltas.push(Math.round(dx * 10 * startZoom)) // for now, use the initial zoom level
-			deltas.push(Math.round(dy * 10 * startZoom))
-			deltas.push(Math.round(dz * 10 * startZoom))
+			deltas.push(Math.round(dx * 10))
+			deltas.push(Math.round(dy * 10))
+			deltas.push(Math.round(dz * 10))
 			px += dx
 			py += dy
 			pz += dz
@@ -75,8 +74,8 @@ export const interpolateSegments = (
 			const point = interpolatedPoints[i]
 			const dx = point.x - px
 			const dy = point.y - py
-			deltas.push(Math.round(dx * 10 * startZoom)) // for now, use the initial zoom level
-			deltas.push(Math.round(dy * 10 * startZoom))
+			deltas.push(Math.round(dx * 10))
+			deltas.push(Math.round(dy * 10))
 			px += dx
 			py += dy
 		}

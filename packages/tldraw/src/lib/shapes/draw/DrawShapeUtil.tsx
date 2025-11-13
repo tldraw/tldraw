@@ -288,12 +288,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	): TLDrawShapeProps {
 		return {
 			...(t > 0.5 ? endShape.props : startShape.props),
-			segments: interpolateSegments(
-				startShape.props.segments,
-				endShape.props.segments,
-				t,
-				startShape.props.zoom
-			),
+			segments: interpolateSegments(startShape.props.segments, endShape.props.segments, t),
 			scale: lerp(startShape.props.scale, endShape.props.scale, t),
 		}
 	}

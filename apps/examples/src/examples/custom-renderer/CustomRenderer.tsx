@@ -74,7 +74,7 @@ export function CustomRenderer() {
 						} else {
 							// For free segments, accumulate deltas to get actual points
 							const pointsPerStep = shape.props.isPen ? 3 : 2 // pen has x,y,z deltas, mouse has x,y
-							for (let i = pointsPerStep; i < segment.points.length; i += pointsPerStep) {
+							for (let i = 0; i < segment.points.length; i += pointsPerStep) {
 								const dx = segment.points[i] / 10
 								const dy = segment.points[i + 1] / 10
 								px += dx
