@@ -109,11 +109,12 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 
 	// Focus the input when the dialog opens, select all text
 	useEffect(() => {
-		const input = rInput.current
-		if (input) {
-			input.focus()
-			input.select()
-		}
+		requestAnimationFrame(() => {
+			const input = rInput.current
+			if (input) {
+				input.select()
+			}
+		})
 	}, [])
 
 	return (
@@ -160,6 +161,7 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 					}}
 					className={styles.feedbackDialogTextArea}
 					ref={rInput}
+					autoFocus
 				/>
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
