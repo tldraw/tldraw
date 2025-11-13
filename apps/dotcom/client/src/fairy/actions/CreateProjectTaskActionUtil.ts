@@ -47,6 +47,7 @@ export class CreateProjectTaskActionUtil extends AgentActionUtil<CreateProjectTa
 			assignedTo: action.assignedTo,
 			projectId: project.id,
 			status: 'todo',
+			pageId: this.agent.editor.getCurrentPageId(),
 			x: bounds.x,
 			y: bounds.y,
 			w: bounds.w,

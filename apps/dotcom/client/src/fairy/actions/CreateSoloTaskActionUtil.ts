@@ -30,6 +30,7 @@ export class CreateSoloTaskActionUtil extends AgentActionUtil<CreateSoloTaskActi
 			text: action.text,
 			assignedTo: this.agent.id,
 			status: 'todo',
+			pageId: this.agent.editor.getCurrentPageId(),
 			x: bounds.x,
 			y: bounds.y,
 			w: bounds.w,
