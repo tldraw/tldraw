@@ -42,10 +42,9 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 		if (!task) return // todo error
 
 		if (task.projectId !== project.id) {
-			this.agent.cancel()
-			this.agent.schedule(
-				`Task ${taskId} is not in the same project as you. Please take another look at the task list and try again.`
-			)
+			this.agent.interrupt({
+				input: `Task ${taskId} is not in the same project as you. Please take another look at the task list and try again.`,
+			})
 			return
 		}
 

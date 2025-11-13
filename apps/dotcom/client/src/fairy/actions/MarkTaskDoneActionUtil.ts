@@ -29,32 +29,35 @@ export class MarkTaskDoneActionUtil extends AgentActionUtil<MarkTaskDoneAction> 
 		const currentBounds = this.agent.$activeRequest.get()?.bounds
 		if (!currentBounds) return
 
-		this.agent.cancel()
 		// todo, should this be here? should this logic somehow be in the fairy mode chart?
 		if (getProjectByAgentId(this.agent.id)) {
 			if (getRoleByAgentId(this.agent.id) === 'orchestrator') {
-				this.agent.setMode('orchestrating')
-				this.agent.schedule({
-					message: `Check that the following task has been completed as reported on the task list: Task ${action.taskId}\nThen, continue monitoring the project.`,
+				this.agent.interrupt({
+					setMode: 'orchestrating',
+					input: {
+						message: `Check that the following task has been completed as reported on the task list: Task ${action.taskId}\nThen, continue monitoring the project.`,
+						bounds: {
+							x: task.x ?? currentBounds.x,
+							y: task.y ?? currentBounds.y,
+							w: task.w ?? currentBounds.w,
+							h: task.h ?? currentBounds.h,
+						},
+					},
+				})
+			} else {
+				this.agent.interrupt({ setMode: 'standing-by' })
+			}
+		} else {
+			this.agent.interrupt({
+				setMode: 'soloing',
+				input: {
+					message: `Check that the following task has been completed as reported on the task list: Task ${action.taskId}`,
 					bounds: {
 						x: task.x ?? currentBounds.x,
 						y: task.y ?? currentBounds.y,
 						w: task.w ?? currentBounds.w,
 						h: task.h ?? currentBounds.h,
 					},
-				})
-			} else {
-				this.agent.setMode('standing-by')
-			}
-		} else {
-			this.agent.setMode('soloing')
-			this.agent.schedule({
-				message: `Check that the following task has been completed as reported on the task list: Task ${action.taskId}`,
-				bounds: {
-					x: task.x ?? currentBounds.x,
-					y: task.y ?? currentBounds.y,
-					w: task.w ?? currentBounds.w,
-					h: task.h ?? currentBounds.h,
 				},
 			})
 		}

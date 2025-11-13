@@ -25,10 +25,9 @@ export class StartTaskActionUtil extends AgentActionUtil<StartTaskAction> {
 		if (!task) return
 
 		if (task.assignedTo !== this.agent.id) {
-			this.agent.cancel()
-			this.agent.schedule(
-				`Task "${task.text}" with id ${action.taskId} is not assigned to you. Please take another look at the task list and try again.`
-			)
+			this.agent.interrupt({
+				input: `Task "${task.text}" with id ${action.taskId} is not assigned to you. Please take another look at the task list and try again.`,
+			})
 			return
 		}
 
@@ -41,15 +40,16 @@ export class StartTaskActionUtil extends AgentActionUtil<StartTaskAction> {
 		const currentBounds = this.agent.$activeRequest.get()?.bounds
 		if (!currentBounds) return
 
-		this.agent.cancel()
-		this.agent.setMode('working')
-		this.agent.schedule({
-			messages: [`You have started working on task "${task.text}" with id ${task.id}.`],
-			bounds: {
-				x: task.x ?? currentBounds.x,
-				y: task.y ?? currentBounds.y,
-				w: task.w ?? currentBounds.w,
-				h: task.h ?? currentBounds.h,
+		this.agent.interrupt({
+			setMode: 'working',
+			input: {
+				messages: [`You have started working on task "${task.text}" with id ${task.id}.`],
+				bounds: {
+					x: task.x ?? currentBounds.x,
+					y: task.y ?? currentBounds.y,
+					w: task.w ?? currentBounds.w,
+					h: task.h ?? currentBounds.h,
+				},
 			},
 		})
 	}

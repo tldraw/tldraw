@@ -39,10 +39,9 @@ export class TodoListActionUtil extends AgentActionUtil<TodoListAction> {
 			if (index !== -1) {
 				this.agent.updateTodo({ id, text, status })
 			} else {
-				this.agent.cancel()
-				this.agent.schedule(
-					`You tried to update a todo item with id ${id} but it was not found. If you're trying to create a new todo item, please don't provide an id.`
-				)
+				this.agent.interrupt({
+					input: `You tried to update a todo item with id ${id} but it was not found. If you're trying to create a new todo item, please don't provide an id.`,
+				})
 			}
 		} else {
 			this.agent.addTodo(text)

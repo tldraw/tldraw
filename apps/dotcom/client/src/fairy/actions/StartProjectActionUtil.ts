@@ -30,10 +30,9 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 
 		const colorAlreadyChosen = $fairyProjects.get().some((p) => p.color === projectColor)
 		if (colorAlreadyChosen) {
-			this.agent.cancel()
-			this.agent.schedule(
-				`The color ${projectColor} has already been chosen for another project. Please choose a different color.`
-			)
+			this.agent.interrupt({
+				input: `The color ${projectColor} has already been chosen for another project. Please choose a different color.`,
+			})
 			return
 		}
 

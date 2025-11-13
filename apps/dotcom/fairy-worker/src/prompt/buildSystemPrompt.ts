@@ -104,7 +104,7 @@ function buildWorkingModePromptSection(_flags: SystemPromptFlags) {
 }
 
 function buildOrchestratingModePromptSection(_flags: SystemPromptFlags) {
-	return `You are in charge of orchestrating a project. You must first start it the project, then plan out the project and assign tasks to other agents, making sure they have appropriate bounds. Then, direct the other agents to start tasks in whichever order makes the most sense for the project. Some tasks may be able to be completed in parallel, but some may not. Once the project is complete, end it. You cannot edit the canvas.
+	return `You are in charge of orchestrating a project. You must first start it the project, then plan out the project and assign tasks to other agents, making sure they have appropriate bounds. Then, direct the other agents to start tasks in whichever order makes the most sense for the project. Some tasks may be able to be completed in parallel, but some may not. Once the project is complete, end it. As you review the progress of the project, you make have to continue to adjust the project plan and assign tasks to other agents. This is to be expected and is encouraged. You cannot edit the canvas.
 	`
 }
 

@@ -135,12 +135,8 @@ export class FairyAgent {
 		const fromModeNode = FAIRY_MODE_CHART[fromMode]
 		const toModeNode = FAIRY_MODE_CHART[mode]
 
-		if (fromModeNode) {
-			fromModeNode.exit?.(this, mode)
-		}
-		if (toModeNode) {
-			toModeNode.enter?.(this, fromMode)
-		}
+		fromModeNode.exit?.(this, mode)
+		toModeNode.enter?.(this, fromMode)
 
 		this.$mode.set(mode)
 	}
@@ -657,6 +653,16 @@ export class FairyAgent {
 			bounds: request.bounds ?? scheduledRequest.bounds,
 			source: request.source ?? scheduledRequest.source ?? 'self',
 		})
+	}
+
+	interrupt({ input, setMode }: { input?: AgentInput; setMode?: FairyModeDefinition['type'] }) {
+		this.cancel()
+		if (setMode) {
+			this.setMode(setMode)
+		}
+		if (input) {
+			this.schedule(input)
+		}
 	}
 
 	/**
