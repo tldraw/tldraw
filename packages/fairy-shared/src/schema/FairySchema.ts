@@ -3,6 +3,7 @@ import { PromptPart } from '../types/PromptPart'
 import {
 	ActivateFairyActionSchema,
 	AlignActionSchema,
+	AwaitTasksCompletionActionSchema,
 	BringToFrontActionSchema,
 	ChangePageActionSchema,
 	ClaimTodoItemActionSchema,
@@ -102,6 +103,7 @@ export const AGENT_ACTION_SCHEMAS = [
 	StartProjectActionSchema,
 	EndCurrentProjectActionSchema,
 	ActivateFairyActionSchema,
+	AwaitTasksCompletionActionSchema,
 	CreateSoloTaskActionSchema,
 	CreateProjectTaskActionSchema,
 	SleepActionSchema,

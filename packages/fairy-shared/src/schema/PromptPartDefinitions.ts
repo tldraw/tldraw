@@ -6,7 +6,7 @@ import { PeripheralCluster } from '../format/PeripheralCluster'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { ChatHistoryItem } from '../types/ChatHistoryItem'
-import { FairyProject } from '../types/FairyProject'
+import { FairyProject, FairyProjectRole } from '../types/FairyProject'
 import { FairyTask, FairyTodoItem } from '../types/FairyTask'
 import { FairyWork } from '../types/FairyWork'
 import { ActiveFairyModeDefinition } from './FairyModeDefinition'
@@ -405,25 +405,33 @@ export interface CurrentProjectPart {
 	type: 'currentProject'
 	currentProject: FairyProject | null
 	currentProjectTasks: FairyTask[]
+	role: FairyProjectRole | null
 }
 
 export const CurrentProjectPartDefinition: PromptPartDefinition<CurrentProjectPart> = {
 	type: 'currentProject',
 	priority: -5,
 	buildContent(part: CurrentProjectPart) {
-		const { currentProject, currentProjectTasks } = part
+		const { currentProject, currentProjectTasks, role } = part
 
 		if (!currentProject) {
 			return ['There is no current project.']
 		}
 
-		return [
+		const response = [
 			`You are currently working on project "${currentProject.title}".`,
 			`Project description: ${currentProject.description}`,
 			`Project color: ${currentProject.color}`,
-			`Project members: ${currentProject.members.map((m) => `${m.id} (${m.role})`).join(', ')}`,
-			`${currentProjectTasks.length > 0 ? `Tasks in the project and their status:\n${currentProjectTasks.map((t) => `id: ${t.id}, ${t.text}, status: ${t.status}`).join(', ')}` : 'There are no tasks in the project.'}`,
 		]
+		if (role === 'orchestrator') {
+			response.push(
+				`Project members: ${currentProject.members.map((m) => `${m.id} (${m.role})`).join(', ')}`
+			)
+			response.push(
+				`${currentProjectTasks.length > 0 ? `Tasks in the project and their status:\n${currentProjectTasks.map((t) => `id: ${t.id}, ${t.text}, status: ${t.status}`).join(', ')}` : 'There are no tasks in the project.'}`
+			)
+		}
+		return response
 	},
 }
 

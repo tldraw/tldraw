@@ -15,6 +15,8 @@ import {
 	FairyProjectRole,
 	FairyTask,
 	FairyTodoItem,
+	FairyWaitCondition,
+	FairyWaitEvent,
 	FairyWork,
 	getFairyModeDefinition,
 	PromptPart,
@@ -43,6 +45,7 @@ import { $fairyIsApplyingAction } from '../../FairyIsApplyingAction'
 import { getProjectByAgentId } from '../../FairyProjects'
 import { $fairyTasks } from '../../FairyTaskList'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../FairyUtils'
+import { notifyAgentModeTransition } from '../../FairyWaitNotifications'
 import { PromptPartUtil } from '../../parts/PromptPartUtil'
 import { AgentHelpers } from './AgentHelpers'
 import { FairyAgentOptions } from './FairyAgentOptions'
@@ -127,6 +130,12 @@ export class FairyAgent {
 	})
 
 	/**
+	 * An atom containing the conditions this agent is waiting for.
+	 * When events matching these conditions occur, the agent will be notified.
+	 */
+	$waitingFor = atom<FairyWaitCondition<FairyWaitEvent>[]>('waitingFor', [])
+
+	/**
 	 * Change the mode of the agent.
 	 * @param mode - The mode to set.
 	 */
@@ -135,8 +144,11 @@ export class FairyAgent {
 		const fromModeNode = FAIRY_MODE_CHART[fromMode]
 		const toModeNode = FAIRY_MODE_CHART[mode]
 
+		// todo the order we call these vs notifyAgentModeTransition is probably important
 		fromModeNode.exit?.(this, mode)
 		toModeNode.enter?.(this, fromMode)
+
+		notifyAgentModeTransition(this.id, mode, this.editor)
 
 		this.$mode.set(mode)
 	}
@@ -746,6 +758,56 @@ export class FairyAgent {
 	}
 
 	/**
+	 * Check if the agent is currently waiting for any events.
+	 * @returns true if the agent has any wait conditions
+	 */
+	isWaiting() {
+		return this.$waitingFor.get().length > 0
+	}
+
+	/**
+	 * Add a wait condition to the agent.
+	 * The agent will be notified when an event matching this condition occurs.
+	 * @param condition - The wait condition to add
+	 */
+	waitFor(condition: FairyWaitCondition<FairyWaitEvent>) {
+		this.$waitingFor.update((conditions) => [...conditions, condition])
+	}
+
+	/**
+	 * Clear all wait conditions for this agent.
+	 */
+	stopWaiting() {
+		this.$waitingFor.set([])
+	}
+
+	/**
+	 * Wake up the agent from waiting with a notification message.
+	 * Note: This does NOT remove wait conditions - the matched conditions should
+	 * already be removed by the notification system before calling this method.
+	 * @param message - The message to send to the agent when waking up
+	 * @param _condition - The condition that was fulfilled
+	 * @param _event - Optional event data that triggered the wake-up (currently unused)
+	 */
+	notifyWaitConditionFulfilled(
+		message: string,
+		_condition: FairyWaitCondition<FairyWaitEvent>,
+		_event?: FairyWaitEvent
+	) {
+		if (this.isGenerating()) {
+			this.schedule({
+				messages: [message],
+				source: 'other-agent',
+			})
+		} else {
+			this.prompt({
+				messages: [message],
+				source: 'other-agent',
+			})
+		}
+	}
+
+	/**
 	 * Make the agent perform an action.
 	 * @param action The action to make the agent do.
 	 * @param helpers The helpers to use.
@@ -989,6 +1051,9 @@ export class FairyAgent {
 		this.$chatHistory.set([])
 		// TODO: Move this onto the fairies' shared data
 		this.$chatOrigin.set({ x: 0, y: 0 })
+
+		// clear any waiting conditions
+		this.stopWaiting()
 
 		// Reset cumulative usage tracking when starting a new chat
 		this.resetCumulativeUsage()

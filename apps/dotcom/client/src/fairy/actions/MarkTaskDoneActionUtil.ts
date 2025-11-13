@@ -1,7 +1,7 @@
 import { MarkTaskDoneAction, Streaming } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { getProjectByAgentId, getRoleByAgentId } from '../FairyProjects'
-import { $fairyTasks } from '../FairyTaskList'
+import { $fairyTasks, setFairyTaskStatusAndNotifyCompletion } from '../FairyTaskList'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class MarkTaskDoneActionUtil extends AgentActionUtil<MarkTaskDoneAction> {
@@ -21,11 +21,12 @@ export class MarkTaskDoneActionUtil extends AgentActionUtil<MarkTaskDoneAction> 
 
 	override applyAction(action: Streaming<MarkTaskDoneAction>, _helpers: AgentHelpers) {
 		if (!action.complete) return
-		$fairyTasks.update((tasks) =>
-			tasks.map((task) => (task.id === action.taskId ? { ...task, status: 'done' as const } : task))
-		)
+
 		const task = $fairyTasks.get().find((task) => task.id === action.taskId)
 		if (!task) return
+
+		setFairyTaskStatusAndNotifyCompletion(action.taskId, 'done', this.editor)
+
 		const currentBounds = this.agent.$activeRequest.get()?.bounds
 		if (!currentBounds) return
 

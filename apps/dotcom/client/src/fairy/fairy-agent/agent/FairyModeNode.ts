@@ -42,9 +42,10 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	},
 	['standing-by']: {},
 	orchestrating: {
-		// TODO: let them monitor active tasks
 		onRequestComplete(agent) {
-			agent.schedule('Continue reviewing until the project is complete.')
+			if (agent.$waitingFor.get().length === 0) {
+				agent.schedule('Continue reviewing until the project is complete.')
+			}
 		},
 	},
 }

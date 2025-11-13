@@ -79,6 +79,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'mode',
 			'messages',
 			'todoList',
+			'currentProject',
 			'viewportBounds',
 			'screenshot',
 			'blurryShapes',
@@ -147,6 +148,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'end-project',
 			'create-project-task',
 			'direct-to-start-project-task',
+			'await-tasks-completion',
 		],
 	},
 ] as const satisfies BaseFairyModeDefinition[]

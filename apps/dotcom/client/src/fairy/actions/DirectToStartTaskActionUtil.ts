@@ -71,5 +71,6 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 
 		otherFairy.setMode('working')
 		otherFairy.prompt(otherFairyPrompt)
+		// todo find a way to agent.interrupt to be able to prompt without causing errors, and use that here
 	}
 }

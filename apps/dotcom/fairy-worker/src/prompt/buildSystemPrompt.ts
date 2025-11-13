@@ -99,12 +99,12 @@ function buildSoloingModePromptSection(_flags: SystemPromptFlags) {
 }
 
 function buildWorkingModePromptSection(_flags: SystemPromptFlags) {
-	return `What you should do now is carry out the task you're assigned to. You have a set of tools you can use to carry out the task. You're only able to see within the bounds of the task; you cannot see the entire canvas. Once you've finished the task, mark it as done. You also have access to a personal todo list that you should use to plan out how to solve the task.
+	return `What you should do now is carry out the task you're assigned to. You have a set of tools you can use to carry out the task. You're only able to see within the bounds of the task; you cannot see the entire canvas. Once you've finished the task, mark it as done. You also have access to a personal todo list that you should use to plan out how to solve the task. Your personal todo list should represent how you plan to complete the task.
 	`
 }
 
 function buildOrchestratingModePromptSection(_flags: SystemPromptFlags) {
-	return `You are in charge of orchestrating a project. You must first start it the project, then plan out the project and assign tasks to other agents, making sure they have appropriate bounds. Then, direct the other agents to start tasks in whichever order makes the most sense for the project. Some tasks may be able to be completed in parallel, but some may not. Once the project is complete, end it. As you review the progress of the project, you make have to continue to adjust the project plan and assign tasks to other agents. This is to be expected and is encouraged. You cannot edit the canvas.
+	return `You are in charge of orchestrating a project. You must first start it the project, then plan out the project and assign tasks to other agents, making sure they have appropriate bounds that leave enough space for the task. Then, direct the other agents to start tasks in any order or all at once, whichever makes the most sense for the project. Once you direct agents to start their tasks using the \`direct-to-start-project-task\` action, you should use the \`await-tasks-completion\` action to wait for the tasks to be completed. This will give you a notification when any of those tasks are completed, allowing you to review them. Once the project is complete, end it. As you review the progress of the project, you make have to continue to adjust the project plan and assign tasks to other agents. You will also likely need to spend some time near the end of the project to make sure each different task is integrated into the project as a whole. This will possibly require the creation of more tasks. This is to be expected and is encouraged. You cannot edit the canvas.
 	`
 }
 

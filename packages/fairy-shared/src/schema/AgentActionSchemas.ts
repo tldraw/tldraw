@@ -475,6 +475,19 @@ export const MarkTaskDoneActionSchema = z
 
 export type MarkTaskDoneAction = z.infer<typeof MarkTaskDoneActionSchema>
 
+export const AwaitTasksCompletionActionSchema = z
+	.object({
+		_type: z.literal('await-tasks-completion'),
+		taskIds: z.array(z.number()),
+	})
+	.meta({
+		title: 'Await Tasks Completion',
+		description:
+			'The agent waits for one or more tasks to be completed. The agent will be notified when each task completes, allowing it to pause its work instead of repeatedly checking task status.',
+	})
+
+export type AwaitTasksCompletionAction = z.infer<typeof AwaitTasksCompletionActionSchema>
+
 export const SleepActionSchema = z
 	.object({
 		_type: z.literal('sleep'),

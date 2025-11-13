@@ -1,6 +1,7 @@
 import { AgentAction, PromptPart } from '@tldraw/fairy-shared'
 import { AgentActionUtil, AgentActionUtilConstructor } from './actions/AgentActionUtil'
 import { AlignActionUtil } from './actions/AlignActionUtil'
+import { AwaitTasksCompletionActionUtil } from './actions/AwaitTasksCompletionActionUtil'
 import { BringToFrontActionUtil } from './actions/BringToFrontActionUtil'
 import { ChangePageActionUtil } from './actions/ChangePageActionUtil'
 import { ClaimTodoItemActionUtil } from './actions/ClaimTodoItemActionUtil'
@@ -105,6 +106,7 @@ export const AGENT_ACTION_UTILS = [
 	CreateProjectTaskActionUtil,
 	DirectToStartTaskActionUtil,
 	EndCurrentProjectActionUtil,
+	AwaitTasksCompletionActionUtil,
 
 	SharedTodoListActionUtil, // todo, do we need?
 
