@@ -26,6 +26,69 @@ test.describe('Groups', () => {
 			await editor.ensureSidebarOpen()
 			await sidebar.expectGroupVisible(groupName)
 		})
+
+		test('can rename group', async ({ page, sidebar, editor }) => {
+			const groupName = getRandomName()
+			const newGroupName = getRandomName()
+
+			// Create group
+			await sidebar.createGroup(groupName)
+			await sidebar.expectGroupVisible(groupName)
+
+			// Rename group
+			await sidebar.renameGroup(groupName, newGroupName)
+
+			// Verify new name appears, old name doesn't
+			await sidebar.expectGroupVisible(newGroupName)
+			await sidebar.expectGroupNotVisible(groupName)
+
+			// Verify persists after reload
+			await page.reload()
+			await editor.isLoaded()
+			await editor.ensureSidebarOpen()
+			await sidebar.expectGroupVisible(newGroupName)
+			await sidebar.expectGroupNotVisible(groupName)
+		})
+
+		test('can delete group', async ({ page, sidebar, editor }) => {
+			const groupName = getRandomName()
+			const fileName = getRandomName()
+			const homeFileName = getRandomName()
+
+			// Create a home file first
+			await sidebar.createNewDocument(homeFileName)
+			await sidebar.expectFileVisible(homeFileName)
+
+			// Create group with a file
+			await sidebar.createGroup(groupName)
+			await sidebar.expectGroupVisible(groupName)
+			await sidebar.createFileInGroup(groupName, fileName)
+			await sidebar.expectFileVisible(fileName)
+
+			// Navigate away from the group file to the home file
+			await sidebar.getFileByName(homeFileName).click()
+			await editor.isLoaded()
+
+			// Delete group
+			await sidebar.deleteGroup(groupName)
+
+			// Verify group is gone
+			await sidebar.expectGroupNotVisible(groupName)
+
+			// Verify file is also gone (deleted with group)
+			await sidebar.expectFileNotVisible(fileName)
+
+			// Home file should still be there
+			await sidebar.expectFileVisible(homeFileName)
+
+			// Verify persists after reload
+			await page.reload()
+			await editor.isLoaded()
+			await editor.ensureSidebarOpen()
+			await sidebar.expectGroupNotVisible(groupName)
+			await sidebar.expectFileNotVisible(fileName)
+			await sidebar.expectFileVisible(homeFileName)
+		})
 	})
 
 	test.describe('Group expansion & collapse', () => {

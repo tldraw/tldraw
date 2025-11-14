@@ -325,6 +325,50 @@ export class Sidebar {
 		await this.expectGroupState(groupName, false)
 	}
 
+	@step
+	async openGroupSettings(groupName: string) {
+		const group = this.getGroup(groupName)
+		const groupHeader = group.locator('[role="button"]').first()
+		await groupHeader.hover()
+
+		// Click the more options button
+		const moreOptionsButton = group.locator('button[title="More options"]')
+		await moreOptionsButton.click()
+
+		// Click Settings menu item
+		await this.page.getByRole('menuitem', { name: 'Settings' }).click()
+	}
+
+	@step
+	async renameGroup(oldName: string, newName: string) {
+		await this.openGroupSettings(oldName)
+
+		// Find the name input and change it (use placeholder as user sees it)
+		const input = this.page.getByPlaceholder('Group name')
+		await expect(input).toBeVisible()
+		await input.fill(newName)
+
+		// Close the dialog
+		await this.page.getByRole('button', { name: 'Close' }).click()
+		await this.mutationResolution()
+	}
+
+	@step
+	async deleteGroup(groupName: string) {
+		await this.openGroupSettings(groupName)
+
+		// Click the Delete group button (exact text as user sees it)
+		await this.page.getByRole('button', { name: 'Delete group…' }).click()
+
+		// Confirm deletion in the confirmation dialog
+		await this.page.getByRole('button', { name: 'Delete group' }).click()
+		await this.mutationResolution()
+	}
+
+	async expectGroupNotVisible(groupName: string) {
+		await expect(this.getGroup(groupName)).not.toBeVisible()
+	}
+
 	// File visibility methods
 	getFileByName(fileName: string) {
 		return this.page.locator('[data-element="file-link"]').filter({ hasText: fileName })
