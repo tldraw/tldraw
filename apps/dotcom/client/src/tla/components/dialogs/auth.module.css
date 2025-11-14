@@ -148,6 +148,19 @@
 	font-weight: 500;
 }
 
+.clerkCaptcha {
+	margin-bottom: calc(-1 * var(--tl-space-8));
+}
+
+.authTermsOfUse {
+	font-size: 12px;
+	color: var(--tl-color-text-2);
+	margin-top: var(--tl-space-8);
+	text-align: center;
+	text-wrap: balance;
+	font-weight: 500;
+}
+
 /* Continue Button */
 /* .authContinueButton {
 	width: 100%;
