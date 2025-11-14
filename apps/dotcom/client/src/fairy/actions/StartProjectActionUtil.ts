@@ -1,8 +1,6 @@
-import { FairyProject, StartProjectAction, Streaming } from '@tldraw/fairy-shared'
-import { uniqueId } from 'tldraw'
+import { StartProjectAction, Streaming } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
-import { getFairyAgentById, getFairyNameById } from '../fairy-agent/agent/fairyAgentsAtom'
-import { addProject } from '../Projects'
+import { $fairyProjects, getProjectByAgentId, updateProject } from '../FairyProjects'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> {
@@ -22,44 +20,27 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 		if (!action.complete) return
 		if (!this.agent) return
 
-		const thisFairyName = getFairyNameById(this.agent.id, this.editor)
-		const thisFairyId = this.agent.id
+		// Assumptions:
+		// FairyGroupChat already handles creating the project, assigning roles programmatically as well as prompting the orchestrator
 
-		const projectId = uniqueId(5)
-		const project: FairyProject = {
-			id: projectId,
-			orchestratorId: this.agent.id,
-			name: action.projectName,
-			description: action.projectDescription,
-			color: action.projectColor,
-			memberIds: action.projectMemberIds,
+		const { projectName, projectDescription, projectColor } = action
+
+		const project = getProjectByAgentId(this.agent.id)
+		if (!project) return // todo error
+
+		const colorAlreadyChosen = $fairyProjects.get().some((p) => p.color === projectColor)
+		if (colorAlreadyChosen) {
+			this.agent.cancel()
+			this.agent.schedule(
+				`The color ${projectColor} has already been chosen for another project. Please choose a different color.`
+			)
+			return
 		}
 
-		// Add project to shared projects atom
-		addProject(project)
-
-		const memberFairies = action.projectMemberIds
-			.map((id) => getFairyAgentById(id, this.editor))
-			.filter((fairy) => fairy !== undefined)
-
-		memberFairies.forEach((fairy) => {
-			fairy.$currentProjectId.set(projectId)
-			fairy.schedule({
-				messages: [
-					`You are now a member of the project: ${action.projectName}: ${action.projectDescription}. 
-					${thisFairyName} (${thisFairyId}) is the orchestrator of the project.`,
-					`Navigate to the orchestrator's position to start working on the project.`,
-				],
-				mode: 'drone',
-			})
-		})
-
-		this.agent.$currentProjectId.set(projectId)
-		this.agent.schedule({
-			messages: [
-				`Started project: ${action.projectName}: ${action.projectDescription}`,
-				`Now, assign todos to project members. All todo items will be added to the current project.`,
-			],
+		updateProject(project.id, {
+			title: projectName,
+			description: projectDescription,
+			color: projectColor,
 		})
 	}
 }

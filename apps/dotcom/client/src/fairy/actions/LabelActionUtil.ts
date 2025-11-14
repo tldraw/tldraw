@@ -31,14 +31,17 @@ export class LabelActionUtil extends AgentActionUtil<LabelAction> {
 		if (!action.complete) return action
 
 		const shapeId = helpers.ensureShapeIdExists(action.shapeId)
-		if (
-			!shapeId ||
-			!this.agent?.editor ||
-			!isShapeWithRichText(this.agent.editor.getShape(`shape:${shapeId}` as TLShapeId))
-		) {
+		if (!shapeId || !this.agent?.editor) {
 			return null
 		}
-
+		const shape = this.agent.editor.getShape(`shape:${shapeId}` as TLShapeId)
+		if (!shape) {
+			return null
+		}
+		if (!isShapeWithRichText(shape)) {
+			console.warn(`Shape type "${shape.type}" does not support richText labels`)
+			return null
+		}
 		action.shapeId = shapeId
 		return action
 	}
@@ -50,7 +53,6 @@ export class LabelActionUtil extends AgentActionUtil<LabelAction> {
 
 		const shapeId = `shape:${action.shapeId}` as TLShapeId
 		const shape = editor.getShape(shapeId)
-		if (!shape) return
 		assertShapeWithRichText(shape)
 
 		editor.updateShape({

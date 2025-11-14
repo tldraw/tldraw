@@ -1,9 +1,12 @@
 import {
 	Box,
+	HALF_PI,
 	RotateCorner,
 	TLEmbedShape,
+	TLImageShape,
 	TLSelectionForegroundProps,
 	TLTextShape,
+	TLVideoShape,
 	getCursor,
 	tlenv,
 	toDomPrecision,
@@ -54,7 +57,10 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 			? bounds.clone().expand(expandOutlineBy).zeroFix()
 			: bounds.clone().expandBy(expandOutlineBy).zeroFix()
 
-	useTransform(rSvg, bounds?.x, bounds?.y, 1, editor.getSelectionRotation(), {
+	const selectionRotation = editor.getSelectionRotation()
+	const isShapeTooCloseToContextualToolbar =
+		selectionRotation / HALF_PI > 1.6 && selectionRotation / HALF_PI < 2.4
+	useTransform(rSvg, bounds?.x, bounds?.y, 1, selectionRotation, {
 		x: expandedBounds.x - bounds.x,
 		y: expandedBounds.y - bounds.y,
 	})
@@ -190,6 +196,10 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 		onlyShape &&
 		editor.isShapeOfType<TLTextShape>(onlyShape, 'text') &&
 		textHandleHeight * zoom >= 4
+	const isMediaShape =
+		onlyShape &&
+		(editor.isShapeOfType<TLImageShape>(onlyShape, 'image') ||
+			editor.isShapeOfType<TLVideoShape>(onlyShape, 'video'))
 
 	return (
 		<svg
@@ -244,7 +254,13 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 				<MobileRotateHandle
 					data-testid="selection.rotate.mobile"
 					cx={isSmallX ? -targetSize * 1.5 : width / 2}
-					cy={isSmallX ? height / 2 : -targetSize * 1.5}
+					cy={
+						isSmallX
+							? height / 2
+							: isMediaShape && !isShapeTooCloseToContextualToolbar
+								? height + targetSize * 1.5
+								: -targetSize * 1.5
+					}
 					size={size}
 					isHidden={hideMobileRotateHandle}
 				/>

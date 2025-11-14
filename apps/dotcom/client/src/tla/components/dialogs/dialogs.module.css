@@ -25,6 +25,12 @@
 	max-height: 400px;
 }
 
+@supports (-webkit-touch-callout: none) {
+	.feedbackDialogTextArea {
+		font-size: 16px;
+	}
+}
+
 .feedbackDialogTextArea::placeholder {
 	color: var(--tl-color-text-3);
 }

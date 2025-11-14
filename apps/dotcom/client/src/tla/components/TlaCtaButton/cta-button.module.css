@@ -12,6 +12,9 @@
 	align-items: center;
 	justify-content: center;
 	padding: 0px 16px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #ffffff;
 	border: none;
 	cursor: pointer;
 }
@@ -23,11 +26,11 @@
 
 .ctaButton > span {
 	position: relative;
-	color: #ffffff;
+	color: inherit;
 	text-align: center;
-	font-weight: 600;
 	font-family: inherit;
-	font-size: 12px;
+	font-size: inherit;
+	font-weight: inherit;
 	z-index: 3;
 }
 
@@ -35,14 +38,18 @@
 	display: block;
 	content: '';
 	position: absolute;
-	inset: 2px;
+	inset: 0px;
 	color: #ffffff;
 	background-color: var(--tla-color-cta);
 	border-radius: 6px;
 	z-index: 2;
 }
 
-.ctaButton::after {
+.ctaButtonCanvas::before {
+	inset: 2px;
+}
+
+.ctaButtonCanvas::after {
 	display: block;
 	content: '';
 	position: absolute;
@@ -52,8 +59,26 @@
 	z-index: 1;
 }
 
+.ctaButtonSecondary {
+	color: var(--tl-color-text-1);
+}
+
+.ctaButtonSecondary::after {
+	inset: 0px;
+	border-radius: 8px;
+}
+
+.ctaButtonSecondary::before {
+	background-color: var(--tl-color-muted-2);
+	border: 1px solid var(--tl-color-muted-1);
+}
+
 @media (hover: hover) {
-	.ctaButton:hover::before {
+	.ctaButton:not(:disabled):hover::before {
 		background-color: var(--tla-color-cta-hover);
+	}
+
+	.ctaButtonSecondary:not(:disabled):hover::before {
+		background-color: var(--tl-color-muted-1);
 	}
 }

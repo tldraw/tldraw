@@ -2,12 +2,29 @@ import { Streaming, TodoListAction } from '@tldraw/fairy-shared'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class TodoListActionUtil extends AgentActionUtil<TodoListAction> {
-	static override type = 'update-todo-list' as const
+	static override type = 'update-personal-todo-list' as const
 
-	override getInfo() {
-		// Don't show todo actions in the chat history because we show them in the dedicated todo list UI
-		return {
-			pose: 'thinking' as const,
+	override getInfo(action: Streaming<TodoListAction>) {
+		if (!action.complete) {
+			return {
+				icon: 'note' as const,
+				description: 'Updating personal todo list...',
+				pose: 'thinking' as const,
+			}
+		}
+
+		if (action.id) {
+			return {
+				icon: 'note' as const,
+				description: `Updated personal todo item ${action.id} with status "${action.status}"`,
+				pose: 'thinking' as const,
+			}
+		} else {
+			return {
+				icon: 'note' as const,
+				description: `Created new personal todo item: "${action.text}"`,
+				pose: 'thinking' as const,
+			}
 		}
 	}
 
@@ -15,19 +32,20 @@ export class TodoListActionUtil extends AgentActionUtil<TodoListAction> {
 		if (!action.complete) return
 		if (!this.agent) return
 
-		const todoItem = {
-			id: action.id,
-			status: action.status,
-			text: action.text,
-		}
+		const { id, text, status } = action
 
-		this.agent.$todoList.update((todoItems) => {
-			const index = todoItems.findIndex((item) => item.id === action.id)
+		if (id) {
+			const index = this.agent.$todoList.get().findIndex((item) => item.id === id)
 			if (index !== -1) {
-				return [...todoItems.slice(0, index), todoItem, ...todoItems.slice(index + 1)]
+				this.agent.updateTodo({ id, text, status })
 			} else {
-				return [...todoItems, todoItem]
+				this.agent.cancel()
+				this.agent.schedule(
+					`You tried to update a todo item with id ${id} but it was not found. If you're trying to create a new todo item, please don't provide an id.`
+				)
 			}
-		})
+		} else {
+			this.agent.addTodo(text)
+		}
 	}
 }

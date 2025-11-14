@@ -72,6 +72,7 @@ function TlaEditorInner({
 			ErrorFallback: TlaEditorErrorFallback,
 			SharePanel: () => (
 				<TlaCtaButton
+					canvas
 					style={{
 						pointerEvents: 'all',
 						margin: 6,

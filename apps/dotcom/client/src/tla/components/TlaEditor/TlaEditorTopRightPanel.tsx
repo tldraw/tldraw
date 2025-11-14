@@ -1,4 +1,3 @@
-import { SignInButton } from '@clerk/clerk-react'
 import {
 	PUBLISH_PREFIX,
 	READ_ONLY_LEGACY_PREFIX,
@@ -9,12 +8,19 @@ import {
 import classNames from 'classnames'
 import { useCallback, useRef } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { PeopleMenu, useEditor, usePassThroughWheelEvents, useTranslation } from 'tldraw'
+import {
+	PeopleMenu,
+	useDialogs,
+	useEditor,
+	usePassThroughWheelEvents,
+	useTranslation,
+} from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
+import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
@@ -36,30 +42,26 @@ export function TlaEditorTopRightPanel({
 	usePassThroughWheelEvents(ref)
 	const fileId = useCurrentFileId()
 	const trackEvent = useTldrawAppUiEvents()
+	const { addDialog } = useDialogs()
 
 	if (isAnonUser) {
 		return (
 			<div ref={ref} className={styles.topRightPanel}>
 				<PeopleMenu />
 				<SignedOutShareButton fileId={fileId} context={context} />
-				<SignInButton
-					mode="modal"
+				<TlaCtaButton
+					canvas
 					data-testid="tla-sign-in-button"
-					forceRedirectUrl={location.pathname + location.search}
-					signUpForceRedirectUrl={location.pathname + location.search}
+					onClick={() => {
+						trackEvent('sign-up-clicked', {
+							source: 'anon-landing-page',
+							ctaMessage: ctaString,
+						})
+						addDialog({ component: TlaSignInDialog })
+					}}
 				>
-					<TlaCtaButton
-						data-testid="tla-sign-up"
-						onClick={() =>
-							trackEvent('sign-up-clicked', {
-								source: 'anon-landing-page',
-								ctaMessage: ctaString,
-							})
-						}
-					>
-						<F {...ctaMessages.signInToShare} />
-					</TlaCtaButton>
-				</SignInButton>
+					<F {...ctaMessages.signInToShare} />
+				</TlaCtaButton>
 			</div>
 		)
 	}
@@ -71,6 +73,7 @@ export function TlaEditorTopRightPanel({
 			{context !== 'legacy' && (
 				<TlaFileShareMenu fileId={fileId!} source="file-header" context={context}>
 					<TlaCtaButton
+						canvas
 						data-testid="tla-share-button"
 						onClick={() => trackEvent('open-share-menu', { source: 'top-bar' })}
 					>
@@ -142,7 +145,7 @@ function LegacyImportButton() {
 	}, [app, editor, name, navigate, roomInfo, trackEvent])
 
 	return (
-		<TlaCtaButton data-testid="tla-import-button" onClick={handleClick}>
+		<TlaCtaButton canvas data-testid="tla-import-button" onClick={handleClick}>
 			<F defaultMessage="Copy to my files" />
 		</TlaCtaButton>
 	)

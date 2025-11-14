@@ -81,7 +81,8 @@ export class AgentDurableObject extends DurableObject<Environment> {
 			try {
 				const prompt = (await request.json()) as AgentPrompt
 
-				for await (const action of this.service.streamActions(prompt)) {
+				const isAdmin = request.headers.get('X-Is-Admin') === 'true'
+				for await (const action of this.service.streamActions(prompt, isAdmin)) {
 					response.actions.push(action)
 					const data = `data: ${JSON.stringify(action)}\n\n`
 					await writer.write(encoder.encode(data))

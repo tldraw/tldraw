@@ -36,8 +36,11 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 	const flipX = useValue('fairy flipX', () => fairy.get()?.flipX ?? false, [fairy])
 	const isSelected = useValue('fairy isSelected', () => fairy.get()?.isSelected ?? false, [fairy])
 	const isInSelectTool = useValue('is in select tool', () => editor.isIn('select.idle'), [editor])
+	const isInThrowTool = useValue('is in throw tool', () => editor.isIn('select.fairy-throw'), [
+		editor,
+	])
 	const isGenerating = useValue('is generating', () => agent.isGenerating(), [agent])
-	const isFairyGrabbable = !isGenerating && isInSelectTool
+	const isFairyGrabbable = isInSelectTool
 
 	// Listen to brush selection events and update fairy selection
 	const brush = useValue('editor brush', () => editor.getInstanceState().brush, [editor])
@@ -124,12 +127,7 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 		// Skip dragging behavior on right-click (context menu will handle it)
 		if (e.button === 2) return
 		if (!editor.isIn('select.idle')) return
-		if (editor.getCurrentTool().id === 'fairy-throw') return
-
-		// right now we don't have a way for the fairy to break out of a user's grasp,
-		// but currently the UI is structured such that you cant be dragging the fairy
-		// when you press generate, so this is enough for now
-		if (agent.isGenerating()) return
+		if (editor.isIn('select.fairy-throw')) return
 
 		// Determine which fairies to drag before updating selection
 		const fairyAgents = $fairyAgentsAtom.get(editor)
@@ -199,11 +197,11 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 				document.removeEventListener('pointerup', handlePointerUp)
 
 				// Activate the tool with all fairies that were selected at pointer down
-				const tool = editor.getStateDescendant('fairy-throw')
+				const tool = editor.getStateDescendant('select.fairy-throw')
 				if (tool && 'setFairies' in tool) {
 					;(tool as FairyThrowTool).setFairies(fairiesToDrag)
 				}
-				editor.setCurrentTool('fairy-throw')
+				editor.setCurrentTool('select.fairy-throw')
 			}
 		}
 
@@ -236,7 +234,10 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 						height: `${FAIRY_SIZE}px`,
 						transform: `translate(-75%, -25%) scale(var(--tl-scale)) ${flipX ? ' scaleX(-1)' : ''}`,
 						transformOrigin: '75% 25%',
-						transition: isGenerating ? 'left 0.1s ease-in-out, top 0.1s ease-in-out' : 'none',
+						transition:
+							isGenerating && !isInThrowTool
+								? 'left 0.1s ease-in-out, top 0.1s ease-in-out'
+								: 'none',
 					}}
 					className={isSelected ? 'fairy-selected' : ''}
 				>
