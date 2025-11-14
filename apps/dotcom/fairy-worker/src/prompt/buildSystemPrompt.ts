@@ -294,7 +294,7 @@ ${
 	// 	- When making a todo item, specify coordinates if relevant, for example if the work is part of a larger task that should be done in a specific area of the canvas.
 	// 	- Todo items close together are probably related.
 	// - When working with other agents, you must use the shared todo list to coordinate your work. To add new items to the shared todo list, or claim them for yourself, you can update the shared todo list with the ` +
-	// 			'`update-todo-list`' +
+	// 			'`update-shared-todo-list`' +
 	// 			` action. When creating new tasks with this action, make sure not to intially assign them all to yourself. This is because other agents may want to help out and claim some. Once you have created some tasks, use the ` +
 	// 			'`review`' +
 	// 			` action to check the shared todo list, after which you can claim tasks for yourself. Make sure to mark the tasks as "in-progress" when you claim them as well. Only claim a small amount of tasks at a time, and only claim tasks that you are confident you can complete.
@@ -308,7 +308,7 @@ ${
 }
 
 ${
-	flags.hasUpdateTodoList
+	flags.hasPersonalTodoList
 		? `- Use ` +
 			'`update-personal-todo-list`' +
 			` events liberally to keep an up to date list of your progress on the task at hand. When you are assigned a new task, use the action multiple times to sketch out your plan${flags.hasReview ? '. You can then use the ' + '`review`' + ' action to check the todo list' : ''}.
@@ -321,10 +321,10 @@ ${(flags.hasDistribute || flags.hasStack || flags.hasAlign || flags.hasPlace) &&
 ${flags.hasSelectedShapesPart ? "- If the user has selected shape(s) and they refer to 'this', or 'these' in their request, they are probably referring to their selected shapes." : ''}
 
 ${
-	flags.hasViewportBoundsPart || flags.hasFlyToBounds
+	flags.hasUserViewportBoundsPart || flags.hasAgentViewportBoundsPart || flags.hasFlyToBounds
 		? `### Navigating the canvas
 
-${flags.hasViewportBoundsPart ? "- Don't go out of your way to work inside the user's view unless you need to." : ''}
+${flags.hasUserViewportBoundsPart ? "- Don't go out of your way to work inside the user's view unless you need to." : ''}
 ${flags.hasPeripheralShapesPart ? '- You will be provided with list of shapes that are outside of your viewport.' : ''}
 ${
 	flags.hasFlyToBounds
@@ -343,6 +343,7 @@ ${
 		? `## Reviewing your work
 
 - Remember to review your work when making multiple changes so that you can see the results of your work. Otherwise, you're flying blind.
+${flags.hasFlyToBounds ? '- If you fly somewhere, you get the same updated information about the canvas as if you had used the ' + '`review`' + ' action, so no need to review right after flying.' : ''}
 ${flags.hasScreenshotPart ? '- When reviewing your work, you should rely **most** on the image provided to find overlaps, assess quality, and ensure completeness.' : ''}
 - Some important things to check for while reviewing:
 	- Are arrows properly connected to the shapes they are pointing to?
@@ -417,6 +418,8 @@ function getSystemPromptFlags(
 		hasThink: actions.includes('think'),
 		hasReview: actions.includes('review'),
 		hasFlyToBounds: actions.includes('fly-to-bounds'),
+		hasPersonalTodoList:
+			actions.includes('update-personal-todo-list') && parts.includes('personalTodoList'),
 
 		// Individual shapes
 		hasCreate: actions.includes('create'),
@@ -452,7 +455,7 @@ function getSystemPromptFlags(
 
 		// Project management
 		hasActivateFairy: actions.includes('activate-agent'),
-		hasUpdateTodoList: actions.includes('update-todo-list'),
+		hasUpdateSharedTodoList: actions.includes('update-shared-todo-list'),
 
 		// Internal (required)
 		hasUnknown: actions.includes('unknown'),
@@ -463,8 +466,8 @@ function getSystemPromptFlags(
 
 		// Viewport
 		hasScreenshotPart: parts.includes('screenshot'),
-		hasViewportBoundsPart:
-			parts.includes('userViewportBounds') || parts.includes('agentViewportBounds'),
+		hasUserViewportBoundsPart: parts.includes('userViewportBounds'),
+		hasAgentViewportBoundsPart: parts.includes('agentViewportBounds'),
 
 		// Shapes
 		hasBlurryShapesPart: parts.includes('blurryShapes'),

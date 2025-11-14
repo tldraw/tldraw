@@ -1,10 +1,10 @@
-import { Streaming, TodoListAction } from '@tldraw/fairy-shared'
+import { PersonalTodoListAction, Streaming } from '@tldraw/fairy-shared'
 import { AgentActionUtil } from './AgentActionUtil'
 
-export class TodoListActionUtil extends AgentActionUtil<TodoListAction> {
+export class PersonalTodoListActionUtil extends AgentActionUtil<PersonalTodoListAction> {
 	static override type = 'update-personal-todo-list' as const
 
-	override getInfo(action: Streaming<TodoListAction>) {
+	override getInfo(action: Streaming<PersonalTodoListAction>) {
 		if (!action.complete) {
 			return {
 				icon: 'note' as const,
@@ -28,7 +28,7 @@ export class TodoListActionUtil extends AgentActionUtil<TodoListAction> {
 		}
 	}
 
-	override applyAction(action: Streaming<TodoListAction>) {
+	override applyAction(action: Streaming<PersonalTodoListAction>) {
 		if (!action.complete) return
 		if (!this.agent) return
 

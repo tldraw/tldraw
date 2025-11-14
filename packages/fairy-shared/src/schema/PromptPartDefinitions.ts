@@ -381,17 +381,19 @@ export const SharedTodoListPartDefinition: PromptPartDefinition<SharedTodoListPa
 }
 
 // TodoListPart
-export interface TodoListPart {
-	type: 'todoList'
+export interface PersonalTodoListPart {
+	type: 'personalTodoList'
 	items: FairyTodoItem[]
 }
 
-export const TodoListPartDefinition: PromptPartDefinition<TodoListPart> = {
-	type: 'todoList',
+export const PersonalTodoListPartDefinition: PromptPartDefinition<PersonalTodoListPart> = {
+	type: 'personalTodoList',
 	priority: 10,
-	buildContent(part: TodoListPart) {
+	buildContent(part: PersonalTodoListPart) {
 		if (part.items.length === 0) {
-			return ['You have no todos yet. Use the `update-personal-todo-list` action to create a todo.']
+			return [
+				'You have no personal todos yet. Use the `update-personal-todo-list` action to create a todo.',
+			]
 		}
 		return [
 			`Here is your current personal todo list for the task at hand:`,

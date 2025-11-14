@@ -21,6 +21,7 @@ import {
 	MessageActionSchema,
 	MoveActionSchema,
 	PenActionSchema,
+	PersonalTodoListActionSchema,
 	PlaceActionSchema,
 	ResizeActionSchema,
 	ReviewActionSchema,
@@ -32,7 +33,6 @@ import {
 	StartProjectActionSchema,
 	StartTaskActionSchema,
 	ThinkActionSchema,
-	TodoListActionSchema,
 	UpdateActionSchema,
 } from './AgentActionSchemas'
 import {
@@ -48,13 +48,13 @@ import {
 	PagesPartDefinition,
 	PeripheralShapesPartDefinition,
 	PersonalityPartDefinition,
+	PersonalTodoListPartDefinition,
 	PromptPartDefinition,
 	ScreenshotPartDefinition,
 	SelectedShapesPartDefinition,
 	SharedTodoListPartDefinition,
 	SoloTasksPartDefinition,
 	TimePartDefinition,
-	TodoListPartDefinition,
 	UserActionHistoryPartDefinition,
 	UserViewportBoundsPartDefinition,
 	WorkingTasksPartDefinition,
@@ -71,7 +71,7 @@ export const AGENT_ACTION_SCHEMAS = [
 	ThinkActionSchema,
 	ReviewActionSchema,
 	FlyToBoundsActionSchema,
-	TodoListActionSchema,
+	PersonalTodoListActionSchema,
 
 	// Individual shapes
 	CreateActionSchema,
@@ -127,8 +127,8 @@ export const PROMPT_PART_DEFINITIONS = [
 	SelectedShapesPartDefinition,
 	TimePartDefinition,
 	SoloTasksPartDefinition,
-	SharedTodoListPartDefinition,
-	TodoListPartDefinition,
+	SharedTodoListPartDefinition, // not in use atm
+	PersonalTodoListPartDefinition,
 	UserActionHistoryPartDefinition,
 	UserViewportBoundsPartDefinition,
 	AgentViewportBoundsPartDefinition,

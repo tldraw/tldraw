@@ -79,7 +79,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 		parts: (_work: FairyWork) => [
 			'mode',
 			'messages',
-			'todoList',
+			'personalTodoList',
 			'currentProject',
 			'agentViewportBounds',
 			'screenshot',

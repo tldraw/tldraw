@@ -19,6 +19,7 @@ import { MarkTaskDoneActionUtil } from './actions/MarkTaskDoneActionUtil'
 import { MessageActionUtil } from './actions/MessageActionUtil'
 import { MoveActionUtil } from './actions/MoveActionUtil'
 import { PenActionUtil } from './actions/PenActionUtil'
+import { PersonalTodoListActionUtil } from './actions/PersonalTodoListActionUtil'
 import { PlaceActionUtil } from './actions/PlaceActionUtil'
 import { ResizeActionUtil } from './actions/ResizeActionUtil'
 import { ReviewActionUtil } from './actions/ReviewActionUtil'
@@ -30,7 +31,6 @@ import { StackActionUtil } from './actions/StackActionUtil'
 import { StartProjectActionUtil } from './actions/StartProjectActionUtil'
 import { StartTaskActionUtil } from './actions/StartTaskActionUtil'
 import { ThinkActionUtil } from './actions/ThinkActionUtil'
-import { TodoListActionUtil } from './actions/TodoListActionUtil'
 import { UnknownActionUtil } from './actions/UnknownActionUtil'
 import { UpdateActionUtil } from './actions/UpdateActionUtil'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
@@ -46,12 +46,13 @@ import { OtherFairiesPartUtil } from './parts/OtherFairiesPartUtil'
 import { PagesPartUtil } from './parts/PagesPartUtil'
 import { PeripheralShapesPartUtil } from './parts/PeripheralShapesPartUtil'
 import { PersonalityPartUtil } from './parts/PersonalityPartUtil'
+import { PersonalTodoListPartUtil } from './parts/PersonalTodoListPartUtil'
 import { PromptPartUtil, PromptPartUtilConstructor } from './parts/PromptPartUtil'
 import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
 import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
+import { SharedTodoListPartUtil } from './parts/SharedTodoListPartUtil'
 import { SoloTasksPartUtil } from './parts/SoloTasksPartUtil'
 import { TimePartUtil } from './parts/TimePartUtil'
-import { TodoListPartUtil } from './parts/TodoListPartUtil'
 import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
 import { UserViewportBoundsPartUtil } from './parts/UserViewportBoundsPartUtil'
 import { WorkingTasksPartUtil } from './parts/WorkingTasksPartUtil'
@@ -68,7 +69,7 @@ export const AGENT_ACTION_UTILS = [
 	ReviewActionUtil,
 	FlyToBoundsActionUtil,
 	SleepActionUtil,
-	TodoListActionUtil,
+	PersonalTodoListActionUtil,
 
 	// Individual shapes
 	CreateActionUtil,
@@ -100,7 +101,7 @@ export const AGENT_ACTION_UTILS = [
 	CreateSoloTaskActionUtil,
 	StartTaskActionUtil,
 	MarkTaskDoneActionUtil,
-	ClaimTodoItemActionUtil, // todo, do we need?
+	ClaimTodoItemActionUtil, // not in use atm
 
 	// orchestrating
 	StartProjectActionUtil,
@@ -109,7 +110,7 @@ export const AGENT_ACTION_UTILS = [
 	EndCurrentProjectActionUtil,
 	AwaitTasksCompletionActionUtil,
 
-	SharedTodoListActionUtil, // todo, do we need?
+	SharedTodoListActionUtil, // not in use atm
 
 	// Internal (required)
 	UnknownActionUtil,
@@ -135,13 +136,14 @@ export const PROMPT_PART_UTILS = [
 	BlurryShapesPartUtil,
 	PeripheralShapesPartUtil,
 	SelectedShapesPartUtil,
+	SharedTodoListPartUtil, // not in use atm
 
 	// History
 	ChatHistoryPartUtil,
 	UserActionHistoryPartUtil,
 	SoloTasksPartUtil,
 	WorkingTasksPartUtil,
-	TodoListPartUtil,
+	PersonalTodoListPartUtil,
 
 	// Metadata
 	TimePartUtil,

@@ -303,7 +303,7 @@ export type SendToBackAction = z.infer<typeof SendToBackActionSchema>
 
 export const SharedTodoListActionSchema = z
 	.object({
-		_type: z.literal('update-todo-list'),
+		_type: z.literal('update-shared-todo-list'),
 		id: z.number(),
 		status: z.enum(['todo', 'in-progress', 'done']),
 		text: z.string(),
@@ -357,7 +357,7 @@ export const ThinkActionSchema = z
 
 export type ThinkAction = z.infer<typeof ThinkActionSchema>
 
-export const TodoListActionSchema = z
+export const PersonalTodoListActionSchema = z
 	.object({
 		_type: z.literal('update-personal-todo-list'),
 		id: z.number().optional(),
@@ -370,7 +370,7 @@ export const TodoListActionSchema = z
 			'The agent updates its personal todo list item or creates a new todo item. If the id is provided, the todo item is updated. If the id is not provided, a new todo item is created.',
 	})
 
-export type TodoListAction = z.infer<typeof TodoListActionSchema>
+export type PersonalTodoListAction = z.infer<typeof PersonalTodoListActionSchema>
 
 export const UpdateActionSchema = z
 	.object({

@@ -4,7 +4,7 @@ import { $fairyTasks } from '../FairyTaskList'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class SharedTodoListActionUtil extends AgentActionUtil<SharedTodoListAction> {
-	static override type = 'update-todo-list' as const
+	static override type = 'update-shared-todo-list' as const
 
 	override getInfo(action: Streaming<SharedTodoListAction>) {
 		return {
