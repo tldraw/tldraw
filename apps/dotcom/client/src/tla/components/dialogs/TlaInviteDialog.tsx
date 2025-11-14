@@ -6,6 +6,7 @@ import {
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
 } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { defineMessages, F } from '../../utils/i18n'
@@ -31,6 +32,9 @@ export function TlaInviteDialog({
 	return (
 		<>
 			<TldrawUiDialogHeader>
+				<TldrawUiDialogTitle>
+					<span />
+				</TldrawUiDialogTitle>
 				<div style={{ flex: 1 }} />
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Navigate, useParams, useSearchParams } from 'react-router-dom'
 import { DefaultSpinner } from 'tldraw'
 import { routes } from '../../routeDefs'
@@ -9,6 +9,9 @@ export function Component() {
 	const [searchParams] = useSearchParams()
 	const app = useMaybeApp()
 	const isAccepting = searchParams.get('accept') === 'true'
+
+	// Memoize the state object to prevent Navigate from re-rendering infinitely
+	const navigateState = useMemo(() => ({ inviteSecret: token }), [token])
 
 	useEffect(() => {
 		if (app && isAccepting && token) {
@@ -32,5 +35,5 @@ export function Component() {
 			</div>
 		)
 
-	return <Navigate to={routes.tlaRoot()} state={{ inviteSecret: token }} replace />
+	return <Navigate to={routes.tlaRoot()} state={navigateState} replace />
 }
