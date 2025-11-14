@@ -81,6 +81,17 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 				)
 			}
 
+			// Ensure user has groups_frontend flag when accepting invite
+			if (!userHasFlag(user.flags, 'groups_frontend')) {
+				const currentFlags = user.flags ? user.flags.split(/[,\s]+/).filter(Boolean) : []
+				const newFlags = [...currentFlags, 'groups_frontend'].join(',')
+				await tx
+					.updateTable('user')
+					.set({ flags: newFlags })
+					.where('id', '=', auth.userId)
+					.execute()
+			}
+
 			// Get the lowest index to place new group at the top
 			const lowestIndexGroup = await sql<{
 				index: string
