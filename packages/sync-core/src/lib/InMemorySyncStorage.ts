@@ -70,6 +70,15 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLPersisten
 	/** @internal */
 	tombstoneHistoryStartsAtClock: Atom<number>
 
+	private listeners = new Set<(source: string, documentClock: number) => void>()
+	onChange(callback: (arg: { source: string; documentClock: number }) => void): () => void {
+		const cb = (source: string, documentClock: number) => callback({ source, documentClock })
+		this.listeners.add(cb)
+		return () => {
+			this.listeners.delete(cb)
+		}
+	}
+
 	constructor(snapshot: RoomSnapshot = DEFAULT_INITIAL_SNAPSHOT) {
 		assert(snapshot.schema, 'Schema is required')
 		this.documents = new AtomMap(
@@ -99,6 +108,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLPersisten
 	}
 
 	transaction<T>(
+		source: string,
 		callback: (txn: TLPersistentStorageTransaction<R>) => T
 	): TLPersistentStorageTransactionResult<T> {
 		const clockBefore = this.documentClock.get()
@@ -108,6 +118,13 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLPersisten
 		})
 
 		const clockAfter = this.documentClock.get()
+		const didChange = clockAfter > clockBefore
+		if (didChange) {
+			// todo: batch these updates
+			for (const listener of this.listeners) {
+				listener(source, clockAfter)
+			}
+		}
 		return { documentClock: clockAfter, didChange: clockAfter > clockBefore, result }
 	}
 
@@ -230,9 +247,10 @@ class InMemorySyncStorageTransaction<R extends UnknownRecord>
 export function loadSnapshotIntoStorage<R extends UnknownRecord>(
 	storage: TLPersistentStorage<R>,
 	schema: StoreSchema<R, any>,
-	snapshot: RoomSnapshot
+	snapshot: RoomSnapshot,
+	source: string
 ) {
-	return storage.transaction((txn) => {
+	return storage.transaction(source, (txn) => {
 		const docIds = new Set<string>()
 		for (const doc of snapshot.documents) {
 			docIds.add(doc.state.id)

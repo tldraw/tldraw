@@ -102,10 +102,13 @@ export interface TLPersistentStorageTransaction<R extends UnknownRecord> {
  */
 export interface TLPersistentStorage<R extends UnknownRecord> {
 	transaction<T>(
+		source: string,
 		callback: (txn: TLPersistentStorageTransaction<R>) => T
 	): TLPersistentStorageTransactionResult<T>
 
 	getClock(): number
+
+	onChange(callback: (arg: { source: string; documentClock: number }) => void): () => void
 }
 
 export interface TLPersistentStorageTransactionResult<T> {

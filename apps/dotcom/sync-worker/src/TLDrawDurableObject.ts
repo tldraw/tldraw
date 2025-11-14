@@ -20,6 +20,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import { TLPersistentStorage } from '@tldraw/store'
 import {
+	DEFAULT_INITIAL_SNAPSHOT,
 	InMemorySyncStorage,
 	RoomSnapshot,
 	TLSocketRoom,
@@ -29,7 +30,6 @@ import {
 	loadSnapshotIntoStorage,
 	type PersistedRoomSnapshotForSupabase,
 } from '@tldraw/sync-core'
-import { DEFAULT_INITIAL_SNAPSHOT } from '@tldraw/sync-core'
 import { TLDOCUMENT_ID, TLDocument, TLRecord, createTLSchema } from '@tldraw/tlschema'
 import {
 	ExecutionQueue,
@@ -213,6 +213,8 @@ export class TLDrawDurableObject extends DurableObject {
 
 	db: Kysely<DB>
 
+	private readonly changeSource = 'TLDrawDurableObject'
+
 	constructor(
 		private state: DurableObjectState,
 		override env: Environment
@@ -371,7 +373,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 			await this.r2.rooms.put(roomKey, dataText)
 			const storage = await this.getStorage()
-			loadSnapshotIntoStorage(storage, createTLSchema(), JSON.parse(dataText))
+			loadSnapshotIntoStorage(storage, createTLSchema(), JSON.parse(dataText), this.changeSource)
 
 			this.maybeAssociateFileAssets()
 
@@ -799,7 +801,7 @@ export class TLDrawDurableObject extends DurableObject {
 		const slug = this.documentInfo.slug
 		const storage = await this.getStorage()
 		const assetsToUpdate: { objectName: string; fileId: string }[] = []
-		await storage.transaction(async (txn) => {
+		await storage.transaction(this.changeSource, async (txn) => {
 			for (const [_, { state: record }] of txn.documents()) {
 				if (record.typeName !== 'asset') continue
 				const asset = record as any
@@ -846,7 +848,7 @@ export class TLDrawDurableObject extends DurableObject {
 		roomSizeMB: number
 	) {
 		const percentage = Math.ceil((roomSizeMB / ROOM_SIZE_LIMIT_MB) * 100)
-		storage.transaction(async (txn) => {
+		storage.transaction(this.changeSource, async (txn) => {
 			const document = txn.getDocument(TLDOCUMENT_ID)?.state as TLDocument
 			const meta = document.meta
 			if (meta.storageUsedPercentage === percentage) return
@@ -1114,7 +1116,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 		const storage = await this.getStorage()
 		// if the app file record updated, it might mean that the file name changed
-		storage.transaction(async (txn) => {
+		storage.transaction(this.changeSource, async (txn) => {
 			const documentRecord = txn.getDocument(TLDOCUMENT_ID)?.state as TLDocument
 			if (documentRecord.name !== file.name) {
 				documentRecord.name = file.name

@@ -277,6 +277,18 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (result.value.didChange) {
 			this.onDataChange?.()
 		}
+
+		this.storage.onChange(({ source }) => {
+			if (source !== this.changeSource) {
+				this.broadcastExternalStorageChanges()
+			}
+		})
+	}
+	private broadcastExternalStorageChanges() {
+		this.storage.transaction(this.changeSource, (txn) => {
+			this.broadcastChanges(txn.getChangesSince(this.lastDocumentClock), txn.getClock())
+			this.lastDocumentClock = txn.getClock()
+		})
 	}
 
 	/**
@@ -407,6 +419,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 	}
 
+	private readonly changeSource = 'TLSyncRoom'
+
 	/**
 	 * Broadcast a patch to all connected clients except the one with the sessionId provided.
 	 * Automatically handles schema migration for clients on different versions.
@@ -421,7 +435,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 
 			if (session.requiresDownMigrations) {
-				const { result } = this.storage.transaction((txn) => {
+				const { result } = this.storage.transaction(this.changeSource, (txn) => {
 					return this.migrateDiffForSession(txn, session.serializedSchema, diff)
 				})
 				if (!result.ok) {
@@ -771,7 +785,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			this._unsafe_sendMessage(session.sessionId, msg)
 		}
 
-		const { documentClock, result } = this.storage.transaction((txn) => {
+		const { documentClock, result } = this.storage.transaction(this.changeSource, (txn) => {
 			this.broadcastChanges(txn.getChangesSince(this.lastDocumentClock), txn.getClock())
 			const changes = txn.getChangesSince(message.lastServerClock)
 			let hydrationType: 'wipe_all' | 'wipe_presence' = 'wipe_presence'
@@ -933,6 +947,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 
 		const { result, didChange, documentClock } = this.storage.transaction(
+			this.changeSource,
 			(
 				txn
 			): {
