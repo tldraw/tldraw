@@ -1,7 +1,8 @@
 // https://developers.cloudflare.com/analytics/analytics-engine/
 
 import { Queue } from '@cloudflare/workers-types'
-import type { RoomSnapshot } from '@tldraw/sync-core'
+import { TLPersistentStorage } from '@tldraw/store'
+import { TLRecord } from '@tldraw/tlschema'
 import type { TLDrawDurableObject } from './TLDrawDurableObject'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
 import type { TLPostgresReplicator } from './TLPostgresReplicator'
@@ -89,7 +90,7 @@ export type DBLoadResult =
 	  }
 	| {
 			type: 'room_found'
-			snapshot: RoomSnapshot
+			storage: TLPersistentStorage<TLRecord>
 			roomSizeMB: number
 	  }
 	| {

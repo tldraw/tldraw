@@ -16,7 +16,11 @@ export {
 	type RecordOp,
 	type ValueOp,
 } from './lib/diff'
-export { InMemorySyncStorage } from './lib/InMemorySyncStorage'
+export {
+	getSnapshotFromInMemoryStorage,
+	InMemorySyncStorage,
+	loadSnapshotIntoStorage,
+} from './lib/InMemorySyncStorage'
 export {
 	getTlsyncProtocolVersion,
 	TLIncompatibilityReason,

@@ -7,6 +7,7 @@ import {
 	TLPersistentStorage,
 	TLPersistentStorageChange,
 	TLPersistentStorageChangeOp,
+	TLPersistentStorageTransaction,
 	UnknownRecord,
 } from '@tldraw/store'
 import {
@@ -22,7 +23,6 @@ import {
 } from '@tldraw/utils'
 import { fail } from 'assert'
 import { createNanoEvents } from 'nanoevents'
-import { TLSyncStorageTransaction } from '..'
 import {
 	RoomSession,
 	RoomSessionState,
@@ -182,7 +182,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 	}
 
-	private readonly presenceStore = new PresenceStore<R>()
+	readonly presenceStore = new PresenceStore<R>()
 
 	private disposables: Array<() => void> = [interval(this.pruneSessions, 2000)]
 
@@ -541,7 +541,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * older client versions.
 	 */
 	private migrateDiffForSession(
-		txn: TLSyncStorageTransaction<R>,
+		txn: TLPersistentStorageTransaction<R>,
 		serializedSchema: SerializedSchema,
 		diff: NetworkDiff<R>
 	): Result<NetworkDiff<R>, MigrationFailureReason> {
@@ -1171,23 +1171,29 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 }
 
 interface MinimalDocStore<R extends UnknownRecord> {
-	getDocument: TLSyncStorageTransaction<R>['getDocument']
-	setDocument: TLSyncStorageTransaction<R>['setDocument']
-	deleteDocument: TLSyncStorageTransaction<R>['deleteDocument']
+	getDocument: TLPersistentStorageTransaction<R>['getDocument']
+	setDocument: TLPersistentStorageTransaction<R>['setDocument']
+	deleteDocument: TLPersistentStorageTransaction<R>['deleteDocument']
 }
 
 class PresenceStore<R extends UnknownRecord> implements MinimalDocStore<R> {
-	private readonly presences = new AtomMap<string, R>('presences')
+	private readonly presences = new AtomMap<string, { state: R; lastChangedClock: number }>(
+		'presences'
+	)
 
-	getDocument(id: string): R | undefined {
+	getDocument(id: string) {
 		return this.presences.get(id)
 	}
 
 	setDocument(id: string, state: R): void {
-		this.presences.set(id, state)
+		this.presences.set(id, { state, lastChangedClock: 0 })
 	}
 
 	deleteDocument(id: string): void {
 		this.presences.delete(id)
+	}
+
+	values() {
+		return Array.from(this.presences.values()).map(({ state }) => state)
 	}
 }

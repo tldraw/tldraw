@@ -19,7 +19,11 @@ import {
 } from './migrate'
 import { RecordType } from './RecordType'
 import { SerializedStore, Store, StoreSnapshot } from './Store'
-import { MetadataKeys, TLPersistentStorage } from './TLPersistentStorage'
+import {
+	MetadataKeys,
+	TLPersistentStorage,
+	TLPersistentStorageTransaction,
+} from './TLPersistentStorage'
 
 /**
  * Version 1 format for serialized store schema information.
@@ -571,6 +575,42 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		return { type: 'success', value: record }
 	}
 
+	migratePersistentStorageTxn(txn: TLPersistentStorageTransaction<R>) {
+		const schema = JSON.parse(txn.getMetadata(MetadataKeys.schema) ?? 'null')
+		assert(schema, 'Schema is missing.')
+
+		const migrations = this.getMigrationsSince(schema)
+		if (!migrations.ok) {
+			console.error('Error migrating store', migrations.error)
+			throw new Error(migrations.error)
+		}
+		const migrationsToApply = migrations.value
+		if (migrationsToApply.length === 0) {
+			return
+		}
+
+		txn.setMetadata(MetadataKeys.schema, JSON.stringify(this.serialize()))
+
+		for (const migration of migrationsToApply) {
+			if (migration.scope === 'record') {
+				for (const [id, { state }] of txn.documents()) {
+					const shouldApply = migration.filter ? migration.filter(state) : true
+					if (!shouldApply) continue
+					const record = structuredClone(state)
+					const result = migration.up!(record as any) ?? record
+					if (!isEqual(result, state)) {
+						txn.setDocument(id, result as R)
+					}
+				}
+			} else if (migration.scope === 'store') {
+				assert('upStorage' in migration, 'upStorage is missing')
+				migration.upStorage(txn)
+			} else {
+				exhaustiveSwitchError(migration)
+			}
+		}
+	}
+
 	/**
 	 * Migrates a persistent storage thingy TODO: write this
 	 *
@@ -579,55 +619,14 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 	migratePersistentStorage(
 		storage: TLPersistentStorage<R>
 	): Result<{ documentClock: number; didChange: boolean }, string> {
-		const { result, documentClock, didChange } = storage.transaction((txn) => {
-			const schema = JSON.parse(txn.getMetadata(MetadataKeys.schema) ?? 'null')
-			assert(schema, 'Schema is missing.')
-
-			const migrations = this.getMigrationsSince(schema)
-			if (!migrations.ok) {
-				// TODO: better error
-				console.error('Error migrating store', migrations.error)
-				return Result.err(migrations.error)
-			}
-			const migrationsToApply = migrations.value
-			if (migrationsToApply.length === 0) {
-				return Result.ok(null)
-			}
-
-			txn.setMetadata(MetadataKeys.schema, JSON.stringify(this.serialize()))
-
-			try {
-				for (const migration of migrationsToApply) {
-					if (migration.scope === 'record') {
-						for (const [id, { state }] of txn.documents()) {
-							const shouldApply = migration.filter ? migration.filter(state) : true
-							if (!shouldApply) continue
-							const record = structuredClone(state)
-							const result = migration.up!(record as any) ?? record
-							if (!isEqual(result, state)) {
-								txn.setDocument(id, result as R)
-							}
-						}
-					} else if (migration.scope === 'store') {
-						assert('upStorage' in migration, 'upStorage is missing')
-						migration.upStorage(txn)
-					} else {
-						exhaustiveSwitchError(migration)
-					}
-				}
-			} catch (e: any) {
-				console.error('Error migrating store', e)
-				return Result.err(e?.message ?? e?.toString() ?? 'Unknown error')
-			}
-
-			return Result.ok(null)
-		})
-
-		if (!result.ok) {
-			return result
+		try {
+			const { documentClock, didChange } = storage.transaction((txn) => {
+				return this.migratePersistentStorageTxn(txn)
+			})
+			return Result.ok({ documentClock, didChange })
+		} catch (e: any) {
+			return Result.err(e?.message ?? e?.toString() ?? 'Unknown error')
 		}
-
-		return Result.ok({ documentClock, didChange })
 	}
 
 	/**

@@ -3,6 +3,7 @@ import {
 	AtomMap,
 	devFreeze,
 	MetadataKeys,
+	StoreSchema,
 	TLPersistentStorage,
 	TLPersistentStorageChange,
 	TLPersistentStorageChangeOp,
@@ -16,8 +17,16 @@ import {
 	PageRecordType,
 	TLDOCUMENT_ID,
 	TLPageId,
+	TLStoreSnapshot,
 } from '@tldraw/tlschema'
-import { assert, IndexKey, objectMapEntries, throttle } from '@tldraw/utils'
+import {
+	assert,
+	IndexKey,
+	isEqual,
+	objectMapEntries,
+	objectMapValues,
+	throttle,
+} from '@tldraw/utils'
 import { RoomSnapshot } from './TLSyncRoom'
 
 const TOMBSTONE_PRUNE_BUFFER_SIZE = 1000
@@ -102,23 +111,8 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLPersisten
 		return { documentClock: clockAfter, didChange: clockAfter > clockBefore, result }
 	}
 
-	getChangesSince(sinceClock: number): Iterable<TLPersistentStorageChange<R>> {
-		const changes: TLPersistentStorageChange<R>[] = []
-		if (sinceClock < this.tombstoneHistoryStartsAtClock.get()) {
-			sinceClock = 0
-			changes.push([TLPersistentStorageChangeOp.WIPE_ALL])
-		}
-		for (const doc of this.documents.values()) {
-			if (doc.lastChangedClock > sinceClock) {
-				changes.push([TLPersistentStorageChangeOp.PUT, doc.state])
-			}
-		}
-		for (const [id, clock] of this.tombstones.entries()) {
-			if (clock > sinceClock) {
-				changes.push([TLPersistentStorageChangeOp.DELETE, id])
-			}
-		}
-		return changes
+	getClock(): number {
+		return this.documentClock.get()
 	}
 
 	/** @internal */
@@ -214,6 +208,69 @@ class InMemorySyncStorageTransaction<R extends UnknownRecord>
 	}
 
 	getChangesSince(sinceClock: number): Iterable<TLPersistentStorageChange<R>> {
-		return this.storage.getChangesSince(sinceClock)
+		const changes: TLPersistentStorageChange<R>[] = []
+		if (sinceClock < this.storage.tombstoneHistoryStartsAtClock.get()) {
+			sinceClock = 0
+			changes.push([TLPersistentStorageChangeOp.WIPE_ALL])
+		}
+		for (const doc of this.storage.documents.values()) {
+			if (doc.lastChangedClock > sinceClock) {
+				changes.push([TLPersistentStorageChangeOp.PUT, doc.state])
+			}
+		}
+		for (const [id, clock] of this.storage.tombstones.entries()) {
+			if (clock > sinceClock) {
+				changes.push([TLPersistentStorageChangeOp.DELETE, id])
+			}
+		}
+		return changes
+	}
+}
+
+export function loadSnapshotIntoStorage<R extends UnknownRecord>(
+	storage: TLPersistentStorage<R>,
+	schema: StoreSchema<R, any>,
+	snapshot: RoomSnapshot
+) {
+	return storage.transaction((txn) => {
+		const docIds = new Set<string>()
+		for (const doc of snapshot.documents) {
+			docIds.add(doc.state.id)
+			const existing = txn.getDocument(doc.state.id)
+			if (isEqual(existing?.state, doc.state)) continue
+			txn.setDocument(doc.state.id, doc.state as R)
+		}
+		for (const id of txn.documentIds()) {
+			if (!docIds.has(id)) {
+				txn.deleteDocument(id)
+			}
+		}
+		txn.setMetadata(MetadataKeys.schema, JSON.stringify(snapshot.schema))
+		schema.migratePersistentStorageTxn(txn)
+	})
+}
+
+export function getSnapshotFromInMemoryStorage<R extends UnknownRecord>(
+	storage: InMemorySyncStorage<R>
+): RoomSnapshot {
+	return {
+		tombstoneHistoryStartsAtClock: storage.tombstoneHistoryStartsAtClock.get(),
+		documentClock: storage.documentClock.get(),
+		documents: Array.from(storage.documents.values()),
+		tombstones: Object.fromEntries(storage.tombstones.entries()),
+		schema: JSON.parse(storage.metadata.get(MetadataKeys.schema) ?? '{}'),
+	} satisfies RoomSnapshot
+}
+
+export function convertStoreSnapshotToRoomSnapshot(snapshot: TLStoreSnapshot): RoomSnapshot {
+	return {
+		clock: 0,
+		documentClock: 0,
+		documents: objectMapValues(snapshot.store).map((state) => ({
+			state,
+			lastChangedClock: 0,
+		})),
+		schema: snapshot.schema,
+		tombstones: {},
 	}
 }

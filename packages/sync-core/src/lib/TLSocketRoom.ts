@@ -1,11 +1,9 @@
-import type { StoreSchema, UnknownRecord } from '@tldraw/store'
-import { TLStoreSnapshot, createTLSchema } from '@tldraw/tlschema'
-import { objectMapValues, structuredClone } from '@tldraw/utils'
-import { InMemorySyncStorage } from './InMemorySyncStorage'
+import type { StoreSchema, TLPersistentStorage, UnknownRecord } from '@tldraw/store'
+import { createTLSchema } from '@tldraw/tlschema'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, RoomStoreMethods, TLSyncRoom } from './TLSyncRoom'
+import { TLSyncRoom } from './TLSyncRoom'
 import { JsonChunkAssembler } from './chunk'
 import { TLSocketServerSentEvent } from './protocol'
 
@@ -127,7 +125,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 */
 	constructor(
 		public readonly opts: {
-			initialSnapshot?: RoomSnapshot | TLStoreSnapshot
+			storage: TLPersistentStorage<R>
 			schema?: StoreSchema<R, any>
 			// how long to wait for a client to communicate before disconnecting them
 			clientTimeout?: number
@@ -160,11 +158,6 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			onPresenceChange?(): void
 		}
 	) {
-		const initialSnapshot =
-			opts.initialSnapshot && 'store' in opts.initialSnapshot
-				? convertStoreSnapshotToRoomSnapshot(opts.initialSnapshot!)
-				: opts.initialSnapshot
-
 		this.syncCallbacks = {
 			onDataChange: opts.onDataChange,
 			onPresenceChange: opts.onPresenceChange,
@@ -173,7 +166,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			...this.syncCallbacks,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: opts.log,
-			storage: new InMemorySyncStorage(initialSnapshot),
+			storage: opts.storage,
 		})
 		this.room.events.on('session_removed', (args) => {
 			this.sessions.delete(args.sessionId)
@@ -382,27 +375,6 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	handleSocketClose(sessionId: string) {
 		this.room.handleClose(sessionId)
 	}
-	/**
-	 * Retrieves a deeply cloned copy of a record from the document store.
-	 * Returns undefined if the record doesn't exist. The returned record is
-	 * safe to mutate without affecting the original store data.
-	 *
-	 * @param id - Unique identifier of the record to retrieve
-	 * @returns Deep clone of the record, or undefined if not found
-	 *
-	 * @example
-	 * ```ts
-	 * const shape = room.getRecord('shape:abc123')
-	 * if (shape) {
-	 *   console.log('Shape position:', shape.x, shape.y)
-	 *   // Safe to modify without affecting store
-	 *   shape.x = 100
-	 * }
-	 * ```
-	 */
-	getRecord(id: string) {
-		return structuredClone(this.room.documents.get(id)?.state)
-	}
 
 	/**
 	 * Returns information about all active sessions in the room. Each session
@@ -444,28 +416,6 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	}
 
 	/**
-	 * Creates a complete snapshot of the current document state, including all records
-	 * and synchronization metadata. This snapshot can be persisted to storage and used
-	 * to restore the room state later or revert to a previous version.
-	 *
-	 * @returns Complete room snapshot including documents, clock values, and tombstones
-	 *
-	 * @example
-	 * ```ts
-	 * // Capture current state for persistence
-	 * const snapshot = room.getCurrentSnapshot()
-	 * await saveToDatabase(roomId, JSON.stringify(snapshot))
-	 *
-	 * // Later, restore from snapshot
-	 * const savedSnapshot = JSON.parse(await loadFromDatabase(roomId))
-	 * const newRoom = new TLSocketRoom({ initialSnapshot: savedSnapshot })
-	 * ```
-	 */
-	getCurrentSnapshot() {
-		return this.room.getSnapshot()
-	}
-
-	/**
 	 * Retrieves all presence records from the document store. Presence records
 	 * contain ephemeral user state like cursor positions and selections.
 	 *
@@ -474,127 +424,10 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 */
 	getPresenceRecords() {
 		const result = {} as Record<string, UnknownRecord>
-		for (const document of this.room.documents.values()) {
-			if (document.state.typeName === this.room.presenceType?.typeName) {
-				result[document.state.id] = document.state
-			}
+		for (const presence of this.room.presenceStore.values()) {
+			result[presence.id] = presence
 		}
 		return result
-	}
-
-	/**
-	 * Returns a JSON-serialized snapshot of the current document state. This is
-	 * equivalent to JSON.stringify(getCurrentSnapshot()) but provided as a convenience.
-	 *
-	 * @returns JSON string representation of the room snapshot
-	 * @internal
-	 */
-	getCurrentSerializedSnapshot() {
-		return JSON.stringify(this.room.getSnapshot())
-	}
-
-	/**
-	 * Loads a document snapshot, completely replacing the current room state.
-	 * This will disconnect all current clients and update the document to match
-	 * the provided snapshot. Use this for restoring from backups or implementing
-	 * document versioning.
-	 *
-	 * @param snapshot - Room or store snapshot to load
-	 *
-	 * @example
-	 * ```ts
-	 * // Restore from a saved snapshot
-	 * const backup = JSON.parse(await loadBackup(roomId))
-	 * room.loadSnapshot(backup)
-	 *
-	 * // All clients will be disconnected and need to reconnect
-	 * // to see the restored document state
-	 * ```
-	 */
-	loadSnapshot(snapshot: RoomSnapshot | TLStoreSnapshot) {
-		if ('store' in snapshot) {
-			snapshot = convertStoreSnapshotToRoomSnapshot(snapshot)
-		}
-		const oldRoom = this.room
-		const oldRoomSnapshot = oldRoom.getSnapshot()
-		const oldIds = oldRoomSnapshot.documents.map((d) => d.state.id)
-		const newIds = new Set(snapshot.documents.map((d) => d.state.id))
-		const removedIds = oldIds.filter((id) => !newIds.has(id))
-
-		const tombstones: RoomSnapshot['tombstones'] = { ...oldRoomSnapshot.tombstones }
-		removedIds.forEach((id) => {
-			tombstones[id] = oldRoom.clock + 1
-		})
-		newIds.forEach((id) => {
-			delete tombstones[id]
-		})
-
-		const newRoom = new TLSyncRoom<R, SessionMeta>({
-			...this.syncCallbacks,
-			schema: oldRoom.schema,
-			snapshot: {
-				clock: oldRoom.clock + 1,
-				documentClock: oldRoom.clock + 1,
-				documents: snapshot.documents.map((d) => ({
-					lastChangedClock: oldRoom.clock + 1,
-					state: d.state,
-				})),
-				schema: snapshot.schema,
-				tombstones,
-				tombstoneHistoryStartsAtClock: oldRoomSnapshot.tombstoneHistoryStartsAtClock,
-			},
-			log: this.log,
-		})
-		// replace room with new one and kick out all the clients
-		this.room = newRoom
-		oldRoom.close()
-	}
-
-	/**
-	 * Executes a transaction to modify the document store. Changes made within the
-	 * transaction are atomic and will be synchronized to all connected clients.
-	 * The transaction provides isolation from concurrent changes until it commits.
-	 *
-	 * @param updater - Function that receives store methods to make changes
-	 *   - store.get(id) - Retrieve a record (safe to mutate, but must call put() to commit)
-	 *   - store.put(record) - Save a modified record
-	 *   - store.getAll() - Get all records in the store
-	 *   - store.delete(id) - Remove a record from the store
-	 * @returns Promise that resolves when the transaction completes
-	 *
-	 * @example
-	 * ```ts
-	 * // Update multiple shapes in a single transaction
-	 * await room.updateStore(store => {
-	 *   const shape1 = store.get('shape:abc123')
-	 *   const shape2 = store.get('shape:def456')
-	 *
-	 *   if (shape1) {
-	 *     shape1.x = 100
-	 *     store.put(shape1)
-	 *   }
-	 *
-	 *   if (shape2) {
-	 *     shape2.meta.approved = true
-	 *     store.put(shape2)
-	 *   }
-	 * })
-	 * ```
-	 *
-	 * @example
-	 * ```ts
-	 * // Async transaction with external API call
-	 * await room.updateStore(async store => {
-	 *   const doc = store.get('document:main')
-	 *   if (doc) {
-	 *     doc.lastModified = await getCurrentTimestamp()
-	 *     store.put(doc)
-	 *   }
-	 * })
-	 * ```
-	 */
-	async updateStore(updater: (store: RoomStoreMethods<R>) => void | Promise<void>) {
-		return this.room.updateStore(updater)
 	}
 
 	/**
@@ -710,17 +543,4 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
  */
 export type OmitVoid<T, KS extends keyof T = keyof T> = {
 	[K in KS extends any ? (void extends T[KS] ? never : KS) : never]: T[K]
-}
-
-function convertStoreSnapshotToRoomSnapshot(snapshot: TLStoreSnapshot): RoomSnapshot {
-	return {
-		clock: 0,
-		documentClock: 0,
-		documents: objectMapValues(snapshot.store).map((state) => ({
-			state,
-			lastChangedClock: 0,
-		})),
-		schema: snapshot.schema,
-		tombstones: {},
-	}
 }

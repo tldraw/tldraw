@@ -101,24 +101,11 @@ export interface TLPersistentStorageTransaction<R extends UnknownRecord> {
  * @public
  */
 export interface TLPersistentStorage<R extends UnknownRecord> {
-	/**
-	 * Execute a transaction. All storage operations within the callback are atomic.
-	 * If the callback throws, all changes are reverted.
-	 *
-	 * @param callback - Function that receives a transaction object
-	 * @returns The return value of the callback
-	 *
-	 * @example
-	 * ```ts
-	 * storage.transaction((txn) => {
-	 *   const doc = txn.getDocument('id')
-	 *   txn.setDocument('id', newState, clock)
-	 * })
-	 * ```
-	 */
 	transaction<T>(
 		callback: (txn: TLPersistentStorageTransaction<R>) => T
 	): TLPersistentStorageTransactionResult<T>
+
+	getClock(): number
 }
 
 export interface TLPersistentStorageTransactionResult<T> {
