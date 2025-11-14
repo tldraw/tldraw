@@ -18,6 +18,10 @@
 	overflow-y: auto;
 }
 
+.authDialogBody {
+	padding: 0;
+}
+
 .authBody {
 	display: flex;
 	flex-direction: column;
@@ -148,8 +152,9 @@
 	font-weight: 500;
 }
 
-.clerkCaptcha {
-	margin-bottom: calc(-1 * var(--tl-space-8));
+.clerkCaptcha:not(:empty) {
+	padding: var(--tl-space-8);
+	margin-top: calc(-1 * var(--tl-space-8));
 }
 
 .authTermsOfUse {
