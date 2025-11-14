@@ -8,6 +8,7 @@ export class Sidebar {
 	public readonly sidebar: Locator
 	public readonly sidebarLogo: Locator
 	public readonly createFileButton: Locator
+	public readonly createGroupButton: Locator
 	public readonly userSettingsMenu: Locator
 	public readonly helpMenu: Locator
 	public readonly themeButton: Locator
@@ -18,6 +19,7 @@ export class Sidebar {
 		this.sidebar = this.page.getByTestId('tla-sidebar')
 		this.sidebarLogo = this.page.getByTestId('tla-sidebar-logo-icon')
 		this.createFileButton = this.page.getByTestId('tla-create-file')
+		this.createGroupButton = this.page.getByTestId('tla-create-group')
 		this.userSettingsMenu = this.page.getByTestId('tla-sidebar-user-settings-trigger')
 		this.helpMenu = this.page.getByTestId('tla-sidebar-help-menu-trigger')
 		this.themeButton = this.page.getByText('Theme')
@@ -237,5 +239,30 @@ export class Sidebar {
 	@step
 	async closeAccountMenu() {
 		await this.page.keyboard.press('Escape')
+	}
+
+	// Group-related methods
+
+	@step
+	async createGroup(name: string) {
+		// Click the create group button
+		await this.createGroupButton.click()
+
+		// Fill in group name
+		const input = this.page.getByRole('textbox')
+		await expect(input).toBeVisible()
+		await input.fill(name)
+
+		// Click create button
+		await this.page.getByRole('button', { name: 'Create group' }).click()
+		await this.mutationResolution()
+	}
+
+	getGroup(groupName: string) {
+		return this.page.locator(`[data-group-id]`).filter({ hasText: groupName })
+	}
+
+	async expectGroupVisible(groupName: string) {
+		await expect(this.getGroup(groupName)).toBeVisible()
 	}
 }
