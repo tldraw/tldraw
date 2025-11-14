@@ -249,7 +249,7 @@ export class Sidebar {
 		await this.createGroupButton.click()
 
 		// Fill in group name
-		const input = this.page.getByRole('textbox')
+		const input = this.page.getByPlaceholder('Group name')
 		await expect(input).toBeVisible()
 		await input.fill(name)
 
@@ -264,5 +264,101 @@ export class Sidebar {
 
 	async expectGroupVisible(groupName: string) {
 		await expect(this.getGroup(groupName)).toBeVisible()
+	}
+
+	async isGroupExpanded(groupName: string): Promise<boolean> {
+		const group = this.getGroup(groupName)
+		const header = group.locator('[role="button"]').first()
+		const expanded = await header.getAttribute('aria-expanded')
+		return expanded === 'true'
+	}
+
+	@step
+	async toggleGroup(groupName: string) {
+		const group = this.getGroup(groupName)
+		const header = group.locator('[role="button"]').first()
+		await header.click()
+	}
+
+	@step
+	async expandGroup(groupName: string) {
+		if (!(await this.isGroupExpanded(groupName))) {
+			await this.toggleGroup(groupName)
+		}
+	}
+
+	@step
+	async collapseGroup(groupName: string) {
+		if (await this.isGroupExpanded(groupName)) {
+			await this.toggleGroup(groupName)
+		}
+	}
+
+	private async expectGroupState(groupName: string, expectedExpanded: boolean) {
+		const group = this.getGroup(groupName)
+		const header = group.locator('[role="button"]').first()
+
+		// Check aria-expanded attribute
+		await expect(header).toHaveAttribute('aria-expanded', expectedExpanded.toString())
+
+		// Check icon via mask style
+		const icon = group.locator('[role="img"]').first()
+		const expectedIcon = expectedExpanded ? 'icon-folder-open' : 'icon-folder'
+		await expect(icon).toBeVisible()
+
+		await expect(async () => {
+			const maskStyle = await icon.evaluate((el) => window.getComputedStyle(el).mask)
+			expect(maskStyle).toContain(expectedIcon)
+			if (!expectedExpanded) {
+				expect(maskStyle).not.toContain('icon-folder-open')
+			}
+		}).toPass({ timeout: 5000 })
+	}
+
+	@step
+	async expectGroupExpanded(groupName: string) {
+		await this.expectGroupState(groupName, true)
+	}
+
+	@step
+	async expectGroupCollapsed(groupName: string) {
+		await this.expectGroupState(groupName, false)
+	}
+
+	// File visibility methods
+	getFileByName(fileName: string) {
+		return this.page.locator('[data-element="file-link"]').filter({ hasText: fileName })
+	}
+
+	@step
+	async expectFileVisible(fileName: string) {
+		await expect(this.getFileByName(fileName)).toBeVisible()
+	}
+
+	@step
+	async expectFileNotVisible(fileName: string) {
+		await expect(this.getFileByName(fileName)).not.toBeVisible()
+	}
+
+	@step
+	async createFileInGroup(groupName: string, fileName: string) {
+		// Get the group element
+		const group = this.getGroup(groupName)
+
+		// Hover over the group header to reveal the create file button
+		const groupHeader = group.locator('[role="button"]').first()
+		await groupHeader.hover()
+
+		// Click the create file button (the one with edit icon)
+		const createButton = group.locator('button[title="New file"]')
+		await createButton.click()
+
+		// Fill in the file name in the rename input
+		const input = this.page.getByTestId('tla-sidebar-rename-input')
+		await expect(input).toBeVisible()
+		await input.fill(fileName)
+		await this.page.keyboard.press('Enter')
+
+		await this.mutationResolution()
 	}
 }

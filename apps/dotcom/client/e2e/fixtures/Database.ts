@@ -98,9 +98,6 @@ export class Database {
 			// eslint-disable-next-line no-restricted-globals
 			await fetch(`http://localhost:3000/api/app/__test__/user/${id}/prepare-for-test`, {
 				method: 'POST',
-				headers: {
-					'x-legacy': process.env.TLDRAW_INIT_MODE === 'new' ? 'false' : 'true',
-				},
 			})
 		} catch (e) {
 			console.error('Error', e)
