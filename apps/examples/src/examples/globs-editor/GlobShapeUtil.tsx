@@ -2,7 +2,6 @@ import { round } from 'lodash'
 import { useEffect, useState } from 'react'
 import {
 	createComputedCache,
-	Edge2d,
 	Editor,
 	getIndicesAbove,
 	HandleSnapGeometry,
@@ -30,7 +29,13 @@ import {
 } from 'tldraw'
 import { GlobBinding } from './GlobBindingUtil'
 import { getStartAndEndNodes } from './shared'
-import { getArcFlag, getClosestPointOnCircle, getGlobEndPoint, projectTensionPoint } from './utils'
+import {
+	getArcFlag,
+	getClosestPointOnCircle,
+	getGlobEndPoint,
+	getOuterTangentPoints,
+	projectTensionPoint,
+} from './utils'
 
 export interface NodeGeometry {
 	position: VecModel
@@ -274,6 +279,7 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 		const rotatedDA = Vec.Rot(initial.props.edges.edgeA.d, delta).toJson()
 		const rotatedDB = Vec.Rot(initial.props.edges.edgeB.d, delta).toJson()
 
+		// rotating nodes will handle rotating the glob, but we still need to update the d handles
 		return {
 			id: current.id,
 			type: current.type,
@@ -345,6 +351,7 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 					y: globPoints[edge][tension].y,
 					index: indices[idx++],
 					snapType: 'point',
+					snapReferenceHandleId: `${edge}.${tension}`, // this is a hack to make these handles not have angle snapping, when we shift drag which moves all tension handles at the same time
 				})
 			}
 		}
@@ -360,14 +367,15 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 		return {
 			getSelfSnapPoints(handle) {
 				const { edgeType, point } = getHandleData(handle.id)
+				const d = shape.props.edges[edgeType].d
 
 				switch (point) {
 					case 'tensionA': {
-						const mid = Vec.Lrp(globPoints[edgeType].tangentA, shape.props.edges[edgeType].d, 0.5)
+						const mid = Vec.Lrp(globPoints[edgeType].tangentA, d, 0.5)
 						return [mid]
 					}
 					case 'tensionB': {
-						const mid = Vec.Lrp(globPoints[edgeType].tangentB, shape.props.edges[edgeType].d, 0.5)
+						const mid = Vec.Lrp(globPoints[edgeType].tangentB, d, 0.5)
 						return [mid]
 					}
 				}
@@ -396,7 +404,7 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 				let d = { x: handle.x, y: handle.y }
 
 				this.editor.snaps.clearIndicators()
-				const snapPoint = this.getSnap(shape, handle)
+				const snapPoint = this.getSnaps(shape, handle)
 
 				const isSnapMode = this.editor.user.getIsSnapMode()
 				if (
@@ -421,7 +429,7 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 					}
 				}
 
-				// constraint the d handle around the circle if we try drag it inside a node
+				// constrain the d handle around the node if we try drag it inside a node
 				const distStart = Vec.Dist(handle, globPoints.startNode.position)
 				if (distStart <= globPoints.startNode.radius) {
 					d = getClosestPointOnCircle(
@@ -431,7 +439,7 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 					)
 				}
 
-				// constraint the d handle around the circle if we try drag it inside a node
+				// constrain the d handle around the node if we try drag it inside a node
 				const distEnd = Vec.Dist(handle, globPoints.endNode.position)
 				if (distEnd <= globPoints.endNode.radius) {
 					d = getClosestPointOnCircle(
@@ -486,10 +494,8 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 				const lineEnd = shape.props.edges[edgeType].d
 				const projectedPoint = projectTensionPoint(lineStart, lineEnd, handle)
 
-				// drag both tension handles at the same time
-				if (this.editor.inputs.metaKey) {
-					const delta = projectedPoint - initialEdge.tensionRatioA
-
+				// drag ALL the tension handles
+				if (this.editor.inputs.metaKey && this.editor.inputs.shiftKey) {
 					return {
 						...shape,
 						props: {
@@ -499,7 +505,30 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 								[edgeType]: {
 									...initialEdge,
 									tensionRatioA: projectedPoint,
-									tensionRatioB: initialEdge.tensionRatioB - delta,
+									tensionRatioB: 1 - projectedPoint,
+								},
+								[oppositeEdgeType]: {
+									...initialOppositeEdge,
+									tensionRatioA: projectedPoint,
+									tensionRatioB: 1 - projectedPoint,
+								},
+							},
+						},
+					}
+				}
+
+				// drag opposite tension handles at the same time
+				if (this.editor.inputs.metaKey) {
+					return {
+						...shape,
+						props: {
+							...shape.props,
+							edges: {
+								...shape.props.edges,
+								[edgeType]: {
+									...initialEdge,
+									tensionRatioA: projectedPoint,
+									tensionRatioB: 1 - projectedPoint,
 								},
 							},
 						},
@@ -513,8 +542,11 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 						edges: {
 							...shape.props.edges,
 							[edgeType]: {
-								...edge,
+								...initialEdge,
 								tensionRatioA: projectedPoint,
+							},
+							[oppositeEdgeType]: {
+								...initialOppositeEdge,
 							},
 						},
 					},
@@ -525,10 +557,8 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 				const lineEnd = globPoints[edgeType].tangentB
 				const projectedPoint = projectTensionPoint(lineStart, lineEnd, handle)
 
-				// drag both tension handles at the same time
-				if (this.editor.inputs.metaKey) {
-					const delta = projectedPoint - initialEdge.tensionRatioB
-
+				// drag ALL the tension handles
+				if (this.editor.inputs.metaKey && this.editor.inputs.shiftKey) {
 					return {
 						...shape,
 						props: {
@@ -537,7 +567,30 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 								...shape.props.edges,
 								[edgeType]: {
 									...initialEdge,
-									tensionRatioA: initialEdge.tensionRatioA - delta,
+									tensionRatioA: 1 - projectedPoint,
+									tensionRatioB: projectedPoint,
+								},
+								[oppositeEdgeType]: {
+									...initialOppositeEdge,
+									tensionRatioA: 1 - projectedPoint,
+									tensionRatioB: projectedPoint,
+								},
+							},
+						},
+					}
+				}
+
+				// drag opposite tension handles at the same time
+				if (this.editor.inputs.metaKey) {
+					return {
+						...shape,
+						props: {
+							...shape.props,
+							edges: {
+								...shape.props.edges,
+								[edgeType]: {
+									...initialEdge,
+									tensionRatioA: 1 - projectedPoint,
 									tensionRatioB: projectedPoint,
 								},
 							},
@@ -552,8 +605,11 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 						edges: {
 							...shape.props.edges,
 							[edgeType]: {
-								...edge,
+								...initialEdge,
 								tensionRatioB: projectedPoint,
+							},
+							[oppositeEdgeType]: {
+								...initialOppositeEdge,
 							},
 						},
 					},
@@ -614,7 +670,7 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 		})
 	}
 
-	private getSnap(shape: GlobShape, handle: TLHandle): SnapData | null {
+	private getSnaps(shape: GlobShape, handle: TLHandle): SnapData | null {
 		const INFINITE_LENGTH = 100000
 		const pageToCurrentShape = this.editor.getShapePageTransform(shape.id).clone().invert()
 
@@ -622,7 +678,7 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 
 		// infinite lines going from direction of d handles to tangent points
 		// for neighboring globs of the selected glob
-		const snapEdges: { edge: Edge2d; d: VecModel }[] = []
+		const snapEdges: { start: VecModel; end: VecModel; d: VecModel }[] = []
 		for (const neighborGlob of neighborGlobs) {
 			const transform = Mat.Compose(
 				pageToCurrentShape,
@@ -643,7 +699,8 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 					const p2Transformed = transform.applyToPoint(infiniteEndPoint)
 
 					snapEdges.push({
-						edge: new Edge2d({ start: p1Transformed, end: p2Transformed }),
+						start: p1Transformed,
+						end: p2Transformed,
 						d: p1Transformed,
 					})
 				}
@@ -654,8 +711,8 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 		const endPoints: VecModel[] = []
 		let minDistance = this.editor.snaps.getSnapThreshold()
 
-		for (const { edge, d } of snapEdges) {
-			const snapPoint = edge.nearestPoint(handle)
+		for (const { start, end, d } of snapEdges) {
+			const snapPoint = Vec.NearestPointOnLineSegment(start, end, handle, true)
 			const distance = Vec.Dist(handle, snapPoint)
 
 			if (round(distance) <= round(minDistance)) {
@@ -668,8 +725,67 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 			}
 		}
 
+		const globInfo = getGlobInfo(this.editor, shape)
+		if (!globInfo) return null
+
+		const { edgeType } = getHandleData(handle.id)
+		const outerTangentPoints = getOuterTangentPoints(
+			globInfo.startNode.position,
+			globInfo.startNode.radius,
+			globInfo.endNode.position,
+			globInfo.endNode.radius,
+			edgeType
+		)
+
+		// mid point, outer tangent edge, perp to that edge
+		const midD = Vec.Lrp(outerTangentPoints[0], outerTangentPoints[1], 0.5)
+		const outerLine = Vec.Sub(outerTangentPoints[0], outerTangentPoints[1]).uni()
+
+		// infinite line of the perpendicular outer line
+		const perpendicularOuterLine = Vec.Per(outerLine).uni()
+		const normalDStart = Vec.Add(midD, Vec.Mul(perpendicularOuterLine, -INFINITE_LENGTH))
+		const normalDEnd = Vec.Add(midD, Vec.Mul(perpendicularOuterLine, INFINITE_LENGTH))
+
+		// check snap to the outer line
+		let snappedToOuterLine = false
+		const outerLineSnapPoint = Vec.NearestPointOnLineSegment(
+			outerTangentPoints[0],
+			outerTangentPoints[1],
+			handle,
+			false
+		)
+		const outerLineDistance = Vec.Dist(handle, outerLineSnapPoint)
+
+		if (round(outerLineDistance) <= round(minDistance)) {
+			if (round(outerLineDistance) < round(minDistance)) {
+				minDistance = outerLineDistance
+				nearestPoint = outerLineSnapPoint
+			}
+			snappedToOuterLine = true
+		}
+
+		// check snap to the perpendicular line
+		let snappedToPerpLine = false
+		const perpLineSnapPoint = Vec.NearestPointOnLineSegment(normalDStart, normalDEnd, handle, true)
+		const perpLineDistance = Vec.Dist(handle, perpLineSnapPoint)
+
+		if (round(perpLineDistance) <= round(minDistance)) {
+			if (round(perpLineDistance) < round(minDistance)) {
+				minDistance = perpLineDistance
+				nearestPoint = perpLineSnapPoint
+			}
+			snappedToPerpLine = true
+		}
+
+		// if both outer line and perp line are snapped, snap to their intersection (midD)
+		if (snappedToOuterLine && snappedToPerpLine) {
+			nearestPoint = midD
+		}
+
+		// if no snap found, return null
 		if (!nearestPoint) return null
 
+		// transform to page space and calculate final snapped handle position
 		const getShapePageTransform = this.editor.getShapePageTransform(shape.id)
 		const handleInPageSpace = getShapePageTransform.applyToPoint(handle)
 		const nearestPointInPageSpace = getShapePageTransform.applyToPoint(nearestPoint)
@@ -685,44 +801,24 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 			points: [getShapePageTransform.applyToPoint(endPoint), snappedHandle],
 		}))
 
-		// // gets outer tangent points
-		// const globInfo = getGlobInfo(this.editor, shape)
-		// if (!globInfo) return null
-		//
-		// const outerTangentPoints = getOuterTangentPoints(
-		// 	globInfo.startNode.position,
-		// 	globInfo.startNode.radius,
-		// 	globInfo.endNode.position,
-		// 	globInfo.endNode.radius
-		// )
-		//
-		// const endPointOne = outerTangentPoints[0]
-		// const endPointTwo = outerTangentPoints[1]
-		//
-		// const midD = Vec.Lrp(endPointOne, endPointTwo, 0.5)
-		// const outerLine = Vec.Sub(endPointOne, endPointTwo).uni()
-		// const perpendicularOuterLine = Vec.Per(outerLine).uni()
-		//
-		// const normalDEnd = Vec.Add(midD, Vec.Mul(perpendicularOuterLine, INFINITE_LENGTH))
-		// // const normalDEnd = Vec.Add(midD, Vec.Mul(perpendicularOuterLine, -INFINITE_LENGTH))
-		//
-		// indicators.push({
-		// 	id: uniqueId(),
-		// 	type: 'points',
-		// 	points: [
-		// 		getShapePageTransform.applyToPoint(endPointOne),
-		// 		getShapePageTransform.applyToPoint(endPointTwo),
-		// 	],
-		// })
-		//
-		// indicators.push({
-		// 	id: uniqueId(),
-		// 	type: 'points',
-		// 	points: [
-		// 		getShapePageTransform.applyToPoint(midD),
-		// 		getShapePageTransform.applyToPoint(normalDEnd),
-		// 	],
-		// })
+		if (snappedToOuterLine) {
+			indicators.push({
+				id: uniqueId(),
+				type: 'points',
+				points: [
+					getShapePageTransform.applyToPoint(outerTangentPoints[0]),
+					getShapePageTransform.applyToPoint(outerTangentPoints[1]),
+				],
+			})
+		}
+
+		if (snappedToPerpLine) {
+			indicators.push({
+				id: uniqueId(),
+				type: 'points',
+				points: [snappedHandle, getShapePageTransform.applyToPoint(midD)],
+			})
+		}
 
 		return {
 			nudge: Vec.Sub(nearestPoint, handle),
@@ -852,10 +948,10 @@ export const GlobShape = track(function GlobShape({
 		<SVGContainer>
 			{showControlLines && (
 				<>
-					<ControlLine x1={dxA} y1={dxY} x2={txAA} y2={tyAA} />
-					<ControlLine x1={dxA} y1={dxY} x2={txAB} y2={tyAB} />
-					<ControlLine x1={dxB} y1={dyB} x2={txBA} y2={tyBA} />
-					<ControlLine x1={dxB} y1={dyB} x2={txBB} y2={tyBB} />
+					<ControlLine x1={dxA} y1={dxY} x2={txAA} y2={tyAA} edgeType="edgeA" />
+					<ControlLine x1={dxA} y1={dxY} x2={txAB} y2={tyAB} edgeType="edgeA" />
+					<ControlLine x1={dxB} y1={dyB} x2={txBA} y2={tyBA} edgeType="edgeA" />
+					<ControlLine x1={dxB} y1={dyB} x2={txBB} y2={tyBB} edgeType="edgeA" />
 				</>
 			)}
 			<path
@@ -874,11 +970,13 @@ export function ControlLine({
 	y1,
 	x2,
 	y2,
+	edgeType,
 }: {
 	x1: number
 	y1: number
 	x2: number
 	y2: number
+	edgeType: EdgeCurveType
 }) {
 	const editor = useEditor()
 	const zoomLevel = editor.getZoomLevel()
@@ -891,7 +989,7 @@ export function ControlLine({
 				y1={y1}
 				x2={x2}
 				y2={y2}
-				stroke="#4169E1"
+				stroke={edgeType === 'edgeA' ? '#4169E1' : '#FFD600'}
 				strokeDasharray={dashArray}
 				strokeWidth={1 / zoomLevel}
 			/>

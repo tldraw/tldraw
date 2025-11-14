@@ -14,6 +14,7 @@ import {
 	TldrawUiToolbarButton,
 	TLKeyboardEventInfo,
 	tlmenus,
+	TLPointerEventInfo,
 	TLShape,
 	TLShapeId,
 	TLUiAssetUrlOverrides,
@@ -190,6 +191,32 @@ export default function GlobsExample() {
 
 							originalOnKeyDown?.(info)
 						}
+					}
+
+					// Override pointing_handle state to allow handle dragging with modifier keys, otherwise
+					// it starts brushing instead
+					const pointingHandleState = editor.getStateDescendant<StateNode>('select.pointing_handle')
+
+					if (!pointingHandleState) {
+						throw new Error('SelectTool pointing_handle state not found')
+					}
+
+					// Store original handlers with proper binding
+					const originalOnPointerMove = pointingHandleState.onPointerMove?.bind(pointingHandleState)
+
+					// Return to idle state after dragging a handle
+					pointingHandleState.onPointerMove = (info: TLPointerEventInfo) => {
+						if (!info.shape) return
+
+						if (editor.isShapeOfType<GlobShape>(info.shape, 'glob')) {
+							editor.updateInstanceState({ isToolLocked: true })
+							editor.setCurrentTool('select.dragging_handle', {
+								...info,
+							})
+							return
+						}
+
+						originalOnPointerMove?.(info)
 					}
 
 					// if we have a just a glob selected, expand the selection to include the nodes it's connected to

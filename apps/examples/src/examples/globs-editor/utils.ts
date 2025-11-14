@@ -4,7 +4,8 @@ export const getOuterTangentPoints = (
 	c0: VecLike,
 	r0: number,
 	c1: VecLike,
-	r1: number
+	r1: number,
+	side?: 'edgeA' | 'edgeB'
 ): VecModel[] => {
 	const offsetAngle = Vec.Angle(c0, c1)
 	const d = Vec.Dist(c0, c1)
@@ -19,6 +20,20 @@ export const getOuterTangentPoints = (
 
 	const t10 = Vec.Add(c0, Vec.FromAngle(angle1).mul(r0))
 	const t11 = Vec.Add(c1, Vec.FromAngle(angle1).mul(r1))
+
+	if (side) {
+		if (side === 'edgeA') {
+			return [
+				{ x: t00.x, y: t00.y },
+				{ x: t01.x, y: t01.y },
+			]
+		} else {
+			return [
+				{ x: t10.x, y: t10.y },
+				{ x: t11.x, y: t11.y },
+			]
+		}
+	}
 
 	return [
 		{ x: t00.x, y: t00.y },

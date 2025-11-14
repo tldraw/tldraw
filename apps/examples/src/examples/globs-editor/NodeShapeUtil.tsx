@@ -141,6 +141,8 @@ function NodeComponent({
 
 	const [isSpacePressed, setIsSpacePressed] = useState(false)
 
+	// a small hack because editor inputs are not reactive, we need to use a keyboard event to fill the node
+	// when space is pressed, fill the node
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (e.code === 'Space') {

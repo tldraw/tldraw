@@ -34,7 +34,7 @@ export function DefaultHandle({ handle, isCoarse, className, zoom }: TLHandlePro
 
 	const fr = (handle.type === 'create' && isCoarse ? 3 : 4) / Math.max(zoom, 0.25)
 	return (
-		<g className={classNames(`tl-handle tl-handle__${handle.type}`, className)}>
+		<g className={classNames(`tl-handle tl-handle__${handle.type}`, className) }>
 			<circle className="tl-handle__bg" r={br} />
 			<circle className="tl-handle__fg" r={fr} />
 		</g>
