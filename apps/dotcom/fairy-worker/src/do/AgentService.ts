@@ -5,22 +5,13 @@ import {
 	GoogleGenerativeAIProviderOptions,
 } from '@ai-sdk/google'
 import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
+import { AgentAction, AgentPrompt, DebugPart, Streaming } from '@tldraw/fairy-shared'
 import { LanguageModel, streamText } from 'ai'
-
-import {
-	AgentAction,
-	AgentActionUtilConstructor,
-	AgentModelName,
-	AgentPrompt,
-	buildMessages,
-	buildSystemPrompt,
-	getAgentModelDefinition,
-	getModelName,
-	PromptPartUtilConstructor,
-	Streaming,
-} from '@tldraw/fairy-shared'
 import { Environment } from '../environment'
+import { buildMessages } from '../prompt/buildMessages'
+import { buildSystemPrompt, buildSystemPromptWithoutSchema } from '../prompt/buildSystemPrompt'
 import { closeAndParseJson } from './closeAndParseJson'
+import { AgentModelName, FAIRY_MODEL_NAME, getAgentModelDefinition } from './models'
 
 export class AgentService {
 	openai: OpenAIProvider
@@ -39,29 +30,95 @@ export class AgentService {
 		return this[provider](modelDefinition.id)
 	}
 
-	async *stream(
+	async *streamActions(
 		prompt: AgentPrompt,
-		actions: AgentActionUtilConstructor['type'][],
-		parts: PromptPartUtilConstructor['type'][]
+		isAdmin = false
 	): AsyncGenerator<Streaming<AgentAction>> {
 		try {
-			const modelName = getModelName(prompt)
-			const model = this.getModel(modelName)
-			for await (const event of streamActions(model, prompt, actions, parts)) {
-				yield event
+			const model = this.getModel(FAIRY_MODEL_NAME)
+			for await (const action of _streamActions(model, prompt, isAdmin)) {
+				yield action
 			}
 		} catch (error: any) {
 			console.error('Stream error:', error)
 			throw error
 		}
 	}
+
+	async *streamText(prompt: AgentPrompt): AsyncGenerator<string> {
+		try {
+			const model = this.getModel(FAIRY_MODEL_NAME)
+			for await (const text of _streamText(model, prompt)) {
+				yield text
+			}
+		} catch (error: any) {
+			console.error('Stream text error:', error)
+			throw error
+		}
+	}
 }
 
-async function* streamActions(
+async function* _streamText(model: LanguageModel, prompt: AgentPrompt): AsyncGenerator<string> {
+	if (typeof model === 'string') {
+		throw new Error('Model is a string, not a LanguageModel')
+	}
+
+	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
+
+	const messages = buildMessages(prompt)
+	const systemPrompt = buildSystemPrompt(prompt) || 'You are a helpful assistant.'
+
+	// Debug logging
+	const debugPart = prompt.debug
+	if (debugPart) {
+		if (debugPart.logSystemPrompt) {
+			const promptWithoutSchema = buildSystemPromptWithoutSchema(prompt)
+			console.warn('[DEBUG] System Prompt (without schema):\n', promptWithoutSchema)
+		}
+		if (debugPart.logMessages) {
+			const sanitizedMessages = sanitizeMessagesForLogging(messages)
+			console.warn('[DEBUG] Messages:\n', JSON.stringify(sanitizedMessages, null, 2))
+		}
+	}
+
+	try {
+		const result = streamText({
+			model,
+			system: systemPrompt,
+			messages,
+			maxOutputTokens: 8192,
+			temperature: 0,
+			providerOptions: {
+				anthropic: {
+					thinking: { type: 'disabled' },
+				} satisfies AnthropicProviderOptions,
+				google: {
+					thinkingConfig: { thinkingBudget: geminiThinkingBudget },
+				} satisfies GoogleGenerativeAIProviderOptions,
+			},
+			onError: (e) => {
+				console.error('Stream text error:', e)
+				throw e
+			},
+		})
+
+		for await (const text of result.textStream) {
+			yield text
+		}
+
+		// After streaming is complete, get usage information
+		await result.usage
+		// Note: Usage is tracked but not currently logged for text streams
+	} catch (error: any) {
+		console.error('streamEventsVercel error:', error)
+		throw error
+	}
+}
+
+async function* _streamActions(
 	model: LanguageModel,
 	prompt: AgentPrompt,
-	actions: AgentActionUtilConstructor['type'][],
-	parts: PromptPartUtilConstructor['type'][]
+	isAdmin: boolean
 ): AsyncGenerator<Streaming<AgentAction>> {
 	if (typeof model === 'string') {
 		throw new Error('Model is a string, not a LanguageModel')
@@ -69,15 +126,28 @@ async function* streamActions(
 
 	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
 
-	const messages = buildMessages(prompt, parts)
-	const systemPrompt = buildSystemPrompt(prompt, actions, parts) || 'You are a helpful assistant.'
+	const messages = buildMessages(prompt)
+	const systemPrompt = buildSystemPrompt(prompt)
+
+	// Check for debug flags
+	const debugPart = prompt.debug as DebugPart | undefined
+	if (debugPart) {
+		if (debugPart.logSystemPrompt) {
+			const promptWithoutSchema = buildSystemPromptWithoutSchema(prompt)
+			console.warn('[DEBUG] System Prompt (without schema):\n', promptWithoutSchema)
+		}
+		if (debugPart.logMessages) {
+			const sanitizedMessages = sanitizeMessagesForLogging(messages)
+			console.warn('[DEBUG] Messages:\n', JSON.stringify(sanitizedMessages, null, 2))
+		}
+	}
 
 	try {
 		messages.push({
 			role: 'assistant',
 			content: '{"actions": [{"_type":',
 		})
-		const { textStream } = streamText({
+		const result = streamText({
 			model,
 			system: systemPrompt,
 			messages,
@@ -104,7 +174,7 @@ async function* streamActions(
 		let maybeIncompleteAction: AgentAction | null = null
 
 		let startTime = Date.now()
-		for await (const text of textStream) {
+		for await (const text of result.textStream) {
 			buffer += text
 
 			const partialObject = closeAndParseJson(buffer)
@@ -157,8 +227,47 @@ async function* streamActions(
 				time: Date.now() - startTime,
 			}
 		}
+
+		// After streaming is complete, get usage information and yield it (only for admins)
+		if (isAdmin) {
+			const usage = await result.usage
+
+			// Yield usage information as a special metadata action (only for @tldraw.com admins)
+			yield {
+				_type: '__usage__',
+				complete: true,
+				time: 0,
+				usage,
+			} as any
+		}
 	} catch (error: any) {
 		console.error('streamEventsVercel error:', error)
 		throw error
 	}
+}
+
+/**
+ * Sanitize messages for logging by replacing image content with "<image data removed>"
+ */
+function sanitizeMessagesForLogging(messages: any[]): any[] {
+	return messages.map((message) => {
+		if (!message.content || !Array.isArray(message.content)) {
+			return message
+		}
+
+		const sanitizedContent = message.content.map((item: any) => {
+			if (item.type === 'image') {
+				return {
+					...item,
+					image: '<image data removed>',
+				}
+			}
+			return item
+		})
+
+		return {
+			...message,
+			content: sanitizedContent,
+		}
+	})
 }

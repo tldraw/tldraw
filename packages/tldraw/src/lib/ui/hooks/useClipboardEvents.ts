@@ -586,6 +586,8 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
  * @public
  */
 const handleNativeOrMenuCopy = async (editor: Editor) => {
+	const navigator =
+		editor.getContainer().ownerDocument?.defaultView?.navigator ?? globalThis.navigator
 	const content = await editor.resolveAssetsInContent(
 		editor.getContentFromCurrentPage(editor.getSelectedShapeIds())
 	)
@@ -713,6 +715,7 @@ export function useMenuClipboardEvents() {
 /** @public */
 export function useNativeClipboardEvents() {
 	const editor = useEditor()
+	const ownerDocument = editor.getContainer().ownerDocument
 	const trackEvent = useUiEvents()
 
 	const appIsFocused = useValue('editor.isFocused', () => editor.getInstanceState().isFocused, [
@@ -817,16 +820,16 @@ export function useNativeClipboardEvents() {
 			trackEvent('paste', { source: 'kbd' })
 		}
 
-		document.addEventListener('copy', copy)
-		document.addEventListener('cut', cut)
-		document.addEventListener('paste', paste)
-		document.addEventListener('pointerup', pointerUpHandler)
+		ownerDocument?.addEventListener('copy', copy)
+		ownerDocument?.addEventListener('cut', cut)
+		ownerDocument?.addEventListener('paste', paste)
+		ownerDocument?.addEventListener('pointerup', pointerUpHandler)
 
 		return () => {
-			document.removeEventListener('copy', copy)
-			document.removeEventListener('cut', cut)
-			document.removeEventListener('paste', paste)
-			document.removeEventListener('pointerup', pointerUpHandler)
+			ownerDocument?.removeEventListener('copy', copy)
+			ownerDocument?.removeEventListener('cut', cut)
+			ownerDocument?.removeEventListener('paste', paste)
+			ownerDocument?.removeEventListener('pointerup', pointerUpHandler)
 		}
-	}, [editor, trackEvent, appIsFocused])
+	}, [editor, trackEvent, appIsFocused, ownerDocument])
 }

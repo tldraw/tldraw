@@ -13,7 +13,6 @@ export function TlaLogo(props: HTMLAttributes<HTMLDivElement>) {
 
 	return (
 		<span
-			data-testid="tla-sidebar-logo-icon"
 			role="img"
 			ref={ref}
 			{...props}

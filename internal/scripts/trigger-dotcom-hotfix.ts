@@ -50,13 +50,26 @@ async function main() {
 
 	await discord.step('Creating hotfix PR and waiting for checks to pass', async () => {
 		const prTitle = `[HOTFIX] ${pr.title}`
+
+		// Extract API changes section from original PR if present
+		const apiChangesHeader = '### API changes'
+		let apiChangesSection = ''
+		if (pr.body?.includes(apiChangesHeader)) {
+			const bodyAfterHeader = pr.body.split(apiChangesHeader)[1]
+			// Extract until next ### header or end of body
+			const nextHeaderIndex = bodyAfterHeader.indexOf('\n###')
+			apiChangesSection =
+				nextHeaderIndex > -1 ? bodyAfterHeader.slice(0, nextHeaderIndex) : bodyAfterHeader
+			apiChangesSection = `\n\n${apiChangesHeader}\n${apiChangesSection.trim()}\n`
+		}
+
 		const prBody = `This is an automated hotfix PR for dotcom deployment.
 
 **Original PR:** [#${pr.number}](https://github.com/tldraw/tldraw/pull/${pr.number})
 **Original Title:** ${pr.title}
 **Original Author:** @${pr.user?.login}
 
-This PR cherry-picks the changes from the original PR to the hotfixes branch for immediate dotcom deployment.
+This PR cherry-picks the changes from the original PR to the hotfixes branch for immediate dotcom deployment.${apiChangesSection}
 
 /cc @${pr.user?.login}`
 

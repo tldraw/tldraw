@@ -159,6 +159,28 @@ const nextConfig = {
 					'/?utm_source=codewithjason&utm_medium=podcast&utm_campaign=steve_codewithjason_2025',
 				permanent: true,
 			},
+			{
+				source: '/diveclub',
+				destination: '/?utm_source=diveclub&utm_medium=podcast&utm_campaign=steve_diveclub_2025',
+				permanent: true,
+			},
+			{
+				source: '/shoptalk',
+				destination: '/?utm_source=shoptalk&utm_medium=podcast&utm_campaign=steve_shoptalk_2025',
+				permanent: true,
+			},
+			{
+				source: '/hanselminutes',
+				destination:
+					'/?utm_source=hanselminutes&utm_medium=paid_podcast&utm_campaign=ad_hanselminutes_2025',
+				permanent: true,
+			},
+			{
+				source: '/mostlytechnical',
+				destination:
+					'/?utm_source=mostlytechnical&utm_medium=paid_podcast&utm_campaign=ad_mostlytechnical_2025',
+				permanent: true,
+			},
 		]
 	},
 	async rewrites() {
@@ -171,6 +193,10 @@ const nextConfig = {
 				{
 					source: '/404',
 					destination: `https://${REWRITE_DOMAIN}/404`,
+				},
+				{
+					source: '/accessibility',
+					destination: `https://${REWRITE_DOMAIN}/accessibility`,
 				},
 				{
 					source: '/blog/announcements',

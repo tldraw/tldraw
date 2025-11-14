@@ -2,8 +2,11 @@
 import { Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
 import {
+	AcceptInviteResponseBody,
 	CreateFilesResponseBody,
 	CreateSnapshotRequestBody,
+	DragFileOperation,
+	DragReorderOperation,
 	FILE_PREFIX,
 	LOCAL_FILE_PREFIX,
 	MAX_NUMBER_OF_FILES,
@@ -22,6 +25,7 @@ import {
 	ZErrorCode,
 	Z_PROTOCOL_VERSION,
 	createMutators,
+	parseFlags,
 	schema as zeroSchema,
 } from '@tldraw/dotcom-shared'
 import {
@@ -32,6 +36,7 @@ import {
 	isEqual,
 	promiseWithResolve,
 	setInLocalStorage,
+	sleep,
 	sortByIndex,
 	sortByMaybeIndex,
 	structuredClone,
@@ -39,10 +44,12 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import pick from 'lodash.pick'
+import { useNavigate } from 'react-router-dom'
 import {
 	Atom,
 	Signal,
 	TLDocument,
+	TLSessionStateSnapshot,
 	TLUiToastsContextType,
 	TLUserPreferences,
 	assertExists,
@@ -59,6 +66,7 @@ import {
 	react,
 	transact,
 } from 'tldraw'
+import { routes } from '../../routeDefs'
 import { trackEvent } from '../../utils/analytics'
 import { MULTIPLAYER_SERVER, ZERO_SERVER } from '../../utils/config'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
@@ -68,6 +76,25 @@ import { getDateFormat } from '../utils/dates'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
 import { Zero as ZeroPolyfill } from './zero-polyfill'
+
+export interface DragGroupOperation {
+	reorder?: DragReorderOperation
+}
+
+export type DragState =
+	| null
+	| {
+			type: 'file'
+			id: string
+			operation: DragFileOperation
+			hasDragStarted: boolean
+	  }
+	| {
+			type: 'group'
+			id: string
+			operation: DragGroupOperation
+			hasDragStarted: boolean
+	  }
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
@@ -89,8 +116,8 @@ export class TldrawApp {
 
 	readonly z: ZeroPolyfill | Zero<TlaSchema, TlaMutators>
 
-	private readonly user$: Signal<TlaUser | undefined>
-	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
+	private readonly user$: Signal<(TlaUser & { fairies: string }) | undefined>
+	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile; fairyState: string })[]>
 	private readonly groupMemberships$: Signal<
 		(TlaGroupUser & {
 			group: TlaGroup
@@ -136,13 +163,16 @@ export class TldrawApp {
 
 	toasts: TLUiToastsContextType | null = null
 	trackEvent: TLAppUiContextType
+	navigate: ReturnType<typeof useNavigate>
 
 	private constructor(
 		public readonly userId: string,
 		getToken: () => Promise<string | undefined>,
 		onClientTooOld: () => void,
-		trackEvent: TLAppUiContextType
+		trackEvent: TLAppUiContextType,
+		navigate: ReturnType<typeof useNavigate>
 	) {
+		this.navigate = navigate
 		this.trackEvent = trackEvent
 		const sessionId = uniqueId()
 		this.z = useProperZero
@@ -202,30 +232,21 @@ export class TldrawApp {
 			.related('groupMembers')
 	}
 
-	async preload(initialUserData: TlaUser) {
-		let didCreate = false
+	async preload() {
 		await this.userQuery().preload().complete
 		await this.changesFlushed
-		if (!this.user$.get()) {
-			didCreate = true
-
-			// Always use new groups initialization for new users (protocol v3+)
-			await this.z.mutate.init({ user: initialUserData, time: Date.now() })
-
-			updateLocalSessionState((state) => ({ ...state, shouldShowWelcomeDialog: true }))
-		}
 		await new Promise((resolve) => {
 			let unlisten = () => {}
 			unlisten = react('wait for user', () => this.user$.get() && resolve(unlisten()))
 		})
-		if (!this.user$.get()) {
-			throw Error('could not create user')
-		}
 		await this.fileStateQuery().preload().complete
-		return didCreate
 	}
 
 	messages = defineMessages({
+		max_groups_reached: {
+			defaultMessage:
+				'You have reached the maximum number of groups. You need to delete old groups before creating new ones.',
+		},
 		// toast title
 		mutation_error_toast_title: { defaultMessage: 'Error' },
 		// toast descriptions
@@ -300,7 +321,7 @@ export class TldrawApp {
 	@computed({ isEqual })
 	getUserFlags(): Set<TlaFlags> {
 		const user = this.getUser()
-		return new Set(user.flags?.split(',') ?? []) as Set<TlaFlags>
+		return new Set(parseFlags(user.flags)) as Set<TlaFlags>
 	}
 
 	hasFlag(flag: TlaFlags) {
@@ -429,7 +450,7 @@ export class TldrawApp {
 	>()
 
 	@computed({ isEqual })
-	getUserRecentFiles() {
+	getMyFiles() {
 		if (this.isGroupsMigrated()) {
 			return this.getGroupFilesSorted(this.getHomeGroupId())
 		}
@@ -437,6 +458,7 @@ export class TldrawApp {
 		const myStates = objectMapFromEntries(this.getUserFileStates().map((f) => [f.fileId, f]))
 
 		const myFileIds = new Set<string>([...objectMapKeys(myFiles), ...objectMapKeys(myStates)])
+		const myGroupMemberships = this.getGroupMemberships()
 
 		const nextRecentFileOrdering: {
 			fileId: TlaFile['id']
@@ -448,35 +470,67 @@ export class TldrawApp {
 			const file = myFiles[fileId]
 			let state: (typeof myStates)[string] | undefined = myStates[fileId]
 			if (!file) continue
+			if (file.isDeleted) continue
+
 			if (!state && !file.isDeleted && file.ownerId === this.userId) {
-				// create a file state for this file
-				// this allows us to 'undelete' soft-deleted files by manually toggling 'isDeleted' in the backend
 				state = this.fileStates$.get().find((fs) => fs.fileId === fileId)
 			}
 			if (!state) {
 				// if the file is deleted, we don't want to show it in the recent files
 				continue
 			}
+
+			// if the file is in a group we have access to, we don't want to show it in my files
+			if (myGroupMemberships.some((g) => g.groupFiles.some((gf) => gf.fileId === fileId))) {
+				continue
+			}
+
 			const existing = this.lastRecentFileOrdering?.find((f) => f.fileId === fileId)
-			if (existing && existing.isPinned === state.isPinned) {
+			const isPinned = state.isPinned ?? false
+
+			if (existing && existing.isPinned === isPinned) {
+				// Preserve existing entry to maintain ordering
 				nextRecentFileOrdering.push(existing)
 				continue
 			}
 
-			nextRecentFileOrdering.push({
+			// For new entries or pinned status changes
+			const newEntry = {
 				fileId,
-				isPinned: state.isPinned ?? false,
+				isPinned,
 				date: state.lastEditAt ?? state.firstVisitAt ?? file.createdAt ?? 0,
-			})
+			}
+
+			// If this was previously unpinned and we have existing ordering,
+			// preserve its position in the unpinned section to avoid real-time reordering
+			if (!isPinned && existing && !existing.isPinned) {
+				// Keep the old date to preserve ordering in "My files"
+				newEntry.date = existing.date
+			}
+
+			nextRecentFileOrdering.push(newEntry)
 		}
 
-		// sort by date with most recent first
-		nextRecentFileOrdering.sort((a, b) => b.date - a.date)
+		// separate pinned and unpinned files
+		const pinnedFiles = nextRecentFileOrdering.filter((f) => f.isPinned)
+		const unpinnedFiles = nextRecentFileOrdering.filter((f) => !f.isPinned)
+
+		// sort pinned files by their pinnedIndex
+		pinnedFiles.sort((a, b) => {
+			// If neither has an index, sort by date (fallback)
+			return b.date - a.date
+		})
+
+		// sort unpinned files by date with most recent first
+		unpinnedFiles.sort((a, b) => b.date - a.date)
+
+		// combine: pinned files first, then unpinned
+		const sortedFiles = [...pinnedFiles, ...unpinnedFiles]
 
 		// stash the ordering for next time
-		this.lastRecentFileOrdering = nextRecentFileOrdering
+		this.lastRecentFileOrdering = sortedFiles
 
-		return nextRecentFileOrdering
+		return sortedFiles
 	}
 
 	private canCreateNewFile(groupId: string) {
@@ -520,7 +574,7 @@ export class TldrawApp {
 		name?: string
 		createSource?: string | null
 	} = {}): Promise<Result<{ fileId: string }, 'max number of files reached'>> {
-		if (!this.canCreateNewFile(this.getHomeGroupId())) {
+		if (!this.canCreateNewFile(groupId)) {
 			this.showMaxFilesToast()
 			return Result.err('max number of files reached')
 		}
@@ -695,12 +749,14 @@ export class TldrawApp {
 
 	/**
 	 * Remove a user's file states for a file and delete the file if the user is the owner of the file.
-	 *
-	 * @param fileId - The file id.
 	 */
-	async deleteOrForgetFile(fileId: string) {
+	async deleteOrForgetFile(fileId: string, groupId: string = this.getHomeGroupId()) {
 		// Optimistic update, remove file and file states
-		await this.z.mutate.removeFileFromGroup({ fileId, groupId: this.getHomeGroupId() })
+		await this.z.mutate.removeFileFromGroup({ fileId, groupId }).client
+	}
+
+	async addFileLinkToGroup(fileId: string, groupId: string) {
+		await this.z.mutate.addFileLinkToGroup({ fileId, groupId }).client
 	}
 
 	setFileSharedLinkType(fileId: string, sharedLinkType: TlaFile['sharedLinkType'] | 'no-access') {
@@ -734,16 +790,10 @@ export class TldrawApp {
 	}
 
 	updateFileState(fileId: string, partial: Omit<TlaFileStatePartial, 'fileId' | 'userId'>) {
-		// ignore updates to files that have been deleted
-		const file = this.getFile(fileId)
-		if (!file || file.isDeleted) return
 		this.z.mutate.file_state.update({ ...partial, fileId, userId: this.userId })
 	}
 
 	updateFile(fileId: string, partial: Partial<TlaFile>) {
-		// ignore updates to files that have been deleted
-		const file = this.getFile(fileId)
-		if (!file || file.isDeleted) return
 		this.z.mutate.file.update({ id: fileId, ...partial })
 	}
 
@@ -751,54 +801,72 @@ export class TldrawApp {
 		this.z.mutate.onEnterFile({ fileId, time: Date.now() })
 	}
 
+	onFairyStateUpdate(fileId: string, fairyState: any) {
+		this.z.mutate.file_state.updateFairies({
+			fileId,
+			fairyState: JSON.stringify(fairyState),
+		})
+	}
+
+	onFileEdit(fileId: string) {
+		this.updateFileState(fileId, { lastEditAt: Date.now() })
+	}
+
+	onFileSessionStateUpdate(fileId: string, sessionState: TLSessionStateSnapshot) {
+		this.updateFileState(fileId, {
+			lastSessionState: JSON.stringify(sessionState),
+			lastVisitAt: Date.now(),
+		})
+	}
+
+	onFileExit(fileId: string) {
+		this.updateFileState(fileId, { lastVisitAt: Date.now() })
+	}
+
 	static async create(opts: {
 		userId: string
-		fullName: string
-		email: string
-		avatar: string
 		getToken(): Promise<string | undefined>
 		onClientTooOld(): void
 		trackEvent: TLAppUiContextType
+		navigate: ReturnType<typeof useNavigate>
 	}) {
 		// This is an issue: we may have a user record but not in the store.
 		// Could be just old accounts since before the server had a version
 		// of the store... but we should probably identify that better.
 
 		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
-		const app = new TldrawApp(opts.userId, opts.getToken, opts.onClientTooOld, opts.trackEvent)
+		const app = new TldrawApp(
+			opts.userId,
+			opts.getToken,
+			opts.onClientTooOld,
+			opts.trackEvent,
+			opts.navigate
+		)
 		// @ts-expect-error
 		window.app = app
-		const didCreate = await app.preload({
-			id: opts.userId,
-			name: opts.fullName,
-			email: opts.email,
-			color: color ?? defaultUserPreferences.color,
-			avatar: opts.avatar,
-			exportFormat: 'png',
-			exportTheme: 'light',
-			exportBackground: false,
-			exportPadding: true,
-			createdAt: Date.now(),
-			updatedAt: Date.now(),
-			flags: '',
-			allowAnalyticsCookie: null,
-			...restOfPreferences,
-			inputMode: restOfPreferences.inputMode ?? null,
-			locale: restOfPreferences.locale ?? null,
-			animationSpeed: restOfPreferences.animationSpeed ?? null,
-			areKeyboardShortcutsEnabled: restOfPreferences.areKeyboardShortcutsEnabled ?? null,
-			edgeScrollSpeed: restOfPreferences.edgeScrollSpeed ?? null,
-			colorScheme: restOfPreferences.colorScheme ?? null,
-			isSnapMode: restOfPreferences.isSnapMode ?? null,
-			isWrapMode: restOfPreferences.isWrapMode ?? null,
-			isDynamicSizeMode: restOfPreferences.isDynamicSizeMode ?? null,
-			isPasteAtCursorMode: restOfPreferences.isPasteAtCursorMode ?? null,
-			enhancedA11yMode: restOfPreferences.enhancedA11yMode ?? null,
-		})
-		if (didCreate) {
+		await app.preload()
+		const user = app.getUser()
+		if (user.color === '___INIT___') {
+			app.updateUser({
+				color: color ?? defaultUserPreferences.color,
+				...restOfPreferences,
+				inputMode: restOfPreferences.inputMode ?? null,
+				locale: restOfPreferences.locale ?? null,
+				animationSpeed: restOfPreferences.animationSpeed ?? null,
+				areKeyboardShortcutsEnabled: restOfPreferences.areKeyboardShortcutsEnabled ?? null,
+				edgeScrollSpeed: restOfPreferences.edgeScrollSpeed ?? null,
+				colorScheme: restOfPreferences.colorScheme ?? null,
+				isSnapMode: restOfPreferences.isSnapMode ?? null,
+				isWrapMode: restOfPreferences.isWrapMode ?? null,
+				isDynamicSizeMode: restOfPreferences.isDynamicSizeMode ?? null,
+				isPasteAtCursorMode: restOfPreferences.isPasteAtCursorMode ?? null,
+				enhancedA11yMode: restOfPreferences.enhancedA11yMode ?? null,
+			})
+
 			opts.trackEvent('create-user', { source: 'app' })
+			updateLocalSessionState((state) => ({ ...state, shouldShowWelcomeDialog: true }))
 		}
-		return { app, userId: opts.userId }
+		return { app, userId: user.id }
 	}
 
 	getIntl() {
@@ -813,7 +881,11 @@ export class TldrawApp {
 		return createIntl()!
 	}
 
-	async uploadTldrFiles(files: File[], onFirstFileUploaded?: (fileId: string) => void) {
+	async uploadTldrFiles(
+		files: File[],
+		onFirstFileUploaded?: (fileId: string) => void,
+		groupId?: string
+	) {
 		const totalFiles = files.length
 		let uploadedFiles = 0
 		if (totalFiles === 0) return
@@ -864,10 +936,14 @@ export class TldrawApp {
 		}
 
 		for (const f of files) {
-			const res = await this.uploadTldrFile(f, (bytes) => {
-				bytesUploaded += bytes
-				updateProgress()
-			}).catch((e) => Result.err(e))
+			const res = await this.uploadTldrFile(
+				f,
+				(bytes) => {
+					bytesUploaded += bytes
+					updateProgress()
+				},
+				groupId
+			).catch((e) => Result.err(e))
 			if (!res.ok) {
 				clearTimeout(uploadingToastTimeout)
 				if (uploadingToastId) this.toasts?.removeToast(uploadingToastId)
@@ -909,7 +985,8 @@ export class TldrawApp {
 
 	private async uploadTldrFile(
 		file: File,
-		onProgress?: (bytesUploadedSinceLastProgressUpdate: number) => void
+		onProgress?: (bytesUploadedSinceLastProgressUpdate: number) => void,
+		groupId?: string
 	) {
 		const json = await file.text()
 		const parseFileResult = parseTldrawJsonFile({
@@ -977,6 +1054,137 @@ export class TldrawApp {
 			Object.values(snapshot.store).find((d): d is TLDocument => d.typeName === 'document')?.name ??
 			''
 
-		return this.createFile({ fileId, name })
+		return this.createFile({ fileId, name, groupId })
+	}
+
+	sidebarState = atom('sidebar state', {
+		expandedGroups: {} as Record<string, 'closed' | 'expanded_show_less' | 'expanded_show_more'>,
+		recentFilesShowMore: false,
+		noAnimationGroups: [] as string[],
+		renameState: null as null | {
+			fileId: string
+			groupId: string
+		},
+		dragState: null as DragState,
+	})
+
+	ensureSidebarGroupExpanded(groupId: string) {
+		const currentExpansionState = this.sidebarState.get().expandedGroups[groupId]
+		if (!currentExpansionState || currentExpansionState === 'closed') {
+			this.sidebarState.update((prev) => ({
+				...prev,
+				expandedGroups: { ...prev.expandedGroups, [groupId]: 'expanded_show_less' },
+			}))
+		}
+	}
+
+	ensureFileVisibleInSidebar(fileId: string) {
+		const file = this.getFile(fileId)
+		if (!file) return
+
+		// If file is pinned, nothing to do
+		if (this.getFileState(fileId)?.isPinned) {
+			return
+		}
+
+		// If file is in a group
+		if (file.owningGroupId) {
+			const group = this.getGroupMembership(file.owningGroupId)
+			if (!group) return
+
+			const groupFiles = this.getGroupFilesSorted(file.owningGroupId)
+			const MAX_FILES_TO_SHOW = 4
+			const fileIndex = groupFiles.findIndex((f) => f?.fileId === fileId)
+
+			if (fileIndex >= MAX_FILES_TO_SHOW) {
+				// File is in the "show more" section, expand fully
+				this.sidebarState.update((prev) => ({
+					...prev,
+					expandedGroups: { ...prev.expandedGroups, [file.owningGroupId!]: 'expanded_show_more' },
+				}))
+			} else {
+				// File is in the "show less" section, ensure group is expanded
+				this.ensureSidebarGroupExpanded(file.owningGroupId)
+			}
+			return
+		}
+
+		// // If file is in recent files (not in a group)
+		// const recentFiles = this.getMyFiles()
+		// if (!recentFiles) return
+
+		// const groupMemberships = this.getGroupMemberships()
+		// const otherFiles = recentFiles.filter(
+		// 	(item) =>
+		// 		!this.isPinned(item.id) &&
+		// 		!groupMemberships.some(
+		// 			(group) => group.group.id === this.getFile(item.fileId)?.owningGroupId
+		// 		)
+		// )
+
+		// const MAX_FILES_TO_SHOW = groupMemberships.length > 0 ? 6 : +Infinity
+		// const fileIndex = otherFiles.findIndex((item) => item.fileId === fileId)
+
+		// if (fileIndex >= MAX_FILES_TO_SHOW) {
+		// 	// File is in the "show more" section of recent files
+		// 	patch(this.sidebarState).recentFilesShowMore(true)
+		// }
+		// If file is in the "show less" section, nothing to do
+	}
+
+	copyGroupInvite(groupId: string, showToast = true) {
+		const group = this.getGroupMembership(groupId)
+		if (!group?.group.inviteSecret) return
+
+		const inviteText = `${location.origin}/invite/${group.group.inviteSecret}`
+		navigator.clipboard.writeText(inviteText)
+
+		if (showToast) {
+			this.toasts?.addToast({
+				id: 'copied-invite-link',
+				title: 'Copied invite link',
+			})
+		}
+
+		this.trackEvent('copy-share-link', { source: 'sidebar' })
+	}
+
+	async acceptGroupInvite(inviteSecret: string) {
+		const response = await fetch(`/api/app/invite/${inviteSecret}/accept`, {
+			method: 'POST',
+		})
+
+		const payload = (await response.json()) as AcceptInviteResponseBody
+
+		if (payload.error || !response.ok) {
+			this.toasts?.addToast({
+				severity: 'error',
+				title: 'Error accepting invite',
+				description: payload.message,
+			})
+			this.navigate(routes.tlaRoot())
+			return
+		}
+
+		this.trackEvent('accept-group-invite', { source: 'sidebar' })
+
+		// wait for the group to appear in the store
+		while (!this.getGroupMembership(payload.groupId)) {
+			await sleep(50)
+		}
+
+		this.sidebarState.update((prev) => ({
+			...prev,
+			expandedGroups: { ...prev.expandedGroups, [payload.groupId]: 'expanded_show_less' },
+		}))
+
+		// Clear any existing ordering for this new group to get fresh ordering
+		this.lastGroupFileOrderings.delete(payload.groupId)
+		const files = this.getGroupFilesSorted(payload.groupId)
+		if (!files.length) {
+			this.navigate(routes.tlaRoot())
+			return
+		}
+		this.navigate(routes.tlaFile(files[0]!.fileId))
 	}
 }

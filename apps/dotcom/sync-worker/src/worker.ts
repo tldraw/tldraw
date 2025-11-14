@@ -31,14 +31,18 @@ import { healthCheckRoutes } from './healthCheckRoutes'
 import { createPostgresConnectionPool, makePostgresConnector } from './postgres'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
+import { getPierreHistory } from './routes/getPierreHistory'
+import { getPierreHistorySnapshot } from './routes/getPierreHistorySnapshot'
 import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
 import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
 import { getRoomSnapshot } from './routes/getRoomSnapshot'
 import { joinExistingRoom } from './routes/joinExistingRoom'
 import { submitFeedback } from './routes/submitFeedback'
+import { acceptInvite } from './routes/tla/acceptInvite'
 import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
+import { getInviteInfo } from './routes/tla/getInviteInfo'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
@@ -81,11 +85,17 @@ const router = createRouter<Environment>()
 		getRoomHistorySnapshot(req, env, true)
 	)
 
+	.get(`/${FILE_PREFIX}/:roomId/pierre-history`, (req, env) => getPierreHistory(req, env, true))
+	.get(`/${FILE_PREFIX}/:roomId/pierre-history/:timestamp`, (req, env) =>
+		getPierreHistorySnapshot(req, env, true)
+	)
+
 	.get('/readonly-slug/:roomId', getReadonlySlug)
 	.get('/unfurl', extractBookmarkMetadata)
 	.post('/unfurl', extractBookmarkMetadata)
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
 	.post(`/app/file/:roomId/restore`, forwardRoomRequest)
+	.post(`/app/file/:roomId/pierre-restore`, forwardRoomRequest)
 	.get('/app/:userId/connect', async (req, env) => {
 		// forward req to the user durable object
 		const auth = await getAuth(req, env)
@@ -123,6 +133,8 @@ const router = createRouter<Environment>()
 		})
 	})
 	.post('/app/uploads/:objectName', upload)
+	.get('/app/invite/:token', getInviteInfo)
+	.post('/app/invite/:token/accept', acceptInvite)
 	.all('/app/__test__/*', testRoutes.fetch)
 	.get('/app/__debug-tail', (req, env) => {
 		if (isDebugLogging(env)) {
@@ -184,9 +196,12 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			ctx: this.ctx,
 			after: (response, request) => {
 				const setCookies = response.headers.getAll('set-cookie')
+				// Create a new Response with mutable headers before passing to corsify
+				// to avoid "Can't modify immutable headers" error
+				const mutableResponse = new Response(response.body, response)
 				// unfortunately corsify mishandles the set-cookie header, so
 				// we need to manually add it back in
-				const result = corsify(response, request)
+				const result = corsify(mutableResponse, request)
 				if ([...setCookies].length === 0) {
 					return result
 				}

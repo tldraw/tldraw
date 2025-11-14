@@ -3,7 +3,6 @@ import type { SchemaCRUD, SchemaQuery } from '@rocicorp/zero/out/zql/src/mutate/
 import {
 	DB,
 	MIN_Z_PROTOCOL_VERSION,
-	TlaFile,
 	TlaSchema,
 	TlaUserPartial,
 	ZClientSentMessage,
@@ -12,7 +11,11 @@ import {
 	createMutators,
 	schema,
 } from '@tldraw/dotcom-shared'
-import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
+import {
+	JsonChunkAssembler,
+	TLSyncErrorCloseEventCode,
+	TLSyncErrorCloseEventReason,
+} from '@tldraw/sync-core'
 import { ExecutionQueue, IndexKey, assert, mapObjectMapValues, sleep } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
@@ -23,10 +26,10 @@ import { Logger } from './Logger'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
 import { Analytics, Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
-import { getRoomDurableObject } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
-import { PerfHackHooks, ServerCRUD } from './zero/ServerCrud'
+import { getClerkClient } from './utils/tla/getAuth'
+import { ChangeAccumulator, ServerCRUD } from './zero/ServerCrud'
 import { ServerQuery } from './zero/ServerQuery'
 import { ZMutationError } from './zero/ZMutationError'
 
@@ -79,7 +82,68 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	readonly router = Router()
 		.all('/app/:userId/*', async (req) => {
 			if (!this.userId) {
-				this.userId = req.params.userId
+				const id = (this.userId = req.params.userId)
+				const user = await this.db
+					.selectFrom('user')
+					.where('id', '=', id)
+					.select('id')
+					.executeTakeFirst()
+				if (!user) {
+					// auth is checked in the main worker, before it gets here, so the clerk
+					// user definitely exists at this point.
+					const clerk = getClerkClient(this.env)
+					const clerkUser = await clerk.users.getUser(id)
+					assert(clerkUser, 'Clerk user not found')
+					await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, id))
+					await this.db.transaction().execute(async (tx) => {
+						// check that user wasn't added by another request in between the auth check and the snapshot deletion
+						if (await tx.selectFrom('user').where('id', '=', id).select('id').executeTakeFirst()) {
+							return
+						}
+						const now = Date.now()
+						await tx
+							.insertInto('user')
+							.values({
+								id,
+								name: clerkUser.fullName ?? '',
+								email: clerkUser.emailAddresses[0].emailAddress,
+								avatar: clerkUser.imageUrl,
+								color: '___INIT___',
+								exportFormat: 'png',
+								exportTheme: 'light',
+								exportBackground: true,
+								exportPadding: true,
+								createdAt: now,
+								updatedAt: now,
+								flags: 'groups_backend',
+							})
+							.execute()
+						await tx
+							.insertInto('group')
+							.values({
+								id,
+								name: clerkUser.fullName ?? '',
+								createdAt: now,
+								updatedAt: now,
+								isDeleted: false,
+								inviteSecret: null,
+							})
+							.execute()
+						await tx
+							.insertInto('group_user')
+							.values({
+								userId: id,
+								groupId: id,
+								createdAt: now,
+								updatedAt: now,
+								role: 'owner',
+								index: 'a1' as IndexKey,
+								userName: clerkUser.fullName ?? '',
+								userColor: '',
+							})
+							.execute()
+					})
+				}
 			}
 			const rateLimited = await isRateLimited(this.env, this.userId!)
 			if (rateLimited) {
@@ -156,11 +220,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private makeCrud(
 		client: PoolClient,
 		signal: AbortSignal,
-		perfHackHooks: PerfHackHooks
+		changeAccumulator: ChangeAccumulator
 	): SchemaCRUD<TlaSchema> {
 		return mapObjectMapValues(
 			schema.tables,
-			(_, table) => new ServerCRUD(client, table, signal, perfHackHooks)
+			(_, table) => new ServerCRUD(client, table, signal, changeAccumulator)
 		)
 	}
 
@@ -235,13 +299,24 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		}
 
-		serverWebSocket.addEventListener('message', (e) =>
+		const assembler = new JsonChunkAssembler()
+		serverWebSocket.addEventListener('message', (e) => {
+			const res = assembler.handleMessage(e.data.toString())
+			if (!res) {
+				// not enough chunks yet
+				return
+			}
+			if ('error' in res) {
+				this.captureException(res.error, { source: 'serverWebSocket "message" event, bad chunk' })
+				return
+			}
+
 			this.messageQueue.push(() =>
-				this.handleSocketMessage(serverWebSocket, e.data.toString()).catch((e) =>
+				this.handleSocketMessage(serverWebSocket, res.stringified).catch((e) =>
 					this.captureException(e, { source: 'serverWebSocket "message" event' })
 				)
 			)
-		)
+		})
 		serverWebSocket.addEventListener('close', () => {
 			this.sockets.delete(serverWebSocket)
 		})
@@ -334,7 +409,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		const client = await this.pool.connect()
 
 		try {
-			const newFiles = [] as TlaFile[]
+			const changeAccumulator: ChangeAccumulator = {
+				file: { added: [] },
+				user_fairies: { added: [], updated: [], removed: [] },
+				file_fairies: { added: [], updated: [], removed: [] },
+			}
 
 			await client.query('BEGIN')
 
@@ -345,7 +424,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			await client.query('SELECT pg_advisory_xact_lock_shared(hashtext($1))', [this.userId])
 
 			const controller = new AbortController()
-			const mutate = this.makeCrud(client, controller.signal, { newFiles })
+			const mutate = this.makeCrud(client, controller.signal, changeAccumulator)
 			try {
 				// new
 				const mutators = createMutators(this.userId!)
@@ -396,11 +475,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 			await client.query('COMMIT')
 
-			for (const file of newFiles) {
-				// if this is a legacy guest file, add it to the cache
-				this.cache?.addGuestFile(file)
-				getRoomDurableObject(this.env, file.id).appFileRecordCreated(file)
-			}
+			await this.cache?.incorporateUnsyncedChanges(changeAccumulator)
 		} catch (e) {
 			await client.query('ROLLBACK')
 			throw e
@@ -565,17 +640,24 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	async admin_migrateToGroups(userId: string, inviteSecret: string | null = null) {
+		console.error('admin_migrateToGroups', userId, inviteSecret)
 		this.userId ??= userId
 
+		this.log.debug('migrating to groups', userId, inviteSecret)
 		// Call the Postgres migration function
 		const result = await sql<{
 			files_migrated: number
 			pinned_files_migrated: number
 			flag_added: boolean
 		}>`SELECT * FROM migrate_user_to_groups(${userId}, ${inviteSecret})`.execute(this.db)
+		console.error('admin_migrateToGroups result', result.rows)
 
-		// Reboot the user's cache to pick up the new data structure
+		this.log.debug('migration result', result.rows[0])
+
+		await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
 		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
+
+		this.log.debug('migration complete, user rebooted')
 
 		return result.rows[0]
 	}

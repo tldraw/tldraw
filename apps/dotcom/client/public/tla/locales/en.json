@@ -23,11 +23,17 @@
   "08bd40c754": {
     "translation": "Account"
   },
+  "08d2d725a9": {
+    "translation": "Create a free account to save your work, collaborate in real-time, and more."
+  },
   "0b27918290": {
     "translation": "File"
   },
   "0b9a4cde72": {
     "translation": "File menu"
+  },
+  "0beb3ca97b": {
+    "translation": "tldraw is a free and instant virtual whiteboard."
   },
   "0d1f2bb523": {
     "translation": "Send feedback"
@@ -35,11 +41,23 @@
   "110a4b01be": {
     "translation": "Publish"
   },
+  "129b9e34ea": {
+    "translation": "Leave group"
+  },
+  "12a6766ba1": {
+    "translation": "Unpin file"
+  },
   "12c8a9838c": {
     "translation": "Try the tldraw SDK"
   },
   "13ddd375ad": {
     "translation": "Export as"
+  },
+  "146ffe2fd9": {
+    "translation": "Show more"
+  },
+  "14d65465b7": {
+    "translation": "Delete group"
   },
   "181b90f889": {
     "translation": "Create file"
@@ -56,11 +74,17 @@
   "21bfb2dc2e": {
     "translation": "This room is approaching its size limit. Consider removing some content or starting a new file."
   },
+  "2445e5e347": {
+    "translation": "Create group"
+  },
   "250ddea65c": {
     "translation": "About tldraw"
   },
   "299cb00a7a": {
     "translation": "Upload failed"
+  },
+  "2c3ef76333": {
+    "translation": "My files"
   },
   "2deec2cb74": {
     "translation": "This room has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
@@ -71,11 +95,17 @@
   "31418ce4ad": {
     "translation": "i18n: Highlight Missing"
   },
+  "32210b37e4": {
+    "translation": "Add link"
+  },
   "335defdafe": {
     "translation": "Please try refreshing the page."
   },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "3bc7d6ea2f": {
+    "translation": "Continue with email"
   },
   "3bd1b98dbd": {
     "translation": "Unable to publish the changes."
@@ -98,14 +128,29 @@
   "47839e47a5": {
     "translation": "tldraw"
   },
+  "47f493a590": {
+    "translation": "Pin file"
+  },
+  "49049467ff": {
+    "translation": "Paste tldraw file URL..."
+  },
   "4908687e50": {
     "translation": "Are you sure you want to forget this file?"
+  },
+  "49ee308734": {
+    "translation": "Name"
   },
   "4d0d3ddec9": {
     "translation": "This site uses cookies to make the app work and to collect analytics."
   },
   "4d1c8263ba": {
     "translation": "Reload"
+  },
+  "4da5988a2e": {
+    "translation": "Delete group…"
+  },
+  "4e6fbf032b": {
+    "translation": "Are you sure you want to delete this group? This action cannot be undone."
   },
   "50db1b7e1e": {
     "translation": "Unable to unpublish the file."
@@ -131,6 +176,9 @@
   "56c34c6410": {
     "translation": "Privacy policy"
   },
+  "5a86b22fa0": {
+    "translation": "Drag files here, <create>create a file</create>, or <invite>copy invite link</invite> to get started."
+  },
   "5a95a425f7": {
     "translation": "Share"
   },
@@ -142,6 +190,9 @@
   },
   "5bec508475": {
     "translation": "Old browser detected. Please update your browser to use this app."
+  },
+  "5c6fe42bc2": {
+    "translation": "Revoke this link and create a new one."
   },
   "5d26ae7550": {
     "translation": "We failed to upload some of the content you created before you signed in."
@@ -158,11 +209,20 @@
   "625fd29749": {
     "translation": "Older"
   },
+  "639bae9ac6": {
+    "translation": "you"
+  },
   "6609dd239e": {
     "translation": "Something went wrong"
   },
   "6637a98151": {
     "translation": "A new version of tldraw is available. Please reload the page to continue."
+  },
+  "68257bb646": {
+    "translation": "You've been invited to group <br></br><groupName></groupName>"
+  },
+  "6832ac5936": {
+    "translation": "Enter your email address"
   },
   "6a26f54883": {
     "translation": "Help"
@@ -172,6 +232,9 @@
   },
   "6dfc62f621": {
     "translation": "Follow these steps to import the content manually:"
+  },
+  "70222abcfc": {
+    "translation": "Group settings"
   },
   "70a6facb9d": {
     "translation": "This week"
@@ -218,6 +281,9 @@
   "7cb5f8b4a5": {
     "translation": "Forget"
   },
+  "7cfe6c43dc": {
+    "translation": "Leave group…"
+  },
   "7daeced9ff": {
     "translation": "Publish changes"
   },
@@ -239,8 +305,14 @@
   "86c66437fd": {
     "translation": "Rename file"
   },
+  "8ad4303b83": {
+    "translation": "No thanks"
+  },
   "8b1946f965": {
     "translation": "To continue editing please copy the room to your files."
+  },
+  "8c2d3d730c": {
+    "translation": "Check your email for a verification code."
   },
   "8eb2c00e96": {
     "translation": "Shared with you"
@@ -257,14 +329,29 @@
   "91e49bb0eb": {
     "translation": "Copy to my files"
   },
+  "930390d222": {
+    "translation": "Copied invite link"
+  },
+  "95aacd4d4a": {
+    "translation": "Sign in with Google"
+  },
   "95d2109dc8": {
     "translation": "Build with the tldraw SDK"
   },
   "96165d6df5": {
     "translation": "This month"
   },
+  "985a4b720f": {
+    "translation": "Terms of Use"
+  },
+  "98c997a27e": {
+    "translation": "Add file link"
+  },
   "9914a0ce04": {
     "translation": "Light"
+  },
+  "9b33f5c63c": {
+    "translation": "Didn’t receive a code? <resend>Resend</resend>."
   },
   "9bef626805": {
     "translation": "Delete file"
@@ -311,6 +398,9 @@
   "a9ded1e5ce": {
     "translation": "Background"
   },
+  "aa916767cf": {
+    "translation": "Sign in to accept invitation"
+  },
   "ab0df9ba36": {
     "translation": "File limit reached"
   },
@@ -321,8 +411,17 @@
   "b028909917": {
     "translation": "Guest user"
   },
+  "b357b524e7": {
+    "translation": "Email address"
+  },
+  "b3d2db69fe": {
+    "translation": "File URL"
+  },
   "b6d4223e60": {
     "translation": "Sign in"
+  },
+  "b6f4a2ec63": {
+    "translation": "Owner"
   },
   "b758336699": {
     "translation": "Copy link"
@@ -330,8 +429,8 @@
   "ba0318cb81": {
     "translation": "Sign in to share"
   },
-  "bb792693e2": {
-    "translation": "Unpin"
+  "bb93a7590f": {
+    "translation": "Accept and join group"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {Uploading .tldr file…} other {Uploading {uploaded} of {total} .tldr files…}}"
@@ -339,11 +438,11 @@
   "bc88b0e89e": {
     "translation": "Shared by {ownerName}"
   },
-  "bcb62136a3": {
-    "translation": "Upload .tldr files"
-  },
   "c2276c9127": {
     "translation": "Learn more about sharing."
+  },
+  "c28aed8348": {
+    "translation": "Allow <cookies>analytics</cookies> to help us improve tldraw."
   },
   "c303bd1095": {
     "translation": "Unable to publish the file."
@@ -351,14 +450,23 @@
   "c4b39a1cc3": {
     "translation": "Essential cookies"
   },
+  "c6155aaecc": {
+    "translation": "Group name"
+  },
   "c655b27b1e": {
     "translation": "i18n: Long String"
   },
   "c6a00f137b": {
     "translation": "Invite"
   },
+  "c74ea6dbff": {
+    "translation": "Show less"
+  },
   "c87aacf567": {
     "translation": "Sign out"
+  },
+  "c9cc8cce24": {
+    "translation": "Save"
   },
   "cceaefbc20": {
     "translation": "Share this file"
@@ -375,29 +483,53 @@
   "d4bbf74f3e": {
     "translation": "Toggle sidebar"
   },
+  "d638a3344b": {
+    "translation": "Before you start, please accept our <tos>terms of use</tos> and <privacy>privacy policy</privacy>."
+  },
   "d721757161": {
     "translation": "Theme"
   },
   "d876a9fe1a": {
     "translation": "Try Again"
   },
+  "d88ad2dc74": {
+    "translation": "Accept and continue"
+  },
   "d9100f3e10": {
     "translation": "Go here to see the content"
+  },
+  "d9e35d0f55": {
+    "translation": "You have reached the maximum number of groups. You need to delete old groups before creating new ones."
   },
   "dbbebf3c03": {
     "translation": "Invite only"
   },
+  "dcdaa754fe": {
+    "translation": "Invalid tldraw file URL"
+  },
   "dfdb78a4e4": {
     "translation": "App debug flags"
+  },
+  "e0c88179b3": {
+    "translation": "Invite members"
+  },
+  "e2198d6228": {
+    "translation": "Copy invite link"
   },
   "e2ae80a510": {
     "translation": "Legal summary"
   },
+  "e3afed0047": {
+    "translation": "Admin"
+  },
   "e404559826": {
     "translation": "Terms of service"
   },
-  "e78e14c5f1": {
-    "translation": "Pin"
+  "e81c4e4f2b": {
+    "translation": "or"
+  },
+  "ea0626ac5a": {
+    "translation": "Danger zone"
   },
   "ea4788705e": {
     "translation": "Cancel"
@@ -420,6 +552,9 @@
   "ede55d955f": {
     "translation": "Read our <a>cookie policy</a> to learn more."
   },
+  "ef53538ae4": {
+    "translation": "Members"
+  },
   "ef7de3f485": {
     "translation": "selected"
   },
@@ -441,6 +576,12 @@
   "f4f70727dc": {
     "translation": "Settings"
   },
+  "f714e36843": {
+    "translation": "Are you sure you want to leave this group?"
+  },
+  "fa2ead697d": {
+    "translation": "Privacy Policy"
+  },
   "fb15c53f22": {
     "translation": "Viewer"
   },
@@ -449,6 +590,9 @@
   },
   "fed5ec05eb": {
     "translation": "Copied link"
+  },
+  "ff7a814974": {
+    "translation": "Add file link…"
   },
   "ffcd73e997": {
     "translation": "Import file…"

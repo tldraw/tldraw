@@ -1,7 +1,7 @@
-import { Box, BoxModel, SVGContainer, useEditor, useValue } from 'tldraw'
-import { TldrawFairyAgent } from './fairy-agent/agent/TldrawFairyAgent'
+import { Box, BoxModel, SVGContainer, useValue } from 'tldraw'
+import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 
-export function FairyVision({ agents }: { agents: TldrawFairyAgent[] }) {
+export function FairyVision({ agents }: { agents: FairyAgent[] }) {
 	return (
 		<>
 			{agents.map((agent, i) => (
@@ -11,7 +11,7 @@ export function FairyVision({ agents }: { agents: TldrawFairyAgent[] }) {
 	)
 }
 
-function AgentVision({ agent }: { agent: TldrawFairyAgent }) {
+function AgentVision({ agent }: { agent: FairyAgent }) {
 	const activeRequest = useValue(agent.$activeRequest)
 
 	if (!activeRequest) return null
@@ -40,24 +40,13 @@ export function AreaHighlight({
 	label,
 	className = '',
 }: AreaHighlightProps) {
-	const editor = useEditor()
-	const screenBounds = useValue(
-		'screenBounds',
-		() => {
-			const expandedPageBounds = Box.From(pageBounds).expandBy(4)
-			const screenCorners = expandedPageBounds.corners.map((corner) => {
-				return editor.pageToViewport(corner)
-			})
-			return Box.FromPoints(screenCorners)
-		},
-		[pageBounds]
-	)
+	const bounds = useValue('bounds', () => Box.From(pageBounds).expandBy(4), [pageBounds])
 
-	if (!screenBounds) return null
-	const minX = screenBounds.minX
-	const minY = screenBounds.minY
-	const maxX = screenBounds.maxX
-	const maxY = screenBounds.maxY
+	if (!bounds) return null
+	const minX = bounds.minX
+	const minY = bounds.minY
+	const maxX = bounds.maxX
+	const maxY = bounds.maxY
 
 	return (
 		<>
@@ -70,14 +59,14 @@ export function AreaHighlight({
 					height: maxY - minY,
 				}}
 			>
-				{screenBounds.sides.map((side, j) => {
+				{bounds.sides.map((side, j) => {
 					return (
 						<line
 							key={'context-highlight-side-' + j}
-							x1={side[0].x - screenBounds.minX}
-							y1={side[0].y - screenBounds.minY}
-							x2={side[1].x - screenBounds.minX}
-							y2={side[1].y - screenBounds.minY}
+							x1={side[0].x - bounds.minX}
+							y1={side[0].y - bounds.minY}
+							x2={side[1].x - bounds.minX}
+							y2={side[1].y - bounds.minY}
 							stroke={color}
 						/>
 					)
@@ -86,7 +75,7 @@ export function AreaHighlight({
 			{label && (
 				<div
 					className="context-highlight-label"
-					style={{ top: screenBounds.y, left: screenBounds.x, backgroundColor: color }}
+					style={{ top: bounds.y, left: bounds.x, backgroundColor: color }}
 				>
 					{label}
 				</div>

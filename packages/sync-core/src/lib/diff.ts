@@ -123,11 +123,11 @@ export type ValueOpType = (typeof ValueOpType)[keyof typeof ValueOpType]
  */
 export type PutOp = [type: typeof ValueOpType.Put, value: unknown]
 /**
- * Operation that appends new values to the end of an array.
+ * Operation that appends new values to the end of an array or string.
  *
  * @internal
  */
-export type AppendOp = [type: typeof ValueOpType.Append, values: unknown[], offset: number]
+export type AppendOp = [type: typeof ValueOpType.Append, value: unknown[] | string, offset: number]
 /**
  * Operation that applies a nested diff to an object or array.
  *
@@ -165,6 +165,7 @@ export interface ObjectDiff {
  *
  * @param prev - The previous version of the record
  * @param next - The next version of the record
+ * @param legacyAppendMode - If true, string append operations will be converted to Put operations
  * @returns An ObjectDiff describing the changes, or null if no changes exist
  *
  * @example
@@ -181,11 +182,20 @@ export interface ObjectDiff {
  *
  * @internal
  */
-export function diffRecord(prev: object, next: object): ObjectDiff | null {
-	return diffObject(prev, next, new Set(['props']))
+export function diffRecord(
+	prev: object,
+	next: object,
+	legacyAppendMode = false
+): ObjectDiff | null {
+	return diffObject(prev, next, new Set(['props', 'meta']), legacyAppendMode)
 }
 
-function diffObject(prev: object, next: object, nestedKeys?: Set<string>): ObjectDiff | null {
+function diffObject(
+	prev: object,
+	next: object,
+	nestedKeys: Set<string> | undefined,
+	legacyAppendMode: boolean
+): ObjectDiff | null {
 	if (prev === next) {
 		return null
 	}
@@ -197,26 +207,22 @@ function diffObject(prev: object, next: object, nestedKeys?: Set<string>): Objec
 			result[key] = [ValueOpType.Delete]
 			continue
 		}
-		// if key is in both places, then compare values
-		const prevVal = (prev as any)[key]
-		const nextVal = (next as any)[key]
-		if (!isEqual(prevVal, nextVal)) {
-			if (nestedKeys?.has(key) && prevVal && nextVal) {
-				const diff = diffObject(prevVal, nextVal)
-				if (diff) {
-					if (!result) result = {}
-					result[key] = [ValueOpType.Patch, diff]
-				}
-			} else if (Array.isArray(nextVal) && Array.isArray(prevVal)) {
-				const op = diffArray(prevVal, nextVal)
-				if (op) {
-					if (!result) result = {}
-					result[key] = op
-				}
-			} else {
+		const prevValue = (prev as any)[key]
+		const nextValue = (next as any)[key]
+		if (
+			nestedKeys?.has(key) ||
+			(Array.isArray(prevValue) && Array.isArray(nextValue)) ||
+			(typeof prevValue === 'string' && typeof nextValue === 'string')
+		) {
+			// if key is in both places, then compare values
+			const diff = diffValue(prevValue, nextValue, legacyAppendMode)
+			if (diff) {
 				if (!result) result = {}
-				result[key] = [ValueOpType.Put, nextVal]
+				result[key] = diff
 			}
+		} else if (!isEqual(prevValue, nextValue)) {
+			if (!result) result = {}
+			result[key] = [ValueOpType.Put, nextValue]
 		}
 	}
 	for (const key of Object.keys(next)) {
@@ -229,19 +235,29 @@ function diffObject(prev: object, next: object, nestedKeys?: Set<string>): Objec
 	return result
 }
 
-function diffValue(valueA: unknown, valueB: unknown): ValueOp | null {
+function diffValue(valueA: unknown, valueB: unknown, legacyAppendMode: boolean): ValueOp | null {
 	if (Object.is(valueA, valueB)) return null
 	if (Array.isArray(valueA) && Array.isArray(valueB)) {
-		return diffArray(valueA, valueB)
+		return diffArray(valueA, valueB, legacyAppendMode)
+	} else if (typeof valueA === 'string' && typeof valueB === 'string') {
+		if (!legacyAppendMode && valueB.startsWith(valueA)) {
+			const appendedText = valueB.slice(valueA.length)
+			return [ValueOpType.Append, appendedText, valueA.length]
+		}
+		return [ValueOpType.Put, valueB]
 	} else if (!valueA || !valueB || typeof valueA !== 'object' || typeof valueB !== 'object') {
 		return isEqual(valueA, valueB) ? null : [ValueOpType.Put, valueB]
 	} else {
-		const diff = diffObject(valueA, valueB)
+		const diff = diffObject(valueA, valueB, undefined, legacyAppendMode)
 		return diff ? [ValueOpType.Patch, diff] : null
 	}
 }
 
-function diffArray(prevArray: unknown[], nextArray: unknown[]): PutOp | AppendOp | PatchOp | null {
+function diffArray(
+	prevArray: unknown[],
+	nextArray: unknown[],
+	legacyAppendMode: boolean
+): PutOp | AppendOp | PatchOp | null {
 	if (Object.is(prevArray, nextArray)) return null
 	// if lengths are equal, check for patch operation
 	if (prevArray.length === nextArray.length) {
@@ -267,7 +283,7 @@ function diffArray(prevArray: unknown[], nextArray: unknown[]): PutOp | AppendOp
 			if (!prevItem || !nextItem) {
 				diff[i] = [ValueOpType.Put, nextItem]
 			} else if (typeof prevItem === 'object' && typeof nextItem === 'object') {
-				const op = diffValue(prevItem, nextItem)
+				const op = diffValue(prevItem, nextItem, legacyAppendMode)
 				if (op) {
 					diff[i] = op
 				}
@@ -341,12 +357,19 @@ export function applyObjectDiff<T extends object>(object: T, objectDiff: ObjectD
 				break
 			}
 			case ValueOpType.Append: {
-				const values = op[1]
+				const value = op[1]
 				const offset = op[2]
-				const arr = object[key as keyof T]
-				if (Array.isArray(arr) && arr.length === offset) {
-					set(key, [...arr, ...values])
+				const currentValue = object[key as keyof T]
+				if (Array.isArray(currentValue) && Array.isArray(value) && currentValue.length === offset) {
+					set(key, [...currentValue, ...value])
+				} else if (
+					typeof currentValue === 'string' &&
+					typeof value === 'string' &&
+					currentValue.length === offset
+				) {
+					set(key, currentValue + value)
 				}
+				// If validation fails (type mismatch or length mismatch), silently ignore
 				break
 			}
 			case ValueOpType.Patch: {

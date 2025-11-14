@@ -2,18 +2,15 @@ import { stringEnum } from '@tldraw/utils'
 import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
 import {
 	TlaFile,
-	TlaFilePartial,
+	TlaFileFairy,
 	TlaFileState,
-	TlaFileStatePartial,
 	TlaGroup,
 	TlaGroupFile,
-	TlaGroupFilePartial,
-	TlaGroupPartial,
 	TlaGroupUser,
-	TlaGroupUserPartial,
 	TlaRow,
+	TlaRowPartial,
 	TlaUser,
-	TlaUserPartial,
+	TlaUserFairy,
 } from './tlaSchema'
 
 export interface Snapshot {
@@ -127,6 +124,8 @@ export interface ZStoreData {
 	group: TlaGroup[]
 	group_user: TlaGroupUser[]
 	group_file: TlaGroupFile[]
+	user_fairies: TlaUserFairy[]
+	file_fairies: TlaFileFairy[]
 	lsn: string
 }
 
@@ -139,18 +138,20 @@ export interface ZRowInsert {
 }
 
 export interface ZRowDeleteOrUpdate {
-	row:
-		| TlaFilePartial
-		| TlaFileStatePartial
-		| TlaUserPartial
-		| TlaGroupPartial
-		| TlaGroupUserPartial
-		| TlaGroupFilePartial
+	row: TlaRowPartial
 	table: ZTable
 	event: 'update' | 'delete'
 }
 
-export type ZTable = 'file' | 'file_state' | 'user' | 'group' | 'group_user' | 'group_file'
+export type ZTable =
+	| 'file'
+	| 'file_state'
+	| 'user'
+	| 'group'
+	| 'group_user'
+	| 'group_file'
+	| 'user_fairies'
+	| 'file_fairies'
 
 export type ZEvent = 'insert' | 'update' | 'delete'
 
@@ -163,6 +164,7 @@ export const ZErrorCode = stringEnum(
 	'forbidden',
 	'bad_request',
 	'rate_limit_exceeded',
+	'max_groups_reached',
 	'max_files_reached'
 )
 export type ZErrorCode = keyof typeof ZErrorCode
@@ -170,7 +172,7 @@ export type ZErrorCode = keyof typeof ZErrorCode
 // increment this to force clients to reload
 // e.g. if we make backwards-incompatible changes to the schema
 export const Z_PROTOCOL_VERSION = 3
-export const MIN_Z_PROTOCOL_VERSION = 2
+export const MIN_Z_PROTOCOL_VERSION = 3
 
 export type ZServerSentPacket =
 	| {
@@ -223,3 +225,5 @@ export interface SubmitFeedbackRequestBody {
 }
 
 export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000
+
+export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persistence_bad' }

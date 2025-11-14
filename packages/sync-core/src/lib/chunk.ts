@@ -83,13 +83,13 @@ export class JsonChunkAssembler {
 
 	/**
 	 * Processes a single message, which can be either a complete JSON object or a chunk.
-	 * For complete JSON objects (starting with '{'), parses immediately.
-	 * For chunks (prefixed with "{number}_"), accumulates until all chunks received.
+	 * For complete JSON objects (starting with '\{'), parses immediately.
+	 * For chunks (prefixed with "\{number\}_"), accumulates until all chunks received.
 	 *
 	 * @param msg - The message to process, either JSON or chunk format
 	 * @returns Result object with data/stringified on success, error object on failure, or null for incomplete chunks
-	 * 	- `{ data: object, stringified: string }` - Successfully parsed complete message
-	 * 	- `{ error: Error }` - Parse error or invalid chunk sequence
+	 * 	- `\{ data: object, stringified: string \}` - Successfully parsed complete message
+	 * 	- `\{ error: Error \}` - Parse error or invalid chunk sequence
 	 * 	- `null` - Chunk received but more chunks expected
 	 *
 	 * @example

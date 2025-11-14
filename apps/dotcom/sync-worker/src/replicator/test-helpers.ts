@@ -188,6 +188,7 @@ export function createMockUser(
 		createdAt: Date.now(),
 		updatedAt: Date.now(),
 		flags: '',
+		fairies: null,
 		locale: 'en',
 		animationSpeed: 1.0,
 		areKeyboardShortcutsEnabled: true,

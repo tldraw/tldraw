@@ -1,6 +1,6 @@
-import { PromptPartUtilConstructor } from '../parts/PromptPartUtil'
-import { PROMPT_PART_UTILS } from '../parts/PromptPartUtils'
+import { PROMPT_PART_DEFINITIONS } from '../schema/FairySchema'
+import { PromptPartDefinition } from '../schema/PromptPartDefinitions'
 
-type ExtractPromptPartType<T> = T extends PromptPartUtilConstructor<infer U> ? U : never
+type ExtractPromptPartType<T> = T extends PromptPartDefinition<infer U> ? U : never
 
-export type PromptPart = ExtractPromptPartType<(typeof PROMPT_PART_UTILS)[number]>
+export type PromptPart = ExtractPromptPartType<(typeof PROMPT_PART_DEFINITIONS)[number]>

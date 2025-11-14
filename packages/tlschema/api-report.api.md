@@ -188,7 +188,7 @@ export const DefaultColorThemePalette: {
 export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
 
 // @public
-export const DefaultFillStyle: EnumStyleProp<"fill" | "none" | "pattern" | "semi" | "solid">;
+export const DefaultFillStyle: EnumStyleProp<"fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid">;
 
 // @public
 export const DefaultFontFamilies: {
@@ -920,6 +920,8 @@ export interface TLDefaultColorThemeColor {
     // (undocumented)
     highlightSrgb: string;
     // (undocumented)
+    linedFill: string;
+    // (undocumented)
     noteFill: string;
     // (undocumented)
     noteText: string;
@@ -1047,6 +1049,7 @@ export interface TLHandle {
     id: string;
     index: IndexKey;
     label?: string;
+    snapReferenceHandleId?: string;
     snapType?: 'align' | 'point';
     type: TLHandleType;
     x: number;

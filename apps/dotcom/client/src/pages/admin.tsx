@@ -1,10 +1,11 @@
-import { TlaFile, TlaUser, ZStoreData } from '@tldraw/dotcom-shared'
+import { TlaFile, TlaUser, userHasFlag, ZStoreData } from '@tldraw/dotcom-shared'
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { fetch } from 'tldraw'
 import { TlaButton } from '../tla/components/TlaButton/TlaButton'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import styles from './admin.module.css'
+import { saveMigrationLog } from './migrationLogsDB'
 
 // Helper component for structured data display
 function StructuredDataDisplay({ data }: { data: ZStoreData }) {
@@ -213,7 +214,7 @@ export function Component() {
 							onSuccess={loadData}
 							onError={setError}
 							onSuccessMessage={setSuccessMessage}
-							didMigrate={(data.user[0] as TlaUser).flags.includes('groups_backend')}
+							didMigrate={userHasFlag((data.user[0] as TlaUser).flags, 'groups_backend')}
 						/>
 						<StructuredDataDisplay data={data} />
 					</section>
@@ -488,14 +489,21 @@ function BatchMigrateUsersToGroups() {
 	const [progressLog, setProgressLog] = useState<string[]>([])
 	const [error, setError] = useState(null as string | null)
 	const [isComplete, setIsComplete] = useState(false)
-	const [stats, setStats] = useState({ successCount: 0, failureCount: 0, totalUsers: 0 })
+	const [stats, setStats] = useState(
+		{} as {
+			successCount: number
+			failureCount: number
+			totalUsers: number
+			usersToMigrate: number
+			progress: number
+		}
+	)
 	const [unmigratedCount, setUnmigratedCount] = useState<number | null>(null)
 	const [isLoadingCount, setIsLoadingCount] = useState(false)
 	const [eventSource, setEventSource] = useState<EventSource | null>(null)
-	const [batchSize, setBatchSize] = useState(100)
-	const [batchSleepMs, setBatchSleepMs] = useState(100)
-	const [maxUsers, setMaxUsers] = useState<number | ''>('')
+	const [sleepMs, setSleepMs] = useState(100)
 	const logContainerRef = useRef<HTMLDivElement>(null)
+	const shouldContinueRef = useRef(true)
 
 	// Cleanup EventSource on unmount
 	useEffect(() => {
@@ -532,6 +540,7 @@ function BatchMigrateUsersToGroups() {
 	}, [])
 
 	const stopMigration = useCallback(() => {
+		shouldContinueRef.current = false
 		if (eventSource) {
 			eventSource.close()
 			setEventSource(null)
@@ -540,82 +549,96 @@ function BatchMigrateUsersToGroups() {
 	}, [eventSource])
 
 	const onMigrate = useCallback(async () => {
-		const migrationMessage = maxUsers
-			? `Are you sure you want to migrate up to ${maxUsers} users without the groups_backend flag? This action cannot be undone.`
-			: `Are you sure you want to migrate ALL users without the groups_backend flag? This action cannot be undone.`
+		const migrationMessage = `Are you sure you want to migrate ALL users without the groups_backend flag? This action cannot be undone.`
 
 		if (!window.confirm(migrationMessage)) {
 			return
 		}
 
 		setIsMigrating(true)
+		shouldContinueRef.current = true
 		setError(null)
 		setProgressLog([])
 		setIsComplete(false)
-		setStats({ successCount: 0, failureCount: 0, totalUsers: 0 })
+		setStats({ successCount: 0, failureCount: 0, totalUsers: 0, usersToMigrate: 0, progress: 0 })
+
+		const startBatch = () => {
+			return new Promise<void>((resolve, reject) => {
+				try {
+					const params = new URLSearchParams({
+						sleepMs: sleepMs.toString(),
+					})
+					const es = new EventSource(`/api/app/admin/migrate_users_batch?${params}`)
+					setEventSource(es)
+
+					es.onmessage = async (event) => {
+						const data = JSON.parse(event.data)
+
+						const timestamp = new Date(data.timestamp).toLocaleTimeString()
+						const logEntry = `[${timestamp}] ${data.message}`
+
+						// Keep only the last 500 log entries to prevent memory issues
+						setProgressLog((prev) => {
+							const updated = [...prev, logEntry]
+							return updated.length > 500 ? updated.slice(-500) : updated
+						})
+
+						// Save failure events to IndexedDB
+						if (data.step === 'failure') {
+							try {
+								await saveMigrationLog(data)
+							} catch (err) {
+								console.error('Failed to save migration log to IndexedDB:', err)
+							}
+						}
+
+						// Update stats from details
+						if (data.details) {
+							setStats(data.details)
+						}
+
+						if (data.type === 'complete') {
+							es.close()
+							setEventSource(null)
+							if (data.hasMore && shouldContinueRef.current) {
+								// Start next batch
+								setTimeout(() => startBatch().then(resolve).catch(reject), 100)
+							} else {
+								setIsComplete(true)
+								setIsMigrating(false)
+								resolve()
+							}
+						} else if (data.type === 'error') {
+							setError(data.message)
+							setIsMigrating(false)
+							es.close()
+							setEventSource(null)
+							reject(new Error(data.message))
+						}
+					}
+
+					es.onerror = () => {
+						setError('Connection failed')
+						setIsMigrating(false)
+						es.close()
+						setEventSource(null)
+						reject(new Error('Connection failed'))
+					}
+				} catch (err) {
+					setError(err instanceof Error ? err.message : 'Unknown error occurred')
+					setIsMigrating(false)
+					setEventSource(null)
+					reject(err)
+				}
+			})
+		}
 
 		try {
-			const params = new URLSearchParams({
-				batchSize: batchSize.toString(),
-				batchSleepMs: batchSleepMs.toString(),
-			})
-			if (maxUsers) {
-				params.set('maxUsers', maxUsers.toString())
-			}
-			const es = new EventSource(`/api/app/admin/migrate_users_batch?${params}`)
-			setEventSource(es)
-
-			es.onmessage = (event) => {
-				const data = JSON.parse(event.data)
-
-				const timestamp = new Date(data.timestamp).toLocaleTimeString()
-				const logEntry = `[${timestamp}] ${data.message}`
-
-				// Keep only the last 500 log entries to prevent memory issues
-				setProgressLog((prev) => {
-					const updated = [...prev, logEntry]
-					return updated.length > 500 ? updated.slice(-500) : updated
-				})
-
-				// Update stats from details
-				if (data.details) {
-					if (data.details.totalUsers !== undefined) {
-						setStats((prev) => ({ ...prev, totalUsers: data.details.totalUsers }))
-					}
-					if (data.details.successCount !== undefined && data.details.failureCount !== undefined) {
-						setStats({
-							totalUsers: data.details.totalUsers || 0,
-							successCount: data.details.successCount,
-							failureCount: data.details.failureCount,
-						})
-					}
-				}
-
-				if (data.type === 'complete') {
-					setIsComplete(true)
-					setIsMigrating(false)
-					es.close()
-					setEventSource(null)
-				} else if (data.type === 'error') {
-					setError(data.message)
-					setIsMigrating(false)
-					es.close()
-					setEventSource(null)
-				}
-			}
-
-			es.onerror = () => {
-				setError('Connection failed')
-				setIsMigrating(false)
-				es.close()
-				setEventSource(null)
-			}
-		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Unknown error occurred')
-			setIsMigrating(false)
-			setEventSource(null)
+			await startBatch()
+		} catch (_err) {
+			// Error already handled in startBatch
 		}
-	}, [batchSize, batchSleepMs, maxUsers])
+	}, [sleepMs])
 
 	return (
 		<div className={styles.dangerZone}>
@@ -640,9 +663,8 @@ function BatchMigrateUsersToGroups() {
 
 			<p className="tla-text_ui__small">
 				This will migrate all users who don&apos;t have the groups_backend flag. The process will
-				run sequentially and report progress in real-time. Configure the batch size (number of users
-				processed before a pause), sleep duration (milliseconds to wait between batches), and max
-				users (limit for incremental rollout, leave empty to migrate all) below.
+				run sequentially (one user at a time) and report progress in real-time. Configure the sleep
+				duration (milliseconds to wait between each user migration) below.
 			</p>
 
 			{error && <div className={styles.errorMessage}>{error}</div>}
@@ -650,41 +672,14 @@ function BatchMigrateUsersToGroups() {
 			{/* Configuration Inputs */}
 			<div className={styles.configContainer}>
 				<div>
-					<label htmlFor="batchSize">Batch size:</label>
+					<label htmlFor="sleepMs">Sleep between migrations (ms):</label>
 					<input
-						id="batchSize"
+						id="sleepMs"
 						type="number"
-						value={batchSize}
-						onChange={(e) => setBatchSize(Number(e.target.value))}
-						disabled={isMigrating}
-						min={1}
-						className={styles.searchInput}
-						style={{ width: '100px', marginLeft: '8px' }}
-					/>
-				</div>
-				<div>
-					<label htmlFor="batchSleepMs">Sleep between batches (ms):</label>
-					<input
-						id="batchSleepMs"
-						type="number"
-						value={batchSleepMs}
-						onChange={(e) => setBatchSleepMs(Number(e.target.value))}
+						value={sleepMs}
+						onChange={(e) => setSleepMs(Number(e.target.value))}
 						disabled={isMigrating}
 						min={0}
-						className={styles.searchInput}
-						style={{ width: '100px', marginLeft: '8px' }}
-					/>
-				</div>
-				<div>
-					<label htmlFor="maxUsers">Max users (leave empty for all):</label>
-					<input
-						id="maxUsers"
-						type="number"
-						value={maxUsers}
-						onChange={(e) => setMaxUsers(e.target.value === '' ? '' : Number(e.target.value))}
-						disabled={isMigrating}
-						min={1}
-						placeholder="All users"
 						className={styles.searchInput}
 						style={{ width: '100px', marginLeft: '8px' }}
 					/>
@@ -699,8 +694,8 @@ function BatchMigrateUsersToGroups() {
 						<span className={styles.statValue}>{stats.totalUsers}</span>
 					</div>
 					<div className={styles.statItem}>
-						<span className={styles.statLabel}>Completed:</span>
-						<span className={styles.statValue}>{stats.successCount + stats.failureCount}</span>
+						<span className={styles.statLabel}>Users to Migrate:</span>
+						<span className={styles.statValue}>{stats.usersToMigrate}</span>
 					</div>
 					<div className={styles.statItem}>
 						<span className={styles.statLabel}>Succeeded:</span>
@@ -712,9 +707,7 @@ function BatchMigrateUsersToGroups() {
 					</div>
 					<div className={styles.statItem}>
 						<span className={styles.statLabel}>Progress:</span>
-						<span className={styles.statValue}>
-							{Math.round(((stats.successCount + stats.failureCount) / stats.totalUsers) * 100)}%
-						</span>
+						<span className={styles.statValue}>{(stats.progress * 100).toFixed(2)}%</span>
 					</div>
 				</div>
 			)}

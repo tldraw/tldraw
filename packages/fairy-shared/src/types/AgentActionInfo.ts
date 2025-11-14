@@ -13,7 +13,6 @@ export interface AgentActionInfo {
 	 * Null to not show an icon.
 	 */
 	icon: AgentIconType | null
-	// icon: null
 
 	/**
 	 * The description to display in chat history.
