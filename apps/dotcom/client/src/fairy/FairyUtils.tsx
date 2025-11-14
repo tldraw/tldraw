@@ -34,6 +34,7 @@ import { TodoListActionUtil } from './actions/TodoListActionUtil'
 import { UnknownActionUtil } from './actions/UnknownActionUtil'
 import { UpdateActionUtil } from './actions/UpdateActionUtil'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { AgentViewportBoundsPartUtil } from './parts/AgentViewportBoundsPartUtil'
 import { BlurryShapesPartUtil } from './parts/BlurryShapesPartUtil'
 import { ChatHistoryPartUtil } from './parts/ChatHistoryPartUtil'
 import { CurrentProjectPartUtil } from './parts/CurrentProjectPartUtil'
@@ -52,7 +53,7 @@ import { SoloTasksPartUtil } from './parts/SoloTasksPartUtil'
 import { TimePartUtil } from './parts/TimePartUtil'
 import { TodoListPartUtil } from './parts/TodoListPartUtil'
 import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
-import { ViewportBoundsPartUtil } from './parts/ViewportBoundsPartUtil'
+import { UserViewportBoundsPartUtil } from './parts/UserViewportBoundsPartUtil'
 import { WorkingTasksPartUtil } from './parts/WorkingTasksPartUtil'
 
 /**
@@ -127,7 +128,8 @@ export const PROMPT_PART_UTILS = [
 
 	// Viewport
 	ScreenshotPartUtil,
-	ViewportBoundsPartUtil,
+	UserViewportBoundsPartUtil,
+	AgentViewportBoundsPartUtil,
 
 	// Shapes
 	BlurryShapesPartUtil,

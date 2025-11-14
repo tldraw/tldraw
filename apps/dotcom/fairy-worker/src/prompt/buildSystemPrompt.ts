@@ -463,7 +463,8 @@ function getSystemPromptFlags(
 
 		// Viewport
 		hasScreenshotPart: parts.includes('screenshot'),
-		hasViewportBoundsPart: parts.includes('viewportBounds'),
+		hasViewportBoundsPart:
+			parts.includes('userViewportBounds') || parts.includes('agentViewportBounds'),
 
 		// Shapes
 		hasBlurryShapesPart: parts.includes('blurryShapes'),

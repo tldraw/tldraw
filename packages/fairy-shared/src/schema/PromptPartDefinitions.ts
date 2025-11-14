@@ -423,6 +423,7 @@ export const CurrentProjectPartDefinition: PromptPartDefinition<CurrentProjectPa
 			`Project description: ${currentProject.description}`,
 			`Project color: ${currentProject.color}`,
 		]
+		// do we want to split part into multiple parts? should we be more clear about which roles have access to what?
 		if (role === 'orchestrator') {
 			response.push(
 				`Project members: ${currentProject.members.map((m) => `${m.id} (${m.role})`).join(', ')}`
@@ -483,30 +484,40 @@ export const UserActionHistoryPartDefinition: PromptPartDefinition<UserActionHis
 	},
 }
 
-// ViewportBoundsPart
-export interface ViewportBoundsPart {
-	type: 'viewportBounds'
+// UserViewportBoundsPart
+export interface UserViewportBoundsPart {
+	type: 'userViewportBounds'
 	userBounds: BoxModel | null
+}
+
+export const UserViewportBoundsPartDefinition: PromptPartDefinition<UserViewportBoundsPart> = {
+	type: 'userViewportBounds',
+	priority: -80,
+	buildContent({ userBounds }: UserViewportBoundsPart) {
+		if (!userBounds) {
+			return []
+		}
+		const userViewCenter = Box.From(userBounds).center
+		return [`The user's view is centered at (${userViewCenter.x}, ${userViewCenter.y}).`]
+	},
+}
+
+// AgentViewportBoundsPart
+export interface AgentViewportBoundsPart {
+	type: 'agentViewportBounds'
 	agentBounds: BoxModel | null
 }
 
-export const ViewportBoundsPartDefinition: PromptPartDefinition<ViewportBoundsPart> = {
-	type: 'viewportBounds',
-	priority: -75,
-	buildContent({ userBounds, agentBounds }: ViewportBoundsPart) {
-		const response = []
-
-		if (agentBounds) {
-			response.push(
-				`The bounds of the part of the canvas that you can currently see are: ${JSON.stringify(agentBounds)}`
-			)
+export const AgentViewportBoundsPartDefinition: PromptPartDefinition<AgentViewportBoundsPart> = {
+	type: 'agentViewportBounds',
+	priority: -80,
+	buildContent({ agentBounds }: AgentViewportBoundsPart) {
+		if (!agentBounds) {
+			return []
 		}
-		if (userBounds) {
-			const userViewCenter = Box.From(userBounds).center
-			response.push(`The user's view is centered at (${userViewCenter.x}, ${userViewCenter.y}).`)
-		}
-
-		return response
+		return [
+			`The bounds of the part of the canvas that you can currently see are: ${JSON.stringify(agentBounds)}`,
+		]
 	},
 }
 

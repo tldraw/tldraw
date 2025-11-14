@@ -36,6 +36,7 @@ import {
 	UpdateActionSchema,
 } from './AgentActionSchemas'
 import {
+	AgentViewportBoundsPartDefinition,
 	BlurryShapesPartDefinition,
 	ChatHistoryPartDefinition,
 	CurrentProjectPartDefinition,
@@ -55,7 +56,7 @@ import {
 	TimePartDefinition,
 	TodoListPartDefinition,
 	UserActionHistoryPartDefinition,
-	ViewportBoundsPartDefinition,
+	UserViewportBoundsPartDefinition,
 	WorkingTasksPartDefinition,
 } from './PromptPartDefinitions'
 
@@ -129,7 +130,8 @@ export const PROMPT_PART_DEFINITIONS = [
 	SharedTodoListPartDefinition,
 	TodoListPartDefinition,
 	UserActionHistoryPartDefinition,
-	ViewportBoundsPartDefinition,
+	UserViewportBoundsPartDefinition,
+	AgentViewportBoundsPartDefinition,
 	WorkingTasksPartDefinition,
 	OtherFairiesPartDefinition,
 	PersonalityPartDefinition,
