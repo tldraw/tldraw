@@ -613,6 +613,12 @@
       "value": "This month"
     }
   ],
+  "985a4b720f": [
+    {
+      "type": 0,
+      "value": "Terms of Use"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
@@ -1117,6 +1123,12 @@
     {
       "type": 0,
       "value": "Settings"
+    }
+  ],
+  "fa2ead697d": [
+    {
+      "type": 0,
+      "value": "Privacy Policy"
     }
   ],
   "fb15c53f22": [
