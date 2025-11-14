@@ -578,6 +578,173 @@ describe('isShapeOfType', () => {
 	})
 })
 
+describe('createShape', () => {
+	it('creates a shape with the given properties', () => {
+		const id = createShapeId('arrow1')
+		editor.createShape({ type: 'arrow', id, x: 0, y: 0 })
+
+		const shape = editor.getShape(id)!
+		expect(shape).toBeDefined()
+		expect(shape.type).toBe('arrow')
+		expect(shape.x).toBe(0)
+		expect(shape.y).toBe(0)
+	})
+
+	it('creates a shape with the allowed props', () => {
+		const id = createShapeId('arrow1')
+		editor.createShape({ type: 'arrow', id, x: 0, y: 0, props: { scale: 2 } })
+
+		const shape = editor.getShape(id)!
+		assert(editor.isShapeOfType(shape, 'arrow'))
+
+		expect(shape.props.scale).toBe(2)
+	})
+
+	it('creates a shape with a defaulted prop', () => {
+		const id = createShapeId('arrow1')
+		editor.createShape({ type: 'arrow', id, x: 0, y: 0 })
+
+		const shape = editor.getShape(id)!
+		assert(editor.isShapeOfType(shape, 'arrow'))
+
+		expect(shape.props.scale).toBe(1)
+	})
+
+	it('errors when creating a shape with unknown props', () => {
+		const id = createShapeId('arrow1')
+		editor.createShape({
+			type: 'arrow',
+			id,
+			x: 0,
+			y: 0,
+			props: {
+				// @ts-expect-error
+				foo: 'bar',
+			},
+		})
+		const shape = editor.getShape(id)
+		expect(shape).toBeDefined()
+	})
+})
+
+describe('createShapes', () => {
+	it('creates shapes with the given properties', () => {
+		const id1 = createShapeId('arrow1')
+		const id2 = createShapeId('arrow2')
+		editor.createShapes([
+			{ type: 'arrow', id: id1, x: 0, y: 0 },
+			{ type: 'arrow', id: id2, x: 100, y: 100 },
+		])
+
+		const shape1 = editor.getShape(id1)!
+		expect(shape1).toBeDefined()
+		expect(shape1.type).toBe('arrow')
+		expect(shape1.x).toBe(0)
+		expect(shape1.y).toBe(0)
+
+		const shape2 = editor.getShape(id2)!
+		expect(shape2).toBeDefined()
+		expect(shape2.type).toBe('arrow')
+		expect(shape2.x).toBe(100)
+		expect(shape2.y).toBe(100)
+	})
+
+	it('creates shapes with the allowed props', () => {
+		const id1 = createShapeId('arrow1')
+		const id2 = createShapeId('arrow2')
+		editor.createShapes([
+			{ type: 'arrow', id: id1, x: 0, y: 0, props: { scale: 2 } },
+			{ type: 'arrow', id: id2, x: 100, y: 100, props: { scale: 3 } },
+		])
+
+		const shape1 = editor.getShape(id1)!
+		assert(editor.isShapeOfType(shape1, 'arrow'))
+		expect(shape1.props.scale).toBe(2)
+
+		const shape2 = editor.getShape(id2)!
+		assert(editor.isShapeOfType(shape2, 'arrow'))
+		expect(shape2.props.scale).toBe(3)
+	})
+
+	it('creates shapes with defaulted props', () => {
+		const id1 = createShapeId('arrow1')
+		const id2 = createShapeId('arrow2')
+		editor.createShapes([
+			{ type: 'arrow', id: id1, x: 0, y: 0 },
+			{ type: 'arrow', id: id2, x: 100, y: 100 },
+		])
+
+		const shape1 = editor.getShape(id1)!
+		assert(editor.isShapeOfType(shape1, 'arrow'))
+		expect(shape1.props.scale).toBe(1)
+
+		const shape2 = editor.getShape(id2)!
+		assert(editor.isShapeOfType(shape2, 'arrow'))
+		expect(shape2.props.scale).toBe(1)
+	})
+
+	it('errors when creating a shape with unknown props', () => {
+		const id1 = createShapeId('arrow1')
+		const id2 = createShapeId('arrow2')
+		editor.createShapes([
+			{
+				type: 'arrow',
+				id: id1,
+				x: 0,
+				y: 0,
+				props: {
+					// @ts-expect-error
+					foo: 'bar',
+				},
+			},
+			{ type: 'arrow', id: id2, x: 100, y: 100 },
+		])
+
+		const shape1 = editor.getShape(id1)
+		expect(shape1).toBeDefined()
+	})
+})
+
+describe('updateShape', () => {
+	it('updates a shape with the given properties', () => {
+		const id = createShapeId('arrow1')
+		editor.createShape({ type: 'arrow', id, x: 0, y: 0 })
+		editor.updateShape({ id, type: 'arrow', x: 100, y: 100 })
+
+		const shape = editor.getShape(id)!
+		expect(shape).toBeDefined()
+		expect(shape.type).toBe('arrow')
+		expect(shape.x).toBe(100)
+		expect(shape.y).toBe(100)
+	})
+
+	it('updates a shape with the allowed props', () => {
+		const id = createShapeId('arrow1')
+		editor.createShape({ type: 'arrow', id, x: 0, y: 0 })
+		editor.updateShape({ id, type: 'arrow', props: { scale: 2 } })
+
+		const shape = editor.getShape(id)!
+		assert(editor.isShapeOfType(shape, 'arrow'))
+
+		expect(shape.props.scale).toBe(2)
+	})
+
+	it('errors when updating a shape with unknown props', () => {
+		const id = createShapeId('arrow1')
+		editor.createShape({ type: 'arrow', id, x: 0, y: 0 })
+		editor.updateShape({
+			id,
+			type: 'arrow',
+			props: {
+				// @ts-expect-error
+				foo: 'bar',
+			},
+		})
+		const shape = editor.getShape(id)
+		expect(shape).toBeDefined()
+	})
+})
+
 describe('snapshots', () => {
 	it('creates and loads a snapshot', () => {
 		const ids = {

@@ -1106,7 +1106,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     createPage(page: Partial<TLPage>): this;
     createShape<TShape extends TLShape>(shape: TLCreateShapePartial<TShape>): this;
-    createShapes<TShape extends TLShape = TLShape>(shapes: OptionalKeys<TLShapePartial<TShape>, 'id'>[]): this;
+    createShapes<TShape extends TLShape = TLShape>(shapes: TLCreateShapePartial<TShape>[]): this;
     createTemporaryAssetPreview(assetId: TLAssetId, file: File): string | undefined;
     // (undocumented)
     _decayCameraStateTimeout(elapsed: number): void;

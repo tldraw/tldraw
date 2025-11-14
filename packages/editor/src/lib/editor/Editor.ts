@@ -7741,9 +7741,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	createShapes<TShape extends TLShape = TLShape>(
-		shapes: OptionalKeys<TLShapePartial<TShape>, 'id'>[]
-	): this {
+	createShapes<TShape extends TLShape = TLShape>(shapes: TLCreateShapePartial<TShape>[]): this {
 		if (!Array.isArray(shapes)) {
 			throw Error('Editor.createShapes: must provide an array of shapes or shape partials')
 		}

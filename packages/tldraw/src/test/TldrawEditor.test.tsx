@@ -4,6 +4,7 @@ import {
 	BaseBoxShapeUtil,
 	Editor,
 	HTMLContainer,
+	IndexKey,
 	TLAssetStore,
 	TLShape,
 	TLShapeId,
@@ -196,7 +197,7 @@ describe('<TldrawEditor />', () => {
 			},
 			{ type: 'embed' as const, props: { w: 100, h: 100, url: 'https://example.com' } },
 			{ type: 'frame' as const, props: { w: 100, h: 100 } },
-			{ type: 'geo' as const, props: { w: 100, h: 100, geo: 'rectangle' } },
+			{ type: 'geo' as const, props: { w: 100, h: 100, geo: 'rectangle' as const } },
 			{
 				type: 'highlight' as const,
 				props: { segments: [{ type: 'free' as const, points: [{ x: 0, y: 0, z: 0.5 }] }] },
@@ -206,8 +207,8 @@ describe('<TldrawEditor />', () => {
 				type: 'line' as const,
 				props: {
 					points: {
-						a1: { id: 'a1', index: 'a1', x: 0, y: 0 },
-						a2: { id: 'a2', index: 'a2', x: 100, y: 100 },
+						a1: { id: 'a1', index: 'a1' as IndexKey, x: 0, y: 0 },
+						a2: { id: 'a2', index: 'a2' as IndexKey, x: 100, y: 100 },
 					},
 				},
 			},
@@ -227,10 +228,9 @@ describe('<TldrawEditor />', () => {
 				editor.createShapes([
 					{
 						id,
-						type: shapeConfig.type,
+						...shapeConfig,
 						x: i * 150, // Space them out horizontally
 						y: 0,
-						props: shapeConfig.props,
 					},
 				])
 			})
