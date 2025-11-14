@@ -773,6 +773,12 @@
       "value": "This month"
     }
   ],
+  "985a4b720f": [
+    {
+      "type": 0,
+      "value": "Terms of Use"
+    }
+  ],
   "98c997a27e": [
     {
       "type": 0,
@@ -1355,6 +1361,12 @@
     {
       "type": 0,
       "value": "Are you sure you want to leave this group?"
+    }
+  ],
+  "fa2ead697d": [
+    {
+      "type": 0,
+      "value": "Privacy Policy"
     }
   ],
   "fb15c53f22": [

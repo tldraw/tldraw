@@ -70,7 +70,7 @@ export function TlaSignInDialog({ onClose }: { onClose?(): void }) {
 				{innerContent}
 
 				{/* Clerk's CAPTCHA widget */}
-				<div id="clerk-captcha" />
+				<div id="clerk-captcha" className={styles.clerkCaptcha} />
 			</TldrawUiDialogBody>
 		</div>
 	)
@@ -229,6 +229,17 @@ function TlaEnterEmailStep({
 				>
 					<F defaultMessage="Continue with email" />
 				</TlaCtaButton>
+
+				<p className={styles.authTermsOfUse}>
+					<a href="/tos.html" target="_blank" rel="noopener noreferrer">
+						<F defaultMessage="Terms of Use" />
+					</a>
+					{/* eslint-disable-next-line react/jsx-no-literals */}
+					{' · '}
+					<a href="/privacy.html" target="_blank" rel="noopener noreferrer">
+						<F defaultMessage="Privacy Policy" />
+					</a>
+				</p>
 			</form>
 		</>
 	)
