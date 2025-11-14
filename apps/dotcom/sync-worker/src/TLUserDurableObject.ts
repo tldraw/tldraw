@@ -640,6 +640,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	async admin_migrateToGroups(userId: string, inviteSecret: string | null = null) {
+		console.error('admin_migrateToGroups', userId, inviteSecret)
 		this.userId ??= userId
 
 		this.log.debug('migrating to groups', userId, inviteSecret)
@@ -649,6 +650,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			pinned_files_migrated: number
 			flag_added: boolean
 		}>`SELECT * FROM migrate_user_to_groups(${userId}, ${inviteSecret})`.execute(this.db)
+		console.error('admin_migrateToGroups result', result.rows)
 
 		this.log.debug('migration result', result.rows[0])
 

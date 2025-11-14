@@ -164,6 +164,7 @@ export const ZErrorCode = stringEnum(
 	'forbidden',
 	'bad_request',
 	'rate_limit_exceeded',
+	'max_groups_reached',
 	'max_files_reached'
 )
 export type ZErrorCode = keyof typeof ZErrorCode
