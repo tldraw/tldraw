@@ -66,8 +66,8 @@ export function TlaSignInDialog({ onClose }: { onClose?(): void }) {
 				</TldrawUiDialogTitle>
 				{onClose && <TldrawUiDialogCloseButton />}
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody className={styles.authBody}>
-				{innerContent}
+			<TldrawUiDialogBody className={styles.authDialogBody}>
+				<div className={styles.authBody}>{innerContent}</div>
 
 				{/* Clerk's CAPTCHA widget */}
 				<div id="clerk-captcha" className={styles.clerkCaptcha} />
