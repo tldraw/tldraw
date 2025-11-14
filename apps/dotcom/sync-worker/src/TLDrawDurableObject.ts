@@ -25,12 +25,11 @@ import {
 	TLSocketRoom,
 	TLSyncErrorCloseEventCode,
 	TLSyncErrorCloseEventReason,
-	type PersistedRoomSnapshotForSupabase,
-} from '@tldraw/sync-core'
-import {
 	getSnapshotFromInMemoryStorage,
 	loadSnapshotIntoStorage,
+	type PersistedRoomSnapshotForSupabase,
 } from '@tldraw/sync-core'
+import { DEFAULT_INITIAL_SNAPSHOT } from '@tldraw/sync-core'
 import { TLDOCUMENT_ID, TLDocument, TLRecord, createTLSchema } from '@tldraw/tlschema'
 import {
 	ExecutionQueue,
@@ -108,8 +107,9 @@ export class TLDrawDurableObject extends DurableObject {
 			this._storage = this.loadFromDatabase(slug).then(async (result) => {
 				switch (result.type) {
 					case 'room_found': {
-						this.setRoomStorageUsedPercentage(result.storage, result.roomSizeMB)
-						return result.storage
+						const storage = new InMemorySyncStorage<TLRecord>(result.snapshot)
+						this.setRoomStorageUsedPercentage(storage, result.roomSizeMB)
+						return storage
 					}
 					case 'room_not_found': {
 						throw ROOM_NOT_FOUND
@@ -669,8 +669,7 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 
 		const serialized = typeof data === 'string' ? data : JSON.stringify(data)
-		const storage =
-			typeof data === 'string' ? new InMemorySyncStorage<TLRecord>(JSON.parse(data)) : data
+		const snapshot = typeof data === 'string' ? JSON.parse(data) : data
 
 		const putTimer = this.timer()
 		const key = getR2KeyForRoom({ slug: this._fileRecordCache.id, isApp: true })
@@ -679,7 +678,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 		return {
 			type: 'room_found',
-			storage,
+			snapshot,
 			roomSizeMB: roomObject ? roomObject.size / MB : 0,
 		} satisfies DBLoadResult
 	}
@@ -701,7 +700,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 				return {
 					type: 'room_found',
-					storage: new InMemorySyncStorage(snapshot),
+					snapshot,
 					roomSizeMB: roomFromBucket.size / MB,
 				}
 			}
@@ -727,7 +726,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 				return {
 					type: 'room_found',
-					storage: new InMemorySyncStorage(),
+					snapshot: DEFAULT_INITIAL_SNAPSHOT,
 					roomSizeMB: 0,
 				}
 			}
@@ -764,7 +763,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 			return {
 				type: 'room_found',
-				storage: new InMemorySyncStorage(roomFromSupabase.drawing),
+				snapshot: roomFromSupabase.drawing,
 				roomSizeMB: 0,
 			}
 		} catch (error) {

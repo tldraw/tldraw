@@ -17,6 +17,7 @@ export {
 	type ValueOp,
 } from './lib/diff'
 export {
+	DEFAULT_INITIAL_SNAPSHOT,
 	getSnapshotFromInMemoryStorage,
 	InMemorySyncStorage,
 	loadSnapshotIntoStorage,

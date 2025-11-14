@@ -32,7 +32,7 @@ import { RoomSnapshot } from './TLSyncRoom'
 const TOMBSTONE_PRUNE_BUFFER_SIZE = 1000
 const MAX_TOMBSTONES = 5000
 
-const DEFAULT_INITIAL_SNAPSHOT = {
+export const DEFAULT_INITIAL_SNAPSHOT = {
 	clock: 0,
 	documentClock: 0,
 	schema: createTLSchema().serialize(),
