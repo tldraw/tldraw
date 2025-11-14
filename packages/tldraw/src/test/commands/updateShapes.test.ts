@@ -26,6 +26,18 @@ it('Uses typescript generics', () => {
 			},
 		])
 
+		// Errors when updating shapes with unknown props
+		editor.updateShapes([
+			{
+				id: ids.box1,
+				type: 'geo',
+				props: {
+					// @ts-expect-error
+					foo: 'bar',
+				},
+			},
+		])
+
 		// error here because we are giving the wrong props to the shape
 		editor.updateShapes<TLGeoShape>([
 			{

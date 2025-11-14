@@ -28,6 +28,19 @@ it('Uses typescript generics', () => {
 				props: { w: 'OH NO' },
 			},
 		])
+
+		// Errors when creating shapes with unknown props
+		editor.createShapes([
+			{
+				id: ids.box1,
+				type: 'geo',
+				props: {
+					// @ts-expect-error
+					foo: 'bar',
+				},
+			},
+		])
+
 		// Yep error here because we are giving the wrong props to the shape
 		editor.createShapes<TLGeoShape>([
 			{
