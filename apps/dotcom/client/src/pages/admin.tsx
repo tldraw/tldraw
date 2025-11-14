@@ -1,4 +1,4 @@
-import { TlaFile, TlaUser, ZStoreData } from '@tldraw/dotcom-shared'
+import { TlaFile, TlaUser, userHasFlag, ZStoreData } from '@tldraw/dotcom-shared'
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { fetch } from 'tldraw'
@@ -214,7 +214,7 @@ export function Component() {
 							onSuccess={loadData}
 							onError={setError}
 							onSuccessMessage={setSuccessMessage}
-							didMigrate={(data.user[0] as TlaUser).flags.includes('groups_backend')}
+							didMigrate={userHasFlag((data.user[0] as TlaUser).flags, 'groups_backend')}
 						/>
 						<StructuredDataDisplay data={data} />
 					</section>
