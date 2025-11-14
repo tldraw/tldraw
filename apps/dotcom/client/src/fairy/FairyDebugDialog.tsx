@@ -17,6 +17,7 @@ import {
 } from 'tldraw'
 import { F } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { $fairyDebugFlags } from './FairyDebugFlags'
 import { $fairyProjects, addAgentToDummyProject } from './FairyProjects'
 import { $fairyTasks } from './FairyTaskList'
 
@@ -104,15 +105,7 @@ export function FairyDebugDialog({ agents, onClose }: { agents: FairyAgent[]; on
 			{!isHomeTab && selectedAgent && <FairyDebugOptions agent={selectedAgent} />}
 
 			{/* Home debug options: always visible when viewing the home tab */}
-			{isHomeTab && (
-				<div className="home-debug-options-container">
-					<TldrawUiButton type="low" onClick={logPartDefinitionsByPriority}>
-						<TldrawUiButtonLabel>
-							<F defaultMessage="Log Part Definitions by Priority" />
-						</TldrawUiButtonLabel>
-					</TldrawUiButton>
-				</div>
-			)}
+			{isHomeTab && <HomeDebugOptions />}
 
 			{/* View Dropdown: choose between different inspectable views for the given tab */}
 			<div className="fairy-debug-view-dropdown">
@@ -297,6 +290,42 @@ function SharedTodoListInspector() {
 					</div>
 				))
 			)}
+		</div>
+	)
+}
+
+function HomeDebugOptions() {
+	const debugFlags = useValue($fairyDebugFlags)
+
+	return (
+		<div className="home-debug-options-container">
+			<div className="fairy-debug-flags-container">
+				<p>
+					<F defaultMessage="Debug Flags" />
+				</p>
+				<div className="fairy-debug-flags-checkboxes">
+					<label className="fairy-debug-flags-checkbox">
+						<input
+							type="checkbox"
+							checked={debugFlags.showTaskBounds}
+							onChange={(e) => {
+								$fairyDebugFlags.set({
+									...debugFlags,
+									showTaskBounds: e.target.checked,
+								})
+							}}
+						/>
+						<span>
+							<F defaultMessage="Show Task Bounds" />
+						</span>
+					</label>
+				</div>
+			</div>
+			<TldrawUiButton type="low" onClick={logPartDefinitionsByPriority}>
+				<TldrawUiButtonLabel>
+					<F defaultMessage="Log Part Definitions by Priority" />
+				</TldrawUiButtonLabel>
+			</TldrawUiButton>
 		</div>
 	)
 }
