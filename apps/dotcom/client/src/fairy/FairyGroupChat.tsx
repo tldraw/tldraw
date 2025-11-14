@@ -7,7 +7,13 @@ import { fairyMessages } from './fairy-messages'
 import { FairySpriteComponent } from './fairy-sprite/FairySprite'
 import { $fairyProjects, addProject, getProjectByAgentId } from './FairyProjects'
 
-export function FairyGroupChat({ agents }: { agents: FairyAgent[] }) {
+export function FairyGroupChat({
+	agents,
+	onStartProject,
+}: {
+	agents: FairyAgent[]
+	onStartProject(orchestratorAgent: FairyAgent): void
+}) {
 	const [leaderAgentId, setLeaderAgentId] = useState<string | null>(null)
 	const [instruction, setInstruction] = useState('')
 	const instructionTextareaRef = useRef<HTMLTextAreaElement>(null)
@@ -101,10 +107,13 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 				message: prompt,
 			})
 
+			// Select the orchestrator and switch to their chat panel
+			onStartProject(leaderAgent)
+
 			// Clear the input
 			setInstruction('')
 		},
-		[getGroupChatPrompt, leaderAgent, followerAgents]
+		[getGroupChatPrompt, leaderAgent, followerAgents, onStartProject]
 	)
 
 	const shouldCancel = areAnyProjectAgentsGenerating && instruction === ''
@@ -177,6 +186,7 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 						autoFocus
 						disabled={!leaderAgent}
 						className="fairy-group-chat-input__field"
+						style={{ cursor: leaderAgent ? 'text' : 'not-allowed' }}
 					/>
 				</div>
 				<button

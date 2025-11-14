@@ -12,6 +12,9 @@ export interface FairyModeNode {
 
 export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode> = {
 	idling: {
+		enter(agent, _fromMode) {
+			agent.cancel()
+		},
 		onPromptStart(agent) {
 			agent.setMode('soloing')
 		},
