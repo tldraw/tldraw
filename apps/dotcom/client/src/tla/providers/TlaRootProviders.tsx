@@ -126,7 +126,10 @@ function IntlWrapper({ children, locale }: { children: ReactNode; locale: string
 
 			const res = await fetch(`/tla/locales-compiled/${locale}.json`)
 			const messages = await res.json()
-			setMessages(messages)
+			setMessages({
+				...translationsEnJson,
+				...messages,
+			})
 		}
 		fetchMessages()
 	}, [locale])
