@@ -1,12 +1,11 @@
 import { EndCurrentProjectAction, Streaming } from '@tldraw/fairy-shared'
+import { deleteProject } from '../FairyProjects'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
-import { getFairyAgentById } from '../fairy-agent/agent/fairyAgentsAtom'
-import { deleteProject, getProjectById } from '../Projects'
-import { $sharedTodoList } from '../SharedTodoList'
+import { $fairyAgentsAtom } from '../fairy-agent/agent/fairyAgentsAtom'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProjectAction> {
-	static override type = 'end-current-project' as const
+	static override type = 'end-project' as const
 
 	override getInfo(action: Streaming<EndCurrentProjectAction>) {
 		return {
@@ -20,30 +19,18 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 		if (!action.complete) return
 		if (!this.agent) return
 
-		const projectId = this.agent.$currentProjectId.get()
-		if (!projectId) return
+		const project = this.agent.getProject()
+		if (!project) return // todo error
 
-		const project = getProjectById(projectId)
-		if (!project) return
+		const membersIds = project.members.map((member) => member.id)
+		const memberAgents = $fairyAgentsAtom
+			.get(this.editor)
+			.filter((agent) => membersIds.includes(agent.id))
 
-		this.agent.$currentProjectId.set(null)
-		this.agent.setMode('default')
-
-		const otherMemberFairies = project.memberIds
-			.filter((id) => id !== this.agent.id)
-			.map((id) => getFairyAgentById(id, this.editor))
-			.filter((fairy) => fairy !== undefined)
-
-		otherMemberFairies.forEach((fairy) => {
-			fairy.$currentProjectId.set(null)
-			fairy.setMode('default')
-			fairy.reset() // lol do we want to do this
+		memberAgents.forEach((memberAgent) => {
+			memberAgent.setMode('idling')
 		})
 
-		$sharedTodoList.update((sharedTodoItems) => {
-			return sharedTodoItems.filter((item) => item.projectId !== projectId)
-		})
-
-		deleteProject(projectId)
+		deleteProject(project.id)
 	}
 }

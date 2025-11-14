@@ -424,5 +424,5 @@ export const permissions = definePermissions<AuthData, TlaSchema>(schema, () => 
 	} satisfies PermissionsConfig<AuthData, TlaSchema>
 })
 
-export const TlaFlags = stringEnum('groups_backend')
+export const TlaFlags = stringEnum('groups_backend', 'groups_frontend')
 export type TlaFlags = keyof typeof TlaFlags

@@ -31,6 +31,11 @@ export class LabelActionUtil extends AgentActionUtil<LabelAction> {
 		const shapeId = `shape:${action.shapeId}` as TLShapeId
 		const shape = editor.getShape(shapeId)
 		if (!shape) return
+		if (!('richText' in shape.props)) {
+			console.warn(`Shape type "${shape.type}" does not support richText labels`)
+			return
+		}
+
 		editor.updateShape({
 			id: shapeId,
 			type: shape.type,
