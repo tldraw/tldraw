@@ -49,7 +49,7 @@ export class NodeState extends StateNode {
 				id: id,
 				type: 'node',
 				x: pagePoint.x,
-				y: info.point.y,
+				y: pagePoint.y,
 				props: {
 					radius: 50,
 					opacity: 0.25,

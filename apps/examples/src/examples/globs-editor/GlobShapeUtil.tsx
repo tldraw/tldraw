@@ -930,7 +930,7 @@ export const GlobShape = track(function GlobShape({
 	if (!pathBuilder) return null
 
 	const dxA = toDomPrecision(shape.props.edges.edgeA.d.x)
-	const dxY = toDomPrecision(shape.props.edges.edgeA.d.y)
+	const dyA = toDomPrecision(shape.props.edges.edgeA.d.y)
 	const dxB = toDomPrecision(shape.props.edges.edgeB.d.x)
 	const dyB = toDomPrecision(shape.props.edges.edgeB.d.y)
 
@@ -948,8 +948,8 @@ export const GlobShape = track(function GlobShape({
 		<SVGContainer>
 			{showControlLines && (
 				<>
-					<ControlLine x1={dxA} y1={dxY} x2={txAA} y2={tyAA} />
-					<ControlLine x1={dxA} y1={dxY} x2={txAB} y2={tyAB} />
+					<ControlLine x1={dxA} y1={dyA} x2={txAA} y2={tyAA} />
+					<ControlLine x1={dxA} y1={dyA} x2={txAB} y2={tyAB} />
 					<ControlLine x1={dxB} y1={dyB} x2={txBA} y2={tyBA} />
 					<ControlLine x1={dxB} y1={dyB} x2={txBB} y2={tyBB} />
 				</>
