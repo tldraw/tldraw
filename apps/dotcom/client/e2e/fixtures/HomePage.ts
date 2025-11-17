@@ -16,18 +16,6 @@ export class HomePage {
 		this.signInButton = this.page.getByTestId('tla-sign-in-button')
 		this.tldrawEditor = this.page.getByTestId('tla-editor')
 		this.tldrawCanvas = this.page.getByTestId('canvas')
-
-		// Set localStorage flag based on environment variable
-		const initMode = process.env.TLDRAW_INIT_MODE || 'legacy'
-		this.page.addInitScript((mode) => {
-			if (mode === 'new') {
-				// eslint-disable-next-line no-restricted-syntax
-				localStorage.setItem('tldraw_groups_init', 'true')
-			} else {
-				// eslint-disable-next-line no-restricted-syntax
-				localStorage.removeItem('tldraw_groups_init')
-			}
-		}, initMode)
 	}
 
 	@step
