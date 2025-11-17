@@ -859,4 +859,111 @@ describe('HistoryManager error scenarios and edge cases', () => {
 			expect(store.get(ids.a)!.value).toBe(initialValue)
 		})
 	})
+
+	describe('per-page history', () => {
+		let manager: HistoryManager<TestRecord>
+		let store: Store<TestRecord>
+		let currentPageId: string
+
+		beforeEach(() => {
+			store = new Store({ schema: testSchema, props: null })
+			store.put([
+				testSchema.types.test.create({ id: ids.count, value: 0 }),
+				testSchema.types.test.create({ id: ids.name, value: 'David' }),
+				testSchema.types.test.create({ id: ids.age, value: 35 }),
+			])
+
+			currentPageId = 'page:main'
+			manager = new HistoryManager<TestRecord>({
+				store,
+				getCurrentPageId: () => currentPageId as any,
+			})
+		})
+
+		it('should maintain separate undo stacks for different pages', () => {
+			currentPageId = 'page:page1'
+			store.update(ids.count, (c) => ({ ...c, value: 10 }))
+			expect(manager.getNumUndos()).toBe(1)
+
+			currentPageId = 'page:page2'
+			expect(manager.getNumUndos()).toBe(0)
+
+			store.update(ids.name, (c) => ({ ...c, value: 'Alice' }))
+			expect(manager.getNumUndos()).toBe(1)
+
+			currentPageId = 'page:page1'
+			expect(manager.getNumUndos()).toBe(1)
+			expect(store.get(ids.count)!.value).toBe(10)
+		})
+
+		it('should undo/redo operations scoped to current page', () => {
+			currentPageId = 'page:page1'
+			store.update(ids.count, (c) => ({ ...c, value: 5 }))
+			store.update(ids.count, (c) => ({ ...c, value: 10 }))
+
+			currentPageId = 'page:page2'
+			store.update(ids.name, (c) => ({ ...c, value: 'Bob' }))
+
+			manager.undo()
+			expect(store.get(ids.name)!.value).toBe('David')
+			expect(store.get(ids.count)!.value).toBe(10)
+
+			currentPageId = 'page:page1'
+			manager.undo()
+			expect(store.get(ids.count)!.value).toBe(0)
+		})
+
+		it('should clear history per page', () => {
+			currentPageId = 'page:page1'
+			store.update(ids.count, (c) => ({ ...c, value: 10 }))
+			expect(manager.getNumUndos()).toBe(1)
+
+			currentPageId = 'page:page2'
+			store.update(ids.name, (c) => ({ ...c, value: 'Alice' }))
+			expect(manager.getNumUndos()).toBe(1)
+
+			manager.clear()
+			expect(manager.getNumUndos()).toBe(0)
+
+			currentPageId = 'page:page1'
+			expect(manager.getNumUndos()).toBe(1)
+		})
+
+		it('should handle marks scoped to pages', () => {
+			currentPageId = 'page:page1'
+			manager['_mark']('test-mark-1')
+			store.update(ids.count, (c) => ({ ...c, value: 10 }))
+
+			currentPageId = 'page:page2'
+			manager['_mark']('test-mark-2')
+			store.update(ids.name, (c) => ({ ...c, value: 'Alice' }))
+
+			expect(manager.getMarkIdMatching('test-mark-1')).toBe(null)
+			expect(manager.getMarkIdMatching('test-mark-2')).toBe('test-mark-2')
+
+			currentPageId = 'page:page1'
+			expect(manager.getMarkIdMatching('test-mark-1')).toBe('test-mark-1')
+			expect(manager.getMarkIdMatching('test-mark-2')).toBe(null)
+		})
+
+		it('should provide per-page debug information', () => {
+			currentPageId = 'page:page1'
+			store.update(ids.count, (c) => ({ ...c, value: 10 }))
+
+			currentPageId = 'page:page2'
+			store.update(ids.name, (c) => ({ ...c, value: 'Alice' }))
+
+			const debug = manager.debug()
+			expect(debug).toHaveProperty('currentPageId', 'page:page2')
+			expect(debug).toHaveProperty('currentPage')
+			expect(debug).toHaveProperty('allPages')
+			expect(debug.allPages).toHaveLength(2)
+
+			const page1Info = debug.allPages.find(p => p.pageId === 'page:page1')
+			const page2Info = debug.allPages.find(p => p.pageId === 'page:page2')
+
+			expect(page1Info?.undos).toHaveLength(1)
+			expect(page2Info?.undos).toHaveLength(1)
+		})
+	})
 })
