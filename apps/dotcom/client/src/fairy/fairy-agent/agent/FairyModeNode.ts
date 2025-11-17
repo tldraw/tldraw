@@ -3,8 +3,8 @@ import { $fairyTasks } from '../../FairyTaskList'
 import { FairyAgent } from './FairyAgent'
 
 export interface FairyModeNode {
-	enter?(agent: FairyAgent, fromMode: FairyModeDefinition['type']): void | Promise<void>
-	exit?(agent: FairyAgent, toMode: FairyModeDefinition['type']): void | Promise<void>
+	onEnter?(agent: FairyAgent, fromMode: FairyModeDefinition['type']): void | Promise<void>
+	onExit?(agent: FairyAgent, toMode: FairyModeDefinition['type']): void | Promise<void>
 	onPromptStart?(agent: FairyAgent): void | Promise<void>
 	onPromptEnd?(agent: FairyAgent): void | Promise<void>
 	onRequestComplete?(agent: FairyAgent): void | Promise<void>
@@ -12,7 +12,7 @@ export interface FairyModeNode {
 
 export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode> = {
 	idling: {
-		enter(agent, _fromMode) {
+		onEnter(agent, _fromMode) {
 			agent.cancel()
 		},
 		onPromptStart(agent) {
@@ -33,7 +33,7 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 		},
 	},
 	working: {
-		exit(agent, toMode) {
+		onExit(agent, toMode) {
 			if (toMode === 'idling' || toMode === 'soloing') {
 				agent.$todoList.set([])
 			}

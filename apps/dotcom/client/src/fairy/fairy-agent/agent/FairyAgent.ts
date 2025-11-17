@@ -145,8 +145,8 @@ export class FairyAgent {
 		const toModeNode = FAIRY_MODE_CHART[mode]
 
 		// todo the order we call these vs notifyAgentModeTransition is probably important
-		fromModeNode.exit?.(this, mode)
-		toModeNode.enter?.(this, fromMode)
+		fromModeNode.onExit?.(this, mode)
+		toModeNode.onEnter?.(this, fromMode)
 
 		notifyAgentModeTransition(this.id, mode, this.editor)
 
