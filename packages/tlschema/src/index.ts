@@ -262,6 +262,7 @@ export {
 	defaultColorNames,
 	DefaultColorStyle,
 	DefaultColorThemePalette,
+	DefaultLabelColorStyle,
 	getColorValue,
 	getDefaultColorTheme,
 	type TLDefaultColorStyle,
