@@ -339,7 +339,7 @@ export const StartProjectActionSchema = z
 		projectName: z.string(),
 		projectDescription: z.string(),
 		projectColor: FocusColorSchema,
-		// projectMemberIds: z.array(z.string()),
+		projectPlan: z.string(),
 	})
 	.meta({
 		title: 'Start Project',
@@ -444,7 +444,7 @@ export const CreateProjectTaskActionSchema = z
 	.meta({
 		title: 'Create Project Task',
 		description:
-			"The agent creates a new task within the current project and assigns it to a specific agent. The task will automatically be associated with the current project. Each task should represent one step in the longer process. It's okay to create many tasks. Note: Creating a task and assigning it to another agentdoes not automatically start it. You must use the 'direct-to-start-project-task' action to get another agent to start a task. Also note: Tasks get an automatic ID that's used to reference them. They start at 1, and then increment by 1 for each new task.",
+			"The agent creates a new task within the current project and assigns it to a specific agent. The task will automatically be associated with the current project. Each task should represent one step in the longer process. It's okay to create many tasks. Note: Creating a task and assigning it to another agent does not automatically start it. You must use the 'direct-to-start-project-task' action to get another agent to start a task. Also note: Tasks get an automatic ID that's used to reference them. They start at 1, and then increment by 1 for each new task.",
 	})
 
 export type CreateProjectTaskAction = z.infer<typeof CreateProjectTaskActionSchema>

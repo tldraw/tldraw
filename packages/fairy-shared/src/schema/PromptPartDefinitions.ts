@@ -420,21 +420,25 @@ export const CurrentProjectPartDefinition: PromptPartDefinition<CurrentProjectPa
 			return ['There is no current project.']
 		}
 
-		const response = [
+		const baseResponse = [
 			`You are currently working on project "${currentProject.title}".`,
 			`Project description: ${currentProject.description}`,
 			`Project color: ${currentProject.color}`,
 		]
+
 		// do we want to split part into multiple parts? should we be more clear about which roles have access to what?
 		if (role === 'orchestrator') {
-			response.push(
-				`Project members: ${currentProject.members.map((m) => `${m.id} (${m.role})`).join(', ')}`
-			)
-			response.push(
-				`${currentProjectTasks.length > 0 ? `Tasks in the project and their status:\n${currentProjectTasks.map((t) => `id: ${t.id}, ${t.text}, status: ${t.status}`).join(', ')}` : 'There are no tasks in the project.'}`
-			)
+			const orchestratorResponse = [
+				`You came up with this project plan:\n${currentProject.plan}`,
+				`Project members:\n${currentProject.members.map((m) => `${m.id} (${m.role})`).join(', ')}`,
+				currentProjectTasks.length > 0
+					? `Tasks in the project and their status:\n${currentProjectTasks.map((t) => `id: ${t.id}, ${t.text}, status: ${t.status}`).join(', ')}`
+					: 'There are no tasks in the project.',
+			]
+			return baseResponse.concat(orchestratorResponse)
 		}
-		return response
+
+		return baseResponse
 	},
 }
 

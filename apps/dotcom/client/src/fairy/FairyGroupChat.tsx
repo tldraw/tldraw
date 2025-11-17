@@ -86,6 +86,7 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 					{ id: leaderAgent.id, role: 'orchestrator' },
 					...followerAgents.map((agent) => ({ id: agent.id, role: 'drone' as const })),
 				],
+				plan: '',
 			}
 
 			addProject(newProject)

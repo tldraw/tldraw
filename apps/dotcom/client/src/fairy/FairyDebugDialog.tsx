@@ -234,6 +234,7 @@ function ProjectsInspector() {
 							<div className="fairy-debug-project-details">
 								<KeyValuePair label="id" value={project.id} />
 								<KeyValuePair label="description" value={project.description} />
+								<KeyValuePair label="plan" value={project.plan} />
 								<KeyValuePair
 									label="orchestrator"
 									value={project.members.find((member) => member.role === 'orchestrator')?.id}

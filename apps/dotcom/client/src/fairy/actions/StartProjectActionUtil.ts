@@ -23,7 +23,7 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 		// Assumptions:
 		// FairyGroupChat already handles creating the project, assigning roles programmatically as well as prompting the orchestrator
 
-		const { projectName, projectDescription, projectColor } = action
+		const { projectName, projectDescription, projectColor, projectPlan } = action
 
 		const project = getProjectByAgentId(this.agent.id)
 		if (!project) return // todo error
@@ -39,6 +39,7 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 		updateProject(project.id, {
 			title: projectName,
 			description: projectDescription,
+			plan: projectPlan,
 			color: projectColor,
 		})
 	}
