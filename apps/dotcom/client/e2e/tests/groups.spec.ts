@@ -430,7 +430,7 @@ test.describe('groups', () => {
 			await context.grantPermissions(['clipboard-read', 'clipboard-write'])
 		})
 
-		test('invite user to group', async ({ page, sidebar, editor, browser, database }) => {
+		test('invite user to group', async ({ sidebar, browser, database }) => {
 			const groupName = getRandomName()
 			const fileName = getRandomName()
 
@@ -466,9 +466,7 @@ test.describe('groups', () => {
 		})
 
 		test('delete file removes for all group members', async ({
-			page,
 			sidebar,
-			editor,
 			browser,
 			database,
 			deleteFileDialog,
@@ -516,13 +514,7 @@ test.describe('groups', () => {
 			await newContext.close()
 		})
 
-		test('delete group removes for all members', async ({
-			page,
-			sidebar,
-			editor,
-			browser,
-			database,
-		}) => {
+		test('delete group removes for all members', async ({ sidebar, browser, database }) => {
 			const groupName = getRandomName()
 			const fileName = getRandomName()
 
