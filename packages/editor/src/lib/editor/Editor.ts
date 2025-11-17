@@ -842,14 +842,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * after the editor has already been initialized.
 	 *
 	 * @param Tool - The tool to set.
+	 * @param parent - The parent state node to set the tool on.
 	 *
 	 * @public
 	 */
-	setTool(Tool: TLStateNodeConstructor) {
-		if (hasOwnProperty(this.root.children!, Tool.id)) {
+	setTool(Tool: TLStateNodeConstructor, parent?: StateNode) {
+		parent ??= this.root
+		if (hasOwnProperty(parent.children!, Tool.id)) {
 			throw Error(`Can't override tool with id "${Tool.id}"`)
 		}
-		this.root.children![Tool.id] = new Tool(this, this.root)
+		parent.children![Tool.id] = new Tool(this, parent)
 	}
 
 	/**
@@ -857,12 +859,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * after the editor has already been initialized.
 	 *
 	 * @param Tool - The tool to delete.
+	 * @param parent - The parent state node to remove the tool from.
 	 *
 	 * @public
 	 */
-	removeTool(Tool: TLStateNodeConstructor) {
-		if (hasOwnProperty(this.root.children!, Tool.id)) {
-			delete this.root.children![Tool.id]
+	removeTool(Tool: TLStateNodeConstructor, parent?: StateNode) {
+		parent ??= this.root
+		if (hasOwnProperty(parent.children!, Tool.id)) {
+			delete parent.children![Tool.id]
 		}
 	}
 
