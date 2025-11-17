@@ -1,4 +1,5 @@
 import { useClerk, useSignIn } from '@clerk/clerk-react'
+import { GetInviteInfoResponseBody } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { ChangeEvent, ReactNode, useCallback, useEffect, useState, type FormEvent } from 'react'
 import {
@@ -15,9 +16,20 @@ import styles from './auth.module.css'
 
 const messages = defineMessages({
 	enterEmailAddress: { defaultMessage: 'Enter your email address' },
+	inviteMessage: {
+		defaultMessage: "<strong>You've been invited to join <groupName></groupName> group</strong>",
+	},
 })
 
-export function TlaSignInDialog({ onClose }: { onClose?(): void }) {
+export function TlaSignInDialog({
+	onClose,
+	inviteInfo,
+	onInviteAccepted,
+}: {
+	onClose?(): void
+	inviteInfo?: Extract<GetInviteInfoResponseBody, { error: false }>
+	onInviteAccepted?(): void
+}) {
 	const [stage, setStage] = useState<'enterEmail' | 'enterCode'>('enterEmail')
 	const [identifier, setIdentifier] = useState('')
 	const [isSignUpFlow, setIsSignUpFlow] = useState(false)
@@ -30,6 +42,7 @@ export function TlaSignInDialog({ onClose }: { onClose?(): void }) {
 			innerContent = (
 				<TlaEnterEmailStep
 					onClose={onClose}
+					inviteInfo={inviteInfo}
 					onComplete={(identifier, isSignUp, emailId) => {
 						setIdentifier(identifier)
 						setIsSignUpFlow(isSignUp)
@@ -46,6 +59,7 @@ export function TlaSignInDialog({ onClose }: { onClose?(): void }) {
 					isSignUpFlow={isSignUpFlow}
 					emailAddressId={emailAddressId}
 					onComplete={() => {
+						onInviteAccepted?.()
 						onClose?.()
 					}}
 					onClose={onClose}
@@ -77,9 +91,11 @@ export function TlaSignInDialog({ onClose }: { onClose?(): void }) {
 function TlaEnterEmailStep({
 	onClose,
 	onComplete,
+	inviteInfo,
 }: {
 	onClose?(): void
 	onComplete(identifier: string, isSignUpFlow: boolean, emailAddressId?: string): void
+	inviteInfo?: Extract<GetInviteInfoResponseBody, { error: false }>
 }) {
 	const { signIn, isLoaded: isSignInLoaded } = useSignIn()
 	const { setActive, client } = useClerk()
@@ -100,9 +116,13 @@ function TlaEnterEmailStep({
 		if (!isSignInLoaded || !signIn) return
 
 		try {
+			const redirectUrl = inviteInfo
+				? `${window.location.origin}/invite/${inviteInfo.inviteSecret}?accept=true`
+				: window.location.href
+
 			const result = await signIn.create({
 				strategy: 'oauth_google',
-				redirectUrl: window.location.href,
+				redirectUrl,
 			})
 
 			// Redirect to Google's OAuth page
@@ -113,7 +133,7 @@ function TlaEnterEmailStep({
 		} catch (err: any) {
 			console.error('Google sign-in error:', err)
 		}
-	}, [signIn, isSignInLoaded])
+	}, [signIn, isSignInLoaded, inviteInfo])
 
 	const handleEmailSubmit = useCallback(
 		async (e: FormEvent) => {
@@ -189,10 +209,27 @@ function TlaEnterEmailStep({
 				</div>
 			</div>
 			<div className={styles.authDescription}>
-				<F defaultMessage="tldraw is a free and instant virtual whiteboard." />
-				<br />
-				<br />
-				<F defaultMessage="Create a free account to save your work, collaborate in real-time, and more." />
+				{inviteInfo ? (
+					<>
+						<F
+							{...messages.inviteMessage}
+							values={{
+								groupName: () => inviteInfo.groupName,
+								strong: (chunks) => <strong>{chunks}</strong>,
+							}}
+						/>
+						<br />
+						<br />
+						<F defaultMessage="Sign in or create an account to accept the invitation." />
+					</>
+				) : (
+					<>
+						<F defaultMessage="tldraw is a free and instant virtual whiteboard." />
+						<br />
+						<br />
+						<F defaultMessage="Create a free account to save your work, collaborate in real-time, and more." />
+					</>
+				)}
 			</div>
 			<div className={styles.authGoogleButtonWrapper}>
 				<TlaCtaButton
@@ -316,9 +353,10 @@ function TlaVerificationCodeStep({
 						.attemptEmailAddressVerification({
 							code: next,
 						})
-						.then((s) => {
+						.then(async (s) => {
 							if (s.status === 'complete') {
-								setActive({ session: s.createdSessionId })
+								await setActive({ session: s.createdSessionId })
+								onComplete()
 								onClose?.()
 								return
 							}
@@ -343,9 +381,10 @@ function TlaVerificationCodeStep({
 							strategy: 'email_code',
 							code: next,
 						})
-						.then((r: any) => {
+						.then(async (r: any) => {
 							if (r.status === 'complete') {
-								setActive({ session: r.createdSessionId })
+								await setActive({ session: r.createdSessionId })
+								onComplete()
 								onClose?.()
 								return
 							}

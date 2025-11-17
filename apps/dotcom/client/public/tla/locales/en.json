@@ -197,6 +197,9 @@
   "5d26ae7550": {
     "translation": "We failed to upload some of the content you created before you signed in."
   },
+  "5f2528c81d": {
+    "translation": "<strong>You've been invited to join <groupName></groupName> group</strong>"
+  },
   "5f3c333678": {
     "translation": "Feedback submitted"
   },
@@ -449,6 +452,9 @@
   },
   "c4b39a1cc3": {
     "translation": "Essential cookies"
+  },
+  "c5c5a10435": {
+    "translation": "Sign in or create an account to accept the invitation."
   },
   "c6155aaecc": {
     "translation": "Group name"
