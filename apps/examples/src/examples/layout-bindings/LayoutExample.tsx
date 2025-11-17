@@ -165,7 +165,7 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 	getBindingIndexForPosition(shape: ElementShape, container: ContainerShape, pageAnchor: Vec) {
 		// All the layout bindings from the container
 		const allBindings = this.editor
-			.getBindingsFromShape<LayoutBinding>(container, LAYOUT_TYPE)
+			.getBindingsFromShape(container, LAYOUT_TYPE)
 			.sort((a, b) => (a.props.index > b.props.index ? 1 : -1))
 
 		// Those bindings that don't involve the element
@@ -198,7 +198,7 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 	override onTranslateStart(shape: ElementShape) {
 		// Update all the layout bindings for this shape to be placeholders
 		this.editor.updateBindings(
-			this.editor.getBindingsToShape<LayoutBinding>(shape, LAYOUT_TYPE).map((binding) => ({
+			this.editor.getBindingsToShape(shape, LAYOUT_TYPE).map((binding) => ({
 				...binding,
 				props: { ...binding.props, placeholder: true },
 			}))
@@ -214,7 +214,7 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 
 		if (!targetContainer) {
 			// Delete all the bindings to the element
-			const bindings = this.editor.getBindingsToShape<LayoutBinding>(shape, LAYOUT_TYPE)
+			const bindings = this.editor.getBindingsToShape(shape, LAYOUT_TYPE)
 			this.editor.deleteBindings(bindings)
 			return
 		}
@@ -224,13 +224,13 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 
 		// Is there an existing binding already between the container and the shape?
 		const existingBinding = this.editor
-			.getBindingsFromShape<LayoutBinding>(targetContainer, LAYOUT_TYPE)
+			.getBindingsFromShape(targetContainer, LAYOUT_TYPE)
 			.find((b) => b.toId === shape.id)
 
 		if (existingBinding) {
 			// If a binding already exists, update it
 			if (existingBinding.props.index === index) return
-			this.editor.updateBinding<LayoutBinding>({
+			this.editor.updateBinding({
 				...existingBinding,
 				props: {
 					...existingBinding.props,
@@ -240,7 +240,7 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 			})
 		} else {
 			// ...otherwise, create a new one
-			this.editor.createBinding<LayoutBinding>({
+			this.editor.createBinding({
 				id: createBindingId(),
 				type: LAYOUT_TYPE,
 				fromId: targetContainer.id,
@@ -267,10 +267,10 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 		const index = this.getBindingIndexForPosition(shape, targetContainer, pageAnchor)
 
 		// delete all the previous bindings for this shape
-		this.editor.deleteBindings(this.editor.getBindingsToShape<LayoutBinding>(shape, LAYOUT_TYPE))
+		this.editor.deleteBindings(this.editor.getBindingsToShape(shape, LAYOUT_TYPE))
 
 		// ...and then create a new one
-		this.editor.createBinding<LayoutBinding>({
+		this.editor.createBinding({
 			id: createBindingId(),
 			type: LAYOUT_TYPE,
 			fromId: targetContainer.id,
@@ -334,7 +334,7 @@ class LayoutBindingUtil extends BindingUtil<LayoutBinding> {
 		if (!container) return
 
 		const bindings = this.editor
-			.getBindingsFromShape<LayoutBinding>(container, LAYOUT_TYPE)
+			.getBindingsFromShape(container, LAYOUT_TYPE)
 			.sort((a, b) => (a.props.index > b.props.index ? 1 : -1))
 		if (bindings.length === 0) return
 

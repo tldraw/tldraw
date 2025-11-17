@@ -58,7 +58,7 @@ export class ConnectionBindingUtil extends BindingUtil<ConnectionBinding> {
 	onAfterCreate({ binding }: BindingOnCreateOptions<ConnectionBinding>): void {
 		// Our ports system has an `onConnect` callback - call it when we create a connection
 		const node = this.editor.getShape(binding.toId)
-		if (!node || !this.editor.isShapeOfType<NodeShape>(node, 'node')) return
+		if (!node || !this.editor.isShapeOfType(node, 'node')) return
 		onNodePortConnect(this.editor, node, binding.props.portId)
 	}
 
@@ -73,8 +73,8 @@ export class ConnectionBindingUtil extends BindingUtil<ConnectionBinding> {
 			if (
 				!nodeBefore ||
 				!nodeAfter ||
-				!this.editor.isShapeOfType<NodeShape>(nodeBefore, 'node') ||
-				!this.editor.isShapeOfType<NodeShape>(nodeAfter, 'node')
+				!this.editor.isShapeOfType(nodeBefore, 'node') ||
+				!this.editor.isShapeOfType(nodeAfter, 'node')
 			) {
 				return
 			}
@@ -86,7 +86,7 @@ export class ConnectionBindingUtil extends BindingUtil<ConnectionBinding> {
 	onAfterDelete({ binding }: BindingOnDeleteOptions<ConnectionBinding>): void {
 		// When we're deleting a connection, we need to call the node's port disconnect callback
 		const node = this.editor.getShape(binding.toId)
-		if (!node || !this.editor.isShapeOfType<NodeShape>(node, 'node')) return
+		if (!node || !this.editor.isShapeOfType(node, 'node')) return
 		onNodePortDisconnect(this.editor, node, binding.props.portId)
 	}
 }
@@ -109,7 +109,7 @@ export function getConnectionBindings(
 const connectionBindingsCache = createComputedCache(
 	'connection bindings',
 	(editor: Editor, connection: ConnectionShape) => {
-		const bindings = editor.getBindingsFromShape<ConnectionBinding>(connection.id, CONNECTION_TYPE)
+		const bindings = editor.getBindingsFromShape(connection.id, CONNECTION_TYPE)
 		let start, end
 		for (const binding of bindings) {
 			if (binding.props.terminal === 'start') {
@@ -135,7 +135,7 @@ export function getConnectionBindingPositionInPageSpace(
 ) {
 	// Find the shape that this binding is bound to
 	const targetShape = editor.getShape(binding.toId)
-	if (!targetShape || !editor.isShapeOfType<NodeShape>(targetShape, 'node')) return null
+	if (!targetShape || !editor.isShapeOfType(targetShape, 'node')) return null
 
 	// Find the port in the shape that the connection is bound to
 	const port = getNodePorts(editor, targetShape)?.[binding.props.portId]
@@ -159,7 +159,7 @@ export function createOrUpdateConnectionBinding(
 	const targetId = typeof target === 'string' ? target : target.id
 
 	const existingMany = editor
-		.getBindingsFromShape<ConnectionBinding>(connectionId, CONNECTION_TYPE)
+		.getBindingsFromShape(connectionId, CONNECTION_TYPE)
 		.filter((b) => b.props.terminal === props.terminal)
 
 	// if we've somehow ended up with too many bindings, delete the extras
@@ -191,7 +191,7 @@ export function removeConnectionBinding(
 	terminal: 'start' | 'end'
 ) {
 	const existing = editor
-		.getBindingsFromShape<ConnectionBinding>(connection, CONNECTION_TYPE)
+		.getBindingsFromShape(connection, CONNECTION_TYPE)
 		.filter((b) => b.props.terminal === terminal)
 
 	editor.deleteBindings(existing)

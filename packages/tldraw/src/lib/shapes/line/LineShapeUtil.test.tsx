@@ -24,7 +24,7 @@ beforeEach(() => {
 	editor
 		.selectAll()
 		.deleteShapes(editor.getSelectedShapeIds())
-		.createShapes<TLLineShape>([
+		.createShapes([
 			{
 				id: id,
 				type: 'line',

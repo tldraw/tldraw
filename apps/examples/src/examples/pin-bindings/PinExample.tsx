@@ -189,7 +189,7 @@ class PinBindingUtil extends BindingUtil<PinBinding> {
 			if (allShapes.has(shapeId)) continue
 			allShapes.add(shapeId)
 
-			const bindings = this.editor.getBindingsToShape<PinBinding>(shape, PIN_TYPE)
+			const bindings = this.editor.getBindingsToShape(shape, PIN_TYPE)
 			for (const binding of bindings) {
 				if (allShapes.has(binding.fromId)) continue
 				allShapes.add(binding.fromId)
@@ -200,7 +200,7 @@ class PinBindingUtil extends BindingUtil<PinBinding> {
 				const pinPosition = this.editor.getShapePageTransform(pin).applyToPoint({ x: 0, y: 0 })
 				initialPositions.set(pin.id, pinPosition)
 
-				for (const binding of this.editor.getBindingsFromShape<PinBinding>(pin.id, PIN_TYPE)) {
+				for (const binding of this.editor.getBindingsFromShape(pin.id, PIN_TYPE)) {
 					const shapeBounds = this.editor.getShapeGeometry(binding.toId)!.bounds
 					const shapeAnchor = {
 						x: lerp(shapeBounds.minX, shapeBounds.maxX, binding.props.anchor.x),

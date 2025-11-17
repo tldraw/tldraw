@@ -179,8 +179,8 @@ export default function SizeFromDomExample() {
 					editor.selectAll()
 					editor.deleteShapes(editor.getSelectedShapeIds())
 
-					editor.createShape<DynamicSizeShape>({
-						type: 'dynamic-size',
+					editor.createShape({
+						type: DYNAMIC_SIZE_TYPE,
 						x: 100,
 						y: 100,
 					})

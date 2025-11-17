@@ -1161,8 +1161,20 @@ export class Editor extends EventEmitter<TLEventMap> {
     getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
     getBaseZoom(): number;
     getBinding(id: TLBindingId): TLBinding | undefined;
+    getBindingsFromShape<K extends TLBinding['type']>(shape: TLShape | TLShapeId, type: K): Extract<TLBinding, {
+        type: K;
+    }>[];
+    // (undocumented)
     getBindingsFromShape<Binding extends TLBinding = TLBinding>(shape: TLShape | TLShapeId, type: Binding['type']): Binding[];
+    getBindingsInvolvingShape<K extends TLBinding['type']>(shape: TLShape | TLShapeId, type: K): Extract<TLBinding, {
+        type: K;
+    }>[];
+    // (undocumented)
     getBindingsInvolvingShape<Binding extends TLBinding = TLBinding>(shape: TLShape | TLShapeId, type?: Binding['type']): Binding[];
+    getBindingsToShape<K extends TLBinding['type']>(shape: TLShape | TLShapeId, type: K): Extract<TLBinding, {
+        type: K;
+    }>[];
+    // (undocumented)
     getBindingsToShape<Binding extends TLBinding = TLBinding>(shape: TLShape | TLShapeId, type: Binding['type']): Binding[];
     getBindingUtil<K extends TLBinding['type']>(type: K): BindingUtil<Extract<TLBinding, {
         type: K;

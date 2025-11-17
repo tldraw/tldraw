@@ -51,7 +51,7 @@ function findWorkflowRegions(editor: Editor): WorkflowRegion[] {
 
 	// Start visiting from all nodes in the current page
 	for (const node of editor.getCurrentPageShapes()) {
-		if (editor.isShapeOfType<NodeShape>(node, 'node')) {
+		if (editor.isShapeOfType(node, 'node')) {
 			visit(node)
 		}
 	}

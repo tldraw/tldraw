@@ -48,9 +48,9 @@ export class myInteractiveShape extends BaseBoxShapeUtil<IMyInteractiveShape> {
 					type="checkbox"
 					checked={shape.props.checked}
 					onChange={() =>
-						this.editor.updateShape<IMyInteractiveShape>({
+						this.editor.updateShape({
 							id: shape.id,
-							type: 'my-interactive-shape',
+							type: MY_INTERACTIVE_SHAPE_TYPE,
 							props: { checked: !shape.props.checked },
 						})
 					}
@@ -65,9 +65,9 @@ export class myInteractiveShape extends BaseBoxShapeUtil<IMyInteractiveShape> {
 					readOnly={shape.props.checked}
 					value={shape.props.text}
 					onChange={(e) =>
-						this.editor.updateShape<IMyInteractiveShape>({
+						this.editor.updateShape({
 							id: shape.id,
-							type: 'my-interactive-shape',
+							type: MY_INTERACTIVE_SHAPE_TYPE,
 							props: { text: e.currentTarget.value },
 						})
 					}

@@ -72,9 +72,9 @@ export default function DataGridExample() {
 					const agGridShapeId = createShapeId('ag-grid')
 
 					if (!editor.getShape(agGridShapeId)) {
-						editor.createShape<AgGridShape>({
+						editor.createShape({
 							id: agGridShapeId,
-							type: 'ag-grid',
+							type: AG_GRID_TYPE,
 							props: {
 								w: 400,
 								h: 300,

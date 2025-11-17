@@ -1,4 +1,4 @@
-import { DefaultDashStyle, TLGeoShape, createShapeId, toRichText } from '@tldraw/editor'
+import { DefaultDashStyle, createShapeId, toRichText } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from '../TestEditor'
 
@@ -21,7 +21,7 @@ beforeEach(() => {
 	editor = new TestEditor()
 	editor.setStyleForNextShapes(DefaultDashStyle, 'solid')
 	editor.setStyleForSelectedShapes(DefaultDashStyle, 'solid')
-	editor.createShapes<TLGeoShape>([
+	editor.createShapes([
 		{
 			id: ids.boxA,
 			type: 'geo',

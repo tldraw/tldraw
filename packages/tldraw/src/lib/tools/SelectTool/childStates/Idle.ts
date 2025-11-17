@@ -3,11 +3,9 @@ import {
 	StateNode,
 	TLAdjacentDirection,
 	TLClickEventInfo,
-	TLGroupShape,
 	TLKeyboardEventInfo,
 	TLPointerEventInfo,
 	TLShape,
-	TLTextShape,
 	Vec,
 	VecLike,
 	createShapeId,
@@ -190,7 +188,7 @@ export class Idle extends StateNode {
 				// unexpected results when working "inside of" a hollow shape.
 
 				const hitShape =
-					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
+					hoveredShape && !this.editor.isShapeOfType(hoveredShape, 'group')
 						? hoveredShape
 						: (this.editor.getSelectedShapeAtPoint(this.editor.inputs.currentPagePoint) ??
 							this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
@@ -201,13 +199,13 @@ export class Idle extends StateNode {
 				const focusedGroupId = this.editor.getFocusedGroupId()
 
 				if (hitShape) {
-					if (this.editor.isShapeOfType<TLGroupShape>(hitShape, 'group')) {
+					if (this.editor.isShapeOfType(hitShape, 'group')) {
 						// Probably select the shape
 						selectOnCanvasPointerUp(this.editor, info)
 						return
 					} else {
 						const parent = this.editor.getShape(hitShape.parentId)
-						if (parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')) {
+						if (parent && this.editor.isShapeOfType(parent, 'group')) {
 							// The shape is the direct child of a group. If the group is
 							// selected, then we can select the shape. If the group is the
 							// focus layer id, then we can double click into it as usual.
@@ -356,7 +354,7 @@ export class Idle extends StateNode {
 			case 'canvas': {
 				const hoveredShape = this.editor.getHoveredShape()
 				const hitShape =
-					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
+					hoveredShape && !this.editor.isShapeOfType(hoveredShape, 'group')
 						? hoveredShape
 						: this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
 								margin: this.editor.options.hitTestMargin / this.editor.getZoomLevel(),
@@ -525,9 +523,7 @@ export class Idle extends StateNode {
 				const selectedShapes = this.editor.getSelectedShapes()
 
 				// On enter, if every selected shape is a group, then select all of the children of the groups
-				if (
-					selectedShapes.every((shape) => this.editor.isShapeOfType<TLGroupShape>(shape, 'group'))
-				) {
+				if (selectedShapes.every((shape) => this.editor.isShapeOfType(shape, 'group'))) {
 					this.editor.setSelectedShapes(
 						selectedShapes.flatMap((shape) => this.editor.getSortedChildIdsForParent(shape.id))
 					)
@@ -604,7 +600,7 @@ export class Idle extends StateNode {
 		const { x, y } = this.editor.inputs.currentPagePoint
 
 		// Allow this to trigger the max shapes reached alert
-		this.editor.createShapes<TLTextShape>([
+		this.editor.createShapes([
 			{
 				id,
 				type: 'text',

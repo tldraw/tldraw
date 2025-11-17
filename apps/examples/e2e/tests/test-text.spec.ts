@@ -253,7 +253,7 @@ test.describe('text measurement', () => {
 	test('for auto-font-sizing shapes, should do normal font size for text that does not have long words', async () => {
 		const shape = await page.evaluate(() => {
 			const id = 'shape:testShape' as TLShapeId
-			editor.createShapes<TLNoteShape>([
+			editor.createShapes([
 				{
 					id,
 					type: 'note',
@@ -275,7 +275,7 @@ test.describe('text measurement', () => {
 	test('for auto-font-sizing shapes, should auto-size text that have slightly long words', async () => {
 		const shape = await page.evaluate(() => {
 			const id = 'shape:testShape' as TLShapeId
-			editor.createShapes<TLNoteShape>([
+			editor.createShapes([
 				{
 					id,
 					type: 'note',
@@ -297,7 +297,7 @@ test.describe('text measurement', () => {
 	test('for auto-font-sizing shapes, should auto-size text that have long words', async () => {
 		const shape = await page.evaluate(() => {
 			const id = 'shape:testShape' as TLShapeId
-			editor.createShapes<TLNoteShape>([
+			editor.createShapes([
 				{
 					id,
 					type: 'note',
@@ -319,7 +319,7 @@ test.describe('text measurement', () => {
 	test('for auto-font-sizing shapes, should wrap text that has words that are way too long', async () => {
 		const shape = await page.evaluate(() => {
 			const id = 'shape:testShape' as TLShapeId
-			editor.createShapes<TLNoteShape>([
+			editor.createShapes([
 				{
 					id,
 					type: 'note',
@@ -369,7 +369,7 @@ test.describe('text measurement', () => {
 
 		await page.evaluate(() => {
 			const id = 'shape:testShape' as TLShapeId
-			editor.createShapes<TLNoteShape>([
+			editor.createShapes([
 				{
 					id,
 					type: 'note',

@@ -115,7 +115,7 @@ export class DraggingHandle extends StateNode {
 		}
 
 		// <!-- Only relevant to arrows
-		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+		if (this.editor.isShapeOfType(shape, 'arrow')) {
 			const initialBinding = getArrowBindings(this.editor, shape)[info.handle.id as 'start' | 'end']
 
 			this.isPrecise = false
@@ -295,7 +295,7 @@ export class DraggingHandle extends StateNode {
 		if (!shape) return
 		const util = editor.getShapeUtil(shape)
 
-		const initialBinding = editor.isShapeOfType<TLArrowShape>(shape, 'arrow')
+		const initialBinding = editor.isShapeOfType(shape, 'arrow')
 			? getArrowBindings(editor, shape)[initialHandle.id as 'start' | 'end']
 			: undefined
 
@@ -352,10 +352,7 @@ export class DraggingHandle extends StateNode {
 		const next: TLShapePartial<any> = { id: shape.id, type: shape.type, ...changes }
 
 		// Arrows
-		if (
-			initialHandle.type === 'vertex' &&
-			this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')
-		) {
+		if (initialHandle.type === 'vertex' && this.editor.isShapeOfType(shape, 'arrow')) {
 			const bindingAfter = getArrowBindings(editor, shape)[initialHandle.id as 'start' | 'end']
 
 			if (bindingAfter) {

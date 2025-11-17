@@ -104,7 +104,7 @@ export function getAvailableNoteAdjacentPositions(
 	// Get all the positions that are adjacent to the selected note shapes
 	for (const shape of editor.getCurrentPageShapes()) {
 		if (
-			!editor.isShapeOfType<TLNoteShape>(shape, 'note') ||
+			!editor.isShapeOfType(shape, 'note') ||
 			scale !== shape.props.scale ||
 			selectedShapeIds.has(shape.id)
 		) {
@@ -204,7 +204,7 @@ export function getNoteShapeForAdjacentPosition(
 
 		// We create it at the center first, so that it becomes
 		// the child of whatever parent was at that center
-		editor.createShape<TLNoteShape>({
+		editor.createShape({
 			id,
 			type: 'note',
 			x: center.x,

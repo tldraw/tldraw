@@ -1,11 +1,4 @@
-import {
-	Editor,
-	sanitizeId,
-	TLExportType,
-	TLFrameShape,
-	TLImageExportOptions,
-	TLShapeId,
-} from '@tldraw/editor'
+import { Editor, sanitizeId, TLExportType, TLImageExportOptions, TLShapeId } from '@tldraw/editor'
 
 /** @public */
 export interface ExportAsOptions extends TLImageExportOptions {
@@ -35,7 +28,7 @@ export async function exportAs(
 		name = `shapes at ${getTimestamp()}`
 		if (ids.length === 1) {
 			const first = editor.getShape(ids[0])!
-			if (editor.isShapeOfType<TLFrameShape>(first, 'frame')) {
+			if (editor.isShapeOfType(first, 'frame')) {
 				name = first.props.name || 'frame'
 			} else {
 				name = `${sanitizeId(first.id)} at ${getTimestamp()}`

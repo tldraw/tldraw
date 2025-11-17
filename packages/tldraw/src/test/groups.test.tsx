@@ -1983,7 +1983,7 @@ describe('Group opacity', () => {
 		editor.setOpacityForNextShapes(0.5)
 		editor.groupShapes(editor.getSelectedShapeIds())
 		const group = editor.getShape(onlySelectedId())!
-		assert(editor.isShapeOfType<TLGroupShape>(group, 'group'))
+		assert(editor.isShapeOfType(group, 'group'))
 		expect(group.opacity).toBe(1)
 	})
 })

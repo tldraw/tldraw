@@ -2,8 +2,6 @@ import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useEffect, useLayoutEffect } from 'react'
 import {
 	BaseBoxShapeUtil,
-	TLArrowShape,
-	TLGeoShape,
 	TLShape,
 	Tldraw,
 	createShapeId,
@@ -145,7 +143,7 @@ function SneakyExportButton() {
 			markAllArrowBindings: () => {
 				const markRadius = 3
 				for (const shape of editor.getCurrentPageShapes()) {
-					if (!editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) continue
+					if (!editor.isShapeOfType(shape, 'arrow')) continue
 
 					const info = getArrowInfo(editor, shape)
 					if (!info) continue
@@ -154,7 +152,7 @@ function SneakyExportButton() {
 
 					if (info.bindings.start) {
 						const pagePoint = transform.applyToPoint(info.start.handle)
-						editor.createShape<TLGeoShape>({
+						editor.createShape({
 							type: 'geo',
 							x: pagePoint.x - markRadius,
 							y: pagePoint.y - markRadius,
@@ -172,7 +170,7 @@ function SneakyExportButton() {
 
 					if (info.bindings.end) {
 						const pagePoint = transform.applyToPoint(info.end.handle)
-						editor.createShape<TLGeoShape>({
+						editor.createShape({
 							type: 'geo',
 							x: pagePoint.x - markRadius,
 							y: pagePoint.y - markRadius,

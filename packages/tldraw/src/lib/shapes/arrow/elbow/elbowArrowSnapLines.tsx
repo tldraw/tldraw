@@ -39,7 +39,7 @@ export function getElbowArrowSnapLines(editor: Editor) {
 		.get(editor, (editor) => {
 			const currentSelectedArrowShape = computed('current selected arrow shape', () => {
 				const shape = editor.getOnlySelectedShape()
-				if (!shape || !editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) return null
+				if (!shape || !editor.isShapeOfType(shape, 'arrow')) return null
 				return shape.id
 			})
 
