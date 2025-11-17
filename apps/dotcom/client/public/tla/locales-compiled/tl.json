@@ -51,6 +51,12 @@
       "value": "Account"
     }
   ],
+  "08d2d725a9": [
+    {
+      "type": 0,
+      "value": "Gumawa ng libreng account para i-save ang iyong trabaho, makipagtulungan sa real-time, at higit pa."
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
@@ -61,6 +67,12 @@
     {
       "type": 0,
       "value": "Menu ng file"
+    }
+  ],
+  "0beb3ca97b": [
+    {
+      "type": 0,
+      "value": "Ang tldraw ay isang libre at instant na virtual whiteboard."
     }
   ],
   "0d1f2bb523": [
@@ -75,6 +87,18 @@
       "value": "I-publish"
     }
   ],
+  "129b9e34ea": [
+    {
+      "type": 0,
+      "value": "Umalis sa grupo"
+    }
+  ],
+  "12a6766ba1": [
+    {
+      "type": 0,
+      "value": "I-unpin ang file"
+    }
+  ],
   "12c8a9838c": [
     {
       "type": 0,
@@ -85,6 +109,18 @@
     {
       "type": 0,
       "value": "I-export bilang"
+    }
+  ],
+  "146ffe2fd9": [
+    {
+      "type": 0,
+      "value": "Magpakita ng higit pa"
+    }
+  ],
+  "14d65465b7": [
+    {
+      "type": 0,
+      "value": "Tanggalin ang pangkat"
     }
   ],
   "181b90f889": [
@@ -117,6 +153,12 @@
       "value": "Papalapit na ang kwartong ito sa limitasyon ng laki nito. Pag-isipang mag-alis ng ilang content o magsimula ng bagong file."
     }
   ],
+  "2445e5e347": [
+    {
+      "type": 0,
+      "value": "Lumikha ng pangkat"
+    }
+  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -127,6 +169,12 @@
     {
       "type": 0,
       "value": "Nabigo ang pag-upload"
+    }
+  ],
+  "2c3ef76333": [
+    {
+      "type": 0,
+      "value": "Aking mga file"
     }
   ],
   "2deec2cb74": [
@@ -147,6 +195,12 @@
       "value": "i18n: Nawawala ang Highlight"
     }
   ],
+  "32210b37e4": [
+    {
+      "type": 0,
+      "value": "Magdagdag ng link"
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
@@ -157,6 +211,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "3bc7d6ea2f": [
+    {
+      "type": 0,
+      "value": "Magpatuloy sa email"
     }
   ],
   "3bd1b98dbd": [
@@ -201,10 +261,28 @@
       "value": "tldraw"
     }
   ],
+  "47f493a590": [
+    {
+      "type": 0,
+      "value": "Pin file"
+    }
+  ],
+  "49049467ff": [
+    {
+      "type": 0,
+      "value": "I-paste ang URL ng tldraw file..."
+    }
+  ],
   "4908687e50": [
     {
       "type": 0,
       "value": "Sigurado ka bang gusto mong kalimutan ang file na ito?"
+    }
+  ],
+  "49ee308734": [
+    {
+      "type": 0,
+      "value": "Pangalan"
     }
   ],
   "4d0d3ddec9": [
@@ -217,6 +295,18 @@
     {
       "type": 0,
       "value": "I-reload"
+    }
+  ],
+  "4da5988a2e": [
+    {
+      "type": 0,
+      "value": "Tanggalin ang pangkat…"
+    }
+  ],
+  "4e6fbf032b": [
+    {
+      "type": 0,
+      "value": "Sigurado ka bang gusto mong tanggalin ang pangkat na ito? Ang pagkilos na ito ay hindi maaaring i-undo."
     }
   ],
   "50db1b7e1e": [
@@ -277,6 +367,40 @@
       "value": "Patakaran sa privacy"
     }
   ],
+  "5a86b22fa0": [
+    {
+      "type": 0,
+      "value": "I-drag ang mga file dito, "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "lumikha ng file"
+        }
+      ],
+      "type": 8,
+      "value": "create"
+    },
+    {
+      "type": 0,
+      "value": ", o "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "copy invite link"
+        }
+      ],
+      "type": 8,
+      "value": "invite"
+    },
+    {
+      "type": 0,
+      "value": " para makapagsimula."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -299,6 +423,12 @@
     {
       "type": 0,
       "value": "Nakita ang lumang browser. Mangyaring i-update ang iyong browser upang magamit ang app na ito."
+    }
+  ],
+  "5c6fe42bc2": [
+    {
+      "type": 0,
+      "value": "Bawiin ang link na ito at gumawa ng bago."
     }
   ],
   "5d26ae7550": [
@@ -331,6 +461,12 @@
       "value": "Mas matanda"
     }
   ],
+  "639bae9ac6": [
+    {
+      "type": 0,
+      "value": "ikaw"
+    }
+  ],
   "6609dd239e": [
     {
       "type": 0,
@@ -341,6 +477,30 @@
     {
       "type": 0,
       "value": "Available ang bagong bersyon ng tldraw. Paki-reload ang page para magpatuloy."
+    }
+  ],
+  "68257bb646": [
+    {
+      "type": 0,
+      "value": "Inimbitahan ka sa pangkat na "
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "br"
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "groupName"
+    }
+  ],
+  "6832ac5936": [
+    {
+      "type": 0,
+      "value": "Ilagay ang iyong email address"
     }
   ],
   "6a26f54883": [
@@ -359,6 +519,12 @@
     {
       "type": 0,
       "value": "Sundin ang mga hakbang na ito upang manu-manong i-import ang nilalaman:"
+    }
+  ],
+  "70222abcfc": [
+    {
+      "type": 0,
+      "value": "Mga setting ng pangkat"
     }
   ],
   "70a6facb9d": [
@@ -451,6 +617,12 @@
       "value": "Kalimutan"
     }
   ],
+  "7cfe6c43dc": [
+    {
+      "type": 0,
+      "value": "Umalis sa grupo..."
+    }
+  ],
   "7daeced9ff": [
     {
       "type": 0,
@@ -529,10 +701,22 @@
       "value": "Palitan ang pangalan ng file"
     }
   ],
+  "8ad4303b83": [
+    {
+      "type": 0,
+      "value": "Hindi salamat"
+    }
+  ],
   "8b1946f965": [
     {
       "type": 0,
       "value": "Para magpatuloy sa pag-edit, pakikopya ang kwarto sa iyong mga file."
+    }
+  ],
+  "8c2d3d730c": [
+    {
+      "type": 0,
+      "value": "Tingnan ang iyong email para sa isang verification code."
     }
   ],
   "8eb2c00e96": [
@@ -565,6 +749,18 @@
       "value": "Kopyahin sa aking mga file"
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Kinopya ang link ng imbitasyon"
+    }
+  ],
+  "95aacd4d4a": [
+    {
+      "type": 0,
+      "value": "Mag-sign in gamit ang Google"
+    }
+  ],
   "95d2109dc8": [
     {
       "type": 0,
@@ -577,10 +773,42 @@
       "value": "Ngayong buwan"
     }
   ],
+  "985a4b720f": [
+    {
+      "type": 0,
+      "value": "Mga Tuntunin sa Paggamit"
+    }
+  ],
+  "98c997a27e": [
+    {
+      "type": 0,
+      "value": "Magdagdag ng link ng file"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Liwanag"
+    }
+  ],
+  "9b33f5c63c": [
+    {
+      "type": 0,
+      "value": "Hindi nakatanggap ng code? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Muling ipadala"
+        }
+      ],
+      "type": 8,
+      "value": "resend"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "9bef626805": [
@@ -673,6 +901,12 @@
       "value": "Background"
     }
   ],
+  "aa916767cf": [
+    {
+      "type": 0,
+      "value": "Mag-sign in para tanggapin ang imbitasyon"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -697,10 +931,28 @@
       "value": "Guest user"
     }
   ],
+  "b357b524e7": [
+    {
+      "type": 0,
+      "value": "Email address"
+    }
+  ],
+  "b3d2db69fe": [
+    {
+      "type": 0,
+      "value": "URL ng file"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
       "value": "Mag-sign in"
+    }
+  ],
+  "b6f4a2ec63": [
+    {
+      "type": 0,
+      "value": "May-ari"
     }
   ],
   "b758336699": [
@@ -715,10 +967,10 @@
       "value": "Mag-sign in upang ibahagi"
     }
   ],
-  "bb792693e2": [
+  "bb93a7590f": [
     {
       "type": 0,
-      "value": "I-unpin"
+      "value": "Tanggapin at sumali sa grupo"
     }
   ],
   "bbbcefd7ce": [
@@ -789,16 +1041,30 @@
       "value": "ownerName"
     }
   ],
-  "bcb62136a3": [
-    {
-      "type": 0,
-      "value": "Mag-upload ng mga .tldr na file"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Matuto pa tungkol sa pagbabahagi."
+    }
+  ],
+  "c28aed8348": [
+    {
+      "type": 0,
+      "value": "Payagan ang "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "analytics"
+        }
+      ],
+      "type": 8,
+      "value": "cookies"
+    },
+    {
+      "type": 0,
+      "value": " na tulungan kaming pagbutihin ang tldraw."
     }
   ],
   "c303bd1095": [
@@ -813,6 +1079,12 @@
       "value": "Mahahalagang cookies"
     }
   ],
+  "c6155aaecc": [
+    {
+      "type": 0,
+      "value": "Pangalan ng grupo"
+    }
+  ],
   "c655b27b1e": [
     {
       "type": 0,
@@ -825,10 +1097,22 @@
       "value": "Mag-imbita"
     }
   ],
+  "c74ea6dbff": [
+    {
+      "type": 0,
+      "value": "Magpakita ng mas kaunti"
+    }
+  ],
   "c87aacf567": [
     {
       "type": 0,
       "value": "Mag-sign out"
+    }
+  ],
+  "c9cc8cce24": [
+    {
+      "type": 0,
+      "value": "I-save"
     }
   ],
   "cceaefbc20": [
@@ -861,6 +1145,40 @@
       "value": "I-toggle ang sidebar"
     }
   ],
+  "d638a3344b": [
+    {
+      "type": 0,
+      "value": "Bago ka magsimula, mangyaring tanggapin ang aming "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "mga tuntunin ng paggamit"
+        }
+      ],
+      "type": 8,
+      "value": "tos"
+    },
+    {
+      "type": 0,
+      "value": " at "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "patakaran sa privacy"
+        }
+      ],
+      "type": 8,
+      "value": "privacy"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "d721757161": [
     {
       "type": 0,
@@ -873,10 +1191,22 @@
       "value": "Subukan Muli"
     }
   ],
+  "d88ad2dc74": [
+    {
+      "type": 0,
+      "value": "Tanggapin at magpatuloy"
+    }
+  ],
   "d9100f3e10": [
     {
       "type": 0,
       "value": "Pumunta dito upang makita ang nilalaman"
+    }
+  ],
+  "d9e35d0f55": [
+    {
+      "type": 0,
+      "value": "Naabot mo na ang maximum na bilang ng mga pangkat. Kailangan mong tanggalin ang mga lumang grupo bago gumawa ng mga bago."
     }
   ],
   "dbbebf3c03": [
@@ -885,10 +1215,28 @@
       "value": "Mag-imbita lang"
     }
   ],
+  "dcdaa754fe": [
+    {
+      "type": 0,
+      "value": "Di-wastong tldraw file URL"
+    }
+  ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "Mga flag ng pag-debug ng app"
+    }
+  ],
+  "e0c88179b3": [
+    {
+      "type": 0,
+      "value": "Mag-imbita ng mga miyembro"
+    }
+  ],
+  "e2198d6228": [
+    {
+      "type": 0,
+      "value": "Kopyahin ang link ng imbitasyon"
     }
   ],
   "e2ae80a510": [
@@ -897,16 +1245,28 @@
       "value": "Legal na buod"
     }
   ],
+  "e3afed0047": [
+    {
+      "type": 0,
+      "value": "Admin"
+    }
+  ],
   "e404559826": [
     {
       "type": 0,
       "value": "Mga tuntunin ng serbisyo"
     }
   ],
-  "e78e14c5f1": [
+  "e81c4e4f2b": [
     {
       "type": 0,
-      "value": "Pin"
+      "value": "o"
+    }
+  ],
+  "ea0626ac5a": [
+    {
+      "type": 0,
+      "value": "Danger zone"
     }
   ],
   "ea4788705e": [
@@ -965,6 +1325,12 @@
       "value": " upang matuto nang higit pa."
     }
   ],
+  "ef53538ae4": [
+    {
+      "type": 0,
+      "value": "Mga miyembro"
+    }
+  ],
   "ef7de3f485": [
     {
       "type": 0,
@@ -1007,6 +1373,18 @@
       "value": "Mga setting"
     }
   ],
+  "f714e36843": [
+    {
+      "type": 0,
+      "value": "Sigurado ka bang gusto mong umalis sa grupong ito?"
+    }
+  ],
+  "fa2ead697d": [
+    {
+      "type": 0,
+      "value": "Patakaran sa Privacy"
+    }
+  ],
   "fb15c53f22": [
     {
       "type": 0,
@@ -1023,6 +1401,12 @@
     {
       "type": 0,
       "value": "Kinopya ang link"
+    }
+  ],
+  "ff7a814974": [
+    {
+      "type": 0,
+      "value": "Magdagdag ng link ng file…"
     }
   ],
   "ffcd73e997": [

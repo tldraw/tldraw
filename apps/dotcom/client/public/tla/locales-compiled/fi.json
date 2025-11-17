@@ -51,6 +51,12 @@
       "value": "Tili"
     }
   ],
+  "08d2d725a9": [
+    {
+      "type": 0,
+      "value": "Luo ilmainen tili tallentaaksesi työsi, tehdäksesi yhteistyötä reaaliajassa ja paljon muuta."
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
@@ -61,6 +67,12 @@
     {
       "type": 0,
       "value": "Tiedosto-valikko"
+    }
+  ],
+  "0beb3ca97b": [
+    {
+      "type": 0,
+      "value": "tldraw on ilmainen ja pikaisesti käytettävä virtuaalinen valkotaulu."
     }
   ],
   "0d1f2bb523": [
@@ -75,6 +87,18 @@
       "value": "Julkaista"
     }
   ],
+  "129b9e34ea": [
+    {
+      "type": 0,
+      "value": "Poistu ryhmästä"
+    }
+  ],
+  "12a6766ba1": [
+    {
+      "type": 0,
+      "value": "Irrota tiedosto"
+    }
+  ],
   "12c8a9838c": [
     {
       "type": 0,
@@ -85,6 +109,18 @@
     {
       "type": 0,
       "value": "Vie nimellä"
+    }
+  ],
+  "146ffe2fd9": [
+    {
+      "type": 0,
+      "value": "Näytä lisää"
+    }
+  ],
+  "14d65465b7": [
+    {
+      "type": 0,
+      "value": "Poista ryhmä"
     }
   ],
   "181b90f889": [
@@ -117,6 +153,12 @@
       "value": "Tämä huone lähestyy kokorajoitustaan. Harkitse sisällön poistamista tai uuden tiedoston aloittamista."
     }
   ],
+  "2445e5e347": [
+    {
+      "type": 0,
+      "value": "Luo ryhmä"
+    }
+  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -127,6 +169,12 @@
     {
       "type": 0,
       "value": "Lataus epäonnistui"
+    }
+  ],
+  "2c3ef76333": [
+    {
+      "type": 0,
+      "value": "Omat tiedostoni"
     }
   ],
   "2deec2cb74": [
@@ -147,6 +195,12 @@
       "value": "i18n: Korosta puuttuu"
     }
   ],
+  "32210b37e4": [
+    {
+      "type": 0,
+      "value": "Lisää linkki"
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
@@ -157,6 +211,12 @@
     {
       "type": 0,
       "value": "Toimittaja"
+    }
+  ],
+  "3bc7d6ea2f": [
+    {
+      "type": 0,
+      "value": "Jatka sähköpostitse"
     }
   ],
   "3bd1b98dbd": [
@@ -201,10 +261,28 @@
       "value": "tldraw"
     }
   ],
+  "47f493a590": [
+    {
+      "type": 0,
+      "value": "Kiinnitä tiedosto"
+    }
+  ],
+  "49049467ff": [
+    {
+      "type": 0,
+      "value": "Liitä tldraw-tiedoston URL-osoite..."
+    }
+  ],
   "4908687e50": [
     {
       "type": 0,
       "value": "Haluatko varmasti unohtaa tämän tiedoston?"
+    }
+  ],
+  "49ee308734": [
+    {
+      "type": 0,
+      "value": "Nimi"
     }
   ],
   "4d0d3ddec9": [
@@ -217,6 +295,18 @@
     {
       "type": 0,
       "value": "Lataa uudelleen"
+    }
+  ],
+  "4da5988a2e": [
+    {
+      "type": 0,
+      "value": "Poista ryhmä…"
+    }
+  ],
+  "4e6fbf032b": [
+    {
+      "type": 0,
+      "value": "Haluatko varmasti poistaa tämän ryhmän? Tätä toimintoa ei voi perua."
     }
   ],
   "50db1b7e1e": [
@@ -277,6 +367,40 @@
       "value": "Tietosuojakäytäntö"
     }
   ],
+  "5a86b22fa0": [
+    {
+      "type": 0,
+      "value": "Vedä tiedostot tähän, "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "luo tiedosto"
+        }
+      ],
+      "type": 8,
+      "value": "create"
+    },
+    {
+      "type": 0,
+      "value": " tai "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "kopioi kutsulinkki"
+        }
+      ],
+      "type": 8,
+      "value": "invite"
+    },
+    {
+      "type": 0,
+      "value": " aloittaaksesi."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -299,6 +423,12 @@
     {
       "type": 0,
       "value": "Vanha selain havaittu. Päivitä selaimesi käyttääksesi tätä sovellusta."
+    }
+  ],
+  "5c6fe42bc2": [
+    {
+      "type": 0,
+      "value": "Peruuta tämä linkki ja luo uusi."
     }
   ],
   "5d26ae7550": [
@@ -331,6 +461,12 @@
       "value": "Vanhempi"
     }
   ],
+  "639bae9ac6": [
+    {
+      "type": 0,
+      "value": "sinä"
+    }
+  ],
   "6609dd239e": [
     {
       "type": 0,
@@ -341,6 +477,30 @@
     {
       "type": 0,
       "value": "Uusi versio tldraw:sta on saatavilla. Jatka lataamalla sivu uudelleen."
+    }
+  ],
+  "68257bb646": [
+    {
+      "type": 0,
+      "value": "Sinut on kutsuttu ryhmään "
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "br"
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "groupName"
+    }
+  ],
+  "6832ac5936": [
+    {
+      "type": 0,
+      "value": "Anna sähköpostiosoitteesi"
     }
   ],
   "6a26f54883": [
@@ -359,6 +519,12 @@
     {
       "type": 0,
       "value": "Tuo sisältö manuaalisesti seuraavasti:"
+    }
+  ],
+  "70222abcfc": [
+    {
+      "type": 0,
+      "value": "Ryhmän asetukset"
     }
   ],
   "70a6facb9d": [
@@ -451,6 +617,12 @@
       "value": "Unohtaa"
     }
   ],
+  "7cfe6c43dc": [
+    {
+      "type": 0,
+      "value": "Poistu ryhmästä…"
+    }
+  ],
   "7daeced9ff": [
     {
       "type": 0,
@@ -529,10 +701,22 @@
       "value": "Nimeä tiedosto uudelleen"
     }
   ],
+  "8ad4303b83": [
+    {
+      "type": 0,
+      "value": "Ei kiitos"
+    }
+  ],
   "8b1946f965": [
     {
       "type": 0,
       "value": "Jatkaaksesi muokkaamista, kopioi huone tiedostoihisi."
+    }
+  ],
+  "8c2d3d730c": [
+    {
+      "type": 0,
+      "value": "Tarkista sähköpostistasi vahvistuskoodi."
     }
   ],
   "8eb2c00e96": [
@@ -565,6 +749,18 @@
       "value": "Kopioi tiedostoihini"
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Kutsulinkki kopioitu"
+    }
+  ],
+  "95aacd4d4a": [
+    {
+      "type": 0,
+      "value": "Kirjaudu sisään Googlella"
+    }
+  ],
   "95d2109dc8": [
     {
       "type": 0,
@@ -577,10 +773,42 @@
       "value": "Tämä kuukausi"
     }
   ],
+  "985a4b720f": [
+    {
+      "type": 0,
+      "value": "Käyttöehdot"
+    }
+  ],
+  "98c997a27e": [
+    {
+      "type": 0,
+      "value": "Lisää tiedostolinkki"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Kevyt"
+    }
+  ],
+  "9b33f5c63c": [
+    {
+      "type": 0,
+      "value": "Etkö saanut koodia? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Lähetä uudelleen"
+        }
+      ],
+      "type": 8,
+      "value": "resend"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "9bef626805": [
@@ -673,6 +901,12 @@
       "value": "Tausta"
     }
   ],
+  "aa916767cf": [
+    {
+      "type": 0,
+      "value": "Kirjaudu sisään hyväksyäksesi kutsun"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -697,10 +931,28 @@
       "value": "Vieraskäyttäjä"
     }
   ],
+  "b357b524e7": [
+    {
+      "type": 0,
+      "value": "Sähköpostiosoite"
+    }
+  ],
+  "b3d2db69fe": [
+    {
+      "type": 0,
+      "value": "Tiedoston URL-osoite"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
       "value": "Kirjaudu sisään"
+    }
+  ],
+  "b6f4a2ec63": [
+    {
+      "type": 0,
+      "value": "Omistaja"
     }
   ],
   "b758336699": [
@@ -715,10 +967,10 @@
       "value": "Kirjaudu sisään jakaaksesi"
     }
   ],
-  "bb792693e2": [
+  "bb93a7590f": [
     {
       "type": 0,
-      "value": "Irrota kiinnitys"
+      "value": "Hyväksy ja liity ryhmään"
     }
   ],
   "bbbcefd7ce": [
@@ -773,16 +1025,30 @@
       "value": "ownerName"
     }
   ],
-  "bcb62136a3": [
-    {
-      "type": 0,
-      "value": "Lataa .tldr-tiedostoja"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Lisätietoja jakamisesta."
+    }
+  ],
+  "c28aed8348": [
+    {
+      "type": 0,
+      "value": "Salli "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "analytics"
+        }
+      ],
+      "type": 8,
+      "value": "cookies"
+    },
+    {
+      "type": 0,
+      "value": "-palvelun auttaa meitä parantamaan tldrawia."
     }
   ],
   "c303bd1095": [
@@ -797,6 +1063,12 @@
       "value": "Välttämättömät evästeet"
     }
   ],
+  "c6155aaecc": [
+    {
+      "type": 0,
+      "value": "Ryhmän nimi"
+    }
+  ],
   "c655b27b1e": [
     {
       "type": 0,
@@ -809,10 +1081,22 @@
       "value": "Kutsu"
     }
   ],
+  "c74ea6dbff": [
+    {
+      "type": 0,
+      "value": "Näytä vähemmän"
+    }
+  ],
   "c87aacf567": [
     {
       "type": 0,
       "value": "Kirjaudu ulos"
+    }
+  ],
+  "c9cc8cce24": [
+    {
+      "type": 0,
+      "value": "Tallentaa"
     }
   ],
   "cceaefbc20": [
@@ -845,6 +1129,40 @@
       "value": "Vaihda sivupalkki"
     }
   ],
+  "d638a3344b": [
+    {
+      "type": 0,
+      "value": "Ennen kuin aloitat, hyväksy "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "käyttöehtomme"
+        }
+      ],
+      "type": 8,
+      "value": "tos"
+    },
+    {
+      "type": 0,
+      "value": " ja "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "tietosuojakäytäntömme"
+        }
+      ],
+      "type": 8,
+      "value": "privacy"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "d721757161": [
     {
       "type": 0,
@@ -857,10 +1175,22 @@
       "value": "Yritä uudelleen"
     }
   ],
+  "d88ad2dc74": [
+    {
+      "type": 0,
+      "value": "Hyväksy ja jatka"
+    }
+  ],
   "d9100f3e10": [
     {
       "type": 0,
       "value": "Siirry tänne nähdäksesi sisällön"
+    }
+  ],
+  "d9e35d0f55": [
+    {
+      "type": 0,
+      "value": "Olet saavuttanut ryhmien enimmäismäärän. Sinun on poistettava vanhoja ryhmiä ennen uusien luomista."
     }
   ],
   "dbbebf3c03": [
@@ -869,10 +1199,28 @@
       "value": "Vain kutsu"
     }
   ],
+  "dcdaa754fe": [
+    {
+      "type": 0,
+      "value": "Virheellinen tldraw-tiedoston URL-osoite"
+    }
+  ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "Sovelluksen virheenkorjausliput"
+    }
+  ],
+  "e0c88179b3": [
+    {
+      "type": 0,
+      "value": "Kutsu jäseniä"
+    }
+  ],
+  "e2198d6228": [
+    {
+      "type": 0,
+      "value": "Kopioi kutsulinkki"
     }
   ],
   "e2ae80a510": [
@@ -881,16 +1229,28 @@
       "value": "Oikeudellinen yhteenveto"
     }
   ],
+  "e3afed0047": [
+    {
+      "type": 0,
+      "value": "Ylläpitäjä"
+    }
+  ],
   "e404559826": [
     {
       "type": 0,
       "value": "Palveluehdot"
     }
   ],
-  "e78e14c5f1": [
+  "e81c4e4f2b": [
     {
       "type": 0,
-      "value": "Pin"
+      "value": "tai"
+    }
+  ],
+  "ea0626ac5a": [
+    {
+      "type": 0,
+      "value": "Vaara-alue"
     }
   ],
   "ea4788705e": [
@@ -949,6 +1309,12 @@
       "value": "."
     }
   ],
+  "ef53538ae4": [
+    {
+      "type": 0,
+      "value": "Jäsenet"
+    }
+  ],
   "ef7de3f485": [
     {
       "type": 0,
@@ -991,6 +1357,18 @@
       "value": "Asetukset"
     }
   ],
+  "f714e36843": [
+    {
+      "type": 0,
+      "value": "Haluatko varmasti poistua tästä ryhmästä?"
+    }
+  ],
+  "fa2ead697d": [
+    {
+      "type": 0,
+      "value": "Tietosuojakäytäntö"
+    }
+  ],
   "fb15c53f22": [
     {
       "type": 0,
@@ -1007,6 +1385,12 @@
     {
       "type": 0,
       "value": "Linkki kopioitu"
+    }
+  ],
+  "ff7a814974": [
+    {
+      "type": 0,
+      "value": "Lisää tiedostolinkki…"
     }
   ],
   "ffcd73e997": [

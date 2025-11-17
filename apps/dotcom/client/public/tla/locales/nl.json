@@ -23,11 +23,17 @@
   "08bd40c754": {
     "translation": "Rekening"
   },
+  "08d2d725a9": {
+    "translation": "Maak een gratis account aan om uw werk op te slaan, in realtime samen te werken en meer."
+  },
   "0b27918290": {
     "translation": "Bestand"
   },
   "0b9a4cde72": {
     "translation": "Bestandsmenu"
+  },
+  "0beb3ca97b": {
+    "translation": "tldraw is een gratis en direct beschikbaar virtueel whiteboard."
   },
   "0d1f2bb523": {
     "translation": "Feedback sturen"
@@ -35,11 +41,23 @@
   "110a4b01be": {
     "translation": "Publiceren"
   },
+  "129b9e34ea": {
+    "translation": "Groep verlaten"
+  },
+  "12a6766ba1": {
+    "translation": "Bestand losmaken"
+  },
   "12c8a9838c": {
     "translation": "Probeer de tldraw SDK"
   },
   "13ddd375ad": {
     "translation": "Exporteren als"
+  },
+  "146ffe2fd9": {
+    "translation": "Meer weergeven"
+  },
+  "14d65465b7": {
+    "translation": "Groep verwijderen"
   },
   "181b90f889": {
     "translation": "Bestand aanmaken"
@@ -56,11 +74,17 @@
   "21bfb2dc2e": {
     "translation": "Deze ruimte nadert zijn maximale grootte. Overweeg om wat inhoud te verwijderen of een nieuw bestand te maken."
   },
+  "2445e5e347": {
+    "translation": "Groep aanmaken"
+  },
   "250ddea65c": {
     "translation": "Over tldraw"
   },
   "299cb00a7a": {
     "translation": "Uploaden mislukt"
+  },
+  "2c3ef76333": {
+    "translation": "Mijn bestanden"
   },
   "2deec2cb74": {
     "translation": "Deze ruimte heeft de maximale bestandsgrootte bereikt en wijzigingen worden mogelijk niet meer opgeslagen. Verwijder wat inhoud of begin een nieuw bestand."
@@ -71,11 +95,17 @@
   "31418ce4ad": {
     "translation": "i18n: Markering ontbreekt"
   },
+  "32210b37e4": {
+    "translation": "Link toevoegen"
+  },
   "335defdafe": {
     "translation": "Probeer de pagina te vernieuwen."
   },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "3bc7d6ea2f": {
+    "translation": "Doorgaan met e-mail"
   },
   "3bd1b98dbd": {
     "translation": "De wijzigingen konden niet worden gepubliceerd."
@@ -98,14 +128,29 @@
   "47839e47a5": {
     "translation": "tldraw"
   },
+  "47f493a590": {
+    "translation": "Pinbestand"
+  },
+  "49049467ff": {
+    "translation": "Plak de URL van het tldraw-bestand..."
+  },
   "4908687e50": {
     "translation": "Weet u zeker dat u dit bestand wilt vergeten?"
+  },
+  "49ee308734": {
+    "translation": "Naam"
   },
   "4d0d3ddec9": {
     "translation": "Deze site maakt gebruik van cookies om de app te laten werken en om analyses te verzamelen."
   },
   "4d1c8263ba": {
     "translation": "Opnieuw laden"
+  },
+  "4da5988a2e": {
+    "translation": "Groep verwijderen…"
+  },
+  "4e6fbf032b": {
+    "translation": "Weet u zeker dat u deze groep wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
   },
   "50db1b7e1e": {
     "translation": "De publicatie van het bestand kan niet ongedaan worden gemaakt."
@@ -131,6 +176,9 @@
   "56c34c6410": {
     "translation": "Privacybeleid"
   },
+  "5a86b22fa0": {
+    "translation": "Sleep bestanden hierheen, <create>maak een bestand</create> of <invite>kopieer de uitnodigingslink</invite> om te beginnen."
+  },
   "5a95a425f7": {
     "translation": "Deel"
   },
@@ -142,6 +190,9 @@
   },
   "5bec508475": {
     "translation": "Oude browser gedetecteerd. Werk uw browser bij om deze app te gebruiken."
+  },
+  "5c6fe42bc2": {
+    "translation": "Trek deze link in en maak een nieuwe."
   },
   "5d26ae7550": {
     "translation": "Een deel van de content die u hebt gemaakt voordat u zich aanmeldde, is niet geüpload."
@@ -158,11 +209,20 @@
   "625fd29749": {
     "translation": "Ouder"
   },
+  "639bae9ac6": {
+    "translation": "Jij"
+  },
   "6609dd239e": {
     "translation": "Er is iets fout gegaan"
   },
   "6637a98151": {
     "translation": "Er is een nieuwe versie van tldraw beschikbaar. Laad de pagina opnieuw om verder te gaan."
+  },
+  "68257bb646": {
+    "translation": "Je bent uitgenodigd voor groep <br></br><groupName></groupName>"
+  },
+  "6832ac5936": {
+    "translation": "Voer uw e-mailadres in"
   },
   "6a26f54883": {
     "translation": "Hulp"
@@ -172,6 +232,9 @@
   },
   "6dfc62f621": {
     "translation": "Volg deze stappen om de inhoud handmatig te importeren:"
+  },
+  "70222abcfc": {
+    "translation": "Groepsinstellingen"
   },
   "70a6facb9d": {
     "translation": "Deze week"
@@ -218,6 +281,9 @@
   "7cb5f8b4a5": {
     "translation": "Vergeten"
   },
+  "7cfe6c43dc": {
+    "translation": "Groep verlaten…"
+  },
   "7daeced9ff": {
     "translation": "Wijzigingen publiceren"
   },
@@ -239,8 +305,14 @@
   "86c66437fd": {
     "translation": "Bestand hernoemen"
   },
+  "8ad4303b83": {
+    "translation": "Nee bedankt"
+  },
   "8b1946f965": {
     "translation": "Om door te kunnen gaan met bewerken, kopieer je de kamer naar je bestanden."
+  },
+  "8c2d3d730c": {
+    "translation": "Controleer uw e-mail voor een verificatiecode."
   },
   "8eb2c00e96": {
     "translation": "Gedeeld met jou"
@@ -257,14 +329,29 @@
   "91e49bb0eb": {
     "translation": "Kopieer naar mijn bestanden"
   },
+  "930390d222": {
+    "translation": "Gekopieerde uitnodigingslink"
+  },
+  "95aacd4d4a": {
+    "translation": "Aanmelden met Google"
+  },
   "95d2109dc8": {
     "translation": "Bouwen met de tldraw SDK"
   },
   "96165d6df5": {
     "translation": "Deze maand"
   },
+  "985a4b720f": {
+    "translation": "Gebruiksvoorwaarden"
+  },
+  "98c997a27e": {
+    "translation": "Bestandslink toevoegen"
+  },
   "9914a0ce04": {
     "translation": "Licht"
+  },
+  "9b33f5c63c": {
+    "translation": "Geen code ontvangen? <resend>Opnieuw verzenden</resend>."
   },
   "9bef626805": {
     "translation": "Bestand verwijderen"
@@ -311,6 +398,9 @@
   "a9ded1e5ce": {
     "translation": "Achtergrond"
   },
+  "aa916767cf": {
+    "translation": "Meld u aan om de uitnodiging te accepteren"
+  },
   "ab0df9ba36": {
     "translation": "Bestandslimiet bereikt"
   },
@@ -321,8 +411,17 @@
   "b028909917": {
     "translation": "Gastgebruiker"
   },
+  "b357b524e7": {
+    "translation": "E-mailadres"
+  },
+  "b3d2db69fe": {
+    "translation": "Bestands-URL"
+  },
   "b6d4223e60": {
     "translation": "Aanmelden"
+  },
+  "b6f4a2ec63": {
+    "translation": "Eigenaar"
   },
   "b758336699": {
     "translation": "Link kopiëren"
@@ -330,8 +429,8 @@
   "ba0318cb81": {
     "translation": "Meld je aan om te delen"
   },
-  "bb792693e2": {
-    "translation": "Losmaken"
+  "bb93a7590f": {
+    "translation": "Accepteren en lid worden van de groep"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {Uploaden van .tldr-bestand…} other {Uploaden van {uploaded} van {total} .tldr-bestanden…}}"
@@ -339,11 +438,11 @@
   "bc88b0e89e": {
     "translation": "Gedeeld door {ownerName}"
   },
-  "bcb62136a3": {
-    "translation": "Upload .tldr-bestanden"
-  },
   "c2276c9127": {
     "translation": "Meer informatie over delen."
+  },
+  "c28aed8348": {
+    "translation": "Sta <cookies>analytics</cookies> toe om ons te helpen tldraw te verbeteren."
   },
   "c303bd1095": {
     "translation": "Het bestand kan niet worden gepubliceerd."
@@ -351,14 +450,23 @@
   "c4b39a1cc3": {
     "translation": "Essentiële cookies"
   },
+  "c6155aaecc": {
+    "translation": "Groepsnaam"
+  },
   "c655b27b1e": {
     "translation": "i18n: Lange reeks"
   },
   "c6a00f137b": {
     "translation": "Uitnodiging"
   },
+  "c74ea6dbff": {
+    "translation": "Minder weergeven"
+  },
   "c87aacf567": {
     "translation": "Afmelden"
+  },
+  "c9cc8cce24": {
+    "translation": "Redden"
   },
   "cceaefbc20": {
     "translation": "Deel dit bestand"
@@ -375,29 +483,53 @@
   "d4bbf74f3e": {
     "translation": "Schakel zijbalk in"
   },
+  "d638a3344b": {
+    "translation": "Voordat u begint, accepteert u onze <tos>gebruiksvoorwaarden</tos> en ons <privacy>privacybeleid</privacy>."
+  },
   "d721757161": {
     "translation": "Thema"
   },
   "d876a9fe1a": {
     "translation": "Probeer het opnieuw"
   },
+  "d88ad2dc74": {
+    "translation": "Accepteren en doorgaan"
+  },
   "d9100f3e10": {
     "translation": "Ga hierheen om de inhoud te bekijken"
+  },
+  "d9e35d0f55": {
+    "translation": "Je hebt het maximale aantal groepen bereikt. Je moet oude groepen verwijderen voordat je nieuwe kunt aanmaken."
   },
   "dbbebf3c03": {
     "translation": "Alleen op uitnodiging"
   },
+  "dcdaa754fe": {
+    "translation": "Ongeldige tldraw-bestands-URL"
+  },
   "dfdb78a4e4": {
     "translation": "App-debug vlaggen"
+  },
+  "e0c88179b3": {
+    "translation": "Nodig leden uit"
+  },
+  "e2198d6228": {
+    "translation": "Kopieer uitnodigingslink"
   },
   "e2ae80a510": {
     "translation": "Juridische samenvatting"
   },
+  "e3afed0047": {
+    "translation": "Beheerder"
+  },
   "e404559826": {
     "translation": "Servicevoorwaarden"
   },
-  "e78e14c5f1": {
-    "translation": "Vastmaken"
+  "e81c4e4f2b": {
+    "translation": "of"
+  },
+  "ea0626ac5a": {
+    "translation": "Gevarenzone"
   },
   "ea4788705e": {
     "translation": "Annuleren"
@@ -420,6 +552,9 @@
   "ede55d955f": {
     "translation": "Lees ons <a>cookiebeleid</a> voor meer informatie."
   },
+  "ef53538ae4": {
+    "translation": "Leden"
+  },
   "ef7de3f485": {
     "translation": "gekozen"
   },
@@ -441,6 +576,12 @@
   "f4f70727dc": {
     "translation": "Instellingen"
   },
+  "f714e36843": {
+    "translation": "Weet u zeker dat u deze groep wilt verlaten?"
+  },
+  "fa2ead697d": {
+    "translation": "Privacybeleid"
+  },
   "fb15c53f22": {
     "translation": "Kijker"
   },
@@ -449,6 +590,9 @@
   },
   "fed5ec05eb": {
     "translation": "Gekopieerde link"
+  },
+  "ff7a814974": {
+    "translation": "Bestandskoppeling toevoegen…"
   },
   "ffcd73e997": {
     "translation": "Bestand importeren…"
