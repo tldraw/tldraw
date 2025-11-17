@@ -357,11 +357,10 @@ function TlaVerificationCodeStep({
 							if (s.status === 'complete') {
 								await setActive({ session: s.createdSessionId })
 								onComplete()
-								onClose?.()
 								return
 							}
 							setState((prev) => ({ ...prev, isSubmitting: false }))
-							onComplete()
+							onClose?.()
 						})
 						.catch((e) => {
 							const error = e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Invalid code'
@@ -385,11 +384,10 @@ function TlaVerificationCodeStep({
 							if (r.status === 'complete') {
 								await setActive({ session: r.createdSessionId })
 								onComplete()
-								onClose?.()
 								return
 							}
 							setState((prev) => ({ ...prev, isSubmitting: false }))
-							onComplete()
+							onClose?.()
 						})
 						.catch((e) => {
 							const error = e?.errors?.[0]?.longMessage || e?.errors?.[0]?.message || 'Invalid code'
@@ -403,7 +401,7 @@ function TlaVerificationCodeStep({
 				}
 			}
 		},
-		[state, client, onClose, isSignUpFlow, setActive, onComplete]
+		[state, client, isSignUpFlow, setActive, onComplete, onClose]
 	)
 
 	const handleResend = useCallback(async () => {
