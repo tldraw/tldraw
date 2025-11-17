@@ -386,23 +386,119 @@ export class Sidebar {
 
 	@step
 	async createFileInGroup(groupName: string, fileName: string) {
-		// Get the group element
 		const group = this.getGroup(groupName)
-
-		// Hover over the group header to reveal the create file button
 		const groupHeader = group.locator('[role="button"]').first()
 		await groupHeader.hover()
 
-		// Click the create file button (the one with edit icon)
 		const createButton = group.locator('button[title="New file"]')
+		await expect(createButton).toBeVisible()
 		await createButton.click()
 
-		// Fill in the file name in the rename input
 		const input = this.page.getByTestId('tla-sidebar-rename-input')
-		await expect(input).toBeVisible()
+		await expect(input).toBeVisible({ timeout: 10000 })
+		await expect(input).toBeFocused()
 		await input.fill(fileName)
 		await this.page.keyboard.press('Enter')
 
 		await this.mutationResolution()
+		await this.expectFileVisible(fileName)
+		// UI has 1000ms throttle - wait to allow next file creation
+		await this.page.waitForTimeout(1100)
+	}
+
+	@step
+	private async openFileMenuByName(fileName: string) {
+		const fileLink = this.getFileByName(fileName)
+		await fileLink.hover()
+		const button = fileLink.getByRole('button')
+		await button.click()
+	}
+
+	@step
+	async pinFileInGroup(fileName: string) {
+		await this.openFileMenuByName(fileName)
+		await this.page.getByRole('menuitem', { name: 'Pin' }).click()
+		await this.mutationResolution()
+	}
+
+	@step
+	async unpinFileInGroup(fileName: string) {
+		await this.openFileMenuByName(fileName)
+		await this.page.getByRole('menuitem', { name: 'Unpin' }).click()
+		await this.mutationResolution()
+	}
+
+	@step
+	async expectFilePinned(fileName: string) {
+		const fileLink = this.getFileByName(fileName)
+		await expect(fileLink).toHaveAttribute('data-is-pinned', 'true')
+	}
+
+	@step
+	async expectFileNotPinned(fileName: string) {
+		const fileLink = this.getFileByName(fileName)
+		await expect(fileLink).toHaveAttribute('data-is-pinned', 'false')
+	}
+
+	async getFilesInGroup(groupName: string): Promise<string[]> {
+		const group = this.getGroup(groupName)
+		const fileLinks = group.locator('[data-element="file-link"]')
+		const count = await fileLinks.count()
+		const fileNames: string[] = []
+		for (let i = 0; i < count; i++) {
+			const fileName = await fileLinks.nth(i).locator('[data-testid*="-name"]').innerText()
+			fileNames.push(fileName)
+		}
+		return fileNames
+	}
+
+	@step
+	async deleteFileInGroup(fileName: string) {
+		await this.openFileMenuByName(fileName)
+		await this.deleteFromFileMenu()
+	}
+
+	@step
+	async duplicateFileInGroup(fileName: string, newName?: string) {
+		await this.openFileMenuByName(fileName)
+		await this.duplicateFromFileMenu(newName)
+	}
+
+	@step
+	async moveFileToGroup(fileName: string, targetGroupName: string) {
+		await this.openFileMenuByName(fileName)
+		await this.page.getByRole('menuitem', { name: 'Move to' }).hover()
+		await this.page.getByRole('menuitem', { name: targetGroupName, exact: true }).click()
+		await this.mutationResolution()
+	}
+
+	@step
+	async moveFileToHome(fileName: string) {
+		await this.openFileMenuByName(fileName)
+		await this.page.getByRole('menuitem', { name: 'Move to' }).hover()
+		await this.page.getByRole('menuitem', { name: 'My files' }).click()
+		await this.mutationResolution()
+	}
+
+	@step
+	async copyGroupInviteLink(groupName: string): Promise<string> {
+		const group = this.getGroup(groupName)
+		await this.expandGroup(groupName)
+		const inviteButton = group.getByRole('button', { name: 'copy invite link' })
+		await inviteButton.click()
+		return await this.page.evaluate(() => navigator.clipboard.readText())
+	}
+
+	@step
+	async copyGroupInviteLinkFromMenu(groupName: string): Promise<string> {
+		const group = this.getGroup(groupName)
+		const groupHeader = group.locator('[role="button"]').first()
+		await groupHeader.hover()
+
+		const moreOptionsButton = group.locator('button[title="More options"]')
+		await moreOptionsButton.click()
+
+		await this.page.getByRole('menuitem', { name: 'Copy invite link' }).click()
+		return await this.page.evaluate(() => navigator.clipboard.readText())
 	}
 }
