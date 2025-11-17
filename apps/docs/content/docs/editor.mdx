@@ -476,19 +476,28 @@ To create a binding of your own, you can define a custom binding.
 
 #### The binding type
 
-First, you need to create a type that describes what the binding object will look like:
++First, we need to declare a module augmentation to register our bindings's props:
 
 ```ts
-import { TLBaseBinding } from 'tldraw'
+const STICKER_TYPE = 'sticker'
 
-type StickerBinding = TLBaseBinding<'sticker', { x: number; y: number }>
+declare module 'tldraw' {
+	export interface TLGlobalBindingPropsMap {
+		[STICKER_TYPE]: { x: number; y: number }
+	}
+}
 ```
 
-With [TLBaseBinding](?) we define the binding's type (`sticker`) and `props` property (`{x: number,
-y: number}`). The type can be any string, and the props must be a plain JSON object (ie not a class
-instance).
+Then, we can extract the binding type using `TLBinding`:
+```ts
+import { TLBinding } from 'tldraw'
 
-The [TLBaseBinding](?) helper adds the other base properties like `id`, `toId`, and `fromId`.
+type StickerBinding = TLBinding<typeof STICKER_TYPE>
+```
+
+The type can be any string but the props must be a regular [JSON-serializable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#description) JavaScript object.
+
+The created binding types extend [TLBaseBinding](?) and thus include all the base properties of a binding, such as `id`, `toId`, and `fromId`.
 
 #### The `BindingUtil` class
 
