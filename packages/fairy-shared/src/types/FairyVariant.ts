@@ -9,6 +9,7 @@ const FAIRY_HAT_VARIANTS = {
 	spiky: { idle: ['/fairy/fairy-hat-spiky.png'], poof: ['/fairy/fairy-loading.png'] },
 	hair: { idle: ['/fairy/fairy-hat-hair.png'], poof: ['/fairy/fairy-loading.png'] },
 	ears: { idle: ['/fairy/fairy-hat-ears.png'], poof: ['/fairy/fairy-loading.png'] },
+	propellor: { idle: ['/fairy/fairy-hat-propellor.png'], poof: ['/fairy/fairy-loading.png'] },
 } as const satisfies FairyPartDefinition
 
 const FAIRY_WINGS_VARIANTS = {
