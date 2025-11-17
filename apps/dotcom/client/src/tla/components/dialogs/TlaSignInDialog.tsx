@@ -1,6 +1,4 @@
 import { useClerk, useSignIn } from '@clerk/clerk-react'
-import * as Clerk from '@clerk/elements/common'
-import * as SignIn from '@clerk/elements/sign-in'
 import classNames from 'classnames'
 import { ChangeEvent, ReactNode, useCallback, useEffect, useState, type FormEvent } from 'react'
 import {
@@ -66,11 +64,11 @@ export function TlaSignInDialog({ onClose }: { onClose?(): void }) {
 				</TldrawUiDialogTitle>
 				{onClose && <TldrawUiDialogCloseButton />}
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody className={styles.authBody}>
-				{innerContent}
+			<TldrawUiDialogBody className={styles.authDialogBody}>
+				<div className={styles.authBody}>{innerContent}</div>
 
 				{/* Clerk's CAPTCHA widget */}
-				<div id="clerk-captcha" />
+				<div id="clerk-captcha" className={styles.clerkCaptcha} />
 			</TldrawUiDialogBody>
 		</div>
 	)
@@ -97,6 +95,25 @@ function TlaEnterEmailStep({
 		isSubmitting: false,
 		error: null,
 	})
+
+	const handleGoogleSignIn = useCallback(async () => {
+		if (!isSignInLoaded || !signIn) return
+
+		try {
+			const result = await signIn.create({
+				strategy: 'oauth_google',
+				redirectUrl: window.location.href,
+			})
+
+			// Redirect to Google's OAuth page
+			const externalUrl = result.firstFactorVerification?.externalVerificationRedirectURL
+			if (externalUrl) {
+				window.location.href = externalUrl.toString()
+			}
+		} catch (err: any) {
+			console.error('Google sign-in error:', err)
+		}
+	}, [signIn, isSignInLoaded])
 
 	const handleEmailSubmit = useCallback(
 		async (e: FormEvent) => {
@@ -177,22 +194,20 @@ function TlaEnterEmailStep({
 				<br />
 				<F defaultMessage="Create a free account to save your work, collaborate in real-time, and more." />
 			</div>
-			<SignIn.Root routing="virtual">
-				<SignIn.Step name="start">
-					<div className={styles.authGoogleButtonWrapper}>
-						{/* @ts-ignore this is fine */}
-						<Clerk.Connection name="google" asChild>
-							<TlaCtaButton
-								data-testid="tla-google-sign-in-button"
-								className={styles.authCtaButton}
-							>
-								<Clerk.Icon icon="google" />
-								<F defaultMessage="Sign in with Google" />
-							</TlaCtaButton>
-						</Clerk.Connection>
-					</div>
-				</SignIn.Step>
-			</SignIn.Root>
+			<div className={styles.authGoogleButtonWrapper}>
+				<TlaCtaButton
+					data-testid="tla-google-sign-in-button"
+					className={styles.authCtaButton}
+					onClick={handleGoogleSignIn}
+				>
+					<img
+						src="https://img.clerk.com/static/google.svg"
+						alt="Google"
+						referrerPolicy="strict-origin-when-cross-origin"
+					/>
+					<F defaultMessage="Sign in with Google" />
+				</TlaCtaButton>
+			</div>
 
 			<div className={styles.authDivider}>
 				<span>
@@ -229,6 +244,17 @@ function TlaEnterEmailStep({
 				>
 					<F defaultMessage="Continue with email" />
 				</TlaCtaButton>
+
+				<p className={styles.authTermsOfUse}>
+					<a href="/tos.html" target="_blank" rel="noopener noreferrer">
+						<F defaultMessage="Terms of Use" />
+					</a>
+					{/* eslint-disable-next-line react/jsx-no-literals */}
+					{' · '}
+					<a href="/privacy.html" target="_blank" rel="noopener noreferrer">
+						<F defaultMessage="Privacy Policy" />
+					</a>
+				</p>
 			</form>
 		</>
 	)

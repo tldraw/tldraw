@@ -37,7 +37,6 @@ import {
 	getLocalSessionState,
 	updateLocalSessionState,
 } from '../utils/local-session-state'
-import { FileSidebarFocusContextProvider } from './FileInputFocusProvider'
 
 const assetUrls = getAssetUrlsByImport()
 
@@ -126,7 +125,10 @@ function IntlWrapper({ children, locale }: { children: ReactNode; locale: string
 
 			const res = await fetch(`/tla/locales-compiled/${locale}.json`)
 			const messages = await res.json()
-			setMessages(messages)
+			setMessages({
+				...translationsEnJson,
+				...messages,
+			})
 		}
 		fetchMessages()
 	}, [locale])
@@ -237,16 +239,14 @@ function SignedInProvider({
 	}
 
 	return (
-		<FileSidebarFocusContextProvider>
-			<AppStateProvider>
-				<UserProvider>
-					<ThemeContainer onThemeChange={onThemeChange}>
-						<SignedInAnalytics />
-						{children}
-					</ThemeContainer>
-				</UserProvider>
-			</AppStateProvider>
-		</FileSidebarFocusContextProvider>
+		<AppStateProvider>
+			<UserProvider>
+				<ThemeContainer onThemeChange={onThemeChange}>
+					<SignedInAnalytics />
+					{children}
+				</ThemeContainer>
+			</UserProvider>
+		</AppStateProvider>
 	)
 }
 

@@ -514,12 +514,10 @@
 /* If mobile use 16px as font size */
 /* On iOS, font size under 16px in an input will make the page zoom into the input 🤦‍♂️ */
 /* https://css-tricks.com/16px-or-larger-text-prevents-ios-form-zoom/ */
-@media (max-width: 600px) {
-	@supports (-webkit-touch-callout: none) {
-		/* CSS specific to iOS devices */
-		.tlui-input {
-			font-size: 16px;
-		}
+@supports (-webkit-touch-callout: none) {
+	/* CSS specific to iOS devices */
+	.tlui-input {
+		font-size: 16px;
 	}
 }
 

@@ -35,6 +35,10 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/f/[^/]*/pierre-history/[^/]*/?$",
   },
   {
+    "reactRouterPattern": "/invite/:token",
+    "vercelRouterPattern": "^/invite/[^/]*/?$",
+  },
+  {
     "reactRouterPattern": "/lf",
     "vercelRouterPattern": "^/lf/?$",
   },

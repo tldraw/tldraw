@@ -8,6 +8,7 @@ import { useEditor } from './useEditor'
 
 export function useCanvasEvents() {
 	const editor = useEditor()
+	const ownerDocument = editor.getContainer().ownerDocument
 	const currentTool = useValue('current tool', () => editor.getCurrentTool(), [editor])
 
 	const events = useMemo(
@@ -180,11 +181,11 @@ export function useCanvasEvents() {
 			}
 		}
 
-		document.body.addEventListener('pointermove', onPointerMove)
+		ownerDocument.body.addEventListener('pointermove', onPointerMove)
 		return () => {
-			document.body.removeEventListener('pointermove', onPointerMove)
+			ownerDocument.body.removeEventListener('pointermove', onPointerMove)
 		}
-	}, [editor, currentTool])
+	}, [editor, currentTool, ownerDocument])
 
 	return events
 }

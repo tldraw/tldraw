@@ -73,6 +73,11 @@
 	border: 1px solid var(--tl-color-muted-1);
 }
 
+.ctaButton:disabled {
+	opacity: 0.5;
+	pointer-events: none;
+}
+
 @media (hover: hover) {
 	.ctaButton:not(:disabled):hover::before {
 		background-color: var(--tla-color-cta-hover);
