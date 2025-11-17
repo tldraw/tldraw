@@ -27,12 +27,12 @@ export const getOuterTangentPoints = (
 				{ x: t00.x, y: t00.y },
 				{ x: t01.x, y: t01.y },
 			]
-		} else {
-			return [
-				{ x: t10.x, y: t10.y },
-				{ x: t11.x, y: t11.y },
-			]
 		}
+
+		return [
+			{ x: t10.x, y: t10.y },
+			{ x: t11.x, y: t11.y },
+		]
 	}
 
 	return [
@@ -49,6 +49,7 @@ export const getGlobEndPoint = (c: VecModel, d: VecModel, r: number, side: numbe
 	const displacement = Vec.Sub(c, d)
 	const dist = Vec.Len(displacement)
 
+	// we are inside the circle no solutions, so return null
 	if (dist <= r) {
 		return
 	}
@@ -77,9 +78,7 @@ export const projectTensionPoint = (lineStart: VecModel, lineEnd: VecModel, hand
 	const lineLength = lineDir.len()
 
 	const toHandle = Vec.Sub(handle, lineStart)
-
 	const projection = Vec.Dpr(toHandle, Vec.Uni(lineDir))
-
 	const clampedProjection = Math.max(0, Math.min(lineLength, projection))
 
 	return clampedProjection / lineLength
