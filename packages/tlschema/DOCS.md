@@ -644,8 +644,16 @@ const customSchema = createTLSchema({
 Create new types of shape relationships:
 
 ```ts
+const CUSTOM_TYPE = 'custom'
+
 // Define custom binding types
-interface MyCustomBinding extends TLBaseBinding<'custom', MyBindingProps> {}
+declare module '@tldraw/tlschema' {
+	export interface TLGlobalBindingPropsMap {
+		[CUSTOM_TYPE]: MyBindingProps
+	}
+}
+
+type MyCustomBinding = TLBinding<typeof CUSTOM_TYPE>
 
 const customBindingConfig = {
 	props: myBindingProps,
