@@ -9,6 +9,7 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 } from 'tldraw'
+import { routes } from '../../../routeDefs'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
@@ -117,7 +118,10 @@ function TlaEnterEmailStep({
 
 		try {
 			const redirectUrl = inviteInfo
-				? `${window.location.origin}/invite/${inviteInfo.inviteSecret}?accept=true`
+				? routes.tlaInvite(inviteInfo.inviteSecret, {
+						asUrl: true,
+						searchParams: { accept: 'true' },
+					})
 				: window.location.href
 
 			const result = await signIn.create({

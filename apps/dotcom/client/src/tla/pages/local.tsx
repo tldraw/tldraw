@@ -82,7 +82,10 @@ function LocalTldraw() {
 						inviteInfo={inviteInfo}
 						onClose={onClose}
 						onInviteAccepted={() => {
-							navigate(`/invite/${inviteInfo.inviteSecret}?accept=true`, { replace: true })
+							navigate(
+								routes.tlaInvite(inviteInfo.inviteSecret, { searchParams: { accept: 'true' } }),
+								{ replace: true }
+							)
 						}}
 					/>
 				),

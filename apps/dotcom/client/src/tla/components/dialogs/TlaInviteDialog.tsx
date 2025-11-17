@@ -8,6 +8,7 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 } from 'tldraw'
+import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { defineMessages, F } from '../../utils/i18n'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
@@ -66,8 +67,14 @@ export function TlaInviteDialog({
 					{!isSignedIn ? (
 						<SignInButton
 							mode="modal"
-							forceRedirectUrl={`${window.location.origin}/invite/${inviteInfo.inviteSecret}?accept=true`}
-							signUpForceRedirectUrl={`${window.location.origin}/invite/${inviteInfo.inviteSecret}?accept=true`}
+							forceRedirectUrl={routes.tlaInvite(inviteInfo.inviteSecret, {
+								asUrl: true,
+								searchParams: { accept: 'true' },
+							})}
+							signUpForceRedirectUrl={routes.tlaInvite(inviteInfo.inviteSecret, {
+								asUrl: true,
+								searchParams: { accept: 'true' },
+							})}
 						>
 							<TlaCtaButton
 								onClick={() => {
