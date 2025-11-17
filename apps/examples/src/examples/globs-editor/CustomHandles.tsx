@@ -102,10 +102,10 @@ function GlobHandlesWithControlLines({ glob }: { glob: GlobShape }) {
 
 	return (
 		<g transform={Mat.toCssString(transform)}>
-			<ControlLine x1={dxA} y1={dyA} x2={txAA} y2={tyAA} edgeType="edgeA" />
-			<ControlLine x1={dxA} y1={dyA} x2={txAB} y2={tyAB} edgeType="edgeA" />
-			<ControlLine x1={dxB} y1={dyB} x2={txBA} y2={tyBA} edgeType="edgeA" />
-			<ControlLine x1={dxB} y1={dyB} x2={txBB} y2={tyBB} edgeType="edgeA" />
+			<ControlLine x1={dxA} y1={dyA} x2={txAA} y2={tyAA} />
+			<ControlLine x1={dxA} y1={dyA} x2={txAB} y2={tyAB} />
+			<ControlLine x1={dxB} y1={dyB} x2={txBA} y2={tyBA} />
+			<ControlLine x1={dxB} y1={dyB} x2={txBB} y2={tyBB} />
 
 			{handles.map((handle) => (
 				<HandleWrapper

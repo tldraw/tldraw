@@ -948,10 +948,10 @@ export const GlobShape = track(function GlobShape({
 		<SVGContainer>
 			{showControlLines && (
 				<>
-					<ControlLine x1={dxA} y1={dxY} x2={txAA} y2={tyAA} edgeType="edgeA" />
-					<ControlLine x1={dxA} y1={dxY} x2={txAB} y2={tyAB} edgeType="edgeA" />
-					<ControlLine x1={dxB} y1={dyB} x2={txBA} y2={tyBA} edgeType="edgeA" />
-					<ControlLine x1={dxB} y1={dyB} x2={txBB} y2={tyBB} edgeType="edgeA" />
+					<ControlLine x1={dxA} y1={dxY} x2={txAA} y2={tyAA} />
+					<ControlLine x1={dxA} y1={dxY} x2={txAB} y2={tyAB} />
+					<ControlLine x1={dxB} y1={dyB} x2={txBA} y2={tyBA} />
+					<ControlLine x1={dxB} y1={dyB} x2={txBB} y2={tyBB} />
 				</>
 			)}
 			<path
@@ -970,13 +970,11 @@ export function ControlLine({
 	y1,
 	x2,
 	y2,
-	edgeType,
 }: {
 	x1: number
 	y1: number
 	x2: number
 	y2: number
-	edgeType: EdgeCurveType
 }) {
 	const editor = useEditor()
 	const zoomLevel = editor.getZoomLevel()
@@ -989,7 +987,7 @@ export function ControlLine({
 				y1={y1}
 				x2={x2}
 				y2={y2}
-				stroke={edgeType === 'edgeA' ? '#4169E1' : '#FFD600'}
+				stroke="#4169E1"
 				strokeDasharray={dashArray}
 				strokeWidth={1 / zoomLevel}
 			/>
