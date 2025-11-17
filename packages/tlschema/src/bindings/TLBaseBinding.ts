@@ -9,33 +9,41 @@ import { shapeIdValidator } from '../shapes/TLBaseShape'
  * Base interface for all binding types in tldraw. Bindings represent relationships
  * between shapes, such as arrows connecting to other shapes or organizational connections.
  *
- * All bindings extend this base interface with specific type and property definitions.
+ * All default bindings extend this base interface with specific type and property definitions.
  * The binding system enables shapes to maintain relationships that persist through
  * transformations, movements, and other operations.
+ *
+ * Custom bindings should be defined by augmenting the TLGlobalBindingPropsMap type and getting the binding type from the TLBinding type.
  *
  * @param Type - String literal type identifying the specific binding type (e.g., 'arrow')
  * @param Props - Object containing binding-specific properties and configuration
  *
  * @example
  * ```ts
- * // Define a custom binding type
- * interface MyCustomBinding extends TLBaseBinding<'custom', MyCustomProps> {}
+ * // Define a default binding type
+ * interface TLArrowBinding extends TLBaseBinding<'arrow', TLArrowBindingProps> {}
  *
- * interface MyCustomProps {
- *   strength: number
- *   color: string
+ * interface TLArrowBindingProps {
+ *   terminal: 'start' | 'end'
+ *   normalizedAnchor: VecModel
+ *   isExact: boolean
+ *   isPrecise: boolean
+ *   snap: ElbowArrowSnap
  * }
  *
  * // Create a binding instance
- * const binding: MyCustomBinding = {
+ * const arrowBinding: TLArrowBinding = {
  *   id: 'binding:abc123',
  *   typeName: 'binding',
- *   type: 'custom',
+ *   type: 'arrow',
  *   fromId: 'shape:source1',
  *   toId: 'shape:target1',
  *   props: {
- *     strength: 0.8,
- *     color: 'red'
+ *     terminal: 'end',
+ *     normalizedAnchor: { x: 0.5, y: 0.5 },
+ *     isExact: false,
+ *     isPrecise: true,
+ *     snap: 'edge'
  *   },
  *   meta: {}
  * }
