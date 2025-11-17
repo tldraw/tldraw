@@ -85,11 +85,17 @@ const schema = createTLSchema({
 Shape records are the most common type you'll work with. Every shape extends `TLBaseShape`:
 
 ```ts
-import { TLBaseShape, createShapeValidator } from '@tldraw/tlschema'
+import { createShapeValidator } from '@tldraw/tlschema'
 import { T } from '@tldraw/validate'
 
+const CUSTOM_TYPE = 'custom'
+
 // Define a custom shape type
-interface MyCustomShape extends TLBaseShape<'custom', MyCustomShapeProps> {}
+declare module '@tldraw/tlschema' {
+	export interface TLGlobalShapePropsMap {
+		[CUSTOM_TYPE]: MyCustomShapeProps
+	}
+}
 
 interface MyCustomShapeProps {
 	width: number
@@ -97,8 +103,10 @@ interface MyCustomShapeProps {
 	color: string
 }
 
+type MyCustomShape = TLShape<typeof CUSTOM_TYPE>
+
 // Create validation for your shape
-const customShapeValidator = createShapeValidator('custom', {
+const customShapeValidator = createShapeValidator(CUSTOM_TYPE, {
 	width: T.number,
 	height: T.number,
 	color: T.string,
@@ -130,15 +138,20 @@ When creating custom shapes, follow this pattern for complete integration:
 
 ```ts
 import {
-	TLBaseShape,
 	createShapeValidator,
 	createShapePropsMigrationSequence,
 	RecordProps,
 } from '@tldraw/tlschema'
 import { DefaultColorStyle } from '@tldraw/tlschema'
 
-// 1. Define the shape interface
-interface MyShape extends TLBaseShape<'myshape', MyShapeProps> {}
+const MY_SHAPE_TYPE = 'myshape'
+
+// 1. Define the shape
+declare module '@tldraw/tlschema' {
+	export interface TLGlobalShapePropsMap {
+		[MY_SHAPE_TYPE]: MyShapeProps
+	}
+}
 
 interface MyShapeProps {
 	color: typeof DefaultColorStyle // Use existing style
@@ -146,6 +159,8 @@ interface MyShapeProps {
 	height: number
 	customData: string
 }
+
+type MyShape = TLShape<typeof MY_SHAPE_TYPE>
 
 // 2. Create props validation
 const myShapeProps: RecordProps<MyShape> = {
