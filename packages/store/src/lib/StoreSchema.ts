@@ -616,17 +616,14 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 	 *
 	 * @public
 	 */
-	migratePersistentStorage(
-		storage: TLPersistentStorage<R>
-	): Result<{ documentClock: number; didChange: boolean }, string> {
-		try {
-			const { documentClock, didChange } = storage.transaction((txn) => {
-				return this.migratePersistentStorageTxn(txn)
-			})
-			return Result.ok({ documentClock, didChange })
-		} catch (e: any) {
-			return Result.err(e?.message ?? e?.toString() ?? 'Unknown error')
-		}
+	migratePersistentStorage(storage: TLPersistentStorage<R>): {
+		documentClock: number
+		didChange: boolean
+	} {
+		const { documentClock, didChange } = storage.transaction((txn) => {
+			return this.migratePersistentStorageTxn(txn)
+		})
+		return { documentClock, didChange }
 	}
 
 	/**

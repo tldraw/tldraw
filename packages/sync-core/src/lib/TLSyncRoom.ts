@@ -268,13 +268,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		const result = this.schema.migratePersistentStorage(this.storage)
 
-		if (!result.ok) {
-			throw new Error('Failed to migrate: ' + result.error)
-		}
+		this.lastDocumentClock = result.documentClock
 
-		this.lastDocumentClock = result.value.documentClock
-
-		if (result.value.didChange) {
+		if (result.didChange) {
 			this.onDataChange?.()
 		}
 
