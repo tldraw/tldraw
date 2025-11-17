@@ -167,7 +167,77 @@ test.describe('groups', () => {
 		})
 	})
 
+	test.describe('group operations', () => {
+		test('drag groups to reorder', async ({ page, sidebar, editor }) => {
+			const group1 = getRandomName()
+			const group2 = getRandomName()
+			const group3 = getRandomName()
+
+			await sidebar.createGroup(group1)
+			await sidebar.createGroup(group2)
+			await sidebar.createGroup(group3)
+
+			// Get initial order (newest first)
+			const initialOrder = await sidebar.getGroupOrder()
+			expect(initialOrder).toEqual([group3, group2, group1])
+
+			// Drag group3 (first) to position after group1 (last)
+			await sidebar.dragGroupToPosition(group3, group1)
+
+			// Verify new order - group3 should have moved
+			const newOrder = await sidebar.getGroupOrder()
+			expect(newOrder).not.toEqual(initialOrder)
+			expect(newOrder).toContain(group1)
+			expect(newOrder).toContain(group2)
+			expect(newOrder).toContain(group3)
+
+			await page.reload()
+			await editor.isLoaded()
+			await editor.ensureSidebarOpen()
+
+			// Verify order persisted
+			const orderAfterReload = await sidebar.getGroupOrder()
+			expect(orderAfterReload).toEqual(newOrder)
+		})
+	})
+
 	test.describe('file operations', () => {
+		test('drag file between groups', async ({ page, sidebar, editor }) => {
+			const group1 = getRandomName()
+			const group2 = getRandomName()
+			const file1 = getRandomName()
+
+			await sidebar.createGroup(group1)
+			await sidebar.createGroup(group2)
+			await sidebar.expectGroupExpanded(group1)
+			await sidebar.expectGroupExpanded(group2)
+
+			await sidebar.createFileInGroup(group1, file1)
+			await sidebar.expectFileVisible(file1)
+
+			const filesInGroup1Before = await sidebar.getFilesInGroup(group1)
+			expect(filesInGroup1Before).toContain(file1)
+
+			// Drag file from group1 to group2
+			await sidebar.dragFileToGroup(file1, group2)
+
+			const filesInGroup1After = await sidebar.getFilesInGroup(group1)
+			const filesInGroup2 = await sidebar.getFilesInGroup(group2)
+			expect(filesInGroup1After).not.toContain(file1)
+			expect(filesInGroup2).toContain(file1)
+
+			await page.reload()
+			await editor.isLoaded()
+			await editor.ensureSidebarOpen()
+			await sidebar.expandGroup(group1)
+			await sidebar.expandGroup(group2)
+
+			const filesInGroup1AfterReload = await sidebar.getFilesInGroup(group1)
+			const filesInGroup2AfterReload = await sidebar.getFilesInGroup(group2)
+			expect(filesInGroup1AfterReload).not.toContain(file1)
+			expect(filesInGroup2AfterReload).toContain(file1)
+		})
+
 		test('pin and unpin files', async ({ page, sidebar, editor }) => {
 			const groupName = getRandomName()
 			const homeFileName = getRandomName()

@@ -501,4 +501,93 @@ export class Sidebar {
 		await this.page.getByRole('menuitem', { name: 'Copy invite link' }).click()
 		return await this.page.evaluate(() => navigator.clipboard.readText())
 	}
+
+	async getGroupOrder(): Promise<string[]> {
+		const groups = this.page.locator('[data-group-id]')
+		const count = await groups.count()
+		const groupNames: string[] = []
+		for (let i = 0; i < count; i++) {
+			const groupHeader = groups.nth(i).locator('[role="button"]').first()
+			const text = await groupHeader.innerText()
+			// Extract just the group name (text before any counts)
+			const name = text.split('\n')[0].trim()
+			groupNames.push(name)
+		}
+		return groupNames
+	}
+
+	@step
+	async dragGroupToPosition(sourceGroupName: string, targetGroupName: string) {
+		const sourceHeader = this.getGroup(sourceGroupName).locator('[role="button"]').first()
+		const targetGroup = this.getGroup(targetGroupName)
+
+		const sourceBox = await sourceHeader.boundingBox()
+		const targetBox = await targetGroup.boundingBox()
+
+		if (!sourceBox || !targetBox) throw new Error('Could not get bounding boxes')
+
+		// Move to source
+		await this.page.mouse.move(
+			sourceBox.x + sourceBox.width / 2,
+			sourceBox.y + sourceBox.height / 2
+		)
+
+		// Press and hold
+		await this.page.mouse.down()
+
+		// Small delay to let browser detect drag intent
+		await this.page.waitForTimeout(100)
+
+		// Drag to target position (below target group)
+		await this.page.mouse.move(
+			targetBox.x + targetBox.width / 2,
+			targetBox.y + targetBox.height + 5,
+			{ steps: 10 }
+		)
+
+		// Small delay before release
+		await this.page.waitForTimeout(50)
+
+		// Release
+		await this.page.mouse.up()
+
+		await this.mutationResolution()
+	}
+
+	@step
+	async dragFileToGroup(fileName: string, targetGroupName: string) {
+		const fileElement = this.getFileByName(fileName)
+		const targetGroup = this.getGroup(targetGroupName)
+
+		const fileBox = await fileElement.boundingBox()
+		const targetBox = await targetGroup.boundingBox()
+
+		if (!fileBox || !targetBox) throw new Error('Could not get bounding boxes')
+
+		// Move to file
+		await this.page.mouse.move(fileBox.x + fileBox.width / 2, fileBox.y + fileBox.height / 2)
+
+		// Press and hold
+		await this.page.mouse.down()
+
+		// Small delay to let browser detect drag intent
+		await this.page.waitForTimeout(100)
+
+		// Drag to target group center
+		await this.page.mouse.move(
+			targetBox.x + targetBox.width / 2,
+			targetBox.y + targetBox.height / 2,
+			{
+				steps: 10,
+			}
+		)
+
+		// Small delay before release
+		await this.page.waitForTimeout(50)
+
+		// Release
+		await this.page.mouse.up()
+
+		await this.mutationResolution()
+	}
 }
