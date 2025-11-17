@@ -26,12 +26,13 @@ export class FlyToBoundsActionUtil extends AgentActionUtil<FlyToBoundsAction> {
 		})
 
 		this.agent.moveToPosition(Box.From(bounds).center)
-		this.agent.cancel()
-		this.agent.schedule({
-			bounds,
-			messages: [
-				`Just flew to new area with the intent: ${action.intent}. Can now see the new area at (${bounds.x}, ${bounds.y}) and is ${bounds.w}x${bounds.h} in size.`,
-			],
+		this.agent.interrupt({
+			input: {
+				bounds,
+				messages: [
+					`Just flew to new area with the intent: ${action.intent}. Can now see the new area at (${bounds.x}, ${bounds.y}) and is ${bounds.w}x${bounds.h} in size.`,
+				],
+			},
 		})
 	}
 }

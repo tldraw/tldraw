@@ -48,7 +48,7 @@ function FairyChatHistoryActionDisplay({
 	agent: FairyAgent
 }) {
 	const { action } = item
-	// if (action._type === 'update-todo-list') return null
+	// if (action._type === 'update-shared-todo-list') return null
 	const info = agent.getActionInfo(action)
 
 	const displayText =

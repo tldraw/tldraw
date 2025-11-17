@@ -3,6 +3,7 @@ import { useEditor, useValue } from 'tldraw'
 import { useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { fairyMessages } from './fairy-messages'
+import { $fairyDebugFlags } from './FairyDebugFlags'
 import { getProjectById } from './FairyProjects'
 import { $fairyTasks, $showCanvasFairyTasks, deleteFairyTask } from './FairyTaskList'
 import { getProjectColor } from './getProjectColor'
@@ -35,16 +36,34 @@ export function InCanvasTaskList({ agents }: { agents: FairyAgent[] }) {
 		[tasks, currentPageId]
 	)
 
+	const showTaskBounds = useValue('show-task-bounds', () => $fairyDebugFlags.get().showTaskBounds, [
+		$fairyDebugFlags,
+	])
+
 	if (!showCanvasTodos) return null
 
 	return (
-		<div
-			className={`in-canvas-todo-list ${isInTodoDragTool ? 'in-canvas-todo-list--dragging' : ''}`}
-		>
-			{inCanvasTasks.map((task) => (
-				<InCanvasTaskItem key={task.id} agents={agents} task={task} />
-			))}
-		</div>
+		<>
+			<div
+				className={`in-canvas-todo-list ${isInTodoDragTool ? 'in-canvas-todo-list--dragging' : ''}`}
+			>
+				{inCanvasTasks.map((task) => (
+					<InCanvasTaskItem key={task.id} agents={agents} task={task} />
+				))}
+			</div>
+			{showTaskBounds &&
+				inCanvasTasks
+					.filter((task) => task.x != null && task.y != null && task.w != null && task.h != null)
+					.map((task) => (
+						<TaskBoundsOverlay
+							key={`bounds-${task.id}`}
+							x={task.x!}
+							y={task.y!}
+							w={task.w!}
+							h={task.h!}
+						/>
+					))}
+		</>
 	)
 }
 
@@ -106,5 +125,23 @@ function InCanvasTaskItem({ agents, task }: { agents: FairyAgent[]; task: FairyT
 				</button>
 			</div>
 		</div>
+	)
+}
+
+function TaskBoundsOverlay({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
+	return (
+		<div
+			className="in-canvas-todo-item-bounds"
+			style={{
+				position: 'absolute',
+				left: x,
+				top: y,
+				width: w,
+				height: h,
+				border: '2px dashed rgba(255, 0, 0, 0.5)',
+				pointerEvents: 'none',
+				boxSizing: 'border-box',
+			}}
+		/>
 	)
 }

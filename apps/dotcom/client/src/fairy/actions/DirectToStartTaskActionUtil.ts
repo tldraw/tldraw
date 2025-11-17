@@ -42,10 +42,9 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 		if (!task) return // todo error
 
 		if (task.projectId !== project.id) {
-			this.agent.cancel()
-			this.agent.schedule(
-				`Task ${taskId} is not in the same project as you. Please take another look at the task list and try again.`
-			)
+			this.agent.interrupt({
+				input: `Task ${taskId} is not in the same project as you. Please take another look at the task list and try again.`,
+			})
 			return
 		}
 
@@ -70,7 +69,12 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 			}
 		}
 
-		otherFairy.setMode('working')
-		otherFairy.prompt(otherFairyPrompt)
+		otherFairy.setMode('working-drone')
+		if (otherFairy.isGenerating()) {
+			otherFairy.schedule(otherFairyPrompt)
+		} else {
+			otherFairy.prompt(otherFairyPrompt)
+		}
+		// todo find a way to agent.interrupt to be able to prompt without causing errors, and use that here
 	}
 }

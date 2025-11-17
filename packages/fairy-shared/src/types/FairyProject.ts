@@ -6,6 +6,7 @@ export interface FairyProject {
 	description: string
 	color: FocusColor
 	members: FairyProjectMember[]
+	plan: string
 }
 
 export interface FairyProjectMember {
