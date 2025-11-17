@@ -51,6 +51,12 @@
       "value": "Rekening"
     }
   ],
+  "08d2d725a9": [
+    {
+      "type": 0,
+      "value": "Maak een gratis account aan om uw werk op te slaan, in realtime samen te werken en meer."
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
@@ -61,6 +67,12 @@
     {
       "type": 0,
       "value": "Bestandsmenu"
+    }
+  ],
+  "0beb3ca97b": [
+    {
+      "type": 0,
+      "value": "tldraw is een gratis en direct beschikbaar virtueel whiteboard."
     }
   ],
   "0d1f2bb523": [
@@ -75,6 +87,18 @@
       "value": "Publiceren"
     }
   ],
+  "129b9e34ea": [
+    {
+      "type": 0,
+      "value": "Groep verlaten"
+    }
+  ],
+  "12a6766ba1": [
+    {
+      "type": 0,
+      "value": "Bestand losmaken"
+    }
+  ],
   "12c8a9838c": [
     {
       "type": 0,
@@ -85,6 +109,18 @@
     {
       "type": 0,
       "value": "Exporteren als"
+    }
+  ],
+  "146ffe2fd9": [
+    {
+      "type": 0,
+      "value": "Meer weergeven"
+    }
+  ],
+  "14d65465b7": [
+    {
+      "type": 0,
+      "value": "Groep verwijderen"
     }
   ],
   "181b90f889": [
@@ -117,6 +153,12 @@
       "value": "Deze ruimte nadert zijn maximale grootte. Overweeg om wat inhoud te verwijderen of een nieuw bestand te maken."
     }
   ],
+  "2445e5e347": [
+    {
+      "type": 0,
+      "value": "Groep aanmaken"
+    }
+  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -127,6 +169,12 @@
     {
       "type": 0,
       "value": "Uploaden mislukt"
+    }
+  ],
+  "2c3ef76333": [
+    {
+      "type": 0,
+      "value": "Mijn bestanden"
     }
   ],
   "2deec2cb74": [
@@ -147,6 +195,12 @@
       "value": "i18n: Markering ontbreekt"
     }
   ],
+  "32210b37e4": [
+    {
+      "type": 0,
+      "value": "Link toevoegen"
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
@@ -157,6 +211,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "3bc7d6ea2f": [
+    {
+      "type": 0,
+      "value": "Doorgaan met e-mail"
     }
   ],
   "3bd1b98dbd": [
@@ -201,10 +261,28 @@
       "value": "tldraw"
     }
   ],
+  "47f493a590": [
+    {
+      "type": 0,
+      "value": "Pinbestand"
+    }
+  ],
+  "49049467ff": [
+    {
+      "type": 0,
+      "value": "Plak de URL van het tldraw-bestand..."
+    }
+  ],
   "4908687e50": [
     {
       "type": 0,
       "value": "Weet u zeker dat u dit bestand wilt vergeten?"
+    }
+  ],
+  "49ee308734": [
+    {
+      "type": 0,
+      "value": "Naam"
     }
   ],
   "4d0d3ddec9": [
@@ -217,6 +295,18 @@
     {
       "type": 0,
       "value": "Opnieuw laden"
+    }
+  ],
+  "4da5988a2e": [
+    {
+      "type": 0,
+      "value": "Groep verwijderen…"
+    }
+  ],
+  "4e6fbf032b": [
+    {
+      "type": 0,
+      "value": "Weet u zeker dat u deze groep wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
     }
   ],
   "50db1b7e1e": [
@@ -277,6 +367,40 @@
       "value": "Privacybeleid"
     }
   ],
+  "5a86b22fa0": [
+    {
+      "type": 0,
+      "value": "Sleep bestanden hierheen, "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "maak een bestand"
+        }
+      ],
+      "type": 8,
+      "value": "create"
+    },
+    {
+      "type": 0,
+      "value": " of "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "kopieer de uitnodigingslink"
+        }
+      ],
+      "type": 8,
+      "value": "invite"
+    },
+    {
+      "type": 0,
+      "value": " om te beginnen."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -299,6 +423,12 @@
     {
       "type": 0,
       "value": "Oude browser gedetecteerd. Werk uw browser bij om deze app te gebruiken."
+    }
+  ],
+  "5c6fe42bc2": [
+    {
+      "type": 0,
+      "value": "Trek deze link in en maak een nieuwe."
     }
   ],
   "5d26ae7550": [
@@ -331,6 +461,12 @@
       "value": "Ouder"
     }
   ],
+  "639bae9ac6": [
+    {
+      "type": 0,
+      "value": "Jij"
+    }
+  ],
   "6609dd239e": [
     {
       "type": 0,
@@ -341,6 +477,30 @@
     {
       "type": 0,
       "value": "Er is een nieuwe versie van tldraw beschikbaar. Laad de pagina opnieuw om verder te gaan."
+    }
+  ],
+  "68257bb646": [
+    {
+      "type": 0,
+      "value": "Je bent uitgenodigd voor groep "
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "br"
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "groupName"
+    }
+  ],
+  "6832ac5936": [
+    {
+      "type": 0,
+      "value": "Voer uw e-mailadres in"
     }
   ],
   "6a26f54883": [
@@ -359,6 +519,12 @@
     {
       "type": 0,
       "value": "Volg deze stappen om de inhoud handmatig te importeren:"
+    }
+  ],
+  "70222abcfc": [
+    {
+      "type": 0,
+      "value": "Groepsinstellingen"
     }
   ],
   "70a6facb9d": [
@@ -451,6 +617,12 @@
       "value": "Vergeten"
     }
   ],
+  "7cfe6c43dc": [
+    {
+      "type": 0,
+      "value": "Groep verlaten…"
+    }
+  ],
   "7daeced9ff": [
     {
       "type": 0,
@@ -525,10 +697,22 @@
       "value": "Bestand hernoemen"
     }
   ],
+  "8ad4303b83": [
+    {
+      "type": 0,
+      "value": "Nee bedankt"
+    }
+  ],
   "8b1946f965": [
     {
       "type": 0,
       "value": "Om door te kunnen gaan met bewerken, kopieer je de kamer naar je bestanden."
+    }
+  ],
+  "8c2d3d730c": [
+    {
+      "type": 0,
+      "value": "Controleer uw e-mail voor een verificatiecode."
     }
   ],
   "8eb2c00e96": [
@@ -561,6 +745,18 @@
       "value": "Kopieer naar mijn bestanden"
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Gekopieerde uitnodigingslink"
+    }
+  ],
+  "95aacd4d4a": [
+    {
+      "type": 0,
+      "value": "Aanmelden met Google"
+    }
+  ],
   "95d2109dc8": [
     {
       "type": 0,
@@ -573,10 +769,42 @@
       "value": "Deze maand"
     }
   ],
+  "985a4b720f": [
+    {
+      "type": 0,
+      "value": "Gebruiksvoorwaarden"
+    }
+  ],
+  "98c997a27e": [
+    {
+      "type": 0,
+      "value": "Bestandslink toevoegen"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Licht"
+    }
+  ],
+  "9b33f5c63c": [
+    {
+      "type": 0,
+      "value": "Geen code ontvangen? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Opnieuw verzenden"
+        }
+      ],
+      "type": 8,
+      "value": "resend"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "9bef626805": [
@@ -669,6 +897,12 @@
       "value": "Achtergrond"
     }
   ],
+  "aa916767cf": [
+    {
+      "type": 0,
+      "value": "Meld u aan om de uitnodiging te accepteren"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -693,10 +927,28 @@
       "value": "Gastgebruiker"
     }
   ],
+  "b357b524e7": [
+    {
+      "type": 0,
+      "value": "E-mailadres"
+    }
+  ],
+  "b3d2db69fe": [
+    {
+      "type": 0,
+      "value": "Bestands-URL"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
       "value": "Aanmelden"
+    }
+  ],
+  "b6f4a2ec63": [
+    {
+      "type": 0,
+      "value": "Eigenaar"
     }
   ],
   "b758336699": [
@@ -711,10 +963,10 @@
       "value": "Meld je aan om te delen"
     }
   ],
-  "bb792693e2": [
+  "bb93a7590f": [
     {
       "type": 0,
-      "value": "Losmaken"
+      "value": "Accepteren en lid worden van de groep"
     }
   ],
   "bbbcefd7ce": [
@@ -769,16 +1021,30 @@
       "value": "ownerName"
     }
   ],
-  "bcb62136a3": [
-    {
-      "type": 0,
-      "value": "Upload .tldr-bestanden"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Meer informatie over delen."
+    }
+  ],
+  "c28aed8348": [
+    {
+      "type": 0,
+      "value": "Sta "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "analytics"
+        }
+      ],
+      "type": 8,
+      "value": "cookies"
+    },
+    {
+      "type": 0,
+      "value": " toe om ons te helpen tldraw te verbeteren."
     }
   ],
   "c303bd1095": [
@@ -793,6 +1059,12 @@
       "value": "Essentiële cookies"
     }
   ],
+  "c6155aaecc": [
+    {
+      "type": 0,
+      "value": "Groepsnaam"
+    }
+  ],
   "c655b27b1e": [
     {
       "type": 0,
@@ -805,10 +1077,22 @@
       "value": "Uitnodiging"
     }
   ],
+  "c74ea6dbff": [
+    {
+      "type": 0,
+      "value": "Minder weergeven"
+    }
+  ],
   "c87aacf567": [
     {
       "type": 0,
       "value": "Afmelden"
+    }
+  ],
+  "c9cc8cce24": [
+    {
+      "type": 0,
+      "value": "Redden"
     }
   ],
   "cceaefbc20": [
@@ -841,6 +1125,40 @@
       "value": "Schakel zijbalk in"
     }
   ],
+  "d638a3344b": [
+    {
+      "type": 0,
+      "value": "Voordat u begint, accepteert u onze "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "gebruiksvoorwaarden"
+        }
+      ],
+      "type": 8,
+      "value": "tos"
+    },
+    {
+      "type": 0,
+      "value": " en ons "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "privacybeleid"
+        }
+      ],
+      "type": 8,
+      "value": "privacy"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "d721757161": [
     {
       "type": 0,
@@ -853,10 +1171,22 @@
       "value": "Probeer het opnieuw"
     }
   ],
+  "d88ad2dc74": [
+    {
+      "type": 0,
+      "value": "Accepteren en doorgaan"
+    }
+  ],
   "d9100f3e10": [
     {
       "type": 0,
       "value": "Ga hierheen om de inhoud te bekijken"
+    }
+  ],
+  "d9e35d0f55": [
+    {
+      "type": 0,
+      "value": "Je hebt het maximale aantal groepen bereikt. Je moet oude groepen verwijderen voordat je nieuwe kunt aanmaken."
     }
   ],
   "dbbebf3c03": [
@@ -865,10 +1195,28 @@
       "value": "Alleen op uitnodiging"
     }
   ],
+  "dcdaa754fe": [
+    {
+      "type": 0,
+      "value": "Ongeldige tldraw-bestands-URL"
+    }
+  ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "App-debug vlaggen"
+    }
+  ],
+  "e0c88179b3": [
+    {
+      "type": 0,
+      "value": "Nodig leden uit"
+    }
+  ],
+  "e2198d6228": [
+    {
+      "type": 0,
+      "value": "Kopieer uitnodigingslink"
     }
   ],
   "e2ae80a510": [
@@ -877,16 +1225,28 @@
       "value": "Juridische samenvatting"
     }
   ],
+  "e3afed0047": [
+    {
+      "type": 0,
+      "value": "Beheerder"
+    }
+  ],
   "e404559826": [
     {
       "type": 0,
       "value": "Servicevoorwaarden"
     }
   ],
-  "e78e14c5f1": [
+  "e81c4e4f2b": [
     {
       "type": 0,
-      "value": "Vastmaken"
+      "value": "of"
+    }
+  ],
+  "ea0626ac5a": [
+    {
+      "type": 0,
+      "value": "Gevarenzone"
     }
   ],
   "ea4788705e": [
@@ -945,6 +1305,12 @@
       "value": " voor meer informatie."
     }
   ],
+  "ef53538ae4": [
+    {
+      "type": 0,
+      "value": "Leden"
+    }
+  ],
   "ef7de3f485": [
     {
       "type": 0,
@@ -987,6 +1353,18 @@
       "value": "Instellingen"
     }
   ],
+  "f714e36843": [
+    {
+      "type": 0,
+      "value": "Weet u zeker dat u deze groep wilt verlaten?"
+    }
+  ],
+  "fa2ead697d": [
+    {
+      "type": 0,
+      "value": "Privacybeleid"
+    }
+  ],
   "fb15c53f22": [
     {
       "type": 0,
@@ -1003,6 +1381,12 @@
     {
       "type": 0,
       "value": "Gekopieerde link"
+    }
+  ],
+  "ff7a814974": [
+    {
+      "type": 0,
+      "value": "Bestandskoppeling toevoegen…"
     }
   ],
   "ffcd73e997": [
