@@ -55,7 +55,6 @@ import {
 	TLShapePartial,
 	TLStore,
 	TLStoreSnapshot,
-	TLUnknownBinding,
 	TLVideoAsset,
 	createBindingId,
 	createShapeId,
@@ -447,7 +446,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let deletedBindings = new Map<TLBindingId, BindingOnDeleteOptions<any>>()
 		const deletedShapeIds = new Set<TLShapeId>()
 		const invalidParents = new Set<TLShapeId>()
-		let invalidBindingTypes = new Set<string>()
+		let invalidBindingTypes = new Set<TLBinding['type']>()
 		this.disposables.add(
 			this.sideEffects.registerOperationCompleteHandler(() => {
 				// this needs to be cleared here because further effects may delete more shapes
@@ -1032,7 +1031,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	bindingUtils: { readonly [K in string]?: BindingUtil<TLUnknownBinding> }
+	bindingUtils: { readonly [K in string]?: BindingUtil<TLBinding> }
 
 	/**
 	 * Get a binding util from a binding itself.
@@ -1049,8 +1048,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getBindingUtil<S extends TLUnknownBinding>(binding: S | { type: S['type'] }): BindingUtil<S>
-	getBindingUtil<S extends TLUnknownBinding>(type: S['type']): BindingUtil<S>
+	getBindingUtil<K extends TLBinding['type']>(type: K): BindingUtil<Extract<TLBinding, { type: K }>>
+	getBindingUtil<S extends TLBinding>(binding: S | { type: S['type'] }): BindingUtil<S>
 	getBindingUtil<T extends BindingUtil>(
 		type: T extends BindingUtil<infer R> ? R['type'] : string
 	): T
@@ -5876,7 +5875,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get all bindings of a certain type _from_ a particular shape. These are the bindings whose
 	 * `fromId` matched the shape's ID.
 	 */
-	getBindingsFromShape<Binding extends TLUnknownBinding = TLBinding>(
+	getBindingsFromShape<Binding extends TLBinding = TLBinding>(
 		shape: TLShape | TLShapeId,
 		type: Binding['type']
 	): Binding[] {
@@ -5890,7 +5889,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get all bindings of a certain type _to_ a particular shape. These are the bindings whose
 	 * `toId` matches the shape's ID.
 	 */
-	getBindingsToShape<Binding extends TLUnknownBinding = TLBinding>(
+	getBindingsToShape<Binding extends TLBinding = TLBinding>(
 		shape: TLShape | TLShapeId,
 		type: Binding['type']
 	): Binding[] {
@@ -5904,7 +5903,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get all bindings involving a particular shape. This includes bindings where the shape is the
 	 * `fromId` or `toId`. If a type is provided, only bindings of that type are returned.
 	 */
-	getBindingsInvolvingShape<Binding extends TLUnknownBinding = TLBinding>(
+	getBindingsInvolvingShape<Binding extends TLBinding = TLBinding>(
 		shape: TLShape | TLShapeId,
 		type?: Binding['type']
 	): Binding[] {
@@ -5926,7 +5925,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (!fromShape || !toShape) continue
 			if (!this.canBindShapes({ fromShape, toShape, binding: partial })) continue
 
-			const util = this.getBindingUtil<TLUnknownBinding>(partial.type)
+			const util = this.getBindingUtil(partial.type)
 			const defaultProps = util.getDefaultProps()
 			const binding = this.store.schema.types.binding.create({
 				...partial,

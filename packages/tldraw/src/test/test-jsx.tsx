@@ -5,7 +5,6 @@ import {
 	TLBinding,
 	TLBindingCreate,
 	TLBindingId,
-	TLDefaultBinding,
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
@@ -23,6 +22,7 @@ import React, { Fragment } from 'react'
 const shapeTypeSymbol = Symbol('shapeJsx')
 const assetTypeSymbol = Symbol('assetJsx')
 const bindingTypeSymbol = Symbol('bindingJsx')
+
 interface CommonShapeProps {
 	x?: number
 	y?: number
@@ -34,7 +34,6 @@ interface CommonShapeProps {
 	opacity?: number
 }
 
-type ShapeByType<Type extends TLShape['type']> = Extract<TLShape, { type: Type }>
 type FormatShapeProps<Props extends object> = {
 	[K in keyof Props]?: Props[K] extends TLAssetId
 		? TLAssetId | React.JSX.Element
@@ -43,7 +42,7 @@ type FormatShapeProps<Props extends object> = {
 			: Props[K]
 }
 type PropsForShape<Type extends TLShape['type']> = CommonShapeProps &
-	FormatShapeProps<ShapeByType<Type>['props']>
+	FormatShapeProps<TLShape<Type>['props']>
 
 type AssetByType<Type extends TLAsset['type']> = Extract<TLAsset, { type: Type }>
 type PropsForAsset<Type extends string> = Type extends TLAsset['type']
@@ -53,12 +52,27 @@ type PropsForAsset<Type extends string> = Type extends TLAsset['type']
 interface CommonBindingProps {
 	from?: string | TLShapeId
 	to: string | TLShapeId
+	ref?: string
+	id?: TLBindingId
 }
 
-type BindingByType<Type extends TLBinding['type']> = Extract<TLBinding, { type: Type }>
-type PropsForBinding<Type extends string> = Type extends TLBinding['type']
-	? CommonBindingProps & Partial<BindingByType<Type>['props']>
-	: CommonBindingProps & Record<string, unknown>
+type PropsForBinding<Type extends TLBinding['type']> = CommonBindingProps &
+	Partial<TLBinding<Type>['props']>
+
+type BindingToCreate = TLBinding extends infer E
+	? E extends TLBinding
+		? {
+				type: E['type']
+				props: PropsForBinding<E['type']>
+				parentId: TLShapeId | undefined
+				ref: string | undefined
+			}
+		: never
+	: never
+
+type WithPartialProps<T extends { props: unknown }> = T extends T
+	? Omit<T, 'props'> & { props: Partial<T['props']> }
+	: never
 
 const createElement = (
 	type: typeof shapeTypeSymbol | typeof assetTypeSymbol | typeof bindingTypeSymbol,
@@ -89,10 +103,9 @@ const tlBinding = new Proxy(
 			return createElement(bindingTypeSymbol, key as string)
 		},
 	}
-) as { [K in TLDefaultBinding['type']]: (props: PropsForBinding<K>) => null } & Record<
-	string,
-	(props: PropsForBinding<string>) => null
->
+) as {
+	[K in TLBinding['type']]: (props: PropsForBinding<K>) => null
+}
 
 /**
  * TL - jsx helpers for creating tldraw shapes in test cases
@@ -121,12 +134,7 @@ export function shapesFromJsx(shapes: React.JSX.Element | Array<React.JSX.Elemen
 	const currentPageShapes: Array<TLShapePartial> = []
 	const assets: Array<TLAsset> = []
 
-	const bindingsToCreate: Array<{
-		type: string
-		props: Record<string, unknown>
-		parentId: TLShapeId | undefined
-		ref: string | undefined
-	}> = []
+	const bindingsToCreate: Array<BindingToCreate> = []
 
 	function addChildren(
 		children: React.JSX.Element | Array<React.JSX.Element>,
@@ -151,7 +159,7 @@ export function shapesFromJsx(shapes: React.JSX.Element | Array<React.JSX.Elemen
 			}
 
 			if (el.type[bindingTypeSymbol]) {
-				const bindingType = (el.type as any)[bindingTypeSymbol] as string
+				const bindingType = (el.type as any)[bindingTypeSymbol] as TLBinding['type']
 				const ref = ((el as any).ref || el.props.ref) as string | undefined
 				assert(ref === undefined || typeof ref === 'string', 'ref must be string or undefined')
 				bindingsToCreate.push({ type: bindingType, props: el.props, parentId, ref })
@@ -275,18 +283,18 @@ export function shapesFromJsx(shapes: React.JSX.Element | Array<React.JSX.Elemen
 			bindingId = createBindingId()
 		}
 
-		const props = { ...binding.props }
-		delete props.ref
-		delete props.id
-		delete props.from
-		delete props.to
+		const bindingCopy: WithPartialProps<typeof binding> = { ...binding }
+		bindingCopy.props = { ...binding.props }
+		delete bindingCopy.props.ref
+		delete bindingCopy.props.id
+		delete bindingCopy.props.from
+		delete bindingCopy.props.to
 
 		bindings.push({
 			id: bindingId,
-			type: binding.type,
 			fromId,
 			toId,
-			props,
+			...bindingCopy,
 		})
 	}
 

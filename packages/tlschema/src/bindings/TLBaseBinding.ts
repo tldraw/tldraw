@@ -1,4 +1,3 @@
-import { BaseRecord } from '@tldraw/store'
 import { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
@@ -44,8 +43,12 @@ import { shapeIdValidator } from '../shapes/TLBaseShape'
  *
  * @public
  */
-export interface TLBaseBinding<Type extends string, Props extends object>
-	extends BaseRecord<'binding', TLBindingId> {
+export interface TLBaseBinding<Type extends string, Props extends object> {
+	// using real `extends BaseRecord<'binding', TLBindingId>` introduces a circularity in the types
+	// and for that reason those "base members" have to be declared manually here
+	readonly id: TLBindingId
+	readonly typeName: 'binding'
+
 	/** The specific type of this binding (e.g., 'arrow', 'custom') */
 	type: Type
 	/** ID of the source shape in this binding relationship */

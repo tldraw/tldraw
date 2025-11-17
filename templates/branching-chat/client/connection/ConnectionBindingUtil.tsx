@@ -8,7 +8,7 @@ import {
 	createComputedCache,
 	Editor,
 	T,
-	TLBaseBinding,
+	TLBinding,
 	TLShapeId,
 } from 'tldraw'
 import { getNodePorts } from '../nodes/nodePorts'
@@ -17,20 +17,25 @@ import { onNodePortConnect, onNodePortDisconnect } from '../nodes/nodeTypes'
 import { PortId } from '../ports/Port'
 import { ConnectionShape } from './ConnectionShapeUtil'
 
+const CONNECTION_TYPE = 'connection'
+
+declare module 'tldraw' {
+	export interface TLGlobalBindingPropsMap {
+		[CONNECTION_TYPE]: {
+			portId: PortId
+			terminal: 'start' | 'end'
+		}
+	}
+}
+
 /**
  * A connection binding is a binding between a connection shape and a node shape. Usually, each
  * connection shape has two bindings: one for each end of the connection.
  */
-export type ConnectionBinding = TLBaseBinding<
-	'connection',
-	{
-		portId: PortId
-		terminal: 'start' | 'end'
-	}
->
+export type ConnectionBinding = TLBinding<typeof CONNECTION_TYPE>
 
 export class ConnectionBindingUtil extends BindingUtil<ConnectionBinding> {
-	static override type = 'connection' as const
+	static override type = CONNECTION_TYPE
 	static override props = {
 		portId: T.string,
 		terminal: T.literalEnum('start', 'end'),
@@ -104,7 +109,7 @@ export function getConnectionBindings(
 const connectionBindingsCache = createComputedCache(
 	'connection bindings',
 	(editor: Editor, connection: ConnectionShape) => {
-		const bindings = editor.getBindingsFromShape<ConnectionBinding>(connection.id, 'connection')
+		const bindings = editor.getBindingsFromShape<ConnectionBinding>(connection.id, CONNECTION_TYPE)
 		let start, end
 		for (const binding of bindings) {
 			if (binding.props.terminal === 'start') {
@@ -154,7 +159,7 @@ export function createOrUpdateConnectionBinding(
 	const targetId = typeof target === 'string' ? target : target.id
 
 	const existingMany = editor
-		.getBindingsFromShape<ConnectionBinding>(connectionId, 'connection')
+		.getBindingsFromShape<ConnectionBinding>(connectionId, CONNECTION_TYPE)
 		.filter((b) => b.props.terminal === props.terminal)
 
 	// if we've somehow ended up with too many bindings, delete the extras
@@ -171,7 +176,7 @@ export function createOrUpdateConnectionBinding(
 		})
 	} else {
 		editor.createBinding({
-			type: 'connection',
+			type: CONNECTION_TYPE,
 			fromId: connectionId,
 			toId: targetId,
 			props,
@@ -186,7 +191,7 @@ export function removeConnectionBinding(
 	terminal: 'start' | 'end'
 ) {
 	const existing = editor
-		.getBindingsFromShape<ConnectionBinding>(connection, 'connection')
+		.getBindingsFromShape<ConnectionBinding>(connection, CONNECTION_TYPE)
 		.filter((b) => b.props.terminal === terminal)
 
 	editor.deleteBindings(existing)

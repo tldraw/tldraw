@@ -787,12 +787,16 @@ export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'ass
 }
 
 // @public
-export interface TLBaseBinding<Type extends string, Props extends object> extends BaseRecord<'binding', TLBindingId> {
+export interface TLBaseBinding<Type extends string, Props extends object> {
     fromId: TLShapeId;
+    // (undocumented)
+    readonly id: TLBindingId;
     meta: JsonObject;
     props: Props;
     toId: TLShapeId;
     type: Type;
+    // (undocumented)
+    readonly typeName: 'binding';
 }
 
 // @public
@@ -824,10 +828,10 @@ export interface TLBaseShape<Type extends string, Props extends object> {
 }
 
 // @public
-export type TLBinding = TLDefaultBinding | TLUnknownBinding;
+export type TLBinding<K extends keyof TLIndexedBindings = keyof TLIndexedBindings> = TLIndexedBindings[K];
 
 // @public
-export type TLBindingCreate<T extends TLBinding = TLBinding> = Expand<{
+export type TLBindingCreate<T extends TLBinding = TLBinding> = T extends T ? {
     fromId: T['fromId'];
     id?: TLBindingId;
     meta?: Partial<T['meta']>;
@@ -835,13 +839,13 @@ export type TLBindingCreate<T extends TLBinding = TLBinding> = Expand<{
     toId: T['toId'];
     type: T['type'];
     typeName?: T['typeName'];
-}>;
+} : never;
 
 // @public
-export type TLBindingId = RecordId<TLUnknownBinding>;
+export type TLBindingId = RecordId<TLBinding>;
 
 // @public
-export type TLBindingUpdate<T extends TLBinding = TLBinding> = Expand<{
+export type TLBindingUpdate<T extends TLBinding = TLBinding> = T extends T ? {
     fromId?: T['fromId'];
     id: TLBindingId;
     meta?: Partial<T['meta']>;
@@ -849,7 +853,7 @@ export type TLBindingUpdate<T extends TLBinding = TLBinding> = Expand<{
     toId?: T['toId'];
     type: T['type'];
     typeName?: T['typeName'];
-}>;
+} : never;
 
 // @public
 export type TLBookmarkAsset = TLBaseAsset<'bookmark', {
@@ -1050,6 +1054,10 @@ export interface TLGeoShapeProps {
 }
 
 // @public (undocumented)
+export interface TLGlobalBindingPropsMap {
+}
+
+// @public (undocumented)
 export interface TLGlobalShapePropsMap {
 }
 
@@ -1116,6 +1124,13 @@ export interface TLImageShapeProps {
     url: string;
     w: number;
 }
+
+// @public (undocumented)
+export type TLIndexedBindings = {
+    [K in keyof TLGlobalBindingPropsMap | TLDefaultBinding['type'] as K extends TLDefaultBinding['type'] ? K extends keyof TLGlobalBindingPropsMap ? TLGlobalBindingPropsMap[K] extends null | undefined ? never : K : K : K]: K extends TLDefaultBinding['type'] ? K extends keyof TLGlobalBindingPropsMap ? TLBaseBinding<K, TLGlobalBindingPropsMap[K]> : Extract<TLDefaultBinding, {
+        type: K;
+    }> : TLBaseBinding<K, TLGlobalBindingPropsMap[K & keyof TLGlobalBindingPropsMap]>;
+};
 
 // @public (undocumented)
 export type TLIndexedShapes = {
