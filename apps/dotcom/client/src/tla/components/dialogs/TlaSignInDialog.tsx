@@ -18,7 +18,7 @@ import styles from './auth.module.css'
 const messages = defineMessages({
 	enterEmailAddress: { defaultMessage: 'Enter your email address' },
 	inviteMessage: {
-		defaultMessage: "<strong>You've been invited to join <groupName></groupName> group</strong>",
+		defaultMessage: '<strong>You have been invited to join <groupName></groupName> group</strong>.',
 	},
 })
 

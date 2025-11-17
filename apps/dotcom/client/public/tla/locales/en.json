@@ -197,9 +197,6 @@
   "5d26ae7550": {
     "translation": "We failed to upload some of the content you created before you signed in."
   },
-  "5f2528c81d": {
-    "translation": "<strong>You've been invited to join <groupName></groupName> group</strong>"
-  },
   "5f3c333678": {
     "translation": "Feedback submitted"
   },
@@ -506,6 +503,9 @@
   },
   "d9e35d0f55": {
     "translation": "You have reached the maximum number of groups. You need to delete old groups before creating new ones."
+  },
+  "daa49825e0": {
+    "translation": "<strong>You have been invited to join <groupName></groupName> group</strong>."
   },
   "dbbebf3c03": {
     "translation": "Invite only"

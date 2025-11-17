@@ -437,28 +437,6 @@
       "value": "We failed to upload some of the content you created before you signed in."
     }
   ],
-  "5f2528c81d": [
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "You've been invited to join "
-        },
-        {
-          "children": [
-          ],
-          "type": 8,
-          "value": "groupName"
-        },
-        {
-          "type": 0,
-          "value": " group"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    }
-  ],
   "5f3c333678": [
     {
       "type": 0,
@@ -1219,6 +1197,32 @@
     {
       "type": 0,
       "value": "You have reached the maximum number of groups. You need to delete old groups before creating new ones."
+    }
+  ],
+  "daa49825e0": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "You have been invited to join "
+        },
+        {
+          "children": [
+          ],
+          "type": 8,
+          "value": "groupName"
+        },
+        {
+          "type": 0,
+          "value": " group"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "dbbebf3c03": [
