@@ -51,6 +51,12 @@
       "value": "Tài khoản"
     }
   ],
+  "08d2d725a9": [
+    {
+      "type": 0,
+      "value": "Tạo một tài khoản miễn phí để lưu công việc, cộng tác theo thời gian thực và nhiều chức năng khác."
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
@@ -61,6 +67,12 @@
     {
       "type": 0,
       "value": "Menu tệp"
+    }
+  ],
+  "0beb3ca97b": [
+    {
+      "type": 0,
+      "value": "tldraw là bảng trắng ảo miễn phí và tức thì."
     }
   ],
   "0d1f2bb523": [
@@ -75,6 +87,18 @@
       "value": "Xuất bản"
     }
   ],
+  "129b9e34ea": [
+    {
+      "type": 0,
+      "value": "Rời khỏi nhóm"
+    }
+  ],
+  "12a6766ba1": [
+    {
+      "type": 0,
+      "value": "Bỏ ghim tệp"
+    }
+  ],
   "12c8a9838c": [
     {
       "type": 0,
@@ -85,6 +109,18 @@
     {
       "type": 0,
       "value": "Xuất dưới dạng"
+    }
+  ],
+  "146ffe2fd9": [
+    {
+      "type": 0,
+      "value": "Hiển thị thêm"
+    }
+  ],
+  "14d65465b7": [
+    {
+      "type": 0,
+      "value": "Xóa nhóm"
     }
   ],
   "181b90f889": [
@@ -117,6 +153,12 @@
       "value": "Phòng này sắp đạt đến giới hạn kích thước. Hãy cân nhắc xóa bớt nội dung hoặc tạo một tệp mới."
     }
   ],
+  "2445e5e347": [
+    {
+      "type": 0,
+      "value": "Tạo nhóm"
+    }
+  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -127,6 +169,12 @@
     {
       "type": 0,
       "value": "Tải lên thất bại"
+    }
+  ],
+  "2c3ef76333": [
+    {
+      "type": 0,
+      "value": "Các tập tin của tôi"
     }
   ],
   "2deec2cb74": [
@@ -147,6 +195,12 @@
       "value": "i18n: Thiếu đánh dấu"
     }
   ],
+  "32210b37e4": [
+    {
+      "type": 0,
+      "value": "Thêm liên kết"
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
@@ -157,6 +211,12 @@
     {
       "type": 0,
       "value": "Biên tập viên"
+    }
+  ],
+  "3bc7d6ea2f": [
+    {
+      "type": 0,
+      "value": "Tiếp tục với email"
     }
   ],
   "3bd1b98dbd": [
@@ -201,10 +261,28 @@
       "value": "tldraw"
     }
   ],
+  "47f493a590": [
+    {
+      "type": 0,
+      "value": "Tệp ghim"
+    }
+  ],
+  "49049467ff": [
+    {
+      "type": 0,
+      "value": "Dán URL tệp tldraw..."
+    }
+  ],
   "4908687e50": [
     {
       "type": 0,
       "value": "Bạn có chắc chắn muốn quên tệp này không?"
+    }
+  ],
+  "49ee308734": [
+    {
+      "type": 0,
+      "value": "Tên"
     }
   ],
   "4d0d3ddec9": [
@@ -217,6 +295,18 @@
     {
       "type": 0,
       "value": "Tải lại"
+    }
+  ],
+  "4da5988a2e": [
+    {
+      "type": 0,
+      "value": "Xóa nhóm…"
+    }
+  ],
+  "4e6fbf032b": [
+    {
+      "type": 0,
+      "value": "Bạn có chắc chắn muốn xóa nhóm này không? Thao tác này không thể hoàn tác."
     }
   ],
   "50db1b7e1e": [
@@ -277,6 +367,40 @@
       "value": "Chính sách bảo mật"
     }
   ],
+  "5a86b22fa0": [
+    {
+      "type": 0,
+      "value": "Kéo tệp vào đây, "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "tạo tệp"
+        }
+      ],
+      "type": 8,
+      "value": "create"
+    },
+    {
+      "type": 0,
+      "value": " hoặc "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "sao chép liên kết mời"
+        }
+      ],
+      "type": 8,
+      "value": "invite"
+    },
+    {
+      "type": 0,
+      "value": " để bắt đầu."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -299,6 +423,12 @@
     {
       "type": 0,
       "value": "Đã phát hiện trình duyệt cũ. Vui lòng cập nhật trình duyệt của bạn để sử dụng ứng dụng này."
+    }
+  ],
+  "5c6fe42bc2": [
+    {
+      "type": 0,
+      "value": "Thu hồi liên kết này và tạo liên kết mới."
     }
   ],
   "5d26ae7550": [
@@ -331,6 +461,12 @@
       "value": "Cũ hơn"
     }
   ],
+  "639bae9ac6": [
+    {
+      "type": 0,
+      "value": "Bạn"
+    }
+  ],
   "6609dd239e": [
     {
       "type": 0,
@@ -341,6 +477,30 @@
     {
       "type": 0,
       "value": "Phiên bản mới của tldraw đã có sẵn. Vui lòng tải lại trang để tiếp tục."
+    }
+  ],
+  "68257bb646": [
+    {
+      "type": 0,
+      "value": "Bạn đã được mời vào nhóm "
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "br"
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "groupName"
+    }
+  ],
+  "6832ac5936": [
+    {
+      "type": 0,
+      "value": "Nhập địa chỉ email của bạn"
     }
   ],
   "6a26f54883": [
@@ -359,6 +519,12 @@
     {
       "type": 0,
       "value": "Làm theo các bước sau để nhập nội dung theo cách thủ công:"
+    }
+  ],
+  "70222abcfc": [
+    {
+      "type": 0,
+      "value": "Cài đặt nhóm"
     }
   ],
   "70a6facb9d": [
@@ -451,6 +617,12 @@
       "value": "Quên"
     }
   ],
+  "7cfe6c43dc": [
+    {
+      "type": 0,
+      "value": "Rời khỏi nhóm…"
+    }
+  ],
   "7daeced9ff": [
     {
       "type": 0,
@@ -529,10 +701,22 @@
       "value": "Đổi tên tập tin"
     }
   ],
+  "8ad4303b83": [
+    {
+      "type": 0,
+      "value": "Không, cảm ơn"
+    }
+  ],
   "8b1946f965": [
     {
       "type": 0,
       "value": "Để tiếp tục chỉnh sửa, vui lòng sao chép phòng vào tệp của bạn."
+    }
+  ],
+  "8c2d3d730c": [
+    {
+      "type": 0,
+      "value": "Kiểm tra email của bạn để lấy mã xác minh."
     }
   ],
   "8eb2c00e96": [
@@ -565,6 +749,18 @@
       "value": "Sao chép vào tệp của tôi"
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Đã sao chép liên kết mời"
+    }
+  ],
+  "95aacd4d4a": [
+    {
+      "type": 0,
+      "value": "Đăng nhập bằng Google"
+    }
+  ],
   "95d2109dc8": [
     {
       "type": 0,
@@ -577,10 +773,42 @@
       "value": "Tháng này"
     }
   ],
+  "985a4b720f": [
+    {
+      "type": 0,
+      "value": "Điều khoản sử dụng"
+    }
+  ],
+  "98c997a27e": [
+    {
+      "type": 0,
+      "value": "Thêm liên kết tệp"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Sáng"
+    }
+  ],
+  "9b33f5c63c": [
+    {
+      "type": 0,
+      "value": "Không nhận được mã? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Gửi lại"
+        }
+      ],
+      "type": 8,
+      "value": "resend"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "9bef626805": [
@@ -673,6 +901,12 @@
       "value": "Cơ sở"
     }
   ],
+  "aa916767cf": [
+    {
+      "type": 0,
+      "value": "Đăng nhập để chấp nhận lời mời"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -697,10 +931,28 @@
       "value": "Người dùng khách"
     }
   ],
+  "b357b524e7": [
+    {
+      "type": 0,
+      "value": "Địa chỉ email"
+    }
+  ],
+  "b3d2db69fe": [
+    {
+      "type": 0,
+      "value": "URL tệp"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
       "value": "Đăng nhập"
+    }
+  ],
+  "b6f4a2ec63": [
+    {
+      "type": 0,
+      "value": "Người sở hữu"
     }
   ],
   "b758336699": [
@@ -715,10 +967,10 @@
       "value": "Đăng nhập để chia sẻ"
     }
   ],
-  "bb792693e2": [
+  "bb93a7590f": [
     {
       "type": 0,
-      "value": "Bỏ ghim"
+      "value": "Chấp nhận và tham gia nhóm"
     }
   ],
   "bbbcefd7ce": [
@@ -765,16 +1017,30 @@
       "value": "ownerName"
     }
   ],
-  "bcb62136a3": [
-    {
-      "type": 0,
-      "value": "Tải lên các tệp .tldr."
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Tìm hiểu thêm về chia sẻ."
+    }
+  ],
+  "c28aed8348": [
+    {
+      "type": 0,
+      "value": "Cho phép "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "analytics"
+        }
+      ],
+      "type": 8,
+      "value": "cookies"
+    },
+    {
+      "type": 0,
+      "value": " giúp chúng tôi cải thiện tldraw."
     }
   ],
   "c303bd1095": [
@@ -789,6 +1055,12 @@
       "value": "Cookie thiết yếu"
     }
   ],
+  "c6155aaecc": [
+    {
+      "type": 0,
+      "value": "Tên nhóm"
+    }
+  ],
   "c655b27b1e": [
     {
       "type": 0,
@@ -801,10 +1073,22 @@
       "value": "Mời"
     }
   ],
+  "c74ea6dbff": [
+    {
+      "type": 0,
+      "value": "Hiển thị ít hơn"
+    }
+  ],
   "c87aacf567": [
     {
       "type": 0,
       "value": "Đăng xuất"
+    }
+  ],
+  "c9cc8cce24": [
+    {
+      "type": 0,
+      "value": "Cứu"
     }
   ],
   "cceaefbc20": [
@@ -837,6 +1121,40 @@
       "value": "Chuyển đổi thanh bên"
     }
   ],
+  "d638a3344b": [
+    {
+      "type": 0,
+      "value": "Trước khi bắt đầu, vui lòng chấp nhận "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "điều khoản sử dụng"
+        }
+      ],
+      "type": 8,
+      "value": "tos"
+    },
+    {
+      "type": 0,
+      "value": " và "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "chính sách bảo mật"
+        }
+      ],
+      "type": 8,
+      "value": "privacy"
+    },
+    {
+      "type": 0,
+      "value": " của chúng tôi."
+    }
+  ],
   "d721757161": [
     {
       "type": 0,
@@ -849,10 +1167,22 @@
       "value": "Thử lại"
     }
   ],
+  "d88ad2dc74": [
+    {
+      "type": 0,
+      "value": "Chấp nhận và tiếp tục"
+    }
+  ],
   "d9100f3e10": [
     {
       "type": 0,
       "value": "Vào đây để xem nội dung"
+    }
+  ],
+  "d9e35d0f55": [
+    {
+      "type": 0,
+      "value": "Bạn đã đạt đến số lượng nhóm tối đa. Bạn cần xóa nhóm cũ trước khi tạo nhóm mới."
     }
   ],
   "dbbebf3c03": [
@@ -861,10 +1191,28 @@
       "value": "Chỉ mời"
     }
   ],
+  "dcdaa754fe": [
+    {
+      "type": 0,
+      "value": "URL tệp tldraw không hợp lệ"
+    }
+  ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "Cờ gỡ lỗi ứng dụng"
+    }
+  ],
+  "e0c88179b3": [
+    {
+      "type": 0,
+      "value": "Mời thành viên"
+    }
+  ],
+  "e2198d6228": [
+    {
+      "type": 0,
+      "value": "Sao chép liên kết mời"
     }
   ],
   "e2ae80a510": [
@@ -873,16 +1221,28 @@
       "value": "Tóm tắt pháp lý"
     }
   ],
+  "e3afed0047": [
+    {
+      "type": 0,
+      "value": "Quản trị viên"
+    }
+  ],
   "e404559826": [
     {
       "type": 0,
       "value": "Điều khoản dịch vụ"
     }
   ],
-  "e78e14c5f1": [
+  "e81c4e4f2b": [
     {
       "type": 0,
-      "value": "Ghim"
+      "value": "hoặc"
+    }
+  ],
+  "ea0626ac5a": [
+    {
+      "type": 0,
+      "value": "Khu vực nguy hiểm"
     }
   ],
   "ea4788705e": [
@@ -941,6 +1301,12 @@
       "value": " của chúng tôi để tìm hiểu thêm."
     }
   ],
+  "ef53538ae4": [
+    {
+      "type": 0,
+      "value": "Thành viên"
+    }
+  ],
   "ef7de3f485": [
     {
       "type": 0,
@@ -983,6 +1349,18 @@
       "value": "Cài đặt"
     }
   ],
+  "f714e36843": [
+    {
+      "type": 0,
+      "value": "Bạn có chắc chắn muốn rời khỏi nhóm này không?"
+    }
+  ],
+  "fa2ead697d": [
+    {
+      "type": 0,
+      "value": "Chính sách bảo mật"
+    }
+  ],
   "fb15c53f22": [
     {
       "type": 0,
@@ -999,6 +1377,12 @@
     {
       "type": 0,
       "value": "Đã sao chép liên kết"
+    }
+  ],
+  "ff7a814974": [
+    {
+      "type": 0,
+      "value": "Thêm liên kết tệp…"
     }
   ],
   "ffcd73e997": [
