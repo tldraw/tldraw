@@ -1,12 +1,12 @@
-import { StartTaskAction, Streaming } from '@tldraw/fairy-shared'
+import { StartSoloTaskAction, Streaming } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { $fairyTasks } from '../FairyTaskList'
 import { AgentActionUtil } from './AgentActionUtil'
 
-export class StartTaskActionUtil extends AgentActionUtil<StartTaskAction> {
+export class StartSoloTaskActionUtil extends AgentActionUtil<StartSoloTaskAction> {
 	static override type = 'start-task' as const
 
-	override getInfo(action: Streaming<StartTaskAction>) {
+	override getInfo(action: Streaming<StartSoloTaskAction>) {
 		const task = $fairyTasks.get().find((task) => task.id === action.taskId)
 
 		return {
@@ -18,7 +18,7 @@ export class StartTaskActionUtil extends AgentActionUtil<StartTaskAction> {
 		}
 	}
 
-	override applyAction(action: Streaming<StartTaskAction>, _helpers: AgentHelpers) {
+	override applyAction(action: Streaming<StartSoloTaskAction>, _helpers: AgentHelpers) {
 		if (!action.complete) return
 
 		const task = $fairyTasks.get().find((task) => task.id === action.taskId)
@@ -41,7 +41,7 @@ export class StartTaskActionUtil extends AgentActionUtil<StartTaskAction> {
 		if (!currentBounds) return
 
 		this.agent.interrupt({
-			setMode: 'working',
+			mode: 'working-solo',
 			input: {
 				messages: [`You have started working on task "${task.text}" with id ${task.id}.`],
 				bounds: {

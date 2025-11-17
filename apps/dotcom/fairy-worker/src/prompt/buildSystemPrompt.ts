@@ -408,7 +408,7 @@ function getSystemPromptFlags(
 	return {
 		// Mode flags
 		isSoloing: mode === 'soloing',
-		isWorking: mode === 'working',
+		isWorking: mode === 'working-drone' || mode === 'working-solo',
 		isOrchestrating: mode === 'orchestrating',
 
 		// Communication
@@ -446,10 +446,10 @@ function getSystemPromptFlags(
 		hasCreatePage: actions.includes('create-page'),
 
 		// Task management
-		hasCreateSoloTask: actions.includes('create-solo-task'),
+		hasCreateSoloTask: actions.includes('create-task'),
 		hasCreateProjectTask: actions.includes('create-project-task'),
 		hasStartTask: actions.includes('start-task'),
-		hasMarkTaskDone: actions.includes('mark-task-done'),
+		hasMarkTaskDone: actions.includes('mark-my-task-done'),
 		hasClaimTodoItem: actions.includes('claim-todo-item'),
 		hasSleep: actions.includes('sleep'),
 

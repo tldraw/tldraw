@@ -17,7 +17,8 @@ import {
 	EndCurrentProjectActionSchema,
 	FlyToBoundsActionSchema,
 	LabelActionSchema,
-	MarkTaskDoneActionSchema,
+	MarkDroneTaskDoneActionSchema,
+	MarkSoloTaskDoneActionSchema,
 	MessageActionSchema,
 	MoveActionSchema,
 	PenActionSchema,
@@ -31,7 +32,7 @@ import {
 	SleepActionSchema,
 	StackActionSchema,
 	StartProjectActionSchema,
-	StartTaskActionSchema,
+	StartSoloTaskActionSchema,
 	ThinkActionSchema,
 	UpdateActionSchema,
 } from './AgentActionSchemas'
@@ -108,8 +109,9 @@ export const AGENT_ACTION_SCHEMAS = [
 	CreateSoloTaskActionSchema,
 	CreateProjectTaskActionSchema,
 	SleepActionSchema,
-	StartTaskActionSchema,
-	MarkTaskDoneActionSchema,
+	StartSoloTaskActionSchema,
+	MarkDroneTaskDoneActionSchema,
+	MarkSoloTaskDoneActionSchema,
 ] as const
 
 /**

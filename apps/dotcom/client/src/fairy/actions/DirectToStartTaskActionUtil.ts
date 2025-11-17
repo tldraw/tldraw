@@ -69,7 +69,7 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 			}
 		}
 
-		otherFairy.setMode('working')
+		otherFairy.setMode('working-drone')
 		if (otherFairy.isGenerating()) {
 			otherFairy.schedule(otherFairyPrompt)
 		} else {

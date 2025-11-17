@@ -416,7 +416,7 @@ export type CreatePageAction = z.infer<typeof CreatePageActionSchema>
 
 export const CreateSoloTaskActionSchema = z
 	.object({
-		_type: z.literal('create-solo-task'),
+		_type: z.literal('create-task'),
 		text: z.string(),
 		x: z.number(),
 		y: z.number(),
@@ -449,7 +449,7 @@ export const CreateProjectTaskActionSchema = z
 
 export type CreateProjectTaskAction = z.infer<typeof CreateProjectTaskActionSchema>
 
-export const StartTaskActionSchema = z
+export const StartSoloTaskActionSchema = z
 	.object({
 		_type: z.literal('start-task'),
 		taskId: z.number(),
@@ -460,9 +460,22 @@ export const StartTaskActionSchema = z
 			'The agent begins working on a task. This action immediately gives the agent the abilities required to complete the task, such as the ability to manipulate the canvas. Upon performing this action, the agent will immediately receive instructions on how to use those abilities.',
 	})
 
-export type StartTaskAction = z.infer<typeof StartTaskActionSchema>
+export type StartSoloTaskAction = z.infer<typeof StartSoloTaskActionSchema>
 
-export const MarkTaskDoneActionSchema = z
+export const MarkDroneTaskDoneActionSchema = z
+	.object({
+		_type: z.literal('mark-my-task-done'),
+		taskId: z.number(),
+	})
+	.meta({
+		title: 'Mark Task Done',
+		description:
+			'The agent marks a task as completed. This action should be used when the agent has finished working on a task.',
+	})
+
+export type MarkDroneTaskDoneAction = z.infer<typeof MarkDroneTaskDoneActionSchema>
+
+export const MarkSoloTaskDoneActionSchema = z
 	.object({
 		_type: z.literal('mark-task-done'),
 		taskId: z.number(),
@@ -473,7 +486,7 @@ export const MarkTaskDoneActionSchema = z
 			'The agent marks a task as completed. This action should be used when the agent has finished working on a task.',
 	})
 
-export type MarkTaskDoneAction = z.infer<typeof MarkTaskDoneActionSchema>
+export type MarkSoloTaskDoneAction = z.infer<typeof MarkSoloTaskDoneActionSchema>
 
 export const AwaitTasksCompletionActionSchema = z
 	.object({

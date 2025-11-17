@@ -15,7 +15,8 @@ import { DistributeActionUtil } from './actions/DistributeActionUtil'
 import { EndCurrentProjectActionUtil } from './actions/EndCurrentProjectActionUtil'
 import { FlyToBoundsActionUtil } from './actions/FlyToBoundsActionUtil'
 import { LabelActionUtil } from './actions/LabelActionUtil'
-import { MarkTaskDoneActionUtil } from './actions/MarkTaskDoneActionUtil'
+import { MarkDroneTaskDoneActionUtil } from './actions/MarkDroneTaskDoneActionUtil'
+import { MarkSoloTaskDoneActionUtil } from './actions/MarkSoloTaskDoneActionUtil'
 import { MessageActionUtil } from './actions/MessageActionUtil'
 import { MoveActionUtil } from './actions/MoveActionUtil'
 import { PenActionUtil } from './actions/PenActionUtil'
@@ -29,7 +30,7 @@ import { SharedTodoListActionUtil } from './actions/SharedTodoListActionUtil'
 import { SleepActionUtil } from './actions/SleepActionUtil'
 import { StackActionUtil } from './actions/StackActionUtil'
 import { StartProjectActionUtil } from './actions/StartProjectActionUtil'
-import { StartTaskActionUtil } from './actions/StartTaskActionUtil'
+import { StartSoloTaskActionUtil } from './actions/StartSoloTaskActionUtil'
 import { ThinkActionUtil } from './actions/ThinkActionUtil'
 import { UnknownActionUtil } from './actions/UnknownActionUtil'
 import { UpdateActionUtil } from './actions/UpdateActionUtil'
@@ -97,13 +98,14 @@ export const AGENT_ACTION_UTILS = [
 
 	// Project management
 
-	// working
+	// Working
 	CreateSoloTaskActionUtil,
-	StartTaskActionUtil,
-	MarkTaskDoneActionUtil,
+	StartSoloTaskActionUtil,
+	MarkDroneTaskDoneActionUtil,
+	MarkSoloTaskDoneActionUtil,
 	ClaimTodoItemActionUtil, // not in use atm
 
-	// orchestrating
+	// Orchestrating
 	StartProjectActionUtil,
 	CreateProjectTaskActionUtil,
 	DirectToStartTaskActionUtil,

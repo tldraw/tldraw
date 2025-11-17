@@ -554,7 +554,7 @@ export class FairyAgent {
 		await this.request(request)
 		if (this.cancelFn) {
 			const node = FAIRY_MODE_CHART[this.getMode()]
-			await node.onRequestComplete?.(this)
+			await node.onRequestComplete?.(this, request)
 		}
 
 		// After the request is handled, check if there are any outstanding todo items or requests
@@ -667,10 +667,13 @@ export class FairyAgent {
 		})
 	}
 
-	interrupt({ input, setMode }: { input?: AgentInput; setMode?: FairyModeDefinition['type'] }) {
+	/**
+	 * Interrupt the agent, set their mode and schedule a request.
+	 */
+	interrupt({ input, mode }: { input?: AgentInput; mode?: FairyModeDefinition['type'] }) {
 		this.cancel()
-		if (setMode) {
-			this.setMode(setMode)
+		if (mode) {
+			this.setMode(mode)
 		}
 		if (input) {
 			this.schedule(input)
@@ -1049,7 +1052,6 @@ export class FairyAgent {
 		this.setMode('idling')
 
 		this.$chatHistory.set([])
-		// TODO: Move this onto the fairies' shared data
 		this.$chatOrigin.set({ x: 0, y: 0 })
 
 		// clear any waiting conditions

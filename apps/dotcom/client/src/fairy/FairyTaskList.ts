@@ -31,8 +31,6 @@ export function setFairyTaskStatus(id: number, status: FairyTaskStatus) {
 	$fairyTasks.update((todos) => todos.map((t) => (t.id === id ? { ...t, status } : t)))
 }
 
-// obviously the functions above and below this are not final
-
 export function setFairyTaskStatusAndNotifyCompletion(
 	id: number,
 	status: FairyTaskStatus,

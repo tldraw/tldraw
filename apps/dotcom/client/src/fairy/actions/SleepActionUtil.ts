@@ -11,6 +11,6 @@ export class SleepActionUtil extends AgentActionUtil<SleepAction> {
 
 	override applyAction(action: Streaming<SleepAction>, _helpers: AgentHelpers) {
 		if (!action.complete) return
-		this.agent.interrupt({ setMode: 'idling' })
+		this.agent.interrupt({ mode: 'idling' })
 	}
 }
