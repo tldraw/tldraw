@@ -13,7 +13,7 @@ import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 
 const messages = defineMessages({
 	inviteDialogTitle: {
-		defaultMessage: "You've been invited to group:",
+		defaultMessage: 'You have been invited to join group:',
 	},
 })
 
