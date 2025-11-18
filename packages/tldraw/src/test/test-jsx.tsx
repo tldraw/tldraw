@@ -283,7 +283,8 @@ export function shapesFromJsx(shapes: React.JSX.Element | Array<React.JSX.Elemen
 			bindingId = createBindingId()
 		}
 
-		const bindingCopy: WithPartialProps<typeof binding> = { ...binding }
+		const { parentId: _parentId, ref: _ref, ...bindingBase } = binding
+		const bindingCopy: WithPartialProps<typeof bindingBase> = bindingBase
 		bindingCopy.props = { ...binding.props }
 		delete bindingCopy.props.ref
 		delete bindingCopy.props.id
