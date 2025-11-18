@@ -1,4 +1,3 @@
-import { SignInButton } from '@clerk/clerk-react'
 import { GetInviteInfoResponseBody } from '@tldraw/dotcom-shared'
 import { useState } from 'react'
 import {
@@ -8,7 +7,6 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 } from 'tldraw'
-import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { defineMessages, F } from '../../utils/i18n'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
@@ -27,12 +25,7 @@ export function TlaInviteDialog({
 	onClose(): void
 }) {
 	const app = useMaybeApp()
-	const isSignedIn = !!app
 	const [isAccepting, setIsAccepting] = useState(false)
-	const redirectUrl = routes.tlaInvite(inviteInfo.inviteSecret, {
-		asUrl: true,
-		searchParams: { accept: 'true' },
-	})
 
 	return (
 		<>
@@ -65,34 +58,19 @@ export function TlaInviteDialog({
 				</div>
 
 				<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-					{!isSignedIn ? (
-						<SignInButton
-							mode="modal"
-							forceRedirectUrl={redirectUrl}
-							signUpForceRedirectUrl={redirectUrl}
-						>
-							<TlaCtaButton
-								onClick={() => {
-									setTimeout(() => onClose(), 100)
-								}}
-							>
-								<F defaultMessage="Sign in to accept invitation" />
-							</TlaCtaButton>
-						</SignInButton>
-					) : (
-						<TlaCtaButton
-							disabled={isAccepting}
-							onClick={async () => {
-								setIsAccepting(true)
-								await app.acceptGroupInvite(inviteInfo.inviteSecret).finally(() => {
-									setIsAccepting(false)
-								})
-								onClose()
-							}}
-						>
-							<F defaultMessage="Accept and join group" />
-						</TlaCtaButton>
-					)}
+					<TlaCtaButton
+						disabled={isAccepting}
+						onClick={async () => {
+							if (!app) return
+							setIsAccepting(true)
+							await app.acceptGroupInvite(inviteInfo.inviteSecret).finally(() => {
+								setIsAccepting(false)
+							})
+							onClose()
+						}}
+					>
+						<F defaultMessage="Accept and join group" />
+					</TlaCtaButton>
 					<TldrawUiButton type="normal" onClick={() => onClose()}>
 						<F defaultMessage="No thanks" />
 					</TldrawUiButton>
