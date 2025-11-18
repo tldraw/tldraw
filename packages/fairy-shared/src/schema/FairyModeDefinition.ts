@@ -163,7 +163,6 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'selectedShapes',
 			'chatHistory',
 			'userActionHistory',
-			// 'soloTasks',
 			'time',
 			// 'pages',
 			'otherFairies',
