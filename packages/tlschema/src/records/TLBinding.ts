@@ -105,7 +105,7 @@ export type TLIndexedBindings = {
  *       break
  *   }
  * }
- * 
+ *
  * // Narrow to a specific binding type by passing the type as a generic argument
  * function getArrowSourceId(binding: TLBinding<'arrow'>) {
  *   return binding.fromId // TypeScript knows this is a TLArrowBinding
