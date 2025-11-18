@@ -217,8 +217,10 @@ function TlaEnterEmailStep({
 					<>
 						<F {...messages.inviteMessage} /> {inviteInfo.groupName}
 						<br />
-						<br />
 						<F defaultMessage="Sign in or create an account to accept the invitation." />
+						<br />
+						<br />
+						<F defaultMessage="tldraw is a free and instant virtual whiteboard." />
 					</>
 				) : (
 					<>
