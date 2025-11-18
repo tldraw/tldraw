@@ -2,8 +2,14 @@
   "0095a9fa74": {
     "translation": "Export"
   },
+  "038c9b4432": {
+    "translation": "Fairy’s personality"
+  },
   "03b3e13197": {
     "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
+  },
+  "03d200eb47": {
+    "translation": "Todo List"
   },
   "043973ec1f": {
     "translation": "Still having trouble? {GetHelpLink}"
@@ -13,6 +19,9 @@
   },
   "06b9281e39": {
     "translation": "Auto"
+  },
+  "06df33001c": {
+    "translation": "Actions"
   },
   "07dbd11b21": {
     "translation": "Untitled file"
@@ -26,6 +35,9 @@
   "08d2d725a9": {
     "translation": "Create a free account to save your work, collaborate in real-time, and more."
   },
+  "09fabda990": {
+    "translation": "No projects yet"
+  },
   "0b27918290": {
     "translation": "File"
   },
@@ -35,11 +47,17 @@
   "0beb3ca97b": {
     "translation": "tldraw is a free and instant virtual whiteboard."
   },
+  "0befa10111": {
+    "translation": "Fairies"
+  },
   "0d1f2bb523": {
     "translation": "Send feedback"
   },
   "110a4b01be": {
     "translation": "Publish"
+  },
+  "11a755d598": {
+    "translation": "Stop"
   },
   "129b9e34ea": {
     "translation": "Leave group"
@@ -50,8 +68,14 @@
   "12c8a9838c": {
     "translation": "Try the tldraw SDK"
   },
+  "12ed704517": {
+    "translation": "Associated Todos"
+  },
   "13ddd375ad": {
     "translation": "Export as"
+  },
+  "141c7239d3": {
+    "translation": "Fairy customization"
   },
   "146ffe2fd9": {
     "translation": "Show more"
@@ -59,14 +83,35 @@
   "14d65465b7": {
     "translation": "Delete group"
   },
+  "154bd27b5f": {
+    "translation": "Log Messages"
+  },
+  "18134862ed": {
+    "translation": "Log System Prompt"
+  },
   "181b90f889": {
     "translation": "Create file"
+  },
+  "1af48b80de": {
+    "translation": "Shared Todo List"
+  },
+  "1c60248e26": {
+    "translation": "Current Project ID"
+  },
+  "1d83c389f5": {
+    "translation": "No chat history items yet"
   },
   "1da2e8106b": {
     "translation": "An unexpected error occurred."
   },
   "1dd1c5fb7f": {
     "translation": "Today"
+  },
+  "1e38506832": {
+    "translation": "Go to fairy"
+  },
+  "1fe250ea06": {
+    "translation": "Instruct the group…"
   },
   "20976e7bec": {
     "translation": "Room is full"
@@ -80,14 +125,23 @@
   "250ddea65c": {
     "translation": "About tldraw"
   },
+  "2811a731bb": {
+    "translation": "Customize fairy"
+  },
   "299cb00a7a": {
     "translation": "Upload failed"
+  },
+  "29d586c251": {
+    "translation": "Debug Flags"
   },
   "2c3ef76333": {
     "translation": "My files"
   },
   "2deec2cb74": {
     "translation": "This room has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
+  },
+  "2e86e6853d": {
+    "translation": "Select leader"
   },
   "31246941ad": {
     "translation": "You need to sign in to view this file."
@@ -104,6 +158,12 @@
   "344a7f427f": {
     "translation": "Editor"
   },
+  "3a295397e6": {
+    "translation": "Ask for help"
+  },
+  "3a77f951ca": {
+    "translation": "Add a new task…"
+  },
   "3bc7d6ea2f": {
     "translation": "Continue with email"
   },
@@ -119,11 +179,17 @@
   "42e53c47c1": {
     "translation": "Contact the owner to request access."
   },
+  "4351cfebe4": {
+    "translation": "View"
+  },
   "44db318ee5": {
     "translation": "Get help on Discord"
   },
   "46137245cd": {
     "translation": "Thanks for helping us improve tldraw!"
+  },
+  "465a8a92a4": {
+    "translation": "No fairies selected"
   },
   "47839e47a5": {
     "translation": "tldraw"
@@ -140,6 +206,12 @@
   "49ee308734": {
     "translation": "Name"
   },
+  "4b3e8439d5": {
+    "translation": "Leader fairy will be given orchestration power"
+  },
+  "4ba513fc6e": {
+    "translation": "Set window.agent"
+  },
   "4d0d3ddec9": {
     "translation": "This site uses cookies to make the app work and to collect analytics."
   },
@@ -152,8 +224,17 @@
   "4e6fbf032b": {
     "translation": "Are you sure you want to delete this group? This action cannot be undone."
   },
+  "4e98378836": {
+    "translation": "Personality"
+  },
+  "4ef3716596": {
+    "translation": "Unfollow fairy"
+  },
   "50db1b7e1e": {
     "translation": "Unable to unpublish the file."
+  },
+  "50e6a0d51c": {
+    "translation": "Scheduled Request"
   },
   "517bb809d9": {
     "translation": "Page menu"
@@ -163,6 +244,9 @@
   },
   "54d240fa41": {
     "translation": "Please slow down."
+  },
+  "54e1d44609": {
+    "translation": "Projects"
   },
   "554a05155c": {
     "translation": "Still having trouble? <a>Report a problem</a>"
@@ -211,6 +295,15 @@
   },
   "639bae9ac6": {
     "translation": "you"
+  },
+  "64ebe56d8c": {
+    "translation": "Click to remove or drag to move"
+  },
+  "650be61892": {
+    "translation": "Mode"
+  },
+  "65709fd250": {
+    "translation": "Task list"
   },
   "6609dd239e": {
     "translation": "Something went wrong"
@@ -272,6 +365,9 @@
   "797799f35e": {
     "translation": "Submit an issue on GitHub"
   },
+  "7a3113b0ba": {
+    "translation": "Drag to canvas"
+  },
   "7b1329f5ca": {
     "translation": "User manual"
   },
@@ -287,14 +383,23 @@
   "7daeced9ff": {
     "translation": "Publish changes"
   },
+  "7e94fd31ac": {
+    "translation": "Create project"
+  },
   "7fcdcc6455": {
     "translation": "Forget file"
+  },
+  "7fe64993fa": {
+    "translation": "Fairy Debug View"
   },
   "801ab24683": {
     "translation": "Download"
   },
   "815e116a2e": {
     "translation": "Have a bug, issue, or idea for tldraw? Let us know! Fill out this form and we will follow up over email if needed. You can also <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>."
+  },
+  "81d48c2f3a": {
+    "translation": "Show tasks on canvas"
   },
   "85a082de1b": {
     "translation": "Please refresh the page to get the latest version of tldraw."
@@ -314,6 +419,15 @@
   "8c2d3d730c": {
     "translation": "Check your email for a verification code."
   },
+  "8c638df80d": {
+    "translation": "Active Request"
+  },
+  "8cf04a9734": {
+    "translation": "Home"
+  },
+  "8d0d9c8784": {
+    "translation": "Add to Dummy Project"
+  },
   "8eb2c00e96": {
     "translation": "Shared with you"
   },
@@ -326,11 +440,23 @@
   "904a830405": {
     "translation": "Rename"
   },
+  "91d6e7b08f": {
+    "translation": "Chat History"
+  },
   "91e49bb0eb": {
     "translation": "Copy to my files"
   },
   "930390d222": {
     "translation": "Copied invite link"
+  },
+  "9364674cd8": {
+    "translation": "Show Task Bounds"
+  },
+  "93dfe9fbbe": {
+    "translation": "Deselect fairy"
+  },
+  "94966d9074": {
+    "translation": "Send"
   },
   "95aacd4d4a": {
     "translation": "Sign in with Google"
@@ -341,6 +467,9 @@
   "96165d6df5": {
     "translation": "This month"
   },
+  "97a9f16b2e": {
+    "translation": "New fairy"
+  },
   "985a4b720f": {
     "translation": "Terms of Use"
   },
@@ -349,6 +478,12 @@
   },
   "9914a0ce04": {
     "translation": "Light"
+  },
+  "9953e9946b": {
+    "translation": "Debug view"
+  },
+  "99c9147901": {
+    "translation": "No shared todos yet"
   },
   "9b33f5c63c": {
     "translation": "Didn’t receive a code? <resend>Resend</resend>."
@@ -374,6 +509,9 @@
   "a104439641": {
     "translation": "Padding"
   },
+  "a10d7a62aa": {
+    "translation": "Hat"
+  },
   "a18366b217": {
     "translation": "Dark"
   },
@@ -386,14 +524,29 @@
   "a3debabee7": {
     "translation": "Cookie policy"
   },
+  "a3e932550c": {
+    "translation": "Fairy’s name"
+  },
   "a4d3b161ce": {
     "translation": "Submit"
+  },
+  "a4e2d4d837": {
+    "translation": "Reset all chats"
+  },
+  "a686e2236d": {
+    "translation": "Clear task list"
   },
   "a6cc403d56": {
     "translation": "Anyone with the link"
   },
   "a768caa988": {
     "translation": "Analytics"
+  },
+  "a818294e75": {
+    "translation": "Fairy Entity"
+  },
+  "a885eb91ac": {
+    "translation": "Leader fairy selection"
   },
   "a9ded1e5ce": {
     "translation": "Background"
@@ -404,12 +557,18 @@
   "ab0df9ba36": {
     "translation": "File limit reached"
   },
+  "af1052d9b7": {
+    "translation": "Log Part Definitions by Priority"
+  },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "Last published <date></date>"
   },
   "b028909917": {
     "translation": "Guest user"
+  },
+  "b1e2ed3209": {
+    "translation": "User Action History"
   },
   "b357b524e7": {
     "translation": "Email address"
@@ -425,6 +584,9 @@
   },
   "b758336699": {
     "translation": "Copy link"
+  },
+  "b8996797b9": {
+    "translation": "Hide tasks on canvas"
   },
   "ba0318cb81": {
     "translation": "Sign in to share"
@@ -465,14 +627,23 @@
   "c87aacf567": {
     "translation": "Sign out"
   },
+  "c9b04e7b53": {
+    "translation": "Deselect leader"
+  },
   "c9cc8cce24": {
     "translation": "Save"
+  },
+  "cb93643511": {
+    "translation": "Summon fairy"
   },
   "cceaefbc20": {
     "translation": "Share this file"
   },
   "cd15a75c26": {
     "translation": "SVG"
+  },
+  "ce1c2aa2f1": {
+    "translation": "No todos associated with this project"
   },
   "cea291e45e": {
     "translation": "Learn more about publishing."
@@ -483,11 +654,23 @@
   "d4bbf74f3e": {
     "translation": "Toggle sidebar"
   },
+  "d5f491d157": {
+    "translation": "Follow fairy"
+  },
   "d638a3344b": {
     "translation": "Before you start, please accept our <tos>terms of use</tos> and <privacy>privacy policy</privacy>."
   },
   "d721757161": {
     "translation": "Theme"
+  },
+  "d739f35e18": {
+    "translation": "Whisper to {name}…"
+  },
+  "d7bc9d5a2e": {
+    "translation": "Delete task"
+  },
+  "d856d53da4": {
+    "translation": "No leader selected"
   },
   "d876a9fe1a": {
     "translation": "Try Again"
@@ -506,6 +689,9 @@
   },
   "dcdaa754fe": {
     "translation": "Invalid tldraw file URL"
+  },
+  "de290d52ef": {
+    "translation": "Select a fairy on the right to chat with"
   },
   "dfdb78a4e4": {
     "translation": "App debug flags"
@@ -531,8 +717,14 @@
   "ea0626ac5a": {
     "translation": "Danger zone"
   },
+  "ea181d98ca": {
+    "translation": "Select fairy"
+  },
   "ea4788705e": {
     "translation": "Cancel"
+  },
+  "eb2f314fac": {
+    "translation": "Cumulative Usage"
   },
   "ebfe9ce86e": {
     "translation": "Yesterday"
@@ -552,11 +744,17 @@
   "ede55d955f": {
     "translation": "Read our <a>cookie policy</a> to learn more."
   },
+  "eecad1e370": {
+    "translation": "Delete fairy"
+  },
   "ef53538ae4": {
     "translation": "Members"
   },
   "ef7de3f485": {
     "translation": "selected"
+  },
+  "efb2d9d471": {
+    "translation": "Todo list"
   },
   "f09b16bc5f": {
     "translation": "We use cookies to keep you logged in, to sync your files, and to collect analytics to help us improve tldraw."
@@ -576,20 +774,41 @@
   "f4f70727dc": {
     "translation": "Settings"
   },
+  "f66d005b34": {
+    "translation": "Chat Origin"
+  },
+  "f6ae34b4ba": {
+    "translation": "Reset all wands"
+  },
   "f714e36843": {
     "translation": "Are you sure you want to leave this group?"
+  },
+  "f7d5ee6855": {
+    "translation": "Select a leader first…"
+  },
+  "f87386b4ba": {
+    "translation": "Summon all fairies"
   },
   "fa2ead697d": {
     "translation": "Privacy Policy"
   },
+  "fa535ffb25": {
+    "translation": "Config"
+  },
   "fb15c53f22": {
     "translation": "Viewer"
+  },
+  "fcd66d76d6": {
+    "translation": "Delete all fairies"
   },
   "fd1be3efcf": {
     "translation": "Are you sure you want to delete this file?"
   },
   "fed5ec05eb": {
     "translation": "Copied link"
+  },
+  "ff7276d298": {
+    "translation": "Reset chat"
   },
   "ff7a814974": {
     "translation": "Add file link…"
