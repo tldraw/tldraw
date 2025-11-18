@@ -88,7 +88,7 @@ export type TLIndexedBindings = {
 /**
  * The set of all bindings that are available in the editor.
  * Bindings represent relationships between shapes, such as arrows connecting to other shapes.
- * 
+ *
  * You can use this type without a type argument to work with any binding, or pass
  * a specific binding type string (e.g., `'arrow'`) to narrow down to that specific binding type.
  *
@@ -105,12 +105,12 @@ export type TLIndexedBindings = {
  *       break
  *   }
  * }
- * ```
  * 
  * // Narrow to a specific binding type by passing the type as a generic argument
  * function getArrowSourceId(binding: TLBinding<'arrow'>) {
  *   return binding.fromId // TypeScript knows this is a TLArrowBinding
  * }
+ * ```
  *
  * @public
  */
