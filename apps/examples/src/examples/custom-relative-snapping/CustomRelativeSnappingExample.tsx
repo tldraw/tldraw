@@ -41,9 +41,9 @@ class YShapeUtil extends ShapeUtil<YShape> {
 	override getDefaultProps(): YShape['props'] {
 		return {
 			center: { x: 100, y: 100 },
-			armTop: { x: 100, y: 0 },
-			armLeft: { x: 30, y: 180 },
-			armRight: { x: 170, y: 180 },
+			armTop: { x: 100, y: 180 },
+			armLeft: { x: 30, y: 20 },
+			armRight: { x: 170, y: 20 },
 		}
 	}
 
@@ -140,7 +140,6 @@ class YShapeUtil extends ShapeUtil<YShape> {
 	// [8]
 	component(shape: YShape) {
 		const { center, armTop, armLeft, armRight } = shape.props
-		const zoomLevel = this.editor.getZoomLevel()
 
 		return (
 			<HTMLContainer>
@@ -169,7 +168,6 @@ class YShapeUtil extends ShapeUtil<YShape> {
 						stroke="black"
 						strokeWidth={2}
 					/>
-					<circle cx={center.x} cy={center.y} r={4 / zoomLevel} fill="black" opacity={0.5} />
 				</svg>
 			</HTMLContainer>
 		)
