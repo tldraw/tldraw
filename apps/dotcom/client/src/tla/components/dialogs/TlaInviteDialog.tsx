@@ -15,7 +15,7 @@ import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 
 const messages = defineMessages({
 	inviteDialogTitle: {
-		defaultMessage: "You've been invited to group <br></br><groupName></groupName>",
+		defaultMessage: "You've been invited to group:",
 	},
 })
 
@@ -29,6 +29,10 @@ export function TlaInviteDialog({
 	const app = useMaybeApp()
 	const isSignedIn = !!app
 	const [isAccepting, setIsAccepting] = useState(false)
+	const redirectUrl = routes.tlaInvite(inviteInfo.inviteSecret, {
+		asUrl: true,
+		searchParams: { accept: 'true' },
+	})
 
 	return (
 		<>
@@ -57,24 +61,15 @@ export function TlaInviteDialog({
 				/>
 
 				<div style={{ fontSize: '16px' }}>
-					<F
-						{...messages.inviteDialogTitle}
-						values={{ groupName: () => <strong>{inviteInfo.groupName}</strong>, br: () => <br /> }}
-					/>
+					<F {...messages.inviteDialogTitle} /> {inviteInfo.groupName}
 				</div>
 
 				<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 					{!isSignedIn ? (
 						<SignInButton
 							mode="modal"
-							forceRedirectUrl={routes.tlaInvite(inviteInfo.inviteSecret, {
-								asUrl: true,
-								searchParams: { accept: 'true' },
-							})}
-							signUpForceRedirectUrl={routes.tlaInvite(inviteInfo.inviteSecret, {
-								asUrl: true,
-								searchParams: { accept: 'true' },
-							})}
+							forceRedirectUrl={redirectUrl}
+							signUpForceRedirectUrl={redirectUrl}
 						>
 							<TlaCtaButton
 								onClick={() => {

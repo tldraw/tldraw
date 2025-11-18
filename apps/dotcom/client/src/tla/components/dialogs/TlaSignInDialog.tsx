@@ -18,7 +18,7 @@ import styles from './auth.module.css'
 const messages = defineMessages({
 	enterEmailAddress: { defaultMessage: 'Enter your email address' },
 	inviteMessage: {
-		defaultMessage: '<strong>You have been invited to join <groupName></groupName> group</strong>.',
+		defaultMessage: 'You have been invited to join group:',
 	},
 })
 
@@ -215,13 +215,7 @@ function TlaEnterEmailStep({
 			<div className={styles.authDescription}>
 				{inviteInfo ? (
 					<>
-						<F
-							{...messages.inviteMessage}
-							values={{
-								groupName: () => inviteInfo.groupName,
-								strong: (chunks) => <strong>{chunks}</strong>,
-							}}
-						/>
+						<F {...messages.inviteMessage} /> {inviteInfo.groupName}
 						<br />
 						<br />
 						<F defaultMessage="Sign in or create an account to accept the invitation." />
