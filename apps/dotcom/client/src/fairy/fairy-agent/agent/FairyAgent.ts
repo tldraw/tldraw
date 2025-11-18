@@ -561,12 +561,6 @@ export class FairyAgent {
 			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
 			const node = FAIRY_MODE_CHART[this.getMode()]
 			await node.onPromptEnd?.(this, request)
-			const newNodeDefinition = getFairyModeDefinition(this.getMode())
-			if (newNodeDefinition.active) {
-				throw new Error(
-					`Fairy became inactive when in an active mode (${this.getMode()}) This should never happen.`
-				)
-			}
 			return
 		}
 
