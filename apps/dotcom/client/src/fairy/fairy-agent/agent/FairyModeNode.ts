@@ -5,9 +5,8 @@ import { FairyAgent } from './FairyAgent'
 export interface FairyModeNode {
 	onEnter?(agent: FairyAgent, fromMode: FairyModeDefinition['type']): void | Promise<void>
 	onExit?(agent: FairyAgent, toMode: FairyModeDefinition['type']): void | Promise<void>
-	onPromptStart?(agent: FairyAgent): void | Promise<void>
-	onPromptEnd?(agent: FairyAgent): void | Promise<void>
-	onRequestComplete?(agent: FairyAgent, request: AgentRequest): void | Promise<void>
+	onPromptStart?(agent: FairyAgent, request: AgentRequest): void | Promise<void>
+	onPromptEnd?(agent: FairyAgent, request: AgentRequest): void | Promise<void>
 }
 
 export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode> = {
@@ -21,14 +20,13 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	},
 	soloing: {
 		onPromptEnd(agent) {
-			agent.setMode('idling')
-		},
-		onRequestComplete(agent) {
 			// Continue if there are outstanding tasks
 			const myTasks = $fairyTasks.get().filter((task) => task.assignedTo === agent.id)
 			const incompleteTasks = myTasks.filter((task) => task.status !== 'done')
 			if (incompleteTasks.length > 0) {
 				agent.schedule('Continue until all tasks are complete.')
+			} else {
+				agent.setMode('idling')
 			}
 		},
 	},
@@ -47,10 +45,10 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			agent.$userActionHistory.set([])
 			agent.$todoList.set([])
 		},
-		onRequestComplete(agent, request) {
+		onPromptEnd(agent, request) {
 			// Keep going until the task is complete
 			agent.schedule({
-				message: 'Continue until the task is done.',
+				message: 'Continue until the task is marked as done.',
 				bounds: request.bounds,
 			})
 		},
@@ -61,19 +59,19 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			// TODO: Use memory zones for this instead
 			agent.$todoList.set([])
 		},
-		onRequestComplete(agent, request) {
+		onPromptEnd(agent, request) {
 			// Keep going until the task is complete
 			agent.schedule({
-				message: 'Continue until the task is done.',
+				message: 'Continue until the task is marked as done.',
 				bounds: request.bounds,
 			})
 		},
 	},
 	['standing-by']: {},
 	orchestrating: {
-		onRequestComplete(agent) {
+		onPromptEnd(agent) {
 			if (agent.$waitingFor.get().length === 0) {
-				agent.schedule('Continue reviewing until the project is complete.')
+				agent.schedule('Continue reviewing until the project is marked as completed.')
 			}
 		},
 	},

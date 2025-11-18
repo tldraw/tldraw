@@ -533,8 +533,9 @@ export class FairyAgent {
 			)
 		}
 
+		const request = this.getFullRequestFromInput(input)
 		const startingNode = FAIRY_MODE_CHART[this.getMode()]
-		await startingNode.onPromptStart?.(this)
+		await startingNode.onPromptStart?.(this, request)
 
 		const mode = getFairyModeDefinition(this.getMode())
 		if (!mode.active) {
@@ -548,14 +549,8 @@ export class FairyAgent {
 			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'active' }))
 		}
 
-		const request = this.getFullRequestFromInput(input)
-
 		// Submit the request to the agent.
 		await this.request(request)
-		if (this.cancelFn) {
-			const node = FAIRY_MODE_CHART[this.getMode()]
-			await node.onRequestComplete?.(this, request)
-		}
 
 		// After the request is handled, check if there are any outstanding todo items or requests
 		const scheduledRequest = this.$scheduledRequest.get()
@@ -565,7 +560,7 @@ export class FairyAgent {
 		if (!scheduledRequest) {
 			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
 			const node = FAIRY_MODE_CHART[this.getMode()]
-			await node.onPromptEnd?.(this)
+			await node.onPromptEnd?.(this, request)
 			const newNodeDefinition = getFairyModeDefinition(this.getMode())
 			if (newNodeDefinition.active) {
 				throw new Error(
