@@ -65,7 +65,7 @@
 	display: none;
 }
 
-/* We don't show any descriptions or lables */
+/* We don't show any descriptions or labels */
 .hs-field-desc {
 	display: block !important;
 }
