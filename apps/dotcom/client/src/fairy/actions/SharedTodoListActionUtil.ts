@@ -4,7 +4,7 @@ import { $fairyTasks } from '../FairyTaskList'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class SharedTodoListActionUtil extends AgentActionUtil<SharedTodoListAction> {
-	static override type = 'update-todo-list' as const
+	static override type = 'update-shared-todo-list' as const
 
 	override getInfo(action: Streaming<SharedTodoListAction>) {
 		return {
@@ -36,10 +36,9 @@ export class SharedTodoListActionUtil extends AgentActionUtil<SharedTodoListActi
 
 		// Only allow updating todo items that are in the current project
 		if (existingTask && existingProjectId !== currentProjectId) {
-			this.agent.cancel()
-			this.agent.schedule(
-				`Task with id ${action.id} is not in your project so you aren't allowed to update it.`
-			)
+			this.agent.interrupt({
+				input: `Task with id ${action.id} is not in your project so you aren't allowed to update it.`,
+			})
 			return
 		}
 

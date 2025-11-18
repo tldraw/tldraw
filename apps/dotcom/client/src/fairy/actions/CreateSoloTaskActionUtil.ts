@@ -5,7 +5,7 @@ import { AgentActionUtil } from './AgentActionUtil'
 
 // Creates a task for themselves
 export class CreateSoloTaskActionUtil extends AgentActionUtil<CreateSoloTaskAction> {
-	static override type = 'create-solo-task' as const
+	static override type = 'create-task' as const
 
 	override getInfo(action: Streaming<CreateSoloTaskAction>) {
 		const label = action.complete ? 'Created task' : 'Creating task'

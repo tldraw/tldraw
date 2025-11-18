@@ -303,7 +303,7 @@ export type SendToBackAction = z.infer<typeof SendToBackActionSchema>
 
 export const SharedTodoListActionSchema = z
 	.object({
-		_type: z.literal('update-todo-list'),
+		_type: z.literal('update-shared-todo-list'),
 		id: z.number(),
 		status: z.enum(['todo', 'in-progress', 'done']),
 		text: z.string(),
@@ -339,7 +339,7 @@ export const StartProjectActionSchema = z
 		projectName: z.string(),
 		projectDescription: z.string(),
 		projectColor: FocusColorSchema,
-		// projectMemberIds: z.array(z.string()),
+		projectPlan: z.string(),
 	})
 	.meta({
 		title: 'Start Project',
@@ -357,7 +357,7 @@ export const ThinkActionSchema = z
 
 export type ThinkAction = z.infer<typeof ThinkActionSchema>
 
-export const TodoListActionSchema = z
+export const PersonalTodoListActionSchema = z
 	.object({
 		_type: z.literal('update-personal-todo-list'),
 		id: z.number().optional(),
@@ -370,7 +370,7 @@ export const TodoListActionSchema = z
 			'The agent updates its personal todo list item or creates a new todo item. If the id is provided, the todo item is updated. If the id is not provided, a new todo item is created.',
 	})
 
-export type TodoListAction = z.infer<typeof TodoListActionSchema>
+export type PersonalTodoListAction = z.infer<typeof PersonalTodoListActionSchema>
 
 export const UpdateActionSchema = z
 	.object({
@@ -416,7 +416,7 @@ export type CreatePageAction = z.infer<typeof CreatePageActionSchema>
 
 export const CreateSoloTaskActionSchema = z
 	.object({
-		_type: z.literal('create-solo-task'),
+		_type: z.literal('create-task'),
 		text: z.string(),
 		x: z.number(),
 		y: z.number(),
@@ -444,12 +444,12 @@ export const CreateProjectTaskActionSchema = z
 	.meta({
 		title: 'Create Project Task',
 		description:
-			"The agent creates a new task within the current project and assigns it to a specific agent. The task will automatically be associated with the current project. Each task should represent one step in the longer process. It's okay to create many tasks. Note: Creating a task and assigning it to another agentdoes not automatically start it. You must use the 'direct-to-start-project-task' action to get another agent to start a task. Also note: Tasks get an automatic ID that's used to reference them. They start at 1, and then increment by 1 for each new task.",
+			"The agent creates a new task within the current project and assigns it to a specific agent. The task will automatically be associated with the current project. Each task should represent one step in the longer process. It's okay to create many tasks. Note: Creating a task and assigning it to another agent does not automatically start it. You must use the 'direct-to-start-project-task' action to get another agent to start a task. Also note: Tasks get an automatic ID that's used to reference them. They start at 1, and then increment by 1 for each new task.",
 	})
 
 export type CreateProjectTaskAction = z.infer<typeof CreateProjectTaskActionSchema>
 
-export const StartTaskActionSchema = z
+export const StartSoloTaskActionSchema = z
 	.object({
 		_type: z.literal('start-task'),
 		taskId: z.number(),
@@ -460,9 +460,22 @@ export const StartTaskActionSchema = z
 			'The agent begins working on a task. This action immediately gives the agent the abilities required to complete the task, such as the ability to manipulate the canvas. Upon performing this action, the agent will immediately receive instructions on how to use those abilities.',
 	})
 
-export type StartTaskAction = z.infer<typeof StartTaskActionSchema>
+export type StartSoloTaskAction = z.infer<typeof StartSoloTaskActionSchema>
 
-export const MarkTaskDoneActionSchema = z
+export const MarkDroneTaskDoneActionSchema = z
+	.object({
+		_type: z.literal('mark-my-task-done'),
+		taskId: z.number(),
+	})
+	.meta({
+		title: 'Mark Task Done',
+		description:
+			'The agent marks a task as completed. This action should be used when the agent has finished working on a task.',
+	})
+
+export type MarkDroneTaskDoneAction = z.infer<typeof MarkDroneTaskDoneActionSchema>
+
+export const MarkSoloTaskDoneActionSchema = z
 	.object({
 		_type: z.literal('mark-task-done'),
 		taskId: z.number(),
@@ -473,7 +486,20 @@ export const MarkTaskDoneActionSchema = z
 			'The agent marks a task as completed. This action should be used when the agent has finished working on a task.',
 	})
 
-export type MarkTaskDoneAction = z.infer<typeof MarkTaskDoneActionSchema>
+export type MarkSoloTaskDoneAction = z.infer<typeof MarkSoloTaskDoneActionSchema>
+
+export const AwaitTasksCompletionActionSchema = z
+	.object({
+		_type: z.literal('await-tasks-completion'),
+		taskIds: z.array(z.number()),
+	})
+	.meta({
+		title: 'Await Tasks Completion',
+		description:
+			'The agent waits for one or more tasks to be completed. The agent will be notified when each task completes, allowing it to pause its work instead of repeatedly checking task status.',
+	})
+
+export type AwaitTasksCompletionAction = z.infer<typeof AwaitTasksCompletionActionSchema>
 
 export const SleepActionSchema = z
 	.object({

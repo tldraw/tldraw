@@ -6,7 +6,7 @@ import { PeripheralCluster } from '../format/PeripheralCluster'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { ChatHistoryItem } from '../types/ChatHistoryItem'
-import { FairyProject } from '../types/FairyProject'
+import { FairyProject, FairyProjectRole } from '../types/FairyProject'
 import { FairyTask, FairyTodoItem } from '../types/FairyTask'
 import { FairyWork } from '../types/FairyWork'
 import { ActiveFairyModeDefinition } from './FairyModeDefinition'
@@ -381,17 +381,19 @@ export const SharedTodoListPartDefinition: PromptPartDefinition<SharedTodoListPa
 }
 
 // TodoListPart
-export interface TodoListPart {
-	type: 'todoList'
+export interface PersonalTodoListPart {
+	type: 'personalTodoList'
 	items: FairyTodoItem[]
 }
 
-export const TodoListPartDefinition: PromptPartDefinition<TodoListPart> = {
-	type: 'todoList',
+export const PersonalTodoListPartDefinition: PromptPartDefinition<PersonalTodoListPart> = {
+	type: 'personalTodoList',
 	priority: 10,
-	buildContent(part: TodoListPart) {
+	buildContent(part: PersonalTodoListPart) {
 		if (part.items.length === 0) {
-			return ['You have no todos yet. Use the `update-personal-todo-list` action to create a todo.']
+			return [
+				'You have no personal todos yet. Use the `update-personal-todo-list` action to create a todo.',
+			]
 		}
 		return [
 			`Here is your current personal todo list for the task at hand:`,
@@ -405,25 +407,38 @@ export interface CurrentProjectPart {
 	type: 'currentProject'
 	currentProject: FairyProject | null
 	currentProjectTasks: FairyTask[]
+	role: FairyProjectRole | null
 }
 
 export const CurrentProjectPartDefinition: PromptPartDefinition<CurrentProjectPart> = {
 	type: 'currentProject',
 	priority: -5,
 	buildContent(part: CurrentProjectPart) {
-		const { currentProject, currentProjectTasks } = part
+		const { currentProject, currentProjectTasks, role } = part
 
 		if (!currentProject) {
 			return ['There is no current project.']
 		}
 
-		return [
+		const baseResponse = [
 			`You are currently working on project "${currentProject.title}".`,
 			`Project description: ${currentProject.description}`,
 			`Project color: ${currentProject.color}`,
-			`Project members: ${currentProject.members.map((m) => `${m.id} (${m.role})`).join(', ')}`,
-			`${currentProjectTasks.length > 0 ? `Tasks in the project and their status:\n${currentProjectTasks.map((t) => `id: ${t.id}, ${t.text}, status: ${t.status}`).join(', ')}` : 'There are no tasks in the project.'}`,
 		]
+
+		// do we want to split part into multiple parts? should we be more clear about which roles have access to what?
+		if (role === 'orchestrator') {
+			const orchestratorResponse = [
+				`You came up with this project plan:\n${currentProject.plan}`,
+				`Project members:\n${currentProject.members.map((m) => `${m.id} (${m.role})`).join(', ')}`,
+				currentProjectTasks.length > 0
+					? `Tasks in the project and their status:\n${currentProjectTasks.map((t) => `id: ${t.id}, ${t.text}, status: ${t.status}`).join(', ')}`
+					: 'There are no tasks in the project.',
+			]
+			return baseResponse.concat(orchestratorResponse)
+		}
+
+		return baseResponse
 	},
 }
 
@@ -475,30 +490,40 @@ export const UserActionHistoryPartDefinition: PromptPartDefinition<UserActionHis
 	},
 }
 
-// ViewportBoundsPart
-export interface ViewportBoundsPart {
-	type: 'viewportBounds'
+// UserViewportBoundsPart
+export interface UserViewportBoundsPart {
+	type: 'userViewportBounds'
 	userBounds: BoxModel | null
+}
+
+export const UserViewportBoundsPartDefinition: PromptPartDefinition<UserViewportBoundsPart> = {
+	type: 'userViewportBounds',
+	priority: -80,
+	buildContent({ userBounds }: UserViewportBoundsPart) {
+		if (!userBounds) {
+			return []
+		}
+		const userViewCenter = Box.From(userBounds).center
+		return [`The user's view is centered at (${userViewCenter.x}, ${userViewCenter.y}).`]
+	},
+}
+
+// AgentViewportBoundsPart
+export interface AgentViewportBoundsPart {
+	type: 'agentViewportBounds'
 	agentBounds: BoxModel | null
 }
 
-export const ViewportBoundsPartDefinition: PromptPartDefinition<ViewportBoundsPart> = {
-	type: 'viewportBounds',
-	priority: -75,
-	buildContent({ userBounds, agentBounds }: ViewportBoundsPart) {
-		const response = []
-
-		if (agentBounds) {
-			response.push(
-				`The bounds of the part of the canvas that you can currently see are: ${JSON.stringify(agentBounds)}`
-			)
+export const AgentViewportBoundsPartDefinition: PromptPartDefinition<AgentViewportBoundsPart> = {
+	type: 'agentViewportBounds',
+	priority: -80,
+	buildContent({ agentBounds }: AgentViewportBoundsPart) {
+		if (!agentBounds) {
+			return []
 		}
-		if (userBounds) {
-			const userViewCenter = Box.From(userBounds).center
-			response.push(`The user's view is centered at (${userViewCenter.x}, ${userViewCenter.y}).`)
-		}
-
-		return response
+		return [
+			`The bounds of the part of the canvas that you can currently see are: ${JSON.stringify(agentBounds)}`,
+		]
 	},
 }
 
