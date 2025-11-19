@@ -1,3 +1,4 @@
+import { MAX_FAIRY_COUNT } from '@tldraw/dotcom-shared'
 import {
 	FAIRY_VARIANTS,
 	FairyConfig,
@@ -16,10 +17,10 @@ import {
 	useQuickReactor,
 	useValue,
 } from 'tldraw'
-import { MAX_FAIRY_COUNT } from '../tla/components/TlaEditor/TlaEditor'
 import { useApp } from '../tla/hooks/useAppState'
+import { useFairyLimit } from '../tla/hooks/useFairyAccess'
 import '../tla/styles/fairy.css'
-import { F, useMsg } from '../tla/utils/i18n'
+import { F, useIntl, useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairyChatHistory } from './fairy-agent/chat/FairyChatHistory'
 import { FairyBasicInput } from './fairy-agent/input/FairyBasicInput'
@@ -34,6 +35,12 @@ import { getRandomFairyName } from './getRandomFairyName'
 
 function NewFairyButton({ agents }: { agents: FairyAgent[] }) {
 	const app = useApp()
+	const fairyLimit = useFairyLimit()
+
+	// Use the minimum of fairyLimit and MAX_FAIRY_COUNT as the actual limit
+	// If fairyLimit is null, button won't show anyway (no fairy access)
+	const maxFairyCount = fairyLimit ? Math.min(fairyLimit, MAX_FAIRY_COUNT) : 0
+
 	const handleClick = useCallback(() => {
 		if (!app) return
 		const randomOutfit = {
@@ -62,16 +69,22 @@ function NewFairyButton({ agents }: { agents: FairyAgent[] }) {
 		app.z.mutate.user.updateFairyConfig({ id, properties: config })
 	}, [app])
 
+	const intl = useIntl()
 	const newFairyLabel = useMsg(fairyMessages.newFairy)
+	const isDisabled = agents.length >= maxFairyCount
+	const tooltipLabel = isDisabled
+		? intl.formatMessage(fairyMessages.fairyLimitReached, { count: maxFairyCount })
+		: newFairyLabel
 
 	return (
 		<TldrawUiButton
 			type="icon"
 			className="fairy-toolbar-sidebar-button"
 			onClick={handleClick}
-			disabled={agents.length >= MAX_FAIRY_COUNT}
+			disabled={isDisabled}
+			title={tooltipLabel}
 		>
-			<TldrawUiIcon icon="plus" label={newFairyLabel} />
+			<TldrawUiIcon icon="plus" label={tooltipLabel} />
 		</TldrawUiButton>
 	)
 }

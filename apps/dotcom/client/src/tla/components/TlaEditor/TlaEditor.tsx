@@ -12,7 +12,6 @@ import {
 	TLUiDialogsContextType,
 	Tldraw,
 	TldrawUiMenuItem,
-	createDebugValue,
 	createSessionStateSnapshotSignal,
 	getDefaultUserPresence,
 	parseDeepLinkString,
@@ -34,11 +33,12 @@ import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
-import { isDevelopmentEnv, isProductionEnv } from '../../../utils/env'
+import { isProductionEnv } from '../../../utils/env'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { useFairyAccess } from '../../hooks/useFairyAccess'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawUser } from '../../hooks/useUser'
@@ -58,7 +58,6 @@ import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
 // Lazy load fairy components
-export const MAX_FAIRY_COUNT = 10
 const FairyApp = lazy(() =>
 	import('../../../fairy/FairyApp').then((m) => ({
 		default: m.FairyApp,
@@ -77,12 +76,6 @@ const RemoteFairies = lazy(() =>
 const InCanvasTaskList = lazy(() =>
 	import('../../../fairy/InCanvasTaskList').then((m) => ({ default: m.InCanvasTaskList }))
 )
-
-const customFeatureFlags = {
-	fairies: createDebugValue('fairies', {
-		defaults: { all: false },
-	}),
-}
 
 /** @internal */
 export const components: TLComponents = {
@@ -283,9 +276,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const overrides = useFileEditorOverrides({ fileSlug })
 	const extraDragIconOverrides = useExtraDragIconOverrides()
 
-	const hasFairiesFlag = useValue('show_fairies', () => customFeatureFlags.fairies.get(), [
-		customFeatureFlags,
-	])
+	const hasFairyAccess = useFairyAccess()
 
 	// Fairy stuff
 
@@ -299,7 +290,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	}, [agents])
 
 	const instanceComponents = useMemo((): TLComponents => {
-		const canShowFairies = app && agents && hasFairiesFlag && (!!user?.isTldraw || isDevelopmentEnv)
+		const canShowFairies = app && agents && hasFairyAccess
 
 		return {
 			...components,
@@ -324,11 +315,9 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 					)}
 				</>
 			),
-			DebugMenu: () => (
-				<CustomDebugMenu showFairyFeatureFlags={!!user?.isTldraw || isDevelopmentEnv} />
-			),
+			DebugMenu: () => <CustomDebugMenu />,
 		}
-	}, [agents, hasFairiesFlag, user?.isTldraw, app])
+	}, [agents, hasFairyAccess, app])
 
 	return (
 		<TlaEditorWrapper>
@@ -351,7 +340,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<SneakyToolSwitcher />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
-				{app && hasFairiesFlag && (
+				{app && hasFairyAccess && (
 					<Suspense fallback={null}>
 						<FairyApp setAgents={setAgents} fileId={fileId} />
 					</Suspense>
@@ -361,7 +350,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	)
 }
 
-function CustomDebugMenu({ showFairyFeatureFlags }: { showFairyFeatureFlags: boolean }) {
+function CustomDebugMenu() {
 	const app = useMaybeApp()
 	const openAndTrack = useOpenUrlAndTrack('unknown')
 	const editor = useEditor()
@@ -396,9 +385,7 @@ function CustomDebugMenu({ showFairyFeatureFlags }: { showFairyFeatureFlags: boo
 				</>
 			)}
 
-			<DefaultDebugMenuContent
-				customFeatureFlags={showFairyFeatureFlags ? customFeatureFlags : undefined}
-			/>
+			<DefaultDebugMenuContent />
 		</DefaultDebugMenu>
 	)
 }

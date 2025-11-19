@@ -10,7 +10,7 @@ import {
 	sortByMaybeIndex,
 	uniqueId,
 } from '@tldraw/utils'
-import { MAX_NUMBER_OF_FILES, MAX_NUMBER_OF_GROUPS } from './constants'
+import { MAX_FAIRY_COUNT, MAX_NUMBER_OF_FILES, MAX_NUMBER_OF_GROUPS } from './constants'
 import {
 	immutableColumns,
 	TlaFile,
@@ -177,11 +177,13 @@ async function getUserFairyAccess(
 /**
  * Assert that user has fairy access and is below their fairy limit.
  * Throws if user has no access or has reached their limit.
+ * The actual limit is the minimum of the user's limit and MAX_FAIRY_COUNT.
  */
 async function assertBelowFairyLimit(tx: Transaction<TlaSchema>, userId: string) {
 	const { hasAccess, limit } = await getUserFairyAccess(tx, userId)
 
 	assert(hasAccess, ZErrorCode.forbidden)
+	assert(limit > 0, ZErrorCode.forbidden)
 
 	// Count current fairies from user_fairies table
 	const userFairies = await tx.query.user_fairies.where('userId', '=', userId).one().run()
@@ -189,7 +191,9 @@ async function assertBelowFairyLimit(tx: Transaction<TlaSchema>, userId: string)
 	const configs = JSON.parse(userFairies?.fairies || '{}')
 	const count = Object.values(configs).filter(Boolean).length
 
-	assert(count < limit, ZErrorCode.forbidden)
+	// Cap at MAX_FAIRY_COUNT regardless of user's plan
+	const effectiveLimit = Math.min(limit, MAX_FAIRY_COUNT)
+	assert(count < effectiveLimit, ZErrorCode.forbidden)
 }
 
 /**
