@@ -20,7 +20,7 @@ export const DirectToStartTaskActionSchema = z
 	.object({
 		_type: z.literal('direct-to-start-project-task'),
 		otherFairyId: z.string(),
-		taskId: z.number(),
+		taskId: z.string(),
 	})
 	.meta({
 		title: 'Direct to start project task',
@@ -301,22 +301,6 @@ export const SendToBackActionSchema = z
 
 export type SendToBackAction = z.infer<typeof SendToBackActionSchema>
 
-export const SharedTodoListActionSchema = z
-	.object({
-		_type: z.literal('update-shared-todo-list'),
-		id: z.number(),
-		status: z.enum(['todo', 'in-progress', 'done']),
-		text: z.string(),
-		x: z.number().optional(),
-		y: z.number().optional(),
-	})
-	.meta({
-		title: 'Update shared todo List',
-		description: 'The agent updates a current shared todo list item or creates a new one',
-	})
-
-export type SharedTodoListAction = z.infer<typeof SharedTodoListActionSchema>
-
 export const StackActionSchema = z
 	.object({
 		_type: z.literal('stack'),
@@ -360,7 +344,7 @@ export type ThinkAction = z.infer<typeof ThinkActionSchema>
 export const PersonalTodoListActionSchema = z
 	.object({
 		_type: z.literal('update-personal-todo-list'),
-		id: z.number().optional(),
+		id: z.string(),
 		status: z.enum(['todo', 'in-progress', 'done']),
 		text: z.string(),
 	})
@@ -417,6 +401,8 @@ export type CreatePageAction = z.infer<typeof CreatePageActionSchema>
 export const CreateSoloTaskActionSchema = z
 	.object({
 		_type: z.literal('create-task'),
+		taskId: z.string(),
+		title: z.string(),
 		text: z.string(),
 		x: z.number(),
 		y: z.number(),
@@ -426,7 +412,7 @@ export const CreateSoloTaskActionSchema = z
 	.meta({
 		title: 'Create Task',
 		description:
-			"The agent describes one new task that they'd like to do at some point in the future, as well as the area in which it should be done. Each task should represent one step in the longer process. It's okay to create many tasks. Note: Creating a task does not automatically start it. You must use the 'start-task' action to start a task. This is to allow you to create multiple tasks ahead of time, and then pick one to start with. Also note: Tasks get an automatic ID that's used to reference them. They start at 1, and then increment by 1 for each new task.",
+			"The agent describes one new task (with a unique, short, hypenated `taskId`) that they'd like to do at some point in the future, as well as the area in which it should be done. Each task should represent one step in the longer process. It's okay to create many tasks. Note: Creating a task does not automatically start it. You must use the 'start-task' action to start a task. This is to allow you to create multiple tasks ahead of time, and then pick one to start with. Also note: Tasks get an automatic ID that's used to reference them. They start at 1, and then increment by 1 for each new task.",
 	})
 
 export type CreateTaskAction = z.infer<typeof CreateSoloTaskActionSchema>
@@ -434,6 +420,8 @@ export type CreateTaskAction = z.infer<typeof CreateSoloTaskActionSchema>
 export const CreateProjectTaskActionSchema = z
 	.object({
 		_type: z.literal('create-project-task'),
+		taskId: z.string(),
+		title: z.string(),
 		text: z.string(),
 		assignedTo: z.string(),
 		x: z.number(),
@@ -444,7 +432,7 @@ export const CreateProjectTaskActionSchema = z
 	.meta({
 		title: 'Create Project Task',
 		description:
-			"The agent creates a new task within the current project and assigns it to a specific agent. The task will automatically be associated with the current project. Each task should represent one step in the longer process. It's okay to create many tasks. Note: Creating a task and assigning it to another agent does not automatically start it. You must use the 'direct-to-start-project-task' action to get another agent to start a task. Also note: Tasks get an automatic ID that's used to reference them. They start at 1, and then increment by 1 for each new task.",
+			"The agent creates a new task (with a unique, short, hypenated `taskId`) within the current project and assigns it to a specific agent. The task will automatically be associated with the current project. Each task should represent one step in the longer process. It's okay to create many tasks. Note: Creating a task and assigning it to another agent does not automatically start it. You must use the 'direct-to-start-project-task' action to get another agent to start a task. Also note: Tasks get an automatic ID that's used to reference them. They start at 1, and then increment by 1 for each new task.",
 	})
 
 export type CreateProjectTaskAction = z.infer<typeof CreateProjectTaskActionSchema>
@@ -452,7 +440,7 @@ export type CreateProjectTaskAction = z.infer<typeof CreateProjectTaskActionSche
 export const StartSoloTaskActionSchema = z
 	.object({
 		_type: z.literal('start-task'),
-		taskId: z.number(),
+		taskId: z.string(),
 	})
 	.meta({
 		title: 'Start Task',
@@ -465,7 +453,7 @@ export type StartSoloTaskAction = z.infer<typeof StartSoloTaskActionSchema>
 export const MarkDroneTaskDoneActionSchema = z
 	.object({
 		_type: z.literal('mark-my-task-done'),
-		taskId: z.number(),
+		taskId: z.string(),
 	})
 	.meta({
 		title: 'Mark Task Done',
@@ -478,7 +466,7 @@ export type MarkDroneTaskDoneAction = z.infer<typeof MarkDroneTaskDoneActionSche
 export const MarkSoloTaskDoneActionSchema = z
 	.object({
 		_type: z.literal('mark-task-done'),
-		taskId: z.number(),
+		taskId: z.string(),
 	})
 	.meta({
 		title: 'Mark Task Done',
@@ -491,7 +479,7 @@ export type MarkSoloTaskDoneAction = z.infer<typeof MarkSoloTaskDoneActionSchema
 export const AwaitTasksCompletionActionSchema = z
 	.object({
 		_type: z.literal('await-tasks-completion'),
-		taskIds: z.array(z.number()),
+		taskIds: z.array(z.string()),
 	})
 	.meta({
 		title: 'Await Tasks Completion',

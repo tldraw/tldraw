@@ -27,7 +27,7 @@ export class AwaitTasksCompletionActionUtil extends AgentActionUtil<AwaitTasksCo
 		}
 
 		// Check if all tasks are real
-		const invalidTaskIds: number[] = []
+		const invalidTaskIds: string[] = []
 		for (const taskId of taskIds) {
 			const task = getFairyTaskById(taskId)
 			if (!task || task.status === 'done') {

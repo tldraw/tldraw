@@ -34,22 +34,11 @@ export class PersonalTodoListActionUtil extends AgentActionUtil<PersonalTodoList
 
 		const { id, text, status } = action
 
-		if (id) {
-			const index = this.agent.$todoList.get().findIndex((item) => item.id === id)
-			if (index !== -1) {
-				this.agent.updateTodo({ id, text, status })
-			} else {
-				const currentBounds = this.agent.$activeRequest.get()?.bounds
-				if (!currentBounds) return
-				this.agent.interrupt({
-					input: {
-						message: `You tried to update a todo item with id ${id} but it was not found. If you're trying to create a new todo item, please don't provide an id.`,
-						bounds: currentBounds,
-					},
-				})
-			}
+		const index = this.agent.$personalTodoList.get().findIndex((item) => item.id === id)
+		if (index === -1) {
+			this.agent.addPersonalTodo(id, text)
 		} else {
-			this.agent.addTodo(text)
+			this.agent.updateTodo({ id, text, status })
 		}
 	}
 }

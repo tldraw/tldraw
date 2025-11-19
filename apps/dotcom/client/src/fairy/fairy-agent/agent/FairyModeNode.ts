@@ -52,11 +52,11 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	['working-drone']: {
 		onEnter(agent) {
 			agent.$userActionHistory.set([])
-			agent.$todoList.set([])
+			agent.$personalTodoList.set([])
 		},
 		onExit(agent) {
 			agent.$userActionHistory.set([])
-			agent.$todoList.set([])
+			agent.$personalTodoList.set([])
 		},
 		onPromptEnd(agent, request) {
 			// Keep going until the task is complete

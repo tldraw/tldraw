@@ -1,9 +1,11 @@
 export interface FairyTask {
-	id: number
+	id: string
+	title: string
+	text: string
+	// description: string,
 	projectId: string | null
 	assignedTo: string | null
 	status: FairyTaskStatus
-	text: string
 	x?: number
 	y?: number
 	w?: number

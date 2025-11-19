@@ -113,7 +113,7 @@ export class FairyAgent {
 	/**
 	 * An atom containing the agent's todo list.
 	 */
-	$todoList = atom<FairyTodoItem[]>('todoList', [])
+	$personalTodoList = atom<FairyTodoItem[]>('personalTodoList', [])
 
 	/**
 	 * An atom that's used to store document changes made by the user since the
@@ -300,7 +300,7 @@ export class FairyAgent {
 			fairyEntity: this.$fairyEntity.get(),
 			chatHistory: this.$chatHistory.get(),
 			chatOrigin: this.$chatOrigin.get(),
-			todoList: this.$todoList.get(),
+			personalTodoList: this.$personalTodoList.get(),
 		}
 	}
 
@@ -312,7 +312,7 @@ export class FairyAgent {
 		fairyEntity?: FairyEntity
 		chatHistory?: ChatHistoryItem[]
 		chatOrigin?: VecModel
-		todoList?: FairyTodoItem[]
+		personalTodoList?: FairyTodoItem[]
 	}) {
 		if (state.fairyEntity) {
 			this.$fairyEntity.update((entity) => {
@@ -333,8 +333,8 @@ export class FairyAgent {
 		if (state.chatOrigin) {
 			this.$chatOrigin.set(state.chatOrigin)
 		}
-		if (state.todoList) {
-			this.$todoList.set(state.todoList)
+		if (state.personalTodoList) {
+			this.$personalTodoList.set(state.personalTodoList)
 		}
 	}
 
@@ -808,15 +808,14 @@ export class FairyAgent {
 
 	/**
 	 * Add a todo item to the agent's todo list.
+	 * @param id The id of the todo item.
 	 * @param text The text of the todo item.
 	 * @returns The id of the todo item.
 	 */
-	addTodo(text: string) {
-		const todoItems = this.$todoList.get()
-		const id = todoItems.length === 0 ? 0 : Math.max(...todoItems.map((t) => t.id)) + 1
-		this.$todoList.update((todoItems) => {
+	addPersonalTodo(id: string, text: string) {
+		this.$personalTodoList.update((personalTodoItems) => {
 			return [
-				...todoItems,
+				...personalTodoItems,
 				{
 					id,
 					status: 'todo' as const,
@@ -828,7 +827,7 @@ export class FairyAgent {
 	}
 
 	updateTodo({ id, text, status }: FairyTodoItem) {
-		this.$todoList.update((todoItems) => {
+		this.$personalTodoList.update((todoItems) => {
 			const index = todoItems.findIndex((item) => item.id === id)
 			if (index !== -1) {
 				return [
@@ -967,13 +966,11 @@ export class FairyAgent {
 
 	/**
 	 * Remove all completed todo items from the todo list.
-	 * Renumber the todo items to ensure the ids are sequential.
+	 * Renumber the personal todo items to ensure the ids are sequential.
 	 */
 	flushTodoList() {
-		this.$todoList.update((todoItems) => {
-			return todoItems
-				.filter((item) => item.status !== 'done')
-				.map((item, index) => ({ ...item, id: index }))
+		this.$personalTodoList.update((personalTodoItems) => {
+			return personalTodoItems.filter((item) => item.status !== 'done')
 		})
 	}
 
@@ -1164,7 +1161,7 @@ export class FairyAgent {
 	reset() {
 		this.cancel()
 		this.promptStartTime = null
-		this.$todoList.set([])
+		this.$personalTodoList.set([])
 		this.$userActionHistory.set([])
 		this.setMode('idling')
 

@@ -26,7 +26,6 @@ import { ResizeActionUtil } from './actions/ResizeActionUtil'
 import { ReviewActionUtil } from './actions/ReviewActionUtil'
 import { RotateActionUtil } from './actions/RotateActionUtil'
 import { SendToBackActionUtil } from './actions/SendToBackActionUtil'
-import { SharedTodoListActionUtil } from './actions/SharedTodoListActionUtil'
 import { StackActionUtil } from './actions/StackActionUtil'
 import { StartProjectActionUtil } from './actions/StartProjectActionUtil'
 import { StartSoloTaskActionUtil } from './actions/StartSoloTaskActionUtil'
@@ -51,7 +50,6 @@ import { PersonalTodoListPartUtil } from './parts/PersonalTodoListPartUtil'
 import { PromptPartUtil, PromptPartUtilConstructor } from './parts/PromptPartUtil'
 import { ScreenshotPartUtil } from './parts/ScreenshotPartUtil'
 import { SelectedShapesPartUtil } from './parts/SelectedShapesPartUtil'
-import { SharedTodoListPartUtil } from './parts/SharedTodoListPartUtil'
 import { SoloTasksPartUtil } from './parts/SoloTasksPartUtil'
 import { TimePartUtil } from './parts/TimePartUtil'
 import { UserActionHistoryPartUtil } from './parts/UserActionHistoryPartUtil'
@@ -111,8 +109,6 @@ export const AGENT_ACTION_UTILS = [
 	EndCurrentProjectActionUtil,
 	AwaitTasksCompletionActionUtil,
 
-	SharedTodoListActionUtil, // not in use atm
-
 	// Internal (required)
 	UnknownActionUtil,
 ] satisfies AgentActionUtilConstructor<AgentAction>[]
@@ -137,7 +133,6 @@ export const PROMPT_PART_UTILS = [
 	BlurryShapesPartUtil,
 	PeripheralShapesPartUtil,
 	SelectedShapesPartUtil,
-	SharedTodoListPartUtil, // not in use atm
 
 	// History
 	ChatHistoryPartUtil,
