@@ -1,6 +1,7 @@
 import { AgentRequest, FairyModeDefinition } from '@tldraw/fairy-shared'
 import { $fairyTasks } from '../../FairyTaskList'
 import { FairyAgent } from './FairyAgent'
+import { $fairyAgentsAtom } from './fairyAgentsAtom'
 
 export interface FairyModeNode {
 	onEnter?(agent: FairyAgent, fromMode: FairyModeDefinition['type']): void | Promise<void>
@@ -19,6 +20,10 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			}
 
 			agent.setMode('soloing')
+		},
+		onEnter(agent) {
+			agent.$todoList.set([])
+			agent.$userActionHistory.set([])
 		},
 	},
 	soloing: {
@@ -82,6 +87,28 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	['orchestrating-active']: {
 		onPromptEnd(agent) {
 			if (agent.$waitingFor.get().length > 0) {
+				const project = agent.getProject()
+				if (!project) {
+					// This should never happen
+					agent.setMode('idling')
+					return
+				}
+
+				const members = project.members.filter((member) => member.id !== agent.id)
+				const memberAgents = $fairyAgentsAtom
+					.get(agent.editor)
+					.filter((agent) => members.some((member) => member.id === agent.id))
+				const activeMemberAgents = memberAgents.filter((agent) => agent.isGenerating())
+
+				// If there are no active members, we need to deploy someone again probably!
+				if (activeMemberAgents.length === 0) {
+					agent.schedule(
+						'No one is currently working on tasks. Consider deploying someone again, or end the project if all tasks are complete.'
+					)
+					return
+				}
+
+				// Wait for all other members to finish their tasks
 				agent.setMode('orchestrating-waiting')
 				return
 			}

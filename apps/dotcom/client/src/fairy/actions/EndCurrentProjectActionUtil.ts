@@ -1,5 +1,6 @@
 import { EndCurrentProjectAction, Streaming } from '@tldraw/fairy-shared'
 import { deleteProject } from '../FairyProjects'
+import { getFairyTasksByProjectId } from '../FairyTaskList'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { $fairyAgentsAtom } from '../fairy-agent/agent/fairyAgentsAtom'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -27,7 +28,35 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 			.get(this.editor)
 			.filter((agent) => membersIds.includes(agent.id))
 
+		const completedTasks = getFairyTasksByProjectId(project.id).filter(
+			(task) => task.status === 'done'
+		)
+
 		memberAgents.forEach((memberAgent) => {
+			if (memberAgent.id === this.agent.id) {
+				memberAgent.$chatHistory.update((prev) => [
+					...prev,
+					{
+						type: 'memory-transition',
+						memoryLevel: 'project',
+						message: `I led and completed the "${project.title}" project with ${memberAgents.length} other fairy(s): ${memberAgents.map((agent) => agent.id).join(', ')}`,
+					},
+				])
+			}
+
+			const memberCompletedTasks = completedTasks.filter(
+				(task) => task.assignedTo === memberAgent.id
+			)
+			if (memberCompletedTasks.length > 0) {
+				memberAgent.$chatHistory.update((prev) => [
+					...prev,
+					{
+						type: 'memory-transition',
+						memoryLevel: 'project',
+						message: `I completed ${memberCompletedTasks.length} tasks as part of the "${project.title}" project, with ${memberAgents.length} other fairy(s): ${memberAgents.map((agent) => agent.id).join(', ')}`,
+					},
+				])
+			}
 			memberAgent.setMode('idling')
 			memberAgent.cancel()
 		})
