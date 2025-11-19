@@ -23,17 +23,11 @@
   "08bd40c754": {
     "translation": "Account"
   },
-  "08d2d725a9": {
-    "translation": "Create a free account to save your work, collaborate in real-time, and more."
-  },
   "0b27918290": {
     "translation": "File"
   },
   "0b9a4cde72": {
     "translation": "File menu"
-  },
-  "0beb3ca97b": {
-    "translation": "tldraw is a free and instant virtual whiteboard."
   },
   "0d1f2bb523": {
     "translation": "Send feedback"
@@ -263,6 +257,9 @@
   "7697920637": {
     "translation": "Please reload"
   },
+  "76dea3c9ca": {
+    "translation": "tldraw is a free online whiteboard. Create an account to save your files and work with your friends."
+  },
   "777f9e90cf": {
     "translation": "Invalid request."
   },
@@ -446,9 +443,6 @@
   },
   "c4b39a1cc3": {
     "translation": "Essential cookies"
-  },
-  "c5c5a10435": {
-    "translation": "Sign in or create an account to accept the invitation."
   },
   "c6155aaecc": {
     "translation": "Group name"
