@@ -51,12 +51,6 @@
       "value": "Account"
     }
   ],
-  "08d2d725a9": [
-    {
-      "type": 0,
-      "value": "Create a free account to save your work, collaborate in real-time, and more."
-    }
-  ],
   "0b27918290": [
     {
       "type": 0,
@@ -67,12 +61,6 @@
     {
       "type": 0,
       "value": "File menu"
-    }
-  ],
-  "0beb3ca97b": [
-    {
-      "type": 0,
-      "value": "tldraw is a free and instant virtual whiteboard."
     }
   ],
   "0d1f2bb523": [
@@ -569,6 +557,12 @@
       "value": "Please reload"
     }
   ],
+  "76dea3c9ca": [
+    {
+      "type": 0,
+      "value": "tldraw is a free online whiteboard. Create an account to save your files and work with your friends."
+    }
+  ],
   "777f9e90cf": [
     {
       "type": 0,
@@ -1043,12 +1037,6 @@
     {
       "type": 0,
       "value": "Essential cookies"
-    }
-  ],
-  "c5c5a10435": [
-    {
-      "type": 0,
-      "value": "Sign in or create an account to accept the invitation."
     }
   ],
   "c6155aaecc": [
