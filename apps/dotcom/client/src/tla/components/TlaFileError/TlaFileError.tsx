@@ -67,7 +67,7 @@ export function TlaFileError({ error }: { error: unknown }) {
 			return (
 				<TlaFileErrorContent
 					header={<F defaultMessage="Rate limited" />}
-					para1={<F defaultMessage="Please slow down." />}
+					para1={<F defaultMessage="Too many requests. Please slow down." />}
 				/>
 			)
 		}
