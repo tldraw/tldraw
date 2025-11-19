@@ -29,6 +29,7 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 
 		memberAgents.forEach((memberAgent) => {
 			memberAgent.setMode('idling')
+			memberAgent.cancel()
 		})
 
 		deleteProject(project.id)

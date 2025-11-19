@@ -435,7 +435,6 @@ export const CurrentProjectPartDefinition: PromptPartDefinition<CurrentProjectPa
 		const baseResponse = [
 			`You are currently working on project "${currentProject.title}".`,
 			`Project description: ${currentProject.description}`,
-			`Project color: ${currentProject.color}`,
 		]
 
 		// do we want to split part into multiple parts? should we be more clear about which roles have access to what?

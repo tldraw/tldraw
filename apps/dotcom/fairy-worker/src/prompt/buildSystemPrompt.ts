@@ -477,7 +477,6 @@ function getSystemPromptFlags(
 		hasStartTask: actions.includes('start-task'),
 		hasMarkTaskDone: actions.includes('mark-my-task-done'),
 		hasClaimTodoItem: actions.includes('claim-todo-item'),
-		hasSleep: actions.includes('sleep'),
 
 		// Project management
 		hasActivateFairy: actions.includes('activate-agent'),

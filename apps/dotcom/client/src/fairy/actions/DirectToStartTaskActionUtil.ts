@@ -79,12 +79,6 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 			}
 		}
 
-		otherFairy.setMode('working-drone')
-		if (otherFairy.isGenerating()) {
-			otherFairy.schedule(otherFairyPrompt)
-		} else {
-			otherFairy.prompt(otherFairyPrompt)
-		}
-		// todo find a way to agent.interrupt to be able to prompt without causing errors, and use that here
+		otherFairy.interrupt({ mode: 'working-drone', input: otherFairyPrompt })
 	}
 }

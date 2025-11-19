@@ -78,7 +78,6 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'fly-to-bounds',
 			// 'change-page',
 			// 'create-page',
-			// 'sleep',
 		],
 	},
 	{
@@ -190,7 +189,6 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'think',
 			'review',
 			'fly-to-bounds',
-			// 'sleep',
 			// 'start-task',
 			// 'change-page',
 			// 'create-page',
