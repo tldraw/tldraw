@@ -134,8 +134,6 @@ export function TlaSidebarFairyCheckoutLink() {
 		}
 	}
 
-	const selectedPrice = prices.find((p) => p.priceId === selectedPriceId)
-
 	return (
 		<div className={styles.sidebarDotDevLink} style={{ position: 'relative' }}>
 			<button
@@ -235,7 +233,7 @@ export function TlaSidebarFairyCheckoutLink() {
 							fontWeight: 'bold',
 						}}
 					>
-						Continue to checkout
+						<F defaultMessage="Continue to checkout" />
 					</button>
 				</div>
 			)}
