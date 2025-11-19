@@ -65,9 +65,10 @@ export function TlaSidebarFairyCheckoutLink() {
 			}
 			const data = await response.json()
 			setPrices(data.prices || [])
-			// Select first price by default
+			// Select 3 fairies by default (recommended), fallback to first price
 			if (data.prices && data.prices.length > 0) {
-				setSelectedPriceId(data.prices[0].priceId)
+				const recommendedPrice = data.prices.find((p: FairyPriceOption) => p.fairyLimit === 3)
+				setSelectedPriceId(recommendedPrice?.priceId || data.prices[0].priceId)
 			}
 			setShowDropdown(true)
 		} catch (error) {
@@ -190,13 +191,32 @@ export function TlaSidebarFairyCheckoutLink() {
 								cursor: 'pointer',
 								textAlign: 'left',
 								fontSize: '12px',
+								display: 'flex',
+								justifyContent: 'space-between',
+								alignItems: 'center',
 							}}
 						>
-							{intl.formatMessage(
-								{
-									defaultMessage: '{count, plural, one {# fairy} other {# fairies}} - ${amount}',
-								},
-								{ count: price.fairyLimit, amount: price.amount }
+							<span>
+								{intl.formatMessage(
+									{
+										defaultMessage: '{count, plural, one {# fairy} other {# fairies}} - ${amount}',
+									},
+									{ count: price.fairyLimit, amount: price.amount }
+								)}
+							</span>
+							{price.fairyLimit === 3 && (
+								<span
+									style={{
+										fontSize: '10px',
+										padding: '2px 6px',
+										borderRadius: '3px',
+										border: '1px solid var(--tla-color-accent)',
+										color: 'var(--tla-color-accent)',
+										fontWeight: 'bold',
+									}}
+								>
+									<F defaultMessage="Recommended" />
+								</span>
 							)}
 						</button>
 					))}

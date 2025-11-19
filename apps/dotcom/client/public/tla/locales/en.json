@@ -266,6 +266,9 @@
   "64ebe56d8c": {
     "translation": "Click to remove or drag to move"
   },
+  "654866693f": {
+    "translation": "Recommended"
+  },
   "65709fd250": {
     "translation": "Task list"
   },
@@ -286,6 +289,9 @@
   },
   "6dfc62f621": {
     "translation": "Follow these steps to import the content manually:"
+  },
+  "6f6422391e": {
+    "translation": "{count, plural, one {# fairy} other {# fairies}} - ${amount}"
   },
   "70222abcfc": {
     "translation": "Group settings"
@@ -671,9 +677,6 @@
   },
   "e81c4e4f2b": {
     "translation": "or"
-  },
-  "e84209a4cc": {
-    "translation": "{count, plural, one {# fairy} other {# fairies}} - ${amount} {currency}"
   },
   "ea0626ac5a": {
     "translation": "Danger zone"
