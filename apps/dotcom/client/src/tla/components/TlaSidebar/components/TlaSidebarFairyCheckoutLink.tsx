@@ -194,10 +194,9 @@ export function TlaSidebarFairyCheckoutLink() {
 						>
 							{intl.formatMessage(
 								{
-									defaultMessage:
-										'{count, plural, one {# fairy} other {# fairies}} - ${amount} {currency}',
+									defaultMessage: '{count, plural, one {# fairy} other {# fairies}} - ${amount}',
 								},
-								{ count: price.fairyLimit, amount: price.amount, currency: price.currency }
+								{ count: price.fairyLimit, amount: price.amount }
 							)}
 						</button>
 					))}
