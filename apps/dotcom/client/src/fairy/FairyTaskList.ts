@@ -1,7 +1,8 @@
 import { FairyTask, FairyTaskStatus } from '@tldraw/fairy-shared'
-import { atom } from 'tldraw'
+import { Editor, atom } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { clearProjects } from './FairyProjects'
+import { notifyTaskCompleted } from './FairyWaitNotifications'
 
 export const $fairyTasks = atom<FairyTask[]>('fairyTasks', [])
 export const $showCanvasFairyTasks = atom<boolean>('showCanvasFairyTasks', false)
@@ -28,6 +29,21 @@ export function deleteFairyTask(id: number) {
 
 export function setFairyTaskStatus(id: number, status: FairyTaskStatus) {
 	$fairyTasks.update((todos) => todos.map((t) => (t.id === id ? { ...t, status } : t)))
+}
+
+export function setFairyTaskStatusAndNotifyCompletion(
+	id: number,
+	status: FairyTaskStatus,
+	editor: Editor
+) {
+	setFairyTaskStatus(id, status)
+	// Notify waiting agents if task is done
+	if (status === 'done' && editor) {
+		const task = getFairyTaskById(id)
+		if (task) {
+			notifyTaskCompleted(task, editor)
+		}
+	}
 }
 
 export function getFairyTaskById(id: number): FairyTask | undefined {

@@ -197,6 +197,9 @@
   "5d26ae7550": {
     "translation": "We failed to upload some of the content you created before you signed in."
   },
+  "5ea8bb44be": {
+    "translation": "You have been invited to join group:"
+  },
   "5f3c333678": {
     "translation": "Feedback submitted"
   },
@@ -217,9 +220,6 @@
   },
   "6637a98151": {
     "translation": "A new version of tldraw is available. Please reload the page to continue."
-  },
-  "68257bb646": {
-    "translation": "You've been invited to group <br></br><groupName></groupName>"
   },
   "6832ac5936": {
     "translation": "Enter your email address"
@@ -398,9 +398,6 @@
   "a9ded1e5ce": {
     "translation": "Background"
   },
-  "aa916767cf": {
-    "translation": "Sign in to accept invitation"
-  },
   "ab0df9ba36": {
     "translation": "File limit reached"
   },
@@ -449,6 +446,9 @@
   },
   "c4b39a1cc3": {
     "translation": "Essential cookies"
+  },
+  "c5c5a10435": {
+    "translation": "Sign in or create an account to accept the invitation."
   },
   "c6155aaecc": {
     "translation": "Group name"

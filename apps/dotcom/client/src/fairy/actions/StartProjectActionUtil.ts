@@ -23,23 +23,23 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 		// Assumptions:
 		// FairyGroupChat already handles creating the project, assigning roles programmatically as well as prompting the orchestrator
 
-		const { projectName, projectDescription, projectColor } = action
+		const { projectName, projectDescription, projectColor, projectPlan } = action
 
 		const project = getProjectByAgentId(this.agent.id)
 		if (!project) return // todo error
 
 		const colorAlreadyChosen = $fairyProjects.get().some((p) => p.color === projectColor)
 		if (colorAlreadyChosen) {
-			this.agent.cancel()
-			this.agent.schedule(
-				`The color ${projectColor} has already been chosen for another project. Please choose a different color.`
-			)
+			this.agent.interrupt({
+				input: `The color ${projectColor} has already been chosen for another project. Please choose a different color.`,
+			})
 			return
 		}
 
 		updateProject(project.id, {
 			title: projectName,
 			description: projectDescription,
+			plan: projectPlan,
 			color: projectColor,
 		})
 	}

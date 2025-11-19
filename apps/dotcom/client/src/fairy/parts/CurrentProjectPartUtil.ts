@@ -9,10 +9,12 @@ export class CurrentProjectPartUtil extends PromptPartUtil<CurrentProjectPart> {
 	override getPart(_request: AgentRequest, _helpers: AgentHelpers): CurrentProjectPart {
 		const currentProject = this.agent.getProject() ?? null
 		const currentProjectTasks = currentProject ? getFairyTasksByProjectId(currentProject.id) : []
+		const role = this.agent.getRole()
 		return {
 			type: 'currentProject',
 			currentProject,
 			currentProjectTasks,
+			role,
 		}
 	}
 }

@@ -51,6 +51,12 @@
       "value": "Fiók"
     }
   ],
+  "08d2d725a9": [
+    {
+      "type": 0,
+      "value": "Hozz létre egy ingyenes fiókot a munkád mentéséhez, valós idejű együttműködéshez és sok máshoz."
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
@@ -61,6 +67,12 @@
     {
       "type": 0,
       "value": "Fájl menü"
+    }
+  ],
+  "0beb3ca97b": [
+    {
+      "type": 0,
+      "value": "A tldraw egy ingyenes és azonnal használható virtuális tábla."
     }
   ],
   "0d1f2bb523": [
@@ -75,6 +87,18 @@
       "value": "Közzététel"
     }
   ],
+  "129b9e34ea": [
+    {
+      "type": 0,
+      "value": "Kilépés a csoportból"
+    }
+  ],
+  "12a6766ba1": [
+    {
+      "type": 0,
+      "value": "Fájl rögzítésének feloldása"
+    }
+  ],
   "12c8a9838c": [
     {
       "type": 0,
@@ -85,6 +109,18 @@
     {
       "type": 0,
       "value": "Exportálás másként"
+    }
+  ],
+  "146ffe2fd9": [
+    {
+      "type": 0,
+      "value": "Mutass többet"
+    }
+  ],
+  "14d65465b7": [
+    {
+      "type": 0,
+      "value": "Csoport törlése"
     }
   ],
   "181b90f889": [
@@ -117,6 +153,12 @@
       "value": "Ez a szoba közeledik a méretkorlátjához. Fontolja meg néhány tartalom eltávolítását vagy új fájl létrehozását."
     }
   ],
+  "2445e5e347": [
+    {
+      "type": 0,
+      "value": "Csoport létrehozása"
+    }
+  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -127,6 +169,12 @@
     {
       "type": 0,
       "value": "A feltöltés sikertelen"
+    }
+  ],
+  "2c3ef76333": [
+    {
+      "type": 0,
+      "value": "Saját fájlok"
     }
   ],
   "2deec2cb74": [
@@ -147,6 +195,12 @@
       "value": "i18n: Hiányzó kiemelés"
     }
   ],
+  "32210b37e4": [
+    {
+      "type": 0,
+      "value": "Link hozzáadása"
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
@@ -157,6 +211,12 @@
     {
       "type": 0,
       "value": "Szerkesztő"
+    }
+  ],
+  "3bc7d6ea2f": [
+    {
+      "type": 0,
+      "value": "Folytatás e-mailben"
     }
   ],
   "3bd1b98dbd": [
@@ -201,10 +261,28 @@
       "value": "tldraw"
     }
   ],
+  "47f493a590": [
+    {
+      "type": 0,
+      "value": "Fájl rögzítése"
+    }
+  ],
+  "49049467ff": [
+    {
+      "type": 0,
+      "value": "Tldraw fájl URL-címének beillesztése..."
+    }
+  ],
   "4908687e50": [
     {
       "type": 0,
       "value": "Biztosan elfelejti ezt a fájlt?"
+    }
+  ],
+  "49ee308734": [
+    {
+      "type": 0,
+      "value": "Név"
     }
   ],
   "4d0d3ddec9": [
@@ -217,6 +295,18 @@
     {
       "type": 0,
       "value": "Újratöltés"
+    }
+  ],
+  "4da5988a2e": [
+    {
+      "type": 0,
+      "value": "Csoport törlése…"
+    }
+  ],
+  "4e6fbf032b": [
+    {
+      "type": 0,
+      "value": "Biztosan törölni szeretné ezt a csoportot? Ez a művelet nem vonható vissza."
     }
   ],
   "50db1b7e1e": [
@@ -277,6 +367,40 @@
       "value": "Adatvédelmi szabályzat"
     }
   ],
+  "5a86b22fa0": [
+    {
+      "type": 0,
+      "value": "Húzd ide a fájlokat, "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "hozz létre egy fájlt"
+        }
+      ],
+      "type": 8,
+      "value": "create"
+    },
+    {
+      "type": 0,
+      "value": ", vagy "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "másold ki a meghívó linket"
+        }
+      ],
+      "type": 8,
+      "value": "invite"
+    },
+    {
+      "type": 0,
+      "value": " a kezdéshez."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -299,6 +423,12 @@
     {
       "type": 0,
       "value": "Régi böngésző észlelve. Kérjük, frissítse böngészőjét az alkalmazás használatához."
+    }
+  ],
+  "5c6fe42bc2": [
+    {
+      "type": 0,
+      "value": "Vonja vissza ezt a linket, és hozzon létre egy újat."
     }
   ],
   "5d26ae7550": [
@@ -331,6 +461,12 @@
       "value": "Régebbi"
     }
   ],
+  "639bae9ac6": [
+    {
+      "type": 0,
+      "value": "te"
+    }
+  ],
   "6609dd239e": [
     {
       "type": 0,
@@ -341,6 +477,34 @@
     {
       "type": 0,
       "value": "Elérhető a tldraw új verziója. A folytatáshoz töltse be újra az oldalt."
+    }
+  ],
+  "68257bb646": [
+    {
+      "type": 0,
+      "value": "Meghívtak a(z) "
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "br"
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "groupName"
+    },
+    {
+      "type": 0,
+      "value": " csoportba"
+    }
+  ],
+  "6832ac5936": [
+    {
+      "type": 0,
+      "value": "Add meg az e-mail címed"
     }
   ],
   "6a26f54883": [
@@ -359,6 +523,12 @@
     {
       "type": 0,
       "value": "Kövesse az alábbi lépéseket a tartalom kézi importálásához:"
+    }
+  ],
+  "70222abcfc": [
+    {
+      "type": 0,
+      "value": "Csoportbeállítások"
     }
   ],
   "70a6facb9d": [
@@ -451,6 +621,12 @@
       "value": "Felejtsd el"
     }
   ],
+  "7cfe6c43dc": [
+    {
+      "type": 0,
+      "value": "Kilépés a csoportból…"
+    }
+  ],
   "7daeced9ff": [
     {
       "type": 0,
@@ -525,10 +701,22 @@
       "value": "Fájl átnevezése"
     }
   ],
+  "8ad4303b83": [
+    {
+      "type": 0,
+      "value": "Nem, köszönöm"
+    }
+  ],
   "8b1946f965": [
     {
       "type": 0,
       "value": "A szerkesztés folytatásához másold át a szobát a fájljaid közé."
+    }
+  ],
+  "8c2d3d730c": [
+    {
+      "type": 0,
+      "value": "Ellenőrizd az e-mailjeidet, hogy érkezett-e egy ellenőrző kód."
     }
   ],
   "8eb2c00e96": [
@@ -561,6 +749,18 @@
       "value": "Másolás a fájljaim közé"
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Meghívólink másolva"
+    }
+  ],
+  "95aacd4d4a": [
+    {
+      "type": 0,
+      "value": "Bejelentkezés Google-fiókkal"
+    }
+  ],
   "95d2109dc8": [
     {
       "type": 0,
@@ -573,10 +773,42 @@
       "value": "Ebben a hónapban"
     }
   ],
+  "985a4b720f": [
+    {
+      "type": 0,
+      "value": "Felhasználási feltételek"
+    }
+  ],
+  "98c997a27e": [
+    {
+      "type": 0,
+      "value": "Fájllink hozzáadása"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Fény"
+    }
+  ],
+  "9b33f5c63c": [
+    {
+      "type": 0,
+      "value": "Nem kaptad meg a kódot? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Újraküldés"
+        }
+      ],
+      "type": 8,
+      "value": "resend"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "9bef626805": [
@@ -669,6 +901,12 @@
       "value": "Háttér"
     }
   ],
+  "aa916767cf": [
+    {
+      "type": 0,
+      "value": "Jelentkezzen be a meghívás elfogadásához"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -693,10 +931,28 @@
       "value": "Vendégfelhasználó"
     }
   ],
+  "b357b524e7": [
+    {
+      "type": 0,
+      "value": "E-mail cím"
+    }
+  ],
+  "b3d2db69fe": [
+    {
+      "type": 0,
+      "value": "Fájl URL-címe"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
       "value": "Jelentkezzen be"
+    }
+  ],
+  "b6f4a2ec63": [
+    {
+      "type": 0,
+      "value": "Tulajdonos"
     }
   ],
   "b758336699": [
@@ -711,10 +967,10 @@
       "value": "Jelentkezzen be a megosztáshoz"
     }
   ],
-  "bb792693e2": [
+  "bb93a7590f": [
     {
       "type": 0,
-      "value": "Kibont"
+      "value": "Elfogadás és csatlakozás a csoporthoz"
     }
   ],
   "bbbcefd7ce": [
@@ -765,16 +1021,30 @@
       "value": "ownerName"
     }
   ],
-  "bcb62136a3": [
-    {
-      "type": 0,
-      "value": "Töltsön fel .tldr fájlokat"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "További információ a megosztásról."
+    }
+  ],
+  "c28aed8348": [
+    {
+      "type": 0,
+      "value": "Engedélyezd az "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "analytics"
+        }
+      ],
+      "type": 8,
+      "value": "cookies"
+    },
+    {
+      "type": 0,
+      "value": " használatát a tldraw fejlesztéséhez."
     }
   ],
   "c303bd1095": [
@@ -789,6 +1059,12 @@
       "value": "Alapvető sütik"
     }
   ],
+  "c6155aaecc": [
+    {
+      "type": 0,
+      "value": "Csoport neve"
+    }
+  ],
   "c655b27b1e": [
     {
       "type": 0,
@@ -801,10 +1077,22 @@
       "value": "Meghív"
     }
   ],
+  "c74ea6dbff": [
+    {
+      "type": 0,
+      "value": "Kevesebb megjelenítése"
+    }
+  ],
   "c87aacf567": [
     {
       "type": 0,
       "value": "Jelentkezzen ki"
+    }
+  ],
+  "c9cc8cce24": [
+    {
+      "type": 0,
+      "value": "Megtakarítás"
     }
   ],
   "cceaefbc20": [
@@ -837,6 +1125,40 @@
       "value": "Oldalsáv váltása"
     }
   ],
+  "d638a3344b": [
+    {
+      "type": 0,
+      "value": "Mielőtt elkezdené, kérjük, fogadja el a "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "felhasználási feltételeinket"
+        }
+      ],
+      "type": 8,
+      "value": "tos"
+    },
+    {
+      "type": 0,
+      "value": " és az "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "adatvédelmi irányelveinket"
+        }
+      ],
+      "type": 8,
+      "value": "privacy"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "d721757161": [
     {
       "type": 0,
@@ -849,10 +1171,22 @@
       "value": "Próbáld újra"
     }
   ],
+  "d88ad2dc74": [
+    {
+      "type": 0,
+      "value": "Elfogadom és folytatom"
+    }
+  ],
   "d9100f3e10": [
     {
       "type": 0,
       "value": "Menjen ide a tartalom megtekintéséhez"
+    }
+  ],
+  "d9e35d0f55": [
+    {
+      "type": 0,
+      "value": "Elérte a csoportok maximális számát. Új csoportok létrehozása előtt törölnie kell a régieket."
     }
   ],
   "dbbebf3c03": [
@@ -861,10 +1195,28 @@
       "value": "Csak meghívással"
     }
   ],
+  "dcdaa754fe": [
+    {
+      "type": 0,
+      "value": "Érvénytelen tldraw fájl URL"
+    }
+  ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "Alkalmazás-hibakeresési jelzők"
+    }
+  ],
+  "e0c88179b3": [
+    {
+      "type": 0,
+      "value": "Tagok meghívása"
+    }
+  ],
+  "e2198d6228": [
+    {
+      "type": 0,
+      "value": "Meghívólink másolása"
     }
   ],
   "e2ae80a510": [
@@ -873,16 +1225,28 @@
       "value": "Jogi összefoglaló"
     }
   ],
+  "e3afed0047": [
+    {
+      "type": 0,
+      "value": "Adminisztrátor"
+    }
+  ],
   "e404559826": [
     {
       "type": 0,
       "value": "Szolgáltatási feltételek"
     }
   ],
-  "e78e14c5f1": [
+  "e81c4e4f2b": [
     {
       "type": 0,
-      "value": "Pin"
+      "value": "vagy"
+    }
+  ],
+  "ea0626ac5a": [
+    {
+      "type": 0,
+      "value": "Veszélyes zóna"
     }
   ],
   "ea4788705e": [
@@ -941,6 +1305,12 @@
       "value": "."
     }
   ],
+  "ef53538ae4": [
+    {
+      "type": 0,
+      "value": "Tagok"
+    }
+  ],
   "ef7de3f485": [
     {
       "type": 0,
@@ -983,6 +1353,18 @@
       "value": "Beállítások"
     }
   ],
+  "f714e36843": [
+    {
+      "type": 0,
+      "value": "Biztosan kilépsz ebből a csoportból?"
+    }
+  ],
+  "fa2ead697d": [
+    {
+      "type": 0,
+      "value": "Adatvédelmi irányelvek"
+    }
+  ],
   "fb15c53f22": [
     {
       "type": 0,
@@ -999,6 +1381,12 @@
     {
       "type": 0,
       "value": "Link másolva"
+    }
+  ],
+  "ff7a814974": [
+    {
+      "type": 0,
+      "value": "Fájllink hozzáadása…"
     }
   ],
   "ffcd73e997": [

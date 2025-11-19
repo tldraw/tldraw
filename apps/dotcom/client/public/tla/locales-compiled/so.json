@@ -51,6 +51,12 @@
       "value": "Xisaab"
     }
   ],
+  "08d2d725a9": [
+    {
+      "type": 0,
+      "value": "Abuur akoon bilaasha si aad u badbaadiso shaqadaada, wax wada qabsato wakhtiga dhabta ah, iyo in ka badan."
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
@@ -61,6 +67,12 @@
     {
       "type": 0,
       "value": "Liiska faylka"
+    }
+  ],
+  "0beb3ca97b": [
+    {
+      "type": 0,
+      "value": "tldraw waa sabuur cad oo bilaash ah oo degdeg ah."
     }
   ],
   "0d1f2bb523": [
@@ -75,6 +87,18 @@
       "value": "Daabac"
     }
   ],
+  "129b9e34ea": [
+    {
+      "type": 0,
+      "value": "Ka tag kooxda"
+    }
+  ],
+  "12a6766ba1": [
+    {
+      "type": 0,
+      "value": "Furaha faylka"
+    }
+  ],
   "12c8a9838c": [
     {
       "type": 0,
@@ -85,6 +109,18 @@
     {
       "type": 0,
       "value": "Dhoofinta sida"
+    }
+  ],
+  "146ffe2fd9": [
+    {
+      "type": 0,
+      "value": "Wax badan muuji"
+    }
+  ],
+  "14d65465b7": [
+    {
+      "type": 0,
+      "value": "Kooxda tirtir"
     }
   ],
   "181b90f889": [
@@ -117,6 +153,12 @@
       "value": "Qolkan waxa uu ku soo dhawaanayaa cabbirkiisa. Tixgeli inaad tirtirto qaar ka mid ah nuxurka ama bilawdo fayl cusub."
     }
   ],
+  "2445e5e347": [
+    {
+      "type": 0,
+      "value": "Abuur koox"
+    }
+  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -127,6 +169,12 @@
     {
       "type": 0,
       "value": "Soo dejintu waa fashilantay"
+    }
+  ],
+  "2c3ef76333": [
+    {
+      "type": 0,
+      "value": "Galalkayga"
     }
   ],
   "2deec2cb74": [
@@ -147,6 +195,12 @@
       "value": "i18n: Iftiimin Maqan"
     }
   ],
+  "32210b37e4": [
+    {
+      "type": 0,
+      "value": "Kudar xiriiriyaha"
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
@@ -157,6 +211,12 @@
     {
       "type": 0,
       "value": "Tafatire"
+    }
+  ],
+  "3bc7d6ea2f": [
+    {
+      "type": 0,
+      "value": "Ku sii wad iimaylka"
     }
   ],
   "3bd1b98dbd": [
@@ -201,10 +261,28 @@
       "value": "tldraw"
     }
   ],
+  "47f493a590": [
+    {
+      "type": 0,
+      "value": "Gal gal"
+    }
+  ],
+  "49049467ff": [
+    {
+      "type": 0,
+      "value": "Ku dheji URL faylka tldraw..."
+    }
+  ],
   "4908687e50": [
     {
       "type": 0,
       "value": "Ma hubtaa inaad rabto inaad ilowdo faylkan?"
+    }
+  ],
+  "49ee308734": [
+    {
+      "type": 0,
+      "value": "Magaca"
     }
   ],
   "4d0d3ddec9": [
@@ -217,6 +295,18 @@
     {
       "type": 0,
       "value": "Dib u soo deji"
+    }
+  ],
+  "4da5988a2e": [
+    {
+      "type": 0,
+      "value": "Tirtir kooxda…"
+    }
+  ],
+  "4e6fbf032b": [
+    {
+      "type": 0,
+      "value": "Ma hubtaa inaad doonayso inaad tirtirto kooxdan? Tallaabadan lama noqon karo."
     }
   ],
   "50db1b7e1e": [
@@ -277,6 +367,40 @@
       "value": "Siyaasada gaarka ah"
     }
   ],
+  "5a86b22fa0": [
+    {
+      "type": 0,
+      "value": "Halkan ku soo jiid faylasha, "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "abuur fayl"
+        }
+      ],
+      "type": 8,
+      "value": "create"
+    },
+    {
+      "type": 0,
+      "value": ", ama "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "koobiyi xidhiidhka martiqaadka"
+        }
+      ],
+      "type": 8,
+      "value": "invite"
+    },
+    {
+      "type": 0,
+      "value": " si aad u bilowdo."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -299,6 +423,12 @@
     {
       "type": 0,
       "value": "browser hore waa la helay Fadlan cusboonaysii biraawsarkaaga si aad u isticmaasho abkan."
+    }
+  ],
+  "5c6fe42bc2": [
+    {
+      "type": 0,
+      "value": "Ka noqo xiriirkan oo samee mid cusub."
     }
   ],
   "5d26ae7550": [
@@ -331,6 +461,12 @@
       "value": "Ka weyn"
     }
   ],
+  "639bae9ac6": [
+    {
+      "type": 0,
+      "value": "adiga"
+    }
+  ],
   "6609dd239e": [
     {
       "type": 0,
@@ -341,6 +477,30 @@
     {
       "type": 0,
       "value": "Nooc cusub oo tldraw ah ayaa diyaar ah. Fadlan dib u soo deji bogga si aad u sii waddo."
+    }
+  ],
+  "68257bb646": [
+    {
+      "type": 0,
+      "value": "Waxaa lagugu martiqaaday kooxda "
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "br"
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "groupName"
+    }
+  ],
+  "6832ac5936": [
+    {
+      "type": 0,
+      "value": "Geli ciwaanka iimaylkaaga"
     }
   ],
   "6a26f54883": [
@@ -359,6 +519,12 @@
     {
       "type": 0,
       "value": "Raac tillaabooyinkan si aad gacanta ugu soo dejiso waxa ku jira:"
+    }
+  ],
+  "70222abcfc": [
+    {
+      "type": 0,
+      "value": "Dejinta kooxda"
     }
   ],
   "70a6facb9d": [
@@ -451,6 +617,12 @@
       "value": "Iska ilow"
     }
   ],
+  "7cfe6c43dc": [
+    {
+      "type": 0,
+      "value": "Ka bax kooxda…"
+    }
+  ],
   "7daeced9ff": [
     {
       "type": 0,
@@ -529,10 +701,22 @@
       "value": "Magaca beddelo faylka"
     }
   ],
+  "8ad4303b83": [
+    {
+      "type": 0,
+      "value": "Maya mahadsanid"
+    }
+  ],
   "8b1946f965": [
     {
       "type": 0,
       "value": "Si aad u sii waddo tafatirka fadlan ku koobi qolka faylashaada."
+    }
+  ],
+  "8c2d3d730c": [
+    {
+      "type": 0,
+      "value": "Hubi iimaylkaga koodka xaqiijinta"
     }
   ],
   "8eb2c00e96": [
@@ -565,6 +749,18 @@
       "value": "Ku koobbi faylalkayga"
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Xiriirinta martiqaadka oo la guuriyay"
+    }
+  ],
+  "95aacd4d4a": [
+    {
+      "type": 0,
+      "value": "Ku gal Google"
+    }
+  ],
   "95d2109dc8": [
     {
       "type": 0,
@@ -577,10 +773,42 @@
       "value": "Bishan"
     }
   ],
+  "985a4b720f": [
+    {
+      "type": 0,
+      "value": "Shuruudaha Isticmaalka"
+    }
+  ],
+  "98c997a27e": [
+    {
+      "type": 0,
+      "value": "Kudar xiriirinta faylka"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Iftiin"
+    }
+  ],
+  "9b33f5c63c": [
+    {
+      "type": 0,
+      "value": "kood ma helin? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "dib u dir "
+        }
+      ],
+      "type": 8,
+      "value": "resend"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "9bef626805": [
@@ -673,6 +901,12 @@
       "value": "Asalkii hore"
     }
   ],
+  "aa916767cf": [
+    {
+      "type": 0,
+      "value": "Saxeex si aad u aqbasho martiqaadka"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -697,10 +931,28 @@
       "value": "Isticmaalaha martida"
     }
   ],
+  "b357b524e7": [
+    {
+      "type": 0,
+      "value": "Ciwaanka iimaylka"
+    }
+  ],
+  "b3d2db69fe": [
+    {
+      "type": 0,
+      "value": "URL faylka"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
       "value": "Soo gal"
+    }
+  ],
+  "b6f4a2ec63": [
+    {
+      "type": 0,
+      "value": "Mulkiilaha"
     }
   ],
   "b758336699": [
@@ -715,10 +967,10 @@
       "value": "Saxiix si aad ula wadaagto"
     }
   ],
-  "bb792693e2": [
+  "bb93a7590f": [
     {
       "type": 0,
-      "value": "Furi"
+      "value": "Aqbal oo ku biir kooxda"
     }
   ],
   "bbbcefd7ce": [
@@ -773,16 +1025,30 @@
       "value": "ownerName"
     }
   ],
-  "bcb62136a3": [
-    {
-      "type": 0,
-      "value": "Soo rar faylasha tldr"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Wax badan ka baro wadaagga"
+    }
+  ],
+  "c28aed8348": [
+    {
+      "type": 0,
+      "value": "Oggolow "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "analytics"
+        }
+      ],
+      "type": 8,
+      "value": "cookies"
+    },
+    {
+      "type": 0,
+      "value": " inay naga caawiyaan horumarinta tldraw."
     }
   ],
   "c303bd1095": [
@@ -797,6 +1063,12 @@
       "value": "Kukiyada muhiimka ah"
     }
   ],
+  "c6155aaecc": [
+    {
+      "type": 0,
+      "value": "Magaca kooxda"
+    }
+  ],
   "c655b27b1e": [
     {
       "type": 0,
@@ -809,10 +1081,22 @@
       "value": "martiqaad"
     }
   ],
+  "c74ea6dbff": [
+    {
+      "type": 0,
+      "value": "Muuji wax yar"
+    }
+  ],
   "c87aacf567": [
     {
       "type": 0,
       "value": "Saxiix"
+    }
+  ],
+  "c9cc8cce24": [
+    {
+      "type": 0,
+      "value": "Badbaadin"
     }
   ],
   "cceaefbc20": [
@@ -845,6 +1129,40 @@
       "value": "Beddel dhinaca bar"
     }
   ],
+  "d638a3344b": [
+    {
+      "type": 0,
+      "value": "Kahor intaadan bilaabin, fadlan aqbal "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "shuruudaha isticmaalka"
+        }
+      ],
+      "type": 8,
+      "value": "tos"
+    },
+    {
+      "type": 0,
+      "value": " iyo "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "siyaasadda asturnaanta"
+        }
+      ],
+      "type": 8,
+      "value": "privacy"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "d721757161": [
     {
       "type": 0,
@@ -857,10 +1175,22 @@
       "value": "Isku day Mar Kale"
     }
   ],
+  "d88ad2dc74": [
+    {
+      "type": 0,
+      "value": "Aqbal oo sii wad"
+    }
+  ],
   "d9100f3e10": [
     {
       "type": 0,
       "value": "Tag halkan si aad u aragto waxa ku jira"
+    }
+  ],
+  "d9e35d0f55": [
+    {
+      "type": 0,
+      "value": "Waxaad gaadhay tirada ugu badan ee kooxaha Waxaad u baahan tahay inaad tirtirto kooxihii hore ka hor inta aanad abuurin kuwa cusub."
     }
   ],
   "dbbebf3c03": [
@@ -869,10 +1199,28 @@
       "value": "martiqaad kaliya"
     }
   ],
+  "dcdaa754fe": [
+    {
+      "type": 0,
+      "value": "URL faylka tldraw aan sax ahayn"
+    }
+  ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "Calaamadaha cilladaha abka"
+    }
+  ],
+  "e0c88179b3": [
+    {
+      "type": 0,
+      "value": "martiqaad xubnaha"
+    }
+  ],
+  "e2198d6228": [
+    {
+      "type": 0,
+      "value": "Nuqul ka samee xidhiidhka martiqaadka"
     }
   ],
   "e2ae80a510": [
@@ -881,16 +1229,28 @@
       "value": "Soo koobid sharci ah"
     }
   ],
+  "e3afed0047": [
+    {
+      "type": 0,
+      "value": "Admin"
+    }
+  ],
   "e404559826": [
     {
       "type": 0,
       "value": "Shuruudaha adeegga"
     }
   ],
-  "e78e14c5f1": [
+  "e81c4e4f2b": [
     {
       "type": 0,
-      "value": "Pin"
+      "value": "ama"
+    }
+  ],
+  "ea0626ac5a": [
+    {
+      "type": 0,
+      "value": "Aagga khatarta ah"
     }
   ],
   "ea4788705e": [
@@ -945,6 +1305,12 @@
       "value": "a"
     }
   ],
+  "ef53538ae4": [
+    {
+      "type": 0,
+      "value": "Xubnaha"
+    }
+  ],
   "ef7de3f485": [
     {
       "type": 0,
@@ -987,6 +1353,18 @@
       "value": "Dejinta"
     }
   ],
+  "f714e36843": [
+    {
+      "type": 0,
+      "value": "Ma hubtaa inaad doonayso inaad ka baxdo kooxdan?"
+    }
+  ],
+  "fa2ead697d": [
+    {
+      "type": 0,
+      "value": "Siyaasadda Qarsoonnimada"
+    }
+  ],
   "fb15c53f22": [
     {
       "type": 0,
@@ -1003,6 +1381,12 @@
     {
       "type": 0,
       "value": "Xiriirinta la guuriyay"
+    }
+  ],
+  "ff7a814974": [
+    {
+      "type": 0,
+      "value": "Kudar xiriirinta faylka…"
     }
   ],
   "ffcd73e997": [

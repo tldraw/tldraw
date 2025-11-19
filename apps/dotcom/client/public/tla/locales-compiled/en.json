@@ -437,6 +437,12 @@
       "value": "We failed to upload some of the content you created before you signed in."
     }
   ],
+  "5ea8bb44be": [
+    {
+      "type": 0,
+      "value": "You have been invited to join group:"
+    }
+  ],
   "5f3c333678": [
     {
       "type": 0,
@@ -477,24 +483,6 @@
     {
       "type": 0,
       "value": "A new version of tldraw is available. Please reload the page to continue."
-    }
-  ],
-  "68257bb646": [
-    {
-      "type": 0,
-      "value": "You've been invited to group "
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "br"
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "groupName"
     }
   ],
   "6832ac5936": [
@@ -901,12 +889,6 @@
       "value": "Background"
     }
   ],
-  "aa916767cf": [
-    {
-      "type": 0,
-      "value": "Sign in to accept invitation"
-    }
-  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -1061,6 +1043,12 @@
     {
       "type": 0,
       "value": "Essential cookies"
+    }
+  ],
+  "c5c5a10435": [
+    {
+      "type": 0,
+      "value": "Sign in or create an account to accept the invitation."
     }
   ],
   "c6155aaecc": [

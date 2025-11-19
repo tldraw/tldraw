@@ -1456,14 +1456,31 @@
 	margin: 8px 0;
 }
 
-.fairy-debug-flags-section {
+.home-debug-options-container {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 24px;
 	padding: 8px;
 }
 
-.fairy-debug-flags-row {
+.fairy-debug-options-container {
 	display: flex;
 	flex-direction: row;
-	align-items: flex-start;
+	gap: 24px;
+	padding: 8px;
+}
+
+.fairy-debug-flags-container {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.fairy-debug-options-buttons {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
 	gap: 8px;
 }
 

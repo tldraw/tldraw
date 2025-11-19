@@ -64,6 +64,31 @@ export class Database {
 		await sql`SELECT * FROM migrate_user_to_groups(${id}, ${inviteSecret})`.execute(db)
 	}
 
+	/**
+	 * Enable groups frontend flag for a user
+	 */
+	async enableGroupsFrontend(isOther: boolean = false): Promise<void> {
+		const id = await this.getUserId(isOther)
+		if (!id) throw new Error('User not found')
+
+		// Get current flags
+		const result = await sql<{
+			flags: string | null
+		}>`SELECT flags FROM public.user WHERE id = ${id}`.execute(db)
+
+		const currentFlags = result.rows[0]?.flags || ''
+		const flagsArray = currentFlags.split(/[,\s]+/).filter(Boolean)
+
+		// Add groups_frontend if not present
+		if (!flagsArray.includes('groups_frontend')) {
+			flagsArray.push('groups_frontend')
+		}
+
+		// Update with new flags
+		const newFlags = flagsArray.join(',')
+		await sql`UPDATE public.user SET flags = ${newFlags} WHERE id = ${id}`.execute(db)
+	}
+
 	private async cleanUpUser(isOther: boolean) {
 		const fileName = getStorageStateFileName(this.parallelIndex, isOther ? 'suppy' : 'huppy')
 		if (!fs.existsSync(fileName)) return
@@ -73,9 +98,6 @@ export class Database {
 			// eslint-disable-next-line no-restricted-globals
 			await fetch(`http://localhost:3000/api/app/__test__/user/${id}/prepare-for-test`, {
 				method: 'POST',
-				headers: {
-					'x-legacy': process.env.TLDRAW_INIT_MODE === 'new' ? 'false' : 'true',
-				},
 			})
 		} catch (e) {
 			console.error('Error', e)

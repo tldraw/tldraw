@@ -109,7 +109,7 @@ function FairyHUDHeader({
 			</div>
 		) : selectedFairies.length > 1 ? (
 			<div className="fairy-id-display">
-				<F defaultMessage="Group chat" />
+				<F defaultMessage="Create project" />
 			</div>
 		) : shownFairy && fairyConfig ? (
 			<div className="fairy-id-display">
@@ -352,7 +352,13 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 								)}
 
 							{panelState === 'fairy' && selectedFairies.length > 1 && (
-								<FairyGroupChat agents={selectedFairies} />
+								<FairyGroupChat
+									agents={selectedFairies}
+									onStartProject={(orchestratorAgent) => {
+										selectFairy(orchestratorAgent)
+										setPanelState('fairy')
+									}}
+								/>
 							)}
 
 							{panelState === 'task-list' && <FairyTaskListInline agents={agents} />}

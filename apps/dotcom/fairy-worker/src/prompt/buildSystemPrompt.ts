@@ -99,13 +99,30 @@ function buildSoloingModePromptSection(_flags: SystemPromptFlags) {
 }
 
 function buildWorkingModePromptSection(_flags: SystemPromptFlags) {
-	return `What you should do now is carry out the task you're assigned to. You have a set of tools you can use to carry out the task. You're only able to see within the bounds of the task; you cannot see the entire canvas. Once you've finished the task, mark it as done. You also have access to a personal todo list that you should use to plan out how to solve the task.
+	return `What you should do now is carry out the task you're assigned to. You have a set of tools you can use to carry out the task. You're only able to see within the bounds of the task; you cannot see the entire canvas. Once you've finished the task, mark it as done. You also have access to a personal todo list that you should use to plan out how to solve the task. Your personal todo list should represent how you plan to complete the task. There may be other agents, or the human, working in your same space. That's okay! Don't be alarmed if somethings appear in your view you didn't put there, just complete your task.
 	`
 }
 
 function buildOrchestratingModePromptSection(_flags: SystemPromptFlags) {
-	return `You are in charge of orchestrating a project. You must first start it the project, then plan out the project and assign tasks to other agents, making sure they have appropriate bounds. Then, direct the other agents to start tasks in whichever order makes the most sense for the project. Some tasks may be able to be completed in parallel, but some may not. Once the project is complete, end it. You cannot edit the canvas.
-	`
+	return `You are in charge of orchestrating a project. Here is how you should do that.
+- First, you must first start the project. This involes creating a brief project plan about where in the canvas the tasks will be situated, and which ones to do in parallel what order they're carried out in. The project plan is only visible to you and can contain anything you think will be helpful in your orchestration: notes on when to start certain tasks, things to look out for, etc. 
+- What makes a good project plan?
+	- The project plan should describe the high level tasks, and the order in which they should be carried out.
+	- Projects should be coherent. Agents are only able to see and work within the bounds of current task. Therefore, tasks should be positioned and sized in a way that allows them to be completed in a coherent way. If you're drawing a picture, the task to add a foreground should obviously overlap a task to, say, add an object to the foreground. The logic of what should go where should rule how you position and size tasks.
+	- However, if there are fully overlpaping tasks, they should not be worked on coherently. A moderate amount of overlap is super fine for concurrent tasks though.
+	- Later tasks can the work done in earlier tasks (but not the tasks themselves, agents can only see their own tasks), and this should be a part of your project plan. For example if you're making a flow chart, and you have a task to make steps 1-3, and then a task to make steps 4 and 5, you should also add a task to connect step 3 to 4 in whatever way is logical. This task should only be started once you've confirmed the first two have been completed satisfactorily.
+	- You may also make followup tasks to move elements around and layer them on top of each other. If you have two agents on your team, and you want one to work on a background and the other to work on a foreground, you can have those bounds not overlap at all, then have a followup task to move the foreground element on top of the background element (just make sure the bounds of that task encompasses both elements).
+	- The number of agents, the complexity of the project, and the individual skills and personalities of the agents should all factor into your plan, with the goal of completing the project as quickly as possible. You don't have to assign a task to every agent.
+	- Someone looking at the finished output should not be able to make out where one task ends and another begins. 
+- Once you've created the project plan. Create every task you've planned out, assigning them to the appropriate agents. This will not yet start the tasks.
+	- Tasks should not be too micromanage-y. Trust that your workers can figure out how to complete the task on their own.
+- Then, direct the agents to start their tasks in the order you've planned. You can do this by using the \`direct-to-start-project-task\` action. You should then use the \`await-tasks-completion\` action to wait for the first set of tasks to be completed. This will give you a notification when any of those tasks are completed, allowing you to review them.
+- When you review the tasks, you may find that you need add more tasks to fix or adjust things. This is okay; things sometimes don't go according to plan. You can direct agents to start tasks in any order, so feel free to add a new tasks to fix something that went wrong, await its completion, and only then continue with the plan.
+- Once you've confirmed the first set of tasks are completed satisfactorily, you can start the next set of tasks.
+- You will possibly need to spend some time near the end of the project to make sure each different task is integrated into the project as a whole. This will possibly require the creation of more tasks.
+- You cannot edit the canvas. As the recruits work on the project, the state is ever changing, so don't be surprised if states of different tasks or the canvas changes as you go.
+- Once the project is fully complete, end it. 
+`
 }
 
 function buildRulesPromptSection(flags: SystemPromptFlags) {
@@ -294,7 +311,7 @@ ${
 	// 	- When making a todo item, specify coordinates if relevant, for example if the work is part of a larger task that should be done in a specific area of the canvas.
 	// 	- Todo items close together are probably related.
 	// - When working with other agents, you must use the shared todo list to coordinate your work. To add new items to the shared todo list, or claim them for yourself, you can update the shared todo list with the ` +
-	// 			'`update-todo-list`' +
+	// 			'`update-shared-todo-list`' +
 	// 			` action. When creating new tasks with this action, make sure not to intially assign them all to yourself. This is because other agents may want to help out and claim some. Once you have created some tasks, use the ` +
 	// 			'`review`' +
 	// 			` action to check the shared todo list, after which you can claim tasks for yourself. Make sure to mark the tasks as "in-progress" when you claim them as well. Only claim a small amount of tasks at a time, and only claim tasks that you are confident you can complete.
@@ -308,7 +325,7 @@ ${
 }
 
 ${
-	flags.hasUpdateTodoList
+	flags.hasPersonalTodoList
 		? `- Use ` +
 			'`update-personal-todo-list`' +
 			` events liberally to keep an up to date list of your progress on the task at hand. When you are assigned a new task, use the action multiple times to sketch out your plan${flags.hasReview ? '. You can then use the ' + '`review`' + ' action to check the todo list' : ''}.
@@ -321,10 +338,10 @@ ${(flags.hasDistribute || flags.hasStack || flags.hasAlign || flags.hasPlace) &&
 ${flags.hasSelectedShapesPart ? "- If the user has selected shape(s) and they refer to 'this', or 'these' in their request, they are probably referring to their selected shapes." : ''}
 
 ${
-	flags.hasViewportBoundsPart || flags.hasFlyToBounds
+	flags.hasUserViewportBoundsPart || flags.hasAgentViewportBoundsPart || flags.hasFlyToBounds
 		? `### Navigating the canvas
 
-${flags.hasViewportBoundsPart ? "- Don't go out of your way to work inside the user's view unless you need to." : ''}
+${flags.hasUserViewportBoundsPart ? "- Don't go out of your way to work inside the user's view unless you need to." : ''}
 ${flags.hasPeripheralShapesPart ? '- You will be provided with list of shapes that are outside of your viewport.' : ''}
 ${
 	flags.hasFlyToBounds
@@ -343,6 +360,7 @@ ${
 		? `## Reviewing your work
 
 - Remember to review your work when making multiple changes so that you can see the results of your work. Otherwise, you're flying blind.
+${flags.hasFlyToBounds ? '- If you fly somewhere, you get the same updated information about the canvas as if you had used the ' + '`review`' + ' action, so no need to review right after flying.' : ''}
 ${flags.hasScreenshotPart ? '- When reviewing your work, you should rely **most** on the image provided to find overlaps, assess quality, and ensure completeness.' : ''}
 - Some important things to check for while reviewing:
 	- Are arrows properly connected to the shapes they are pointing to?
@@ -407,7 +425,7 @@ function getSystemPromptFlags(
 	return {
 		// Mode flags
 		isSoloing: mode === 'soloing',
-		isWorking: mode === 'working',
+		isWorking: mode === 'working-drone' || mode === 'working-solo',
 		isOrchestrating: mode === 'orchestrating',
 
 		// Communication
@@ -417,6 +435,8 @@ function getSystemPromptFlags(
 		hasThink: actions.includes('think'),
 		hasReview: actions.includes('review'),
 		hasFlyToBounds: actions.includes('fly-to-bounds'),
+		hasPersonalTodoList:
+			actions.includes('update-personal-todo-list') && parts.includes('personalTodoList'),
 
 		// Individual shapes
 		hasCreate: actions.includes('create'),
@@ -443,16 +463,16 @@ function getSystemPromptFlags(
 		hasCreatePage: actions.includes('create-page'),
 
 		// Task management
-		hasCreateSoloTask: actions.includes('create-solo-task'),
+		hasCreateSoloTask: actions.includes('create-task'),
 		hasCreateProjectTask: actions.includes('create-project-task'),
 		hasStartTask: actions.includes('start-task'),
-		hasMarkTaskDone: actions.includes('mark-task-done'),
+		hasMarkTaskDone: actions.includes('mark-my-task-done'),
 		hasClaimTodoItem: actions.includes('claim-todo-item'),
 		hasSleep: actions.includes('sleep'),
 
 		// Project management
 		hasActivateFairy: actions.includes('activate-agent'),
-		hasUpdateTodoList: actions.includes('update-todo-list'),
+		hasUpdateSharedTodoList: actions.includes('update-shared-todo-list'),
 
 		// Internal (required)
 		hasUnknown: actions.includes('unknown'),
@@ -463,7 +483,8 @@ function getSystemPromptFlags(
 
 		// Viewport
 		hasScreenshotPart: parts.includes('screenshot'),
-		hasViewportBoundsPart: parts.includes('viewportBounds'),
+		hasUserViewportBoundsPart: parts.includes('userViewportBounds'),
+		hasAgentViewportBoundsPart: parts.includes('agentViewportBounds'),
 
 		// Shapes
 		hasBlurryShapesPart: parts.includes('blurryShapes'),
