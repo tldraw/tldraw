@@ -480,7 +480,6 @@ function getSystemPromptFlags(
 
 		// Project management
 		hasActivateFairy: actions.includes('activate-agent'),
-		hasUpdateSharedTodoList: actions.includes('update-shared-todo-list'),
 
 		// Internal (required)
 		hasUnknown: actions.includes('unknown'),
@@ -518,7 +517,6 @@ function getSystemPromptFlags(
 
 		// Project
 		hasCurrentProjectPart: parts.includes('currentProject'),
-		hasSharedTodoListPart: parts.includes('sharedTodoList'),
 
 		// assign todo item
 		hasAssignTodoItem: actions.includes('direct-to-start-project-task'),

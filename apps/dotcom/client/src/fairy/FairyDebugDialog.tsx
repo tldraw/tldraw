@@ -29,8 +29,8 @@ import { $fairyProjects, addAgentToDummyProject } from './FairyProjects'
 import { $fairyTasks } from './FairyTaskList'
 
 // # Home Debug Inspector Types and Labels
-type HomeDebugInspectorType = 'projects' | 'sharedTodoList'
-const HOME_DEBUG_INSPECTOR_TYPES: HomeDebugInspectorType[] = ['projects', 'sharedTodoList']
+type HomeDebugInspectorType = 'projects' | 'fairyTaskList'
+const HOME_DEBUG_INSPECTOR_TYPES: HomeDebugInspectorType[] = ['projects', 'fairyTaskList']
 
 // # Fairy Debug Inspector Types and Labels
 type FairyDebugInspectorType =
@@ -40,7 +40,7 @@ type FairyDebugInspectorType =
 	| 'activeRequest'
 	| 'scheduledRequest'
 	| 'chatOrigin'
-	| 'todoList'
+	| 'personalTodoList'
 	| 'userActionHistory'
 	| 'currentProjectId'
 	| 'cumulativeUsage'
@@ -53,7 +53,7 @@ const FAIRY_DEBUG_INSPECTOR_TYPES: FairyDebugInspectorType[] = [
 	'activeRequest',
 	'scheduledRequest',
 	'chatOrigin',
-	'todoList',
+	'personalTodoList',
 	'userActionHistory',
 	'currentProjectId',
 	'cumulativeUsage',
@@ -184,7 +184,7 @@ function DebugInspectorLabel({
 	if (isHomeTab) {
 		const homeType = type as HomeDebugInspectorType
 		if (homeType === 'projects') return <F defaultMessage="Projects" />
-		if (homeType === 'sharedTodoList') return <F defaultMessage="Shared Todo List" />
+		if (homeType === 'fairyTaskList') return <F defaultMessage="Task List" />
 	} else {
 		const fairyType = type as FairyDebugInspectorType
 		if (fairyType === 'config') return <F defaultMessage="Config" />
@@ -193,7 +193,7 @@ function DebugInspectorLabel({
 		if (fairyType === 'activeRequest') return <F defaultMessage="Active Request" />
 		if (fairyType === 'scheduledRequest') return <F defaultMessage="Scheduled Request" />
 		if (fairyType === 'chatOrigin') return <F defaultMessage="Chat Origin" />
-		if (fairyType === 'todoList') return <F defaultMessage="Todo List" />
+		if (fairyType === 'personalTodoList') return <F defaultMessage="Personal Todo List" />
 		if (fairyType === 'userActionHistory') return <F defaultMessage="User Action History" />
 		if (fairyType === 'currentProjectId') return <F defaultMessage="Current Project ID" />
 		if (fairyType === 'cumulativeUsage') return <F defaultMessage="Cumulative Usage" />
@@ -212,7 +212,7 @@ function HomeDebugView({
 	return (
 		<div className="fairy-debug-view-container">
 			{homeDebugInspectorType === 'projects' && <ProjectsInspector />}
-			{homeDebugInspectorType === 'sharedTodoList' && <SharedTodoListInspector />}
+			{homeDebugInspectorType === 'fairyTaskList' && <FairyTaskInspector />}
 		</div>
 	)
 }
@@ -221,7 +221,7 @@ function HomeDebugView({
 
 function ProjectsInspector() {
 	const projects = useValue($fairyProjects)
-	const sharedTodos = useValue($fairyTasks)
+	const fairyTasks = useValue($fairyTasks)
 
 	return (
 		<div className="fairy-debug-projects-container">
@@ -234,7 +234,7 @@ function ProjectsInspector() {
 				</div>
 			) : (
 				projects.map((project, index) => {
-					const projectTodos = sharedTodos.filter((todo) => todo.projectId === project.id)
+					const projectTodos = fairyTasks.filter((todo) => todo.projectId === project.id)
 					return (
 						<div key={project.id} className="fairy-debug-project-card">
 							<div className="fairy-debug-project-name">{project.title}</div>
@@ -275,26 +275,26 @@ function ProjectsInspector() {
 	)
 }
 
-function SharedTodoListInspector() {
-	const sharedTodos = useValue($fairyTasks)
+function FairyTaskInspector() {
+	const fairyTasks = useValue($fairyTasks)
 
 	return (
 		<div className="fairy-debug-shared-todos-container">
 			<div className="fairy-debug-shared-todos-header">
-				<F defaultMessage="Shared Todo List:" values={{ count: sharedTodos.length }} />
+				<F defaultMessage="Shared Todo List:" values={{ count: fairyTasks.length }} />
 			</div>
-			{sharedTodos.length === 0 ? (
+			{fairyTasks.length === 0 ? (
 				<div className="fairy-debug-shared-todos-empty">
 					<F defaultMessage="No shared todos yet" />
 				</div>
 			) : (
-				sharedTodos.map((todo, index) => (
+				fairyTasks.map((todo, index) => (
 					<div key={todo.id} className="fairy-debug-shared-todo-item">
 						{/* <JsonDisplay value={todo} /> */}
 						{Object.entries(todo).map(([key, value]) => (
 							<KeyValuePair key={key} label={key} value={value} />
 						))}
-						{index < sharedTodos.length - 1 && <hr className="fairy-debug-shared-todo-separator" />}
+						{index < fairyTasks.length - 1 && <hr className="fairy-debug-shared-todo-separator" />}
 					</div>
 				))
 			)}
@@ -456,7 +456,7 @@ function FairyDebugView({
 	const activeRequest = useValue(agent.$activeRequest)
 	const scheduledRequest = useValue(agent.$scheduledRequest)
 	const chatOrigin = useValue(agent.$chatOrigin)
-	const todoList = useValue(agent.$todoList)
+	const personalTodoList = useValue(agent.$personalTodoList)
 	const userActionHistory = useValue(agent.$userActionHistory)
 	const currentProjectId = agent.getProject()?.id
 	const cumulativeUsage = agent.cumulativeUsage
@@ -483,7 +483,7 @@ function FairyDebugView({
 		activeRequest,
 		scheduledRequest,
 		chatOrigin,
-		todoList,
+		personalTodoList,
 		userActionHistory,
 		currentProjectId,
 		cumulativeUsage,

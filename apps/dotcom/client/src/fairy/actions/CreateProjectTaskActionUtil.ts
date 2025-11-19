@@ -42,6 +42,8 @@ export class CreateProjectTaskActionUtil extends AgentActionUtil<CreateProjectTa
 		})
 
 		createFairyTask({
+			id: action.taskId,
+			title: action.title,
 			text: action.text,
 			assignedTo: action.assignedTo,
 			projectId: project.id,

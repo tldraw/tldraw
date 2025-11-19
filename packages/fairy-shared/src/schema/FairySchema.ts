@@ -28,7 +28,6 @@ import {
 	ReviewActionSchema,
 	RotateActionSchema,
 	SendToBackActionSchema,
-	SharedTodoListActionSchema,
 	StackActionSchema,
 	StartProjectActionSchema,
 	StartSoloTaskActionSchema,
@@ -53,7 +52,6 @@ import {
 	PromptPartDefinition,
 	ScreenshotPartDefinition,
 	SelectedShapesPartDefinition,
-	SharedTodoListPartDefinition,
 	SoloTasksPartDefinition,
 	TimePartDefinition,
 	UserActionHistoryPartDefinition,
@@ -99,7 +97,6 @@ export const AGENT_ACTION_SCHEMAS = [
 	CreatePageActionSchema,
 
 	// Project management
-	SharedTodoListActionSchema, // not in use atm
 	ClaimTodoItemActionSchema, // not in use atm
 	DirectToStartTaskActionSchema,
 	StartProjectActionSchema,
@@ -129,7 +126,6 @@ export const PROMPT_PART_DEFINITIONS = [
 	SelectedShapesPartDefinition,
 	TimePartDefinition,
 	SoloTasksPartDefinition,
-	SharedTodoListPartDefinition, // not in use atm
 	PersonalTodoListPartDefinition,
 	UserActionHistoryPartDefinition,
 	UserViewportBoundsPartDefinition,

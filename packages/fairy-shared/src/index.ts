@@ -33,7 +33,6 @@ export type * from './types/PersistedFairyConfig'
 export type * from './types/PersistedFairyState'
 export type * from './types/PromptPart'
 export type * from './types/Streaming'
-export type * from './types/TodoItem'
 export type * from './types/WikipediaArticle'
 
 // Schemas and definitions
