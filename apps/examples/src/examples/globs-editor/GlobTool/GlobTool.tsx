@@ -191,6 +191,10 @@ export class ConnectState extends StateNode {
 					},
 				})
 
+				const glob = this.editor.getShape<GlobShape>(id)
+				if (!glob) continue
+				console.log('glob', glob)
+
 				this.ghostGlobIds.push(id)
 
 				// bind each node to the glob
