@@ -503,6 +503,8 @@ export class FairyAgent {
 		return Object.fromEntries(parts.map((part) => [part.type, part])) as AgentPrompt
 	}
 
+	private $isPrompting = atom<boolean>('isPrompting', false)
+
 	/**
 	 * Prompt the agent to edit the canvas.
 	 *
@@ -526,7 +528,13 @@ export class FairyAgent {
 	 *
 	 * @returns A promise for when the agent has finished its work.
 	 */
-	async prompt(input: AgentInput) {
+	async prompt(input: AgentInput, { nested = false }: { nested?: boolean } = {}) {
+		if (this.$isPrompting.get() && !nested) {
+			throw new Error('Agent is already prompting. Please wait for the current prompt to finish.')
+		}
+
+		this.$isPrompting.set(true)
+
 		if (this.isActing) {
 			throw new Error(
 				"Agent is already acting. It's illegal to prompt an agent during an action. Please use schedule instead."
@@ -553,11 +561,17 @@ export class FairyAgent {
 		await this.request(request)
 
 		// If there's no schedule request...
-		// Exit the mode
-		if (!this.$scheduledRequest.get()) {
+		// Trigger onPromptEnd callback(s)
+		let modeChanged = true
+		while (!this.$scheduledRequest.get() && modeChanged) {
+			modeChanged = false
 			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
 			const node = FAIRY_MODE_CHART[this.getMode()]
 			await node.onPromptEnd?.(this, request)
+			const newMode = this.getMode()
+			if (newMode !== this.getMode()) {
+				modeChanged = true
+			}
 		}
 
 		// If there's still no scheduled request, quit
@@ -568,6 +582,8 @@ export class FairyAgent {
 			if (modeDefinition.active) {
 				throw new Error(`Fairy is not allowed to become inactive during the active mode: ${mode}`)
 			}
+			this.$isPrompting.set(false)
+			this.cancelFn = null
 			return
 		}
 
@@ -584,8 +600,7 @@ export class FairyAgent {
 
 		// Handle the scheduled request and clear it
 		this.$scheduledRequest.set(null)
-		await this.prompt(scheduledRequest)
-		this.cancelFn = null
+		await this.prompt(scheduledRequest, { nested: true })
 	}
 
 	/**
@@ -626,6 +641,7 @@ export class FairyAgent {
 
 	/**
 	 * Schedule further work for the agent to do after this request has finished.
+	 * If there's no active request, then do the scheduled request immediately.
 	 * What you schedule will get merged with the currently scheduled request, if there is one.
 	 *
 	 * @example
@@ -657,6 +673,7 @@ export class FairyAgent {
 			return
 		}
 
+		// If there's already a scheduled request, append to it
 		const request = this.getPartialRequestFromInput(input)
 		this.setScheduledRequest({
 			// Append to properties where possible
@@ -673,11 +690,15 @@ export class FairyAgent {
 	 * Interrupt the agent, set their mode and schedule a request.
 	 */
 	interrupt({ input, mode }: { input?: AgentInput; mode?: FairyModeDefinition['type'] }) {
-		this.cancel()
+		this.cancelFn?.()
+		this.$activeRequest.set(null)
+		this.$scheduledRequest.set(null)
+		this.cancelFn = null
+
 		if (mode) {
 			this.setMode(mode)
 		}
-		if (input) {
+		if (input !== undefined) {
 			this.schedule(input)
 		}
 	}
@@ -725,6 +746,11 @@ export class FairyAgent {
 			source: partialRequest.source ?? 'self',
 		}
 		this.$scheduledRequest.set(request)
+
+		const isCurrentlyActive = this.isGenerating()
+		if (!isCurrentlyActive) {
+			this.prompt(input)
+		}
 	}
 
 	/**
@@ -799,7 +825,7 @@ export class FairyAgent {
 		_condition: FairyWaitCondition<FairyWaitEvent>,
 		_event?: FairyWaitEvent
 	) {
-		if (this.isGenerating()) {
+		if (this.$isPrompting.get()) {
 			this.schedule({
 				messages: [message],
 				source: 'other-agent',
@@ -1036,6 +1062,21 @@ export class FairyAgent {
 	 * Cancel the agent's current prompt, if one is active.
 	 */
 	cancel() {
+		const request = this.$activeRequest.get()
+		if (request) {
+			const mode = this.getMode()
+			const node = FAIRY_MODE_CHART[mode]
+			node.onPromptEnd?.(this, request)
+
+			const newMode = this.getMode()
+			const newModeDefinition = getFairyModeDefinition(newMode)
+			if (newModeDefinition.active) {
+				throw new Error(
+					`Fairy is not allowed to become inactive during the active mode: ${newMode}`
+				)
+			}
+		}
+
 		this.cancelFn?.()
 		this.$activeRequest.set(null)
 		this.$scheduledRequest.set(null)
@@ -1064,10 +1105,10 @@ export class FairyAgent {
 	}
 
 	/**
-	 * Check if the agent is currently working on a request or not.
+	 * Check if the agent is currently working on a prompt or not.
 	 */
 	isGenerating() {
-		return this.$activeRequest.get() !== null
+		return this.$isPrompting.get()
 	}
 
 	/**

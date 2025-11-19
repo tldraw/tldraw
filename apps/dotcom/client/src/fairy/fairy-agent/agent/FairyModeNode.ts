@@ -11,9 +11,6 @@ export interface FairyModeNode {
 
 export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode> = {
 	idling: {
-		onEnter(agent, _fromMode) {
-			agent.cancel()
-		},
 		onPromptStart(agent) {
 			agent.setMode('soloing')
 		},
@@ -24,7 +21,7 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			const myTasks = $fairyTasks.get().filter((task) => task.assignedTo === agent.id)
 			const incompleteTasks = myTasks.filter((task) => task.status !== 'done')
 			if (incompleteTasks.length > 0) {
-				agent.schedule('Continue until all tasks are complete.')
+				agent.schedule('Continue until all tasks are marked as complete.')
 			} else {
 				agent.setMode('idling')
 			}
