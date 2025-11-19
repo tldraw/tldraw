@@ -9,6 +9,7 @@ import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
 import { Dispatch } from 'react';
+import type { DragEvent as DragEvent_2 } from 'react';
 import { Editor as Editor_2 } from '@tiptap/core';
 import { EditorProviderProps as EditorProviderProps_2 } from '@tiptap/react';
 import EventEmitter from 'eventemitter3';
@@ -3334,6 +3335,14 @@ export interface TldrawOptions {
 }
 
 // @public (undocumented)
+export interface TLDropExternalContent extends TLBaseExternalContent {
+    // (undocumented)
+    event: DragEvent_2<Element>;
+    // (undocumented)
+    type: 'drop';
+}
+
+// @public (undocumented)
 export interface TLDropShapesOverInfo {
     // (undocumented)
     initialDraggingOverShapeId: null | TLShapeId;
@@ -3620,7 +3629,7 @@ export type TLExportType = 'jpeg' | 'png' | 'svg' | 'webp';
 export type TLExternalAsset = TLFileExternalAsset | TLUrlExternalAsset;
 
 // @public (undocumented)
-export type TLExternalContent<EmbedDefinition> = TLEmbedExternalContent<EmbedDefinition> | TLExcalidrawExternalContent | TLFileReplaceExternalContent | TLFilesExternalContent | TLSvgTextExternalContent | TLTextExternalContent | TLTldrawExternalContent | TLUrlExternalContent;
+export type TLExternalContent<EmbedDefinition> = TLDropExternalContent | TLEmbedExternalContent<EmbedDefinition> | TLExcalidrawExternalContent | TLFileReplaceExternalContent | TLFilesExternalContent | TLSvgTextExternalContent | TLTextExternalContent | TLTldrawExternalContent | TLUrlExternalContent;
 
 // @public (undocumented)
 export type TLExternalContentSource = TLErrorExternalContentSource | TLExcalidrawExternalContentSource | TLTextExternalContentSource | TLTldrawExternalContentSource;

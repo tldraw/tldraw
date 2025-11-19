@@ -122,6 +122,12 @@ export function useCanvasEvents() {
 					})
 					return
 				}
+
+				await editor.putExternalContent({
+					type: 'drop',
+					event: e,
+					point: editor.screenToPage({ x: e.clientX, y: e.clientY }),
+				})
 			}
 
 			function onClick(e: React.MouseEvent) {
