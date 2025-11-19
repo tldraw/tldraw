@@ -96,6 +96,7 @@ function RemoteFairyIndicator({
 					isSelected: false,
 					pose: entity.pose,
 					gesture: entity.gesture,
+					currentPageId: entity.currentPageId,
 				}}
 				outfit={outfit}
 				tint={color}

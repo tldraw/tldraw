@@ -23,11 +23,17 @@
   "08bd40c754": {
     "translation": "حساب"
   },
+  "08d2d725a9": {
+    "translation": "قم بإنشاء حساب مجاني لحفظ عملك والتعاون في الوقت الفعلي والمزيد."
+  },
   "0b27918290": {
     "translation": "الملف"
   },
   "0b9a4cde72": {
     "translation": "قائمة الملفات"
+  },
+  "0beb3ca97b": {
+    "translation": "tldraw عبارة عن سبورة بيضاء افتراضية مجانية وفورية."
   },
   "0d1f2bb523": {
     "translation": "إرسال التعليقات"
@@ -35,11 +41,23 @@
   "110a4b01be": {
     "translation": "مشاركة"
   },
+  "129b9e34ea": {
+    "translation": "مغادرة المجموعة"
+  },
+  "12a6766ba1": {
+    "translation": "إلغاء تثبيت الملف"
+  },
   "12c8a9838c": {
     "translation": "جرب SDK tldraw"
   },
   "13ddd375ad": {
     "translation": "تصدير كـ"
+  },
+  "146ffe2fd9": {
+    "translation": "إظهار المزيد"
+  },
+  "14d65465b7": {
+    "translation": "حذف المجموعة"
   },
   "181b90f889": {
     "translation": "إنشاء ملف"
@@ -56,11 +74,17 @@
   "21bfb2dc2e": {
     "translation": "تقترب هذه الغرفة من الحد الأقصى لحجمها. فكّر في إزالة بعض المحتوى أو إنشاء ملف جديد."
   },
+  "2445e5e347": {
+    "translation": "إنشاء مجموعة"
+  },
   "250ddea65c": {
     "translation": "حول tldraw"
   },
   "299cb00a7a": {
     "translation": "فشل التحميل"
+  },
+  "2c3ef76333": {
+    "translation": "ملفاتي"
   },
   "2deec2cb74": {
     "translation": "وصلت هذه الغرفة إلى الحد الأقصى لحجمها، وقد لا تُحفظ التغييرات. يُرجى إزالة بعض المحتوى أو إنشاء ملف جديد."
@@ -71,11 +95,17 @@
   "31418ce4ad": {
     "translation": "i18n: إبراز العناصر الناقصة"
   },
+  "32210b37e4": {
+    "translation": "إضافة رابط"
+  },
   "335defdafe": {
     "translation": "يُرجى محاولة تحديث الصفحة."
   },
   "344a7f427f": {
     "translation": "المحرر"
+  },
+  "3bc7d6ea2f": {
+    "translation": "متابعة بالبريد الإلكتروني"
   },
   "3bd1b98dbd": {
     "translation": "يتعذّر نشر التغييرات."
@@ -98,14 +128,29 @@
   "47839e47a5": {
     "translation": "tldraw"
   },
+  "47f493a590": {
+    "translation": "ملف الدبوس"
+  },
+  "49049467ff": {
+    "translation": "لصق عنوان URL لملف tldraw..."
+  },
   "4908687e50": {
     "translation": "هل أنت متأكد من أنك تريد نسيان هذا الملف؟"
+  },
+  "49ee308734": {
+    "translation": "اسم"
   },
   "4d0d3ddec9": {
     "translation": "يستخدم هذا الموقع ملفات تعريف الارتباط لجعل التطبيق يعمل وجمع التحليلات."
   },
   "4d1c8263ba": {
     "translation": "إعادة التحميل"
+  },
+  "4da5988a2e": {
+    "translation": "حذف المجموعة…"
+  },
+  "4e6fbf032b": {
+    "translation": "هل أنت متأكد أنك تريد حذف هذه المجموعة؟ لا يمكن التراجع عن هذا الإجراء."
   },
   "50db1b7e1e": {
     "translation": "يتعذّر إلغاء نشر الملف."
@@ -131,6 +176,9 @@
   "56c34c6410": {
     "translation": "سياسة الخصوصية"
   },
+  "5a86b22fa0": {
+    "translation": "اسحب الملفات هنا، أو <create>إنشاء ملف</create>، أو <invite>نسخ رابط الدعوة</invite> للبدء."
+  },
   "5a95a425f7": {
     "translation": "المشاركة"
   },
@@ -142,6 +190,9 @@
   },
   "5bec508475": {
     "translation": "تم اكتشاف متصفح قديم. يُرجى تحديث متصفحك لاستخدام هذا التطبيق."
+  },
+  "5c6fe42bc2": {
+    "translation": "إلغاء هذا الرابط وإنشاء رابط جديد."
   },
   "5d26ae7550": {
     "translation": "تعذر علينا تحميل بعض المحتوى الذي أنشأته قبل تسجيل الدخول."
@@ -158,11 +209,20 @@
   "625fd29749": {
     "translation": "أقدم"
   },
+  "639bae9ac6": {
+    "translation": "أنت"
+  },
   "6609dd239e": {
     "translation": "حدث خطأ"
   },
   "6637a98151": {
     "translation": "تتوفر نسخة جديدة من tldraw. يُرجى إعادة تحميل الصفحة للمتابعة."
+  },
+  "68257bb646": {
+    "translation": "لقد تمت دعوتك إلى المجموعة <br></br><groupName></groupName>"
+  },
+  "6832ac5936": {
+    "translation": "أدخل عنوان بريدك الإلكتروني"
   },
   "6a26f54883": {
     "translation": "المساعدة"
@@ -172,6 +232,9 @@
   },
   "6dfc62f621": {
     "translation": "اتبع هذه الخطوات لاستيراد المحتوى يدويًا:"
+  },
+  "70222abcfc": {
+    "translation": "إعدادات المجموعة"
   },
   "70a6facb9d": {
     "translation": "هذا الأسبوع"
@@ -218,6 +281,9 @@
   "7cb5f8b4a5": {
     "translation": "نسيان"
   },
+  "7cfe6c43dc": {
+    "translation": "مغادرة المجموعة…"
+  },
   "7daeced9ff": {
     "translation": "نشر التغييرات"
   },
@@ -239,8 +305,14 @@
   "86c66437fd": {
     "translation": "إعادة تسمية الملف"
   },
+  "8ad4303b83": {
+    "translation": "ًلا شكرا"
+  },
   "8b1946f965": {
     "translation": "لمواصلة التحرير، يرجى نسخ الغرفة إلى ملفاتك."
+  },
+  "8c2d3d730c": {
+    "translation": "تحقق من بريدك الإلكتروني للحصول على رمز التحقق."
   },
   "8eb2c00e96": {
     "translation": "تمت المشاركة معك"
@@ -257,14 +329,29 @@
   "91e49bb0eb": {
     "translation": "نسخ إلى ملفاتي"
   },
+  "930390d222": {
+    "translation": "تم نسخ رابط الدعوة"
+  },
+  "95aacd4d4a": {
+    "translation": "تسجيل الدخول باستخدام جوجل"
+  },
   "95d2109dc8": {
     "translation": "البناء باستخدام SDK tldraw"
   },
   "96165d6df5": {
     "translation": "هذا الشهر"
   },
+  "985a4b720f": {
+    "translation": "شروط الاستخدام"
+  },
+  "98c997a27e": {
+    "translation": "إضافة رابط الملف"
+  },
   "9914a0ce04": {
     "translation": "فاتح"
+  },
+  "9b33f5c63c": {
+    "translation": "لم تستلم الرمز؟ <resend>إعادة إرسال</resend>."
   },
   "9bef626805": {
     "translation": "حذف الملف"
@@ -311,6 +398,9 @@
   "a9ded1e5ce": {
     "translation": "الخلفية"
   },
+  "aa916767cf": {
+    "translation": "تسجيل الدخول لقبول الدعوة"
+  },
   "ab0df9ba36": {
     "translation": "تم الوصول إلى الحد الأقصى للملفات"
   },
@@ -321,8 +411,17 @@
   "b028909917": {
     "translation": "مستخدم ضيف"
   },
+  "b357b524e7": {
+    "translation": "عنوان البريد الإلكتروني"
+  },
+  "b3d2db69fe": {
+    "translation": "رابط الملف"
+  },
   "b6d4223e60": {
     "translation": "تسجيل الدخول"
+  },
+  "b6f4a2ec63": {
+    "translation": "مالك"
   },
   "b758336699": {
     "translation": "نسخ الرابط"
@@ -330,8 +429,8 @@
   "ba0318cb81": {
     "translation": "تسجيل الدخول للمشاركة"
   },
-  "bb792693e2": {
-    "translation": "إلغاء التثبيت"
+  "bb93a7590f": {
+    "translation": "قبول والانضمام إلى المجموعة"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, zero {} one {جاري تحميل ملف .tldr…} two {} few {} many {} other {جاري تحميل {uploaded} من {total} ملفات .tldr…}}"
@@ -339,11 +438,11 @@
   "bc88b0e89e": {
     "translation": "شاركه {ownerName}"
   },
-  "bcb62136a3": {
-    "translation": "تحميل ملفات .tldr"
-  },
   "c2276c9127": {
     "translation": "اعرف المزيد عن المشاركة."
+  },
+  "c28aed8348": {
+    "translation": "السماح لـ <cookies>analytics</cookies> بمساعدتنا على تحسين tldraw."
   },
   "c303bd1095": {
     "translation": "يتعذّر نشر الملف."
@@ -351,14 +450,23 @@
   "c4b39a1cc3": {
     "translation": "ملفات تعريف الارتباط الأساسية"
   },
+  "c6155aaecc": {
+    "translation": "اسم المجموعة"
+  },
   "c655b27b1e": {
     "translation": "i18n: سلسلة طويلة"
   },
   "c6a00f137b": {
     "translation": "الدعوة"
   },
+  "c74ea6dbff": {
+    "translation": "إظهار أقل"
+  },
   "c87aacf567": {
     "translation": "تسجيل الخروج"
+  },
+  "c9cc8cce24": {
+    "translation": "يحفظ"
   },
   "cceaefbc20": {
     "translation": "مشاركة هذا الملف"
@@ -375,29 +483,53 @@
   "d4bbf74f3e": {
     "translation": "تبديل الشريط الجانبي"
   },
+  "d638a3344b": {
+    "translation": "قبل أن تبدأ، يرجى قبول <tos>شروط الاستخدام</tos> و<privacy>سياسة الخصوصية</privacy> الخاصة بنا."
+  },
   "d721757161": {
     "translation": "الموضوع"
   },
   "d876a9fe1a": {
     "translation": "حاول مرة أخرى"
   },
+  "d88ad2dc74": {
+    "translation": "قبول ومواصلة"
+  },
   "d9100f3e10": {
     "translation": "اذهب هنا لرؤية المحتوى"
+  },
+  "d9e35d0f55": {
+    "translation": "لقد وصلتَ إلى الحد الأقصى لعدد المجموعات. عليكَ حذف المجموعات القديمة قبل إنشاء مجموعات جديدة."
   },
   "dbbebf3c03": {
     "translation": "دعوة فقط"
   },
+  "dcdaa754fe": {
+    "translation": "عنوان URL لملف tldraw غير صالح"
+  },
   "dfdb78a4e4": {
     "translation": "علامات تصحيح الأخطاء في التطبيق"
+  },
+  "e0c88179b3": {
+    "translation": "دعوة الأعضاء"
+  },
+  "e2198d6228": {
+    "translation": "نسخ رابط الدعوة"
   },
   "e2ae80a510": {
     "translation": "الملخص القانوني"
   },
+  "e3afed0047": {
+    "translation": "مسؤل"
+  },
   "e404559826": {
     "translation": "شروط الخدمة"
   },
-  "e78e14c5f1": {
-    "translation": "تثبيت"
+  "e81c4e4f2b": {
+    "translation": "أو"
+  },
+  "ea0626ac5a": {
+    "translation": "منطقة الخطر"
   },
   "ea4788705e": {
     "translation": "إلغاء"
@@ -420,6 +552,9 @@
   "ede55d955f": {
     "translation": "اقرأ <a>سياسة ملفات تعريف الارتباط</a> لمعرفة المزيد."
   },
+  "ef53538ae4": {
+    "translation": "أعضاء"
+  },
   "ef7de3f485": {
     "translation": "تم اختياره"
   },
@@ -441,6 +576,12 @@
   "f4f70727dc": {
     "translation": "إعدادات"
   },
+  "f714e36843": {
+    "translation": "هل أنت متأكد أنك تريد مغادرة هذه المجموعة؟"
+  },
+  "fa2ead697d": {
+    "translation": "سياسة الخصوصية"
+  },
   "fb15c53f22": {
     "translation": "عارض"
   },
@@ -449,6 +590,9 @@
   },
   "fed5ec05eb": {
     "translation": "رابط منسوخ"
+  },
+  "ff7a814974": {
+    "translation": "أضف رابط الملف…"
   },
   "ffcd73e997": {
     "translation": "استيراد الملف…"

@@ -4,27 +4,23 @@ import {
 	AgentInput,
 	AgentPrompt,
 	AgentRequest,
-	AreaContextItem,
-	AvailableWandsForMode,
 	BaseAgentPrompt,
 	ChatHistoryItem,
-	ContextItem,
 	FAIRY_VISION_DIMENSIONS,
 	FairyConfig,
 	FairyEntity,
-	FairyMode,
+	FairyModeDefinition,
 	FairyPose,
-	FocusedShape,
-	getFairyMode,
-	getWand,
-	PointContextItem,
+	FairyProject,
+	FairyProjectRole,
+	FairyTask,
+	FairyTodoItem,
+	FairyWaitCondition,
+	FairyWaitEvent,
+	FairyWork,
+	getFairyModeDefinition,
 	PromptPart,
-	ShapeContextItem,
-	ShapesContextItem,
-	SharedTodoItem,
 	Streaming,
-	TodoItem,
-	Wand,
 } from '@tldraw/fairy-shared'
 import {
 	Atom,
@@ -33,23 +29,28 @@ import {
 	computed,
 	Computed,
 	Editor,
+	EditorAtom,
 	fetch,
+	react,
 	RecordsDiff,
 	reverseRecordsDiff,
 	structuredClone,
 	TLRecord,
-	Vec,
 	VecModel,
 } from 'tldraw'
 import { TldrawApp } from '../../../tla/app/TldrawApp'
 import { FAIRY_WORKER } from '../../../utils/config'
 import { AgentActionUtil } from '../../actions/AgentActionUtil'
+import { $fairyIsApplyingAction } from '../../FairyIsApplyingAction'
+import { getProjectByAgentId } from '../../FairyProjects'
+import { $fairyTasks } from '../../FairyTaskList'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../FairyUtils'
+import { notifyAgentModeTransition } from '../../FairyWaitNotifications'
 import { PromptPartUtil } from '../../parts/PromptPartUtil'
-import { $sharedTodoList } from '../../SharedTodoList'
 import { AgentHelpers } from './AgentHelpers'
 import { FairyAgentOptions } from './FairyAgentOptions'
 import { $fairyAgentsAtom, getFairyAgentById } from './fairyAgentsAtom'
+import { FAIRY_MODE_CHART } from './FairyModeNode'
 
 /**
  * An agent that can be prompted to edit the canvas.
@@ -107,7 +108,7 @@ export class FairyAgent {
 	/**
 	 * An atom containing the agent's todo list.
 	 */
-	$todoList = atom<TodoItem[]>('todoList', [])
+	$todoList = atom<FairyTodoItem[]>('todoList', [])
 
 	/**
 	 * An atom that's used to store document changes made by the user since the
@@ -116,17 +117,102 @@ export class FairyAgent {
 	$userActionHistory = atom<RecordsDiff<TLRecord>[]>('userActionHistory', [])
 
 	/**
-	 * An atom containing currently selected context items.
-	 *
-	 * To send context items to the model, include them in the `contextItems`
-	 * field of a request.
+	 * An atom containing the current fairy mode.
 	 */
-	$contextItems = atom<ContextItem[]>('contextItems', [])
+	private $mode = atom<FairyModeDefinition['type']>('fairyMode', 'idling')
 
 	/**
-	 * An atom containing the ID of the current project that the agent is working on.
+	 * Debug flags for controlling logging behavior in the worker.
 	 */
-	$currentProjectId = atom<string | null>('currentProjectId', null)
+	$debugFlags = atom<{ logSystemPrompt: boolean; logMessages: boolean }>('debugFlags', {
+		logSystemPrompt: false,
+		logMessages: false,
+	})
+
+	/**
+	 * An atom containing the conditions this agent is waiting for.
+	 * When events matching these conditions occur, the agent will be notified.
+	 */
+	$waitingFor = atom<FairyWaitCondition<FairyWaitEvent>[]>('waitingFor', [])
+
+	/**
+	 * Change the mode of the agent.
+	 * @param mode - The mode to set.
+	 */
+	setMode(mode: FairyModeDefinition['type']) {
+		const fromMode = this.getMode()
+		const fromModeNode = FAIRY_MODE_CHART[fromMode]
+		const toModeNode = FAIRY_MODE_CHART[mode]
+
+		// todo the order we call these vs notifyAgentModeTransition is probably important
+		fromModeNode.onExit?.(this, mode)
+		toModeNode.onEnter?.(this, fromMode)
+
+		notifyAgentModeTransition(this.id, mode, this.editor)
+
+		this.$mode.set(mode)
+	}
+
+	/**
+	 * Get the current mode of the agent.
+	 * @returns The mode.
+	 */
+	getMode(): FairyModeDefinition['type'] {
+		return this.$mode.get()
+	}
+
+	/**
+	 * Cumulative token usage tracking for this chat session.
+	 * Separated by tier to handle Claude 4.5 Sonnet's tiered pricing.
+	 */
+	cumulativeUsage = {
+		// Tier 1: Prompts ≤ 200K tokens
+		tier1: {
+			promptTokens: 0,
+			completionTokens: 0,
+		},
+		// Tier 2: Prompts > 200K tokens
+		tier2: {
+			promptTokens: 0,
+			completionTokens: 0,
+		},
+		// Total across all tiers
+		totalTokens: 0,
+	}
+
+	/**
+	 * Get the current project that the agent is working on.
+	 */
+	getProject(): FairyProject | null {
+		return getProjectByAgentId(this.id) ?? null
+	}
+
+	/**
+	 * Get the tasks that the agent is working on.
+	 */
+	getTasks(): FairyTask[] {
+		return $fairyTasks.get().filter((task) => task.assignedTo === this.id)
+	}
+
+	/**
+	 * Get the role of the agent within its current project.
+	 */
+	getRole(): FairyProjectRole | null {
+		const project = this.getProject()
+		if (!project) return null
+		return project.members.find((member) => member.id === this.id)?.role ?? null
+	}
+
+	/**
+	 * Get the work that the agent is currently working on.
+	 * @returns The work.
+	 */
+	getWork(): FairyWork {
+		return {
+			project: this.getProject(),
+			tasks: this.getTasks(),
+		}
+	}
 
 	/**
 	 * Create a new tldraw agent.
@@ -146,6 +232,7 @@ export class FairyAgent {
 			isSelected: false,
 			pose: 'idle',
 			gesture: null,
+			currentPageId: editor.getCurrentPageId(),
 		})
 
 		this.$fairyConfig = computed<FairyConfig>(
@@ -171,6 +258,10 @@ export class FairyAgent {
 	dispose() {
 		this.cancel()
 		this.stopRecordingUserActions()
+		// Stop following this fairy if it's currently being followed
+		if (getFollowingFairyId(this.editor) === this.id) {
+			stopFollowingFairy(this.editor)
+		}
 		$fairyAgentsAtom.update(this.editor, (agents) => agents.filter((agent) => agent.id !== this.id))
 	}
 
@@ -184,7 +275,6 @@ export class FairyAgent {
 			chatHistory: this.$chatHistory.get(),
 			chatOrigin: this.$chatOrigin.get(),
 			todoList: this.$todoList.get(),
-			contextItems: this.$contextItems.get(),
 		}
 	}
 
@@ -196,8 +286,7 @@ export class FairyAgent {
 		fairyEntity?: FairyEntity
 		chatHistory?: ChatHistoryItem[]
 		chatOrigin?: VecModel
-		todoList?: TodoItem[]
-		contextItems?: ContextItem[]
+		todoList?: FairyTodoItem[]
 	}) {
 		if (state.fairyEntity) {
 			this.$fairyEntity.update((entity) => {
@@ -205,6 +294,10 @@ export class FairyAgent {
 					...entity,
 					position: state.fairyEntity?.position ?? entity.position,
 					flipX: state.fairyEntity?.flipX ?? entity.flipX,
+					currentPageId: state.fairyEntity?.currentPageId ?? entity.currentPageId,
+					isSelected: state.fairyEntity?.isSelected ?? entity.isSelected,
+					pose: state.fairyEntity?.pose ?? entity.pose,
+					gesture: state.fairyEntity?.gesture ?? entity.gesture,
 				}
 			})
 		}
@@ -217,9 +310,57 @@ export class FairyAgent {
 		if (state.todoList) {
 			this.$todoList.set(state.todoList)
 		}
-		if (state.contextItems) {
-			this.$contextItems.set(state.contextItems)
+	}
+
+	/**
+	 * Reset the cumulative usage tracking for this fairy agent.
+	 * Useful when starting a new chat session.
+	 */
+	resetCumulativeUsage() {
+		this.cumulativeUsage = {
+			tier1: {
+				promptTokens: 0,
+				completionTokens: 0,
+			},
+			tier2: {
+				promptTokens: 0,
+				completionTokens: 0,
+			},
+			totalTokens: 0,
 		}
+	}
+
+	/**
+	 * Get the current cumulative cost for this fairy agent.
+	 * Based on Claude 4.5 Sonnet tiered pricing:
+	 * - Tier 1 (≤ 200K tokens): $3 input / $15 output per million tokens
+	 * - Tier 2 (> 200K tokens): $6 input / $22.50 output per million tokens
+	 * @returns An object with input cost, output cost, and total cost in USD.
+	 */
+	getCumulativeCost() {
+		// Claude 4.5 Sonnet pricing per million tokens
+		// Tier 1: Prompts ≤ 200K tokens
+		const tier1InputPrice = 3 // $3 per million input tokens
+		const tier1OutputPrice = 15 // $15 per million output tokens
+
+		// Tier 2: Prompts > 200K tokens
+		const tier2InputPrice = 6 // $6 per million input tokens
+		const tier2OutputPrice = 22.5 // $22.50 per million output tokens
+
+		// Calculate costs for each tier
+		const tier1InputCost = (this.cumulativeUsage.tier1.promptTokens / 1_000_000) * tier1InputPrice
+		const tier1OutputCost =
+			(this.cumulativeUsage.tier1.completionTokens / 1_000_000) * tier1OutputPrice
+
+		const tier2InputCost = (this.cumulativeUsage.tier2.promptTokens / 1_000_000) * tier2InputPrice
+		const tier2OutputCost =
+			(this.cumulativeUsage.tier2.completionTokens / 1_000_000) * tier2OutputPrice
+
+		const inputCost = tier1InputCost + tier2InputCost
+		const outputCost = tier1OutputCost + tier2OutputCost
+		const totalCost = inputCost + outputCost
+
+		return { inputCost, outputCost, totalCost }
 	}
 
 	/**
@@ -276,24 +417,6 @@ export class FairyAgent {
 	promptPartUtils: Record<PromptPart['type'], PromptPartUtil<PromptPart>>
 
 	/**
-	 * Validate and normalize wand, ensuring it is available for the given mode.
-	 * @param candidateWand - The wand to validate
-	 * @param mode - The mode to validate against
-	 * @returns The validated wand
-	 */
-	private validateWandForMode<ModeId extends FairyMode['id']>(
-		candidateWand: Wand['type'],
-		mode: ModeId
-	): AvailableWandsForMode<ModeId> {
-		const modeInfo = getFairyMode(mode)
-		const wand = (modeInfo.availableWands as readonly Wand['type'][]).includes(candidateWand)
-			? candidateWand
-			: modeInfo.defaultWand
-
-		return wand as AvailableWandsForMode<ModeId>
-	}
-
-	/**
 	 * Get a full agent request from a user input by filling out any missing
 	 * values with defaults.
 	 * @param input - A partial agent request or a string message.
@@ -303,23 +426,15 @@ export class FairyAgent {
 
 		const activeRequest = this.$activeRequest.get()
 
-		const mode = request.mode ?? this.$fairyConfig.get().mode
-		const candidateWand = request.wand ?? this.$fairyConfig.get().wand
-		const validatedWand = this.validateWandForMode(candidateWand, mode)
-
 		return {
-			type: request.type ?? 'user',
-			wand: validatedWand,
-			mode,
 			messages: request.messages ?? [],
+			source: request.source ?? 'user',
 			data: request.data ?? [],
-			selectedShapes: request.selectedShapes ?? [],
-			contextItems: request.contextItems ?? [],
 			bounds:
 				request.bounds ??
 				activeRequest?.bounds ??
 				Box.FromCenter(this.$fairyEntity.get().position, FAIRY_VISION_DIMENSIONS),
-		} as AgentRequest
+		} satisfies AgentRequest
 	}
 
 	/**
@@ -370,22 +485,22 @@ export class FairyAgent {
 	 */
 	async preparePrompt(request: AgentRequest, helpers: AgentHelpers): Promise<AgentPrompt> {
 		const { promptPartUtils } = this
-		const transformedParts: PromptPart[] = []
+		const parts: PromptPart[] = []
 
-		const wand = getWand(request.wand)
-		const availablePromptPartUtils = []
-		for (const part of wand.parts) {
-			const util = promptPartUtils[part]
-			if (util) availablePromptPartUtils.push(util)
+		const mode = getFairyModeDefinition(this.getMode())
+		if (!mode.active) {
+			throw new Error(`Fairy is not in an active mode so can't act right now`)
 		}
-
-		for (const util of availablePromptPartUtils) {
+		const availablePromptPartTypes = mode.parts(this.getWork())
+		for (const partType of availablePromptPartTypes) {
+			const util = promptPartUtils[partType]
+			if (!util) throw new Error(`Prompt part util not found for part type: ${partType}`)
 			const part = await util.getPart(structuredClone(request), helpers)
 			if (!part) continue
-			transformedParts.push(part)
+			parts.push(part)
 		}
 
-		return Object.fromEntries(transformedParts.map((part) => [part.type, part])) as AgentPrompt
+		return Object.fromEntries(parts.map((part) => [part.type, part])) as AgentPrompt
 	}
 
 	/**
@@ -418,6 +533,16 @@ export class FairyAgent {
 			)
 		}
 
+		const startingNode = FAIRY_MODE_CHART[this.getMode()]
+		await startingNode.onPromptStart?.(this)
+
+		const mode = getFairyModeDefinition(this.getMode())
+		if (!mode.active) {
+			throw new Error(
+				`Fairy is not in an active mode so can't act right now. First change to an active mode. Current mode: ${this.getMode()}`
+			)
+		}
+
 		const startingFairy = this.$fairyEntity.get()
 		if (startingFairy.pose === 'idle') {
 			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'active' }))
@@ -427,65 +552,24 @@ export class FairyAgent {
 
 		// Submit the request to the agent.
 		await this.request(request)
-
-		// After the request is handled, check if there are any outstanding todo items or requests
-		let scheduledRequest = this.$scheduledRequest.get()
-		if (!scheduledRequest) {
-			if (!this.cancelFn) {
-				this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
-				return
-			}
-
-			const isOrchestratorWithProject =
-				this.$fairyConfig.get().mode === 'orchestrator' && this.$currentProjectId.get()
-			const projectId = this.$currentProjectId.get()
-			const validatedWand = this.validateWandForMode(request.wand, request.mode)
-
-			if (isOrchestratorWithProject) {
-				// if the fairy is an orchestrator with an active project, prompt it to keep going
-
-				const message = `You are the orchestrator of your current project. Please continue the project or end it.`
-				request.messages.push(message)
-
-				scheduledRequest = {
-					messages: request.messages,
-					contextItems: request.contextItems,
-					bounds: request.bounds,
-					selectedShapes: request.selectedShapes,
-					data: request.data,
-					type: 'schedule',
-					wand: validatedWand,
-					mode: request.mode,
-				} as AgentRequest
-			} else {
-				// if the fairy is not an orchestrator or does not have an active project, check if there are todos it can do
-				const sharedTodoItemsRemaining = $sharedTodoList.get().filter((item) => {
-					if (item.status === 'done') return false
-					if (item.claimedById && item.claimedById !== this.id) return false
-					if (item.projectId || item.projectId !== projectId) return false // do not count todos that are part of a project, or part of a different project
-					return true
-				})
-				if (sharedTodoItemsRemaining.length > 0) {
-					scheduledRequest = {
-						messages: request.messages,
-						contextItems: request.contextItems,
-						bounds: request.bounds,
-						selectedShapes: request.selectedShapes,
-						data: request.data,
-						type: 'todo',
-						wand: validatedWand,
-						mode: request.mode,
-					} as AgentRequest
-				}
-			}
+		if (this.cancelFn) {
+			const node = FAIRY_MODE_CHART[this.getMode()]
+			await node.onRequestComplete?.(this, request)
 		}
 
-		// if scheduled request didn't get defined in the above block OR if the user has cancelled the request, return and go idle
+		// After the request is handled, check if there are any outstanding todo items or requests
+		const scheduledRequest = this.$scheduledRequest.get()
+
+		// If there's no schedule request...
+		// Exit the mode
 		if (!scheduledRequest) {
 			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
+			const node = FAIRY_MODE_CHART[this.getMode()]
+			await node.onPromptEnd?.(this)
 			return
 		}
 
+		// If there *is* a scheduled request...
 		// Add the scheduled request to chat history
 		const resolvedData = await Promise.all(scheduledRequest.data)
 		this.$chatHistory.update((prev) => [
@@ -496,7 +580,7 @@ export class FairyAgent {
 			},
 		])
 
-		// Handle the scheduled request
+		// Handle the scheduled request and clear it
 		this.$scheduledRequest.set(null)
 		await this.prompt(scheduledRequest)
 		this.cancelFn = null
@@ -518,8 +602,6 @@ export class FairyAgent {
 	 */
 	async request(input: AgentInput) {
 		const request = this.getFullRequestFromInput(input)
-
-		this.setMode(request.mode)
 
 		// Interrupt any currently active request
 		if (this.$activeRequest.get() !== null) {
@@ -574,19 +656,28 @@ export class FairyAgent {
 		}
 
 		const request = this.getPartialRequestFromInput(input)
-
 		this.setScheduledRequest({
-			type: 'schedule',
-
 			// Append to properties where possible
 			messages: [...scheduledRequest.messages, ...(request.messages ?? [])],
-			contextItems: [...scheduledRequest.contextItems, ...(request.contextItems ?? [])],
-			selectedShapes: [...scheduledRequest.selectedShapes, ...(request.selectedShapes ?? [])],
 			data: [...scheduledRequest.data, ...(request.data ?? [])],
 
-			// Override specific properties
+			// Override other properties
 			bounds: request.bounds ?? scheduledRequest.bounds,
+			source: request.source ?? scheduledRequest.source ?? 'self',
 		})
+	}
+
+	/**
+	 * Interrupt the agent, set their mode and schedule a request.
+	 */
+	interrupt({ input, mode }: { input?: AgentInput; mode?: FairyModeDefinition['type'] }) {
+		this.cancel()
+		if (mode) {
+			this.setMode(mode)
+		}
+		if (input) {
+			this.schedule(input)
+		}
 	}
 
 	/**
@@ -620,8 +711,17 @@ export class FairyAgent {
 			return
 		}
 
-		const request = this.getFullRequestFromInput(input)
-		request.type = 'schedule'
+		const activeRequest = this.$activeRequest.get()
+		const partialRequest = this.getPartialRequestFromInput(input)
+		const request: AgentRequest = {
+			messages: partialRequest.messages ?? [],
+			bounds:
+				partialRequest.bounds ??
+				activeRequest?.bounds ??
+				Box.FromCenter(this.$fairyEntity.get().position, FAIRY_VISION_DIMENSIONS),
+			data: partialRequest.data ?? [],
+			source: partialRequest.source ?? 'self',
+		}
 		this.$scheduledRequest.set(request)
 	}
 
@@ -631,7 +731,8 @@ export class FairyAgent {
 	 * @returns The id of the todo item.
 	 */
 	addTodo(text: string) {
-		const id = this.$todoList.get().length
+		const todoItems = this.$todoList.get()
+		const id = todoItems.length === 0 ? 0 : Math.max(...todoItems.map((t) => t.id)) + 1
 		this.$todoList.update((todoItems) => {
 			return [
 				...todoItems,
@@ -645,40 +746,66 @@ export class FairyAgent {
 		return id
 	}
 
-	helpOut(todoItems?: SharedTodoItem[], sourceFairyId?: string) {
-		const helpOutMessages: string[] = []
-
-		if (todoItems && todoItems.length > 0) {
-			helpOutMessages.push(`You've asked to help out with the following todo ${todoItems.length > 1 ? 'items' : 'item'}. Make sure to always set the todo you're currently working on as "in-progress" when you start working on it.
-Todo ${todoItems.length > 1 ? 'items' : 'item'}: 
-${JSON.stringify(todoItems)}`)
-		} else {
-			helpOutMessages.push(`Take a look at the shared todo list and see if there are any tasks that you can help with. Make sure to always set the todo you're currently working on as "in-progress" when you start working on it.
-shared todo list: 
-${JSON.stringify($sharedTodoList.get())}`)
-		}
-
-		if (sourceFairyId) {
-			const sourceFairy = getFairyAgentById(sourceFairyId, this.editor)
-			if (sourceFairy) {
-				helpOutMessages.push(
-					`This ask for assistance was made by fairy ${sourceFairy.$fairyConfig.get().name}.`
-				)
-			} else {
-				helpOutMessages.push(
-					`This ask for assistance was made by a fairy with id ${sourceFairyId}.`
-				)
+	updateTodo({ id, text, status }: FairyTodoItem) {
+		this.$todoList.update((todoItems) => {
+			const index = todoItems.findIndex((item) => item.id === id)
+			if (index !== -1) {
+				return [
+					...todoItems.slice(0, index),
+					{ ...todoItems[index], text, status },
+					...todoItems.slice(index + 1),
+				]
 			}
-		}
+			return todoItems
+		})
+	}
 
+	/**
+	 * Check if the agent is currently waiting for any events.
+	 * @returns true if the agent has any wait conditions
+	 */
+	isWaiting() {
+		return this.$waitingFor.get().length > 0
+	}
+
+	/**
+	 * Add a wait condition to the agent.
+	 * The agent will be notified when an event matching this condition occurs.
+	 * @param condition - The wait condition to add
+	 */
+	waitFor(condition: FairyWaitCondition<FairyWaitEvent>) {
+		this.$waitingFor.update((conditions) => [...conditions, condition])
+	}
+
+	/**
+	 * Clear all wait conditions for this agent.
+	 */
+	stopWaiting() {
+		this.$waitingFor.set([])
+	}
+
+	/**
+	 * Wake up the agent from waiting with a notification message.
+	 * Note: This does NOT remove wait conditions - the matched conditions should
+	 * already be removed by the notification system before calling this method.
+	 * @param message - The message to send to the agent when waking up
+	 * @param _condition - The condition that was fulfilled
+	 * @param _event - Optional event data that triggered the wake-up (currently unused)
+	 */
+	notifyWaitConditionFulfilled(
+		message: string,
+		_condition: FairyWaitCondition<FairyWaitEvent>,
+		_event?: FairyWaitEvent
+	) {
 		if (this.isGenerating()) {
 			this.schedule({
-				messages: helpOutMessages,
+				messages: [message],
+				source: 'other-agent',
 			})
 		} else {
 			this.prompt({
-				type: 'schedule',
-				messages: helpOutMessages,
+				messages: [message],
+				source: 'other-agent',
 			})
 		}
 	}
@@ -703,11 +830,16 @@ ${JSON.stringify($sharedTodoList.get())}`)
 		const actionInfo = this.getActionInfo(action)
 		this.$fairyEntity.update((fairy) => ({ ...fairy, pose: actionInfo.pose }))
 
+		// Ensure the fairy is on the correct page before performing the action
+		this.ensureFairyIsOnCorrectPage(action)
+
 		let promise: Promise<void> | null = null
 		let diff: RecordsDiff<TLRecord>
 		try {
 			diff = editor.store.extractingChanges(() => {
+				$fairyIsApplyingAction.set(true)
 				promise = util.applyAction(structuredClone(action), helpers) ?? null
+				$fairyIsApplyingAction.set(false)
 			})
 		} finally {
 			this.isActing = false
@@ -906,6 +1038,7 @@ ${JSON.stringify($sharedTodoList.get())}`)
 		this.$activeRequest.set(null)
 		this.$scheduledRequest.set(null)
 		this.cancelFn = null
+		this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
 	}
 
 	/**
@@ -914,13 +1047,18 @@ ${JSON.stringify($sharedTodoList.get())}`)
 	 */
 	reset() {
 		this.cancel()
-		this.$contextItems.set([])
 		this.$todoList.set([])
 		this.$userActionHistory.set([])
+		this.setMode('idling')
 
 		this.$chatHistory.set([])
-		// TODO: Move this onto the fairies' shared data
 		this.$chatOrigin.set({ x: 0, y: 0 })
+
+		// clear any waiting conditions
+		this.stopWaiting()
+
+		// Reset cumulative usage tracking when starting a new chat
+		this.resetCumulativeUsage()
 	}
 
 	/**
@@ -949,6 +1087,7 @@ ${JSON.stringify($sharedTodoList.get())}`)
 			(shape, source) => {
 				if (source !== 'user') return
 				if (this.isActing) return
+				if ($fairyIsApplyingAction.get()) return
 				const change = {
 					added: { [shape.id]: shape },
 					updated: {},
@@ -964,6 +1103,7 @@ ${JSON.stringify($sharedTodoList.get())}`)
 			(shape, source) => {
 				if (source !== 'user') return
 				if (this.isActing) return
+				if ($fairyIsApplyingAction.get()) return
 				const change = {
 					added: {},
 					updated: {},
@@ -979,6 +1119,7 @@ ${JSON.stringify($sharedTodoList.get())}`)
 			(prev, next, source) => {
 				if (source !== 'user') return
 				if (this.isActing) return
+				if ($fairyIsApplyingAction.get()) return
 				const change: RecordsDiff<TLRecord> = {
 					added: {},
 					updated: { [prev.id]: [prev, next] },
@@ -1008,63 +1149,6 @@ ${JSON.stringify($sharedTodoList.get())}`)
 	 */
 	private stopRecordingUserActions() {
 		this.stopRecordingFn?.()
-	}
-
-	/**
-	 * Add a context item to the agent's context, ensuring that duplicates are
-	 * not included.
-	 *
-	 * @param item The context item to add.
-	 */
-	addToContext(item: ContextItem) {
-		this.$contextItems.update((items) => {
-			// Don't add shapes that are already within context
-			if (item.type === 'shapes') {
-				const newItems = dedupeShapesContextItem(item, items)
-				return [...items, ...newItems]
-			}
-
-			// Don't add items that are already in context
-			if (this.hasContextItem(item)) {
-				return items
-			}
-
-			return [...items, structuredClone(item)]
-		})
-	}
-
-	/**
-	 * Remove a context item from the agent's context.
-	 * @param item The context item to remove.
-	 */
-	removeFromContext(item: ContextItem) {
-		this.$contextItems.update((items) => items.filter((v) => item !== v))
-	}
-
-	/**
-	 * Check if the agent's context contains a specific context item. This could
-	 * mean as an individual item, or as part of a group of items.
-	 *
-	 * @param item The context item to check for.
-	 * @returns True if the agent's context contains the item, false otherwise.
-	 */
-	hasContextItem(item: ContextItem) {
-		const items = this.$contextItems.get()
-		if (items.some((v) => areContextItemsEqual(v, item))) {
-			return true
-		}
-
-		if (item.type === 'shape') {
-			for (const existingItem of items) {
-				if (existingItem.type === 'shapes') {
-					if (existingItem.shapes.some((shape) => shape.shapeId === item.shape.shapeId)) {
-						return true
-					}
-				}
-			}
-		}
-
-		return false
 	}
 
 	/**
@@ -1107,6 +1191,61 @@ ${JSON.stringify($sharedTodoList.get())}`)
 	}
 
 	/**
+	 * Ensures the fairy is on the correct page before performing an action.
+	 * For actions that work with existing shapes, switches to the shape's page.
+	 * For actions that create new content, ensures the fairy is on the current editor page.
+	 */
+	private ensureFairyIsOnCorrectPage(action: Streaming<AgentAction>) {
+		const { editor } = this
+		const fairyEntity = this.$fairyEntity.get()
+		if (!fairyEntity) return
+
+		// Extract shape IDs from the action based on action type
+		let shapeIds: string[] = []
+
+		// Actions with single shapeId
+		if ('shapeId' in action && typeof action.shapeId === 'string') {
+			shapeIds = [action.shapeId]
+		}
+		// Actions with shapeIds array
+		else if ('shapeIds' in action && Array.isArray(action.shapeIds)) {
+			shapeIds = action.shapeIds as string[]
+		}
+		// Update action has shape in 'update' property
+		else if (
+			action._type === 'update' &&
+			'update' in action &&
+			action.update &&
+			typeof action.update === 'object' &&
+			'shapeId' in action.update
+		) {
+			shapeIds = [action.update.shapeId as string]
+		}
+
+		// If we have shape IDs, ensure the fairy is on the same page as the first shape
+		if (shapeIds.length > 0) {
+			const firstShapeId = shapeIds[0].startsWith('shape:') ? shapeIds[0] : `shape:${shapeIds[0]}`
+			const shape = editor.getShape(firstShapeId as any)
+
+			if (shape) {
+				const shapePageId = editor.getAncestorPageId(shape)
+				if (shapePageId && fairyEntity.currentPageId !== shapePageId) {
+					// Switch to the shape's page
+					editor.setCurrentPage(shapePageId)
+					this.$fairyEntity.update((f) => (f ? { ...f, currentPageId: shapePageId } : f))
+				}
+			}
+		}
+		// For create actions or actions without shape IDs, ensure fairy is on the current editor page
+		else if (action._type === 'create' || action._type === 'pen') {
+			const currentPageId = editor.getCurrentPageId()
+			if (fairyEntity.currentPageId !== currentPageId) {
+				this.$fairyEntity.update((f) => (f ? { ...f, currentPageId } : f))
+			}
+		}
+	}
+
+	/**
 	 * Set the fairy's gesture.
 	 * @param gesture - The gesture to set the fairy to.
 	 */
@@ -1133,35 +1272,57 @@ ${JSON.stringify($sharedTodoList.get())}`)
 		this.updateFairyConfig({ personality })
 	}
 
-	// setWand(wand: Wand['type']) {
-	// 	this.$fairyConfig.update((fairy): FairyConfig => ({ ...fairy, wand }))
-	// }
-
 	/**
 	 * Move the camera to the fairy's position.
+	 * Also switches to the page where the fairy is located.
 	 */
 	zoomTo() {
-		this.editor.zoomToBounds(Box.FromCenter(this.$fairyEntity.get().position, { x: 100, y: 100 }), {
+		const entity = this.$fairyEntity.get()
+		if (!entity) return
+
+		// Switch to the fairy's page
+		if (entity.currentPageId !== this.editor.getCurrentPageId()) {
+			this.editor.setCurrentPage(entity.currentPageId)
+		}
+
+		// Zoom to the fairy's position
+		this.editor.zoomToBounds(Box.FromCenter(entity.position, { x: 100, y: 100 }), {
 			animation: { duration: 220 },
 			targetZoom: 1,
 		})
 	}
 
 	/**
-	 * Instantly move the fairy to the center of the screen.
+	 * Instantly move the fairy to the center of the screen on the current page.
+	 * Updates the fairy's currentPageId to match the current editor page.
+	 * @param offset Optional offset from the center position
 	 */
-	summon() {
-		const position = this.editor.getViewportPageBounds().center
-		this.$fairyEntity.update((f) => (f ? { ...f, position, gesture: 'poof' } : f))
+	summon(offset?: { x: number; y: number }) {
+		const center = this.editor.getViewportPageBounds().center
+		const position = offset ? { x: center.x + offset.x, y: center.y + offset.y } : center
+		const currentPageId = this.editor.getCurrentPageId()
+		this.$fairyEntity.update((f) => (f ? { ...f, position, gesture: 'poof', currentPageId } : f))
 	}
 
 	/**
-	 * Set the mode of the fairy agent.
-	 * @param id - The id of the mode to set the fairy agent to.
+	 * Start following this fairy with the camera.
 	 */
-	setMode(id: FairyMode['id']) {
-		const mode = getFairyMode(id)
-		this.updateFairyConfig({ mode: id, wand: mode.defaultWand })
+	startFollowing() {
+		startFollowingFairy(this.editor, this.id)
+	}
+
+	/**
+	 * Stop following this fairy with the camera.
+	 */
+	stopFollowing() {
+		stopFollowingFairy(this.editor)
+	}
+
+	/**
+	 * Check if this fairy is currently being followed.
+	 */
+	isFollowing() {
+		return getFollowingFairyId(this.editor) === this.id
 	}
 }
 
@@ -1211,12 +1372,10 @@ function requestAgentActions({ agent, request }: { agent: FairyAgent; request: A
 	const { editor } = agent
 
 	// If the request is from the user, add it to chat history
-	if (request.type === 'user') {
+	if (request.source === 'user') {
 		const promptHistoryItem: ChatHistoryItem = {
 			type: 'prompt',
 			message: request.messages.join('\n'),
-			contextItems: request.contextItems,
-			selectedShapes: request.selectedShapes,
 		}
 		agent.$chatHistory.update((prev) => [...prev, promptHistoryItem])
 	}
@@ -1225,7 +1384,12 @@ function requestAgentActions({ agent, request }: { agent: FairyAgent; request: A
 	const controller = new AbortController()
 	const signal = controller.signal
 	const helpers = new AgentHelpers(agent)
-	const wand = getWand(request.wand)
+	const mode = getFairyModeDefinition(agent.getMode())
+	if (!mode.active) {
+		agent.cancel()
+		throw new Error(`Fairy is not in an active mode so can't act right now`)
+	}
+	const availableActions = mode.actions(agent.getWork())
 
 	const requestPromise = (async () => {
 		const prompt = await agent.preparePrompt(request, helpers)
@@ -1235,13 +1399,57 @@ function requestAgentActions({ agent, request }: { agent: FairyAgent; request: A
 			for await (const action of agent._streamActions({ prompt, signal })) {
 				if (cancelled) break
 
+				// Handle usage information
+				if ((action as any)._type === '__usage__') {
+					const usage = (action as any).usage
+					if (usage) {
+						// AI SDK returns: { inputTokens, outputTokens, totalTokens, cachedInputTokens }
+						const promptTokens = usage.inputTokens || 0
+						const completionTokens = usage.outputTokens || 0
+
+						// Determine which tier this request falls into
+						// Tier 1: ≤ 200K tokens, Tier 2: > 200K tokens
+						const TIER_THRESHOLD = 200_000
+						if (promptTokens <= TIER_THRESHOLD) {
+							agent.cumulativeUsage.tier1.promptTokens += promptTokens
+							agent.cumulativeUsage.tier1.completionTokens += completionTokens
+						} else {
+							agent.cumulativeUsage.tier2.promptTokens += promptTokens
+							agent.cumulativeUsage.tier2.completionTokens += completionTokens
+						}
+
+						agent.cumulativeUsage.totalTokens += usage.totalTokens || 0
+
+						// Calculate cumulative costs
+						const { inputCost, outputCost, totalCost } = agent.getCumulativeCost()
+
+						// Calculate total prompt and completion tokens across both tiers
+						const totalPromptTokens =
+							agent.cumulativeUsage.tier1.promptTokens + agent.cumulativeUsage.tier2.promptTokens
+						const totalCompletionTokens =
+							agent.cumulativeUsage.tier1.completionTokens +
+							agent.cumulativeUsage.tier2.completionTokens
+
+						// eslint-disable-next-line no-console
+						console.debug(
+							`🧚 Fairy "${agent.$fairyConfig.get().name}" Cumulative Usage:\n` +
+								`  Prompt tokens: ${totalPromptTokens.toLocaleString()}\n` +
+								`  Completion tokens: ${totalCompletionTokens.toLocaleString()}\n` +
+								`  Total tokens: ${agent.cumulativeUsage.totalTokens.toLocaleString()}\n` +
+								`  💰 Cumulative Cost: $${totalCost.toFixed(4)}\n` +
+								`     (Input: $${inputCost.toFixed(4)}, Output: $${outputCost.toFixed(4)})`
+						)
+					}
+					continue
+				}
+
 				editor.run(
 					() => {
 						const actionUtilType = agent.getAgentActionUtilType(action._type)
 						const actionUtil = agent.getAgentActionUtil(action._type)
 
 						// If the action is not in the wand's available actions, skip it
-						if (!(wand.actions as string[]).includes(actionUtilType)) {
+						if (!(availableActions as string[]).includes(actionUtilType)) {
 							return
 						}
 
@@ -1294,111 +1502,6 @@ function requestAgentActions({ agent, request }: { agent: FairyAgent; request: A
 
 	return { promise: requestPromise, cancel }
 }
-
-/**
- * Check if two context items are equal.
- *
- * This is a helper function that is used internally by the agent.
- */
-function areContextItemsEqual(a: ContextItem, b: ContextItem): boolean {
-	if (a.type !== b.type) return false
-
-	switch (a.type) {
-		case 'shape': {
-			const _b = b as ShapeContextItem
-			return a.shape.shapeId === _b.shape.shapeId
-		}
-		case 'shapes': {
-			const _b = b as ShapesContextItem
-			if (a.shapes.length !== _b.shapes.length) return false
-			return a.shapes.every((shape) => _b.shapes.find((s) => s.shapeId === shape.shapeId))
-		}
-		case 'area': {
-			const _b = b as AreaContextItem
-			return Box.Equals(a.bounds, _b.bounds)
-		}
-		case 'point': {
-			const _b = b as PointContextItem
-			return Vec.Equals(a.point, _b.point)
-		}
-		default: {
-			exhaustiveSwitchError(a)
-		}
-	}
-}
-
-/**
- * Remove duplicate shapes from a shapes context item.
- * If there's only one shape left, return it as a shape item instead.
- *
- * This is a helper function that is used internally by the agent.
- */
-function dedupeShapesContextItem(
-	item: ShapesContextItem,
-	existingItems: ContextItem[]
-): ContextItem[] {
-	// Get all shape IDs that are already in the context
-	const existingShapeIds = new Set<string>()
-
-	// Check individual shapes
-	existingItems.forEach((contextItem) => {
-		if (contextItem.type === 'shape') {
-			existingShapeIds.add(contextItem.shape.shapeId)
-		} else if (contextItem.type === 'shapes') {
-			contextItem.shapes.forEach((shape: FocusedShape) => {
-				existingShapeIds.add(shape.shapeId)
-			})
-		}
-	})
-
-	// Filter out shapes that are already in the context
-	const newShapes = item.shapes.filter((shape) => !existingShapeIds.has(shape.shapeId))
-
-	// Only add if there are remaining shapes
-	if (newShapes.length > 0) {
-		// If only one shape remains, add it as a single shape item
-		if (newShapes.length === 1) {
-			const newItem: ContextItem = {
-				type: 'shape',
-				shape: newShapes[0],
-				source: item.source,
-			}
-			return [structuredClone(newItem)]
-		}
-
-		// Otherwise add as a shapes group
-		const newItem: ContextItem = {
-			type: 'shapes',
-			shapes: newShapes,
-			source: item.source,
-		}
-		return [structuredClone(newItem)]
-	}
-
-	// No new shapes to add
-	return []
-}
-
-/**
- * Load an atom's value from local storage and persist it to local storage whenever it changes.
- *
- * This is a helper function that is used internally by the agent.
- */
-// function persistAtomInLocalStorage<T>(atom: Atom<T>, key: string) {
-// 	try {
-// 		const stored = getFromLocalStorage(key)
-// 		if (stored) {
-// 			const value = JSON.parse(stored) as T
-// 			atom.set(value)
-// 		}
-// 	} catch {
-// 		console.warn(`Couldn't load ${key} from localStorage`)
-// 	}
-
-// 	react(`save ${key} to localStorage`, () => {
-// 		setInLocalStorage(key, JSON.stringify(atom.get()))
-// 	})
-// }
 
 /**
  * Find a spawn point for the fairy that is at least 200px away from other fairies.
@@ -1457,12 +1560,118 @@ function findFairySpawnPoint(initialPosition: VecModel, editor: Editor): VecMode
 }
 
 /**
- * Throw an error if a switch case is not exhaustive.
- *
- * This is a helper function that is used internally by the agent.
+ * Atom to track which fairy is currently being followed by the camera.
+ * Maps from Editor instance to the fairy ID being followed, or null if not following any fairy.
  */
-function exhaustiveSwitchError(value: never, property?: string): never {
-	const debugValue =
-		property && value && typeof value === 'object' && property in value ? value[property] : value
-	throw new Error(`Unknown switch case ${debugValue}`)
+export const $followingFairyId = new EditorAtom<string | null>('followingFairyId', () => null)
+
+/**
+ * Store for the reactive dispose functions so we can properly clean them up.
+ */
+const followDisposeHandlers = new WeakMap<Editor, () => void>()
+
+/**
+ * Get the ID of the fairy currently being followed for a given editor.
+ */
+export function getFollowingFairyId(editor: Editor): string | null {
+	return $followingFairyId.get(editor)
+}
+
+/**
+ * Start following a fairy with the camera.
+ * Similar to editor.startFollowingUser but for fairies.
+ */
+export function startFollowingFairy(editor: Editor, fairyId: string) {
+	stopFollowingFairy(editor)
+
+	const agent = getFairyAgentById(fairyId, editor)
+	if (!agent) {
+		console.warn('Could not find fairy agent with id:', fairyId)
+		return
+	}
+
+	$followingFairyId.update(editor, () => fairyId)
+
+	// Track last seen position/page to avoid redundant zooms and feedback loops
+	let lastX: number | null = null
+	let lastY: number | null = null
+	let lastPageId: string | null = null
+
+	const disposeFollow = react('follow fairy', () => {
+		const currentFairyId = getFollowingFairyId(editor)
+		if (currentFairyId !== fairyId) {
+			// We're no longer following this fairy
+			return
+		}
+
+		const currentAgent = getFairyAgentById(fairyId, editor)
+		if (!currentAgent) {
+			stopFollowingFairy(editor)
+			return
+		}
+
+		const fairyEntity = currentAgent.$fairyEntity.get()
+		if (!fairyEntity) {
+			stopFollowingFairy(editor)
+			return
+		}
+
+		// Only react when position or page actually changes
+		const { x, y } = fairyEntity.position
+		const pageId = fairyEntity.currentPageId
+		const EPS = 0.5
+		const samePage = lastPageId === pageId
+		const sameX = lastX !== null && Math.abs(lastX - x) < EPS
+		const sameY = lastY !== null && Math.abs(lastY - y) < EPS
+		if (samePage && sameX && sameY) return
+
+		lastX = x
+		lastY = y
+		lastPageId = pageId
+
+		currentAgent.zoomTo()
+	})
+
+	// Listen for user input events that should stop following
+	const onWheel = () => stopFollowingFairy(editor)
+	document.addEventListener('wheel', onWheel, { passive: false, capture: true })
+
+	// Also stop following when the user manually changes pages
+	const disposePageChange = react('stop following on page change', () => {
+		const currentPageId = editor.getCurrentPageId()
+
+		// Skip initial page check
+		if (!lastPageId) {
+			return
+		}
+
+		// If user changed page manually (not from following), stop following
+		const currentAgent = getFairyAgentById(fairyId, editor)
+		if (currentAgent) {
+			const fairyPageId = currentAgent.$fairyEntity.get()?.currentPageId
+			if (currentPageId !== fairyPageId && currentPageId !== lastPageId) {
+				stopFollowingFairy(editor)
+			}
+		}
+	})
+
+	// Store dispose functions so we can clean them up later
+	const dispose = () => {
+		disposeFollow()
+		disposePageChange()
+		document.removeEventListener('wheel', onWheel)
+	}
+	followDisposeHandlers.set(editor, dispose)
+}
+
+/**
+ * Stop following any fairy with the camera.
+ */
+export function stopFollowingFairy(editor: Editor) {
+	const dispose = followDisposeHandlers.get(editor)
+	if (dispose) {
+		dispose()
+		followDisposeHandlers.delete(editor)
+	}
+	$followingFairyId.update(editor, () => null)
 }

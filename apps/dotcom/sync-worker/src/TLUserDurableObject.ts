@@ -570,7 +570,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
-	async __test__prepareForTest(userId: string, legacy: boolean) {
+	async __test__prepareForTest(userId: string) {
 		if (this.env.IS_LOCAL !== 'true') {
 			return
 		}
@@ -585,61 +585,71 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			if (!user) {
 				console.error('User not found', userId)
 				return
-			} else {
-				await tx
-					.updateTable('user')
-					.set({
-						flags: legacy ? '' : 'groups_backend',
-						allowAnalyticsCookie: null,
-						enhancedA11yMode: null,
-						colorScheme: null,
-						locale: null,
-						exportBackground: true,
-						exportPadding: true,
-						exportFormat: 'png',
-						inputMode: null,
-					} satisfies Omit<TlaUserPartial, 'id'>)
-					.where('id', '=', userId)
-					.execute()
 			}
-			await tx.deleteFrom('file_state').where('userId', '=', userId).execute()
-			await tx.deleteFrom('file').where('ownerId', '=', userId).execute()
-			await tx.deleteFrom('file').where('owningGroupId', '=', userId).execute()
-			await tx.deleteFrom('group').where('id', '=', userId).execute()
-			if (!legacy) {
-				await tx
-					.insertInto('group')
-					.values({
-						id: userId,
-						name: '',
-						createdAt: Date.now(),
-						updatedAt: Date.now(),
-						isDeleted: false,
-						inviteSecret: null,
-					})
-					.onConflict((oc) => oc.doNothing())
-					.execute()
-				await tx
-					.insertInto('group_user')
-					.values({
-						userId: userId,
-						groupId: userId,
-						createdAt: Date.now(),
-						updatedAt: Date.now(),
-						role: 'owner',
-						index: 'a1' as IndexKey,
-						userColor: '',
-						userName: '',
-					})
-					.onConflict((oc) => oc.doNothing())
-					.execute()
+
+			await tx
+				.updateTable('user')
+				.set({
+					flags: 'groups_backend',
+					allowAnalyticsCookie: null,
+					enhancedA11yMode: null,
+					colorScheme: null,
+					locale: null,
+					exportBackground: true,
+					exportPadding: true,
+					exportFormat: 'png',
+					inputMode: null,
+				} satisfies Omit<TlaUserPartial, 'id'>)
+				.where('id', '=', userId)
+				.execute()
+
+			// Get all groups the user is a member of and delete them
+			// CASCADE will automatically delete group_user, group_file, and owned files
+			const userGroups = await tx
+				.selectFrom('group_user')
+				.where('userId', '=', userId)
+				.select('groupId')
+				.execute()
+			const groupIds = userGroups.map((g) => g.groupId)
+
+			if (groupIds.length > 0) {
+				await tx.deleteFrom('group').where('id', 'in', groupIds).execute()
 			}
+
+			// Re-create the home group
+			await tx
+				.insertInto('group')
+				.values({
+					id: userId,
+					name: '',
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
+					isDeleted: false,
+					inviteSecret: null,
+				})
+				.onConflict((oc) => oc.doNothing())
+				.execute()
+			await tx
+				.insertInto('group_user')
+				.values({
+					userId: userId,
+					groupId: userId,
+					createdAt: Date.now(),
+					updatedAt: Date.now(),
+					role: 'owner',
+					index: 'a1' as IndexKey,
+					userColor: '',
+					userName: '',
+				})
+				.onConflict((oc) => oc.doNothing())
+				.execute()
 		})
 
 		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
 	}
 
 	async admin_migrateToGroups(userId: string, inviteSecret: string | null = null) {
+		console.error('admin_migrateToGroups', userId, inviteSecret)
 		this.userId ??= userId
 
 		this.log.debug('migrating to groups', userId, inviteSecret)
@@ -649,6 +659,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			pinned_files_migrated: number
 			flag_added: boolean
 		}>`SELECT * FROM migrate_user_to_groups(${userId}, ${inviteSecret})`.execute(this.db)
+		console.error('admin_migrateToGroups result', result.rows)
 
 		this.log.debug('migration result', result.rows[0])
 

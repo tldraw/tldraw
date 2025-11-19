@@ -23,11 +23,17 @@
   "08bd40c754": {
     "translation": "Tài khoản"
   },
+  "08d2d725a9": {
+    "translation": "Tạo một tài khoản miễn phí để lưu công việc, cộng tác theo thời gian thực và nhiều chức năng khác."
+  },
   "0b27918290": {
     "translation": "Tệp"
   },
   "0b9a4cde72": {
     "translation": "Menu tệp"
+  },
+  "0beb3ca97b": {
+    "translation": "tldraw là bảng trắng ảo miễn phí và tức thì."
   },
   "0d1f2bb523": {
     "translation": "Gửi phản hồi"
@@ -35,11 +41,23 @@
   "110a4b01be": {
     "translation": "Xuất bản"
   },
+  "129b9e34ea": {
+    "translation": "Rời khỏi nhóm"
+  },
+  "12a6766ba1": {
+    "translation": "Bỏ ghim tệp"
+  },
   "12c8a9838c": {
     "translation": "Hãy thử SDK tldraw"
   },
   "13ddd375ad": {
     "translation": "Xuất dưới dạng"
+  },
+  "146ffe2fd9": {
+    "translation": "Hiển thị thêm"
+  },
+  "14d65465b7": {
+    "translation": "Xóa nhóm"
   },
   "181b90f889": {
     "translation": "Tạo tệp"
@@ -56,11 +74,17 @@
   "21bfb2dc2e": {
     "translation": "Phòng này sắp đạt đến giới hạn kích thước. Hãy cân nhắc xóa bớt nội dung hoặc tạo một tệp mới."
   },
+  "2445e5e347": {
+    "translation": "Tạo nhóm"
+  },
   "250ddea65c": {
     "translation": "Giới thiệu về tldraw"
   },
   "299cb00a7a": {
     "translation": "Tải lên thất bại"
+  },
+  "2c3ef76333": {
+    "translation": "Các tập tin của tôi"
   },
   "2deec2cb74": {
     "translation": "Phòng này đã đạt đến giới hạn kích thước và các thay đổi có thể không còn được lưu nữa. Hãy xóa bớt nội dung hoặc tạo một tệp mới."
@@ -71,11 +95,17 @@
   "31418ce4ad": {
     "translation": "i18n: Thiếu đánh dấu"
   },
+  "32210b37e4": {
+    "translation": "Thêm liên kết"
+  },
   "335defdafe": {
     "translation": "Vui lòng thử tải lại trang."
   },
   "344a7f427f": {
     "translation": "Biên tập viên"
+  },
+  "3bc7d6ea2f": {
+    "translation": "Tiếp tục với email"
   },
   "3bd1b98dbd": {
     "translation": "Không thể xuất bản các thay đổi này."
@@ -98,14 +128,29 @@
   "47839e47a5": {
     "translation": "tldraw"
   },
+  "47f493a590": {
+    "translation": "Tệp ghim"
+  },
+  "49049467ff": {
+    "translation": "Dán URL tệp tldraw..."
+  },
   "4908687e50": {
     "translation": "Bạn có chắc chắn muốn quên tệp này không?"
+  },
+  "49ee308734": {
+    "translation": "Tên"
   },
   "4d0d3ddec9": {
     "translation": "Trang web này sử dụng cookie để ứng dụng hoạt động và thu thập số liệu phân tích."
   },
   "4d1c8263ba": {
     "translation": "Tải lại"
+  },
+  "4da5988a2e": {
+    "translation": "Xóa nhóm…"
+  },
+  "4e6fbf032b": {
+    "translation": "Bạn có chắc chắn muốn xóa nhóm này không? Thao tác này không thể hoàn tác."
   },
   "50db1b7e1e": {
     "translation": "Không thể hủy xuất bản tệp này."
@@ -131,6 +176,9 @@
   "56c34c6410": {
     "translation": "Chính sách bảo mật"
   },
+  "5a86b22fa0": {
+    "translation": "Kéo tệp vào đây, <create>tạo tệp</create> hoặc <invite>sao chép liên kết mời</invite> để bắt đầu."
+  },
   "5a95a425f7": {
     "translation": "Chia sẻ"
   },
@@ -142,6 +190,9 @@
   },
   "5bec508475": {
     "translation": "Đã phát hiện trình duyệt cũ. Vui lòng cập nhật trình duyệt của bạn để sử dụng ứng dụng này."
+  },
+  "5c6fe42bc2": {
+    "translation": "Thu hồi liên kết này và tạo liên kết mới."
   },
   "5d26ae7550": {
     "translation": "Chúng tôi không tải lên được một số nội dung bạn đã tạo trước khi bạn đăng nhập."
@@ -158,11 +209,20 @@
   "625fd29749": {
     "translation": "Cũ hơn"
   },
+  "639bae9ac6": {
+    "translation": "Bạn"
+  },
   "6609dd239e": {
     "translation": "Đã xảy ra lỗi"
   },
   "6637a98151": {
     "translation": "Phiên bản mới của tldraw đã có sẵn. Vui lòng tải lại trang để tiếp tục."
+  },
+  "68257bb646": {
+    "translation": "Bạn đã được mời vào nhóm <br></br><groupName></groupName>"
+  },
+  "6832ac5936": {
+    "translation": "Nhập địa chỉ email của bạn"
   },
   "6a26f54883": {
     "translation": "Trợ giúp"
@@ -172,6 +232,9 @@
   },
   "6dfc62f621": {
     "translation": "Làm theo các bước sau để nhập nội dung theo cách thủ công:"
+  },
+  "70222abcfc": {
+    "translation": "Cài đặt nhóm"
   },
   "70a6facb9d": {
     "translation": "Tuần này"
@@ -218,6 +281,9 @@
   "7cb5f8b4a5": {
     "translation": "Quên"
   },
+  "7cfe6c43dc": {
+    "translation": "Rời khỏi nhóm…"
+  },
   "7daeced9ff": {
     "translation": "Xuất bản các thay đổi"
   },
@@ -239,8 +305,14 @@
   "86c66437fd": {
     "translation": "Đổi tên tập tin"
   },
+  "8ad4303b83": {
+    "translation": "Không, cảm ơn"
+  },
   "8b1946f965": {
     "translation": "Để tiếp tục chỉnh sửa, vui lòng sao chép phòng vào tệp của bạn."
+  },
+  "8c2d3d730c": {
+    "translation": "Kiểm tra email của bạn để lấy mã xác minh."
   },
   "8eb2c00e96": {
     "translation": "Chia sẻ với bạn"
@@ -257,14 +329,29 @@
   "91e49bb0eb": {
     "translation": "Sao chép vào tệp của tôi"
   },
+  "930390d222": {
+    "translation": "Đã sao chép liên kết mời"
+  },
+  "95aacd4d4a": {
+    "translation": "Đăng nhập bằng Google"
+  },
   "95d2109dc8": {
     "translation": "Xây dựng với SDK tldraw"
   },
   "96165d6df5": {
     "translation": "Tháng này"
   },
+  "985a4b720f": {
+    "translation": "Điều khoản sử dụng"
+  },
+  "98c997a27e": {
+    "translation": "Thêm liên kết tệp"
+  },
   "9914a0ce04": {
     "translation": "Sáng"
+  },
+  "9b33f5c63c": {
+    "translation": "Không nhận được mã? <resend>Gửi lại</resend>."
   },
   "9bef626805": {
     "translation": "Xóa tệp"
@@ -311,6 +398,9 @@
   "a9ded1e5ce": {
     "translation": "Cơ sở"
   },
+  "aa916767cf": {
+    "translation": "Đăng nhập để chấp nhận lời mời"
+  },
   "ab0df9ba36": {
     "translation": "Đã đạt đến giới hạn tập tin"
   },
@@ -321,8 +411,17 @@
   "b028909917": {
     "translation": "Người dùng khách"
   },
+  "b357b524e7": {
+    "translation": "Địa chỉ email"
+  },
+  "b3d2db69fe": {
+    "translation": "URL tệp"
+  },
   "b6d4223e60": {
     "translation": "Đăng nhập"
+  },
+  "b6f4a2ec63": {
+    "translation": "Người sở hữu"
   },
   "b758336699": {
     "translation": "Sao chép liên kết"
@@ -330,8 +429,8 @@
   "ba0318cb81": {
     "translation": "Đăng nhập để chia sẻ"
   },
-  "bb792693e2": {
-    "translation": "Bỏ ghim"
+  "bb93a7590f": {
+    "translation": "Chấp nhận và tham gia nhóm"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, other {Đang tải lên {uploaded} trong tổng số {total} tệp .tldr…}}"
@@ -339,11 +438,11 @@
   "bc88b0e89e": {
     "translation": "Chia sẻ bởi {ownerName}"
   },
-  "bcb62136a3": {
-    "translation": "Tải lên các tệp .tldr."
-  },
   "c2276c9127": {
     "translation": "Tìm hiểu thêm về chia sẻ."
+  },
+  "c28aed8348": {
+    "translation": "Cho phép <cookies>analytics</cookies> giúp chúng tôi cải thiện tldraw."
   },
   "c303bd1095": {
     "translation": "Không thể xuất bản tệp này."
@@ -351,14 +450,23 @@
   "c4b39a1cc3": {
     "translation": "Cookie thiết yếu"
   },
+  "c6155aaecc": {
+    "translation": "Tên nhóm"
+  },
   "c655b27b1e": {
     "translation": "i18n: Chuỗi dài"
   },
   "c6a00f137b": {
     "translation": "Mời"
   },
+  "c74ea6dbff": {
+    "translation": "Hiển thị ít hơn"
+  },
   "c87aacf567": {
     "translation": "Đăng xuất"
+  },
+  "c9cc8cce24": {
+    "translation": "Cứu"
   },
   "cceaefbc20": {
     "translation": "Chia sẻ tệp này"
@@ -375,29 +483,53 @@
   "d4bbf74f3e": {
     "translation": "Chuyển đổi thanh bên"
   },
+  "d638a3344b": {
+    "translation": "Trước khi bắt đầu, vui lòng chấp nhận <tos>điều khoản sử dụng</tos> và <privacy>chính sách bảo mật</privacy> của chúng tôi."
+  },
   "d721757161": {
     "translation": "Chủ đề"
   },
   "d876a9fe1a": {
     "translation": "Thử lại"
   },
+  "d88ad2dc74": {
+    "translation": "Chấp nhận và tiếp tục"
+  },
   "d9100f3e10": {
     "translation": "Vào đây để xem nội dung"
+  },
+  "d9e35d0f55": {
+    "translation": "Bạn đã đạt đến số lượng nhóm tối đa. Bạn cần xóa nhóm cũ trước khi tạo nhóm mới."
   },
   "dbbebf3c03": {
     "translation": "Chỉ mời"
   },
+  "dcdaa754fe": {
+    "translation": "URL tệp tldraw không hợp lệ"
+  },
   "dfdb78a4e4": {
     "translation": "Cờ gỡ lỗi ứng dụng"
+  },
+  "e0c88179b3": {
+    "translation": "Mời thành viên"
+  },
+  "e2198d6228": {
+    "translation": "Sao chép liên kết mời"
   },
   "e2ae80a510": {
     "translation": "Tóm tắt pháp lý"
   },
+  "e3afed0047": {
+    "translation": "Quản trị viên"
+  },
   "e404559826": {
     "translation": "Điều khoản dịch vụ"
   },
-  "e78e14c5f1": {
-    "translation": "Ghim"
+  "e81c4e4f2b": {
+    "translation": "hoặc"
+  },
+  "ea0626ac5a": {
+    "translation": "Khu vực nguy hiểm"
   },
   "ea4788705e": {
     "translation": "Hủy"
@@ -420,6 +552,9 @@
   "ede55d955f": {
     "translation": "Đọc <a>chính sách cookie</a> của chúng tôi để tìm hiểu thêm."
   },
+  "ef53538ae4": {
+    "translation": "Thành viên"
+  },
   "ef7de3f485": {
     "translation": "đã chọn"
   },
@@ -441,6 +576,12 @@
   "f4f70727dc": {
     "translation": "Cài đặt"
   },
+  "f714e36843": {
+    "translation": "Bạn có chắc chắn muốn rời khỏi nhóm này không?"
+  },
+  "fa2ead697d": {
+    "translation": "Chính sách bảo mật"
+  },
   "fb15c53f22": {
     "translation": "Người xem"
   },
@@ -449,6 +590,9 @@
   },
   "fed5ec05eb": {
     "translation": "Đã sao chép liên kết"
+  },
+  "ff7a814974": {
+    "translation": "Thêm liên kết tệp…"
   },
   "ffcd73e997": {
     "translation": "Nhập tập tin…"
