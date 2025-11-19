@@ -21,9 +21,11 @@ import {
 	FairyWaitEvent,
 	FairyWork,
 	getFairyModeDefinition,
+	getModelPricing,
 	ModelNamePart,
 	PromptPart,
 	Streaming,
+	TIER_THRESHOLD,
 } from '@tldraw/fairy-shared'
 import {
 	Atom,
@@ -368,55 +370,6 @@ export class FairyAgent {
 	}
 
 	/**
-	 * Get pricing for a specific model based on prompt token count.
-	 * Some models have tiered pricing based on prompt size.
-	 * @param modelName - The model name
-	 * @param promptTokens - The number of prompt tokens for this request
-	 * @returns Pricing per million tokens: { inputPrice, cachedInputPrice, outputPrice }
-	 */
-	private getModelPricing(
-		modelName: AgentModelName,
-		promptTokens: number
-	): {
-		inputPrice: number
-		cachedInputPrice: number | null // null means caching not supported
-		outputPrice: number
-	} {
-		const TIER_THRESHOLD = 200_000
-
-		switch (modelName) {
-			case 'gpt-5.1':
-				return { inputPrice: 1.25, cachedInputPrice: 0.125, outputPrice: 10 }
-
-			case 'gpt-5-mini':
-				return { inputPrice: 0.25, cachedInputPrice: 0.025, outputPrice: 2 }
-
-			case 'gemini-2.5-pro':
-				// Tiered pricing based on prompt token count
-				if (promptTokens <= TIER_THRESHOLD) {
-					return { inputPrice: 1.25, cachedInputPrice: null, outputPrice: 10 }
-				} else {
-					return { inputPrice: 2.5, cachedInputPrice: null, outputPrice: 15 }
-				}
-
-			case 'gemini-2.5-flash':
-				return { inputPrice: 0.3, cachedInputPrice: null, outputPrice: 2.5 }
-
-			case 'claude-4.5-haiku':
-				return { inputPrice: 1, cachedInputPrice: null, outputPrice: 5 }
-
-			case 'claude-4.5-sonnet':
-			default:
-				// Claude 4.5 Sonnet tiered pricing
-				if (promptTokens <= TIER_THRESHOLD) {
-					return { inputPrice: 3, cachedInputPrice: null, outputPrice: 15 }
-				} else {
-					return { inputPrice: 6, cachedInputPrice: null, outputPrice: 22.5 }
-				}
-		}
-	}
-
-	/**
 	 * Get the current cumulative cost for this fairy agent.
 	 * Calculates costs based on model-specific pricing, accounting for cached input tokens.
 	 * @returns An object with input cost, output cost, and total cost in USD.
@@ -430,7 +383,7 @@ export class FairyAgent {
 			const typedModelName = modelName as AgentModelName
 
 			// Calculate cost for tier 1 (≤ 200K tokens)
-			const tier1Pricing = this.getModelPricing(typedModelName, 200_000)
+			const tier1Pricing = getModelPricing(typedModelName, 200_000)
 			const tier1UncachedInputTokens = usage.tier1.promptTokens - usage.tier1.cachedInputTokens
 			const tier1UncachedInputCost =
 				(tier1UncachedInputTokens / 1_000_000) * tier1Pricing.inputPrice
@@ -442,7 +395,7 @@ export class FairyAgent {
 			const tier1OutputCost = (usage.tier1.completionTokens / 1_000_000) * tier1Pricing.outputPrice
 
 			// Calculate cost for tier 2 (> 200K tokens)
-			const tier2Pricing = this.getModelPricing(typedModelName, 200_001)
+			const tier2Pricing = getModelPricing(typedModelName, 200_001)
 			const tier2UncachedInputTokens = usage.tier2.promptTokens - usage.tier2.cachedInputTokens
 			const tier2UncachedInputCost =
 				(tier2UncachedInputTokens / 1_000_000) * tier2Pricing.inputPrice
@@ -1530,7 +1483,6 @@ function requestAgentActions({ agent, request }: { agent: FairyAgent; request: A
 
 						// Determine which tier this request falls into
 						// Tier 1: ≤ 200K tokens, Tier 2: > 200K tokens
-						const TIER_THRESHOLD = 200_000
 						if (promptTokens <= TIER_THRESHOLD) {
 							agent.cumulativeUsage.byModel[modelName].tier1.promptTokens += promptTokens
 							agent.cumulativeUsage.byModel[modelName].tier1.cachedInputTokens += cachedInputTokens

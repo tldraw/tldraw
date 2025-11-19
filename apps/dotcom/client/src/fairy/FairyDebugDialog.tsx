@@ -420,7 +420,7 @@ function FairyDebugOptions({ agent }: { agent: FairyAgent }) {
 							}}
 						/>
 						<span>
-							<F defaultMessage="Log response time" />
+							<F defaultMessage="Log response time (solo mode only)" />
 						</span>
 					</label>
 				</div>

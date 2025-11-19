@@ -62,3 +62,58 @@ export const AGENT_MODEL_DEFINITIONS = {
 } as const
 
 export type AgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
+
+export const TIER_THRESHOLD = 200_000
+
+export interface ModelPricing {
+	inputPrice: number
+	cachedInputPrice: number | null // null means caching not supported
+	outputPrice: number
+}
+
+/**
+ * Get pricing for a specific model based on prompt token count.
+ * Some models have tiered pricing based on prompt size.
+ * @param modelName - The model name
+ * @param promptTokens - The number of prompt tokens for this request
+ * @returns Pricing per million tokens: { inputPrice, cachedInputPrice, outputPrice }
+ */
+export function getModelPricing(modelName: AgentModelName, promptTokens: number): ModelPricing {
+	switch (modelName) {
+		case 'gpt-5.1':
+			return { inputPrice: 1.25, cachedInputPrice: 0.125, outputPrice: 10 }
+
+		case 'gpt-5-mini':
+			return { inputPrice: 0.25, cachedInputPrice: 0.025, outputPrice: 2 }
+
+		case 'gemini-3-pro-preview':
+			if (promptTokens <= TIER_THRESHOLD) {
+				return { inputPrice: 2, cachedInputPrice: 0.2, outputPrice: 12 }
+			} else {
+				return { inputPrice: 4, cachedInputPrice: 0.4, outputPrice: 18 }
+			}
+
+		case 'gemini-2.5-pro':
+			// Tiered pricing based on prompt token count
+			if (promptTokens <= TIER_THRESHOLD) {
+				return { inputPrice: 1.25, cachedInputPrice: null, outputPrice: 10 }
+			} else {
+				return { inputPrice: 2.5, cachedInputPrice: null, outputPrice: 15 }
+			}
+
+		case 'gemini-2.5-flash':
+			return { inputPrice: 0.3, cachedInputPrice: null, outputPrice: 2.5 }
+
+		case 'claude-4.5-haiku':
+			return { inputPrice: 1, cachedInputPrice: null, outputPrice: 5 }
+
+		case 'claude-4.5-sonnet':
+		default:
+			// Claude 4.5 Sonnet tiered pricing
+			if (promptTokens <= TIER_THRESHOLD) {
+				return { inputPrice: 3, cachedInputPrice: null, outputPrice: 15 }
+			} else {
+				return { inputPrice: 6, cachedInputPrice: null, outputPrice: 22.5 }
+			}
+	}
+}
