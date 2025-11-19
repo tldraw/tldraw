@@ -79,6 +79,14 @@
 	align-items: center;
 }
 
+.userActionButton {
+	border: 1px solid transparent !important;
+}
+
+.userActionButton:hover:not(:disabled) {
+	border-color: var(--tla-color-text-3) !important;
+}
+
 .dataDisplay {
 	background-color: var(--tla-color-low);
 	border: 1px solid var(--tla-color-border);

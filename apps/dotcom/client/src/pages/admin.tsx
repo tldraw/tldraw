@@ -126,6 +126,32 @@ export function Component() {
 		}
 	}, [loadData])
 
+	const [isRefreshing, setIsRefreshing] = useState(false)
+	const doRefresh = useCallback(async () => {
+		const q = inputRef.current?.value?.trim() ?? ''
+		if (!q) {
+			setError('Please enter an email or ID')
+			return
+		}
+
+		setIsRefreshing(true)
+		setError(null)
+		try {
+			const res = await fetch(`/api/app/admin/user/refresh?${new URLSearchParams({ q })}`, {
+				method: 'POST',
+			})
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			setError(null)
+			loadData()
+			setSuccessMessage('User data refreshed successfully')
+		} finally {
+			setIsRefreshing(false)
+		}
+	}, [loadData])
+
 	useEffect(() => {
 		if (user?.isTldraw) {
 			fetch('/api/app/admin/replicator')
@@ -205,8 +231,18 @@ export function Component() {
 								onClick={doReboot}
 								variant="warning"
 								isLoading={isRebooting}
+								className={styles.userActionButton}
 							>
 								Force Reboot
+							</TlaButton>
+							<TlaButton
+								disabled={isRefreshing}
+								onClick={doRefresh}
+								variant="warning"
+								isLoading={isRefreshing}
+								className={styles.userActionButton}
+							>
+								Force Reboot and Close Websockets
 							</TlaButton>
 						</div>
 						<MigrateUserToGroups

@@ -679,6 +679,16 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
+	async admin_refreshUserData(userId: string) {
+		await this.admin_forceHardReboot(userId)
+
+		// Close all websocket connections to force reconnect with fresh data
+		for (const socket of this.sockets.keys()) {
+			socket.close()
+		}
+		this.sockets.clear()
+	}
+
 	async admin_getData(userId: string) {
 		const cache =
 			this.cache ??

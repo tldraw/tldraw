@@ -34,9 +34,19 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://*.google-analytics.com',
 		'https://api.reo.dev',
 		'https://fonts.googleapis.com',
+		// paddle
+		'https://sandbox-checkout-service.paddle.com',
+		'https://checkout.paddle.com',
+		'https://cdn.paddle.com',
 	],
 	'font-src': [`'self'`, `https://fonts.googleapis.com`, `https://fonts.gstatic.com`, 'data:'],
-	'frame-src': [`'self'`, `https:`],
+	'frame-src': [
+		`'self'`,
+		`https:`,
+		// paddle checkout
+		'https://sandbox-buy.paddle.com',
+		'https://buy.paddle.com',
+	],
 	'img-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
 	'media-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
 	'script-src': [
@@ -53,6 +63,8 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://*.google-analytics.com',
 		'https://analytics.tldraw.com',
 		'https://static.reo.dev',
+		// paddle
+		'https://cdn.paddle.com',
 	],
 	'worker-src': [`'self'`, `blob:`],
 	'style-src': [`'self'`, `'unsafe-inline'`, `https://fonts.googleapis.com`],
@@ -62,6 +74,9 @@ export const cspDirectives: { [key: string]: string[] } = {
 		`https://fonts.googleapis.com`,
 		// embeds that have styles
 		'https://github.githubassets.com',
+		// paddle
+		'https://sandbox-cdn.paddle.com',
+		'https://cdn.paddle.com',
 	],
 	'report-uri': [process.env.SENTRY_CSP_REPORT_URI ?? ``],
 }

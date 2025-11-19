@@ -1,11 +1,9 @@
 import { hasActiveFairyAccess } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
+import { FAIRY_BETA_EXPIRATION } from '../../config'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
 import { requireAuth } from '../../utils/tla/getAuth'
-
-// Hard-coded expiration: Dec 31, 2025 23:59:59 UTC
-const BETA_EXPIRATION = new Date('2025-12-31T23:59:59Z').getTime()
 
 export async function redeemFairyInvite(request: IRequest, env: Environment): Promise<Response> {
 	const auth = await requireAuth(request, env)
@@ -44,7 +42,7 @@ export async function redeemFairyInvite(request: IRequest, env: Environment): Pr
 				.where('userId', '=', auth.userId)
 				.executeTakeFirst()
 
-			const expiresAt = BETA_EXPIRATION
+			const expiresAt = FAIRY_BETA_EXPIRATION
 
 			// If user already has active fairy access, don't modify anything
 			if (hasActiveFairyAccess(existingFairies?.fairyAccessExpiresAt)) {
