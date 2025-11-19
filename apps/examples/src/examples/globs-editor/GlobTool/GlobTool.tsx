@@ -41,7 +41,7 @@ export class NodeState extends StateNode {
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		const pagePoint = this.editor.screenToPage(info.point)
+		const pagePoint = this.editor.inputs.currentPagePoint
 
 		if (!this.ghostShapeId) {
 			const id = createShapeId()
@@ -62,10 +62,13 @@ export class NodeState extends StateNode {
 		const shape = this.editor.getShape<NodeShape>(this.ghostShapeId)
 		if (!shape) return
 
+		// could be inside a frame, so we need to get the point in the parent space
+		const parentPoint = this.editor.getPointInParentSpace(shape, pagePoint)
+
 		this.editor.updateShape<NodeShape>({
 			...shape,
-			x: pagePoint.x,
-			y: pagePoint.y,
+			x: parentPoint.x,
+			y: parentPoint.y,
 		})
 	}
 
@@ -76,7 +79,7 @@ export class NodeState extends StateNode {
 		if (!node) return
 
 		// if we try place another node such that it overlaps with an existing node radii, don't allow it
-		const pagePoint = this.editor.screenToPage(info.point)
+		const pagePoint = this.editor.inputs.currentPagePoint
 		const shapes = this.editor
 			.getShapesAtPoint(pagePoint, {
 				hitInside: true,
@@ -90,10 +93,11 @@ export class NodeState extends StateNode {
 			return
 		}
 
+		const parentPoint = this.editor.getPointInParentSpace(node, pagePoint)
 		this.editor.updateShape<NodeShape>({
 			...node,
-			x: pagePoint.x,
-			y: pagePoint.y,
+			x: parentPoint.x,
+			y: parentPoint.y,
 			props: {
 				...node.props,
 				opacity: 1,
@@ -137,9 +141,8 @@ export class ConnectState extends StateNode {
 		const selectedNode = this.editor.getShape<NodeShape>(this.selectedNodeIds[0])
 		if (!selectedNode) return
 
-		let pagePoint = this.editor.screenToPage(info.point)
-
 		// Apply shift snapping for angle constraints
+		let pagePoint = this.editor.inputs.currentPagePoint
 		if (info.shiftKey) {
 			const selectedNodeCenter = new Vec(selectedNode.x, selectedNode.y)
 			const angle = Vec.Angle(selectedNodeCenter, pagePoint)
@@ -164,11 +167,12 @@ export class ConnectState extends StateNode {
 			this.ghostNodeId = id
 		}
 
+		const parentPoint = this.editor.getPointInParentSpace(this.ghostNodeId, pagePoint)
 		this.editor.updateShape<NodeShape>({
 			id: this.ghostNodeId,
 			type: 'node',
-			x: pagePoint.x,
-			y: pagePoint.y,
+			x: parentPoint.x,
+			y: parentPoint.y,
 		})
 
 		// if there are no ghost globs, create them, we could be ghosting a whole selection of nodes
@@ -216,8 +220,9 @@ export class ConnectState extends StateNode {
 			const selectedNode = this.editor.getShape<NodeShape>(this.selectedNodeIds[i])
 			if (!selectedNode) continue
 
+			const pageNode = this.editor.getShapePageTransform(this.selectedNodeIds[i]).point()
 			const update = getGlobTangentUpdate(
-				selectedNode,
+				pageNode,
 				selectedNode.props.radius,
 				pagePoint,
 				selectedNode.props.radius

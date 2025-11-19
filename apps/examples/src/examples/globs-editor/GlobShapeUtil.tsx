@@ -90,8 +90,13 @@ const globInfoCache = createComputedCache<Editor, GlobGeometry | null, GlobShape
 		if (!nodes) return null
 
 		const { startNodeShape, endNodeShape } = nodes
-		const localStartNode = Vec.Sub(startNodeShape, shape)
-		const localEndNode = Vec.Sub(endNodeShape, shape)
+
+		const startNodePagePos = editor.getShapePageTransform(startNodeShape.id).point()
+		const endNodePagePos = editor.getShapePageTransform(endNodeShape.id).point()
+		const globPagePos = editor.getShapePageTransform(shape.id).point()
+
+		const localStartNode = Vec.Sub(startNodePagePos, globPagePos)
+		const localEndNode = Vec.Sub(endNodePagePos, globPagePos)
 
 		let tangentA_A = getGlobEndPoint(
 			localStartNode,
@@ -121,6 +126,7 @@ const globInfoCache = createComputedCache<Editor, GlobGeometry | null, GlobShape
 		)
 
 		// if we drag a node over an existing d handle, the solution does not exist so collapse the points
+		//
 		if (!tangentA_A && tangentA_B) {
 			tangentA_A = tangentA_B
 		} else if (!tangentA_B && tangentA_A) {

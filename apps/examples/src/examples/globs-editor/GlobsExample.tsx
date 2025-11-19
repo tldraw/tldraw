@@ -165,7 +165,6 @@ export default function GlobsExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				persistenceKey="globs-example"
 				onMount={(editor) => {
 					editor.updateInstanceState({ isDebugMode: true })
 
