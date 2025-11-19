@@ -33,12 +33,6 @@
       "value": "GetHelpLink"
     }
   ],
-  "05596b840b": [
-    {
-      "type": 0,
-      "value": "Open tldraw."
-    }
-  ],
   "06b9281e39": [
     {
       "type": 0,
@@ -153,6 +147,12 @@
       "value": "Create file"
     }
   ],
+  "1cbf5e51b8": [
+    {
+      "type": 0,
+      "value": "Continue to checkout"
+    }
+  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -247,6 +247,12 @@
     {
       "type": 0,
       "value": "Add link"
+    }
+  ],
+  "324a0f3182": [
+    {
+      "type": 0,
+      "value": "Back to tldraw"
     }
   ],
   "335defdafe": [
@@ -421,12 +427,6 @@
     {
       "type": 0,
       "value": "Collaborator limit reached"
-    }
-  ],
-  "54d240fa41": [
-    {
-      "type": 0,
-      "value": "Please slow down."
     }
   ],
   "554a05155c": [
@@ -775,6 +775,12 @@
     {
       "type": 0,
       "value": "Restore version"
+    }
+  ],
+  "7c0747a5df": [
+    {
+      "type": 0,
+      "value": "Open tldraw"
     }
   ],
   "7cb471f815": [
@@ -1445,6 +1451,12 @@
       "value": "Close"
     }
   ],
+  "d46632fe1f": [
+    {
+      "type": 0,
+      "value": "Too many requests. Please slow down."
+    }
+  ],
   "d4bbf74f3e": [
     {
       "type": 0,
@@ -1721,12 +1733,6 @@
     {
       "type": 0,
       "value": "Delete"
-    }
-  ],
-  "f43fb62093": [
-    {
-      "type": 0,
-      "value": "Back to tldraw."
     }
   ],
   "f4f70727dc": [
