@@ -11,9 +11,6 @@
   "043973ec1f": {
     "translation": "Still having trouble? {GetHelpLink}"
   },
-  "05596b840b": {
-    "translation": "Open tldraw."
-  },
   "06b9281e39": {
     "translation": "Auto"
   },
@@ -119,6 +116,9 @@
   "32210b37e4": {
     "translation": "Add link"
   },
+  "324a0f3182": {
+    "translation": "Back to tldraw"
+  },
   "335defdafe": {
     "translation": "Please try refreshing the page."
   },
@@ -205,9 +205,6 @@
   },
   "54286b1d01": {
     "translation": "Collaborator limit reached"
-  },
-  "54d240fa41": {
-    "translation": "Please slow down."
   },
   "554a05155c": {
     "translation": "Still having trouble? <a>Report a problem</a>"
@@ -340,6 +337,9 @@
   },
   "7be10fc592": {
     "translation": "Restore version"
+  },
+  "7c0747a5df": {
+    "translation": "Open tldraw"
   },
   "7cb5f8b4a5": {
     "translation": "Forget"
@@ -597,6 +597,9 @@
   "d3d2e61733": {
     "translation": "Close"
   },
+  "d46632fe1f": {
+    "translation": "Too many requests. Please slow down."
+  },
   "d4bbf74f3e": {
     "translation": "Toggle sidebar"
   },
@@ -710,9 +713,6 @@
   },
   "f2a6c498fb": {
     "translation": "Delete"
-  },
-  "f43fb62093": {
-    "translation": "Back to tldraw."
   },
   "f4f70727dc": {
     "translation": "Settings"
