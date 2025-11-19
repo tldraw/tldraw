@@ -5,6 +5,12 @@
       "value": "Export"
     }
   ],
+  "038c9b4432": [
+    {
+      "type": 0,
+      "value": "Fairy’s personality"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -51,6 +57,12 @@
       "value": "Account"
     }
   ],
+  "090b807281": [
+    {
+      "type": 0,
+      "value": "Spiky"
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
@@ -63,6 +75,12 @@
       "value": "File menu"
     }
   ],
+  "0befa10111": [
+    {
+      "type": 0,
+      "value": "Fairies"
+    }
+  ],
   "0d1f2bb523": [
     {
       "type": 0,
@@ -73,6 +91,12 @@
     {
       "type": 0,
       "value": "Publish"
+    }
+  ],
+  "11a755d598": [
+    {
+      "type": 0,
+      "value": "Stop"
     }
   ],
   "129b9e34ea": [
@@ -97,6 +121,12 @@
     {
       "type": 0,
       "value": "Export as"
+    }
+  ],
+  "141c7239d3": [
+    {
+      "type": 0,
+      "value": "Fairy customization"
     }
   ],
   "146ffe2fd9": [
@@ -129,6 +159,18 @@
       "value": "Today"
     }
   ],
+  "1e38506832": [
+    {
+      "type": 0,
+      "value": "Go to fairy"
+    }
+  ],
+  "1fe250ea06": [
+    {
+      "type": 0,
+      "value": "Instruct the group…"
+    }
+  ],
   "20976e7bec": [
     {
       "type": 0,
@@ -153,6 +195,12 @@
       "value": "About tldraw"
     }
   ],
+  "2811a731bb": [
+    {
+      "type": 0,
+      "value": "Customize fairy"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -169,6 +217,12 @@
     {
       "type": 0,
       "value": "This room has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
+    }
+  ],
+  "2e86e6853d": [
+    {
+      "type": 0,
+      "value": "Select leader"
     }
   ],
   "31246941ad": [
@@ -201,6 +255,18 @@
       "value": "Editor"
     }
   ],
+  "3a295397e6": [
+    {
+      "type": 0,
+      "value": "Ask for help"
+    }
+  ],
+  "3a77f951ca": [
+    {
+      "type": 0,
+      "value": "Add a new task…"
+    }
+  ],
   "3bc7d6ea2f": [
     {
       "type": 0,
@@ -225,6 +291,12 @@
       "value": "Accept all"
     }
   ],
+  "4131ec34ef": [
+    {
+      "type": 0,
+      "value": "Bald"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -241,6 +313,12 @@
     {
       "type": 0,
       "value": "Thanks for helping us improve tldraw!"
+    }
+  ],
+  "465a8a92a4": [
+    {
+      "type": 0,
+      "value": "No fairies selected"
     }
   ],
   "47839e47a5": [
@@ -273,6 +351,12 @@
       "value": "Name"
     }
   ],
+  "4b3e8439d5": [
+    {
+      "type": 0,
+      "value": "Leader fairy will be given orchestration power"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -295,6 +379,24 @@
     {
       "type": 0,
       "value": "Are you sure you want to delete this group? This action cannot be undone."
+    }
+  ],
+  "4e98378836": [
+    {
+      "type": 0,
+      "value": "Personality"
+    }
+  ],
+  "4ef3716596": [
+    {
+      "type": 0,
+      "value": "Unfollow fairy"
+    }
+  ],
+  "4f827717f7": [
+    {
+      "type": 0,
+      "value": "Pointy"
     }
   ],
   "50db1b7e1e": [
@@ -461,6 +563,18 @@
       "value": "you"
     }
   ],
+  "64ebe56d8c": [
+    {
+      "type": 0,
+      "value": "Click to remove or drag to move"
+    }
+  ],
+  "65709fd250": [
+    {
+      "type": 0,
+      "value": "Task list"
+    }
+  ],
   "6609dd239e": [
     {
       "type": 0,
@@ -569,6 +683,12 @@
       "value": "Invalid request."
     }
   ],
+  "7835039819": [
+    {
+      "type": 0,
+      "value": "Propeller"
+    }
+  ],
   "78e9815992": [
     {
       "type": 0,
@@ -581,10 +701,22 @@
       "value": "Submit an issue on GitHub"
     }
   ],
+  "7a3113b0ba": [
+    {
+      "type": 0,
+      "value": "Drag to canvas"
+    }
+  ],
   "7b1329f5ca": [
     {
       "type": 0,
       "value": "User manual"
+    }
+  ],
+  "7b5449bd84": [
+    {
+      "type": 0,
+      "value": "Antenna"
     }
   ],
   "7be10fc592": [
@@ -609,6 +741,12 @@
     {
       "type": 0,
       "value": "Publish changes"
+    }
+  ],
+  "7e94fd31ac": [
+    {
+      "type": 0,
+      "value": "Create project"
     }
   ],
   "7fcdcc6455": [
@@ -655,6 +793,12 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "81d48c2f3a": [
+    {
+      "type": 0,
+      "value": "Show tasks on canvas"
     }
   ],
   "85a082de1b": [
@@ -737,6 +881,24 @@
       "value": "Copied invite link"
     }
   ],
+  "93346fdd70": [
+    {
+      "type": 0,
+      "value": "Ears"
+    }
+  ],
+  "93dfe9fbbe": [
+    {
+      "type": 0,
+      "value": "Deselect fairy"
+    }
+  ],
+  "94966d9074": [
+    {
+      "type": 0,
+      "value": "Send"
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -755,6 +917,12 @@
       "value": "This month"
     }
   ],
+  "97a9f16b2e": [
+    {
+      "type": 0,
+      "value": "New fairy"
+    }
+  ],
   "985a4b720f": [
     {
       "type": 0,
@@ -767,10 +935,22 @@
       "value": "Add file link"
     }
   ],
+  "98e528aac6": [
+    {
+      "type": 0,
+      "value": "Switch to fairy chat"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Light"
+    }
+  ],
+  "9953e9946b": [
+    {
+      "type": 0,
+      "value": "Debug view"
     }
   ],
   "9b33f5c63c": [
@@ -835,6 +1015,12 @@
       "value": "Padding"
     }
   ],
+  "a10d7a62aa": [
+    {
+      "type": 0,
+      "value": "Hat"
+    }
+  ],
   "a18366b217": [
     {
       "type": 0,
@@ -853,16 +1039,46 @@
       "value": "Export image"
     }
   ],
+  "a2f0372a75": [
+    {
+      "type": 0,
+      "value": "Switch to task list"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
       "value": "Cookie policy"
     }
   ],
+  "a3e932550c": [
+    {
+      "type": 0,
+      "value": "Fairy’s name"
+    }
+  ],
   "a4d3b161ce": [
     {
       "type": 0,
       "value": "Submit"
+    }
+  ],
+  "a4e2d4d837": [
+    {
+      "type": 0,
+      "value": "Reset all chats"
+    }
+  ],
+  "a4ffdcf0dc": [
+    {
+      "type": 0,
+      "value": "Top"
+    }
+  ],
+  "a686e2236d": [
+    {
+      "type": 0,
+      "value": "Clear task list"
     }
   ],
   "a6cc403d56": [
@@ -875,6 +1091,12 @@
     {
       "type": 0,
       "value": "Analytics"
+    }
+  ],
+  "a885eb91ac": [
+    {
+      "type": 0,
+      "value": "Leader fairy selection"
     }
   ],
   "a9ded1e5ce": [
@@ -935,6 +1157,12 @@
     {
       "type": 0,
       "value": "Copy link"
+    }
+  ],
+  "b8996797b9": [
+    {
+      "type": 0,
+      "value": "Hide tasks on canvas"
     }
   ],
   "ba0318cb81": [
@@ -1027,6 +1255,12 @@
       "value": " to help us improve tldraw."
     }
   ],
+  "c2ad21c079": [
+    {
+      "type": 0,
+      "value": "Hair"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1069,10 +1303,22 @@
       "value": "Sign out"
     }
   ],
+  "c9b04e7b53": [
+    {
+      "type": 0,
+      "value": "Deselect leader"
+    }
+  ],
   "c9cc8cce24": [
     {
       "type": 0,
       "value": "Save"
+    }
+  ],
+  "cb93643511": [
+    {
+      "type": 0,
+      "value": "Summon fairy"
     }
   ],
   "cceaefbc20": [
@@ -1103,6 +1349,12 @@
     {
       "type": 0,
       "value": "Toggle sidebar"
+    }
+  ],
+  "d5f491d157": [
+    {
+      "type": 0,
+      "value": "Follow fairy"
     }
   ],
   "d638a3344b": [
@@ -1145,6 +1397,32 @@
       "value": "Theme"
     }
   ],
+  "d739f35e18": [
+    {
+      "type": 0,
+      "value": "Whisper to "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
+  "d7bc9d5a2e": [
+    {
+      "type": 0,
+      "value": "Delete task"
+    }
+  ],
+  "d856d53da4": [
+    {
+      "type": 0,
+      "value": "No leader selected"
+    }
+  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1179,6 +1457,12 @@
     {
       "type": 0,
       "value": "Invalid tldraw file URL"
+    }
+  ],
+  "de290d52ef": [
+    {
+      "type": 0,
+      "value": "Select a fairy on the right to chat with"
     }
   ],
   "dfdb78a4e4": [
@@ -1227,6 +1511,12 @@
     {
       "type": 0,
       "value": "Danger zone"
+    }
+  ],
+  "ea181d98ca": [
+    {
+      "type": 0,
+      "value": "Select fairy"
     }
   ],
   "ea4788705e": [
@@ -1285,6 +1575,12 @@
       "value": " to learn more."
     }
   ],
+  "eecad1e370": [
+    {
+      "type": 0,
+      "value": "Delete fairy"
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1295,6 +1591,12 @@
     {
       "type": 0,
       "value": "selected"
+    }
+  ],
+  "efb2d9d471": [
+    {
+      "type": 0,
+      "value": "Todo list"
     }
   ],
   "f09b16bc5f": [
@@ -1333,10 +1635,28 @@
       "value": "Settings"
     }
   ],
+  "f6ae34b4ba": [
+    {
+      "type": 0,
+      "value": "Reset all wands"
+    }
+  ],
   "f714e36843": [
     {
       "type": 0,
       "value": "Are you sure you want to leave this group?"
+    }
+  ],
+  "f7d5ee6855": [
+    {
+      "type": 0,
+      "value": "Select a leader first…"
+    }
+  ],
+  "f87386b4ba": [
+    {
+      "type": 0,
+      "value": "Summon all fairies"
     }
   ],
   "fa2ead697d": [
@@ -1351,6 +1671,12 @@
       "value": "Viewer"
     }
   ],
+  "fcd66d76d6": [
+    {
+      "type": 0,
+      "value": "Delete all fairies"
+    }
+  ],
   "fd1be3efcf": [
     {
       "type": 0,
@@ -1361,6 +1687,12 @@
     {
       "type": 0,
       "value": "Copied link"
+    }
+  ],
+  "ff7276d298": [
+    {
+      "type": 0,
+      "value": "Reset chat"
     }
   ],
   "ff7a814974": [

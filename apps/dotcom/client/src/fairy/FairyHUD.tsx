@@ -87,6 +87,8 @@ interface FairyHUDHeaderProps {
 	shownFairy: FairyAgent | null
 	selectedFairies: FairyAgent[]
 	hasUnreadTasks: boolean
+	switchToFairyChatLabel: string
+	switchToTaskListLabel: string
 }
 
 function FairyHUDHeader({
@@ -98,6 +100,8 @@ function FairyHUDHeader({
 	shownFairy,
 	selectedFairies,
 	hasUnreadTasks,
+	switchToFairyChatLabel,
+	switchToTaskListLabel,
 }: FairyHUDHeaderProps) {
 	const fairyConfig = useValue('fairy config', () => shownFairy?.$fairyConfig.get(), [shownFairy])
 
@@ -154,7 +158,7 @@ function FairyHUDHeader({
 				<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onToggleFairyTasks}>
 					<TldrawUiIcon
 						icon={panelState === 'task-list' ? 'toggle-on' : 'toggle-off'}
-						label={panelState === 'task-list' ? 'Switch to fairy chat' : 'Switch to task list'}
+						label={panelState === 'task-list' ? switchToFairyChatLabel : switchToTaskListLabel}
 					/>
 					{hasUnreadTasks && <div className="fairy-todo-unread-indicator" />}
 				</TldrawUiButton>
@@ -176,6 +180,8 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	const toolbarMessage = useMsg(fairyMessages.toolbar)
 	const deselectMessage = useMsg(fairyMessages.deselectFairy)
 	const selectMessage = useMsg(fairyMessages.selectFairy)
+	const switchToFairyChatLabel = useMsg(fairyMessages.switchToFairyChat)
+	const switchToTaskListLabel = useMsg(fairyMessages.switchToTaskList)
 
 	// Create a reactive value that tracks which fairies are selected
 	const selectedFairies = useValue(
@@ -336,6 +342,8 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 								shownFairy={shownFairy}
 								selectedFairies={selectedFairies}
 								hasUnreadTasks={hasUnreadTasks}
+								switchToFairyChatLabel={switchToFairyChatLabel}
+								switchToTaskListLabel={switchToTaskListLabel}
 							/>
 							{panelState === 'fairy' && selectedFairies.length === 0 && !shownFairy && (
 								<div className="fairy-chat-empty-message">

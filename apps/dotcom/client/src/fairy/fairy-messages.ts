@@ -52,4 +52,18 @@ export const fairyMessages = defineMessages({
 	whisperToFairy: { defaultMessage: 'Whisper to {name}…' },
 	stopLabel: { defaultMessage: 'Stop' },
 	sendLabel: { defaultMessage: 'Send' },
+
+	// HUD toggle labels
+	switchToFairyChat: { defaultMessage: 'Switch to fairy chat' },
+	switchToTaskList: { defaultMessage: 'Switch to task list' },
+
+	// Hat types
+	hatTop: { defaultMessage: 'Top' },
+	hatPointy: { defaultMessage: 'Pointy' },
+	hatBald: { defaultMessage: 'Bald' },
+	hatAntenna: { defaultMessage: 'Antenna' },
+	hatSpiky: { defaultMessage: 'Spiky' },
+	hatHair: { defaultMessage: 'Hair' },
+	hatEars: { defaultMessage: 'Ears' },
+	hatPropeller: { defaultMessage: 'Propeller' },
 })
