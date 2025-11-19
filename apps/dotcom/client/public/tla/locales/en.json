@@ -26,9 +26,6 @@
   "08bd40c754": {
     "translation": "Account"
   },
-  "08d2d725a9": {
-    "translation": "Create a free account to save your work, collaborate in real-time, and more."
-  },
   "090b807281": {
     "translation": "Spiky"
   },
@@ -37,9 +34,6 @@
   },
   "0b9a4cde72": {
     "translation": "File menu"
-  },
-  "0beb3ca97b": {
-    "translation": "tldraw is a free and instant virtual whiteboard."
   },
   "0befa10111": {
     "translation": "Fairies"
@@ -248,6 +242,9 @@
   "5d26ae7550": {
     "translation": "We failed to upload some of the content you created before you signed in."
   },
+  "5ea8bb44be": {
+    "translation": "You have been invited to join group:"
+  },
   "5f3c333678": {
     "translation": "Feedback submitted"
   },
@@ -274,9 +271,6 @@
   },
   "6637a98151": {
     "translation": "A new version of tldraw is available. Please reload the page to continue."
-  },
-  "68257bb646": {
-    "translation": "You've been invited to group <br></br><groupName></groupName>"
   },
   "6832ac5936": {
     "translation": "Enter your email address"
@@ -319,6 +313,9 @@
   },
   "7697920637": {
     "translation": "Please reload"
+  },
+  "76dea3c9ca": {
+    "translation": "tldraw is a free online whiteboard. Create an account to save your files and work with your friends."
   },
   "777f9e90cf": {
     "translation": "Invalid request."
@@ -508,9 +505,6 @@
   },
   "a9ded1e5ce": {
     "translation": "Background"
-  },
-  "aa916767cf": {
-    "translation": "Sign in to accept invitation"
   },
   "ab0df9ba36": {
     "translation": "File limit reached"

@@ -57,12 +57,6 @@
       "value": "Account"
     }
   ],
-  "08d2d725a9": [
-    {
-      "type": 0,
-      "value": "Create a free account to save your work, collaborate in real-time, and more."
-    }
-  ],
   "090b807281": [
     {
       "type": 0,
@@ -79,12 +73,6 @@
     {
       "type": 0,
       "value": "File menu"
-    }
-  ],
-  "0beb3ca97b": [
-    {
-      "type": 0,
-      "value": "tldraw is a free and instant virtual whiteboard."
     }
   ],
   "0befa10111": [
@@ -539,6 +527,12 @@
       "value": "We failed to upload some of the content you created before you signed in."
     }
   ],
+  "5ea8bb44be": [
+    {
+      "type": 0,
+      "value": "You have been invited to join group:"
+    }
+  ],
   "5f3c333678": [
     {
       "type": 0,
@@ -591,24 +585,6 @@
     {
       "type": 0,
       "value": "A new version of tldraw is available. Please reload the page to continue."
-    }
-  ],
-  "68257bb646": [
-    {
-      "type": 0,
-      "value": "You've been invited to group "
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "br"
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "groupName"
     }
   ],
   "6832ac5936": [
@@ -693,6 +669,12 @@
     {
       "type": 0,
       "value": "Please reload"
+    }
+  ],
+  "76dea3c9ca": [
+    {
+      "type": 0,
+      "value": "tldraw is a free online whiteboard. Create an account to save your files and work with your friends."
     }
   ],
   "777f9e90cf": [
@@ -1121,12 +1103,6 @@
     {
       "type": 0,
       "value": "Background"
-    }
-  ],
-  "aa916767cf": [
-    {
-      "type": 0,
-      "value": "Sign in to accept invitation"
     }
   ],
   "ab0df9ba36": [
