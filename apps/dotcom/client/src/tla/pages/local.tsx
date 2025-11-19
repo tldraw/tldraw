@@ -4,7 +4,7 @@ import { assert, react, useDialogs } from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
 import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
-import { TlaInviteDialog } from '../components/dialogs/TlaInviteDialog'
+import { TlaSignInDialog } from '../components/dialogs/TlaSignInDialog'
 import { SneakyDarkModeSync } from '../components/TlaEditor/sneaky/SneakyDarkModeSync'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { useMaybeApp } from '../hooks/useAppState'
@@ -71,14 +71,27 @@ export function Component() {
 function LocalTldraw() {
 	const inviteInfo = useInviteDetails()
 	const dialogs = useDialogs()
+	const navigate = useNavigate()
 
 	useEffect(() => {
 		if (inviteInfo && !inviteInfo.error) {
+			// User is not signed in, show sign-in dialog with invite info
 			dialogs.addDialog({
-				component: ({ onClose }) => <TlaInviteDialog inviteInfo={inviteInfo} onClose={onClose} />,
+				component: ({ onClose }) => (
+					<TlaSignInDialog
+						inviteInfo={inviteInfo}
+						onClose={onClose}
+						onInviteAccepted={() => {
+							navigate(
+								routes.tlaInvite(inviteInfo.inviteSecret, { searchParams: { accept: 'true' } }),
+								{ replace: true }
+							)
+						}}
+					/>
+				),
 			})
 		}
-	}, [inviteInfo, dialogs])
+	}, [inviteInfo, dialogs, navigate])
 
 	return (
 		<TlaAnonLayout>

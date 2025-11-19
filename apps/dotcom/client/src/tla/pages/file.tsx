@@ -38,12 +38,12 @@ export function Component({ error }: { error?: unknown }) {
 	}, [error, userId])
 
 	useEffect(() => {
-		if (inviteInfo && !inviteInfo.error) {
+		if (inviteInfo && !inviteInfo.error && userId) {
 			dialogs.addDialog({
 				component: ({ onClose }) => <TlaInviteDialog inviteInfo={inviteInfo} onClose={onClose} />,
 			})
 		}
-	}, [inviteInfo, dialogs])
+	}, [inviteInfo, dialogs, userId])
 
 	useEffect(() => {
 		if (app && fileSlug) {
