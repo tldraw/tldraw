@@ -552,15 +552,22 @@ export class FairyAgent {
 		// Submit the request to the agent.
 		await this.request(request)
 
-		// After the request is handled, check if there are any outstanding todo items or requests
-		const scheduledRequest = this.$scheduledRequest.get()
-
 		// If there's no schedule request...
 		// Exit the mode
-		if (!scheduledRequest) {
+		if (!this.$scheduledRequest.get()) {
 			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
 			const node = FAIRY_MODE_CHART[this.getMode()]
 			await node.onPromptEnd?.(this, request)
+		}
+
+		// If there's still no scheduled request, quit
+		const scheduledRequest = this.$scheduledRequest.get()
+		if (!scheduledRequest) {
+			const mode = this.getMode()
+			const modeDefinition = getFairyModeDefinition(mode)
+			if (modeDefinition.active) {
+				throw new Error(`Fairy is not allowed to become inactive during the active mode: ${mode}`)
+			}
 			return
 		}
 

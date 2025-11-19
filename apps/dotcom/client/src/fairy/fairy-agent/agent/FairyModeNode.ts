@@ -30,6 +30,7 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			}
 		},
 	},
+	['standing-by']: {},
 	['working-drone']: {
 		onEnter(agent) {
 			// Wipe memory before starting a task
@@ -67,12 +68,21 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			})
 		},
 	},
-	['standing-by']: {},
-	orchestrating: {
+	['orchestrating-active']: {
 		onPromptEnd(agent) {
+			if (agent.$waitingFor.get().length > 0) {
+				agent.setMode('orchestrating-waiting')
+				return
+			}
+
 			if (agent.$waitingFor.get().length === 0) {
 				agent.schedule('Continue reviewing until the project is marked as completed.')
 			}
+		},
+	},
+	['orchestrating-waiting']: {
+		onPromptStart(agent) {
+			agent.setMode('orchestrating-active')
 		},
 	},
 }

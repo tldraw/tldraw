@@ -36,10 +36,20 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 		if (!project) return // shouldn't be possible
 
 		const otherFairy = $fairyAgentsAtom.get(this.editor).find((fairy) => fairy.id === otherFairyId)
-		if (!otherFairy) return // todo error
+		if (!otherFairy) {
+			this.agent.interrupt({
+				input: `Fairy ${otherFairyId} not found. Please take another look at the fairy list and try again.`,
+			})
+			return
+		}
 
 		const task = getFairyTaskById(taskId)
-		if (!task) return // todo error
+		if (!task) {
+			this.agent.interrupt({
+				input: `Task ${taskId} not found. Please take another look at the task list and try again.`,
+			})
+			return
+		}
 
 		if (task.projectId !== project.id) {
 			this.agent.interrupt({

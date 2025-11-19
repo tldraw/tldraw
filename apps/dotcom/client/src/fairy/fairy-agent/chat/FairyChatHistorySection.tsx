@@ -31,7 +31,7 @@ export function FairyChatHistorySection({
 					</div>
 				) : (
 					<div className="fairy-chat-history-prompt-fairy">
-						<div className="fairy-chat-history-prompt-content">Awakened by another fairy...</div>
+						<div className="fairy-chat-history-prompt-content">Awakened...</div>
 					</div>
 				)}
 			</div>

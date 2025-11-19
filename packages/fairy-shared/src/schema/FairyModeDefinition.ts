@@ -150,7 +150,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 		active: false,
 	},
 	{
-		type: 'orchestrating',
+		type: 'orchestrating-active',
 		active: true,
 		parts: () => [
 			'mode',
@@ -187,6 +187,10 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'direct-to-start-project-task',
 			'await-tasks-completion',
 		],
+	},
+	{
+		type: 'orchestrating-waiting',
+		active: false,
 	},
 ] as const satisfies BaseFairyModeDefinition[]
 

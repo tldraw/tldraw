@@ -93,7 +93,7 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 
 			// Set leader as orchestrator
 			leaderAgent.cancel()
-			leaderAgent.setMode('orchestrating')
+			leaderAgent.setMode('orchestrating-active')
 
 			// Set followers as drones
 			followerAgents.forEach((agent) => {
