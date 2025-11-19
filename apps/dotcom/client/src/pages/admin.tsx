@@ -311,6 +311,7 @@ function FairyInvites() {
 	const [maxUses, setMaxUses] = useState(1)
 	const [isCreating, setIsCreating] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
+	const [isEnabling, setIsEnabling] = useState(false)
 	const [error, setError] = useState(null as string | null)
 	const [successMessage, setSuccessMessage] = useState(null as string | null)
 
@@ -393,6 +394,27 @@ function FairyInvites() {
 		[loadInvites]
 	)
 
+	const enableForMe = useCallback(async () => {
+		setIsEnabling(true)
+		setError(null)
+		setSuccessMessage(null)
+		try {
+			const res = await fetch('/api/app/admin/fairy/enable-for-me', {
+				method: 'POST',
+			})
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			const result = await res.json()
+			setSuccessMessage(`Fairy access enabled! Limit: ${result.fairyLimit}`)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to enable fairy access')
+		} finally {
+			setIsEnabling(false)
+		}
+	}, [])
+
 	useEffect(() => {
 		if (successMessage) {
 			const timer = setTimeout(() => setSuccessMessage(null), 3000)
@@ -404,6 +426,12 @@ function FairyInvites() {
 		<div className={styles.fileOperation}>
 			{error && <div className={styles.errorMessage}>{error}</div>}
 			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
+
+			<div style={{ marginBottom: '16px' }}>
+				<TlaButton onClick={enableForMe} variant="primary" isLoading={isEnabling}>
+					Enable fairies for me
+				</TlaButton>
+			</div>
 
 			<p className="tla-text_ui__small">
 				Create an invite code that grants fairy access. Fairy limit: max fairies per user. Max uses:

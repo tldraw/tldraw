@@ -537,6 +537,9 @@
   "e81c4e4f2b": {
     "translation": "or"
   },
+  "e84209a4cc": {
+    "translation": "{count, plural, one {# fairy} other {# fairies}} - ${amount} {currency}"
+  },
   "ea0626ac5a": {
     "translation": "Danger zone"
   },

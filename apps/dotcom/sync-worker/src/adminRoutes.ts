@@ -190,6 +190,34 @@ export const adminRoutes = createRouter<Environment>()
 
 		return new Response('Deleted', { status: 200 })
 	})
+	.post('/app/admin/fairy/enable-for-me', async (req, env) => {
+		const auth = await requireAuth(req, env)
+		const userId = auth.userId
+
+		const db = createPostgresConnectionPool(env, '/app/admin/fairy/enable-for-me')
+		const { FAIRY_BETA_EXPIRATION } = await import('./config')
+
+		await db
+			.insertInto('user_fairies')
+			.values({
+				userId,
+				fairyLimit: 10,
+				fairyAccessExpiresAt: FAIRY_BETA_EXPIRATION,
+				fairies: '{}',
+			})
+			.onConflict((oc) =>
+				oc.column('userId').doUpdateSet({
+					fairyLimit: 10,
+					fairyAccessExpiresAt: FAIRY_BETA_EXPIRATION,
+				})
+			)
+			.execute()
+
+		const user = getUserDurableObject(env, userId)
+		await user.admin_refreshUserData(userId)
+
+		return json({ success: true, fairyLimit: 10, fairyAccessExpiresAt: FAIRY_BETA_EXPIRATION })
+	})
 	.post('/app/admin/create_legacy_file', async (_res, env) => {
 		const slug = uniqueId()
 		await getRoomDurableObject(env, slug).__admin__createLegacyRoom(slug)
