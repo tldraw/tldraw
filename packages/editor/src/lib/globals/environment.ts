@@ -38,25 +38,33 @@ if (typeof window !== 'undefined') {
  * @public
  */
 const tlenvReactive = atom('tlenvReactive', {
+	// Whether the user's device has a coarse pointer. This is dynamic on many systems, especially
+	// on touch-screen laptops, which will become "coarse" if the user touches the screen.
+	// See https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@media/pointer#coarse
 	isCoarsePointer: false,
 })
-
-const disposables: (() => void)[] = []
 
 if (typeof window !== 'undefined') {
 	const mql = window.matchMedia && window.matchMedia('(any-pointer: coarse)')
 	if (mql) {
-		function handleMediaQueryChange() {
+		mql.addEventListener('change', () => {
 			tlenvReactive.update((prev) => ({ ...prev, isCoarsePointer: mql.matches }))
-		}
-		mql.addEventListener('change', handleMediaQueryChange)
-		disposables.push(() => mql.removeEventListener('change', handleMediaQueryChange))
+		})
 	}
 }
 
-function dispose() {
-	disposables.forEach((dispose) => dispose())
-	disposables.length = 0
-}
+// Update the coarse pointer state when a pointer down event occurs. We need `capture: true`
+// here because the tldraw component itself stops propagation on pointer events it receives.
+window.addEventListener(
+	'pointerdown',
+	(e: PointerEvent) => {
+		// when the user interacts with a mouse, we assume they have a fine pointer.
+		// otherwise, we assume they have a coarse pointer.
+		const isCoarseEvent = e.pointerType !== 'mouse'
+		if (tlenvReactive.get().isCoarsePointer === isCoarseEvent) return
+		tlenvReactive.update((prev) => ({ ...prev, isCoarsePointer: isCoarseEvent }))
+	},
+	{ capture: true }
+)
 
-export { dispose, tlenv, tlenvReactive }
+export { tlenv, tlenvReactive }

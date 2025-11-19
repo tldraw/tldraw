@@ -3469,6 +3469,11 @@ export const tlenv: {
     isWebview: boolean;
 };
 
+// @public
+export const tlenvReactive: Atom<    {
+isCoarsePointer: boolean;
+}, unknown>;
+
 // @public (undocumented)
 export interface TLErrorBoundaryProps {
     // (undocumented)
