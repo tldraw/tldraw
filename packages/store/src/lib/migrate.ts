@@ -223,7 +223,7 @@ export type Migration = {
 	| {
 			readonly scope: 'store'
 			// eslint-disable-next-line @typescript-eslint/method-signature-style
-			readonly upStorage: (storage: TLPersistentStorageTransaction<UnknownRecord>) => void
+			readonly upStorage: (storage: TLPersistentStorageTransaction<UnknownRecord>) => Promise<void>
 	  }
 )
 

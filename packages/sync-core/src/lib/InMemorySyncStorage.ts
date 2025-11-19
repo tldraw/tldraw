@@ -1,6 +1,4 @@
-import { atom, Atom, transaction } from '@tldraw/state'
 import {
-	AtomMap,
 	devFreeze,
 	MetadataKeys,
 	StoreSchema,
@@ -21,6 +19,7 @@ import {
 } from '@tldraw/tlschema'
 import {
 	assert,
+	ExecutionQueue,
 	IndexKey,
 	isEqual,
 	objectMapEntries,
@@ -28,6 +27,7 @@ import {
 	throttle,
 } from '@tldraw/utils'
 import { RoomSnapshot } from './TLSyncRoom'
+import { ReadonlyValue, TransactionMap, TransactionValue } from './TransactionMap'
 
 const TOMBSTONE_PRUNE_BUFFER_SIZE = 1000
 const MAX_TOMBSTONES = 5000
@@ -60,15 +60,15 @@ export const DEFAULT_INITIAL_SNAPSHOT = {
  */
 export class InMemorySyncStorage<R extends UnknownRecord> implements TLPersistentStorage<R> {
 	/** @internal */
-	documents: AtomMap<string, { state: R; lastChangedClock: number }>
+	documents: ReadonlyMap<string, { state: R; lastChangedClock: number }>
 	/** @internal */
-	tombstones: AtomMap<string, number>
+	tombstones: ReadonlyMap<string, number>
 	/** @internal */
-	metadata: AtomMap<string, string>
+	metadata: ReadonlyMap<string, string>
 	/** @internal */
-	documentClock: Atom<number>
+	documentClock: ReadonlyValue<number>
 	/** @internal */
-	tombstoneHistoryStartsAtClock: Atom<number>
+	tombstoneHistoryStartsAtClock: ReadonlyValue<number>
 
 	private listeners = new Set<(source: string, documentClock: number) => void>()
 	onChange(callback: (arg: { source: string; documentClock: number }) => void): () => void {
@@ -81,54 +81,74 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLPersisten
 
 	constructor(snapshot: RoomSnapshot = DEFAULT_INITIAL_SNAPSHOT) {
 		assert(snapshot.schema, 'Schema is required')
-		this.documents = new AtomMap(
-			'room documents',
+		this.documents = new Map(
 			snapshot.documents.map((d) => [
 				d.state.id,
 				{ state: devFreeze(d.state) as R, lastChangedClock: d.lastChangedClock },
 			])
 		)
-		this.metadata = new AtomMap('room metadata')
+		this.metadata = new Map([[MetadataKeys.schema, JSON.stringify(snapshot.schema)]])
 		const documentClock = snapshot.documentClock ?? snapshot.clock ?? 0
-		this.documentClock = atom('document clock', documentClock)
 		const tombstoneHistoryStartsAtClock = snapshot.tombstoneHistoryStartsAtClock ?? documentClock
-		this.tombstoneHistoryStartsAtClock = atom(
-			'tombstone history starts at clock',
-			tombstoneHistoryStartsAtClock
-		)
-		this.tombstones = new AtomMap(
-			'room tombstones',
+		this.documentClock = new ReadonlyValue(documentClock)
+		this.tombstoneHistoryStartsAtClock = new ReadonlyValue(tombstoneHistoryStartsAtClock)
+		this.tombstones = new Map(
 			// If the tombstone history starts now (or we didn't have the
 			// tombstoneHistoryStartsAtClock) then there are no tombstones
 			tombstoneHistoryStartsAtClock === documentClock
 				? []
 				: objectMapEntries(snapshot.tombstones ?? {})
 		)
-		this.metadata.set(MetadataKeys.schema, JSON.stringify(snapshot.schema))
 	}
 
-	transaction<T>(
+	private txnQueue = new ExecutionQueue()
+
+	async transaction<T>(
 		source: string,
-		callback: (txn: TLPersistentStorageTransaction<R>) => T
-	): TLPersistentStorageTransactionResult<T> {
-		const clockBefore = this.documentClock.get()
-		const result = transaction(() => {
-			const txn = new InMemorySyncStorageTransaction<R>(this)
-			return callback(txn)
-		})
+		callback: (txn: TLPersistentStorageTransaction<R>) => Promise<T>
+	): Promise<TLPersistentStorageTransactionResult<T>> {
+		return this.txnQueue.push(async () => {
+			const clockBefore = this.documentClock.get()
+			const result = await TransactionMap.transact(
+				{
+					documents: this.documents,
+					tombstones: this.tombstones,
+					metadata: this.metadata,
+					documentClock: this.documentClock,
+					tombstoneHistoryStartsAtClock: this.tombstoneHistoryStartsAtClock,
+				},
+				async ({
+					documents,
+					tombstones,
+					metadata,
+					documentClock,
+					tombstoneHistoryStartsAtClock,
+				}) => {
+					const txn = new InMemorySyncStorageTransaction<R>({
+						documents,
+						tombstones,
+						metadata,
+						documentClock,
+						tombstoneHistoryStartsAtClock,
+						pruneTombstones: this.pruneTombstones,
+					})
+					return await callback(txn)
+				}
+			)
 
-		const clockAfter = this.documentClock.get()
-		const didChange = clockAfter > clockBefore
-		if (didChange) {
-			// todo: batch these updates
-			for (const listener of this.listeners) {
-				listener(source, clockAfter)
+			const clockAfter = this.documentClock.get()
+			const didChange = clockAfter > clockBefore
+			if (didChange) {
+				// todo: batch these updates
+				for (const listener of this.listeners) {
+					listener(source, clockAfter)
+				}
 			}
-		}
-		return { documentClock: clockAfter, didChange: clockAfter > clockBefore, result }
+			return { documentClock: clockAfter, didChange: clockAfter > clockBefore, result }
+		})
 	}
 
-	getClock(): number {
+	async getClock(): Promise<number> {
 		return this.documentClock.get()
 	}
 
@@ -136,25 +156,43 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLPersisten
 	pruneTombstones = throttle(
 		() => {
 			if (this.tombstones.size > MAX_TOMBSTONES) {
-				const tombstones = Array.from(this.tombstones)
-				// sort entries in ascending order by clock
-				tombstones.sort((a, b) => b[1] - a[1])
-				// avoid having partial history for the earliest clock value by trimming dupes
-				let cutoff = TOMBSTONE_PRUNE_BUFFER_SIZE
-				while (cutoff < tombstones.length && tombstones[cutoff - 1][1] === tombstones[cutoff][1]) {
-					cutoff++
-				}
+				TransactionMap.transact(
+					{
+						tombstoneHistoryStartsAtClock: this.tombstoneHistoryStartsAtClock,
+						tombstones: this.tombstones,
+					},
+					async ({ tombstoneHistoryStartsAtClock, tombstones }) => {
+						// sort entries in ascending order by clock
+						const sortedTombstones = Array.from(tombstones.entries()).sort((a, b) => b[1] - a[1])
+						// avoid having partial history for the earliest clock value by trimming dupes
+						let cutoff = TOMBSTONE_PRUNE_BUFFER_SIZE
+						while (
+							cutoff < sortedTombstones.length &&
+							sortedTombstones[cutoff - 1][1] === sortedTombstones[cutoff][1]
+						) {
+							cutoff++
+						}
 
-				this.tombstoneHistoryStartsAtClock.set(tombstones[cutoff][1] ?? this.documentClock.get())
-				// now remove the old tombstones
-				tombstones.length = cutoff
-				this.tombstones.deleteMany(tombstones.map(([id]) => id))
+						tombstoneHistoryStartsAtClock.set(
+							sortedTombstones[cutoff][1] ?? this.documentClock.get()
+						)
+						// now remove the old tombstones
+						sortedTombstones.length = cutoff
+						tombstones.deleteMany(sortedTombstones.map(([id]) => id))
+					}
+				)
 			}
 		},
 		1000,
 		// prevent this from running synchronously to avoid blocking requests
 		{ leading: false }
 	)
+}
+
+async function* asyncIterator<T>(iterator: Iterable<T>): AsyncIterable<T> {
+	for (const item of iterator) {
+		yield item
+	}
 }
 
 /**
@@ -167,11 +205,20 @@ class InMemorySyncStorageTransaction<R extends UnknownRecord>
 	implements TLPersistentStorageTransaction<R>
 {
 	private _clock
-	constructor(private storage: InMemorySyncStorage<R>) {
+	constructor(
+		private storage: {
+			documents: TransactionMap<string, { state: R; lastChangedClock: number }>
+			tombstones: TransactionMap<string, number>
+			metadata: TransactionMap<string, string>
+			documentClock: TransactionValue<number>
+			tombstoneHistoryStartsAtClock: TransactionValue<number>
+			pruneTombstones(): any
+		}
+	) {
 		this._clock = this.storage.documentClock.get()
 	}
 
-	getClock(): number {
+	async getClock(): Promise<number> {
 		return this._clock
 	}
 
@@ -179,16 +226,17 @@ class InMemorySyncStorageTransaction<R extends UnknownRecord>
 	private getNextClock(): number {
 		if (!this.didIncrementClock) {
 			this.didIncrementClock = true
-			this._clock = this.storage.documentClock.set(this.storage.documentClock.get() + 1)
+			this._clock++
+			this.storage.documentClock.set(this._clock)
 		}
 		return this._clock
 	}
 
-	getDocument(id: string): { state: R; lastChangedClock: number } | undefined {
+	async getDocument(id: string): Promise<{ state: R; lastChangedClock: number } | undefined> {
 		return this.storage.documents.get(id)
 	}
 
-	setDocument(id: string, state: R): void {
+	async setDocument(id: string, state: R) {
 		const clock = this.getNextClock()
 		// Automatically clear tombstone if it exists
 		if (this.storage.tombstones.has(id)) {
@@ -197,34 +245,30 @@ class InMemorySyncStorageTransaction<R extends UnknownRecord>
 		this.storage.documents.set(id, { state: devFreeze(state), lastChangedClock: clock })
 	}
 
-	deleteDocument(id: string): void {
+	async deleteDocument(id: string) {
 		const clock = this.getNextClock()
 		this.storage.documents.delete(id)
 		this.storage.tombstones.set(id, clock)
 		this.storage.pruneTombstones()
 	}
 
-	documents(): IterableIterator<[string, { state: R; lastChangedClock: number }]> {
-		return this.storage.documents.entries()
+	async documents(): Promise<AsyncIterable<[string, { state: R; lastChangedClock: number }]>> {
+		return asyncIterator(this.storage.documents.entries())
 	}
 
-	documentIds(): IterableIterator<string> {
-		return this.storage.documents.keys()
+	async documentIds(): Promise<AsyncIterable<string>> {
+		return asyncIterator(this.storage.documents.keys())
 	}
 
-	getMetadata(key: string): string | null {
+	async getMetadata(key: string): Promise<string | null> {
 		return this.storage.metadata.get(key) ?? null
 	}
 
-	setMetadata(key: string, value: string): void {
+	async setMetadata(key: string, value: string): Promise<void> {
 		this.storage.metadata.set(key, value)
 	}
 
-	tombstones(): IterableIterator<[string, number]> {
-		return this.storage.tombstones.entries()
-	}
-
-	getChangesSince(sinceClock: number): Iterable<TLPersistentStorageChange<R>> {
+	async getChangesSince(sinceClock: number): Promise<AsyncIterable<TLPersistentStorageChange<R>>> {
 		const changes: TLPersistentStorageChange<R>[] = []
 		if (sinceClock < this.storage.tombstoneHistoryStartsAtClock.get()) {
 			sinceClock = 0
@@ -240,31 +284,31 @@ class InMemorySyncStorageTransaction<R extends UnknownRecord>
 				changes.push([TLPersistentStorageChangeOp.DELETE, id])
 			}
 		}
-		return changes
+		return asyncIterator(changes)
 	}
 }
 
-export function loadSnapshotIntoStorage<R extends UnknownRecord>(
+export async function loadSnapshotIntoStorage<R extends UnknownRecord>(
 	storage: TLPersistentStorage<R>,
 	schema: StoreSchema<R, any>,
 	snapshot: RoomSnapshot,
 	source: string
 ) {
-	return storage.transaction(source, (txn) => {
+	return await storage.transaction(source, async (txn) => {
 		const docIds = new Set<string>()
 		for (const doc of snapshot.documents) {
 			docIds.add(doc.state.id)
-			const existing = txn.getDocument(doc.state.id)
+			const existing = await txn.getDocument(doc.state.id)
 			if (isEqual(existing?.state, doc.state)) continue
-			txn.setDocument(doc.state.id, doc.state as R)
+			await txn.setDocument(doc.state.id, doc.state as R)
 		}
-		for (const id of txn.documentIds()) {
+		for await (const id of await txn.documentIds()) {
 			if (!docIds.has(id)) {
-				txn.deleteDocument(id)
+				await txn.deleteDocument(id)
 			}
 		}
-		txn.setMetadata(MetadataKeys.schema, JSON.stringify(snapshot.schema))
-		schema.migratePersistentStorageTxn(txn)
+		await txn.setMetadata(MetadataKeys.schema, JSON.stringify(snapshot.schema))
+		await schema.migratePersistentStorageTxn(txn)
 	})
 }
 

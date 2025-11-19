@@ -22,7 +22,7 @@ export interface TLPersistentStorageTransaction<R extends UnknownRecord> {
 	 *
 	 * @returns The current clock value
 	 */
-	getClock(): number
+	getClock(): Promise<number>
 
 	/**
 	 * Get a document by ID.
@@ -30,7 +30,7 @@ export interface TLPersistentStorageTransaction<R extends UnknownRecord> {
 	 * @param id - The document ID
 	 * @returns The document state and clock, or undefined if not found
 	 */
-	getDocument(id: string): { state: R; lastChangedClock: number } | undefined
+	getDocument(id: string): Promise<{ state: R; lastChangedClock: number } | undefined>
 
 	/**
 	 * Set a document. Overwrites existing document if present.
@@ -40,7 +40,7 @@ export interface TLPersistentStorageTransaction<R extends UnknownRecord> {
 	 * @param state - The document state
 	 * @param clock - The clock value when the document was last changed
 	 */
-	setDocument(id: string, state: R): void
+	setDocument(id: string, state: R): Promise<void>
 
 	/**
 	 * Delete a document by ID. Automatically creates a tombstone internally.
@@ -49,21 +49,21 @@ export interface TLPersistentStorageTransaction<R extends UnknownRecord> {
 	 * @param id - The document ID
 	 * @param clock - The clock value when the document was deleted
 	 */
-	deleteDocument(id: string): void
+	deleteDocument(id: string): Promise<void>
 
 	/**
 	 * Iterate over all documents.
 	 *
 	 * @returns Iterator of [id, { state, lastChangedClock }] pairs
 	 */
-	documents(): IterableIterator<[string, { state: R; lastChangedClock: number }]>
+	documents(): Promise<AsyncIterable<[string, { state: R; lastChangedClock: number }]>>
 
 	/**
 	 * Iterate over all document keys.
 	 *
 	 * @returns Iterator of document IDs
 	 */
-	documentIds(): IterableIterator<string>
+	documentIds(): Promise<AsyncIterable<string>>
 
 	/**
 	 * Get a metadata value by key. Returns the stored string value, or null if not found.
@@ -72,7 +72,7 @@ export interface TLPersistentStorageTransaction<R extends UnknownRecord> {
 	 * @param key - The metadata key
 	 * @returns The metadata value as a string, or null if not found
 	 */
-	getMetadata(key: string): string | null
+	getMetadata(key: string): Promise<string | null>
 
 	/**
 	 * Set a metadata value by key. Stores the value as a string.
@@ -81,7 +81,7 @@ export interface TLPersistentStorageTransaction<R extends UnknownRecord> {
 	 * @param key - The metadata key
 	 * @param value - The metadata value (will be converted to string)
 	 */
-	setMetadata(key: string, value: string): void
+	setMetadata(key: string, value: string): Promise<void>
 
 	/**
 	 * Get all changes (document updates and deletions) since a given clock time.
@@ -91,7 +91,7 @@ export interface TLPersistentStorageTransaction<R extends UnknownRecord> {
 	 * @param sinceClock - The clock time to get changes since
 	 * ```
 	 */
-	getChangesSince(sinceClock: number): Iterable<TLPersistentStorageChange<R>>
+	getChangesSince(sinceClock: number): Promise<AsyncIterable<TLPersistentStorageChange<R>>>
 }
 
 /**
@@ -103,10 +103,10 @@ export interface TLPersistentStorageTransaction<R extends UnknownRecord> {
 export interface TLPersistentStorage<R extends UnknownRecord> {
 	transaction<T>(
 		source: string,
-		callback: (txn: TLPersistentStorageTransaction<R>) => T
-	): TLPersistentStorageTransactionResult<T>
+		callback: (txn: TLPersistentStorageTransaction<R>) => Promise<T>
+	): Promise<TLPersistentStorageTransactionResult<T>>
 
-	getClock(): number
+	getClock(): Promise<number>
 
 	onChange(callback: (arg: { source: string; documentClock: number }) => void): () => void
 }

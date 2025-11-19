@@ -575,8 +575,8 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		return { type: 'success', value: record }
 	}
 
-	migratePersistentStorageTxn(txn: TLPersistentStorageTransaction<R>) {
-		const schema = JSON.parse(txn.getMetadata(MetadataKeys.schema) ?? 'null')
+	async migratePersistentStorageTxn(txn: TLPersistentStorageTransaction<R>) {
+		const schema = JSON.parse((await txn.getMetadata(MetadataKeys.schema)) ?? 'null')
 		assert(schema, 'Schema is missing.')
 
 		const migrations = this.getMigrationsSince(schema)
@@ -589,22 +589,22 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			return
 		}
 
-		txn.setMetadata(MetadataKeys.schema, JSON.stringify(this.serialize()))
+		await txn.setMetadata(MetadataKeys.schema, JSON.stringify(this.serialize()))
 
 		for (const migration of migrationsToApply) {
 			if (migration.scope === 'record') {
-				for (const [id, { state }] of txn.documents()) {
+				for await (const [id, { state }] of await txn.documents()) {
 					const shouldApply = migration.filter ? migration.filter(state) : true
 					if (!shouldApply) continue
 					const record = structuredClone(state)
 					const result = migration.up!(record as any) ?? record
 					if (!isEqual(result, state)) {
-						txn.setDocument(id, result as R)
+						await txn.setDocument(id, result as R)
 					}
 				}
 			} else if (migration.scope === 'store') {
 				assert('upStorage' in migration, 'upStorage is missing')
-				migration.upStorage(txn)
+				await migration.upStorage(txn)
 			} else {
 				exhaustiveSwitchError(migration)
 			}
@@ -616,11 +616,12 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 	 *
 	 * @public
 	 */
-	migratePersistentStorage(
-		storage: TLPersistentStorage<R>
-	): Result<{ documentClock: number; didChange: boolean }, string> {
+	async migratePersistentStorage(
+		storage: TLPersistentStorage<R>,
+		scope: string
+	): Promise<Result<{ documentClock: number; didChange: boolean }, string>> {
 		try {
-			const { documentClock, didChange } = storage.transaction((txn) => {
+			const { documentClock, didChange } = await storage.transaction(scope, async (txn) => {
 				return this.migratePersistentStorageTxn(txn)
 			})
 			return Result.ok({ documentClock, didChange })
