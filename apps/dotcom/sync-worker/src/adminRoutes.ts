@@ -138,6 +138,48 @@ export const adminRoutes = createRouter<Environment>()
 			}
 		)
 	})
+	.post('/app/admin/fairy-invites', async (req, env) => {
+		const body: any = await req.json()
+		const fairyLimit = body?.fairyLimit
+		const maxUses = body?.maxUses
+
+		if (typeof fairyLimit !== 'number' || fairyLimit < 1) {
+			return new Response('fairyLimit must be a positive number', { status: 400 })
+		}
+		if (typeof maxUses !== 'number' || maxUses < 0) {
+			return new Response('maxUses must be 0 (unlimited) or a positive number', { status: 400 })
+		}
+
+		const db = createPostgresConnectionPool(env, '/app/admin/fairy-invites')
+		const id = uniqueId()
+
+		await db
+			.insertInto('fairy_invite')
+			.values({
+				id,
+				fairyLimit,
+				maxUses,
+				currentUses: 0,
+				createdAt: Date.now(),
+			})
+			.execute()
+
+		return json({ id, fairyLimit, maxUses, currentUses: 0, createdAt: Date.now() })
+	})
+	.get('/app/admin/fairy-invites', async (_req, env) => {
+		const db = createPostgresConnectionPool(env, '/app/admin/fairy-invites')
+		const invites = await db.selectFrom('fairy_invite').selectAll().execute()
+		return json(invites)
+	})
+	.delete('/app/admin/fairy-invites/:id', async (req, env) => {
+		const id = req.params.id
+		assert(typeof id === 'string', 'id is required')
+
+		const db = createPostgresConnectionPool(env, '/app/admin/fairy-invites')
+		await db.deleteFrom('fairy_invite').where('id', '=', id).execute()
+
+		return new Response('Deleted', { status: 200 })
+	})
 	.post('/app/admin/create_legacy_file', async (_res, env) => {
 		const slug = uniqueId()
 		await getRoomDurableObject(env, slug).__admin__createLegacyRoom(slug)

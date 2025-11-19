@@ -234,6 +234,12 @@ export function Component() {
 					<BatchMigrateUsersToGroups />
 				</section>
 
+				{/* Fairy Invites Section */}
+				<section className={styles.adminSection}>
+					<h3 className="tla-text_ui__title">Fairy Invites</h3>
+					<FairyInvites />
+				</section>
+
 				{/* File Operations Section */}
 				<section className={styles.adminSection}>
 					<h3 className="tla-text_ui__title">File Operations</h3>
@@ -251,6 +257,192 @@ export function Component() {
 					<DeleteUser />
 				</section>
 			</main>
+		</div>
+	)
+}
+
+function FairyInvites() {
+	const [invites, setInvites] = useState<
+		Array<{
+			id: string
+			fairyLimit: number
+			maxUses: number
+			currentUses: number
+			createdAt: number
+		}>
+	>([])
+	const [fairyLimit, setFairyLimit] = useState(10)
+	const [maxUses, setMaxUses] = useState(1)
+	const [isCreating, setIsCreating] = useState(false)
+	const [isLoading, setIsLoading] = useState(false)
+	const [error, setError] = useState(null as string | null)
+	const [successMessage, setSuccessMessage] = useState(null as string | null)
+
+	const loadInvites = useCallback(async () => {
+		setIsLoading(true)
+		setError(null)
+		try {
+			const res = await fetch('/api/app/admin/fairy-invites')
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			setInvites(await res.json())
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to load invites')
+		} finally {
+			setIsLoading(false)
+		}
+	}, [])
+
+	useEffect(() => {
+		loadInvites()
+	}, [loadInvites])
+
+	const createInvite = useCallback(async () => {
+		if (fairyLimit < 1) {
+			setError('Fairy limit must be at least 1')
+			return
+		}
+		if (maxUses < 0) {
+			setError('Max uses must be 0 (unlimited) or greater')
+			return
+		}
+
+		setIsCreating(true)
+		setError(null)
+		setSuccessMessage(null)
+		try {
+			const res = await fetch('/api/app/admin/fairy-invites', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ fairyLimit, maxUses }),
+			})
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			const invite = await res.json()
+			setSuccessMessage(`Invite created: ${invite.id}`)
+			await loadInvites()
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to create invite')
+		} finally {
+			setIsCreating(false)
+		}
+	}, [fairyLimit, maxUses, loadInvites])
+
+	const deleteInvite = useCallback(
+		async (id: string) => {
+			if (!window.confirm(`Delete invite ${id}?`)) {
+				return
+			}
+
+			setError(null)
+			setSuccessMessage(null)
+			try {
+				const res = await fetch(`/api/app/admin/fairy-invites/${id}`, {
+					method: 'DELETE',
+				})
+				if (!res.ok) {
+					setError(res.statusText + ': ' + (await res.text()))
+					return
+				}
+				setSuccessMessage('Invite deleted')
+				await loadInvites()
+			} catch (err) {
+				setError(err instanceof Error ? err.message : 'Failed to delete invite')
+			}
+		},
+		[loadInvites]
+	)
+
+	useEffect(() => {
+		if (successMessage) {
+			const timer = setTimeout(() => setSuccessMessage(null), 3000)
+			return () => clearTimeout(timer)
+		}
+	}, [successMessage])
+
+	return (
+		<div className={styles.fileOperation}>
+			{error && <div className={styles.errorMessage}>{error}</div>}
+			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
+
+			<p className="tla-text_ui__small">
+				Create an invite code that grants fairy access. Fairy limit: max fairies per user. Max uses:
+				how many users can redeem this code (0 = unlimited).
+			</p>
+			<div className={styles.downloadContainer}>
+				<div>
+					<label htmlFor="fairyLimit">Fairy limit:</label>
+					<input
+						id="fairyLimit"
+						type="number"
+						placeholder="10"
+						value={fairyLimit}
+						onChange={(e) => setFairyLimit(Number(e.target.value))}
+						min={1}
+						className={styles.searchInput}
+						style={{ width: '120px', marginLeft: '8px' }}
+					/>
+				</div>
+				<div>
+					<label htmlFor="maxUses">Max uses:</label>
+					<input
+						id="maxUses"
+						type="number"
+						placeholder="1"
+						value={maxUses}
+						onChange={(e) => setMaxUses(Number(e.target.value))}
+						min={0}
+						className={styles.searchInput}
+						style={{ width: '120px', marginLeft: '8px' }}
+					/>
+				</div>
+				<TlaButton onClick={createInvite} variant="primary" isLoading={isCreating}>
+					Create Invite
+				</TlaButton>
+			</div>
+
+			{isLoading ? (
+				<p className="tla-text_ui__small">Loading invites...</p>
+			) : invites.length === 0 ? (
+				<p className="tla-text_ui__small">No invites yet</p>
+			) : (
+				<table className={styles.invitesTable}>
+					<thead>
+						<tr>
+							<th>ID</th>
+							<th>Fairy Limit</th>
+							<th>Uses</th>
+							<th>Created</th>
+							<th>Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						{invites.map((invite) => (
+							<tr key={invite.id}>
+								<td>{invite.id}</td>
+								<td>{invite.fairyLimit}</td>
+								<td>
+									{invite.currentUses} / {invite.maxUses === 0 ? '∞' : invite.maxUses}
+								</td>
+								<td>{new Date(invite.createdAt).toLocaleString()}</td>
+								<td>
+									<TlaButton
+										onClick={() => deleteInvite(invite.id)}
+										variant="warning"
+										className={styles.deleteButton}
+									>
+										Delete
+									</TlaButton>
+								</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			)}
 		</div>
 	)
 }
