@@ -95,6 +95,12 @@ function buildModePromptSection(flags: SystemPromptFlags) {
 
 function buildSoloingModePromptSection(_flags: SystemPromptFlags) {
 	return `What you should do now is plan how you're going to respond to the user's request. Depending on the request you should either respond to the user, start a task assigned to you, or create some tasks yourself and then start the first one. Starting the task will give you a new set of tools you can use to carry that task out.
+If you decide to create tasks:
+	- For simple requests, you can create a single task. Once you start the task you'll have access to a personal todo list, so you can plan out the specifics of the task then.
+	- Tasks should have the context required to complete them. Once you start you won't have access to the full context of the request.
+	- For more complex requests, you can create multiple tasks.
+	- When deciding on the bounds for a task, you must remember that when doing each task, you will be unable to see or work outside of the bounds of the task. So, if the output of 2 tasks should be overlapping, then the bounds of the tasks should overlap too.
+	- You will only be able to do one task at a time.
 	`
 }
 
@@ -120,6 +126,9 @@ function buildOrchestratingModePromptSection(_flags: SystemPromptFlags) {
 - When you review the tasks, you may find that you need add more tasks to fix or adjust things. This is okay; things sometimes don't go according to plan. You can direct agents to start tasks in any order, so feel free to add a new tasks to fix something that went wrong, await its completion, and only then continue with the plan.
 - Once you've confirmed the first set of tasks are completed satisfactorily, you can start the next set of tasks.
 - You will possibly need to spend some time near the end of the project to make sure each different task is integrated into the project as a whole. This will possibly require the creation of more tasks.
+	- For example, for charts and diagrams, make sure everything that should be connected is connected, and that everything is laid out nicely.
+	- For images and wireframes, make sure everything is laid out nicely with foreground elements generally being completely contained within background elements.
+	- Text should never overlap, the user won't be able to read it if so. You must refer to the screenshot to make sure text is not overlapping.
 - You cannot edit the canvas. As the recruits work on the project, the state is ever changing, so don't be surprised if states of different tasks or the canvas changes as you go.
 - Once the project is fully complete, end it. 
 `
@@ -411,7 +420,7 @@ ${
 function buildSchemaPromptSection(actions: AgentAction['_type'][]) {
 	return `## JSON schema
 
-This is the JSON schema for the events you can return. You must conform to this schema.
+This is the JSON schema for the events you can return. You must conform to this schema. You must only return things in this format, otherwise your response will error. You must conform to this schema. Remember, do NOT wrap any response in a code block using \`\`\`json. Output ONLY the json itself
 
 ${JSON.stringify(buildResponseSchema(actions), null, 2)}
 `
