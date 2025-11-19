@@ -15,6 +15,7 @@ import {
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useDragTracking } from '../../../hooks/useDragTracking'
+import { useHasFlag } from '../../../hooks/useHasFlag'
 import { useIsDragging } from '../../../hooks/useIsDragging'
 import { useHasFileAdminRights } from '../../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../../hooks/useIsFilePinned'
@@ -199,6 +200,7 @@ export function TlaSidebarFileLinkInner({
 	const isCoarsePointer = getIsCoarsePointer()
 
 	const wrapperRef = useRef<HTMLDivElement>(null)
+	const hasGroups = useHasFlag('groups_frontend')
 
 	if (!file) return null
 
@@ -272,7 +274,7 @@ export function TlaSidebarFileLinkInner({
 				draggable={false}
 			/>
 			<div className={styles.sidebarFileListItemContent}>
-				{isPinned && pinIcon}
+				{isPinned && hasGroups && pinIcon}
 				<div
 					className={classNames(
 						styles.sidebarFileListItemLabel,
