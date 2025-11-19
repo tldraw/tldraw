@@ -2,10 +2,12 @@ import {
 	AgentAction,
 	AgentActionInfo,
 	AgentInput,
+	AgentModelName,
 	AgentPrompt,
 	AgentRequest,
 	BaseAgentPrompt,
 	ChatHistoryItem,
+	DEFAULT_MODEL_NAME,
 	FAIRY_VISION_DIMENSIONS,
 	FairyConfig,
 	FairyEntity,
@@ -19,8 +21,11 @@ import {
 	FairyWaitEvent,
 	FairyWork,
 	getFairyModeDefinition,
+	getModelPricing,
+	ModelNamePart,
 	PromptPart,
 	Streaming,
+	TIER_THRESHOLD,
 } from '@tldraw/fairy-shared'
 import {
 	Atom,
@@ -124,10 +129,14 @@ export class FairyAgent {
 	/**
 	 * Debug flags for controlling logging behavior in the worker.
 	 */
-	$debugFlags = atom<{ logSystemPrompt: boolean; logMessages: boolean }>('debugFlags', {
-		logSystemPrompt: false,
-		logMessages: false,
-	})
+	$debugFlags = atom<{ logSystemPrompt: boolean; logMessages: boolean; logResponseTime: boolean }>(
+		'debugFlags',
+		{
+			logSystemPrompt: false,
+			logMessages: false,
+			logResponseTime: false,
+		}
+	)
 
 	/**
 	 * An atom containing the conditions this agent is waiting for.
@@ -163,20 +172,37 @@ export class FairyAgent {
 
 	/**
 	 * Cumulative token usage tracking for this chat session.
-	 * Separated by tier to handle Claude 4.5 Sonnet's tiered pricing.
+	 * Tracked per model to handle different pricing models.
 	 */
-	cumulativeUsage = {
-		// Tier 1: Prompts ≤ 200K tokens
-		tier1: {
-			promptTokens: 0,
-			completionTokens: 0,
-		},
-		// Tier 2: Prompts > 200K tokens
-		tier2: {
-			promptTokens: 0,
-			completionTokens: 0,
-		},
-		// Total across all tiers
+	cumulativeUsage: {
+		// Usage per model, separated by tier for models with tiered pricing
+		byModel: Record<
+			AgentModelName,
+			{
+				// Tier 1: Prompts ≤ 200K tokens (for models with tiered pricing)
+				tier1: {
+					promptTokens: number // Total input tokens (cached + uncached)
+					cachedInputTokens: number // Cached input tokens (cheaper pricing)
+					completionTokens: number
+				}
+				// Tier 2: Prompts > 200K tokens (for models with tiered pricing)
+				tier2: {
+					promptTokens: number // Total input tokens (cached + uncached)
+					cachedInputTokens: number // Cached input tokens (cheaper pricing)
+					completionTokens: number
+				}
+			}
+		>
+		// Total across all models and tiers
+		totalTokens: number
+	} = {
+		byModel: {} as Record<
+			AgentModelName,
+			{
+				tier1: { promptTokens: number; cachedInputTokens: number; completionTokens: number }
+				tier2: { promptTokens: number; cachedInputTokens: number; completionTokens: number }
+			}
+		>,
 		totalTokens: 0,
 	}
 
@@ -318,49 +344,75 @@ export class FairyAgent {
 	 */
 	resetCumulativeUsage() {
 		this.cumulativeUsage = {
-			tier1: {
-				promptTokens: 0,
-				completionTokens: 0,
-			},
-			tier2: {
-				promptTokens: 0,
-				completionTokens: 0,
-			},
+			byModel: {} as Record<
+				AgentModelName,
+				{
+					tier1: { promptTokens: number; cachedInputTokens: number; completionTokens: number }
+					tier2: { promptTokens: number; cachedInputTokens: number; completionTokens: number }
+				}
+			>,
 			totalTokens: 0,
 		}
 	}
 
 	/**
+	 * Extract the model name from a prompt.
+	 * @param prompt - The agent prompt
+	 * @returns The model name, or DEFAULT_MODEL_NAME if not found
+	 */
+	getModelNameFromPrompt(prompt: AgentPrompt): AgentModelName {
+		for (const part of Object.values(prompt)) {
+			if (part.type === 'modelName') {
+				return (part as ModelNamePart).name
+			}
+		}
+		return DEFAULT_MODEL_NAME
+	}
+
+	/**
 	 * Get the current cumulative cost for this fairy agent.
-	 * Based on Claude 4.5 Sonnet tiered pricing:
-	 * - Tier 1 (≤ 200K tokens): $3 input / $15 output per million tokens
-	 * - Tier 2 (> 200K tokens): $6 input / $22.50 output per million tokens
+	 * Calculates costs based on model-specific pricing, accounting for cached input tokens.
 	 * @returns An object with input cost, output cost, and total cost in USD.
 	 */
 	getCumulativeCost() {
-		// Claude 4.5 Sonnet pricing per million tokens
-		// Tier 1: Prompts ≤ 200K tokens
-		const tier1InputPrice = 3 // $3 per million input tokens
-		const tier1OutputPrice = 15 // $15 per million output tokens
+		let totalInputCost = 0
+		let totalOutputCost = 0
 
-		// Tier 2: Prompts > 200K tokens
-		const tier2InputPrice = 6 // $6 per million input tokens
-		const tier2OutputPrice = 22.5 // $22.50 per million output tokens
+		// Iterate through all models and calculate costs
+		for (const [modelName, usage] of Object.entries(this.cumulativeUsage.byModel)) {
+			const typedModelName = modelName as AgentModelName
 
-		// Calculate costs for each tier
-		const tier1InputCost = (this.cumulativeUsage.tier1.promptTokens / 1_000_000) * tier1InputPrice
-		const tier1OutputCost =
-			(this.cumulativeUsage.tier1.completionTokens / 1_000_000) * tier1OutputPrice
+			// Calculate cost for tier 1 (≤ 200K tokens)
+			const tier1Pricing = getModelPricing(typedModelName, 200_000)
+			const tier1UncachedInputTokens = usage.tier1.promptTokens - usage.tier1.cachedInputTokens
+			const tier1UncachedInputCost =
+				(tier1UncachedInputTokens / 1_000_000) * tier1Pricing.inputPrice
+			const tier1CachedInputCost =
+				tier1Pricing.cachedInputPrice !== null
+					? (usage.tier1.cachedInputTokens / 1_000_000) * tier1Pricing.cachedInputPrice
+					: 0
+			const tier1InputCost = tier1UncachedInputCost + tier1CachedInputCost
+			const tier1OutputCost = (usage.tier1.completionTokens / 1_000_000) * tier1Pricing.outputPrice
 
-		const tier2InputCost = (this.cumulativeUsage.tier2.promptTokens / 1_000_000) * tier2InputPrice
-		const tier2OutputCost =
-			(this.cumulativeUsage.tier2.completionTokens / 1_000_000) * tier2OutputPrice
+			// Calculate cost for tier 2 (> 200K tokens)
+			const tier2Pricing = getModelPricing(typedModelName, 200_001)
+			const tier2UncachedInputTokens = usage.tier2.promptTokens - usage.tier2.cachedInputTokens
+			const tier2UncachedInputCost =
+				(tier2UncachedInputTokens / 1_000_000) * tier2Pricing.inputPrice
+			const tier2CachedInputCost =
+				tier2Pricing.cachedInputPrice !== null
+					? (usage.tier2.cachedInputTokens / 1_000_000) * tier2Pricing.cachedInputPrice
+					: 0
+			const tier2InputCost = tier2UncachedInputCost + tier2CachedInputCost
+			const tier2OutputCost = (usage.tier2.completionTokens / 1_000_000) * tier2Pricing.outputPrice
 
-		const inputCost = tier1InputCost + tier2InputCost
-		const outputCost = tier1OutputCost + tier2OutputCost
-		const totalCost = inputCost + outputCost
+			totalInputCost += tier1InputCost + tier2InputCost
+			totalOutputCost += tier1OutputCost + tier2OutputCost
+		}
 
-		return { inputCost, outputCost, totalCost }
+		const totalCost = totalInputCost + totalOutputCost
+
+		return { inputCost: totalInputCost, outputCost: totalOutputCost, totalCost }
 	}
 
 	/**
@@ -1049,6 +1101,7 @@ export class FairyAgent {
 	 */
 	reset() {
 		this.cancel()
+		this.promptStartTime = null
 		this.$todoList.set([])
 		this.$userActionHistory.set([])
 		this.setMode('idling')
@@ -1077,6 +1130,12 @@ export class FairyAgent {
 	 * Do not use this to check if the agent is currently working on a request. Use `isGenerating` instead.
 	 */
 	private isActing = false
+
+	/**
+	 * Tracks the start time of the current prompt being timed.
+	 * Set when timing starts, cleared when timing stops.
+	 */
+	promptStartTime: number | null = null
 
 	/**
 	 * Start recording user actions.
@@ -1406,18 +1465,32 @@ function requestAgentActions({ agent, request }: { agent: FairyAgent; request: A
 					const usage = (action as any).usage
 					if (usage) {
 						// AI SDK returns: { inputTokens, outputTokens, totalTokens, cachedInputTokens }
+						// cachedInputTokens can be undefined, which means 0
 						const promptTokens = usage.inputTokens || 0
 						const completionTokens = usage.outputTokens || 0
+						const cachedInputTokens = usage.cachedInputTokens || 0
+
+						// Extract model name from prompt
+						const modelName = agent.getModelNameFromPrompt(prompt)
+
+						// Initialize model usage if it doesn't exist
+						if (!agent.cumulativeUsage.byModel[modelName]) {
+							agent.cumulativeUsage.byModel[modelName] = {
+								tier1: { promptTokens: 0, cachedInputTokens: 0, completionTokens: 0 },
+								tier2: { promptTokens: 0, cachedInputTokens: 0, completionTokens: 0 },
+							}
+						}
 
 						// Determine which tier this request falls into
 						// Tier 1: ≤ 200K tokens, Tier 2: > 200K tokens
-						const TIER_THRESHOLD = 200_000
 						if (promptTokens <= TIER_THRESHOLD) {
-							agent.cumulativeUsage.tier1.promptTokens += promptTokens
-							agent.cumulativeUsage.tier1.completionTokens += completionTokens
+							agent.cumulativeUsage.byModel[modelName].tier1.promptTokens += promptTokens
+							agent.cumulativeUsage.byModel[modelName].tier1.cachedInputTokens += cachedInputTokens
+							agent.cumulativeUsage.byModel[modelName].tier1.completionTokens += completionTokens
 						} else {
-							agent.cumulativeUsage.tier2.promptTokens += promptTokens
-							agent.cumulativeUsage.tier2.completionTokens += completionTokens
+							agent.cumulativeUsage.byModel[modelName].tier2.promptTokens += promptTokens
+							agent.cumulativeUsage.byModel[modelName].tier2.cachedInputTokens += cachedInputTokens
+							agent.cumulativeUsage.byModel[modelName].tier2.completionTokens += completionTokens
 						}
 
 						agent.cumulativeUsage.totalTokens += usage.totalTokens || 0
@@ -1425,21 +1498,39 @@ function requestAgentActions({ agent, request }: { agent: FairyAgent; request: A
 						// Calculate cumulative costs
 						const { inputCost, outputCost, totalCost } = agent.getCumulativeCost()
 
-						// Calculate total prompt and completion tokens across both tiers
-						const totalPromptTokens =
-							agent.cumulativeUsage.tier1.promptTokens + agent.cumulativeUsage.tier2.promptTokens
-						const totalCompletionTokens =
-							agent.cumulativeUsage.tier1.completionTokens +
-							agent.cumulativeUsage.tier2.completionTokens
+						// Calculate total prompt and completion tokens across all models and tiers
+						let totalPromptTokens = 0
+						let totalCompletionTokens = 0
+						let totalCachedInputTokens = 0
+						for (const modelUsage of Object.values(agent.cumulativeUsage.byModel)) {
+							totalPromptTokens += modelUsage.tier1.promptTokens + modelUsage.tier2.promptTokens
+							totalCompletionTokens +=
+								modelUsage.tier1.completionTokens + modelUsage.tier2.completionTokens
+							totalCachedInputTokens +=
+								modelUsage.tier1.cachedInputTokens + modelUsage.tier2.cachedInputTokens
+						}
+
+						// Calculate percentage of input tokens that were cached
+						const cachedPercentage =
+							totalPromptTokens > 0
+								? ((totalCachedInputTokens / totalPromptTokens) * 100).toFixed(1)
+								: '0.0'
+
+						// Build input cost string with cached breakdown if applicable
+						const inputCostStr =
+							totalCachedInputTokens > 0
+								? `Input: $${inputCost.toFixed(4)} (${cachedPercentage}% cached)`
+								: `Input: $${inputCost.toFixed(4)}`
 
 						// eslint-disable-next-line no-console
 						console.debug(
 							`🧚 Fairy "${agent.$fairyConfig.get().name}" Cumulative Usage:\n` +
+								`  Model: ${modelName}\n` +
 								`  Prompt tokens: ${totalPromptTokens.toLocaleString()}\n` +
 								`  Completion tokens: ${totalCompletionTokens.toLocaleString()}\n` +
 								`  Total tokens: ${agent.cumulativeUsage.totalTokens.toLocaleString()}\n` +
 								`  💰 Cumulative Cost: $${totalCost.toFixed(4)}\n` +
-								`     (Input: $${inputCost.toFixed(4)}, Output: $${outputCost.toFixed(4)})`
+								`     (${inputCostStr}, Output: $${outputCost.toFixed(4)})`
 						)
 					}
 					continue

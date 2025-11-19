@@ -4,14 +4,21 @@ import {
 	GoogleGenerativeAIProvider,
 	GoogleGenerativeAIProviderOptions,
 } from '@ai-sdk/google'
-import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
-import { AgentAction, AgentPrompt, DebugPart, Streaming } from '@tldraw/fairy-shared'
+import { createOpenAI, OpenAIProvider, OpenAIResponsesProviderOptions } from '@ai-sdk/openai'
+import {
+	AgentAction,
+	AgentModelName,
+	AgentPrompt,
+	DebugPart,
+	Streaming,
+} from '@tldraw/fairy-shared'
 import { LanguageModel, streamText } from 'ai'
 import { Environment } from '../environment'
 import { buildMessages } from '../prompt/buildMessages'
 import { buildSystemPrompt, buildSystemPromptWithoutSchema } from '../prompt/buildSystemPrompt'
+import { getModelName } from '../prompt/getModelName'
 import { closeAndParseJson } from './closeAndParseJson'
-import { AgentModelName, FAIRY_MODEL_NAME, getAgentModelDefinition } from './models'
+import { getAgentModelDefinition } from './models'
 
 export class AgentService {
 	openai: OpenAIProvider
@@ -35,7 +42,8 @@ export class AgentService {
 		isAdmin = false
 	): AsyncGenerator<Streaming<AgentAction>> {
 		try {
-			const model = this.getModel(FAIRY_MODEL_NAME)
+			const modelName = getModelName(prompt)
+			const model = this.getModel(modelName)
 			for await (const action of _streamActions(model, prompt, isAdmin)) {
 				yield action
 			}
@@ -47,7 +55,8 @@ export class AgentService {
 
 	async *streamText(prompt: AgentPrompt): AsyncGenerator<string> {
 		try {
-			const model = this.getModel(FAIRY_MODEL_NAME)
+			const modelName = getModelName(prompt)
+			const model = this.getModel(modelName)
 			for await (const text of _streamText(model, prompt)) {
 				yield text
 			}
@@ -58,12 +67,18 @@ export class AgentService {
 	}
 }
 
+// currently unused
 async function* _streamText(model: LanguageModel, prompt: AgentPrompt): AsyncGenerator<string> {
 	if (typeof model === 'string') {
 		throw new Error('Model is a string, not a LanguageModel')
 	}
 
-	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
+	// -1 means dynamic budget
+	// 128 is minimum for 2.5 pro - we're not sure if this is too low
+	const geminiThinkingBudget =
+		model.modelId === 'gemini-2.5-pro' || model.modelId === 'gemini-3-pro-preview' ? 256 : 0
+
+	const gptThinkingBudget = model.modelId === 'gpt-5.1' ? 'none' : 'minimal'
 
 	const messages = buildMessages(prompt)
 	const systemPrompt = buildSystemPrompt(prompt) || 'You are a helpful assistant.'
@@ -95,6 +110,9 @@ async function* _streamText(model: LanguageModel, prompt: AgentPrompt): AsyncGen
 				google: {
 					thinkingConfig: { thinkingBudget: geminiThinkingBudget },
 				} satisfies GoogleGenerativeAIProviderOptions,
+				openai: {
+					reasoningEffort: gptThinkingBudget,
+				} satisfies OpenAIResponsesProviderOptions,
 			},
 			onError: (e) => {
 				console.error('Stream text error:', e)
@@ -124,7 +142,12 @@ async function* _streamActions(
 		throw new Error('Model is a string, not a LanguageModel')
 	}
 
-	const geminiThinkingBudget = model.modelId === 'gemini-2.5-pro' ? 128 : 0
+	// -1 means dynamic budget
+	// 128 is minimum for 2.5 pro - we're not sure if this is too low
+	const geminiThinkingBudget =
+		model.modelId === 'gemini-2.5-pro' || model.modelId === 'gemini-3-pro-preview' ? 256 : 0
+
+	const gptThinkingBudget = model.modelId === 'gpt-5.1' ? 'none' : 'minimal'
 
 	const messages = buildMessages(prompt)
 	const systemPrompt = buildSystemPrompt(prompt)
@@ -160,6 +183,9 @@ async function* _streamActions(
 				google: {
 					thinkingConfig: { thinkingBudget: geminiThinkingBudget },
 				} satisfies GoogleGenerativeAIProviderOptions,
+				openai: {
+					reasoningEffort: gptThinkingBudget,
+				} satisfies OpenAIResponsesProviderOptions,
 			},
 			onError: (e) => {
 				console.error('Stream text error:', e)

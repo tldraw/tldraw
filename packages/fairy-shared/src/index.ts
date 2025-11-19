@@ -48,6 +48,7 @@ export * from './types/FairyVariant'
 
 // Constants / Defaults
 export * from './constants'
+export * from './models'
 export * from './schema/FairyModeDefinition'
 export * from './schema/FairySchema'
 

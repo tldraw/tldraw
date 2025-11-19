@@ -42,6 +42,7 @@ import { CurrentProjectPartUtil } from './parts/CurrentProjectPartUtil'
 import { DataPartUtil } from './parts/DataPartUtil'
 import { DebugPartUtil } from './parts/DebugPartUtil'
 import { MessagesPartUtil } from './parts/MessagesPartUtil'
+import { ModelNamePartUtil } from './parts/ModelNamePartUtil'
 import { ModePartUtil } from './parts/ModePartUtil'
 import { OtherFairiesPartUtil } from './parts/OtherFairiesPartUtil'
 import { PagesPartUtil } from './parts/PagesPartUtil'
@@ -156,6 +157,9 @@ export const PROMPT_PART_UTILS = [
 	PersonalityPartUtil,
 	ModePartUtil,
 	CurrentProjectPartUtil,
+
+	// Model selection
+	ModelNamePartUtil,
 
 	// Debug
 	DebugPartUtil,

@@ -1,4 +1,10 @@
-import { ChatHistoryItem, PROMPT_PART_DEFINITIONS } from '@tldraw/fairy-shared'
+import {
+	AGENT_MODEL_DEFINITIONS,
+	AgentModelName,
+	ChatHistoryItem,
+	DEFAULT_MODEL_NAME,
+	PROMPT_PART_DEFINITIONS,
+} from '@tldraw/fairy-shared'
 import { ReactNode, useState } from 'react'
 import {
 	TldrawUiButton,
@@ -18,6 +24,7 @@ import {
 import { F } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { $fairyDebugFlags } from './FairyDebugFlags'
+import { $fairyModelSelection } from './FairyModelSelection'
 import { $fairyProjects, addAgentToDummyProject } from './FairyProjects'
 import { $fairyTasks } from './FairyTaskList'
 
@@ -297,6 +304,8 @@ function SharedTodoListInspector() {
 
 function HomeDebugOptions() {
 	const debugFlags = useValue($fairyDebugFlags)
+	const selectedModel = useValue($fairyModelSelection)
+	const currentModel = selectedModel ?? DEFAULT_MODEL_NAME
 
 	return (
 		<div className="home-debug-options-container">
@@ -321,6 +330,34 @@ function HomeDebugOptions() {
 						</span>
 					</label>
 				</div>
+			</div>
+			<div className="fairy-debug-model-selection-container">
+				<label className="fairy-debug-view-label">
+					<F defaultMessage="Model:" />
+				</label>
+				<TldrawUiDropdownMenuRoot id="model-select">
+					<TldrawUiDropdownMenuTrigger>
+						<TldrawUiButton type="low" className="fairy-debug-view-button">
+							<TldrawUiButtonLabel>{currentModel}</TldrawUiButtonLabel>
+							<TldrawUiButtonIcon icon="chevron-down" small />
+						</TldrawUiButton>
+					</TldrawUiDropdownMenuTrigger>
+					<TldrawUiDropdownMenuContent side="top" className="fairy-debug-dropdown">
+						{Object.entries(AGENT_MODEL_DEFINITIONS).map(([modelName, modelDefinition]) => (
+							<DropdownMenuItem
+								key={modelName}
+								label={
+									'displayName' in modelDefinition && modelDefinition.displayName
+										? modelDefinition.displayName
+										: modelDefinition.name
+								}
+								onClick={() => {
+									$fairyModelSelection.set(modelName as AgentModelName)
+								}}
+							/>
+						))}
+					</TldrawUiDropdownMenuContent>
+				</TldrawUiDropdownMenuRoot>
 			</div>
 			<TldrawUiButton type="low" onClick={logPartDefinitionsByPriority}>
 				<TldrawUiButtonLabel>
@@ -371,13 +408,28 @@ function FairyDebugOptions({ agent }: { agent: FairyAgent }) {
 							<F defaultMessage="Log Messages" />
 						</span>
 					</label>
+					<label className="fairy-debug-flags-checkbox">
+						<input
+							type="checkbox"
+							checked={debugFlags.logResponseTime}
+							onChange={(e) => {
+								agent.$debugFlags.set({
+									...debugFlags,
+									logResponseTime: e.target.checked,
+								})
+							}}
+						/>
+						<span>
+							<F defaultMessage="Log response time (solo mode only)" />
+						</span>
+					</label>
 				</div>
 			</div>
 
 			<div className="fairy-debug-options-buttons">
 				<TldrawUiButton type="low" onClick={() => addAgentToDummyProject(agent.id)}>
 					<TldrawUiButtonLabel>
-						<F defaultMessage="Add to Dummy Project" />
+						<F defaultMessage="Add to dummy project" />
 					</TldrawUiButtonLabel>
 				</TldrawUiButton>
 				<TldrawUiButton type="low" onClick={() => ((window as any).agent = agent)}>
