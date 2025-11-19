@@ -741,7 +741,7 @@ export class FairyAgent {
 	/**
 	 * Interrupt the agent, set their mode and schedule a request.
 	 */
-	interrupt({ input, mode }: { input?: AgentInput; mode?: FairyModeDefinition['type'] }) {
+	interrupt({ input, mode }: { input: AgentInput; mode?: FairyModeDefinition['type'] }) {
 		this.cancelFn?.()
 		this.$activeRequest.set(null)
 		this.$scheduledRequest.set(null)
@@ -750,9 +750,7 @@ export class FairyAgent {
 		if (mode) {
 			this.setMode(mode)
 		}
-		if (input !== undefined) {
-			this.schedule(input)
-		}
+		this.schedule(input)
 	}
 
 	/**

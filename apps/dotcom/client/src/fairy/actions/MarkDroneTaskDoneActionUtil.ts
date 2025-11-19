@@ -25,6 +25,7 @@ export class MarkDroneTaskDoneActionUtil extends AgentActionUtil<MarkDroneTaskDo
 		if (!task) return
 
 		setFairyTaskStatusAndNotifyCompletion(action.taskId, 'done', this.editor)
-		this.agent.interrupt({ mode: 'standing-by' })
+		this.agent.setMode('standing-by')
+		this.agent.cancel()
 	}
 }

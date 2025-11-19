@@ -50,6 +50,5 @@ export class AwaitTasksCompletionActionUtil extends AgentActionUtil<AwaitTasksCo
 			const condition = createTaskWaitCondition(taskId)
 			this.agent.waitFor(condition)
 		}
-		this.agent.cancel()
 	}
 }
