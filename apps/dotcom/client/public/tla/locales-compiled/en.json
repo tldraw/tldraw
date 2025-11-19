@@ -17,12 +17,6 @@
       "value": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
     }
   ],
-  "03d200eb47": [
-    {
-      "type": 0,
-      "value": "Todo List"
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -43,12 +37,6 @@
     {
       "type": 0,
       "value": "Auto"
-    }
-  ],
-  "06df33001c": [
-    {
-      "type": 0,
-      "value": "Actions"
     }
   ],
   "07dbd11b21": [
@@ -75,10 +63,10 @@
       "value": "Create a free account to save your work, collaborate in real-time, and more."
     }
   ],
-  "09fabda990": [
+  "090b807281": [
     {
       "type": 0,
-      "value": "No projects yet"
+      "value": "Spiky"
     }
   ],
   "0b27918290": [
@@ -141,12 +129,6 @@
       "value": "Try the tldraw SDK"
     }
   ],
-  "12ed704517": [
-    {
-      "type": 0,
-      "value": "Associated Todos"
-    }
-  ],
   "13ddd375ad": [
     {
       "type": 0,
@@ -171,40 +153,10 @@
       "value": "Delete group"
     }
   ],
-  "154bd27b5f": [
-    {
-      "type": 0,
-      "value": "Log Messages"
-    }
-  ],
-  "18134862ed": [
-    {
-      "type": 0,
-      "value": "Log System Prompt"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
       "value": "Create file"
-    }
-  ],
-  "1af48b80de": [
-    {
-      "type": 0,
-      "value": "Shared Todo List"
-    }
-  ],
-  "1c60248e26": [
-    {
-      "type": 0,
-      "value": "Current Project ID"
-    }
-  ],
-  "1d83c389f5": [
-    {
-      "type": 0,
-      "value": "No chat history items yet"
     }
   ],
   "1da2e8106b": [
@@ -265,12 +217,6 @@
     {
       "type": 0,
       "value": "Upload failed"
-    }
-  ],
-  "29d586c251": [
-    {
-      "type": 0,
-      "value": "Debug Flags"
     }
   ],
   "2c3ef76333": [
@@ -357,16 +303,16 @@
       "value": "Accept all"
     }
   ],
+  "4131ec34ef": [
+    {
+      "type": 0,
+      "value": "Bald"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Contact the owner to request access."
-    }
-  ],
-  "4351cfebe4": [
-    {
-      "type": 0,
-      "value": "View"
     }
   ],
   "44db318ee5": [
@@ -423,12 +369,6 @@
       "value": "Leader fairy will be given orchestration power"
     }
   ],
-  "4ba513fc6e": [
-    {
-      "type": 0,
-      "value": "Set window.agent"
-    }
-  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -465,16 +405,16 @@
       "value": "Unfollow fairy"
     }
   ],
+  "4f827717f7": [
+    {
+      "type": 0,
+      "value": "Pointy"
+    }
+  ],
   "50db1b7e1e": [
     {
       "type": 0,
       "value": "Unable to unpublish the file."
-    }
-  ],
-  "50e6a0d51c": [
-    {
-      "type": 0,
-      "value": "Scheduled Request"
     }
   ],
   "517bb809d9": [
@@ -493,12 +433,6 @@
     {
       "type": 0,
       "value": "Please slow down."
-    }
-  ],
-  "54e1d44609": [
-    {
-      "type": 0,
-      "value": "Projects"
     }
   ],
   "554a05155c": [
@@ -641,12 +575,6 @@
       "value": "Click to remove or drag to move"
     }
   ],
-  "650be61892": [
-    {
-      "type": 0,
-      "value": "Mode"
-    }
-  ],
   "65709fd250": [
     {
       "type": 0,
@@ -773,6 +701,12 @@
       "value": "Invalid request."
     }
   ],
+  "7835039819": [
+    {
+      "type": 0,
+      "value": "Propeller"
+    }
+  ],
   "78e9815992": [
     {
       "type": 0,
@@ -795,6 +729,12 @@
     {
       "type": 0,
       "value": "User manual"
+    }
+  ],
+  "7b5449bd84": [
+    {
+      "type": 0,
+      "value": "Antenna"
     }
   ],
   "7be10fc592": [
@@ -831,12 +771,6 @@
     {
       "type": 0,
       "value": "Forget file"
-    }
-  ],
-  "7fe64993fa": [
-    {
-      "type": 0,
-      "value": "Fairy Debug View"
     }
   ],
   "801ab24683": [
@@ -929,24 +863,6 @@
       "value": "Check your email for a verification code."
     }
   ],
-  "8c638df80d": [
-    {
-      "type": 0,
-      "value": "Active Request"
-    }
-  ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Home"
-    }
-  ],
-  "8d0d9c8784": [
-    {
-      "type": 0,
-      "value": "Add to Dummy Project"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -971,12 +887,6 @@
       "value": "Rename"
     }
   ],
-  "91d6e7b08f": [
-    {
-      "type": 0,
-      "value": "Chat History"
-    }
-  ],
   "91e49bb0eb": [
     {
       "type": 0,
@@ -989,10 +899,10 @@
       "value": "Copied invite link"
     }
   ],
-  "9364674cd8": [
+  "93346fdd70": [
     {
       "type": 0,
-      "value": "Show Task Bounds"
+      "value": "Ears"
     }
   ],
   "93dfe9fbbe": [
@@ -1043,6 +953,12 @@
       "value": "Add file link"
     }
   ],
+  "98e528aac6": [
+    {
+      "type": 0,
+      "value": "Switch to fairy chat"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
@@ -1053,12 +969,6 @@
     {
       "type": 0,
       "value": "Debug view"
-    }
-  ],
-  "99c9147901": [
-    {
-      "type": 0,
-      "value": "No shared todos yet"
     }
   ],
   "9b33f5c63c": [
@@ -1147,6 +1057,12 @@
       "value": "Export image"
     }
   ],
+  "a2f0372a75": [
+    {
+      "type": 0,
+      "value": "Switch to task list"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -1171,6 +1087,12 @@
       "value": "Reset all chats"
     }
   ],
+  "a4ffdcf0dc": [
+    {
+      "type": 0,
+      "value": "Top"
+    }
+  ],
   "a686e2236d": [
     {
       "type": 0,
@@ -1187,12 +1109,6 @@
     {
       "type": 0,
       "value": "Analytics"
-    }
-  ],
-  "a818294e75": [
-    {
-      "type": 0,
-      "value": "Fairy Entity"
     }
   ],
   "a885eb91ac": [
@@ -1219,12 +1135,6 @@
       "value": "File limit reached"
     }
   ],
-  "af1052d9b7": [
-    {
-      "type": 0,
-      "value": "Log Part Definitions by Priority"
-    }
-  ],
   "af3dc88931": [
     {
       "type": 0,
@@ -1241,12 +1151,6 @@
     {
       "type": 0,
       "value": "Guest user"
-    }
-  ],
-  "b1e2ed3209": [
-    {
-      "type": 0,
-      "value": "User Action History"
     }
   ],
   "b357b524e7": [
@@ -1375,6 +1279,12 @@
       "value": " to help us improve tldraw."
     }
   ],
+  "c2ad21c079": [
+    {
+      "type": 0,
+      "value": "Hair"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1445,12 +1355,6 @@
     {
       "type": 0,
       "value": "SVG"
-    }
-  ],
-  "ce1c2aa2f1": [
-    {
-      "type": 0,
-      "value": "No todos associated with this project"
     }
   ],
   "cea291e45e": [
@@ -1645,12 +1549,6 @@
       "value": "Cancel"
     }
   ],
-  "eb2f314fac": [
-    {
-      "type": 0,
-      "value": "Cumulative Usage"
-    }
-  ],
   "ebfe9ce86e": [
     {
       "type": 0,
@@ -1761,12 +1659,6 @@
       "value": "Settings"
     }
   ],
-  "f66d005b34": [
-    {
-      "type": 0,
-      "value": "Chat Origin"
-    }
-  ],
   "f6ae34b4ba": [
     {
       "type": 0,
@@ -1795,12 +1687,6 @@
     {
       "type": 0,
       "value": "Privacy Policy"
-    }
-  ],
-  "fa535ffb25": [
-    {
-      "type": 0,
-      "value": "Config"
     }
   ],
   "fb15c53f22": [
