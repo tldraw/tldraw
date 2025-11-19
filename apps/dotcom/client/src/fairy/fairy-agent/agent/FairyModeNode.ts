@@ -12,11 +12,27 @@ export interface FairyModeNode {
 export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode> = {
 	idling: {
 		onPromptStart(agent) {
+			// Start timing if enabled
+			const debugFlags = agent.$debugFlags.get()
+			if (debugFlags.logResponseTime && agent.promptStartTime === null) {
+				agent.promptStartTime = performance.now()
+			}
+
 			agent.setMode('soloing')
 		},
 	},
 	soloing: {
 		onPromptEnd(agent) {
+			// Stop timing and log
+			if (agent.promptStartTime !== null) {
+				const endTime = performance.now()
+				const duration = (endTime - agent.promptStartTime) / 1000
+				const fairyName = agent.$fairyConfig.get().name
+				// eslint-disable-next-line no-console
+				console.log(`🧚 Fairy "${fairyName}" prompt completed in ${duration.toFixed(2)}s`)
+				agent.promptStartTime = null
+			}
+
 			// Continue if there are outstanding tasks
 			const myTasks = $fairyTasks.get().filter((task) => task.assignedTo === agent.id)
 			const incompleteTasks = myTasks.filter((task) => task.status !== 'done')

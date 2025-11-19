@@ -3,6 +3,7 @@ import { BlurryShape } from '../format/BlurryShape'
 import { FocusedShapePartial, FocusedShapeType } from '../format/FocusedShape'
 import { OtherFairy } from '../format/OtherFairy'
 import { PeripheralCluster } from '../format/PeripheralCluster'
+import { AgentModelName } from '../models'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { ChatHistoryItem } from '../types/ChatHistoryItem'
@@ -576,4 +577,14 @@ export interface DebugPart {
 
 export const DebugPartDefinition: PromptPartDefinition<DebugPart> = {
 	type: 'debug',
+}
+
+// ModelNamePart
+export interface ModelNamePart {
+	type: 'modelName'
+	name: AgentModelName
+}
+
+export const ModelNamePartDefinition: PromptPartDefinition<ModelNamePart> = {
+	type: 'modelName',
 }
