@@ -44,6 +44,7 @@ import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getInviteInfo } from './routes/tla/getInviteInfo'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
+import { redeemFairyInvite } from './routes/tla/redeemFairyInvite'
 import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
 import { Environment, QueueMessage, isDebugLogging } from './types'
@@ -135,6 +136,7 @@ const router = createRouter<Environment>()
 	.post('/app/uploads/:objectName', upload)
 	.get('/app/invite/:token', getInviteInfo)
 	.post('/app/invite/:token/accept', acceptInvite)
+	.post('/app/fairy-invite/redeem', redeemFairyInvite)
 	.all('/app/__test__/*', testRoutes.fetch)
 	.get('/app/__debug-tail', (req, env) => {
 		if (isDebugLogging(env)) {

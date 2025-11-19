@@ -116,7 +116,14 @@ export class TldrawApp {
 
 	readonly z: ZeroPolyfill | Zero<TlaSchema, TlaMutators>
 
-	private readonly user$: Signal<(TlaUser & { fairies: string }) | undefined>
+	private readonly user$: Signal<
+		| (TlaUser & {
+				fairies: string
+				fairyAccessExpiresAt: number | null
+				fairyLimit: number | null
+		  })
+		| undefined
+	>
 	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile; fairyState: string })[]>
 	private readonly groupMemberships$: Signal<
 		(TlaGroupUser & {

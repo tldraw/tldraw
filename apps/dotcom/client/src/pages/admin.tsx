@@ -429,7 +429,17 @@ function FairyInvites() {
 									{invite.currentUses} / {invite.maxUses === 0 ? '∞' : invite.maxUses}
 								</td>
 								<td>{new Date(invite.createdAt).toLocaleString()}</td>
-								<td>
+								<td style={{ display: 'flex', gap: '8px' }}>
+									<TlaButton
+										onClick={() => {
+											const inviteUrl = `${window.location.origin}/fairy-invite/${invite.id}`
+											navigator.clipboard.writeText(inviteUrl)
+											setSuccessMessage('Link copied to clipboard!')
+										}}
+										variant="secondary"
+									>
+										Copy link
+									</TlaButton>
 									<TlaButton
 										onClick={() => deleteInvite(invite.id)}
 										variant="warning"

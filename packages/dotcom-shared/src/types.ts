@@ -227,3 +227,16 @@ export interface SubmitFeedbackRequestBody {
 export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000
 
 export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persistence_bad' }
+
+/* ----------------------- Fairy Access ---------------------- */
+
+/**
+ * Check if a user has active fairy access based on their fairyAccessExpiresAt timestamp
+ */
+export function hasActiveFairyAccess(fairyAccessExpiresAt: number | null | undefined): boolean {
+	return (
+		fairyAccessExpiresAt !== null &&
+		fairyAccessExpiresAt !== undefined &&
+		fairyAccessExpiresAt > Date.now()
+	)
+}
