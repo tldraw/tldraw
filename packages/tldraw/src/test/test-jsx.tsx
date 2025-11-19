@@ -49,29 +49,30 @@ type PropsForAsset<Type extends string> = Type extends TLAsset['type']
 	? Partial<AssetByType<Type>['props']>
 	: Record<string, unknown>
 
-interface CommonBindingProps {
+interface BindingReactConnections {
 	from?: string | TLShapeId
 	to: string | TLShapeId
+}
+
+interface CommonBindingReactProps extends BindingReactConnections {
 	ref?: string
 	id?: TLBindingId
 }
 
-type PropsForBinding<Type extends TLBinding['type']> = CommonBindingProps &
+type ReactPropsForBinding<Type extends TLBinding['type']> = CommonBindingReactProps &
 	Partial<TLBinding<Type>['props']>
 
 type BindingToCreate = TLBinding extends infer E
 	? E extends TLBinding
 		? {
 				type: E['type']
-				props: PropsForBinding<E['type']>
+				props: Partial<TLBinding<E['type']>['props']>
+				id: TLBindingId | undefined
 				parentId: TLShapeId | undefined
 				ref: string | undefined
+				connections: BindingReactConnections
 			}
 		: never
-	: never
-
-type WithPartialProps<T extends { props: unknown }> = T extends T
-	? Omit<T, 'props'> & { props: Partial<T['props']> }
 	: never
 
 const createElement = (
@@ -104,7 +105,7 @@ const tlBinding = new Proxy(
 		},
 	}
 ) as {
-	[K in TLBinding['type']]: (props: PropsForBinding<K>) => null
+	[K in TLBinding['type']]: (props: ReactPropsForBinding<K>) => null
 }
 
 /**
@@ -160,9 +161,20 @@ export function shapesFromJsx(shapes: React.JSX.Element | Array<React.JSX.Elemen
 
 			if (el.type[bindingTypeSymbol]) {
 				const bindingType = (el.type as any)[bindingTypeSymbol] as TLBinding['type']
-				const ref = ((el as any).ref || el.props.ref) as string | undefined
-				assert(ref === undefined || typeof ref === 'string', 'ref must be string or undefined')
-				bindingsToCreate.push({ type: bindingType, props: el.props, parentId, ref })
+				const { id, from, to, ref, ...props } = el.props
+				const bindingRef: unknown = (el as any).ref || ref
+				assert(
+					bindingRef === undefined || typeof bindingRef === 'string',
+					'ref must be string or undefined'
+				)
+				bindingsToCreate.push({
+					type: bindingType,
+					props,
+					id,
+					parentId,
+					ref: bindingRef,
+					connections: { from, to },
+				})
 			} else {
 				const shapeType = (el.type as any)[shapeTypeSymbol] as string
 				if (!shapeType) {
@@ -246,56 +258,48 @@ export function shapesFromJsx(shapes: React.JSX.Element | Array<React.JSX.Elemen
 	addChildren(shapes)
 
 	const bindings: TLBindingCreate[] = []
-	for (const binding of bindingsToCreate) {
+	for (const { id, parentId, ref, connections, ...binding } of bindingsToCreate) {
 		let fromId: TLShapeId, toId: TLShapeId
-		if (binding.props.from) {
-			assert(typeof binding.props.from === 'string', 'from must be a ref string or a shape id')
-			if (isShapeId(binding.props.from)) {
-				fromId = binding.props.from
+		if (connections.from) {
+			assert(typeof connections.from === 'string', 'from must be a ref string or a shape id')
+			if (isShapeId(connections.from)) {
+				fromId = connections.from
 			} else {
-				assert(ids[binding.props.from], `Ref not found: ${binding.props.from}`)
-				fromId = ids[binding.props.from]
+				assert(ids[connections.from], `Ref not found: ${connections.from}`)
+				fromId = ids[connections.from]
 			}
-		} else if (binding.parentId) {
-			fromId = binding.parentId
+		} else if (parentId) {
+			fromId = parentId
 		} else {
 			throw new Error('from must be specified, or binding must be a child of a shape')
 		}
 
-		assert(binding.props.to, 'to must be specified')
-		assert(typeof binding.props.to === 'string', 'to must be a ref string or a shape id')
-		if (isShapeId(binding.props.to)) {
-			toId = binding.props.to
+		assert(connections.to, 'to must be specified')
+		assert(typeof connections.to === 'string', 'to must be a ref string or a shape id')
+		if (isShapeId(connections.to)) {
+			toId = connections.to
 		} else {
-			assert(ids[binding.props.to], `Ref not found: ${binding.props.to}`)
-			toId = ids[binding.props.to]
+			assert(ids[connections.to], `Ref not found: ${connections.to}`)
+			toId = ids[connections.to]
 		}
 
-		let bindingId: TLBindingId = binding.props.id as TLBindingId
-		if (binding.ref) {
-			assert(typeof binding.ref === 'string', 'binding ref must be string')
-			assert(!ids.bindings[binding.ref], `Duplicate ref: ${binding.ref}`)
-			assert(!bindingId, `Cannot use both ref and id on binding: ${binding.ref}`)
-			bindingId = createBindingId(`${idPrefix}${binding.ref}`)
-			ids.bindings[binding.ref] = bindingId
+		let bindingId = id
+		if (ref) {
+			assert(typeof ref === 'string', 'binding ref must be string')
+			assert(!ids.bindings[ref], `Duplicate ref: ${ref}`)
+			assert(!bindingId, `Cannot use both ref and id on binding: ${ref}`)
+			bindingId = createBindingId(`${idPrefix}${ref}`)
+			ids.bindings[ref] = bindingId
 		}
 		if (!bindingId) {
 			bindingId = createBindingId()
 		}
 
-		const { parentId: _parentId, ref: _ref, ...bindingBase } = binding
-		const bindingCopy: WithPartialProps<typeof bindingBase> = bindingBase
-		bindingCopy.props = { ...binding.props }
-		delete bindingCopy.props.ref
-		delete bindingCopy.props.id
-		delete bindingCopy.props.from
-		delete bindingCopy.props.to
-
 		bindings.push({
+			...binding,
 			id: bindingId,
 			fromId,
 			toId,
-			...bindingCopy,
 		})
 	}
 
