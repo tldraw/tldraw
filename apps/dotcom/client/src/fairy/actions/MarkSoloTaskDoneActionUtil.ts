@@ -25,15 +25,22 @@ export class MarkSoloTaskDoneActionUtil extends AgentActionUtil<MarkSoloTaskDone
 		if (!task) return
 
 		setFairyTaskStatusAndNotifyCompletion(action.taskId, 'done', this.editor)
+		this.agent.$chatHistory.update((prev) => [
+			...prev,
+			{
+				type: 'memory-transition',
+				memoryLevel: 'fairy',
+				message: `I marked task ${action.taskId} as done: ${task.text}`,
+			},
+		])
 
 		const currentBounds = this.agent.$activeRequest.get()?.bounds
 		if (!currentBounds) return
 
-		// todo, should this be here? should this logic somehow be in the fairy mode chart?
 		this.agent.interrupt({
 			mode: 'soloing',
 			input: {
-				message: `Task ${action.taskId} has been marked as done.`,
+				message: `I marked task ${action.taskId} as done: ${task.text}`,
 				bounds: {
 					x: task.x ?? currentBounds.x,
 					y: task.y ?? currentBounds.y,

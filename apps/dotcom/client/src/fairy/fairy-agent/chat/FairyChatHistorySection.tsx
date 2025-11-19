@@ -46,8 +46,14 @@ export function getAgentHistorySections(items: ChatHistoryItem[]): FairyChatHist
 	const sections: FairyChatHistorySection[] = []
 
 	for (const item of items) {
+		// Add a new section for each prompt
 		if (item.type === 'prompt') {
 			sections.push({ prompt: item, items: [] })
+			continue
+		}
+
+		// Ignore memory transition items in the UI
+		if (item.type === 'memory-transition') {
 			continue
 		}
 

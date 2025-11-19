@@ -25,6 +25,14 @@ export class MarkDroneTaskDoneActionUtil extends AgentActionUtil<MarkDroneTaskDo
 		if (!task) return
 
 		setFairyTaskStatusAndNotifyCompletion(action.taskId, 'done', this.editor)
+		this.agent.$chatHistory.update((prev) => [
+			...prev,
+			{
+				type: 'memory-transition',
+				memoryLevel: 'project',
+				message: `I marked task ${action.taskId} as done: ${task.text}`,
+			},
+		])
 		this.agent.interrupt({ mode: 'standing-by' })
 	}
 }

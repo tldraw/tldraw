@@ -1,4 +1,5 @@
 import { AgentAction } from '../types/AgentAction'
+import { FairyMemoryLevel } from '../types/FairyMemoryLevel'
 import { FairyWork } from '../types/FairyWork'
 import { PromptPart } from '../types/PromptPart'
 
@@ -12,6 +13,8 @@ type BaseFairyModeDefinition = {
 	| {
 			/** Whether the fairy mode is active in this mode. */
 			active: true
+			/** The memory level of the fairy mode. */
+			memoryLevel: FairyMemoryLevel
 			/** The prompt parts that the fairy mode allows the fairy to see. Inferred from active: if active is false, parts must be null; if active is true, parts can be a function. */
 			parts(work: FairyWork): PromptPart['type'][]
 			/** The actions that the fairy mode allows the fairy to take. */
@@ -20,6 +23,8 @@ type BaseFairyModeDefinition = {
 	| {
 			/** Whether the fairy mode is active in this mode. */
 			active: false
+			/** The memory level of the fairy mode. */
+			memoryLevel: FairyMemoryLevel
 	  }
 )
 
@@ -39,10 +44,12 @@ export type ActiveFairyModeDefinition = (typeof ACTIVE_FAIRY_MODE_DEFINITIONS)[n
 export const FAIRY_MODE_DEFINITIONS = [
 	{
 		type: 'idling',
+		memoryLevel: 'fairy',
 		active: false,
 	},
 	{
 		type: 'soloing',
+		memoryLevel: 'fairy',
 		active: true,
 		parts: (_work: FairyWork) => [
 			'modelName',
@@ -76,6 +83,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 	},
 	{
 		type: 'working-drone',
+		memoryLevel: 'task',
 		active: true,
 		parts: (_work: FairyWork) => [
 			'modelName',
@@ -113,6 +121,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 	},
 	{
 		type: 'working-solo',
+		memoryLevel: 'task',
 		active: true,
 		parts: (_work: FairyWork) => [
 			'modelName',
@@ -150,10 +159,12 @@ export const FAIRY_MODE_DEFINITIONS = [
 	},
 	{
 		type: 'standing-by',
+		memoryLevel: 'project',
 		active: false,
 	},
 	{
 		type: 'orchestrating-active',
+		memoryLevel: 'project',
 		active: true,
 		parts: () => [
 			'modelName',
@@ -194,6 +205,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 	},
 	{
 		type: 'orchestrating-waiting',
+		memoryLevel: 'project',
 		active: false,
 	},
 ] as const satisfies BaseFairyModeDefinition[]

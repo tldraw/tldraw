@@ -135,6 +135,10 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 					text = '[THOUGHT]: ' + (action.text || '<thought data lost>')
 					break
 				}
+				case 'mark-task-done': {
+					text = `[TASK DONE] I marked task ${action.taskId} as done.`
+					break
+				}
 				default: {
 					const { complete: _complete, time: _time, ...rawAction } = action || {}
 					text = '[ACTION]: ' + JSON.stringify(rawAction)
@@ -144,6 +148,13 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 			return {
 				role: 'assistant',
 				content: [{ type: 'text', text }],
+				priority,
+			}
+		}
+		case 'memory-transition': {
+			return {
+				role: 'assistant',
+				content: [{ type: 'text', text: item.message }],
 				priority,
 			}
 		}

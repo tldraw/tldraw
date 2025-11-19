@@ -46,16 +46,10 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	['standing-by']: {},
 	['working-drone']: {
 		onEnter(agent) {
-			// Wipe memory before starting a task
-			// TODO: Use memory zones for this instead
-			agent.$chatHistory.set([])
 			agent.$userActionHistory.set([])
 			agent.$todoList.set([])
 		},
 		onExit(agent) {
-			// Wipe memory after finishing a task
-			// TODO: Use memory zones for this instead
-			agent.$chatHistory.set([])
 			agent.$userActionHistory.set([])
 			agent.$todoList.set([])
 		},
@@ -68,10 +62,14 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 		},
 	},
 	['working-solo']: {
+		onEnter(agent) {
+			agent.$userActionHistory.set([])
+			agent.flushTodoList()
+		},
 		onExit(agent) {
 			// Wipe todo list after finishing a task
-			// TODO: Use memory zones for this instead
-			agent.$todoList.set([])
+			agent.$userActionHistory.set([])
+			agent.flushTodoList()
 		},
 		onPromptEnd(agent, request) {
 			// Keep going until the task is complete

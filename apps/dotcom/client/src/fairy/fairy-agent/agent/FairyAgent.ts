@@ -597,8 +597,8 @@ export class FairyAgent {
 		const startingNode = FAIRY_MODE_CHART[this.getMode()]
 		await startingNode.onPromptStart?.(this, request)
 
-		const mode = getFairyModeDefinition(this.getMode())
-		if (!mode.active) {
+		const initialModeDefinition = getFairyModeDefinition(this.getMode())
+		if (!initialModeDefinition.active) {
 			throw new Error(
 				`Fairy is not in an active mode so can't act right now. First change to an active mode. Current mode: ${this.getMode()}`
 			)
@@ -628,11 +628,13 @@ export class FairyAgent {
 
 		// If there's still no scheduled request, quit
 		const scheduledRequest = this.$scheduledRequest.get()
+		const eventualMode = this.getMode()
+		const eventualModeDefinition = getFairyModeDefinition(eventualMode)
 		if (!scheduledRequest) {
-			const mode = this.getMode()
-			const modeDefinition = getFairyModeDefinition(mode)
-			if (modeDefinition.active) {
-				throw new Error(`Fairy is not allowed to become inactive during the active mode: ${mode}`)
+			if (eventualModeDefinition.active) {
+				throw new Error(
+					`Fairy is not allowed to become inactive during the active mode: ${eventualMode}`
+				)
 			}
 			this.$isPrompting.set(false)
 			this.cancelFn = null
@@ -647,6 +649,7 @@ export class FairyAgent {
 			{
 				type: 'continuation',
 				data: resolvedData,
+				memoryLevel: eventualModeDefinition.memoryLevel,
 			},
 		])
 
@@ -913,6 +916,7 @@ export class FairyAgent {
 		// Ensure the fairy is on the correct page before performing the action
 		this.ensureFairyIsOnCorrectPage(action)
 
+		const modeDefinition = getFairyModeDefinition(this.getMode())
 		let promise: Promise<void> | null = null
 		let diff: RecordsDiff<TLRecord>
 		try {
@@ -932,6 +936,7 @@ export class FairyAgent {
 				action,
 				diff,
 				acceptance: 'pending',
+				memoryLevel: modeDefinition.memoryLevel,
 			}
 
 			this.$chatHistory.update((historyItems) => {
@@ -939,21 +944,39 @@ export class FairyAgent {
 				if (historyItems.length === 0) return [historyItem]
 
 				// If the last item is still in progress, replace it with the new item
-				const lastHistoryItem = historyItems.at(-1)
+				const lastActionHistoryItemIndex = historyItems.findLastIndex(
+					(item) => item.type === 'action'
+				)
+				const lastActionHistoryItem =
+					lastActionHistoryItemIndex !== -1 ? historyItems[lastActionHistoryItemIndex] : null
 				if (
-					lastHistoryItem &&
-					lastHistoryItem.type === 'action' &&
-					!lastHistoryItem.action.complete
+					lastActionHistoryItem &&
+					lastActionHistoryItem.type === 'action' &&
+					!lastActionHistoryItem.action.complete
 				) {
-					return [...historyItems.slice(0, -1), historyItem]
+					const newHistoryItems = [...historyItems]
+					newHistoryItems[lastActionHistoryItemIndex] = historyItem
+					return newHistoryItems
+				} else {
+					// Otherwise, just add the new item to the end of the list
+					return [...historyItems, historyItem]
 				}
-
-				// Otherwise, just add the new item to the end of the list
-				return [...historyItems, historyItem]
 			})
 		}
 
 		return { diff, promise }
+	}
+
+	/**
+	 * Remove all completed todo items from the todo list.
+	 * Renumber the todo items to ensure the ids are sequential.
+	 */
+	flushTodoList() {
+		this.$todoList.update((todoItems) => {
+			return todoItems
+				.filter((item) => item.status !== 'done')
+				.map((item, index) => ({ ...item, id: index }))
+		})
 	}
 
 	/**
@@ -1475,9 +1498,11 @@ function requestAgentActions({ agent, request }: { agent: FairyAgent; request: A
 
 	// If the request is from the user, add it to chat history
 	if (request.source === 'user') {
+		const mode = getFairyModeDefinition(agent.getMode())
 		const promptHistoryItem: ChatHistoryItem = {
 			type: 'prompt',
 			message: request.messages.join('\n'),
+			memoryLevel: mode.memoryLevel,
 		}
 		agent.$chatHistory.update((prev) => [...prev, promptHistoryItem])
 	}
