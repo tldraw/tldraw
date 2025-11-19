@@ -36,12 +36,47 @@ export class AgentDurableObject extends DurableObject<Environment> {
 		const { readable, writable } = new TransformStream()
 		const writer = writable.getWriter()
 
+		// Create an AbortController to propagate cancellation to the AI SDK
+		const abortController = new AbortController()
+		const signal = abortController.signal
+
+		// Monitor the readable stream - when client cancels, this will be cancelled
+		// Wrap readable to detect cancellation
+		const wrappedReadable = new ReadableStream({
+			start(controller) {
+				const reader = readable.getReader()
+				async function pump() {
+					try {
+						while (true) {
+							const { done, value } = await reader.read()
+							if (done) {
+								controller.close()
+								break
+							}
+							controller.enqueue(value)
+						}
+					} catch (error) {
+						controller.error(error)
+					} finally {
+						reader.releaseLock()
+					}
+				}
+				pump()
+			},
+			cancel() {
+				// Client cancelled the stream - abort the AI SDK stream
+				abortController.abort()
+				readable.cancel()
+			},
+		})
+
 		const response: string[] = []
 		;(async () => {
 			try {
 				const prompt = (await request.json()) as AgentPrompt
 
-				for await (const text of this.service.streamText(prompt)) {
+				for await (const text of this.service.streamText(prompt, signal)) {
+					if (signal.aborted) break
 					response.push(text)
 					const data = `data: ${text}\n\n`
 					await writer.write(encoder.encode(data))
@@ -49,12 +84,28 @@ export class AgentDurableObject extends DurableObject<Environment> {
 				}
 				await writer.close()
 			} catch (error: any) {
+				// Check if it was aborted - if so, close gracefully
+				if (signal.aborted || error?.name === 'AbortError') {
+					try {
+						await writer.close()
+					} catch {
+						// Writer already closed/aborted, ignore
+					}
+					return
+				}
 				console.error('Stream text error:', error)
-				throw error
+				const errorMessage = error?.message || error?.toString() || 'Unknown error'
+				const errorData = `data: ${JSON.stringify({ error: errorMessage })}\n\n`
+				try {
+					await writer.write(encoder.encode(errorData))
+					await writer.close()
+				} catch (writeError) {
+					await writer.abort(writeError)
+				}
 			}
 		})()
 
-		return new Response(readable, {
+		return new Response(wrappedReadable, {
 			headers: {
 				'Content-Type': 'text/event-stream',
 				'Cache-Control': 'no-cache, no-transform',
@@ -75,6 +126,40 @@ export class AgentDurableObject extends DurableObject<Environment> {
 		const { readable, writable } = new TransformStream()
 		const writer = writable.getWriter()
 
+		// Create an AbortController to propagate cancellation to the AI SDK
+		const abortController = new AbortController()
+		const signal = abortController.signal
+
+		// Monitor the readable stream - when client cancels, this will be cancelled
+		// Wrap readable to detect cancellation
+		const wrappedReadable = new ReadableStream({
+			start(controller) {
+				const reader = readable.getReader()
+				async function pump() {
+					try {
+						while (true) {
+							const { done, value } = await reader.read()
+							if (done) {
+								controller.close()
+								break
+							}
+							controller.enqueue(value)
+						}
+					} catch (error) {
+						controller.error(error)
+					} finally {
+						reader.releaseLock()
+					}
+				}
+				pump()
+			},
+			cancel() {
+				// Client cancelled the stream - abort the AI SDK stream
+				abortController.abort()
+				readable.cancel()
+			},
+		})
+
 		const response: { actions: Streaming<AgentAction>[] } = { actions: [] }
 
 		;(async () => {
@@ -82,7 +167,8 @@ export class AgentDurableObject extends DurableObject<Environment> {
 				const prompt = (await request.json()) as AgentPrompt
 
 				const isAdmin = request.headers.get('X-Is-Admin') === 'true'
-				for await (const action of this.service.streamActions(prompt, isAdmin)) {
+				for await (const action of this.service.streamActions(prompt, isAdmin, signal)) {
+					if (signal.aborted) break
 					response.actions.push(action)
 					const data = `data: ${JSON.stringify(action)}\n\n`
 					await writer.write(encoder.encode(data))
@@ -90,8 +176,19 @@ export class AgentDurableObject extends DurableObject<Environment> {
 				}
 				await writer.close()
 			} catch (error: any) {
+				// Check if it was aborted - if so, close gracefully
+				if (signal.aborted || error?.name === 'AbortError') {
+					try {
+						await writer.close()
+					} catch {
+						// Writer already closed/aborted, ignore
+					}
+					return
+				}
+
 				console.error('Stream error:', error)
-				const errorData = `data: ${JSON.stringify({ error: error.message })}\n\n`
+				const errorMessage = error?.message || error?.toString() || 'Unknown error'
+				const errorData = `data: ${JSON.stringify({ error: errorMessage })}\n\n`
 				try {
 					await writer.write(encoder.encode(errorData))
 					await writer.close()
@@ -101,7 +198,7 @@ export class AgentDurableObject extends DurableObject<Environment> {
 			}
 		})()
 
-		return new Response(readable, {
+		return new Response(wrappedReadable, {
 			headers: {
 				'Content-Type': 'text/event-stream',
 				'Cache-Control': 'no-cache, no-transform',
