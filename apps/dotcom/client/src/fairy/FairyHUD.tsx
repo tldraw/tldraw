@@ -16,7 +16,6 @@ import {
 	useQuickReactor,
 	useValue,
 } from 'tldraw'
-import { MAX_FAIRY_COUNT } from '../tla/components/TlaEditor/TlaEditor'
 import { useApp } from '../tla/hooks/useAppState'
 import '../tla/styles/fairy.css'
 import { F, useMsg } from '../tla/utils/i18n'
@@ -31,50 +30,6 @@ import { $fairyTasks } from './FairyTaskList'
 import { FairyTaskListDropdownContent } from './FairyTaskListDropdownContent'
 import { FairyTaskListInline } from './FairyTaskListInline'
 import { getRandomFairyName } from './getRandomFairyName'
-
-function NewFairyButton({ agents }: { agents: FairyAgent[] }) {
-	const app = useApp()
-	const handleClick = useCallback(() => {
-		if (!app) return
-		const randomOutfit = {
-			body: Object.keys(FAIRY_VARIANTS.body)[
-				Math.floor(Math.random() * Object.keys(FAIRY_VARIANTS.body).length)
-			] as FairyVariantType<'body'>,
-			hat: Object.keys(FAIRY_VARIANTS.hat)[
-				Math.floor(Math.random() * Object.keys(FAIRY_VARIANTS.hat).length)
-			] as FairyVariantType<'hat'>,
-			wings: Object.keys(FAIRY_VARIANTS.wings)[
-				Math.floor(Math.random() * Object.keys(FAIRY_VARIANTS.wings).length)
-			] as FairyVariantType<'wings'>,
-		}
-
-		// Create a unique ID for the new fairy
-		const id = uniqueId()
-
-		// Create the config for the new fairy
-		const config: FairyConfig = {
-			name: getRandomFairyName(),
-			outfit: randomOutfit,
-			personality: 'Friendly and helpful',
-		}
-
-		// Add the config, which will trigger agent creation in FairyApp
-		app.z.mutate.user.updateFairyConfig({ id, properties: config })
-	}, [app])
-
-	const newFairyLabel = useMsg(fairyMessages.newFairy)
-
-	return (
-		<TldrawUiButton
-			type="icon"
-			className="fairy-toolbar-sidebar-button"
-			onClick={handleClick}
-			disabled={agents.length >= MAX_FAIRY_COUNT}
-		>
-			<TldrawUiIcon icon="plus" label={newFairyLabel} />
-		</TldrawUiButton>
-	)
-}
 
 type PanelState = 'task-list' | 'fairy' | 'closed'
 
@@ -169,6 +124,7 @@ function FairyHUDHeader({
 }
 
 export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
+	const app = useApp()
 	const editor = useEditor()
 	const [headerMenuPopoverOpen, setHeaderMenuPopoverOpen] = useState(false)
 	const [fairyMenuPopoverOpen, setFairyMenuPopoverOpen] = useState(false)
@@ -183,6 +139,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	const selectMessage = useMsg(fairyMessages.selectFairy)
 	const switchToFairyChatLabel = useMsg(fairyMessages.switchToFairyChat)
 	const switchToTaskListLabel = useMsg(fairyMessages.switchToTaskList)
+	const newFairyLabel = useMsg(fairyMessages.newFairy)
 
 	// Create a reactive value that tracks which fairies are selected
 	const selectedFairies = useValue(
@@ -285,6 +242,34 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		e.stopPropagation()
 	}
 
+	const handleCreateFairy = useCallback(() => {
+		if (!app) return
+		const randomOutfit = {
+			body: Object.keys(FAIRY_VARIANTS.body)[
+				Math.floor(Math.random() * Object.keys(FAIRY_VARIANTS.body).length)
+			] as FairyVariantType<'body'>,
+			hat: Object.keys(FAIRY_VARIANTS.hat)[
+				Math.floor(Math.random() * Object.keys(FAIRY_VARIANTS.hat).length)
+			] as FairyVariantType<'hat'>,
+			wings: Object.keys(FAIRY_VARIANTS.wings)[
+				Math.floor(Math.random() * Object.keys(FAIRY_VARIANTS.wings).length)
+			] as FairyVariantType<'wings'>,
+		}
+
+		// Create a unique ID for the new fairy
+		const id = uniqueId()
+
+		// Create the config for the new fairy
+		const config: FairyConfig = {
+			name: getRandomFairyName(),
+			outfit: randomOutfit,
+			personality: 'Friendly and helpful',
+		}
+
+		// Add the config, which will trigger agent creation in FairyApp
+		app.z.mutate.user.updateFairyConfig({ id, properties: config })
+	}, [app])
+
 	// Keep todoLastChecked in sync when the panel is open
 	useQuickReactor(
 		'update-task-list-last-checked',
@@ -384,7 +369,8 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 							onClickFairy={handleClickFairy}
 							onDoubleClickFairy={handleDoubleClickFairy}
 							onTogglePanel={handleTogglePanel}
-							newFairyButton={<NewFairyButton agents={agents} />}
+							onCreateFairy={handleCreateFairy}
+							newFairyLabel={newFairyLabel}
 						/>
 					</div>
 				</div>

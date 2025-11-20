@@ -337,6 +337,10 @@
 	font-size: 14px;
 }
 
+.fairy-toolbar-sidebar-button:disabled {
+	cursor: not-allowed;
+}
+
 .fairy-new-button {
 	width: 40px;
 	height: 40px;
