@@ -33,7 +33,6 @@ export class MarkDroneTaskDoneActionUtil extends AgentActionUtil<MarkDroneTaskDo
 				message: `I marked task ${action.taskId} as done: ${task.text}`,
 			},
 		])
-		this.agent.setMode('standing-by')
-		this.agent.cancel()
+		this.agent.interrupt({ mode: 'standing-by', input: null })
 	}
 }

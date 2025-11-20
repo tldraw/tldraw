@@ -58,8 +58,7 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 					])
 				}
 			}
-			memberAgent.setMode('idling')
-			memberAgent.cancel()
+			memberAgent.interrupt({ mode: 'idling', input: null })
 		})
 
 		deleteProject(project.id)

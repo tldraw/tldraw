@@ -725,13 +725,13 @@ export class FairyAgent {
 
 		// If there's no request scheduled yet, schedule one
 		if (!scheduledRequest) {
-			this.setScheduledRequest(input)
+			this._schedule(input)
 			return
 		}
 
 		// If there's already a scheduled request, append to it
 		const request = this.getPartialRequestFromInput(input)
-		this.setScheduledRequest({
+		this._schedule({
 			// Append to properties where possible
 			messages: [...scheduledRequest.messages, ...(request.messages ?? [])],
 			data: [...scheduledRequest.data, ...(request.data ?? [])],
@@ -743,9 +743,10 @@ export class FairyAgent {
 	}
 
 	/**
-	 * Interrupt the agent, set their mode and schedule a request.
+	 * Interrupt the agent and set their mode.
+	 * Optionally, schedule a request.
 	 */
-	interrupt({ input, mode }: { input: AgentInput; mode?: FairyModeDefinition['type'] }) {
+	interrupt({ input, mode }: { input: AgentInput | null; mode?: FairyModeDefinition['type'] }) {
 		this.cancelFn?.()
 		this.$activeRequest.set(null)
 		this.$scheduledRequest.set(null)
@@ -754,7 +755,9 @@ export class FairyAgent {
 		if (mode) {
 			this.setMode(mode)
 		}
-		this.schedule(input)
+		if (input !== null) {
+			this.schedule(input)
+		}
 	}
 
 	/**
@@ -782,7 +785,7 @@ export class FairyAgent {
 	 * @param input - What to set the scheduled request to, or null to cancel
 	 * the scheduled request.
 	 */
-	setScheduledRequest(input: AgentInput | null) {
+	private _schedule(input: AgentInput | null) {
 		if (input === null) {
 			this.$scheduledRequest.set(null)
 			return
@@ -803,7 +806,7 @@ export class FairyAgent {
 
 		const isCurrentlyActive = this.isGenerating()
 		if (!isCurrentlyActive) {
-			this.prompt(input)
+			this.prompt(request)
 		}
 	}
 

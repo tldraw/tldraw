@@ -110,13 +110,14 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 			addProject(newProject)
 
 			// Set leader as orchestrator or duo-orchestrator
-			leaderAgent.cancel()
-			leaderAgent.setMode(isDuo ? 'duo-orchestrating-active' : 'orchestrating-active')
+			leaderAgent.interrupt({
+				mode: isDuo ? 'duo-orchestrating-active' : 'orchestrating-active',
+				input: null,
+			})
 
 			// Set followers as drones
 			followerAgents.forEach((agent) => {
-				agent.cancel()
-				agent.setMode('standing-by')
+				agent.interrupt({ mode: 'standing-by', input: null })
 			})
 
 			// Send the prompt to the leader
