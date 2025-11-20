@@ -1363,13 +1363,13 @@ describe('Unparenting behavior', () => {
 
 		// When the shape has a fill, it should not fall out of the frame
 		editor.undo()
-		editor.updateShape<TLGeoShape>({ ...largeRect, props: { fill: 'solid' } })
+		editor.updateShape({ ...largeRect, props: { fill: 'solid' } })
 		dragOntoFrame()
 		expect(editor.getShape(largeRect.id)!.parentId).toBe(frameId)
 
 		// When the shape has a label and that label is on top of the frame, it should not fall out of the frame
 		editor.undo()
-		editor.updateShape<TLGeoShape>({
+		editor.updateShape({
 			...largeRect,
 			props: { fill: 'none', richText: toRichText('hello') },
 		})

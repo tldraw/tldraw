@@ -7,22 +7,31 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	T,
-	TLBaseShape,
 	Tldraw,
+	TLShape,
 	TLShapeId,
 	useEditor,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { contents } from './contents'
 
+const DYNAMIC_SIZE_TYPE = 'dynamic-size'
+
+// [1]
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		[DYNAMIC_SIZE_TYPE]: { contents: string[] }
+	}
+}
+
 // There's a guide at the bottom of this file!
 
 const SHAPE_WIDTH_PX = 150
 
-// [1]
-type DynamicSizeShape = TLBaseShape<'dynamic-size', { contents: string[] }>
-
 // [2]
+type DynamicSizeShape = TLShape<typeof DYNAMIC_SIZE_TYPE>
+
+// [3]
 const ShapeSizes = new EditorAtom('shape sizes', (editor) => {
 	const map = new AtomMap<TLShapeId, { width: number; height: number }>('shape sizes')
 
@@ -34,7 +43,7 @@ const ShapeSizes = new EditorAtom('shape sizes', (editor) => {
 	return map
 })
 
-// [3]
+// [4]
 function useDynamicShapeSize(shape: DynamicSizeShape) {
 	const ref = useRef<HTMLDivElement>(null)
 	const editor = useEditor()
@@ -72,10 +81,10 @@ function useDynamicShapeSize(shape: DynamicSizeShape) {
 	return ref
 }
 
-// [4]
+// [5]
 export class DynamicSizeShapeUtil extends ShapeUtil<DynamicSizeShape> {
 	// [a]
-	static override type = 'dynamic-size' as const
+	static override type = DYNAMIC_SIZE_TYPE
 	static override props: RecordProps<DynamicSizeShape> = {
 		contents: T.arrayOf(T.string),
 	}
@@ -158,7 +167,7 @@ export class DynamicSizeShapeUtil extends ShapeUtil<DynamicSizeShape> {
 	}
 }
 
-// [5]
+// [6]
 const shapeUtils = [DynamicSizeShapeUtil]
 
 export default function SizeFromDomExample() {
@@ -170,8 +179,8 @@ export default function SizeFromDomExample() {
 					editor.selectAll()
 					editor.deleteShapes(editor.getSelectedShapeIds())
 
-					editor.createShape<DynamicSizeShape>({
-						type: 'dynamic-size',
+					editor.createShape({
+						type: DYNAMIC_SIZE_TYPE,
 						x: 100,
 						y: 100,
 					})
@@ -191,51 +200,55 @@ shape props. It showcases two potentially reusable utilities: ShapeSizes and use
 can be adapted for other shapes that need DOM-driven sizing.
 
 [1]
+First, we need to extend TLGlobalShapePropsMap to add our shape's props to the global type system.
+This tells TypeScript about the shape's properties.
+
+[2]
 Define the shape type. This shape only stores content data - its size is determined dynamically by
 measuring the DOM element that renders the content.
 
-[2] 
+[3]
 ShapeSizes is a global EditorAtom that stores size information for shapes by their ID. This is the key
 piece that makes DOM-driven sizing work:
-	
+
 	[a] We register a cleanup handler to remove size data when shapes are deleted, preventing memory leaks.
 
-[3]
+[4]
 useDynamicShapeSize is a reusable hook that measures DOM elements and updates the shape size data:
 
 	[a] We measure the actual DOM dimensions using offsetWidth/offsetHeight
-	
+
 	[b] We store these dimensions in our global ShapeSizes atom. The atom will trigger re-renders of
 	    components that depend on this data when the size changes.
-	
+
 	[c] We measure immediately on every render to ensure we have current size data
-	
+
 	[d] We use ResizeObserver to watch for size changes and update accordingly. This is what makes
 	    the shape truly dynamic - it will update whenever the DOM content changes size.
 
-[4]
+[5]
 The shape util defines how our dynamic-size shape behaves:
 
 	[a] Standard shape type and props definition. Note we only store content, not size.
-	
+
 	[b] Default props with some sample content
 
 	[c] Prevent the shape from being culled when it's outside the viewport, which would break our measurements
-	
+
 	[d] Shape behavior: not editable, not resizable (since size comes from DOM), aspect ratio locked
-	
+
 	[e] getGeometry uses the size from our ShapeSizes atom. This is where the DOM-measured size gets
 	    used by the editor for hit-testing, selection bounds, etc.
-	
+
 	[f] The component renders the content and uses our hook to measure it:
-	
+
 		[i] We animate the text content to demonstrate the dynamic sizing in action
-		
+
 		[ii] The ref from useDynamicShapeSize is attached to the DOM element we want to measure
-	
+
 	[g] Standard indicator for selection outline
 
-[5]
+[6]
 Standard setup - pass our custom shape util to Tldraw and create an instance on mount.
 
 Reusability:

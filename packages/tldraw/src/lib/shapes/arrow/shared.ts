@@ -38,7 +38,7 @@ export function getBoundShapeInfoForTerminal(
 	terminalName: 'start' | 'end'
 ): BoundShapeInfo | undefined {
 	const binding = editor
-		.getBindingsFromShape<TLArrowBinding>(arrow, 'arrow')
+		.getBindingsFromShape(arrow, 'arrow')
 		.find((b) => b.props.terminal === terminalName)
 	if (!binding) return
 
@@ -105,7 +105,7 @@ export interface TLArrowBindings {
 const arrowBindingsCache = createComputedCache(
 	'arrow bindings',
 	(editor: Editor, arrow: TLArrowShape) => {
-		const bindings = editor.getBindingsFromShape<TLArrowBinding>(arrow.id, 'arrow')
+		const bindings = editor.getBindingsFromShape(arrow.id, 'arrow')
 		return {
 			start: bindings.find((b) => b.props.terminal === 'start'),
 			end: bindings.find((b) => b.props.terminal === 'end'),
@@ -223,7 +223,7 @@ export function createOrUpdateArrowBinding(
 	const targetId = typeof target === 'string' ? target : target.id
 
 	const existingMany = editor
-		.getBindingsFromShape<TLArrowBinding>(arrowId, 'arrow')
+		.getBindingsFromShape(arrowId, 'arrow')
 		.filter((b) => b.props.terminal === props.terminal)
 
 	// if we've somehow ended up with too many bindings, delete the extras
@@ -254,7 +254,7 @@ export function createOrUpdateArrowBinding(
  */
 export function removeArrowBinding(editor: Editor, arrow: TLArrowShape, terminal: 'start' | 'end') {
 	const existing = editor
-		.getBindingsFromShape<TLArrowBinding>(arrow, 'arrow')
+		.getBindingsFromShape(arrow, 'arrow')
 		.filter((b) => b.props.terminal === terminal)
 
 	editor.deleteBindings(existing)

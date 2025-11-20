@@ -89,7 +89,7 @@ export class Pointing extends StateNode {
 
 			const newPoint = maybeSnapToGrid(currentPagePoint, this.editor)
 
-			this.editor.createShapes<TLLineShape>([
+			this.editor.createShapes([
 				{
 					id,
 					type: 'line',

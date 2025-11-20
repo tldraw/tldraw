@@ -1,6 +1,5 @@
 import { createShapeId, StateNode, TLPointerEventInfo, TLShapeId } from 'tldraw'
 import { createOrUpdateConnectionBinding } from '../connection/ConnectionBindingUtil.tsx'
-import { ConnectionShape } from '../connection/ConnectionShapeUtil.tsx'
 import { getNextConnectionIndex } from '../connection/keepConnectionsAtBottom.tsx'
 import { DEFAULT_NODE_SPACING_PX, NODE_WIDTH_PX } from '../constants.tsx'
 import { getNodePortConnections, getNodePorts } from '../nodes/nodePorts.tsx'
@@ -137,7 +136,7 @@ export class PointingPort extends StateNode {
 			.getPointInShapeSpace(connectionShapeId, targetPositionInPageSpace)
 			.addXY(0, 200)
 
-		this.editor.updateShape<ConnectionShape>({
+		this.editor.updateShape({
 			id: connectionShapeId,
 			type: 'connection',
 			props: {

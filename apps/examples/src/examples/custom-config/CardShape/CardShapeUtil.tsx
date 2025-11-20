@@ -3,19 +3,31 @@ import {
 	HTMLContainer,
 	Rectangle2d,
 	ShapeUtil,
+	TLDefaultColorStyle,
 	TLResizeInfo,
+	TLShape,
 	getColorValue,
 	getDefaultColorTheme,
 	resizeBox,
 } from 'tldraw'
 import { cardShapeMigrations } from './card-shape-migrations'
 import { cardShapeProps } from './card-shape-props'
-import { ICardShape } from './card-shape-types'
+
+const CARD_TYPE = 'card'
+
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		[CARD_TYPE]: { w: number; h: number; color: TLDefaultColorStyle }
+	}
+}
+
+// A type for our custom card shape
+export type ICardShape = TLShape<typeof CARD_TYPE>
 
 // There's a guide at the bottom of this file!
 
 export class CardShapeUtil extends ShapeUtil<ICardShape> {
-	static override type = 'card' as const
+	static override type = CARD_TYPE
 	// [1]
 	static override props = cardShapeProps
 	// [2]
@@ -92,8 +104,8 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 		return resizeBox(shape, info)
 	}
 }
-/* 
-A utility class for the card shape. This is where you define the shape's behavior, 
+/*
+A utility class for the card shape. This is where you define the shape's behavior,
 how it renders (its component and indicator), and how it handles different events.
 
 [1]
@@ -105,21 +117,21 @@ Migrations for upgrading shapes (optional)
 Check out card-shape-migrations.ts for more info.
 
 [3]
-Letting the editor know if the shape's aspect ratio is locked, and whether it 
-can be resized or bound to other shapes. 
+Letting the editor know if the shape's aspect ratio is locked, and whether it
+can be resized or bound to other shapes.
 
 [4]
 The default props the shape will be rendered with when click-creating one.
 
 [5]
 We use this to calculate the shape's geometry for hit-testing, bindings and
-doing other geometric calculations. 
+doing other geometric calculations.
 
 [6]
-Render method — the React component that will be rendered for the shape. It takes the 
-shape as an argument. HTMLContainer is just a div that's being used to wrap our text 
+Render method — the React component that will be rendered for the shape. It takes the
+shape as an argument. HTMLContainer is just a div that's being used to wrap our text
 and button. We can get the shape's bounds using our own getGeometry method.
-	
+
 - [a] Check it out! We can do normal React stuff here like using setState.
    Annoying: eslint sometimes thinks this is a class component, but it's not.
 
@@ -130,6 +142,6 @@ and button. We can get the shape's bounds using our own getGeometry method.
 Indicator — used when hovering over a shape or when it's selected; must return only SVG elements here
 
 [8]
-Resize handler — called when the shape is resized. Sometimes you'll want to do some 
+Resize handler — called when the shape is resized. Sometimes you'll want to do some
 custom logic here, but for our purposes, this is fine.
 */

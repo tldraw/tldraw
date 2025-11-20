@@ -311,7 +311,7 @@ export function getArrowLabelDefaultPosition(editor: Editor, shape: TLArrowShape
 
 /** @internal */
 export function isOverArrowLabel(editor: Editor, shape: TLShape) {
-	if (!editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) return false
+	if (!editor.isShapeOfType(shape, 'arrow')) return false
 
 	const pointInShapeSpace = editor.getPointInShapeSpace(shape, editor.inputs.currentPagePoint)
 	// How should we handle multiple labels? Do shapes ever have multiple labels?

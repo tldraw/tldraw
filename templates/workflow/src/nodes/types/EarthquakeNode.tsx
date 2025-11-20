@@ -88,7 +88,7 @@ export class EarthquakeNodeDefinition extends NodeDefinition<EarthquakeNode> {
 
 			if (data.features.length === 0) {
 				// Update node with no data state
-				this.editor.updateShape<NodeShape>({
+				this.editor.updateShape({
 					id: shape.id,
 					type: shape.type,
 					props: {
@@ -115,7 +115,7 @@ export class EarthquakeNodeDefinition extends NodeDefinition<EarthquakeNode> {
 			}
 
 			// Update node with fetched data
-			this.editor.updateShape<NodeShape>({
+			this.editor.updateShape({
 				id: shape.id,
 				type: shape.type,
 				props: {
@@ -134,7 +134,7 @@ export class EarthquakeNodeDefinition extends NodeDefinition<EarthquakeNode> {
 			console.error('Failed to fetch earthquake data:', error)
 
 			// Update node with error state
-			this.editor.updateShape<NodeShape>({
+			this.editor.updateShape({
 				id: shape.id,
 				type: shape.type,
 				props: {

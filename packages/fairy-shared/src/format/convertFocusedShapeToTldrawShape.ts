@@ -593,6 +593,7 @@ function convertDrawShapeToTldrawShape(
 			isLocked: defaultDrawShape.isLocked ?? false,
 			opacity: defaultDrawShape.opacity ?? 1,
 			props: {
+				...editor.getShapeUtil('draw').getDefaultProps(),
 				color: asColor(focusedShape.color ?? defaultDrawShape.props?.color ?? 'black'),
 				fill,
 			},
@@ -622,7 +623,7 @@ function convertUnknownShapeToTldrawShape(
 			parentId: defaultShape.parentId ?? editor.getCurrentPageId(),
 			isLocked: defaultShape.isLocked ?? false,
 			opacity: defaultShape.opacity ?? 1,
-			props: defaultShape.props ?? {},
+			props: defaultShape.props ?? ({} as any),
 			meta: {
 				note: focusedShape.note ?? defaultShape.meta?.note ?? '',
 			},

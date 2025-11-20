@@ -27,8 +27,16 @@ describe('Handle snapping', () => {
 		)
 	})
 
-	const geoShape = () => editor.getShape(ids.geo)!
-	const lineShape = () => editor.getShape(ids.line)!
+	const geoShape = () => {
+		const shape = editor.getShape(ids.geo)!
+		assert(editor.isShapeOfType(shape, 'geo'))
+		return shape
+	}
+	const lineShape = () => {
+		const shape = editor.getShape(ids.line)!
+		assert(editor.isShapeOfType(shape, 'line'))
+		return shape
+	}
 	const lineHandles = () => editor.getShapeUtil('line').getHandles!(lineShape())!
 
 	function startDraggingHandle() {

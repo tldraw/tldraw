@@ -1,5 +1,4 @@
 import { useEditor, useValue } from 'tldraw'
-import { IExamMarkShape } from './add-mark-util'
 
 // [1]
 export function ExamScoreLabel() {
@@ -10,7 +9,7 @@ export function ExamScoreLabel() {
 		() => {
 			let score = 0
 			for (const shape of editor.getCurrentPageShapes()) {
-				if (!editor.isShapeOfType<IExamMarkShape>(shape, 'exam-mark')) continue
+				if (!editor.isShapeOfType(shape, 'exam-mark')) continue
 				score += shape.props.score
 			}
 			return score

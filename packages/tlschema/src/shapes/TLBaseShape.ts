@@ -1,4 +1,3 @@
-import { BaseRecord } from '@tldraw/store'
 import { IndexKey, JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { TLOpacityType, opacityValidator } from '../misc/TLOpacity'
@@ -9,18 +8,37 @@ import { TLParentId, TLShapeId } from '../records/TLShape'
  * Base interface for all shapes in tldraw.
  *
  * This interface defines the common properties that all shapes share, regardless of their
- * specific type. Every shape extends this base with additional type-specific properties.
+ * specific type. Every default shape extends this base with additional type-specific properties.
+ *
+ * Custom shapes should be defined by augmenting the TLGlobalShapePropsMap type and getting the shape type from the TLShape type.
  *
  * @example
  * ```ts
- * // Define a custom shape type
- * interface MyCustomShape extends TLBaseShape<'custom', { size: number; color: string }> {}
+ * // Define a default shape type
+ * interface TLArrowShape extends TLBaseShape<'arrow', {
+ *   kind: TLArrowShapeKind
+ *   labelColor: TLDefaultColorStyle
+ *   color: TLDefaultColorStyle
+ *   fill: TLDefaultFillStyle
+ *   dash: TLDefaultDashStyle
+ *   size: TLDefaultSizeStyle
+ *   arrowheadStart: TLArrowShapeArrowheadStyle
+ *   arrowheadEnd: TLArrowShapeArrowheadStyle
+ *   font: TLDefaultFontStyle
+ *   start: VecModel
+ *   end: VecModel
+ *   bend: number
+ *   richText: TLRichText
+ *   labelPosition: number
+ *   scale: number
+ *   elbowMidPoint: number
+ * }> {}
  *
  * // Create a shape instance
- * const myShape: MyCustomShape = {
+ * const arrowShape: TLArrowShape = {
  *   id: 'shape:abc123',
  *   typeName: 'shape',
- *   type: 'custom',
+ *   type: 'arrow',
  *   x: 100,
  *   y: 200,
  *   rotation: 0,
@@ -29,8 +47,10 @@ import { TLParentId, TLShapeId } from '../records/TLShape'
  *   isLocked: false,
  *   opacity: 1,
  *   props: {
- *     size: 50,
- *     color: 'blue'
+ *     kind: 'arc',
+ *     start: { x: 0, y: 0 },
+ *     end: { x: 100, y: 100 },
+ *     // ... other props
  *   },
  *   meta: {}
  * }
@@ -38,8 +58,12 @@ import { TLParentId, TLShapeId } from '../records/TLShape'
  *
  * @public
  */
-export interface TLBaseShape<Type extends string, Props extends object>
-	extends BaseRecord<'shape', TLShapeId> {
+export interface TLBaseShape<Type extends string, Props extends object> {
+	// using real `extends BaseRecord<'shape', TLShapeId>` introduces a circularity in the types
+	// and for that reason those "base members" have to be declared manually here
+	readonly id: TLShapeId
+	readonly typeName: 'shape'
+
 	type: Type
 	x: number
 	y: number

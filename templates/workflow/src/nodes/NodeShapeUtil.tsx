@@ -8,8 +8,8 @@ import {
 	resizeBox,
 	ShapeUtil,
 	T,
-	TLBaseShape,
 	TLResizeInfo,
+	TLShape,
 	useEditor,
 	useUniqueSafeId,
 	useValue,
@@ -21,12 +21,20 @@ import { getNodeOutputPortInfo, getNodePorts } from './nodePorts'
 import { getNodeDefinition, getNodeHeightPx, NodeBody, NodeType } from './nodeTypes'
 import { NodeValue, STOP_EXECUTION } from './types/shared'
 
-// Define our custom node shape type that extends tldraw's base shape system
-export type NodeShape = TLBaseShape<'node', { node: NodeType; isOutOfDate: boolean }>
+const NODE_TYPE = 'node'
+
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		// Define our custom node shape type that extends tldraw's base shape system
+		[NODE_TYPE]: { node: NodeType; isOutOfDate: boolean }
+	}
+}
+
+export type NodeShape = TLShape<typeof NODE_TYPE>
 
 // This class extends tldraw's ShapeUtil to define how our custom node shapes behave
 export class NodeShapeUtil extends ShapeUtil<NodeShape> {
-	static override type = 'node' as const
+	static override type = NODE_TYPE
 	static override props: RecordProps<NodeShape> = {
 		node: NodeType,
 		isOutOfDate: T.boolean,

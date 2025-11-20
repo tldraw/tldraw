@@ -3,8 +3,6 @@ import {
 	Mat,
 	StateNode,
 	TLCancelEventInfo,
-	TLFrameShape,
-	TLGroupShape,
 	TLKeyboardEventInfo,
 	TLPageId,
 	TLPointerEventInfo,
@@ -57,9 +55,7 @@ export class Brushing extends StateNode {
 			editor
 				.getCurrentPageShapes()
 				.filter(
-					(shape) =>
-						editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
-						editor.isShapeOrAncestorLocked(shape)
+					(shape) => editor.isShapeOfType(shape, 'group') || editor.isShapeOrAncestorLocked(shape)
 				)
 				.map((shape) => shape.id)
 		)
@@ -177,7 +173,7 @@ export class Brushing extends StateNode {
 
 			// If we're in wrap mode and the brush did not fully encloses the shape, it's a miss
 			// We also skip frames unless we've completely selected the frame.
-			if (isWrapping || editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
+			if (isWrapping || editor.isShapeOfType(shape, 'frame')) {
 				continue testAllShapes
 			}
 
