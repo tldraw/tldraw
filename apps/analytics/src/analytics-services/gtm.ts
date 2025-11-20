@@ -57,12 +57,10 @@ class GTMAnalyticsService extends AnalyticsService {
 	}
 
 	override enable() {
-		if (this.isEnabled) return
 		this.isEnabled = true
 	}
 
 	override disable() {
-		if (!this.isEnabled) return
 		this.isEnabled = false
 	}
 
@@ -76,7 +74,6 @@ class GTMAnalyticsService extends AnalyticsService {
 	}
 
 	override trackEvent(name: string, data?: { [key: string]: any }) {
-		if (!this.isEnabled) return
 		dataLayerPush({
 			event: name,
 			...data,
@@ -84,7 +81,6 @@ class GTMAnalyticsService extends AnalyticsService {
 	}
 
 	override trackPageview() {
-		if (!this.isEnabled) return
 		dataLayerPush({
 			event: 'page_view',
 		})
@@ -119,7 +115,6 @@ class GTMAnalyticsService extends AnalyticsService {
 		user_last_name?: string
 		user_phone_number?: string
 	}) {
-		if (!this.isEnabled) return
 		const payload: any = {
 			event: 'click_copy_code',
 			id: crypto.randomUUID(),
@@ -162,7 +157,6 @@ class GTMAnalyticsService extends AnalyticsService {
 		user_last_name?: string
 		user_phone_number?: string
 	}) {
-		if (!this.isEnabled) return
 		const payload: any = {
 			event: 'generate_lead',
 			id: crypto.randomUUID(),
