@@ -1,10 +1,6 @@
-import {
-	AgentRequest,
-	ChatHistoryItem,
-	ChatHistoryPart,
-	getFairyModeDefinition,
-} from '@tldraw/fairy-shared'
+import { AgentRequest, ChatHistoryPart, getFairyModeDefinition } from '@tldraw/fairy-shared'
 import { structuredClone } from 'tldraw'
+import { filterChatHistoryByMode } from '../fairy-agent/chat/filterChatHistoryByMode'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
@@ -17,37 +13,7 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 		const modeDefinition = getFairyModeDefinition(this.agent.getMode())
 		const { memoryLevel } = modeDefinition
 
-		let filteredItems: ChatHistoryItem[]
-		switch (memoryLevel) {
-			case 'fairy':
-				filteredItems = allItems.filter((item) => item.memoryLevel === 'fairy')
-				break
-			case 'project': {
-				filteredItems = []
-				for (let i = allItems.length - 1; i >= 0; i--) {
-					const item = allItems[i]
-					if (item.memoryLevel === 'project') {
-						filteredItems.unshift(item)
-					} else if (item.memoryLevel === 'task') {
-						continue
-					} else if (item.memoryLevel === 'fairy') {
-						break
-					}
-				}
-				break
-			}
-			case 'task': {
-				filteredItems = []
-				for (let i = allItems.length - 1; i >= 0; i--) {
-					const item = allItems[i]
-					if (item.memoryLevel === 'task') {
-						filteredItems.unshift(item)
-					} else {
-						break
-					}
-				}
-			}
-		}
+		const filteredItems = filterChatHistoryByMode(allItems, memoryLevel)
 
 		return {
 			type: 'chatHistory' as const,

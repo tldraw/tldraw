@@ -802,10 +802,12 @@ export class FairyAgent {
 			data: partialRequest.data ?? [],
 			source: partialRequest.source ?? 'self',
 		}
-		this.$scheduledRequest.set(request)
 
 		const isCurrentlyActive = this.isGenerating()
-		if (!isCurrentlyActive) {
+
+		if (isCurrentlyActive) {
+			this.$scheduledRequest.set(request)
+		} else {
 			this.prompt(request)
 		}
 	}

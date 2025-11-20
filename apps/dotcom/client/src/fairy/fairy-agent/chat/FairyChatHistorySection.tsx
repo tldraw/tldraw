@@ -1,15 +1,18 @@
 import {
+	AgentIcon,
 	ChatHistoryActionItem,
 	ChatHistoryContinuationItem,
 	ChatHistoryItem,
+	ChatHistoryMemoryTransitionItem,
 	ChatHistoryPromptItem,
 } from '@tldraw/fairy-shared'
+import Markdown from 'react-markdown'
 import { FairyAgent } from '../agent/FairyAgent'
 import { FairyChatHistoryGroup, getActionHistoryGroups } from './FairyChatHistoryGroup'
 
 export interface FairyChatHistorySection {
 	prompt: ChatHistoryPromptItem | null
-	items: (ChatHistoryActionItem | ChatHistoryContinuationItem)[]
+	items: (ChatHistoryActionItem | ChatHistoryContinuationItem | ChatHistoryMemoryTransitionItem)[]
 }
 
 export function FairyChatHistorySection({
@@ -21,6 +24,30 @@ export function FairyChatHistorySection({
 }) {
 	const actions = section.items.filter((item) => item.type === 'action') as ChatHistoryActionItem[]
 	const groups = getActionHistoryGroups(actions, agent)
+
+	// Create a map from action to its group
+	const actionToGroup = new Map<ChatHistoryActionItem, FairyChatHistoryGroup>()
+	for (const group of groups) {
+		for (const action of group.items) {
+			actionToGroup.set(action, group)
+		}
+	}
+
+	// Render items in order, grouping actions and rendering memory transitions directly
+	const renderedItems: Array<FairyChatHistoryGroup | ChatHistoryMemoryTransitionItem> = []
+	const renderedGroups = new Set<FairyChatHistoryGroup>()
+
+	for (const item of section.items) {
+		if (item.type === 'memory-transition') {
+			renderedItems.push(item)
+		} else if (item.type === 'action') {
+			const group = actionToGroup.get(item)
+			if (group && !renderedGroups.has(group)) {
+				renderedItems.push(group)
+				renderedGroups.add(group)
+			}
+		}
+	}
 
 	return (
 		<div className="fairy-chat-history-section">
@@ -35,9 +62,29 @@ export function FairyChatHistorySection({
 					</div>
 				)}
 			</div>
-			{groups.map((group, i) => {
-				return <FairyChatHistoryGroup key={'chat-history-group-' + i} group={group} agent={agent} />
+			{renderedItems.map((item, i) => {
+				if ('type' in item && item.type === 'memory-transition') {
+					return <FairyChatHistoryMemoryTransition key={`memory-transition-${i}`} item={item} />
+				} else if ('items' in item) {
+					return (
+						<FairyChatHistoryGroup key={`chat-history-group-${i}`} group={item} agent={agent} />
+					)
+				}
+				return null
 			})}
+		</div>
+	)
+}
+
+function FairyChatHistoryMemoryTransition({ item }: { item: ChatHistoryMemoryTransitionItem }) {
+	return (
+		<div className="fairy-chat-history-action">
+			<div className="fairy-chat-history-action-icon">
+				<AgentIcon type="brain" />
+			</div>
+			<div>
+				<Markdown>{item.message}</Markdown>
+			</div>
 		</div>
 	)
 }
@@ -52,11 +99,7 @@ export function getAgentHistorySections(items: ChatHistoryItem[]): FairyChatHist
 			continue
 		}
 
-		// Ignore memory transition items in the UI
-		if (item.type === 'memory-transition') {
-			continue
-		}
-
+		// Include memory transition items in the UI
 		if (sections.length > 0) {
 			sections[sections.length - 1].items.push(item)
 		} else {

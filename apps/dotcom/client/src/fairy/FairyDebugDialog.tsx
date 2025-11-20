@@ -37,6 +37,7 @@ const HOME_DEBUG_INSPECTOR_TYPES: HomeDebugInspectorType[] = ['projects', 'fairy
 type FairyDebugInspectorType =
 	| 'config'
 	| 'actions'
+	| 'chatHistory'
 	| 'fairyEntity'
 	| 'activeRequest'
 	| 'scheduledRequest'
@@ -50,6 +51,7 @@ type FairyDebugInspectorType =
 const FAIRY_DEBUG_INSPECTOR_TYPES: FairyDebugInspectorType[] = [
 	'config',
 	'actions',
+	'chatHistory',
 	'fairyEntity',
 	'activeRequest',
 	'scheduledRequest',
@@ -184,6 +186,7 @@ function DebugInspectorLabel({
 		const fairyType = type as FairyDebugInspectorType
 		if (fairyType === 'config') return 'Config'
 		if (fairyType === 'actions') return 'Actions'
+		if (fairyType === 'chatHistory') return 'Chat History'
 		if (fairyType === 'fairyEntity') return 'Fairy Entity'
 		if (fairyType === 'activeRequest') return 'Active Request'
 		if (fairyType === 'scheduledRequest') return 'Scheduled Request'
@@ -451,9 +454,19 @@ function FairyDebugView({
 			</div>
 		)
 	}
+	if (inspectorType === 'chatHistory') {
+		return (
+			<div className="fairy-debug-view-container">
+				<ChatHistoryInspector agent={agent} />
+			</div>
+		)
+	}
 
 	// For all other inspector types, use JsonDisplay
-	const valueMap: Record<Exclude<FairyDebugInspectorType, 'config' | 'actions'>, unknown> = {
+	const valueMap: Record<
+		Exclude<FairyDebugInspectorType, 'config' | 'actions' | 'chatHistory'>,
+		unknown
+	> = {
 		fairyEntity,
 		activeRequest,
 		scheduledRequest,
@@ -465,7 +478,10 @@ function FairyDebugView({
 		mode,
 	}
 
-	const value = valueMap[inspectorType as Exclude<FairyDebugInspectorType, 'config' | 'actions'>]
+	const value =
+		valueMap[
+			inspectorType as Exclude<FairyDebugInspectorType, 'config' | 'actions' | 'chatHistory'>
+		]
 	return (
 		<div className="fairy-debug-view-container">
 			<JsonDisplay value={value} />
@@ -569,6 +585,126 @@ function ActionsInspector({ agent }: { agent: FairyAgent }) {
 				<div className="fairy-debug-item">
 					<KeyValuePair label="type" value={item.type} />
 					<KeyValuePair label="data" value={item.data} />
+				</div>
+				{!isLast && <hr />}
+			</>
+		)
+	}
+}
+
+function ChatHistoryInspector({ agent }: { agent: FairyAgent }) {
+	const chatHistory = useValue(agent.$chatHistory)
+
+	return (
+		<div className="fairy-debug-container">
+			<div className="fairy-debug-header">Chat History ({chatHistory.length})</div>
+			{chatHistory.length === 0 ? (
+				<div className="fairy-debug-empty">No chat history items yet</div>
+			) : (
+				chatHistory.map((item, index) => {
+					const isLast = index === chatHistory.length - 1
+					if (item.type === 'prompt') {
+						return <ChatHistoryPromptItem key={`prompt-${index}`} item={item} isLast={isLast} />
+					}
+					if (item.type === 'action') {
+						return <ChatHistoryActionItem key={`action-${index}`} item={item} isLast={isLast} />
+					}
+					if (item.type === 'continuation') {
+						return (
+							<ChatHistoryContinuationItem
+								key={`continuation-${index}`}
+								item={item}
+								isLast={isLast}
+							/>
+						)
+					}
+					if (item.type === 'memory-transition') {
+						return (
+							<ChatHistoryMemoryTransitionItem
+								key={`memory-transition-${index}`}
+								item={item}
+								isLast={isLast}
+							/>
+						)
+					}
+					return null
+				})
+			)}
+		</div>
+	)
+
+	function ChatHistoryPromptItem({
+		item,
+		isLast,
+	}: {
+		item: Extract<ChatHistoryItem, { type: 'prompt' }>
+		isLast: boolean
+	}) {
+		return (
+			<>
+				<div className="fairy-debug-item">
+					<KeyValuePair label="type" value={item.type} />
+					<KeyValuePair label="message" value={item.message} />
+					<KeyValuePair label="memoryLevel" value={item.memoryLevel} />
+				</div>
+				{!isLast && <hr />}
+			</>
+		)
+	}
+
+	function ChatHistoryActionItem({
+		item,
+		isLast,
+	}: {
+		item: Extract<ChatHistoryItem, { type: 'action' }>
+		isLast: boolean
+	}) {
+		return (
+			<>
+				<div className="fairy-debug-item">
+					<KeyValuePair label="type" value={item.type} />
+					<KeyValuePair label="action" value={item.action} />
+					<KeyValuePair label="acceptance" value={item.acceptance} />
+					<KeyValuePair label="memoryLevel" value={item.memoryLevel} />
+					<KeyValuePair label="diff" value={item.diff} />
+				</div>
+				{!isLast && <hr />}
+			</>
+		)
+	}
+
+	function ChatHistoryContinuationItem({
+		item,
+		isLast,
+	}: {
+		item: Extract<ChatHistoryItem, { type: 'continuation' }>
+		isLast: boolean
+	}) {
+		return (
+			<>
+				<div className="fairy-debug-item">
+					<KeyValuePair label="type" value={item.type} />
+					<KeyValuePair label="data" value={item.data} />
+					<KeyValuePair label="memoryLevel" value={item.memoryLevel} />
+				</div>
+				{!isLast && <hr />}
+			</>
+		)
+	}
+
+	function ChatHistoryMemoryTransitionItem({
+		item,
+		isLast,
+	}: {
+		item: Extract<ChatHistoryItem, { type: 'memory-transition' }>
+		isLast: boolean
+	}) {
+		return (
+			<>
+				<div className="fairy-debug-item">
+					<KeyValuePair label="type" value={item.type} />
+					<KeyValuePair label="memoryLevel" value={item.memoryLevel} />
+					<KeyValuePair label="message" value={item.message} />
 				</div>
 				{!isLast && <hr />}
 			</>
