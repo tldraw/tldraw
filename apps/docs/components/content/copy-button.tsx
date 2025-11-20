@@ -18,10 +18,6 @@ export function CopyButton({
 
 		navigator.clipboard.writeText(code)
 
-		const isInstall = code.trim() === 'npm install tldraw'
-		track('docs.copy.code-block', { isInstall, codeBlockId: name })
-
-		// Track via GTM trackCopyCode method
 		if (window.tlanalytics?.trackCopyCode) {
 			window.tlanalytics.trackCopyCode({
 				page_category: 'docs',
@@ -31,7 +27,7 @@ export function CopyButton({
 
 		setCopied(true)
 		setTimeout(() => setCopied(false), 1500)
-	}, [copy, name])
+	}, [copy])
 
 	return (
 		<Button
@@ -42,8 +38,4 @@ export function CopyButton({
 			className={`absolute transition-all duration-100 translate-y-4 opacity-0 -top-2 right-4 group-hover:opacity-100 group-hover:translate-y-0 ${className}`}
 		/>
 	)
-}
-
-export function track(name: string, data?: { [key: string]: any }) {
-	window.tlanalytics?.track(name, data)
 }
