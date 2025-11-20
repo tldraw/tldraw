@@ -1,4 +1,5 @@
 import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
+import { createDebugValue } from '@tldraw/editor'
 import { FairyEntity } from '@tldraw/fairy-shared'
 import { useSync } from '@tldraw/sync'
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -76,6 +77,12 @@ const RemoteFairies = lazy(() =>
 const InCanvasTaskList = lazy(() =>
 	import('../../../fairy/InCanvasTaskList').then((m) => ({ default: m.InCanvasTaskList }))
 )
+
+export const customFeatureFlags = {
+	fairies: createDebugValue('fairies', {
+		defaults: { all: false },
+	}),
+}
 
 /** @internal */
 export const components: TLComponents = {
@@ -276,6 +283,9 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const overrides = useFileEditorOverrides({ fileSlug })
 	const extraDragIconOverrides = useExtraDragIconOverrides()
 
+	const hasFairiesFlag = useValue('show_fairies', () => customFeatureFlags.fairies.get(), [
+		customFeatureFlags,
+	])
 	const hasFairyAccess = useFairyAccess()
 
 	// Fairy stuff
@@ -290,7 +300,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	}, [agents])
 
 	const instanceComponents = useMemo((): TLComponents => {
-		const canShowFairies = app && agents && hasFairyAccess
+		const canShowFairies = app && agents && hasFairiesFlag && hasFairyAccess
 
 		return {
 			...components,
@@ -317,7 +327,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			),
 			DebugMenu: () => <CustomDebugMenu />,
 		}
-	}, [agents, hasFairyAccess, app])
+	}, [agents, hasFairiesFlag, hasFairyAccess, app])
 
 	return (
 		<TlaEditorWrapper>
@@ -340,7 +350,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<SneakyToolSwitcher />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
-				{app && hasFairyAccess && (
+				{app && hasFairiesFlag && hasFairyAccess && (
 					<Suspense fallback={null}>
 						<FairyApp setAgents={setAgents} fileId={fileId} />
 					</Suspense>
@@ -385,7 +395,7 @@ function CustomDebugMenu() {
 				</>
 			)}
 
-			<DefaultDebugMenuContent />
+			<DefaultDebugMenuContent customFeatureFlags={customFeatureFlags} />
 		</DefaultDebugMenu>
 	)
 }

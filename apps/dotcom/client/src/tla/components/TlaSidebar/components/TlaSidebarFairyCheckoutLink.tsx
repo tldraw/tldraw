@@ -1,8 +1,10 @@
 import { hasActiveFairyAccess } from '@tldraw/dotcom-shared'
 import { fetch } from '@tldraw/utils'
 import { useState } from 'react'
+import { useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { F, useIntl } from '../../../utils/i18n'
+import { customFeatureFlags } from '../../TlaEditor/TlaEditor'
 import styles from '../sidebar.module.css'
 
 interface FairyPriceOption {
@@ -36,6 +38,10 @@ export function TlaSidebarFairyCheckoutLink() {
 	const [selectedPriceId, setSelectedPriceId] = useState<string | null>(null)
 	const [loading, setLoading] = useState(false)
 	const [showDropdown, setShowDropdown] = useState(false)
+
+	// Check if fairy feature is enabled via debug flag
+	const fairyEnabled = useValue('fairy_enabled', () => customFeatureFlags.fairies.get(), [])
+	if (!fairyEnabled) return null
 
 	// Don't show button if user already has active fairy access
 	const user = app.getUser()
