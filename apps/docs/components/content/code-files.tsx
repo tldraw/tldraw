@@ -67,7 +67,7 @@ export function CodeFiles({
 									__html: hastToHtml(codeElem),
 								}}
 							></pre>
-							<CopyButton copy={content} name={name} />
+							<CopyButton copy={content} />
 						</TabPanel>
 					)
 				})}

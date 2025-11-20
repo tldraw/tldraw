@@ -90,7 +90,21 @@ class Analytics {
 			}
 
 			// Track the consent change (after enabling or disabling)
-			this.track('consent_changed', { consent })
+			const consentState =
+				consent === 'opted-in'
+					? {
+							ad_user_data: 'granted',
+							ad_personalization: 'granted',
+							ad_storage: 'granted',
+							analytics_storage: 'granted',
+						}
+					: {
+							ad_user_data: 'denied',
+							ad_personalization: 'denied',
+							ad_storage: 'denied',
+							analytics_storage: 'denied',
+						}
+			this.track('consent_update', { consent: consentState })
 
 			// Track consent selection only if user actually interacted with banner (not during initialization)
 			if (this.isInitialized && wasUnknown && consent !== 'unknown') {
