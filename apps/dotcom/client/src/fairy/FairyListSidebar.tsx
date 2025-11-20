@@ -1,6 +1,7 @@
 import { ContextMenu as _ContextMenu } from 'radix-ui'
-import { MouseEvent, ReactNode } from 'react'
-import { TldrawUiButton, TldrawUiButtonIcon, TldrawUiToolbar } from 'tldraw'
+import { MouseEvent } from 'react'
+import { TldrawUiButton, TldrawUiButtonIcon, TldrawUiIcon, TldrawUiToolbar } from 'tldraw'
+import { MAX_FAIRY_COUNT } from '../tla/components/TlaEditor/TlaEditor'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairySidebarButton } from './FairySidebarButton'
 import { FairyTaskListContextMenuContent } from './FairyTaskListContextMenuContent'
@@ -14,7 +15,8 @@ interface FairyListSidebarProps {
 	onClickFairy(agent: FairyAgent, event: MouseEvent): void
 	onDoubleClickFairy(agent: FairyAgent): void
 	onTogglePanel(): void
-	newFairyButton: ReactNode
+	onCreateFairy(): void
+	newFairyLabel: string
 }
 
 export function FairyListSidebar({
@@ -26,8 +28,15 @@ export function FairyListSidebar({
 	onClickFairy,
 	onDoubleClickFairy,
 	onTogglePanel,
-	newFairyButton,
+	onCreateFairy,
+	newFairyLabel,
 }: FairyListSidebarProps) {
+	const slots = Array.from({ length: MAX_FAIRY_COUNT }, (_, index) => {
+		return agents[index] || null
+	})
+
+	const nextAvailableSlot = agents.length < MAX_FAIRY_COUNT ? agents.length : -1
+
 	return (
 		<div className="fairy-buttons-container">
 			<div className="fairy-toolbar-header">
@@ -42,9 +51,9 @@ export function FairyListSidebar({
 					<FairyTaskListContextMenuContent agents={agents} />
 				</_ContextMenu.Root>
 			</div>
-			<div className="fairy-list-scrollable">
-				<TldrawUiToolbar label={toolbarMessage} orientation="vertical">
-					{agents.map((agent) => {
+			<TldrawUiToolbar label={toolbarMessage} orientation="vertical">
+				{slots.map((agent, index) => {
+					if (agent) {
 						return (
 							<FairySidebarButton
 								key={agent.id}
@@ -55,11 +64,22 @@ export function FairyListSidebar({
 								deselectMessage={deselectMessage}
 							/>
 						)
-					})}
-				</TldrawUiToolbar>
-			</div>
-			{/* New Fairy Button - always at the bottom */}
-			<div style={{ marginTop: '4px' }}>{newFairyButton}</div>
+					}
+
+					const isNextAvailable = index === nextAvailableSlot
+					return (
+						<TldrawUiButton
+							key={`empty-slot-${index}`}
+							type="icon"
+							className="fairy-toolbar-sidebar-button"
+							onClick={isNextAvailable ? onCreateFairy : undefined}
+							disabled={!isNextAvailable}
+						>
+							<TldrawUiIcon icon="plus" label={newFairyLabel} />
+						</TldrawUiButton>
+					)
+				})}
+			</TldrawUiToolbar>
 		</div>
 	)
 }
