@@ -3,6 +3,7 @@ import { assert, retry, sleep, uniqueId } from '@tldraw/utils'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
 import { sql } from 'kysely'
+import { FAIRY_WORLDWIDE_EXPIRATION } from './config'
 import { createPostgresConnectionPool } from './postgres'
 import { returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
@@ -195,20 +196,19 @@ export const adminRoutes = createRouter<Environment>()
 		const userId = auth.userId
 
 		const db = createPostgresConnectionPool(env, '/app/admin/fairy/enable-for-me')
-		const { FAIRY_BETA_EXPIRATION } = await import('./config')
 
 		await db
 			.insertInto('user_fairies')
 			.values({
 				userId,
 				fairyLimit: 10,
-				fairyAccessExpiresAt: FAIRY_BETA_EXPIRATION,
+				fairyAccessExpiresAt: FAIRY_WORLDWIDE_EXPIRATION,
 				fairies: '{}',
 			})
 			.onConflict((oc) =>
 				oc.column('userId').doUpdateSet({
 					fairyLimit: 10,
-					fairyAccessExpiresAt: FAIRY_BETA_EXPIRATION,
+					fairyAccessExpiresAt: FAIRY_WORLDWIDE_EXPIRATION,
 				})
 			)
 			.execute()
@@ -216,7 +216,7 @@ export const adminRoutes = createRouter<Environment>()
 		const user = getUserDurableObject(env, userId)
 		await user.admin_refreshUserData(userId)
 
-		return json({ success: true, fairyLimit: 10, fairyAccessExpiresAt: FAIRY_BETA_EXPIRATION })
+		return json({ success: true, fairyLimit: 10, fairyAccessExpiresAt: FAIRY_WORLDWIDE_EXPIRATION })
 	})
 	.post('/app/admin/create_legacy_file', async (_res, env) => {
 		const slug = uniqueId()

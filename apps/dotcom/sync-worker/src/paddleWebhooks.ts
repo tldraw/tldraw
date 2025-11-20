@@ -1,6 +1,6 @@
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
-import { FAIRY_BETA_EXPIRATION } from './config'
+import { FAIRY_WORLDWIDE_EXPIRATION } from './config'
 import { createPostgresConnectionPool } from './postgres'
 import { type Environment } from './types'
 import { getUserDurableObject } from './utils/durableObjects'
@@ -143,7 +143,7 @@ async function handleTransactionCompleted(
 		throw new StatusError(400, 'Invalid price custom_data')
 	}
 
-	const expiresAt = FAIRY_BETA_EXPIRATION
+	const expiresAt = FAIRY_WORLDWIDE_EXPIRATION
 
 	// Upsert user_fairies table with new access
 	const db = createPostgresConnectionPool(env, '/paddle/transaction.completed')

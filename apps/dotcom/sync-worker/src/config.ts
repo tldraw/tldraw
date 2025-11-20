@@ -10,6 +10,6 @@ export const PERSIST_INTERVAL_MS = 8_000
 export const POSTHOG_URL = 'https://eu.i.posthog.com'
 
 /**
- * Beta fairy access expiration date: Dec 31, 2025 23:59:59 UTC
+ * Worldwide fairy access expiration date: Jan 1, 2026 12:00:00 UTC
  */
-export const FAIRY_BETA_EXPIRATION = new Date('2025-12-31T23:59:59Z').getTime()
+export const FAIRY_WORLDWIDE_EXPIRATION = new Date('2026-01-01T12:00:00Z').getTime()
