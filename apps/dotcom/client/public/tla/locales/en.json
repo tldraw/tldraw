@@ -497,9 +497,6 @@
   "a4ffdcf0dc": {
     "translation": "Top"
   },
-  "a686e2236d": {
-    "translation": "Clear task list"
-  },
   "a6cc403d56": {
     "translation": "Anyone with the link"
   },
@@ -743,6 +740,9 @@
   },
   "fcd66d76d6": {
     "translation": "Delete all fairies"
+  },
+  "fd11eafb92": {
+    "translation": "Disband projects"
   },
   "fd1be3efcf": {
     "translation": "Are you sure you want to delete this file?"

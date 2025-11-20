@@ -1087,12 +1087,6 @@
       "value": "Top"
     }
   ],
-  "a686e2236d": [
-    {
-      "type": 0,
-      "value": "Clear task list"
-    }
-  ],
   "a6cc403d56": [
     {
       "type": 0,
@@ -1687,6 +1681,12 @@
     {
       "type": 0,
       "value": "Delete all fairies"
+    }
+  ],
+  "fd11eafb92": [
+    {
+      "type": 0,
+      "value": "Disband projects"
     }
   ],
   "fd1be3efcf": [
