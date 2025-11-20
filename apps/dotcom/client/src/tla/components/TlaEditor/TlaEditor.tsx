@@ -84,6 +84,15 @@ const customFeatureFlags = {
 	}),
 }
 
+/** Whitelisted emails with access to fairy features */
+const FAIRY_ACCESS_WHITELIST = ['jake@firstloop.ai']
+
+/** Check if user has access to fairy features */
+function canUserAccessFairies(user: ReturnType<typeof useTldrawUser>): boolean {
+	const email = user?.clerkUser.primaryEmailAddress?.emailAddress
+	return !!user?.isTldraw || isDevelopmentEnv || (!!email && FAIRY_ACCESS_WHITELIST.includes(email))
+}
+
 /** @internal */
 export const components: TLComponents = {
 	ErrorFallback: TlaEditorErrorFallback,
@@ -299,7 +308,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	}, [agents])
 
 	const instanceComponents = useMemo((): TLComponents => {
-		const canShowFairies = app && agents && hasFairiesFlag && (!!user?.isTldraw || isDevelopmentEnv)
+		const canShowFairies = app && agents && hasFairiesFlag && canUserAccessFairies(user)
 
 		return {
 			...components,
@@ -324,11 +333,9 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 					)}
 				</>
 			),
-			DebugMenu: () => (
-				<CustomDebugMenu showFairyFeatureFlags={!!user?.isTldraw || isDevelopmentEnv} />
-			),
+			DebugMenu: () => <CustomDebugMenu showFairyFeatureFlags={canUserAccessFairies(user)} />,
 		}
-	}, [agents, hasFairiesFlag, user?.isTldraw, app])
+	}, [agents, hasFairiesFlag, user, app])
 
 	return (
 		<TlaEditorWrapper>
@@ -351,7 +358,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<SneakyToolSwitcher />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
-				{app && hasFairiesFlag && (
+				{app && hasFairiesFlag && canUserAccessFairies(user) && (
 					<Suspense fallback={null}>
 						<FairyApp setAgents={setAgents} fileId={fileId} />
 					</Suspense>
