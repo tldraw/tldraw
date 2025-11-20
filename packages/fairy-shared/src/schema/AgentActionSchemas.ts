@@ -489,4 +489,104 @@ export const AwaitTasksCompletionActionSchema = z
 
 export type AwaitTasksCompletionAction = z.infer<typeof AwaitTasksCompletionActionSchema>
 
+export const CreateDuoTaskActionSchema = z
+	.object({
+		_type: z.literal('create-duo-task'),
+		taskId: z.string(),
+		title: z.string(),
+		text: z.string(),
+		assignedTo: z.string(),
+		x: z.number(),
+		y: z.number(),
+		w: z.number(),
+		h: z.number(),
+	})
+	.meta({
+		title: 'Create Duo Task',
+		description:
+			"The agent creates a new task (with a unique, short, hypenated `taskId`) within the current duo project and assigns it to their partner. The task will automatically be associated with the current project. Each task should represent one step in the longer process. It's okay to create many tasks. Note: Creating a task and assigning it to your partner does not automatically start it. You must use the 'direct-to-start-duo-task' action to get your partner to start a task, or use 'start-duo-task' to start it yourself. Also note: Tasks get an automatic ID that's used to reference them. They start at 1, and then increment by 1 for each new task.",
+	})
+
+export type CreateDuoTaskAction = z.infer<typeof CreateDuoTaskActionSchema>
+
+export const DirectToStartDuoTaskActionSchema = z
+	.object({
+		_type: z.literal('direct-to-start-duo-task'),
+		otherFairyId: z.string(),
+		taskId: z.string(),
+	})
+	.meta({
+		title: 'Direct to start duo task',
+		description:
+			'The agent directs their partner to start working on a specific task within the current duo project. Only do this once the task is ready to be started.',
+	})
+
+export type DirectToStartDuoTaskAction = z.infer<typeof DirectToStartDuoTaskActionSchema>
+
+export const StartDuoTaskActionSchema = z
+	.object({
+		_type: z.literal('start-duo-task'),
+		taskId: z.string(),
+	})
+	.meta({
+		title: 'Start Duo Task',
+		description:
+			'The agent begins working on a task themselves in a duo project. This action immediately gives the agent the abilities required to complete the task, such as the ability to manipulate the canvas. Upon performing this action, the agent will immediately receive instructions on how to use those abilities.',
+	})
+
+export type StartDuoTaskAction = z.infer<typeof StartDuoTaskActionSchema>
+
+export const MarkDuoTaskDoneActionSchema = z
+	.object({
+		_type: z.literal('mark-duo-task-done'),
+		taskId: z.string(),
+	})
+	.meta({
+		title: 'Mark Duo Task Done',
+		description:
+			'The agent marks a task as completed in a duo project. This action should be used when the agent has finished working on a task.',
+	})
+
+export type MarkDuoTaskDoneAction = z.infer<typeof MarkDuoTaskDoneActionSchema>
+
+export const AwaitDuoTasksCompletionActionSchema = z
+	.object({
+		_type: z.literal('await-duo-tasks-completion'),
+		taskIds: z.array(z.string()),
+	})
+	.meta({
+		title: 'Await Duo Tasks Completion',
+		description:
+			'The agent waits for one or more tasks to be completed in a duo project. The agent will be notified when each task completes, allowing it to pause its work instead of repeatedly checking task status.',
+	})
+
+export type AwaitDuoTasksCompletionAction = z.infer<typeof AwaitDuoTasksCompletionActionSchema>
+
+export const StartDuoProjectActionSchema = z
+	.object({
+		_type: z.literal('start-duo-project'),
+		projectName: z.string(),
+		projectDescription: z.string(),
+		projectColor: FocusColorSchema,
+		projectPlan: z.string(),
+	})
+	.meta({
+		title: 'Start Duo Project',
+		description:
+			'The agent starts and defines a new duo project (a project with exactly two fairies).',
+	})
+
+export type StartDuoProjectAction = z.infer<typeof StartDuoProjectActionSchema>
+
+export const EndDuoProjectActionSchema = z
+	.object({
+		_type: z.literal('end-duo-project'),
+	})
+	.meta({
+		title: 'End Duo Project',
+		description: 'The agent ends the currently active duo project once all tasks are complete.',
+	})
+
+export type EndDuoProjectAction = z.infer<typeof EndDuoProjectActionSchema>
+
 export type UnknownAction = BaseAgentAction<'unknown'>

@@ -244,7 +244,12 @@ function ProjectsInspector() {
 								<KeyValuePair label="plan" value={project.plan} />
 								<KeyValuePair
 									label="orchestrator"
-									value={project.members.find((member) => member.role === 'orchestrator')?.id}
+									value={
+										project.members.find(
+											(member) =>
+												member.role === 'orchestrator' || member.role === 'duo-orchestrator'
+										)?.id
+									}
 								/>
 								<KeyValuePair label="members" value={project.members} />
 							</div>

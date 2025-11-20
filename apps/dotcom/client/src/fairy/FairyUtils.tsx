@@ -1,21 +1,26 @@
 import { AgentAction, PromptPart } from '@tldraw/fairy-shared'
 import { AgentActionUtil, AgentActionUtilConstructor } from './actions/AgentActionUtil'
 import { AlignActionUtil } from './actions/AlignActionUtil'
+import { AwaitDuoTasksCompletionActionUtil } from './actions/AwaitDuoTasksCompletionActionUtil'
 import { AwaitTasksCompletionActionUtil } from './actions/AwaitTasksCompletionActionUtil'
 import { BringToFrontActionUtil } from './actions/BringToFrontActionUtil'
 import { ChangePageActionUtil } from './actions/ChangePageActionUtil'
 import { ClaimTodoItemActionUtil } from './actions/ClaimTodoItemActionUtil'
 import { CreateActionUtil } from './actions/CreateActionUtil'
+import { CreateDuoTaskActionUtil } from './actions/CreateDuoTaskActionUtil'
 import { CreatePageActionUtil } from './actions/CreatePageActionUtil'
 import { CreateProjectTaskActionUtil } from './actions/CreateProjectTaskActionUtil'
 import { CreateSoloTaskActionUtil } from './actions/CreateSoloTaskActionUtil'
 import { DeleteActionUtil } from './actions/DeleteActionUtil'
+import { DirectToStartDuoTaskActionUtil } from './actions/DirectToStartDuoTaskActionUtil'
 import { DirectToStartTaskActionUtil } from './actions/DirectToStartTaskActionUtil'
 import { DistributeActionUtil } from './actions/DistributeActionUtil'
 import { EndCurrentProjectActionUtil } from './actions/EndCurrentProjectActionUtil'
+import { EndDuoProjectActionUtil } from './actions/EndDuoProjectActionUtil'
 import { FlyToBoundsActionUtil } from './actions/FlyToBoundsActionUtil'
 import { LabelActionUtil } from './actions/LabelActionUtil'
 import { MarkDroneTaskDoneActionUtil } from './actions/MarkDroneTaskDoneActionUtil'
+import { MarkDuoTaskDoneActionUtil } from './actions/MarkDuoTaskDoneActionUtil'
 import { MarkSoloTaskDoneActionUtil } from './actions/MarkSoloTaskDoneActionUtil'
 import { MessageActionUtil } from './actions/MessageActionUtil'
 import { MoveActionUtil } from './actions/MoveActionUtil'
@@ -27,6 +32,8 @@ import { ReviewActionUtil } from './actions/ReviewActionUtil'
 import { RotateActionUtil } from './actions/RotateActionUtil'
 import { SendToBackActionUtil } from './actions/SendToBackActionUtil'
 import { StackActionUtil } from './actions/StackActionUtil'
+import { StartDuoProjectActionUtil } from './actions/StartDuoProjectActionUtil'
+import { StartDuoTaskActionUtil } from './actions/StartDuoTaskActionUtil'
 import { StartProjectActionUtil } from './actions/StartProjectActionUtil'
 import { StartSoloTaskActionUtil } from './actions/StartSoloTaskActionUtil'
 import { ThinkActionUtil } from './actions/ThinkActionUtil'
@@ -108,6 +115,15 @@ export const AGENT_ACTION_UTILS = [
 	DirectToStartTaskActionUtil,
 	EndCurrentProjectActionUtil,
 	AwaitTasksCompletionActionUtil,
+
+	// Duo orchestrating
+	StartDuoProjectActionUtil,
+	CreateDuoTaskActionUtil,
+	DirectToStartDuoTaskActionUtil,
+	StartDuoTaskActionUtil,
+	EndDuoProjectActionUtil,
+	AwaitDuoTasksCompletionActionUtil,
+	MarkDuoTaskDoneActionUtil,
 
 	// Internal (required)
 	UnknownActionUtil,

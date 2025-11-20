@@ -22,7 +22,7 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			agent.setMode('soloing')
 		},
 		onEnter(agent) {
-			agent.$todoList.set([])
+			agent.$personalTodoList.set([])
 			agent.$userActionHistory.set([])
 		},
 	},
@@ -121,6 +121,68 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	['orchestrating-waiting']: {
 		onPromptStart(agent) {
 			agent.setMode('orchestrating-active')
+		},
+	},
+	['duo-orchestrating-active']: {
+		onPromptEnd(agent) {
+			if (agent.$waitingFor.get().length > 0) {
+				const project = agent.getProject()
+				if (!project) {
+					// This should never happen
+					agent.setMode('idling')
+					return
+				}
+
+				const partner = project.members.find((member) => member.id !== agent.id)
+				if (!partner) {
+					agent.setMode('idling')
+					return
+				}
+
+				const partnerAgent = $fairyAgentsAtom.get(agent.editor).find((a) => a.id === partner.id)
+				if (!partnerAgent) {
+					agent.setMode('idling')
+					return
+				}
+
+				// If partner is not active, we might need to deploy them again or continue ourselves
+				if (!partnerAgent.isGenerating()) {
+					agent.schedule(
+						'Your partner is not currently working on tasks. Consider directing them to start a task, starting a task yourself, or ending the project if all tasks are complete.'
+					)
+					return
+				}
+
+				// Wait for partner to finish their tasks
+				agent.setMode('duo-orchestrating-waiting')
+				return
+			}
+
+			if (agent.$waitingFor.get().length === 0) {
+				agent.schedule('Continue reviewing until the project is marked as completed.')
+			}
+		},
+	},
+	['duo-orchestrating-waiting']: {
+		onPromptStart(agent) {
+			agent.setMode('duo-orchestrating-active')
+		},
+	},
+	['working-duo']: {
+		onEnter(agent) {
+			agent.$userActionHistory.set([])
+			agent.$personalTodoList.set([])
+		},
+		onExit(agent) {
+			agent.$userActionHistory.set([])
+			agent.$personalTodoList.set([])
+		},
+		onPromptEnd(agent, request) {
+			// Keep going until the task is complete
+			agent.schedule({
+				message: 'Continue until the task is marked as done.',
+				bounds: request.bounds,
+			})
 		},
 	},
 }

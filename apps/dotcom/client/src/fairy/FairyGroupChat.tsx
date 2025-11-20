@@ -57,24 +57,39 @@ export function FairyGroupChat({
 		setLeaderAgentId(agent.id)
 	}
 
-	const getGroupChatPrompt = useCallback((instruction: string, followerAgents: FairyAgent[]) => {
-		const followerNames = followerAgents
-			.map((agent) => `- name: ${agent.$fairyConfig.get()?.name} (id: ${agent.id})`)
-			.join('\n')
-		const prompt = `You are the leader of a group of fairies who have been instructed to do this project:
+	const getGroupChatPrompt = useCallback(
+		(instruction: string, followerAgents: FairyAgent[], isDuo: boolean) => {
+			if (isDuo) {
+				const partnerName = followerAgents[0]?.$fairyConfig.get()?.name ?? 'your partner'
+				const partnerId = followerAgents[0]?.id ?? ''
+				return `You are collaborating with your partner on a duo project. You are the leader of the duo.You have been instructed to do this project:
+${instruction}. 
+A project has automatically been created, but you need to start it yourself. You have been placed into duo orchestrator mode. You are working together with your partner to complete this project. Your partner is:
+- name: ${partnerName} (id: ${partnerId})
+You are to complete the project together. You can assign tasks to your partner or work on tasks yourself. As you are the leader of the duo, your priority is to assign tasks for your partner to complete, but you may do tasks yourself as well, if it makes sense to work in parallel. Make sure to give the approximate locations of the work to be done, if relevant, in order to make sure you both don't get confused if there are multiple tasks to be done.`
+			} else {
+				const followerNames = followerAgents
+					.map((agent) => `- name: ${agent.$fairyConfig.get()?.name} (id: ${agent.id})`)
+					.join('\n')
+				return `You are the leader of a group of fairies who have been instructed to do this project:
 ${instruction}. 
 A project has automatically been created, but you need to start it yourself. You have been placed into orchestrator mode. You are in charge of making sure the other fairies follow your instructions and complete the project together. Your teammates are:
 ${followerNames}
 You are to complete the project together.
 Make sure to give the approximate locations of the work to be done, if relevant, in order to make sure fairies dont get confused if there are multiple tasks to be done.`
-		return prompt
-	}, [])
+			}
+		},
+		[]
+	)
 
 	const handleInstructGroupChat = useCallback(
 		async (value: string) => {
 			if (!leaderAgent || !value.trim()) {
 				return
 			}
+
+			// Check if this is a duo project (exactly 2 fairies: 1 leader + 1 follower)
+			const isDuo = followerAgents.length === 1
 
 			const newProjectId = uniqueId(5)
 			const newProject: FairyProject = {
@@ -83,7 +98,10 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 				description: '',
 				color: 'grey',
 				members: [
-					{ id: leaderAgent.id, role: 'orchestrator' },
+					{
+						id: leaderAgent.id,
+						role: isDuo ? ('duo-orchestrator' as const) : ('orchestrator' as const),
+					},
 					...followerAgents.map((agent) => ({ id: agent.id, role: 'drone' as const })),
 				],
 				plan: '',
@@ -91,9 +109,9 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 
 			addProject(newProject)
 
-			// Set leader as orchestrator
+			// Set leader as orchestrator or duo-orchestrator
 			leaderAgent.cancel()
-			leaderAgent.setMode('orchestrating-active')
+			leaderAgent.setMode(isDuo ? 'duo-orchestrating-active' : 'orchestrating-active')
 
 			// Set followers as drones
 			followerAgents.forEach((agent) => {
@@ -102,7 +120,7 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 			})
 
 			// Send the prompt to the leader
-			const prompt = getGroupChatPrompt(value, followerAgents)
+			const prompt = getGroupChatPrompt(value, followerAgents, isDuo)
 			leaderAgent.prompt({
 				source: 'self',
 				message: prompt,
