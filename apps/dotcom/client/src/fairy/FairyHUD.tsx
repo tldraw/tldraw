@@ -31,6 +31,7 @@ import { $fairyTasks } from './FairyTaskList'
 import { FairyTaskListDropdownContent } from './FairyTaskListDropdownContent'
 import { FairyTaskListInline } from './FairyTaskListInline'
 import { getRandomFairyName } from './getRandomFairyName'
+import { getRandomFairyPersonality } from './getRandomFairyPersonality'
 
 function NewFairyButton({ agents }: { agents: FairyAgent[] }) {
 	const app = useApp()
@@ -55,7 +56,7 @@ function NewFairyButton({ agents }: { agents: FairyAgent[] }) {
 		const config: FairyConfig = {
 			name: getRandomFairyName(),
 			outfit: randomOutfit,
-			personality: 'Friendly and helpful',
+			personality: getRandomFairyPersonality(),
 		}
 
 		// Add the config, which will trigger agent creation in FairyApp

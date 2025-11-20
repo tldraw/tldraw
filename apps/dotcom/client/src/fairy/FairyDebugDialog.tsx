@@ -27,6 +27,7 @@ import { $fairyDebugFlags } from './FairyDebugFlags'
 import { $fairyModelSelection } from './FairyModelSelection'
 import { $fairyProjects, addAgentToDummyProject } from './FairyProjects'
 import { $fairyTasks } from './FairyTaskList'
+import { getRandomFairyPersonality } from './getRandomFairyPersonality'
 
 // # Home Debug Inspector Types and Labels
 type HomeDebugInspectorType = 'projects' | 'fairyTaskList'
@@ -345,6 +346,9 @@ function HomeDebugOptions() {
 			<TldrawUiButton type="low" onClick={logPartDefinitionsByPriority}>
 				<TldrawUiButtonLabel>Log Part Definitions by Priority</TldrawUiButtonLabel>
 			</TldrawUiButton>
+			<TldrawUiButton type="low" onClick={logRandomFairyPersonalities}>
+				<TldrawUiButtonLabel>Log Random Fairy Personalities (10x)</TldrawUiButtonLabel>
+			</TldrawUiButton>
 		</div>
 	)
 }
@@ -602,6 +606,20 @@ function logPartDefinitionsByPriority() {
 		const priority = def.priority !== undefined ? def.priority : 'N/A'
 		console.log(`${index + 1}. ${def.type}: ${priority}`)
 	})
+	console.groupEnd()
+	/* eslint-enable no-console */
+}
+
+/**
+ * Logs 10 random fairy personalities.
+ */
+function logRandomFairyPersonalities() {
+	/* eslint-disable no-console */
+	console.group('Random Fairy Personalities (10x)')
+	for (let i = 0; i < 10; i++) {
+		const personality = getRandomFairyPersonality()
+		console.log(`${i + 1}. ${personality}`)
+	}
 	console.groupEnd()
 	/* eslint-enable no-console */
 }
