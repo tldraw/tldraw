@@ -58,29 +58,11 @@ class GTMAnalyticsService extends AnalyticsService {
 
 	override enable() {
 		if (this.isEnabled) return
-		dataLayerPush({
-			event: 'consent_update',
-			consent: {
-				ad_user_data: 'granted',
-				ad_personalization: 'granted',
-				ad_storage: 'granted',
-				analytics_storage: 'granted',
-			},
-		})
 		this.isEnabled = true
 	}
 
 	override disable() {
 		if (!this.isEnabled) return
-		dataLayerPush({
-			event: 'consent_update',
-			consent: {
-				ad_user_data: 'denied',
-				ad_personalization: 'denied',
-				ad_storage: 'denied',
-				analytics_storage: 'denied',
-			},
-		})
 		this.isEnabled = false
 	}
 
