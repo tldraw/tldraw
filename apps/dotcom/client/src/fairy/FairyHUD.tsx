@@ -1,6 +1,7 @@
 import {
 	FAIRY_VARIANTS,
 	FairyConfig,
+	FairyProject,
 	FairyTask,
 	FairyVariantType,
 	SmallSpinner,
@@ -212,11 +213,36 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		[agents]
 	)
 
+	const selectProjectGroup = useCallback(
+		(project: FairyProject | null) => {
+			if (!project || project.members.length <= 1) {
+				return false
+			}
+
+			const memberIds = new Set(project.members.map((member) => member.id))
+
+			agents.forEach((agent) => {
+				const shouldSelect = memberIds.has(agent.id)
+				agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: shouldSelect } : f))
+			})
+
+			setShownFairy(null)
+			setPanelState('fairy')
+			return true
+		},
+		[agents, setPanelState, setShownFairy]
+	)
+
 	const handleClickFairy = useCallback(
 		(clickedAgent: FairyAgent, event: MouseEvent) => {
 			const isMultiSelect = event.shiftKey || event.metaKey || event.ctrlKey
 			const isSelected = clickedAgent.$fairyEntity.get().isSelected
 			const isChosen = clickedAgent.id === shownFairy?.id
+			const project = clickedAgent.getProject()
+
+			if (!isMultiSelect && selectProjectGroup(project)) {
+				return
+			}
 
 			if (isMultiSelect) {
 				// Toggle selection without deselecting others
@@ -239,15 +265,20 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 					// Normal single select behavior - deselect all others
 					selectFairy(clickedAgent)
 					// If the clicked fairy is already chosen and selected, toggle the panel. Otherwise, keep the panel open.
-					setPanelState((v) =>
-						isChosen && isSelected && v === 'fairy' && selectedFairies.length <= 1
-							? 'closed'
-							: 'fairy'
-					)
+					setPanelState((v) => {
+						const shouldClosePanel =
+							isChosen && isSelected && v === 'fairy' && selectedFairies.length <= 1
+						if (shouldClosePanel) {
+							agents.forEach((agent) => {
+								agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+							})
+						}
+						return shouldClosePanel ? 'closed' : 'fairy'
+					})
 				}
 			}
 		},
-		[selectFairy, shownFairy, selectedFairies, panelState]
+		[selectFairy, shownFairy, selectedFairies, panelState, selectProjectGroup, agents]
 	)
 
 	const handleDoubleClickFairy = useCallback(
@@ -265,7 +296,11 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 			if (v === 'fairy') return 'closed'
 			return 'fairy' // closed -> fairy
 		})
-	}, [])
+		// Deselect all fairies when the panel is closed
+		agents.forEach((agent) => {
+			agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+		})
+	}, [agents])
 
 	const [taskListLastChecked, setTaskListLastChecked] = useState<FairyTask[]>([])
 
