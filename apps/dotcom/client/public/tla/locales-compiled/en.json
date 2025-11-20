@@ -451,6 +451,12 @@
       "value": "PNG"
     }
   ],
+  "55bfc2a761": [
+    {
+      "type": 0,
+      "value": "Purchase more fairies"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -621,46 +627,6 @@
     {
       "type": 0,
       "value": "Follow these steps to import the content manually:"
-    }
-  ],
-  "6f6422391e": [
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " fairy"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " fairies"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " - $"
-    },
-    {
-      "type": 1,
-      "value": "amount"
     }
   ],
   "70222abcfc": [
@@ -1449,6 +1415,38 @@
     {
       "type": 0,
       "value": "Close"
+    }
+  ],
+  "d458808b84": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " fairy"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " fairies"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "d46632fe1f": [

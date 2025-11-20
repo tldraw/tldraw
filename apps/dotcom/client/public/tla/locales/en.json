@@ -218,6 +218,9 @@
   "55505ba281": {
     "translation": "PNG"
   },
+  "55bfc2a761": {
+    "translation": "Purchase more fairies"
+  },
   "5677e381d2": {
     "translation": "We use analytics cookies to make tldraw better."
   },
@@ -289,9 +292,6 @@
   },
   "6dfc62f621": {
     "translation": "Follow these steps to import the content manually:"
-  },
-  "6f6422391e": {
-    "translation": "{count, plural, one {# fairy} other {# fairies}} - ${amount}"
   },
   "70222abcfc": {
     "translation": "Group settings"
@@ -617,6 +617,9 @@
   },
   "d3d2e61733": {
     "translation": "Close"
+  },
+  "d458808b84": {
+    "translation": "{count, plural, one {# fairy} other {# fairies}}"
   },
   "d46632fe1f": {
     "translation": "Too many requests. Please slow down."

@@ -1,3 +1,4 @@
+import { MAX_FAIRY_COUNT } from '@tldraw/dotcom-shared'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
 import { FAIRY_WORLDWIDE_EXPIRATION } from './config'
@@ -141,32 +142,53 @@ async function handleTransactionCompleted(
 
 	const expiresAt = FAIRY_WORLDWIDE_EXPIRATION
 
-	// Upsert user_fairies table with new access
+	console.log(`[Paddle] Processing purchase for userId=${userId}, quantity=${fairyLimit}`)
+
+	// Upsert user_fairies table with new access (add to existing limit, cap at 5)
 	const db = createPostgresConnectionPool(env, '/paddle/transaction.completed')
 
 	try {
+		// First check if user already has fairy access
+		const existingAccess = await db
+			.selectFrom('user_fairies')
+			.select(['fairyLimit'])
+			.where('userId', '=', userId)
+			.executeTakeFirst()
+
+		// Calculate new limit: add purchased quantity to existing, cap at MAX_FAIRY_COUNT
+		const currentLimit = existingAccess?.fairyLimit ?? 0
+		const newLimit = Math.min(currentLimit + fairyLimit, MAX_FAIRY_COUNT)
+
+		console.log(
+			`[Paddle] Updating fairy limit: current=${currentLimit}, purchased=${fairyLimit}, new=${newLimit}`
+		)
+
 		await db
 			.insertInto('user_fairies')
 			.values({
 				userId,
 				fairies: '[]',
-				fairyLimit,
+				fairyLimit: newLimit,
 				fairyAccessExpiresAt: expiresAt,
 			})
 			.onConflict((oc) =>
 				oc.column('userId').doUpdateSet({
-					fairyLimit,
+					fairyLimit: newLimit,
 					fairyAccessExpiresAt: expiresAt,
 				})
 			)
 			.execute()
 
+		console.log('[Paddle] Database updated successfully, triggering User DO refresh')
+
 		// Trigger User DO refresh to pick up new fairy access
 		const userDO = getUserDurableObject(env, userId)
 		await userDO.admin_refreshUserData(userId)
+
+		console.log('[Paddle] User DO refresh completed')
 	} catch (error) {
 		console.error('Failed to update user_fairies:', error)
-		throw new StatusError(500, 'Database update failed')
+		throw new StatusError(500, `Database update failed: ${error}`)
 	}
 }
 
