@@ -112,7 +112,6 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 				onKeyDown={handleKeyDown}
 				autoFocus
 				className="fairy-input__field"
-				disabled={isGenerating}
 				rows={1}
 				spellCheck={false}
 			/>
