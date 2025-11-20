@@ -1,19 +1,19 @@
-import { AgentRequest, DirectToStartTaskAction, Streaming } from '@tldraw/fairy-shared'
+import { AgentRequest, DirectToStartDuoTaskAction, Streaming } from '@tldraw/fairy-shared'
 import { $fairyAgentsAtom } from '../fairy-agent/agent/fairyAgentsAtom'
 import { assignFairyToTask, getFairyTaskById, setFairyTaskStatus } from '../FairyTaskList'
 import { AgentActionUtil } from './AgentActionUtil'
 
-export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTaskAction> {
-	static override type = 'direct-to-start-project-task' as const
+export class DirectToStartDuoTaskActionUtil extends AgentActionUtil<DirectToStartDuoTaskAction> {
+	static override type = 'direct-to-start-duo-task' as const
 
-	override getInfo(action: Streaming<DirectToStartTaskAction>) {
-		let otherFairyName = 'a fairy'
+	override getInfo(action: Streaming<DirectToStartDuoTaskAction>) {
+		let otherFairyName = 'your partner'
 
 		if (action.complete) {
 			const otherFairy = $fairyAgentsAtom
 				.get(this.editor)
 				.find((fairy) => fairy.id === action.otherFairyId)
-			otherFairyName = otherFairy ? otherFairy.$fairyConfig.get().name : 'a fairy'
+			otherFairyName = otherFairy ? otherFairy.$fairyConfig.get().name : 'your partner'
 		}
 
 		const text = action.complete
@@ -26,7 +26,7 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 		}
 	}
 
-	override applyAction(action: Streaming<DirectToStartTaskAction>) {
+	override applyAction(action: Streaming<DirectToStartDuoTaskAction>) {
 		if (!action.complete) return
 		if (!this.agent) return
 

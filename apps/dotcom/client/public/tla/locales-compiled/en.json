@@ -195,6 +195,12 @@
       "value": "Customize fairy"
     }
   ],
+  "284d5cd0dd": [
+    {
+      "type": 0,
+      "value": "Model:"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -761,6 +767,12 @@
       "value": "Download"
     }
   ],
+  "80a3d8a5bb": [
+    {
+      "type": 0,
+      "value": "Log response time (solo mode only)"
+    }
+  ],
   "815e116a2e": [
     {
       "type": 0,
@@ -1073,12 +1085,6 @@
     {
       "type": 0,
       "value": "Top"
-    }
-  ],
-  "a686e2236d": [
-    {
-      "type": 0,
-      "value": "Clear task list"
     }
   ],
   "a6cc403d56": [
@@ -1675,6 +1681,12 @@
     {
       "type": 0,
       "value": "Delete all fairies"
+    }
+  ],
+  "fd11eafb92": [
+    {
+      "type": 0,
+      "value": "Disband projects"
     }
   ],
   "fd1be3efcf": [

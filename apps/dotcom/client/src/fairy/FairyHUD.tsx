@@ -104,6 +104,7 @@ function FairyHUDHeader({
 	switchToTaskListLabel,
 }: FairyHUDHeaderProps) {
 	const fairyConfig = useValue('fairy config', () => shownFairy?.$fairyConfig.get(), [shownFairy])
+	const isGenerating = useValue('is generating', () => shownFairy?.isGenerating(), [shownFairy])
 
 	// Determine center content based on panel state
 	const centerContent =
@@ -121,7 +122,7 @@ function FairyHUDHeader({
 				<div
 					className="fairy-spinner-container"
 					style={{
-						visibility: shownFairy.isGenerating() ? 'visible' : 'hidden',
+						visibility: isGenerating ? 'visible' : 'hidden',
 					}}
 				>
 					<SmallSpinner />

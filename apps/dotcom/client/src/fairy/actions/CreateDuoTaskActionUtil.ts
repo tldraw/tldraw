@@ -1,15 +1,15 @@
-import { CreateProjectTaskAction, Streaming } from '@tldraw/fairy-shared'
+import { CreateDuoTaskAction, Streaming } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { getProjectByAgentId } from '../FairyProjects'
 import { createFairyTask } from '../FairyTaskList'
 import { AgentActionUtil } from './AgentActionUtil'
 
-// Creates a task for a project with a specifiable assignedTo id
-export class CreateProjectTaskActionUtil extends AgentActionUtil<CreateProjectTaskAction> {
-	static override type = 'create-project-task' as const
+// Creates a task for a duo project with a specifiable assignedTo id
+export class CreateDuoTaskActionUtil extends AgentActionUtil<CreateDuoTaskAction> {
+	static override type = 'create-duo-task' as const
 
-	override getInfo(action: Streaming<CreateProjectTaskAction>) {
-		const label = action.complete ? 'Created project task' : 'Creating project task'
+	override getInfo(action: Streaming<CreateDuoTaskAction>) {
+		const label = action.complete ? 'Created duo task' : 'Creating duo task'
 		return {
 			icon: 'note' as const,
 			description: `${label}: ${action.text}`,
@@ -17,7 +17,7 @@ export class CreateProjectTaskActionUtil extends AgentActionUtil<CreateProjectTa
 		}
 	}
 
-	override applyAction(action: Streaming<CreateProjectTaskAction>, helpers: AgentHelpers) {
+	override applyAction(action: Streaming<CreateDuoTaskAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
 
 		const project = this.agent.getProject()
@@ -27,7 +27,7 @@ export class CreateProjectTaskActionUtil extends AgentActionUtil<CreateProjectTa
 		const assignedAgentsProject = getProjectByAgentId(assignedToId)
 		if (!assignedAgentsProject || assignedAgentsProject.id !== project.id) {
 			this.agent.interrupt({
-				input: `Fairy ${assignedToId} is not in the same project as you. You may only assign tasks to fairies in the same project.`,
+				input: `Fairy ${assignedToId} is not in the same project as you. You may only assign tasks to your partner in the same duo project.`,
 			})
 			return
 		}

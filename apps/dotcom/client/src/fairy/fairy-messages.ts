@@ -29,7 +29,7 @@ export const fairyMessages = defineMessages({
 	// Task list menu (labels)
 	askForHelpFromEveryone: { defaultMessage: 'Ask for help' },
 	summonAllFairies: { defaultMessage: 'Summon all fairies' },
-	clearTaskList: { defaultMessage: 'Clear task list' },
+	disbandProjects: { defaultMessage: 'Disband projects' },
 	resetAllChats: { defaultMessage: 'Reset all chats' },
 	resetAllWands: { defaultMessage: 'Reset all wands' },
 	deleteAllFairies: { defaultMessage: 'Delete all fairies' },

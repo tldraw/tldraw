@@ -1,24 +1,24 @@
-import { MarkDroneTaskDoneAction, Streaming } from '@tldraw/fairy-shared'
+import { MarkDuoTaskDoneAction, Streaming } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { $fairyTasks, setFairyTaskStatusAndNotifyCompletion } from '../FairyTaskList'
 import { AgentActionUtil } from './AgentActionUtil'
 
-export class MarkDroneTaskDoneActionUtil extends AgentActionUtil<MarkDroneTaskDoneAction> {
-	static override type = 'mark-my-task-done' as const
+export class MarkDuoTaskDoneActionUtil extends AgentActionUtil<MarkDuoTaskDoneAction> {
+	static override type = 'mark-duo-task-done' as const
 
-	override getInfo(action: Streaming<MarkDroneTaskDoneAction>) {
+	override getInfo(action: Streaming<MarkDuoTaskDoneAction>) {
 		const task = $fairyTasks.get().find((task) => task.id === action.taskId)
 
 		return {
 			icon: 'note' as const,
 			description: action.complete
-				? `Completed task: ${task?.text ?? action.taskId}`
-				: 'Completing task...',
+				? `Completed duo task: ${task?.text ?? action.taskId}`
+				: 'Completing duo task...',
 			pose: 'thinking' as const,
 		}
 	}
 
-	override applyAction(action: Streaming<MarkDroneTaskDoneAction>, _helpers: AgentHelpers) {
+	override applyAction(action: Streaming<MarkDuoTaskDoneAction>, _helpers: AgentHelpers) {
 		if (!action.complete) return
 
 		const task = $fairyTasks.get().find((task) => task.id === action.taskId)
@@ -33,6 +33,11 @@ export class MarkDroneTaskDoneActionUtil extends AgentActionUtil<MarkDroneTaskDo
 				message: `I marked task ${action.taskId} as done: ${task.text}`,
 			},
 		])
-		this.agent.interrupt({ mode: 'standing-by', input: null })
+
+		// Return to duo-orchestrating-active mode after completing a task
+		this.agent.interrupt({
+			mode: 'duo-orchestrating-active',
+			input: { message: `I marked task ${action.taskId} as done: ${task.text}` },
+		})
 	}
 }
