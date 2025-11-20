@@ -27,7 +27,6 @@ import {
 } from '../../../../node_modules/@rocicorp/zero/out/zero/src/pg'
 import { adminRoutes } from './adminRoutes'
 import { POSTHOG_URL } from './config'
-import { fairyPricingRoutes } from './fairyPricingRoutes'
 import { healthCheckRoutes } from './healthCheckRoutes'
 import { paddleWebhooks } from './paddleWebhooks'
 import { createPostgresConnectionPool, makePostgresConnector } from './postgres'
@@ -173,7 +172,6 @@ const router = createRouter<Environment>()
 	.all('/health-check/*', healthCheckRoutes.fetch)
 	.all('/app/admin/*', adminRoutes.fetch)
 	.all('/app/paddle/*', paddleWebhooks.fetch)
-	.all('/app/fairy/*', fairyPricingRoutes.fetch)
 	.post('/app/zero/push', async (req, env) => {
 		const auth = await requireAuth(req, env)
 		const processor = new PushProcessor(

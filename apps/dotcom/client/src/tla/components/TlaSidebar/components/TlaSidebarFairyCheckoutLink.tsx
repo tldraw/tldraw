@@ -1,5 +1,4 @@
-import { hasActiveFairyAccess } from '@tldraw/dotcom-shared'
-import { fetch } from '@tldraw/utils'
+import { hasActiveFairyAccess, MAX_FAIRY_COUNT } from '@tldraw/dotcom-shared'
 import { useState } from 'react'
 import { useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
@@ -7,12 +6,8 @@ import { F, useIntl } from '../../../utils/i18n'
 import { customFeatureFlags } from '../../TlaEditor/TlaEditor'
 import styles from '../sidebar.module.css'
 
-interface FairyPriceOption {
-	priceId: string
-	fairyLimit: number
-	amount: string
-	currency: string
-}
+// Generate fairy quantity options from 1 to MAX_FAIRY_COUNT
+const FAIRY_QUANTITY_OPTIONS = Array.from({ length: MAX_FAIRY_COUNT }, (_, i) => i + 1)
 
 declare global {
 	interface Window {
@@ -25,6 +20,14 @@ declare global {
 				open(options: {
 					items: Array<{ priceId: string; quantity: number }>
 					customData?: Record<string, any>
+					customer?: {
+						email?: string
+					}
+					settings?: {
+						allowDiscountRemoval?: boolean
+						displayMode?: string
+						showAddDiscounts?: boolean
+					}
 				}): void
 			}
 		}
@@ -34,9 +37,7 @@ declare global {
 export function TlaSidebarFairyCheckoutLink() {
 	const app = useApp()
 	const intl = useIntl()
-	const [prices, setPrices] = useState<FairyPriceOption[]>([])
-	const [selectedPriceId, setSelectedPriceId] = useState<string | null>(null)
-	const [loading, setLoading] = useState(false)
+	const [selectedQuantity, setSelectedQuantity] = useState<number>(3) // Default to 3 (recommended)
 	const [showDropdown, setShowDropdown] = useState(false)
 
 	// Check if fairy feature is enabled via debug flag
@@ -48,40 +49,8 @@ export function TlaSidebarFairyCheckoutLink() {
 	const userHasActiveFairyAccess = hasActiveFairyAccess(user?.fairyAccessExpiresAt)
 	if (userHasActiveFairyAccess) return null
 
-	const handleClick = async () => {
-		// If already open, just close
-		if (showDropdown) {
-			setShowDropdown(false)
-			return
-		}
-
-		// If prices already loaded, just open
-		if (prices.length > 0) {
-			setShowDropdown(true)
-			return
-		}
-
-		// Fetch prices
-		setLoading(true)
-		try {
-			const response = await fetch('/api/app/fairy/prices')
-			if (!response.ok) {
-				console.error('Failed to fetch fairy prices')
-				return
-			}
-			const data = await response.json()
-			setPrices(data.prices || [])
-			// Select 3 fairies by default (recommended), fallback to first price
-			if (data.prices && data.prices.length > 0) {
-				const recommendedPrice = data.prices.find((p: FairyPriceOption) => p.fairyLimit === 3)
-				setSelectedPriceId(recommendedPrice?.priceId || data.prices[0].priceId)
-			}
-			setShowDropdown(true)
-		} catch (error) {
-			console.error('Error fetching fairy prices:', error)
-		} finally {
-			setLoading(false)
-		}
+	const handleClick = () => {
+		setShowDropdown(!showDropdown)
 	}
 
 	const handlePurchase = () => {
@@ -91,26 +60,28 @@ export function TlaSidebarFairyCheckoutLink() {
 			return
 		}
 
-		if (!selectedPriceId) {
-			console.error('No price selected')
-			return
-		}
-
 		// Initialize Paddle if not already initialized
 		if (!window.Paddle) {
 			console.error('Paddle.js not loaded')
 			return
 		}
 
-		// Get env from environment variable or default to sandbox
+		// Get env and token from environment variables
 		const paddleEnv =
 			// @ts-expect-error Vite env vars not typed
 			(import.meta.env.VITE_PADDLE_ENVIRONMENT as 'sandbox' | 'production') ?? 'sandbox'
 		// @ts-expect-error Vite env vars not typed
 		const paddleToken = import.meta.env.VITE_PADDLE_CLIENT_TOKEN
+		// @ts-expect-error Vite env vars not typed
+		const paddlePriceId = import.meta.env.VITE_PADDLE_FAIRY_PRICE_ID
 
 		if (!paddleToken) {
 			console.error('Paddle client token not configured')
+			return
+		}
+
+		if (!paddlePriceId) {
+			console.error('Paddle price ID not configured')
 			return
 		}
 
@@ -125,11 +96,19 @@ export function TlaSidebarFairyCheckoutLink() {
 				},
 			})
 
-			// Open checkout with custom_data
+			// Open checkout with quantity and prepopulated email
 			window.Paddle.Checkout.open({
-				items: [{ priceId: selectedPriceId, quantity: 1 }],
+				items: [{ priceId: paddlePriceId, quantity: selectedQuantity }],
 				customData: {
 					userId,
+				},
+				customer: {
+					email: user?.email,
+				},
+				settings: {
+					allowDiscountRemoval: false,
+					displayMode: 'overlay',
+					showAddDiscounts: false,
 				},
 			})
 
@@ -145,9 +124,8 @@ export function TlaSidebarFairyCheckoutLink() {
 			<button
 				data-testid="tla-sidebar-fairy-checkout"
 				onClick={handleClick}
-				disabled={loading}
 				style={{
-					cursor: loading ? 'wait' : 'pointer',
+					cursor: 'pointer',
 					padding: '0px 8px',
 					width: '100%',
 					height: '100%',
@@ -163,10 +141,10 @@ export function TlaSidebarFairyCheckoutLink() {
 				<span>
 					<F defaultMessage="Purchase fairy access" />
 				</span>
-				<span style={{ marginLeft: '8px' }}>{loading ? '...' : '$'}</span>
+				<span style={{ marginLeft: '8px' }}>$</span>
 			</button>
 
-			{showDropdown && prices.length > 0 && (
+			{showDropdown && (
 				<div
 					style={{
 						position: 'absolute',
@@ -181,16 +159,16 @@ export function TlaSidebarFairyCheckoutLink() {
 						zIndex: 1000,
 					}}
 				>
-					{prices.map((price) => (
+					{FAIRY_QUANTITY_OPTIONS.map((quantity) => (
 						<button
-							key={price.priceId}
-							onClick={() => setSelectedPriceId(price.priceId)}
+							key={quantity}
+							onClick={() => setSelectedQuantity(quantity)}
 							style={{
 								width: '100%',
 								padding: '8px',
 								border: 'none',
 								background:
-									price.priceId === selectedPriceId ? 'var(--tla-color-hover-2)' : 'transparent',
+									quantity === selectedQuantity ? 'var(--tla-color-hover-2)' : 'transparent',
 								color: 'var(--tla-color-text-1)',
 								cursor: 'pointer',
 								textAlign: 'left',
@@ -203,12 +181,12 @@ export function TlaSidebarFairyCheckoutLink() {
 							<span>
 								{intl.formatMessage(
 									{
-										defaultMessage: '{count, plural, one {# fairy} other {# fairies}} - ${amount}',
+										defaultMessage: '{count, plural, one {# fairy} other {# fairies}}',
 									},
-									{ count: price.fairyLimit, amount: price.amount }
+									{ count: quantity }
 								)}
 							</span>
-							{price.fairyLimit === 3 && (
+							{quantity === 3 && (
 								<span
 									style={{
 										fontSize: '10px',

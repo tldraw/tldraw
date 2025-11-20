@@ -122,25 +122,21 @@ async function handleTransactionCompleted(
 		throw new StatusError(400, 'Invalid transaction custom_data')
 	}
 
-	// Extract fairyLimit from price custom_data
+	// Extract fairyLimit from item quantity
 	let fairyLimit: number
 	try {
 		const items = data.items as any[]
 		if (!items || items.length === 0) {
 			throw new Error('No items in transaction')
 		}
-		const priceCustomData = items[0]?.price?.custom_data
-		if (!priceCustomData || typeof priceCustomData !== 'object') {
-			throw new Error('Missing custom_data on price')
-		}
-		const fairyLimitValue = (priceCustomData as Record<string, unknown>).fairyLimit
-		fairyLimit = parseInt(String(fairyLimitValue), 10)
+		const quantity = items[0]?.quantity
+		fairyLimit = parseInt(String(quantity), 10)
 		if (isNaN(fairyLimit) || fairyLimit <= 0) {
-			throw new Error('Invalid fairyLimit in price custom_data')
+			throw new Error('Invalid quantity in transaction items')
 		}
 	} catch (error) {
-		console.error('Failed to parse price custom_data:', error)
-		throw new StatusError(400, 'Invalid price custom_data')
+		console.error('Failed to parse transaction quantity:', error)
+		throw new StatusError(400, 'Invalid transaction quantity')
 	}
 
 	const expiresAt = FAIRY_WORLDWIDE_EXPIRATION
