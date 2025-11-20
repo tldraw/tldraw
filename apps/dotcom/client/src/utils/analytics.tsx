@@ -144,6 +144,7 @@ function configurePosthog(options: AnalyticsOptions) {
 		ui_host: 'https://eu.i.posthog.com',
 		capture_pageview: false,
 		cookieless_mode: 'on_reject',
+		disable_surveys: true,
 		before_send: (payload) => {
 			if (!payload) return null
 			payload.properties.is_signed_in = !!options.user

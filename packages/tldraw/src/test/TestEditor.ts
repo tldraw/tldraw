@@ -10,7 +10,6 @@ import {
 	RequiredKeys,
 	RotateCorner,
 	SelectionHandle,
-	TLArrowBinding,
 	TLArrowShape,
 	TLContent,
 	TLEditorOptions,
@@ -790,9 +789,7 @@ export class TestEditor extends Editor {
 	}
 
 	getArrowsBoundTo(shapeId: TLShapeId) {
-		const ids = new Set(
-			this.getBindingsToShape<TLArrowBinding>(shapeId, 'arrow').map((b) => b.fromId)
-		)
+		const ids = new Set(this.getBindingsToShape(shapeId, 'arrow').map((b) => b.fromId))
 		return compact(Array.from(ids, (id) => this.getShape<TLArrowShape>(id)))
 	}
 }

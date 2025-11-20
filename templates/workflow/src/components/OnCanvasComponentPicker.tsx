@@ -14,7 +14,7 @@ import {
 	Vec,
 	VecModel,
 } from 'tldraw'
-import { ConnectionShape, getConnectionTerminals } from '../connection/ConnectionShapeUtil'
+import { getConnectionTerminals } from '../connection/ConnectionShapeUtil'
 import { NODE_WIDTH_PX } from '../constants'
 import { getNodeDefinitions, NodeType } from '../nodes/nodeTypes'
 import { NodeDefinition } from '../nodes/types/shared'
@@ -85,7 +85,7 @@ function OnCanvasComponentPickerDialog({
 			if (!container) return
 
 			const connection = editor.getShape(state.connectionShapeId)
-			if (!connection || !editor.isShapeOfType<ConnectionShape>(connection, 'connection')) {
+			if (!connection || !editor.isShapeOfType(connection, 'connection')) {
 				onClose()
 				return
 			}
@@ -156,7 +156,7 @@ function OnCanvasComponentPickerItem<T extends NodeType>({
 				if (!state) return
 
 				const connection = editor.getShape(state.connectionShapeId)
-				if (!connection || !editor.isShapeOfType<ConnectionShape>(connection, 'connection')) {
+				if (!connection || !editor.isShapeOfType(connection, 'connection')) {
 					onClose()
 					return
 				}

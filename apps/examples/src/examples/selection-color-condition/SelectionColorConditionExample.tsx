@@ -1,4 +1,4 @@
-import { TLGeoShape, Tldraw, react } from 'tldraw'
+import { Tldraw, react } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
@@ -25,8 +25,7 @@ export default function SelectionColorConditionExample() {
 						const allAreRectangles =
 							selectedShapes.length > 0 &&
 							selectedShapes.every(
-								(shape) =>
-									editor.isShapeOfType<TLGeoShape>(shape, 'geo') && shape.props.geo === 'rectangle'
+								(shape) => editor.isShapeOfType(shape, 'geo') && shape.props.geo === 'rectangle'
 							)
 
 						// [4]
@@ -39,13 +38,13 @@ export default function SelectionColorConditionExample() {
 
 					// [5]
 					editor
-						.createShapes<TLGeoShape>([
+						.createShapes([
 							{ type: 'geo', x: 0, y: 0 },
 							{ type: 'geo', x: 120, y: 0 },
 						])
 						.selectAll()
 						.zoomToSelection()
-						.createShape<TLGeoShape>({ type: 'geo', x: 60, y: 120, props: { geo: 'ellipse' } })
+						.createShape({ type: 'geo', x: 60, y: 120, props: { geo: 'ellipse' } })
 
 					return stopListening
 				}}

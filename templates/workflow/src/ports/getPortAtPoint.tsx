@@ -1,6 +1,5 @@
 import { Editor, Vec, VecLike } from 'tldraw'
 import { getNodePortConnections, getNodePorts } from '../nodes/nodePorts'
-import { NodeShape } from '../nodes/NodeShapeUtil'
 import { ShapePort } from './Port'
 
 export function getPortAtPoint(
@@ -12,10 +11,10 @@ export function getPortAtPoint(
 	const shape = editor.getShapeAtPoint(point, {
 		hitInside: true,
 		// only node shapes can have ports
-		filter: (shape) => editor.isShapeOfType<NodeShape>(shape, 'node'),
+		filter: (shape) => editor.isShapeOfType(shape, 'node'),
 		...opts,
 	})
-	if (!shape || !editor.isShapeOfType<NodeShape>(shape, 'node')) return null
+	if (!shape || !editor.isShapeOfType(shape, 'node')) return null
 
 	// get the ports on that shape
 	const ports = getNodePorts(editor, shape)

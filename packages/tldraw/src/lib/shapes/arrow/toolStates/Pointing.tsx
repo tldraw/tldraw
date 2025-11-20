@@ -96,7 +96,7 @@ export class Pointing extends StateNode {
 
 		this.markId = this.editor.markHistoryStoppingPoint(`creating_arrow:${id}`)
 		const newPoint = maybeSnapToGrid(originPagePoint, this.editor)
-		this.editor.createShape<TLArrowShape>({
+		this.editor.createShape({
 			id,
 			type: 'arrow',
 			x: newPoint.x,

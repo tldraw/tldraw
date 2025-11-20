@@ -12,6 +12,7 @@ import {
 	useDialogs,
 	useValue,
 } from 'tldraw'
+import { routes } from '../../../routeDefs'
 import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
@@ -160,9 +161,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 		return null
 	}
 
-	const inviteUrl = group.inviteSecret
-		? `${window.location.origin}/invite/${group.inviteSecret}`
-		: ''
+	const inviteUrl = group.inviteSecret ? routes.tlaInvite(group.inviteSecret, { asUrl: true }) : ''
 
 	return (
 		<_Tooltip.Provider>

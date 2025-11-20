@@ -67,12 +67,30 @@ class Analytics {
 			const wasUnknown = this.consent === 'unknown'
 			this.consent = consent
 
+			// Track the consent change (after enabling or disabling)
+			const consentState =
+				consent === 'opted-in'
+					? {
+							ad_user_data: 'granted',
+							ad_personalization: 'granted',
+							ad_storage: 'granted',
+							analytics_storage: 'granted',
+						}
+					: {
+							ad_user_data: 'denied',
+							ad_personalization: 'denied',
+							ad_storage: 'denied',
+							analytics_storage: 'denied',
+						}
+
 			if (this.consent === 'opted-in') {
 				// Enable the analytics services only when consent is granted
 				for (const service of this.services) {
 					service.enable()
 				}
 
+				// We have to enable services first, then track the event
+				this.track('consent_update', { consent: consentState })
 				// Identify the user if we have a userId. Most of the time
 				// identify() should be called off of the window.tlanalytics object, ie. in an app
 				// where we have a user id and properties for that app (like tldraw computer). We do
@@ -83,14 +101,13 @@ class Analytics {
 					this.identify(this.userId, this.userProperties)
 				}
 			} else {
+				// We need to track the event first, then disable services or the opt out won't get tracked
+				this.track('consent_update', { consent: consentState })
 				// Disable the analytics services when consent is revoked or when consent is unknown
 				for (const service of this.services) {
 					service.disable()
 				}
 			}
-
-			// Track the consent change (after enabling or disabling)
-			this.track('consent_changed', { consent })
 
 			// Track consent selection only if user actually interacted with banner (not during initialization)
 			if (this.isInitialized && wasUnknown && consent !== 'unknown') {

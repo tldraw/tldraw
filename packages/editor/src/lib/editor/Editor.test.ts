@@ -6,25 +6,25 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	T,
-	TLBaseShape,
+	TLShape,
 	createShapeId,
 	createTLStore,
 } from '../..'
 import { Editor } from './Editor'
 import { StateNode } from './tools/StateNode'
 
-type ICustomShape = TLBaseShape<
-	'my-custom-shape',
-	{
-		w: number
-		h: number
-		text: string | undefined
-		isFilled: boolean
+const MY_CUSTOM_SHAPE_TYPE = 'my-custom-shape'
+
+declare module '@tldraw/tlschema' {
+	export interface TLGlobalShapePropsMap {
+		[MY_CUSTOM_SHAPE_TYPE]: { w: number; h: number; text: string | undefined; isFilled: boolean }
 	}
->
+}
+
+type ICustomShape = TLShape<typeof MY_CUSTOM_SHAPE_TYPE>
 
 class CustomShape extends ShapeUtil<ICustomShape> {
-	static override type = 'my-custom-shape' as const
+	static override type = MY_CUSTOM_SHAPE_TYPE
 	static override props: RecordProps<ICustomShape> = {
 		w: T.number,
 		h: T.number,

@@ -13,10 +13,10 @@ import {
 	ShapeUtil,
 	T,
 	TEXT_PROPS,
-	TLBaseShape,
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
+	TLShape,
 	Vec,
 	ZERO_INDEX_KEY,
 	getColorValue,
@@ -27,6 +27,15 @@ import {
 } from 'tldraw'
 import { getSpeechBubbleVertices, getTailIntersectionPoint } from './helpers'
 
+const SPEECH_BUBBLE_TYPE = 'speech-bubble'
+
+// [1]
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		[SPEECH_BUBBLE_TYPE]: SpeechBubbleShapeProps
+	}
+}
+
 // Copied from tldraw/tldraw
 export const STROKE_SIZES = {
 	s: 2,
@@ -36,8 +45,6 @@ export const STROKE_SIZES = {
 }
 
 // There's a guide at the bottom of this file!
-
-// [1]
 
 export const speechBubbleShapeProps = {
 	w: T.number,
@@ -53,12 +60,13 @@ export const speechBubbleShapeProps = {
 }
 
 export type SpeechBubbleShapeProps = RecordPropsType<typeof speechBubbleShapeProps>
-export type SpeechBubbleShape = TLBaseShape<'speech-bubble', SpeechBubbleShapeProps>
+// [2]
+export type SpeechBubbleShape = TLShape<typeof SPEECH_BUBBLE_TYPE>
 
 export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
-	static override type = 'speech-bubble' as const
+	static override type = SPEECH_BUBBLE_TYPE
 
-	// [2]
+	// [3]
 	static override props = speechBubbleShapeProps
 
 	override isAspectRatioLocked(_shape: SpeechBubbleShape) {
@@ -73,7 +81,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		return true
 	}
 
-	// [3]
+	// [4]
 	getDefaultProps(): SpeechBubbleShapeProps {
 		return {
 			w: 200,
@@ -102,7 +110,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		return body
 	}
 
-	// [4]
+	// [5]
 	override getHandles(shape: SpeechBubbleShape): TLHandle[] {
 		const { tail, w } = shape.props
 
@@ -136,7 +144,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		return this.getGrowY(next, next.props.growY)
 	}
 
-	// [5]
+	// [6]
 	override onBeforeUpdate(prev: SpeechBubbleShape, shape: SpeechBubbleShape) {
 		const { w, tail } = shape.props
 		const fullHeight = this.getHeight(shape)
@@ -263,31 +271,36 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 /*
 Introduction: This file contains our custom shape util. The shape util is a class that defines how
 our shape behaves. Most of the logic for how the speech bubble shape works is in the onBeforeUpdate
-handler [5]. Since this shape has a handle, we need to do some special stuff to make sure it updates
+handler [6]. Since this shape has a handle, we need to do some special stuff to make sure it updates
 the way we want it to.
 
 [1]
-Here is where we define the shape's type. For the tail we can use the `VecModel` type from `tldraw`.
+First, we need to extend TLGlobalShapePropsMap to add our shape's props to the global type system.
+This tells TypeScript about the shape's properties. For this shape, we define width (w), height (h),
+size, color, font, alignment, text, and tail (using VecModel) as the shape's properties.
 
 [2]
+Define the shape type using TLShape with the shape's type as a type argument.
+
+[3]
 This is where we define the shape's props and a type validator for each key. tldraw exports a
 bunch of handy validators for us to use. Props you define here will determine which style options
 show up in the style menu, e.g. we define 'size' and 'color' props, but we could add 'dash', 'fill'
 or any other of the default props.
 
-[3]
+[4]
 Here is where we set the default props for our shape, this will determine how the shape looks
 when we click-create it. You'll notice we don't store the tail's absolute position though, instead
 we record its relative position. This is because we can also drag-create shapes. If we store the
 tail's position absolutely it won't scale properly when drag-creating. Throughout the rest of the
 util we'll need to convert the tail's relative position to an absolute position and vice versa.
 
-[4]
+[5]
 `getHandles` tells tldraw how to turn our shape into a list of handles that'll show up when it's
 selected. We only have one handle, the tail, which simplifies things for us a bit. In
 `onHandleDrag`, we tell tldraw how our shape should be updated when the handle is dragged.
 
-[5]
+[6]
 This is the last method that fires after a shape has been changed, we can use it to make sure
 the tail stays the right length and position. Check out helpers.tsx to get into some of the more
 specific geometry stuff.

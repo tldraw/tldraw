@@ -2,7 +2,6 @@ import {
 	ShapeWithCrop,
 	StateNode,
 	TLClickEventInfo,
-	TLGroupShape,
 	TLKeyboardEventInfo,
 	TLPointerEventInfo,
 	Vec,
@@ -43,7 +42,7 @@ export class Idle extends StateNode {
 		switch (info.target) {
 			case 'canvas': {
 				const hitShape = getHitShapeOnCanvasPointerDown(this.editor)
-				if (hitShape && !this.editor.isShapeOfType<TLGroupShape>(hitShape, 'group')) {
+				if (hitShape && !this.editor.isShapeOfType(hitShape, 'group')) {
 					this.onPointerDown({
 						...info,
 						shape: hitShape,
@@ -191,7 +190,7 @@ export class Idle extends StateNode {
 				this.editor.markHistoryStoppingPoint('translate crop')
 			}
 
-			this.editor.updateShapes<ShapeWithCrop>([partial])
+			this.editor.updateShapes([partial])
 		}
 	}
 }

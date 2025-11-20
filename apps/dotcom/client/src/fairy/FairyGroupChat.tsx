@@ -176,10 +176,10 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 					{leaderConfig ? (
 						<>
 							<p>
-								<F defaultMessage="Name:" /> {leaderConfig.name}
+								<F defaultMessage="Name" />: {leaderConfig.name}
 							</p>
 							<p>
-								<F defaultMessage="Personality:" /> {leaderConfig.personality}
+								<F defaultMessage="Personality" />: {leaderConfig.personality}
 							</p>
 						</>
 					) : (

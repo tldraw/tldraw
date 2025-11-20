@@ -1,7 +1,6 @@
 import { useAtom, useValue } from '@tldraw/state-react'
 import {
 	TLFrameShape,
-	TLGroupShape,
 	TLShape,
 	TLShapeId,
 	getColorValue,
@@ -58,9 +57,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 
 	// --- Common bounding box of all shapes
 	const singleFrameShapeId =
-		ids.length === 1 && editor.isShapeOfType<TLFrameShape>(editor.getShape(ids[0])!, 'frame')
-			? ids[0]
-			: null
+		ids.length === 1 && editor.isShapeOfType(editor.getShape(ids[0])!, 'frame') ? ids[0] : null
 
 	let bbox: null | Box = null
 	if (opts.bounds) {
@@ -272,7 +269,7 @@ function SvgExport({
 
 					const shape = editor.getShape(id)!
 
-					if (editor.isShapeOfType<TLGroupShape>(shape, 'group')) return []
+					if (editor.isShapeOfType(shape, 'group')) return []
 
 					const elements = []
 					const util = editor.getShapeUtil(shape)

@@ -1,6 +1,7 @@
 import classNames from 'classnames'
 import { useCallback, useRef } from 'react'
 import { TldrawUiInput } from 'tldraw'
+import { useHasFlag } from '../../../hooks/useHasFlag'
 import styles from '../sidebar.module.css'
 import { pinIcon } from './pinIcon'
 
@@ -49,9 +50,11 @@ export function TlaSidebarInlineInput({
 		onCancel()
 	}, [onCancel])
 
+	const hasGroups = useHasFlag('groups_frontend')
+
 	return (
 		<div className={classNames(styles.sidebarFileListItemRenameInputWrapper, wrapperClassName)}>
-			{isPinned && pinIcon}
+			{isPinned && hasGroups && pinIcon}
 			<TldrawUiInput
 				ref={ref}
 				data-testid={dataTestId}
