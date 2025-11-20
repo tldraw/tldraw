@@ -18,22 +18,19 @@ exports[`When resizing a shape with children > Resizes a rotated draw shape > dr
     "scale": 1,
     "segments": [
       {
+        "firstPoint": {
+          "x": 0,
+          "y": 0,
+        },
         "points": [
-          {
-            "x": 0,
-            "y": 0,
-            "z": 0.5,
-          },
-          {
-            "x": 110,
-            "y": 110,
-            "z": 0.5,
-          },
+          1100,
+          1100,
         ],
         "type": "free",
       },
     ],
     "size": "m",
+    "zoom": 1,
   },
   "rotation": 3.141592653589793,
   "type": "draw",

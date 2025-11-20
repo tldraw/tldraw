@@ -984,11 +984,13 @@ export interface TLDrawShapeProps {
     scale: number;
     segments: TLDrawShapeSegment[];
     size: TLDefaultSizeStyle;
+    zoom: number;
 }
 
 // @public
 export interface TLDrawShapeSegment {
-    points: VecModel[];
+    firstPoint: VecModel;
+    points: number[];
     type: 'free' | 'straight';
 }
 
@@ -1073,6 +1075,7 @@ export interface TLHighlightShapeProps {
     scale: number;
     segments: TLDrawShapeSegment[];
     size: TLDefaultSizeStyle;
+    zoom: number;
 }
 
 // @public

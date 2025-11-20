@@ -904,12 +904,15 @@ describe('When resizing a shape with children', () => {
 					x: 100,
 					y: 100,
 					props: {
+						isPen: false,
+						zoom: 1,
 						segments: [
 							{
 								type: 'free',
+								firstPoint: { x: 0, y: 0 },
 								points: [
-									{ x: 0, y: 0, z: 0.5 },
-									{ x: 100, y: 100, z: 0.5 },
+									Math.round(100 * 10), // dx
+									Math.round(100 * 10), // dy
 								],
 							},
 						],

@@ -12,6 +12,7 @@ import {
 	TLResizeInfo,
 	TLShapeUtilCanvasSvgDef,
 	VecLike,
+	VecModel,
 	drawShapeMigrations,
 	drawShapeProps,
 	getColorValue,
@@ -73,6 +74,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			isClosed: false,
 			isPen: false,
 			scale: 1,
+			zoom: 1,
 		}
 	}
 
@@ -185,15 +187,86 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		const newSegments: TLDrawShapeSegment[] = []
 
 		for (const segment of shape.props.segments) {
+			const isPen = segment.firstPoint.z !== undefined
+
+			// Reconstruct points
+			const points: VecModel[] = [segment.firstPoint]
+			if (isPen) {
+				let px = segment.firstPoint.x
+				let py = segment.firstPoint.y
+				let pz = segment.firstPoint.z ?? 0.5
+
+				for (let i = 0; i < segment.points.length; i += 3) {
+					const dx = segment.points[i] / 10
+					const dy = segment.points[i + 1] / 10
+					const dz = segment.points[i + 2] / 10
+					px += dx
+					py += dy
+					pz += dz
+					points.push({ x: px, y: py, z: pz })
+				}
+			} else {
+				let px = segment.firstPoint.x
+				let py = segment.firstPoint.y
+
+				for (let i = 0; i < segment.points.length; i += 2) {
+					const dx = segment.points[i] / 10
+					const dy = segment.points[i + 1] / 10
+					px += dx
+					py += dy
+					points.push({ x: px, y: py })
+				}
+			}
+
+			// Scale points
+			const scaledPoints = points.map((p) => ({
+				x: toFixed(scaleX * p.x),
+				y: toFixed(scaleY * p.y),
+				z: p.z,
+			}))
+
+			// Convert back to deltas
+			const firstPoint = scaledPoints[0]
+			const deltas: number[] = []
+
+			if (isPen) {
+				let px = firstPoint.x
+				let py = firstPoint.y
+				let pz = firstPoint.z ?? 0.5
+
+				for (let i = 1; i < scaledPoints.length; i++) {
+					const point = scaledPoints[i]
+					const dx = point.x - px
+					const dy = point.y - py
+					const dz = (point.z ?? 0.5) - pz
+					deltas.push(Math.round(dx * 10))
+					deltas.push(Math.round(dy * 10))
+					deltas.push(Math.round(dz * 10))
+					px += dx
+					py += dy
+					pz += dz
+				}
+			} else {
+				let px = firstPoint.x
+				let py = firstPoint.y
+
+				for (let i = 1; i < scaledPoints.length; i++) {
+					const point = scaledPoints[i]
+					const dx = point.x - px
+					const dy = point.y - py
+					deltas.push(Math.round(dx * 10))
+					deltas.push(Math.round(dy * 10))
+					px += dx
+					py += dy
+				}
+			}
+
 			newSegments.push({
 				...segment,
-				points: segment.points.map(({ x, y, z }) => {
-					return {
-						x: toFixed(scaleX * x),
-						y: toFixed(scaleY * y),
-						z,
-					}
-				}),
+				firstPoint: isPen
+					? { x: firstPoint.x, y: firstPoint.y, z: firstPoint.z ?? 0.5 }
+					: { x: firstPoint.x, y: firstPoint.y },
+				points: deltas,
 			})
 		}
 

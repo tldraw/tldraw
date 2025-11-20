@@ -192,14 +192,22 @@ describe('<TldrawEditor />', () => {
 			{ type: 'bookmark' as const, props: { w: 100, h: 100, url: 'https://example.com' } },
 			{
 				type: 'draw' as const,
-				props: { segments: [{ type: 'free' as const, points: [{ x: 0, y: 0, z: 0.5 }] }] },
+				props: {
+					isPen: true,
+					zoom: 1,
+					segments: [{ type: 'free' as const, firstPoint: { x: 0, y: 0, z: 0.5 }, points: [] }],
+				},
 			},
 			{ type: 'embed' as const, props: { w: 100, h: 100, url: 'https://example.com' } },
 			{ type: 'frame' as const, props: { w: 100, h: 100 } },
 			{ type: 'geo' as const, props: { w: 100, h: 100, geo: 'rectangle' } },
 			{
 				type: 'highlight' as const,
-				props: { segments: [{ type: 'free' as const, points: [{ x: 0, y: 0, z: 0.5 }] }] },
+				props: {
+					isPen: true,
+					zoom: 1,
+					segments: [{ type: 'free' as const, firstPoint: { x: 0, y: 0, z: 0.5 }, points: [] }],
+				},
 			},
 			{ type: 'image' as const, props: { w: 100, h: 100 } },
 			{
