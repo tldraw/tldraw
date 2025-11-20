@@ -168,7 +168,7 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			agent.setMode('duo-orchestrating-active')
 		},
 	},
-	['working-duo']: {
+	['working-orchestrator']: {
 		onEnter(agent) {
 			agent.$userActionHistory.set([])
 			agent.$personalTodoList.set([])

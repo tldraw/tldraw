@@ -463,7 +463,8 @@ function getSystemPromptFlags(
 	return {
 		// Mode flags
 		isSoloing: mode === 'soloing',
-		isWorking: mode === 'working-drone' || mode === 'working-solo' || mode === 'working-duo',
+		isWorking:
+			mode === 'working-drone' || mode === 'working-solo' || mode === 'working-orchestrator',
 		isOrchestrating: mode === 'orchestrating-active',
 		isDuoOrchestrating: mode === 'duo-orchestrating-active',
 
@@ -546,7 +547,8 @@ function getSystemPromptFlags(
 		hasOtherFairiesPart: parts.includes('otherFairies'),
 
 		// Project
-		hasCurrentProjectPart: parts.includes('currentProject'),
+		hasCurrentProjectPart:
+			parts.includes('currentProjectDrone') || parts.includes('currentProjectOrchestrator'),
 
 		// assign todo item
 		hasAssignTodoItem: actions.includes('direct-to-start-project-task'),

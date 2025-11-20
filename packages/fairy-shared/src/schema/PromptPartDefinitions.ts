@@ -7,7 +7,7 @@ import { AgentModelName } from '../models'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { ChatHistoryItem } from '../types/ChatHistoryItem'
-import { FairyProject, FairyProjectRole } from '../types/FairyProject'
+import { FairyProject } from '../types/FairyProject'
 import { FairyTask, FairyTodoItem } from '../types/FairyTask'
 import { FairyWork } from '../types/FairyWork'
 import { ActiveFairyModeDefinition } from './FairyModeDefinition'
@@ -380,44 +380,58 @@ export const PersonalTodoListPartDefinition: PromptPartDefinition<PersonalTodoLi
 	},
 }
 
-// CurrentProjectPart
-export interface CurrentProjectPart {
-	type: 'currentProject'
+// CurrentProjectDronePart
+export interface CurrentProjectDronePart {
+	type: 'currentProjectDrone'
 	currentProject: FairyProject | null
-	currentProjectTasks: FairyTask[]
-	role: FairyProjectRole | null
 }
 
-export const CurrentProjectPartDefinition: PromptPartDefinition<CurrentProjectPart> = {
-	type: 'currentProject',
+export const CurrentProjectDronePartDefinition: PromptPartDefinition<CurrentProjectDronePart> = {
+	type: 'currentProjectDrone',
 	priority: -5,
-	buildContent(part: CurrentProjectPart) {
-		const { currentProject, currentProjectTasks, role } = part
+	buildContent(part: CurrentProjectDronePart) {
+		const { currentProject } = part
 
 		if (!currentProject) {
-			return ['There is no current project.']
+			return []
 		}
 
-		const baseResponse = [
+		return [
 			`You are currently working on project "${currentProject.title}".`,
 			`Project description: ${currentProject.description}`,
 		]
+	},
+}
 
-		// do we want to split part into multiple parts? should we be more clear about which roles have access to what?
-		if (role === 'orchestrator') {
-			const orchestratorResponse = [
+// CurrentProjectOrchestratorPart
+export interface CurrentProjectOrchestratorPart {
+	type: 'currentProjectOrchestrator'
+	currentProject: FairyProject | null
+	currentProjectTasks: FairyTask[]
+}
+
+export const CurrentProjectOrchestratorPartDefinition: PromptPartDefinition<CurrentProjectOrchestratorPart> =
+	{
+		type: 'currentProjectOrchestrator',
+		priority: -5,
+		buildContent(part: CurrentProjectOrchestratorPart) {
+			const { currentProject, currentProjectTasks } = part
+
+			if (!currentProject) {
+				return ['There is no current project.']
+			}
+
+			return [
+				`You are currently working on project "${currentProject.title}".`,
+				`Project description: ${currentProject.description}`,
 				`You came up with this project plan:\n${currentProject.plan}`,
 				`Project members:\n${currentProject.members.map((m) => `${m.id} (${m.role})`).join(', ')}`,
 				currentProjectTasks.length > 0
 					? `Tasks in the project and their status:\n${currentProjectTasks.map((t) => `id: ${t.id}, ${t.text}, status: ${t.status}`).join(', ')}`
 					: 'There are no tasks in the project.',
 			]
-			return baseResponse.concat(orchestratorResponse)
-		}
-
-		return baseResponse
-	},
-}
+		},
+	}
 
 // TimePart
 export interface TimePart {
