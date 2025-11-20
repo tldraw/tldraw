@@ -12,7 +12,7 @@ import {
 	DebugPart,
 	Streaming,
 } from '@tldraw/fairy-shared'
-import { LanguageModel, streamText } from 'ai'
+import { LanguageModel, ModelMessage, streamText, SystemModelMessage } from 'ai'
 import { Environment } from '../environment'
 import { buildMessages } from '../prompt/buildMessages'
 import { buildSystemPrompt, buildSystemPromptWithoutSchema } from '../prompt/buildSystemPrompt'
@@ -133,6 +133,29 @@ async function* _streamText(model: LanguageModel, prompt: AgentPrompt): AsyncGen
 	}
 }
 
+// at time of recording, anthropic does not offer implicit caching like deepmind and openai do.
+// to cache, we set breakpoints in messages we send to the model. breakpoints cache all input up to and including that message. the cached hash of each block affected by the content of all previous blocks. the model checks back 20 blocks from the breakpoint looking for a match. because the hash depends on previous content, it will not find a match until it finds a block where all previous blocks are unchanged. if it goes more than 20 blocks with no match, it jumps backwards to the next earlier breakpoint.
+// we put one breakpoint at the end of the system prompt. we concatenate all system prompt parts instead of splitting them into individual messages to make sure they hit the minimum cache length (1024 tokens for sonnet 4.5). we can also do this because parts of the system prompt generally all change together in predictable ways.
+// if we put the chat history back at the beginning of the prompt parts, we could set a breakpoint at the end of chat history
+function buildFormattedSystemPromptWithAnthropicCacheBreakpoint(
+	systemPrompt: string
+): SystemModelMessage {
+	return {
+		role: 'system',
+		content: systemPrompt,
+		providerOptions: {
+			anthropic: { cacheControl: { type: 'ephemeral' } },
+		},
+	}
+}
+
+function buildFormattedSystemPrompt(systemPrompt: string): SystemModelMessage {
+	return {
+		role: 'system',
+		content: systemPrompt,
+	}
+}
+
 async function* _streamActions(
 	model: LanguageModel,
 	prompt: AgentPrompt,
@@ -149,8 +172,14 @@ async function* _streamActions(
 
 	const gptThinkingBudget = model.modelId === 'gpt-5.1' ? 'none' : 'minimal'
 
-	const messages = buildMessages(prompt)
-	const systemPrompt = buildSystemPrompt(prompt)
+	const formattedSystemPrompt =
+		model.provider === 'anthropic.messages'
+			? buildFormattedSystemPromptWithAnthropicCacheBreakpoint(buildSystemPrompt(prompt))
+			: buildFormattedSystemPrompt(buildSystemPrompt(prompt))
+
+	const promptMessages = buildMessages(prompt)
+
+	const messages: ModelMessage[] = [formattedSystemPrompt, ...promptMessages]
 
 	// Check for debug flags
 	const debugPart = prompt.debug as DebugPart | undefined
@@ -160,7 +189,7 @@ async function* _streamActions(
 			console.warn('[DEBUG] System Prompt (without schema):\n', promptWithoutSchema)
 		}
 		if (debugPart.logMessages) {
-			const sanitizedMessages = sanitizeMessagesForLogging(messages)
+			const sanitizedMessages = sanitizeMessagesForLogging(promptMessages)
 			console.warn('[DEBUG] Messages:\n', JSON.stringify(sanitizedMessages, null, 2))
 		}
 	}
@@ -172,7 +201,6 @@ async function* _streamActions(
 		})
 		const result = streamText({
 			model,
-			system: systemPrompt,
 			messages,
 			maxOutputTokens: 8192,
 			temperature: 0,
@@ -257,6 +285,7 @@ async function* _streamActions(
 		// After streaming is complete, get usage information and yield it (only for admins)
 		if (isAdmin) {
 			const usage = await result.usage
+			const providerMetadata = await result.providerMetadata
 
 			// Yield usage information as a special metadata action (only for @tldraw.com admins)
 			yield {
@@ -264,6 +293,7 @@ async function* _streamActions(
 				complete: true,
 				time: 0,
 				usage,
+				providerMetadata,
 			} as any
 		}
 	} catch (error: any) {
