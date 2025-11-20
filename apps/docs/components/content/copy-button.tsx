@@ -4,11 +4,9 @@ import { RefObject, useCallback, useState } from 'react'
 import { Button } from '../common/button'
 
 export function CopyButton({
-	name,
 	copy,
 	className,
 }: {
-	name: string
 	copy: string | RefObject<HTMLElement>
 	className?: string
 }) {
