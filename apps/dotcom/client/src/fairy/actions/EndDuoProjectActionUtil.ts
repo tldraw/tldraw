@@ -13,6 +13,7 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 			icon: 'note' as const,
 			description: action.complete ? 'Ended duo project' : 'Ending duo project...',
 			pose: 'thinking' as const,
+			canGroup: () => false,
 		}
 	}
 

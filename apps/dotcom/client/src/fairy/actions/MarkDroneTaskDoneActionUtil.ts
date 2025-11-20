@@ -15,6 +15,7 @@ export class MarkDroneTaskDoneActionUtil extends AgentActionUtil<MarkDroneTaskDo
 				? `Completed task: ${task?.text ?? action.taskId}`
 				: 'Completing task...',
 			pose: 'thinking' as const,
+			canGroup: () => false,
 		}
 	}
 

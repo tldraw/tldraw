@@ -13,6 +13,7 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 				? `Started project: ${action.projectName}`
 				: 'Starting project...',
 			pose: 'thinking' as const,
+			canGroup: () => false,
 		}
 	}
 
