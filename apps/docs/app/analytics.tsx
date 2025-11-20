@@ -15,10 +15,7 @@ export default function Analytics() {
 			const isWithinCodeBlock = (copyEvent.target as HTMLElement | null)?.closest('pre, code')
 			if (isWithinCodeBlock) {
 				const copiedText = window.getSelection()?.toString() || ''
-				const isInstall = copiedText.trim() === 'npm install tldraw'
-				track('docs.copy.code-block', { isInstall })
 
-				// Track via GTM trackCopyCode method
 				if (window.tlanalytics?.trackCopyCode) {
 					window.tlanalytics.trackCopyCode({
 						page_category: 'docs',

@@ -23,11 +23,17 @@
   "08bd40c754": {
     "translation": "חֶשְׁבּוֹן"
   },
+  "08d2d725a9": {
+    "translation": "צור חשבון חינמי כדי לשמור את עבודתך, לשתף פעולה בזמן אמת ועוד."
+  },
   "0b27918290": {
     "translation": "קובץ"
   },
   "0b9a4cde72": {
     "translation": "תפריט קבצים"
+  },
+  "0beb3ca97b": {
+    "translation": "tldraw הוא לוח לבן וירטואלי חינמי ומיידי."
   },
   "0d1f2bb523": {
     "translation": "שלח משוב"
@@ -35,11 +41,23 @@
   "110a4b01be": {
     "translation": "פרסום"
   },
+  "129b9e34ea": {
+    "translation": "עזוב את הקבוצה"
+  },
+  "12a6766ba1": {
+    "translation": "ביטול הצמדת קובץ"
+  },
   "12c8a9838c": {
     "translation": "נסה את ערכת פיתוח התוכנה tldraw"
   },
   "13ddd375ad": {
     "translation": "ייצא בשם"
+  },
+  "146ffe2fd9": {
+    "translation": "הצג עוד"
+  },
+  "14d65465b7": {
+    "translation": "מחיקת קבוצה"
   },
   "181b90f889": {
     "translation": "יצירת קובץ"
@@ -56,11 +74,17 @@
   "21bfb2dc2e": {
     "translation": "החדר הזה מתקרב למגבלת הגודל שלו. שקול להסיר חלק מהתוכן או להתחיל קובץ חדש."
   },
+  "2445e5e347": {
+    "translation": "צור קבוצה"
+  },
   "250ddea65c": {
     "translation": "אודות tldraw"
   },
   "299cb00a7a": {
     "translation": "ההעלאה נכשלה"
+  },
+  "2c3ef76333": {
+    "translation": "הקבצים שלי"
   },
   "2deec2cb74": {
     "translation": "חדר זה הגיע למגבלת הגודל שלו וייתכן שלא יישמרו עוד שינויים. יש להסיר חלק מהתוכן או להתחיל קובץ חדש."
@@ -71,11 +95,17 @@
   "31418ce4ad": {
     "translation": "i18n: הדגש חסר"
   },
+  "32210b37e4": {
+    "translation": "הוסף קישור"
+  },
   "335defdafe": {
     "translation": "אנא נסו לרענן את הדף."
   },
   "344a7f427f": {
     "translation": "עוֹרֵך"
+  },
+  "3bc7d6ea2f": {
+    "translation": "המשך עם הדוא\"ל"
   },
   "3bd1b98dbd": {
     "translation": "לא ניתן לפרסם את השינויים."
@@ -98,14 +128,29 @@
   "47839e47a5": {
     "translation": "tldraw"
   },
+  "47f493a590": {
+    "translation": "קובץ הצמדה"
+  },
+  "49049467ff": {
+    "translation": "הדבק את כתובת ה-URL של קובץ tldraw..."
+  },
   "4908687e50": {
     "translation": "רוצה בוודאות לשכוח את הקובץ הזה?"
+  },
+  "49ee308734": {
+    "translation": "שֵׁם"
   },
   "4d0d3ddec9": {
     "translation": "אתר זה משתמש בקובצי Cookie כדי שהאפליקציה תפעל ולאסוף נתונים אנליטיים."
   },
   "4d1c8263ba": {
     "translation": "לטעון מחדש"
+  },
+  "4da5988a2e": {
+    "translation": "מחיקת קבוצה…"
+  },
+  "4e6fbf032b": {
+    "translation": "האם אתה בטוח שברצונך למחוק קבוצה זו? פעולה זו אינה ניתנת לביטול."
   },
   "50db1b7e1e": {
     "translation": "לא ניתן לבטל את פרסום הקובץ."
@@ -131,6 +176,9 @@
   "56c34c6410": {
     "translation": "מדיניות הפרטיות"
   },
+  "5a86b22fa0": {
+    "translation": "גררו קבצים לכאן, <create>צרו קובץ</create>, או <invite>העתיקו את קישור ההזמנה</invite> כדי להתחיל."
+  },
   "5a95a425f7": {
     "translation": "שיתוף"
   },
@@ -142,6 +190,9 @@
   },
   "5bec508475": {
     "translation": "זוהה דפדפן ישן. אנא עדכן את הדפדפן שלך כדי להשתמש באפליקציה זו."
+  },
+  "5c6fe42bc2": {
+    "translation": "בטל קישור זה וצור קישור חדש."
   },
   "5d26ae7550": {
     "translation": "לא הצלחנו להעלות חלק מהתוכן שיצרת לפני שנכנסת."
@@ -158,11 +209,20 @@
   "625fd29749": {
     "translation": "ישן יותר"
   },
+  "639bae9ac6": {
+    "translation": "אַתָה"
+  },
   "6609dd239e": {
     "translation": "משהו השתבש"
   },
   "6637a98151": {
     "translation": "גרסה חדשה של tldraw זמינה. אנא טען מחדש את הדף כדי להמשיך."
+  },
+  "68257bb646": {
+    "translation": "הוזמנת לקבוצה <br></br><groupName></groupName>"
+  },
+  "6832ac5936": {
+    "translation": "הזן את כתובת הדוא\"ל שלך"
   },
   "6a26f54883": {
     "translation": "עזרה"
@@ -172,6 +232,9 @@
   },
   "6dfc62f621": {
     "translation": "כדי לייבא את התוכן באופן ידני יש לבצע את השלבים הבאים:"
+  },
+  "70222abcfc": {
+    "translation": "הגדרות קבוצה"
   },
   "70a6facb9d": {
     "translation": "השבוע"
@@ -218,6 +281,9 @@
   "7cb5f8b4a5": {
     "translation": "לשכוח"
   },
+  "7cfe6c43dc": {
+    "translation": "עזוב את הקבוצה…"
+  },
   "7daeced9ff": {
     "translation": "פרסום שינויים"
   },
@@ -239,8 +305,14 @@
   "86c66437fd": {
     "translation": "שנה את שם הקובץ"
   },
+  "8ad4303b83": {
+    "translation": "לא תודה"
+  },
   "8b1946f965": {
     "translation": "כדי להמשיך בעריכה, אנא העתיקו את החדר לקבצים שלכם."
+  },
+  "8c2d3d730c": {
+    "translation": "בדוק את האימייל שלך עבור קוד אימות."
   },
   "8eb2c00e96": {
     "translation": "משותף איתך"
@@ -257,14 +329,29 @@
   "91e49bb0eb": {
     "translation": "העתקה לקבצים שלי"
   },
+  "930390d222": {
+    "translation": "קישור ההזמנה הועתק"
+  },
+  "95aacd4d4a": {
+    "translation": "התחברות עם גוגל"
+  },
   "95d2109dc8": {
     "translation": "בנה עם ערכת פיתוח התוכנה tldraw"
   },
   "96165d6df5": {
     "translation": "החודש הזה"
   },
+  "985a4b720f": {
+    "translation": "תנאי שימוש"
+  },
+  "98c997a27e": {
+    "translation": "הוסף קישור לקובץ"
+  },
   "9914a0ce04": {
     "translation": "תאורה"
+  },
+  "9b33f5c63c": {
+    "translation": "לא קיבלת קוד? <resend>שלח שוב</resend>."
   },
   "9bef626805": {
     "translation": "מחיקת קובץ"
@@ -311,6 +398,9 @@
   "a9ded1e5ce": {
     "translation": "רקע"
   },
+  "aa916767cf": {
+    "translation": "היכנס כדי לקבל את ההזמנה"
+  },
   "ab0df9ba36": {
     "translation": "הגעת למגבלת הקבצים"
   },
@@ -321,8 +411,17 @@
   "b028909917": {
     "translation": "משתמש אורח"
   },
+  "b357b524e7": {
+    "translation": "כתובת דוא\"ל"
+  },
+  "b3d2db69fe": {
+    "translation": "כתובת אתר של הקובץ"
+  },
   "b6d4223e60": {
     "translation": "כניסה"
+  },
+  "b6f4a2ec63": {
+    "translation": "בַּעַל"
   },
   "b758336699": {
     "translation": "העתקת קישור"
@@ -330,8 +429,8 @@
   "ba0318cb81": {
     "translation": "היכנס כדי לשתף"
   },
-  "bb792693e2": {
-    "translation": "ביטול נעיצה"
+  "bb93a7590f": {
+    "translation": "אישור והצטרפות לקבוצה"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {מעלה קובץ tldr...} two {} many {} other {מעלה {uploaded} של {total} קבצי tldr...}}"
@@ -339,11 +438,11 @@
   "bc88b0e89e": {
     "translation": "משותף על ידי {ownerName}"
   },
-  "bcb62136a3": {
-    "translation": "העלאת קבצי .tldr"
-  },
   "c2276c9127": {
     "translation": "למידע נוסף על שיתוף."
+  },
+  "c28aed8348": {
+    "translation": "אפשרו ל-<cookies>analytics</cookies> לעזור לנו לשפר את tldraw."
   },
   "c303bd1095": {
     "translation": "לא ניתן לפרסם את הקובץ."
@@ -351,14 +450,23 @@
   "c4b39a1cc3": {
     "translation": "עוגיות חיוניות"
   },
+  "c6155aaecc": {
+    "translation": "שם הקבוצה"
+  },
   "c655b27b1e": {
     "translation": "i18n: מחרוזת ארוכה"
   },
   "c6a00f137b": {
     "translation": "הזמנה"
   },
+  "c74ea6dbff": {
+    "translation": "הצג פחות"
+  },
   "c87aacf567": {
     "translation": "יציאה"
+  },
+  "c9cc8cce24": {
+    "translation": "לְהַצִיל"
   },
   "cceaefbc20": {
     "translation": "לשתף את הקובץ הזה"
@@ -375,29 +483,53 @@
   "d4bbf74f3e": {
     "translation": "החלפת סרגל הצד"
   },
+  "d638a3344b": {
+    "translation": "לפני שתתחיל, אנא קבל את <tos>תנאי השימוש</tos> ואת <privacy>מדיניות הפרטיות</privacy> שלנו."
+  },
   "d721757161": {
     "translation": "נושא"
   },
   "d876a9fe1a": {
     "translation": "לנסות שוב"
   },
+  "d88ad2dc74": {
+    "translation": "קבל והמשך"
+  },
   "d9100f3e10": {
     "translation": "כנסו לכאן כדי לראות את התוכן"
+  },
+  "d9e35d0f55": {
+    "translation": "הגעת למספר הקבוצות המרבי. עליך למחוק קבוצות ישנות לפני יצירת חדשות."
   },
   "dbbebf3c03": {
     "translation": "הזמנה בלבד"
   },
+  "dcdaa754fe": {
+    "translation": "כתובת URL לא חוקית של קובץ tldraw"
+  },
   "dfdb78a4e4": {
     "translation": "דגלי ניפוי באגים באפליקציה"
+  },
+  "e0c88179b3": {
+    "translation": "הזמנת חברים"
+  },
+  "e2198d6228": {
+    "translation": "העתקת קישור ההזמנה"
   },
   "e2ae80a510": {
     "translation": "סיכום משפטי"
   },
+  "e3afed0047": {
+    "translation": "מנהל"
+  },
   "e404559826": {
     "translation": "תנאי שירות"
   },
-  "e78e14c5f1": {
-    "translation": "נעיצה"
+  "e81c4e4f2b": {
+    "translation": "אוֹ"
+  },
+  "ea0626ac5a": {
+    "translation": "אזור סכנה"
   },
   "ea4788705e": {
     "translation": "ביטול"
@@ -420,6 +552,9 @@
   "ede55d955f": {
     "translation": "קרא את <a>מדיניות העוגיות</a> שלנו למידע נוסף."
   },
+  "ef53538ae4": {
+    "translation": "חברים"
+  },
   "ef7de3f485": {
     "translation": "נִבחָר"
   },
@@ -441,6 +576,12 @@
   "f4f70727dc": {
     "translation": "הגדרות"
   },
+  "f714e36843": {
+    "translation": "האם אתה בטוח שאתה רוצה לעזוב את הקבוצה הזו?"
+  },
+  "fa2ead697d": {
+    "translation": "מדיניות פרטיות"
+  },
   "fb15c53f22": {
     "translation": "צופה"
   },
@@ -449,6 +590,9 @@
   },
   "fed5ec05eb": {
     "translation": "הקישור הועתק"
+  },
+  "ff7a814974": {
+    "translation": "הוסף קישור לקובץ…"
   },
   "ffcd73e997": {
     "translation": "ייבוא ​​קובץ…"

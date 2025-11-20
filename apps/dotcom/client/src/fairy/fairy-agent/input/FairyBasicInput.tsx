@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Box, TldrawUiInput, useValue } from 'tldraw'
 import { useMsg } from '../../../tla/utils/i18n'
 import { fairyMessages } from '../../fairy-messages'
-import { $fairyTasks } from '../../FairyTaskList'
+// import { $fairyTasks } from '../../FairyTaskList'
 import { FairyAgent } from '../agent/FairyAgent'
 
 export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCancel(): void }) {
@@ -38,12 +38,13 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 			const fairyVision = Box.FromCenter(fairyPosition, FAIRY_VISION_DIMENSIONS)
 
 			// Clear the shared todo list if it's all completed - same as the agent starter kit's behavior
-			$fairyTasks.update((todoList) => {
-				if (todoList.every((item) => item.status === 'done')) {
-					return []
-				}
-				return todoList
-			})
+			// I dont think we should do this in case the agent wants to add more tasks before the current ones are done
+			// $fairyTasks.update((fairyTaskList) => {
+			// 	if (fairyTaskList.every((item) => item.status === 'done')) {
+			// 		return []
+			// 	}
+			// 	return fairyTaskList
+			// })
 
 			await agent.prompt({
 				message: value,

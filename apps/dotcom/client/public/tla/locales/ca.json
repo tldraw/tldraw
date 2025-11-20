@@ -23,11 +23,17 @@
   "08bd40c754": {
     "translation": "Compte"
   },
+  "08d2d725a9": {
+    "translation": "Crea un compte gratuït per desar la teva feina, col·laborar en temps real i molt més."
+  },
   "0b27918290": {
     "translation": "Fitxer"
   },
   "0b9a4cde72": {
     "translation": "Menú Fitxer"
+  },
+  "0beb3ca97b": {
+    "translation": "tldraw és una pissarra virtual gratuïta i instantània."
   },
   "0d1f2bb523": {
     "translation": "Enviar comentaris"
@@ -35,11 +41,23 @@
   "110a4b01be": {
     "translation": "Publicar"
   },
+  "129b9e34ea": {
+    "translation": "Sortir del grup"
+  },
+  "12a6766ba1": {
+    "translation": "Desfixar fitxer"
+  },
   "12c8a9838c": {
     "translation": "Prova el SDK de tldraw"
   },
   "13ddd375ad": {
     "translation": "Exporta com a"
+  },
+  "146ffe2fd9": {
+    "translation": "Mostra'n més"
+  },
+  "14d65465b7": {
+    "translation": "Suprimeix el grup"
   },
   "181b90f889": {
     "translation": "Crea un fitxer"
@@ -56,11 +74,17 @@
   "21bfb2dc2e": {
     "translation": "Aquesta sala s'acosta al seu límit de mida. Penseu en la possibilitat d'eliminar part del contingut o iniciar un fitxer nou."
   },
+  "2445e5e347": {
+    "translation": "Crea un grup"
+  },
   "250ddea65c": {
     "translation": "Sobre tldraw"
   },
   "299cb00a7a": {
     "translation": "La càrrega ha fallat"
+  },
+  "2c3ef76333": {
+    "translation": "Els meus fitxers"
   },
   "2deec2cb74": {
     "translation": "Aquesta sala ha arribat al límit de mida i és possible que els canvis ja no es puguin desar. Elimina part del contingut o inicia un fitxer nou."
@@ -71,11 +95,17 @@
   "31418ce4ad": {
     "translation": "i18n: Ressaltar que falta"
   },
+  "32210b37e4": {
+    "translation": "Afegeix un enllaç"
+  },
   "335defdafe": {
     "translation": "Si us plau, prova d'actualitzar la pàgina."
   },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "3bc7d6ea2f": {
+    "translation": "Continua amb el correu electrònic"
   },
   "3bd1b98dbd": {
     "translation": "No es poden publicar els canvis."
@@ -98,14 +128,29 @@
   "47839e47a5": {
     "translation": "tldraw"
   },
+  "47f493a590": {
+    "translation": "Fitxer fixat"
+  },
+  "49049467ff": {
+    "translation": "Enganxa l'URL del fitxer tldraw..."
+  },
   "4908687e50": {
     "translation": "Esteu segur que voleu oblidar aquest fitxer?"
+  },
+  "49ee308734": {
+    "translation": "Nom"
   },
   "4d0d3ddec9": {
     "translation": "Aquest lloc web utilitza cookies per fer que l'aplicació funcioni i per recopilar dades analítiques."
   },
   "4d1c8263ba": {
     "translation": "Torna a carregar"
+  },
+  "4da5988a2e": {
+    "translation": "Suprimeix el grup…"
+  },
+  "4e6fbf032b": {
+    "translation": "Esteu segur que voleu suprimir aquest grup? Aquesta acció no es pot desfer."
   },
   "50db1b7e1e": {
     "translation": "No es pot anul·lar la publicació del fitxer."
@@ -131,6 +176,9 @@
   "56c34c6410": {
     "translation": "Política de privadesa"
   },
+  "5a86b22fa0": {
+    "translation": "Arrossega els fitxers aquí, <create>crea un fitxer</create> o <invite>copia l'enllaç d'invitació</invite> per començar."
+  },
   "5a95a425f7": {
     "translation": "Comparteix"
   },
@@ -142,6 +190,9 @@
   },
   "5bec508475": {
     "translation": "S'ha detectat un navegador antic. Actualitzeu el navegador per utilitzar aquesta aplicació."
+  },
+  "5c6fe42bc2": {
+    "translation": "Revoca aquest enllaç i crea'n un de nou."
   },
   "5d26ae7550": {
     "translation": "No hem pogut penjar part del contingut que vas crear abans d'iniciar la sessió."
@@ -158,11 +209,20 @@
   "625fd29749": {
     "translation": "Més vell"
   },
+  "639bae9ac6": {
+    "translation": "tu"
+  },
   "6609dd239e": {
     "translation": "Alguna cosa va fallar"
   },
   "6637a98151": {
     "translation": "Hi ha disponible una nova versió de tldraw. Torneu a carregar la pàgina per continuar."
+  },
+  "68257bb646": {
+    "translation": "Has estat convidat al grup <br></br><groupName></groupName>"
+  },
+  "6832ac5936": {
+    "translation": "Introdueix la teva adreça electrònica"
   },
   "6a26f54883": {
     "translation": "Ajuda"
@@ -172,6 +232,9 @@
   },
   "6dfc62f621": {
     "translation": "Seguiu aquests passos per importar el contingut manualment:"
+  },
+  "70222abcfc": {
+    "translation": "Configuració del grup"
   },
   "70a6facb9d": {
     "translation": "Aquesta setmana"
@@ -218,6 +281,9 @@
   "7cb5f8b4a5": {
     "translation": "Oblida't"
   },
+  "7cfe6c43dc": {
+    "translation": "Sortir del grup…"
+  },
   "7daeced9ff": {
     "translation": "Publicar els canvis"
   },
@@ -239,8 +305,14 @@
   "86c66437fd": {
     "translation": "Canvia el nom del fitxer"
   },
+  "8ad4303b83": {
+    "translation": "No, gràcies."
+  },
   "8b1946f965": {
     "translation": "Per continuar editant, copieu la sala als vostres fitxers."
+  },
+  "8c2d3d730c": {
+    "translation": "Revisa el teu correu electrònic per obtenir un codi de verificació."
   },
   "8eb2c00e96": {
     "translation": "Compartit amb tu"
@@ -257,14 +329,29 @@
   "91e49bb0eb": {
     "translation": "Copia als meus fitxers"
   },
+  "930390d222": {
+    "translation": "Enllaç d'invitació copiat"
+  },
+  "95aacd4d4a": {
+    "translation": "Inicia la sessió amb Google"
+  },
   "95d2109dc8": {
     "translation": "Compilar amb el SDK de tldraw"
   },
   "96165d6df5": {
     "translation": "Aquest mes"
   },
+  "985a4b720f": {
+    "translation": "Condicions d'ús"
+  },
+  "98c997a27e": {
+    "translation": "Afegeix un enllaç de fitxer"
+  },
   "9914a0ce04": {
     "translation": "Llum"
+  },
+  "9b33f5c63c": {
+    "translation": "No has rebut cap codi? <resend>Torna a enviar</resend>."
   },
   "9bef626805": {
     "translation": "Esborra el fitxer"
@@ -311,6 +398,9 @@
   "a9ded1e5ce": {
     "translation": "Fons"
   },
+  "aa916767cf": {
+    "translation": "Inicia la sessió per acceptar la invitació"
+  },
   "ab0df9ba36": {
     "translation": "S'ha arribat al límit de fitxers"
   },
@@ -321,8 +411,17 @@
   "b028909917": {
     "translation": "Usuari convidat"
   },
+  "b357b524e7": {
+    "translation": "Adreça electrònica"
+  },
+  "b3d2db69fe": {
+    "translation": "URL del fitxer"
+  },
   "b6d4223e60": {
     "translation": "Inicia sessió"
+  },
+  "b6f4a2ec63": {
+    "translation": "propietari"
   },
   "b758336699": {
     "translation": "Copia l'enllaç"
@@ -330,8 +429,8 @@
   "ba0318cb81": {
     "translation": "Inicia la sessió per compartir"
   },
-  "bb792693e2": {
-    "translation": "Desenganxa"
+  "bb93a7590f": {
+    "translation": "Accepta i uneix-te al grup"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {S'està penjant el fitxer .tldr...} other {S'estan penjant {uploaded} de {total} fitxers .tldr...}}"
@@ -339,11 +438,11 @@
   "bc88b0e89e": {
     "translation": "Compartit per {ownerName}"
   },
-  "bcb62136a3": {
-    "translation": "Carregueu fitxers .tldr"
-  },
   "c2276c9127": {
     "translation": "Més informació sobre com compartir."
+  },
+  "c28aed8348": {
+    "translation": "Permet que <cookies>analytics</cookies> ens ajudi a millorar tldraw."
   },
   "c303bd1095": {
     "translation": "No es pot publicar el fitxer."
@@ -351,14 +450,23 @@
   "c4b39a1cc3": {
     "translation": "Galetes essencials"
   },
+  "c6155aaecc": {
+    "translation": "Nom del grup"
+  },
   "c655b27b1e": {
     "translation": "i18n: cadena llarga"
   },
   "c6a00f137b": {
     "translation": "Convidar"
   },
+  "c74ea6dbff": {
+    "translation": "Mostra menys"
+  },
   "c87aacf567": {
     "translation": "Tanca la sessió"
+  },
+  "c9cc8cce24": {
+    "translation": "Desa"
   },
   "cceaefbc20": {
     "translation": "Comparteix aquest fitxer"
@@ -375,29 +483,53 @@
   "d4bbf74f3e": {
     "translation": "Canvia la barra lateral"
   },
+  "d638a3344b": {
+    "translation": "Abans de començar, si us plau, accepteu les nostres <tos>condicions d'ús</tos> i la <privacy>política de privacitat</privacy>."
+  },
   "d721757161": {
     "translation": "Tema"
   },
   "d876a9fe1a": {
     "translation": "Torna-ho a provar"
   },
+  "d88ad2dc74": {
+    "translation": "Accepta i continua"
+  },
   "d9100f3e10": {
     "translation": "Entra aquí per veure el contingut"
+  },
+  "d9e35d0f55": {
+    "translation": "Heu arribat al nombre màxim de grups. Heu de suprimir els grups antics abans de crear-ne de nous."
   },
   "dbbebf3c03": {
     "translation": "Només convidar"
   },
+  "dcdaa754fe": {
+    "translation": "URL de fitxer tldraw no vàlida"
+  },
   "dfdb78a4e4": {
     "translation": "Senyals de depuració d'aplicacions"
+  },
+  "e0c88179b3": {
+    "translation": "Convida membres"
+  },
+  "e2198d6228": {
+    "translation": "Copia l'enllaç d'invitació"
   },
   "e2ae80a510": {
     "translation": "Resum legal"
   },
+  "e3afed0047": {
+    "translation": "Administrador"
+  },
   "e404559826": {
     "translation": "Condicions del servei"
   },
-  "e78e14c5f1": {
-    "translation": "Pin"
+  "e81c4e4f2b": {
+    "translation": "o"
+  },
+  "ea0626ac5a": {
+    "translation": "Zona de perill"
   },
   "ea4788705e": {
     "translation": "Cancel·la"
@@ -420,6 +552,9 @@
   "ede55d955f": {
     "translation": "Llegiu la nostra <a>política de cookies</a> per obtenir més informació."
   },
+  "ef53538ae4": {
+    "translation": "Membres"
+  },
   "ef7de3f485": {
     "translation": "seleccionat"
   },
@@ -441,6 +576,12 @@
   "f4f70727dc": {
     "translation": "Configuració"
   },
+  "f714e36843": {
+    "translation": "Esteu segur que voleu sortir d'aquest grup?"
+  },
+  "fa2ead697d": {
+    "translation": "Política de privacitat"
+  },
   "fb15c53f22": {
     "translation": "Visor"
   },
@@ -449,6 +590,9 @@
   },
   "fed5ec05eb": {
     "translation": "Enllaç copiat"
+  },
+  "ff7a814974": {
+    "translation": "Afegeix un enllaç de fitxer…"
   },
   "ffcd73e997": {
     "translation": "Importa el fitxer…"

@@ -26,10 +26,9 @@ export class CreateProjectTaskActionUtil extends AgentActionUtil<CreateProjectTa
 		const assignedToId = action.assignedTo
 		const assignedAgentsProject = getProjectByAgentId(assignedToId)
 		if (!assignedAgentsProject || assignedAgentsProject.id !== project.id) {
-			this.agent.cancel()
-			this.agent.schedule(
-				`Fairy ${assignedToId} is not in the same project as you. You may only assign tasks to fairies in the same project.`
-			)
+			this.agent.interrupt({
+				input: `Fairy ${assignedToId} is not in the same project as you. You may only assign tasks to fairies in the same project.`,
+			})
 			return
 		}
 

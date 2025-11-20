@@ -18,6 +18,10 @@
 	overflow-y: auto;
 }
 
+.authDialogBody {
+	padding: 0;
+}
+
 .authBody {
 	display: flex;
 	flex-direction: column;
@@ -143,6 +147,20 @@
 	font-size: 12px;
 	color: var(--tl-color-danger);
 	margin-top: var(--tl-space-1);
+	text-align: center;
+	text-wrap: balance;
+	font-weight: 500;
+}
+
+.clerkCaptcha:not(:empty) {
+	padding: var(--tl-space-8);
+	margin-top: calc(-1 * var(--tl-space-8));
+}
+
+.authTermsOfUse {
+	font-size: 12px;
+	color: var(--tl-color-text-2);
+	margin-top: var(--tl-space-8);
 	text-align: center;
 	text-wrap: balance;
 	font-weight: 500;
