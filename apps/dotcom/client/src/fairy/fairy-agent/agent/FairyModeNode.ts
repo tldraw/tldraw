@@ -4,10 +4,11 @@ import { FairyAgent } from './FairyAgent'
 import { $fairyAgentsAtom } from './fairyAgentsAtom'
 
 export interface FairyModeNode {
-	onEnter?(agent: FairyAgent, fromMode: FairyModeDefinition['type']): void | Promise<void>
-	onExit?(agent: FairyAgent, toMode: FairyModeDefinition['type']): void | Promise<void>
-	onPromptStart?(agent: FairyAgent, request: AgentRequest): void | Promise<void>
-	onPromptEnd?(agent: FairyAgent, request: AgentRequest): void | Promise<void>
+	onEnter?(agent: FairyAgent, fromMode: FairyModeDefinition['type']): void
+	onExit?(agent: FairyAgent, toMode: FairyModeDefinition['type']): void
+	onPromptStart?(agent: FairyAgent, request: AgentRequest): void
+	onPromptEnd?(agent: FairyAgent, request: AgentRequest): void
+	onPromptCancel?(agent: FairyAgent, request: AgentRequest): void
 }
 
 export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode> = {
@@ -47,6 +48,19 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 				agent.setMode('idling')
 			}
 		},
+		onPromptCancel(agent) {
+			// Stop timing and log
+			if (agent.promptStartTime !== null) {
+				const endTime = performance.now()
+				const duration = (endTime - agent.promptStartTime) / 1000
+				const fairyName = agent.$fairyConfig.get().name
+				// eslint-disable-next-line no-console
+				console.log(`🧚 Fairy "${fairyName}" prompt completed in ${duration.toFixed(2)}s`)
+				agent.promptStartTime = null
+			}
+
+			agent.setMode('idling')
+		},
 	},
 	['standing-by']: {},
 	['working-drone']: {
@@ -65,6 +79,9 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 				bounds: request.bounds,
 			})
 		},
+		onPromptCancel() {
+			throw new Error('Cannot cancel a fairy mid-project. Clear the project first.')
+		},
 	},
 	['working-solo']: {
 		onEnter(agent) {
@@ -82,6 +99,9 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 				message: 'Continue until the task is marked as done.',
 				bounds: request.bounds,
 			})
+		},
+		onPromptCancel(agent) {
+			agent.setMode('idling')
 		},
 	},
 	['orchestrating-active']: {
@@ -116,6 +136,9 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			if (agent.$waitingFor.get().length === 0) {
 				agent.schedule('Continue reviewing until the project is marked as completed.')
 			}
+		},
+		onPromptCancel() {
+			throw new Error('Cannot cancel a fairy mid-project. Clear the project first.')
 		},
 	},
 	['orchestrating-waiting']: {
@@ -162,6 +185,9 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 				agent.schedule('Continue reviewing until the project is marked as completed.')
 			}
 		},
+		onPromptCancel() {
+			throw new Error('Cannot cancel a fairy mid-project. Clear the project first.')
+		},
 	},
 	['duo-orchestrating-waiting']: {
 		onPromptStart(agent) {
@@ -183,6 +209,9 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 				message: 'Continue until the task is marked as done.',
 				bounds: request.bounds,
 			})
+		},
+		onPromptCancel() {
+			throw new Error('Cannot cancel a fairy mid-project. Clear the project first.')
 		},
 	},
 }

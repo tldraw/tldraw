@@ -620,7 +620,7 @@ export class FairyAgent {
 			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
 			const mode = this.getMode()
 			const node = FAIRY_MODE_CHART[mode]
-			await node.onPromptEnd?.(this, request)
+			node.onPromptEnd?.(this, request)
 			const newMode = this.getMode()
 			if (newMode !== mode) {
 				modeChanged = true
@@ -1137,7 +1137,7 @@ export class FairyAgent {
 		if (request) {
 			const mode = this.getMode()
 			const node = FAIRY_MODE_CHART[mode]
-			node.onPromptEnd?.(this, request)
+			node.onPromptCancel?.(this, request)
 
 			const newMode = this.getMode()
 			const newModeDefinition = getFairyModeDefinition(newMode)
