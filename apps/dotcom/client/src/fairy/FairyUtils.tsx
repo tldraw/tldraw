@@ -43,7 +43,8 @@ import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { AgentViewportBoundsPartUtil } from './parts/AgentViewportBoundsPartUtil'
 import { BlurryShapesPartUtil } from './parts/BlurryShapesPartUtil'
 import { ChatHistoryPartUtil } from './parts/ChatHistoryPartUtil'
-import { CurrentProjectPartUtil } from './parts/CurrentProjectPartUtil'
+import { CurrentProjectDronePartUtil } from './parts/CurrentProjectDronePartUtil'
+import { CurrentProjectOrchestratorPartUtil } from './parts/CurrentProjectOrchestratorPartUtil'
 import { DataPartUtil } from './parts/DataPartUtil'
 import { DebugPartUtil } from './parts/DebugPartUtil'
 import { MessagesPartUtil } from './parts/MessagesPartUtil'
@@ -165,7 +166,8 @@ export const PROMPT_PART_UTILS = [
 	OtherFairiesPartUtil,
 	PersonalityPartUtil,
 	ModePartUtil,
-	CurrentProjectPartUtil,
+	CurrentProjectDronePartUtil,
+	CurrentProjectOrchestratorPartUtil,
 
 	// Model selection
 	ModelNamePartUtil,

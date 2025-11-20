@@ -45,7 +45,8 @@ import {
 	AgentViewportBoundsPartDefinition,
 	BlurryShapesPartDefinition,
 	ChatHistoryPartDefinition,
-	CurrentProjectPartDefinition,
+	CurrentProjectDronePartDefinition,
+	CurrentProjectOrchestratorPartDefinition,
 	DataPartDefinition,
 	DebugPartDefinition,
 	MessagesPartDefinition,
@@ -148,7 +149,8 @@ export const PROMPT_PART_DEFINITIONS = [
 	OtherFairiesPartDefinition,
 	PersonalityPartDefinition,
 	ModePartDefinition,
-	CurrentProjectPartDefinition,
+	CurrentProjectDronePartDefinition,
+	CurrentProjectOrchestratorPartDefinition,
 ] as const satisfies PromptPartDefinition<BasePromptPart>[]
 
 export const AGENT_ACTION_TYPES = AGENT_ACTION_SCHEMAS.map((schema) => schema.shape._type.value)

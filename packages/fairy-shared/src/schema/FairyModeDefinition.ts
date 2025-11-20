@@ -89,7 +89,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'mode',
 			'messages',
 			'personalTodoList',
-			'currentProject',
+			'currentProjectDrone',
 			'agentViewportBounds',
 			'screenshot',
 			'blurryShapes',
@@ -127,7 +127,6 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'mode',
 			'messages',
 			'personalTodoList',
-			'currentProject',
 			'agentViewportBounds',
 			'screenshot',
 			'blurryShapes',
@@ -181,7 +180,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			// 'pages',
 			'otherFairies',
 			'personality',
-			'currentProject',
+			'currentProjectOrchestrator',
 			'debug',
 		],
 		actions: () => [
@@ -226,7 +225,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			// 'pages',
 			'otherFairies',
 			'personality',
-			'currentProject',
+			'currentProjectOrchestrator',
 			'debug',
 		],
 		actions: () => [
@@ -253,7 +252,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 		active: false,
 	},
 	{
-		type: 'working-duo',
+		type: 'working-orchestrator',
 		memoryLevel: 'task',
 		active: true,
 		parts: (_work: FairyWork) => [
@@ -261,7 +260,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'mode',
 			'messages',
 			'personalTodoList',
-			'currentProject',
+			'currentProjectDrone',
 			'agentViewportBounds',
 			'screenshot',
 			'blurryShapes',
