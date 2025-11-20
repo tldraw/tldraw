@@ -1,5 +1,5 @@
 import { EMPTY_ARRAY, atom, computed } from '@tldraw/state'
-import { TLFrameShape, TLGroupShape, TLParentId, TLShapeId, isShapeId } from '@tldraw/tlschema'
+import { TLParentId, TLShapeId, isShapeId } from '@tldraw/tlschema'
 import { Vec, VecLike } from '../../../primitives/Vec'
 import type { Editor } from '../../Editor'
 import { BoundsSnaps } from './BoundsSnaps'
@@ -72,7 +72,7 @@ export class SnapManager {
 		const collectSnappableShapesFromParent = (parentId: TLParentId) => {
 			if (isShapeId(parentId)) {
 				const parent = editor.getShape(parentId)
-				if (parent && editor.isShapeOfType<TLFrameShape>(parent, 'frame')) {
+				if (parent && editor.isShapeOfType(parent, 'frame')) {
 					snappableShapes.add(parentId)
 				}
 			}
@@ -89,7 +89,7 @@ export class SnapManager {
 				const pageBounds = editor.getShapePageBounds(childId)
 				if (!(pageBounds && renderingBounds.includes(pageBounds))) continue
 				// Snap to children of groups but not group itself
-				if (editor.isShapeOfType<TLGroupShape>(childShape, 'group')) {
+				if (editor.isShapeOfType(childShape, 'group')) {
 					collectSnappableShapesFromParent(childId)
 					continue
 				}

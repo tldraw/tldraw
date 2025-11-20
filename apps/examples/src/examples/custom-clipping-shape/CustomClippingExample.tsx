@@ -16,7 +16,7 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { CircleClipShapeTool } from './CircleClipShapeTool'
-import { CircleClipShape, CircleClipShapeUtil, isClippingEnabled$ } from './CircleClipShapeUtil'
+import { CircleClipShapeUtil, isClippingEnabled$ } from './CircleClipShapeUtil'
 import './CustomClipping.css'
 
 // There's a guide at the bottom of this file!
@@ -99,7 +99,7 @@ export default function CustomClippingExample() {
 					editor.setCurrentTool('select')
 
 					const clipShapeId = createShapeId()
-					editor.createShape<CircleClipShape>({
+					editor.createShape({
 						id: clipShapeId,
 						type: 'circle-clip',
 						x: 200,

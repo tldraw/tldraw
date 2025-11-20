@@ -247,6 +247,7 @@ export async function putExcalidrawContent(
 						toId: startTargetId,
 						props: {
 							terminal: 'start',
+							snap: 'none',
 							normalizedAnchor: { x: 0.5, y: 0.5 },
 							isPrecise: false,
 							isExact: false,
@@ -263,6 +264,7 @@ export async function putExcalidrawContent(
 						toId: endTargetId,
 						props: {
 							terminal: 'end',
+							snap: 'none',
 							normalizedAnchor: { x: 0.5, y: 0.5 },
 							isPrecise: false,
 							isExact: false,

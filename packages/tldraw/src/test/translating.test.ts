@@ -1749,9 +1749,7 @@ describe('translating a shape with a bound shape', () => {
 
 		const newArrow = editor
 			.getCurrentPageShapes()
-			.find(
-				(s) => editor.isShapeOfType<TLArrowShape>(s, 'arrow') && s.id !== arrow1
-			)! as TLArrowShape
+			.find((s) => editor.isShapeOfType(s, 'arrow') && s.id !== arrow1)! as TLArrowShape
 		expect(getArrowBindings(editor, newArrow)).toMatchObject({
 			start: { type: 'arrow' },
 			end: undefined,
@@ -2183,7 +2181,7 @@ describe('Note shape grid helper positions / pits', () => {
 
 describe('cancelling a translate operation', () => {
 	it('undoes any changes since the start of the translate operation', () => {
-		editor.createShape<TLGeoShape>({
+		editor.createShape({
 			type: 'geo',
 			x: 0,
 			y: 0,
@@ -2220,7 +2218,7 @@ describe('cancelling a translate operation', () => {
 		const shapeId = createShapeId()
 
 		editor
-			.createShape<TLGeoShape>({
+			.createShape({
 				id: shapeId,
 				type: 'geo',
 				x: 0,
@@ -2268,7 +2266,7 @@ describe('cancelling a translate operation', () => {
 		const shapeId = createShapeId()
 
 		editor
-			.createShape<TLGeoShape>({
+			.createShape({
 				id: shapeId,
 				type: 'geo',
 				x: 0,

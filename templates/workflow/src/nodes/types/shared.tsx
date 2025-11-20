@@ -91,7 +91,7 @@ export function updateNode<T extends NodeType>(
 	update: (node: T) => T,
 	isOutOfDate: boolean = true
 ) {
-	editor.updateShape<NodeShape>({
+	editor.updateShape({
 		id: shape.id,
 		type: shape.type,
 		props: { node: update(shape.props.node as T), isOutOfDate },

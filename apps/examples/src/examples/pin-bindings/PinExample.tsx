@@ -10,7 +10,7 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	StateNode,
-	TLBaseBinding,
+	TLBinding,
 	TLEditorComponents,
 	TLPointerEventInfo,
 	TLShape,
@@ -52,7 +52,7 @@ class PinShapeUtil extends ShapeUtil<PinShape> {
 	}
 
 	override canBind({ toShapeType, bindingType }: TLShapeUtilCanBindOpts<PinShape>) {
-		if (bindingType === 'pin') {
+		if (bindingType === PIN_TYPE) {
 			// pins cannot bind to other pins!
 			return toShapeType !== PIN_TYPE
 		}
@@ -104,7 +104,7 @@ class PinShapeUtil extends ShapeUtil<PinShape> {
 	}
 
 	override onTranslateStart(shape: PinShape) {
-		const bindings = this.editor.getBindingsFromShape(shape, 'pin')
+		const bindings = this.editor.getBindingsFromShape(shape, PIN_TYPE)
 		this.editor.deleteBindings(bindings)
 	}
 
@@ -115,7 +115,7 @@ class PinShapeUtil extends ShapeUtil<PinShape> {
 			.getShapesAtPoint(pageAnchor, { hitInside: true })
 			.filter(
 				(shape) =>
-					this.editor.canBindShapes({ fromShape: pin, toShape: shape, binding: 'pin' }) &&
+					this.editor.canBindShapes({ fromShape: pin, toShape: shape, binding: PIN_TYPE }) &&
 					shape.parentId === pin.parentId &&
 					shape.index < pin.index
 			)
@@ -130,7 +130,7 @@ class PinShapeUtil extends ShapeUtil<PinShape> {
 			}
 
 			this.editor.createBinding({
-				type: 'pin',
+				type: PIN_TYPE,
 				fromId: pin.id,
 				toId: target.id,
 				props: {
@@ -141,14 +141,18 @@ class PinShapeUtil extends ShapeUtil<PinShape> {
 	}
 }
 
-type PinBinding = TLBaseBinding<
-	'pin',
-	{
-		anchor: VecModel
+declare module 'tldraw' {
+	export interface TLGlobalBindingPropsMap {
+		[PIN_TYPE]: {
+			anchor: VecModel
+		}
 	}
->
+}
+
+type PinBinding = TLBinding<typeof PIN_TYPE>
+
 class PinBindingUtil extends BindingUtil<PinBinding> {
-	static override type = 'pin' as const
+	static override type = PIN_TYPE
 
 	override getDefaultProps() {
 		return {
@@ -185,7 +189,7 @@ class PinBindingUtil extends BindingUtil<PinBinding> {
 			if (allShapes.has(shapeId)) continue
 			allShapes.add(shapeId)
 
-			const bindings = this.editor.getBindingsToShape<PinBinding>(shape, 'pin')
+			const bindings = this.editor.getBindingsToShape(shape, PIN_TYPE)
 			for (const binding of bindings) {
 				if (allShapes.has(binding.fromId)) continue
 				allShapes.add(binding.fromId)
@@ -196,7 +200,7 @@ class PinBindingUtil extends BindingUtil<PinBinding> {
 				const pinPosition = this.editor.getShapePageTransform(pin).applyToPoint({ x: 0, y: 0 })
 				initialPositions.set(pin.id, pinPosition)
 
-				for (const binding of this.editor.getBindingsFromShape<PinBinding>(pin.id, 'pin')) {
+				for (const binding of this.editor.getBindingsFromShape(pin.id, PIN_TYPE)) {
 					const shapeBounds = this.editor.getShapeGeometry(binding.toId)!.bounds
 					const shapeAnchor = {
 						x: lerp(shapeBounds.minX, shapeBounds.maxX, binding.props.anchor.x),
@@ -281,7 +285,7 @@ class PinBindingUtil extends BindingUtil<PinBinding> {
 }
 
 class PinTool extends StateNode {
-	static override id = 'pin'
+	static override id = PIN_TYPE
 
 	override onEnter() {
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
@@ -293,7 +297,7 @@ class PinTool extends StateNode {
 		this.editor.markHistoryStoppingPoint()
 		this.editor.createShape({
 			id: pinId,
-			type: 'pin',
+			type: PIN_TYPE,
 			x: currentPagePoint.x,
 			y: currentPagePoint.y,
 		})

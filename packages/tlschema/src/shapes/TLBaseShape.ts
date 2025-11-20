@@ -14,14 +14,31 @@ import { TLParentId, TLShapeId } from '../records/TLShape'
  *
  * @example
  * ```ts
- * // Define a custom shape type
- * interface MyCustomShape extends TLBaseShape<'custom', { size: number; color: string }> {}
+ * // Define a default shape type
+ * interface TLArrowShape extends TLBaseShape<'arrow', {
+ *   kind: TLArrowShapeKind
+ *   labelColor: TLDefaultColorStyle
+ *   color: TLDefaultColorStyle
+ *   fill: TLDefaultFillStyle
+ *   dash: TLDefaultDashStyle
+ *   size: TLDefaultSizeStyle
+ *   arrowheadStart: TLArrowShapeArrowheadStyle
+ *   arrowheadEnd: TLArrowShapeArrowheadStyle
+ *   font: TLDefaultFontStyle
+ *   start: VecModel
+ *   end: VecModel
+ *   bend: number
+ *   richText: TLRichText
+ *   labelPosition: number
+ *   scale: number
+ *   elbowMidPoint: number
+ * }> {}
  *
  * // Create a shape instance
- * const myShape: MyCustomShape = {
+ * const arrowShape: TLArrowShape = {
  *   id: 'shape:abc123',
  *   typeName: 'shape',
- *   type: 'custom',
+ *   type: 'arrow',
  *   x: 100,
  *   y: 200,
  *   rotation: 0,
@@ -30,8 +47,10 @@ import { TLParentId, TLShapeId } from '../records/TLShape'
  *   isLocked: false,
  *   opacity: 1,
  *   props: {
- *     size: 50,
- *     color: 'blue'
+ *     kind: 'arc',
+ *     start: { x: 0, y: 0 },
+ *     end: { x: 100, y: 100 },
+ *     // ... other props
  *   },
  *   meta: {}
  * }

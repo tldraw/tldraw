@@ -1,12 +1,4 @@
-import {
-	Editor,
-	StateNode,
-	TLArrowShape,
-	TLHandle,
-	TLNoteShape,
-	TLPointerEventInfo,
-	Vec,
-} from '@tldraw/editor'
+import { Editor, StateNode, TLHandle, TLNoteShape, TLPointerEventInfo, Vec } from '@tldraw/editor'
 import { updateArrowTargetState } from '../../../shapes/arrow/arrowTargetState'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 import {
@@ -29,7 +21,7 @@ export class PointingHandle extends StateNode {
 		this.didCtrlOnEnter = info.accelKey
 
 		const { shape } = info
-		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+		if (this.editor.isShapeOfType(shape, 'arrow')) {
 			const initialBindings = getArrowBindings(this.editor, shape)
 			const currentBinding = initialBindings[info.handle.id as 'start' | 'end']
 			const oppositeBinding = initialBindings[info.handle.id === 'start' ? 'end' : 'start']
@@ -58,7 +50,7 @@ export class PointingHandle extends StateNode {
 	override onPointerUp() {
 		const { shape, handle } = this.info
 
-		if (this.editor.isShapeOfType<TLNoteShape>(shape, 'note')) {
+		if (this.editor.isShapeOfType(shape, 'note')) {
 			const { editor } = this
 			const nextNote = getNoteForAdjacentPosition(editor, shape, handle, false)
 			if (nextNote) {
@@ -90,7 +82,7 @@ export class PointingHandle extends StateNode {
 		if (editor.getIsReadonly()) return
 		const { shape, handle } = this.info
 
-		if (editor.isShapeOfType<TLNoteShape>(shape, 'note')) {
+		if (editor.isShapeOfType(shape, 'note')) {
 			const nextNote = getNoteForAdjacentPosition(editor, shape, handle, true)
 			if (nextNote) {
 				// Center the shape on the current pointer

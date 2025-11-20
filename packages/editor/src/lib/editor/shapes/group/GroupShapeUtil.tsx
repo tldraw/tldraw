@@ -55,9 +55,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		const isHintingOtherGroup =
 			hintingShapeIds.length > 0 &&
 			hintingShapeIds.some(
-				(id) =>
-					id !== shape.id &&
-					this.editor.isShapeOfType<TLGroupShape>(this.editor.getShape(id)!, 'group')
+				(id) => id !== shape.id && this.editor.isShapeOfType(this.editor.getShape(id)!, 'group')
 			)
 
 		const isFocused = this.editor.getCurrentPageState().focusedGroupId !== shape.id
