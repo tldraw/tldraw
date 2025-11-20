@@ -33,13 +33,17 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 		)
 
 		memberAgents.forEach((memberAgent) => {
+			const otherMemberIds = memberAgents
+				.map((agent) => agent.id)
+				.filter((id) => id !== memberAgent.id)
+
 			if (memberAgent.id === this.agent.id) {
 				memberAgent.$chatHistory.update((prev) => [
 					...prev,
 					{
 						type: 'memory-transition',
 						memoryLevel: 'project',
-						message: `I led and completed the "${project.title}" project with ${memberAgents.length} other fairy(s): ${memberAgents.map((agent) => agent.id).join(', ')}`,
+						message: `I led and completed the "${project.title}" project with ${otherMemberIds.length} other fairy(s): ${otherMemberIds.join(', ')}`,
 					},
 				])
 			}
@@ -53,7 +57,7 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 					{
 						type: 'memory-transition',
 						memoryLevel: 'project',
-						message: `I completed ${memberCompletedTasks.length} tasks as part of the "${project.title}" project, with ${memberAgents.length} other fairy(s): ${memberAgents.map((agent) => agent.id).join(', ')}`,
+						message: `I completed ${memberCompletedTasks.length} tasks as part of the "${project.title}" project, with ${otherMemberIds.length} other fairy(s): ${otherMemberIds.join(', ')}`,
 					},
 				])
 			}
