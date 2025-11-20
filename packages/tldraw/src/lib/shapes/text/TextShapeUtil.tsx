@@ -235,10 +235,37 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		// Will always be a fresh call to getTextSize
 		const boundsB = getTextSize(this.editor, next.props)
 
-		const wA = boundsA.width * prev.props.scale
-		const hA = boundsA.height * prev.props.scale
-		const wB = boundsB.width * next.props.scale
-		const hB = boundsB.height * next.props.scale
+		let wA = boundsA.width * prev.props.scale
+		let hA = boundsA.height * prev.props.scale
+		let wB = boundsB.width * next.props.scale
+		let hB = boundsB.height * next.props.scale
+
+		const viewportBounds = this.editor.getViewportPageBounds()
+		const maxWidth = viewportBounds.width * 0.9
+
+		if (wB > maxWidth) {
+			const constrainedSize = this.editor.textMeasure.measureHtml(
+				renderHtmlFromRichTextForMeasurement(this.editor, next.props.richText),
+				{
+					...TEXT_PROPS,
+					fontFamily: FONT_FAMILIES[next.props.font],
+					fontSize: FONT_SIZES[next.props.size],
+					maxWidth: maxWidth,
+				}
+			)
+			wB = Math.max(16, constrainedSize.w + 1)
+			hB = Math.max(FONT_SIZES[next.props.size], constrainedSize.h)
+
+			return {
+				...next,
+				props: {
+					...next.props,
+					w: wB,
+					autoSize: false,
+					textAlign: next.props.textAlign === 'middle' ? 'start' : next.props.textAlign,
+				},
+			}
+		}
 
 		let delta: Vec | undefined
 
