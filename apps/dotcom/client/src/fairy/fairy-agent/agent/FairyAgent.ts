@@ -618,10 +618,11 @@ export class FairyAgent {
 		while (!this.$scheduledRequest.get() && modeChanged) {
 			modeChanged = false
 			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
-			const node = FAIRY_MODE_CHART[this.getMode()]
+			const mode = this.getMode()
+			const node = FAIRY_MODE_CHART[mode]
 			await node.onPromptEnd?.(this, request)
 			const newMode = this.getMode()
-			if (newMode !== this.getMode()) {
+			if (newMode !== mode) {
 				modeChanged = true
 			}
 		}
