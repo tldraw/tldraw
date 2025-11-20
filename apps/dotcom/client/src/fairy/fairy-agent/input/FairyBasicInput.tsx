@@ -1,28 +1,38 @@
 import { FAIRY_VISION_DIMENSIONS } from '@tldraw/fairy-shared'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { Box, TldrawUiInput, useValue } from 'tldraw'
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { Box, useValue } from 'tldraw'
 import { useMsg } from '../../../tla/utils/i18n'
 import { fairyMessages } from '../../fairy-messages'
 // import { $fairyTasks } from '../../FairyTaskList'
 import { FairyAgent } from '../agent/FairyAgent'
 
 export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCancel(): void }) {
-	const inputRef = useRef<HTMLInputElement>(null)
+	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const [inputValue, setInputValue] = useState('')
 	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
 
 	const fairyEntity = useValue(agent.$fairyEntity)
 	const fairyConfig = useValue(agent.$fairyConfig)
 
+	// Auto-resize textarea when content changes
+	useLayoutEffect(() => {
+		if (textareaRef.current) {
+			// Reset height to auto to get the correct scrollHeight
+			textareaRef.current.style.height = 'auto'
+			// Set height based on scrollHeight
+			textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+		}
+	}, [inputValue])
+
 	useEffect(() => {
-		if (inputRef.current) {
-			inputRef.current.spellcheck = false
+		if (textareaRef.current) {
+			textareaRef.current.focus()
 		}
 	}, [])
 
 	const handleComplete = useCallback(
 		async (value: string) => {
-			inputRef.current?.focus()
+			textareaRef.current?.focus()
 			agent.cancel()
 
 			// If the user's message is empty, just cancel the current request (if there is one)
@@ -55,6 +65,27 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 		[agent, fairyEntity]
 	)
 
+	// Handle keyboard input for Enter and Shift+Enter
+	const handleKeyDown = useCallback(
+		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+			if (e.key === 'Enter') {
+				if (e.shiftKey) {
+					// Shift+Enter: allow default behavior (insert newline)
+					return
+				} else {
+					// Enter: submit message
+					e.preventDefault()
+					if (inputValue.trim() || isGenerating) {
+						handleComplete(inputValue)
+					}
+				}
+			} else if (e.key === 'Escape') {
+				onCancel()
+			}
+		},
+		[inputValue, isGenerating, handleComplete, onCancel]
+	)
+
 	const shouldCancel = isGenerating && inputValue === ''
 
 	const handleButtonClick = () => {
@@ -71,15 +102,19 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 
 	return (
 		<div className="fairy-input">
-			<TldrawUiInput
-				ref={inputRef}
+			<textarea
+				ref={textareaRef}
+				id="fairy-message-input"
+				name="fairy-message"
 				placeholder={whisperPlaceholder}
 				value={inputValue}
-				onValueChange={setInputValue}
-				onComplete={handleComplete}
-				onCancel={onCancel}
+				onChange={(e) => setInputValue(e.target.value)}
+				onKeyDown={handleKeyDown}
 				autoFocus
 				className="fairy-input__field"
+				disabled={isGenerating}
+				rows={1}
+				spellCheck={false}
 			/>
 			<button
 				onClick={handleButtonClick}

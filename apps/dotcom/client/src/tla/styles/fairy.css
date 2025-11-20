@@ -137,10 +137,10 @@
 	pointer-events: auto;
 	position: relative;
 	display: flex;
-	align-items: center;
+	align-items: flex-end;
 	gap: 12px;
 	padding-right: 8px;
-	height: 41px;
+	min-height: 41px;
 	border-top: 1px solid var(--tl-color-divider);
 }
 
@@ -160,6 +160,12 @@
 	font-size: 12px;
 	font-family: inherit;
 	outline: none;
+	resize: none;
+	min-height: 17px;
+	max-height: 85px;
+	overflow-y: auto;
+	line-height: 1.4;
+	flex: 1;
 }
 
 .fairy-input__field::placeholder {
@@ -174,6 +180,7 @@
 	padding: 10px;
 	margin: -10px;
 	margin-right: -5px;
+	margin-bottom: 2px;
 	background-color: transparent;
 	border: none;
 	border-radius: var(--tl-radius-2);
@@ -183,6 +190,7 @@
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
+	align-self: flex-end;
 }
 
 .fairy-input__submit:hover:not(:disabled) {
