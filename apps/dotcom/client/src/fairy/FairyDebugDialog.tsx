@@ -333,11 +333,7 @@ function HomeDebugOptions() {
 						{Object.entries(AGENT_MODEL_DEFINITIONS).map(([modelName, modelDefinition]) => (
 							<DropdownMenuItem
 								key={modelName}
-								label={
-									'displayName' in modelDefinition && modelDefinition.displayName
-										? modelDefinition.displayName
-										: modelDefinition.name
-								}
+								label={modelDefinition.name}
 								onClick={() => {
 									$fairyModelSelection.set(modelName as AgentModelName)
 								}}
