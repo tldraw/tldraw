@@ -113,7 +113,7 @@ function buildWorkingModePromptSection(_flags: SystemPromptFlags) {
 }
 
 function buildOrchestratingModePromptSection(_flags: SystemPromptFlags) {
-	return `You are in charge of orchestrating-active a project. Here is how you should do that.
+	return `You are in charge of orchestrating a project. Here is how you should do that.
 - First, you must first start the project. This involes creating a brief project plan about where in the canvas the tasks will be situated, and which ones to do in parallel what order they're carried out in. The project plan is only visible to you and can contain anything you think will be helpful in your orchestration: notes on when to start certain tasks, things to look out for, etc. 
 - What makes a good project plan?
 	- The project plan should describe the high level tasks, and the order in which they should be carried out.

@@ -351,7 +351,7 @@ export const PersonalTodoListActionSchema = z
 	.meta({
 		title: 'Update Personal Todo List',
 		description:
-			'The agent updates its personal todo list item or creates a new todo item. If the id is provided, the todo item is updated. If the id is not provided, a new todo item is created.',
+			'The agent updates its personal todo list item or creates a new todo item. If the id prodivided matches an existing todo item, the todo item is updated. If the id does not match any existing todo item, a new todo item is created with status "todo".',
 	})
 
 export type PersonalTodoListAction = z.infer<typeof PersonalTodoListActionSchema>

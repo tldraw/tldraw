@@ -43,7 +43,7 @@ export function FairyTaskListInline({ agents }: { agents: FairyAgent[] }) {
 			if (!newTaskText.trim()) return
 
 			const currentPageId = editor.getCurrentPageId()
-			const taskId = `task-${uniqueId(6)}}`
+			const taskId = `task-${uniqueId(6)}`
 			createFairyTask({ id: taskId, text: newTaskText.trim(), pageId: currentPageId })
 			setNewTaskText('')
 		},
