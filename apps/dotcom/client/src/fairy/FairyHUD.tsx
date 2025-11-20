@@ -6,12 +6,15 @@ import {
 	SmallSpinner,
 } from '@tldraw/fairy-shared'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
-import { MouseEvent, useCallback, useState } from 'react'
+import { MouseEvent, useCallback, useEffect, useRef, useState } from 'react'
 import {
+	PORTRAIT_BREAKPOINT,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
 	TldrawUiIcon,
+	tlmenus,
 	uniqueId,
+	useBreakpoint,
 	useEditor,
 	useQuickReactor,
 	useValue,
@@ -170,6 +173,7 @@ function FairyHUDHeader({
 
 export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	const editor = useEditor()
+	const breakpoint = useBreakpoint()
 	const [headerMenuPopoverOpen, setHeaderMenuPopoverOpen] = useState(false)
 	const [fairyMenuPopoverOpen, setFairyMenuPopoverOpen] = useState(false)
 	const [todoMenuPopoverOpen, setTodoMenuPopoverOpen] = useState(false)
@@ -177,6 +181,8 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 
 	const [panelState, setPanelState] = useState<PanelState>('closed')
 	const [shownFairy, setShownFairy] = useState<FairyAgent | null>(null)
+	const [mobileMenuOffset, setMobileMenuOffset] = useState<number | null>(null)
+	const hudRef = useRef<HTMLDivElement>(null)
 
 	const toolbarMessage = useMsg(fairyMessages.toolbar)
 	const deselectMessage = useMsg(fairyMessages.deselectFairy)
@@ -306,12 +312,50 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		[taskListLastChecked]
 	)
 
+	// hide the HUD when the mobile style panel is open
+	const isMobileStylePanelOpen = useValue(
+		'mobile style panel open',
+		() => {
+			const contextId = editor.contextId
+			return tlmenus.isMenuOpen(`mobile style menu-${contextId}`)
+		},
+		[editor, breakpoint]
+	)
+
+	// Position HUD above mobile style menu button on mobile
+	useEffect(() => {
+		if (breakpoint >= PORTRAIT_BREAKPOINT.TABLET_SM) {
+			setMobileMenuOffset(null)
+			return
+		}
+
+		const updatePosition = () => {
+			const mobileStyleButton = document.querySelector('[data-testid="mobile-styles.button"]')
+			if (mobileStyleButton) {
+				const buttonRect = mobileStyleButton.getBoundingClientRect()
+				const rightOffset = window.innerWidth - buttonRect.right
+				setMobileMenuOffset(rightOffset)
+				return
+			}
+			setMobileMenuOffset(null)
+		}
+
+		updatePosition()
+
+		window.addEventListener('resize', updatePosition)
+
+		return () => window.removeEventListener('resize', updatePosition)
+	}, [breakpoint])
+
 	return (
 		<>
 			<div
+				ref={hudRef}
 				className={`tla-fairy-hud ${panelState !== 'closed' ? 'tla-fairy-hud--open' : ''}`}
 				style={{
 					bottom: isDebugMode ? '112px' : '72px',
+					right: mobileMenuOffset !== null ? `${mobileMenuOffset}px` : '0px',
+					display: isMobileStylePanelOpen ? 'none' : 'block',
 				}}
 				onContextMenu={handleContextMenu}
 			>
