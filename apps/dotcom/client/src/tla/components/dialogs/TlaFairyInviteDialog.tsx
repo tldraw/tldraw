@@ -54,7 +54,7 @@ export function TlaFairyInviteDialog({
 					height={36}
 					src="/tldraw-white-on-black.svg"
 					loading="lazy"
-					role="presentation"
+					alt="tldraw logo"
 				/>
 
 				{userHasActiveFairyAccess ? (
