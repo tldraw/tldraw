@@ -350,6 +350,11 @@ div:not(.fairy-sidebar-group) > .fairy-toggle-button[data-isactive='true']::befo
 	font-size: 14px;
 }
 
+.fairy-toolbar-sidebar-button:disabled {
+	cursor: not-allowed;
+	opacity: 0.4;
+}
+
 .fairy-new-button {
 	margin-top: 4px;
 	align-items: center;
