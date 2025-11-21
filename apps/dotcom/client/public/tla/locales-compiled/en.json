@@ -5,6 +5,12 @@
       "value": "Export"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Accept invitation"
+    }
+  ],
   "038c9b4432": [
     {
       "type": 0,
@@ -139,6 +145,12 @@
     {
       "type": 0,
       "value": "Create file"
+    }
+  ],
+  "1cbf5e51b8": [
+    {
+      "type": 0,
+      "value": "Continue to checkout"
     }
   ],
   "1da2e8106b": [
@@ -445,6 +457,12 @@
       "value": "PNG"
     }
   ],
+  "55bfc2a761": [
+    {
+      "type": 0,
+      "value": "Purchase more fairies"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -567,6 +585,12 @@
     {
       "type": 0,
       "value": "Click to remove or drag to move"
+    }
+  ],
+  "654866693f": [
+    {
+      "type": 0,
+      "value": "Recommended"
     }
   ],
   "65709fd250": [
@@ -731,6 +755,12 @@
       "value": "Open tldraw"
     }
   ],
+  "7cb471f815": [
+    {
+      "type": 0,
+      "value": "You've been invited to join tldraw fairies!"
+    }
+  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
@@ -741,6 +771,42 @@
     {
       "type": 0,
       "value": "Leave group…"
+    }
+  ],
+  "7da43f3036": [
+    {
+      "type": 0,
+      "value": "You've reached your limit of "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " fairy"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " fairies"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "7daeced9ff": [
@@ -1339,6 +1405,12 @@
       "value": "SVG"
     }
   ],
+  "ce1424d44b": [
+    {
+      "type": 0,
+      "value": "You already have fairy access!"
+    }
+  ],
   "cea291e45e": [
     {
       "type": 0,
@@ -1349,6 +1421,38 @@
     {
       "type": 0,
       "value": "Close"
+    }
+  ],
+  "d458808b84": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " fairy"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " fairies"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "d46632fe1f": [
@@ -1717,6 +1821,12 @@
     {
       "type": 0,
       "value": "Import file…"
+    }
+  ],
+  "ffec95af2f": [
+    {
+      "type": 0,
+      "value": "Purchase fairy access"
     }
   ]
 }

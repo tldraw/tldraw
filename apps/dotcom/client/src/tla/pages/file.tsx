@@ -1,9 +1,10 @@
 import { captureException } from '@sentry/react'
 import { useEffect } from 'react'
-import { useParams, useRouteError } from 'react-router-dom'
+import { useLocation, useParams, useRouteError } from 'react-router-dom'
 import { useDialogs } from 'tldraw'
 import { TlaEditor } from '../components/TlaEditor/TlaEditor'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
+import { TlaFairyInviteDialog } from '../components/dialogs/TlaFairyInviteDialog'
 import { TlaInviteDialog } from '../components/dialogs/TlaInviteDialog'
 import { useMaybeApp } from '../hooks/useAppState'
 import { useInviteDetails } from '../hooks/useInviteDetails'
@@ -27,6 +28,8 @@ export function Component({ error }: { error?: unknown }) {
 	const userId = app?.userId
 	const inviteInfo = useInviteDetails()
 	const dialogs = useDialogs()
+	const location = useLocation()
+	const fairyInviteToken = location.state?.fairyInviteToken
 
 	const errorElem = error ? <TlaFileError error={error} /> : null
 
@@ -44,6 +47,16 @@ export function Component({ error }: { error?: unknown }) {
 			})
 		}
 	}, [inviteInfo, dialogs, userId])
+
+	useEffect(() => {
+		if (fairyInviteToken) {
+			dialogs.addDialog({
+				component: ({ onClose }) => (
+					<TlaFairyInviteDialog fairyInviteToken={fairyInviteToken} onClose={onClose} />
+				),
+			})
+		}
+	}, [fairyInviteToken, dialogs])
 
 	useEffect(() => {
 		if (app && fileSlug) {

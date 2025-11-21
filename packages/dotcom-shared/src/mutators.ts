@@ -10,7 +10,7 @@ import {
 	sortByMaybeIndex,
 	uniqueId,
 } from '@tldraw/utils'
-import { MAX_NUMBER_OF_FILES, MAX_NUMBER_OF_GROUPS } from './constants'
+import { MAX_FAIRY_COUNT, MAX_NUMBER_OF_FILES, MAX_NUMBER_OF_GROUPS } from './constants'
 import {
 	immutableColumns,
 	TlaFile,
@@ -150,6 +150,53 @@ function assertValidId(id: string) {
 }
 
 /**
+ * Get user's fairy access status and limit.
+ * @returns { hasAccess: boolean, limit: number }
+ */
+async function getUserFairyAccess(
+	tx: Transaction<TlaSchema>,
+	userId: string
+): Promise<{ hasAccess: boolean; limit: number }> {
+	// Check user_fairies table for purchased/redeemed access
+	const userFairies = await tx.query.user_fairies.where('userId', '=', userId).one().run()
+
+	const limit = userFairies?.fairyLimit ?? 0
+	if (limit === 0) {
+		return { hasAccess: false, limit: 0 }
+	}
+
+	// Check expiration (null = no access, number = check if still valid)
+	const expiresAt = userFairies?.fairyAccessExpiresAt
+	if (expiresAt === null || expiresAt === undefined || expiresAt < Date.now()) {
+		return { hasAccess: false, limit: 0 }
+	}
+
+	return { hasAccess: true, limit }
+}
+
+/**
+ * Assert that user has fairy access and is below their fairy limit.
+ * Throws if user has no access or has reached their limit.
+ * The actual limit is the minimum of the user's limit and MAX_FAIRY_COUNT.
+ */
+async function assertBelowFairyLimit(tx: Transaction<TlaSchema>, userId: string) {
+	const { hasAccess, limit } = await getUserFairyAccess(tx, userId)
+
+	assert(hasAccess, ZErrorCode.forbidden)
+	assert(limit > 0, ZErrorCode.forbidden)
+
+	// Count current fairies from user_fairies table
+	const userFairies = await tx.query.user_fairies.where('userId', '=', userId).one().run()
+
+	const configs = JSON.parse(userFairies?.fairies || '{}')
+	const count = Object.values(configs).filter(Boolean).length
+
+	// Cap at MAX_FAIRY_COUNT regardless of user's plan
+	const effectiveLimit = Math.min(limit, MAX_FAIRY_COUNT)
+	assert(count < effectiveLimit, ZErrorCode.forbidden)
+}
+
+/**
  * Check if a user has the required permissions for a file.
  * @param tx - The transaction
  * @param userId - The user ID to check permissions for
@@ -220,6 +267,14 @@ export function createMutators(userId: string) {
 			updateFairyConfig: async (tx, { id, properties }: { id: string; properties: object }) => {
 				const current = await tx.query.user_fairies.where('userId', '=', userId).one().run()
 				const currentConfig = JSON.parse(current?.fairies || '{}')
+				const isNewFairy = !currentConfig[id]
+
+				if (isNewFairy) {
+					await assertBelowFairyLimit(tx, userId)
+				} else {
+					const { hasAccess } = await getUserFairyAccess(tx, userId)
+					assert(hasAccess, ZErrorCode.forbidden)
+				}
 				await tx.mutate.user_fairies.upsert({
 					userId,
 					fairies: JSON.stringify({
@@ -232,6 +287,9 @@ export function createMutators(userId: string) {
 				})
 			},
 			deleteFairyConfig: async (tx, { id }: { id: string }) => {
+				const { hasAccess } = await getUserFairyAccess(tx, userId)
+				assert(hasAccess, ZErrorCode.forbidden)
+
 				const current = await tx.query.user_fairies.where('userId', '=', userId).one().run()
 				const currentConfig = JSON.parse(current?.fairies || '{}')
 				await tx.mutate.user_fairies.upsert({
@@ -240,6 +298,9 @@ export function createMutators(userId: string) {
 				})
 			},
 			deleteAllFairyConfigs: async (tx) => {
+				const { hasAccess } = await getUserFairyAccess(tx, userId)
+				assert(hasAccess, ZErrorCode.forbidden)
+
 				await tx.mutate.user_fairies.upsert({ userId, fairies: '{}' })
 			},
 		},

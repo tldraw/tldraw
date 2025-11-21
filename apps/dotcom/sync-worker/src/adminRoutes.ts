@@ -3,6 +3,7 @@ import { assert, retry, sleep, uniqueId } from '@tldraw/utils'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
 import { sql } from 'kysely'
+import { FAIRY_WORLDWIDE_EXPIRATION } from './config'
 import { createPostgresConnectionPool } from './postgres'
 import { returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
@@ -52,6 +53,16 @@ export const adminRoutes = createRouter<Environment>()
 		const user = getUserDurableObject(env, userRow.id)
 		await user.admin_forceHardReboot(userRow.id)
 		return new Response('Rebooted', { status: 200 })
+	})
+	.post('/app/admin/user/refresh', async (res, env) => {
+		const q = res.query['q']
+		if (typeof q !== 'string') {
+			return new Response('Missing query param', { status: 400 })
+		}
+		const userRow = await requireUser(env, q)
+		const user = getUserDurableObject(env, userRow.id)
+		await user.refreshUserData(userRow.id)
+		return new Response('Refreshed user data', { status: 200 })
 	})
 	.post('/app/admin/user/migrate', async (res, env) => {
 		const q = res.query['q']
@@ -137,6 +148,75 @@ export const adminRoutes = createRouter<Environment>()
 				},
 			}
 		)
+	})
+	.post('/app/admin/fairy-invites', async (req, env) => {
+		const body: any = await req.json()
+		const fairyLimit = body?.fairyLimit
+		const maxUses = body?.maxUses
+
+		if (typeof fairyLimit !== 'number' || fairyLimit < 1) {
+			return new Response('fairyLimit must be a positive number', { status: 400 })
+		}
+		if (typeof maxUses !== 'number' || maxUses < 0) {
+			return new Response('maxUses must be 0 (unlimited) or a positive number', { status: 400 })
+		}
+
+		const db = createPostgresConnectionPool(env, '/app/admin/fairy-invites')
+		const id = uniqueId()
+
+		await db
+			.insertInto('fairy_invite')
+			.values({
+				id,
+				fairyLimit,
+				maxUses,
+				currentUses: 0,
+				createdAt: Date.now(),
+			})
+			.execute()
+
+		return json({ id, fairyLimit, maxUses, currentUses: 0, createdAt: Date.now() })
+	})
+	.get('/app/admin/fairy-invites', async (_req, env) => {
+		const db = createPostgresConnectionPool(env, '/app/admin/fairy-invites')
+		const invites = await db.selectFrom('fairy_invite').selectAll().execute()
+		return json(invites)
+	})
+	.delete('/app/admin/fairy-invites/:id', async (req, env) => {
+		const id = req.params.id
+		assert(typeof id === 'string', 'id is required')
+
+		const db = createPostgresConnectionPool(env, '/app/admin/fairy-invites')
+		await db.deleteFrom('fairy_invite').where('id', '=', id).execute()
+
+		return new Response('Deleted', { status: 200 })
+	})
+	.post('/app/admin/fairy/enable-for-me', async (req, env) => {
+		const auth = await requireAuth(req, env)
+		const userId = auth.userId
+
+		const db = createPostgresConnectionPool(env, '/app/admin/fairy/enable-for-me')
+
+		await db
+			.insertInto('user_fairies')
+			.values({
+				userId,
+				fairyLimit: 10,
+				fairyAccessExpiresAt: FAIRY_WORLDWIDE_EXPIRATION,
+				fairies: '{}',
+			})
+			.onConflict((oc) =>
+				oc.column('userId').doUpdateSet({
+					fairyLimit: 10,
+					fairyAccessExpiresAt: FAIRY_WORLDWIDE_EXPIRATION,
+				})
+			)
+			.execute()
+
+		const user = getUserDurableObject(env, userId)
+		await user.refreshUserData(userId)
+
+		return json({ success: true, fairyLimit: 10, fairyAccessExpiresAt: FAIRY_WORLDWIDE_EXPIRATION })
 	})
 	.post('/app/admin/create_legacy_file', async (_res, env) => {
 		const slug = uniqueId()

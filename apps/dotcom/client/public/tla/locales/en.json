@@ -2,6 +2,9 @@
   "0095a9fa74": {
     "translation": "Export"
   },
+  "00b177e080": {
+    "translation": "Accept invitation"
+  },
   "038c9b4432": {
     "translation": "Fairy’s personality"
   },
@@ -67,6 +70,9 @@
   },
   "181b90f889": {
     "translation": "Create file"
+  },
+  "1cbf5e51b8": {
+    "translation": "Continue to checkout"
   },
   "1da2e8106b": {
     "translation": "An unexpected error occurred."
@@ -215,6 +221,9 @@
   "55505ba281": {
     "translation": "PNG"
   },
+  "55bfc2a761": {
+    "translation": "Purchase more fairies"
+  },
   "5677e381d2": {
     "translation": "We use analytics cookies to make tldraw better."
   },
@@ -262,6 +271,9 @@
   },
   "64ebe56d8c": {
     "translation": "Click to remove or drag to move"
+  },
+  "654866693f": {
+    "translation": "Recommended"
   },
   "65709fd250": {
     "translation": "Task list"
@@ -344,11 +356,17 @@
   "7c0747a5df": {
     "translation": "Open tldraw"
   },
+  "7cb471f815": {
+    "translation": "You've been invited to join tldraw fairies!"
+  },
   "7cb5f8b4a5": {
     "translation": "Forget"
   },
   "7cfe6c43dc": {
     "translation": "Leave group…"
+  },
+  "7da43f3036": {
+    "translation": "You've reached your limit of {count, plural, one {# fairy} other {# fairies}}"
   },
   "7daeced9ff": {
     "translation": "Publish changes"
@@ -594,11 +612,17 @@
   "cd15a75c26": {
     "translation": "SVG"
   },
+  "ce1424d44b": {
+    "translation": "You already have fairy access!"
+  },
   "cea291e45e": {
     "translation": "Learn more about publishing."
   },
   "d3d2e61733": {
     "translation": "Close"
+  },
+  "d458808b84": {
+    "translation": "{count, plural, one {# fairy} other {# fairies}}"
   },
   "d46632fe1f": {
     "translation": "Too many requests. Please slow down."
@@ -758,5 +782,8 @@
   },
   "ffcd73e997": {
     "translation": "Import file…"
+  },
+  "ffec95af2f": {
+    "translation": "Purchase fairy access"
   }
 }

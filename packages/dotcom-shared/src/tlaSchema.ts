@@ -120,6 +120,8 @@ export const user_fairies = table('user_fairies')
 	.columns({
 		userId: string(),
 		fairies: string(),
+		fairyLimit: number().optional(),
+		fairyAccessExpiresAt: number().optional(),
 	})
 	.primaryKey('userId')
 
@@ -310,6 +312,7 @@ export interface DB {
 	group_file: TlaGroupFile
 	user_fairies: TlaUserFairy
 	file_fairies: TlaFileFairy
+	fairy_invite: TlaFairyInvite
 	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
 }
@@ -334,6 +337,15 @@ export type TlaGroupUser = Row<typeof schema.tables.group_user>
 export type TlaGroupFile = Row<typeof schema.tables.group_file>
 export type TlaUserFairy = Row<typeof schema.tables.user_fairies>
 export type TlaFileFairy = Row<typeof schema.tables.file_fairies>
+
+// fairy_invite is backend-only, not part of Zero schema
+export interface TlaFairyInvite {
+	id: string
+	fairyLimit: number
+	maxUses: number
+	currentUses: number
+	createdAt: number
+}
 
 interface AuthData {
 	sub: string | null

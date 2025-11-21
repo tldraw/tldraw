@@ -42,9 +42,12 @@ export class ClientQuery<Row extends TlaRow, isOne extends boolean = false> {
 
 		if (this.table === 'user') {
 			rows = rows.map((row: TlaUser) => {
+				const userFairies = data.user_fairies.find((uf) => uf.userId === row.id)
 				return {
 					...row,
-					fairies: data.user_fairies.find((uf) => uf.userId === row.id)?.fairies || null,
+					fairies: userFairies?.fairies || null,
+					fairyAccessExpiresAt: userFairies?.fairyAccessExpiresAt ?? null,
+					fairyLimit: userFairies?.fairyLimit ?? null,
 				}
 			})
 		}

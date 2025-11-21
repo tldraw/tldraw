@@ -5,6 +5,9 @@ export const fairyMessages = defineMessages({
 	toolbar: { defaultMessage: 'Fairies' },
 	taskList: { defaultMessage: 'Task list' },
 	newFairy: { defaultMessage: 'New fairy' },
+	fairyLimitReached: {
+		defaultMessage: "You've reached your limit of {count, plural, one {# fairy} other {# fairies}}",
+	},
 	selectFairy: { defaultMessage: 'Select fairy' },
 	deselectFairy: { defaultMessage: 'Deselect fairy' },
 	resetChat: { defaultMessage: 'Reset chat' },
