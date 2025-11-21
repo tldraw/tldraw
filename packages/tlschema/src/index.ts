@@ -99,6 +99,8 @@ export {
 	type TLBindingId,
 	type TLBindingUpdate,
 	type TLDefaultBinding,
+	type TLGlobalBindingPropsMap,
+	type TLIndexedBindings,
 	type TLUnknownBinding,
 } from './records/TLBinding'
 export { CameraRecordType, type TLCamera, type TLCameraId } from './records/TLCamera'
@@ -146,7 +148,11 @@ export {
 	isShape,
 	isShapeId,
 	rootShapeMigrations,
+	type ExtractShapeByProps,
+	type TLCreateShapePartial,
 	type TLDefaultShape,
+	type TLGlobalShapePropsMap,
+	type TLIndexedShapes,
 	type TLParentId,
 	type TLShape,
 	type TLShapeId,

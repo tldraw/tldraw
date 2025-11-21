@@ -54,7 +54,7 @@ export function FairyApp({
 	const agentsRef = useRef<FairyAgent[]>([])
 	// Track which agents have been loaded to avoid reloading existing agents
 	const loadedAgentIdsRef = useRef<Set<string>>(new Set())
-	const sharedTodoListLoadedRef = useRef(false)
+	const fairyTaskListLoadedRef = useRef(false)
 	const showCanvasTodosLoadedRef = useRef(false)
 	const projectsLoadedRef = useRef(false)
 
@@ -142,9 +142,9 @@ export function FairyApp({
 				})
 
 				// Load shared todo list only once
-				if (fairyState.sharedTodoList && !sharedTodoListLoadedRef.current) {
-					$fairyTasks.set(fairyState.sharedTodoList)
-					sharedTodoListLoadedRef.current = true
+				if (fairyState.fairyTaskList && !fairyTaskListLoadedRef.current) {
+					$fairyTasks.set(fairyState.fairyTaskList)
+					fairyTaskListLoadedRef.current = true
 				}
 
 				// Load show canvas todos only once
@@ -187,7 +187,7 @@ export function FairyApp({
 					},
 					{} as Record<string, PersistedFairyAgentState>
 				),
-				sharedTodoList: $fairyTasks.get(),
+				fairyTaskList: $fairyTasks.get(),
 				showCanvasTodos: $showCanvasFairyTasks.get(),
 				projects: $fairyProjects.get(),
 			}
@@ -200,7 +200,7 @@ export function FairyApp({
 			const cleanup = react(`${agent.id} state`, () => {
 				agent.$fairyEntity.get()
 				agent.$chatHistory.get()
-				agent.$todoList.get()
+				agent.$personalTodoList.get()
 				updateFairyState()
 			})
 			fairyCleanupFns.push(cleanup)

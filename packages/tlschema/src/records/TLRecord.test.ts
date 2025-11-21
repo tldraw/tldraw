@@ -1,5 +1,9 @@
+import { IndexKey } from '@tldraw/utils'
 import { describe, expect, it } from 'vitest'
+import { toRichText } from '../misc/TLRichText'
+import { TLPageId } from './TLPage'
 import { TLRecord } from './TLRecord'
+import { TLParentId, TLShapeId } from './TLShape'
 
 describe('TLRecord', () => {
 	it('should support type discrimination by typeName', () => {
@@ -34,14 +38,14 @@ describe('TLRecord', () => {
 
 		// Test that the discriminated union works correctly
 		const shapeRecord: TLRecord = {
-			id: 'shape:test' as any,
+			id: 'shape:test' as TLShapeId,
 			typeName: 'shape',
 			type: 'geo',
 			x: 50,
 			y: 100,
 			rotation: 0,
-			index: 'a1' as any,
-			parentId: 'page:main' as any,
+			index: 'a1' as IndexKey,
+			parentId: 'page:main' as TLParentId,
 			isLocked: false,
 			opacity: 1,
 			props: {
@@ -52,15 +56,23 @@ describe('TLRecord', () => {
 				fill: 'none',
 				dash: 'draw',
 				size: 'm',
+				growY: 0,
+				url: '',
+				scale: 1,
+				font: 'draw',
+				align: 'middle',
+				verticalAlign: 'middle',
+				labelColor: 'black',
+				richText: toRichText(''),
 			},
 			meta: {},
 		}
 
 		const pageRecord: TLRecord = {
-			id: 'page:test' as any,
+			id: 'page:test' as TLPageId,
 			typeName: 'page',
 			name: 'Test Page',
-			index: 'a1' as any,
+			index: 'a1' as IndexKey,
 			meta: {},
 		}
 

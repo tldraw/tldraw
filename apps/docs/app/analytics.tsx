@@ -15,10 +15,7 @@ export default function Analytics() {
 			const isWithinCodeBlock = (copyEvent.target as HTMLElement | null)?.closest('pre, code')
 			if (isWithinCodeBlock) {
 				const copiedText = window.getSelection()?.toString() || ''
-				const isInstall = copiedText.trim() === 'npm install tldraw'
-				track('docs.copy.code-block', { isInstall })
 
-				// Track via GTM trackCopyCode method
 				if (window.tlanalytics?.trackCopyCode) {
 					window.tlanalytics.trackCopyCode({
 						page_category: 'docs',
@@ -85,12 +82,13 @@ declare global {
 			}): void
 			trackFormSubmission(data: {
 				enquiry_type: string
+				page_category?: string
 				company_size?: string
 				company_website?: string
-				user_email: string
-				user_email_sha256: string
-				user_first_name: string
-				user_last_name: string
+				user_email?: string
+				user_email_sha256?: string
+				user_first_name?: string
+				user_last_name?: string
 				user_phone_number?: string
 			}): void
 		}

@@ -13,7 +13,6 @@ import {
 	TLAsset,
 	TLBindingCreate,
 	TLShapePartial,
-	TLTextShape,
 	degreesToRadians,
 	mapObjectMapValues,
 	mockUniqueId,
@@ -1007,7 +1006,7 @@ test.describe('Export snapshots', () => {
 							.deleteShapes(editor.getSelectedShapeIds())
 
 						const titleId = tldrawApi.createShapeId()
-						editor.createShape<TLTextShape>({
+						editor.createShape({
 							id: titleId,
 							type: 'text',
 							x: 0,
@@ -1019,7 +1018,7 @@ test.describe('Export snapshots', () => {
 
 						for (const [rowName, testCases] of Object.entries(snapshot)) {
 							const rowTitleId = tldrawApi.createShapeId()
-							editor.createShape<TLTextShape>({
+							editor.createShape({
 								id: rowTitleId,
 								type: 'text',
 								x: 0,
@@ -1034,7 +1033,7 @@ test.describe('Export snapshots', () => {
 								testCases
 							)) {
 								const testCaseTitleId = tldrawApi.createShapeId()
-								editor.createShape<TLTextShape>({
+								editor.createShape({
 									id: testCaseTitleId,
 									type: 'text',
 									x,

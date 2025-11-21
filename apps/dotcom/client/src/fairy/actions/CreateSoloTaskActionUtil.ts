@@ -27,6 +27,8 @@ export class CreateSoloTaskActionUtil extends AgentActionUtil<CreateSoloTaskActi
 		})
 
 		createFairyTask({
+			id: action.taskId,
+			title: action.title,
 			text: action.text,
 			assignedTo: this.agent.id,
 			status: 'todo',

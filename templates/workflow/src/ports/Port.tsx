@@ -1,7 +1,6 @@
 import classNames from 'classnames'
 import { TLShapeId, useEditor, useValue, VecModel } from 'tldraw'
 import { getNodePortConnections, getNodePorts } from '../nodes/nodePorts'
-import { NodeShape } from '../nodes/NodeShapeUtil'
 import { portState } from './portState'
 
 export type PortId = string
@@ -33,7 +32,7 @@ export function Port({ shapeId, portId }: { shapeId: TLShapeId; portId: PortId }
 		'port',
 		() => {
 			const shape = editor.getShape(shapeId)
-			if (!shape || !editor.isShapeOfType<NodeShape>(shape, 'node')) return null
+			if (!shape || !editor.isShapeOfType(shape, 'node')) return null
 			return getNodePorts(editor, shape)?.[portId]
 		},
 		[shapeId, portId, editor]

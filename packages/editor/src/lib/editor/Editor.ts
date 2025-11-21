@@ -21,7 +21,6 @@ import {
 	PageRecordType,
 	StyleProp,
 	StylePropValue,
-	TLArrowShape,
 	TLAsset,
 	TLAssetId,
 	TLAssetPartial,
@@ -30,12 +29,12 @@ import {
 	TLBindingId,
 	TLBindingUpdate,
 	TLCamera,
+	TLCreateShapePartial,
 	TLCursor,
 	TLCursorType,
 	TLDOCUMENT_ID,
 	TLDocument,
 	TLFrameShape,
-	TLGeoShape,
 	TLGroupShape,
 	TLHandle,
 	TLINSTANCE_ID,
@@ -43,7 +42,6 @@ import {
 	TLInstance,
 	TLInstancePageState,
 	TLInstancePresence,
-	TLNoteShape,
 	TLPOINTER_ID,
 	TLPage,
 	TLPageId,
@@ -54,8 +52,6 @@ import {
 	TLShapePartial,
 	TLStore,
 	TLStoreSnapshot,
-	TLUnknownBinding,
-	TLUnknownShape,
 	TLVideoAsset,
 	createBindingId,
 	createShapeId,
@@ -447,7 +443,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let deletedBindings = new Map<TLBindingId, BindingOnDeleteOptions<any>>()
 		const deletedShapeIds = new Set<TLShapeId>()
 		const invalidParents = new Set<TLShapeId>()
-		let invalidBindingTypes = new Set<string>()
+		let invalidBindingTypes = new Set<TLBinding['type']>()
 		this.disposables.add(
 			this.sideEffects.registerOperationCompleteHandler(() => {
 				// this needs to be cleared here because further effects may delete more shapes
@@ -710,7 +706,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							if (filtered.length > 0) {
 								const commonGroupAncestor = this.findCommonAncestor(
 									compact(filtered.map((id) => this.getShape(id))),
-									(shape) => this.isShapeOfType<TLGroupShape>(shape, 'group')
+									(shape) => this.isShapeOfType(shape, 'group')
 								)
 
 								if (commonGroupAncestor) {
@@ -982,7 +978,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	shapeUtils: { readonly [K in string]?: ShapeUtil<TLUnknownShape> }
+	shapeUtils: { readonly [K in string]?: ShapeUtil<TLShape> }
 
 	styleProps: { [key: string]: Map<StyleProp<any>, string> }
 
@@ -1001,8 +997,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): ShapeUtil<S>
-	getShapeUtil<S extends TLUnknownShape>(type: S['type']): ShapeUtil<S>
+	getShapeUtil<K extends TLShape['type']>(type: K): ShapeUtil<Extract<TLShape, { type: K }>>
+	getShapeUtil<S extends TLShape>(shape: S | TLShapePartial<S> | S['type']): ShapeUtil<S>
 	getShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): T
 	getShapeUtil(arg: string | { type: string }) {
 		const type = typeof arg === 'string' ? arg : arg.type
@@ -1016,8 +1012,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param shape - A shape, shape partial, or shape type.
 	 */
-	hasShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): boolean
-	hasShapeUtil<S extends TLUnknownShape>(type: S['type']): boolean
+	hasShapeUtil(shape: TLShape | TLShapePartial<TLShape>): boolean
+	hasShapeUtil(type: TLShape['type']): boolean
 	hasShapeUtil<T extends ShapeUtil>(
 		type: T extends ShapeUtil<infer R> ? R['type'] : string
 	): boolean
@@ -1032,7 +1028,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	bindingUtils: { readonly [K in string]?: BindingUtil<TLUnknownBinding> }
+	bindingUtils: { readonly [K in string]?: BindingUtil<TLBinding> }
 
 	/**
 	 * Get a binding util from a binding itself.
@@ -1049,8 +1045,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getBindingUtil<S extends TLUnknownBinding>(binding: S | { type: S['type'] }): BindingUtil<S>
-	getBindingUtil<S extends TLUnknownBinding>(type: S['type']): BindingUtil<S>
+	getBindingUtil<K extends TLBinding['type']>(type: K): BindingUtil<Extract<TLBinding, { type: K }>>
+	getBindingUtil<S extends TLBinding>(binding: S | { type: S['type'] }): BindingUtil<S>
 	getBindingUtil<T extends BindingUtil>(
 		type: T extends BindingUtil<infer R> ? R['type'] : string
 	): T
@@ -2220,7 +2216,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				throw Error(`Editor.setFocusedGroup: Shape with id ${id} does not exist`)
 			}
 
-			if (!this.isShapeOfType<TLGroupShape>(shape, 'group')) {
+			if (!this.isShapeOfType(shape, 'group')) {
 				throw Error(
 					`Editor.setFocusedGroup: Cannot set focused group to shape of type ${shape.type}`
 				)
@@ -2248,7 +2244,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (focusedGroup) {
 			// If we have a focused layer, look for an ancestor of the focused shape that is a group
 			const match = this.findShapeAncestor(focusedGroup, (shape) =>
-				this.isShapeOfType<TLGroupShape>(shape, 'group')
+				this.isShapeOfType(shape, 'group')
 			)
 			// If we have an ancestor that can become a focused layer, set it as the focused layer
 			this.setFocusedGroup(match?.id ?? null)
@@ -5127,10 +5123,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			// Check labels first
 			if (
-				this.isShapeOfType<TLFrameShape>(shape, 'frame') ||
-				((this.isShapeOfType<TLNoteShape>(shape, 'note') ||
-					this.isShapeOfType<TLArrowShape>(shape, 'arrow') ||
-					(this.isShapeOfType<TLGeoShape>(shape, 'geo') && shape.props.fill === 'none')) &&
+				this.isShapeOfType(shape, 'frame') ||
+				((this.isShapeOfType(shape, 'note') ||
+					this.isShapeOfType(shape, 'arrow') ||
+					(this.isShapeOfType(shape, 'geo') && shape.props.fill === 'none')) &&
 					this.getShapeUtil(shape).getText(shape)?.trim())
 			) {
 				for (const childGeometry of (geometry as Group2d).children) {
@@ -5140,7 +5136,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 
-			if (this.isShapeOfType<TLFrameShape>(shape, 'frame')) {
+			if (this.isShapeOfType(shape, 'frame')) {
 				// On the rare case that we've hit a frame (not its label), test again hitInside to be forced true;
 				// this prevents clicks from passing through the body of a frame to shapes behind it.
 
@@ -5421,7 +5417,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * const isArrowShape = isShapeOfType<TLArrowShape>(someShape, 'arrow')
+	 * const isArrowShape = isShapeOfType(someShape, 'arrow')
 	 * ```
 	 *
 	 * @param util - the TLShapeUtil constructor to test against
@@ -5429,15 +5425,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T
-	isShapeOfType<T extends TLUnknownShape>(
-		shapeId: TLUnknownShape['id'],
+	isShapeOfType<K extends TLShape['type']>(
+		shape: TLShape,
+		type: K
+	): shape is Extract<TLShape, { type: K }>
+	isShapeOfType<T extends TLShape>(
+		shape: TLShape,
 		type: T['type']
-	): shapeId is T['id']
-	isShapeOfType<T extends TLUnknownShape>(
-		arg: TLUnknownShape | TLUnknownShape['id'],
-		type: T['type']
-	) {
+	): shape is Extract<TLShape, { type: T['type'] }>
+	isShapeOfType<T extends TLShape = TLShape>(shapeId: TLShapeId, type: T['type']): boolean
+	isShapeOfType(arg: TLShape | TLShapeId, type: TLShape['type']) {
 		const shape = typeof arg === 'string' ? this.getShape(arg) : arg
 		if (!shape) return false
 		return shape.type === type
@@ -5833,7 +5830,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		while (node) {
 			if (
-				this.isShapeOfType<TLGroupShape>(node, 'group') &&
+				this.isShapeOfType(node, 'group') &&
 				focusedGroup?.id !== node.id &&
 				!this.hasAncestor(focusedGroup, node.id) &&
 				(filter?.(node) ?? true)
@@ -5875,7 +5872,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get all bindings of a certain type _from_ a particular shape. These are the bindings whose
 	 * `fromId` matched the shape's ID.
 	 */
-	getBindingsFromShape<Binding extends TLUnknownBinding = TLBinding>(
+	getBindingsFromShape<K extends TLBinding['type']>(
+		shape: TLShape | TLShapeId,
+		type: K
+	): Extract<TLBinding, { type: K }>[]
+	getBindingsFromShape<Binding extends TLBinding = TLBinding>(
+		shape: TLShape | TLShapeId,
+		type: Binding['type']
+	): Binding[]
+	getBindingsFromShape<Binding extends TLBinding = TLBinding>(
 		shape: TLShape | TLShapeId,
 		type: Binding['type']
 	): Binding[] {
@@ -5889,7 +5894,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get all bindings of a certain type _to_ a particular shape. These are the bindings whose
 	 * `toId` matches the shape's ID.
 	 */
-	getBindingsToShape<Binding extends TLUnknownBinding = TLBinding>(
+	getBindingsToShape<K extends TLBinding['type']>(
+		shape: TLShape | TLShapeId,
+		type: K
+	): Extract<TLBinding, { type: K }>[]
+	getBindingsToShape<Binding extends TLBinding = TLBinding>(
+		shape: TLShape | TLShapeId,
+		type: Binding['type']
+	): Binding[]
+	getBindingsToShape<Binding extends TLBinding = TLBinding>(
 		shape: TLShape | TLShapeId,
 		type: Binding['type']
 	): Binding[] {
@@ -5903,7 +5916,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get all bindings involving a particular shape. This includes bindings where the shape is the
 	 * `fromId` or `toId`. If a type is provided, only bindings of that type are returned.
 	 */
-	getBindingsInvolvingShape<Binding extends TLUnknownBinding = TLBinding>(
+	getBindingsInvolvingShape<K extends TLBinding['type']>(
+		shape: TLShape | TLShapeId,
+		type: K
+	): Extract<TLBinding, { type: K }>[]
+	getBindingsInvolvingShape<Binding extends TLBinding = TLBinding>(
+		shape: TLShape | TLShapeId,
+		type?: Binding['type']
+	): Binding[]
+	getBindingsInvolvingShape<Binding extends TLBinding = TLBinding>(
 		shape: TLShape | TLShapeId,
 		type?: Binding['type']
 	): Binding[] {
@@ -5925,7 +5946,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (!fromShape || !toShape) continue
 			if (!this.canBindShapes({ fromShape, toShape, binding: partial })) continue
 
-			const util = this.getBindingUtil<TLUnknownBinding>(partial.type)
+			const util = this.getBindingUtil(partial.type)
 			const defaultProps = util.getDefaultProps()
 			const binding = this.store.schema.types.binding.create({
 				...partial,
@@ -6030,7 +6051,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const toShapeType = typeof toShape === 'string' ? toShape : toShape.type
 		const bindingType = typeof binding === 'string' ? binding : binding.type
 
-		const canBindOpts = { fromShapeType, toShapeType, bindingType }
+		const canBindOpts = { fromShapeType, toShapeType, bindingType } as const
 
 		if (fromShapeType === toShapeType) {
 			return this.getShapeUtil(fromShapeType).canBind(canBindOpts)
@@ -6571,7 +6592,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const shapesToFlipFirstPass = compact(ids.map((id) => this.getShape(id)))
 
 		for (const shape of shapesToFlipFirstPass) {
-			if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
+			if (this.isShapeOfType(shape, 'group')) {
 				const childrenOfGroups = compact(
 					this.getSortedChildIdsForParent(shape.id).map((id) => this.getShape(id))
 				)
@@ -7692,9 +7713,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	canCreateShape<T extends TLUnknownShape>(
-		shape: OptionalKeys<TLShapePartial<T>, 'id'> | T['id']
-	): boolean {
+	canCreateShape(shape: OptionalKeys<TLShapePartial<TLShape>, 'id'> | TLShape['id']): boolean {
 		return this.canCreateShapes([shape])
 	}
 
@@ -7705,8 +7724,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	canCreateShapes<T extends TLUnknownShape>(
-		shapes: (T['id'] | OptionalKeys<TLShapePartial<T>, 'id'>)[]
+	canCreateShapes(
+		shapes: (TLShape['id'] | OptionalKeys<TLShapePartial<TLShape>, 'id'>)[]
 	): boolean {
 		return shapes.length + this.getCurrentPageShapeIds().size <= this.options.maxShapesPerPage
 	}
@@ -7724,7 +7743,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	createShape<T extends TLUnknownShape>(shape: OptionalKeys<TLShapePartial<T>, 'id'>): this {
+	createShape<TShape extends TLShape>(shape: TLCreateShapePartial<TShape>): this {
 		this.createShapes([shape])
 		return this
 	}
@@ -7742,7 +7761,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	createShapes<T extends TLUnknownShape>(shapes: OptionalKeys<TLShapePartial<T>, 'id'>[]): this {
+	createShapes<TShape extends TLShape = TLShape>(shapes: TLCreateShapePartial<TShape>[]): this {
 		if (!Array.isArray(shapes)) {
 			throw Error('Editor.createShapes: must provide an array of shapes or shape partials')
 		}
@@ -8123,7 +8142,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const highestIndex = shapesWithRootParent[shapesWithRootParent.length - 1]?.index
 
 		this.run(() => {
-			this.createShapes<TLGroupShape>([
+			this.createShapes([
 				{
 					id: groupId,
 					type: 'group',
@@ -8193,7 +8212,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const groups: TLGroupShape[] = []
 
 		shapesToUngroup.forEach((shape) => {
-			if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
+			if (this.isShapeOfType(shape, 'group')) {
 				groups.push(shape)
 			} else {
 				idsToSelect.add(shape.id)
@@ -8239,7 +8258,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updateShape<T extends TLUnknownShape>(partial: TLShapePartial<T> | null | undefined) {
+	updateShape<T extends TLShape = TLShape>(partial: TLShapePartial<T> | null | undefined) {
 		this.updateShapes([partial])
 		return this
 	}
@@ -8256,7 +8275,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updateShapes<T extends TLUnknownShape>(partials: (TLShapePartial<T> | null | undefined)[]) {
+	updateShapes<T extends TLShape>(partials: (TLShapePartial<T> | null | undefined)[]) {
 		const compactedPartials: TLShapePartial<T>[] = Array(partials.length)
 
 		for (let i = 0, n = partials.length; i < n; i++) {
@@ -8408,7 +8427,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @internal
 	 */
 	private _extractSharedStyles(shape: TLShape, sharedStyleMap: SharedStyleMap) {
-		if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
+		if (this.isShapeOfType(shape, 'group')) {
 			// For groups, ignore the styles of the group shape and instead include the styles of the
 			// group's children. These are the shapes that would have their styles changed if the
 			// user called `setStyle` on the current selection.
@@ -8528,7 +8547,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// For groups, ignore the opacity of the group shape and instead include
 				// the opacity of the group's children. These are the shapes that would have
 				// their opacity changed if the user called `setOpacity` on the current selection.
-				if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
+				if (this.isShapeOfType(shape, 'group')) {
 					for (const childId of this.getSortedChildIdsForParent(shape.id)) {
 						addShape(childId)
 					}
@@ -8589,7 +8608,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// We can have many deep levels of grouped shape
 			// Making a recursive function to look through all the levels
 			const addShapeById = (shape: TLShape) => {
-				if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
+				if (this.isShapeOfType(shape, 'group')) {
 					const childIds = this.getSortedChildIdsForParent(shape)
 					for (const childId of childIds) {
 						addShapeById(this.getShape(childId)!)
@@ -8673,7 +8692,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// We can have many deep levels of grouped shape
 			// Making a recursive function to look through all the levels
 			const addShapeById = (shape: TLShape) => {
-				if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
+				if (this.isShapeOfType(shape, 'group')) {
 					const childIds = this.getSortedChildIdsForParent(shape.id)
 					for (const childId of childIds) {
 						addShapeById(this.getShape(childId)!)
@@ -9098,7 +9117,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		for (const shape of this.getSelectedShapes()) {
 			if (lowestDepth === 0) break
 
-			const isFrame = this.isShapeOfType<TLFrameShape>(shape, 'frame')
+			const isFrame = this.isShapeOfType(shape, 'frame')
 			const ancestors = this.getShapeAncestors(shape)
 			if (isFrame) ancestors.push(shape)
 
@@ -9137,8 +9156,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 					if (rootShapeIds.length === 1) {
 						const rootShape = shapes.find((s) => s.id === rootShapeIds[0])!
 						if (
-							this.isShapeOfType<TLFrameShape>(parent, 'frame') &&
-							this.isShapeOfType<TLFrameShape>(rootShape, 'frame') &&
+							this.isShapeOfType(parent, 'frame') &&
+							this.isShapeOfType(rootShape, 'frame') &&
 							rootShape.props.w === parent?.props.w &&
 							rootShape.props.h === parent?.props.h
 						) {
@@ -9313,11 +9332,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const onlyRoot = rootShapes[0] as TLFrameShape
 				// If the old bounds are in the viewport...
 				// todo: replace frame references with shapes that can accept children
-				if (this.isShapeOfType<TLFrameShape>(onlyRoot, 'frame')) {
+				if (this.isShapeOfType(onlyRoot, 'frame')) {
 					while (
 						this.getShapesAtPoint(point).some(
 							(shape) =>
-								this.isShapeOfType<TLFrameShape>(shape, 'frame') &&
+								this.isShapeOfType(shape, 'frame') &&
 								shape.props.w === onlyRoot.props.w &&
 								shape.props.h === onlyRoot.props.h
 						)
@@ -10730,7 +10749,10 @@ function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
 
 function applyPartialToRecordWithProps<
 	T extends UnknownRecord & { type: string; props: object; meta: object },
->(prev: T, partial?: Partial<T> & { props?: Partial<T['props']> }): T {
+>(
+	prev: T,
+	partial?: T extends T ? Omit<Partial<T>, 'props'> & { props?: Partial<T['props']> } : never
+): T {
 	if (!partial) return prev
 	let next = null as null | T
 	const entries = Object.entries(partial)

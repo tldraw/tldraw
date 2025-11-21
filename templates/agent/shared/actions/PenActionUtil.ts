@@ -1,4 +1,4 @@
-import { createShapeId, TLDrawShape, TLDrawShapeSegment, Vec, VecModel } from 'tldraw'
+import { createShapeId, TLDrawShapeSegment, Vec, VecModel } from 'tldraw'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
 import { asColor, SimpleColor } from '../format/SimpleColor'
@@ -111,7 +111,7 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 			},
 		]
 
-		this.agent.editor.createShape<TLDrawShape>({
+		this.agent.editor.createShape({
 			id: createShapeId(),
 			type: 'draw',
 			x: minX,

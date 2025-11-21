@@ -95,8 +95,8 @@ export function kickoutOccludedShapes(
 		if (remainingShapesToReparent.size > 0) {
 			// The remaining shapes are going to be reparented to the old parent's containing group, if there was one, or else to the page
 			const newParentId =
-				editor.findShapeAncestor(prevParent, (s) => editor.isShapeOfType<TLGroupShape>(s, 'group'))
-					?.id ?? editor.getCurrentPageId()
+				editor.findShapeAncestor(prevParent, (s) => editor.isShapeOfType(s, 'group'))?.id ??
+				editor.getCurrentPageId()
 
 			remainingShapesToReparent.forEach((shape) => {
 				if (!parentsToNewChildren[newParentId]) {
@@ -211,7 +211,7 @@ export function getDroppedShapesToNewParents(
 
 	for (const shape of shapes) {
 		const parent = editor.getShapeParent(shape)
-		if (parent && editor.isShapeOfType<TLGroupShape>(parent, 'group')) {
+		if (parent && editor.isShapeOfType(parent, 'group')) {
 			if (!movingGroups.has(parent)) {
 				movingGroups.add(parent)
 			}
@@ -248,7 +248,7 @@ export function getDroppedShapesToNewParents(
 	parentCheck: for (let i = potentialParentShapes.length - 1; i >= 0; i--) {
 		const parentShape = potentialParentShapes[i]
 		const parentShapeContainingGroupId = editor.findShapeAncestor(parentShape, (s) =>
-			editor.isShapeOfType<TLGroupShape>(s, 'group')
+			editor.isShapeOfType(s, 'group')
 		)?.id
 
 		const parentGeometry = editor.getShapeGeometry(parentShape)
@@ -274,7 +274,7 @@ export function getDroppedShapesToNewParents(
 			if (!shapeGroupIds.has(shape.id)) {
 				shapeGroupIds.set(
 					shape.id,
-					editor.findShapeAncestor(shape, (s) => editor.isShapeOfType<TLGroupShape>(s, 'group'))?.id
+					editor.findShapeAncestor(shape, (s) => editor.isShapeOfType(s, 'group'))?.id
 				)
 			}
 

@@ -6,8 +6,8 @@ import {
 	BindingOnShapeDeleteOptions,
 	BindingOnShapeIsolateOptions,
 	BindingUtil,
+	TLBinding,
 	TLShapeId,
-	TLUnknownBinding,
 	createBindingId,
 	createShapeId,
 } from '@tldraw/editor'
@@ -40,7 +40,7 @@ const mockOnAfterChangeToShape = vi.fn()
 
 const calls: string[] = []
 
-const registerCall = (method: string, binding: TLUnknownBinding) => {
+const registerCall = (method: string, binding: TLBinding) => {
 	calls.push(
 		`${method}: ${binding.fromId.slice('shape:'.length)}->${binding.toId.slice('shape:'.length)}`
 	)
@@ -60,62 +60,62 @@ class TestBindingUtil extends BindingUtil {
 		mockOnOperationComplete()
 	}
 
-	override onBeforeDelete(options: BindingOnDeleteOptions<TLUnknownBinding>): void {
+	override onBeforeDelete(options: BindingOnDeleteOptions): void {
 		registerCall('onBeforeDelete', options.binding)
 		mockOnBeforeDelete(options)
 	}
 
-	override onAfterDelete(options: BindingOnDeleteOptions<TLUnknownBinding>): void {
+	override onAfterDelete(options: BindingOnDeleteOptions): void {
 		registerCall('onAfterDelete', options.binding)
 		mockOnAfterDelete(options)
 	}
 
-	override onBeforeDeleteFromShape(options: BindingOnShapeDeleteOptions<TLUnknownBinding>): void {
+	override onBeforeDeleteFromShape(options: BindingOnShapeDeleteOptions): void {
 		registerCall('onBeforeDeleteFromShape', options.binding)
 		mockOnBeforeFromShapeDelete(options)
 	}
 
-	override onBeforeDeleteToShape(options: BindingOnShapeDeleteOptions<TLUnknownBinding>): void {
+	override onBeforeDeleteToShape(options: BindingOnShapeDeleteOptions): void {
 		registerCall('onBeforeDeleteToShape', options.binding)
 		mockOnBeforeToShapeDelete(options)
 	}
 
-	override onBeforeIsolateFromShape(options: BindingOnShapeIsolateOptions<TLUnknownBinding>): void {
+	override onBeforeIsolateFromShape(options: BindingOnShapeIsolateOptions): void {
 		registerCall('onBeforeIsolateFromShape', options.binding)
 		mockOnBeforeFromShapeIsolate(options)
 	}
 
-	override onBeforeIsolateToShape(options: BindingOnShapeIsolateOptions<TLUnknownBinding>): void {
+	override onBeforeIsolateToShape(options: BindingOnShapeIsolateOptions): void {
 		registerCall('onBeforeIsolateToShape', options.binding)
 		mockOnBeforeToShapeIsolate(options)
 	}
 
-	override onBeforeCreate(options: BindingOnCreateOptions<TLUnknownBinding>): void {
+	override onBeforeCreate(options: BindingOnCreateOptions): void {
 		registerCall('onBeforeCreate', options.binding)
 		mockOnBeforeCreate(options)
 	}
 
-	override onAfterCreate(options: BindingOnCreateOptions<TLUnknownBinding>): void {
+	override onAfterCreate(options: BindingOnCreateOptions): void {
 		registerCall('onAfterCreate', options.binding)
 		mockOnAfterCreate(options)
 	}
 
-	override onBeforeChange(options: BindingOnChangeOptions<TLUnknownBinding>): void {
+	override onBeforeChange(options: BindingOnChangeOptions): void {
 		registerCall('onBeforeChange', options.bindingAfter)
 		mockOnBeforeChange(options)
 	}
 
-	override onAfterChange(options: BindingOnChangeOptions<TLUnknownBinding>): void {
+	override onAfterChange(options: BindingOnChangeOptions): void {
 		registerCall('onAfterChange', options.bindingAfter)
 		mockOnAfterChange(options)
 	}
 
-	override onAfterChangeFromShape(options: BindingOnShapeChangeOptions<TLUnknownBinding>): void {
+	override onAfterChangeFromShape(options: BindingOnShapeChangeOptions): void {
 		registerCall('onAfterChangeFromShape', options.binding)
 		mockOnAfterChangeFromShape(options)
 	}
 
-	override onAfterChangeToShape(options: BindingOnShapeChangeOptions<TLUnknownBinding>): void {
+	override onAfterChangeToShape(options: BindingOnShapeChangeOptions): void {
 		registerCall('onAfterChangeToShape', options.binding)
 		mockOnAfterChangeToShape(options)
 	}
@@ -146,11 +146,19 @@ beforeEach(() => {
 	mockOnAfterChangeToShape.mockReset()
 })
 
+const TEST_TYPE = 'test'
+
+declare module '@tldraw/tlschema' {
+	export interface TLGlobalBindingPropsMap {
+		[TEST_TYPE]: Record<string, never>
+	}
+}
+
 function bindShapes(fromId: TLShapeId, toId: TLShapeId) {
 	const bindingId = createBindingId()
 	editor.createBinding({
 		id: bindingId,
-		type: 'test',
+		type: TEST_TYPE,
 		fromId,
 		toId,
 	})
@@ -256,11 +264,9 @@ test('copying the to shape on its own does trigger the unbind operation', () => 
 })
 
 test('cascading deletes in beforeFromShapeDelete are handled correctly', () => {
-	mockOnBeforeFromShapeDelete.mockImplementation(
-		(options: BindingOnShapeDeleteOptions<TLUnknownBinding>) => {
-			editor.deleteShape(options.binding.toId)
-		}
-	)
+	mockOnBeforeFromShapeDelete.mockImplementation((options: BindingOnShapeDeleteOptions) => {
+		editor.deleteShape(options.binding.toId)
+	})
 
 	bindShapes(ids.box1, ids.box2)
 	bindShapes(ids.box2, ids.box3)
@@ -301,11 +307,9 @@ test('cascading deletes in beforeFromShapeDelete are handled correctly', () => {
 })
 
 test('cascading deletes in beforeToShapeDelete are handled correctly', () => {
-	mockOnBeforeToShapeDelete.mockImplementation(
-		(options: BindingOnShapeDeleteOptions<TLUnknownBinding>) => {
-			editor.deleteShape(options.binding.fromId)
-		}
-	)
+	mockOnBeforeToShapeDelete.mockImplementation((options: BindingOnShapeDeleteOptions) => {
+		editor.deleteShape(options.binding.fromId)
+	})
 
 	bindShapes(ids.box1, ids.box2)
 	bindShapes(ids.box2, ids.box3)

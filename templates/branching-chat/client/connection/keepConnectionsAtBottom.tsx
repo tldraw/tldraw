@@ -90,7 +90,7 @@ export function keepConnectionsAtBottom(editor: Editor) {
 					id: shape.id,
 					type: shape.type,
 					index: newIndex,
-				})
+				} as const)
 			}
 		}
 

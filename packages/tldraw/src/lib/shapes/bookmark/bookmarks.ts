@@ -59,7 +59,7 @@ export function updateBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmark
 	if (editor.getAsset(assetId)) {
 		// Existing asset for this URL?
 		if (shape.props.assetId !== assetId) {
-			editor.updateShapes<TLBookmarkShape>([
+			editor.updateShapes([
 				{
 					id: shape.id,
 					type: shape.type,
@@ -71,7 +71,7 @@ export function updateBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmark
 		// No asset for this URL?
 
 		// First, clear out the existing asset reference
-		editor.updateShapes<TLBookmarkShape>([
+		editor.updateShapes([
 			{
 				id: shape.id,
 				type: shape.type,
@@ -103,7 +103,7 @@ const createBookmarkAssetOnUrlChange = debounce(async (editor: Editor, shape: TL
 		editor.createAssets([asset])
 
 		// And update the shape
-		editor.updateShapes<TLBookmarkShape>([
+		editor.updateShapes([
 			{
 				id: shape.id,
 				type: shape.type,

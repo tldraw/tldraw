@@ -1,11 +1,5 @@
 import { useMemo } from 'react'
-import {
-	DefaultSizeStyle,
-	onDragFromToolbarToCreateShape,
-	TLDrawShape,
-	TLUiOverrides,
-	VecModel,
-} from 'tldraw'
+import { DefaultSizeStyle, onDragFromToolbarToCreateShape, TLUiOverrides, VecModel } from 'tldraw'
 import { trackEvent } from '../../../utils/analytics'
 
 export function useExtraDragIconOverrides() {
@@ -16,7 +10,7 @@ export function useExtraDragIconOverrides() {
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) => {
 							const sizeStyle = editor.getStyleForNextShape(DefaultSizeStyle)
-							return editor.createShape<TLDrawShape>({
+							return editor.createShape({
 								id,
 								type: 'draw',
 								props: {
@@ -39,7 +33,7 @@ export function useExtraDragIconOverrides() {
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) => {
 							const sizeStyle = editor.getStyleForNextShape(DefaultSizeStyle)
-							return editor.createShape<TLDrawShape>({
+							return editor.createShape({
 								id,
 								type: 'draw',
 								props: {
@@ -62,7 +56,7 @@ export function useExtraDragIconOverrides() {
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) => {
 							const sizeStyle = editor.getStyleForNextShape(DefaultSizeStyle)
-							return editor.createShape<TLDrawShape>({
+							return editor.createShape({
 								id,
 								type: 'draw',
 								props: {
