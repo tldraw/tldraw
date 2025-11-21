@@ -82,12 +82,13 @@ declare global {
 			}): void
 			trackFormSubmission(data: {
 				enquiry_type: string
+				page_category?: string
 				company_size?: string
 				company_website?: string
-				user_email: string
-				user_email_sha256: string
-				user_first_name: string
-				user_last_name: string
+				user_email?: string
+				user_email_sha256?: string
+				user_first_name?: string
+				user_last_name?: string
 				user_phone_number?: string
 			}): void
 		}
