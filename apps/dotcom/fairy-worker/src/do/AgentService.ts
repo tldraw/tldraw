@@ -39,28 +39,37 @@ export class AgentService {
 
 	async *streamActions(
 		prompt: AgentPrompt,
-		isAdmin = false
+		isAdmin = false,
+		signal?: AbortSignal
 	): AsyncGenerator<Streaming<AgentAction>> {
 		try {
 			const modelName = getModelName(prompt)
 			const model = this.getModel(modelName)
-			for await (const action of _streamActions(model, prompt, isAdmin)) {
+			for await (const action of _streamActions(model, prompt, isAdmin, signal)) {
 				yield action
 			}
 		} catch (error: any) {
+			// Check if it was aborted
+			if (signal?.aborted || error?.name === 'AbortError') {
+				return
+			}
 			console.error('Stream error:', error)
 			throw error
 		}
 	}
 
-	async *streamText(prompt: AgentPrompt): AsyncGenerator<string> {
+	async *streamText(prompt: AgentPrompt, signal?: AbortSignal): AsyncGenerator<string> {
 		try {
 			const modelName = getModelName(prompt)
 			const model = this.getModel(modelName)
-			for await (const text of _streamText(model, prompt)) {
+			for await (const text of _streamText(model, prompt, signal)) {
 				yield text
 			}
 		} catch (error: any) {
+			// Check if it was aborted
+			if (signal?.aborted || error?.name === 'AbortError') {
+				return
+			}
 			console.error('Stream text error:', error)
 			throw error
 		}
@@ -68,7 +77,11 @@ export class AgentService {
 }
 
 // currently unused
-async function* _streamText(model: LanguageModel, prompt: AgentPrompt): AsyncGenerator<string> {
+async function* _streamText(
+	model: LanguageModel,
+	prompt: AgentPrompt,
+	signal?: AbortSignal
+): AsyncGenerator<string> {
 	if (typeof model === 'string') {
 		throw new Error('Model is a string, not a LanguageModel')
 	}
@@ -103,6 +116,7 @@ async function* _streamText(model: LanguageModel, prompt: AgentPrompt): AsyncGen
 			messages,
 			maxOutputTokens: 8192,
 			temperature: 0,
+			abortSignal: signal,
 			providerOptions: {
 				anthropic: {
 					thinking: { type: 'disabled' },
@@ -114,6 +128,9 @@ async function* _streamText(model: LanguageModel, prompt: AgentPrompt): AsyncGen
 					reasoningEffort: gptThinkingBudget,
 				} satisfies OpenAIResponsesProviderOptions,
 			},
+			onAbort() {
+				console.warn('Stream text aborted')
+			},
 			onError: (e) => {
 				console.error('Stream text error:', e)
 				throw e
@@ -121,6 +138,7 @@ async function* _streamText(model: LanguageModel, prompt: AgentPrompt): AsyncGen
 		})
 
 		for await (const text of result.textStream) {
+			if (signal?.aborted) break
 			yield text
 		}
 
@@ -128,6 +146,9 @@ async function* _streamText(model: LanguageModel, prompt: AgentPrompt): AsyncGen
 		await result.usage
 		// Note: Usage is tracked but not currently logged for text streams
 	} catch (error: any) {
+		if (signal?.aborted || error?.name === 'AbortError') {
+			return
+		}
 		console.error('streamEventsVercel error:', error)
 		throw error
 	}
@@ -159,7 +180,8 @@ function buildFormattedSystemPrompt(systemPrompt: string): SystemModelMessage {
 async function* _streamActions(
 	model: LanguageModel,
 	prompt: AgentPrompt,
-	isAdmin: boolean
+	isAdmin: boolean,
+	signal?: AbortSignal
 ): AsyncGenerator<Streaming<AgentAction>> {
 	if (typeof model === 'string') {
 		throw new Error('Model is a string, not a LanguageModel')
@@ -204,6 +226,7 @@ async function* _streamActions(
 			messages,
 			maxOutputTokens: 8192,
 			temperature: 0,
+			abortSignal: signal,
 			providerOptions: {
 				anthropic: {
 					thinking: { type: 'disabled' },
@@ -214,6 +237,9 @@ async function* _streamActions(
 				openai: {
 					reasoningEffort: gptThinkingBudget,
 				} satisfies OpenAIResponsesProviderOptions,
+			},
+			onAbort() {
+				console.warn('Stream actions aborted')
 			},
 			onError: (e) => {
 				console.error('Stream text error:', e)
@@ -229,6 +255,7 @@ async function* _streamActions(
 
 		let startTime = Date.now()
 		for await (const text of result.textStream) {
+			if (signal?.aborted) break
 			buffer += text
 
 			const partialObject = closeAndParseJson(buffer)
@@ -297,6 +324,9 @@ async function* _streamActions(
 			} as any
 		}
 	} catch (error: any) {
+		if (signal?.aborted || error?.name === 'AbortError') {
+			return
+		}
 		console.error('streamEventsVercel error:', error)
 		throw error
 	}
