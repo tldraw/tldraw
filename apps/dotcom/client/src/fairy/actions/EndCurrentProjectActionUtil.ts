@@ -13,6 +13,7 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 			icon: 'note' as const,
 			description: action.complete ? 'Ended current project' : 'Ending current project...',
 			pose: 'thinking' as const,
+			canGroup: () => false,
 		}
 	}
 
@@ -42,7 +43,7 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 					...prev,
 					{
 						type: 'memory-transition',
-						memoryLevel: 'project',
+						memoryLevel: 'fairy',
 						message: `I led and completed the "${project.title}" project with ${otherMemberIds.length} other fairy(s): ${otherMemberIds.join(', ')}`,
 					},
 				])
@@ -52,12 +53,14 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 				(task) => task.assignedTo === memberAgent.id
 			)
 			if (memberCompletedTasks.length > 0) {
+				const count = memberCompletedTasks.length
+				const taskWord = count === 1 ? 'task' : 'tasks'
 				memberAgent.$chatHistory.update((prev) => [
 					...prev,
 					{
 						type: 'memory-transition',
-						memoryLevel: 'project',
-						message: `I completed ${memberCompletedTasks.length} tasks as part of the "${project.title}" project, with ${otherMemberIds.length} other fairy(s): ${otherMemberIds.join(', ')}`,
+						memoryLevel: 'fairy',
+						message: `I completed ${count} ${taskWord} as part of the "${project.title}" project, with ${otherMemberIds.length} other fairy(s): ${otherMemberIds.join(', ')}`,
 					},
 				])
 			}

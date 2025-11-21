@@ -1,7 +1,9 @@
+import { getFairyModeDefinition } from '@tldraw/fairy-shared'
 import { useEffect, useRef } from 'react'
 import { useValue } from 'tldraw'
 import { FairyAgent } from '../agent/FairyAgent'
 import { FairyChatHistorySection, getAgentHistorySections } from './FairyChatHistorySection'
+import { filterChatHistoryByMode } from './filterChatHistoryByMode'
 
 /*
 Chat history is stored as a list of history items.
@@ -32,7 +34,10 @@ Here's an example of how the UI might look:
 
 export function FairyChatHistory({ agent }: { agent: FairyAgent }) {
 	const historyItems = useValue(agent.$chatHistory)
-	const sections = getAgentHistorySections(historyItems)
+	const currentMode = agent.getMode()
+	const modeDefinition = getFairyModeDefinition(currentMode)
+	const filteredItems = filterChatHistoryByMode(historyItems, modeDefinition.memoryLevel)
+	const sections = getAgentHistorySections(filteredItems)
 	const historyRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)
 
@@ -40,7 +45,7 @@ export function FairyChatHistory({ agent }: { agent: FairyAgent }) {
 		if (!historyRef.current) return
 
 		// If a new prompt is submitted by the user, scroll to the bottom
-		if (historyItems.at(-1)?.type === 'prompt') {
+		if (filteredItems.at(-1)?.type === 'prompt') {
 			historyRef.current.scrollTo(0, historyRef.current.scrollHeight)
 			previousScrollDistanceFromBottomRef.current = 0
 			return
@@ -57,7 +62,7 @@ export function FairyChatHistory({ agent }: { agent: FairyAgent }) {
 				historyRef.current.scrollTo(0, historyRef.current.scrollHeight)
 			}
 		}
-	}, [historyRef, historyItems])
+	}, [historyRef, filteredItems])
 
 	// Keep track of the user's scroll position
 	const handleScroll = () => {

@@ -13,6 +13,7 @@ export class CreateSoloTaskActionUtil extends AgentActionUtil<CreateSoloTaskActi
 			icon: 'note' as const,
 			description: `${label}: ${action.text}`,
 			pose: 'thinking' as const,
+			canGroup: () => false,
 		}
 	}
 

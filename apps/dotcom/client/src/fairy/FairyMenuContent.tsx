@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
@@ -9,8 +9,10 @@ import {
 } from 'tldraw'
 import { useMsg } from '../tla/utils/i18n'
 import { FairyAgent, getFollowingFairyId } from './fairy-agent/agent/FairyAgent'
+import { $fairyAgentsAtom } from './fairy-agent/agent/fairyAgentsAtom'
 import { fairyMessages } from './fairy-messages'
 import { FairyConfigDialog } from './FairyConfigDialog'
+import { $fairyProjects, deleteProject } from './FairyProjects'
 
 export function FairyMenuContent({
 	agent,
@@ -58,6 +60,40 @@ export function FairyMenuContent({
 	const resetChatLabel = useMsg(fairyMessages.resetChat)
 	const customizeFairyLabel = useMsg(fairyMessages.customizeFairy)
 	const deleteFairyLabel = useMsg(fairyMessages.deleteFairy)
+	const disbandGroupLabel = useMsg(fairyMessages.disbandGroup)
+
+	const projects = useValue($fairyProjects)
+	const currentProject = useMemo(() => {
+		return (
+			projects.find((project) => project.members.some((member) => member.id === agent.id)) ?? null
+		)
+	}, [projects, agent])
+	const canDisbandGroup = currentProject && currentProject.members.length > 1
+
+	const disbandGroup = useCallback(() => {
+		if (!currentProject || currentProject.members.length <= 1) return
+		const memberIds = new Set(currentProject.members.map((member) => member.id))
+		const memberAgents = $fairyAgentsAtom
+			.get(editor)
+			.filter((memberAgent) => memberIds.has(memberAgent.id))
+
+		memberAgents.forEach((memberAgent) => {
+			memberAgent.setMode('idling')
+			memberAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+		})
+
+		deleteProject(currentProject.id)
+	}, [currentProject, editor])
+
+	if (canDisbandGroup && currentProject) {
+		return (
+			<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">
+				<TldrawUiMenuGroup id="fairy-group-menu">
+					<TldrawUiMenuItem id="disband-group" onSelect={disbandGroup} label={disbandGroupLabel} />
+				</TldrawUiMenuGroup>
+			</TldrawUiMenuContextProvider>
+		)
+	}
 
 	return (
 		<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">

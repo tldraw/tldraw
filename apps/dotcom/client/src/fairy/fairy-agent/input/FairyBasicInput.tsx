@@ -33,7 +33,6 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 	const handleComplete = useCallback(
 		async (value: string) => {
 			textareaRef.current?.focus()
-			agent.cancel()
 
 			// If the user's message is empty, just cancel the current request (if there is one)
 			if (value === '') {
@@ -47,19 +46,12 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 			const fairyPosition = fairyEntity.position
 			const fairyVision = Box.FromCenter(fairyPosition, FAIRY_VISION_DIMENSIONS)
 
-			// Clear the shared todo list if it's all completed - same as the agent starter kit's behavior
-			// I dont think we should do this in case the agent wants to add more tasks before the current ones are done
-			// $fairyTasks.update((fairyTaskList) => {
-			// 	if (fairyTaskList.every((item) => item.status === 'done')) {
-			// 		return []
-			// 	}
-			// 	return fairyTaskList
-			// })
-
-			await agent.prompt({
-				message: value,
-				bounds: fairyVision,
-				source: 'user',
+			agent.interrupt({
+				input: {
+					message: value,
+					bounds: fairyVision,
+					source: 'user',
+				},
 			})
 		},
 		[agent, fairyEntity]

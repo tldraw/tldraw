@@ -15,6 +15,7 @@ export class MarkDuoTaskDoneActionUtil extends AgentActionUtil<MarkDuoTaskDoneAc
 				? `Completed duo task: ${task?.text ?? action.taskId}`
 				: 'Completing duo task...',
 			pose: 'thinking' as const,
+			canGroup: () => false,
 		}
 	}
 
