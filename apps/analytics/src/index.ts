@@ -35,6 +35,11 @@ class Analytics {
 
 	private services = [posthogService, ga4Service, gtmService, hubspotService, reoService]
 
+	private shouldTrackConsentChanges(wasUnknown: boolean, consent: CookieConsent): boolean {
+		// Track consent selection only if user actually interacted with banner (not during initialization)
+		return this.isInitialized && wasUnknown && consent !== 'unknown'
+	}
+
 	async initialize() {
 		// Inject styles
 		const style = document.createElement('style')
@@ -89,8 +94,10 @@ class Analytics {
 					service.enable()
 				}
 
-				// We have to enable services first, then track the event
-				this.track('consent_update', { consent: consentState })
+				if (this.shouldTrackConsentChanges(wasUnknown, consent)) {
+					// We have to enable services first, then track the event
+					this.track('consent_update', { consent: consentState })
+				}
 				// Identify the user if we have a userId. Most of the time
 				// identify() should be called off of the window.tlanalytics object, ie. in an app
 				// where we have a user id and properties for that app (like tldraw computer). We do
@@ -101,8 +108,10 @@ class Analytics {
 					this.identify(this.userId, this.userProperties)
 				}
 			} else {
-				// We need to track the event first, then disable services or the opt out won't get tracked
-				this.track('consent_update', { consent: consentState })
+				if (this.shouldTrackConsentChanges(wasUnknown, consent)) {
+					// We need to track the event first, then disable services or the opt out won't get tracked
+					this.track('consent_update', { consent: consentState })
+				}
 				// Disable the analytics services when consent is revoked or when consent is unknown
 				for (const service of this.services) {
 					service.disable()
@@ -110,7 +119,7 @@ class Analytics {
 			}
 
 			// Track consent selection only if user actually interacted with banner (not during initialization)
-			if (this.isInitialized && wasUnknown && consent !== 'unknown') {
+			if (this.shouldTrackConsentChanges(wasUnknown, consent)) {
 				const preferences = cookieConsentToPreferences(consent)
 				for (const service of this.services) {
 					service.trackConsentBannerSelected?.({
@@ -289,12 +298,13 @@ class Analytics {
 	 */
 	trackFormSubmission(data: {
 		enquiry_type: string
+		page_category?: string
 		company_size?: string
 		company_website?: string
-		user_email: string
-		user_email_sha256: string
-		user_first_name: string
-		user_last_name: string
+		user_email?: string
+		user_email_sha256?: string
+		user_first_name?: string
+		user_last_name?: string
 		user_phone_number?: string
 	}) {
 		for (const service of this.services) {
