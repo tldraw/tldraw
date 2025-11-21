@@ -679,7 +679,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
-	async admin_refreshUserData(userId: string) {
+	async refreshUserData(userId: string) {
 		await this.admin_forceHardReboot(userId)
 
 		// Close all websocket connections to force reconnect with fresh data

@@ -61,7 +61,7 @@ export const adminRoutes = createRouter<Environment>()
 		}
 		const userRow = await requireUser(env, q)
 		const user = getUserDurableObject(env, userRow.id)
-		await user.admin_refreshUserData(userRow.id)
+		await user.refreshUserData(userRow.id)
 		return new Response('Refreshed user data', { status: 200 })
 	})
 	.post('/app/admin/user/migrate', async (res, env) => {
@@ -214,7 +214,7 @@ export const adminRoutes = createRouter<Environment>()
 			.execute()
 
 		const user = getUserDurableObject(env, userId)
-		await user.admin_refreshUserData(userId)
+		await user.refreshUserData(userId)
 
 		return json({ success: true, fairyLimit: 10, fairyAccessExpiresAt: FAIRY_WORLDWIDE_EXPIRATION })
 	})

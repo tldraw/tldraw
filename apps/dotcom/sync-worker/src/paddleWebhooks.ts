@@ -183,7 +183,7 @@ async function handleTransactionCompleted(
 
 		// Trigger User DO refresh to pick up new fairy access
 		const userDO = getUserDurableObject(env, userId)
-		await userDO.admin_refreshUserData(userId)
+		await userDO.refreshUserData(userId)
 
 		console.log('[Paddle] User DO refresh completed')
 	} catch (error) {
