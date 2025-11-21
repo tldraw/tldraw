@@ -1,7 +1,22 @@
 import Cookies from 'js-cookie'
 import { CONSENT_COOKIE_NAME, LEGACY_CONSENT_COOKIE_NAME } from '../constants'
-import { type ConsentOptInType, type CookieConsent, type CookieConsentData } from '../types'
+import {
+	CONSENT_OPT_IN_TYPES,
+	COOKIE_CONSENT_VALUES,
+	type ConsentOptInType,
+	type CookieConsent,
+	type CookieConsentData,
+} from '../types'
 import { AnalyticsState } from './state'
+
+function isValidCookieConsentData(data: any): data is CookieConsentData {
+	return (
+		typeof data === 'object' &&
+		data !== null &&
+		COOKIE_CONSENT_VALUES.includes(data.consent) &&
+		CONSENT_OPT_IN_TYPES.includes(data.optInType)
+	)
+}
 
 export function getCookieConsent(): CookieConsentData | undefined {
 	// Check new cookie format first - takes precedence
@@ -10,10 +25,10 @@ export function getCookieConsent(): CookieConsentData | undefined {
 		// Parse JSON format
 		try {
 			const parsed = JSON.parse(cookieValue)
-			if (parsed.consent && parsed.optInType) {
+			if (isValidCookieConsentData(parsed)) {
 				// Clean up legacy cookie if it exists
 				Cookies.remove(LEGACY_CONSENT_COOKIE_NAME)
-				return parsed as CookieConsentData
+				return parsed
 			}
 		} catch {
 			// Invalid JSON - fall through to legacy check
