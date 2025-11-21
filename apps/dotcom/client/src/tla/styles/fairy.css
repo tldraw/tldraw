@@ -87,7 +87,7 @@ div:not(.fairy-sidebar-group) > .fairy-toggle-button[data-isactive='true']::afte
 	height: 100%;
 	top: 0;
 	left: 0;
-	border: 2px solid var(--tl-color-primary);
+	border: 2px solid #ae3ec9;
 	border-radius: 2px;
 	pointer-events: none;
 }
@@ -210,7 +210,7 @@ div:not(.fairy-sidebar-group) > .fairy-toggle-button[data-isactive='true']::befo
 	position: absolute;
 	width: 10px;
 	height: 10px;
-	border: 0 solid var(--tl-color-primary);
+	border: 0 solid #ae3ec9;
 }
 
 .fairy-sprite {

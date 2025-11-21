@@ -273,13 +273,13 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	useQuickReactor(
 		'update-panel-state-for-cant-chat',
 		() => {
-			if (!canChat) {
+			if (!canChat && panelState !== 'task-list') {
 				setPanelState('cant-chat')
-			} else if (panelState === 'cant-chat') {
+			} else if (canChat && panelState === 'cant-chat') {
 				setPanelState('fairy')
 			}
 		},
-		[canChat]
+		[canChat, panelState]
 	)
 
 	const selectProjectGroup = useCallback(
@@ -341,10 +341,11 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 				// Toggle selection without deselecting others
 				clickedAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: !isSelected } : f))
 
-				// Keep panel open if there are selected fairies
-				if (!isSelected || selectedFairies.length > 1) {
+				// Only open panel if it's closed - let useQuickReactor handle cant-chat state
+				if (panelState === 'closed') {
 					setPanelState('fairy')
 				}
+				// Otherwise, let the useQuickReactor determine if we should show 'cant-chat'
 			} else {
 				// Single select mode
 
