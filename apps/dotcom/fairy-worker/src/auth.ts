@@ -69,6 +69,16 @@ export async function requireAdminAccess(env: Environment, auth: { userId: strin
 	}
 }
 
+export async function requireFairyAccess(env: Environment, auth: { userId: string } | null) {
+	if (!auth?.userId) {
+		throw new StatusError(403, 'Unauthorized')
+	}
+	const hasFairyAccessValue = await hasFairyAccess(env, auth)
+	if (!hasFairyAccessValue) {
+		throw new StatusError(403, 'Unauthorized - fairy access required')
+	}
+}
+
 export async function isAdmin(env: Environment, auth: { userId: string } | null) {
 	if (!auth?.userId) {
 		return false
@@ -78,4 +88,16 @@ export async function isAdmin(env: Environment, auth: { userId: string } | null)
 		user.primaryEmailAddress?.emailAddress.endsWith('@tldraw.com') &&
 		user.primaryEmailAddress?.verification?.status === 'verified'
 	)
+}
+
+export async function hasFairyAccess(env: Environment, auth: { userId: string } | null) {
+	if (!auth?.userId) {
+		return false
+	}
+	const user = await getClerkClient(env).users.getUser(auth.userId)
+	const email = user.primaryEmailAddress?.emailAddress || ''
+	return !!(
+		['jake@firstloop.ai'].includes(email) &&
+		user.primaryEmailAddress?.verification?.status === 'verified'
+	) || isAdmin(env, auth)
 }
