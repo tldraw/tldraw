@@ -15,6 +15,8 @@ enabled = true
 # - OPENAI_API_KEY: OpenAI API key
 # - ANTHROPIC_API_KEY: Anthropic API key
 # - GOOGLE_API_KEY: Google API key
+# - GEMINI_API_KEY: Gemini API key
+# - FAIRY_MODEL: The model to use for the fairy agent
 # - SENTRY_DSN (optional): Sentry DSN for error tracking
 # - IS_LOCAL (optional): Set to "true" for local development
 
