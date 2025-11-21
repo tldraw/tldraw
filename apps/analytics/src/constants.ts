@@ -2,7 +2,8 @@
 export const DOT_DEV_COOKIE_POLICY_URL = 'https://tldraw.notion.site/devcookiepolicy'
 
 // All analytics use the same cookie to store consent.
-export const CONSENT_COOKIE_NAME = 'allowTracking'
+export const LEGACY_CONSENT_COOKIE_NAME = 'allowTracking'
+export const CONSENT_COOKIE_NAME = 'trackingConsent'
 export const CONSENT_CHANGED_EVENT = 'tl-analytics-consent-changed'
 
 // All analytics are fed into the same HubSpot project.
