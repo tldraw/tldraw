@@ -1,35 +1,39 @@
 import Cookies from 'js-cookie'
 import { CONSENT_COOKIE_NAME } from '../constants'
-import { type CookieConsent } from '../types'
+import { type ConsentOptInType, type CookieConsent, type CookieConsentData } from '../types'
 import { AnalyticsState } from './state'
 
-export function cookieConsentToCookieValue(consent: CookieConsent): string | undefined {
-	switch (consent) {
-		case 'opted-in':
-			return 'true'
-		case 'opted-out':
-			return 'false'
-		case 'unknown':
-			return undefined
+export function getCookieValue(): CookieConsentData | undefined {
+	const cookieValue = Cookies.get(CONSENT_COOKIE_NAME)
+	if (!cookieValue) return undefined
+
+	// Try JSON format first
+	try {
+		const parsed = JSON.parse(cookieValue)
+		if (parsed.consent && parsed.optInType) {
+			return parsed as CookieConsentData
+		}
+	} catch {
+		// Fall through to legacy format handling
 	}
+
+	// Migrate legacy boolean format: "true" or "false"
+	if (cookieValue === 'true') {
+		return { consent: 'opted-in', optInType: 'manual' }
+	}
+	if (cookieValue === 'false') {
+		return { consent: 'opted-out', optInType: 'manual' }
+	}
+
+	return undefined
 }
 
-export function getCookieValue(): string | undefined {
-	return Cookies.get(CONSENT_COOKIE_NAME)
-}
-
-export function setCookieValue(value: string): void {
-	Cookies.set(CONSENT_COOKIE_NAME, value)
-}
-
-export function clearCookieValue() {
-	Cookies.remove(CONSENT_COOKIE_NAME)
-}
-
-export function cookieValueToCookieConsent(cookieValue: string | undefined): CookieConsent {
-	if (cookieValue === 'true') return 'opted-in'
-	if (cookieValue === 'false') return 'opted-out'
-	return 'unknown'
+export function setCookieValue(consent: CookieConsent, optInType: ConsentOptInType): void {
+	if (consent === 'unknown') {
+		Cookies.remove(CONSENT_COOKIE_NAME)
+	} else {
+		Cookies.set(CONSENT_COOKIE_NAME, JSON.stringify({ consent, optInType }))
+	}
 }
 
 export class CookieConsentState extends AnalyticsState<CookieConsent> {}

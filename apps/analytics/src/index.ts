@@ -5,14 +5,7 @@ import { posthogService } from './analytics-services/posthog'
 import { reoService } from './analytics-services/reo'
 import { mountCookieConsentBanner } from './components/CookieConsentBanner'
 import { mountPrivacySettingsDialog } from './components/PrivacySettingsDialog'
-import {
-	clearCookieValue,
-	CookieConsentState,
-	cookieConsentToCookieValue,
-	cookieValueToCookieConsent,
-	getCookieValue,
-	setCookieValue,
-} from './state/cookie-consent-state'
+import { CookieConsentState, getCookieValue, setCookieValue } from './state/cookie-consent-state'
 import { ThemeState } from './state/theme-state'
 import styles from './styles.css?inline'
 import { ConsentPreferences, CookieConsent } from './types'
@@ -68,9 +61,7 @@ class Analytics {
 		// Subscribe to consent changes
 		cookieConsentState.subscribe((consent) => {
 			// Set (or clear) the cookie value
-			const cookieValue = cookieConsentToCookieValue(consent)
-			if (cookieValue) setCookieValue(cookieValue)
-			else clearCookieValue()
+			setCookieValue(consent, this.consentOptInType)
 
 			const consentState = cookieConsentToPreferences(consent, this.consentOptInType)
 
@@ -148,12 +139,13 @@ class Analytics {
 		// Now that we have our subscriber set up, determine the initial consent state.
 		// If the user has already made a choice (cookie exists), use that.
 		// Otherwise, check their location to determine if we need explicit consent.
-		const initialCookieValue = getCookieValue()
+		const cookieData = getCookieValue()
 		let initialConsent: CookieConsent
 
-		if (initialCookieValue) {
-			// User has previously made a consent decision - respect it
-			initialConsent = cookieValueToCookieConsent(initialCookieValue)
+		if (cookieData) {
+			// User has previously made a consent decision - respect it and restore opt-in type
+			initialConsent = cookieData.consent
+			this.consentOptInType = cookieData.optInType
 		} else {
 			// No existing consent decision - check if we need to ask based on location
 			const requiresConsent = await shouldRequireConsent()
