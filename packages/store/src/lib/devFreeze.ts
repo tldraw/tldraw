@@ -32,6 +32,10 @@ export function devFreeze<T>(object: T): T {
 		throw new Error('cannot include non-js data in a record')
 	}
 
+	if (Object.isFrozen(object)) {
+		return object
+	}
+
 	// Retrieve the property names defined on object
 	const propNames = Object.getOwnPropertyNames(object)
 

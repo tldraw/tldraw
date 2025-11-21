@@ -1,6 +1,7 @@
 import { assert, objectMapEntries } from '@tldraw/utils'
 import { UnknownRecord } from './BaseRecord'
 import { SerializedStore } from './Store'
+import { TLPersistentStorageTransaction } from './TLPersistentStorage'
 
 function squashDependsOn(sequence: Array<Migration | StandaloneDependsOn>): Migration[] {
 	const result: Migration[] = []
@@ -218,6 +219,11 @@ export type Migration = {
 			readonly down?: (
 				newState: SerializedStore<UnknownRecord>
 			) => void | SerializedStore<UnknownRecord>
+	  }
+	| {
+			readonly scope: 'store'
+			// eslint-disable-next-line @typescript-eslint/method-signature-style
+			readonly upStorage: (storage: TLPersistentStorageTransaction<UnknownRecord>) => void
 	  }
 )
 
