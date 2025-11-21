@@ -1,4 +1,5 @@
 import { GTM_SCRIPT_ID } from '../constants'
+import { ConsentPreferences } from '../types'
 import { AnalyticsService } from './analytics-service'
 
 // Extend Window with dataLayer (other Window properties declared in types.ts)
@@ -30,17 +31,6 @@ class GTMAnalyticsService extends AnalyticsService {
 		dataLayerPush({
 			'gtm.start': new Date().getTime(),
 			event: 'gtm.js',
-		})
-
-		dataLayerPush({
-			event: 'consent_default',
-			consent: {
-				ad_storage: 'denied',
-				ad_user_data: 'denied',
-				ad_personalization: 'denied',
-				analytics_storage: 'denied',
-				wait_for_update: 500,
-			},
 		})
 
 		// Load the GTM script
@@ -94,11 +84,7 @@ class GTMAnalyticsService extends AnalyticsService {
 		})
 	}
 
-	override trackConsentBannerSelected(data: {
-		consent_analytics: 'granted' | 'denied'
-		consent_marketing: 'granted' | 'denied'
-		consent_opt_in_type: 'manual' | 'auto'
-	}) {
+	override trackConsentBannerSelected(data: ConsentPreferences) {
 		dataLayerPush({
 			event: 'select_consent_banner',
 			id: crypto.randomUUID(),

@@ -43,4 +43,5 @@ export type CookieConsent = 'unknown' | 'opted-in' | 'opted-out'
 export interface ConsentPreferences {
 	analytics: 'granted' | 'denied'
 	marketing: 'granted' | 'denied'
+	opt_in_type: 'manual' | 'auto'
 }
