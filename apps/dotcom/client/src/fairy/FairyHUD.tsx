@@ -100,13 +100,9 @@ function FairyHUDHeader({
 	panelState,
 	menuPopoverOpen,
 	onMenuPopoverOpenChange,
-	onToggleFairyTasks,
 	agents,
 	shownFairy,
 	selectedFairies,
-	hasUnreadTasks,
-	switchToFairyChatLabel,
-	switchToTaskListLabel,
 }: FairyHUDHeaderProps) {
 	const fairyConfig = useValue('fairy config', () => shownFairy?.$fairyConfig.get(), [shownFairy])
 	const isGenerating = useValue('is generating', () => shownFairy?.isGenerating(), [shownFairy])
@@ -160,7 +156,7 @@ function FairyHUDHeader({
 
 			{centerContent}
 
-			<div style={{ position: 'relative' }}>
+			{/* <div style={{ position: 'relative' }}>
 				<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onToggleFairyTasks}>
 					<TldrawUiIcon
 						icon={panelState === 'task-list' ? 'toggle-on' : 'toggle-off'}
@@ -168,7 +164,7 @@ function FairyHUDHeader({
 					/>
 					{hasUnreadTasks && <div className="fairy-todo-unread-indicator" />}
 				</TldrawUiButton>
-			</div>
+			</div> */}
 		</div>
 	)
 }
