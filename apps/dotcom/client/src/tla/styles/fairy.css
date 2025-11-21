@@ -373,18 +373,13 @@ div:not(.fairy-sidebar-group) > .fairy-toggle-button[data-isactive='true']::befo
 }
 
 .fairy-chat-panel[data-panel-state='open'] + .fairy-buttons-container {
+	width: 44px;
 	border-left: 1px solid var(--tl-color-divider);
 	border-radius: 0 var(--tl-radius-2) var(--tl-radius-2) 0;
 }
 
-.fairy-list-scrollable {
-	overflow-y: auto;
-	scrollbar-width: none; /* Firefox */
-	-ms-overflow-style: none; /* IE and Edge */
-}
-
-.fairy-list-scrollable::-webkit-scrollbar {
-	display: none; /* Chrome, Safari, Opera */
+.fairy-list {
+	height: calc(48px * 4);
 }
 
 .fairy-sidebar-group {
