@@ -46,10 +46,15 @@ const tlenvReactive = atom('tlenvReactive', {
 
 if (typeof window !== 'undefined') {
 	const mql = window.matchMedia && window.matchMedia('(any-pointer: coarse)')
+
 	if (mql) {
-		mql.addEventListener('change', () => {
-			tlenvReactive.update((prev) => ({ ...prev, isCoarsePointer: mql.matches }))
-		})
+		const updateIsCoarsePointer = () => {
+			const isCoarsePointer = mql.matches
+			if (isCoarsePointer === tlenvReactive.get().isCoarsePointer) return
+			tlenvReactive.update((prev) => ({ ...prev, isCoarsePointer: isCoarsePointer }))
+		}
+		updateIsCoarsePointer()
+		mql.addEventListener('change', updateIsCoarsePointer)
 	}
 
 	// Update the coarse pointer state when a pointer down event occurs. We need `capture: true`
