@@ -117,9 +117,8 @@ class Analytics {
 
 			// Notify consent callbacks
 			if (consent !== 'unknown') {
-				const preferences = cookieConsentToPreferences(consent, this.consentOptInType)
 				for (const callback of this.consentCallbacks) {
-					callback(preferences)
+					callback(consentState)
 				}
 			}
 		})
