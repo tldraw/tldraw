@@ -37,7 +37,7 @@ import { FairyTaskListInline } from './FairyTaskListInline'
 import { getRandomFairyName } from './getRandomFairyName'
 import { getRandomFairyPersonality } from './getRandomFairyPersonality'
 
-function NewFairyButton({ agents }: { agents: FairyAgent[] }) {
+function NewFairyButton({ agents, disabled }: { agents: FairyAgent[]; disabled?: boolean }) {
 	const app = useApp()
 	const handleClick = useCallback(() => {
 		if (!app) return
@@ -74,7 +74,7 @@ function NewFairyButton({ agents }: { agents: FairyAgent[] }) {
 			type="icon"
 			className="fairy-toolbar-sidebar-button"
 			onClick={handleClick}
-			disabled={agents.length >= MAX_FAIRY_COUNT}
+			disabled={disabled ?? agents.length >= MAX_FAIRY_COUNT}
 		>
 			<TldrawUiIcon icon="plus" label={newFairyLabel} />
 		</TldrawUiButton>
@@ -464,7 +464,9 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 							onClickFairy={handleClickFairy}
 							onDoubleClickFairy={handleDoubleClickFairy}
 							onTogglePanel={handleTogglePanel}
-							newFairyButton={<NewFairyButton agents={agents} />}
+							renderNewFairyButton={(disabled) => (
+								<NewFairyButton agents={agents} disabled={disabled} />
+							)}
 						/>
 					</div>
 				</div>

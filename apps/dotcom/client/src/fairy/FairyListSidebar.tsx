@@ -1,6 +1,7 @@
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { MouseEvent, ReactNode } from 'react'
 import { TldrawUiButton, TldrawUiButtonIcon, TldrawUiToolbar, useValue } from 'tldraw'
+import { MAX_FAIRY_COUNT } from '../tla/components/TlaEditor/TlaEditor'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairySidebarButton } from './FairySidebarButton'
 import { FairyTaskListContextMenuContent } from './FairyTaskListContextMenuContent'
@@ -86,7 +87,7 @@ interface FairyListSidebarProps {
 	onClickFairy(agent: FairyAgent, event: MouseEvent): void
 	onDoubleClickFairy(agent: FairyAgent): void
 	onTogglePanel(): void
-	newFairyButton: ReactNode
+	renderNewFairyButton(disabled: boolean): ReactNode
 }
 
 export function FairyListSidebar({
@@ -98,7 +99,7 @@ export function FairyListSidebar({
 	onClickFairy,
 	onDoubleClickFairy,
 	onTogglePanel,
-	newFairyButton,
+	renderNewFairyButton,
 }: FairyListSidebarProps) {
 	const sidebarEntries = useValue('fairy-sidebar-entries', () => getSidebarEntries(agents), [
 		agents,
@@ -148,10 +149,11 @@ export function FairyListSidebar({
 
 						return renderFairySidebarButton(entry.agent)
 					})}
+					{Array.from({ length: MAX_FAIRY_COUNT - agents.length }).map((_, i) => (
+						<div key={`placeholder-${i}`}>{renderNewFairyButton(i > 0)}</div>
+					))}
 				</TldrawUiToolbar>
 			</div>
-			{/* New Fairy Button - always at the bottom */}
-			<div className="fairy-new-button">{newFairyButton}</div>
 		</>
 	)
 }
