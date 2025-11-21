@@ -9,10 +9,9 @@ import {
 } from 'tldraw'
 import { useMsg } from '../tla/utils/i18n'
 import { FairyAgent, getFollowingFairyId } from './fairy-agent/agent/FairyAgent'
-import { $fairyAgentsAtom } from './fairy-agent/agent/fairyAgentsAtom'
 import { fairyMessages } from './fairy-messages'
 import { FairyConfigDialog } from './FairyConfigDialog'
-import { $fairyProjects, deleteProject } from './FairyProjects'
+import { $fairyProjects, disbandProject } from './FairyProjects'
 
 export function FairyMenuContent({
 	agent,
@@ -71,18 +70,8 @@ export function FairyMenuContent({
 	const canDisbandGroup = currentProject && currentProject.members.length > 1
 
 	const disbandGroup = useCallback(() => {
-		if (!currentProject || currentProject.members.length <= 1) return
-		const memberIds = new Set(currentProject.members.map((member) => member.id))
-		const memberAgents = $fairyAgentsAtom
-			.get(editor)
-			.filter((memberAgent) => memberIds.has(memberAgent.id))
-
-		memberAgents.forEach((memberAgent) => {
-			memberAgent.setMode('idling')
-			memberAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
-		})
-
-		deleteProject(currentProject.id)
+		if (!currentProject) return
+		disbandProject(currentProject, editor)
 	}, [currentProject, editor])
 
 	if (canDisbandGroup && currentProject) {

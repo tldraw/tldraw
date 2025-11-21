@@ -267,6 +267,12 @@
       "value": "Editor"
     }
   ],
+  "3556eecba1": [
+    {
+      "type": 0,
+      "value": "Disband teams"
+    }
+  ],
   "3a295397e6": [
     {
       "type": 0,
@@ -1097,6 +1103,12 @@
     {
       "type": 0,
       "value": "Anyone with the link"
+    }
+  ],
+  "a74cfec282": [
+    {
+      "type": 0,
+      "value": "Can't talk to a team and other fairies at the same time"
     }
   ],
   "a768caa988": [

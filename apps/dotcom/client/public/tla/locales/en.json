@@ -131,6 +131,9 @@
   "344a7f427f": {
     "translation": "Editor"
   },
+  "3556eecba1": {
+    "translation": "Disband teams"
+  },
   "3a295397e6": {
     "translation": "Ask for help"
   },
@@ -502,6 +505,9 @@
   },
   "a6cc403d56": {
     "translation": "Anyone with the link"
+  },
+  "a74cfec282": {
+    "translation": "Can't talk to a team and other fairies at the same time"
   },
   "a768caa988": {
     "translation": "Analytics"

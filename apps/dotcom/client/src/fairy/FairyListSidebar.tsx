@@ -16,7 +16,7 @@ type FairySidebarEntry =
 	  }
 	| { type: 'single'; agent: FairyAgent }
 
-function getSidebarEntries(agents: FairyAgent[]): FairySidebarEntry[] {
+export function getSidebarEntries(agents: FairyAgent[]): FairySidebarEntry[] {
 	const entries: FairySidebarEntry[] = []
 	const seenProjectIds = new Set<string>()
 	const projectMembers = new Map<string, { projectTitle: string; agents: FairyAgent[] }>()
@@ -80,7 +80,7 @@ function getSidebarEntries(agents: FairyAgent[]): FairySidebarEntry[] {
 
 interface FairyListSidebarProps {
 	agents: FairyAgent[]
-	panelState: 'task-list' | 'fairy' | 'closed'
+	panelState: 'task-list' | 'fairy' | 'cant-chat' | 'closed'
 	toolbarMessage: string
 	selectMessage: string
 	deselectMessage: string

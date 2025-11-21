@@ -1,5 +1,6 @@
 import { FairyProject, FairyProjectRole } from '@tldraw/fairy-shared'
-import { atom } from 'tldraw'
+import { atom, Editor } from 'tldraw'
+import { $fairyAgentsAtom } from './fairy-agent/agent/fairyAgentsAtom'
 
 export const $fairyProjects = atom<FairyProject[]>('fairyProjects', [])
 
@@ -69,4 +70,20 @@ export function addAgentToDummyProject(agentId: string) {
 			)
 		}
 	})
+}
+
+export function disbandProject(project: FairyProject, editor: Editor) {
+	if (project.members.length <= 1) return
+
+	const memberIds = new Set(project.members.map((member) => member.id))
+	const memberAgents = $fairyAgentsAtom
+		.get(editor)
+		.filter((memberAgent) => memberIds.has(memberAgent.id))
+
+	memberAgents.forEach((memberAgent) => {
+		memberAgent.interrupt({ mode: 'idling', input: null })
+		memberAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+	})
+
+	deleteProject(project.id)
 }

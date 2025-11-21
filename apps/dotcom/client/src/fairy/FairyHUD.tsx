@@ -31,6 +31,7 @@ import { fairyMessages } from './fairy-messages'
 import { FairyDropdownContent } from './FairyDropdownContent'
 import { FairyGroupChat } from './FairyGroupChat'
 import { FairyListSidebar } from './FairyListSidebar'
+import { disbandProject } from './FairyProjects'
 import { $fairyTasks } from './FairyTaskList'
 import { FairyTaskListDropdownContent } from './FairyTaskListDropdownContent'
 import { FairyTaskListInline } from './FairyTaskListInline'
@@ -81,10 +82,10 @@ function NewFairyButton({ agents, disabled }: { agents: FairyAgent[]; disabled?:
 	)
 }
 
-type PanelState = 'task-list' | 'fairy' | 'closed'
+type PanelState = 'task-list' | 'fairy' | 'cant-chat' | 'closed'
 
 interface FairyHUDHeaderProps {
-	panelState: 'fairy' | 'task-list'
+	panelState: 'fairy' | 'task-list' | 'cant-chat'
 	menuPopoverOpen: boolean
 	onMenuPopoverOpenChange(open: boolean): void
 	onToggleFairyTasks(): void
@@ -199,7 +200,27 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		[agents]
 	)
 
-	// Update the chosen fairy when the selected fairies change
+	useQuickReactor(
+		'cant-chat',
+		() => {
+			const projectSelected = selectedFairies.map((f) => f.getProject()).filter((p) => p !== null)
+
+			const atLeastOneSingleFairySelected =
+				selectedFairies.map((f) => f.getProject()).filter((p) => p === null).length > 0
+
+			if (projectSelected.length > 1) {
+				setPanelState('cant-chat')
+			}
+
+			if (projectSelected.length === 1 && atLeastOneSingleFairySelected) {
+				setPanelState('cant-chat')
+			}
+
+			setPanelState('fairy')
+		},
+		[agents]
+	)
+
 	useQuickReactor(
 		'update-chosen-fairy',
 		() => {
@@ -225,6 +246,40 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 			})
 		},
 		[agents]
+	)
+
+	const canChat = useValue(
+		'can-chat',
+		() => {
+			const projectSelected = selectedFairies.map((f) => f.getProject()).filter((p) => p !== null)
+			const atLeastOneSingleFairySelected =
+				selectedFairies.map((f) => f.getProject()).filter((p) => p === null).length > 0
+
+			// if we have more than two projects selected, we can't chat
+			if (projectSelected.length >= 2) {
+				return false
+			}
+
+			// if we have one project selected and at least one single fairy selected, we can't chat
+			if (projectSelected.length === 1 && atLeastOneSingleFairySelected) {
+				return false
+			}
+
+			return true
+		},
+		[selectedFairies]
+	)
+
+	useQuickReactor(
+		'update-panel-state-for-cant-chat',
+		() => {
+			if (!canChat) {
+				setPanelState('cant-chat')
+			} else if (panelState === 'cant-chat') {
+				setPanelState('fairy')
+			}
+		},
+		[canChat]
 	)
 
 	const selectProjectGroup = useCallback(
@@ -263,6 +318,14 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		[agents, setPanelState, setShownFairy, selectFairy]
 	)
 
+	const disbandProjectGroups = useCallback(() => {
+		if (!selectedFairies.length) return
+		const projects = selectedFairies.map((f) => f.getProject()).filter((p) => p !== null)
+		projects.forEach((project) => {
+			disbandProject(project, editor)
+		})
+	}, [selectedFairies, editor])
+
 	const handleClickFairy = useCallback(
 		(clickedAgent: FairyAgent, event: MouseEvent) => {
 			const isMultiSelect = event.shiftKey || event.metaKey || event.ctrlKey
@@ -277,12 +340,24 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 			if (isMultiSelect) {
 				// Toggle selection without deselecting others
 				clickedAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: !isSelected } : f))
+
 				// Keep panel open if there are selected fairies
 				if (!isSelected || selectedFairies.length > 1) {
 					setPanelState('fairy')
 				}
 			} else {
 				// Single select mode
+
+				const clickedFairyProject = clickedAgent.getProject()
+				const hasGroupSelected = selectedFairies.some((f) => f.getProject() !== null)
+
+				if (!clickedFairyProject && hasGroupSelected) {
+					// Individual fairy clicked while group is selected - switch to single fairy
+					selectFairy(clickedAgent)
+					setPanelState('fairy')
+					return
+				}
+
 				if (selectedFairies.length > 1 && panelState !== 'fairy') {
 					// Multiple fairies already selected, panel not open - keep them all selected and show group chat
 					setShownFairy(clickedAgent)
@@ -464,6 +539,22 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 										setPanelState('fairy')
 									}}
 								/>
+							)}
+
+							{panelState === 'cant-chat' && (
+								<div className="fairy-cant-chat-content">
+									<div className="fairy-cant-chat-content-inner">
+										<p>
+											<F defaultMessage="Can't talk to a team and other fairies at the same time" />
+										</p>
+										<button
+											onClick={disbandProjectGroups}
+											className="fairy-cant-chat-disband-button"
+										>
+											<F defaultMessage="Disband teams" />
+										</button>
+									</div>
+								</div>
 							)}
 
 							{panelState === 'task-list' && <FairyTaskListInline agents={agents} />}

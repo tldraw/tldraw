@@ -372,6 +372,33 @@ div:not(.fairy-sidebar-group) > .fairy-toggle-button[data-isactive='true']::befo
 	z-index: 0;
 }
 
+.fairy-cant-chat-content {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+}
+
+.fairy-cant-chat-content-inner {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+}
+
+.fairy-cant-chat-disband-button {
+	pointer-events: auto;
+	background-color: transparent;
+	cursor: pointer;
+	display: inline-flex;
+	border: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--tla-color-cta);
+}
+
 .fairy-chat-panel[data-panel-state='open'] + .fairy-buttons-container {
 	width: 44px;
 	border-left: 1px solid var(--tl-color-divider);
