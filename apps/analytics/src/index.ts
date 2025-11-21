@@ -161,12 +161,6 @@ class Analytics {
 			if (requiresConsent === 'requires-consent') {
 				initialConsent = 'unknown'
 				this.consentOptInType = 'manual'
-				// Since initial consent is unknown the `setValue` call below won't trigger the subscribe,
-				// so we will dispatch this event manually
-				gtmService.trackEvent(
-					'consent_update',
-					cookieConsentToPreferences(initialConsent, this.consentOptInType)
-				)
 			} else {
 				initialConsent = 'opted-in'
 				this.consentOptInType = 'auto'
