@@ -77,8 +77,10 @@
 
 .fairy-selected::before,
 .fairy-selected::after,
-.fairy-toggle-button[data-isactive='true']::before,
-.fairy-toggle-button[data-isactive='true']::after {
+div:not(.fairy-sidebar-group) > .fairy-toggle-button[data-isactive='true']::before,
+div:not(.fairy-sidebar-group) > .fairy-toggle-button[data-isactive='true']::after,
+.fairy-sidebar-group[data-is-active='true']::before,
+.fairy-sidebar-group[data-is-active='true']::after {
 	content: '';
 	position: absolute;
 	width: 100%;
@@ -91,7 +93,8 @@
 }
 
 .fairy-selected::before,
-.fairy-toggle-button[data-isactive='true']::before {
+div:not(.fairy-sidebar-group) > .fairy-toggle-button[data-isactive='true']::before,
+.fairy-sidebar-group[data-is-active='true']::before {
 	clip-path: polygon(
 		0 0,
 		12px 0,
@@ -109,7 +112,8 @@
 }
 
 .fairy-selected::after,
-.fairy-toggle-button[data-isactive='true']::after {
+.fairy-toggle-button[data-isactive='true']::after,
+.fairy-sidebar-group[data-is-active='true']::after {
 	clip-path: polygon(
 		100% 0,
 		calc(100% - 12px) 0,
@@ -385,6 +389,18 @@
 
 .fairy-list-scrollable::-webkit-scrollbar {
 	display: none; /* Chrome, Safari, Opera */
+}
+
+.fairy-sidebar-group {
+	position: relative;
+}
+
+.fairy-sidebar-group::after {
+	content: '';
+	position: absolute;
+	inset: 4px;
+	background-color: var(--tl-color-muted-2);
+	border-radius: var(--tl-radius-2);
 }
 
 /* Fairy Chat Panel */
