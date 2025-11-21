@@ -3,7 +3,13 @@
 import { createRouter, handleApiRequest, notFound } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { cors, IRequest } from 'itty-router'
-import { getAuth, hasFairyAccess, isAdmin, requireFairyAccess as requireFairyAccessCheck, SignedInAuth } from './auth'
+import {
+	getAuth,
+	hasFairyAccess,
+	isAdmin,
+	requireFairyAccess as requireFairyAccessCheck,
+	SignedInAuth,
+} from './auth'
 import { Environment } from './environment'
 import { streamActionsHandler } from './routes/stream-actions'
 import { streamTextHandler } from './routes/stream-text'

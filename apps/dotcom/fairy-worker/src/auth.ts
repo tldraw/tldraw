@@ -96,8 +96,10 @@ export async function hasFairyAccess(env: Environment, auth: { userId: string } 
 	}
 	const user = await getClerkClient(env).users.getUser(auth.userId)
 	const email = user.primaryEmailAddress?.emailAddress || ''
-	return !!(
-		['jake@firstloop.ai'].includes(email) &&
-		user.primaryEmailAddress?.verification?.status === 'verified'
-	) || isAdmin(env, auth)
+	return (
+		!!(
+			['jake@firstloop.ai'].includes(email) &&
+			user.primaryEmailAddress?.verification?.status === 'verified'
+		) || isAdmin(env, auth)
+	)
 }
