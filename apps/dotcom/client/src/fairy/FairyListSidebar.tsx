@@ -130,7 +130,7 @@ export function FairyListSidebar({
 					<FairyTaskListContextMenuContent agents={agents} />
 				</_ContextMenu.Root>
 			</div>
-			<div className="fairy-list-scrollable">
+			<div className="fairy-list">
 				<TldrawUiToolbar label={toolbarMessage} orientation="vertical">
 					{sidebarEntries.map((entry) => {
 						if (entry.type === 'group') {

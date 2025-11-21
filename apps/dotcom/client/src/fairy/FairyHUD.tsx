@@ -233,6 +233,22 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 				return false
 			}
 
+			// Check if project has an orchestrator (meaning it's been started)
+			const orchestratorMember = project.members.find(
+				(member) => member.role === 'orchestrator' || member.role === 'duo-orchestrator'
+			)
+
+			if (orchestratorMember) {
+				// Project has been started, show the orchestrator's chat
+				const orchestratorAgent = agents.find((agent) => agent.id === orchestratorMember.id)
+				if (orchestratorAgent) {
+					selectFairy(orchestratorAgent)
+					setPanelState('fairy')
+					return true
+				}
+			}
+
+			// Project hasn't been started yet, show group creation view
 			const memberIds = new Set(project.members.map((member) => member.id))
 
 			agents.forEach((agent) => {
@@ -244,7 +260,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 			setPanelState('fairy')
 			return true
 		},
-		[agents, setPanelState, setShownFairy]
+		[agents, setPanelState, setShownFairy, selectFairy]
 	)
 
 	const handleClickFairy = useCallback(
@@ -390,7 +406,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 				className={`tla-fairy-hud ${panelState !== 'closed' ? 'tla-fairy-hud--open' : ''}`}
 				style={{
 					bottom: isDebugMode ? '112px' : '72px',
-					right: mobileMenuOffset !== null ? `${mobileMenuOffset}px` : '0px',
+					right: mobileMenuOffset !== null ? `${mobileMenuOffset}px` : '8px',
 					display: isMobileStylePanelOpen ? 'none' : 'block',
 				}}
 				onContextMenu={handleContextMenu}
