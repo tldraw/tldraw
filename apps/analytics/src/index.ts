@@ -158,7 +158,6 @@ class Analytics {
 		} else {
 			// No existing consent decision - check if we need to ask based on location
 			const requiresConsent = await shouldRequireConsent()
-			// const requiresConsent = 'no-consent-needed'
 			if (requiresConsent === 'requires-consent') {
 				initialConsent = 'unknown'
 				this.consentOptInType = 'manual'
