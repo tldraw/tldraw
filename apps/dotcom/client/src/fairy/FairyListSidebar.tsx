@@ -116,7 +116,7 @@ export function FairyListSidebar({
 	)
 
 	return (
-		<div className="fairy-buttons-container">
+		<>
 			<div className="fairy-toolbar-header">
 				<_ContextMenu.Root dir="ltr">
 					<_ContextMenu.Trigger asChild>
@@ -151,7 +151,7 @@ export function FairyListSidebar({
 				</TldrawUiToolbar>
 			</div>
 			{/* New Fairy Button - always at the bottom */}
-			<div style={{ marginTop: '4px' }}>{newFairyButton}</div>
-		</div>
+			<div className="fairy-new-button">{newFairyButton}</div>
+		</>
 	)
 }
