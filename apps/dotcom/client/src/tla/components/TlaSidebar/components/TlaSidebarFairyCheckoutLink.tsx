@@ -138,23 +138,11 @@ export function TlaSidebarFairyCheckoutLink() {
 	}
 
 	return (
-		<div className={styles.sidebarDotDevLink} style={{ position: 'relative' }}>
+		<div className={styles.sidebarDotDevLink}>
 			<button
 				data-testid="tla-sidebar-fairy-checkout"
 				onClick={handleClick}
-				style={{
-					cursor: 'pointer',
-					padding: '0px 8px',
-					width: '100%',
-					height: '100%',
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'space-between',
-					background: 'transparent',
-					border: 'none',
-					color: 'inherit',
-					fontSize: 'inherit',
-				}}
+				className={styles.sidebarFairyCheckoutButton}
 			>
 				<span>
 					{currentFairyLimit > 0 ? (
@@ -163,42 +151,17 @@ export function TlaSidebarFairyCheckoutLink() {
 						<F defaultMessage="Purchase fairy access" />
 					)}
 				</span>
-				<span style={{ marginLeft: '8px' }}>$</span>
+				<span className={styles.sidebarFairyCheckoutButtonPrice}>$</span>
 			</button>
 
 			{showDropdown && (
-				<div
-					style={{
-						position: 'absolute',
-						bottom: '100%',
-						left: '1px',
-						right: '1px',
-						backgroundColor: 'var(--tla-color-panel)',
-						border: '1px solid var(--tla-color-text-2)',
-						borderRadius: '4px',
-						marginBottom: '4px',
-						overflow: 'hidden',
-						zIndex: 1000,
-					}}
-				>
+				<div className={styles.sidebarFairyCheckoutDropdown}>
 					{availableQuantities.map((quantity) => (
 						<button
 							key={quantity}
 							onClick={() => setSelectedQuantity(quantity)}
-							style={{
-								width: '100%',
-								padding: '8px',
-								border: 'none',
-								background:
-									quantity === selectedQuantity ? 'var(--tla-color-hover-2)' : 'transparent',
-								color: 'var(--tla-color-text-1)',
-								cursor: 'pointer',
-								textAlign: 'left',
-								fontSize: '12px',
-								display: 'flex',
-								justifyContent: 'space-between',
-								alignItems: 'center',
-							}}
+							className={styles.sidebarFairyCheckoutQuantityOption}
+							data-selected={quantity === selectedQuantity}
 						>
 							<span>
 								{intl.formatMessage(
@@ -209,36 +172,13 @@ export function TlaSidebarFairyCheckoutLink() {
 								)}
 							</span>
 							{quantity === 3 && availableQuantities.includes(3) && (
-								<span
-									style={{
-										fontSize: '10px',
-										padding: '2px 6px',
-										borderRadius: '3px',
-										border: '1px solid var(--tla-color-accent)',
-										color: 'var(--tla-color-accent)',
-										fontWeight: 'bold',
-									}}
-								>
+								<span className={styles.sidebarFairyCheckoutQuantityOptionBadge}>
 									<F defaultMessage="Recommended" />
 								</span>
 							)}
 						</button>
 					))}
-					<button
-						onClick={handlePurchase}
-						style={{
-							width: '100%',
-							padding: '8px',
-							border: 'none',
-							borderTop: '1px solid var(--tla-color-text-2)',
-							background: 'var(--tla-color-hover-2)',
-							color: 'var(--tla-color-text-1)',
-							cursor: 'pointer',
-							textAlign: 'center',
-							fontSize: '12px',
-							fontWeight: 'bold',
-						}}
-					>
+					<button onClick={handlePurchase} className={styles.sidebarFairyCheckoutProceedButton}>
 						<F defaultMessage="Continue to checkout" />
 					</button>
 				</div>
