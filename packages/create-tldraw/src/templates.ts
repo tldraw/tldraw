@@ -17,11 +17,7 @@ export const TEMPLATES: Template[] = [
 		repo: 'tldraw/vite-template',
 	},
 	{
-		name: 'Multiplayer',
-		description: 'Real-time multiplayer with a self-hosted backend.',
-		shortDescription: 'Real-time multiplayer.',
-		order: 2,
-		repo: 'tldraw/tldraw-sync-cloudflare',
+
 	},
 	{
 		name: 'Agent',
