@@ -64,6 +64,10 @@ class Analytics {
 
 		// Subscribe to consent changes
 		cookieConsentState.subscribe((consent) => {
+			// If the user changed the setting we want to change opt in type to manual
+			if (this.isInitialized && consent !== 'unknown' && consent !== this.consent) {
+				this.consentOptInType = 'manual'
+			}
 			// Set (or clear) the cookie value
 			setOrClearCookieConsent(consent, this.consentOptInType)
 
