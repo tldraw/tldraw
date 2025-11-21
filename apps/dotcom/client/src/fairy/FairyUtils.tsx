@@ -40,6 +40,7 @@ import { ThinkActionUtil } from './actions/ThinkActionUtil'
 import { UnknownActionUtil } from './actions/UnknownActionUtil'
 import { UpdateActionUtil } from './actions/UpdateActionUtil'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { AgentIdPartUtil } from './parts/AgentIdPartUtil'
 import { AgentViewportBoundsPartUtil } from './parts/AgentViewportBoundsPartUtil'
 import { BlurryShapesPartUtil } from './parts/BlurryShapesPartUtil'
 import { ChatHistoryPartUtil } from './parts/ChatHistoryPartUtil'
@@ -171,6 +172,7 @@ export const PROMPT_PART_UTILS = [
 
 	// Model selection
 	ModelNamePartUtil,
+	AgentIdPartUtil,
 
 	// Debug
 	DebugPartUtil,

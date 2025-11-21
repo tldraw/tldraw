@@ -16,19 +16,45 @@ import { LanguageModel, ModelMessage, streamText, SystemModelMessage } from 'ai'
 import { Environment } from '../environment'
 import { buildMessages } from '../prompt/buildMessages'
 import { buildSystemPrompt, buildSystemPromptWithoutSchema } from '../prompt/buildSystemPrompt'
+import { getAgentId } from '../prompt/getAgentId'
 import { getModelName } from '../prompt/getModelName'
 import { closeAndParseJson } from './closeAndParseJson'
-import { getAgentModelDefinition } from './models'
+import {
+	getAgentModelDefinition,
+	getGenerationCostFromUsageAndMetaData,
+	isAgentModelName,
+} from './models'
 
 export class AgentService {
 	openai: OpenAIProvider
 	anthropic: AnthropicProvider
 	google: GoogleGenerativeAIProvider
+	private onUsage?: (
+		usage: {
+			inputTokens?: number
+			outputTokens?: number
+			totalTokens?: number
+			cachedInputTokens?: number
+		},
+		agentId?: string
+	) => void
 
-	constructor(env: Environment) {
+	constructor(
+		env: Environment,
+		onUsage?: (
+			usage: {
+				inputTokens?: number
+				outputTokens?: number
+				totalTokens?: number
+				cachedInputTokens?: number
+			},
+			agentId?: string
+		) => void
+	) {
 		this.openai = createOpenAI({ apiKey: env.OPENAI_API_KEY })
 		this.anthropic = createAnthropic({ apiKey: env.ANTHROPIC_API_KEY })
 		this.google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_API_KEY })
+		this.onUsage = onUsage
 	}
 
 	getModel(modelName: AgentModelName): LanguageModel {
@@ -43,8 +69,9 @@ export class AgentService {
 	): AsyncGenerator<Streaming<AgentAction>> {
 		try {
 			const modelName = getModelName(prompt)
+			const agentId = getAgentId(prompt)
 			const model = this.getModel(modelName)
-			for await (const action of _streamActions(model, prompt, isAdmin)) {
+			for await (const action of _streamActions(model, prompt, isAdmin, this.onUsage, agentId)) {
 				yield action
 			}
 		} catch (error: any) {
@@ -56,8 +83,9 @@ export class AgentService {
 	async *streamText(prompt: AgentPrompt): AsyncGenerator<string> {
 		try {
 			const modelName = getModelName(prompt)
+			const agentId = getAgentId(prompt)
 			const model = this.getModel(modelName)
-			for await (const text of _streamText(model, prompt)) {
+			for await (const text of _streamText(model, prompt, this.onUsage, agentId)) {
 				yield text
 			}
 		} catch (error: any) {
@@ -68,7 +96,20 @@ export class AgentService {
 }
 
 // currently unused
-async function* _streamText(model: LanguageModel, prompt: AgentPrompt): AsyncGenerator<string> {
+async function* _streamText(
+	model: LanguageModel,
+	prompt: AgentPrompt,
+	onUsage?: (
+		usage: {
+			inputTokens?: number
+			outputTokens?: number
+			totalTokens?: number
+			cachedInputTokens?: number
+		},
+		agentId?: string
+	) => void,
+	agentId?: string
+): AsyncGenerator<string> {
 	if (typeof model === 'string') {
 		throw new Error('Model is a string, not a LanguageModel')
 	}
@@ -125,8 +166,18 @@ async function* _streamText(model: LanguageModel, prompt: AgentPrompt): AsyncGen
 		}
 
 		// After streaming is complete, get usage information
-		await result.usage
-		// Note: Usage is tracked but not currently logged for text streams
+		const usage = await result.usage
+		if (usage && onUsage) {
+			onUsage(
+				{
+					inputTokens: usage.inputTokens,
+					outputTokens: usage.outputTokens,
+					totalTokens: usage.totalTokens,
+					cachedInputTokens: usage.cachedInputTokens,
+				},
+				agentId
+			)
+		}
 	} catch (error: any) {
 		console.error('streamEventsVercel error:', error)
 		throw error
@@ -159,18 +210,32 @@ function buildFormattedSystemPrompt(systemPrompt: string): SystemModelMessage {
 async function* _streamActions(
 	model: LanguageModel,
 	prompt: AgentPrompt,
-	isAdmin: boolean
+	isAdmin: boolean,
+	onUsage?: (
+		usage: {
+			inputTokens?: number
+			outputTokens?: number
+			totalTokens?: number
+			cachedInputTokens?: number
+		},
+		agentId?: string
+	) => void,
+	agentId?: string
 ): AsyncGenerator<Streaming<AgentAction>> {
 	if (typeof model === 'string') {
 		throw new Error('Model is a string, not a LanguageModel')
 	}
 
+	const { modelId } = model
+	if (!isAgentModelName(modelId)) {
+		throw new Error(`Model ${modelId} is not in AGENT_MODEL_DEFINITIONS`)
+	}
+
 	// -1 means dynamic budget
 	// 128 is minimum for 2.5 pro - we're not sure if this is too low
-	const geminiThinkingBudget =
-		model.modelId === 'gemini-2.5-pro' || model.modelId === 'gemini-3-pro-preview' ? 256 : 0
+	const geminiThinkingBudget = modelId === 'gemini-3-pro-preview' ? 256 : 0
 
-	const gptThinkingBudget = model.modelId === 'gpt-5.1' ? 'none' : 'minimal'
+	const gptThinkingBudget = modelId === 'gpt-5.1' ? 'none' : 'minimal'
 
 	const formattedSystemPrompt =
 		model.provider === 'anthropic.messages'
@@ -218,6 +283,18 @@ async function* _streamActions(
 			onError: (e) => {
 				console.error('Stream text error:', e)
 				throw e
+			},
+			onAbort: () => {
+				console.warn('Actions stream aborted')
+			},
+			onFinish: (e) => {
+				// console.warn('Actions stream finished')
+				const { usage, providerMetadata } = e
+				if (providerMetadata) {
+					console.warn('Usage:', usage)
+					console.warn('Provider metadata:', JSON.stringify(providerMetadata, null, 2))
+					console.warn(getGenerationCostFromUsageAndMetaData(modelId, usage, providerMetadata))
+				}
 			},
 		})
 
@@ -283,8 +360,20 @@ async function* _streamActions(
 		}
 
 		// After streaming is complete, get usage information and yield it (only for admins)
+		const usage = await result.usage
+		if (usage && onUsage) {
+			onUsage(
+				{
+					inputTokens: usage.inputTokens,
+					outputTokens: usage.outputTokens,
+					totalTokens: usage.totalTokens,
+					cachedInputTokens: usage.cachedInputTokens,
+				},
+				agentId
+			)
+		}
+
 		if (isAdmin) {
-			const usage = await result.usage
 			const providerMetadata = await result.providerMetadata
 
 			// Yield usage information as a special metadata action (only for @tldraw.com admins)

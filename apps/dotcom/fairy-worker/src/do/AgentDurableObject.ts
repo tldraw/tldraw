@@ -5,10 +5,67 @@ import { AgentService } from './AgentService'
 
 export class AgentDurableObject extends DurableObject<Environment> {
 	service: AgentService
+	// Cumulative token usage tracking per agent ID
+	private cumulativeUsageByAgentId = new Map<
+		string,
+		{
+			promptTokens: number
+			completionTokens: number
+			totalTokens: number
+			cachedInputTokens: number
+		}
+	>()
 
 	constructor(ctx: DurableObjectState, env: Environment) {
 		super(ctx, env)
-		this.service = new AgentService(this.env)
+		this.service = new AgentService(this.env, (usage, agentId) => this.trackUsage(usage, agentId))
+	}
+
+	private trackUsage(
+		usage: {
+			inputTokens?: number
+			outputTokens?: number
+			totalTokens?: number
+			cachedInputTokens?: number
+		},
+		agentId?: string
+	) {
+		const promptTokens = usage.inputTokens || 0
+		const completionTokens = usage.outputTokens || 0
+		const totalTokens = usage.totalTokens || 0
+		const cachedInputTokens = usage.cachedInputTokens || 0
+
+		// Use a fallback key if agentId is not provided
+		const key = agentId || '<unknown>'
+
+		// Get or initialize cumulative usage for this agent
+		let agentUsage = this.cumulativeUsageByAgentId.get(key)
+		if (!agentUsage) {
+			agentUsage = {
+				promptTokens: 0,
+				completionTokens: 0,
+				totalTokens: 0,
+				cachedInputTokens: 0,
+			}
+			this.cumulativeUsageByAgentId.set(key, agentUsage)
+		}
+
+		// Update cumulative usage for this agent
+		agentUsage.promptTokens += promptTokens
+		agentUsage.completionTokens += completionTokens
+		agentUsage.totalTokens += totalTokens
+		agentUsage.cachedInputTokens += cachedInputTokens
+
+		// console.warn('[Token Usage]', {
+		// 	agentId,
+		// 	request: {
+		// 		promptTokens,
+		// 		completionTokens,
+		// 		totalTokens,
+		// 		cachedInputTokens,
+		// 	},
+		// 	cumulative: { ...agentUsage },
+		// })
 	}
 
 	// `fetch` is the entry point for all requests to the Durable Object

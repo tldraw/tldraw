@@ -42,6 +42,7 @@ import {
 	UpdateActionSchema,
 } from './AgentActionSchemas'
 import {
+	AgentIdPartDefinition,
 	AgentViewportBoundsPartDefinition,
 	BlurryShapesPartDefinition,
 	ChatHistoryPartDefinition,
@@ -129,6 +130,7 @@ export const AGENT_ACTION_SCHEMAS = [
  * Prompt part schemas determine what information will be sent to the model.
  */
 export const PROMPT_PART_DEFINITIONS = [
+	AgentIdPartDefinition,
 	BlurryShapesPartDefinition,
 	ChatHistoryPartDefinition,
 	DataPartDefinition,

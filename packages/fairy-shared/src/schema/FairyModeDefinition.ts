@@ -52,6 +52,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 		memoryLevel: 'fairy',
 		active: true,
 		parts: (_work: FairyWork) => [
+			'agentId',
 			'modelName',
 			'mode',
 			'messages',
@@ -85,6 +86,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 		memoryLevel: 'task',
 		active: true,
 		parts: (_work: FairyWork) => [
+			'agentId',
 			'modelName',
 			'mode',
 			'messages',
@@ -123,6 +125,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 		memoryLevel: 'task',
 		active: true,
 		parts: (_work: FairyWork) => [
+			'agentId',
 			'modelName',
 			'mode',
 			'messages',
@@ -165,6 +168,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 		memoryLevel: 'project',
 		active: true,
 		parts: () => [
+			'agentId',
 			'modelName',
 			'mode',
 			'messages',
@@ -210,6 +214,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 		memoryLevel: 'project',
 		active: true,
 		parts: () => [
+			'agentId',
 			'modelName',
 			'mode',
 			'messages',
@@ -256,6 +261,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 		memoryLevel: 'task',
 		active: true,
 		parts: (_work: FairyWork) => [
+			'agentId',
 			'modelName',
 			'mode',
 			'messages',

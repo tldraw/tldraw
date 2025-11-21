@@ -578,3 +578,13 @@ export interface ModelNamePart {
 export const ModelNamePartDefinition: PromptPartDefinition<ModelNamePart> = {
 	type: 'modelName',
 }
+
+// AgentIdPart
+export interface AgentIdPart {
+	type: 'agentId'
+	id: string
+}
+
+export const AgentIdPartDefinition: PromptPartDefinition<AgentIdPart> = {
+	type: 'agentId',
+}
