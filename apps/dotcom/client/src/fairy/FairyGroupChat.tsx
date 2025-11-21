@@ -14,7 +14,7 @@ export function FairyGroupChat({
 	agents: FairyAgent[]
 	onStartProject(orchestratorAgent: FairyAgent): void
 }) {
-	const [leaderAgentId, setLeaderAgentId] = useState<string | null>(null)
+	const [leaderAgentId, setLeaderAgentId] = useState<string | null>(agents[0]?.id ?? null)
 	const [instruction, setInstruction] = useState('')
 	const instructionTextareaRef = useRef<HTMLTextAreaElement>(null)
 

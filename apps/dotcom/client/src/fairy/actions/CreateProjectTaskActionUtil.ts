@@ -14,6 +14,7 @@ export class CreateProjectTaskActionUtil extends AgentActionUtil<CreateProjectTa
 			icon: 'note' as const,
 			description: `${label}: ${action.text}`,
 			pose: 'thinking' as const,
+			canGroup: () => false,
 		}
 	}
 
