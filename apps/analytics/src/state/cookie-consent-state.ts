@@ -4,7 +4,23 @@ import { type ConsentOptInType, type CookieConsent, type CookieConsentData } fro
 import { AnalyticsState } from './state'
 
 export function getCookieConsent(): CookieConsentData | undefined {
-	// Check for legacy cookie first and migrate
+	// Check new cookie format first - takes precedence
+	const cookieValue = Cookies.get(CONSENT_COOKIE_NAME)
+	if (cookieValue) {
+		// Parse JSON format
+		try {
+			const parsed = JSON.parse(cookieValue)
+			if (parsed.consent && parsed.optInType) {
+				// Clean up legacy cookie if it exists
+				Cookies.remove(LEGACY_CONSENT_COOKIE_NAME)
+				return parsed as CookieConsentData
+			}
+		} catch {
+			// Invalid JSON - fall through to legacy check
+		}
+	}
+
+	// Check for legacy cookie and migrate
 	const legacyCookieValue = Cookies.get(LEGACY_CONSENT_COOKIE_NAME)
 	if (legacyCookieValue) {
 		let migrated: CookieConsentData | undefined
@@ -21,20 +37,6 @@ export function getCookieConsent(): CookieConsentData | undefined {
 			Cookies.remove(LEGACY_CONSENT_COOKIE_NAME)
 			return migrated
 		}
-	}
-
-	// Check new cookie format
-	const cookieValue = Cookies.get(CONSENT_COOKIE_NAME)
-	if (!cookieValue) return undefined
-
-	// Parse JSON format
-	try {
-		const parsed = JSON.parse(cookieValue)
-		if (parsed.consent && parsed.optInType) {
-			return parsed as CookieConsentData
-		}
-	} catch {
-		// Invalid JSON
 	}
 
 	return undefined
