@@ -5,7 +5,11 @@ import { posthogService } from './analytics-services/posthog'
 import { reoService } from './analytics-services/reo'
 import { mountCookieConsentBanner } from './components/CookieConsentBanner'
 import { mountPrivacySettingsDialog } from './components/PrivacySettingsDialog'
-import { CookieConsentState, getCookieValue, setCookieValue } from './state/cookie-consent-state'
+import {
+	CookieConsentState,
+	getCookieConsent,
+	setOrClearCookieConsent,
+} from './state/cookie-consent-state'
 import { ThemeState } from './state/theme-state'
 import styles from './styles.css?inline'
 import { ConsentPreferences, CookieConsent } from './types'
@@ -61,7 +65,7 @@ class Analytics {
 		// Subscribe to consent changes
 		cookieConsentState.subscribe((consent) => {
 			// Set (or clear) the cookie value
-			setCookieValue(consent, this.consentOptInType)
+			setOrClearCookieConsent(consent, this.consentOptInType)
 
 			const consentState = cookieConsentToPreferences(consent, this.consentOptInType)
 
@@ -139,7 +143,7 @@ class Analytics {
 		// Now that we have our subscriber set up, determine the initial consent state.
 		// If the user has already made a choice (cookie exists), use that.
 		// Otherwise, check their location to determine if we need explicit consent.
-		const cookieData = getCookieValue()
+		const cookieData = getCookieConsent()
 		let initialConsent: CookieConsent
 
 		if (cookieData) {

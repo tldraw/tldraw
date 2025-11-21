@@ -3,7 +3,7 @@ import { CONSENT_COOKIE_NAME, LEGACY_CONSENT_COOKIE_NAME } from '../constants'
 import { type ConsentOptInType, type CookieConsent, type CookieConsentData } from '../types'
 import { AnalyticsState } from './state'
 
-export function getCookieValue(): CookieConsentData | undefined {
+export function getCookieConsent(): CookieConsentData | undefined {
 	// Check for legacy cookie first and migrate
 	const legacyCookieValue = Cookies.get(LEGACY_CONSENT_COOKIE_NAME)
 	if (legacyCookieValue) {
@@ -40,7 +40,7 @@ export function getCookieValue(): CookieConsentData | undefined {
 	return undefined
 }
 
-export function setCookieValue(consent: CookieConsent, optInType: ConsentOptInType): void {
+export function setOrClearCookieConsent(consent: CookieConsent, optInType: ConsentOptInType): void {
 	if (consent === 'unknown') {
 		Cookies.remove(CONSENT_COOKIE_NAME)
 	} else {
