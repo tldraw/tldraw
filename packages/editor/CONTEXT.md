@@ -53,7 +53,7 @@ The `@tldraw/editor` package is the foundational layer of tldraw - a minimal inf
 - Document data stored in `TLStore` (shapes, pages, assets, etc.)
 - Editor state (camera, selection, tools) stored separately
 - Derivations compute dependent values efficiently
-- History management with undo/redo support
+- Per-page history management with undo/redo support
 
 ### Tools and state system
 
@@ -113,7 +113,7 @@ The editor uses specialized managers for different concerns:
 - `EdgeScrollManager` - Auto-scroll at viewport edges during interactions
 - `FocusManager` - Focus state and keyboard event handling
 - `FontManager` - Font loading and management
-- `HistoryManager` - Undo/redo functionality
+- `HistoryManager` - Per-page undo/redo functionality
 - `ScribbleManager` - Brush/scribble interactions
 - `SnapManager` - Shape snapping during interactions
 - `TextManager` - Text measurement and rendering
@@ -249,7 +249,7 @@ The editor uses specialized managers for different concerns:
 - `src/lib/editor/managers/EdgeScrollManager.ts` - Auto-scroll functionality
 - `src/lib/editor/managers/FocusManager.ts` - Focus state management
 - `src/lib/editor/managers/FontManager.ts` - Font loading and management
-- `src/lib/editor/managers/HistoryManager.ts` - Undo/redo functionality
+- `src/lib/editor/managers/HistoryManager.ts` - Per-page undo/redo functionality
 - `src/lib/editor/managers/ScribbleManager.ts` - Brush interactions
 - `src/lib/editor/managers/SnapManager.ts` - Shape snapping
 - `src/lib/editor/managers/TextManager.ts` - Text measurement and rendering
