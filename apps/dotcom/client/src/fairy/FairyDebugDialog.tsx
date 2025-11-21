@@ -3,6 +3,7 @@ import {
 	AgentModelName,
 	ChatHistoryItem,
 	DEFAULT_MODEL_NAME,
+	FairyMemoryLevel,
 	PROMPT_PART_DEFINITIONS,
 } from '@tldraw/fairy-shared'
 import { ReactNode, useState } from 'react'
@@ -642,7 +643,10 @@ function ChatHistoryInspector({ agent }: { agent: FairyAgent }) {
 	}) {
 		return (
 			<>
-				<div className="fairy-debug-item">
+				<div
+					className="fairy-debug-item"
+					style={{ backgroundColor: getMemoryLevelColor(item.memoryLevel) }}
+				>
 					<KeyValuePair label="type" value={item.type} />
 					<KeyValuePair label="message" value={item.message} />
 					<KeyValuePair label="memoryLevel" value={item.memoryLevel} />
@@ -661,7 +665,10 @@ function ChatHistoryInspector({ agent }: { agent: FairyAgent }) {
 	}) {
 		return (
 			<>
-				<div className="fairy-debug-item">
+				<div
+					className="fairy-debug-item"
+					style={{ backgroundColor: getMemoryLevelColor(item.memoryLevel) }}
+				>
 					<KeyValuePair label="type" value={item.type} />
 					<KeyValuePair label="action" value={item.action} />
 					<KeyValuePair label="acceptance" value={item.acceptance} />
@@ -682,7 +689,10 @@ function ChatHistoryInspector({ agent }: { agent: FairyAgent }) {
 	}) {
 		return (
 			<>
-				<div className="fairy-debug-item">
+				<div
+					className="fairy-debug-item"
+					style={{ backgroundColor: getMemoryLevelColor(item.memoryLevel) }}
+				>
 					<KeyValuePair label="type" value={item.type} />
 					<KeyValuePair label="data" value={item.data} />
 					<KeyValuePair label="memoryLevel" value={item.memoryLevel} />
@@ -701,7 +711,10 @@ function ChatHistoryInspector({ agent }: { agent: FairyAgent }) {
 	}) {
 		return (
 			<>
-				<div className="fairy-debug-item">
+				<div
+					className="fairy-debug-item"
+					style={{ backgroundColor: getMemoryLevelColor(item.memoryLevel) }}
+				>
 					<KeyValuePair label="type" value={item.type} />
 					<KeyValuePair label="memoryLevel" value={item.memoryLevel} />
 					<KeyValuePair label="message" value={item.message} />
@@ -713,6 +726,22 @@ function ChatHistoryInspector({ agent }: { agent: FairyAgent }) {
 }
 
 // # Utility functions
+
+/**
+ * Returns a background color for a given memory level.
+ */
+function getMemoryLevelColor(memoryLevel: FairyMemoryLevel): string {
+	switch (memoryLevel) {
+		case 'fairy':
+			return 'rgba(147, 51, 234, 0.1)' // Light purple
+		case 'project':
+			return 'rgba(59, 130, 246, 0.1)' // Light blue
+		case 'task':
+			return 'rgba(34, 197, 94, 0.1)' // Light green
+		default:
+			return 'transparent'
+	}
+}
 
 /**
  * Logs all prompt part definitions ranked by priority.
