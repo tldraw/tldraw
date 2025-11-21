@@ -1,5 +1,5 @@
 export const DEFAULT_MODEL_NAME =
-	(process.env.FAIRY_MODEL as AgentModelName | undefined) ?? 'claude-4.5-sonnet' // 'gemini-3-pro-preview'
+	(process.env.FAIRY_MODEL as AgentModelName | undefined) ?? 'gemini-3-pro-preview'
 
 export type AgentModelProvider = 'openai' | 'anthropic' | 'google'
 

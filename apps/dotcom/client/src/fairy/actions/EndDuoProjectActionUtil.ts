@@ -13,6 +13,7 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 			icon: 'note' as const,
 			description: action.complete ? 'Ended duo project' : 'Ending duo project...',
 			pose: 'thinking' as const,
+			canGroup: () => false,
 		}
 	}
 
@@ -38,7 +39,7 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 					...prev,
 					{
 						type: 'memory-transition',
-						memoryLevel: 'project',
+						memoryLevel: 'fairy',
 						message: `I collaborated with my partner and completed the "${project.title}" duo project`,
 					},
 				])
@@ -48,12 +49,14 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 					(task) => task.assignedTo === memberAgent.id
 				)
 				if (partnerCompletedTasks.length > 0) {
+					const count = partnerCompletedTasks.length
+					const taskWord = count === 1 ? 'task' : 'tasks'
 					memberAgent.$chatHistory.update((prev) => [
 						...prev,
 						{
 							type: 'memory-transition',
-							memoryLevel: 'project',
-							message: `I completed ${partnerCompletedTasks.length} tasks as part of the "${project.title}" duo project with my partner`,
+							memoryLevel: 'fairy',
+							message: `I completed ${count} ${taskWord} as part of the "${project.title}" duo project with my partner`,
 						},
 					])
 				}

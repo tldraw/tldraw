@@ -25,6 +25,7 @@ export const fairyMessages = defineMessages({
 	askForHelp: { defaultMessage: 'Ask for help' },
 	customizeFairy: { defaultMessage: 'Customize fairy' },
 	deleteFairy: { defaultMessage: 'Delete fairy' },
+	disbandGroup: { defaultMessage: 'Disband group' },
 
 	// Task list menu (labels)
 	askForHelpFromEveryone: { defaultMessage: 'Ask for help' },

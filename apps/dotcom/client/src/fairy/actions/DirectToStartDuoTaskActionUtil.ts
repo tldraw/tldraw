@@ -23,6 +23,7 @@ export class DirectToStartDuoTaskActionUtil extends AgentActionUtil<DirectToStar
 		return {
 			icon: 'pencil' as const,
 			description: text,
+			canGroup: () => false,
 		}
 	}
 

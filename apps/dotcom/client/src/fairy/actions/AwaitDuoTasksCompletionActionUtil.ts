@@ -15,6 +15,7 @@ export class AwaitDuoTasksCompletionActionUtil extends AgentActionUtil<AwaitDuoT
 				? `Waiting for ${taskCount} duo task${taskCount === 1 ? '' : 's'} to complete`
 				: 'Setting up wait conditions...',
 			pose: 'thinking' as const,
+			canGroup: () => false,
 		}
 	}
 

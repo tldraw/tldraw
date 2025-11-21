@@ -23,6 +23,7 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 		return {
 			icon: 'pencil' as const,
 			description: text,
+			canGroup: () => false,
 		}
 	}
 

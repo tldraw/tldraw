@@ -91,34 +91,12 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 			shouldBeSelected = intersects
 		}
 
-		// Update selection state if it changed
-		const currentlySelected = fairyEntity.isSelected
-		if (shouldBeSelected !== currentlySelected) {
+		// Update selection state, only if it should be true.
+		// You can't deselect a fairy on the canvas.
+		if (shouldBeSelected) {
 			fairy.update((f) => (f ? { ...f, isSelected: shouldBeSelected } : f))
 		}
 	}, [brush, fairy, editor])
-
-	useEffect(() => {
-		// Deselect fairy when clicking outside
-		const handleClickOutside = (e: PointerEvent) => {
-			if (
-				fairyRef.current &&
-				e.target instanceof HTMLElement &&
-				!fairyRef.current.contains(e.target) &&
-				!e.target.closest('.tla-fairy-hud')
-			) {
-				fairy.update((f) => (f ? { ...f, isSelected: false } : f))
-			}
-		}
-
-		if (isSelected) {
-			document.addEventListener('pointerdown', handleClickOutside)
-		}
-
-		return () => {
-			document.removeEventListener('pointerdown', handleClickOutside)
-		}
-	}, [isSelected, fairy])
 
 	// Fairy dragging
 	// Handle fairy pointer down, we don't enter fairy throw tool until the user actually moves their mouse
