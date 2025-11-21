@@ -1,6 +1,6 @@
 import { MAX_FAIRY_COUNT } from '@tldraw/dotcom-shared'
 import { useState } from 'react'
-import { useValue } from 'tldraw'
+import { Spinner, useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { F, useIntl } from '../../../utils/i18n'
 import { customFeatureFlags } from '../../TlaEditor/TlaEditor'
@@ -38,9 +38,33 @@ export function TlaSidebarFairyCheckoutLink() {
 	const app = useApp()
 	const intl = useIntl()
 	const [showDropdown, setShowDropdown] = useState(false)
+	const [paddleLoaded, setPaddleLoaded] = useState(false)
 
 	// Check if fairy feature is enabled via debug flag
 	const fairyEnabled = useValue('fairy_enabled', () => customFeatureFlags.fairies.get(), [])
+
+	// Load Paddle script
+	const loadPaddleScript = () => {
+		if (paddleLoaded) return
+
+		// Check if script already exists
+		if (window.Paddle) {
+			setPaddleLoaded(true)
+			return
+		}
+
+		const script = document.createElement('script')
+		script.src = 'https://cdn.paddle.com/paddle/v2/paddle.js'
+		script.async = true
+		script.onload = () => {
+			setPaddleLoaded(true)
+		}
+		script.onerror = () => {
+			console.error('Failed to load Paddle script')
+		}
+
+		document.head.appendChild(script)
+	}
 
 	// Show button if user doesn't have max fairies yet (allow upsells)
 	const user = useValue('user', () => app.getUser(), [app])
@@ -71,9 +95,9 @@ export function TlaSidebarFairyCheckoutLink() {
 			return
 		}
 
-		// Initialize Paddle if not already initialized
-		if (!window.Paddle) {
-			console.error('Paddle.js not loaded')
+		// Wait for Paddle to load
+		if (!paddleLoaded || !window.Paddle) {
+			console.error('Paddle.js not loaded yet')
 			return
 		}
 
@@ -141,6 +165,7 @@ export function TlaSidebarFairyCheckoutLink() {
 		<div className={styles.sidebarDotDevLink}>
 			<button
 				data-testid="tla-sidebar-fairy-checkout"
+				onMouseEnter={loadPaddleScript}
 				onClick={handleClick}
 				className={styles.sidebarFairyCheckoutButton}
 			>
@@ -156,31 +181,39 @@ export function TlaSidebarFairyCheckoutLink() {
 
 			{showDropdown && (
 				<div className={styles.sidebarFairyCheckoutDropdown}>
-					{availableQuantities.map((quantity) => (
-						<button
-							key={quantity}
-							onClick={() => setSelectedQuantity(quantity)}
-							className={styles.sidebarFairyCheckoutQuantityOption}
-							data-selected={quantity === selectedQuantity}
-						>
-							<span>
-								{intl.formatMessage(
-									{
-										defaultMessage: '{count, plural, one {# fairy} other {# fairies}}',
-									},
-									{ count: quantity }
-								)}
-							</span>
-							{quantity === 3 && availableQuantities.includes(3) && (
-								<span className={styles.sidebarFairyCheckoutQuantityOptionBadge}>
-									<F defaultMessage="Recommended" />
-								</span>
-							)}
-						</button>
-					))}
-					<button onClick={handlePurchase} className={styles.sidebarFairyCheckoutProceedButton}>
-						<F defaultMessage="Continue to checkout" />
-					</button>
+					{paddleLoaded ? (
+						<>
+							{availableQuantities.map((quantity) => (
+								<button
+									key={quantity}
+									onClick={() => setSelectedQuantity(quantity)}
+									className={styles.sidebarFairyCheckoutQuantityOption}
+									data-selected={quantity === selectedQuantity}
+								>
+									<span>
+										{intl.formatMessage(
+											{
+												defaultMessage: '{count, plural, one {# fairy} other {# fairies}}',
+											},
+											{ count: quantity }
+										)}
+									</span>
+									{quantity === 3 && availableQuantities.includes(3) && (
+										<span className={styles.sidebarFairyCheckoutQuantityOptionBadge}>
+											<F defaultMessage="Recommended" />
+										</span>
+									)}
+								</button>
+							))}
+							<button onClick={handlePurchase} className={styles.sidebarFairyCheckoutProceedButton}>
+								<F defaultMessage="Continue to checkout" />
+							</button>
+						</>
+					) : (
+						<div className={styles.sidebarFairyCheckoutLoading}>
+							<Spinner />
+						</div>
+					)}
 				</div>
 			)}
 		</div>

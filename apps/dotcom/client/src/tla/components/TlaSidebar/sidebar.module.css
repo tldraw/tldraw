@@ -788,6 +788,13 @@
 	font-weight: bold;
 }
 
+.sidebarFairyCheckoutLoading {
+	padding: 24px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
 .sidebarDotDevDismissButton div {
 	width: 12px;
 	height: 12px;
