@@ -231,9 +231,28 @@ export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persis
 /* ----------------------- Fairy Access ---------------------- */
 
 /**
- * Check if a user has active fairy access based on their fairyAccessExpiresAt timestamp
+ * Check if a user has active fairy access.
+ * - @tldraw.com emails with verified status have permanent access
+ * - Other users need non-expired fairyAccessExpiresAt
  */
-export function hasActiveFairyAccess(fairyAccessExpiresAt: number | null | undefined): boolean {
+export function hasActiveFairyAccess(
+	clerkUser: {
+		primaryEmailAddress?: {
+			emailAddress: string
+			verification?: { status: string | null } | null
+		} | null
+	},
+	fairyAccessExpiresAt: number | null | undefined
+): boolean {
+	// Check if @tldraw.com email with verified status
+	if (
+		clerkUser.primaryEmailAddress?.emailAddress.endsWith('@tldraw.com') &&
+		clerkUser.primaryEmailAddress?.verification?.status === 'verified'
+	) {
+		return true
+	}
+
+	// Check if user has non-expired access
 	return (
 		fairyAccessExpiresAt !== null &&
 		fairyAccessExpiresAt !== undefined &&

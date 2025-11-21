@@ -1,3 +1,4 @@
+import { useUser } from '@clerk/clerk-react'
 import { hasActiveFairyAccess } from '@tldraw/dotcom-shared'
 import { useState } from 'react'
 import {
@@ -21,12 +22,14 @@ export function TlaFairyInviteDialog({
 	onClose(): void
 }) {
 	const app = useMaybeApp()
+	const { user: clerkUser } = useUser()
 	const [isAccepting, setIsAccepting] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 
 	// Check if user already has active fairy access
 	const user = app?.getUser()
-	const userHasActiveFairyAccess = hasActiveFairyAccess(user?.fairyAccessExpiresAt)
+	const userHasActiveFairyAccess =
+		clerkUser && user ? hasActiveFairyAccess(clerkUser, user.fairyAccessExpiresAt) : false
 
 	return (
 		<>

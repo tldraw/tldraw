@@ -1,20 +1,23 @@
+import { useUser } from '@clerk/clerk-react'
 import { hasActiveFairyAccess } from '@tldraw/dotcom-shared'
 import { useValue } from 'tldraw'
 import { useApp } from './useAppState'
 
 /**
  * Hook that returns whether the current user has active fairy access.
- * Checks if the user's fairy access has not expired.
+ * Checks if the user's fairy access has not expired and if @tldraw.com email is verified.
  */
 export function useFairyAccess(): boolean {
 	const app = useApp()
+	const { user: clerkUser } = useUser()
 	return useValue(
 		'fairy_access',
 		() => {
+			if (!clerkUser) return false
 			const user = app.getUser()
-			return hasActiveFairyAccess(user?.fairyAccessExpiresAt)
+			return hasActiveFairyAccess(clerkUser, user?.fairyAccessExpiresAt)
 		},
-		[app]
+		[app, clerkUser]
 	)
 }
 

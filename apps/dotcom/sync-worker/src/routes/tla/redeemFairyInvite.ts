@@ -3,7 +3,7 @@ import { IRequest } from 'itty-router'
 import { FAIRY_WORLDWIDE_EXPIRATION } from '../../config'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
-import { requireAuth } from '../../utils/tla/getAuth'
+import { getClerkClient, requireAuth } from '../../utils/tla/getAuth'
 
 export async function redeemFairyInvite(request: IRequest, env: Environment): Promise<Response> {
 	const auth = await requireAuth(request, env)
@@ -13,6 +13,9 @@ export async function redeemFairyInvite(request: IRequest, env: Environment): Pr
 	if (!inviteCode || typeof inviteCode !== 'string') {
 		return Response.json({ error: 'Invalid invite code' }, { status: 400 })
 	}
+
+	// Get Clerk user for access check
+	const clerkUser = await getClerkClient(env).users.getUser(auth.userId)
 
 	const db = createPostgresConnectionPool(env, 'redeemFairyInvite')
 
@@ -45,7 +48,7 @@ export async function redeemFairyInvite(request: IRequest, env: Environment): Pr
 			const expiresAt = FAIRY_WORLDWIDE_EXPIRATION
 
 			// If user already has active fairy access, don't modify anything
-			if (hasActiveFairyAccess(existingFairies?.fairyAccessExpiresAt)) {
+			if (hasActiveFairyAccess(clerkUser, existingFairies?.fairyAccessExpiresAt)) {
 				return Response.json({
 					success: true,
 					fairyLimit: invite.fairyLimit,
