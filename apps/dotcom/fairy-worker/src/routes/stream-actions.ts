@@ -18,6 +18,7 @@ export async function streamActionsHandler(request: AuthenticatedRequest, env: E
 		headers: {
 			'Content-Type': 'application/json',
 			'X-Is-Admin': request.isAdmin.toString(),
+			'X-Has-Fairy-Access': request.hasFairyAccess.toString(),
 		},
 		body: bodyText, // Pass the string, not the consumed stream
 	})

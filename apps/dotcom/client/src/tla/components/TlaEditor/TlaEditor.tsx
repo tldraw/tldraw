@@ -298,8 +298,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		agentsRef.current = agents
 	}, [agents])
 
+	const emailAddress = user?.clerkUser.emailAddresses[0].emailAddress ?? ''
+	const hasFairyAccess = !!user?.isTldraw || ['jake@firstloop.ai'].includes(emailAddress)
+
 	const instanceComponents = useMemo((): TLComponents => {
-		const canShowFairies = app && agents && hasFairiesFlag && (!!user?.isTldraw || isDevelopmentEnv)
+		const canShowFairies = app && agents && hasFairiesFlag && (hasFairyAccess || isDevelopmentEnv)
 
 		return {
 			...components,
@@ -325,10 +328,10 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				</>
 			),
 			DebugMenu: () => (
-				<CustomDebugMenu showFairyFeatureFlags={!!user?.isTldraw || isDevelopmentEnv} />
+				<CustomDebugMenu showFairyFeatureFlags={hasFairyAccess || isDevelopmentEnv} />
 			),
 		}
-	}, [agents, hasFairiesFlag, user?.isTldraw, app])
+	}, [agents, hasFairiesFlag, hasFairyAccess, app])
 
 	return (
 		<TlaEditorWrapper>
