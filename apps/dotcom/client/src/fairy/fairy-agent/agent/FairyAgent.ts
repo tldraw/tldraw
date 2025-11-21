@@ -21,7 +21,7 @@ import {
 	FairyWaitEvent,
 	FairyWork,
 	getFairyModeDefinition,
-	getModelPricing,
+	getModelPricingInfo,
 	ModelNamePart,
 	PromptPart,
 	Streaming,
@@ -383,25 +383,25 @@ export class FairyAgent {
 			const typedModelName = modelName as AgentModelName
 
 			// Calculate cost for tier 1 (≤ 200K tokens)
-			const tier1Pricing = getModelPricing(typedModelName, 200_000)
+			const tier1Pricing = getModelPricingInfo(typedModelName, 200_000)
 			const tier1UncachedInputTokens = usage.tier1.promptTokens - usage.tier1.cachedInputTokens
 			const tier1UncachedInputCost =
-				(tier1UncachedInputTokens / 1_000_000) * tier1Pricing.inputPrice
+				(tier1UncachedInputTokens / 1_000_000) * tier1Pricing.uncachedInputPrice
 			const tier1CachedInputCost =
-				tier1Pricing.cachedInputPrice !== null
-					? (usage.tier1.cachedInputTokens / 1_000_000) * tier1Pricing.cachedInputPrice
+				tier1Pricing.cacheReadInputPrice !== null
+					? (usage.tier1.cachedInputTokens / 1_000_000) * tier1Pricing.cacheReadInputPrice
 					: 0
 			const tier1InputCost = tier1UncachedInputCost + tier1CachedInputCost
 			const tier1OutputCost = (usage.tier1.completionTokens / 1_000_000) * tier1Pricing.outputPrice
 
 			// Calculate cost for tier 2 (> 200K tokens)
-			const tier2Pricing = getModelPricing(typedModelName, 200_001)
+			const tier2Pricing = getModelPricingInfo(typedModelName, 200_001)
 			const tier2UncachedInputTokens = usage.tier2.promptTokens - usage.tier2.cachedInputTokens
 			const tier2UncachedInputCost =
-				(tier2UncachedInputTokens / 1_000_000) * tier2Pricing.inputPrice
+				(tier2UncachedInputTokens / 1_000_000) * tier2Pricing.uncachedInputPrice
 			const tier2CachedInputCost =
-				tier2Pricing.cachedInputPrice !== null
-					? (usage.tier2.cachedInputTokens / 1_000_000) * tier2Pricing.cachedInputPrice
+				tier2Pricing.cacheReadInputPrice !== null
+					? (usage.tier2.cachedInputTokens / 1_000_000) * tier2Pricing.cacheReadInputPrice
 					: 0
 			const tier2InputCost = tier2UncachedInputCost + tier2CachedInputCost
 			const tier2OutputCost = (usage.tier2.completionTokens / 1_000_000) * tier2Pricing.outputPrice

@@ -18,7 +18,11 @@ import { buildMessages } from '../prompt/buildMessages'
 import { buildSystemPrompt, buildSystemPromptWithoutSchema } from '../prompt/buildSystemPrompt'
 import { getModelName } from '../prompt/getModelName'
 import { closeAndParseJson } from './closeAndParseJson'
-import { getAgentModelDefinition } from './models'
+import {
+	getAgentModelDefinition,
+	getGenerationCostFromUsageAndMetaData,
+	isAgentModelName,
+} from './models'
 
 export class AgentService {
 	openai: OpenAIProvider
@@ -141,10 +145,6 @@ async function* _streamText(
 			if (signal?.aborted) break
 			yield text
 		}
-
-		// After streaming is complete, get usage information
-		await result.usage
-		// Note: Usage is tracked but not currently logged for text streams
 	} catch (error: any) {
 		if (signal?.aborted || error?.name === 'AbortError') {
 			return
@@ -187,15 +187,25 @@ async function* _streamActions(
 		throw new Error('Model is a string, not a LanguageModel')
 	}
 
+	const { modelId, provider } = model
+	if (!isAgentModelName(modelId)) {
+		throw new Error(`Model ${modelId} is not in AGENT_MODEL_DEFINITIONS`)
+	}
+
+	if (provider === 'openai.responses') {
+		console.warn(
+			'Using openai will severely undercount token usage because it only gets usage for the last prompt in a loop. Not sure why this happens.'
+		)
+	}
+
 	// -1 means dynamic budget
 	// 128 is minimum for 2.5 pro - we're not sure if this is too low
-	const geminiThinkingBudget =
-		model.modelId === 'gemini-2.5-pro' || model.modelId === 'gemini-3-pro-preview' ? 256 : 0
+	const geminiThinkingBudget = modelId === 'gemini-3-pro-preview' ? 256 : 0
 
-	const gptThinkingBudget = model.modelId === 'gpt-5.1' ? 'none' : 'minimal'
+	const gptThinkingBudget = modelId === 'gpt-5.1' ? 'none' : 'minimal'
 
 	const formattedSystemPrompt =
-		model.provider === 'anthropic.messages'
+		provider === 'anthropic.messages'
 			? buildFormattedSystemPromptWithAnthropicCacheBreakpoint(buildSystemPrompt(prompt))
 			: buildFormattedSystemPrompt(buildSystemPrompt(prompt))
 
@@ -245,10 +255,19 @@ async function* _streamActions(
 				console.error('Stream text error:', e)
 				throw e
 			},
+			onFinish: (e) => {
+				const { usage, providerMetadata } = e
+				if (providerMetadata) {
+					console.warn(
+						'Cost for generation: $',
+						getGenerationCostFromUsageAndMetaData(modelId, usage, providerMetadata).toFixed(2)
+					)
+				}
+			},
 		})
 
 		const canForceResponseStart =
-			model.provider === 'anthropic.messages' || model.provider === 'google.generative-ai'
+			provider === 'anthropic.messages' || provider === 'google.generative-ai'
 		let buffer = canForceResponseStart ? '{"actions": [{"_type":' : ''
 		let cursor = 0
 		let maybeIncompleteAction: AgentAction | null = null
@@ -309,7 +328,6 @@ async function* _streamActions(
 			}
 		}
 
-		// After streaming is complete, get usage information and yield it (only for admins)
 		if (isAdmin) {
 			const usage = await result.usage
 			const providerMetadata = await result.providerMetadata
