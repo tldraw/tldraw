@@ -12,6 +12,7 @@ import { FairyAgent, getFollowingFairyId } from './fairy-agent/agent/FairyAgent'
 import { $fairyAgentsAtom } from './fairy-agent/agent/fairyAgentsAtom'
 import { fairyMessages } from './fairy-messages'
 import { FairyConfigDialog } from './FairyConfigDialog'
+import { FairyDebugDialog } from './FairyDebugDialog'
 import { $fairyProjects, deleteProject } from './FairyProjects'
 
 export function FairyMenuContent({
@@ -23,6 +24,7 @@ export function FairyMenuContent({
 }) {
 	const editor = useEditor()
 	const { addDialog } = useDefaultHelpers()
+	const agents = useValue('fairy-agents', () => $fairyAgentsAtom.get(editor), [editor])
 	const configureFairy = useCallback(
 		(agent: FairyAgent) => {
 			addDialog({
@@ -61,6 +63,7 @@ export function FairyMenuContent({
 	const customizeFairyLabel = useMsg(fairyMessages.customizeFairy)
 	const deleteFairyLabel = useMsg(fairyMessages.deleteFairy)
 	const disbandGroupLabel = useMsg(fairyMessages.disbandGroup)
+	const debugViewLabel = useMsg(fairyMessages.debugView)
 
 	const projects = useValue($fairyProjects)
 	const currentProject = useMemo(() => {
@@ -84,6 +87,12 @@ export function FairyMenuContent({
 
 		deleteProject(currentProject.id)
 	}, [currentProject, editor])
+
+	const openDebugDialog = useCallback(() => {
+		addDialog({
+			component: ({ onClose }) => <FairyDebugDialog agents={agents} onClose={onClose} />,
+		})
+	}, [addDialog, agents])
 
 	if (canDisbandGroup && currentProject) {
 		return (
@@ -120,6 +129,7 @@ export function FairyMenuContent({
 					label={customizeFairyLabel}
 				/>
 				<TldrawUiMenuItem id="delete-fairy" onSelect={deleteFairy} label={deleteFairyLabel} />
+				<TldrawUiMenuItem id="debug-fairies" onSelect={openDebugDialog} label={debugViewLabel} />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuContextProvider>
 	)
