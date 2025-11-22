@@ -46,17 +46,19 @@ function _buildSystemPrompt(prompt: AgentPrompt, withSchema: boolean): string {
 	const availableParts = modeDefinition.parts(work)
 	const flags = getSystemPromptFlags(mode, availableActions, availableParts)
 
-	const out = [
+	const lines = [
 		buildIntroPromptSection(flags),
 		buildRulesPromptSection(flags),
 		buildModePromptSection(flags),
 	]
 
 	if (withSchema) {
-		out.push(buildSchemaPromptSection(availableActions))
+		lines.push(buildSchemaPromptSection(availableActions))
 	}
 
-	return normalizeNewlines(out.join('\n'))
+	const result = normalizeNewlines(lines.join('\n'))
+
+	return result
 }
 
 function buildModePromptSection(flags: SystemPromptFlags) {
@@ -85,12 +87,8 @@ ${JSON.stringify(buildResponseSchema(actions), null, 2)}
 }
 
 function normalizeNewlines(text: string): string {
-	// Step 1: Replace 3+ consecutive newlines with exactly 2 newlines
-	let result = text.replace(/\n{3,}/g, '\n\n')
-
-	// Step 2: Replace 2 newlines with 1 newline between lines that both start with hyphen
-	// This keeps list items together without extra blank lines
-	result = result.replace(/(^|\n)(\s*-[^\n]*)\n\n(?=\s*-)/g, '$1$2\n')
-
-	return result
+	while (text.includes('\n\n\n')) {
+		text = text.replace('\n\n\n', '\n\n')
+	}
+	return text
 }
