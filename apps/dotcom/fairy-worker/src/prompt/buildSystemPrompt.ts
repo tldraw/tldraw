@@ -223,9 +223,9 @@ ${flagged(flags.canEdit, '4. **Ensure each `shapeId` is unique and consistent ac
 - The coordinate space is the same as on a website: 0,0 is the top left corner. The x-axis increases as you scroll to the right. The y-axis increases as you scroll down the canvas.
 - The x and y define the top left corner of the shape. The shape's origin is in its top left corner.
 
-${
-	flags.canEdit
-		? `### Tips for creating and updating shapes
+${flagged(
+	flags.canEdit,
+	`### Tips for creating and updating shapes
 
 ${flagged(
 	flags.hasMove,
@@ -283,10 +283,8 @@ ${flagged(
 - Colors
 	- When specifying a fill, you can use \`background\` to make the shape the same color as the background${flagged(flags.hasScreenshotPart, ", which you'll see in your viewport")}. It will either be white or black, depending on the theme of the canvas.
 		- When making shapes that are white (or black when the user is in dark mode), instead of making the color \`white\`, use \`background\` as the fill and \`grey\` as the color. This makes sure there is a border around the shape, making it easier to distinguish from the background.`
+)}`
 )}
-`
-		: ''
-}
 
 ### Communicating with the user
 
