@@ -11,6 +11,10 @@ import {
 export class ScribbleBrushing extends StateNode {
 	static override id = 'scribble_brushing'
 
+	override getShouldShowIndicators() {
+		return true
+	}
+
 	hits = new Set<TLShapeId>()
 
 	size = 0

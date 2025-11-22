@@ -15,6 +15,10 @@ export class PointingHandle extends StateNode {
 
 	info = {} as TLPointerEventInfo & { target: 'handle' }
 
+	override getShouldShowIndicators() {
+		return true
+	}
+
 	override onEnter(info: TLPointerEventInfo & { target: 'handle' }) {
 		this.info = info
 
