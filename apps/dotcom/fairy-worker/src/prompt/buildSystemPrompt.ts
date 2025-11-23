@@ -15,28 +15,19 @@ import { buildWorkingModePromptSection } from './sections/working-mode'
 /**
  * Build a system prompt from all of the prompt parts.
  *
- * If you want to bypass the `PromptPartUtil` system, replace this function with
- * one that returns a hardcoded value.
- *
  * @param prompt - The prompt to build a system prompt for.
+ * @param opts - The options for building the system prompt.
+ * @param opts.withSchema - Whether to include the JSON schema in the system prompt.
  * @returns The system prompt.
  */
-export function buildSystemPrompt(prompt: AgentPrompt): string {
-	return _buildSystemPrompt(prompt, true)
-}
+export function buildSystemPrompt(
+	prompt: AgentPrompt,
+	opts: {
+		withSchema: boolean
+	}
+): string {
+	const { withSchema = false } = opts
 
-/**
- * Get the system prompt without the JSON schema appended.
- * This is useful for debugging/logging purposes.
- *
- * @param prompt - The prompt to build a system prompt for.
- * @returns The system prompt without the schema.
- */
-export function buildSystemPromptWithoutSchema(prompt: AgentPrompt): string {
-	return _buildSystemPrompt(prompt, false)
-}
-
-function _buildSystemPrompt(prompt: AgentPrompt, withSchema: boolean): string {
 	const modePart = prompt.mode
 	if (!modePart) throw new Error('A mode part is always required.')
 	const { mode, work } = modePart

@@ -9,7 +9,7 @@ export class PersonalTodoListActionUtil extends AgentActionUtil<PersonalTodoList
 			return {
 				icon: 'note' as const,
 				description: 'Updating personal todo list...',
-				pose: 'thinking' as const,
+				pose: 'writing' as const,
 			}
 		}
 
@@ -17,13 +17,13 @@ export class PersonalTodoListActionUtil extends AgentActionUtil<PersonalTodoList
 			return {
 				icon: 'note' as const,
 				description: `Updated personal todo item ${action.id} with status "${action.status}"`,
-				pose: 'thinking' as const,
+				pose: 'writing' as const,
 			}
 		} else {
 			return {
 				icon: 'note' as const,
 				description: `Created new personal todo item: "${action.text}"`,
-				pose: 'thinking' as const,
+				pose: 'writing' as const,
 			}
 		}
 	}

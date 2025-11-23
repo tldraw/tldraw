@@ -14,7 +14,7 @@ export class StartDuoTaskActionUtil extends AgentActionUtil<StartDuoTaskAction> 
 			description: action.complete
 				? `Started duo task: ${task?.text ?? action.taskId}`
 				: 'Starting duo task...',
-			pose: 'thinking' as const,
+			pose: 'reading' as const,
 			canGroup: () => false,
 		}
 	}

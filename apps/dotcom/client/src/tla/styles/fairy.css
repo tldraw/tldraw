@@ -69,70 +69,14 @@
 	pointer-events: auto;
 }
 
-/* Fairy Square */
-
-.fairy-selected {
-	position: relative;
-}
-
-.fairy-selected::before,
-.fairy-selected::after,
-div:not(.fairy-sidebar-group) > .fairy-toggle-button[data-isactive='true']::before,
-div:not(.fairy-sidebar-group) > .fairy-toggle-button[data-isactive='true']::after,
-.fairy-sidebar-group[data-is-active='true']::before,
-.fairy-sidebar-group[data-is-active='true']::after {
-	content: '';
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	top: 0;
-	left: 0;
-	border: 2px solid var(--tl-color-primary);
-	border-radius: 2px;
-	pointer-events: none;
-}
-
-.fairy-selected::before,
-div:not(.fairy-sidebar-group) > .fairy-toggle-button[data-isactive='true']::before,
-.fairy-sidebar-group[data-is-active='true']::before {
-	clip-path: polygon(
-		0 0,
-		12px 0,
-		12px 2px,
-		2px 2px,
-		2px 12px,
-		0 12px,
-		0 100%,
-		12px 100%,
-		12px calc(100% - 2px),
-		2px calc(100% - 2px),
-		2px calc(100% - 12px),
-		0 calc(100% - 12px)
-	);
-}
-
-.fairy-selected::after,
-.fairy-toggle-button[data-isactive='true']::after,
-.fairy-sidebar-group[data-is-active='true']::after {
-	clip-path: polygon(
-		100% 0,
-		calc(100% - 12px) 0,
-		calc(100% - 12px) 2px,
-		calc(100% - 2px) 2px,
-		calc(100% - 2px) 12px,
-		100% 12px,
-		100% 100%,
-		calc(100% - 12px) 100%,
-		calc(100% - 12px) calc(100% - 2px),
-		calc(100% - 2px) calc(100% - 2px),
-		calc(100% - 2px) calc(100% - 12px),
-		100% calc(100% - 12px)
-	);
-}
-
 .fairy-toggle-button[data-isactive='true']::before,
 .fairy-toggle-button[data-isactive='true']::after {
 	transform: scale(0.9);
+}
+
+.fairy-leader-toggle {
+	position: relative;
+	width: 44px;
 }
 
 /* Fairy Input */
@@ -204,13 +148,6 @@ div:not(.fairy-sidebar-group) > .fairy-toggle-button[data-isactive='true']::befo
 .fairy-input__submit:disabled {
 	filter: grayscale(100%);
 	cursor: not-allowed;
-}
-
-.fairy-selected-corner {
-	position: absolute;
-	width: 10px;
-	height: 10px;
-	border: 0 solid var(--tl-color-primary);
 }
 
 .fairy-sprite {
@@ -1523,4 +1460,54 @@ div:not(.fairy-sidebar-group) > .fairy-toggle-button[data-isactive='true']::befo
 	/* font-size: 13px; */
 	color: var(--color-text);
 	user-select: none;
+}
+
+.fairy-sprite-container {
+	display: grid;
+	height: 100%;
+	width: 100%;
+	pointer-events: none;
+	user-select: none;
+	background: radial-gradient(circle at center, var(--tl-color-panel) 0%, transparent 70%);
+}
+
+.fairy-sprite-stack {
+	grid-area: 1 / 1;
+	place-self: center;
+	width: calc(100% - 8px);
+	height: calc(100% - 8px);
+	display: grid;
+	pointer-events: none;
+	user-select: none;
+}
+
+.fairy-sprite-stack .fairy-sprite {
+	grid-area: 1 / 1;
+	place-self: center;
+	width: 100%;
+	height: 100%;
+}
+
+.fairy-sprite-container > .fairy-selected-sprite {
+	grid-area: 1 / 1;
+	place-self: center;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	user-select: none;
+}
+
+.fairy-sprite-wrapper {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+.fairy-selected-sprite-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
 }

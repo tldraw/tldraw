@@ -14,7 +14,7 @@ export class StartSoloTaskActionUtil extends AgentActionUtil<StartSoloTaskAction
 			description: action.complete
 				? `Started task: ${task?.text ?? action.taskId}`
 				: 'Starting task...',
-			pose: 'thinking' as const,
+			pose: 'reading' as const,
 			canGroup: () => false,
 		}
 	}

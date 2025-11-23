@@ -254,7 +254,7 @@ export class FairyAgent {
 
 		this.$fairyEntity = atom<FairyEntity>(`fairy-${id}`, {
 			position: AgentHelpers.RoundVec(spawnPoint),
-			flipX: false,
+			flipX: Math.random() < 0.5,
 			isSelected: false,
 			pose: 'idle',
 			gesture: null,
@@ -1055,81 +1055,6 @@ export class FairyAgent {
 	}
 
 	/**
-	 * Request a text response from the model.
-	 * @param input - The input to form the request from.
-	 * @returns The text response from the model.
-	 */
-	async requestText(input: AgentInput) {
-		const request = this.getFullRequestFromInput(input)
-		const { fulltextPromise, cancel: _cancel } = requestAgentText({ agent: this, request })
-		return await fulltextPromise
-	}
-
-	/**
-	 * Stream a text response from the model.
-	 * Not to be called directly. Use `requestText` instead.
-	 * This is a helper function that is used internally by the agent.
-	 */
-	async *_streamText({
-		prompt,
-		signal,
-	}: {
-		prompt: BaseAgentPrompt
-		signal: AbortSignal
-	}): AsyncGenerator<string> {
-		const headers: HeadersInit = {
-			'Content-Type': 'application/json',
-		}
-
-		// Add authentication token if available
-		if (this.getToken) {
-			const token = await this.getToken()
-			if (token) {
-				headers['Authorization'] = `Bearer ${token}`
-			}
-		}
-
-		const res = await fetch(`${FAIRY_WORKER}/stream-text`, {
-			method: 'POST',
-			body: JSON.stringify(prompt),
-			headers,
-			signal,
-		})
-
-		if (!res.body) {
-			throw Error('No body in response')
-		}
-
-		const reader = res.body.getReader()
-		const decoder = new TextDecoder()
-		let buffer = ''
-
-		try {
-			while (true) {
-				const { value, done } = await reader.read()
-				if (done) break
-
-				buffer += decoder.decode(value, { stream: true })
-				const chunks = buffer.split('\n\n')
-				buffer = chunks.pop() || ''
-
-				for (const chunk of chunks) {
-					const match = chunk.match(/^data: (.+)$/m)
-					if (match) {
-						try {
-							yield match[1]
-						} catch (err: any) {
-							throw new Error(err.message)
-						}
-					}
-				}
-			}
-		} finally {
-			reader.releaseLock()
-		}
-	}
-
-	/**
 	 * A function that cancels the agent's current prompt, if one is active.
 	 */
 	private cancelFn: (() => void) | null = null
@@ -1450,43 +1375,6 @@ export class FairyAgent {
 	isFollowing() {
 		return getFollowingFairyId(this.editor) === this.id
 	}
-}
-
-/**
- * Send a request for a text response from the model and return its response.
- * Note: You probably want to setup a custom system prompt to get any use out of this.
- *
- * @returns A promise for the text response from the model and a function to cancel the request.
- */
-function requestAgentText({ agent, request }: { agent: FairyAgent; request: AgentRequest }) {
-	let cancelled = false
-	const controller = new AbortController()
-	const signal = controller.signal
-	const helpers = new AgentHelpers(agent)
-
-	const fulltextPromise = (async () => {
-		const prompt = await agent.preparePrompt(request, helpers)
-		let text = ''
-		try {
-			for await (const v of agent._streamText({ prompt, signal })) {
-				if (cancelled) break
-				text += v
-			}
-			return text
-		} catch (e) {
-			if (e === 'Cancelled by user' || (e instanceof Error && e.name === 'AbortError')) {
-				return
-			}
-			agent.onError(e)
-		}
-	})()
-
-	const cancel = () => {
-		cancelled = true
-		controller.abort('Cancelled by user')
-	}
-
-	return { fulltextPromise, cancel }
 }
 
 /**

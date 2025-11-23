@@ -13,7 +13,7 @@ export class CreateDuoTaskActionUtil extends AgentActionUtil<CreateDuoTaskAction
 		return {
 			icon: 'note' as const,
 			description: `${label}: ${action.text}`,
-			pose: 'thinking' as const,
+			pose: 'writing' as const,
 			canGroup: () => false,
 		}
 	}

@@ -2,7 +2,8 @@ import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { MouseEvent } from 'react'
 import { TldrawUiToolbarToggleGroup, TldrawUiToolbarToggleItem, useValue } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
-import { FairySpriteComponent } from './fairy-sprite/FairySprite'
+import { FairySpriteComponent2 } from './fairy-sprite/FairySprite2'
+import { SelectedSprite } from './fairy-sprite/sprites/SelectedSprite'
 import { FairyContextMenuContent } from './FairyContextMenuContent'
 import { getProjectColor } from './getProjectColor'
 
@@ -52,7 +53,19 @@ export function FairySidebarButton({
 						aria-label={fairyIsSelected ? deselectMessage : selectMessage}
 						value="on"
 					>
-						<FairySpriteComponent entity={fairyEntity} outfit={fairyOutfit} animated={true} />
+						<div className="fairy-sprite-wrapper">
+							<FairySpriteComponent2
+								showShadow
+								entity={fairyEntity}
+								outfit={fairyOutfit}
+								animated={false}
+							/>
+							{fairyIsSelected && (
+								<div className="fairy-selected-sprite-overlay">
+									<SelectedSprite />
+								</div>
+							)}
+						</div>
 						{projectColor && (
 							<div
 								className={`fairy-button-project-indicator ${isOrchestrator ? 'fairy-button-project-indicator--orchestrator' : ''}`}

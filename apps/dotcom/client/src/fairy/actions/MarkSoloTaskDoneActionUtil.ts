@@ -14,7 +14,7 @@ export class MarkSoloTaskDoneActionUtil extends AgentActionUtil<MarkSoloTaskDone
 			description: action.complete
 				? `Completed task: ${task?.text ?? action.taskId}`
 				: 'Completing task...',
-			pose: 'thinking' as const,
+			pose: 'writing' as const,
 			canGroup: () => false,
 		}
 	}
