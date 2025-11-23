@@ -7,6 +7,7 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
+import { useApp } from '../tla/hooks/useAppState'
 import { useMsg } from '../tla/utils/i18n'
 import { FairyAgent, getFollowingFairyId } from './fairy-agent/agent/FairyAgent'
 import { $fairyAgentsAtom } from './fairy-agent/agent/fairyAgentsAtom'
@@ -14,6 +15,7 @@ import { fairyMessages } from './fairy-messages'
 import { FairyConfigDialog } from './FairyConfigDialog'
 import { FairyDebugDialog } from './FairyDebugDialog'
 import { $fairyProjects, deleteProject } from './FairyProjects'
+import { clearFairyTasks } from './FairyTaskList'
 
 export function FairyMenuContent({
 	agent,
@@ -23,6 +25,7 @@ export function FairyMenuContent({
 	menuType?: 'menu' | 'context-menu'
 }) {
 	const editor = useEditor()
+	const app = useApp()
 	const { addDialog } = useDefaultHelpers()
 	const agents = useValue('fairy-agents', () => $fairyAgentsAtom.get(editor), [editor])
 	const configureFairy = useCallback(
@@ -64,6 +67,7 @@ export function FairyMenuContent({
 	const deleteFairyLabel = useMsg(fairyMessages.deleteFairy)
 	const disbandGroupLabel = useMsg(fairyMessages.disbandGroup)
 	const debugViewLabel = useMsg(fairyMessages.debugView)
+	const resetEverythingLabel = useMsg(fairyMessages.resetEverything)
 
 	const projects = useValue($fairyProjects)
 	const currentProject = useMemo(() => {
@@ -93,6 +97,27 @@ export function FairyMenuContent({
 			component: ({ onClose }) => <FairyDebugDialog agents={agents} onClose={onClose} />,
 		})
 	}, [addDialog, agents])
+
+	const resetEverything = useCallback(() => {
+		// Stop all running tasks
+		agents.forEach((agent) => {
+			agent.cancel()
+		})
+
+		// Clear the todo list and projects
+		clearFairyTasks()
+
+		// Reset all chats
+		agents.forEach((agent) => {
+			agent.reset()
+		})
+
+		// Delete all fairies
+		app.z.mutate.user.deleteAllFairyConfigs()
+		agents.forEach((agent) => {
+			agent.dispose()
+		})
+	}, [agents, app])
 
 	if (canDisbandGroup && currentProject) {
 		return (
@@ -130,6 +155,11 @@ export function FairyMenuContent({
 				/>
 				<TldrawUiMenuItem id="delete-fairy" onSelect={deleteFairy} label={deleteFairyLabel} />
 				<TldrawUiMenuItem id="debug-fairies" onSelect={openDebugDialog} label={debugViewLabel} />
+				<TldrawUiMenuItem
+					id="reset-everything"
+					onSelect={resetEverything}
+					label={resetEverythingLabel}
+				/>
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuContextProvider>
 	)

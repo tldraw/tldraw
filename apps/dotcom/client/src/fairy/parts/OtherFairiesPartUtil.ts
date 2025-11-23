@@ -16,7 +16,7 @@ export class OtherFairiesPartUtil extends PromptPartUtil<OtherFairiesPart> {
 			return {
 				id: agent.id,
 				name: agent.$fairyConfig.get().name,
-				position: helpers.applyOffsetToVec(agent.$fairyEntity.get().position),
+				position: helpers.roundVec(helpers.applyOffsetToVec(agent.$fairyEntity.get().position)),
 				isGenerating: activeRequest !== null,
 				bounds: activeRequest?.bounds ? helpers.applyOffsetToBox(activeRequest.bounds) : null,
 				personality: agent.$fairyConfig.get().personality,
@@ -28,7 +28,7 @@ export class OtherFairiesPartUtil extends PromptPartUtil<OtherFairiesPart> {
 		const thisFairyData = {
 			id: this.agent.id,
 			name: this.agent.$fairyConfig.get().name,
-			position: helpers.applyOffsetToVec(this.agent.$fairyEntity.get().position),
+			position: helpers.roundVec(helpers.applyOffsetToVec(this.agent.$fairyEntity.get().position)),
 			isGenerating: thisActiveRequest !== null,
 			bounds: thisActiveRequest?.bounds ? helpers.applyOffsetToBox(thisActiveRequest.bounds) : null,
 			personality: this.agent.$fairyConfig.get().personality,
