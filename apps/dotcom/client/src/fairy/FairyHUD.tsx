@@ -203,7 +203,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 				(agent) => agent.$fairyEntity.get()?.isSelected ?? false
 			)
 			if (currentSelectedFairies.length === 1) {
-				setShownFairy(currentSelectedFairies[0])
+				queueMicrotask(() => setShownFairy(currentSelectedFairies[0]))
 			}
 		},
 		[agents]
