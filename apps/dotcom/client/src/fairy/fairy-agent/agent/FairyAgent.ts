@@ -253,7 +253,7 @@ export class FairyAgent {
 		const spawnPoint = findFairySpawnPoint(center, editor)
 
 		this.$fairyEntity = atom<FairyEntity>(`fairy-${id}`, {
-			position: spawnPoint,
+			position: AgentHelpers.RoundVec(spawnPoint),
 			flipX: false,
 			isSelected: false,
 			pose: 'idle',
@@ -318,7 +318,7 @@ export class FairyAgent {
 			this.$fairyEntity.update((entity) => {
 				return {
 					...entity,
-					position: state.fairyEntity?.position ?? entity.position,
+					position: AgentHelpers.RoundVec(state.fairyEntity?.position ?? entity.position),
 					flipX: state.fairyEntity?.flipX ?? entity.flipX,
 					currentPageId: state.fairyEntity?.currentPageId ?? entity.currentPageId,
 					isSelected: state.fairyEntity?.isSelected ?? entity.isSelected,
@@ -1310,7 +1310,7 @@ export class FairyAgent {
 		this.$fairyEntity.update((fairy) => {
 			return {
 				...fairy,
-				position,
+				position: AgentHelpers.RoundVec(position),
 				flipX: false,
 			}
 		})
