@@ -24,6 +24,7 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 			icon: 'pencil' as const,
 			description: text,
 			canGroup: () => false,
+			pose: 'waiting' as const, // todo: bullhorn
 		}
 	}
 

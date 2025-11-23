@@ -1468,7 +1468,7 @@
 	width: 100%;
 	pointer-events: none;
 	user-select: none;
-	background: radial-gradient(circle at center, var(--tl-color-panel) 0%, transparent 70%);
+	background: radial-gradient(circle at center, var(--tl-color-background) 0%, transparent 68%);
 }
 
 .fairy-sprite-stack {

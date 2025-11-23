@@ -162,7 +162,10 @@ function AnimatedFairySpriteComponent({
 	// Gesture takes precedence over pose
 	const effectivePose = entity.gesture ?? entity.pose
 
-	const keyframe = useKeyframe({ pose: effectivePose, duration: 150 })
+	const keyframe = useKeyframe({
+		pose: effectivePose,
+		duration: effectivePose === 'working' ? 100 : 160,
+	})
 	const FSprite = getItemForKeyFrame(FAIRY_SPRITES_WITH_PROPS[effectivePose], keyframe)
 	const WSprite = getItemForKeyFrame(WING_SPRITES[effectivePose], keyframe)
 
