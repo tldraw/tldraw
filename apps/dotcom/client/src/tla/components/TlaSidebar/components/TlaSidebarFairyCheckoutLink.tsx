@@ -2,6 +2,7 @@ import { MAX_FAIRY_COUNT } from '@tldraw/dotcom-shared'
 import { useState } from 'react'
 import { Spinner, useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
+import { useFairyLimit } from '../../../hooks/useFairyAccess'
 import { F, useIntl } from '../../../utils/i18n'
 import { customFeatureFlags } from '../../TlaEditor/TlaEditor'
 import styles from '../sidebar.module.css'
@@ -67,8 +68,8 @@ export function TlaSidebarFairyCheckoutLink() {
 	}
 
 	// Show button if user doesn't have max fairies yet (allow upsells)
+	const currentFairyLimit = useFairyLimit() ?? 0
 	const user = useValue('user', () => app.getUser(), [app])
-	const currentFairyLimit = user?.fairyLimit ?? 0
 	const userEmail = user?.email
 
 	// Calculate available quantities (only show options that won't exceed max)
