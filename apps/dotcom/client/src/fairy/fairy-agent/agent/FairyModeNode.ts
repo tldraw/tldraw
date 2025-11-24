@@ -20,16 +20,17 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 				agent.promptStartTime = performance.now()
 			}
 
-			agent.setMode('soloing')
+			// Check one-shot mode flag and set mode accordingly
+			const oneShotMode = agent.$useOneShottingMode.get()
+			if (oneShotMode) {
+				agent.setMode('one-shotting')
+			} else {
+				agent.setMode('soloing')
+			}
 		},
 		onEnter(agent) {
 			agent.$personalTodoList.set([])
 			agent.$userActionHistory.set([])
-		},
-	},
-	soloing: {
-		onPromptEnd(agent) {
-			// Stop timing and log
 			if (agent.promptStartTime !== null) {
 				const endTime = performance.now()
 				const duration = (endTime - agent.promptStartTime) / 1000
@@ -38,7 +39,18 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 				console.log(`🧚 Fairy "${fairyName}" prompt completed in ${duration.toFixed(2)}s`)
 				agent.promptStartTime = null
 			}
-
+		},
+	},
+	['one-shotting']: {
+		onPromptEnd(agent) {
+			agent.setMode('idling')
+		},
+		onPromptCancel(agent) {
+			agent.setMode('idling')
+		},
+	},
+	soloing: {
+		onPromptEnd(agent) {
 			// Continue if there are outstanding tasks
 			const myTasks = $fairyTasks.get().filter((task) => task.assignedTo === agent.id)
 			const incompleteTasks = myTasks.filter((task) => task.status !== 'done')
@@ -49,16 +61,6 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			}
 		},
 		onPromptCancel(agent) {
-			// Stop timing and log
-			if (agent.promptStartTime !== null) {
-				const endTime = performance.now()
-				const duration = (endTime - agent.promptStartTime) / 1000
-				const fairyName = agent.$fairyConfig.get().name
-				// eslint-disable-next-line no-console
-				console.log(`🧚 Fairy "${fairyName}" prompt completed in ${duration.toFixed(2)}s`)
-				agent.promptStartTime = null
-			}
-
 			agent.setMode('idling')
 		},
 	},

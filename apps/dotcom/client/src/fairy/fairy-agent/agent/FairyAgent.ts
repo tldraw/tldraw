@@ -139,6 +139,11 @@ export class FairyAgent {
 	)
 
 	/**
+	 * Whether the agent should use one-shotting mode or soloing mode when prompted solo.
+	 */
+	$useOneShottingMode = atom<boolean>('oneShotMode', true)
+
+	/**
 	 * An atom containing the conditions this agent is waiting for.
 	 * When events matching these conditions occur, the agent will be notified.
 	 */
