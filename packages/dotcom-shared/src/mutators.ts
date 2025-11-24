@@ -266,6 +266,7 @@ export function createMutators(userId: string) {
 			},
 			updateFairyConfig: async (tx, { id, properties }: { id: string; properties: object }) => {
 				const current = await tx.query.user_fairies.where('userId', '=', userId).one().run()
+				assert(current, ZErrorCode.forbidden) // Must have user_fairies row
 				const currentConfig = JSON.parse(current?.fairies || '{}')
 				const isNewFairy = !currentConfig[id]
 
@@ -275,7 +276,7 @@ export function createMutators(userId: string) {
 					const { hasAccess } = await getUserFairyAccess(tx, userId)
 					assert(hasAccess, ZErrorCode.forbidden)
 				}
-				await tx.mutate.user_fairies.upsert({
+				await tx.mutate.user_fairies.update({
 					userId,
 					fairies: JSON.stringify({
 						...currentConfig,
@@ -291,8 +292,9 @@ export function createMutators(userId: string) {
 				assert(hasAccess, ZErrorCode.forbidden)
 
 				const current = await tx.query.user_fairies.where('userId', '=', userId).one().run()
+				assert(current, ZErrorCode.forbidden) // Must have user_fairies row
 				const currentConfig = JSON.parse(current?.fairies || '{}')
-				await tx.mutate.user_fairies.upsert({
+				await tx.mutate.user_fairies.update({
 					userId,
 					fairies: JSON.stringify({ ...currentConfig, [id]: undefined }),
 				})
@@ -301,7 +303,9 @@ export function createMutators(userId: string) {
 				const { hasAccess } = await getUserFairyAccess(tx, userId)
 				assert(hasAccess, ZErrorCode.forbidden)
 
-				await tx.mutate.user_fairies.upsert({ userId, fairies: '{}' })
+				const current = await tx.query.user_fairies.where('userId', '=', userId).one().run()
+				assert(current, ZErrorCode.forbidden) // Must have user_fairies row
+				await tx.mutate.user_fairies.update({ userId, fairies: '{}' })
 			},
 		},
 		file: {
