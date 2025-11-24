@@ -276,6 +276,7 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 							showShadow
 							entity={fairyEntity}
 							outfit={fairyOutfit}
+							isGenerating={isGenerating}
 							animated={fairyEntity.pose !== 'idle' || isSelected}
 							flipX={flipX}
 						/>

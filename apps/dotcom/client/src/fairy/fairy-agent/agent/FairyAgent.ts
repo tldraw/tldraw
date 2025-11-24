@@ -607,11 +607,6 @@ export class FairyAgent {
 			)
 		}
 
-		const startingFairy = this.$fairyEntity.get()
-		if (startingFairy.pose === 'idle') {
-			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'active' }))
-		}
-
 		// Submit the request to the agent.
 		await this.request(request)
 

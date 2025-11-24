@@ -71,7 +71,7 @@
 
 .fairy-toggle-button[data-isactive='true']::before,
 .fairy-toggle-button[data-isactive='true']::after {
-	transform: scale(0.9);
+	display: none;
 }
 
 .fairy-leader-toggle {

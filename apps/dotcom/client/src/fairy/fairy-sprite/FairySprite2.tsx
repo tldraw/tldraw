@@ -110,6 +110,7 @@ export function FairySpriteComponent2({
 	outfit,
 	animated,
 	showShadow,
+	isGenerating,
 	flipX = false,
 }: {
 	entity: FairyEntity
@@ -117,6 +118,7 @@ export function FairySpriteComponent2({
 	animated?: boolean
 	showShadow?: boolean
 	flipX?: boolean
+	isGenerating?: boolean
 	tint?: string | null
 }) {
 	const colors = computeFairyColors(entity, outfit)
@@ -135,7 +137,11 @@ export function FairySpriteComponent2({
 				}}
 			>
 				{animated ? (
-					<AnimatedFairySpriteComponent entity={entity} colors={colors} />
+					<AnimatedFairySpriteComponent
+						entity={entity}
+						colors={colors}
+						isGenerating={isGenerating}
+					/>
 				) : (
 					<StaticFairySpriteComponent entity={entity} colors={colors} />
 				)}
@@ -147,16 +153,18 @@ export function FairySpriteComponent2({
 function AnimatedFairySpriteComponent({
 	entity,
 	colors,
+	isGenerating,
 }: {
 	entity: FairyEntity
 	colors: ReturnType<typeof computeFairyColors>
+	isGenerating?: boolean
 }) {
 	// Gesture takes precedence over pose
 	const effectivePose = entity.gesture ?? entity.pose
 
 	const keyframe = useKeyframe({
 		pose: effectivePose,
-		duration: effectivePose === 'working' ? 100 : 160,
+		duration: effectivePose === 'working' ? 100 : isGenerating ? 120 : 160,
 	})
 	const FSprite = getItemForKeyFrame(FAIRY_SPRITES_WITH_PROPS[effectivePose], keyframe)
 	const WSprite = getItemForKeyFrame(WING_SPRITES[effectivePose], keyframe)
