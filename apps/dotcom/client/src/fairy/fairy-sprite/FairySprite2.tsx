@@ -10,7 +10,7 @@ import { SleepingSprite } from './sprites/SleepingSprite'
 import { SleepingWingSprite } from './sprites/SleepingWingSprite'
 import { ThinkingSprite } from './sprites/ThinkingSprite'
 import { WaitingSprite } from './sprites/WaitingSprite'
-import { WorkingSprite } from './sprites/WorkingSprite'
+import { WorkingSprite1, WorkingSprite2, WorkingSprite3 } from './sprites/WorkingSprite'
 import { WritingSprite } from './sprites/WritingSprite'
 
 interface WingSpriteProps {
@@ -41,7 +41,7 @@ const FAIRY_SPRITES_WITH_PROPS: Record<FairyPose, ComponentType<FairySpriteProps
 	reading: [ReadingSprite],
 	writing: [WritingSprite],
 	thinking: [ThinkingSprite],
-	working: [WorkingSprite],
+	working: [WorkingSprite1, WorkingSprite2, WorkingSprite3, WorkingSprite2],
 	sleeping: [SleepingSprite],
 	waiting: [WaitingSprite],
 	poof: [PoofSprite],
