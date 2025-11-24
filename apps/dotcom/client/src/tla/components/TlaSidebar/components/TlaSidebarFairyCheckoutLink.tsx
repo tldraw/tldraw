@@ -176,7 +176,9 @@ export function TlaSidebarFairyCheckoutLink() {
 						<F defaultMessage="Purchase fairy access" />
 					)}
 				</span>
-				<span className={styles.sidebarFairyCheckoutButtonPrice}>$</span>
+				<span className={styles.sidebarFairyCheckoutButtonPrice}>
+					<F defaultMessage="$" />
+				</span>
 			</button>
 
 			{showDropdown && (

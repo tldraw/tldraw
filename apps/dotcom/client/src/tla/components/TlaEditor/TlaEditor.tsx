@@ -1,5 +1,4 @@
 import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
-import { createDebugValue } from '@tldraw/editor'
 import { FairyEntity } from '@tldraw/fairy-shared'
 import { useSync } from '@tldraw/sync'
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -13,6 +12,7 @@ import {
 	TLUiDialogsContextType,
 	Tldraw,
 	TldrawUiMenuItem,
+	createDebugValue,
 	createSessionStateSnapshotSignal,
 	getDefaultUserPresence,
 	parseDeepLinkString,
