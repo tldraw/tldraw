@@ -41,6 +41,12 @@ export interface FairyWaitCondition<T extends FairyWaitEvent> {
 	matcher(event: T): boolean
 
 	/**
+	 * Unique identifier for this condition.
+	 * Used for deduplication - conditions with the same id and eventType are considered duplicates.
+	 */
+	id: string
+
+	/**
 	 * Optional metadata associated with this wait condition.
 	 * Useful for storing context like task IDs, custom data, etc.
 	 */
