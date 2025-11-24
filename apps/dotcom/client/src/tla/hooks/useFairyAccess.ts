@@ -1,5 +1,4 @@
 import { useUser } from '@clerk/clerk-react'
-import { hasActiveFairyAccess } from '@tldraw/dotcom-shared'
 import { useValue } from 'tldraw'
 import { useApp } from './useAppState'
 
@@ -13,9 +12,16 @@ export function useFairyAccess(): boolean {
 	return useValue(
 		'fairy_access',
 		() => {
-			if (!clerkUser) return false
 			const user = app.getUser()
-			return hasActiveFairyAccess(clerkUser, user?.fairyAccessExpiresAt)
+			if (!clerkUser || !user) return false
+
+			const { fairyLimit, fairyAccessExpiresAt } = user
+			return (
+				fairyLimit !== null &&
+				fairyLimit > 0 &&
+				fairyAccessExpiresAt !== null &&
+				fairyAccessExpiresAt > Date.now()
+			)
 		},
 		[app, clerkUser]
 	)
@@ -31,7 +37,7 @@ export function useFairyLimit(): number | null {
 		'fairy_limit',
 		() => {
 			const user = app.getUser()
-			return user?.fairyLimit ?? null
+			return user?.fairyLimit
 		},
 		[app]
 	)

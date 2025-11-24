@@ -4,7 +4,7 @@ import { FAIRY_WORLDWIDE_EXPIRATION } from '../../config'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
 import { getUserDurableObject } from '../../utils/durableObjects'
-import { getClerkClient, requireAuth } from '../../utils/tla/getAuth'
+import { requireAuth } from '../../utils/tla/getAuth'
 
 export async function redeemFairyInvite(request: IRequest, env: Environment): Promise<Response> {
 	const auth = await requireAuth(request, env)
@@ -14,9 +14,6 @@ export async function redeemFairyInvite(request: IRequest, env: Environment): Pr
 	if (!inviteCode || typeof inviteCode !== 'string') {
 		return Response.json({ error: 'Invalid invite code' }, { status: 400 })
 	}
-
-	// Get Clerk user for access check
-	const clerkUser = await getClerkClient(env).users.getUser(auth.userId)
 
 	const db = createPostgresConnectionPool(env, 'redeemFairyInvite')
 
@@ -42,18 +39,19 @@ export async function redeemFairyInvite(request: IRequest, env: Environment): Pr
 			// Check if user already has active fairy access
 			const existingFairies = await tx
 				.selectFrom('user_fairies')
-				.select(['fairyAccessExpiresAt'])
+				.select(['fairyAccessExpiresAt', 'fairyLimit'])
 				.where('userId', '=', auth.userId)
 				.executeTakeFirst()
 
 			const expiresAt = FAIRY_WORLDWIDE_EXPIRATION
 
 			// If user already has active fairy access, don't modify anything
-			if (hasActiveFairyAccess(clerkUser, existingFairies?.fairyAccessExpiresAt)) {
+			if (
+				existingFairies &&
+				hasActiveFairyAccess(existingFairies.fairyAccessExpiresAt, existingFairies.fairyLimit)
+			) {
 				return Response.json({
 					success: true,
-					fairyLimit: invite.fairyLimit,
-					expiresAt,
 				})
 			}
 

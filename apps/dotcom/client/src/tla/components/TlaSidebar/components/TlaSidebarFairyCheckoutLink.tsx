@@ -60,7 +60,6 @@ export function TlaSidebarFairyCheckoutLink() {
 
 	// Show button only if user has no fairy access
 	const currentFairyLimit = useFairyLimit()
-	console.log('💡[909]: TlaSidebarFairyCheckoutLink.tsx:62: currentFairyLimit=', currentFairyLimit)
 	const user = useValue('user', () => app.getUser(), [app])
 	const userEmail = user?.email
 

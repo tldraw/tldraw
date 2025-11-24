@@ -29,7 +29,7 @@ export function TlaFairyInviteDialog({
 	// Check if user already has active fairy access
 	const user = app?.getUser()
 	const userHasActiveFairyAccess =
-		clerkUser && user ? hasActiveFairyAccess(clerkUser, user.fairyAccessExpiresAt) : false
+		clerkUser && user ? hasActiveFairyAccess(user.fairyAccessExpiresAt, user.fairyLimit) : false
 
 	return (
 		<>
