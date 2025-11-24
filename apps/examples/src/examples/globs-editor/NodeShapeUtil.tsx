@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import {
 	Circle2d,
-	DefaultColorThemePalette,
 	Editor,
+	getColorValue,
 	getIndicesAbove,
 	RecordProps,
 	ShapeUtil,
@@ -12,6 +12,7 @@ import {
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
+	useDefaultColorTheme,
 	useValue,
 	Vec,
 	ZERO_INDEX_KEY,
@@ -114,9 +115,12 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 
 	override indicator(shape: NodeShape) {
 		const zoom = this.editor.getZoomLevel()
-		const blue = DefaultColorThemePalette.lightMode.blue
 
-		return <circle r={shape.props.radius} strokeWidth={1 / zoom} stroke={blue.solid} fill="none" />
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const theme = useDefaultColorTheme()
+		const blue = getColorValue(theme, 'blue', 'solid')
+
+		return <circle r={shape.props.radius} strokeWidth={1 / zoom} stroke={blue} fill="none" />
 	}
 
 	override component(shape: NodeShape) {

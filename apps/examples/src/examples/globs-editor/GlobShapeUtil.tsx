@@ -987,17 +987,15 @@ export function ControlLine({
 	const dashArray = `${3 / zoomLevel} ${3 / zoomLevel}`
 
 	return (
-		<>
-			<line
-				x1={x1}
-				y1={y1}
-				x2={x2}
-				y2={y2}
-				stroke="#4169E1"
-				strokeDasharray={dashArray}
-				strokeWidth={1 / zoomLevel}
-			/>
-		</>
+		<line
+			x1={x1}
+			y1={y1}
+			x2={x2}
+			y2={y2}
+			stroke="#4169E1"
+			strokeDasharray={dashArray}
+			strokeWidth={1 / zoomLevel}
+		/>
 	)
 }
 
