@@ -8,10 +8,10 @@ export class StartDuoProjectActionUtil extends AgentActionUtil<StartDuoProjectAc
 
 	override getInfo(action: Streaming<StartDuoProjectAction>) {
 		return {
-			icon: 'note' as const,
+			icon: 'flag' as const,
 			description: action.complete
-				? `Started duo project: ${action.projectName}`
-				: 'Starting duo project...',
+				? `Started project: ${action.projectName}`
+				: 'Starting project...',
 			pose: 'reading' as const,
 			canGroup: () => false,
 		}

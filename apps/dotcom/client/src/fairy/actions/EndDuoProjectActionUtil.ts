@@ -10,8 +10,8 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 
 	override getInfo(action: Streaming<EndDuoProjectAction>) {
 		return {
-			icon: 'note' as const,
-			description: action.complete ? 'Ended duo project' : 'Ending duo project...',
+			icon: 'flag' as const,
+			description: action.complete ? 'Ended project' : 'Ending project...',
 			pose: 'writing' as const,
 			canGroup: () => false,
 		}
@@ -43,7 +43,7 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 						type: 'memory-transition',
 						memoryLevel: 'fairy',
 						message: `I completed ${count} ${taskWord} as part of the "${project.title}" project with my partner.`,
-						userFacingMessage: `I completed ${count} ${taskWord} as part of the "${project.title}" project with my partner.`,
+						userFacingMessage: null,
 					},
 				])
 			} else {
@@ -60,7 +60,7 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 							type: 'memory-transition',
 							memoryLevel: 'fairy',
 							message: `I completed ${count} ${taskWord} as part of the "${project.title}" project with my partner.`,
-							userFacingMessage: `I completed ${count} ${taskWord} as part of the "${project.title}" project with my partner.`,
+							userFacingMessage: `I completed ${count} ${taskWord} as part of the "${project.title}" project.`,
 						},
 					])
 				}

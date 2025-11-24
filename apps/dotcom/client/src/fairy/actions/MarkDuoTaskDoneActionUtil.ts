@@ -7,13 +7,9 @@ export class MarkDuoTaskDoneActionUtil extends AgentActionUtil<MarkDuoTaskDoneAc
 	static override type = 'mark-duo-task-done' as const
 
 	override getInfo(action: Streaming<MarkDuoTaskDoneAction>) {
-		const task = $fairyTasks.get().find((task) => task.id === action.taskId)
-
 		return {
-			icon: 'note' as const,
-			description: action.complete
-				? `Completed duo task: ${task?.text ?? action.taskId}`
-				: 'Completing duo task...',
+			icon: 'flag' as const,
+			description: action.complete ? `Completed task` : 'Completing task...',
 			pose: 'writing' as const,
 			canGroup: () => false,
 		}

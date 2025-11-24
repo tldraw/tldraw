@@ -10,10 +10,10 @@ export class AwaitDuoTasksCompletionActionUtil extends AgentActionUtil<AwaitDuoT
 	override getInfo(action: Streaming<AwaitDuoTasksCompletionAction>) {
 		const taskCount = action.taskIds?.length ?? 0
 		return {
-			icon: 'note' as const,
+			icon: 'refresh' as const,
 			description: action.complete
-				? `Waiting for ${taskCount} duo task${taskCount === 1 ? '' : 's'} to complete`
-				: 'Setting up wait conditions...',
+				? `Waiting for ${taskCount} task${taskCount === 1 ? '' : 's'} to complete`
+				: 'Waiting...',
 			pose: 'waiting' as const,
 			canGroup: () => false,
 		}

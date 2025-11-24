@@ -13,15 +13,15 @@ export class DirectToStartDuoTaskActionUtil extends AgentActionUtil<DirectToStar
 			const otherFairy = $fairyAgentsAtom
 				.get(this.editor)
 				.find((fairy) => fairy.id === action.otherFairyId)
-			otherFairyName = otherFairy ? otherFairy.$fairyConfig.get().name : 'your partner'
+			otherFairyName = otherFairy ? otherFairy.$fairyConfig.get().name : 'partner'
 		}
 
 		const text = action.complete
-			? `Directed ${otherFairyName} to start task ${action.taskId}.`
-			: `Directing ${otherFairyName} to start task ${action.taskId}...`
+			? `Directed ${otherFairyName} to start a task.`
+			: `Directing ${otherFairyName} to start a task...`
 
 		return {
-			icon: 'pencil' as const,
+			icon: 'comment' as const,
 			description: text,
 			canGroup: () => false,
 			pose: 'waiting' as const, // todo: bullhorn

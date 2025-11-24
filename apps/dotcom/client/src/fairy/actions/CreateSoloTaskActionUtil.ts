@@ -7,15 +7,8 @@ import { AgentActionUtil } from './AgentActionUtil'
 export class CreateSoloTaskActionUtil extends AgentActionUtil<CreateSoloTaskAction> {
 	static override type = 'create-task' as const
 
-	override getInfo(action: Streaming<CreateSoloTaskAction>) {
-		const label = action.complete ? 'Planned work' : 'Planning work'
-		return {
-			icon: 'flag' as const,
-			label,
-			description: action.text,
-			pose: 'writing' as const,
-			canGroup: () => false,
-		}
+	override getInfo(_action: Streaming<CreateSoloTaskAction>) {
+		return null
 	}
 
 	override applyAction(action: Streaming<CreateSoloTaskAction>, helpers: AgentHelpers) {

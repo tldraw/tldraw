@@ -10,13 +10,7 @@ export class PersonalTodoListActionUtil extends AgentActionUtil<PersonalTodoList
 		}
 
 		if (action.status === 'in-progress') {
-			return {
-				icon: 'note' as const,
-				label: 'Started',
-				description: action.text,
-				pose: 'writing' as const,
-				canGroup: () => false,
-			}
+			return null
 		}
 
 		if (action.status === 'done') {

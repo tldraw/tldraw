@@ -384,7 +384,8 @@
 
 .fairy-chat-history span:not(button *),
 .fairy-chat-history div:not(button *),
-.fairy-chat-history p:not(button *) {
+.fairy-chat-history p:not(button *),
+.fairy-chat-history strong:not(button *) {
 	user-select: text;
 	cursor: initial;
 }
