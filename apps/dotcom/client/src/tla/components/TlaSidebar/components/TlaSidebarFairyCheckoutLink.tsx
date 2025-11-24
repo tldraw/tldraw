@@ -80,9 +80,6 @@ export function TlaSidebarFairyCheckoutLink() {
 			return
 		}
 
-		// User must have 0 fairies to reach this point (due to early return)
-		// Always purchase quantity 1 (which grants 3 fairies)
-
 		// Get env and token from environment variables
 		const paddleEnv =
 			// @ts-expect-error Vite env vars not typed

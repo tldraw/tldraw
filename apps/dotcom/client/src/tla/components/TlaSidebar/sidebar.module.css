@@ -735,66 +735,6 @@
 	margin-left: 8px;
 }
 
-.sidebarFairyCheckoutDropdown {
-	position: absolute;
-	bottom: 100%;
-	left: 1px;
-	right: 1px;
-	background-color: var(--tla-color-panel);
-	border: 1px solid var(--tla-color-text-2);
-	border-radius: 4px;
-	margin-bottom: 4px;
-	overflow: hidden;
-	z-index: 1000;
-}
-
-.sidebarFairyCheckoutQuantityOption {
-	width: 100%;
-	padding: 8px;
-	border: none;
-	background: transparent;
-	color: var(--tla-color-text-1);
-	cursor: pointer;
-	text-align: left;
-	font-size: 12px;
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-}
-
-.sidebarFairyCheckoutQuantityOption[data-selected='true'] {
-	background: var(--tla-color-hover-2);
-}
-
-.sidebarFairyCheckoutQuantityOptionBadge {
-	font-size: 10px;
-	padding: 2px 6px;
-	border-radius: 3px;
-	border: 1px solid var(--tla-color-accent);
-	color: var(--tla-color-accent);
-	font-weight: bold;
-}
-
-.sidebarFairyCheckoutProceedButton {
-	width: 100%;
-	padding: 8px;
-	border: none;
-	border-top: 1px solid var(--tla-color-text-2);
-	background: var(--tla-color-hover-2);
-	color: var(--tla-color-text-1);
-	cursor: pointer;
-	text-align: center;
-	font-size: 12px;
-	font-weight: bold;
-}
-
-.sidebarFairyCheckoutLoading {
-	padding: 24px;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
-
 .sidebarDotDevDismissButton div {
 	width: 12px;
 	height: 12px;
