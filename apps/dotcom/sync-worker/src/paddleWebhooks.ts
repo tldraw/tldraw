@@ -161,7 +161,7 @@ async function handleTransactionCompleted(
 			.insertInto('user_fairies')
 			.values({
 				userId,
-				fairies: '[]',
+				fairies: '{}',
 				fairyLimit: newLimit,
 				fairyAccessExpiresAt: expiresAt,
 			})

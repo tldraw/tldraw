@@ -62,7 +62,7 @@ export async function redeemFairyInvite(request: IRequest, env: Environment): Pr
 				.insertInto('user_fairies')
 				.values({
 					userId: auth.userId,
-					fairies: '[]',
+					fairies: '{}',
 					fairyLimit: invite.fairyLimit,
 					fairyAccessExpiresAt: expiresAt,
 				})
