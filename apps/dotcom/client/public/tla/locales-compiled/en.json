@@ -147,12 +147,6 @@
       "value": "Create file"
     }
   ],
-  "1cbf5e51b8": [
-    {
-      "type": 0,
-      "value": "Continue to checkout"
-    }
-  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -475,12 +469,6 @@
       "value": "PNG"
     }
   ],
-  "55bfc2a761": [
-    {
-      "type": 0,
-      "value": "Purchase more fairies"
-    }
-  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -603,12 +591,6 @@
     {
       "type": 0,
       "value": "Click to remove or drag to move"
-    }
-  ],
-  "654866693f": [
-    {
-      "type": 0,
-      "value": "Recommended"
     }
   ],
   "65709fd250": [
@@ -1469,38 +1451,6 @@
     {
       "type": 0,
       "value": "Close"
-    }
-  ],
-  "d458808b84": [
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " fairy"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " fairies"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
     }
   ],
   "d46632fe1f": [
