@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useValue } from 'tldraw'
 import { isStagingEnv } from '../../../../utils/env'
 import { useApp } from '../../../hooks/useAppState'
@@ -87,6 +87,11 @@ export function TlaSidebarFairyCheckoutLink() {
 	const user = useValue('user', () => app.getUser(), [app])
 	const userEmail = user?.email
 
+	// Load Paddle on mount
+	useEffect(() => {
+		loadPaddleScript()
+	}, [])
+
 	// Early returns after all hooks
 	if (currentFairyLimit === null || currentFairyLimit > 0) return null // Hide button if user already has access
 	if (isStagingEnv) return null
@@ -137,7 +142,6 @@ export function TlaSidebarFairyCheckoutLink() {
 		<div className={styles.sidebarDotDevLink}>
 			<button
 				data-testid="tla-sidebar-fairy-checkout"
-				onMouseEnter={loadPaddleScript}
 				onClick={handlePurchase}
 				className={styles.sidebarFairyCheckoutButton}
 			>
