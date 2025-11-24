@@ -45,11 +45,35 @@ export function TlaSidebarFairyCheckoutLink() {
 			return
 		}
 
+		// Get env and token from environment variables
+		const paddleEnv =
+			// @ts-expect-error Vite env vars not typed
+			(import.meta.env.VITE_PADDLE_ENVIRONMENT as 'sandbox' | 'production') ?? 'sandbox'
+		// @ts-expect-error Vite env vars not typed
+		const paddleToken = import.meta.env.VITE_PADDLE_CLIENT_TOKEN
+
+		if (!paddleToken) {
+			console.error('Paddle client token not configured')
+			return
+		}
+
 		const script = document.createElement('script')
 		script.src = 'https://cdn.paddle.com/paddle/v2/paddle.js'
 		script.async = true
 		script.onload = () => {
-			setPaddleLoaded(true)
+			// Initialize Paddle once when script loads
+			if (window.Paddle) {
+				window.Paddle.Environment.set(paddleEnv)
+				window.Paddle.Initialize({
+					token: paddleToken,
+					eventCallback: (data) => {
+						if (data.name === 'checkout.completed') {
+							console.warn('[Paddle] Checkout completed', data.data?.transaction_id)
+						}
+					},
+				})
+				setPaddleLoaded(true)
+			}
 		}
 		script.onerror = () => {
 			console.error('Failed to load Paddle script')
@@ -80,19 +104,8 @@ export function TlaSidebarFairyCheckoutLink() {
 			return
 		}
 
-		// Get env and token from environment variables
-		const paddleEnv =
-			// @ts-expect-error Vite env vars not typed
-			(import.meta.env.VITE_PADDLE_ENVIRONMENT as 'sandbox' | 'production') ?? 'sandbox'
-		// @ts-expect-error Vite env vars not typed
-		const paddleToken = import.meta.env.VITE_PADDLE_CLIENT_TOKEN
 		// @ts-expect-error Vite env vars not typed
 		const paddlePriceId = import.meta.env.VITE_PADDLE_FAIRY_PRICE_ID
-
-		if (!paddleToken) {
-			console.error('Paddle client token not configured')
-			return
-		}
 
 		if (!paddlePriceId) {
 			console.error('Paddle price ID not configured')
@@ -100,16 +113,6 @@ export function TlaSidebarFairyCheckoutLink() {
 		}
 
 		try {
-			window.Paddle.Environment.set(paddleEnv)
-			window.Paddle.Initialize({
-				token: paddleToken,
-				eventCallback: (data) => {
-					if (data.name === 'checkout.completed') {
-						console.warn('[Paddle] Checkout completed', data.data?.transaction_id)
-					}
-				},
-			})
-
 			// Open checkout with quantity 1 (which grants 3 fairies)
 			window.Paddle.Checkout.open({
 				items: [{ priceId: paddlePriceId, quantity: 1 }],
