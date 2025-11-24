@@ -27,8 +27,8 @@ async function requireUser(env: Environment, q: string) {
 export async function upsertFairyAccess(
 	env: Environment,
 	userId: string,
-	fairyLimit: number = MAX_FAIRY_COUNT,
-	expiresAt: number = FAIRY_WORLDWIDE_EXPIRATION
+	fairyLimit: number | null = MAX_FAIRY_COUNT,
+	expiresAt: number | null = FAIRY_WORLDWIDE_EXPIRATION
 ) {
 	const db = createPostgresConnectionPool(env, 'upsertFairyAccess')
 
@@ -97,28 +97,13 @@ async function removeFairyAccess(env: Environment, email: string) {
 	const clerkUser = users.data[0]
 	const userId = clerkUser.id
 
-	const db = createPostgresConnectionPool(env, 'removeFairyAccess')
+	const result = await upsertFairyAccess(env, userId, null, null)
 
-	try {
-		await db
-			.updateTable('user_fairies')
-			.set({
-				fairyLimit: null,
-				fairyAccessExpiresAt: null,
-			})
-			.where('userId', '=', userId)
-			.execute()
-
-		const userDO = getUserDurableObject(env, userId)
-		await userDO.refreshUserData(userId)
-
-		return { success: true }
-	} catch (error) {
-		console.error('Failed to remove fairy access:', error)
-		throw new StatusError(500, `Failed to remove fairy access: ${error}`)
-	} finally {
-		await db.destroy()
+	if (!result.success) {
+		throw new StatusError(500, `Failed to remove fairy access: ${result.error}`)
 	}
+
+	return { success: true }
 }
 
 export const adminRoutes = createRouter<Environment>()
