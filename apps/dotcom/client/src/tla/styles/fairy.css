@@ -99,7 +99,7 @@
 	padding-right: 8px;
 	min-height: 64px;
 	border: 1px solid var(--tl-color-divider);
-	border-radius: var(--tl-radius-3);
+	border-radius: var(--tl-radius-4);
 }
 
 .fairy-input__form {
@@ -284,7 +284,6 @@
 
 .fairy-toolbar-button {
 	font-size: 14px;
-	height: 32px;
 	margin: -4px;
 }
 
@@ -307,7 +306,6 @@
 /* Fairy Buttons Container */
 
 .fairy-buttons-container {
-	width: 43px;
 	display: flex;
 	flex-direction: column;
 	justify-content: end;
@@ -349,7 +347,7 @@
 	height: 316px;
 	box-shadow: var(--tl-shadow-1);
 	background-color: var(--tl-color-panel);
-	border-radius: var(--tl-radius-2);
+	border-radius: var(--tl-radius-4);
 	overflow: hidden;
 	pointer-events: auto;
 	z-index: 2;
