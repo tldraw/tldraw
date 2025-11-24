@@ -310,10 +310,12 @@ function FairyInvites() {
 	const [maxUses, setMaxUses] = useState(1)
 	const [grantEmail, setGrantEmail] = useState('')
 	const [grantSetToZero, setGrantSetToZero] = useState(false)
+	const [removeEmail, setRemoveEmail] = useState('')
 	const [isCreating, setIsCreating] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
 	const [isEnabling, setIsEnabling] = useState(false)
 	const [isGranting, setIsGranting] = useState(false)
+	const [isRemoving, setIsRemoving] = useState(false)
 	const [error, setError] = useState(null as string | null)
 	const [successMessage, setSuccessMessage] = useState(null as string | null)
 
@@ -442,6 +444,35 @@ function FairyInvites() {
 		}
 	}, [])
 
+	const removeFairyAccess = useCallback(async () => {
+		if (!removeEmail || !removeEmail.includes('@')) {
+			setError('Please enter a valid email address')
+			return
+		}
+
+		setIsRemoving(true)
+		setError(null)
+		setSuccessMessage(null)
+		try {
+			const res = await fetch('/api/app/admin/fairy/remove-access', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email: removeEmail }),
+			})
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			await res.json()
+			setSuccessMessage(`Fairy access removed from ${removeEmail}!`)
+			setRemoveEmail('')
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to remove fairy access')
+		} finally {
+			setIsRemoving(false)
+		}
+	}, [removeEmail])
+
 	useEffect(() => {
 		if (successMessage) {
 			const timer = setTimeout(() => setSuccessMessage(null), 3000)
@@ -499,6 +530,28 @@ function FairyInvites() {
 						</span>
 					</label>
 				</div>
+			</div>
+
+			<h4 className="tla-text_ui__medium">Remove Fairy Access from User</h4>
+			<p className="tla-text_ui__small">
+				Remove fairy access from a user by email. This will clear their fairy limit and expiration.
+			</p>
+			<div className={styles.downloadContainer} style={{ marginBottom: '24px' }}>
+				<div>
+					<label htmlFor="removeEmail">Email:</label>
+					<input
+						id="removeEmail"
+						type="email"
+						placeholder="user@example.com"
+						value={removeEmail}
+						onChange={(e) => setRemoveEmail(e.target.value)}
+						className={styles.searchInput}
+						style={{ width: '250px', marginLeft: '8px' }}
+					/>
+				</div>
+				<TlaButton onClick={removeFairyAccess} variant="primary" isLoading={isRemoving}>
+					Remove Access
+				</TlaButton>
 			</div>
 
 			<h4 className="tla-text_ui__medium">Create Invite Code</h4>

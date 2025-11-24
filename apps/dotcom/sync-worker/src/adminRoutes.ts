@@ -83,6 +83,43 @@ async function grantFairyAccess(env: Environment, email: string, setToZero: bool
 	return { success: true }
 }
 
+async function removeFairyAccess(env: Environment, email: string) {
+	assert(typeof email === 'string' && email, 'email is required')
+
+	const clerkClient = getClerkClient(env)
+	const users = await clerkClient.users.getUserList({ emailAddress: [email] })
+
+	if (users.totalCount === 0) {
+		throw new StatusError(404, `No user found with email: ${email}`)
+	}
+
+	const clerkUser = users.data[0]
+	const userId = clerkUser.id
+
+	const db = createPostgresConnectionPool(env, 'removeFairyAccess')
+
+	try {
+		await db
+			.updateTable('user_fairies')
+			.set({
+				fairyLimit: 0,
+				fairyAccessExpiresAt: null,
+			})
+			.where('userId', '=', userId)
+			.execute()
+
+		const userDO = getUserDurableObject(env, userId)
+		await userDO.refreshUserData(userId)
+
+		return { success: true }
+	} catch (error) {
+		console.error('Failed to remove fairy access:', error)
+		throw new StatusError(500, `Failed to remove fairy access: ${error}`)
+	} finally {
+		await db.destroy()
+	}
+}
+
 export const adminRoutes = createRouter<Environment>()
 	.all('/app/admin/*', async (req, env) => {
 		const auth = await requireAuth(req, env)
@@ -264,6 +301,13 @@ export const adminRoutes = createRouter<Environment>()
 		}
 
 		const result = await grantFairyAccess(env, email)
+		return json(result)
+	})
+	.post('/app/admin/fairy/remove-access', async (req, env) => {
+		const body: any = await req.json()
+		const { email } = body
+
+		const result = await removeFairyAccess(env, email)
 		return json(result)
 	})
 	.post('/app/admin/create_legacy_file', async (_res, env) => {
