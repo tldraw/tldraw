@@ -61,6 +61,7 @@ export function FairyMenuContent({
 			agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
 		} else {
 			agent.sleep()
+			agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
 		}
 	}, [agent])
 

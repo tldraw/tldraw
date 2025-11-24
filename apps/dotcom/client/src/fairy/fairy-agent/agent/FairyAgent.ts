@@ -1088,6 +1088,7 @@ export class FairyAgent {
 	 * Put the fairy to sleep.
 	 */
 	sleep() {
+		this.cancel()
 		this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'sleeping' }))
 	}
 
