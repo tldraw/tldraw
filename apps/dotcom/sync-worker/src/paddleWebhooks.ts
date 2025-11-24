@@ -105,8 +105,6 @@ async function handleTransactionCompleted(
 ) {
 	const { data } = event
 
-	console.log(`[Paddle Webhook] Transaction ${data.id} status: ${data.status}`)
-
 	// Validate transaction status - only grant access for completed transactions
 	if (data.status !== 'completed') {
 		console.warn(`[Paddle Webhook] Ignoring transaction ${data.id} with status: ${data.status}`)
@@ -129,7 +127,6 @@ async function handleTransactionCompleted(
 		throw new StatusError(400, 'Invalid transaction custom_data')
 	}
 
-	// Grant MAX_FAIRY_COUNT fairies (no incremental purchases supported)
 	const result = await upsertFairyAccess(env, userId)
 
 	if (!result.success) {
