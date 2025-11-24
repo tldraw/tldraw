@@ -1,6 +1,4 @@
-import { useUser } from '@clerk/clerk-react'
-import { hasActiveFairyAccess } from '@tldraw/dotcom-shared'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
 	TldrawUiButton,
 	TldrawUiDialogBody,
@@ -11,7 +9,6 @@ import {
 	useToasts,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
-import { useMaybeApp } from '../../hooks/useAppState'
 import { F, defineMessages, useMsg } from '../../utils/i18n'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 
@@ -27,28 +24,10 @@ export function TlaFairyInviteDialog({
 	fairyInviteToken: string
 	onClose(): void
 }) {
-	const app = useMaybeApp()
-	const { user: clerkUser } = useUser()
 	const { addToast } = useToasts()
 	const [isAccepting, setIsAccepting] = useState(false)
 	const alreadyHasAccessMsg = useMsg(messages.alreadyHasAccess)
 	const redemptionErrorMsg = useMsg(messages.redemptionError)
-
-	// Check if user already has active fairy access
-	const user = app?.getUser()
-	const userHasActiveFairyAccess =
-		clerkUser && user ? hasActiveFairyAccess(user.fairyAccessExpiresAt, user.fairyLimit) : false
-
-	// If user already has access, show toast and close immediately
-	useEffect(() => {
-		if (userHasActiveFairyAccess) {
-			addToast({
-				id: 'fairy-invite-already-has-access',
-				title: alreadyHasAccessMsg,
-			})
-			onClose()
-		}
-	}, [userHasActiveFairyAccess, addToast, onClose, alreadyHasAccessMsg])
 
 	return (
 		<>
