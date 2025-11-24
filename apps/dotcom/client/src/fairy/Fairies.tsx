@@ -12,12 +12,8 @@ export function Fairies({ agents }: { agents: FairyAgent[] }) {
 		() => {
 			return agents.filter((agent) => {
 				const entity = agent.$fairyEntity.get()
-				// Only show fairies that exist, are on the current page, and are not sleeping
-				return (
-					entity !== undefined &&
-					entity.currentPageId === currentPageId &&
-					agent.getMode() !== 'sleeping'
-				)
+				// Only show fairies that exist and are on the current page
+				return entity !== undefined && entity.currentPageId === currentPageId && !agent.isSleeping()
 			})
 		},
 		[agents, currentPageId]
@@ -32,7 +28,8 @@ export function Fairies({ agents }: { agents: FairyAgent[] }) {
 				return (
 					entity !== undefined &&
 					entity.currentPageId === currentPageId &&
-					agent.$fairyEntity.get()?.isSelected
+					agent.$fairyEntity.get()?.isSelected &&
+					!agent.isSleeping()
 				)
 			})
 		},

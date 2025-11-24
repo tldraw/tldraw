@@ -359,6 +359,7 @@ function HomeDebugOptions() {
 
 function FairyDebugOptions({ agent }: { agent: FairyAgent }) {
 	const debugFlags = useValue(agent.$debugFlags)
+	const oneShotMode = useValue(agent.$useOneShottingMode)
 
 	return (
 		<div className="fairy-debug-options-container">
@@ -403,8 +404,18 @@ function FairyDebugOptions({ agent }: { agent: FairyAgent }) {
 							}}
 						/>
 						<span>
-							<F defaultMessage="Log response time (solo mode only)" />
+							<F defaultMessage="Log response time" />
 						</span>
+					</label>
+					<label className="fairy-debug-flags-checkbox">
+						<input
+							type="checkbox"
+							checked={oneShotMode}
+							onChange={(e) => {
+								agent.$useOneShottingMode.set(e.target.checked)
+							}}
+						/>
+						<span>One-Shot Mode</span>
 					</label>
 				</div>
 			</div>

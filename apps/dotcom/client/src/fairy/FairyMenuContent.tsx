@@ -153,7 +153,7 @@ export function FairyMenuContent({
 					onSelect={() => configureFairy(agent)}
 					label={customizeFairyLabel}
 				/>
-				<TldrawUiMenuItem id="delete-fairy" onSelect={putAwayFairy} label={putAwayFairyLabel} />
+				<TldrawUiMenuItem id="sleep-fairy" onSelect={putAwayFairy} label={putAwayFairyLabel} />
 				<TldrawUiMenuItem id="debug-fairies" onSelect={openDebugDialog} label={debugViewLabel} />
 				<TldrawUiMenuItem
 					id="reset-everything"

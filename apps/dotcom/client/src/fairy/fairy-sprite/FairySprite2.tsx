@@ -10,7 +10,7 @@ import { SleepingSprite } from './sprites/SleepingSprite'
 import { SleepingWingSprite } from './sprites/SleepingWingSprite'
 import { ThinkingSprite } from './sprites/ThinkingSprite'
 import { WaitingSprite } from './sprites/WaitingSprite'
-import { WorkingSprite } from './sprites/WorkingSprite'
+import { WorkingSprite1, WorkingSprite2, WorkingSprite3 } from './sprites/WorkingSprite'
 import { WritingSprite } from './sprites/WritingSprite'
 
 interface WingSpriteProps {
@@ -41,7 +41,7 @@ const FAIRY_SPRITES_WITH_PROPS: Record<FairyPose, ComponentType<FairySpriteProps
 	reading: [ReadingSprite],
 	writing: [WritingSprite],
 	thinking: [ThinkingSprite],
-	working: [WorkingSprite],
+	working: [WorkingSprite1, WorkingSprite2, WorkingSprite3, WorkingSprite2],
 	sleeping: [SleepingSprite],
 	waiting: [WaitingSprite],
 	poof: [PoofSprite],
@@ -110,16 +110,16 @@ export function FairySpriteComponent2({
 	outfit,
 	animated,
 	showShadow,
+	isGenerating,
 	flipX = false,
-	onGestureEnd,
 }: {
 	entity: FairyEntity
 	outfit: FairyOutfit
 	animated?: boolean
 	showShadow?: boolean
 	flipX?: boolean
+	isGenerating?: boolean
 	tint?: string | null
-	onGestureEnd?(): void
 }) {
 	const colors = computeFairyColors(entity, outfit)
 
@@ -140,7 +140,7 @@ export function FairySpriteComponent2({
 					<AnimatedFairySpriteComponent
 						entity={entity}
 						colors={colors}
-						onGestureEnd={onGestureEnd}
+						isGenerating={isGenerating}
 					/>
 				) : (
 					<StaticFairySpriteComponent entity={entity} colors={colors} />
@@ -153,32 +153,21 @@ export function FairySpriteComponent2({
 function AnimatedFairySpriteComponent({
 	entity,
 	colors,
-	onGestureEnd,
+	isGenerating,
 }: {
 	entity: FairyEntity
 	colors: ReturnType<typeof computeFairyColors>
-	onGestureEnd?(): void
+	isGenerating?: boolean
 }) {
 	// Gesture takes precedence over pose
 	const effectivePose = entity.gesture ?? entity.pose
 
 	const keyframe = useKeyframe({
 		pose: effectivePose,
-		duration: effectivePose === 'working' ? 100 : 160,
+		duration: effectivePose === 'working' ? 100 : isGenerating ? 120 : 160,
 	})
 	const FSprite = getItemForKeyFrame(FAIRY_SPRITES_WITH_PROPS[effectivePose], keyframe)
 	const WSprite = getItemForKeyFrame(WING_SPRITES[effectivePose], keyframe)
-
-	// When a gesture completes one animation cycle, call onGestureEnd
-	useEffect(() => {
-		if (entity.gesture && keyframe > 0) {
-			const frameCount = FAIRY_SPRITES_WITH_PROPS[effectivePose].length
-			// If we've completed a full cycle, call the callback
-			if (keyframe >= frameCount) {
-				onGestureEnd?.()
-			}
-		}
-	}, [entity.gesture, keyframe, effectivePose, onGestureEnd])
 
 	return (
 		<>

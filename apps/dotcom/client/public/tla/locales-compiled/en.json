@@ -773,12 +773,6 @@
       "value": "Download"
     }
   ],
-  "80a3d8a5bb": [
-    {
-      "type": 0,
-      "value": "Log response time (solo mode only)"
-    }
-  ],
   "815e116a2e": [
     {
       "type": 0,
@@ -1139,6 +1133,12 @@
     {
       "type": 0,
       "value": "Guest user"
+    }
+  ],
+  "b34a671e2c": [
+    {
+      "type": 0,
+      "value": "Log response time"
     }
   ],
   "b357b524e7": [

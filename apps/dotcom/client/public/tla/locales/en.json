@@ -365,9 +365,6 @@
   "801ab24683": {
     "translation": "Download"
   },
-  "80a3d8a5bb": {
-    "translation": "Log response time (solo mode only)"
-  },
   "815e116a2e": {
     "translation": "Have a bug, issue, or idea for tldraw? Let us know! Fill out this form and we will follow up over email if needed. You can also <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>."
   },
@@ -521,6 +518,9 @@
   },
   "b028909917": {
     "translation": "Guest user"
+  },
+  "b34a671e2c": {
+    "translation": "Log response time"
   },
   "b357b524e7": {
     "translation": "Email address"

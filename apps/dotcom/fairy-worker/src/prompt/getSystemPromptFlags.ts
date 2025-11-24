@@ -7,6 +7,7 @@ export function getSystemPromptFlags(
 ) {
 	return {
 		// Mode flags
+		isOneshotting: mode === 'one-shotting',
 		isSoloing: mode === 'soloing',
 		isWorking:
 			mode === 'working-drone' || mode === 'working-solo' || mode === 'working-orchestrator',

@@ -40,6 +40,7 @@ import {
 	reverseRecordsDiff,
 	structuredClone,
 	TLRecord,
+	uniqueId,
 	VecModel,
 } from 'tldraw'
 import { TldrawApp } from '../../../tla/app/TldrawApp'
@@ -136,6 +137,11 @@ export class FairyAgent {
 			logResponseTime: false,
 		}
 	)
+
+	/**
+	 * Whether the agent should use one-shotting mode or soloing mode when prompted solo.
+	 */
+	$useOneShottingMode = atom<boolean>('oneShotMode', true)
 
 	/**
 	 * An atom containing the conditions this agent is waiting for.
@@ -284,6 +290,9 @@ export class FairyAgent {
 		this.unknownActionUtil = this.agentActionUtils.unknown
 
 		this.stopRecordingFn = this.startRecordingUserActions()
+
+		// Poof on spawn
+		this.stackGesture('poof')
 	}
 
 	/**
@@ -611,11 +620,6 @@ export class FairyAgent {
 			throw new Error(
 				`Fairy is not in an active mode so can't act right now. First change to an active mode. Current mode: ${this.getMode()}`
 			)
-		}
-
-		const startingFairy = this.$fairyEntity.get()
-		if (startingFairy.pose === 'idle') {
-			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'active' }))
 		}
 
 		// Submit the request to the agent.
@@ -1095,6 +1099,13 @@ export class FairyAgent {
 	}
 
 	/**
+	 * Check if the fairy is currently sleeping.
+	 */
+	isSleeping() {
+		return this.getMode() === 'sleeping'
+	}
+
+	/**
 	 * Reset the agent's chat and memory.
 	 * Cancel the current request if there's one active.
 	 */
@@ -1317,11 +1328,58 @@ export class FairyAgent {
 	}
 
 	/**
-	 * Set the fairy's gesture.
-	 * @param gesture - The gesture to set the fairy to.
+	 * An array of gestures that are currently active.
+	 * The most recently added gesture is the one that is displayed.
+	 * This array determines what to do when one gesture completes.
+	 * eg: Switch to the next gesture in the stack.
+	 * eg: Revert to the base pose.
+	 *
+	 * Each item contains a unique ID and the gesture to display.
 	 */
-	setGesture(gesture: FairyPose | null) {
+	gestureStack: { id: string; gesture: FairyPose }[] = []
+
+	/**
+	 * Override the fairy's gesture, cancelling all other gestures in the stack.
+	 * @param gesture - The gesture to set the fairy to.
+	 * @param duration - The duration of the gesture in milliseconds.
+	 */
+	setGesture(gesture: FairyPose | null, duration = 400) {
 		this.$fairyEntity.update((fairy) => ({ ...fairy, gesture }))
+
+		if (!gesture) {
+			this.gestureStack = []
+			return
+		}
+
+		const id = uniqueId()
+		this.gestureStack = [{ id, gesture }]
+		setTimeout(() => {
+			this.gestureStack = this.gestureStack.filter((g) => g.id !== id)
+			const finalGesture = this.gestureStack[0]?.gesture ?? null
+			this.$fairyEntity.update((fairy) => ({ ...fairy, gesture: finalGesture }))
+		}, duration)
+	}
+
+	/**
+	 * Add a gesture to the stack. When this gesture completes, the next gesture in the stack is displayed.
+	 */
+	stackGesture(gesture: FairyPose, duration = 400) {
+		this.$fairyEntity.update((fairy) => ({ ...fairy, gesture: gesture }))
+
+		const id = uniqueId()
+		this.gestureStack.push({ id, gesture })
+		setTimeout(() => {
+			this.gestureStack = this.gestureStack.filter((g) => g.id !== id)
+			const finalGesture = this.gestureStack[0]?.gesture ?? null
+			this.$fairyEntity.update((fairy) => ({ ...fairy, gesture: finalGesture }))
+		}, duration)
+	}
+
+	/**
+	 * Clear the fairy's gesture.
+	 */
+	clearGesture() {
+		this.$fairyEntity.update((fairy) => ({ ...fairy, gesture: null }))
 	}
 
 	updateFairyConfig(partial: Partial<FairyConfig>) {
@@ -1372,7 +1430,8 @@ export class FairyAgent {
 		const center = this.editor.getViewportPageBounds().center
 		const position = offset ? { x: center.x + offset.x, y: center.y + offset.y } : center
 		const currentPageId = this.editor.getCurrentPageId()
-		this.$fairyEntity.update((f) => (f ? { ...f, position, gesture: 'poof', currentPageId } : f))
+		this.$fairyEntity.update((f) => (f ? { ...f, position, currentPageId } : f))
+		this.stackGesture('poof')
 	}
 
 	/**
