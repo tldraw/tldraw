@@ -88,6 +88,7 @@ interface FairyHUDHeaderProps {
 	menuPopoverOpen: boolean
 	onMenuPopoverOpenChange(open: boolean): void
 	onToggleFairyTasks(): void
+	onClosePanel(): void
 	agents: FairyAgent[]
 	shownFairy: FairyAgent | null
 	selectedFairies: FairyAgent[]
@@ -100,6 +101,7 @@ function FairyHUDHeader({
 	panelState,
 	menuPopoverOpen,
 	onMenuPopoverOpenChange,
+	onClosePanel,
 	agents,
 	shownFairy,
 	selectedFairies,
@@ -156,6 +158,10 @@ function FairyHUDHeader({
 
 			{centerContent}
 
+			<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onClosePanel}>
+				<TldrawUiButtonIcon icon="cross-2" />
+			</TldrawUiButton>
+
 			{/* <div style={{ position: 'relative' }}>
 				<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onToggleFairyTasks}>
 					<TldrawUiIcon
@@ -191,7 +197,10 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	// Create a reactive value that tracks which fairies are selected
 	const selectedFairies = useValue(
 		'selected-fairies',
-		() => agents.filter((agent) => agent.$fairyEntity.get()?.isSelected ?? false),
+		() =>
+			agents.filter(
+				(agent) => (agent.$fairyEntity.get()?.isSelected && !agent.isSleeping()) ?? false
+			),
 		[agents]
 	)
 
@@ -202,9 +211,17 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 			const currentSelectedFairies = agents.filter(
 				(agent) => agent.$fairyEntity.get()?.isSelected ?? false
 			)
-			if (currentSelectedFairies.length === 1) {
-				queueMicrotask(() => setShownFairy(currentSelectedFairies[0]))
-			}
+
+			queueMicrotask(() => {
+				if (currentSelectedFairies.length === 1) {
+					setShownFairy(currentSelectedFairies[0])
+					setPanelState('fairy')
+				}
+				if (currentSelectedFairies.length === 0) {
+					setShownFairy(null)
+					setPanelState('closed')
+				}
+			})
 		},
 		[agents]
 	)
@@ -266,6 +283,10 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 			const isChosen = clickedAgent.id === shownFairy?.id
 			const project = clickedAgent.getProject()
 
+			if (clickedAgent.isSleeping()) {
+				return
+			}
+
 			if (!isMultiSelect && selectProjectGroup(project)) {
 				return
 			}
@@ -312,6 +333,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 			clickedAgent.zoomTo()
 			selectFairy(clickedAgent)
 			setPanelState('fairy')
+			clickedAgent.wake()
 		},
 		[selectFairy]
 	)
@@ -415,6 +437,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 							onWheelCapture={(e) => e.stopPropagation()}
 						>
 							<FairyHUDHeader
+								onClosePanel={handleTogglePanel}
 								panelState={panelState}
 								menuPopoverOpen={
 									panelState === 'task-list'
@@ -465,7 +488,6 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 							{panelState === 'task-list' && <FairyTaskListInline agents={agents} />}
 						</div>
 					)}
-
 					<div className="fairy-buttons-container">
 						<FairyListSidebar
 							agents={agents}

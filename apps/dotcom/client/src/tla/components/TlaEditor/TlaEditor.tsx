@@ -58,7 +58,7 @@ import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
 // Lazy load fairy components
-export const MAX_FAIRY_COUNT = 5
+export const MAX_FAIRY_COUNT = 3
 const FairyApp = lazy(() =>
 	import('../../../fairy/FairyApp').then((m) => ({
 		default: m.FairyApp,

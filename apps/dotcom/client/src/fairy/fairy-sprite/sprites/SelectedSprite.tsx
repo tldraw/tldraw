@@ -14,14 +14,14 @@ export function SelectedSprite() {
 			xmlns="http://www.w3.org/2000/svg"
 		>
 			<path
-				stroke="hsl(214, 79.40%, 40.00%)"
+				stroke="hsl(293, 61%, 50%)"
 				strokeWidth={strokeWidth * 3}
 				strokeLinecap="square"
 				strokeLinejoin="round"
 				d={`M ${inset} ${inset + cornerLength} L ${inset} ${inset} L ${inset + cornerLength} ${inset} M ${size - inset - cornerLength} ${inset} L ${size - inset} ${inset} L ${size - inset} ${inset + cornerLength} M ${inset} ${size - inset - cornerLength} L ${inset} ${size - inset} L ${inset + cornerLength} ${size - inset} M ${size - inset - cornerLength} ${size - inset} L ${size - inset} ${size - inset} L ${size - inset} ${size - inset - cornerLength}`}
 			/>
 			<path
-				stroke="hsl(214, 90.60%, 66.70%)"
+				stroke="hsl(294, 80%, 68%)"
 				strokeWidth={strokeWidth}
 				strokeLinecap="square"
 				strokeLinejoin="round"

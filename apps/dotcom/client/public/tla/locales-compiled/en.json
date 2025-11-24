@@ -819,6 +819,12 @@
       "value": "Show tasks on canvas"
     }
   ],
+  "8256496a13": [
+    {
+      "type": 0,
+      "value": "Sleep fairy"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -1157,6 +1163,12 @@
     {
       "type": 0,
       "value": "File URL"
+    }
+  ],
+  "b4aa60efc5": [
+    {
+      "type": 0,
+      "value": "Wake fairy"
     }
   ],
   "b6d4223e60": [
