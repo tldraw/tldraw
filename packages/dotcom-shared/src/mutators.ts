@@ -191,7 +191,6 @@ async function assertBelowFairyLimit(tx: Transaction<TlaSchema>, userId: string)
 	const configs = JSON.parse(userFairies?.fairies || '{}')
 	const count = Object.values(configs).filter(Boolean).length
 
-	// Cap at MAX_FAIRY_COUNT regardless of user's plan
 	const effectiveLimit = Math.min(limit, MAX_FAIRY_COUNT)
 	assert(count < effectiveLimit, ZErrorCode.forbidden)
 }
