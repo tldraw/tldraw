@@ -27,7 +27,8 @@ async function requireUser(env: Environment, q: string) {
 export async function upsertFairyAccess(
 	env: Environment,
 	userId: string,
-	fairyLimit: number = MAX_FAIRY_COUNT
+	fairyLimit: number = MAX_FAIRY_COUNT,
+	expiresAt: number = FAIRY_WORLDWIDE_EXPIRATION
 ) {
 	const db = createPostgresConnectionPool(env, 'upsertFairyAccess')
 
@@ -37,13 +38,13 @@ export async function upsertFairyAccess(
 			.values({
 				userId,
 				fairyLimit,
-				fairyAccessExpiresAt: FAIRY_WORLDWIDE_EXPIRATION,
+				fairyAccessExpiresAt: expiresAt,
 				fairies: '{}',
 			})
 			.onConflict((oc) =>
 				oc.column('userId').doUpdateSet({
 					fairyLimit,
-					fairyAccessExpiresAt: FAIRY_WORLDWIDE_EXPIRATION,
+					fairyAccessExpiresAt: expiresAt,
 				})
 			)
 			.execute()
@@ -292,15 +293,14 @@ export const adminRoutes = createRouter<Environment>()
 	})
 	.post('/app/admin/fairy/enable-for-me', async (req, env) => {
 		const auth = await requireAuth(req, env)
-		const clerkClient = getClerkClient(env)
-		const clerkUser = await clerkClient.users.getUser(auth.userId)
-		const email = clerkUser.emailAddresses[0]?.emailAddress
 
-		if (!email) {
-			throw new StatusError(400, 'No email found for user')
+		const oneYearFromNow = Date.now() + 365 * 24 * 60 * 60 * 1000
+		const result = await upsertFairyAccess(env, auth.userId, MAX_FAIRY_COUNT, oneYearFromNow)
+
+		if (!result.success) {
+			throw new StatusError(500, `Failed to enable fairy access: ${result.error}`)
 		}
 
-		const result = await grantFairyAccess(env, email)
 		return json(result)
 	})
 	.post('/app/admin/fairy/remove-access', async (req, env) => {

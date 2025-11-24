@@ -485,6 +485,11 @@ function FairyInvites() {
 			{error && <div className={styles.errorMessage}>{error}</div>}
 			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
 
+			<h4 className="tla-text_ui__medium">Enable Fairies for Current User</h4>
+			<p className="tla-text_ui__small">
+				Quick access toggle for development. Grants {MAX_FAIRY_COUNT} fairies with 1 year
+				expiration.
+			</p>
 			<div style={{ marginBottom: '16px' }}>
 				<TlaButton onClick={enableForMe} variant="primary" isLoading={isEnabling}>
 					Enable fairies for me
