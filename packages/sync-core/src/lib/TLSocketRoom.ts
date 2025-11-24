@@ -1,6 +1,6 @@
 import type { StoreSchema, UnknownRecord } from '@tldraw/store'
 import { createTLSchema, TLStoreSnapshot } from '@tldraw/tlschema'
-import { structuredClone } from 'tldraw'
+import { getOwnProperty, hasOwnProperty, isEqual, structuredClone } from 'tldraw'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	DEFAULT_INITIAL_SNAPSHOT,
@@ -608,21 +608,20 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 */
 	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	async updateStore(updater: (store: RoomStoreMethods<R>) => void | Promise<void>) {
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		const ctx = new StoreUpdateContext<R>(
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			Object.fromEntries(this.getCurrentSnapshot().documents.map((d) => [d.state.id, d.state])),
+			this.room.schema
+		)
+		await updater(ctx)
 		this.storage.transaction((txn) => {
-			updater({
-				delete(recordOrId) {
-					txn.delete(typeof recordOrId === 'string' ? recordOrId : recordOrId.id)
-				},
-				get(id) {
-					return structuredClone(txn.get(id)) ?? null
-				},
-				getAll() {
-					return structuredClone([...txn.values()])
-				},
-				put(record) {
-					txn.set(record.id, structuredClone(record))
-				},
-			})
+			for (const [id, record] of Object.entries(ctx.updates.puts)) {
+				txn.set(id, record as R)
+			}
+			for (const id of ctx.updates.deletes) {
+				txn.delete(id)
+			}
 		})
 	}
 
@@ -787,4 +786,69 @@ export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
 	 * @returns Array of all records
 	 */
 	getAll(): R[]
+}
+
+/**
+ * @deprecated use the storage.transaction method instead
+ */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+class StoreUpdateContext<R extends UnknownRecord> implements RoomStoreMethods<R> {
+	constructor(
+		private readonly snapshot: Record<string, UnknownRecord>,
+		private readonly schema: StoreSchema<R, any>
+	) {}
+	readonly updates = {
+		puts: {} as Record<string, UnknownRecord>,
+		deletes: new Set<string>(),
+	}
+	put(record: R): void {
+		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
+		const recordType = getOwnProperty(this.schema.types, record.typeName)
+		if (!recordType) {
+			throw new Error(`Missing definition for record type ${record.typeName}`)
+		}
+		const recordBefore = this.snapshot[record.id] ?? undefined
+		recordType.validate(record, recordBefore as R)
+
+		if (record.id in this.snapshot && isEqual(this.snapshot[record.id], record)) {
+			delete this.updates.puts[record.id]
+		} else {
+			this.updates.puts[record.id] = structuredClone(record)
+		}
+		this.updates.deletes.delete(record.id)
+	}
+	delete(recordOrId: R | string): void {
+		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
+		const id = typeof recordOrId === 'string' ? recordOrId : recordOrId.id
+		delete this.updates.puts[id]
+		if (this.snapshot[id]) {
+			this.updates.deletes.add(id)
+		}
+	}
+	get(id: string): R | null {
+		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
+		if (hasOwnProperty(this.updates.puts, id)) {
+			return structuredClone(this.updates.puts[id]) as R
+		}
+		if (this.updates.deletes.has(id)) {
+			return null
+		}
+		return structuredClone(this.snapshot[id] ?? null) as R
+	}
+
+	getAll(): R[] {
+		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
+		const result = Object.values(this.updates.puts)
+		for (const [id, record] of Object.entries(this.snapshot)) {
+			if (!this.updates.deletes.has(id) && !hasOwnProperty(this.updates.puts, id)) {
+				result.push(record)
+			}
+		}
+		return structuredClone(result) as R[]
+	}
+
+	private _isClosed = false
+	close() {
+		this._isClosed = true
+	}
 }

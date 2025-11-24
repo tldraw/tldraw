@@ -121,6 +121,14 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 			const txn = new InMemorySyncStorageTransaction<R>(this)
 			return callback(txn)
 		})
+		if (
+			typeof result === 'object' &&
+			result &&
+			'then' in result &&
+			typeof result.then === 'function'
+		) {
+			throw new Error('Transaction must return a value, not a promise')
+		}
 
 		const clockAfter = this.documentClock.get()
 		const didChange = clockAfter > clockBefore

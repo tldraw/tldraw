@@ -224,6 +224,7 @@ export type Migration = {
 			readonly scope: 'storage'
 			// eslint-disable-next-line @typescript-eslint/method-signature-style
 			readonly up: (storage: SynchronousRecordStorage<UnknownRecord>) => void
+			readonly down?: never
 	  }
 )
 
