@@ -74,7 +74,8 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 		'fairy position',
 		() => {
 			const entity = $fairyEntity.get()
-			if (!entity) return { x: 0, y: 0 }
+			// Use entity position directly if it exists, otherwise return null to prevent rendering
+			if (!entity) return null
 			return {
 				x: entity.position.x,
 				y: entity.position.y,
@@ -93,6 +94,11 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 	])
 	const isGenerating = useValue('is generating', () => agent.isGenerating(), [agent])
 	const isFairyGrabbable = isInSelectTool
+
+	// Don't render if entity or position doesn't exist yet to avoid position jumping from (0,0)
+	if (!fairyEntity || !position) {
+		return null
+	}
 
 	// Handle fairy pointer down, we don't enter fairy throw tool until the user actually moves their mouse
 	const handleFairyPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
