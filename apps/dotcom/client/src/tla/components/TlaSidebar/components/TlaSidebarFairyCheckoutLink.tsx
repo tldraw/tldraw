@@ -4,7 +4,6 @@ import { Spinner, useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { useFairyLimit } from '../../../hooks/useFairyAccess'
 import { F, useIntl } from '../../../utils/i18n'
-import { customFeatureFlags } from '../../TlaEditor/TlaEditor'
 import styles from '../sidebar.module.css'
 
 // Generate fairy quantity options from 1 to MAX_FAIRY_COUNT
@@ -40,9 +39,6 @@ export function TlaSidebarFairyCheckoutLink() {
 	const intl = useIntl()
 	const [showDropdown, setShowDropdown] = useState(false)
 	const [paddleLoaded, setPaddleLoaded] = useState(false)
-
-	// Check if fairy feature is enabled via debug flag
-	const fairyEnabled = useValue('fairy_enabled', () => customFeatureFlags.fairies.get(), [])
 
 	// Load Paddle script
 	const loadPaddleScript = () => {
@@ -82,7 +78,6 @@ export function TlaSidebarFairyCheckoutLink() {
 	)
 
 	// Early returns after all hooks
-	if (!fairyEnabled) return null
 	if (currentFairyLimit >= MAX_FAIRY_COUNT) return null
 
 	const handleClick = () => {

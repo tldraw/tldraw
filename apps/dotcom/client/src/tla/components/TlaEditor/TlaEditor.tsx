@@ -4,7 +4,6 @@ import { useSync } from '@tldraw/sync'
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	DefaultDebugMenu,
-	DefaultDebugMenuContent,
 	Editor,
 	TLComponents,
 	TLPresenceStateInfo,
@@ -12,7 +11,6 @@ import {
 	TLUiDialogsContextType,
 	Tldraw,
 	TldrawUiMenuItem,
-	createDebugValue,
 	createSessionStateSnapshotSignal,
 	getDefaultUserPresence,
 	parseDeepLinkString,
@@ -77,12 +75,6 @@ const RemoteFairies = lazy(() =>
 // const InCanvasTaskList = lazy(() =>
 // 	import('../../../fairy/InCanvasTaskList').then((m) => ({ default: m.InCanvasTaskList }))
 // )
-
-export const customFeatureFlags = {
-	fairies: createDebugValue('fairies', {
-		defaults: { all: false },
-	}),
-}
 
 /** @internal */
 export const components: TLComponents = {
@@ -283,9 +275,6 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const overrides = useFileEditorOverrides({ fileSlug })
 	const extraDragIconOverrides = useExtraDragIconOverrides()
 
-	const hasFairiesFlag = useValue('show_fairies', () => customFeatureFlags.fairies.get(), [
-		customFeatureFlags,
-	])
 	const hasFairyAccess = useFairyAccess()
 
 	// Fairy stuff
@@ -299,10 +288,8 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		agentsRef.current = agents
 	}, [agents])
 
-	const emailAddress = user?.clerkUser.emailAddresses[0].emailAddress ?? ''
-
 	const instanceComponents = useMemo((): TLComponents => {
-		const canShowFairies = app && agents && hasFairiesFlag && hasFairyAccess
+		const canShowFairies = app && agents && hasFairyAccess
 
 		return {
 			...components,
@@ -329,7 +316,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			),
 			DebugMenu: () => <CustomDebugMenu />,
 		}
-	}, [agents, hasFairiesFlag, hasFairyAccess, app])
+	}, [agents, hasFairyAccess, app])
 
 	return (
 		<TlaEditorWrapper>
@@ -352,7 +339,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<SneakyToolSwitcher />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
-				{app && hasFairiesFlag && hasFairyAccess && (
+				{app && hasFairyAccess && (
 					<Suspense fallback={null}>
 						<FairyApp setAgents={setAgents} fileId={fileId} />
 					</Suspense>
@@ -396,8 +383,6 @@ function CustomDebugMenu() {
 					)}
 				</>
 			)}
-
-			<DefaultDebugMenuContent customFeatureFlags={customFeatureFlags} />
 		</DefaultDebugMenu>
 	)
 }
