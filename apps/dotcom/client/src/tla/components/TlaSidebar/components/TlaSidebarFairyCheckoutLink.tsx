@@ -59,12 +59,13 @@ export function TlaSidebarFairyCheckoutLink() {
 	}
 
 	// Show button only if user has no fairy access
-	const currentFairyLimit = useFairyLimit() ?? 0
+	const currentFairyLimit = useFairyLimit()
+	console.log('💡[909]: TlaSidebarFairyCheckoutLink.tsx:62: currentFairyLimit=', currentFairyLimit)
 	const user = useValue('user', () => app.getUser(), [app])
 	const userEmail = user?.email
 
 	// Early returns after all hooks
-	if (currentFairyLimit > 0) return null // Hide button if user already has access
+	if (currentFairyLimit === null || currentFairyLimit > 0) return null // Hide button if user already has access
 	if (isStagingEnv) return null
 
 	const handlePurchase = () => {
@@ -132,6 +133,7 @@ export function TlaSidebarFairyCheckoutLink() {
 			console.error('Failed to open Paddle checkout:', error)
 		}
 	}
+	console.log('here')
 
 	return (
 		<div className={styles.sidebarDotDevLink}>

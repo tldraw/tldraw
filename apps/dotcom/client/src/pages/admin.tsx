@@ -534,7 +534,7 @@ function FairyInvites() {
 
 			<h4 className="tla-text_ui__medium">Remove Fairy Access from User</h4>
 			<p className="tla-text_ui__small">
-				Remove fairy access from a user by email. This will clear their fairy limit and expiration.
+				Remove fairy access from a user by email. This will set fairy limit and expiration to null.
 			</p>
 			<div className={styles.downloadContainer} style={{ marginBottom: '24px' }}>
 				<div>

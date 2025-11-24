@@ -102,7 +102,7 @@ async function removeFairyAccess(env: Environment, email: string) {
 		await db
 			.updateTable('user_fairies')
 			.set({
-				fairyLimit: 0,
+				fairyLimit: null,
 				fairyAccessExpiresAt: null,
 			})
 			.where('userId', '=', userId)
