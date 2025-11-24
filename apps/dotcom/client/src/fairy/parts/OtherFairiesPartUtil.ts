@@ -19,7 +19,7 @@ export class OtherFairiesPartUtil extends PromptPartUtil<OtherFairiesPart> {
 				position: helpers.roundVec(helpers.applyOffsetToVec(agent.$fairyEntity.get().position)),
 				isGenerating: activeRequest !== null,
 				bounds: activeRequest?.bounds ? helpers.applyOffsetToBox(activeRequest.bounds) : null,
-				personality: agent.$fairyConfig.get().personality,
+				// personality: agent.$fairyConfig.get().personality,
 				currentProjectId: agent.getProject()?.id ?? null,
 			}
 		})
@@ -31,7 +31,7 @@ export class OtherFairiesPartUtil extends PromptPartUtil<OtherFairiesPart> {
 			position: helpers.roundVec(helpers.applyOffsetToVec(this.agent.$fairyEntity.get().position)),
 			isGenerating: thisActiveRequest !== null,
 			bounds: thisActiveRequest?.bounds ? helpers.applyOffsetToBox(thisActiveRequest.bounds) : null,
-			personality: this.agent.$fairyConfig.get().personality,
+			// personality: this.agent.$fairyConfig.get().personality,
 			currentProjectId: this.agent.getProject()?.id ?? null,
 		}
 

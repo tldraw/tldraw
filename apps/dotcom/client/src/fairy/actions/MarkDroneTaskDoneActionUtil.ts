@@ -31,7 +31,7 @@ export class MarkDroneTaskDoneActionUtil extends AgentActionUtil<MarkDroneTaskDo
 			{
 				type: 'memory-transition',
 				memoryLevel: 'project',
-				message: `I marked task ${action.taskId} as done: ${task.text}`,
+				message: `I just finished the task.\nID: "${action.taskId}"\nTitle: "${task.title}"\nDescription: "${task.text}".`,
 				userFacingMessage: null,
 			},
 		])
