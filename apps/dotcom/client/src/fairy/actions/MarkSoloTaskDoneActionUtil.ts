@@ -6,14 +6,10 @@ import { AgentActionUtil } from './AgentActionUtil'
 export class MarkSoloTaskDoneActionUtil extends AgentActionUtil<MarkSoloTaskDoneAction> {
 	static override type = 'mark-task-done' as const
 
-	override getInfo(action: Streaming<MarkSoloTaskDoneAction>) {
-		const task = $fairyTasks.get().find((task) => task.id === action.taskId)
-
+	override getInfo(_action: Streaming<MarkSoloTaskDoneAction>) {
 		return {
-			icon: 'note' as const,
-			description: action.complete
-				? `Completed task: ${task?.text ?? action.taskId}`
-				: 'Completing task...',
+			icon: 'flag' as const,
+			description: `Completed task`,
 			pose: 'writing' as const,
 			canGroup: () => false,
 		}
@@ -31,7 +27,8 @@ export class MarkSoloTaskDoneActionUtil extends AgentActionUtil<MarkSoloTaskDone
 			{
 				type: 'memory-transition',
 				memoryLevel: 'fairy',
-				message: `I marked task ${action.taskId} as done: ${task.text}`,
+				message: `I marked task ${action.taskId} as done.`,
+				userFacingMessage: null,
 			},
 		])
 

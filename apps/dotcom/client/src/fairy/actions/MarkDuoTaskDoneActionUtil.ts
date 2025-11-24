@@ -31,7 +31,8 @@ export class MarkDuoTaskDoneActionUtil extends AgentActionUtil<MarkDuoTaskDoneAc
 			{
 				type: 'memory-transition',
 				memoryLevel: 'project',
-				message: `I marked task ${action.taskId} as done: ${task.text}`,
+				message: `I marked task ${action.taskId} as done.`,
+				userFacingMessage: null,
 			},
 		])
 

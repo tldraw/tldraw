@@ -32,6 +32,7 @@ export class MarkDroneTaskDoneActionUtil extends AgentActionUtil<MarkDroneTaskDo
 				type: 'memory-transition',
 				memoryLevel: 'project',
 				message: `I marked task ${action.taskId} as done: ${task.text}`,
+				userFacingMessage: null,
 			},
 		])
 		this.agent.interrupt({ mode: 'standing-by', input: null })

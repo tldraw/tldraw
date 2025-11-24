@@ -6,17 +6,8 @@ import { AgentActionUtil } from './AgentActionUtil'
 export class StartSoloTaskActionUtil extends AgentActionUtil<StartSoloTaskAction> {
 	static override type = 'start-task' as const
 
-	override getInfo(action: Streaming<StartSoloTaskAction>) {
-		const task = $fairyTasks.get().find((task) => task.id === action.taskId)
-
-		return {
-			icon: 'note' as const,
-			description: action.complete
-				? `Started task: ${task?.text ?? action.taskId}`
-				: 'Starting task...',
-			pose: 'reading' as const,
-			canGroup: () => false,
-		}
+	override getInfo(_action: Streaming<StartSoloTaskAction>) {
+		return null
 	}
 
 	override applyAction(action: Streaming<StartSoloTaskAction>, _helpers: AgentHelpers) {
