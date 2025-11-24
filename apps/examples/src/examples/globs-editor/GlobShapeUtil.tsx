@@ -13,10 +13,10 @@ import {
 	ShapeUtil,
 	SVGContainer,
 	T,
-	TLBaseShape,
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
+	TLShape,
 	TLShapePartial,
 	toDomPrecision,
 	track,
@@ -70,7 +70,15 @@ export interface GlobProps {
 	isGhosting: boolean
 }
 
-export type GlobShape = TLBaseShape<'glob', GlobProps>
+const GLOB_TYPE = 'glob'
+
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		[GLOB_TYPE]: GlobProps
+	}
+}
+
+export type GlobShape = TLShape<'glob'>
 
 interface SnapData {
 	nudge: VecModel

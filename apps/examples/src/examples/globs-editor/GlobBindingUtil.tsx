@@ -3,7 +3,7 @@ import {
 	BindingOnShapeDeleteOptions,
 	BindingUtil,
 	Editor,
-	TLBaseBinding,
+	TLBinding,
 	TLParentId,
 	TLShapeId,
 	Vec,
@@ -12,7 +12,15 @@ import { GlobShape } from './GlobShapeUtil'
 import { NodeShape } from './NodeShapeUtil'
 import { getGlobBindings, getGlobTangentUpdate } from './shared'
 
-export type GlobBinding = TLBaseBinding<'glob', GlobBindingProps>
+const GLOB_BINDING_TYPE = 'glob'
+
+declare module 'tldraw' {
+	export interface TLGlobalBindingPropsMap {
+		[GLOB_BINDING_TYPE]: GlobBindingProps
+	}
+}
+
+export type GlobBinding = TLBinding<'glob'>
 
 interface GlobBindingProps {
 	terminal: 'start' | 'end'

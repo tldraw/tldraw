@@ -8,10 +8,10 @@ import {
 	ShapeUtil,
 	SVGContainer,
 	T,
-	TLBaseShape,
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
+	TLShape,
 	useDefaultColorTheme,
 	useValue,
 	Vec,
@@ -22,7 +22,16 @@ export interface NodeProps {
 	opacity: number
 	radius: number
 }
-export type NodeShape = TLBaseShape<'node', NodeProps>
+
+const NODE_TYPE = 'node'
+
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		[NODE_TYPE]: NodeProps
+	}
+}
+
+export type NodeShape = TLShape<'node'>
 
 export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 	static override type = 'node' as const
