@@ -453,12 +453,11 @@ export type StartSoloTaskAction = z.infer<typeof StartSoloTaskActionSchema>
 export const MarkDroneTaskDoneActionSchema = z
 	.object({
 		_type: z.literal('mark-my-task-done'),
-		taskId: z.string(),
 	})
 	.meta({
 		title: 'Mark Task Done',
 		description:
-			'The agent marks a task as completed. This action should be used when the agent has finished working on a task.',
+			'The agent marks their current task as completed. This action should be used when the agent has finished working on a task.',
 	})
 
 export type MarkDroneTaskDoneAction = z.infer<typeof MarkDroneTaskDoneActionSchema>
@@ -466,12 +465,11 @@ export type MarkDroneTaskDoneAction = z.infer<typeof MarkDroneTaskDoneActionSche
 export const MarkSoloTaskDoneActionSchema = z
 	.object({
 		_type: z.literal('mark-task-done'),
-		taskId: z.string(),
 	})
 	.meta({
 		title: 'Mark Task Done',
 		description:
-			'The agent marks a task as completed. This action should be used when the agent has finished working on a task.',
+			'The agent marks their current task as completed. This action should be used when the agent has finished working on a task.',
 	})
 
 export type MarkSoloTaskDoneAction = z.infer<typeof MarkSoloTaskDoneActionSchema>
@@ -539,12 +537,11 @@ export type StartDuoTaskAction = z.infer<typeof StartDuoTaskActionSchema>
 export const MarkDuoTaskDoneActionSchema = z
 	.object({
 		_type: z.literal('mark-duo-task-done'),
-		taskId: z.string(),
 	})
 	.meta({
 		title: 'Mark Duo Task Done',
 		description:
-			'The agent marks a task as completed in a duo project. This action should be used when the agent has finished working on a task.',
+			'The agent marks their current task as completed in a duo project. This action should be used when the agent has finished working on a task.',
 	})
 
 export type MarkDuoTaskDoneAction = z.infer<typeof MarkDuoTaskDoneActionSchema>

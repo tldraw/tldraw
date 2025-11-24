@@ -135,8 +135,10 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 					text = '[THOUGHT]: ' + (action.text || '<thought data lost>')
 					break
 				}
+				case 'mark-my-task-done':
+				case 'mark-duo-task-done':
 				case 'mark-task-done': {
-					text = `[TASK DONE] I marked task ${action.taskId} as done.`
+					text = `[TASK DONE] I marked the task as done.`
 					break
 				}
 				default: {

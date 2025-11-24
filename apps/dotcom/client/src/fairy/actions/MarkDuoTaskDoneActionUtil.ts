@@ -1,6 +1,6 @@
 import { MarkDuoTaskDoneAction, Streaming } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
-import { $fairyTasks, setFairyTaskStatusAndNotifyCompletion } from '../FairyTaskList'
+import { setFairyTaskStatusAndNotifyCompletion } from '../FairyTaskList'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class MarkDuoTaskDoneActionUtil extends AgentActionUtil<MarkDuoTaskDoneAction> {
@@ -18,16 +18,18 @@ export class MarkDuoTaskDoneActionUtil extends AgentActionUtil<MarkDuoTaskDoneAc
 	override applyAction(action: Streaming<MarkDuoTaskDoneAction>, _helpers: AgentHelpers) {
 		if (!action.complete) return
 
-		const task = $fairyTasks.get().find((task) => task.id === action.taskId)
-		if (!task) return
+		const currentWork = this.agent.getWork()
+		const currentTask = currentWork.tasks.find((task) => task.status === 'in-progress')
+		if (!currentTask) return // todo error
+		const currentTaskId = currentTask.id
 
-		setFairyTaskStatusAndNotifyCompletion(action.taskId, 'done', this.editor)
+		setFairyTaskStatusAndNotifyCompletion(currentTaskId, 'done', this.editor)
 		this.agent.$chatHistory.update((prev) => [
 			...prev,
 			{
 				type: 'memory-transition',
 				memoryLevel: 'project',
-				message: `I just finished the task.\nID: "${action.taskId}"\nTitle: "${task.title}"\nDescription: "${task.text}".`,
+				message: `I just finished the task.\nID: "${currentTaskId}"\nTitle: "${currentTask.title}"\nDescription: "${currentTask.text}".`,
 				userFacingMessage: null,
 			},
 		])
