@@ -481,6 +481,12 @@
       "value": "Privacy policy"
     }
   ],
+  "5a2ccdc00a": [
+    {
+      "type": 0,
+      "value": "Failed to redeem invite code"
+    }
+  ],
   "5a86b22fa0": [
     {
       "type": 0,
@@ -1433,6 +1439,12 @@
     {
       "type": 0,
       "value": "SVG"
+    }
+  ],
+  "ce1424d44b": [
+    {
+      "type": 0,
+      "value": "You already have fairy access!"
     }
   ],
   "cea291e45e": [

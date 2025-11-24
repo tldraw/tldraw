@@ -1,9 +1,8 @@
 import { hasActiveFairyAccess } from '@tldraw/dotcom-shared'
 import { IRequest, StatusError, json } from 'itty-router'
-import { FAIRY_WORLDWIDE_EXPIRATION } from '../../config'
+import { upsertFairyAccess } from '../../adminRoutes'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
-import { getUserDurableObject } from '../../utils/durableObjects'
 import { requireAuth } from '../../utils/tla/getAuth'
 
 export async function redeemFairyInvite(request: IRequest, env: Environment): Promise<Response> {
@@ -18,7 +17,7 @@ export async function redeemFairyInvite(request: IRequest, env: Environment): Pr
 	const db = createPostgresConnectionPool(env, 'redeemFairyInvite')
 
 	try {
-		return await db.transaction().execute(async (tx) => {
+		const invite = await db.transaction().execute(async (tx) => {
 			// Get the invite with a row lock to prevent race conditions
 			const invite = await tx
 				.selectFrom('fairy_invite')
@@ -43,35 +42,13 @@ export async function redeemFairyInvite(request: IRequest, env: Environment): Pr
 				.where('userId', '=', auth.userId)
 				.executeTakeFirst()
 
-			const expiresAt = FAIRY_WORLDWIDE_EXPIRATION
-
 			// If user already has active fairy access, don't modify anything
 			if (
 				existingFairies &&
 				hasActiveFairyAccess(existingFairies.fairyAccessExpiresAt, existingFairies.fairyLimit)
 			) {
-				return json({
-					success: true,
-					alreadyHasAccess: true,
-				})
+				return null // Signal that user already has access
 			}
-
-			// Upsert user_fairies record
-			await tx
-				.insertInto('user_fairies')
-				.values({
-					userId: auth.userId,
-					fairies: '{}',
-					fairyLimit: invite.fairyLimit,
-					fairyAccessExpiresAt: expiresAt,
-				})
-				.onConflict((oc) =>
-					oc.column('userId').doUpdateSet({
-						fairyLimit: invite.fairyLimit,
-						fairyAccessExpiresAt: expiresAt,
-					})
-				)
-				.execute()
 
 			// Increment the invite usage count
 			await tx
@@ -82,18 +59,32 @@ export async function redeemFairyInvite(request: IRequest, env: Environment): Pr
 				.where('id', '=', inviteCode)
 				.execute()
 
-			// Trigger User DO refresh to pick up new fairy access
-			const userDO = getUserDurableObject(env, auth.userId)
-			await userDO.refreshUserData(auth.userId)
+			return invite
+		})
 
+		// If user already has access, return early
+		if (!invite) {
 			return json({
 				success: true,
-				fairyLimit: invite.fairyLimit,
-				expiresAt,
+				alreadyHasAccess: true,
 			})
+		}
+
+		// Grant fairy access using helper (handles upsert + DO refresh)
+		const result = await upsertFairyAccess(env, auth.userId, invite.fairyLimit)
+
+		if (!result.success) {
+			throw new StatusError(500, `Failed to grant fairy access: ${result.error}`)
+		}
+
+		return json({
+			success: true,
 		})
 	} catch (error) {
 		console.error('Error redeeming fairy invite:', error)
+		if (error instanceof StatusError) {
+			throw error
+		}
 		throw new StatusError(500, 'Internal server error')
 	} finally {
 		await db.destroy()

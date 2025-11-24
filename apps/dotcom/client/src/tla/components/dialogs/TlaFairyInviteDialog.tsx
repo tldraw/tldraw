@@ -12,8 +12,13 @@ import {
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { F } from '../../utils/i18n'
+import { F, defineMessages, useMsg } from '../../utils/i18n'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
+
+const messages = defineMessages({
+	alreadyHasAccess: { defaultMessage: 'You already have fairy access!' },
+	redemptionError: { defaultMessage: 'Failed to redeem invite code' },
+})
 
 export function TlaFairyInviteDialog({
 	fairyInviteToken,
@@ -26,7 +31,8 @@ export function TlaFairyInviteDialog({
 	const { user: clerkUser } = useUser()
 	const { addToast } = useToasts()
 	const [isAccepting, setIsAccepting] = useState(false)
-	const [error, setError] = useState<string | null>(null)
+	const alreadyHasAccessMsg = useMsg(messages.alreadyHasAccess)
+	const redemptionErrorMsg = useMsg(messages.redemptionError)
 
 	// Check if user already has active fairy access
 	const user = app?.getUser()
@@ -38,11 +44,11 @@ export function TlaFairyInviteDialog({
 		if (userHasActiveFairyAccess) {
 			addToast({
 				id: 'fairy-invite-already-has-access',
-				title: 'You already have fairy access!',
+				title: alreadyHasAccessMsg,
 			})
 			onClose()
 		}
-	}, [userHasActiveFairyAccess, addToast, onClose])
+	}, [userHasActiveFairyAccess, addToast, onClose, alreadyHasAccessMsg])
 
 	return (
 		<>
@@ -74,14 +80,11 @@ export function TlaFairyInviteDialog({
 					<F defaultMessage="You've been invited to join tldraw fairies!" />
 				</div>
 
-				{error && <div style={{ color: 'var(--tla-color-warning)', fontSize: 14 }}>{error}</div>}
-
 				<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 					<TlaCtaButton
 						disabled={isAccepting}
 						onClick={async () => {
 							setIsAccepting(true)
-							setError(null)
 							try {
 								const res = await fetch('/api/app/fairy-invite/redeem', {
 									method: 'POST',
@@ -90,20 +93,28 @@ export function TlaFairyInviteDialog({
 								})
 								const data = await res.json()
 								if (!res.ok) {
-									setError(data.error || 'Failed to redeem invite code')
+									onClose()
+									addToast({
+										id: 'fairy-invite-error',
+										title: data.error || redemptionErrorMsg,
+									})
 									return
 								}
 								onClose()
 								if (data.alreadyHasAccess) {
 									addToast({
 										id: 'fairy-invite-already-has-access',
-										title: 'You already have fairy access!',
+										title: alreadyHasAccessMsg,
 									})
 								} else {
 									window.location.href = routes.tlaRoot()
 								}
 							} catch (err) {
-								setError(err instanceof Error ? err.message : 'Failed to redeem invite code')
+								onClose()
+								addToast({
+									id: 'fairy-invite-error',
+									title: err instanceof Error ? err.message : redemptionErrorMsg,
+								})
 							} finally {
 								setIsAccepting(false)
 							}

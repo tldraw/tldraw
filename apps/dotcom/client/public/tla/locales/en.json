@@ -233,6 +233,9 @@
   "56c34c6410": {
     "translation": "Privacy policy"
   },
+  "5a2ccdc00a": {
+    "translation": "Failed to redeem invite code"
+  },
   "5a86b22fa0": {
     "translation": "Drag files here, <create>create a file</create>, or <invite>copy invite link</invite> to get started."
   },
@@ -626,6 +629,9 @@
   },
   "cd15a75c26": {
     "translation": "SVG"
+  },
+  "ce1424d44b": {
+    "translation": "You already have fairy access!"
   },
   "cea291e45e": {
     "translation": "Learn more about publishing."

@@ -3,12 +3,18 @@ import { Navigate, useParams, useSearchParams } from 'react-router-dom'
 import { DefaultSpinner, fetch, useToasts } from 'tldraw'
 import { routes } from '../../routeDefs'
 import { useMaybeApp } from '../hooks/useAppState'
+import { defineMessages, useMsg } from '../utils/i18n'
+
+const messages = defineMessages({
+	alreadyHasAccess: { defaultMessage: 'You already have fairy access!' },
+})
 
 export function Component() {
 	const { token } = useParams<{ token: string }>()
 	const [searchParams] = useSearchParams()
 	const app = useMaybeApp()
 	const { addToast } = useToasts()
+	const alreadyHasAccessMsg = useMsg(messages.alreadyHasAccess)
 	const isAccepting = searchParams.get('accept') === 'true'
 
 	// Memoize the state object to prevent Navigate from re-rendering infinitely
@@ -28,7 +34,7 @@ export function Component() {
 						if (data.alreadyHasAccess) {
 							addToast({
 								id: 'fairy-invite-already-has-access',
-								title: 'You already have fairy access!',
+								title: alreadyHasAccessMsg,
 							})
 						}
 						window.location.href = routes.tlaRoot()
@@ -39,7 +45,7 @@ export function Component() {
 			}
 			redeemInvite()
 		}
-	}, [app, isAccepting, token, addToast])
+	}, [app, isAccepting, token, addToast, alreadyHasAccessMsg])
 
 	// If user clicked accept, show spinner and let app handle redirect
 	if (app && isAccepting && token)
