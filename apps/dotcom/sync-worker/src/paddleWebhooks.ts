@@ -1,6 +1,7 @@
 import { MAX_FAIRY_COUNT } from '@tldraw/dotcom-shared'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
+import { sql } from 'kysely'
 import { FAIRY_WORLDWIDE_EXPIRATION } from './config'
 import { createPostgresConnectionPool } from './postgres'
 import { type Environment } from './types'
@@ -142,32 +143,24 @@ async function handleTransactionCompleted(
 
 	const expiresAt = FAIRY_WORLDWIDE_EXPIRATION
 
-	// Upsert user_fairies table with new access (add to existing limit, cap at 5)
+	// Upsert user_fairies table with atomic increment to prevent race conditions
 	const db = createPostgresConnectionPool(env, '/paddle/transaction.completed')
 
 	try {
-		// First check if user already has fairy access
-		const existingAccess = await db
-			.selectFrom('user_fairies')
-			.select(['fairyLimit'])
-			.where('userId', '=', userId)
-			.executeTakeFirst()
-
-		// Calculate new limit: add purchased quantity to existing, cap at MAX_FAIRY_COUNT
-		const currentLimit = existingAccess?.fairyLimit ?? 0
-		const newLimit = Math.min(currentLimit + fairyLimit, MAX_FAIRY_COUNT)
+		// Cap insert value at MAX_FAIRY_COUNT for new users
+		const cappedQuantity = Math.min(fairyLimit, MAX_FAIRY_COUNT)
 
 		await db
 			.insertInto('user_fairies')
 			.values({
 				userId,
 				fairies: '{}',
-				fairyLimit: newLimit,
+				fairyLimit: cappedQuantity,
 				fairyAccessExpiresAt: expiresAt,
 			})
 			.onConflict((oc) =>
 				oc.column('userId').doUpdateSet({
-					fairyLimit: newLimit,
+					fairyLimit: sql`LEAST(user_fairies.fairy_limit + ${fairyLimit}, ${MAX_FAIRY_COUNT})`,
 					fairyAccessExpiresAt: expiresAt,
 				})
 			)
