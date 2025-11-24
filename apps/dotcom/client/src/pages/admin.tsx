@@ -307,10 +307,9 @@ function FairyInvites() {
 			createdAt: number
 		}>
 	>([])
-	const [fairyLimit, setFairyLimit] = useState(MAX_FAIRY_COUNT)
 	const [maxUses, setMaxUses] = useState(1)
 	const [grantEmail, setGrantEmail] = useState('')
-	const [grantFairyLimit, setGrantFairyLimit] = useState(5)
+	const [grantSetToZero, setGrantSetToZero] = useState(false)
 	const [isCreating, setIsCreating] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
 	const [isEnabling, setIsEnabling] = useState(false)
@@ -352,7 +351,7 @@ function FairyInvites() {
 			const res = await fetch('/api/app/admin/fairy-invites', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ fairyLimit, maxUses }),
+				body: JSON.stringify({ maxUses }),
 			})
 			if (!res.ok) {
 				setError(res.statusText + ': ' + (await res.text()))
@@ -366,7 +365,7 @@ function FairyInvites() {
 		} finally {
 			setIsCreating(false)
 		}
-	}, [fairyLimit, maxUses, loadInvites])
+	}, [maxUses, loadInvites])
 
 	const deleteInvite = useCallback(
 		async (id: string) => {
@@ -406,21 +405,21 @@ function FairyInvites() {
 			const res = await fetch('/api/app/admin/fairy/grant-access', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email: grantEmail, fairyLimit: grantFairyLimit }),
+				body: JSON.stringify({ email: grantEmail, setToZero: grantSetToZero }),
 			})
 			if (!res.ok) {
 				setError(res.statusText + ': ' + (await res.text()))
 				return
 			}
-			const result = await res.json()
-			setSuccessMessage(`Fairy access granted to ${grantEmail}! Limit: ${result.fairyLimit}`)
+			await res.json()
+			setSuccessMessage(`Fairy access granted to ${grantEmail}!`)
 			setGrantEmail('')
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to grant fairy access')
 		} finally {
 			setIsGranting(false)
 		}
-	}, [grantEmail, grantFairyLimit])
+	}, [grantEmail])
 
 	const enableForMe = useCallback(async () => {
 		setIsEnabling(true)
@@ -434,8 +433,8 @@ function FairyInvites() {
 				setError(res.statusText + ': ' + (await res.text()))
 				return
 			}
-			const result = await res.json()
-			setSuccessMessage(`Fairy access enabled! Limit: ${result.fairyLimit}`)
+			await res.json()
+			setSuccessMessage('Fairy access enabled!')
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to enable fairy access')
 		} finally {
@@ -463,61 +462,51 @@ function FairyInvites() {
 
 			<h4 className="tla-text_ui__medium">Grant Fairy Access to User</h4>
 			<p className="tla-text_ui__small">
-				Grant fairy access to a user by email. Set to 0 to show purchase option without granting
-				access. Set to 1-5 to grant fairies directly.
+				Grant fairy access to a user by email. This will grant {MAX_FAIRY_COUNT} fairies, or use the
+				checkbox to set to 0 (shows purchase option).
 			</p>
-			<div className={styles.downloadContainer} style={{ marginBottom: '24px' }}>
-				<div>
-					<label htmlFor="grantEmail">Email:</label>
-					<input
-						id="grantEmail"
-						type="email"
-						placeholder="user@example.com"
-						value={grantEmail}
-						onChange={(e) => setGrantEmail(e.target.value)}
-						className={styles.searchInput}
-						style={{ width: '250px', marginLeft: '8px' }}
-					/>
+			<div style={{ marginBottom: '24px' }}>
+				<div className={styles.downloadContainer}>
+					<div>
+						<label htmlFor="grantEmail">Email:</label>
+						<input
+							id="grantEmail"
+							type="email"
+							placeholder="user@example.com"
+							value={grantEmail}
+							onChange={(e) => setGrantEmail(e.target.value)}
+							className={styles.searchInput}
+							style={{ width: '250px', marginLeft: '8px' }}
+						/>
+					</div>
+					<TlaButton onClick={grantAccess} variant="primary" isLoading={isGranting}>
+						Grant Access
+					</TlaButton>
 				</div>
-				<div>
-					<label htmlFor="grantFairyLimit">Fairy limit:</label>
-					<input
-						id="grantFairyLimit"
-						type="number"
-						placeholder="5"
-						value={grantFairyLimit}
-						onChange={(e) => setGrantFairyLimit(Number(e.target.value))}
-						min={0}
-						max={5}
-						className={styles.searchInput}
-						style={{ width: '120px', marginLeft: '8px' }}
-					/>
+				<div style={{ marginTop: '8px' }}>
+					<label
+						htmlFor="grantSetToZero"
+						style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+					>
+						<input
+							id="grantSetToZero"
+							type="checkbox"
+							checked={grantSetToZero}
+							onChange={(e) => setGrantSetToZero(e.target.checked)}
+						/>
+						<span className="tla-text_ui__small">
+							Set to 0 (show purchase option without granting access)
+						</span>
+					</label>
 				</div>
-				<TlaButton onClick={grantAccess} variant="primary" isLoading={isGranting}>
-					Grant Access
-				</TlaButton>
 			</div>
 
 			<h4 className="tla-text_ui__medium">Create Invite Code</h4>
 			<p className="tla-text_ui__small">
-				Create an invite code that grants fairy access. Fairy limit: max fairies per user. Max uses:
-				how many users can redeem this code (0 = unlimited).
+				Create an invite code that grants {MAX_FAIRY_COUNT} fairies. Max uses: how many users can
+				redeem this code (0 = unlimited).
 			</p>
 			<div className={styles.downloadContainer}>
-				<div>
-					<label htmlFor="fairyLimit">Fairy limit:</label>
-					<input
-						id="fairyLimit"
-						type="number"
-						placeholder="5"
-						value={fairyLimit}
-						onChange={(e) => setFairyLimit(Math.min(Number(e.target.value), MAX_FAIRY_COUNT))}
-						min={1}
-						max={MAX_FAIRY_COUNT}
-						className={styles.searchInput}
-						style={{ width: '120px', marginLeft: '8px' }}
-					/>
-				</div>
 				<div>
 					<label htmlFor="maxUses">Max uses:</label>
 					<input

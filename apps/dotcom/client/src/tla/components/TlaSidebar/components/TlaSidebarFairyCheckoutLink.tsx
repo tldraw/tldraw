@@ -1,14 +1,10 @@
-import { MAX_FAIRY_COUNT } from '@tldraw/dotcom-shared'
 import { useState } from 'react'
-import { Spinner, useValue } from 'tldraw'
+import { useValue } from 'tldraw'
 import { isStagingEnv } from '../../../../utils/env'
 import { useApp } from '../../../hooks/useAppState'
 import { useFairyLimit } from '../../../hooks/useFairyAccess'
-import { F, useIntl } from '../../../utils/i18n'
+import { F } from '../../../utils/i18n'
 import styles from '../sidebar.module.css'
-
-// Generate fairy quantity options from 1 to MAX_FAIRY_COUNT
-const FAIRY_QUANTITY_OPTIONS = Array.from({ length: MAX_FAIRY_COUNT }, (_, i) => i + 1)
 
 declare global {
 	interface Window {
@@ -37,8 +33,6 @@ declare global {
 
 export function TlaSidebarFairyCheckoutLink() {
 	const app = useApp()
-	const intl = useIntl()
-	const [showDropdown, setShowDropdown] = useState(false)
 	const [paddleLoaded, setPaddleLoaded] = useState(false)
 
 	// Load Paddle script
@@ -64,27 +58,14 @@ export function TlaSidebarFairyCheckoutLink() {
 		document.head.appendChild(script)
 	}
 
-	// Show button if user doesn't have max fairies yet (allow upsells)
+	// Show button only if user has no fairy access
 	const currentFairyLimit = useFairyLimit() ?? 0
 	const user = useValue('user', () => app.getUser(), [app])
 	const userEmail = user?.email
 
-	// Calculate available quantities (only show options that won't exceed max)
-	const remainingFairies = MAX_FAIRY_COUNT - currentFairyLimit
-	const availableQuantities = FAIRY_QUANTITY_OPTIONS.filter((qty) => qty <= remainingFairies)
-
-	// Default selection: 3 if available, otherwise the max available
-	const [selectedQuantity, setSelectedQuantity] = useState<number>(
-		availableQuantities.includes(3) ? 3 : availableQuantities[availableQuantities.length - 1] || 1
-	)
-
 	// Early returns after all hooks
-	if (currentFairyLimit >= MAX_FAIRY_COUNT) return null
+	if (currentFairyLimit > 0) return null // Hide button if user already has access
 	if (isStagingEnv) return null
-
-	const handleClick = () => {
-		setShowDropdown(!showDropdown)
-	}
 
 	const handlePurchase = () => {
 		const userId = app.userId
@@ -99,12 +80,8 @@ export function TlaSidebarFairyCheckoutLink() {
 			return
 		}
 
-		// Ensure quantity doesn't exceed remaining fairies
-		const actualQuantity = Math.min(selectedQuantity, remainingFairies)
-		if (actualQuantity <= 0) {
-			console.error('No fairies available to purchase')
-			return
-		}
+		// User must have 0 fairies to reach this point (due to early return)
+		// Always purchase quantity 1 (which grants 3 fairies)
 
 		// Get env and token from environment variables
 		const paddleEnv =
@@ -136,9 +113,9 @@ export function TlaSidebarFairyCheckoutLink() {
 				},
 			})
 
-			// Open checkout with quantity and prepopulated email
+			// Open checkout with quantity 1 (which grants 3 fairies)
 			window.Paddle.Checkout.open({
-				items: [{ priceId: paddlePriceId, quantity: actualQuantity }],
+				items: [{ priceId: paddlePriceId, quantity: 1 }],
 				customData: {
 					userId,
 				},
@@ -151,9 +128,6 @@ export function TlaSidebarFairyCheckoutLink() {
 					showAddDiscounts: false,
 				},
 			})
-
-			// Close dropdown after opening checkout
-			setShowDropdown(false)
 		} catch (error) {
 			console.error('Failed to open Paddle checkout:', error)
 		}
@@ -164,58 +138,16 @@ export function TlaSidebarFairyCheckoutLink() {
 			<button
 				data-testid="tla-sidebar-fairy-checkout"
 				onMouseEnter={loadPaddleScript}
-				onClick={handleClick}
+				onClick={handlePurchase}
 				className={styles.sidebarFairyCheckoutButton}
 			>
 				<span>
-					{currentFairyLimit > 0 ? (
-						<F defaultMessage="Purchase more fairies" />
-					) : (
-						<F defaultMessage="Purchase fairy access" />
-					)}
+					<F defaultMessage="Purchase fairy access" />
 				</span>
 				<span className={styles.sidebarFairyCheckoutButtonPrice}>
 					<F defaultMessage="$" />
 				</span>
 			</button>
-
-			{showDropdown && (
-				<div className={styles.sidebarFairyCheckoutDropdown}>
-					{paddleLoaded ? (
-						<>
-							{availableQuantities.map((quantity) => (
-								<button
-									key={quantity}
-									onClick={() => setSelectedQuantity(quantity)}
-									className={styles.sidebarFairyCheckoutQuantityOption}
-									data-selected={quantity === selectedQuantity}
-								>
-									<span>
-										{intl.formatMessage(
-											{
-												defaultMessage: '{count, plural, one {# fairy} other {# fairies}}',
-											},
-											{ count: quantity }
-										)}
-									</span>
-									{quantity === 3 && availableQuantities.includes(3) && (
-										<span className={styles.sidebarFairyCheckoutQuantityOptionBadge}>
-											<F defaultMessage="Recommended" />
-										</span>
-									)}
-								</button>
-							))}
-							<button onClick={handlePurchase} className={styles.sidebarFairyCheckoutProceedButton}>
-								<F defaultMessage="Continue to checkout" />
-							</button>
-						</>
-					) : (
-						<div className={styles.sidebarFairyCheckoutLoading}>
-							<Spinner />
-						</div>
-					)}
-				</div>
-			)}
 		</div>
 	)
 }

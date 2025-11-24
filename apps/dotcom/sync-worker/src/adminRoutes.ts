@@ -24,22 +24,12 @@ async function requireUser(env: Environment, q: string) {
 	return userRow
 }
 
-async function grantFairyAccess(env: Environment, email: string, fairyLimit: number) {
-	assert(typeof email === 'string' && email, 'email is required')
-	assert(typeof fairyLimit === 'number', 'fairyLimit must be a positive number')
-	assert(fairyLimit <= MAX_FAIRY_COUNT, `fairyLimit cannot exceed ${MAX_FAIRY_COUNT}`)
-
-	const clerkClient = getClerkClient(env)
-	const users = await clerkClient.users.getUserList({ emailAddress: [email] })
-
-	if (users.totalCount === 0) {
-		throw new StatusError(404, `No user found with email: ${email}`)
-	}
-
-	const clerkUser = users.data[0]
-	const userId = clerkUser.id
-
-	const db = createPostgresConnectionPool(env, '/app/admin/fairy/grant-access')
+export async function upsertFairyAccess(
+	env: Environment,
+	userId: string,
+	fairyLimit: number = MAX_FAIRY_COUNT
+) {
+	const db = createPostgresConnectionPool(env, 'upsertFairyAccess')
 
 	try {
 		await db
@@ -61,10 +51,36 @@ async function grantFairyAccess(env: Environment, email: string, fairyLimit: num
 		const userDO = getUserDurableObject(env, userId)
 		await userDO.refreshUserData(userId)
 
-		return { success: true, fairyLimit, fairyAccessExpiresAt: FAIRY_WORLDWIDE_EXPIRATION }
+		return { success: true }
+	} catch (error) {
+		console.error('Failed to upsert fairy access:', error)
+		return { success: false, error: String(error) }
 	} finally {
 		await db.destroy()
 	}
+}
+
+async function grantFairyAccess(env: Environment, email: string, setToZero: boolean = false) {
+	assert(typeof email === 'string' && email, 'email is required')
+
+	const clerkClient = getClerkClient(env)
+	const users = await clerkClient.users.getUserList({ emailAddress: [email] })
+
+	if (users.totalCount === 0) {
+		throw new StatusError(404, `No user found with email: ${email}`)
+	}
+
+	const clerkUser = users.data[0]
+	const userId = clerkUser.id
+
+	const fairyLimit = setToZero ? 0 : MAX_FAIRY_COUNT
+	const result = await upsertFairyAccess(env, userId, fairyLimit)
+
+	if (!result.success) {
+		throw new StatusError(500, `Failed to grant fairy access: ${result.error}`)
+	}
+
+	return { success: true }
 }
 
 export const adminRoutes = createRouter<Environment>()
@@ -194,12 +210,8 @@ export const adminRoutes = createRouter<Environment>()
 	})
 	.post('/app/admin/fairy-invites', async (req, env) => {
 		const body: any = await req.json()
-		const fairyLimit = body?.fairyLimit
 		const maxUses = body?.maxUses
 
-		if (typeof fairyLimit !== 'number' || fairyLimit < 1) {
-			return new Response('fairyLimit must be a positive number', { status: 400 })
-		}
 		if (typeof maxUses !== 'number' || maxUses < 0) {
 			return new Response('maxUses must be 0 (unlimited) or a positive number', { status: 400 })
 		}
@@ -211,14 +223,14 @@ export const adminRoutes = createRouter<Environment>()
 			.insertInto('fairy_invite')
 			.values({
 				id,
-				fairyLimit,
+				fairyLimit: MAX_FAIRY_COUNT,
 				maxUses,
 				currentUses: 0,
 				createdAt: Date.now(),
 			})
 			.execute()
 
-		return json({ id, fairyLimit, maxUses, currentUses: 0, createdAt: Date.now() })
+		return json({ id, fairyLimit: MAX_FAIRY_COUNT, maxUses, currentUses: 0, createdAt: Date.now() })
 	})
 	.get('/app/admin/fairy-invites', async (_req, env) => {
 		const db = createPostgresConnectionPool(env, '/app/admin/fairy-invites')
@@ -236,9 +248,9 @@ export const adminRoutes = createRouter<Environment>()
 	})
 	.post('/app/admin/fairy/grant-access', async (req, env) => {
 		const body: any = await req.json()
-		const { email, fairyLimit } = body
+		const { email, setToZero } = body
 
-		const result = await grantFairyAccess(env, email, fairyLimit)
+		const result = await grantFairyAccess(env, email, setToZero ?? false)
 		return json(result)
 	})
 	.post('/app/admin/fairy/enable-for-me', async (req, env) => {
@@ -251,7 +263,7 @@ export const adminRoutes = createRouter<Environment>()
 			throw new StatusError(400, 'No email found for user')
 		}
 
-		const result = await grantFairyAccess(env, email, MAX_FAIRY_COUNT)
+		const result = await grantFairyAccess(env, email)
 		return json(result)
 	})
 	.post('/app/admin/create_legacy_file', async (_res, env) => {

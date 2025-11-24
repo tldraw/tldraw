@@ -1,11 +1,7 @@
-import { MAX_FAIRY_COUNT } from '@tldraw/dotcom-shared'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
-import { sql } from 'kysely'
-import { FAIRY_WORLDWIDE_EXPIRATION } from './config'
-import { createPostgresConnectionPool } from './postgres'
+import { upsertFairyAccess } from './adminRoutes'
 import { type Environment } from './types'
-import { getUserDurableObject } from './utils/durableObjects'
 
 interface PaddleTransactionCompletedEvent {
 	event_id: string
@@ -124,57 +120,14 @@ async function handleTransactionCompleted(
 		throw new StatusError(400, 'Invalid transaction custom_data')
 	}
 
-	// Extract fairyLimit from item quantity
-	let fairyLimit: number
-	try {
-		const items = data.items as any[]
-		if (!items || items.length === 0) {
-			throw new Error('No items in transaction')
-		}
-		const quantity = items[0]?.quantity
-		fairyLimit = parseInt(String(quantity), 10)
-		if (isNaN(fairyLimit) || fairyLimit <= 0) {
-			throw new Error('Invalid quantity in transaction items')
-		}
-	} catch (error) {
-		console.error('Failed to parse transaction quantity:', error)
-		throw new StatusError(400, 'Invalid transaction quantity')
+	// Grant MAX_FAIRY_COUNT fairies (no incremental purchases supported)
+	const result = await upsertFairyAccess(env, userId)
+
+	if (!result.success) {
+		throw new StatusError(500, `Failed to grant fairy access: ${result.error}`)
 	}
 
-	const expiresAt = FAIRY_WORLDWIDE_EXPIRATION
-
-	// Upsert user_fairies table with atomic increment to prevent race conditions
-	const db = createPostgresConnectionPool(env, '/paddle/transaction.completed')
-
-	try {
-		// Cap insert value at MAX_FAIRY_COUNT for new users
-		const cappedQuantity = Math.min(fairyLimit, MAX_FAIRY_COUNT)
-
-		await db
-			.insertInto('user_fairies')
-			.values({
-				userId,
-				fairies: '{}',
-				fairyLimit: cappedQuantity,
-				fairyAccessExpiresAt: expiresAt,
-			})
-			.onConflict((oc) =>
-				oc.column('userId').doUpdateSet({
-					fairyLimit: sql`LEAST(user_fairies."fairyLimit" + ${fairyLimit}, ${MAX_FAIRY_COUNT})`,
-					fairyAccessExpiresAt: expiresAt,
-				})
-			)
-			.execute()
-
-		// Trigger User DO refresh to pick up new fairy access
-		const userDO = getUserDurableObject(env, userId)
-		await userDO.refreshUserData(userId)
-	} catch (error) {
-		console.error('Failed to update user_fairies:', error)
-		throw new StatusError(500, `Database update failed: ${error}`)
-	} finally {
-		await db.destroy()
-	}
+	return { success: true }
 }
 
 export const paddleWebhooks = createRouter<Environment>().post(
