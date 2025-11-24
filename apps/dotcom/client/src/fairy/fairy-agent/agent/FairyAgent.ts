@@ -1093,6 +1093,12 @@ export class FairyAgent {
 		this.promptStartTime = null
 		this.$personalTodoList.set([])
 		this.$userActionHistory.set([])
+
+		// Remove solo tasks
+		$fairyTasks.update((tasks) =>
+			tasks.filter((task) => task.assignedTo !== this.id && task.projectId === null)
+		)
+
 		this.setMode('idling')
 
 		this.$chatHistory.set([])
