@@ -41,7 +41,6 @@ export class MarkSoloTaskDoneActionUtil extends AgentActionUtil<MarkSoloTaskDone
 		this.agent.interrupt({
 			mode: 'soloing',
 			input: {
-				message: `I marked task ${action.taskId} as done: ${task.text}`,
 				bounds: {
 					x: task.x ?? currentBounds.x,
 					y: task.y ?? currentBounds.y,

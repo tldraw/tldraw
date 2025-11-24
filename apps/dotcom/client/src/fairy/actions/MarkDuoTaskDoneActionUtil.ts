@@ -38,7 +38,7 @@ export class MarkDuoTaskDoneActionUtil extends AgentActionUtil<MarkDuoTaskDoneAc
 		// Return to duo-orchestrating-active mode after completing a task
 		this.agent.interrupt({
 			mode: 'duo-orchestrating-active',
-			input: { message: `I marked task ${action.taskId} as done: ${task.text}` },
+			input: null,
 		})
 	}
 }
