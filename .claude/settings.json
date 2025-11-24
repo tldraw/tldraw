@@ -1,12 +1,11 @@
 {
 	"hooks": {
-		"PostToolUse": [
+		"Stop": [
 			{
-				"matcher": "Edit|MultiEdit|Write",
 				"hooks": [
 					{
 						"type": "command",
-						"command": "jq -r '.tool_input.file_path' | { read file_path; yarn run -T prettier --write \"$file_path\"; }"
+						"command": "git diff --name-only --diff-filter=ACMR | grep -E '\\.(ts|tsx|js|jsx|json|md)$' | xargs -r yarn run -T prettier --write"
 					}
 				]
 			}

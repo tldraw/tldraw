@@ -51,6 +51,12 @@
       "value": "Conta"
     }
   ],
+  "08d2d725a9": [
+    {
+      "type": 0,
+      "value": "Crie uma conta gratuita para salvar seu trabalho, colaborar em tempo real e muito mais."
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
@@ -61,6 +67,12 @@
     {
       "type": 0,
       "value": "Menu Ficheiro"
+    }
+  ],
+  "0beb3ca97b": [
+    {
+      "type": 0,
+      "value": "O tldraw é um quadro branco virtual gratuito e instantâneo."
     }
   ],
   "0d1f2bb523": [
@@ -75,6 +87,18 @@
       "value": "Publicar"
     }
   ],
+  "129b9e34ea": [
+    {
+      "type": 0,
+      "value": "Sair do grupo"
+    }
+  ],
+  "12a6766ba1": [
+    {
+      "type": 0,
+      "value": "Desafixar arquivo"
+    }
+  ],
   "12c8a9838c": [
     {
       "type": 0,
@@ -85,6 +109,18 @@
     {
       "type": 0,
       "value": "Exportar como"
+    }
+  ],
+  "146ffe2fd9": [
+    {
+      "type": 0,
+      "value": "Mostrar mais"
+    }
+  ],
+  "14d65465b7": [
+    {
+      "type": 0,
+      "value": "Excluir grupo"
     }
   ],
   "181b90f889": [
@@ -117,6 +153,12 @@
       "value": "Esta sala está se aproximando do limite de tamanho. Considere remover algum conteúdo ou iniciar um novo arquivo."
     }
   ],
+  "2445e5e347": [
+    {
+      "type": 0,
+      "value": "Criar grupo"
+    }
+  ],
   "250ddea65c": [
     {
       "type": 0,
@@ -127,6 +169,12 @@
     {
       "type": 0,
       "value": "O carregamento falhou"
+    }
+  ],
+  "2c3ef76333": [
+    {
+      "type": 0,
+      "value": "Meus arquivos"
     }
   ],
   "2deec2cb74": [
@@ -147,6 +195,12 @@
       "value": "i18n: Realce em falta"
     }
   ],
+  "32210b37e4": [
+    {
+      "type": 0,
+      "value": "Adicionar link"
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
@@ -157,6 +211,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "3bc7d6ea2f": [
+    {
+      "type": 0,
+      "value": "Continuar com o e-mail"
     }
   ],
   "3bd1b98dbd": [
@@ -201,10 +261,28 @@
       "value": "tldraw"
     }
   ],
+  "47f493a590": [
+    {
+      "type": 0,
+      "value": "Arquivo PIN"
+    }
+  ],
+  "49049467ff": [
+    {
+      "type": 0,
+      "value": "Cole o URL do arquivo tldraw..."
+    }
+  ],
   "4908687e50": [
     {
       "type": 0,
       "value": "Tem a certeza de que quer esquecer este ficheiro?"
+    }
+  ],
+  "49ee308734": [
+    {
+      "type": 0,
+      "value": "Nome"
     }
   ],
   "4d0d3ddec9": [
@@ -217,6 +295,18 @@
     {
       "type": 0,
       "value": "Recarregar"
+    }
+  ],
+  "4da5988a2e": [
+    {
+      "type": 0,
+      "value": "Excluir grupo…"
+    }
+  ],
+  "4e6fbf032b": [
+    {
+      "type": 0,
+      "value": "Tem certeza de que deseja excluir este grupo? Esta ação não pode ser desfeita."
     }
   ],
   "50db1b7e1e": [
@@ -277,6 +367,40 @@
       "value": "Política de Privacidade"
     }
   ],
+  "5a86b22fa0": [
+    {
+      "type": 0,
+      "value": "Arraste os arquivos para cá, "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "criar um arquivo"
+        }
+      ],
+      "type": 8,
+      "value": "create"
+    },
+    {
+      "type": 0,
+      "value": " ou "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "copiar link de convite"
+        }
+      ],
+      "type": 8,
+      "value": "invite"
+    },
+    {
+      "type": 0,
+      "value": " para começar."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -299,6 +423,12 @@
     {
       "type": 0,
       "value": "Navegador antigo detectado. Atualize seu navegador para usar este aplicativo."
+    }
+  ],
+  "5c6fe42bc2": [
+    {
+      "type": 0,
+      "value": "Revogue este link e crie um novo."
     }
   ],
   "5d26ae7550": [
@@ -331,6 +461,12 @@
       "value": "Mais antigo"
     }
   ],
+  "639bae9ac6": [
+    {
+      "type": 0,
+      "value": "você"
+    }
+  ],
   "6609dd239e": [
     {
       "type": 0,
@@ -341,6 +477,30 @@
     {
       "type": 0,
       "value": "Uma nova versão do tldraw está disponível. Recarregue a página para continuar."
+    }
+  ],
+  "68257bb646": [
+    {
+      "type": 0,
+      "value": "Você foi convidado(a) para o grupo "
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "br"
+    },
+    {
+      "children": [
+      ],
+      "type": 8,
+      "value": "groupName"
+    }
+  ],
+  "6832ac5936": [
+    {
+      "type": 0,
+      "value": "Insira seu endereço de e-mail"
     }
   ],
   "6a26f54883": [
@@ -359,6 +519,12 @@
     {
       "type": 0,
       "value": "Siga estes passos para importar o conteúdo manualmente:"
+    }
+  ],
+  "70222abcfc": [
+    {
+      "type": 0,
+      "value": "Configurações de grupo"
     }
   ],
   "70a6facb9d": [
@@ -451,6 +617,12 @@
       "value": "Esquecer"
     }
   ],
+  "7cfe6c43dc": [
+    {
+      "type": 0,
+      "value": "Sair do grupo…"
+    }
+  ],
   "7daeced9ff": [
     {
       "type": 0,
@@ -529,10 +701,22 @@
       "value": "Renomear arquivo"
     }
   ],
+  "8ad4303b83": [
+    {
+      "type": 0,
+      "value": "Não, obrigado"
+    }
+  ],
   "8b1946f965": [
     {
       "type": 0,
       "value": "Para continuar editando, copie a sala para seus arquivos."
+    }
+  ],
+  "8c2d3d730c": [
+    {
+      "type": 0,
+      "value": "Verifique seu e-mail para obter um código de verificação."
     }
   ],
   "8eb2c00e96": [
@@ -565,6 +749,18 @@
       "value": "Copiar para os meus ficheiros"
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Link do convite copiado"
+    }
+  ],
+  "95aacd4d4a": [
+    {
+      "type": 0,
+      "value": "Iniciar sessão com o Google"
+    }
+  ],
   "95d2109dc8": [
     {
       "type": 0,
@@ -577,10 +773,42 @@
       "value": "Este mês"
     }
   ],
+  "985a4b720f": [
+    {
+      "type": 0,
+      "value": "Termos de Uso"
+    }
+  ],
+  "98c997a27e": [
+    {
+      "type": 0,
+      "value": "Adicionar link do arquivo"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Claro"
+    }
+  ],
+  "9b33f5c63c": [
+    {
+      "type": 0,
+      "value": "Não recebeu o código? "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Reenviar"
+        }
+      ],
+      "type": 8,
+      "value": "resend"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "9bef626805": [
@@ -673,6 +901,12 @@
       "value": "Fundo"
     }
   ],
+  "aa916767cf": [
+    {
+      "type": 0,
+      "value": "Faça login para aceitar o convite."
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -697,10 +931,28 @@
       "value": "Usuário convidado"
     }
   ],
+  "b357b524e7": [
+    {
+      "type": 0,
+      "value": "Endereço de email"
+    }
+  ],
+  "b3d2db69fe": [
+    {
+      "type": 0,
+      "value": "URL do arquivo"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
       "value": "Iniciar sessão"
+    }
+  ],
+  "b6f4a2ec63": [
+    {
+      "type": 0,
+      "value": "Proprietário"
     }
   ],
   "b758336699": [
@@ -715,10 +967,10 @@
       "value": "Entre para compartilhar"
     }
   ],
-  "bb792693e2": [
+  "bb93a7590f": [
     {
       "type": 0,
-      "value": "Desafixar"
+      "value": "Aceitar e entrar no grupo"
     }
   ],
   "bbbcefd7ce": [
@@ -773,16 +1025,30 @@
       "value": "ownerName"
     }
   ],
-  "bcb62136a3": [
-    {
-      "type": 0,
-      "value": "Carregar ficheiros .tldr"
-    }
-  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Saiba mais sobre partilha."
+    }
+  ],
+  "c28aed8348": [
+    {
+      "type": 0,
+      "value": "Permitir "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "análises"
+        }
+      ],
+      "type": 8,
+      "value": "cookies"
+    },
+    {
+      "type": 0,
+      "value": " para nos ajudar a melhorar o tldraw."
     }
   ],
   "c303bd1095": [
@@ -797,6 +1063,12 @@
       "value": "Cookies essenciais"
     }
   ],
+  "c6155aaecc": [
+    {
+      "type": 0,
+      "value": "Nome do grupo"
+    }
+  ],
   "c655b27b1e": [
     {
       "type": 0,
@@ -809,10 +1081,22 @@
       "value": "Convidar"
     }
   ],
+  "c74ea6dbff": [
+    {
+      "type": 0,
+      "value": "Mostrar menos"
+    }
+  ],
   "c87aacf567": [
     {
       "type": 0,
       "value": "Terminar sessão"
+    }
+  ],
+  "c9cc8cce24": [
+    {
+      "type": 0,
+      "value": "Salvar"
     }
   ],
   "cceaefbc20": [
@@ -845,6 +1129,40 @@
       "value": "Alternar barra lateral"
     }
   ],
+  "d638a3344b": [
+    {
+      "type": 0,
+      "value": "Antes de começar, aceite nossos "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "termos de uso"
+        }
+      ],
+      "type": 8,
+      "value": "tos"
+    },
+    {
+      "type": 0,
+      "value": " e "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "política de privacidade"
+        }
+      ],
+      "type": 8,
+      "value": "privacy"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "d721757161": [
     {
       "type": 0,
@@ -857,10 +1175,22 @@
       "value": "Tente de novo"
     }
   ],
+  "d88ad2dc74": [
+    {
+      "type": 0,
+      "value": "Aceitar e continuar"
+    }
+  ],
   "d9100f3e10": [
     {
       "type": 0,
       "value": "Vá aqui para ver o conteúdo"
+    }
+  ],
+  "d9e35d0f55": [
+    {
+      "type": 0,
+      "value": "Você atingiu o número máximo de grupos. É necessário excluir os grupos antigos antes de criar novos."
     }
   ],
   "dbbebf3c03": [
@@ -869,10 +1199,28 @@
       "value": "Apenas por convite"
     }
   ],
+  "dcdaa754fe": [
+    {
+      "type": 0,
+      "value": "URL de arquivo tldraw inválida"
+    }
+  ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "Sinalizadores de depuração da aplicação"
+    }
+  ],
+  "e0c88179b3": [
+    {
+      "type": 0,
+      "value": "Convide membros"
+    }
+  ],
+  "e2198d6228": [
+    {
+      "type": 0,
+      "value": "Copiar link de convite"
     }
   ],
   "e2ae80a510": [
@@ -881,16 +1229,28 @@
       "value": "Resumo jurídico"
     }
   ],
+  "e3afed0047": [
+    {
+      "type": 0,
+      "value": "Administrador"
+    }
+  ],
   "e404559826": [
     {
       "type": 0,
       "value": "Termos de serviço"
     }
   ],
-  "e78e14c5f1": [
+  "e81c4e4f2b": [
     {
       "type": 0,
-      "value": "Afixar"
+      "value": "ou"
+    }
+  ],
+  "ea0626ac5a": [
+    {
+      "type": 0,
+      "value": "Zona de perigo"
     }
   ],
   "ea4788705e": [
@@ -949,6 +1309,12 @@
       "value": " para saber mais."
     }
   ],
+  "ef53538ae4": [
+    {
+      "type": 0,
+      "value": "Membros"
+    }
+  ],
   "ef7de3f485": [
     {
       "type": 0,
@@ -991,6 +1357,18 @@
       "value": "Configurações"
     }
   ],
+  "f714e36843": [
+    {
+      "type": 0,
+      "value": "Tem certeza de que deseja sair deste grupo?"
+    }
+  ],
+  "fa2ead697d": [
+    {
+      "type": 0,
+      "value": "política de Privacidade"
+    }
+  ],
   "fb15c53f22": [
     {
       "type": 0,
@@ -1007,6 +1385,12 @@
     {
       "type": 0,
       "value": "Link copiado"
+    }
+  ],
+  "ff7a814974": [
+    {
+      "type": 0,
+      "value": "Adicionar link do arquivo…"
     }
   ],
   "ffcd73e997": [

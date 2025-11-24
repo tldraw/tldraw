@@ -6,6 +6,7 @@ export interface FairyProject {
 	description: string
 	color: FocusColor
 	members: FairyProjectMember[]
+	plan: string
 }
 
 export interface FairyProjectMember {
@@ -13,4 +14,4 @@ export interface FairyProjectMember {
 	role: FairyProjectRole
 }
 
-export type FairyProjectRole = 'orchestrator' | 'drone'
+export type FairyProjectRole = 'orchestrator' | 'duo-orchestrator' | 'drone'

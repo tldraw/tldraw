@@ -10,13 +10,13 @@ export class FairyTaskDragTool extends StateNode {
 
 	static override isLockable = false
 
-	todoId: number | null = null
+	todoId: string | null = null
 
 	override onExit() {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
-	setTodoId(todoId: number) {
+	setTodoId(todoId: string) {
 		this.todoId = todoId
 	}
 }

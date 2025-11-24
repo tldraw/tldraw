@@ -3,6 +3,7 @@ import { BlurryShape } from '../format/BlurryShape'
 import { FocusedShapePartial, FocusedShapeType } from '../format/FocusedShape'
 import { OtherFairy } from '../format/OtherFairy'
 import { PeripheralCluster } from '../format/PeripheralCluster'
+import { AgentModelName } from '../models'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { ChatHistoryItem } from '../types/ChatHistoryItem'
@@ -134,6 +135,10 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 					text = '[THOUGHT]: ' + (action.text || '<thought data lost>')
 					break
 				}
+				case 'mark-task-done': {
+					text = `[TASK DONE] I marked task ${action.taskId} as done.`
+					break
+				}
 				default: {
 					const { complete: _complete, time: _time, ...rawAction } = action || {}
 					text = '[ACTION]: ' + JSON.stringify(rawAction)
@@ -143,6 +148,13 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 			return {
 				role: 'assistant',
 				content: [{ type: 'text', text }],
+				priority,
+			}
+		}
+		case 'memory-transition': {
+			return {
+				role: 'assistant',
+				content: [{ type: 'text', text: item.message }],
 				priority,
 			}
 		}
@@ -291,7 +303,6 @@ export const SelectedShapesPartDefinition: PromptPartDefinition<SelectedShapesPa
 	},
 }
 
-// SharedTodoListPart
 export interface SoloTasksPart {
 	type: 'soloTasks'
 	tasks: Array<FairyTask>
@@ -347,51 +358,20 @@ export const WorkingTasksPartDefinition: PromptPartDefinition<WorkingTasksPart> 
 	},
 }
 
-// SharedTodoListPart
-export interface SharedTodoListPart {
-	type: 'sharedTodoList'
-	items: Array<FairyTask & { fairyName: string }>
-}
-
-export const SharedTodoListPartDefinition: PromptPartDefinition<SharedTodoListPart> = {
-	type: 'sharedTodoList',
-	priority: -10,
-	buildContent(part: SharedTodoListPart) {
-		if (part.items.length === 0) {
-			return ['There are no shared todo items at the moment.']
-		}
-
-		const itemContent = part.items.map((item) => {
-			let text = `Todo ${item.id} [${item.status}]: "${item.text}"`
-			if (item.fairyName) {
-				text += ` (assigned to: ${item.fairyName})`
-			}
-			if (item.x && item.y) {
-				text += ` (position: x: ${item.x}, y: ${item.y})`
-			}
-			return text
-		})
-
-		if (itemContent.length === 1) {
-			return [`Here is the shared todo item:`, itemContent[0]]
-		}
-
-		return [`Here are all the shared todo items:`, ...itemContent]
-	},
-}
-
-// TodoListPart
-export interface TodoListPart {
-	type: 'todoList'
+// PersonalTodoListPart
+export interface PersonalTodoListPart {
+	type: 'personalTodoList'
 	items: FairyTodoItem[]
 }
 
-export const TodoListPartDefinition: PromptPartDefinition<TodoListPart> = {
-	type: 'todoList',
+export const PersonalTodoListPartDefinition: PromptPartDefinition<PersonalTodoListPart> = {
+	type: 'personalTodoList',
 	priority: 10,
-	buildContent(part: TodoListPart) {
+	buildContent(part: PersonalTodoListPart) {
 		if (part.items.length === 0) {
-			return ['You have no todos yet. Use the `update-personal-todo-list` action to create a todo.']
+			return [
+				'You have no personal todos yet. Use the `update-personal-todo-list` action to create a todo.',
+			]
 		}
 		return [
 			`Here is your current personal todo list for the task at hand:`,
@@ -400,32 +380,58 @@ export const TodoListPartDefinition: PromptPartDefinition<TodoListPart> = {
 	},
 }
 
-// CurrentProjectPart
-export interface CurrentProjectPart {
-	type: 'currentProject'
+// CurrentProjectDronePart
+export interface CurrentProjectDronePart {
+	type: 'currentProjectDrone'
 	currentProject: FairyProject | null
-	currentProjectTasks: FairyTask[]
 }
 
-export const CurrentProjectPartDefinition: PromptPartDefinition<CurrentProjectPart> = {
-	type: 'currentProject',
+export const CurrentProjectDronePartDefinition: PromptPartDefinition<CurrentProjectDronePart> = {
+	type: 'currentProjectDrone',
 	priority: -5,
-	buildContent(part: CurrentProjectPart) {
-		const { currentProject, currentProjectTasks } = part
+	buildContent(part: CurrentProjectDronePart) {
+		const { currentProject } = part
 
 		if (!currentProject) {
-			return ['There is no current project.']
+			return []
 		}
 
 		return [
 			`You are currently working on project "${currentProject.title}".`,
 			`Project description: ${currentProject.description}`,
-			`Project color: ${currentProject.color}`,
-			`Project members: ${currentProject.members.map((m) => `${m.id} (${m.role})`).join(', ')}`,
-			`${currentProjectTasks.length > 0 ? `Tasks in the project and their status:\n${currentProjectTasks.map((t) => `id: ${t.id}, ${t.text}, status: ${t.status}`).join(', ')}` : 'There are no tasks in the project.'}`,
 		]
 	},
 }
+
+// CurrentProjectOrchestratorPart
+export interface CurrentProjectOrchestratorPart {
+	type: 'currentProjectOrchestrator'
+	currentProject: FairyProject | null
+	currentProjectTasks: FairyTask[]
+}
+
+export const CurrentProjectOrchestratorPartDefinition: PromptPartDefinition<CurrentProjectOrchestratorPart> =
+	{
+		type: 'currentProjectOrchestrator',
+		priority: -5,
+		buildContent(part: CurrentProjectOrchestratorPart) {
+			const { currentProject, currentProjectTasks } = part
+
+			if (!currentProject) {
+				return ['There is no current project.']
+			}
+
+			return [
+				`You are currently working on project "${currentProject.title}".`,
+				`Project description: ${currentProject.description}`,
+				`You came up with this project plan:\n${currentProject.plan}`,
+				`Project members:\n${currentProject.members.map((m) => `${m.id} (${m.role})`).join(', ')}`,
+				currentProjectTasks.length > 0
+					? `Tasks in the project and their status:\n${currentProjectTasks.map((t) => `id: ${t.id}, ${t.text}, status: ${t.status}`).join(', ')}`
+					: 'There are no tasks in the project.',
+			]
+		},
+	}
 
 // TimePart
 export interface TimePart {
@@ -475,30 +481,40 @@ export const UserActionHistoryPartDefinition: PromptPartDefinition<UserActionHis
 	},
 }
 
-// ViewportBoundsPart
-export interface ViewportBoundsPart {
-	type: 'viewportBounds'
+// UserViewportBoundsPart
+export interface UserViewportBoundsPart {
+	type: 'userViewportBounds'
 	userBounds: BoxModel | null
+}
+
+export const UserViewportBoundsPartDefinition: PromptPartDefinition<UserViewportBoundsPart> = {
+	type: 'userViewportBounds',
+	priority: -80,
+	buildContent({ userBounds }: UserViewportBoundsPart) {
+		if (!userBounds) {
+			return []
+		}
+		const userViewCenter = Box.From(userBounds).center
+		return [`The user's view is centered at (${userViewCenter.x}, ${userViewCenter.y}).`]
+	},
+}
+
+// AgentViewportBoundsPart
+export interface AgentViewportBoundsPart {
+	type: 'agentViewportBounds'
 	agentBounds: BoxModel | null
 }
 
-export const ViewportBoundsPartDefinition: PromptPartDefinition<ViewportBoundsPart> = {
-	type: 'viewportBounds',
-	priority: -75,
-	buildContent({ userBounds, agentBounds }: ViewportBoundsPart) {
-		const response = []
-
-		if (agentBounds) {
-			response.push(
-				`The bounds of the part of the canvas that you can currently see are: ${JSON.stringify(agentBounds)}`
-			)
+export const AgentViewportBoundsPartDefinition: PromptPartDefinition<AgentViewportBoundsPart> = {
+	type: 'agentViewportBounds',
+	priority: -80,
+	buildContent({ agentBounds }: AgentViewportBoundsPart) {
+		if (!agentBounds) {
+			return []
 		}
-		if (userBounds) {
-			const userViewCenter = Box.From(userBounds).center
-			response.push(`The user's view is centered at (${userViewCenter.x}, ${userViewCenter.y}).`)
-		}
-
-		return response
+		return [
+			`The bounds of the part of the canvas that you can currently see are: ${JSON.stringify(agentBounds)}`,
+		]
 	},
 }
 
@@ -551,4 +567,14 @@ export interface DebugPart {
 
 export const DebugPartDefinition: PromptPartDefinition<DebugPart> = {
 	type: 'debug',
+}
+
+// ModelNamePart
+export interface ModelNamePart {
+	type: 'modelName'
+	name: AgentModelName
+}
+
+export const ModelNamePartDefinition: PromptPartDefinition<ModelNamePart> = {
+	type: 'modelName',
 }

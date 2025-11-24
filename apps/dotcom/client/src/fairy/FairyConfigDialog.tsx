@@ -20,6 +20,40 @@ export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClo
 	const fairyNamePlaceholder = useMsg(fairyMessages.fairyNamePlaceholder)
 	const fairyPersonalityPlaceholder = useMsg(fairyMessages.fairyPersonalityPlaceholder)
 
+	// Get translated hat names
+	const hatTop = useMsg(fairyMessages.hatTop)
+	const hatPointy = useMsg(fairyMessages.hatPointy)
+	const hatBald = useMsg(fairyMessages.hatBald)
+	const hatAntenna = useMsg(fairyMessages.hatAntenna)
+	const hatSpiky = useMsg(fairyMessages.hatSpiky)
+	const hatHair = useMsg(fairyMessages.hatHair)
+	const hatEars = useMsg(fairyMessages.hatEars)
+	const hatPropellor = useMsg(fairyMessages.hatPropeller)
+
+	// Map hat type to translated name
+	const getHatName = (hat: string): string => {
+		switch (hat) {
+			case 'top':
+				return hatTop
+			case 'pointy':
+				return hatPointy
+			case 'bald':
+				return hatBald
+			case 'antenna':
+				return hatAntenna
+			case 'spiky':
+				return hatSpiky
+			case 'hair':
+				return hatHair
+			case 'ears':
+				return hatEars
+			case 'propellor':
+				return hatPropellor
+			default:
+				return hat.charAt(0).toUpperCase() + hat.slice(1)
+		}
+	}
+
 	return (
 		<>
 			<TldrawUiDialogHeader>
@@ -65,7 +99,7 @@ export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClo
 					>
 						{Object.keys(FAIRY_VARIANTS.hat).map((hat) => (
 							<option key={hat} value={hat}>
-								{hat.charAt(0).toUpperCase() + hat.slice(1)}
+								{getHatName(hat)}
 							</option>
 						))}
 					</select>

@@ -6,10 +6,7 @@ import {
 	HALF_PI,
 	PageRecordType,
 	Result,
-	TLBookmarkShape,
 	TLEmbedShape,
-	TLFrameShape,
-	TLGroupShape,
 	TLImageShape,
 	TLShape,
 	TLShapeId,
@@ -327,7 +324,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							.getSelectedShapes()
 							.filter(
 								(shape): shape is TLTextShape =>
-									editor.isShapeOfType<TLTextShape>(shape, 'text') && shape.props.autoSize === false
+									editor.isShapeOfType(shape, 'text') && shape.props.autoSize === false
 							)
 						editor.updateShapes(
 							shapes.map((shape) => {
@@ -362,7 +359,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						return
 					}
 					const shape = editor.getShape(ids[0])
-					if (!shape || !editor.isShapeOfType<TLEmbedShape>(shape, 'embed')) {
+					if (!shape || !editor.isShapeOfType(shape, 'embed')) {
 						console.error(warnMsg)
 						return
 					}
@@ -401,8 +398,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const creationPromises: Promise<Result<any, any>>[] = []
 
 					for (const shape of shapes) {
-						if (!shape || !editor.isShapeOfType<TLEmbedShape>(shape, 'embed') || !shape.props.url)
-							continue
+						if (!shape || !editor.isShapeOfType(shape, 'embed') || !shape.props.url) continue
 
 						const center = editor.getShapePageBounds(shape)?.center
 
@@ -441,7 +437,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						const createList: TLShapePartial[] = []
 						const deleteList: TLShapeId[] = []
 						for (const shape of shapes) {
-							if (!editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark')) continue
+							if (!editor.isShapeOfType(shape, 'bookmark')) continue
 
 							const { url } = shape.props
 
@@ -552,7 +548,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					trackEvent('group-shapes', { source })
 					const onlySelectedShape = editor.getOnlySelectedShape()
-					if (onlySelectedShape && editor.isShapeOfType<TLGroupShape>(onlySelectedShape, 'group')) {
+					if (onlySelectedShape && editor.isShapeOfType(onlySelectedShape, 'group')) {
 						editor.markHistoryStoppingPoint('ungroup')
 						editor.ungroupShapes(editor.getSelectedShapeIds())
 					} else {
@@ -572,7 +568,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const selectedShapes = editor.getSelectedShapes()
 					if (
 						selectedShapes.length > 0 &&
-						selectedShapes.every((shape) => editor.isShapeOfType<TLFrameShape>(shape, 'frame'))
+						selectedShapes.every((shape) => editor.isShapeOfType(shape, 'frame'))
 					) {
 						editor.markHistoryStoppingPoint('remove-frame')
 						removeFrame(
@@ -590,7 +586,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					trackEvent('fit-frame-to-content', { source })
 					const onlySelectedShape = editor.getOnlySelectedShape()
-					if (onlySelectedShape && editor.isShapeOfType<TLFrameShape>(onlySelectedShape, 'frame')) {
+					if (onlySelectedShape && editor.isShapeOfType(onlySelectedShape, 'frame')) {
 						editor.markHistoryStoppingPoint('fit-frame-to-content')
 						fitFrameToContent(editor, onlySelectedShape.id)
 					}
@@ -1599,8 +1595,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const onlySelectedShape = editor.getOnlySelectedShape()
 					if (
 						onlySelectedShape &&
-						(editor.isShapeOfType<TLImageShape>(onlySelectedShape, 'image') ||
-							editor.isShapeOfType<TLVideoShape>(onlySelectedShape, 'video'))
+						(editor.isShapeOfType(onlySelectedShape, 'image') ||
+							editor.isShapeOfType(onlySelectedShape, 'video'))
 					) {
 						const firstToolbarButton = editor
 							.getContainer()

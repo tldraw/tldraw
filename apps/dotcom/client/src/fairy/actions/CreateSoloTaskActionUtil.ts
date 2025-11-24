@@ -5,7 +5,7 @@ import { AgentActionUtil } from './AgentActionUtil'
 
 // Creates a task for themselves
 export class CreateSoloTaskActionUtil extends AgentActionUtil<CreateSoloTaskAction> {
-	static override type = 'create-solo-task' as const
+	static override type = 'create-task' as const
 
 	override getInfo(action: Streaming<CreateSoloTaskAction>) {
 		const label = action.complete ? 'Created task' : 'Creating task'
@@ -13,6 +13,7 @@ export class CreateSoloTaskActionUtil extends AgentActionUtil<CreateSoloTaskActi
 			icon: 'note' as const,
 			description: `${label}: ${action.text}`,
 			pose: 'thinking' as const,
+			canGroup: () => false,
 		}
 	}
 
@@ -27,6 +28,8 @@ export class CreateSoloTaskActionUtil extends AgentActionUtil<CreateSoloTaskActi
 		})
 
 		createFairyTask({
+			id: action.taskId,
+			title: action.title,
 			text: action.text,
 			assignedTo: this.agent.id,
 			status: 'todo',

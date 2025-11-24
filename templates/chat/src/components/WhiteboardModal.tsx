@@ -9,7 +9,6 @@ import {
 	TldrawUiButton,
 	TldrawUiRow,
 	TLEditorSnapshot,
-	TLImageShape,
 	useEditor,
 	useToasts,
 	useTranslation,
@@ -180,7 +179,7 @@ function InsideOfTldrawContext({ uploadedFile }: { uploadedFile?: File }) {
 			// create the shape, select it, make it fill the screen, and start cropping it:
 			editor
 				.createAssets([asset])
-				.createShape<TLImageShape>({
+				.createShape({
 					id: shapeId,
 					type: 'image',
 					x: center.x - width / 2,

@@ -1,10 +1,10 @@
-import { Streaming, TodoListAction } from '@tldraw/fairy-shared'
+import { PersonalTodoListAction, Streaming } from '@tldraw/fairy-shared'
 import { AgentActionUtil } from './AgentActionUtil'
 
-export class TodoListActionUtil extends AgentActionUtil<TodoListAction> {
+export class PersonalTodoListActionUtil extends AgentActionUtil<PersonalTodoListAction> {
 	static override type = 'update-personal-todo-list' as const
 
-	override getInfo(action: Streaming<TodoListAction>) {
+	override getInfo(action: Streaming<PersonalTodoListAction>) {
 		if (!action.complete) {
 			return {
 				icon: 'note' as const,
@@ -28,24 +28,17 @@ export class TodoListActionUtil extends AgentActionUtil<TodoListAction> {
 		}
 	}
 
-	override applyAction(action: Streaming<TodoListAction>) {
+	override applyAction(action: Streaming<PersonalTodoListAction>) {
 		if (!action.complete) return
 		if (!this.agent) return
 
 		const { id, text, status } = action
 
-		if (id) {
-			const index = this.agent.$todoList.get().findIndex((item) => item.id === id)
-			if (index !== -1) {
-				this.agent.updateTodo({ id, text, status })
-			} else {
-				this.agent.cancel()
-				this.agent.schedule(
-					`You tried to update a todo item with id ${id} but it was not found. If you're trying to create a new todo item, please don't provide an id.`
-				)
-			}
+		const index = this.agent.$personalTodoList.get().findIndex((item) => item.id === id)
+		if (index === -1) {
+			this.agent.addPersonalTodo(id, text)
 		} else {
-			this.agent.addTodo(text)
+			this.agent.updateTodo({ id, text, status })
 		}
 	}
 }

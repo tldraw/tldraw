@@ -140,6 +140,8 @@ export async function extractChangelog(startRef: string, endRef: string): Promis
 
 		// Remove the Change type section and all checkboxes
 		restOfMessage = restOfMessage
+			// remove cursor summary
+			.replace(/<!-- CURSOR_SUMMARY -->(.|\s)*/gm, '')
 			// remove Change type section
 			.replace(/### Change type[\s\n]*/g, '')
 			// remove checkboxes

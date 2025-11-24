@@ -26,10 +26,7 @@ import { TLClickEventInfo } from '../types/event-types'
 import { TLResizeHandle } from '../types/selection-types'
 
 /** @public */
-export interface TLShapeUtilConstructor<
-	T extends TLUnknownShape,
-	U extends ShapeUtil<T> = ShapeUtil<T>,
-> {
+export interface TLShapeUtilConstructor<T extends TLShape, U extends ShapeUtil<T> = ShapeUtil<T>> {
 	new (editor: Editor): U
 	type: T['type']
 	props?: RecordProps<T>
@@ -42,11 +39,11 @@ export interface TLShapeUtilConstructor<
  *
  * @public
  */
-export interface TLShapeUtilCanBindOpts<Shape extends TLUnknownShape = TLUnknownShape> {
+export interface TLShapeUtilCanBindOpts<Shape extends TLShape = TLShape> {
 	/** The type of shape referenced by the `fromId` of the binding. */
-	fromShapeType: string
+	fromShapeType: TLShape['type']
 	/** The type of shape referenced by the `toId` of the binding. */
-	toShapeType: string
+	toShapeType: TLShape['type']
 	/** The type of binding. */
 	bindingType: string
 }
@@ -79,7 +76,7 @@ export interface TLShapeUtilCanvasSvgDef {
 }
 
 /** @public */
-export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
+export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	/** Configure this shape utils {@link ShapeUtil.options | `options`}. */
 	static configure<T extends TLShapeUtilConstructor<any, any>>(
 		this: T,

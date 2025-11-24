@@ -25,11 +25,12 @@ export const fairyMessages = defineMessages({
 	askForHelp: { defaultMessage: 'Ask for help' },
 	customizeFairy: { defaultMessage: 'Customize fairy' },
 	deleteFairy: { defaultMessage: 'Delete fairy' },
+	disbandGroup: { defaultMessage: 'Disband group' },
 
 	// Task list menu (labels)
 	askForHelpFromEveryone: { defaultMessage: 'Ask for help' },
 	summonAllFairies: { defaultMessage: 'Summon all fairies' },
-	clearTaskList: { defaultMessage: 'Clear task list' },
+	disbandProjects: { defaultMessage: 'Disband projects' },
 	resetAllChats: { defaultMessage: 'Reset all chats' },
 	resetAllWands: { defaultMessage: 'Reset all wands' },
 	deleteAllFairies: { defaultMessage: 'Delete all fairies' },
@@ -52,4 +53,18 @@ export const fairyMessages = defineMessages({
 	whisperToFairy: { defaultMessage: 'Whisper to {name}…' },
 	stopLabel: { defaultMessage: 'Stop' },
 	sendLabel: { defaultMessage: 'Send' },
+
+	// HUD toggle labels
+	switchToFairyChat: { defaultMessage: 'Switch to fairy chat' },
+	switchToTaskList: { defaultMessage: 'Switch to task list' },
+
+	// Hat types
+	hatTop: { defaultMessage: 'Top' },
+	hatPointy: { defaultMessage: 'Pointy' },
+	hatBald: { defaultMessage: 'Bald' },
+	hatAntenna: { defaultMessage: 'Antenna' },
+	hatSpiky: { defaultMessage: 'Spiky' },
+	hatHair: { defaultMessage: 'Hair' },
+	hatEars: { defaultMessage: 'Ears' },
+	hatPropeller: { defaultMessage: 'Propeller' },
 })

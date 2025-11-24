@@ -88,7 +88,7 @@ describe('Editor.styles', () => {
 	})
 
 	it('should return mixed for all mixed styles', () => {
-		editor.updateShapes<TLGeoShape>([
+		editor.updateShapes([
 			{
 				id: defaultShapesIds.box1,
 				type: 'geo',

@@ -1,12 +1,4 @@
-import {
-	TLBookmarkShape,
-	TLEmbedShape,
-	TLFrameShape,
-	TLImageShape,
-	TLPageId,
-	useEditor,
-	useValue,
-} from '@tldraw/editor'
+import { TLPageId, useEditor, useValue } from '@tldraw/editor'
 import { supportsDownloadingOriginal } from '../context/actions'
 import { useUiEvents } from '../context/events'
 import { useToasts } from '../context/toasts'
@@ -64,7 +56,7 @@ export function FlattenMenuItem() {
 			const selectedShapeIds = editor.getSelectedShapeIds()
 			if (selectedShapeIds.length === 0) return false
 			const onlySelectedShape = editor.getOnlySelectedShape()
-			if (onlySelectedShape && editor.isShapeOfType<TLImageShape>(onlySelectedShape, 'image')) {
+			if (onlySelectedShape && editor.isShapeOfType(onlySelectedShape, 'image')) {
 				return false
 			}
 			return true
@@ -117,7 +109,7 @@ export function RemoveFrameMenuItem() {
 		() => {
 			const selectedShapes = editor.getSelectedShapes()
 			if (selectedShapes.length === 0) return false
-			return selectedShapes.every((shape) => editor.isShapeOfType<TLFrameShape>(shape, 'frame'))
+			return selectedShapes.every((shape) => editor.isShapeOfType(shape, 'frame'))
 		},
 		[editor]
 	)
@@ -135,7 +127,7 @@ export function FitFrameToContentMenuItem() {
 			const onlySelectedShape = editor.getOnlySelectedShape()
 			if (!onlySelectedShape) return false
 			return (
-				editor.isShapeOfType<TLFrameShape>(onlySelectedShape, 'frame') &&
+				editor.isShapeOfType(onlySelectedShape, 'frame') &&
 				editor.getSortedChildIdsForParent(onlySelectedShape).length > 0
 			)
 		},
@@ -518,7 +510,7 @@ export function ConvertToBookmarkMenuItem() {
 			const onlySelectedShape = editor.getOnlySelectedShape()
 			if (!onlySelectedShape) return false
 			return !!(
-				editor.isShapeOfType<TLEmbedShape>(onlySelectedShape, 'embed') &&
+				editor.isShapeOfType(onlySelectedShape, 'embed') &&
 				onlySelectedShape.props.url &&
 				!editor.isShapeOrAncestorLocked(onlySelectedShape)
 			)
@@ -542,7 +534,7 @@ export function ConvertToEmbedMenuItem() {
 			const onlySelectedShape = editor.getOnlySelectedShape()
 			if (!onlySelectedShape) return false
 			return !!(
-				editor.isShapeOfType<TLBookmarkShape>(onlySelectedShape, 'bookmark') &&
+				editor.isShapeOfType(onlySelectedShape, 'bookmark') &&
 				onlySelectedShape.props.url &&
 				getEmbedDefinition(onlySelectedShape.props.url) &&
 				!editor.isShapeOrAncestorLocked(onlySelectedShape)

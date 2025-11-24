@@ -23,11 +23,17 @@
   "08bd40c754": {
     "translation": "Konto"
   },
+  "08d2d725a9": {
+    "translation": "Opprett en gratis konto for å lagre arbeidet ditt, samarbeide i sanntid og mer."
+  },
   "0b27918290": {
     "translation": "Fil"
   },
   "0b9a4cde72": {
     "translation": "Fil-menyen"
+  },
+  "0beb3ca97b": {
+    "translation": "tldraw er en gratis og umiddelbar virtuell tavle."
   },
   "0d1f2bb523": {
     "translation": "Send tilbakemelding"
@@ -35,11 +41,23 @@
   "110a4b01be": {
     "translation": "Utgi"
   },
+  "129b9e34ea": {
+    "translation": "Forlat gruppen"
+  },
+  "12a6766ba1": {
+    "translation": "Løsne filen"
+  },
   "12c8a9838c": {
     "translation": "Prøv tldraw SDK"
   },
   "13ddd375ad": {
     "translation": "Eksporter som"
+  },
+  "146ffe2fd9": {
+    "translation": "Vis mer"
+  },
+  "14d65465b7": {
+    "translation": "Slett gruppe"
   },
   "181b90f889": {
     "translation": "Opprett fil"
@@ -56,11 +74,17 @@
   "21bfb2dc2e": {
     "translation": "Dette rommet nærmer seg størrelsesgrensen. Vurder å fjerne noe innhold eller starte en ny fil."
   },
+  "2445e5e347": {
+    "translation": "Opprett gruppe"
+  },
   "250ddea65c": {
     "translation": "Om tldraw"
   },
   "299cb00a7a": {
     "translation": "Opplasting mislyktes"
+  },
+  "2c3ef76333": {
+    "translation": "Mine filer"
   },
   "2deec2cb74": {
     "translation": "Dette rommet har nådd størrelsesgrensen, og endringene kan kanskje ikke lenger lagres. Fjern noe innhold eller start en ny fil."
@@ -71,11 +95,17 @@
   "31418ce4ad": {
     "translation": "i18n: Utheving mangler"
   },
+  "32210b37e4": {
+    "translation": "Legg til lenke"
+  },
   "335defdafe": {
     "translation": "Prøv å oppdatere siden."
   },
   "344a7f427f": {
     "translation": "Redaktør"
+  },
+  "3bc7d6ea2f": {
+    "translation": "Fortsett med e-post"
   },
   "3bd1b98dbd": {
     "translation": "Kan ikke publisere endringene."
@@ -98,14 +128,29 @@
   "47839e47a5": {
     "translation": "tldra"
   },
+  "47f493a590": {
+    "translation": "Fest filen"
+  },
+  "49049467ff": {
+    "translation": "Lim inn URL-en til tldraw-filen..."
+  },
   "4908687e50": {
     "translation": "Er du sikker på at du vil glemme denne filen?"
+  },
+  "49ee308734": {
+    "translation": "Navn"
   },
   "4d0d3ddec9": {
     "translation": "Dette nettstedet bruker informasjonskapsler for å få appen til å fungere og for å samle inn analyser."
   },
   "4d1c8263ba": {
     "translation": "Last inn på nytt"
+  },
+  "4da5988a2e": {
+    "translation": "Slett gruppe…"
+  },
+  "4e6fbf032b": {
+    "translation": "Er du sikker på at du vil slette denne gruppen? Denne handlingen kan ikke angres."
   },
   "50db1b7e1e": {
     "translation": "Kan ikke oppheve publiseringen av filen."
@@ -131,6 +176,9 @@
   "56c34c6410": {
     "translation": "Personvernerklæring"
   },
+  "5a86b22fa0": {
+    "translation": "Dra filer hit, <create>opprett en fil</create>, eller <invite>kopier invitasjonslenken</invite> for å komme i gang."
+  },
   "5a95a425f7": {
     "translation": "Dele"
   },
@@ -142,6 +190,9 @@
   },
   "5bec508475": {
     "translation": "Gammel nettleser oppdaget. Oppdater nettleseren din for å bruke denne appen."
+  },
+  "5c6fe42bc2": {
+    "translation": "Tilbakekalle denne lenken og opprett en ny."
   },
   "5d26ae7550": {
     "translation": "Vi klarte ikke å laste opp noe av innholdet du opprettet før du logget på."
@@ -158,11 +209,20 @@
   "625fd29749": {
     "translation": "Eldre"
   },
+  "639bae9ac6": {
+    "translation": "du"
+  },
   "6609dd239e": {
     "translation": "Noe gikk galt"
   },
   "6637a98151": {
     "translation": "En ny versjon av tldraw er tilgjengelig. Last inn siden på nytt for å fortsette."
+  },
+  "68257bb646": {
+    "translation": "Du har blitt invitert til gruppen <br></br><groupName></groupName>"
+  },
+  "6832ac5936": {
+    "translation": "Skriv inn e-postadressen din"
   },
   "6a26f54883": {
     "translation": "Hjelp"
@@ -172,6 +232,9 @@
   },
   "6dfc62f621": {
     "translation": "Følg disse trinnene for å importere innholdet manuelt:"
+  },
+  "70222abcfc": {
+    "translation": "Gruppeinnstillinger"
   },
   "70a6facb9d": {
     "translation": "Denne uken"
@@ -218,6 +281,9 @@
   "7cb5f8b4a5": {
     "translation": "Glemme"
   },
+  "7cfe6c43dc": {
+    "translation": "Forlat gruppen…"
+  },
   "7daeced9ff": {
     "translation": "Publiser endringer"
   },
@@ -239,8 +305,14 @@
   "86c66437fd": {
     "translation": "Gi nytt navn til filen"
   },
+  "8ad4303b83": {
+    "translation": "Nei takk"
+  },
   "8b1946f965": {
     "translation": "For å fortsette redigeringen, kopier rommet til filene dine."
+  },
+  "8c2d3d730c": {
+    "translation": "Sjekk e-posten din for en bekreftelseskode."
   },
   "8eb2c00e96": {
     "translation": "Delt med deg"
@@ -257,14 +329,29 @@
   "91e49bb0eb": {
     "translation": "Kopier til filene mine"
   },
+  "930390d222": {
+    "translation": "Kopierte invitasjonslenken"
+  },
+  "95aacd4d4a": {
+    "translation": "Logg inn med Google"
+  },
   "95d2109dc8": {
     "translation": "Bygg med tldraw SDK"
   },
   "96165d6df5": {
     "translation": "Denne måneden"
   },
+  "985a4b720f": {
+    "translation": "Bruksvilkår"
+  },
+  "98c997a27e": {
+    "translation": "Legg til fillenke"
+  },
   "9914a0ce04": {
     "translation": "Lys"
+  },
+  "9b33f5c63c": {
+    "translation": "Fikk du ikke en kode? <resend>Send på nytt</resend>."
   },
   "9bef626805": {
     "translation": "Slett fil"
@@ -311,6 +398,9 @@
   "a9ded1e5ce": {
     "translation": "Bakgrunn"
   },
+  "aa916767cf": {
+    "translation": "Logg inn for å godta invitasjonen"
+  },
   "ab0df9ba36": {
     "translation": "Filgrense nådd"
   },
@@ -321,8 +411,17 @@
   "b028909917": {
     "translation": "Gjestebruker"
   },
+  "b357b524e7": {
+    "translation": "E-postadresse"
+  },
+  "b3d2db69fe": {
+    "translation": "Fil-URL"
+  },
   "b6d4223e60": {
     "translation": "Logg på"
+  },
+  "b6f4a2ec63": {
+    "translation": "Eier"
   },
   "b758336699": {
     "translation": "Kopier lenken"
@@ -330,8 +429,8 @@
   "ba0318cb81": {
     "translation": "Logg inn for å dele"
   },
-  "bb792693e2": {
-    "translation": "Løsne"
+  "bb93a7590f": {
+    "translation": "Godta og bli med i gruppen"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {Laster opp .tldr-fil …} other {Laster opp {uploaded} av {total} .tldr-filer …}}"
@@ -339,11 +438,11 @@
   "bc88b0e89e": {
     "translation": "Delt av {ownerName}"
   },
-  "bcb62136a3": {
-    "translation": "Last opp .tldr-filer"
-  },
   "c2276c9127": {
     "translation": "Finn ut mer om deling."
+  },
+  "c28aed8348": {
+    "translation": "Tillat <cookies>analyse</cookies> for å hjelpe oss med å forbedre tldraw."
   },
   "c303bd1095": {
     "translation": "Kan ikke publisere filen."
@@ -351,14 +450,23 @@
   "c4b39a1cc3": {
     "translation": "Viktige informasjonskapsler"
   },
+  "c6155aaecc": {
+    "translation": "Gruppenavn"
+  },
   "c655b27b1e": {
     "translation": "i18n: Lang streng"
   },
   "c6a00f137b": {
     "translation": "Invitere"
   },
+  "c74ea6dbff": {
+    "translation": "Vis mindre"
+  },
   "c87aacf567": {
     "translation": "Logg ut"
+  },
+  "c9cc8cce24": {
+    "translation": "Spare"
   },
   "cceaefbc20": {
     "translation": "Del denne filen"
@@ -375,29 +483,53 @@
   "d4bbf74f3e": {
     "translation": "Bytt sidefelt"
   },
+  "d638a3344b": {
+    "translation": "Før du starter, vennligst godta våre <tos>bruksvilkår</tos> og <privacy>personvernerklæring</privacy>."
+  },
   "d721757161": {
     "translation": "Tema"
   },
   "d876a9fe1a": {
     "translation": "Prøv igjen"
   },
+  "d88ad2dc74": {
+    "translation": "Godta og fortsett"
+  },
   "d9100f3e10": {
     "translation": "Gå hit for å se innholdet"
+  },
+  "d9e35d0f55": {
+    "translation": "Du har nådd maksimalt antall grupper. Du må slette gamle grupper før du oppretter nye."
   },
   "dbbebf3c03": {
     "translation": "Kun invitasjon"
   },
+  "dcdaa754fe": {
+    "translation": "Ugyldig URL-adresse for tldraw-filen"
+  },
   "dfdb78a4e4": {
     "translation": "App-feilsøkingsflagg"
+  },
+  "e0c88179b3": {
+    "translation": "Inviter medlemmer"
+  },
+  "e2198d6228": {
+    "translation": "Kopier invitasjonslenken"
   },
   "e2ae80a510": {
     "translation": "Juridisk sammendrag"
   },
+  "e3afed0047": {
+    "translation": "Admin"
+  },
   "e404559826": {
     "translation": "Vilkår for bruk"
   },
-  "e78e14c5f1": {
-    "translation": "Pin"
+  "e81c4e4f2b": {
+    "translation": "eller"
+  },
+  "ea0626ac5a": {
+    "translation": "Faresone"
   },
   "ea4788705e": {
     "translation": "Kansellere"
@@ -420,6 +552,9 @@
   "ede55d955f": {
     "translation": "Les vår <a>policy for informasjonskapsler</a> for å lære mer."
   },
+  "ef53538ae4": {
+    "translation": "Medlemmer"
+  },
   "ef7de3f485": {
     "translation": "valgt"
   },
@@ -441,6 +576,12 @@
   "f4f70727dc": {
     "translation": "Innstillinger"
   },
+  "f714e36843": {
+    "translation": "Er du sikker på at du vil forlate denne gruppen?"
+  },
+  "fa2ead697d": {
+    "translation": "Personvernerklæring"
+  },
   "fb15c53f22": {
     "translation": "Seer"
   },
@@ -449,6 +590,9 @@
   },
   "fed5ec05eb": {
     "translation": "Kopiert lenke"
+  },
+  "ff7a814974": {
+    "translation": "Legg til fillenke…"
   },
   "ffcd73e997": {
     "translation": "Importer fil…"

@@ -10,6 +10,7 @@ export class SoloTasksPartUtil extends PromptPartUtil<SoloTasksPart> {
 		const allTasks = $fairyTasks.get()
 		const tasks = allTasks
 			.filter((task) => task.assignedTo === this.agent.id)
+			.filter((task) => task.projectId === null) // should never happen
 			.map((task) => {
 				const transformedTaskBounds =
 					task.x !== undefined &&

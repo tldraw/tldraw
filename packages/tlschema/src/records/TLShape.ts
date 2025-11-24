@@ -79,11 +79,50 @@ export type TLDefaultShape =
  */
 export type TLUnknownShape = TLBaseShape<string, object>
 
+/** @public */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface TLGlobalShapePropsMap {}
+
+/** @public */
+// prettier-ignore
+export type TLIndexedShapes = {
+	// We iterate over a union of augmented keys and default shape types.
+	// This allows us to include (or conditionally exclude or override) the default shapes in one go.
+	//
+	// In the `as` clause we are filtering out disabled shapes.
+	[K in keyof TLGlobalShapePropsMap | TLDefaultShape['type'] as K extends TLDefaultShape['type']
+		? // core shapes are always available and cannot be overridden so we just include them
+			K extends 'group'
+			? K
+			: K extends keyof TLGlobalShapePropsMap
+				? // if it extends a nullish value the user has disabled this shape type so we filter it out with never
+					TLGlobalShapePropsMap[K] extends null | undefined
+					? never
+					: K
+				: K
+		: K]: K extends 'group'
+		? // core shapes are always available and cannot be overridden so we just include them
+			Extract<TLDefaultShape, { type: K }>
+		: K extends TLDefaultShape['type']
+			? // if it's a default shape type we need to check if it's been overridden
+				K extends keyof TLGlobalShapePropsMap
+				? // if it has been overriden then use the custom shape definition
+					TLBaseShape<K, TLGlobalShapePropsMap[K]>
+				: // if it has not been overriden then reuse existing type aliases for better type display
+					Extract<TLDefaultShape, { type: K }>
+			: // use the custom shape definition
+				TLBaseShape<K, TLGlobalShapePropsMap[K & keyof TLGlobalShapePropsMap]>
+}
+
 /**
- * The set of all shapes that are available in the editor, including unknown shapes.
+ * The set of all shapes that are available in the editor.
  *
  * This is the primary shape type used throughout tldraw. It includes both the
  * built-in default shapes and any custom shapes that might be added.
+ *
+ * You can use this type without a type argument to work with any shape, or pass
+ * a specific shape type string (e.g., `'geo'`, `'arrow'`, `'text'`) to narrow
+ * down to that specific shape type.
  *
  * @example
  * ```ts
@@ -95,11 +134,16 @@ export type TLUnknownShape = TLBaseShape<string, object>
  *     y: shape.y + deltaY
  *   }
  * }
+ *
+ * // Narrow to a specific shape type by passing the type as a generic argument
+ * function getArrowLabel(shape: TLShape<'arrow'>): string {
+ *   return shape.props.text // TypeScript knows this is a TLArrowShape
+ * }
  * ```
  *
  * @public
  */
-export type TLShape = TLDefaultShape | TLUnknownShape
+export type TLShape<K extends keyof TLIndexedShapes = keyof TLIndexedShapes> = TLIndexedShapes[K]
 
 /**
  * A partial version of a shape, useful for updates and patches.
@@ -140,6 +184,57 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T
 	: never
 
 /**
+ * A partial version of a shape, useful for creating shapes.
+ *
+ * This type represents a shape where all properties except `type` are optional.
+ * It's commonly used when creating shapes.
+ *
+ * @example
+ * ```ts
+ * // Create a shape
+ * const shapeCreate: TLCreateShapePartial = {
+ *   type: 'geo',
+ *   x: 100,
+ *   y: 200
+ * }
+ *
+ * // Create shape properties
+ * const propsCreate: TLCreateShapePartial<TLGeoShape> = {
+ *   type: 'geo',
+ *   props: {
+ *     w: 150,
+ *     h: 100
+ *   }
+ * }
+ * ```
+ *
+ * @public
+ */
+export type TLCreateShapePartial<T extends TLShape = TLShape> = T extends T
+	? {
+			type: T['type']
+			props?: Partial<T['props']>
+			meta?: Partial<T['meta']>
+		} & Partial<Omit<T, 'type' | 'props' | 'meta'>>
+	: never
+
+/**
+ * Extract a shape type by its props.
+ *
+ * This utility type takes a props object type and returns the corresponding shape type
+ * from the TLShape union whose props match the given type.
+ *
+ * @example
+ * ```ts
+ * type MyShape = ExtractShapeByProps<{ w: number; h: number }>
+ * // MyShape is now the type of shape(s) that have props with w and h as numbers
+ * ```
+ *
+ * @public
+ */
+export type ExtractShapeByProps<P> = Extract<TLShape, { props: P }>
+
+/**
  * A unique identifier for a shape record.
  *
  * Shape IDs are branded strings that start with "shape:" followed by a unique identifier.
@@ -153,7 +248,7 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T
  *
  * @public
  */
-export type TLShapeId = RecordId<TLUnknownShape>
+export type TLShapeId = RecordId<TLShape>
 
 /**
  * The ID of a shape's parent, which can be either a page or another shape.
@@ -195,7 +290,7 @@ export const rootShapeVersions = createMigrationIds('com.tldraw.shape', {
 	HoistOpacity: 2,
 	AddMeta: 3,
 	AddWhite: 4,
-} as const)
+})
 
 /**
  * Migration sequence for the root shape record type.
@@ -469,7 +564,7 @@ export function createShapePropsMigrationIds<
  * @internal
  */
 export function createShapeRecordType(shapes: Record<string, SchemaPropsInfo>) {
-	return createRecordType<TLShape>('shape', {
+	return createRecordType('shape', {
 		scope: 'document',
 		validator: T.model(
 			'shape',

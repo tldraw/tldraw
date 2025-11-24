@@ -7,12 +7,10 @@ import {
 	SelectionCorner,
 	SelectionEdge,
 	StateNode,
-	TLFrameShape,
 	TLPointerEventInfo,
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
-	TLTextShape,
 	TLTickEventInfo,
 	Vec,
 	VecLike,
@@ -228,7 +226,7 @@ export class Resizing extends StateNode {
 
 		if (shapeSnapshots.size === 1) {
 			const onlySnapshot = [...shapeSnapshots.values()][0]!
-			if (this.editor.isShapeOfType<TLTextShape>(onlySnapshot.shape, 'text')) {
+			if (this.editor.isShapeOfType(onlySnapshot.shape, 'text')) {
 				isAspectRatioLocked = !(this.info.handle === 'left' || this.info.handle === 'right')
 			}
 		}
@@ -528,7 +526,7 @@ export class Resizing extends StateNode {
 			// descendants (easy) but also flagging with behavior like "resize" or "keep absolute position" or "reposition only with accel key",
 			// though I'm not sure where that would be defined; perhaps better handled with onResizeStart / onResize callbacks on the util, and
 			// pass `accelKeyIsPressed` as well as `accelKeyWasPressed`?
-			if (editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
+			if (editor.isShapeOfType(shape, 'frame')) {
 				frames.push({
 					id: shape.id,
 					children: compact(
