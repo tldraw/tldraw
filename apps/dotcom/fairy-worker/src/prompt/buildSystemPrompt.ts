@@ -7,6 +7,7 @@ import {
 import { getSystemPromptFlags, SystemPromptFlags } from './getSystemPromptFlags'
 import { buildDuoOrchestratingModePromptSection } from './sections/duo-orchestration-mode'
 import { buildIntroPromptSection } from './sections/intro-section'
+import { buildOneshottingModePromptSection } from './sections/oneshotting-mode'
 import { buildOrchestratingModePromptSection } from './sections/orchestration-mode'
 import { buildRulesPromptSection } from './sections/rules-section'
 import { buildSoloingModePromptSection } from './sections/soloing-mode'
@@ -53,6 +54,9 @@ export function buildSystemPrompt(
 }
 
 function buildModePromptSection(flags: SystemPromptFlags) {
+	if (flags.isOneshotting) {
+		return buildOneshottingModePromptSection(flags)
+	}
 	if (flags.isSoloing) {
 		return buildSoloingModePromptSection(flags)
 	}
