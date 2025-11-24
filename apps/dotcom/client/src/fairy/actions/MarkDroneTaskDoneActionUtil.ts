@@ -11,9 +11,7 @@ export class MarkDroneTaskDoneActionUtil extends AgentActionUtil<MarkDroneTaskDo
 
 		return {
 			icon: 'note' as const,
-			description: action.complete
-				? `Completed task: ${task?.text ?? action.taskId}`
-				: 'Completing task...',
+			description: action.complete ? `Completed task: ${task?.title}` : 'Completing task...',
 			pose: 'writing' as const,
 			canGroup: () => false,
 		}

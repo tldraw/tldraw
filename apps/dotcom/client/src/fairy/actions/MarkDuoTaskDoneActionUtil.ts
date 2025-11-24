@@ -8,7 +8,7 @@ export class MarkDuoTaskDoneActionUtil extends AgentActionUtil<MarkDuoTaskDoneAc
 
 	override getInfo(action: Streaming<MarkDuoTaskDoneAction>) {
 		return {
-			icon: 'flag' as const,
+			icon: 'note' as const,
 			description: action.complete ? `Completed task` : 'Completing task...',
 			pose: 'writing' as const,
 			canGroup: () => false,

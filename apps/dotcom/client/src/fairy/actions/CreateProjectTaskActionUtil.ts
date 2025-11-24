@@ -12,9 +12,8 @@ export class CreateProjectTaskActionUtil extends AgentActionUtil<CreateProjectTa
 		const label = action.complete ? 'Created project task' : 'Creating project task'
 		return {
 			icon: 'note' as const,
-			description: `${label}: ${action.text}`,
+			description: `${label}: ${action.title}`,
 			pose: 'writing' as const,
-			canGroup: () => false,
 		}
 	}
 
