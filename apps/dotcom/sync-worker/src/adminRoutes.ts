@@ -26,7 +26,7 @@ async function requireUser(env: Environment, q: string) {
 
 async function grantFairyAccess(env: Environment, email: string, fairyLimit: number) {
 	assert(typeof email === 'string' && email, 'email is required')
-	assert(typeof fairyLimit === 'number' && fairyLimit > 0, 'fairyLimit must be a positive number')
+	assert(typeof fairyLimit === 'number', 'fairyLimit must be a positive number')
 	assert(fairyLimit <= MAX_FAIRY_COUNT, `fairyLimit cannot exceed ${MAX_FAIRY_COUNT}`)
 
 	const clerkClient = getClerkClient(env)

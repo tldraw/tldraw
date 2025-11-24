@@ -1,4 +1,4 @@
-import { TlaFile, TlaUser, userHasFlag, ZStoreData } from '@tldraw/dotcom-shared'
+import { MAX_FAIRY_COUNT, TlaFile, TlaUser, userHasFlag, ZStoreData } from '@tldraw/dotcom-shared'
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { fetch } from 'tldraw'
@@ -307,7 +307,7 @@ function FairyInvites() {
 			createdAt: number
 		}>
 	>([])
-	const [fairyLimit, setFairyLimit] = useState(10)
+	const [fairyLimit, setFairyLimit] = useState(MAX_FAIRY_COUNT)
 	const [maxUses, setMaxUses] = useState(1)
 	const [grantEmail, setGrantEmail] = useState('')
 	const [grantFairyLimit, setGrantFairyLimit] = useState(5)
@@ -340,10 +340,6 @@ function FairyInvites() {
 	}, [loadInvites])
 
 	const createInvite = useCallback(async () => {
-		if (fairyLimit < 1) {
-			setError('Fairy limit must be at least 1')
-			return
-		}
 		if (maxUses < 0) {
 			setError('Max uses must be 0 (unlimited) or greater')
 			return
@@ -400,10 +396,6 @@ function FairyInvites() {
 	const grantAccess = useCallback(async () => {
 		if (!grantEmail || !grantEmail.includes('@')) {
 			setError('Please enter a valid email address')
-			return
-		}
-		if (grantFairyLimit < 1) {
-			setError('Fairy limit must be at least 1')
 			return
 		}
 
@@ -470,7 +462,10 @@ function FairyInvites() {
 			</div>
 
 			<h4 className="tla-text_ui__medium">Grant Fairy Access to User</h4>
-			<p className="tla-text_ui__small">Grant fairy access directly to a user by email address.</p>
+			<p className="tla-text_ui__small">
+				Grant fairy access to a user by email. Set to 0 to show purchase option without granting
+				access. Set to 1-5 to grant fairies directly.
+			</p>
 			<div className={styles.downloadContainer} style={{ marginBottom: '24px' }}>
 				<div>
 					<label htmlFor="grantEmail">Email:</label>
@@ -492,8 +487,8 @@ function FairyInvites() {
 						placeholder="5"
 						value={grantFairyLimit}
 						onChange={(e) => setGrantFairyLimit(Number(e.target.value))}
-						min={1}
-						max={10}
+						min={0}
+						max={5}
 						className={styles.searchInput}
 						style={{ width: '120px', marginLeft: '8px' }}
 					/>
@@ -514,10 +509,11 @@ function FairyInvites() {
 					<input
 						id="fairyLimit"
 						type="number"
-						placeholder="10"
+						placeholder="5"
 						value={fairyLimit}
-						onChange={(e) => setFairyLimit(Number(e.target.value))}
+						onChange={(e) => setFairyLimit(Math.min(Number(e.target.value), MAX_FAIRY_COUNT))}
 						min={1}
+						max={MAX_FAIRY_COUNT}
 						className={styles.searchInput}
 						style={{ width: '120px', marginLeft: '8px' }}
 					/>

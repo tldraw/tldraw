@@ -160,7 +160,7 @@ async function handleTransactionCompleted(
 			})
 			.onConflict((oc) =>
 				oc.column('userId').doUpdateSet({
-					fairyLimit: sql`LEAST(user_fairies.fairy_limit + ${fairyLimit}, ${MAX_FAIRY_COUNT})`,
+					fairyLimit: sql`LEAST(user_fairies."fairyLimit" + ${fairyLimit}, ${MAX_FAIRY_COUNT})`,
 					fairyAccessExpiresAt: expiresAt,
 				})
 			)
