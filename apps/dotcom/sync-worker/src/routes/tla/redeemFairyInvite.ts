@@ -3,6 +3,7 @@ import { IRequest } from 'itty-router'
 import { FAIRY_WORLDWIDE_EXPIRATION } from '../../config'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
+import { getUserDurableObject } from '../../utils/durableObjects'
 import { getClerkClient, requireAuth } from '../../utils/tla/getAuth'
 
 export async function redeemFairyInvite(request: IRequest, env: Environment): Promise<Response> {
@@ -81,6 +82,10 @@ export async function redeemFairyInvite(request: IRequest, env: Environment): Pr
 				})
 				.where('id', '=', inviteCode)
 				.execute()
+
+			// Trigger User DO refresh to pick up new fairy access
+			const userDO = getUserDurableObject(env, auth.userId)
+			await userDO.refreshUserData(auth.userId)
 
 			return Response.json({
 				success: true,
