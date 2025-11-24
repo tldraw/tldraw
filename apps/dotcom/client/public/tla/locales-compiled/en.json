@@ -225,6 +225,12 @@
       "value": "Select leader"
     }
   ],
+  "2f7935debe": [
+    {
+      "type": 0,
+      "value": "Put away fairy"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -807,12 +813,6 @@
       "value": "Show tasks on canvas"
     }
   ],
-  "8256496a13": [
-    {
-      "type": 0,
-      "value": "Sleep fairy"
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -1151,12 +1151,6 @@
     {
       "type": 0,
       "value": "File URL"
-    }
-  ],
-  "b4aa60efc5": [
-    {
-      "type": 0,
-      "value": "Wake fairy"
     }
   ],
   "b6d4223e60": [
@@ -1597,12 +1591,6 @@
     {
       "type": 0,
       "value": " to learn more."
-    }
-  ],
-  "eecad1e370": [
-    {
-      "type": 0,
-      "value": "Delete fairy"
     }
   ],
   "ef53538ae4": [

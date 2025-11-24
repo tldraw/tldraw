@@ -1,4 +1,4 @@
-import { MouseEvent, ReactNode } from 'react'
+import { MouseEvent } from 'react'
 import { TldrawUiToolbar, useValue } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairySidebarButton } from './FairySidebarButton'
@@ -84,7 +84,6 @@ interface FairyListSidebarProps {
 	onClickFairy(agent: FairyAgent, event: MouseEvent): void
 	onDoubleClickFairy(agent: FairyAgent): void
 	onTogglePanel(): void
-	renderNewFairyButton(disabled: boolean): ReactNode
 }
 
 export function FairyListSidebar({

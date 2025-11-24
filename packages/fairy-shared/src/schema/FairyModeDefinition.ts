@@ -48,6 +48,11 @@ export const FAIRY_MODE_DEFINITIONS = [
 		active: false,
 	},
 	{
+		type: 'sleeping',
+		memoryLevel: 'fairy',
+		active: false,
+	},
+	{
 		type: 'one-shotting',
 		memoryLevel: 'fairy',
 		active: true,

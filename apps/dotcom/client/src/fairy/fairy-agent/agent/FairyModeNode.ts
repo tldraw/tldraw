@@ -41,6 +41,7 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			}
 		},
 	},
+	['sleeping']: {},
 	['one-shotting']: {
 		onPromptEnd(agent) {
 			agent.setMode('idling')
