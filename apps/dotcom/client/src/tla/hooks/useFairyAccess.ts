@@ -5,7 +5,6 @@ import { useApp } from './useAppState'
 
 /**
  * Hook that returns whether the current user has active fairy access.
- * Checks if the user's fairy access has not expired and if @tldraw.com email is verified.
  */
 export function useFairyAccess(): boolean {
 	const app = useApp()
@@ -23,7 +22,8 @@ export function useFairyAccess(): boolean {
 
 /**
  * Hook that returns the user's fairy limit.
- * Returns null if the user has no fairy access.
+ * A value of 0 means that they can purchases faries, but don't have access yet.
+ * Returns null if the user has no fairy access at all.
  */
 export function useFairyLimit(): number | null {
 	const app = useApp()
