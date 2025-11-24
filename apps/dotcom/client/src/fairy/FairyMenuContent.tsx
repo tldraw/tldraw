@@ -28,7 +28,8 @@ export function FairyMenuContent({
 	const app = useApp()
 	const { addDialog } = useDefaultHelpers()
 	const agents = useValue('fairy-agents', () => $fairyAgentsAtom.get(editor), [editor])
-	const configureFairy = useCallback(
+
+	const _configureFairy = useCallback(
 		(agent: FairyAgent) => {
 			addDialog({
 				component: ({ onClose }) => <FairyConfigDialog agent={agent} onClose={onClose} />,
@@ -63,7 +64,7 @@ export function FairyMenuContent({
 	const followFairyLabel = useMsg(fairyMessages.followFairy)
 	const unfollowFairyLabel = useMsg(fairyMessages.unfollowFairy)
 	const resetChatLabel = useMsg(fairyMessages.resetChat)
-	const customizeFairyLabel = useMsg(fairyMessages.customizeFairy)
+	const _customizeFairyLabel = useMsg(fairyMessages.customizeFairy)
 	const putAwayFairyLabel = useMsg(fairyMessages.putAwayFairy)
 	const disbandGroupLabel = useMsg(fairyMessages.disbandGroup)
 	const debugViewLabel = useMsg(fairyMessages.debugView)
@@ -148,11 +149,12 @@ export function FairyMenuContent({
 				<TldrawUiMenuItem id="new-chat" onSelect={() => agent.reset()} label={resetChatLabel} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="fairy-config-menu">
-				<TldrawUiMenuItem
+				{/* TODO: Reinstate */}
+				{/* <TldrawUiMenuItem
 					id="configure-fairy"
 					onSelect={() => configureFairy(agent)}
 					label={customizeFairyLabel}
-				/>
+				/> */}
 				<TldrawUiMenuItem id="sleep-fairy" onSelect={putAwayFairy} label={putAwayFairyLabel} />
 				<TldrawUiMenuItem id="debug-fairies" onSelect={openDebugDialog} label={debugViewLabel} />
 				<TldrawUiMenuItem
