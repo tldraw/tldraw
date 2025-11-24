@@ -45,12 +45,8 @@ export function TlaSidebarFairyCheckoutLink() {
 			return
 		}
 
-		// Get env and token from environment variables
-		const paddleEnv =
-			// @ts-expect-error Vite env vars not typed
-			(import.meta.env.PADDLE_ENVIRONMENT as 'sandbox' | 'production') ?? 'sandbox'
-		// @ts-expect-error Vite env vars not typed
-		const paddleToken = import.meta.env.PADDLE_CLIENT_TOKEN
+		const paddleEnv = (process.env.PADDLE_ENVIRONMENT as 'sandbox' | 'production') ?? 'sandbox'
+		const paddleToken = process.env.PADDLE_CLIENT_TOKEN
 
 		if (!paddleToken) {
 			console.error('Paddle client token not configured')
@@ -109,8 +105,7 @@ export function TlaSidebarFairyCheckoutLink() {
 			return
 		}
 
-		// @ts-expect-error Vite env vars not typed
-		const paddlePriceId = import.meta.env.PADDLE_FAIRY_PRICE_ID
+		const paddlePriceId = process.env.PADDLE_FAIRY_PRICE_ID
 
 		if (!paddlePriceId) {
 			console.error('Paddle price ID not configured')
