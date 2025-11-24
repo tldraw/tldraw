@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useValue } from 'tldraw'
-import { isStagingEnv } from '../../../../utils/env'
 import { useApp } from '../../../hooks/useAppState'
 import { useFairyLimit } from '../../../hooks/useFairyAccess'
 import { F } from '../../../utils/i18n'
@@ -90,7 +89,6 @@ export function TlaSidebarFairyCheckoutLink() {
 
 	// Early returns after all hooks
 	if (currentFairyLimit === null || currentFairyLimit > 0) return null // Hide button if user already has access
-	if (isStagingEnv) return null
 
 	const handlePurchase = () => {
 		const userId = app.userId
