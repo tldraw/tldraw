@@ -1,4 +1,4 @@
-import { TlaFile } from '@tldraw/dotcom-shared'
+import { MAX_FAIRY_COUNT, TlaFile } from '@tldraw/dotcom-shared'
 import { assert, retry, sleep, uniqueId } from '@tldraw/utils'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
@@ -22,6 +22,49 @@ async function requireUser(env: Environment, q: string) {
 		throw new StatusError(404, 'User not found ' + q)
 	}
 	return userRow
+}
+
+async function grantFairyAccess(env: Environment, email: string, fairyLimit: number) {
+	assert(typeof email === 'string' && email, 'email is required')
+	assert(typeof fairyLimit === 'number' && fairyLimit > 0, 'fairyLimit must be a positive number')
+	assert(fairyLimit <= MAX_FAIRY_COUNT, `fairyLimit cannot exceed ${MAX_FAIRY_COUNT}`)
+
+	const clerkClient = getClerkClient(env)
+	const users = await clerkClient.users.getUserList({ emailAddress: [email] })
+
+	if (users.totalCount === 0) {
+		throw new StatusError(404, `No user found with email: ${email}`)
+	}
+
+	const clerkUser = users.data[0]
+	const userId = clerkUser.id
+
+	const db = createPostgresConnectionPool(env, '/app/admin/fairy/grant-access')
+
+	try {
+		await db
+			.insertInto('user_fairies')
+			.values({
+				userId,
+				fairyLimit,
+				fairyAccessExpiresAt: FAIRY_WORLDWIDE_EXPIRATION,
+				fairies: '{}',
+			})
+			.onConflict((oc) =>
+				oc.column('userId').doUpdateSet({
+					fairyLimit,
+					fairyAccessExpiresAt: FAIRY_WORLDWIDE_EXPIRATION,
+				})
+			)
+			.execute()
+
+		const userDO = getUserDurableObject(env, userId)
+		await userDO.refreshUserData(userId)
+
+		return { success: true, fairyLimit, fairyAccessExpiresAt: FAIRY_WORLDWIDE_EXPIRATION }
+	} finally {
+		await db.destroy()
+	}
 }
 
 export const adminRoutes = createRouter<Environment>()
@@ -191,32 +234,25 @@ export const adminRoutes = createRouter<Environment>()
 
 		return new Response('Deleted', { status: 200 })
 	})
+	.post('/app/admin/fairy/grant-access', async (req, env) => {
+		const body: any = await req.json()
+		const { email, fairyLimit } = body
+
+		const result = await grantFairyAccess(env, email, fairyLimit)
+		return json(result)
+	})
 	.post('/app/admin/fairy/enable-for-me', async (req, env) => {
 		const auth = await requireAuth(req, env)
-		const userId = auth.userId
+		const clerkClient = getClerkClient(env)
+		const clerkUser = await clerkClient.users.getUser(auth.userId)
+		const email = clerkUser.emailAddresses[0]?.emailAddress
 
-		const db = createPostgresConnectionPool(env, '/app/admin/fairy/enable-for-me')
+		if (!email) {
+			throw new StatusError(400, 'No email found for user')
+		}
 
-		await db
-			.insertInto('user_fairies')
-			.values({
-				userId,
-				fairyLimit: 10,
-				fairyAccessExpiresAt: FAIRY_WORLDWIDE_EXPIRATION,
-				fairies: '{}',
-			})
-			.onConflict((oc) =>
-				oc.column('userId').doUpdateSet({
-					fairyLimit: 10,
-					fairyAccessExpiresAt: FAIRY_WORLDWIDE_EXPIRATION,
-				})
-			)
-			.execute()
-
-		const user = getUserDurableObject(env, userId)
-		await user.refreshUserData(userId)
-
-		return json({ success: true, fairyLimit: 10, fairyAccessExpiresAt: FAIRY_WORLDWIDE_EXPIRATION })
+		const result = await grantFairyAccess(env, email, MAX_FAIRY_COUNT)
+		return json(result)
 	})
 	.post('/app/admin/create_legacy_file', async (_res, env) => {
 		const slug = uniqueId()
