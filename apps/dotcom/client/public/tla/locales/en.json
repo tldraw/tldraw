@@ -110,6 +110,9 @@
   "2e86e6853d": {
     "translation": "Select leader"
   },
+  "2f7935debe": {
+    "translation": "Put away fairy"
+  },
   "31246941ad": {
     "translation": "You need to sign in to view this file."
   },
@@ -193,9 +196,6 @@
   },
   "4e6fbf032b": {
     "translation": "Are you sure you want to delete this group? This action cannot be undone."
-  },
-  "4e98378836": {
-    "translation": "Personality"
   },
   "4ef3716596": {
     "translation": "Unfollow fairy"
@@ -473,9 +473,6 @@
   "a104439641": {
     "translation": "Padding"
   },
-  "a10d7a62aa": {
-    "translation": "Hat"
-  },
   "a18366b217": {
     "translation": "Dark"
   },
@@ -698,9 +695,6 @@
   },
   "ede55d955f": {
     "translation": "Read our <a>cookie policy</a> to learn more."
-  },
-  "eecad1e370": {
-    "translation": "Delete fairy"
   },
   "ef53538ae4": {
     "translation": "Members"

@@ -27,6 +27,7 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			agent.$userActionHistory.set([])
 		},
 	},
+	['sleeping']: {},
 	soloing: {
 		onPromptEnd(agent) {
 			// Stop timing and log

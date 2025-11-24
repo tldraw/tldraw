@@ -29,6 +29,7 @@ export function FairySidebarButton({
 	const fairyOutfit = useValue('fairy outfit', () => agent.$fairyConfig.get()?.outfit, [agent])
 	const fairyEntity = useValue('fairy entity', () => agent.$fairyEntity.get(), [agent])
 	const project = useValue('current-project', () => agent.getProject(), [agent])
+	const isSleeping = useValue('is-sleeping', () => agent.getMode() === 'sleeping', [agent])
 
 	const isOrchestrator = useValue(
 		'is-orchestrator',
@@ -50,6 +51,7 @@ export function FairySidebarButton({
 						type="icon"
 						data-state={fairyIsSelected ? 'on' : 'off'}
 						data-isactive={fairyIsSelected}
+						data-is-sleeping={isSleeping}
 						aria-label={fairyIsSelected ? deselectMessage : selectMessage}
 						value="on"
 					>

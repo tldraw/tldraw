@@ -123,7 +123,7 @@ export class FairyAgent {
 	/**
 	 * An atom containing the current fairy mode.
 	 */
-	private $mode = atom<FairyModeDefinition['type']>('fairyMode', 'idling')
+	private $mode = atom<FairyModeDefinition['type']>('fairyMode', 'sleeping')
 
 	/**
 	 * Debug flags for controlling logging behavior in the worker.
@@ -255,7 +255,7 @@ export class FairyAgent {
 			position: AgentHelpers.RoundVec(spawnPoint),
 			flipX: Math.random() < 0.5,
 			isSelected: false,
-			pose: 'idle',
+			pose: 'sleeping',
 			gesture: null,
 			currentPageId: editor.getCurrentPageId(),
 		})
@@ -268,6 +268,15 @@ export class FairyAgent {
 		this.onError = onError
 
 		$fairyAgentsAtom.update(editor, (agents) => [...agents, this])
+
+		// Wake up sleeping fairies when they become selected
+		this.wakeOnSelectReaction = react(`fairy-${id}-wake-on-select`, () => {
+			const entity = this.$fairyEntity.get()
+			if (entity?.isSelected && this.getMode() === 'sleeping') {
+				this.setMode('idling')
+				this.$fairyEntity.update((f) => (f ? { ...f, pose: 'idle' } : f))
+			}
+		})
 
 		// A fairy agent's action utils and prompt part utils are static. They don't change.
 		this.agentActionUtils = getAgentActionUtilsRecord(this)
@@ -283,6 +292,7 @@ export class FairyAgent {
 	dispose() {
 		this.cancel()
 		this.stopRecordingUserActions()
+		this.wakeOnSelectReaction?.()
 		// Stop following this fairy if it's currently being followed
 		if (getFollowingFairyId(this.editor) === this.id) {
 			stopFollowingFairy(this.editor)
@@ -1199,6 +1209,11 @@ export class FairyAgent {
 	 * A function that stops recording user actions.
 	 */
 	private stopRecordingFn: () => void
+
+	/**
+	 * A function that stops the wake-on-select reaction.
+	 */
+	private wakeOnSelectReaction: () => void
 
 	/**
 	 * Stop recording user actions.

@@ -1,27 +1,16 @@
-import {
-	FAIRY_VARIANTS,
-	FairyConfig,
-	FairyProject,
-	FairyTask,
-	FairyVariantType,
-	SmallSpinner,
-} from '@tldraw/fairy-shared'
+import { FairyProject, FairyTask, SmallSpinner } from '@tldraw/fairy-shared'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { MouseEvent, useCallback, useEffect, useRef, useState } from 'react'
 import {
 	PORTRAIT_BREAKPOINT,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
-	TldrawUiIcon,
 	tlmenus,
-	uniqueId,
 	useBreakpoint,
 	useEditor,
 	useQuickReactor,
 	useValue,
 } from 'tldraw'
-import { MAX_FAIRY_COUNT } from '../tla/components/TlaEditor/TlaEditor'
-import { useApp } from '../tla/hooks/useAppState'
 import '../tla/styles/fairy.css'
 import { F, useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
@@ -34,52 +23,6 @@ import { FairyListSidebar } from './FairyListSidebar'
 import { $fairyTasks } from './FairyTaskList'
 import { FairyTaskListDropdownContent } from './FairyTaskListDropdownContent'
 import { FairyTaskListInline } from './FairyTaskListInline'
-import { getRandomFairyName } from './getRandomFairyName'
-import { getRandomFairyPersonality } from './getRandomFairyPersonality'
-
-function NewFairyButton({ agents, disabled }: { agents: FairyAgent[]; disabled?: boolean }) {
-	const app = useApp()
-	const handleClick = useCallback(() => {
-		if (!app) return
-		const randomOutfit = {
-			body: Object.keys(FAIRY_VARIANTS.body)[
-				Math.floor(Math.random() * Object.keys(FAIRY_VARIANTS.body).length)
-			] as FairyVariantType<'body'>,
-			hat: Object.keys(FAIRY_VARIANTS.hat)[
-				Math.floor(Math.random() * Object.keys(FAIRY_VARIANTS.hat).length)
-			] as FairyVariantType<'hat'>,
-			wings: Object.keys(FAIRY_VARIANTS.wings)[
-				Math.floor(Math.random() * Object.keys(FAIRY_VARIANTS.wings).length)
-			] as FairyVariantType<'wings'>,
-		}
-
-		// Create a unique ID for the new fairy
-		const id = uniqueId()
-
-		// Create the config for the new fairy
-		const config: FairyConfig = {
-			name: getRandomFairyName(),
-			outfit: randomOutfit,
-			personality: getRandomFairyPersonality(),
-		}
-
-		// Add the config, which will trigger agent creation in FairyApp
-		app.z.mutate.user.updateFairyConfig({ id, properties: config })
-	}, [app])
-
-	const newFairyLabel = useMsg(fairyMessages.newFairy)
-
-	return (
-		<TldrawUiButton
-			type="icon"
-			className="fairy-toolbar-sidebar-button"
-			onClick={handleClick}
-			disabled={disabled ?? agents.length >= MAX_FAIRY_COUNT}
-		>
-			<TldrawUiIcon icon="plus" label={newFairyLabel} />
-		</TldrawUiButton>
-	)
-}
 
 type PanelState = 'task-list' | 'fairy' | 'closed'
 
@@ -476,9 +419,6 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 							onClickFairy={handleClickFairy}
 							onDoubleClickFairy={handleDoubleClickFairy}
 							onTogglePanel={handleTogglePanel}
-							renderNewFairyButton={(disabled) => (
-								<NewFairyButton agents={agents} disabled={disabled} />
-							)}
 						/>
 					</div>
 				</div>

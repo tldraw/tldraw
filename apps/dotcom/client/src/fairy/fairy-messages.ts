@@ -24,7 +24,7 @@ export const fairyMessages = defineMessages({
 	unfollowFairy: { defaultMessage: 'Unfollow fairy' },
 	askForHelp: { defaultMessage: 'Ask for help' },
 	customizeFairy: { defaultMessage: 'Customize fairy' },
-	deleteFairy: { defaultMessage: 'Delete fairy' },
+	putAwayFairy: { defaultMessage: 'Put away fairy' },
 	disbandGroup: { defaultMessage: 'Disband group' },
 	resetEverything: { defaultMessage: 'Reset everything' },
 

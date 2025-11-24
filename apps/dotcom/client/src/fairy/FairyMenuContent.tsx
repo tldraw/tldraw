@@ -37,9 +37,9 @@ export function FairyMenuContent({
 		[addDialog]
 	)
 
-	const deleteFairy = useCallback(() => {
-		agent.dispose()
-		agent.deleteFairyConfig()
+	const putAwayFairy = useCallback(() => {
+		agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false, pose: 'sleeping' } : f))
+		agent.setMode('sleeping')
 	}, [agent])
 
 	const isFollowing = useValue(
@@ -64,7 +64,7 @@ export function FairyMenuContent({
 	const unfollowFairyLabel = useMsg(fairyMessages.unfollowFairy)
 	const resetChatLabel = useMsg(fairyMessages.resetChat)
 	const customizeFairyLabel = useMsg(fairyMessages.customizeFairy)
-	const deleteFairyLabel = useMsg(fairyMessages.deleteFairy)
+	const putAwayFairyLabel = useMsg(fairyMessages.putAwayFairy)
 	const disbandGroupLabel = useMsg(fairyMessages.disbandGroup)
 	const debugViewLabel = useMsg(fairyMessages.debugView)
 	const resetEverythingLabel = useMsg(fairyMessages.resetEverything)
@@ -153,7 +153,7 @@ export function FairyMenuContent({
 					onSelect={() => configureFairy(agent)}
 					label={customizeFairyLabel}
 				/>
-				<TldrawUiMenuItem id="delete-fairy" onSelect={deleteFairy} label={deleteFairyLabel} />
+				<TldrawUiMenuItem id="delete-fairy" onSelect={putAwayFairy} label={putAwayFairyLabel} />
 				<TldrawUiMenuItem id="debug-fairies" onSelect={openDebugDialog} label={debugViewLabel} />
 				<TldrawUiMenuItem
 					id="reset-everything"

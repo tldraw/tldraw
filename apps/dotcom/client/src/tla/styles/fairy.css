@@ -74,6 +74,10 @@
 	transform: scale(0.9);
 }
 
+.fairy-toggle-button[data-is-sleeping='true'] {
+	opacity: 0.4;
+}
+
 .fairy-leader-toggle {
 	position: relative;
 	width: 44px;
