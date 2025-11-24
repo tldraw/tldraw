@@ -63,25 +63,30 @@ Selection logic:
 export default function Fairy({ agent }: { agent: FairyAgent }) {
 	const editor = useEditor()
 	const fairyRef = useRef<HTMLDivElement>(null)
-	const fairy = agent.$fairyEntity
-	const fairyConfig = agent.$fairyConfig
+	const $fairyEntity = agent.$fairyEntity
+	const $fairyConfig = agent.$fairyConfig
 	const interactionState = useRef<FairyInteractionState>({ status: 'idle' })
+
+	const fairyOutfit = useValue('fairy outfit', () => $fairyConfig.get()?.outfit, [$fairyConfig])
+	const fairyEntity = useValue('fairy entity', () => $fairyEntity.get(), [$fairyEntity])
 
 	const position = useValue(
 		'fairy position',
 		() => {
-			const entity = fairy.get()
+			const entity = $fairyEntity.get()
 			if (!entity) return { x: 0, y: 0 }
 			return {
 				x: entity.position.x,
 				y: entity.position.y,
 			}
 		},
-		[editor, fairy]
+		[editor, $fairyEntity]
 	)
 
-	const flipX = useValue('fairy flipX', () => fairy.get()?.flipX ?? false, [fairy])
-	const isSelected = useValue('fairy isSelected', () => fairy.get()?.isSelected ?? false, [fairy])
+	const flipX = useValue('fairy flipX', () => $fairyEntity.get()?.flipX ?? false, [$fairyEntity])
+	const isSelected = useValue('fairy isSelected', () => $fairyEntity.get()?.isSelected ?? false, [
+		$fairyEntity,
+	])
 	const isInSelectTool = useValue('is in select tool', () => editor.isIn('select.idle'), [editor])
 	const isInThrowTool = useValue('is in throw tool', () => editor.isIn('select.fairy-throw'), [
 		editor,
@@ -101,7 +106,7 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 
 		// Determine which fairies to drag before updating selection
 		const fairyAgents = $fairyAgentsAtom.get(editor)
-		const clickedFairyEntity = fairy.get()
+		const clickedFairyEntity = $fairyEntity.get()
 		const wasClickedFairySelected = clickedFairyEntity?.isSelected ?? false
 		const shiftKey = e.shiftKey || e.ctrlKey || e.metaKey
 
@@ -136,7 +141,7 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 		const fairiesToDrag: Atom<FairyEntity>[] = []
 		const selectedFairies = getSelectedFairyAtoms(fairyAgents)
 		if (selectedFairies.length === 0) {
-			fairiesToDrag.push(fairy)
+			fairiesToDrag.push($fairyEntity)
 		} else {
 			fairiesToDrag.push(...selectedFairies)
 		}
@@ -228,10 +233,6 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 		editor.on('event', handleEvent)
 	}
 
-	const fairyOutfit = useValue('fairy outfit', () => fairyConfig.get()?.outfit, [fairyConfig])
-
-	const fairyEntity = fairy.get()
-
 	return (
 		<_ContextMenu.Root dir="ltr">
 			<_ContextMenu.Trigger asChild>
@@ -277,9 +278,6 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 							outfit={fairyOutfit}
 							animated={fairyEntity.pose !== 'idle' || isSelected}
 							flipX={flipX}
-							onGestureEnd={() => {
-								fairy.update((f) => (f ? { ...f, gesture: null } : f))
-							}}
 						/>
 					</div>
 				</div>

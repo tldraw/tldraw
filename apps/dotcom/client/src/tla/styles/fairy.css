@@ -356,9 +356,9 @@
 /* Make the dialog content fixed size */
 .tlui-dialog__content:has(.fairy-debug-dialog-wrapper) {
 	width: 800px;
-	height: 600px;
+	height: 800px;
 	max-width: 800px;
-	max-height: 600px;
+	max-height: 800px;
 }
 
 /* Fairy Chat History */

@@ -8,10 +8,11 @@ export class CreateSoloTaskActionUtil extends AgentActionUtil<CreateSoloTaskActi
 	static override type = 'create-task' as const
 
 	override getInfo(action: Streaming<CreateSoloTaskAction>) {
-		const label = action.complete ? 'Created task' : 'Creating task'
+		const label = action.complete ? 'Planned work' : 'Planning work'
 		return {
-			icon: 'note' as const,
-			description: `${label}: ${action.text}`,
+			icon: 'flag' as const,
+			label,
+			description: action.text,
 			pose: 'writing' as const,
 			canGroup: () => false,
 		}

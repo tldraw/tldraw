@@ -45,6 +45,7 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 						type: 'memory-transition',
 						memoryLevel: 'fairy',
 						message: `I led and completed the "${project.title}" project with ${otherMemberIds.length} other fairy(s): ${otherMemberIds.join(', ')}`,
+						userFacingMessage: `I led and completed the "${project.title}".`,
 					},
 				])
 			}
@@ -61,6 +62,7 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 						type: 'memory-transition',
 						memoryLevel: 'fairy',
 						message: `I completed ${count} ${taskWord} as part of the "${project.title}" project, with ${otherMemberIds.length} other fairy(s): ${otherMemberIds.join(', ')}`,
+						userFacingMessage: `I completed ${count} ${taskWord} as part of the "${project.title}" project.`,
 					},
 				])
 			}

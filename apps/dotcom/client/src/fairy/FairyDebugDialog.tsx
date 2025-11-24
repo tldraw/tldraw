@@ -671,9 +671,7 @@ function ChatHistoryInspector({ agent }: { agent: FairyAgent }) {
 				>
 					<KeyValuePair label="type" value={item.type} />
 					<KeyValuePair label="action" value={item.action} />
-					<KeyValuePair label="acceptance" value={item.acceptance} />
 					<KeyValuePair label="memoryLevel" value={item.memoryLevel} />
-					<KeyValuePair label="diff" value={item.diff} />
 				</div>
 				{!isLast && <hr />}
 			</>
@@ -718,6 +716,7 @@ function ChatHistoryInspector({ agent }: { agent: FairyAgent }) {
 					<KeyValuePair label="type" value={item.type} />
 					<KeyValuePair label="memoryLevel" value={item.memoryLevel} />
 					<KeyValuePair label="message" value={item.message} />
+					<KeyValuePair label="userFacingMessage" value={item.userFacingMessage} />
 				</div>
 				{!isLast && <hr />}
 			</>

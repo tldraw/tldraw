@@ -185,7 +185,7 @@ type ChatHistoryItem =
   | { type: 'prompt', message: string, role: 'user', ... }
   | { type: 'action', action: AgentAction, ... }
   | { type: 'continuation', data: any[], ... }
-  | { type: 'memory-transition', message: string, ... }
+  | { type: 'memory-transition', message: string, userFacingMessage: string | null, ... }
 ```
 
 **Memory Levels**

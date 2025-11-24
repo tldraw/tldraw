@@ -5,6 +5,7 @@ import { CrossIcon } from './CrossIcon'
 import { CursorIcon } from './CursorIcon'
 import { EllipsisIcon } from './EllipsisIcon'
 import { EyeIcon } from './EyeIcon'
+import { FlagIcon } from './FlagIcon'
 import { NoteIcon } from './NoteIcon'
 import { PencilIcon } from './PencilIcon'
 import { RefreshIcon } from './RefreshIcon'
@@ -26,6 +27,7 @@ const AGENT_ICONS = {
 	cross: <CrossIcon />,
 	'chevron-down': <ChevronDownIcon />,
 	'chevron-right': <ChevronRightIcon />,
+	flag: <FlagIcon />,
 }
 
 export type AgentIconType = keyof typeof AGENT_ICONS

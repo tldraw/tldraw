@@ -111,7 +111,6 @@ export function FairySpriteComponent2({
 	animated,
 	showShadow,
 	flipX = false,
-	onGestureEnd,
 }: {
 	entity: FairyEntity
 	outfit: FairyOutfit
@@ -119,7 +118,6 @@ export function FairySpriteComponent2({
 	showShadow?: boolean
 	flipX?: boolean
 	tint?: string | null
-	onGestureEnd?(): void
 }) {
 	const colors = computeFairyColors(entity, outfit)
 
@@ -137,11 +135,7 @@ export function FairySpriteComponent2({
 				}}
 			>
 				{animated ? (
-					<AnimatedFairySpriteComponent
-						entity={entity}
-						colors={colors}
-						onGestureEnd={onGestureEnd}
-					/>
+					<AnimatedFairySpriteComponent entity={entity} colors={colors} />
 				) : (
 					<StaticFairySpriteComponent entity={entity} colors={colors} />
 				)}
@@ -153,11 +147,9 @@ export function FairySpriteComponent2({
 function AnimatedFairySpriteComponent({
 	entity,
 	colors,
-	onGestureEnd,
 }: {
 	entity: FairyEntity
 	colors: ReturnType<typeof computeFairyColors>
-	onGestureEnd?(): void
 }) {
 	// Gesture takes precedence over pose
 	const effectivePose = entity.gesture ?? entity.pose
@@ -169,21 +161,12 @@ function AnimatedFairySpriteComponent({
 	const FSprite = getItemForKeyFrame(FAIRY_SPRITES_WITH_PROPS[effectivePose], keyframe)
 	const WSprite = getItemForKeyFrame(WING_SPRITES[effectivePose], keyframe)
 
-	// When a gesture completes one animation cycle, call onGestureEnd
-	useEffect(() => {
-		if (entity.gesture && keyframe > 0) {
-			const frameCount = FAIRY_SPRITES_WITH_PROPS[effectivePose].length
-			// If we've completed a full cycle, call the callback
-			if (keyframe >= frameCount) {
-				onGestureEnd?.()
-			}
-		}
-	}, [entity.gesture, keyframe, effectivePose, onGestureEnd])
-
 	return (
 		<>
-			<WSprite topWingColor={colors.topWingColor} bottomWingColor={colors.bottomWingColor} />
-			<FSprite bodyColor={colors.bodyColor} hatColor={colors.hatColor} />
+			{WSprite && (
+				<WSprite topWingColor={colors.topWingColor} bottomWingColor={colors.bottomWingColor} />
+			)}
+			{FSprite && <FSprite bodyColor={colors.bodyColor} hatColor={colors.hatColor} />}
 		</>
 	)
 }
@@ -202,8 +185,10 @@ function StaticFairySpriteComponent({
 
 	return (
 		<>
-			<WSprite topWingColor={colors.topWingColor} bottomWingColor={colors.bottomWingColor} />
-			<FSprite bodyColor={colors.bodyColor} hatColor={colors.hatColor} />
+			{WSprite && (
+				<WSprite topWingColor={colors.topWingColor} bottomWingColor={colors.bottomWingColor} />
+			)}
+			{FSprite && <FSprite bodyColor={colors.bodyColor} hatColor={colors.hatColor} />}
 		</>
 	)
 }
