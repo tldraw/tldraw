@@ -4,8 +4,6 @@ import {
 	RecordType,
 	SerializedSchema,
 	StoreSchema,
-	TLPersistentStorage,
-	TLPersistentStorageTransaction,
 	UnknownRecord,
 } from '@tldraw/store'
 import {
@@ -21,15 +19,6 @@ import {
 } from '@tldraw/utils'
 import { fail } from 'assert'
 import { createNanoEvents } from 'nanoevents'
-import {
-	RoomSession,
-	RoomSessionState,
-	SESSION_IDLE_TIMEOUT,
-	SESSION_REMOVAL_WAIT_TIME,
-	SESSION_START_WAIT_TIME,
-} from './RoomSession'
-import { TLSyncLog } from './TLSocketRoom'
-import { TLSyncError, TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from './TLSyncClient'
 import {
 	NetworkDiff,
 	ObjectDiff,
@@ -47,6 +36,16 @@ import {
 	getTlsyncProtocolVersion,
 } from './protocol'
 import { applyAndDiffRecord, diffAndValidateRecord, validateRecord } from './recordDiff'
+import {
+	RoomSession,
+	RoomSessionState,
+	SESSION_IDLE_TIMEOUT,
+	SESSION_REMOVAL_WAIT_TIME,
+	SESSION_START_WAIT_TIME,
+} from './RoomSession'
+import { TLSyncLog } from './TLSocketRoom'
+import { TLSyncError, TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from './TLSyncClient'
+import { TLSyncStorage, TLSyncStorageTransaction } from './TLSyncStorage'
 
 /**
  * WebSocket interface for server-side room connections. This defines the contract
@@ -213,7 +212,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}>()
 
 	// Storage layer for documents, tombstones, and clocks
-	private readonly storage: TLPersistentStorage<R>
+	private readonly storage: TLSyncStorage<R>
 
 	readonly serializedSchema: SerializedSchema
 
@@ -227,7 +226,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		log?: TLSyncLog
 		schema: StoreSchema<R, any>
 		onPresenceChange?(): void
-		storage: TLPersistentStorage<R>
+		storage: TLSyncStorage<R>
 	}) {
 		this.schema = opts.schema
 		this.log = opts.log
@@ -262,7 +261,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.presenceType = presenceTypes.values().next()?.value ?? null
 
 		const { documentClock } = this.storage.transaction((txn) => {
-			return this.schema.migratePersistentStorage(txn)
+			return this.schema.migrateStorage(txn)
 		})
 
 		this.lastDocumentClock = documentClock
@@ -363,9 +362,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			// noop, calling .close() multiple times is fine
 		}
 
-		const presence = this.presenceStore.getDocument(session.presenceId ?? '')
+		const presence = this.presenceStore.get(session.presenceId ?? '')
 		if (presence) {
-			this.presenceStore.deleteDocument(session.presenceId!)
+			this.presenceStore.delete(session.presenceId!)
 			this._unsafe_broadcastPatch({
 				diff: { [session.presenceId!]: [RecordOpType.Remove] },
 				sourceSessionId: sessionId,
@@ -423,7 +422,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}: {
 		diff: NetworkDiff<R>
 		sourceSessionId?: string
-		txn: TLPersistentStorageTransaction<R> | null
+		txn: TLSyncStorageTransaction<R> | null
 	}) {
 		this.sessions.forEach((session) => {
 			if (session.state !== RoomSessionState.Connected) return
@@ -552,7 +551,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * older client versions.
 	 */
 	private migrateDiffForSession(
-		txn: TLPersistentStorageTransaction<R>,
+		txn: TLSyncStorageTransaction<R>,
 		serializedSchema: SerializedSchema,
 		diff: NetworkDiff<R>
 	): Result<NetworkDiff<R>, MigrationFailureReason> {
@@ -571,15 +570,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				continue
 			}
 
-			const doc = txn.getDocument(id)
+			const doc = txn.get(id) as R | undefined
 			if (!doc) {
 				return Result.err(MigrationFailureReason.TargetVersionTooNew)
 			}
-			const migrationResult = this.schema.migratePersistedRecord(
-				doc.state,
-				serializedSchema,
-				'down'
-			)
+			const migrationResult = this.schema.migratePersistedRecord(doc, serializedSchema, 'down')
 
 			if (migrationResult.type === 'error') {
 				return Result.err(migrationResult.reason)
@@ -700,7 +695,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 	}
 
-	private getDiffSince(txn: TLPersistentStorageTransaction<R>, sinceClock: number) {
+	private getDiffSince(txn: TLSyncStorageTransaction<R>, sinceClock: number) {
 		const diff: NetworkDiff<R> = {}
 		let didChange = false
 		const changes = txn.getChangesSince(sinceClock)
@@ -721,7 +716,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 	}
 
-	private broadcastChanges(txn: TLPersistentStorageTransaction<R>) {
+	private broadcastChanges(txn: TLSyncStorageTransaction<R>) {
 		const { diff, didChange, wipeAll } = this.getDiffSince(txn, this.lastDocumentClock)
 		this.lastDocumentClock = txn.getClock()
 		if (wipeAll) {
@@ -770,7 +765,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 		const migrations = this.schema.getMigrationsSince(message.schema)
 		// if the client's store is at a different version to ours, we can't support them
-		if (!migrations.ok || migrations.value.some((m) => m.scope === 'store' || !m.down)) {
+		if (!migrations.ok || migrations.value.some((m) => m.scope !== 'record' || !m.down)) {
 			this.rejectSession(session.sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 			return
 		}
@@ -875,24 +870,24 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			const { value: state } = res
 
 			// Get the existing document, if any
-			const doc = storage.getDocument(id)
+			const doc = storage.get(id) as R | undefined
 
 			if (doc) {
 				// If there's an existing document, replace it with the new state
 				// but propagate a diff rather than the entire value
-				const recordType = assertExists(getOwnProperty(this.schema.types, doc.state.typeName))
-				const diff = diffAndValidateRecord(doc.state, state, recordType)
+				const recordType = assertExists(getOwnProperty(this.schema.types, doc.typeName))
+				const diff = diffAndValidateRecord(doc, state, recordType)
 				if (diff) {
-					storage.setDocument(id, state)
+					storage.set(id, state)
 					propagateOp(changes, id, [RecordOpType.Patch, diff])
 				}
 			} else {
 				// Otherwise, if we don't already have a document with this id
 				// create the document and propagate the put op
-				// setDocument automatically clears tombstones if they exist
+				// set automatically clears tombstones if they exist
 				const recordType = assertExists(getOwnProperty(this.schema.types, state.typeName))
 				validateRecord(state, recordType)
-				storage.setDocument(id, state)
+				storage.set(id, state)
 				propagateOp(changes, id, [RecordOpType.Put, state])
 			}
 
@@ -906,24 +901,24 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			patch: ObjectDiff
 		) => {
 			// if it was already deleted, there's no need to apply the patch
-			const doc = storage.getDocument(id)
+			const doc = storage.get(id) as R | undefined
 			if (!doc) return
 
-			const recordType = assertExists(getOwnProperty(this.schema.types, doc.state.typeName))
+			const recordType = assertExists(getOwnProperty(this.schema.types, doc.typeName))
 			// If the client's version of the record is older than ours,
 			// we apply the patch to the downgraded version of the record
 			const downgraded = session
-				? this.schema.migratePersistedRecord(doc.state, session.serializedSchema, 'down')
-				: { type: 'success' as const, value: doc.state }
+				? this.schema.migratePersistedRecord(doc, session.serializedSchema, 'down')
+				: { type: 'success' as const, value: doc }
 			if (downgraded.type === 'error') {
 				throw new TLSyncError(downgraded.reason, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 			}
 
-			if (downgraded.value === doc.state) {
+			if (downgraded.value === doc) {
 				// If the versions are compatible, apply the patch and propagate the patch op
-				const diff = applyAndDiffRecord(doc.state, patch, recordType, legacyAppendMode)
+				const diff = applyAndDiffRecord(doc, patch, recordType, legacyAppendMode)
 				if (diff) {
-					storage.setDocument(id, diff[1])
+					storage.set(id, diff[1])
 					propagateOp(changes, id, [RecordOpType.Patch, diff[0]])
 				}
 			} else {
@@ -940,9 +935,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					return fail(TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 				}
 				// replace the state with the upgraded version and propagate the patch op
-				const diff = diffAndValidateRecord(doc.state, upgraded.value, recordType, legacyAppendMode)
+				const diff = diffAndValidateRecord(doc, upgraded.value, recordType, legacyAppendMode)
 				if (diff) {
-					storage.setDocument(id, upgraded.value)
+					storage.set(id, upgraded.value)
 					propagateOp(changes, id, [RecordOpType.Patch, diff])
 				}
 			}
@@ -1015,15 +1010,15 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								break
 							}
 							case RecordOpType.Remove: {
-								const doc = txn.getDocument(id)
+								const doc = txn.get(id)
 								if (!doc) {
 									// If the doc was already deleted, don't do anything, no need to propagate a delete op
 									continue
 								}
 
 								// Delete the document and propagate the delete op
-								// deleteDocument automatically creates tombstones
-								txn.deleteDocument(id)
+								// delete automatically creates tombstones
+								txn.delete(id)
 								propagateOp(docChanges, id, op)
 								break
 							}
@@ -1193,29 +1188,27 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 }
 
 interface MinimalDocStore<R extends UnknownRecord> {
-	getDocument: TLPersistentStorageTransaction<R>['getDocument']
-	setDocument: TLPersistentStorageTransaction<R>['setDocument']
-	deleteDocument: TLPersistentStorageTransaction<R>['deleteDocument']
+	get(id: string): UnknownRecord | undefined
+	set(id: string, record: R): void
+	delete(id: string): void
 }
 
 class PresenceStore<R extends UnknownRecord> implements MinimalDocStore<R> {
-	private readonly presences = new AtomMap<string, { state: R; lastChangedClock: number }>(
-		'presences'
-	)
+	private readonly presences = new AtomMap<string, R>('presences')
 
-	getDocument(id: string) {
+	get(id: string): UnknownRecord | undefined {
 		return this.presences.get(id)
 	}
 
-	setDocument(id: string, state: R): void {
-		this.presences.set(id, { state, lastChangedClock: 0 })
+	set(id: string, state: R): void {
+		this.presences.set(id, state)
 	}
 
-	deleteDocument(id: string): void {
+	delete(id: string): void {
 		this.presences.delete(id)
 	}
 
 	values() {
-		return Array.from(this.presences.values()).map(({ state }) => state)
+		return this.presences.values()
 	}
 }

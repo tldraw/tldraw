@@ -18,7 +18,6 @@ import {
 	TlaFile,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
-import { TLPersistentStorage } from '@tldraw/store'
 import {
 	DEFAULT_INITIAL_SNAPSHOT,
 	InMemorySyncStorage,
@@ -26,6 +25,7 @@ import {
 	TLSocketRoom,
 	TLSyncErrorCloseEventCode,
 	TLSyncErrorCloseEventReason,
+	TLSyncStorage,
 	loadSnapshotIntoStorage,
 	type PersistedRoomSnapshotForSupabase,
 } from '@tldraw/sync-core'
@@ -95,9 +95,9 @@ export class TLDrawDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
 	id: DurableObjectId
 
-	_storage: Promise<TLPersistentStorage<TLRecord>> | null = null
+	_storage: Promise<TLSyncStorage<TLRecord>> | null = null
 
-	getStorage(): Promise<TLPersistentStorage<TLRecord>> {
+	getStorage(): Promise<TLSyncStorage<TLRecord>> {
 		if (!this._documentInfo) {
 			throw new Error('documentInfo must be present when accessing room')
 		}
@@ -111,7 +111,7 @@ export class TLDrawDurableObject extends DurableObject {
 							this.triggerPersist()
 						})
 						storage.transaction((txn) => {
-							createTLSchema().migratePersistentStorage(txn)
+							createTLSchema().migrateStorage(txn)
 						})
 						this.setRoomStorageUsedPercentage(storage, result.roomSizeMB)
 						return storage
@@ -809,7 +809,7 @@ export class TLDrawDurableObject extends DurableObject {
 		const storage = await this.getStorage()
 		const assetsToUpdate: { objectName: string; fileId: string }[] = []
 		storage.transaction(async (txn) => {
-			for (const [_, { state: record }] of txn.documents()) {
+			for (const record of txn.values()) {
 				if (record.typeName !== 'asset') continue
 				const asset = record as any
 				const meta = asset.meta
@@ -834,7 +834,7 @@ export class TLDrawDurableObject extends DurableObject {
 				asset.props.src = `${this.env.MULTIPLAYER_SERVER.replace(/^ws/, 'http')}${APP_ASSET_UPLOAD_ENDPOINT}${newObjectName}`
 
 				asset.meta.fileId = slug
-				txn.setDocument(asset.id, asset)
+				txn.set(asset.id, asset)
 				assetsToUpdate.push({ objectName: newObjectName, fileId: slug })
 			}
 		})
@@ -850,19 +850,16 @@ export class TLDrawDurableObject extends DurableObject {
 			.execute()
 	}
 
-	private async setRoomStorageUsedPercentage(
-		storage: TLPersistentStorage<TLRecord>,
-		roomSizeMB: number
-	) {
+	private async setRoomStorageUsedPercentage(storage: TLSyncStorage<TLRecord>, roomSizeMB: number) {
 		const percentage = Math.ceil((roomSizeMB / ROOM_SIZE_LIMIT_MB) * 100)
 		storage.transaction(async (txn) => {
-			const document = txn.getDocument(TLDOCUMENT_ID)?.state as TLDocument
+			const document = txn.get(TLDOCUMENT_ID) as TLDocument
 			const meta = document.meta
 			if (meta.storageUsedPercentage === percentage) return
 			// In some cases we don't want to update the document if it already has percentage set.
 			// Example for that is when we load the room. If it has a percentage set, we don't want to overwrite it.
 			meta.storageUsedPercentage = percentage
-			txn.setDocument(TLDOCUMENT_ID, document)
+			txn.set(TLDOCUMENT_ID, document)
 		})
 	}
 
@@ -1124,10 +1121,10 @@ export class TLDrawDurableObject extends DurableObject {
 		const storage = await this.getStorage()
 		// if the app file record updated, it might mean that the file name changed
 		storage.transaction(async (txn) => {
-			const documentRecord = txn.getDocument(TLDOCUMENT_ID)?.state as TLDocument
+			const documentRecord = txn.get(TLDOCUMENT_ID) as TLDocument
 			if (documentRecord.name !== file.name) {
 				documentRecord.name = file.name
-				txn.setDocument(TLDOCUMENT_ID, documentRecord)
+				txn.set(TLDOCUMENT_ID, documentRecord)
 			}
 		})
 

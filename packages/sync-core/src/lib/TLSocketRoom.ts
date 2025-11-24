@@ -1,4 +1,4 @@
-import type { StoreSchema, TLPersistentStorage, UnknownRecord } from '@tldraw/store'
+import type { StoreSchema, UnknownRecord } from '@tldraw/store'
 import { createTLSchema, TLStoreSnapshot } from '@tldraw/tlschema'
 import { structuredClone } from 'tldraw'
 import {
@@ -11,6 +11,7 @@ import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
 import { RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
+import { TLSyncStorage } from './TLSyncStorage'
 import { JsonChunkAssembler } from './chunk'
 import { TLSocketServerSentEvent } from './protocol'
 
@@ -48,7 +49,7 @@ export interface TLSyncLog {
  * @public
  */
 export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
-	storage?: TLPersistentStorage<R>
+	storage?: TLSyncStorage<R>
 	/**
 	 * @deprecated use the storage option instead
 	 */
@@ -157,7 +158,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	>()
 	readonly log?: TLSyncLog
 
-	public storage: TLPersistentStorage<R>
+	public storage: TLSyncStorage<R>
 
 	private disposables = new Set<() => void>()
 
@@ -452,7 +453,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 */
 	getRecord(id: string) {
 		return this.storage.transaction((txn) => {
-			return txn.getDocument(id)?.state
+			return txn.get(id)
 		}).result
 	}
 
@@ -610,16 +611,16 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		this.storage.transaction((txn) => {
 			updater({
 				delete(recordOrId) {
-					txn.deleteDocument(typeof recordOrId === 'string' ? recordOrId : recordOrId.id)
+					txn.delete(typeof recordOrId === 'string' ? recordOrId : recordOrId.id)
 				},
 				get(id) {
-					return structuredClone(txn.getDocument(id)?.state) ?? null
+					return structuredClone(txn.get(id)) ?? null
 				},
 				getAll() {
-					return structuredClone([...txn.documents()].map(([_, { state }]) => state))
+					return structuredClone([...txn.values()])
 				},
 				put(record) {
-					txn.setDocument(record.id, structuredClone(record))
+					txn.set(record.id, structuredClone(record))
 				},
 			})
 		})

@@ -1,17 +1,5 @@
 import { atom, Atom, transaction } from '@tldraw/state'
-import {
-	AtomMap,
-	devFreeze,
-	MetadataKeys,
-	StoreSchema,
-	TLPersistentStorage,
-	TLPersistentStorageGetChangesSinceResult,
-	TLPersistentStorageOnChangeCallbackProps,
-	TLPersistentStorageTransaction,
-	TLPersistentStorageTransactionOptions,
-	TLPersistentStorageTransactionResult,
-	UnknownRecord,
-} from '@tldraw/store'
+import { AtomMap, devFreeze, SerializedSchema, StoreSchema, UnknownRecord } from '@tldraw/store'
 import {
 	createTLSchema,
 	DocumentRecordType,
@@ -29,6 +17,14 @@ import {
 	throttle,
 } from '@tldraw/utils'
 import { RoomSnapshot } from './TLSyncRoom'
+import {
+	TLSyncStorage,
+	TLSyncStorageGetChangesSinceResult,
+	TLSyncStorageOnChangeCallbackProps,
+	TLSyncStorageTransaction,
+	TLSyncStorageTransactionOptions,
+	TLSyncStorageTransactionResult,
+} from './TLSyncStorage'
 
 const TOMBSTONE_PRUNE_BUFFER_SIZE = 1000
 const MAX_TOMBSTONES = 5000
@@ -60,20 +56,20 @@ export const DEFAULT_INITIAL_SNAPSHOT = {
  *
  * @public
  */
-export class InMemorySyncStorage<R extends UnknownRecord> implements TLPersistentStorage<R> {
+export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
 	/** @internal */
 	documents: AtomMap<string, { state: R; lastChangedClock: number }>
 	/** @internal */
 	tombstones: AtomMap<string, number>
 	/** @internal */
-	metadata: AtomMap<string, string>
+	schema: Atom<SerializedSchema>
 	/** @internal */
 	documentClock: Atom<number>
 	/** @internal */
 	tombstoneHistoryStartsAtClock: Atom<number>
 
-	private listeners = new Set<(arg: TLPersistentStorageOnChangeCallbackProps) => unknown>()
-	onChange(callback: (arg: TLPersistentStorageOnChangeCallbackProps) => unknown): () => void {
+	private listeners = new Set<(arg: TLSyncStorageOnChangeCallbackProps) => unknown>()
+	onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void {
 		let didDelete = false
 		// we put the callback registration in a microtask because the callback is invoked
 		// in a microtask, and so this makes sure the callback is invoked after all the updates
@@ -98,7 +94,6 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLPersisten
 				{ state: devFreeze(d.state) as R, lastChangedClock: d.lastChangedClock },
 			])
 		)
-		this.metadata = new AtomMap('room metadata')
 		const documentClock = snapshot.documentClock ?? snapshot.clock ?? 0
 		this.documentClock = atom('document clock', documentClock)
 		const tombstoneHistoryStartsAtClock = snapshot.tombstoneHistoryStartsAtClock ?? documentClock
@@ -106,6 +101,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLPersisten
 			'tombstone history starts at clock',
 			tombstoneHistoryStartsAtClock
 		)
+		this.schema = atom('schema', snapshot.schema)
 		this.tombstones = new AtomMap(
 			'room tombstones',
 			// If the tombstone history starts now (or we didn't have the
@@ -114,13 +110,12 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLPersisten
 				? []
 				: objectMapEntries(snapshot.tombstones ?? {})
 		)
-		this.metadata.set(MetadataKeys.schema, JSON.stringify(snapshot.schema))
 	}
 
 	transaction<T>(
-		callback: (txn: TLPersistentStorageTransaction<R>) => T,
-		opts?: TLPersistentStorageTransactionOptions
-	): TLPersistentStorageTransactionResult<T> {
+		callback: (txn: TLSyncStorageTransaction<R>) => T,
+		opts?: TLSyncStorageTransactionOptions
+	): TLSyncStorageTransactionResult<T> {
 		const clockBefore = this.documentClock.get()
 		const result = transaction(() => {
 			const txn = new InMemorySyncStorageTransaction<R>(this)
@@ -132,7 +127,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLPersisten
 		if (didChange) {
 			// todo: batch these updates
 			queueMicrotask(() => {
-				const props: TLPersistentStorageOnChangeCallbackProps = {
+				const props: TLSyncStorageOnChangeCallbackProps = {
 					id: opts?.id,
 					documentClock: clockAfter,
 				}
@@ -178,7 +173,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLPersisten
 			documentClock: this.documentClock.get(),
 			documents: Array.from(this.documents.values()),
 			tombstones: Object.fromEntries(this.tombstones.entries()),
-			schema: JSON.parse(this.metadata.get(MetadataKeys.schema) ?? '{}'),
+			schema: this.schema.get(),
 		}
 	}
 }
@@ -190,7 +185,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLPersisten
  * @internal
  */
 class InMemorySyncStorageTransaction<R extends UnknownRecord>
-	implements TLPersistentStorageTransaction<R>
+	implements TLSyncStorageTransaction<R>
 {
 	private _clock
 	constructor(private storage: InMemorySyncStorage<R>) {
@@ -210,47 +205,51 @@ class InMemorySyncStorageTransaction<R extends UnknownRecord>
 		return this._clock
 	}
 
-	getDocument(id: string): { state: R; lastChangedClock: number } | undefined {
-		return this.storage.documents.get(id)
+	get(id: string): R | undefined {
+		return this.storage.documents.get(id)?.state
 	}
 
-	setDocument(id: string, state: R): void {
+	set(id: string, record: R): void {
 		const clock = this.getNextClock()
 		// Automatically clear tombstone if it exists
 		if (this.storage.tombstones.has(id)) {
 			this.storage.tombstones.delete(id)
 		}
-		this.storage.documents.set(id, { state: devFreeze(state), lastChangedClock: clock })
+		this.storage.documents.set(id, { state: devFreeze(record), lastChangedClock: clock })
 	}
 
-	deleteDocument(id: string): void {
+	delete(id: string): void {
 		const clock = this.getNextClock()
 		this.storage.documents.delete(id)
 		this.storage.tombstones.set(id, clock)
 		this.storage.pruneTombstones()
 	}
 
-	documents(): IterableIterator<[string, { state: R; lastChangedClock: number }]> {
-		return this.storage.documents.entries()
+	*entries(): IterableIterator<[string, R]> {
+		for (const [id, record] of this.storage.documents.entries()) {
+			yield [id, record.state as R]
+		}
 	}
 
-	documentIds(): IterableIterator<string> {
+	keys(): IterableIterator<string> {
 		return this.storage.documents.keys()
 	}
 
-	getMetadata(key: string): string | null {
-		return this.storage.metadata.get(key) ?? null
+	*values(): IterableIterator<R> {
+		for (const record of this.storage.documents.values()) {
+			yield record.state as R
+		}
 	}
 
-	setMetadata(key: string, value: string): void {
-		this.storage.metadata.set(key, value)
+	getSchema(): SerializedSchema {
+		return this.storage.schema.get()
 	}
 
-	tombstones(): IterableIterator<[string, number]> {
-		return this.storage.tombstones.entries()
+	setSchema(schema: SerializedSchema): void {
+		this.storage.schema.set(schema)
 	}
 
-	getChangesSince(sinceClock: number): TLPersistentStorageGetChangesSinceResult<R> {
+	getChangesSince(sinceClock: number): TLSyncStorageGetChangesSinceResult<R> {
 		const puts: R[] = []
 		const deletes: string[] = []
 		const wipeAll = sinceClock < this.storage.tombstoneHistoryStartsAtClock.get()
@@ -278,24 +277,25 @@ class InMemorySyncStorageTransaction<R extends UnknownRecord>
  * @param snapshot - The snapshot to load
  */
 export function loadSnapshotIntoStorage<R extends UnknownRecord>(
-	txn: TLPersistentStorageTransaction<R>,
+	txn: TLSyncStorageTransaction<R>,
 	schema: StoreSchema<R, any>,
 	snapshot: RoomSnapshot
 ) {
+	assert(snapshot.schema, 'Schema is required')
 	const docIds = new Set<string>()
 	for (const doc of snapshot.documents) {
 		docIds.add(doc.state.id)
-		const existing = txn.getDocument(doc.state.id)
-		if (isEqual(existing?.state, doc.state)) continue
-		txn.setDocument(doc.state.id, doc.state as R)
+		const existing = txn.get(doc.state.id)
+		if (isEqual(existing, doc.state)) continue
+		txn.set(doc.state.id, doc.state as R)
 	}
-	for (const id of txn.documentIds()) {
+	for (const id of txn.keys()) {
 		if (!docIds.has(id)) {
-			txn.deleteDocument(id)
+			txn.delete(id)
 		}
 	}
-	txn.setMetadata(MetadataKeys.schema, JSON.stringify(snapshot.schema))
-	schema.migratePersistentStorage(txn)
+	txn.setSchema(snapshot.schema)
+	schema.migrateStorage(txn)
 }
 
 export function convertStoreSnapshotToRoomSnapshot(

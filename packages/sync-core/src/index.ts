@@ -49,6 +49,7 @@ export {
 	type TLSocketStatusListener,
 } from './lib/TLSyncClient'
 export { TLSyncRoom, type RoomSnapshot, type TLRoomSocket } from './lib/TLSyncRoom'
+export { type TLSyncStorage, type TLSyncStorageTransaction } from './lib/TLSyncStorage'
 
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,
