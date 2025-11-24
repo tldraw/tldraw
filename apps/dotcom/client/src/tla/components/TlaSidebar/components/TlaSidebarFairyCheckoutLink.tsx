@@ -1,6 +1,7 @@
 import { MAX_FAIRY_COUNT } from '@tldraw/dotcom-shared'
 import { useState } from 'react'
 import { Spinner, useValue } from 'tldraw'
+import { isStagingEnv } from '../../../../utils/env'
 import { useApp } from '../../../hooks/useAppState'
 import { useFairyLimit } from '../../../hooks/useFairyAccess'
 import { F, useIntl } from '../../../utils/i18n'
@@ -79,6 +80,7 @@ export function TlaSidebarFairyCheckoutLink() {
 
 	// Early returns after all hooks
 	if (currentFairyLimit >= MAX_FAIRY_COUNT) return null
+	if (isStagingEnv) return null
 
 	const handleClick = () => {
 		setShowDropdown(!showDropdown)
