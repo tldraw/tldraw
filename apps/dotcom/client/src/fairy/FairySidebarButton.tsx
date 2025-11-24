@@ -26,6 +26,8 @@ export function FairySidebarButton({
 		[agent]
 	)
 
+	const isSleeping = useValue('is sleeping', () => agent.isSleeping(), [agent])
+
 	const fairyOutfit = useValue('fairy outfit', () => agent.$fairyConfig.get()?.outfit, [agent])
 	const fairyEntity = useValue('fairy entity', () => agent.$fairyEntity.get(), [agent])
 	const project = useValue('current-project', () => agent.getProject(), [agent])
@@ -53,14 +55,14 @@ export function FairySidebarButton({
 						aria-label={fairyIsSelected ? deselectMessage : selectMessage}
 						value="on"
 					>
-						<div className="fairy-sprite-wrapper">
+						<div className="fairy-sprite-wrapper" data-issleeping={isSleeping}>
 							<FairySpriteComponent2
 								showShadow
 								entity={fairyEntity}
 								outfit={fairyOutfit}
 								animated={false}
 							/>
-							{fairyIsSelected && (
+							{fairyIsSelected && !isSleeping && (
 								<div className="fairy-selected-sprite-overlay">
 									<SelectedSprite />
 								</div>

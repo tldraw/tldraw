@@ -1,10 +1,14 @@
 import {
+	FAIRY_VARIANTS,
+	FairyConfig,
+	FairyVariantType,
 	PersistedFairyAgentState,
 	PersistedFairyConfigs,
 	PersistedFairyState,
 } from '@tldraw/fairy-shared'
 import { useCallback, useEffect, useRef } from 'react'
-import { react, throttle, useEditor, useToasts, useValue } from 'tldraw'
+import { react, throttle, uniqueId, useEditor, useToasts, useValue } from 'tldraw'
+import { MAX_FAIRY_COUNT } from '../tla/components/TlaEditor/TlaEditor'
 import { useApp } from '../tla/hooks/useAppState'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
@@ -12,6 +16,8 @@ import { $fairyProjects } from './FairyProjects'
 import { FairyTaskDragTool } from './FairyTaskDragTool'
 import { $fairyTasks, $showCanvasFairyTasks } from './FairyTaskList'
 import { FairyThrowTool } from './FairyThrowTool'
+import { getRandomFairyName } from './getRandomFairyName'
+import { getRandomFairyPersonality } from './getRandomFairyPersonality'
 
 export function FairyApp({
 	setAgents,
@@ -29,6 +35,38 @@ export function FairyApp({
 		() => JSON.parse(app?.getUser().fairies || '{}') as PersistedFairyConfigs,
 		[app]
 	)
+
+	useEffect(() => {
+		if (!app) return
+
+		const configIds = Object.keys(fairyConfigs)
+
+		// Only auto-create on first initialization (when there are 0 fairies)
+		if (configIds.length === 0) {
+			for (let i = 0; i < MAX_FAIRY_COUNT; i++) {
+				const id = uniqueId()
+				const randomOutfit = {
+					body: Object.keys(FAIRY_VARIANTS.body)[
+						Math.floor(Math.random() * Object.keys(FAIRY_VARIANTS.body).length)
+					] as FairyVariantType<'body'>,
+					hat: Object.keys(FAIRY_VARIANTS.hat)[
+						Math.floor(Math.random() * Object.keys(FAIRY_VARIANTS.hat).length)
+					] as FairyVariantType<'hat'>,
+					wings: Object.keys(FAIRY_VARIANTS.wings)[
+						Math.floor(Math.random() * Object.keys(FAIRY_VARIANTS.wings).length)
+					] as FairyVariantType<'wings'>,
+				}
+
+				const config: FairyConfig = {
+					name: getRandomFairyName(),
+					outfit: randomOutfit,
+					personality: getRandomFairyPersonality(),
+				}
+
+				app.z.mutate.user.updateFairyConfig({ id, properties: config })
+			}
+		}
+	}, [app, fairyConfigs])
 
 	const getToken = useCallback(async () => {
 		if (!user) return undefined

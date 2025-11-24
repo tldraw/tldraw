@@ -37,11 +37,6 @@ export function FairyMenuContent({
 		[addDialog]
 	)
 
-	const deleteFairy = useCallback(() => {
-		agent.dispose()
-		agent.deleteFairyConfig()
-	}, [agent])
-
 	const isFollowing = useValue(
 		'is following fairy',
 		() => {
@@ -58,13 +53,25 @@ export function FairyMenuContent({
 		}
 	}, [agent, isFollowing])
 
+	const isSleeping = useValue('is sleeping', () => agent.isSleeping(), [agent])
+
+	const toggleSleep = useCallback(() => {
+		if (agent.isSleeping()) {
+			agent.wake()
+			agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
+		} else {
+			agent.sleep()
+		}
+	}, [agent])
+
 	const goToFairyLabel = useMsg(fairyMessages.goToFairy)
 	const summonFairyLabel = useMsg(fairyMessages.summonFairy)
 	const followFairyLabel = useMsg(fairyMessages.followFairy)
 	const unfollowFairyLabel = useMsg(fairyMessages.unfollowFairy)
 	const resetChatLabel = useMsg(fairyMessages.resetChat)
 	const customizeFairyLabel = useMsg(fairyMessages.customizeFairy)
-	const deleteFairyLabel = useMsg(fairyMessages.deleteFairy)
+	const sleepFairyLabel = useMsg(fairyMessages.sleepFairy)
+	const wakeFairyLabel = useMsg(fairyMessages.wakeFairy)
 	const disbandGroupLabel = useMsg(fairyMessages.disbandGroup)
 	const debugViewLabel = useMsg(fairyMessages.debugView)
 	const resetEverythingLabel = useMsg(fairyMessages.resetEverything)
@@ -129,6 +136,20 @@ export function FairyMenuContent({
 		)
 	}
 
+	if (agent.isSleeping()) {
+		return (
+			<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">
+				<TldrawUiMenuGroup id="fairy-group-menu">
+					<TldrawUiMenuItem
+						id="sleep-fairy"
+						onSelect={toggleSleep}
+						label={isSleeping ? wakeFairyLabel : sleepFairyLabel}
+					/>
+				</TldrawUiMenuGroup>
+			</TldrawUiMenuContextProvider>
+		)
+	}
+
 	return (
 		<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">
 			<TldrawUiMenuGroup id="fairy-movement-menu">
@@ -153,7 +174,11 @@ export function FairyMenuContent({
 					onSelect={() => configureFairy(agent)}
 					label={customizeFairyLabel}
 				/>
-				<TldrawUiMenuItem id="delete-fairy" onSelect={deleteFairy} label={deleteFairyLabel} />
+				<TldrawUiMenuItem
+					id="sleep-fairy"
+					onSelect={toggleSleep}
+					label={isSleeping ? wakeFairyLabel : sleepFairyLabel}
+				/>
 				<TldrawUiMenuItem id="debug-fairies" onSelect={openDebugDialog} label={debugViewLabel} />
 				<TldrawUiMenuItem
 					id="reset-everything"

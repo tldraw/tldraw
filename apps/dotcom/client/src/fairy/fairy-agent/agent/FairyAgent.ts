@@ -1085,6 +1085,27 @@ export class FairyAgent {
 	}
 
 	/**
+	 * Put the fairy to sleep.
+	 */
+	sleep() {
+		this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'sleeping' }))
+	}
+
+	/**
+	 * Wake the fairy up (return to idle).
+	 */
+	wake() {
+		this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
+	}
+
+	/**
+	 * Check if the fairy is currently sleeping.
+	 */
+	isSleeping() {
+		return this.$fairyEntity.get()?.pose === 'sleeping'
+	}
+
+	/**
 	 * Reset the agent's chat and memory.
 	 * Cancel the current request if there's one active.
 	 */
