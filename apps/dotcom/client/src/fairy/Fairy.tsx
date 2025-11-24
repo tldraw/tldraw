@@ -237,6 +237,8 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 			<_ContextMenu.Trigger asChild>
 				<div
 					ref={fairyRef}
+					// todo: select the fairy on right click
+					// onContextMenu={}
 					style={{
 						position: 'absolute',
 						left: position.x,
@@ -279,11 +281,6 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 								fairy.update((f) => (f ? { ...f, gesture: null } : f))
 							}}
 						/>
-						{isSelected && (
-							<div className="fairy-selected-sprite-overlay">
-								<SelectedSprite />
-							</div>
-						)}
 					</div>
 				</div>
 			</_ContextMenu.Trigger>
