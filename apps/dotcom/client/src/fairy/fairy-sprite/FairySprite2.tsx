@@ -182,8 +182,10 @@ function AnimatedFairySpriteComponent({
 
 	return (
 		<>
-			<WSprite topWingColor={colors.topWingColor} bottomWingColor={colors.bottomWingColor} />
-			<FSprite bodyColor={colors.bodyColor} hatColor={colors.hatColor} />
+			{WSprite && (
+				<WSprite topWingColor={colors.topWingColor} bottomWingColor={colors.bottomWingColor} />
+			)}
+			{FSprite && <FSprite bodyColor={colors.bodyColor} hatColor={colors.hatColor} />}
 		</>
 	)
 }
@@ -202,8 +204,10 @@ function StaticFairySpriteComponent({
 
 	return (
 		<>
-			<WSprite topWingColor={colors.topWingColor} bottomWingColor={colors.bottomWingColor} />
-			<FSprite bodyColor={colors.bodyColor} hatColor={colors.hatColor} />
+			{WSprite && (
+				<WSprite topWingColor={colors.topWingColor} bottomWingColor={colors.bottomWingColor} />
+			)}
+			{FSprite && <FSprite bodyColor={colors.bodyColor} hatColor={colors.hatColor} />}
 		</>
 	)
 }
