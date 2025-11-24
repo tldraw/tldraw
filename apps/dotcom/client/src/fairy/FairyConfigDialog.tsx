@@ -1,4 +1,3 @@
-import { FAIRY_VARIANTS, FairyVariantType } from '@tldraw/fairy-shared'
 import {
 	TldrawUiButton,
 	TldrawUiButtonLabel,
@@ -18,41 +17,41 @@ export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClo
 	const config = useValue(agent.$fairyConfig)
 
 	const fairyNamePlaceholder = useMsg(fairyMessages.fairyNamePlaceholder)
-	const fairyPersonalityPlaceholder = useMsg(fairyMessages.fairyPersonalityPlaceholder)
+	// const fairyPersonalityPlaceholder = useMsg(fairyMessages.fairyPersonalityPlaceholder)
 
 	// Get translated hat names
-	const hatTop = useMsg(fairyMessages.hatTop)
-	const hatPointy = useMsg(fairyMessages.hatPointy)
-	const hatBald = useMsg(fairyMessages.hatBald)
-	const hatAntenna = useMsg(fairyMessages.hatAntenna)
-	const hatSpiky = useMsg(fairyMessages.hatSpiky)
-	const hatHair = useMsg(fairyMessages.hatHair)
-	const hatEars = useMsg(fairyMessages.hatEars)
-	const hatPropellor = useMsg(fairyMessages.hatPropeller)
+	// const hatTop = useMsg(fairyMessages.hatTop)
+	// const hatPointy = useMsg(fairyMessages.hatPointy)
+	// const hatBald = useMsg(fairyMessages.hatBald)
+	// const hatAntenna = useMsg(fairyMessages.hatAntenna)
+	// const hatSpiky = useMsg(fairyMessages.hatSpiky)
+	// const hatHair = useMsg(fairyMessages.hatHair)
+	// const hatEars = useMsg(fairyMessages.hatEars)
+	// const hatPropellor = useMsg(fairyMessages.hatPropeller)
 
 	// Map hat type to translated name
-	const getHatName = (hat: string): string => {
-		switch (hat) {
-			case 'top':
-				return hatTop
-			case 'pointy':
-				return hatPointy
-			case 'bald':
-				return hatBald
-			case 'antenna':
-				return hatAntenna
-			case 'spiky':
-				return hatSpiky
-			case 'hair':
-				return hatHair
-			case 'ears':
-				return hatEars
-			case 'propellor':
-				return hatPropellor
-			default:
-				return hat.charAt(0).toUpperCase() + hat.slice(1)
-		}
-	}
+	// const getHatName = (hat: string): string => {
+	// 	switch (hat) {
+	// 		case 'top':
+	// 			return hatTop
+	// 		case 'pointy':
+	// 			return hatPointy
+	// 		case 'bald':
+	// 			return hatBald
+	// 		case 'antenna':
+	// 			return hatAntenna
+	// 		case 'spiky':
+	// 			return hatSpiky
+	// 		case 'hair':
+	// 			return hatHair
+	// 		case 'ears':
+	// 			return hatEars
+	// 		case 'propellor':
+	// 			return hatPropellor
+	// 		default:
+	// 			return hat.charAt(0).toUpperCase() + hat.slice(1)
+	// 	}
+	// }
 
 	return (
 		<>
@@ -76,7 +75,9 @@ export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClo
 						onValueChange={(value) => agent.updateFairyConfig({ name: value })}
 						placeholder={fairyNamePlaceholder}
 					/>
-					<label htmlFor="name">
+
+					{/* Temporarily disabled */}
+					{/* <label htmlFor="name">
 						<F defaultMessage="Personality" />
 					</label>
 					<TldrawUiInput
@@ -84,8 +85,10 @@ export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClo
 						value={config.personality}
 						onValueChange={(value) => agent.updateFairyConfig({ personality: value })}
 						placeholder={fairyPersonalityPlaceholder}
-					/>
-					<label htmlFor="hat">
+					/> */}
+
+					{/* Temporarily disabled */}
+					{/* <label htmlFor="hat">
 						<F defaultMessage="Hat" />
 					</label>
 					<select
@@ -102,7 +105,7 @@ export function FairyConfigDialog({ agent, onClose }: { agent: FairyAgent; onClo
 								{getHatName(hat)}
 							</option>
 						))}
-					</select>
+					</select> */}
 				</div>
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">

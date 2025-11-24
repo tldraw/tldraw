@@ -179,9 +179,9 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 							<p>
 								<F defaultMessage="Name" />: {leaderConfig.name}
 							</p>
-							<p>
+							{/* <p>
 								<F defaultMessage="Personality" />: {leaderConfig.personality}
-							</p>
+							</p> */}
 						</>
 					) : (
 						<p>
