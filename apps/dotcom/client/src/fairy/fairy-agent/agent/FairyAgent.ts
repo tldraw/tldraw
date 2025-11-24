@@ -863,7 +863,24 @@ export class FairyAgent {
 	 * @param condition - The wait condition to add
 	 */
 	waitFor(condition: FairyWaitCondition<FairyWaitEvent>) {
-		this.$waitingFor.update((conditions) => [...conditions, condition])
+		this.$waitingFor.update((conditions) => {
+			// Check if an equivalent condition already exists
+			const isDuplicate = conditions.some((existing) => {
+				if (existing.eventType !== condition.eventType) {
+					return false
+				}
+				if (existing.id && condition.id) {
+					return existing.id === condition.id
+				}
+				return false
+			})
+
+			if (isDuplicate) {
+				return conditions
+			}
+
+			return [...conditions, condition]
+		})
 	}
 
 	/**

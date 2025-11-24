@@ -393,12 +393,6 @@
       "value": "Are you sure you want to delete this group? This action cannot be undone."
     }
   ],
-  "4e98378836": [
-    {
-      "type": 0,
-      "value": "Personality"
-    }
-  ],
   "4ef3716596": [
     {
       "type": 0,
@@ -773,12 +767,6 @@
       "value": "Download"
     }
   ],
-  "80a3d8a5bb": [
-    {
-      "type": 0,
-      "value": "Log response time (solo mode only)"
-    }
-  ],
   "815e116a2e": [
     {
       "type": 0,
@@ -1045,12 +1033,6 @@
       "value": "Padding"
     }
   ],
-  "a10d7a62aa": [
-    {
-      "type": 0,
-      "value": "Hat"
-    }
-  ],
   "a18366b217": [
     {
       "type": 0,
@@ -1151,6 +1133,12 @@
     {
       "type": 0,
       "value": "Guest user"
+    }
+  ],
+  "b34a671e2c": [
+    {
+      "type": 0,
+      "value": "Log response time"
     }
   ],
   "b357b524e7": [
