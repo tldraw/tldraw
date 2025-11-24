@@ -63,6 +63,172 @@ Each mode has lifecycle hooks:
 - `onPromptEnd`: Determine next action after prompt completes
 - `onPromptCancel`: Handle cancellation (some modes prohibit cancellation)
 
+### Prompt Composition System
+
+The prompt composition system is responsible for gathering context from the client, sending it to the worker, and assembling it into a structured prompt for the AI model.
+
+**1. Gathering Context (Client-side)**
+
+When `agent.prompt()` is called, `FairyAgent` collects information using **Prompt Part Utils** (`PromptPartUtil`). Each util corresponds to a specific type of context (e.g., `selectedShapes`, `chatHistory`).
+
+- **Role**: Extract raw data from the editor/store.
+- **Output**: A JSON-serializable `PromptPart` object.
+
+```typescript
+// Example: SelectedShapesPartUtil
+class SelectedShapesPartUtil extends PromptPartUtil<SelectedShapesPart> {
+	getPart(request) {
+		return {
+			type: 'selectedShapes',
+			shapes: this.editor.getSelectedShapes().map(/* ... */),
+		}
+	}
+}
+```
+
+**2. Prompt Construction (Worker-side)**
+
+The worker receives the `AgentPrompt` (a collection of parts) and builds the final system prompt using `buildSystemPrompt`.
+
+- **Flags**: `getSystemPromptFlags` analyzes the active mode, available actions, and present prompt parts to generate boolean flags (e.g., `isSoloing`, `hasSelectedShapesPart`).
+- **Sections**: These flags drive the inclusion of specific prompt sections:
+  - `intro-section`: Base identity and high-level goals.
+  - `rules-section`: Dynamic rules based on capabilities (e.g., "You can create shapes...").
+  - `mode-section`: Mode-specific instructions (e.g., "You are currently orchestrating...").
+
+**3. Message Building**
+
+The worker converts prompt parts into a list of messages (`ModelMessage[]`) for the LLM.
+
+- `buildMessages`: Iterates through parts and calls their `buildContent` method (defined in `PromptPartDefinitions` or `PromptPartUtil`).
+- **Prioritization**: Parts have priority levels. For example, `SystemPrompt` is high priority, while `PeripheralShapes` might be lower.
+
+**4. Schema Generation**
+
+The JSON schema for the model's response is dynamically generated based on the **allowed actions** for the current mode.
+
+- If `mode: 'soloing'` allows `CreateAction`, the schema will include the definition for creating shapes.
+- If `mode: 'idling'` allows fewer actions, the schema is restricted accordingly.
+
+### Interrupt System
+
+The interrupt system allows for immediate control flow changes in the agent's behavior. It is primarily handled by the `interrupt` method in `FairyAgent`.
+
+**Key functions**
+
+- **Cancel current work**: Aborts any currently running prompt or action stream.
+- **Clear schedule**: Removes any pending scheduled requests.
+- **Mode switching**: Optionally transitions the agent to a new mode.
+- **New instruction**: Optionally provides a new prompt or input to start immediately.
+
+**Usage**
+
+```typescript
+agent.interrupt({
+	mode: 'idling', // Switch to idling mode
+	input: {
+		// Optional: Provide new input
+		message: 'Stop what you are doing',
+		source: 'user',
+	},
+})
+```
+
+**Common use cases**
+
+- **User cancellation**: When a user sends a new message while the agent is working.
+- **Task completion**: When an agent finishes a task and needs to report back or switch roles (e.g. `MarkSoloTaskDoneActionUtil`).
+- **Mode transitions**: When changing from solo work to collaboration or orchestration.
+
+**Implementation details**
+
+- Clears `$activeRequest` and `$scheduledRequest` atoms.
+- Calls the underlying `AbortController` to stop network requests.
+- Triggers `onExit` of the current mode and `onEnter` of the new mode.
+
+### Action Execution Pipeline
+
+The agent processes actions streamed from the AI model through a rigorous pipeline to ensure safety and consistency.
+
+**Pipeline steps**
+
+1. **Streaming**: Actions arrive via `_streamActions` from the worker as Server-Sent Events (SSE).
+2. **Validation**: The system checks if the action type is allowed in the current mode.
+3. **Sanitization**: `sanitizeAction` (in `AgentActionUtil`) transforms the action before execution (e.g. correcting IDs, validating bounds).
+4. **Execution**:
+   - The agent enters an "acting" state (`isActing = true`) to prevent recording its own actions as user actions.
+   - `editor.store.extractingChanges` captures all state changes made during the action.
+   - `applyAction` modifies the canvas (creating shapes, moving elements, etc.).
+5. **Partial Execution Handling**:
+   - If an action comes in chunks, `incompleteDiff` tracks partial changes.
+   - Previous partial changes are reverted before applying the new, more complete version of the action.
+6. **History & Persistence**:
+   - `savesToHistory()` determines if the action appears in the chat log.
+   - The `$chatHistory` atom is updated with the action and its resulting diff.
+
+**Key methods**
+
+- `act(action)`: Core method to execute a single action and capture its diff.
+- `_streamActions`: Generator handling the SSE stream and coordinating the loop.
+- `sanitizeAction`: Pre-processing hook in `AgentActionUtil`.
+
+### Chat History System
+
+The chat history system maintains a persistent record of interactions, actions, and memory transitions. It serves as the agent's "memory," allowing it to recall past instructions and actions within specific contexts.
+
+**Data Structure**
+
+Chat history is stored as an array of `ChatHistoryItem` objects in the `$chatHistory` atom.
+
+```typescript
+type ChatHistoryItem =
+  | { type: 'prompt', message: string, role: 'user', ... }
+  | { type: 'action', action: AgentAction, ... }
+  | { type: 'continuation', data: any[], ... }
+  | { type: 'memory-transition', message: string, ... }
+```
+
+**Memory Levels**
+
+To manage context window size and relevance, the system implements a tiered memory model:
+
+1. **Task Level** (`memoryLevel: 'task'`): High-detail, short-term memory. Contains immediate actions and granular feedback for the current task. Cleared when the task is completed.
+2. **Project Level** (`memoryLevel: 'project'`): Medium-term memory. Contains key milestones and instructions relevant to the entire project. Persists across individual tasks but cleared when the project ends.
+3. **Fairy Level** (`memoryLevel: 'fairy'`): Long-term memory. Contains core personality traits and global instructions. Persists across projects.
+
+**Filtering Mechanism**
+
+The `ChatHistoryPartUtil` uses `filterChatHistoryByMode` to send only relevant history to the AI model based on the current mode's required memory level.
+
+- **Task mode**: Sees only current task history (stops at previous task boundaries).
+- **Project mode**: Sees project-level history (stops at fairy-level boundaries).
+- **Fairy mode**: Sees only global history.
+
+**Usage**
+
+```typescript
+// Adding a user message
+agent.$chatHistory.update((prev) => [
+	...prev,
+	{
+		type: 'prompt',
+		message: 'Draw a box',
+		role: 'user',
+		memoryLevel: 'task',
+	},
+])
+
+// Recording an action
+agent.$chatHistory.update((prev) => [
+	...prev,
+	{
+		type: 'action',
+		action: createShapeAction,
+		memoryLevel: 'task',
+	},
+])
+```
+
 ### Actions system
 
 Actions are the operations fairies can perform on the canvas. Each action extends `AgentActionUtil` and implements:
