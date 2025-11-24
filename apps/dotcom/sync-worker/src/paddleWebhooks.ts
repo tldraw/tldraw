@@ -9,6 +9,7 @@ interface PaddleTransactionCompletedEvent {
 	occurred_at: string
 	data: {
 		id: string
+		status: string
 		custom_data?: unknown
 		items?: unknown[]
 	}
@@ -103,6 +104,14 @@ async function handleTransactionCompleted(
 	event: PaddleTransactionCompletedEvent
 ) {
 	const { data } = event
+
+	console.log(`[Paddle Webhook] Transaction ${data.id} status: ${data.status}`)
+
+	// Validate transaction status - only grant access for completed transactions
+	if (data.status !== 'completed') {
+		console.warn(`[Paddle Webhook] Ignoring transaction ${data.id} with status: ${data.status}`)
+		return { success: true, ignored: true }
+	}
 
 	// Extract userId from transaction custom_data
 	let userId: string

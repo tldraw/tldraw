@@ -1,6 +1,6 @@
 import { useUser } from '@clerk/clerk-react'
 import { hasActiveFairyAccess } from '@tldraw/dotcom-shared'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
 	TldrawUiButton,
 	TldrawUiDialogBody,
@@ -8,6 +8,7 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 	fetch,
+	useToasts,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
@@ -23,6 +24,7 @@ export function TlaFairyInviteDialog({
 }) {
 	const app = useMaybeApp()
 	const { user: clerkUser } = useUser()
+	const { addToast } = useToasts()
 	const [isAccepting, setIsAccepting] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 
@@ -30,6 +32,17 @@ export function TlaFairyInviteDialog({
 	const user = app?.getUser()
 	const userHasActiveFairyAccess =
 		clerkUser && user ? hasActiveFairyAccess(user.fairyAccessExpiresAt, user.fairyLimit) : false
+
+	// If user already has access, show toast and close immediately
+	useEffect(() => {
+		if (userHasActiveFairyAccess) {
+			addToast({
+				id: 'fairy-invite-already-has-access',
+				title: 'You already have fairy access!',
+			})
+			onClose()
+		}
+	}, [userHasActiveFairyAccess, addToast, onClose])
 
 	return (
 		<>
@@ -57,61 +70,51 @@ export function TlaFairyInviteDialog({
 					alt="tldraw logo"
 				/>
 
-				{userHasActiveFairyAccess ? (
-					<>
-						<div style={{ fontSize: '16px' }}>
-							<F defaultMessage="You already have fairy access!" />
-						</div>
-						<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-							<TldrawUiButton type="normal" onClick={() => onClose()}>
-								<F defaultMessage="Close" />
-							</TldrawUiButton>
-						</div>
-					</>
-				) : (
-					<>
-						<div style={{ fontSize: '16px' }}>
-							<F defaultMessage="You've been invited to join tldraw fairies!" />
-						</div>
+				<div style={{ fontSize: '16px' }}>
+					<F defaultMessage="You've been invited to join tldraw fairies!" />
+				</div>
 
-						{error && (
-							<div style={{ color: 'var(--tla-color-warning)', fontSize: 14 }}>{error}</div>
-						)}
+				{error && <div style={{ color: 'var(--tla-color-warning)', fontSize: 14 }}>{error}</div>}
 
-						<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-							<TlaCtaButton
-								disabled={isAccepting}
-								onClick={async () => {
-									setIsAccepting(true)
-									setError(null)
-									try {
-										const res = await fetch('/api/app/fairy-invite/redeem', {
-											method: 'POST',
-											headers: { 'Content-Type': 'application/json' },
-											body: JSON.stringify({ inviteCode: fairyInviteToken }),
-										})
-										const data = await res.json()
-										if (!res.ok) {
-											setError(data.error || 'Failed to redeem invite code')
-											return
-										}
-										onClose()
-										window.location.href = routes.tlaRoot()
-									} catch (err) {
-										setError(err instanceof Error ? err.message : 'Failed to redeem invite code')
-									} finally {
-										setIsAccepting(false)
-									}
-								}}
-							>
-								<F defaultMessage="Accept invitation" />
-							</TlaCtaButton>
-							<TldrawUiButton type="normal" onClick={() => onClose()}>
-								<F defaultMessage="No thanks" />
-							</TldrawUiButton>
-						</div>
-					</>
-				)}
+				<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+					<TlaCtaButton
+						disabled={isAccepting}
+						onClick={async () => {
+							setIsAccepting(true)
+							setError(null)
+							try {
+								const res = await fetch('/api/app/fairy-invite/redeem', {
+									method: 'POST',
+									headers: { 'Content-Type': 'application/json' },
+									body: JSON.stringify({ inviteCode: fairyInviteToken }),
+								})
+								const data = await res.json()
+								if (!res.ok) {
+									setError(data.error || 'Failed to redeem invite code')
+									return
+								}
+								onClose()
+								if (data.alreadyHasAccess) {
+									addToast({
+										id: 'fairy-invite-already-has-access',
+										title: 'You already have fairy access!',
+									})
+								} else {
+									window.location.href = routes.tlaRoot()
+								}
+							} catch (err) {
+								setError(err instanceof Error ? err.message : 'Failed to redeem invite code')
+							} finally {
+								setIsAccepting(false)
+							}
+						}}
+					>
+						<F defaultMessage="Accept invitation" />
+					</TlaCtaButton>
+					<TldrawUiButton type="normal" onClick={() => onClose()}>
+						<F defaultMessage="No thanks" />
+					</TldrawUiButton>
+				</div>
 			</TldrawUiDialogBody>
 		</>
 	)

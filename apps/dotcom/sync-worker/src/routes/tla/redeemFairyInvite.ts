@@ -1,5 +1,5 @@
 import { hasActiveFairyAccess } from '@tldraw/dotcom-shared'
-import { IRequest } from 'itty-router'
+import { IRequest, StatusError, json } from 'itty-router'
 import { FAIRY_WORLDWIDE_EXPIRATION } from '../../config'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
@@ -12,7 +12,7 @@ export async function redeemFairyInvite(request: IRequest, env: Environment): Pr
 	const inviteCode = body?.inviteCode
 
 	if (!inviteCode || typeof inviteCode !== 'string') {
-		return Response.json({ error: 'Invalid invite code' }, { status: 400 })
+		throw new StatusError(400, 'Invalid invite code')
 	}
 
 	const db = createPostgresConnectionPool(env, 'redeemFairyInvite')
@@ -28,12 +28,12 @@ export async function redeemFairyInvite(request: IRequest, env: Environment): Pr
 				.executeTakeFirst()
 
 			if (!invite) {
-				return Response.json({ error: 'Invalid invite code' }, { status: 404 })
+				throw new StatusError(404, 'Invalid invite code')
 			}
 
 			// Check if invite has been fully used (0 means unlimited)
 			if (invite.maxUses > 0 && invite.currentUses >= invite.maxUses) {
-				return Response.json({ error: 'This invite has been fully used' }, { status: 400 })
+				throw new StatusError(400, 'This invite has been fully used')
 			}
 
 			// Check if user already has active fairy access
@@ -50,8 +50,9 @@ export async function redeemFairyInvite(request: IRequest, env: Environment): Pr
 				existingFairies &&
 				hasActiveFairyAccess(existingFairies.fairyAccessExpiresAt, existingFairies.fairyLimit)
 			) {
-				return Response.json({
+				return json({
 					success: true,
+					alreadyHasAccess: true,
 				})
 			}
 
@@ -85,7 +86,7 @@ export async function redeemFairyInvite(request: IRequest, env: Environment): Pr
 			const userDO = getUserDurableObject(env, auth.userId)
 			await userDO.refreshUserData(auth.userId)
 
-			return Response.json({
+			return json({
 				success: true,
 				fairyLimit: invite.fairyLimit,
 				expiresAt,
@@ -93,7 +94,7 @@ export async function redeemFairyInvite(request: IRequest, env: Environment): Pr
 		})
 	} catch (error) {
 		console.error('Error redeeming fairy invite:', error)
-		return Response.json({ error: 'Internal server error' }, { status: 500 })
+		throw new StatusError(500, 'Internal server error')
 	} finally {
 		await db.destroy()
 	}

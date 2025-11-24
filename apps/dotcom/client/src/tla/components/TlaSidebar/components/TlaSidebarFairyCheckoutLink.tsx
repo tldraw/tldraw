@@ -132,7 +132,6 @@ export function TlaSidebarFairyCheckoutLink() {
 			console.error('Failed to open Paddle checkout:', error)
 		}
 	}
-	console.log('here')
 
 	return (
 		<div className={styles.sidebarDotDevLink}>
