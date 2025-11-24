@@ -1,4 +1,4 @@
-export const DEFAULT_MODEL_NAME = 'gemini-3-pro-preview'
+export const DEFAULT_MODEL_NAME = 'claude-sonnet-4-5' //'gemini-3-pro-preview'
 
 export type AgentModelProvider = 'openai' | 'anthropic' | 'google'
 
