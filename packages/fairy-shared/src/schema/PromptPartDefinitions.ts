@@ -49,7 +49,7 @@ export const BlurryShapesPartDefinition: PromptPartDefinition<BlurryShapesPart> 
 			return ['There are no shapes in your view at the moment.']
 		}
 
-		return [`These are the shapes you can currently see:`, JSON.stringify(shapes)]
+		return [`These are the shapes you can currently see: ${JSON.stringify(shapes)}`]
 	},
 }
 
@@ -135,8 +135,10 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 					text = '[THOUGHT]: ' + (action.text || '<thought data lost>')
 					break
 				}
+				case 'mark-my-task-done':
+				case 'mark-duo-task-done':
 				case 'mark-task-done': {
-					text = `[TASK DONE] I marked task ${action.taskId} as done.`
+					text = `[TASK DONE] I marked the task as done.`
 					break
 				}
 				default: {
@@ -257,8 +259,8 @@ export const PersonalityPartDefinition: PromptPartDefinition<PersonalityPart> = 
 			return []
 		}
 		return [
-			`You are actually a specific kind of AI agent; a fairy! And so is everyone else (besides the user). So, if you hear other agents (or the user) refer to you or anyone else as a fairy, that's why.`,
-			`Your personality is: ${personality}`,
+			// `You are actually a specific kind of AI agent; a fairy! And so is everyone else (besides the user). So, if you hear other agents (or the user) refer to you or anyone else as a fairy, that's why.`,
+			// `Your personality is: ${personality}`,
 		]
 	},
 }
@@ -443,7 +445,7 @@ export const TimePartDefinition: PromptPartDefinition<TimePart> = {
 	type: 'time',
 	priority: -100,
 	buildContent({ time }: TimePart) {
-		return ["The user's current time is:", time]
+		return [`The user's current time is: ${time}`]
 	},
 }
 

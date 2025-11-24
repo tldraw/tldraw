@@ -10,6 +10,7 @@ export class CreatePageActionUtil extends AgentActionUtil<CreatePageAction> {
 		return {
 			icon: 'note' as const,
 			description: action.intent ?? `Creating page: ${action.pageName}`,
+			pose: 'working' as const,
 		}
 	}
 

@@ -12,7 +12,6 @@ import {
 } from './auth'
 import { Environment } from './environment'
 import { streamActionsHandler } from './routes/stream-actions'
-import { streamTextHandler } from './routes/stream-text'
 
 // Extend IRequest to include auth
 export interface AuthenticatedRequest extends IRequest {
@@ -31,7 +30,6 @@ export default class extends WorkerEntrypoint<Environment> {
 		.all('*', blockUnknownOrigins)
 		.all('*', requireFairyAccess)
 		.post('/stream-actions', streamActionsHandler)
-		.post('/stream-text', streamTextHandler)
 		.all('*', notFound)
 
 	override async fetch(request: Request): Promise<Response> {
