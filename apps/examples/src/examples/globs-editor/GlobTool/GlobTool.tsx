@@ -3,16 +3,15 @@ import {
 	snapAngle,
 	StateNode,
 	TLBindingUpdate,
+	TLParentId,
 	TLPointerEventInfo,
 	TLShapeId,
 	Vec,
-	VecLike,
 } from 'tldraw'
 import { GlobBinding } from '../GlobBindingUtil'
 import { GlobShape } from '../GlobShapeUtil'
 import { NodeShape } from '../NodeShapeUtil'
-import { getStartAndEndNodes } from '../shared'
-import { getOuterTangentPoints } from '../utils'
+import { getGlobTangentUpdate, getStartAndEndNodes } from '../shared'
 
 export class GlobTool extends StateNode {
 	static override id = 'glob'
@@ -40,7 +39,7 @@ export class NodeState extends StateNode {
 		this.editor.setCursor({ type: 'cross' })
 	}
 
-	override onPointerMove(info: TLPointerEventInfo) {
+	override onPointerMove(_info: TLPointerEventInfo) {
 		const pagePoint = this.editor.inputs.currentPagePoint
 
 		if (!this.ghostShapeId) {
@@ -72,7 +71,7 @@ export class NodeState extends StateNode {
 		})
 	}
 
-	override onPointerDown(info: TLPointerEventInfo) {
+	override onPointerDown(_info: TLPointerEventInfo) {
 		if (!this.ghostShapeId) return
 
 		const node = this.editor.getShape<NodeShape>(this.ghostShapeId)!
@@ -180,9 +179,23 @@ export class ConnectState extends StateNode {
 			for (let i = 0; i < this.selectedNodeIds.length; i++) {
 				const id = createShapeId()
 
+				// Determine the proper parent for the glob based on the bound nodes
+				const startNode = this.editor.getShape(this.selectedNodeIds[i])
+				const endNode = this.editor.getShape(this.ghostNodeId)
+
+				let globParentId: TLParentId = this.editor.getCurrentPageId()
+				if (startNode && endNode) {
+					// Find common ancestor of the two nodes
+					const commonAncestor = this.editor.findCommonAncestor([startNode, endNode])
+					if (commonAncestor) {
+						globParentId = commonAncestor
+					}
+				}
+
 				this.editor.createShape<GlobShape>({
 					id: id,
 					type: 'glob',
+					parentId: globParentId,
 					x: 0,
 					y: 0,
 					props: {
@@ -193,7 +206,6 @@ export class ConnectState extends StateNode {
 
 				const glob = this.editor.getShape<GlobShape>(id)
 				if (!glob) continue
-				console.log('glob', glob)
 
 				this.ghostGlobIds.push(id)
 
@@ -226,17 +238,15 @@ export class ConnectState extends StateNode {
 
 			const pageNode = this.editor.getShapePageTransform(this.selectedNodeIds[i]).point()
 			const update = getGlobTangentUpdate(
+				this.editor,
+				this.ghostGlobIds[i],
 				pageNode,
 				selectedNode.props.radius,
 				pagePoint,
 				selectedNode.props.radius
 			)
 
-			this.editor.updateShape<GlobShape>({
-				id: this.ghostGlobIds[i],
-				type: 'glob',
-				...update,
-			})
+			this.editor.updateShape<GlobShape>(update)
 		}
 	}
 
@@ -287,16 +297,18 @@ export class ConnectState extends StateNode {
 			const nodes = getStartAndEndNodes(this.editor, glob)
 			if (!nodes) continue
 
+			const startNodePagePos = this.editor.getShapePageTransform(nodes.startNodeShape.id).point()
+			const endNodePagePos = this.editor.getShapePageTransform(nodes.endNodeShape.id).point()
+
 			const update = getGlobTangentUpdate(
-				nodes.startNodeShape,
+				this.editor,
+				glob,
+				startNodePagePos,
 				nodes.startNodeShape.props.radius,
-				nodes.endNodeShape,
+				endNodePagePos,
 				nodes.endNodeShape.props.radius
 			)
-			this.editor.updateShape<GlobShape>({
-				...globShape,
-				...update,
-			})
+			this.editor.updateShape<GlobShape>(update)
 		}
 
 		if (this.ghostNodeId) {
@@ -340,32 +352,5 @@ export class ConnectState extends StateNode {
 		this.ghostGlobIds = []
 
 		this.editor.setCurrentTool('select')
-	}
-}
-
-export const getGlobTangentUpdate = (
-	startNode: VecLike,
-	startRadius: number,
-	endNode: VecLike,
-	endRadius: number
-) => {
-	const mid = Vec.Average([startNode, endNode])
-	const localStartNode = Vec.Sub(startNode, mid)
-	const localEndNode = Vec.Sub(endNode, mid)
-
-	const tangentPoints = getOuterTangentPoints(localStartNode, startRadius, localEndNode, endRadius)
-
-	const d0 = Vec.Lrp(tangentPoints[0], tangentPoints[1], 0.5)
-	const d1 = Vec.Lrp(tangentPoints[2], tangentPoints[3], 0.5)
-
-	return {
-		x: mid.x,
-		y: mid.y,
-		props: {
-			edges: {
-				edgeA: { d: { x: d0.x, y: d0.y }, tensionRatioA: 0.5, tensionRatioB: 0.5 },
-				edgeB: { d: { x: d1.x, y: d1.y }, tensionRatioA: 0.5, tensionRatioB: 0.5 },
-			},
-		},
 	}
 }
