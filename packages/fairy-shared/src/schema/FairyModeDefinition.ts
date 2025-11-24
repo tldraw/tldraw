@@ -186,7 +186,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 		actions: () => [
 			'message',
 			'think',
-			'review',
+			// 'review',
 			'fly-to-bounds',
 			// 'start-task',
 			// 'change-page',
@@ -231,7 +231,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 		actions: () => [
 			'message',
 			'think',
-			'review',
+			// 'review',
 			'fly-to-bounds',
 			// 'start-task',
 			// 'change-page',

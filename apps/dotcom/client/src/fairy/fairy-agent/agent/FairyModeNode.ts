@@ -1,5 +1,5 @@
 import { AgentRequest, FairyModeDefinition } from '@tldraw/fairy-shared'
-import { $fairyTasks } from '../../FairyTaskList'
+import { $fairyTasks, getFairyTasksByProjectId } from '../../FairyTaskList'
 import { FairyAgent } from './FairyAgent'
 import { $fairyAgentsAtom } from './fairyAgentsAtom'
 
@@ -106,14 +106,13 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	},
 	['orchestrating-active']: {
 		onPromptEnd(agent) {
-			if (agent.$waitingFor.get().length > 0) {
-				const project = agent.getProject()
-				if (!project) {
-					// This should never happen
-					agent.setMode('idling')
-					return
-				}
+			const project = agent.getProject()
+			if (!project) {
+				agent.setMode('idling')
+				return
+			}
 
+			if (agent.$waitingFor.get().length > 0) {
 				const members = project.members.filter((member) => member.id !== agent.id)
 				const memberAgents = $fairyAgentsAtom
 					.get(agent.editor)
@@ -134,7 +133,27 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			}
 
 			if (agent.$waitingFor.get().length === 0) {
-				agent.schedule('Continue reviewing until the project is marked as completed.')
+				const projectTasks = getFairyTasksByProjectId(project.id)
+				const outstandingTasks = projectTasks.filter((task) => task.status !== 'done')
+				const completedTasks = projectTasks.filter((task) => task.status === 'done')
+				if (outstandingTasks.length > 0) {
+					agent.schedule(
+						'There are still outstanding tasks. Continue until all tasks are marked as done and the project is ended.'
+					)
+					return
+				}
+
+				if (projectTasks.length === 0) {
+					agent.schedule(
+						'There are no tasks created for the project yet. Consider creating tasks and directing a project member to start a task.'
+					)
+					return
+				}
+
+				if (completedTasks.length === projectTasks.length) {
+					agent.schedule('All tasks have been completed. You may end the project.')
+					return
+				}
 			}
 		},
 		onPromptCancel() {
@@ -148,14 +167,13 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	},
 	['duo-orchestrating-active']: {
 		onPromptEnd(agent) {
-			if (agent.$waitingFor.get().length > 0) {
-				const project = agent.getProject()
-				if (!project) {
-					// This should never happen
-					agent.setMode('idling')
-					return
-				}
+			const project = agent.getProject()
+			if (!project) {
+				agent.setMode('idling')
+				return
+			}
 
+			if (agent.$waitingFor.get().length > 0) {
 				const partner = project.members.find((member) => member.id !== agent.id)
 				if (!partner) {
 					agent.setMode('idling')
@@ -182,7 +200,27 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			}
 
 			if (agent.$waitingFor.get().length === 0) {
-				agent.schedule('Continue reviewing until the project is marked as completed.')
+				const projectTasks = getFairyTasksByProjectId(project.id)
+				const outstandingTasks = projectTasks.filter((task) => task.status !== 'done')
+				const completedTasks = projectTasks.filter((task) => task.status === 'done')
+				if (outstandingTasks.length > 0) {
+					agent.schedule(
+						'There are still outstanding tasks. Continue until all tasks are marked as done and the project is ended.'
+					)
+					return
+				}
+
+				if (projectTasks.length === 0) {
+					agent.schedule(
+						'There are no tasks created for the project yet. Consider creating tasks and directing your partner to start a task.'
+					)
+					return
+				}
+
+				if (completedTasks.length === projectTasks.length) {
+					agent.schedule('All tasks have been completed. You may end the project.')
+					return
+				}
 			}
 		},
 		onPromptCancel() {

@@ -38,10 +38,6 @@ export class MarkSoloTaskDoneActionUtil extends AgentActionUtil<MarkSoloTaskDone
 		this.agent.interrupt({
 			mode: 'soloing',
 			input: {
-				messages: [
-					// todo: remove? / move to modenode?
-					`You just completed a task. Review your work.`,
-				],
 				bounds: {
 					x: task.x ?? currentBounds.x,
 					y: task.y ?? currentBounds.y,
