@@ -46,7 +46,7 @@ type FairyDebugInspectorType =
 	| 'personalTodoList'
 	| 'userActionHistory'
 	| 'currentProjectId'
-	| 'cumulativeUsage'
+	// | 'cumulativeUsage'
 	| 'mode'
 
 const FAIRY_DEBUG_INSPECTOR_TYPES: FairyDebugInspectorType[] = [
@@ -60,7 +60,7 @@ const FAIRY_DEBUG_INSPECTOR_TYPES: FairyDebugInspectorType[] = [
 	'personalTodoList',
 	'userActionHistory',
 	'currentProjectId',
-	'cumulativeUsage',
+	// 'cumulativeUsage',
 	'mode',
 ]
 
@@ -195,7 +195,7 @@ function DebugInspectorLabel({
 		if (fairyType === 'personalTodoList') return 'Personal Todo List'
 		if (fairyType === 'userActionHistory') return 'User Action History'
 		if (fairyType === 'currentProjectId') return 'Current Project ID'
-		if (fairyType === 'cumulativeUsage') return 'Cumulative Usage'
+		// if (fairyType === 'cumulativeUsage') return 'Cumulative Usage'
 		if (fairyType === 'mode') return 'Mode'
 	}
 	return null
@@ -438,7 +438,7 @@ function FairyDebugView({
 	const personalTodoList = useValue(agent.$personalTodoList)
 	const userActionHistory = useValue(agent.$userActionHistory)
 	const currentProjectId = agent.getProject()?.id
-	const cumulativeUsage = agent.cumulativeUsage
+	// const cumulativeUsage = agent.cumulativeUsage
 	const mode = agent.getMode()
 
 	if (inspectorType === 'config') {
@@ -475,7 +475,7 @@ function FairyDebugView({
 		personalTodoList,
 		userActionHistory,
 		currentProjectId,
-		cumulativeUsage,
+		// cumulativeUsage,
 		mode,
 	}
 

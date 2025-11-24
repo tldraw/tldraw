@@ -25,7 +25,6 @@ import {
 	ModelNamePart,
 	PromptPart,
 	Streaming,
-	TIER_THRESHOLD,
 } from '@tldraw/fairy-shared'
 import {
 	Atom,
@@ -1415,81 +1414,83 @@ function requestAgentActions({ agent, request }: { agent: FairyAgent; request: A
 			for await (const action of agent._streamActions({ prompt, signal })) {
 				if (cancelled) break
 
+				// NOTE: usage tracking in the client is disabled for now because it's not working as expected. Refer to the worker console for costs and token per request.
+
 				// Handle usage information
-				if ((action as any)._type === '__usage__') {
-					const usage = (action as any).usage
-					if (usage) {
-						// AI SDK returns: { inputTokens, outputTokens, totalTokens, cachedInputTokens }
-						// cachedInputTokens can be undefined, which means 0
-						const promptTokens = usage.inputTokens || 0
-						const completionTokens = usage.outputTokens || 0
-						const cachedInputTokens = usage.cachedInputTokens || 0
+				// if ((action as any)._type === '__usage__') {
+				// 	const usage = (action as any).usage
+				// 	if (usage) {
+				// 		// AI SDK returns: { inputTokens, outputTokens, totalTokens, cachedInputTokens }
+				// 		// cachedInputTokens can be undefined, which means 0
+				// 		const promptTokens = usage.inputTokens || 0
+				// 		const completionTokens = usage.outputTokens || 0
+				// 		const cachedInputTokens = usage.cachedInputTokens || 0
 
-						// Extract model name from prompt
-						const modelName = agent.getModelNameFromPrompt(prompt)
+				// 		// Extract model name from prompt
+				// 		const modelName = agent.getModelNameFromPrompt(prompt)
 
-						// Initialize model usage if it doesn't exist
-						if (!agent.cumulativeUsage.byModel[modelName]) {
-							agent.cumulativeUsage.byModel[modelName] = {
-								tier1: { promptTokens: 0, cachedInputTokens: 0, completionTokens: 0 },
-								tier2: { promptTokens: 0, cachedInputTokens: 0, completionTokens: 0 },
-							}
-						}
+				// 		// Initialize model usage if it doesn't exist
+				// 		if (!agent.cumulativeUsage.byModel[modelName]) {
+				// 			agent.cumulativeUsage.byModel[modelName] = {
+				// 				tier1: { promptTokens: 0, cachedInputTokens: 0, completionTokens: 0 },
+				// 				tier2: { promptTokens: 0, cachedInputTokens: 0, completionTokens: 0 },
+				// 			}
+				// 		}
 
-						// Determine which tier this request falls into
-						// Tier 1: ≤ 200K tokens, Tier 2: > 200K tokens
-						if (promptTokens <= TIER_THRESHOLD) {
-							agent.cumulativeUsage.byModel[modelName].tier1.promptTokens += promptTokens
-							agent.cumulativeUsage.byModel[modelName].tier1.cachedInputTokens += cachedInputTokens
-							agent.cumulativeUsage.byModel[modelName].tier1.completionTokens += completionTokens
-						} else {
-							agent.cumulativeUsage.byModel[modelName].tier2.promptTokens += promptTokens
-							agent.cumulativeUsage.byModel[modelName].tier2.cachedInputTokens += cachedInputTokens
-							agent.cumulativeUsage.byModel[modelName].tier2.completionTokens += completionTokens
-						}
+				// 		// Determine which tier this request falls into
+				// 		// Tier 1: ≤ 200K tokens, Tier 2: > 200K tokens
+				// 		if (promptTokens <= TIER_THRESHOLD) {
+				// 			agent.cumulativeUsage.byModel[modelName].tier1.promptTokens += promptTokens
+				// 			agent.cumulativeUsage.byModel[modelName].tier1.cachedInputTokens += cachedInputTokens
+				// 			agent.cumulativeUsage.byModel[modelName].tier1.completionTokens += completionTokens
+				// 		} else {
+				// 			agent.cumulativeUsage.byModel[modelName].tier2.promptTokens += promptTokens
+				// 			agent.cumulativeUsage.byModel[modelName].tier2.cachedInputTokens += cachedInputTokens
+				// 			agent.cumulativeUsage.byModel[modelName].tier2.completionTokens += completionTokens
+				// 		}
 
-						agent.cumulativeUsage.totalTokens += usage.totalTokens || 0
+				// 		agent.cumulativeUsage.totalTokens += usage.totalTokens || 0
 
-						// Calculate cumulative costs
-						const { inputCost, outputCost, totalCost } = agent.getCumulativeCost()
+				// 		// Calculate cumulative costs
+				// 		const { inputCost, outputCost, totalCost } = agent.getCumulativeCost()
 
-						// Calculate total prompt and completion tokens across all models and tiers
-						let totalPromptTokens = 0
-						let totalCompletionTokens = 0
-						let totalCachedInputTokens = 0
-						for (const modelUsage of Object.values(agent.cumulativeUsage.byModel)) {
-							totalPromptTokens += modelUsage.tier1.promptTokens + modelUsage.tier2.promptTokens
-							totalCompletionTokens +=
-								modelUsage.tier1.completionTokens + modelUsage.tier2.completionTokens
-							totalCachedInputTokens +=
-								modelUsage.tier1.cachedInputTokens + modelUsage.tier2.cachedInputTokens
-						}
+				// 		// Calculate total prompt and completion tokens across all models and tiers
+				// 		let totalPromptTokens = 0
+				// 		let totalCompletionTokens = 0
+				// 		let totalCachedInputTokens = 0
+				// 		for (const modelUsage of Object.values(agent.cumulativeUsage.byModel)) {
+				// 			totalPromptTokens += modelUsage.tier1.promptTokens + modelUsage.tier2.promptTokens
+				// 			totalCompletionTokens +=
+				// 				modelUsage.tier1.completionTokens + modelUsage.tier2.completionTokens
+				// 			totalCachedInputTokens +=
+				// 				modelUsage.tier1.cachedInputTokens + modelUsage.tier2.cachedInputTokens
+				// 		}
 
-						// Calculate percentage of input tokens that were cached
-						const cachedPercentage =
-							totalPromptTokens > 0
-								? ((totalCachedInputTokens / totalPromptTokens) * 100).toFixed(1)
-								: '0.0'
+				// 		// Calculate percentage of input tokens that were cached
+				// 		const cachedPercentage =
+				// 			totalPromptTokens > 0
+				// 				? ((totalCachedInputTokens / totalPromptTokens) * 100).toFixed(1)
+				// 				: '0.0'
 
-						// Build input cost string with cached breakdown if applicable
-						const inputCostStr =
-							totalCachedInputTokens > 0
-								? `Input: $${inputCost.toFixed(4)} (${cachedPercentage}% cached)`
-								: `Input: $${inputCost.toFixed(4)}`
+				// 		// Build input cost string with cached breakdown if applicable
+				// 		const inputCostStr =
+				// 			totalCachedInputTokens > 0
+				// 				? `Input: $${inputCost.toFixed(4)} (${cachedPercentage}% cached)`
+				// 				: `Input: $${inputCost.toFixed(4)}`
 
-						// eslint-disable-next-line no-console
-						console.debug(
-							`🧚 Fairy "${agent.$fairyConfig.get().name}" Cumulative Usage:\n` +
-								`  Model: ${modelName}\n` +
-								`  Prompt tokens: ${totalPromptTokens.toLocaleString()}\n` +
-								`  Completion tokens: ${totalCompletionTokens.toLocaleString()}\n` +
-								`  Total tokens: ${agent.cumulativeUsage.totalTokens.toLocaleString()}\n` +
-								`  💰 Cumulative Cost: $${totalCost.toFixed(4)}\n` +
-								`     (${inputCostStr}, Output: $${outputCost.toFixed(4)})`
-						)
-					}
-					continue
-				}
+				// 		// eslint-disable-next-line no-console
+				// 		console.debug(
+				// 			`🧚 Fairy "${agent.$fairyConfig.get().name}" Cumulative Usage:\n` +
+				// 				`  Model: ${modelName}\n` +
+				// 				`  Prompt tokens: ${totalPromptTokens.toLocaleString()}\n` +
+				// 				`  Completion tokens: ${totalCompletionTokens.toLocaleString()}\n` +
+				// 				`  Total tokens: ${agent.cumulativeUsage.totalTokens.toLocaleString()}\n` +
+				// 				`  💰 Cumulative Cost: $${totalCost.toFixed(4)}\n` +
+				// 				`     (${inputCostStr}, Output: $${outputCost.toFixed(4)})`
+				// 		)
+				// 	}
+				// 	continue
+				// }
 
 				editor.run(
 					() => {

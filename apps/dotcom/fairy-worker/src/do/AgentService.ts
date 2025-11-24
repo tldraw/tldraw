@@ -148,9 +148,10 @@ export class AgentService {
 					const { usage, providerMetadata } = e
 					if (providerMetadata) {
 						console.warn(
-							'Cost for generation: $',
-							getGenerationCostFromUsageAndMetaData(modelId, usage, providerMetadata).toFixed(2)
+							`Cost for request to ${modelId}: $${getGenerationCostFromUsageAndMetaData(modelId, usage, providerMetadata).toFixed(3)}`
 						)
+					} else {
+						console.warn('No provider metadata found (this should probably not be happening).')
 					}
 				},
 			})

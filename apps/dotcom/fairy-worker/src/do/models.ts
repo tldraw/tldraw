@@ -80,7 +80,7 @@ export function getGenerationCostFromUsageAndMetaData(
 	metadata: ProviderMetadata
 ): number {
 	const tokenUsage = convertUsageAndMetadataToTokens(model, usage, metadata)
-	console.warn('token usage for generation: ', tokenUsage)
+	console.warn(`Token usage for request to ${model}:`, tokenUsage)
 	return getGenerationCost({ model, tokenUsage })
 }
 
