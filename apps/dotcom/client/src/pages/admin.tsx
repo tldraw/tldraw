@@ -421,7 +421,7 @@ function FairyInvites() {
 		} finally {
 			setIsGranting(false)
 		}
-	}, [grantEmail])
+	}, [grantEmail, grantSetToZero])
 
 	const enableForMe = useCallback(async () => {
 		setIsEnabling(true)
