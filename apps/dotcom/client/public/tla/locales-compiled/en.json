@@ -785,42 +785,6 @@
       "value": "Leave group…"
     }
   ],
-  "7da43f3036": [
-    {
-      "type": 0,
-      "value": "You've reached your limit of "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " fairy"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " fairies"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    }
-  ],
   "7daeced9ff": [
     {
       "type": 0,
