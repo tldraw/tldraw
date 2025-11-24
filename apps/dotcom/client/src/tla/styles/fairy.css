@@ -313,12 +313,10 @@
 }
 
 .fairy-chat-panel[data-panel-state='open'] + .fairy-buttons-container {
-	width: 44px;
 	margin-left: 5px;
 }
 
 .fairy-list {
-	padding: 5px;
 	box-shadow: var(--tl-shadow-1);
 	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tl-radius-3);
