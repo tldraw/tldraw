@@ -99,7 +99,7 @@
 	padding-right: 8px;
 	min-height: 64px;
 	border: 1px solid var(--tl-color-divider);
-	border-radius: var(--tl-radius-4);
+	border-radius: var(--tl-radius-3);
 }
 
 .fairy-input__form {
