@@ -74,9 +74,10 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 		assignFairyToTask(taskId, otherFairyId, $fairyAgentsAtom.get(this.editor))
 		setFairyTaskStatus(taskId, 'in-progress')
 
+		const firstName = this.agent.$fairyConfig.get().name.split(' ')[0]
 		const otherFairyInput: AgentInput = {
 			agentMessages: [`You have been asked to complete task ${taskId}. Please complete it.`],
-			userMessages: [`Directed by ${this.agent.$fairyConfig.get().name} to start task: ${taskId}`],
+			userMessages: [`Asked by ${firstName} to do${task.title ? `: ${task.title}` : ' a task'}`],
 			source: 'other-agent',
 		}
 		if (
