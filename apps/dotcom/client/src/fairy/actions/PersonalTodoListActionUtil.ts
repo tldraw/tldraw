@@ -17,6 +17,7 @@ export class PersonalTodoListActionUtil extends AgentActionUtil<PersonalTodoList
 				icon: 'note' as const,
 				description: action.text,
 				pose: 'writing' as const,
+				canGroup: () => false,
 			}
 		}
 
