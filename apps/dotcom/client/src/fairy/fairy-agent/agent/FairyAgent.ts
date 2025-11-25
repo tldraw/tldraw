@@ -930,25 +930,24 @@ export class FairyAgent {
 	 * Wake up the agent from waiting with a notification message.
 	 * Note: This does NOT remove wait conditions - the matched conditions should
 	 * already be removed by the notification system before calling this method.
-	 * @param message - The message to send to the agent when waking up
-	 * @param _condition - The condition that was fulfilled
-	 * @param _event - Optional event data that triggered the wake-up (currently unused)
 	 */
-	notifyWaitConditionFulfilled(
-		message: string,
-		_condition: FairyWaitCondition<FairyWaitEvent>,
-		_event?: FairyWaitEvent
-	) {
+	notifyWaitConditionFulfilled({
+		agentFacingMessage,
+		userFacingMessage,
+	}: {
+		agentFacingMessage: string
+		userFacingMessage?: string | null
+	}) {
 		if (this.$isPrompting.get()) {
 			this.schedule({
-				inputMessage: message,
-				inputUserFacingMessage: 'Awoken by notification',
+				inputMessage: agentFacingMessage,
+				inputUserFacingMessage: userFacingMessage ?? 'Awoken by notification',
 				source: 'other-agent',
 			})
 		} else {
 			this.prompt({
-				inputMessage: message,
-				inputUserFacingMessage: 'Awoken by notification',
+				inputMessage: agentFacingMessage,
+				inputUserFacingMessage: userFacingMessage ?? 'Awoken by notification',
 				source: 'other-agent',
 			})
 		}
