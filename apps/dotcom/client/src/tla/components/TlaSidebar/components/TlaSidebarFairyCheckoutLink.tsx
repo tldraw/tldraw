@@ -47,9 +47,6 @@ export function TlaSidebarFairyCheckoutLink() {
 		const paddleEnv = (process.env.PADDLE_ENVIRONMENT as 'sandbox' | 'production') ?? 'sandbox'
 		const paddleToken = process.env.PADDLE_CLIENT_TOKEN
 
-		if (!paddleEnv) {
-			console.error('[Paddle] Environment not configured')
-		}
 		if (!paddleToken) {
 			console.error('[Paddle] Client token not configured')
 			return
