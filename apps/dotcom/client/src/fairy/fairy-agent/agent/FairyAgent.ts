@@ -165,6 +165,8 @@ export class FairyAgent {
 		notifyAgentModeTransition(this.id, mode, this.editor)
 
 		this.$mode.set(mode)
+		const modeDefinition = getFairyModeDefinition(mode)
+		this.$fairyEntity.update((fairy) => ({ ...fairy, pose: modeDefinition.pose }))
 	}
 
 	/**
@@ -280,7 +282,6 @@ export class FairyAgent {
 			const entity = this.$fairyEntity.get()
 			if (entity?.isSelected && this.getMode() === 'sleeping') {
 				this.setMode('idling')
-				this.$fairyEntity.update((f) => (f ? { ...f, pose: 'idle' } : f))
 			}
 		})
 
@@ -630,7 +631,6 @@ export class FairyAgent {
 		let modeChanged = true
 		while (!this.$scheduledRequest.get() && modeChanged) {
 			modeChanged = false
-			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
 			const mode = this.getMode()
 			const node = FAIRY_MODE_CHART[mode]
 			node.onPromptEnd?.(this, request)
@@ -1114,7 +1114,6 @@ export class FairyAgent {
 		this.$activeRequest.set(null)
 		this.$scheduledRequest.set(null)
 		this.cancelFn = null
-		this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
 	}
 
 	/**
