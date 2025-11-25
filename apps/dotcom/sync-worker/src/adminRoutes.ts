@@ -136,16 +136,6 @@ export const adminRoutes = createRouter<Environment>()
 		await user.admin_forceHardReboot(userRow.id)
 		return new Response('Rebooted', { status: 200 })
 	})
-	.post('/app/admin/user/refresh', async (res, env) => {
-		const q = res.query['q']
-		if (typeof q !== 'string') {
-			return new Response('Missing query param', { status: 400 })
-		}
-		const userRow = await requireUser(env, q)
-		const user = getUserDurableObject(env, userRow.id)
-		await user.admin_forceHardReboot(userRow.id)
-		return new Response('Refreshed user data', { status: 200 })
-	})
 	.post('/app/admin/user/migrate', async (res, env) => {
 		const q = res.query['q']
 		if (typeof q !== 'string') {
