@@ -68,10 +68,8 @@ export interface Environment {
 
 	PIERRE_KEY: string | undefined
 
-	PADDLE_API_KEY: string | undefined
 	PADDLE_WEBHOOK_SECRET: string | undefined
 	PADDLE_ENVIRONMENT: 'sandbox' | 'production' | undefined
-	PADDLE_PRODUCT_ID: string | undefined
 
 	RATE_LIMITER: RateLimit
 
