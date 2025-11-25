@@ -398,10 +398,14 @@ function CustomDebugMenu({ showFairyFeatureFlags }: { showFairyFeatureFlags: boo
 					)}
 				</>
 			)}
+<<<<<<< Updated upstream
 
 			<DefaultDebugMenuContent
 				customFeatureFlags={showFairyFeatureFlags ? customFeatureFlags : undefined}
 			/>
+=======
+			<DefaultDebugMenuContent />
+>>>>>>> Stashed changes
 		</DefaultDebugMenu>
 	)
 }
