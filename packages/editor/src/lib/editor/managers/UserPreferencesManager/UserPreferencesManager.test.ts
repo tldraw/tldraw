@@ -1,17 +1,15 @@
 import { atom } from '@tldraw/state'
+import { Mocked, vi } from 'vitest'
 import { TLUserPreferences, defaultUserPreferences } from '../../../config/TLUserPreferences'
 import { TLUser } from '../../../config/createTLUser'
 import { UserPreferencesManager } from './UserPreferencesManager'
 
 // Mock window.matchMedia
-const mockMatchMedia = jest.fn()
-Object.defineProperty(window, 'matchMedia', {
-	writable: true,
-	value: mockMatchMedia,
-})
+const mockMatchMedia = vi.fn()
+window.matchMedia = mockMatchMedia
 
 describe('UserPreferencesManager', () => {
-	let mockUser: jest.Mocked<TLUser>
+	let mockUser: Mocked<TLUser>
 	let mockUserPreferences: TLUserPreferences
 	let userPreferencesAtom: any
 	let userPreferencesManager: UserPreferencesManager
@@ -24,24 +22,27 @@ describe('UserPreferencesManager', () => {
 		color: '#FF802B',
 		locale: 'en',
 		animationSpeed: 1,
+		areKeyboardShortcutsEnabled: true,
+		enhancedA11yMode: false,
 		edgeScrollSpeed: 1,
 		colorScheme: 'light',
 		isSnapMode: false,
 		isWrapMode: false,
 		isDynamicSizeMode: false,
 		isPasteAtCursorMode: false,
+		inputMode: null,
 		...overrides,
 	})
 
 	beforeEach(() => {
-		jest.clearAllMocks()
+		vi.clearAllMocks()
 
 		mockUserPreferences = createMockUserPreferences()
 		userPreferencesAtom = atom('userPreferences', mockUserPreferences)
 
 		mockUser = {
 			userPreferences: userPreferencesAtom,
-			setUserPreferences: jest.fn((prefs) => {
+			setUserPreferences: vi.fn((prefs) => {
 				userPreferencesAtom.set(prefs)
 			}),
 		}
@@ -49,8 +50,8 @@ describe('UserPreferencesManager', () => {
 		// Default matchMedia mock - no dark mode preference
 		mockMatchMedia.mockReturnValue({
 			matches: false,
-			addEventListener: jest.fn(),
-			removeEventListener: jest.fn(),
+			addEventListener: vi.fn(),
+			removeEventListener: vi.fn(),
 		})
 	})
 
@@ -64,17 +65,14 @@ describe('UserPreferencesManager', () => {
 			expect(userPreferencesManager.systemColorScheme.get()).toBe('light')
 
 			// Restore matchMedia
-			Object.defineProperty(window, 'matchMedia', {
-				writable: true,
-				value: mockMatchMedia,
-			})
+			window.matchMedia = mockMatchMedia
 		})
 
 		it('should initialize with light system color scheme when dark mode not preferred', () => {
 			mockMatchMedia.mockReturnValue({
 				matches: false,
-				addEventListener: jest.fn(),
-				removeEventListener: jest.fn(),
+				addEventListener: vi.fn(),
+				removeEventListener: vi.fn(),
 			})
 
 			userPreferencesManager = new UserPreferencesManager(mockUser, false)
@@ -85,8 +83,8 @@ describe('UserPreferencesManager', () => {
 		it('should initialize with dark system color scheme when dark mode preferred', () => {
 			mockMatchMedia.mockReturnValue({
 				matches: true,
-				addEventListener: jest.fn(),
-				removeEventListener: jest.fn(),
+				addEventListener: vi.fn(),
+				removeEventListener: vi.fn(),
 			})
 
 			userPreferencesManager = new UserPreferencesManager(mockUser, false)
@@ -95,8 +93,8 @@ describe('UserPreferencesManager', () => {
 		})
 
 		it('should set up media query listener for color scheme changes', () => {
-			const mockAddEventListener = jest.fn()
-			const mockRemoveEventListener = jest.fn()
+			const mockAddEventListener = vi.fn()
+			const mockRemoveEventListener = vi.fn()
 
 			mockMatchMedia.mockReturnValue({
 				matches: false,
@@ -110,7 +108,7 @@ describe('UserPreferencesManager', () => {
 		})
 
 		it('should handle media query change events', () => {
-			const mockAddEventListener = jest.fn()
+			const mockAddEventListener = vi.fn()
 			let changeHandler: (e: MediaQueryListEvent) => void
 
 			mockMatchMedia.mockReturnValue({
@@ -121,7 +119,7 @@ describe('UserPreferencesManager', () => {
 					}
 					mockAddEventListener(event, handler)
 				},
-				removeEventListener: jest.fn(),
+				removeEventListener: vi.fn(),
 			})
 
 			userPreferencesManager = new UserPreferencesManager(mockUser, false)
@@ -151,11 +149,11 @@ describe('UserPreferencesManager', () => {
 
 	describe('dispose', () => {
 		it('should remove media query listener on dispose', () => {
-			const mockRemoveEventListener = jest.fn()
+			const mockRemoveEventListener = vi.fn()
 
 			mockMatchMedia.mockReturnValue({
 				matches: false,
-				addEventListener: jest.fn(),
+				addEventListener: vi.fn(),
 				removeEventListener: mockRemoveEventListener,
 			})
 
@@ -168,8 +166,8 @@ describe('UserPreferencesManager', () => {
 		it('should call all disposables', () => {
 			userPreferencesManager = new UserPreferencesManager(mockUser, false)
 
-			const mockDisposable1 = jest.fn()
-			const mockDisposable2 = jest.fn()
+			const mockDisposable1 = vi.fn()
+			const mockDisposable2 = vi.fn()
 
 			userPreferencesManager.disposables.add(mockDisposable1)
 			userPreferencesManager.disposables.add(mockDisposable2)
@@ -229,11 +227,14 @@ describe('UserPreferencesManager', () => {
 				locale: mockUserPreferences.locale,
 				color: mockUserPreferences.color,
 				animationSpeed: mockUserPreferences.animationSpeed,
+				areKeyboardShortcutsEnabled: mockUserPreferences.areKeyboardShortcutsEnabled,
+				enhancedA11yMode: mockUserPreferences.enhancedA11yMode,
 				isSnapMode: mockUserPreferences.isSnapMode,
 				colorScheme: mockUserPreferences.colorScheme,
 				isDarkMode: false, // light mode
 				isWrapMode: mockUserPreferences.isWrapMode,
 				isDynamicResizeMode: mockUserPreferences.isDynamicSizeMode,
+				inputMode: mockUserPreferences.inputMode,
 			})
 		})
 
@@ -362,6 +363,36 @@ describe('UserPreferencesManager', () => {
 			})
 		})
 
+		describe('getAreKeyboardShortcutsEnabled', () => {
+			it('should return user keyboard shortcuts', () => {
+				expect(userPreferencesManager.getAreKeyboardShortcutsEnabled()).toBe(
+					mockUserPreferences.areKeyboardShortcutsEnabled
+				)
+			})
+
+			it('should return default keyboard shortcuts when null', () => {
+				userPreferencesAtom.set({ ...mockUserPreferences, areKeyboardShortcutsEnabled: null })
+				expect(userPreferencesManager.getAreKeyboardShortcutsEnabled()).toBe(
+					defaultUserPreferences.areKeyboardShortcutsEnabled
+				)
+			})
+		})
+
+		describe('getEnhancedA11yMode', () => {
+			it('should return user enhanced a11y mode setting', () => {
+				expect(userPreferencesManager.getEnhancedA11yMode()).toBe(
+					mockUserPreferences.enhancedA11yMode
+				)
+			})
+
+			it('should return default enhanced a11y mode when null', () => {
+				userPreferencesAtom.set({ ...mockUserPreferences, enhancedA11yMode: null })
+				expect(userPreferencesManager.getEnhancedA11yMode()).toBe(
+					defaultUserPreferences.enhancedA11yMode
+				)
+			})
+		})
+
 		describe('getEdgeScrollSpeed', () => {
 			it('should return user edge scroll speed', () => {
 				expect(userPreferencesManager.getEdgeScrollSpeed()).toBe(
@@ -428,6 +459,22 @@ describe('UserPreferencesManager', () => {
 				)
 			})
 		})
+
+		describe('getInputMode', () => {
+			it('should return user input mode setting', () => {
+				expect(userPreferencesManager.getInputMode()).toBe(null)
+			})
+
+			it('should return trackpad if input mode is trackpad', () => {
+				userPreferencesAtom.set({ ...mockUserPreferences, inputMode: 'trackpad' })
+				expect(userPreferencesManager.getInputMode()).toBe('trackpad')
+			})
+
+			it('should return mouse if input mode is mouse', () => {
+				userPreferencesAtom.set({ ...mockUserPreferences, inputMode: 'mouse' })
+				expect(userPreferencesManager.getInputMode()).toBe('mouse')
+			})
+		})
 	})
 
 	describe('reactive behavior', () => {
@@ -483,6 +530,7 @@ describe('UserPreferencesManager', () => {
 				color: null,
 				locale: null,
 				animationSpeed: null,
+				areKeyboardShortcutsEnabled: null,
 				edgeScrollSpeed: null,
 				isSnapMode: null,
 				isWrapMode: null,
@@ -496,6 +544,9 @@ describe('UserPreferencesManager', () => {
 			expect(userPreferencesManager.getColor()).toBe(defaultUserPreferences.color)
 			expect(userPreferencesManager.getLocale()).toBe(defaultUserPreferences.locale)
 			expect(userPreferencesManager.getAnimationSpeed()).toBe(defaultUserPreferences.animationSpeed)
+			expect(userPreferencesManager.getAreKeyboardShortcutsEnabled()).toBe(
+				defaultUserPreferences.areKeyboardShortcutsEnabled
+			)
 			expect(userPreferencesManager.getEdgeScrollSpeed()).toBe(
 				defaultUserPreferences.edgeScrollSpeed
 			)

@@ -18,6 +18,7 @@
 	},
 	"keywords": [
 		"tldraw",
+		"sdk",
 		"drawing",
 		"app",
 		"development",
@@ -127,7 +128,10 @@
 		"package": "yarn build && tsx scripts/package.ts",
 		"publish": "tsx scripts/publish.ts",
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
-		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist && rm -rf editor && rm -rf temp & yarn"
+		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist && rm -rf editor && rm -rf temp & yarn",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"devDependencies": {
 		"@tldraw/editor": "workspace:*",
@@ -135,11 +139,8 @@
 		"@types/node-fetch": "^2.6.12",
 		"@types/react": "^18.3.18",
 		"@types/vscode": "^1.96.0",
-		"@typescript-eslint/eslint-plugin": "^8.21.0",
-		"@typescript-eslint/parser": "^8.21.0",
 		"assert": "^2.1.0",
-		"esbuild": "^0.25.0",
-		"eslint": "^9.19.0",
+		"esbuild": "^0.25.6",
 		"fs-extra": "^11.3.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"lodash": "^4.17.21",
@@ -151,7 +152,7 @@
 		"ts-loader": "^9.5.2",
 		"tslib": "^2.8.1",
 		"tsx": "^4.19.2",
-		"typescript": "~5.4.5",
+		"typescript": "^5.8.3",
 		"vsce": "^2.15.0",
 		"webpack": "^5.97.1"
 	},

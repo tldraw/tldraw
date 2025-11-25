@@ -8,35 +8,116 @@ import { DefaultFillStyle, TLDefaultFillStyle } from '../styles/TLFillStyle'
 import { DefaultSizeStyle, TLDefaultSizeStyle } from '../styles/TLSizeStyle'
 import { TLBaseShape } from './TLBaseShape'
 
-/** @public */
+/**
+ * A segment of a draw shape representing either freehand drawing or straight line segments.
+ *
+ * @public
+ */
 export interface TLDrawShapeSegment {
+	/** Type of drawing segment - 'free' for freehand curves, 'straight' for line segments */
 	type: 'free' | 'straight'
+	/** Array of points defining the segment path with x, y coordinates and pressure (z) */
 	points: VecModel[]
 }
 
-/** @public */
+/**
+ * Validator for draw shape segments ensuring proper structure and data types.
+ *
+ * @public
+ * @example
+ * ```ts
+ * const segment: TLDrawShapeSegment = {
+ *   type: 'free',
+ *   points: [{ x: 0, y: 0, z: 0.5 }, { x: 10, y: 10, z: 0.7 }]
+ * }
+ * const isValid = DrawShapeSegment.isValid(segment)
+ * ```
+ */
 export const DrawShapeSegment: T.ObjectValidator<TLDrawShapeSegment> = T.object({
 	type: T.literalEnum('free', 'straight'),
 	points: T.arrayOf(vecModelValidator),
 })
 
-/** @public */
+/**
+ * Properties for the draw shape, which represents freehand drawing and sketching.
+ *
+ * @public
+ */
 export interface TLDrawShapeProps {
+	/** Color style for the drawing stroke */
 	color: TLDefaultColorStyle
+	/** Fill style for closed drawing shapes */
 	fill: TLDefaultFillStyle
+	/** Dash pattern style for the stroke */
 	dash: TLDefaultDashStyle
+	/** Size/thickness of the drawing stroke */
 	size: TLDefaultSizeStyle
+	/** Array of segments that make up the complete drawing path */
 	segments: TLDrawShapeSegment[]
+	/** Whether the drawing is complete (user finished drawing) */
 	isComplete: boolean
+	/** Whether the drawing path forms a closed shape */
 	isClosed: boolean
+	/** Whether this drawing was created with a pen/stylus device */
 	isPen: boolean
+	/** Scale factor applied to the drawing */
 	scale: number
 }
 
-/** @public */
+/**
+ * A draw shape represents freehand drawing, sketching, and pen input on the canvas.
+ * Draw shapes are composed of segments that can be either smooth curves or straight lines.
+ *
+ * @public
+ * @example
+ * ```ts
+ * const drawShape: TLDrawShape = {
+ *   id: createShapeId(),
+ *   typeName: 'shape',
+ *   type: 'draw',
+ *   x: 50,
+ *   y: 50,
+ *   rotation: 0,
+ *   index: 'a1',
+ *   parentId: 'page:page1',
+ *   isLocked: false,
+ *   opacity: 1,
+ *   props: {
+ *     color: 'black',
+ *     fill: 'none',
+ *     dash: 'solid',
+ *     size: 'm',
+ *     segments: [{
+ *       type: 'free',
+ *       points: [{ x: 0, y: 0, z: 0.5 }, { x: 20, y: 15, z: 0.6 }]
+ *     }],
+ *     isComplete: true,
+ *     isClosed: false,
+ *     isPen: false,
+ *     scale: 1
+ *   },
+ *   meta: {}
+ * }
+ * ```
+ */
 export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>
 
-/** @public */
+/**
+ * Validation schema for draw shape properties.
+ *
+ * @public
+ * @example
+ * ```ts
+ * // Validate draw shape properties
+ * const props = {
+ *   color: 'red',
+ *   fill: 'solid',
+ *   segments: [{ type: 'free', points: [] }],
+ *   isComplete: true
+ * }
+ * const isValid = drawShapeProps.color.isValid(props.color)
+ * ```
+ */
 export const drawShapeProps: RecordProps<TLDrawShape> = {
 	color: DefaultColorStyle,
 	fill: DefaultFillStyle,
@@ -54,9 +135,19 @@ const Versions = createShapePropsMigrationIds('draw', {
 	AddScale: 2,
 })
 
+/**
+ * Version identifiers for draw shape migrations.
+ *
+ * @public
+ */
 export { Versions as drawShapeVersions }
 
-/** @public */
+/**
+ * Migration sequence for draw shape properties across different schema versions.
+ * Handles adding pen detection and scale properties to existing draw shapes.
+ *
+ * @public
+ */
 export const drawShapeMigrations = createShapePropsMigrationSequence({
 	sequence: [
 		{

@@ -2,6 +2,7 @@ import { toDomPrecision } from '@tldraw/editor'
 import classNames from 'classnames'
 import { useTranslation } from '../ui/hooks/useTranslation/useTranslation'
 
+/** @public */
 export interface TldrawCropHandlesProps {
 	size: number
 	width: number
@@ -9,6 +10,7 @@ export interface TldrawCropHandlesProps {
 	hideAlternateHandles: boolean
 }
 
+/** @public @react */
 export function TldrawCropHandles({
 	size,
 	width,
@@ -20,7 +22,7 @@ export function TldrawCropHandles({
 	const msg = useTranslation()
 
 	return (
-		<svg className="tl-overlays__item">
+		<svg className="tl-overlays__item" aria-hidden="true">
 			{/* Top left */}
 			<polyline
 				className="tl-corner-crop-handle"

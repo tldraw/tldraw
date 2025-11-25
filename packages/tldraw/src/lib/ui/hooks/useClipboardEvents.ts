@@ -8,7 +8,6 @@ import {
 	compact,
 	isDefined,
 	preventDefault,
-	stopEventPropagation,
 	uniq,
 	useEditor,
 	useMaybeEditor,
@@ -352,7 +351,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 
 							if (tldrawHtmlComment) {
 								try {
-									// First try parsing as plain JSON (version 2 format)
+									// First try parsing as plain JSON (version 2/3 formats)
 									let json
 									try {
 										json = JSON.parse(tldrawHtmlComment)
@@ -380,19 +379,32 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 									}
 
 									// Handle versioned clipboard format
-									if (json.version === 2) {
-										// Version 2: Assets are plain, decompress only other data
+									if (json.version === 3) {
+										// Version 3: Assets are plain, decompress only other data
 										try {
-											r({ type: 'tldraw', data: json.data })
+											const otherData = JSON.parse(
+												lz.decompressFromBase64(json.data.otherCompressed) || '{}'
+											)
+											const reconstructedData = {
+												assets: json.data.assets || [],
+												...otherData,
+											}
+
+											r({ type: 'tldraw', data: reconstructedData })
 											return
 										} catch (error) {
 											r({
 												type: 'error',
 												data: json,
-												reason: `failed to parse version 2 clipboard data: ${error}`,
+												reason: `failed to decompress version 2 clipboard data: ${error}`,
 											})
 											return
 										}
+									}
+									if (json.version === 2) {
+										// Version 2: Everything is plain, this had issues with encoding... :-/
+										// TODO: nix this support after some time.
+										r({ type: 'tldraw', data: json.data })
 									} else {
 										// Version 1 or no version: Legacy format
 										if (typeof json.data === 'string') {
@@ -574,6 +586,8 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
  * @public
  */
 const handleNativeOrMenuCopy = async (editor: Editor) => {
+	const navigator =
+		editor.getContainer().ownerDocument?.defaultView?.navigator ?? globalThis.navigator
 	const content = await editor.resolveAssetsInContent(
 		editor.getContentFromCurrentPage(editor.getSelectedShapeIds())
 	)
@@ -584,13 +598,21 @@ const handleNativeOrMenuCopy = async (editor: Editor) => {
 		return
 	}
 
-	// Version 2: Don't compress anything.
-	const stringifiedClipboard = JSON.stringify({
+	// Use versioned clipboard format for better compression
+	// Version 3: Don't compress assets, only compress other data
+	const { assets, ...otherData } = content
+	const clipboardData = {
 		type: 'application/tldraw',
 		kind: 'content',
-		version: 2,
-		data: content,
-	})
+		version: 3,
+		data: {
+			assets: assets || [], // Plain JSON, no compression
+			otherCompressed: lz.compressToBase64(JSON.stringify(otherData)), // Only compress non-asset data
+		},
+	}
+
+	// Don't compress the final structure - just use plain JSON
+	const stringifiedClipboard = JSON.stringify(clipboardData)
 
 	if (typeof navigator === 'undefined') {
 		return
@@ -693,6 +715,7 @@ export function useMenuClipboardEvents() {
 /** @public */
 export function useNativeClipboardEvents() {
 	const editor = useEditor()
+	const ownerDocument = editor.getContainer().ownerDocument
 	const trackEvent = useUiEvents()
 
 	const appIsFocused = useValue('editor.isFocused', () => editor.getInstanceState().isFocused, [
@@ -742,7 +765,7 @@ export function useNativeClipboardEvents() {
 
 		const paste = (e: ClipboardEvent) => {
 			if (disablingMiddleClickPaste) {
-				stopEventPropagation(e)
+				editor.markEventAsHandled(e)
 				return
 			}
 
@@ -797,16 +820,16 @@ export function useNativeClipboardEvents() {
 			trackEvent('paste', { source: 'kbd' })
 		}
 
-		document.addEventListener('copy', copy)
-		document.addEventListener('cut', cut)
-		document.addEventListener('paste', paste)
-		document.addEventListener('pointerup', pointerUpHandler)
+		ownerDocument?.addEventListener('copy', copy)
+		ownerDocument?.addEventListener('cut', cut)
+		ownerDocument?.addEventListener('paste', paste)
+		ownerDocument?.addEventListener('pointerup', pointerUpHandler)
 
 		return () => {
-			document.removeEventListener('copy', copy)
-			document.removeEventListener('cut', cut)
-			document.removeEventListener('paste', paste)
-			document.removeEventListener('pointerup', pointerUpHandler)
+			ownerDocument?.removeEventListener('copy', copy)
+			ownerDocument?.removeEventListener('cut', cut)
+			ownerDocument?.removeEventListener('paste', paste)
+			ownerDocument?.removeEventListener('pointerup', pointerUpHandler)
 		}
-	}, [editor, trackEvent, appIsFocused])
+	}, [editor, trackEvent, appIsFocused, ownerDocument])
 }

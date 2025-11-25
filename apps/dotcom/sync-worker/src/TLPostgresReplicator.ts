@@ -19,11 +19,16 @@ import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { LiveChangeCollator, buildTopicsString, getTopics } from './replicator/ChangeCollator'
-import { getSubscriptionChanges, serializeSubscriptions } from './replicator/Subscription'
+import {
+	TopicSubscriptionTree,
+	getSubscriptionChanges,
+	parseTopicSubscriptionTree,
+	serializeSubscriptions,
+} from './replicator/Subscription'
 import { getResumeType } from './replicator/getResumeType'
 import { pruneTopicSubscriptionsSql } from './replicator/pruneTopicSubscriptions'
 import { migrate } from './replicator/replicatorMigrations'
-import { ChangeV2, ReplicationEvent, relevantTables } from './replicator/replicatorTypes'
+import { ChangeV2, ReplicationEvent, replicatedTables } from './replicator/replicatorTypes'
 import {
 	Analytics,
 	Environment,
@@ -93,7 +98,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private readonly slotName
 	private readonly wal2jsonPlugin = new Wal2JsonPlugin({
 		addTables:
-			'public.user,public.file,public.file_state,public.user_mutation_number,public.replicator_boot_id',
+			'public.user,public.file,public.file_state,public.user_mutation_number,public.replicator_boot_id,public.group,public.group_user,public.group_file',
 	})
 
 	private readonly db: Kysely<DB>
@@ -471,7 +476,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private parseChange(change: Wal2Json.Change): ChangeV2 | null {
 		const table = change.table as ReplicationEvent['table']
-		if (change.kind === 'truncate' || change.kind === 'message' || !(table in relevantTables)) {
+		if (change.kind === 'truncate' || change.kind === 'message' || !(table in replicatedTables)) {
 			return null
 		}
 
@@ -546,7 +551,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		return { sequenceId: this.slotName }
 	}
 
-	private async _messageUser(userId: string, event: ZReplicationEventWithoutSequenceInfo) {
+	private _messageUser(userId: string, event: ZReplicationEventWithoutSequenceInfo) {
 		this.log.debug('messageUser', userId, event)
 		if (!this.userIsActive(userId)) {
 			this.log.debug('user is not active', userId)
@@ -568,7 +573,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			assert(typeof sequenceNumber === 'number', 'sequenceNumber should be a number')
 			assert(typeof sequenceIdSuffix === 'string', 'sequenceIdSuffix should be a string')
 
-			await q.push(async () => {
+			q.push(async () => {
 				const user = getUserDurableObject(this.env, userId)
 
 				const res = await user.handleReplicationEvent({
@@ -595,24 +600,59 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
+	async resumeSequence({
+		userId,
+		sequenceId,
+		lastSequenceNumber,
+	}: {
+		userId: string
+		sequenceId: string
+		lastSequenceNumber: number
+	}) {
+		this.log.debug('resumeSequence', userId, sequenceId, lastSequenceNumber)
+		const [row] = this.sqlite
+			.exec<{
+				sequenceIdSuffix: string
+				sequenceNumber: number
+			}>('SELECT sequenceIdSuffix, sequenceNumber FROM active_user WHERE id = ?', userId)
+			.toArray()
+		if (!row) return false
+		const { sequenceIdSuffix, sequenceNumber: currentSequenceNumber } = row
+		const canResume =
+			sequenceId === this.slotName + sequenceIdSuffix &&
+			lastSequenceNumber === currentSequenceNumber
+		if (canResume) {
+			this.log.debug('can resume sequence', userId, sequenceId, lastSequenceNumber)
+			this.logEvent({ type: 'resume_sequence' })
+			this.sqlite.exec('UPDATE active_user SET lastUpdatedAt = ? WHERE id = ?', Date.now(), userId)
+			return true
+		}
+		this.log.debug('cannot resume sequence', userId, sequenceId, lastSequenceNumber)
+		return false
+	}
+
 	async registerUser({
 		userId,
 		lsn,
+		topicSubscriptions,
 		guestFileIds,
 		bootId,
 	}: {
 		userId: string
 		lsn: string
-		guestFileIds: string[]
+		topicSubscriptions: TopicSubscriptionTree
+		guestFileIds?: never
 		bootId: string
 	}): Promise<{ type: 'done'; sequenceId: string; sequenceNumber: number } | { type: 'reboot' }> {
+		if (guestFileIds) throw new Error('guestFileIds is no longer supported')
+
 		try {
 			while (!this.getCurrentLsn()) {
 				// this should only happen once per slot name change, which should never happen!
 				await sleep(100)
 			}
 
-			this.log.debug('registering user', userId, lsn, bootId, guestFileIds)
+			this.log.debug('registering user', userId, lsn, bootId, topicSubscriptions)
 			this.logEvent({ type: 'register_user' })
 
 			// clear user and subscriptions
@@ -627,16 +667,16 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			// Clear existing subscriptions for this user
 			this.sqlite.exec(`DELETE FROM topic_subscription WHERE fromTopic = ?`, `user:${userId}`)
 
-			// Add direct subscriptions for all files the user cares about (both owned and guest)
-			for (const fileId of guestFileIds) {
+			const subscriptions = parseTopicSubscriptionTree(topicSubscriptions, `user:${userId}`)
+			for (const subscription of subscriptions) {
 				this.sqlite.exec(
 					`INSERT INTO topic_subscription (fromTopic, toTopic) VALUES (?, ?) ON CONFLICT (fromTopic, toTopic) DO NOTHING`,
-					`user:${userId}`,
-					`file:${fileId}`
+					subscription.fromTopic,
+					subscription.toTopic
 				)
 			}
 
-			this.log.debug('inserted guest file subscriptions', guestFileIds.length)
+			this.log.debug('inserted guest file subscriptions', Object.keys(topicSubscriptions).length)
 
 			this.reportActiveUsers()
 			this.log.debug('inserted active user')
@@ -709,6 +749,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			case 'request_lsn_update':
 			case 'prune':
 			case 'get_file_record':
+			case 'resume_sequence':
 				this.writeEvent({
 					blobs: [event.type],
 				})

@@ -21,7 +21,7 @@ export function DefaultScribble({ scribble, zoom, color, opacity, className }: T
 			<path
 				className="tl-scribble"
 				d={getSvgPathFromPoints(scribble.points, false)}
-				stroke={color ?? `var(--color-${scribble.color})`}
+				stroke={color ?? `var(--tl-color-${scribble.color})`}
 				fill="none"
 				strokeWidth={8 / zoom}
 				opacity={opacity ?? scribble.opacity}

@@ -1,15 +1,19 @@
 import { Browser, BrowserContext, Page, test } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
-import { sleep } from 'tldraw'
 import { Editor } from './Editor'
 import { ErrorPage } from './ErrorPages'
+import { GroupInviteDialog } from './GroupInviteDialog'
 import { HomePage } from './HomePage'
 import { ShareMenu } from './ShareMenu'
 import { Sidebar } from './Sidebar'
 
 export type UserName = 'huppy' | 'suppy'
 type UserProps = { user: UserName; index: number } | undefined
+
+export function sleep(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms))
+}
 
 export async function openNewTab(
 	browser: Browser,
@@ -30,7 +34,8 @@ export async function openNewTab(
 			await newContext.grantPermissions(['clipboard-read', 'clipboard-write'])
 		}
 		const newPage = await newContext.newPage()
-		const { newEditor, newHomePage, newShareMenu, errorPage } = createFixtures(newPage)
+		const { newSidebar, newEditor, newHomePage, newShareMenu, newGroupInviteDialog, errorPage } =
+			createFixtures(newPage)
 		if (url) {
 			await newPage.goto(url)
 		} else {
@@ -38,7 +43,16 @@ export async function openNewTab(
 		}
 
 		await newHomePage.isLoaded()
-		return { newPage, newContext, newHomePage, newEditor, newShareMenu, errorPage }
+		return {
+			newPage,
+			newContext,
+			newSidebar,
+			newHomePage,
+			newEditor,
+			newShareMenu,
+			newGroupInviteDialog,
+			errorPage,
+		}
 	})
 }
 
@@ -64,8 +78,9 @@ export function createFixtures(page: Page) {
 	const newEditor = new Editor(page, newSidebar)
 	const newHomePage = new HomePage(page, newEditor)
 	const newShareMenu = new ShareMenu(page)
+	const newGroupInviteDialog = new GroupInviteDialog(page)
 	const errorPage = new ErrorPage(page)
-	return { newSidebar, newEditor, newHomePage, newShareMenu, errorPage }
+	return { newSidebar, newEditor, newHomePage, newShareMenu, newGroupInviteDialog, errorPage }
 }
 
 export function getRandomName() {

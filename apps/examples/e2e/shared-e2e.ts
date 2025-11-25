@@ -1,7 +1,11 @@
 import { Locator, Page, PlaywrightTestArgs, PlaywrightWorkerArgs } from '@playwright/test'
-import { Editor, sleep } from 'tldraw'
+import { type Editor } from 'tldraw'
 
 declare const editor: Editor
+
+export function sleep(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms))
+}
 
 export async function setup({ page, context }: PlaywrightTestArgs & PlaywrightWorkerArgs) {
 	await context.grantPermissions(['clipboard-read', 'clipboard-write'])
@@ -95,6 +99,5 @@ export async function clickMenu(page: Page, path: string) {
 
 // We need a way to wait for the editor to finish a tick
 export function sleepFrames(frames = 2): Promise<void> {
-	// eslint-disable-next-line local/no-at-internal
 	return sleep(frames * (1000 / 60))
 }

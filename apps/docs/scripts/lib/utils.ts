@@ -12,9 +12,9 @@ import {
 } from '@microsoft/tsdoc'
 import { assert } from '@tldraw/utils'
 import { slug as githubSlug } from 'github-slugger'
-
 import path from 'path'
 import prettier from 'prettier'
+
 export const API_DIR = path.join(process.cwd(), 'api')
 export const CONTENT_DIR = path.join(process.cwd(), 'content')
 export const PUBLIC_DIR = path.join(process.cwd(), 'public')

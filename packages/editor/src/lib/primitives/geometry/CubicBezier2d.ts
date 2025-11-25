@@ -8,6 +8,7 @@ export class CubicBezier2d extends Polyline2d {
 	private _b: Vec
 	private _c: Vec
 	private _d: Vec
+	private _resolution: number
 
 	constructor(
 		config: Omit<Geometry2dOptions, 'isFilled' | 'isClosed'> & {
@@ -15,6 +16,7 @@ export class CubicBezier2d extends Polyline2d {
 			cp1: Vec
 			cp2: Vec
 			end: Vec
+			resolution?: number
 		}
 	) {
 		const { start: a, cp1: b, cp2: c, end: d } = config
@@ -24,13 +26,14 @@ export class CubicBezier2d extends Polyline2d {
 		this._b = b
 		this._c = c
 		this._d = d
+		this._resolution = config.resolution ?? 10
 	}
 
 	override getVertices() {
 		const vertices = [] as Vec[]
 		const { _a: a, _b: b, _c: c, _d: d } = this
 		// we'll always use ten vertices for each bezier curve
-		for (let i = 0, n = 10; i <= n; i++) {
+		for (let i = 0, n = this._resolution; i <= n; i++) {
 			const t = i / n
 			vertices.push(
 				new Vec(

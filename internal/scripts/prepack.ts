@@ -42,6 +42,7 @@ export async function preparePackage({ sourcePackageDir }: { sourcePackageDir: s
 			),
 		},
 		files: [...(manifest.files ?? []), 'dist-esm', 'dist-cjs', 'src'],
+		type: undefined,
 	})
 	writeFileSync(
 		path.join(sourcePackageDir, 'package.json'),

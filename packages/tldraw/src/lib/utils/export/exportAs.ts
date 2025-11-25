@@ -1,11 +1,4 @@
-import {
-	Editor,
-	sanitizeId,
-	TLExportType,
-	TLFrameShape,
-	TLImageExportOptions,
-	TLShapeId,
-} from '@tldraw/editor'
+import { Editor, sanitizeId, TLExportType, TLImageExportOptions, TLShapeId } from '@tldraw/editor'
 
 /** @public */
 export interface ExportAsOptions extends TLImageExportOptions {
@@ -28,45 +21,14 @@ export async function exportAs(
 	editor: Editor,
 	ids: TLShapeId[],
 	opts: ExportAsOptions
-): Promise<void>
-/**
- * @deprecated The format & name parameters are now part of the opts object.
- * @public
- */
-export async function exportAs(
-	editor: Editor,
-	ids: TLShapeId[],
-	format?: TLExportType,
-	name?: string,
-	opts?: TLImageExportOptions
-): Promise<void>
-export async function exportAs(
-	...args:
-		| [
-				editor: Editor,
-				ids: TLShapeId[],
-				opts: TLImageExportOptions & { format: TLExportType; name?: string },
-		  ]
-		| [
-				editor: Editor,
-				ids: TLShapeId[],
-				format?: TLExportType,
-				name?: string,
-				opts?: TLImageExportOptions,
-		  ]
-) {
-	const [editor, ids, opts] =
-		typeof args[2] === 'object'
-			? args
-			: [args[0], args[1], { ...args[4], format: args[2] ?? 'png', name: args[3] }]
-
+): Promise<void> {
 	// If we don't get name then use a predefined one
 	let name = opts.name
 	if (!name) {
 		name = `shapes at ${getTimestamp()}`
 		if (ids.length === 1) {
 			const first = editor.getShape(ids[0])!
-			if (editor.isShapeOfType<TLFrameShape>(first, 'frame')) {
+			if (editor.isShapeOfType(first, 'frame')) {
 				name = first.props.name || 'frame'
 			} else {
 				name = `${sanitizeId(first.id)} at ${getTimestamp()}`

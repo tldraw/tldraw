@@ -1,8 +1,9 @@
 import { PageRecordType, TLDeepLink, createDeepLinkString, createShapeId } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 let editor: TestEditor
 

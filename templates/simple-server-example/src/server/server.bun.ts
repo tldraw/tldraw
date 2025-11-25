@@ -47,7 +47,10 @@ const router: RouterType<IRequest, any, any> = Router()
 		new Response('Not found', { status: 404 })
 	})
 
-const server = Bun.serve<{ room?: TLSocketRoom<any, void>; sessionId: string; roomId: string }>({
+const server = Bun.serve<
+	{ room?: TLSocketRoom<any, void>; sessionId: string; roomId: string },
+	null
+>({
 	port: PORT,
 	fetch(req) {
 		try {

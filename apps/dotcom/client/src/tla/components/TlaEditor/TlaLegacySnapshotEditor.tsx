@@ -1,3 +1,4 @@
+import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
 import { Editor, TLComponents, TLStoreSnapshot, Tldraw } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
@@ -71,6 +72,7 @@ function TlaEditorInner({ snapshot }: { snapshot: TLStoreSnapshot }) {
 		<TlaEditorWrapper>
 			<Tldraw
 				className="tla-editor"
+				licenseKey={getLicenseKey()}
 				snapshot={snapshot}
 				assetUrls={assetUrls}
 				onMount={handleMount}

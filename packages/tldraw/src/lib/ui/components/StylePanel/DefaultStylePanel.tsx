@@ -1,26 +1,35 @@
-import { useEditor, usePassThroughWheelEvents } from '@tldraw/editor'
+import {
+	ReadonlySharedStyleMap,
+	useEditor,
+	usePassThroughWheelEvents,
+	useValue,
+} from '@tldraw/editor'
 import classNames from 'classnames'
 import { ReactNode, memo, useCallback, useEffect, useRef } from 'react'
 import { useRelevantStyles } from '../../hooks/useRelevantStyles'
 import { DefaultStylePanelContent } from './DefaultStylePanelContent'
+import { StylePanelContextProvider } from './StylePanelContext'
 
 /** @public */
 export interface TLUiStylePanelProps {
 	isMobile?: boolean
+	styles?: ReadonlySharedStyleMap | null
 	children?: ReactNode
 }
 
 /** @public @react */
 export const DefaultStylePanel = memo(function DefaultStylePanel({
 	isMobile,
+	styles,
 	children,
 }: TLUiStylePanelProps) {
 	const editor = useEditor()
+	const enhancedA11yMode = useValue('enhancedA11yMode', () => editor.user.getEnhancedA11yMode(), [
+		editor,
+	])
 
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
-
-	const styles = useRelevantStyles()
 
 	const handlePointerOut = useCallback(() => {
 		if (!isMobile) {
@@ -28,7 +37,10 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 		}
 	}, [editor, isMobile])
 
-	const content = children ?? <DefaultStylePanelContent styles={styles} />
+	const defaultStyles = useRelevantStyles()
+	if (styles === undefined) {
+		styles = defaultStyles
+	}
 
 	useEffect(() => {
 		function handleKeyDown(event: KeyboardEvent) {
@@ -46,13 +58,19 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 	}, [editor])
 
 	return (
-		<div
-			ref={ref}
-			className={classNames('tlui-style-panel', { 'tlui-style-panel__wrapper': !isMobile })}
-			data-ismobile={isMobile}
-			onPointerLeave={handlePointerOut}
-		>
-			{content}
-		</div>
+		styles && (
+			<div
+				ref={ref}
+				data-testid="style.panel"
+				className={classNames('tlui-style-panel', { 'tlui-style-panel__wrapper': !isMobile })}
+				data-ismobile={isMobile}
+				data-enhanced-a11y-mode={enhancedA11yMode}
+				onPointerLeave={handlePointerOut}
+			>
+				<StylePanelContextProvider styles={styles}>
+					{children ?? <DefaultStylePanelContent />}
+				</StylePanelContextProvider>
+			</div>
+		)
 	)
 })

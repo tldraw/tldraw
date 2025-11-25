@@ -7,6 +7,7 @@ import {
 	tlenv,
 	toRichText,
 } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -75,7 +76,7 @@ describe('Hovering shapes', () => {
 		editor.pointerMove(50, 50)
 		expect(editor.getHoveredShapeId()).toBe(null)
 
-		editor.updateShape<TLGeoShape>({
+		editor.updateShape({
 			id: ids.box1,
 			type: 'geo',
 			props: { richText: toRichText('hello') },
@@ -87,7 +88,7 @@ describe('Hovering shapes', () => {
 	})
 
 	it('selects a shape with a full label on pointer down', () => {
-		editor.updateShape<TLGeoShape>({
+		editor.updateShape({
 			id: ids.box1,
 			type: 'geo',
 			props: { richText: toRichText('hello') },
@@ -461,7 +462,7 @@ describe('when shape is hollow', () => {
 describe('when shape is a frame', () => {
 	let frame1: TLFrameShape
 	beforeEach(() => {
-		editor.createShape<TLFrameShape>({ id: ids.frame1, type: 'frame', props: { w: 100, h: 100 } })
+		editor.createShape({ id: ids.frame1, type: 'frame', props: { w: 100, h: 100 } })
 		frame1 = editor.getShape<TLFrameShape>(ids.frame1)!
 	})
 
@@ -516,8 +517,8 @@ describe('when shape is a frame', () => {
 describe('When a shape is behind a frame', () => {
 	beforeEach(() => {
 		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
-		editor.createShape<TLGeoShape>({ id: ids.box1, type: 'geo', x: 25, y: 25 })
-		editor.createShape<TLFrameShape>({ id: ids.frame1, type: 'frame', props: { w: 100, h: 100 } })
+		editor.createShape({ id: ids.box1, type: 'geo', x: 25, y: 25 })
+		editor.createShape({ id: ids.frame1, type: 'frame', props: { w: 100, h: 100 } })
 	})
 
 	it('does not select the shape when clicked inside', () => {
@@ -547,8 +548,8 @@ describe('when shape is inside of a frame', () => {
 	let frame1: TLFrameShape
 	let box1: TLGeoShape
 	beforeEach(() => {
-		editor.createShape<TLFrameShape>({ id: ids.frame1, type: 'frame', props: { w: 100, h: 100 } })
-		editor.createShape<TLGeoShape>({
+		editor.createShape({ id: ids.frame1, type: 'frame', props: { w: 100, h: 100 } })
+		editor.createShape({
 			id: ids.box1,
 			parentId: ids.frame1,
 			type: 'geo',
@@ -702,15 +703,15 @@ describe('when a frame has multiple children', () => {
 	let box2: TLGeoShape
 	beforeEach(() => {
 		editor
-			.createShape<TLFrameShape>({ id: ids.frame1, type: 'frame', props: { w: 100, h: 100 } })
-			.createShape<TLGeoShape>({
+			.createShape({ id: ids.frame1, type: 'frame', props: { w: 100, h: 100 } })
+			.createShape({
 				id: ids.box1,
 				parentId: ids.frame1,
 				type: 'geo',
 				x: 25,
 				y: 25,
 			})
-			.createShape<TLGeoShape>({
+			.createShape({
 				id: ids.box2,
 				parentId: ids.frame1,
 				type: 'geo',
@@ -848,7 +849,7 @@ describe('When shapes are overlapping', () => {
 	let box4: TLGeoShape
 	let box5: TLGeoShape
 	beforeEach(() => {
-		editor.createShapes<TLGeoShape>([
+		editor.createShapes([
 			{
 				id: ids.box1,
 				type: 'geo',
@@ -1652,7 +1653,7 @@ describe('shift brushes to add to the selection', () => {
 		editor.keyUp('Shift')
 		// there's a timer here—we should keep the shift mode until the timer expires
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box2, ids.box1])
-		jest.advanceTimersByTime(500)
+		vi.advanceTimersByTime(500)
 		// once the timer expires, we should be back in regular mode
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		editor.keyDown('Shift')
@@ -1722,7 +1723,7 @@ describe('scribble brushes to add to the selection', () => {
 		editor.pointerMove(50, 50)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
 		editor.keyUp('Shift')
-		jest.advanceTimersByTime(500)
+		vi.advanceTimersByTime(500)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		editor.keyDown('Shift')
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
@@ -1739,7 +1740,7 @@ describe('scribble brushes to add to the selection', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box4])
 		editor.keyUp('Alt') // scribble
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box4]) // still in timer
-		jest.advanceTimersByTime(1000) // let timer expire
+		vi.advanceTimersByTime(1000) // let timer expire
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box3, ids.box4]) // brushed!
 		editor.keyDown('Alt') // scribble
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box4]) // back to brushed only
@@ -1824,7 +1825,7 @@ describe('When brushing close to the edges of the screen', () => {
 		editor.pointerMove(300, 300)
 		editor.pointerDown()
 		editor.pointerMove(0, 0)
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		editor.pointerUp()
 		const camera2 = editor.getCamera()
 		expect(camera2.x).toBeGreaterThan(camera1.x) // for some reason > is left
@@ -1837,7 +1838,7 @@ describe('When brushing close to the edges of the screen', () => {
 		editor.pointerMove(300, 300)
 		editor.pointerDown()
 		editor.pointerMove(100, 100)
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		editor.pointerUp()
 		const camera2 = editor.getCamera()
 		// should NOT have moved the camera by edge scrolling
@@ -1851,7 +1852,7 @@ describe('When brushing close to the edges of the screen', () => {
 		editor.pointerMove(300, 300)
 		editor.pointerDown()
 		editor.pointerMove(100, 100)
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		editor.pointerUp()
 		const camera4 = editor.getCamera()
 		// should NOT have moved the camera by edge scrolling because the edge is now "inset"
@@ -1860,7 +1861,7 @@ describe('When brushing close to the edges of the screen', () => {
 
 		editor.pointerDown()
 		editor.pointerMove(90, 90) // off the edge of the component
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		const camera5 = editor.getCamera()
 		// should have moved the camera by edge scrolling off the component edge
 		expect(camera5.x).toBeGreaterThan(camera4.x)
@@ -1882,7 +1883,7 @@ describe('When brushing close to the edges of the screen', () => {
 		editor.pointerMove(0, 0)
 		// still only box 1...
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		// ...but now viewport will have moved to select box2 as well
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
 		editor.pointerUp()
@@ -1902,7 +1903,7 @@ describe('When brushing close to the edges of the screen', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		editor.pointerMove(0, 0)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
-		jest.advanceTimersByTime(100)
+		vi.advanceTimersByTime(100)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		editor.pointerUp()
 	})
@@ -2199,7 +2200,7 @@ describe('long press', () => {
 	it('works correctly with screenbounds offset', () => {
 		editor.updateViewportScreenBounds(new Box(100, 100, 800, 600))
 		editor.pointerDown(201, 202)
-		jest.advanceTimersByTime(1000)
+		vi.advanceTimersByTime(1000)
 		// without the fix added in this PR, it would have been 1, 2
 		expect(editor.inputs.currentScreenPoint).toMatchObject({ x: 101, y: 102 })
 	})

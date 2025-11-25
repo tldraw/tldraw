@@ -15,11 +15,7 @@
 		"jsx": "preserve",
 		"incremental": true,
 		"downlevelIteration": true,
-		"plugins": [
-			{
-				"name": "next"
-			}
-		]
+		"plugins": [{ "name": "next" }]
 	},
 	"include": ["**/*.ts", "**/*.tsx", "src/tla/layouts/TlaAnonLayout", "zero.config.ts"],
 	"exclude": ["node_modules", "_archive"],

@@ -61,7 +61,7 @@ export function useKeyboardShortcuts() {
 			if (SKIP_KBDS.includes(action.id)) continue
 
 			hot(getHotkeysStringFromKbd(action.kbd), (event) => {
-				if (areShortcutsDisabled(editor)) return
+				if (areShortcutsDisabled(editor) && !action.isRequiredA11yAction) return
 				preventDefault(event)
 				action.onSelect('kbd')
 			})
@@ -149,7 +149,8 @@ export function areShortcutsDisabled(editor: Editor) {
 	return (
 		editor.menus.hasAnyOpenMenus() ||
 		editor.getEditingShapeId() !== null ||
-		editor.getCrashingError()
+		editor.getCrashingError() ||
+		!editor.user.getAreKeyboardShortcutsEnabled()
 	)
 }
 

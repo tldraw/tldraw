@@ -63,6 +63,7 @@ export const router = createRoutesFromElements(
 	>
 		<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
 			<Route path={ROUTES.tlaRoot} lazy={() => import('./tla/pages/local')} />
+			<Route path={ROUTES.pricing} lazy={() => import('./pages/pricing')} />
 			<Route element={<NoIndex />}>
 				<Route path={ROUTES.tlaNew} lazy={() => import('./pages/tla-new')} />
 				<Route path={ROUTES.tlaOptIn} loader={() => redirect(routes.tlaRoot())} />
@@ -78,8 +79,17 @@ export const router = createRoutesFromElements(
 					path={ROUTES.tlaFileHistorySnapshot}
 					lazy={() => import('./tla/pages/file-history-snapshot')}
 				/>
+				<Route
+					path={ROUTES.tlaFilePierreHistory}
+					lazy={() => import('./tla/pages/file-pierre-history')}
+				/>
+				<Route
+					path={ROUTES.tlaFilePierreHistorySnapshot}
+					lazy={() => import('./tla/pages/file-pierre-history-snapshot')}
+				/>
 
 				<Route path={ROUTES.tlaPublish} lazy={() => import('./tla/pages/publish')} />
+				<Route path={ROUTES.tlaInvite} lazy={() => import('./tla/pages/invite')} />
 				{/* Legacy room */}
 				<Route path={ROUTES.tlaLegacyRoom} lazy={() => import('./tla/pages/legacy-room')} />
 				{/* Legacy readonly */}

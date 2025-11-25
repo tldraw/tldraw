@@ -1,4 +1,4 @@
-import { preventDefault, TLShape, TLShapeId, useEditor } from '@tldraw/editor'
+import { ExtractShapeByProps, preventDefault, TLShape, TLShapeId, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -31,7 +31,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 
 	const handleComplete = () => {
 		trackEvent('set-alt-text', { source })
-		const shape = editor.getShape<TLShape & { props: { altText: string } }>(shapeId)
+		const shape = editor.getShape<ExtractShapeByProps<{ altText: string }>>(shapeId)
 		if (!shape) return
 		editor.updateShapes([
 			{
@@ -70,6 +70,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 				data-testid="media-toolbar.alt-text-input"
 				value={altText}
 				placeholder={msg('tool.media-alt-text-desc')}
+				aria-label={msg('tool.media-alt-text-desc')}
 				onValueChange={handleValueChange}
 				onComplete={handleComplete}
 				onCancel={handleAltTextCancel}
@@ -78,6 +79,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 			{!isReadonly && (
 				<TldrawUiButton
 					title={msg('tool.media-alt-text-confirm')}
+					data-testid="tool.media-alt-text-confirm"
 					type="icon"
 					onPointerDown={preventDefault}
 					onClick={handleConfirm}

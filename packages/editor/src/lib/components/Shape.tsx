@@ -28,7 +28,6 @@ export const Shape = memo(function Shape({
 	index,
 	backgroundIndex,
 	opacity,
-	dprMultiple,
 }: {
 	id: TLShapeId
 	shape: TLShape
@@ -36,11 +35,10 @@ export const Shape = memo(function Shape({
 	index: number
 	backgroundIndex: number
 	opacity: number
-	dprMultiple: number
 }) {
 	const editor = useEditor()
 
-	const { ShapeErrorFallback } = useEditorComponents()
+	const { ShapeErrorFallback, ShapeWrapper } = useEditorComponents()
 
 	const containerRef = useRef<HTMLDivElement>(null)
 	const bgContainerRef = useRef<HTMLDivElement>(null)
@@ -91,18 +89,14 @@ export const Shape = memo(function Shape({
 			}
 
 			// Width / Height
-			// We round the shape width and height up to the nearest multiple of dprMultiple
-			// to avoid the browser making miscalculations when applying the transform.
-			const widthRemainder = bounds.w % dprMultiple
-			const heightRemainder = bounds.h % dprMultiple
-			const width = widthRemainder === 0 ? bounds.w : bounds.w + (dprMultiple - widthRemainder)
-			const height = heightRemainder === 0 ? bounds.h : bounds.h + (dprMultiple - heightRemainder)
+			const width = Math.max(bounds.width, 1)
+			const height = Math.max(bounds.height, 1)
 
 			if (width !== prev.width || height !== prev.height) {
-				setStyleProperty(containerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
-				setStyleProperty(containerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
-				setStyleProperty(bgContainerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
-				setStyleProperty(bgContainerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
+				setStyleProperty(containerRef.current, 'width', width + 'px')
+				setStyleProperty(containerRef.current, 'height', height + 'px')
+				setStyleProperty(bgContainerRef.current, 'width', width + 'px')
+				setStyleProperty(bgContainerRef.current, 'height', height + 'px')
 				prev.width = width
 				prev.height = height
 			}
@@ -145,37 +139,22 @@ export const Shape = memo(function Shape({
 		[editor]
 	)
 
-	if (!shape) return null
-
-	const isFilledShape = 'fill' in shape.props && shape.props.fill !== 'none'
+	if (!shape || !ShapeWrapper) return null
 
 	return (
 		<>
 			{util.backgroundComponent && (
-				<div
-					ref={bgContainerRef}
-					className="tl-shape tl-shape-background"
-					data-shape-type={shape.type}
-					data-shape-id={shape.id}
-					draggable={false}
-				>
+				<ShapeWrapper ref={bgContainerRef} shape={shape} isBackground={true}>
 					<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
 						<InnerShapeBackground shape={shape} util={util} />
 					</OptionalErrorBoundary>
-				</div>
+				</ShapeWrapper>
 			)}
-			<div
-				ref={containerRef}
-				className="tl-shape"
-				data-shape-type={shape.type}
-				data-shape-is-filled={isFilledShape}
-				data-shape-id={shape.id}
-				draggable={false}
-			>
+			<ShapeWrapper ref={containerRef} shape={shape} isBackground={false}>
 				<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
 					<InnerShape shape={shape} util={util} />
 				</OptionalErrorBoundary>
-			</div>
+			</ShapeWrapper>
 		</>
 	)
 })

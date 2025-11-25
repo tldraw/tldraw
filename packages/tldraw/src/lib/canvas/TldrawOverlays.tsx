@@ -60,7 +60,7 @@ export function TldrawArrowHints() {
 			{ShapeIndicator && <ShapeIndicator shapeId={targetInfo.target.id} />}
 
 			{showEdgeHints && (
-				<svg className="tl-overlays__item">
+				<svg className="tl-overlays__item" aria-hidden="true">
 					<circle
 						cx={anchorInPageSpace.x}
 						cy={anchorInPageSpace.y}

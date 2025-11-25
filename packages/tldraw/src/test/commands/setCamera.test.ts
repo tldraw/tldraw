@@ -1,4 +1,5 @@
 import { Box, DEFAULT_CAMERA_OPTIONS, Vec, createShapeId } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -11,6 +12,7 @@ beforeEach(() => {
 		},
 	})
 	editor.updateViewportScreenBounds(new Box(0, 0, 1600, 900))
+	editor.user.updateUserPreferences({ inputMode: null })
 })
 
 const wheelEvent = {
@@ -203,6 +205,18 @@ describe('CameraOptions.wheelBehavior', () => {
 			.forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 5, z: 1 })
 	})
+
+	it('When input mode is set, camera wheel behavior is ignored', () => {
+		editor.user.updateUserPreferences({ inputMode: 'trackpad' })
+		editor
+			.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, wheelBehavior: 'zoom' })
+			.dispatch({
+				...wheelEvent,
+				delta: new Vec(0, 5, 0.01),
+			})
+			.forceTick()
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 5, z: 1 })
+	})
 })
 
 describe('CameraOptions.panSpeed', () => {
@@ -366,14 +380,14 @@ describe('CameraOptions.zoomSpeed', () => {
 		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, zoomSpeed: 2 })
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 		editor.setCurrentTool('zoom').click()
-		jest.advanceTimersByTime(300)
+		vi.advanceTimersByTime(300)
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 2 })
 	})
 	it('Does not affect zoom tool zooming (0.5x)', () => {
 		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, zoomSpeed: 0.5 })
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 		editor.setCurrentTool('zoom').click()
-		jest.advanceTimersByTime(300)
+		vi.advanceTimersByTime(300)
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 2 })
 	})
 	it('Does not affect editor zoom method (2x)', () => {
@@ -1028,7 +1042,7 @@ describe('Allows mixed values for x and y', () => {
 
 test('it animated towards the constrained viewport rather than the given viewport', () => {
 	// @ts-expect-error
-	const mockAnimateToViewport = (editor._animateToViewport = jest.fn())
+	const mockAnimateToViewport = (editor._animateToViewport = vi.fn())
 	editor.setCameraOptions({
 		...DEFAULT_CAMERA_OPTIONS,
 		constraints: {

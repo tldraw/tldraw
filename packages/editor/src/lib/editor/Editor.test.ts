@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 import {
 	Box,
 	Geometry2d,
@@ -5,24 +6,25 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	T,
-	TLBaseShape,
+	TLShape,
 	createShapeId,
 	createTLStore,
 } from '../..'
 import { Editor } from './Editor'
+import { StateNode } from './tools/StateNode'
 
-type ICustomShape = TLBaseShape<
-	'my-custom-shape',
-	{
-		w: number
-		h: number
-		text: string | undefined
-		isFilled: boolean
+const MY_CUSTOM_SHAPE_TYPE = 'my-custom-shape'
+
+declare module '@tldraw/tlschema' {
+	export interface TLGlobalShapePropsMap {
+		[MY_CUSTOM_SHAPE_TYPE]: { w: number; h: number; text: string | undefined; isFilled: boolean }
 	}
->
+}
+
+type ICustomShape = TLShape<typeof MY_CUSTOM_SHAPE_TYPE>
 
 class CustomShape extends ShapeUtil<ICustomShape> {
-	static override type = 'my-custom-shape' as const
+	static override type = MY_CUSTOM_SHAPE_TYPE
 	static override props: RecordProps<ICustomShape> = {
 		w: T.number,
 		h: T.number,
@@ -59,8 +61,8 @@ beforeEach(() => {
 		getContainer: () => document.body,
 	})
 	editor.setCameraOptions({ isLocked: true })
-	editor.setCamera = jest.fn()
-	editor.user.getAnimationSpeed = jest.fn()
+	editor.setCamera = vi.fn()
+	editor.user.getAnimationSpeed = vi.fn()
 })
 
 describe('centerOnPoint', () => {
@@ -94,13 +96,13 @@ describe('updateShape', () => {
 
 describe('zoomToFit', () => {
 	it('no-op when isLocked is set', () => {
-		editor.getCurrentPageShapeIds = jest.fn(() => new Set([createShapeId('box1')]))
+		editor.getCurrentPageShapeIds = vi.fn(() => new Set([createShapeId('box1')]))
 		editor.zoomToFit()
 		expect(editor.setCamera).not.toHaveBeenCalled()
 	})
 
 	it('sets camera when isLocked is set and force flag is set', () => {
-		editor.getCurrentPageShapeIds = jest.fn(() => new Set([createShapeId('box1')]))
+		editor.getCurrentPageShapeIds = vi.fn(() => new Set([createShapeId('box1')]))
 		editor.zoomToFit({ force: true })
 		expect(editor.setCamera).toHaveBeenCalled()
 	})
@@ -144,13 +146,13 @@ describe('zoomOut', () => {
 
 describe('zoomToSelection', () => {
 	it('no-op when isLocked is set', () => {
-		editor.getSelectionPageBounds = jest.fn(() => Box.From({ x: 0, y: 0, w: 100, h: 100 }))
+		editor.getSelectionPageBounds = vi.fn(() => Box.From({ x: 0, y: 0, w: 100, h: 100 }))
 		editor.zoomToSelection()
 		expect(editor.setCamera).not.toHaveBeenCalled()
 	})
 
 	it('sets camera when isLocked is set and force flag is set', () => {
-		editor.getSelectionPageBounds = jest.fn(() => Box.From({ x: 0, y: 0, w: 100, h: 100 }))
+		editor.getSelectionPageBounds = vi.fn(() => Box.From({ x: 0, y: 0, w: 100, h: 100 }))
 		editor.zoomToSelection({ force: true })
 		expect(editor.setCamera).toHaveBeenCalled()
 	})
@@ -286,7 +288,7 @@ describe('getShapesAtPoint', () => {
 
 	it('filters out hidden shapes', () => {
 		// Create a spy to mock isShapeHidden
-		const isShapeHiddenSpy = jest.spyOn(editor, 'isShapeHidden')
+		const isShapeHiddenSpy = vi.spyOn(editor, 'isShapeHidden')
 		isShapeHiddenSpy.mockImplementation((shape) => {
 			return typeof shape === 'string' ? shape === ids.shape3 : shape.id === ids.shape3
 		})
@@ -352,7 +354,7 @@ describe('getShapesAtPoint', () => {
 
 	it('returns empty array when all shapes are hidden', () => {
 		// Mock all shapes as hidden
-		const isShapeHiddenSpy = jest.spyOn(editor, 'isShapeHidden')
+		const isShapeHiddenSpy = vi.spyOn(editor, 'isShapeHidden')
 		isShapeHiddenSpy.mockReturnValue(true)
 
 		const shapes = editor.getShapesAtPoint({ x: 50, y: 50 })
@@ -423,5 +425,769 @@ describe('getShapesAtPoint', () => {
 		)
 		expect(hollowShapesWithHitInside).toHaveLength(1)
 		expect(hollowShapesWithHitInside[0].id).toBe(ids.hollowShape)
+	})
+})
+
+describe('selectAll', () => {
+	const selectAllIds = {
+		pageShape1: createShapeId('pageShape1'),
+		pageShape2: createShapeId('pageShape2'),
+		pageShape3: createShapeId('pageShape3'),
+		container1: createShapeId('container1'),
+		containerChild1: createShapeId('containerChild1'),
+		containerChild2: createShapeId('containerChild2'),
+		containerChild3: createShapeId('containerChild3'),
+		containerGrandchild1: createShapeId('containerGrandchild1'),
+		container2: createShapeId('container2'),
+		container2Child1: createShapeId('container2Child1'),
+		container2Child2: createShapeId('container2Child2'),
+		container2Grandchild1: createShapeId('container2Grandchild1'),
+		lockedShape: createShapeId('lockedShape'),
+	}
+
+	beforeEach(() => {
+		// Clear any existing shapes
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+
+		// Create shapes directly on the page (no parentId means they're children of the page)
+		editor.createShapes([
+			{
+				id: selectAllIds.pageShape1,
+				type: 'my-custom-shape',
+				x: 100,
+				y: 100,
+				props: { w: 100, h: 100 },
+			},
+			{
+				id: selectAllIds.pageShape2,
+				type: 'my-custom-shape',
+				x: 300,
+				y: 100,
+				props: { w: 100, h: 100 },
+			},
+			{
+				id: selectAllIds.pageShape3,
+				type: 'my-custom-shape',
+				x: 500,
+				y: 100,
+				props: { w: 100, h: 100 },
+			},
+			{
+				id: selectAllIds.lockedShape,
+				type: 'my-custom-shape',
+				x: 700,
+				y: 100,
+				props: { w: 100, h: 100 },
+				isLocked: true,
+			},
+		])
+
+		// Create a container shape (simulating a frame or group)
+		editor.createShape({
+			id: selectAllIds.container1,
+			type: 'my-custom-shape',
+			x: 100,
+			y: 300,
+			props: { w: 400, h: 200 },
+		})
+
+		// Create children inside the container (parentId set to container1)
+		editor.createShapes([
+			{
+				id: selectAllIds.containerChild1,
+				type: 'my-custom-shape',
+				parentId: selectAllIds.container1,
+				x: 120,
+				y: 320,
+				props: { w: 50, h: 50 },
+			},
+			{
+				id: selectAllIds.containerChild2,
+				type: 'my-custom-shape',
+				parentId: selectAllIds.container1,
+				x: 200,
+				y: 320,
+				props: { w: 50, h: 50 },
+			},
+			{
+				id: selectAllIds.containerChild3,
+				type: 'my-custom-shape',
+				parentId: selectAllIds.container1,
+				x: 280,
+				y: 320,
+				props: { w: 50, h: 50 },
+			},
+		])
+
+		// Create a grandchild inside one of the container children
+		editor.createShape({
+			id: selectAllIds.containerGrandchild1,
+			type: 'my-custom-shape',
+			parentId: selectAllIds.containerChild3,
+			x: 290,
+			y: 330,
+			props: { w: 30, h: 30 },
+		})
+
+		// Create a second container (simulating a group)
+		editor.createShape({
+			id: selectAllIds.container2,
+			type: 'my-custom-shape',
+			x: 600,
+			y: 300,
+			props: { w: 200, h: 200 },
+		})
+
+		// Create children inside the second container
+		editor.createShapes([
+			{
+				id: selectAllIds.container2Child1,
+				type: 'my-custom-shape',
+				parentId: selectAllIds.container2,
+				x: 620,
+				y: 320,
+				props: { w: 50, h: 50 },
+			},
+			{
+				id: selectAllIds.container2Child2,
+				type: 'my-custom-shape',
+				parentId: selectAllIds.container2,
+				x: 680,
+				y: 320,
+				props: { w: 50, h: 50 },
+			},
+		])
+
+		// Create a grandchild in the second container
+		editor.createShape({
+			id: selectAllIds.container2Grandchild1,
+			type: 'my-custom-shape',
+			parentId: selectAllIds.container2Child1,
+			x: 630,
+			y: 330,
+			props: { w: 30, h: 30 },
+		})
+
+		// Clear selection
+		editor.selectNone()
+	})
+
+	it('when no shapes are selected, selects all page-level shapes (excluding locked ones)', () => {
+		// Initially no shapes selected
+		expect(editor.getSelectedShapeIds()).toEqual([])
+
+		// Call selectAll
+		editor.selectAll()
+
+		// Should select all page-level shapes (excluding locked ones)
+		const selectedIds = editor.getSelectedShapeIds()
+		expect(Array.from(selectedIds).sort()).toEqual(
+			[
+				selectAllIds.pageShape1,
+				selectAllIds.pageShape2,
+				selectAllIds.pageShape3,
+				selectAllIds.container1,
+				selectAllIds.container2,
+			].sort()
+		)
+
+		// Should NOT include locked shape or children/grandchildren
+		expect(selectedIds).not.toContain(selectAllIds.lockedShape)
+		expect(selectedIds).not.toContain(selectAllIds.containerChild1)
+		expect(selectedIds).not.toContain(selectAllIds.containerChild2)
+		expect(selectedIds).not.toContain(selectAllIds.containerChild3)
+		expect(selectedIds).not.toContain(selectAllIds.containerGrandchild1)
+		expect(selectedIds).not.toContain(selectAllIds.container2Child1)
+		expect(selectedIds).not.toContain(selectAllIds.container2Child2)
+		expect(selectedIds).not.toContain(selectAllIds.container2Grandchild1)
+	})
+
+	it('when shapes are selected only on the page, all children of the page should be selected (but not their descendants)', () => {
+		// Select some page-level shapes
+		editor.select(selectAllIds.pageShape1, selectAllIds.pageShape2)
+
+		// Call selectAll
+		editor.selectAll()
+
+		// Should select all page-level shapes (excluding locked ones), but not descendants
+		const selectedIds = editor.getSelectedShapeIds()
+		expect(Array.from(selectedIds).sort()).toEqual(
+			[
+				selectAllIds.pageShape1,
+				selectAllIds.pageShape2,
+				selectAllIds.pageShape3,
+				selectAllIds.container1,
+				selectAllIds.container2,
+			].sort()
+		)
+
+		// Should NOT include children or grandchildren or locked shapes
+		expect(selectedIds).not.toContain(selectAllIds.containerChild1)
+		expect(selectedIds).not.toContain(selectAllIds.containerChild2)
+		expect(selectedIds).not.toContain(selectAllIds.containerChild3)
+		expect(selectedIds).not.toContain(selectAllIds.containerGrandchild1)
+		expect(selectedIds).not.toContain(selectAllIds.container2Child1)
+		expect(selectedIds).not.toContain(selectAllIds.container2Child2)
+		expect(selectedIds).not.toContain(selectAllIds.container2Grandchild1)
+		expect(selectedIds).not.toContain(selectAllIds.lockedShape)
+	})
+
+	it('when shapes are selected within a container, only children of the container should be selected (not their descendants)', () => {
+		// Select some container children
+		editor.select(selectAllIds.containerChild1, selectAllIds.containerChild2)
+
+		// Call selectAll
+		editor.selectAll()
+
+		// Should select all container children (but not their descendants)
+		const selectedIds = editor.getSelectedShapeIds()
+		expect(Array.from(selectedIds).sort()).toEqual(
+			[
+				selectAllIds.containerChild1,
+				selectAllIds.containerChild2,
+				selectAllIds.containerChild3,
+			].sort()
+		)
+
+		// Should NOT include page-level shapes or grandchildren
+		expect(selectedIds).not.toContain(selectAllIds.pageShape1)
+		expect(selectedIds).not.toContain(selectAllIds.pageShape2)
+		expect(selectedIds).not.toContain(selectAllIds.pageShape3)
+		expect(selectedIds).not.toContain(selectAllIds.container1)
+		expect(selectedIds).not.toContain(selectAllIds.container2)
+		expect(selectedIds).not.toContain(selectAllIds.containerGrandchild1)
+		expect(selectedIds).not.toContain(selectAllIds.container2Child1)
+		expect(selectedIds).not.toContain(selectAllIds.container2Child2)
+		expect(selectedIds).not.toContain(selectAllIds.container2Grandchild1)
+	})
+
+	it('when shapes are selected within a second container, only children of that container should be selected', () => {
+		// Select some second container children
+		editor.select(selectAllIds.container2Child1)
+
+		// Call selectAll
+		editor.selectAll()
+
+		// Should select all second container children (but not their descendants)
+		const selectedIds = editor.getSelectedShapeIds()
+		expect(Array.from(selectedIds).sort()).toEqual(
+			[selectAllIds.container2Child1, selectAllIds.container2Child2].sort()
+		)
+
+		// Should NOT include page-level shapes or other container's children or grandchildren
+		expect(selectedIds).not.toContain(selectAllIds.pageShape1)
+		expect(selectedIds).not.toContain(selectAllIds.pageShape2)
+		expect(selectedIds).not.toContain(selectAllIds.pageShape3)
+		expect(selectedIds).not.toContain(selectAllIds.container1)
+		expect(selectedIds).not.toContain(selectAllIds.container2)
+		expect(selectedIds).not.toContain(selectAllIds.containerChild1)
+		expect(selectedIds).not.toContain(selectAllIds.containerChild2)
+		expect(selectedIds).not.toContain(selectAllIds.containerChild3)
+		expect(selectedIds).not.toContain(selectAllIds.containerGrandchild1)
+		expect(selectedIds).not.toContain(selectAllIds.container2Grandchild1)
+	})
+
+	it('when shapes are selected that belong to different parents, no change/history entry should be made', () => {
+		// Select shapes from different parents (page and container)
+		editor.select(selectAllIds.pageShape1, selectAllIds.containerChild1)
+
+		const initialSelectedIds = editor.getSelectedShapeIds()
+
+		// Spy on setSelectedShapes to verify it's not called
+		const setSelectedShapesSpy = vi.spyOn(editor, 'setSelectedShapes')
+
+		// Call selectAll
+		editor.selectAll()
+
+		// Selection should remain unchanged
+		expect(editor.getSelectedShapeIds()).toEqual(initialSelectedIds)
+
+		// setSelectedShapes should not have been called (the method returns early)
+		expect(setSelectedShapesSpy).not.toHaveBeenCalled()
+
+		setSelectedShapesSpy.mockRestore()
+	})
+
+	it('when shapes are selected that belong to different containers, no change/history entry should be made', () => {
+		// Select shapes from different containers
+		editor.select(selectAllIds.containerChild1, selectAllIds.container2Child1)
+
+		const initialSelectedIds = editor.getSelectedShapeIds()
+
+		// Spy on setSelectedShapes to verify it's not called
+		const setSelectedShapesSpy = vi.spyOn(editor, 'setSelectedShapes')
+
+		// Call selectAll
+		editor.selectAll()
+
+		// Selection should remain unchanged
+		expect(editor.getSelectedShapeIds()).toEqual(initialSelectedIds)
+
+		// setSelectedShapes should not have been called
+		expect(setSelectedShapesSpy).not.toHaveBeenCalled()
+
+		setSelectedShapesSpy.mockRestore()
+	})
+
+	it('should not select locked shapes', () => {
+		// Select a page-level shape
+		editor.select(selectAllIds.pageShape1)
+
+		// Call selectAll
+		editor.selectAll()
+
+		// Should select all page-level shapes except locked ones
+		const selectedIds = editor.getSelectedShapeIds()
+		expect(selectedIds).not.toContain(selectAllIds.lockedShape)
+		expect(selectedIds).toContain(selectAllIds.pageShape1)
+		expect(selectedIds).toContain(selectAllIds.pageShape2)
+		expect(selectedIds).toContain(selectAllIds.pageShape3)
+		expect(selectedIds).toContain(selectAllIds.container1)
+		expect(selectedIds).toContain(selectAllIds.container2)
+	})
+
+	it('should handle empty container by selecting all siblings at the same level', () => {
+		// Create an empty container
+		const emptyContainerId = createShapeId('emptyContainer')
+		editor.createShape({
+			id: emptyContainerId,
+			type: 'my-custom-shape',
+			x: 800,
+			y: 400,
+			props: { w: 100, h: 100 },
+		})
+
+		// Clear selection first
+		editor.selectNone()
+
+		// Select the empty container
+		editor.select(emptyContainerId)
+
+		// Call selectAll - since the empty container has no children, it should select all siblings (page-level shapes)
+		editor.selectAll()
+
+		// Should select all page-level shapes (including the empty container itself)
+		const selectedIds = editor.getSelectedShapeIds()
+		expect(Array.from(selectedIds).sort()).toEqual(
+			[
+				selectAllIds.pageShape1,
+				selectAllIds.pageShape2,
+				selectAllIds.pageShape3,
+				selectAllIds.container1,
+				selectAllIds.container2,
+				emptyContainerId,
+			].sort()
+		)
+
+		// Should NOT include locked shapes or children/grandchildren
+		expect(selectedIds).not.toContain(selectAllIds.lockedShape)
+		expect(selectedIds).not.toContain(selectAllIds.containerChild1)
+		expect(selectedIds).not.toContain(selectAllIds.containerChild2)
+		expect(selectedIds).not.toContain(selectAllIds.containerChild3)
+		expect(selectedIds).not.toContain(selectAllIds.containerGrandchild1)
+		expect(selectedIds).not.toContain(selectAllIds.container2Child1)
+		expect(selectedIds).not.toContain(selectAllIds.container2Child2)
+		expect(selectedIds).not.toContain(selectAllIds.container2Grandchild1)
+	})
+
+	it('should work correctly when selecting all shapes of same parent type', () => {
+		// Select all container children
+		editor.select(
+			selectAllIds.containerChild1,
+			selectAllIds.containerChild2,
+			selectAllIds.containerChild3
+		)
+
+		// Call selectAll - should maintain the same selection since all children are already selected
+		editor.selectAll()
+
+		// Should still have all container children selected
+		const selectedIds = editor.getSelectedShapeIds()
+		expect(Array.from(selectedIds).sort()).toEqual(
+			[
+				selectAllIds.containerChild1,
+				selectAllIds.containerChild2,
+				selectAllIds.containerChild3,
+			].sort()
+		)
+	})
+
+	it('should handle mixed selection levels gracefully by doing nothing', () => {
+		// Select a mix: page shape (parent=page), container (parent=page), and container child (parent=container1)
+		// These all have different parent IDs so selectAll should do nothing
+		editor.select(selectAllIds.pageShape1, selectAllIds.containerChild1)
+
+		const initialSelectedIds = Array.from(editor.getSelectedShapeIds())
+
+		// Spy on setSelectedShapes to verify it's not called
+		const setSelectedShapesSpy = vi.spyOn(editor, 'setSelectedShapes')
+
+		// Call selectAll
+		editor.selectAll()
+
+		// Selection should remain unchanged since shapes have different parents
+		expect(Array.from(editor.getSelectedShapeIds())).toEqual(initialSelectedIds)
+
+		// setSelectedShapes should not have been called
+		expect(setSelectedShapesSpy).not.toHaveBeenCalled()
+
+		setSelectedShapesSpy.mockRestore()
+	})
+})
+
+describe('putExternalContent', () => {
+	let mockHandler: any
+
+	beforeEach(() => {
+		mockHandler = vi.fn()
+		editor.registerExternalContentHandler('text', mockHandler)
+	})
+
+	it('calls external content handler when not readonly', async () => {
+		vi.spyOn(editor, 'getIsReadonly').mockReturnValue(false)
+
+		const info = { type: 'text' as const, text: 'test-data' }
+		await editor.putExternalContent(info)
+
+		expect(mockHandler).toHaveBeenCalledWith(info)
+	})
+
+	it('does not call external content handler when readonly', async () => {
+		vi.spyOn(editor, 'getIsReadonly').mockReturnValue(true)
+
+		const info = { type: 'text' as const, text: 'test-data' }
+		await editor.putExternalContent(info)
+
+		expect(mockHandler).not.toHaveBeenCalled()
+	})
+
+	it('calls external content handler when readonly but force is true', async () => {
+		vi.spyOn(editor, 'getIsReadonly').mockReturnValue(true)
+
+		const info = { type: 'text' as const, text: 'test-data' }
+		await editor.putExternalContent(info, { force: true })
+
+		expect(mockHandler).toHaveBeenCalledWith(info)
+	})
+
+	it('calls external content handler when force is false and not readonly', async () => {
+		vi.spyOn(editor, 'getIsReadonly').mockReturnValue(false)
+
+		const info = { type: 'text' as const, text: 'test-data' }
+		await editor.putExternalContent(info, { force: false })
+
+		expect(mockHandler).toHaveBeenCalledWith(info)
+	})
+})
+
+describe('replaceExternalContent', () => {
+	let mockHandler: any
+
+	beforeEach(() => {
+		mockHandler = vi.fn()
+		editor.registerExternalContentHandler('text', mockHandler)
+	})
+
+	it('calls external content handler when not readonly', async () => {
+		vi.spyOn(editor, 'getIsReadonly').mockReturnValue(false)
+
+		const info = { type: 'text' as const, text: 'test-data' }
+		await editor.replaceExternalContent(info)
+
+		expect(mockHandler).toHaveBeenCalledWith(info)
+	})
+
+	it('does not call external content handler when readonly', async () => {
+		vi.spyOn(editor, 'getIsReadonly').mockReturnValue(true)
+
+		const info = { type: 'text' as const, text: 'test-data' }
+		await editor.replaceExternalContent(info)
+
+		expect(mockHandler).not.toHaveBeenCalled()
+	})
+
+	it('calls external content handler when readonly but force is true', async () => {
+		vi.spyOn(editor, 'getIsReadonly').mockReturnValue(true)
+
+		const info = { type: 'text' as const, text: 'test-data' }
+		await editor.replaceExternalContent(info, { force: true })
+
+		expect(mockHandler).toHaveBeenCalledWith(info)
+	})
+
+	it('calls external content handler when force is false and not readonly', async () => {
+		vi.spyOn(editor, 'getIsReadonly').mockReturnValue(false)
+
+		const info = { type: 'text' as const, text: 'test-data' }
+		await editor.replaceExternalContent(info, { force: false })
+
+		expect(mockHandler).toHaveBeenCalledWith(info)
+	})
+})
+
+describe('setTool', () => {
+	class CustomToolA extends StateNode {
+		static override id = 'custom-tool-a'
+	}
+
+	class CustomToolB extends StateNode {
+		static override id = 'custom-tool-b'
+	}
+
+	class CustomToolC extends StateNode {
+		static override id = 'custom-tool-c'
+	}
+
+	class ParentTool extends StateNode {
+		static override id = 'parent-tool'
+		static override initial = 'child-tool-1'
+		static override children() {
+			return [ChildTool1]
+		}
+	}
+
+	class ChildTool1 extends StateNode {
+		static override id = 'child-tool-1'
+	}
+
+	class ChildTool2 extends StateNode {
+		static override id = 'child-tool-2'
+	}
+
+	let toolEditor: Editor
+
+	beforeEach(() => {
+		toolEditor = new Editor({
+			shapeUtils: [],
+			bindingUtils: [],
+			tools: [CustomToolA, ParentTool],
+			store: createTLStore({ shapeUtils: [], bindingUtils: [] }),
+			getContainer: () => document.body,
+		})
+	})
+
+	it('should add a tool to the root state', () => {
+		// Initially CustomToolB should not exist
+		expect(toolEditor.root.children!['custom-tool-b']).toBeUndefined()
+
+		// Add CustomToolB
+		toolEditor.setTool(CustomToolB)
+
+		// CustomToolB should now exist in root
+		expect(toolEditor.root.children!['custom-tool-b']).toBeDefined()
+		expect(toolEditor.root.children!['custom-tool-b']).toBeInstanceOf(CustomToolB)
+	})
+
+	it('should add a tool to a specific parent state', () => {
+		const parentTool = toolEditor.root.children!['parent-tool'] as ParentTool
+
+		// Initially should only have child-tool-1
+		expect(Object.keys(parentTool.children!)).toHaveLength(1)
+		expect(parentTool.children!['child-tool-1']).toBeDefined()
+		expect(parentTool.children!['child-tool-2']).toBeUndefined()
+
+		// Add ChildTool2 to ParentTool
+		toolEditor.setTool(ChildTool2, parentTool)
+
+		// Should now have both children
+		expect(Object.keys(parentTool.children!)).toHaveLength(2)
+		expect(parentTool.children!['child-tool-1']).toBeDefined()
+		expect(parentTool.children!['child-tool-2']).toBeDefined()
+		expect(parentTool.children!['child-tool-2']).toBeInstanceOf(ChildTool2)
+	})
+
+	it('should throw an error when trying to override an existing tool', () => {
+		// CustomToolA is already in the root (added in beforeEach)
+		expect(toolEditor.root.children!['custom-tool-a']).toBeDefined()
+
+		// Should throw error when trying to add another tool with the same ID
+		expect(() => {
+			toolEditor.setTool(CustomToolA)
+		}).toThrow('Can\'t override tool with id "custom-tool-a"')
+	})
+
+	it('should allow transitioning to a newly added tool', () => {
+		// Add CustomToolB
+		toolEditor.setTool(CustomToolB)
+
+		// Should be able to transition to the new tool
+		expect(() => {
+			toolEditor.setCurrentTool('custom-tool-b')
+		}).not.toThrow()
+
+		// Should now be on the new tool
+		expect(toolEditor.getCurrentToolId()).toBe('custom-tool-b')
+	})
+
+	it('should create the tool with the correct editor and parent', () => {
+		// Add CustomToolB to root
+		toolEditor.setTool(CustomToolB)
+
+		const customToolB = toolEditor.root.children!['custom-tool-b'] as CustomToolB
+
+		expect(customToolB.editor).toBe(toolEditor)
+		expect(customToolB.parent).toBe(toolEditor.root)
+	})
+
+	it('should maintain existing tools when adding new ones', () => {
+		const originalTool = toolEditor.root.children!['custom-tool-a']
+
+		// Add CustomToolB
+		toolEditor.setTool(CustomToolB)
+
+		// Original tool should still exist
+		expect(toolEditor.root.children!['custom-tool-a']).toBe(originalTool)
+		expect(toolEditor.root.children!['custom-tool-a']).toBeInstanceOf(CustomToolA)
+	})
+
+	it('should allow adding multiple tools', () => {
+		// Add multiple tools
+		toolEditor.setTool(CustomToolB)
+		toolEditor.setTool(CustomToolC)
+
+		// All tools should exist
+		expect(toolEditor.root.children!['custom-tool-a']).toBeDefined()
+		expect(toolEditor.root.children!['custom-tool-b']).toBeDefined()
+		expect(toolEditor.root.children!['custom-tool-c']).toBeDefined()
+		expect(toolEditor.root.children!['custom-tool-b']).toBeInstanceOf(CustomToolB)
+		expect(toolEditor.root.children!['custom-tool-c']).toBeInstanceOf(CustomToolC)
+	})
+})
+
+describe('removeTool', () => {
+	class CustomToolA extends StateNode {
+		static override id = 'custom-tool-a'
+	}
+
+	class CustomToolB extends StateNode {
+		static override id = 'custom-tool-b'
+	}
+
+	class CustomToolC extends StateNode {
+		static override id = 'custom-tool-c'
+	}
+
+	class ParentTool extends StateNode {
+		static override id = 'parent-tool'
+		static override initial = 'child-tool-1'
+		static override children() {
+			return [ChildTool1, ChildTool2]
+		}
+	}
+
+	class ChildTool1 extends StateNode {
+		static override id = 'child-tool-1'
+	}
+
+	class ChildTool2 extends StateNode {
+		static override id = 'child-tool-2'
+	}
+
+	let toolEditor: Editor
+
+	beforeEach(() => {
+		toolEditor = new Editor({
+			shapeUtils: [],
+			bindingUtils: [],
+			tools: [CustomToolA, CustomToolB, CustomToolC, ParentTool],
+			store: createTLStore({ shapeUtils: [], bindingUtils: [] }),
+			getContainer: () => document.body,
+		})
+	})
+
+	it('should remove a tool from the root state', () => {
+		// CustomToolB should exist initially
+		expect(toolEditor.root.children!['custom-tool-b']).toBeDefined()
+
+		// Remove CustomToolB
+		toolEditor.removeTool(CustomToolB)
+
+		// CustomToolB should no longer exist
+		expect(toolEditor.root.children!['custom-tool-b']).toBeUndefined()
+	})
+
+	it('should remove a tool from a specific parent state', () => {
+		const parentTool = toolEditor.root.children!['parent-tool'] as ParentTool
+
+		// Initially should have both children
+		expect(Object.keys(parentTool.children!)).toHaveLength(2)
+		expect(parentTool.children!['child-tool-1']).toBeDefined()
+		expect(parentTool.children!['child-tool-2']).toBeDefined()
+
+		// Remove ChildTool2 from ParentTool
+		toolEditor.removeTool(ChildTool2, parentTool)
+
+		// Should now only have child-tool-1
+		expect(Object.keys(parentTool.children!)).toHaveLength(1)
+		expect(parentTool.children!['child-tool-1']).toBeDefined()
+		expect(parentTool.children!['child-tool-2']).toBeUndefined()
+	})
+
+	it('should not throw an error when trying to remove a non-existent tool', () => {
+		// First remove CustomToolB
+		toolEditor.removeTool(CustomToolB)
+		expect(toolEditor.root.children!['custom-tool-b']).toBeUndefined()
+
+		// Trying to remove it again should not throw
+		expect(() => {
+			toolEditor.removeTool(CustomToolB)
+		}).not.toThrow()
+	})
+
+	it('should maintain other tools when removing one', () => {
+		const originalToolA = toolEditor.root.children!['custom-tool-a']
+		const originalToolC = toolEditor.root.children!['custom-tool-c']
+
+		// Remove CustomToolB
+		toolEditor.removeTool(CustomToolB)
+
+		// Other tools should still exist
+		expect(toolEditor.root.children!['custom-tool-a']).toBe(originalToolA)
+		expect(toolEditor.root.children!['custom-tool-c']).toBe(originalToolC)
+		expect(toolEditor.root.children!['custom-tool-a']).toBeInstanceOf(CustomToolA)
+		expect(toolEditor.root.children!['custom-tool-c']).toBeInstanceOf(CustomToolC)
+	})
+
+	it('should not be able to transition to a removed tool', () => {
+		// Remove CustomToolB
+		toolEditor.removeTool(CustomToolB)
+
+		// Should throw when trying to transition to removed tool
+		expect(() => {
+			toolEditor.setCurrentTool('custom-tool-b')
+		}).toThrow()
+	})
+
+	it('should allow removing multiple tools', () => {
+		// Remove multiple tools
+		toolEditor.removeTool(CustomToolB)
+		toolEditor.removeTool(CustomToolC)
+
+		// Removed tools should not exist
+		expect(toolEditor.root.children!['custom-tool-b']).toBeUndefined()
+		expect(toolEditor.root.children!['custom-tool-c']).toBeUndefined()
+
+		// Other tools should still exist
+		expect(toolEditor.root.children!['custom-tool-a']).toBeDefined()
+		expect(toolEditor.root.children!['parent-tool']).toBeDefined()
+	})
+
+	it('should allow re-adding a tool after removing it', () => {
+		// Remove CustomToolB
+		toolEditor.removeTool(CustomToolB)
+		expect(toolEditor.root.children!['custom-tool-b']).toBeUndefined()
+
+		// Re-add CustomToolB
+		toolEditor.setTool(CustomToolB)
+
+		// CustomToolB should exist again
+		expect(toolEditor.root.children!['custom-tool-b']).toBeDefined()
+		expect(toolEditor.root.children!['custom-tool-b']).toBeInstanceOf(CustomToolB)
+
+		// Should be able to transition to it
+		expect(() => {
+			toolEditor.setCurrentTool('custom-tool-b')
+		}).not.toThrow()
+		expect(toolEditor.getCurrentToolId()).toBe('custom-tool-b')
 	})
 })

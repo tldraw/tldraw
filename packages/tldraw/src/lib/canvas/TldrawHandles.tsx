@@ -23,5 +23,9 @@ export function TldrawHandles({ children }: TLHandlesProps) {
 
 	if (!shouldDisplayHandles) return null
 
-	return <svg className="tl-user-handles tl-overlays__item">{children}</svg>
+	return (
+		<svg className="tl-user-handles tl-overlays__item" aria-hidden="true">
+			{children}
+		</svg>
+	)
 }

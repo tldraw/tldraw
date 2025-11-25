@@ -90,7 +90,7 @@ export async function writeFile(filePath: string, contents: Buffer) {
 }
 
 export async function writeJsonFile(filePath: string, contents: unknown) {
-	const formattedJson = await prettier.format(JSON.stringify(contents, null, '\t'), {
+	const formattedJson = await prettier.format(JSON.stringify(contents), {
 		...(await prettierConfigPromise),
 		parser: 'json',
 	})

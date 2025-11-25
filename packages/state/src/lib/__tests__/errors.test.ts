@@ -11,7 +11,7 @@ describe('reactors that error', () => {
 		react('', () => {
 			if (a.get() === 2) throw new Error('test')
 		})
-		expect(() => a.set(2)).toThrowErrorMatchingInlineSnapshot(`"test"`)
+		expect(() => a.set(2)).toThrowErrorMatchingInlineSnapshot(`[Error: test]`)
 		expect(a.get()).toBe(2)
 	})
 	it('will not roll back the changes in a transaction', () => {
@@ -27,7 +27,7 @@ describe('reactors that error', () => {
 				a.set(3)
 				b.set(1)
 			})
-		).toThrowErrorMatchingInlineSnapshot(`"test"`)
+		).toThrowErrorMatchingInlineSnapshot(`[Error: test]`)
 
 		expect(a.get()).toBe(3)
 		expect(b.get()).toBe(1)
@@ -49,11 +49,11 @@ describe('derivations that error', () => {
 
 		a.set(2)
 
-		expect(() => b.get()).toThrowErrorMatchingInlineSnapshot(`"test"`)
+		expect(() => b.get()).toThrowErrorMatchingInlineSnapshot(`[Error: test]`)
 		expect(numComputations).toBe(2)
-		expect(() => b.get()).toThrowErrorMatchingInlineSnapshot(`"test"`)
+		expect(() => b.get()).toThrowErrorMatchingInlineSnapshot(`[Error: test]`)
 		expect(numComputations).toBe(2)
-		expect(() => b.get()).toThrowErrorMatchingInlineSnapshot(`"test"`)
+		expect(() => b.get()).toThrowErrorMatchingInlineSnapshot(`[Error: test]`)
 		expect(numComputations).toBe(2)
 
 		a.set(3)
@@ -128,7 +128,7 @@ describe('derivations that error', () => {
 
 		a.set(5)
 
-		expect(() => b.get()).toThrowErrorMatchingInlineSnapshot(`"test"`)
+		expect(() => b.get()).toThrowErrorMatchingInlineSnapshot(`[Error: test]`)
 		expect(b.getDiffSince(startEpoch)).toEqual(RESET_VALUE)
 		const errorEpoch = getGlobalEpoch()
 
@@ -153,11 +153,11 @@ test('haveParentsChanged will not throw if one of the parents is throwing', () =
 	expect(() => {
 		scheduler.attach()
 		scheduler.execute()
-	}).toThrowErrorMatchingInlineSnapshot(`"test"`)
+	}).toThrowErrorMatchingInlineSnapshot(`[Error: test]`)
 
 	expect(haveParentsChanged(scheduler)).toBe(false)
 
-	expect(() => a.set(2)).toThrowErrorMatchingInlineSnapshot(`"test"`)
+	expect(() => a.set(2)).toThrowErrorMatchingInlineSnapshot(`[Error: test]`)
 
 	// haveParentsChanged should still be false because it already
 	// executed the effect and it errored

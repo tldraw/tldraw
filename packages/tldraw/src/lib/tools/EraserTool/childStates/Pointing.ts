@@ -1,15 +1,13 @@
-import {
-	StateNode,
-	TLFrameShape,
-	TLGroupShape,
-	TLPointerEventInfo,
-	TLShapeId,
-} from '@tldraw/editor'
+import { isAccelKey, StateNode, TLPointerEventInfo, TLShapeId } from '@tldraw/editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
+	_isHoldingAccelKey = false
+
 	override onEnter() {
+		this._isHoldingAccelKey = isAccelKey(this.editor.inputs)
+
 		const zoomLevel = this.editor.getZoomLevel()
 		const currentPageShapesSorted = this.editor.getCurrentPageRenderingShapesSorted()
 		const {
@@ -22,10 +20,7 @@ export class Pointing extends StateNode {
 
 		for (let n = currentPageShapesSorted.length, i = n - 1; i >= 0; i--) {
 			const shape = currentPageShapesSorted[i]
-			if (
-				this.editor.isShapeOrAncestorLocked(shape) ||
-				this.editor.isShapeOfType<TLGroupShape>(shape, 'group')
-			) {
+			if (this.editor.isShapeOrAncestorLocked(shape) || this.editor.isShapeOfType(shape, 'group')) {
 				continue
 			}
 
@@ -37,18 +32,28 @@ export class Pointing extends StateNode {
 			) {
 				const hitShape = this.editor.getOutermostSelectableShape(shape)
 				// If we've hit a frame after hitting any other shape, stop here
-				if (
-					this.editor.isShapeOfType<TLFrameShape>(hitShape, 'frame') &&
-					erasing.size > initialSize
-				) {
+				if (this.editor.isShapeOfType(hitShape, 'frame') && erasing.size > initialSize) {
 					break
 				}
 
 				erasing.add(hitShape.id)
+
+				// If the user is holding the meta / ctrl key, stop after the first shape
+				if (this._isHoldingAccelKey) {
+					break
+				}
 			}
 		}
 
 		this.editor.setErasingShapes([...erasing])
+	}
+
+	override onKeyUp() {
+		this._isHoldingAccelKey = isAccelKey(this.editor.inputs)
+	}
+
+	override onKeyDown() {
+		this._isHoldingAccelKey = isAccelKey(this.editor.inputs)
 	}
 
 	override onLongPress(info: TLPointerEventInfo) {
@@ -62,6 +67,8 @@ export class Pointing extends StateNode {
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
+		if (this._isHoldingAccelKey) return
+
 		if (this.editor.inputs.isDragging) {
 			this.startErasing(info)
 		}

@@ -112,6 +112,26 @@ export const richText = {
 	],
 }
 
+export const richTextForArrow = {
+	type: 'doc',
+	content: [
+		{
+			type: 'heading',
+			attrs: { dir: 'auto', level: 3 },
+			content: [{ type: 'text', text: 'Headers' }],
+		},
+		{
+			type: 'paragraph',
+			attrs: { dir: 'auto' },
+			content: [
+				{ type: 'text', marks: [{ type: 'highlight' }], text: 'rich' },
+				{ type: 'text', text: ' ' },
+				{ type: 'text', marks: [{ type: 'code' }], text: 'text' },
+			],
+		},
+	],
+}
+
 export const convexDrawShape = (
 	<TL.draw
 		x={0.62}

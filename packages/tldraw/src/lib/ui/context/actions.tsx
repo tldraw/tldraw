@@ -5,10 +5,8 @@ import {
 	Editor,
 	HALF_PI,
 	PageRecordType,
-	TLBookmarkShape,
+	Result,
 	TLEmbedShape,
-	TLFrameShape,
-	TLGroupShape,
 	TLImageShape,
 	TLShape,
 	TLShapeId,
@@ -24,10 +22,12 @@ import {
 	useMaybeEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
+import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
+import { DefaultKeyboardShortcutsDialog } from '../components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
 import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
 import { flattenShapesToImages } from '../hooks/useFlatten'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
@@ -35,6 +35,7 @@ import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../icon-types'
 import { TLUiOverrideHelpers, useDefaultHelpers } from '../overrides'
 import { useA11y } from './a11y'
+import { useTldrawUiComponents } from './components'
 import { TLUiEventSource, useUiEvents } from './events'
 
 /** @public */
@@ -42,12 +43,13 @@ export interface TLUiActionItem<
 	TransationKey extends string = string,
 	IconType extends string = string,
 > {
-	icon?: IconType
+	icon?: IconType | React.ReactElement
 	id: string
 	kbd?: string
 	label?: TransationKey | { [key: string]: TransationKey }
 	readonlyOk?: boolean
 	checkbox?: boolean
+	isRequiredA11yAction?: boolean
 	onSelect(source: TLUiEventSource): Promise<void> | void
 }
 
@@ -96,6 +98,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const _editor = useMaybeEditor()
 	const showCollaborationUi = useShowCollaborationUi()
 	const helpers = useDefaultHelpers()
+	const components = useTldrawUiComponents()
 	const trackEvent = useUiEvents()
 	const a11y = useA11y()
 	const msg = useTranslation()
@@ -169,6 +172,17 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'open-kbd-shortcuts',
+				label: 'action.open-kbd-shortcuts',
+				kbd: 'cmd+alt+/,ctrl+alt+/',
+				onSelect(source) {
+					trackEvent('open-kbd-shortcuts', { source })
+					helpers.addDialog({
+						component: components.KeyboardShortcutsDialog ?? DefaultKeyboardShortcutsDialog,
+					})
+				},
+			},
+			{
 				id: 'insert-media',
 				label: 'action.insert-media',
 				kbd: 'cmd+u,ctrl+u',
@@ -210,7 +224,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-as', { format: 'svg', source })
-					helpers.exportAs(ids, 'svg', getExportName(editor, defaultDocumentName))
+					helpers.exportAs(ids, { format: 'svg', name: getExportName(editor, defaultDocumentName) })
 				},
 			},
 			{
@@ -226,7 +240,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-as', { format: 'png', source })
-					helpers.exportAs(ids, 'png', getExportName(editor, defaultDocumentName))
+					helpers.exportAs(ids, { format: 'png', name: getExportName(editor, defaultDocumentName) })
 				},
 			},
 			{
@@ -242,11 +256,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-all-as', { format: 'svg', source })
-					helpers.exportAs(
-						Array.from(editor.getCurrentPageShapeIds()),
-						'svg',
-						getExportName(editor, defaultDocumentName)
-					)
+					helpers.exportAs(Array.from(editor.getCurrentPageShapeIds()), {
+						format: 'svg',
+						name: getExportName(editor, defaultDocumentName),
+					})
 				},
 			},
 			{
@@ -261,7 +274,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-all-as', { format: 'png', source })
-					helpers.exportAs(ids, 'png', getExportName(editor, defaultDocumentName))
+					helpers.exportAs(ids, { format: 'png', name: getExportName(editor, defaultDocumentName) })
 				},
 			},
 			{
@@ -311,7 +324,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							.getSelectedShapes()
 							.filter(
 								(shape): shape is TLTextShape =>
-									editor.isShapeOfType<TLTextShape>(shape, 'text') && shape.props.autoSize === false
+									editor.isShapeOfType(shape, 'text') && shape.props.autoSize === false
 							)
 						editor.updateShapes(
 							shapes.map((shape) => {
@@ -346,7 +359,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						return
 					}
 					const shape = editor.getShape(ids[0])
-					if (!shape || !editor.isShapeOfType<TLEmbedShape>(shape, 'embed')) {
+					if (!shape || !editor.isShapeOfType(shape, 'embed')) {
 						console.error(warnMsg)
 						return
 					}
@@ -373,45 +386,38 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'convert-to-bookmark',
 				label: 'action.convert-to-bookmark',
-				onSelect(source) {
+				async onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
-					editor.run(() => {
-						trackEvent('convert-to-bookmark', { source })
-						const shapes = editor.getSelectedShapes()
+					trackEvent('convert-to-bookmark', { source })
+					const shapes = editor.getSelectedShapes()
 
-						const createList: TLShapePartial[] = []
-						const deleteList: TLShapeId[] = []
-						for (const shape of shapes) {
-							if (!shape || !editor.isShapeOfType<TLEmbedShape>(shape, 'embed') || !shape.props.url)
-								continue
+					const markId = editor.markHistoryStoppingPoint('convert shapes to bookmark')
 
-							const newPos = new Vec(shape.x, shape.y)
-							newPos.rot(-shape.rotation)
-							newPos.add(new Vec(shape.props.w / 2 - 300 / 2, shape.props.h / 2 - 320 / 2)) // see bookmark shape util
-							newPos.rot(shape.rotation)
-							const partial: TLShapePartial<TLBookmarkShape> = {
-								id: createShapeId(),
-								type: 'bookmark',
-								rotation: shape.rotation,
-								x: newPos.x,
-								y: newPos.y,
-								opacity: 1,
-								props: {
-									url: shape.props.url,
-								},
-							}
+					const creationPromises: Promise<Result<any, any>>[] = []
 
-							createList.push(partial)
-							deleteList.push(shape.id)
-						}
+					for (const shape of shapes) {
+						if (!shape || !editor.isShapeOfType(shape, 'embed') || !shape.props.url) continue
 
-						editor.markHistoryStoppingPoint('convert shapes to bookmark')
+						const center = editor.getShapePageBounds(shape)?.center
 
-						// Should be able to create the shape since we're about to delete the other other
-						editor.deleteShapes(deleteList)
-						editor.createShapes(createList)
+						if (!center) continue
+						editor.deleteShapes([shape.id])
+
+						creationPromises.push(
+							createBookmarkFromUrl(editor, { url: shape.props.url, center }).then((res) => {
+								if (!res.ok) {
+									throw new Error(res.error)
+								}
+								return res
+							})
+						)
+					}
+
+					await Promise.all(creationPromises).catch((error) => {
+						editor.bailToMark(markId)
+						console.error(error)
 					})
 				},
 			},
@@ -431,7 +437,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						const createList: TLShapePartial[] = []
 						const deleteList: TLShapeId[] = []
 						for (const shape of shapes) {
-							if (!editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark')) continue
+							if (!editor.isShapeOfType(shape, 'bookmark')) continue
 
 							const { url } = shape.props
 
@@ -502,7 +508,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 								}
 					}
 
-					if (!editor.canCreateShapes(ids)) return
 					editor.markHistoryStoppingPoint('duplicate shapes')
 					editor.duplicateShapes(ids, offset)
 
@@ -543,7 +548,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					trackEvent('group-shapes', { source })
 					const onlySelectedShape = editor.getOnlySelectedShape()
-					if (onlySelectedShape && editor.isShapeOfType<TLGroupShape>(onlySelectedShape, 'group')) {
+					if (onlySelectedShape && editor.isShapeOfType(onlySelectedShape, 'group')) {
 						editor.markHistoryStoppingPoint('ungroup')
 						editor.ungroupShapes(editor.getSelectedShapeIds())
 					} else {
@@ -563,7 +568,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const selectedShapes = editor.getSelectedShapes()
 					if (
 						selectedShapes.length > 0 &&
-						selectedShapes.every((shape) => editor.isShapeOfType<TLFrameShape>(shape, 'frame'))
+						selectedShapes.every((shape) => editor.isShapeOfType(shape, 'frame'))
 					) {
 						editor.markHistoryStoppingPoint('remove-frame')
 						removeFrame(
@@ -581,7 +586,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					trackEvent('fit-frame-to-content', { source })
 					const onlySelectedShape = editor.getOnlySelectedShape()
-					if (onlySelectedShape && editor.isShapeOfType<TLFrameShape>(onlySelectedShape, 'frame')) {
+					if (onlySelectedShape && editor.isShapeOfType(onlySelectedShape, 'frame')) {
 						editor.markHistoryStoppingPoint('fit-frame-to-content')
 						fitFrameToContent(editor, onlySelectedShape.id)
 					}
@@ -1027,17 +1032,20 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'rotate-cw',
 				label: 'action.rotate-cw',
 				icon: 'rotate-cw',
+				kbd: 'shift+.,shift+alt+.',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
-					trackEvent('rotate-cw', { source })
+					const isFine = editor.inputs.altKey
+					trackEvent('rotate-cw', { source, fine: isFine })
 					editor.markHistoryStoppingPoint('rotate-cw')
 					editor.run(() => {
-						const offset = editor.getSelectionRotation() % (HALF_PI / 2)
-						const dontUseOffset = approximately(offset, 0) || approximately(offset, HALF_PI / 2)
+						const rotation = HALF_PI / (isFine ? 96 : 6)
+						const offset = editor.getSelectionRotation() % rotation
+						const dontUseOffset = approximately(offset, 0) || approximately(offset, rotation)
 						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.rotateShapesBy(selectedShapeIds, HALF_PI / 2 - (dontUseOffset ? 0 : offset))
+						editor.rotateShapesBy(selectedShapeIds, rotation - (dontUseOffset ? 0 : offset))
 						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
@@ -1046,17 +1054,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'rotate-ccw',
 				label: 'action.rotate-ccw',
 				icon: 'rotate-ccw',
+				// omg double comma
+				kbd: 'shift+,,shift+alt+,',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
-					trackEvent('rotate-ccw', { source })
+					const isFine = editor.inputs.altKey
+					trackEvent('rotate-ccw', { source, fine: isFine })
 					editor.markHistoryStoppingPoint('rotate-ccw')
 					editor.run(() => {
-						const offset = editor.getSelectionRotation() % (HALF_PI / 2)
+						const rotation = HALF_PI / (isFine ? 96 : 6)
+						const offset = editor.getSelectionRotation() % rotation
 						const offsetCloseToZero = approximately(offset, 0)
 						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.rotateShapesBy(selectedShapeIds, offsetCloseToZero ? -(HALF_PI / 2) : -offset)
+						editor.rotateShapesBy(selectedShapeIds, offsetCloseToZero ? -rotation : -offset)
 						kickoutOccludedShapes(editor, selectedShapeIds)
 					})
 				},
@@ -1230,6 +1242,36 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('toggle-reduce-motion', { source })
 					editor.user.updateUserPreferences({
 						animationSpeed: editor.user.getAnimationSpeed() === 0 ? 1 : 0,
+					})
+				},
+				checkbox: true,
+			},
+			{
+				id: 'toggle-keyboard-shortcuts',
+				label: {
+					default: 'action.toggle-keyboard-shortcuts',
+					menu: 'action.toggle-keyboard-shortcuts.menu',
+				},
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('toggle-keyboard-shortcuts', { source })
+					editor.user.updateUserPreferences({
+						areKeyboardShortcutsEnabled: !editor.user.getAreKeyboardShortcutsEnabled(),
+					})
+				},
+				checkbox: true,
+			},
+			{
+				id: 'enhanced-a11y-mode',
+				label: {
+					default: 'action.enhanced-a11y-mode',
+					menu: 'action.enhanced-a11y-mode.menu',
+				},
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('enhanced-a11y-mode', { source })
+					editor.user.updateUserPreferences({
+						enhancedA11yMode: !editor.user.getEnhancedA11yMode(),
 					})
 				},
 				checkbox: true,
@@ -1450,6 +1492,22 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'select-fill-lined-fill',
+				label: 'fill-style.lined-fill',
+				kbd: 'alt+shift+f',
+				onSelect(source) {
+					const style = DefaultFillStyle
+					editor.run(() => {
+						editor.markHistoryStoppingPoint('change-fill')
+						if (editor.isIn('select')) {
+							editor.setStyleForSelectedShapes(style, 'lined-fill')
+						}
+						editor.setStyleForNextShapes(style, 'lined-fill')
+					})
+					trackEvent('set-style', { source, id: style.id, value: 'lined-fill' })
+				},
+			},
+			{
 				id: 'flatten-to-image',
 				label: 'action.flatten-to-image',
 				kbd: 'shift+f',
@@ -1530,8 +1588,22 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'adjust-shape-styles',
 				label: 'a11y.adjust-shape-styles',
 				kbd: 'cmd+Enter,ctrl+Enter',
+				isRequiredA11yAction: true,
 				onSelect: async (source) => {
 					if (!canApplySelectionAction()) return
+
+					const onlySelectedShape = editor.getOnlySelectedShape()
+					if (
+						onlySelectedShape &&
+						(editor.isShapeOfType(onlySelectedShape, 'image') ||
+							editor.isShapeOfType(onlySelectedShape, 'video'))
+					) {
+						const firstToolbarButton = editor
+							.getContainer()
+							.querySelector('.tlui-contextual-toolbar button:first-child') as HTMLElement | null
+						firstToolbarButton?.focus()
+						return
+					}
 
 					const firstButton = editor
 						.getContainer()
@@ -1543,6 +1615,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'a11y-open-context-menu',
 				kbd: 'cmd+shift+Enter,ctrl+shift+Enter',
+				isRequiredA11yAction: true,
 				readonlyOk: true,
 				onSelect: async (source) => {
 					if (!canApplySelectionAction()) return
@@ -1595,6 +1668,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'a11y-repeat-shape-announce',
 				kbd: 'alt+r',
 				label: 'a11y.repeat-shape',
+				isRequiredA11yAction: true,
 				readonlyOk: true,
 				onSelect: async (source) => {
 					const selectedShapeIds = editor.getSelectedShapeIds()
@@ -1705,7 +1779,17 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		}
 
 		return actions
-	}, [helpers, _editor, trackEvent, overrides, defaultDocumentName, showCollaborationUi, msg, a11y])
+	}, [
+		helpers,
+		_editor,
+		trackEvent,
+		overrides,
+		defaultDocumentName,
+		showCollaborationUi,
+		msg,
+		a11y,
+		components,
+	])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>
 }

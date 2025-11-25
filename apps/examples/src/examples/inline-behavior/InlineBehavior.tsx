@@ -62,6 +62,7 @@ function InlineBlock({ persistenceKey }: { persistenceKey: string }) {
 				editor.focus({ focusContainer: false })
 				setFocusedEditor(editor)
 			}}
+			onPointerDown={(e) => e.stopPropagation()}
 		>
 			<Tldraw
 				persistenceKey={persistenceKey}
@@ -118,6 +119,7 @@ editor.
 
 [4]
 When the user clicks into an editor, we focus it, and blur any other editor.
+We also prevent pointer down events from passing through to the parent.
 
 [5]
 We hide the UI of any unfocused editor.

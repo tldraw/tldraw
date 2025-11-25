@@ -96,7 +96,7 @@ export class Pointing extends StateNode {
 
 		this.markId = this.editor.markHistoryStoppingPoint(`creating_arrow:${id}`)
 		const newPoint = maybeSnapToGrid(originPagePoint, this.editor)
-		this.editor.createShape<TLArrowShape>({
+		this.editor.createShape({
 			id,
 			type: 'arrow',
 			x: newPoint.x,
@@ -118,6 +118,7 @@ export class Pointing extends StateNode {
 		const change = util.onHandleDrag?.(shape, {
 			handle: { ...startHandle, x: 0, y: 0 },
 			isPrecise: true,
+			isCreatingShape: true,
 			initial: initial,
 		})
 
@@ -145,6 +146,7 @@ export class Pointing extends StateNode {
 			const change = util.onHandleDrag?.(shape, {
 				handle: { ...startHandle, x: 0, y: 0 },
 				isPrecise: this.isPrecise,
+				isCreatingShape: true,
 				initial: initial,
 			})
 
@@ -161,7 +163,8 @@ export class Pointing extends StateNode {
 			const endHandle = handles.find((h) => h.id === 'end')!
 			const change = util.onHandleDrag?.(this.editor.getShape(shape)!, {
 				handle: { ...endHandle, x: point.x, y: point.y },
-				isPrecise: false,
+				isPrecise: this.isPrecise,
+				isCreatingShape: true,
 				initial: initial,
 			})
 

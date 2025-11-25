@@ -7,6 +7,7 @@ import '../styles/globals.css'
 import { Head } from './components/Head/Head'
 import { routes } from './routeDefs'
 import { router } from './routes'
+import { showConsoleBranding } from './utils/consoleBranding'
 
 const browserRouter = createBrowserRouter(router)
 
@@ -31,6 +32,8 @@ createRoot(document.getElementById('root')!).render(
 		</HelmetProvider>
 	</ClerkProvider>
 )
+
+showConsoleBranding()
 
 try {
 	// we have a dummy service worker that unregisters itself immediately

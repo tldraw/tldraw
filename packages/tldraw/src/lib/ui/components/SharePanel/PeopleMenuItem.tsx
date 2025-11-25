@@ -5,6 +5,7 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
+import { TldrawUiRow } from '../primitives/layout'
 
 export const PeopleMenuItem = track(function PeopleMenuItem({ userId }: { userId: string }) {
 	const editor = useEditor()
@@ -29,8 +30,8 @@ export const PeopleMenuItem = track(function PeopleMenuItem({ userId }: { userId
 	if (!presence) return null
 
 	return (
-		<div
-			className="tlui-people-menu__item tlui-buttons__horizontal"
+		<TldrawUiRow
+			className="tlui-people-menu__item"
 			data-follow={youAreFollowingThem || theyAreFollowingYou}
 		>
 			<TldrawUiButton
@@ -61,6 +62,6 @@ export const PeopleMenuItem = track(function PeopleMenuItem({ userId }: { userId
 					icon={theyAreFollowingYou ? 'leading' : youAreFollowingThem ? 'following' : 'follow'}
 				/>
 			</TldrawUiButton>
-		</div>
+		</TldrawUiRow>
 	)
 })

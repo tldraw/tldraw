@@ -58,6 +58,7 @@
 	--tla-color-accent-2: hsl(28, 88%, 57%);
 	--tla-color-accent-3: hsl(135, 59%, 49%);
 	--tla-color-warning: hsl(0, 88%, 57%);
+	--tla-color-drop-zone: hsl(204, 16%, 4%, 2.5%);
 	/* Shadows */
 	/* --tla-shadow-primary-highlight: inset 0px 4px 2px -4px hsl(214, 94%, 94%),
 		inset 4px 4px 4px -6px hsl(214, 94%, 100%); */
@@ -101,6 +102,7 @@
 	--tla-color-accent-2: hsl(28, 88%, 47%);
 	--tla-color-accent-3: hsl(135, 59%, 39%);
 	--tla-color-warning: hsl(0, 95%, 65%);
+	--tla-color-drop-zone: hsl(204, 16%, 4%, 2.5%);
 	/* Shadows */
 	/* --tla-shadow-primary-highlight: inset 0px 1px 1px -1px hsl(214, 94%, 72%),
 		inset 4px 4px 4px -6px hsl(214, 94%, 80%); */
@@ -224,8 +226,10 @@
 	max-width: 100%;
 	min-width: 0px;
 	height: auto;
-	overflow: hidden;
 	position: relative;
+
+	/* Stop helper buttons getting cut off by the top right panel */
+	overflow: visible;
 }
 
 .tlui-layout__top__right {
@@ -294,7 +298,7 @@
 	button:not(.tla-button-text):focus-visible,
 .tl-container__focused:not(.tl-container__no-focus-ring) button:not(.tlui-button):focus-visible,
 .tl-container__focused:not(.tl-container__no-focus-ring) .tlui-layout__top a:focus-visible {
-	outline: 2px solid var(--color-focus);
+	outline: 2px solid var(--tl-color-focus);
 }
 
 /** We use tldraw components in some places, and menu sub-groups with checkbox items are also here. */
@@ -302,7 +306,7 @@
 	:is(.tlui-menu, .tlui-menu__group)
 	.tlui-button__menu:focus-visible {
 	border-radius: 10px;
-	outline: 2px solid var(--color-focus);
+	outline: 2px solid var(--tl-color-focus);
 	outline-offset: -5px;
 }
 
@@ -311,7 +315,7 @@
 	:is(nav, .tlui-popover__content, .tlui-dialog__overlay)
 	.tla-form-checkbox:has(input:focus-visible)
 	> label {
-	outline: 2px solid var(--color-focus);
+	outline: 2px solid var(--tl-color-focus);
 }
 
 /** Text buttons, specifically from the cookie consent */
@@ -319,7 +323,7 @@
 .tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
 	nav
 	.tla-button-text:focus-visible {
-	outline: 2px solid var(--color-focus);
+	outline: 2px solid var(--tl-color-focus);
 }
 
 /** Primary buttons in the top area (e.g. Share, Sign in) */
@@ -329,4 +333,8 @@
 .tl-container__focused:not(.tl-container__no-focus-ring)
 	.tla-primary-button:not(.tlui-button):focus-visible {
 	outline-offset: 0;
+}
+
+.tla .tl-watermark_SEE-LICENSE {
+	display: none;
 }

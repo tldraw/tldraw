@@ -1,4 +1,5 @@
 import {
+	Mat,
 	StateNode,
 	TLArrowShape,
 	TLHandle,
@@ -11,14 +12,16 @@ import {
 	snapAngle,
 	sortByIndex,
 	structuredClone,
+	warnOnce,
 } from '@tldraw/editor'
+import { ArrowShapeUtil } from '../../../shapes/arrow/ArrowShapeUtil'
 import { clearArrowTargetState } from '../../../shapes/arrow/arrowTargetState'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 
 export type DraggingHandleInfo = TLPointerEventInfo & {
 	shape: TLArrowShape | TLLineShape
 	target: 'handle'
-	onInteractionEnd?: string
+	onInteractionEnd?: string | (() => void)
 	isCreating?: boolean
 	creatingMarkId?: string
 }
@@ -26,25 +29,27 @@ export type DraggingHandleInfo = TLPointerEventInfo & {
 export class DraggingHandle extends StateNode {
 	static override id = 'dragging_handle'
 
-	shapeId = '' as TLShapeId
-	initialHandle = {} as TLHandle
-	initialAdjacentHandle = null as TLHandle | null
-	initialPagePoint = {} as Vec
+	shapeId!: TLShapeId
+	initialHandle!: TLHandle
+	initialAdjacentHandle!: TLHandle | null
+	initialPagePoint!: Vec
 
-	markId = ''
-	initialPageTransform: any
-	initialPageRotation: any
+	markId!: string
+	initialPageTransform!: Mat
+	initialPageRotation!: number
 
-	info = {} as DraggingHandleInfo
+	info!: DraggingHandleInfo
 
 	isPrecise = false
-	isPreciseId = null as TLShapeId | null
-	pointingId = null as TLShapeId | null
+	isPreciseId: TLShapeId | null = null
+	pointingId: TLShapeId | null = null
 
 	override onEnter(info: DraggingHandleInfo) {
 		const { shape, isCreating, creatingMarkId, handle } = info
 		this.info = info
-		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		if (typeof info.onInteractionEnd === 'string') {
+			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
+		}
 		this.shapeId = shape.id
 		this.markId = ''
 
@@ -66,26 +71,6 @@ export class DraggingHandle extends StateNode {
 
 		this.initialHandle = structuredClone(handle)
 
-		if (this.editor.isShapeOfType<TLLineShape>(shape, 'line')) {
-			// For line shapes, if we're dragging a "create" handle, then
-			// create a new vertex handle at that point; and make this handle
-			// the handle that we're dragging.
-			if (this.initialHandle.type === 'create') {
-				this.editor.updateShape({
-					...shape,
-					props: {
-						points: {
-							...shape.props.points,
-							[handle.index]: { id: handle.index, index: handle.index, x: handle.x, y: handle.y },
-						},
-					},
-				})
-				const handlesAfter = this.editor.getShapeHandles(shape)!
-				const handleAfter = handlesAfter.find((h) => h.index === handle.index)!
-				this.initialHandle = structuredClone(handleAfter)
-			}
-		}
-
 		this.initialPageTransform = this.editor.getShapePageTransform(shape)!
 		this.initialPageRotation = this.initialPageTransform.rotation()
 		this.initialPagePoint = this.editor.inputs.originPagePoint.clone()
@@ -98,28 +83,39 @@ export class DraggingHandle extends StateNode {
 		// Find the adjacent handle
 		this.initialAdjacentHandle = null
 
-		// Start from the handle and work forward
-		for (let i = index + 1; i < handles.length; i++) {
-			const handle = handles[i]
-			if (handle.type === 'vertex' && handle.id !== 'middle' && handle.id !== info.handle.id) {
-				this.initialAdjacentHandle = handle
-				break
+		// First, check if the handle specifies a custom reference handle
+		if (info.handle.snapReferenceHandleId) {
+			const customHandle = handles.find((h) => h.id === info.handle.snapReferenceHandleId)
+			if (customHandle) {
+				this.initialAdjacentHandle = customHandle
 			}
 		}
 
-		// If still no handle, start from the end and work backward
+		// If no custom reference handle, use default behavior
 		if (!this.initialAdjacentHandle) {
-			for (let i = handles.length - 1; i >= 0; i--) {
+			// Start from the handle and work forward
+			for (let i = index + 1; i < handles.length; i++) {
 				const handle = handles[i]
 				if (handle.type === 'vertex' && handle.id !== 'middle' && handle.id !== info.handle.id) {
 					this.initialAdjacentHandle = handle
 					break
 				}
 			}
+
+			// If still no handle, start from the end and work backward
+			if (!this.initialAdjacentHandle) {
+				for (let i = handles.length - 1; i >= 0; i--) {
+					const handle = handles[i]
+					if (handle.type === 'vertex' && handle.id !== 'middle' && handle.id !== info.handle.id) {
+						this.initialAdjacentHandle = handle
+						break
+					}
+				}
+			}
 		}
 
 		// <!-- Only relevant to arrows
-		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+		if (this.editor.isShapeOfType(shape, 'arrow')) {
 			const initialBinding = getArrowBindings(this.editor, shape)[info.handle.id as 'start' | 'end']
 
 			this.isPrecise = false
@@ -135,16 +131,32 @@ export class DraggingHandle extends StateNode {
 		}
 		// -->
 
+		// Call onHandleDragStart callback
+		const handleDragInfo = {
+			handle: this.initialHandle,
+			isPrecise: this.isPrecise,
+			isCreatingShape: !!this.info.isCreating,
+			initial: shape,
+		}
+		const util = this.editor.getShapeUtil(shape)
+		const startChanges = util.onHandleDragStart?.(shape, handleDragInfo)
+		if (startChanges) {
+			this.editor.updateShapes([{ ...startChanges, id: shape.id, type: shape.type }])
+		}
+
 		this.update()
 
 		this.editor.select(this.shapeId)
 	}
 
 	// Only relevant to arrows
-	private exactTimeout = -1 as any
+	private exactTimeout = -1
 
 	// Only relevant to arrows
 	private resetExactTimeout() {
+		const arrowUtil = this.editor.getShapeUtil<ArrowShapeUtil>('arrow')
+		const timeoutValue = arrowUtil.options.pointingPreciseTimeout
+
 		if (this.exactTimeout !== -1) {
 			this.clearExactTimeout()
 		}
@@ -156,7 +168,7 @@ export class DraggingHandle extends StateNode {
 				this.update()
 			}
 			this.exactTimeout = -1
-		}, 750)
+		}, timeoutValue)
 	}
 
 	// Only relevant to arrows
@@ -204,26 +216,64 @@ export class DraggingHandle extends StateNode {
 		this.editor.snaps.clearIndicators()
 		kickoutOccludedShapes(this.editor, [this.shapeId])
 
+		// Call onHandleDragEnd callback before state transitions
+		const shape = this.editor.getShape(this.shapeId)
+		if (shape) {
+			const util = this.editor.getShapeUtil(shape)
+			const handleDragInfo = {
+				handle: this.initialHandle,
+				isPrecise: this.isPrecise,
+				isCreatingShape: !!this.info.isCreating,
+				initial: this.info.shape,
+			}
+			const endChanges = util.onHandleDragEnd?.(shape, handleDragInfo)
+			if (endChanges) {
+				this.editor.updateShapes([{ ...endChanges, id: shape.id }])
+			}
+		}
+
 		const { onInteractionEnd } = this.info
-		if (this.editor.getInstanceState().isToolLocked && onInteractionEnd) {
-			// Return to the tool that was active before this one,
-			// but only if tool lock is turned on!
-			this.editor.setCurrentTool(onInteractionEnd, { shapeId: this.shapeId })
-			return
+		if (onInteractionEnd) {
+			if (typeof onInteractionEnd === 'string') {
+				if (this.editor.getInstanceState().isToolLocked && onInteractionEnd) {
+					// Return to the tool that was active before this one but only if tool lock is turned on!
+					this.editor.setCurrentTool(onInteractionEnd, { shapeId: this.shapeId })
+					return
+				}
+			} else {
+				onInteractionEnd?.()
+				return
+			}
 		}
 
 		this.parent.transition('idle')
 	}
 
 	private cancel() {
+		// Call onHandleDragCancel callback before bailing to mark
+		const shape = this.editor.getShape(this.shapeId)
+		if (shape) {
+			const util = this.editor.getShapeUtil(shape)
+			const handleDragInfo = {
+				handle: this.initialHandle,
+				isPrecise: this.isPrecise,
+				isCreatingShape: !!this.info.isCreating,
+				initial: this.info.shape,
+			}
+			util.onHandleDragCancel?.(shape, handleDragInfo)
+		}
+
 		this.editor.bailToMark(this.markId)
 		this.editor.snaps.clearIndicators()
 
 		const { onInteractionEnd } = this.info
 		if (onInteractionEnd) {
-			// Return to the tool that was active before this one,
-			// whether tool lock is turned on or not!
-			this.editor.setCurrentTool(onInteractionEnd, { shapeId: this.shapeId })
+			if (typeof onInteractionEnd === 'string') {
+				// Return to the tool that was active before this one, whether tool lock is turned on or not!
+				this.editor.setCurrentTool(onInteractionEnd, { shapeId: this.shapeId })
+			} else {
+				onInteractionEnd?.()
+			}
 			return
 		}
 
@@ -245,7 +295,7 @@ export class DraggingHandle extends StateNode {
 		if (!shape) return
 		const util = editor.getShapeUtil(shape)
 
-		const initialBinding = editor.isShapeOfType<TLArrowShape>(shape, 'arrow')
+		const initialBinding = editor.isShapeOfType(shape, 'arrow')
 			? getArrowBindings(editor, shape)[initialHandle.id as 'start' | 'end']
 			: undefined
 
@@ -267,7 +317,18 @@ export class DraggingHandle extends StateNode {
 
 		let nextHandle = { ...initialHandle, x: point.x, y: point.y }
 
-		if (initialHandle.canSnap && (isSnapMode ? !ctrlKey : ctrlKey)) {
+		let canSnap = false
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		if (initialHandle.canSnap && initialHandle.snapType) {
+			warnOnce(
+				'canSnap is deprecated. Cannot use both canSnap and snapType together - snapping disabled. Please use only snapType.'
+			)
+		} else {
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			canSnap = initialHandle.canSnap || initialHandle.snapType !== undefined
+		}
+
+		if (canSnap && (isSnapMode ? !ctrlKey : ctrlKey)) {
 			// We're snapping
 			const pageTransform = editor.getShapePageTransform(shape.id)
 			if (!pageTransform) throw Error('Expected a page transform')
@@ -284,16 +345,14 @@ export class DraggingHandle extends StateNode {
 		const changes = util.onHandleDrag?.(shape, {
 			handle: nextHandle,
 			isPrecise: this.isPrecise || altKey,
+			isCreatingShape: !!this.info.isCreating,
 			initial: initial,
 		})
 
 		const next: TLShapePartial<any> = { id: shape.id, type: shape.type, ...changes }
 
 		// Arrows
-		if (
-			initialHandle.type === 'vertex' &&
-			this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')
-		) {
+		if (initialHandle.type === 'vertex' && this.editor.isShapeOfType(shape, 'arrow')) {
 			const bindingAfter = getArrowBindings(editor, shape)[initialHandle.id as 'start' | 'end']
 
 			if (bindingAfter) {

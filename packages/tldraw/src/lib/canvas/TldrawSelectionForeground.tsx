@@ -1,9 +1,8 @@
 import {
 	Box,
+	HALF_PI,
 	RotateCorner,
-	TLEmbedShape,
 	TLSelectionForegroundProps,
-	TLTextShape,
 	getCursor,
 	tlenv,
 	toDomPrecision,
@@ -54,7 +53,10 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 			? bounds.clone().expand(expandOutlineBy).zeroFix()
 			: bounds.clone().expandBy(expandOutlineBy).zeroFix()
 
-	useTransform(rSvg, bounds?.x, bounds?.y, 1, editor.getSelectionRotation(), {
+	const selectionRotation = editor.getSelectionRotation()
+	const isShapeTooCloseToContextualToolbar =
+		selectionRotation / HALF_PI > 1.6 && selectionRotation / HALF_PI < 2.4
+	useTransform(rSvg, bounds?.x, bounds?.y, 1, selectionRotation, {
 		x: expandedBounds.x - bounds.x,
 		y: expandedBounds.y - bounds.y,
 	})
@@ -103,10 +105,10 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 		(showSelectionBounds &&
 			editor.isIn('select.resizing') &&
 			onlyShape &&
-			editor.isShapeOfType<TLTextShape>(onlyShape, 'text'))
+			editor.isShapeOfType(onlyShape, 'text'))
 
 	if (onlyShape && shouldDisplayBox) {
-		if (tlenv.isFirefox && editor.isShapeOfType<TLEmbedShape>(onlyShape, 'embed')) {
+		if (tlenv.isFirefox && editor.isShapeOfType(onlyShape, 'embed')) {
 			shouldDisplayBox = false
 		}
 	}
@@ -188,11 +190,18 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 		shouldDisplayControls &&
 		isCoarsePointer &&
 		onlyShape &&
-		editor.isShapeOfType<TLTextShape>(onlyShape, 'text') &&
+		editor.isShapeOfType(onlyShape, 'text') &&
 		textHandleHeight * zoom >= 4
+	const isMediaShape =
+		onlyShape &&
+		(editor.isShapeOfType(onlyShape, 'image') || editor.isShapeOfType(onlyShape, 'video'))
 
 	return (
-		<svg className="tl-overlays__item tl-selection__fg" data-testid="selection-foreground">
+		<svg
+			className="tl-overlays__item tl-selection__fg"
+			data-testid="selection-foreground"
+			aria-hidden="true"
+		>
 			<g ref={rSvg}>
 				{shouldDisplayBox && (
 					<rect
@@ -240,7 +249,13 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 				<MobileRotateHandle
 					data-testid="selection.rotate.mobile"
 					cx={isSmallX ? -targetSize * 1.5 : width / 2}
-					cy={isSmallX ? height / 2 : -targetSize * 1.5}
+					cy={
+						isSmallX
+							? height / 2
+							: isMediaShape && !isShapeTooCloseToContextualToolbar
+								? height + targetSize * 1.5
+								: -targetSize * 1.5
+					}
 					size={size}
 					isHidden={hideMobileRotateHandle}
 				/>

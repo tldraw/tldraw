@@ -5,6 +5,7 @@ import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 
 /** @public */
 export interface DefaultVideoToolbarContentProps {
@@ -44,7 +45,12 @@ export const DefaultVideoToolbarContent = track(function DefaultVideoToolbarCont
 	return (
 		<>
 			{!isReadonly && (
-				<TldrawUiButton type="icon" title={msg('tool.replace-media')} onClick={handleVideoReplace}>
+				<TldrawUiButton
+					type="icon"
+					title={msg('tool.replace-media')}
+					onClick={handleVideoReplace}
+					data-testid="tool.video-replace"
+				>
 					<TldrawUiButtonIcon small icon="tool-media" />
 				</TldrawUiButton>
 			)}
@@ -52,21 +58,23 @@ export const DefaultVideoToolbarContent = track(function DefaultVideoToolbarCont
 				type="icon"
 				title={msg('action.download-original')}
 				onClick={handleVideoDownload}
+				data-testid="tool.video-download"
 			>
 				<TldrawUiButtonIcon small icon="download" />
 			</TldrawUiButton>
 			{(altText || !isReadonly) && (
-				<TldrawUiButton
-					type="normal"
+				<TldrawUiToolbarButton
+					type="icon"
 					isActive={!!altText}
 					title={msg('tool.media-alt-text')}
+					data-testid="tool.video-alt-text"
 					onClick={() => {
 						trackEvent('alt-text-start', { source })
 						onEditAltTextStart()
 					}}
 				>
 					<TldrawUiButtonIcon small icon="alt" />
-				</TldrawUiButton>
+				</TldrawUiToolbarButton>
 			)}
 		</>
 	)

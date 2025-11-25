@@ -1,5 +1,6 @@
 import {
 	Box,
+	ExtractShapeByProps,
 	GroupShapeUtil,
 	TLArrowShape,
 	TLGroupShape,
@@ -35,14 +36,16 @@ const ids = {
 	groupA: createShapeId('groupA'),
 }
 
+type BoxShape = ExtractShapeByProps<{ fill: string }>
+
 const box = (
 	id: TLShapeId,
 	x: number,
 	y: number,
 	w = 10,
 	h = 10,
-	fill = 'solid'
-): TLShapePartial => ({
+	fill: BoxShape['props']['fill'] = 'solid'
+): TLShapePartial<BoxShape> => ({
 	type: 'geo',
 	id,
 	x,
@@ -1070,7 +1073,7 @@ describe('the select tool', () => {
 		// that we're doing hit testing manually—we'll catch that it was inside a shape
 
 		// editor.keyUp('Shift')
-		// jest.advanceTimersByTime(200)
+		// vi.advanceTimersByTime(200)
 
 		// expect(editor.selectedShapeIds.includes(ids.boxA)).toBe(false)
 		// expect(editor.selectedShapeIds.includes(ids.boxB)).toBe(true)
@@ -1980,7 +1983,7 @@ describe('Group opacity', () => {
 		editor.setOpacityForNextShapes(0.5)
 		editor.groupShapes(editor.getSelectedShapeIds())
 		const group = editor.getShape(onlySelectedId())!
-		assert(editor.isShapeOfType<TLGroupShape>(group, 'group'))
+		assert(editor.isShapeOfType(group, 'group'))
 		expect(group.opacity).toBe(1)
 	})
 })

@@ -1,7 +1,7 @@
 import { useValue } from '@tldraw/state-react'
-import { LicenseManager } from './LicenseManager'
+import { LicenseManager, LicenseState } from './LicenseManager'
 
 /** @internal */
-export function useLicenseManagerState(licenseManager: LicenseManager) {
+export function useLicenseManagerState(licenseManager: LicenseManager): LicenseState {
 	return useValue('watermarkState', () => licenseManager.state.get(), [licenseManager])
 }

@@ -95,15 +95,29 @@ You can create your own custom shapes. In the examples below, we will create a c
 
 In tldraw's data model, each shape is represented by a JSON object. Let's first create a type that describes what this object will look like.
 
-```ts
-import { TLBaseShape } from 'tldraw'
+First, we register the shape's props using TypeScript module augmentation:
 
-type CardShape = TLBaseShape<'card', { w: number; h: number }>
+```ts
+const CARD_TYPE = 'card'
+
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		[CARD_TYPE]: { w: number; h: number }
+	}
+}
 ```
 
-With the [TLBaseShape](?) helper, we define the shape's `type` property (`card`) and the shape's `props` property (`{ w: number, h: number }`). The type can be any string but the props must be a regular [JSON-serializable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#description) JavaScript object.
+Then, we can extract the shape type using `TLShape`:
 
-The [TLBaseShape](?) helper adds the other base properties of a shape, such as `x`, `y`, `rotation`, and `opacity`.
+```ts
+import { TLShape } from 'tldraw'
+
+type CardShape = TLShape<typeof CARD_TYPE>
+```
+
+The type can be any string but the props must be a regular [JSON-serializable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#description) JavaScript object.
+
+The created shape types extend [TLBaseShape](?) and thus include all the base properties of a shape, such as `x`, `y`, `rotation`, and `opacity`.
 
 ### Shape Util
 
@@ -112,10 +126,12 @@ While tldraw's shapes themselves are simple JSON objects, we use [ShapeUtil](?) 
 Let's create a [ShapeUtil](?) class for the shape.
 
 ```tsx
-import { HTMLContainer, ShapeUtil } from 'tldraw'
+import { HTMLContainer, Rectangle2d, ShapeUtil } from 'tldraw'
+
+// ...
 
 class CardShapeUtil extends ShapeUtil<CardShape> {
-	static override type = 'card' as const
+	static override type = CARD_TYPE
 
 	getDefaultProps(): CardShape['props'] {
 		return {
@@ -142,7 +158,7 @@ class CardShapeUtil extends ShapeUtil<CardShape> {
 }
 ```
 
-This is a minimal [ShapeUtil](?). We've given it a static property `type` that matches the type of our shape, we've provided implementations for the abstract methods [ShapeUtil#getDefaultProps](?), [ShapeUtil#getBounds](?), [ShapeUtil#component](?), and [ShapeUtil#indicator](?).
+This is a minimal [ShapeUtil](?). We've given it a static property `type` that matches the type of our shape, we've provided implementations for the abstract methods [ShapeUtil#getDefaultProps](?), [ShapeUtil#getGeometry](?), [ShapeUtil#component](?), and [ShapeUtil#indicator](?).
 
 We still have work to do on the `CardShapeUtil` class, but we'll come back to it later. For now, let's put the shape onto the canvas by passing it to the [Tldraw](?) component.
 
@@ -281,6 +297,10 @@ export default function RichTextCustomExtensionExample() {
 ```
 
 Check out our [rich text examples](/examples/rich-text-custom-extension) to see how to add custom extensions or UI to tailor the rich text.
+
+### Clipping
+
+Custom shapes can clip their children using the `getClipPath` and `shouldClipChild` methods. See our [custom clipping shape example](/examples/editor-api/custom-clipping-shape) for details.
 
 ### Migrations
 

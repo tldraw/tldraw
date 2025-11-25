@@ -1,0 +1,56 @@
+name: Trigger dotcom hotfix
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [labeled]
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  trigger:
+    name: Trigger a dotcom hotfix
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency: dotcom-hotfix
+    environment: npm deploy
+    if: |
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && 
+       github.event.pull_request.merged == true && 
+       github.event.label.name == 'dotcom-hotfix-please')
+
+    steps:
+      - name: Generate a token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.HUPPY_APP_ID }}
+          private-key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ steps.generate_token.outputs.token }}
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup
+
+      - name: Maybe trigger dotcom hotfix
+        run: |
+          set -e
+          git config --global user.name 'huppy-bot[bot]'
+          git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
+          git log --oneline -10
+          yarn tsx internal/scripts/trigger-dotcom-hotfix.ts
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+          DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}

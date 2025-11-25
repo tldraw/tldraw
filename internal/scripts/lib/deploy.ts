@@ -186,12 +186,13 @@ ${serviceBinding ? `services = [ {binding = "${serviceBinding.binding}", service
 
 	const path = join(location, 'wrangler.toml')
 	let data = readFileSync(path).toString()
-	if (data.includes('\n[env.preview]\n')) {
-		if (!data.includes(envPreviewSection)) {
-			data = data.replace('\n[env.preview]\n', envPreviewSection)
-		} else {
-			// it was already added?
-		}
+
+	// Replace the entire [env.preview] section including all its properties
+	// Match from [env.preview] to the next section or end of file
+	const previewSectionRegex = /\n\[env\.preview\]\n(?:[^[](?:[^\n]*\n)*)?/
+
+	if (previewSectionRegex.test(data)) {
+		data = data.replace(previewSectionRegex, envPreviewSection)
 	} else {
 		data += envPreviewSection
 	}

@@ -7,7 +7,7 @@ export type SVGContainerProps = React.ComponentProps<'svg'>
 /** @public @react */
 export function SVGContainer({ children, className = '', ...rest }: SVGContainerProps) {
 	return (
-		<svg {...rest} className={classNames('tl-svg-container', className)}>
+		<svg {...rest} className={classNames('tl-svg-container', className)} aria-hidden="true">
 			{children}
 		</svg>
 	)
