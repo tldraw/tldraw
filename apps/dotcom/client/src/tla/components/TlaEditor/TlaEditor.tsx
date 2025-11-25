@@ -328,7 +328,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				</>
 			),
 			DebugMenu: () => (
-				<CustomDebugMenu showFairyFeatureFlags={hasFairyAccess || isDevelopmentEnv} />
+				<CustomDebugMenu />
 			),
 		}
 	}, [agents, hasFairiesFlag, hasFairyAccess, app])
@@ -364,7 +364,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	)
 }
 
-function CustomDebugMenu({ showFairyFeatureFlags }: { showFairyFeatureFlags: boolean }) {
+function CustomDebugMenu() {
 	const app = useMaybeApp()
 	const openAndTrack = useOpenUrlAndTrack('unknown')
 	const editor = useEditor()
