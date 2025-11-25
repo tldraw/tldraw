@@ -6,10 +6,10 @@ import { AgentActionUtil } from './AgentActionUtil'
 export class MarkSoloTaskDoneActionUtil extends AgentActionUtil<MarkSoloTaskDoneAction> {
 	static override type = 'mark-task-done' as const
 
-	override getInfo(_action: Streaming<MarkSoloTaskDoneAction>) {
+	override getInfo(action: Streaming<MarkSoloTaskDoneAction>) {
 		return {
 			icon: 'flag' as const,
-			description: `Completed task`,
+			description: action.complete ? `Completed task` : 'Completing task...',
 			pose: 'writing' as const,
 			canGroup: () => false,
 		}

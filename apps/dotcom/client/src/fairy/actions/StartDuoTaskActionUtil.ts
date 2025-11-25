@@ -10,7 +10,7 @@ export class StartDuoTaskActionUtil extends AgentActionUtil<StartDuoTaskAction> 
 		const task = $fairyTasks.get().find((task) => task.id === action.taskId)
 
 		return {
-			icon: 'note' as const,
+			icon: 'flag' as const,
 			description: action.complete ? `Started task: ${task?.title}` : 'Starting task...',
 			pose: 'reading' as const,
 			canGroup: () => false,
