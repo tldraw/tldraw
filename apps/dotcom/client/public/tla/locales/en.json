@@ -113,6 +113,9 @@
   "31418ce4ad": {
     "translation": "i18n: Highlight Missing"
   },
+  "3209f407ed": {
+    "translation": "three fairies"
+  },
   "32210b37e4": {
     "translation": "Add link"
   },
@@ -130,6 +133,9 @@
   },
   "3a77f951ca": {
     "translation": "Add a new task…"
+  },
+  "3b6c2b4caa": {
+    "translation": "Terms of Service"
   },
   "3bc7d6ea2f": {
     "translation": "Continue with email"
@@ -326,6 +332,9 @@
   "797799f35e": {
     "translation": "Submit an issue on GitHub"
   },
+  "79cc22ac6b": {
+    "translation": "A fairy is a little guy that can work with you on the canvas. Fairies can work alone or as a team. There is no limit to what a fairy can do. Nobody knows where they came from."
+  },
   "7a3113b0ba": {
     "translation": "Drag to canvas"
   },
@@ -365,6 +374,9 @@
   "81d48c2f3a": {
     "translation": "Show tasks on canvas"
   },
+  "8472a551f1": {
+    "translation": "Fairies have come to tldraw for the month of December."
+  },
   "85a082de1b": {
     "translation": "Please refresh the page to get the latest version of tldraw."
   },
@@ -374,11 +386,17 @@
   "86c66437fd": {
     "translation": "Rename file"
   },
+  "88e83b88c5": {
+    "translation": "Purchase Fairy Bundle"
+  },
   "8ad4303b83": {
     "translation": "No thanks"
   },
   "8b1946f965": {
     "translation": "To continue editing please copy the room to your files."
+  },
+  "8be569f100": {
+    "translation": "one time payment"
   },
   "8c2d3d730c": {
     "translation": "Check your email for a verification code."
@@ -641,6 +659,9 @@
   },
   "de290d52ef": {
     "translation": "Select a fairy on the right to chat with"
+  },
+  "df6ff49394": {
+    "translation": "Fairies are a <strong>temporary</strong> feature. On January 1st, 2026, all fairies will be removed from the application. Perhaps they will return again someday. Your purchase is for access to fairies for December 2025 only."
   },
   "dfdb78a4e4": {
     "translation": "App debug flags"

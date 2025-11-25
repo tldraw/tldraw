@@ -59,6 +59,10 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/preview/?$",
   },
   {
+    "reactRouterPattern": "/pricing",
+    "vercelRouterPattern": "^/pricing/?$",
+  },
+  {
     "reactRouterPattern": "/r/:boardId/history",
     "vercelRouterPattern": "^/r/[^/]*/history/?$",
   },
