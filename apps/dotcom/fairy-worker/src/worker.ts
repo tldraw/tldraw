@@ -3,15 +3,21 @@
 import { createRouter, handleApiRequest, notFound } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { cors, IRequest } from 'itty-router'
-import { getAuth, isAdmin, requireAdminAccess, SignedInAuth } from './auth'
+import {
+	getAuth,
+	hasFairyAccess,
+	isAdmin,
+	requireFairyAccess as requireFairyAccessCheck,
+	SignedInAuth,
+} from './auth'
 import { Environment } from './environment'
 import { streamActionsHandler } from './routes/stream-actions'
-import { streamTextHandler } from './routes/stream-text'
 
 // Extend IRequest to include auth
 export interface AuthenticatedRequest extends IRequest {
 	auth: SignedInAuth
 	isAdmin: boolean
+	hasFairyAccess: boolean
 }
 
 const { preflight, corsify } = cors({
@@ -22,9 +28,8 @@ export default class extends WorkerEntrypoint<Environment> {
 	readonly router = createRouter<Environment>()
 		.all('*', preflight)
 		.all('*', blockUnknownOrigins)
-		.all('*', requireTldrawEmail)
+		.all('*', requireFairyAccess)
 		.post('/stream-actions', streamActionsHandler)
-		.post('/stream-text', streamTextHandler)
 		.all('*', notFound)
 
 	override async fetch(request: Request): Promise<Response> {
@@ -69,7 +74,7 @@ async function blockUnknownOrigins(request: Request, env: Environment) {
 	return undefined
 }
 
-async function requireTldrawEmail(request: IRequest, env: Environment) {
+async function requireFairyAccess(request: IRequest, env: Environment) {
 	// Skip authentication check for OPTIONS requests (CORS preflight)
 	if (request.method === 'OPTIONS') {
 		return undefined
@@ -83,14 +88,17 @@ async function requireTldrawEmail(request: IRequest, env: Environment) {
 		// Attach auth to request for downstream use
 		;(request as AuthenticatedRequest).auth = auth
 		const hasAdminStatus = await isAdmin(env, auth)
+		const hasFairyAccessValue = await hasFairyAccess(env, auth)
 
 		if (env.IS_LOCAL === 'true') {
 			;(request as AuthenticatedRequest).isAdmin = hasAdminStatus
+			;(request as AuthenticatedRequest).hasFairyAccess = hasFairyAccessValue
 			return undefined
 		}
 
-		await requireAdminAccess(env, auth)
+		await requireFairyAccessCheck(env, auth)
 		;(request as AuthenticatedRequest).isAdmin = hasAdminStatus
+		;(request as AuthenticatedRequest).hasFairyAccess = hasFairyAccessValue
 
 		return undefined
 	} catch (error: any) {

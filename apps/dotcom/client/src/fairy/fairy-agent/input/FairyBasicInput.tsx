@@ -93,28 +93,30 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 	const sendLabel = useMsg(fairyMessages.sendLabel)
 
 	return (
-		<div className="fairy-input">
-			<textarea
-				ref={textareaRef}
-				id="fairy-message-input"
-				name="fairy-message"
-				placeholder={whisperPlaceholder}
-				value={inputValue}
-				onChange={(e) => setInputValue(e.target.value)}
-				onKeyDown={handleKeyDown}
-				autoFocus
-				className="fairy-input__field"
-				rows={1}
-				spellCheck={false}
-			/>
-			<button
-				onClick={handleButtonClick}
-				disabled={inputValue === '' && !isGenerating}
-				className="fairy-input__submit"
-				title={shouldCancel ? stopLabel : sendLabel}
-			>
-				{shouldCancel ? '⏹' : '👄'}
-			</button>
+		<div className="fairy-input-container">
+			<div className="fairy-input">
+				<textarea
+					ref={textareaRef}
+					id="fairy-message-input"
+					name="fairy-message"
+					placeholder={whisperPlaceholder}
+					value={inputValue}
+					onChange={(e) => setInputValue(e.target.value)}
+					onKeyDown={handleKeyDown}
+					autoFocus
+					className="fairy-input__field"
+					rows={1}
+					spellCheck={false}
+				/>
+				<button
+					onClick={handleButtonClick}
+					disabled={inputValue === '' && !isGenerating}
+					className="fairy-input__submit"
+					title={shouldCancel ? stopLabel : sendLabel}
+				>
+					{shouldCancel ? '⏹' : '👄'}
+				</button>
+			</div>
 		</div>
 	)
 }

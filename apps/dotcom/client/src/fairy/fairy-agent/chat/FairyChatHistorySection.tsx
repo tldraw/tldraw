@@ -77,13 +77,14 @@ export function FairyChatHistorySection({
 }
 
 function FairyChatHistoryMemoryTransition({ item }: { item: ChatHistoryMemoryTransitionItem }) {
+	if (!item.userFacingMessage) return null
 	return (
 		<div className="fairy-chat-history-action">
 			<div className="fairy-chat-history-action-icon">
-				<AgentIcon type="brain" />
+				<AgentIcon type="flag" />
 			</div>
 			<div>
-				<Markdown>{item.message}</Markdown>
+				<Markdown>{item.userFacingMessage}</Markdown>
 			</div>
 		</div>
 	)

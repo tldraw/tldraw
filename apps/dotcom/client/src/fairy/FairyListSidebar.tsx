@@ -1,10 +1,7 @@
-import { ContextMenu as _ContextMenu } from 'radix-ui'
-import { MouseEvent, ReactNode } from 'react'
-import { TldrawUiButton, TldrawUiButtonIcon, TldrawUiToolbar, useValue } from 'tldraw'
-import { MAX_FAIRY_COUNT } from '../tla/components/TlaEditor/TlaEditor'
+import { MouseEvent } from 'react'
+import { TldrawUiToolbar, useValue } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairySidebarButton } from './FairySidebarButton'
-import { FairyTaskListContextMenuContent } from './FairyTaskListContextMenuContent'
 
 type FairySidebarEntry =
 	| {
@@ -87,19 +84,15 @@ interface FairyListSidebarProps {
 	onClickFairy(agent: FairyAgent, event: MouseEvent): void
 	onDoubleClickFairy(agent: FairyAgent): void
 	onTogglePanel(): void
-	renderNewFairyButton(disabled: boolean): ReactNode
 }
 
 export function FairyListSidebar({
 	agents,
-	panelState,
 	toolbarMessage,
 	selectMessage,
 	deselectMessage,
 	onClickFairy,
 	onDoubleClickFairy,
-	onTogglePanel,
-	renderNewFairyButton,
 }: FairyListSidebarProps) {
 	const sidebarEntries = useValue('fairy-sidebar-entries', () => getSidebarEntries(agents), [
 		agents,
@@ -118,7 +111,7 @@ export function FairyListSidebar({
 
 	return (
 		<>
-			<div className="fairy-toolbar-header">
+			{/* <div className="fairy-toolbar-header">
 				<_ContextMenu.Root dir="ltr">
 					<_ContextMenu.Trigger asChild>
 						<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onTogglePanel}>
@@ -129,8 +122,8 @@ export function FairyListSidebar({
 					</_ContextMenu.Trigger>
 					<FairyTaskListContextMenuContent agents={agents} />
 				</_ContextMenu.Root>
-			</div>
-			<div className="fairy-list-scrollable">
+			</div> */}
+			<div className="fairy-list">
 				<TldrawUiToolbar label={toolbarMessage} orientation="vertical">
 					{sidebarEntries.map((entry) => {
 						if (entry.type === 'group') {
@@ -149,9 +142,6 @@ export function FairyListSidebar({
 
 						return renderFairySidebarButton(entry.agent)
 					})}
-					{Array.from({ length: MAX_FAIRY_COUNT - agents.length }).map((_, i) => (
-						<div key={`placeholder-${i}`}>{renderNewFairyButton(i > 0)}</div>
-					))}
 				</TldrawUiToolbar>
 			</div>
 		</>

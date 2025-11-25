@@ -58,7 +58,7 @@ import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
 // Lazy load fairy components
-export const MAX_FAIRY_COUNT = 5
+export const MAX_FAIRY_COUNT = 3
 const FairyApp = lazy(() =>
 	import('../../../fairy/FairyApp').then((m) => ({
 		default: m.FairyApp,
@@ -74,9 +74,9 @@ const Fairies = lazy(() => import('../../../fairy/Fairies').then((m) => ({ defau
 const RemoteFairies = lazy(() =>
 	import('../../../fairy/RemoteFairies').then((m) => ({ default: m.RemoteFairies }))
 )
-const InCanvasTaskList = lazy(() =>
-	import('../../../fairy/InCanvasTaskList').then((m) => ({ default: m.InCanvasTaskList }))
-)
+// const InCanvasTaskList = lazy(() =>
+// 	import('../../../fairy/InCanvasTaskList').then((m) => ({ default: m.InCanvasTaskList }))
+// )
 
 const customFeatureFlags = {
 	fairies: createDebugValue('fairies', {
@@ -298,8 +298,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		agentsRef.current = agents
 	}, [agents])
 
+	const emailAddress = user?.clerkUser.emailAddresses[0].emailAddress ?? ''
+	const hasFairyAccess = !!user?.isTldraw || ['jake@firstloop.ai'].includes(emailAddress)
+
 	const instanceComponents = useMemo((): TLComponents => {
-		const canShowFairies = app && agents && hasFairiesFlag && (!!user?.isTldraw || isDevelopmentEnv)
+		const canShowFairies = app && agents && hasFairiesFlag && (hasFairyAccess || isDevelopmentEnv)
 
 		return {
 			...components,
@@ -308,7 +311,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 					{canShowFairies && (
 						<Suspense fallback={<div />}>
 							<FairyVision agents={agents} />
-							<InCanvasTaskList agents={agents} />
+							{/* <InCanvasTaskList agents={agents} /> */}
 							<RemoteFairies />
 							<Fairies agents={agents} />
 						</Suspense>
@@ -325,10 +328,10 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				</>
 			),
 			DebugMenu: () => (
-				<CustomDebugMenu showFairyFeatureFlags={!!user?.isTldraw || isDevelopmentEnv} />
+				<CustomDebugMenu showFairyFeatureFlags={hasFairyAccess || isDevelopmentEnv} />
 			),
 		}
-	}, [agents, hasFairiesFlag, user?.isTldraw, app])
+	}, [agents, hasFairiesFlag, hasFairyAccess, app])
 
 	return (
 		<TlaEditorWrapper>
