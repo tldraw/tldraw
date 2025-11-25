@@ -20,8 +20,8 @@ export class DirectToStartDuoTaskActionUtil extends AgentActionUtil<DirectToStar
 		const task = action.complete ? getFairyTaskById(action.taskId) : null
 
 		const text = action.complete
-			? `Directed ${otherFairyFirstName} to do a task${task ? `: ${task.title}` : ''}`
-			: `Directing ${otherFairyFirstName} to do a task...`
+			? `Asked ${otherFairyFirstName} to do${task ? `: ${task.title}` : ' a task'}`
+			: `Asking ${otherFairyFirstName} to do a task...`
 
 		return {
 			icon: 'comment' as const,
