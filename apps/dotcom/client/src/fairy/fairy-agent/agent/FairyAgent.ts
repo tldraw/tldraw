@@ -345,6 +345,9 @@ export class FairyAgent {
 					gesture: state.fairyEntity?.gesture ?? entity.gesture,
 				}
 			})
+			if (this.$fairyEntity.get().pose === 'idle') {
+				this.setMode('idling')
+			}
 		}
 		if (state.chatHistory) {
 			this.$chatHistory.set(state.chatHistory)
