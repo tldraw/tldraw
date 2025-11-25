@@ -42,7 +42,7 @@ export class StartSoloTaskActionUtil extends AgentActionUtil<StartSoloTaskAction
 		this.agent.interrupt({
 			mode: 'working-solo',
 			input: {
-				messages: [
+				agentMessages: [
 					`You just decided to start working on a task.\nID: "${task.id}"\nTitle: "${task.title}"\nDescription: "${task.text}".`,
 				],
 				bounds: {

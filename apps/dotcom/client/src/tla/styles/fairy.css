@@ -428,6 +428,7 @@
 
 .fairy-chat-history-section:last-child:not(:only-child) {
 	min-height: calc(100% + 4px);
+	/* margin-bottom: 64px; */
 }
 
 .fairy-chat-history-prompt-container {

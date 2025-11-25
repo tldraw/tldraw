@@ -1,4 +1,4 @@
-import { AgentInput, DirectToStartDuoTaskAction, Streaming } from '@tldraw/fairy-shared'
+import { AgentRequest, DirectToStartDuoTaskAction, Streaming } from '@tldraw/fairy-shared'
 import { $fairyAgentsAtom } from '../fairy-agent/agent/fairyAgentsAtom'
 import { assignFairyToTask, getFairyTaskById, setFairyTaskStatus } from '../FairyTaskList'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -74,9 +74,9 @@ export class DirectToStartDuoTaskActionUtil extends AgentActionUtil<DirectToStar
 		assignFairyToTask(taskId, otherFairyId, $fairyAgentsAtom.get(this.editor))
 		setFairyTaskStatus(taskId, 'in-progress')
 
-		const otherFairyInput: AgentInput = {
-			inputMessage: `You have been asked to complete task ${taskId}. Please complete it.`,
-			inputUserFacingMessage: `Directed by ${this.agent.$fairyConfig.get().name} to start task: ${taskId}`,
+		const otherFairyInput: Partial<AgentRequest> = {
+			agentMessages: [`You have been asked to complete task ${taskId}. Please complete it.`],
+			userMessages: [`Directed by ${this.agent.$fairyConfig.get().name} to start task: ${taskId}`],
 			source: 'other-agent',
 		}
 		if (

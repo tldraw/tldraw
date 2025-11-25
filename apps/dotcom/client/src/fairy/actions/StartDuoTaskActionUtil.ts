@@ -57,7 +57,7 @@ export class StartDuoTaskActionUtil extends AgentActionUtil<StartDuoTaskAction> 
 		this.agent.interrupt({
 			mode: 'working-orchestrator',
 			input: {
-				messages: [
+				agentMessages: [
 					`You just decided to start working on a task.\nID: "${task.id}"\nTitle: "${task.title}"\nDescription: "${task.text}".`,
 				],
 				bounds: {

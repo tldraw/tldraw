@@ -13,7 +13,6 @@ import { $fairyAgentsAtom } from './fairy-agent/agent/fairyAgentsAtom'
  * Notify all agents that are waiting for an event.
  * This is the central function for broadcasting events to waiting agents.
  */
-// export function notifyWaitingAgents(opts: NotifyWaitingAgentsOptions) {
 export function notifyWaitingAgents({
 	event,
 	editor,

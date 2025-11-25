@@ -502,10 +502,10 @@ export class FairyAgent {
 		const activeRequest = this.$activeRequest.get()
 
 		return {
-			messages: request.messages ?? [],
+			agentMessages: request.agentMessages ?? [],
 			source: request.source ?? 'user',
 			data: request.data ?? [],
-			userFacingMessages: request.userFacingMessages,
+			userMessages: request.userMessages ?? [],
 			bounds:
 				request.bounds ??
 				activeRequest?.bounds ??
@@ -531,37 +531,20 @@ export class FairyAgent {
 	private getPartialRequestFromInput(input: AgentInput): Partial<AgentRequest> {
 		// eg: agent.prompt('Draw a cat')
 		if (typeof input === 'string') {
-			return { messages: [input] }
+			return { agentMessages: [input] }
 		}
 
 		// eg: agent.prompt(['Draw a cat', 'Draw a dog'])
 		if (Array.isArray(input)) {
-			return { messages: input }
+			return { agentMessages: input }
 		}
 
-		// eg: agent.prompt({ messages: 'Draw a cat' })
-		if (typeof input.messages === 'string') {
-			return { ...input, messages: [input.messages] }
-		}
-
-		// eg: agent.prompt({ inputMessage: 'Draw a cat' })
-		// eg: agent.prompt({ inputMessage: 'Draw a cat', inputUserFacingMessage: 'Please draw a cat' })
-		if (typeof input.inputMessage === 'string') {
-			const messages = [input.inputMessage, ...(input.messages ?? [])]
-			const userFacingMessages: (string | null)[] = input.inputUserFacingMessage
-				? [input.inputUserFacingMessage, ...(input.userFacingMessages ?? [])]
-				: (input.userFacingMessages ?? messages.map(() => null))
-
-			// Remove inputMessage and inputUserFacingMessage from the spread
-			const {
-				inputMessage: _inputMessage,
-				inputUserFacingMessage: _inputUserFacingMessage,
-				...rest
-			} = input
+		// eg: agent.prompt({ message: 'Draw a cat' })
+		if ('message' in input && typeof input.message === 'string') {
 			return {
-				...rest,
-				messages,
-				userFacingMessages,
+				...input,
+				agentMessages: [input.message],
+				userMessages: [input.message],
 			}
 		}
 
@@ -764,19 +747,16 @@ export class FairyAgent {
 		}
 
 		// If there's already a scheduled request, append to it
-		const request = this.getPartialRequestFromInput(input)
+		const newRequest = this.getPartialRequestFromInput(input)
 		this._schedule({
 			// Append to properties where possible
-			messages: [...scheduledRequest.messages, ...(request.messages ?? [])],
-			data: [...scheduledRequest.data, ...(request.data ?? [])],
-			userFacingMessages: [
-				...(scheduledRequest.userFacingMessages ?? scheduledRequest.messages.map(() => null)),
-				...(request.userFacingMessages ?? request.messages?.map(() => null) ?? []),
-			],
+			agentMessages: [...scheduledRequest.agentMessages, ...(newRequest.agentMessages ?? [])],
+			userMessages: [...scheduledRequest.userMessages, ...(newRequest.userMessages ?? [])],
+			data: [...scheduledRequest.data, ...(newRequest.data ?? [])],
 
 			// Override other properties
-			bounds: request.bounds ?? scheduledRequest.bounds,
-			source: request.source ?? scheduledRequest.source ?? 'self',
+			bounds: newRequest.bounds ?? scheduledRequest.bounds,
+			source: newRequest.source ?? scheduledRequest.source ?? 'self',
 		})
 	}
 
@@ -832,14 +812,14 @@ export class FairyAgent {
 		const activeRequest = this.$activeRequest.get()
 		const partialRequest = this.getPartialRequestFromInput(input)
 		const request: AgentRequest = {
-			messages: partialRequest.messages ?? [],
+			agentMessages: partialRequest.agentMessages ?? [],
 			bounds:
 				partialRequest.bounds ??
 				activeRequest?.bounds ??
 				Box.FromCenter(this.$fairyEntity.get().position, FAIRY_VISION_DIMENSIONS),
 			data: partialRequest.data ?? [],
 			source: partialRequest.source ?? 'self',
-			userFacingMessages: partialRequest.userFacingMessages,
+			userMessages: partialRequest.userMessages ?? [],
 		}
 
 		const isCurrentlyActive = this.isGenerating()
@@ -936,18 +916,18 @@ export class FairyAgent {
 		userFacingMessage,
 	}: {
 		agentFacingMessage: string
-		userFacingMessage?: string | null
+		userFacingMessage: string | null
 	}) {
 		if (this.$isPrompting.get()) {
 			this.schedule({
-				inputMessage: agentFacingMessage,
-				inputUserFacingMessage: userFacingMessage ?? 'Awoken by notification',
+				agentMessages: [agentFacingMessage],
+				userMessages: userFacingMessage ? [userFacingMessage] : undefined,
 				source: 'other-agent',
 			})
 		} else {
 			this.prompt({
-				inputMessage: agentFacingMessage,
-				inputUserFacingMessage: userFacingMessage ?? 'Awoken by notification',
+				agentMessages: [agentFacingMessage],
+				userMessages: userFacingMessage ? [userFacingMessage] : undefined,
 				source: 'other-agent',
 			})
 		}
@@ -1512,18 +1492,8 @@ function requestAgentActions({ agent, request }: { agent: FairyAgent; request: A
 	const mode = getFairyModeDefinition(agent.getMode())
 
 	// Convert arrays to strings for ChatHistoryPromptItem
-	const agentFacingMessage = request.messages.join('\n')
-
-	// Align userFacingMessages with messages array, then join non-null messages
-	const alignedUserFacingMessages: (string | null)[] = request.userFacingMessages
-		? request.messages.map((_, index) => request.userFacingMessages?.[index] ?? null)
-		: request.messages.map(() => null)
-
-	// Join all non-null user-facing messages, or use null if all are null
-	const userFacingMessage =
-		alignedUserFacingMessages.filter((msg) => msg !== null).length > 0
-			? alignedUserFacingMessages.filter((msg) => msg !== null).join('\n')
-			: null
+	const agentFacingMessage = request.agentMessages.join('\n')
+	const userFacingMessage = request.userMessages.join('\n')
 
 	const promptHistoryItem: ChatHistoryPromptItem = {
 		type: 'prompt',

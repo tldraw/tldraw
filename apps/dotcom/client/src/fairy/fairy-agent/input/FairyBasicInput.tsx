@@ -48,7 +48,8 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 
 			agent.interrupt({
 				input: {
-					inputMessage: value,
+					agentMessages: [value],
+					userMessages: [value],
 					bounds: fairyVision,
 					source: 'user',
 				},
