@@ -97,7 +97,7 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 			const content: AgentMessageContent[] = []
 
 			// Add agent-facing message to the content
-			if (item.agentFacingMessage.trim() !== '') {
+			if (item.agentFacingMessage && item.agentFacingMessage.trim() !== '') {
 				content.push({
 					type: 'text',
 					text: item.agentFacingMessage,

@@ -580,7 +580,7 @@
 	left: 0;
 	right: 0;
 	height: 12px;
-	background: linear-gradient(to bottom, rgba(252, 252, 252, 1), rgba(252, 252, 252, 0));
+	background: linear-gradient(to bottom, var(--tl-color-panel), var(--tl-color-panel-transparent));
 	pointer-events: none;
 	z-index: 1;
 }
