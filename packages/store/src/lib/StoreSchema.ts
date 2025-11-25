@@ -622,6 +622,13 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 				exhaustiveSwitchError(migration)
 			}
 		}
+		// Clean up by filtering out any non-document records.
+		// This is mainly legacy support for extremely early days tldraw.
+		for (const [id, state] of storage.entries()) {
+			if (this.getType(state.typeName).scope !== 'document') {
+				storage.delete(id)
+			}
+		}
 	}
 
 	/**

@@ -261,7 +261,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.presenceType = presenceTypes.values().next()?.value ?? null
 
 		const { documentClock } = this.storage.transaction((txn) => {
-			return this.schema.migrateStorage(txn)
+			this.schema.migrateStorage(txn)
 		})
 
 		this.lastDocumentClock = documentClock

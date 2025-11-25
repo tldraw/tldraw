@@ -87,7 +87,11 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 	}
 
 	constructor({ snapshot }: { snapshot: RoomSnapshot }) {
-		assert(snapshot.schema, 'Schema is required')
+		const maxClockValue = Math.max(
+			0,
+			...Object.values(snapshot.tombstones ?? {}),
+			...Object.values(snapshot.documents.map((d) => d.lastChangedClock))
+		)
 		this.documents = new AtomMap(
 			'room documents',
 			snapshot.documents.map((d) => [
@@ -95,7 +99,8 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 				{ state: devFreeze(d.state) as R, lastChangedClock: d.lastChangedClock },
 			])
 		)
-		const documentClock = snapshot.documentClock ?? snapshot.clock ?? 0
+		const documentClock = Math.max(maxClockValue, snapshot.documentClock ?? snapshot.clock ?? 0)
+
 		this.documentClock = atom('document clock', documentClock)
 		// math.min to make sure the tombstone history starts at or before the document clock
 		const tombstoneHistoryStartsAtClock = Math.min(
@@ -106,7 +111,8 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 			'tombstone history starts at clock',
 			tombstoneHistoryStartsAtClock
 		)
-		this.schema = atom('schema', snapshot.schema)
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		this.schema = atom('schema', snapshot.schema ?? createTLSchema().serializeEarliestVersion())
 		this.tombstones = new AtomMap(
 			'room tombstones',
 			// If the tombstone history starts now (or we didn't have the

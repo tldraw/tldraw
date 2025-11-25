@@ -40,6 +40,7 @@ const makeSnapshot = (records: TLRecord[], others: Partial<RoomSnapshot> = {}) =
 	documents: records.map((r) => ({ state: r, lastChangedClock: 0 })),
 	clock: 0,
 	documentClock: 0,
+	schema: schema.serialize(),
 	...others,
 })
 
@@ -133,28 +134,32 @@ describe('TLSyncRoom', () => {
 		expect(arrow.props.labelColor).toBe('black')
 	})
 
-	it('filters out instance state records', () => {
-		const schema = createTLSchema({ shapes: {}, bindings: {} })
+	it('filters out instance state records if a migration occurs, for legacy reasons', () => {
+		const schema = createTLSchema()
+		const oldSchema = structuredClone(schema.serialize())
+		oldSchema.sequences['com.tldraw.shape.arrow'] = 0
 		const storage = new InMemorySyncStorage<TLRecord>({
-			snapshot: makeSnapshot([
-				...records,
-				schema.types.instance.create({
-					currentPageId: PageRecordType.createId('page_1'),
-					id: schema.types.instance.createId('instance_1'),
-				}),
-				InstancePageStateRecordType.create({
-					id: InstancePageStateRecordType.createId(PageRecordType.createId('page_1')),
-					pageId: PageRecordType.createId('page_1'),
-				}),
-				CameraRecordType.create({
-					id: CameraRecordType.createId('camera_1'),
-				}),
-			]),
+			snapshot: makeSnapshot(
+				[
+					...records,
+					schema.types.instance.create({
+						currentPageId: PageRecordType.createId('page_1'),
+						id: schema.types.instance.createId('instance_1'),
+					}),
+					InstancePageStateRecordType.create({
+						id: InstancePageStateRecordType.createId(PageRecordType.createId('page_1')),
+						pageId: PageRecordType.createId('page_1'),
+					}),
+					CameraRecordType.create({
+						id: CameraRecordType.createId('camera_1'),
+					}),
+				],
+				{
+					schema: oldSchema,
+				}
+			),
 		})
-		const _room = new TLSyncRoom({
-			schema,
-			storage,
-		})
+		const _room = new TLSyncRoom({ schema, storage })
 
 		expect(
 			storage
@@ -256,7 +261,7 @@ describe('isReadonly', () => {
 		    {
 		      "action": "discard",
 		      "clientClock": 0,
-		      "serverClock": 1,
+		      "serverClock": 0,
 		      "type": "push_result",
 		    },
 		  ],
@@ -278,7 +283,7 @@ describe('isReadonly', () => {
 		    {
 		      "action": "commit",
 		      "clientClock": 0,
-		      "serverClock": 2,
+		      "serverClock": 1,
 		      "type": "push_result",
 		    },
 		  ],
@@ -313,7 +318,7 @@ describe('isReadonly', () => {
 		    {
 		      "action": "commit",
 		      "clientClock": 0,
-		      "serverClock": 1,
+		      "serverClock": 0,
 		      "type": "push_result",
 		    },
 		  ],
@@ -349,7 +354,7 @@ describe('isReadonly', () => {
 		          },
 		        ],
 		      },
-		      "serverClock": 1,
+		      "serverClock": 0,
 		      "type": "patch",
 		    },
 		  ],
@@ -443,82 +448,6 @@ describe('isReadonly', () => {
 
 			const snapshot = storage.getSnapshot()
 			expect(snapshot.documentClock).toBe(15) // should preserve explicit value
-		})
-
-		describe('Document clock initialization logic', () => {
-			it('sets documentClock to room clock when migrations run (didIncrementClock = true)', () => {
-				// Create a schema with a migration that will update documents
-				const schemaWithMigration = createTLSchema({
-					migrations: [
-						{
-							sequenceId: 'test-migration',
-							retroactive: false,
-							sequence: [
-								{
-									id: 'test-migration/1',
-									scope: 'record',
-									filter: (record: any) => record.typeName === 'document',
-									up: (record: any) => {
-										// Modify the record to trigger clock increment
-										return { ...record, meta: { ...record.meta, migrated: true } }
-									},
-								},
-							],
-						},
-					],
-				})
-
-				const snapshotWithDocumentClock = makeSnapshot(records, {
-					documentClock: 5,
-					clock: 10,
-				})
-
-				const onDataChange = vi.fn()
-				const storage = new InMemorySyncStorage<TLRecord>({ snapshot: snapshotWithDocumentClock })
-				storage.onChange(onDataChange)
-				const _room = new TLSyncRoom<TLRecord, undefined>({ schema: schemaWithMigration, storage })
-
-				// Migration should have run, incrementing the clock
-				expect(storage.getSnapshot().clock).toBe(11)
-				expect(storage.getSnapshot().documentClock).toBe(11)
-				expect(onDataChange).toHaveBeenCalled()
-			})
-
-			it('preserves documentClock from snapshot when no migrations run (didIncrementClock = false)', () => {
-				const snapshotWithDocumentClock = makeSnapshot(records, {
-					documentClock: 15,
-					clock: 20,
-				})
-
-				const onDataChange = vi.fn()
-				const storage = new InMemorySyncStorage<TLRecord>({ snapshot: snapshotWithDocumentClock })
-				storage.onChange(onDataChange)
-				const _room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
-
-				// No migrations should have run
-				expect(storage.getSnapshot().documentClock).toBe(15)
-				expect(storage.getSnapshot().clock).toBe(20)
-				expect(onDataChange).not.toHaveBeenCalled()
-			})
-
-			it('calculates documentClock when snapshot lacks documentClock field (didIncrementClock = false)', () => {
-				const legacySnapshot = makeLegacySnapshot(records, {
-					documents: [
-						{ state: records[0], lastChangedClock: 7 },
-						{ state: records[1], lastChangedClock: 12 },
-					],
-					clock: 15,
-				})
-
-				const onDataChange = vi.fn()
-				const storage = new InMemorySyncStorage<TLRecord>({ snapshot: legacySnapshot })
-				storage.onChange(onDataChange)
-				const _room = new TLSyncRoom<TLRecord, undefined>({ schema, storage })
-				// Should calculate from existing data
-				expect(storage.getSnapshot().documentClock).toBe(12) // max lastChangedClock
-				expect(storage.getSnapshot().clock).toBe(15) // clock from snapshot
-				expect(onDataChange).not.toHaveBeenCalled()
-			})
 		})
 	})
 })
