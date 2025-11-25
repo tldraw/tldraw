@@ -24,6 +24,7 @@ export class LabelActionUtil extends AgentActionUtil<LabelAction> {
 		return {
 			icon: 'pencil' as const,
 			description: action.intent ?? '',
+			pose: 'working' as const,
 		}
 	}
 

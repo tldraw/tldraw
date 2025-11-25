@@ -10,11 +10,11 @@ export class AwaitTasksCompletionActionUtil extends AgentActionUtil<AwaitTasksCo
 	override getInfo(action: Streaming<AwaitTasksCompletionAction>) {
 		const taskCount = action.taskIds?.length ?? 0
 		return {
-			icon: 'note' as const,
+			icon: 'refresh' as const,
 			description: action.complete
 				? `Waiting for ${taskCount} task${taskCount === 1 ? '' : 's'} to complete`
 				: 'Setting up wait conditions...',
-			pose: 'thinking' as const,
+			pose: 'waiting' as const,
 			canGroup: () => false,
 		}
 	}

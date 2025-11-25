@@ -44,4 +44,5 @@ export interface ChatHistoryMemoryTransitionItem {
 	type: 'memory-transition'
 	memoryLevel: FairyMemoryLevel
 	message: string
+	userFacingMessage: string | null
 }

@@ -11,6 +11,7 @@ export class FlyToBoundsActionUtil extends AgentActionUtil<FlyToBoundsAction> {
 		return {
 			icon: 'eye' as const,
 			description: `${text ?? ''}`,
+			pose: 'working' as const,
 		}
 	}
 
