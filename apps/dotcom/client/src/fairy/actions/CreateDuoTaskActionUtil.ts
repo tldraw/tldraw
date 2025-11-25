@@ -12,7 +12,7 @@ export class CreateDuoTaskActionUtil extends AgentActionUtil<CreateDuoTaskAction
 		const label = action.complete ? 'Created task' : 'Creating task'
 		return {
 			icon: 'note' as const,
-			description: `${label}: ${action.text}`,
+			description: `${label}${action.text ? `: ${action.text}` : ''}`,
 			pose: 'writing' as const,
 		}
 	}
