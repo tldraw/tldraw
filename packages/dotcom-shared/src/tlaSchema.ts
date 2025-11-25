@@ -122,6 +122,7 @@ export const user_fairies = table('user_fairies')
 		fairies: string(),
 		fairyLimit: number().optional(),
 		fairyAccessExpiresAt: number().optional(),
+		weeklyUsage: string(),
 	})
 	.primaryKey('userId')
 
@@ -303,6 +304,12 @@ export interface TlaAsset {
 	userId: string | null
 }
 
+// Override for user_fairies with proper JSONB types for Kysely
+// Zero schema requires string(), but Postgres stores JSONB
+export interface TlaUserFairyDB extends Omit<TlaUserFairy, 'weeklyUsage'> {
+	weeklyUsage: Record<string, number> // JSONB: { "2025-W48": 12.34 }
+}
+
 export interface DB {
 	file: TlaFile
 	file_state: TlaFileState
@@ -310,7 +317,7 @@ export interface DB {
 	group: TlaGroup
 	group_user: TlaGroupUser
 	group_file: TlaGroupFile
-	user_fairies: TlaUserFairy
+	user_fairies: TlaUserFairyDB // Use override with JSONB type
 	file_fairies: TlaFileFairy
 	fairy_invite: TlaFairyInvite
 	user_mutation_number: TlaUserMutationNumber

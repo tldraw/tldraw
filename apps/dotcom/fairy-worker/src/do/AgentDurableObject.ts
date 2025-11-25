@@ -11,6 +11,55 @@ export class AgentDurableObject extends DurableObject<Environment> {
 		this.service = new AgentService(this.env)
 	}
 
+	private getUserDOStub(userId: string) {
+		const userDO = this.env.TL_USER.idFromName(userId)
+		return this.env.TL_USER.get(userDO)
+	}
+
+	private async checkRateLimit(
+		userId: string,
+		userStub: ReturnType<Environment['TL_USER']['get']>,
+		userIsAdmin: boolean
+	): Promise<Response | null> {
+		// Admins bypass rate limits
+		if (userIsAdmin) return null
+
+		const checkRes = await userStub.fetch(`http://internal/app/${userId}/fairy/check-rate-limit`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+		})
+
+		if (!checkRes.ok) {
+			const errorData = (await checkRes.json()) as { error: string }
+			console.error('Rate limit check failed:', errorData)
+			return new Response(
+				JSON.stringify({
+					error: 'Failed to check rate limit',
+					details: errorData.error,
+				}),
+				{ status: checkRes.status, headers: { 'Content-Type': 'application/json' } }
+			)
+		}
+
+		const { allowed, currentUsage } = (await checkRes.json()) as {
+			allowed: boolean
+			currentUsage: number
+		}
+
+		if (!allowed) {
+			return new Response(
+				JSON.stringify({
+					error: 'Weekly rate limit exceeded',
+					limit: 25,
+					current: currentUsage,
+				}),
+				{ status: 429, headers: { 'Content-Type': 'application/json' } }
+			)
+		}
+
+		return null // No error, rate limit check passed
+	}
+
 	// `fetch` is the entry point for all requests to the Durable Object
 	override async fetch(request: Request): Promise<Response> {
 		const url = new URL(request.url)
@@ -28,6 +77,21 @@ export class AgentDurableObject extends DurableObject<Environment> {
 	 * Stream actions from the model.
 	 */
 	private async streamActions(request: Request): Promise<Response> {
+		// Get auth from headers (already validated by worker)
+		const userId = request.headers.get('X-User-Id')
+		const userIsAdmin = request.headers.get('X-Is-Admin') === 'true'
+
+		if (!userId) {
+			return new Response(JSON.stringify({ error: 'Missing user ID' }), {
+				status: 400,
+				headers: { 'Content-Type': 'application/json' },
+			})
+		}
+
+		const userStub = this.getUserDOStub(userId)
+		const rateLimitError = await this.checkRateLimit(userId, userStub, userIsAdmin)
+		if (rateLimitError) return rateLimitError
+
 		const encoder = new TextEncoder()
 		const { readable, writable } = new TransformStream()
 		const writer = writable.getWriter()
@@ -75,8 +139,8 @@ export class AgentDurableObject extends DurableObject<Environment> {
 			try {
 				const prompt = (await request.json()) as AgentPrompt
 
-				const isAdmin = request.headers.get('X-Is-Admin') === 'true'
-				for await (const action of this.service.streamActions(prompt, isAdmin, signal)) {
+				// Pass userId and userStub for usage recording in onFinish
+				for await (const action of this.service.streamActions(prompt, signal, userId, userStub)) {
 					if (signal.aborted) break
 					response.actions.push(action)
 					const data = `data: ${JSON.stringify(action)}\n\n`
@@ -89,6 +153,7 @@ export class AgentDurableObject extends DurableObject<Environment> {
 						throw writeError
 					}
 				}
+
 				if (!signal.aborted) {
 					await writer.close()
 				}
@@ -100,17 +165,16 @@ export class AgentDurableObject extends DurableObject<Environment> {
 					} catch {
 						// Writer already closed/aborted, ignore
 					}
-					return
-				}
-
-				console.error('Stream error:', error)
-				const errorMessage = error?.message || error?.toString() || 'Unknown error'
-				const errorData = `data: ${JSON.stringify({ error: errorMessage })}\n\n`
-				try {
-					await writer.write(encoder.encode(errorData))
-					await writer.close()
-				} catch (writeError) {
-					await writer.abort(writeError)
+				} else {
+					console.error('Stream error:', error)
+					const errorMessage = error?.message || error?.toString() || 'Unknown error'
+					const errorData = `data: ${JSON.stringify({ error: errorMessage })}\n\n`
+					try {
+						await writer.write(encoder.encode(errorData))
+						await writer.close()
+					} catch (writeError) {
+						await writer.abort(writeError)
+					}
 				}
 			}
 		})()

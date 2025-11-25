@@ -166,6 +166,71 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}
 		})
 		.get(`/app/:userId/connect`, (req) => this.onRequest(req))
+		.post('/app/:userId/fairy/check-rate-limit', async () => {
+			if (!this.userId) {
+				return Response.json({ error: 'User ID not initialized' }, { status: 400 })
+			}
+
+			const weekKey = getISOWeekKey()
+			const WEEKLY_LIMIT = 25
+
+			const userFairy = await this.db
+				.selectFrom('user_fairies')
+				.where('userId', '=', this.userId)
+				.select('weeklyUsage')
+				.executeTakeFirst()
+
+			if (!userFairy) {
+				return Response.json({ error: 'User fairy record not found' }, { status: 404 })
+			}
+
+			// weeklyUsage is properly typed as Record<string, number> thanks to TlaUserFairyDB
+			const currentUsage = userFairy.weeklyUsage[weekKey] || 0
+			const allowed = currentUsage < WEEKLY_LIMIT
+
+			return Response.json({
+				allowed,
+				currentUsage,
+			})
+		})
+		.post('/app/:userId/fairy/record-usage', async (req) => {
+			if (!this.userId) {
+				return Response.json({ error: 'User ID not initialized' }, { status: 400 })
+			}
+
+			const body = (await req.json()) as any
+			const { actualCost } = body
+
+			// Validate input
+			if (typeof actualCost !== 'number' || actualCost < 0 || !isFinite(actualCost)) {
+				return Response.json({ error: 'Invalid actualCost' }, { status: 400 })
+			}
+
+			const weekKey = getISOWeekKey()
+
+			// Atomic increment using PostgreSQL JSONB operators
+			// This prevents race conditions by doing read-modify-write in a single query
+			const result = await this.db
+				.updateTable('user_fairies')
+				.set({
+					weeklyUsage: sql`
+						jsonb_set(
+							COALESCE("weeklyUsage", '{}'::jsonb),
+							${sql.lit(`{${weekKey}}`)},
+							to_jsonb(COALESCE(("weeklyUsage"->>${sql.lit(weekKey)})::numeric, 0) + ${actualCost}::numeric)
+						)
+					`,
+				})
+				.where('userId', '=', this.userId)
+				.returning(sql<number>`("weeklyUsage"->>${sql.lit(weekKey)})::numeric`.as('totalUsage'))
+				.executeTakeFirst()
+
+			if (!result) {
+				return Response.json({ error: 'User fairy record not found' }, { status: 404 })
+			}
+
+			return Response.json({ success: true, totalUsage: result.totalUsage })
+		})
 
 	// Handle a request to the Durable Object.
 	override async fetch(req: IRequest) {
@@ -725,4 +790,19 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 		await this.db.destroy()
 	}
+}
+
+function getISOWeekKey(): string {
+	const now = new Date()
+	const year = now.getUTCFullYear()
+	const week = getISOWeekNumber(now)
+	return `${year}-W${String(week).padStart(2, '0')}`
+}
+
+function getISOWeekNumber(date: Date): number {
+	const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+	const dayNum = d.getUTCDay() || 7
+	d.setUTCDate(d.getUTCDate() + 4 - dayNum)
+	const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
+	return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
 }

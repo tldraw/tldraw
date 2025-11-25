@@ -41,10 +41,45 @@ export class AgentService {
 		return this[provider](modelDefinition.id)
 	}
 
+	private async handleFinish(
+		modelId: AgentModelName,
+		usage: any,
+		providerMetadata: any,
+		userStub: ReturnType<Environment['TL_USER']['get']>,
+		userId: string
+	): Promise<void> {
+		if (!providerMetadata) {
+			console.warn('No provider metadata found (this should probably not be happening).')
+			return
+		}
+
+		const cost = getGenerationCostFromUsageAndMetaData(modelId, usage, providerMetadata)
+		console.warn(`Cost for request to ${modelId}: $${cost.toFixed(3)}`)
+
+		// Record usage - runs even on abort/error
+		if (cost > 0) {
+			try {
+				const recordRes = await userStub.fetch(`http://internal/app/${userId}/fairy/record-usage`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ actualCost: cost }),
+				})
+
+				if (!recordRes.ok) {
+					const errorData = (await recordRes.json()) as { error: string }
+					console.error('Failed to record usage:', errorData)
+				}
+			} catch (recordError) {
+				console.error('Exception recording usage:', recordError)
+			}
+		}
+	}
+
 	async *streamActions(
 		prompt: AgentPrompt,
-		isAdmin = false,
-		signal?: AbortSignal
+		signal: AbortSignal | undefined,
+		userId: string,
+		userStub: ReturnType<Environment['TL_USER']['get']>
 	): AsyncGenerator<Streaming<AgentAction>> {
 		try {
 			const modelName = getModelName(prompt)
@@ -144,15 +179,8 @@ export class AgentService {
 					console.error('Stream text error:', e)
 					throw e
 				},
-				onFinish: (e) => {
-					const { usage, providerMetadata } = e
-					if (providerMetadata) {
-						console.warn(
-							`Cost for request to ${modelId}: $${getGenerationCostFromUsageAndMetaData(modelId, usage, providerMetadata).toFixed(3)}`
-						)
-					} else {
-						console.warn('No provider metadata found (this should probably not be happening).')
-					}
+				onFinish: async (e) => {
+					await this.handleFinish(modelId, e.usage, e.providerMetadata, userStub, userId)
 				},
 			})
 
@@ -216,20 +244,6 @@ export class AgentService {
 					complete: true,
 					time: Date.now() - startTime,
 				}
-			}
-
-			if (isAdmin) {
-				const usage = await result.usage
-				const providerMetadata = await result.providerMetadata
-
-				// Yield usage information as a special metadata action (only for @tldraw.com admins)
-				yield {
-					_type: '__usage__',
-					complete: true,
-					time: 0,
-					usage,
-					providerMetadata,
-				} as any
 			}
 		} catch (error: any) {
 			// Check if it was aborted
