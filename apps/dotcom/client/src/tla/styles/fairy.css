@@ -445,7 +445,7 @@
 .fairy-chat-history-prompt-other-agent {
 	background-color: var(--tl-color-low);
 	border-radius: 8px;
-	padding: 8px;
+	padding: 2px 8px 2px 8px;
 	font-size: 12px;
 	line-height: 1.5;
 	color: var(--tl-color-text-1);
@@ -974,6 +974,8 @@
 
 .fairy-group-chat-leader-toggle-container {
 	display: flex;
+	justify-content: end;
+	align-items: start;
 	flex-direction: column;
 	gap: 4px;
 	padding: 8px;
@@ -998,14 +1000,16 @@
 /* Fairy Group Chat Input */
 
 .fairy-group-chat-input {
+	border-radius: 8px;
+	background: var(--tl-color-muted-2);
+	margin: 4px;
 	pointer-events: auto;
 	position: relative;
 	display: flex;
 	align-items: start;
 	gap: 8px;
-	padding: 8px 8px 8px 12px;
-	border-top: 1px solid var(--tl-color-divider);
-	height: 41px;
+	border: 1px solid var(--tl-color-divider);
+	height: 36px;
 }
 
 .fairy-group-chat-input__wrapper {
@@ -1017,6 +1021,7 @@
 }
 
 .fairy-group-chat-input__field {
+	padding: 8px 12px 8px 12px;
 	pointer-events: auto;
 	border: none;
 	background: transparent;
@@ -1031,6 +1036,14 @@
 	line-height: 1.5;
 	scrollbar-width: thin;
 	scrollbar-color: var(--tl-color-muted-1) transparent;
+}
+
+.fairy-group-chat-input__submit:hover:not(:disabled) .fairy-lips-icon {
+	color: #d54a63;
+}
+
+.fairy-group-chat-input__submit:hover:not(:disabled) .fairy-cancel-icon {
+	color: var(--tl-color-text);
 }
 
 .fairy-group-chat-input__field::-webkit-scrollbar {
@@ -1053,16 +1066,12 @@
 
 .fairy-group-chat-input__submit {
 	pointer-events: auto;
-	width: 30px;
-	height: 30px;
 	flex-shrink: 0;
 	padding: 0;
 	margin: 0;
 	background-color: transparent;
 	border: none;
-	border-radius: var(--tl-radius-2);
 	cursor: pointer;
-	font-size: 18px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -1071,8 +1080,18 @@
 	transition: background-color 0.1s ease;
 }
 
-.fairy-group-chat-input__submit:hover:not(:disabled) {
-	background-color: var(--tl-color-hint);
+.fairy-input__submit {
+	padding: 0;
+	margin: 0;
+	pointer-events: auto;
+	background-color: transparent;
+	border: none;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	align-self: flex-end;
 }
 
 .fairy-group-chat-input__submit:disabled {

@@ -381,12 +381,6 @@
       "value": "Name"
     }
   ],
-  "4b3e8439d5": [
-    {
-      "type": 0,
-      "value": "Leader fairy will be given orchestration power"
-    }
-  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -783,12 +777,6 @@
     {
       "type": 0,
       "value": "Publish changes"
-    }
-  ],
-  "7e94fd31ac": [
-    {
-      "type": 0,
-      "value": "Create project"
     }
   ],
   "7fcdcc6455": [
@@ -1501,12 +1489,6 @@
       "value": "Delete task"
     }
   ],
-  "d856d53da4": [
-    {
-      "type": 0,
-      "value": "No leader selected"
-    }
-  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1707,6 +1689,12 @@
     {
       "type": 0,
       "value": "User settings"
+    }
+  ],
+  "f23056da60": [
+    {
+      "type": 0,
+      "value": "New project"
     }
   ],
   "f2569594b2": [

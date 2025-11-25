@@ -1,4 +1,4 @@
-import { FairyProject, FairyTask, SmallSpinner } from '@tldraw/fairy-shared'
+import { FairyProject, FairyTask } from '@tldraw/fairy-shared'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { MouseEvent, useCallback, useEffect, useRef, useState } from 'react'
 import {
@@ -50,7 +50,26 @@ function FairyHUDHeader({
 	selectedFairies,
 }: FairyHUDHeaderProps) {
 	const fairyConfig = useValue('fairy config', () => shownFairy?.$fairyConfig.get(), [shownFairy])
-	const isGenerating = useValue('is generating', () => shownFairy?.isGenerating(), [shownFairy])
+
+	// Get the project for the shown fairy
+	const project = useValue('project', () => shownFairy?.getProject(), [shownFairy])
+
+	// Check if the project has been started (has an orchestrator)
+	const isProjectStarted = project?.members.some(
+		(member) => member.role === 'orchestrator' || member.role === 'duo-orchestrator'
+	)
+
+	const getDisplayName = () => {
+		if (!isProjectStarted || !project) {
+			return fairyConfig?.name
+		}
+		// Project is started - show title if available, otherwise a placeholder
+		if (project.title) {
+			return project.title
+		}
+		// Placeholder while the project name is being streamed
+		return 'Planning project…'
+	}
 
 	// Determine center content based on panel state
 	const centerContent =
@@ -60,20 +79,10 @@ function FairyHUDHeader({
 			</div>
 		) : selectedFairies.length > 1 ? (
 			<div className="fairy-id-display">
-				<F defaultMessage="Create project" />
+				<F defaultMessage="New project" />
 			</div>
 		) : shownFairy && fairyConfig ? (
-			<div className="fairy-id-display">
-				{fairyConfig.name}
-				<div
-					className="fairy-spinner-container"
-					style={{
-						visibility: isGenerating ? 'visible' : 'hidden',
-					}}
-				>
-					<SmallSpinner />
-				</div>
-			</div>
+			<div className="fairy-id-display">{getDisplayName()}</div>
 		) : (
 			<div style={{ flex: 1 }}></div>
 		)
@@ -104,16 +113,6 @@ function FairyHUDHeader({
 			<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onClosePanel}>
 				<TldrawUiButtonIcon icon="cross-2" />
 			</TldrawUiButton>
-
-			{/* <div style={{ position: 'relative' }}>
-				<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onToggleFairyTasks}>
-					<TldrawUiIcon
-						icon={panelState === 'task-list' ? 'toggle-on' : 'toggle-off'}
-						label={panelState === 'task-list' ? switchToFairyChatLabel : switchToTaskListLabel}
-					/>
-					{hasUnreadTasks && <div className="fairy-todo-unread-indicator" />}
-				</TldrawUiButton>
-			</div> */}
 		</div>
 	)
 }

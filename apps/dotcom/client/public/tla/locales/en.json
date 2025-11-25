@@ -188,9 +188,6 @@
   "49ee308734": {
     "translation": "Name"
   },
-  "4b3e8439d5": {
-    "translation": "Leader fairy will be given orchestration power"
-  },
   "4d0d3ddec9": {
     "translation": "This site uses cookies to make the app work and to collect analytics."
   },
@@ -370,9 +367,6 @@
   },
   "7daeced9ff": {
     "translation": "Publish changes"
-  },
-  "7e94fd31ac": {
-    "translation": "Create project"
   },
   "7fcdcc6455": {
     "translation": "Forget file"
@@ -657,9 +651,6 @@
   "d7bc9d5a2e": {
     "translation": "Delete task"
   },
-  "d856d53da4": {
-    "translation": "No leader selected"
-  },
   "d876a9fe1a": {
     "translation": "Try Again"
   },
@@ -746,6 +737,9 @@
   },
   "f0e8bff6f9": {
     "translation": "User settings"
+  },
+  "f23056da60": {
+    "translation": "New project"
   },
   "f2569594b2": {
     "translation": "We use these cookies to save your files and settings."
