@@ -23,11 +23,17 @@
   "08bd40c754": {
     "translation": "Akaun"
   },
+  "08d2d725a9": {
+    "translation": "Cipta akaun percuma untuk menyimpan kerja anda, bekerjasama dalam masa nyata dan banyak lagi."
+  },
   "0b27918290": {
     "translation": "Fail"
   },
   "0b9a4cde72": {
     "translation": "menu fail"
+  },
+  "0beb3ca97b": {
+    "translation": "tldraw ialah papan putih maya percuma dan segera."
   },
   "0d1f2bb523": {
     "translation": "Hantar maklum balas"
@@ -35,8 +41,23 @@
   "110a4b01be": {
     "translation": "Terbitkan"
   },
+  "129b9e34ea": {
+    "translation": "Tinggalkan kumpulan"
+  },
+  "12a6766ba1": {
+    "translation": "Nyahsemat fail"
+  },
+  "12c8a9838c": {
+    "translation": "Cuba tldraw SDK"
+  },
   "13ddd375ad": {
     "translation": "Eksport sebagai"
+  },
+  "146ffe2fd9": {
+    "translation": "Tunjukkan lagi"
+  },
+  "14d65465b7": {
+    "translation": "Padamkan kumpulan"
   },
   "181b90f889": {
     "translation": "Buat fail"
@@ -47,11 +68,26 @@
   "1dd1c5fb7f": {
     "translation": "Hari ini"
   },
+  "20976e7bec": {
+    "translation": "Bilik penuh"
+  },
+  "21bfb2dc2e": {
+    "translation": "Bilik ini menghampiri had saiznya. Pertimbangkan untuk mengalih keluar beberapa kandungan atau memulakan fail baharu."
+  },
+  "2445e5e347": {
+    "translation": "Buat kumpulan"
+  },
   "250ddea65c": {
     "translation": "Mengenai tldraw"
   },
   "299cb00a7a": {
     "translation": "Muat naik gagal"
+  },
+  "2c3ef76333": {
+    "translation": "Fail saya"
+  },
+  "2deec2cb74": {
+    "translation": "Bilik ini telah mencapai had saiznya dan perubahan mungkin tidak disimpan lagi. Alih keluar beberapa kandungan atau mulakan fail baharu."
   },
   "31246941ad": {
     "translation": "Anda perlu log masuk untuk melihat fail ini."
@@ -59,11 +95,17 @@
   "31418ce4ad": {
     "translation": "i18n: Serlahkan Hilang"
   },
+  "32210b37e4": {
+    "translation": "Tambah pautan"
+  },
   "335defdafe": {
     "translation": "Sila cuba muat semula halaman."
   },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "3bc7d6ea2f": {
+    "translation": "Teruskan dengan e-mel"
   },
   "3bd1b98dbd": {
     "translation": "Tidak dapat menerbitkan perubahan."
@@ -86,14 +128,29 @@
   "47839e47a5": {
     "translation": "tldraw"
   },
+  "47f493a590": {
+    "translation": "Pin fail"
+  },
+  "49049467ff": {
+    "translation": "Tampalkan URL fail tdraw..."
+  },
   "4908687e50": {
     "translation": "Adakah anda pasti mahu melupakan fail ini?"
+  },
+  "49ee308734": {
+    "translation": "Nama"
   },
   "4d0d3ddec9": {
     "translation": "Tapak ini menggunakan kuki untuk menjadikan apl berfungsi dan mengumpul analitik."
   },
   "4d1c8263ba": {
     "translation": "Muat semula"
+  },
+  "4da5988a2e": {
+    "translation": "Padamkan kumpulan…"
+  },
+  "4e6fbf032b": {
+    "translation": "Adakah anda pasti mahu memadamkan kumpulan ini? Tindakan ini tidak boleh dibuat asal."
   },
   "50db1b7e1e": {
     "translation": "Tidak dapat menyahterbitkan fail."
@@ -119,11 +176,23 @@
   "56c34c6410": {
     "translation": "Dasar privasi"
   },
+  "5a86b22fa0": {
+    "translation": "Seret fail ke sini, <create>buat fail</create> atau <invite>copy link invite</invite> untuk bermula."
+  },
   "5a95a425f7": {
     "translation": "Kongsi"
   },
+  "5bb6cf3b53": {
+    "translation": "Bilik semakin besar"
+  },
+  "5bcc12ace8": {
+    "translation": "Bilik ini kini dibaca sahaja"
+  },
   "5bec508475": {
     "translation": "Pelayar lama dikesan. Sila kemas kini pelayar anda untuk menggunakan aplikasi ini."
+  },
+  "5c6fe42bc2": {
+    "translation": "Batalkan pautan ini dan buat yang baharu."
   },
   "5d26ae7550": {
     "translation": "Kami gagal memuat naik beberapa kandungan yang anda buat sebelum anda melog masuk."
@@ -140,11 +209,20 @@
   "625fd29749": {
     "translation": "Lebih tua"
   },
+  "639bae9ac6": {
+    "translation": "awak"
+  },
   "6609dd239e": {
     "translation": "Sesuatu telah berlaku"
   },
   "6637a98151": {
     "translation": "Versi baharu tldraw tersedia. Sila muat semula halaman untuk meneruskan."
+  },
+  "68257bb646": {
+    "translation": "Anda telah dijemput ke kumpulan <br></br><groupName></groupName>"
+  },
+  "6832ac5936": {
+    "translation": "Masukkan alamat e-mel anda"
   },
   "6a26f54883": {
     "translation": "Tolong"
@@ -154,6 +232,9 @@
   },
   "6dfc62f621": {
     "translation": "Ikuti langkah ini untuk mengimport kandungan secara manual:"
+  },
+  "70222abcfc": {
+    "translation": "Tetapan kumpulan"
   },
   "70a6facb9d": {
     "translation": "minggu ini"
@@ -185,6 +266,9 @@
   "777f9e90cf": {
     "translation": "Permintaan tidak sah."
   },
+  "78e9815992": {
+    "translation": "faham"
+  },
   "797799f35e": {
     "translation": "Serahkan isu pada GitHub"
   },
@@ -196,6 +280,9 @@
   },
   "7cb5f8b4a5": {
     "translation": "lupa"
+  },
+  "7cfe6c43dc": {
+    "translation": "Tinggalkan kumpulan…"
   },
   "7daeced9ff": {
     "translation": "Terbitkan perubahan"
@@ -218,6 +305,15 @@
   "86c66437fd": {
     "translation": "Namakan semula fail"
   },
+  "8ad4303b83": {
+    "translation": "Tidak terima kasih"
+  },
+  "8b1946f965": {
+    "translation": "Untuk meneruskan pengeditan sila salin bilik ke fail anda."
+  },
+  "8c2d3d730c": {
+    "translation": "Semak e-mel anda untuk mendapatkan kod pengesahan."
+  },
   "8eb2c00e96": {
     "translation": "Dikongsi dengan anda"
   },
@@ -233,14 +329,35 @@
   "91e49bb0eb": {
     "translation": "Salin ke fail saya"
   },
+  "930390d222": {
+    "translation": "Pautan jemputan disalin"
+  },
+  "95aacd4d4a": {
+    "translation": "Log masuk dengan Google"
+  },
+  "95d2109dc8": {
+    "translation": "Bina dengan tldraw SDK"
+  },
   "96165d6df5": {
     "translation": "bulan ini"
+  },
+  "985a4b720f": {
+    "translation": "Syarat Penggunaan"
+  },
+  "98c997a27e": {
+    "translation": "Tambah pautan fail"
   },
   "9914a0ce04": {
     "translation": "Cahaya"
   },
+  "9b33f5c63c": {
+    "translation": "Tidak menerima kod? <resend>Hantar semula</resend>."
+  },
   "9bef626805": {
     "translation": "Padam fail"
+  },
+  "9c258b8f88": {
+    "translation": "Bilik berbilang pemain tldraw tanpa nama ini kini dibaca sahaja. Untuk meneruskan pengeditan, sila log masuk dan salin ke fail anda."
   },
   "9ceb927baa": {
     "translation": "Terbitkan fail ini"
@@ -281,6 +398,9 @@
   "a9ded1e5ce": {
     "translation": "Latar belakang"
   },
+  "aa916767cf": {
+    "translation": "Log masuk untuk menerima jemputan"
+  },
   "ab0df9ba36": {
     "translation": "Had fail dicapai"
   },
@@ -291,14 +411,26 @@
   "b028909917": {
     "translation": "Pengguna tetamu"
   },
+  "b357b524e7": {
+    "translation": "Alamat e-mel"
+  },
+  "b3d2db69fe": {
+    "translation": "URL fail"
+  },
   "b6d4223e60": {
     "translation": "Log masuk"
+  },
+  "b6f4a2ec63": {
+    "translation": "Pemilik"
   },
   "b758336699": {
     "translation": "Salin pautan"
   },
-  "bb792693e2": {
-    "translation": "Nyahsemat"
+  "ba0318cb81": {
+    "translation": "Log masuk untuk berkongsi"
+  },
+  "bb93a7590f": {
+    "translation": "Terima dan sertai kumpulan"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, other {Memuat naik {uploaded} daripada {total} fail .tldr…}}"
@@ -306,11 +438,11 @@
   "bc88b0e89e": {
     "translation": "Dikongsi oleh {ownerName}"
   },
-  "bcb62136a3": {
-    "translation": "Muat naik fail .tldr"
-  },
   "c2276c9127": {
     "translation": "Ketahui lebih lanjut tentang perkongsian."
+  },
+  "c28aed8348": {
+    "translation": "Benarkan <cookies>analitik</cookies> untuk membantu kami meningkatkan tldraw."
   },
   "c303bd1095": {
     "translation": "Tidak dapat menerbitkan fail."
@@ -318,17 +450,23 @@
   "c4b39a1cc3": {
     "translation": "Kuki penting"
   },
+  "c6155aaecc": {
+    "translation": "Nama kumpulan"
+  },
   "c655b27b1e": {
     "translation": "i18n: Rentetan Panjang"
   },
   "c6a00f137b": {
     "translation": "Jemput"
   },
+  "c74ea6dbff": {
+    "translation": "Tunjukkan lebih sedikit"
+  },
   "c87aacf567": {
     "translation": "Log keluar"
   },
-  "cbef7ba103": {
-    "translation": "Bilik ini akan menjadi baca sahaja tidak lama lagi"
+  "c9cc8cce24": {
+    "translation": "Jimat"
   },
   "cceaefbc20": {
     "translation": "Kongsi fail ini"
@@ -345,32 +483,53 @@
   "d4bbf74f3e": {
     "translation": "Togol bar sisi"
   },
+  "d638a3344b": {
+    "translation": "Sebelum anda mula, sila terima <tos>syarat penggunaan</tos> dan <privacy>dasar privasi</privacy> kami."
+  },
   "d721757161": {
     "translation": "Tema"
   },
   "d876a9fe1a": {
     "translation": "Cuba Lagi"
   },
+  "d88ad2dc74": {
+    "translation": "Terima dan teruskan"
+  },
   "d9100f3e10": {
     "translation": "Pergi ke sini untuk melihat kandungannya"
+  },
+  "d9e35d0f55": {
+    "translation": "Anda telah mencapai bilangan maksimum kumpulan. Anda perlu memadamkan kumpulan lama sebelum membuat kumpulan baharu."
   },
   "dbbebf3c03": {
     "translation": "Jemput sahaja"
   },
+  "dcdaa754fe": {
+    "translation": "URL fail tldraw tidak sah"
+  },
   "dfdb78a4e4": {
     "translation": "Bendera nyahpepijat apl"
+  },
+  "e0c88179b3": {
+    "translation": "Jemput ahli"
+  },
+  "e2198d6228": {
+    "translation": "Salin pautan jemputan"
   },
   "e2ae80a510": {
     "translation": "Ringkasan undang-undang"
   },
+  "e3afed0047": {
+    "translation": "Admin"
+  },
   "e404559826": {
     "translation": "Syarat perkhidmatan"
   },
-  "e78e14c5f1": {
-    "translation": "Pin"
+  "e81c4e4f2b": {
+    "translation": "atau"
   },
-  "ea2301d01c": {
-    "translation": "Selepas 1 Julai 2025, bilik berbilang pemain tldraw tanpa nama ini akan menjadi baca sahaja. Untuk meneruskan pengeditan pada masa hadapan sila log masuk dan salin ke fail anda."
+  "ea0626ac5a": {
+    "translation": "Zon bahaya"
   },
   "ea4788705e": {
     "translation": "Batal"
@@ -393,6 +552,12 @@
   "ede55d955f": {
     "translation": "Baca <a>dasar kuki</a> kami untuk mengetahui lebih lanjut."
   },
+  "ef53538ae4": {
+    "translation": "ahli"
+  },
+  "ef7de3f485": {
+    "translation": "dipilih"
+  },
   "f09b16bc5f": {
     "translation": "Kami menggunakan kuki untuk memastikan anda tetap log masuk, menyegerakkan fail anda dan mengumpul analitik untuk membantu kami menambah baik tldraw."
   },
@@ -411,6 +576,12 @@
   "f4f70727dc": {
     "translation": "tetapan"
   },
+  "f714e36843": {
+    "translation": "Adakah anda pasti mahu meninggalkan kumpulan ini?"
+  },
+  "fa2ead697d": {
+    "translation": "Dasar Privasi"
+  },
   "fb15c53f22": {
     "translation": "Penonton"
   },
@@ -419,6 +590,9 @@
   },
   "fed5ec05eb": {
     "translation": "pautan disalin"
+  },
+  "ff7a814974": {
+    "translation": "Tambahkan pautan fail…"
   },
   "ffcd73e997": {
     "translation": "Import fail…"

@@ -23,11 +23,17 @@
   "08bd40c754": {
     "translation": "Cuenta"
   },
+  "08d2d725a9": {
+    "translation": "Crea una cuenta gratuita para guardar tu trabajo, colaborar en tiempo real y mucho más."
+  },
   "0b27918290": {
     "translation": "Archivo"
   },
   "0b9a4cde72": {
     "translation": "Menú de archivo"
+  },
+  "0beb3ca97b": {
+    "translation": "tldraw es una pizarra virtual gratuita e instantánea."
   },
   "0d1f2bb523": {
     "translation": "Enviar comentarios"
@@ -35,8 +41,23 @@
   "110a4b01be": {
     "translation": "Publicar"
   },
+  "129b9e34ea": {
+    "translation": "Grupo de salida"
+  },
+  "12a6766ba1": {
+    "translation": "Desanclar archivo"
+  },
+  "12c8a9838c": {
+    "translation": "Pruebe el SDK de tldraw"
+  },
   "13ddd375ad": {
     "translation": "Exportar como"
+  },
+  "146ffe2fd9": {
+    "translation": "Mostrar más"
+  },
+  "14d65465b7": {
+    "translation": "Eliminar grupo"
   },
   "181b90f889": {
     "translation": "Crear archivo"
@@ -47,11 +68,26 @@
   "1dd1c5fb7f": {
     "translation": "Hoy"
   },
+  "20976e7bec": {
+    "translation": "La habitación está llena"
+  },
+  "21bfb2dc2e": {
+    "translation": "Esta sala está llegando a su límite de tamaño. Considere eliminar contenido o crear un nuevo archivo."
+  },
+  "2445e5e347": {
+    "translation": "Crear grupo"
+  },
   "250ddea65c": {
     "translation": "Acerca de tldraw"
   },
   "299cb00a7a": {
     "translation": "Error al cargar"
+  },
+  "2c3ef76333": {
+    "translation": "Mis archivos"
+  },
+  "2deec2cb74": {
+    "translation": "Esta sala ha alcanzado su límite de tamaño y es posible que los cambios ya no se guarden. Elimina contenido o crea un nuevo archivo."
   },
   "31246941ad": {
     "translation": "Tiene que iniciar sesión para ver este archivo."
@@ -59,11 +95,17 @@
   "31418ce4ad": {
     "translation": "i18n: falta resaltado"
   },
+  "32210b37e4": {
+    "translation": "Agregar enlace"
+  },
   "335defdafe": {
     "translation": "Pruebe a actualizar la página."
   },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "3bc7d6ea2f": {
+    "translation": "Continúa con el correo electrónico"
   },
   "3bd1b98dbd": {
     "translation": "No se han podido publicar los cambios."
@@ -86,14 +128,29 @@
   "47839e47a5": {
     "translation": "tldraw"
   },
+  "47f493a590": {
+    "translation": "Archivo de pines"
+  },
+  "49049467ff": {
+    "translation": "Pegue la URL del archivo tldraw..."
+  },
   "4908687e50": {
     "translation": "¿Seguro que quiere olvidar este archivo?"
+  },
+  "49ee308734": {
+    "translation": "Nombre"
   },
   "4d0d3ddec9": {
     "translation": "Este sitio utiliza cookies para que la aplicación funcione y para recopilar análisis."
   },
   "4d1c8263ba": {
     "translation": "Volver a cargar"
+  },
+  "4da5988a2e": {
+    "translation": "Eliminar grupo…"
+  },
+  "4e6fbf032b": {
+    "translation": "¿Seguro que quieres eliminar este grupo? Esta acción no se puede deshacer."
   },
   "50db1b7e1e": {
     "translation": "No se ha podido anular la publicación del archivo."
@@ -119,11 +176,23 @@
   "56c34c6410": {
     "translation": "Política de privacidad"
   },
+  "5a86b22fa0": {
+    "translation": "Arrastra los archivos aquí, <create>crea un archivo</create> o <invite>copia el enlace de invitación</invite> para empezar."
+  },
   "5a95a425f7": {
     "translation": "Compartir"
   },
+  "5bb6cf3b53": {
+    "translation": "La habitación se está haciendo grande"
+  },
+  "5bcc12ace8": {
+    "translation": "Esta sala ahora es de solo lectura."
+  },
   "5bec508475": {
     "translation": "Se detectó un navegador antiguo. Actualice su navegador para usar esta aplicación."
+  },
+  "5c6fe42bc2": {
+    "translation": "Revoca este enlace y crea uno nuevo."
   },
   "5d26ae7550": {
     "translation": "No hemos podido subir parte del contenido que creó antes de iniciar sesión."
@@ -140,11 +209,20 @@
   "625fd29749": {
     "translation": "Más antiguo"
   },
+  "639bae9ac6": {
+    "translation": "tú"
+  },
   "6609dd239e": {
     "translation": "Algo ha ido mal"
   },
   "6637a98151": {
     "translation": "Hay una nueva versión de tldraw disponible. Vuelva a cargar la página para continuar."
+  },
+  "68257bb646": {
+    "translation": "Has sido invitado al grupo <br></br><groupName></groupName>"
+  },
+  "6832ac5936": {
+    "translation": "Introduce tu dirección de correo electrónico"
   },
   "6a26f54883": {
     "translation": "Ayuda"
@@ -154,6 +232,9 @@
   },
   "6dfc62f621": {
     "translation": "Siga estos pasos para importar el contenido de forma manual:"
+  },
+  "70222abcfc": {
+    "translation": "Configuración de grupo"
   },
   "70a6facb9d": {
     "translation": "Esta semana"
@@ -185,6 +266,9 @@
   "777f9e90cf": {
     "translation": "Solicitud no válida."
   },
+  "78e9815992": {
+    "translation": "Entiendo"
+  },
   "797799f35e": {
     "translation": "Enviar un problema en GitHub"
   },
@@ -196,6 +280,9 @@
   },
   "7cb5f8b4a5": {
     "translation": "Olvidar"
+  },
+  "7cfe6c43dc": {
+    "translation": "Salir del grupo…"
   },
   "7daeced9ff": {
     "translation": "Publicar cambios"
@@ -218,6 +305,15 @@
   "86c66437fd": {
     "translation": "Cambiar el nombre del archivo"
   },
+  "8ad4303b83": {
+    "translation": "No, gracias"
+  },
+  "8b1946f965": {
+    "translation": "Para continuar editando, copie la sala a sus archivos."
+  },
+  "8c2d3d730c": {
+    "translation": "Comprueba tu correo electrónico para encontrar un código de verificación."
+  },
   "8eb2c00e96": {
     "translation": "Compartido con usted"
   },
@@ -233,14 +329,35 @@
   "91e49bb0eb": {
     "translation": "Copiar en mis archivos"
   },
+  "930390d222": {
+    "translation": "Enlace de invitación copiado"
+  },
+  "95aacd4d4a": {
+    "translation": "Inicia sesión con Google"
+  },
+  "95d2109dc8": {
+    "translation": "Construir con el SDK tldraw"
+  },
   "96165d6df5": {
     "translation": "Este mes"
+  },
+  "985a4b720f": {
+    "translation": "Condiciones de uso"
+  },
+  "98c997a27e": {
+    "translation": "Agregar enlace de archivo"
   },
   "9914a0ce04": {
     "translation": "Claro"
   },
+  "9b33f5c63c": {
+    "translation": "¿No recibiste un código? <resend>Reenviar</resend>."
+  },
   "9bef626805": {
     "translation": "Eliminar archivo"
+  },
+  "9c258b8f88": {
+    "translation": "Esta sala multijugador anónima de tldraw ahora es de solo lectura. Para continuar editando, inicia sesión y cópiala a tus archivos."
   },
   "9ceb927baa": {
     "translation": "Publicar este archivo"
@@ -281,6 +398,9 @@
   "a9ded1e5ce": {
     "translation": "Fondo"
   },
+  "aa916767cf": {
+    "translation": "Inicia sesión para aceptar la invitación"
+  },
   "ab0df9ba36": {
     "translation": "Se alcanzó el límite de archivos"
   },
@@ -291,14 +411,26 @@
   "b028909917": {
     "translation": "Usuario invitado"
   },
+  "b357b524e7": {
+    "translation": "Dirección de correo electrónico"
+  },
+  "b3d2db69fe": {
+    "translation": "URL del archivo"
+  },
   "b6d4223e60": {
     "translation": "Iniciar sesión"
+  },
+  "b6f4a2ec63": {
+    "translation": "Dueño"
   },
   "b758336699": {
     "translation": "Copiar enlace"
   },
-  "bb792693e2": {
-    "translation": "Desanclar"
+  "ba0318cb81": {
+    "translation": "Inicia sesión para compartir"
+  },
+  "bb93a7590f": {
+    "translation": "Aceptar y unirse al grupo"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {Subiendo archivo .tldr…} other {Cargando {uploaded} de {total} archivos .tldr…}}"
@@ -306,11 +438,11 @@
   "bc88b0e89e": {
     "translation": "Compartido por {ownerName}"
   },
-  "bcb62136a3": {
-    "translation": "Cargar archivos .tldr"
-  },
   "c2276c9127": {
     "translation": "Más información sobre el uso compartido."
+  },
+  "c28aed8348": {
+    "translation": "Permitir <cookies>analytics</cookies> para ayudarnos a mejorar tldraw."
   },
   "c303bd1095": {
     "translation": "No se ha podido publicar el archivo."
@@ -318,17 +450,23 @@
   "c4b39a1cc3": {
     "translation": "Cookies esenciales"
   },
+  "c6155aaecc": {
+    "translation": "Nombre del grupo"
+  },
   "c655b27b1e": {
     "translation": "i18n: cadena larga"
   },
   "c6a00f137b": {
     "translation": "Invitar"
   },
+  "c74ea6dbff": {
+    "translation": "Mostrar menos"
+  },
   "c87aacf567": {
     "translation": "Cerrar sesión"
   },
-  "cbef7ba103": {
-    "translation": "Esta sala pronto será de solo lectura."
+  "c9cc8cce24": {
+    "translation": "Ahorrar"
   },
   "cceaefbc20": {
     "translation": "Compartir este archivo"
@@ -345,32 +483,53 @@
   "d4bbf74f3e": {
     "translation": "Alternar barra lateral"
   },
+  "d638a3344b": {
+    "translation": "Antes de comenzar, acepte nuestros <tos>términos de uso</tos> y nuestra <privacy>política de privacidad</privacy>."
+  },
   "d721757161": {
     "translation": "Tema"
   },
   "d876a9fe1a": {
     "translation": "Inténtelo de nuevo"
   },
+  "d88ad2dc74": {
+    "translation": "Aceptar y continuar"
+  },
   "d9100f3e10": {
     "translation": "Vaya aquí para ver el contenido"
+  },
+  "d9e35d0f55": {
+    "translation": "Has alcanzado el número máximo de grupos. Debes eliminar los grupos antiguos antes de crear otros nuevos."
   },
   "dbbebf3c03": {
     "translation": "Solo invitar"
   },
+  "dcdaa754fe": {
+    "translation": "URL de archivo tldraw no válida"
+  },
   "dfdb78a4e4": {
     "translation": "Indicadores de depuración de la aplicación"
+  },
+  "e0c88179b3": {
+    "translation": "Invitar a los miembros"
+  },
+  "e2198d6228": {
+    "translation": "Copiar enlace de invitación"
   },
   "e2ae80a510": {
     "translation": "Resumen legal"
   },
+  "e3afed0047": {
+    "translation": "Administración"
+  },
   "e404559826": {
     "translation": "Condiciones de servicio"
   },
-  "e78e14c5f1": {
-    "translation": "Anclar"
+  "e81c4e4f2b": {
+    "translation": "o"
   },
-  "ea2301d01c": {
-    "translation": "A partir del 1 de julio de 2025, esta sala multijugador anónima de tldraw será de solo lectura. Para seguir editando, inicia sesión y cópiala en tus archivos."
+  "ea0626ac5a": {
+    "translation": "Zona de peligro"
   },
   "ea4788705e": {
     "translation": "Cancelar"
@@ -393,6 +552,12 @@
   "ede55d955f": {
     "translation": "Lea nuestra <a>política de cookies</a> para obtener más información."
   },
+  "ef53538ae4": {
+    "translation": "Miembros"
+  },
+  "ef7de3f485": {
+    "translation": "seleccionado"
+  },
   "f09b16bc5f": {
     "translation": "Usamos cookies para mantener su sesión iniciada, sincronizar sus archivos y recopilar análisis que nos ayuden a mejorar tldraw."
   },
@@ -411,6 +576,12 @@
   "f4f70727dc": {
     "translation": "Ajustes"
   },
+  "f714e36843": {
+    "translation": "¿Estás seguro de que quieres abandonar este grupo?"
+  },
+  "fa2ead697d": {
+    "translation": "política de privacidad"
+  },
   "fb15c53f22": {
     "translation": "Espectador"
   },
@@ -419,6 +590,9 @@
   },
   "fed5ec05eb": {
     "translation": "Enlace copiado"
+  },
+  "ff7a814974": {
+    "translation": "Agregar enlace de archivo…"
   },
   "ffcd73e997": {
     "translation": "Importar archivo…"

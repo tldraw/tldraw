@@ -23,11 +23,17 @@
   "08bd40c754": {
     "translation": "Hesap"
   },
+  "08d2d725a9": {
+    "translation": "Çalışmalarınızı kaydetmek, gerçek zamanlı işbirliği yapmak ve daha fazlası için ücretsiz bir hesap oluşturun."
+  },
   "0b27918290": {
     "translation": "Dosya"
   },
   "0b9a4cde72": {
     "translation": "Dosya menüsü"
+  },
+  "0beb3ca97b": {
+    "translation": "tldraw ücretsiz ve anında kullanılabilen sanal bir beyaz tahtadır."
   },
   "0d1f2bb523": {
     "translation": "Geri bildirim gönder"
@@ -35,8 +41,23 @@
   "110a4b01be": {
     "translation": "Yayınla"
   },
+  "129b9e34ea": {
+    "translation": "Gruptan ayrıl"
+  },
+  "12a6766ba1": {
+    "translation": "Dosyayı sabitle"
+  },
+  "12c8a9838c": {
+    "translation": "tldraw SDK'sını deneyin"
+  },
   "13ddd375ad": {
     "translation": "Dışa aktarma formatı"
+  },
+  "146ffe2fd9": {
+    "translation": "Daha fazlasını göster"
+  },
+  "14d65465b7": {
+    "translation": "Grubu sil"
   },
   "181b90f889": {
     "translation": "Dosya oluştur"
@@ -47,11 +68,26 @@
   "1dd1c5fb7f": {
     "translation": "Bugün"
   },
+  "20976e7bec": {
+    "translation": "Oda dolu"
+  },
+  "21bfb2dc2e": {
+    "translation": "Bu oda boyut sınırına yaklaşıyor. İçeriğin bir kısmını kaldırmayı veya yeni bir dosya başlatmayı düşünün."
+  },
+  "2445e5e347": {
+    "translation": "Grup oluştur"
+  },
   "250ddea65c": {
     "translation": "tldraw hakkında"
   },
   "299cb00a7a": {
     "translation": "Yüklenemedi"
+  },
+  "2c3ef76333": {
+    "translation": "Dosyalarım"
+  },
+  "2deec2cb74": {
+    "translation": "Bu oda boyut sınırına ulaştı ve değişiklikler artık kaydedilemeyebilir. İçeriğin bir kısmını kaldırın veya yeni bir dosya başlatın."
   },
   "31246941ad": {
     "translation": "Bu dosyayı görüntülemek için oturum açmanız gerekiyor."
@@ -59,11 +95,17 @@
   "31418ce4ad": {
     "translation": "i18n: Vurgu Eksik"
   },
+  "32210b37e4": {
+    "translation": "Bağlantı ekle"
+  },
   "335defdafe": {
     "translation": "Lütfen sayfayı yenilemeyi deneyin."
   },
   "344a7f427f": {
     "translation": "Düzenleyici"
+  },
+  "3bc7d6ea2f": {
+    "translation": "E-postayla devam et"
   },
   "3bd1b98dbd": {
     "translation": "Değişiklikler yayınlanamıyor."
@@ -86,14 +128,29 @@
   "47839e47a5": {
     "translation": "tldraw"
   },
+  "47f493a590": {
+    "translation": "Pin dosyası"
+  },
+  "49049467ff": {
+    "translation": "tldraw dosya URL'sini yapıştır..."
+  },
   "4908687e50": {
     "translation": "Bu dosyayı unutmak istediğinizden emin misiniz?"
+  },
+  "49ee308734": {
+    "translation": "İsim"
   },
   "4d0d3ddec9": {
     "translation": "Bu site, uygulamanın çalışmasını sağlamak ve analiz toplamak için çerezler kullanır."
   },
   "4d1c8263ba": {
     "translation": "Tekrar yükle"
+  },
+  "4da5988a2e": {
+    "translation": "Grubu sil…"
+  },
+  "4e6fbf032b": {
+    "translation": "Bu grubu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
   },
   "50db1b7e1e": {
     "translation": "Dosya yayından kaldırılamıyor."
@@ -119,11 +176,23 @@
   "56c34c6410": {
     "translation": "Gizlilik Politikası"
   },
+  "5a86b22fa0": {
+    "translation": "Başlamak için dosyaları buraya sürükleyin, <create>bir dosya oluşturun</create> veya <invite>davet bağlantısını kopyalayın</invite>."
+  },
   "5a95a425f7": {
     "translation": "Paylaş"
   },
+  "5bb6cf3b53": {
+    "translation": "Oda büyüyor"
+  },
+  "5bcc12ace8": {
+    "translation": "Bu oda artık salt okunur"
+  },
   "5bec508475": {
     "translation": "Eski tarayıcı algılandı. Bu uygulamayı kullanmak için lütfen tarayıcınızı güncelleyin."
+  },
+  "5c6fe42bc2": {
+    "translation": "Bu bağlantıyı iptal edin ve yeni bir bağlantı oluşturun."
   },
   "5d26ae7550": {
     "translation": "Oturum açmadan önce oluşturduğunuz bazı içerikleri yükleyemedik."
@@ -140,11 +209,20 @@
   "625fd29749": {
     "translation": "Daha eski"
   },
+  "639bae9ac6": {
+    "translation": "Sen"
+  },
   "6609dd239e": {
     "translation": "Bir sorun oluştu"
   },
   "6637a98151": {
     "translation": "tldraw'ın yeni bir sürümü mevcut. Devam etmek için lütfen sayfayı yeniden yükleyin."
+  },
+  "68257bb646": {
+    "translation": "<br></br><groupName></groupName> grubuna davet edildiniz"
+  },
+  "6832ac5936": {
+    "translation": "E-posta adresinizi girin"
   },
   "6a26f54883": {
     "translation": "Yardım"
@@ -154,6 +232,9 @@
   },
   "6dfc62f621": {
     "translation": "İçeriği manuel olarak içe aktarmak için şu adımları izleyin:"
+  },
+  "70222abcfc": {
+    "translation": "Grup ayarları"
   },
   "70a6facb9d": {
     "translation": "Bu hafta"
@@ -185,6 +266,9 @@
   "777f9e90cf": {
     "translation": "Geçersiz istek"
   },
+  "78e9815992": {
+    "translation": "Anladım"
+  },
   "797799f35e": {
     "translation": "GitHub'da bir sorun bildirin"
   },
@@ -196,6 +280,9 @@
   },
   "7cb5f8b4a5": {
     "translation": "Unut"
+  },
+  "7cfe6c43dc": {
+    "translation": "Gruptan ayrıl…"
   },
   "7daeced9ff": {
     "translation": "Değişiklikleri yayınla"
@@ -218,6 +305,15 @@
   "86c66437fd": {
     "translation": "Dosyayı yeniden adlandır"
   },
+  "8ad4303b83": {
+    "translation": "Hayır, teşekkürler"
+  },
+  "8b1946f965": {
+    "translation": "Düzenlemeye devam etmek için lütfen odayı dosyalarınıza kopyalayın."
+  },
+  "8c2d3d730c": {
+    "translation": "Doğrulama kodu için e-postanızı kontrol edin."
+  },
   "8eb2c00e96": {
     "translation": "Sizinle paylaşıldı"
   },
@@ -233,14 +329,35 @@
   "91e49bb0eb": {
     "translation": "Dosyalarıma kopyala"
   },
+  "930390d222": {
+    "translation": "Davet bağlantısı kopyalandı"
+  },
+  "95aacd4d4a": {
+    "translation": "Google ile oturum açın"
+  },
+  "95d2109dc8": {
+    "translation": "tldraw SDK ile oluşturun"
+  },
   "96165d6df5": {
     "translation": "Bu ay"
+  },
+  "985a4b720f": {
+    "translation": "Kullanım Şartları"
+  },
+  "98c997a27e": {
+    "translation": "Dosya bağlantısı ekle"
   },
   "9914a0ce04": {
     "translation": "Açık"
   },
+  "9b33f5c63c": {
+    "translation": "Kod almadınız mı? <resend>Tekrar gönder</resend>."
+  },
   "9bef626805": {
     "translation": "Dosyayı sil"
+  },
+  "9c258b8f88": {
+    "translation": "Bu anonim tldraw çok oyunculu odası artık salt okunur. Düzenlemeye devam etmek için lütfen oturum açın ve dosyalarınıza kopyalayın."
   },
   "9ceb927baa": {
     "translation": "Bu dosyayı yayınla"
@@ -281,6 +398,9 @@
   "a9ded1e5ce": {
     "translation": "Arka plan"
   },
+  "aa916767cf": {
+    "translation": "Daveti kabul etmek için oturum açın"
+  },
   "ab0df9ba36": {
     "translation": "Dosya sınırına ulaşıldı"
   },
@@ -291,14 +411,26 @@
   "b028909917": {
     "translation": "Misafir kullanıcı"
   },
+  "b357b524e7": {
+    "translation": "E-posta adresi"
+  },
+  "b3d2db69fe": {
+    "translation": "Dosya URL'si"
+  },
   "b6d4223e60": {
     "translation": "Oturum aç"
+  },
+  "b6f4a2ec63": {
+    "translation": "Mal sahibi"
   },
   "b758336699": {
     "translation": "Bağlantıyı kopyala"
   },
-  "bb792693e2": {
-    "translation": "SabitlemeyI kaldır"
+  "ba0318cb81": {
+    "translation": "Paylaşmak için oturum açın"
+  },
+  "bb93a7590f": {
+    "translation": "Kabul et ve gruba katıl"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {.tldr dosyası yükleniyor…} other {{uploaded} / {total} .tldr dosyası yükleniyor…}}"
@@ -306,11 +438,11 @@
   "bc88b0e89e": {
     "translation": "{ownerName} tarafından paylaşıldı"
   },
-  "bcb62136a3": {
-    "translation": ".tldr dosyalarını yükle"
-  },
   "c2276c9127": {
     "translation": "Paylaşım hakkında daha fazla bilgi edinin."
+  },
+  "c28aed8348": {
+    "translation": "Tldraw'ı geliştirmemize yardımcı olması için <cookies>analytics</cookies>'e izin verin."
   },
   "c303bd1095": {
     "translation": "Bu dosya yayınlanamıyor."
@@ -318,17 +450,23 @@
   "c4b39a1cc3": {
     "translation": "Temel çerezler"
   },
+  "c6155aaecc": {
+    "translation": "Grup adı"
+  },
   "c655b27b1e": {
     "translation": "i18n: Uzun Dizi"
   },
   "c6a00f137b": {
     "translation": "Davet et"
   },
+  "c74ea6dbff": {
+    "translation": "Daha az göster"
+  },
   "c87aacf567": {
     "translation": "Oturumu kapat"
   },
-  "cbef7ba103": {
-    "translation": "Bu oda yakında salt okunur olacak"
+  "c9cc8cce24": {
+    "translation": "Kaydetmek"
   },
   "cceaefbc20": {
     "translation": "Bu dosyayı paylaş"
@@ -345,32 +483,53 @@
   "d4bbf74f3e": {
     "translation": "Kenar çubuğunu aç/kapat"
   },
+  "d638a3344b": {
+    "translation": "Başlamadan önce lütfen <tos>kullanım koşullarımızı</tos> ve <privacy>gizlilik politikamızı</privacy> kabul edin."
+  },
   "d721757161": {
     "translation": "Tema"
   },
   "d876a9fe1a": {
     "translation": "Tekrar Dene"
   },
+  "d88ad2dc74": {
+    "translation": "Kabul et ve devam et"
+  },
   "d9100f3e10": {
     "translation": "İçeriği görmek için buraya gidin"
+  },
+  "d9e35d0f55": {
+    "translation": "Maksimum grup sayısına ulaştınız. Yeni gruplar oluşturmadan önce eski grupları silmeniz gerekiyor."
   },
   "dbbebf3c03": {
     "translation": "Yalnızca davetle"
   },
+  "dcdaa754fe": {
+    "translation": "Geçersiz tldraw dosya URL'si"
+  },
   "dfdb78a4e4": {
     "translation": "Uygulama hata ayıklama bayrakları"
+  },
+  "e0c88179b3": {
+    "translation": "Üyeleri davet et"
+  },
+  "e2198d6228": {
+    "translation": "Davet bağlantısını kopyala"
   },
   "e2ae80a510": {
     "translation": "Hukuki özet"
   },
+  "e3afed0047": {
+    "translation": "Yönetici"
+  },
   "e404559826": {
     "translation": "Hizmet Şartları"
   },
-  "e78e14c5f1": {
-    "translation": "Sabitle"
+  "e81c4e4f2b": {
+    "translation": "veya"
   },
-  "ea2301d01c": {
-    "translation": "1 Temmuz 2025'ten sonra bu anonim tldraw çok oyunculu odası salt okunur hale gelecektir. Gelecekte düzenlemeye devam etmek için lütfen oturum açın ve dosyalarınıza kopyalayın."
+  "ea0626ac5a": {
+    "translation": "Tehlikeli bölge"
   },
   "ea4788705e": {
     "translation": "İptal"
@@ -393,6 +552,12 @@
   "ede55d955f": {
     "translation": "Daha fazla bilgi edinmek için <a>çerez politikamızı</a> okuyun."
   },
+  "ef53538ae4": {
+    "translation": "Üyeler"
+  },
+  "ef7de3f485": {
+    "translation": "seçilmiş"
+  },
   "f09b16bc5f": {
     "translation": "Oturumunuzu açık tutmak, dosyalarınızı senkronize etmek ve tldraw'ı iyileştirmemize yardımcı olacak analizleri toplamak için çerezleri kullanıyoruz."
   },
@@ -411,6 +576,12 @@
   "f4f70727dc": {
     "translation": "Ayarlar"
   },
+  "f714e36843": {
+    "translation": "Bu gruptan ayrılmak istediğinize emin misiniz?"
+  },
+  "fa2ead697d": {
+    "translation": "Gizlilik Politikası"
+  },
   "fb15c53f22": {
     "translation": "Görüntüleyici"
   },
@@ -419,6 +590,9 @@
   },
   "fed5ec05eb": {
     "translation": "Bağlantı kopyalandı"
+  },
+  "ff7a814974": {
+    "translation": "Dosya bağlantısı ekle…"
   },
   "ffcd73e997": {
     "translation": "Dosyayı içe aktar…"

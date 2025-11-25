@@ -52,7 +52,7 @@ export default function CustomTextOutlineExample() {
 							x: 0,
 							y: 0,
 							props: {
-								text: 'hello world',
+								richText: toRichText('hello world'),
 								start: { x: 0, y: 0 },
 								end: { x: 200, y: 200 },
 							},
