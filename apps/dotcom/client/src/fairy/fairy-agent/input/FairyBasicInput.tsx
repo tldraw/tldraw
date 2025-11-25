@@ -1,4 +1,4 @@
-import { FAIRY_VISION_DIMENSIONS } from '@tldraw/fairy-shared'
+import { CancelIcon, FAIRY_VISION_DIMENSIONS, LipsIcon } from '@tldraw/fairy-shared'
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Box, useValue } from 'tldraw'
 import { useMsg } from '../../../tla/utils/i18n'
@@ -114,7 +114,7 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 					className="fairy-input__submit"
 					title={shouldCancel ? stopLabel : sendLabel}
 				>
-					{shouldCancel ? '⏹' : '👄'}
+					{shouldCancel ? <CancelIcon /> : <LipsIcon />}
 				</button>
 			</div>
 		</div>

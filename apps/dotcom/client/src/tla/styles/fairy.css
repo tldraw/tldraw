@@ -96,7 +96,6 @@
 	display: flex;
 	align-items: flex-start;
 	gap: 12px;
-	padding-right: 8px;
 	min-height: 64px;
 	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tl-radius-3);
@@ -131,19 +130,12 @@
 }
 
 .fairy-input__submit {
+	padding: 0;
+	margin: 0;
 	pointer-events: auto;
-	width: 30px;
-	height: 30px;
-	flex-shrink: 0;
-	padding: 10px;
-	margin: -10px;
-	margin-right: -5px;
-	margin-bottom: 2px;
 	background-color: transparent;
 	border: none;
-	border-radius: var(--tl-radius-2);
 	cursor: pointer;
-	font-size: 18px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -151,8 +143,20 @@
 	align-self: flex-end;
 }
 
-.fairy-input__submit:hover:not(:disabled) {
-	background-color: var(--tl-color-hint);
+.fairy-lips-icon {
+	color: #ee7b90;
+}
+
+.fairy-input__submit:hover:not(:disabled) .fairy-lips-icon {
+	color: #d54a63;
+}
+
+.fairy-cancel-icon {
+	color: var(--tl-color-text-3);
+}
+
+.fairy-input__submit:hover:not(:disabled) .fairy-cancel-icon {
+	color: var(--tl-color-text);
 }
 
 .fairy-input__submit:disabled {
