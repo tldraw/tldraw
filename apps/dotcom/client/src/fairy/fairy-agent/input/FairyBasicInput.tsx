@@ -4,12 +4,14 @@ import { Box, useValue } from 'tldraw'
 import { useMsg } from '../../../tla/utils/i18n'
 import { fairyMessages } from '../../fairy-messages'
 // import { $fairyTasks } from '../../FairyTaskList'
+import { getIsCoarsePointer } from '../../../tla/utils/getIsCoarsePointer'
 import { FairyAgent } from '../agent/FairyAgent'
 
 export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCancel(): void }) {
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const [inputValue, setInputValue] = useState('')
 	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
+	const enterMsg = useMsg(fairyMessages.enterMsg)
 
 	const fairyEntity = useValue(agent.$fairyEntity)
 	const fairyConfig = useValue(agent.$fairyConfig)
@@ -25,23 +27,13 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 	}, [inputValue])
 
 	useEffect(() => {
-		if (textareaRef.current) {
+		if (textareaRef.current && !getIsCoarsePointer()) {
 			textareaRef.current.focus()
 		}
 	}, [])
 
-	const handleComplete = useCallback(
-		async (value: string) => {
-			textareaRef.current?.focus()
-
-			// If the user's message is empty, just cancel the current request (if there is one)
-			if (value === '') {
-				return
-			}
-
-			// Clear the input
-			setInputValue('')
-
+	const handlePrompt = useCallback(
+		(value: string) => {
 			// Prompt the agent
 			const fairyPosition = fairyEntity.position
 			const fairyVision = Box.FromCenter(fairyPosition, FAIRY_VISION_DIMENSIONS)
@@ -56,6 +48,23 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 			})
 		},
 		[agent, fairyEntity]
+	)
+
+	const handleComplete = useCallback(
+		async (value: string) => {
+			textareaRef.current?.focus()
+
+			// If the user's message is empty, just cancel the current request (if there is one)
+			if (value === '') {
+				return
+			}
+
+			// Clear the input
+			setInputValue('')
+
+			handlePrompt(value)
+		},
+		[handlePrompt]
 	)
 
 	// Handle keyboard input for Enter and Shift+Enter
@@ -89,6 +98,19 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 		}
 	}
 
+	const handlePointerDown = useCallback(
+		(e: React.PointerEvent<HTMLTextAreaElement>) => {
+			if (getIsCoarsePointer()) {
+				e.stopPropagation()
+				const value = window.prompt(enterMsg)
+				if (value) {
+					handlePrompt(value)
+				}
+			}
+		},
+		[handlePrompt, enterMsg]
+	)
+
 	const whisperPlaceholder = useMsg(fairyMessages.whisperToFairy, { name: fairyConfig.name })
 	const stopLabel = useMsg(fairyMessages.stopLabel)
 	const sendLabel = useMsg(fairyMessages.sendLabel)
@@ -104,7 +126,8 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 					value={inputValue}
 					onChange={(e) => setInputValue(e.target.value)}
 					onKeyDown={handleKeyDown}
-					autoFocus
+					onPointerDown={handlePointerDown}
+					autoFocus={!getIsCoarsePointer()}
 					className="fairy-input__field"
 					rows={1}
 					spellCheck={false}

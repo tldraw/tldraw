@@ -356,7 +356,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 				ref={hudRef}
 				className={`tla-fairy-hud ${panelState !== 'closed' ? 'tla-fairy-hud--open' : ''}`}
 				style={{
-					bottom: isDebugMode ? '48px' : '8px',
+					bottom: mobileMenuOffset !== null ? '64px' : isDebugMode ? '48px' : '8px',
 					right: mobileMenuOffset !== null ? `${mobileMenuOffset}px` : '8px',
 					display: isMobileStylePanelOpen ? 'none' : 'block',
 				}}

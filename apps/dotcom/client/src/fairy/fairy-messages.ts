@@ -54,6 +54,7 @@ export const fairyMessages = defineMessages({
 	whisperToFairy: { defaultMessage: 'Whisper to {name}…' },
 	stopLabel: { defaultMessage: 'Stop' },
 	sendLabel: { defaultMessage: 'Send' },
+	enterMsg: { defaultMessage: 'Enter your message' },
 
 	// HUD toggle labels
 	switchToFairyChat: { defaultMessage: 'Switch to fairy chat' },
