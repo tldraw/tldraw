@@ -1,3 +1,4 @@
+import { MAX_FAIRY_COUNT } from '@tldraw/dotcom-shared'
 import {
 	FAIRY_VARIANTS,
 	FairyConfig,
@@ -9,7 +10,6 @@ import {
 import { useCallback, useEffect, useRef } from 'react'
 import { react, throttle, uniqueId, useEditor, useToasts, useValue } from 'tldraw'
 import { TldrawApp } from '../tla/app/TldrawApp'
-import { MAX_FAIRY_COUNT } from '../tla/components/TlaEditor/TlaEditor'
 import { useApp } from '../tla/hooks/useAppState'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'

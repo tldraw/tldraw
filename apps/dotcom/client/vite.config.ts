@@ -73,6 +73,9 @@ export default defineConfig((env) => ({
 		'process.env.FAIRY_WORKER': urlOrLocalFallback(env.mode, process.env.FAIRY_WORKER, 8789),
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.TLDRAW_ENV ?? 'development'),
 		'process.env.TLDRAW_LICENSE': JSON.stringify(process.env.TLDRAW_LICENSE ?? ''),
+		'process.env.PADDLE_CLIENT_TOKEN': JSON.stringify(process.env.PADDLE_CLIENT_TOKEN ?? ''),
+		'process.env.PADDLE_ENVIRONMENT': JSON.stringify(process.env.PADDLE_ENVIRONMENT ?? 'sandbox'),
+		'process.env.PADDLE_FAIRY_PRICE_ID': JSON.stringify(process.env.PADDLE_FAIRY_PRICE_ID ?? ''),
 		// Fall back to staging DSN for local develeopment, although you still need to
 		// modify the env check in 'sentry.client.config.ts' to get it reporting errors
 		'process.env.SENTRY_DSN': JSON.stringify(

@@ -677,6 +677,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		} else {
 			await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
 		}
+		// Close all websocket connections to force reconnect with fresh data
+		for (const socket of this.sockets.keys()) {
+			socket.close()
+		}
+		this.sockets.clear()
 	}
 
 	async admin_getData(userId: string) {
