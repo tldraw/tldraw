@@ -50,7 +50,7 @@ export async function upsertFairyAccess(
 			.execute()
 
 		const userDO = getUserDurableObject(env, userId)
-		await userDO.refreshUserData(userId)
+		await userDO.admin_forceHardReboot(userId)
 
 		return { success: true }
 	} catch (error) {
@@ -143,7 +143,7 @@ export const adminRoutes = createRouter<Environment>()
 		}
 		const userRow = await requireUser(env, q)
 		const user = getUserDurableObject(env, userRow.id)
-		await user.refreshUserData(userRow.id)
+		await user.admin_forceHardReboot(userRow.id)
 		return new Response('Refreshed user data', { status: 200 })
 	})
 	.post('/app/admin/user/migrate', async (res, env) => {
