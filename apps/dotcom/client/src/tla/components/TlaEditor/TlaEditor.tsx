@@ -4,6 +4,7 @@ import { useSync } from '@tldraw/sync'
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	DefaultDebugMenu,
+	DefaultDebugMenuContent,
 	Editor,
 	TLComponents,
 	TLPresenceStateInfo,
@@ -383,6 +384,7 @@ function CustomDebugMenu() {
 					)}
 				</>
 			)}
+			<DefaultDebugMenuContent />
 		</DefaultDebugMenu>
 	)
 }
