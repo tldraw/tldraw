@@ -63,6 +63,12 @@
       "value": "Spiky"
     }
   ],
+  "0a91f7fa87": [
+    {
+      "type": 0,
+      "value": "This file has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
@@ -171,18 +177,6 @@
       "value": "Instruct the group…"
     }
   ],
-  "20976e7bec": [
-    {
-      "type": 0,
-      "value": "Room is full"
-    }
-  ],
-  "21bfb2dc2e": [
-    {
-      "type": 0,
-      "value": "This room is approaching its size limit. Consider removing some content or starting a new file."
-    }
-  ],
   "2445e5e347": [
     {
       "type": 0,
@@ -217,12 +211,6 @@
     {
       "type": 0,
       "value": "My files"
-    }
-  ],
-  "2deec2cb74": [
-    {
-      "type": 0,
-      "value": "This room has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
     }
   ],
   "2e86e6853d": [
@@ -357,6 +345,12 @@
       "value": "No fairies selected"
     }
   ],
+  "477df802ca": [
+    {
+      "type": 0,
+      "value": "To continue editing please copy the file to your files."
+    }
+  ],
   "47839e47a5": [
     {
       "type": 0,
@@ -439,6 +433,12 @@
     {
       "type": 0,
       "value": "Page menu"
+    }
+  ],
+  "542248f0ba": [
+    {
+      "type": 0,
+      "value": "This file is now read-only"
     }
   ],
   "54286b1d01": [
@@ -525,18 +525,6 @@
     {
       "type": 0,
       "value": "Share"
-    }
-  ],
-  "5bb6cf3b53": [
-    {
-      "type": 0,
-      "value": "Room getting large"
-    }
-  ],
-  "5bcc12ace8": [
-    {
-      "type": 0,
-      "value": "This room is now read-only"
     }
   ],
   "5bec508475": [
@@ -711,6 +699,12 @@
     {
       "type": 0,
       "value": "Invalid request."
+    }
+  ],
+  "7827371d1a": [
+    {
+      "type": 0,
+      "value": "This anonymous tldraw multiplayer file is now read-only. To continue editing, please sign in and copy it to your files."
     }
   ],
   "7835039819": [
@@ -899,12 +893,6 @@
       "value": "No thanks"
     }
   ],
-  "8b1946f965": [
-    {
-      "type": 0,
-      "value": "To continue editing please copy the room to your files."
-    }
-  ],
   "8be569f100": [
     {
       "type": 0,
@@ -1051,12 +1039,6 @@
       "value": "Delete file"
     }
   ],
-  "9c258b8f88": [
-    {
-      "type": 0,
-      "value": "This anonymous tldraw multiplayer room is now read-only. To continue editing, please sign in and copy it to your files."
-    }
-  ],
   "9ceb927baa": [
     {
       "type": 0,
@@ -1159,6 +1141,12 @@
       "value": "Leader fairy selection"
     }
   ],
+  "a8873770ab": [
+    {
+      "type": 0,
+      "value": "File is getting large"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
@@ -1187,6 +1175,12 @@
     {
       "type": 0,
       "value": "Guest user"
+    }
+  ],
+  "b2c3c2e30c": [
+    {
+      "type": 0,
+      "value": "File is full"
     }
   ],
   "b34a671e2c": [
@@ -1403,6 +1397,12 @@
     {
       "type": 0,
       "value": "SVG"
+    }
+  ],
+  "ce0547606c": [
+    {
+      "type": 0,
+      "value": "This file is approaching its size limit. Consider removing some content or starting a new file."
     }
   ],
   "ce1424d44b": [
