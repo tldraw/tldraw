@@ -8,8 +8,12 @@ import { AgentRequest } from './AgentRequest'
  * const agent = useTldrawAgent(editor)
  * agent.prompt('Draw a cat')
  * agent.prompt(['Draw a cat', 'Draw a dog'])
- * agent.prompt({ message: 'Draw a cat' })
+ * agent.prompt({ inputMessage: 'Draw a cat' })
  * agent.prompt({ messages: ['Draw a cat', 'Draw a dog'] })
+ * agent.prompt({ inputMessage: 'Draw a cat', inputUserFacingMessage: 'Please draw a cat' })
  * ```
  */
-export type AgentInput = Partial<AgentRequest & { message: string }> | string | string[]
+export type AgentInput =
+	| Partial<AgentRequest & { inputMessage: string; inputUserFacingMessage: string }>
+	| string
+	| string[]

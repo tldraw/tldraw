@@ -561,7 +561,8 @@ function ActionsInspector({ agent }: { agent: FairyAgent }) {
 			<>
 				<div className="fairy-debug-item">
 					<KeyValuePair label="type" value={item.type} />
-					<KeyValuePair label="message" value={item.message} />
+					<KeyValuePair label="agentFacingMessages" value={item.agentFacingMessage} />
+					<KeyValuePair label="userFacingMessages" value={item.userFacingMessage ?? null} />
 				</div>
 				{!isLast && <hr />}
 			</>
@@ -659,7 +660,9 @@ function ChatHistoryInspector({ agent }: { agent: FairyAgent }) {
 					style={{ backgroundColor: getMemoryLevelColor(item.memoryLevel) }}
 				>
 					<KeyValuePair label="type" value={item.type} />
-					<KeyValuePair label="message" value={item.message} />
+					<KeyValuePair label="promptSource" value={item.promptSource} />
+					<KeyValuePair label="agentFacingMessages" value={item.agentFacingMessage} />
+					<KeyValuePair label="userFacingMessages" value={item.userFacingMessage ?? null} />
 					<KeyValuePair label="memoryLevel" value={item.memoryLevel} />
 				</div>
 				{!isLast && <hr />}

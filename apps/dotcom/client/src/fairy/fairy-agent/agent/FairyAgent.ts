@@ -7,6 +7,7 @@ import {
 	AgentRequest,
 	BaseAgentPrompt,
 	ChatHistoryItem,
+	ChatHistoryPromptItem,
 	DEFAULT_MODEL_NAME,
 	FAIRY_VISION_DIMENSIONS,
 	FairyConfig,
@@ -504,6 +505,7 @@ export class FairyAgent {
 			messages: request.messages ?? [],
 			source: request.source ?? 'user',
 			data: request.data ?? [],
+			userFacingMessages: request.userFacingMessages,
 			bounds:
 				request.bounds ??
 				activeRequest?.bounds ??
@@ -542,9 +544,25 @@ export class FairyAgent {
 			return { ...input, messages: [input.messages] }
 		}
 
-		// eg: agent.prompt({ message: 'Draw a cat' })
-		if (typeof input.message === 'string') {
-			return { ...input, messages: [input.message, ...(input.messages ?? [])] }
+		// eg: agent.prompt({ inputMessage: 'Draw a cat' })
+		// eg: agent.prompt({ inputMessage: 'Draw a cat', inputUserFacingMessage: 'Please draw a cat' })
+		if (typeof input.inputMessage === 'string') {
+			const messages = [input.inputMessage, ...(input.messages ?? [])]
+			const userFacingMessages: (string | null)[] = input.inputUserFacingMessage
+				? [input.inputUserFacingMessage, ...(input.userFacingMessages ?? [])]
+				: (input.userFacingMessages ?? messages.map(() => null))
+
+			// Remove inputMessage and inputUserFacingMessage from the spread
+			const {
+				inputMessage: _inputMessage,
+				inputUserFacingMessage: _inputUserFacingMessage,
+				...rest
+			} = input
+			return {
+				...rest,
+				messages,
+				userFacingMessages,
+			}
 		}
 
 		return input
@@ -751,6 +769,10 @@ export class FairyAgent {
 			// Append to properties where possible
 			messages: [...scheduledRequest.messages, ...(request.messages ?? [])],
 			data: [...scheduledRequest.data, ...(request.data ?? [])],
+			userFacingMessages: [
+				...(scheduledRequest.userFacingMessages ?? scheduledRequest.messages.map(() => null)),
+				...(request.userFacingMessages ?? request.messages?.map(() => null) ?? []),
+			],
 
 			// Override other properties
 			bounds: request.bounds ?? scheduledRequest.bounds,
@@ -817,6 +839,7 @@ export class FairyAgent {
 				Box.FromCenter(this.$fairyEntity.get().position, FAIRY_VISION_DIMENSIONS),
 			data: partialRequest.data ?? [],
 			source: partialRequest.source ?? 'self',
+			userFacingMessages: partialRequest.userFacingMessages,
 		}
 
 		const isCurrentlyActive = this.isGenerating()
@@ -918,12 +941,14 @@ export class FairyAgent {
 	) {
 		if (this.$isPrompting.get()) {
 			this.schedule({
-				messages: [message],
+				inputMessage: message,
+				inputUserFacingMessage: 'Awoken by notification',
 				source: 'other-agent',
 			})
 		} else {
 			this.prompt({
-				messages: [message],
+				inputMessage: message,
+				inputUserFacingMessage: 'Awoken by notification',
 				source: 'other-agent',
 			})
 		}
@@ -1485,22 +1510,36 @@ export class FairyAgent {
 function requestAgentActions({ agent, request }: { agent: FairyAgent; request: AgentRequest }) {
 	const { editor } = agent
 
-	// If the request is from the user, add it to chat history
-	if (request.source === 'user') {
-		const mode = getFairyModeDefinition(agent.getMode())
-		const promptHistoryItem: ChatHistoryItem = {
-			type: 'prompt',
-			message: request.messages.join('\n'),
-			memoryLevel: mode.memoryLevel,
-		}
-		agent.$chatHistory.update((prev) => [...prev, promptHistoryItem])
+	const mode = getFairyModeDefinition(agent.getMode())
+
+	// Convert arrays to strings for ChatHistoryPromptItem
+	const agentFacingMessage = request.messages.join('\n')
+
+	// Align userFacingMessages with messages array, then join non-null messages
+	const alignedUserFacingMessages: (string | null)[] = request.userFacingMessages
+		? request.messages.map((_, index) => request.userFacingMessages?.[index] ?? null)
+		: request.messages.map(() => null)
+
+	// Join all non-null user-facing messages, or use null if all are null
+	const userFacingMessage =
+		alignedUserFacingMessages.filter((msg) => msg !== null).length > 0
+			? alignedUserFacingMessages.filter((msg) => msg !== null).join('\n')
+			: null
+
+	const promptHistoryItem: ChatHistoryPromptItem = {
+		type: 'prompt',
+		promptSource: request.source,
+		agentFacingMessage,
+		userFacingMessage,
+		memoryLevel: mode.memoryLevel,
 	}
+	agent.$chatHistory.update((prev) => [...prev, promptHistoryItem])
 
 	let cancelled = false
 	const controller = new AbortController()
 	const signal = controller.signal
 	const helpers = new AgentHelpers(agent)
-	const mode = getFairyModeDefinition(agent.getMode())
+
 	if (!mode.active) {
 		agent.cancel()
 		throw new Error(`Fairy is not in an active mode so can't act right now`)

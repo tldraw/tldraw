@@ -86,7 +86,7 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 		onPromptEnd(agent, request) {
 			// Keep going until the task is complete
 			agent.schedule({
-				message: 'Continue until the task is marked as done.',
+				inputMessage: 'Continue until the task is marked as done.',
 				bounds: request.bounds,
 			})
 		},
@@ -107,7 +107,7 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 		onPromptEnd(agent, request) {
 			// Keep going until the task is complete
 			agent.schedule({
-				message: 'Continue until the task is marked as done.',
+				inputMessage: 'Continue until the task is marked as done.',
 				bounds: request.bounds,
 			})
 		},
@@ -255,7 +255,8 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 		onPromptEnd(agent, request) {
 			// Keep going until the task is complete
 			agent.schedule({
-				message: 'Continue until the task is marked as done.',
+				inputMessage:
+					"If you've finished the task, mark it as done. Otherwise, continue until the task finished.",
 				bounds: request.bounds,
 			})
 		},

@@ -58,7 +58,10 @@ export function notifyTaskCompleted(task: FairyTask, editor: Editor) {
 		'task-completed',
 		{ type: 'task-completed', task },
 		editor,
-		() => `Task ${task.id} ("${task.text}") has been completed.`
+		() => `A task you were awaiting has been completed.
+ID:${task.id}
+Title: "${task.title}"
+Description: "${task.text}"`
 	)
 }
 

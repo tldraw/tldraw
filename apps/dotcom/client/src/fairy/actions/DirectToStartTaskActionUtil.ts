@@ -1,4 +1,4 @@
-import { AgentRequest, DirectToStartTaskAction, Streaming } from '@tldraw/fairy-shared'
+import { AgentInput, DirectToStartTaskAction, Streaming } from '@tldraw/fairy-shared'
 import { $fairyAgentsAtom } from '../fairy-agent/agent/fairyAgentsAtom'
 import { assignFairyToTask, getFairyTaskById, setFairyTaskStatus } from '../FairyTaskList'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -74,8 +74,9 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 		assignFairyToTask(taskId, otherFairyId, $fairyAgentsAtom.get(this.editor))
 		setFairyTaskStatus(taskId, 'in-progress')
 
-		const otherFairyPrompt: Partial<AgentRequest> = {
-			messages: [`You have been asked to complete task ${taskId}. Please complete it.`],
+		const otherFairyInput: AgentInput = {
+			inputMessage: `You have been asked to complete task ${taskId}. Please complete it.`,
+			inputUserFacingMessage: `Directed by ${this.agent.$fairyConfig.get().name} to start task: ${taskId}`,
 			source: 'other-agent',
 		}
 		if (
@@ -84,7 +85,7 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 			task.w !== undefined &&
 			task.h !== undefined
 		) {
-			otherFairyPrompt.bounds = {
+			otherFairyInput.bounds = {
 				x: task.x,
 				y: task.y,
 				w: task.w,
@@ -92,6 +93,9 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 			}
 		}
 
-		otherFairy.interrupt({ mode: 'working-drone', input: otherFairyPrompt })
+		otherFairy.interrupt({
+			mode: 'working-drone',
+			input: otherFairyInput,
+		})
 	}
 }
