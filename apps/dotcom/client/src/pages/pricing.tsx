@@ -48,10 +48,10 @@ export function Component() {
 				</button>
 
 				<footer className={styles.footer}>
-					<a href="/privacy-policy" className={styles.footerLink}>
+					<a href="/privacy.html" className={styles.footerLink}>
 						<F defaultMessage="Privacy Policy" />
 					</a>
-					<a href="/terms-of-service" className={styles.footerLink}>
+					<a href="/tos.html" className={styles.footerLink}>
 						<F defaultMessage="Terms of Service" />
 					</a>
 					<a href="https://tldraw.dev" className={styles.footerLink}>
