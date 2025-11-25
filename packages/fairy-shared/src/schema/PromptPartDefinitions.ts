@@ -156,7 +156,7 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 		case 'memory-transition': {
 			return {
 				role: 'assistant',
-				content: [{ type: 'text', text: item.message }],
+				content: [{ type: 'text', text: item.agentFacingMessage }],
 				priority,
 			}
 		}

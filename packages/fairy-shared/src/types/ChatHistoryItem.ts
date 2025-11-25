@@ -43,6 +43,6 @@ export interface ChatHistoryContinuationItem {
 export interface ChatHistoryMemoryTransitionItem {
 	type: 'memory-transition'
 	memoryLevel: FairyMemoryLevel
-	message: string
+	agentFacingMessage: string
 	userFacingMessage: string | null
 }

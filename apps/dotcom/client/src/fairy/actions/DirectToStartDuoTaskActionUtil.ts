@@ -26,7 +26,7 @@ export class DirectToStartDuoTaskActionUtil extends AgentActionUtil<DirectToStar
 			icon: 'comment' as const,
 			description: text,
 			canGroup: () => false,
-			pose: 'waiting' as const, // todo: bullhorn
+			pose: 'writing' as const, // todo: bullhorn
 		}
 	}
 

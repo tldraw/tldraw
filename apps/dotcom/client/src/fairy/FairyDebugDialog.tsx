@@ -726,7 +726,7 @@ function ChatHistoryInspector({ agent }: { agent: FairyAgent }) {
 				>
 					<KeyValuePair label="type" value={item.type} />
 					<KeyValuePair label="memoryLevel" value={item.memoryLevel} />
-					<KeyValuePair label="message" value={item.message} />
+					<KeyValuePair label="message" value={item.agentFacingMessage} />
 					<KeyValuePair label="userFacingMessage" value={item.userFacingMessage} />
 				</div>
 				{!isLast && <hr />}

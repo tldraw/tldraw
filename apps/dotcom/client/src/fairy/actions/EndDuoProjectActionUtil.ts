@@ -42,7 +42,7 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 					{
 						type: 'memory-transition',
 						memoryLevel: 'fairy',
-						message: `I completed ${count} ${taskWord} as part of the "${project.title}" project with my partner.`,
+						agentFacingMessage: `I completed ${count} ${taskWord} as part of the "${project.title}" project with my partner.`,
 						userFacingMessage: null,
 					},
 				])
@@ -59,7 +59,7 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 						{
 							type: 'memory-transition',
 							memoryLevel: 'fairy',
-							message: `I completed ${count} ${taskWord} as part of the "${project.title}" project with my partner.`,
+							agentFacingMessage: `I completed ${count} ${taskWord} as part of the "${project.title}" project with my partner.`,
 							userFacingMessage: `I completed ${count} ${taskWord} as part of the "${project.title}" project.`,
 						},
 					])

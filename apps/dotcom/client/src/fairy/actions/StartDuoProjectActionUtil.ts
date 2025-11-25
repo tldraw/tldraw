@@ -12,7 +12,7 @@ export class StartDuoProjectActionUtil extends AgentActionUtil<StartDuoProjectAc
 			description: action.complete
 				? `Started project: ${action.projectName}`
 				: 'Starting project...',
-			pose: 'reading' as const,
+			pose: 'writing' as const,
 			canGroup: () => false,
 		}
 	}

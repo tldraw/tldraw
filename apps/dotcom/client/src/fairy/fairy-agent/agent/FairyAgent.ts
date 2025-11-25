@@ -944,7 +944,9 @@ export class FairyAgent {
 		this.isActing = true
 
 		const actionInfo = this.getActionInfo(action)
-		this.$fairyEntity.update((fairy) => ({ ...fairy, pose: actionInfo.pose }))
+		if (actionInfo.pose) {
+			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: actionInfo.pose ?? fairy.pose }))
+		}
 
 		// Ensure the fairy is on the correct page before performing the action
 		this.ensureFairyIsOnCorrectPage(action)
@@ -1263,7 +1265,7 @@ export class FairyAgent {
 			description = null,
 			summary = null,
 			canGroup = () => true,
-			pose = 'active' as const,
+			pose = null,
 		} = info
 
 		return {
