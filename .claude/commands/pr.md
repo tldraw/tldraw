@@ -1,6 +1,6 @@
 First, if we're on main, create a new branch with a descriptive name.
 
-Next, commit all changes.
+Next, commit all changes. All unignored files should be committable unless it _really_ seems like we should not be committing these files. Be sure that we don't commit any API keys or other explicitly private things.
 
 ### Dealing with problems
 
