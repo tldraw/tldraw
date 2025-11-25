@@ -121,10 +121,11 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 			})
 
 			// Send the prompt to the leader
-			const prompt = getGroupChatPrompt(value, followerAgents, isDuo)
+			const groupChatPrompt = getGroupChatPrompt(value, followerAgents, isDuo)
 			leaderAgent.prompt({
-				source: 'self',
-				message: prompt,
+				source: 'user',
+				inputMessage: groupChatPrompt,
+				inputUserFacingMessage: value,
 			})
 
 			// Select the orchestrator and switch to their chat panel

@@ -1,3 +1,4 @@
+import { ChatHistoryPromptItem } from '@tldraw/fairy-shared'
 import { useEffect, useRef } from 'react'
 import { useValue } from 'tldraw'
 import { FairyAgent } from '../agent/FairyAgent'
@@ -44,10 +45,13 @@ export function FairyChatHistory({ agent }: { agent: FairyAgent }) {
 		if (!historyRef.current) return
 
 		// If a new prompt is submitted by the user, scroll to the bottom
-		if (filteredItems.at(-1)?.type === 'prompt') {
-			historyRef.current.scrollTo(0, historyRef.current.scrollHeight)
-			previousScrollDistanceFromBottomRef.current = 0
-			return
+		const lastItem = filteredItems.at(-1)
+		if (lastItem && lastItem?.type === 'prompt') {
+			if ((lastItem as ChatHistoryPromptItem).promptSource === 'user') {
+				historyRef.current.scrollTo(0, historyRef.current.scrollHeight)
+				previousScrollDistanceFromBottomRef.current = 0
+				return
+			}
 		}
 
 		// If the user is scrolled to the bottom, keep them there while new actions appear

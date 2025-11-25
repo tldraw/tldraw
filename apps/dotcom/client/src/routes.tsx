@@ -90,6 +90,7 @@ export const router = createRoutesFromElements(
 
 				<Route path={ROUTES.tlaPublish} lazy={() => import('./tla/pages/publish')} />
 				<Route path={ROUTES.tlaInvite} lazy={() => import('./tla/pages/invite')} />
+				<Route path={ROUTES.tlaFairyInvite} lazy={() => import('./tla/pages/fairy-invite')} />
 				{/* Legacy room */}
 				<Route path={ROUTES.tlaLegacyRoom} lazy={() => import('./tla/pages/legacy-room')} />
 				{/* Legacy readonly */}

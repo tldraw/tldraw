@@ -63,7 +63,7 @@ export function FairySidebarButton({
 								animated={fairyEntity.pose !== 'idle' || fairyIsSelected}
 								flipX={fairyEntity.flipX}
 							/>
-							{fairyIsSelected && (
+							{fairyIsSelected && !project && (
 								<div className="fairy-selected-sprite-overlay">
 									<SelectedSprite />
 								</div>

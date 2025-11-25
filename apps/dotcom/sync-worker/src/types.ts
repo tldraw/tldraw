@@ -68,6 +68,9 @@ export interface Environment {
 
 	PIERRE_KEY: string | undefined
 
+	PADDLE_WEBHOOK_SECRET: string | undefined
+	PADDLE_ENVIRONMENT: 'sandbox' | 'production' | undefined
+
 	RATE_LIMITER: RateLimit
 
 	QUEUE: Queue<QueueMessage>

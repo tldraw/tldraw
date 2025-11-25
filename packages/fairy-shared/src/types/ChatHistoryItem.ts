@@ -2,6 +2,7 @@ import { RecordsDiff } from '@tldraw/store'
 import { TLRecord } from '@tldraw/tlschema'
 import { JsonValue } from '@tldraw/utils'
 import { AgentAction } from './AgentAction'
+import { AgentRequestSource } from './AgentRequest'
 import { FairyMemoryLevel } from './FairyMemoryLevel'
 import { Streaming } from './Streaming'
 
@@ -16,7 +17,9 @@ export type ChatHistoryItem =
  */
 export interface ChatHistoryPromptItem {
 	type: 'prompt'
-	message: string
+	promptSource: AgentRequestSource
+	agentFacingMessage: string
+	userFacingMessage: string | null
 	memoryLevel: FairyMemoryLevel
 }
 

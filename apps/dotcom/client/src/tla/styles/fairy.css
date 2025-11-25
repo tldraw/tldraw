@@ -332,6 +332,13 @@
 	position: relative;
 }
 
+.fairy-list > .tlui-toolbar > *:not(:first-child) {
+	margin-top: 0;
+}
+.fairy-list > .tlui-toolbar > *:not(:last-child) {
+	margin-bottom: 0;
+}
+
 .fairy-sidebar-group::after {
 	content: '';
 	position: absolute;
@@ -434,8 +441,8 @@
 	background-color: var(--tl-color-panel);
 }
 
-.fairy-chat-history-prompt,
-.fairy-chat-history-prompt-fairy {
+.fairy-chat-history-prompt-user,
+.fairy-chat-history-prompt-other-agent {
 	background-color: var(--tl-color-low);
 	border-radius: 8px;
 	padding: 8px;
@@ -448,17 +455,17 @@
 	scrollbar-color: var(--tl-color-text-3) transparent;
 }
 
-.fairy-chat-history-prompt-fairy {
+.fairy-chat-history-prompt-other-agent {
 	color: var(--tl-color-text-3);
 	font-style: italic;
 }
 
-.fairy-chat-history-prompt::-webkit-scrollbar {
+.fairy-chat-history-prompt-user::-webkit-scrollbar {
 	width: 6px;
 	background: transparent;
 }
 
-.fairy-chat-history-prompt::-webkit-scrollbar-thumb {
+.fairy-chat-history-prompt-user::-webkit-scrollbar-thumb {
 	background: var(--tl-color-text-3);
 	border-radius: 3px;
 }

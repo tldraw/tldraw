@@ -1,6 +1,7 @@
 import { MouseEvent } from 'react'
 import { TldrawUiToolbar, useValue } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { SelectedSprite } from './fairy-sprite/sprites/SelectedSprite'
 import { FairySidebarButton } from './FairySidebarButton'
 
 type FairySidebarEntry =
@@ -136,6 +137,9 @@ export function FairyListSidebar({
 									data-is-active={entry.isActive}
 								>
 									{entry.agents.map(renderFairySidebarButton)}
+									<div className="fairy-selected-sprite-overlay">
+										<SelectedSprite fairyCount={entry.agents.length} />
+									</div>
 								</div>
 							)
 						}
