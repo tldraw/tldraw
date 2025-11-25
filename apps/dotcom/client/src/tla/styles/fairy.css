@@ -549,6 +549,27 @@
 	font-size: 12px;
 	line-height: 1.5;
 	color: var(--tl-color-text-3);
+	position: relative;
+}
+
+.fairy-chat-history-action-streaming-content {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	width: 100%;
+	max-height: 64px;
+	position: relative;
+}
+
+.fairy-chat-history-action-streaming::before {
+	content: '';
+	position: absolute;
+	top: -6px;
+	left: 0;
+	right: 0;
+	height: 12px;
+	background: linear-gradient(to bottom, rgba(252, 252, 252, 1), rgba(252, 252, 252, 0));
+	pointer-events: none;
+	z-index: 1;
 }
 
 .fairy-chat-history-action-message {

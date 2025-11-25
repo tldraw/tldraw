@@ -139,7 +139,6 @@ export function canActionBeGrouped({
 	agent: FairyAgent
 }) {
 	if (!item.action.complete) return false
-	if (!group) return false
 
 	const groupAcceptance = group.items[0]?.acceptance
 	if (groupAcceptance !== item.acceptance) return false
