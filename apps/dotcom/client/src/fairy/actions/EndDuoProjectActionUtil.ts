@@ -1,5 +1,5 @@
 import { EndDuoProjectAction, Streaming } from '@tldraw/fairy-shared'
-import { deleteProject } from '../FairyProjects'
+import { deleteProjectAndAssociatedTasks } from '../FairyProjects'
 import { getFairyTasksByProjectId } from '../FairyTaskList'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { $fairyAgentsAtom } from '../fairy-agent/agent/fairyAgentsAtom'
@@ -68,6 +68,6 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 			memberAgent.interrupt({ mode: 'idling', input: null })
 		})
 
-		deleteProject(project.id)
+		deleteProjectAndAssociatedTasks(project.id)
 	}
 }

@@ -1,5 +1,6 @@
 import { FairyProject, FairyProjectRole } from '@tldraw/fairy-shared'
 import { atom } from 'tldraw'
+import { deleteFairyTask, getFairyTasksByProjectId } from './FairyTaskList'
 
 export const $fairyProjects = atom<FairyProject[]>('fairyProjects', [])
 
@@ -33,12 +34,17 @@ export function updateProject(projectId: string, updates: Partial<FairyProject>)
 	)
 }
 
-export function deleteProject(projectId: string) {
+function deleteProject(projectId: string) {
 	$fairyProjects.update((projects) => projects.filter((p) => p.id !== projectId))
 }
 
 export function clearProjects() {
 	$fairyProjects.set([])
+}
+
+export function deleteProjectAndAssociatedTasks(projectId: string) {
+	getFairyTasksByProjectId(projectId).forEach((task) => deleteFairyTask(task.id))
+	deleteProject(projectId)
 }
 
 // for debug purposes

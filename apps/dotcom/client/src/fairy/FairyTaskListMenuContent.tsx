@@ -13,7 +13,7 @@ import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { $fairyAgentsAtom } from './fairy-agent/agent/fairyAgentsAtom'
 import { fairyMessages } from './fairy-messages'
 import { FairyDebugDialog } from './FairyDebugDialog'
-import { $showCanvasFairyTasks, clearFairyTasks } from './FairyTaskList'
+import { $showCanvasFairyTasks, clearFairyTasksAndProjects } from './FairyTaskList'
 
 export function FairyTaskListMenuContent({
 	agents,
@@ -69,7 +69,7 @@ export function FairyTaskListMenuContent({
 	}, [agents])
 
 	const disbandProjects = useCallback(() => {
-		clearFairyTasks()
+		clearFairyTasksAndProjects()
 		for (const agent of $fairyAgentsAtom.get(editor)) {
 			agent.interrupt({ mode: 'idling', input: null })
 		}

@@ -448,7 +448,7 @@ function FairyDebugView({
 	const chatOrigin = useValue(agent.$chatOrigin)
 	const personalTodoList = useValue(agent.$personalTodoList)
 	const userActionHistory = useValue(agent.$userActionHistory)
-	const currentProjectId = agent.getProject()?.id
+	const currentProjectId = agent.getProject()?.id ?? null
 	// const cumulativeUsage = agent.cumulativeUsage
 	const mode = agent.getMode()
 
