@@ -26,6 +26,9 @@
   "090b807281": {
     "translation": "Spiky"
   },
+  "0a91f7fa87": {
+    "translation": "This file has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
+  },
   "0b27918290": {
     "translation": "File"
   },
@@ -80,12 +83,6 @@
   "1fe250ea06": {
     "translation": "Instruct the group…"
   },
-  "20976e7bec": {
-    "translation": "Room is full"
-  },
-  "21bfb2dc2e": {
-    "translation": "This room is approaching its size limit. Consider removing some content or starting a new file."
-  },
   "2445e5e347": {
     "translation": "Create group"
   },
@@ -103,9 +100,6 @@
   },
   "2c3ef76333": {
     "translation": "My files"
-  },
-  "2deec2cb74": {
-    "translation": "This room has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
   },
   "2e86e6853d": {
     "translation": "Select leader"
@@ -173,6 +167,9 @@
   "465a8a92a4": {
     "translation": "No fairies selected"
   },
+  "477df802ca": {
+    "translation": "To continue editing please copy the file to your files."
+  },
   "47839e47a5": {
     "translation": "tldraw"
   },
@@ -215,6 +212,9 @@
   "517bb809d9": {
     "translation": "Page menu"
   },
+  "542248f0ba": {
+    "translation": "This file is now read-only"
+  },
   "54286b1d01": {
     "translation": "Collaborator limit reached"
   },
@@ -235,12 +235,6 @@
   },
   "5a95a425f7": {
     "translation": "Share"
-  },
-  "5bb6cf3b53": {
-    "translation": "Room getting large"
-  },
-  "5bcc12ace8": {
-    "translation": "This room is now read-only"
   },
   "5bec508475": {
     "translation": "Old browser detected. Please update your browser to use this app."
@@ -329,6 +323,9 @@
   "777f9e90cf": {
     "translation": "Invalid request."
   },
+  "7827371d1a": {
+    "translation": "This anonymous tldraw multiplayer file is now read-only. To continue editing, please sign in and copy it to your files."
+  },
   "7835039819": {
     "translation": "Propeller"
   },
@@ -401,9 +398,6 @@
   "8ad4303b83": {
     "translation": "No thanks"
   },
-  "8b1946f965": {
-    "translation": "To continue editing please copy the room to your files."
-  },
   "8be569f100": {
     "translation": "one time payment"
   },
@@ -470,9 +464,6 @@
   "9bef626805": {
     "translation": "Delete file"
   },
-  "9c258b8f88": {
-    "translation": "This anonymous tldraw multiplayer room is now read-only. To continue editing, please sign in and copy it to your files."
-  },
   "9ceb927baa": {
     "translation": "Publish this file"
   },
@@ -524,6 +515,9 @@
   "a885eb91ac": {
     "translation": "Leader fairy selection"
   },
+  "a8873770ab": {
+    "translation": "File is getting large"
+  },
   "a9ded1e5ce": {
     "translation": "Background"
   },
@@ -536,6 +530,9 @@
   },
   "b028909917": {
     "translation": "Guest user"
+  },
+  "b2c3c2e30c": {
+    "translation": "File is full"
   },
   "b34a671e2c": {
     "translation": "Log response time"
@@ -614,6 +611,9 @@
   },
   "cd15a75c26": {
     "translation": "SVG"
+  },
+  "ce0547606c": {
+    "translation": "This file is approaching its size limit. Consider removing some content or starting a new file."
   },
   "cea291e45e": {
     "translation": "Learn more about publishing."
