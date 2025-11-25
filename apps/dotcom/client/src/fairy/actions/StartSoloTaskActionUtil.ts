@@ -7,18 +7,11 @@ export class StartSoloTaskActionUtil extends AgentActionUtil<StartSoloTaskAction
 	static override type = 'start-task' as const
 
 	override getInfo(action: Streaming<StartSoloTaskAction>) {
-		if (!action.complete) {
-			return {
-				icon: 'flag' as const,
-				description: 'Starting task...',
-				pose: 'reading' as const,
-				canGroup: () => false,
-			}
-		}
 		const task = $fairyTasks.get().find((task) => task.id === action.taskId)
+
 		return {
-			icon: 'flag' as const,
-			description: `Started task: ${task?.title}`,
+			icon: 'note' as const,
+			description: action.complete ? `Started task: ${task?.title}` : 'Starting task...',
 			pose: 'reading' as const,
 			canGroup: () => false,
 		}

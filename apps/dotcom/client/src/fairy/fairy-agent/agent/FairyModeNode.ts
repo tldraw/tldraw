@@ -44,7 +44,15 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	['sleeping']: {},
 	['one-shotting']: {
 		onPromptEnd(agent) {
-			agent.setMode('idling')
+			const todoList = agent.$personalTodoList.get()
+			const incompleteTodoItems = todoList.filter((item) => item.status !== 'done')
+			if (incompleteTodoItems.length > 0) {
+				agent.schedule(
+					"Continue until all your todo items are marked as done. If you've completed the work, feel free to mark them as done, otherwise keep going."
+				)
+			} else {
+				agent.setMode('idling')
+			}
 		},
 		onPromptCancel(agent) {
 			agent.setMode('idling')

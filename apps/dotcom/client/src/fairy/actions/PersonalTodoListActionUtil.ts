@@ -6,18 +6,24 @@ export class PersonalTodoListActionUtil extends AgentActionUtil<PersonalTodoList
 
 	override getInfo(action: Streaming<PersonalTodoListAction>) {
 		if (!action.complete) {
-			return null
+			return {
+				description: null,
+				pose: 'writing' as const,
+			}
 		}
 
 		if (action.status === 'in-progress') {
-			return null
+			return {
+				icon: 'note' as const,
+				description: action.text,
+				pose: 'writing' as const,
+			}
 		}
 
-		if (action.status === 'done') {
-			return null
+		return {
+			description: null,
+			pose: 'writing' as const,
 		}
-
-		return null
 	}
 
 	override applyAction(action: Streaming<PersonalTodoListAction>) {
