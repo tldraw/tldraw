@@ -13,6 +13,7 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 			icon: 'flag' as const,
 			description: action.complete ? 'Ended project' : 'Ending project...',
 			pose: 'writing' as const,
+			canGroup: () => false,
 		}
 	}
 
