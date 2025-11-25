@@ -22,7 +22,8 @@ export function getRandomFairyName() {
 		lastName = BANNED_NAMES[lastName]
 	}
 
-	return `${firstName} ${lastName}`
+	return firstName
+	// return `${firstName} ${lastName}`
 }
 
 const NAME_PARTS = [

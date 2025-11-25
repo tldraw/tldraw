@@ -4,7 +4,7 @@ import { TldrawUiToolbar, TldrawUiToolbarButton, uniqueId, useValue } from 'tldr
 import { F, useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { fairyMessages } from './fairy-messages'
-import { FairySpriteComponent } from './fairy-sprite/FairySprite'
+import { FairySpriteComponent2 } from './fairy-sprite/FairySprite2'
 import { $fairyProjects, addProject, getProjectByAgentId } from './FairyProjects'
 
 export function FairyGroupChat({
@@ -179,9 +179,9 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 							<p>
 								<F defaultMessage="Name" />: {leaderConfig.name}
 							</p>
-							<p>
+							{/* <p>
 								<F defaultMessage="Personality" />: {leaderConfig.personality}
-							</p>
+							</p> */}
 						</>
 					) : (
 						<p>
@@ -249,8 +249,9 @@ function FairyLeaderToggle({
 			isActive={agentIsSetAsLeader}
 			aria-label={agentIsSetAsLeader ? deselectLeaderLabel : selectLeaderLabel}
 			disabled={fairyHasProject}
+			className="fairy-leader-toggle"
 		>
-			<FairySpriteComponent
+			<FairySpriteComponent2
 				entity={fairyEntity}
 				outfit={fairyOutfit}
 				animated={false}

@@ -22,6 +22,8 @@ const BAD_PERSONALITY_PARTS = [
 ]
 
 export function getRandomFairyPersonality() {
+	return `professional, efficient, and helpful`
+
 	const startingWithGood = Math.random() < 0.67
 	if (startingWithGood) {
 		const secondPartGood = Math.random() < 0.67

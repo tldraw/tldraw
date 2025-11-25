@@ -3,6 +3,7 @@ import {
 	AgentModelName,
 	ChatHistoryItem,
 	DEFAULT_MODEL_NAME,
+	FairyMemoryLevel,
 	PROMPT_PART_DEFINITIONS,
 } from '@tldraw/fairy-shared'
 import { ReactNode, useState } from 'react'
@@ -45,7 +46,7 @@ type FairyDebugInspectorType =
 	| 'personalTodoList'
 	| 'userActionHistory'
 	| 'currentProjectId'
-	| 'cumulativeUsage'
+	// | 'cumulativeUsage'
 	| 'mode'
 
 const FAIRY_DEBUG_INSPECTOR_TYPES: FairyDebugInspectorType[] = [
@@ -59,7 +60,7 @@ const FAIRY_DEBUG_INSPECTOR_TYPES: FairyDebugInspectorType[] = [
 	'personalTodoList',
 	'userActionHistory',
 	'currentProjectId',
-	'cumulativeUsage',
+	// 'cumulativeUsage',
 	'mode',
 ]
 
@@ -194,7 +195,7 @@ function DebugInspectorLabel({
 		if (fairyType === 'personalTodoList') return 'Personal Todo List'
 		if (fairyType === 'userActionHistory') return 'User Action History'
 		if (fairyType === 'currentProjectId') return 'Current Project ID'
-		if (fairyType === 'cumulativeUsage') return 'Cumulative Usage'
+		// if (fairyType === 'cumulativeUsage') return 'Cumulative Usage'
 		if (fairyType === 'mode') return 'Mode'
 	}
 	return null
@@ -358,6 +359,7 @@ function HomeDebugOptions() {
 
 function FairyDebugOptions({ agent }: { agent: FairyAgent }) {
 	const debugFlags = useValue(agent.$debugFlags)
+	const oneShotMode = useValue(agent.$useOneShottingMode)
 
 	return (
 		<div className="fairy-debug-options-container">
@@ -402,8 +404,18 @@ function FairyDebugOptions({ agent }: { agent: FairyAgent }) {
 							}}
 						/>
 						<span>
-							<F defaultMessage="Log response time (solo mode only)" />
+							<F defaultMessage="Log response time" />
 						</span>
+					</label>
+					<label className="fairy-debug-flags-checkbox">
+						<input
+							type="checkbox"
+							checked={oneShotMode}
+							onChange={(e) => {
+								agent.$useOneShottingMode.set(e.target.checked)
+							}}
+						/>
+						<span>One-Shot Mode</span>
 					</label>
 				</div>
 			</div>
@@ -437,7 +449,7 @@ function FairyDebugView({
 	const personalTodoList = useValue(agent.$personalTodoList)
 	const userActionHistory = useValue(agent.$userActionHistory)
 	const currentProjectId = agent.getProject()?.id
-	const cumulativeUsage = agent.cumulativeUsage
+	// const cumulativeUsage = agent.cumulativeUsage
 	const mode = agent.getMode()
 
 	if (inspectorType === 'config') {
@@ -474,7 +486,7 @@ function FairyDebugView({
 		personalTodoList,
 		userActionHistory,
 		currentProjectId,
-		cumulativeUsage,
+		// cumulativeUsage,
 		mode,
 	}
 
@@ -642,7 +654,10 @@ function ChatHistoryInspector({ agent }: { agent: FairyAgent }) {
 	}) {
 		return (
 			<>
-				<div className="fairy-debug-item">
+				<div
+					className="fairy-debug-item"
+					style={{ backgroundColor: getMemoryLevelColor(item.memoryLevel) }}
+				>
 					<KeyValuePair label="type" value={item.type} />
 					<KeyValuePair label="message" value={item.message} />
 					<KeyValuePair label="memoryLevel" value={item.memoryLevel} />
@@ -661,12 +676,13 @@ function ChatHistoryInspector({ agent }: { agent: FairyAgent }) {
 	}) {
 		return (
 			<>
-				<div className="fairy-debug-item">
+				<div
+					className="fairy-debug-item"
+					style={{ backgroundColor: getMemoryLevelColor(item.memoryLevel) }}
+				>
 					<KeyValuePair label="type" value={item.type} />
 					<KeyValuePair label="action" value={item.action} />
-					<KeyValuePair label="acceptance" value={item.acceptance} />
 					<KeyValuePair label="memoryLevel" value={item.memoryLevel} />
-					<KeyValuePair label="diff" value={item.diff} />
 				</div>
 				{!isLast && <hr />}
 			</>
@@ -682,7 +698,10 @@ function ChatHistoryInspector({ agent }: { agent: FairyAgent }) {
 	}) {
 		return (
 			<>
-				<div className="fairy-debug-item">
+				<div
+					className="fairy-debug-item"
+					style={{ backgroundColor: getMemoryLevelColor(item.memoryLevel) }}
+				>
 					<KeyValuePair label="type" value={item.type} />
 					<KeyValuePair label="data" value={item.data} />
 					<KeyValuePair label="memoryLevel" value={item.memoryLevel} />
@@ -701,10 +720,14 @@ function ChatHistoryInspector({ agent }: { agent: FairyAgent }) {
 	}) {
 		return (
 			<>
-				<div className="fairy-debug-item">
+				<div
+					className="fairy-debug-item"
+					style={{ backgroundColor: getMemoryLevelColor(item.memoryLevel) }}
+				>
 					<KeyValuePair label="type" value={item.type} />
 					<KeyValuePair label="memoryLevel" value={item.memoryLevel} />
 					<KeyValuePair label="message" value={item.message} />
+					<KeyValuePair label="userFacingMessage" value={item.userFacingMessage} />
 				</div>
 				{!isLast && <hr />}
 			</>
@@ -713,6 +736,22 @@ function ChatHistoryInspector({ agent }: { agent: FairyAgent }) {
 }
 
 // # Utility functions
+
+/**
+ * Returns a background color for a given memory level.
+ */
+function getMemoryLevelColor(memoryLevel: FairyMemoryLevel): string {
+	switch (memoryLevel) {
+		case 'fairy':
+			return 'rgba(147, 51, 234, 0.1)' // Light purple
+		case 'project':
+			return 'rgba(59, 130, 246, 0.1)' // Light blue
+		case 'task':
+			return 'rgba(34, 197, 94, 0.1)' // Light green
+		default:
+			return 'transparent'
+	}
+}
 
 /**
  * Logs all prompt part definitions ranked by priority.

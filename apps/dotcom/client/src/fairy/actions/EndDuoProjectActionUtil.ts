@@ -10,9 +10,9 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 
 	override getInfo(action: Streaming<EndDuoProjectAction>) {
 		return {
-			icon: 'note' as const,
-			description: action.complete ? 'Ended duo project' : 'Ending duo project...',
-			pose: 'thinking' as const,
+			icon: 'flag' as const,
+			description: action.complete ? 'Ended project' : 'Ending project...',
+			pose: 'writing' as const,
 			canGroup: () => false,
 		}
 	}
@@ -35,12 +35,15 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 
 		memberAgents.forEach((memberAgent) => {
 			if (memberAgent.id === this.agent.id) {
+				const count = completedTasks.length
+				const taskWord = count === 1 ? 'task' : 'tasks'
 				memberAgent.$chatHistory.update((prev) => [
 					...prev,
 					{
 						type: 'memory-transition',
 						memoryLevel: 'fairy',
-						message: `I collaborated with my partner and completed the "${project.title}" duo project`,
+						message: `I completed ${count} ${taskWord} as part of the "${project.title}" project with my partner.`,
+						userFacingMessage: null,
 					},
 				])
 			} else {
@@ -56,7 +59,8 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 						{
 							type: 'memory-transition',
 							memoryLevel: 'fairy',
-							message: `I completed ${count} ${taskWord} as part of the "${project.title}" duo project with my partner`,
+							message: `I completed ${count} ${taskWord} as part of the "${project.title}" project with my partner.`,
+							userFacingMessage: `I completed ${count} ${taskWord} as part of the "${project.title}" project.`,
 						},
 					])
 				}

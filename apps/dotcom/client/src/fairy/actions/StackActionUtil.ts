@@ -10,6 +10,7 @@ export class StackActionUtil extends AgentActionUtil<StackAction> {
 		return {
 			icon: 'cursor' as const,
 			description: action.intent ?? '',
+			pose: 'working' as const,
 		}
 	}
 

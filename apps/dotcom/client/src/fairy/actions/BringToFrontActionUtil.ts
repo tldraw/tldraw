@@ -10,6 +10,7 @@ export class BringToFrontActionUtil extends AgentActionUtil<BringToFrontAction> 
 		return {
 			icon: 'cursor' as const,
 			description: action.intent ?? '',
+			pose: 'working' as const,
 		}
 	}
 

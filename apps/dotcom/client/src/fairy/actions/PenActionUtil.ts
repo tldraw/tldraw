@@ -10,6 +10,7 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 		return {
 			icon: 'pencil' as const,
 			description: action.intent ?? '',
+			pose: 'working' as const,
 		}
 	}
 
