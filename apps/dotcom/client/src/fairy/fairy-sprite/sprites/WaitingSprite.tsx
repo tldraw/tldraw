@@ -9,6 +9,12 @@ export function WaitingSprite({
 }) {
 	return (
 		<>
+			<path
+				d="M59.6873 102.885C59.6873 102.885 59.1467 97.183 59.3962 92.212C59.6457 87.241 60.5079 83.1487 60.5079 83.1487"
+				stroke="black"
+				strokeWidth="6"
+				strokeLinecap="round"
+			/>
 			<FairyBodySpritePart bodyColor={bodyColor} />
 			<circle
 				cx="55.4159"
@@ -49,6 +55,8 @@ export function WaitingSprite({
 				strokeWidth="5"
 				strokeLinecap="round"
 			/>
+			<circle cx="84.4837" cy="26.3945" r="4.1618" fill="black" />
+			<circle cx="94.5909" cy="24.4621" r="4.1618" fill="black" />
 			<path
 				d="M39.9748 54.8145C39.9748 54.8145 30.065 77.9645 52.5691 70.1016"
 				stroke="black"
@@ -57,6 +65,12 @@ export function WaitingSprite({
 			/>
 			<path
 				d="M66.7934 54.0405C66.7934 54.0405 78.598 76.88 59.7542 69.9661"
+				stroke="black"
+				strokeWidth="6"
+				strokeLinecap="round"
+			/>
+			<path
+				d="M46.8016 102.696C49.4382 88.6889 49.0265 87.0369 48.2847 82.5915"
 				stroke="black"
 				strokeWidth="6"
 				strokeLinecap="round"
