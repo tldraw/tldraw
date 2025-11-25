@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { ConsentPreferences } from '../types'
 
 export class AnalyticsService {
 	protected isEnabled = false
@@ -21,11 +22,7 @@ export class AnalyticsService {
 	// Track when consent banner is displayed (called before consent is granted).
 	trackConsentBannerDisplayed?(data: { consent_opt_in_type: 'manual' | 'auto' }): void
 	// Track when user selects consent preferences (called before consent is granted).
-	trackConsentBannerSelected?(data: {
-		consent_analytics: 'granted' | 'denied'
-		consent_marketing: 'granted' | 'denied'
-		consent_opt_in_type: 'manual' | 'auto'
-	}): void
+	trackConsentBannerSelected?(data: ConsentPreferences): void
 	// Track when user copies a code snippet.
 	trackCopyCode?(data: {
 		page_category: string
