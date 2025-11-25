@@ -2,6 +2,9 @@
   "0095a9fa74": {
     "translation": "Export"
   },
+  "00b177e080": {
+    "translation": "Accept invitation"
+  },
   "038c9b4432": {
     "translation": "Fairy’s personality"
   },
@@ -230,6 +233,9 @@
   "56c34c6410": {
     "translation": "Privacy policy"
   },
+  "5a2ccdc00a": {
+    "translation": "Failed to redeem invite code"
+  },
   "5a86b22fa0": {
     "translation": "Drag files here, <create>create a file</create>, or <invite>copy invite link</invite> to get started."
   },
@@ -352,6 +358,9 @@
   },
   "7c0747a5df": {
     "translation": "Open tldraw"
+  },
+  "7cb471f815": {
+    "translation": "You've been invited to join tldraw fairies!"
   },
   "7cb5f8b4a5": {
     "translation": "Forget"
@@ -579,6 +588,9 @@
   "c303bd1095": {
     "translation": "Unable to publish the file."
   },
+  "c3e97dd6e9": {
+    "translation": "$"
+  },
   "c4b39a1cc3": {
     "translation": "Essential cookies"
   },
@@ -614,6 +626,9 @@
   },
   "ce0547606c": {
     "translation": "This file is approaching its size limit. Consider removing some content or starting a new file."
+  },
+  "ce1424d44b": {
+    "translation": "You already have fairy access!"
   },
   "cea291e45e": {
     "translation": "Learn more about publishing."
@@ -779,5 +794,8 @@
   },
   "ffcd73e997": {
     "translation": "Import file…"
+  },
+  "ffec95af2f": {
+    "translation": "Purchase fairy access"
   }
 }

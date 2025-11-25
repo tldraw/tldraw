@@ -5,6 +5,12 @@
       "value": "Export"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Accept invitation"
+    }
+  ],
   "038c9b4432": [
     {
       "type": 0,
@@ -475,6 +481,12 @@
       "value": "Privacy policy"
     }
   ],
+  "5a2ccdc00a": [
+    {
+      "type": 0,
+      "value": "Failed to redeem invite code"
+    }
+  ],
   "5a86b22fa0": [
     {
       "type": 0,
@@ -747,6 +759,12 @@
     {
       "type": 0,
       "value": "Open tldraw"
+    }
+  ],
+  "7cb471f815": [
+    {
+      "type": 0,
+      "value": "You've been invited to join tldraw fairies!"
     }
   ],
   "7cb5f8b4a5": [
@@ -1309,6 +1327,12 @@
       "value": "Unable to publish the file."
     }
   ],
+  "c3e97dd6e9": [
+    {
+      "type": 0,
+      "value": "$"
+    }
+  ],
   "c4b39a1cc3": [
     {
       "type": 0,
@@ -1379,6 +1403,12 @@
     {
       "type": 0,
       "value": "This file is approaching its size limit. Consider removing some content or starting a new file."
+    }
+  ],
+  "ce1424d44b": [
+    {
+      "type": 0,
+      "value": "You already have fairy access!"
     }
   ],
   "cea291e45e": [
@@ -1773,6 +1803,12 @@
     {
       "type": 0,
       "value": "Import file…"
+    }
+  ],
+  "ffec95af2f": [
+    {
+      "type": 0,
+      "value": "Purchase fairy access"
     }
   ]
 }
