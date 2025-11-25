@@ -1,6 +1,12 @@
-export function SelectedSprite({ fairyCount = 1 }: { fairyCount?: number }) {
+export function SelectedSprite({
+	fairyCount = 1,
+	inset: _inset = 1,
+}: {
+	fairyCount?: number
+	inset?: number
+}) {
 	const strokeWidth = 1
-	const inset = 1 + strokeWidth / 2 // Half stroke width for centering
+	const inset = _inset + strokeWidth / 2 // Half stroke width for centering
 	const cornerLength = 4 // Length of each leg of the L
 	const width = 32 // ViewBox width
 	const baseHeight = 32 // Base height for single fairy

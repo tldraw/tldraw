@@ -88,7 +88,7 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 				id: newProjectId,
 				title: '',
 				description: '',
-				color: 'grey',
+				color: 'white',
 				members: [
 					{
 						id: leaderAgent.id,

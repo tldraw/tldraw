@@ -8,14 +8,7 @@ export function WritingSprite({
 	hatColor?: string
 }) {
 	return (
-		<svg
-			className="fairy-sprite"
-			width="108"
-			height="108"
-			viewBox="0 0 108 108"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-		>
+		<>
 			<path
 				d="M65.0887 51.5848C65.0887 51.5848 67.5893 56.2864 71.3943 58.8616C75.1993 61.4369 80.601 60.6345 80.601 60.6345"
 				stroke="black"
@@ -83,6 +76,6 @@ export function WritingSprite({
 				strokeWidth="4"
 				strokeLinecap="round"
 			/>
-		</svg>
+		</>
 	)
 }

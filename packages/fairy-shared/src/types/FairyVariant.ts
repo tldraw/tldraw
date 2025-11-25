@@ -1,31 +1,28 @@
 import { FairyPartDefinition, FairyPartType } from './FairyPartType'
 import { FairyPose } from './FairyPose'
 
+// Note: The image paths below are no longer used for rendering (FairySprite2 uses SVG components),
+// but the variant keys are still needed for random outfit generation in FairyApp.tsx
 const FAIRY_HAT_VARIANTS = {
-	top: { idle: ['/fairy/fairy-hat-top.png'], poof: ['/fairy/fairy-loading.png'] },
-	pointy: { idle: ['/fairy/fairy-hat-point.png'], poof: ['/fairy/fairy-loading.png'] },
-	bald: { idle: ['/fairy/fairy-hat-bald.png'], poof: ['/fairy/fairy-loading.png'] },
-	antenna: { idle: ['/fairy/fairy-hat-antenna.png'], poof: ['/fairy/fairy-loading.png'] },
-	spiky: { idle: ['/fairy/fairy-hat-spiky.png'], poof: ['/fairy/fairy-loading.png'] },
-	hair: { idle: ['/fairy/fairy-hat-hair.png'], poof: ['/fairy/fairy-loading.png'] },
-	ears: { idle: ['/fairy/fairy-hat-ears.png'], poof: ['/fairy/fairy-loading.png'] },
-	propellor: { idle: ['/fairy/fairy-hat-propellor.png'], poof: ['/fairy/fairy-loading.png'] },
+	top: { idle: [''] },
+	pointy: { idle: [''] },
+	bald: { idle: [''] },
+	antenna: { idle: [''] },
+	spiky: { idle: [''] },
+	hair: { idle: [''] },
+	ears: { idle: [''] },
+	propellor: { idle: [''] },
 } as const satisfies FairyPartDefinition
 
 const FAIRY_WINGS_VARIANTS = {
 	plain: {
-		idle: ['/fairy/fairy-wing-0.png'],
-		active: ['/fairy/fairy-wing-0.png', '/fairy/fairy-wing-1.png'],
-		thinking: ['/fairy/fairy-wing-0.png', '/fairy/fairy-wing-1.png'],
-		poof: ['/fairy/fairy-loading.png'],
+		idle: [''],
 	},
 } as const satisfies FairyPartDefinition
 
 const FAIRY_BODY_VARIANTS = {
 	plain: {
-		idle: ['/fairy/fairy-body-default.png'],
-		thinking: ['/fairy/fairy-body-think.png'],
-		poof: ['/fairy/fairy-loading.png'],
+		idle: [''],
 	},
 } as const satisfies FairyPartDefinition
 

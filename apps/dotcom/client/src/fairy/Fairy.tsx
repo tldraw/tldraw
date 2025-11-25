@@ -8,6 +8,7 @@ import { FairySpriteComponent2 } from './fairy-sprite/FairySprite2'
 import { SelectedSprite } from './fairy-sprite/sprites/SelectedSprite'
 import { FairyContextMenuContent } from './FairyContextMenuContent'
 import { FairyThrowTool } from './FairyThrowTool'
+import { getProjectColor } from './getProjectColor'
 
 export const FAIRY_CONTAINER_SIZE = 52
 export const FAIRY_SIZE = 44
@@ -69,6 +70,13 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 
 	const fairyOutfit = useValue('fairy outfit', () => $fairyConfig.get()?.outfit, [$fairyConfig])
 	const fairyEntity = useValue('fairy entity', () => $fairyEntity.get(), [$fairyEntity])
+
+	const isOrchestrator = useValue(
+		'is orchestrator',
+		() => agent.getRole() === 'orchestrator' || agent.getRole() === 'duo-orchestrator',
+		[agent]
+	)
+	const projectColor = useValue('project color', () => agent.getProject()?.color, [agent])
 
 	const position = useValue(
 		'fairy position',
@@ -239,6 +247,8 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 		editor.on('event', handleEvent)
 	}
 
+	const projectHexColor = projectColor ? getProjectColor(editor, projectColor) : undefined
+
 	return (
 		<_ContextMenu.Root dir="ltr">
 			<_ContextMenu.Trigger asChild>
@@ -284,6 +294,8 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 							outfit={fairyOutfit}
 							isGenerating={isGenerating}
 							animated={fairyEntity.pose !== 'idle' || isSelected}
+							isOrchestrator={isOrchestrator}
+							projectColor={projectHexColor}
 							flipX={flipX}
 						/>
 					</div>

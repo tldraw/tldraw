@@ -14,8 +14,8 @@ import { $fairyAgentsAtom } from './fairy-agent/agent/fairyAgentsAtom'
 import { fairyMessages } from './fairy-messages'
 import { FairyConfigDialog } from './FairyConfigDialog'
 import { FairyDebugDialog } from './FairyDebugDialog'
-import { $fairyProjects, deleteProject } from './FairyProjects'
-import { clearFairyTasks } from './FairyTaskList'
+import { $fairyProjects, deleteProjectAndAssociatedTasks } from './FairyProjects'
+import { clearFairyTasksAndProjects } from './FairyTaskList'
 
 export function FairyMenuContent({
 	agent,
@@ -90,7 +90,7 @@ export function FairyMenuContent({
 			memberAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
 		})
 
-		deleteProject(currentProject.id)
+		deleteProjectAndAssociatedTasks(currentProject.id)
 	}, [currentProject, editor])
 
 	const openDebugDialog = useCallback(() => {
@@ -106,7 +106,7 @@ export function FairyMenuContent({
 		})
 
 		// Clear the todo list and projects
-		clearFairyTasks()
+		clearFairyTasksAndProjects()
 
 		// Reset all chats
 		agents.forEach((agent) => {

@@ -137,9 +137,11 @@ export function FairyListSidebar({
 									data-is-active={entry.isActive}
 								>
 									{entry.agents.map(renderFairySidebarButton)}
-									<div className="fairy-selected-sprite-overlay">
-										<SelectedSprite fairyCount={entry.agents.length} />
-									</div>
+									{entry.isActive && (
+										<div className="fairy-selected-sprite-overlay">
+											<SelectedSprite fairyCount={entry.agents.length} inset={3} />
+										</div>
+									)}
 								</div>
 							)
 						}

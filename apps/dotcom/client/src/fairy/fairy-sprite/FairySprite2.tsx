@@ -67,7 +67,9 @@ const HAT_COLORS: Record<string, string> = {
  */
 function computeFairyColors(
 	_entity: FairyEntity,
-	outfit: FairyOutfit
+	outfit: FairyOutfit,
+	projectColor?: string,
+	isOrchestrator?: boolean
 ): {
 	topWingColor: string
 	bottomWingColor: string
@@ -75,8 +77,8 @@ function computeFairyColors(
 	hatColor: string
 } {
 	return {
-		topWingColor: 'white',
-		bottomWingColor: 'white',
+		topWingColor: projectColor ?? 'white',
+		bottomWingColor: projectColor && isOrchestrator ? projectColor : 'white',
 		bodyColor: 'white',
 		hatColor: HAT_COLORS[outfit.hat] || 'white',
 	}
@@ -112,6 +114,8 @@ export function FairySpriteComponent2({
 	showShadow,
 	isGenerating,
 	flipX = false,
+	isOrchestrator,
+	projectColor,
 }: {
 	entity: FairyEntity
 	outfit: FairyOutfit
@@ -120,8 +124,10 @@ export function FairySpriteComponent2({
 	flipX?: boolean
 	isGenerating?: boolean
 	tint?: string | null
+	isOrchestrator?: boolean
+	projectColor?: string
 }) {
-	const colors = computeFairyColors(entity, outfit)
+	const colors = computeFairyColors(entity, outfit, projectColor, isOrchestrator)
 
 	return (
 		<div className="fairy-sprite-container">
@@ -170,12 +176,19 @@ function AnimatedFairySpriteComponent({
 	const WSprite = getItemForKeyFrame(WING_SPRITES[effectivePose], keyframe)
 
 	return (
-		<>
+		<svg
+			className="fairy-sprite"
+			width="108"
+			height="108"
+			viewBox="0 0 108 108"
+			fill="none"
+			xmlns="http://www.w3.org/2000/svg"
+		>
 			{WSprite && (
 				<WSprite topWingColor={colors.topWingColor} bottomWingColor={colors.bottomWingColor} />
 			)}
 			{FSprite && <FSprite bodyColor={colors.bodyColor} hatColor={colors.hatColor} />}
-		</>
+		</svg>
 	)
 }
 
@@ -185,6 +198,7 @@ function StaticFairySpriteComponent({
 }: {
 	entity: FairyEntity
 	colors: ReturnType<typeof computeFairyColors>
+	sashColor?: string
 }) {
 	// Gesture takes precedence over pose
 	const effectivePose = entity.gesture ?? entity.pose
@@ -192,11 +206,37 @@ function StaticFairySpriteComponent({
 	const WSprite = WING_SPRITES[effectivePose][0]
 
 	return (
-		<>
+		<svg
+			className="fairy-sprite"
+			width="108"
+			height="108"
+			viewBox="0 0 108 108"
+			fill="none"
+			xmlns="http://www.w3.org/2000/svg"
+		>
 			{WSprite && (
 				<WSprite topWingColor={colors.topWingColor} bottomWingColor={colors.bottomWingColor} />
 			)}
 			{FSprite && <FSprite bodyColor={colors.bodyColor} hatColor={colors.hatColor} />}
-		</>
+		</svg>
+	)
+}
+
+export function CleanFairySpriteComponent() {
+	const FSprite = FAIRY_SPRITES_WITH_PROPS['idle'][0]
+	const WSprite = WING_SPRITES['idle'][0]
+	return (
+		<div className="fairy-sprite-container">
+			<div
+				className="fairy-sprite-stack"
+				style={{
+					transform: 'none',
+					filter: 'drop-shadow(2px 2px 0.5px rgba(8, 20, 35, 0.12))',
+				}}
+			>
+				<WSprite topWingColor="white" bottomWingColor="white" />
+				<FSprite bodyColor="white" hatColor="white" />
+			</div>
+		</div>
 	)
 }

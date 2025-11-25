@@ -49,10 +49,8 @@ export function getFairyTaskById(id: string): FairyTask | undefined {
 	return $fairyTasks.get().find((t) => t.id === id)
 }
 
-export function clearFairyTasks() {
+export function clearFairyTasksAndProjects() {
 	$fairyTasks.set([])
-
-	// Clear all projects
 	clearProjects()
 }
 
