@@ -14,4 +14,4 @@ export interface FairyProjectMember {
 	role: FairyProjectRole
 }
 
-export type FairyProjectRole = 'orchestrator' | 'drone'
+export type FairyProjectRole = 'orchestrator' | 'duo-orchestrator' | 'drone'

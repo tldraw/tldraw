@@ -69,79 +69,37 @@
 	pointer-events: auto;
 }
 
-/* Fairy Square */
+.fairy-toggle-button[data-isactive='true']::before,
+.fairy-toggle-button[data-isactive='true']::after {
+	display: none;
+}
 
-.fairy-selected {
+.fairy-toggle-button[data-is-sleeping='true'] {
+	opacity: 0.4;
+}
+
+.fairy-leader-toggle {
 	position: relative;
-}
-
-.fairy-selected::before,
-.fairy-selected::after,
-.fairy-toggle-button[data-isactive='true']::before,
-.fairy-toggle-button[data-isactive='true']::after {
-	content: '';
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	top: 0;
-	left: 0;
-	border: 2px solid var(--tl-color-primary);
-	border-radius: 2px;
-	pointer-events: none;
-}
-
-.fairy-selected::before,
-.fairy-toggle-button[data-isactive='true']::before {
-	clip-path: polygon(
-		0 0,
-		12px 0,
-		12px 2px,
-		2px 2px,
-		2px 12px,
-		0 12px,
-		0 100%,
-		12px 100%,
-		12px calc(100% - 2px),
-		2px calc(100% - 2px),
-		2px calc(100% - 12px),
-		0 calc(100% - 12px)
-	);
-}
-
-.fairy-selected::after,
-.fairy-toggle-button[data-isactive='true']::after {
-	clip-path: polygon(
-		100% 0,
-		calc(100% - 12px) 0,
-		calc(100% - 12px) 2px,
-		calc(100% - 2px) 2px,
-		calc(100% - 2px) 12px,
-		100% 12px,
-		100% 100%,
-		calc(100% - 12px) 100%,
-		calc(100% - 12px) calc(100% - 2px),
-		calc(100% - 2px) calc(100% - 2px),
-		calc(100% - 2px) calc(100% - 12px),
-		100% calc(100% - 12px)
-	);
-}
-
-.fairy-toggle-button[data-isactive='true']::before,
-.fairy-toggle-button[data-isactive='true']::after {
-	transform: scale(0.9);
+	width: 44px;
 }
 
 /* Fairy Input */
 
+.fairy-input-container {
+	padding: 4px;
+}
+
 .fairy-input {
+	background: var(--tl-color-muted-2);
 	pointer-events: auto;
 	position: relative;
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	gap: 12px;
 	padding-right: 8px;
-	height: 41px;
-	border-top: 1px solid var(--tl-color-divider);
+	min-height: 64px;
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-4);
 }
 
 .fairy-input__form {
@@ -160,6 +118,12 @@
 	font-size: 12px;
 	font-family: inherit;
 	outline: none;
+	resize: none;
+	min-height: 17px;
+	max-height: 85px;
+	overflow-y: auto;
+	line-height: 1.4;
+	flex: 1;
 }
 
 .fairy-input__field::placeholder {
@@ -174,6 +138,7 @@
 	padding: 10px;
 	margin: -10px;
 	margin-right: -5px;
+	margin-bottom: 2px;
 	background-color: transparent;
 	border: none;
 	border-radius: var(--tl-radius-2);
@@ -183,6 +148,7 @@
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
+	align-self: flex-end;
 }
 
 .fairy-input__submit:hover:not(:disabled) {
@@ -192,13 +158,6 @@
 .fairy-input__submit:disabled {
 	filter: grayscale(100%);
 	cursor: not-allowed;
-}
-
-.fairy-selected-corner {
-	position: absolute;
-	width: 10px;
-	height: 10px;
-	border: 0 solid var(--tl-color-primary);
 }
 
 .fairy-sprite {
@@ -245,8 +204,6 @@
 	flex-direction: column;
 	align-items: flex-end;
 	border-radius: var(--tl-radius-2);
-	box-shadow: var(--tl-shadow-1);
-	border-radius: var(--tl-radius-2);
 	gap: 0px;
 	z-index: var(--tl-layer-canvas-in-front);
 }
@@ -281,6 +238,7 @@
 .tla-fairy-hud .tlui-toolbar {
 	scrollbar-width: thin;
 	scrollbar-color: var(--tl-color-muted-1) transparent;
+	align-items: center;
 }
 
 /* Fairy Toolbar Header */
@@ -289,9 +247,8 @@
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	justify-content: start;
-	border-bottom: 1px solid var(--tl-color-divider);
-	padding: 4px;
+	justify-content: center;
+	padding: 8px;
 	flex-shrink: 0;
 	gap: 8px;
 }
@@ -299,14 +256,13 @@
 .fairy-id-display {
 	display: flex;
 	align-items: center;
-	justify-content: center;
+	justify-content: start;
 	gap: 6px;
 	flex: 1;
 	font-size: 12px;
 	color: var(--tl-color-text-2);
 	padding: 0px 6px;
 	text-align: center;
-	margin-left: 16px;
 }
 
 .fairy-spinner-container {
@@ -328,37 +284,23 @@
 
 .fairy-toolbar-button {
 	font-size: 14px;
-	height: 32px;
 	margin: -4px;
 }
 
 .fairy-toolbar-sidebar-button {
-	height: 32px;
 	font-size: 14px;
 }
 
-.fairy-new-button {
-	width: 40px;
-	height: 40px;
-	font-size: 16px;
-	appearance: none;
-	border: 1px solid var(--tl-color-muted-2);
-	border-radius: 4px;
-	cursor: pointer;
-	background: transparent;
-	color: var(--tl-color-text);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.fairy-new-button:hover:not(:disabled) {
-	background-color: var(--tl-color-hint);
-}
-
-.fairy-new-button:disabled {
-	opacity: 0.3;
+.fairy-toolbar-sidebar-button:disabled {
 	cursor: not-allowed;
+	opacity: 0.4;
+}
+
+.fairy-new-button {
+	margin-top: 4px;
+	align-items: center;
+	display: flex;
+	justify-content: center;
 }
 
 /* Fairy Buttons Container */
@@ -366,25 +308,32 @@
 .fairy-buttons-container {
 	display: flex;
 	flex-direction: column;
-	background-color: var(--tl-color-panel);
-	border-radius: var(--tl-radius-2);
+	justify-content: end;
 	z-index: 0;
 }
 
 .fairy-chat-panel[data-panel-state='open'] + .fairy-buttons-container {
-	border-left: 1px solid var(--tl-color-divider);
-	border-radius: 0 var(--tl-radius-2) var(--tl-radius-2) 0;
+	margin-left: 5px;
 }
 
-.fairy-list-scrollable {
-	height: calc(48px * 3 + 11px); /* 4 fairies max visible */
-	overflow-y: auto;
-	scrollbar-width: none; /* Firefox */
-	-ms-overflow-style: none; /* IE and Edge */
+.fairy-list {
+	box-shadow: var(--tl-shadow-1);
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-3);
+	background-color: var(--tl-color-panel);
+	height: fit-content;
 }
 
-.fairy-list-scrollable::-webkit-scrollbar {
-	display: none; /* Chrome, Safari, Opera */
+.fairy-sidebar-group {
+	position: relative;
+}
+
+.fairy-sidebar-group::after {
+	content: '';
+	position: absolute;
+	inset: 4px;
+	background-color: var(--tl-color-muted-2);
+	border-radius: var(--tl-radius-2);
 }
 
 /* Fairy Chat Panel */
@@ -392,10 +341,11 @@
 .fairy-chat-panel {
 	display: flex;
 	flex-direction: column;
-	width: 350px;
-	height: 224px;
+	width: 309px;
+	height: 316px;
+	box-shadow: var(--tl-shadow-1);
 	background-color: var(--tl-color-panel);
-	border-radius: var(--tl-radius-2);
+	border-radius: var(--tl-radius-4);
 	overflow: hidden;
 	pointer-events: auto;
 	z-index: 2;
@@ -412,9 +362,9 @@
 /* Make the dialog content fixed size */
 .tlui-dialog__content:has(.fairy-debug-dialog-wrapper) {
 	width: 800px;
-	height: 600px;
+	height: 800px;
 	max-width: 800px;
-	max-height: 600px;
+	max-height: 800px;
 }
 
 /* Fairy Chat History */
@@ -434,7 +384,8 @@
 
 .fairy-chat-history span:not(button *),
 .fairy-chat-history div:not(button *),
-.fairy-chat-history p:not(button *) {
+.fairy-chat-history p:not(button *),
+.fairy-chat-history strong:not(button *) {
 	user-select: text;
 	cursor: initial;
 }
@@ -1516,4 +1467,54 @@
 	/* font-size: 13px; */
 	color: var(--color-text);
 	user-select: none;
+}
+
+.fairy-sprite-container {
+	display: grid;
+	height: 100%;
+	width: 100%;
+	pointer-events: none;
+	user-select: none;
+	background: radial-gradient(circle at center, var(--tl-color-background) 0%, transparent 68%);
+}
+
+.fairy-sprite-stack {
+	grid-area: 1 / 1;
+	place-self: center;
+	width: calc(100% - 8px);
+	height: calc(100% - 8px);
+	display: grid;
+	pointer-events: none;
+	user-select: none;
+}
+
+.fairy-sprite-stack .fairy-sprite {
+	grid-area: 1 / 1;
+	place-self: center;
+	width: 100%;
+	height: 100%;
+}
+
+.fairy-sprite-container > .fairy-selected-sprite {
+	grid-area: 1 / 1;
+	place-self: center;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	user-select: none;
+}
+
+.fairy-sprite-wrapper {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+.fairy-selected-sprite-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
 }

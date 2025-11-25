@@ -2,7 +2,8 @@ import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { MouseEvent } from 'react'
 import { TldrawUiToolbarToggleGroup, TldrawUiToolbarToggleItem, useValue } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
-import { FairySpriteComponent } from './fairy-sprite/FairySprite'
+import { FairySpriteComponent2 } from './fairy-sprite/FairySprite2'
+import { SelectedSprite } from './fairy-sprite/sprites/SelectedSprite'
 import { FairyContextMenuContent } from './FairyContextMenuContent'
 import { getProjectColor } from './getProjectColor'
 
@@ -28,10 +29,13 @@ export function FairySidebarButton({
 	const fairyOutfit = useValue('fairy outfit', () => agent.$fairyConfig.get()?.outfit, [agent])
 	const fairyEntity = useValue('fairy entity', () => agent.$fairyEntity.get(), [agent])
 	const project = useValue('current-project', () => agent.getProject(), [agent])
+	const isSleeping = useValue('is-sleeping', () => agent.getMode() === 'sleeping', [agent])
 
-	const isOrchestrator = useValue('is-orchestrator', () => agent.getRole() === 'orchestrator', [
-		agent,
-	])
+	const isOrchestrator = useValue(
+		'is-orchestrator',
+		() => agent.getRole() === 'orchestrator' || agent.getRole() === 'duo-orchestrator',
+		[agent]
+	)
 	const projectColor = project ? getProjectColor(agent.editor, project.color) : undefined
 
 	if (!fairyEntity || !fairyOutfit) return null
@@ -47,10 +51,24 @@ export function FairySidebarButton({
 						type="icon"
 						data-state={fairyIsSelected ? 'on' : 'off'}
 						data-isactive={fairyIsSelected}
+						data-is-sleeping={isSleeping}
 						aria-label={fairyIsSelected ? deselectMessage : selectMessage}
 						value="on"
 					>
-						<FairySpriteComponent entity={fairyEntity} outfit={fairyOutfit} animated={true} />
+						<div className="fairy-sprite-wrapper">
+							<FairySpriteComponent2
+								showShadow
+								entity={fairyEntity}
+								outfit={fairyOutfit}
+								animated={fairyEntity.pose !== 'idle' || fairyIsSelected}
+								flipX={fairyEntity.flipX}
+							/>
+							{fairyIsSelected && (
+								<div className="fairy-selected-sprite-overlay">
+									<SelectedSprite />
+								</div>
+							)}
+						</div>
 						{projectColor && (
 							<div
 								className={`fairy-button-project-indicator ${isOrchestrator ? 'fairy-button-project-indicator--orchestrator' : ''}`}

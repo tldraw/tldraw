@@ -9,6 +9,7 @@ export class ChangePageActionUtil extends AgentActionUtil<ChangePageAction> {
 		return {
 			icon: 'target' as const,
 			description: action.intent ?? `Changing to page: ${action.pageName}`,
+			pose: 'working' as const,
 		}
 	}
 

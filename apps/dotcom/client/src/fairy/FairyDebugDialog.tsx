@@ -1,4 +1,11 @@
-import { ChatHistoryItem, PROMPT_PART_DEFINITIONS } from '@tldraw/fairy-shared'
+import {
+	AGENT_MODEL_DEFINITIONS,
+	AgentModelName,
+	ChatHistoryItem,
+	DEFAULT_MODEL_NAME,
+	FairyMemoryLevel,
+	PROMPT_PART_DEFINITIONS,
+} from '@tldraw/fairy-shared'
 import { ReactNode, useState } from 'react'
 import {
 	TldrawUiButton,
@@ -15,40 +22,45 @@ import {
 	TldrawUiDropdownMenuTrigger,
 	useValue,
 } from 'tldraw'
+import { F } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { $fairyDebugFlags } from './FairyDebugFlags'
+import { $fairyModelSelection } from './FairyModelSelection'
 import { $fairyProjects, addAgentToDummyProject } from './FairyProjects'
 import { $fairyTasks } from './FairyTaskList'
+import { getRandomFairyPersonality } from './getRandomFairyPersonality'
 
 // # Home Debug Inspector Types and Labels
-type HomeDebugInspectorType = 'projects' | 'sharedTodoList'
-const HOME_DEBUG_INSPECTOR_TYPES: HomeDebugInspectorType[] = ['projects', 'sharedTodoList']
+type HomeDebugInspectorType = 'projects' | 'fairyTaskList'
+const HOME_DEBUG_INSPECTOR_TYPES: HomeDebugInspectorType[] = ['projects', 'fairyTaskList']
 
 // # Fairy Debug Inspector Types and Labels
 type FairyDebugInspectorType =
 	| 'config'
 	| 'actions'
+	| 'chatHistory'
 	| 'fairyEntity'
 	| 'activeRequest'
 	| 'scheduledRequest'
 	| 'chatOrigin'
-	| 'todoList'
+	| 'personalTodoList'
 	| 'userActionHistory'
 	| 'currentProjectId'
-	| 'cumulativeUsage'
+	// | 'cumulativeUsage'
 	| 'mode'
 
 const FAIRY_DEBUG_INSPECTOR_TYPES: FairyDebugInspectorType[] = [
 	'config',
 	'actions',
+	'chatHistory',
 	'fairyEntity',
 	'activeRequest',
 	'scheduledRequest',
 	'chatOrigin',
-	'todoList',
+	'personalTodoList',
 	'userActionHistory',
 	'currentProjectId',
-	'cumulativeUsage',
+	// 'cumulativeUsage',
 	'mode',
 ]
 
@@ -170,19 +182,20 @@ function DebugInspectorLabel({
 	if (isHomeTab) {
 		const homeType = type as HomeDebugInspectorType
 		if (homeType === 'projects') return 'Projects'
-		if (homeType === 'sharedTodoList') return 'Shared Todo List'
+		if (homeType === 'fairyTaskList') return 'Task List'
 	} else {
 		const fairyType = type as FairyDebugInspectorType
 		if (fairyType === 'config') return 'Config'
 		if (fairyType === 'actions') return 'Actions'
+		if (fairyType === 'chatHistory') return 'Chat History'
 		if (fairyType === 'fairyEntity') return 'Fairy Entity'
 		if (fairyType === 'activeRequest') return 'Active Request'
 		if (fairyType === 'scheduledRequest') return 'Scheduled Request'
 		if (fairyType === 'chatOrigin') return 'Chat Origin'
-		if (fairyType === 'todoList') return 'Todo List'
+		if (fairyType === 'personalTodoList') return 'Personal Todo List'
 		if (fairyType === 'userActionHistory') return 'User Action History'
 		if (fairyType === 'currentProjectId') return 'Current Project ID'
-		if (fairyType === 'cumulativeUsage') return 'Cumulative Usage'
+		// if (fairyType === 'cumulativeUsage') return 'Cumulative Usage'
 		if (fairyType === 'mode') return 'Mode'
 	}
 	return null
@@ -198,7 +211,7 @@ function HomeDebugView({
 	return (
 		<div className="fairy-debug-view-container">
 			{homeDebugInspectorType === 'projects' && <ProjectsInspector />}
-			{homeDebugInspectorType === 'sharedTodoList' && <SharedTodoListInspector />}
+			{homeDebugInspectorType === 'fairyTaskList' && <FairyTaskInspector />}
 		</div>
 	)
 }
@@ -207,7 +220,7 @@ function HomeDebugView({
 
 function ProjectsInspector() {
 	const projects = useValue($fairyProjects)
-	const sharedTodos = useValue($fairyTasks)
+	const fairyTasks = useValue($fairyTasks)
 
 	return (
 		<div className="fairy-debug-projects-container">
@@ -216,7 +229,7 @@ function ProjectsInspector() {
 				<div className="fairy-debug-projects-empty">No projects yet</div>
 			) : (
 				projects.map((project, index) => {
-					const projectTodos = sharedTodos.filter((todo) => todo.projectId === project.id)
+					const projectTodos = fairyTasks.filter((todo) => todo.projectId === project.id)
 					return (
 						<div key={project.id} className="fairy-debug-project-card">
 							<div className="fairy-debug-project-name">{project.title}</div>
@@ -226,7 +239,12 @@ function ProjectsInspector() {
 								<KeyValuePair label="plan" value={project.plan} />
 								<KeyValuePair
 									label="orchestrator"
-									value={project.members.find((member) => member.role === 'orchestrator')?.id}
+									value={
+										project.members.find(
+											(member) =>
+												member.role === 'orchestrator' || member.role === 'duo-orchestrator'
+										)?.id
+									}
 								/>
 								<KeyValuePair label="members" value={project.members} />
 							</div>
@@ -257,24 +275,22 @@ function ProjectsInspector() {
 	)
 }
 
-function SharedTodoListInspector() {
-	const sharedTodos = useValue($fairyTasks)
+function FairyTaskInspector() {
+	const fairyTasks = useValue($fairyTasks)
 
 	return (
 		<div className="fairy-debug-shared-todos-container">
-			<div className="fairy-debug-shared-todos-header">
-				Shared Todo List ({sharedTodos.length}):
-			</div>
-			{sharedTodos.length === 0 ? (
+			<div className="fairy-debug-shared-todos-header">Shared Todo List ({fairyTasks.length}):</div>
+			{fairyTasks.length === 0 ? (
 				<div className="fairy-debug-shared-todos-empty">No shared todos yet</div>
 			) : (
-				sharedTodos.map((todo, index) => (
+				fairyTasks.map((todo, index) => (
 					<div key={todo.id} className="fairy-debug-shared-todo-item">
 						{/* <JsonDisplay value={todo} /> */}
 						{Object.entries(todo).map(([key, value]) => (
 							<KeyValuePair key={key} label={key} value={value} />
 						))}
-						{index < sharedTodos.length - 1 && <hr className="fairy-debug-shared-todo-separator" />}
+						{index < fairyTasks.length - 1 && <hr className="fairy-debug-shared-todo-separator" />}
 					</div>
 				))
 			)}
@@ -284,6 +300,8 @@ function SharedTodoListInspector() {
 
 function HomeDebugOptions() {
 	const debugFlags = useValue($fairyDebugFlags)
+	const selectedModel = useValue($fairyModelSelection)
+	const currentModel = selectedModel ?? DEFAULT_MODEL_NAME
 
 	return (
 		<div className="home-debug-options-container">
@@ -305,8 +323,35 @@ function HomeDebugOptions() {
 					</label>
 				</div>
 			</div>
+			<div className="fairy-debug-model-selection-container">
+				<label className="fairy-debug-view-label">
+					<F defaultMessage="Model:" />
+				</label>
+				<TldrawUiDropdownMenuRoot id="model-select">
+					<TldrawUiDropdownMenuTrigger>
+						<TldrawUiButton type="low" className="fairy-debug-view-button">
+							<TldrawUiButtonLabel>{currentModel}</TldrawUiButtonLabel>
+							<TldrawUiButtonIcon icon="chevron-down" small />
+						</TldrawUiButton>
+					</TldrawUiDropdownMenuTrigger>
+					<TldrawUiDropdownMenuContent side="top" className="fairy-debug-dropdown">
+						{Object.entries(AGENT_MODEL_DEFINITIONS).map(([modelName, modelDefinition]) => (
+							<DropdownMenuItem
+								key={modelName}
+								label={modelDefinition.name}
+								onClick={() => {
+									$fairyModelSelection.set(modelName as AgentModelName)
+								}}
+							/>
+						))}
+					</TldrawUiDropdownMenuContent>
+				</TldrawUiDropdownMenuRoot>
+			</div>
 			<TldrawUiButton type="low" onClick={logPartDefinitionsByPriority}>
 				<TldrawUiButtonLabel>Log Part Definitions by Priority</TldrawUiButtonLabel>
+			</TldrawUiButton>
+			<TldrawUiButton type="low" onClick={logRandomFairyPersonalities}>
+				<TldrawUiButtonLabel>Log Random Fairy Personalities (10x)</TldrawUiButtonLabel>
 			</TldrawUiButton>
 		</div>
 	)
@@ -314,6 +359,7 @@ function HomeDebugOptions() {
 
 function FairyDebugOptions({ agent }: { agent: FairyAgent }) {
 	const debugFlags = useValue(agent.$debugFlags)
+	const oneShotMode = useValue(agent.$useOneShottingMode)
 
 	return (
 		<div className="fairy-debug-options-container">
@@ -346,12 +392,37 @@ function FairyDebugOptions({ agent }: { agent: FairyAgent }) {
 						/>
 						<span>Log Messages</span>
 					</label>
+					<label className="fairy-debug-flags-checkbox">
+						<input
+							type="checkbox"
+							checked={debugFlags.logResponseTime}
+							onChange={(e) => {
+								agent.$debugFlags.set({
+									...debugFlags,
+									logResponseTime: e.target.checked,
+								})
+							}}
+						/>
+						<span>
+							<F defaultMessage="Log response time" />
+						</span>
+					</label>
+					<label className="fairy-debug-flags-checkbox">
+						<input
+							type="checkbox"
+							checked={oneShotMode}
+							onChange={(e) => {
+								agent.$useOneShottingMode.set(e.target.checked)
+							}}
+						/>
+						<span>One-Shot Mode</span>
+					</label>
 				</div>
 			</div>
 
 			<div className="fairy-debug-options-buttons">
 				<TldrawUiButton type="low" onClick={() => addAgentToDummyProject(agent.id)}>
-					<TldrawUiButtonLabel>Add to Dummy Project</TldrawUiButtonLabel>
+					<TldrawUiButtonLabel>Add to dummy project</TldrawUiButtonLabel>
 				</TldrawUiButton>
 				<TldrawUiButton type="low" onClick={() => ((window as any).agent = agent)}>
 					<TldrawUiButtonLabel>Set window.agent</TldrawUiButtonLabel>
@@ -375,10 +446,10 @@ function FairyDebugView({
 	const activeRequest = useValue(agent.$activeRequest)
 	const scheduledRequest = useValue(agent.$scheduledRequest)
 	const chatOrigin = useValue(agent.$chatOrigin)
-	const todoList = useValue(agent.$todoList)
+	const personalTodoList = useValue(agent.$personalTodoList)
 	const userActionHistory = useValue(agent.$userActionHistory)
 	const currentProjectId = agent.getProject()?.id
-	const cumulativeUsage = agent.cumulativeUsage
+	// const cumulativeUsage = agent.cumulativeUsage
 	const mode = agent.getMode()
 
 	if (inspectorType === 'config') {
@@ -395,21 +466,34 @@ function FairyDebugView({
 			</div>
 		)
 	}
+	if (inspectorType === 'chatHistory') {
+		return (
+			<div className="fairy-debug-view-container">
+				<ChatHistoryInspector agent={agent} />
+			</div>
+		)
+	}
 
 	// For all other inspector types, use JsonDisplay
-	const valueMap: Record<Exclude<FairyDebugInspectorType, 'config' | 'actions'>, unknown> = {
+	const valueMap: Record<
+		Exclude<FairyDebugInspectorType, 'config' | 'actions' | 'chatHistory'>,
+		unknown
+	> = {
 		fairyEntity,
 		activeRequest,
 		scheduledRequest,
 		chatOrigin,
-		todoList,
+		personalTodoList,
 		userActionHistory,
 		currentProjectId,
-		cumulativeUsage,
+		// cumulativeUsage,
 		mode,
 	}
 
-	const value = valueMap[inspectorType as Exclude<FairyDebugInspectorType, 'config' | 'actions'>]
+	const value =
+		valueMap[
+			inspectorType as Exclude<FairyDebugInspectorType, 'config' | 'actions' | 'chatHistory'>
+		]
 	return (
 		<div className="fairy-debug-view-container">
 			<JsonDisplay value={value} />
@@ -520,7 +604,154 @@ function ActionsInspector({ agent }: { agent: FairyAgent }) {
 	}
 }
 
+function ChatHistoryInspector({ agent }: { agent: FairyAgent }) {
+	const chatHistory = useValue(agent.$chatHistory)
+
+	return (
+		<div className="fairy-debug-container">
+			<div className="fairy-debug-header">Chat History ({chatHistory.length})</div>
+			{chatHistory.length === 0 ? (
+				<div className="fairy-debug-empty">No chat history items yet</div>
+			) : (
+				chatHistory.map((item, index) => {
+					const isLast = index === chatHistory.length - 1
+					if (item.type === 'prompt') {
+						return <ChatHistoryPromptItem key={`prompt-${index}`} item={item} isLast={isLast} />
+					}
+					if (item.type === 'action') {
+						return <ChatHistoryActionItem key={`action-${index}`} item={item} isLast={isLast} />
+					}
+					if (item.type === 'continuation') {
+						return (
+							<ChatHistoryContinuationItem
+								key={`continuation-${index}`}
+								item={item}
+								isLast={isLast}
+							/>
+						)
+					}
+					if (item.type === 'memory-transition') {
+						return (
+							<ChatHistoryMemoryTransitionItem
+								key={`memory-transition-${index}`}
+								item={item}
+								isLast={isLast}
+							/>
+						)
+					}
+					return null
+				})
+			)}
+		</div>
+	)
+
+	function ChatHistoryPromptItem({
+		item,
+		isLast,
+	}: {
+		item: Extract<ChatHistoryItem, { type: 'prompt' }>
+		isLast: boolean
+	}) {
+		return (
+			<>
+				<div
+					className="fairy-debug-item"
+					style={{ backgroundColor: getMemoryLevelColor(item.memoryLevel) }}
+				>
+					<KeyValuePair label="type" value={item.type} />
+					<KeyValuePair label="message" value={item.message} />
+					<KeyValuePair label="memoryLevel" value={item.memoryLevel} />
+				</div>
+				{!isLast && <hr />}
+			</>
+		)
+	}
+
+	function ChatHistoryActionItem({
+		item,
+		isLast,
+	}: {
+		item: Extract<ChatHistoryItem, { type: 'action' }>
+		isLast: boolean
+	}) {
+		return (
+			<>
+				<div
+					className="fairy-debug-item"
+					style={{ backgroundColor: getMemoryLevelColor(item.memoryLevel) }}
+				>
+					<KeyValuePair label="type" value={item.type} />
+					<KeyValuePair label="action" value={item.action} />
+					<KeyValuePair label="memoryLevel" value={item.memoryLevel} />
+				</div>
+				{!isLast && <hr />}
+			</>
+		)
+	}
+
+	function ChatHistoryContinuationItem({
+		item,
+		isLast,
+	}: {
+		item: Extract<ChatHistoryItem, { type: 'continuation' }>
+		isLast: boolean
+	}) {
+		return (
+			<>
+				<div
+					className="fairy-debug-item"
+					style={{ backgroundColor: getMemoryLevelColor(item.memoryLevel) }}
+				>
+					<KeyValuePair label="type" value={item.type} />
+					<KeyValuePair label="data" value={item.data} />
+					<KeyValuePair label="memoryLevel" value={item.memoryLevel} />
+				</div>
+				{!isLast && <hr />}
+			</>
+		)
+	}
+
+	function ChatHistoryMemoryTransitionItem({
+		item,
+		isLast,
+	}: {
+		item: Extract<ChatHistoryItem, { type: 'memory-transition' }>
+		isLast: boolean
+	}) {
+		return (
+			<>
+				<div
+					className="fairy-debug-item"
+					style={{ backgroundColor: getMemoryLevelColor(item.memoryLevel) }}
+				>
+					<KeyValuePair label="type" value={item.type} />
+					<KeyValuePair label="memoryLevel" value={item.memoryLevel} />
+					<KeyValuePair label="message" value={item.message} />
+					<KeyValuePair label="userFacingMessage" value={item.userFacingMessage} />
+				</div>
+				{!isLast && <hr />}
+			</>
+		)
+	}
+}
+
 // # Utility functions
+
+/**
+ * Returns a background color for a given memory level.
+ */
+function getMemoryLevelColor(memoryLevel: FairyMemoryLevel): string {
+	switch (memoryLevel) {
+		case 'fairy':
+			return 'rgba(147, 51, 234, 0.1)' // Light purple
+		case 'project':
+			return 'rgba(59, 130, 246, 0.1)' // Light blue
+		case 'task':
+			return 'rgba(34, 197, 94, 0.1)' // Light green
+		default:
+			return 'transparent'
+	}
+}
 
 /**
  * Logs all prompt part definitions ranked by priority.
@@ -550,6 +781,20 @@ function logPartDefinitionsByPriority() {
 		const priority = def.priority !== undefined ? def.priority : 'N/A'
 		console.log(`${index + 1}. ${def.type}: ${priority}`)
 	})
+	console.groupEnd()
+	/* eslint-enable no-console */
+}
+
+/**
+ * Logs 10 random fairy personalities.
+ */
+function logRandomFairyPersonalities() {
+	/* eslint-disable no-console */
+	console.group('Random Fairy Personalities (10x)')
+	for (let i = 0; i < 10; i++) {
+		const personality = getRandomFairyPersonality()
+		console.log(`${i + 1}. ${personality}`)
+	}
 	console.groupEnd()
 	/* eslint-enable no-console */
 }

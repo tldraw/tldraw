@@ -25,6 +25,7 @@ export type * from './types/BasePromptPart'
 export type * from './types/ChatHistoryItem'
 export type * from './types/ContextItem'
 export type * from './types/FairyConfig'
+export type * from './types/FairyMemoryLevel'
 export type * from './types/FairyProject'
 export type * from './types/FairyTask'
 export type * from './types/FairyWaitCondition'
@@ -33,7 +34,6 @@ export type * from './types/PersistedFairyConfig'
 export type * from './types/PersistedFairyState'
 export type * from './types/PromptPart'
 export type * from './types/Streaming'
-export type * from './types/TodoItem'
 export type * from './types/WikipediaArticle'
 
 // Schemas and definitions
@@ -48,6 +48,7 @@ export * from './types/FairyVariant'
 
 // Constants / Defaults
 export * from './constants'
+export * from './models'
 export * from './schema/FairyModeDefinition'
 export * from './schema/FairySchema'
 

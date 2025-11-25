@@ -2,8 +2,7 @@ import { VecModel } from '@tldraw/tlschema'
 import { ChatHistoryItem } from './ChatHistoryItem'
 import { FairyEntity } from './FairyEntity'
 import { FairyProject } from './FairyProject'
-import { FairyTask } from './FairyTask'
-import { TodoItem } from './TodoItem'
+import { FairyTask, FairyTodoItem } from './FairyTask'
 
 /**
  * The persisted state for a single fairy agent.
@@ -12,7 +11,7 @@ export interface PersistedFairyAgentState {
 	fairyEntity: FairyEntity
 	chatHistory: ChatHistoryItem[]
 	chatOrigin: VecModel
-	todoList: TodoItem[]
+	personalTodoList: FairyTodoItem[]
 }
 
 /**
@@ -21,7 +20,7 @@ export interface PersistedFairyAgentState {
  */
 export interface PersistedFairyState {
 	agents: Record<string, PersistedFairyAgentState>
-	sharedTodoList: FairyTask[]
+	fairyTaskList: FairyTask[]
 	showCanvasTodos: boolean
 	projects: FairyProject[]
 }

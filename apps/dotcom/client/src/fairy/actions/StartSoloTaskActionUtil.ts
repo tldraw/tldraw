@@ -7,14 +7,20 @@ export class StartSoloTaskActionUtil extends AgentActionUtil<StartSoloTaskAction
 	static override type = 'start-task' as const
 
 	override getInfo(action: Streaming<StartSoloTaskAction>) {
+		if (!action.complete) {
+			return {
+				icon: 'flag' as const,
+				description: 'Starting task...',
+				pose: 'reading' as const,
+				canGroup: () => false,
+			}
+		}
 		const task = $fairyTasks.get().find((task) => task.id === action.taskId)
-
 		return {
-			icon: 'note' as const,
-			description: action.complete
-				? `Started task: ${task?.text ?? action.taskId}`
-				: 'Starting task...',
-			pose: 'thinking' as const,
+			icon: 'flag' as const,
+			description: `Started task: ${task?.title}`,
+			pose: 'reading' as const,
+			canGroup: () => false,
 		}
 	}
 
@@ -26,7 +32,7 @@ export class StartSoloTaskActionUtil extends AgentActionUtil<StartSoloTaskAction
 
 		if (task.assignedTo !== this.agent.id) {
 			this.agent.interrupt({
-				input: `Task "${task.text}" with id ${action.taskId} is not assigned to you. Please take another look at the task list and try again.`,
+				input: `Task\nID: "${action.taskId}"\nTitle: "${task.title}"\nDescription: "${task.text}" is not assigned to you. Please take another look at the task list and try again.`,
 			})
 			return
 		}
@@ -43,7 +49,9 @@ export class StartSoloTaskActionUtil extends AgentActionUtil<StartSoloTaskAction
 		this.agent.interrupt({
 			mode: 'working-solo',
 			input: {
-				messages: [`You have started working on task "${task.text}" with id ${task.id}.`],
+				messages: [
+					`You just decided to start working on a task.\nID: "${task.id}"\nTitle: "${task.title}"\nDescription: "${task.text}".`,
+				],
 				bounds: {
 					x: task.x ?? currentBounds.x,
 					y: task.y ?? currentBounds.y,

@@ -4,7 +4,6 @@ import {
 	Editor,
 	GeoShapeGeoStyle,
 	getIndicesBetween,
-	TLLineShape,
 	TLPointerEventInfo,
 	TLShapeId,
 	toRichText,
@@ -195,7 +194,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) => {
 							const [start, end] = getIndicesBetween(null, null, 2)
-							editor.createShape<TLLineShape>({
+							editor.createShape({
 								id,
 								type: 'line',
 								props: {

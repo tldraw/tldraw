@@ -68,10 +68,11 @@ export function notifyTaskCompleted(task: FairyTask, editor: Editor) {
  * @param taskId - The task ID to wait for
  * @returns A WaitCondition that matches when the specified task completes
  */
-export function createTaskWaitCondition(taskId: number): FairyWaitCondition<TaskCompletedEvent> {
+export function createTaskWaitCondition(taskId: string): FairyWaitCondition<TaskCompletedEvent> {
 	return {
 		eventType: 'task-completed',
 		matcher: (event) => event.task.id === taskId,
+		id: `task-completed:${taskId}`,
 	}
 }
 
@@ -109,5 +110,6 @@ export function createAgentModeTransitionWaitCondition(
 	return {
 		eventType: 'agent-mode-transition',
 		matcher: (event) => event.agentId === agentId && event.mode === mode,
+		id: `agent-mode-transition:${agentId}:${mode}`,
 	}
 }

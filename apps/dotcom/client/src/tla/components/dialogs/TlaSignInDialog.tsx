@@ -1,4 +1,6 @@
 import { useClerk, useSignIn } from '@clerk/clerk-react'
+import * as Clerk from '@clerk/elements/common'
+import * as SignIn from '@clerk/elements/sign-in'
 import { GetInviteInfoResponseBody } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { ChangeEvent, ReactNode, useCallback, useEffect, useState, type FormEvent } from 'react'
@@ -9,7 +11,6 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 } from 'tldraw'
-import { routes } from '../../../routeDefs'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
@@ -113,32 +114,6 @@ function TlaEnterEmailStep({
 		error: null,
 	})
 
-	const handleGoogleSignIn = useCallback(async () => {
-		if (!isSignInLoaded || !signIn) return
-
-		try {
-			const redirectUrl = inviteInfo
-				? routes.tlaInvite(inviteInfo.inviteSecret, {
-						asUrl: true,
-						searchParams: { accept: 'true' },
-					})
-				: window.location.href
-
-			const result = await signIn.create({
-				strategy: 'oauth_google',
-				redirectUrl,
-			})
-
-			// Redirect to Google's OAuth page
-			const externalUrl = result.firstFactorVerification?.externalVerificationRedirectURL
-			if (externalUrl) {
-				window.location.href = externalUrl.toString()
-			}
-		} catch (err: any) {
-			console.error('Google sign-in error:', err)
-		}
-	}, [signIn, isSignInLoaded, inviteInfo])
-
 	const handleEmailSubmit = useCallback(
 		async (e: FormEvent) => {
 			e.preventDefault()
@@ -226,20 +201,22 @@ function TlaEnterEmailStep({
 					</>
 				)}
 			</div>
-			<div className={styles.authGoogleButtonWrapper}>
-				<TlaCtaButton
-					data-testid="tla-google-sign-in-button"
-					className={styles.authCtaButton}
-					onClick={handleGoogleSignIn}
-				>
-					<img
-						src="https://img.clerk.com/static/google.svg"
-						alt="Google"
-						referrerPolicy="strict-origin-when-cross-origin"
-					/>
-					<F defaultMessage="Sign in with Google" />
-				</TlaCtaButton>
-			</div>
+			<SignIn.Root routing="virtual">
+				<SignIn.Step name="start">
+					<div className={styles.authGoogleButtonWrapper}>
+						{/* @ts-ignore this is fine */}
+						<Clerk.Connection name="google" asChild>
+							<TlaCtaButton
+								data-testid="tla-google-sign-in-button"
+								className={styles.authCtaButton}
+							>
+								<Clerk.Icon icon="google" />
+								<F defaultMessage="Sign in with Google" />
+							</TlaCtaButton>
+						</Clerk.Connection>
+					</div>
+				</SignIn.Step>
+			</SignIn.Root>
 
 			<div className={styles.authDivider}>
 				<span>

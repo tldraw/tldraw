@@ -505,4 +505,16 @@ export class AgentHelpers {
 		vecModel.y = Math.round(vecModel.y)
 		return vecModel
 	}
+
+	/**
+	 * Round the numbers of a vector.
+	 * @param vecModel - The vector to round.
+	 * @returns The rounded vector.
+	 */
+	static RoundVec(vecModel: VecModel): VecModel {
+		return {
+			x: Math.round(vecModel.x),
+			y: Math.round(vecModel.y),
+		}
+	}
 }

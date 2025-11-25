@@ -74,9 +74,9 @@ const Fairies = lazy(() => import('../../../fairy/Fairies').then((m) => ({ defau
 const RemoteFairies = lazy(() =>
 	import('../../../fairy/RemoteFairies').then((m) => ({ default: m.RemoteFairies }))
 )
-const InCanvasTaskList = lazy(() =>
-	import('../../../fairy/InCanvasTaskList').then((m) => ({ default: m.InCanvasTaskList }))
-)
+// const InCanvasTaskList = lazy(() =>
+// 	import('../../../fairy/InCanvasTaskList').then((m) => ({ default: m.InCanvasTaskList }))
+// )
 
 export const customFeatureFlags = {
 	fairies: createDebugValue('fairies', {
@@ -299,6 +299,8 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		agentsRef.current = agents
 	}, [agents])
 
+	const emailAddress = user?.clerkUser.emailAddresses[0].emailAddress ?? ''
+
 	const instanceComponents = useMemo((): TLComponents => {
 		const canShowFairies = app && agents && hasFairiesFlag && hasFairyAccess
 
@@ -309,7 +311,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 					{canShowFairies && (
 						<Suspense fallback={<div />}>
 							<FairyVision agents={agents} />
-							<InCanvasTaskList agents={agents} />
+							{/* <InCanvasTaskList agents={agents} /> */}
 							<RemoteFairies />
 							<Fairies agents={agents} />
 						</Suspense>

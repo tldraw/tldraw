@@ -19,7 +19,6 @@ import {
 	TLTextShapeProps,
 	TLUrlExternalAsset,
 	TLVideoAsset,
-	TLVideoShape,
 	Vec,
 	VecLike,
 	assert,
@@ -206,7 +205,7 @@ export async function defaultHandleExternalFileReplaceContent(
 			newY = result.y
 		}
 
-		editor.updateShapes<TLImageShape>([
+		editor.updateShapes([
 			{
 				id: imageShape.id,
 				type: imageShape.type,
@@ -221,7 +220,7 @@ export async function defaultHandleExternalFileReplaceContent(
 			},
 		])
 	} else if (shape.type === 'video') {
-		editor.updateShapes<TLVideoShape>([
+		editor.updateShapes([
 			{
 				id: shape.id,
 				type: shape.type,
@@ -531,7 +530,7 @@ export async function defaultHandleExternalTextContent(
 	const shapeId = createShapeId()
 
 	// Allow this to trigger the max shapes reached alert
-	editor.createShapes<TLTextShape>([
+	editor.createShapes([
 		{
 			id: shapeId,
 			type: 'text',

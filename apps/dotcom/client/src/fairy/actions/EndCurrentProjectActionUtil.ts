@@ -1,5 +1,6 @@
 import { EndCurrentProjectAction, Streaming } from '@tldraw/fairy-shared'
 import { deleteProject } from '../FairyProjects'
+import { getFairyTasksByProjectId } from '../FairyTaskList'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { $fairyAgentsAtom } from '../fairy-agent/agent/fairyAgentsAtom'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -9,9 +10,9 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 
 	override getInfo(action: Streaming<EndCurrentProjectAction>) {
 		return {
-			icon: 'note' as const,
-			description: action.complete ? 'Ended current project' : 'Ending current project...',
-			pose: 'thinking' as const,
+			icon: 'flag' as const,
+			description: action.complete ? 'Ended project' : 'Ending project...',
+			pose: 'writing' as const,
 		}
 	}
 
@@ -27,8 +28,44 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 			.get(this.editor)
 			.filter((agent) => membersIds.includes(agent.id))
 
+		const completedTasks = getFairyTasksByProjectId(project.id).filter(
+			(task) => task.status === 'done'
+		)
+
 		memberAgents.forEach((memberAgent) => {
-			memberAgent.setMode('idling')
+			const otherMemberIds = memberAgents
+				.map((agent) => agent.id)
+				.filter((id) => id !== memberAgent.id)
+
+			if (memberAgent.id === this.agent.id) {
+				memberAgent.$chatHistory.update((prev) => [
+					...prev,
+					{
+						type: 'memory-transition',
+						memoryLevel: 'fairy',
+						message: `I led and completed the "${project.title}" project with ${otherMemberIds.length} other fairy(s): ${otherMemberIds.join(', ')}`,
+						userFacingMessage: null,
+					},
+				])
+			}
+
+			const memberCompletedTasks = completedTasks.filter(
+				(task) => task.assignedTo === memberAgent.id
+			)
+			if (memberCompletedTasks.length > 0) {
+				const count = memberCompletedTasks.length
+				const taskWord = count === 1 ? 'task' : 'tasks'
+				memberAgent.$chatHistory.update((prev) => [
+					...prev,
+					{
+						type: 'memory-transition',
+						memoryLevel: 'fairy',
+						message: `I completed ${count} ${taskWord} as part of the "${project.title}" project, with ${otherMemberIds.length} other fairy(s): ${otherMemberIds.join(', ')}`,
+						userFacingMessage: `I completed ${count} ${taskWord} as part of the "${project.title}" project.`,
+					},
+				])
+			}
+			memberAgent.interrupt({ mode: 'idling', input: null })
 		})
 
 		deleteProject(project.id)

@@ -917,7 +917,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		if (isEmptyRichText(shape.props.richText)) {
 			// editing text for the first time, so set the position to the default:
 			const labelPosition = getArrowLabelDefaultPosition(this.editor, shape)
-			this.editor.updateShape<TLArrowShape>({
+			this.editor.updateShape({
 				id: shape.id,
 				type: shape.type,
 				props: { labelPosition },

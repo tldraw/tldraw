@@ -1,30 +1,41 @@
 import { MarkDroneTaskDoneAction, Streaming } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
-import { $fairyTasks, setFairyTaskStatusAndNotifyCompletion } from '../FairyTaskList'
+import { setFairyTaskStatusAndNotifyCompletion } from '../FairyTaskList'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class MarkDroneTaskDoneActionUtil extends AgentActionUtil<MarkDroneTaskDoneAction> {
 	static override type = 'mark-my-task-done' as const
 
 	override getInfo(action: Streaming<MarkDroneTaskDoneAction>) {
-		const task = $fairyTasks.get().find((task) => task.id === action.taskId)
+		const currentWork = this.agent.getWork()
+		const currentTask = currentWork.tasks.find((task) => task.status === 'in-progress')
 
 		return {
 			icon: 'note' as const,
-			description: action.complete
-				? `Completed task: ${task?.text ?? action.taskId}`
-				: 'Completing task...',
-			pose: 'thinking' as const,
+			description: action.complete ? `Completed task: ${currentTask?.title}` : 'Completing task...',
+			pose: 'writing' as const,
+			canGroup: () => false,
 		}
 	}
 
 	override applyAction(action: Streaming<MarkDroneTaskDoneAction>, _helpers: AgentHelpers) {
 		if (!action.complete) return
 
-		const task = $fairyTasks.get().find((task) => task.id === action.taskId)
-		if (!task) return
+		const currentWork = this.agent.getWork()
+		const currentTask = currentWork.tasks.find((task) => task.status === 'in-progress')
+		if (!currentTask) return // todo error
+		const currentTaskId = currentTask.id
 
-		setFairyTaskStatusAndNotifyCompletion(action.taskId, 'done', this.editor)
-		this.agent.interrupt({ mode: 'standing-by' })
+		setFairyTaskStatusAndNotifyCompletion(currentTaskId, 'done', this.editor)
+		this.agent.$chatHistory.update((prev) => [
+			...prev,
+			{
+				type: 'memory-transition',
+				memoryLevel: 'project',
+				message: `I just finished the task.\nID: "${currentTaskId}"\nTitle: "${currentTask.title}"\nDescription: "${currentTask.text}".`,
+				userFacingMessage: null,
+			},
+		])
+		this.agent.interrupt({ mode: 'standing-by', input: null })
 	}
 }

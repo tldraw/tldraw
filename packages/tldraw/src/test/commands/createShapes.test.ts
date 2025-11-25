@@ -19,14 +19,28 @@ beforeEach(() => {
 
 it('Uses typescript generics', () => {
 	expect(() => {
-		// No error here because no generic, the editor doesn't know what this guy is
+		// Yep error because we are giving the wrong props to the shape
 		editor.createShapes([
+			//@ts-expect-error
 			{
 				id: ids.box1,
 				type: 'geo',
 				props: { w: 'OH NO' },
 			},
 		])
+
+		// Errors when creating shapes with unknown props
+		editor.createShapes([
+			{
+				id: ids.box1,
+				type: 'geo',
+				props: {
+					// @ts-expect-error
+					foo: 'bar',
+				},
+			},
+		])
+
 		// Yep error here because we are giving the wrong props to the shape
 		editor.createShapes<TLGeoShape>([
 			{

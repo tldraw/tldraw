@@ -5,7 +5,7 @@ import {
 	createRecordMigrationSequence,
 	createRecordType,
 } from '@tldraw/store'
-import { Expand, mapObjectMapValues, uniqueId } from '@tldraw/utils'
+import { mapObjectMapValues, uniqueId } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { TLArrowBinding } from '../bindings/TLArrowBinding'
 import { TLBaseBinding, createBindingValidator } from '../bindings/TLBaseBinding'
@@ -56,9 +56,41 @@ export type TLDefaultBinding = TLArrowBinding
  */
 export type TLUnknownBinding = TLBaseBinding<string, object>
 
+/** @public */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface TLGlobalBindingPropsMap {}
+
+/** @public */
+// prettier-ignore
+export type TLIndexedBindings = {
+	// We iterate over a union of augmented keys and default binding types.
+	// This allows us to include (or conditionally exclude or override) the default bindings in one go.
+	//
+	// In the `as` clause we are filtering out disabled bindings.
+	[K in keyof TLGlobalBindingPropsMap | TLDefaultBinding['type'] as K extends TLDefaultBinding['type']
+		? K extends keyof TLGlobalBindingPropsMap
+			? // if it extends a nullish value the user has disabled this binding type so we filter it out with never
+				TLGlobalBindingPropsMap[K] extends null | undefined
+				? never
+				: K
+			: K
+		: K]: K extends TLDefaultBinding['type']
+			? // if it's a default binding type we need to check if it's been overridden
+				K extends keyof TLGlobalBindingPropsMap
+				? // if it has been overriden then use the custom binding definition
+					TLBaseBinding<K, TLGlobalBindingPropsMap[K]>
+				: // if it has not been overriden then reuse existing type aliases for better type display
+					Extract<TLDefaultBinding, { type: K }>
+			: // use the custom binding definition
+				TLBaseBinding<K, TLGlobalBindingPropsMap[K & keyof TLGlobalBindingPropsMap]>
+}
+
 /**
- * The set of all bindings that are available in the editor, including unknown bindings.
+ * The set of all bindings that are available in the editor.
  * Bindings represent relationships between shapes, such as arrows connecting to other shapes.
+ *
+ * You can use this type without a type argument to work with any binding, or pass
+ * a specific binding type string (e.g., `'arrow'`) to narrow down to that specific binding type.
  *
  * @example
  * ```ts
@@ -73,11 +105,17 @@ export type TLUnknownBinding = TLBaseBinding<string, object>
  *       break
  *   }
  * }
+ *
+ * // Narrow to a specific binding type by passing the type as a generic argument
+ * function getArrowSourceId(binding: TLBinding<'arrow'>) {
+ *   return binding.fromId // TypeScript knows this is a TLArrowBinding
+ * }
  * ```
  *
  * @public
  */
-export type TLBinding = TLDefaultBinding | TLUnknownBinding
+export type TLBinding<K extends keyof TLIndexedBindings = keyof TLIndexedBindings> =
+	TLIndexedBindings[K]
 
 /**
  * Type for updating existing bindings with partial properties.
@@ -99,15 +137,17 @@ export type TLBinding = TLDefaultBinding | TLUnknownBinding
  *
  * @public
  */
-export type TLBindingUpdate<T extends TLBinding = TLBinding> = Expand<{
-	id: TLBindingId
-	type: T['type']
-	typeName?: T['typeName']
-	fromId?: T['fromId']
-	toId?: T['toId']
-	props?: Partial<T['props']>
-	meta?: Partial<T['meta']>
-}>
+export type TLBindingUpdate<T extends TLBinding = TLBinding> = T extends T
+	? {
+			id: TLBindingId
+			type: T['type']
+			typeName?: T['typeName']
+			fromId?: T['fromId']
+			toId?: T['toId']
+			props?: Partial<T['props']>
+			meta?: Partial<T['meta']>
+		}
+	: never
 
 /**
  * Type for creating new bindings with required fromId and toId.
@@ -133,15 +173,17 @@ export type TLBindingUpdate<T extends TLBinding = TLBinding> = Expand<{
  *
  * @public
  */
-export type TLBindingCreate<T extends TLBinding = TLBinding> = Expand<{
-	id?: TLBindingId
-	type: T['type']
-	typeName?: T['typeName']
-	fromId: T['fromId']
-	toId: T['toId']
-	props?: Partial<T['props']>
-	meta?: Partial<T['meta']>
-}>
+export type TLBindingCreate<T extends TLBinding = TLBinding> = T extends T
+	? {
+			id?: TLBindingId
+			type: T['type']
+			typeName?: T['typeName']
+			fromId: T['fromId']
+			toId: T['toId']
+			props?: Partial<T['props']>
+			meta?: Partial<T['meta']>
+		}
+	: never
 
 /**
  * Branded string type for binding record identifiers.
@@ -166,7 +208,7 @@ export type TLBindingCreate<T extends TLBinding = TLBinding> = Expand<{
  *
  * @public
  */
-export type TLBindingId = RecordId<TLUnknownBinding>
+export type TLBindingId = RecordId<TLBinding>
 
 /**
  * Migration version identifiers for the root binding record schema.
@@ -375,7 +417,7 @@ export function createBindingPropsMigrationIds<S extends string, T extends Recor
  * @internal
  */
 export function createBindingRecordType(bindings: Record<string, SchemaPropsInfo>) {
-	return createRecordType<TLBinding>('binding', {
+	return createRecordType('binding', {
 		scope: 'document',
 		validator: T.model(
 			'binding',

@@ -4,11 +4,13 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	useDefaultHelpers,
+	useEditor,
 	useValue,
 } from 'tldraw'
 import { useApp } from '../tla/hooks/useAppState'
 import { useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { $fairyAgentsAtom } from './fairy-agent/agent/fairyAgentsAtom'
 import { fairyMessages } from './fairy-messages'
 import { FairyDebugDialog } from './FairyDebugDialog'
 import { $showCanvasFairyTasks, clearFairyTasks } from './FairyTaskList'
@@ -20,6 +22,7 @@ export function FairyTaskListMenuContent({
 	agents: FairyAgent[]
 	menuType?: 'menu' | 'context-menu'
 }) {
+	const editor = useEditor()
 	const { addDialog } = useDefaultHelpers()
 	const showCanvasTasks = useValue('show-canvas-tasks', () => $showCanvasFairyTasks.get(), [
 		$showCanvasFairyTasks,
@@ -65,8 +68,15 @@ export function FairyTaskListMenuContent({
 		})
 	}, [agents])
 
+	const disbandProjects = useCallback(() => {
+		clearFairyTasks()
+		for (const agent of $fairyAgentsAtom.get(editor)) {
+			agent.interrupt({ mode: 'idling', input: null })
+		}
+	}, [editor])
+
 	const summonAllFairiesLabel = useMsg(fairyMessages.summonAllFairies)
-	const clearTaskListLabel = useMsg(fairyMessages.clearTaskList)
+	const disbandProjectsLabel = useMsg(fairyMessages.disbandProjects)
 	const resetAllChatsLabel = useMsg(fairyMessages.resetAllChats)
 	const deleteAllFairiesLabel = useMsg(fairyMessages.deleteAllFairies)
 	const debugViewLabel = useMsg(fairyMessages.debugView)
@@ -83,8 +93,8 @@ export function FairyTaskListMenuContent({
 			<TldrawUiMenuGroup id="todo-list-config-menu">
 				<TldrawUiMenuItem
 					id="clear-todo-list"
-					onSelect={() => clearFairyTasks()}
-					label={clearTaskListLabel}
+					onSelect={() => disbandProjects()}
+					label={disbandProjectsLabel}
 				/>
 				<TldrawUiMenuItem
 					id="toggle-canvas-todos"

@@ -12,8 +12,8 @@ export class CreateProjectTaskActionUtil extends AgentActionUtil<CreateProjectTa
 		const label = action.complete ? 'Created project task' : 'Creating project task'
 		return {
 			icon: 'note' as const,
-			description: `${label}: ${action.text}`,
-			pose: 'thinking' as const,
+			description: `${label}: ${action.title}`,
+			pose: 'writing' as const,
 		}
 	}
 
@@ -42,6 +42,8 @@ export class CreateProjectTaskActionUtil extends AgentActionUtil<CreateProjectTa
 		})
 
 		createFairyTask({
+			id: action.taskId,
+			title: action.title,
 			text: action.text,
 			assignedTo: action.assignedTo,
 			projectId: project.id,

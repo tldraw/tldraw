@@ -7,13 +7,8 @@ import { AgentActionUtil } from './AgentActionUtil'
 export class CreateSoloTaskActionUtil extends AgentActionUtil<CreateSoloTaskAction> {
 	static override type = 'create-task' as const
 
-	override getInfo(action: Streaming<CreateSoloTaskAction>) {
-		const label = action.complete ? 'Created task' : 'Creating task'
-		return {
-			icon: 'note' as const,
-			description: `${label}: ${action.text}`,
-			pose: 'thinking' as const,
-		}
+	override getInfo(_action: Streaming<CreateSoloTaskAction>) {
+		return null
 	}
 
 	override applyAction(action: Streaming<CreateSoloTaskAction>, helpers: AgentHelpers) {
@@ -27,6 +22,8 @@ export class CreateSoloTaskActionUtil extends AgentActionUtil<CreateSoloTaskActi
 		})
 
 		createFairyTask({
+			id: action.taskId,
+			title: action.title,
 			text: action.text,
 			assignedTo: this.agent.id,
 			status: 'todo',

@@ -2,12 +2,14 @@ import { RecordsDiff } from '@tldraw/store'
 import { TLRecord } from '@tldraw/tlschema'
 import { JsonValue } from '@tldraw/utils'
 import { AgentAction } from './AgentAction'
+import { FairyMemoryLevel } from './FairyMemoryLevel'
 import { Streaming } from './Streaming'
 
 export type ChatHistoryItem =
 	| ChatHistoryActionItem
 	| ChatHistoryPromptItem
 	| ChatHistoryContinuationItem
+	| ChatHistoryMemoryTransitionItem
 
 /**
  * A prompt from the user.
@@ -15,6 +17,7 @@ export type ChatHistoryItem =
 export interface ChatHistoryPromptItem {
 	type: 'prompt'
 	message: string
+	memoryLevel: FairyMemoryLevel
 }
 
 /**
@@ -25,6 +28,7 @@ export interface ChatHistoryActionItem {
 	action: Streaming<AgentAction>
 	diff: RecordsDiff<TLRecord>
 	acceptance: 'pending' | 'accepted' | 'rejected'
+	memoryLevel: FairyMemoryLevel
 }
 
 /**
@@ -33,4 +37,12 @@ export interface ChatHistoryActionItem {
 export interface ChatHistoryContinuationItem {
 	type: 'continuation'
 	data: JsonValue[]
+	memoryLevel: FairyMemoryLevel
+}
+
+export interface ChatHistoryMemoryTransitionItem {
+	type: 'memory-transition'
+	memoryLevel: FairyMemoryLevel
+	message: string
+	userFacingMessage: string | null
 }

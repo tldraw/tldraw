@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
@@ -7,10 +7,15 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
+import { useApp } from '../tla/hooks/useAppState'
 import { useMsg } from '../tla/utils/i18n'
 import { FairyAgent, getFollowingFairyId } from './fairy-agent/agent/FairyAgent'
+import { $fairyAgentsAtom } from './fairy-agent/agent/fairyAgentsAtom'
 import { fairyMessages } from './fairy-messages'
 import { FairyConfigDialog } from './FairyConfigDialog'
+import { FairyDebugDialog } from './FairyDebugDialog'
+import { $fairyProjects, deleteProject } from './FairyProjects'
+import { clearFairyTasks } from './FairyTaskList'
 
 export function FairyMenuContent({
 	agent,
@@ -20,8 +25,11 @@ export function FairyMenuContent({
 	menuType?: 'menu' | 'context-menu'
 }) {
 	const editor = useEditor()
+	const app = useApp()
 	const { addDialog } = useDefaultHelpers()
-	const configureFairy = useCallback(
+	const agents = useValue('fairy-agents', () => $fairyAgentsAtom.get(editor), [editor])
+
+	const _configureFairy = useCallback(
 		(agent: FairyAgent) => {
 			addDialog({
 				component: ({ onClose }) => <FairyConfigDialog agent={agent} onClose={onClose} />,
@@ -30,9 +38,9 @@ export function FairyMenuContent({
 		[addDialog]
 	)
 
-	const deleteFairy = useCallback(() => {
-		agent.dispose()
-		agent.deleteFairyConfig()
+	const putAwayFairy = useCallback(() => {
+		agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false, pose: 'sleeping' } : f))
+		agent.setMode('sleeping')
 	}, [agent])
 
 	const isFollowing = useValue(
@@ -56,8 +64,71 @@ export function FairyMenuContent({
 	const followFairyLabel = useMsg(fairyMessages.followFairy)
 	const unfollowFairyLabel = useMsg(fairyMessages.unfollowFairy)
 	const resetChatLabel = useMsg(fairyMessages.resetChat)
-	const customizeFairyLabel = useMsg(fairyMessages.customizeFairy)
-	const deleteFairyLabel = useMsg(fairyMessages.deleteFairy)
+	const _customizeFairyLabel = useMsg(fairyMessages.customizeFairy)
+	const putAwayFairyLabel = useMsg(fairyMessages.putAwayFairy)
+	const disbandGroupLabel = useMsg(fairyMessages.disbandGroup)
+	const debugViewLabel = useMsg(fairyMessages.debugView)
+	const resetEverythingLabel = useMsg(fairyMessages.resetEverything)
+
+	const projects = useValue($fairyProjects)
+	const currentProject = useMemo(() => {
+		return (
+			projects.find((project) => project.members.some((member) => member.id === agent.id)) ?? null
+		)
+	}, [projects, agent])
+	const canDisbandGroup = currentProject && currentProject.members.length > 1
+
+	const disbandGroup = useCallback(() => {
+		if (!currentProject || currentProject.members.length <= 1) return
+		const memberIds = new Set(currentProject.members.map((member) => member.id))
+		const memberAgents = $fairyAgentsAtom
+			.get(editor)
+			.filter((memberAgent) => memberIds.has(memberAgent.id))
+
+		memberAgents.forEach((memberAgent) => {
+			memberAgent.setMode('idling')
+			memberAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+		})
+
+		deleteProject(currentProject.id)
+	}, [currentProject, editor])
+
+	const openDebugDialog = useCallback(() => {
+		addDialog({
+			component: ({ onClose }) => <FairyDebugDialog agents={agents} onClose={onClose} />,
+		})
+	}, [addDialog, agents])
+
+	const resetEverything = useCallback(() => {
+		// Stop all running tasks
+		agents.forEach((agent) => {
+			agent.cancel()
+		})
+
+		// Clear the todo list and projects
+		clearFairyTasks()
+
+		// Reset all chats
+		agents.forEach((agent) => {
+			agent.reset()
+		})
+
+		// Delete all fairies
+		app.z.mutate.user.deleteAllFairyConfigs()
+		agents.forEach((agent) => {
+			agent.dispose()
+		})
+	}, [agents, app])
+
+	if (canDisbandGroup && currentProject) {
+		return (
+			<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">
+				<TldrawUiMenuGroup id="fairy-group-menu">
+					<TldrawUiMenuItem id="disband-group" onSelect={disbandGroup} label={disbandGroupLabel} />
+				</TldrawUiMenuGroup>
+			</TldrawUiMenuContextProvider>
+		)
+	}
 
 	return (
 		<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">
@@ -78,12 +149,19 @@ export function FairyMenuContent({
 				<TldrawUiMenuItem id="new-chat" onSelect={() => agent.reset()} label={resetChatLabel} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="fairy-config-menu">
-				<TldrawUiMenuItem
+				{/* TODO: Reinstate */}
+				{/* <TldrawUiMenuItem
 					id="configure-fairy"
 					onSelect={() => configureFairy(agent)}
 					label={customizeFairyLabel}
+				/> */}
+				<TldrawUiMenuItem id="sleep-fairy" onSelect={putAwayFairy} label={putAwayFairyLabel} />
+				<TldrawUiMenuItem id="debug-fairies" onSelect={openDebugDialog} label={debugViewLabel} />
+				<TldrawUiMenuItem
+					id="reset-everything"
+					onSelect={resetEverything}
+					label={resetEverythingLabel}
 				/>
-				<TldrawUiMenuItem id="delete-fairy" onSelect={deleteFairy} label={deleteFairyLabel} />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuContextProvider>
 	)
