@@ -68,7 +68,6 @@ Description: "${task.text}"`
 		event: { type: 'task-completed', task },
 		editor,
 		getAgentFacingMessage: () => agentFacingMessage,
-		getUserFacingMessage: () => `Awoken by task completion: ${task.id}`,
 	})
 }
 

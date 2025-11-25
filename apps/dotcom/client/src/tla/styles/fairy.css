@@ -560,6 +560,11 @@
 	position: relative;
 }
 
+.fairy-chat-history-action ol,
+.fairy-chat-history-action ul {
+	padding-left: 20px;
+}
+
 .fairy-chat-history-action-streaming-content {
 	overflow: hidden;
 	text-overflow: ellipsis;
