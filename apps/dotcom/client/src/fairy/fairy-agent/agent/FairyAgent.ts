@@ -851,13 +851,13 @@ export class FairyAgent {
 		return id
 	}
 
-	updateTodo({ id, text, status }: FairyTodoItem) {
+	updateTodo({ id, status, text }: { id: string; status: FairyTodoItem['status']; text?: string }) {
 		this.$personalTodoList.update((todoItems) => {
 			const index = todoItems.findIndex((item) => item.id === id)
 			if (index !== -1) {
 				return [
 					...todoItems.slice(0, index),
-					{ ...todoItems[index], text, status },
+					{ ...todoItems[index], status, ...(text !== undefined && { text }) },
 					...todoItems.slice(index + 1),
 				]
 			}

@@ -35,9 +35,15 @@ export class PersonalTodoListActionUtil extends AgentActionUtil<PersonalTodoList
 
 		const index = this.agent.$personalTodoList.get().findIndex((item) => item.id === id)
 		if (index === -1) {
+			if (!text) {
+				this.agent.interrupt({
+					input: 'You must provide text when creating a new todo item.',
+				})
+				return
+			}
 			this.agent.addPersonalTodo(id, text)
 		} else {
-			this.agent.updateTodo({ id, text, status })
+			this.agent.updateTodo({ id, status, text })
 		}
 	}
 }
