@@ -40,6 +40,14 @@ export class DirectToStartDuoTaskActionUtil extends AgentActionUtil<DirectToStar
 		const project = this.agent.getProject()
 		if (!project) return // shouldn't be possible
 
+		if (otherFairyId === this.agent.id) {
+			this.agent.interrupt({
+				input:
+					'You cannot direct yourself to do a task. Please direct your partner to do the task, or start the task yourself using the Start Task action.',
+			})
+			return
+		}
+
 		const otherFairy = $fairyAgentsAtom.get(this.editor).find((fairy) => fairy.id === otherFairyId)
 		if (!otherFairy) {
 			this.agent.interrupt({
