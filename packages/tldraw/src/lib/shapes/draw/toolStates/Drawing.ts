@@ -749,37 +749,83 @@ export class Drawing extends StateNode {
 						sd = Math.sqrt(sd / radii.length)
 
 						if (meanR > 8 && sd / meanR < 0.18) {
-							const minX = Math.min(...pts.map((p: any) => p.x))
-							const minY = Math.min(...pts.map((p: any) => p.y))
-							const maxX = Math.max(...pts.map((p: any) => p.x))
-							const maxY = Math.max(...pts.map((p: any) => p.y))
-							const w = maxX - minX || 1
-							const h = maxY - minY || 1
-							const newId = createShapeId()
-							if (this.editor.canCreateShapes([newId])) {
-								this.editor.run(() => {
-									this.editor.markHistoryStoppingPoint('autodraw replace')
-									this.editor.createShape({
-										id: newId,
-										type: 'geo',
-										x: toFixed(minX),
-										y: toFixed(minY),
-										props: {
-											geo: 'ellipse',
-											w: toFixed(w),
-											h: toFixed(h),
-											color: (drawShape as any).props?.color ?? 'black',
-											size: (drawShape as any).props?.size ?? 'm',
-											fill: 'none',
-										},
-									})
-									// remove the original stroke
-									this.editor.deleteShape(initialShape.id)
-								})
-								this.parent.transition('idle')
-								return
-							}
-						}
+                            const minX = Math.min(...pts.map((p: any) => p.x))
+                            const minY = Math.min(...pts.map((p: any) => p.y))
+                            const maxX = Math.max(...pts.map((p: any) => p.x))
+                            const maxY = Math.max(...pts.map((p: any) => p.y))
+    const w = maxX - minX || 1
+    const h = maxY - minY || 1
+
+    // Copy style props from the original draw shape when possible
+    const color = (drawShape as any).props?.color ?? 'black'
+    const size = (drawShape as any).props?.size ?? 'm'
+    const dash = (drawShape as any).props?.dash ?? (drawShape as any).props?.style ?? 'solid'
+    const fill = (drawShape as any).props?.fill ?? 'none'
+
+    const newId = createShapeId()
+
+    const createGeo = () =>
+        this.editor.createShape({
+            id: newId,
+            type: 'geo',
+            x: toFixed(minX),
+            y: toFixed(minY),
+            props: {
+                geo: 'ellipse',
+                w: toFixed(w),
+                h: toFixed(h),
+                color,
+                size,
+                fill,
+                dash,
+            },
+        })
+
+    // If we can create a new shape directly, do it and delete the original.
+    if (this.editor.canCreateShapes([newId])) {
+        this.editor.run(() => {
+            this.editor.markHistoryStoppingPoint('autodraw replace')
+            createGeo()
+            // remove the original stroke
+            this.editor.deleteShape(initialShape.id)
+        })
+        this.parent.transition('idle')
+        return
+    }
+
+    // At max shapes: try a safe swap (delete original, then create new).
+    // If creation fails, attempt to restore the original draw shape.
+    this.editor.run(() => {
+        this.editor.markHistoryStoppingPoint('autodraw replace')
+
+        const savedDrawProps = (drawShape as any).props
+        // delete original to free a slot
+        this.editor.deleteShape(initialShape.id)
+
+        try {
+            createGeo()
+        } catch (e) {
+            // Attempt to restore original if create failed
+            try {
+                const restoreId = createShapeId()
+                if (this.editor.canCreateShapes([restoreId])) {
+                    this.editor.createShape({
+                        id: restoreId,
+                        type: 'draw',
+                        x: toFixed(minX),
+                        y: toFixed(minY),
+                        props: savedDrawProps,
+                    })
+                }
+            } catch (e2) {
+                // swallow — best-effort restoration
+            }
+        }
+    })
+
+                            this.parent.transition('idle')
+                            return
+                        }
 					}
 				}
 			}
