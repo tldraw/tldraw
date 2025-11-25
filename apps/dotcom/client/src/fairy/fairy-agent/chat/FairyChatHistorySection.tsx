@@ -110,9 +110,9 @@ export function getAgentHistorySections(items: ChatHistoryItem[]): FairyChatHist
 	for (const item of items) {
 		// Add a new section for each prompt
 		if (item.type === 'prompt') {
-			if (item.userFacingMessage) {
-				sections.push({ prompt: item, items: [] })
-			}
+			// if (item.userFacingMessage) {
+			sections.push({ prompt: item, items: [] })
+			// }
 			continue
 		}
 
