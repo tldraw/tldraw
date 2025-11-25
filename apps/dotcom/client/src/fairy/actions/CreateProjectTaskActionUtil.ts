@@ -9,11 +9,11 @@ export class CreateProjectTaskActionUtil extends AgentActionUtil<CreateProjectTa
 	static override type = 'create-project-task' as const
 
 	override getInfo(action: Streaming<CreateProjectTaskAction>) {
-		const label = action.complete ? 'Planned task' : 'Planning task'
-
 		return {
 			icon: 'note' as const,
-			description: `${label}${action.title ? `: ${action.title}` : ''}`,
+			description: action.complete
+				? `Planned task: ${action.title}`
+				: `Planning task${action.title ? `: ${action.title}` : ''}${action.text ? `\n\n${action.text}` : ''}`,
 			pose: 'writing' as const,
 		}
 	}

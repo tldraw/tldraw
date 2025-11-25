@@ -82,7 +82,12 @@ export function FairyChatHistory({ agent }: { agent: FairyAgent }) {
 		<div className="fairy-chat-history" ref={historyRef} onScroll={handleScroll}>
 			{sections.map((section, i) => {
 				return (
-					<FairyChatHistorySection key={'history-section-' + i} section={section} agent={agent} />
+					<FairyChatHistorySection
+						key={'history-section-' + i}
+						section={section}
+						agent={agent}
+						isFinalSection={i === sections.length - 1}
+					/>
 				)
 			})}
 		</div>

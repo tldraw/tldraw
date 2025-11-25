@@ -9,10 +9,11 @@ export class CreateDuoTaskActionUtil extends AgentActionUtil<CreateDuoTaskAction
 	static override type = 'create-duo-task' as const
 
 	override getInfo(action: Streaming<CreateDuoTaskAction>) {
-		const label = action.complete ? 'Planned task' : 'Planning task'
 		return {
 			icon: 'note' as const,
-			description: `${label}${action.text ? `: ${action.text}` : ''}`,
+			description: action.complete
+				? `Planned task: ${action.title}`
+				: `Planning task${action.title ? `: ${action.title}` : ''}${action.text ? `\n\n${action.text}` : ''}`,
 			pose: 'writing' as const,
 		}
 	}

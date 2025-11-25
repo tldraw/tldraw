@@ -18,12 +18,14 @@ export interface FairyChatHistorySection {
 export function FairyChatHistorySection({
 	section,
 	agent,
+	isFinalSection,
 }: {
 	section: FairyChatHistorySection
 	agent: FairyAgent
+	isFinalSection: boolean
 }) {
 	const actions = section.items.filter((item) => item.type === 'action') as ChatHistoryActionItem[]
-	const groups = getActionHistoryGroups(actions, agent)
+	const groups = getActionHistoryGroups(actions, agent, isFinalSection)
 
 	// Create a map from action to its group
 	const actionToGroup = new Map<ChatHistoryActionItem, FairyChatHistoryGroup>()
