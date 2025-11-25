@@ -332,6 +332,13 @@
 	position: relative;
 }
 
+.fairy-list > .tlui-toolbar > *:not(:first-child) {
+	margin-top: 0;
+}
+.fairy-list > .tlui-toolbar > *:not(:last-child) {
+	margin-bottom: 0;
+}
+
 .fairy-sidebar-group::after {
 	content: '';
 	position: absolute;
