@@ -10,10 +10,9 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 
 	override getInfo(action: Streaming<EndCurrentProjectAction>) {
 		return {
-			icon: 'note' as const,
-			description: action.complete ? 'Ended current project' : 'Ending current project...',
-			pose: 'thinking' as const,
-			canGroup: () => false,
+			icon: 'flag' as const,
+			description: action.complete ? 'Ended project' : 'Ending project...',
+			pose: 'writing' as const,
 		}
 	}
 
@@ -45,6 +44,7 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 						type: 'memory-transition',
 						memoryLevel: 'fairy',
 						message: `I led and completed the "${project.title}" project with ${otherMemberIds.length} other fairy(s): ${otherMemberIds.join(', ')}`,
+						userFacingMessage: null,
 					},
 				])
 			}
@@ -61,6 +61,7 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 						type: 'memory-transition',
 						memoryLevel: 'fairy',
 						message: `I completed ${count} ${taskWord} as part of the "${project.title}" project, with ${otherMemberIds.length} other fairy(s): ${otherMemberIds.join(', ')}`,
+						userFacingMessage: `I completed ${count} ${taskWord} as part of the "${project.title}" project.`,
 					},
 				])
 			}

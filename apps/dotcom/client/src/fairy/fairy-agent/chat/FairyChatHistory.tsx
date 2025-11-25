@@ -1,9 +1,7 @@
-import { getFairyModeDefinition } from '@tldraw/fairy-shared'
 import { useEffect, useRef } from 'react'
 import { useValue } from 'tldraw'
 import { FairyAgent } from '../agent/FairyAgent'
 import { FairyChatHistorySection, getAgentHistorySections } from './FairyChatHistorySection'
-import { filterChatHistoryByMode } from './filterChatHistoryByMode'
 
 /*
 Chat history is stored as a list of history items.
@@ -34,9 +32,10 @@ Here's an example of how the UI might look:
 
 export function FairyChatHistory({ agent }: { agent: FairyAgent }) {
 	const historyItems = useValue(agent.$chatHistory)
-	const currentMode = agent.getMode()
-	const modeDefinition = getFairyModeDefinition(currentMode)
-	const filteredItems = filterChatHistoryByMode(historyItems, modeDefinition.memoryLevel)
+	// const currentMode = agent.getMode()
+	// const modeDefinition = getFairyModeDefinition(currentMode)
+	// const filteredItems = filterChatHistoryByMode(historyItems, modeDefinition.memoryLevel)
+	const filteredItems = historyItems // filterChatHistoryByMode(historyItems, modeDefinition.memoryLevel)
 	const sections = getAgentHistorySections(filteredItems)
 	const historyRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)

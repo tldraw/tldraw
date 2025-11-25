@@ -10,6 +10,7 @@ export class PlaceActionUtil extends AgentActionUtil<PlaceAction> {
 		return {
 			icon: 'target' as const,
 			description: action.intent ?? '',
+			pose: 'working' as const,
 		}
 	}
 

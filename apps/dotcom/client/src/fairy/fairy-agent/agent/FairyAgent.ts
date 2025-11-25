@@ -21,11 +21,10 @@ import {
 	FairyWaitEvent,
 	FairyWork,
 	getFairyModeDefinition,
-	getModelPricing,
+	getModelPricingInfo,
 	ModelNamePart,
 	PromptPart,
 	Streaming,
-	TIER_THRESHOLD,
 } from '@tldraw/fairy-shared'
 import {
 	Atom,
@@ -41,6 +40,7 @@ import {
 	reverseRecordsDiff,
 	structuredClone,
 	TLRecord,
+	uniqueId,
 	VecModel,
 } from 'tldraw'
 import { TldrawApp } from '../../../tla/app/TldrawApp'
@@ -124,7 +124,7 @@ export class FairyAgent {
 	/**
 	 * An atom containing the current fairy mode.
 	 */
-	private $mode = atom<FairyModeDefinition['type']>('fairyMode', 'idling')
+	private $mode = atom<FairyModeDefinition['type']>('fairyMode', 'sleeping')
 
 	/**
 	 * Debug flags for controlling logging behavior in the worker.
@@ -137,6 +137,11 @@ export class FairyAgent {
 			logResponseTime: false,
 		}
 	)
+
+	/**
+	 * Whether the agent should use one-shotting mode or soloing mode when prompted solo.
+	 */
+	$useOneShottingMode = atom<boolean>('oneShotMode', true)
 
 	/**
 	 * An atom containing the conditions this agent is waiting for.
@@ -253,10 +258,10 @@ export class FairyAgent {
 		const spawnPoint = findFairySpawnPoint(center, editor)
 
 		this.$fairyEntity = atom<FairyEntity>(`fairy-${id}`, {
-			position: spawnPoint,
-			flipX: false,
+			position: AgentHelpers.RoundVec(spawnPoint),
+			flipX: Math.random() < 0.5,
 			isSelected: false,
-			pose: 'idle',
+			pose: 'sleeping',
 			gesture: null,
 			currentPageId: editor.getCurrentPageId(),
 		})
@@ -270,12 +275,24 @@ export class FairyAgent {
 
 		$fairyAgentsAtom.update(editor, (agents) => [...agents, this])
 
+		// Wake up sleeping fairies when they become selected
+		this.wakeOnSelectReaction = react(`fairy-${id}-wake-on-select`, () => {
+			const entity = this.$fairyEntity.get()
+			if (entity?.isSelected && this.getMode() === 'sleeping') {
+				this.setMode('idling')
+				this.$fairyEntity.update((f) => (f ? { ...f, pose: 'idle' } : f))
+			}
+		})
+
 		// A fairy agent's action utils and prompt part utils are static. They don't change.
 		this.agentActionUtils = getAgentActionUtilsRecord(this)
 		this.promptPartUtils = getPromptPartUtilsRecord(this)
 		this.unknownActionUtil = this.agentActionUtils.unknown
 
 		this.stopRecordingFn = this.startRecordingUserActions()
+
+		// Poof on spawn
+		this.stackGesture('poof')
 	}
 
 	/**
@@ -284,6 +301,7 @@ export class FairyAgent {
 	dispose() {
 		this.cancel()
 		this.stopRecordingUserActions()
+		this.wakeOnSelectReaction?.()
 		// Stop following this fairy if it's currently being followed
 		if (getFollowingFairyId(this.editor) === this.id) {
 			stopFollowingFairy(this.editor)
@@ -318,7 +336,7 @@ export class FairyAgent {
 			this.$fairyEntity.update((entity) => {
 				return {
 					...entity,
-					position: state.fairyEntity?.position ?? entity.position,
+					position: AgentHelpers.RoundVec(state.fairyEntity?.position ?? entity.position),
 					flipX: state.fairyEntity?.flipX ?? entity.flipX,
 					currentPageId: state.fairyEntity?.currentPageId ?? entity.currentPageId,
 					isSelected: state.fairyEntity?.isSelected ?? entity.isSelected,
@@ -383,25 +401,25 @@ export class FairyAgent {
 			const typedModelName = modelName as AgentModelName
 
 			// Calculate cost for tier 1 (≤ 200K tokens)
-			const tier1Pricing = getModelPricing(typedModelName, 200_000)
+			const tier1Pricing = getModelPricingInfo(typedModelName, 200_000)
 			const tier1UncachedInputTokens = usage.tier1.promptTokens - usage.tier1.cachedInputTokens
 			const tier1UncachedInputCost =
-				(tier1UncachedInputTokens / 1_000_000) * tier1Pricing.inputPrice
+				(tier1UncachedInputTokens / 1_000_000) * tier1Pricing.uncachedInputPrice
 			const tier1CachedInputCost =
-				tier1Pricing.cachedInputPrice !== null
-					? (usage.tier1.cachedInputTokens / 1_000_000) * tier1Pricing.cachedInputPrice
+				tier1Pricing.cacheReadInputPrice !== null
+					? (usage.tier1.cachedInputTokens / 1_000_000) * tier1Pricing.cacheReadInputPrice
 					: 0
 			const tier1InputCost = tier1UncachedInputCost + tier1CachedInputCost
 			const tier1OutputCost = (usage.tier1.completionTokens / 1_000_000) * tier1Pricing.outputPrice
 
 			// Calculate cost for tier 2 (> 200K tokens)
-			const tier2Pricing = getModelPricing(typedModelName, 200_001)
+			const tier2Pricing = getModelPricingInfo(typedModelName, 200_001)
 			const tier2UncachedInputTokens = usage.tier2.promptTokens - usage.tier2.cachedInputTokens
 			const tier2UncachedInputCost =
-				(tier2UncachedInputTokens / 1_000_000) * tier2Pricing.inputPrice
+				(tier2UncachedInputTokens / 1_000_000) * tier2Pricing.uncachedInputPrice
 			const tier2CachedInputCost =
-				tier2Pricing.cachedInputPrice !== null
-					? (usage.tier2.cachedInputTokens / 1_000_000) * tier2Pricing.cachedInputPrice
+				tier2Pricing.cacheReadInputPrice !== null
+					? (usage.tier2.cachedInputTokens / 1_000_000) * tier2Pricing.cacheReadInputPrice
 					: 0
 			const tier2InputCost = tier2UncachedInputCost + tier2CachedInputCost
 			const tier2OutputCost = (usage.tier2.completionTokens / 1_000_000) * tier2Pricing.outputPrice
@@ -602,11 +620,6 @@ export class FairyAgent {
 			throw new Error(
 				`Fairy is not in an active mode so can't act right now. First change to an active mode. Current mode: ${this.getMode()}`
 			)
-		}
-
-		const startingFairy = this.$fairyEntity.get()
-		if (startingFairy.pose === 'idle') {
-			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'active' }))
 		}
 
 		// Submit the request to the agent.
@@ -860,7 +873,24 @@ export class FairyAgent {
 	 * @param condition - The wait condition to add
 	 */
 	waitFor(condition: FairyWaitCondition<FairyWaitEvent>) {
-		this.$waitingFor.update((conditions) => [...conditions, condition])
+		this.$waitingFor.update((conditions) => {
+			// Check if an equivalent condition already exists
+			const isDuplicate = conditions.some((existing) => {
+				if (existing.eventType !== condition.eventType) {
+					return false
+				}
+				if (existing.id && condition.id) {
+					return existing.id === condition.id
+				}
+				return false
+			})
+
+			if (isDuplicate) {
+				return conditions
+			}
+
+			return [...conditions, condition]
+		})
 	}
 
 	/**
@@ -1055,81 +1085,6 @@ export class FairyAgent {
 	}
 
 	/**
-	 * Request a text response from the model.
-	 * @param input - The input to form the request from.
-	 * @returns The text response from the model.
-	 */
-	async requestText(input: AgentInput) {
-		const request = this.getFullRequestFromInput(input)
-		const { fulltextPromise, cancel: _cancel } = requestAgentText({ agent: this, request })
-		return await fulltextPromise
-	}
-
-	/**
-	 * Stream a text response from the model.
-	 * Not to be called directly. Use `requestText` instead.
-	 * This is a helper function that is used internally by the agent.
-	 */
-	async *_streamText({
-		prompt,
-		signal,
-	}: {
-		prompt: BaseAgentPrompt
-		signal: AbortSignal
-	}): AsyncGenerator<string> {
-		const headers: HeadersInit = {
-			'Content-Type': 'application/json',
-		}
-
-		// Add authentication token if available
-		if (this.getToken) {
-			const token = await this.getToken()
-			if (token) {
-				headers['Authorization'] = `Bearer ${token}`
-			}
-		}
-
-		const res = await fetch(`${FAIRY_WORKER}/stream-text`, {
-			method: 'POST',
-			body: JSON.stringify(prompt),
-			headers,
-			signal,
-		})
-
-		if (!res.body) {
-			throw Error('No body in response')
-		}
-
-		const reader = res.body.getReader()
-		const decoder = new TextDecoder()
-		let buffer = ''
-
-		try {
-			while (true) {
-				const { value, done } = await reader.read()
-				if (done) break
-
-				buffer += decoder.decode(value, { stream: true })
-				const chunks = buffer.split('\n\n')
-				buffer = chunks.pop() || ''
-
-				for (const chunk of chunks) {
-					const match = chunk.match(/^data: (.+)$/m)
-					if (match) {
-						try {
-							yield match[1]
-						} catch (err: any) {
-							throw new Error(err.message)
-						}
-					}
-				}
-			}
-		} finally {
-			reader.releaseLock()
-		}
-	}
-
-	/**
 	 * A function that cancels the agent's current prompt, if one is active.
 	 */
 	private cancelFn: (() => void) | null = null
@@ -1161,6 +1116,13 @@ export class FairyAgent {
 	}
 
 	/**
+	 * Check if the fairy is currently sleeping.
+	 */
+	isSleeping() {
+		return this.getMode() === 'sleeping'
+	}
+
+	/**
 	 * Reset the agent's chat and memory.
 	 * Cancel the current request if there's one active.
 	 */
@@ -1169,6 +1131,12 @@ export class FairyAgent {
 		this.promptStartTime = null
 		this.$personalTodoList.set([])
 		this.$userActionHistory.set([])
+
+		// Remove solo tasks
+		$fairyTasks.update((tasks) =>
+			tasks.filter((task) => task.assignedTo !== this.id && task.projectId === null)
+		)
+
 		this.setMode('idling')
 
 		this.$chatHistory.set([])
@@ -1271,6 +1239,11 @@ export class FairyAgent {
 	private stopRecordingFn: () => void
 
 	/**
+	 * A function that stops the wake-on-select reaction.
+	 */
+	private wakeOnSelectReaction: () => void
+
+	/**
 	 * Stop recording user actions.
 	 */
 	private stopRecordingUserActions() {
@@ -1310,7 +1283,7 @@ export class FairyAgent {
 		this.$fairyEntity.update((fairy) => {
 			return {
 				...fairy,
-				position,
+				position: AgentHelpers.RoundVec(position),
 				flipX: false,
 			}
 		})
@@ -1372,11 +1345,58 @@ export class FairyAgent {
 	}
 
 	/**
-	 * Set the fairy's gesture.
-	 * @param gesture - The gesture to set the fairy to.
+	 * An array of gestures that are currently active.
+	 * The most recently added gesture is the one that is displayed.
+	 * This array determines what to do when one gesture completes.
+	 * eg: Switch to the next gesture in the stack.
+	 * eg: Revert to the base pose.
+	 *
+	 * Each item contains a unique ID and the gesture to display.
 	 */
-	setGesture(gesture: FairyPose | null) {
+	gestureStack: { id: string; gesture: FairyPose }[] = []
+
+	/**
+	 * Override the fairy's gesture, cancelling all other gestures in the stack.
+	 * @param gesture - The gesture to set the fairy to.
+	 * @param duration - The duration of the gesture in milliseconds.
+	 */
+	setGesture(gesture: FairyPose | null, duration = 400) {
 		this.$fairyEntity.update((fairy) => ({ ...fairy, gesture }))
+
+		if (!gesture) {
+			this.gestureStack = []
+			return
+		}
+
+		const id = uniqueId()
+		this.gestureStack = [{ id, gesture }]
+		setTimeout(() => {
+			this.gestureStack = this.gestureStack.filter((g) => g.id !== id)
+			const finalGesture = this.gestureStack[0]?.gesture ?? null
+			this.$fairyEntity.update((fairy) => ({ ...fairy, gesture: finalGesture }))
+		}, duration)
+	}
+
+	/**
+	 * Add a gesture to the stack. When this gesture completes, the next gesture in the stack is displayed.
+	 */
+	stackGesture(gesture: FairyPose, duration = 400) {
+		this.$fairyEntity.update((fairy) => ({ ...fairy, gesture: gesture }))
+
+		const id = uniqueId()
+		this.gestureStack.push({ id, gesture })
+		setTimeout(() => {
+			this.gestureStack = this.gestureStack.filter((g) => g.id !== id)
+			const finalGesture = this.gestureStack[0]?.gesture ?? null
+			this.$fairyEntity.update((fairy) => ({ ...fairy, gesture: finalGesture }))
+		}, duration)
+	}
+
+	/**
+	 * Clear the fairy's gesture.
+	 */
+	clearGesture() {
+		this.$fairyEntity.update((fairy) => ({ ...fairy, gesture: null }))
 	}
 
 	updateFairyConfig(partial: Partial<FairyConfig>) {
@@ -1427,7 +1447,8 @@ export class FairyAgent {
 		const center = this.editor.getViewportPageBounds().center
 		const position = offset ? { x: center.x + offset.x, y: center.y + offset.y } : center
 		const currentPageId = this.editor.getCurrentPageId()
-		this.$fairyEntity.update((f) => (f ? { ...f, position, gesture: 'poof', currentPageId } : f))
+		this.$fairyEntity.update((f) => (f ? { ...f, position, currentPageId } : f))
+		this.stackGesture('poof')
 	}
 
 	/**
@@ -1450,43 +1471,6 @@ export class FairyAgent {
 	isFollowing() {
 		return getFollowingFairyId(this.editor) === this.id
 	}
-}
-
-/**
- * Send a request for a text response from the model and return its response.
- * Note: You probably want to setup a custom system prompt to get any use out of this.
- *
- * @returns A promise for the text response from the model and a function to cancel the request.
- */
-function requestAgentText({ agent, request }: { agent: FairyAgent; request: AgentRequest }) {
-	let cancelled = false
-	const controller = new AbortController()
-	const signal = controller.signal
-	const helpers = new AgentHelpers(agent)
-
-	const fulltextPromise = (async () => {
-		const prompt = await agent.preparePrompt(request, helpers)
-		let text = ''
-		try {
-			for await (const v of agent._streamText({ prompt, signal })) {
-				if (cancelled) break
-				text += v
-			}
-			return text
-		} catch (e) {
-			if (e === 'Cancelled by user' || (e instanceof Error && e.name === 'AbortError')) {
-				return
-			}
-			agent.onError(e)
-		}
-	})()
-
-	const cancel = () => {
-		cancelled = true
-		controller.abort('Cancelled by user')
-	}
-
-	return { fulltextPromise, cancel }
 }
 
 /**
@@ -1527,81 +1511,83 @@ function requestAgentActions({ agent, request }: { agent: FairyAgent; request: A
 			for await (const action of agent._streamActions({ prompt, signal })) {
 				if (cancelled) break
 
+				// NOTE: usage tracking in the client is disabled for now because it's not working as expected. Refer to the worker console for costs and token per request.
+
 				// Handle usage information
-				if ((action as any)._type === '__usage__') {
-					const usage = (action as any).usage
-					if (usage) {
-						// AI SDK returns: { inputTokens, outputTokens, totalTokens, cachedInputTokens }
-						// cachedInputTokens can be undefined, which means 0
-						const promptTokens = usage.inputTokens || 0
-						const completionTokens = usage.outputTokens || 0
-						const cachedInputTokens = usage.cachedInputTokens || 0
+				// if ((action as any)._type === '__usage__') {
+				// 	const usage = (action as any).usage
+				// 	if (usage) {
+				// 		// AI SDK returns: { inputTokens, outputTokens, totalTokens, cachedInputTokens }
+				// 		// cachedInputTokens can be undefined, which means 0
+				// 		const promptTokens = usage.inputTokens || 0
+				// 		const completionTokens = usage.outputTokens || 0
+				// 		const cachedInputTokens = usage.cachedInputTokens || 0
 
-						// Extract model name from prompt
-						const modelName = agent.getModelNameFromPrompt(prompt)
+				// 		// Extract model name from prompt
+				// 		const modelName = agent.getModelNameFromPrompt(prompt)
 
-						// Initialize model usage if it doesn't exist
-						if (!agent.cumulativeUsage.byModel[modelName]) {
-							agent.cumulativeUsage.byModel[modelName] = {
-								tier1: { promptTokens: 0, cachedInputTokens: 0, completionTokens: 0 },
-								tier2: { promptTokens: 0, cachedInputTokens: 0, completionTokens: 0 },
-							}
-						}
+				// 		// Initialize model usage if it doesn't exist
+				// 		if (!agent.cumulativeUsage.byModel[modelName]) {
+				// 			agent.cumulativeUsage.byModel[modelName] = {
+				// 				tier1: { promptTokens: 0, cachedInputTokens: 0, completionTokens: 0 },
+				// 				tier2: { promptTokens: 0, cachedInputTokens: 0, completionTokens: 0 },
+				// 			}
+				// 		}
 
-						// Determine which tier this request falls into
-						// Tier 1: ≤ 200K tokens, Tier 2: > 200K tokens
-						if (promptTokens <= TIER_THRESHOLD) {
-							agent.cumulativeUsage.byModel[modelName].tier1.promptTokens += promptTokens
-							agent.cumulativeUsage.byModel[modelName].tier1.cachedInputTokens += cachedInputTokens
-							agent.cumulativeUsage.byModel[modelName].tier1.completionTokens += completionTokens
-						} else {
-							agent.cumulativeUsage.byModel[modelName].tier2.promptTokens += promptTokens
-							agent.cumulativeUsage.byModel[modelName].tier2.cachedInputTokens += cachedInputTokens
-							agent.cumulativeUsage.byModel[modelName].tier2.completionTokens += completionTokens
-						}
+				// 		// Determine which tier this request falls into
+				// 		// Tier 1: ≤ 200K tokens, Tier 2: > 200K tokens
+				// 		if (promptTokens <= TIER_THRESHOLD) {
+				// 			agent.cumulativeUsage.byModel[modelName].tier1.promptTokens += promptTokens
+				// 			agent.cumulativeUsage.byModel[modelName].tier1.cachedInputTokens += cachedInputTokens
+				// 			agent.cumulativeUsage.byModel[modelName].tier1.completionTokens += completionTokens
+				// 		} else {
+				// 			agent.cumulativeUsage.byModel[modelName].tier2.promptTokens += promptTokens
+				// 			agent.cumulativeUsage.byModel[modelName].tier2.cachedInputTokens += cachedInputTokens
+				// 			agent.cumulativeUsage.byModel[modelName].tier2.completionTokens += completionTokens
+				// 		}
 
-						agent.cumulativeUsage.totalTokens += usage.totalTokens || 0
+				// 		agent.cumulativeUsage.totalTokens += usage.totalTokens || 0
 
-						// Calculate cumulative costs
-						const { inputCost, outputCost, totalCost } = agent.getCumulativeCost()
+				// 		// Calculate cumulative costs
+				// 		const { inputCost, outputCost, totalCost } = agent.getCumulativeCost()
 
-						// Calculate total prompt and completion tokens across all models and tiers
-						let totalPromptTokens = 0
-						let totalCompletionTokens = 0
-						let totalCachedInputTokens = 0
-						for (const modelUsage of Object.values(agent.cumulativeUsage.byModel)) {
-							totalPromptTokens += modelUsage.tier1.promptTokens + modelUsage.tier2.promptTokens
-							totalCompletionTokens +=
-								modelUsage.tier1.completionTokens + modelUsage.tier2.completionTokens
-							totalCachedInputTokens +=
-								modelUsage.tier1.cachedInputTokens + modelUsage.tier2.cachedInputTokens
-						}
+				// 		// Calculate total prompt and completion tokens across all models and tiers
+				// 		let totalPromptTokens = 0
+				// 		let totalCompletionTokens = 0
+				// 		let totalCachedInputTokens = 0
+				// 		for (const modelUsage of Object.values(agent.cumulativeUsage.byModel)) {
+				// 			totalPromptTokens += modelUsage.tier1.promptTokens + modelUsage.tier2.promptTokens
+				// 			totalCompletionTokens +=
+				// 				modelUsage.tier1.completionTokens + modelUsage.tier2.completionTokens
+				// 			totalCachedInputTokens +=
+				// 				modelUsage.tier1.cachedInputTokens + modelUsage.tier2.cachedInputTokens
+				// 		}
 
-						// Calculate percentage of input tokens that were cached
-						const cachedPercentage =
-							totalPromptTokens > 0
-								? ((totalCachedInputTokens / totalPromptTokens) * 100).toFixed(1)
-								: '0.0'
+				// 		// Calculate percentage of input tokens that were cached
+				// 		const cachedPercentage =
+				// 			totalPromptTokens > 0
+				// 				? ((totalCachedInputTokens / totalPromptTokens) * 100).toFixed(1)
+				// 				: '0.0'
 
-						// Build input cost string with cached breakdown if applicable
-						const inputCostStr =
-							totalCachedInputTokens > 0
-								? `Input: $${inputCost.toFixed(4)} (${cachedPercentage}% cached)`
-								: `Input: $${inputCost.toFixed(4)}`
+				// 		// Build input cost string with cached breakdown if applicable
+				// 		const inputCostStr =
+				// 			totalCachedInputTokens > 0
+				// 				? `Input: $${inputCost.toFixed(4)} (${cachedPercentage}% cached)`
+				// 				: `Input: $${inputCost.toFixed(4)}`
 
-						// eslint-disable-next-line no-console
-						console.debug(
-							`🧚 Fairy "${agent.$fairyConfig.get().name}" Cumulative Usage:\n` +
-								`  Model: ${modelName}\n` +
-								`  Prompt tokens: ${totalPromptTokens.toLocaleString()}\n` +
-								`  Completion tokens: ${totalCompletionTokens.toLocaleString()}\n` +
-								`  Total tokens: ${agent.cumulativeUsage.totalTokens.toLocaleString()}\n` +
-								`  💰 Cumulative Cost: $${totalCost.toFixed(4)}\n` +
-								`     (${inputCostStr}, Output: $${outputCost.toFixed(4)})`
-						)
-					}
-					continue
-				}
+				// 		// eslint-disable-next-line no-console
+				// 		console.debug(
+				// 			`🧚 Fairy "${agent.$fairyConfig.get().name}" Cumulative Usage:\n` +
+				// 				`  Model: ${modelName}\n` +
+				// 				`  Prompt tokens: ${totalPromptTokens.toLocaleString()}\n` +
+				// 				`  Completion tokens: ${totalCompletionTokens.toLocaleString()}\n` +
+				// 				`  Total tokens: ${agent.cumulativeUsage.totalTokens.toLocaleString()}\n` +
+				// 				`  💰 Cumulative Cost: $${totalCost.toFixed(4)}\n` +
+				// 				`     (${inputCostStr}, Output: $${outputCost.toFixed(4)})`
+				// 		)
+				// 	}
+				// 	continue
+				// }
 
 				editor.run(
 					() => {
