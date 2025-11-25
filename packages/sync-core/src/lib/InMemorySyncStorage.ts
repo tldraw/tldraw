@@ -26,11 +26,12 @@ import {
 	TLSyncStorageTransactionResult,
 } from './TLSyncStorage'
 
-const TOMBSTONE_PRUNE_BUFFER_SIZE = 1000
-const MAX_TOMBSTONES = 5000
+/** @internal */
+export const TOMBSTONE_PRUNE_BUFFER_SIZE = 1000
+/** @internal */
+export const MAX_TOMBSTONES = 5000
 
 export const DEFAULT_INITIAL_SNAPSHOT = {
-	clock: 0,
 	documentClock: 0,
 	tombstoneHistoryStartsAtClock: 0,
 	schema: createTLSchema().serialize(),
@@ -96,7 +97,11 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 		)
 		const documentClock = snapshot.documentClock ?? snapshot.clock ?? 0
 		this.documentClock = atom('document clock', documentClock)
-		const tombstoneHistoryStartsAtClock = snapshot.tombstoneHistoryStartsAtClock ?? documentClock
+		// math.min to make sure the tombstone history starts at or before the document clock
+		const tombstoneHistoryStartsAtClock = Math.min(
+			snapshot.tombstoneHistoryStartsAtClock ?? documentClock,
+			documentClock
+		)
 		this.tombstoneHistoryStartsAtClock = atom(
 			'tombstone history starts at clock',
 			tombstoneHistoryStartsAtClock
@@ -117,10 +122,15 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 		opts?: TLSyncStorageTransactionOptions
 	): TLSyncStorageTransactionResult<T> {
 		const clockBefore = this.documentClock.get()
-		const result = transaction(() => {
-			const txn = new InMemorySyncStorageTransaction<R>(this)
-			return callback(txn)
-		})
+		const txn = new InMemorySyncStorageTransaction<R>(this)
+		let result: T
+		try {
+			result = transaction(() => {
+				return callback(txn)
+			})
+		} finally {
+			txn.close()
+		}
 		if (
 			typeof result === 'object' &&
 			result &&
@@ -156,18 +166,22 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 		() => {
 			if (this.tombstones.size > MAX_TOMBSTONES) {
 				const tombstones = Array.from(this.tombstones)
-				// sort entries in ascending order by clock
-				tombstones.sort((a, b) => b[1] - a[1])
-				// avoid having partial history for the earliest clock value by trimming dupes
-				let cutoff = TOMBSTONE_PRUNE_BUFFER_SIZE
+				// sort entries in ascending order by clock (oldest first)
+				tombstones.sort((a, b) => a[1] - b[1])
+				// determine how many to delete, avoiding partial history for a clock value
+				let cutoff = TOMBSTONE_PRUNE_BUFFER_SIZE + this.tombstones.size - MAX_TOMBSTONES
 				while (cutoff < tombstones.length && tombstones[cutoff - 1][1] === tombstones[cutoff][1]) {
 					cutoff++
 				}
 
-				this.tombstoneHistoryStartsAtClock.set(tombstones[cutoff][1] ?? this.documentClock.get())
-				// now remove the old tombstones
-				tombstones.length = cutoff
-				this.tombstones.deleteMany(tombstones.map(([id]) => id))
+				// Set history start to the oldest remaining tombstone's clock
+				// (or documentClock if we're deleting everything)
+				const oldestRemaining = tombstones[cutoff]
+				this.tombstoneHistoryStartsAtClock.set(oldestRemaining?.[1] ?? this.documentClock.get())
+
+				// Delete the oldest tombstones (first cutoff entries)
+				const toDelete = tombstones.slice(0, cutoff)
+				this.tombstones.deleteMany(toDelete.map(([id]) => id))
 			}
 		},
 		1000,
@@ -196,8 +210,19 @@ class InMemorySyncStorageTransaction<R extends UnknownRecord>
 	implements TLSyncStorageTransaction<R>
 {
 	private _clock
+	private _closed = false
+
 	constructor(private storage: InMemorySyncStorage<R>) {
 		this._clock = this.storage.documentClock.get()
+	}
+
+	/** @internal */
+	close() {
+		this._closed = true
+	}
+
+	private assertNotClosed() {
+		assert(!this._closed, 'Transaction has ended, iterator cannot be consumed')
 	}
 
 	getClock(): number {
@@ -218,6 +243,7 @@ class InMemorySyncStorageTransaction<R extends UnknownRecord>
 	}
 
 	set(id: string, record: R): void {
+		assert(id === record.id, `Record id mismatch: key does not match record.id`)
 		const clock = this.getNextClock()
 		// Automatically clear tombstone if it exists
 		if (this.storage.tombstones.has(id)) {
@@ -227,6 +253,8 @@ class InMemorySyncStorageTransaction<R extends UnknownRecord>
 	}
 
 	delete(id: string): void {
+		// Only create a tombstone if the record actually exists
+		if (!this.storage.documents.has(id)) return
 		const clock = this.getNextClock()
 		this.storage.documents.delete(id)
 		this.storage.tombstones.set(id, clock)
@@ -235,16 +263,21 @@ class InMemorySyncStorageTransaction<R extends UnknownRecord>
 
 	*entries(): IterableIterator<[string, R]> {
 		for (const [id, record] of this.storage.documents.entries()) {
+			this.assertNotClosed()
 			yield [id, record.state as R]
 		}
 	}
 
-	keys(): IterableIterator<string> {
-		return this.storage.documents.keys()
+	*keys(): IterableIterator<string> {
+		for (const key of this.storage.documents.keys()) {
+			this.assertNotClosed()
+			yield key
+		}
 	}
 
 	*values(): IterableIterator<R> {
 		for (const record of this.storage.documents.values()) {
+			this.assertNotClosed()
 			yield record.state as R
 		}
 	}
@@ -258,6 +291,10 @@ class InMemorySyncStorageTransaction<R extends UnknownRecord>
 	}
 
 	getChangesSince(sinceClock: number): TLSyncStorageGetChangesSinceResult<R> {
+		if (sinceClock > this.storage.documentClock.get()) {
+			// something went wrong, wipe the slate clean
+			sinceClock = -1
+		}
 		const puts: R[] = []
 		const deletes: string[] = []
 		const wipeAll = sinceClock < this.storage.tombstoneHistoryStartsAtClock.get()
