@@ -48,7 +48,7 @@ export function TlaSidebarFairyCheckoutLink() {
 		const paddleToken = process.env.PADDLE_CLIENT_TOKEN
 
 		if (!paddleToken) {
-			console.error('Paddle client token not configured')
+			console.error('[Paddle] Client token not configured')
 			return
 		}
 
@@ -106,7 +106,7 @@ export function TlaSidebarFairyCheckoutLink() {
 		const paddlePriceId = process.env.PADDLE_FAIRY_PRICE_ID
 
 		if (!paddlePriceId) {
-			console.error('Paddle price ID not configured')
+			console.error('[Paddle] Price ID not configured')
 			return
 		}
 
