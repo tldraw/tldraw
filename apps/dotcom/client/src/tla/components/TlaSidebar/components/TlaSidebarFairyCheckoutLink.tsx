@@ -47,8 +47,11 @@ export function TlaSidebarFairyCheckoutLink() {
 		const paddleEnv = (process.env.PADDLE_ENVIRONMENT as 'sandbox' | 'production') ?? 'sandbox'
 		const paddleToken = process.env.PADDLE_CLIENT_TOKEN
 
+		if (!paddleEnv) {
+			console.error('[Paddle] Environment not configured')
+		}
 		if (!paddleToken) {
-			console.error('Paddle client token not configured')
+			console.error('[Paddle] Client token not configured')
 			return
 		}
 
@@ -106,7 +109,7 @@ export function TlaSidebarFairyCheckoutLink() {
 		const paddlePriceId = process.env.PADDLE_FAIRY_PRICE_ID
 
 		if (!paddlePriceId) {
-			console.error('Paddle price ID not configured')
+			console.error('[Paddle] Price ID not configured')
 			return
 		}
 
