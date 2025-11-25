@@ -225,6 +225,26 @@
       "value": "Put away fairy"
     }
   ],
+  "30cd34258a": [
+    {
+      "type": 0,
+      "value": "A flutter of "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "fairies"
+        }
+      ],
+      "type": 8,
+      "value": "b"
+    },
+    {
+      "type": 0,
+      "value": " have come to tldraw for the month of December. To investigate further, find the fairy and click it."
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -1319,6 +1339,12 @@
     {
       "type": 0,
       "value": "$"
+    }
+  ],
+  "c3eb5c3b90": [
+    {
+      "type": 0,
+      "value": "I understand"
     }
   ],
   "c4b39a1cc3": [

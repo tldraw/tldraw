@@ -5,7 +5,6 @@ import {
 	PORTRAIT_BREAKPOINT,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
-	tlmenus,
 	useBreakpoint,
 	useEditor,
 	useQuickReactor,
@@ -322,10 +321,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	// hide the HUD when the mobile style panel is open
 	const isMobileStylePanelOpen = useValue(
 		'mobile style panel open',
-		() => {
-			const contextId = editor.contextId
-			return tlmenus.isMenuOpen(`mobile style menu-${contextId}`)
-		},
+		() => editor.menus.isMenuOpen(`mobile style`),
 		[editor, breakpoint]
 	)
 
@@ -360,7 +356,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 				ref={hudRef}
 				className={`tla-fairy-hud ${panelState !== 'closed' ? 'tla-fairy-hud--open' : ''}`}
 				style={{
-					bottom: isDebugMode ? '112px' : '72px',
+					bottom: isDebugMode ? '48px' : '8px',
 					right: mobileMenuOffset !== null ? `${mobileMenuOffset}px` : '8px',
 					display: isMobileStylePanelOpen ? 'none' : 'block',
 				}}

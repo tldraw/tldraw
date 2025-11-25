@@ -172,10 +172,10 @@
 
 .fairy-toggle-button {
 	position: relative;
-	width: 40px !important;
-	height: 40px !important;
-	min-width: 40px !important;
-	min-height: 40px !important;
+	width: 44px !important;
+	height: 44px !important;
+	min-width: 44px !important;
+	min-height: 44px !important;
 }
 
 .fairy-button-project-indicator {
@@ -254,7 +254,6 @@
 	justify-content: center;
 	padding: 8px;
 	flex-shrink: 0;
-	gap: 8px;
 }
 
 .fairy-id-display {
@@ -267,6 +266,10 @@
 	color: var(--tl-color-text-2);
 	padding: 0px 6px;
 	text-align: center;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 100%;
 }
 
 .fairy-spinner-container {
@@ -1565,6 +1568,7 @@
 	position: relative;
 	width: 100%;
 	height: 100%;
+	display: flex;
 }
 
 .fairy-selected-sprite-overlay {

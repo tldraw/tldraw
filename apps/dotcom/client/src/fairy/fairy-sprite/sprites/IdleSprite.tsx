@@ -8,14 +8,7 @@ export function IdleSprite({
 	hatColor?: string
 }) {
 	return (
-		<svg
-			className="fairy-sprite"
-			width="108"
-			height="108"
-			viewBox="0 0 108 108"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-		>
+		<>
 			<path
 				d="M65.7866 55.6543C65.7866 55.6543 70.9774 56.8435 75.4154 55.6543C79.8534 54.4652 82.7844 49.8574 82.7844 49.8574"
 				stroke="black"
@@ -74,6 +67,6 @@ export function IdleSprite({
 				fill="black"
 				fillOpacity="1"
 			/>
-		</svg>
+		</>
 	)
 }

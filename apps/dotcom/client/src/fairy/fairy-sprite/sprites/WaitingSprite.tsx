@@ -8,14 +8,7 @@ export function WaitingSprite({
 	hatColor?: string
 }) {
 	return (
-		<svg
-			className="fairy-sprite"
-			width="108"
-			height="108"
-			viewBox="0 0 108 108"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-		>
+		<>
 			<path
 				d="M59.6873 102.885C59.6873 102.885 59.1467 97.183 59.3962 92.212C59.6457 87.241 60.5079 83.1487 60.5079 83.1487"
 				stroke="black"
@@ -94,6 +87,6 @@ export function WaitingSprite({
 				strokeWidth="6"
 				strokeLinecap="round"
 			/>
-		</svg>
+		</>
 	)
 }

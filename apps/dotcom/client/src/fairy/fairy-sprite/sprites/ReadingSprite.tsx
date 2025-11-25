@@ -6,14 +6,7 @@ export function ReadingSprite({
 	hatColor?: string
 }) {
 	return (
-		<svg
-			className="fairy-sprite"
-			width="108"
-			height="108"
-			viewBox="0 0 108 108"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-		>
+		<>
 			<path
 				d="M65.0887 51.585C65.0887 51.585 67.5893 56.2867 71.3943 58.8619C75.1993 61.4371 80.601 60.6347 80.601 60.6347"
 				stroke="black"
@@ -102,6 +95,6 @@ export function ReadingSprite({
 				strokeWidth="7"
 				strokeLinecap="round"
 			/>
-		</svg>
+		</>
 	)
 }

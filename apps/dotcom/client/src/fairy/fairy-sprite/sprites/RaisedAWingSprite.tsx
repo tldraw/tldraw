@@ -6,17 +6,18 @@ export function RaisedAWingSprite({
 	bottomWingColor?: string
 }) {
 	return (
-		<svg
-			className="fairy-sprite"
-			width="108"
-			height="108"
-			viewBox="0 0 108 108"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-		>
+		<>
 			<path
 				d="M75.5645 74.4256C74.0173 71.8738 67.6193 66.94 64.3156 64.489C63.5934 63.9533 62.6222 64.5776 62.8055 65.458C63.7089 69.7967 65.7317 78.6689 67.633 81.1489C73.532 88.8437 80.5292 82.6135 75.5645 74.4256Z"
-				fill={topWingColor}
+				fill={bottomWingColor}
+				stroke="black"
+				fillOpacity="1"
+				strokeOpacity="1"
+				strokeWidth="5"
+			/>
+			<path
+				d="M32.9254 72.3892C34.4709 69.644 40.856 64.3391 44.163 61.6962C44.874 61.128 45.8758 61.7387 45.7035 62.6324C44.8097 67.2683 42.7717 76.9406 40.857 79.6305C34.9579 87.9183 27.9608 81.2081 32.9254 72.3892Z"
+				fill={bottomWingColor}
 				stroke="black"
 				fillOpacity="1"
 				strokeOpacity="1"
@@ -32,22 +33,14 @@ export function RaisedAWingSprite({
 				strokeLinejoin="round"
 			/>
 			<path
-				d="M32.9254 72.3892C34.4709 69.644 40.856 64.3391 44.163 61.6962C44.874 61.128 45.8758 61.7387 45.7035 62.6324C44.8097 67.2683 42.7717 76.9406 40.857 79.6305C34.9579 87.9183 27.9608 81.2081 32.9254 72.3892Z"
-				fill={bottomWingColor}
-				stroke="black"
-				fillOpacity="1"
-				strokeOpacity="1"
-				strokeWidth="5"
-			/>
-			<path
 				d="M16.4091 40.2836C25.0447 35.0606 48.0821 49.6272 48.0822 58.8982C48.0822 68.1692 12.2588 77.9545 12.2588 63.2392C12.2588 55.6608 20.9234 54.5575 20.9234 54.5575C20.9234 54.5575 7.77337 45.5067 16.4091 40.2836Z"
-				fill={bottomWingColor}
+				fill={topWingColor}
 				stroke="black"
 				fillOpacity="1"
 				strokeOpacity="1"
 				strokeWidth="5"
 				strokeLinejoin="round"
 			/>
-		</svg>
+		</>
 	)
 }

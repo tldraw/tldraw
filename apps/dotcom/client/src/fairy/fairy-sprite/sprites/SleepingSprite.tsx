@@ -6,14 +6,7 @@ export function SleepingSprite({
 	hatColor?: string
 }) {
 	return (
-		<svg
-			className="fairy-sprite"
-			width="108"
-			height="108"
-			viewBox="0 0 108 108"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-		>
+		<>
 			<path
 				d="M65.6146 53.7521C68.8514 55.8325 73.413 60.9857 74.1733 66.8989"
 				stroke="black"
@@ -99,6 +92,6 @@ export function SleepingSprite({
 				strokeWidth="5"
 				strokeLinecap="round"
 			/>
-		</svg>
+		</>
 	)
 }

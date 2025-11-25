@@ -62,22 +62,15 @@ export function FairySidebarButton({
 								outfit={fairyOutfit}
 								animated={fairyEntity.pose !== 'idle' || fairyIsSelected}
 								flipX={fairyEntity.flipX}
+								isOrchestrator={isOrchestrator}
+								projectColor={projectColor}
 							/>
 							{fairyIsSelected && !project && (
 								<div className="fairy-selected-sprite-overlay">
-									<SelectedSprite />
+									<SelectedSprite inset={3} />
 								</div>
 							)}
 						</div>
-						{projectColor && (
-							<div
-								className={`fairy-button-project-indicator ${isOrchestrator ? 'fairy-button-project-indicator--orchestrator' : ''}`}
-								style={{
-									backgroundColor: isOrchestrator ? 'transparent' : projectColor,
-									borderColor: projectColor,
-								}}
-							/>
-						)}
 					</TldrawUiToolbarToggleItem>
 				</TldrawUiToolbarToggleGroup>
 			</_ContextMenu.Trigger>

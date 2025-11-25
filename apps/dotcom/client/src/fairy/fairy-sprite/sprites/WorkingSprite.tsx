@@ -8,14 +8,7 @@ export function WorkingSprite1({
 	hatColor?: string
 } = {}) {
 	return (
-		<svg
-			className="fairy-sprite"
-			width="108"
-			height="108"
-			viewBox="0 0 108 108"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-		>
+		<>
 			<g stroke="black" strokeLinecap="round">
 				<path
 					d="M65.5907 53.3966C65.5907 53.3966 70.0926 55.3493 74.3761 55.1193C78.6596 54.8892 82.6283 51.7969 82.6283 51.7969"
@@ -27,7 +20,7 @@ export function WorkingSprite1({
 					strokeWidth="7"
 				/>
 			</g>
-		</svg>
+		</>
 	)
 }
 
@@ -39,14 +32,7 @@ export function WorkingSprite2({
 	hatColor?: string
 } = {}) {
 	return (
-		<svg
-			className="fairy-sprite"
-			width="108"
-			height="108"
-			viewBox="0 0 108 108"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-		>
+		<>
 			<g stroke="black" strokeLinecap="round">
 				<path
 					d="M65.2349 54.2168C65.2349 54.2168 66.9787 58.8999 71.7576 61.4642C76.5365 64.0285 81.5417 59.4712 81.5417 59.4712"
@@ -58,7 +44,7 @@ export function WorkingSprite2({
 					strokeWidth="7"
 				/>
 			</g>
-		</svg>
+		</>
 	)
 }
 
@@ -70,14 +56,7 @@ export function WorkingSprite3({
 	hatColor?: string
 } = {}) {
 	return (
-		<svg
-			className="fairy-sprite"
-			width="108"
-			height="108"
-			viewBox="0 0 108 108"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-		>
+		<>
 			<g stroke="black" strokeLinecap="round">
 				<path
 					d="M65.8094 54.2964C65.8094 54.2964 66.6273 59.29 71.3381 62.9137C76.049 66.5375 80.3975 67.081 80.3975 67.081"
@@ -89,7 +68,7 @@ export function WorkingSprite3({
 					strokeWidth="7"
 				/>
 			</g>
-		</svg>
+		</>
 	)
 }
 

@@ -6,14 +6,7 @@ export function SleepingWingSprite({
 	bottomWingColor?: string
 }) {
 	return (
-		<svg
-			className="fairy-sprite"
-			width="108"
-			height="108"
-			viewBox="0 0 108 108"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-		>
+		<>
 			<path
 				d="M76.7041 80.505C75.6458 77.7148 70.2497 71.7015 67.4458 68.6916C66.8329 68.0336 65.7645 68.4713 65.7849 69.3703C65.8857 73.8009 66.2643 82.8929 67.6838 85.6768C72.088 94.3147 80.0998 89.4582 76.7041 80.505Z"
 				fill={topWingColor}
@@ -48,6 +41,6 @@ export function SleepingWingSprite({
 				strokeWidth="5"
 				strokeLinejoin="round"
 			/>
-		</svg>
+		</>
 	)
 }
