@@ -16,11 +16,12 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 			otherFairyName = otherFairy ? otherFairy.$fairyConfig.get().name : 'a fairy'
 		}
 
+		const otherFairyFirstName = otherFairyName.split(' ')[0]
 		const task = action.complete ? getFairyTaskById(action.taskId) : null
 
 		const text = action.complete
-			? `Directed ${otherFairyName} to do task${task ? `: ${task.title}` : ''}`
-			: `Directing ${otherFairyName} to do task...`
+			? `Directed ${otherFairyFirstName} to do task${task ? `: ${task.title}` : ''}`
+			: `Directing ${otherFairyFirstName} to do task...`
 
 		return {
 			icon: 'comment' as const,
