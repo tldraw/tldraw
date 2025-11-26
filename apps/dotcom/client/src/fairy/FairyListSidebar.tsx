@@ -99,6 +99,31 @@ export function FairyListSidebar({
 		agents,
 	])
 
+	const hasAnySelectedFairies = useValue(
+		'has-any-selected-fairies',
+		() => agents.some((agent) => agent.$fairyEntity.get()?.isSelected ?? false),
+		[agents]
+	)
+
+	const hasAnyActiveProjects = useValue(
+		'has-any-active-projects',
+		() => {
+			// Check if any selected fairy is part of an active project
+			const selectedAgents = agents.filter(
+				(agent) => agent.$fairyEntity.get()?.isSelected ?? false
+			)
+			return selectedAgents.some((agent) => {
+				const project = agent.getProject()
+				if (!project) return false
+				// Project is active if it has an orchestrator or duo-orchestrator
+				return project.members.some(
+					(member) => member.role === 'orchestrator' || member.role === 'duo-orchestrator'
+				)
+			})
+		},
+		[agents]
+	)
+
 	const renderFairySidebarButton = (agent: FairyAgent) => (
 		<FairySidebarButton
 			key={agent.id}
@@ -107,6 +132,8 @@ export function FairyListSidebar({
 			onDoubleClick={() => onDoubleClickFairy(agent)}
 			selectMessage={selectMessage}
 			deselectMessage={deselectMessage}
+			hasAnySelectedFairies={hasAnySelectedFairies}
+			hasAnyActiveProjects={hasAnyActiveProjects}
 		/>
 	)
 

@@ -215,6 +215,36 @@
 	padding: 2px;
 }
 
+.fairy-plus-button {
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	background-color: var(--tl-color-fairy-select-bg);
+	color: white;
+	border: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	pointer-events: auto;
+	z-index: 10;
+	padding: 0;
+	transition: background-color 0.1s ease;
+}
+
+.fairy-plus-button:hover {
+	background-color: var(--tl-color-focus);
+}
+
+.fairy-plus-button .tlui-icon {
+	width: 10px;
+	height: 10px;
+	color: white;
+}
+
 .fairy-button-project-indicator {
 	position: absolute;
 	top: 2px;
