@@ -101,6 +101,7 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 			if (getIsCoarsePointer()) {
 				e.stopPropagation()
 				e.preventDefault()
+				e.currentTarget.blur()
 				const value = window.prompt(enterMsg)
 				if (value) {
 					handlePrompt(value)
@@ -135,6 +136,7 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 					onChange={(e) => setInputValue(e.target.value)}
 					onKeyDown={handleKeyDown}
 					onMouseDown={handleMouseDown}
+					readOnly={isCoarsePointer}
 					autoFocus={!isCoarsePointer}
 					rows={1}
 					spellCheck={false}
