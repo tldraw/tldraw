@@ -2,14 +2,17 @@
   "0095a9fa74": {
     "translation": "导出"
   },
+  "00b177e080": {
+    "translation": "接受邀请"
+  },
+  "038c9b4432": {
+    "translation": "仙女的性格"
+  },
   "03b3e13197": {
     "translation": "将文件拖放到本页面的侧边栏，或在用户菜单中选择“导入文件”选项。"
   },
   "043973ec1f": {
     "translation": "仍然有问题？{GetHelpLink}"
-  },
-  "05596b840b": {
-    "translation": "打开tldraw。"
   },
   "06b9281e39": {
     "translation": "自动"
@@ -23,8 +26,11 @@
   "08bd40c754": {
     "translation": "帐户"
   },
-  "08d2d725a9": {
-    "translation": "创建免费帐户，即可保存您的作品、实时协作等等。"
+  "090b807281": {
+    "translation": "尖刺"
+  },
+  "0a91f7fa87": {
+    "translation": "此文件已达到大小限制，更改可能无法保存。请删除部分内容或新建一个文件。"
   },
   "0b27918290": {
     "translation": "文件"
@@ -32,14 +38,17 @@
   "0b9a4cde72": {
     "translation": "文件菜单"
   },
-  "0beb3ca97b": {
-    "translation": "tldraw 是一款免费且即时可用的虚拟白板。"
+  "0befa10111": {
+    "translation": "仙女"
   },
   "0d1f2bb523": {
     "translation": "发送反馈"
   },
   "110a4b01be": {
     "translation": "发布"
+  },
+  "11a755d598": {
+    "translation": "停止"
   },
   "129b9e34ea": {
     "translation": "离开群组"
@@ -52,6 +61,9 @@
   },
   "13ddd375ad": {
     "translation": "导出为"
+  },
+  "141c7239d3": {
+    "translation": "仙女定制"
   },
   "146ffe2fd9": {
     "translation": "显示更多"
@@ -68,11 +80,14 @@
   "1dd1c5fb7f": {
     "translation": "今天"
   },
-  "20976e7bec": {
-    "translation": "房间已满"
+  "1e38506832": {
+    "translation": "去仙女那里"
   },
-  "21bfb2dc2e": {
-    "translation": "此房间已接近其大小限制。请考虑删除一些内容或创建新文件。"
+  "1fe250ea06": {
+    "translation": "指导小组……"
+  },
+  "243924bfd5": {
+    "translation": "睡觉"
   },
   "2445e5e347": {
     "translation": "创建组"
@@ -80,14 +95,20 @@
   "250ddea65c": {
     "translation": "关于tldraw"
   },
+  "284d5cd0dd": {
+    "translation": "模型："
+  },
   "299cb00a7a": {
     "translation": "上传失败"
   },
   "2c3ef76333": {
     "translation": "我的文件"
   },
-  "2deec2cb74": {
-    "translation": "此房间已达到其大小限制，更改可能无法再保存。请删除部分内容或创建新文件。"
+  "2e86e6853d": {
+    "translation": "选择领导人"
+  },
+  "30cd34258a": {
+    "translation": "十二月，一群<b>仙子</b>来到了tldraw。想了解更多详情，请找到仙子并点击它。"
   },
   "31246941ad": {
     "translation": "查看此文件需要登录。"
@@ -95,14 +116,41 @@
   "31418ce4ad": {
     "translation": "国际化：高亮缺失部分"
   },
+  "3209f407ed": {
+    "translation": "三个仙女"
+  },
   "32210b37e4": {
     "translation": "添加链接"
+  },
+  "324a0f3182": {
+    "translation": "返回tldraw"
   },
   "335defdafe": {
     "translation": "请尝试刷新页面。"
   },
+  "33f9ea6fe8": {
+    "translation": "解散团体"
+  },
+  "34140869c6": {
+    "translation": "12月，tldraw将迎来一波仙子主题活动。请于12月1日再次访问。"
+  },
   "344a7f427f": {
     "translation": "编辑器"
+  },
+  "3596c1b1f7": {
+    "translation": "取消关注"
+  },
+  "3903aab323": {
+    "translation": "跟随"
+  },
+  "3a295397e6": {
+    "translation": "求人"
+  },
+  "3a77f951ca": {
+    "translation": "添加新任务…"
+  },
+  "3b6c2b4caa": {
+    "translation": "服务条款"
   },
   "3bc7d6ea2f": {
     "translation": "继续通过电子邮件"
@@ -116,6 +164,9 @@
   "3d0238bf16": {
     "translation": "全部接受"
   },
+  "4131ec34ef": {
+    "translation": "秃"
+  },
   "42e53c47c1": {
     "translation": "请联系所有者请求访问权限。"
   },
@@ -124,6 +175,12 @@
   },
   "46137245cd": {
     "translation": "感谢您帮助我们改进 tldraw！"
+  },
+  "465a8a92a4": {
+    "translation": "没有选择仙女"
+  },
+  "477df802ca": {
+    "translation": "要继续编辑，请将文件复制到您的文件中。"
   },
   "47839e47a5": {
     "translation": "tldraw"
@@ -152,17 +209,20 @@
   "4e6fbf032b": {
     "translation": "您确定要删除此群组吗？此操作无法撤销。"
   },
+  "4f827717f7": {
+    "translation": "尖的"
+  },
   "50db1b7e1e": {
     "translation": "无法取消发布文件。"
   },
   "517bb809d9": {
     "translation": "页面菜单"
   },
+  "542248f0ba": {
+    "translation": "此文件现在为只读。"
+  },
   "54286b1d01": {
     "translation": "协作者达到上限"
-  },
-  "54d240fa41": {
-    "translation": "请稍后再试。"
   },
   "554a05155c": {
     "translation": "仍有问题？<a>报告问题</a>"
@@ -176,17 +236,14 @@
   "56c34c6410": {
     "translation": "隐私政策"
   },
+  "5a2ccdc00a": {
+    "translation": "邀请码兑换失败"
+  },
   "5a86b22fa0": {
     "translation": "将文件拖到这里，<create>创建文件</create>，或<invite>复制邀请链接</invite>即可开始。"
   },
   "5a95a425f7": {
     "translation": "分享"
-  },
-  "5bb6cf3b53": {
-    "translation": "房间越来越大"
-  },
-  "5bcc12ace8": {
-    "translation": "此房间现在为只读"
   },
   "5bec508475": {
     "translation": "检测到旧版浏览器。请更新您的浏览器以使用此应用。"
@@ -196,6 +253,9 @@
   },
   "5d26ae7550": {
     "translation": "在您登录前创建的部分内容未能成功上传。"
+  },
+  "5ea8bb44be": {
+    "translation": "您已被邀请加入以下群组："
   },
   "5f3c333678": {
     "translation": "已提交反馈"
@@ -212,17 +272,26 @@
   "639bae9ac6": {
     "translation": "你"
   },
+  "63a78ed464": {
+    "translation": "定制"
+  },
+  "64ebe56d8c": {
+    "translation": "点击移除或拖动移动"
+  },
+  "65709fd250": {
+    "translation": "任务清单"
+  },
   "6609dd239e": {
     "translation": "出了问题"
   },
   "6637a98151": {
     "translation": "tldraw 有新版本可用。请重新加载页面以继续。"
   },
-  "68257bb646": {
-    "translation": "您已被邀请加入群组<br></br><groupName></groupName>"
-  },
   "6832ac5936": {
     "translation": "请输入您的电子邮件地址"
+  },
+  "68d390535e": {
+    "translation": "请输入您的留言"
   },
   "6a26f54883": {
     "translation": "帮助"
@@ -232,6 +301,9 @@
   },
   "6dfc62f621": {
     "translation": "要手动导入内容，请参阅以下步骤："
+  },
+  "6e02bd9e1e": {
+    "translation": "把仙女们收起来"
   },
   "70222abcfc": {
     "translation": "群组设置"
@@ -263,8 +335,17 @@
   "764671e008": {
     "translation": "在 Discord 上与我们聊天"
   },
+  "76dea3c9ca": {
+    "translation": "tldraw 是一款免费的在线白板工具。创建账户即可保存文件并与朋友协作。"
+  },
   "777f9e90cf": {
     "translation": "无效请求。"
+  },
+  "7827371d1a": {
+    "translation": "这个匿名 tldraw 多人游戏文件现在处于只读状态。要继续编辑，请登录并将其复制到您的文件中。"
+  },
+  "7835039819": {
+    "translation": "螺旋桨"
   },
   "78e9815992": {
     "translation": "知道了"
@@ -272,11 +353,26 @@
   "797799f35e": {
     "translation": "在 GitHub 上提交问题"
   },
+  "79cc22ac6b": {
+    "translation": "仙子是能与你一起在画布上创作的小家伙。仙子可以独自工作，也可以组队合作。仙子的能力没有极限。没人知道他们来自哪里。"
+  },
+  "7a3113b0ba": {
+    "translation": "拖到画布"
+  },
   "7b1329f5ca": {
     "translation": "用户手册"
   },
+  "7b5449bd84": {
+    "translation": "天线"
+  },
   "7be10fc592": {
     "translation": "恢复版本"
+  },
+  "7c0747a5df": {
+    "translation": "打开 tldraw"
+  },
+  "7cb471f815": {
+    "translation": "您已被邀请加入tldraw仙子！"
   },
   "7cb5f8b4a5": {
     "translation": "忘记"
@@ -296,20 +392,35 @@
   "815e116a2e": {
     "translation": "tldraw 有 bug、问题或想法吗？请告诉我们！填写此表单，如有需要，我们会通过电子邮件与您联系。您也可以<discord>在 Discord 上与我们聊天</discord>，或<github>在 GitHub 上提交问题</github>。"
   },
+  "81d48c2f3a": {
+    "translation": "在画布上显示任务"
+  },
+  "8472a551f1": {
+    "translation": "十二月份，仙女们来到了tldraw。"
+  },
   "85a082de1b": {
     "translation": "请刷新页面，获取最新版tldraw。"
   },
   "86353d2c41": {
     "translation": "添加了 {total} 个 .tldr 文件。"
   },
+  "86a7df7572": {
+    "translation": "召唤妖精"
+  },
   "86c66437fd": {
     "translation": "重命名文件"
+  },
+  "88e83b88c5": {
+    "translation": "购买仙女礼包"
+  },
+  "898e76f01a": {
+    "translation": "重置所有设置"
   },
   "8ad4303b83": {
     "translation": "不，谢谢"
   },
-  "8b1946f965": {
-    "translation": "要继续编辑，请将房间复制到您的文件中。"
+  "8be569f100": {
+    "translation": "一次性付款"
   },
   "8c2d3d730c": {
     "translation": "请查看您的电子邮件，您会收到验证码。"
@@ -332,6 +443,15 @@
   "930390d222": {
     "translation": "复制的邀请链接"
   },
+  "93346fdd70": {
+    "translation": "耳朵"
+  },
+  "93dfe9fbbe": {
+    "translation": "取消选择仙女"
+  },
+  "94966d9074": {
+    "translation": "发送"
+  },
   "95aacd4d4a": {
     "translation": "使用 Google 登录"
   },
@@ -341,23 +461,29 @@
   "96165d6df5": {
     "translation": "本月"
   },
+  "97a9f16b2e": {
+    "translation": "新仙女"
+  },
   "985a4b720f": {
     "translation": "使用条款"
   },
   "98c997a27e": {
     "translation": "添加文件链接"
   },
+  "98e528aac6": {
+    "translation": "切换到仙女聊天"
+  },
   "9914a0ce04": {
     "translation": "浅色"
+  },
+  "9953e9946b": {
+    "translation": "调试视图"
   },
   "9b33f5c63c": {
     "translation": "没有收到验证码？<resend>重新发送</resend>。"
   },
   "9bef626805": {
     "translation": "删除文件"
-  },
-  "9c258b8f88": {
-    "translation": "此匿名 tldraw 多人游戏房间现已设为只读。如需继续编辑，请登录并将其复制到您的文件。"
   },
   "9ceb927baa": {
     "translation": "发布此文件"
@@ -383,11 +509,20 @@
   "a239905023": {
     "translation": "导出图片"
   },
+  "a2f0372a75": {
+    "translation": "切换到任务列表"
+  },
   "a3debabee7": {
     "translation": "Cookie 政策"
   },
+  "a3e932550c": {
+    "translation": "仙女的名字"
+  },
   "a4d3b161ce": {
     "translation": "提交"
+  },
+  "a4ffdcf0dc": {
+    "translation": "顶部"
   },
   "a6cc403d56": {
     "translation": "任何拥有链接的人"
@@ -395,11 +530,14 @@
   "a768caa988": {
     "translation": "分析"
   },
+  "a885eb91ac": {
+    "translation": "领袖仙女选择"
+  },
+  "a8873770ab": {
+    "translation": "文件越来越大"
+  },
   "a9ded1e5ce": {
     "translation": "背景"
-  },
-  "aa916767cf": {
-    "translation": "登录以接受邀请"
   },
   "ab0df9ba36": {
     "translation": "已达到文件限制"
@@ -410,6 +548,12 @@
   },
   "b028909917": {
     "translation": "来宾用户"
+  },
+  "b2c3c2e30c": {
+    "translation": "文件已满"
+  },
+  "b34a671e2c": {
+    "translation": "日志响应时间"
   },
   "b357b524e7": {
     "translation": "电子邮件"
@@ -425,6 +569,9 @@
   },
   "b758336699": {
     "translation": "复制链接"
+  },
+  "b8996797b9": {
+    "translation": "隐藏画布上的任务"
   },
   "ba0318cb81": {
     "translation": "登录以分享"
@@ -444,8 +591,14 @@
   "c28aed8348": {
     "translation": "允许使用 <cookies>analytics</cookies> 来帮助我们改进 tldraw。"
   },
+  "c2ad21c079": {
+    "translation": "头发"
+  },
   "c303bd1095": {
     "translation": "无法发布文件。"
+  },
+  "c3eb5c3b90": {
+    "translation": "我明白"
   },
   "c4b39a1cc3": {
     "translation": "必需 Cookie"
@@ -465,6 +618,9 @@
   "c87aacf567": {
     "translation": "退出登录"
   },
+  "c9b04e7b53": {
+    "translation": "取消选择领导人"
+  },
   "c9cc8cce24": {
     "translation": "节省"
   },
@@ -474,11 +630,26 @@
   "cd15a75c26": {
     "translation": "SVG"
   },
+  "ce0547606c": {
+    "translation": "此文件已接近大小上限。请考虑删除部分内容或新建一个文件。"
+  },
+  "ce1424d44b": {
+    "translation": "你已经拥有进入仙境的权限了！"
+  },
   "cea291e45e": {
     "translation": "详细了解发布。"
   },
+  "cf62a7f9a7": {
+    "translation": "重置聊天记录"
+  },
   "d3d2e61733": {
     "translation": "关闭"
+  },
+  "d438a51e6e": {
+    "translation": "让所有仙子都睡着"
+  },
+  "d46632fe1f": {
+    "translation": "请求过多，请放慢速度。"
   },
   "d4bbf74f3e": {
     "translation": "切换侧边栏"
@@ -488,6 +659,12 @@
   },
   "d721757161": {
     "translation": "主题"
+  },
+  "d739f35e18": {
+    "translation": "悄悄告诉{name}…"
+  },
+  "d7bc9d5a2e": {
+    "translation": "删除任务"
   },
   "d876a9fe1a": {
     "translation": "重试"
@@ -504,8 +681,20 @@
   "dbbebf3c03": {
     "translation": "仅邀请"
   },
+  "dbbece0c3a": {
+    "translation": "清除所有聊天记录"
+  },
+  "dc30bc0c79": {
+    "translation": "清除"
+  },
   "dcdaa754fe": {
     "translation": "无效的tldraw文件URL"
+  },
+  "de290d52ef": {
+    "translation": "选择右侧的仙女进行聊天"
+  },
+  "df6ff49394": {
+    "translation": "仙子是<strong>限时</strong>功能。2026年1月1日，所有仙子将从应用中移除。或许将来它们会再次出现。您购买的功能仅限2025年12月使用仙子。"
   },
   "dfdb78a4e4": {
     "translation": "App调试标记"
@@ -530,6 +719,9 @@
   },
   "ea0626ac5a": {
     "translation": "危险区域"
+  },
+  "ea181d98ca": {
+    "translation": "选择仙女"
   },
   "ea4788705e": {
     "translation": "取消"
@@ -558,11 +750,20 @@
   "ef7de3f485": {
     "translation": "已选择"
   },
+  "efb2d9d471": {
+    "translation": "待办事项清单"
+  },
+  "efde983742": {
+    "translation": "召唤"
+  },
   "f09b16bc5f": {
     "translation": "我们使用 cookie 来让您保持登录状态、同步您的文件并收集分析数据以帮助我们改进 tldraw。"
   },
   "f0e8bff6f9": {
     "translation": "用户设置"
+  },
+  "f23056da60": {
+    "translation": "新项目"
   },
   "f2569594b2": {
     "translation": "我们使用这些 cookie 来保存您的文件和设置。"
@@ -570,20 +771,29 @@
   "f2a6c498fb": {
     "translation": "删除"
   },
-  "f43fb62093": {
-    "translation": "返回tldraw。"
-  },
   "f4f70727dc": {
     "translation": "设置"
   },
+  "f6ae34b4ba": {
+    "translation": "重置所有魔杖"
+  },
   "f714e36843": {
     "translation": "你确定要退出这个群组吗？"
+  },
+  "f7d5ee6855": {
+    "translation": "首先选出一位领导人……"
+  },
+  "f87386b4ba": {
+    "translation": "召唤所有妖精"
   },
   "fa2ead697d": {
     "translation": "隐私政策"
   },
   "fb15c53f22": {
     "translation": "查看者"
+  },
+  "fd11eafb92": {
+    "translation": "解散项目"
   },
   "fd1be3efcf": {
     "translation": "确定要删除此文件吗？"
@@ -596,5 +806,8 @@
   },
   "ffcd73e997": {
     "translation": "导入文件…"
+  },
+  "ffec95af2f": {
+    "translation": "购买仙女通道"
   }
 }
