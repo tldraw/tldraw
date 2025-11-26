@@ -1043,6 +1043,11 @@ export class FairyAgent {
 			signal,
 		})
 
+		if (!res.ok) {
+			const errorData = await res.json().catch(() => ({ error: 'Unknown error' }))
+			throw new Error(errorData.error || 'Request failed')
+		}
+
 		if (!res.body) {
 			throw Error('No body in response')
 		}

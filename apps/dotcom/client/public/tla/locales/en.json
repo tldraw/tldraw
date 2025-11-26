@@ -86,6 +86,9 @@
   "1fe250ea06": {
     "translation": "Instruct the group…"
   },
+  "23f879f41a": {
+    "translation": "Your weekly fairy usage limit has been reached. It will reset at the start of next week."
+  },
   "2445e5e347": {
     "translation": "Create group"
   },
@@ -526,6 +529,9 @@
   },
   "a8873770ab": {
     "translation": "File is getting large"
+  },
+  "a8de4c27a8": {
+    "translation": "Weekly fairy limit reached"
   },
   "a9ded1e5ce": {
     "translation": "Background"
