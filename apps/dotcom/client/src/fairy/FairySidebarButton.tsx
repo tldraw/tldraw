@@ -1,16 +1,11 @@
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { MouseEvent } from 'react'
-import {
-	TldrawUiIcon,
-	TldrawUiToolbarToggleGroup,
-	TldrawUiToolbarToggleItem,
-	useValue,
-} from 'tldraw'
+import { TldrawUiToolbarToggleGroup, TldrawUiToolbarToggleItem, useValue } from 'tldraw'
 import { useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { fairyMessages } from './fairy-messages'
 import { FairySprite, getHatColor } from './fairy-sprite/FairySprite'
-import { SelectedSprite } from './fairy-sprite/sprites/SelectedSprite'
+import { FairyReticleSprite } from './fairy-sprite/sprites/FairyReticleSprite'
 import { FairyContextMenuContent } from './FairyContextMenuContent'
 import { getProjectColor } from './getProjectColor'
 
@@ -94,7 +89,7 @@ export function FairySidebarButton({
 							/>
 							{fairyIsSelected && !project && (
 								<div className="fairy-selected-sprite-overlay">
-									<SelectedSprite inset={3} />
+									<FairyReticleSprite inset={3} />
 								</div>
 							)}
 							{showPlusButton && (
@@ -104,7 +99,33 @@ export function FairySidebarButton({
 									aria-label={joinSelectedFairiesLabel}
 									title={joinSelectedFairiesLabel}
 								>
-									<TldrawUiIcon icon="plus" label={joinSelectedFairiesLabel} />
+									<svg
+										width="12"
+										height="12"
+										viewBox="0 0 12 12"
+										fill="none"
+										xmlns="http://www.w3.org/2000/svg"
+									>
+										<circle cx="6" cy="6" r="6" fill="var(--tl-color-fairy-select)" />
+										<line
+											x1="4"
+											y1="6"
+											x2="8"
+											y2="6"
+											stroke="var(--tl-color-fairy-light)"
+											strokeWidth="2"
+											strokeLinecap="round"
+										/>
+										<line
+											x1="6"
+											y1="4"
+											x2="6"
+											y2="8"
+											stroke="var(--tl-color-fairy-light)"
+											strokeWidth="2"
+											strokeLinecap="round"
+										/>
+									</svg>
 								</button>
 							)}
 						</div>

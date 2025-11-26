@@ -1,4 +1,4 @@
-export function SelectedSprite({
+export function FairyReticleSprite({
 	fairyCount = 1,
 	inset: _inset = 1,
 }: {

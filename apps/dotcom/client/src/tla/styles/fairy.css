@@ -206,6 +206,68 @@
 	height: 100%;
 }
 
+.fairy-sprite-container {
+	display: grid;
+	height: 100%;
+	width: 100%;
+	pointer-events: none;
+	user-select: none;
+}
+
+.fairy-sprite-container > .fairy-selected-sprite {
+	grid-area: 1 / 1;
+	place-self: center;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	user-select: none;
+}
+
+.fairy-sprite-wrapper {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	display: flex;
+}
+
+.fairy-selected-sprite-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+}
+
+.fairy-sprite-stack {
+	grid-area: 1 / 1;
+	place-self: center;
+	width: calc(100% - 8px);
+	height: calc(100% - 8px);
+	display: grid;
+	pointer-events: none;
+	user-select: none;
+	--x-offset: 2px;
+}
+
+.fairy-sprite-stack .fairy-sprite {
+	grid-area: 1 / 1;
+	place-self: center;
+	width: 100%;
+	height: 100%;
+}
+
+.fairy-sprite-stack.flip-x {
+	transform: scaleX(-1);
+	--x-offset: -2px;
+}
+
+.fairy-sprite-stack.shadow {
+	filter: drop-shadow(var(--x-offset) 2px 0.5px rgba(8, 20, 35, 0.12))
+		drop-shadow(0px 0px 1px rgba(255, 255, 255, 0.9))
+		drop-shadow(0px 0px 5px rgba(255, 255, 255, 0.25));
+}
+
 .fairy-toggle-button {
 	position: relative;
 	width: 44px !important;
@@ -222,7 +284,7 @@
 	width: 12px;
 	height: 12px;
 	border-radius: 50%;
-	background-color: var(--tl-color-fairy-select-bg);
+	background-color: var(--tl-color-fairy-select-fg);
 	color: white;
 	border: 0;
 	display: flex;
@@ -236,7 +298,7 @@
 }
 
 .fairy-plus-button:hover {
-	background-color: var(--tl-color-focus);
+	background-color: var(--tl-color-fairy-select-bg);
 }
 
 .fairy-plus-button .tlui-icon {
@@ -363,11 +425,13 @@
 	position: relative;
 }
 
-.fairy-list > .tlui-toolbar > *:not(:first-child) {
-	margin-top: 0;
+.fairy-list .fairy-sprite-stack.shadow {
+	filter: none;
 }
-.fairy-list > .tlui-toolbar > *:not(:last-child) {
-	margin-bottom: 0;
+
+.fairy-toggle-button .fairy-sprite-stack.shadow {
+	filter: drop-shadow(var(--x-offset) 2px 0.5px rgba(8, 20, 35, 0.12))
+		drop-shadow(0px 0px 1px rgba(255, 255, 255, 1));
 }
 
 /* Fairy Chat Panel */
@@ -1540,71 +1604,4 @@
 	/* font-size: 13px; */
 	color: var(--color-text);
 	user-select: none;
-}
-
-.fairy-sprite-container {
-	display: grid;
-	height: 100%;
-	width: 100%;
-	pointer-events: none;
-	user-select: none;
-}
-
-.fairy-sprite-container > .fairy-selected-sprite {
-	grid-area: 1 / 1;
-	place-self: center;
-	width: 100%;
-	height: 100%;
-	pointer-events: none;
-	user-select: none;
-}
-
-.fairy-sprite-wrapper {
-	position: relative;
-	width: 100%;
-	height: 100%;
-	display: flex;
-}
-
-.fairy-selected-sprite-overlay {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	pointer-events: none;
-}
-
-.fairy-sprite-stack {
-	grid-area: 1 / 1;
-	place-self: center;
-	width: calc(100% - 8px);
-	height: calc(100% - 8px);
-	display: grid;
-	pointer-events: none;
-	user-select: none;
-	--x-offset: 2px;
-}
-
-.fairy-sprite-stack .fairy-sprite {
-	grid-area: 1 / 1;
-	place-self: center;
-	width: 100%;
-	height: 100%;
-}
-
-.fairy-sprite-stack.flip-x {
-	transform: scaleX(-1);
-	--x-offset: -2px;
-}
-
-.fairy-sprite-stack.shadow {
-	filter: drop-shadow(var(--x-offset) 2px 0.5px rgba(8, 20, 35, 0.12))
-		drop-shadow(0px 0px 1px rgba(255, 255, 255, 0.9))
-		drop-shadow(0px 0px 5px rgba(255, 255, 255, 0.25));
-}
-
-.fairy-toggle-button .fairy-sprite-stack.shadow {
-	filter: drop-shadow(var(--x-offset) 2px 0.5px rgba(8, 20, 35, 0.12))
-		drop-shadow(0px 0px 1px rgba(255, 255, 255, 1));
 }

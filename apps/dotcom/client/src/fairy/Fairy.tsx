@@ -5,7 +5,7 @@ import { Atom, TLEventInfo, useEditor, useValue } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { $fairyAgentsAtom } from './fairy-agent/agent/fairyAgentsAtom'
 import { FairySprite, getHatColor } from './fairy-sprite/FairySprite'
-import { SelectedSprite } from './fairy-sprite/sprites/SelectedSprite'
+import { FairyReticleSprite } from './fairy-sprite/sprites/FairyReticleSprite'
 import { FairyContextMenuContent } from './FairyContextMenuContent'
 import { FairyThrowTool } from './FairyThrowTool'
 import { getProjectColor } from './getProjectColor'
@@ -328,7 +328,7 @@ export function SelectedFairy({ agent }: { agent: FairyAgent }) {
 				transformOrigin: '75% 25%',
 			}}
 		>
-			<SelectedSprite />
+			<FairyReticleSprite />
 		</div>
 	)
 }
