@@ -299,21 +299,19 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			...components,
 			Overlays: () => (
 				<>
-					{canShowFairies && (
+					{canShowFairies ? (
 						<Suspense fallback={<div />}>
 							<FairyVision agents={agents} />
 							{/* <InCanvasTaskList agents={agents} /> */}
 							<RemoteFairies />
 							<Fairies agents={agents} />
+							<FairyHUD agents={agents} />
+						</Suspense>
+					) : (
+						<Suspense fallback={<div />}>
+							<FairyHUDTeaser />
 						</Suspense>
 					)}
-				</>
-			),
-			InFrontOfTheCanvas: () => (
-				<>
-					<Suspense fallback={<div />}>
-						{canShowFairies ? <FairyHUD agents={agents} /> : <FairyHUDTeaser />}
-					</Suspense>
 				</>
 			),
 			DebugMenu: () => <CustomDebugMenu />,
