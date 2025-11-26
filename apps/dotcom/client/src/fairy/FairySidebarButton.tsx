@@ -1,12 +1,17 @@
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { MouseEvent } from 'react'
-import { TldrawUiIcon, TldrawUiToolbarToggleGroup, TldrawUiToolbarToggleItem, useValue } from 'tldraw'
+import {
+	TldrawUiIcon,
+	TldrawUiToolbarToggleGroup,
+	TldrawUiToolbarToggleItem,
+	useValue,
+} from 'tldraw'
 import { useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { fairyMessages } from './fairy-messages'
 import { FairySprite, getHatColor } from './fairy-sprite/FairySprite'
 import { SelectedSprite } from './fairy-sprite/sprites/SelectedSprite'
 import { FairyContextMenuContent } from './FairyContextMenuContent'
-import { fairyMessages } from './fairy-messages'
 import { getProjectColor } from './getProjectColor'
 
 export function FairySidebarButton({
@@ -56,8 +61,11 @@ export function FairySidebarButton({
 	if (!fairyEntity || !fairyOutfit) return null
 
 	const showPlusButton =
-		hasAnySelectedFairies && !fairyIsSelected && !project && !hasAnyActiveProjects
-		&& !agent.isSleeping()
+		hasAnySelectedFairies &&
+		!fairyIsSelected &&
+		!project &&
+		!hasAnyActiveProjects &&
+		!agent.isSleeping()
 
 	return (
 		<_ContextMenu.Root dir="ltr">
@@ -89,16 +97,16 @@ export function FairySidebarButton({
 									<SelectedSprite inset={3} />
 								</div>
 							)}
-						{showPlusButton && (
-							<button
-								className="fairy-plus-button"
-								onClick={handlePlusClick}
-								aria-label={joinSelectedFairiesLabel}
-								title={joinSelectedFairiesLabel}
-							>
-								<TldrawUiIcon icon="plus" label={joinSelectedFairiesLabel} />
-							</button>
-						)}
+							{showPlusButton && (
+								<button
+									className="fairy-plus-button"
+									onClick={handlePlusClick}
+									aria-label={joinSelectedFairiesLabel}
+									title={joinSelectedFairiesLabel}
+								>
+									<TldrawUiIcon icon="plus" label={joinSelectedFairiesLabel} />
+								</button>
+							)}
 						</div>
 					</TldrawUiToolbarToggleItem>
 				</TldrawUiToolbarToggleGroup>

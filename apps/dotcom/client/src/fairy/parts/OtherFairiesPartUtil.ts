@@ -21,6 +21,7 @@ export class OtherFairiesPartUtil extends PromptPartUtil<OtherFairiesPart> {
 				bounds: activeRequest?.bounds ? helpers.applyOffsetToBox(activeRequest.bounds) : null,
 				// personality: agent.$fairyConfig.get().personality,
 				currentProjectId: agent.getProject()?.id ?? null,
+				isSleeping: agent.isSleeping(),
 			}
 		})
 
