@@ -185,12 +185,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}
 
 			const currentUsage = userFairies.weeklyUsage[weekKey] || 0
-			const allowed = currentUsage < WEEKLY_LIMIT
 
-			return Response.json({
-				allowed,
-				currentUsage,
-			})
+			if (currentUsage >= WEEKLY_LIMIT) {
+				return Response.json({ error: 'Weekly rate limit exceeded' }, { status: 429 })
+			}
+
+			return new Response(null, { status: 200 })
 		})
 		.post('/app/:userId/fairy/record-usage', async (req) => {
 			if (!this.userId) {

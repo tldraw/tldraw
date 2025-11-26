@@ -57,31 +57,30 @@ export class AgentService {
 		const cost = getGenerationCostFromUsageAndMetaData(modelId, usage, providerMetadata)
 		console.warn(`Cost for request to ${modelId}: $${cost.toFixed(3)}`)
 
-		// Record usage - runs even on abort/error
-		if (cost > 0) {
-			try {
-				const recordRes = await userStub.fetch(
-					`${INTERNAL_BASE_URL}/app/${userId}/fairy/record-usage`,
-					{
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ actualCost: cost }),
-					}
-				)
+		if (cost <= 0) return
 
-				if (!recordRes.ok) {
-					let errorDetails: string
-					try {
-						const errorData = (await recordRes.json()) as { error: string }
-						errorDetails = errorData.error
-					} catch {
-						errorDetails = await recordRes.text()
-					}
-					console.error('Failed to record usage:', errorDetails)
+		try {
+			const recordRes = await userStub.fetch(
+				`${INTERNAL_BASE_URL}/app/${userId}/fairy/record-usage`,
+				{
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ actualCost: cost }),
 				}
-			} catch (recordError) {
-				console.error('Exception recording usage:', recordError)
+			)
+
+			if (!recordRes.ok) {
+				let errorDetails: string
+				try {
+					const errorData = (await recordRes.json()) as { error: string }
+					errorDetails = errorData.error
+				} catch {
+					errorDetails = await recordRes.text()
+				}
+				console.error('Failed to record usage:', errorDetails)
 			}
+		} catch (recordError) {
+			console.error('Exception recording usage:', recordError)
 		}
 	}
 

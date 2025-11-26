@@ -44,27 +44,13 @@ export class AgentDurableObject extends DurableObject<Environment> {
 			console.error('Rate limit check failed:', errorDetails)
 			return new Response(
 				JSON.stringify({
-					error: 'Failed to check rate limit',
-					details: errorDetails,
+					error: errorDetails,
 				}),
 				{ status: checkRes.status, headers: { 'Content-Type': 'application/json' } }
 			)
 		}
 
-		const { allowed } = (await checkRes.json()) as {
-			allowed: boolean
-		}
-
-		if (!allowed) {
-			return new Response(
-				JSON.stringify({
-					error: 'Weekly rate limit exceeded',
-				}),
-				{ status: 429, headers: { 'Content-Type': 'application/json' } }
-			)
-		}
-
-		return null // No error, rate limit check passed
+		return null
 	}
 
 	// `fetch` is the entry point for all requests to the Durable Object
