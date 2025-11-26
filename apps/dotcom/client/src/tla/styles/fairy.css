@@ -20,8 +20,8 @@
 }
 
 .tla-theme__dark {
-	--tl-color-fairy-select-bg: hsl(293, 61%, 50%);
-	--tl-color-fairy-select-fg: hsl(294, 80%, 68%);
+	/* --tl-color-fairy-select-bg: hsl(293, 61%, 50%); */
+	/* --tl-color-fairy-select-fg: hsl(294, 80%, 68%);
 	--tl-color-fairy-dark: #cdcdcd;
 	--tl-color-fairy-light: #1d1d1d;
 	--tl-color-face-fg: #cdcdcd;
@@ -36,6 +36,7 @@
 	--tl-color-fairy-green: #104212;
 	--tl-color-fairy-lips: #ee7b90;
 	--tl-color-fairy-lips-hover: #d54a63;
+	*/
 }
 
 .context-highlight {
@@ -107,8 +108,8 @@
 	pointer-events: auto;
 }
 
-.fairy-toggle-button[data-isactive='true']::before,
-.fairy-toggle-button[data-isactive='true']::after {
+.fairy-toggle-button::before,
+.fairy-toggle-button::after {
 	display: none;
 }
 
@@ -341,14 +342,6 @@
 }
 .fairy-list > .tlui-toolbar > *:not(:last-child) {
 	margin-bottom: 0;
-}
-
-.fairy-sidebar-group::after {
-	content: '';
-	position: absolute;
-	inset: 4px;
-	background-color: var(--tl-color-muted-2);
-	border-radius: var(--tl-radius-2);
 }
 
 /* Fairy Chat Panel */
@@ -993,6 +986,7 @@
 	justify-content: end;
 	align-items: start;
 	flex-direction: column;
+	color: var(--tl-color-text-3);
 	gap: 4px;
 	padding: 8px;
 	flex: 1;
@@ -1542,7 +1536,6 @@
 	width: 100%;
 	pointer-events: none;
 	user-select: none;
-	background: radial-gradient(circle at center, var(--tl-color-background) 0%, transparent 68%);
 }
 
 .fairy-sprite-container > .fairy-selected-sprite {
@@ -1578,6 +1571,7 @@
 	display: grid;
 	pointer-events: none;
 	user-select: none;
+	--x-offset: 2px;
 }
 
 .fairy-sprite-stack .fairy-sprite {
@@ -1587,18 +1581,18 @@
 	height: 100%;
 }
 
-.fairy-sprite-stack {
-	filter: drop-shadow(2px 2px 0.5px rgba(8, 20, 35, 0.12));
+.fairy-sprite-stack.flip-x {
+	transform: scaleX(-1);
+	--x-offset: -2px;
 }
 
 .fairy-sprite-stack.shadow {
-	filter: drop-shadow(2px 2px 0.5px rgba(8, 20, 35, 0.12));
+	filter: drop-shadow(var(--x-offset) 2px 0.5px rgba(8, 20, 35, 0.12))
+		drop-shadow(0px 0px 1px rgba(255, 255, 255, 0.9))
+		drop-shadow(0px 0px 5px rgba(255, 255, 255, 0.25));
 }
 
-.fairy-sprite-stack.flip-x {
-	transform: scaleX(-1);
-}
-
-.fairy-sprite-stack.flip-x.shadow {
-	filter: drop-shadow(-2px 2px 0.5px rgba(8, 20, 35, 0.12));
+.fairy-toggle-button .fairy-sprite-stack.shadow {
+	filter: drop-shadow(var(--x-offset) 2px 0.5px rgba(8, 20, 35, 0.12))
+		drop-shadow(0px 0px 1.1px rgba(255, 255, 255, 0.9));
 }
