@@ -51,17 +51,14 @@ export class AgentDurableObject extends DurableObject<Environment> {
 			)
 		}
 
-		const { allowed, currentUsage } = (await checkRes.json()) as {
+		const { allowed } = (await checkRes.json()) as {
 			allowed: boolean
-			currentUsage: number
 		}
 
 		if (!allowed) {
 			return new Response(
 				JSON.stringify({
 					error: 'Weekly rate limit exceeded',
-					limit: 25,
-					current: currentUsage,
 				}),
 				{ status: 429, headers: { 'Content-Type': 'application/json' } }
 			)
