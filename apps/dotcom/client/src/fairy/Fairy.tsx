@@ -5,7 +5,7 @@ import { Atom, TLEventInfo, useEditor, useValue } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { $fairyAgentsAtom } from './fairy-agent/agent/fairyAgentsAtom'
 import { FairySprite, getHatColor } from './fairy-sprite/FairySprite'
-import { SelectedSprite } from './fairy-sprite/sprites/SelectedSprite'
+import { FairyReticleSprite } from './fairy-sprite/sprites/FairyReticleSprite'
 import { FairyContextMenuContent } from './FairyContextMenuContent'
 import { FairyThrowTool } from './FairyThrowTool'
 import { getProjectColor } from './getProjectColor'
@@ -290,6 +290,7 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 					<div className="fairy-sprite-wrapper">
 						<FairySprite
 							pose={fairyEntity.pose}
+							gesture={fairyEntity.gesture}
 							hatColor={getHatColor(fairyOutfit.hat)}
 							showShadow
 							isAnimated={fairyEntity.pose !== 'idle' || isSelected}
@@ -328,7 +329,8 @@ export function SelectedFairy({ agent }: { agent: FairyAgent }) {
 				transformOrigin: '75% 25%',
 			}}
 		>
-			<SelectedSprite />
+			{/* Show reticle a bit larger than normal */}
+			<FairyReticleSprite size={FAIRY_CONTAINER_SIZE / 1.5} />
 		</div>
 	)
 }

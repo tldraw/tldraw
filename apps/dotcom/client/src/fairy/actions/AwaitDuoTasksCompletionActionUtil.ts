@@ -14,7 +14,7 @@ export class AwaitDuoTasksCompletionActionUtil extends AgentActionUtil<AwaitDuoT
 			description: action.complete
 				? `Waiting for ${taskCount} task${taskCount === 1 ? '' : 's'} to complete`
 				: 'Waiting...',
-			pose: 'waiting' as const,
+			pose: 'writing' as const,
 			canGroup: () => false,
 		}
 	}

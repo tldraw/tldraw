@@ -104,6 +104,9 @@
   "2c3ef76333": {
     "translation": "My files"
   },
+  "2db683a1fe": {
+    "translation": "Join selected fairies"
+  },
   "2e86e6853d": {
     "translation": "Select leader"
   },
@@ -596,9 +599,6 @@
   },
   "c303bd1095": {
     "translation": "Unable to publish the file."
-  },
-  "c3e97dd6e9": {
-    "translation": "$"
   },
   "c3eb5c3b90": {
     "translation": "I understand"

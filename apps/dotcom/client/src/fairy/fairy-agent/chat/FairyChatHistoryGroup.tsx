@@ -119,7 +119,8 @@ function FairyChatHistoryItem({
 export function getActionHistoryGroups(
 	items: ChatHistoryActionItem[],
 	agent: FairyAgent,
-	isFinalSection: boolean
+	isFinalSection: boolean,
+	isGenerating: boolean
 ): FairyChatHistoryGroup[] {
 	const groups: FairyChatHistoryGroup[] = []
 
@@ -142,7 +143,7 @@ export function getActionHistoryGroups(
 	}
 
 	// Manually pop out the final action of the final group during generations
-	if (isFinalSection && agent.isGenerating()) {
+	if (isFinalSection && isGenerating) {
 		const finalGroup = groups[groups.length - 1]
 		if (finalGroup) {
 			finalGroup.isFinalGroup = true

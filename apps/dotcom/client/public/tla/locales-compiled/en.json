@@ -213,6 +213,12 @@
       "value": "My files"
     }
   ],
+  "2db683a1fe": [
+    {
+      "type": 0,
+      "value": "Join selected fairies"
+    }
+  ],
   "2e86e6853d": [
     {
       "type": 0,
@@ -1357,12 +1363,6 @@
     {
       "type": 0,
       "value": "Unable to publish the file."
-    }
-  ],
-  "c3e97dd6e9": [
-    {
-      "type": 0,
-      "value": "$"
     }
   ],
   "c3eb5c3b90": [

@@ -7,6 +7,7 @@ export const fairyMessages = defineMessages({
 	newFairy: { defaultMessage: 'New fairy' },
 	selectFairy: { defaultMessage: 'Select fairy' },
 	deselectFairy: { defaultMessage: 'Deselect fairy' },
+	joinSelectedFairies: { defaultMessage: 'Join selected fairies' },
 	resetChat: { defaultMessage: 'Clear' },
 	resetAllChats: { defaultMessage: 'Clear all chats' },
 

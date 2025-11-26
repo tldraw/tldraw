@@ -7,6 +7,7 @@ import {
 	ChatHistoryPromptItem,
 } from '@tldraw/fairy-shared'
 import Markdown from 'react-markdown'
+import { useValue } from 'tldraw'
 import { FairyAgent } from '../agent/FairyAgent'
 import { FairyChatHistoryGroup, getActionHistoryGroups } from './FairyChatHistoryGroup'
 
@@ -24,8 +25,9 @@ export function FairyChatHistorySection({
 	agent: FairyAgent
 	isFinalSection: boolean
 }) {
+	const isGenerating = useValue('is-generating', () => agent.isGenerating(), [agent])
 	const actions = section.items.filter((item) => item.type === 'action') as ChatHistoryActionItem[]
-	const groups = getActionHistoryGroups(actions, agent, isFinalSection)
+	const groups = getActionHistoryGroups(actions, agent, isFinalSection, isGenerating)
 
 	// Create a map from action to its group
 	const actionToGroup = new Map<ChatHistoryActionItem, FairyChatHistoryGroup>()

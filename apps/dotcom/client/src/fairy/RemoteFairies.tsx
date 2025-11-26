@@ -91,7 +91,8 @@ function RemoteFairyIndicator({
 				showShadow
 				isAnimated={true}
 				flipX={entity.flipX}
-				pose={entity.gesture || entity.pose}
+				gesture={entity.gesture}
+				pose={entity.pose}
 				hatColor={getHatColor(outfit.hat)}
 				tint={color}
 			/>

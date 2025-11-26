@@ -96,10 +96,12 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 		}
 	}
 
-	const handlePointerDown = useCallback(
+	const handleMouseDown = useCallback(
 		(e: React.PointerEvent<HTMLTextAreaElement>) => {
 			if (getIsCoarsePointer()) {
 				e.stopPropagation()
+				e.preventDefault()
+				e.currentTarget.blur()
 				const value = window.prompt(enterMsg)
 				if (value) {
 					handlePrompt(value)
@@ -114,6 +116,7 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 	})
 	const stopLabel = useMsg(fairyMessages.stopLabel)
 	const sendLabel = useMsg(fairyMessages.sendLabel)
+	const isCoarsePointer = getIsCoarsePointer()
 
 	return (
 		<div className="fairy-input-container">
@@ -132,8 +135,9 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 					value={inputValue}
 					onChange={(e) => setInputValue(e.target.value)}
 					onKeyDown={handleKeyDown}
-					onPointerDown={handlePointerDown}
-					autoFocus={!getIsCoarsePointer()}
+					onMouseDown={handleMouseDown}
+					readOnly={isCoarsePointer}
+					autoFocus={!isCoarsePointer}
 					rows={1}
 					spellCheck={false}
 				/>
