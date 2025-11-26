@@ -19,12 +19,12 @@ export const fairyMessages = defineMessages({
 
 	// Fairy menu (labels)
 	goToFairy: { defaultMessage: 'Go to fairy' },
-	summonFairy: { defaultMessage: 'Summon fairy' },
-	followFairy: { defaultMessage: 'Follow fairy' },
-	unfollowFairy: { defaultMessage: 'Unfollow fairy' },
+	summonFairy: { defaultMessage: 'Summon' },
+	followFairy: { defaultMessage: 'Follow' },
+	unfollowFairy: { defaultMessage: 'Unfollow' },
 	askForHelp: { defaultMessage: 'Ask for help' },
-	customizeFairy: { defaultMessage: 'Customize fairy' },
-	putAwayFairy: { defaultMessage: 'Put away fairy' },
+	customizeFairy: { defaultMessage: 'Customize' },
+	putAwayFairy: { defaultMessage: 'Sleep' },
 	disbandGroup: { defaultMessage: 'Disband group' },
 	resetEverything: { defaultMessage: 'Reset everything' },
 

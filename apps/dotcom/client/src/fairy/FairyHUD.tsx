@@ -370,8 +370,8 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 				ref={hudRef}
 				className={`tla-fairy-hud ${panelState !== 'closed' ? 'tla-fairy-hud--open' : ''}`}
 				style={{
-					bottom: mobileMenuOffset !== null ? '64px' : isDebugMode ? '48px' : '8px',
-					right: mobileMenuOffset !== null ? `${mobileMenuOffset}px` : '8px',
+					bottom: mobileMenuOffset !== null ? 64 : isDebugMode ? 48 : 8,
+					right: mobileMenuOffset !== null ? mobileMenuOffset : 8,
 					display: isMobileStylePanelOpen ? 'none' : 'block',
 				}}
 				onContextMenu={handleContextMenu}

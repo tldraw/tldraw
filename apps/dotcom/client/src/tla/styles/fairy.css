@@ -242,12 +242,6 @@
 
 .tla-fairy-hud {
 	position: fixed;
-	right: 6px;
-	display: flex;
-	flex-direction: column;
-	align-items: flex-end;
-	border-radius: var(--tl-radius-2);
-	gap: 0px;
 	z-index: var(--tl-layer-canvas-in-front);
 }
 
@@ -255,7 +249,6 @@
 	display: flex;
 	flex-direction: row;
 	align-items: stretch;
-	gap: 0px;
 }
 
 /* Fairy HUD Container Scrollbar */
