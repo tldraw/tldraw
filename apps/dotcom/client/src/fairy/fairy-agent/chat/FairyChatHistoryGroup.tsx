@@ -19,8 +19,8 @@ export function FairyChatHistoryGroup({
 
 	const nonEmptyItems = useMemo(() => {
 		return items.filter((item) => {
-			const { description } = agent.getActionInfo(item.action)
-			return description !== null
+			const { description, summary } = agent.getActionInfo(item.action)
+			return description !== null && summary !== null
 		})
 	}, [items, agent])
 
