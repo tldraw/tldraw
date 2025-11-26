@@ -114,6 +114,10 @@
 	display: none;
 }
 
+.fairy-toggle-button:hover::after {
+	display: block;
+}
+
 .fairy-toggle-button[data-is-sleeping='true'] {
 	opacity: 0.45;
 }
@@ -305,6 +309,19 @@
 	width: 10px;
 	height: 10px;
 	color: white;
+}
+
+@media (hover: hover) {
+	.fairy-plus-button {
+		opacity: 0;
+		transition:
+			background-color 0.1s ease,
+			opacity 0.12s ease;
+		transition-delay: 0.12s;
+	}
+	.fairy-list:hover .fairy-plus-button {
+		opacity: 1;
+	}
 }
 
 .fairy-button-project-indicator {
