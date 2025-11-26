@@ -5,6 +5,18 @@
       "value": "Eksport"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Godta invitasjonen"
+    }
+  ],
+  "038c9b4432": [
+    {
+      "type": 0,
+      "value": "Feens personlighet"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -19,12 +31,6 @@
     {
       "type": 1,
       "value": "GetHelpLink"
-    }
-  ],
-  "05596b840b": [
-    {
-      "type": 0,
-      "value": "Åpne tldraw."
     }
   ],
   "06b9281e39": [
@@ -51,10 +57,16 @@
       "value": "Konto"
     }
   ],
-  "08d2d725a9": [
+  "090b807281": [
     {
       "type": 0,
-      "value": "Opprett en gratis konto for å lagre arbeidet ditt, samarbeide i sanntid og mer."
+      "value": "Spiky"
+    }
+  ],
+  "0a91f7fa87": [
+    {
+      "type": 0,
+      "value": "Denne filen har nådd størrelsesgrensen, og endringene kan kanskje ikke lenger lagres. Fjern noe innhold eller start en ny fil."
     }
   ],
   "0b27918290": [
@@ -69,10 +81,10 @@
       "value": "Fil-menyen"
     }
   ],
-  "0beb3ca97b": [
+  "0befa10111": [
     {
       "type": 0,
-      "value": "tldraw er en gratis og umiddelbar virtuell tavle."
+      "value": "Feer"
     }
   ],
   "0d1f2bb523": [
@@ -85,6 +97,12 @@
     {
       "type": 0,
       "value": "Utgi"
+    }
+  ],
+  "11a755d598": [
+    {
+      "type": 0,
+      "value": "Stoppe"
     }
   ],
   "129b9e34ea": [
@@ -109,6 +127,12 @@
     {
       "type": 0,
       "value": "Eksporter som"
+    }
+  ],
+  "141c7239d3": [
+    {
+      "type": 0,
+      "value": "Tilpasning av feer"
     }
   ],
   "146ffe2fd9": [
@@ -141,16 +165,22 @@
       "value": "I dag"
     }
   ],
-  "20976e7bec": [
+  "1e38506832": [
     {
       "type": 0,
-      "value": "Rommet er fullt"
+      "value": "Gå til feen"
     }
   ],
-  "21bfb2dc2e": [
+  "1fe250ea06": [
     {
       "type": 0,
-      "value": "Dette rommet nærmer seg størrelsesgrensen. Vurder å fjerne noe innhold eller starte en ny fil."
+      "value": "Instruer gruppen…"
+    }
+  ],
+  "243924bfd5": [
+    {
+      "type": 0,
+      "value": "Sove"
     }
   ],
   "2445e5e347": [
@@ -165,6 +195,12 @@
       "value": "Om tldraw"
     }
   ],
+  "284d5cd0dd": [
+    {
+      "type": 0,
+      "value": "Modell:"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -177,10 +213,30 @@
       "value": "Mine filer"
     }
   ],
-  "2deec2cb74": [
+  "2e86e6853d": [
     {
       "type": 0,
-      "value": "Dette rommet har nådd størrelsesgrensen, og endringene kan kanskje ikke lenger lagres. Fjern noe innhold eller start en ny fil."
+      "value": "Velg leder"
+    }
+  ],
+  "30cd34258a": [
+    {
+      "type": 0,
+      "value": "En mengde "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "feer"
+        }
+      ],
+      "type": 8,
+      "value": "b"
+    },
+    {
+      "type": 0,
+      "value": " har kommet til tldraw i desember måned. For å undersøke nærmere, finn feen og klikk på den."
     }
   ],
   "31246941ad": [
@@ -195,10 +251,22 @@
       "value": "i18n: Utheving mangler"
     }
   ],
+  "3209f407ed": [
+    {
+      "type": 0,
+      "value": "tre feer"
+    }
+  ],
   "32210b37e4": [
     {
       "type": 0,
       "value": "Legg til lenke"
+    }
+  ],
+  "324a0f3182": [
+    {
+      "type": 0,
+      "value": "Tilbake til tldraw"
     }
   ],
   "335defdafe": [
@@ -207,10 +275,52 @@
       "value": "Prøv å oppdatere siden."
     }
   ],
+  "33f9ea6fe8": [
+    {
+      "type": 0,
+      "value": "Oppløs gruppen"
+    }
+  ],
+  "34140869c6": [
+    {
+      "type": 0,
+      "value": "En mengde feer kommer til tldraw i desember måned. Vennligst sjekk tilbake 1. desember."
+    }
+  ],
   "344a7f427f": [
     {
       "type": 0,
       "value": "Redaktør"
+    }
+  ],
+  "3596c1b1f7": [
+    {
+      "type": 0,
+      "value": "Slutt å følge"
+    }
+  ],
+  "3903aab323": [
+    {
+      "type": 0,
+      "value": "Følge"
+    }
+  ],
+  "3a295397e6": [
+    {
+      "type": 0,
+      "value": "Be om hjelp"
+    }
+  ],
+  "3a77f951ca": [
+    {
+      "type": 0,
+      "value": "Legg til en ny oppgave…"
+    }
+  ],
+  "3b6c2b4caa": [
+    {
+      "type": 0,
+      "value": "Vilkår for bruk"
     }
   ],
   "3bc7d6ea2f": [
@@ -237,6 +347,12 @@
       "value": "Godta alle"
     }
   ],
+  "4131ec34ef": [
+    {
+      "type": 0,
+      "value": "Skallet"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -253,6 +369,18 @@
     {
       "type": 0,
       "value": "Takk for at du hjelper oss med å forbedre tldraw!"
+    }
+  ],
+  "465a8a92a4": [
+    {
+      "type": 0,
+      "value": "Ingen feer valgt"
+    }
+  ],
+  "477df802ca": [
+    {
+      "type": 0,
+      "value": "For å fortsette redigeringen, kopier filen til filene dine."
     }
   ],
   "47839e47a5": [
@@ -309,6 +437,12 @@
       "value": "Er du sikker på at du vil slette denne gruppen? Denne handlingen kan ikke angres."
     }
   ],
+  "4f827717f7": [
+    {
+      "type": 0,
+      "value": "Spiss"
+    }
+  ],
   "50db1b7e1e": [
     {
       "type": 0,
@@ -321,16 +455,16 @@
       "value": "Sidemeny"
     }
   ],
+  "542248f0ba": [
+    {
+      "type": 0,
+      "value": "Denne filen er nå skrivebeskyttet"
+    }
+  ],
   "54286b1d01": [
     {
       "type": 0,
       "value": "Grensen for samarbeidspartnere er nådd"
-    }
-  ],
-  "54d240fa41": [
-    {
-      "type": 0,
-      "value": "Vennligst senke farten."
     }
   ],
   "554a05155c": [
@@ -365,6 +499,12 @@
     {
       "type": 0,
       "value": "Personvernerklæring"
+    }
+  ],
+  "5a2ccdc00a": [
+    {
+      "type": 0,
+      "value": "Kunne ikke løse inn invitasjonskoden"
     }
   ],
   "5a86b22fa0": [
@@ -407,18 +547,6 @@
       "value": "Dele"
     }
   ],
-  "5bb6cf3b53": [
-    {
-      "type": 0,
-      "value": "Rommet blir stort"
-    }
-  ],
-  "5bcc12ace8": [
-    {
-      "type": 0,
-      "value": "Dette rommet er nå skrivebeskyttet"
-    }
-  ],
   "5bec508475": [
     {
       "type": 0,
@@ -435,6 +563,12 @@
     {
       "type": 0,
       "value": "Vi klarte ikke å laste opp noe av innholdet du opprettet før du logget på."
+    }
+  ],
+  "5ea8bb44be": [
+    {
+      "type": 0,
+      "value": "Du har blitt invitert til å bli med i gruppen:"
     }
   ],
   "5f3c333678": [
@@ -467,6 +601,24 @@
       "value": "du"
     }
   ],
+  "63a78ed464": [
+    {
+      "type": 0,
+      "value": "Tilpass"
+    }
+  ],
+  "64ebe56d8c": [
+    {
+      "type": 0,
+      "value": "Klikk for å fjerne eller dra for å flytte"
+    }
+  ],
+  "65709fd250": [
+    {
+      "type": 0,
+      "value": "Oppgaveliste"
+    }
+  ],
   "6609dd239e": [
     {
       "type": 0,
@@ -479,28 +631,16 @@
       "value": "En ny versjon av tldraw er tilgjengelig. Last inn siden på nytt for å fortsette."
     }
   ],
-  "68257bb646": [
-    {
-      "type": 0,
-      "value": "Du har blitt invitert til gruppen "
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "br"
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "groupName"
-    }
-  ],
   "6832ac5936": [
     {
       "type": 0,
       "value": "Skriv inn e-postadressen din"
+    }
+  ],
+  "68d390535e": [
+    {
+      "type": 0,
+      "value": "Skriv inn meldingen din"
     }
   ],
   "6a26f54883": [
@@ -519,6 +659,12 @@
     {
       "type": 0,
       "value": "Følg disse trinnene for å importere innholdet manuelt:"
+    }
+  ],
+  "6e02bd9e1e": [
+    {
+      "type": 0,
+      "value": "Legg bort feene"
     }
   ],
   "70222abcfc": [
@@ -581,10 +727,28 @@
       "value": "Last inn på nytt"
     }
   ],
+  "76dea3c9ca": [
+    {
+      "type": 0,
+      "value": "tldraw er en gratis tavle på nett. Opprett en konto for å lagre filene dine og samarbeide med vennene dine."
+    }
+  ],
   "777f9e90cf": [
     {
       "type": 0,
       "value": "Ugyldig forespørsel."
+    }
+  ],
+  "7827371d1a": [
+    {
+      "type": 0,
+      "value": "Denne anonyme tldraw-flerspillerfilen er nå skrivebeskyttet. For å fortsette redigeringen, vennligst logg inn og kopier den til filene dine."
+    }
+  ],
+  "7835039819": [
+    {
+      "type": 0,
+      "value": "Propell"
     }
   ],
   "78e9815992": [
@@ -599,16 +763,46 @@
       "value": "Send inn et problem på GitHub"
     }
   ],
+  "79cc22ac6b": [
+    {
+      "type": 0,
+      "value": "En fe er en liten fyr som kan jobbe med deg på lerretet. Feer kan jobbe alene eller som et team. Det er ingen grense for hva en fe kan gjøre. Ingen vet hvor de kommer fra."
+    }
+  ],
+  "7a3113b0ba": [
+    {
+      "type": 0,
+      "value": "Dra til lerret"
+    }
+  ],
   "7b1329f5ca": [
     {
       "type": 0,
       "value": "Brukermanual"
     }
   ],
+  "7b5449bd84": [
+    {
+      "type": 0,
+      "value": "Antenne"
+    }
+  ],
   "7be10fc592": [
     {
       "type": 0,
       "value": "Gjenopprett versjon"
+    }
+  ],
+  "7c0747a5df": [
+    {
+      "type": 0,
+      "value": "Åpne tldraw"
+    }
+  ],
+  "7cb471f815": [
+    {
+      "type": 0,
+      "value": "Du har blitt invitert til å bli med i tldraw-feer!"
     }
   ],
   "7cb5f8b4a5": [
@@ -675,6 +869,18 @@
       "value": "."
     }
   ],
+  "81d48c2f3a": [
+    {
+      "type": 0,
+      "value": "Vis oppgaver på lerret"
+    }
+  ],
+  "8472a551f1": [
+    {
+      "type": 0,
+      "value": "Feer har kommet for å tegne i desember måned."
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -695,10 +901,28 @@
       "value": " .tldr-filer."
     }
   ],
+  "86a7df7572": [
+    {
+      "type": 0,
+      "value": "Tilkall feer"
+    }
+  ],
   "86c66437fd": [
     {
       "type": 0,
       "value": "Gi nytt navn til filen"
+    }
+  ],
+  "88e83b88c5": [
+    {
+      "type": 0,
+      "value": "Kjøp fe-pakke"
+    }
+  ],
+  "898e76f01a": [
+    {
+      "type": 0,
+      "value": "Tilbakestill alt"
     }
   ],
   "8ad4303b83": [
@@ -707,10 +931,10 @@
       "value": "Nei takk"
     }
   ],
-  "8b1946f965": [
+  "8be569f100": [
     {
       "type": 0,
-      "value": "For å fortsette redigeringen, kopier rommet til filene dine."
+      "value": "engangsbetaling"
     }
   ],
   "8c2d3d730c": [
@@ -755,6 +979,24 @@
       "value": "Kopierte invitasjonslenken"
     }
   ],
+  "93346fdd70": [
+    {
+      "type": 0,
+      "value": "Ører"
+    }
+  ],
+  "93dfe9fbbe": [
+    {
+      "type": 0,
+      "value": "Fjern merkingen av fe"
+    }
+  ],
+  "94966d9074": [
+    {
+      "type": 0,
+      "value": "Sende"
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -773,6 +1015,12 @@
       "value": "Denne måneden"
     }
   ],
+  "97a9f16b2e": [
+    {
+      "type": 0,
+      "value": "Ny fe"
+    }
+  ],
   "985a4b720f": [
     {
       "type": 0,
@@ -785,10 +1033,22 @@
       "value": "Legg til fillenke"
     }
   ],
+  "98e528aac6": [
+    {
+      "type": 0,
+      "value": "Bytt til fe-chat"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Lys"
+    }
+  ],
+  "9953e9946b": [
+    {
+      "type": 0,
+      "value": "Feilsøkingsvisning"
     }
   ],
   "9b33f5c63c": [
@@ -815,12 +1075,6 @@
     {
       "type": 0,
       "value": "Slett fil"
-    }
-  ],
-  "9c258b8f88": [
-    {
-      "type": 0,
-      "value": "Dette anonyme tldraw-flerspillerrommet er nå skrivebeskyttet. For å fortsette redigeringen, vennligst logg inn og kopier det til filene dine."
     }
   ],
   "9ceb927baa": [
@@ -871,16 +1125,34 @@
       "value": "Eksporter bilde"
     }
   ],
+  "a2f0372a75": [
+    {
+      "type": 0,
+      "value": "Bytt til oppgaveliste"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
       "value": "Cookie policy"
     }
   ],
+  "a3e932550c": [
+    {
+      "type": 0,
+      "value": "Feens navn"
+    }
+  ],
   "a4d3b161ce": [
     {
       "type": 0,
       "value": "Send inn"
+    }
+  ],
+  "a4ffdcf0dc": [
+    {
+      "type": 0,
+      "value": "Topp"
     }
   ],
   "a6cc403d56": [
@@ -895,16 +1167,22 @@
       "value": "Analytics"
     }
   ],
+  "a885eb91ac": [
+    {
+      "type": 0,
+      "value": "Lederfe-utvalg"
+    }
+  ],
+  "a8873770ab": [
+    {
+      "type": 0,
+      "value": "Filen blir stor"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
       "value": "Bakgrunn"
-    }
-  ],
-  "aa916767cf": [
-    {
-      "type": 0,
-      "value": "Logg inn for å godta invitasjonen"
     }
   ],
   "ab0df9ba36": [
@@ -929,6 +1207,18 @@
     {
       "type": 0,
       "value": "Gjestebruker"
+    }
+  ],
+  "b2c3c2e30c": [
+    {
+      "type": 0,
+      "value": "Filen er full"
+    }
+  ],
+  "b34a671e2c": [
+    {
+      "type": 0,
+      "value": "Loggresponstid"
     }
   ],
   "b357b524e7": [
@@ -959,6 +1249,12 @@
     {
       "type": 0,
       "value": "Kopier lenken"
+    }
+  ],
+  "b8996797b9": [
+    {
+      "type": 0,
+      "value": "Skjul oppgaver på lerretet"
     }
   ],
   "ba0318cb81": [
@@ -1051,10 +1347,22 @@
       "value": " for å hjelpe oss med å forbedre tldraw."
     }
   ],
+  "c2ad21c079": [
+    {
+      "type": 0,
+      "value": "Hår"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
       "value": "Kan ikke publisere filen."
+    }
+  ],
+  "c3eb5c3b90": [
+    {
+      "type": 0,
+      "value": "Jeg forstår"
     }
   ],
   "c4b39a1cc3": [
@@ -1093,6 +1401,12 @@
       "value": "Logg ut"
     }
   ],
+  "c9b04e7b53": [
+    {
+      "type": 0,
+      "value": "Fjern valg av leder"
+    }
+  ],
   "c9cc8cce24": [
     {
       "type": 0,
@@ -1111,16 +1425,46 @@
       "value": "SVG"
     }
   ],
+  "ce0547606c": [
+    {
+      "type": 0,
+      "value": "Denne filen nærmer seg størrelsesgrensen. Vurder å fjerne noe innhold eller starte en ny fil."
+    }
+  ],
+  "ce1424d44b": [
+    {
+      "type": 0,
+      "value": "Du har allerede tilgang til feer!"
+    }
+  ],
   "cea291e45e": [
     {
       "type": 0,
       "value": "Finn ut mer om publisering."
     }
   ],
+  "cf62a7f9a7": [
+    {
+      "type": 0,
+      "value": "Tilbakestill chatter"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
       "value": "Lukke"
+    }
+  ],
+  "d438a51e6e": [
+    {
+      "type": 0,
+      "value": "Søv alle feene"
+    }
+  ],
+  "d46632fe1f": [
+    {
+      "type": 0,
+      "value": "For mange forespørsler. Vennligst sakk ned farten."
     }
   ],
   "d4bbf74f3e": [
@@ -1169,6 +1513,26 @@
       "value": "Tema"
     }
   ],
+  "d739f35e18": [
+    {
+      "type": 0,
+      "value": "Hvisk til "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
+  "d7bc9d5a2e": [
+    {
+      "type": 0,
+      "value": "Slett oppgave"
+    }
+  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1199,10 +1563,48 @@
       "value": "Kun invitasjon"
     }
   ],
+  "dbbece0c3a": [
+    {
+      "type": 0,
+      "value": "Fjern alle chatter"
+    }
+  ],
+  "dc30bc0c79": [
+    {
+      "type": 0,
+      "value": "Klar"
+    }
+  ],
   "dcdaa754fe": [
     {
       "type": 0,
       "value": "Ugyldig URL-adresse for tldraw-filen"
+    }
+  ],
+  "de290d52ef": [
+    {
+      "type": 0,
+      "value": "Velg en fe til høyre å chatte med"
+    }
+  ],
+  "df6ff49394": [
+    {
+      "type": 0,
+      "value": "Feer er en "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "midlertidig"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " funksjon. 1. januar 2026 vil alle feer bli fjernet fra applikasjonen. Kanskje de kommer tilbake igjen en dag. Kjøpet ditt gjelder kun tilgang til feer i desember 2025."
     }
   ],
   "dfdb78a4e4": [
@@ -1251,6 +1653,12 @@
     {
       "type": 0,
       "value": "Faresone"
+    }
+  ],
+  "ea181d98ca": [
+    {
+      "type": 0,
+      "value": "Velg fe"
     }
   ],
   "ea4788705e": [
@@ -1321,6 +1729,18 @@
       "value": "valgt"
     }
   ],
+  "efb2d9d471": [
+    {
+      "type": 0,
+      "value": "Gjøremålsliste"
+    }
+  ],
+  "efde983742": [
+    {
+      "type": 0,
+      "value": "Innkalle"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1331,6 +1751,12 @@
     {
       "type": 0,
       "value": "Brukerinnstillinger"
+    }
+  ],
+  "f23056da60": [
+    {
+      "type": 0,
+      "value": "Nytt prosjekt"
     }
   ],
   "f2569594b2": [
@@ -1345,22 +1771,34 @@
       "value": "Slett"
     }
   ],
-  "f43fb62093": [
-    {
-      "type": 0,
-      "value": "Tilbake til tldraw."
-    }
-  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "Innstillinger"
     }
   ],
+  "f6ae34b4ba": [
+    {
+      "type": 0,
+      "value": "Tilbakestill alle tryllestaver"
+    }
+  ],
   "f714e36843": [
     {
       "type": 0,
       "value": "Er du sikker på at du vil forlate denne gruppen?"
+    }
+  ],
+  "f7d5ee6855": [
+    {
+      "type": 0,
+      "value": "Velg en leder først…"
+    }
+  ],
+  "f87386b4ba": [
+    {
+      "type": 0,
+      "value": "Tilkall alle feer"
     }
   ],
   "fa2ead697d": [
@@ -1373,6 +1811,12 @@
     {
       "type": 0,
       "value": "Seer"
+    }
+  ],
+  "fd11eafb92": [
+    {
+      "type": 0,
+      "value": "Oppløs prosjekter"
     }
   ],
   "fd1be3efcf": [
@@ -1397,6 +1841,12 @@
     {
       "type": 0,
       "value": "Importer fil…"
+    }
+  ],
+  "ffec95af2f": [
+    {
+      "type": 0,
+      "value": "Kjøp tilgang til feer"
     }
   ]
 }

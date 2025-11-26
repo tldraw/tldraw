@@ -5,6 +5,18 @@
       "value": "Eksport"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Terima jemputan"
+    }
+  ],
+  "038c9b4432": [
+    {
+      "type": 0,
+      "value": "Peribadi Fairy"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -19,12 +31,6 @@
     {
       "type": 1,
       "value": "GetHelpLink"
-    }
-  ],
-  "05596b840b": [
-    {
-      "type": 0,
-      "value": "Buka tldraw."
     }
   ],
   "06b9281e39": [
@@ -51,10 +57,16 @@
       "value": "Akaun"
     }
   ],
-  "08d2d725a9": [
+  "090b807281": [
     {
       "type": 0,
-      "value": "Cipta akaun percuma untuk menyimpan kerja anda, bekerjasama dalam masa nyata dan banyak lagi."
+      "value": "Berduri"
+    }
+  ],
+  "0a91f7fa87": [
+    {
+      "type": 0,
+      "value": "Fail ini telah mencapai had saiznya dan perubahan mungkin tidak lagi disimpan. Alih keluar beberapa kandungan atau mulakan fail baharu."
     }
   ],
   "0b27918290": [
@@ -69,10 +81,10 @@
       "value": "menu fail"
     }
   ],
-  "0beb3ca97b": [
+  "0befa10111": [
     {
       "type": 0,
-      "value": "tldraw ialah papan putih maya percuma dan segera."
+      "value": "pari-pari"
     }
   ],
   "0d1f2bb523": [
@@ -85,6 +97,12 @@
     {
       "type": 0,
       "value": "Terbitkan"
+    }
+  ],
+  "11a755d598": [
+    {
+      "type": 0,
+      "value": "Berhenti"
     }
   ],
   "129b9e34ea": [
@@ -109,6 +127,12 @@
     {
       "type": 0,
       "value": "Eksport sebagai"
+    }
+  ],
+  "141c7239d3": [
+    {
+      "type": 0,
+      "value": "Penyesuaian dongeng"
     }
   ],
   "146ffe2fd9": [
@@ -141,16 +165,22 @@
       "value": "Hari ini"
     }
   ],
-  "20976e7bec": [
+  "1e38506832": [
     {
       "type": 0,
-      "value": "Bilik penuh"
+      "value": "Pergi ke dongeng"
     }
   ],
-  "21bfb2dc2e": [
+  "1fe250ea06": [
     {
       "type": 0,
-      "value": "Bilik ini menghampiri had saiznya. Pertimbangkan untuk mengalih keluar beberapa kandungan atau memulakan fail baharu."
+      "value": "Arahkan kumpulan…"
+    }
+  ],
+  "243924bfd5": [
+    {
+      "type": 0,
+      "value": "tidur"
     }
   ],
   "2445e5e347": [
@@ -165,6 +195,12 @@
       "value": "Mengenai tldraw"
     }
   ],
+  "284d5cd0dd": [
+    {
+      "type": 0,
+      "value": "Model:"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -177,10 +213,30 @@
       "value": "Fail saya"
     }
   ],
-  "2deec2cb74": [
+  "2e86e6853d": [
     {
       "type": 0,
-      "value": "Bilik ini telah mencapai had saiznya dan perubahan mungkin tidak disimpan lagi. Alih keluar beberapa kandungan atau mulakan fail baharu."
+      "value": "Pilih pemimpin"
+    }
+  ],
+  "30cd34258a": [
+    {
+      "type": 0,
+      "value": "Sekumpulan "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "pari"
+        }
+      ],
+      "type": 8,
+      "value": "b"
+    },
+    {
+      "type": 0,
+      "value": " telah datang untuk tldraw untuk bulan Disember. Untuk menyiasat lebih lanjut, cari dongeng dan klik padanya."
     }
   ],
   "31246941ad": [
@@ -195,10 +251,22 @@
       "value": "i18n: Serlahkan Hilang"
     }
   ],
+  "3209f407ed": [
+    {
+      "type": 0,
+      "value": "tiga pari-pari"
+    }
+  ],
   "32210b37e4": [
     {
       "type": 0,
       "value": "Tambah pautan"
+    }
+  ],
+  "324a0f3182": [
+    {
+      "type": 0,
+      "value": "Kembali ke tldraw"
     }
   ],
   "335defdafe": [
@@ -207,10 +275,52 @@
       "value": "Sila cuba muat semula halaman."
     }
   ],
+  "33f9ea6fe8": [
+    {
+      "type": 0,
+      "value": "Bubarkan kumpulan"
+    }
+  ],
+  "34140869c6": [
+    {
+      "type": 0,
+      "value": "Kipas pari-pari akan datang untuk tldraw untuk bulan Disember. Sila semak semula pada 1 Disember."
+    }
+  ],
   "344a7f427f": [
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "3596c1b1f7": [
+    {
+      "type": 0,
+      "value": "nyahikut"
+    }
+  ],
+  "3903aab323": [
+    {
+      "type": 0,
+      "value": "Ikut"
+    }
+  ],
+  "3a295397e6": [
+    {
+      "type": 0,
+      "value": "Minta tolong"
+    }
+  ],
+  "3a77f951ca": [
+    {
+      "type": 0,
+      "value": "Tambah tugasan baharu…"
+    }
+  ],
+  "3b6c2b4caa": [
+    {
+      "type": 0,
+      "value": "Syarat Perkhidmatan"
     }
   ],
   "3bc7d6ea2f": [
@@ -237,6 +347,12 @@
       "value": "Terima semua"
     }
   ],
+  "4131ec34ef": [
+    {
+      "type": 0,
+      "value": "botak"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -253,6 +369,18 @@
     {
       "type": 0,
       "value": "Terima kasih kerana membantu kami meningkatkan tldraw!"
+    }
+  ],
+  "465a8a92a4": [
+    {
+      "type": 0,
+      "value": "Tiada pari-pari yang dipilih"
+    }
+  ],
+  "477df802ca": [
+    {
+      "type": 0,
+      "value": "Untuk meneruskan pengeditan sila salin fail ke fail anda."
     }
   ],
   "47839e47a5": [
@@ -309,6 +437,12 @@
       "value": "Adakah anda pasti mahu memadamkan kumpulan ini? Tindakan ini tidak boleh dibuat asal."
     }
   ],
+  "4f827717f7": [
+    {
+      "type": 0,
+      "value": "runcing"
+    }
+  ],
   "50db1b7e1e": [
     {
       "type": 0,
@@ -321,16 +455,16 @@
       "value": "Menu halaman"
     }
   ],
+  "542248f0ba": [
+    {
+      "type": 0,
+      "value": "Fail ini kini dibaca sahaja"
+    }
+  ],
   "54286b1d01": [
     {
       "type": 0,
       "value": "Had kolaborator dicapai"
-    }
-  ],
-  "54d240fa41": [
-    {
-      "type": 0,
-      "value": "Tolong perlahankan."
     }
   ],
   "554a05155c": [
@@ -365,6 +499,12 @@
     {
       "type": 0,
       "value": "Dasar privasi"
+    }
+  ],
+  "5a2ccdc00a": [
+    {
+      "type": 0,
+      "value": "Gagal menebus kod jemputan"
     }
   ],
   "5a86b22fa0": [
@@ -407,18 +547,6 @@
       "value": "Kongsi"
     }
   ],
-  "5bb6cf3b53": [
-    {
-      "type": 0,
-      "value": "Bilik semakin besar"
-    }
-  ],
-  "5bcc12ace8": [
-    {
-      "type": 0,
-      "value": "Bilik ini kini dibaca sahaja"
-    }
-  ],
   "5bec508475": [
     {
       "type": 0,
@@ -435,6 +563,12 @@
     {
       "type": 0,
       "value": "Kami gagal memuat naik beberapa kandungan yang anda buat sebelum anda melog masuk."
+    }
+  ],
+  "5ea8bb44be": [
+    {
+      "type": 0,
+      "value": "Anda telah dijemput untuk menyertai kumpulan:"
     }
   ],
   "5f3c333678": [
@@ -467,6 +601,24 @@
       "value": "awak"
     }
   ],
+  "63a78ed464": [
+    {
+      "type": 0,
+      "value": "Sesuaikan"
+    }
+  ],
+  "64ebe56d8c": [
+    {
+      "type": 0,
+      "value": "Klik untuk mengalih keluar atau seret untuk bergerak"
+    }
+  ],
+  "65709fd250": [
+    {
+      "type": 0,
+      "value": "Senarai tugas"
+    }
+  ],
   "6609dd239e": [
     {
       "type": 0,
@@ -479,28 +631,16 @@
       "value": "Versi baharu tldraw tersedia. Sila muat semula halaman untuk meneruskan."
     }
   ],
-  "68257bb646": [
-    {
-      "type": 0,
-      "value": "Anda telah dijemput ke kumpulan "
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "br"
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "groupName"
-    }
-  ],
   "6832ac5936": [
     {
       "type": 0,
       "value": "Masukkan alamat e-mel anda"
+    }
+  ],
+  "68d390535e": [
+    {
+      "type": 0,
+      "value": "Masukkan mesej anda"
     }
   ],
   "6a26f54883": [
@@ -519,6 +659,12 @@
     {
       "type": 0,
       "value": "Ikuti langkah ini untuk mengimport kandungan secara manual:"
+    }
+  ],
+  "6e02bd9e1e": [
+    {
+      "type": 0,
+      "value": "Singkirkan pari-pari"
     }
   ],
   "70222abcfc": [
@@ -581,10 +727,28 @@
       "value": "Sila muat semula"
     }
   ],
+  "76dea3c9ca": [
+    {
+      "type": 0,
+      "value": "tldraw ialah papan putih dalam talian percuma. Buat akaun untuk menyimpan fail anda dan bekerjasama dengan rakan anda."
+    }
+  ],
   "777f9e90cf": [
     {
       "type": 0,
       "value": "Permintaan tidak sah."
+    }
+  ],
+  "7827371d1a": [
+    {
+      "type": 0,
+      "value": "Fail berbilang pemain tldraw tanpa nama ini kini dibaca sahaja. Untuk meneruskan pengeditan, sila log masuk dan salin ke fail anda."
+    }
+  ],
+  "7835039819": [
+    {
+      "type": 0,
+      "value": "baling-baling"
     }
   ],
   "78e9815992": [
@@ -599,16 +763,46 @@
       "value": "Serahkan isu pada GitHub"
     }
   ],
+  "79cc22ac6b": [
+    {
+      "type": 0,
+      "value": "Peri ialah seorang lelaki kecil yang boleh bekerja dengan anda di atas kanvas. Peri boleh bekerja sendiri atau sebagai satu pasukan. Tiada had apa yang boleh dilakukan oleh peri. Tiada siapa yang tahu dari mana mereka datang."
+    }
+  ],
+  "7a3113b0ba": [
+    {
+      "type": 0,
+      "value": "Seret ke kanvas"
+    }
+  ],
   "7b1329f5ca": [
     {
       "type": 0,
       "value": "Manual pengguna"
     }
   ],
+  "7b5449bd84": [
+    {
+      "type": 0,
+      "value": "Antena"
+    }
+  ],
   "7be10fc592": [
     {
       "type": 0,
       "value": "Pulihkan versi"
+    }
+  ],
+  "7c0747a5df": [
+    {
+      "type": 0,
+      "value": "Buka tldraw"
+    }
+  ],
+  "7cb471f815": [
+    {
+      "type": 0,
+      "value": "Anda telah dijemput untuk menyertai pari-pari tldraw!"
     }
   ],
   "7cb5f8b4a5": [
@@ -675,6 +869,18 @@
       "value": "."
     }
   ],
+  "81d48c2f3a": [
+    {
+      "type": 0,
+      "value": "Tunjukkan tugasan pada kanvas"
+    }
+  ],
+  "8472a551f1": [
+    {
+      "type": 0,
+      "value": "Peri telah datang untuk tldraw untuk bulan Disember."
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -695,10 +901,28 @@
       "value": " fail .tldr."
     }
   ],
+  "86a7df7572": [
+    {
+      "type": 0,
+      "value": "Panggil pari-pari"
+    }
+  ],
   "86c66437fd": [
     {
       "type": 0,
       "value": "Namakan semula fail"
+    }
+  ],
+  "88e83b88c5": [
+    {
+      "type": 0,
+      "value": "Beli Fairy Bundle"
+    }
+  ],
+  "898e76f01a": [
+    {
+      "type": 0,
+      "value": "Tetapkan semula segala-galanya"
     }
   ],
   "8ad4303b83": [
@@ -707,10 +931,10 @@
       "value": "Tidak terima kasih"
     }
   ],
-  "8b1946f965": [
+  "8be569f100": [
     {
       "type": 0,
-      "value": "Untuk meneruskan pengeditan sila salin bilik ke fail anda."
+      "value": "bayaran sekali"
     }
   ],
   "8c2d3d730c": [
@@ -755,6 +979,24 @@
       "value": "Pautan jemputan disalin"
     }
   ],
+  "93346fdd70": [
+    {
+      "type": 0,
+      "value": "Telinga"
+    }
+  ],
+  "93dfe9fbbe": [
+    {
+      "type": 0,
+      "value": "Nyahpilih dongeng"
+    }
+  ],
+  "94966d9074": [
+    {
+      "type": 0,
+      "value": "Hantar"
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -773,6 +1015,12 @@
       "value": "bulan ini"
     }
   ],
+  "97a9f16b2e": [
+    {
+      "type": 0,
+      "value": "dongeng baru"
+    }
+  ],
   "985a4b720f": [
     {
       "type": 0,
@@ -785,10 +1033,22 @@
       "value": "Tambah pautan fail"
     }
   ],
+  "98e528aac6": [
+    {
+      "type": 0,
+      "value": "Beralih kepada sembang dongeng"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Cahaya"
+    }
+  ],
+  "9953e9946b": [
+    {
+      "type": 0,
+      "value": "Paparan nyahpepijat"
     }
   ],
   "9b33f5c63c": [
@@ -815,12 +1075,6 @@
     {
       "type": 0,
       "value": "Padam fail"
-    }
-  ],
-  "9c258b8f88": [
-    {
-      "type": 0,
-      "value": "Bilik berbilang pemain tldraw tanpa nama ini kini dibaca sahaja. Untuk meneruskan pengeditan, sila log masuk dan salin ke fail anda."
     }
   ],
   "9ceb927baa": [
@@ -871,16 +1125,34 @@
       "value": "Eksport imej"
     }
   ],
+  "a2f0372a75": [
+    {
+      "type": 0,
+      "value": "Beralih ke senarai tugas"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
       "value": "Dasar kuki"
     }
   ],
+  "a3e932550c": [
+    {
+      "type": 0,
+      "value": "nama peri"
+    }
+  ],
   "a4d3b161ce": [
     {
       "type": 0,
       "value": "Hantar"
+    }
+  ],
+  "a4ffdcf0dc": [
+    {
+      "type": 0,
+      "value": "Atas"
     }
   ],
   "a6cc403d56": [
@@ -895,16 +1167,22 @@
       "value": "Analitis"
     }
   ],
+  "a885eb91ac": [
+    {
+      "type": 0,
+      "value": "Pemilihan peri pemimpin"
+    }
+  ],
+  "a8873770ab": [
+    {
+      "type": 0,
+      "value": "Fail semakin besar"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
       "value": "Latar belakang"
-    }
-  ],
-  "aa916767cf": [
-    {
-      "type": 0,
-      "value": "Log masuk untuk menerima jemputan"
     }
   ],
   "ab0df9ba36": [
@@ -929,6 +1207,18 @@
     {
       "type": 0,
       "value": "Pengguna tetamu"
+    }
+  ],
+  "b2c3c2e30c": [
+    {
+      "type": 0,
+      "value": "Fail sudah penuh"
+    }
+  ],
+  "b34a671e2c": [
+    {
+      "type": 0,
+      "value": "Log masa tindak balas"
     }
   ],
   "b357b524e7": [
@@ -959,6 +1249,12 @@
     {
       "type": 0,
       "value": "Salin pautan"
+    }
+  ],
+  "b8996797b9": [
+    {
+      "type": 0,
+      "value": "Sembunyikan tugas pada kanvas"
     }
   ],
   "ba0318cb81": [
@@ -1043,10 +1339,22 @@
       "value": " untuk membantu kami meningkatkan tldraw."
     }
   ],
+  "c2ad21c079": [
+    {
+      "type": 0,
+      "value": "rambut"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
       "value": "Tidak dapat menerbitkan fail."
+    }
+  ],
+  "c3eb5c3b90": [
+    {
+      "type": 0,
+      "value": "saya faham"
     }
   ],
   "c4b39a1cc3": [
@@ -1085,6 +1393,12 @@
       "value": "Log keluar"
     }
   ],
+  "c9b04e7b53": [
+    {
+      "type": 0,
+      "value": "Nyahpilih ketua"
+    }
+  ],
   "c9cc8cce24": [
     {
       "type": 0,
@@ -1103,16 +1417,46 @@
       "value": "SVG"
     }
   ],
+  "ce0547606c": [
+    {
+      "type": 0,
+      "value": "Fail ini menghampiri had saiznya. Pertimbangkan untuk mengalih keluar beberapa kandungan atau memulakan fail baharu."
+    }
+  ],
+  "ce1424d44b": [
+    {
+      "type": 0,
+      "value": "Anda sudah mempunyai akses dongeng!"
+    }
+  ],
   "cea291e45e": [
     {
       "type": 0,
       "value": "Ketahui lebih lanjut tentang penerbitan."
     }
   ],
+  "cf62a7f9a7": [
+    {
+      "type": 0,
+      "value": "Tetapkan semula sembang"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
       "value": "tutup"
+    }
+  ],
+  "d438a51e6e": [
+    {
+      "type": 0,
+      "value": "Tidurkan semua peri"
+    }
+  ],
+  "d46632fe1f": [
+    {
+      "type": 0,
+      "value": "Terlalu banyak permintaan. Tolong perlahankan."
     }
   ],
   "d4bbf74f3e": [
@@ -1161,6 +1505,26 @@
       "value": "Tema"
     }
   ],
+  "d739f35e18": [
+    {
+      "type": 0,
+      "value": "Bisik kepada "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
+  "d7bc9d5a2e": [
+    {
+      "type": 0,
+      "value": "Padam tugasan"
+    }
+  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1191,10 +1555,48 @@
       "value": "Jemput sahaja"
     }
   ],
+  "dbbece0c3a": [
+    {
+      "type": 0,
+      "value": "Kosongkan semua sembang"
+    }
+  ],
+  "dc30bc0c79": [
+    {
+      "type": 0,
+      "value": "Jelas"
+    }
+  ],
   "dcdaa754fe": [
     {
       "type": 0,
       "value": "URL fail tldraw tidak sah"
+    }
+  ],
+  "de290d52ef": [
+    {
+      "type": 0,
+      "value": "Pilih dongeng di sebelah kanan untuk berbual"
+    }
+  ],
+  "df6ff49394": [
+    {
+      "type": 0,
+      "value": "Peri ialah ciri "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "sementara"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Pada 1 Januari 2026, semua peri akan dialih keluar daripada aplikasi. Mungkin mereka akan kembali lagi suatu hari nanti. Pembelian anda adalah untuk akses kepada pari-pari untuk Disember 2025 sahaja."
     }
   ],
   "dfdb78a4e4": [
@@ -1243,6 +1645,12 @@
     {
       "type": 0,
       "value": "Zon bahaya"
+    }
+  ],
+  "ea181d98ca": [
+    {
+      "type": 0,
+      "value": "Pilih dongeng"
     }
   ],
   "ea4788705e": [
@@ -1313,6 +1721,18 @@
       "value": "dipilih"
     }
   ],
+  "efb2d9d471": [
+    {
+      "type": 0,
+      "value": "Senarai tugasan"
+    }
+  ],
+  "efde983742": [
+    {
+      "type": 0,
+      "value": "panggil"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1323,6 +1743,12 @@
     {
       "type": 0,
       "value": "Tetapan pengguna"
+    }
+  ],
+  "f23056da60": [
+    {
+      "type": 0,
+      "value": "Projek baru"
     }
   ],
   "f2569594b2": [
@@ -1337,22 +1763,34 @@
       "value": "Padam"
     }
   ],
-  "f43fb62093": [
-    {
-      "type": 0,
-      "value": "Kembali ke tldraw."
-    }
-  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "tetapan"
     }
   ],
+  "f6ae34b4ba": [
+    {
+      "type": 0,
+      "value": "Tetapkan semula semua tongkat"
+    }
+  ],
   "f714e36843": [
     {
       "type": 0,
       "value": "Adakah anda pasti mahu meninggalkan kumpulan ini?"
+    }
+  ],
+  "f7d5ee6855": [
+    {
+      "type": 0,
+      "value": "Pilih pemimpin dahulu…"
+    }
+  ],
+  "f87386b4ba": [
+    {
+      "type": 0,
+      "value": "Panggil semua pari-pari"
     }
   ],
   "fa2ead697d": [
@@ -1365,6 +1803,12 @@
     {
       "type": 0,
       "value": "Penonton"
+    }
+  ],
+  "fd11eafb92": [
+    {
+      "type": 0,
+      "value": "Lerai projek"
     }
   ],
   "fd1be3efcf": [
@@ -1389,6 +1833,12 @@
     {
       "type": 0,
       "value": "Import fail…"
+    }
+  ],
+  "ffec95af2f": [
+    {
+      "type": 0,
+      "value": "Beli akses dongeng"
     }
   ]
 }

@@ -2,14 +2,17 @@
   "0095a9fa74": {
     "translation": "Ekspor"
   },
+  "00b177e080": {
+    "translation": "Terima undangan"
+  },
+  "038c9b4432": {
+    "translation": "Kepribadian Peri"
+  },
   "03b3e13197": {
     "translation": "Seret file ke bilah samping di halaman ini atau pilih opsi 'Impor file' dari menu pengguna."
   },
   "043973ec1f": {
     "translation": "Masih mengalami masalah? {GetHelpLink}"
-  },
-  "05596b840b": {
-    "translation": "Buka tldraw."
   },
   "06b9281e39": {
     "translation": "Otomatis"
@@ -23,8 +26,11 @@
   "08bd40c754": {
     "translation": "Akun"
   },
-  "08d2d725a9": {
-    "translation": "Buat akun gratis untuk menyimpan pekerjaan Anda, berkolaborasi secara real-time, dan banyak lagi."
+  "090b807281": {
+    "translation": "Runcing"
+  },
+  "0a91f7fa87": {
+    "translation": "Berkas ini telah mencapai batas ukuran dan perubahan mungkin tidak dapat disimpan lagi. Hapus sebagian konten atau buat berkas baru."
   },
   "0b27918290": {
     "translation": "File"
@@ -32,14 +38,17 @@
   "0b9a4cde72": {
     "translation": "Menu file"
   },
-  "0beb3ca97b": {
-    "translation": "tldraw adalah papan tulis virtual yang gratis dan instan."
+  "0befa10111": {
+    "translation": "Peri"
   },
   "0d1f2bb523": {
     "translation": "Kirimkan masukan"
   },
   "110a4b01be": {
     "translation": "Terbitkan"
+  },
+  "11a755d598": {
+    "translation": "Berhenti"
   },
   "129b9e34ea": {
     "translation": "Keluar dari grup"
@@ -52,6 +61,9 @@
   },
   "13ddd375ad": {
     "translation": "Ekspor sebagai"
+  },
+  "141c7239d3": {
+    "translation": "Kustomisasi peri"
   },
   "146ffe2fd9": {
     "translation": "Tampilkan lebih banyak"
@@ -68,11 +80,14 @@
   "1dd1c5fb7f": {
     "translation": "Hari ini"
   },
-  "20976e7bec": {
-    "translation": "Kamar sudah penuh"
+  "1e38506832": {
+    "translation": "Pergi ke peri"
   },
-  "21bfb2dc2e": {
-    "translation": "Ruangan ini hampir mencapai batas ukurannya. Pertimbangkan untuk menghapus beberapa konten atau memulai berkas baru."
+  "1fe250ea06": {
+    "translation": "Instruksikan kelompok…"
+  },
+  "243924bfd5": {
+    "translation": "Tidur"
   },
   "2445e5e347": {
     "translation": "Buat grup"
@@ -80,14 +95,20 @@
   "250ddea65c": {
     "translation": "Tentang tldraw"
   },
+  "284d5cd0dd": {
+    "translation": "Model:"
+  },
   "299cb00a7a": {
     "translation": "Pengunggahan gagal"
   },
   "2c3ef76333": {
     "translation": "File saya"
   },
-  "2deec2cb74": {
-    "translation": "Ruangan ini telah mencapai batas ukuran dan perubahan mungkin tidak dapat disimpan lagi. Hapus beberapa konten atau buat berkas baru."
+  "2e86e6853d": {
+    "translation": "Pilih pemimpin"
+  },
+  "30cd34258a": {
+    "translation": "Sekumpulan <b>peri</b> telah datang untuk menggambar di bulan Desember. Untuk menyelidiki lebih lanjut, temukan peri tersebut dan klik."
   },
   "31246941ad": {
     "translation": "Anda harus masuk untuk melihat file ini."
@@ -95,14 +116,41 @@
   "31418ce4ad": {
     "translation": "i18n: Sorotan Tidak Ada"
   },
+  "3209f407ed": {
+    "translation": "tiga peri"
+  },
   "32210b37e4": {
     "translation": "Tambahkan tautan"
+  },
+  "324a0f3182": {
+    "translation": "Kembali ke tldraw"
   },
   "335defdafe": {
     "translation": "Coba muat ulang halaman."
   },
+  "33f9ea6fe8": {
+    "translation": "Bubarkan grup"
+  },
+  "34140869c6": {
+    "translation": "Peri-peri akan hadir di Tldraw untuk bulan Desember. Silakan kunjungi kembali pada tanggal 1 Desember."
+  },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "3596c1b1f7": {
+    "translation": "Berhenti mengikuti"
+  },
+  "3903aab323": {
+    "translation": "Mengikuti"
+  },
+  "3a295397e6": {
+    "translation": "Meminta bantuan"
+  },
+  "3a77f951ca": {
+    "translation": "Tambahkan tugas baru…"
+  },
+  "3b6c2b4caa": {
+    "translation": "Ketentuan Layanan"
   },
   "3bc7d6ea2f": {
     "translation": "Lanjutkan dengan email"
@@ -116,6 +164,9 @@
   "3d0238bf16": {
     "translation": "Terima semua"
   },
+  "4131ec34ef": {
+    "translation": "Botak"
+  },
   "42e53c47c1": {
     "translation": "Hubungi pemilik untuk meminta akses."
   },
@@ -124,6 +175,12 @@
   },
   "46137245cd": {
     "translation": "Terima kasih telah membantu kami meningkatkan tldraw!"
+  },
+  "465a8a92a4": {
+    "translation": "Tidak ada peri yang dipilih"
+  },
+  "477df802ca": {
+    "translation": "Untuk melanjutkan pengeditan, salin berkas ke berkas Anda."
   },
   "47839e47a5": {
     "translation": "tldraw"
@@ -152,17 +209,20 @@
   "4e6fbf032b": {
     "translation": "Yakin ingin menghapus grup ini? Tindakan ini tidak dapat dibatalkan."
   },
+  "4f827717f7": {
+    "translation": "runcing"
+  },
   "50db1b7e1e": {
     "translation": "Tidak dapat membatalkan penerbitan file."
   },
   "517bb809d9": {
     "translation": "Menu halaman"
   },
+  "542248f0ba": {
+    "translation": "File ini sekarang hanya dapat dibaca"
+  },
   "54286b1d01": {
     "translation": "Batas kolaborator terpenuhi"
-  },
-  "54d240fa41": {
-    "translation": "Pelan-pelan saja."
   },
   "554a05155c": {
     "translation": "Masih mengalami masalah? <a>Laporkan masalah</a>"
@@ -176,17 +236,14 @@
   "56c34c6410": {
     "translation": "Kebijakan privasi"
   },
+  "5a2ccdc00a": {
+    "translation": "Gagal menebus kode undangan"
+  },
   "5a86b22fa0": {
     "translation": "Seret file ke sini, <create>buat file</create>,create atau <invite>salin tautan undangan</invite> untuk memulai."
   },
   "5a95a425f7": {
     "translation": "Bagikan"
-  },
-  "5bb6cf3b53": {
-    "translation": "Ruangan menjadi besar"
-  },
-  "5bcc12ace8": {
-    "translation": "Ruangan ini sekarang hanya bisa dibaca"
   },
   "5bec508475": {
     "translation": "Browser lama terdeteksi. Harap perbarui browser Anda untuk menggunakan aplikasi ini."
@@ -196,6 +253,9 @@
   },
   "5d26ae7550": {
     "translation": "Kami gagal mengunggah beberapa konten yang Anda buat sebelum masuk."
+  },
+  "5ea8bb44be": {
+    "translation": "Anda telah diundang untuk bergabung dengan grup:"
   },
   "5f3c333678": {
     "translation": "Umpan balik telah disampaikan"
@@ -212,17 +272,26 @@
   "639bae9ac6": {
     "translation": "Anda"
   },
+  "63a78ed464": {
+    "translation": "Sesuaikan"
+  },
+  "64ebe56d8c": {
+    "translation": "Klik untuk menghapus atau seret untuk memindahkan"
+  },
+  "65709fd250": {
+    "translation": "Daftar tugas"
+  },
   "6609dd239e": {
     "translation": "Terjadi kesalahan"
   },
   "6637a98151": {
     "translation": "Versi baru tldraw telah tersedia. Silakan muat ulang halaman untuk melanjutkan."
   },
-  "68257bb646": {
-    "translation": "Anda telah diundang ke grup <br></br><groupName></groupName>"
-  },
   "6832ac5936": {
     "translation": "Masukkan alamat email Anda"
+  },
+  "68d390535e": {
+    "translation": "Masukkan pesan Anda"
   },
   "6a26f54883": {
     "translation": "Bantuan"
@@ -232,6 +301,9 @@
   },
   "6dfc62f621": {
     "translation": "Ikuti langkah berikut untuk mengimpor konten secara manual:"
+  },
+  "6e02bd9e1e": {
+    "translation": "Singkirkan peri"
   },
   "70222abcfc": {
     "translation": "Pengaturan grup"
@@ -263,8 +335,17 @@
   "764671e008": {
     "translation": "Ngobrol dengan kami di Discord"
   },
+  "76dea3c9ca": {
+    "translation": "tldraw adalah papan tulis online gratis. Buat akun untuk menyimpan berkas Anda dan bekerja dengan teman-teman Anda."
+  },
   "777f9e90cf": {
     "translation": "Permintaan tidak valid."
+  },
+  "7827371d1a": {
+    "translation": "Berkas multipemain tldraw anonim ini sekarang hanya-baca. Untuk melanjutkan pengeditan, silakan masuk dan salin ke berkas Anda."
+  },
+  "7835039819": {
+    "translation": "Baling-baling"
   },
   "78e9815992": {
     "translation": "Mengerti"
@@ -272,11 +353,26 @@
   "797799f35e": {
     "translation": "Kirimkan masalah di GitHub"
   },
+  "79cc22ac6b": {
+    "translation": "Peri adalah makhluk kecil yang bisa bekerja bersamamu di atas kanvas. Peri bisa bekerja sendiri atau sebagai tim. Tak ada batasan untuk apa yang bisa dilakukan peri. Tak seorang pun tahu dari mana asal mereka."
+  },
+  "7a3113b0ba": {
+    "translation": "Seret ke kanvas"
+  },
   "7b1329f5ca": {
     "translation": "Panduan pengguna"
   },
+  "7b5449bd84": {
+    "translation": "Antena"
+  },
   "7be10fc592": {
     "translation": "Pulihkan versi"
+  },
+  "7c0747a5df": {
+    "translation": "Buka tldraw"
+  },
+  "7cb471f815": {
+    "translation": "Anda telah diundang untuk bergabung dengan tldraw fairies!"
   },
   "7cb5f8b4a5": {
     "translation": "Abaikan"
@@ -296,20 +392,35 @@
   "815e116a2e": {
     "translation": "Punya bug, masalah, atau ide untuk tldraw? Beri tahu kami! Isi formulir ini dan kami akan menindaklanjutinya melalui email jika diperlukan. Anda juga dapat <discord>mengobrol dengan kami di Discord</discord> atau <github>mengajukan masalah di GitHub</github>."
   },
+  "81d48c2f3a": {
+    "translation": "Tampilkan tugas di kanvas"
+  },
+  "8472a551f1": {
+    "translation": "Peri telah datang untuk menggambar pada bulan Desember."
+  },
   "85a082de1b": {
     "translation": "Muat ulang halaman untuk mendapatkan versi terbaru tldraw."
   },
   "86353d2c41": {
     "translation": "Menambahkan file {total}.tldr."
   },
+  "86a7df7572": {
+    "translation": "Memanggil peri"
+  },
   "86c66437fd": {
     "translation": "Ganti nama berkas"
+  },
+  "88e83b88c5": {
+    "translation": "Beli Paket Peri"
+  },
+  "898e76f01a": {
+    "translation": "Atur ulang semuanya"
   },
   "8ad4303b83": {
     "translation": "Tidak, terima kasih"
   },
-  "8b1946f965": {
-    "translation": "Untuk meneruskan pengeditan, salin ruangan ke berkas Anda."
+  "8be569f100": {
+    "translation": "pembayaran satu kali"
   },
   "8c2d3d730c": {
     "translation": "Periksa email Anda untuk mendapatkan kode verifikasi."
@@ -332,6 +443,15 @@
   "930390d222": {
     "translation": "Salin tautan undangan"
   },
+  "93346fdd70": {
+    "translation": "Telinga"
+  },
+  "93dfe9fbbe": {
+    "translation": "Batalkan pilihan peri"
+  },
+  "94966d9074": {
+    "translation": "Mengirim"
+  },
   "95aacd4d4a": {
     "translation": "Masuk dengan Google"
   },
@@ -341,23 +461,29 @@
   "96165d6df5": {
     "translation": "Bulan ini"
   },
+  "97a9f16b2e": {
+    "translation": "Peri baru"
+  },
   "985a4b720f": {
     "translation": "Ketentuan Penggunaan"
   },
   "98c997a27e": {
     "translation": "Tambahkan tautan berkas"
   },
+  "98e528aac6": {
+    "translation": "Beralih ke obrolan peri"
+  },
   "9914a0ce04": {
     "translation": "Cahaya"
+  },
+  "9953e9946b": {
+    "translation": "Tampilan debug"
   },
   "9b33f5c63c": {
     "translation": "Tidak menerima kode? <resend>Kirim ulang</resend>."
   },
   "9bef626805": {
     "translation": "Hapus file"
-  },
-  "9c258b8f88": {
-    "translation": "Ruang multipemain tldraw anonim ini sekarang hanya dapat dibaca. Untuk melanjutkan pengeditan, silakan masuk dan salin ke berkas Anda."
   },
   "9ceb927baa": {
     "translation": "Terbitkan file ini"
@@ -383,11 +509,20 @@
   "a239905023": {
     "translation": "Ekspor gambar"
   },
+  "a2f0372a75": {
+    "translation": "Beralih ke daftar tugas"
+  },
   "a3debabee7": {
     "translation": "Kebijakan cookie"
   },
+  "a3e932550c": {
+    "translation": "Nama peri"
+  },
   "a4d3b161ce": {
     "translation": "Kirim"
+  },
+  "a4ffdcf0dc": {
+    "translation": "Atas"
   },
   "a6cc403d56": {
     "translation": "Siapa pun yang memiliki tautan"
@@ -395,11 +530,14 @@
   "a768caa988": {
     "translation": "Analitik"
   },
+  "a885eb91ac": {
+    "translation": "Pemilihan peri pemimpin"
+  },
+  "a8873770ab": {
+    "translation": "File menjadi besar"
+  },
   "a9ded1e5ce": {
     "translation": "Latar belakang"
-  },
-  "aa916767cf": {
-    "translation": "Masuk untuk menerima undangan"
   },
   "ab0df9ba36": {
     "translation": "Batas berkas tercapai"
@@ -410,6 +548,12 @@
   },
   "b028909917": {
     "translation": "Pengguna tamu"
+  },
+  "b2c3c2e30c": {
+    "translation": "File sudah penuh"
+  },
+  "b34a671e2c": {
+    "translation": "Catat waktu respons"
   },
   "b357b524e7": {
     "translation": "Alamat email"
@@ -425,6 +569,9 @@
   },
   "b758336699": {
     "translation": "Salin tautan"
+  },
+  "b8996797b9": {
+    "translation": "Sembunyikan tugas di kanvas"
   },
   "ba0318cb81": {
     "translation": "Masuk untuk berbagi"
@@ -444,8 +591,14 @@
   "c28aed8348": {
     "translation": "Izinkan <cookies>analytics</cookies> membantu kami meningkatkan tldraw."
   },
+  "c2ad21c079": {
+    "translation": "Rambut"
+  },
   "c303bd1095": {
     "translation": "Tidak dapat menerbitkan file."
+  },
+  "c3eb5c3b90": {
+    "translation": "saya mengerti"
   },
   "c4b39a1cc3": {
     "translation": "Cookie penting"
@@ -465,6 +618,9 @@
   "c87aacf567": {
     "translation": "Keluar"
   },
+  "c9b04e7b53": {
+    "translation": "Batalkan pilihan pemimpin"
+  },
   "c9cc8cce24": {
     "translation": "Menyimpan"
   },
@@ -474,11 +630,26 @@
   "cd15a75c26": {
     "translation": "SVG"
   },
+  "ce0547606c": {
+    "translation": "Berkas ini hampir mencapai batas ukurannya. Pertimbangkan untuk menghapus sebagian konten atau membuat berkas baru."
+  },
+  "ce1424d44b": {
+    "translation": "Anda sudah memiliki akses peri!"
+  },
   "cea291e45e": {
     "translation": "Pelajari lebih lanjut tentang penerbitan."
   },
+  "cf62a7f9a7": {
+    "translation": "Setel ulang obrolan"
+  },
   "d3d2e61733": {
     "translation": "Tutup"
+  },
+  "d438a51e6e": {
+    "translation": "Membuat semua peri tertidur"
+  },
+  "d46632fe1f": {
+    "translation": "Terlalu banyak permintaan. Mohon pelan-pelan."
   },
   "d4bbf74f3e": {
     "translation": "Alihkan bilah samping"
@@ -488,6 +659,12 @@
   },
   "d721757161": {
     "translation": "Tema"
+  },
+  "d739f35e18": {
+    "translation": "Berbisik ke {name}…"
+  },
+  "d7bc9d5a2e": {
+    "translation": "Hapus tugas"
   },
   "d876a9fe1a": {
     "translation": "Coba Lagi"
@@ -504,8 +681,20 @@
   "dbbebf3c03": {
     "translation": "Hanya mengundang"
   },
+  "dbbece0c3a": {
+    "translation": "Hapus semua obrolan"
+  },
+  "dc30bc0c79": {
+    "translation": "Jernih"
+  },
   "dcdaa754fe": {
     "translation": "URL file tldraw tidak valid"
+  },
+  "de290d52ef": {
+    "translation": "Pilih peri di sebelah kanan untuk mengobrol"
+  },
+  "df6ff49394": {
+    "translation": "Peri adalah fitur <strong>sementara</strong>. Pada 1 Januari 2026, semua peri akan dihapus dari aplikasi. Mungkin mereka akan kembali lagi suatu hari nanti. Pembelian Anda hanya untuk akses ke peri selama Desember 2025."
   },
   "dfdb78a4e4": {
     "translation": "Bendera debug aplikasi"
@@ -530,6 +719,9 @@
   },
   "ea0626ac5a": {
     "translation": "Zona bahaya"
+  },
+  "ea181d98ca": {
+    "translation": "Pilih peri"
   },
   "ea4788705e": {
     "translation": "Batal"
@@ -558,11 +750,20 @@
   "ef7de3f485": {
     "translation": "terpilih"
   },
+  "efb2d9d471": {
+    "translation": "Daftar tugas"
+  },
+  "efde983742": {
+    "translation": "Memanggil"
+  },
   "f09b16bc5f": {
     "translation": "Kami menggunakan cookie untuk membuat Anda tetap masuk, menyinkronkan berkas Anda, dan mengumpulkan analitik untuk membantu kami meningkatkan tldraw."
   },
   "f0e8bff6f9": {
     "translation": "Pengaturan pengguna"
+  },
+  "f23056da60": {
+    "translation": "Proyek baru"
   },
   "f2569594b2": {
     "translation": "Kami menggunakan cookie ini untuk menyimpan berkas dan pengaturan Anda."
@@ -570,20 +771,29 @@
   "f2a6c498fb": {
     "translation": "Hapus"
   },
-  "f43fb62093": {
-    "translation": "Kembali ke tldraw."
-  },
   "f4f70727dc": {
     "translation": "Pengaturan"
   },
+  "f6ae34b4ba": {
+    "translation": "Setel ulang semua tongkat sihir"
+  },
   "f714e36843": {
     "translation": "Apakah Anda yakin ingin meninggalkan grup ini?"
+  },
+  "f7d5ee6855": {
+    "translation": "Pilih pemimpin terlebih dahulu…"
+  },
+  "f87386b4ba": {
+    "translation": "Panggil semua peri"
   },
   "fa2ead697d": {
     "translation": "Kebijakan Privasi"
   },
   "fb15c53f22": {
     "translation": "Audiens"
+  },
+  "fd11eafb92": {
+    "translation": "Membubarkan proyek"
   },
   "fd1be3efcf": {
     "translation": "Yakin ingin menghapus file ini?"
@@ -596,5 +806,8 @@
   },
   "ffcd73e997": {
     "translation": "Impor berkas…"
+  },
+  "ffec95af2f": {
+    "translation": "Beli akses peri"
   }
 }
