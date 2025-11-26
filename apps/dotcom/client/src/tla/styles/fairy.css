@@ -445,7 +445,7 @@
 }
 
 .fairy-chat-history-prompt-sticky {
-	margin: -4px 0px 0px 0px;
+	margin: -4px 0px 2px 0px;
 	padding: 0px;
 	z-index: 10;
 	background-color: var(--tl-color-panel);
@@ -499,6 +499,7 @@
 .fairy-chat-history-group-toggle {
 	display: flex;
 	align-items: center;
+	padding: 0px 6px;
 	gap: 6px;
 	background-color: transparent;
 	border: none;

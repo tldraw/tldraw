@@ -1,4 +1,4 @@
-import { asColor, FocusColor } from '@tldraw/fairy-shared'
+import { asProjectColor, FocusColor } from '@tldraw/fairy-shared'
 import { Editor, getColorValue, getDefaultColorTheme, TLDefaultColorStyle } from 'tldraw'
 
 /**
@@ -11,7 +11,7 @@ import { Editor, getColorValue, getDefaultColorTheme, TLDefaultColorStyle } from
  */
 export function getProjectColor(editor: Editor, color: FocusColor | string): string {
 	// First normalize the color using asColor
-	const normalizedColor = asColor(color)
+	const normalizedColor = asProjectColor(color)
 
 	// Get the appropriate theme based on editor's dark mode setting
 	const isDarkMode = editor.user.getIsDarkMode()

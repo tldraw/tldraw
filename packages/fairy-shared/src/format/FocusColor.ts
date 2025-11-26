@@ -19,6 +19,21 @@ export const FocusColorSchema = z.enum([
 export type FocusColor = z.infer<typeof FocusColorSchema>
 
 export function asColor(color: string): FocusColor {
+	if (FocusColorSchema.safeParse(color).success) {
+		return color as FocusColor
+	}
+
+	switch (color) {
+		case 'pink':
+		case 'light-pink': {
+			return 'light-violet'
+		}
+	}
+
+	return 'black'
+}
+
+export function asProjectColor(color: string): FocusColor {
 	switch (color) {
 		case 'pink':
 		case 'light-pink': {

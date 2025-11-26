@@ -93,11 +93,16 @@ export function FairyMenuContent({
 		deleteProjectAndAssociatedTasks(currentProject.id)
 	}, [currentProject, editor])
 
-	const openDebugDialog = useCallback(() => {
-		addDialog({
-			component: ({ onClose }) => <FairyDebugDialog agents={agents} onClose={onClose} />,
-		})
-	}, [addDialog, agents])
+	const openDebugDialog = useCallback(
+		(initialTabId?: string) => {
+			addDialog({
+				component: ({ onClose }) => (
+					<FairyDebugDialog agents={agents} onClose={onClose} initialTabId={initialTabId} />
+				),
+			})
+		},
+		[addDialog, agents]
+	)
 
 	const resetEverything = useCallback(() => {
 		// Stop all running tasks
@@ -125,6 +130,11 @@ export function FairyMenuContent({
 			<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">
 				<TldrawUiMenuGroup id="fairy-group-menu">
 					<TldrawUiMenuItem id="disband-group" onSelect={disbandGroup} label={disbandGroupLabel} />
+					<TldrawUiMenuItem
+						id="debug-fairies"
+						onSelect={() => openDebugDialog(agent.id)}
+						label={debugViewLabel}
+					/>
 				</TldrawUiMenuGroup>
 			</TldrawUiMenuContextProvider>
 		)
@@ -162,7 +172,11 @@ export function FairyMenuContent({
 					label={customizeFairyLabel}
 				/> */}
 				<TldrawUiMenuItem id="sleep-fairy" onSelect={putAwayFairy} label={putAwayFairyLabel} />
-				<TldrawUiMenuItem id="debug-fairies" onSelect={openDebugDialog} label={debugViewLabel} />
+				<TldrawUiMenuItem
+					id="debug-fairies"
+					onSelect={() => openDebugDialog(agent.id)}
+					label={debugViewLabel}
+				/>
 				<TldrawUiMenuItem
 					id="reset-everything"
 					onSelect={resetEverything}

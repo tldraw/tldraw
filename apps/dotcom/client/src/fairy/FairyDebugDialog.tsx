@@ -65,8 +65,16 @@ const FAIRY_DEBUG_INSPECTOR_TYPES: FairyDebugInspectorType[] = [
 ]
 
 // # Main dialog component
-export function FairyDebugDialog({ agents, onClose }: { agents: FairyAgent[]; onClose(): void }) {
-	const [selectedTabId, setSelectedTabId] = useState<string>('home')
+export function FairyDebugDialog({
+	agents,
+	onClose,
+	initialTabId,
+}: {
+	agents: FairyAgent[]
+	onClose(): void
+	initialTabId?: string
+}) {
+	const [selectedTabId, setSelectedTabId] = useState<string>(initialTabId ?? 'home')
 	const [fairyDebugInspectorType, setFairyDebugInspectorType] =
 		useState<FairyDebugInspectorType>('config')
 	const [homeDebugInspectorType, setHomeDebugInspectorType] =
