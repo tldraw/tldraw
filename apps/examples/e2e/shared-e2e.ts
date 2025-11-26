@@ -30,6 +30,40 @@ export async function setupPage(page: PlaywrightTestArgs['page']) {
 	await page.mouse.move(50, 50)
 }
 
+/**
+ * Fast reset of the editor state without page navigation.
+ * Use this in beforeEach when the page is already set up via beforeAll.
+ */
+export async function hardResetEditor(page: Page) {
+	await page.evaluate(() => {
+		// Clear all shapes and reset editor state
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+		editor.setCurrentTool('select')
+		editor.zoomToFit()
+		editor.resetZoom()
+	})
+	await page.mouse.move(50, 50)
+}
+
+/**
+ * Fast reset and create test shapes without page navigation.
+ * Use this in beforeEach when tests need shapes but want to avoid full setup.
+ */
+export async function hardResetWithShapes(page: Page) {
+	await page.evaluate(() => {
+		// Clear all shapes and create test shapes
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+		editor.createShapes([
+			{ type: 'geo', x: 200, y: 200, props: { w: 100, h: 100, geo: 'rectangle' } },
+			{ type: 'geo', x: 200, y: 250, props: { w: 100, h: 100, geo: 'rectangle' } },
+			{ type: 'geo', x: 250, y: 300, props: { w: 100, h: 100, geo: 'rectangle' } },
+		])
+		editor.selectNone()
+		editor.setCurrentTool('select')
+	})
+	await page.mouse.move(50, 50)
+}
+
 export async function setupPageWithShapes(page: PlaywrightTestArgs['page']) {
 	// delete everything
 	await page.keyboard.press('Control+a')

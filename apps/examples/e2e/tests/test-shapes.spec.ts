@@ -1,6 +1,9 @@
 import { expect } from '@playwright/test'
+import { Editor } from 'tldraw'
 import test from '../fixtures/fixtures'
-import { getAllShapeTypes, setup } from '../shared-e2e'
+import { getAllShapeTypes, hardResetEditor, setup } from '../shared-e2e'
+
+declare const editor: Editor
 
 const clickableShapeCreators = [
 	{ tool: 'draw', shape: 'draw' },
@@ -57,10 +60,16 @@ const draggableShapeCreators = [
 const otherTools = [{ tool: 'select' }, { tool: 'eraser' }, { tool: 'laser' }]
 
 test.describe('Shape Tools', () => {
-	test.beforeEach(setup)
+	test.beforeEach(async ({ page, context }) => {
+		const url = page.url()
+		if (!url.includes('end-to-end')) {
+			await setup({ page, context } as any)
+		} else {
+			await hardResetEditor(page)
+		}
+	})
+
 	test('creates shapes with other tools', async ({ toolbar, page }) => {
-		await page.keyboard.press('Control+a')
-		await page.keyboard.press('Backspace')
 		expect(await getAllShapeTypes(page)).toEqual([])
 
 		for (const { tool } of otherTools) {
@@ -91,9 +100,6 @@ test.describe('Shape Tools', () => {
 	})
 
 	test('creates shapes clickable tools', async ({ page, toolbar }) => {
-		await page.keyboard.press('v')
-		await page.keyboard.press('Control+a')
-		await page.keyboard.press('Backspace')
 		expect(await getAllShapeTypes(page)).toEqual([])
 
 		for (const { tool, shape } of clickableShapeCreators) {
@@ -110,25 +116,21 @@ test.describe('Shape Tools', () => {
 
 			// Click on the page
 			await page.mouse.click(200, 200)
-			await page.waitForTimeout(20)
 
 			// We should have a corresponding shape in the page
 			expect(await getAllShapeTypes(page)).toEqual([shape])
 
-			// Reset for next time
-			await page.mouse.click(50, 50) // to ensure we're not focused
-			await page.keyboard.press('v') // go to the select tool
-			await page.waitForTimeout(20)
-			await page.keyboard.press('Control+a')
-			await page.keyboard.press('Backspace')
+			// Reset for next time using API (faster than keyboard)
+			await page.evaluate(() => {
+				editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+				editor.setCurrentTool('select')
+			})
 		}
 
 		expect(await getAllShapeTypes(page)).toEqual([])
 	})
 
 	test('creates shapes with draggable tools', async ({ page, toolbar }) => {
-		await page.keyboard.press('Control+a')
-		await page.keyboard.press('Backspace')
 		expect(await getAllShapeTypes(page)).toEqual([])
 
 		for (const { tool, shape } of draggableShapeCreators) {
@@ -153,12 +155,11 @@ test.describe('Shape Tools', () => {
 			// We should have a corresponding shape in the page
 			expect(await getAllShapeTypes(page)).toEqual([shape])
 
-			// Reset for next time
-			await page.mouse.click(50, 50) // to ensure we're not focused
-			await page.keyboard.press('v')
-			await page.waitForTimeout(20)
-			await page.keyboard.press('Control+a')
-			await page.keyboard.press('Backspace')
+			// Reset for next time using API (faster than keyboard)
+			await page.evaluate(() => {
+				editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+				editor.setCurrentTool('select')
+			})
 		}
 	})
 })

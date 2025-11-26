@@ -1,12 +1,20 @@
 import { expect } from '@playwright/test'
 import { Editor, TLGeoShape } from 'tldraw'
 import test from '../fixtures/fixtures'
-import { getAllShapeTypes, setup } from '../shared-e2e'
+import { getAllShapeTypes, hardResetEditor, setup } from '../shared-e2e'
 
 declare const editor: Editor
 
 test.describe('smoke tests', () => {
-	test.beforeEach(setup)
+	test.beforeEach(async ({ page, context }) => {
+		// Only navigate if not already on the page (first test)
+		const url = page.url()
+		if (!url.includes('end-to-end')) {
+			await setup({ page, context } as any)
+		} else {
+			await hardResetEditor(page)
+		}
+	})
 
 	test('create a shape on the canvas', async ({ page }) => {
 		await page.keyboard.press('r')

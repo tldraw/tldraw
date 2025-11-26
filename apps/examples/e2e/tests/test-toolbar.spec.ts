@@ -1,9 +1,16 @@
 import { expect } from '@playwright/test'
 import test from '../fixtures/fixtures'
-import { getAllShapeTypes, setup, sleep } from '../shared-e2e'
+import { getAllShapeTypes, hardResetEditor, setup } from '../shared-e2e'
 
 test.describe('when selecting a tool from the toolbar', () => {
-	test.beforeEach(setup)
+	test.beforeEach(async ({ page, context }) => {
+		const url = page.url()
+		if (!url.includes('end-to-end')) {
+			await setup({ page, context } as any)
+		} else {
+			await hardResetEditor(page)
+		}
+	})
 
 	test('tool selection behaviors', async ({ toolbar }) => {
 		const { select, draw, arrow, cloud } = toolbar.tools
@@ -38,7 +45,14 @@ test.describe('when selecting a tool from the toolbar', () => {
 })
 
 test.describe('when dragging a tool from the toolbar', () => {
-	test.beforeEach(setup)
+	test.beforeEach(async ({ page, context }) => {
+		const url = page.url()
+		if (!url.includes('end-to-end')) {
+			await setup({ page, context } as any)
+		} else {
+			await hardResetEditor(page)
+		}
+	})
 
 	test('dragging from main toolbar creates and positions shapes', async ({
 		page,
@@ -66,8 +80,6 @@ test.describe('when dragging a tool from the toolbar', () => {
 			expect(shapes).toContain('geo')
 		})
 
-		await sleep(100)
-
 		await test.step('dragging arrow tool creates an arrow', async () => {
 			const startPoint = { x: 300, y: 100 }
 			const endPoint = { x: 400, y: 200 }
@@ -85,8 +97,6 @@ test.describe('when dragging a tool from the toolbar', () => {
 			expect(shapes).toContain('geo')
 			expect(shapes).toContain('arrow')
 		})
-
-		await sleep(100)
 
 		await test.step('dragging text tool creates editable text', async () => {
 			const startPoint = { x: 500, y: 100 }

@@ -1,9 +1,16 @@
 import { expect } from '@playwright/test'
 import test from '../fixtures/fixtures'
-import { setup, sleep } from '../shared-e2e'
+import { hardResetEditor, setup, sleep } from '../shared-e2e'
 
 test.describe('page menu', () => {
-	test.beforeEach(setup)
+	test.beforeEach(async ({ page, context }) => {
+		const url = page.url()
+		if (!url.includes('end-to-end')) {
+			await setup({ page, context } as any)
+		} else {
+			await hardResetEditor(page)
+		}
+	})
 
 	test.afterEach(async ({ page }) => {
 		// press escape a few times
