@@ -794,15 +794,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 function getISOWeekKey(): string {
 	const now = new Date()
-	const year = now.getUTCFullYear()
-	const week = getISOWeekNumber(now)
-	return `${year}-W${String(week).padStart(2, '0')}`
-}
-
-function getISOWeekNumber(date: Date): number {
-	const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+	const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
 	const dayNum = d.getUTCDay() || 7
+	// Move to Thursday of the ISO week (determines which year the week belongs to)
 	d.setUTCDate(d.getUTCDate() + 4 - dayNum)
-	const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
-	return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
+	const year = d.getUTCFullYear()
+	const yearStart = new Date(Date.UTC(year, 0, 1))
+	const week = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
+	return `${year}-W${String(week).padStart(2, '0')}`
 }

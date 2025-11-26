@@ -70,8 +70,14 @@ export class AgentService {
 				)
 
 				if (!recordRes.ok) {
-					const errorData = (await recordRes.json()) as { error: string }
-					console.error('Failed to record usage:', errorData)
+					let errorDetails: string
+					try {
+						const errorData = (await recordRes.json()) as { error: string }
+						errorDetails = errorData.error
+					} catch {
+						errorDetails = await recordRes.text()
+					}
+					console.error('Failed to record usage:', errorDetails)
 				}
 			} catch (recordError) {
 				console.error('Exception recording usage:', recordError)
@@ -249,6 +255,9 @@ export class AgentService {
 					time: Date.now() - startTime,
 				}
 			}
+
+			// Await usage to ensure onFinish callback completes
+			await result.usage
 		} catch (error: any) {
 			// Check if it was aborted
 			if (signal?.aborted || error?.name === 'AbortError') {
