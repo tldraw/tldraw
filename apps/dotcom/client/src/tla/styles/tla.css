@@ -338,8 +338,3 @@
 .tla .tl-watermark_SEE-LICENSE {
 	display: none;
 }
-
-/* Crazy sneaky */
-.tla {
-	--tl-layer-canvas-in-front: 550;
-}
