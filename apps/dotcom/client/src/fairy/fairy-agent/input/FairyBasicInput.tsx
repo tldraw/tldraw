@@ -96,7 +96,7 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 		}
 	}
 
-	const handlePointerDown = useCallback(
+	const handleMouseDown = useCallback(
 		(e: React.PointerEvent<HTMLTextAreaElement>) => {
 			if (getIsCoarsePointer()) {
 				e.stopPropagation()
@@ -134,7 +134,7 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 					value={inputValue}
 					onChange={(e) => setInputValue(e.target.value)}
 					onKeyDown={handleKeyDown}
-					onPointerDown={handlePointerDown}
+					onMouseDown={handleMouseDown}
 					disabled={isCoarsePointer}
 					readOnly={isCoarsePointer}
 					autoFocus={!isCoarsePointer}
