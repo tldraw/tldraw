@@ -13,6 +13,7 @@ import {
 	Streaming,
 } from '@tldraw/fairy-shared'
 import { LanguageModel, ModelMessage, streamText } from 'ai'
+import { INTERNAL_BASE_URL } from '../constants'
 import { Environment } from '../environment'
 import { buildMessages } from '../prompt/buildMessages'
 import { buildSystemPrompt } from '../prompt/buildSystemPrompt'
@@ -59,11 +60,14 @@ export class AgentService {
 		// Record usage - runs even on abort/error
 		if (cost > 0) {
 			try {
-				const recordRes = await userStub.fetch(`http://internal/app/${userId}/fairy/record-usage`, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ actualCost: cost }),
-				})
+				const recordRes = await userStub.fetch(
+					`${INTERNAL_BASE_URL}/app/${userId}/fairy/record-usage`,
+					{
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ actualCost: cost }),
+					}
+				)
 
 				if (!recordRes.ok) {
 					const errorData = (await recordRes.json()) as { error: string }

@@ -1,5 +1,6 @@
 import { AgentAction, AgentPrompt, Streaming } from '@tldraw/fairy-shared'
 import { DurableObject } from 'cloudflare:workers'
+import { INTERNAL_BASE_URL } from '../constants'
 import { Environment } from '../environment'
 import { AgentService } from './AgentService'
 
@@ -24,10 +25,13 @@ export class AgentDurableObject extends DurableObject<Environment> {
 		// Admins bypass rate limits
 		if (userIsAdmin) return null
 
-		const checkRes = await userStub.fetch(`http://internal/app/${userId}/fairy/check-rate-limit`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-		})
+		const checkRes = await userStub.fetch(
+			`${INTERNAL_BASE_URL}/app/${userId}/fairy/check-rate-limit`,
+			{
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+			}
+		)
 
 		if (!checkRes.ok) {
 			const errorData = (await checkRes.json()) as { error: string }
@@ -153,7 +157,6 @@ export class AgentDurableObject extends DurableObject<Environment> {
 						throw writeError
 					}
 				}
-
 				if (!signal.aborted) {
 					await writer.close()
 				}
@@ -165,16 +168,17 @@ export class AgentDurableObject extends DurableObject<Environment> {
 					} catch {
 						// Writer already closed/aborted, ignore
 					}
-				} else {
-					console.error('Stream error:', error)
-					const errorMessage = error?.message || error?.toString() || 'Unknown error'
-					const errorData = `data: ${JSON.stringify({ error: errorMessage })}\n\n`
-					try {
-						await writer.write(encoder.encode(errorData))
-						await writer.close()
-					} catch (writeError) {
-						await writer.abort(writeError)
-					}
+					return
+				}
+
+				console.error('Stream error:', error)
+				const errorMessage = error?.message || error?.toString() || 'Unknown error'
+				const errorData = `data: ${JSON.stringify({ error: errorMessage })}\n\n`
+				try {
+					await writer.write(encoder.encode(errorData))
+					await writer.close()
+				} catch (writeError) {
+					await writer.abort(writeError)
 				}
 			}
 		})()
