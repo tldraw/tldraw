@@ -6,7 +6,8 @@ import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
 
 // VSCE_PAT needs to be set. It is used by the vsce publish command.
-const env = makeEnv(['VSCE_PAT', 'TLDRAW_ENV'])
+// OVSX_PAT needs to be set for Open VSX publishing.
+const env = makeEnv(['VSCE_PAT', 'OVSX_PAT', 'TLDRAW_ENV'])
 
 const EXTENSION_DIR = 'apps/vscode/extension'
 const DISTRIBUTION_DIR = 'apps/vscode/extension/release'
@@ -75,6 +76,12 @@ async function copyExtensionToReleaseFolder(version: string) {
 	await exec('git', ['push'])
 }
 
+async function publishToOpenVSX(version: string) {
+	nicelog('Publishing to Open VSX...')
+	await exec('npx', ['ovsx', 'publish', '-p', env.OVSX_PAT], { pwd: EXTENSION_DIR })
+	nicelog(`Successfully published v${version} to Open VSX`)
+}
+
 async function packageAndPublish(version: string) {
 	await exec('yarn', ['lazy', 'run', 'build', '--filter=packages/*'])
 	switch (env.TLDRAW_ENV) {
@@ -82,6 +89,7 @@ async function packageAndPublish(version: string) {
 			await exec('yarn', ['package'], { pwd: EXTENSION_DIR })
 			await copyExtensionToReleaseFolder(version)
 			await exec('yarn', ['publish'], { pwd: EXTENSION_DIR })
+			await publishToOpenVSX(version)
 			return
 		case 'staging':
 			await exec('yarn', ['package', '--pre-release'], { pwd: EXTENSION_DIR })
