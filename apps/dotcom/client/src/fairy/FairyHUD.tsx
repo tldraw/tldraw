@@ -133,6 +133,7 @@ function FairyHUDHeader({
 export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	const editor = useEditor()
 	const breakpoint = useBreakpoint()
+	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
 	const [headerMenuPopoverOpen, setHeaderMenuPopoverOpen] = useState(false)
 	const [fairyMenuPopoverOpen, setFairyMenuPopoverOpen] = useState(false)
 	const [todoMenuPopoverOpen, setTodoMenuPopoverOpen] = useState(false)
@@ -333,15 +334,20 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	)
 
 	// hide the HUD when the mobile style panel is open
-	const isMobileStylePanelOpen = useValue(
-		'mobile style panel open',
-		() => editor.menus.isMenuOpen(`mobile style menu`),
-		[editor, breakpoint]
+	const isMobileBottomToolbarsOpen = useValue(
+		'mobile bottom toolbars open',
+		() => {
+			if (!isMobile) return false
+			return (
+				editor.menus.isMenuOpen(`mobile style menu`) || editor.menus.isMenuOpen(`toolbar overflow`)
+			)
+		},
+		[editor, isMobile]
 	)
 
 	// Position HUD above mobile style menu button on mobile
 	useEffect(() => {
-		if (breakpoint >= PORTRAIT_BREAKPOINT.TABLET_SM) {
+		if (!isMobile) {
 			setMobileMenuOffset(null)
 			return
 		}
@@ -362,7 +368,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		window.addEventListener('resize', updatePosition)
 
 		return () => window.removeEventListener('resize', updatePosition)
-	}, [breakpoint])
+	}, [isMobile])
 
 	return (
 		<>
@@ -372,7 +378,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 				style={{
 					bottom: mobileMenuOffset !== null ? 64 : isDebugMode ? 48 : 8,
 					right: mobileMenuOffset !== null ? mobileMenuOffset : 8,
-					display: isMobileStylePanelOpen ? 'none' : 'block',
+					display: isMobileBottomToolbarsOpen ? 'none' : 'block',
 				}}
 				onContextMenu={handleContextMenu}
 			>

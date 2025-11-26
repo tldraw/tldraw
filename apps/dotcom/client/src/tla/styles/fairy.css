@@ -125,6 +125,7 @@
 
 .fairy-input-container {
 	padding: 4px;
+	padding-top: 1px;
 }
 
 .fairy-input {
@@ -136,7 +137,7 @@
 	gap: 4px;
 	min-height: 64px;
 	border: 1px solid var(--tl-color-divider);
-	border-radius: var(--tl-radius-3);
+	border-radius: var(--tl-radius-2);
 }
 
 .fairy-input__form {
@@ -357,7 +358,7 @@
 	flex-direction: column;
 	width: 309px;
 	height: 316px;
-	box-shadow: var(--tl-shadow-1);
+	box-shadow: var(--tl-shadow-2);
 	background-color: var(--tl-color-panel);
 	border-radius: var(--tl-radius-3);
 	overflow: hidden;
@@ -392,7 +393,7 @@
 	gap: 6px;
 	min-height: 0;
 	height: 0;
-	scrollbar-width: 8px;
+	scrollbar-width: 2px;
 	scrollbar-color: var(--tl-color-muted-1) transparent;
 }
 
@@ -452,8 +453,8 @@
 
 .fairy-chat-history-prompt-user,
 .fairy-chat-history-prompt-other-agent {
-	background-color: var(--tl-color-low);
-	border-radius: 8px;
+	background-color: var(--tl-color-muted-2);
+	border-radius: var(--tl-radius-1);
 	padding: 2px 8px 2px 8px;
 	font-size: 12px;
 	line-height: 1.5;

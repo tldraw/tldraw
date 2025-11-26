@@ -13,8 +13,8 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
 	const enterMsg = useMsg(fairyMessages.enterMsg)
 
-	const fairyEntity = useValue(agent.$fairyEntity)
-	const fairyConfig = useValue(agent.$fairyConfig)
+	const fairyEntity = useValue('fairyEntity', () => agent.$fairyEntity.get(), [agent])
+	const fairyConfig = useValue('fairyConfig', () => agent.$fairyConfig.get(), [agent])
 
 	// Auto-resize textarea when content changes
 	useLayoutEffect(() => {
@@ -77,8 +77,8 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 				} else {
 					// Enter: submit message
 					e.preventDefault()
-					if (inputValue.trim() || isGenerating) {
-						handleComplete(inputValue)
+					if (isGenerating) {
+						handleComplete(inputValue || getRandomNoInputMessage())
 					}
 				}
 			} else if (e.key === 'Escape') {
@@ -92,7 +92,7 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 		if (isGenerating) {
 			agent.cancel()
 		} else {
-			handleComplete(inputValue ?? ':kiss:')
+			handleComplete(inputValue || getRandomNoInputMessage())
 		}
 	}
 
@@ -109,7 +109,9 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 		[handlePrompt, enterMsg]
 	)
 
-	const whisperPlaceholder = useMsg(fairyMessages.whisperToFairy, { name: fairyConfig.name })
+	const whisperPlaceholder = useMsg(fairyMessages.whisperToFairy, {
+		name: fairyConfig.name.split(' ')[0],
+	})
 	const stopLabel = useMsg(fairyMessages.stopLabel)
 	const sendLabel = useMsg(fairyMessages.sendLabel)
 
@@ -124,6 +126,7 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 				<textarea
 					ref={textareaRef}
 					id="fairy-message-input"
+					className="fairy-input__field"
 					name="fairy-message"
 					placeholder={whisperPlaceholder}
 					value={inputValue}
@@ -131,7 +134,6 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 					onKeyDown={handleKeyDown}
 					onPointerDown={handlePointerDown}
 					autoFocus={!getIsCoarsePointer()}
-					className="fairy-input__field"
 					rows={1}
 					spellCheck={false}
 				/>
@@ -145,4 +147,13 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 			</div>
 		</div>
 	)
+}
+
+const NO_INPUT_MESSAGES = [
+	'I mumble a gentle whisper, you cannot quite hear it.',
+	"I'm not sure what to say.",
+]
+
+function getRandomNoInputMessage() {
+	return NO_INPUT_MESSAGES[Math.floor(Math.random() * NO_INPUT_MESSAGES.length)]
 }
