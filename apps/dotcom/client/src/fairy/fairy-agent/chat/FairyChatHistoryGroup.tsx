@@ -145,18 +145,7 @@ export function getActionHistoryGroups(
 	if (isFinalSection && agent.isGenerating()) {
 		const finalGroup = groups[groups.length - 1]
 		if (finalGroup) {
-			if (finalGroup.items.length > 2) {
-				// Pop out the final action of the final group
-				const finalItem = finalGroup.items.pop()
-				if (finalItem) {
-					groups.push({
-						items: [finalItem],
-						isFinalGroup: true,
-					})
-				}
-			} else {
-				finalGroup.isFinalGroup = true
-			}
+			finalGroup.isFinalGroup = true
 		}
 	}
 
