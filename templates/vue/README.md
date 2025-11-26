@@ -7,7 +7,7 @@
 
 This repo contains a template you can copy for using [tldraw](https://github.com/tldraw/tldraw) in a [Vue.js](https://vuejs.org/) app built with [Vite](https://vitejs.dev/).
 
-Tldraw is written using React, but that doesn't mean it can't be used from other frameworks.Most frontend frameworks allow you to escape to plain JS, and from there you can render the tldraw component
+Tldraw is written using React, but that doesn't mean it can't be used from other frameworks. Most frontend frameworks allow you to escape to plain JS, and from there you can render the tldraw component.
 
 ## Local development
 
@@ -15,7 +15,7 @@ Install dependencies with `yarn` or `npm install`.
 
 Run the development server with `yarn dev` or `npm run dev`.
 
-Open `http://localhost:5173/` in your browser to see the app
+Open `http://localhost:5173/` in your browser to see the app.
 
 ## License
 
