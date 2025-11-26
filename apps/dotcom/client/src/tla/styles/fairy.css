@@ -569,7 +569,7 @@
 .fairy-chat-history-group-items {
 	display: flex;
 	flex-direction: column;
-	gap: 6px;
+	gap: 8px;
 	padding-left: 2px;
 }
 
