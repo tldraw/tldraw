@@ -86,6 +86,9 @@ export const components: TLComponents = {
 	MenuPanel: TlaEditorMenuPanel,
 	TopPanel: TlaEditorTopPanel,
 	SharePanel: TlaEditorSharePanel,
+	InFrontOfTheCanvas: () => {
+		return <FairyHUDTeaser />
+	},
 	Dialogs: null,
 	Toasts: null,
 }
