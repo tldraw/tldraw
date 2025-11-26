@@ -25,9 +25,10 @@ export function FairyHUDTeaser() {
 	const breakpoint = useBreakpoint()
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
 	const [mobileMenuOffset, setMobileMenuOffset] = useState<number | null>(null)
+
 	const isMobileStylePanelOpen = useValue(
 		'mobile style panel open',
-		() => editor.menus.isMenuOpen(`mobile style`),
+		() => editor.menus.isMenuOpen(`mobile style menu`),
 		[editor, breakpoint]
 	)
 

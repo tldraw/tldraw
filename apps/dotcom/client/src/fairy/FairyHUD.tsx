@@ -335,7 +335,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	// hide the HUD when the mobile style panel is open
 	const isMobileStylePanelOpen = useValue(
 		'mobile style panel open',
-		() => editor.menus.isMenuOpen(`mobile style`),
+		() => editor.menus.isMenuOpen(`mobile style menu`),
 		[editor, breakpoint]
 	)
 
