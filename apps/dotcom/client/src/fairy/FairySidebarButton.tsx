@@ -57,6 +57,7 @@ export function FairySidebarButton({
 
 	const showPlusButton =
 		hasAnySelectedFairies && !fairyIsSelected && !project && !hasAnyActiveProjects
+		&& !agent.isSleeping()
 
 	return (
 		<_ContextMenu.Root dir="ltr">
