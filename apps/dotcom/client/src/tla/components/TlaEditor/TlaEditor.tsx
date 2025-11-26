@@ -311,7 +311,6 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 							{/* <InCanvasTaskList agents={agents} /> */}
 							<RemoteFairies />
 							<Fairies agents={agents} />
-							<FairyHUD agents={agents} />
 						</Suspense>
 					) : null}
 				</>
