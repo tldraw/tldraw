@@ -33,6 +33,7 @@ import {
 	Box,
 	computed,
 	Computed,
+	createEmptyRecordsDiff,
 	Editor,
 	EditorAtom,
 	fetch,
@@ -46,6 +47,7 @@ import {
 } from 'tldraw'
 import { TldrawApp } from '../../../tla/app/TldrawApp'
 import { FAIRY_WORKER } from '../../../utils/config'
+import { isDevelopmentEnv } from '../../../utils/env'
 import { AgentActionUtil } from '../../actions/AgentActionUtil'
 import { $fairyIsApplyingAction } from '../../FairyIsApplyingAction'
 import { getProjectByAgentId } from '../../FairyProjects'
@@ -960,13 +962,21 @@ export class FairyAgent {
 
 		const modeDefinition = getFairyModeDefinition(this.getMode())
 		let promise: Promise<void> | null = null
-		let diff: RecordsDiff<TLRecord>
+		let diff: RecordsDiff<TLRecord> = createEmptyRecordsDiff()
 		try {
 			diff = editor.store.extractingChanges(() => {
 				$fairyIsApplyingAction.set(true)
 				promise = util.applyAction(structuredClone(action), helpers) ?? null
 				$fairyIsApplyingAction.set(false)
 			})
+		} catch (error) {
+			// always toast the error
+			this.onError(error)
+			promise = null
+			if (isDevelopmentEnv) {
+				// In development, crash by throwing error
+				throw error
+			}
 		} finally {
 			this.isActing = false
 		}
