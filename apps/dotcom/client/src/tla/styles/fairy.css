@@ -214,6 +214,7 @@
 	height: 44px !important;
 	min-width: 44px !important;
 	min-height: 44px !important;
+	padding: 2px;
 }
 
 .fairy-button-project-indicator {
@@ -362,8 +363,7 @@
 }
 
 .fairy-list {
-	box-shadow: var(--tl-shadow-1);
-	border: 1px solid var(--tl-color-divider);
+	box-shadow: var(--tl-shadow-2);
 	border-radius: var(--tl-radius-3);
 	background-color: var(--tl-color-panel);
 	height: fit-content;
