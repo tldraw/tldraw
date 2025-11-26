@@ -81,6 +81,7 @@ export function FairySidebarButton({
 							<FairySprite
 								showShadow
 								pose={fairyEntity.pose}
+								gesture={fairyEntity.gesture}
 								hatColor={getHatColor(fairyOutfit.hat)}
 								isAnimated={fairyEntity.pose !== 'idle' || fairyIsSelected}
 								flipX={fairyEntity.pose === 'sleeping' ? false : fairyEntity.flipX}
