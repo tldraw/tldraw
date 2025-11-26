@@ -15,6 +15,7 @@ export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
 		return {
 			icon: 'cursor' as const,
 			description: action.intent ?? '',
+			pose: 'writing' as const,
 		}
 	}
 

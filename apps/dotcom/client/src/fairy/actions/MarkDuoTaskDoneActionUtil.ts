@@ -1,20 +1,16 @@
 import { MarkDuoTaskDoneAction, Streaming } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
-import { $fairyTasks, setFairyTaskStatusAndNotifyCompletion } from '../FairyTaskList'
+import { setFairyTaskStatusAndNotifyCompletion } from '../FairyTaskList'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class MarkDuoTaskDoneActionUtil extends AgentActionUtil<MarkDuoTaskDoneAction> {
 	static override type = 'mark-duo-task-done' as const
 
 	override getInfo(action: Streaming<MarkDuoTaskDoneAction>) {
-		const task = $fairyTasks.get().find((task) => task.id === action.taskId)
-
 		return {
 			icon: 'note' as const,
-			description: action.complete
-				? `Completed duo task: ${task?.text ?? action.taskId}`
-				: 'Completing duo task...',
-			pose: 'thinking' as const,
+			description: action.complete ? `Completed task` : 'Completing task...',
+			pose: 'writing' as const,
 			canGroup: () => false,
 		}
 	}
@@ -22,23 +18,26 @@ export class MarkDuoTaskDoneActionUtil extends AgentActionUtil<MarkDuoTaskDoneAc
 	override applyAction(action: Streaming<MarkDuoTaskDoneAction>, _helpers: AgentHelpers) {
 		if (!action.complete) return
 
-		const task = $fairyTasks.get().find((task) => task.id === action.taskId)
-		if (!task) return
+		const currentWork = this.agent.getWork()
+		const currentTask = currentWork.tasks.find((task) => task.status === 'in-progress')
+		if (!currentTask) return // todo error
+		const currentTaskId = currentTask.id
 
-		setFairyTaskStatusAndNotifyCompletion(action.taskId, 'done', this.editor)
+		setFairyTaskStatusAndNotifyCompletion(currentTaskId, 'done', this.editor)
 		this.agent.$chatHistory.update((prev) => [
 			...prev,
 			{
 				type: 'memory-transition',
 				memoryLevel: 'project',
-				message: `I marked task ${action.taskId} as done: ${task.text}`,
+				message: `I just finished the task.\nID: "${currentTaskId}"\nTitle: "${currentTask.title}"\nDescription: "${currentTask.text}".`,
+				userFacingMessage: null,
 			},
 		])
 
 		// Return to duo-orchestrating-active mode after completing a task
 		this.agent.interrupt({
 			mode: 'duo-orchestrating-active',
-			input: { message: `I marked task ${action.taskId} as done: ${task.text}` },
+			input: null,
 		})
 	}
 }

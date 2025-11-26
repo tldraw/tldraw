@@ -8,11 +8,11 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 
 	override getInfo(action: Streaming<StartProjectAction>) {
 		return {
-			icon: 'note' as const,
+			icon: 'flag' as const,
 			description: action.complete
 				? `Started project: ${action.projectName}`
 				: 'Starting project...',
-			pose: 'thinking' as const,
+			pose: 'reading' as const,
 			canGroup: () => false,
 		}
 	}

@@ -201,6 +201,7 @@ export function TlaSidebarFileLinkInner({
 
 	const wrapperRef = useRef<HTMLDivElement>(null)
 	const hasGroups = useHasFlag('groups_frontend')
+	const isDragEnabled = hasGroups && !isCoarsePointer
 
 	if (!file) return null
 
@@ -231,11 +232,10 @@ export function TlaSidebarFileLinkInner({
 			// We use this id to scroll the active file link into view when creating or deleting files.
 			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
 			role="listitem"
-			draggable={!isCoarsePointer}
+			draggable={isDragEnabled}
 			onDragStart={
-				isCoarsePointer
-					? undefined
-					: (event) => {
+				isDragEnabled
+					? (event) => {
 							// Set native drag data for drag-to-new-tab functionality
 							const fileUrl = routes.tlaFile(fileId, { asUrl: true })
 							event.dataTransfer.effectAllowed = 'move'
@@ -247,6 +247,7 @@ export function TlaSidebarFileLinkInner({
 								clientY: event.clientY,
 							})
 						}
+					: undefined
 			}
 		>
 			<Link

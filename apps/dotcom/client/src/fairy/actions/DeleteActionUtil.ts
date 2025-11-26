@@ -10,6 +10,7 @@ export class DeleteActionUtil extends AgentActionUtil<DeleteAction> {
 		return {
 			icon: 'trash' as const,
 			description: action.intent ?? '',
+			pose: 'working' as const,
 			//canGroup: (other: Streaming<BaseAgentAction>) => other._type === 'delete',
 		}
 	}

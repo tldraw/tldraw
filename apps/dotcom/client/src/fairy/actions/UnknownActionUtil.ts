@@ -11,7 +11,7 @@ export class UnknownActionUtil extends AgentActionUtil<UnknownAction> {
 
 	override getInfo() {
 		return {
-			pose: 'thinking' as const,
+			pose: 'idle' as const,
 		}
 	}
 }

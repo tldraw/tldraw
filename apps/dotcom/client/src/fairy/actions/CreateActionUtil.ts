@@ -16,6 +16,7 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 		return {
 			icon: 'pencil' as const,
 			description: action.intent ?? '',
+			pose: 'working' as const,
 		}
 	}
 

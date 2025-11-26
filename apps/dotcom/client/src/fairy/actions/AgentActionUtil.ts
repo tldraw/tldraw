@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { AgentAction, AgentActionInfo, BaseAgentAction, Streaming } from '@tldraw/fairy-shared'
 import { Editor } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
@@ -19,7 +20,7 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	 * Return null to not show anything.
 	 * Defaults to the stringified action if not set.
 	 */
-	getInfo(_action: Streaming<T>): Partial<AgentActionInfo> | null {
+	getInfo(action: Streaming<T>): Partial<AgentActionInfo> | null {
 		return {}
 	}
 
@@ -28,7 +29,7 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	 * Useful for sanitizing or correcting actions.
 	 * @returns The transformed action, or null to reject the action
 	 */
-	sanitizeAction(action: Streaming<T>, _helpers: AgentHelpers): Streaming<T> | null {
+	sanitizeAction(action: Streaming<T>, helpers: AgentHelpers): Streaming<T> | null {
 		return action
 	}
 
@@ -37,7 +38,7 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	 * Any changes that happen during this function will be displayed as a diff.
 	 * @returns An optional object containing a promise and/or coordinates to move the fairy to
 	 */
-	applyAction(_action: Streaming<T>, _helpers: AgentHelpers): Promise<void> | void {
+	applyAction(action: Streaming<T>, helpers: AgentHelpers): Promise<void> | void {
 		// Do nothing by default
 	}
 

@@ -72,6 +72,7 @@ export function createTaskWaitCondition(taskId: string): FairyWaitCondition<Task
 	return {
 		eventType: 'task-completed',
 		matcher: (event) => event.task.id === taskId,
+		id: `task-completed:${taskId}`,
 	}
 }
 
@@ -109,5 +110,6 @@ export function createAgentModeTransitionWaitCondition(
 	return {
 		eventType: 'agent-mode-transition',
 		matcher: (event) => event.agentId === agentId && event.mode === mode,
+		id: `agent-mode-transition:${agentId}:${mode}`,
 	}
 }

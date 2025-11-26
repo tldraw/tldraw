@@ -5,6 +5,12 @@
       "value": "Export"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Accept invitation"
+    }
+  ],
   "038c9b4432": [
     {
       "type": 0,
@@ -55,6 +61,12 @@
     {
       "type": 0,
       "value": "Spiky"
+    }
+  ],
+  "0a91f7fa87": [
+    {
+      "type": 0,
+      "value": "This file has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
     }
   ],
   "0b27918290": [
@@ -165,18 +177,6 @@
       "value": "Instruct the group…"
     }
   ],
-  "20976e7bec": [
-    {
-      "type": 0,
-      "value": "Room is full"
-    }
-  ],
-  "21bfb2dc2e": [
-    {
-      "type": 0,
-      "value": "This room is approaching its size limit. Consider removing some content or starting a new file."
-    }
-  ],
   "2445e5e347": [
     {
       "type": 0,
@@ -213,16 +213,16 @@
       "value": "My files"
     }
   ],
-  "2deec2cb74": [
-    {
-      "type": 0,
-      "value": "This room has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
-    }
-  ],
   "2e86e6853d": [
     {
       "type": 0,
       "value": "Select leader"
+    }
+  ],
+  "2f7935debe": [
+    {
+      "type": 0,
+      "value": "Put away fairy"
     }
   ],
   "31246941ad": [
@@ -235,6 +235,12 @@
     {
       "type": 0,
       "value": "i18n: Highlight Missing"
+    }
+  ],
+  "3209f407ed": [
+    {
+      "type": 0,
+      "value": "three fairies"
     }
   ],
   "32210b37e4": [
@@ -277,6 +283,12 @@
     {
       "type": 0,
       "value": "Add a new task…"
+    }
+  ],
+  "3b6c2b4caa": [
+    {
+      "type": 0,
+      "value": "Terms of Service"
     }
   ],
   "3bc7d6ea2f": [
@@ -331,6 +343,12 @@
     {
       "type": 0,
       "value": "No fairies selected"
+    }
+  ],
+  "477df802ca": [
+    {
+      "type": 0,
+      "value": "To continue editing please copy the file to your files."
     }
   ],
   "47839e47a5": [
@@ -393,12 +411,6 @@
       "value": "Are you sure you want to delete this group? This action cannot be undone."
     }
   ],
-  "4e98378836": [
-    {
-      "type": 0,
-      "value": "Personality"
-    }
-  ],
   "4ef3716596": [
     {
       "type": 0,
@@ -421,6 +433,12 @@
     {
       "type": 0,
       "value": "Page menu"
+    }
+  ],
+  "542248f0ba": [
+    {
+      "type": 0,
+      "value": "This file is now read-only"
     }
   ],
   "54286b1d01": [
@@ -463,6 +481,12 @@
       "value": "Privacy policy"
     }
   ],
+  "5a2ccdc00a": [
+    {
+      "type": 0,
+      "value": "Failed to redeem invite code"
+    }
+  ],
   "5a86b22fa0": [
     {
       "type": 0,
@@ -501,18 +525,6 @@
     {
       "type": 0,
       "value": "Share"
-    }
-  ],
-  "5bb6cf3b53": [
-    {
-      "type": 0,
-      "value": "Room getting large"
-    }
-  ],
-  "5bcc12ace8": [
-    {
-      "type": 0,
-      "value": "This room is now read-only"
     }
   ],
   "5bec508475": [
@@ -689,6 +701,12 @@
       "value": "Invalid request."
     }
   ],
+  "7827371d1a": [
+    {
+      "type": 0,
+      "value": "This anonymous tldraw multiplayer file is now read-only. To continue editing, please sign in and copy it to your files."
+    }
+  ],
   "7835039819": [
     {
       "type": 0,
@@ -705,6 +723,12 @@
     {
       "type": 0,
       "value": "Submit an issue on GitHub"
+    }
+  ],
+  "79cc22ac6b": [
+    {
+      "type": 0,
+      "value": "A fairy is a little guy that can work with you on the canvas. Fairies can work alone or as a team. There is no limit to what a fairy can do. Nobody knows where they came from."
     }
   ],
   "7a3113b0ba": [
@@ -735,6 +759,12 @@
     {
       "type": 0,
       "value": "Open tldraw"
+    }
+  ],
+  "7cb471f815": [
+    {
+      "type": 0,
+      "value": "You've been invited to join tldraw fairies!"
     }
   ],
   "7cb5f8b4a5": [
@@ -771,12 +801,6 @@
     {
       "type": 0,
       "value": "Download"
-    }
-  ],
-  "80a3d8a5bb": [
-    {
-      "type": 0,
-      "value": "Log response time (solo mode only)"
     }
   ],
   "815e116a2e": [
@@ -819,6 +843,12 @@
       "value": "Show tasks on canvas"
     }
   ],
+  "8472a551f1": [
+    {
+      "type": 0,
+      "value": "Fairies have come to tldraw for the month of December."
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -845,16 +875,28 @@
       "value": "Rename file"
     }
   ],
+  "88e83b88c5": [
+    {
+      "type": 0,
+      "value": "Purchase Fairy Bundle"
+    }
+  ],
+  "898e76f01a": [
+    {
+      "type": 0,
+      "value": "Reset everything"
+    }
+  ],
   "8ad4303b83": [
     {
       "type": 0,
       "value": "No thanks"
     }
   ],
-  "8b1946f965": [
+  "8be569f100": [
     {
       "type": 0,
-      "value": "To continue editing please copy the room to your files."
+      "value": "one time payment"
     }
   ],
   "8c2d3d730c": [
@@ -997,12 +1039,6 @@
       "value": "Delete file"
     }
   ],
-  "9c258b8f88": [
-    {
-      "type": 0,
-      "value": "This anonymous tldraw multiplayer room is now read-only. To continue editing, please sign in and copy it to your files."
-    }
-  ],
   "9ceb927baa": [
     {
       "type": 0,
@@ -1031,12 +1067,6 @@
     {
       "type": 0,
       "value": "Padding"
-    }
-  ],
-  "a10d7a62aa": [
-    {
-      "type": 0,
-      "value": "Hat"
     }
   ],
   "a18366b217": [
@@ -1111,6 +1141,12 @@
       "value": "Leader fairy selection"
     }
   ],
+  "a8873770ab": [
+    {
+      "type": 0,
+      "value": "File is getting large"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
@@ -1139,6 +1175,18 @@
     {
       "type": 0,
       "value": "Guest user"
+    }
+  ],
+  "b2c3c2e30c": [
+    {
+      "type": 0,
+      "value": "File is full"
+    }
+  ],
+  "b34a671e2c": [
+    {
+      "type": 0,
+      "value": "Log response time"
     }
   ],
   "b357b524e7": [
@@ -1279,6 +1327,12 @@
       "value": "Unable to publish the file."
     }
   ],
+  "c3e97dd6e9": [
+    {
+      "type": 0,
+      "value": "$"
+    }
+  ],
   "c4b39a1cc3": [
     {
       "type": 0,
@@ -1343,6 +1397,18 @@
     {
       "type": 0,
       "value": "SVG"
+    }
+  ],
+  "ce0547606c": [
+    {
+      "type": 0,
+      "value": "This file is approaching its size limit. Consider removing some content or starting a new file."
+    }
+  ],
+  "ce1424d44b": [
+    {
+      "type": 0,
+      "value": "You already have fairy access!"
     }
   ],
   "cea291e45e": [
@@ -1483,6 +1549,26 @@
       "value": "Select a fairy on the right to chat with"
     }
   ],
+  "df6ff49394": [
+    {
+      "type": 0,
+      "value": "Fairies are a "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "temporary"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " feature. On January 1st, 2026, all fairies will be removed from the application. Perhaps they will return again someday. Your purchase is for access to fairies for December 2025 only."
+    }
+  ],
   "dfdb78a4e4": [
     {
       "type": 0,
@@ -1591,12 +1677,6 @@
     {
       "type": 0,
       "value": " to learn more."
-    }
-  ],
-  "eecad1e370": [
-    {
-      "type": 0,
-      "value": "Delete fairy"
     }
   ],
   "ef53538ae4": [
@@ -1723,6 +1803,12 @@
     {
       "type": 0,
       "value": "Import file…"
+    }
+  ],
+  "ffec95af2f": [
+    {
+      "type": 0,
+      "value": "Purchase fairy access"
     }
   ]
 }
