@@ -1,4 +1,4 @@
-import { SynchronousStorage, UnknownRecord } from '../../../store/src'
+import { SynchronousStorage, UnknownRecord } from '@tldraw/store'
 
 /**
  * Transaction interface for storage operations. Provides methods to read and modify
@@ -19,10 +19,9 @@ export interface TLSyncStorageTransaction<R extends UnknownRecord> extends Synch
 	/**
 	 * Get all changes (document updates and deletions) since a given clock time.
 	 * This is the main method for calculating diffs for client sync.
-	 * This must not be called during a transaction.
 	 *
 	 * @param sinceClock - The clock time to get changes since
-	 * ```
+	 * @returns Changes since the specified clock time
 	 */
 	getChangesSince(sinceClock: number): TLSyncStorageGetChangesSinceResult<R>
 }
@@ -69,12 +68,20 @@ export interface TLSyncStorageOnChangeCallbackProps {
 	documentClock: number
 }
 
+/**
+ * Result returned from a storage transaction.
+ * @public
+ */
 export interface TLSyncStorageTransactionResult<T> {
 	documentClock: number
 	didChange: boolean
 	result: T
 }
 
+/**
+ * Result returned from getChangesSince, containing all changes since a given clock time.
+ * @public
+ */
 export interface TLSyncStorageGetChangesSinceResult<R extends UnknownRecord> {
 	puts: Iterable<R>
 	deletes: Iterable<string>

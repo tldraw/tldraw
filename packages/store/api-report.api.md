@@ -176,6 +176,10 @@ export type Migration = {
     readonly filter?: (record: UnknownRecord) => boolean;
     readonly scope: 'record';
     readonly up: (oldState: UnknownRecord) => UnknownRecord | void;
+} | {
+    readonly down?: never;
+    readonly scope: 'storage';
+    readonly up: (storage: SynchronousRecordStorage<UnknownRecord>) => void;
 });
 
 // @public
@@ -514,6 +518,8 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
     // @internal
     getType(typeName: string): RecordType<R, any>;
     migratePersistedRecord(record: R, persistedSchema: SerializedSchema, direction?: 'down' | 'up'): MigrationResult<R>;
+    // (undocumented)
+    migrateStorage(storage: SynchronousStorage<R>): void;
     migrateStoreSnapshot(snapshot: StoreSnapshot<R>, opts?: {
         mutateInputStore?: boolean;
     }): MigrationResult<SerializedStore<R>>;
@@ -626,6 +632,30 @@ export type StoreValidators<R extends UnknownRecord> = {
         typeName: K;
     }>>;
 };
+
+// @public
+export interface SynchronousRecordStorage<R extends UnknownRecord> {
+    // (undocumented)
+    delete(id: string): void;
+    // (undocumented)
+    entries(): Iterable<[string, R]>;
+    // (undocumented)
+    get(id: string): R | undefined;
+    // (undocumented)
+    keys(): Iterable<string>;
+    // (undocumented)
+    set(id: string, record: R): void;
+    // (undocumented)
+    values(): Iterable<R>;
+}
+
+// @public
+export interface SynchronousStorage<R extends UnknownRecord> extends SynchronousRecordStorage<R> {
+    // (undocumented)
+    getSchema(): SerializedSchema;
+    // (undocumented)
+    setSchema(schema: SerializedSchema): void;
+}
 
 // @public
 export type UnknownRecord = BaseRecord<string, RecordId<UnknownRecord>>;

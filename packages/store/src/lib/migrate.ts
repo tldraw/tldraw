@@ -230,6 +230,7 @@ export type Migration = {
 
 /**
  * Abstraction over the store that can be used to perform migrations.
+ * @public
  */
 export interface SynchronousRecordStorage<R extends UnknownRecord> {
 	get(id: string): R | undefined

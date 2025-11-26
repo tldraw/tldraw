@@ -31,6 +31,10 @@ export const TOMBSTONE_PRUNE_BUFFER_SIZE = 1000
 /** @internal */
 export const MAX_TOMBSTONES = 5000
 
+/**
+ * Default initial snapshot for a new room.
+ * @public
+ */
 export const DEFAULT_INITIAL_SNAPSHOT = {
 	documentClock: 0,
 	tombstoneHistoryStartsAtClock: 0,

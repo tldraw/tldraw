@@ -418,6 +418,7 @@ export type Result<T, E> = ErrorResult<E> | OkResult<T>;
 export const Result: {
     err<E>(error: E): ErrorResult<E>;
     ok<T>(value: T): OkResult<T>;
+    all<T>(results: Result<T, any>[]): Result<T[], any>;
 };
 
 // @internal

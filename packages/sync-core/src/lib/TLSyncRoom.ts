@@ -1189,13 +1189,15 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 }
 
-interface MinimalDocStore<R extends UnknownRecord> {
+/** @internal */
+export interface MinimalDocStore<R extends UnknownRecord> {
 	get(id: string): UnknownRecord | undefined
 	set(id: string, record: R): void
 	delete(id: string): void
 }
 
-class PresenceStore<R extends UnknownRecord> implements MinimalDocStore<R> {
+/** @internal */
+export class PresenceStore<R extends UnknownRecord> implements MinimalDocStore<R> {
 	private readonly presences = new AtomMap<string, R>('presences')
 
 	get(id: string): UnknownRecord | undefined {
