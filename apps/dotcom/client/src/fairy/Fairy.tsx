@@ -290,6 +290,7 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 					<div className="fairy-sprite-wrapper">
 						<FairySprite
 							pose={fairyEntity.pose}
+							gesture={fairyEntity.gesture}
 							hatColor={getHatColor(fairyOutfit.hat)}
 							showShadow
 							isAnimated={fairyEntity.pose !== 'idle' || isSelected}

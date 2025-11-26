@@ -68,6 +68,7 @@ export function getHatColor(hat: FairyOutfit['hat']) {
 
 export function FairySprite({
 	pose,
+	gesture,
 	flipX,
 	hatColor,
 	projectColor = 'var(--tl-color-fairy-light)',
@@ -77,6 +78,7 @@ export function FairySprite({
 	isOrchestrator,
 }: {
 	pose: FairyPose
+	gesture?: FairyPose | null
 	flipX?: boolean
 	tint?: string | null
 	projectColor?: string
@@ -93,7 +95,7 @@ export function FairySprite({
 		<div className="fairy-sprite-container">
 			{isAnimated ? (
 				<AnimatedFairySpriteComponent
-					pose={pose}
+					pose={gesture || pose}
 					speed={pose === 'working' ? 100 : isGenerating ? 120 : 160}
 					topWingColor={projectColor}
 					bottomWingColor={bottomWingColor}
@@ -104,7 +106,7 @@ export function FairySprite({
 				/>
 			) : (
 				<FairySpriteSvg
-					pose={pose}
+					pose={gesture || pose}
 					topWingColor={projectColor}
 					bottomWingColor={bottomWingColor}
 					bodyColor={'var(--tl-color-fairy-light)'}
@@ -138,7 +140,6 @@ function AnimatedFairySpriteComponent({
 	pose,
 	...rest
 }: FairySpriteSvgProps & { speed: number }) {
-	// Gesture takes precedence over pose
 	const keyframe = useKeyframe({
 		pose,
 		duration: speed,
