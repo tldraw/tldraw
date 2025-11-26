@@ -77,7 +77,7 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 				} else {
 					// Enter: submit message
 					e.preventDefault()
-					if (isGenerating) {
+					if (!isGenerating) {
 						handleComplete(inputValue || getRandomNoInputMessage())
 					}
 				}
@@ -152,6 +152,8 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 const NO_INPUT_MESSAGES = [
 	'I mumble a gentle whisper, you cannot quite hear it.',
 	"I'm not sure what to say.",
+	'(head scratch)',
+	'What should I say?',
 ]
 
 function getRandomNoInputMessage() {

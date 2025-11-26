@@ -7,7 +7,7 @@ export const fairyMessages = defineMessages({
 	newFairy: { defaultMessage: 'New fairy' },
 	selectFairy: { defaultMessage: 'Select fairy' },
 	deselectFairy: { defaultMessage: 'Deselect fairy' },
-	resetChat: { defaultMessage: 'Reset chat' },
+	resetChat: { defaultMessage: 'Clear' },
 
 	// Task list (titles and placeholders)
 	addTaskPlaceholder: { defaultMessage: 'Add a new task…' },
