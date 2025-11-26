@@ -58,6 +58,18 @@ function FairyHUDHeader({
 		(member) => member.role === 'orchestrator' || member.role === 'duo-orchestrator'
 	)
 
+	const fairyClickable = useValue(
+		'fairy clickable',
+		() => shownFairy && (!isProjectStarted || !project),
+		[isProjectStarted, project]
+	)
+
+	const zoomToFairy = useCallback(() => {
+		if (!fairyClickable || !shownFairy) return
+
+		shownFairy.zoomTo()
+	}, [shownFairy, fairyClickable])
+
 	const getDisplayName = () => {
 		if (!isProjectStarted || !project) {
 			return fairyConfig?.name
@@ -81,7 +93,9 @@ function FairyHUDHeader({
 				<F defaultMessage="New project" />
 			</div>
 		) : shownFairy && fairyConfig ? (
-			<div className="fairy-id-display">{getDisplayName()}</div>
+			<div className="fairy-id-display" onClick={zoomToFairy}>
+				<p style={{ cursor: fairyClickable ? 'pointer' : 'default' }}>{getDisplayName()}</p>
+			</div>
 		) : (
 			<div style={{ flex: 1 }}></div>
 		)

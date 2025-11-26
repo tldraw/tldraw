@@ -133,7 +133,13 @@ export function FairyMenuContent({
 	return (
 		<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">
 			<TldrawUiMenuGroup id="fairy-movement-menu">
-				<TldrawUiMenuItem id="go-to-fairy" onSelect={() => agent.zoomTo()} label={goToFairyLabel} />
+				{menuType === 'context-menu' && (
+					<TldrawUiMenuItem
+						id="go-to-fairy"
+						onSelect={() => agent.zoomTo()}
+						label={goToFairyLabel}
+					/>
+				)}
 				<TldrawUiMenuItem
 					id="summon-fairy"
 					onSelect={() => agent.summon()}
