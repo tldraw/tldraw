@@ -135,8 +135,6 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 					onChange={(e) => setInputValue(e.target.value)}
 					onKeyDown={handleKeyDown}
 					onMouseDown={handleMouseDown}
-					disabled={isCoarsePointer}
-					readOnly={isCoarsePointer}
 					autoFocus={!isCoarsePointer}
 					rows={1}
 					spellCheck={false}
