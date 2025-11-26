@@ -115,6 +115,7 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 	})
 	const stopLabel = useMsg(fairyMessages.stopLabel)
 	const sendLabel = useMsg(fairyMessages.sendLabel)
+	const isCoarsePointer = getIsCoarsePointer()
 
 	return (
 		<div className="fairy-input-container">
@@ -134,7 +135,9 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 					onChange={(e) => setInputValue(e.target.value)}
 					onKeyDown={handleKeyDown}
 					onPointerDown={handlePointerDown}
-					autoFocus={!getIsCoarsePointer()}
+					disabled={isCoarsePointer}
+					readOnly={isCoarsePointer}
+					autoFocus={!isCoarsePointer}
 					rows={1}
 					spellCheck={false}
 				/>
