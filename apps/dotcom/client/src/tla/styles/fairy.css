@@ -444,7 +444,7 @@
 .fairy-chat-history-prompt-other-agent {
 	background-color: var(--tl-color-muted-2);
 	border-radius: var(--tl-radius-1);
-	padding: 2px 8px 2px 8px;
+	padding: 4px 8px;
 	font-size: 12px;
 	line-height: 1.5;
 	color: var(--tl-color-text-1);
