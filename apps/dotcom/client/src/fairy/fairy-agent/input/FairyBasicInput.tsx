@@ -100,6 +100,7 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 		(e: React.PointerEvent<HTMLTextAreaElement>) => {
 			if (getIsCoarsePointer()) {
 				e.stopPropagation()
+				e.preventDefault()
 				const value = window.prompt(enterMsg)
 				if (value) {
 					handlePrompt(value)
