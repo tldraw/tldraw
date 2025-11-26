@@ -8,7 +8,10 @@ export class CreateSoloTaskActionUtil extends AgentActionUtil<CreateSoloTaskActi
 	static override type = 'create-task' as const
 
 	override getInfo(_action: Streaming<CreateSoloTaskAction>) {
-		return null
+		return {
+			description: null,
+			pose: 'writing' as const,
+		}
 	}
 
 	override applyAction(action: Streaming<CreateSoloTaskAction>, helpers: AgentHelpers) {

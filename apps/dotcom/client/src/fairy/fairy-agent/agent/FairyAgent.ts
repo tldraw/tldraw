@@ -7,6 +7,7 @@ import {
 	AgentRequest,
 	BaseAgentPrompt,
 	ChatHistoryItem,
+	ChatHistoryPromptItem,
 	DEFAULT_MODEL_NAME,
 	FAIRY_VISION_DIMENSIONS,
 	FairyConfig,
@@ -165,6 +166,8 @@ export class FairyAgent {
 		notifyAgentModeTransition(this.id, mode, this.editor)
 
 		this.$mode.set(mode)
+		const modeDefinition = getFairyModeDefinition(mode)
+		this.$fairyEntity.update((fairy) => ({ ...fairy, pose: modeDefinition.pose }))
 	}
 
 	/**
@@ -280,7 +283,6 @@ export class FairyAgent {
 			const entity = this.$fairyEntity.get()
 			if (entity?.isSelected && this.getMode() === 'sleeping') {
 				this.setMode('idling')
-				this.$fairyEntity.update((f) => (f ? { ...f, pose: 'idle' } : f))
 			}
 		})
 
@@ -344,6 +346,9 @@ export class FairyAgent {
 					gesture: state.fairyEntity?.gesture ?? entity.gesture,
 				}
 			})
+			if (this.$fairyEntity.get().pose !== 'sleeping') {
+				this.setMode('idling')
+			}
 		}
 		if (state.chatHistory) {
 			this.$chatHistory.set(state.chatHistory)
@@ -497,9 +502,10 @@ export class FairyAgent {
 		const activeRequest = this.$activeRequest.get()
 
 		return {
-			messages: request.messages ?? [],
+			agentMessages: request.agentMessages ?? [],
 			source: request.source ?? 'user',
 			data: request.data ?? [],
+			userMessages: request.userMessages ?? [],
 			bounds:
 				request.bounds ??
 				activeRequest?.bounds ??
@@ -525,22 +531,21 @@ export class FairyAgent {
 	private getPartialRequestFromInput(input: AgentInput): Partial<AgentRequest> {
 		// eg: agent.prompt('Draw a cat')
 		if (typeof input === 'string') {
-			return { messages: [input] }
+			return { agentMessages: [input] }
 		}
 
 		// eg: agent.prompt(['Draw a cat', 'Draw a dog'])
 		if (Array.isArray(input)) {
-			return { messages: input }
-		}
-
-		// eg: agent.prompt({ messages: 'Draw a cat' })
-		if (typeof input.messages === 'string') {
-			return { ...input, messages: [input.messages] }
+			return { agentMessages: input }
 		}
 
 		// eg: agent.prompt({ message: 'Draw a cat' })
-		if (typeof input.message === 'string') {
-			return { ...input, messages: [input.message, ...(input.messages ?? [])] }
+		if ('message' in input && typeof input.message === 'string') {
+			return {
+				...input,
+				agentMessages: [input.message],
+				userMessages: [input.message],
+			}
 		}
 
 		return input
@@ -630,7 +635,6 @@ export class FairyAgent {
 		let modeChanged = true
 		while (!this.$scheduledRequest.get() && modeChanged) {
 			modeChanged = false
-			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
 			const mode = this.getMode()
 			const node = FAIRY_MODE_CHART[mode]
 			node.onPromptEnd?.(this, request)
@@ -743,15 +747,16 @@ export class FairyAgent {
 		}
 
 		// If there's already a scheduled request, append to it
-		const request = this.getPartialRequestFromInput(input)
+		const newRequest = this.getPartialRequestFromInput(input)
 		this._schedule({
 			// Append to properties where possible
-			messages: [...scheduledRequest.messages, ...(request.messages ?? [])],
-			data: [...scheduledRequest.data, ...(request.data ?? [])],
+			agentMessages: [...scheduledRequest.agentMessages, ...(newRequest.agentMessages ?? [])],
+			userMessages: [...scheduledRequest.userMessages, ...(newRequest.userMessages ?? [])],
+			data: [...scheduledRequest.data, ...(newRequest.data ?? [])],
 
 			// Override other properties
-			bounds: request.bounds ?? scheduledRequest.bounds,
-			source: request.source ?? scheduledRequest.source ?? 'self',
+			bounds: newRequest.bounds ?? scheduledRequest.bounds,
+			source: newRequest.source ?? scheduledRequest.source ?? 'self',
 		})
 	}
 
@@ -807,13 +812,14 @@ export class FairyAgent {
 		const activeRequest = this.$activeRequest.get()
 		const partialRequest = this.getPartialRequestFromInput(input)
 		const request: AgentRequest = {
-			messages: partialRequest.messages ?? [],
+			agentMessages: partialRequest.agentMessages ?? [],
 			bounds:
 				partialRequest.bounds ??
 				activeRequest?.bounds ??
 				Box.FromCenter(this.$fairyEntity.get().position, FAIRY_VISION_DIMENSIONS),
 			data: partialRequest.data ?? [],
 			source: partialRequest.source ?? 'self',
+			userMessages: partialRequest.userMessages ?? [],
 		}
 
 		const isCurrentlyActive = this.isGenerating()
@@ -845,13 +851,13 @@ export class FairyAgent {
 		return id
 	}
 
-	updateTodo({ id, text, status }: FairyTodoItem) {
+	updateTodo({ id, status, text }: { id: string; status: FairyTodoItem['status']; text?: string }) {
 		this.$personalTodoList.update((todoItems) => {
 			const index = todoItems.findIndex((item) => item.id === id)
 			if (index !== -1) {
 				return [
 					...todoItems.slice(0, index),
-					{ ...todoItems[index], text, status },
+					{ ...todoItems[index], status, ...(text !== undefined && { text }) },
 					...todoItems.slice(index + 1),
 				]
 			}
@@ -904,23 +910,24 @@ export class FairyAgent {
 	 * Wake up the agent from waiting with a notification message.
 	 * Note: This does NOT remove wait conditions - the matched conditions should
 	 * already be removed by the notification system before calling this method.
-	 * @param message - The message to send to the agent when waking up
-	 * @param _condition - The condition that was fulfilled
-	 * @param _event - Optional event data that triggered the wake-up (currently unused)
 	 */
-	notifyWaitConditionFulfilled(
-		message: string,
-		_condition: FairyWaitCondition<FairyWaitEvent>,
-		_event?: FairyWaitEvent
-	) {
+	notifyWaitConditionFulfilled({
+		agentFacingMessage,
+		userFacingMessage,
+	}: {
+		agentFacingMessage: string
+		userFacingMessage: string | null
+	}) {
 		if (this.$isPrompting.get()) {
 			this.schedule({
-				messages: [message],
+				agentMessages: [agentFacingMessage],
+				userMessages: userFacingMessage ? [userFacingMessage] : undefined,
 				source: 'other-agent',
 			})
 		} else {
 			this.prompt({
-				messages: [message],
+				agentMessages: [agentFacingMessage],
+				userMessages: userFacingMessage ? [userFacingMessage] : undefined,
 				source: 'other-agent',
 			})
 		}
@@ -944,7 +951,9 @@ export class FairyAgent {
 		this.isActing = true
 
 		const actionInfo = this.getActionInfo(action)
-		this.$fairyEntity.update((fairy) => ({ ...fairy, pose: actionInfo.pose }))
+		if (actionInfo.pose) {
+			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: actionInfo.pose ?? fairy.pose }))
+		}
 
 		// Ensure the fairy is on the correct page before performing the action
 		this.ensureFairyIsOnCorrectPage(action)
@@ -1112,7 +1121,6 @@ export class FairyAgent {
 		this.$activeRequest.set(null)
 		this.$scheduledRequest.set(null)
 		this.cancelFn = null
-		this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
 	}
 
 	/**
@@ -1263,7 +1271,7 @@ export class FairyAgent {
 			description = null,
 			summary = null,
 			canGroup = () => true,
-			pose = 'active' as const,
+			pose = null,
 		} = info
 
 		return {
@@ -1481,22 +1489,26 @@ export class FairyAgent {
 function requestAgentActions({ agent, request }: { agent: FairyAgent; request: AgentRequest }) {
 	const { editor } = agent
 
-	// If the request is from the user, add it to chat history
-	if (request.source === 'user') {
-		const mode = getFairyModeDefinition(agent.getMode())
-		const promptHistoryItem: ChatHistoryItem = {
-			type: 'prompt',
-			message: request.messages.join('\n'),
-			memoryLevel: mode.memoryLevel,
-		}
-		agent.$chatHistory.update((prev) => [...prev, promptHistoryItem])
+	const mode = getFairyModeDefinition(agent.getMode())
+
+	// Convert arrays to strings for ChatHistoryPromptItem
+	const agentFacingMessage = request.agentMessages.join('\n')
+	const userFacingMessage = request.userMessages.join('\n')
+
+	const promptHistoryItem: ChatHistoryPromptItem = {
+		type: 'prompt',
+		promptSource: request.source,
+		agentFacingMessage,
+		userFacingMessage,
+		memoryLevel: mode.memoryLevel,
 	}
+	agent.$chatHistory.update((prev) => [...prev, promptHistoryItem])
 
 	let cancelled = false
 	const controller = new AbortController()
 	const signal = controller.signal
 	const helpers = new AgentHelpers(agent)
-	const mode = getFairyModeDefinition(agent.getMode())
+
 	if (!mode.active) {
 		agent.cancel()
 		throw new Error(`Fairy is not in an active mode so can't act right now`)

@@ -1,5 +1,6 @@
 import { AgentAction } from '../types/AgentAction'
 import { FairyMemoryLevel } from '../types/FairyMemoryLevel'
+import { FairyPose } from '../types/FairyPose'
 import { FairyWork } from '../types/FairyWork'
 import { PromptPart } from '../types/PromptPart'
 
@@ -19,12 +20,16 @@ type BaseFairyModeDefinition = {
 			parts(work: FairyWork): PromptPart['type'][]
 			/** The actions that the fairy mode allows the fairy to take. */
 			actions(work: FairyWork): AgentAction['_type'][]
+			/** The pose to display when the fairy is in this mode (Unless overriden by the current action) */
+			pose: FairyPose
 	  }
 	| {
 			/** Whether the fairy mode is active in this mode. */
 			active: false
 			/** The memory level of the fairy mode. */
 			memoryLevel: FairyMemoryLevel
+			/** The pose to display when the fairy is in this mode. */
+			pose: FairyPose
 	  }
 )
 
@@ -46,16 +51,19 @@ export const FAIRY_MODE_DEFINITIONS = [
 		type: 'idling',
 		memoryLevel: 'fairy',
 		active: false,
+		pose: 'idle',
 	},
 	{
 		type: 'sleeping',
 		memoryLevel: 'fairy',
 		active: false,
+		pose: 'sleeping',
 	},
 	{
 		type: 'one-shotting',
 		memoryLevel: 'fairy',
 		active: true,
+		pose: 'active',
 		parts: (_work: FairyWork) => [
 			'messages',
 			'modelName',
@@ -94,6 +102,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 		type: 'soloing',
 		memoryLevel: 'fairy',
 		active: true,
+		pose: 'active',
 		parts: (_work: FairyWork) => [
 			'modelName',
 			'mode',
@@ -127,6 +136,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 		type: 'working-drone',
 		memoryLevel: 'task',
 		active: true,
+		pose: 'active',
 		parts: (_work: FairyWork) => [
 			'modelName',
 			'mode',
@@ -165,6 +175,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 		type: 'working-solo',
 		memoryLevel: 'task',
 		active: true,
+		pose: 'active',
 		parts: (_work: FairyWork) => [
 			'modelName',
 			'mode',
@@ -202,11 +213,13 @@ export const FAIRY_MODE_DEFINITIONS = [
 		type: 'standing-by',
 		memoryLevel: 'project',
 		active: false,
+		pose: 'active',
 	},
 	{
 		type: 'orchestrating-active',
 		memoryLevel: 'project',
 		active: true,
+		pose: 'active',
 		parts: () => [
 			'modelName',
 			'mode',
@@ -247,11 +260,13 @@ export const FAIRY_MODE_DEFINITIONS = [
 		type: 'orchestrating-waiting',
 		memoryLevel: 'project',
 		active: false,
+		pose: 'waiting',
 	},
 	{
 		type: 'duo-orchestrating-active',
 		memoryLevel: 'project',
 		active: true,
+		pose: 'active',
 		parts: () => [
 			'modelName',
 			'mode',
@@ -293,11 +308,13 @@ export const FAIRY_MODE_DEFINITIONS = [
 		type: 'duo-orchestrating-waiting',
 		memoryLevel: 'project',
 		active: false,
+		pose: 'waiting',
 	},
 	{
 		type: 'working-orchestrator',
 		memoryLevel: 'task',
 		active: true,
+		pose: 'active',
 		parts: (_work: FairyWork) => [
 			'modelName',
 			'mode',

@@ -2,7 +2,7 @@ import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { MouseEvent } from 'react'
 import { TldrawUiToolbarToggleGroup, TldrawUiToolbarToggleItem, useValue } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
-import { FairySpriteComponent2 } from './fairy-sprite/FairySprite2'
+import { FairySprite, getHatColor } from './fairy-sprite/FairySprite'
 import { SelectedSprite } from './fairy-sprite/sprites/SelectedSprite'
 import { FairyContextMenuContent } from './FairyContextMenuContent'
 import { getProjectColor } from './getProjectColor'
@@ -36,7 +36,7 @@ export function FairySidebarButton({
 		() => agent.getRole() === 'orchestrator' || agent.getRole() === 'duo-orchestrator',
 		[agent]
 	)
-	const projectColor = project ? getProjectColor(agent.editor, project.color) : undefined
+	const projectColor = project ? getProjectColor(project.color) : undefined
 
 	if (!fairyEntity || !fairyOutfit) return null
 
@@ -56,28 +56,21 @@ export function FairySidebarButton({
 						value="on"
 					>
 						<div className="fairy-sprite-wrapper">
-							<FairySpriteComponent2
+							<FairySprite
 								showShadow
-								entity={fairyEntity}
-								outfit={fairyOutfit}
-								animated={fairyEntity.pose !== 'idle' || fairyIsSelected}
+								pose={fairyEntity.pose}
+								hatColor={getHatColor(fairyOutfit.hat)}
+								isAnimated={fairyEntity.pose !== 'idle' || fairyIsSelected}
 								flipX={fairyEntity.flipX}
+								isOrchestrator={isOrchestrator}
+								projectColor={projectColor}
 							/>
-							{fairyIsSelected && (
+							{fairyIsSelected && !project && (
 								<div className="fairy-selected-sprite-overlay">
-									<SelectedSprite />
+									<SelectedSprite inset={3} />
 								</div>
 							)}
 						</div>
-						{projectColor && (
-							<div
-								className={`fairy-button-project-indicator ${isOrchestrator ? 'fairy-button-project-indicator--orchestrator' : ''}`}
-								style={{
-									backgroundColor: isOrchestrator ? 'transparent' : projectColor,
-									borderColor: projectColor,
-								}}
-							/>
-						)}
 					</TldrawUiToolbarToggleItem>
 				</TldrawUiToolbarToggleGroup>
 			</_ContextMenu.Trigger>

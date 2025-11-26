@@ -1,308 +1,204 @@
-import {
-	FAIRY_POSE,
-	FAIRY_VARIANTS,
-	FairyEntity,
-	FairyOutfit,
-	FairyPose,
-	FairyVariantDefinition,
-} from '@tldraw/fairy-shared'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
-import { FileHelpers, Image } from 'tldraw'
+import { FairyOutfit, FairyPose } from '@tldraw/fairy-shared'
+import { ComponentType, useEffect, useState } from 'react'
+import { IdleSprite } from './sprites/IdleSprite'
+import { PoofSprite } from './sprites/PoofSprite'
+import { RaisedAWingSprite } from './sprites/RaisedAWingSprite'
+import { RaisedBWingSprite } from './sprites/RaisedBWingSprite'
+import { RaisedCWingSprite } from './sprites/RaisedCWingSprite'
+import { ReadingSprite } from './sprites/ReadingSprite'
+import { SleepingSprite } from './sprites/SleepingSprite'
+import { SleepingWingSprite } from './sprites/SleepingWingSprite'
+import { ThinkingSprite } from './sprites/ThinkingSprite'
+import { WaitingSprite } from './sprites/WaitingSprite'
+import { WorkingSprite1, WorkingSprite2, WorkingSprite3 } from './sprites/WorkingSprite'
+import { WritingSprite } from './sprites/WritingSprite'
 
-/**
- * This file contains a rough skeleton for some sprite and animation management.
- * It does the boring work of composing different parts of a fairy together using an offscreen canvas.
- * In this version, it pre-renders all frames for each pose and stores them in memory.
- * Depending on what route we go, we can either stick to this approach or do something else using the helpers below, eg: dynamically drawing fairies each frame.
- */
+interface WingSpriteProps {
+	topWingColor?: string
+	bottomWingColor?: string
+}
 
-/**
- * A map of fairy sprites loaded into memory.
- */
-const fairySpriteMap = new Map<string, FairySprite>()
+interface FairySpriteProps {
+	bodyColor: string
+	hatColor: string
+}
 
-/**
- * Get a fairy sprite from a definition.
- * If we've already initialized this sprite, get the existing one.
- * If we haven't yet, initialize it and return the new one.
- */
-function getFairySprite({ outfit, tint }: { outfit: FairyOutfit; tint?: string | null }) {
-	const key = getFairySpriteCacheKey({ outfit, tint })
-	const existingSprite = fairySpriteMap.get(key)
-	if (!existingSprite) {
-		const newSprite = new FairySprite(outfit, tint ?? null)
-		fairySpriteMap.set(key, newSprite)
-		return newSprite
-	}
+const WING_SPRITES: Record<FairyPose, ComponentType<WingSpriteProps>[]> = {
+	idle: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
+	waiting: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
+	active: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
+	reading: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
+	writing: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
+	thinking: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
+	working: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
+	sleeping: [SleepingWingSprite],
+	poof: [],
+}
 
-	return existingSprite
+const FAIRY_SPRITES_WITH_PROPS: Record<FairyPose, ComponentType<FairySpriteProps>[]> = {
+	idle: [IdleSprite],
+	active: [IdleSprite],
+	reading: [ReadingSprite],
+	writing: [WritingSprite],
+	thinking: [ThinkingSprite],
+	working: [WorkingSprite1, WorkingSprite2, WorkingSprite3, WorkingSprite2],
+	sleeping: [SleepingSprite],
+	waiting: [WaitingSprite],
+	poof: [PoofSprite],
 }
 
 /**
- * Get a cache key for a fairy sprite.
+ * Color mapping for different hat types
+ * Using medium chroma, high value colors for good visibility
  */
-function getFairySpriteCacheKey({ outfit, tint }: { outfit: FairyOutfit; tint?: string | null }) {
-	return JSON.stringify({ outfit, tint })
+const HAT_COLORS: Record<string, string> = {
+	top: 'var(--tl-color-fairy-pink)', // Medium pink for top hat
+	pointy: 'var(--tl-color-fairy-purple)', // Medium purple for wizard hat
+	bald: 'var(--tl-color-fairy-peach)', // Medium peach/tan
+	antenna: 'var(--tl-color-fairy-coral)', // Medium coral for antenna
+	spiky: 'var(--tl-color-fairy-teal)', // Medium teal for spiky
+	hair: 'var(--tl-color-fairy-gold)', // Medium gold for hair
+	ears: 'var(--tl-color-fairy-rose)', // Medium rose for ears
+	propellor: 'var(--tl-color-fairy-green)', // Medium green for propellor
 }
 
-const OFFSCREEN_CANVAS_SIZE = 1200
-const FAIRY_ASSET_SCALE = OFFSCREEN_CANVAS_SIZE / 200
-
-/**
- * An offscreen canvas we used to draw frames.
- */
-const offscreenCanvas = new OffscreenCanvas(OFFSCREEN_CANVAS_SIZE, OFFSCREEN_CANVAS_SIZE)
-const offscreenContext = offscreenCanvas.getContext('2d')!
-offscreenContext.imageSmoothingEnabled = false
-
-/**
- * A temporary canvas for storing alpha masks when tinting
- */
-const offscreenCanvasBuffer = new OffscreenCanvas(OFFSCREEN_CANVAS_SIZE, OFFSCREEN_CANVAS_SIZE)
-const tempContext = offscreenCanvasBuffer.getContext('2d')!
-tempContext.imageSmoothingEnabled = false
-
-/**
- * A fairy sprite that we can render on the screen.
- */
-class FairySprite {
-	constructor(
-		public outfit: FairyOutfit,
-		public tint: string | null
-	) {
-		fairySpriteMap.set(this.getKey(), this)
-		this.variants = {
-			body: FAIRY_VARIANTS.body[outfit.body],
-			hat: FAIRY_VARIANTS.hat[outfit.hat],
-			wings: FAIRY_VARIANTS.wings[outfit.wings],
-		}
-
-		this.generateAllPosesFrames()
-	}
-
-	loadingState: 'not-started' | 'loading' | 'loaded' = 'not-started'
-
-	variants: {
-		body: FairyVariantDefinition
-		hat: FairyVariantDefinition
-		wings: FairyVariantDefinition
-	}
-
-	/**
-	 * Cached arrays of data urls for each pose.
-	 */
-	cachedPoses: Partial<Record<FairyPose, string[]>> = Object.fromEntries(
-		FAIRY_POSE.map((pose) => [pose, []])
-	)
-
-	/**
-	 * Generate and store frames for all poses.
-	 */
-	async generateAllPosesFrames() {
-		if (this.loadingState !== 'not-started') {
-			return
-		}
-		this.loadingState = 'loading'
-		for (const pose of FAIRY_POSE) {
-			await this.generatePoseFrames(pose)
-		}
-		this.loadingState = 'loaded'
-	}
-
-	/**
-	 * Generate and store frames for a pose.
-	 */
-	async generatePoseFrames(pose: FairyPose) {
-		// TODO: Don't generate redundant non-idle frames
-		const bodyFrameSources = this.variants.body[pose] ?? this.variants.body.idle
-		const hatFrameSources = this.variants.hat[pose] ?? this.variants.hat.idle
-		const wingsFrameSources = this.variants.wings[pose] ?? this.variants.wings.idle
-
-		const bodyFrameImages = bodyFrameSources.map((source) => {
-			const img = Image()
-			img.src = source
-			return img
-		})
-
-		const hatFrameImages = hatFrameSources.map((source) => {
-			const img = Image()
-			img.src = source
-			return img
-		})
-
-		const wingsFrameImages = wingsFrameSources.map((source) => {
-			const img = Image()
-			img.src = source
-			return img
-		})
-
-		const allFrameImages = [...bodyFrameImages, ...hatFrameImages, ...wingsFrameImages]
-		const allImageLoadPromises = allFrameImages.map((img) => {
-			return new Promise((resolve, reject) => {
-				img.onload = resolve
-				img.onerror = (e) => {
-					console.error('Error loading image', e)
-					reject(e)
-				}
-			})
-		})
-
-		await Promise.all(allImageLoadPromises)
-
-		const maxFrameCount = Math.max(
-			bodyFrameImages.length,
-			hatFrameImages.length,
-			wingsFrameImages.length
-		)
-
-		// Check that all other frame counts are divisible by the max frame count
-		const frameCounts = [bodyFrameImages.length, hatFrameImages.length, wingsFrameImages.length]
-		if (frameCounts.some((count) => maxFrameCount % count !== 0)) {
-			throw new Error(
-				"All frame counts must be divisible by the max frame count. If you've encountered this error, it's time to add more configuration to the FairySprite class. Please speak to Lu."
-			)
-		}
-
-		for (let i = 0; i < maxFrameCount; i++) {
-			offscreenContext.clearRect(0, 0, OFFSCREEN_CANVAS_SIZE, OFFSCREEN_CANVAS_SIZE)
-			offscreenContext.scale(FAIRY_ASSET_SCALE, FAIRY_ASSET_SCALE)
-			offscreenContext.drawImage(wingsFrameImages[i % wingsFrameImages.length], 0, 0)
-			offscreenContext.drawImage(bodyFrameImages[i % bodyFrameImages.length], 0, 0)
-			offscreenContext.drawImage(hatFrameImages[i % hatFrameImages.length], 0, 0)
-
-			// Apply tint to black parts only using screen blend mode, preserving alpha
-			if (this.tint) {
-				// Save the original composite to temp canvas for alpha masking
-				tempContext.clearRect(0, 0, OFFSCREEN_CANVAS_SIZE, OFFSCREEN_CANVAS_SIZE)
-				tempContext.drawImage(offscreenCanvas, 0, 0)
-
-				// Apply screen blend to tint the black parts
-				offscreenContext.globalCompositeOperation = 'screen'
-				offscreenContext.fillStyle = this.tint
-				offscreenContext.fillRect(0, 0, 200, 200)
-
-				// Mask the result using the original alpha channel
-				offscreenContext.globalCompositeOperation = 'destination-in'
-				offscreenContext.drawImage(
-					offscreenCanvasBuffer,
-					0,
-					0,
-					OFFSCREEN_CANVAS_SIZE,
-					OFFSCREEN_CANVAS_SIZE,
-					0,
-					0,
-					200,
-					200
-				)
-				offscreenContext.globalCompositeOperation = 'source-over'
-			}
-
-			offscreenContext.scale(1 / FAIRY_ASSET_SCALE, 1 / FAIRY_ASSET_SCALE)
-
-			const blob = await offscreenCanvas.convertToBlob()
-			const dataUrl = await FileHelpers.blobToDataUrl(blob)
-			let cachedPose = this.cachedPoses[pose]
-			if (!cachedPose) {
-				this.cachedPoses[pose] = []
-				cachedPose = this.cachedPoses[pose]
-			}
-			cachedPose[i] = dataUrl
-		}
-	}
-
-	LOADING_FRAME = '/fairy/fairy-loading.png'
-
-	/**
-	 * Get all frames for a specified pose.
-	 *
-	 * @returns An array of data urls for the frames, or null if the sprite is not loaded.
-	 */
-	getPoseFrames(pose: FairyPose): string[] {
-		if (this.loadingState === 'not-started') {
-			this.generateAllPosesFrames()
-		}
-
-		if (this.loadingState !== 'loaded') {
-			return [this.LOADING_FRAME]
-		}
-		const cachedPose = this.cachedPoses[pose]
-		if (!cachedPose) {
-			return [this.LOADING_FRAME]
-		}
-		return cachedPose
-	}
-
-	/**
-	 * Dispose of the fairy sprite.
-	 */
-	dispose() {
-		fairySpriteMap.delete(this.getKey())
-	}
-
-	/**
-	 * Get the key for the fairy sprite.
-	 */
-	getKey() {
-		return getFairySpriteCacheKey({
-			outfit: this.outfit,
-			tint: this.tint,
-		})
-	}
+export function getHatColor(hat: FairyOutfit['hat']) {
+	return HAT_COLORS[hat]
 }
 
-export function FairySpriteComponent({
-	entity,
-	outfit,
-	onGestureEnd,
-	animated,
-	tint,
+export function FairySprite({
+	pose,
+	flipX,
+	hatColor,
+	projectColor = 'var(--tl-color-fairy-light)',
+	isAnimated,
+	showShadow,
+	isGenerating,
+	isOrchestrator,
 }: {
-	entity: FairyEntity
-	outfit: FairyOutfit
-	onGestureEnd?(): void
-	animated: boolean
+	pose: FairyPose
+	flipX?: boolean
 	tint?: string | null
+	projectColor?: string
+	isAnimated?: boolean
+	showShadow?: boolean
+	isGenerating?: boolean
+	isOrchestrator?: boolean
+	hatColor?: string
+	padding?: number
 }) {
-	const { pose, gesture } = entity
-	const sprite = useMemo(() => getFairySprite({ outfit, tint }), [outfit, tint])
+	const bottomWingColor = isOrchestrator ? projectColor : 'var(--tl-color-fairy-light)'
 
-	const imageRef = useRef<HTMLImageElement>(null)
-	const startTimeRef = useRef(Date.now())
-
-	const FRAME_DURATION = 400
-	const INTERVAL_DURATION = 32
-
-	useEffect(() => {
-		startTimeRef.current = Date.now()
-	}, [gesture, pose])
-
-	const updateFrame = useCallback(
-		(timeElapsed: number) => {
-			if (!imageRef.current) return
-			const poseFrames = sprite.getPoseFrames(pose)
-			const gestureFrames = gesture ? sprite.getPoseFrames(gesture) : null
-			const unwrappedFrameNumber = Math.floor(timeElapsed / FRAME_DURATION)
-
-			const poseFrame = poseFrames[unwrappedFrameNumber % poseFrames.length]
-			const gestureFrame = gestureFrames ? gestureFrames[unwrappedFrameNumber] : null
-			if (gesture && !gestureFrame) {
-				onGestureEnd?.()
-			}
-
-			const frame = gestureFrame ?? poseFrame
-			imageRef.current.src = frame
-		},
-		[pose, gesture, sprite, onGestureEnd]
+	return (
+		<div className="fairy-sprite-container">
+			{isAnimated ? (
+				<AnimatedFairySpriteComponent
+					pose={pose}
+					speed={pose === 'working' ? 100 : isGenerating ? 120 : 160}
+					topWingColor={projectColor}
+					bottomWingColor={bottomWingColor}
+					bodyColor={'var(--tl-color-fairy-light)'}
+					hatColor={hatColor}
+					flipX={flipX}
+					showShadow={showShadow}
+				/>
+			) : (
+				<FairySpriteSvg
+					pose={pose}
+					topWingColor={projectColor}
+					bottomWingColor={bottomWingColor}
+					bodyColor={'var(--tl-color-fairy-light)'}
+					hatColor={hatColor}
+					flipX={flipX}
+					showShadow={showShadow}
+				/>
+			)}
+		</div>
 	)
+}
+
+function useKeyframe({ pose, duration }: { pose: FairyPose; duration: number }) {
+	const [keyframe, setKeyframe] = useState<number>(0)
 
 	useEffect(() => {
-		updateFrame(Date.now() - startTimeRef.current)
-		if (!animated) return
-		const timer = setInterval(() => {
-			updateFrame(Date.now() - startTimeRef.current)
-		}, INTERVAL_DURATION)
+		const startTime = Date.now()
+		function updateFrame() {
+			setKeyframe(Math.floor((Date.now() - startTime) / duration))
+		}
+		updateFrame()
+		const timer = setInterval(updateFrame, duration)
 		return () => clearInterval(timer)
-	}, [updateFrame, animated])
+	}, [duration, pose])
 
-	return <img className="fairy-sprite" ref={imageRef} />
+	return keyframe
+}
+
+function AnimatedFairySpriteComponent({
+	speed,
+	pose,
+	...rest
+}: FairySpriteSvgProps & { speed: number }) {
+	// Gesture takes precedence over pose
+	const keyframe = useKeyframe({
+		pose,
+		duration: speed,
+	})
+
+	return <FairySpriteSvg pose={pose} keyframe={keyframe} {...rest} />
+}
+
+export function CleanFairySpriteComponent() {
+	return (
+		<div className="fairy-sprite-container">
+			<FairySpriteSvg pose="idle" />
+		</div>
+	)
+}
+
+export interface FairySpriteSvgProps {
+	pose: FairyPose
+	topWingColor?: string
+	bottomWingColor?: string
+	bodyColor?: string
+	hatColor?: string
+	keyframe?: number
+	flipX?: boolean
+	showShadow?: boolean
+}
+
+function getItemForKeyFrame<T>(items: T | T[], keyframe: number) {
+	if (Array.isArray(items)) {
+		return items[keyframe % items.length]
+	}
+	return items
+}
+
+function FairySpriteSvg({
+	pose,
+	topWingColor = 'var(--tl-color-fairy-light)',
+	bottomWingColor = 'var(--tl-color-fairy-light)',
+	bodyColor = 'var(--tl-color-fairy-light)',
+	hatColor = 'var(--tl-color-fairy-light)',
+	keyframe = 0,
+	flipX = false,
+	showShadow = false,
+}: FairySpriteSvgProps) {
+	const FSprite = getItemForKeyFrame(FAIRY_SPRITES_WITH_PROPS[pose], keyframe)
+	const WSprite = getItemForKeyFrame(WING_SPRITES[pose], keyframe)
+
+	return (
+		<div className={`fairy-sprite-stack ${flipX ? 'flip-x' : ''} ${showShadow ? 'shadow' : ''}`}>
+			<svg
+				className="fairy-sprite"
+				width="108"
+				height="108"
+				viewBox="0 0 108 108"
+				fill="none"
+				xmlns="http://www.w3.org/2000/svg"
+			>
+				{WSprite && <WSprite topWingColor={topWingColor} bottomWingColor={bottomWingColor} />}
+				{FSprite && <FSprite bodyColor={bodyColor} hatColor={hatColor} />}
+			</svg>
+		</div>
+	)
 }

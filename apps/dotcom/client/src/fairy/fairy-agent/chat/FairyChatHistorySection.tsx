@@ -18,12 +18,14 @@ export interface FairyChatHistorySection {
 export function FairyChatHistorySection({
 	section,
 	agent,
+	isFinalSection,
 }: {
 	section: FairyChatHistorySection
 	agent: FairyAgent
+	isFinalSection: boolean
 }) {
 	const actions = section.items.filter((item) => item.type === 'action') as ChatHistoryActionItem[]
-	const groups = getActionHistoryGroups(actions, agent)
+	const groups = getActionHistoryGroups(actions, agent, isFinalSection)
 
 	// Create a map from action to its group
 	const actionToGroup = new Map<ChatHistoryActionItem, FairyChatHistoryGroup>()
@@ -49,19 +51,29 @@ export function FairyChatHistorySection({
 		}
 	}
 
+	// Use userFacingMessage if available, otherwise fall back to agentFacingMessage
+	const displayMessage =
+		section.prompt !== null
+			? (section.prompt.userFacingMessage ?? section.prompt.agentFacingMessage)
+			: null
+
 	return (
 		<div className="fairy-chat-history-section">
-			<div className="fairy-chat-history-prompt-container fairy-chat-history-prompt-sticky">
-				{section.prompt?.message ? (
-					<div className="fairy-chat-history-prompt">
-						<div className="fairy-chat-history-prompt-content">{section.prompt?.message}</div>
-					</div>
-				) : (
-					<div className="fairy-chat-history-prompt-fairy">
-						<div className="fairy-chat-history-prompt-content">Awakened...</div>
-					</div>
-				)}
-			</div>
+			{/* We don't display messages with source self */}
+			{section.prompt !== null && section.prompt.promptSource !== 'self' ? (
+				<div className="fairy-chat-history-prompt-container fairy-chat-history-prompt-sticky">
+					{section.prompt.promptSource === 'user' ? (
+						<div className="fairy-chat-history-prompt-user">
+							<div className="fairy-chat-history-prompt-content">{displayMessage}</div>
+						</div>
+					) : section.prompt.promptSource === 'other-agent' ? (
+						<div className="fairy-chat-history-prompt-other-agent">
+							<div className="fairy-chat-history-prompt-content">{displayMessage}</div>
+						</div>
+					) : null}
+				</div>
+			) : null}
+
 			{renderedItems.map((item, i) => {
 				if ('type' in item && item.type === 'memory-transition') {
 					return <FairyChatHistoryMemoryTransition key={`memory-transition-${i}`} item={item} />
@@ -79,12 +91,16 @@ export function FairyChatHistorySection({
 function FairyChatHistoryMemoryTransition({ item }: { item: ChatHistoryMemoryTransitionItem }) {
 	if (!item.userFacingMessage) return null
 	return (
-		<div className="fairy-chat-history-action">
-			<div className="fairy-chat-history-action-icon">
-				<AgentIcon type="flag" />
-			</div>
-			<div>
-				<Markdown>{item.userFacingMessage}</Markdown>
+		<div className="fairy-chat-history-group">
+			<div className="fairy-chat-history-item-container">
+				<div className="fairy-chat-history-action">
+					<div className="fairy-chat-history-action-icon">
+						<AgentIcon type="flag" />
+					</div>
+					<div>
+						<Markdown>{item.userFacingMessage}</Markdown>
+					</div>
+				</div>
 			</div>
 		</div>
 	)
@@ -96,7 +112,9 @@ export function getAgentHistorySections(items: ChatHistoryItem[]): FairyChatHist
 	for (const item of items) {
 		// Add a new section for each prompt
 		if (item.type === 'prompt') {
-			sections.push({ prompt: item, items: [] })
+			if (item.userFacingMessage) {
+				sections.push({ prompt: item, items: [] })
+			}
 			continue
 		}
 

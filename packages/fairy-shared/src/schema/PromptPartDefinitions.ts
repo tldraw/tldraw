@@ -5,6 +5,7 @@ import { OtherFairy } from '../format/OtherFairy'
 import { PeripheralCluster } from '../format/PeripheralCluster'
 import { AgentModelName } from '../models'
 import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
+import { AgentRequestSource } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { ChatHistoryItem } from '../types/ChatHistoryItem'
 import { FairyProject } from '../types/FairyProject'
@@ -95,10 +96,11 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 		case 'prompt': {
 			const content: AgentMessageContent[] = []
 
-			if (item.message.trim() !== '') {
+			// Add agent-facing message to the content
+			if (item.agentFacingMessage && item.agentFacingMessage.trim() !== '') {
 				content.push({
 					type: 'text',
-					text: item.message,
+					text: item.agentFacingMessage,
 				})
 			}
 
@@ -106,8 +108,11 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 				return null
 			}
 
+			// TODO: we can do something for source: 'self' messages like: I recevied this notification: <message>, or soemthing along those lines
+			const role =
+				item.promptSource === 'user' || item.promptSource === 'other-agent' ? 'user' : 'assistant'
 			return {
-				role: 'user',
+				role,
 				content,
 				priority,
 			}
@@ -156,7 +161,7 @@ function buildHistoryItemMessage(item: ChatHistoryItem, priority: number): Agent
 		case 'memory-transition': {
 			return {
 				role: 'assistant',
-				content: [{ type: 'text', text: item.message }],
+				content: [{ type: 'text', text: item.agentFacingMessage }],
 				priority,
 			}
 		}
@@ -187,7 +192,7 @@ export const DataPartDefinition: PromptPartDefinition<DataPart> = {
 export interface MessagesPart {
 	type: 'messages'
 	messages: string[]
-	source: 'user' | 'self' | 'other-agent'
+	source: AgentRequestSource
 }
 
 export const MessagesPartDefinition: PromptPartDefinition<MessagesPart> = {
