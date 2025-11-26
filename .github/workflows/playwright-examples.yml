@@ -70,7 +70,7 @@ jobs:
         with:
           aws_key_id: ${{ secrets.AWS_S3_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_KEY}}
-          aws_bucket: playwright-reports.tldraw.xyz
+          aws_bucket: playwright.tldraw.xyz
           source_dir: apps/examples/playwright-report
 
       - name: Log report to summary
