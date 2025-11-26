@@ -174,18 +174,17 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			const weekKey = getISOWeekKey()
 			const WEEKLY_LIMIT = 25
 
-			const userFairy = await this.db
+			const userFairies = await this.db
 				.selectFrom('user_fairies')
 				.where('userId', '=', this.userId)
 				.select('weeklyUsage')
 				.executeTakeFirst()
 
-			if (!userFairy) {
+			if (!userFairies) {
 				return Response.json({ error: 'User fairy record not found' }, { status: 404 })
 			}
 
-			// weeklyUsage is properly typed as Record<string, number> thanks to TlaUserFairyDB
-			const currentUsage = userFairy.weeklyUsage[weekKey] || 0
+			const currentUsage = userFairies.weeklyUsage[weekKey] || 0
 			const allowed = currentUsage < WEEKLY_LIMIT
 
 			return Response.json({
@@ -201,7 +200,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			const body = (await req.json()) as any
 			const { actualCost } = body
 
-			// Validate input
 			if (typeof actualCost !== 'number' || actualCost < 0 || !isFinite(actualCost)) {
 				return Response.json({ error: 'Invalid actualCost' }, { status: 400 })
 			}
@@ -209,7 +207,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			const weekKey = getISOWeekKey()
 
 			// Atomic increment using PostgreSQL JSONB operators
-			// This prevents race conditions by doing read-modify-write in a single query
 			const result = await this.db
 				.updateTable('user_fairies')
 				.set({
