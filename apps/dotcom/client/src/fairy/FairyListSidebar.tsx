@@ -111,45 +111,31 @@ export function FairyListSidebar({
 	)
 
 	return (
-		<>
-			{/* <div className="fairy-toolbar-header">
-				<_ContextMenu.Root dir="ltr">
-					<_ContextMenu.Trigger asChild>
-						<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onTogglePanel}>
-							<TldrawUiButtonIcon
-								icon={panelState !== 'closed' ? 'chevron-right' : 'chevron-left'}
-							/>
-						</TldrawUiButton>
-					</_ContextMenu.Trigger>
-					<FairyTaskListContextMenuContent agents={agents} />
-				</_ContextMenu.Root>
-			</div> */}
-			<div className="fairy-list">
-				<TldrawUiToolbar label={toolbarMessage} orientation="vertical">
-					{sidebarEntries.map((entry) => {
-						if (entry.type === 'group') {
-							return (
-								<div
-									key={`project-${entry.projectId}`}
-									className="fairy-sidebar-group"
-									role="group"
-									aria-label={`Fairies on project ${entry.projectTitle}`}
-									data-is-active={entry.isActive}
-								>
-									{entry.agents.map(renderFairySidebarButton)}
-									{entry.isActive && (
-										<div className="fairy-selected-sprite-overlay">
-											<SelectedSprite fairyCount={entry.agents.length} inset={3} />
-										</div>
-									)}
-								</div>
-							)
-						}
+		<div className="fairy-list">
+			<TldrawUiToolbar label={toolbarMessage} orientation="vertical">
+				{sidebarEntries.map((entry) => {
+					if (entry.type === 'group') {
+						return (
+							<div
+								key={`project-${entry.projectId}`}
+								className="fairy-sidebar-group"
+								role="group"
+								aria-label={`Fairies on project ${entry.projectTitle}`}
+								data-is-active={entry.isActive}
+							>
+								{entry.agents.map(renderFairySidebarButton)}
+								{entry.isActive && (
+									<div className="fairy-selected-sprite-overlay">
+										<SelectedSprite fairyCount={entry.agents.length} inset={3} />
+									</div>
+								)}
+							</div>
+						)
+					}
 
-						return renderFairySidebarButton(entry.agent)
-					})}
-				</TldrawUiToolbar>
-			</div>
-		</>
+					return renderFairySidebarButton(entry.agent)
+				})}
+			</TldrawUiToolbar>
+		</div>
 	)
 }

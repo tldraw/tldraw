@@ -88,13 +88,11 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 		[inputValue, isGenerating, handleComplete, onCancel]
 	)
 
-	const shouldCancel = isGenerating && inputValue === ''
-
 	const handleButtonClick = () => {
-		if (shouldCancel) {
+		if (isGenerating) {
 			agent.cancel()
 		} else {
-			handleComplete(inputValue)
+			handleComplete(inputValue ?? ':kiss:')
 		}
 	}
 
@@ -117,7 +115,12 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 
 	return (
 		<div className="fairy-input-container">
-			<div className="fairy-input">
+			<div
+				className="fairy-input"
+				// fake it
+				onClick={() => textareaRef.current?.focus()}
+				style={{ cursor: 'text' }}
+			>
 				<textarea
 					ref={textareaRef}
 					id="fairy-message-input"
@@ -134,11 +137,10 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 				/>
 				<button
 					onClick={handleButtonClick}
-					disabled={inputValue === '' && !isGenerating}
 					className="fairy-input__submit"
-					title={shouldCancel ? stopLabel : sendLabel}
+					title={isGenerating ? stopLabel : sendLabel}
 				>
-					{shouldCancel ? <CancelIcon /> : <LipsIcon />}
+					{isGenerating ? <CancelIcon /> : <LipsIcon />}
 				</button>
 			</div>
 		</div>

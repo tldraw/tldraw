@@ -113,7 +113,7 @@
 }
 
 .fairy-toggle-button[data-is-sleeping='true'] {
-	opacity: 0.4;
+	opacity: 0.45;
 }
 
 .fairy-leader-toggle {
@@ -133,7 +133,7 @@
 	position: relative;
 	display: flex;
 	align-items: flex-start;
-	gap: 12px;
+	gap: 4px;
 	min-height: 64px;
 	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tl-radius-3);
@@ -284,7 +284,7 @@
 	flex-direction: row;
 	align-items: center;
 	justify-content: center;
-	padding: 8px;
+	height: 40px;
 	flex-shrink: 0;
 }
 
@@ -323,7 +323,6 @@
 
 .fairy-toolbar-button {
 	font-size: 14px;
-	margin: -4px;
 }
 
 .fairy-toolbar-sidebar-button {
@@ -390,7 +389,7 @@
 	height: 316px;
 	box-shadow: var(--tl-shadow-1);
 	background-color: var(--tl-color-panel);
-	border-radius: var(--tl-radius-4);
+	border-radius: var(--tl-radius-3);
 	overflow: hidden;
 	pointer-events: auto;
 	z-index: 2;

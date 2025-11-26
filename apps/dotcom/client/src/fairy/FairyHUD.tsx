@@ -115,7 +115,7 @@ function FairyHUDHeader({
 			<_DropdownMenu.Root dir="ltr" open={menuPopoverOpen} onOpenChange={onMenuPopoverOpenChange}>
 				<_DropdownMenu.Trigger asChild dir="ltr">
 					<TldrawUiButton type="icon" className="fairy-toolbar-button">
-						<TldrawUiButtonIcon icon="menu" />
+						<TldrawUiButtonIcon icon="menu" small />
 					</TldrawUiButton>
 				</_DropdownMenu.Trigger>
 				{dropdownContent}
@@ -124,7 +124,7 @@ function FairyHUDHeader({
 			{centerContent}
 
 			<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onClosePanel}>
-				<TldrawUiButtonIcon icon="cross-2" />
+				<TldrawUiButtonIcon icon="cross-2" small />
 			</TldrawUiButton>
 		</div>
 	)
