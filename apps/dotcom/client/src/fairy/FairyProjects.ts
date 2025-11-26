@@ -1,5 +1,6 @@
 import { FairyProject, FairyProjectRole } from '@tldraw/fairy-shared'
 import { atom } from 'tldraw'
+import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { deleteFairyTask, getFairyTasksByProjectId } from './FairyTaskList'
 
 export const $fairyProjects = atom<FairyProject[]>('fairyProjects', [])
@@ -45,6 +46,21 @@ export function clearProjects() {
 export function deleteProjectAndAssociatedTasks(projectId: string) {
 	getFairyTasksByProjectId(projectId).forEach((task) => deleteFairyTask(task.id))
 	deleteProject(projectId)
+}
+
+export function disbandProject(projectId: string, agents: FairyAgent[]) {
+	const project = getProjectById(projectId)
+	if (!project || project.members.length <= 1) return
+
+	const memberIds = new Set(project.members.map((member) => member.id))
+	const memberAgents = agents.filter((agent) => memberIds.has(agent.id))
+
+	memberAgents.forEach((memberAgent) => {
+		memberAgent.interrupt({ mode: 'idling', input: null })
+		memberAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+	})
+
+	deleteProjectAndAssociatedTasks(projectId)
 }
 
 // for debug purposes
