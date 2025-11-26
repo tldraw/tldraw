@@ -314,7 +314,9 @@
 @media (hover: hover) {
 	.fairy-plus-button {
 		opacity: 0;
-		transition: opacity 0.12s ease;
+		transition:
+			background-color 0.1s ease,
+			opacity 0.12s ease;
 		transition-delay: 0.12s;
 	}
 	.fairy-list:hover .fairy-plus-button {
