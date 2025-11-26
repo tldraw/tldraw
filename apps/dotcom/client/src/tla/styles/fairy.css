@@ -283,21 +283,11 @@
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	justify-content: center;
-	height: 40px;
 	flex-shrink: 0;
 }
 
 .fairy-id-display {
-	display: flex;
-	align-items: center;
-	justify-content: start;
-	gap: 6px;
 	flex: 1;
-	font-size: 12px;
-	color: var(--tl-color-text-2);
-	padding: 0px 6px;
-	text-align: center;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -312,19 +302,6 @@
 	height: 16px;
 }
 
-.fairy-toolbar-stack-header {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	border-bottom: 1px solid var(--tl-color-divider);
-	flex-shrink: 0;
-}
-
-.fairy-toolbar-button {
-	font-size: 14px;
-}
-
 .fairy-toolbar-sidebar-button {
 	font-size: 14px;
 }
@@ -332,13 +309,6 @@
 .fairy-toolbar-sidebar-button:disabled {
 	cursor: not-allowed;
 	opacity: 0.4;
-}
-
-.fairy-new-button {
-	margin-top: 4px;
-	align-items: center;
-	display: flex;
-	justify-content: center;
 }
 
 /* Fairy Buttons Container */
