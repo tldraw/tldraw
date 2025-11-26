@@ -1,6 +1,6 @@
 import { CancelIcon, FairyProject, LipsIcon } from '@tldraw/fairy-shared'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { uniqueId, useValue } from 'tldraw'
+import { uniqueId, useEditor, useValue } from 'tldraw'
 import { F, useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { fairyMessages } from './fairy-messages'
@@ -14,6 +14,7 @@ export function FairyGroupChat({
 	onStartProject(orchestratorAgent: FairyAgent): void
 }) {
 	const leaderAgentId = agents[0]?.id ?? null
+	const editor = useEditor()
 
 	const [instruction, setInstruction] = useState('')
 	const instructionTextareaRef = useRef<HTMLTextAreaElement>(null)
@@ -86,7 +87,7 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 
 			if (shouldCancel) {
 				if (!currentProject) return
-				disbandProject(currentProject.id, agents)
+				disbandProject(currentProject.id, editor)
 				return
 			}
 
@@ -136,7 +137,7 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 			// Clear the input
 			setInstruction('')
 		},
-		[getGroupChatPrompt, leaderAgent, followerAgents, onStartProject, agents, shouldCancel]
+		[getGroupChatPrompt, leaderAgent, followerAgents, onStartProject, editor, shouldCancel]
 	)
 
 	const handleButtonClick = () => {

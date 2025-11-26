@@ -1,6 +1,6 @@
 import { FairyProject, FairyTask } from '@tldraw/fairy-shared'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
-import { MouseEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	PORTRAIT_BREAKPOINT,
 	TldrawUiButton,
@@ -18,6 +18,7 @@ import { fairyMessages } from './fairy-messages'
 import { FairyDropdownContent } from './FairyDropdownContent'
 import { FairyGroupChat } from './FairyGroupChat'
 import { FairyListSidebar } from './FairyListSidebar'
+import { $fairyProjects } from './FairyProjects'
 import { $fairyTasks } from './FairyTaskList'
 import { FairyTaskListDropdownContent } from './FairyTaskListDropdownContent'
 import { FairyTaskListInline } from './FairyTaskListInline'
@@ -355,6 +356,38 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 
 		return () => window.removeEventListener('resize', updatePosition)
 	}, [isMobile])
+
+	// Unused atm, wip
+	// Check if any fairies in projects are idling
+	const projects = useValue('fairy-projects', () => $fairyProjects.get(), [$fairyProjects])
+	const badStateProjectIds = useMemo(() => {
+		const projectIds = new Set<string>()
+		for (const project of projects) {
+			for (const member of project.members) {
+				const agent = agents.find((a) => a.id === member.id)
+				if (agent && agent.getMode() === 'idling') {
+					projectIds.add(project.id)
+				}
+			}
+		}
+		return Array.from(projectIds)
+	}, [agents, projects])
+	useEffect(() => {
+		for (const project of projects) {
+			if (badStateProjectIds.includes(project.id)) {
+				for (const member of project.members) {
+					const agent = agents.find((a) => a.id === member.id)
+					if (agent && agent.getMode() === 'idling') {
+						const fairyName = agent.$fairyConfig.get()?.name ?? 'unknown'
+						// eslint-disable-next-line no-console
+						console.log(
+							`Fairy in project but idling: projectId=${project.id}, fairyId=${agent.id}, name=${fairyName}`
+						)
+					}
+				}
+			}
+		}
+	}, [badStateProjectIds, agents, projects])
 
 	return (
 		<>

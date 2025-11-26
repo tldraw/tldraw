@@ -25,6 +25,7 @@ import {
 	getModelPricingInfo,
 	ModelNamePart,
 	PromptPart,
+	SerializedWaitCondition,
 	Streaming,
 } from '@tldraw/fairy-shared'
 import {
@@ -53,7 +54,11 @@ import { $fairyIsApplyingAction } from '../../FairyIsApplyingAction'
 import { getProjectByAgentId } from '../../FairyProjects'
 import { $fairyTasks } from '../../FairyTaskList'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../FairyUtils'
-import { notifyAgentModeTransition } from '../../FairyWaitNotifications'
+import {
+	deserializeWaitCondition,
+	notifyAgentModeTransition,
+	serializeWaitCondition,
+} from '../../FairyWaitNotifications'
 import { PromptPartUtil } from '../../parts/PromptPartUtil'
 import { AgentHelpers } from './AgentHelpers'
 import { FairyAgentOptions } from './FairyAgentOptions'
@@ -323,6 +328,7 @@ export class FairyAgent {
 			chatHistory: this.$chatHistory.get(),
 			chatOrigin: this.$chatOrigin.get(),
 			personalTodoList: this.$personalTodoList.get(),
+			waitingFor: this.$waitingFor.get().map(serializeWaitCondition),
 		}
 	}
 
@@ -335,6 +341,7 @@ export class FairyAgent {
 		chatHistory?: ChatHistoryItem[]
 		chatOrigin?: VecModel
 		personalTodoList?: FairyTodoItem[]
+		waitingFor?: SerializedWaitCondition[]
 	}) {
 		if (state.fairyEntity) {
 			this.$fairyEntity.update((entity) => {
@@ -360,6 +367,12 @@ export class FairyAgent {
 		}
 		if (state.personalTodoList) {
 			this.$personalTodoList.set(state.personalTodoList)
+		}
+		if (state.waitingFor) {
+			const reconstructed = state.waitingFor
+				.map(deserializeWaitCondition)
+				.filter((condition): condition is FairyWaitCondition<FairyWaitEvent> => condition !== null)
+			this.$waitingFor.set(reconstructed)
 		}
 	}
 

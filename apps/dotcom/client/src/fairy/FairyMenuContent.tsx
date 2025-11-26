@@ -91,10 +91,9 @@ export function FairyMenuContent({
 
 	const disbandGroup = useCallback(() => {
 		if (!currentProject) return
-		if (currentProject.members.length <= 1) return
 
-		disbandProject(currentProject.id, agents)
-	}, [currentProject, agents])
+		disbandProject(currentProject.id, editor)
+	}, [currentProject, editor])
 
 	const summonAllFairies = useCallback(() => {
 		const spacing = 150 // Distance between fairies
