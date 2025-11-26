@@ -328,7 +328,8 @@ export function SelectedFairy({ agent }: { agent: FairyAgent }) {
 				transformOrigin: '75% 25%',
 			}}
 		>
-			<FairyReticleSprite />
+			{/* Show reticle a bit larger than normal */}
+			<FairyReticleSprite size={FAIRY_CONTAINER_SIZE / 1.5} />
 		</div>
 	)
 }
