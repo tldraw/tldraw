@@ -81,7 +81,7 @@ export function FairyHUDTeaser() {
 										type="icon"
 										data-state={'off'}
 										data-isactive={false}
-										data-is-sleeping={false}
+										data-is-sleeping={true}
 										aria-label="Fairies"
 										value="off"
 										onClick={() => {
@@ -91,7 +91,7 @@ export function FairyHUDTeaser() {
 										}}
 									>
 										<FairySprite
-											pose={'idle'}
+											pose={'sleeping'}
 											hatColor={'var(--tl-color-fairy-light)'}
 											isAnimated={false}
 										/>

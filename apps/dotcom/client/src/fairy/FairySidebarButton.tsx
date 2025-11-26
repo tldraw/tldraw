@@ -83,7 +83,7 @@ export function FairySidebarButton({
 								pose={fairyEntity.pose}
 								hatColor={getHatColor(fairyOutfit.hat)}
 								isAnimated={fairyEntity.pose !== 'idle' || fairyIsSelected}
-								flipX={fairyEntity.flipX}
+								flipX={fairyEntity.pose === 'sleeping' ? false : fairyEntity.flipX}
 								isOrchestrator={isOrchestrator}
 								projectColor={projectColor}
 							/>
