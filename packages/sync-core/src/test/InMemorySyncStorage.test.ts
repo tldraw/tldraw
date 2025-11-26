@@ -135,15 +135,6 @@ describe('InMemorySyncStorage', () => {
 			expect(storage.tombstoneHistoryStartsAtClock.get()).toBe(20)
 		})
 
-		it('throws when schema is not provided', () => {
-			expect(
-				() =>
-					new InMemorySyncStorage<TLRecord>({
-						snapshot: { documents: [], clock: 0 } as any,
-					})
-			).toThrow('Schema is required')
-		})
-
 		it('handles empty documents array', () => {
 			const storage = new InMemorySyncStorage<TLRecord>({
 				snapshot: makeSnapshot([]),

@@ -1105,7 +1105,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						if (session?.sessionId === otherSession.sessionId) continue
 						if (otherSession.state !== RoomSessionState.Connected) continue
 
-						if (!otherSession.requiresLegacyRejection) {
+						// If the session doesn't require legacy rejection AND doesn't require down migrations,
+						// we can send the message without any downmigration
+						if (!otherSession.requiresLegacyRejection && !otherSession.requiresDownMigrations) {
 							outgoingMessages.push([otherSession.sessionId, noDownMigrationsMessage])
 							continue
 						}

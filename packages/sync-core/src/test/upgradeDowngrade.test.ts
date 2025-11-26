@@ -228,11 +228,11 @@ test('the server can handle receiving v1 stuff from the client', () => {
 	t.oldClient.store.put([user])
 	t.flush()
 
-	expect(t.server.room.documents.get(user.id)?.state).toMatchObject({
+	expect(t.server.storage.documents.get(user.id)?.state).toMatchObject({
 		name: 'bob',
 		birthdate: null,
 	})
-	expect(t.server.room.documents.get(user.id)?.state).not.toMatchObject({
+	expect(t.server.storage.documents.get(user.id)?.state).not.toMatchObject({
 		name: 'bob',
 		age: 10,
 	})
@@ -254,7 +254,7 @@ test('the server can send v2 stuff to the v1 client', () => {
 	t.newClient.store.put([user])
 	t.flush()
 
-	expect(t.server.room.documents.get(user.id)?.state).toMatchObject({
+	expect(t.server.storage.documents.get(user.id)?.state).toMatchObject({
 		name: 'bob',
 		birthdate: '2022-01-09',
 	})
@@ -287,14 +287,14 @@ test('the server will run schema migrations on a snapshot', () => {
 		schemaV3
 	)
 
-	expect(t.server.room.documents.get(bob.id)?.state).toMatchObject({
+	expect(t.server.storage.documents.get(bob.id)?.state).toMatchObject({
 		name: 'bob',
 		birthdate: null,
 	})
-	expect(t.server.room.documents.get(joe.id)).toBeUndefined()
+	expect(t.server.storage.documents.get(joe.id)).toBeUndefined()
 
 	// there should be someone named steve
-	const snapshot = t.server.room.getSnapshot()
+	const snapshot = t.server.storage.getSnapshot()
 	expect(snapshot.documents.find((u: any) => u.state.name === 'steve')).toBeDefined()
 })
 
@@ -309,7 +309,7 @@ test('clients will receive updates from a snapshot migration upon connection', (
 	t.newClient.store.put([bob, joe])
 	t.flush()
 
-	const snapshot = t.server.room.getSnapshot()
+	const snapshot = t.server.storage.getSnapshot()
 
 	t.oldSocketPair.disconnect()
 	t.newSocketPair.disconnect()
@@ -333,7 +333,7 @@ test('clients will receive updates from a snapshot migration upon connection', (
 	newServer.room.handleMessage(id, {
 		type: 'connect',
 		connectRequestId: 'test',
-		lastServerClock: snapshot.clock,
+		lastServerClock: snapshot.documentClock ?? snapshot.clock ?? 0,
 		protocolVersion: getTlsyncProtocolVersion(),
 		schema: schemaV3.serialize(),
 	})

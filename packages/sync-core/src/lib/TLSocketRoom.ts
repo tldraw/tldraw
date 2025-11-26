@@ -608,13 +608,20 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 */
 	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	async updateStore(updater: (store: RoomStoreMethods<R>) => void | Promise<void>) {
+		if (this.isClosed()) {
+			throw new Error('Cannot update store on a closed room')
+		}
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		const ctx = new StoreUpdateContext<R>(
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			Object.fromEntries(this.getCurrentSnapshot().documents.map((d) => [d.state.id, d.state])),
 			this.room.schema
 		)
-		await updater(ctx)
+		try {
+			await updater(ctx)
+		} finally {
+			ctx.close()
+		}
 		this.storage.transaction((txn) => {
 			for (const [id, record] of Object.entries(ctx.updates.puts)) {
 				txn.set(id, record as R)

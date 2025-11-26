@@ -57,7 +57,7 @@ describe(TLSocketRoom, () => {
 			initialSnapshot: snapshot,
 		})
 		expect(room.getCurrentSnapshot()).not.toMatchObject({ clock: 0, documents: [] })
-		expect(room.getCurrentSnapshot().clock).toBe(0)
+		expect(room.getCurrentSnapshot().documentClock).toBe(0)
 		expect(room.getCurrentSnapshot().documents.sort((a, b) => a.state.id.localeCompare(b.state.id)))
 			.toMatchInlineSnapshot(`
 		[
@@ -91,7 +91,7 @@ describe(TLSocketRoom, () => {
 			initialSnapshot: store.getStoreSnapshot(),
 		})
 
-		expect(room.getCurrentSnapshot()).toMatchObject({ clock: 0, documents: [] })
+		expect(room.getCurrentSnapshot()).toMatchObject({ documentClock: 0, documents: [] })
 
 		// populate with an empty document (document:document and page:page records)
 		store.ensureStoreIsUsable()
@@ -99,7 +99,7 @@ describe(TLSocketRoom, () => {
 		const snapshot = store.getStoreSnapshot()
 		room.loadSnapshot(snapshot)
 
-		expect(room.getCurrentSnapshot().clock).toBe(1)
+		expect(room.getCurrentSnapshot().documentClock).toBe(1)
 		expect(room.getCurrentSnapshot().documents.sort((a, b) => a.state.id.localeCompare(b.state.id)))
 			.toMatchInlineSnapshot(`
 		[
@@ -303,25 +303,38 @@ describe(TLSocketRoom, () => {
 	})
 
 	describe('Room state resetting behavior', () => {
-		it('sets documentClock to oldRoom.clock + 1 when resetting room state', () => {
+		it('increments documentClock when loading snapshot with different data', () => {
 			const store = getStore()
 			store.ensureStoreIsUsable()
 			const room = new TLSocketRoom({
 				initialSnapshot: store.getStoreSnapshot(),
 			})
 
-			// Load a snapshot to increment the clock
-			const snapshot = store.getStoreSnapshot()
-			room.loadSnapshot(snapshot)
-
 			const oldClock = room.getCurrentDocumentClock()
-			expect(oldClock).toBe(1)
+			expect(oldClock).toBe(0)
 
-			// Reset with a new snapshot
+			// Add a new page to make the snapshot different
+			store.put([PageRecordType.create({ name: 'New Page', index: 'a2' as IndexKey })])
 			const newSnapshot = store.getStoreSnapshot()
 			room.loadSnapshot(newSnapshot)
 
 			expect(room.getCurrentDocumentClock()).toBe(oldClock + 1)
+		})
+
+		it('does not increment documentClock when loading identical snapshot', () => {
+			const store = getStore()
+			store.ensureStoreIsUsable()
+			const room = new TLSocketRoom({
+				initialSnapshot: store.getStoreSnapshot(),
+			})
+
+			const oldClock = room.getCurrentDocumentClock()
+
+			// Load the same snapshot again
+			room.loadSnapshot(store.getStoreSnapshot())
+
+			// Clock should not change since data is identical
+			expect(room.getCurrentDocumentClock()).toBe(oldClock)
 		})
 
 		it('preserves existing tombstones with original clock values', async () => {
@@ -347,13 +360,14 @@ describe(TLSocketRoom, () => {
 
 			room.loadSnapshot(room.getCurrentSnapshot())
 
+			// Tombstones should be preserved
 			expect(room.getCurrentSnapshot().tombstones).toEqual({
 				[testPageId]: deletionClock,
 			})
 
-			expect(room.getCurrentSnapshot().documentClock).toBe(deletionClock + 1)
+			// Clock should not change since we loaded the same snapshot
+			expect(room.getCurrentSnapshot().documentClock).toBe(deletionClock)
 		})
-
 
 		it('preserves schema when resetting room state', () => {
 			const store = getStore()
@@ -946,11 +960,13 @@ describe('TLSocketRoom.updateStore', () => {
 		await expect(
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			room.updateStore((store) => {
-				const page = store.get('page:page_2') as TLPage
+				const page = store.get('page:page') as TLPage
 				page.index = 34 as any
 				store.put(page)
 			})
-		).rejects.toMatchInlineSnapshot(`[Error: failed to apply changes: INVALID_RECORD]`)
+		).rejects.toMatchInlineSnapshot(
+			`[ValidationError: At page.index: Expected string, got a number]`
+		)
 	})
 
 	test('changes in multiple transaction are isolated from one another', async () => {
@@ -977,9 +993,9 @@ describe('TLSocketRoom.updateStore', () => {
 	test('getting something that was deleted in the same transaction returns null', async () => {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		await room.updateStore((store) => {
-			expect(store.get('page:page_2')).toBeTruthy()
-			store.delete('page:page_2')
-			expect(store.get('page:page_2')).toBe(null)
+			expect(store.get('page:page')).toBeTruthy()
+			store.delete('page:page')
+			expect(store.get('page:page')).toBe(null)
 		})
 	})
 
@@ -993,10 +1009,10 @@ describe('TLSocketRoom.updateStore', () => {
 	test('mutations to shapes gotten via .get are not committed unless you .put', async () => {
 		const page3 = PageRecordType.create({ name: 'page 3', index: 'a0' as IndexKey })
 		let page4 = PageRecordType.create({ name: 'page 4', index: 'a1' as IndexKey })
-		let page2
+		let page1
 		await room.updateStore((store) => {
-			page2 = store.get('page:page_2') as TLPage
-			page2.name = 'my lovely page 2'
+			page1 = store.get('page:page') as TLPage
+			page1.name = 'my lovely page 1'
 			store.put(page3)
 			page3.name = 'my lovely page 3'
 			store.put(page4)
@@ -1011,14 +1027,14 @@ describe('TLSocketRoom.updateStore', () => {
 				.map((r) => (r.state as any).name)
 				.sort()
 
-		expect(getPageNames()).toEqual(['page 2', 'page 3', 'page 4'])
+		expect(getPageNames()).toEqual(['Page 1', 'page 3', 'page 4'])
 
 		await room.updateStore((store) => {
-			store.put(page2!)
+			store.put(page1!)
 			store.put(page3)
 			store.put(page4)
 		})
 
-		expect(getPageNames()).toEqual(['my lovely page 2', 'my lovely page 3', 'my lovely page 4'])
+		expect(getPageNames()).toEqual(['my lovely page 1', 'my lovely page 3', 'my lovely page 4'])
 	})
 })
