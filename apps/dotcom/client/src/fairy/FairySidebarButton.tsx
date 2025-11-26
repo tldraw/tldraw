@@ -36,7 +36,7 @@ export function FairySidebarButton({
 		() => agent.getRole() === 'orchestrator' || agent.getRole() === 'duo-orchestrator',
 		[agent]
 	)
-	const projectColor = project ? getProjectColor(agent.editor, project.color) : undefined
+	const projectColor = project ? getProjectColor(project.color) : undefined
 
 	if (!fairyEntity || !fairyOutfit) return null
 

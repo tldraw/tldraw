@@ -92,7 +92,7 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 	)
 	const projectColor = useValue('project color', () => agent.getProject()?.color, [agent])
 
-	const projectHexColor = projectColor ? getProjectColor(editor, projectColor) : undefined
+	const projectHexColor = projectColor ? getProjectColor(projectColor) : undefined
 
 	const flipX = useValue('fairy flipX', () => $fairyEntity.get()?.flipX ?? false, [$fairyEntity])
 	const isSelected = useValue('fairy isSelected', () => $fairyEntity.get()?.isSelected ?? false, [
