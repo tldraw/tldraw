@@ -234,8 +234,17 @@ export function CleanFairySpriteComponent() {
 					filter: 'drop-shadow(2px 2px 0.5px rgba(8, 20, 35, 0.12))',
 				}}
 			>
-				<WSprite topWingColor="white" bottomWingColor="white" />
-				<FSprite bodyColor="white" hatColor="white" />
+				<svg
+					className="fairy-sprite"
+					width="108"
+					height="108"
+					viewBox="0 0 108 108"
+					fill="none"
+					xmlns="http://www.w3.org/2000/svg"
+				>
+					<WSprite topWingColor="white" bottomWingColor="white" />
+					<FSprite bodyColor="white" hatColor="white" />
+				</svg>
 			</div>
 		</div>
 	)
