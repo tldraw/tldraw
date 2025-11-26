@@ -565,12 +565,6 @@
       "value": "We failed to upload some of the content you created before you signed in."
     }
   ],
-  "5e32324d9f": [
-    {
-      "type": 0,
-      "value": "Put away all fairies"
-    }
-  ],
   "5ea8bb44be": [
     {
       "type": 0,
@@ -1471,6 +1465,12 @@
     {
       "type": 0,
       "value": "Close"
+    }
+  ],
+  "d438a51e6e": [
+    {
+      "type": 0,
+      "value": "Put all fairies to sleep"
     }
   ],
   "d46632fe1f": [
