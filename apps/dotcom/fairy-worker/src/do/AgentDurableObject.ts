@@ -17,7 +17,7 @@ export class AgentDurableObject extends DurableObject<Environment> {
 		return this.env.TL_USER.get(userDO)
 	}
 
-	private async checkRateLimit(
+	private async getRateLimitError(
 		userId: string,
 		userStub: ReturnType<Environment['TL_USER']['get']>,
 		userIsAdmin: boolean
@@ -96,7 +96,7 @@ export class AgentDurableObject extends DurableObject<Environment> {
 		}
 
 		const userStub = this.getUserDOStub(userId)
-		const rateLimitError = await this.checkRateLimit(userId, userStub, userIsAdmin)
+		const rateLimitError = await this.getRateLimitError(userId, userStub, userIsAdmin)
 		if (rateLimitError) return rateLimitError
 
 		const encoder = new TextEncoder()
