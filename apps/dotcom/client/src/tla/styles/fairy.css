@@ -425,6 +425,19 @@
 	position: relative;
 }
 
+.fairy-sidebar-group > .fairy-toggle-button {
+	margin-top: -4px;
+	margin-bottom: -4px;
+}
+
+.fairy-sidebar-group > .fairy-toggle-button:first-of-type {
+	margin-top: 0;
+}
+
+.fairy-sidebar-group > .fairy-toggle-button:last-of-type {
+	margin-bottom: 0;
+}
+
 .fairy-list .fairy-sprite-stack.shadow {
 	filter: none;
 }
