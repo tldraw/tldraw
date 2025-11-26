@@ -6,18 +6,19 @@ This document tracks technical debt and cleanup opportunities in the fairy front
 
 ### Dead/commented code to remove
 
-| File | Lines | Description |
-|------|-------|-------------|
-| `FairyHUDTeaser.tsx` | 91-166 | Commented `FairyAnnouncementDialogAutoTrigger`, `FairyComingSoonDialog`, `TimeUntilDecember1st2025` |
-| `FairyConfigDialog.tsx` | 20-54, 79-108 | Commented hat selection, personality input, and translation functions |
-| `FairyListSidebar.tsx` | 113-126 | Commented header with ContextMenu |
-| `FairyMenuContent.tsx` | 32-39, 67 | Unused `_configureFairy` function and `_customizeFairyLabel` variable |
+| File                    | Lines         | Description                                                                                         |
+| ----------------------- | ------------- | --------------------------------------------------------------------------------------------------- |
+| `FairyHUDTeaser.tsx`    | 91-166        | Commented `FairyAnnouncementDialogAutoTrigger`, `FairyComingSoonDialog`, `TimeUntilDecember1st2025` |
+| `FairyConfigDialog.tsx` | 20-54, 79-108 | Commented hat selection, personality input, and translation functions                               |
+| `FairyListSidebar.tsx`  | 113-126       | Commented header with ContextMenu                                                                   |
+| `FairyMenuContent.tsx`  | 32-39, 67     | Unused `_configureFairy` function and `_customizeFairyLabel` variable                               |
 
 ## Duplication
 
 ### `getStatusIcon()` function
 
 Duplicated in two files with identical implementation:
+
 - `FairyTaskListInline.tsx:27-38`
 - `InCanvasTaskList.tsx:70-81`
 
@@ -26,6 +27,7 @@ Duplicated in two files with identical implementation:
 ### Mobile position offset logic
 
 Similar pattern duplicated in:
+
 - `FairyHUD.tsx:329-350`
 - `FairyHUDTeaser.tsx:29-51`
 
@@ -35,14 +37,14 @@ Similar pattern duplicated in:
 
 Mixed use of "todo" and "task" terminology:
 
-| Current | Suggested |
-|---------|-----------|
-| `$showCanvasFairyTasks` | Keep (uses "Tasks") |
-| `showCanvasTodosLoadedRef` | `showCanvasTasksLoadedRef` |
-| `setTodoId` in `FairyTaskDragTool` | `setTaskId` |
-| `isInTodoDragTool` | `isInTaskDragTool` |
-| `TodoDragTool` (comment in FairyApp.tsx:78) | `TaskDragTool` |
-| `handleDragStart` todos references | tasks |
+| Current                                     | Suggested                  |
+| ------------------------------------------- | -------------------------- |
+| `$showCanvasFairyTasks`                     | Keep (uses "Tasks")        |
+| `showCanvasTodosLoadedRef`                  | `showCanvasTasksLoadedRef` |
+| `setTodoId` in `FairyTaskDragTool`          | `setTaskId`                |
+| `isInTodoDragTool`                          | `isInTaskDragTool`         |
+| `TodoDragTool` (comment in FairyApp.tsx:78) | `TaskDragTool`             |
+| `handleDragStart` todos references          | tasks                      |
 
 ## Technical debt
 
@@ -62,6 +64,7 @@ The current implementation manually watches atoms and throttles updates. Should 
 **File**: `FairyHUD.tsx`
 
 `FairyHUDHeader` receives these props but doesn't use them:
+
 - `hasUnreadTasks`
 - `switchToFairyChatLabel`
 - `switchToTaskListLabel`
@@ -85,6 +88,7 @@ setTimeout(() => {
 ```
 
 **Suggestion**: Extract to constants:
+
 ```typescript
 const FAIRY_STATE_SAVE_THROTTLE_MS = 2000
 const FAIRY_STATE_LOAD_SETTLE_MS = 100
@@ -94,10 +98,10 @@ const FAIRY_STATE_LOAD_SETTLE_MS = 100
 
 Replace with CSS classes:
 
-| File | Location |
-|------|----------|
+| File                    | Location                                                                       |
+| ----------------------- | ------------------------------------------------------------------------------ |
 | `FairyConfigDialog.tsx` | Line 64-68: `style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}` |
-| `InCanvasTaskList.tsx` | `TaskBoundsOverlay` component (lines 131-146) |
+| `InCanvasTaskList.tsx`  | `TaskBoundsOverlay` component (lines 131-146)                                  |
 
 ### Type safety
 
