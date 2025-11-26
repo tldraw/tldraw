@@ -1,5 +1,5 @@
-import { FairyEntity, FairyOutfit, FairyPose } from '@tldraw/fairy-shared'
-import { ComponentType, useEffect, useState } from 'react'
+import { FairyOutfit, FairyPose } from '@tldraw/fairy-shared'
+import { ComponentType, ReactNode, useEffect, useState } from 'react'
 import { IdleSprite } from './sprites/IdleSprite'
 import { PoofSprite } from './sprites/PoofSprite'
 import { RaisedAWingSprite } from './sprites/RaisedAWingSprite'
@@ -62,26 +62,67 @@ const HAT_COLORS: Record<string, string> = {
 	propellor: '#A3D9A5', // Medium green for propellor
 }
 
-/**
- * Computes colors for a fairy sprite based on the entity's properties.
- */
-function computeFairyColors(
-	_entity: FairyEntity,
-	outfit: FairyOutfit,
-	projectColor?: string,
+export function FairySprite({
+	pose,
+	outfit,
+	isAnimated: animated,
+	showShadow,
+	isGenerating,
+	flipX = false,
+	isOrchestrator,
+	projectColor = 'white',
+}: {
+	outfit: FairyOutfit // todo: replace
+	pose: FairyPose
+	flipX?: boolean
+	tint?: string | null
+	projectColor?: string
+	isAnimated?: boolean
+	showShadow?: boolean
+	isGenerating?: boolean
 	isOrchestrator?: boolean
-): {
-	topWingColor: string
-	bottomWingColor: string
-	bodyColor: string
-	hatColor: string
-} {
-	return {
-		topWingColor: projectColor ?? 'white',
-		bottomWingColor: projectColor && isOrchestrator ? projectColor : 'white',
-		bodyColor: 'white',
-		hatColor: HAT_COLORS[outfit.hat] || 'white',
-	}
+}) {
+	const topWingColor = projectColor
+	const bottomWingColor = isOrchestrator ? projectColor : 'white'
+	const bodyColor = 'white'
+	const hatColor = HAT_COLORS[outfit.hat]
+
+	return (
+		<div className="fairy-sprite-container">
+			<div
+				className="fairy-sprite-stack"
+				style={{
+					transform: flipX ? 'scaleX(-1)' : 'none',
+					filter: showShadow
+						? flipX
+							? 'drop-shadow(-2px 2px 0.5px rgba(8, 20, 35, 0.12))'
+							: 'drop-shadow(2px 2px 0.5px rgba(8, 20, 35, 0.12))'
+						: 'none',
+				}}
+			>
+				{animated ? (
+					<AnimatedFairySpriteComponent
+						pose={pose}
+						speed={pose === 'working' ? 100 : isGenerating ? 120 : 160}
+						topWingColor={topWingColor}
+						bottomWingColor={bottomWingColor}
+						bodyColor={bodyColor}
+						hatColor={hatColor}
+						flipX={flipX}
+					/>
+				) : (
+					<StaticFairySpriteComponent
+						pose={pose}
+						topWingColor={topWingColor}
+						bottomWingColor={bottomWingColor}
+						bodyColor={bodyColor}
+						hatColor={hatColor}
+						flipX={flipX}
+					/>
+				)}
+			</div>
+		</div>
+	)
 }
 
 function useKeyframe({ pose, duration }: { pose: FairyPose; duration: number }) {
@@ -100,6 +141,43 @@ function useKeyframe({ pose, duration }: { pose: FairyPose; duration: number }) 
 	return keyframe
 }
 
+function AnimatedFairySpriteComponent({
+	speed,
+	pose,
+	...rest
+}: FairySpriteSvgProps & { speed: number }) {
+	// Gesture takes precedence over pose
+	const keyframe = useKeyframe({
+		pose,
+		duration: speed,
+	})
+
+	return <FairySpriteSvg pose={pose} keyframe={keyframe} {...rest} />
+}
+
+function StaticFairySpriteComponent(props: FairySpriteSvgProps) {
+	return <FairySpriteSvg {...props} />
+}
+
+export function CleanFairySpriteComponent() {
+	return (
+		<div className="fairy-sprite-container">
+			<FairySpriteSvg pose="idle" />
+		</div>
+	)
+}
+
+export interface FairySpriteSvgProps {
+	pose: FairyPose
+	topWingColor?: string
+	bottomWingColor?: string
+	bodyColor?: string
+	hatColor?: string
+	keyframe?: number
+	flipX?: boolean
+	showShadow?: boolean
+}
+
 function getItemForKeyFrame<T>(items: T | T[], keyframe: number) {
 	if (Array.isArray(items)) {
 		return items[keyframe % items.length]
@@ -107,145 +185,59 @@ function getItemForKeyFrame<T>(items: T | T[], keyframe: number) {
 	return items
 }
 
-export function FairySpriteComponent2({
-	entity,
-	outfit,
-	animated,
-	showShadow,
-	isGenerating,
+function FairySpriteSvg({
+	pose,
+	topWingColor = 'white',
+	bottomWingColor = 'white',
+	bodyColor = 'white',
+	hatColor = 'white',
+	keyframe = 0,
 	flipX = false,
-	isOrchestrator,
-	projectColor,
+	showShadow = false,
+}: FairySpriteSvgProps) {
+	const FSprite = getItemForKeyFrame(FAIRY_SPRITES_WITH_PROPS[pose], keyframe)
+	const WSprite = getItemForKeyFrame(WING_SPRITES[pose], keyframe)
+
+	return (
+		<svg
+			className="fairy-sprite"
+			width="108"
+			height="108"
+			viewBox="0 0 108 108"
+			fill="none"
+			xmlns="http://www.w3.org/2000/svg"
+		>
+			<FairyShadow flipX={flipX} showShadow={showShadow}>
+				{WSprite && <WSprite topWingColor={topWingColor} bottomWingColor={bottomWingColor} />}
+				{FSprite && <FSprite bodyColor={bodyColor} hatColor={hatColor} />}
+			</FairyShadow>
+		</svg>
+	)
+}
+
+function FairyShadow({
+	children,
+	flipX = false,
+	showShadow = true,
 }: {
-	entity: FairyEntity
-	outfit: FairyOutfit
-	animated?: boolean
-	showShadow?: boolean
+	children: ReactNode
 	flipX?: boolean
-	isGenerating?: boolean
-	tint?: string | null
-	isOrchestrator?: boolean
-	projectColor?: string
+	showShadow?: boolean
 }) {
-	const colors = computeFairyColors(entity, outfit, projectColor, isOrchestrator)
-
+	if (!showShadow) return children
 	return (
-		<div className="fairy-sprite-container">
-			<div
-				className="fairy-sprite-stack"
-				style={{
-					transform: flipX ? 'scaleX(-1)' : 'none',
-					filter: showShadow
-						? flipX
-							? 'drop-shadow(-2px 2px 0.5px rgba(8, 20, 35, 0.12))'
-							: 'drop-shadow(2px 2px 0.5px rgba(8, 20, 35, 0.12))'
-						: 'none',
-				}}
-			>
-				{animated ? (
-					<AnimatedFairySpriteComponent
-						entity={entity}
-						colors={colors}
-						isGenerating={isGenerating}
-					/>
-				) : (
-					<StaticFairySpriteComponent entity={entity} colors={colors} />
-				)}
-			</div>
-		</div>
-	)
-}
-
-function AnimatedFairySpriteComponent({
-	entity,
-	colors,
-	isGenerating,
-}: {
-	entity: FairyEntity
-	colors: ReturnType<typeof computeFairyColors>
-	isGenerating?: boolean
-}) {
-	// Gesture takes precedence over pose
-	const effectivePose = entity.gesture ?? entity.pose
-
-	const keyframe = useKeyframe({
-		pose: effectivePose,
-		duration: effectivePose === 'working' ? 100 : isGenerating ? 120 : 160,
-	})
-	const FSprite = getItemForKeyFrame(FAIRY_SPRITES_WITH_PROPS[effectivePose], keyframe)
-	const WSprite = getItemForKeyFrame(WING_SPRITES[effectivePose], keyframe)
-
-	return (
-		<svg
-			className="fairy-sprite"
-			width="108"
-			height="108"
-			viewBox="0 0 108 108"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
+		<div
+			className="fairy-sprite-stack"
+			style={{
+				transform: flipX ? 'scaleX(-1)' : 'none',
+				filter: showShadow
+					? flipX
+						? 'drop-shadow(-2px 2px 0.5px rgba(8, 20, 35, 0.12))'
+						: 'drop-shadow(2px 2px 0.5px rgba(8, 20, 35, 0.12))'
+					: 'none',
+			}}
 		>
-			{WSprite && (
-				<WSprite topWingColor={colors.topWingColor} bottomWingColor={colors.bottomWingColor} />
-			)}
-			{FSprite && <FSprite bodyColor={colors.bodyColor} hatColor={colors.hatColor} />}
-		</svg>
-	)
-}
-
-function StaticFairySpriteComponent({
-	entity,
-	colors,
-}: {
-	entity: FairyEntity
-	colors: ReturnType<typeof computeFairyColors>
-	sashColor?: string
-}) {
-	// Gesture takes precedence over pose
-	const effectivePose = entity.gesture ?? entity.pose
-	const FSprite = FAIRY_SPRITES_WITH_PROPS[effectivePose][0]
-	const WSprite = WING_SPRITES[effectivePose][0]
-
-	return (
-		<svg
-			className="fairy-sprite"
-			width="108"
-			height="108"
-			viewBox="0 0 108 108"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-		>
-			{WSprite && (
-				<WSprite topWingColor={colors.topWingColor} bottomWingColor={colors.bottomWingColor} />
-			)}
-			{FSprite && <FSprite bodyColor={colors.bodyColor} hatColor={colors.hatColor} />}
-		</svg>
-	)
-}
-
-export function CleanFairySpriteComponent() {
-	const FSprite = FAIRY_SPRITES_WITH_PROPS['idle'][0]
-	const WSprite = WING_SPRITES['idle'][0]
-	return (
-		<div className="fairy-sprite-container">
-			<div
-				className="fairy-sprite-stack"
-				style={{
-					transform: 'none',
-					filter: 'drop-shadow(2px 2px 0.5px rgba(8, 20, 35, 0.12))',
-				}}
-			>
-				<svg
-					className="fairy-sprite"
-					width="108"
-					height="108"
-					viewBox="0 0 108 108"
-					fill="none"
-					xmlns="http://www.w3.org/2000/svg"
-				>
-					<WSprite topWingColor="white" bottomWingColor="white" />
-					<FSprite bodyColor="white" hatColor="white" />
-				</svg>
-			</div>
+			{children}
 		</div>
 	)
 }

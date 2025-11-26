@@ -1,4 +1,5 @@
 import { FairyBodySpritePart } from './parts/FairyBodySpritePart'
+import { FairyLegsSpritePart } from './parts/FairyLegsSpritePart'
 
 export function IdleSprite({
 	bodyColor = 'white',
@@ -23,6 +24,7 @@ export function IdleSprite({
 				strokeWidth="6"
 				strokeLinecap="round"
 			/>
+			<FairyLegsSpritePart />
 			<FairyBodySpritePart bodyColor={bodyColor} />
 			<circle
 				cx="55.4159"

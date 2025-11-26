@@ -5,7 +5,7 @@ import {
 	fairyOutfitValidator,
 } from '@tldraw/fairy-shared'
 import { T, useEditor, usePeerIds, usePresence } from 'tldraw'
-import { FairySpriteComponent2 } from './fairy-sprite/FairySprite2'
+import { FairySprite } from './fairy-sprite/FairySprite2'
 
 /**
  * Component that renders fairies for all remote users who have an active fairy.
@@ -87,18 +87,11 @@ function RemoteFairyIndicator({
 				transition: 'left 0.1s ease-in-out, top 0.1s ease-in-out',
 			}}
 		>
-			<FairySpriteComponent2
+			<FairySprite
 				showShadow
-				animated={true}
+				isAnimated={true}
 				flipX={entity.flipX}
-				entity={{
-					position: entity.position,
-					flipX: entity.flipX,
-					isSelected: false,
-					pose: entity.pose,
-					gesture: entity.gesture,
-					currentPageId: entity.currentPageId,
-				}}
+				pose={entity.gesture || entity.pose}
 				outfit={outfit}
 				tint={color}
 			/>

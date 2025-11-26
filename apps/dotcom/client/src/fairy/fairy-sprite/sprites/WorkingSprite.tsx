@@ -1,4 +1,5 @@
 import { FairyBodySpritePart } from './parts/FairyBodySpritePart'
+import { FairyLegsSpritePart } from './parts/FairyLegsSpritePart'
 
 export function WorkingSprite1({
 	bodyColor = 'white',
@@ -81,8 +82,7 @@ export function WorkingSpriteBase({
 }) {
 	return (
 		<>
-			{/* Right arm */}
-			{/* Left leg */}
+			<FairyLegsSpritePart />
 			<FairyBodySpritePart bodyColor={bodyColor} />
 			{/* Head */}
 			<circle

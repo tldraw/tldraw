@@ -4,7 +4,7 @@ import React, { useRef } from 'react'
 import { Atom, TLEventInfo, useEditor, useValue } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { $fairyAgentsAtom } from './fairy-agent/agent/fairyAgentsAtom'
-import { FairySpriteComponent2 } from './fairy-sprite/FairySprite2'
+import { FairySprite } from './fairy-sprite/FairySprite2'
 import { SelectedSprite } from './fairy-sprite/sprites/SelectedSprite'
 import { FairyContextMenuContent } from './FairyContextMenuContent'
 import { FairyThrowTool } from './FairyThrowTool'
@@ -288,15 +288,15 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 						}}
 					/>
 					<div className="fairy-sprite-wrapper">
-						<FairySpriteComponent2
+						<FairySprite
 							showShadow
-							entity={fairyEntity}
+							pose={fairyEntity.pose}
 							outfit={fairyOutfit}
+							isAnimated={fairyEntity.pose !== 'idle' || isSelected}
 							isGenerating={isGenerating}
-							animated={fairyEntity.pose !== 'idle' || isSelected}
+							flipX={flipX}
 							isOrchestrator={isOrchestrator}
 							projectColor={projectHexColor}
-							flipX={flipX}
 						/>
 					</div>
 				</div>
