@@ -7,7 +7,6 @@ import {
 	TldrawUiButtonIcon,
 	useBreakpoint,
 	useEditor,
-	useQuickReactor,
 	useValue,
 } from 'tldraw'
 import '../tla/styles/fairy.css'
@@ -161,26 +160,16 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	)
 
 	// Update the chosen fairy when the selected fairies change
-	useQuickReactor(
-		'update-chosen-fairy',
-		() => {
-			const currentSelectedFairies = agents.filter(
-				(agent) => agent.$fairyEntity.get()?.isSelected ?? false
-			)
-
-			queueMicrotask(() => {
-				if (currentSelectedFairies.length === 1) {
-					setShownFairy(currentSelectedFairies[0])
-					setPanelState('fairy')
-				}
-				if (currentSelectedFairies.length === 0) {
-					setShownFairy(null)
-					setPanelState('closed')
-				}
-			})
-		},
-		[agents]
-	)
+	useEffect(() => {
+		if (selectedFairies.length === 1) {
+			setShownFairy(selectedFairies[0])
+			setPanelState('fairy')
+		}
+		if (selectedFairies.length === 0) {
+			setShownFairy(null)
+			setPanelState('closed')
+		}
+	}, [selectedFairies])
 
 	const selectFairy = useCallback(
 		(selectedAgent: FairyAgent) => {
@@ -312,25 +301,22 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		e.stopPropagation()
 	}
 
+	const currentTasks = useValue('current-tasks', () => $fairyTasks.get(), [])
+
 	// Keep todoLastChecked in sync when the panel is open
-	useQuickReactor(
-		'update-task-list-last-checked',
-		() => {
-			if (panelState === 'task-list') {
-				setTaskListLastChecked($fairyTasks.get())
-			}
-		},
-		[panelState]
-	)
+	useEffect(() => {
+		if (panelState === 'task-list') {
+			setTaskListLastChecked(currentTasks)
+		}
+	}, [panelState, currentTasks])
 
 	const hasUnreadTasks = useValue(
 		'has-unread-tasks',
 		() => {
-			const currentList = $fairyTasks.get()
-			if (currentList.length !== taskListLastChecked.length) return true
-			return JSON.stringify(currentList) !== JSON.stringify(taskListLastChecked)
+			if (currentTasks.length !== taskListLastChecked.length) return true
+			return JSON.stringify(currentTasks) !== JSON.stringify(taskListLastChecked)
 		},
-		[taskListLastChecked]
+		[taskListLastChecked, currentTasks]
 	)
 
 	// hide the HUD when the mobile style panel is open

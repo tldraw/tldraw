@@ -150,10 +150,12 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 }
 
 const NO_INPUT_MESSAGES = [
-	'I mumble a gentle whisper, you cannot quite hear it.',
+	'I mumble something quietly.',
 	"I'm not sure what to say.",
-	'(head scratch)',
-	'What should I say?',
+	'The wind whispers across the canvas.',
+	'...',
+	'*scratch behind the ears*',
+	'Leaves rustle in the breeze.',
 ]
 
 function getRandomNoInputMessage() {
