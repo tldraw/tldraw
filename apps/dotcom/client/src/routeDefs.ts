@@ -15,6 +15,7 @@ export const ROUTES = {
 	tlaLocalFile: `/lf/:fileSlug`,
 	tlaPublish: `/p/:fileSlug`,
 	tlaInvite: `/invite/:token`,
+	tlaFairyInvite: `/fairy-invite/:token`,
 	// Legacy routes
 	tlaLegacyRoom: '/r/:roomId',
 	tlaLegacyRoomHistory: '/r/:boardId/history',

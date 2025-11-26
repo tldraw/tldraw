@@ -1,7 +1,5 @@
 import {
 	StateNode,
-	TLFrameShape,
-	TLGroupShape,
 	TLPointerEventInfo,
 	TLShapeId,
 	isAccelKey,
@@ -37,8 +35,8 @@ export class Erasing extends StateNode {
 					if (this.editor.isShapeOrAncestorLocked(shape)) return true
 					//If the shape is a group or frame, check we're inside it when we start erasing
 					if (
-						this.editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
-						this.editor.isShapeOfType<TLFrameShape>(shape, 'frame')
+						this.editor.isShapeOfType(shape, 'group') ||
+						this.editor.isShapeOfType(shape, 'frame')
 					) {
 						const pointInShapeShape = this.editor.getPointInShapeSpace(shape, originPagePoint)
 						const geometry = this.editor.getShapeGeometry(shape)
@@ -111,7 +109,7 @@ export class Erasing extends StateNode {
 		const minDist = this.editor.options.hitTestMargin / zoomLevel
 
 		for (const shape of currentPageShapes) {
-			if (editor.isShapeOfType<TLGroupShape>(shape, 'group')) continue
+			if (editor.isShapeOfType(shape, 'group')) continue
 
 			// Avoid testing masked shapes, unless the pointer is inside the mask
 			const pageMask = editor.getShapeMask(shape.id)

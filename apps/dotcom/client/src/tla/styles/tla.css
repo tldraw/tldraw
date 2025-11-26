@@ -334,3 +334,12 @@
 	.tla-primary-button:not(.tlui-button):focus-visible {
 	outline-offset: 0;
 }
+
+.tla .tl-watermark_SEE-LICENSE {
+	display: none;
+}
+
+/* Crazy sneaky */
+.tla .tl-container {
+	--tl-layer-canvas-in-front: 499;
+}

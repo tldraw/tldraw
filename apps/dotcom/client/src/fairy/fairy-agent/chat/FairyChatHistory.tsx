@@ -1,3 +1,4 @@
+import { ChatHistoryPromptItem } from '@tldraw/fairy-shared'
 import { useEffect, useRef } from 'react'
 import { useValue } from 'tldraw'
 import { FairyAgent } from '../agent/FairyAgent'
@@ -32,7 +33,11 @@ Here's an example of how the UI might look:
 
 export function FairyChatHistory({ agent }: { agent: FairyAgent }) {
 	const historyItems = useValue(agent.$chatHistory)
-	const sections = getAgentHistorySections(historyItems)
+	// const currentMode = agent.getMode()
+	// const modeDefinition = getFairyModeDefinition(currentMode)
+	// const filteredItems = filterChatHistoryByMode(historyItems, modeDefinition.memoryLevel)
+	const filteredItems = historyItems // filterChatHistoryByMode(historyItems, modeDefinition.memoryLevel)
+	const sections = getAgentHistorySections(filteredItems)
 	const historyRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)
 
@@ -40,10 +45,13 @@ export function FairyChatHistory({ agent }: { agent: FairyAgent }) {
 		if (!historyRef.current) return
 
 		// If a new prompt is submitted by the user, scroll to the bottom
-		if (historyItems.at(-1)?.type === 'prompt') {
-			historyRef.current.scrollTo(0, historyRef.current.scrollHeight)
-			previousScrollDistanceFromBottomRef.current = 0
-			return
+		const lastItem = filteredItems.at(-1)
+		if (lastItem && lastItem?.type === 'prompt') {
+			if ((lastItem as ChatHistoryPromptItem).promptSource === 'user') {
+				historyRef.current.scrollTo(0, historyRef.current.scrollHeight)
+				previousScrollDistanceFromBottomRef.current = 0
+				return
+			}
 		}
 
 		// If the user is scrolled to the bottom, keep them there while new actions appear
@@ -57,7 +65,7 @@ export function FairyChatHistory({ agent }: { agent: FairyAgent }) {
 				historyRef.current.scrollTo(0, historyRef.current.scrollHeight)
 			}
 		}
-	}, [historyRef, historyItems])
+	}, [historyRef, filteredItems])
 
 	// Keep track of the user's scroll position
 	const handleScroll = () => {
@@ -74,7 +82,12 @@ export function FairyChatHistory({ agent }: { agent: FairyAgent }) {
 		<div className="fairy-chat-history" ref={historyRef} onScroll={handleScroll}>
 			{sections.map((section, i) => {
 				return (
-					<FairyChatHistorySection key={'history-section-' + i} section={section} agent={agent} />
+					<FairyChatHistorySection
+						key={'history-section-' + i}
+						section={section}
+						agent={agent}
+						isFinalSection={i === sections.length - 1}
+					/>
 				)
 			})}
 		</div>

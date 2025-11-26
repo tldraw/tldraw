@@ -7,24 +7,23 @@ export class PersonalTodoListActionUtil extends AgentActionUtil<PersonalTodoList
 	override getInfo(action: Streaming<PersonalTodoListAction>) {
 		if (!action.complete) {
 			return {
-				icon: 'note' as const,
-				description: 'Updating personal todo list...',
-				pose: 'thinking' as const,
+				description: null,
+				pose: 'writing' as const,
 			}
 		}
 
-		if (action.id) {
+		if (action.status === 'in-progress') {
 			return {
 				icon: 'note' as const,
-				description: `Updated personal todo item ${action.id} with status "${action.status}"`,
-				pose: 'thinking' as const,
+				description: action.text,
+				pose: 'writing' as const,
+				canGroup: () => false,
 			}
-		} else {
-			return {
-				icon: 'note' as const,
-				description: `Created new personal todo item: "${action.text}"`,
-				pose: 'thinking' as const,
-			}
+		}
+
+		return {
+			description: null,
+			pose: 'writing' as const,
 		}
 	}
 
@@ -34,22 +33,17 @@ export class PersonalTodoListActionUtil extends AgentActionUtil<PersonalTodoList
 
 		const { id, text, status } = action
 
-		if (id) {
-			const index = this.agent.$todoList.get().findIndex((item) => item.id === id)
-			if (index !== -1) {
-				this.agent.updateTodo({ id, text, status })
-			} else {
-				const currentBounds = this.agent.$activeRequest.get()?.bounds
-				if (!currentBounds) return
+		const index = this.agent.$personalTodoList.get().findIndex((item) => item.id === id)
+		if (index === -1) {
+			if (!text) {
 				this.agent.interrupt({
-					input: {
-						message: `You tried to update a todo item with id ${id} but it was not found. If you're trying to create a new todo item, please don't provide an id.`,
-						bounds: currentBounds,
-					},
+					input: 'You must provide text when creating a new todo item.',
 				})
+				return
 			}
+			this.agent.addPersonalTodo(id, text)
 		} else {
-			this.agent.addTodo(text)
+			this.agent.updateTodo({ id, status, text })
 		}
 	}
 }

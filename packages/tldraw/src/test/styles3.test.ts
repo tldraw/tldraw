@@ -1,4 +1,4 @@
-import { TLGeoShape, createShapeId, toRichText } from '@tldraw/editor'
+import { createShapeId, toRichText } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -14,7 +14,7 @@ afterEach(() => {
 it("When changing the style of a geo shape, if the text label is empty, don't measure it", () => {
 	const id = createShapeId()
 
-	editor.createShapes<TLGeoShape>([
+	editor.createShapes([
 		{
 			id,
 			type: 'geo',
@@ -29,7 +29,7 @@ it("When changing the style of a geo shape, if the text label is empty, don't me
 
 	const boundsBefore = editor.getShapeGeometry(id).bounds
 
-	editor.updateShapes<TLGeoShape>([
+	editor.updateShapes([
 		{
 			id,
 			type: 'geo',
@@ -43,7 +43,7 @@ it("When changing the style of a geo shape, if the text label is empty, don't me
 it('When changing the style of a geo shape, if the text label has text, measure it and possibly update the size', () => {
 	const id = createShapeId()
 
-	editor.createShapes<TLGeoShape>([
+	editor.createShapes([
 		{
 			id,
 			type: 'geo',
@@ -58,7 +58,7 @@ it('When changing the style of a geo shape, if the text label has text, measure 
 
 	const boundsBefore = editor.getShapeGeometry(id).bounds!
 
-	editor.updateShapes<TLGeoShape>([
+	editor.updateShapes([
 		{
 			id,
 			type: 'geo',

@@ -4,7 +4,6 @@ import {
 	createOrUpdateConnectionBinding,
 	getConnectionBindings,
 } from '../connection/ConnectionBindingUtil'
-import { ConnectionShape } from '../connection/ConnectionShapeUtil.tsx'
 import { getNextConnectionIndex } from '../connection/keepConnectionsAtBottom'
 import {
 	DEFAULT_NODE_SPACING_PX,
@@ -146,7 +145,7 @@ export class PointingPort extends StateNode {
 			.getPointInShapeSpace(connectionShapeId, targetPositionInPageSpace)
 			.addXY(0, NODE_HEADER_HEIGHT_PX + NODE_ROW_HEADER_GAP_PX + NODE_ROW_HEIGHT_PX / 2)
 
-		this.editor.updateShape<ConnectionShape>({
+		this.editor.updateShape({
 			id: connectionShapeId,
 			type: 'connection',
 			props: {
@@ -193,8 +192,7 @@ export class PointingPort extends StateNode {
 			onClose: () => {
 				// If the connection isn't fully connected, delete it
 				const connection = this.editor.getShape(connectionShapeId)
-				if (!connection || !this.editor.isShapeOfType<ConnectionShape>(connection, 'connection'))
-					return
+				if (!connection || !this.editor.isShapeOfType(connection, 'connection')) return
 
 				const bindings = getConnectionBindings(this.editor, connection)
 				if (!bindings.start || !bindings.end) {

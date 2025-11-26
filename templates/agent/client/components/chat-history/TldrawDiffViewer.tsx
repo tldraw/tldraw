@@ -32,12 +32,14 @@ function getDiffShapesFromDiff(diff: RecordsDiff<TLRecord>): TLShape[] {
 		const shape = {
 			...prevShape,
 			opacity: showShadows ? prevShape.opacity : prevShape.opacity / 2,
-			props: { ...prevShape.props },
 			meta: { ...prevShape.meta, changeType: showShadows ? 'delete-shadow' : 'delete' },
 		}
 
 		if ('dash' in shape.props) {
-			shape.props.dash = 'solid'
+			shape.props = {
+				...shape.props,
+				dash: 'solid',
+			}
 		}
 
 		diffShapes.push(shape)
@@ -54,7 +56,6 @@ function getDiffShapesFromDiff(diff: RecordsDiff<TLRecord>): TLShape[] {
 			...prevBefore,
 			id: (id + '-before') as TLShapeId,
 			opacity: prevAfter.opacity / 2,
-			props: { ...prevBefore.props },
 			meta: {
 				...prevBefore.meta,
 				changeType: showShadows ? 'update-before-shadow' : 'update-before',
@@ -63,7 +64,6 @@ function getDiffShapesFromDiff(diff: RecordsDiff<TLRecord>): TLShape[] {
 
 		const after = {
 			...prevAfter,
-			props: { ...prevAfter.props },
 			meta: {
 				...prevAfter.meta,
 				changeType: showShadows ? 'update-after-shadow' : 'update-after',
@@ -71,13 +71,22 @@ function getDiffShapesFromDiff(diff: RecordsDiff<TLRecord>): TLShape[] {
 		}
 
 		if ('dash' in before.props) {
-			before.props.dash = 'dashed'
+			before.props = {
+				...before.props,
+				dash: 'dashed',
+			}
 		}
 		if ('fill' in before.props) {
-			before.props.fill = 'none'
+			before.props = {
+				...before.props,
+				fill: 'none',
+			}
 		}
 		if ('dash' in after.props) {
-			after.props.dash = 'solid'
+			after.props = {
+				...after.props,
+				dash: 'solid',
+			}
 		}
 
 		diffShapes.push(before)
@@ -90,14 +99,16 @@ function getDiffShapesFromDiff(diff: RecordsDiff<TLRecord>): TLShape[] {
 		if (prevShape.typeName !== 'shape') continue
 		const shape = {
 			...prevShape,
-			props: { ...prevShape.props },
 			meta: {
 				...prevShape.meta,
 				changeType: showShadows ? 'create-shadow' : 'create',
 			},
 		}
 		if ('dash' in shape.props) {
-			shape.props.dash = 'solid'
+			shape.props = {
+				...shape.props,
+				dash: 'solid',
+			}
 		}
 		diffShapes.push(shape)
 	}

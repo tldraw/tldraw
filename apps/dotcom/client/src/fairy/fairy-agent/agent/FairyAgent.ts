@@ -2,10 +2,13 @@ import {
 	AgentAction,
 	AgentActionInfo,
 	AgentInput,
+	AgentModelName,
 	AgentPrompt,
 	AgentRequest,
 	BaseAgentPrompt,
 	ChatHistoryItem,
+	ChatHistoryPromptItem,
+	DEFAULT_MODEL_NAME,
 	FAIRY_VISION_DIMENSIONS,
 	FairyConfig,
 	FairyEntity,
@@ -19,6 +22,8 @@ import {
 	FairyWaitEvent,
 	FairyWork,
 	getFairyModeDefinition,
+	getModelPricingInfo,
+	ModelNamePart,
 	PromptPart,
 	Streaming,
 } from '@tldraw/fairy-shared'
@@ -28,6 +33,7 @@ import {
 	Box,
 	computed,
 	Computed,
+	createEmptyRecordsDiff,
 	Editor,
 	EditorAtom,
 	fetch,
@@ -36,10 +42,12 @@ import {
 	reverseRecordsDiff,
 	structuredClone,
 	TLRecord,
+	uniqueId,
 	VecModel,
 } from 'tldraw'
 import { TldrawApp } from '../../../tla/app/TldrawApp'
 import { FAIRY_WORKER } from '../../../utils/config'
+import { isDevelopmentEnv } from '../../../utils/env'
 import { AgentActionUtil } from '../../actions/AgentActionUtil'
 import { $fairyIsApplyingAction } from '../../FairyIsApplyingAction'
 import { getProjectByAgentId } from '../../FairyProjects'
@@ -108,7 +116,7 @@ export class FairyAgent {
 	/**
 	 * An atom containing the agent's todo list.
 	 */
-	$todoList = atom<FairyTodoItem[]>('todoList', [])
+	$personalTodoList = atom<FairyTodoItem[]>('personalTodoList', [])
 
 	/**
 	 * An atom that's used to store document changes made by the user since the
@@ -119,15 +127,24 @@ export class FairyAgent {
 	/**
 	 * An atom containing the current fairy mode.
 	 */
-	private $mode = atom<FairyModeDefinition['type']>('fairyMode', 'idling')
+	private $mode = atom<FairyModeDefinition['type']>('fairyMode', 'sleeping')
 
 	/**
 	 * Debug flags for controlling logging behavior in the worker.
 	 */
-	$debugFlags = atom<{ logSystemPrompt: boolean; logMessages: boolean }>('debugFlags', {
-		logSystemPrompt: false,
-		logMessages: false,
-	})
+	$debugFlags = atom<{ logSystemPrompt: boolean; logMessages: boolean; logResponseTime: boolean }>(
+		'debugFlags',
+		{
+			logSystemPrompt: false,
+			logMessages: false,
+			logResponseTime: false,
+		}
+	)
+
+	/**
+	 * Whether the agent should use one-shotting mode or soloing mode when prompted solo.
+	 */
+	$useOneShottingMode = atom<boolean>('oneShotMode', true)
 
 	/**
 	 * An atom containing the conditions this agent is waiting for.
@@ -151,6 +168,8 @@ export class FairyAgent {
 		notifyAgentModeTransition(this.id, mode, this.editor)
 
 		this.$mode.set(mode)
+		const modeDefinition = getFairyModeDefinition(mode)
+		this.$fairyEntity.update((fairy) => ({ ...fairy, pose: modeDefinition.pose }))
 	}
 
 	/**
@@ -163,20 +182,37 @@ export class FairyAgent {
 
 	/**
 	 * Cumulative token usage tracking for this chat session.
-	 * Separated by tier to handle Claude 4.5 Sonnet's tiered pricing.
+	 * Tracked per model to handle different pricing models.
 	 */
-	cumulativeUsage = {
-		// Tier 1: Prompts ≤ 200K tokens
-		tier1: {
-			promptTokens: 0,
-			completionTokens: 0,
-		},
-		// Tier 2: Prompts > 200K tokens
-		tier2: {
-			promptTokens: 0,
-			completionTokens: 0,
-		},
-		// Total across all tiers
+	cumulativeUsage: {
+		// Usage per model, separated by tier for models with tiered pricing
+		byModel: Record<
+			AgentModelName,
+			{
+				// Tier 1: Prompts ≤ 200K tokens (for models with tiered pricing)
+				tier1: {
+					promptTokens: number // Total input tokens (cached + uncached)
+					cachedInputTokens: number // Cached input tokens (cheaper pricing)
+					completionTokens: number
+				}
+				// Tier 2: Prompts > 200K tokens (for models with tiered pricing)
+				tier2: {
+					promptTokens: number // Total input tokens (cached + uncached)
+					cachedInputTokens: number // Cached input tokens (cheaper pricing)
+					completionTokens: number
+				}
+			}
+		>
+		// Total across all models and tiers
+		totalTokens: number
+	} = {
+		byModel: {} as Record<
+			AgentModelName,
+			{
+				tier1: { promptTokens: number; cachedInputTokens: number; completionTokens: number }
+				tier2: { promptTokens: number; cachedInputTokens: number; completionTokens: number }
+			}
+		>,
 		totalTokens: 0,
 	}
 
@@ -227,10 +263,10 @@ export class FairyAgent {
 		const spawnPoint = findFairySpawnPoint(center, editor)
 
 		this.$fairyEntity = atom<FairyEntity>(`fairy-${id}`, {
-			position: spawnPoint,
-			flipX: false,
+			position: AgentHelpers.RoundVec(spawnPoint),
+			flipX: Math.random() < 0.5,
 			isSelected: false,
-			pose: 'idle',
+			pose: 'sleeping',
 			gesture: null,
 			currentPageId: editor.getCurrentPageId(),
 		})
@@ -244,12 +280,23 @@ export class FairyAgent {
 
 		$fairyAgentsAtom.update(editor, (agents) => [...agents, this])
 
+		// Wake up sleeping fairies when they become selected
+		this.wakeOnSelectReaction = react(`fairy-${id}-wake-on-select`, () => {
+			const entity = this.$fairyEntity.get()
+			if (entity?.isSelected && this.getMode() === 'sleeping') {
+				this.setMode('idling')
+			}
+		})
+
 		// A fairy agent's action utils and prompt part utils are static. They don't change.
 		this.agentActionUtils = getAgentActionUtilsRecord(this)
 		this.promptPartUtils = getPromptPartUtilsRecord(this)
 		this.unknownActionUtil = this.agentActionUtils.unknown
 
 		this.stopRecordingFn = this.startRecordingUserActions()
+
+		// Poof on spawn
+		this.stackGesture('poof')
 	}
 
 	/**
@@ -258,6 +305,7 @@ export class FairyAgent {
 	dispose() {
 		this.cancel()
 		this.stopRecordingUserActions()
+		this.wakeOnSelectReaction?.()
 		// Stop following this fairy if it's currently being followed
 		if (getFollowingFairyId(this.editor) === this.id) {
 			stopFollowingFairy(this.editor)
@@ -274,7 +322,7 @@ export class FairyAgent {
 			fairyEntity: this.$fairyEntity.get(),
 			chatHistory: this.$chatHistory.get(),
 			chatOrigin: this.$chatOrigin.get(),
-			todoList: this.$todoList.get(),
+			personalTodoList: this.$personalTodoList.get(),
 		}
 	}
 
@@ -286,13 +334,13 @@ export class FairyAgent {
 		fairyEntity?: FairyEntity
 		chatHistory?: ChatHistoryItem[]
 		chatOrigin?: VecModel
-		todoList?: FairyTodoItem[]
+		personalTodoList?: FairyTodoItem[]
 	}) {
 		if (state.fairyEntity) {
 			this.$fairyEntity.update((entity) => {
 				return {
 					...entity,
-					position: state.fairyEntity?.position ?? entity.position,
+					position: AgentHelpers.RoundVec(state.fairyEntity?.position ?? entity.position),
 					flipX: state.fairyEntity?.flipX ?? entity.flipX,
 					currentPageId: state.fairyEntity?.currentPageId ?? entity.currentPageId,
 					isSelected: state.fairyEntity?.isSelected ?? entity.isSelected,
@@ -300,6 +348,9 @@ export class FairyAgent {
 					gesture: state.fairyEntity?.gesture ?? entity.gesture,
 				}
 			})
+			if (this.$fairyEntity.get().pose !== 'sleeping') {
+				this.setMode('idling')
+			}
 		}
 		if (state.chatHistory) {
 			this.$chatHistory.set(state.chatHistory)
@@ -307,8 +358,8 @@ export class FairyAgent {
 		if (state.chatOrigin) {
 			this.$chatOrigin.set(state.chatOrigin)
 		}
-		if (state.todoList) {
-			this.$todoList.set(state.todoList)
+		if (state.personalTodoList) {
+			this.$personalTodoList.set(state.personalTodoList)
 		}
 	}
 
@@ -318,49 +369,75 @@ export class FairyAgent {
 	 */
 	resetCumulativeUsage() {
 		this.cumulativeUsage = {
-			tier1: {
-				promptTokens: 0,
-				completionTokens: 0,
-			},
-			tier2: {
-				promptTokens: 0,
-				completionTokens: 0,
-			},
+			byModel: {} as Record<
+				AgentModelName,
+				{
+					tier1: { promptTokens: number; cachedInputTokens: number; completionTokens: number }
+					tier2: { promptTokens: number; cachedInputTokens: number; completionTokens: number }
+				}
+			>,
 			totalTokens: 0,
 		}
 	}
 
 	/**
+	 * Extract the model name from a prompt.
+	 * @param prompt - The agent prompt
+	 * @returns The model name, or DEFAULT_MODEL_NAME if not found
+	 */
+	getModelNameFromPrompt(prompt: AgentPrompt): AgentModelName {
+		for (const part of Object.values(prompt)) {
+			if (part.type === 'modelName') {
+				return (part as ModelNamePart).name
+			}
+		}
+		return DEFAULT_MODEL_NAME
+	}
+
+	/**
 	 * Get the current cumulative cost for this fairy agent.
-	 * Based on Claude 4.5 Sonnet tiered pricing:
-	 * - Tier 1 (≤ 200K tokens): $3 input / $15 output per million tokens
-	 * - Tier 2 (> 200K tokens): $6 input / $22.50 output per million tokens
+	 * Calculates costs based on model-specific pricing, accounting for cached input tokens.
 	 * @returns An object with input cost, output cost, and total cost in USD.
 	 */
 	getCumulativeCost() {
-		// Claude 4.5 Sonnet pricing per million tokens
-		// Tier 1: Prompts ≤ 200K tokens
-		const tier1InputPrice = 3 // $3 per million input tokens
-		const tier1OutputPrice = 15 // $15 per million output tokens
+		let totalInputCost = 0
+		let totalOutputCost = 0
 
-		// Tier 2: Prompts > 200K tokens
-		const tier2InputPrice = 6 // $6 per million input tokens
-		const tier2OutputPrice = 22.5 // $22.50 per million output tokens
+		// Iterate through all models and calculate costs
+		for (const [modelName, usage] of Object.entries(this.cumulativeUsage.byModel)) {
+			const typedModelName = modelName as AgentModelName
 
-		// Calculate costs for each tier
-		const tier1InputCost = (this.cumulativeUsage.tier1.promptTokens / 1_000_000) * tier1InputPrice
-		const tier1OutputCost =
-			(this.cumulativeUsage.tier1.completionTokens / 1_000_000) * tier1OutputPrice
+			// Calculate cost for tier 1 (≤ 200K tokens)
+			const tier1Pricing = getModelPricingInfo(typedModelName, 200_000)
+			const tier1UncachedInputTokens = usage.tier1.promptTokens - usage.tier1.cachedInputTokens
+			const tier1UncachedInputCost =
+				(tier1UncachedInputTokens / 1_000_000) * tier1Pricing.uncachedInputPrice
+			const tier1CachedInputCost =
+				tier1Pricing.cacheReadInputPrice !== null
+					? (usage.tier1.cachedInputTokens / 1_000_000) * tier1Pricing.cacheReadInputPrice
+					: 0
+			const tier1InputCost = tier1UncachedInputCost + tier1CachedInputCost
+			const tier1OutputCost = (usage.tier1.completionTokens / 1_000_000) * tier1Pricing.outputPrice
 
-		const tier2InputCost = (this.cumulativeUsage.tier2.promptTokens / 1_000_000) * tier2InputPrice
-		const tier2OutputCost =
-			(this.cumulativeUsage.tier2.completionTokens / 1_000_000) * tier2OutputPrice
+			// Calculate cost for tier 2 (> 200K tokens)
+			const tier2Pricing = getModelPricingInfo(typedModelName, 200_001)
+			const tier2UncachedInputTokens = usage.tier2.promptTokens - usage.tier2.cachedInputTokens
+			const tier2UncachedInputCost =
+				(tier2UncachedInputTokens / 1_000_000) * tier2Pricing.uncachedInputPrice
+			const tier2CachedInputCost =
+				tier2Pricing.cacheReadInputPrice !== null
+					? (usage.tier2.cachedInputTokens / 1_000_000) * tier2Pricing.cacheReadInputPrice
+					: 0
+			const tier2InputCost = tier2UncachedInputCost + tier2CachedInputCost
+			const tier2OutputCost = (usage.tier2.completionTokens / 1_000_000) * tier2Pricing.outputPrice
 
-		const inputCost = tier1InputCost + tier2InputCost
-		const outputCost = tier1OutputCost + tier2OutputCost
-		const totalCost = inputCost + outputCost
+			totalInputCost += tier1InputCost + tier2InputCost
+			totalOutputCost += tier1OutputCost + tier2OutputCost
+		}
 
-		return { inputCost, outputCost, totalCost }
+		const totalCost = totalInputCost + totalOutputCost
+
+		return { inputCost: totalInputCost, outputCost: totalOutputCost, totalCost }
 	}
 
 	/**
@@ -427,9 +504,10 @@ export class FairyAgent {
 		const activeRequest = this.$activeRequest.get()
 
 		return {
-			messages: request.messages ?? [],
+			agentMessages: request.agentMessages ?? [],
 			source: request.source ?? 'user',
 			data: request.data ?? [],
+			userMessages: request.userMessages ?? [],
 			bounds:
 				request.bounds ??
 				activeRequest?.bounds ??
@@ -455,22 +533,21 @@ export class FairyAgent {
 	private getPartialRequestFromInput(input: AgentInput): Partial<AgentRequest> {
 		// eg: agent.prompt('Draw a cat')
 		if (typeof input === 'string') {
-			return { messages: [input] }
+			return { agentMessages: [input] }
 		}
 
 		// eg: agent.prompt(['Draw a cat', 'Draw a dog'])
 		if (Array.isArray(input)) {
-			return { messages: input }
-		}
-
-		// eg: agent.prompt({ messages: 'Draw a cat' })
-		if (typeof input.messages === 'string') {
-			return { ...input, messages: [input.messages] }
+			return { agentMessages: input }
 		}
 
 		// eg: agent.prompt({ message: 'Draw a cat' })
-		if (typeof input.message === 'string') {
-			return { ...input, messages: [input.message, ...(input.messages ?? [])] }
+		if ('message' in input && typeof input.message === 'string') {
+			return {
+				...input,
+				agentMessages: [input.message],
+				userMessages: [input.message],
+			}
 		}
 
 		return input
@@ -503,6 +580,8 @@ export class FairyAgent {
 		return Object.fromEntries(parts.map((part) => [part.type, part])) as AgentPrompt
 	}
 
+	private $isPrompting = atom<boolean>('isPrompting', false)
+
 	/**
 	 * Prompt the agent to edit the canvas.
 	 *
@@ -526,46 +605,59 @@ export class FairyAgent {
 	 *
 	 * @returns A promise for when the agent has finished its work.
 	 */
-	async prompt(input: AgentInput) {
+	async prompt(input: AgentInput, { nested = false }: { nested?: boolean } = {}) {
+		if (this.$isPrompting.get() && !nested) {
+			throw new Error('Agent is already prompting. Please wait for the current prompt to finish.')
+		}
+
+		this.$isPrompting.set(true)
+
 		if (this.isActing) {
 			throw new Error(
 				"Agent is already acting. It's illegal to prompt an agent during an action. Please use schedule instead."
 			)
 		}
 
+		const request = this.getFullRequestFromInput(input)
 		const startingNode = FAIRY_MODE_CHART[this.getMode()]
-		await startingNode.onPromptStart?.(this)
+		await startingNode.onPromptStart?.(this, request)
 
-		const mode = getFairyModeDefinition(this.getMode())
-		if (!mode.active) {
+		const initialModeDefinition = getFairyModeDefinition(this.getMode())
+		if (!initialModeDefinition.active) {
 			throw new Error(
 				`Fairy is not in an active mode so can't act right now. First change to an active mode. Current mode: ${this.getMode()}`
 			)
 		}
 
-		const startingFairy = this.$fairyEntity.get()
-		if (startingFairy.pose === 'idle') {
-			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'active' }))
-		}
-
-		const request = this.getFullRequestFromInput(input)
-
 		// Submit the request to the agent.
 		await this.request(request)
-		if (this.cancelFn) {
-			const node = FAIRY_MODE_CHART[this.getMode()]
-			await node.onRequestComplete?.(this, request)
-		}
-
-		// After the request is handled, check if there are any outstanding todo items or requests
-		const scheduledRequest = this.$scheduledRequest.get()
 
 		// If there's no schedule request...
-		// Exit the mode
+		// Trigger onPromptEnd callback(s)
+		let modeChanged = true
+		while (!this.$scheduledRequest.get() && modeChanged) {
+			modeChanged = false
+			const mode = this.getMode()
+			const node = FAIRY_MODE_CHART[mode]
+			node.onPromptEnd?.(this, request)
+			const newMode = this.getMode()
+			if (newMode !== mode) {
+				modeChanged = true
+			}
+		}
+
+		// If there's still no scheduled request, quit
+		const scheduledRequest = this.$scheduledRequest.get()
+		const eventualMode = this.getMode()
+		const eventualModeDefinition = getFairyModeDefinition(eventualMode)
 		if (!scheduledRequest) {
-			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
-			const node = FAIRY_MODE_CHART[this.getMode()]
-			await node.onPromptEnd?.(this)
+			if (eventualModeDefinition.active) {
+				throw new Error(
+					`Fairy is not allowed to become inactive during the active mode: ${eventualMode}`
+				)
+			}
+			this.$isPrompting.set(false)
+			this.cancelFn = null
 			return
 		}
 
@@ -577,13 +669,13 @@ export class FairyAgent {
 			{
 				type: 'continuation',
 				data: resolvedData,
+				memoryLevel: eventualModeDefinition.memoryLevel,
 			},
 		])
 
 		// Handle the scheduled request and clear it
 		this.$scheduledRequest.set(null)
-		await this.prompt(scheduledRequest)
-		this.cancelFn = null
+		await this.prompt(scheduledRequest, { nested: true })
 	}
 
 	/**
@@ -624,6 +716,7 @@ export class FairyAgent {
 
 	/**
 	 * Schedule further work for the agent to do after this request has finished.
+	 * If there's no active request, then do the scheduled request immediately.
 	 * What you schedule will get merged with the currently scheduled request, if there is one.
 	 *
 	 * @example
@@ -651,31 +744,38 @@ export class FairyAgent {
 
 		// If there's no request scheduled yet, schedule one
 		if (!scheduledRequest) {
-			this.setScheduledRequest(input)
+			this._schedule(input)
 			return
 		}
 
-		const request = this.getPartialRequestFromInput(input)
-		this.setScheduledRequest({
+		// If there's already a scheduled request, append to it
+		const newRequest = this.getPartialRequestFromInput(input)
+		this._schedule({
 			// Append to properties where possible
-			messages: [...scheduledRequest.messages, ...(request.messages ?? [])],
-			data: [...scheduledRequest.data, ...(request.data ?? [])],
+			agentMessages: [...scheduledRequest.agentMessages, ...(newRequest.agentMessages ?? [])],
+			userMessages: [...scheduledRequest.userMessages, ...(newRequest.userMessages ?? [])],
+			data: [...scheduledRequest.data, ...(newRequest.data ?? [])],
 
 			// Override other properties
-			bounds: request.bounds ?? scheduledRequest.bounds,
-			source: request.source ?? scheduledRequest.source ?? 'self',
+			bounds: newRequest.bounds ?? scheduledRequest.bounds,
+			source: newRequest.source ?? scheduledRequest.source ?? 'self',
 		})
 	}
 
 	/**
-	 * Interrupt the agent, set their mode and schedule a request.
+	 * Interrupt the agent and set their mode.
+	 * Optionally, schedule a request.
 	 */
-	interrupt({ input, mode }: { input?: AgentInput; mode?: FairyModeDefinition['type'] }) {
-		this.cancel()
+	interrupt({ input, mode }: { input: AgentInput | null; mode?: FairyModeDefinition['type'] }) {
+		this.cancelFn?.()
+		this.$activeRequest.set(null)
+		this.$scheduledRequest.set(null)
+		this.cancelFn = null
+
 		if (mode) {
 			this.setMode(mode)
 		}
-		if (input) {
+		if (input !== null) {
 			this.schedule(input)
 		}
 	}
@@ -705,7 +805,7 @@ export class FairyAgent {
 	 * @param input - What to set the scheduled request to, or null to cancel
 	 * the scheduled request.
 	 */
-	setScheduledRequest(input: AgentInput | null) {
+	private _schedule(input: AgentInput | null) {
 		if (input === null) {
 			this.$scheduledRequest.set(null)
 			return
@@ -714,28 +814,35 @@ export class FairyAgent {
 		const activeRequest = this.$activeRequest.get()
 		const partialRequest = this.getPartialRequestFromInput(input)
 		const request: AgentRequest = {
-			messages: partialRequest.messages ?? [],
+			agentMessages: partialRequest.agentMessages ?? [],
 			bounds:
 				partialRequest.bounds ??
 				activeRequest?.bounds ??
 				Box.FromCenter(this.$fairyEntity.get().position, FAIRY_VISION_DIMENSIONS),
 			data: partialRequest.data ?? [],
 			source: partialRequest.source ?? 'self',
+			userMessages: partialRequest.userMessages ?? [],
 		}
-		this.$scheduledRequest.set(request)
+
+		const isCurrentlyActive = this.isGenerating()
+
+		if (isCurrentlyActive) {
+			this.$scheduledRequest.set(request)
+		} else {
+			this.prompt(request)
+		}
 	}
 
 	/**
 	 * Add a todo item to the agent's todo list.
+	 * @param id The id of the todo item.
 	 * @param text The text of the todo item.
 	 * @returns The id of the todo item.
 	 */
-	addTodo(text: string) {
-		const todoItems = this.$todoList.get()
-		const id = todoItems.length === 0 ? 0 : Math.max(...todoItems.map((t) => t.id)) + 1
-		this.$todoList.update((todoItems) => {
+	addPersonalTodo(id: string, text: string) {
+		this.$personalTodoList.update((personalTodoItems) => {
 			return [
-				...todoItems,
+				...personalTodoItems,
 				{
 					id,
 					status: 'todo' as const,
@@ -746,13 +853,13 @@ export class FairyAgent {
 		return id
 	}
 
-	updateTodo({ id, text, status }: FairyTodoItem) {
-		this.$todoList.update((todoItems) => {
+	updateTodo({ id, status, text }: { id: string; status: FairyTodoItem['status']; text?: string }) {
+		this.$personalTodoList.update((todoItems) => {
 			const index = todoItems.findIndex((item) => item.id === id)
 			if (index !== -1) {
 				return [
 					...todoItems.slice(0, index),
-					{ ...todoItems[index], text, status },
+					{ ...todoItems[index], status, ...(text !== undefined && { text }) },
 					...todoItems.slice(index + 1),
 				]
 			}
@@ -774,7 +881,24 @@ export class FairyAgent {
 	 * @param condition - The wait condition to add
 	 */
 	waitFor(condition: FairyWaitCondition<FairyWaitEvent>) {
-		this.$waitingFor.update((conditions) => [...conditions, condition])
+		this.$waitingFor.update((conditions) => {
+			// Check if an equivalent condition already exists
+			const isDuplicate = conditions.some((existing) => {
+				if (existing.eventType !== condition.eventType) {
+					return false
+				}
+				if (existing.id && condition.id) {
+					return existing.id === condition.id
+				}
+				return false
+			})
+
+			if (isDuplicate) {
+				return conditions
+			}
+
+			return [...conditions, condition]
+		})
 	}
 
 	/**
@@ -788,23 +912,24 @@ export class FairyAgent {
 	 * Wake up the agent from waiting with a notification message.
 	 * Note: This does NOT remove wait conditions - the matched conditions should
 	 * already be removed by the notification system before calling this method.
-	 * @param message - The message to send to the agent when waking up
-	 * @param _condition - The condition that was fulfilled
-	 * @param _event - Optional event data that triggered the wake-up (currently unused)
 	 */
-	notifyWaitConditionFulfilled(
-		message: string,
-		_condition: FairyWaitCondition<FairyWaitEvent>,
-		_event?: FairyWaitEvent
-	) {
-		if (this.isGenerating()) {
+	notifyWaitConditionFulfilled({
+		agentFacingMessage,
+		userFacingMessage,
+	}: {
+		agentFacingMessage: string
+		userFacingMessage: string | null
+	}) {
+		if (this.$isPrompting.get()) {
 			this.schedule({
-				messages: [message],
+				agentMessages: [agentFacingMessage],
+				userMessages: userFacingMessage ? [userFacingMessage] : undefined,
 				source: 'other-agent',
 			})
 		} else {
 			this.prompt({
-				messages: [message],
+				agentMessages: [agentFacingMessage],
+				userMessages: userFacingMessage ? [userFacingMessage] : undefined,
 				source: 'other-agent',
 			})
 		}
@@ -828,19 +953,30 @@ export class FairyAgent {
 		this.isActing = true
 
 		const actionInfo = this.getActionInfo(action)
-		this.$fairyEntity.update((fairy) => ({ ...fairy, pose: actionInfo.pose }))
+		if (actionInfo.pose) {
+			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: actionInfo.pose ?? fairy.pose }))
+		}
 
 		// Ensure the fairy is on the correct page before performing the action
 		this.ensureFairyIsOnCorrectPage(action)
 
+		const modeDefinition = getFairyModeDefinition(this.getMode())
 		let promise: Promise<void> | null = null
-		let diff: RecordsDiff<TLRecord>
+		let diff: RecordsDiff<TLRecord> = createEmptyRecordsDiff()
 		try {
 			diff = editor.store.extractingChanges(() => {
 				$fairyIsApplyingAction.set(true)
 				promise = util.applyAction(structuredClone(action), helpers) ?? null
 				$fairyIsApplyingAction.set(false)
 			})
+		} catch (error) {
+			// always toast the error
+			this.onError(error)
+			promise = null
+			if (isDevelopmentEnv) {
+				// In development, crash by throwing error
+				throw error
+			}
 		} finally {
 			this.isActing = false
 		}
@@ -852,6 +988,7 @@ export class FairyAgent {
 				action,
 				diff,
 				acceptance: 'pending',
+				memoryLevel: modeDefinition.memoryLevel,
 			}
 
 			this.$chatHistory.update((historyItems) => {
@@ -859,21 +996,37 @@ export class FairyAgent {
 				if (historyItems.length === 0) return [historyItem]
 
 				// If the last item is still in progress, replace it with the new item
-				const lastHistoryItem = historyItems.at(-1)
+				const lastActionHistoryItemIndex = historyItems.findLastIndex(
+					(item) => item.type === 'action'
+				)
+				const lastActionHistoryItem =
+					lastActionHistoryItemIndex !== -1 ? historyItems[lastActionHistoryItemIndex] : null
 				if (
-					lastHistoryItem &&
-					lastHistoryItem.type === 'action' &&
-					!lastHistoryItem.action.complete
+					lastActionHistoryItem &&
+					lastActionHistoryItem.type === 'action' &&
+					!lastActionHistoryItem.action.complete
 				) {
-					return [...historyItems.slice(0, -1), historyItem]
+					const newHistoryItems = [...historyItems]
+					newHistoryItems[lastActionHistoryItemIndex] = historyItem
+					return newHistoryItems
+				} else {
+					// Otherwise, just add the new item to the end of the list
+					return [...historyItems, historyItem]
 				}
-
-				// Otherwise, just add the new item to the end of the list
-				return [...historyItems, historyItem]
 			})
 		}
 
 		return { diff, promise }
+	}
+
+	/**
+	 * Remove all completed todo items from the todo list.
+	 * Renumber the personal todo items to ensure the ids are sequential.
+	 */
+	flushTodoList() {
+		this.$personalTodoList.update((personalTodoItems) => {
+			return personalTodoItems.filter((item) => item.status !== 'done')
+		})
 	}
 
 	/**
@@ -951,81 +1104,6 @@ export class FairyAgent {
 	}
 
 	/**
-	 * Request a text response from the model.
-	 * @param input - The input to form the request from.
-	 * @returns The text response from the model.
-	 */
-	async requestText(input: AgentInput) {
-		const request = this.getFullRequestFromInput(input)
-		const { fulltextPromise, cancel: _cancel } = requestAgentText({ agent: this, request })
-		return await fulltextPromise
-	}
-
-	/**
-	 * Stream a text response from the model.
-	 * Not to be called directly. Use `requestText` instead.
-	 * This is a helper function that is used internally by the agent.
-	 */
-	async *_streamText({
-		prompt,
-		signal,
-	}: {
-		prompt: BaseAgentPrompt
-		signal: AbortSignal
-	}): AsyncGenerator<string> {
-		const headers: HeadersInit = {
-			'Content-Type': 'application/json',
-		}
-
-		// Add authentication token if available
-		if (this.getToken) {
-			const token = await this.getToken()
-			if (token) {
-				headers['Authorization'] = `Bearer ${token}`
-			}
-		}
-
-		const res = await fetch(`${FAIRY_WORKER}/stream-text`, {
-			method: 'POST',
-			body: JSON.stringify(prompt),
-			headers,
-			signal,
-		})
-
-		if (!res.body) {
-			throw Error('No body in response')
-		}
-
-		const reader = res.body.getReader()
-		const decoder = new TextDecoder()
-		let buffer = ''
-
-		try {
-			while (true) {
-				const { value, done } = await reader.read()
-				if (done) break
-
-				buffer += decoder.decode(value, { stream: true })
-				const chunks = buffer.split('\n\n')
-				buffer = chunks.pop() || ''
-
-				for (const chunk of chunks) {
-					const match = chunk.match(/^data: (.+)$/m)
-					if (match) {
-						try {
-							yield match[1]
-						} catch (err: any) {
-							throw new Error(err.message)
-						}
-					}
-				}
-			}
-		} finally {
-			reader.releaseLock()
-		}
-	}
-
-	/**
 	 * A function that cancels the agent's current prompt, if one is active.
 	 */
 	private cancelFn: (() => void) | null = null
@@ -1034,11 +1112,32 @@ export class FairyAgent {
 	 * Cancel the agent's current prompt, if one is active.
 	 */
 	cancel() {
+		const request = this.$activeRequest.get()
+		if (request) {
+			const mode = this.getMode()
+			const node = FAIRY_MODE_CHART[mode]
+			node.onPromptCancel?.(this, request)
+
+			const newMode = this.getMode()
+			const newModeDefinition = getFairyModeDefinition(newMode)
+			if (newModeDefinition.active) {
+				throw new Error(
+					`Fairy is not allowed to become inactive during the active mode: ${newMode}`
+				)
+			}
+		}
+
 		this.cancelFn?.()
 		this.$activeRequest.set(null)
 		this.$scheduledRequest.set(null)
 		this.cancelFn = null
-		this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
+	}
+
+	/**
+	 * Check if the fairy is currently sleeping.
+	 */
+	isSleeping() {
+		return this.getMode() === 'sleeping'
 	}
 
 	/**
@@ -1047,8 +1146,15 @@ export class FairyAgent {
 	 */
 	reset() {
 		this.cancel()
-		this.$todoList.set([])
+		this.promptStartTime = null
+		this.$personalTodoList.set([])
 		this.$userActionHistory.set([])
+
+		// Remove solo tasks
+		$fairyTasks.update((tasks) =>
+			tasks.filter((task) => task.assignedTo !== this.id && task.projectId === null)
+		)
+
 		this.setMode('idling')
 
 		this.$chatHistory.set([])
@@ -1062,10 +1168,10 @@ export class FairyAgent {
 	}
 
 	/**
-	 * Check if the agent is currently working on a request or not.
+	 * Check if the agent is currently working on a prompt or not.
 	 */
 	isGenerating() {
-		return this.$activeRequest.get() !== null
+		return this.$isPrompting.get()
 	}
 
 	/**
@@ -1075,6 +1181,12 @@ export class FairyAgent {
 	 * Do not use this to check if the agent is currently working on a request. Use `isGenerating` instead.
 	 */
 	private isActing = false
+
+	/**
+	 * Tracks the start time of the current prompt being timed.
+	 * Set when timing starts, cleared when timing stops.
+	 */
+	promptStartTime: number | null = null
 
 	/**
 	 * Start recording user actions.
@@ -1145,6 +1257,11 @@ export class FairyAgent {
 	private stopRecordingFn: () => void
 
 	/**
+	 * A function that stops the wake-on-select reaction.
+	 */
+	private wakeOnSelectReaction: () => void
+
+	/**
 	 * Stop recording user actions.
 	 */
 	private stopRecordingUserActions() {
@@ -1164,7 +1281,7 @@ export class FairyAgent {
 			description = null,
 			summary = null,
 			canGroup = () => true,
-			pose = 'active' as const,
+			pose = null,
 		} = info
 
 		return {
@@ -1184,7 +1301,7 @@ export class FairyAgent {
 		this.$fairyEntity.update((fairy) => {
 			return {
 				...fairy,
-				position,
+				position: AgentHelpers.RoundVec(position),
 				flipX: false,
 			}
 		})
@@ -1246,11 +1363,58 @@ export class FairyAgent {
 	}
 
 	/**
-	 * Set the fairy's gesture.
-	 * @param gesture - The gesture to set the fairy to.
+	 * An array of gestures that are currently active.
+	 * The most recently added gesture is the one that is displayed.
+	 * This array determines what to do when one gesture completes.
+	 * eg: Switch to the next gesture in the stack.
+	 * eg: Revert to the base pose.
+	 *
+	 * Each item contains a unique ID and the gesture to display.
 	 */
-	setGesture(gesture: FairyPose | null) {
+	gestureStack: { id: string; gesture: FairyPose }[] = []
+
+	/**
+	 * Override the fairy's gesture, cancelling all other gestures in the stack.
+	 * @param gesture - The gesture to set the fairy to.
+	 * @param duration - The duration of the gesture in milliseconds.
+	 */
+	setGesture(gesture: FairyPose | null, duration = 400) {
 		this.$fairyEntity.update((fairy) => ({ ...fairy, gesture }))
+
+		if (!gesture) {
+			this.gestureStack = []
+			return
+		}
+
+		const id = uniqueId()
+		this.gestureStack = [{ id, gesture }]
+		setTimeout(() => {
+			this.gestureStack = this.gestureStack.filter((g) => g.id !== id)
+			const finalGesture = this.gestureStack[0]?.gesture ?? null
+			this.$fairyEntity.update((fairy) => ({ ...fairy, gesture: finalGesture }))
+		}, duration)
+	}
+
+	/**
+	 * Add a gesture to the stack. When this gesture completes, the next gesture in the stack is displayed.
+	 */
+	stackGesture(gesture: FairyPose, duration = 400) {
+		this.$fairyEntity.update((fairy) => ({ ...fairy, gesture: gesture }))
+
+		const id = uniqueId()
+		this.gestureStack.push({ id, gesture })
+		setTimeout(() => {
+			this.gestureStack = this.gestureStack.filter((g) => g.id !== id)
+			const finalGesture = this.gestureStack[0]?.gesture ?? null
+			this.$fairyEntity.update((fairy) => ({ ...fairy, gesture: finalGesture }))
+		}, duration)
+	}
+
+	/**
+	 * Clear the fairy's gesture.
+	 */
+	clearGesture() {
+		this.$fairyEntity.update((fairy) => ({ ...fairy, gesture: null }))
 	}
 
 	updateFairyConfig(partial: Partial<FairyConfig>) {
@@ -1301,7 +1465,8 @@ export class FairyAgent {
 		const center = this.editor.getViewportPageBounds().center
 		const position = offset ? { x: center.x + offset.x, y: center.y + offset.y } : center
 		const currentPageId = this.editor.getCurrentPageId()
-		this.$fairyEntity.update((f) => (f ? { ...f, position, gesture: 'poof', currentPageId } : f))
+		this.$fairyEntity.update((f) => (f ? { ...f, position, currentPageId } : f))
+		this.stackGesture('poof')
 	}
 
 	/**
@@ -1327,43 +1492,6 @@ export class FairyAgent {
 }
 
 /**
- * Send a request for a text response from the model and return its response.
- * Note: You probably want to setup a custom system prompt to get any use out of this.
- *
- * @returns A promise for the text response from the model and a function to cancel the request.
- */
-function requestAgentText({ agent, request }: { agent: FairyAgent; request: AgentRequest }) {
-	let cancelled = false
-	const controller = new AbortController()
-	const signal = controller.signal
-	const helpers = new AgentHelpers(agent)
-
-	const fulltextPromise = (async () => {
-		const prompt = await agent.preparePrompt(request, helpers)
-		let text = ''
-		try {
-			for await (const v of agent._streamText({ prompt, signal })) {
-				if (cancelled) break
-				text += v
-			}
-			return text
-		} catch (e) {
-			if (e === 'Cancelled by user' || (e instanceof Error && e.name === 'AbortError')) {
-				return
-			}
-			agent.onError(e)
-		}
-	})()
-
-	const cancel = () => {
-		cancelled = true
-		controller.abort('Cancelled by user')
-	}
-
-	return { fulltextPromise, cancel }
-}
-
-/**
  * Send a request to the agent and handle its response.
  *
  * This is a helper function that is used internally by the agent.
@@ -1371,20 +1499,26 @@ function requestAgentText({ agent, request }: { agent: FairyAgent; request: Agen
 function requestAgentActions({ agent, request }: { agent: FairyAgent; request: AgentRequest }) {
 	const { editor } = agent
 
-	// If the request is from the user, add it to chat history
-	if (request.source === 'user') {
-		const promptHistoryItem: ChatHistoryItem = {
-			type: 'prompt',
-			message: request.messages.join('\n'),
-		}
-		agent.$chatHistory.update((prev) => [...prev, promptHistoryItem])
+	const mode = getFairyModeDefinition(agent.getMode())
+
+	// Convert arrays to strings for ChatHistoryPromptItem
+	const agentFacingMessage = request.agentMessages.join('\n')
+	const userFacingMessage = request.userMessages.join('\n')
+
+	const promptHistoryItem: ChatHistoryPromptItem = {
+		type: 'prompt',
+		promptSource: request.source,
+		agentFacingMessage,
+		userFacingMessage,
+		memoryLevel: mode.memoryLevel,
 	}
+	agent.$chatHistory.update((prev) => [...prev, promptHistoryItem])
 
 	let cancelled = false
 	const controller = new AbortController()
 	const signal = controller.signal
 	const helpers = new AgentHelpers(agent)
-	const mode = getFairyModeDefinition(agent.getMode())
+
 	if (!mode.active) {
 		agent.cancel()
 		throw new Error(`Fairy is not in an active mode so can't act right now`)
@@ -1399,49 +1533,83 @@ function requestAgentActions({ agent, request }: { agent: FairyAgent; request: A
 			for await (const action of agent._streamActions({ prompt, signal })) {
 				if (cancelled) break
 
+				// NOTE: usage tracking in the client is disabled for now because it's not working as expected. Refer to the worker console for costs and token per request.
+
 				// Handle usage information
-				if ((action as any)._type === '__usage__') {
-					const usage = (action as any).usage
-					if (usage) {
-						// AI SDK returns: { inputTokens, outputTokens, totalTokens, cachedInputTokens }
-						const promptTokens = usage.inputTokens || 0
-						const completionTokens = usage.outputTokens || 0
+				// if ((action as any)._type === '__usage__') {
+				// 	const usage = (action as any).usage
+				// 	if (usage) {
+				// 		// AI SDK returns: { inputTokens, outputTokens, totalTokens, cachedInputTokens }
+				// 		// cachedInputTokens can be undefined, which means 0
+				// 		const promptTokens = usage.inputTokens || 0
+				// 		const completionTokens = usage.outputTokens || 0
+				// 		const cachedInputTokens = usage.cachedInputTokens || 0
 
-						// Determine which tier this request falls into
-						// Tier 1: ≤ 200K tokens, Tier 2: > 200K tokens
-						const TIER_THRESHOLD = 200_000
-						if (promptTokens <= TIER_THRESHOLD) {
-							agent.cumulativeUsage.tier1.promptTokens += promptTokens
-							agent.cumulativeUsage.tier1.completionTokens += completionTokens
-						} else {
-							agent.cumulativeUsage.tier2.promptTokens += promptTokens
-							agent.cumulativeUsage.tier2.completionTokens += completionTokens
-						}
+				// 		// Extract model name from prompt
+				// 		const modelName = agent.getModelNameFromPrompt(prompt)
 
-						agent.cumulativeUsage.totalTokens += usage.totalTokens || 0
+				// 		// Initialize model usage if it doesn't exist
+				// 		if (!agent.cumulativeUsage.byModel[modelName]) {
+				// 			agent.cumulativeUsage.byModel[modelName] = {
+				// 				tier1: { promptTokens: 0, cachedInputTokens: 0, completionTokens: 0 },
+				// 				tier2: { promptTokens: 0, cachedInputTokens: 0, completionTokens: 0 },
+				// 			}
+				// 		}
 
-						// Calculate cumulative costs
-						const { inputCost, outputCost, totalCost } = agent.getCumulativeCost()
+				// 		// Determine which tier this request falls into
+				// 		// Tier 1: ≤ 200K tokens, Tier 2: > 200K tokens
+				// 		if (promptTokens <= TIER_THRESHOLD) {
+				// 			agent.cumulativeUsage.byModel[modelName].tier1.promptTokens += promptTokens
+				// 			agent.cumulativeUsage.byModel[modelName].tier1.cachedInputTokens += cachedInputTokens
+				// 			agent.cumulativeUsage.byModel[modelName].tier1.completionTokens += completionTokens
+				// 		} else {
+				// 			agent.cumulativeUsage.byModel[modelName].tier2.promptTokens += promptTokens
+				// 			agent.cumulativeUsage.byModel[modelName].tier2.cachedInputTokens += cachedInputTokens
+				// 			agent.cumulativeUsage.byModel[modelName].tier2.completionTokens += completionTokens
+				// 		}
 
-						// Calculate total prompt and completion tokens across both tiers
-						const totalPromptTokens =
-							agent.cumulativeUsage.tier1.promptTokens + agent.cumulativeUsage.tier2.promptTokens
-						const totalCompletionTokens =
-							agent.cumulativeUsage.tier1.completionTokens +
-							agent.cumulativeUsage.tier2.completionTokens
+				// 		agent.cumulativeUsage.totalTokens += usage.totalTokens || 0
 
-						// eslint-disable-next-line no-console
-						console.debug(
-							`🧚 Fairy "${agent.$fairyConfig.get().name}" Cumulative Usage:\n` +
-								`  Prompt tokens: ${totalPromptTokens.toLocaleString()}\n` +
-								`  Completion tokens: ${totalCompletionTokens.toLocaleString()}\n` +
-								`  Total tokens: ${agent.cumulativeUsage.totalTokens.toLocaleString()}\n` +
-								`  💰 Cumulative Cost: $${totalCost.toFixed(4)}\n` +
-								`     (Input: $${inputCost.toFixed(4)}, Output: $${outputCost.toFixed(4)})`
-						)
-					}
-					continue
-				}
+				// 		// Calculate cumulative costs
+				// 		const { inputCost, outputCost, totalCost } = agent.getCumulativeCost()
+
+				// 		// Calculate total prompt and completion tokens across all models and tiers
+				// 		let totalPromptTokens = 0
+				// 		let totalCompletionTokens = 0
+				// 		let totalCachedInputTokens = 0
+				// 		for (const modelUsage of Object.values(agent.cumulativeUsage.byModel)) {
+				// 			totalPromptTokens += modelUsage.tier1.promptTokens + modelUsage.tier2.promptTokens
+				// 			totalCompletionTokens +=
+				// 				modelUsage.tier1.completionTokens + modelUsage.tier2.completionTokens
+				// 			totalCachedInputTokens +=
+				// 				modelUsage.tier1.cachedInputTokens + modelUsage.tier2.cachedInputTokens
+				// 		}
+
+				// 		// Calculate percentage of input tokens that were cached
+				// 		const cachedPercentage =
+				// 			totalPromptTokens > 0
+				// 				? ((totalCachedInputTokens / totalPromptTokens) * 100).toFixed(1)
+				// 				: '0.0'
+
+				// 		// Build input cost string with cached breakdown if applicable
+				// 		const inputCostStr =
+				// 			totalCachedInputTokens > 0
+				// 				? `Input: $${inputCost.toFixed(4)} (${cachedPercentage}% cached)`
+				// 				: `Input: $${inputCost.toFixed(4)}`
+
+				// 		// eslint-disable-next-line no-console
+				// 		console.debug(
+				// 			`🧚 Fairy "${agent.$fairyConfig.get().name}" Cumulative Usage:\n` +
+				// 				`  Model: ${modelName}\n` +
+				// 				`  Prompt tokens: ${totalPromptTokens.toLocaleString()}\n` +
+				// 				`  Completion tokens: ${totalCompletionTokens.toLocaleString()}\n` +
+				// 				`  Total tokens: ${agent.cumulativeUsage.totalTokens.toLocaleString()}\n` +
+				// 				`  💰 Cumulative Cost: $${totalCost.toFixed(4)}\n` +
+				// 				`     (${inputCostStr}, Output: $${outputCost.toFixed(4)})`
+				// 		)
+				// 	}
+				// 	continue
+				// }
 
 				editor.run(
 					() => {

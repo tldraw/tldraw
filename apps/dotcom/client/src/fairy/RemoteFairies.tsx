@@ -5,8 +5,7 @@ import {
 	fairyOutfitValidator,
 } from '@tldraw/fairy-shared'
 import { T, useEditor, usePeerIds, usePresence } from 'tldraw'
-import { FAIRY_SIZE } from './Fairy'
-import { FairySpriteComponent } from './fairy-sprite/FairySprite'
+import { FairySprite, getHatColor } from './fairy-sprite/FairySprite'
 
 /**
  * Component that renders fairies for all remote users who have an active fairy.
@@ -81,24 +80,20 @@ function RemoteFairyIndicator({
 				position: 'absolute',
 				left: entity.position.x,
 				top: entity.position.y,
-				width: `${FAIRY_SIZE}px`,
-				height: `${FAIRY_SIZE}px`,
-				transform: `translate(-75%, -25%) scale(var(--tl-scale)) ${entity.flipX ? ' scaleX(-1)' : ''}`,
+				width: 32, // `${FAIRY_SIZE}px`,
+				height: 32, // `${FAIRY_SIZE}px`,
+				transform: `translate(-75%, -25%) scale(var(--tl-scale))`,
 				transformOrigin: '75% 25%',
 				transition: 'left 0.1s ease-in-out, top 0.1s ease-in-out',
 			}}
 		>
-			<FairySpriteComponent
-				animated={true}
-				entity={{
-					position: entity.position,
-					flipX: entity.flipX,
-					isSelected: false,
-					pose: entity.pose,
-					gesture: entity.gesture,
-					currentPageId: entity.currentPageId,
-				}}
-				outfit={outfit}
+			<FairySprite
+				showShadow
+				isAnimated={true}
+				flipX={entity.flipX}
+				gesture={entity.gesture}
+				pose={entity.pose}
+				hatColor={getHatColor(outfit.hat)}
 				tint={color}
 			/>
 		</div>

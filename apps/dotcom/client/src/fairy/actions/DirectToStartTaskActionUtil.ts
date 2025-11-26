@@ -1,4 +1,4 @@
-import { AgentRequest, DirectToStartTaskAction, Streaming } from '@tldraw/fairy-shared'
+import { AgentInput, DirectToStartTaskAction, Streaming } from '@tldraw/fairy-shared'
 import { $fairyAgentsAtom } from '../fairy-agent/agent/fairyAgentsAtom'
 import { assignFairyToTask, getFairyTaskById, setFairyTaskStatus } from '../FairyTaskList'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -16,13 +16,18 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 			otherFairyName = otherFairy ? otherFairy.$fairyConfig.get().name : 'a fairy'
 		}
 
+		const otherFairyFirstName = otherFairyName.split(' ')[0]
+		const task = action.complete ? getFairyTaskById(action.taskId) : null
+
 		const text = action.complete
-			? `Directed ${otherFairyName} to start task ${action.taskId}.`
-			: `Directing ${otherFairyName} to start task ${action.taskId}...`
+			? `Asked ${otherFairyFirstName} to do${task ? `: ${task.title}` : ' a task'}`
+			: `Asking ${otherFairyFirstName} to do a task...`
 
 		return {
-			icon: 'pencil' as const,
+			icon: 'comment' as const,
 			description: text,
+			canGroup: () => false,
+			pose: 'writing' as const, // todo: bullhorn
 		}
 	}
 
@@ -35,11 +40,29 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 		const project = this.agent.getProject()
 		if (!project) return // shouldn't be possible
 
+		if (otherFairyId === this.agent.id) {
+			this.agent.interrupt({
+				input:
+					'You cannot direct yourself to do a task. Please direct another fairy to do the task.',
+			})
+			return
+		}
+
 		const otherFairy = $fairyAgentsAtom.get(this.editor).find((fairy) => fairy.id === otherFairyId)
-		if (!otherFairy) return // todo error
+		if (!otherFairy) {
+			this.agent.interrupt({
+				input: `Fairy ${otherFairyId} not found. Please take another look at the fairy list and try again.`,
+			})
+			return
+		}
 
 		const task = getFairyTaskById(taskId)
-		if (!task) return // todo error
+		if (!task) {
+			this.agent.interrupt({
+				input: `Task ${taskId} not found. Please take another look at the task list and try again.`,
+			})
+			return
+		}
 
 		if (task.projectId !== project.id) {
 			this.agent.interrupt({
@@ -51,8 +74,10 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 		assignFairyToTask(taskId, otherFairyId, $fairyAgentsAtom.get(this.editor))
 		setFairyTaskStatus(taskId, 'in-progress')
 
-		const otherFairyPrompt: Partial<AgentRequest> = {
-			messages: [`You have been asked to complete task ${taskId}. Please complete it.`],
+		const firstName = this.agent.$fairyConfig.get().name.split(' ')[0]
+		const otherFairyInput: AgentInput = {
+			agentMessages: [`You have been asked to complete task ${taskId}. Please complete it.`],
+			userMessages: [`Asked by ${firstName} to do${task.title ? `: ${task.title}` : ' a task'}`],
 			source: 'other-agent',
 		}
 		if (
@@ -61,7 +86,7 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 			task.w !== undefined &&
 			task.h !== undefined
 		) {
-			otherFairyPrompt.bounds = {
+			otherFairyInput.bounds = {
 				x: task.x,
 				y: task.y,
 				w: task.w,
@@ -69,12 +94,9 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 			}
 		}
 
-		otherFairy.setMode('working-drone')
-		if (otherFairy.isGenerating()) {
-			otherFairy.schedule(otherFairyPrompt)
-		} else {
-			otherFairy.prompt(otherFairyPrompt)
-		}
-		// todo find a way to agent.interrupt to be able to prompt without causing errors, and use that here
+		otherFairy.interrupt({
+			mode: 'working-drone',
+			input: otherFairyInput,
+		})
 	}
 }

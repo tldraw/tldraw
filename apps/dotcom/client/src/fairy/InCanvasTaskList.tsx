@@ -91,8 +91,7 @@ function InCanvasTaskItem({ agents, task }: { agents: FairyAgent[]; task: FairyT
 
 	const icon = getStatusIcon(task.status)
 	const project = task.projectId ? getProjectById(task.projectId) : undefined
-	const projectColor =
-		project && agents.length > 0 ? getProjectColor(agents[0].editor, project.color) : undefined
+	const projectColor = project && agents.length > 0 ? getProjectColor(project.color) : undefined
 
 	if (task.x == null || task.y == null) return null
 

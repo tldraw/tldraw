@@ -12,18 +12,19 @@ import { $fairyAgentsAtom } from './fairy-agent/agent/fairyAgentsAtom'
 /**
  * Notify all agents that are waiting for an event.
  * This is the central function for broadcasting events to waiting agents.
- *
- * @param eventType - The type of event that occurred
- * @param event - The event data
- * @param editor - The editor instance
- * @param getMessage - Optional function to generate a wake-up message for each matched agent
  */
-export function notifyWaitingAgents(
-	eventType: FairyWaitEvent['type'],
-	event: FairyWaitEvent,
-	editor: Editor,
-	getMessage?: (agentId: string, condition: FairyWaitCondition<FairyWaitEvent>) => string
-) {
+export function notifyWaitingAgents({
+	event,
+	editor,
+	getAgentFacingMessage,
+	getUserFacingMessage,
+}: {
+	event: FairyWaitEvent
+	editor: Editor
+	getAgentFacingMessage(agentId: string, condition: FairyWaitCondition<FairyWaitEvent>): string
+	getUserFacingMessage?(agentId: string, condition: FairyWaitCondition<FairyWaitEvent>): string
+}) {
+	const eventType = event.type
 	const agents = $fairyAgentsAtom.get(editor)
 
 	for (const agent of agents) {
@@ -40,8 +41,12 @@ export function notifyWaitingAgents(
 			agent.$waitingFor.set(remainingConditions)
 
 			// Wake up the agent with a notification message
-			const message = getMessage?.(agent.id, matchingCondition) ?? `Event "${eventType}" occurred.`
-			agent.notifyWaitConditionFulfilled(message, matchingCondition, event)
+			const agentFacingMessage = getAgentFacingMessage(agent.id, matchingCondition)
+			const userFacingMessage = getUserFacingMessage?.(agent.id, matchingCondition) ?? null
+			agent.notifyWaitConditionFulfilled({
+				agentFacingMessage,
+				userFacingMessage,
+			})
 		}
 	}
 }
@@ -54,12 +59,16 @@ export function notifyWaitingAgents(
  * @param editor - The editor instance
  */
 export function notifyTaskCompleted(task: FairyTask, editor: Editor) {
-	notifyWaitingAgents(
-		'task-completed',
-		{ type: 'task-completed', task },
+	const agentFacingMessage = `A task you were awaiting has been completed.
+ID:${task.id}
+Title: "${task.title}"
+Description: "${task.text}"`
+
+	notifyWaitingAgents({
+		event: { type: 'task-completed', task },
 		editor,
-		() => `Task ${task.id} ("${task.text}") has been completed.`
-	)
+		getAgentFacingMessage: () => agentFacingMessage,
+	})
 }
 
 /**
@@ -68,10 +77,11 @@ export function notifyTaskCompleted(task: FairyTask, editor: Editor) {
  * @param taskId - The task ID to wait for
  * @returns A WaitCondition that matches when the specified task completes
  */
-export function createTaskWaitCondition(taskId: number): FairyWaitCondition<TaskCompletedEvent> {
+export function createTaskWaitCondition(taskId: string): FairyWaitCondition<TaskCompletedEvent> {
 	return {
 		eventType: 'task-completed',
 		matcher: (event) => event.task.id === taskId,
+		id: `task-completed:${taskId}`,
 	}
 }
 
@@ -87,12 +97,11 @@ export function notifyAgentModeTransition(
 	mode: FairyModeDefinition['type'],
 	editor: Editor
 ) {
-	notifyWaitingAgents(
-		'agent-mode-transition',
-		{ type: 'agent-mode-transition', agentId, mode },
+	notifyWaitingAgents({
+		event: { type: 'agent-mode-transition', agentId, mode },
 		editor,
-		() => `Agent ${agentId} has transitioned to mode ${mode}.`
-	)
+		getAgentFacingMessage: () => `Agent ${agentId} has transitioned to mode ${mode}.`,
+	})
 }
 
 /**
@@ -109,5 +118,6 @@ export function createAgentModeTransitionWaitCondition(
 	return {
 		eventType: 'agent-mode-transition',
 		matcher: (event) => event.agentId === agentId && event.mode === mode,
+		id: `agent-mode-transition:${agentId}:${mode}`,
 	}
 }

@@ -1,4 +1,5 @@
 import { TLShape } from '@tldraw/tlschema'
+import { TLBaseBoxShape } from '../../shapes/BaseBoxShapeUtil'
 import { StateNode, TLStateNodeConstructor } from '../StateNode'
 import { Idle } from './children/Idle'
 import { Pointing } from './children/Pointing'
@@ -11,7 +12,7 @@ export abstract class BaseBoxShapeTool extends StateNode {
 		return [Idle, Pointing]
 	}
 
-	abstract override shapeType: string
+	abstract override shapeType: TLBaseBoxShape['type']
 
 	onCreate?(_shape: TLShape | null): void | null
 }

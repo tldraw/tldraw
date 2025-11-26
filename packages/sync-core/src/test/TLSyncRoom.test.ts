@@ -169,7 +169,7 @@ describe('TLSyncRoom', () => {
 
 		const room = new TLSyncRoom({
 			schema,
-			snapshot: makeSnapshot([...records, oldArrow], {
+			snapshot: makeSnapshot([...records, oldArrow as any], {
 				schema: oldSerializedSchema,
 			}),
 		})

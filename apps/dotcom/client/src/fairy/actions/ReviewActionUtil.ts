@@ -14,7 +14,7 @@ export class ReviewActionUtil extends AgentActionUtil<ReviewAction> {
 		return {
 			icon: 'search' as const,
 			description,
-			pose: 'thinking' as const,
+			pose: 'reading' as const,
 		}
 	}
 
@@ -31,7 +31,7 @@ export class ReviewActionUtil extends AgentActionUtil<ReviewAction> {
 
 		this.agent.schedule({
 			bounds: reviewBounds,
-			message: getReviewMessage(action.intent),
+			agentMessages: [getReviewMessage(action.intent)],
 		})
 
 		const fairy = this.agent.$fairyEntity.get()

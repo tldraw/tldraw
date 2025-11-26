@@ -1,23 +1,14 @@
-import {
-	FAIRY_VARIANTS,
-	FairyConfig,
-	FairyTask,
-	FairyVariantType,
-	SmallSpinner,
-} from '@tldraw/fairy-shared'
+import { FairyProject, FairyTask } from '@tldraw/fairy-shared'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
-import { MouseEvent, useCallback, useState } from 'react'
+import { MouseEvent, useCallback, useEffect, useRef, useState } from 'react'
 import {
+	PORTRAIT_BREAKPOINT,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
-	TldrawUiIcon,
-	uniqueId,
+	useBreakpoint,
 	useEditor,
-	useQuickReactor,
 	useValue,
 } from 'tldraw'
-import { MAX_FAIRY_COUNT } from '../tla/components/TlaEditor/TlaEditor'
-import { useApp } from '../tla/hooks/useAppState'
 import '../tla/styles/fairy.css'
 import { F, useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
@@ -30,51 +21,6 @@ import { FairyListSidebar } from './FairyListSidebar'
 import { $fairyTasks } from './FairyTaskList'
 import { FairyTaskListDropdownContent } from './FairyTaskListDropdownContent'
 import { FairyTaskListInline } from './FairyTaskListInline'
-import { getRandomFairyName } from './getRandomFairyName'
-
-function NewFairyButton({ agents }: { agents: FairyAgent[] }) {
-	const app = useApp()
-	const handleClick = useCallback(() => {
-		if (!app) return
-		const randomOutfit = {
-			body: Object.keys(FAIRY_VARIANTS.body)[
-				Math.floor(Math.random() * Object.keys(FAIRY_VARIANTS.body).length)
-			] as FairyVariantType<'body'>,
-			hat: Object.keys(FAIRY_VARIANTS.hat)[
-				Math.floor(Math.random() * Object.keys(FAIRY_VARIANTS.hat).length)
-			] as FairyVariantType<'hat'>,
-			wings: Object.keys(FAIRY_VARIANTS.wings)[
-				Math.floor(Math.random() * Object.keys(FAIRY_VARIANTS.wings).length)
-			] as FairyVariantType<'wings'>,
-		}
-
-		// Create a unique ID for the new fairy
-		const id = uniqueId()
-
-		// Create the config for the new fairy
-		const config: FairyConfig = {
-			name: getRandomFairyName(),
-			outfit: randomOutfit,
-			personality: 'Friendly and helpful',
-		}
-
-		// Add the config, which will trigger agent creation in FairyApp
-		app.z.mutate.user.updateFairyConfig({ id, properties: config })
-	}, [app])
-
-	const newFairyLabel = useMsg(fairyMessages.newFairy)
-
-	return (
-		<TldrawUiButton
-			type="icon"
-			className="fairy-toolbar-sidebar-button"
-			onClick={handleClick}
-			disabled={agents.length >= MAX_FAIRY_COUNT}
-		>
-			<TldrawUiIcon icon="plus" label={newFairyLabel} />
-		</TldrawUiButton>
-	)
-}
 
 type PanelState = 'task-list' | 'fairy' | 'closed'
 
@@ -83,6 +29,7 @@ interface FairyHUDHeaderProps {
 	menuPopoverOpen: boolean
 	onMenuPopoverOpenChange(open: boolean): void
 	onToggleFairyTasks(): void
+	onClosePanel(): void
 	agents: FairyAgent[]
 	shownFairy: FairyAgent | null
 	selectedFairies: FairyAgent[]
@@ -95,15 +42,44 @@ function FairyHUDHeader({
 	panelState,
 	menuPopoverOpen,
 	onMenuPopoverOpenChange,
-	onToggleFairyTasks,
+	onClosePanel,
 	agents,
 	shownFairy,
 	selectedFairies,
-	hasUnreadTasks,
-	switchToFairyChatLabel,
-	switchToTaskListLabel,
 }: FairyHUDHeaderProps) {
 	const fairyConfig = useValue('fairy config', () => shownFairy?.$fairyConfig.get(), [shownFairy])
+
+	// Get the project for the shown fairy
+	const project = useValue('project', () => shownFairy?.getProject(), [shownFairy])
+
+	// Check if the project has been started (has an orchestrator)
+	const isProjectStarted = project?.members.some(
+		(member) => member.role === 'orchestrator' || member.role === 'duo-orchestrator'
+	)
+
+	const fairyClickable = useValue(
+		'fairy clickable',
+		() => shownFairy && (!isProjectStarted || !project),
+		[isProjectStarted, project]
+	)
+
+	const zoomToFairy = useCallback(() => {
+		if (!fairyClickable || !shownFairy) return
+
+		shownFairy.zoomTo()
+	}, [shownFairy, fairyClickable])
+
+	const getDisplayName = () => {
+		if (!isProjectStarted || !project) {
+			return fairyConfig?.name
+		}
+		// Project is started - show title if available, otherwise a placeholder
+		if (project.title) {
+			return project.title
+		}
+		// Placeholder while the project name is being streamed
+		return 'Planning project…'
+	}
 
 	// Determine center content based on panel state
 	const centerContent =
@@ -113,19 +89,11 @@ function FairyHUDHeader({
 			</div>
 		) : selectedFairies.length > 1 ? (
 			<div className="fairy-id-display">
-				<F defaultMessage="Create project" />
+				<F defaultMessage="New project" />
 			</div>
 		) : shownFairy && fairyConfig ? (
-			<div className="fairy-id-display">
-				{fairyConfig.name}
-				<div
-					className="fairy-spinner-container"
-					style={{
-						visibility: shownFairy.isGenerating() ? 'visible' : 'hidden',
-					}}
-				>
-					<SmallSpinner />
-				</div>
+			<div className="fairy-id-display" onClick={zoomToFairy}>
+				<p style={{ cursor: fairyClickable ? 'pointer' : 'default' }}>{getDisplayName()}</p>
 			</div>
 		) : (
 			<div style={{ flex: 1 }}></div>
@@ -146,7 +114,7 @@ function FairyHUDHeader({
 			<_DropdownMenu.Root dir="ltr" open={menuPopoverOpen} onOpenChange={onMenuPopoverOpenChange}>
 				<_DropdownMenu.Trigger asChild dir="ltr">
 					<TldrawUiButton type="icon" className="fairy-toolbar-button">
-						<TldrawUiButtonIcon icon="menu" />
+						<TldrawUiButtonIcon icon="menu" small />
 					</TldrawUiButton>
 				</_DropdownMenu.Trigger>
 				{dropdownContent}
@@ -154,21 +122,17 @@ function FairyHUDHeader({
 
 			{centerContent}
 
-			<div style={{ position: 'relative' }}>
-				<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onToggleFairyTasks}>
-					<TldrawUiIcon
-						icon={panelState === 'task-list' ? 'toggle-on' : 'toggle-off'}
-						label={panelState === 'task-list' ? switchToFairyChatLabel : switchToTaskListLabel}
-					/>
-					{hasUnreadTasks && <div className="fairy-todo-unread-indicator" />}
-				</TldrawUiButton>
-			</div>
+			<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onClosePanel}>
+				<TldrawUiButtonIcon icon="cross-2" small />
+			</TldrawUiButton>
 		</div>
 	)
 }
 
 export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	const editor = useEditor()
+	const breakpoint = useBreakpoint()
+	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
 	const [headerMenuPopoverOpen, setHeaderMenuPopoverOpen] = useState(false)
 	const [fairyMenuPopoverOpen, setFairyMenuPopoverOpen] = useState(false)
 	const [todoMenuPopoverOpen, setTodoMenuPopoverOpen] = useState(false)
@@ -176,6 +140,8 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 
 	const [panelState, setPanelState] = useState<PanelState>('closed')
 	const [shownFairy, setShownFairy] = useState<FairyAgent | null>(null)
+	const [mobileMenuOffset, setMobileMenuOffset] = useState<number | null>(null)
+	const hudRef = useRef<HTMLDivElement>(null)
 
 	const toolbarMessage = useMsg(fairyMessages.toolbar)
 	const deselectMessage = useMsg(fairyMessages.deselectFairy)
@@ -186,23 +152,24 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	// Create a reactive value that tracks which fairies are selected
 	const selectedFairies = useValue(
 		'selected-fairies',
-		() => agents.filter((agent) => agent.$fairyEntity.get()?.isSelected ?? false),
+		() =>
+			agents.filter(
+				(agent) => (agent.$fairyEntity.get()?.isSelected && !agent.isSleeping()) ?? false
+			),
 		[agents]
 	)
 
 	// Update the chosen fairy when the selected fairies change
-	useQuickReactor(
-		'update-chosen-fairy',
-		() => {
-			const currentSelectedFairies = agents.filter(
-				(agent) => agent.$fairyEntity.get()?.isSelected ?? false
-			)
-			if (currentSelectedFairies.length === 1) {
-				setShownFairy(currentSelectedFairies[0])
-			}
-		},
-		[agents]
-	)
+	useEffect(() => {
+		if (selectedFairies.length === 1) {
+			setShownFairy(selectedFairies[0])
+			setPanelState('fairy')
+		}
+		if (selectedFairies.length === 0) {
+			setShownFairy(null)
+			setPanelState('closed')
+		}
+	}, [selectedFairies])
 
 	const selectFairy = useCallback(
 		(selectedAgent: FairyAgent) => {
@@ -218,11 +185,52 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		[agents]
 	)
 
+	const selectProjectGroup = useCallback(
+		(project: FairyProject | null) => {
+			if (!project || project.members.length <= 1) {
+				return false
+			}
+
+			// Check if project has an orchestrator (meaning it's been started)
+			const orchestratorMember = project.members.find(
+				(member) => member.role === 'orchestrator' || member.role === 'duo-orchestrator'
+			)
+
+			if (orchestratorMember) {
+				// Project has been started, show the orchestrator's chat
+				const orchestratorAgent = agents.find((agent) => agent.id === orchestratorMember.id)
+				if (orchestratorAgent) {
+					selectFairy(orchestratorAgent)
+					setPanelState('fairy')
+					return true
+				}
+			}
+
+			// Project hasn't been started yet, show group creation view
+			const memberIds = new Set(project.members.map((member) => member.id))
+
+			agents.forEach((agent) => {
+				const shouldSelect = memberIds.has(agent.id)
+				agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: shouldSelect } : f))
+			})
+
+			setShownFairy(null)
+			setPanelState('fairy')
+			return true
+		},
+		[agents, setPanelState, setShownFairy, selectFairy]
+	)
+
 	const handleClickFairy = useCallback(
 		(clickedAgent: FairyAgent, event: MouseEvent) => {
 			const isMultiSelect = event.shiftKey || event.metaKey || event.ctrlKey
 			const isSelected = clickedAgent.$fairyEntity.get().isSelected
 			const isChosen = clickedAgent.id === shownFairy?.id
+			const project = clickedAgent.getProject()
+
+			if (!isMultiSelect && selectProjectGroup(project)) {
+				return
+			}
 
 			if (isMultiSelect) {
 				// Toggle selection without deselecting others
@@ -245,15 +253,20 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 					// Normal single select behavior - deselect all others
 					selectFairy(clickedAgent)
 					// If the clicked fairy is already chosen and selected, toggle the panel. Otherwise, keep the panel open.
-					setPanelState((v) =>
-						isChosen && isSelected && v === 'fairy' && selectedFairies.length <= 1
-							? 'closed'
-							: 'fairy'
-					)
+					setPanelState((v) => {
+						const shouldClosePanel =
+							isChosen && isSelected && v === 'fairy' && selectedFairies.length <= 1
+						if (shouldClosePanel) {
+							agents.forEach((agent) => {
+								agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+							})
+						}
+						return shouldClosePanel ? 'closed' : 'fairy'
+					})
 				}
 			}
 		},
-		[selectFairy, shownFairy, selectedFairies, panelState]
+		[selectFairy, shownFairy, selectedFairies, panelState, selectProjectGroup, agents]
 	)
 
 	const handleDoubleClickFairy = useCallback(
@@ -271,7 +284,11 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 			if (v === 'fairy') return 'closed'
 			return 'fairy' // closed -> fairy
 		})
-	}, [])
+		// Deselect all fairies when the panel is closed
+		agents.forEach((agent) => {
+			agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+		})
+	}, [agents])
 
 	const [taskListLastChecked, setTaskListLastChecked] = useState<FairyTask[]>([])
 
@@ -284,33 +301,70 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		e.stopPropagation()
 	}
 
+	const currentTasks = useValue('current-tasks', () => $fairyTasks.get(), [])
+
 	// Keep todoLastChecked in sync when the panel is open
-	useQuickReactor(
-		'update-task-list-last-checked',
-		() => {
-			if (panelState === 'task-list') {
-				setTaskListLastChecked($fairyTasks.get())
-			}
-		},
-		[panelState]
-	)
+	useEffect(() => {
+		if (panelState === 'task-list') {
+			setTaskListLastChecked(currentTasks)
+		}
+	}, [panelState, currentTasks])
 
 	const hasUnreadTasks = useValue(
 		'has-unread-tasks',
 		() => {
-			const currentList = $fairyTasks.get()
-			if (currentList.length !== taskListLastChecked.length) return true
-			return JSON.stringify(currentList) !== JSON.stringify(taskListLastChecked)
+			if (currentTasks.length !== taskListLastChecked.length) return true
+			return JSON.stringify(currentTasks) !== JSON.stringify(taskListLastChecked)
 		},
-		[taskListLastChecked]
+		[taskListLastChecked, currentTasks]
 	)
+
+	// hide the HUD when the mobile style panel is open
+	const isMobileBottomToolbarsOpen = useValue(
+		'mobile bottom toolbars open',
+		() => {
+			if (!isMobile) return false
+			return (
+				editor.menus.isMenuOpen(`mobile style menu`) || editor.menus.isMenuOpen(`toolbar overflow`)
+			)
+		},
+		[editor, isMobile]
+	)
+
+	// Position HUD above mobile style menu button on mobile
+	useEffect(() => {
+		if (!isMobile) {
+			setMobileMenuOffset(null)
+			return
+		}
+
+		const updatePosition = () => {
+			const mobileStyleButton = document.querySelector('[data-testid="mobile-styles.button"]')
+			if (mobileStyleButton) {
+				const buttonRect = mobileStyleButton.getBoundingClientRect()
+				const rightOffset = window.innerWidth - buttonRect.right
+				setMobileMenuOffset(rightOffset)
+				return
+			}
+			setMobileMenuOffset(null)
+		}
+
+		updatePosition()
+
+		window.addEventListener('resize', updatePosition)
+
+		return () => window.removeEventListener('resize', updatePosition)
+	}, [isMobile])
 
 	return (
 		<>
 			<div
+				ref={hudRef}
 				className={`tla-fairy-hud ${panelState !== 'closed' ? 'tla-fairy-hud--open' : ''}`}
 				style={{
-					bottom: isDebugMode ? '112px' : '72px',
+					bottom: mobileMenuOffset !== null ? 64 : isDebugMode ? 48 : 8,
+					right: mobileMenuOffset !== null ? mobileMenuOffset : 8,
+					display: isMobileBottomToolbarsOpen ? 'none' : 'block',
 				}}
 				onContextMenu={handleContextMenu}
 			>
@@ -322,6 +376,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 							onWheelCapture={(e) => e.stopPropagation()}
 						>
 							<FairyHUDHeader
+								onClosePanel={handleTogglePanel}
 								panelState={panelState}
 								menuPopoverOpen={
 									panelState === 'task-list'
@@ -372,7 +427,6 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 							{panelState === 'task-list' && <FairyTaskListInline agents={agents} />}
 						</div>
 					)}
-
 					<div className="fairy-buttons-container">
 						<FairyListSidebar
 							agents={agents}
@@ -383,7 +437,6 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 							onClickFairy={handleClickFairy}
 							onDoubleClickFairy={handleDoubleClickFairy}
 							onTogglePanel={handleTogglePanel}
-							newFairyButton={<NewFairyButton agents={agents} />}
 						/>
 					</div>
 				</div>

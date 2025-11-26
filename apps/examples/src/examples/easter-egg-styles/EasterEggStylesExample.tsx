@@ -1,4 +1,4 @@
-import { Editor, TLGeoShape, Tldraw, toRichText } from 'tldraw'
+import { Editor, Tldraw, toRichText } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 export default function EasterEggStylesExample() {
@@ -6,7 +6,7 @@ export default function EasterEggStylesExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				onMount={(editor: Editor) => {
-					editor.createShapes<TLGeoShape>([
+					editor.createShapes([
 						{
 							type: 'geo',
 							x: 0,

@@ -13,6 +13,7 @@ import { Editor as Editor_2 } from '@tiptap/core';
 import { EditorProviderProps as EditorProviderProps_2 } from '@tiptap/react';
 import EventEmitter from 'eventemitter3';
 import { ExoticComponent } from 'react';
+import { ExtractShapeByProps } from '@tldraw/tlschema';
 import { ForwardRefExoticComponent } from 'react';
 import { HistoryEntry } from '@tldraw/store';
 import { IndexKey } from '@tldraw/utils';
@@ -54,6 +55,7 @@ import { TLBindingId } from '@tldraw/tlschema';
 import { TLBindingUpdate } from '@tldraw/tlschema';
 import { TLBookmarkAsset } from '@tldraw/tlschema';
 import { TLCamera } from '@tldraw/tlschema';
+import { TLCreateShapePartial } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLCursorType } from '@tldraw/tlschema';
 import { TLDefaultDashStyle } from '@tldraw/tlschema';
@@ -143,7 +145,7 @@ export abstract class BaseBoxShapeTool extends StateNode {
     // (undocumented)
     onCreate?(_shape: null | TLShape): null | void;
     // (undocumented)
-    abstract shapeType: string;
+    abstract shapeType: TLBaseBoxShape['type'];
 }
 
 // @public (undocumented)
@@ -159,23 +161,23 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
 }
 
 // @public
-export interface BindingOnChangeOptions<Binding extends TLUnknownBinding> {
+export interface BindingOnChangeOptions<Binding extends TLBinding = TLBinding> {
     bindingAfter: Binding;
     bindingBefore: Binding;
 }
 
 // @public
-export interface BindingOnCreateOptions<Binding extends TLUnknownBinding> {
+export interface BindingOnCreateOptions<Binding extends TLBinding = TLBinding> {
     binding: Binding;
 }
 
 // @public
-export interface BindingOnDeleteOptions<Binding extends TLUnknownBinding> {
+export interface BindingOnDeleteOptions<Binding extends TLBinding = TLBinding> {
     binding: Binding;
 }
 
 // @public
-export interface BindingOnShapeChangeOptions<Binding extends TLUnknownBinding> {
+export interface BindingOnShapeChangeOptions<Binding extends TLBinding = TLBinding> {
     binding: Binding;
     reason: 'ancestry' | 'self';
     shapeAfter: TLShape;
@@ -183,19 +185,19 @@ export interface BindingOnShapeChangeOptions<Binding extends TLUnknownBinding> {
 }
 
 // @public
-export interface BindingOnShapeDeleteOptions<Binding extends TLUnknownBinding> {
+export interface BindingOnShapeDeleteOptions<Binding extends TLBinding = TLBinding> {
     binding: Binding;
     shape: TLShape;
 }
 
 // @public
-export interface BindingOnShapeIsolateOptions<Binding extends TLUnknownBinding> {
+export interface BindingOnShapeIsolateOptions<Binding extends TLBinding = TLBinding> {
     binding: Binding;
     removedShape: TLShape;
 }
 
 // @public (undocumented)
-export abstract class BindingUtil<Binding extends TLUnknownBinding = TLUnknownBinding> {
+export abstract class BindingUtil<Binding extends TLBinding = TLBinding> {
     constructor(editor: Editor);
     // (undocumented)
     editor: Editor;
@@ -809,7 +811,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     bail(): this;
     bailToMark(id: string): this;
     bindingUtils: {
-        readonly [K in string]?: BindingUtil<TLUnknownBinding>;
+        readonly [K in string]?: BindingUtil<TLBinding>;
     };
     blur({ blurContainer }?: {
         blurContainer?: boolean | undefined;
@@ -832,8 +834,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): boolean;
     cancel(): this;
     cancelDoubleClick(): void;
-    canCreateShape<T extends TLUnknownShape>(shape: OptionalKeys<TLShapePartial<T>, 'id'> | T['id']): boolean;
-    canCreateShapes<T extends TLUnknownShape>(shapes: (OptionalKeys<TLShapePartial<T>, 'id'> | T['id'])[]): boolean;
+    canCreateShape(shape: OptionalKeys<TLShapePartial<TLShape>, 'id'> | TLShape['id']): boolean;
+    canCreateShapes(shapes: (OptionalKeys<TLShapePartial<TLShape>, 'id'> | TLShape['id'])[]): boolean;
     // @internal (undocumented)
     capturedPointerId: null | number;
     centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): this;
@@ -859,7 +861,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         extras: {
             activeStateNode: string;
             collaboratorCount: number;
-            editingShape: TLUnknownShape | undefined;
+            editingShape: TLShape | undefined;
             inputs: {
                 buttons: Set<number>;
                 keys: Set<string>;
@@ -1023,7 +1025,33 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                type: "my-custom-shape";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
                 type: "note";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: TLOpacityType;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
+                type: "test-shape";
                 typeName: "shape";
                 x: number;
                 y: number;
@@ -1053,19 +1081,6 @@ export class Editor extends EventEmitter<TLEventMap> {
                 typeName: "shape";
                 x: number;
                 y: number;
-            } | {
-                id: TLShapeId;
-                index: IndexKey;
-                isLocked: boolean;
-                meta: JsonObject;
-                opacity: TLOpacityType;
-                parentId: TLParentId;
-                props: any;
-                rotation: number;
-                type: string;
-                typeName: "shape";
-                x: number;
-                y: number;
             })[];
             selectionCount: number;
         };
@@ -1090,8 +1105,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         };
     };
     createPage(page: Partial<TLPage>): this;
-    createShape<T extends TLUnknownShape>(shape: OptionalKeys<TLShapePartial<T>, 'id'>): this;
-    createShapes<T extends TLUnknownShape>(shapes: OptionalKeys<TLShapePartial<T>, 'id'>[]): this;
+    createShape<TShape extends TLShape>(shape: TLCreateShapePartial<TShape>): this;
+    createShapes<TShape extends TLShape = TLShape>(shapes: TLCreateShapePartial<TShape>[]): this;
     createTemporaryAssetPreview(assetId: TLAssetId, file: File): string | undefined;
     // (undocumented)
     _decayCameraStateTimeout(elapsed: number): void;
@@ -1146,14 +1161,28 @@ export class Editor extends EventEmitter<TLEventMap> {
     getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
     getBaseZoom(): number;
     getBinding(id: TLBindingId): TLBinding | undefined;
-    getBindingsFromShape<Binding extends TLUnknownBinding = TLBinding>(shape: TLShape | TLShapeId, type: Binding['type']): Binding[];
-    getBindingsInvolvingShape<Binding extends TLUnknownBinding = TLBinding>(shape: TLShape | TLShapeId, type?: Binding['type']): Binding[];
-    getBindingsToShape<Binding extends TLUnknownBinding = TLBinding>(shape: TLShape | TLShapeId, type: Binding['type']): Binding[];
-    getBindingUtil<S extends TLUnknownBinding>(binding: {
+    getBindingsFromShape<K extends TLBinding['type']>(shape: TLShape | TLShapeId, type: K): Extract<TLBinding, {
+        type: K;
+    }>[];
+    // (undocumented)
+    getBindingsFromShape<Binding extends TLBinding = TLBinding>(shape: TLShape | TLShapeId, type: Binding['type']): Binding[];
+    getBindingsInvolvingShape<K extends TLBinding['type']>(shape: TLShape | TLShapeId, type: K): Extract<TLBinding, {
+        type: K;
+    }>[];
+    // (undocumented)
+    getBindingsInvolvingShape<Binding extends TLBinding = TLBinding>(shape: TLShape | TLShapeId, type?: Binding['type']): Binding[];
+    getBindingsToShape<K extends TLBinding['type']>(shape: TLShape | TLShapeId, type: K): Extract<TLBinding, {
+        type: K;
+    }>[];
+    // (undocumented)
+    getBindingsToShape<Binding extends TLBinding = TLBinding>(shape: TLShape | TLShapeId, type: Binding['type']): Binding[];
+    getBindingUtil<K extends TLBinding['type']>(type: K): BindingUtil<Extract<TLBinding, {
+        type: K;
+    }>>;
+    // (undocumented)
+    getBindingUtil<S extends TLBinding>(binding: {
         type: S['type'];
     } | S): BindingUtil<S>;
-    // (undocumented)
-    getBindingUtil<S extends TLUnknownBinding>(type: S['type']): BindingUtil<S>;
     // (undocumented)
     getBindingUtil<T extends BindingUtil>(type: T extends BindingUtil<infer R> ? R['type'] : string): T;
     getCamera(): TLCamera;
@@ -1253,9 +1282,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapesSharedRotation(shapeIds: TLShapeId[]): number;
     // (undocumented)
     getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined;
-    getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): ShapeUtil<S>;
+    getShapeUtil<K extends TLShape['type']>(type: K): ShapeUtil<Extract<TLShape, {
+        type: K;
+    }>>;
     // (undocumented)
-    getShapeUtil<S extends TLUnknownShape>(type: S['type']): ShapeUtil<S>;
+    getShapeUtil<S extends TLShape>(shape: S | S['type'] | TLShapePartial<S>): ShapeUtil<S>;
     // (undocumented)
     getShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): T;
     getSharedOpacity(): SharedStyle<number>;
@@ -1295,9 +1326,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean;
     // (undocumented)
     hasExternalAssetHandler(type: TLExternalAsset['type']): boolean;
-    hasShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): boolean;
+    hasShapeUtil(shape: TLShape | TLShapePartial<TLShape>): boolean;
     // (undocumented)
-    hasShapeUtil<S extends TLUnknownShape>(type: S['type']): boolean;
+    hasShapeUtil(type: TLShape['type']): boolean;
     // (undocumented)
     hasShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): boolean;
     protected readonly history: HistoryManager<TLRecord>;
@@ -1337,9 +1368,15 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     isShapeHidden(shapeOrId: TLShape | TLShapeId): boolean;
     isShapeInPage(shape: TLShape | TLShapeId, pageId?: TLPageId): boolean;
-    isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T;
+    isShapeOfType<K extends TLShape['type']>(shape: TLShape, type: K): shape is Extract<TLShape, {
+        type: K;
+    }>;
     // (undocumented)
-    isShapeOfType<T extends TLUnknownShape>(shapeId: TLUnknownShape['id'], type: T['type']): shapeId is T['id'];
+    isShapeOfType<T extends TLShape>(shape: TLShape, type: T['type']): shape is Extract<TLShape, {
+        type: T['type'];
+    }>;
+    // (undocumented)
+    isShapeOfType<T extends TLShape = TLShape>(shapeId: TLShapeId, type: T['type']): boolean;
     isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean;
     loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot, opts?: TLLoadSnapshotOptions): this;
     markEventAsHandled(e: {
@@ -1447,7 +1484,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): this;
     setTool(Tool: TLStateNodeConstructor, parent?: StateNode): void;
     shapeUtils: {
-        readonly [K in string]?: ShapeUtil<TLUnknownShape>;
+        readonly [K in string]?: ShapeUtil<TLShape>;
     };
     readonly sideEffects: StoreSideEffects<TLRecord>;
     slideCamera(opts?: {
@@ -1509,8 +1546,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     _updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, opts?: TLHistoryBatchOptions): void;
     updatePage(partial: RequiredKeys<Partial<TLPage>, 'id'>): this;
     updatePointer(options?: TLUpdatePointerOptions): this;
-    updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined): this;
-    updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[]): this;
+    updateShape<T extends TLShape = TLShape>(partial: null | TLShapePartial<T> | undefined): this;
+    updateShapes<T extends TLShape>(partials: (null | TLShapePartial<T> | undefined)[]): this;
     // @internal (undocumented)
     _updateShapes(_partials: (null | TLShapePartial | undefined)[]): void;
     updateViewportScreenBounds(screenBounds: Box | HTMLElement, center?: boolean): this;
@@ -2580,7 +2617,7 @@ export function setRuntimeOverrides(input: Partial<typeof runtime>): void;
 export function setUserPreferences(user: TLUserPreferences): void;
 
 // @public (undocumented)
-export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
+export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     constructor(editor: Editor);
     // @internal
     backgroundComponent?(shape: Shape): any;
@@ -2935,7 +2972,7 @@ export type TLAnyBindingUtilConstructor = TLBindingUtilConstructor<any>;
 export type TLAnyShapeUtilConstructor = TLShapeUtilConstructor<any>;
 
 // @public (undocumented)
-export type TLBaseBoxShape = TLBaseShape<string, {
+export type TLBaseBoxShape = ExtractShapeByProps<{
     h: number;
     w: number;
 }>;
@@ -2965,7 +3002,7 @@ export interface TLBaseExternalContent {
 }
 
 // @public (undocumented)
-export interface TLBindingUtilConstructor<T extends TLUnknownBinding, U extends BindingUtil<T> = BindingUtil<T>> {
+export interface TLBindingUtilConstructor<T extends TLBinding, U extends BindingUtil<T> = BindingUtil<T>> {
     // (undocumented)
     new (editor: Editor): U;
     migrations?: TLPropsMigrations;
@@ -4102,10 +4139,10 @@ export interface TLShapeUtilCanBeLaidOutOpts {
 }
 
 // @public
-export interface TLShapeUtilCanBindOpts<Shape extends TLUnknownShape = TLUnknownShape> {
+export interface TLShapeUtilCanBindOpts<Shape extends TLShape = TLShape> {
     bindingType: string;
-    fromShapeType: string;
-    toShapeType: string;
+    fromShapeType: TLShape['type'];
+    toShapeType: TLShape['type'];
 }
 
 // @public (undocumented)
@@ -4117,7 +4154,7 @@ export interface TLShapeUtilCanvasSvgDef {
 }
 
 // @public (undocumented)
-export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends ShapeUtil<T> = ShapeUtil<T>> {
+export interface TLShapeUtilConstructor<T extends TLShape, U extends ShapeUtil<T> = ShapeUtil<T>> {
     // (undocumented)
     new (editor: Editor): U;
     // (undocumented)

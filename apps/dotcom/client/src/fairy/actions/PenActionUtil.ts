@@ -1,5 +1,5 @@
 import { PenAction, Streaming, asColor, convertFocusFillToTldrawFill } from '@tldraw/fairy-shared'
-import { TLDrawShape, TLDrawShapeSegment, Vec, VecModel, createShapeId, last } from 'tldraw'
+import { TLDrawShapeSegment, Vec, VecModel, createShapeId, last } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -10,14 +10,19 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 		return {
 			icon: 'pencil' as const,
 			description: action.intent ?? '',
+			pose: 'working' as const,
 		}
 	}
 
 	override sanitizeAction(action: Streaming<PenAction>, helpers: AgentHelpers) {
 		if (!action.points) return action
 
+		// Don't include the final point if we're still streaming.
+		// Its numbers might be incomplete.
+		const points = action.complete ? action.points : action.points.slice(0, -1)
+
 		// This is a complex action for the model, so validate the data it gives us
-		const validPoints = action.points
+		const validPoints = points
 			.map((point) => helpers.ensureValueIsVec(point))
 			.filter((v) => v !== null)
 
@@ -77,7 +82,7 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 			},
 		]
 
-		this.agent.editor.createShape<TLDrawShape>({
+		this.agent.editor.createShape({
 			id: createShapeId(),
 			type: 'draw',
 			x: minX,

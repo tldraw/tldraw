@@ -11,6 +11,7 @@ export class FlyToBoundsActionUtil extends AgentActionUtil<FlyToBoundsAction> {
 		return {
 			icon: 'eye' as const,
 			description: `${text ?? ''}`,
+			pose: 'active' as const,
 		}
 	}
 
@@ -29,7 +30,7 @@ export class FlyToBoundsActionUtil extends AgentActionUtil<FlyToBoundsAction> {
 		this.agent.interrupt({
 			input: {
 				bounds,
-				messages: [
+				agentMessages: [
 					`Just flew to new area with the intent: ${action.intent}. Can now see the new area at (${bounds.x}, ${bounds.y}) and is ${bounds.w}x${bounds.h} in size.`,
 				],
 			},

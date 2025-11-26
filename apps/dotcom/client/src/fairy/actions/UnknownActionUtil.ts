@@ -10,8 +10,6 @@ export class UnknownActionUtil extends AgentActionUtil<UnknownAction> {
 	static override type = 'unknown' as const
 
 	override getInfo() {
-		return {
-			pose: 'thinking' as const,
-		}
+		return null
 	}
 }

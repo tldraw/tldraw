@@ -5,6 +5,18 @@
       "value": "Exporter"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Accepter l'invitation"
+    }
+  ],
+  "038c9b4432": [
+    {
+      "type": 0,
+      "value": "La personnalité de Fairy"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -19,12 +31,6 @@
     {
       "type": 1,
       "value": "GetHelpLink"
-    }
-  ],
-  "05596b840b": [
-    {
-      "type": 0,
-      "value": "Ouvrir tldraw."
     }
   ],
   "06b9281e39": [
@@ -51,10 +57,16 @@
       "value": "Compte"
     }
   ],
-  "08d2d725a9": [
+  "090b807281": [
     {
       "type": 0,
-      "value": "Créez un compte gratuit pour sauvegarder votre travail, collaborer en temps réel et bien plus encore."
+      "value": "Épineux"
+    }
+  ],
+  "0a91f7fa87": [
+    {
+      "type": 0,
+      "value": "Ce fichier a atteint sa limite de taille et les modifications risquent de ne plus être enregistrées. Supprimez du contenu ou créez un nouveau fichier."
     }
   ],
   "0b27918290": [
@@ -69,10 +81,10 @@
       "value": "Menu du fichier"
     }
   ],
-  "0beb3ca97b": [
+  "0befa10111": [
     {
       "type": 0,
-      "value": "tldraw est un tableau blanc virtuel gratuit et instantané."
+      "value": "fées"
     }
   ],
   "0d1f2bb523": [
@@ -85,6 +97,12 @@
     {
       "type": 0,
       "value": "Publier"
+    }
+  ],
+  "11a755d598": [
+    {
+      "type": 0,
+      "value": "Arrêt"
     }
   ],
   "129b9e34ea": [
@@ -109,6 +127,12 @@
     {
       "type": 0,
       "value": "Exporter en tant que"
+    }
+  ],
+  "141c7239d3": [
+    {
+      "type": 0,
+      "value": "Personnalisation féerique"
     }
   ],
   "146ffe2fd9": [
@@ -141,16 +165,22 @@
       "value": "Aujourd'hui"
     }
   ],
-  "20976e7bec": [
+  "1e38506832": [
     {
       "type": 0,
-      "value": "La salle est pleine"
+      "value": "Allez voir la fée"
     }
   ],
-  "21bfb2dc2e": [
+  "1fe250ea06": [
     {
       "type": 0,
-      "value": "Cette salle approche de sa taille maximale. Envisagez de supprimer du contenu ou de créer un nouveau fichier."
+      "value": "Donnez des instructions au groupe…"
+    }
+  ],
+  "243924bfd5": [
+    {
+      "type": 0,
+      "value": "Dormir"
     }
   ],
   "2445e5e347": [
@@ -165,6 +195,12 @@
       "value": "À propos de tldraw"
     }
   ],
+  "284d5cd0dd": [
+    {
+      "type": 0,
+      "value": "Modèle:"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -177,10 +213,30 @@
       "value": "Mes fichiers"
     }
   ],
-  "2deec2cb74": [
+  "2e86e6853d": [
     {
       "type": 0,
-      "value": "Cette salle a atteint sa taille maximale et les modifications risquent de ne plus être enregistrées. Supprimez du contenu ou créez un nouveau fichier."
+      "value": "Choisir un leader"
+    }
+  ],
+  "30cd34258a": [
+    {
+      "type": 0,
+      "value": "Une volée de "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "fées"
+        }
+      ],
+      "type": 8,
+      "value": "b"
+    },
+    {
+      "type": 0,
+      "value": " est arrivée sur tldraw pour le mois de décembre. Pour en savoir plus, trouvez la fée et cliquez dessus."
     }
   ],
   "31246941ad": [
@@ -195,10 +251,22 @@
       "value": "i18n : surlignement manquant"
     }
   ],
+  "3209f407ed": [
+    {
+      "type": 0,
+      "value": "trois fées"
+    }
+  ],
   "32210b37e4": [
     {
       "type": 0,
       "value": "Ajouter un lien"
+    }
+  ],
+  "324a0f3182": [
+    {
+      "type": 0,
+      "value": "Retour à tldraw"
     }
   ],
   "335defdafe": [
@@ -207,10 +275,52 @@
       "value": "Veuillez essayer de recharger la page."
     }
   ],
+  "33f9ea6fe8": [
+    {
+      "type": 0,
+      "value": "Groupe de dissolution"
+    }
+  ],
+  "34140869c6": [
+    {
+      "type": 0,
+      "value": "Un vent de féerie soufflera sur tldraw pour le mois de décembre. Rendez-vous le 1er décembre !"
+    }
+  ],
   "344a7f427f": [
     {
       "type": 0,
       "value": "Éditeur"
+    }
+  ],
+  "3596c1b1f7": [
+    {
+      "type": 0,
+      "value": "Se désabonner"
+    }
+  ],
+  "3903aab323": [
+    {
+      "type": 0,
+      "value": "Suivre"
+    }
+  ],
+  "3a295397e6": [
+    {
+      "type": 0,
+      "value": "Demandez de l'aide"
+    }
+  ],
+  "3a77f951ca": [
+    {
+      "type": 0,
+      "value": "Ajouter une nouvelle tâche…"
+    }
+  ],
+  "3b6c2b4caa": [
+    {
+      "type": 0,
+      "value": "Conditions d'utilisation"
     }
   ],
   "3bc7d6ea2f": [
@@ -237,6 +347,12 @@
       "value": "Accepter tout"
     }
   ],
+  "4131ec34ef": [
+    {
+      "type": 0,
+      "value": "Chauve"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -253,6 +369,18 @@
     {
       "type": 0,
       "value": "Merci de nous aider à améliorer tldraw !"
+    }
+  ],
+  "465a8a92a4": [
+    {
+      "type": 0,
+      "value": "Aucune fée sélectionnée"
+    }
+  ],
+  "477df802ca": [
+    {
+      "type": 0,
+      "value": "Pour continuer la modification, veuillez copier le fichier dans vos fichiers."
     }
   ],
   "47839e47a5": [
@@ -309,6 +437,12 @@
       "value": "Êtes-vous sûr de vouloir supprimer ce groupe ? Cette action est irréversible."
     }
   ],
+  "4f827717f7": [
+    {
+      "type": 0,
+      "value": "Pointu"
+    }
+  ],
   "50db1b7e1e": [
     {
       "type": 0,
@@ -321,16 +455,16 @@
       "value": "Menu de la page"
     }
   ],
+  "542248f0ba": [
+    {
+      "type": 0,
+      "value": "Ce fichier est désormais en lecture seule"
+    }
+  ],
   "54286b1d01": [
     {
       "type": 0,
       "value": "Limite de collaborateurs atteinte"
-    }
-  ],
-  "54d240fa41": [
-    {
-      "type": 0,
-      "value": "Veuillez ralentir."
     }
   ],
   "554a05155c": [
@@ -365,6 +499,12 @@
     {
       "type": 0,
       "value": "Politique de confidentialité"
+    }
+  ],
+  "5a2ccdc00a": [
+    {
+      "type": 0,
+      "value": "Impossible d'utiliser le code d'invitation"
     }
   ],
   "5a86b22fa0": [
@@ -407,18 +547,6 @@
       "value": "Partager"
     }
   ],
-  "5bb6cf3b53": [
-    {
-      "type": 0,
-      "value": "La pièce devient grande"
-    }
-  ],
-  "5bcc12ace8": [
-    {
-      "type": 0,
-      "value": "Cette salle est désormais en lecture seule"
-    }
-  ],
   "5bec508475": [
     {
       "type": 0,
@@ -435,6 +563,12 @@
     {
       "type": 0,
       "value": "Nous n'avons pas réussi à importer une partie du contenu que vous avez créé avant de vous connecter."
+    }
+  ],
+  "5ea8bb44be": [
+    {
+      "type": 0,
+      "value": "Vous avez été invité à rejoindre le groupe :"
     }
   ],
   "5f3c333678": [
@@ -467,6 +601,24 @@
       "value": "toi"
     }
   ],
+  "63a78ed464": [
+    {
+      "type": 0,
+      "value": "Personnaliser"
+    }
+  ],
+  "64ebe56d8c": [
+    {
+      "type": 0,
+      "value": "Cliquez pour supprimer ou faites glisser pour déplacer"
+    }
+  ],
+  "65709fd250": [
+    {
+      "type": 0,
+      "value": "Liste des tâches"
+    }
+  ],
   "6609dd239e": [
     {
       "type": 0,
@@ -479,28 +631,16 @@
       "value": "Une nouvelle version de tldraw est disponible. Veuillez recharger la page pour continuer."
     }
   ],
-  "68257bb646": [
-    {
-      "type": 0,
-      "value": "Vous avez été invité à rejoindre le groupe "
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "br"
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "groupName"
-    }
-  ],
   "6832ac5936": [
     {
       "type": 0,
       "value": "Saisissez votre adresse e-mail"
+    }
+  ],
+  "68d390535e": [
+    {
+      "type": 0,
+      "value": "Saisissez votre message"
     }
   ],
   "6a26f54883": [
@@ -519,6 +659,12 @@
     {
       "type": 0,
       "value": "Suivez ces étapes pour importer le contenu manuellement :"
+    }
+  ],
+  "6e02bd9e1e": [
+    {
+      "type": 0,
+      "value": "Rangez les fées"
     }
   ],
   "70222abcfc": [
@@ -581,10 +727,28 @@
       "value": "Veuillez recharger"
     }
   ],
+  "76dea3c9ca": [
+    {
+      "type": 0,
+      "value": "TLDRAW est un tableau blanc en ligne gratuit. Créez un compte pour sauvegarder vos fichiers et collaborer avec vos amis."
+    }
+  ],
   "777f9e90cf": [
     {
       "type": 0,
       "value": "Demande invalide."
+    }
+  ],
+  "7827371d1a": [
+    {
+      "type": 0,
+      "value": "Ce fichier tldraw multijoueur anonyme est désormais en lecture seule. Pour continuer à le modifier, veuillez vous connecter et le copier dans vos fichiers."
+    }
+  ],
+  "7835039819": [
+    {
+      "type": 0,
+      "value": "Hélice"
     }
   ],
   "78e9815992": [
@@ -599,16 +763,46 @@
       "value": "Soumettre un problème sur GitHub"
     }
   ],
+  "79cc22ac6b": [
+    {
+      "type": 0,
+      "value": "Une fée est un petit être qui peut vous accompagner sur la toile. Les fées peuvent travailler seules ou en équipe. Leurs possibilités sont infinies. Nul ne sait d'où elles viennent."
+    }
+  ],
+  "7a3113b0ba": [
+    {
+      "type": 0,
+      "value": "Glisser sur la toile"
+    }
+  ],
   "7b1329f5ca": [
     {
       "type": 0,
       "value": "Manuel d'utilisation"
     }
   ],
+  "7b5449bd84": [
+    {
+      "type": 0,
+      "value": "Antenne"
+    }
+  ],
   "7be10fc592": [
     {
       "type": 0,
       "value": "Restaurer la version"
+    }
+  ],
+  "7c0747a5df": [
+    {
+      "type": 0,
+      "value": "Ouvrir tldraw"
+    }
+  ],
+  "7cb471f815": [
+    {
+      "type": 0,
+      "value": "Vous avez été invité(e) à rejoindre les fées de tldraw !"
     }
   ],
   "7cb5f8b4a5": [
@@ -675,6 +869,18 @@
       "value": "."
     }
   ],
+  "81d48c2f3a": [
+    {
+      "type": 0,
+      "value": "Afficher les tâches sur le canevas"
+    }
+  ],
+  "8472a551f1": [
+    {
+      "type": 0,
+      "value": "Les fées sont venues dessiner pour le mois de décembre."
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -695,10 +901,28 @@
       "value": " fichiers .tldr."
     }
   ],
+  "86a7df7572": [
+    {
+      "type": 0,
+      "value": "Invoquer des fées"
+    }
+  ],
   "86c66437fd": [
     {
       "type": 0,
       "value": "Renommer le fichier"
+    }
+  ],
+  "88e83b88c5": [
+    {
+      "type": 0,
+      "value": "Achetez le pack féerique"
+    }
+  ],
+  "898e76f01a": [
+    {
+      "type": 0,
+      "value": "Réinitialiser tout"
     }
   ],
   "8ad4303b83": [
@@ -707,10 +931,10 @@
       "value": "Non merci"
     }
   ],
-  "8b1946f965": [
+  "8be569f100": [
     {
       "type": 0,
-      "value": "Pour continuer l'édition, veuillez copier la pièce dans vos fichiers."
+      "value": "paiement unique"
     }
   ],
   "8c2d3d730c": [
@@ -755,6 +979,24 @@
       "value": "Lien d'invitation copié"
     }
   ],
+  "93346fdd70": [
+    {
+      "type": 0,
+      "value": "Oreilles"
+    }
+  ],
+  "93dfe9fbbe": [
+    {
+      "type": 0,
+      "value": "Désélectionnez la fée"
+    }
+  ],
+  "94966d9074": [
+    {
+      "type": 0,
+      "value": "Envoyer"
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -773,6 +1015,12 @@
       "value": "Ce mois-ci"
     }
   ],
+  "97a9f16b2e": [
+    {
+      "type": 0,
+      "value": "Nouvelle fée"
+    }
+  ],
   "985a4b720f": [
     {
       "type": 0,
@@ -785,10 +1033,22 @@
       "value": "Ajouter un lien vers le fichier"
     }
   ],
+  "98e528aac6": [
+    {
+      "type": 0,
+      "value": "Passer au chat des fées"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Clair"
+    }
+  ],
+  "9953e9946b": [
+    {
+      "type": 0,
+      "value": "Vue de débogage"
     }
   ],
   "9b33f5c63c": [
@@ -815,12 +1075,6 @@
     {
       "type": 0,
       "value": "Supprimer le fichier"
-    }
-  ],
-  "9c258b8f88": [
-    {
-      "type": 0,
-      "value": "Cette salle multijoueur anonyme de tldraw est désormais en lecture seule. Pour continuer à la modifier, veuillez vous connecter et la copier dans vos fichiers."
     }
   ],
   "9ceb927baa": [
@@ -871,16 +1125,34 @@
       "value": "Exporter l'image"
     }
   ],
+  "a2f0372a75": [
+    {
+      "type": 0,
+      "value": "Passer à la liste des tâches"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
       "value": "Politique de cookies"
     }
   ],
+  "a3e932550c": [
+    {
+      "type": 0,
+      "value": "Nom de la fée"
+    }
+  ],
   "a4d3b161ce": [
     {
       "type": 0,
       "value": "Soumettre"
+    }
+  ],
+  "a4ffdcf0dc": [
+    {
+      "type": 0,
+      "value": "Haut"
     }
   ],
   "a6cc403d56": [
@@ -895,16 +1167,22 @@
       "value": "Analytique"
     }
   ],
+  "a885eb91ac": [
+    {
+      "type": 0,
+      "value": "sélection de fées leader"
+    }
+  ],
+  "a8873770ab": [
+    {
+      "type": 0,
+      "value": "Le fichier devient volumineux."
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
       "value": "Arrière-plan"
-    }
-  ],
-  "aa916767cf": [
-    {
-      "type": 0,
-      "value": "Connectez-vous pour accepter l'invitation"
     }
   ],
   "ab0df9ba36": [
@@ -929,6 +1207,18 @@
     {
       "type": 0,
       "value": "Utilisateur invité"
+    }
+  ],
+  "b2c3c2e30c": [
+    {
+      "type": 0,
+      "value": "Le fichier est plein"
+    }
+  ],
+  "b34a671e2c": [
+    {
+      "type": 0,
+      "value": "Journalisation du temps de réponse"
     }
   ],
   "b357b524e7": [
@@ -959,6 +1249,12 @@
     {
       "type": 0,
       "value": "Copier le lien"
+    }
+  ],
+  "b8996797b9": [
+    {
+      "type": 0,
+      "value": "Masquer les tâches sur le canevas"
     }
   ],
   "ba0318cb81": [
@@ -1051,10 +1347,22 @@
       "value": " pour nous aider à améliorer tldraw."
     }
   ],
+  "c2ad21c079": [
+    {
+      "type": 0,
+      "value": "Cheveux"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
       "value": "Impossible de publier le fichier."
+    }
+  ],
+  "c3eb5c3b90": [
+    {
+      "type": 0,
+      "value": "Je comprends"
     }
   ],
   "c4b39a1cc3": [
@@ -1093,6 +1401,12 @@
       "value": "Se déconnecter"
     }
   ],
+  "c9b04e7b53": [
+    {
+      "type": 0,
+      "value": "Désélectionner le dirigeant"
+    }
+  ],
   "c9cc8cce24": [
     {
       "type": 0,
@@ -1111,16 +1425,46 @@
       "value": "SVG"
     }
   ],
+  "ce0547606c": [
+    {
+      "type": 0,
+      "value": "Ce fichier approche de sa limite de taille. Pensez à supprimer du contenu ou à créer un nouveau fichier."
+    }
+  ],
+  "ce1424d44b": [
+    {
+      "type": 0,
+      "value": "Vous avez déjà accès aux fées !"
+    }
+  ],
   "cea291e45e": [
     {
       "type": 0,
       "value": "En savoir plus sur la publication."
     }
   ],
+  "cf62a7f9a7": [
+    {
+      "type": 0,
+      "value": "Réinitialiser les discussions"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
       "value": "Fermer"
+    }
+  ],
+  "d438a51e6e": [
+    {
+      "type": 0,
+      "value": "Endormez toutes les fées"
+    }
+  ],
+  "d46632fe1f": [
+    {
+      "type": 0,
+      "value": "Trop de requêtes. Veuillez ralentir."
     }
   ],
   "d4bbf74f3e": [
@@ -1169,6 +1513,26 @@
       "value": "Thème"
     }
   ],
+  "d739f35e18": [
+    {
+      "type": 0,
+      "value": "Chuchote à "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
+  "d7bc9d5a2e": [
+    {
+      "type": 0,
+      "value": "Supprimer la tâche"
+    }
+  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1199,10 +1563,48 @@
       "value": "Invitation uniquement"
     }
   ],
+  "dbbece0c3a": [
+    {
+      "type": 0,
+      "value": "Effacer toutes les conversations"
+    }
+  ],
+  "dc30bc0c79": [
+    {
+      "type": 0,
+      "value": "Clair"
+    }
+  ],
   "dcdaa754fe": [
     {
       "type": 0,
       "value": "URL de fichier tldraw invalide"
+    }
+  ],
+  "de290d52ef": [
+    {
+      "type": 0,
+      "value": "Sélectionnez une fée à droite pour discuter avec elle."
+    }
+  ],
+  "df6ff49394": [
+    {
+      "type": 0,
+      "value": "Les fées sont une fonctionnalité "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "temporaire"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Le 1er janvier 2026, elles seront retirées de l'application. Elles reviendront peut-être un jour. Votre achat vous donne accès aux fées uniquement pour le mois de décembre 2025."
     }
   ],
   "dfdb78a4e4": [
@@ -1251,6 +1653,12 @@
     {
       "type": 0,
       "value": "Zone dangereuse"
+    }
+  ],
+  "ea181d98ca": [
+    {
+      "type": 0,
+      "value": "Choisissez une fée"
     }
   ],
   "ea4788705e": [
@@ -1321,6 +1729,18 @@
       "value": "choisi"
     }
   ],
+  "efb2d9d471": [
+    {
+      "type": 0,
+      "value": "Liste de choses à faire"
+    }
+  ],
+  "efde983742": [
+    {
+      "type": 0,
+      "value": "Convoquer"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1331,6 +1751,12 @@
     {
       "type": 0,
       "value": "Paramètres utilisateur"
+    }
+  ],
+  "f23056da60": [
+    {
+      "type": 0,
+      "value": "Nouveau projet"
     }
   ],
   "f2569594b2": [
@@ -1345,22 +1771,34 @@
       "value": "Supprimer"
     }
   ],
-  "f43fb62093": [
-    {
-      "type": 0,
-      "value": "Revenir sur tldraw."
-    }
-  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "Paramètres"
     }
   ],
+  "f6ae34b4ba": [
+    {
+      "type": 0,
+      "value": "Réinitialiser toutes les baguettes"
+    }
+  ],
   "f714e36843": [
     {
       "type": 0,
       "value": "Êtes-vous sûr(e) de vouloir quitter ce groupe ?"
+    }
+  ],
+  "f7d5ee6855": [
+    {
+      "type": 0,
+      "value": "Choisissez d'abord un leader…"
+    }
+  ],
+  "f87386b4ba": [
+    {
+      "type": 0,
+      "value": "Invoquer toutes les fées"
     }
   ],
   "fa2ead697d": [
@@ -1373,6 +1811,12 @@
     {
       "type": 0,
       "value": "Visionneuse"
+    }
+  ],
+  "fd11eafb92": [
+    {
+      "type": 0,
+      "value": "Projets de dissolution"
     }
   ],
   "fd1be3efcf": [
@@ -1397,6 +1841,12 @@
     {
       "type": 0,
       "value": "Importer un fichier…"
+    }
+  ],
+  "ffec95af2f": [
+    {
+      "type": 0,
+      "value": "Achetez un accès féerique"
     }
   ]
 }

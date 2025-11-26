@@ -1,8 +1,6 @@
 import {
 	Geometry2d,
 	StateNode,
-	TLFrameShape,
-	TLGroupShape,
 	TLShape,
 	TLShapeId,
 	Vec,
@@ -104,7 +102,7 @@ export class ScribbleBrushing extends StateNode {
 
 			// If the shape is a group or is already selected or locked, don't select it
 			if (
-				editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
+				editor.isShapeOfType(shape, 'group') ||
 				newlySelectedShapeIds.has(shape.id) ||
 				editor.isShapeOrAncestorLocked(shape)
 			) {
@@ -115,7 +113,7 @@ export class ScribbleBrushing extends StateNode {
 
 			// If the scribble started inside of the frame, don't select it
 			if (
-				editor.isShapeOfType<TLFrameShape>(shape, 'frame') &&
+				editor.isShapeOfType(shape, 'frame') &&
 				geometry.bounds.containsPoint(editor.getPointInShapeSpace(shape, originPagePoint))
 			) {
 				continue

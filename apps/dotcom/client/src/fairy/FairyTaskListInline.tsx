@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react'
-import { useEditor, useValue } from 'tldraw'
+import { uniqueId, useEditor, useValue } from 'tldraw'
 import '../tla/styles/fairy.css'
 import { F, useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
@@ -43,14 +43,15 @@ export function FairyTaskListInline({ agents }: { agents: FairyAgent[] }) {
 			if (!newTaskText.trim()) return
 
 			const currentPageId = editor.getCurrentPageId()
-			createFairyTask({ text: newTaskText.trim(), pageId: currentPageId })
+			const taskId = `task-${uniqueId(6)}`
+			createFairyTask({ id: taskId, text: newTaskText.trim(), pageId: currentPageId })
 			setNewTaskText('')
 		},
 		[newTaskText, editor]
 	)
 
 	const handleDragStart = useCallback(
-		(e: React.PointerEvent, taskId: number) => {
+		(e: React.PointerEvent, taskId: string) => {
 			const task = tasks.find((t) => t.id === taskId)
 			if (!task) return
 
@@ -161,7 +162,7 @@ export function FairyTaskListInline({ agents }: { agents: FairyAgent[] }) {
 
 						const icon = getStatusIcon(task.status)
 						const project = task.projectId ? getProjectById(task.projectId) : undefined
-						const projectColor = project ? getProjectColor(editor, project.color) : undefined
+						const projectColor = project ? getProjectColor(project.color) : undefined
 
 						return (
 							<div key={task.id} className={`shared-todo-item ${statusClass}`}>

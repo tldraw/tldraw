@@ -7,7 +7,9 @@ export const fairyMessages = defineMessages({
 	newFairy: { defaultMessage: 'New fairy' },
 	selectFairy: { defaultMessage: 'Select fairy' },
 	deselectFairy: { defaultMessage: 'Deselect fairy' },
-	resetChat: { defaultMessage: 'Reset chat' },
+	joinSelectedFairies: { defaultMessage: 'Join selected fairies' },
+	resetChat: { defaultMessage: 'Clear' },
+	resetAllChats: { defaultMessage: 'Clear all chats' },
 
 	// Task list (titles and placeholders)
 	addTaskPlaceholder: { defaultMessage: 'Add a new task…' },
@@ -19,20 +21,24 @@ export const fairyMessages = defineMessages({
 
 	// Fairy menu (labels)
 	goToFairy: { defaultMessage: 'Go to fairy' },
-	summonFairy: { defaultMessage: 'Summon fairy' },
-	followFairy: { defaultMessage: 'Follow fairy' },
-	unfollowFairy: { defaultMessage: 'Unfollow fairy' },
+	summonFairy: { defaultMessage: 'Summon' },
+	followFairy: { defaultMessage: 'Follow' },
+	unfollowFairy: { defaultMessage: 'Unfollow' },
 	askForHelp: { defaultMessage: 'Ask for help' },
-	customizeFairy: { defaultMessage: 'Customize fairy' },
-	deleteFairy: { defaultMessage: 'Delete fairy' },
+	customizeFairy: { defaultMessage: 'Customize' },
+	putAwayFairy: { defaultMessage: 'Sleep' },
+	summonAllFairies: { defaultMessage: 'Summon all fairies' },
+	putAwayAllFairies: { defaultMessage: 'Put all fairies to sleep' },
+	disbandGroup: { defaultMessage: 'Disband group' },
+	resetEverything: { defaultMessage: 'Reset everything' },
 
 	// Task list menu (labels)
 	askForHelpFromEveryone: { defaultMessage: 'Ask for help' },
-	summonAllFairies: { defaultMessage: 'Summon all fairies' },
-	clearTaskList: { defaultMessage: 'Clear task list' },
-	resetAllChats: { defaultMessage: 'Reset all chats' },
+	summonFairies: { defaultMessage: 'Summon fairies' },
+	disbandProjects: { defaultMessage: 'Disband projects' },
+	resetChats: { defaultMessage: 'Reset chats' },
 	resetAllWands: { defaultMessage: 'Reset all wands' },
-	deleteAllFairies: { defaultMessage: 'Delete all fairies' },
+	putAwayFairies: { defaultMessage: 'Put away fairies' },
 	debugView: { defaultMessage: 'Debug view' },
 
 	// Fairy config dialog (placeholders)
@@ -52,6 +58,7 @@ export const fairyMessages = defineMessages({
 	whisperToFairy: { defaultMessage: 'Whisper to {name}…' },
 	stopLabel: { defaultMessage: 'Stop' },
 	sendLabel: { defaultMessage: 'Send' },
+	enterMsg: { defaultMessage: 'Enter your message' },
 
 	// HUD toggle labels
 	switchToFairyChat: { defaultMessage: 'Switch to fairy chat' },

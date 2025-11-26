@@ -20,7 +20,7 @@ export const DirectToStartTaskActionSchema = z
 	.object({
 		_type: z.literal('direct-to-start-project-task'),
 		otherFairyId: z.string(),
-		taskId: z.number(),
+		taskId: z.string(),
 	})
 	.meta({
 		title: 'Direct to start project task',
@@ -301,22 +301,6 @@ export const SendToBackActionSchema = z
 
 export type SendToBackAction = z.infer<typeof SendToBackActionSchema>
 
-export const SharedTodoListActionSchema = z
-	.object({
-		_type: z.literal('update-shared-todo-list'),
-		id: z.number(),
-		status: z.enum(['todo', 'in-progress', 'done']),
-		text: z.string(),
-		x: z.number().optional(),
-		y: z.number().optional(),
-	})
-	.meta({
-		title: 'Update shared todo List',
-		description: 'The agent updates a current shared todo list item or creates a new one',
-	})
-
-export type SharedTodoListAction = z.infer<typeof SharedTodoListActionSchema>
-
 export const StackActionSchema = z
 	.object({
 		_type: z.literal('stack'),
@@ -360,14 +344,14 @@ export type ThinkAction = z.infer<typeof ThinkActionSchema>
 export const PersonalTodoListActionSchema = z
 	.object({
 		_type: z.literal('update-personal-todo-list'),
-		id: z.number().optional(),
+		id: z.string(),
 		status: z.enum(['todo', 'in-progress', 'done']),
-		text: z.string(),
+		text: z.string().optional(),
 	})
 	.meta({
 		title: 'Update Personal Todo List',
 		description:
-			'The agent updates its personal todo list item or creates a new todo item. If the id is provided, the todo item is updated. If the id is not provided, a new todo item is created.',
+			'The agent updates its personal todo list item or creates a new todo item. If the id is provided, the todo item is updated. If the id is not provided and text is provided, a new todo item is created and its status is set to "todo".',
 	})
 
 export type PersonalTodoListAction = z.infer<typeof PersonalTodoListActionSchema>
@@ -417,6 +401,8 @@ export type CreatePageAction = z.infer<typeof CreatePageActionSchema>
 export const CreateSoloTaskActionSchema = z
 	.object({
 		_type: z.literal('create-task'),
+		taskId: z.string(),
+		title: z.string(),
 		text: z.string(),
 		x: z.number(),
 		y: z.number(),
@@ -426,7 +412,7 @@ export const CreateSoloTaskActionSchema = z
 	.meta({
 		title: 'Create Task',
 		description:
-			"The agent describes one new task that they'd like to do at some point in the future, as well as the area in which it should be done. Each task should represent one step in the longer process. It's okay to create many tasks. Note: Creating a task does not automatically start it. You must use the 'start-task' action to start a task. This is to allow you to create multiple tasks ahead of time, and then pick one to start with. Also note: Tasks get an automatic ID that's used to reference them. They start at 1, and then increment by 1 for each new task.",
+			"The agent describes one new task (with a unique, short, hypenated `taskId`) that they'd like to do at some point in the future, as well as the area in which it should be done. Each task should represent one step in the longer process. It's okay to create many tasks. Note: Creating a task does not automatically start it. You must use the 'start-task' action to start a task. This is to allow you to create multiple tasks ahead of time, and then pick one to start with. Also note: Tasks get an automatic ID that's used to reference them. They start at 1, and then increment by 1 for each new task.",
 	})
 
 export type CreateTaskAction = z.infer<typeof CreateSoloTaskActionSchema>
@@ -434,6 +420,8 @@ export type CreateTaskAction = z.infer<typeof CreateSoloTaskActionSchema>
 export const CreateProjectTaskActionSchema = z
 	.object({
 		_type: z.literal('create-project-task'),
+		taskId: z.string(),
+		title: z.string(),
 		text: z.string(),
 		assignedTo: z.string(),
 		x: z.number(),
@@ -444,7 +432,7 @@ export const CreateProjectTaskActionSchema = z
 	.meta({
 		title: 'Create Project Task',
 		description:
-			"The agent creates a new task within the current project and assigns it to a specific agent. The task will automatically be associated with the current project. Each task should represent one step in the longer process. It's okay to create many tasks. Note: Creating a task and assigning it to another agent does not automatically start it. You must use the 'direct-to-start-project-task' action to get another agent to start a task. Also note: Tasks get an automatic ID that's used to reference them. They start at 1, and then increment by 1 for each new task.",
+			"The agent creates a new task (with a unique, short, hypenated `taskId`) within the current project and assigns it to a specific agent. The task will automatically be associated with the current project. Each task should represent one step in the longer process. It's okay to create many tasks. Note: Creating a task and assigning it to another agent does not automatically start it. You must use the 'direct-to-start-project-task' action to get another agent to start a task. Also note: Tasks get an automatic ID that's used to reference them. They start at 1, and then increment by 1 for each new task.",
 	})
 
 export type CreateProjectTaskAction = z.infer<typeof CreateProjectTaskActionSchema>
@@ -452,7 +440,7 @@ export type CreateProjectTaskAction = z.infer<typeof CreateProjectTaskActionSche
 export const StartSoloTaskActionSchema = z
 	.object({
 		_type: z.literal('start-task'),
-		taskId: z.number(),
+		taskId: z.string(),
 	})
 	.meta({
 		title: 'Start Task',
@@ -465,12 +453,11 @@ export type StartSoloTaskAction = z.infer<typeof StartSoloTaskActionSchema>
 export const MarkDroneTaskDoneActionSchema = z
 	.object({
 		_type: z.literal('mark-my-task-done'),
-		taskId: z.number(),
 	})
 	.meta({
 		title: 'Mark Task Done',
 		description:
-			'The agent marks a task as completed. This action should be used when the agent has finished working on a task.',
+			'The agent marks their current task as completed. This action should be used when the agent has finished working on a task.',
 	})
 
 export type MarkDroneTaskDoneAction = z.infer<typeof MarkDroneTaskDoneActionSchema>
@@ -478,12 +465,11 @@ export type MarkDroneTaskDoneAction = z.infer<typeof MarkDroneTaskDoneActionSche
 export const MarkSoloTaskDoneActionSchema = z
 	.object({
 		_type: z.literal('mark-task-done'),
-		taskId: z.number(),
 	})
 	.meta({
 		title: 'Mark Task Done',
 		description:
-			'The agent marks a task as completed. This action should be used when the agent has finished working on a task.',
+			'The agent marks their current task as completed. This action should be used when the agent has finished working on a task.',
 	})
 
 export type MarkSoloTaskDoneAction = z.infer<typeof MarkSoloTaskDoneActionSchema>
@@ -491,7 +477,7 @@ export type MarkSoloTaskDoneAction = z.infer<typeof MarkSoloTaskDoneActionSchema
 export const AwaitTasksCompletionActionSchema = z
 	.object({
 		_type: z.literal('await-tasks-completion'),
-		taskIds: z.array(z.number()),
+		taskIds: z.array(z.string()),
 	})
 	.meta({
 		title: 'Await Tasks Completion',
@@ -501,15 +487,103 @@ export const AwaitTasksCompletionActionSchema = z
 
 export type AwaitTasksCompletionAction = z.infer<typeof AwaitTasksCompletionActionSchema>
 
-export const SleepActionSchema = z
+export const CreateDuoTaskActionSchema = z
 	.object({
-		_type: z.literal('sleep'),
+		_type: z.literal('create-duo-task'),
+		taskId: z.string(),
+		title: z.string(),
+		text: z.string(),
+		assignedTo: z.string(),
+		x: z.number(),
+		y: z.number(),
+		w: z.number(),
+		h: z.number(),
 	})
 	.meta({
-		title: 'Sleep',
-		description: 'The agent goes back to idle mode, stopping its current work.',
+		title: 'Create Duo Task',
+		description:
+			"The agent creates a new task (with a unique, short, hypenated `taskId`) within the current duo project and assigns it to their partner. The task will automatically be associated with the current project. Each task should represent one step in the longer process. It's okay to create many tasks. Note: Creating a task and assigning it to your partner does not automatically start it. You must use the 'direct-to-start-duo-task' action to get your partner to start a task, or use 'start-duo-task' to start it yourself. Also note: Tasks get an automatic ID that's used to reference them. They start at 1, and then increment by 1 for each new task.",
 	})
 
-export type SleepAction = z.infer<typeof SleepActionSchema>
+export type CreateDuoTaskAction = z.infer<typeof CreateDuoTaskActionSchema>
+
+export const DirectToStartDuoTaskActionSchema = z
+	.object({
+		_type: z.literal('direct-to-start-duo-task'),
+		otherFairyId: z.string(),
+		taskId: z.string(),
+	})
+	.meta({
+		title: 'Direct to start duo task',
+		description:
+			'The agent directs their partner to start working on a specific task within the current duo project. Only do this once the task is ready to be started.',
+	})
+
+export type DirectToStartDuoTaskAction = z.infer<typeof DirectToStartDuoTaskActionSchema>
+
+export const StartDuoTaskActionSchema = z
+	.object({
+		_type: z.literal('start-duo-task'),
+		taskId: z.string(),
+	})
+	.meta({
+		title: 'Start Duo Task',
+		description:
+			'The agent begins working on a task themselves in a duo project. This action immediately gives the agent the abilities required to complete the task, such as the ability to manipulate the canvas. Upon performing this action, the agent will immediately receive instructions on how to use those abilities.',
+	})
+
+export type StartDuoTaskAction = z.infer<typeof StartDuoTaskActionSchema>
+
+export const MarkDuoTaskDoneActionSchema = z
+	.object({
+		_type: z.literal('mark-duo-task-done'),
+	})
+	.meta({
+		title: 'Mark Duo Task Done',
+		description:
+			'The agent marks their current task as completed in a duo project. This action should be used when the agent has finished working on a task.',
+	})
+
+export type MarkDuoTaskDoneAction = z.infer<typeof MarkDuoTaskDoneActionSchema>
+
+export const AwaitDuoTasksCompletionActionSchema = z
+	.object({
+		_type: z.literal('await-duo-tasks-completion'),
+		taskIds: z.array(z.string()),
+	})
+	.meta({
+		title: 'Await Duo Tasks Completion',
+		description:
+			'The agent waits for one or more tasks to be completed in a duo project. The agent will be notified when each task completes, allowing it to pause its work instead of repeatedly checking task status.',
+	})
+
+export type AwaitDuoTasksCompletionAction = z.infer<typeof AwaitDuoTasksCompletionActionSchema>
+
+export const StartDuoProjectActionSchema = z
+	.object({
+		_type: z.literal('start-duo-project'),
+		projectName: z.string(),
+		projectDescription: z.string(),
+		projectColor: FocusColorSchema,
+		projectPlan: z.string(),
+	})
+	.meta({
+		title: 'Start Duo Project',
+		description:
+			'The agent starts and defines a new duo project (a project with exactly two fairies).',
+	})
+
+export type StartDuoProjectAction = z.infer<typeof StartDuoProjectActionSchema>
+
+export const EndDuoProjectActionSchema = z
+	.object({
+		_type: z.literal('end-duo-project'),
+	})
+	.meta({
+		title: 'End Duo Project',
+		description: 'The agent ends the currently active duo project once all tasks are complete.',
+	})
+
+export type EndDuoProjectAction = z.infer<typeof EndDuoProjectActionSchema>
 
 export type UnknownAction = BaseAgentAction<'unknown'>

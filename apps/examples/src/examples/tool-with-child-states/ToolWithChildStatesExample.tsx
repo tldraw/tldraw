@@ -49,7 +49,7 @@ class Idle extends StateNode {
 			}
 			case 'shape': {
 				if (editor.inputs.shiftKey) {
-					editor.updateShape<TLTextShape>({
+					editor.updateShape({
 						id: info.shape.id,
 						type: 'text',
 						props: { richText: toRichText('👻 boo!') },
@@ -78,7 +78,7 @@ class Idle extends StateNode {
 					return
 				}
 				const { currentPagePoint } = editor.inputs
-				editor.createShape<TLTextShape>({
+				editor.createShape({
 					type: 'text',
 					x: currentPagePoint.x + OFFSET,
 					y: currentPagePoint.y + OFFSET,
@@ -132,7 +132,7 @@ class Dragging extends StateNode {
 		if (info.shape) {
 			this.shape = info.shape
 		} else {
-			this.editor.createShape<TLTextShape>(newShape)
+			this.editor.createShape(newShape)
 			this.shape = { ...newShape }
 		}
 	}
@@ -147,7 +147,7 @@ class Dragging extends StateNode {
 		const { originPagePoint, currentPagePoint } = this.editor.inputs
 		const distance = originPagePoint.dist(currentPagePoint)
 		if (shape) {
-			this.editor.updateShape<TLTextShape>({
+			this.editor.updateShape({
 				id: shape.id,
 				type: 'text',
 				props: {
@@ -172,7 +172,7 @@ export default function ToolWithChildStatesExample() {
 				hideUi
 				// Put some helpful text on the canvas
 				onMount={(editor) => {
-					editor.createShape<TLTextShape>({
+					editor.createShape({
 						type: 'text',
 						x: 50,
 						y: 50,
@@ -190,12 +190,12 @@ export default function ToolWithChildStatesExample() {
 	)
 }
 
-/* 
+/*
 Introduction:
 
-Tools are nodes in tldraw's state machine. They are responsible for handling user input. 
-You can create custom tools by extending the `StateNode` class and overriding its 
-methods. In this example we expand on the sticker tool from the custom tool example to 
+Tools are nodes in tldraw's state machine. They are responsible for handling user input.
+You can create custom tools by extending the `StateNode` class and overriding its
+methods. In this example we expand on the sticker tool from the custom tool example to
 show how to create a tool that can handle more complex interactions by using child states.
 
 [1]
@@ -207,22 +207,22 @@ child states.
 
 [2]
 This is our Idle state. It is the initial state of the tool. It's job is to figure out
-what the user is trying to do and transition to the appropriate state. When transitioning 
-between states we can use the second argument to pass data to the new state. It has three 
+what the user is trying to do and transition to the appropriate state. When transitioning
+between states we can use the second argument to pass data to the new state. It has three
 methods:
 
-	[a] `onEnter` 
-	When entering any state, the `onEnter` method is called. In this case, we set the cursor to 
+	[a] `onEnter`
+	When entering any state, the `onEnter` method is called. In this case, we set the cursor to
 	a crosshair.
 
 	[b] `onPointerDown`
 	This method is called when the user presses the mouse button. The target parameter is always
-	the canvas, so we can use an editor method to check if we're over a shape, and call the 
+	the canvas, so we can use an editor method to check if we're over a shape, and call the
 	method again with the shape as the target. If we are over a shape, we transition to the
-	`pointing` state with the shape in the info object. If we're over a shape and holding the 
-	shift key, we update the shape's text. If we're over the canvas, we transition to the 
+	`pointing` state with the shape in the info object. If we're over a shape and holding the
+	shift key, we update the shape's text. If we're over the canvas, we transition to the
 	`pointing` state with a null shape in the info object.
-	
+
 	[c] `onDoubleClick`
 	This method is called when the user double clicks the mouse button. We're using some similar
 	logic here to check if we're over a shape, and if we are, we delete it. If we're over the canvas,
@@ -243,18 +243,18 @@ at, and transition to the dragging state if the user starts dragging. It has thr
 	the `dragging` state and pass the shape we're pointing at.
 
 [4]
-This is our `Dragging` state. It's responsible for creating and updating the shape that the user is 
+This is our `Dragging` state. It's responsible for creating and updating the shape that the user is
 dragging.
 
 	[a] `onEnter`
-	When entering this state, we create a new shape if we're not dragging an existing one. If we are, 
+	When entering this state, we create a new shape if we're not dragging an existing one. If we are,
 	we store the shape we're dragging.
 
 	[b] `onPointerUp`
 	This method is called when the user releases the mouse button. We transition to the `idle` state.
 
 	[c] `onPointerMove`
-	This method is called when the user moves the mouse. We use the distance between the origin and 
+	This method is called when the user moves the mouse. We use the distance between the origin and
 	current mouse position to cycle through an array of emojis and update the shape's text.
 
 [5]

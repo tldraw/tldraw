@@ -12,7 +12,7 @@ export const OtherFairySchema = z.object({
 	position: VecModelSchema,
 	isGenerating: z.boolean(),
 	bounds: BoxModelSchema.nullable(),
-	personality: z.string(),
+	// personality: z.string(),
 	currentProjectId: z.string().nullable(),
 })
 
