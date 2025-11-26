@@ -88,6 +88,12 @@ export const components: TLComponents = {
 	SharePanel: TlaEditorSharePanel,
 	Dialogs: null,
 	Toasts: null,
+
+	InFrontOfTheCanvas: () => (
+		<Suspense fallback={<div />}>
+			<FairyHUDTeaser />
+		</Suspense>
+	),
 }
 
 interface TlaEditorProps {
@@ -305,13 +311,15 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 							{/* <InCanvasTaskList agents={agents} /> */}
 							<RemoteFairies />
 							<Fairies agents={agents} />
-							<FairyHUD agents={agents} />
 						</Suspense>
-					) : (
-						<Suspense fallback={<div />}>
-							<FairyHUDTeaser />
-						</Suspense>
-					)}
+					) : null}
+				</>
+			),
+			InFrontOfTheCanvas: () => (
+				<>
+					<Suspense fallback={<div />}>
+						{canShowFairies ? <FairyHUD agents={agents} /> : <FairyHUDTeaser />}
+					</Suspense>
 				</>
 			),
 			DebugMenu: () => <CustomDebugMenu />,
