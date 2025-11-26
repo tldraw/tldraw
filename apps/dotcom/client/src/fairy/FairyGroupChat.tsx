@@ -4,7 +4,7 @@ import { uniqueId, useValue } from 'tldraw'
 import { F, useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { fairyMessages } from './fairy-messages'
-import { addProject, getProjectByAgentId } from './FairyProjects'
+import { addProject, disbandProject, getProjectByAgentId } from './FairyProjects'
 
 export function FairyGroupChat({
 	agents,
@@ -74,9 +74,19 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 		[]
 	)
 
+	const shouldCancel = areAnyProjectAgentsGenerating && instruction === ''
+
 	const handleInstructGroupChat = useCallback(
 		async (value: string) => {
 			if (!leaderAgent || !value.trim()) {
+				return
+			}
+
+			const currentProject = getProjectByAgentId(leaderAgent.id)
+
+			if (shouldCancel) {
+				if (!currentProject) return
+				disbandProject(currentProject.id, agents)
 				return
 			}
 
@@ -126,10 +136,8 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 			// Clear the input
 			setInstruction('')
 		},
-		[getGroupChatPrompt, leaderAgent, followerAgents, onStartProject]
+		[getGroupChatPrompt, leaderAgent, followerAgents, onStartProject, agents, shouldCancel]
 	)
-
-	const shouldCancel = areAnyProjectAgentsGenerating && instruction === ''
 
 	const handleButtonClick = () => {
 		handleInstructGroupChat(instruction)

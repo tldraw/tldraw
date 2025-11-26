@@ -8,6 +8,7 @@ export const fairyMessages = defineMessages({
 	selectFairy: { defaultMessage: 'Select fairy' },
 	deselectFairy: { defaultMessage: 'Deselect fairy' },
 	resetChat: { defaultMessage: 'Reset chat' },
+	resetAllChats: { defaultMessage: 'Reset all chats' },
 
 	// Task list (titles and placeholders)
 	addTaskPlaceholder: { defaultMessage: 'Add a new task…' },
@@ -25,16 +26,18 @@ export const fairyMessages = defineMessages({
 	askForHelp: { defaultMessage: 'Ask for help' },
 	customizeFairy: { defaultMessage: 'Customize' },
 	putAwayFairy: { defaultMessage: 'Sleep' },
+	summonAllFairies: { defaultMessage: 'Summon all fairies' },
+	putAwayAllFairies: { defaultMessage: 'Put all fairies to sleep' },
 	disbandGroup: { defaultMessage: 'Disband group' },
 	resetEverything: { defaultMessage: 'Reset everything' },
 
 	// Task list menu (labels)
 	askForHelpFromEveryone: { defaultMessage: 'Ask for help' },
-	summonAllFairies: { defaultMessage: 'Summon all fairies' },
+	summonFairies: { defaultMessage: 'Summon fairies' },
 	disbandProjects: { defaultMessage: 'Disband projects' },
-	resetAllChats: { defaultMessage: 'Reset all chats' },
+	resetChats: { defaultMessage: 'Reset chats' },
 	resetAllWands: { defaultMessage: 'Reset all wands' },
-	deleteAllFairies: { defaultMessage: 'Delete all fairies' },
+	putAwayFairies: { defaultMessage: 'Put away fairies' },
 	debugView: { defaultMessage: 'Debug view' },
 
 	// Fairy config dialog (placeholders)
