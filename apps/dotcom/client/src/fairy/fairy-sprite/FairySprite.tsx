@@ -1,5 +1,5 @@
 import { FairyOutfit, FairyPose } from '@tldraw/fairy-shared'
-import { ComponentType, ReactNode, useEffect, useState } from 'react'
+import { ComponentType, useEffect, useState } from 'react'
 import { IdleSprite } from './sprites/IdleSprite'
 import { PoofSprite } from './sprites/PoofSprite'
 import { RaisedAWingSprite } from './sprites/RaisedAWingSprite'
@@ -19,8 +19,8 @@ interface WingSpriteProps {
 }
 
 interface FairySpriteProps {
-	bodyColor?: string
-	hatColor?: string
+	bodyColor: string
+	hatColor: string
 }
 
 const WING_SPRITES: Record<FairyPose, ComponentType<WingSpriteProps>[]> = {
@@ -52,27 +52,30 @@ const FAIRY_SPRITES_WITH_PROPS: Record<FairyPose, ComponentType<FairySpriteProps
  * Using medium chroma, high value colors for good visibility
  */
 const HAT_COLORS: Record<string, string> = {
-	top: '#E89AC7', // Medium pink for top hat
-	pointy: '#B4A7D6', // Medium purple for wizard hat
-	bald: '#F5C99B', // Medium peach/tan
-	antenna: '#F49FAF', // Medium coral for antenna
-	spiky: '#7DD3C0', // Medium teal for spiky
-	hair: '#F0C987', // Medium gold for hair
-	ears: '#F5A8C6', // Medium rose for ears
-	propellor: '#A3D9A5', // Medium green for propellor
+	top: 'var(--tl-color-fairy-pink)', // Medium pink for top hat
+	pointy: 'var(--tl-color-fairy-purple)', // Medium purple for wizard hat
+	bald: 'var(--tl-color-fairy-peach)', // Medium peach/tan
+	antenna: 'var(--tl-color-fairy-coral)', // Medium coral for antenna
+	spiky: 'var(--tl-color-fairy-teal)', // Medium teal for spiky
+	hair: 'var(--tl-color-fairy-gold)', // Medium gold for hair
+	ears: 'var(--tl-color-fairy-rose)', // Medium rose for ears
+	propellor: 'var(--tl-color-fairy-green)', // Medium green for propellor
+}
+
+export function getHatColor(hat: FairyOutfit['hat']) {
+	return HAT_COLORS[hat]
 }
 
 export function FairySprite({
 	pose,
-	outfit,
-	isAnimated: animated,
+	flipX,
+	hatColor,
+	projectColor = 'var(--tl-color-fairy-light)',
+	isAnimated,
 	showShadow,
 	isGenerating,
-	flipX = false,
 	isOrchestrator,
-	projectColor = 'white',
 }: {
-	outfit: FairyOutfit // todo: replace
 	pose: FairyPose
 	flipX?: boolean
 	tint?: string | null
@@ -81,46 +84,35 @@ export function FairySprite({
 	showShadow?: boolean
 	isGenerating?: boolean
 	isOrchestrator?: boolean
+	hatColor?: string
+	padding?: number
 }) {
-	const topWingColor = projectColor
-	const bottomWingColor = isOrchestrator ? projectColor : 'white'
-	const bodyColor = 'white'
-	const hatColor = HAT_COLORS[outfit.hat]
+	const bottomWingColor = isOrchestrator ? projectColor : 'var(--tl-color-fairy-light)'
 
 	return (
 		<div className="fairy-sprite-container">
-			<div
-				className="fairy-sprite-stack"
-				style={{
-					transform: flipX ? 'scaleX(-1)' : 'none',
-					filter: showShadow
-						? flipX
-							? 'drop-shadow(-2px 2px 0.5px rgba(8, 20, 35, 0.12))'
-							: 'drop-shadow(2px 2px 0.5px rgba(8, 20, 35, 0.12))'
-						: 'none',
-				}}
-			>
-				{animated ? (
-					<AnimatedFairySpriteComponent
-						pose={pose}
-						speed={pose === 'working' ? 100 : isGenerating ? 120 : 160}
-						topWingColor={topWingColor}
-						bottomWingColor={bottomWingColor}
-						bodyColor={bodyColor}
-						hatColor={hatColor}
-						flipX={flipX}
-					/>
-				) : (
-					<StaticFairySpriteComponent
-						pose={pose}
-						topWingColor={topWingColor}
-						bottomWingColor={bottomWingColor}
-						bodyColor={bodyColor}
-						hatColor={hatColor}
-						flipX={flipX}
-					/>
-				)}
-			</div>
+			{isAnimated ? (
+				<AnimatedFairySpriteComponent
+					pose={pose}
+					speed={pose === 'working' ? 100 : isGenerating ? 120 : 160}
+					topWingColor={projectColor}
+					bottomWingColor={bottomWingColor}
+					bodyColor={'var(--tl-color-fairy-light)'}
+					hatColor={hatColor}
+					flipX={flipX}
+					showShadow={showShadow}
+				/>
+			) : (
+				<FairySpriteSvg
+					pose={pose}
+					topWingColor={projectColor}
+					bottomWingColor={bottomWingColor}
+					bodyColor={'var(--tl-color-fairy-light)'}
+					hatColor={hatColor}
+					flipX={flipX}
+					showShadow={showShadow}
+				/>
+			)}
 		</div>
 	)
 }
@@ -155,10 +147,6 @@ function AnimatedFairySpriteComponent({
 	return <FairySpriteSvg pose={pose} keyframe={keyframe} {...rest} />
 }
 
-function StaticFairySpriteComponent(props: FairySpriteSvgProps) {
-	return <FairySpriteSvg {...props} />
-}
-
 export function CleanFairySpriteComponent() {
 	return (
 		<div className="fairy-sprite-container">
@@ -187,10 +175,10 @@ function getItemForKeyFrame<T>(items: T | T[], keyframe: number) {
 
 function FairySpriteSvg({
 	pose,
-	topWingColor = 'white',
-	bottomWingColor = 'white',
-	bodyColor = 'white',
-	hatColor = 'white',
+	topWingColor = 'var(--tl-color-fairy-light)',
+	bottomWingColor = 'var(--tl-color-fairy-light)',
+	bodyColor = 'var(--tl-color-fairy-light)',
+	hatColor = 'var(--tl-color-fairy-light)',
 	keyframe = 0,
 	flipX = false,
 	showShadow = false,
@@ -199,45 +187,18 @@ function FairySpriteSvg({
 	const WSprite = getItemForKeyFrame(WING_SPRITES[pose], keyframe)
 
 	return (
-		<svg
-			className="fairy-sprite"
-			width="108"
-			height="108"
-			viewBox="0 0 108 108"
-			fill="none"
-			xmlns="http://www.w3.org/2000/svg"
-		>
-			<FairyShadow flipX={flipX} showShadow={showShadow}>
+		<div className={`fairy-sprite-stack ${flipX ? 'flip-x' : ''} ${showShadow ? 'shadow' : ''}`}>
+			<svg
+				className="fairy-sprite"
+				width="108"
+				height="108"
+				viewBox="0 0 108 108"
+				fill="none"
+				xmlns="http://www.w3.org/2000/svg"
+			>
 				{WSprite && <WSprite topWingColor={topWingColor} bottomWingColor={bottomWingColor} />}
 				{FSprite && <FSprite bodyColor={bodyColor} hatColor={hatColor} />}
-			</FairyShadow>
-		</svg>
-	)
-}
-
-function FairyShadow({
-	children,
-	flipX = false,
-	showShadow = true,
-}: {
-	children: ReactNode
-	flipX?: boolean
-	showShadow?: boolean
-}) {
-	if (!showShadow) return children
-	return (
-		<div
-			className="fairy-sprite-stack"
-			style={{
-				transform: flipX ? 'scaleX(-1)' : 'none',
-				filter: showShadow
-					? flipX
-						? 'drop-shadow(-2px 2px 0.5px rgba(8, 20, 35, 0.12))'
-						: 'drop-shadow(2px 2px 0.5px rgba(8, 20, 35, 0.12))'
-					: 'none',
-			}}
-		>
-			{children}
+			</svg>
 		</div>
 	)
 }

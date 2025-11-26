@@ -22,14 +22,14 @@ export function SelectedSprite({
 			xmlns="http://www.w3.org/2000/svg"
 		>
 			<path
-				stroke="hsl(293, 61%, 50%)"
+				stroke="var(--tl-color-fairy-select-bg)"
 				strokeWidth={strokeWidth * 3}
 				strokeLinecap="square"
 				strokeLinejoin="round"
 				d={`M ${inset} ${inset + cornerLength} L ${inset} ${inset} L ${inset + cornerLength} ${inset} M ${width - inset - cornerLength} ${inset} L ${width - inset} ${inset} L ${width - inset} ${inset + cornerLength} M ${inset} ${height - inset - cornerLength} L ${inset} ${height - inset} L ${inset + cornerLength} ${height - inset} M ${width - inset - cornerLength} ${height - inset} L ${width - inset} ${height - inset} L ${width - inset} ${height - inset - cornerLength}`}
 			/>
 			<path
-				stroke="hsl(294, 80%, 68%)"
+				stroke="var(--tl-color-fairy-select-fg)"
 				strokeWidth={strokeWidth}
 				strokeLinecap="square"
 				strokeLinejoin="round"

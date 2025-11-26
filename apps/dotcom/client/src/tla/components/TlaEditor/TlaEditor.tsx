@@ -73,8 +73,8 @@ const Fairies = lazy(() => import('../../../fairy/Fairies').then((m) => ({ defau
 const RemoteFairies = lazy(() =>
 	import('../../../fairy/RemoteFairies').then((m) => ({ default: m.RemoteFairies }))
 )
-const FairyHUDSignedOut = lazy(() =>
-	import('../../../fairy/FairyHUDSignedOut').then((m) => ({ default: m.FairyHUDSignedOut }))
+const FairyHUDTeaser = lazy(() =>
+	import('../../../fairy/FairyHUDTeaser').then((m) => ({ default: m.FairyHUDTeaser }))
 )
 // const InCanvasTaskList = lazy(() =>
 // 	import('../../../fairy/InCanvasTaskList').then((m) => ({ default: m.InCanvasTaskList }))
@@ -312,7 +312,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			InFrontOfTheCanvas: () => (
 				<>
 					<Suspense fallback={<div />}>
-						{canShowFairies ? <FairyHUD agents={agents} /> : <FairyHUDSignedOut />}
+						{canShowFairies ? <FairyHUD agents={agents} /> : <FairyHUDTeaser />}
 					</Suspense>
 				</>
 			),

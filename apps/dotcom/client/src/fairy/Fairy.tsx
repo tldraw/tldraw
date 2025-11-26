@@ -4,11 +4,10 @@ import React, { useRef } from 'react'
 import { Atom, TLEventInfo, useEditor, useValue } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { $fairyAgentsAtom } from './fairy-agent/agent/fairyAgentsAtom'
-import { FairySprite } from './fairy-sprite/FairySprite2'
+import { FairySprite, getHatColor } from './fairy-sprite/FairySprite'
 import { SelectedSprite } from './fairy-sprite/sprites/SelectedSprite'
 import { FairyContextMenuContent } from './FairyContextMenuContent'
 import { FairyThrowTool } from './FairyThrowTool'
-import { getProjectColor } from './getProjectColor'
 
 export const FAIRY_CONTAINER_SIZE = 52
 export const FAIRY_SIZE = 44
@@ -71,13 +70,6 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 	const fairyOutfit = useValue('fairy outfit', () => $fairyConfig.get()?.outfit, [$fairyConfig])
 	const fairyEntity = useValue('fairy entity', () => $fairyEntity.get(), [$fairyEntity])
 
-	const isOrchestrator = useValue(
-		'is orchestrator',
-		() => agent.getRole() === 'orchestrator' || agent.getRole() === 'duo-orchestrator',
-		[agent]
-	)
-	const projectColor = useValue('project color', () => agent.getProject()?.color, [agent])
-
 	const position = useValue(
 		'fairy position',
 		() => {
@@ -103,8 +95,8 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 	const isGenerating = useValue('is generating', () => agent.isGenerating(), [agent])
 	const isFairyGrabbable = isInSelectTool
 
-	// Don't render if entity or position doesn't exist yet to avoid position jumping from (0,0)
-	if (!fairyEntity || !position) {
+	// Don't render if entity, outfit or position doesn't exist yet to avoid position jumping from (0,0)
+	if (!fairyEntity || !fairyOutfit || !position) {
 		return null
 	}
 
@@ -247,8 +239,6 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 		editor.on('event', handleEvent)
 	}
 
-	const projectHexColor = projectColor ? getProjectColor(editor, projectColor) : undefined
-
 	return (
 		<_ContextMenu.Root dir="ltr">
 			<_ContextMenu.Trigger asChild>
@@ -289,14 +279,12 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 					/>
 					<div className="fairy-sprite-wrapper">
 						<FairySprite
-							showShadow
 							pose={fairyEntity.pose}
-							outfit={fairyOutfit}
+							hatColor={getHatColor(fairyOutfit.hat)}
+							showShadow
 							isAnimated={fairyEntity.pose !== 'idle' || isSelected}
 							isGenerating={isGenerating}
 							flipX={flipX}
-							isOrchestrator={isOrchestrator}
-							projectColor={projectHexColor}
 						/>
 					</div>
 				</div>

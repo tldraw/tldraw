@@ -1,5 +1,43 @@
 /* Context Highlights */
 
+.tla {
+	--tl-color-fairy-select-bg: hsl(293, 61%, 50%);
+	--tl-color-fairy-select-fg: hsl(294, 80%, 68%);
+	--tl-color-fairy-dark: #1d1d1d;
+	--tl-color-fairy-light: #ffffff;
+	--tl-color-face-fg: #1d1d1d;
+	--tl-color-face-bg: #ffffff;
+	--tl-color-fairy-pink: #e89ac7;
+	--tl-color-fairy-purple: #b4a7d6;
+	--tl-color-fairy-peach: #f5c99b;
+	--tl-color-fairy-coral: #f49faf;
+	--tl-color-fairy-teal: #7dd3c0;
+	--tl-color-fairy-gold: #f0c987;
+	--tl-color-fairy-rose: #f5a8c6;
+	--tl-color-fairy-green: #a3d9a5;
+	--tl-color-fairy-lips: #ee7b90;
+	--tl-color-fairy-lips-hover: #d54a63;
+}
+
+.tla-theme__dark {
+	--tl-color-fairy-select-bg: hsl(293, 61%, 50%);
+	--tl-color-fairy-select-fg: hsl(294, 80%, 68%);
+	--tl-color-fairy-dark: #cdcdcd;
+	--tl-color-fairy-light: #1d1d1d;
+	--tl-color-face-fg: #cdcdcd;
+	--tl-color-face-bg: #1d1d1d;
+	--tl-color-fairy-pink: #8d3468;
+	--tl-color-fairy-purple: #4a3385;
+	--tl-color-fairy-peach: #7a5126;
+	--tl-color-fairy-coral: #6c2734;
+	--tl-color-fairy-teal: #215f51;
+	--tl-color-fairy-gold: #4d3c20;
+	--tl-color-fairy-rose: #5b2238;
+	--tl-color-fairy-green: #104212;
+	--tl-color-fairy-lips: #ee7b90;
+	--tl-color-fairy-lips-hover: #d54a63;
+}
+
 .context-highlight {
 	pointer-events: none;
 }
@@ -144,11 +182,11 @@
 }
 
 .fairy-lips-icon {
-	color: #ee7b90;
+	color: var(--tl-color-fairy-lips);
 }
 
 .fairy-input__submit:hover:not(:disabled) .fairy-lips-icon {
-	color: #d54a63;
+	color: var(--tl-color-fairy-lips-hover);
 }
 
 .fairy-cancel-icon {
@@ -1543,23 +1581,6 @@
 	background: radial-gradient(circle at center, var(--tl-color-background) 0%, transparent 68%);
 }
 
-.fairy-sprite-stack {
-	grid-area: 1 / 1;
-	place-self: center;
-	width: calc(100% - 8px);
-	height: calc(100% - 8px);
-	display: grid;
-	pointer-events: none;
-	user-select: none;
-}
-
-.fairy-sprite-stack .fairy-sprite {
-	grid-area: 1 / 1;
-	place-self: center;
-	width: 100%;
-	height: 100%;
-}
-
 .fairy-sprite-container > .fairy-selected-sprite {
 	grid-area: 1 / 1;
 	place-self: center;
@@ -1583,4 +1604,37 @@
 	width: 100%;
 	height: 100%;
 	pointer-events: none;
+}
+
+.fairy-sprite-stack {
+	grid-area: 1 / 1;
+	place-self: center;
+	width: calc(100% - 8px);
+	height: calc(100% - 8px);
+	display: grid;
+	pointer-events: none;
+	user-select: none;
+}
+
+.fairy-sprite-stack .fairy-sprite {
+	grid-area: 1 / 1;
+	place-self: center;
+	width: 100%;
+	height: 100%;
+}
+
+.fairy-sprite-stack {
+	filter: drop-shadow(2px 2px 0.5px rgba(8, 20, 35, 0.12));
+}
+
+.fairy-sprite-stack.shadow {
+	filter: drop-shadow(2px 2px 0.5px rgba(8, 20, 35, 0.12));
+}
+
+.fairy-sprite-stack.flip-x {
+	transform: scaleX(-1);
+}
+
+.fairy-sprite-stack.flip-x.shadow {
+	filter: drop-shadow(-2px 2px 0.5px rgba(8, 20, 35, 0.12));
 }
