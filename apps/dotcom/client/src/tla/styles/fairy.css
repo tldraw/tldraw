@@ -114,6 +114,10 @@
 	display: none;
 }
 
+.fairy-toggle-button:hover::after {
+	display: block;
+}
+
 .fairy-toggle-button[data-is-sleeping='true'] {
 	opacity: 0.45;
 }
@@ -307,6 +311,19 @@
 	color: white;
 }
 
+@media (hover: hover) {
+	.fairy-plus-button {
+		opacity: 0;
+		transition:
+			background-color 0.1s ease,
+			opacity 0.12s ease;
+		transition-delay: 0.12s;
+	}
+	.fairy-list:hover .fairy-plus-button {
+		opacity: 1;
+	}
+}
+
 .fairy-button-project-indicator {
 	position: absolute;
 	top: 2px;
@@ -332,7 +349,6 @@
 
 .tla-fairy-hud {
 	position: fixed;
-	z-index: var(--tl-layer-canvas-in-front);
 }
 
 .tla-fairy-hud-content {
@@ -1617,4 +1633,8 @@
 	/* font-size: 13px; */
 	color: var(--color-text);
 	user-select: none;
+}
+
+.tla {
+	--tl-layer-canvas-in-front: 499;
 }

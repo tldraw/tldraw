@@ -94,6 +94,7 @@ export function FairyHUDTeaser() {
 											pose={'sleeping'}
 											hatColor={'var(--tl-color-fairy-light)'}
 											isAnimated={false}
+											showShadow
 										/>
 									</TldrawUiToolbarToggleItem>
 								</TldrawUiToolbarToggleGroup>
