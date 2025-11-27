@@ -422,6 +422,10 @@ export function createMutators(userId: string) {
 
 				const currentState = current?.fairyState ? JSON.parse(current.fairyState) : { agents: {} }
 
+				// Collect all log insertions for batch insert
+				const logInserts: any[] = []
+				const timestamp = Date.now()
+
 				// Restore chatHistory from DB and append new items
 				for (const agentId in finalState.agents) {
 					const agent = finalState.agents[agentId]
@@ -437,18 +441,37 @@ export function createMutators(userId: string) {
 					// Append new items if provided for this agent
 					const newItems = newHistoryItems?.[agentId]
 					if (newItems) {
-						// Append to log table
+						// Collect for batch insert
 						for (const item of newItems) {
-							await tx.dbTransaction.query(
-								`INSERT INTO file_fairies_log (id, "fileId", "userId", "agentId", "historyItem", "createdAt")
-								 VALUES ($1, $2, $3, $4, $5, $6)`,
-								[uniqueId(), fileId, userId, agentId, JSON.stringify(item), Date.now()]
-							)
+							logInserts.push([
+								uniqueId(),
+								fileId,
+								userId,
+								agentId,
+								JSON.stringify(item),
+								timestamp,
+							])
 						}
 
 						// Append to cached history
 						agent.chatHistory.push(...newItems)
 					}
+				}
+
+				// Batch insert all log entries
+				if (logInserts.length > 0) {
+					const values = logInserts
+						.map((_, i) => {
+							const offset = i * 6
+							return `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6})`
+						})
+						.join(', ')
+
+					await tx.dbTransaction.query(
+						`INSERT INTO file_fairies_log (id, "fileId", "userId", "agentId", "historyItem", "createdAt")
+						 VALUES ${values}`,
+						logInserts.flat()
+					)
 				}
 
 				// Truncate each agent's history if over 300KB (FIFO per agent)
