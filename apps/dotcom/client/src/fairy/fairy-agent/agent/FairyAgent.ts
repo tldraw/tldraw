@@ -780,10 +780,7 @@ export class FairyAgent {
 	 * Optionally, schedule a request.
 	 */
 	interrupt({ input, mode }: { input: AgentInput | null; mode?: FairyModeDefinition['type'] }) {
-		this.cancelFn?.()
-		this.$activeRequest.set(null)
-		this.$scheduledRequest.set(null)
-		this.cancelFn = null
+		this._cancel()
 
 		if (mode) {
 			this.setMode(mode)
@@ -1014,7 +1011,10 @@ export class FairyAgent {
 				// If there are no items, start off the chat history with the first item
 				if (historyItems.length === 0) return [historyItem]
 
-				// If the last item is still in progress, replace it with the new item
+				// Find the last prompt index
+				const lastPromptIndex = historyItems.findLastIndex((item) => item.type === 'prompt')
+
+				// If the last action is still in progress AND it's after the last prompt, replace it
 				const lastActionHistoryItemIndex = historyItems.findLastIndex(
 					(item) => item.type === 'action'
 				)
@@ -1023,7 +1023,8 @@ export class FairyAgent {
 				if (
 					lastActionHistoryItem &&
 					lastActionHistoryItem.type === 'action' &&
-					!lastActionHistoryItem.action.complete
+					!lastActionHistoryItem.action.complete &&
+					lastActionHistoryItemIndex > lastPromptIndex
 				) {
 					const newHistoryItems = [...historyItems]
 					newHistoryItems[lastActionHistoryItemIndex] = historyItem
@@ -1151,6 +1152,10 @@ export class FairyAgent {
 			}
 		}
 
+		this._cancel()
+	}
+
+	private _cancel() {
 		this.cancelFn?.()
 		this.$activeRequest.set(null)
 		this.$scheduledRequest.set(null)

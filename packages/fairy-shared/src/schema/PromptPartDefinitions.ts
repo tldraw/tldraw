@@ -377,9 +377,7 @@ export const PersonalTodoListPartDefinition: PromptPartDefinition<PersonalTodoLi
 	priority: 10,
 	buildContent(part: PersonalTodoListPart) {
 		if (part.items.length === 0) {
-			return [
-				'You have no personal todos yet. Use the `update-personal-todo-list` action to create a todo.',
-			]
+			return ['You have no personal todos yet.']
 		}
 		return [
 			`Here is your current personal todo list for the task at hand:`,
