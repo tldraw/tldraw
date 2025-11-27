@@ -444,11 +444,11 @@ export function createMutators(userId: string) {
 						agent.chatHistory = []
 					}
 
-					// Append new items if provided for this agent
+					// Upsert new items if provided for this agent
 					const newItems = newHistoryItems?.[agentId]
 					if (newItems) {
-						// Collect for batch insert
 						for (const item of newItems) {
+							// Collect for batch insert
 							logInserts.push({
 								id: uniqueId(),
 								fileId,
@@ -457,10 +457,17 @@ export function createMutators(userId: string) {
 								historyItem: JSON.stringify(item),
 								createdAt: timestamp,
 							})
-						}
 
-						// Append to cached history
-						agent.chatHistory.push(...newItems)
+							// Replace existing item with same ID, or append if new
+							const existingIndex = agent.chatHistory.findIndex(
+								(existing: any) => existing.id && existing.id === item.id
+							)
+							if (existingIndex !== -1) {
+								agent.chatHistory[existingIndex] = item
+							} else {
+								agent.chatHistory.push(item)
+							}
+						}
 					}
 				}
 
