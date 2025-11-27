@@ -8,6 +8,7 @@ import { AgentMessage, AgentMessageContent } from '../types/AgentMessage'
 import { AgentRequestSource } from '../types/AgentRequest'
 import { BasePromptPart } from '../types/BasePromptPart'
 import { ChatHistoryItem } from '../types/ChatHistoryItem'
+import { FairyCanvasLint } from '../types/FairyCanvasLint'
 import { FairyProject } from '../types/FairyProject'
 import { FairyTask, FairyTodoItem } from '../types/FairyTask'
 import { FairyWork } from '../types/FairyWork'
@@ -317,7 +318,7 @@ export interface SoloTasksPart {
 
 export const SoloTasksPartDefinition: PromptPartDefinition<SoloTasksPart> = {
 	type: 'soloTasks',
-	priority: -10,
+	priority: -4,
 	buildContent(part: SoloTasksPart) {
 		if (part.tasks.length === 0) {
 			return ['There are no tasks at the moment.']
@@ -343,7 +344,7 @@ export interface WorkingTasksPart {
 
 export const WorkingTasksPartDefinition: PromptPartDefinition<WorkingTasksPart> = {
 	type: 'workingTasks',
-	priority: -10,
+	priority: -4,
 	buildContent(part: WorkingTasksPart) {
 		if (part.tasks.length === 0) {
 			return ['There are no tasks currently in progress.']
@@ -584,4 +585,59 @@ export interface ModelNamePart {
 
 export const ModelNamePartDefinition: PromptPartDefinition<ModelNamePart> = {
 	type: 'modelName',
+}
+
+// CanvasLintsPart
+export interface CanvasLintsPart {
+	type: 'canvasLints'
+	lints: FairyCanvasLint[]
+}
+
+export const CanvasLintsPartDefinition: PromptPartDefinition<CanvasLintsPart> = {
+	type: 'canvasLints',
+	priority: -50,
+	buildContent({ lints }: CanvasLintsPart) {
+		if (!lints || lints.length === 0) {
+			return []
+		}
+
+		const messages: string[] = []
+
+		// Group lints by type
+		const growYLints = lints.filter((l) => l.type === 'growY-on-shape')
+		const overlappingTextLints = lints.filter((l) => l.type === 'overlapping-text')
+		const friendlessArrowLints = lints.filter((l) => l.type === 'friendless-arrow')
+
+		messages.push(
+			'<lints> The following potential problems have been detected in the canvas that you should be aware of. Defer to your view of the canvas to decide if you need to make changes.'
+		)
+
+		if (growYLints.length > 0) {
+			const shapeIds = growYLints.flatMap((l) => l.shapeIds)
+			const lines = [
+				'Text overflow: These shapes have text that caused their containers to grow past the size that they were intended to be. This means that they may be breaking the aligment of the shapes.',
+				...shapeIds.map((id) => `  - ${id}`),
+			]
+			messages.push(lines.join('\n'))
+		}
+
+		if (overlappingTextLints.length > 0) {
+			const lines = [
+				'Overlapping text: The shapes in each group have text and overlap each other, which may make text hard to read.',
+				...overlappingTextLints.map((lint) => `  - ${lint.shapeIds.join(', ')}`),
+			]
+			messages.push(lines.join('\n'))
+		}
+
+		if (friendlessArrowLints.length > 0) {
+			const shapeIds = friendlessArrowLints.flatMap((l) => l.shapeIds)
+			const lines = [
+				"Unconnected arrows: These arrows aren't fully connected to other shapes.",
+				...shapeIds.map((id) => `  - ${id}`),
+			]
+			messages.push(lines.join('\n'))
+		}
+
+		return messages
+	},
 }

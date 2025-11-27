@@ -42,6 +42,7 @@ import { UpdateActionUtil } from './actions/UpdateActionUtil'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { AgentViewportBoundsPartUtil } from './parts/AgentViewportBoundsPartUtil'
 import { BlurryShapesPartUtil } from './parts/BlurryShapesPartUtil'
+import { CanvasLintsPartUtil } from './parts/CanvasLintsPartUtil'
 import { ChatHistoryPartUtil } from './parts/ChatHistoryPartUtil'
 import { CurrentProjectDronePartUtil } from './parts/CurrentProjectDronePartUtil'
 import { CurrentProjectOrchestratorPartUtil } from './parts/CurrentProjectOrchestratorPartUtil'
@@ -150,6 +151,7 @@ export const PROMPT_PART_UTILS = [
 	BlurryShapesPartUtil,
 	PeripheralShapesPartUtil,
 	SelectedShapesPartUtil,
+	CanvasLintsPartUtil,
 
 	// History
 	ChatHistoryPartUtil,
