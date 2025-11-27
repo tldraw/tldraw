@@ -176,8 +176,9 @@ ${
 
 ${flagged(
 	flags.hasPersonalTodoList,
-	`- Use \`update-personal-todo-list\` events liberally to keep an up to date list of your progress on the task at hand. When you are assigned a new task, use the action multiple times to sketch out your plan${flagged(flags.hasReview, '. You can then use the `review` action to check the todo list')}.
-		- Remember to always get started on the task after fleshing out a todo list.`
+	`- Use \`upsert-personal-todo-item\` events liberally to keep an up to date list of your progress on the task at hand. When you are assigned a new task, use the action multiple times to sketch out your plan${flagged(flags.hasReview, '. You can then use the `review` action to check the todo list')}.
+		- Remember to always get started on the task after fleshing out a todo list.
+	- If your plan changes, you can \`upsert-personal-todo-item\` to update todo items, or \`delete-personal-todo-items\` to remove items from the todo list.`
 )}
 ${flagged(flags.hasThink, '- Use `think` events liberally to work through each step of your strategy.')}
 ${flagged(

@@ -62,8 +62,9 @@ export function convertTldrawShapeToFocusedType(shape: TLShape): FocusedShape['_
 		case 'line':
 		case 'arrow':
 		case 'note':
-		case 'draw':
 			return shape.type
+		case 'draw':
+			return 'pen'
 		default:
 			return 'unknown'
 	}
@@ -98,7 +99,7 @@ export function convertTldrawIdToSimpleId(id: TLShapeId): string {
 
 function convertDrawShapeToFocused(editor: Editor, shape: TLDrawShape): FocusedDrawShape {
 	return {
-		_type: 'draw',
+		_type: 'pen',
 		color: shape.props.color,
 		fill: convertTldrawFillToFocusFill(shape.props.fill),
 		note: (shape.meta.note as string) ?? '',
