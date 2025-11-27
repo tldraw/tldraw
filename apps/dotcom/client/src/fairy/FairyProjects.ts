@@ -71,6 +71,32 @@ export function disbandProject(projectId: string, editor: Editor) {
 	deleteProjectAndAssociatedTasks(projectId)
 }
 
+/**
+ * Disband all projects using a provided list of agents.
+ * This is useful when you don't have access to the editor (e.g., during cleanup).
+ */
+export function disbandAllProjectsWithAgents(agents: FairyAgent[]) {
+	const projects = $fairyProjects.get()
+
+	projects.forEach((project) => {
+		if (project.members.length <= 1) return
+
+		const memberAgents = project.members
+			.map((member) => agents.find((a) => a.id === member.id))
+			.filter((agent): agent is FairyAgent => agent !== undefined)
+
+		memberAgents.forEach((memberAgent) => {
+			memberAgent.interrupt({ mode: 'idling', input: null })
+			memberAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+		})
+
+		deleteProjectAndAssociatedTasks(project.id)
+	})
+
+	// Clear any remaining projects that weren't disbanded (e.g., single-member projects)
+	clearProjects()
+}
+
 // TODO we need to handling orchestrators that are waiting for something
 export function resumeProject(projectId: string, editor: Editor) {
 	rectifyFairyModesUponBadState(projectId, editor)
