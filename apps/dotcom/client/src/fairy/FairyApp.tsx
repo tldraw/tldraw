@@ -146,18 +146,29 @@ export function FairyApp({
 
 				// Only restore state for agents that haven't been loaded yet
 				agentsRef.current.forEach((agent) => {
-					// Skip if already loaded
-					if (loadedAgentIdsRef.current.has(agent.id)) return
+					// Always initialize message ID tracking (even for already-loaded agents)
+					// This prevents duplicates after component remount
+					if (!knownMessageIdsRef.current[agent.id]) {
+						knownMessageIdsRef.current[agent.id] = new Set()
+					}
+
+					// Skip state loading if already loaded
+					if (loadedAgentIdsRef.current.has(agent.id)) {
+						// Still need to track any messages that were added since last mount
+						const currentHistory = agent.$chatHistory.get()
+						currentHistory.forEach((item: any) => {
+							if (item.id) {
+								knownMessageIdsRef.current[agent.id].add(item.id)
+							}
+						})
+						return
+					}
 
 					const persistedAgent = fairyState.agents[agent.id]
 					if (persistedAgent) {
 						agent.loadState(persistedAgent)
 						loadedAgentIdsRef.current.add(agent.id)
 
-						// Initialize known message IDs set for this agent
-						if (!knownMessageIdsRef.current[agent.id]) {
-							knownMessageIdsRef.current[agent.id] = new Set()
-						}
 						// Add all loaded message IDs to known set (skip old messages without IDs)
 						const loadedHistory = persistedAgent.chatHistory || []
 						loadedHistory.forEach((item) => {
