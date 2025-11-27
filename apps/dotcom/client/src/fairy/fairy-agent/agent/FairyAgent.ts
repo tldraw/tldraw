@@ -667,6 +667,7 @@ export class FairyAgent {
 		this.$chatHistory.update((prev) => [
 			...prev,
 			{
+				id: uniqueId(),
 				type: 'continuation',
 				data: resolvedData,
 				memoryLevel: eventualModeDefinition.memoryLevel,
@@ -984,6 +985,7 @@ export class FairyAgent {
 		// Add the action to chat history
 		if (util.savesToHistory()) {
 			const historyItem: ChatHistoryItem = {
+				id: uniqueId(),
 				type: 'action',
 				action,
 				diff,
@@ -1511,6 +1513,7 @@ function requestAgentActions({ agent, request }: { agent: FairyAgent; request: A
 	const userFacingMessage = request.userMessages.join('\n')
 
 	const promptHistoryItem: ChatHistoryPromptItem = {
+		id: uniqueId(),
 		type: 'prompt',
 		promptSource: request.source,
 		agentFacingMessage,

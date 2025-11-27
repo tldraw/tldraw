@@ -384,7 +384,79 @@ export function createMutators(userId: string) {
 				await tx.mutate.file_state.upsert(fileState)
 			},
 			updateFairies: async (tx, { fileId, fairyState }: { fileId: string; fairyState: string }) => {
-				await tx.mutate.file_fairies.upsert({ fileId, userId, fairyState })
+				if (tx.location !== 'server') {
+					await tx.mutate.file_fairies.upsert({ fileId, userId, fairyState })
+					return
+				}
+
+				const MAX_SIZE_PER_AGENT = 300 * 1024 // 300kb
+				const TRUNCATE_THRESHOLD = 350 * 1024 // 350kb
+				let truncatedState = fairyState
+
+				try {
+					const state = JSON.parse(fairyState)
+					if (state.agents && typeof state.agents === 'object') {
+						for (const aid in state.agents) {
+							const agent = state.agents[aid]
+							if (agent.chatHistory && Array.isArray(agent.chatHistory)) {
+								const agentHistoryStr = JSON.stringify(agent.chatHistory)
+								const originalSize = agentHistoryStr.length
+								if (originalSize > TRUNCATE_THRESHOLD) {
+									const originalCount = agent.chatHistory.length
+									// Estimate how many messages to keep based on average size
+									const avgSize = originalSize / originalCount
+									const estimatedKeep = Math.max(1, Math.floor(MAX_SIZE_PER_AGENT / avgSize))
+
+									// Keep estimated number (at least 1 message)
+									agent.chatHistory = agent.chatHistory.slice(-estimatedKeep)
+								}
+							}
+						}
+						truncatedState = JSON.stringify(state)
+					}
+				} finally {
+					await tx.mutate.file_fairies.upsert({ fileId, userId, fairyState: truncatedState })
+				}
+			},
+			appendFairyChatMessage: async (
+				tx,
+				{ fileId, messages }: { fileId: string; messages: any[] }
+			) => {
+				if (messages.length === 0) {
+					return
+				}
+				// Only insert on the backend
+				if (tx.location !== 'server') return
+
+				try {
+					const now = Date.now()
+
+					// Build batch upsert
+					const values: any[] = []
+					const placeholders: string[] = []
+					let paramIndex = 1
+
+					messages.forEach((item) => {
+						const message = JSON.stringify(item)
+						const id = item.id
+
+						placeholders.push(
+							`($${paramIndex}, $${paramIndex + 1}, $${paramIndex + 2}, $${paramIndex + 3}, $${paramIndex + 4}, $${paramIndex + 5})`
+						)
+						values.push(id, fileId, userId, message, now, now)
+						paramIndex += 6
+					})
+
+					await tx.dbTransaction.query(
+						`INSERT INTO file_fairy_messages ("id", "fileId", "userId", "message", "createdAt", "updatedAt")
+						VALUES ${placeholders.join(', ')}
+						ON CONFLICT ("id")
+						DO UPDATE SET "message" = EXCLUDED."message", "updatedAt" = EXCLUDED."updatedAt"`,
+						values
+					)
+				} catch (e) {
+					console.error('Failed to append fairy chat messages:', e)
+				}
 			},
 		},
 

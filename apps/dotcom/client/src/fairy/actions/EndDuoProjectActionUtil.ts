@@ -1,4 +1,5 @@
 import { EndDuoProjectAction, Streaming } from '@tldraw/fairy-shared'
+import { uniqueId } from 'tldraw'
 import { deleteProjectAndAssociatedTasks } from '../FairyProjects'
 import { getFairyTasksByProjectId } from '../FairyTaskList'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
@@ -40,6 +41,7 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 				memberAgent.$chatHistory.update((prev) => [
 					...prev,
 					{
+						id: uniqueId(),
 						type: 'memory-transition',
 						memoryLevel: 'fairy',
 						agentFacingMessage: `I completed ${count} ${taskWord} as part of the "${project.title}" project with my partner.`,
@@ -57,6 +59,7 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 					memberAgent.$chatHistory.update((prev) => [
 						...prev,
 						{
+							id: uniqueId(),
 							type: 'memory-transition',
 							memoryLevel: 'fairy',
 							agentFacingMessage: `I completed ${count} ${taskWord} as part of the "${project.title}" project with my partner.`,
