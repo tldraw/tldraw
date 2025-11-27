@@ -423,7 +423,14 @@ export function createMutators(userId: string) {
 				const currentState = current?.fairyState ? JSON.parse(current.fairyState) : { agents: {} }
 
 				// Collect all log insertions for batch insert
-				const logInserts: any[] = []
+				const logInserts: Array<{
+					id: string
+					fileId: string
+					userId: string
+					agentId: string
+					historyItem: string
+					createdAt: number
+				}> = []
 				const timestamp = Date.now()
 
 				// Restore chatHistory from DB and append new items
@@ -443,14 +450,14 @@ export function createMutators(userId: string) {
 					if (newItems) {
 						// Collect for batch insert
 						for (const item of newItems) {
-							logInserts.push([
-								uniqueId(),
+							logInserts.push({
+								id: uniqueId(),
 								fileId,
 								userId,
 								agentId,
-								JSON.stringify(item),
-								timestamp,
-							])
+								historyItem: JSON.stringify(item),
+								createdAt: timestamp,
+							})
 						}
 
 						// Append to cached history
@@ -460,22 +467,32 @@ export function createMutators(userId: string) {
 
 				// Batch insert all log entries
 				if (logInserts.length > 0) {
+					const params = logInserts.flatMap((log) => [
+						log.id,
+						log.fileId,
+						log.userId,
+						log.agentId,
+						log.historyItem,
+						log.createdAt,
+					])
+
 					const values = logInserts
 						.map((_, i) => {
-							const offset = i * 6
-							return `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6})`
+							const base = i * 6 + 1
+							return `($${base}, $${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`
 						})
 						.join(', ')
 
 					await tx.dbTransaction.query(
 						`INSERT INTO file_fairies_log (id, "fileId", "userId", "agentId", "historyItem", "createdAt")
 						 VALUES ${values}`,
-						logInserts.flat()
+						params
 					)
 				}
 
-				// Truncate each agent's history if over 300KB (FIFO per agent)
+				// Truncate each agent's history if over 350KB, trim down to 300KB (FIFO per agent)
 				const MAX_SIZE_PER_AGENT = 300 * 1024
+				const TRUNCATE_THRESHOLD = 350 * 1024
 				const truncationStats: Record<
 					string,
 					{ before: number; after: number; removed: number; sizeBefore: number; sizeAfter: number }
@@ -487,16 +504,14 @@ export function createMutators(userId: string) {
 					let agentHistoryStr = JSON.stringify(agent.chatHistory)
 					const sizeBefore = agentHistoryStr.length
 
-					if (agentHistoryStr.length > MAX_SIZE_PER_AGENT) {
-						console.error(
-							`[updateFairies] ⚠️  Agent ${aid} history exceeds ${MAX_SIZE_PER_AGENT} bytes (${sizeBefore} bytes)`
-						)
+					if (agentHistoryStr.length > TRUNCATE_THRESHOLD) {
+						// Estimate how many messages to keep based on average size
+						const avgSize = sizeBefore / beforeMsgCount
+						const estimatedKeep = Math.floor(MAX_SIZE_PER_AGENT / avgSize)
 
-						// Remove oldest messages until under limit
-						while (agentHistoryStr.length > MAX_SIZE_PER_AGENT && agent.chatHistory.length > 0) {
-							agent.chatHistory.shift()
-							agentHistoryStr = JSON.stringify(agent.chatHistory)
-						}
+						// Keep estimated number (if slightly off, next save will fix it)
+						agent.chatHistory = agent.chatHistory.slice(-estimatedKeep)
+						agentHistoryStr = JSON.stringify(agent.chatHistory)
 
 						const afterMsgCount = agent.chatHistory.length
 						const sizeAfter = agentHistoryStr.length
