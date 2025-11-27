@@ -3,7 +3,7 @@ import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import classNames from 'classnames'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router-dom'
 import {
 	ContainerProvider,
 	DefaultA11yAnnouncer,
@@ -188,6 +188,7 @@ function SignedInProvider({
 }) {
 	const auth = useAuth()
 	const intl = useIntl()
+	const navigate = useNavigate()
 	const { user, isLoaded: isUserLoaded } = useClerkUser()
 	const [currentLocale, setCurrentLocale] = useState<string>(
 		globalEditor.get()?.user.getUserPreferences().locale ?? 'en'
@@ -214,7 +215,7 @@ function SignedInProvider({
 			const checkoutIntent = sessionStorage.getItem('pricing-checkout-intent')
 			if (checkoutIntent === 'true' && !window.location.pathname.includes('/pricing')) {
 				// User just signed in with pricing intent, redirect to pricing page
-				window.location.href = '/pricing'
+				navigate('/pricing')
 			}
 		} else {
 			clearLocalSessionState()

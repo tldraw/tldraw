@@ -1,7 +1,8 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useDialogs } from 'tldraw'
 import { TlaSignInDialog } from '../tla/components/dialogs/TlaSignInDialog'
+import { useFairyAccess } from '../tla/hooks/useFairyAccess'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import '../tla/styles/fairy.css'
 import { F } from '../tla/utils/i18n'
@@ -38,7 +39,9 @@ declare global {
 
 export function Component() {
 	const user = useTldrawUser()
+	const hasFairyAccess = useFairyAccess()
 	const { addDialog } = useDialogs()
+	const navigate = useNavigate()
 	const [paddleLoaded, setPaddleLoaded] = useState(false)
 
 	// Load Paddle script
@@ -122,6 +125,12 @@ export function Component() {
 	}, [user, paddleLoaded])
 
 	const handlePurchaseClick = useCallback(() => {
+		// If user already has fairy access, go home
+		if (user && hasFairyAccess) {
+			navigate('/')
+			return
+		}
+
 		if (!user) {
 			// Store checkout intent
 			sessionStorage.setItem('pricing-checkout-intent', 'true')
@@ -161,18 +170,14 @@ export function Component() {
 		} catch (error) {
 			console.error('Failed to open Paddle checkout:', error)
 		}
-	}, [user, paddleLoaded, addDialog])
+	}, [user, hasFairyAccess, paddleLoaded, addDialog, navigate])
 
 	return (
 		<div className={styles.container}>
 			<div className={styles.content}>
-				{user && (
-					<Link to="/" className={styles.homeButton}>
-						<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-							<path d="M8 2l6 5v7H10V9H6v5H2V7l6-5z" />
-						</svg>
-					</Link>
-				)}
+				<Link to="/" className={styles.homeButton}>
+					<F defaultMessage="Home" />
+				</Link>
 				<div className={styles.logo} />
 
 				<p className={styles.title}>
@@ -214,10 +219,12 @@ export function Component() {
 						</div>
 					</div>
 					<button className={styles.purchaseButton} onClick={handlePurchaseClick}>
-						{user ? (
-							<F defaultMessage="Purchase Fairy Bundle" />
-						) : (
+						{!user ? (
 							<F defaultMessage="Start your fairy adventure" />
+						) : hasFairyAccess ? (
+							<F defaultMessage="Your fairies are waiting for you! →" />
+						) : (
+							<F defaultMessage="Purchase Fairy Bundle" />
 						)}
 					</button>
 				</div>
