@@ -73,7 +73,7 @@ function FairyHUDHeader({
 			const menuIsOpen = editor.menus.isMenuOpen('fairy-hud-menu')
 			onMenuPopoverOpenChange(menuIsOpen)
 		},
-		[editor]
+		[editor, onMenuPopoverOpenChange]
 	)
 
 	const zoomToFairy = useCallback(() => {

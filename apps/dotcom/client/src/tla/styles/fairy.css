@@ -479,22 +479,6 @@
 	z-index: 2;
 }
 
-/* Fairy Debug Dialog - Fixed width and height */
-.fairy-debug-dialog-wrapper {
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	height: 100%;
-	width: 100%;
-}
-
-/* Make the dialog content fixed size */
-.tlui-dialog__content:has(.fairy-debug-dialog-wrapper) {
-	width: 800px;
-	max-width: 800px;
-	height: 80%;
-}
-
 /* Fairy Chat History */
 
 .fairy-chat-history {
