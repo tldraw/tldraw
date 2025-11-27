@@ -21,6 +21,7 @@ export type TLAppUiEventSource =
 	| 'app'
 	| 'cookie-settings'
 	| 'dialog'
+	| 'fairy-teaser'
 
 /** @public */
 export interface TLAppUiEventMap {
@@ -65,6 +66,7 @@ export interface TLAppUiEventMap {
 	'room-size-limit-dialog-shown': null
 	'accept-group-invite': null
 	'add-file-link': null
+	'click-fairy-teaser': null
 }
 
 /** @public */

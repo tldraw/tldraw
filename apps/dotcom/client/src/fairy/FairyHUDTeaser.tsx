@@ -16,6 +16,7 @@ import {
 	useValue,
 } from 'tldraw'
 import '../tla/styles/fairy.css'
+import { useTldrawAppUiEvents } from '../tla/utils/app-ui-events'
 import { F } from '../tla/utils/i18n'
 import { FairySprite } from './fairy-sprite/FairySprite'
 
@@ -33,6 +34,7 @@ export function FairyHUDTeaser() {
 	)
 
 	const { addDialog } = useDialogs()
+	const trackEvent = useTldrawAppUiEvents()
 
 	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
 
@@ -85,6 +87,7 @@ export function FairyHUDTeaser() {
 										aria-label="Fairies"
 										value="off"
 										onClick={() => {
+											trackEvent('click-fairy-teaser', { source: 'fairy-teaser' })
 											addDialog({
 												component: FairyComingSoonDialog,
 											})
