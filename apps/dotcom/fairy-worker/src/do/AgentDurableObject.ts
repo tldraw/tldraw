@@ -1,5 +1,6 @@
 import { AgentAction, AgentPrompt, Streaming } from '@tldraw/fairy-shared'
 import { DurableObject } from 'cloudflare:workers'
+import { INTERNAL_BASE_URL } from '../constants'
 import { Environment } from '../environment'
 import { AgentService } from './AgentService'
 
@@ -9,6 +10,47 @@ export class AgentDurableObject extends DurableObject<Environment> {
 	constructor(ctx: DurableObjectState, env: Environment) {
 		super(ctx, env)
 		this.service = new AgentService(this.env)
+	}
+
+	private getUserDOStub(userId: string) {
+		const userDO = this.env.TL_USER.idFromName(userId)
+		return this.env.TL_USER.get(userDO)
+	}
+
+	private async getRateLimitError(
+		userId: string,
+		userStub: ReturnType<Environment['TL_USER']['get']>,
+		userIsAdmin: boolean
+	): Promise<Response | null> {
+		// Admins bypass rate limits
+		if (userIsAdmin) return null
+
+		const checkRes = await userStub.fetch(
+			`${INTERNAL_BASE_URL}/app/${userId}/fairy/check-rate-limit`,
+			{
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+			}
+		)
+
+		if (!checkRes.ok) {
+			let errorDetails: string
+			try {
+				const errorData = (await checkRes.json()) as { error: string }
+				errorDetails = errorData.error
+			} catch {
+				errorDetails = await checkRes.text()
+			}
+			console.error('Rate limit check failed:', errorDetails)
+			return new Response(
+				JSON.stringify({
+					error: errorDetails,
+				}),
+				{ status: checkRes.status, headers: { 'Content-Type': 'application/json' } }
+			)
+		}
+
+		return null
 	}
 
 	// `fetch` is the entry point for all requests to the Durable Object
@@ -28,6 +70,21 @@ export class AgentDurableObject extends DurableObject<Environment> {
 	 * Stream actions from the model.
 	 */
 	private async streamActions(request: Request): Promise<Response> {
+		// Get auth from headers (already validated by worker)
+		const userId = request.headers.get('X-User-Id')
+		const userIsAdmin = request.headers.get('X-Is-Admin') === 'true'
+
+		if (!userId) {
+			return new Response(JSON.stringify({ error: 'Missing user ID' }), {
+				status: 400,
+				headers: { 'Content-Type': 'application/json' },
+			})
+		}
+
+		const userStub = this.getUserDOStub(userId)
+		const rateLimitError = await this.getRateLimitError(userId, userStub, userIsAdmin)
+		if (rateLimitError) return rateLimitError
+
 		const encoder = new TextEncoder()
 		const { readable, writable } = new TransformStream()
 		const writer = writable.getWriter()
@@ -75,8 +132,8 @@ export class AgentDurableObject extends DurableObject<Environment> {
 			try {
 				const prompt = (await request.json()) as AgentPrompt
 
-				const isAdmin = request.headers.get('X-Is-Admin') === 'true'
-				for await (const action of this.service.streamActions(prompt, isAdmin, signal)) {
+				// Pass userId and userStub for usage recording in onFinish
+				for await (const action of this.service.streamActions(prompt, signal, userId, userStub)) {
 					if (signal.aborted) break
 					response.actions.push(action)
 					const data = `data: ${JSON.stringify(action)}\n\n`

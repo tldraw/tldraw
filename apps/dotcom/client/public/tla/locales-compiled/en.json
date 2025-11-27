@@ -177,6 +177,12 @@
       "value": "Instruct the group…"
     }
   ],
+  "23f879f41a": [
+    {
+      "type": 0,
+      "value": "Your weekly fairy usage limit has been reached. It will reset at the start of next week."
+    }
+  ],
   "243924bfd5": [
     {
       "type": 0,
@@ -1183,6 +1189,12 @@
     {
       "type": 0,
       "value": "File is getting large"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Weekly fairy limit reached"
     }
   ],
   "a9ded1e5ce": [
