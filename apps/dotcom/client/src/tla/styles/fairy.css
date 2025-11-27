@@ -154,7 +154,7 @@
 }
 
 .fairy-input__field {
-	padding: 12px;
+	padding: 8px;
 	pointer-events: auto;
 	border: none;
 	background: transparent;
@@ -398,6 +398,7 @@
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	max-width: 100%;
+	padding-left: 12px;
 }
 
 .fairy-spinner-container {
@@ -478,20 +479,16 @@
 	z-index: 2;
 }
 
-/* Fairy Debug Dialog - Fixed width and height */
-.fairy-debug-dialog-wrapper {
-	display: flex;
-	flex-direction: column;
-	height: 100%;
-	width: 100%;
+/* Hide all scrollbars in the fairy chat panel */
+.fairy-chat-panel,
+.fairy-chat-panel * {
+	scrollbar-width: none; /* Firefox */
+	-ms-overflow-style: none; /* IE and Edge */
 }
 
-/* Make the dialog content fixed size */
-.tlui-dialog__content:has(.fairy-debug-dialog-wrapper) {
-	width: 800px;
-	height: 800px;
-	max-width: 800px;
-	max-height: 800px;
+.fairy-chat-panel::-webkit-scrollbar,
+.fairy-chat-panel *::-webkit-scrollbar {
+	display: none; /* Chrome, Safari, Opera */
 }
 
 /* Fairy Chat History */
@@ -499,14 +496,12 @@
 .fairy-chat-history {
 	flex: 1;
 	overflow-y: auto;
-	padding: 8px;
+	padding: 0px 12px 12px 12px;
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
 	min-height: 0;
 	height: 0;
-	scrollbar-width: 2px;
-	scrollbar-color: var(--tl-color-muted-1) transparent;
 }
 
 .fairy-chat-history span:not(button *),
@@ -515,19 +510,6 @@
 .fairy-chat-history strong:not(button *) {
 	user-select: text;
 	cursor: initial;
-}
-
-.fairy-chat-history::-webkit-scrollbar {
-	width: 8px;
-}
-
-.fairy-chat-history::-webkit-scrollbar-track {
-	background: transparent;
-}
-
-.fairy-chat-history::-webkit-scrollbar-thumb {
-	background: var(--tl-color-muted-1);
-	border-radius: 4px;
 }
 
 .fairy-chat-history-section {
@@ -574,22 +556,11 @@
 	word-wrap: break-word;
 	max-height: 150px;
 	overflow-y: auto;
-	scrollbar-color: var(--tl-color-text-3) transparent;
 }
 
 .fairy-chat-history-prompt-other-agent {
 	color: var(--tl-color-text-3);
 	font-style: italic;
-}
-
-.fairy-chat-history-prompt-user::-webkit-scrollbar {
-	width: 6px;
-	background: transparent;
-}
-
-.fairy-chat-history-prompt-user::-webkit-scrollbar-thumb {
-	background: var(--tl-color-text-3);
-	border-radius: 3px;
 }
 
 .fairy-chat-history-prompt-content {
@@ -811,21 +782,6 @@
 	overflow-y: auto;
 	flex: 1;
 	padding: 8px;
-	scrollbar-width: 8px;
-	scrollbar-color: var(--tl-color-muted-1) transparent;
-}
-
-.shared-todo-list-items::-webkit-scrollbar {
-	width: 8px;
-}
-
-.shared-todo-list-items::-webkit-scrollbar-track {
-	background: transparent;
-}
-
-.shared-todo-list-items::-webkit-scrollbar-thumb {
-	background: var(--tl-color-muted-1);
-	border-radius: 4px;
 }
 
 .shared-todo-item {
@@ -1163,8 +1119,6 @@
 	resize: none;
 	overflow-y: auto;
 	line-height: 1.5;
-	scrollbar-width: thin;
-	scrollbar-color: var(--tl-color-muted-1) transparent;
 }
 
 .fairy-group-chat-input__submit:hover:not(:disabled) .fairy-lips-icon {
@@ -1173,20 +1127,6 @@
 
 .fairy-group-chat-input__submit:hover:not(:disabled) .fairy-cancel-icon {
 	color: var(--tl-color-text);
-}
-
-.fairy-group-chat-input__field::-webkit-scrollbar {
-	width: 6px;
-	background: transparent;
-}
-
-.fairy-group-chat-input__field::-webkit-scrollbar-track {
-	background: transparent;
-}
-
-.fairy-group-chat-input__field::-webkit-scrollbar-thumb {
-	background: var(--tl-color-muted-1);
-	border-radius: 3px;
 }
 
 .fairy-group-chat-input__field::placeholder {
@@ -1401,7 +1341,8 @@
 }
 
 .fairy-debug-dropdown {
-	z-index: var(--tl-layer-canvas-in-front) !important;
+	z-index: 650;
+	/* In front of overlays */
 }
 
 .fairy-debug-view-label {
@@ -1417,6 +1358,9 @@
 	flex: 1 1 0;
 	min-height: 0;
 	overflow: auto;
+	min-height: 400px;
+	width: 600px;
+	max-width: 600px;
 }
 
 .fairy-debug-view-container {

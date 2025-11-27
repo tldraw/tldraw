@@ -83,6 +83,7 @@ ${flagged(
 ${flagged(
 	flags.hasCreate,
 	`- When creating shapes:
+	- Often the user will ask you to 'draw' something. If you compose the drawing using rectangles, triangles, or circles to achieve the image, use those; otherwise, use the pen to draw a custom shape.
 	- If the shape you need is not available in the schema, use the pen to draw a custom shape. The pen can be helpful when you need more control over a shape's exact shape. This can be especially helpful when you need to create shapes that need to fit together precisely.
 	- Use the \`note\` field to provide context for each shape. This will help you in the future to understand the purpose of each shape.
 	- Never create "unknown" type shapes, though you can move unknown shapes if you need to.

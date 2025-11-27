@@ -165,16 +165,16 @@
       "value": "Today"
     }
   ],
-  "1e38506832": [
-    {
-      "type": 0,
-      "value": "Go to fairy"
-    }
-  ],
   "1fe250ea06": [
     {
       "type": 0,
       "value": "Instruct the group…"
+    }
+  ],
+  "20dfc4f904": [
+    {
+      "type": 0,
+      "value": "Locate"
     }
   ],
   "23f879f41a": [
@@ -199,6 +199,12 @@
     {
       "type": 0,
       "value": "About tldraw"
+    }
+  ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Summon all"
     }
   ],
   "284d5cd0dd": [
@@ -305,10 +311,28 @@
       "value": "Editor"
     }
   ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Sleep all"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Manage"
+    }
+  ],
   "3596c1b1f7": [
     {
       "type": 0,
       "value": "Unfollow"
+    }
+  ],
+  "37169d1dc0": [
+    {
+      "type": 0,
+      "value": "Sleep fairies"
     }
   ],
   "3903aab323": [
@@ -601,6 +625,20 @@
       "value": "Later"
     }
   ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "Speak to "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
   "625fd29749": [
     {
       "type": 0,
@@ -671,12 +709,6 @@
     {
       "type": 0,
       "value": "Follow these steps to import the content manually:"
-    }
-  ],
-  "6e02bd9e1e": [
-    {
-      "type": 0,
-      "value": "Put away fairies"
     }
   ],
   "70222abcfc": [
@@ -881,6 +913,12 @@
       "value": "."
     }
   ],
+  "81aa2078d1": [
+    {
+      "type": 0,
+      "value": "Clear all"
+    }
+  ],
   "81d48c2f3a": [
     {
       "type": 0,
@@ -925,16 +963,16 @@
       "value": "Rename file"
     }
   ],
+  "8726ef8909": [
+    {
+      "type": 0,
+      "value": "Hard reset"
+    }
+  ],
   "88e83b88c5": [
     {
       "type": 0,
       "value": "Purchase Fairy Bundle"
-    }
-  ],
-  "898e76f01a": [
-    {
-      "type": 0,
-      "value": "Reset everything"
     }
   ],
   "8ad4303b83": [
@@ -1461,22 +1499,10 @@
       "value": "Learn more about publishing."
     }
   ],
-  "cf62a7f9a7": [
-    {
-      "type": 0,
-      "value": "Reset chats"
-    }
-  ],
   "d3d2e61733": [
     {
       "type": 0,
       "value": "Close"
-    }
-  ],
-  "d438a51e6e": [
-    {
-      "type": 0,
-      "value": "Put all fairies to sleep"
     }
   ],
   "d46632fe1f": [
@@ -1531,20 +1557,6 @@
       "value": "Theme"
     }
   ],
-  "d739f35e18": [
-    {
-      "type": 0,
-      "value": "Whisper to "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
   "d7bc9d5a2e": [
     {
       "type": 0,
@@ -1579,12 +1591,6 @@
     {
       "type": 0,
       "value": "Invite only"
-    }
-  ],
-  "dbbece0c3a": [
-    {
-      "type": 0,
-      "value": "Clear all chats"
     }
   ],
   "dc30bc0c79": [
@@ -1795,12 +1801,6 @@
       "value": "Settings"
     }
   ],
-  "f6ae34b4ba": [
-    {
-      "type": 0,
-      "value": "Reset all wands"
-    }
-  ],
   "f714e36843": [
     {
       "type": 0,
@@ -1811,12 +1811,6 @@
     {
       "type": 0,
       "value": "Select a leader first…"
-    }
-  ],
-  "f87386b4ba": [
-    {
-      "type": 0,
-      "value": "Summon all fairies"
     }
   ],
   "fa2ead697d": [
@@ -1841,6 +1835,12 @@
     {
       "type": 0,
       "value": "Are you sure you want to delete this file?"
+    }
+  ],
+  "fe0a4f9d0a": [
+    {
+      "type": 0,
+      "value": "Clear chats"
     }
   ],
   "fed5ec05eb": [
