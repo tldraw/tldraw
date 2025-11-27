@@ -127,6 +127,14 @@ export function FairyMenuContent({
 		[addDialog, agents]
 	)
 
+	const hasChatHistory = useValue(
+		'has-chat-history',
+		() => {
+			return agents.some((agent) => agent.$chatHistory.get().length > 0)
+		},
+		[agents]
+	)
+
 	const resetAllChats = useCallback(() => {
 		agents.forEach((agent) => {
 			agent.reset()
@@ -187,7 +195,9 @@ export function FairyMenuContent({
 					id="reset-fairy-chat"
 					onSelect={() => agent.reset()}
 					label={resetChatLabel}
+					disabled={!hasChatHistory}
 				/>
+				<TldrawUiMenuItem id="put-away-fairy" onSelect={putAwayFairy} label={putAwayFairyLabel} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="fairy-management-menu">
 				<TldrawUiMenuSubmenu id="fairy-management-submenu" label={fairyManagementLabel}>
@@ -201,13 +211,6 @@ export function FairyMenuContent({
 						onSelect={putAwayAllFairies}
 						label={putAwayAllFairiesLabel}
 					/>
-					<TldrawUiMenuGroup id="fairy-put-away-menu">
-						<TldrawUiMenuItem
-							id="put-away-fairy"
-							onSelect={putAwayFairy}
-							label={putAwayFairyLabel}
-						/>
-					</TldrawUiMenuGroup>
 					<TldrawUiMenuGroup id="fairy-chat-menu">
 						{menuType === 'context-menu' && (
 							<TldrawUiMenuItem

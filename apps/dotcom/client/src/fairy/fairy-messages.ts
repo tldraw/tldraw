@@ -17,7 +17,7 @@ export const fairyMessages = defineMessages({
 	deleteTask: { defaultMessage: 'Delete task' },
 
 	// Fairy menu (labels)
-	goToFairy: { defaultMessage: 'Locate' },
+	goToFairy: { defaultMessage: 'Visit' },
 	summonFairy: { defaultMessage: 'Summon' },
 	followFairy: { defaultMessage: 'Follow' },
 	unfollowFairy: { defaultMessage: 'Unfollow' },
