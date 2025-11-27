@@ -396,14 +396,12 @@ export function createMutators(userId: string) {
 					newHistoryItems?: Record<string, ChatHistoryItem[]>
 				}
 			) => {
-				const incomingState = JSON.parse(fairyState)
-
 				// Client: Just update the full state as-is
 				if (tx.location !== 'server') {
 					await tx.mutate.file_fairies.upsert({
 						fileId,
 						userId,
-						fairyState: JSON.stringify(incomingState),
+						fairyState,
 					})
 					return
 				}
@@ -413,7 +411,7 @@ export function createMutators(userId: string) {
 				assert(hasAccess, ZErrorCode.forbidden)
 
 				// Start with incoming state (has latest non-history fields)
-				const finalState = incomingState
+				const finalState = JSON.parse(fairyState)
 
 				// Get current state from DB (only for existing chatHistory)
 				const current = await tx.query.file_fairies
