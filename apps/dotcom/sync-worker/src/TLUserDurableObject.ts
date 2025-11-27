@@ -9,6 +9,7 @@ import {
 	ZErrorCode,
 	ZServerSentPacket,
 	createMutators,
+	hasActiveFairyAccess,
 	schema,
 } from '@tldraw/dotcom-shared'
 import {
@@ -227,6 +228,28 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}
 
 			return Response.json({ success: true, totalUsage: result.totalUsage })
+		})
+		.get('/app/:userId/fairy/has-access', async () => {
+			if (!this.userId) {
+				return Response.json({ error: 'User ID not initialized' }, { status: 400 })
+			}
+
+			const userFairies = await this.db
+				.selectFrom('user_fairies')
+				.where('userId', '=', this.userId)
+				.select(['fairyAccessExpiresAt', 'fairyLimit'])
+				.executeTakeFirst()
+
+			if (!userFairies) {
+				return Response.json({ hasAccess: false })
+			}
+
+			const hasAccess = hasActiveFairyAccess(
+				userFairies.fairyAccessExpiresAt ?? null,
+				userFairies.fairyLimit ?? null
+			)
+
+			return Response.json({ hasAccess })
 		})
 
 	// Handle a request to the Durable Object.
