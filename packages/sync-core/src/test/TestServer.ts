@@ -16,10 +16,6 @@ export class TestServer<R extends UnknownRecord, P = unknown> {
 				schema: schema.serialize(),
 			},
 		})
-		// Run migrations inside the transaction so iterators can be used
-		this.storage.transaction((txn) => {
-			schema.migrateStorage(txn)
-		})
 		this.room = new TLSyncRoom<R, undefined>({ schema, storage: this.storage })
 	}
 
