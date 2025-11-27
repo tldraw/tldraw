@@ -10,7 +10,6 @@
 	"type": "module",
 	"dependencies": {
 		"@rocicorp/zero": "0.19.2025050203",
-		"@tldraw/fairy-shared": "workspace:*",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",

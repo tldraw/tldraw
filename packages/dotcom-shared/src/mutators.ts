@@ -1,6 +1,5 @@
 import type { CustomMutatorDefs } from '@rocicorp/zero'
 import type { Transaction } from '@rocicorp/zero/out/zql/src/mutate/custom'
-import { ChatHistoryItem } from '@tldraw/fairy-shared'
 import {
 	assert,
 	getIndexAbove,
@@ -393,7 +392,7 @@ export function createMutators(userId: string) {
 				}: {
 					fileId: string
 					fairyState: string
-					newHistoryItems?: Record<string, ChatHistoryItem[]>
+					newHistoryItems?: Record<string, any[]>
 				}
 			) => {
 				// Client: Just update the full state as-is
