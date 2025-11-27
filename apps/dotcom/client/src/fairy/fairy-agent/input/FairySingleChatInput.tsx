@@ -76,23 +76,26 @@ export function FairySingleChatInput({ agent, onCancel }: { agent: FairyAgent; o
 					// Shift+Enter: allow default behavior (insert newline)
 					return
 				} else {
-					// Enter: submit message
+					// Enter: submit message (interrupt() handles cancellation if generating)
 					e.preventDefault()
-					if (!isGenerating) {
-						handleComplete(inputValue || getRandomNoInputMessage())
-					}
+					handleComplete(inputValue || getRandomNoInputMessage())
 				}
 			} else if (e.key === 'Escape') {
 				onCancel()
 			}
 		},
-		[inputValue, isGenerating, handleComplete, onCancel]
+		[inputValue, handleComplete, onCancel]
 	)
 
+	// Show cancel button only when generating AND no input text
+	const showCancel = isGenerating && inputValue === ''
+
 	const handleButtonClick = () => {
-		if (isGenerating) {
+		if (showCancel) {
+			// Hard stop - cancel only, don't send
 			agent.cancel()
 		} else {
+			// Send (will interrupt if generating)
 			handleComplete(inputValue || getRandomNoInputMessage())
 		}
 	}
@@ -145,9 +148,9 @@ export function FairySingleChatInput({ agent, onCancel }: { agent: FairyAgent; o
 				<button
 					onClick={handleButtonClick}
 					className="fairy-input__submit"
-					title={isGenerating ? stopLabel : sendLabel}
+					title={showCancel ? stopLabel : sendLabel}
 				>
-					{isGenerating ? <CancelIcon /> : <LipsIcon />}
+					{showCancel ? <CancelIcon /> : <LipsIcon />}
 				</button>
 			</div>
 		</div>
