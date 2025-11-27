@@ -127,6 +127,7 @@ export function FairyMenuContent({
 
 	const resetAllChats = useCallback(() => {
 		agents.forEach((agent) => {
+			if (agent.isSleeping()) return
 			agent.reset()
 		})
 	}, [agents])
