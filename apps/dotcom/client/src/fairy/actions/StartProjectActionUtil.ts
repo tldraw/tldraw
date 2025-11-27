@@ -10,8 +10,8 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 		return {
 			icon: 'flag' as const,
 			description: action.complete
-				? `Started project: ${action.projectName}`
-				: 'Starting project...',
+				? `Planned project: ${action.projectName}`
+				: `Planning project${action.projectName ? `: ${action.projectName}` : ''}${action.projectDescription ? `\n\n${action.projectDescription}` : ''}${action.projectPlan ? `\n\n${action.projectPlan}` : ''}`,
 			pose: 'reading' as const,
 			canGroup: () => false,
 		}

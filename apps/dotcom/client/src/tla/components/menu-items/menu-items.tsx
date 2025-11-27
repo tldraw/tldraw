@@ -168,7 +168,6 @@ export function ImportFileActionItem() {
 		<TldrawUiMenuItem
 			id="about"
 			label={importFileMsg}
-			icon="import"
 			readonlyOk
 			onSelect={async () => {
 				const editor = getCurrentEditor()

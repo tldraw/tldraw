@@ -7,8 +7,18 @@ import { JsonValue } from '@tldraw/utils'
 export interface AgentRequest {
 	/**
 	 * Messages associated with the request.
+	 * These are the agent-facing messages that will be sent to the model.
 	 */
-	messages: string[]
+	agentMessages: string[]
+
+	/**
+	 * Optional user-facing messages that will be displayed in the UI.
+	 * Each index corresponds to the same index in the `messages` array.
+	 * If a user-facing message is not provided for a particular message (null),
+	 * the UI may fall back to displaying the agent-facing message.
+	 * If this array is shorter than `messages`, missing entries are treated as null.
+	 */
+	userMessages: string[]
 
 	/**
 	 * The bounds of the request.
@@ -26,3 +36,5 @@ export interface AgentRequest {
 	 */
 	source: 'user' | 'self' | 'other-agent'
 }
+
+export type AgentRequestSource = AgentRequest['source']

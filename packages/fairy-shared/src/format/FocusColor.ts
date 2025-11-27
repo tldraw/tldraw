@@ -24,13 +24,32 @@ export function asColor(color: string): FocusColor {
 	}
 
 	switch (color) {
-		case 'pink': {
-			return 'light-violet'
-		}
+		case 'pink':
 		case 'light-pink': {
 			return 'light-violet'
 		}
 	}
 
 	return 'black'
+}
+
+export function asProjectColor(color: string): FocusColor {
+	switch (color) {
+		case 'pink':
+		case 'light-pink': {
+			return 'light-violet'
+		}
+		case 'black': {
+			return 'light-green'
+		}
+		case 'gray': {
+			return 'red'
+		}
+	}
+
+	if (FocusColorSchema.safeParse(color).success) {
+		return color as FocusColor
+	}
+
+	return 'light-blue'
 }

@@ -1,9 +1,11 @@
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { MouseEvent } from 'react'
 import { TldrawUiToolbarToggleGroup, TldrawUiToolbarToggleItem, useValue } from 'tldraw'
+import { useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
-import { FairySpriteComponent2 } from './fairy-sprite/FairySprite2'
-import { SelectedSprite } from './fairy-sprite/sprites/SelectedSprite'
+import { fairyMessages } from './fairy-messages'
+import { FairySprite, getHatColor } from './fairy-sprite/FairySprite'
+import { FairyReticleSprite } from './fairy-sprite/sprites/FairyReticleSprite'
 import { FairyContextMenuContent } from './FairyContextMenuContent'
 import { getProjectColor } from './getProjectColor'
 
@@ -13,13 +15,19 @@ export function FairySidebarButton({
 	onDoubleClick,
 	selectMessage,
 	deselectMessage,
+	hasAnySelectedFairies,
+	hasAnyActiveProjects,
 }: {
 	agent: FairyAgent
 	onClick(e: MouseEvent): void
 	onDoubleClick(): void
 	selectMessage: string
 	deselectMessage: string
+	hasAnySelectedFairies: boolean
+	hasAnyActiveProjects: boolean
 }) {
+	const joinSelectedFairiesLabel = useMsg(fairyMessages.joinSelectedFairies)
+
 	const fairyIsSelected = useValue(
 		'fairy-button-selected',
 		() => agent.$fairyEntity.get()?.isSelected ?? false,
@@ -36,9 +44,23 @@ export function FairySidebarButton({
 		() => agent.getRole() === 'orchestrator' || agent.getRole() === 'duo-orchestrator',
 		[agent]
 	)
-	const projectColor = project ? getProjectColor(agent.editor, project.color) : undefined
+	const projectColor = project ? getProjectColor(project.color) : undefined
+
+	const handlePlusClick = (e: MouseEvent) => {
+		e.preventDefault()
+		e.stopPropagation()
+		// Toggle selection like shift-clicking would
+		agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: !fairyIsSelected } : f))
+	}
 
 	if (!fairyEntity || !fairyOutfit) return null
+
+	const showPlusButton =
+		hasAnySelectedFairies &&
+		!fairyIsSelected &&
+		!project &&
+		!hasAnyActiveProjects &&
+		!agent.isSleeping()
 
 	return (
 		<_ContextMenu.Root dir="ltr">
@@ -56,28 +78,58 @@ export function FairySidebarButton({
 						value="on"
 					>
 						<div className="fairy-sprite-wrapper">
-							<FairySpriteComponent2
+							<FairySprite
 								showShadow
-								entity={fairyEntity}
-								outfit={fairyOutfit}
-								animated={fairyEntity.pose !== 'idle' || fairyIsSelected}
-								flipX={fairyEntity.flipX}
+								pose={fairyEntity.pose}
+								gesture={fairyEntity.gesture}
+								hatColor={getHatColor(fairyOutfit.hat)}
+								isAnimated={fairyEntity.pose !== 'idle' || fairyIsSelected}
+								flipX={fairyEntity.pose === 'sleeping' ? false : fairyEntity.flipX}
+								isOrchestrator={isOrchestrator}
+								projectColor={projectColor}
 							/>
-							{fairyIsSelected && (
+							{fairyIsSelected && !project && (
 								<div className="fairy-selected-sprite-overlay">
-									<SelectedSprite />
+									<FairyReticleSprite inset={3} />
 								</div>
 							)}
+							{showPlusButton && (
+								<button
+									className="fairy-plus-button"
+									onClick={handlePlusClick}
+									aria-label={joinSelectedFairiesLabel}
+									title={joinSelectedFairiesLabel}
+								>
+									<svg
+										width="12"
+										height="12"
+										viewBox="0 0 12 12"
+										fill="none"
+										xmlns="http://www.w3.org/2000/svg"
+									>
+										<circle cx="6" cy="6" r="6" fill="var(--tl-color-fairy-select)" />
+										<line
+											x1="4"
+											y1="6"
+											x2="8"
+											y2="6"
+											stroke="var(--tl-color-fairy-light)"
+											strokeWidth="2"
+											strokeLinecap="round"
+										/>
+										<line
+											x1="6"
+											y1="4"
+											x2="6"
+											y2="8"
+											stroke="var(--tl-color-fairy-light)"
+											strokeWidth="2"
+											strokeLinecap="round"
+										/>
+									</svg>
+								</button>
+							)}
 						</div>
-						{projectColor && (
-							<div
-								className={`fairy-button-project-indicator ${isOrchestrator ? 'fairy-button-project-indicator--orchestrator' : ''}`}
-								style={{
-									backgroundColor: isOrchestrator ? 'transparent' : projectColor,
-									borderColor: projectColor,
-								}}
-							/>
-						)}
 					</TldrawUiToolbarToggleItem>
 				</TldrawUiToolbarToggleGroup>
 			</_ContextMenu.Trigger>

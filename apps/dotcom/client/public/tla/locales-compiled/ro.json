@@ -5,6 +5,18 @@
       "value": "Export"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Acceptă invitația"
+    }
+  ],
+  "038c9b4432": [
+    {
+      "type": 0,
+      "value": "Personalitatea zânei"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -19,12 +31,6 @@
     {
       "type": 1,
       "value": "GetHelpLink"
-    }
-  ],
-  "05596b840b": [
-    {
-      "type": 0,
-      "value": "Deschideți tldraw."
     }
   ],
   "06b9281e39": [
@@ -51,10 +57,16 @@
       "value": "Cont"
     }
   ],
-  "08d2d725a9": [
+  "090b807281": [
     {
       "type": 0,
-      "value": "Creează un cont gratuit pentru a-ți salva munca, a colabora în timp real și multe altele."
+      "value": "Ţepos"
+    }
+  ],
+  "0a91f7fa87": [
+    {
+      "type": 0,
+      "value": "Acest fișier a atins limita de dimensiune și este posibil ca modificările să nu mai fie salvate. Eliminați o parte din conținut sau începeți un fișier nou."
     }
   ],
   "0b27918290": [
@@ -69,10 +81,10 @@
       "value": "meniul Fișier"
     }
   ],
-  "0beb3ca97b": [
+  "0befa10111": [
     {
       "type": 0,
-      "value": "tldraw este o tablă albă virtuală gratuită și instantanee."
+      "value": "Zâne"
     }
   ],
   "0d1f2bb523": [
@@ -85,6 +97,12 @@
     {
       "type": 0,
       "value": "Publica"
+    }
+  ],
+  "11a755d598": [
+    {
+      "type": 0,
+      "value": "Stop"
     }
   ],
   "129b9e34ea": [
@@ -109,6 +127,12 @@
     {
       "type": 0,
       "value": "Exportați ca"
+    }
+  ],
+  "141c7239d3": [
+    {
+      "type": 0,
+      "value": "Personalizarea zânelor"
     }
   ],
   "146ffe2fd9": [
@@ -141,16 +165,22 @@
       "value": "Astăzi"
     }
   ],
-  "20976e7bec": [
+  "1e38506832": [
     {
       "type": 0,
-      "value": "Camera este plină"
+      "value": "Du-te la zână"
     }
   ],
-  "21bfb2dc2e": [
+  "1fe250ea06": [
     {
       "type": 0,
-      "value": "Această cameră se apropie de limita de dimensiune. Luați în considerare eliminarea unei părți din conținut sau începerea unui fișier nou."
+      "value": "Instruiți grupul…"
+    }
+  ],
+  "243924bfd5": [
+    {
+      "type": 0,
+      "value": "Dormi"
     }
   ],
   "2445e5e347": [
@@ -165,6 +195,12 @@
       "value": "Despre tldraw"
     }
   ],
+  "284d5cd0dd": [
+    {
+      "type": 0,
+      "value": "Model:"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -177,10 +213,30 @@
       "value": "Fișierele mele"
     }
   ],
-  "2deec2cb74": [
+  "2e86e6853d": [
     {
       "type": 0,
-      "value": "Această cameră a atins limita de dimensiune și este posibil ca modificările să nu mai fie salvate. Eliminați o parte din conținut sau începeți un fișier nou."
+      "value": "Selectați liderul"
+    }
+  ],
+  "30cd34258a": [
+    {
+      "type": 0,
+      "value": "O mulțime de "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "zâne"
+        }
+      ],
+      "type": 8,
+      "value": "b"
+    },
+    {
+      "type": 0,
+      "value": " au venit la tldraw pentru luna decembrie. Pentru a investiga mai departe, găsiți zâna și faceți clic pe ea."
     }
   ],
   "31246941ad": [
@@ -195,10 +251,22 @@
       "value": "i18n: Evidențiați Lipsă"
     }
   ],
+  "3209f407ed": [
+    {
+      "type": 0,
+      "value": "trei zâne"
+    }
+  ],
   "32210b37e4": [
     {
       "type": 0,
       "value": "Adăugați link"
+    }
+  ],
+  "324a0f3182": [
+    {
+      "type": 0,
+      "value": "Înapoi la tldraw"
     }
   ],
   "335defdafe": [
@@ -207,10 +275,52 @@
       "value": "Vă rugăm să încercați să reîmprospătați pagina."
     }
   ],
+  "33f9ea6fe8": [
+    {
+      "type": 0,
+      "value": "Dizolvați grupul"
+    }
+  ],
+  "34140869c6": [
+    {
+      "type": 0,
+      "value": "O mulțime de zâne vin la extragere în luna decembrie. Vă rugăm să reveniți pe 1 decembrie."
+    }
+  ],
   "344a7f427f": [
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "3596c1b1f7": [
+    {
+      "type": 0,
+      "value": "Nu urmăriți"
+    }
+  ],
+  "3903aab323": [
+    {
+      "type": 0,
+      "value": "Urmărește"
+    }
+  ],
+  "3a295397e6": [
+    {
+      "type": 0,
+      "value": "Cere ajutor"
+    }
+  ],
+  "3a77f951ca": [
+    {
+      "type": 0,
+      "value": "Adăugați o sarcină nouă…"
+    }
+  ],
+  "3b6c2b4caa": [
+    {
+      "type": 0,
+      "value": "Termeni și condiții"
     }
   ],
   "3bc7d6ea2f": [
@@ -237,6 +347,12 @@
       "value": "Acceptă tot"
     }
   ],
+  "4131ec34ef": [
+    {
+      "type": 0,
+      "value": "Chel"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -253,6 +369,18 @@
     {
       "type": 0,
       "value": "Vă mulțumim că ne ajutați să îmbunătățim tldraw!"
+    }
+  ],
+  "465a8a92a4": [
+    {
+      "type": 0,
+      "value": "Nicio zână selectată"
+    }
+  ],
+  "477df802ca": [
+    {
+      "type": 0,
+      "value": "Pentru a continua editarea, vă rugăm să copiați fișierul în fișierele dvs."
     }
   ],
   "47839e47a5": [
@@ -309,6 +437,12 @@
       "value": "Sigur doriți să ștergeți acest grup? Această acțiune nu poate fi anulată."
     }
   ],
+  "4f827717f7": [
+    {
+      "type": 0,
+      "value": "Ascuțit"
+    }
+  ],
   "50db1b7e1e": [
     {
       "type": 0,
@@ -321,16 +455,16 @@
       "value": "Meniul paginii"
     }
   ],
+  "542248f0ba": [
+    {
+      "type": 0,
+      "value": "Acest fișier este acum doar pentru citire"
+    }
+  ],
   "54286b1d01": [
     {
       "type": 0,
       "value": "Limita de colaboratori a fost atinsă"
-    }
-  ],
-  "54d240fa41": [
-    {
-      "type": 0,
-      "value": "Vă rugăm să încetinți."
     }
   ],
   "554a05155c": [
@@ -365,6 +499,12 @@
     {
       "type": 0,
       "value": "Politica de confidențialitate"
+    }
+  ],
+  "5a2ccdc00a": [
+    {
+      "type": 0,
+      "value": "Codul de invitație nu a putut fi valorificat"
     }
   ],
   "5a86b22fa0": [
@@ -407,18 +547,6 @@
       "value": "Distribuie"
     }
   ],
-  "5bb6cf3b53": [
-    {
-      "type": 0,
-      "value": "Camera devine mare"
-    }
-  ],
-  "5bcc12ace8": [
-    {
-      "type": 0,
-      "value": "Această cameră este acum doar pentru citire"
-    }
-  ],
   "5bec508475": [
     {
       "type": 0,
@@ -435,6 +563,12 @@
     {
       "type": 0,
       "value": "Nu am reușit să încărcăm o parte din conținutul pe care l-ați creat înainte de a vă conecta."
+    }
+  ],
+  "5ea8bb44be": [
+    {
+      "type": 0,
+      "value": "Ai fost invitat să te alături grupului:"
     }
   ],
   "5f3c333678": [
@@ -467,6 +601,24 @@
       "value": "tu"
     }
   ],
+  "63a78ed464": [
+    {
+      "type": 0,
+      "value": "Personalizare"
+    }
+  ],
+  "64ebe56d8c": [
+    {
+      "type": 0,
+      "value": "Faceți clic pentru a elimina sau trageți pentru a muta"
+    }
+  ],
+  "65709fd250": [
+    {
+      "type": 0,
+      "value": "Listă de sarcini"
+    }
+  ],
   "6609dd239e": [
     {
       "type": 0,
@@ -479,28 +631,16 @@
       "value": "Este disponibilă o nouă versiune de tldraw. Vă rugăm să reîncărcați pagina pentru a continua."
     }
   ],
-  "68257bb646": [
-    {
-      "type": 0,
-      "value": "Ai fost invitat(ă) în grupul "
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "br"
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "groupName"
-    }
-  ],
   "6832ac5936": [
     {
       "type": 0,
       "value": "Introdu adresa ta de e-mail"
+    }
+  ],
+  "68d390535e": [
+    {
+      "type": 0,
+      "value": "Introdu mesajul tău"
     }
   ],
   "6a26f54883": [
@@ -519,6 +659,12 @@
     {
       "type": 0,
       "value": "Urmați acești pași pentru a importa manual conținutul:"
+    }
+  ],
+  "6e02bd9e1e": [
+    {
+      "type": 0,
+      "value": "Pune deoparte zânele"
     }
   ],
   "70222abcfc": [
@@ -581,10 +727,28 @@
       "value": "Vă rugăm să reîncărcați"
     }
   ],
+  "76dea3c9ca": [
+    {
+      "type": 0,
+      "value": "tldraw este o tablă albă online gratuită. Creează-ți un cont pentru a salva fișierele și a lucra cu prietenii tăi."
+    }
+  ],
   "777f9e90cf": [
     {
       "type": 0,
       "value": "Solicitare nevalidă."
+    }
+  ],
+  "7827371d1a": [
+    {
+      "type": 0,
+      "value": "Acest fișier multiplayer anonim tldraw este acum doar pentru citire. Pentru a continua editarea, vă rugăm să vă conectați și să îl copiați în fișierele dvs."
+    }
+  ],
+  "7835039819": [
+    {
+      "type": 0,
+      "value": "Elice"
     }
   ],
   "78e9815992": [
@@ -599,16 +763,46 @@
       "value": "Trimiteți o problemă pe GitHub"
     }
   ],
+  "79cc22ac6b": [
+    {
+      "type": 0,
+      "value": "O zână este un micuț care poate lucra cu tine pe pânză. Zânele pot lucra singure sau în echipă. Nu există limite la ceea ce poate face o zână. Nimeni nu știe de unde a venit."
+    }
+  ],
+  "7a3113b0ba": [
+    {
+      "type": 0,
+      "value": "Trageți pe pânză"
+    }
+  ],
   "7b1329f5ca": [
     {
       "type": 0,
       "value": "Manual de utilizare"
     }
   ],
+  "7b5449bd84": [
+    {
+      "type": 0,
+      "value": "Antenă"
+    }
+  ],
   "7be10fc592": [
     {
       "type": 0,
       "value": "Restaurați versiunea"
+    }
+  ],
+  "7c0747a5df": [
+    {
+      "type": 0,
+      "value": "Deschideți tldraw"
+    }
+  ],
+  "7cb471f815": [
+    {
+      "type": 0,
+      "value": "Ai fost invitat să te alături zânelor tldraw!"
     }
   ],
   "7cb5f8b4a5": [
@@ -675,6 +869,18 @@
       "value": "."
     }
   ],
+  "81d48c2f3a": [
+    {
+      "type": 0,
+      "value": "Afișați sarcinile pe pânză"
+    }
+  ],
+  "8472a551f1": [
+    {
+      "type": 0,
+      "value": "Zânele au venit la desen pentru luna decembrie."
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -695,10 +901,28 @@
       "value": " fișiere .tldr."
     }
   ],
+  "86a7df7572": [
+    {
+      "type": 0,
+      "value": "Invocă zâne"
+    }
+  ],
   "86c66437fd": [
     {
       "type": 0,
       "value": "Redenumiți fișierul"
+    }
+  ],
+  "88e83b88c5": [
+    {
+      "type": 0,
+      "value": "Cumpără pachetul Zâne"
+    }
+  ],
+  "898e76f01a": [
+    {
+      "type": 0,
+      "value": "Resetați totul"
     }
   ],
   "8ad4303b83": [
@@ -707,10 +931,10 @@
       "value": "Nu, mulțumesc"
     }
   ],
-  "8b1946f965": [
+  "8be569f100": [
     {
       "type": 0,
-      "value": "Pentru a continua editarea, vă rugăm să copiați camera în fișierele dvs."
+      "value": "plată unică"
     }
   ],
   "8c2d3d730c": [
@@ -755,6 +979,24 @@
       "value": "Link de invitație copiat"
     }
   ],
+  "93346fdd70": [
+    {
+      "type": 0,
+      "value": "Urechi"
+    }
+  ],
+  "93dfe9fbbe": [
+    {
+      "type": 0,
+      "value": "Deselectați zâna"
+    }
+  ],
+  "94966d9074": [
+    {
+      "type": 0,
+      "value": "Trimite"
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -773,6 +1015,12 @@
       "value": "Luna aceasta"
     }
   ],
+  "97a9f16b2e": [
+    {
+      "type": 0,
+      "value": "Zână nouă"
+    }
+  ],
   "985a4b720f": [
     {
       "type": 0,
@@ -785,10 +1033,22 @@
       "value": "Adăugați linkul fișierului"
     }
   ],
+  "98e528aac6": [
+    {
+      "type": 0,
+      "value": "Treceți la chatul cu zâne"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Aprinde"
+    }
+  ],
+  "9953e9946b": [
+    {
+      "type": 0,
+      "value": "Vizualizare de depanare"
     }
   ],
   "9b33f5c63c": [
@@ -815,12 +1075,6 @@
     {
       "type": 0,
       "value": "Ștergeți fișierul"
-    }
-  ],
-  "9c258b8f88": [
-    {
-      "type": 0,
-      "value": "Această cameră multiplayer anonimă de pe tldraw este acum doar pentru citire. Pentru a continua editarea, vă rugăm să o conectați și să o copiați în fișierele dvs."
     }
   ],
   "9ceb927baa": [
@@ -871,16 +1125,34 @@
       "value": "Exportați imaginea"
     }
   ],
+  "a2f0372a75": [
+    {
+      "type": 0,
+      "value": "Comutare la lista de activități"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
       "value": "Politica de cookie-uri"
     }
   ],
+  "a3e932550c": [
+    {
+      "type": 0,
+      "value": "Numele zânei"
+    }
+  ],
   "a4d3b161ce": [
     {
       "type": 0,
       "value": "Trimiteți"
+    }
+  ],
+  "a4ffdcf0dc": [
+    {
+      "type": 0,
+      "value": "Top"
     }
   ],
   "a6cc403d56": [
@@ -895,16 +1167,22 @@
       "value": "Analytics"
     }
   ],
+  "a885eb91ac": [
+    {
+      "type": 0,
+      "value": "Selecția zânei lider"
+    }
+  ],
+  "a8873770ab": [
+    {
+      "type": 0,
+      "value": "Fișierul devine mare"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
       "value": "Fundal"
-    }
-  ],
-  "aa916767cf": [
-    {
-      "type": 0,
-      "value": "Conectați-vă pentru a accepta invitația"
     }
   ],
   "ab0df9ba36": [
@@ -929,6 +1207,18 @@
     {
       "type": 0,
       "value": "Utilizator invitat"
+    }
+  ],
+  "b2c3c2e30c": [
+    {
+      "type": 0,
+      "value": "Fișierul este plin"
+    }
+  ],
+  "b34a671e2c": [
+    {
+      "type": 0,
+      "value": "Timp de răspuns în jurnal"
     }
   ],
   "b357b524e7": [
@@ -959,6 +1249,12 @@
     {
       "type": 0,
       "value": "Copiați linkul"
+    }
+  ],
+  "b8996797b9": [
+    {
+      "type": 0,
+      "value": "Ascundeți sarcinile pe pânză"
     }
   ],
   "ba0318cb81": [
@@ -1055,10 +1351,22 @@
       "value": "` să ne ajute să îmbunătățim tldraw."
     }
   ],
+  "c2ad21c079": [
+    {
+      "type": 0,
+      "value": "Păr"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
       "value": "Nu se poate publica fișierul."
+    }
+  ],
+  "c3eb5c3b90": [
+    {
+      "type": 0,
+      "value": "Am înțeles"
     }
   ],
   "c4b39a1cc3": [
@@ -1097,6 +1405,12 @@
       "value": "Sign out"
     }
   ],
+  "c9b04e7b53": [
+    {
+      "type": 0,
+      "value": "Deselectați liderul"
+    }
+  ],
   "c9cc8cce24": [
     {
       "type": 0,
@@ -1115,16 +1429,46 @@
       "value": "SVG"
     }
   ],
+  "ce0547606c": [
+    {
+      "type": 0,
+      "value": "Acest fișier se apropie de limita de dimensiune. Luați în considerare eliminarea unei părți din conținut sau crearea unui fișier nou."
+    }
+  ],
+  "ce1424d44b": [
+    {
+      "type": 0,
+      "value": "Ai deja acces la zâne!"
+    }
+  ],
   "cea291e45e": [
     {
       "type": 0,
       "value": "Aflați mai multe despre publicare."
     }
   ],
+  "cf62a7f9a7": [
+    {
+      "type": 0,
+      "value": "Resetează chaturile"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
       "value": "Aproape"
+    }
+  ],
+  "d438a51e6e": [
+    {
+      "type": 0,
+      "value": "Adoarme toate zânele"
+    }
+  ],
+  "d46632fe1f": [
+    {
+      "type": 0,
+      "value": "Prea multe solicitări. Vă rugăm să încetiniți."
     }
   ],
   "d4bbf74f3e": [
@@ -1173,6 +1517,26 @@
       "value": "Temă"
     }
   ],
+  "d739f35e18": [
+    {
+      "type": 0,
+      "value": "Șoptește către "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
+  "d7bc9d5a2e": [
+    {
+      "type": 0,
+      "value": "Ștergeți sarcina"
+    }
+  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1203,10 +1567,48 @@
       "value": "Numai cu invitație"
     }
   ],
+  "dbbece0c3a": [
+    {
+      "type": 0,
+      "value": "Ștergeți toate chaturile"
+    }
+  ],
+  "dc30bc0c79": [
+    {
+      "type": 0,
+      "value": "Clar"
+    }
+  ],
   "dcdaa754fe": [
     {
       "type": 0,
       "value": "Adresă URL fișier tldraw nevalidă"
+    }
+  ],
+  "de290d52ef": [
+    {
+      "type": 0,
+      "value": "Selectează o zână din dreapta cu care să vorbești"
+    }
+  ],
+  "df6ff49394": [
+    {
+      "type": 0,
+      "value": "Zânele sunt o funcție "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "temporară"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Pe 1 ianuarie 2026, toate zânele vor fi eliminate din aplicație. Poate că vor reveni într-o zi. Achiziția dvs. este pentru acces la zâne doar pentru decembrie 2025."
     }
   ],
   "dfdb78a4e4": [
@@ -1255,6 +1657,12 @@
     {
       "type": 0,
       "value": "Zonă periculoasă"
+    }
+  ],
+  "ea181d98ca": [
+    {
+      "type": 0,
+      "value": "Selectați zâna"
     }
   ],
   "ea4788705e": [
@@ -1325,6 +1733,18 @@
       "value": "selectat"
     }
   ],
+  "efb2d9d471": [
+    {
+      "type": 0,
+      "value": "Listă de activități"
+    }
+  ],
+  "efde983742": [
+    {
+      "type": 0,
+      "value": "Convoca"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1335,6 +1755,12 @@
     {
       "type": 0,
       "value": "Setări utilizator"
+    }
+  ],
+  "f23056da60": [
+    {
+      "type": 0,
+      "value": "Proiect nou"
     }
   ],
   "f2569594b2": [
@@ -1349,22 +1775,34 @@
       "value": "Şterge"
     }
   ],
-  "f43fb62093": [
-    {
-      "type": 0,
-      "value": "Înapoi la tldraw."
-    }
-  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "Setări"
     }
   ],
+  "f6ae34b4ba": [
+    {
+      "type": 0,
+      "value": "Resetează toate baghetele"
+    }
+  ],
   "f714e36843": [
     {
       "type": 0,
       "value": "Sigur vrei să părăsești acest grup?"
+    }
+  ],
+  "f7d5ee6855": [
+    {
+      "type": 0,
+      "value": "Alegeți mai întâi un lider…"
+    }
+  ],
+  "f87386b4ba": [
+    {
+      "type": 0,
+      "value": "Invocă toate zânele"
     }
   ],
   "fa2ead697d": [
@@ -1377,6 +1815,12 @@
     {
       "type": 0,
       "value": "Vizualizator"
+    }
+  ],
+  "fd11eafb92": [
+    {
+      "type": 0,
+      "value": "Desființați proiectele"
     }
   ],
   "fd1be3efcf": [
@@ -1401,6 +1845,12 @@
     {
       "type": 0,
       "value": "Importați fișierul…"
+    }
+  ],
+  "ffec95af2f": [
+    {
+      "type": 0,
+      "value": "Cumpără acces la zâne"
     }
   ]
 }

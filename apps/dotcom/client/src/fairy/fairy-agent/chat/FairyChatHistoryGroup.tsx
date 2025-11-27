@@ -5,6 +5,7 @@ import { FairyChatHistoryAction } from './FairyChatHistoryAction'
 
 export interface FairyChatHistoryGroup {
 	items: ChatHistoryActionItem[]
+	isFinalGroup: boolean
 }
 
 export function FairyChatHistoryGroup({
@@ -45,7 +46,9 @@ export function FairyChatHistoryGroup({
 		return (
 			<div className="fairy-chat-history-group">
 				{nonEmptyItems.map((item, i) => {
-					return <FairyChatHistoryItem item={item} agent={agent} key={'action-' + i} />
+					return (
+						<FairyChatHistoryItem group={group} item={item} agent={agent} key={'action-' + i} />
+					)
 				})}
 			</div>
 		)
@@ -66,7 +69,9 @@ export function FairyChatHistoryGroup({
 			{showContent && (
 				<div className="fairy-chat-history-group-items">
 					{nonEmptyItems.map((item, i) => {
-						return <FairyChatHistoryAction item={item} agent={agent} key={'action-' + i} />
+						return (
+							<FairyChatHistoryAction group={group} item={item} agent={agent} key={'action-' + i} />
+						)
 					})}
 				</div>
 			)}
@@ -74,7 +79,15 @@ export function FairyChatHistoryGroup({
 	)
 }
 
-function FairyChatHistoryItem({ item, agent }: { item: ChatHistoryActionItem; agent: FairyAgent }) {
+function FairyChatHistoryItem({
+	item,
+	group,
+	agent,
+}: {
+	item: ChatHistoryActionItem
+	group: FairyChatHistoryGroup
+	agent: FairyAgent
+}) {
 	const { action } = item
 	const { description, summary } = agent.getActionInfo(action)
 	const collapsible = summary !== null
@@ -93,7 +106,9 @@ function FairyChatHistoryItem({ item, agent }: { item: ChatHistoryActionItem; ag
 				</button>
 			)}
 
-			{(!collapsed || !action.complete) && <FairyChatHistoryAction item={item} agent={agent} />}
+			{(!collapsed || !action.complete) && (
+				<FairyChatHistoryAction group={group} item={item} agent={agent} />
+			)}
 		</div>
 	)
 }
@@ -103,7 +118,9 @@ function FairyChatHistoryItem({ item, agent }: { item: ChatHistoryActionItem; ag
  */
 export function getActionHistoryGroups(
 	items: ChatHistoryActionItem[],
-	agent: FairyAgent
+	agent: FairyAgent,
+	isFinalSection: boolean,
+	isGenerating: boolean
 ): FairyChatHistoryGroup[] {
 	const groups: FairyChatHistoryGroup[] = []
 
@@ -114,12 +131,22 @@ export function getActionHistoryGroups(
 		}
 
 		const group = groups[groups.length - 1]
+
 		if (group && canActionBeGrouped({ item, group, agent })) {
 			group.items.push(item)
 		} else {
 			groups.push({
 				items: [item],
+				isFinalGroup: false,
 			})
+		}
+	}
+
+	// Manually pop out the final action of the final group during generations
+	if (isFinalSection && isGenerating) {
+		const finalGroup = groups[groups.length - 1]
+		if (finalGroup) {
+			finalGroup.isFinalGroup = true
 		}
 	}
 
@@ -139,7 +166,6 @@ export function canActionBeGrouped({
 	agent: FairyAgent
 }) {
 	if (!item.action.complete) return false
-	if (!group) return false
 
 	const groupAcceptance = group.items[0]?.acceptance
 	if (groupAcceptance !== item.acceptance) return false

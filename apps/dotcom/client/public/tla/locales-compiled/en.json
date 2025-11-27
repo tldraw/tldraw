@@ -183,6 +183,12 @@
       "value": "Your weekly fairy usage limit has been reached. It will reset at the start of next week."
     }
   ],
+  "243924bfd5": [
+    {
+      "type": 0,
+      "value": "Sleep"
+    }
+  ],
   "2445e5e347": [
     {
       "type": 0,
@@ -193,12 +199,6 @@
     {
       "type": 0,
       "value": "About tldraw"
-    }
-  ],
-  "2811a731bb": [
-    {
-      "type": 0,
-      "value": "Customize fairy"
     }
   ],
   "284d5cd0dd": [
@@ -219,16 +219,36 @@
       "value": "My files"
     }
   ],
+  "2db683a1fe": [
+    {
+      "type": 0,
+      "value": "Join selected fairies"
+    }
+  ],
   "2e86e6853d": [
     {
       "type": 0,
       "value": "Select leader"
     }
   ],
-  "2f7935debe": [
+  "30cd34258a": [
     {
       "type": 0,
-      "value": "Put away fairy"
+      "value": "A flutter of "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "fairies"
+        }
+      ],
+      "type": 8,
+      "value": "b"
+    },
+    {
+      "type": 0,
+      "value": " have come to tldraw for the month of December. To investigate further, find the fairy and click it."
     }
   ],
   "31246941ad": [
@@ -273,10 +293,28 @@
       "value": "Disband group"
     }
   ],
+  "34140869c6": [
+    {
+      "type": 0,
+      "value": "A flutter of fairies is coming to tldraw for the month of December. Please check back on December 1st."
+    }
+  ],
   "344a7f427f": [
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "3596c1b1f7": [
+    {
+      "type": 0,
+      "value": "Unfollow"
+    }
+  ],
+  "3903aab323": [
+    {
+      "type": 0,
+      "value": "Follow"
     }
   ],
   "3a295397e6": [
@@ -387,12 +425,6 @@
       "value": "Name"
     }
   ],
-  "4b3e8439d5": [
-    {
-      "type": 0,
-      "value": "Leader fairy will be given orchestration power"
-    }
-  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -415,12 +447,6 @@
     {
       "type": 0,
       "value": "Are you sure you want to delete this group? This action cannot be undone."
-    }
-  ],
-  "4ef3716596": [
-    {
-      "type": 0,
-      "value": "Unfollow fairy"
     }
   ],
   "4f827717f7": [
@@ -587,6 +613,12 @@
       "value": "you"
     }
   ],
+  "63a78ed464": [
+    {
+      "type": 0,
+      "value": "Customize"
+    }
+  ],
   "64ebe56d8c": [
     {
       "type": 0,
@@ -617,6 +649,12 @@
       "value": "Enter your email address"
     }
   ],
+  "68d390535e": [
+    {
+      "type": 0,
+      "value": "Enter your message"
+    }
+  ],
   "6a26f54883": [
     {
       "type": 0,
@@ -633,6 +671,12 @@
     {
       "type": 0,
       "value": "Follow these steps to import the content manually:"
+    }
+  ],
+  "6e02bd9e1e": [
+    {
+      "type": 0,
+      "value": "Put away fairies"
     }
   ],
   "70222abcfc": [
@@ -791,12 +835,6 @@
       "value": "Publish changes"
     }
   ],
-  "7e94fd31ac": [
-    {
-      "type": 0,
-      "value": "Create project"
-    }
-  ],
   "7fcdcc6455": [
     {
       "type": 0,
@@ -873,6 +911,12 @@
     {
       "type": 0,
       "value": " .tldr files."
+    }
+  ],
+  "86a7df7572": [
+    {
+      "type": 0,
+      "value": "Summon fairies"
     }
   ],
   "86c66437fd": [
@@ -1117,12 +1161,6 @@
       "value": "Submit"
     }
   ],
-  "a4e2d4d837": [
-    {
-      "type": 0,
-      "value": "Reset all chats"
-    }
-  ],
   "a4ffdcf0dc": [
     {
       "type": 0,
@@ -1339,10 +1377,10 @@
       "value": "Unable to publish the file."
     }
   ],
-  "c3e97dd6e9": [
+  "c3eb5c3b90": [
     {
       "type": 0,
-      "value": "$"
+      "value": "I understand"
     }
   ],
   "c4b39a1cc3": [
@@ -1393,12 +1431,6 @@
       "value": "Save"
     }
   ],
-  "cb93643511": [
-    {
-      "type": 0,
-      "value": "Summon fairy"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -1429,10 +1461,22 @@
       "value": "Learn more about publishing."
     }
   ],
+  "cf62a7f9a7": [
+    {
+      "type": 0,
+      "value": "Reset chats"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
       "value": "Close"
+    }
+  ],
+  "d438a51e6e": [
+    {
+      "type": 0,
+      "value": "Put all fairies to sleep"
     }
   ],
   "d46632fe1f": [
@@ -1445,12 +1489,6 @@
     {
       "type": 0,
       "value": "Toggle sidebar"
-    }
-  ],
-  "d5f491d157": [
-    {
-      "type": 0,
-      "value": "Follow fairy"
     }
   ],
   "d638a3344b": [
@@ -1513,12 +1551,6 @@
       "value": "Delete task"
     }
   ],
-  "d856d53da4": [
-    {
-      "type": 0,
-      "value": "No leader selected"
-    }
-  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1547,6 +1579,18 @@
     {
       "type": 0,
       "value": "Invite only"
+    }
+  ],
+  "dbbece0c3a": [
+    {
+      "type": 0,
+      "value": "Clear all chats"
+    }
+  ],
+  "dc30bc0c79": [
+    {
+      "type": 0,
+      "value": "Clear"
     }
   ],
   "dcdaa754fe": [
@@ -1709,6 +1753,12 @@
       "value": "Todo list"
     }
   ],
+  "efde983742": [
+    {
+      "type": 0,
+      "value": "Summon"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1719,6 +1769,12 @@
     {
       "type": 0,
       "value": "User settings"
+    }
+  ],
+  "f23056da60": [
+    {
+      "type": 0,
+      "value": "New project"
     }
   ],
   "f2569594b2": [
@@ -1775,12 +1831,6 @@
       "value": "Viewer"
     }
   ],
-  "fcd66d76d6": [
-    {
-      "type": 0,
-      "value": "Delete all fairies"
-    }
-  ],
   "fd11eafb92": [
     {
       "type": 0,
@@ -1797,12 +1847,6 @@
     {
       "type": 0,
       "value": "Copied link"
-    }
-  ],
-  "ff7276d298": [
-    {
-      "type": 0,
-      "value": "Reset chat"
     }
   ],
   "ff7a814974": [

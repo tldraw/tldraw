@@ -11,7 +11,9 @@ export class StartDuoTaskActionUtil extends AgentActionUtil<StartDuoTaskAction> 
 
 		return {
 			icon: 'note' as const,
-			description: action.complete ? `Started task: ${task?.title}` : 'Starting task...',
+			description: action.complete
+				? `Started task${task?.title ? `: ${task.title}` : ''}`
+				: 'Starting task...',
 			pose: 'reading' as const,
 			canGroup: () => false,
 		}
@@ -57,7 +59,7 @@ export class StartDuoTaskActionUtil extends AgentActionUtil<StartDuoTaskAction> 
 		this.agent.interrupt({
 			mode: 'working-orchestrator',
 			input: {
-				messages: [
+				agentMessages: [
 					`You just decided to start working on a task.\nID: "${task.id}"\nTitle: "${task.title}"\nDescription: "${task.text}".`,
 				],
 				bounds: {

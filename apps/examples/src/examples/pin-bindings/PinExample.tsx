@@ -274,8 +274,18 @@ class PinBindingUtil extends BindingUtil<PinBinding> {
 	}
 
 	// when the shape we're stuck to changes, update the pin's position
-	override onAfterChangeToShape({ binding }: BindingOnShapeChangeOptions<PinBinding>): void {
+	override onAfterChangeToShape({
+		binding,
+		shapeAfter,
+	}: BindingOnShapeChangeOptions<PinBinding>): void {
 		this.changedToShapes.add(binding.toId)
+		const pin = this.editor.getShape(binding.fromId)
+		if (!pin) return
+
+		// If the bound shape changed parents, reparent the pin to follow
+		if (pin.parentId !== shapeAfter.parentId) {
+			this.editor.reparentShapes([pin.id], shapeAfter.parentId)
+		}
 	}
 
 	// when the thing we're stuck to is deleted, delete the pin too

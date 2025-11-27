@@ -142,7 +142,8 @@ export function TlaSidebarFairyCheckoutLink() {
 					<F defaultMessage="Purchase fairy access" />
 				</span>
 				<span className={styles.sidebarFairyCheckoutButtonPrice}>
-					<F defaultMessage="$" />
+					{/* eslint-disable-next-line */}
+					{'$'}
 				</span>
 			</button>
 		</div>

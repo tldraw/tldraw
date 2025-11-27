@@ -4,6 +4,7 @@ import { useSync } from '@tldraw/sync'
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	DefaultDebugMenu,
+	DefaultDebugMenuContent,
 	Editor,
 	TLComponents,
 	TLPresenceStateInfo,
@@ -72,6 +73,9 @@ const Fairies = lazy(() => import('../../../fairy/Fairies').then((m) => ({ defau
 const RemoteFairies = lazy(() =>
 	import('../../../fairy/RemoteFairies').then((m) => ({ default: m.RemoteFairies }))
 )
+const FairyHUDTeaser = lazy(() =>
+	import('../../../fairy/FairyHUDTeaser').then((m) => ({ default: m.FairyHUDTeaser }))
+)
 // const InCanvasTaskList = lazy(() =>
 // 	import('../../../fairy/InCanvasTaskList').then((m) => ({ default: m.InCanvasTaskList }))
 // )
@@ -84,6 +88,12 @@ export const components: TLComponents = {
 	SharePanel: TlaEditorSharePanel,
 	Dialogs: null,
 	Toasts: null,
+
+	InFrontOfTheCanvas: () => (
+		<Suspense fallback={<div />}>
+			<FairyHUDTeaser />
+		</Suspense>
+	),
 }
 
 interface TlaEditorProps {
@@ -295,23 +305,21 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			...components,
 			Overlays: () => (
 				<>
-					{canShowFairies && (
+					{canShowFairies ? (
 						<Suspense fallback={<div />}>
 							<FairyVision agents={agents} />
 							{/* <InCanvasTaskList agents={agents} /> */}
 							<RemoteFairies />
 							<Fairies agents={agents} />
 						</Suspense>
-					)}
+					) : null}
 				</>
 			),
 			InFrontOfTheCanvas: () => (
 				<>
-					{canShowFairies && (
-						<Suspense fallback={<div />}>
-							<FairyHUD agents={agents} />
-						</Suspense>
-					)}
+					<Suspense fallback={<div />}>
+						{canShowFairies ? <FairyHUD agents={agents} /> : <FairyHUDTeaser />}
+					</Suspense>
 				</>
 			),
 			DebugMenu: () => <CustomDebugMenu />,
@@ -383,6 +391,7 @@ function CustomDebugMenu() {
 					)}
 				</>
 			)}
+			<DefaultDebugMenuContent />
 		</DefaultDebugMenu>
 	)
 }

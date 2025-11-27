@@ -448,7 +448,7 @@ createAgentModeTransitionWaitCondition(agentId, mode)
 
 **Interaction components**
 
-- `FairySpriteComponent`: Visual sprite representation
+- `FairySpriteComponent2`: Visual sprite representation
 - `FairyContextMenuContent`: Right-click menu options
 - `FairyDropdownContent`: Dropdown menu items
 - `FairyMenuContent`: Main menu interface
@@ -503,7 +503,7 @@ createAgentModeTransitionWaitCondition(agentId, mode)
 
 ### Sprite system
 
-**FairySprite** (`fairy-sprite/FairySprite.tsx`)
+**FairySprite2** (`fairy-sprite/FairySprite2.tsx`)
 
 - Visual representation of fairies on canvas
 - Animated sprites with multiple poses and expressions

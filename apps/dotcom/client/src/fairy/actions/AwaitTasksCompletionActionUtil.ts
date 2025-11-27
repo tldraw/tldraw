@@ -14,7 +14,7 @@ export class AwaitTasksCompletionActionUtil extends AgentActionUtil<AwaitTasksCo
 			description: action.complete
 				? `Waiting for ${taskCount} task${taskCount === 1 ? '' : 's'} to complete`
 				: 'Setting up wait conditions...',
-			pose: 'waiting' as const,
+			pose: 'writing' as const,
 			canGroup: () => false,
 		}
 	}
