@@ -14,6 +14,8 @@ import {
 	CreateProjectTaskActionSchema,
 	CreateSoloTaskActionSchema,
 	DeleteActionSchema,
+	DeletePersonalTodoItemsActionSchema,
+	DeleteProjectTaskActionSchema,
 	DirectToStartDuoTaskActionSchema,
 	DirectToStartTaskActionSchema,
 	DistributeActionSchema,
@@ -27,7 +29,6 @@ import {
 	MessageActionSchema,
 	MoveActionSchema,
 	PenActionSchema,
-	PersonalTodoListActionSchema,
 	PlaceActionSchema,
 	ResizeActionSchema,
 	ReviewActionSchema,
@@ -40,10 +41,12 @@ import {
 	StartSoloTaskActionSchema,
 	ThinkActionSchema,
 	UpdateActionSchema,
+	UpsertPersonalTodoItemActionSchema,
 } from './AgentActionSchemas'
 import {
 	AgentViewportBoundsPartDefinition,
 	BlurryShapesPartDefinition,
+	CanvasLintsPartDefinition,
 	ChatHistoryPartDefinition,
 	CurrentProjectDronePartDefinition,
 	CurrentProjectOrchestratorPartDefinition,
@@ -78,7 +81,8 @@ export const AGENT_ACTION_SCHEMAS = [
 	ThinkActionSchema,
 	ReviewActionSchema,
 	FlyToBoundsActionSchema,
-	PersonalTodoListActionSchema,
+	UpsertPersonalTodoItemActionSchema,
+	DeletePersonalTodoItemsActionSchema,
 
 	// Individual shapes
 	CreateActionSchema,
@@ -117,6 +121,7 @@ export const AGENT_ACTION_SCHEMAS = [
 	AwaitDuoTasksCompletionActionSchema,
 	CreateSoloTaskActionSchema,
 	CreateProjectTaskActionSchema,
+	DeleteProjectTaskActionSchema,
 	CreateDuoTaskActionSchema,
 	StartSoloTaskActionSchema,
 	StartDuoTaskActionSchema,
@@ -130,6 +135,7 @@ export const AGENT_ACTION_SCHEMAS = [
  */
 export const PROMPT_PART_DEFINITIONS = [
 	BlurryShapesPartDefinition,
+	CanvasLintsPartDefinition,
 	ChatHistoryPartDefinition,
 	DataPartDefinition,
 	DebugPartDefinition,

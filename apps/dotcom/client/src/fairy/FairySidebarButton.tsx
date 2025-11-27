@@ -95,12 +95,12 @@ export function FairySidebarButton({
 							)}
 							{showPlusButton && (
 								<div
+									role="button"
+									tabIndex={0}
 									className="fairy-plus-button"
 									onClick={handlePlusClick}
 									aria-label={joinSelectedFairiesLabel}
 									title={joinSelectedFairiesLabel}
-									role="button"
-									tabIndex={0}
 									onKeyDown={(e) => {
 										if (e.key === 'Enter' || e.key === ' ') {
 											e.preventDefault()

@@ -159,6 +159,12 @@
       "value": "Instruct the group…"
     }
   ],
+  "20dfc4f904": [
+    {
+      "type": 0,
+      "value": "Locate"
+    }
+  ],
   "23f879f41a": [
     {
       "type": 0,
@@ -559,12 +565,6 @@
       "value": "We failed to upload some of the content you created before you signed in."
     }
   ],
-  "5e706a9b7e": [
-    {
-      "type": 0,
-      "value": "Visit"
-    }
-  ],
   "5ea8bb44be": [
     {
       "type": 0,
@@ -643,6 +643,12 @@
     {
       "type": 0,
       "value": "Enter your email address"
+    }
+  ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Wake"
     }
   ],
   "68d390535e": [
@@ -1721,6 +1727,12 @@
     {
       "type": 0,
       "value": "Viewer"
+    }
+  ],
+  "fd11eafb92": [
+    {
+      "type": 0,
+      "value": "Disband projects"
     }
   ],
   "fd1be3efcf": [

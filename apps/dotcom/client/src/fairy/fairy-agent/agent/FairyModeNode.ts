@@ -3,6 +3,24 @@ import { $fairyTasks, getFairyTasksByProjectId } from '../../FairyTaskList'
 import { FairyAgent } from './FairyAgent'
 import { $fairyAgentsAtom } from './fairyAgentsAtom'
 
+function startPromptTimer(agent: FairyAgent): void {
+	const debugFlags = agent.$debugFlags.get()
+	if (debugFlags.logResponseTime && agent.promptStartTime === null) {
+		agent.promptStartTime = performance.now()
+	}
+}
+
+function stopPromptTimer(agent: FairyAgent): void {
+	if (agent.promptStartTime !== null) {
+		const endTime = performance.now()
+		const duration = (endTime - agent.promptStartTime) / 1000
+		const fairyName = agent.$fairyConfig.get().name
+		// eslint-disable-next-line no-console
+		console.log(`🧚 Fairy "${fairyName}" prompt completed in ${duration.toFixed(2)}s`)
+		agent.promptStartTime = null
+	}
+}
+
 export interface FairyModeNode {
 	onEnter?(agent: FairyAgent, fromMode: FairyModeDefinition['type']): void
 	onExit?(agent: FairyAgent, toMode: FairyModeDefinition['type']): void
@@ -14,11 +32,7 @@ export interface FairyModeNode {
 export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode> = {
 	idling: {
 		onPromptStart(agent) {
-			// Start timing if enabled
-			const debugFlags = agent.$debugFlags.get()
-			if (debugFlags.logResponseTime && agent.promptStartTime === null) {
-				agent.promptStartTime = performance.now()
-			}
+			startPromptTimer(agent)
 
 			// Check one-shot mode flag and set mode accordingly
 			const oneShotMode = agent.$useOneShottingMode.get()
@@ -29,19 +43,16 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			}
 		},
 		onEnter(agent) {
-			agent.$personalTodoList.set([])
-			agent.$userActionHistory.set([])
-			if (agent.promptStartTime !== null) {
-				const endTime = performance.now()
-				const duration = (endTime - agent.promptStartTime) / 1000
-				const fairyName = agent.$fairyConfig.get().name
-				// eslint-disable-next-line no-console
-				console.log(`🧚 Fairy "${fairyName}" prompt completed in ${duration.toFixed(2)}s`)
-				agent.promptStartTime = null
-			}
+			agent.deleteAllPersonalTodos()
+			agent.clearUserActionHistory()
+			stopPromptTimer(agent)
 		},
 	},
-	['sleeping']: {},
+	['sleeping']: {
+		onEnter(agent) {
+			stopPromptTimer(agent)
+		},
+	},
 	['one-shotting']: {
 		onPromptEnd(agent) {
 			const todoList = agent.$personalTodoList.get()
@@ -55,7 +66,21 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			}
 		},
 		onPromptCancel(agent) {
-			agent.setMode('idling')
+			agent.setMode('one-shotting-pausing')
+		},
+		onExit(agent, toMode) {
+			if (toMode !== 'one-shotting-pausing') {
+				agent.clearUserActionHistory()
+				agent.deleteAllPersonalTodos()
+			}
+		},
+	},
+	['one-shotting-pausing']: {
+		onPromptStart(agent) {
+			agent.setMode('one-shotting')
+		},
+		onEnter(agent) {
+			stopPromptTimer(agent)
 		},
 	},
 	soloing: {
@@ -73,15 +98,19 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			agent.setMode('idling')
 		},
 	},
-	['standing-by']: {},
+	['standing-by']: {
+		onEnter(agent) {
+			stopPromptTimer(agent)
+		},
+	},
 	['working-drone']: {
 		onEnter(agent) {
-			agent.$userActionHistory.set([])
-			agent.$personalTodoList.set([])
+			agent.clearUserActionHistory()
+			agent.deleteAllPersonalTodos()
 		},
 		onExit(agent) {
-			agent.$userActionHistory.set([])
-			agent.$personalTodoList.set([])
+			agent.clearUserActionHistory()
+			agent.deleteAllPersonalTodos()
 		},
 		onPromptEnd(agent, request) {
 			// Keep going until the task is complete
@@ -96,12 +125,12 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	},
 	['working-solo']: {
 		onEnter(agent) {
-			agent.$userActionHistory.set([])
+			agent.clearUserActionHistory()
 			agent.flushTodoList()
 		},
 		onExit(agent) {
 			// Wipe todo list after finishing a task
-			agent.$userActionHistory.set([])
+			agent.clearUserActionHistory()
 			agent.flushTodoList()
 		},
 		onPromptEnd(agent, request) {
@@ -175,6 +204,9 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 		onPromptStart(agent) {
 			agent.setMode('orchestrating-active')
 		},
+		onEnter(agent) {
+			stopPromptTimer(agent)
+		},
 	},
 	['duo-orchestrating-active']: {
 		onPromptEnd(agent) {
@@ -242,15 +274,18 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 		onPromptStart(agent) {
 			agent.setMode('duo-orchestrating-active')
 		},
+		onEnter(agent) {
+			stopPromptTimer(agent)
+		},
 	},
 	['working-orchestrator']: {
 		onEnter(agent) {
-			agent.$userActionHistory.set([])
-			agent.$personalTodoList.set([])
+			agent.clearUserActionHistory()
+			agent.deleteAllPersonalTodos()
 		},
 		onExit(agent) {
-			agent.$userActionHistory.set([])
-			agent.$personalTodoList.set([])
+			agent.clearUserActionHistory()
+			agent.deleteAllPersonalTodos()
 		},
 		onPromptEnd(agent, request) {
 			// Keep going until the task is complete

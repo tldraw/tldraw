@@ -80,7 +80,7 @@ export function convertFocusedShapeToTldrawShape(
 		case 'note': {
 			return convertNoteShapeToTldrawShape(editor, focusedShape, { defaultShape })
 		}
-		case 'draw': {
+		case 'pen': {
 			return convertDrawShapeToTldrawShape(editor, focusedShape, { defaultShape })
 		}
 		case 'unknown': {

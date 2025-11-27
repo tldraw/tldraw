@@ -301,7 +301,7 @@ Actions are the operations fairies can perform on the canvas. Each action extend
 - `MessageActionUtil`: Send messages to users
 - `ThinkActionUtil`: Display thinking process
 - `ReviewActionUtil`: Review and analyze canvas content
-- `PersonalTodoListActionUtil`: Manage personal todo list
+- `UpsertPersonalTodoItemActionUtil`: Manage personal todo list
 
 **System**
 

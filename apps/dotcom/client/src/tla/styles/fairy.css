@@ -479,6 +479,18 @@
 	z-index: 2;
 }
 
+/* Hide all scrollbars in the fairy chat panel */
+.fairy-chat-panel,
+.fairy-chat-panel * {
+	scrollbar-width: none; /* Firefox */
+	-ms-overflow-style: none; /* IE and Edge */
+}
+
+.fairy-chat-panel::-webkit-scrollbar,
+.fairy-chat-panel *::-webkit-scrollbar {
+	display: none; /* Chrome, Safari, Opera */
+}
+
 /* Fairy Chat History */
 
 .fairy-chat-history {
@@ -490,8 +502,6 @@
 	gap: 6px;
 	min-height: 0;
 	height: 0;
-	scrollbar-width: 2px;
-	scrollbar-color: var(--tl-color-muted-1) transparent;
 }
 
 .fairy-chat-history span:not(button *),
@@ -500,19 +510,6 @@
 .fairy-chat-history strong:not(button *) {
 	user-select: text;
 	cursor: initial;
-}
-
-.fairy-chat-history::-webkit-scrollbar {
-	width: 8px;
-}
-
-.fairy-chat-history::-webkit-scrollbar-track {
-	background: transparent;
-}
-
-.fairy-chat-history::-webkit-scrollbar-thumb {
-	background: var(--tl-color-muted-1);
-	border-radius: 4px;
 }
 
 .fairy-chat-history-section {
@@ -527,14 +524,15 @@
 	padding-top: 8px;
 }
 
-.fairy-chat-history-section:last-child:not(:only-child) {
+/* Only apply min-height in single fairy chat, not group chat or project view */
+.fairy-chat-history .fairy-chat-history-section:last-child:not(:only-child) {
 	min-height: calc(100% + 4px);
 }
 
-.fairy-chat-history-section:last-child:not(:only-child)
+.fairy-chat-history
+	.fairy-chat-history-section:last-child:not(:only-child)
 	.fairy-chat-history-group-generating:last-child {
 	min-height: 100px;
-	background-color: red;
 }
 
 .fairy-chat-history-prompt-container {
@@ -559,22 +557,11 @@
 	word-wrap: break-word;
 	max-height: 150px;
 	overflow-y: auto;
-	scrollbar-color: var(--tl-color-text-3) transparent;
 }
 
 .fairy-chat-history-prompt-other-agent {
 	color: var(--tl-color-text-3);
 	font-style: italic;
-}
-
-.fairy-chat-history-prompt-user::-webkit-scrollbar {
-	width: 6px;
-	background: transparent;
-}
-
-.fairy-chat-history-prompt-user::-webkit-scrollbar-thumb {
-	background: var(--tl-color-text-3);
-	border-radius: 3px;
 }
 
 .fairy-chat-history-prompt-content {
@@ -756,6 +743,160 @@
 	justify-content: center;
 }
 
+.fairy-project-view {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.fairy-project-header {
+	background: var(--tl-color-panel);
+	z-index: 1;
+	padding-bottom: 8px;
+	margin: 0 -8px;
+	padding-left: 8px;
+	padding-right: 8px;
+}
+
+.fairy-project-chat-section {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding-top: 8px;
+}
+
+.fairy-project-chat-response {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	font-size: 12px;
+	color: var(--tl-color-text-2);
+	padding: 4px 8px;
+}
+
+.fairy-project-chat-response--streaming span {
+	color: var(--tl-color-text-3);
+}
+
+.fairy-project-chat-view {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 8px;
+	overflow-y: auto;
+	flex: 1;
+	min-height: 0;
+	height: 0;
+	scrollbar-width: 2px;
+	scrollbar-color: var(--tl-color-muted-1) transparent;
+}
+
+.fairy-project-chat-view span:not(button *),
+.fairy-project-chat-view div:not(button *),
+.fairy-project-chat-view p:not(button *),
+.fairy-project-chat-view strong:not(button *) {
+	user-select: text;
+	cursor: initial;
+}
+
+.fairy-project-chat-view::-webkit-scrollbar {
+	width: 8px;
+}
+
+.fairy-project-chat-view::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.fairy-project-chat-view::-webkit-scrollbar-thumb {
+	background: var(--tl-color-muted-1);
+	border-radius: 4px;
+}
+
+.fairy-project-chat-view .fairy-chat-history-prompt-user {
+	flex-shrink: 0;
+}
+
+.fairy-project-chat-prompt {
+	background: var(--tl-color-muted-2);
+	border-radius: var(--tl-radius-2);
+	padding: 8px 12px;
+	margin-bottom: 8px;
+	font-size: 12px;
+	color: var(--tl-color-text);
+}
+
+.fairy-project-chat-action {
+	margin-top: 10px;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 12px;
+	padding: 2px 8px 2px 8px;
+	color: var(--tl-color-text-2);
+}
+
+/* Shimmer animation for planning state */
+@keyframes fairy-shimmer {
+	0% {
+		background-position: 200% 0;
+	}
+	100% {
+		background-position: -200% 0;
+	}
+}
+
+.fairy-project-chat-action--planning span {
+	color: var(--tl-color-text-3);
+	background: linear-gradient(
+		90deg,
+		var(--tl-color-text-3) 0%,
+		var(--tl-color-text-3) 35%,
+		var(--tl-color-text-1) 50%,
+		var(--tl-color-text-3) 65%,
+		var(--tl-color-text-3) 100%
+	);
+	background-size: 200% 100%;
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+	animation: fairy-shimmer 2s ease-in-out infinite;
+}
+
+.fairy-project-chat-tasks {
+	display: flex;
+	flex-direction: column;
+	margin-left: 10px;
+	position: relative;
+}
+
+.fairy-project-chat-task {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 12px;
+	color: var(--tl-color-text-2);
+	padding: 4px 0;
+}
+
+/* Text opacity states - avatar stays full opacity */
+.fairy-project-chat-task-text--pending {
+	opacity: 0.5;
+}
+
+.fairy-project-chat-task-text--done {
+	opacity: 1;
+	color: var(--tl-color-text);
+	text-decoration: line-through;
+}
+
+.fairy-avatar {
+	opacity: 0.5;
+	width: 15px;
+	height: 15px;
+}
+
 /* Fairy Info View */
 
 .fairy-info-view {
@@ -796,21 +937,6 @@
 	overflow-y: auto;
 	flex: 1;
 	padding: 8px;
-	scrollbar-width: 8px;
-	scrollbar-color: var(--tl-color-muted-1) transparent;
-}
-
-.shared-todo-list-items::-webkit-scrollbar {
-	width: 8px;
-}
-
-.shared-todo-list-items::-webkit-scrollbar-track {
-	background: transparent;
-}
-
-.shared-todo-list-items::-webkit-scrollbar-thumb {
-	background: var(--tl-color-muted-1);
-	border-radius: 4px;
 }
 
 .shared-todo-item {
@@ -1120,10 +1246,10 @@
 	pointer-events: auto;
 	position: relative;
 	display: flex;
-	align-items: start;
+	align-items: flex-start;
 	gap: 8px;
 	border: 1px solid var(--tl-color-divider);
-	height: 36px;
+	min-height: 36px;
 }
 
 .fairy-group-chat-input__wrapper {
@@ -1131,7 +1257,6 @@
 	display: flex;
 	align-items: start;
 	min-height: 0;
-	height: 100%;
 }
 
 .fairy-group-chat-input__field {
@@ -1144,12 +1269,12 @@
 	font-family: inherit;
 	outline: none;
 	width: 100%;
-	height: 100%;
 	resize: none;
+	min-height: 20px;
+	max-height: 85px;
 	overflow-y: auto;
 	line-height: 1.5;
-	scrollbar-width: thin;
-	scrollbar-color: var(--tl-color-muted-1) transparent;
+	flex: 1;
 }
 
 .fairy-group-chat-input__submit:hover:not(:disabled) .fairy-lips-icon {
@@ -1158,20 +1283,6 @@
 
 .fairy-group-chat-input__submit:hover:not(:disabled) .fairy-cancel-icon {
 	color: var(--tl-color-text);
-}
-
-.fairy-group-chat-input__field::-webkit-scrollbar {
-	width: 6px;
-	background: transparent;
-}
-
-.fairy-group-chat-input__field::-webkit-scrollbar-track {
-	background: transparent;
-}
-
-.fairy-group-chat-input__field::-webkit-scrollbar-thumb {
-	background: var(--tl-color-muted-1);
-	border-radius: 3px;
 }
 
 .fairy-group-chat-input__field::placeholder {
@@ -1190,7 +1301,7 @@
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
-	align-self: flex-start;
+	align-self: flex-end;
 	transition: background-color 0.1s ease;
 }
 
@@ -1356,6 +1467,13 @@
 
 /* Fairy Debug Dialog Styles */
 
+.fairy-debug-dialog-wrapper {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	height: 100%;
+}
+
 .fairy-debug-json-display {
 	display: flex;
 	flex-direction: column;
@@ -1401,9 +1519,9 @@
 
 .fairy-debug-dialog-body {
 	flex: 1 1 0;
-	min-height: 0;
-	overflow: auto;
 	min-height: 400px;
+	overflow-y: auto;
+	overflow-x: hidden;
 	width: 600px;
 	max-width: 600px;
 }

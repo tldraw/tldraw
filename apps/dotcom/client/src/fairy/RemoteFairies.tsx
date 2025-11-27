@@ -47,7 +47,7 @@ function RemoteFairy({ userId }: { userId: string }) {
 
 	const fairyPresences = meta.fairies
 		.map((fairy) => fairyPresenceValidator.validate(fairy))
-		.filter((fairyPresence) => fairyPresence !== null)
+		.filter((fairyPresence) => fairyPresence !== null && fairyPresence.entity.pose !== 'sleeping')
 
 	return (
 		<>

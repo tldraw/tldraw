@@ -126,7 +126,7 @@ export type FocusedArrowShape = z.infer<typeof FocusedArrowShapeSchema>
 
 const FocusedDrawShapeSchema = z
 	.object({
-		_type: z.literal('draw'),
+		_type: z.literal('pen'),
 		color: FocusColorSchema,
 		fill: FocusFillSchema.optional(),
 		note: z.string(),

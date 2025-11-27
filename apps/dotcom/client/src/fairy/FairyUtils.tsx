@@ -12,6 +12,8 @@ import { CreatePageActionUtil } from './actions/CreatePageActionUtil'
 import { CreateProjectTaskActionUtil } from './actions/CreateProjectTaskActionUtil'
 import { CreateSoloTaskActionUtil } from './actions/CreateSoloTaskActionUtil'
 import { DeleteActionUtil } from './actions/DeleteActionUtil'
+import { DeletePersonalTodoItemsActionUtil } from './actions/DeletePersonalTodoItemsActionUtil'
+import { DeleteProjectTaskActionUtil } from './actions/DeleteProjectTaskActionUtil'
 import { DirectToStartDuoTaskActionUtil } from './actions/DirectToStartDuoTaskActionUtil'
 import { DirectToStartTaskActionUtil } from './actions/DirectToStartTaskActionUtil'
 import { DistributeActionUtil } from './actions/DistributeActionUtil'
@@ -25,7 +27,6 @@ import { MarkSoloTaskDoneActionUtil } from './actions/MarkSoloTaskDoneActionUtil
 import { MessageActionUtil } from './actions/MessageActionUtil'
 import { MoveActionUtil } from './actions/MoveActionUtil'
 import { PenActionUtil } from './actions/PenActionUtil'
-import { PersonalTodoListActionUtil } from './actions/PersonalTodoListActionUtil'
 import { PlaceActionUtil } from './actions/PlaceActionUtil'
 import { ResizeActionUtil } from './actions/ResizeActionUtil'
 import { ReviewActionUtil } from './actions/ReviewActionUtil'
@@ -39,9 +40,11 @@ import { StartSoloTaskActionUtil } from './actions/StartSoloTaskActionUtil'
 import { ThinkActionUtil } from './actions/ThinkActionUtil'
 import { UnknownActionUtil } from './actions/UnknownActionUtil'
 import { UpdateActionUtil } from './actions/UpdateActionUtil'
+import { UpsertPersonalTodoItemActionUtil } from './actions/UpsertPersonalTodoItemActionUtil'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { AgentViewportBoundsPartUtil } from './parts/AgentViewportBoundsPartUtil'
 import { BlurryShapesPartUtil } from './parts/BlurryShapesPartUtil'
+import { CanvasLintsPartUtil } from './parts/CanvasLintsPartUtil'
 import { ChatHistoryPartUtil } from './parts/ChatHistoryPartUtil'
 import { CurrentProjectDronePartUtil } from './parts/CurrentProjectDronePartUtil'
 import { CurrentProjectOrchestratorPartUtil } from './parts/CurrentProjectOrchestratorPartUtil'
@@ -75,7 +78,8 @@ export const AGENT_ACTION_UTILS = [
 	ThinkActionUtil,
 	ReviewActionUtil,
 	FlyToBoundsActionUtil,
-	PersonalTodoListActionUtil,
+	UpsertPersonalTodoItemActionUtil,
+	DeletePersonalTodoItemsActionUtil,
 
 	// Individual shapes
 	CreateActionUtil,
@@ -113,6 +117,7 @@ export const AGENT_ACTION_UTILS = [
 	// Orchestrating
 	StartProjectActionUtil,
 	CreateProjectTaskActionUtil,
+	DeleteProjectTaskActionUtil,
 	DirectToStartTaskActionUtil,
 	EndCurrentProjectActionUtil,
 	AwaitTasksCompletionActionUtil,
@@ -150,6 +155,7 @@ export const PROMPT_PART_UTILS = [
 	BlurryShapesPartUtil,
 	PeripheralShapesPartUtil,
 	SelectedShapesPartUtil,
+	CanvasLintsPartUtil,
 
 	// History
 	ChatHistoryPartUtil,

@@ -13,7 +13,7 @@ import { TldrawApp } from '../tla/app/TldrawApp'
 import { useApp } from '../tla/hooks/useAppState'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
-import { $fairyProjects } from './FairyProjects'
+import { $fairyProjects, disbandAllProjectsWithAgents } from './FairyProjects'
 import { FairyTaskDragTool } from './FairyTaskDragTool'
 import { $fairyTasks, $showCanvasFairyTasks } from './FairyTaskList'
 import { FairyThrowTool } from './FairyThrowTool'
@@ -133,6 +133,12 @@ export function FairyApp({
 	// Cleanup: dispose all agents only when component unmounts
 	useEffect(() => {
 		return () => {
+			// Disband all projects - this interrupts agents, updates their state,
+			// and clears associated tasks. Uses interrupt() which safely transitions
+			// agents out of active modes without throwing.
+			disbandAllProjectsWithAgents(agentsRef.current)
+
+			// Now it's safe to dispose agents since they're no longer in active modes
 			agentsRef.current.forEach((agent) => agent.dispose())
 		}
 	}, [])

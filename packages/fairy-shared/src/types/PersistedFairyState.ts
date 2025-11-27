@@ -5,6 +5,16 @@ import { FairyProject } from './FairyProject'
 import { FairyTask, FairyTodoItem } from './FairyTask'
 
 /**
+ * Serialized representation of a wait condition (without the matcher function).
+ * Used for persistence.
+ */
+export interface SerializedWaitCondition {
+	eventType: string
+	id: string
+	metadata?: Record<string, any>
+}
+
+/**
  * The persisted state for a single fairy agent.
  */
 export interface PersistedFairyAgentState {
@@ -12,6 +22,7 @@ export interface PersistedFairyAgentState {
 	chatHistory: ChatHistoryItem[]
 	chatOrigin: VecModel
 	personalTodoList: FairyTodoItem[]
+	waitingFor?: SerializedWaitCondition[]
 }
 
 /**

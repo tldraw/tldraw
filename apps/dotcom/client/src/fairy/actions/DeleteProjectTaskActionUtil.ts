@@ -1,0 +1,44 @@
+import { DeleteProjectTaskAction, Streaming } from '@tldraw/fairy-shared'
+import { deleteFairyTask, getFairyTaskById } from '../FairyTaskList'
+import { AgentActionUtil } from './AgentActionUtil'
+
+export class DeleteProjectTaskActionUtil extends AgentActionUtil<DeleteProjectTaskAction> {
+	static override type = 'delete-project-task' as const
+
+	override getInfo(action: Streaming<DeleteProjectTaskAction>) {
+		const task = action.taskId ? getFairyTaskById(action.taskId) : null
+		const taskName = task?.title || action.taskId || 'task'
+		return {
+			icon: 'trash' as const,
+			description: action.complete
+				? `Removed task: ${taskName}${action.reason ? ` (${action.reason})` : ''}`
+				: `Removing task${taskName ? `: ${taskName}` : ''}...`,
+			pose: 'writing' as const,
+		}
+	}
+
+	override applyAction(action: Streaming<DeleteProjectTaskAction>) {
+		if (!action.complete) return
+
+		const project = this.agent.getProject()
+		if (!project) return
+
+		const task = getFairyTaskById(action.taskId)
+		if (!task) {
+			this.agent.interrupt({
+				input: `Task ${action.taskId} not found. Please take another look at the task list and try again.`,
+			})
+			return
+		}
+
+		// Only delete tasks from the current project
+		if (task.projectId !== project.id) {
+			this.agent.interrupt({
+				input: `Task ${action.taskId} is not part of your current project.`,
+			})
+			return
+		}
+
+		deleteFairyTask(action.taskId)
+	}
+}

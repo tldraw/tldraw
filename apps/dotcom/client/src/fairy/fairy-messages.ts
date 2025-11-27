@@ -17,11 +17,12 @@ export const fairyMessages = defineMessages({
 	deleteTask: { defaultMessage: 'Delete task' },
 
 	// Fairy menu (labels)
-	goToFairy: { defaultMessage: 'Visit' },
+	goToFairy: { defaultMessage: 'Locate' },
 	summonFairy: { defaultMessage: 'Summon' },
 	followFairy: { defaultMessage: 'Follow' },
 	unfollowFairy: { defaultMessage: 'Unfollow' },
 	putAwayFairy: { defaultMessage: 'Sleep' },
+	wakeFairy: { defaultMessage: 'Wake' },
 	summonAllFairies: { defaultMessage: 'Summon all' },
 	putAwayAllFairies: { defaultMessage: 'Sleep all' },
 	disbandGroup: { defaultMessage: 'Disband group' },
@@ -30,6 +31,7 @@ export const fairyMessages = defineMessages({
 
 	// Task list menu (labels)
 	summonFairies: { defaultMessage: 'Summon fairies' },
+	disbandProjects: { defaultMessage: 'Disband projects' },
 	resetChats: { defaultMessage: 'Clear chats' },
 	putAwayFairies: { defaultMessage: 'Sleep fairies' },
 	debugView: { defaultMessage: 'Debug view' },

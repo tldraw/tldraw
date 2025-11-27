@@ -77,6 +77,9 @@
   "1fe250ea06": {
     "translation": "Instruct the group…"
   },
+  "20dfc4f904": {
+    "translation": "Locate"
+  },
   "23f879f41a": {
     "translation": "Your weekly fairy usage limit has been reached. It will reset at the start of next week."
   },
@@ -251,9 +254,6 @@
   "5d26ae7550": {
     "translation": "We failed to upload some of the content you created before you signed in."
   },
-  "5e706a9b7e": {
-    "translation": "Visit"
-  },
   "5ea8bb44be": {
     "translation": "You have been invited to join group:"
   },
@@ -289,6 +289,9 @@
   },
   "6832ac5936": {
     "translation": "Enter your email address"
+  },
+  "688761c83e": {
+    "translation": "Wake"
   },
   "68d390535e": {
     "translation": "Enter your message"
@@ -746,6 +749,9 @@
   },
   "fb15c53f22": {
     "translation": "Viewer"
+  },
+  "fd11eafb92": {
+    "translation": "Disband projects"
   },
   "fd1be3efcf": {
     "translation": "Are you sure you want to delete this file?"

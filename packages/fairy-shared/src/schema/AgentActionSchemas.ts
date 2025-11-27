@@ -341,20 +341,33 @@ export const ThinkActionSchema = z
 
 export type ThinkAction = z.infer<typeof ThinkActionSchema>
 
-export const PersonalTodoListActionSchema = z
+export const UpsertPersonalTodoItemActionSchema = z
 	.object({
-		_type: z.literal('update-personal-todo-list'),
+		_type: z.literal('upsert-personal-todo-item'),
 		id: z.string(),
 		status: z.enum(['todo', 'in-progress', 'done']),
 		text: z.string().optional(),
 	})
 	.meta({
-		title: 'Update Personal Todo List',
+		title: 'Upsert Personal Todo Item',
 		description:
-			'The agent updates its personal todo list item or creates a new todo item. If the id is provided, the todo item is updated. If the id is not provided and text is provided, a new todo item is created and its status is set to "todo".',
+			'The agent updates or creates a new personal todo list item. If the id is provided, the todo item is updated. If the id is not provided and text is provided, a new todo item is created and its status is set to "todo".',
 	})
 
-export type PersonalTodoListAction = z.infer<typeof PersonalTodoListActionSchema>
+export type UpsertPersonalTodoItemAction = z.infer<typeof UpsertPersonalTodoItemActionSchema>
+
+export const DeletePersonalTodoItemsActionSchema = z
+	.object({
+		_type: z.literal('delete-personal-todo-items'),
+		ids: z.array(z.string()),
+	})
+	.meta({
+		title: 'Delete Personal Todo Items',
+		description:
+			'The agent deletes one or more todo items from its personal todo list by providing the todo item ids.',
+	})
+
+export type DeletePersonalTodoItemsAction = z.infer<typeof DeletePersonalTodoItemsActionSchema>
 
 export const UpdateActionSchema = z
 	.object({
@@ -436,6 +449,20 @@ export const CreateProjectTaskActionSchema = z
 	})
 
 export type CreateProjectTaskAction = z.infer<typeof CreateProjectTaskActionSchema>
+
+export const DeleteProjectTaskActionSchema = z
+	.object({
+		_type: z.literal('delete-project-task'),
+		taskId: z.string(),
+		reason: z.string(),
+	})
+	.meta({
+		title: 'Delete Project Task',
+		description:
+			"The agent removes a task from the current project. Use this when the user asks to cancel or remove specific work, or when a task is no longer relevant to the project goals. Provide the taskId of the task to delete and a brief reason why it's being removed.",
+	})
+
+export type DeleteProjectTaskAction = z.infer<typeof DeleteProjectTaskActionSchema>
 
 export const StartSoloTaskActionSchema = z
 	.object({

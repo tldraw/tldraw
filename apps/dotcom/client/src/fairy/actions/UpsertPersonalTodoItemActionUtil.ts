@@ -1,10 +1,10 @@
-import { PersonalTodoListAction, Streaming } from '@tldraw/fairy-shared'
+import { Streaming, UpsertPersonalTodoItemAction } from '@tldraw/fairy-shared'
 import { AgentActionUtil } from './AgentActionUtil'
 
-export class PersonalTodoListActionUtil extends AgentActionUtil<PersonalTodoListAction> {
-	static override type = 'update-personal-todo-list' as const
+export class UpsertPersonalTodoItemActionUtil extends AgentActionUtil<UpsertPersonalTodoItemAction> {
+	static override type = 'upsert-personal-todo-item' as const
 
-	override getInfo(action: Streaming<PersonalTodoListAction>) {
+	override getInfo(action: Streaming<UpsertPersonalTodoItemAction>) {
 		if (!action.complete) {
 			return {
 				description: null,
@@ -27,7 +27,7 @@ export class PersonalTodoListActionUtil extends AgentActionUtil<PersonalTodoList
 		}
 	}
 
-	override applyAction(action: Streaming<PersonalTodoListAction>) {
+	override applyAction(action: Streaming<UpsertPersonalTodoItemAction>) {
 		if (!action.complete) return
 		if (!this.agent) return
 
@@ -43,7 +43,7 @@ export class PersonalTodoListActionUtil extends AgentActionUtil<PersonalTodoList
 			}
 			this.agent.addPersonalTodo(id, text)
 		} else {
-			this.agent.updateTodo({ id, status, text })
+			this.agent.updatePersonalTodo({ id, status, text })
 		}
 	}
 }

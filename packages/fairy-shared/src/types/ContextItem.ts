@@ -42,7 +42,7 @@ export const CONTEXT_TYPE_DEFINITIONS: Record<
 			let name = item.shape.note
 			if (!name) {
 				name = item.shape._type
-				if (item.shape._type === 'draw') {
+				if (item.shape._type === 'pen') {
 					name = 'drawing'
 				} else if (item.shape._type === 'unknown') {
 					name = item.shape.subType

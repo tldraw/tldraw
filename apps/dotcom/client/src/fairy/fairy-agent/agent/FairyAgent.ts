@@ -25,6 +25,7 @@ import {
 	getModelPricingInfo,
 	ModelNamePart,
 	PromptPart,
+	SerializedWaitCondition,
 	Streaming,
 } from '@tldraw/fairy-shared'
 import {
@@ -53,7 +54,11 @@ import { $fairyIsApplyingAction } from '../../FairyIsApplyingAction'
 import { getProjectByAgentId } from '../../FairyProjects'
 import { $fairyTasks } from '../../FairyTaskList'
 import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../FairyUtils'
-import { notifyAgentModeTransition } from '../../FairyWaitNotifications'
+import {
+	deserializeWaitCondition,
+	notifyAgentModeTransition,
+	serializeWaitCondition,
+} from '../../FairyWaitNotifications'
 import { PromptPartUtil } from '../../parts/PromptPartUtil'
 import { AgentHelpers } from './AgentHelpers'
 import { FairyAgentOptions } from './FairyAgentOptions'
@@ -323,6 +328,7 @@ export class FairyAgent {
 			chatHistory: this.$chatHistory.get(),
 			chatOrigin: this.$chatOrigin.get(),
 			personalTodoList: this.$personalTodoList.get(),
+			waitingFor: this.$waitingFor.get().map(serializeWaitCondition),
 		}
 	}
 
@@ -335,6 +341,7 @@ export class FairyAgent {
 		chatHistory?: ChatHistoryItem[]
 		chatOrigin?: VecModel
 		personalTodoList?: FairyTodoItem[]
+		waitingFor?: SerializedWaitCondition[]
 	}) {
 		if (state.fairyEntity) {
 			this.$fairyEntity.update((entity) => {
@@ -360,6 +367,12 @@ export class FairyAgent {
 		}
 		if (state.personalTodoList) {
 			this.$personalTodoList.set(state.personalTodoList)
+		}
+		if (state.waitingFor) {
+			const reconstructed = state.waitingFor
+				.map(deserializeWaitCondition)
+				.filter((condition): condition is FairyWaitCondition<FairyWaitEvent> => condition !== null)
+			this.$waitingFor.set(reconstructed)
 		}
 	}
 
@@ -767,10 +780,7 @@ export class FairyAgent {
 	 * Optionally, schedule a request.
 	 */
 	interrupt({ input, mode }: { input: AgentInput | null; mode?: FairyModeDefinition['type'] }) {
-		this.cancelFn?.()
-		this.$activeRequest.set(null)
-		this.$scheduledRequest.set(null)
-		this.cancelFn = null
+		this._cancel()
 
 		if (mode) {
 			this.setMode(mode)
@@ -853,7 +863,15 @@ export class FairyAgent {
 		return id
 	}
 
-	updateTodo({ id, status, text }: { id: string; status: FairyTodoItem['status']; text?: string }) {
+	updatePersonalTodo({
+		id,
+		status,
+		text,
+	}: {
+		id: string
+		status: FairyTodoItem['status']
+		text?: string
+	}) {
 		this.$personalTodoList.update((todoItems) => {
 			const index = todoItems.findIndex((item) => item.id === id)
 			if (index !== -1) {
@@ -865,6 +883,21 @@ export class FairyAgent {
 			}
 			return todoItems
 		})
+	}
+
+	deletePersonalTodos(ids: string[]) {
+		const idsSet = new Set(ids)
+		this.$personalTodoList.update((todoItems) => {
+			return todoItems.filter((item) => !idsSet.has(item.id))
+		})
+	}
+
+	deleteAllPersonalTodos() {
+		this.$personalTodoList.set([])
+	}
+
+	clearUserActionHistory() {
+		this.$userActionHistory.set([])
 	}
 
 	/**
@@ -954,7 +987,13 @@ export class FairyAgent {
 
 		const actionInfo = this.getActionInfo(action)
 		if (actionInfo.pose) {
-			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: actionInfo.pose ?? fairy.pose }))
+			// check the mode at the exact instant we would set the pose, if the fairy has somehow become inactive, set the pose to idle
+			const modeDefinition = getFairyModeDefinition(this.getMode())
+			if (modeDefinition.active) {
+				this.$fairyEntity.update((fairy) => ({ ...fairy, pose: actionInfo.pose ?? fairy.pose }))
+			} else {
+				this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
+			}
 		}
 
 		// Ensure the fairy is on the correct page before performing the action
@@ -995,7 +1034,10 @@ export class FairyAgent {
 				// If there are no items, start off the chat history with the first item
 				if (historyItems.length === 0) return [historyItem]
 
-				// If the last item is still in progress, replace it with the new item
+				// Find the last prompt index
+				const lastPromptIndex = historyItems.findLastIndex((item) => item.type === 'prompt')
+
+				// If the last action is still in progress AND it's after the last prompt, replace it
 				const lastActionHistoryItemIndex = historyItems.findLastIndex(
 					(item) => item.type === 'action'
 				)
@@ -1004,7 +1046,8 @@ export class FairyAgent {
 				if (
 					lastActionHistoryItem &&
 					lastActionHistoryItem.type === 'action' &&
-					!lastActionHistoryItem.action.complete
+					!lastActionHistoryItem.action.complete &&
+					lastActionHistoryItemIndex > lastPromptIndex
 				) {
 					const newHistoryItems = [...historyItems]
 					newHistoryItems[lastActionHistoryItemIndex] = historyItem
@@ -1132,6 +1175,10 @@ export class FairyAgent {
 			}
 		}
 
+		this._cancel()
+	}
+
+	private _cancel() {
 		this.cancelFn?.()
 		this.$activeRequest.set(null)
 		this.$scheduledRequest.set(null)
@@ -1152,8 +1199,8 @@ export class FairyAgent {
 	reset() {
 		this.cancel()
 		this.promptStartTime = null
-		this.$personalTodoList.set([])
-		this.$userActionHistory.set([])
+		this.deleteAllPersonalTodos()
+		this.clearUserActionHistory()
 
 		// Remove solo tasks
 		$fairyTasks.update((tasks) =>

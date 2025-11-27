@@ -1,5 +1,5 @@
 import { FairyProject, FairyTask } from '@tldraw/fairy-shared'
-import { MouseEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	PORTRAIT_BREAKPOINT,
 	TldrawUiButton,
@@ -15,11 +15,12 @@ import '../tla/styles/fairy.css'
 import { F, useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairyChatHistory } from './fairy-agent/chat/FairyChatHistory'
-import { FairyBasicInput } from './fairy-agent/input/FairyBasicInput'
+import { FairySingleChatInput } from './fairy-agent/input/FairySingleChatInput'
 import { fairyMessages } from './fairy-messages'
 import { FairyDropdownContent } from './FairyDropdownContent'
-import { FairyGroupChat } from './FairyGroupChat'
 import { FairyListSidebar } from './FairyListSidebar'
+import { $fairyProjects, getProjectOrchestrator } from './FairyProjects'
+import { FairyProjectView } from './FairyProjectView'
 import { $fairyTasks } from './FairyTaskList'
 import { FairyTaskListDropdownContent } from './FairyTaskListDropdownContent'
 import { FairyTaskListInline } from './FairyTaskListInline'
@@ -55,9 +56,7 @@ function FairyHUDHeader({
 	const project = useValue('project', () => shownFairy?.getProject(), [shownFairy])
 
 	// Check if the project has been started (has an orchestrator)
-	const isProjectStarted = project?.members.some(
-		(member) => member.role === 'orchestrator' || member.role === 'duo-orchestrator'
-	)
+	const isProjectStarted = project && getProjectOrchestrator(project)
 
 	const fairyClickable = useValue(
 		'fairy clickable',
@@ -190,6 +189,22 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		[agents]
 	)
 
+	const activeOrchestratorAgent = useValue(
+		'shown-orchestrator',
+		() => {
+			if (!shownFairy) return null
+			const project = shownFairy.getProject()
+			if (!project) return null
+
+			const orchestratorMember = getProjectOrchestrator(project)
+			if (!orchestratorMember) return null
+
+			// Return the actual FairyAgent, not just the member
+			return agents.find((agent) => agent.id === orchestratorMember.id) ?? null
+		},
+		[shownFairy, agents]
+	)
+
 	// Update the chosen fairy when the selected fairies change
 	useEffect(() => {
 		if (selectedFairies.length === 1) {
@@ -223,9 +238,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 			}
 
 			// Check if project has an orchestrator (meaning it's been started)
-			const orchestratorMember = project.members.find(
-				(member) => member.role === 'orchestrator' || member.role === 'duo-orchestrator'
-			)
+			const orchestratorMember = getProjectOrchestrator(project)
 
 			if (orchestratorMember) {
 				// Project has been started, show the orchestrator's chat
@@ -303,10 +316,25 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	const handleDoubleClickFairy = useCallback(
 		(clickedAgent: FairyAgent) => {
 			clickedAgent.zoomTo()
+
+			// If the clicked fairy is part of an active project, select the orchestrator instead
+			const project = clickedAgent.getProject()
+			if (project) {
+				const orchestratorMember = getProjectOrchestrator(project)
+				if (orchestratorMember) {
+					const orchestratorAgent = agents.find((agent) => agent.id === orchestratorMember.id)
+					if (orchestratorAgent) {
+						selectFairy(orchestratorAgent)
+						setPanelState('fairy')
+						return
+					}
+				}
+			}
+
 			selectFairy(clickedAgent)
 			setPanelState('fairy')
 		},
-		[selectFairy]
+		[selectFairy, agents]
 	)
 
 	const handleTogglePanel = useCallback(() => {
@@ -387,6 +415,38 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		return () => window.removeEventListener('resize', updatePosition)
 	}, [isMobile])
 
+	// Unused atm, wip
+	// Check if any fairies in projects are idling
+	const projects = useValue('fairy-projects', () => $fairyProjects.get(), [$fairyProjects])
+	const badStateProjectIds = useMemo(() => {
+		const projectIds = new Set<string>()
+		for (const project of projects) {
+			for (const member of project.members) {
+				const agent = agents.find((a) => a.id === member.id)
+				if (agent && agent.getMode() === 'idling') {
+					projectIds.add(project.id)
+				}
+			}
+		}
+		return Array.from(projectIds)
+	}, [agents, projects])
+	useEffect(() => {
+		for (const project of projects) {
+			if (badStateProjectIds.includes(project.id)) {
+				for (const member of project.members) {
+					const agent = agents.find((a) => a.id === member.id)
+					if (agent && agent.getMode() === 'idling') {
+						const fairyName = agent.$fairyConfig.get()?.name ?? 'unknown'
+						// eslint-disable-next-line no-console
+						console.log(
+							`Fairy in project but idling: projectId=${project.id}, fairyId=${agent.id}, name=${fairyName}`
+						)
+					}
+				}
+			}
+		}
+	}, [badStateProjectIds, agents, projects])
+
 	return (
 		<>
 			<div
@@ -436,22 +496,44 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 									<F defaultMessage="Select a fairy on the right to chat with" />
 								</div>
 							)}
+							{/* Solo fairy mode - no project */}
 							{panelState === 'fairy' &&
 								selectedFairies.length <= 1 &&
-								shownFairy && ( // if there's a single shown fairy, still show the chat history and input even if the user deselects it
+								shownFairy &&
+								!activeOrchestratorAgent && (
 									<>
 										<FairyChatHistory agent={shownFairy} />
-										<FairyBasicInput agent={shownFairy} onCancel={() => setPanelState('closed')} />
+										<FairySingleChatInput
+											agent={shownFairy}
+											onCancel={() => setPanelState('closed')}
+										/>
 									</>
 								)}
 
+							{/* Project mode - ongoing project with orchestrator */}
+							{panelState === 'fairy' &&
+								selectedFairies.length <= 1 &&
+								shownFairy &&
+								activeOrchestratorAgent && (
+									<FairyProjectView
+										editor={editor}
+										agents={agents}
+										orchestratorAgent={activeOrchestratorAgent}
+										onClose={() => setPanelState('closed')}
+									/>
+								)}
+
+							{/* Pre-project mode - multiple fairies selected, no project yet */}
 							{panelState === 'fairy' && selectedFairies.length > 1 && (
-								<FairyGroupChat
+								<FairyProjectView
+									editor={editor}
 									agents={selectedFairies}
-									onStartProject={(orchestratorAgent) => {
-										selectFairy(orchestratorAgent)
+									orchestratorAgent={null}
+									onProjectStarted={(orchestrator) => {
+										selectFairy(orchestrator)
 										setPanelState('fairy')
 									}}
+									onClose={() => setPanelState('closed')}
 								/>
 							)}
 
