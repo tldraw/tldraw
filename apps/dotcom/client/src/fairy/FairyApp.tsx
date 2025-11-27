@@ -270,7 +270,10 @@ export function FairyApp({
 				// Skip legacy messages without IDs
 				if (!item.id) return
 
-				// Mark all messages as sent
+				// Skip incomplete actions (mirror the sending logic)
+				if (item.type === 'action' && !item.action.complete) return
+
+				// Mark complete messages as sent
 				sent.add(item.id)
 			})
 
