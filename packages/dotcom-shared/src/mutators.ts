@@ -507,9 +507,9 @@ export function createMutators(userId: string) {
 					if (agentHistoryStr.length > TRUNCATE_THRESHOLD) {
 						// Estimate how many messages to keep based on average size
 						const avgSize = sizeBefore / beforeMsgCount
-						const estimatedKeep = Math.floor(MAX_SIZE_PER_AGENT / avgSize)
+						const estimatedKeep = Math.max(1, Math.floor(MAX_SIZE_PER_AGENT / avgSize))
 
-						// Keep estimated number (if slightly off, next save will fix it)
+						// Keep estimated number (at least 1 message)
 						agent.chatHistory = agent.chatHistory.slice(-estimatedKeep)
 						agentHistoryStr = JSON.stringify(agent.chatHistory)
 
