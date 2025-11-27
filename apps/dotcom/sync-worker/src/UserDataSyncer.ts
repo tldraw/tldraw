@@ -483,10 +483,11 @@ export class UserDataSyncer {
 
 			if (res.type === 'reboot') {
 				this.logEvent({ type: 'not_enough_history_for_fast_reboot', id: this.userId })
-				if (hard) throw new Error(
-            'Reboot loop detected. If you are running locally and recently reset the database, ' +
-            'clear your browser storage (DevTools → Application → Storage → Clear site data) and refresh the page.'
-        )
+				if (hard)
+					throw new Error(
+						'Reboot loop detected. If you are running locally and recently reset the database, ' +
+							'clear your browser storage (DevTools → Application → Storage → Clear site data) and refresh the page.'
+					)
 				return this.boot(true, signal)
 			}
 			resumeData = { sequenceId: res.sequenceId, lastSequenceNumber: res.sequenceNumber }
