@@ -5,9 +5,10 @@ import { useMsg } from '../../../tla/utils/i18n'
 import { fairyMessages } from '../../fairy-messages'
 // import { $fairyTasks } from '../../FairyTaskList'
 import { getIsCoarsePointer } from '../../../tla/utils/getIsCoarsePointer'
+import { getRandomNoInputMessage } from '../../getRandomNoInputMessage'
 import { FairyAgent } from '../agent/FairyAgent'
 
-export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCancel(): void }) {
+export function FairySingleChatInput({ agent, onCancel }: { agent: FairyAgent; onCancel(): void }) {
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const [inputValue, setInputValue] = useState('')
 	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
@@ -151,17 +152,4 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 			</div>
 		</div>
 	)
-}
-
-const NO_INPUT_MESSAGES = [
-	'I mumble something quietly.',
-	"I'm not sure what to say.",
-	'The wind whispers across the canvas.',
-	'...',
-	'*scratch behind the ears*',
-	'Leaves rustle in the breeze.',
-]
-
-function getRandomNoInputMessage() {
-	return NO_INPUT_MESSAGES[Math.floor(Math.random() * NO_INPUT_MESSAGES.length)]
 }

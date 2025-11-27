@@ -1,4 +1,4 @@
-import { FairyProject, FairyProjectRole } from '@tldraw/fairy-shared'
+import { FairyProject, FairyProjectMember, FairyProjectRole } from '@tldraw/fairy-shared'
 import { atom, Editor } from 'tldraw'
 import { deleteFairyTask, getFairyTasksByProjectId } from './FairyTaskList'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
@@ -28,6 +28,12 @@ export function getRoleByAgentId(agentId: string): FairyProjectRole | undefined 
 	const project = getProjectByAgentId(agentId)
 	if (!project) return undefined
 	return project.members.find((m) => m.id === agentId)?.role
+}
+
+export function getProjectOrchestrator(project: FairyProject): FairyProjectMember | undefined {
+	return project.members.find(
+		(member) => member.role === 'orchestrator' || member.role === 'duo-orchestrator'
+	)
 }
 
 export function updateProject(projectId: string, updates: Partial<FairyProject>) {

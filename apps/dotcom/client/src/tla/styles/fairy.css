@@ -524,14 +524,15 @@
 	padding-top: 8px;
 }
 
-.fairy-chat-history-section:last-child:not(:only-child) {
+/* Only apply min-height in single fairy chat, not group chat or project view */
+.fairy-chat-history .fairy-chat-history-section:last-child:not(:only-child) {
 	min-height: calc(100% + 4px);
 }
 
-.fairy-chat-history-section:last-child:not(:only-child)
+.fairy-chat-history
+	.fairy-chat-history-section:last-child:not(:only-child)
 	.fairy-chat-history-group-generating:last-child {
 	min-height: 100px;
-	background-color: red;
 }
 
 .fairy-chat-history-prompt-container {
@@ -740,6 +741,160 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+}
+
+.fairy-project-view {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.fairy-project-header {
+	background: var(--tl-color-panel);
+	z-index: 1;
+	padding-bottom: 8px;
+	margin: 0 -8px;
+	padding-left: 8px;
+	padding-right: 8px;
+}
+
+.fairy-project-chat-section {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding-top: 8px;
+}
+
+.fairy-project-chat-response {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	font-size: 12px;
+	color: var(--tl-color-text-2);
+	padding: 4px 8px;
+}
+
+.fairy-project-chat-response--streaming span {
+	color: var(--tl-color-text-3);
+}
+
+.fairy-project-chat-view {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 8px;
+	overflow-y: auto;
+	flex: 1;
+	min-height: 0;
+	height: 0;
+	scrollbar-width: 2px;
+	scrollbar-color: var(--tl-color-muted-1) transparent;
+}
+
+.fairy-project-chat-view span:not(button *),
+.fairy-project-chat-view div:not(button *),
+.fairy-project-chat-view p:not(button *),
+.fairy-project-chat-view strong:not(button *) {
+	user-select: text;
+	cursor: initial;
+}
+
+.fairy-project-chat-view::-webkit-scrollbar {
+	width: 8px;
+}
+
+.fairy-project-chat-view::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.fairy-project-chat-view::-webkit-scrollbar-thumb {
+	background: var(--tl-color-muted-1);
+	border-radius: 4px;
+}
+
+.fairy-project-chat-view .fairy-chat-history-prompt-user {
+	flex-shrink: 0;
+}
+
+.fairy-project-chat-prompt {
+	background: var(--tl-color-muted-2);
+	border-radius: var(--tl-radius-2);
+	padding: 8px 12px;
+	margin-bottom: 8px;
+	font-size: 12px;
+	color: var(--tl-color-text);
+}
+
+.fairy-project-chat-action {
+	margin-top: 10px;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 12px;
+	padding: 2px 8px 2px 8px;
+	color: var(--tl-color-text-2);
+}
+
+/* Shimmer animation for planning state */
+@keyframes fairy-shimmer {
+	0% {
+		background-position: 200% 0;
+	}
+	100% {
+		background-position: -200% 0;
+	}
+}
+
+.fairy-project-chat-action--planning span {
+	color: var(--tl-color-text-3);
+	background: linear-gradient(
+		90deg,
+		var(--tl-color-text-3) 0%,
+		var(--tl-color-text-3) 35%,
+		var(--tl-color-text-1) 50%,
+		var(--tl-color-text-3) 65%,
+		var(--tl-color-text-3) 100%
+	);
+	background-size: 200% 100%;
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+	animation: fairy-shimmer 2s ease-in-out infinite;
+}
+
+.fairy-project-chat-tasks {
+	display: flex;
+	flex-direction: column;
+	margin-left: 10px;
+	position: relative;
+}
+
+.fairy-project-chat-task {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 12px;
+	color: var(--tl-color-text-2);
+	padding: 4px 0;
+}
+
+/* Text opacity states - avatar stays full opacity */
+.fairy-project-chat-task-text--pending {
+	opacity: 0.5;
+}
+
+.fairy-project-chat-task-text--done {
+	opacity: 1;
+	color: var(--tl-color-text);
+	text-decoration: line-through;
+}
+
+.fairy-avatar {
+	opacity: 0.5;
+	width: 15px;
+	height: 15px;
 }
 
 /* Fairy Info View */

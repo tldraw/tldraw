@@ -437,6 +437,20 @@ export const CreateProjectTaskActionSchema = z
 
 export type CreateProjectTaskAction = z.infer<typeof CreateProjectTaskActionSchema>
 
+export const DeleteProjectTaskActionSchema = z
+	.object({
+		_type: z.literal('delete-project-task'),
+		taskId: z.string(),
+		reason: z.string(),
+	})
+	.meta({
+		title: 'Delete Project Task',
+		description:
+			"The agent removes a task from the current project. Use this when the user asks to cancel or remove specific work, or when a task is no longer relevant to the project goals. Provide the taskId of the task to delete and a brief reason why it's being removed.",
+	})
+
+export type DeleteProjectTaskAction = z.infer<typeof DeleteProjectTaskActionSchema>
+
 export const StartSoloTaskActionSchema = z
 	.object({
 		_type: z.literal('start-task'),
