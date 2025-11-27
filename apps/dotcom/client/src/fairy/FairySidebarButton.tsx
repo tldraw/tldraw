@@ -94,7 +94,9 @@ export function FairySidebarButton({
 								</div>
 							)}
 							{showPlusButton && (
-								<button
+								<div
+									role="button"
+									tabIndex={0}
 									className="fairy-plus-button"
 									onClick={handlePlusClick}
 									aria-label={joinSelectedFairiesLabel}
@@ -127,7 +129,7 @@ export function FairySidebarButton({
 											strokeLinecap="round"
 										/>
 									</svg>
-								</button>
+								</div>
 							)}
 						</div>
 					</TldrawUiToolbarToggleItem>
