@@ -526,13 +526,6 @@ export function createMutators(userId: string) {
 					}
 				}
 
-				if (Object.keys(truncationStats).length > 0) {
-					console.error(
-						`[updateFairies] Truncation stats:`,
-						JSON.stringify(truncationStats, null, 2)
-					)
-				}
-
 				await tx.mutate.file_fairies.upsert({
 					fileId,
 					userId,
