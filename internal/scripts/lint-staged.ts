@@ -6,7 +6,7 @@ async function main() {
 	const output: string[] = []
 	const errors: string[] = []
 
-	return new Promise<void>((resolve, reject) => {
+	return new Promise<void>((resolve) => {
 		const childProcess = execFile('yarn', ['lint-staged'], { cwd: REPO_ROOT }, (err) => {
 			if (err) {
 				// Display a clear error summary at the end
