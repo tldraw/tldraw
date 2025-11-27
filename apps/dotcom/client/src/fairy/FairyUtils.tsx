@@ -12,6 +12,7 @@ import { CreatePageActionUtil } from './actions/CreatePageActionUtil'
 import { CreateProjectTaskActionUtil } from './actions/CreateProjectTaskActionUtil'
 import { CreateSoloTaskActionUtil } from './actions/CreateSoloTaskActionUtil'
 import { DeleteActionUtil } from './actions/DeleteActionUtil'
+import { DeleteProjectTaskActionUtil } from './actions/DeleteProjectTaskActionUtil'
 import { DirectToStartDuoTaskActionUtil } from './actions/DirectToStartDuoTaskActionUtil'
 import { DirectToStartTaskActionUtil } from './actions/DirectToStartTaskActionUtil'
 import { DistributeActionUtil } from './actions/DistributeActionUtil'
@@ -114,6 +115,7 @@ export const AGENT_ACTION_UTILS = [
 	// Orchestrating
 	StartProjectActionUtil,
 	CreateProjectTaskActionUtil,
+	DeleteProjectTaskActionUtil,
 	DirectToStartTaskActionUtil,
 	EndCurrentProjectActionUtil,
 	AwaitTasksCompletionActionUtil,

@@ -69,6 +69,7 @@ export function FairyMenuContent({
 
 	const goToFairyLabel = useMsg(fairyMessages.goToFairy)
 	const summonFairyLabel = useMsg(fairyMessages.summonFairy)
+	const wakeFairyLabel = useMsg(fairyMessages.wakeFairy)
 	const summonAllFairiesLabel = useMsg(fairyMessages.summonAllFairies)
 	const followFairyLabel = useMsg(fairyMessages.followFairy)
 	const unfollowFairyLabel = useMsg(fairyMessages.unfollowFairy)
@@ -126,6 +127,7 @@ export function FairyMenuContent({
 
 	const resetAllChats = useCallback(() => {
 		agents.forEach((agent) => {
+			if (agent.isSleeping()) return
 			agent.reset()
 		})
 	}, [agents])
@@ -160,6 +162,34 @@ export function FairyMenuContent({
 						id="debug-fairies"
 						onSelect={() => openDebugDialog(agent.id)}
 						label={debugViewLabel}
+					/>
+				</TldrawUiMenuGroup>
+			</TldrawUiMenuContextProvider>
+		)
+	}
+
+	if (agent.isSleeping()) {
+		return (
+			<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">
+				<TldrawUiMenuGroup id="fairy-sleep-menu">
+					<TldrawUiMenuItem
+						id="wake-fairy"
+						onSelect={() => agent.setMode('idling')}
+						label={wakeFairyLabel}
+					/>
+				</TldrawUiMenuGroup>
+				<TldrawUiMenuGroup id="fairy-management-menu">
+					{isDevelopmentEnv && (
+						<TldrawUiMenuItem
+							id="debug-fairies"
+							onSelect={() => openDebugDialog(agent.id)}
+							label={debugViewLabel}
+						/>
+					)}
+					<TldrawUiMenuItem
+						id="reset-everything"
+						onSelect={resetEverything}
+						label={resetEverythingLabel}
 					/>
 				</TldrawUiMenuGroup>
 			</TldrawUiMenuContextProvider>

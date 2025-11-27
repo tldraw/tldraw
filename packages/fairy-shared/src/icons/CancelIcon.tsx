@@ -8,8 +8,8 @@ export function CancelIcon() {
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
 		>
-			<circle cx="20" cy="20" r="12" fill="white" />
-			<rect x="16" y="16" width="8" height="8" fill="currentColor" />
+			<circle cx="18" cy="18" r="12" fill="white" />
+			<rect x="14" y="14" width="8" height="8" fill="currentColor" />
 		</svg>
 	)
 }
