@@ -11,12 +11,6 @@
       "value": "Accept invitation"
     }
   ],
-  "038c9b4432": [
-    {
-      "type": 0,
-      "value": "Fairy’s personality"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -55,12 +49,6 @@
     {
       "type": 0,
       "value": "Account"
-    }
-  ],
-  "090b807281": [
-    {
-      "type": 0,
-      "value": "Spiky"
     }
   ],
   "0a91f7fa87": [
@@ -225,12 +213,6 @@
       "value": "Join selected fairies"
     }
   ],
-  "2e86e6853d": [
-    {
-      "type": 0,
-      "value": "Select leader"
-    }
-  ],
   "30cd34258a": [
     {
       "type": 0,
@@ -335,12 +317,6 @@
       "value": "Follow"
     }
   ],
-  "3a295397e6": [
-    {
-      "type": 0,
-      "value": "Ask for help"
-    }
-  ],
   "3a77f951ca": [
     {
       "type": 0,
@@ -375,12 +351,6 @@
     {
       "type": 0,
       "value": "Accept all"
-    }
-  ],
-  "4131ec34ef": [
-    {
-      "type": 0,
-      "value": "Bald"
     }
   ],
   "42e53c47c1": [
@@ -465,12 +435,6 @@
     {
       "type": 0,
       "value": "Are you sure you want to delete this group? This action cannot be undone."
-    }
-  ],
-  "4f827717f7": [
-    {
-      "type": 0,
-      "value": "Pointy"
     }
   ],
   "50db1b7e1e": [
@@ -645,12 +609,6 @@
       "value": "you"
     }
   ],
-  "63a78ed464": [
-    {
-      "type": 0,
-      "value": "Customize"
-    }
-  ],
   "64ebe56d8c": [
     {
       "type": 0,
@@ -685,6 +643,12 @@
     {
       "type": 0,
       "value": "Enter your message"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Fairy's name"
     }
   ],
   "6a26f54883": [
@@ -783,12 +747,6 @@
       "value": "This anonymous tldraw multiplayer file is now read-only. To continue editing, please sign in and copy it to your files."
     }
   ],
-  "7835039819": [
-    {
-      "type": 0,
-      "value": "Propeller"
-    }
-  ],
   "78e9815992": [
     {
       "type": 0,
@@ -817,12 +775,6 @@
     {
       "type": 0,
       "value": "User manual"
-    }
-  ],
-  "7b5449bd84": [
-    {
-      "type": 0,
-      "value": "Antenna"
     }
   ],
   "7be10fc592": [
@@ -911,12 +863,6 @@
     {
       "type": 0,
       "value": "Clear all"
-    }
-  ],
-  "81d48c2f3a": [
-    {
-      "type": 0,
-      "value": "Show tasks on canvas"
     }
   ],
   "8472a551f1": [
@@ -1023,12 +969,6 @@
       "value": "Copied invite link"
     }
   ],
-  "93346fdd70": [
-    {
-      "type": 0,
-      "value": "Ears"
-    }
-  ],
   "93dfe9fbbe": [
     {
       "type": 0,
@@ -1057,12 +997,6 @@
     {
       "type": 0,
       "value": "This month"
-    }
-  ],
-  "97a9f16b2e": [
-    {
-      "type": 0,
-      "value": "New fairy"
     }
   ],
   "985a4b720f": [
@@ -1181,22 +1115,10 @@
       "value": "Cookie policy"
     }
   ],
-  "a3e932550c": [
-    {
-      "type": 0,
-      "value": "Fairy’s name"
-    }
-  ],
   "a4d3b161ce": [
     {
       "type": 0,
       "value": "Submit"
-    }
-  ],
-  "a4ffdcf0dc": [
-    {
-      "type": 0,
-      "value": "Top"
     }
   ],
   "a6cc403d56": [
@@ -1209,12 +1131,6 @@
     {
       "type": 0,
       "value": "Analytics"
-    }
-  ],
-  "a885eb91ac": [
-    {
-      "type": 0,
-      "value": "Leader fairy selection"
     }
   ],
   "a8873770ab": [
@@ -1293,12 +1209,6 @@
     {
       "type": 0,
       "value": "Copy link"
-    }
-  ],
-  "b8996797b9": [
-    {
-      "type": 0,
-      "value": "Hide tasks on canvas"
     }
   ],
   "ba0318cb81": [
@@ -1391,12 +1301,6 @@
       "value": " to help us improve tldraw."
     }
   ],
-  "c2ad21c079": [
-    {
-      "type": 0,
-      "value": "Hair"
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1443,12 +1347,6 @@
     {
       "type": 0,
       "value": "Sign out"
-    }
-  ],
-  "c9b04e7b53": [
-    {
-      "type": 0,
-      "value": "Deselect leader"
     }
   ],
   "c9cc8cce24": [
@@ -1811,12 +1709,6 @@
     {
       "type": 0,
       "value": "Viewer"
-    }
-  ],
-  "fd11eafb92": [
-    {
-      "type": 0,
-      "value": "Disband projects"
     }
   ],
   "fd1be3efcf": [
