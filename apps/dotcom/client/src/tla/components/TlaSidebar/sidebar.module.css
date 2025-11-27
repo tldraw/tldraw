@@ -491,8 +491,6 @@
 }
 
 .sidebarFileListItemRenameInputWrapper {
-	background-color: var(--tla-color-sidebar);
-	outline: 1px solid var(--tl-color-primary);
 	display: flex;
 	align-items: center;
 	justify-content: flex-start;
@@ -508,7 +506,6 @@
 	bottom: 0px;
 	inset: 0px;
 	border-radius: 6px;
-	background-color: white;
 	border: 1px solid var(--tla-color-primary);
 }
 

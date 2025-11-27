@@ -1,18 +1,20 @@
-import { FAIRY_VISION_DIMENSIONS } from '@tldraw/fairy-shared'
+import { CancelIcon, FAIRY_VISION_DIMENSIONS, LipsIcon } from '@tldraw/fairy-shared'
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Box, useValue } from 'tldraw'
 import { useMsg } from '../../../tla/utils/i18n'
 import { fairyMessages } from '../../fairy-messages'
 // import { $fairyTasks } from '../../FairyTaskList'
+import { getIsCoarsePointer } from '../../../tla/utils/getIsCoarsePointer'
 import { FairyAgent } from '../agent/FairyAgent'
 
 export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCancel(): void }) {
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const [inputValue, setInputValue] = useState('')
 	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
+	const enterMsg = useMsg(fairyMessages.enterMsg)
 
-	const fairyEntity = useValue(agent.$fairyEntity)
-	const fairyConfig = useValue(agent.$fairyConfig)
+	const fairyEntity = useValue('fairyEntity', () => agent.$fairyEntity.get(), [agent])
+	const fairyConfig = useValue('fairyConfig', () => agent.$fairyConfig.get(), [agent])
 
 	// Auto-resize textarea when content changes
 	useLayoutEffect(() => {
@@ -25,10 +27,28 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 	}, [inputValue])
 
 	useEffect(() => {
-		if (textareaRef.current) {
+		if (textareaRef.current && !getIsCoarsePointer()) {
 			textareaRef.current.focus()
 		}
 	}, [])
+
+	const handlePrompt = useCallback(
+		(value: string) => {
+			// Prompt the agent
+			const fairyPosition = fairyEntity.position
+			const fairyVision = Box.FromCenter(fairyPosition, FAIRY_VISION_DIMENSIONS)
+
+			agent.interrupt({
+				input: {
+					agentMessages: [value],
+					userMessages: [value],
+					bounds: fairyVision,
+					source: 'user',
+				},
+			})
+		},
+		[agent, fairyEntity]
+	)
 
 	const handleComplete = useCallback(
 		async (value: string) => {
@@ -42,19 +62,9 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 			// Clear the input
 			setInputValue('')
 
-			// Prompt the agent
-			const fairyPosition = fairyEntity.position
-			const fairyVision = Box.FromCenter(fairyPosition, FAIRY_VISION_DIMENSIONS)
-
-			agent.interrupt({
-				input: {
-					message: value,
-					bounds: fairyVision,
-					source: 'user',
-				},
-			})
+			handlePrompt(value)
 		},
-		[agent, fairyEntity]
+		[handlePrompt]
 	)
 
 	// Handle keyboard input for Enter and Shift+Enter
@@ -67,8 +77,8 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 				} else {
 					// Enter: submit message
 					e.preventDefault()
-					if (inputValue.trim() || isGenerating) {
-						handleComplete(inputValue)
+					if (!isGenerating) {
+						handleComplete(inputValue || getRandomNoInputMessage())
 					}
 				}
 			} else if (e.key === 'Escape') {
@@ -78,45 +88,80 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 		[inputValue, isGenerating, handleComplete, onCancel]
 	)
 
-	const shouldCancel = isGenerating && inputValue === ''
-
 	const handleButtonClick = () => {
-		if (shouldCancel) {
+		if (isGenerating) {
 			agent.cancel()
 		} else {
-			handleComplete(inputValue)
+			handleComplete(inputValue || getRandomNoInputMessage())
 		}
 	}
 
-	const whisperPlaceholder = useMsg(fairyMessages.whisperToFairy, { name: fairyConfig.name })
+	const handleMouseDown = useCallback(
+		(e: React.PointerEvent<HTMLTextAreaElement>) => {
+			if (getIsCoarsePointer()) {
+				e.stopPropagation()
+				e.preventDefault()
+				e.currentTarget.blur()
+				const value = window.prompt(enterMsg)
+				if (value) {
+					handlePrompt(value)
+				}
+			}
+		},
+		[handlePrompt, enterMsg]
+	)
+
+	const whisperPlaceholder = useMsg(fairyMessages.whisperToFairy, {
+		name: fairyConfig.name.split(' ')[0],
+	})
 	const stopLabel = useMsg(fairyMessages.stopLabel)
 	const sendLabel = useMsg(fairyMessages.sendLabel)
+	const isCoarsePointer = getIsCoarsePointer()
 
 	return (
 		<div className="fairy-input-container">
-			<div className="fairy-input">
+			<div
+				className="fairy-input"
+				// fake it
+				onClick={() => textareaRef.current?.focus()}
+				style={{ cursor: 'text' }}
+			>
 				<textarea
 					ref={textareaRef}
 					id="fairy-message-input"
+					className="fairy-input__field"
 					name="fairy-message"
 					placeholder={whisperPlaceholder}
 					value={inputValue}
 					onChange={(e) => setInputValue(e.target.value)}
 					onKeyDown={handleKeyDown}
-					autoFocus
-					className="fairy-input__field"
+					onMouseDown={handleMouseDown}
+					readOnly={isCoarsePointer}
+					autoFocus={!isCoarsePointer}
 					rows={1}
 					spellCheck={false}
 				/>
 				<button
 					onClick={handleButtonClick}
-					disabled={inputValue === '' && !isGenerating}
 					className="fairy-input__submit"
-					title={shouldCancel ? stopLabel : sendLabel}
+					title={isGenerating ? stopLabel : sendLabel}
 				>
-					{shouldCancel ? '⏹' : '👄'}
+					{isGenerating ? <CancelIcon /> : <LipsIcon />}
 				</button>
 			</div>
 		</div>
 	)
+}
+
+const NO_INPUT_MESSAGES = [
+	'I mumble something quietly.',
+	"I'm not sure what to say.",
+	'The wind whispers across the canvas.',
+	'...',
+	'*scratch behind the ears*',
+	'Leaves rustle in the breeze.',
+]
+
+function getRandomNoInputMessage() {
+	return NO_INPUT_MESSAGES[Math.floor(Math.random() * NO_INPUT_MESSAGES.length)]
 }

@@ -12,7 +12,7 @@ export class ClaimTodoItemActionUtil extends AgentActionUtil<ClaimTodoItemAction
 		return {
 			icon: 'pencil' as const,
 			description: text,
-			pose: 'writing' as const,
+			pose: 'reading' as const,
 		}
 	}
 

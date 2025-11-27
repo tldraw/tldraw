@@ -162,7 +162,7 @@ export function FairyTaskListInline({ agents }: { agents: FairyAgent[] }) {
 
 						const icon = getStatusIcon(task.status)
 						const project = task.projectId ? getProjectById(task.projectId) : undefined
-						const projectColor = project ? getProjectColor(editor, project.color) : undefined
+						const projectColor = project ? getProjectColor(project.color) : undefined
 
 						return (
 							<div key={task.id} className={`shared-todo-item ${statusClass}`}>

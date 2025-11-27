@@ -1,14 +1,12 @@
-import { FairyProject, FairyTask, SmallSpinner } from '@tldraw/fairy-shared'
+import { FairyProject, FairyTask } from '@tldraw/fairy-shared'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { MouseEvent, useCallback, useEffect, useRef, useState } from 'react'
 import {
 	PORTRAIT_BREAKPOINT,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
-	tlmenus,
 	useBreakpoint,
 	useEditor,
-	useQuickReactor,
 	useValue,
 } from 'tldraw'
 import '../tla/styles/fairy.css'
@@ -50,7 +48,38 @@ function FairyHUDHeader({
 	selectedFairies,
 }: FairyHUDHeaderProps) {
 	const fairyConfig = useValue('fairy config', () => shownFairy?.$fairyConfig.get(), [shownFairy])
-	const isGenerating = useValue('is generating', () => shownFairy?.isGenerating(), [shownFairy])
+
+	// Get the project for the shown fairy
+	const project = useValue('project', () => shownFairy?.getProject(), [shownFairy])
+
+	// Check if the project has been started (has an orchestrator)
+	const isProjectStarted = project?.members.some(
+		(member) => member.role === 'orchestrator' || member.role === 'duo-orchestrator'
+	)
+
+	const fairyClickable = useValue(
+		'fairy clickable',
+		() => shownFairy && (!isProjectStarted || !project),
+		[isProjectStarted, project]
+	)
+
+	const zoomToFairy = useCallback(() => {
+		if (!fairyClickable || !shownFairy) return
+
+		shownFairy.zoomTo()
+	}, [shownFairy, fairyClickable])
+
+	const getDisplayName = () => {
+		if (!isProjectStarted || !project) {
+			return fairyConfig?.name
+		}
+		// Project is started - show title if available, otherwise a placeholder
+		if (project.title) {
+			return project.title
+		}
+		// Placeholder while the project name is being streamed
+		return 'Planning project…'
+	}
 
 	// Determine center content based on panel state
 	const centerContent =
@@ -60,19 +89,11 @@ function FairyHUDHeader({
 			</div>
 		) : selectedFairies.length > 1 ? (
 			<div className="fairy-id-display">
-				<F defaultMessage="Create project" />
+				<F defaultMessage="New project" />
 			</div>
 		) : shownFairy && fairyConfig ? (
-			<div className="fairy-id-display">
-				{fairyConfig.name}
-				<div
-					className="fairy-spinner-container"
-					style={{
-						visibility: isGenerating ? 'visible' : 'hidden',
-					}}
-				>
-					<SmallSpinner />
-				</div>
+			<div className="fairy-id-display" onClick={zoomToFairy}>
+				<p style={{ cursor: fairyClickable ? 'pointer' : 'default' }}>{getDisplayName()}</p>
 			</div>
 		) : (
 			<div style={{ flex: 1 }}></div>
@@ -93,7 +114,7 @@ function FairyHUDHeader({
 			<_DropdownMenu.Root dir="ltr" open={menuPopoverOpen} onOpenChange={onMenuPopoverOpenChange}>
 				<_DropdownMenu.Trigger asChild dir="ltr">
 					<TldrawUiButton type="icon" className="fairy-toolbar-button">
-						<TldrawUiButtonIcon icon="menu" />
+						<TldrawUiButtonIcon icon="menu" small />
 					</TldrawUiButton>
 				</_DropdownMenu.Trigger>
 				{dropdownContent}
@@ -102,18 +123,8 @@ function FairyHUDHeader({
 			{centerContent}
 
 			<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onClosePanel}>
-				<TldrawUiButtonIcon icon="cross-2" />
+				<TldrawUiButtonIcon icon="cross-2" small />
 			</TldrawUiButton>
-
-			{/* <div style={{ position: 'relative' }}>
-				<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onToggleFairyTasks}>
-					<TldrawUiIcon
-						icon={panelState === 'task-list' ? 'toggle-on' : 'toggle-off'}
-						label={panelState === 'task-list' ? switchToFairyChatLabel : switchToTaskListLabel}
-					/>
-					{hasUnreadTasks && <div className="fairy-todo-unread-indicator" />}
-				</TldrawUiButton>
-			</div> */}
 		</div>
 	)
 }
@@ -121,6 +132,7 @@ function FairyHUDHeader({
 export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	const editor = useEditor()
 	const breakpoint = useBreakpoint()
+	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
 	const [headerMenuPopoverOpen, setHeaderMenuPopoverOpen] = useState(false)
 	const [fairyMenuPopoverOpen, setFairyMenuPopoverOpen] = useState(false)
 	const [todoMenuPopoverOpen, setTodoMenuPopoverOpen] = useState(false)
@@ -148,26 +160,16 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	)
 
 	// Update the chosen fairy when the selected fairies change
-	useQuickReactor(
-		'update-chosen-fairy',
-		() => {
-			const currentSelectedFairies = agents.filter(
-				(agent) => agent.$fairyEntity.get()?.isSelected ?? false
-			)
-
-			queueMicrotask(() => {
-				if (currentSelectedFairies.length === 1) {
-					setShownFairy(currentSelectedFairies[0])
-					setPanelState('fairy')
-				}
-				if (currentSelectedFairies.length === 0) {
-					setShownFairy(null)
-					setPanelState('closed')
-				}
-			})
-		},
-		[agents]
-	)
+	useEffect(() => {
+		if (selectedFairies.length === 1) {
+			setShownFairy(selectedFairies[0])
+			setPanelState('fairy')
+		}
+		if (selectedFairies.length === 0) {
+			setShownFairy(null)
+			setPanelState('closed')
+		}
+	}, [selectedFairies])
 
 	const selectFairy = useCallback(
 		(selectedAgent: FairyAgent) => {
@@ -299,40 +301,39 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		e.stopPropagation()
 	}
 
+	const currentTasks = useValue('current-tasks', () => $fairyTasks.get(), [])
+
 	// Keep todoLastChecked in sync when the panel is open
-	useQuickReactor(
-		'update-task-list-last-checked',
-		() => {
-			if (panelState === 'task-list') {
-				setTaskListLastChecked($fairyTasks.get())
-			}
-		},
-		[panelState]
-	)
+	useEffect(() => {
+		if (panelState === 'task-list') {
+			setTaskListLastChecked(currentTasks)
+		}
+	}, [panelState, currentTasks])
 
 	const hasUnreadTasks = useValue(
 		'has-unread-tasks',
 		() => {
-			const currentList = $fairyTasks.get()
-			if (currentList.length !== taskListLastChecked.length) return true
-			return JSON.stringify(currentList) !== JSON.stringify(taskListLastChecked)
+			if (currentTasks.length !== taskListLastChecked.length) return true
+			return JSON.stringify(currentTasks) !== JSON.stringify(taskListLastChecked)
 		},
-		[taskListLastChecked]
+		[taskListLastChecked, currentTasks]
 	)
 
 	// hide the HUD when the mobile style panel is open
-	const isMobileStylePanelOpen = useValue(
-		'mobile style panel open',
+	const isMobileBottomToolbarsOpen = useValue(
+		'mobile bottom toolbars open',
 		() => {
-			const contextId = editor.contextId
-			return tlmenus.isMenuOpen(`mobile style menu-${contextId}`)
+			if (!isMobile) return false
+			return (
+				editor.menus.isMenuOpen(`mobile style menu`) || editor.menus.isMenuOpen(`toolbar overflow`)
+			)
 		},
-		[editor, breakpoint]
+		[editor, isMobile]
 	)
 
 	// Position HUD above mobile style menu button on mobile
 	useEffect(() => {
-		if (breakpoint >= PORTRAIT_BREAKPOINT.TABLET_SM) {
+		if (!isMobile) {
 			setMobileMenuOffset(null)
 			return
 		}
@@ -353,7 +354,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		window.addEventListener('resize', updatePosition)
 
 		return () => window.removeEventListener('resize', updatePosition)
-	}, [breakpoint])
+	}, [isMobile])
 
 	return (
 		<>
@@ -361,9 +362,9 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 				ref={hudRef}
 				className={`tla-fairy-hud ${panelState !== 'closed' ? 'tla-fairy-hud--open' : ''}`}
 				style={{
-					bottom: isDebugMode ? '112px' : '72px',
-					right: mobileMenuOffset !== null ? `${mobileMenuOffset}px` : '8px',
-					display: isMobileStylePanelOpen ? 'none' : 'block',
+					bottom: mobileMenuOffset !== null ? 64 : isDebugMode ? 48 : 8,
+					right: mobileMenuOffset !== null ? mobileMenuOffset : 8,
+					display: isMobileBottomToolbarsOpen ? 'none' : 'block',
 				}}
 				onContextMenu={handleContextMenu}
 			>

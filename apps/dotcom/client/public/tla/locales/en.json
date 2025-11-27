@@ -86,14 +86,14 @@
   "1fe250ea06": {
     "translation": "Instruct the group…"
   },
+  "243924bfd5": {
+    "translation": "Sleep"
+  },
   "2445e5e347": {
     "translation": "Create group"
   },
   "250ddea65c": {
     "translation": "About tldraw"
-  },
-  "2811a731bb": {
-    "translation": "Customize fairy"
   },
   "284d5cd0dd": {
     "translation": "Model:"
@@ -104,11 +104,14 @@
   "2c3ef76333": {
     "translation": "My files"
   },
+  "2db683a1fe": {
+    "translation": "Join selected fairies"
+  },
   "2e86e6853d": {
     "translation": "Select leader"
   },
-  "2f7935debe": {
-    "translation": "Put away fairy"
+  "30cd34258a": {
+    "translation": "A flutter of <b>fairies</b> have come to tldraw for the month of December. To investigate further, find the fairy and click it."
   },
   "31246941ad": {
     "translation": "You need to sign in to view this file."
@@ -131,8 +134,17 @@
   "33f9ea6fe8": {
     "translation": "Disband group"
   },
+  "34140869c6": {
+    "translation": "A flutter of fairies is coming to tldraw for the month of December. Please check back on December 1st."
+  },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "3596c1b1f7": {
+    "translation": "Unfollow"
+  },
+  "3903aab323": {
+    "translation": "Follow"
   },
   "3a295397e6": {
     "translation": "Ask for help"
@@ -188,9 +200,6 @@
   "49ee308734": {
     "translation": "Name"
   },
-  "4b3e8439d5": {
-    "translation": "Leader fairy will be given orchestration power"
-  },
   "4d0d3ddec9": {
     "translation": "This site uses cookies to make the app work and to collect analytics."
   },
@@ -202,9 +211,6 @@
   },
   "4e6fbf032b": {
     "translation": "Are you sure you want to delete this group? This action cannot be undone."
-  },
-  "4ef3716596": {
-    "translation": "Unfollow fairy"
   },
   "4f827717f7": {
     "translation": "Pointy"
@@ -269,6 +275,9 @@
   "639bae9ac6": {
     "translation": "you"
   },
+  "63a78ed464": {
+    "translation": "Customize"
+  },
   "64ebe56d8c": {
     "translation": "Click to remove or drag to move"
   },
@@ -284,6 +293,9 @@
   "6832ac5936": {
     "translation": "Enter your email address"
   },
+  "68d390535e": {
+    "translation": "Enter your message"
+  },
   "6a26f54883": {
     "translation": "Help"
   },
@@ -292,6 +304,9 @@
   },
   "6dfc62f621": {
     "translation": "Follow these steps to import the content manually:"
+  },
+  "6e02bd9e1e": {
+    "translation": "Put away fairies"
   },
   "70222abcfc": {
     "translation": "Group settings"
@@ -371,9 +386,6 @@
   "7daeced9ff": {
     "translation": "Publish changes"
   },
-  "7e94fd31ac": {
-    "translation": "Create project"
-  },
   "7fcdcc6455": {
     "translation": "Forget file"
   },
@@ -394,6 +406,9 @@
   },
   "86353d2c41": {
     "translation": "Added {total} .tldr files."
+  },
+  "86a7df7572": {
+    "translation": "Summon fairies"
   },
   "86c66437fd": {
     "translation": "Rename file"
@@ -509,9 +524,6 @@
   "a4d3b161ce": {
     "translation": "Submit"
   },
-  "a4e2d4d837": {
-    "translation": "Reset all chats"
-  },
   "a4ffdcf0dc": {
     "translation": "Top"
   },
@@ -588,8 +600,8 @@
   "c303bd1095": {
     "translation": "Unable to publish the file."
   },
-  "c3e97dd6e9": {
-    "translation": "$"
+  "c3eb5c3b90": {
+    "translation": "I understand"
   },
   "c4b39a1cc3": {
     "translation": "Essential cookies"
@@ -615,9 +627,6 @@
   "c9cc8cce24": {
     "translation": "Save"
   },
-  "cb93643511": {
-    "translation": "Summon fairy"
-  },
   "cceaefbc20": {
     "translation": "Share this file"
   },
@@ -633,17 +642,20 @@
   "cea291e45e": {
     "translation": "Learn more about publishing."
   },
+  "cf62a7f9a7": {
+    "translation": "Reset chats"
+  },
   "d3d2e61733": {
     "translation": "Close"
+  },
+  "d438a51e6e": {
+    "translation": "Put all fairies to sleep"
   },
   "d46632fe1f": {
     "translation": "Too many requests. Please slow down."
   },
   "d4bbf74f3e": {
     "translation": "Toggle sidebar"
-  },
-  "d5f491d157": {
-    "translation": "Follow fairy"
   },
   "d638a3344b": {
     "translation": "Before you start, please accept our <tos>terms of use</tos> and <privacy>privacy policy</privacy>."
@@ -656,9 +668,6 @@
   },
   "d7bc9d5a2e": {
     "translation": "Delete task"
-  },
-  "d856d53da4": {
-    "translation": "No leader selected"
   },
   "d876a9fe1a": {
     "translation": "Try Again"
@@ -674,6 +683,12 @@
   },
   "dbbebf3c03": {
     "translation": "Invite only"
+  },
+  "dbbece0c3a": {
+    "translation": "Clear all chats"
+  },
+  "dc30bc0c79": {
+    "translation": "Clear"
   },
   "dcdaa754fe": {
     "translation": "Invalid tldraw file URL"
@@ -741,11 +756,17 @@
   "efb2d9d471": {
     "translation": "Todo list"
   },
+  "efde983742": {
+    "translation": "Summon"
+  },
   "f09b16bc5f": {
     "translation": "We use cookies to keep you logged in, to sync your files, and to collect analytics to help us improve tldraw."
   },
   "f0e8bff6f9": {
     "translation": "User settings"
+  },
+  "f23056da60": {
+    "translation": "New project"
   },
   "f2569594b2": {
     "translation": "We use these cookies to save your files and settings."
@@ -774,9 +795,6 @@
   "fb15c53f22": {
     "translation": "Viewer"
   },
-  "fcd66d76d6": {
-    "translation": "Delete all fairies"
-  },
   "fd11eafb92": {
     "translation": "Disband projects"
   },
@@ -785,9 +803,6 @@
   },
   "fed5ec05eb": {
     "translation": "Copied link"
-  },
-  "ff7276d298": {
-    "translation": "Reset chat"
   },
   "ff7a814974": {
     "translation": "Add file link…"

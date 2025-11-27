@@ -1,5 +1,5 @@
 import { EndCurrentProjectAction, Streaming } from '@tldraw/fairy-shared'
-import { deleteProject } from '../FairyProjects'
+import { deleteProjectAndAssociatedTasks } from '../FairyProjects'
 import { getFairyTasksByProjectId } from '../FairyTaskList'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { $fairyAgentsAtom } from '../fairy-agent/agent/fairyAgentsAtom'
@@ -13,6 +13,7 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 			icon: 'flag' as const,
 			description: action.complete ? 'Ended project' : 'Ending project...',
 			pose: 'writing' as const,
+			canGroup: () => false,
 		}
 	}
 
@@ -43,7 +44,7 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 					{
 						type: 'memory-transition',
 						memoryLevel: 'fairy',
-						message: `I led and completed the "${project.title}" project with ${otherMemberIds.length} other fairy(s): ${otherMemberIds.join(', ')}`,
+						agentFacingMessage: `I led and completed the "${project.title}" project with ${otherMemberIds.length} other fairy(s): ${otherMemberIds.join(', ')}`,
 						userFacingMessage: null,
 					},
 				])
@@ -60,7 +61,7 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 					{
 						type: 'memory-transition',
 						memoryLevel: 'fairy',
-						message: `I completed ${count} ${taskWord} as part of the "${project.title}" project, with ${otherMemberIds.length} other fairy(s): ${otherMemberIds.join(', ')}`,
+						agentFacingMessage: `I completed ${count} ${taskWord} as part of the "${project.title}" project, with ${otherMemberIds.length} other fairy(s): ${otherMemberIds.join(', ')}`,
 						userFacingMessage: `I completed ${count} ${taskWord} as part of the "${project.title}" project.`,
 					},
 				])
@@ -68,6 +69,6 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 			memberAgent.interrupt({ mode: 'idling', input: null })
 		})
 
-		deleteProject(project.id)
+		deleteProjectAndAssociatedTasks(project.id)
 	}
 }

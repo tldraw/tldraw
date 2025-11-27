@@ -65,8 +65,16 @@ const FAIRY_DEBUG_INSPECTOR_TYPES: FairyDebugInspectorType[] = [
 ]
 
 // # Main dialog component
-export function FairyDebugDialog({ agents, onClose }: { agents: FairyAgent[]; onClose(): void }) {
-	const [selectedTabId, setSelectedTabId] = useState<string>('home')
+export function FairyDebugDialog({
+	agents,
+	onClose,
+	initialTabId,
+}: {
+	agents: FairyAgent[]
+	onClose(): void
+	initialTabId?: string
+}) {
+	const [selectedTabId, setSelectedTabId] = useState<string>(initialTabId ?? 'home')
 	const [fairyDebugInspectorType, setFairyDebugInspectorType] =
 		useState<FairyDebugInspectorType>('config')
 	const [homeDebugInspectorType, setHomeDebugInspectorType] =
@@ -448,7 +456,7 @@ function FairyDebugView({
 	const chatOrigin = useValue(agent.$chatOrigin)
 	const personalTodoList = useValue(agent.$personalTodoList)
 	const userActionHistory = useValue(agent.$userActionHistory)
-	const currentProjectId = agent.getProject()?.id
+	const currentProjectId = agent.getProject()?.id ?? null
 	// const cumulativeUsage = agent.cumulativeUsage
 	const mode = agent.getMode()
 
@@ -561,7 +569,8 @@ function ActionsInspector({ agent }: { agent: FairyAgent }) {
 			<>
 				<div className="fairy-debug-item">
 					<KeyValuePair label="type" value={item.type} />
-					<KeyValuePair label="message" value={item.message} />
+					<KeyValuePair label="agentFacingMessages" value={item.agentFacingMessage} />
+					<KeyValuePair label="userFacingMessages" value={item.userFacingMessage ?? null} />
 				</div>
 				{!isLast && <hr />}
 			</>
@@ -659,7 +668,9 @@ function ChatHistoryInspector({ agent }: { agent: FairyAgent }) {
 					style={{ backgroundColor: getMemoryLevelColor(item.memoryLevel) }}
 				>
 					<KeyValuePair label="type" value={item.type} />
-					<KeyValuePair label="message" value={item.message} />
+					<KeyValuePair label="promptSource" value={item.promptSource} />
+					<KeyValuePair label="agentFacingMessages" value={item.agentFacingMessage} />
+					<KeyValuePair label="userFacingMessages" value={item.userFacingMessage ?? null} />
 					<KeyValuePair label="memoryLevel" value={item.memoryLevel} />
 				</div>
 				{!isLast && <hr />}
@@ -726,7 +737,7 @@ function ChatHistoryInspector({ agent }: { agent: FairyAgent }) {
 				>
 					<KeyValuePair label="type" value={item.type} />
 					<KeyValuePair label="memoryLevel" value={item.memoryLevel} />
-					<KeyValuePair label="message" value={item.message} />
+					<KeyValuePair label="message" value={item.agentFacingMessage} />
 					<KeyValuePair label="userFacingMessage" value={item.userFacingMessage} />
 				</div>
 				{!isLast && <hr />}
