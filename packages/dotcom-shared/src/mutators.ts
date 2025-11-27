@@ -1,5 +1,6 @@
 import type { CustomMutatorDefs } from '@rocicorp/zero'
 import type { Transaction } from '@rocicorp/zero/out/zql/src/mutate/custom'
+import { ChatHistoryItem } from '@tldraw/fairy-shared'
 import {
 	assert,
 	getIndexAbove,
@@ -383,8 +384,124 @@ export function createMutators(userId: string) {
 
 				await tx.mutate.file_state.upsert(fileState)
 			},
-			updateFairies: async (tx, { fileId, fairyState }: { fileId: string; fairyState: string }) => {
-				await tx.mutate.file_fairies.upsert({ fileId, userId, fairyState })
+			updateFairies: async (
+				tx,
+				{
+					fileId,
+					fairyState,
+					newHistoryItems,
+				}: {
+					fileId: string
+					fairyState: string
+					newHistoryItems?: Record<string, ChatHistoryItem[]>
+				}
+			) => {
+				const incomingState = JSON.parse(fairyState)
+
+				// Client: Just update the full state as-is
+				if (tx.location !== 'server') {
+					await tx.mutate.file_fairies.upsert({
+						fileId,
+						userId,
+						fairyState: JSON.stringify(incomingState),
+					})
+					return
+				}
+
+				// Server: Append new history, truncate, then update
+				const { hasAccess } = await getUserFairyAccess(tx, userId)
+				assert(hasAccess, ZErrorCode.forbidden)
+
+				// Start with incoming state (has latest non-history fields)
+				const finalState = incomingState
+
+				// Get current state from DB (only for existing chatHistory)
+				const current = await tx.query.file_fairies
+					.where('fileId', '=', fileId)
+					.where('userId', '=', userId)
+					.one()
+					.run()
+
+				const currentState = current?.fairyState ? JSON.parse(current.fairyState) : { agents: {} }
+
+				// Restore chatHistory from DB and append new items
+				for (const agentId in finalState.agents) {
+					const agent = finalState.agents[agentId]
+					const currentAgent = currentState.agents?.[agentId]
+
+					// Copy existing chatHistory from DB
+					if (currentAgent?.chatHistory) {
+						agent.chatHistory = [...currentAgent.chatHistory]
+					} else {
+						agent.chatHistory = []
+					}
+
+					// Append new items if provided for this agent
+					const newItems = newHistoryItems?.[agentId]
+					if (newItems) {
+						// Append to log table
+						for (const item of newItems) {
+							await tx.dbTransaction.query(
+								`INSERT INTO file_fairies_log (id, "fileId", "userId", "agentId", "historyItem", "createdAt")
+								 VALUES ($1, $2, $3, $4, $5, $6)`,
+								[uniqueId(), fileId, userId, agentId, JSON.stringify(item), Date.now()]
+							)
+						}
+
+						// Append to cached history
+						agent.chatHistory.push(...newItems)
+					}
+				}
+
+				// Truncate each agent's history if over 300KB (FIFO per agent)
+				const MAX_SIZE_PER_AGENT = 300 * 1024
+				const truncationStats: Record<
+					string,
+					{ before: number; after: number; removed: number; sizeBefore: number; sizeAfter: number }
+				> = {}
+
+				for (const aid in finalState.agents) {
+					const agent = finalState.agents[aid]
+					const beforeMsgCount = agent.chatHistory.length
+					let agentHistoryStr = JSON.stringify(agent.chatHistory)
+					const sizeBefore = agentHistoryStr.length
+
+					if (agentHistoryStr.length > MAX_SIZE_PER_AGENT) {
+						console.error(
+							`[updateFairies] ⚠️  Agent ${aid} history exceeds ${MAX_SIZE_PER_AGENT} bytes (${sizeBefore} bytes)`
+						)
+
+						// Remove oldest messages until under limit
+						while (agentHistoryStr.length > MAX_SIZE_PER_AGENT && agent.chatHistory.length > 0) {
+							agent.chatHistory.shift()
+							agentHistoryStr = JSON.stringify(agent.chatHistory)
+						}
+
+						const afterMsgCount = agent.chatHistory.length
+						const sizeAfter = agentHistoryStr.length
+
+						truncationStats[aid] = {
+							before: beforeMsgCount,
+							after: afterMsgCount,
+							removed: beforeMsgCount - afterMsgCount,
+							sizeBefore,
+							sizeAfter,
+						}
+					}
+				}
+
+				if (Object.keys(truncationStats).length > 0) {
+					console.error(
+						`[updateFairies] Truncation stats:`,
+						JSON.stringify(truncationStats, null, 2)
+					)
+				}
+
+				await tx.mutate.file_fairies.upsert({
+					fileId,
+					userId,
+					fairyState: JSON.stringify(finalState),
+				})
 			},
 		},
 

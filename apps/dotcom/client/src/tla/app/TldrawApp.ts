@@ -28,6 +28,7 @@ import {
 	parseFlags,
 	schema as zeroSchema,
 } from '@tldraw/dotcom-shared'
+import { ChatHistoryItem, PersistedFairyState } from '@tldraw/fairy-shared'
 import {
 	Result,
 	assert,
@@ -808,10 +809,16 @@ export class TldrawApp {
 		this.z.mutate.onEnterFile({ fileId, time: Date.now() })
 	}
 
-	onFairyStateUpdate(fileId: string, fairyState: any) {
+	onFairyStateUpdate(
+		fileId: string,
+		fairyState: PersistedFairyState,
+		newHistoryItems: Record<string, ChatHistoryItem[]>
+	) {
+		// Send items as objects (server will stringify)
 		this.z.mutate.file_state.updateFairies({
 			fileId,
 			fairyState: JSON.stringify(fairyState),
+			newHistoryItems,
 		})
 	}
 

@@ -312,6 +312,7 @@ export interface DB {
 	group_file: TlaGroupFile
 	user_fairies: TlaUserFairy
 	file_fairies: TlaFileFairy
+	file_fairies_log: TlaFileFairyLog
 	fairy_invite: TlaFairyInvite
 	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
@@ -344,6 +345,16 @@ export interface TlaFairyInvite {
 	fairyLimit: number
 	maxUses: number
 	currentUses: number
+	createdAt: number
+}
+
+// file_fairies_log is backend-only, not part of Zero schema
+export interface TlaFileFairyLog {
+	id: string
+	fileId: string
+	userId: string
+	agentId: string
+	historyItem: string // JSON-encoded ChatHistoryItem
 	createdAt: number
 }
 

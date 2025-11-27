@@ -1,5 +1,6 @@
 import { MAX_FAIRY_COUNT } from '@tldraw/dotcom-shared'
 import {
+	ChatHistoryItem,
 	FAIRY_VARIANTS,
 	FairyConfig,
 	FairyVariantType,
@@ -64,6 +65,8 @@ export function FairyApp({
 	const fairyTaskListLoadedRef = useRef(false)
 	const showCanvasTodosLoadedRef = useRef(false)
 	const projectsLoadedRef = useRef(false)
+	// Track known messages per agent (set of stringified messages)
+	const knownMessagesRef = useRef<Record<string, Set<string>>>({})
 
 	// Create agents dynamically from configs
 	useEffect(() => {
@@ -150,6 +153,17 @@ export function FairyApp({
 					if (persistedAgent) {
 						agent.loadState(persistedAgent)
 						loadedAgentIdsRef.current.add(agent.id)
+
+						// Initialize known messages set for this agent
+						if (!knownMessagesRef.current[agent.id]) {
+							knownMessagesRef.current[agent.id] = new Set()
+						}
+						// Add all loaded messages to known set
+						const loadedHistory = persistedAgent.chatHistory || []
+						loadedHistory.forEach((item) => {
+							const itemKey = JSON.stringify(item)
+							knownMessagesRef.current[agent.id].add(itemKey)
+						})
 					}
 				})
 
@@ -191,10 +205,49 @@ export function FairyApp({
 			// Don't save if we're currently loading state
 			if (isLoadingStateRef.current) return
 
+			const newHistoryItems: Record<string, ChatHistoryItem[]> = {}
+			for (const agent of agentsRef.current) {
+				const chatHistory = agent.$chatHistory.get()
+
+				if (!knownMessagesRef.current[agent.id]) {
+					knownMessagesRef.current[agent.id] = new Set()
+				}
+
+				const newMessages = chatHistory.filter((item: any) => {
+					const itemKey = JSON.stringify(item)
+					return !knownMessagesRef.current[agent.id].has(itemKey)
+				})
+
+				if (newMessages.length > 0) {
+					// Strip diffs from messages before sending (but keep originals in known set)
+					const strippedMessages = newMessages.map((item: any) => {
+						if (item.type === 'action' && 'diff' in item) {
+							const { diff: _diff, ...rest } = item
+							return rest
+						}
+						return item
+					})
+					newHistoryItems[agent.id] = strippedMessages
+
+					// Add originals (with diffs) to known set for matching
+					newMessages.forEach((item: any) => {
+						const itemKey = JSON.stringify(item)
+						knownMessagesRef.current[agent.id].add(itemKey)
+					})
+				}
+			}
+
+			// Build state without chatHistory (server manages it)
 			const fairyState: PersistedFairyState = {
 				agents: agentsRef.current.reduce(
 					(acc, agent) => {
-						acc[agent.id] = agent.serializeState()
+						const serialized = agent.serializeState()
+						acc[agent.id] = {
+							fairyEntity: serialized.fairyEntity,
+							chatOrigin: serialized.chatOrigin,
+							personalTodoList: serialized.personalTodoList,
+							chatHistory: [], // Empty - sent separately
+						}
 						return acc
 					},
 					{} as Record<string, PersistedFairyAgentState>
@@ -203,7 +256,7 @@ export function FairyApp({
 				showCanvasTodos: $showCanvasFairyTasks.get(),
 				projects: $fairyProjects.get(),
 			}
-			app.onFairyStateUpdate(fileId, fairyState)
+			app.onFairyStateUpdate(fileId, fairyState, newHistoryItems)
 		}, 2000) // Save maximum every 2 seconds
 
 		// Watch for changes in fairy atoms
