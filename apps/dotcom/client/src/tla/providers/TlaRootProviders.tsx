@@ -209,6 +209,13 @@ function SignedInProvider({
 			updateLocalSessionState(() => ({
 				auth: { userId: auth.userId },
 			}))
+
+			// Check for pricing checkout intent after sign-in
+			const checkoutIntent = sessionStorage.getItem('pricing-checkout-intent')
+			if (checkoutIntent === 'true' && !window.location.pathname.includes('/pricing')) {
+				// User just signed in with pricing intent, redirect to pricing page
+				window.location.href = '/pricing'
+			}
 		} else {
 			clearLocalSessionState()
 		}
