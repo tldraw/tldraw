@@ -1,4 +1,10 @@
-import { Locator, Page, PlaywrightTestArgs, PlaywrightWorkerArgs } from '@playwright/test'
+import {
+	BrowserContext,
+	Locator,
+	Page,
+	PlaywrightTestArgs,
+	PlaywrightWorkerArgs,
+} from '@playwright/test'
 import { type Editor } from 'tldraw'
 
 declare const editor: Editor
@@ -10,6 +16,20 @@ export function sleep(ms: number): Promise<void> {
 export async function setup({ page, context }: PlaywrightTestArgs & PlaywrightWorkerArgs) {
 	await context.grantPermissions(['clipboard-read', 'clipboard-write'])
 	await setupPage(page)
+}
+
+/**
+ * Smart setup that navigates on first run, then uses fast reset on subsequent runs.
+ * Use this in beforeEach for optimal test performance with page reuse.
+ */
+export async function setupOrReset({ page, context }: { page: Page; context: BrowserContext }) {
+	const url = page.url()
+	if (!url.includes('end-to-end')) {
+		await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+		await setupPage(page)
+	} else {
+		await hardResetEditor(page)
+	}
 }
 
 export async function setupWithShapes({ page }: PlaywrightTestArgs & PlaywrightWorkerArgs) {

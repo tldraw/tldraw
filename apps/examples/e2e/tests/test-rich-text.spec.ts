@@ -1,16 +1,9 @@
 import { expect } from '@playwright/test'
 import test from '../fixtures/fixtures'
-import { hardResetEditor, setup } from '../shared-e2e'
+import { setupOrReset } from '../shared-e2e'
 
 test.describe('more rich text', () => {
-	test.beforeEach(async ({ page, context }) => {
-		const url = page.url()
-		if (!url.includes('end-to-end')) {
-			await setup({ page, context } as any)
-		} else {
-			await hardResetEditor(page)
-		}
-	})
+	test.beforeEach(setupOrReset)
 
 	test('Double click from select tool to create and edit text on the canvas', async ({
 		page,

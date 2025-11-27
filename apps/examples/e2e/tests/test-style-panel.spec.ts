@@ -1,19 +1,12 @@
 import { expect } from '@playwright/test'
 import { Editor } from 'tldraw'
 import test from '../fixtures/fixtures'
-import { hardResetEditor, setup } from '../shared-e2e'
+import { setupOrReset } from '../shared-e2e'
 
 declare const editor: Editor
 
 test.describe('Style selection behaviour', () => {
-	test.beforeEach(async ({ page, context }) => {
-		const url = page.url()
-		if (!url.includes('end-to-end')) {
-			await setup({ page, context } as any)
-		} else {
-			await hardResetEditor(page)
-		}
-	})
+	test.beforeEach(setupOrReset)
 	test('selecting a style hints the button', async ({ isMobile, stylePanel, toolbar }) => {
 		const { blue, black } = stylePanel.colors
 		const { pattern, none } = stylePanel.fill
@@ -121,14 +114,7 @@ test.describe('Style selection behaviour', () => {
 })
 
 test.describe('mobile style panel', () => {
-	test.beforeEach(async ({ page, context }) => {
-		const url = page.url()
-		if (!url.includes('end-to-end')) {
-			await setup({ page, context } as any)
-		} else {
-			await hardResetEditor(page)
-		}
-	})
+	test.beforeEach(setupOrReset)
 	test('opens and closes as expected', async ({ isMobile, page, toolbar, stylePanel }) => {
 		test.skip(!isMobile, 'only run on mobile')
 

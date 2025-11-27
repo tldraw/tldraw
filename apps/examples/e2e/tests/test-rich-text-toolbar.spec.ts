@@ -1,19 +1,12 @@
 import { expect } from '@playwright/test'
 import { type Editor } from 'tldraw'
 import test from '../fixtures/fixtures'
-import { hardResetEditor, setup, sleep } from '../shared-e2e'
+import { setupOrReset, sleep } from '../shared-e2e'
 
 declare const editor: Editor
 
 test.describe('Rich text behaviour', () => {
-	test.beforeEach(async ({ page, context }) => {
-		const url = page.url()
-		if (!url.includes('end-to-end')) {
-			await setup({ page, context } as any)
-		} else {
-			await hardResetEditor(page)
-		}
-	})
+	test.beforeEach(setupOrReset)
 	test.beforeEach(async ({ page, toolbar, isMobile }) => {
 		// TODO: the mobile e2e test doesn't have the virtual keyboard at the moment.
 		if (isMobile) return

@@ -1,16 +1,9 @@
 import { expect } from '@playwright/test'
 import test from '../fixtures/fixtures'
-import { getAllShapeTypes, hardResetEditor, setup } from '../shared-e2e'
+import { getAllShapeTypes, setupOrReset } from '../shared-e2e'
 
 test.describe('when selecting a tool from the toolbar', () => {
-	test.beforeEach(async ({ page, context }) => {
-		const url = page.url()
-		if (!url.includes('end-to-end')) {
-			await setup({ page, context } as any)
-		} else {
-			await hardResetEditor(page)
-		}
-	})
+	test.beforeEach(setupOrReset)
 
 	test('tool selection behaviors', async ({ toolbar }) => {
 		const { select, draw, arrow, cloud } = toolbar.tools
@@ -45,14 +38,7 @@ test.describe('when selecting a tool from the toolbar', () => {
 })
 
 test.describe('when dragging a tool from the toolbar', () => {
-	test.beforeEach(async ({ page, context }) => {
-		const url = page.url()
-		if (!url.includes('end-to-end')) {
-			await setup({ page, context } as any)
-		} else {
-			await hardResetEditor(page)
-		}
-	})
+	test.beforeEach(setupOrReset)
 
 	test('dragging from main toolbar creates and positions shapes', async ({
 		page,

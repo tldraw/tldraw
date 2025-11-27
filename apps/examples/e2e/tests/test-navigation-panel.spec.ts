@@ -1,16 +1,9 @@
 import { expect } from '@playwright/test'
 import test from '../fixtures/fixtures'
-import { hardResetEditor, setup } from '../shared-e2e'
+import { setupOrReset } from '../shared-e2e'
 
 test.describe('navigationPanel', () => {
-	test.beforeEach(async ({ page, context }) => {
-		const url = page.url()
-		if (!url.includes('end-to-end')) {
-			await setup({ page, context } as any)
-		} else {
-			await hardResetEditor(page)
-		}
-	})
+	test.beforeEach(setupOrReset)
 
 	test('you can open and close the zoom menu', async ({ navigationPanel, isMobile }) => {
 		// no navigationPanel on mobile

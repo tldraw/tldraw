@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test'
 import { Editor } from 'tldraw'
 import test from '../fixtures/fixtures'
-import { getAllShapeTypes, hardResetEditor, setup } from '../shared-e2e'
+import { getAllShapeTypes, setupOrReset } from '../shared-e2e'
 
 declare const editor: Editor
 
@@ -60,14 +60,7 @@ const draggableShapeCreators = [
 const otherTools = [{ tool: 'select' }, { tool: 'eraser' }, { tool: 'laser' }]
 
 test.describe('Shape Tools', () => {
-	test.beforeEach(async ({ page, context }) => {
-		const url = page.url()
-		if (!url.includes('end-to-end')) {
-			await setup({ page, context } as any)
-		} else {
-			await hardResetEditor(page)
-		}
-	})
+	test.beforeEach(setupOrReset)
 
 	test('creates shapes with other tools', async ({ toolbar, page }) => {
 		expect(await getAllShapeTypes(page)).toEqual([])
