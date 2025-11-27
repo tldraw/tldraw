@@ -159,10 +159,10 @@
       "value": "Instruct the group…"
     }
   ],
-  "20dfc4f904": [
+  "23f879f41a": [
     {
       "type": 0,
-      "value": "Locate"
+      "value": "Your weekly fairy usage limit has been reached. It will reset at the start of next week."
     }
   ],
   "243924bfd5": [
@@ -557,6 +557,12 @@
     {
       "type": 0,
       "value": "We failed to upload some of the content you created before you signed in."
+    }
+  ],
+  "5e706a9b7e": [
+    {
+      "type": 0,
+      "value": "Visit"
     }
   ],
   "5ea8bb44be": [
@@ -1137,6 +1143,12 @@
     {
       "type": 0,
       "value": "File is getting large"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Weekly fairy limit reached"
     }
   ],
   "a9ded1e5ce": [

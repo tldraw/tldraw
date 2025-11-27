@@ -40,6 +40,7 @@ export async function upsertFairyAccess(
 				fairyLimit,
 				fairyAccessExpiresAt: expiresAt,
 				fairies: '{}',
+				weeklyUsage: {},
 			})
 			.onConflict((oc) =>
 				oc.column('userId').doUpdateSet({

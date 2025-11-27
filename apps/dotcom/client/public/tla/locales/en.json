@@ -77,8 +77,8 @@
   "1fe250ea06": {
     "translation": "Instruct the group…"
   },
-  "20dfc4f904": {
-    "translation": "Locate"
+  "23f879f41a": {
+    "translation": "Your weekly fairy usage limit has been reached. It will reset at the start of next week."
   },
   "243924bfd5": {
     "translation": "Sleep"
@@ -250,6 +250,9 @@
   },
   "5d26ae7550": {
     "translation": "We failed to upload some of the content you created before you signed in."
+  },
+  "5e706a9b7e": {
+    "translation": "Visit"
   },
   "5ea8bb44be": {
     "translation": "You have been invited to join group:"
@@ -511,6 +514,9 @@
   },
   "a8873770ab": {
     "translation": "File is getting large"
+  },
+  "a8de4c27a8": {
+    "translation": "Weekly fairy limit reached"
   },
   "a9ded1e5ce": {
     "translation": "Background"
