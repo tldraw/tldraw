@@ -429,7 +429,7 @@ export function createMutators(userId: string) {
 				if (tx.location !== 'server') return
 
 				try {
-					const now = Date.now()
+					let now = Date.now()
 
 					// Build batch upsert
 					const values: any[] = []
@@ -445,6 +445,7 @@ export function createMutators(userId: string) {
 						)
 						values.push(id, fileId, userId, message, now, now)
 						paramIndex += 6
+						now++ // Increment to preserve order
 					})
 
 					await tx.dbTransaction.query(
