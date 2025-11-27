@@ -127,13 +127,9 @@ export function FairyMenuContent({
 		[addDialog, agents]
 	)
 
-	const hasChatHistory = useValue(
-		'has-chat-history',
-		() => {
-			return agents.some((agent) => agent.$chatHistory.get().length > 0)
-		},
-		[agents]
-	)
+	const hasChatHistory = useValue('has-chat-history', () => agent.$chatHistory.get().length > 0, [
+		agent,
+	])
 
 	const resetAllChats = useCallback(() => {
 		agents.forEach((agent) => {
