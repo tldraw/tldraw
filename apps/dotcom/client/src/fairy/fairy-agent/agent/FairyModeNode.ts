@@ -57,6 +57,10 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 		onPromptCancel(agent) {
 			agent.setMode('idling')
 		},
+		onExit(agent) {
+			agent.$userActionHistory.set([])
+			agent.$personalTodoList.set([])
+		},
 	},
 	soloing: {
 		onPromptEnd(agent) {
