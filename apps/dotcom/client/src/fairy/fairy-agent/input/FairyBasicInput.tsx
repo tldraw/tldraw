@@ -1,6 +1,7 @@
 import { CancelIcon, FAIRY_VISION_DIMENSIONS, LipsIcon } from '@tldraw/fairy-shared'
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Box, useValue } from 'tldraw'
+import { useTldrawAppUiEvents } from '../../../tla/utils/app-ui-events'
 import { useMsg } from '../../../tla/utils/i18n'
 import { fairyMessages } from '../../fairy-messages'
 // import { $fairyTasks } from '../../FairyTaskList'
@@ -12,6 +13,7 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 	const [inputValue, setInputValue] = useState('')
 	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
 	const enterMsg = useMsg(fairyMessages.enterMsg)
+	const trackEvent = useTldrawAppUiEvents()
 
 	const fairyEntity = useValue('fairyEntity', () => agent.$fairyEntity.get(), [agent])
 	const fairyConfig = useValue('fairyConfig', () => agent.$fairyConfig.get(), [agent])
@@ -38,6 +40,8 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 			const fairyPosition = fairyEntity.position
 			const fairyVision = Box.FromCenter(fairyPosition, FAIRY_VISION_DIMENSIONS)
 
+			trackEvent('fairy-send-message', { source: 'fairy-panel', feat: 'fairy' })
+
 			agent.interrupt({
 				input: {
 					agentMessages: [value],
@@ -47,7 +51,7 @@ export function FairyBasicInput({ agent, onCancel }: { agent: FairyAgent; onCanc
 				},
 			})
 		},
-		[agent, fairyEntity]
+		[agent, fairyEntity, trackEvent]
 	)
 
 	const handleComplete = useCallback(

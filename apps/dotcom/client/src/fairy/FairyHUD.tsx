@@ -10,6 +10,7 @@ import {
 	useValue,
 } from 'tldraw'
 import '../tla/styles/fairy.css'
+import { useTldrawAppUiEvents } from '../tla/utils/app-ui-events'
 import { F, useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairyChatHistory } from './fairy-agent/chat/FairyChatHistory'
@@ -148,6 +149,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	const selectMessage = useMsg(fairyMessages.selectFairy)
 	const switchToFairyChatLabel = useMsg(fairyMessages.switchToFairyChat)
 	const switchToTaskListLabel = useMsg(fairyMessages.switchToTaskList)
+	const trackEvent = useTldrawAppUiEvents()
 
 	// Create a reactive value that tracks which fairies are selected
 	const selectedFairies = useValue(
@@ -181,8 +183,10 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 				if (agent.id === selectedAgent.id) return
 				agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
 			})
+
+			trackEvent('fairy-select', { source: 'fairy-panel', feat: 'fairy' })
 		},
-		[agents]
+		[agents, trackEvent]
 	)
 
 	const selectProjectGroup = useCallback(
@@ -234,7 +238,13 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 
 			if (isMultiSelect) {
 				// Toggle selection without deselecting others
-				clickedAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: !isSelected } : f))
+				const newSelectedState = !isSelected
+				clickedAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: newSelectedState } : f))
+				if (newSelectedState) {
+					trackEvent('fairy-add-to-selection', { source: 'fairy-panel', feat: 'fairy' })
+				} else {
+					trackEvent('fairy-deselect', { source: 'fairy-panel', feat: 'fairy' })
+				}
 				// Keep panel open if there are selected fairies
 				if (!isSelected || selectedFairies.length > 1) {
 					setPanelState('fairy')
@@ -251,7 +261,11 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 					setPanelState('fairy')
 				} else {
 					// Normal single select behavior - deselect all others
-					selectFairy(clickedAgent)
+					if (isChosen && isSelected) {
+						trackEvent('fairy-deselect', { source: 'fairy-panel', feat: 'fairy' })
+					} else {
+						selectFairy(clickedAgent)
+					}
 					// If the clicked fairy is already chosen and selected, toggle the panel. Otherwise, keep the panel open.
 					setPanelState((v) => {
 						const shouldClosePanel =
@@ -266,16 +280,17 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 				}
 			}
 		},
-		[selectFairy, shownFairy, selectedFairies, panelState, selectProjectGroup, agents]
+		[selectFairy, shownFairy, selectedFairies, panelState, selectProjectGroup, agents, trackEvent]
 	)
 
 	const handleDoubleClickFairy = useCallback(
 		(clickedAgent: FairyAgent) => {
+			trackEvent('fairy-double-click', { source: 'fairy-panel', feat: 'fairy' })
 			clickedAgent.zoomTo()
 			selectFairy(clickedAgent)
 			setPanelState('fairy')
 		},
-		[selectFairy]
+		[selectFairy, trackEvent]
 	)
 
 	const handleTogglePanel = useCallback(() => {
@@ -293,9 +308,17 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	const [taskListLastChecked, setTaskListLastChecked] = useState<FairyTask[]>([])
 
 	const handleToggleHeaderMode = useCallback(() => {
-		setPanelState((v) => (v === 'task-list' ? 'fairy' : 'task-list'))
+		setPanelState((v) => {
+			if (v === 'task-list') {
+				trackEvent('fairy-switch-to-chat', { source: 'fairy-panel', feat: 'fairy' })
+				return 'fairy'
+			} else {
+				trackEvent('fairy-switch-to-task-list', { source: 'fairy-panel', feat: 'fairy' })
+				return 'task-list'
+			}
+		})
 		setTaskListLastChecked($fairyTasks.get())
-	}, [])
+	}, [trackEvent])
 
 	const handleContextMenu = (e: MouseEvent<HTMLDivElement>) => {
 		e.stopPropagation()

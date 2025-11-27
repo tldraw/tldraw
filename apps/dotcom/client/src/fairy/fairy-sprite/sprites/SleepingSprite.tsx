@@ -54,10 +54,18 @@ export function SleepingSprite({
 				fill="var(--tl-color-fairy-dark)"
 			/>
 			<path
+				className="asleep-right-eye"
 				d="M48.6738 42.3267C48.6738 42.3267 49.8288 43.7894 51.4491 44.1565C53.0694 44.5236 54.4968 43.6459 54.4968 43.6459"
 				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="4"
 				strokeLinecap="round"
+			/>
+			<circle
+				className="awake-right-eye"
+				cx="51.4836"
+				cy="42.3008"
+				r="3.63675"
+				fill="var(--tl-color-fairy-dark)"
 			/>
 			<path
 				d="M63.4446 43.7061C63.4446 43.7061 64.933 44.5425 66.5486 44.1429C68.1642 43.7434 69.2506 42.2701 69.2506 42.2701"

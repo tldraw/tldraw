@@ -22,6 +22,7 @@ export type TLAppUiEventSource =
 	| 'cookie-settings'
 	| 'dialog'
 	| 'fairy-teaser'
+	| 'fairy-panel'
 
 /** @public */
 export interface TLAppUiEventMap {
@@ -66,7 +67,28 @@ export interface TLAppUiEventMap {
 	'room-size-limit-dialog-shown': null
 	'accept-group-invite': null
 	'add-file-link': null
-	'click-fairy-teaser': null
+	'click-fairy-teaser': { feat: 'fairy' }
+	'fairy-send-message': { feat: 'fairy' }
+	'fairy-summon': { feat: 'fairy' }
+	'fairy-summon-all': { feat: 'fairy' }
+	'fairy-summon-selected': { feat: 'fairy' }
+	'fairy-sleep': { feat: 'fairy' }
+	'fairy-sleep-all': { feat: 'fairy' }
+	'fairy-put-away-selected': { feat: 'fairy' }
+	'fairy-group-chat-message': { feat: 'fairy' }
+	'fairy-reset-chat': { feat: 'fairy' }
+	'fairy-reset-all-chats': { feat: 'fairy' }
+	'fairy-follow': { feat: 'fairy' }
+	'fairy-unfollow': { feat: 'fairy' }
+	'fairy-zoom-to': { feat: 'fairy' }
+	'fairy-disband-group': { feat: 'fairy' }
+	'fairy-select': { feat: 'fairy' }
+	'fairy-deselect': { feat: 'fairy' }
+	'fairy-double-click': { feat: 'fairy' }
+	'fairy-switch-to-task-list': { feat: 'fairy' }
+	'fairy-switch-to-chat': { feat: 'fairy' }
+	'fairy-start-project': { feat: 'fairy' }
+	'fairy-add-to-selection': { feat: 'fairy' }
 }
 
 /** @public */

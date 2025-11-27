@@ -8,6 +8,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { useApp } from '../tla/hooks/useAppState'
+import { useTldrawAppUiEvents } from '../tla/utils/app-ui-events'
 import { useMsg } from '../tla/utils/i18n'
 import { isDevelopmentEnv } from '../utils/env'
 import { FairyAgent, getFollowingFairyId } from './fairy-agent/agent/FairyAgent'
@@ -29,6 +30,7 @@ export function FairyMenuContent({
 	const app = useApp()
 	const { addDialog } = useDefaultHelpers()
 	const agents = useValue('fairy-agents', () => $fairyAgentsAtom.get(editor), [editor])
+	const trackEvent = useTldrawAppUiEvents()
 
 	const _configureFairy = useCallback(
 		(agent: FairyAgent) => {
@@ -40,16 +42,18 @@ export function FairyMenuContent({
 	)
 
 	const putAwayFairy = useCallback(() => {
+		trackEvent('fairy-sleep', { source: 'fairy-panel', feat: 'fairy' })
 		agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false, pose: 'sleeping' } : f))
 		agent.setMode('sleeping')
-	}, [agent])
+	}, [agent, trackEvent])
 
 	const putAwayAllFairies = useCallback(() => {
+		trackEvent('fairy-sleep-all', { source: 'fairy-panel', feat: 'fairy' })
 		agents.forEach((agent) => {
 			agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false, pose: 'sleeping' } : f))
 			agent.setMode('sleeping')
 		})
-	}, [agents])
+	}, [agents, trackEvent])
 
 	const isFollowing = useValue(
 		'is following fairy',
@@ -61,11 +65,13 @@ export function FairyMenuContent({
 
 	const toggleFollow = useCallback(() => {
 		if (isFollowing) {
+			trackEvent('fairy-unfollow', { source: 'fairy-panel', feat: 'fairy' })
 			agent.stopFollowing()
 		} else {
+			trackEvent('fairy-follow', { source: 'fairy-panel', feat: 'fairy' })
 			agent.startFollowing()
 		}
-	}, [agent, isFollowing])
+	}, [agent, isFollowing, trackEvent])
 
 	const goToFairyLabel = useMsg(fairyMessages.goToFairy)
 	const summonFairyLabel = useMsg(fairyMessages.summonFairy)
@@ -93,10 +99,12 @@ export function FairyMenuContent({
 		if (!currentProject) return
 		if (currentProject.members.length <= 1) return
 
+		trackEvent('fairy-disband-group', { source: 'fairy-panel', feat: 'fairy' })
 		disbandProject(currentProject.id, agents)
-	}, [currentProject, agents])
+	}, [currentProject, agents, trackEvent])
 
 	const summonAllFairies = useCallback(() => {
+		trackEvent('fairy-summon-all', { source: 'fairy-panel', feat: 'fairy' })
 		const spacing = 150 // Distance between fairies
 		agents.forEach((agent, index) => {
 			if (agents.length === 1) {
@@ -112,7 +120,7 @@ export function FairyMenuContent({
 				agent.summon(offset)
 			}
 		})
-	}, [agents])
+	}, [agents, trackEvent])
 
 	const openDebugDialog = useCallback(
 		(initialTabId?: string) => {
@@ -126,10 +134,11 @@ export function FairyMenuContent({
 	)
 
 	const resetAllChats = useCallback(() => {
+		trackEvent('fairy-reset-all-chats', { source: 'fairy-panel', feat: 'fairy' })
 		agents.forEach((agent) => {
 			agent.reset()
 		})
-	}, [agents])
+	}, [agents, trackEvent])
 
 	const resetEverything = useCallback(() => {
 		// Stop all running tasks
@@ -173,12 +182,18 @@ export function FairyMenuContent({
 				<TldrawUiMenuGroup id="fairy-movement-menu">
 					<TldrawUiMenuItem
 						id="summon-fairy"
-						onSelect={() => agent.summon()}
+						onSelect={() => {
+							trackEvent('fairy-summon', { source: 'fairy-panel', feat: 'fairy' })
+							agent.summon()
+						}}
 						label={summonFairyLabel}
 					/>
 					<TldrawUiMenuItem
 						id="go-to-fairy"
-						onSelect={() => agent.zoomTo()}
+						onSelect={() => {
+							trackEvent('fairy-zoom-to', { source: 'fairy-panel', feat: 'fairy' })
+							agent.zoomTo()
+						}}
 						label={goToFairyLabel}
 					/>
 					<TldrawUiMenuItem
@@ -212,7 +227,14 @@ export function FairyMenuContent({
 
 			<TldrawUiMenuGroup id="fairy-chat-menu">
 				{menuType === 'context-menu' && (
-					<TldrawUiMenuItem id="new-chat" onSelect={() => agent.reset()} label={resetChatLabel} />
+					<TldrawUiMenuItem
+						id="new-chat"
+						onSelect={() => {
+							trackEvent('fairy-reset-chat', { source: 'fairy-panel', feat: 'fairy' })
+							agent.reset()
+						}}
+						label={resetChatLabel}
+					/>
 				)}
 				{menuType === 'menu' && (
 					<TldrawUiMenuItem

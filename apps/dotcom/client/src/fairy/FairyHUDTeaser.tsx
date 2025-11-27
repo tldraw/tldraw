@@ -87,7 +87,7 @@ export function FairyHUDTeaser() {
 										aria-label="Fairies"
 										value="off"
 										onClick={() => {
-											trackEvent('click-fairy-teaser', { source: 'fairy-teaser' })
+											trackEvent('click-fairy-teaser', { source: 'fairy-teaser', feat: 'fairy' })
 											addDialog({
 												component: FairyComingSoonDialog,
 											})

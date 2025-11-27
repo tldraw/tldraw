@@ -1,6 +1,7 @@
 import { CancelIcon, FairyProject, LipsIcon } from '@tldraw/fairy-shared'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { uniqueId, useValue } from 'tldraw'
+import { useTldrawAppUiEvents } from '../tla/utils/app-ui-events'
 import { F, useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { fairyMessages } from './fairy-messages'
@@ -14,6 +15,7 @@ export function FairyGroupChat({
 	onStartProject(orchestratorAgent: FairyAgent): void
 }) {
 	const leaderAgentId = agents[0]?.id ?? null
+	const trackEvent = useTldrawAppUiEvents()
 
 	const [instruction, setInstruction] = useState('')
 	const instructionTextareaRef = useRef<HTMLTextAreaElement>(null)
@@ -90,6 +92,8 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 				return
 			}
 
+			trackEvent('fairy-group-chat-message', { source: 'fairy-panel', feat: 'fairy' })
+
 			// Check if this is a duo project (exactly 2 fairies: 1 leader + 1 follower)
 			const isDuo = followerAgents.length === 1
 
@@ -131,12 +135,21 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 			})
 
 			// Select the orchestrator and switch to their chat panel
+			trackEvent('fairy-start-project', { source: 'fairy-panel', feat: 'fairy' })
 			onStartProject(leaderAgent)
 
 			// Clear the input
 			setInstruction('')
 		},
-		[getGroupChatPrompt, leaderAgent, followerAgents, onStartProject, agents, shouldCancel]
+		[
+			getGroupChatPrompt,
+			leaderAgent,
+			followerAgents,
+			onStartProject,
+			agents,
+			shouldCancel,
+			trackEvent,
+		]
 	)
 
 	const handleButtonClick = () => {

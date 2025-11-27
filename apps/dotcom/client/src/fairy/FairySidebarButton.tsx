@@ -1,6 +1,7 @@
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { MouseEvent } from 'react'
 import { TldrawUiToolbarToggleGroup, TldrawUiToolbarToggleItem, useValue } from 'tldraw'
+import { useTldrawAppUiEvents } from '../tla/utils/app-ui-events'
 import { useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { fairyMessages } from './fairy-messages'
@@ -27,6 +28,7 @@ export function FairySidebarButton({
 	hasAnyActiveProjects: boolean
 }) {
 	const joinSelectedFairiesLabel = useMsg(fairyMessages.joinSelectedFairies)
+	const trackEvent = useTldrawAppUiEvents()
 
 	const fairyIsSelected = useValue(
 		'fairy-button-selected',
@@ -50,7 +52,11 @@ export function FairySidebarButton({
 		e.preventDefault()
 		e.stopPropagation()
 		// Toggle selection like shift-clicking would
-		agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: !fairyIsSelected } : f))
+		const newSelectedState = !fairyIsSelected
+		agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: newSelectedState } : f))
+		if (newSelectedState) {
+			trackEvent('fairy-add-to-selection', { source: 'fairy-panel', feat: 'fairy' })
+		}
 	}
 
 	if (!fairyEntity || !fairyOutfit) return null

@@ -5,6 +5,7 @@ import {
 	TldrawUiMenuItem,
 	useDefaultHelpers,
 } from 'tldraw'
+import { useTldrawAppUiEvents } from '../tla/utils/app-ui-events'
 import { useMsg } from '../tla/utils/i18n'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { fairyMessages } from './fairy-messages'
@@ -18,6 +19,7 @@ export function FairyTaskListMenuContent({
 	menuType?: 'menu' | 'context-menu'
 }) {
 	const { addDialog } = useDefaultHelpers()
+	const trackEvent = useTldrawAppUiEvents()
 
 	const resetSelectedChats = useCallback(() => {
 		const selectedAgents = agents.filter((agent) => agent.$fairyEntity.get()?.isSelected)
@@ -38,6 +40,8 @@ export function FairyTaskListMenuContent({
 		const selectedAgents = agents.filter((agent) => agent.$fairyEntity.get()?.isSelected)
 		if (selectedAgents.length === 0) return
 
+		trackEvent('fairy-summon-selected', { source: 'fairy-panel', feat: 'fairy' })
+
 		const spacing = 150 // Distance between fairies
 		selectedAgents.forEach((agent, index) => {
 			if (agents.length === 1) {
@@ -53,17 +57,19 @@ export function FairyTaskListMenuContent({
 				agent.summon(offset)
 			}
 		})
-	}, [agents])
+	}, [agents, trackEvent])
 
 	const putAwayFairies = useCallback(() => {
 		const selectedAgents = agents.filter((agent) => agent.$fairyEntity.get()?.isSelected)
 		if (selectedAgents.length === 0) return
 
+		trackEvent('fairy-put-away-selected', { source: 'fairy-panel', feat: 'fairy' })
+
 		selectedAgents.forEach((agent) => {
 			agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false, pose: 'sleeping' } : f))
 			agent.setMode('sleeping')
 		})
-	}, [agents])
+	}, [agents, trackEvent])
 
 	const summonFairiesLabel = useMsg(fairyMessages.summonFairies)
 	const putAwayFairiesLabel = useMsg(fairyMessages.putAwayFairies)

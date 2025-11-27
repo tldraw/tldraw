@@ -118,7 +118,7 @@
 	display: block;
 }
 
-.fairy-toggle-button[data-is-sleeping='true'] {
+.fairy-toggle-button[data-is-sleeping='true'] .fairy-sprite {
 	opacity: 0.45;
 }
 
@@ -1637,4 +1637,20 @@
 
 .tla {
 	--tl-layer-canvas-in-front: 499;
+}
+
+.fairy-toggle-button .awake-right-eye {
+	opacity: 0;
+}
+
+.fairy-toggle-button .asleep-right-eye {
+	opacity: 1;
+}
+
+.fairy-toggle-button:hover .awake-right-eye {
+	opacity: 1;
+}
+
+.fairy-toggle-button:hover .asleep-right-eye {
+	opacity: 0;
 }
