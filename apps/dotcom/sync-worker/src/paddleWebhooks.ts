@@ -99,6 +99,21 @@ async function verifyWebhookSignature(
 	}
 }
 
+async function sendDiscordPurchaseNotification(webhookUrl: string) {
+	try {
+		await fetch(webhookUrl, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				content: '🧚✨ Ka-ching! Someone just unlocked the magic! 💫🎊',
+			}),
+		})
+	} catch (error) {
+		console.error('[Paddle Webhook] Failed to send Discord notification:', error)
+		// Don't throw - notification failure shouldn't fail the purchase
+	}
+}
+
 async function handleTransactionCompleted(
 	env: Environment,
 	event: PaddleTransactionCompletedEvent
@@ -131,6 +146,10 @@ async function handleTransactionCompleted(
 
 	if (!result.success) {
 		throw new StatusError(500, `Failed to grant fairy access: ${result.error}`)
+	}
+
+	if (env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL) {
+		await sendDiscordPurchaseNotification(env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL)
 	}
 
 	return { success: true }
