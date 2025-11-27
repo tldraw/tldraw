@@ -493,36 +493,17 @@ export function createMutators(userId: string) {
 				// Truncate each agent's history if over 350KB, trim down to 300KB (FIFO per agent)
 				const MAX_SIZE_PER_AGENT = 300 * 1024
 				const TRUNCATE_THRESHOLD = 350 * 1024
-				const truncationStats: Record<
-					string,
-					{ before: number; after: number; removed: number; sizeBefore: number; sizeAfter: number }
-				> = {}
-
 				for (const aid in finalState.agents) {
 					const agent = finalState.agents[aid]
-					const beforeMsgCount = agent.chatHistory.length
-					let agentHistoryStr = JSON.stringify(agent.chatHistory)
-					const sizeBefore = agentHistoryStr.length
+					const agentHistoryStr = JSON.stringify(agent.chatHistory)
 
 					if (agentHistoryStr.length > TRUNCATE_THRESHOLD) {
 						// Estimate how many messages to keep based on average size
-						const avgSize = sizeBefore / beforeMsgCount
+						const avgSize = agentHistoryStr.length / agent.chatHistory.length
 						const estimatedKeep = Math.max(1, Math.floor(MAX_SIZE_PER_AGENT / avgSize))
 
 						// Keep estimated number (at least 1 message)
 						agent.chatHistory = agent.chatHistory.slice(-estimatedKeep)
-						agentHistoryStr = JSON.stringify(agent.chatHistory)
-
-						const afterMsgCount = agent.chatHistory.length
-						const sizeAfter = agentHistoryStr.length
-
-						truncationStats[aid] = {
-							before: beforeMsgCount,
-							after: afterMsgCount,
-							removed: beforeMsgCount - afterMsgCount,
-							sizeBefore,
-							sizeAfter,
-						}
 					}
 				}
 
