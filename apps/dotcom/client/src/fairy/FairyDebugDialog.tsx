@@ -86,7 +86,7 @@ export function FairyDebugDialog({
 		: agents.find((agent) => agent.id === selectedTabId) || agents[0]
 
 	return (
-		<div className="fairy-debug-dialog-wrapper">
+		<>
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle>Fairy Debug View</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
@@ -175,7 +175,7 @@ export function FairyDebugDialog({
 					<TldrawUiButtonLabel>Close</TldrawUiButtonLabel>
 				</TldrawUiButton>
 			</TldrawUiDialogFooter>
-		</div>
+		</>
 	)
 }
 
