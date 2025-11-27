@@ -2,14 +2,17 @@
   "0095a9fa74": {
     "translation": "Eksportuj"
   },
+  "00b177e080": {
+    "translation": "Zaakceptuj zaproszenie"
+  },
+  "038c9b4432": {
+    "translation": "Osobowość wróżki"
+  },
   "03b3e13197": {
     "translation": "Przeciągnij plik na pasek boczny na tej stronie lub wybierz opcję „Importuj plik” z menu użytkownika."
   },
   "043973ec1f": {
     "translation": "Nadal masz problem? {GetHelpLink}"
-  },
-  "05596b840b": {
-    "translation": "Otwórz tldraw."
   },
   "06b9281e39": {
     "translation": "Automatyczny"
@@ -23,8 +26,11 @@
   "08bd40c754": {
     "translation": "Konto"
   },
-  "08d2d725a9": {
-    "translation": "Załóż bezpłatne konto, aby zapisać swoją pracę, współpracować w czasie rzeczywistym i nie tylko."
+  "090b807281": {
+    "translation": "Kolczasty"
+  },
+  "0a91f7fa87": {
+    "translation": "Ten plik osiągnął limit rozmiaru i zmiany mogą nie zostać zapisane. Usuń część zawartości lub utwórz nowy plik."
   },
   "0b27918290": {
     "translation": "Plik"
@@ -32,14 +38,17 @@
   "0b9a4cde72": {
     "translation": "Menu pliku"
   },
-  "0beb3ca97b": {
-    "translation": "tldraw to darmowa i natychmiastowa wirtualna tablica."
+  "0befa10111": {
+    "translation": "Wróżki"
   },
   "0d1f2bb523": {
     "translation": "Wyślij opinię"
   },
   "110a4b01be": {
     "translation": "Opublikuj"
+  },
+  "11a755d598": {
+    "translation": "Zatrzymywać się"
   },
   "129b9e34ea": {
     "translation": "Opuść grupę"
@@ -52,6 +61,9 @@
   },
   "13ddd375ad": {
     "translation": "Eksportuj jako"
+  },
+  "141c7239d3": {
+    "translation": "Personalizacja wróżki"
   },
   "146ffe2fd9": {
     "translation": "Pokaż więcej"
@@ -68,11 +80,14 @@
   "1dd1c5fb7f": {
     "translation": "Dzisiaj"
   },
-  "20976e7bec": {
-    "translation": "Pokój jest pełny"
+  "1e38506832": {
+    "translation": "Idź do wróżki"
   },
-  "21bfb2dc2e": {
-    "translation": "Ten pokój zbliża się do limitu rozmiaru. Rozważ usunięcie części zawartości lub utworzenie nowego pliku."
+  "1fe250ea06": {
+    "translation": "Poinstruuj grupę…"
+  },
+  "243924bfd5": {
+    "translation": "Spać"
   },
   "2445e5e347": {
     "translation": "Utwórz grupę"
@@ -80,14 +95,20 @@
   "250ddea65c": {
     "translation": "O tldraw"
   },
+  "284d5cd0dd": {
+    "translation": "Model:"
+  },
   "299cb00a7a": {
     "translation": "Przesyłanie nie powiodło się"
   },
   "2c3ef76333": {
     "translation": "Moje pliki"
   },
-  "2deec2cb74": {
-    "translation": "Ten pokój osiągnął limit rozmiaru i zmiany mogą nie zostać zapisane. Usuń część zawartości lub utwórz nowy plik."
+  "2e86e6853d": {
+    "translation": "Wybierz lidera"
+  },
+  "30cd34258a": {
+    "translation": "W grudniu do naszego świata zawitała gromada <b>wróżek</b>. Aby dowiedzieć się więcej, znajdź wróżkę i kliknij ją."
   },
   "31246941ad": {
     "translation": "Musisz się zalogować, aby zobaczyć ten plik."
@@ -95,14 +116,41 @@
   "31418ce4ad": {
     "translation": "i18n: Brak wyróżnienia"
   },
+  "3209f407ed": {
+    "translation": "trzy wróżki"
+  },
   "32210b37e4": {
     "translation": "Dodaj link"
+  },
+  "324a0f3182": {
+    "translation": "Powrót do tldraw"
   },
   "335defdafe": {
     "translation": "Spróbuj odświeżyć stronę."
   },
+  "33f9ea6fe8": {
+    "translation": "Rozwiązać grupę"
+  },
+  "34140869c6": {
+    "translation": "W grudniu w Tldraw pojawi się cała plejada wróżek. Zajrzyjcie tu 1 grudnia."
+  },
   "344a7f427f": {
     "translation": "Edytor"
+  },
+  "3596c1b1f7": {
+    "translation": "Przestań obserwować"
+  },
+  "3903aab323": {
+    "translation": "Podążać"
+  },
+  "3a295397e6": {
+    "translation": "Poproś o pomoc"
+  },
+  "3a77f951ca": {
+    "translation": "Dodaj nowe zadanie…"
+  },
+  "3b6c2b4caa": {
+    "translation": "Warunki korzystania z usługi"
   },
   "3bc7d6ea2f": {
     "translation": "Kontynuuj z e-mailem"
@@ -116,6 +164,9 @@
   "3d0238bf16": {
     "translation": "Akceptuj wszystko"
   },
+  "4131ec34ef": {
+    "translation": "Łysy"
+  },
   "42e53c47c1": {
     "translation": "Skontaktuj się z właścicielem, aby poprosić o dostęp."
   },
@@ -124,6 +175,12 @@
   },
   "46137245cd": {
     "translation": "Dziękujemy za pomoc w ulepszaniu tldraw!"
+  },
+  "465a8a92a4": {
+    "translation": "Nie wybrano żadnych wróżek"
+  },
+  "477df802ca": {
+    "translation": "Aby kontynuować edycję skopiuj plik do swoich plików."
   },
   "47839e47a5": {
     "translation": "tldraw"
@@ -152,17 +209,20 @@
   "4e6fbf032b": {
     "translation": "Czy na pewno chcesz usunąć tę grupę? Tej czynności nie można cofnąć."
   },
+  "4f827717f7": {
+    "translation": "Spiczasty"
+  },
   "50db1b7e1e": {
     "translation": "Nie można cofnąć publikacji pliku."
   },
   "517bb809d9": {
     "translation": "Menu strony"
   },
+  "542248f0ba": {
+    "translation": "Ten plik jest teraz tylko do odczytu"
+  },
   "54286b1d01": {
     "translation": "Osiągnięto limit współpracowników"
-  },
-  "54d240fa41": {
-    "translation": "Należy zwolnić."
   },
   "554a05155c": {
     "translation": "Nadal masz problem? <a>Zgłoś problem</a>"
@@ -176,17 +236,14 @@
   "56c34c6410": {
     "translation": "Polityka prywatności"
   },
+  "5a2ccdc00a": {
+    "translation": "Nie udało się zrealizować kodu zaproszenia"
+  },
   "5a86b22fa0": {
     "translation": "Przeciągnij pliki tutaj, <create>utwórz plik</create> lub <invite>skopiuj link zaproszenia</invite>, aby rozpocząć."
   },
   "5a95a425f7": {
     "translation": "Podziel się"
-  },
-  "5bb6cf3b53": {
-    "translation": "Pokój staje się większy"
-  },
-  "5bcc12ace8": {
-    "translation": "Ten pokój jest teraz tylko do odczytu"
   },
   "5bec508475": {
     "translation": "Wykryto starą przeglądarkę. Zaktualizuj przeglądarkę, aby korzystać z tej aplikacji."
@@ -196,6 +253,9 @@
   },
   "5d26ae7550": {
     "translation": "Nie udało nam się przesłać części treści utworzonych przed zalogowaniem."
+  },
+  "5ea8bb44be": {
+    "translation": "Zostałeś zaproszony do dołączenia do grupy:"
   },
   "5f3c333678": {
     "translation": "Opinia wysłana"
@@ -212,17 +272,26 @@
   "639bae9ac6": {
     "translation": "Ty"
   },
+  "63a78ed464": {
+    "translation": "Dostosuj"
+  },
+  "64ebe56d8c": {
+    "translation": "Kliknij, aby usunąć lub przeciągnij, aby przenieść"
+  },
+  "65709fd250": {
+    "translation": "Lista zadań"
+  },
   "6609dd239e": {
     "translation": "Coś poszło nie tak"
   },
   "6637a98151": {
     "translation": "Dostępna jest nowa wersja tldraw. Aby kontynuować, odśwież stronę."
   },
-  "68257bb646": {
-    "translation": "Zostałeś zaproszony do grupy <br></br><groupName></groupName>"
-  },
   "6832ac5936": {
     "translation": "Podaj swój adres e-mail"
+  },
+  "68d390535e": {
+    "translation": "Wpisz swoją wiadomość"
   },
   "6a26f54883": {
     "translation": "Pomoc"
@@ -232,6 +301,9 @@
   },
   "6dfc62f621": {
     "translation": "Aby ręcznie zaimportować zawartość, wykonaj następujące czynności:"
+  },
+  "6e02bd9e1e": {
+    "translation": "Schowaj wróżki"
   },
   "70222abcfc": {
     "translation": "Ustawienia grupy"
@@ -263,8 +335,17 @@
   "764671e008": {
     "translation": "Porozmawiaj z nami na Discordzie"
   },
+  "76dea3c9ca": {
+    "translation": "tldraw to darmowa tablica online. Załóż konto, aby zapisać pliki i pracować ze znajomymi."
+  },
   "777f9e90cf": {
     "translation": "Nieprawidłowe żądanie."
+  },
+  "7827371d1a": {
+    "translation": "Ten anonimowy plik tldraw do gry wieloosobowej jest teraz tylko do odczytu. Aby kontynuować edycję, zaloguj się i skopiuj go do swoich plików."
+  },
+  "7835039819": {
+    "translation": "Śmigło"
   },
   "78e9815992": {
     "translation": "Zrozumiałem"
@@ -272,11 +353,26 @@
   "797799f35e": {
     "translation": "Prześlij problem na GitHub"
   },
+  "79cc22ac6b": {
+    "translation": "Wróżka to mały człowieczek, który może pracować z tobą na płótnie. Wróżki mogą pracować samodzielnie lub w zespole. Nie ma ograniczeń co do możliwości wróżki. Nikt nie wie, skąd się wzięły."
+  },
+  "7a3113b0ba": {
+    "translation": "Przeciągnij na płótno"
+  },
   "7b1329f5ca": {
     "translation": "Instrukcja obsługi"
   },
+  "7b5449bd84": {
+    "translation": "Antena"
+  },
   "7be10fc592": {
     "translation": "Przywróć wersję"
+  },
+  "7c0747a5df": {
+    "translation": "Otwórz tldraw"
+  },
+  "7cb471f815": {
+    "translation": "Zostałeś zaproszony do dołączenia do wróżek tldraw!"
   },
   "7cb5f8b4a5": {
     "translation": "Zapomnij"
@@ -296,20 +392,35 @@
   "815e116a2e": {
     "translation": "Masz błąd, problem lub pomysł na tldraw? Daj nam znać! Wypełnij ten formularz, a my skontaktujemy się z Tobą przez e-mail, jeśli będzie to konieczne. Możesz również <discord>porozmawiać z nami na Discordzie</discord> lub <github>zgłosić problem na GitHub</github>."
   },
+  "81d48c2f3a": {
+    "translation": "Pokaż zadania na płótnie"
+  },
+  "8472a551f1": {
+    "translation": "Wróżki przybyły, aby rysować przez cały grudzień."
+  },
   "85a082de1b": {
     "translation": "Odśwież stronę, aby pobrać najnowszą wersję tldraw."
   },
   "86353d2c41": {
     "translation": "Dodano pliki {total} .tldr."
   },
+  "86a7df7572": {
+    "translation": "Przywołaj wróżki"
+  },
   "86c66437fd": {
     "translation": "Zmień nazwę pliku"
+  },
+  "88e83b88c5": {
+    "translation": "Kup pakiet Fairy"
+  },
+  "898e76f01a": {
+    "translation": "Zresetuj wszystko"
   },
   "8ad4303b83": {
     "translation": "Nie, dziękuję"
   },
-  "8b1946f965": {
-    "translation": "Aby kontynuować edycję, skopiuj pokój do swoich plików."
+  "8be569f100": {
+    "translation": "jednorazowa płatność"
   },
   "8c2d3d730c": {
     "translation": "Sprawdź swoją skrzynkę e-mail, aby uzyskać kod weryfikacyjny."
@@ -332,6 +443,15 @@
   "930390d222": {
     "translation": "Skopiowano link zaproszenia"
   },
+  "93346fdd70": {
+    "translation": "Uszy"
+  },
+  "93dfe9fbbe": {
+    "translation": "Odznacz wróżkę"
+  },
+  "94966d9074": {
+    "translation": "Wysłać"
+  },
   "95aacd4d4a": {
     "translation": "Zaloguj się za pomocą Google"
   },
@@ -341,23 +461,29 @@
   "96165d6df5": {
     "translation": "W tym miesiącu"
   },
+  "97a9f16b2e": {
+    "translation": "Nowa wróżka"
+  },
   "985a4b720f": {
     "translation": "Warunki korzystania"
   },
   "98c997a27e": {
     "translation": "Dodaj link do pliku"
   },
+  "98e528aac6": {
+    "translation": "Przełącz na czat wróżki"
+  },
   "9914a0ce04": {
     "translation": "Jasny"
+  },
+  "9953e9946b": {
+    "translation": "Widok debugowania"
   },
   "9b33f5c63c": {
     "translation": "Nie otrzymałeś kodu? <resend>Wyślij ponownie</resend>."
   },
   "9bef626805": {
     "translation": "Usuń plik"
-  },
-  "9c258b8f88": {
-    "translation": "Ten anonimowy pokój wieloosobowy tldraw jest teraz tylko do odczytu. Aby kontynuować edycję, zaloguj się i skopiuj go do swoich plików."
   },
   "9ceb927baa": {
     "translation": "Opublikuj ten plik"
@@ -383,11 +509,20 @@
   "a239905023": {
     "translation": "Eksportuj obraz"
   },
+  "a2f0372a75": {
+    "translation": "Przejdź do listy zadań"
+  },
   "a3debabee7": {
     "translation": "Polityka plików cookie"
   },
+  "a3e932550c": {
+    "translation": "Imię wróżki"
+  },
   "a4d3b161ce": {
     "translation": "Składać"
+  },
+  "a4ffdcf0dc": {
+    "translation": "Szczyt"
   },
   "a6cc403d56": {
     "translation": "Każda osoba mająca link"
@@ -395,11 +530,14 @@
   "a768caa988": {
     "translation": "Analityka"
   },
+  "a885eb91ac": {
+    "translation": "Wybór wróżki przywódczyni"
+  },
+  "a8873770ab": {
+    "translation": "Plik staje się duży"
+  },
   "a9ded1e5ce": {
     "translation": "Tło"
-  },
-  "aa916767cf": {
-    "translation": "Zaloguj się, aby zaakceptować zaproszenie"
   },
   "ab0df9ba36": {
     "translation": "Osiągnięto limit plików"
@@ -410,6 +548,12 @@
   },
   "b028909917": {
     "translation": "Użytkownik gość"
+  },
+  "b2c3c2e30c": {
+    "translation": "Plik jest pełny"
+  },
+  "b34a671e2c": {
+    "translation": "Czas reakcji dziennika"
   },
   "b357b524e7": {
     "translation": "Adres e-mail"
@@ -425,6 +569,9 @@
   },
   "b758336699": {
     "translation": "Kopiuj link"
+  },
+  "b8996797b9": {
+    "translation": "Ukryj zadania na płótnie"
   },
   "ba0318cb81": {
     "translation": "Zaloguj się, aby udostępnić"
@@ -444,8 +591,14 @@
   "c28aed8348": {
     "translation": "Zezwól na <cookies>analytics</cookies>, aby pomóc nam ulepszyć tldraw."
   },
+  "c2ad21c079": {
+    "translation": "Włosy"
+  },
   "c303bd1095": {
     "translation": "Nie można opublikować pliku."
+  },
+  "c3eb5c3b90": {
+    "translation": "Rozumiem"
   },
   "c4b39a1cc3": {
     "translation": "Niezbędne pliki cookie"
@@ -465,6 +618,9 @@
   "c87aacf567": {
     "translation": "Wyloguj się"
   },
+  "c9b04e7b53": {
+    "translation": "Odznacz lidera"
+  },
   "c9cc8cce24": {
     "translation": "Ratować"
   },
@@ -474,11 +630,26 @@
   "cd15a75c26": {
     "translation": "SVG"
   },
+  "ce0547606c": {
+    "translation": "Ten plik zbliża się do limitu rozmiaru. Rozważ usunięcie części zawartości lub utworzenie nowego pliku."
+  },
+  "ce1424d44b": {
+    "translation": "Masz już dostęp do wróżki!"
+  },
   "cea291e45e": {
     "translation": "Dowiedz się więcej o publikowaniu."
   },
+  "cf62a7f9a7": {
+    "translation": "Zresetuj czaty"
+  },
   "d3d2e61733": {
     "translation": "Zamknij"
+  },
+  "d438a51e6e": {
+    "translation": "Uśpij wszystkie wróżki"
+  },
+  "d46632fe1f": {
+    "translation": "Zbyt wiele żądań. Proszę zwolnić."
   },
   "d4bbf74f3e": {
     "translation": "Przełącz pasek boczny"
@@ -488,6 +659,12 @@
   },
   "d721757161": {
     "translation": "Temat"
+  },
+  "d739f35e18": {
+    "translation": "Szepcz do {name}…"
+  },
+  "d7bc9d5a2e": {
+    "translation": "Usuń zadanie"
   },
   "d876a9fe1a": {
     "translation": "Spróbuj ponownie"
@@ -504,8 +681,20 @@
   "dbbebf3c03": {
     "translation": "Tylko z zaproszeniem"
   },
+  "dbbece0c3a": {
+    "translation": "Wyczyść wszystkie czaty"
+  },
+  "dc30bc0c79": {
+    "translation": "Jasne"
+  },
   "dcdaa754fe": {
     "translation": "Nieprawidłowy adres URL pliku tldraw"
+  },
+  "de290d52ef": {
+    "translation": "Wybierz wróżkę po prawej stronie, z którą chcesz porozmawiać"
+  },
+  "df6ff49394": {
+    "translation": "Wróżki to funkcja <strong>tymczasowa</strong>. 1 stycznia 2026 roku wszystkie wróżki zostaną usunięte z aplikacji. Być może kiedyś powrócą. Zakup uprawnia do dostępu do wróżek tylko do grudnia 2025 roku."
   },
   "dfdb78a4e4": {
     "translation": "Oznaczenia debugowania aplikacji"
@@ -530,6 +719,9 @@
   },
   "ea0626ac5a": {
     "translation": "Strefa niebezpieczna"
+  },
+  "ea181d98ca": {
+    "translation": "Wybierz wróżkę"
   },
   "ea4788705e": {
     "translation": "Anuluj"
@@ -558,11 +750,20 @@
   "ef7de3f485": {
     "translation": "wybrany"
   },
+  "efb2d9d471": {
+    "translation": "Lista rzeczy do zrobienia"
+  },
+  "efde983742": {
+    "translation": "Wezwać"
+  },
   "f09b16bc5f": {
     "translation": "Używamy plików cookie, aby umożliwić Ci pozostanie zalogowanym, synchronizację plików i zbieranie danych analitycznych, które pomagają nam w ulepszaniu tldraw."
   },
   "f0e8bff6f9": {
     "translation": "Ustawienia użytkownika"
+  },
+  "f23056da60": {
+    "translation": "Nowy projekt"
   },
   "f2569594b2": {
     "translation": "Używamy tych plików cookie, aby zapisać Twoje pliki i ustawienia."
@@ -570,20 +771,29 @@
   "f2a6c498fb": {
     "translation": "Usuń"
   },
-  "f43fb62093": {
-    "translation": "Powrót do tldraw."
-  },
   "f4f70727dc": {
     "translation": "Ustawienia"
   },
+  "f6ae34b4ba": {
+    "translation": "Zresetuj wszystkie różdżki"
+  },
   "f714e36843": {
     "translation": "Czy na pewno chcesz opuścić tę grupę?"
+  },
+  "f7d5ee6855": {
+    "translation": "Najpierw wybierz lidera…"
+  },
+  "f87386b4ba": {
+    "translation": "Przywołaj wszystkie wróżki"
   },
   "fa2ead697d": {
     "translation": "Polityka prywatności"
   },
   "fb15c53f22": {
     "translation": "Oglądający"
+  },
+  "fd11eafb92": {
+    "translation": "Rozwiązać projekty"
   },
   "fd1be3efcf": {
     "translation": "Czy na pewno chcesz usunąć ten plik?"
@@ -596,5 +806,8 @@
   },
   "ffcd73e997": {
     "translation": "Importuj plik…"
+  },
+  "ffec95af2f": {
+    "translation": "Kup dostęp do wróżki"
   }
 }

@@ -1,37 +1,153 @@
-export function getRandomFairyName() {
-	let firstNamePrefix = NAME_PARTS[Math.floor(Math.random() * NAME_PARTS.length)]
-	const firstNameSuffix = NAME_PARTS[Math.floor(Math.random() * NAME_PARTS.length)]
-	let lastNamePrefix = NAME_PARTS[Math.floor(Math.random() * NAME_PARTS.length)]
-	const lastNameSuffix = NAME_PARTS[Math.floor(Math.random() * NAME_PARTS.length)]
-
-	if (firstNamePrefix.at(-1) === firstNameSuffix[0]) {
-		firstNamePrefix = firstNamePrefix.slice(0, -1)
-	}
-
-	if (lastNamePrefix.at(-1) === lastNameSuffix[0]) {
-		lastNamePrefix = lastNamePrefix.slice(0, -1)
-	}
-
-	let firstName = `${firstNamePrefix[0].toUpperCase()}${firstNamePrefix.slice(1)}${firstNameSuffix}`
-	let lastName = `${lastNamePrefix[0].toUpperCase()}${lastNamePrefix.slice(1)}${lastNameSuffix}`
-
-	if (firstName in BANNED_NAMES) {
-		firstName = BANNED_NAMES[firstName]
-	}
-	if (lastName in BANNED_NAMES) {
-		lastName = BANNED_NAMES[lastName]
-	}
-
-	return firstName
-	// return `${firstName} ${lastName}`
+function rand<T>(array: T[]): T {
+	return array[Math.floor(Math.random() * array.length)]
 }
 
-const NAME_PARTS = [
-	'tinker',
+function upper(str: string): string {
+	return str[0].toUpperCase() + str.slice(1)
+}
+
+const usedNames = new Set<string>()
+
+export function getRandomFairyName(step = 0) {
+	// e.g. Steve Mossgrain, Doris Belltink
+	const firstName = `${upper(rand(FIRST_NAME_PARTS))}`
+	const lastName = `${upper(rand(LAST_NAME_PARTS_1)) + rand(LAST_NAME_PARTS_2)}`
+
+	// Reset the used names if we've tried 3 attempts
+	if (step > 3) usedNames.clear()
+
+	const name = `${firstName} ${lastName}`
+
+	// If the name is already used, try again
+	if (usedNames.has(name)) {
+		return getRandomFairyName(step + 1)
+	}
+
+	// Add the name to the used names
+	usedNames.add(name)
+
+	// Return the name
+	return name
+}
+
+const FIRST_NAME_PARTS = [
+	// Baseball players from 1921 MLB / 1943 AAGPBL
+	'Tal',
+	'Cliff',
+	'Bobby',
+	'Red',
+	'Jack',
+	'James',
+	'Matt',
+	'Ted',
+	'Hank',
+	'Johnny',
+	'Don',
+	'Bill',
+	'Ken',
+	'Nelson',
+	'Roy',
+	'John',
+	'Pete',
+	'Bob',
+	'Clint',
+	'Dick',
+	'Chuck',
+	'Herb',
+	'George',
+	'Harry',
+	'Larry',
+	'Bill',
+	'Red',
+	'Joe',
+	'Hoot',
+	'Ferris',
+	'Alice',
+	'Ann',
+	'Anna',
+	'Donna',
+	'Eva',
+	'Frances',
+	'Max',
+	'Helen',
+	'Jane',
+	'Janet',
+	'Joan',
+	'Joyce',
+	'June',
+	'Kay',
+	'Marian',
+	'Mary',
+	'Rita',
+	'Sophie',
+	'Mo',
+]
+
+// Two syllable, trochaic
+const LAST_NAME_PARTS_1 = [
+	'Tinkle',
+	'Wiggle',
+	'Flutter',
+	'Farber',
+	'Snelle',
+	'Sparkle',
+	'Glimmer',
+	'Glitter',
+	'Ribbon',
+	'Feather',
+	'Tickle',
+	'Flicker',
+	'Winkle',
+	'Whisper',
+	'Color',
+	'Silver',
+	'Shimmer',
+	'Murmer',
+	'Meadow',
+	'Wobble',
+	'Nibble',
+	'Rustle',
+	'Snuggle',
+	'Sputter',
+	'Tattle',
+	'Fiddle',
+	'Cinder',
+	'Marrow',
+	'Pebble',
+	'Petal',
+	'River',
+	'Velvet',
+	'Button',
+	'Softer',
+	'Shiver',
+]
+
+// Single syllable
+const LAST_NAME_PARTS_2 = [
+	// Patronyms, etc
+	'son',
+	'smith',
+	'man',
+	'sen',
+	'ovich',
+	'poulos',
+	'ides',
+	'ton',
+	'ford',
+	'ham',
+	'ski',
+	'berg',
+	'er',
+	'mann',
+	'hard',
+	'ward',
+	'wyn',
+	'kin',
+	'ling',
+	'let',
+	// Characterized
+	'snelle',
 	'spark',
-	'glimmer',
-	'blue',
-	'flutter',
 	'wind',
 	'bolt',
 	'flame',
@@ -42,18 +158,25 @@ const NAME_PARTS = [
 	'bell',
 	'snell',
 	'flick',
-	'bubble',
 	'bark',
-	'fluff',
-	'fuzz',
 	'shine',
-	'glow',
-	'petal',
-	'gum',
-	'toe',
+	'iron',
+	'coal',
+	'stone',
+	'moss',
+	'bone',
+	'wood',
+	'leaf',
+	'twig',
 	'branch',
+	'root',
+	'trunk',
+	'bark',
+	'pine',
+	'oak',
+	'gem',
+	'glow',
+	'toe',
 	'tooth',
 	'gold',
 ]
-
-const BANNED_NAMES: { [key: string]: string } = { Tinkerbell: 'Bellertink' }

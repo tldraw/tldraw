@@ -5,7 +5,7 @@ export class MessagesPartUtil extends PromptPartUtil<MessagesPart> {
 	static override type = 'messages' as const
 
 	override getPart(request: AgentRequest): MessagesPart {
-		const { messages, source } = request
+		const { agentMessages: messages, source } = request
 		return {
 			type: 'messages',
 			messages,

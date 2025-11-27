@@ -5,6 +5,18 @@
       "value": "Exportera"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Acceptera inbjudan"
+    }
+  ],
+  "038c9b4432": [
+    {
+      "type": 0,
+      "value": "Féens personlighet"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -19,12 +31,6 @@
     {
       "type": 1,
       "value": "GetHelpLink"
-    }
-  ],
-  "05596b840b": [
-    {
-      "type": 0,
-      "value": "Öppna tldraw."
     }
   ],
   "06b9281e39": [
@@ -51,10 +57,16 @@
       "value": "Konto"
     }
   ],
-  "08d2d725a9": [
+  "090b807281": [
     {
       "type": 0,
-      "value": "Skapa ett gratis konto för att spara ditt arbete, samarbeta i realtid och mer."
+      "value": "Taggig"
+    }
+  ],
+  "0a91f7fa87": [
+    {
+      "type": 0,
+      "value": "Den här filen har nått sin storleksgräns och ändringarna kanske inte längre sparas. Ta bort en del innehåll eller skapa en ny fil."
     }
   ],
   "0b27918290": [
@@ -69,10 +81,10 @@
       "value": "Arkivmenyn"
     }
   ],
-  "0beb3ca97b": [
+  "0befa10111": [
     {
       "type": 0,
-      "value": "tldraw är en gratis och omedelbar virtuell whiteboardtavla."
+      "value": "Älvor"
     }
   ],
   "0d1f2bb523": [
@@ -85,6 +97,12 @@
     {
       "type": 0,
       "value": "Publicera"
+    }
+  ],
+  "11a755d598": [
+    {
+      "type": 0,
+      "value": "Stopp"
     }
   ],
   "129b9e34ea": [
@@ -109,6 +127,12 @@
     {
       "type": 0,
       "value": "Exportera som"
+    }
+  ],
+  "141c7239d3": [
+    {
+      "type": 0,
+      "value": "Anpassning av älvor"
     }
   ],
   "146ffe2fd9": [
@@ -141,16 +165,22 @@
       "value": "Idag"
     }
   ],
-  "20976e7bec": [
+  "1e38506832": [
     {
       "type": 0,
-      "value": "Rummet är fullt"
+      "value": "Gå till älvan"
     }
   ],
-  "21bfb2dc2e": [
+  "1fe250ea06": [
     {
       "type": 0,
-      "value": "Det här rummet närmar sig sin storleksgräns. Överväg att ta bort en del innehåll eller starta en ny fil."
+      "value": "Instruera gruppen…"
+    }
+  ],
+  "243924bfd5": [
+    {
+      "type": 0,
+      "value": "Sova"
     }
   ],
   "2445e5e347": [
@@ -165,6 +195,12 @@
       "value": "Om tldraw"
     }
   ],
+  "284d5cd0dd": [
+    {
+      "type": 0,
+      "value": "Modell:"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -177,10 +213,30 @@
       "value": "Mina filer"
     }
   ],
-  "2deec2cb74": [
+  "2e86e6853d": [
     {
       "type": 0,
-      "value": "Det här rummet har nått sin storleksgräns och ändringarna kanske inte längre sparas. Ta bort en del innehåll eller skapa en ny fil."
+      "value": "Välj ledare"
+    }
+  ],
+  "30cd34258a": [
+    {
+      "type": 0,
+      "value": "En fladdrande mängd "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "älvor"
+        }
+      ],
+      "type": 8,
+      "value": "b"
+    },
+    {
+      "type": 0,
+      "value": " har kommit till tldraw under december månad. För att undersöka saken närmare, hitta fen och klicka på den."
     }
   ],
   "31246941ad": [
@@ -195,10 +251,22 @@
       "value": "i18n: Markering saknas"
     }
   ],
+  "3209f407ed": [
+    {
+      "type": 0,
+      "value": "tre älvor"
+    }
+  ],
   "32210b37e4": [
     {
       "type": 0,
       "value": "Lägg till länk"
+    }
+  ],
+  "324a0f3182": [
+    {
+      "type": 0,
+      "value": "Tillbaka till tldraw"
     }
   ],
   "335defdafe": [
@@ -207,10 +275,52 @@
       "value": "Försök att uppdatera sidan."
     }
   ],
+  "33f9ea6fe8": [
+    {
+      "type": 0,
+      "value": "Upplösa gruppen"
+    }
+  ],
+  "34140869c6": [
+    {
+      "type": 0,
+      "value": "Ett fladdrande av älvor kommer till tldraw under december månad. Vänligen återkom den 1 december."
+    }
+  ],
   "344a7f427f": [
     {
       "type": 0,
       "value": "Redigeringsverktyg"
+    }
+  ],
+  "3596c1b1f7": [
+    {
+      "type": 0,
+      "value": "Sluta följa"
+    }
+  ],
+  "3903aab323": [
+    {
+      "type": 0,
+      "value": "Följa"
+    }
+  ],
+  "3a295397e6": [
+    {
+      "type": 0,
+      "value": "Be om hjälp"
+    }
+  ],
+  "3a77f951ca": [
+    {
+      "type": 0,
+      "value": "Lägg till en ny uppgift…"
+    }
+  ],
+  "3b6c2b4caa": [
+    {
+      "type": 0,
+      "value": "Användarvillkor"
     }
   ],
   "3bc7d6ea2f": [
@@ -237,6 +347,12 @@
       "value": "Acceptera alla"
     }
   ],
+  "4131ec34ef": [
+    {
+      "type": 0,
+      "value": "Skallig"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -253,6 +369,18 @@
     {
       "type": 0,
       "value": "Tack för att du hjälper oss att förbättra tldraw!"
+    }
+  ],
+  "465a8a92a4": [
+    {
+      "type": 0,
+      "value": "Inga älvor valda"
+    }
+  ],
+  "477df802ca": [
+    {
+      "type": 0,
+      "value": "För att fortsätta redigera, kopiera filen till dina filer."
     }
   ],
   "47839e47a5": [
@@ -309,6 +437,12 @@
       "value": "Är du säker på att du vill ta bort den här gruppen? Åtgärden kan inte ångras."
     }
   ],
+  "4f827717f7": [
+    {
+      "type": 0,
+      "value": "Spetsig"
+    }
+  ],
   "50db1b7e1e": [
     {
       "type": 0,
@@ -321,16 +455,16 @@
       "value": "Sidmenyn"
     }
   ],
+  "542248f0ba": [
+    {
+      "type": 0,
+      "value": "Den här filen är nu skrivskyddad"
+    }
+  ],
   "54286b1d01": [
     {
       "type": 0,
       "value": "Medarbetargräns har nåtts"
-    }
-  ],
-  "54d240fa41": [
-    {
-      "type": 0,
-      "value": "Vänligen sakta ner."
     }
   ],
   "554a05155c": [
@@ -365,6 +499,12 @@
     {
       "type": 0,
       "value": "Sekretesspolicy"
+    }
+  ],
+  "5a2ccdc00a": [
+    {
+      "type": 0,
+      "value": "Det gick inte att lösa in inbjudningskoden"
     }
   ],
   "5a86b22fa0": [
@@ -407,18 +547,6 @@
       "value": "Dela"
     }
   ],
-  "5bb6cf3b53": [
-    {
-      "type": 0,
-      "value": "Rummet blir stort"
-    }
-  ],
-  "5bcc12ace8": [
-    {
-      "type": 0,
-      "value": "Det här rummet är nu skrivskyddat"
-    }
-  ],
   "5bec508475": [
     {
       "type": 0,
@@ -435,6 +563,12 @@
     {
       "type": 0,
       "value": "Vi kunde inte ladda upp en del av innehållet du skapade innan du loggade in."
+    }
+  ],
+  "5ea8bb44be": [
+    {
+      "type": 0,
+      "value": "Du har blivit inbjuden att gå med i gruppen:"
     }
   ],
   "5f3c333678": [
@@ -467,6 +601,24 @@
       "value": "du"
     }
   ],
+  "63a78ed464": [
+    {
+      "type": 0,
+      "value": "Anpassa"
+    }
+  ],
+  "64ebe56d8c": [
+    {
+      "type": 0,
+      "value": "Klicka för att ta bort eller dra för att flytta"
+    }
+  ],
+  "65709fd250": [
+    {
+      "type": 0,
+      "value": "Uppgiftslista"
+    }
+  ],
   "6609dd239e": [
     {
       "type": 0,
@@ -479,28 +631,16 @@
       "value": "En ny version av tldraw är tillgänglig. Ladda om sidan för att fortsätta."
     }
   ],
-  "68257bb646": [
-    {
-      "type": 0,
-      "value": "Du har blivit inbjuden till gruppen "
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "br"
-    },
-    {
-      "children": [
-      ],
-      "type": 8,
-      "value": "groupName"
-    }
-  ],
   "6832ac5936": [
     {
       "type": 0,
       "value": "Ange din e-postadress"
+    }
+  ],
+  "68d390535e": [
+    {
+      "type": 0,
+      "value": "Ange ditt meddelande"
     }
   ],
   "6a26f54883": [
@@ -519,6 +659,12 @@
     {
       "type": 0,
       "value": "Följ dessa steg för att importera innehållet manuellt:"
+    }
+  ],
+  "6e02bd9e1e": [
+    {
+      "type": 0,
+      "value": "Lägg undan älvorna"
     }
   ],
   "70222abcfc": [
@@ -581,10 +727,28 @@
       "value": "Vänligen ladda om"
     }
   ],
+  "76dea3c9ca": [
+    {
+      "type": 0,
+      "value": "tldraw är en gratis whiteboardtavla online. Skapa ett konto för att spara dina filer och arbeta med dina vänner."
+    }
+  ],
   "777f9e90cf": [
     {
       "type": 0,
       "value": "Ogiltig begäran."
+    }
+  ],
+  "7827371d1a": [
+    {
+      "type": 0,
+      "value": "Denna anonyma tldraw-multiplayerfil är nu skrivskyddad. För att fortsätta redigera, vänligen logga in och kopiera den till dina filer."
+    }
+  ],
+  "7835039819": [
+    {
+      "type": 0,
+      "value": "Propeller"
     }
   ],
   "78e9815992": [
@@ -599,16 +763,46 @@
       "value": "Skicka ett problem på GitHub"
     }
   ],
+  "79cc22ac6b": [
+    {
+      "type": 0,
+      "value": "En älva är en liten kille som kan arbeta med dig på duken. Älvor kan arbeta ensamma eller i team. Det finns ingen gräns för vad en älva kan göra. Ingen vet var de kommer ifrån."
+    }
+  ],
+  "7a3113b0ba": [
+    {
+      "type": 0,
+      "value": "Dra till arbetsytan"
+    }
+  ],
   "7b1329f5ca": [
     {
       "type": 0,
       "value": "Användarmanual"
     }
   ],
+  "7b5449bd84": [
+    {
+      "type": 0,
+      "value": "Antenn"
+    }
+  ],
   "7be10fc592": [
     {
       "type": 0,
       "value": "Återställ version"
+    }
+  ],
+  "7c0747a5df": [
+    {
+      "type": 0,
+      "value": "Öppna tldraw"
+    }
+  ],
+  "7cb471f815": [
+    {
+      "type": 0,
+      "value": "Du har blivit inbjuden att gå med i tldraw-feer!"
     }
   ],
   "7cb5f8b4a5": [
@@ -675,6 +869,18 @@
       "value": "."
     }
   ],
+  "81d48c2f3a": [
+    {
+      "type": 0,
+      "value": "Visa uppgifter på arbetsytan"
+    }
+  ],
+  "8472a551f1": [
+    {
+      "type": 0,
+      "value": "Feer har kommit för att dra i december månad."
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -695,10 +901,28 @@
       "value": " .tldr-filer."
     }
   ],
+  "86a7df7572": [
+    {
+      "type": 0,
+      "value": "Kalla fram älvor"
+    }
+  ],
   "86c66437fd": [
     {
       "type": 0,
       "value": "Byt namn på filen"
+    }
+  ],
+  "88e83b88c5": [
+    {
+      "type": 0,
+      "value": "Köp älvpaket"
+    }
+  ],
+  "898e76f01a": [
+    {
+      "type": 0,
+      "value": "Återställ allt"
     }
   ],
   "8ad4303b83": [
@@ -707,10 +931,10 @@
       "value": "Nej tack"
     }
   ],
-  "8b1946f965": [
+  "8be569f100": [
     {
       "type": 0,
-      "value": "För att fortsätta redigera, kopiera rummet till dina filer."
+      "value": "engångsbetalning"
     }
   ],
   "8c2d3d730c": [
@@ -755,6 +979,24 @@
       "value": "Kopierad inbjudningslänk"
     }
   ],
+  "93346fdd70": [
+    {
+      "type": 0,
+      "value": "Öron"
+    }
+  ],
+  "93dfe9fbbe": [
+    {
+      "type": 0,
+      "value": "Avmarkera älva"
+    }
+  ],
+  "94966d9074": [
+    {
+      "type": 0,
+      "value": "Skicka"
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -773,6 +1015,12 @@
       "value": "Denna månad"
     }
   ],
+  "97a9f16b2e": [
+    {
+      "type": 0,
+      "value": "Ny älva"
+    }
+  ],
   "985a4b720f": [
     {
       "type": 0,
@@ -785,10 +1033,22 @@
       "value": "Lägg till fillänk"
     }
   ],
+  "98e528aac6": [
+    {
+      "type": 0,
+      "value": "Växla till älvchatt"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Ljus"
+    }
+  ],
+  "9953e9946b": [
+    {
+      "type": 0,
+      "value": "Felsökningsvy"
     }
   ],
   "9b33f5c63c": [
@@ -815,12 +1075,6 @@
     {
       "type": 0,
       "value": "Ta bort fil"
-    }
-  ],
-  "9c258b8f88": [
-    {
-      "type": 0,
-      "value": "Detta anonyma tldraw-multiplayerrum är nu skrivskyddat. För att fortsätta redigera, vänligen logga in och kopiera det till dina filer."
     }
   ],
   "9ceb927baa": [
@@ -871,16 +1125,34 @@
       "value": "Exportera bild"
     }
   ],
+  "a2f0372a75": [
+    {
+      "type": 0,
+      "value": "Växla till uppgiftslistan"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
       "value": "Cookiepolicy"
     }
   ],
+  "a3e932550c": [
+    {
+      "type": 0,
+      "value": "Féens namn"
+    }
+  ],
   "a4d3b161ce": [
     {
       "type": 0,
       "value": "Överlämna"
+    }
+  ],
+  "a4ffdcf0dc": [
+    {
+      "type": 0,
+      "value": "Bästa"
     }
   ],
   "a6cc403d56": [
@@ -895,16 +1167,22 @@
       "value": "Analytics"
     }
   ],
+  "a885eb91ac": [
+    {
+      "type": 0,
+      "value": "Val av ledare för feer"
+    }
+  ],
+  "a8873770ab": [
+    {
+      "type": 0,
+      "value": "Filen blir stor"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
       "value": "Bakgrund"
-    }
-  ],
-  "aa916767cf": [
-    {
-      "type": 0,
-      "value": "Logga in för att acceptera inbjudan"
     }
   ],
   "ab0df9ba36": [
@@ -929,6 +1207,18 @@
     {
       "type": 0,
       "value": "Gästanvändare"
+    }
+  ],
+  "b2c3c2e30c": [
+    {
+      "type": 0,
+      "value": "Filen är full"
+    }
+  ],
+  "b34a671e2c": [
+    {
+      "type": 0,
+      "value": "Loggsvarstid"
     }
   ],
   "b357b524e7": [
@@ -959,6 +1249,12 @@
     {
       "type": 0,
       "value": "Kopiera länk"
+    }
+  ],
+  "b8996797b9": [
+    {
+      "type": 0,
+      "value": "Dölj uppgifter på arbetsytan"
     }
   ],
   "ba0318cb81": [
@@ -1051,10 +1347,22 @@
       "value": " för att hjälpa oss att förbättra tldraw."
     }
   ],
+  "c2ad21c079": [
+    {
+      "type": 0,
+      "value": "Hår"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
       "value": "Det gick inte att publicera filen."
+    }
+  ],
+  "c3eb5c3b90": [
+    {
+      "type": 0,
+      "value": "Jag förstår"
     }
   ],
   "c4b39a1cc3": [
@@ -1093,6 +1401,12 @@
       "value": "Logga ut"
     }
   ],
+  "c9b04e7b53": [
+    {
+      "type": 0,
+      "value": "Avmarkera ledare"
+    }
+  ],
   "c9cc8cce24": [
     {
       "type": 0,
@@ -1111,16 +1425,46 @@
       "value": "SVG"
     }
   ],
+  "ce0547606c": [
+    {
+      "type": 0,
+      "value": "Den här filen närmar sig sin storleksgräns. Överväg att ta bort en del innehåll eller starta en ny fil."
+    }
+  ],
+  "ce1424d44b": [
+    {
+      "type": 0,
+      "value": "Du har redan tillgång till älvor!"
+    }
+  ],
   "cea291e45e": [
     {
       "type": 0,
       "value": "Läs mer om publicering."
     }
   ],
+  "cf62a7f9a7": [
+    {
+      "type": 0,
+      "value": "Återställ chattar"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
       "value": "Stäng"
+    }
+  ],
+  "d438a51e6e": [
+    {
+      "type": 0,
+      "value": "Sova alla älvor"
+    }
+  ],
+  "d46632fe1f": [
+    {
+      "type": 0,
+      "value": "För många förfrågningar. Var vänlig och sakta ner."
     }
   ],
   "d4bbf74f3e": [
@@ -1169,6 +1513,26 @@
       "value": "Tema"
     }
   ],
+  "d739f35e18": [
+    {
+      "type": 0,
+      "value": "Viska till "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
+  "d7bc9d5a2e": [
+    {
+      "type": 0,
+      "value": "Ta bort uppgift"
+    }
+  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1199,10 +1563,48 @@
       "value": "Endast inbjudan"
     }
   ],
+  "dbbece0c3a": [
+    {
+      "type": 0,
+      "value": "Rensa alla chattar"
+    }
+  ],
+  "dc30bc0c79": [
+    {
+      "type": 0,
+      "value": "Rensa"
+    }
+  ],
   "dcdaa754fe": [
     {
       "type": 0,
       "value": "Ogiltig URL för tldraw-fil"
+    }
+  ],
+  "de290d52ef": [
+    {
+      "type": 0,
+      "value": "Välj en älva till höger att chatta med"
+    }
+  ],
+  "df6ff49394": [
+    {
+      "type": 0,
+      "value": "Älvor är en "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "tillfällig"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " funktion. Den 1 januari 2026 kommer alla älvor att tas bort från appen. De kanske återvänder någon dag. Ditt köp gäller endast åtkomst till älvor i december 2025."
     }
   ],
   "dfdb78a4e4": [
@@ -1251,6 +1653,12 @@
     {
       "type": 0,
       "value": "Riskzon"
+    }
+  ],
+  "ea181d98ca": [
+    {
+      "type": 0,
+      "value": "Välj älva"
     }
   ],
   "ea4788705e": [
@@ -1321,6 +1729,18 @@
       "value": "vald"
     }
   ],
+  "efb2d9d471": [
+    {
+      "type": 0,
+      "value": "Att-göra-lista"
+    }
+  ],
+  "efde983742": [
+    {
+      "type": 0,
+      "value": "Kalla"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1331,6 +1751,12 @@
     {
       "type": 0,
       "value": "Användarinställningar"
+    }
+  ],
+  "f23056da60": [
+    {
+      "type": 0,
+      "value": "Nytt projekt"
     }
   ],
   "f2569594b2": [
@@ -1345,22 +1771,34 @@
       "value": "Radera"
     }
   ],
-  "f43fb62093": [
-    {
-      "type": 0,
-      "value": "Tillbaka till tldraw."
-    }
-  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "Inställningar"
     }
   ],
+  "f6ae34b4ba": [
+    {
+      "type": 0,
+      "value": "Återställ alla trollstavar"
+    }
+  ],
   "f714e36843": [
     {
       "type": 0,
       "value": "Är du säker på att du vill lämna den här gruppen?"
+    }
+  ],
+  "f7d5ee6855": [
+    {
+      "type": 0,
+      "value": "Välj en ledare först…"
+    }
+  ],
+  "f87386b4ba": [
+    {
+      "type": 0,
+      "value": "Kalla fram alla älvor"
     }
   ],
   "fa2ead697d": [
@@ -1373,6 +1811,12 @@
     {
       "type": 0,
       "value": "Visningsverktyg"
+    }
+  ],
+  "fd11eafb92": [
+    {
+      "type": 0,
+      "value": "Avveckla projekt"
     }
   ],
   "fd1be3efcf": [
@@ -1397,6 +1841,12 @@
     {
       "type": 0,
       "value": "Importera fil…"
+    }
+  ],
+  "ffec95af2f": [
+    {
+      "type": 0,
+      "value": "Köp tillgång till älvor"
     }
   ]
 }

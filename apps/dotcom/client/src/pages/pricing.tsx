@@ -1,5 +1,11 @@
+import { lazy, Suspense } from 'react'
+import '../tla/styles/fairy.css'
 import { F } from '../tla/utils/i18n'
 import styles from './pricing.module.css'
+
+const FairySprite = lazy(() =>
+	import('../fairy/fairy-sprite/FairySprite').then((m) => ({ default: m.FairySprite }))
+)
 
 export function Component() {
 	return (
@@ -7,9 +13,9 @@ export function Component() {
 			<div className={styles.content}>
 				<div className={styles.logo} />
 
-				<h1 className={styles.title}>
+				<p className={styles.title}>
 					<F defaultMessage="Fairies have come to tldraw for the month of December." />
-				</h1>
+				</p>
 
 				<p className={styles.description}>
 					<F defaultMessage="A fairy is a little guy that can work with you on the canvas. Fairies can work alone or as a team. There is no limit to what a fairy can do. Nobody knows where they came from." />
@@ -25,27 +31,30 @@ export function Component() {
 				</p>
 
 				<div className={styles.pricingCard}>
-					<div className={styles.pricingInfo}>
-						<div className={styles.price}>$25</div>
-						<div className={styles.priceDetails}>
-							<div className={styles.priceDetail}>
-								<F defaultMessage="three fairies" />
-							</div>
-							<div className={styles.priceDetail}>
-								<F defaultMessage="one time payment" />
+					<div className={styles.pricingCardContent}>
+						<div className={styles.pricingInfo}>
+							<div className={styles.price}>$25</div>
+							<div className={styles.priceDetails}>
+								<div className={styles.priceDetail}>
+									<F defaultMessage="three fairies" />
+								</div>
+								<div className={styles.priceDetail}>
+									<F defaultMessage="one time payment" />
+								</div>
 							</div>
 						</div>
+						<div className={styles.fairyIcons}>
+							<Suspense fallback={<div />}>
+								<FairySprite pose="idle" hatColor="var(--tl-color-fairy-pink)" />
+								<FairySprite pose="reading" hatColor="var(--tl-color-fairy-green)" />
+								<FairySprite pose="thinking" hatColor="var(--tl-color-fairy-purple)" />
+							</Suspense>
+						</div>
 					</div>
-					<div className={styles.fairyIcons}>
-						<img src="/fairy/fairy-placeholder-1.svg" alt="Fairy" className={styles.fairyIcon} />
-						<img src="/fairy/fairy-placeholder-2.svg" alt="Fairy" className={styles.fairyIcon} />
-						<img src="/fairy/fairy-placeholder-1.svg" alt="Fairy" className={styles.fairyIcon} />
-					</div>
+					<button className={styles.purchaseButton}>
+						<F defaultMessage="Purchase Fairy Bundle" />
+					</button>
 				</div>
-
-				<button className={styles.purchaseButton}>
-					<F defaultMessage="Purchase Fairy Bundle" />
-				</button>
 
 				<footer className={styles.footer}>
 					<a href="/privacy.html" className={styles.footerLink}>

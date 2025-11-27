@@ -1,5 +1,4 @@
-import { asColor, FocusColor } from '@tldraw/fairy-shared'
-import { Editor, getColorValue, getDefaultColorTheme, TLDefaultColorStyle } from 'tldraw'
+import { FocusColor } from '@tldraw/fairy-shared'
 
 /**
  * Gets the CSS color value for a project color, using the editor's theme.
@@ -9,15 +8,47 @@ import { Editor, getColorValue, getDefaultColorTheme, TLDefaultColorStyle } from
  * @param color - The FocusColor value to convert
  * @returns The CSS color string (e.g., '#4465e9')
  */
-export function getProjectColor(editor: Editor, color: FocusColor | string): string {
-	// First normalize the color using asColor
-	const normalizedColor = asColor(color)
-
-	// Get the appropriate theme based on editor's dark mode setting
-	const isDarkMode = editor.user.getIsDarkMode()
-	const theme = getDefaultColorTheme({ isDarkMode })
-
-	// Get the solid color value from the theme
-	// FocusColor values match TLDefaultColorStyle values, so we can cast
-	return getColorValue(theme, normalizedColor as TLDefaultColorStyle, 'solid')
+export function getProjectColor(color: FocusColor | string): string {
+	switch (color) {
+		case 'red': {
+			return 'var(--tl-color-fairy-rose)'
+		}
+		case 'light-red': {
+			return 'var(--tl-color-fairy-coral)'
+		}
+		case 'green': {
+			return 'var(--tl-color-fairy-green)'
+		}
+		case 'light-green': {
+			return 'var(--tl-color-fairy-teal)'
+		}
+		case 'blue': {
+			return 'var(--tl-color-fairy-pink)'
+		}
+		case 'light-blue': {
+			return 'var(--tl-color-fairy-purple)'
+		}
+		case 'orange': {
+			return 'var(--tl-color-fairy-gold)'
+		}
+		case 'yellow': {
+			return 'var(--tl-color-fairy-peach)'
+		}
+		case 'black': {
+			return 'var(--tl-color-fairy-green)'
+		}
+		case 'violet': {
+			return 'var(--tl-color-fairy-purple)'
+		}
+		case 'light-violet': {
+			return 'var(--tl-color-fairy-purple)'
+		}
+		case 'grey': {
+			return 'var(--tl-color-fairy-gold)'
+		}
+		case 'white': {
+			return 'var(--tl-color-fairy-white)'
+		}
+	}
+	return color
 }

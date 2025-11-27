@@ -133,7 +133,7 @@ function convertTextShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedTextShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLShape } {
+): { shape: TLTextShape } {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
 	const defaultTextShape = defaultShape as TLTextShape
 
@@ -278,7 +278,7 @@ function convertLineShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedLineShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLShape } {
+): { shape: TLLineShape } {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
 	const defaultLineShape = defaultShape as TLLineShape
 
@@ -333,7 +333,7 @@ function convertArrowShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedArrowShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLShape; bindings?: TLBindingCreate[] } {
+): { shape: TLArrowShape; bindings?: TLBindingCreate[] } {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
 	const defaultArrowShape = defaultShape as TLArrowShape
 
@@ -445,7 +445,7 @@ function convertGeoShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedGeoShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLShape } {
+): { shape: TLGeoShape } {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
 	const shapeType = convertSimpleGeoTypeToTldrawGeoGeoType(focusedShape._type)
 	const defaultGeoShape = defaultShape as TLGeoShape
@@ -510,7 +510,7 @@ function convertNoteShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedNoteShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLShape } {
+): { shape: TLNoteShape } {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
 
 	const defaultNoteShape = defaultShape as TLNoteShape
@@ -561,7 +561,7 @@ function convertDrawShapeToTldrawShape(
 	editor: Editor,
 	focusedShape: FocusedDrawShape,
 	{ defaultShape }: { defaultShape: Partial<TLShape> }
-): { shape: TLShape | null } {
+): { shape: TLDrawShape | null } {
 	const shapeId = convertSimpleIdToTldrawId(focusedShape.shapeId)
 	const defaultDrawShape = defaultShape as TLDrawShape
 
@@ -575,8 +575,9 @@ function convertDrawShapeToTldrawShape(
 		fill = convertFocusFillToTldrawFill('none')
 	}
 
-	const segments = defaultDrawShape.props?.segments ?? []
-	if (segments.length === 0) {
+	const segments = defaultDrawShape.props?.segments
+
+	if (!segments || segments.length === 0) {
 		return { shape: null }
 	}
 
@@ -593,7 +594,13 @@ function convertDrawShapeToTldrawShape(
 			isLocked: defaultDrawShape.isLocked ?? false,
 			opacity: defaultDrawShape.opacity ?? 1,
 			props: {
-				...editor.getShapeUtil('draw').getDefaultProps(),
+				dash: defaultDrawShape.props?.dash ?? 'draw',
+				size: defaultDrawShape.props?.size ?? 's',
+				segments,
+				isComplete: defaultDrawShape.props?.isComplete ?? true,
+				isClosed: defaultDrawShape.props?.isClosed ?? false,
+				isPen: defaultDrawShape.props?.isPen ?? false,
+				scale: defaultDrawShape.props?.scale ?? 1,
 				color: asColor(focusedShape.color ?? defaultDrawShape.props?.color ?? 'black'),
 				fill,
 			},

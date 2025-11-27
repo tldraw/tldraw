@@ -31,7 +31,7 @@ export class MarkDuoTaskDoneActionUtil extends AgentActionUtil<MarkDuoTaskDoneAc
 				id: uniqueId(),
 				type: 'memory-transition',
 				memoryLevel: 'project',
-				message: `I just finished the task.\nID: "${currentTaskId}"\nTitle: "${currentTask.title}"\nDescription: "${currentTask.text}".`,
+				agentFacingMessage: `I just finished the task.\nID: "${currentTaskId}"\nTitle: "${currentTask.title}"\nDescription: "${currentTask.text}".`,
 				userFacingMessage: null,
 			},
 		])

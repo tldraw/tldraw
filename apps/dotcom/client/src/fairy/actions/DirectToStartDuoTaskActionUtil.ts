@@ -16,17 +16,18 @@ export class DirectToStartDuoTaskActionUtil extends AgentActionUtil<DirectToStar
 			otherFairyName = otherFairy ? otherFairy.$fairyConfig.get().name : 'partner'
 		}
 
+		const otherFairyFirstName = otherFairyName.split(' ')[0]
 		const task = action.complete ? getFairyTaskById(action.taskId) : null
 
 		const text = action.complete
-			? `Directed ${otherFairyName} to do a task${task ? `: ${task.title}` : ''}`
-			: `Directing ${otherFairyName} to do a task...`
+			? `Asked ${otherFairyFirstName} to do${task ? `: ${task.title}` : ' a task'}`
+			: `Asking ${otherFairyFirstName} to do a task...`
 
 		return {
 			icon: 'comment' as const,
 			description: text,
 			canGroup: () => false,
-			pose: 'waiting' as const, // todo: bullhorn
+			pose: 'writing' as const, // todo: bullhorn
 		}
 	}
 
@@ -38,6 +39,14 @@ export class DirectToStartDuoTaskActionUtil extends AgentActionUtil<DirectToStar
 
 		const project = this.agent.getProject()
 		if (!project) return // shouldn't be possible
+
+		if (otherFairyId === this.agent.id) {
+			this.agent.interrupt({
+				input:
+					'You cannot direct yourself to do a task. Please direct your partner to do the task, or start the task yourself using the Start Task action.',
+			})
+			return
+		}
 
 		const otherFairy = $fairyAgentsAtom.get(this.editor).find((fairy) => fairy.id === otherFairyId)
 		if (!otherFairy) {
@@ -65,8 +74,11 @@ export class DirectToStartDuoTaskActionUtil extends AgentActionUtil<DirectToStar
 		assignFairyToTask(taskId, otherFairyId, $fairyAgentsAtom.get(this.editor))
 		setFairyTaskStatus(taskId, 'in-progress')
 
-		const otherFairyPrompt: Partial<AgentRequest> = {
-			messages: [`You have been asked to complete task ${taskId}. Please complete it.`],
+		const firstName = this.agent.$fairyConfig.get().name.split(' ')[0]
+
+		const otherFairyInput: Partial<AgentRequest> = {
+			agentMessages: [`You have been asked to complete task ${taskId}. Please complete it.`],
+			userMessages: [`Asked by ${firstName} to do${task.title ? `: ${task.title}` : ' a task'}`],
 			source: 'other-agent',
 		}
 		if (
@@ -75,7 +87,7 @@ export class DirectToStartDuoTaskActionUtil extends AgentActionUtil<DirectToStar
 			task.w !== undefined &&
 			task.h !== undefined
 		) {
-			otherFairyPrompt.bounds = {
+			otherFairyInput.bounds = {
 				x: task.x,
 				y: task.y,
 				w: task.w,
@@ -83,6 +95,6 @@ export class DirectToStartDuoTaskActionUtil extends AgentActionUtil<DirectToStar
 			}
 		}
 
-		otherFairy.interrupt({ mode: 'working-drone', input: otherFairyPrompt })
+		otherFairy.interrupt({ mode: 'working-drone', input: otherFairyInput })
 	}
 }

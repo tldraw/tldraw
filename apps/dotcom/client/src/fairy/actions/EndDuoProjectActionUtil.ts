@@ -1,6 +1,6 @@
 import { EndDuoProjectAction, Streaming } from '@tldraw/fairy-shared'
 import { uniqueId } from 'tldraw'
-import { deleteProject } from '../FairyProjects'
+import { deleteProjectAndAssociatedTasks } from '../FairyProjects'
 import { getFairyTasksByProjectId } from '../FairyTaskList'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { $fairyAgentsAtom } from '../fairy-agent/agent/fairyAgentsAtom'
@@ -44,7 +44,7 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 						id: uniqueId(),
 						type: 'memory-transition',
 						memoryLevel: 'fairy',
-						message: `I completed ${count} ${taskWord} as part of the "${project.title}" project with my partner.`,
+						agentFacingMessage: `I completed ${count} ${taskWord} as part of the "${project.title}" project with my partner.`,
 						userFacingMessage: null,
 					},
 				])
@@ -62,7 +62,7 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 							id: uniqueId(),
 							type: 'memory-transition',
 							memoryLevel: 'fairy',
-							message: `I completed ${count} ${taskWord} as part of the "${project.title}" project with my partner.`,
+							agentFacingMessage: `I completed ${count} ${taskWord} as part of the "${project.title}" project with my partner.`,
 							userFacingMessage: `I completed ${count} ${taskWord} as part of the "${project.title}" project.`,
 						},
 					])
@@ -71,6 +71,6 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 			memberAgent.interrupt({ mode: 'idling', input: null })
 		})
 
-		deleteProject(project.id)
+		deleteProjectAndAssociatedTasks(project.id)
 	}
 }

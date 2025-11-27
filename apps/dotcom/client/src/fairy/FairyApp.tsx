@@ -46,14 +46,23 @@ export function FairyApp({
 	const handleError = useCallback(
 		(e: any) => {
 			const message = typeof e === 'string' ? e : e instanceof Error && e.message
+			const isRateLimit = message && message.toLowerCase().includes('rate limit')
+
 			toasts.addToast({
-				title: 'Error',
-				description: message || 'An error occurred',
+				title: isRateLimit
+					? app.getIntl().formatMessage(app.getMessage('fairy_rate_limit_title'))
+					: 'Error',
+				description: isRateLimit
+					? app.getIntl().formatMessage(app.getMessage('fairy_rate_limit_exceeded'))
+					: message || 'An error occurred',
 				severity: 'error',
 			})
-			console.error(e)
+			// Only log non-rate-limit errors to avoid noise in console
+			if (!isRateLimit) {
+				console.error(e)
+			}
 		},
-		[toasts]
+		[toasts, app]
 	)
 
 	// Track whether we're currently loading state to prevent premature saves

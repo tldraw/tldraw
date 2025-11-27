@@ -1,5 +1,6 @@
 import { ClerkClient, createClerkClient } from '@clerk/backend'
 import { IRequest, StatusError } from 'itty-router'
+import { INTERNAL_BASE_URL } from './constants'
 import { Environment } from './environment'
 
 export async function requireAuth(
@@ -94,12 +95,26 @@ export async function hasFairyAccess(env: Environment, auth: { userId: string } 
 	if (!auth?.userId) {
 		return false
 	}
-	const user = await getClerkClient(env).users.getUser(auth.userId)
-	const email = user.primaryEmailAddress?.emailAddress || ''
-	return (
-		!!(
-			['jake@firstloop.ai'].includes(email) &&
-			user.primaryEmailAddress?.verification?.status === 'verified'
-		) || isAdmin(env, auth)
-	)
+
+	const userDoId = env.TL_USER.idFromName(auth.userId)
+	const userDo = env.TL_USER.get(userDoId)
+
+	try {
+		const response = await userDo.fetch(
+			`${INTERNAL_BASE_URL}/app/${auth.userId}/fairy/has-access`,
+			{
+				method: 'GET',
+			}
+		)
+
+		if (!response.ok) {
+			return false
+		}
+
+		const data = (await response.json()) as { hasAccess: boolean }
+		return data.hasAccess
+	} catch (error) {
+		console.error('Failed to check fairy access:', error)
+		return false
+	}
 }

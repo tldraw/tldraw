@@ -19,11 +19,6 @@ export interface AgentModeTransitionEvent {
 }
 
 /**
- * The type of event being waited for.
- */
-export type FairyWaitEventType = FairyWaitEvent['type']
-
-/**
  * A condition that an agent is waiting for.
  * When an event matching this condition occurs, the agent will be notified.
  */

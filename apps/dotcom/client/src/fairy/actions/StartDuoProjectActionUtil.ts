@@ -10,9 +10,9 @@ export class StartDuoProjectActionUtil extends AgentActionUtil<StartDuoProjectAc
 		return {
 			icon: 'flag' as const,
 			description: action.complete
-				? `Started project: ${action.projectName}`
-				: 'Starting project...',
-			pose: 'reading' as const,
+				? `Planned project: ${action.projectName}`
+				: `Planning project${action.projectName ? `: ${action.projectName}` : ''}${action.projectDescription ? `\n\n${action.projectDescription}` : ''}${action.projectPlan ? `\n\n${action.projectPlan}` : ''}`,
+			pose: 'writing' as const,
 			canGroup: () => false,
 		}
 	}

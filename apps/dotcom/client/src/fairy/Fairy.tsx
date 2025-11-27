@@ -4,10 +4,11 @@ import React, { useRef } from 'react'
 import { Atom, TLEventInfo, useEditor, useValue } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { $fairyAgentsAtom } from './fairy-agent/agent/fairyAgentsAtom'
-import { FairySpriteComponent2 } from './fairy-sprite/FairySprite2'
-import { SelectedSprite } from './fairy-sprite/sprites/SelectedSprite'
+import { FairySprite, getHatColor } from './fairy-sprite/FairySprite'
+import { FairyReticleSprite } from './fairy-sprite/sprites/FairyReticleSprite'
 import { FairyContextMenuContent } from './FairyContextMenuContent'
 import { FairyThrowTool } from './FairyThrowTool'
+import { getProjectColor } from './getProjectColor'
 
 export const FAIRY_CONTAINER_SIZE = 52
 export const FAIRY_SIZE = 44
@@ -84,6 +85,15 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 		[editor, $fairyEntity]
 	)
 
+	const isOrchestrator = useValue(
+		'is orchestrator',
+		() => agent.getRole() === 'orchestrator' || agent.getRole() === 'duo-orchestrator',
+		[agent]
+	)
+	const projectColor = useValue('project color', () => agent.getProject()?.color, [agent])
+
+	const projectHexColor = projectColor ? getProjectColor(projectColor) : undefined
+
 	const flipX = useValue('fairy flipX', () => $fairyEntity.get()?.flipX ?? false, [$fairyEntity])
 	const isSelected = useValue('fairy isSelected', () => $fairyEntity.get()?.isSelected ?? false, [
 		$fairyEntity,
@@ -95,8 +105,8 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 	const isGenerating = useValue('is generating', () => agent.isGenerating(), [agent])
 	const isFairyGrabbable = isInSelectTool
 
-	// Don't render if entity or position doesn't exist yet to avoid position jumping from (0,0)
-	if (!fairyEntity || !position) {
+	// Don't render if entity, outfit or position doesn't exist yet to avoid position jumping from (0,0)
+	if (!fairyEntity || !fairyOutfit || !position) {
 		return null
 	}
 
@@ -278,13 +288,16 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 						}}
 					/>
 					<div className="fairy-sprite-wrapper">
-						<FairySpriteComponent2
+						<FairySprite
+							pose={fairyEntity.pose}
+							gesture={fairyEntity.gesture}
+							hatColor={getHatColor(fairyOutfit.hat)}
 							showShadow
-							entity={fairyEntity}
-							outfit={fairyOutfit}
+							isAnimated={fairyEntity.pose !== 'idle' || isSelected}
 							isGenerating={isGenerating}
-							animated={fairyEntity.pose !== 'idle' || isSelected}
 							flipX={flipX}
+							isOrchestrator={isOrchestrator}
+							projectColor={projectHexColor}
 						/>
 					</div>
 				</div>
@@ -316,7 +329,8 @@ export function SelectedFairy({ agent }: { agent: FairyAgent }) {
 				transformOrigin: '75% 25%',
 			}}
 		>
-			<SelectedSprite />
+			{/* Show reticle a bit larger than normal */}
+			<FairyReticleSprite size={FAIRY_CONTAINER_SIZE / 1.5} />
 		</div>
 	)
 }
