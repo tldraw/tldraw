@@ -967,7 +967,13 @@ export class FairyAgent {
 
 		const actionInfo = this.getActionInfo(action)
 		if (actionInfo.pose) {
-			this.$fairyEntity.update((fairy) => ({ ...fairy, pose: actionInfo.pose ?? fairy.pose }))
+			// check the mode at the exact instant we would set the pose, if the fairy has somehow become inactive, set the pose to idle
+			const modeDefinition = getFairyModeDefinition(this.getMode())
+			if (modeDefinition.active) {
+				this.$fairyEntity.update((fairy) => ({ ...fairy, pose: actionInfo.pose ?? fairy.pose }))
+			} else {
+				this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
+			}
 		}
 
 		// Ensure the fairy is on the correct page before performing the action
