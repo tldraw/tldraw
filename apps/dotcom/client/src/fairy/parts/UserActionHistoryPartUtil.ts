@@ -18,7 +18,7 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 
 		// Get the action history and clear it so that we can start tracking changes for the next request
 		const diffs = agent.$userActionHistory.get()
-		agent.$userActionHistory.set([])
+		agent.clearUserActionHistory()
 
 		const part: UserActionHistoryPart = {
 			type: 'userActionHistory',

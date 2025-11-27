@@ -82,7 +82,8 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'message',
 			'think',
 			'fly-to-bounds',
-			'update-personal-todo-list',
+			'upsert-personal-todo-item',
+			'delete-personal-todo-items',
 			'create',
 			'delete',
 			'update',
@@ -98,6 +99,12 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'stack',
 			'pen',
 		],
+	},
+	{
+		type: 'one-shotting-pausing',
+		memoryLevel: 'fairy',
+		active: false,
+		pose: 'idle',
 	},
 	{
 		type: 'soloing',
@@ -154,7 +161,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 		],
 		actions: (_work: FairyWork) => [
 			'mark-my-task-done',
-			// 'update-personal-todo-list',
+			// 'upsert-personal-todo-item',
 			'think',
 			'create',
 			'delete',
@@ -192,7 +199,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 		],
 		actions: (_work: FairyWork) => [
 			'mark-task-done',
-			// 'update-personal-todo-list',
+			// 'upsert-personal-todo-item',
 			'think',
 			'create',
 			'delete',
@@ -336,7 +343,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 		],
 		actions: (_work: FairyWork) => [
 			'mark-duo-task-done',
-			// 'update-personal-todo-list',
+			// 'upsert-personal-todo-item',
 			'think',
 			'create',
 			'delete',

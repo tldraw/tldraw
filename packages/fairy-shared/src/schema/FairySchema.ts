@@ -14,6 +14,7 @@ import {
 	CreateProjectTaskActionSchema,
 	CreateSoloTaskActionSchema,
 	DeleteActionSchema,
+	DeletePersonalTodoItemsActionSchema,
 	DeleteProjectTaskActionSchema,
 	DirectToStartDuoTaskActionSchema,
 	DirectToStartTaskActionSchema,
@@ -28,7 +29,6 @@ import {
 	MessageActionSchema,
 	MoveActionSchema,
 	PenActionSchema,
-	PersonalTodoListActionSchema,
 	PlaceActionSchema,
 	ResizeActionSchema,
 	ReviewActionSchema,
@@ -41,6 +41,7 @@ import {
 	StartSoloTaskActionSchema,
 	ThinkActionSchema,
 	UpdateActionSchema,
+	UpsertPersonalTodoItemActionSchema,
 } from './AgentActionSchemas'
 import {
 	AgentViewportBoundsPartDefinition,
@@ -80,7 +81,8 @@ export const AGENT_ACTION_SCHEMAS = [
 	ThinkActionSchema,
 	ReviewActionSchema,
 	FlyToBoundsActionSchema,
-	PersonalTodoListActionSchema,
+	UpsertPersonalTodoItemActionSchema,
+	DeletePersonalTodoItemsActionSchema,
 
 	// Individual shapes
 	CreateActionSchema,

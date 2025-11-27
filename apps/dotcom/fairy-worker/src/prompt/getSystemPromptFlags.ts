@@ -22,7 +22,7 @@ export function getSystemPromptFlags(
 		hasReview: actions.includes('review'),
 		hasFlyToBounds: actions.includes('fly-to-bounds'),
 		hasPersonalTodoList:
-			actions.includes('update-personal-todo-list') && parts.includes('personalTodoList'),
+			actions.includes('upsert-personal-todo-item') && parts.includes('personalTodoList'),
 
 		// Individual shapes
 		hasCreate: actions.includes('create'),

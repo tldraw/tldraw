@@ -863,7 +863,15 @@ export class FairyAgent {
 		return id
 	}
 
-	updateTodo({ id, status, text }: { id: string; status: FairyTodoItem['status']; text?: string }) {
+	updatePersonalTodo({
+		id,
+		status,
+		text,
+	}: {
+		id: string
+		status: FairyTodoItem['status']
+		text?: string
+	}) {
 		this.$personalTodoList.update((todoItems) => {
 			const index = todoItems.findIndex((item) => item.id === id)
 			if (index !== -1) {
@@ -875,6 +883,21 @@ export class FairyAgent {
 			}
 			return todoItems
 		})
+	}
+
+	deletePersonalTodos(ids: string[]) {
+		const idsSet = new Set(ids)
+		this.$personalTodoList.update((todoItems) => {
+			return todoItems.filter((item) => !idsSet.has(item.id))
+		})
+	}
+
+	deleteAllPersonalTodos() {
+		this.$personalTodoList.set([])
+	}
+
+	clearUserActionHistory() {
+		this.$userActionHistory.set([])
 	}
 
 	/**
@@ -1176,8 +1199,8 @@ export class FairyAgent {
 	reset() {
 		this.cancel()
 		this.promptStartTime = null
-		this.$personalTodoList.set([])
-		this.$userActionHistory.set([])
+		this.deleteAllPersonalTodos()
+		this.clearUserActionHistory()
 
 		// Remove solo tasks
 		$fairyTasks.update((tasks) =>
