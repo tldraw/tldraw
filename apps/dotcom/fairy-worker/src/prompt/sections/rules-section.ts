@@ -27,7 +27,7 @@ Shapes may also have different properties depending on their type:
 
 ### Arrow properties
 
-Arrows are different from shapes, in that they are lines that connect two shapes. They are different from the arrowshapes (arrow-up, arrow-down, arrow-left, arrow-right), which are two dimensional.
+Arrows differ from other shapes—they are lines connecting two shapes. Don't confuse them with arrow shapes (arrow-up, arrow-down, arrow-left, arrow-right), which are two-dimensional geometric shapes.
 
 Arrows have:
 - \`fromId\` (optional, the id of the shape that the arrow starts from)
@@ -35,7 +35,7 @@ Arrows have:
 
 ### Arrow and line properties
 
-Arrows and lines are different from shapes, in that they are lines that they have two positions, not just one.
+Arrows and lines differ from other shapes in that they have two positions, not just one.
 
 Arrows and lines have:
 - \`x1\` (the x coordinate of the first point of the line)
