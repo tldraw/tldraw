@@ -15,6 +15,7 @@ export type ChatHistoryItem =
  * A prompt from the user.
  */
 export interface ChatHistoryPromptItem {
+	id?: string // Optional for backward compatibility with old messages
 	type: 'prompt'
 	message: string
 	memoryLevel: FairyMemoryLevel
@@ -24,6 +25,7 @@ export interface ChatHistoryPromptItem {
  * An action done by the agent.
  */
 export interface ChatHistoryActionItem {
+	id?: string // Optional for backward compatibility with old messages
 	type: 'action'
 	action: Streaming<AgentAction>
 	diff: RecordsDiff<TLRecord>
@@ -35,12 +37,14 @@ export interface ChatHistoryActionItem {
  * A follow-up request from the agent, with data retrieved from the previous request.
  */
 export interface ChatHistoryContinuationItem {
+	id?: string // Optional for backward compatibility with old messages
 	type: 'continuation'
 	data: JsonValue[]
 	memoryLevel: FairyMemoryLevel
 }
 
 export interface ChatHistoryMemoryTransitionItem {
+	id?: string // Optional for backward compatibility with old messages
 	type: 'memory-transition'
 	memoryLevel: FairyMemoryLevel
 	message: string

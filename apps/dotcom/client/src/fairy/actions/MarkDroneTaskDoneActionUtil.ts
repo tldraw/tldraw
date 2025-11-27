@@ -1,4 +1,5 @@
 import { MarkDroneTaskDoneAction, Streaming } from '@tldraw/fairy-shared'
+import { uniqueId } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { setFairyTaskStatusAndNotifyCompletion } from '../FairyTaskList'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -30,6 +31,7 @@ export class MarkDroneTaskDoneActionUtil extends AgentActionUtil<MarkDroneTaskDo
 		this.agent.$chatHistory.update((prev) => [
 			...prev,
 			{
+				id: uniqueId(),
 				type: 'memory-transition',
 				memoryLevel: 'project',
 				message: `I just finished the task.\nID: "${currentTaskId}"\nTitle: "${currentTask.title}"\nDescription: "${currentTask.text}".`,

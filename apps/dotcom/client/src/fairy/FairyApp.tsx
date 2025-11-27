@@ -65,8 +65,8 @@ export function FairyApp({
 	const fairyTaskListLoadedRef = useRef(false)
 	const showCanvasTodosLoadedRef = useRef(false)
 	const projectsLoadedRef = useRef(false)
-	// Track known messages per agent (set of stringified messages)
-	const knownMessagesRef = useRef<Record<string, Set<string>>>({})
+	// Track known message IDs per agent
+	const knownMessageIdsRef = useRef<Record<string, Set<string>>>({})
 
 	// Create agents dynamically from configs
 	useEffect(() => {
@@ -154,15 +154,16 @@ export function FairyApp({
 						agent.loadState(persistedAgent)
 						loadedAgentIdsRef.current.add(agent.id)
 
-						// Initialize known messages set for this agent
-						if (!knownMessagesRef.current[agent.id]) {
-							knownMessagesRef.current[agent.id] = new Set()
+						// Initialize known message IDs set for this agent
+						if (!knownMessageIdsRef.current[agent.id]) {
+							knownMessageIdsRef.current[agent.id] = new Set()
 						}
-						// Add all loaded messages to known set
+						// Add all loaded message IDs to known set (skip old messages without IDs)
 						const loadedHistory = persistedAgent.chatHistory || []
 						loadedHistory.forEach((item) => {
-							const itemKey = JSON.stringify(item)
-							knownMessagesRef.current[agent.id].add(itemKey)
+							if (item.id) {
+								knownMessageIdsRef.current[agent.id].add(item.id)
+							}
 						})
 					}
 				})
@@ -209,17 +210,18 @@ export function FairyApp({
 			for (const agent of agentsRef.current) {
 				const chatHistory = agent.$chatHistory.get()
 
-				if (!knownMessagesRef.current[agent.id]) {
-					knownMessagesRef.current[agent.id] = new Set()
+				if (!knownMessageIdsRef.current[agent.id]) {
+					knownMessageIdsRef.current[agent.id] = new Set()
 				}
 
+				// Only send messages with IDs that we haven't sent yet
+				// Messages without IDs are old/legacy messages already synced
 				const newMessages = chatHistory.filter((item: any) => {
-					const itemKey = JSON.stringify(item)
-					return !knownMessagesRef.current[agent.id].has(itemKey)
+					return item.id && !knownMessageIdsRef.current[agent.id].has(item.id)
 				})
 
 				if (newMessages.length > 0) {
-					// Strip diffs from messages before sending (but keep originals in known set)
+					// Strip diffs from messages before sending
 					const strippedMessages = newMessages.map((item: any) => {
 						if (item.type === 'action' && 'diff' in item) {
 							const { diff: _diff, ...rest } = item
@@ -229,10 +231,9 @@ export function FairyApp({
 					})
 					newHistoryItems[agent.id] = strippedMessages
 
-					// Add originals (with diffs) to known set for matching
+					// Track message IDs
 					newMessages.forEach((item: any) => {
-						const itemKey = JSON.stringify(item)
-						knownMessagesRef.current[agent.id].add(itemKey)
+						knownMessageIdsRef.current[agent.id].add(item.id)
 					})
 				}
 			}
