@@ -70,6 +70,7 @@ Tips:
 
 - Place the PR description at the top of the file, above the Change type heading
 - In Change type, you may delete any items that are not ticked
+- Make sure you tick ([-]) the Change type
 - If your changes cannot be manually tested, you may remove that ordered list
 - Tick Unit tests if tests are present, otherwise leave it unticked
 - Tick End to end tests if e2e tests are present, otherwise leave it unticked

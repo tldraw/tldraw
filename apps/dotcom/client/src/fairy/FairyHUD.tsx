@@ -1,12 +1,14 @@
 import { FairyProject, FairyTask } from '@tldraw/fairy-shared'
-import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { MouseEvent, useCallback, useEffect, useRef, useState } from 'react'
 import {
 	PORTRAIT_BREAKPOINT,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
 	useBreakpoint,
 	useEditor,
+	useReactor,
 	useValue,
 } from 'tldraw'
 import '../tla/styles/fairy.css'
@@ -63,11 +65,28 @@ function FairyHUDHeader({
 		[isProjectStarted, project]
 	)
 
+	const editor = useEditor()
+
+	useReactor(
+		'fairy-hud-menu',
+		() => {
+			const menuIsOpen = editor.menus.isMenuOpen('fairy-hud-menu')
+			onMenuPopoverOpenChange(menuIsOpen)
+		},
+		[editor, onMenuPopoverOpenChange]
+	)
+
 	const zoomToFairy = useCallback(() => {
 		if (!fairyClickable || !shownFairy) return
 
 		shownFairy.zoomTo()
 	}, [shownFairy, fairyClickable])
+
+	// const hasChatHistory = useValue(
+	// 	'has-chat-history',
+	// 	() => shownFairy && shownFairy.$chatHistory.get().length > 0,
+	// 	[shownFairy]
+	// )
 
 	const getDisplayName = () => {
 		if (!isProjectStarted || !project) {
@@ -111,20 +130,32 @@ function FairyHUDHeader({
 
 	return (
 		<div className="fairy-toolbar-header">
-			<_DropdownMenu.Root dir="ltr" open={menuPopoverOpen} onOpenChange={onMenuPopoverOpenChange}>
-				<_DropdownMenu.Trigger asChild dir="ltr">
-					<TldrawUiButton type="icon" className="fairy-toolbar-button">
-						<TldrawUiButtonIcon icon="menu" small />
-					</TldrawUiButton>
-				</_DropdownMenu.Trigger>
-				{dropdownContent}
-			</_DropdownMenu.Root>
-
 			{centerContent}
-
-			<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onClosePanel}>
-				<TldrawUiButtonIcon icon="cross-2" small />
-			</TldrawUiButton>
+			<div className="tlui-row">
+				<TldrawUiDropdownMenuRoot id="fairy-hud-menu" debugOpen={menuPopoverOpen}>
+					<TldrawUiDropdownMenuTrigger>
+						<TldrawUiButton type="icon" className="fairy-toolbar-button">
+							<TldrawUiButtonIcon icon="dots-vertical" small />
+						</TldrawUiButton>
+					</TldrawUiDropdownMenuTrigger>
+					{dropdownContent}
+				</TldrawUiDropdownMenuRoot>
+				{/* 			
+				{panelState === 'fairy' && shownFairy && selectedFairies.length === 1 && (
+					<TldrawUiButton
+						type="icon"
+						className="fairy-toolbar-button"
+						onClick={() => shownFairy.reset()}
+						title={resetChatLabel}
+						disabled={!hasChatHistory}
+					>
+						<TldrawUiButtonIcon icon={<ResetIcon />} small />
+					</TldrawUiButton>
+				)} */}
+				<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onClosePanel}>
+					<TldrawUiButtonIcon icon="cross-2" small />
+				</TldrawUiButton>
+			</div>
 		</div>
 	)
 }
