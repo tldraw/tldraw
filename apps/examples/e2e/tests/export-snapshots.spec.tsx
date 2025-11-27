@@ -21,7 +21,7 @@ import {
 import { TL, shapesFromJsx } from 'tldraw/src/test/test-jsx'
 import { EndToEndApi } from '../../src/misc/EndToEndApi'
 import test, { ApiFixture } from '../fixtures/fixtures'
-import { setup } from '../shared-e2e'
+import { hardResetEditor, setup } from '../shared-e2e'
 import {
 	convexDrawShape,
 	frameContent,
@@ -976,7 +976,14 @@ interface SnapshotWithoutJsx {
 test.describe('Export snapshots', () => {
 	const snapshotsToTest = Object.entries(snapshots)
 
-	test.beforeEach(setup)
+	test.beforeEach(async ({ page, context }) => {
+		const url = page.url()
+		if (!url.includes('end-to-end')) {
+			await setup({ page, context } as any)
+		} else {
+			await hardResetEditor(page)
+		}
+	})
 
 	for (const [name, snapshotWithJsx] of snapshotsToTest) {
 		for (const colorScheme of ['light', 'dark'] as const) {

@@ -1,4 +1,10 @@
-import { Locator, Page, PlaywrightTestArgs, PlaywrightWorkerArgs } from '@playwright/test'
+import {
+	BrowserContext,
+	Locator,
+	Page,
+	PlaywrightTestArgs,
+	PlaywrightWorkerArgs,
+} from '@playwright/test'
 import { type Editor } from 'tldraw'
 
 declare const editor: Editor
@@ -10,6 +16,20 @@ export function sleep(ms: number): Promise<void> {
 export async function setup({ page, context }: PlaywrightTestArgs & PlaywrightWorkerArgs) {
 	await context.grantPermissions(['clipboard-read', 'clipboard-write'])
 	await setupPage(page)
+}
+
+/**
+ * Smart setup that navigates on first run, then uses fast reset on subsequent runs.
+ * Use this in beforeEach for optimal test performance with page reuse.
+ */
+export async function setupOrReset({ page, context }: { page: Page; context: BrowserContext }) {
+	const url = page.url()
+	if (!url.includes('end-to-end')) {
+		await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+		await setupPage(page)
+	} else {
+		await hardResetEditor(page)
+	}
 }
 
 export async function setupWithShapes({ page }: PlaywrightTestArgs & PlaywrightWorkerArgs) {
@@ -26,6 +46,40 @@ export async function setupPage(page: PlaywrightTestArgs['page']) {
 	await page.waitForSelector('.tl-canvas')
 	await page.evaluate(() => {
 		editor.user.updateUserPreferences({ animationSpeed: 0 })
+	})
+	await page.mouse.move(50, 50)
+}
+
+/**
+ * Fast reset of the editor state without page navigation.
+ * Use this in beforeEach when the page is already set up via beforeAll.
+ */
+export async function hardResetEditor(page: Page) {
+	await page.evaluate(() => {
+		// Clear all shapes and reset editor state
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+		editor.setCurrentTool('select')
+		editor.zoomToFit()
+		editor.resetZoom()
+	})
+	await page.mouse.move(50, 50)
+}
+
+/**
+ * Fast reset and create test shapes without page navigation.
+ * Use this in beforeEach when tests need shapes but want to avoid full setup.
+ */
+export async function hardResetWithShapes(page: Page) {
+	await page.evaluate(() => {
+		// Clear all shapes and create test shapes
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+		editor.createShapes([
+			{ type: 'geo', x: 200, y: 200, props: { w: 100, h: 100, geo: 'rectangle' } },
+			{ type: 'geo', x: 200, y: 250, props: { w: 100, h: 100, geo: 'rectangle' } },
+			{ type: 'geo', x: 250, y: 300, props: { w: 100, h: 100, geo: 'rectangle' } },
+		])
+		editor.selectNone()
+		editor.setCurrentTool('select')
 	})
 	await page.mouse.move(50, 50)
 }
