@@ -76,6 +76,8 @@ export function FairyApp({
 	const projectsLoadedRef = useRef(false)
 	// Track known message strings per agent to detect changes
 	const knownMessageStringsRef = useRef<Record<string, Set<string>>>({})
+	// Track last sent non-history state to detect changes
+	const lastNonHistoryStateRef = useRef<string>('')
 
 	// Create agents dynamically from configs
 	useEffect(() => {
@@ -282,7 +284,17 @@ export function FairyApp({
 				showCanvasTodos: $showCanvasFairyTasks.get(),
 				projects: $fairyProjects.get(),
 			}
+
+			// Check if non-history state changed
+			const currentStateString = JSON.stringify(fairyState)
+			const stateChanged = currentStateString !== lastNonHistoryStateRef.current
+			const hasNewMessages = Object.keys(newHistoryItems).length > 0
+
+			// Only send if we have new messages OR non-history state changed
+			if (!hasNewMessages && !stateChanged) return
+
 			app.onFairyStateUpdate(fileId, fairyState, newHistoryItems)
+			lastNonHistoryStateRef.current = currentStateString
 		}, 2000) // Save maximum every 2 seconds
 
 		// Watch for changes in fairy atoms
