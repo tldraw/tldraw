@@ -27,6 +27,7 @@ import { Logger } from './Logger'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
 import { Analytics, Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
+import { getFeatureFlag } from './utils/featureFlags'
 import { isRateLimited } from './utils/rateLimit'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 import { getClerkClient } from './utils/tla/getAuth'
@@ -232,6 +233,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		.get('/app/:userId/fairy/has-access', async () => {
 			if (!this.userId) {
 				return Response.json({ error: 'User ID not initialized' }, { status: 400 })
+			}
+
+			const flagEnabled = await getFeatureFlag(this.env, 'fairies_enabled')
+			if (!flagEnabled) {
+				return Response.json({ hasAccess: false })
 			}
 
 			const userFairies = await this.db
