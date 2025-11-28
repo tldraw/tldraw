@@ -88,21 +88,3 @@ export async function getFeatureFlags(_request: IRequest, env: Environment): Pro
 
 	return new Response(JSON.stringify(flags), { headers: { 'Content-Type': 'application/json' } })
 }
-
-/**
- * Route handler: Get feature flags as booleans only (for public API)
- */
-export async function getFeatureFlagsBooleans(
-	_request: IRequest,
-	env: Environment
-): Promise<Response> {
-	const flags: Record<string, boolean> = {}
-
-	await Promise.all(
-		ALL_FLAGS.map(async (key) => {
-			flags[key] = await getFeatureFlag(env, key)
-		})
-	)
-
-	return new Response(JSON.stringify(flags), { headers: { 'Content-Type': 'application/json' } })
-}

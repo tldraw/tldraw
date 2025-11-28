@@ -50,7 +50,7 @@ import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
 import { Environment, QueueMessage, isDebugLogging } from './types'
 import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
-import { getFeatureFlagsBooleans } from './utils/featureFlags'
+import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, requireAuth } from './utils/tla/getAuth'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
@@ -160,7 +160,7 @@ const router = createRouter<Environment>()
 		return new Response('Not Found', { status: 404 })
 	})
 	.post('/app/submit-feedback', submitFeedback)
-	.get('/app/feature-flags', getFeatureFlagsBooleans)
+	.get('/app/feature-flags', getFeatureFlags)
 	// end app
 	.all('/ph/*', (req) => {
 		const url = new URL(req.url)
