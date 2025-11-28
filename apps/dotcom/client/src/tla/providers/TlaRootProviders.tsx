@@ -13,7 +13,9 @@ import {
 	TLUiEventHandler,
 	TldrawUiA11yProvider,
 	TldrawUiContextProvider,
+	deleteFromSessionStorage,
 	fetch,
+	getFromSessionStorage,
 	runtime,
 	setRuntimeOverrides,
 	useDialogs,
@@ -27,11 +29,15 @@ import { globalEditor } from '../../utils/globalEditor'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
+import { TlaFairyInviteDialog } from '../components/dialogs/TlaFairyInviteDialog'
 import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
+import { useFairyAccess } from '../hooks/useFairyAccess'
+import { useFeatureFlags } from '../hooks/useFeatureFlags'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
-import { IntlProvider, defineMessages, setupCreateIntl, useIntl } from '../utils/i18n'
+import { FeatureFlagsFetcher } from '../utils/FeatureFlagsFetcher'
+import { IntlProvider, defineMessages, setupCreateIntl, useIntl, useMsg } from '../utils/i18n'
 import {
 	clearLocalSessionState,
 	getLocalSessionState,
@@ -163,6 +169,7 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 					<DefaultToasts />
 					<DefaultA11yAnnouncer />
 					<PutToastsInApp />
+					<FairyInviteHandler />
 					{currentEditor && <TlaCookieConsent />}
 				</TldrawUiContextProvider>
 			</TldrawUiA11yProvider>
@@ -174,6 +181,62 @@ function PutToastsInApp() {
 	const toasts = useToasts()
 	const app = useMaybeApp()
 	if (app) app.toasts = toasts
+	return null
+}
+
+const fairyInviteMessages = defineMessages({
+	alreadyHasAccess: { defaultMessage: 'You already have fairy access!' },
+})
+
+function FairyInviteHandler() {
+	const auth = useAuth()
+	const dialogs = useDialogs()
+	const { addToast } = useToasts()
+	const { flags, isLoaded } = useFeatureFlags()
+	const hasFairyAccess = useFairyAccess()
+	const alreadyHasAccessMsg = useMsg(fairyInviteMessages.alreadyHasAccess)
+
+	useEffect(() => {
+		if (!auth.isLoaded) return
+		if (!auth.isSignedIn || !auth.userId) return
+		if (!isLoaded) return // Wait for flags to load before processing
+
+		const storedToken = getFromSessionStorage('fairy-invite-token')
+
+		if (storedToken) {
+			deleteFromSessionStorage('fairy-invite-token')
+
+			// Show toast if user already has access
+			if (hasFairyAccess) {
+				addToast({
+					id: 'fairy-invite-already-has-access',
+					title: alreadyHasAccessMsg,
+				})
+				return
+			}
+
+			// Only show dialog if fairies are enabled
+			if (flags.fairies.enabled) {
+				dialogs.addDialog({
+					component: ({ onClose }) => (
+						<TlaFairyInviteDialog fairyInviteToken={storedToken} onClose={onClose} />
+					),
+				})
+			}
+			// If flags are disabled, token is cleaned up but dialog is not shown
+		}
+	}, [
+		auth.isLoaded,
+		auth.userId,
+		auth.isSignedIn,
+		dialogs,
+		flags.fairies.enabled,
+		isLoaded,
+		hasFairyAccess,
+		addToast,
+		alreadyHasAccessMsg,
+	])
+
 	return null
 }
 
@@ -197,7 +260,6 @@ function SignedInProvider({
 		() => globalEditor.get()?.user.getUserPreferences().locale ?? 'en',
 		[]
 	)
-
 	useEffect(() => {
 		if (locale === currentLocale) return
 		onLocaleChange(locale)
@@ -232,6 +294,7 @@ function SignedInProvider({
 	if (!auth.isSignedIn || !user || !isUserLoaded) {
 		return (
 			<ThemeContainer onThemeChange={onThemeChange}>
+				<FeatureFlagsFetcher />
 				<SignedOutAnalytics />
 				{children}
 			</ThemeContainer>
@@ -242,6 +305,7 @@ function SignedInProvider({
 		<AppStateProvider>
 			<UserProvider>
 				<ThemeContainer onThemeChange={onThemeChange}>
+					<FeatureFlagsFetcher />
 					<SignedInAnalytics />
 					{children}
 				</ThemeContainer>

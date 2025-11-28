@@ -24,6 +24,28 @@
 .content {
 	max-width: 540px;
 	width: 100%;
+	position: relative;
+}
+
+.homeButton {
+	position: absolute;
+	top: 0;
+	right: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 6px 12px;
+	color: var(--tl-color-text-3);
+	text-decoration: none;
+	border-radius: 4px;
+	font-size: 14px;
+}
+
+@media (hover: hover) {
+	.homeButton:hover {
+		color: var(--tl-color-text-1);
+		background-color: var(--tl-color-hover);
+	}
 }
 
 .logo {

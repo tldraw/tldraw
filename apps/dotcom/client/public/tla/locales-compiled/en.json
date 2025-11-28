@@ -11,6 +11,12 @@
       "value": "Accept invitation"
     }
   ],
+  "01d61b2012": [
+    {
+      "type": 0,
+      "value": "Start your fairy adventure"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -951,6 +957,12 @@
       "value": "Check your email for a verification code."
     }
   ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Home"
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -1563,6 +1575,12 @@
     {
       "type": 0,
       "value": "Legal summary"
+    }
+  ],
+  "e2b0147fd2": [
+    {
+      "type": 0,
+      "value": "Your fairies are waiting for you! →"
     }
   ],
   "e3afed0047": [
