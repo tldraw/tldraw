@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { setInSessionStorage, useDialogs } from 'tldraw'
 import { TlaSignInDialog } from '../tla/components/dialogs/TlaSignInDialog'
 import { useFairyAccess } from '../tla/hooks/useFairyAccess'
+import { useFairyFlags } from '../tla/hooks/useFairyFlags'
 import { usePaddle } from '../tla/hooks/usePaddle'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import '../tla/styles/fairy.css'
@@ -21,6 +22,7 @@ export function Component() {
 	const [searchParams, setSearchParams] = useSearchParams()
 	const [isProcessing, setIsProcessing] = useState(false)
 	const { paddleLoaded, openPaddleCheckout } = usePaddle()
+	const { flags } = useFairyFlags()
 
 	// Handle checkout intent from search params (after sign-in redirect)
 	useEffect(() => {
@@ -30,6 +32,11 @@ export function Component() {
 				params.delete('checkout')
 				return params
 			})
+
+			// Don't open checkout if purchase is disabled
+			if (!flags.fairies_purchase_enabled) {
+				return
+			}
 
 			// Don't open checkout if user already has fairy access
 			if (hasFairyAccess) {
@@ -49,10 +56,16 @@ export function Component() {
 		openPaddleCheckout,
 		setSearchParams,
 		navigate,
+		flags.fairies_purchase_enabled,
 	])
 
 	const handlePurchaseClick = useCallback(() => {
 		if (isProcessing) return
+
+		// Don't allow purchase if purchase flag is disabled
+		if (!flags.fairies_purchase_enabled) {
+			return
+		}
 
 		// If user already has fairy access, go home
 		if (user && hasFairyAccess) {
@@ -79,7 +92,16 @@ export function Component() {
 		}
 		// Keep processing state until checkout completes or user closes overlay
 		setTimeout(() => setIsProcessing(false), 1000)
-	}, [user, hasFairyAccess, paddleLoaded, isProcessing, addDialog, navigate, openPaddleCheckout])
+	}, [
+		user,
+		hasFairyAccess,
+		paddleLoaded,
+		isProcessing,
+		addDialog,
+		navigate,
+		openPaddleCheckout,
+		flags.fairies_purchase_enabled,
+	])
 
 	return (
 		<div className={styles.container}>
