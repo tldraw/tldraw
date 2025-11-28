@@ -314,7 +314,7 @@ id = "81a6f84741754ac4a9171f575f2aeece"
 
 [[env.staging.kv_namespaces]]
 binding = "FEATURE_FLAGS"
-id = "81a6f84741754ac4a9171f575f2aeece"
+id = "7b7422a178e641b19a846bfec912e399"
 
 # Production has its own namespace
 [[env.production.kv_namespaces]]
