@@ -23,17 +23,18 @@ export const fairyMessages = defineMessages({
 	unfollowFairy: { defaultMessage: 'Unfollow' },
 	putAwayFairy: { defaultMessage: 'Sleep' },
 	wakeFairy: { defaultMessage: 'Wake' },
-	summonAllFairies: { defaultMessage: 'Summon all' },
 	putAwayAllFairies: { defaultMessage: 'Sleep all' },
 	disbandGroup: { defaultMessage: 'Disband group' },
 	resetEverything: { defaultMessage: 'Hard reset' },
 	fairyManagement: { defaultMessage: 'Manage' },
+	selectAllFairiesLabel: { defaultMessage: 'Select all' },
+	summonAllFairies: { defaultMessage: 'Summon all' },
+	summonFairies: { defaultMessage: 'Summon' },
+	disbandProjects: { defaultMessage: 'Disband' },
+	resetChats: { defaultMessage: 'Clear' },
+	putAwayFairies: { defaultMessage: 'Sleep' },
 
 	// Task list menu (labels)
-	summonFairies: { defaultMessage: 'Summon fairies' },
-	disbandProjects: { defaultMessage: 'Disband projects' },
-	resetChats: { defaultMessage: 'Clear chats' },
-	putAwayFairies: { defaultMessage: 'Sleep fairies' },
 	debugView: { defaultMessage: 'Debug view' },
 
 	// Fairy config dialog (placeholders)

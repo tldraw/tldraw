@@ -83,6 +83,7 @@ export function FairyMenuContent({
 	const debugViewLabel = useMsg(fairyMessages.debugView)
 	const resetEverythingLabel = useMsg(fairyMessages.resetEverything)
 	const fairyManagementLabel = useMsg(fairyMessages.fairyManagement)
+	const selectAllFairiesLabel = useMsg(fairyMessages.selectAllFairiesLabel)
 
 	const projects = useValue($fairyProjects)
 	const currentProject = useMemo(() => {
@@ -159,6 +160,12 @@ export function FairyMenuContent({
 		})
 	}, [agents, app])
 
+	const selectAllFairies = useCallback(() => {
+		agents.forEach((agent) => {
+			agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
+		})
+	}, [agents])
+
 	if (canDisbandGroup && currentProject) {
 		return (
 			<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">
@@ -217,6 +224,13 @@ export function FairyMenuContent({
 					label={isFollowing ? unfollowFairyLabel : followFairyLabel}
 				/>
 				<TldrawUiMenuItem
+					id="select all fairies"
+					onSelect={selectAllFairies}
+					label={selectAllFairiesLabel}
+				/>
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="fairy-management-resets">
+				<TldrawUiMenuItem
 					id="reset-fairy-chat"
 					onSelect={() => agent.reset()}
 					label={resetChatLabel}
@@ -249,21 +263,21 @@ export function FairyMenuContent({
 							onSelect={resetAllChats}
 							label={resetAllChatsLabel}
 						/>
-						{isDevelopmentEnv && (
-							<>
-								<TldrawUiMenuItem
-									id="reset-everything"
-									onSelect={resetEverything}
-									label={resetEverythingLabel}
-								/>
-								<TldrawUiMenuItem
-									id="debug-fairies"
-									onSelect={() => openDebugDialog(agent.id)}
-									label={debugViewLabel}
-								/>
-							</>
-						)}
 					</TldrawUiMenuGroup>
+					{isDevelopmentEnv && (
+						<TldrawUiMenuGroup id="fairy-management-submenu-debug">
+							<TldrawUiMenuItem
+								id="reset-everything"
+								onSelect={resetEverything}
+								label={resetEverythingLabel}
+							/>
+							<TldrawUiMenuItem
+								id="debug-fairies"
+								onSelect={() => openDebugDialog(agent.id)}
+								label={debugViewLabel}
+							/>
+						</TldrawUiMenuGroup>
+					)}
 				</TldrawUiMenuSubmenu>
 				{/* TODO: Reinstate */}
 				{/* <TldrawUiMenuItem

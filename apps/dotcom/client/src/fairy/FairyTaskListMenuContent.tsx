@@ -79,11 +79,6 @@ export function FairyTaskListMenuContent({
 					onSelect={summonSelectedFairies}
 					label={summonFairiesLabel}
 				/>
-				<TldrawUiMenuItem
-					id="put-away-fairies"
-					onSelect={putAwayFairies}
-					label={putAwayFairiesLabel}
-				/>
 			</TldrawUiMenuGroup>
 			{/* <TldrawUiMenuGroup id="todo-list-config-menu">
 				<TldrawUiMenuItem
@@ -101,6 +96,11 @@ export function FairyTaskListMenuContent({
 			</TldrawUiMenuGroup> */}
 			<TldrawUiMenuGroup id="fairy-management-menu">
 				<TldrawUiMenuItem id="reset-chats" onSelect={resetSelectedChats} label={resetChatsLabel} />
+				<TldrawUiMenuItem
+					id="put-away-fairies"
+					onSelect={putAwayFairies}
+					label={putAwayFairiesLabel}
+				/>
 				<TldrawUiMenuItem id="debug-fairies" onSelect={openDebugDialog} label={debugViewLabel} />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuContextProvider>
