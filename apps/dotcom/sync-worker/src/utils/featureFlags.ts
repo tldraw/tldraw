@@ -9,8 +9,7 @@ const FLAG_DEFAULTS: Record<FeatureFlagKey, FeatureFlagValue> = {
 	},
 	fairies_purchase: {
 		enabled: false,
-		description:
-			'When OFF: completely disables purchasing for everyone (hides purchase button & blocks webhooks)',
+		description: 'When OFF: hides purchase button (respects in-flight webhooks)',
 	},
 }
 
