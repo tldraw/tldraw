@@ -50,7 +50,7 @@ import {
 } from '../shared/default-shape-constants'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
-import { useForceSolid } from '../shared/useForceSolid'
+import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
 import {
 	CLONE_HANDLE_MARGIN,
 	NOTE_CENTER_OFFSET,
@@ -269,11 +269,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			[this.editor]
 		)
 
-		// todo: consider hiding shadows on dark mode if they're invisible anyway
-
-		const hideShadows = useForceSolid()
-
 		const isDarkMode = useValue('dark mode', () => this.editor.user.getIsDarkMode(), [this.editor])
+
+		// Shadows are hidden on dark mode anyway
+		const hideShadows = useEfficientZoomThreshold(scale) && !isDarkMode
 
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 
