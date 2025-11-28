@@ -50,6 +50,7 @@ import {
 } from '../shared/default-shape-constants'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
+import { useForceSolid } from '../shared/useForceSolid'
 import {
 	CLONE_HANDLE_MARGIN,
 	NOTE_CENTER_OFFSET,
@@ -270,10 +271,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 		// todo: consider hiding shadows on dark mode if they're invisible anyway
 
-		const hideShadows = useValue('zoom', () => this.editor.getZoomLevel() < 0.35 / scale, [
-			scale,
-			this.editor,
-		])
+		const hideShadows = useForceSolid()
 
 		const isDarkMode = useValue('dark mode', () => this.editor.user.getIsDarkMode(), [this.editor])
 

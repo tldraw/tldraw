@@ -726,6 +726,7 @@ export const defaultTldrawOptions: {
     readonly tooltipDelayMs: 700;
     readonly uiCoarseDragDistanceSquared: 625;
     readonly uiDragDistanceSquared: 16;
+    readonly useDebouncedZoom: true;
 };
 
 // @public (undocumented)
@@ -1108,8 +1109,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     createShape<TShape extends TLShape>(shape: TLCreateShapePartial<TShape>): this;
     createShapes<TShape extends TLShape = TLShape>(shapes: TLCreateShapePartial<TShape>[]): this;
     createTemporaryAssetPreview(assetId: TLAssetId, file: File): string | undefined;
-    // (undocumented)
-    _decayCameraStateTimeout(elapsed: number): void;
     deleteAssets(assets: TLAsset[] | TLAssetId[]): this;
     deleteBinding(binding: TLBinding | TLBindingId, opts?: Parameters<this['deleteBindings']>[1]): this;
     deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes }?: {
@@ -1211,6 +1210,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentPageState(): TLInstancePageState;
     getCurrentTool(): StateNode;
     getCurrentToolId(): string;
+    getDebouncedZoomLevel(): number;
     getDocumentSettings(): TLDocument;
     getDraggingOverShape(point: Vec, droppingShapes: TLShape[]): TLShape | undefined;
     getEditingShape(): TLShape | undefined;
@@ -1507,8 +1507,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         [key: string]: Map<StyleProp<any>, string>;
     };
     readonly textMeasure: TextManager;
-    // (undocumented)
-    _tickCameraState(): void;
     readonly timers: {
         dispose: () => void;
         requestAnimationFrame: (callback: FrameRequestCallback) => number;
@@ -3368,6 +3366,7 @@ export interface TldrawOptions {
     readonly uiCoarseDragDistanceSquared: number;
     // (undocumented)
     readonly uiDragDistanceSquared: number;
+    readonly useDebouncedZoom: boolean;
 }
 
 // @public (undocumented)

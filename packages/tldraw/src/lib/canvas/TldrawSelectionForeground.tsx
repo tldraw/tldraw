@@ -63,7 +63,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 
 	if (onlyShape && editor.isShapeHidden(onlyShape)) return null
 
-	const zoom = editor.getZoomLevel()
+	const zoom = editor.getDebouncedZoomLevel()
 	const isChangingStyle = editor.getInstanceState().isChangingStyle
 
 	const width = expandedBounds.width

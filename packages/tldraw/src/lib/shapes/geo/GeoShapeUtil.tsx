@@ -43,6 +43,7 @@ import {
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
+import { useForceSolid } from '../shared/useForceSolid'
 import { GeoShapeBody } from './components/GeoShapeBody'
 import { getGeoShapePath } from './getGeoShapePath'
 
@@ -195,7 +196,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const isReadyForEditing = useIsReadyForEditing(editor, shape.id)
 		const isEmpty = isEmptyRichText(shape.props.richText)
 		const showHtmlContainer = isReadyForEditing || !isEmpty
-		const isForceSolid = useValue('force solid', () => editor.getZoomLevel() < 0.2, [editor])
+		const isForceSolid = useForceSolid()
 
 		return (
 			<>
@@ -233,9 +234,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	indicator(shape: TLGeoShape) {
-		const isZoomedOut = useValue('isZoomedOut', () => this.editor.getZoomLevel() < 0.25, [
-			this.editor,
-		])
+		const isZoomedOut = useForceSolid()
 
 		const { size, dash, scale } = shape.props
 		const strokeWidth = STROKE_SIZES[size]

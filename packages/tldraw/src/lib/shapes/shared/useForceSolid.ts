@@ -1,6 +1,7 @@
 import { useEditor, useValue } from '@tldraw/editor'
 
+/** Returns true when zoomed out far enough that shapes should render in a simplified "solid" style. */
 export function useForceSolid() {
 	const editor = useEditor()
-	return useValue('zoom', () => editor.getZoomLevel() < 0.35, [editor])
+	return useValue('force solid', () => editor.getDebouncedZoomLevel() < 0.25, [editor])
 }
