@@ -1,5 +1,4 @@
 import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
-import { FairyEntity } from '@tldraw/fairy-shared'
 import { useSync } from '@tldraw/sync'
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -230,7 +229,8 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				const fairyPresences =
 					agentsRef.current
 						?.map((agent) => {
-							const entity = agent?.$fairyEntity?.get?.() as FairyEntity | undefined
+							// TODO: this is any b/c we don't want to import the FairyEntity types here
+							const entity = agent?.$fairyEntity?.get?.() as any | undefined
 							const outfit = agent?.$fairyConfig?.get?.()?.outfit as string | undefined
 							if (!entity || !outfit) return null
 							return { entity, outfit }

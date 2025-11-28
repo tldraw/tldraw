@@ -500,6 +500,10 @@ const rules = {
     }),
     'no-fairy-imports': ESLintUtils.RuleCreator.withoutDocs({
         create(context) {
+            // Exempt files in the fairy directory itself
+            if (context.filename.includes('apps/dotcom/client/src/fairy/')) {
+                return {};
+            }
             return {
                 ImportDeclaration(node) {
                     const importPath = node.source.value;
@@ -508,7 +512,7 @@ const rules = {
                     // - '../../../fairy/FairyThrowTool'
                     // - '../../fairy/fairy-agent/agent/TldrawFairyAgent'
                     if (typeof importPath === 'string' &&
-                        (importPath.includes('/fairy/') || importPath.endsWith('/fairy'))) {
+                        (importPath.includes('/fairy/') || importPath.endsWith('/fairy') || importPath.includes('/fairy-shared'))) {
                         context.report({
                             messageId: 'noFairyImports',
                             node: node.source,
