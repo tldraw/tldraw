@@ -2,22 +2,26 @@ import { useUser } from '@clerk/clerk-react'
 import { hasActiveFairyAccess } from '@tldraw/dotcom-shared'
 import { useValue } from 'tldraw'
 import { useMaybeApp } from './useAppState'
+import { useFairyFlags } from './useFairyFlags'
 
 /**
  * Hook that returns whether the current user has active fairy access.
+ * Checks both the feature flag and user's fairy access settings.
  */
 export function useFairyAccess(): boolean {
 	const app = useMaybeApp()
 	const { user: clerkUser } = useUser()
+	const { flags } = useFairyFlags()
 	return useValue(
 		'fairy_access',
 		() => {
+			if (!flags.fairies_enabled) return false
 			if (!app) return false
 			const user = app.getUser()
 			if (!clerkUser || !user) return false
 			return hasActiveFairyAccess(user.fairyAccessExpiresAt, user.fairyLimit)
 		},
-		[app, clerkUser]
+		[app, clerkUser, flags.fairies_enabled]
 	)
 }
 

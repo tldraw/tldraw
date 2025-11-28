@@ -302,6 +302,25 @@ id = "2fb5fc7f7ca54a5a9dfae1b07a30a778"
 binding = "READONLY_SLUG_TO_SLUG"
 id = "96be6637b281412ab35b2544539d78e8"
 
+#################### Feature flags KV store ####################
+# Dev has its own namespace
+[[env.dev.kv_namespaces]]
+binding = "FEATURE_FLAGS"
+id = "81a6f84741754ac4a9171f575f2aeece"
+
+[[env.preview.kv_namespaces]]
+binding = "FEATURE_FLAGS"
+id = "81a6f84741754ac4a9171f575f2aeece"
+
+[[env.staging.kv_namespaces]]
+binding = "FEATURE_FLAGS"
+id = "81a6f84741754ac4a9171f575f2aeece"
+
+# Production has its own namespace
+[[env.production.kv_namespaces]]
+binding = "FEATURE_FLAGS"
+id = "cf1dc78773ec48e5a44b184fd4734094"
+
 #################### Version metadata ####################
 [version_metadata]
 binding = "CF_VERSION_METADATA"

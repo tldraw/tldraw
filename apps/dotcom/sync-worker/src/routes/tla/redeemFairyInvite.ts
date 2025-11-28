@@ -3,9 +3,15 @@ import { IRequest, StatusError, json } from 'itty-router'
 import { upsertFairyAccess } from '../../adminRoutes'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
+import { getFeatureFlag } from '../../utils/featureFlags'
 import { requireAuth } from '../../utils/tla/getAuth'
 
 export async function redeemFairyInvite(request: IRequest, env: Environment): Promise<Response> {
+	const fairiesEnabled = await getFeatureFlag(env, 'fairies_enabled')
+	if (!fairiesEnabled) {
+		throw new StatusError(403, 'Fairy invites are currently disabled')
+	}
+
 	const auth = await requireAuth(request, env)
 	const body: any = await request.json()
 	const inviteCode = body?.inviteCode

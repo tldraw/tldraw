@@ -33,6 +33,7 @@ import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
+import { FeatureFlagsFetcher } from '../utils/FeatureFlagsFetcher'
 import { IntlProvider, defineMessages, setupCreateIntl, useIntl } from '../utils/i18n'
 import {
 	clearLocalSessionState,
@@ -251,6 +252,7 @@ function SignedInProvider({
 		<AppStateProvider>
 			<UserProvider>
 				<ThemeContainer onThemeChange={onThemeChange}>
+					<FeatureFlagsFetcher />
 					<SignedInAnalytics />
 					{children}
 				</ThemeContainer>

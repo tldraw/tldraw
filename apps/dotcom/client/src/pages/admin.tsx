@@ -241,6 +241,12 @@ export function Component() {
 					<FairyInvites />
 				</section>
 
+				{/* Feature Flags Section */}
+				<section className={styles.adminSection}>
+					<h3 className="tla-text_ui__title">Feature Flags</h3>
+					<FeatureFlags />
+				</section>
+
 				{/* File Operations Section */}
 				<section className={styles.adminSection}>
 					<h3 className="tla-text_ui__title">File Operations</h3>
@@ -595,6 +601,131 @@ function FairyInvites() {
 						))}
 					</tbody>
 				</table>
+			)}
+		</div>
+	)
+}
+
+const FLAG_DESCRIPTIONS: Record<string, string> = {
+	fairies_enabled: 'When OFF: completely disables all fairy features for everyone',
+	fairies_purchase_enabled:
+		'When OFF: completely disables purchasing for everyone (hides purchase button & blocks webhooks)',
+}
+
+function FeatureFlags() {
+	const [flags, setFlags] = useState<Record<string, boolean>>({})
+	const [isLoading, setIsLoading] = useState(true)
+	const [isSaving, setIsSaving] = useState(false)
+	const [error, setError] = useState(null as string | null)
+	const [successMessage, setSuccessMessage] = useState(null as string | null)
+
+	const loadFlags = useCallback(async () => {
+		setIsLoading(true)
+		setError(null)
+		try {
+			const res = await fetch('/api/app/admin/feature-flags')
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			const data = await res.json()
+			setFlags(data)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to load flags')
+		} finally {
+			setIsLoading(false)
+		}
+	}, [])
+
+	useEffect(() => {
+		loadFlags()
+	}, [loadFlags])
+
+	const toggleFlag = useCallback(async (flag: string, enabled: boolean) => {
+		setIsSaving(true)
+		setError(null)
+		setSuccessMessage(null)
+		try {
+			const res = await fetch('/api/app/admin/feature-flags', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ flag, enabled }),
+			})
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			setFlags((prev) => ({ ...prev, [flag]: enabled }))
+			setSuccessMessage(`${flag} ${enabled ? 'enabled' : 'disabled'}`)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to update flag')
+		} finally {
+			setIsSaving(false)
+		}
+	}, [])
+
+	useEffect(() => {
+		if (successMessage) {
+			const timer = setTimeout(() => setSuccessMessage(null), 3000)
+			return () => clearTimeout(timer)
+		}
+	}, [successMessage])
+
+	return (
+		<div className={styles.fileOperation}>
+			{error && <div className={styles.errorMessage}>{error}</div>}
+			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
+
+			<p className="tla-text_ui__small" style={{ marginBottom: '8px' }}>
+				<strong>Global feature toggles.</strong> Changes take effect immediately for ALL users.
+			</p>
+			<p className="tla-text_ui__small" style={{ color: 'var(--tla-color-text-3)' }}>
+				Unchecking these flags will completely disable the feature for everyone, regardless of their
+				individual access settings.
+			</p>
+
+			{isLoading ? (
+				<p className="tla-text_ui__small">Loading flags...</p>
+			) : (
+				<div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
+					{Object.entries(flags).map(([flagName, isEnabled]) => {
+						const label = flagName
+							.split('_')
+							.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+							.join(' ')
+						const description = FLAG_DESCRIPTIONS[flagName]
+						return (
+							<div key={flagName} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+								<label
+									htmlFor={flagName}
+									style={{
+										display: 'flex',
+										alignItems: 'center',
+										gap: '8px',
+										cursor: 'pointer',
+										minWidth: '200px',
+									}}
+								>
+									<input
+										id={flagName}
+										type="checkbox"
+										checked={isEnabled}
+										onChange={(e) => toggleFlag(flagName, e.target.checked)}
+										disabled={isSaving}
+									/>
+									<span className="tla-text_ui__small">
+										<strong>{label}</strong>
+									</span>
+								</label>
+								{description && (
+									<span className="tla-text_ui__small" style={{ color: 'var(--tla-color-text-3)' }}>
+										{description}
+									</span>
+								)}
+							</div>
+						)
+					})}
+				</div>
 			)}
 		</div>
 	)

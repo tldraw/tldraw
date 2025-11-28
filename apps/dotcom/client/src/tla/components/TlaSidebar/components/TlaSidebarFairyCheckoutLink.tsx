@@ -1,6 +1,7 @@
 import { useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { useFairyLimit } from '../../../hooks/useFairyAccess'
+import { useFairyFlags } from '../../../hooks/useFairyFlags'
 import { usePaddle } from '../../../hooks/usePaddle'
 import { F } from '../../../utils/i18n'
 import styles from '../sidebar.module.css'
@@ -8,6 +9,7 @@ import styles from '../sidebar.module.css'
 export function TlaSidebarFairyCheckoutLink() {
 	const app = useApp()
 	const { paddleLoaded, openPaddleCheckout } = usePaddle()
+	const { flags } = useFairyFlags()
 
 	// Show button only if user has no fairy access
 	const currentFairyLimit = useFairyLimit()
@@ -15,7 +17,8 @@ export function TlaSidebarFairyCheckoutLink() {
 	const userEmail = user?.email
 
 	// Early returns after all hooks
-	if (currentFairyLimit === null || currentFairyLimit > 0) return null
+	if (!flags.fairies_enabled || !flags.fairies_purchase_enabled) return null
+	if (currentFairyLimit && currentFairyLimit > 0) return null
 
 	const handlePurchase = () => {
 		const userId = app.userId
