@@ -110,10 +110,6 @@ export function FairyProjectChatContent({
 
 	return (
 		<>
-			{firstUserPrompt?.userFacingMessage && (
-				<div className="fairy-chat-history-prompt-user">{firstUserPrompt.userFacingMessage}</div>
-			)}
-
 			<div className="fairy-project-header">
 				<div
 					className={`fairy-project-chat-action ${projectStatus.isAnimating ? 'fairy-project-chat-action--planning' : ''}`}
@@ -149,20 +145,26 @@ export function FairyProjectChatContent({
 				)}
 			</div>
 
-			{responseItems.map((msg, i) =>
-				msg.type === 'user' ? (
-					<div key={i} className="fairy-chat-history-prompt-user">
-						{msg.content}
-					</div>
-				) : (
-					<FairyChatHistoryAction
-						key={i}
-						item={msg.item}
-						agent={orchestratorAgent}
-						group={{ items: [msg.item], isFinalGroup: false }}
-					/>
-				)
-			)}
+			<div className="fairy-project-chat-section">
+				<div className="fairy-project-chat-section-gradient"></div>
+				{firstUserPrompt?.userFacingMessage && (
+					<div className="fairy-chat-history-prompt-user">{firstUserPrompt.userFacingMessage}</div>
+				)}
+				{responseItems.map((msg, i) =>
+					msg.type === 'user' ? (
+						<div key={i} className="fairy-chat-history-prompt-user">
+							{msg.content}
+						</div>
+					) : (
+						<FairyChatHistoryAction
+							key={i}
+							item={msg.item}
+							agent={orchestratorAgent}
+							group={{ items: [msg.item], isFinalGroup: false }}
+						/>
+					)
+				)}
+			</div>
 		</>
 	)
 }

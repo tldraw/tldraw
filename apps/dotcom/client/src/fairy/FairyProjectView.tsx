@@ -311,7 +311,7 @@ Do NOT start a completely new project. Respond with a message action first expla
 	)
 
 	// Dynamic placeholder based on project state
-	const placeholder = isPreProject ? instructGroupPlaceholder : `Whisper to ${orchestratorName}...`
+	const placeholder = isPreProject ? instructGroupPlaceholder : `Steer the project...`
 
 	// Empty state
 	if (agents.length === 0) {

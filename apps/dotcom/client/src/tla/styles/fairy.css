@@ -758,13 +758,23 @@
 	margin: 0 -8px;
 	padding-left: 8px;
 	padding-right: 8px;
+	/* border-bottom: 1px solid red; */
+	height: 60%;
+	overflow-y: auto;
 }
 
 .fairy-project-chat-section {
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
+	margin: 0 -8px;
 	padding-top: 8px;
+	padding-left: 8px;
+	padding-right: 8px;
+	height: 40%;
+	/* border: 1px solid blue; */
+	overflow-y: auto;
+	position: relative;
 }
 
 .fairy-project-chat-response {
@@ -783,7 +793,8 @@
 .fairy-project-chat-view {
 	display: flex;
 	flex-direction: column;
-	gap: 6px;
+	gap: 4px;
+	margin: -8px 0px;
 	padding: 8px;
 	overflow-y: auto;
 	flex: 1;
@@ -791,6 +802,21 @@
 	height: 0;
 	scrollbar-width: 2px;
 	scrollbar-color: var(--tl-color-muted-1) transparent;
+
+}
+
+.fairy-project-chat-section-gradient {
+	position: sticky;
+	top: -8px;
+	left: -8px;
+	right: -8px;
+	width: calc(100% + 16px);
+	height: 12px;
+	flex-shrink: 0;
+	background: linear-gradient(to bottom, var(--tl-color-panel), transparent);
+	pointer-events: none;
+	z-index: 10;
+	margin: -8px -8px -12px -8px;
 }
 
 .fairy-project-chat-view span:not(button *),
@@ -828,7 +854,7 @@
 }
 
 .fairy-project-chat-action {
-	margin-top: 10px;
+	/* margin-top: 10px; */
 	display: flex;
 	align-items: center;
 	gap: 4px;
@@ -1261,6 +1287,7 @@
 	border-radius: 8px;
 	background: var(--tl-color-muted-2);
 	margin: 4px;
+	margin-top: 1px;
 	pointer-events: auto;
 	position: relative;
 	display: flex;
@@ -1268,6 +1295,7 @@
 	gap: 8px;
 	border: 1px solid var(--tl-color-divider);
 	min-height: 36px;
+	z-index: 100;
 }
 
 .fairy-group-chat-input__wrapper {

@@ -107,7 +107,7 @@ function FairyHUDHeader({
 			</div>
 		) : selectedFairies.length > 1 ? (
 			<div className="fairy-id-display">
-				<F defaultMessage="New project" />
+				<F defaultMessage={`New project with ${selectedFairies.length} fairies`} />
 			</div>
 		) : shownFairy && fairyConfig ? (
 			<div className="fairy-id-display" onClick={zoomToFairy}>
