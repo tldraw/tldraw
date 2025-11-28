@@ -283,9 +283,12 @@ function FairyInvites() {
 			maxUses: number
 			currentUses: number
 			createdAt: number
+			description: string | null
+			redeemedBy: string[]
 		}>
 	>([])
 	const [maxUses, setMaxUses] = useState(1)
+	const [inviteDescription, setInviteDescription] = useState('')
 	const [accessEmail, setAccessEmail] = useState('')
 	const [isCreating, setIsCreating] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
@@ -329,7 +332,7 @@ function FairyInvites() {
 			const res = await fetch('/api/app/admin/fairy-invites', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ maxUses }),
+				body: JSON.stringify({ maxUses, description: inviteDescription || null }),
 			})
 			if (!res.ok) {
 				setError(res.statusText + ': ' + (await res.text()))
@@ -337,13 +340,14 @@ function FairyInvites() {
 			}
 			const invite = await res.json()
 			setSuccessMessage(`Invite created: ${invite.id}`)
+			setInviteDescription('')
 			await loadInvites()
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to create invite')
 		} finally {
 			setIsCreating(false)
 		}
-	}, [maxUses, loadInvites])
+	}, [maxUses, inviteDescription, loadInvites])
 
 	const deleteInvite = useCallback(
 		async (id: string) => {
@@ -513,6 +517,18 @@ function FairyInvites() {
 			</p>
 			<div className={styles.downloadContainer}>
 				<div>
+					<label htmlFor="inviteDescription">Description:</label>
+					<input
+						id="inviteDescription"
+						type="text"
+						placeholder="Optional description"
+						value={inviteDescription}
+						onChange={(e) => setInviteDescription(e.target.value)}
+						className={styles.searchInput}
+						style={{ width: '200px', marginLeft: '8px' }}
+					/>
+				</div>
+				<div>
 					<label htmlFor="maxUses">Max uses:</label>
 					<input
 						id="maxUses"
@@ -539,8 +555,10 @@ function FairyInvites() {
 					<thead>
 						<tr>
 							<th>ID</th>
+							<th>Description</th>
 							<th>Fairy Limit</th>
 							<th>Uses</th>
+							<th>Redeemed By</th>
 							<th>Created</th>
 							<th>Actions</th>
 						</tr>
@@ -549,9 +567,15 @@ function FairyInvites() {
 						{invites.map((invite) => (
 							<tr key={invite.id}>
 								<td>{invite.id}</td>
+								<td>{invite.description || '-'}</td>
 								<td>{invite.fairyLimit}</td>
 								<td>
 									{invite.currentUses} / {invite.maxUses === 0 ? '∞' : invite.maxUses}
+								</td>
+								<td>
+									{invite.redeemedBy && invite.redeemedBy.length > 0
+										? invite.redeemedBy.join(', ')
+										: '-'}
 								</td>
 								<td>{new Date(invite.createdAt).toLocaleString()}</td>
 								<td style={{ display: 'flex', gap: '8px' }}>

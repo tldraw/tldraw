@@ -309,6 +309,11 @@ export interface TlaUserFairyDB extends Omit<TlaUserFairy, 'weeklyUsage'> {
 	weeklyUsage: Record<string, number> // JSONB: { "2025-W48": 12.34 }
 }
 
+// Override for fairy_invite with proper JSONB types for Kysely
+export interface TlaFairyInviteDB extends Omit<TlaFairyInvite, 'redeemedBy'> {
+	redeemedBy: string[] // JSONB: ["email1@example.com", "email2@example.com"]
+}
+
 export interface DB {
 	file: TlaFile
 	file_state: TlaFileState
@@ -318,7 +323,7 @@ export interface DB {
 	group_file: TlaGroupFile
 	user_fairies: TlaUserFairyDB
 	file_fairies: TlaFileFairy
-	fairy_invite: TlaFairyInvite
+	fairy_invite: TlaFairyInviteDB
 	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
 }
@@ -351,6 +356,8 @@ export interface TlaFairyInvite {
 	maxUses: number
 	currentUses: number
 	createdAt: number
+	description: string | null
+	redeemedBy: string[] // Array of emails
 }
 
 interface AuthData {

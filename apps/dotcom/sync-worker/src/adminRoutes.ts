@@ -226,26 +226,34 @@ export const adminRoutes = createRouter<Environment>()
 	.post('/app/admin/fairy-invites', async (req, env) => {
 		const body: any = await req.json()
 		const maxUses = body?.maxUses
+		const description = body?.description ?? null
 
 		if (typeof maxUses !== 'number' || maxUses < 0) {
 			return new Response('maxUses must be 0 (unlimited) or a positive number', { status: 400 })
 		}
 
+		if (description !== null && typeof description !== 'string') {
+			return new Response('description must be a string or null', { status: 400 })
+		}
+
 		const db = createPostgresConnectionPool(env, '/app/admin/fairy-invites')
 		const id = uniqueId()
+		const createdAt = Date.now()
 
-		await db
-			.insertInto('fairy_invite')
-			.values({
-				id,
-				fairyLimit: MAX_FAIRY_COUNT,
-				maxUses,
-				currentUses: 0,
-				createdAt: Date.now(),
-			})
-			.execute()
+		await sql`
+			INSERT INTO fairy_invite (id, "fairyLimit", "maxUses", "currentUses", "createdAt", description, "redeemedBy")
+			VALUES (${id}, ${MAX_FAIRY_COUNT}, ${maxUses}, 0, ${createdAt}, ${description}, '[]'::jsonb)
+		`.execute(db)
 
-		return json({ id, fairyLimit: MAX_FAIRY_COUNT, maxUses, currentUses: 0, createdAt: Date.now() })
+		return json({
+			id,
+			fairyLimit: MAX_FAIRY_COUNT,
+			maxUses,
+			currentUses: 0,
+			createdAt,
+			description,
+			redeemedBy: [],
+		})
 	})
 	.get('/app/admin/fairy-invites', async (_req, env) => {
 		const db = createPostgresConnectionPool(env, '/app/admin/fairy-invites')
