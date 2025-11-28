@@ -1,5 +1,5 @@
 import { FairyProject, FairyProjectMember, FairyProjectRole } from '@tldraw/fairy-shared'
-import { atom, Editor } from 'tldraw'
+import { atom, Editor, uniqueId } from 'tldraw'
 import { deleteFairyTask, getFairyTasksByProjectId } from './FairyTaskList'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { getFairyAgentById } from './fairy-agent/agent/fairyAgentsAtom'
@@ -55,6 +55,58 @@ export function deleteProjectAndAssociatedTasks(projectId: string) {
 	deleteProject(projectId)
 }
 
+function addProjectCancellationMemory(memberAgent: FairyAgent, project: FairyProject) {
+	const role = memberAgent.getRole()
+	const isOrchestrator = role === 'orchestrator' || role === 'duo-orchestrator'
+	const verb = isOrchestrator ? 'leading' : 'working on'
+	const projectReference = project.title ? `the "${project.title}" project` : 'a project'
+
+	// Get completed tasks for this member agent
+	const completedTasks = getFairyTasksByProjectId(project.id).filter(
+		(task) => task.status === 'done' && task.assignedTo === memberAgent.id
+	)
+	const completedTasksCount = completedTasks.length
+
+	if (completedTasksCount > 0) {
+		const taskWord = completedTasksCount === 1 ? 'task' : 'tasks'
+		memberAgent.pushToChatHistory(
+			{
+				id: uniqueId(),
+				type: 'memory-transition',
+				memoryLevel: 'fairy',
+				agentFacingMessage: `[ACTIONS]: <Project actions filtered for brevity>`,
+				userFacingMessage: null,
+			},
+			{
+				id: uniqueId(),
+				type: 'prompt',
+				promptSource: 'self',
+				memoryLevel: 'fairy',
+				agentFacingMessage: `[THOUGHT]: I was ${verb} ${projectReference} that got cancelled by the user. I had completed ${completedTasksCount} ${taskWord} before the project was cancelled.`,
+				userFacingMessage: 'Project cancelled',
+			}
+		)
+	} else {
+		memberAgent.pushToChatHistory(
+			{
+				id: uniqueId(),
+				type: 'memory-transition',
+				memoryLevel: 'fairy',
+				agentFacingMessage: `[ACTIONS]: <Project actions filtered for brevity>`,
+				userFacingMessage: null,
+			},
+			{
+				id: uniqueId(),
+				type: 'prompt',
+				promptSource: 'self',
+				memoryLevel: 'fairy',
+				agentFacingMessage: `[THOUGHT]: I was ${verb} ${projectReference} that got cancelled by the user.`,
+				userFacingMessage: 'Project cancelled',
+			}
+		)
+	}
+}
+
 export function disbandProject(projectId: string, editor: Editor) {
 	const project = getProjectById(projectId)
 	if (!project || project.members.length <= 1) return
@@ -64,6 +116,8 @@ export function disbandProject(projectId: string, editor: Editor) {
 		.filter((agent) => agent !== undefined)
 
 	memberAgents.forEach((memberAgent) => {
+		addProjectCancellationMemory(memberAgent, project)
+
 		memberAgent.interrupt({ mode: 'idling', input: null })
 		memberAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
 	})
@@ -86,6 +140,8 @@ export function disbandAllProjectsWithAgents(agents: FairyAgent[]) {
 			.filter((agent): agent is FairyAgent => agent !== undefined)
 
 		memberAgents.forEach((memberAgent) => {
+			addProjectCancellationMemory(memberAgent, project)
+
 			memberAgent.interrupt({ mode: 'idling', input: null })
 			memberAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
 		})
