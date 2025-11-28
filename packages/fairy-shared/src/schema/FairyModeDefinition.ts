@@ -69,6 +69,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'modelName',
 			'mode',
 			'screenshot',
+			'userViewportBounds',
 			'agentViewportBounds',
 			'canvasLints',
 			'blurryShapes',
