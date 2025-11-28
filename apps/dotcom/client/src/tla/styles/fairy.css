@@ -891,6 +891,24 @@
 	text-decoration: line-through;
 }
 
+/* In-progress tasks with pulsating shimmer effect */
+.fairy-project-chat-task-text--in-progress {
+	color: var(--tl-color-text-3);
+	background: linear-gradient(
+		90deg,
+		var(--tl-color-text-3) 0%,
+		var(--tl-color-text-3) 35%,
+		var(--tl-color-text-1) 50%,
+		var(--tl-color-text-3) 65%,
+		var(--tl-color-text-3) 100%
+	);
+	background-size: 200% 100%;
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+	animation: fairy-shimmer 2s ease-in-out infinite;
+}
+
 .fairy-avatar {
 	opacity: 0.5;
 	width: 15px;

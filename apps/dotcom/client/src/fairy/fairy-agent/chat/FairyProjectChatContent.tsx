@@ -44,12 +44,50 @@ export function FairyProjectChatContent({
 	const additionalSections = sections.slice(1)
 	const firstUserPrompt = firstSection?.prompt
 
-	const getPlanStatusText = () => {
-		if (isPlanning) return 'Creating a plan...'
-		if (projectTitle) return projectTitle
-		return 'Created plan'
-	}
+	const isGenerating = useValue('is-generating', () => orchestratorAgent.isGenerating(), [
+		orchestratorAgent,
+	])
 
+	// Determine the project status
+	const projectStatus = useMemo((): { text: string; isAnimating: boolean } => {
+		// Planning phase - no tasks yet
+		if (isPlanning) {
+			return { text: 'Creating a plan...', isAnimating: true }
+		}
+
+		const hasTasks = projectTasks.length > 0
+		const allTasksDone = hasTasks && projectTasks.every((task) => task.status === 'done')
+		const hasInProgressTasks = projectTasks.some((task) => task.status === 'in-progress')
+		const hasOutstandingTasks = hasTasks && projectTasks.some((task) => task.status === 'todo')
+
+		// All tasks are done but project not ended - reviewing state
+		if (allTasksDone && isGenerating) {
+			return { text: 'Reviewing completed tasks...', isAnimating: true }
+		}
+
+		// Some tasks are in progress - waiting state
+		if (hasInProgressTasks) {
+			const count = projectTasks.filter((task) => task.status === 'in-progress').length
+			return {
+				text: `Waiting for ${count} task${count === 1 ? '' : 's'} to complete...`,
+				isAnimating: true,
+			}
+		}
+
+		// Orchestrator is generating with outstanding tasks but none in-progress yet
+		// This is the "coordinating/directing" state
+		if (isGenerating && hasOutstandingTasks) {
+			return { text: 'Coordinating...', isAnimating: true }
+		}
+
+		// Show project title if available
+		if (projectTitle) {
+			return { text: projectTitle, isAnimating: false }
+		}
+
+		// Fallback
+		return { text: 'Created plan', isAnimating: false }
+	}, [isPlanning, projectTasks, isGenerating, projectTitle])
 	const hasTasks = projectTasks.length > 0
 
 	const responseItems = useMemo(() => {
@@ -78,10 +116,10 @@ export function FairyProjectChatContent({
 
 			<div className="fairy-project-header">
 				<div
-					className={`fairy-project-chat-action ${isPlanning ? 'fairy-project-chat-action--planning' : ''}`}
+					className={`fairy-project-chat-action ${projectStatus.isAnimating ? 'fairy-project-chat-action--planning' : ''}`}
 				>
 					<FairyMiniAvatar agent={orchestratorAgent} />
-					<span>{getPlanStatusText()}</span>
+					<span>{projectStatus.text}</span>
 				</div>
 
 				{hasTasks && (
@@ -98,7 +136,9 @@ export function FairyProjectChatContent({
 									className={`fairy-project-chat-action-text ${
 										task.status === 'done'
 											? 'fairy-project-chat-task-text--done'
-											: 'fairy-project-chat-task-text--pending'
+											: task.status === 'in-progress'
+												? 'fairy-project-chat-task-text--in-progress'
+												: 'fairy-project-chat-task-text--pending'
 									}`}
 								>
 									{task.title || task.text}

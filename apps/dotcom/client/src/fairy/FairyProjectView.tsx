@@ -1,4 +1,11 @@
-import { CancelIcon, FAIRY_VISION_DIMENSIONS, FairyProject, LipsIcon } from '@tldraw/fairy-shared'
+import {
+	CancelIcon,
+	FAIRY_VISION_DIMENSIONS,
+	FairyModeDefinition,
+	FairyProject,
+	FairyProjectRole,
+	LipsIcon,
+} from '@tldraw/fairy-shared'
 import { KeyboardEvent, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Box, Editor, uniqueId, useValue } from 'tldraw'
 import { getIsCoarsePointer } from '../tla/utils/getIsCoarsePointer'
@@ -67,6 +74,7 @@ export function FairyProjectView({
 		'follower-agents',
 		() => {
 			if (!leaderAgent || !isPreProject) return []
+
 			return agents.filter(
 				(agent) => agent.id !== leaderAgent.id && getProjectByAgentId(agent.id) === undefined
 			)
@@ -137,6 +145,10 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 			if (!leaderAgent || !value.trim()) return
 
 			const isDuo = followerAgents.length === 1
+			const agentAttributes: { role: FairyProjectRole; mode: FairyModeDefinition['type'] } = {
+				role: isDuo ? 'duo-orchestrator' : 'orchestrator',
+				mode: isDuo ? 'duo-orchestrating-active' : 'orchestrating-active',
+			}
 
 			// Clear chat history for all agents before starting new project
 			leaderAgent.$chatHistory.set([])
@@ -153,7 +165,7 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 				members: [
 					{
 						id: leaderAgent.id,
-						role: isDuo ? ('duo-orchestrator' as const) : ('orchestrator' as const),
+						role: agentAttributes.role,
 					},
 					...followerAgents.map((agent) => ({ id: agent.id, role: 'drone' as const })),
 				],
@@ -164,7 +176,7 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 
 			// Set leader as orchestrator
 			leaderAgent.interrupt({
-				mode: isDuo ? 'duo-orchestrating-active' : 'orchestrating-active',
+				mode: agentAttributes.mode,
 				input: null,
 			})
 
@@ -293,7 +305,7 @@ Do NOT start a completely new project. Respond with a message action first expla
 		() => {
 			if (!orchestratorAgent) return null
 			const config = orchestratorAgent.$fairyConfig.get()
-			return config?.name?.split(' ')[0] ?? 'the fairy'
+			return config.name.split(' ')[0] ?? 'the fairy'
 		},
 		[orchestratorAgent]
 	)
