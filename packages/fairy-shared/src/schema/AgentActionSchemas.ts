@@ -197,6 +197,21 @@ export const MoveActionSchema = z
 
 export type MoveAction = z.infer<typeof MoveActionSchema>
 
+export const MovePositionActionSchema = z
+	.object({
+		_type: z.literal('move-position'),
+		intent: z.string(),
+		x: z.number(),
+		y: z.number(),
+	})
+	.meta({
+		title: 'Move position',
+		description:
+			'The agent moves to the provided position. The viewport center will move to be centered on the position. ',
+	})
+
+export type MoveViewportAction = z.infer<typeof MovePositionActionSchema>
+
 export const PenActionSchema = z
 	.object({
 		_type: z.literal('pen'),

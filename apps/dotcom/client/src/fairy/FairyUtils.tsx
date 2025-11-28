@@ -26,6 +26,7 @@ import { MarkDuoTaskDoneActionUtil } from './actions/MarkDuoTaskDoneActionUtil'
 import { MarkSoloTaskDoneActionUtil } from './actions/MarkSoloTaskDoneActionUtil'
 import { MessageActionUtil } from './actions/MessageActionUtil'
 import { MoveActionUtil } from './actions/MoveActionUtil'
+import { MovePositionActionUtil } from './actions/MovePositionActionUtil'
 import { PenActionUtil } from './actions/PenActionUtil'
 import { PlaceActionUtil } from './actions/PlaceActionUtil'
 import { ResizeActionUtil } from './actions/ResizeActionUtil'
@@ -78,6 +79,7 @@ export const AGENT_ACTION_UTILS = [
 	ThinkActionUtil,
 	ReviewActionUtil,
 	FlyToBoundsActionUtil,
+	MovePositionActionUtil,
 	UpsertPersonalTodoItemActionUtil,
 	DeletePersonalTodoItemsActionUtil,
 

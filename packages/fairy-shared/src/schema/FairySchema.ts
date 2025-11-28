@@ -28,6 +28,7 @@ import {
 	MarkSoloTaskDoneActionSchema,
 	MessageActionSchema,
 	MoveActionSchema,
+	MovePositionActionSchema,
 	PenActionSchema,
 	PlaceActionSchema,
 	ResizeActionSchema,
@@ -81,6 +82,7 @@ export const AGENT_ACTION_SCHEMAS = [
 	ThinkActionSchema,
 	ReviewActionSchema,
 	FlyToBoundsActionSchema,
+	MovePositionActionSchema,
 	UpsertPersonalTodoItemActionSchema,
 	DeletePersonalTodoItemsActionSchema,
 
