@@ -1,8 +1,9 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useDialogs } from 'tldraw'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { setInSessionStorage, useDialogs } from 'tldraw'
 import { TlaSignInDialog } from '../tla/components/dialogs/TlaSignInDialog'
 import { useFairyAccess } from '../tla/hooks/useFairyAccess'
+import { usePaddle } from '../tla/hooks/usePaddle'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import '../tla/styles/fairy.css'
 import { F } from '../tla/utils/i18n'
@@ -12,119 +13,47 @@ const FairySprite = lazy(() =>
 	import('../fairy/fairy-sprite/FairySprite').then((m) => ({ default: m.FairySprite }))
 )
 
-declare global {
-	interface Window {
-		Paddle?: {
-			Environment: {
-				set(env: 'sandbox' | 'production'): void
-			}
-			Initialize(config: { token: string; eventCallback?(data: any): void }): void
-			Checkout: {
-				open(options: {
-					items: Array<{ priceId: string; quantity: number }>
-					customData?: Record<string, any>
-					customer?: {
-						email?: string
-					}
-					settings?: {
-						allowDiscountRemoval?: boolean
-						displayMode?: string
-						showAddDiscounts?: boolean
-					}
-				}): void
-			}
-		}
-	}
-}
-
 export function Component() {
 	const user = useTldrawUser()
 	const hasFairyAccess = useFairyAccess()
 	const { addDialog } = useDialogs()
 	const navigate = useNavigate()
-	const [paddleLoaded, setPaddleLoaded] = useState(false)
+	const [searchParams, setSearchParams] = useSearchParams()
+	const [isProcessing, setIsProcessing] = useState(false)
+	const { paddleLoaded, openPaddleCheckout } = usePaddle()
 
-	// Load Paddle script
-	const loadPaddleScript = useCallback(() => {
-		if (paddleLoaded || window.Paddle) {
-			setPaddleLoaded(true)
-			return
-		}
-
-		const paddleEnv = (process.env.PADDLE_ENVIRONMENT as 'sandbox' | 'production') ?? 'sandbox'
-		const paddleToken = process.env.PADDLE_CLIENT_TOKEN
-
-		if (!paddleToken) {
-			console.error('[Paddle] Client token not configured')
-			return
-		}
-
-		const script = document.createElement('script')
-		script.src = 'https://cdn.paddle.com/paddle/v2/paddle.js'
-		script.async = true
-		script.onload = () => {
-			if (window.Paddle) {
-				window.Paddle.Environment.set(paddleEnv)
-				window.Paddle.Initialize({
-					token: paddleToken,
-					eventCallback: (data) => {
-						if (data.name === 'checkout.completed') {
-							console.warn('[Paddle] Checkout completed', data.data?.transaction_id)
-						}
-					},
-				})
-				setPaddleLoaded(true)
-			}
-		}
-		script.onerror = () => {
-			console.error('Failed to load Paddle script')
-		}
-
-		document.head.appendChild(script)
-	}, [paddleLoaded])
-
-	// Load Paddle on mount
+	// Handle checkout intent from search params (after sign-in redirect)
 	useEffect(() => {
-		loadPaddleScript()
-	}, [loadPaddleScript])
+		if (searchParams.get('checkout') === 'true' && user && paddleLoaded) {
+			// Clear the param
+			setSearchParams((params) => {
+				params.delete('checkout')
+				return params
+			})
 
-	// Handle checkout intent after sign-in
-	useEffect(() => {
-		const hasCheckoutIntent = sessionStorage.getItem('pricing-checkout-intent') === 'true'
-
-		if (user && hasCheckoutIntent && paddleLoaded && window.Paddle) {
-			// Clear intent
-			sessionStorage.removeItem('pricing-checkout-intent')
-
-			// Open Paddle checkout
-			const paddlePriceId = process.env.PADDLE_FAIRY_PRICE_ID
-			if (!paddlePriceId) {
-				console.error('[Paddle] Price ID not configured')
+			// Don't open checkout if user already has fairy access
+			if (hasFairyAccess) {
 				return
 			}
 
-			try {
-				window.Paddle.Checkout.open({
-					items: [{ priceId: paddlePriceId, quantity: 1 }],
-					customData: {
-						userId: user.id,
-					},
-					customer: {
-						email: user.clerkUser.primaryEmailAddress?.emailAddress,
-					},
-					settings: {
-						allowDiscountRemoval: false,
-						displayMode: 'overlay',
-						showAddDiscounts: false,
-					},
-				})
-			} catch (error) {
-				console.error('Failed to open Paddle checkout:', error)
-			}
+			// Open checkout
+			setTimeout(() => {
+				openPaddleCheckout(user.id, user.clerkUser.primaryEmailAddress?.emailAddress)
+			}, 100)
 		}
-	}, [user, paddleLoaded])
+	}, [
+		searchParams,
+		user,
+		paddleLoaded,
+		hasFairyAccess,
+		openPaddleCheckout,
+		setSearchParams,
+		navigate,
+	])
 
 	const handlePurchaseClick = useCallback(() => {
+		if (isProcessing) return
+
 		// If user already has fairy access, go home
 		if (user && hasFairyAccess) {
 			navigate('/')
@@ -132,45 +61,25 @@ export function Component() {
 		}
 
 		if (!user) {
-			// Store checkout intent
-			sessionStorage.setItem('pricing-checkout-intent', 'true')
-
-			// Open sign-in dialog (redirect to pricing handled by TlaRootProviders)
+			// Store checkout intent for redirect after sign-in
+			setInSessionStorage('pricing-checkout-intent', 'true')
 			addDialog({ component: TlaSignInDialog })
 			return
 		}
 
 		// User is signed in, open Paddle directly
-		if (!paddleLoaded || !window.Paddle) {
-			console.error('Paddle.js not loaded yet')
+		if (!paddleLoaded) {
 			return
 		}
 
-		const paddlePriceId = process.env.PADDLE_FAIRY_PRICE_ID
-		if (!paddlePriceId) {
-			console.error('[Paddle] Price ID not configured')
-			return
+		setIsProcessing(true)
+		const success = openPaddleCheckout(user.id, user.clerkUser.primaryEmailAddress?.emailAddress)
+		if (!success) {
+			setIsProcessing(false)
 		}
-
-		try {
-			window.Paddle.Checkout.open({
-				items: [{ priceId: paddlePriceId, quantity: 1 }],
-				customData: {
-					userId: user.id,
-				},
-				customer: {
-					email: user.clerkUser.primaryEmailAddress?.emailAddress,
-				},
-				settings: {
-					allowDiscountRemoval: false,
-					displayMode: 'overlay',
-					showAddDiscounts: false,
-				},
-			})
-		} catch (error) {
-			console.error('Failed to open Paddle checkout:', error)
-		}
-	}, [user, hasFairyAccess, paddleLoaded, addDialog, navigate])
+		// Keep processing state until checkout completes or user closes overlay
+		setTimeout(() => setIsProcessing(false), 1000)
+	}, [user, hasFairyAccess, paddleLoaded, isProcessing, addDialog, navigate, openPaddleCheckout])
 
 	return (
 		<div className={styles.container}>
@@ -218,7 +127,11 @@ export function Component() {
 							</Suspense>
 						</div>
 					</div>
-					<button className={styles.purchaseButton} onClick={handlePurchaseClick}>
+					<button
+						className={styles.purchaseButton}
+						onClick={handlePurchaseClick}
+						disabled={isProcessing}
+					>
 						{!user ? (
 							<F defaultMessage="Start your fairy adventure" />
 						) : hasFairyAccess ? (

@@ -13,7 +13,9 @@ import {
 	TLUiEventHandler,
 	TldrawUiA11yProvider,
 	TldrawUiContextProvider,
+	deleteFromSessionStorage,
 	fetch,
+	getFromSessionStorage,
 	runtime,
 	setRuntimeOverrides,
 	useDialogs,
@@ -198,7 +200,6 @@ function SignedInProvider({
 		() => globalEditor.get()?.user.getUserPreferences().locale ?? 'en',
 		[]
 	)
-
 	useEffect(() => {
 		if (locale === currentLocale) return
 		onLocaleChange(locale)
@@ -212,15 +213,15 @@ function SignedInProvider({
 			}))
 
 			// Check for pricing checkout intent after sign-in
-			const checkoutIntent = sessionStorage.getItem('pricing-checkout-intent')
+			const checkoutIntent = getFromSessionStorage('pricing-checkout-intent')
 			if (checkoutIntent === 'true' && !window.location.pathname.includes('/pricing')) {
-				// User just signed in with pricing intent, redirect to pricing page
-				navigate('/pricing')
+				deleteFromSessionStorage('pricing-checkout-intent')
+				navigate('/pricing?checkout=true')
 			}
 		} else {
 			clearLocalSessionState()
 		}
-	}, [auth.userId, auth.isSignedIn])
+	}, [auth.userId, auth.isSignedIn, navigate])
 
 	if (!auth.isLoaded) return null
 
