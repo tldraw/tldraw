@@ -11,6 +11,7 @@ import {
 	TLSessionStateSnapshot,
 	TLUiDialogsContextType,
 	Tldraw,
+	TldrawOverlays,
 	TldrawUiMenuItem,
 	createSessionStateSnapshotSignal,
 	getDefaultUserPresence,
@@ -305,6 +306,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			...components,
 			Overlays: () => (
 				<>
+					<TldrawOverlays />
 					{canShowFairies ? (
 						<Suspense fallback={<div />}>
 							<FairyVision agents={agents} />
