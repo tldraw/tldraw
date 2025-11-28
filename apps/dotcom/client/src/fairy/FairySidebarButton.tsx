@@ -141,7 +141,7 @@ export function FairySidebarButton({
 					</TldrawUiToolbarToggleItem>
 				</TldrawUiToolbarToggleGroup>
 			</_ContextMenu.Trigger>
-			<FairyContextMenuContent agent={agent} />
+			<FairyContextMenuContent agent={agent} source="sidebar" />
 		</_ContextMenu.Root>
 	)
 }

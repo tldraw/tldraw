@@ -18,12 +18,16 @@ import { FairyDebugDialog } from './FairyDebugDialog'
 import { $fairyProjects, disbandProject } from './FairyProjects'
 import { clearFairyTasksAndProjects } from './FairyTaskList'
 
+export type FairyMenuSource = 'canvas' | 'sidebar'
+
 export function FairyMenuContent({
 	agent,
 	menuType = 'menu',
+	source = 'canvas',
 }: {
 	agent: FairyAgent
 	menuType?: 'menu' | 'context-menu'
+	source?: FairyMenuSource
 }) {
 	const editor = useEditor()
 	const app = useApp()
@@ -212,12 +216,20 @@ export function FairyMenuContent({
 	return (
 		<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">
 			<TldrawUiMenuGroup id="single-fairy-menu">
-				<TldrawUiMenuItem id="go-to-fairy" onSelect={() => agent.zoomTo()} label={goToFairyLabel} />
-				<TldrawUiMenuItem
-					id="summon-fairy"
-					onSelect={() => agent.summon()}
-					label={summonFairyLabel}
-				/>
+				{source !== 'canvas' && (
+					<>
+						<TldrawUiMenuItem
+							id="go-to-fairy"
+							onSelect={() => agent.zoomTo()}
+							label={goToFairyLabel}
+						/>
+						<TldrawUiMenuItem
+							id="summon-fairy"
+							onSelect={() => agent.summon()}
+							label={summonFairyLabel}
+						/>
+					</>
+				)}
 				<TldrawUiMenuItem
 					id="follow-fairy"
 					onSelect={toggleFollow}

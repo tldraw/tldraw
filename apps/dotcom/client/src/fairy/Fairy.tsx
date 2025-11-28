@@ -302,7 +302,7 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 					</div>
 				</div>
 			</_ContextMenu.Trigger>
-			<FairyContextMenuContent agent={agent} />
+			<FairyContextMenuContent agent={agent} source="canvas" />
 		</_ContextMenu.Root>
 	)
 }
