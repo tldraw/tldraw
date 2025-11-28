@@ -1,4 +1,4 @@
-import { MAX_FAIRY_COUNT, TlaFile } from '@tldraw/dotcom-shared'
+import { FeatureFlagKey, MAX_FAIRY_COUNT, TlaFile } from '@tldraw/dotcom-shared'
 import { assert, retry, sleep, uniqueId } from '@tldraw/utils'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
@@ -8,6 +8,7 @@ import { createPostgresConnectionPool } from './postgres'
 import { returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
 import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
+import { getFeatureFlags, setFeatureFlag } from './utils/featureFlags'
 import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
 
 async function requireUser(env: Environment, q: string) {
@@ -225,26 +226,34 @@ export const adminRoutes = createRouter<Environment>()
 	.post('/app/admin/fairy-invites', async (req, env) => {
 		const body: any = await req.json()
 		const maxUses = body?.maxUses
+		const description = body?.description ?? null
 
 		if (typeof maxUses !== 'number' || maxUses < 0) {
 			return new Response('maxUses must be 0 (unlimited) or a positive number', { status: 400 })
 		}
 
+		if (description !== null && typeof description !== 'string') {
+			return new Response('description must be a string or null', { status: 400 })
+		}
+
 		const db = createPostgresConnectionPool(env, '/app/admin/fairy-invites')
 		const id = uniqueId()
+		const createdAt = Date.now()
 
-		await db
-			.insertInto('fairy_invite')
-			.values({
-				id,
-				fairyLimit: MAX_FAIRY_COUNT,
-				maxUses,
-				currentUses: 0,
-				createdAt: Date.now(),
-			})
-			.execute()
+		await sql`
+			INSERT INTO fairy_invite (id, "fairyLimit", "maxUses", "currentUses", "createdAt", description, "redeemedBy")
+			VALUES (${id}, ${MAX_FAIRY_COUNT}, ${maxUses}, 0, ${createdAt}, ${description}, '[]'::jsonb)
+		`.execute(db)
 
-		return json({ id, fairyLimit: MAX_FAIRY_COUNT, maxUses, currentUses: 0, createdAt: Date.now() })
+		return json({
+			id,
+			fairyLimit: MAX_FAIRY_COUNT,
+			maxUses,
+			currentUses: 0,
+			createdAt,
+			description,
+			redeemedBy: [],
+		})
 	})
 	.get('/app/admin/fairy-invites', async (_req, env) => {
 		const db = createPostgresConnectionPool(env, '/app/admin/fairy-invites')
@@ -285,6 +294,23 @@ export const adminRoutes = createRouter<Environment>()
 
 		const result = await removeFairyAccess(env, email)
 		return json(result)
+	})
+	.get('/app/admin/feature-flags', getFeatureFlags)
+	.post('/app/admin/feature-flags', async (req, env) => {
+		const body: any = await req.json()
+		const { flag, enabled } = body
+
+		if (typeof flag !== 'string' || typeof enabled !== 'boolean') {
+			throw new StatusError(400, 'flag (string) and enabled (boolean) are required')
+		}
+
+		const validFlags: FeatureFlagKey[] = ['fairies', 'fairies_purchase']
+		if (!validFlags.includes(flag as FeatureFlagKey)) {
+			throw new StatusError(400, `Invalid flag. Must be one of: ${validFlags.join(', ')}`)
+		}
+
+		await setFeatureFlag(env, flag as FeatureFlagKey, enabled)
+		return json({ success: true, flag, enabled })
 	})
 	.post('/app/admin/create_legacy_file', async (_res, env) => {
 		const slug = uniqueId()
