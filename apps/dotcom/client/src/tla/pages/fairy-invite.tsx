@@ -21,11 +21,6 @@ export function Component() {
 	const user = useTldrawUser()
 	const { flags } = useFairyFlags()
 
-	// If fairies feature is disabled, redirect to home
-	if (!flags.fairies_enabled) {
-		return <Navigate to={routes.tlaRoot()} replace />
-	}
-
 	useEffect(() => {
 		if (userHasActiveFairyAccess) {
 			addToast({
@@ -37,6 +32,7 @@ export function Component() {
 
 	useEffect(() => {
 		if (userHasActiveFairyAccess) return
+		if (!flags.fairies_enabled) return
 
 		// Store token in session storage for both logged-in and logged-out users
 		// TlaRootProviders will handle showing the dialog after sign-in (if needed)
@@ -45,7 +41,12 @@ export function Component() {
 			setInSessionStorage('redirect-to', routes.tlaRoot())
 			addDialog({ component: TlaSignInDialog })
 		}
-	}, [token, user, userHasActiveFairyAccess, addDialog])
+	}, [token, user, userHasActiveFairyAccess, addDialog, flags.fairies_enabled])
+
+	// If fairies feature is disabled, redirect to home
+	if (!flags.fairies_enabled) {
+		return <Navigate to={routes.tlaRoot()} replace />
+	}
 
 	// If user already has access, redirect without showing dialog
 	if (userHasActiveFairyAccess) {
