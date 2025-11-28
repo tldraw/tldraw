@@ -3,7 +3,7 @@ import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import classNames from 'classnames'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet } from 'react-router-dom'
 import {
 	ContainerProvider,
 	DefaultA11yAnnouncer,
@@ -184,27 +184,6 @@ function PutToastsInApp() {
 	return null
 }
 
-function RedirectHandler() {
-	const auth = useAuth()
-	const navigate = useNavigate()
-
-	useEffect(() => {
-		if (auth.isSignedIn && auth.userId) {
-			// Check for redirect after sign-in
-			const redirectTo = getFromSessionStorage('redirect-to')
-			if (
-				redirectTo &&
-				window.location.pathname !== new URL(redirectTo, window.location.origin).pathname
-			) {
-				deleteFromSessionStorage('redirect-to')
-				navigate(redirectTo)
-			}
-		}
-	}, [auth.userId, auth.isSignedIn, navigate])
-
-	return null
-}
-
 const fairyInviteMessages = defineMessages({
 	alreadyHasAccess: { defaultMessage: 'You already have fairy access!' },
 })
@@ -326,7 +305,6 @@ function SignedInProvider({
 		<AppStateProvider>
 			<UserProvider>
 				<ThemeContainer onThemeChange={onThemeChange}>
-					<RedirectHandler />
 					<FeatureFlagsFetcher />
 					<SignedInAnalytics />
 					{children}
