@@ -40,6 +40,7 @@ export function FairyApp({
 	const user = useTldrawUser()
 	const app = useApp()
 	const toasts = useToasts()
+	const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
 	const fairyConfigs = useValue(
 		'fairyConfigs',
 		() => JSON.parse(app?.getUser().fairies || '{}') as PersistedFairyConfigs,
@@ -86,6 +87,7 @@ export function FairyApp({
 	// Create agents dynamically from configs
 	useEffect(() => {
 		if (!editor) return
+		if (isReadOnly) return
 
 		// Register the FairyThrowTool
 		const selectTool = editor.root.children!.select
@@ -137,7 +139,7 @@ export function FairyApp({
 
 		agentsRef.current = updatedAgents
 		setAgents(updatedAgents)
-	}, [fairyConfigs, editor, getToken, handleError, setAgents, app])
+	}, [fairyConfigs, editor, getToken, handleError, setAgents, app, isReadOnly])
 
 	// Cleanup: dispose all agents only when component unmounts
 	useEffect(() => {
