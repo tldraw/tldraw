@@ -286,9 +286,7 @@ function FairyInvites() {
 		}>
 	>([])
 	const [maxUses, setMaxUses] = useState(1)
-	const [grantEmail, setGrantEmail] = useState('')
-	const [grantSetToZero, setGrantSetToZero] = useState(false)
-	const [removeEmail, setRemoveEmail] = useState('')
+	const [accessEmail, setAccessEmail] = useState('')
 	const [isCreating, setIsCreating] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
 	const [isEnabling, setIsEnabling] = useState(false)
@@ -373,7 +371,7 @@ function FairyInvites() {
 	)
 
 	const grantAccess = useCallback(async () => {
-		if (!grantEmail || !grantEmail.includes('@')) {
+		if (!accessEmail || !accessEmail.includes('@')) {
 			setError('Please enter a valid email address')
 			return
 		}
@@ -385,21 +383,21 @@ function FairyInvites() {
 			const res = await fetch('/api/app/admin/fairy/grant-access', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email: grantEmail, setToZero: grantSetToZero }),
+				body: JSON.stringify({ email: accessEmail }),
 			})
 			if (!res.ok) {
 				setError(res.statusText + ': ' + (await res.text()))
 				return
 			}
 			await res.json()
-			setSuccessMessage(`Fairy access granted to ${grantEmail}!`)
-			setGrantEmail('')
+			setSuccessMessage(`Fairy access granted to ${accessEmail}!`)
+			setAccessEmail('')
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to grant fairy access')
 		} finally {
 			setIsGranting(false)
 		}
-	}, [grantEmail, grantSetToZero])
+	}, [accessEmail])
 
 	const enableForMe = useCallback(async () => {
 		setIsEnabling(true)
@@ -423,8 +421,12 @@ function FairyInvites() {
 	}, [])
 
 	const removeFairyAccess = useCallback(async () => {
-		if (!removeEmail || !removeEmail.includes('@')) {
+		if (!accessEmail || !accessEmail.includes('@')) {
 			setError('Please enter a valid email address')
+			return
+		}
+
+		if (!window.confirm(`Remove fairy access from ${accessEmail}?`)) {
 			return
 		}
 
@@ -435,21 +437,21 @@ function FairyInvites() {
 			const res = await fetch('/api/app/admin/fairy/remove-access', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email: removeEmail }),
+				body: JSON.stringify({ email: accessEmail }),
 			})
 			if (!res.ok) {
 				setError(res.statusText + ': ' + (await res.text()))
 				return
 			}
 			await res.json()
-			setSuccessMessage(`Fairy access removed from ${removeEmail}!`)
-			setRemoveEmail('')
+			setSuccessMessage(`Fairy access removed from ${accessEmail}!`)
+			setAccessEmail('')
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to remove fairy access')
 		} finally {
 			setIsRemoving(false)
 		}
-	}, [removeEmail])
+	}, [accessEmail])
 
 	useEffect(() => {
 		if (successMessage) {
@@ -474,65 +476,32 @@ function FairyInvites() {
 				</TlaButton>
 			</div>
 
-			<h4 className="tla-text_ui__medium">Grant Fairy Access to User</h4>
+			<h4 className="tla-text_ui__medium">Manage Fairy Access</h4>
 			<p className="tla-text_ui__small">
-				Grant fairy access to a user by email. This will grant {MAX_FAIRY_COUNT} fairies, or use the
-				checkbox to set to 0 (shows purchase option).
-			</p>
-			<div style={{ marginBottom: '24px' }}>
-				<div className={styles.downloadContainer}>
-					<div>
-						<label htmlFor="grantEmail">Email:</label>
-						<input
-							id="grantEmail"
-							type="email"
-							placeholder="user@example.com"
-							value={grantEmail}
-							onChange={(e) => setGrantEmail(e.target.value)}
-							className={styles.searchInput}
-							style={{ width: '250px', marginLeft: '8px' }}
-						/>
-					</div>
-					<TlaButton onClick={grantAccess} variant="primary" isLoading={isGranting}>
-						Grant Access
-					</TlaButton>
-				</div>
-				<div style={{ marginTop: '8px' }}>
-					<label
-						htmlFor="grantSetToZero"
-						style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-					>
-						<input
-							id="grantSetToZero"
-							type="checkbox"
-							checked={grantSetToZero}
-							onChange={(e) => setGrantSetToZero(e.target.checked)}
-						/>
-						<span className="tla-text_ui__small">
-							Set to 0 (show purchase option without granting access)
-						</span>
-					</label>
-				</div>
-			</div>
-
-			<h4 className="tla-text_ui__medium">Remove Fairy Access from User</h4>
-			<p className="tla-text_ui__small">
-				Remove fairy access from a user by email. This will set fairy limit and expiration to null.
+				Grant or remove fairy access by email. Granting access will give {MAX_FAIRY_COUNT} fairies.
 			</p>
 			<div className={styles.downloadContainer} style={{ marginBottom: '24px' }}>
 				<div>
-					<label htmlFor="removeEmail">Email:</label>
+					<label htmlFor="accessEmail">Email:</label>
 					<input
-						id="removeEmail"
+						id="accessEmail"
 						type="email"
 						placeholder="user@example.com"
-						value={removeEmail}
-						onChange={(e) => setRemoveEmail(e.target.value)}
+						value={accessEmail}
+						onChange={(e) => setAccessEmail(e.target.value)}
 						className={styles.searchInput}
 						style={{ width: '250px', marginLeft: '8px' }}
 					/>
 				</div>
-				<TlaButton onClick={removeFairyAccess} variant="primary" isLoading={isRemoving}>
+				<TlaButton onClick={grantAccess} variant="primary" isLoading={isGranting}>
+					Grant Access
+				</TlaButton>
+				<TlaButton
+					onClick={removeFairyAccess}
+					variant="warning"
+					className={styles.deleteButton}
+					isLoading={isRemoving}
+				>
 					Remove Access
 				</TlaButton>
 			</div>
@@ -689,42 +658,47 @@ function FeatureFlags() {
 				<p className="tla-text_ui__small">Loading flags...</p>
 			) : (
 				<div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-					{Object.entries(flags).map(([flagName, flagValue]) => {
-						const label = flagName
-							.split('_')
-							.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-							.join(' ')
-						return (
-							<div key={flagName} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-								<label
-									htmlFor={flagName}
-									style={{
-										display: 'flex',
-										alignItems: 'center',
-										gap: '8px',
-										cursor: 'pointer',
-										minWidth: '200px',
-									}}
-								>
-									<input
-										id={flagName}
-										type="checkbox"
-										checked={flagValue.enabled}
-										onChange={(e) => toggleFlag(flagName, e.target.checked)}
-										disabled={isSaving}
-									/>
-									<span className="tla-text_ui__small">
-										<strong>{label}</strong>
-									</span>
-								</label>
-								{flagValue.description && (
-									<span className="tla-text_ui__small" style={{ color: 'var(--tla-color-text-3)' }}>
-										{flagValue.description}
-									</span>
-								)}
-							</div>
-						)
-					})}
+					{Object.entries(flags)
+						.sort(([a], [b]) => a.localeCompare(b))
+						.map(([flagName, flagValue]) => {
+							const label = flagName
+								.split('_')
+								.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+								.join(' ')
+							return (
+								<div key={flagName} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+									<label
+										htmlFor={flagName}
+										style={{
+											display: 'flex',
+											alignItems: 'center',
+											gap: '8px',
+											cursor: 'pointer',
+											minWidth: '200px',
+										}}
+									>
+										<input
+											id={flagName}
+											type="checkbox"
+											checked={flagValue.enabled}
+											onChange={(e) => toggleFlag(flagName, e.target.checked)}
+											disabled={isSaving}
+										/>
+										<span className="tla-text_ui__small">
+											<strong>{label}</strong>
+										</span>
+									</label>
+									{flagValue.description && (
+										<span
+											className="tla-text_ui__small"
+											style={{ color: 'var(--tla-color-text-3)' }}
+										>
+											{flagValue.description}
+										</span>
+									)}
+								</div>
+							)
+						})}
 				</div>
 			)}
 		</div>
