@@ -19,7 +19,7 @@ export function FairyManualPanel() {
 						<strong>Shift+Click</strong> to select multiple fairies for a group project
 					</li>
 					<li>
-						<strong>Double-click</strong> to zoom to a fairy's location
+						<strong>Double-click</strong> to zoom to a fairy&apos;s location
 					</li>
 				</ul>
 			</div>
