@@ -512,7 +512,9 @@ const rules = {
                     // - '../../../fairy/FairyThrowTool'
                     // - '../../fairy/fairy-agent/agent/TldrawFairyAgent'
                     if (typeof importPath === 'string' &&
-                        (importPath.includes('/fairy/') || importPath.endsWith('/fairy') || importPath.includes('/fairy-shared'))) {
+                        (importPath.includes('/fairy/') ||
+                            importPath.endsWith('/fairy') ||
+                            importPath.includes('/fairy-shared'))) {
                         context.report({
                             messageId: 'noFairyImports',
                             node: node.source,
