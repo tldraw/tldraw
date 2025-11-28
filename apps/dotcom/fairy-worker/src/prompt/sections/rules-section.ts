@@ -35,11 +35,9 @@ Arrows connect shapes. Don't confuse them with arrow shapes (arrow-up, arrow-dow
 
 When an arrow is connected to a shape via \`fromId\`/\`toId\`, the rendering engine adjusts the visual endpoints automatically. This is why you should place endpoints at shape centers, not edges.
 
-## Canvas coordinate system
+## Coordinate system
 
-- Origin (0,0) is at top-left, like a webpage
-- X increases rightward, Y increases downward
-- Shape \`x\`, \`y\` define the top-left corner (origin is top-left)
+Origin (0,0) = top-left. X+ = right, Y+ = down. Shape \`x\`,\`y\` = top-left corner.
 
 ${flagged(
 	flags.canEdit,
@@ -68,41 +66,53 @@ ${flagged(
 - Check for existing arrows before creating duplicates
 - Ensure arrows are long enough if they'll have labels
 
-**Curved arrows (bend property):**
-- Positive bend: curves perpendicular 90° counterclockwise from arrow direction
-- Arrow going RIGHT → positive bend curves DOWN
-- Arrow going LEFT → positive bend curves UP
-- Arrow going DOWN → positive bend curves RIGHT
-- Arrow going UP → positive bend curves LEFT
-- To fix wrong-way bends: negate the current bend value`
+**Bend property (curved arrows):**
+
+| Arrow direction | +bend curves | -bend curves |
+|-----------------|--------------|--------------|
+| RIGHT →         | DOWN         | UP           |
+| LEFT ←          | UP           | DOWN         |
+| DOWN ↓          | RIGHT        | LEFT         |
+| UP ↑            | LEFT         | RIGHT        |
+
+Wrong bend direction? Negate the value.`
 )}
 
 ${flagged(
 	flags.hasCreate,
 	`## Text and labels
 
-**When to add labels:** Only if the user asks for them OR the format implies them (e.g., "diagram" yes, "drawing" no).
+**When to add labels:** Only if the user requests them OR the format implies them ("diagram" = yes, "drawing" = no).
 
-**Shape labels:**
-- Default text: 26pt tall, ~18px per character, 32px padding on each side
-- Shapes with labels have minimum height of 100px
-- Shapes auto-grow taller to fit text, so ensure sufficient WIDTH
-- Flowchart shapes: at least 200px per side
+**Text metrics:**
+- Font: 26pt tall, ~18px/character
+- Padding: 32px per side
+- Min shape height with label: 100px
+- Flowchart shapes: ≥200px per side
 
-**Sizing guide:**
-- Short label ("hello world"): ~200×200 or 300×150
-- Long paragraph: ~400×400 or 600×350
+**Shape sizing by label length:**
 
-**Text shapes:**
-- Default: auto-width based on content${flagged(flags.hasScreenshotPart, ' (check viewport to see actual size)')}
-- Fixed width: set BOTH \`width\` AND \`wrap: true\` (omit both for auto-size)
-- Alignment (\`start\`, \`middle\`, \`end\`): affects the meaning of \`x\`
-  - \`start\` (default): x = left edge
-  - \`middle\`: x = center
-  - \`end\`: x = right edge
-- Note: middle/end-aligned text are the only shapes where x ≠ left edge
+| Label type      | Recommended size       |
+|-----------------|------------------------|
+| Short (2 words) | 200×200 or 300×150     |
+| Long paragraph  | 400×400 or 600×350     |
 
-**Note shapes:** Fixed 50×50, only for tiny text. Use text shapes or geo shapes for more.`
+**Text shape alignment:**
+
+| Align    | \`x\` means    |
+|----------|---------------|
+| \`start\` | left edge     |
+| \`middle\`| center        |
+| \`end\`   | right edge    |
+
+Note: middle/end-aligned text are the ONLY shapes where x ≠ left edge.
+
+**Text shape sizing:**
+- Default: auto-width${flagged(flags.hasScreenshotPart, ' (check viewport for actual size)')}
+- Fixed width: set BOTH \`width\` AND \`wrap: true\`
+- Auto-size: omit both \`width\` and \`wrap\`
+
+**Note shapes:** 50×50 fixed. For longer text, use text shapes or geo shapes.`
 )}
 
 ${flagged(
