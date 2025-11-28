@@ -1,7 +1,7 @@
 import z from 'zod'
 import { FocusColorSchema } from '../format/FocusColor'
 import { FocusFillSchema } from '../format/FocusFill'
-import { FocusedShapeSchema } from '../format/FocusedShape'
+import { FocusedCreatableShapeSchema, FocusedShapeSchema } from '../format/FocusedShape'
 import { BaseAgentAction } from '../types/BaseAgentAction'
 
 export const AlignActionSchema = z
@@ -84,7 +84,7 @@ export const CreateActionSchema = z
 	.object({
 		_type: z.literal('create'),
 		intent: z.string(),
-		shape: FocusedShapeSchema,
+		shape: FocusedCreatableShapeSchema,
 	})
 	.meta({ title: 'Create', description: 'The agent creates a new shape.' })
 

@@ -103,7 +103,7 @@ export class AgentHelpers {
 	/**
 	 * Apply the offset of this request to a shape.
 	 */
-	applyOffsetToShape(shape: FocusedShape): FocusedShape {
+	applyOffsetToShape<T extends FocusedShape>(shape: T): T {
 		if ('x1' in shape) {
 			return {
 				...shape,
@@ -151,7 +151,7 @@ export class AgentHelpers {
 	/**
 	 * Remove the offset of this request from a shape.
 	 */
-	removeOffsetFromShape(shape: FocusedShape): FocusedShape {
+	removeOffsetFromShape<T extends FocusedShape>(shape: T): T {
 		if ('x1' in shape) {
 			return {
 				...shape,
