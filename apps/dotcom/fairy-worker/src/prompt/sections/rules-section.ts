@@ -3,64 +3,37 @@ import { SystemPromptFlags } from '../getSystemPromptFlags'
 import { flagged } from './flagged'
 
 export function buildRulesPromptSection(flags: SystemPromptFlags) {
-	return `## Shapes
+	return `## Critical rules
 
-Shapes are the basic building blocks of the canvas. Anything on the canvas is a shape.
+1. **Schema is the source of truth.** Only use shape types, properties, and events defined in the JSON schema. Never invent new ones—your changes will be rejected.
+2. **Always return valid JSON** conforming to the schema. Do not add extra fields or omit required fields.
+3. **Use meaningful \`intent\` descriptions** for all actions.
+${flagged(flags.canEdit, '4. **Each `shapeId` must be unique** and consistent across related events.')}
+${flagged(flags.canEdit, '5. **Arrow positioning rule:** When connecting an arrow to a shape, place the arrow endpoint at the CENTER of the shape, not the edge. The rendering engine auto-adjusts the visual position.')}
 
-There are several types of shapes, each with their own properties.
+## Shapes
 
-Each shape has certain common properties:
+Shapes are the building blocks of the canvas. Each shape has:
+- \`_type\`: one of ${FOCUSED_SHAPE_TYPES.map((type) => `\`${type}\``).join(', ')}
+- \`x\`, \`y\`: coordinates of the TOP LEFT corner (except arrows/lines which use \`x1\`, \`y1\`, \`x2\`, \`y2\`)
+- \`note\`: invisible description of the shape's purpose (for your reference)
+- Plus type-specific properties: \`w\`, \`h\`, \`color\`, \`fill\`, \`text\`, etc.
 
-- \`_type\` (one of ${FOCUSED_SHAPE_TYPES.map((type) => `\`${type}\``).join(', ')})
-- \`x\`, \`y\` (numbers, coordinates, the TOP LEFT corner of the shape) (except for arrows and lines, which have \`x1\`, \`y1\`, \`x2\`, \`y2\`)
-- \`note\` (a description of the shape's purpose or intent) (invisible to the user)
+Refer to the schema for the full property list per shape type.
 
-...and specific properties depending on their type:
+## Arrows and lines
 
-- \`w\` and \`h\` (for shapes)
-- \`color\` (optional, chosen from predefined colors)
-- \`fill\` (optional, for shapes)
-- \`text\` (optional, for text elements) (visible to the user)
-- ...and others
+Arrows connect shapes. Don't confuse them with arrow shapes (arrow-up, arrow-down, etc.) which are 2D geometric shapes.
 
-Refer to the schema for the full list of properties for each shape type. 
+**Arrow-specific properties:**
+- \`fromId\`: id of the shape the arrow starts from
+- \`toId\`: id of the shape the arrow points to
 
-You will be provided with a schema that describes the data format for many shapes. If you are able to create or edit shapes, then it is critical that you adhere to the schema. You must never invent new shape types or new properties for shapes, or else your changes will be rejected.
+**Position properties (arrows and lines):**
+- \`x1\`, \`y1\`: start point coordinates
+- \`x2\`, \`y2\`: end point coordinates
 
-## Advanced shapes
-
-Several shapes are more advanced than others and bear further explanation.
-
-### Arrow properties
-
-Arrows differ from other shapes—they are lines connecting two shapes. Don't confuse them with arrow shapes (arrow-up, arrow-down, arrow-left, arrow-right), which are two-dimensional geometric shapes.
-
-Arrows have:
-- \`fromId\` (optional, the id of the shape that the arrow starts from)
-- \`toId\` (optional, the id of the shape that the arrow points to)
-
-### Arrow and line properties
-
-Arrows and lines differ from other shapes in that they have two positions, not just one.
-
-Arrows and lines have the properties:
-- \`x1\`, \`y1\` (the x and y coordinates of the first point of the line, its "start" point)
-- \`x2\`, \`y2\` (the x and y coordinates of the second point of the line, its "end" point)
-
-When an arrow is not connected to a shape, the arrow's start and end points will be displayed wherever its first and second points are. However, if an arrow is connected to a shape, the canvas engine will adjust the _rendered_ position of the arrow's start and end points so that it does not overlap with the shapes to which it is connected.
-
-For this reason, when connecting an arrow to a shape, the point of the arrow should almost always be placed at the _center_ of connected shape. This will guarantee a beautiful, clean arrow. Never place the point of the arrow at the very edge of the connected shape; this will produce an ugly arrow that will confuse the rendering engine.
-
-## Event schema
-
-Refer to the JSON schema for the full list of available events, their properties, and their descriptions. You can only use events listed in the JSON schema, even if they are referred to within this system prompt. Use the schema as the source of truth on what is available. Make wise choices about which action types to use, but only use action types that are listed in the JSON schema.
-
-## Rules
-
-1. **Always return a valid JSON object conforming to the schema.**
-2. **Do not generate extra fields or omit required fields.**
-3. **Use meaningful \`intent\` descriptions for all actions.**
-${flagged(flags.canEdit, '4. **Ensure each `shapeId` is unique and consistent across related events.**')}
+When an arrow is connected to a shape via \`fromId\`/\`toId\`, the rendering engine adjusts the visual endpoints automatically. This is why you should place endpoints at shape centers, not edges.
 
 ## Useful notes
 
