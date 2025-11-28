@@ -19,16 +19,17 @@ import { FairySingleChatInput } from './fairy-agent/input/FairySingleChatInput'
 import { fairyMessages } from './fairy-messages'
 import { FairyDropdownContent } from './FairyDropdownContent'
 import { FairyListSidebar } from './FairyListSidebar'
+import { FairyManualPanel } from './FairyManualPanel'
 import { $fairyProjects, getProjectOrchestrator } from './FairyProjects'
 import { FairyProjectView } from './FairyProjectView'
 import { $fairyTasks } from './FairyTaskList'
 import { FairyTaskListDropdownContent } from './FairyTaskListDropdownContent'
 import { FairyTaskListInline } from './FairyTaskListInline'
 
-type PanelState = 'task-list' | 'fairy' | 'closed'
+type PanelState = 'task-list' | 'fairy' | 'manual' | 'closed'
 
 interface FairyHUDHeaderProps {
-	panelState: 'fairy' | 'task-list'
+	panelState: 'fairy' | 'task-list' | 'manual'
 	menuPopoverOpen: boolean
 	onMenuPopoverOpenChange(open: boolean): void
 	onToggleFairyTasks(): void
@@ -101,7 +102,11 @@ function FairyHUDHeader({
 
 	// Determine center content based on panel state
 	const centerContent =
-		panelState === 'task-list' ? (
+		panelState === 'manual' ? (
+			<div className="fairy-id-display">
+				<F defaultMessage="Help & Documentation" />
+			</div>
+		) : panelState === 'task-list' ? (
 			<div className="fairy-id-display">
 				<F defaultMessage="Todo list" />
 			</div>
@@ -131,14 +136,16 @@ function FairyHUDHeader({
 		<div className="fairy-toolbar-header">
 			{centerContent}
 			<div className="tlui-row">
-				<TldrawUiDropdownMenuRoot id="fairy-hud-menu" debugOpen={menuPopoverOpen}>
-					<TldrawUiDropdownMenuTrigger>
-						<TldrawUiButton type="icon" className="fairy-toolbar-button">
-							<TldrawUiButtonIcon icon="dots-vertical" small />
-						</TldrawUiButton>
-					</TldrawUiDropdownMenuTrigger>
-					{dropdownContent}
-				</TldrawUiDropdownMenuRoot>
+				{panelState !== 'manual' && (
+					<TldrawUiDropdownMenuRoot id="fairy-hud-menu" debugOpen={menuPopoverOpen}>
+						<TldrawUiDropdownMenuTrigger>
+							<TldrawUiButton type="icon" className="fairy-toolbar-button">
+								<TldrawUiButtonIcon icon="dots-vertical" small />
+							</TldrawUiButton>
+						</TldrawUiDropdownMenuTrigger>
+						{dropdownContent}
+					</TldrawUiDropdownMenuRoot>
+				)}
 				{/* 			
 				{panelState === 'fairy' && shownFairy && selectedFairies.length === 1 && (
 					<TldrawUiButton
@@ -178,6 +185,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	const selectMessage = useMsg(fairyMessages.selectFairy)
 	const switchToFairyChatLabel = useMsg(fairyMessages.switchToFairyChat)
 	const switchToTaskListLabel = useMsg(fairyMessages.switchToTaskList)
+	const manualLabel = useMsg(fairyMessages.manual)
 
 	// Create a reactive value that tracks which fairies are selected
 	const selectedFairies = useValue(
@@ -430,6 +438,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		}
 		return Array.from(projectIds)
 	}, [agents, projects])
+
 	useEffect(() => {
 		for (const project of projects) {
 			if (badStateProjectIds.includes(project.id)) {
@@ -538,6 +547,8 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 							)}
 
 							{panelState === 'task-list' && <FairyTaskListInline agents={agents} />}
+
+							{panelState === 'manual' && <FairyManualPanel />}
 						</div>
 					)}
 					<div className="fairy-buttons-container">
@@ -547,9 +558,11 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 							toolbarMessage={toolbarMessage}
 							selectMessage={selectMessage}
 							deselectMessage={deselectMessage}
+							manualLabel={manualLabel}
 							onClickFairy={handleClickFairy}
 							onDoubleClickFairy={handleDoubleClickFairy}
 							onTogglePanel={handleTogglePanel}
+							onToggleManual={() => setPanelState((v) => (v === 'manual' ? 'closed' : 'manual'))}
 						/>
 					</div>
 				</div>

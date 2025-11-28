@@ -54,4 +54,5 @@ export const fairyMessages = defineMessages({
 	// HUD toggle labels
 	switchToFairyChat: { defaultMessage: 'Switch to fairy chat' },
 	switchToTaskList: { defaultMessage: 'Switch to task list' },
+	manual: { defaultMessage: 'Help & documentation' },
 })

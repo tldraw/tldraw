@@ -1,5 +1,11 @@
 import { MouseEvent } from 'react'
-import { TldrawUiToolbar, useValue } from 'tldraw'
+import {
+	TldrawUiButtonIcon,
+	TldrawUiToolbar,
+	TldrawUiToolbarToggleGroup,
+	TldrawUiToolbarToggleItem,
+	useValue,
+} from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { FairyReticleSprite } from './fairy-sprite/sprites/FairyReticleSprite'
 import { FairySidebarButton } from './FairySidebarButton'
@@ -78,22 +84,27 @@ function getSidebarEntries(agents: FairyAgent[]): FairySidebarEntry[] {
 
 interface FairyListSidebarProps {
 	agents: FairyAgent[]
-	panelState: 'task-list' | 'fairy' | 'closed'
+	panelState: 'task-list' | 'fairy' | 'manual' | 'closed'
 	toolbarMessage: string
 	selectMessage: string
 	deselectMessage: string
+	manualLabel: string
 	onClickFairy(agent: FairyAgent, event: MouseEvent): void
 	onDoubleClickFairy(agent: FairyAgent): void
 	onTogglePanel(): void
+	onToggleManual(): void
 }
 
 export function FairyListSidebar({
 	agents,
+	panelState,
 	toolbarMessage,
 	selectMessage,
 	deselectMessage,
+	manualLabel,
 	onClickFairy,
 	onDoubleClickFairy,
+	onToggleManual,
 }: FairyListSidebarProps) {
 	const sidebarEntries = useValue('fairy-sidebar-entries', () => getSidebarEntries(agents), [
 		agents,
@@ -135,9 +146,25 @@ export function FairyListSidebar({
 		/>
 	)
 
+	const isManualActive = panelState === 'manual'
+
 	return (
 		<div className="fairy-list">
 			<TldrawUiToolbar label={toolbarMessage} orientation="vertical">
+				<TldrawUiToolbarToggleGroup type="single" value={isManualActive ? 'on' : 'off'}>
+					<TldrawUiToolbarToggleItem
+						className="fairy-manual-button"
+						type="icon"
+						value="on"
+						data-state={isManualActive ? 'on' : 'off'}
+						data-isactive={isManualActive}
+						onClick={onToggleManual}
+						title={manualLabel}
+						aria-label={manualLabel}
+					>
+						<TldrawUiButtonIcon icon="manual" />
+					</TldrawUiToolbarToggleItem>
+				</TldrawUiToolbarToggleGroup>
 				{sidebarEntries.map((entry) => {
 					if (entry.type === 'group') {
 						return (
