@@ -32,11 +32,12 @@ import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
 import { TlaFairyInviteDialog } from '../components/dialogs/TlaFairyInviteDialog'
 import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
+import { useFairyAccess } from '../hooks/useFairyAccess'
 import { useFeatureFlags } from '../hooks/useFeatureFlags'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
 import { FeatureFlagsFetcher } from '../utils/FeatureFlagsFetcher'
-import { IntlProvider, defineMessages, setupCreateIntl, useIntl } from '../utils/i18n'
+import { IntlProvider, defineMessages, setupCreateIntl, useIntl, useMsg } from '../utils/i18n'
 import {
 	clearLocalSessionState,
 	getLocalSessionState,
@@ -204,28 +205,58 @@ function RedirectHandler() {
 	return null
 }
 
+const fairyInviteMessages = defineMessages({
+	alreadyHasAccess: { defaultMessage: 'You already have fairy access!' },
+})
+
 function FairyInviteHandler() {
 	const auth = useAuth()
 	const dialogs = useDialogs()
-	const { flags } = useFeatureFlags()
+	const { addToast } = useToasts()
+	const { flags, isLoaded } = useFeatureFlags()
+	const hasFairyAccess = useFairyAccess()
+	const alreadyHasAccessMsg = useMsg(fairyInviteMessages.alreadyHasAccess)
 
 	useEffect(() => {
 		if (!auth.isLoaded) return
 		if (!auth.isSignedIn || !auth.userId) return
-		if (!flags.fairies_enabled) return
+		if (!isLoaded) return // Wait for flags to load before processing
 
 		const storedToken = getFromSessionStorage('fairy-invite-token')
 
 		if (storedToken) {
 			deleteFromSessionStorage('fairy-invite-token')
 
-			dialogs.addDialog({
-				component: ({ onClose }) => (
-					<TlaFairyInviteDialog fairyInviteToken={storedToken} onClose={onClose} />
-				),
-			})
+			// Show toast if user already has access
+			if (hasFairyAccess) {
+				addToast({
+					id: 'fairy-invite-already-has-access',
+					title: alreadyHasAccessMsg,
+				})
+				return
+			}
+
+			// Only show dialog if fairies are enabled
+			if (flags.fairies_enabled) {
+				dialogs.addDialog({
+					component: ({ onClose }) => (
+						<TlaFairyInviteDialog fairyInviteToken={storedToken} onClose={onClose} />
+					),
+				})
+			}
+			// If flags are disabled, token is cleaned up but dialog is not shown
 		}
-	}, [auth.isLoaded, auth.userId, auth.isSignedIn, dialogs, flags.fairies_enabled])
+	}, [
+		auth.isLoaded,
+		auth.userId,
+		auth.isSignedIn,
+		dialogs,
+		flags.fairies_enabled,
+		isLoaded,
+		hasFairyAccess,
+		addToast,
+		alreadyHasAccessMsg,
+	])
 
 	return null
 }

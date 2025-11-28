@@ -1,5 +1,5 @@
 import { useValue } from 'tldraw'
-import { featureFlagsAtom } from '../utils/FeatureFlagsFetcher'
+import { featureFlagsAtom, featureFlagsLoadedAtom } from '../utils/FeatureFlagsFetcher'
 
 /**
  * Hook that returns the current feature flags from the global atom.
@@ -7,5 +7,6 @@ import { featureFlagsAtom } from '../utils/FeatureFlagsFetcher'
  */
 export function useFeatureFlags() {
 	const flags = useValue('feature-flags', () => featureFlagsAtom.get(), [])
-	return { flags }
+	const isLoaded = useValue('feature-flags-loaded', () => featureFlagsLoadedAtom.get(), [])
+	return { flags, isLoaded }
 }

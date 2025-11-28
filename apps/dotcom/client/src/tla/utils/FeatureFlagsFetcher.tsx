@@ -12,6 +12,9 @@ export const featureFlagsAtom: Atom<FeatureFlags> = atom('featureFlags', {
 	fairies_purchase_enabled: false,
 })
 
+// Atom to track if flags have been loaded at least once
+export const featureFlagsLoadedAtom: Atom<boolean> = atom('featureFlagsLoaded', false)
+
 const REFETCH_INTERVAL = 60000 // 1 minute
 
 export function FeatureFlagsFetcher() {
@@ -28,6 +31,7 @@ export function FeatureFlagsFetcher() {
 				const data = await response.json()
 				if (mounted) {
 					featureFlagsAtom.set(data)
+					featureFlagsLoadedAtom.set(true)
 				}
 			} catch (error) {
 				console.error('Error fetching feature flags:', error)
