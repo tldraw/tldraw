@@ -2,15 +2,20 @@ import { FeatureFlagKey, FeatureFlagValue, hasActiveFairyAccess } from '@tldraw/
 import { IRequest } from 'itty-router'
 import { Environment } from '../types'
 
-const FLAG_DEFAULTS: Record<FeatureFlagKey, FeatureFlagValue> = {
-	fairies: {
-		enabled: false,
-		description: 'When OFF: completely disables all fairy features for everyone',
-	},
-	fairies_purchase: {
-		enabled: false,
-		description: 'When OFF: hides purchase button (respects in-flight webhooks)',
-	},
+function getFlagDefaults(env: Environment): Record<FeatureFlagKey, FeatureFlagValue> {
+	// Default to enabled in dev/preview when no KV value exists
+	const defaultEnabled = env.TLDRAW_ENV === 'development'
+
+	return {
+		fairies: {
+			enabled: defaultEnabled,
+			description: 'When OFF: completely disables all fairy features for everyone',
+		},
+		fairies_purchase: {
+			enabled: defaultEnabled,
+			description: 'When OFF: hides purchase button (respects in-flight webhooks)',
+		},
+	}
 }
 
 const ALL_FLAGS: FeatureFlagKey[] = ['fairies', 'fairies_purchase']
@@ -26,13 +31,13 @@ export async function getFeatureFlagValue(
 	try {
 		const value = await env.FEATURE_FLAGS.get(flag)
 		if (!value) {
-			// Return default if not found
-			return FLAG_DEFAULTS[flag]
+			// Return environment-specific default if not found
+			return getFlagDefaults(env)[flag]
 		}
 		return JSON.parse(value)
 	} catch (e) {
 		console.error(`Failed to get feature flag ${flag}:`, e)
-		return FLAG_DEFAULTS[flag]
+		return getFlagDefaults(env)[flag]
 	}
 }
 
