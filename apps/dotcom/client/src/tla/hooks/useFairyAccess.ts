@@ -27,7 +27,6 @@ export function useFairyAccess(): boolean {
 
 /**
  * Hook that returns the user's fairy limit.
- * A value of 0 means that they can purchases faries, but don't have access yet.
  * Returns null if the user has no fairy access at all.
  */
 export function useFairyLimit(): number | null {
