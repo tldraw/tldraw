@@ -46,7 +46,10 @@ export function usePaddle() {
 		const paddleEnv = (process.env.PADDLE_ENVIRONMENT as 'sandbox' | 'production') ?? 'sandbox'
 		const paddleToken = process.env.PADDLE_CLIENT_TOKEN
 
-		if (!paddleToken) return
+		if (!paddleToken) {
+			scriptLoadingRef.current = false
+			return
+		}
 
 		const script = document.createElement('script')
 		script.src = 'https://cdn.paddle.com/paddle/v2/paddle.js'

@@ -2,7 +2,7 @@ import { useUser } from '@clerk/clerk-react'
 import { hasActiveFairyAccess } from '@tldraw/dotcom-shared'
 import { useValue } from 'tldraw'
 import { useMaybeApp } from './useAppState'
-import { useFairyFlags } from './useFairyFlags'
+import { useFeatureFlags } from './useFeatureFlags'
 
 /**
  * Hook that returns whether the current user has active fairy access.
@@ -11,7 +11,7 @@ import { useFairyFlags } from './useFairyFlags'
 export function useFairyAccess(): boolean {
 	const app = useMaybeApp()
 	const { user: clerkUser } = useUser()
-	const { flags } = useFairyFlags()
+	const { flags } = useFeatureFlags()
 	return useValue(
 		'fairy_access',
 		() => {

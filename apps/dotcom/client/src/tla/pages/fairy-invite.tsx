@@ -4,7 +4,7 @@ import { setInSessionStorage, useDialogs, useToasts } from 'tldraw'
 import { routes } from '../../routeDefs'
 import { TlaSignInDialog } from '../components/dialogs/TlaSignInDialog'
 import { useFairyAccess } from '../hooks/useFairyAccess'
-import { useFairyFlags } from '../hooks/useFairyFlags'
+import { useFeatureFlags } from '../hooks/useFeatureFlags'
 import { useTldrawUser } from '../hooks/useUser'
 import { defineMessages, useMsg } from '../utils/i18n'
 
@@ -19,7 +19,7 @@ export function Component() {
 	const alreadyHasAccessMsg = useMsg(messages.alreadyHasAccess)
 	const userHasActiveFairyAccess = useFairyAccess()
 	const user = useTldrawUser()
-	const { flags } = useFairyFlags()
+	const { flags } = useFeatureFlags()
 
 	useEffect(() => {
 		if (userHasActiveFairyAccess) {

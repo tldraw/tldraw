@@ -1,4 +1,4 @@
-import { MAX_FAIRY_COUNT, TlaFile } from '@tldraw/dotcom-shared'
+import { FeatureFlagKey, MAX_FAIRY_COUNT, TlaFile } from '@tldraw/dotcom-shared'
 import { assert, retry, sleep, uniqueId } from '@tldraw/utils'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
@@ -8,7 +8,7 @@ import { createPostgresConnectionPool } from './postgres'
 import { returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
 import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
-import { FeatureFlagKey, getFeatureFlags, setFeatureFlag } from './utils/featureFlags'
+import { getFeatureFlags, setFeatureFlag } from './utils/featureFlags'
 import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
 
 async function requireUser(env: Environment, q: string) {

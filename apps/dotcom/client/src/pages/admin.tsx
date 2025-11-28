@@ -1,4 +1,11 @@
-import { MAX_FAIRY_COUNT, TlaFile, TlaUser, userHasFlag, ZStoreData } from '@tldraw/dotcom-shared'
+import {
+	FeatureFlagValue,
+	MAX_FAIRY_COUNT,
+	TlaFile,
+	TlaUser,
+	userHasFlag,
+	ZStoreData,
+} from '@tldraw/dotcom-shared'
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { fetch } from 'tldraw'
@@ -604,11 +611,6 @@ function FairyInvites() {
 			)}
 		</div>
 	)
-}
-
-interface FeatureFlagValue {
-	enabled: boolean
-	description: string
 }
 
 function FeatureFlags() {

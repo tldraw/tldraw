@@ -32,7 +32,7 @@ import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
 import { TlaFairyInviteDialog } from '../components/dialogs/TlaFairyInviteDialog'
 import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
-import { useFairyFlags } from '../hooks/useFairyFlags'
+import { useFeatureFlags } from '../hooks/useFeatureFlags'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
 import { FeatureFlagsFetcher } from '../utils/FeatureFlagsFetcher'
@@ -207,7 +207,7 @@ function RedirectHandler() {
 function FairyInviteHandler() {
 	const auth = useAuth()
 	const dialogs = useDialogs()
-	const { flags } = useFairyFlags()
+	const { flags } = useFeatureFlags()
 
 	useEffect(() => {
 		if (!auth.isLoaded) return

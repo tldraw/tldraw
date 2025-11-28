@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { setInSessionStorage, useDialogs } from 'tldraw'
 import { TlaSignInDialog } from '../tla/components/dialogs/TlaSignInDialog'
 import { useFairyAccess } from '../tla/hooks/useFairyAccess'
-import { useFairyFlags } from '../tla/hooks/useFairyFlags'
+import { useFeatureFlags } from '../tla/hooks/useFeatureFlags'
 import { usePaddle } from '../tla/hooks/usePaddle'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import '../tla/styles/fairy.css'
@@ -22,7 +22,7 @@ export function Component() {
 	const [searchParams, setSearchParams] = useSearchParams()
 	const [isProcessing, setIsProcessing] = useState(false)
 	const { paddleLoaded, openPaddleCheckout } = usePaddle()
-	const { flags } = useFairyFlags()
+	const { flags } = useFeatureFlags()
 
 	// Handle checkout intent from search params (after sign-in redirect)
 	useEffect(() => {

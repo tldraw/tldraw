@@ -1,12 +1,6 @@
+import { FeatureFlagKey, FeatureFlagValue, hasActiveFairyAccess } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import { Environment } from '../types'
-
-export type FeatureFlagKey = 'fairies_enabled' | 'fairies_purchase_enabled'
-
-export interface FeatureFlagValue {
-	enabled: boolean
-	description: string
-}
 
 const FLAG_DEFAULTS: Record<FeatureFlagKey, FeatureFlagValue> = {
 	fairies_enabled: {
@@ -77,10 +71,7 @@ export async function checkFairyAccess(
 	const flagEnabled = await getFeatureFlag(env, 'fairies_enabled')
 	if (!flagEnabled) return false
 
-	const hasValidLimit = fairyLimit !== null && fairyLimit > 0
-	const notExpired = fairyAccessExpiresAt !== null && fairyAccessExpiresAt > Date.now()
-
-	return hasValidLimit && notExpired
+	return hasActiveFairyAccess(fairyAccessExpiresAt, fairyLimit)
 }
 
 /**
