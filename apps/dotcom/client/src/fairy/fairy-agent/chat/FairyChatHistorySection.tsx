@@ -62,18 +62,13 @@ export function FairyChatHistorySection({
 	return (
 		<div className="fairy-chat-history-section">
 			{/* We don't display messages with source self */}
-			{section.prompt !== null ? (
+			{section.prompt !== null && section.prompt.promptSource !== 'self' ? (
 				<div className="fairy-chat-history-prompt-container fairy-chat-history-prompt-sticky">
 					{section.prompt.promptSource === 'user' ? (
 						<div className="fairy-chat-history-prompt-user">
 							<div className="fairy-chat-history-prompt-content">{displayMessage}</div>
 						</div>
 					) : section.prompt.promptSource === 'other-agent' ? (
-						<div className="fairy-chat-history-prompt-other-agent">
-							<div className="fairy-chat-history-prompt-content">{displayMessage}</div>
-						</div>
-					) : // self messages we only display if they have a userFacingMessage, don't fall back to agentFacingMessage
-					section.prompt.promptSource === 'self' && section.prompt.userFacingMessage !== null ? (
 						<div className="fairy-chat-history-prompt-other-agent">
 							<div className="fairy-chat-history-prompt-content">{displayMessage}</div>
 						</div>

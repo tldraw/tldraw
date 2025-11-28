@@ -75,7 +75,7 @@ function addProjectCancellationMemory(memberAgent: FairyAgent, project: FairyPro
 				type: 'memory-transition',
 				memoryLevel: 'fairy',
 				agentFacingMessage: `[ACTIONS]: <Project actions filtered for brevity>`,
-				userFacingMessage: null,
+				userFacingMessage: 'Project cancelled',
 			},
 			{
 				id: uniqueId(),
@@ -83,7 +83,7 @@ function addProjectCancellationMemory(memberAgent: FairyAgent, project: FairyPro
 				promptSource: 'self',
 				memoryLevel: 'fairy',
 				agentFacingMessage: `[THOUGHT]: I was ${verb} ${projectReference} that got cancelled by the user. I had completed ${completedTasksCount} ${taskWord} before the project was cancelled.`,
-				userFacingMessage: 'Project cancelled',
+				userFacingMessage: '',
 			}
 		)
 	} else {
@@ -93,7 +93,7 @@ function addProjectCancellationMemory(memberAgent: FairyAgent, project: FairyPro
 				type: 'memory-transition',
 				memoryLevel: 'fairy',
 				agentFacingMessage: `[ACTIONS]: <Project actions filtered for brevity>`,
-				userFacingMessage: null,
+				userFacingMessage: 'Project cancelled',
 			},
 			{
 				id: uniqueId(),
@@ -101,7 +101,7 @@ function addProjectCancellationMemory(memberAgent: FairyAgent, project: FairyPro
 				promptSource: 'self',
 				memoryLevel: 'fairy',
 				agentFacingMessage: `[THOUGHT]: I was ${verb} ${projectReference} that got cancelled by the user.`,
-				userFacingMessage: 'Project cancelled',
+				userFacingMessage: null,
 			}
 		)
 	}
