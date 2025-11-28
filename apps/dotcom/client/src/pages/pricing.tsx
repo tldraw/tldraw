@@ -22,10 +22,11 @@ export function Component() {
 	const [searchParams, setSearchParams] = useSearchParams()
 	const [isProcessing, setIsProcessing] = useState(false)
 	const { paddleLoaded, openPaddleCheckout } = usePaddle()
-	const { flags } = useFeatureFlags()
+	const { flags, isLoaded } = useFeatureFlags()
 
 	// Handle checkout intent from search params (after sign-in redirect)
 	useEffect(() => {
+		if (!isLoaded) return // Wait for flags to load
 		if (searchParams.get('checkout') === 'true' && user && paddleLoaded) {
 			// Clear the param
 			setSearchParams((params) => {
@@ -63,10 +64,12 @@ export function Component() {
 		navigate,
 		flags.fairies_enabled,
 		flags.fairies_purchase_enabled,
+		isLoaded,
 	])
 
 	const handlePurchaseClick = useCallback(() => {
 		if (isProcessing) return
+		if (!isLoaded) return // Wait for flags to load
 
 		// Don't allow purchase if fairies feature is disabled
 		if (!flags.fairies_enabled) {
@@ -113,6 +116,7 @@ export function Component() {
 		openPaddleCheckout,
 		flags.fairies_enabled,
 		flags.fairies_purchase_enabled,
+		isLoaded,
 	])
 
 	return (
