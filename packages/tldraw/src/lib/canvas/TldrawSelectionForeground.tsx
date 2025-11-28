@@ -532,7 +532,7 @@ export const MobileRotateHandle = function RotateHandle({
 	const events = useSelectionEvents('mobile_rotate')
 
 	const editor = useEditor()
-	const zoom = useValue('zoom level', () => editor.getZoomLevel(), [editor])
+	const zoom = useValue('zoom level', () => editor.getDebouncedZoomLevel(), [editor])
 	const bgRadius = Math.max(14 * (1 / zoom), 20 / Math.max(1, zoom))
 	const msg = useTranslation()
 	return (

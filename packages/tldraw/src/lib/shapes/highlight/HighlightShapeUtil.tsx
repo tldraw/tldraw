@@ -315,7 +315,7 @@ function useHighlightForceSolid(editor: Editor, shape: TLHighlightShape) {
 		'forceSolid',
 		() => {
 			const sw = getStrokeWidth(shape)
-			const zoomLevel = editor.getZoomLevel()
+			const zoomLevel = editor.getDebouncedZoomLevel()
 			if (sw / zoomLevel < 1.5) {
 				return true
 			}
