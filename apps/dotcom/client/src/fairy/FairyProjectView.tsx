@@ -95,6 +95,12 @@ export function FairyProjectView({
 		[agents]
 	)
 
+	const orchestratorName = useValue(
+		'orchestrator-name',
+		() => orchestratorAgent?.$fairyConfig.get()?.name ?? 'your partner',
+		[orchestratorAgent]
+	)
+
 	// Cancel logic
 	const shouldCancel = isGenerating && inputValue === ''
 
@@ -300,7 +306,7 @@ Do NOT start a completely new project. Respond with a message action first expla
 	const sendTitle = useMsg(fairyMessages.sendTitle)
 
 	// Dynamic placeholder based on project state
-	const placeholder = isPreProject ? instructGroupPlaceholder : `Steer the project...`
+	const placeholder = isPreProject ? instructGroupPlaceholder : `Whisper to ${orchestratorName}...`
 
 	// Empty state
 	if (agents.length === 0) {

@@ -300,6 +300,20 @@ export class FairyAgent {
 
 		this.stopRecordingFn = this.startRecordingUserActions()
 
+		// Cancel fairy when max shapes limit is reached
+		this.handleMaxShapes = () => {
+			if (this.isGenerating()) {
+				this.interrupt({
+					input: {
+						agentMessages: [
+							'Maximum shapes reached. Stop all your work and return to your home in the forest.',
+						],
+					},
+				})
+			}
+		}
+		editor.addListener('max-shapes', this.handleMaxShapes)
+
 		// Poof on spawn
 		this.stackGesture('poof')
 	}
@@ -311,6 +325,7 @@ export class FairyAgent {
 		this.cancel()
 		this.stopRecordingUserActions()
 		this.wakeOnSelectReaction?.()
+		this.editor.removeListener('max-shapes', this.handleMaxShapes)
 		// Stop following this fairy if it's currently being followed
 		if (getFollowingFairyId(this.editor) === this.id) {
 			stopFollowingFairy(this.editor)
@@ -1322,6 +1337,11 @@ export class FairyAgent {
 	 * A function that stops the wake-on-select reaction.
 	 */
 	private wakeOnSelectReaction: () => void
+
+	/**
+	 * Handler for the max-shapes event to cancel fairy when limit is reached.
+	 */
+	private handleMaxShapes: () => void
 
 	/**
 	 * Stop recording user actions.
