@@ -28,6 +28,7 @@ import {
 	parseFlags,
 	schema as zeroSchema,
 } from '@tldraw/dotcom-shared'
+import { ChatHistoryItem } from '@tldraw/fairy-shared'
 import {
 	Result,
 	assert,
@@ -819,6 +820,13 @@ export class TldrawApp {
 		this.z.mutate.file_state.updateFairies({
 			fileId,
 			fairyState: JSON.stringify(fairyState),
+		})
+	}
+
+	appendFairyChatMessages(fileId: string, messages: ChatHistoryItem[]) {
+		this.z.mutate.file_state.appendFairyChatMessage({
+			fileId,
+			messages,
 		})
 	}
 

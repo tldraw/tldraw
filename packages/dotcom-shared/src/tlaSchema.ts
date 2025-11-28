@@ -321,6 +321,7 @@ export interface DB {
 	fairy_invite: TlaFairyInvite
 	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
+	file_fairy_messages: TlaFileFairyMessage
 }
 
 export const schema = createSchema({
@@ -343,6 +344,16 @@ export type TlaGroupUser = Row<typeof schema.tables.group_user>
 export type TlaGroupFile = Row<typeof schema.tables.group_file>
 export type TlaUserFairy = Row<typeof schema.tables.user_fairies>
 export type TlaFileFairy = Row<typeof schema.tables.file_fairies>
+
+// file_fairy_messages is backend-only, not part of Zero schema
+export interface TlaFileFairyMessage {
+	id: string
+	fileId: string
+	userId: string
+	message: string
+	createdAt: number
+	updatedAt: number
+}
 
 // fairy_invite is backend-only, not part of Zero schema
 export interface TlaFairyInvite {
