@@ -27,7 +27,13 @@ export class StartDuoProjectActionUtil extends AgentActionUtil<StartDuoProjectAc
 		const { projectName, projectDescription, projectColor, projectPlan } = action
 
 		const project = getProjectByAgentId(this.agent.id)
-		if (!project) return // todo error
+		if (!project) {
+			this.agent.interrupt({
+				input:
+					'You are not currently part of a project. A project must be created before you can start it.',
+			})
+			return
+		}
 
 		const colorAlreadyChosen = $fairyProjects.get().some((p) => p.color === projectColor)
 		if (colorAlreadyChosen) {

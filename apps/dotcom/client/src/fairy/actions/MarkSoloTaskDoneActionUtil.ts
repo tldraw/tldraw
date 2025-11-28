@@ -21,7 +21,13 @@ export class MarkSoloTaskDoneActionUtil extends AgentActionUtil<MarkSoloTaskDone
 
 		const currentWork = this.agent.getWork()
 		const currentTask = currentWork.tasks.find((task) => task.status === 'in-progress')
-		if (!currentTask) return // todo error
+		if (!currentTask) {
+			this.agent.interrupt({
+				input:
+					'You are not currently working on any task. You can only mark a task as done if you are actively working on it.',
+			})
+			return
+		}
 		const currentTaskId = currentTask.id
 
 		setFairyTaskStatusAndNotifyCompletion(currentTaskId, 'done', this.editor)

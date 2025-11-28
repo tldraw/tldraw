@@ -27,12 +27,20 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 		const { projectName, projectDescription, projectColor, projectPlan } = action
 
 		const project = getProjectByAgentId(this.agent.id)
-		if (!project) return // todo error
+		if (!project) {
+			this.agent.interrupt({
+				input:
+					'You are not currently part of a project. A project must be created before you can start it.',
+			})
+			return
+		}
 
-		const colorAlreadyChosen = $fairyProjects.get().some((p) => p.color === projectColor)
+		const colorAlreadyChosen = $fairyProjects
+			.get()
+			.some((p) => p.color === projectColor || p.color === 'white')
 		if (colorAlreadyChosen) {
 			this.agent.interrupt({
-				input: `The color ${projectColor} has already been chosen for another project. Please choose a different color.`,
+				input: `The color ${projectColor} is not available at the moment. Please choose a different color.`,
 			})
 			return
 		}

@@ -22,7 +22,12 @@ export class CreateDuoTaskActionUtil extends AgentActionUtil<CreateDuoTaskAction
 		if (!action.complete) return
 
 		const project = this.agent.getProject()
-		if (!project) return // todo error
+		if (!project) {
+			this.agent.interrupt({
+				input: 'You are not currently part of a project. You must be in a project to create tasks.',
+			})
+			return
+		}
 
 		const assignedToId = action.assignedTo
 		const assignedAgentsProject = getProjectByAgentId(assignedToId)

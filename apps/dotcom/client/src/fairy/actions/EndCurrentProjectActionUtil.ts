@@ -23,7 +23,13 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 		if (!this.agent) return
 
 		const project = this.agent.getProject()
-		if (!project) return // todo error
+		if (!project) {
+			this.agent.interrupt({
+				input:
+					'You are not currently part of a project. You cannot end a project you are not part of.',
+			})
+			return
+		}
 
 		const membersIds = project.members.map((member) => member.id)
 		const memberAgents = $fairyAgentsAtom
