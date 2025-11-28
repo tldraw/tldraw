@@ -5,25 +5,31 @@ import { flagged } from './flagged'
 export function buildRulesPromptSection(flags: SystemPromptFlags) {
 	return `## Shapes
 
-${
-	flags.canEdit
-		? `Shapes can be:
+Shapes are the basic building blocks of the canvas. Anything on the canvas is a shape.
 
-${FOCUSED_SHAPE_TYPES.map((type) => `- **${type.charAt(0).toUpperCase() + type.slice(1)} (\`${type}\`)**`).join('\n')}
+There are several types of shapes, each with their own properties.
 
-Each shape has:
+Each shape has certain common properties:
 
 - \`_type\` (one of ${FOCUSED_SHAPE_TYPES.map((type) => `\`${type}\``).join(', ')})
 - \`x\`, \`y\` (numbers, coordinates, the TOP LEFT corner of the shape) (except for arrows and lines, which have \`x1\`, \`y1\`, \`x2\`, \`y2\`)
 - \`note\` (a description of the shape's purpose or intent) (invisible to the user)
 
-Shapes may also have different properties depending on their type:
+...and specific properties depending on their type:
 
 - \`w\` and \`h\` (for shapes)
 - \`color\` (optional, chosen from predefined colors)
 - \`fill\` (optional, for shapes)
 - \`text\` (optional, for text elements) (visible to the user)
 - ...and others
+
+Refer to the schema for the full list of properties for each shape type. 
+
+You will be provided with a schema that describes the data format for many shapes. If you are able to create or edit shapes, then it is critical that you adhere to the schema. You must never invent new shape types or new properties for shapes, or else your changes will be rejected.
+
+## Advanced shapes
+
+Several shapes are more advanced than others and bear further explanation.
 
 ### Arrow properties
 
@@ -37,16 +43,13 @@ Arrows have:
 
 Arrows and lines differ from other shapes in that they have two positions, not just one.
 
-Arrows and lines have:
-- \`x1\` (the x coordinate of the first point of the line)
-- \`y1\` (the y coordinate of the first point of the line)
-- \`x2\` (the x coordinate of the second point of the line)
-- \`y2\` (the y coordinate of the second point of the line)
+Arrows and lines have the properties:
+- \`x1\`, \`y1\` (the x and y coordinates of the first point of the line, its "start" point)
+- \`x2\`, \`y2\` (the x and y coordinates of the second point of the line, its "end" point)
 
-`
-		: `What you need to know about shapes is that they exist on the canvas and have x,y coordinates, as well as many different types, colors, and fills. There are also arrows that can connect two shapes. You can't create or edit them, but other agents can.
-`
-}
+When an arrow is not connected to a shape, the arrow's start and end points will be displayed wherever its first and second points are. However, if an arrow is connected to a shape, the canvas engine will adjust the _rendered_ position of the arrow's start and end points so that it does not overlap with the shapes to which it is connected.
+
+For this reason, when connecting an arrow to a shape, the point of the arrow should almost always be placed at the _center_ of connected shape. This will guarantee a beautiful, clean arrow. Never place the point of the arrow at the very edge of the connected shape; this will produce an ugly arrow that will confuse the rendering engine.
 
 ## Event schema
 
@@ -83,11 +86,12 @@ ${flagged(
 ${flagged(
 	flags.hasCreate,
 	`- When creating shapes:
-	- Often the user will ask you to 'draw' something. If you are able to compose the drawing using rectangles, triangles, or circles to achieve the image, use those; otherwise, use the pen to draw a custom shape.
-	- If the shape you need is not available in the schema, use the pen to draw a custom shape. The pen can be helpful when you need more control over a shape's exact shape. This can be especially helpful when you need to create shapes that need to fit together precisely.
-	- Use the \`note\` field to provide context for each shape. This will help you in the future to understand the purpose of each shape.
-	- Never create "unknown" type shapes, though you can move unknown shapes if you need to.
-	- When creating shapes that are meant to be contained within other shapes, always ensure the shapes properly fit inside of the containing or background shape. If there are overlaps, decide between making the inside shapes smaller or the outside shape bigger.`
+	- **Drawing**. Often the user will ask you to 'draw' something. If you are able to compose the drawing using rectangles, triangles, or circles to achieve the image, use those; otherwise, use the pen to draw a custom shape.
+	- **Pen shapes**.If the shape you need is not available in the schema, use the pen to draw a custom shape. The pen can be helpful when you need more control over a shape's exact shape. This can be especially helpful when you need to create shapes that need to fit together precisely.
+	- **Unknown shapes**. Unknown shapes are shapes that you don't have a props schema for. You must never create "unknown" type shapes. However, since all shapes correspond to the basic schema (x, y, opacity, rotation, and other root properties), you _can_ move unknown shapes or manipulate them in basic ways.
+	- **Text labels and sizes**. A geometric shape without a text label can be any size. However, when a geometric shape (or note shape) has a text label, the shape must be large enough to contain the text. A shape with the label 'hello world' would be about 200x200 or 300x150. A shape with the label "Invisible man who can sing in a visible voice. Feeling like a hundred bucks, exchanging good lucks face to face. Check-checkin' his stash by the trash at St. Mark's Place." would be about 400x400 or 600x350.
+	- **Containing shapes**. When creating shapes that are meant to be contained within other shapes, always ensure the shapes properly fit inside of the containing shape. If there are overlaps, decide between making the inside shapes smaller or the outside shape bigger.
+	- **Notes**. Use the \`note\` property to provide context for each shape. This will help you in the future to understand the purpose of each shape. For example, if you are creating a bar chart, you might use the note property on each bar to describe what the bar represents. Later, if a user asks to you adjust a value, you can use the label to quickly identify the shape you need to update. Notes are not visible on the canvas or availableto the user.`
 )}
 ${flagged(
 	flags.hasCreate,
@@ -191,7 +195,7 @@ ${flagged(
 ${flagged(flags.hasFlyToBounds, '- If you fly somewhere, you get the same updated information about the canvas as if you had used the `review` action, so no need to review right after flying.')}
 ${flagged(flags.hasScreenshotPart, '- When reviewing your work, you should rely **most** on the image provided to find overlaps, assess quality, and ensure completeness.')}
 - Some important things to check for while reviewing:
-	- Are arrows properly connected to the shapes they are pointing to?
+	- Are arrows properly connected to the shapes they are pointing to, using the \`fromId\` or \`toId\` properties?
 	- Are labels properly contained within their containing shapes?
 	- Are labels properly positioned?
 	- Are any shapes overlapping? If so, decide whether to move the shapes, labels, or both.
