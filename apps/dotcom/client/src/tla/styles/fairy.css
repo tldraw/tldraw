@@ -448,8 +448,8 @@
 	justify-content: center;
 }
 
-.fairy-manual-button[data-state='on'] {
-	background-color: var(--tl-color-muted-2);
+.fairy-manual-button[data-state='on']::after {
+	visibility: visible;
 }
 
 /* Manual Panel Content */
