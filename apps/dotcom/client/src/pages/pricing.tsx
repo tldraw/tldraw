@@ -74,8 +74,8 @@ export function Component() {
 		}
 
 		if (!user) {
-			// Store checkout intent for redirect after sign-in
-			setInSessionStorage('pricing-checkout-intent', 'true')
+			// Store redirect path for after sign-in
+			setInSessionStorage('redirect-to', '/pricing?checkout=true')
 			addDialog({ component: TlaSignInDialog })
 			return
 		}

@@ -29,8 +29,10 @@ import { globalEditor } from '../../utils/globalEditor'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
+import { TlaFairyInviteDialog } from '../components/dialogs/TlaFairyInviteDialog'
 import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
+import { useFairyFlags } from '../hooks/useFairyFlags'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
 import { FeatureFlagsFetcher } from '../utils/FeatureFlagsFetcher'
@@ -166,6 +168,7 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 					<DefaultToasts />
 					<DefaultA11yAnnouncer />
 					<PutToastsInApp />
+					<FairyInviteHandler />
 					{currentEditor && <TlaCookieConsent />}
 				</TldrawUiContextProvider>
 			</TldrawUiA11yProvider>
@@ -180,6 +183,59 @@ function PutToastsInApp() {
 	return null
 }
 
+function RedirectHandler() {
+	const auth = useAuth()
+	const navigate = useNavigate()
+
+	useEffect(() => {
+		if (auth.isSignedIn && auth.userId) {
+			updateLocalSessionState(() => ({
+				auth: { userId: auth.userId },
+			}))
+
+			// Check for redirect after sign-in
+			const redirectTo = getFromSessionStorage('redirect-to')
+			if (
+				redirectTo &&
+				window.location.pathname !== new URL(redirectTo, window.location.origin).pathname
+			) {
+				deleteFromSessionStorage('redirect-to')
+				navigate(redirectTo)
+			}
+		} else {
+			clearLocalSessionState()
+		}
+	}, [auth.userId, auth.isSignedIn, navigate])
+
+	return null
+}
+
+function FairyInviteHandler() {
+	const auth = useAuth()
+	const dialogs = useDialogs()
+	const { flags } = useFairyFlags()
+
+	useEffect(() => {
+		if (!auth.isLoaded) return
+		if (!auth.isSignedIn || !auth.userId) return
+		if (!flags.fairies_enabled) return
+
+		const storedToken = getFromSessionStorage('fairy-invite-token')
+
+		if (storedToken) {
+			deleteFromSessionStorage('fairy-invite-token')
+
+			dialogs.addDialog({
+				component: ({ onClose }) => (
+					<TlaFairyInviteDialog fairyInviteToken={storedToken} onClose={onClose} />
+				),
+			})
+		}
+	}, [auth.isLoaded, auth.userId, auth.isSignedIn, dialogs, flags.fairies_enabled])
+
+	return null
+}
+
 function SignedInProvider({
 	children,
 	onThemeChange,
@@ -191,7 +247,6 @@ function SignedInProvider({
 }) {
 	const auth = useAuth()
 	const intl = useIntl()
-	const navigate = useNavigate()
 	const { user, isLoaded: isUserLoaded } = useClerkUser()
 	const [currentLocale, setCurrentLocale] = useState<string>(
 		globalEditor.get()?.user.getUserPreferences().locale ?? 'en'
@@ -206,23 +261,6 @@ function SignedInProvider({
 		onLocaleChange(locale)
 		setCurrentLocale(locale)
 	}, [currentLocale, locale, onLocaleChange])
-
-	useEffect(() => {
-		if (auth.isSignedIn && auth.userId) {
-			updateLocalSessionState(() => ({
-				auth: { userId: auth.userId },
-			}))
-
-			// Check for pricing checkout intent after sign-in
-			const checkoutIntent = getFromSessionStorage('pricing-checkout-intent')
-			if (checkoutIntent === 'true' && !window.location.pathname.includes('/pricing')) {
-				deleteFromSessionStorage('pricing-checkout-intent')
-				navigate('/pricing?checkout=true')
-			}
-		} else {
-			clearLocalSessionState()
-		}
-	}, [auth.userId, auth.isSignedIn, navigate])
 
 	if (!auth.isLoaded) return null
 
@@ -242,6 +280,7 @@ function SignedInProvider({
 	if (!auth.isSignedIn || !user || !isUserLoaded) {
 		return (
 			<ThemeContainer onThemeChange={onThemeChange}>
+				<FeatureFlagsFetcher />
 				<SignedOutAnalytics />
 				{children}
 			</ThemeContainer>
@@ -252,6 +291,7 @@ function SignedInProvider({
 		<AppStateProvider>
 			<UserProvider>
 				<ThemeContainer onThemeChange={onThemeChange}>
+					<RedirectHandler />
 					<FeatureFlagsFetcher />
 					<SignedInAnalytics />
 					{children}

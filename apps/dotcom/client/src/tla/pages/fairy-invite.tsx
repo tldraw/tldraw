@@ -1,8 +1,11 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
-import { useToasts } from 'tldraw'
+import { setInSessionStorage, useDialogs, useToasts } from 'tldraw'
 import { routes } from '../../routeDefs'
+import { TlaSignInDialog } from '../components/dialogs/TlaSignInDialog'
 import { useFairyAccess } from '../hooks/useFairyAccess'
+import { useFairyFlags } from '../hooks/useFairyFlags'
+import { useTldrawUser } from '../hooks/useUser'
 import { defineMessages, useMsg } from '../utils/i18n'
 
 const messages = defineMessages({
@@ -12,11 +15,16 @@ const messages = defineMessages({
 export function Component() {
 	const { token } = useParams<{ token: string }>()
 	const { addToast } = useToasts()
+	const { addDialog } = useDialogs()
 	const alreadyHasAccessMsg = useMsg(messages.alreadyHasAccess)
 	const userHasActiveFairyAccess = useFairyAccess()
+	const user = useTldrawUser()
+	const { flags } = useFairyFlags()
 
-	// Memoize the state object to prevent Navigate from re-rendering infinitely
-	const navigateState = useMemo(() => ({ fairyInviteToken: token }), [token])
+	// If fairies feature is disabled, redirect to home
+	if (!flags.fairies_enabled) {
+		return <Navigate to={routes.tlaRoot()} replace />
+	}
 
 	useEffect(() => {
 		if (userHasActiveFairyAccess) {
@@ -27,10 +35,22 @@ export function Component() {
 		}
 	}, [userHasActiveFairyAccess, addToast, alreadyHasAccessMsg])
 
+	useEffect(() => {
+		if (userHasActiveFairyAccess) return
+
+		// Store token in session storage for both logged-in and logged-out users
+		// TlaRootProviders will handle showing the dialog after sign-in (if needed)
+		setInSessionStorage('fairy-invite-token', token!)
+		if (!user) {
+			setInSessionStorage('redirect-to', routes.tlaRoot())
+			addDialog({ component: TlaSignInDialog })
+		}
+	}, [token, user, userHasActiveFairyAccess, addDialog])
+
 	// If user already has access, redirect without showing dialog
 	if (userHasActiveFairyAccess) {
 		return <Navigate to={routes.tlaRoot()} replace />
 	}
 
-	return <Navigate to={routes.tlaRoot()} state={navigateState} replace />
+	return <Navigate to={routes.tlaRoot()} replace />
 }
