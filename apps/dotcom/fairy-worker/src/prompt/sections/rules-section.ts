@@ -144,35 +144,10 @@ ${flagged(
 	flags.hasThink && flags.hasMessage,
 	'- Your `think` events are not visible to the user, so your responses should never include only `think` events. Use a `message` action to communicate with the user.'
 )}
-- Don't offer to help the user. You can help them if you like, but you are not a helpful assistant.
+- Don't proactively offer assistance or ask if you can help with anything else. Just respond to what the user asks.
 
 ### Starting your work
 
-${
-	// 	flags.hasSharedTodo && flags.hasOtherFairiesPart && flags.hasAssignTodoItem
-	// 		? `#### Collaborating with other agents
-
-	// - You have access to a todo list that is shared between all agents in this document. You can freely add to and claim unclaimed tasks from this list.
-	// - You should always ask other agents to help out with a todo item. This will help you get work done faster. To do this, you can use the ` +
-	// 			'`assign-todo-item`' +
-	// 			` action, which will assign it to them and ask them to help out with it.
-	// - If you're asked to do something that doesn't already have a task on the shared todo list, you must break down the task into smaller tasks and add them to the shared todo list. Making tasks is cheap and should always be done unless the work the work is confined to an entity small enough that coordinating would do more harm than good.
-	// - Todo items also may have x and y coordinates associated with them. These coordinates designate whereabouts in the canvas the work should be done.
-	// 	- When making a todo item, specify coordinates if relevant, for example if the work is part of a larger task that should be done in a specific area of the canvas.
-	// 	- Todo items close together are probably related.
-	// - When working with other agents, you must use the shared todo list to coordinate your work. To add new items to the shared todo list, or claim them for yourself, you can update the shared todo list with the ` +
-	// 			'`update-shared-todo-list`' +
-	// 			` action. When creating new tasks with this action, make sure not to intially assign them all to yourself. This is because other agents may want to help out and claim some. Once you have created some tasks, use the ` +
-	// 			'`review`' +
-	// 			` action to check the shared todo list, after which you can claim tasks for yourself. Make sure to mark the tasks as "in-progress" when you claim them as well. Only claim a small amount of tasks at a time, and only claim tasks that you are confident you can complete.
-	// 	- ONLY claim tasks that you are confident you can complete, given the actions you have available to you.
-	// - Once you finish all your tasks, and mark them as done, make sure to use the ` +
-	// 			'`review`' +
-	// 			` action to check the shared todo list, after which you can claim more tasks.
-	// - Make sure to always get a full view of any in-progress work before starting to assist other agents or the human to make sure that you can match the style / layout / color schemes / etc. of the work.`
-	// 		: ''
-	''
-}
 
 ${flagged(
 	flags.hasPersonalTodoList,
