@@ -8,7 +8,7 @@ import { createPostgresConnectionPool } from './postgres'
 import { returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
 import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
-import { FeatureFlagKey, getFeatureFlag, setFeatureFlag } from './utils/featureFlags'
+import { FeatureFlagKey, getFeatureFlags, setFeatureFlag } from './utils/featureFlags'
 import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
 
 async function requireUser(env: Environment, q: string) {
@@ -287,18 +287,7 @@ export const adminRoutes = createRouter<Environment>()
 		const result = await removeFairyAccess(env, email)
 		return json(result)
 	})
-	.get('/app/admin/feature-flags', async (_req, env) => {
-		const flags: Record<string, boolean> = {}
-		const flagKeys: FeatureFlagKey[] = ['fairies_enabled', 'fairies_purchase_enabled']
-
-		await Promise.all(
-			flagKeys.map(async (key) => {
-				flags[key] = await getFeatureFlag(env, key)
-			})
-		)
-
-		return json(flags)
-	})
+	.get('/app/admin/feature-flags', getFeatureFlags)
 	.post('/app/admin/feature-flags', async (req, env) => {
 		const body: any = await req.json()
 		const { flag, enabled } = body

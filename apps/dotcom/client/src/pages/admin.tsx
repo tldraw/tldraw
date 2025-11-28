@@ -606,14 +606,13 @@ function FairyInvites() {
 	)
 }
 
-const FLAG_DESCRIPTIONS: Record<string, string> = {
-	fairies_enabled: 'When OFF: completely disables all fairy features for everyone',
-	fairies_purchase_enabled:
-		'When OFF: completely disables purchasing for everyone (hides purchase button & blocks webhooks)',
+interface FeatureFlagValue {
+	enabled: boolean
+	description: string
 }
 
 function FeatureFlags() {
-	const [flags, setFlags] = useState<Record<string, boolean>>({})
+	const [flags, setFlags] = useState<Record<string, FeatureFlagValue>>({})
 	const [isLoading, setIsLoading] = useState(true)
 	const [isSaving, setIsSaving] = useState(false)
 	const [error, setError] = useState(null as string | null)
@@ -655,7 +654,7 @@ function FeatureFlags() {
 				setError(res.statusText + ': ' + (await res.text()))
 				return
 			}
-			setFlags((prev) => ({ ...prev, [flag]: enabled }))
+			setFlags((prev) => ({ ...prev, [flag]: { ...prev[flag], enabled } }))
 			setSuccessMessage(`${flag} ${enabled ? 'enabled' : 'disabled'}`)
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to update flag')
@@ -688,12 +687,11 @@ function FeatureFlags() {
 				<p className="tla-text_ui__small">Loading flags...</p>
 			) : (
 				<div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-					{Object.entries(flags).map(([flagName, isEnabled]) => {
+					{Object.entries(flags).map(([flagName, flagValue]) => {
 						const label = flagName
 							.split('_')
 							.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
 							.join(' ')
-						const description = FLAG_DESCRIPTIONS[flagName]
 						return (
 							<div key={flagName} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
 								<label
@@ -709,7 +707,7 @@ function FeatureFlags() {
 									<input
 										id={flagName}
 										type="checkbox"
-										checked={isEnabled}
+										checked={flagValue.enabled}
 										onChange={(e) => toggleFlag(flagName, e.target.checked)}
 										disabled={isSaving}
 									/>
@@ -717,9 +715,9 @@ function FeatureFlags() {
 										<strong>{label}</strong>
 									</span>
 								</label>
-								{description && (
+								{flagValue.description && (
 									<span className="tla-text_ui__small" style={{ color: 'var(--tla-color-text-3)' }}>
-										{description}
+										{flagValue.description}
 									</span>
 								)}
 							</div>

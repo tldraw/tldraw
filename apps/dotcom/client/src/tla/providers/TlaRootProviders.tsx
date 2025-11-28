@@ -189,10 +189,6 @@ function RedirectHandler() {
 
 	useEffect(() => {
 		if (auth.isSignedIn && auth.userId) {
-			updateLocalSessionState(() => ({
-				auth: { userId: auth.userId },
-			}))
-
 			// Check for redirect after sign-in
 			const redirectTo = getFromSessionStorage('redirect-to')
 			if (
@@ -202,8 +198,6 @@ function RedirectHandler() {
 				deleteFromSessionStorage('redirect-to')
 				navigate(redirectTo)
 			}
-		} else {
-			clearLocalSessionState()
 		}
 	}, [auth.userId, auth.isSignedIn, navigate])
 
@@ -261,6 +255,16 @@ function SignedInProvider({
 		onLocaleChange(locale)
 		setCurrentLocale(locale)
 	}, [currentLocale, locale, onLocaleChange])
+
+	useEffect(() => {
+		if (auth.isSignedIn && auth.userId) {
+			updateLocalSessionState(() => ({
+				auth: { userId: auth.userId },
+			}))
+		} else {
+			clearLocalSessionState()
+		}
+	}, [auth.userId, auth.isSignedIn])
 
 	if (!auth.isLoaded) return null
 
