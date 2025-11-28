@@ -2666,6 +2666,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getZoomLevel() {
+		console.log(this.getCamera().z)
 		return this.getCamera().z
 	}
 
@@ -2687,6 +2688,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 		} else {
 			return this._debouncedZoomLevel.get()
 		}
+	}
+
+	@computed private _getHasLotsOfShapes() {
+		return this.getCurrentPageShapeIds().size > 300
+	}
+
+	/**
+	 * Get the efficient zoom level. This returns the current zoom level if there are less than 300 shapes on the page,
+	 * otherwise it returns the debounced zoom level. This can be used to avoid expensive re-renders during camera movements.
+	 *
+	 * @public
+	 * @example
+	 * ```ts
+	 * editor.getEfficientZoomLevel()
+	 * ```
+	 *
+	 * @public
+	 */
+	@computed getEfficientZoomLevel() {
+		return this._getHasLotsOfShapes() ? this.getDebouncedZoomLevel() : this.getZoomLevel()
 	}
 
 	/**

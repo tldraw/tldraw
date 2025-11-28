@@ -63,7 +63,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 
 	if (onlyShape && editor.isShapeHidden(onlyShape)) return null
 
-	const zoom = editor.getDebouncedZoomLevel()
+	const zoom = editor.getEfficientZoomLevel()
 	const isChangingStyle = editor.getInstanceState().isChangingStyle
 
 	const width = expandedBounds.width
@@ -532,7 +532,7 @@ export const MobileRotateHandle = function RotateHandle({
 	const events = useSelectionEvents('mobile_rotate')
 
 	const editor = useEditor()
-	const zoom = useValue('zoom level', () => editor.getDebouncedZoomLevel(), [editor])
+	const zoom = useValue('zoom level', () => editor.getEfficientZoomLevel(), [editor])
 	const bgRadius = Math.max(14 * (1 / zoom), 20 / Math.max(1, zoom))
 	const msg = useTranslation()
 	return (

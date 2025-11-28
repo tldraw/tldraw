@@ -182,7 +182,7 @@ export function UnlockAllMenuItem() {
 /** @public @react */
 export function ZoomTo100MenuItem() {
 	const editor = useEditor()
-	const isZoomedTo100 = useValue('zoomed to 100', () => editor.getDebouncedZoomLevel() === 1, [
+	const isZoomedTo100 = useValue('zoomed to 100', () => editor.getEfficientZoomLevel() === 1, [
 		editor,
 	])
 

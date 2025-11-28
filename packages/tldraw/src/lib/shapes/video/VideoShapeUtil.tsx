@@ -96,7 +96,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) {
 	const editor = useEditor()
 	const showControls =
-		editor.getShapeGeometry(shape).bounds.w * editor.getDebouncedZoomLevel() >= 110
+		editor.getShapeGeometry(shape).bounds.w * editor.getEfficientZoomLevel() >= 110
 	const isEditing = useIsEditing(shape.id)
 	const prefersReducedMotion = usePrefersReducedMotion()
 	const { Spinner } = useEditorComponents()

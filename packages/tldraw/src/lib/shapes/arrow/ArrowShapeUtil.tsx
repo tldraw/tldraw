@@ -269,7 +269,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 			const segmentStart = shapePageTransform.applyToPoint(info.route.midpointHandle.segmentStart)
 			const segmentEnd = shapePageTransform.applyToPoint(info.route.midpointHandle.segmentEnd)
-			const segmentLength = Vec.Dist(segmentStart, segmentEnd) * this.editor.getDebouncedZoomLevel()
+			const segmentLength = Vec.Dist(segmentStart, segmentEnd) * this.editor.getEfficientZoomLevel()
 
 			if (segmentLength > this.options.elbowMinSegmentLengthToShowMidpointHandle) {
 				handles.push({
@@ -370,7 +370,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		// we want to snap to certain points. the maximum distance at which a snap will occur is
 		// relative to the zoom level:
 		const maxSnapDistance =
-			this.options.elbowMidpointSnapDistance / this.editor.getDebouncedZoomLevel()
+			this.options.elbowMidpointSnapDistance / this.editor.getEfficientZoomLevel()
 
 		// we snap to the midpoint of the range by default
 		const midPoint = perpDistanceToLineAngle(
@@ -1032,7 +1032,7 @@ const ArrowSvg = track(function ArrowSvg({
 			start: 'skip',
 			end: 'skip',
 			lengthRatio: 2.5,
-			strokeWidth: 2 / editor.getDebouncedZoomLevel(),
+			strokeWidth: 2 / editor.getEfficientZoomLevel(),
 			props: {
 				className: 'tl-arrow-hint',
 				markerStart: bindings.start

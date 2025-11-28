@@ -1215,6 +1215,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getDraggingOverShape(point: Vec, droppingShapes: TLShape[]): TLShape | undefined;
     getEditingShape(): TLShape | undefined;
     getEditingShapeId(): null | TLShapeId;
+    getEfficientZoomLevel(): number;
     getErasingShapeIds(): TLShapeId[];
     getErasingShapes(): NonNullable<TLShape | undefined>[];
     getFocusedGroup(): TLShape | undefined;
