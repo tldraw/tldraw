@@ -3,18 +3,18 @@ import { IRequest } from 'itty-router'
 import { Environment } from '../types'
 
 const FLAG_DEFAULTS: Record<FeatureFlagKey, FeatureFlagValue> = {
-	fairies_enabled: {
+	fairies: {
 		enabled: false,
 		description: 'When OFF: completely disables all fairy features for everyone',
 	},
-	fairies_purchase_enabled: {
+	fairies_purchase: {
 		enabled: false,
 		description:
 			'When OFF: completely disables purchasing for everyone (hides purchase button & blocks webhooks)',
 	},
 }
 
-const ALL_FLAGS: FeatureFlagKey[] = ['fairies_enabled', 'fairies_purchase_enabled']
+const ALL_FLAGS: FeatureFlagKey[] = ['fairies', 'fairies_purchase']
 
 /**
  * Get feature flag value from KV store
@@ -68,7 +68,7 @@ export async function checkFairyAccess(
 	fairyLimit: number | null,
 	fairyAccessExpiresAt: number | null
 ): Promise<boolean> {
-	const flagEnabled = await getFeatureFlag(env, 'fairies_enabled')
+	const flagEnabled = await getFeatureFlag(env, 'fairies')
 	if (!flagEnabled) return false
 
 	return hasActiveFairyAccess(fairyAccessExpiresAt, fairyLimit)

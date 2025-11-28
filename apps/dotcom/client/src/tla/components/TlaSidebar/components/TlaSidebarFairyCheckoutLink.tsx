@@ -17,7 +17,7 @@ export function TlaSidebarFairyCheckoutLink() {
 	const userEmail = user?.email
 
 	// Early returns after all hooks
-	if (!flags.fairies_enabled || !flags.fairies_purchase_enabled) return null
+	if (!flags.fairies.enabled || !flags.fairies_purchase.enabled) return null
 	if (currentFairyLimit && currentFairyLimit > 0) return null
 
 	const handlePurchase = () => {

@@ -35,7 +35,7 @@ export function Component() {
 			})
 
 			// Don't open checkout if disabled or user already has access
-			if (!flags.fairies_enabled || !flags.fairies_purchase_enabled || hasFairyAccess) {
+			if (!flags.fairies.enabled || !flags.fairies_purchase.enabled || hasFairyAccess) {
 				return
 			}
 
@@ -52,8 +52,8 @@ export function Component() {
 		openPaddleCheckout,
 		setSearchParams,
 		navigate,
-		flags.fairies_enabled,
-		flags.fairies_purchase_enabled,
+		flags.fairies.enabled,
+		flags.fairies_purchase.enabled,
 		isLoaded,
 	])
 
@@ -62,7 +62,7 @@ export function Component() {
 		if (!isLoaded) return // Wait for flags to load
 
 		// Don't allow purchase if fairies feature is disabled
-		if (!flags.fairies_enabled) {
+		if (!flags.fairies.enabled) {
 			return
 		}
 
@@ -73,7 +73,7 @@ export function Component() {
 		}
 
 		// Don't allow purchase if purchase flag is disabled
-		if (!flags.fairies_purchase_enabled) {
+		if (!flags.fairies_purchase.enabled) {
 			return
 		}
 
@@ -104,8 +104,8 @@ export function Component() {
 		addDialog,
 		navigate,
 		openPaddleCheckout,
-		flags.fairies_enabled,
-		flags.fairies_purchase_enabled,
+		flags.fairies.enabled,
+		flags.fairies_purchase.enabled,
 		isLoaded,
 	])
 

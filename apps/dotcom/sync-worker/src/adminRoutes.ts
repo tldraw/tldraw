@@ -296,7 +296,7 @@ export const adminRoutes = createRouter<Environment>()
 			throw new StatusError(400, 'flag (string) and enabled (boolean) are required')
 		}
 
-		const validFlags: FeatureFlagKey[] = ['fairies_enabled', 'fairies_purchase_enabled']
+		const validFlags: FeatureFlagKey[] = ['fairies', 'fairies_purchase']
 		if (!validFlags.includes(flag as FeatureFlagKey)) {
 			throw new StatusError(400, `Invalid flag. Must be one of: ${validFlags.join(', ')}`)
 		}

@@ -7,7 +7,7 @@ import { getFeatureFlag } from '../../utils/featureFlags'
 import { requireAuth } from '../../utils/tla/getAuth'
 
 export async function redeemFairyInvite(request: IRequest, env: Environment): Promise<Response> {
-	const fairiesEnabled = await getFeatureFlag(env, 'fairies_enabled')
+	const fairiesEnabled = await getFeatureFlag(env, 'fairies')
 	if (!fairiesEnabled) {
 		throw new StatusError(403, 'Fairy invites are currently disabled')
 	}

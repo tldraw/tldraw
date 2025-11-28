@@ -230,7 +230,7 @@ export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persis
 
 /* ----------------------- Fairy Access ---------------------- */
 
-export type FeatureFlagKey = 'fairies_enabled' | 'fairies_purchase_enabled'
+export type FeatureFlagKey = 'fairies' | 'fairies_purchase'
 
 export interface FeatureFlagValue {
 	enabled: boolean

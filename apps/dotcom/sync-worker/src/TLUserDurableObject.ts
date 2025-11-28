@@ -235,7 +235,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				return Response.json({ error: 'User ID not initialized' }, { status: 400 })
 			}
 
-			const flagEnabled = await getFeatureFlag(this.env, 'fairies_enabled')
+			const flagEnabled = await getFeatureFlag(this.env, 'fairies')
 			if (!flagEnabled) {
 				return Response.json({ hasAccess: false })
 			}

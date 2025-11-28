@@ -216,7 +216,7 @@ function FairyInviteHandler() {
 			}
 
 			// Only show dialog if fairies are enabled
-			if (flags.fairies_enabled) {
+			if (flags.fairies.enabled) {
 				dialogs.addDialog({
 					component: ({ onClose }) => (
 						<TlaFairyInviteDialog fairyInviteToken={storedToken} onClose={onClose} />
@@ -230,7 +230,7 @@ function FairyInviteHandler() {
 		auth.userId,
 		auth.isSignedIn,
 		dialogs,
-		flags.fairies_enabled,
+		flags.fairies.enabled,
 		isLoaded,
 		hasFairyAccess,
 		addToast,

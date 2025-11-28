@@ -1,13 +1,13 @@
-import { FeatureFlagKey } from '@tldraw/dotcom-shared'
+import { FeatureFlagKey, FeatureFlagValue } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
 import { Atom, atom, fetch } from 'tldraw'
 
-type FeatureFlags = Record<FeatureFlagKey, boolean>
+type FeatureFlags = Record<FeatureFlagKey, FeatureFlagValue>
 
 // Global atom for feature flags
 export const featureFlagsAtom: Atom<FeatureFlags> = atom('featureFlags', {
-	fairies_enabled: false,
-	fairies_purchase_enabled: false,
+	fairies: { enabled: false, description: '' },
+	fairies_purchase: { enabled: false, description: '' },
 })
 
 // Atom to track if flags have been loaded at least once

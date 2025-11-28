@@ -15,13 +15,13 @@ export function useFairyAccess(): boolean {
 	return useValue(
 		'fairy_access',
 		() => {
-			if (!flags.fairies_enabled) return false
+			if (!flags.fairies.enabled) return false
 			if (!app) return false
 			const user = app.getUser()
 			if (!clerkUser || !user) return false
 			return hasActiveFairyAccess(user.fairyAccessExpiresAt, user.fairyLimit)
 		},
-		[app, clerkUser, flags.fairies_enabled]
+		[app, clerkUser, flags.fairies.enabled]
 	)
 }
 
