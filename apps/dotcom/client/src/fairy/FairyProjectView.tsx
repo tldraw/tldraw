@@ -299,17 +299,6 @@ Do NOT start a completely new project. Respond with a message action first expla
 	const stopTitle = useMsg(fairyMessages.stopTitle)
 	const sendTitle = useMsg(fairyMessages.sendTitle)
 
-	// Get orchestrator name for placeholder
-	const orchestratorName = useValue(
-		'orchestrator-name',
-		() => {
-			if (!orchestratorAgent) return null
-			const config = orchestratorAgent.$fairyConfig.get()
-			return config.name.split(' ')[0] ?? 'the fairy'
-		},
-		[orchestratorAgent]
-	)
-
 	// Dynamic placeholder based on project state
 	const placeholder = isPreProject ? instructGroupPlaceholder : `Steer the project...`
 
