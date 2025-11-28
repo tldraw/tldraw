@@ -25,16 +25,23 @@ export class MarkSoloTaskDoneActionUtil extends AgentActionUtil<MarkSoloTaskDone
 		const currentTaskId = currentTask.id
 
 		setFairyTaskStatusAndNotifyCompletion(currentTaskId, 'done', this.editor)
-		this.agent.$chatHistory.update((prev) => [
-			...prev,
+		this.agent.pushToChatHistory(
 			{
 				id: uniqueId(),
 				type: 'memory-transition',
 				memoryLevel: 'fairy',
-				agentFacingMessage: `I just finished the task.\nID: "${currentTaskId}"\nTitle: "${currentTask.title}"\nDescription: "${currentTask.text}".`,
+				agentFacingMessage: `[ACTIONS]: <Task actions filtered for brevity>`,
 				userFacingMessage: null,
 			},
-		])
+			{
+				id: uniqueId(),
+				type: 'prompt',
+				promptSource: 'self',
+				memoryLevel: 'fairy',
+				agentFacingMessage: `I just finished the task.\nID: "${currentTaskId}"\nTitle: "${currentTask.title}"\nDescription: "${currentTask.text}".`,
+				userFacingMessage: null,
+			}
+		)
 
 		const currentBounds = this.agent.$activeRequest.get()?.bounds
 		if (!currentBounds) return

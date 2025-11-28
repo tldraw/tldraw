@@ -377,6 +377,15 @@ export class FairyAgent {
 	}
 
 	/**
+	 * Push one or more items to the chat history.
+	 * @param items - The chat history item(s) to add
+	 */
+	pushToChatHistory(...items: ChatHistoryItem[]) {
+		if (items.length === 0) return
+		this.$chatHistory.update((prev) => [...prev, ...items])
+	}
+
+	/**
 	 * Reset the cumulative usage tracking for this fairy agent.
 	 * Useful when starting a new chat session.
 	 */
@@ -677,15 +686,12 @@ export class FairyAgent {
 		// If there *is* a scheduled request...
 		// Add the scheduled request to chat history
 		const resolvedData = await Promise.all(scheduledRequest.data)
-		this.$chatHistory.update((prev) => [
-			...prev,
-			{
-				id: uniqueId(),
-				type: 'continuation',
-				data: resolvedData,
-				memoryLevel: eventualModeDefinition.memoryLevel,
-			},
-		])
+		this.pushToChatHistory({
+			id: uniqueId(),
+			type: 'continuation',
+			data: resolvedData,
+			memoryLevel: eventualModeDefinition.memoryLevel,
+		})
 
 		// Handle the scheduled request and clear it
 		this.$scheduledRequest.set(null)
@@ -1036,10 +1042,12 @@ export class FairyAgent {
 				// If there are no items, start off the chat history with the first item
 				if (historyItems.length === 0) return [historyItem]
 
-				// Find the last prompt index
-				const lastPromptIndex = historyItems.findLastIndex((item) => item.type === 'prompt')
+				// Find the last EXTERNAL prompt index (ignore prompts from 'self' which are internal state transitions)
+				const lastPromptIndex = historyItems.findLastIndex(
+					(item) => item.type === 'prompt' && item.promptSource !== 'self'
+				)
 
-				// If the last action is still in progress AND it's after the last prompt, replace it
+				// If the last action is still in progress AND it's after the last external prompt, replace it
 				const lastActionHistoryItemIndex = historyItems.findLastIndex(
 					(item) => item.type === 'action'
 				)
@@ -1049,7 +1057,7 @@ export class FairyAgent {
 					lastActionHistoryItem &&
 					lastActionHistoryItem.type === 'action' &&
 					!lastActionHistoryItem.action.complete &&
-					lastActionHistoryItemIndex > lastPromptIndex
+					(lastPromptIndex === -1 || lastActionHistoryItemIndex > lastPromptIndex)
 				) {
 					const newHistoryItems = [...historyItems]
 					newHistoryItems[lastActionHistoryItemIndex] = historyItem
@@ -1567,7 +1575,7 @@ function requestAgentActions({ agent, request }: { agent: FairyAgent; request: A
 		userFacingMessage,
 		memoryLevel: mode.memoryLevel,
 	}
-	agent.$chatHistory.update((prev) => [...prev, promptHistoryItem])
+	agent.pushToChatHistory(promptHistoryItem)
 
 	let cancelled = false
 	const controller = new AbortController()

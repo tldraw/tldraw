@@ -30,46 +30,69 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 			.get(this.editor)
 			.filter((agent) => membersIds.includes(agent.id))
 
+		const duoOrchestratorAgent = memberAgents.find(
+			(agent) => agent.getRole() === 'duo-orchestrator'
+		)
+		const droneAgent = memberAgents.find((agent) => agent.getRole() === 'drone')
+
+		if (!duoOrchestratorAgent || !droneAgent) {
+			deleteProjectAndAssociatedTasks(project.id)
+			return
+		}
+
 		const completedTasks = getFairyTasksByProjectId(project.id).filter(
 			(task) => task.status === 'done'
 		)
 
-		memberAgents.forEach((memberAgent) => {
-			if (memberAgent.id === this.agent.id) {
-				const count = completedTasks.length
-				const taskWord = count === 1 ? 'task' : 'tasks'
-				memberAgent.$chatHistory.update((prev) => [
-					...prev,
-					{
-						id: uniqueId(),
-						type: 'memory-transition',
-						memoryLevel: 'fairy',
-						agentFacingMessage: `I completed ${count} ${taskWord} as part of the "${project.title}" project with my partner.`,
-						userFacingMessage: null,
-					},
-				])
-			} else {
-				// The partner
-				const partnerCompletedTasks = completedTasks.filter(
-					(task) => task.assignedTo === memberAgent.id
-				)
-				if (partnerCompletedTasks.length > 0) {
-					const count = partnerCompletedTasks.length
-					const taskWord = count === 1 ? 'task' : 'tasks'
-					memberAgent.$chatHistory.update((prev) => [
-						...prev,
-						{
-							id: uniqueId(),
-							type: 'memory-transition',
-							memoryLevel: 'fairy',
-							agentFacingMessage: `I completed ${count} ${taskWord} as part of the "${project.title}" project with my partner.`,
-							userFacingMessage: `I completed ${count} ${taskWord} as part of the "${project.title}" project.`,
-						},
-					])
-				}
+		// Handle duo-orchestrator
+		const duoOrchestratorCompletedTasks = completedTasks.filter(
+			(task) => task.assignedTo === duoOrchestratorAgent.id
+		)
+		const duoOrchestratorTaskCount = duoOrchestratorCompletedTasks.length
+		const duoOrchestratorTaskWord = duoOrchestratorTaskCount === 1 ? 'task' : 'tasks'
+		duoOrchestratorAgent.pushToChatHistory(
+			{
+				id: uniqueId(),
+				type: 'memory-transition',
+				memoryLevel: 'fairy',
+				agentFacingMessage: `[ACTIONS]: <Project actions filtered for brevity>`,
+				userFacingMessage: null,
+			},
+			{
+				id: uniqueId(),
+				type: 'prompt',
+				promptSource: 'self',
+				memoryLevel: 'fairy',
+				agentFacingMessage: `I led and completed the "${project.title}" project with my partner, ${droneAgent.$fairyConfig.get()?.name}. I completed ${duoOrchestratorTaskCount} ${duoOrchestratorTaskWord} as part of the project.`,
+				userFacingMessage: null,
 			}
-			memberAgent.interrupt({ mode: 'idling', input: null })
-		})
+		)
+		duoOrchestratorAgent.interrupt({ mode: 'idling', input: null })
+
+		// Handle drone
+		const droneCompletedTasks = completedTasks.filter((task) => task.assignedTo === droneAgent.id)
+		if (droneCompletedTasks.length > 0) {
+			const droneTaskCount = droneCompletedTasks.length
+			const droneTaskWord = droneTaskCount === 1 ? 'task' : 'tasks'
+			droneAgent.pushToChatHistory(
+				{
+					id: uniqueId(),
+					type: 'memory-transition',
+					memoryLevel: 'fairy',
+					agentFacingMessage: `[ACTIONS]: <Project actions filtered for brevity>`,
+					userFacingMessage: null,
+				},
+				{
+					id: uniqueId(),
+					type: 'prompt',
+					promptSource: 'self',
+					memoryLevel: 'fairy',
+					agentFacingMessage: `I completed ${droneTaskCount} ${droneTaskWord} as part of the "${project.title}" project with my partner, ${duoOrchestratorAgent.$fairyConfig.get()?.name}.`,
+					userFacingMessage: `I completed ${droneTaskCount} ${droneTaskWord} as part of the "${project.title}" project.`,
+				}
+			)
+		}
+		droneAgent.interrupt({ mode: 'idling', input: null })
 
 		deleteProjectAndAssociatedTasks(project.id)
 	}

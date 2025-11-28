@@ -40,16 +40,23 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 				.filter((id) => id !== memberAgent.id)
 
 			if (memberAgent.id === this.agent.id) {
-				memberAgent.$chatHistory.update((prev) => [
-					...prev,
+				memberAgent.pushToChatHistory(
 					{
 						id: uniqueId(),
 						type: 'memory-transition',
 						memoryLevel: 'fairy',
-						agentFacingMessage: `I led and completed the "${project.title}" project with ${otherMemberIds.length} other fairy(s): ${otherMemberIds.join(', ')}`,
+						agentFacingMessage: `[ACTIONS]: <Project actions filtered for brevity>`,
 						userFacingMessage: null,
 					},
-				])
+					{
+						id: uniqueId(),
+						type: 'prompt',
+						promptSource: 'self',
+						memoryLevel: 'fairy',
+						agentFacingMessage: `I led and completed the "${project.title}" project with ${otherMemberIds.length} other fairy(s): ${otherMemberIds.join(', ')}`,
+						userFacingMessage: null,
+					}
+				)
 			}
 
 			const memberCompletedTasks = completedTasks.filter(
@@ -58,16 +65,23 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 			if (memberCompletedTasks.length > 0) {
 				const count = memberCompletedTasks.length
 				const taskWord = count === 1 ? 'task' : 'tasks'
-				memberAgent.$chatHistory.update((prev) => [
-					...prev,
+				memberAgent.pushToChatHistory(
 					{
 						id: uniqueId(),
 						type: 'memory-transition',
 						memoryLevel: 'fairy',
+						agentFacingMessage: `[ACTIONS]: <Project actions filtered for brevity>`,
+						userFacingMessage: null,
+					},
+					{
+						id: uniqueId(),
+						type: 'prompt',
+						promptSource: 'self',
+						memoryLevel: 'fairy',
 						agentFacingMessage: `I completed ${count} ${taskWord} as part of the "${project.title}" project, with ${otherMemberIds.length} other fairy(s): ${otherMemberIds.join(', ')}`,
 						userFacingMessage: `I completed ${count} ${taskWord} as part of the "${project.title}" project.`,
-					},
-				])
+					}
+				)
 			}
 			memberAgent.interrupt({ mode: 'idling', input: null })
 		})
