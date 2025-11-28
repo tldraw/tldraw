@@ -255,19 +255,29 @@ export const PeripheralShapesPartDefinition: PromptPartDefinition<PeripheralShap
 export interface PersonalityPart {
 	type: 'personality'
 	personality: string
+	sign: {
+		sun: string
+		moon: string
+		rising: string
+	}
 }
 
 export const PersonalityPartDefinition: PromptPartDefinition<PersonalityPart> = {
 	type: 'personality',
 	priority: 150,
-	buildContent({ personality }: PersonalityPart) {
-		if (!personality || personality.trim() === '') {
-			return []
+	buildContent({ personality: _personality, sign }: PersonalityPart) {
+		const messages: string[] = []
+
+		// if (personality && personality.trim() !== '') {
+		// 	messages.push(`Your personality is: ${personality}`)
+		// }
+		if (sign.sun && sign.moon && sign.rising) {
+			messages.push(
+				`Your astrological sign is: Sun ${sign.sun}, Moon ${sign.moon}, Rising ${sign.rising}`
+			)
 		}
-		return [
-			// `You are actually a specific kind of AI agent; a fairy! And so is everyone else (besides the user). So, if you hear other agents (or the user) refer to you or anyone else as a fairy, that's why.`,
-			// `Your personality is: ${personality}`,
-		]
+
+		return messages
 	},
 }
 

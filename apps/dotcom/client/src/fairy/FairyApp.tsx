@@ -20,6 +20,7 @@ import { $fairyTasks, $showCanvasFairyTasks } from './FairyTaskList'
 import { FairyThrowTool } from './FairyThrowTool'
 import { getRandomFairyName } from './getRandomFairyName'
 import { getRandomFairyPersonality } from './getRandomFairyPersonality'
+import { getRandomFairySign } from './getRandomFairySign'
 
 function stripDiffFromChatItem(item: ChatHistoryItem): ChatHistoryItem {
 	if (item.type === 'action') {
@@ -358,6 +359,7 @@ function createNewFairy(app: TldrawApp) {
 		name: getRandomFairyName(),
 		outfit: randomOutfit,
 		personality: getRandomFairyPersonality(),
+		sign: getRandomFairySign(),
 	}
 
 	// Add the config, which will trigger agent creation in FairyApp
