@@ -34,18 +34,8 @@ export function Component() {
 				return params
 			})
 
-			// Don't open checkout if fairies feature is disabled
-			if (!flags.fairies_enabled) {
-				return
-			}
-
-			// Don't open checkout if purchase is disabled
-			if (!flags.fairies_purchase_enabled) {
-				return
-			}
-
-			// Don't open checkout if user already has fairy access
-			if (hasFairyAccess) {
+			// Don't open checkout if disabled or user already has access
+			if (!flags.fairies_enabled || !flags.fairies_purchase_enabled || hasFairyAccess) {
 				return
 			}
 
