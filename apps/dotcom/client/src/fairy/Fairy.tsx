@@ -89,7 +89,6 @@ interface FairyContainerProps {
 	isSelected: boolean
 	isGenerating: boolean
 	isInThrowTool: boolean
-	onPointerDown(e: React.PointerEvent<HTMLDivElement>): void
 	isFairyGrabbable: boolean
 	isDragging: boolean
 	children: React.ReactNode
@@ -97,16 +96,7 @@ interface FairyContainerProps {
 
 const FairyContainer = React.forwardRef<HTMLDivElement, FairyContainerProps>(
 	(
-		{
-			position,
-			isSelected,
-			isGenerating,
-			isInThrowTool,
-			onPointerDown,
-			isFairyGrabbable,
-			isDragging,
-			children,
-		},
+		{ position, isSelected, isGenerating, isInThrowTool, isFairyGrabbable, isDragging, children },
 		ref
 	) => (
 		<div
@@ -128,7 +118,6 @@ const FairyContainer = React.forwardRef<HTMLDivElement, FairyContainerProps>(
 			}}
 		>
 			<div
-				onPointerDown={onPointerDown}
 				style={{
 					position: 'absolute',
 					width: '100%',
@@ -146,16 +135,18 @@ const FairyContainer = React.forwardRef<HTMLDivElement, FairyContainerProps>(
 FairyContainer.displayName = 'FairyContainer'
 
 function useFairyPointerInteraction(
+	ref: React.RefObject<HTMLDivElement>,
 	agent: FairyAgent,
 	editor: ReturnType<typeof useEditor>,
 	isFairyGrabbable: boolean
 ) {
 	const interactionState = useRef<FairyInteractionState>({ status: 'idle' })
 	const $fairyEntity = agent.$fairyEntity
-	const handleFairyPointerDownRef =
-		useRef<(e: React.PointerEvent<HTMLDivElement>) => void | undefined>()
 
 	useEffect(() => {
+		const elm = ref.current
+		if (!elm) return
+
 		function cleanupPointerListeners() {
 			document.removeEventListener('pointermove', handlePointerMove)
 			document.removeEventListener('pointerup', handlePointerUp)
@@ -212,13 +203,12 @@ function useFairyPointerInteraction(
 			}
 		}
 
-		const handleFairyPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+		const handleFairyPointerDown = (e: PointerEvent) => {
 			if (e.button === 2) return
 			if (!editor.isIn('select.idle')) return
 			if (editor.isIn('select.fairy-throw')) return
 			if (!isFairyGrabbable) return
-
-			e.currentTarget.setPointerCapture(e.pointerId)
+			;(e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId)
 
 			const fairyAgents = $fairyAgentsAtom.get(editor)
 			const clickedFairyEntity = $fairyEntity.get()
@@ -256,16 +246,15 @@ function useFairyPointerInteraction(
 			editor.on('event', handleEvent)
 		}
 
-		handleFairyPointerDownRef.current = handleFairyPointerDown
+		elm.addEventListener('pointerdown', handleFairyPointerDown)
 
 		return () => {
 			// Cleanup on unmount
+			elm.removeEventListener('pointerdown', handleFairyPointerDown)
 			document.removeEventListener('pointermove', handlePointerMove)
 			document.removeEventListener('pointerup', handlePointerUp)
 		}
-	}, [agent, editor, isFairyGrabbable, $fairyEntity])
-
-	return { handleFairyPointerDown: handleFairyPointerDownRef.current! }
+	}, [agent, editor, isFairyGrabbable, $fairyEntity, ref])
 }
 
 export function Fairy({ agent }: { agent: FairyAgent }) {
@@ -310,7 +299,7 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 	const isGenerating = useValue('is generating', () => agent.isGenerating(), [agent])
 	const isFairyGrabbable = isInSelectTool
 
-	const { handleFairyPointerDown } = useFairyPointerInteraction(agent, editor, isFairyGrabbable)
+	useFairyPointerInteraction(fairyRef, agent, editor, isFairyGrabbable)
 
 	// Don't render if entity, outfit or position doesn't exist yet to avoid position jumping from (0,0)
 	if (!fairyEntity || !fairyOutfit || !position) {
@@ -326,7 +315,6 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 					isSelected={isSelected}
 					isGenerating={isGenerating}
 					isInThrowTool={isInThrowTool}
-					onPointerDown={handleFairyPointerDown}
 					isFairyGrabbable={isFairyGrabbable}
 					isDragging={editor.inputs.isDragging}
 				>

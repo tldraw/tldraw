@@ -1754,29 +1754,34 @@ function requestAgentActions({ agent, request }: { agent: FairyAgent; request: A
 
 /**
  * Find a spawn point for the fairy that is at least 200px away from other fairies.
+ * Fairies will spawn near the center of the viewport, expanding outward if needed.
  * Note: If no space can be easily found, fairies may still overlap.
  */
 function findFairySpawnPoint(initialPosition: VecModel, editor: Editor): VecModel {
 	const existingAgents = $fairyAgentsAtom.get(editor)
 	const MIN_DISTANCE = 200
-	const INITIAL_BOX_SIZE = 200
-	const BOX_EXPANSION = 100
+	const INITIAL_BOX_SIZE = 100 // Start with a smaller box near center
+	const BOX_EXPANSION = 50 // Smaller expansion increments to stay closer to center
 
-	// Start with the provided initial position
-	let candidate = { x: initialPosition.x, y: initialPosition.y }
 	const viewportCenter = editor.getViewportPageBounds().center
 
 	// If no other fairies exist, use the center
 	if (existingAgents.length === 0) {
-		return candidate
+		return viewportCenter
 	}
 
-	// Try to find a valid spawn point
+	// Try to find a valid spawn point near the center
 	let boxSize = INITIAL_BOX_SIZE
 	let attempts = 0
 	const MAX_ATTEMPTS = 100
 
 	while (attempts < MAX_ATTEMPTS) {
+		// Generate a candidate position near the viewport center
+		const candidate = {
+			x: viewportCenter.x + (Math.random() - 0.5) * boxSize,
+			y: viewportCenter.y + (Math.random() - 0.5) * boxSize,
+		}
+
 		// Check if the candidate is far enough from all existing fairies
 		const tooClose = existingAgents.some((agent) => {
 			const otherPosition = agent.$fairyEntity.get().position
@@ -1790,12 +1795,6 @@ function findFairySpawnPoint(initialPosition: VecModel, editor: Editor): VecMode
 			return candidate
 		}
 
-		// Generate a new random point in an expanding box around the viewport center
-		candidate = {
-			x: viewportCenter.x + (Math.random() - 0.5) * boxSize,
-			y: viewportCenter.y + (Math.random() - 0.5) * boxSize,
-		}
-
 		// Expand the search area after every 10 attempts
 		if (attempts % 10 === 9) {
 			boxSize += BOX_EXPANSION
@@ -1804,8 +1803,11 @@ function findFairySpawnPoint(initialPosition: VecModel, editor: Editor): VecMode
 		attempts++
 	}
 
-	// If we couldn't find a good spot, just return the candidate anyway
-	return candidate
+	// If we couldn't find a good spot, return a position near the center anyway
+	return {
+		x: viewportCenter.x + (Math.random() - 0.5) * boxSize,
+		y: viewportCenter.y + (Math.random() - 0.5) * boxSize,
+	}
 }
 
 /**

@@ -26,7 +26,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	// Use custom hooks
 	const {
 		panelState,
-		setPanelState,
+		setManualOpen,
 		shownFairy,
 		selectedFairies,
 		activeOrchestratorAgent,
@@ -104,7 +104,11 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 										<FairyChatHistory agent={shownFairy} />
 										<FairySingleChatInput
 											agent={shownFairy}
-											onCancel={() => setPanelState('closed')}
+											onCancel={() => {
+												agents.forEach((agent) => {
+													agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+												})
+											}}
 										/>
 									</>
 								)}
@@ -118,7 +122,11 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 										editor={editor}
 										agents={agents}
 										orchestratorAgent={activeOrchestratorAgent}
-										onClose={() => setPanelState('closed')}
+										onClose={() => {
+											agents.forEach((agent) => {
+												agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+											})
+										}}
 									/>
 								)}
 
@@ -130,9 +138,12 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 									orchestratorAgent={null}
 									onProjectStarted={(orchestrator) => {
 										selectFairy(orchestrator)
-										setPanelState('fairy')
 									}}
-									onClose={() => setPanelState('closed')}
+									onClose={() => {
+										agents.forEach((agent) => {
+											agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+										})
+									}}
 								/>
 							)}
 
@@ -149,8 +160,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 							manualLabel={manualLabel}
 							onClickFairy={handleClickFairy}
 							onDoubleClickFairy={handleDoubleClickFairy}
-							onTogglePanel={handleTogglePanel}
-							onToggleManual={() => setPanelState((v) => (v === 'manual' ? 'closed' : 'manual'))}
+							onToggleManual={() => setManualOpen((v) => !v)}
 						/>
 					</div>
 				</div>

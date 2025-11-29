@@ -7,7 +7,7 @@ import { getProjectOrchestrator } from '../../fairy-projects'
 export type FairyHUDPanelState = 'fairy' | 'manual' | 'closed'
 
 export function useFairySelection(agents: FairyAgent[]) {
-	const [panelState, setPanelState] = useState<FairyHUDPanelState>('closed')
+	const [manualOpen, setManualOpen] = useState(false)
 	const [shownFairy, setShownFairy] = useState<FairyAgent | null>(null)
 
 	// Create a reactive value that tracks which fairies are selected
@@ -19,6 +19,13 @@ export function useFairySelection(agents: FairyAgent[]) {
 			),
 		[agents]
 	)
+
+	// Derive panelState from manualOpen and selectedFairies
+	const panelState: FairyHUDPanelState = manualOpen
+		? 'manual'
+		: selectedFairies.length > 0
+			? 'fairy'
+			: 'closed'
 
 	const activeOrchestratorAgent = useValue(
 		'shown-orchestrator',
@@ -40,11 +47,9 @@ export function useFairySelection(agents: FairyAgent[]) {
 	useEffect(() => {
 		if (selectedFairies.length === 1) {
 			setShownFairy(selectedFairies[0])
-			setPanelState('fairy')
 		}
 		if (selectedFairies.length === 0) {
 			setShownFairy(null)
-			setPanelState('closed')
 		}
 	}, [selectedFairies])
 
@@ -76,7 +81,6 @@ export function useFairySelection(agents: FairyAgent[]) {
 				const orchestratorAgent = agents.find((agent) => agent.id === orchestratorMember.id)
 				if (orchestratorAgent) {
 					selectFairy(orchestratorAgent)
-					setPanelState('fairy')
 					return true
 				}
 			}
@@ -90,10 +94,9 @@ export function useFairySelection(agents: FairyAgent[]) {
 			})
 
 			setShownFairy(null)
-			setPanelState('fairy')
 			return true
 		},
-		[agents, setPanelState, setShownFairy, selectFairy]
+		[agents, setShownFairy, selectFairy]
 	)
 
 	const handleClickFairy = useCallback(
@@ -110,34 +113,26 @@ export function useFairySelection(agents: FairyAgent[]) {
 			if (isMultiSelect) {
 				// Toggle selection without deselecting others
 				clickedAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: !isSelected } : f))
-				// Keep panel open if there are selected fairies
-				if (!isSelected || selectedFairies.length > 1) {
-					setPanelState('fairy')
-				}
 			} else {
 				// Single select mode
 				if (selectedFairies.length > 1 && panelState !== 'fairy') {
 					// Multiple fairies already selected, panel not open - keep them all selected and show group chat
 					setShownFairy(clickedAgent)
-					setPanelState('fairy')
 				} else if (selectedFairies.length > 1 && panelState === 'fairy') {
 					// Multiple fairies selected, panel already open in group chat - switch to single fairy mode
 					selectFairy(clickedAgent)
-					setPanelState('fairy')
 				} else {
 					// Normal single select behavior - deselect all others
-					selectFairy(clickedAgent)
 					// If the clicked fairy is already chosen and selected, toggle the panel. Otherwise, keep the panel open.
-					setPanelState((v) => {
-						const shouldClosePanel =
-							isChosen && isSelected && v === 'fairy' && selectedFairies.length <= 1
-						if (shouldClosePanel) {
-							agents.forEach((agent) => {
-								agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
-							})
-						}
-						return shouldClosePanel ? 'closed' : 'fairy'
-					})
+					const shouldClosePanel =
+						isChosen && isSelected && panelState === 'fairy' && selectedFairies.length <= 1
+					if (shouldClosePanel) {
+						agents.forEach((agent) => {
+							agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+						})
+					} else {
+						selectFairy(clickedAgent)
+					}
 				}
 			}
 		},
@@ -156,32 +151,31 @@ export function useFairySelection(agents: FairyAgent[]) {
 					const orchestratorAgent = agents.find((agent) => agent.id === orchestratorMember.id)
 					if (orchestratorAgent) {
 						selectFairy(orchestratorAgent)
-						setPanelState('fairy')
 						return
 					}
 				}
 			}
 
 			selectFairy(clickedAgent)
-			setPanelState('fairy')
 		},
 		[selectFairy, agents]
 	)
 
 	const handleTogglePanel = useCallback(() => {
-		setPanelState((v) => {
-			if (v === 'fairy') return 'closed'
-			return 'fairy' // closed -> fairy
-		})
-		// Deselect all fairies when the panel is closed
-		agents.forEach((agent) => {
-			agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
-		})
-	}, [agents])
+		// Close manual if open, otherwise deselect all fairies
+		if (manualOpen) {
+			setManualOpen(false)
+		} else {
+			agents.forEach((agent) => {
+				agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+			})
+		}
+	}, [agents, manualOpen])
 
 	return {
 		panelState,
-		setPanelState,
+		manualOpen,
+		setManualOpen,
 		shownFairy,
 		selectedFairies,
 		activeOrchestratorAgent,

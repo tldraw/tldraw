@@ -101,7 +101,6 @@ interface FairyListSidebarProps {
 	manualLabel: string
 	onClickFairy(agent: FairyAgent, event: MouseEvent): void
 	onDoubleClickFairy(agent: FairyAgent): void
-	onTogglePanel(): void
 	onToggleManual(): void
 }
 
