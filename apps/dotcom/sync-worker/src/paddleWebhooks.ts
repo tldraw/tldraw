@@ -3,9 +3,9 @@ import { StatusError, json } from 'itty-router'
 import { upsertFairyAccess } from './adminRoutes'
 import { type Environment } from './types'
 
-interface PaddleTransactionCompletedEvent {
+interface PaddleWebhookEvent {
 	event_id: string
-	event_type: 'transaction.completed'
+	event_type: string
 	occurred_at: string
 	data: {
 		id: string
@@ -14,8 +14,6 @@ interface PaddleTransactionCompletedEvent {
 		items?: unknown[]
 	}
 }
-
-type PaddleWebhookEvent = PaddleTransactionCompletedEvent
 
 async function verifyPaddleSignature(
 	webhookSecret: string,
@@ -114,10 +112,7 @@ async function sendDiscordPurchaseNotification(webhookUrl: string) {
 	}
 }
 
-async function handleTransactionCompleted(
-	env: Environment,
-	event: PaddleTransactionCompletedEvent
-) {
+async function handleTransactionCompleted(env: Environment, event: PaddleWebhookEvent) {
 	const { data } = event
 
 	// Validate transaction status - only grant access for completed transactions
