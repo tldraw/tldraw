@@ -118,19 +118,7 @@ async function insertPaddleTransaction(
 	const now = Date.now()
 	const occurredAt = new Date(event.occurred_at).getTime()
 
-	// Check if event already exists (idempotency)
-	const existing = await db
-		.selectFrom('paddle_transactions')
-		.where('eventId', '=', event.event_id)
-		.selectAll()
-		.executeTakeFirst()
-
-	if (existing) {
-		return { exists: true }
-	}
-
-	// Insert new transaction event
-	await db
+	const result = await db
 		.insertInto('paddle_transactions')
 		.values({
 			eventId: event.event_id,
@@ -146,9 +134,11 @@ async function insertPaddleTransaction(
 			receivedAt: now,
 			updatedAt: now,
 		})
-		.execute()
+		.onConflict((oc) => oc.column('eventId').doNothing())
+		.returning('eventId')
+		.executeTakeFirst()
 
-	return { exists: false }
+	return { exists: !result }
 }
 
 async function sendDiscordNotification(
