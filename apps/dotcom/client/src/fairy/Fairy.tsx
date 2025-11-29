@@ -2,7 +2,7 @@ import { FairyEntity } from '@tldraw/fairy-shared'
 import classNames from 'classnames'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import React, { useEffect, useRef } from 'react'
-import { Atom, TLEventInfo, useEditor, useReactor, useValue } from 'tldraw'
+import { Atom, TLEventInfo, useEditor, useQuickReactor, useValue } from 'tldraw'
 import '../tla/styles/fairy.css'
 import { FairyAgent } from './fairy-agent/FairyAgent'
 import { $fairyAgentsAtom } from './fairy-globals'
@@ -282,7 +282,7 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 
 	useFairyPointerInteraction(fairyRef, agent, editor, isFairyGrabbable)
 
-	useReactor(
+	useQuickReactor(
 		'fairy position',
 		() => {
 			const elm = fairyRef.current
@@ -341,14 +341,22 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 }
 
 export function SelectedFairy({ agent }: { agent: FairyAgent }) {
-	const position = useValue(
+	const ref = useRef<HTMLDivElement>(null)
+	useQuickReactor(
 		'fairy position',
-		() => agent.$fairyEntity.get()?.position ?? { x: 0, y: 0 },
+		() => {
+			const elm = ref.current
+			if (!elm) return
+			const position = agent.$fairyEntity.get()?.position
+			if (!position) return null
+			elm.style.left = `${position.x}px`
+			elm.style.top = `${position.y}px`
+		},
 		[agent]
 	)
 
 	return (
-		<div className="fairy-selected" style={{ left: position.x, top: position.y }}>
+		<div ref={ref} className="fairy-selected">
 			<FairyReticleSprite size={FAIRY_CONTAINER_SIZE / 1.5} />
 		</div>
 	)
