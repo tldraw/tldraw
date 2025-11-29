@@ -315,30 +315,24 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 						'fairy-container__generating': isGenerating,
 						'fairy-container__not-generating': !isGenerating,
 						'fairy-container__in-throw-tool': isInThrowTool,
+						'fairy-container__grabbable': isFairyGrabbable,
+						'fairy-container__not-grabbable': !isFairyGrabbable,
 					})}
+					style={{
+						cursor: getFairyCursor(isFairyGrabbable, editor.inputs.isDragging),
+					}}
 				>
-					<div
-						className={classNames(`fairy-container-interaction-layer`, {
-							'fairy-container-interaction-layer--grabbable': isFairyGrabbable,
-							'fairy-container-interaction-layer--not-grabbable': !isFairyGrabbable,
-						})}
-						style={{
-							cursor: getFairyCursor(isFairyGrabbable, editor.inputs.isDragging),
-						}}
+					<FairySprite
+						pose={fairyEntity.pose}
+						gesture={fairyEntity.gesture}
+						hatColor={getHatColor(fairyOutfit.hat)}
+						showShadow
+						isAnimated={fairyEntity.pose !== 'idle' || isSelected}
+						isGenerating={isGenerating}
+						flipX={flipX}
+						isOrchestrator={isOrchestrator}
+						projectColor={projectHexColor}
 					/>
-					<div className="fairy-sprite-wrapper">
-						<FairySprite
-							pose={fairyEntity.pose}
-							gesture={fairyEntity.gesture}
-							hatColor={getHatColor(fairyOutfit.hat)}
-							showShadow
-							isAnimated={fairyEntity.pose !== 'idle' || isSelected}
-							isGenerating={isGenerating}
-							flipX={flipX}
-							isOrchestrator={isOrchestrator}
-							projectColor={projectHexColor}
-						/>
-					</div>
 				</div>
 			</_ContextMenu.Trigger>
 			<FairyContextMenuContent agent={agent} source="canvas" />

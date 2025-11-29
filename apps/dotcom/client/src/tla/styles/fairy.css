@@ -1860,19 +1860,11 @@
 	z-index: 0;
 }
 
-.fairy-container-interaction-layer {
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	top: 0;
-	left: 0;
-}
-
-.fairy-container-interaction-layer--grabbable {
+.fairy-container__grabbable {
 	pointer-events: all;
 }
 
-.fairy-container-interaction-layer--not-grabbable {
+.fairy-container__not-grabbable {
 	pointer-events: none;
 }
 
