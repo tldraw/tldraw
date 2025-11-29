@@ -195,12 +195,6 @@ async function handleTransactionCompleted(
 ) {
 	const { data } = event
 
-	// Validate transaction status - only grant access for completed transactions
-	if (data.status !== 'completed') {
-		console.warn(`[Paddle Webhook] Ignoring transaction ${data.id} with status: ${data.status}`)
-		return
-	}
-
 	// Extract userId from transaction custom_data
 	let userId: string | null = null
 	if (data.custom_data && typeof data.custom_data === 'object') {
