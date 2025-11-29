@@ -115,30 +115,40 @@ async function insertPaddleTransaction(
 	event: PaddleWebhookEvent,
 	userId: string | null
 ): Promise<{ exists: boolean }> {
-	const now = Date.now()
-	const occurredAt = new Date(event.occurred_at).getTime()
+	try {
+		const now = Date.now()
+		const occurredAt = new Date(event.occurred_at).getTime()
 
-	const result = await db
-		.insertInto('paddle_transactions')
-		.values({
+		const result = await db
+			.insertInto('paddle_transactions')
+			.values({
+				eventId: event.event_id,
+				transactionId: event.data.id,
+				eventType: event.event_type,
+				status: event.data.status,
+				userId,
+				processed: false,
+				processedAt: null,
+				processingError: null,
+				eventData: event as any,
+				occurredAt,
+				receivedAt: now,
+				updatedAt: now,
+			})
+			.onConflict((oc) => oc.column('eventId').doNothing())
+			.returning('eventId')
+			.executeTakeFirst()
+
+		return { exists: !result }
+	} catch (error) {
+		console.error('[Paddle Webhook] Failed to insert transaction (non-fatal)', {
 			eventId: event.event_id,
 			transactionId: event.data.id,
-			eventType: event.event_type,
-			status: event.data.status,
-			userId,
-			processed: false,
-			processedAt: null,
-			processingError: null,
-			eventData: event as any,
-			occurredAt,
-			receivedAt: now,
-			updatedAt: now,
+			error: error instanceof Error ? error.message : String(error),
 		})
-		.onConflict((oc) => oc.column('eventId').doNothing())
-		.returning('eventId')
-		.executeTakeFirst()
-
-	return { exists: !result }
+		// Assume it doesn't exist and continue processing
+		return { exists: false }
+	}
 }
 
 async function sendDiscordNotification(
@@ -170,11 +180,19 @@ async function markTransactionProcessed(
 	db: ReturnType<typeof createPostgresConnectionPool>,
 	eventId: string
 ): Promise<void> {
-	await db
-		.updateTable('paddle_transactions')
-		.set({ processed: true, processedAt: Date.now() })
-		.where('eventId', '=', eventId)
-		.execute()
+	try {
+		await db
+			.updateTable('paddle_transactions')
+			.set({ processed: true, processedAt: Date.now() })
+			.where('eventId', '=', eventId)
+			.execute()
+	} catch (error) {
+		console.error('[Paddle Webhook] Failed to mark transaction as processed (non-fatal)', {
+			eventId,
+			error: error instanceof Error ? error.message : String(error),
+		})
+		// Don't throw - transaction logging failure shouldn't fail webhook
+	}
 }
 
 async function markTransactionError(
@@ -182,11 +200,20 @@ async function markTransactionError(
 	eventId: string,
 	error: string
 ): Promise<void> {
-	await db
-		.updateTable('paddle_transactions')
-		.set({ processingError: error, updatedAt: Date.now() })
-		.where('eventId', '=', eventId)
-		.execute()
+	try {
+		await db
+			.updateTable('paddle_transactions')
+			.set({ processingError: error, updatedAt: Date.now() })
+			.where('eventId', '=', eventId)
+			.execute()
+	} catch (dbError) {
+		console.error('[Paddle Webhook] Failed to store processing error (non-fatal)', {
+			eventId,
+			originalError: error,
+			dbError: dbError instanceof Error ? dbError.message : String(dbError),
+		})
+		// Don't throw - transaction logging failure shouldn't fail webhook
+	}
 }
 
 async function handleTransactionCompleted(
@@ -200,28 +227,67 @@ async function handleTransactionCompleted(
 
 	if (!userId) {
 		await sendDiscordNotification(webhookUrl, 'missing_user', { transactionId: data.id })
-		return
+		throw new Error('Missing userId in transaction custom_data')
 	}
 
-	const result = await upsertFairyAccess(
-		env,
-		userId,
-		MAX_FAIRY_COUNT,
-		FAIRY_WORLDWIDE_EXPIRATION,
-		db
-	)
+	// Try to grant fairy access - this is the critical path
+	let fairyAccessResult
+	try {
+		fairyAccessResult = await upsertFairyAccess(
+			env,
+			userId,
+			MAX_FAIRY_COUNT,
+			FAIRY_WORLDWIDE_EXPIRATION,
+			db
+		)
+	} catch (error) {
+		// UNEXPECTED error - fail webhook so Paddle retries
+		const errorMessage = error instanceof Error ? error.message : String(error)
+		console.error('[Paddle Webhook] UNEXPECTED: upsertFairyAccess threw', {
+			eventId: event.event_id,
+			transactionId: data.id,
+			userId,
+			error: errorMessage,
+			stack: error instanceof Error ? error.stack : undefined,
+		})
 
-	if (result.success) {
-		await sendDiscordNotification(webhookUrl, 'success', { transactionId: data.id, userId })
-		await markTransactionProcessed(db, event.event_id)
-	} else {
 		await sendDiscordNotification(webhookUrl, 'error', {
 			transactionId: data.id,
 			userId,
-			error: result.error,
+			error: `UNEXPECTED ERROR: ${errorMessage}`,
 		})
-		await markTransactionError(db, event.event_id, result.error ?? 'Unknown error')
+
+		await markTransactionError(db, event.event_id, `UNEXPECTED: ${errorMessage}`)
+
+		// Re-throw to fail webhook and trigger Paddle retry
+		throw error
 	}
+
+	// Check result - business logic failure, should also fail webhook
+	if (!fairyAccessResult.success) {
+		const errorMessage = fairyAccessResult.error || 'Unknown error'
+		console.error('[Paddle Webhook] Failed to grant fairy access', {
+			eventId: event.event_id,
+			transactionId: data.id,
+			userId,
+			error: errorMessage,
+		})
+
+		await sendDiscordNotification(webhookUrl, 'error', {
+			transactionId: data.id,
+			userId,
+			error: errorMessage,
+		})
+
+		await markTransactionError(db, event.event_id, errorMessage)
+
+		// Throw to fail webhook and trigger Paddle retry
+		throw new Error(`Failed to grant fairy access: ${errorMessage}`)
+	}
+
+	// Success path - user got access, everything else is best-effort
+	await sendDiscordNotification(webhookUrl, 'success', { transactionId: data.id, userId })
+	await markTransactionProcessed(db, event.event_id)
 }
 
 export const paddleWebhooks = createRouter<Environment>().post(
