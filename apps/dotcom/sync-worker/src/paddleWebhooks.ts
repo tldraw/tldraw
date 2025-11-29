@@ -139,13 +139,24 @@ async function insertPaddleTransaction(
 	return { exists: false }
 }
 
-async function sendDiscordPurchaseNotification(webhookUrl: string) {
+async function sendDiscordNotification(
+	webhookUrl: string,
+	type: 'success' | 'error' | 'refund' | 'missing_user',
+	details: { transactionId: string; userId?: string; error?: string }
+) {
+	const messages = {
+		success: '🧚✨ Ka-ching! Someone just unlocked the magic! 💫🎊',
+		error: `🚨 Fairy access grant FAILED for transaction ${details.transactionId}: ${details.error}`,
+		refund: `💸 Refund/cancellation for transaction ${details.transactionId}, userId: ${details.userId} - manual revocation needed`,
+		missing_user: `⚠️ Transaction ${details.transactionId} missing userId in custom_data`,
+	}
+
 	try {
 		await fetch(webhookUrl, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
-				content: '🧚✨ Ka-ching! Someone just unlocked the magic! 💫🎊',
+				content: messages[type],
 			}),
 		})
 	} catch (error) {
@@ -186,7 +197,10 @@ async function handleTransactionCompleted(env: Environment, event: PaddleWebhook
 	}
 
 	if (env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL) {
-		await sendDiscordPurchaseNotification(env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL)
+		await sendDiscordNotification(env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL, 'success', {
+			transactionId: data.id,
+			userId,
+		})
 	}
 
 	return { success: true }
