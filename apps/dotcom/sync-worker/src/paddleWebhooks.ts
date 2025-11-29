@@ -183,7 +183,7 @@ async function markTransactionProcessed(
 	try {
 		await db
 			.updateTable('paddle_transactions')
-			.set({ processed: true, processedAt: Date.now() })
+			.set({ processed: true, processedAt: Date.now(), updatedAt: Date.now() })
 			.where('eventId', '=', eventId)
 			.execute()
 	} catch (error) {
