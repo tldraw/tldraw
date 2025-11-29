@@ -101,7 +101,13 @@ export function FairyManualPanel() {
 						<strong>Thinking:</strong> Planning or reviewing work
 					</li>
 					<li>
-						<strong>Standing by:</strong> Part of a project, waiting for assignment
+						<strong>Reviewing:</strong> Reviewing work or content
+					</li>
+					<li>
+						<strong>Waiting:</strong> Part of a project, waiting for assignment
+					</li>
+					<li>
+						<strong>Panicking:</strong> The fairy is freaking out
 					</li>
 				</ul>
 				<p>
@@ -124,7 +130,7 @@ export function FairyManualPanel() {
 						<strong>Move fairies:</strong> Drag fairies around the canvas to reposition them
 					</li>
 					<li>
-						<strong>Remove fairies:</strong> Right-click and select the option to remove
+						<strong>Sleep fairies:</strong> Right-click and select the option to put them to sleep
 					</li>
 					<li>
 						<strong>Reset chat:</strong> Start fresh by resetting a fairy&apos;s conversation

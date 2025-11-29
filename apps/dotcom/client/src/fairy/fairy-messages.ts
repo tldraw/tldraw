@@ -45,5 +45,5 @@ export const fairyMessages = defineMessages({
 	enterMsg: { defaultMessage: 'Enter your message' },
 
 	// HUD toggle labels
-	manual: { defaultMessage: 'Help & documentation' },
+	manual: { defaultMessage: 'Guide' },
 })

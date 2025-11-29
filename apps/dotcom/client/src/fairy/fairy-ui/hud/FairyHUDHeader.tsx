@@ -98,7 +98,7 @@ export function FairyHUDHeader({
 	const centerContent =
 		panelState === 'manual' ? (
 			<div className="fairy-id-display">
-				<F defaultMessage="Help & Documentation" />
+				<F defaultMessage="User manual" />
 			</div>
 		) : selectedFairies.length > 1 ? (
 			<div className="fairy-id-display">{formattedNames}</div>
