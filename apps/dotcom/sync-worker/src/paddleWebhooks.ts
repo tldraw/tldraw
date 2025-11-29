@@ -1,4 +1,4 @@
-import { MAX_FAIRY_COUNT } from '@tldraw/dotcom-shared'
+import { MAX_FAIRY_COUNT, type TlaPaddleTransaction } from '@tldraw/dotcom-shared'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
 import { upsertFairyAccess } from './adminRoutes'
@@ -110,16 +110,18 @@ async function verifyWebhookSignature(
 	}
 }
 
-async function insertPaddleTransaction(
+async function insertAndLockPaddleTransaction(
 	db: ReturnType<typeof createPostgresConnectionPool>,
 	event: PaddleWebhookEvent,
 	userId: string | null
-): Promise<{ exists: boolean }> {
-	try {
-		const now = Date.now()
-		const occurredAt = new Date(event.occurred_at).getTime()
+): Promise<TlaPaddleTransaction> {
+	const now = Date.now()
+	const occurredAt = new Date(event.occurred_at).getTime()
 
-		const result = await db
+	// Transaction: insert (if not exists) + lock + read
+	const record = await db.transaction().execute(async (trx) => {
+		// Try to insert (onConflict does nothing if eventId exists)
+		await trx
 			.insertInto('paddle_transactions')
 			.values({
 				eventId: event.event_id,
@@ -136,19 +138,20 @@ async function insertPaddleTransaction(
 				updatedAt: now,
 			})
 			.onConflict((oc) => oc.column('eventId').doNothing())
-			.returning('eventId')
-			.executeTakeFirst()
+			.execute()
 
-		return { exists: !result }
-	} catch (error) {
-		console.error('[Paddle Webhook] Failed to insert transaction (non-fatal)', {
-			eventId: event.event_id,
-			transactionId: event.data.id,
-			error: error instanceof Error ? error.message : String(error),
-		})
-		// Assume it doesn't exist and continue processing
-		return { exists: false }
-	}
+		// Lock row and read (blocks concurrent handlers for same eventId)
+		const rec = await trx
+			.selectFrom('paddle_transactions')
+			.selectAll()
+			.where('eventId', '=', event.event_id)
+			.forUpdate()
+			.executeTakeFirstOrThrow()
+
+		return rec
+	})
+
+	return record
 }
 
 async function sendDiscordNotification(
@@ -298,8 +301,8 @@ export const paddleWebhooks = createRouter<Environment>().post(
 			const event = await verifyWebhookSignature(env, req.clone())
 			const userId = extractUserId(event.data.custom_data)
 
-			const { exists } = await insertPaddleTransaction(db, event, userId)
-			if (exists) {
+			const record = await insertAndLockPaddleTransaction(db, event, userId)
+			if (record.processed) {
 				return json({ received: true })
 			}
 
