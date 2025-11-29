@@ -14,7 +14,7 @@ export class AwaitTasksCompletionActionUtil extends AgentActionUtil<AwaitTasksCo
 			description: action.complete
 				? `Waiting for ${taskCount} task${taskCount === 1 ? '' : 's'} to complete`
 				: 'Setting up wait conditions...',
-			pose: 'writing' as const,
+			pose: 'waiting' as const,
 			canGroup: () => false,
 		}
 	}
@@ -49,7 +49,7 @@ export class AwaitTasksCompletionActionUtil extends AgentActionUtil<AwaitTasksCo
 		// Create a wait condition for each task ID
 		for (const taskId of taskIds) {
 			const condition = createTaskWaitCondition(taskId)
-			this.agent.waitFor(condition)
+			this.agent.waitManager.waitFor(condition)
 		}
 	}
 }

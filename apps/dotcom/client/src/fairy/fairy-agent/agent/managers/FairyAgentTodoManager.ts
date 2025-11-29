@@ -1,19 +1,25 @@
 import { FairyTodoItem } from '@tldraw/fairy-shared'
 import { atom, Atom } from 'tldraw'
 import { FairyAgent } from '../FairyAgent'
+import { BaseFairyAgentManager } from './BaseFairyAgentManager'
 
 /**
  * Manages the personal todo list for a fairy agent.
  * Each agent maintains its own todo list separate from project tasks.
  */
-export class FairyAgentTodoManager {
+export class FairyAgentTodoManager extends BaseFairyAgentManager {
 	/**
 	 * An atom containing the agent's personal todo list.
 	 */
-	$personalTodoList: Atom<FairyTodoItem[]>
+	private $personalTodoList: Atom<FairyTodoItem[]>
 
 	constructor(public agent: FairyAgent) {
+		super(agent)
 		this.$personalTodoList = atom('personalTodoList', [])
+	}
+
+	reset(): void {
+		this.$personalTodoList.set([])
 	}
 
 	/**
@@ -22,7 +28,7 @@ export class FairyAgentTodoManager {
 	 * @param text - The text of the todo item.
 	 * @returns The id of the todo item.
 	 */
-	addPersonalTodo(id: string, text: string) {
+	push(id: string, text: string) {
 		this.$personalTodoList.update((personalTodoItems) => {
 			return [
 				...personalTodoItems,
@@ -40,7 +46,7 @@ export class FairyAgentTodoManager {
 	 * Update a todo item's status and optionally its text.
 	 * @param params - The update parameters
 	 */
-	updatePersonalTodo(params: { id: string; status: FairyTodoItem['status']; text?: string }) {
+	update(params: { id: string; status: FairyTodoItem['status']; text?: string }) {
 		const { id, status, text } = params
 		this.$personalTodoList.update((todoItems) => {
 			const index = todoItems.findIndex((item) => item.id === id)
@@ -59,7 +65,7 @@ export class FairyAgentTodoManager {
 	 * Delete specific todo items by their ids.
 	 * @param ids - The ids of the todos to delete
 	 */
-	deletePersonalTodos(ids: string[]) {
+	delete(ids: string[]) {
 		const idsSet = new Set(ids)
 		this.$personalTodoList.update((todoItems) => {
 			return todoItems.filter((item) => !idsSet.has(item.id))
@@ -69,14 +75,14 @@ export class FairyAgentTodoManager {
 	/**
 	 * Delete all personal todo items.
 	 */
-	deleteAllPersonalTodos() {
+	deleteAll() {
 		this.$personalTodoList.set([])
 	}
 
 	/**
 	 * Remove all completed todo items from the todo list.
 	 */
-	flushTodoList() {
+	flush() {
 		this.$personalTodoList.update((personalTodoItems) => {
 			return personalTodoItems.filter((item) => item.status !== 'done')
 		})
@@ -85,7 +91,7 @@ export class FairyAgentTodoManager {
 	/**
 	 * Get the current personal todo list.
 	 */
-	getPersonalTodos() {
+	getTodos() {
 		return this.$personalTodoList.get()
 	}
 

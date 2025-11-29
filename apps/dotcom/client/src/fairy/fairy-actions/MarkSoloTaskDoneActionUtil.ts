@@ -31,7 +31,7 @@ export class MarkSoloTaskDoneActionUtil extends AgentActionUtil<MarkSoloTaskDone
 		const currentTaskId = currentTask.id
 
 		setFairyTaskStatusAndNotifyCompletion(currentTaskId, 'done', this.editor)
-		this.agent.pushToChatHistory(
+		this.agent.chatManager.push(
 			{
 				id: uniqueId(),
 				type: 'memory-transition',
@@ -49,7 +49,7 @@ export class MarkSoloTaskDoneActionUtil extends AgentActionUtil<MarkSoloTaskDone
 			}
 		)
 
-		const currentBounds = this.agent.$activeRequest.get()?.bounds
+		const currentBounds = this.agent.requestManager.getActiveRequest()?.bounds
 		if (!currentBounds) return
 
 		this.agent.interrupt({

@@ -33,6 +33,6 @@ export class SendToBackActionUtil extends AgentActionUtil<SendToBackAction> {
 			return
 		}
 
-		this.agent.moveToPosition(bounds.center)
+		this.agent.positionManager.moveTo(bounds.center)
 	}
 }

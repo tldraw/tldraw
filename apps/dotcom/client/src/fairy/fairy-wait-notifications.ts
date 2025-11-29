@@ -5,7 +5,6 @@ import {
 	TaskCompletedEvent,
 	type FairyWaitCondition,
 	type FairyWaitEvent,
-	type SerializedWaitCondition,
 } from '@tldraw/fairy-shared'
 import { Editor } from 'tldraw'
 import { $fairyAgentsAtom } from './fairy-globals'
@@ -29,7 +28,7 @@ export function notifyWaitingAgents({
 	const agents = $fairyAgentsAtom.get(editor)
 
 	for (const agent of agents) {
-		const waitingConditions = agent.waitManager.$waitingFor.get()
+		const waitingConditions = agent.waitManager.getWaitingFor()
 		const matchingCondition = waitingConditions.find(
 			(condition) => condition.eventType === eventType && condition.matcher(event)
 		) // if there are multiple matching conditions, this will miss all but the first
@@ -39,12 +38,12 @@ export function notifyWaitingAgents({
 			const remainingConditions = waitingConditions.filter(
 				(condition) => condition !== matchingCondition
 			)
-			agent.waitManager.$waitingFor.set(remainingConditions)
+			agent.waitManager.waitForAll(remainingConditions)
 
 			// Wake up the agent with a notification message
 			const agentFacingMessage = getAgentFacingMessage(agent.id, matchingCondition)
 			const userFacingMessage = getUserFacingMessage?.(agent.id, matchingCondition) ?? null
-			agent.notifyWaitConditionFulfilled({
+			agent.waitManager.notifyWaitConditionFulfilled({
 				agentFacingMessage,
 				userFacingMessage,
 			})
@@ -121,44 +120,4 @@ export function createAgentModeTransitionWaitCondition(
 		matcher: (event) => event.agentId === agentId && event.mode === mode,
 		id: `agent-mode-transition:${agentId}:${mode}`,
 	}
-}
-
-/**
- * Serialize a wait condition to a plain object for persistence.
- * Extracts the parameters needed to reconstruct the matcher from the id field.
- */
-export function serializeWaitCondition(
-	condition: FairyWaitCondition<FairyWaitEvent>
-): SerializedWaitCondition {
-	return {
-		eventType: condition.eventType,
-		id: condition.id,
-		metadata: condition.metadata,
-	}
-}
-
-/**
- * Deserialize a wait condition by reconstructing the matcher function.
- * Parses the id field to extract parameters and uses factory functions to rebuild.
- */
-export function deserializeWaitCondition(
-	serialized: SerializedWaitCondition
-): FairyWaitCondition<FairyWaitEvent> | null {
-	if (serialized.eventType === 'task-completed') {
-		// Parse id format: "task-completed:${taskId}"
-		const match = serialized.id.match(/^task-completed:(.+)$/)
-		if (match) {
-			const taskId = match[1]
-			return createTaskWaitCondition(taskId)
-		}
-	} else if (serialized.eventType === 'agent-mode-transition') {
-		// Parse id format: "agent-mode-transition:${agentId}:${mode}"
-		const match = serialized.id.match(/^agent-mode-transition:(.+):(.+)$/)
-		if (match) {
-			const agentId = match[1]
-			const mode = match[2] as FairyModeDefinition['type']
-			return createAgentModeTransitionWaitCondition(agentId, mode)
-		}
-	}
-	return null
 }

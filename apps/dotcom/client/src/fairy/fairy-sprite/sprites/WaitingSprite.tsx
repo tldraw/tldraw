@@ -11,6 +11,7 @@ export function WaitingSprite({
 	return (
 		<>
 			<FairyBodySpritePart bodyColor={bodyColor} />
+			<FairyHatSpritePart hatColor={hatColor} />
 			{/* Head circle */}
 			<circle
 				cx="55.4159"
@@ -40,7 +41,6 @@ export function WaitingSprite({
 				strokeWidth="5"
 				strokeLinecap="round"
 			/>
-			<FairyHatSpritePart hatColor={hatColor} />
 			{/* Left arm */}
 			<path
 				d="M39.694 52.4638C37.1062 50.0928 17.443 56.9522 38.2828 63.2828"

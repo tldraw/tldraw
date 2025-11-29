@@ -32,6 +32,6 @@ export class AlignActionUtil extends AgentActionUtil<AlignAction> {
 			return
 		}
 
-		this.agent.moveToPosition(bounds.center)
+		this.agent.positionManager.moveTo(bounds.center)
 	}
 }

@@ -2,7 +2,7 @@ import { AgentIcon, ChatHistoryActionItem } from '@tldraw/fairy-shared'
 import { useEffect, useRef } from 'react'
 import Markdown from 'react-markdown'
 import { useValue } from 'tldraw'
-import { FairyAgent } from '../agent/FairyAgent'
+import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
 import { FairyChatHistoryGroup } from './FairyChatHistoryGroup'
 
 export function FairyChatHistoryAction({
@@ -31,7 +31,7 @@ function FairyChatHistoryMessageDisplay({
 	agent: FairyAgent
 }) {
 	const { action } = item
-	const info = agent.getActionInfo(action)
+	const info = agent.actionManager.getActionInfo(action)
 	const content = info.description
 
 	if (!content) return null
@@ -65,14 +65,18 @@ function FairyChatHistoryActionDisplay({
 	}, [contentRef, item.action])
 
 	// if (action._type === 'update-shared-todo-list') return null
-	const info = agent.getActionInfo(action)
+	const info = agent.actionManager.getActionInfo(action)
 
 	const displayText =
 		info.description || info.summary || formatActionName(action._type || 'unknown')
 
 	const isFinalItem = group.isFinalGroup && group.items.indexOf(item) === group.items.length - 1
 
-	const agentIsGenerating = useValue('agent-is-generating', () => agent.isGenerating(), [agent])
+	const agentIsGenerating = useValue(
+		'agent-is-generating',
+		() => agent.requestManager.isGenerating(),
+		[agent]
+	)
 	const actionIsStreaming = agentIsGenerating && isFinalItem
 
 	return (

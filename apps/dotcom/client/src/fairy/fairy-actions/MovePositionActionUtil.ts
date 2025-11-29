@@ -23,6 +23,6 @@ export class MovePositionActionUtil extends AgentActionUtil<MovePositionAction> 
 			y: action.y,
 		})
 
-		this.agent.moveToPosition(position)
+		this.agent.positionManager.moveTo(position)
 	}
 }

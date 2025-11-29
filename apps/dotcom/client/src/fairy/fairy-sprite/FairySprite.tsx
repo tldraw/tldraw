@@ -1,22 +1,25 @@
 import { FairyOutfit, FairyPose } from '@tldraw/fairy-shared'
 import { ComponentType, useEffect, useState } from 'react'
 import { IdleSprite } from './sprites/IdleSprite'
+import {
+	LoweredWingsSprite1,
+	LoweredWingsSprite2,
+	LoweredWingsSprite3,
+} from './sprites/WingsSprite'
+
 import { PanickingSprite1, PanickingSprite2 } from './sprites/PanickingSprite'
-import { PoofSprite } from './sprites/PoofSprite'
-import { RaisedAWingSprite } from './sprites/RaisedAWingSprite'
-import { RaisedBWingSprite } from './sprites/RaisedBWingSprite'
-import { RaisedCWingSprite } from './sprites/RaisedCWingSprite'
-import { ReadingSprite } from './sprites/ReadingSprite'
+import { PoofSprite1, PoofSprite2, PoofSprite3, PoofSprite4 } from './sprites/PoofSprite'
+import { RaisedWingsSprite1, RaisedWingsSprite2, RaisedWingsSprite3 } from './sprites/RaisedWings'
+import { ReadingSprite1, ReadingSprite2, ReadingSprite3 } from './sprites/ReadingSprite'
 import { SleepingSprite } from './sprites/SleepingSprite'
-import { SleepingWingSprite } from './sprites/SleepingWingSprite'
 import { ThinkingSprite } from './sprites/ThinkingSprite'
 import { WaitingSprite } from './sprites/WaitingSprite'
 import { WorkingSprite1, WorkingSprite2, WorkingSprite3 } from './sprites/WorkingSprite'
-import { WritingSprite } from './sprites/WritingSprite'
+import { WritingSprite1, WritingSprite2 } from './sprites/WritingSprite'
 
 interface WingSpriteProps {
-	topWingColor?: string
-	bottomWingColor?: string
+	topWingColor: string
+	bottomWingColor: string
 }
 
 interface FairySpriteProps {
@@ -25,29 +28,29 @@ interface FairySpriteProps {
 }
 
 const WING_SPRITES: Record<FairyPose, ComponentType<WingSpriteProps>[]> = {
-	idle: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
-	waiting: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
-	active: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
-	reading: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
-	writing: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
-	thinking: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
-	working: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
-	sleeping: [SleepingWingSprite],
-	panicking: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
+	idle: [RaisedWingsSprite1, RaisedWingsSprite2, RaisedWingsSprite3, RaisedWingsSprite2],
+	waiting: [LoweredWingsSprite1, LoweredWingsSprite2, LoweredWingsSprite3, LoweredWingsSprite2],
+	active: [RaisedWingsSprite1, RaisedWingsSprite2, RaisedWingsSprite3, RaisedWingsSprite2],
+	reading: [RaisedWingsSprite1, RaisedWingsSprite2, RaisedWingsSprite3, RaisedWingsSprite2],
+	writing: [RaisedWingsSprite1, RaisedWingsSprite2, RaisedWingsSprite3, RaisedWingsSprite2],
+	thinking: [LoweredWingsSprite1, LoweredWingsSprite2, LoweredWingsSprite3, LoweredWingsSprite2],
+	working: [RaisedWingsSprite1, RaisedWingsSprite2, RaisedWingsSprite3, RaisedWingsSprite2],
+	sleeping: [LoweredWingsSprite1],
+	panicking: [RaisedWingsSprite1, RaisedWingsSprite2, RaisedWingsSprite3, RaisedWingsSprite2],
 	poof: [],
 }
 
 const FAIRY_SPRITES_WITH_PROPS: Record<FairyPose, ComponentType<FairySpriteProps>[]> = {
 	idle: [IdleSprite],
 	active: [IdleSprite],
-	reading: [ReadingSprite],
-	writing: [WritingSprite],
+	reading: [ReadingSprite1, ReadingSprite2, ReadingSprite3, ReadingSprite2],
+	writing: [WritingSprite1, WritingSprite2],
 	thinking: [ThinkingSprite],
 	working: [WorkingSprite1, WorkingSprite2, WorkingSprite3, WorkingSprite2],
 	sleeping: [SleepingSprite],
 	waiting: [WaitingSprite],
 	panicking: [PanickingSprite1, PanickingSprite2],
-	poof: [PoofSprite],
+	poof: [PoofSprite1, PoofSprite2, PoofSprite3, PoofSprite4],
 }
 
 const FRAME_DURATIONS: Record<FairyPose, number> = {
@@ -147,7 +150,9 @@ function useKeyframe({ pose, duration }: { pose: FairyPose; duration: number }) 
 		}
 		updateFrame()
 		const timer = setInterval(updateFrame, duration)
-		return () => clearInterval(timer)
+		return () => {
+			clearInterval(timer)
+		}
 	}, [duration, pose])
 
 	return keyframe

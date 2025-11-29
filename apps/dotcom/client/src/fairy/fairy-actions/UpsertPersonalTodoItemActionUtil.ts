@@ -16,7 +16,7 @@ export class UpsertPersonalTodoItemActionUtil extends AgentActionUtil<UpsertPers
 			return {
 				icon: 'note' as const,
 				description: action.text,
-				pose: 'writing' as const,
+				pose: 'waiting' as const,
 				canGroup: () => false,
 			}
 		}
@@ -33,7 +33,7 @@ export class UpsertPersonalTodoItemActionUtil extends AgentActionUtil<UpsertPers
 
 		const { id, text, status } = action
 
-		const index = this.agent.todoManager.$personalTodoList.get().findIndex((item) => item.id === id)
+		const index = this.agent.todoManager.getTodos().findIndex((item) => item.id === id)
 		if (index === -1) {
 			if (!text) {
 				this.agent.interrupt({
@@ -41,9 +41,9 @@ export class UpsertPersonalTodoItemActionUtil extends AgentActionUtil<UpsertPers
 				})
 				return
 			}
-			this.agent.addPersonalTodo(id, text)
+			this.agent.todoManager.push(id, text)
 		} else {
-			this.agent.updatePersonalTodo({ id, status, text })
+			this.agent.todoManager.update({ id, status, text })
 		}
 	}
 }

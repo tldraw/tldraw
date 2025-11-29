@@ -123,12 +123,6 @@
       "value": "Export as"
     }
   ],
-  "141c7239d3": [
-    {
-      "type": 0,
-      "value": "Fairy customization"
-    }
-  ],
   "146ffe2fd9": [
     {
       "type": 0,
@@ -333,12 +327,6 @@
     {
       "type": 0,
       "value": "Follow"
-    }
-  ],
-  "3a77f951ca": [
-    {
-      "type": 0,
-      "value": "Add a new task…"
     }
   ],
   "3b6c2b4caa": [
@@ -633,18 +621,6 @@
       "value": "you"
     }
   ],
-  "64ebe56d8c": [
-    {
-      "type": 0,
-      "value": "Click to remove or drag to move"
-    }
-  ],
-  "65709fd250": [
-    {
-      "type": 0,
-      "value": "Task list"
-    }
-  ],
   "6609dd239e": [
     {
       "type": 0,
@@ -793,12 +769,6 @@
     {
       "type": 0,
       "value": "A fairy is a little guy that can work with you on the canvas. Fairies can work alone or as a team. There is no limit to what a fairy can do. Nobody knows where they came from."
-    }
-  ],
-  "7a3113b0ba": [
-    {
-      "type": 0,
-      "value": "Drag to canvas"
     }
   ],
   "7b1329f5ca": [
@@ -1041,12 +1011,6 @@
       "value": "Add file link"
     }
   ],
-  "98e528aac6": [
-    {
-      "type": 0,
-      "value": "Switch to fairy chat"
-    }
-  ],
   "9914a0ce04": [
     {
       "type": 0,
@@ -1131,12 +1095,6 @@
     {
       "type": 0,
       "value": "Export image"
-    }
-  ],
-  "a2f0372a75": [
-    {
-      "type": 0,
-      "value": "Switch to task list"
     }
   ],
   "a3debabee7": [
@@ -1479,12 +1437,6 @@
       "value": "Theme"
     }
   ],
-  "d7bc9d5a2e": [
-    {
-      "type": 0,
-      "value": "Delete task"
-    }
-  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1685,12 +1637,6 @@
     {
       "type": 0,
       "value": "selected"
-    }
-  ],
-  "efb2d9d471": [
-    {
-      "type": 0,
-      "value": "Todo list"
     }
   ],
   "efde983742": [

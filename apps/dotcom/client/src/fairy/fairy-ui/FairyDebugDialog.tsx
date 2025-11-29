@@ -20,6 +20,7 @@ import {
 	TldrawUiDropdownMenuItem,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
+	track,
 	useValue,
 } from 'tldraw'
 import { F } from '../../tla/utils/i18n'
@@ -31,6 +32,7 @@ import {
 	$fairyTasks,
 } from '../fairy-globals'
 import { addAgentToDummyProject } from '../fairy-projects'
+import { useChatHistory } from './hooks/useFairyAgentChatHistory'
 
 // # Home Debug Inspector Types and Labels
 type HomeDebugInspectorType = 'projects' | 'fairyTaskList'
@@ -441,72 +443,68 @@ function FairyDebugOptions({ agent }: { agent: FairyAgent }) {
 
 // # Fairy Debug View
 
-function FairyDebugView({
-	agent,
-	inspectorType,
-}: {
-	agent: FairyAgent
-	inspectorType: FairyDebugInspectorType
-}) {
-	// Call all hooks unconditionally to satisfy React's rules of hooks
-	const fairyEntity = useValue(agent.$fairyEntity)
-	const activeRequest = useValue(agent.$activeRequest)
-	const scheduledRequest = useValue(agent.$scheduledRequest)
-	const chatOrigin = useValue(agent.chatManager.$chatOrigin)
-	const personalTodoList = useValue(agent.todoManager.$personalTodoList)
-	const userActionHistory = useValue(agent.userActionTracker.$userActionHistory)
-	const currentProjectId = agent.getProject()?.id ?? null
-	// const cumulativeUsage = agent.cumulativeUsage
-	const mode = agent.getMode()
+const FairyDebugView = track(
+	({ agent, inspectorType }: { agent: FairyAgent; inspectorType: FairyDebugInspectorType }) => {
+		// Call all hooks unconditionally to satisfy React's rules of hooks
+		const fairyEntity = agent.getEntity()
+		const activeRequest = agent.requestManager.getActiveRequest()
+		const scheduledRequest = agent.requestManager.getScheduledRequest()
+		const chatOrigin = agent.chatManager.getOrigin()
+		const personalTodoList = agent.todoManager.getTodos()
+		const userActionHistory = agent.userActionTracker.getHistory()
+		const currentProjectId = agent.getProject()?.id ?? null
+		// const cumulativeUsage = agent.cumulativeUsage
+		const mode = agent.modeManager.getMode()
 
-	if (inspectorType === 'config') {
+		if (inspectorType === 'config') {
+			return (
+				<div className="fairy-debug-view-container">
+					<ConfigInspector agent={agent} />
+				</div>
+			)
+		}
+		if (inspectorType === 'actions') {
+			return (
+				<div className="fairy-debug-view-container">
+					<ActionsInspector agent={agent} />
+				</div>
+			)
+		}
+		if (inspectorType === 'chatHistory') {
+			return (
+				<div className="fairy-debug-view-container">
+					<ChatHistoryInspector agent={agent} />
+				</div>
+			)
+		}
+
+		// For all other inspector types, use JsonDisplay
+		const valueMap: Record<
+			Exclude<FairyDebugInspectorType, 'config' | 'actions' | 'chatHistory'>,
+			unknown
+		> = {
+			fairyEntity,
+			activeRequest,
+			scheduledRequest,
+			chatOrigin,
+			personalTodoList,
+			userActionHistory,
+			currentProjectId,
+			// cumulativeUsage,
+			mode,
+		}
+
+		const value =
+			valueMap[
+				inspectorType as Exclude<FairyDebugInspectorType, 'config' | 'actions' | 'chatHistory'>
+			]
 		return (
 			<div className="fairy-debug-view-container">
-				<ConfigInspector agent={agent} />
+				<JsonDisplay value={value} />
 			</div>
 		)
 	}
-	if (inspectorType === 'actions') {
-		return (
-			<div className="fairy-debug-view-container">
-				<ActionsInspector agent={agent} />
-			</div>
-		)
-	}
-	if (inspectorType === 'chatHistory') {
-		return (
-			<div className="fairy-debug-view-container">
-				<ChatHistoryInspector agent={agent} />
-			</div>
-		)
-	}
-
-	// For all other inspector types, use JsonDisplay
-	const valueMap: Record<
-		Exclude<FairyDebugInspectorType, 'config' | 'actions' | 'chatHistory'>,
-		unknown
-	> = {
-		fairyEntity,
-		activeRequest,
-		scheduledRequest,
-		chatOrigin,
-		personalTodoList,
-		userActionHistory,
-		currentProjectId,
-		// cumulativeUsage,
-		mode,
-	}
-
-	const value =
-		valueMap[
-			inspectorType as Exclude<FairyDebugInspectorType, 'config' | 'actions' | 'chatHistory'>
-		]
-	return (
-		<div className="fairy-debug-view-container">
-			<JsonDisplay value={value} />
-		</div>
-	)
-}
+)
 
 // ## Fairy debug view inspector components
 
@@ -524,7 +522,7 @@ function ConfigInspector({ agent }: { agent: FairyAgent }) {
 }
 
 function ActionsInspector({ agent }: { agent: FairyAgent }) {
-	const chatHistory = useValue(agent.chatManager.$chatHistory)
+	const chatHistory = useChatHistory(agent)
 
 	// Filter to only completed actions, and include all prompts and continuations
 	const items: ChatHistoryItem[] = chatHistory.filter((item) => {
@@ -613,7 +611,7 @@ function ActionsInspector({ agent }: { agent: FairyAgent }) {
 }
 
 function ChatHistoryInspector({ agent }: { agent: FairyAgent }) {
-	const chatHistory = useValue(agent.chatManager.$chatHistory)
+	const chatHistory = useValue('chat history', () => agent.chatManager.getHistory(), [agent])
 
 	return (
 		<div className="fairy-debug-container">

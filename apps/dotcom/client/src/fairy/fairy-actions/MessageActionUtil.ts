@@ -8,7 +8,7 @@ export class MessageActionUtil extends AgentActionUtil<MessageAction> {
 		return {
 			description: action.text ?? '',
 			canGroup: () => false,
-			pose: 'writing' as const, // todo: talking
+			pose: 'waiting' as const, // todo: talking
 		}
 	}
 }

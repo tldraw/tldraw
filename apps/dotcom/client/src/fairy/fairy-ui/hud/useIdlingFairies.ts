@@ -12,7 +12,7 @@ export function useIdlingFairies(agents: FairyAgent[]) {
 		for (const project of projects) {
 			for (const member of project.members) {
 				const agent = agents.find((a) => a.id === member.id)
-				if (agent && agent.getMode() === 'idling') {
+				if (agent && agent.modeManager.getMode() === 'idling') {
 					projectIds.add(project.id)
 				}
 			}
@@ -25,7 +25,7 @@ export function useIdlingFairies(agents: FairyAgent[]) {
 			if (badStateProjectIds.includes(project.id)) {
 				for (const member of project.members) {
 					const agent = agents.find((a) => a.id === member.id)
-					if (agent && agent.getMode() === 'idling') {
+					if (agent && agent.modeManager.getMode() === 'idling') {
 						const fairyName = agent.$fairyConfig.get()?.name ?? 'unknown'
 						// eslint-disable-next-line no-console
 						console.log(

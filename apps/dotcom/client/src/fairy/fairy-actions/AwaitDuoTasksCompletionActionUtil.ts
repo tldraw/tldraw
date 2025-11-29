@@ -14,7 +14,7 @@ export class AwaitDuoTasksCompletionActionUtil extends AgentActionUtil<AwaitDuoT
 			description: action.complete
 				? `Waiting for ${taskCount} task${taskCount === 1 ? '' : 's'} to complete`
 				: 'Waiting...',
-			pose: 'writing' as const,
+			pose: 'waiting' as const,
 			canGroup: () => false,
 		}
 	}
@@ -49,7 +49,7 @@ export class AwaitDuoTasksCompletionActionUtil extends AgentActionUtil<AwaitDuoT
 		// Create a wait condition for each task ID
 		for (const taskId of taskIds) {
 			const condition = createTaskWaitCondition(taskId)
-			this.agent.waitFor(condition)
+			this.agent.waitManager.waitFor(condition)
 		}
 	}
 }

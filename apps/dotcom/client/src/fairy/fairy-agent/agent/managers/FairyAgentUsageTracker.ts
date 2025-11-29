@@ -5,6 +5,7 @@ import {
 	ModelNamePart,
 } from '@tldraw/fairy-shared'
 import { FairyAgent } from '../FairyAgent'
+import { BaseFairyAgentManager } from './BaseFairyAgentManager'
 
 const DEFAULT_MODEL_NAME = 'claude-3-5-sonnet-20241022' as AgentModelName
 
@@ -12,7 +13,7 @@ const DEFAULT_MODEL_NAME = 'claude-3-5-sonnet-20241022' as AgentModelName
  * Tracks token usage and costs for a fairy agent's chat session.
  * Usage is tracked per model and tier to handle different pricing models.
  */
-export class FairyAgentUsageTracker {
+export class FairyAgentUsageTracker extends BaseFairyAgentManager {
 	/**
 	 * Cumulative token usage tracking for this chat session.
 	 * Tracked per model to handle different pricing models.
@@ -49,7 +50,13 @@ export class FairyAgentUsageTracker {
 		totalTokens: 0,
 	}
 
-	constructor(public agent: FairyAgent) {}
+	constructor(public agent: FairyAgent) {
+		super(agent)
+	}
+
+	reset(): void {
+		this.resetCumulativeUsage()
+	}
 
 	/**
 	 * Reset the cumulative usage tracking for this fairy agent.

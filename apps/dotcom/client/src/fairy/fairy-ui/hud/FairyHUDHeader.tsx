@@ -59,7 +59,7 @@ export function FairyHUDHeader({
 	const zoomToFairy = useCallback(() => {
 		if (!fairyClickable || !shownFairy) return
 
-		shownFairy.zoomTo()
+		shownFairy.positionManager.zoomTo()
 	}, [shownFairy, fairyClickable])
 
 	// const hasChatHistory = useValue(

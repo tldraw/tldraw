@@ -1,6 +1,6 @@
 import { AgentIcon, ChatHistoryActionItem } from '@tldraw/fairy-shared'
 import { useMemo, useState } from 'react'
-import { FairyAgent } from '../agent/FairyAgent'
+import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
 import { FairyChatHistoryAction } from './FairyChatHistoryAction'
 
 export interface FairyChatHistoryGroup {
@@ -19,7 +19,7 @@ export function FairyChatHistoryGroup({
 
 	const nonEmptyItems = useMemo(() => {
 		return items.filter((item) => {
-			const { description } = agent.getActionInfo(item.action)
+			const { description } = agent.actionManager.getActionInfo(item.action)
 			return description !== null
 		})
 	}, [items, agent])
@@ -89,7 +89,7 @@ function FairyChatHistoryItem({
 	agent: FairyAgent
 }) {
 	const { action } = item
-	const { description, summary } = agent.getActionInfo(action)
+	const { description, summary } = agent.actionManager.getActionInfo(action)
 	const collapsible = summary !== null
 	const [collapsed, setCollapsed] = useState(collapsible)
 
@@ -125,7 +125,7 @@ export function getActionHistoryGroups(
 	const groups: FairyChatHistoryGroup[] = []
 
 	for (const item of items) {
-		const { description } = agent.getActionInfo(item.action)
+		const { description } = agent.actionManager.getActionInfo(item.action)
 		if (description === null) {
 			continue
 		}
@@ -173,8 +173,8 @@ export function canActionBeGrouped({
 	const prevAction = group.items.at(-1)?.action
 	if (!prevAction) return false
 
-	const actionInfo = agent.getActionInfo(item.action)
-	const prevActionInfo = agent.getActionInfo(prevAction)
+	const actionInfo = agent.actionManager.getActionInfo(item.action)
+	const prevActionInfo = agent.actionManager.getActionInfo(prevAction)
 
 	if (actionInfo.canGroup(prevAction) && prevActionInfo.canGroup(item.action)) {
 		return true

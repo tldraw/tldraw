@@ -12,7 +12,7 @@ export class OtherFairiesPartUtil extends PromptPartUtil<OtherFairiesPart> {
 			.filter((agent) => agent.id !== this.agent.id)
 
 		const otherFairiesData = otherFairies.map((agent) => {
-			const activeRequest = agent.$activeRequest.get()
+			const activeRequest = agent.requestManager.getActiveRequest()
 			return {
 				id: agent.id,
 				name: agent.$fairyConfig.get().name,
@@ -21,11 +21,11 @@ export class OtherFairiesPartUtil extends PromptPartUtil<OtherFairiesPart> {
 				bounds: activeRequest?.bounds ? helpers.applyOffsetToBox(activeRequest.bounds) : null,
 				// personality: agent.$fairyConfig.get().personality,
 				currentProjectId: agent.getProject()?.id ?? null,
-				isSleeping: agent.isSleeping(),
+				isSleeping: agent.modeManager.isSleeping(),
 			}
 		})
 
-		const thisActiveRequest = this.agent.$activeRequest.get()
+		const thisActiveRequest = this.agent.requestManager.getActiveRequest()
 		const thisFairyData = {
 			id: this.agent.id,
 			name: this.agent.$fairyConfig.get().name,
@@ -34,7 +34,7 @@ export class OtherFairiesPartUtil extends PromptPartUtil<OtherFairiesPart> {
 			bounds: thisActiveRequest?.bounds ? helpers.applyOffsetToBox(thisActiveRequest.bounds) : null,
 			// personality: this.agent.$fairyConfig.get().personality,
 			currentProjectId: this.agent.getProject()?.id ?? null,
-			isSleeping: this.agent.isSleeping(),
+			isSleeping: this.agent.modeManager.isSleeping(),
 		}
 
 		return {

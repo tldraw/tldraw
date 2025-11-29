@@ -15,7 +15,8 @@ export function useFairySelection(agents: FairyAgent[]) {
 		'selected-fairies',
 		() =>
 			agents.filter(
-				(agent) => (agent.$fairyEntity.get()?.isSelected && !agent.isSleeping()) ?? false
+				(agent) =>
+					(agent.$fairyEntity.get()?.isSelected && !agent.modeManager.isSleeping()) ?? false
 			),
 		[agents]
 	)
@@ -160,7 +161,7 @@ export function useFairySelection(agents: FairyAgent[]) {
 
 	const handleDoubleClickFairy = useCallback(
 		(clickedAgent: FairyAgent) => {
-			clickedAgent.zoomTo()
+			clickedAgent.positionManager.zoomTo()
 
 			// If the clicked fairy is part of an active project, select the orchestrator instead
 			const project = clickedAgent.getProject()

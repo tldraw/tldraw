@@ -323,7 +323,7 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 	const isInThrowTool = useValue('is in throw tool', () => editor.isIn('select.fairy-throw'), [
 		editor,
 	])
-	const isGenerating = useValue('is generating', () => agent.isGenerating(), [agent])
+	const isGenerating = useValue('is generating', () => agent.requestManager.isGenerating(), [agent])
 	const isFairyGrabbable = isInSelectTool
 
 	useFairyPointerInteraction(fairyRef, agent, editor, isFairyGrabbable)

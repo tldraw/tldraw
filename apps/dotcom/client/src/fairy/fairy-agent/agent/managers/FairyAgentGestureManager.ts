@@ -1,6 +1,7 @@
 import { FairyPose } from '@tldraw/fairy-shared'
 import { uniqueId } from 'tldraw'
 import { FairyAgent } from '../FairyAgent'
+import { BaseFairyAgentManager } from './BaseFairyAgentManager'
 
 /**
  * Manages the stack of gestures for a fairy agent. A gesture, if present, takes precedence over the base pose.
@@ -14,20 +15,51 @@ import { FairyAgent } from '../FairyAgent'
  * eg: Switch to the next gesture in the stack.
  * eg: Revert to the base pose.
  */
-export class FairyAgentGestureManager {
-	stack: { id: string; gesture: FairyPose }[] = []
+export class FairyAgentGestureManager extends BaseFairyAgentManager {
+	/**
+	 * The stack of active gestures. Each item contains a unique ID and the gesture to display.
+	 * The most recently added gesture is displayed first. When a gesture completes, the next
+	 * gesture in the stack is displayed. When the stack is empty, the base pose is displayed.
+	 */
+	private stack: { id: string; gesture: FairyPose }[] = []
 
-	constructor(public agent: FairyAgent) {}
-
-	pop() {
-		const { agent } = this
-		this.stack.pop()
-		const finalGesture = this.stack[this.stack.length - 1]?.gesture ?? null
-		agent.$fairyEntity.update((fairy) => ({ ...fairy, gesture: finalGesture }))
+	/**
+	 * Creates a new gesture manager for the given fairy agent.
+	 */
+	constructor(public agent: FairyAgent) {
+		super(agent)
 	}
 
 	/**
-	 * Add a gesture to the stack. When this gesture completes, the next gesture in the stack is displayed.
+	 * Resets the gesture manager by clearing the gesture stack and removing any active gesture
+	 * from the fairy entity.
+	 * @returns void
+	 */
+	reset(): void {
+		this.stack = []
+		const agent = this.agent
+		agent.$fairyEntity.update((fairy) => ({ ...fairy, gesture: null }))
+	}
+
+	/**
+	 * Removes the most recently added gesture from the stack and updates the fairy entity
+	 * to display the next gesture in the stack, or null if the stack is empty.
+	 * @returns void
+	 */
+	pop() {
+		this.stack.pop()
+		const finalGesture = this.stack[this.stack.length - 1]?.gesture ?? null
+		this.agent.$fairyEntity.update((fairy) => ({ ...fairy, gesture: finalGesture }))
+	}
+
+	/**
+	 * Adds a gesture to the stack and immediately displays it. When this gesture completes,
+	 * the next gesture in the stack will be displayed.
+	 *
+	 * @param gesture - The gesture pose to add to the stack.
+	 * @param duration - Optional duration in milliseconds. If provided, the gesture will
+	 * automatically be removed from the stack after this duration.
+	 * @returns void
 	 */
 	push(gesture: FairyPose, duration?: number) {
 		const { agent } = this
@@ -43,7 +75,9 @@ export class FairyAgentGestureManager {
 	}
 
 	/**
-	 * Clear the fairy's gesture.
+	 * Clears all gestures from the stack and removes any active gesture from the fairy entity.
+	 * This will cause the fairy to revert to its base pose.
+	 * @returns void
 	 */
 	clear() {
 		const { agent } = this

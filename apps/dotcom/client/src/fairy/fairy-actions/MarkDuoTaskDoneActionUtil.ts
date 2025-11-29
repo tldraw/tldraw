@@ -31,7 +31,7 @@ export class MarkDuoTaskDoneActionUtil extends AgentActionUtil<MarkDuoTaskDoneAc
 		const currentTaskId = currentTask.id
 
 		setFairyTaskStatusAndNotifyCompletion(currentTaskId, 'done', this.editor)
-		this.agent.pushToChatHistory(
+		this.agent.chatManager.push(
 			{
 				id: uniqueId(),
 				type: 'memory-transition',

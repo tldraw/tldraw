@@ -61,7 +61,7 @@ export class MoveActionUtil extends AgentActionUtil<MoveAction> {
 			y: newTarget.y,
 		})
 
-		this.agent.moveToPosition({
+		this.agent.positionManager.moveTo({
 			x: newTarget.x,
 			y: newTarget.y,
 		})

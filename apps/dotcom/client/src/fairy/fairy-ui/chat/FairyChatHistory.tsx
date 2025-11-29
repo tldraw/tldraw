@@ -1,7 +1,7 @@
 import { ChatHistoryPromptItem } from '@tldraw/fairy-shared'
 import { useEffect, useRef } from 'react'
-import { useValue } from 'tldraw'
-import { FairyAgent } from '../agent/FairyAgent'
+import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
+import { useChatHistory } from '../../fairy-ui/hooks/useFairyAgentChatHistory'
 import { FairyChatHistorySection, getAgentHistorySections } from './FairyChatHistorySection'
 
 /*
@@ -32,7 +32,7 @@ Here's an example of how the UI might look:
 */
 
 export function FairyChatHistory({ agent }: { agent: FairyAgent }) {
-	const historyItems = useValue(agent.chatManager.$chatHistory)
+	const historyItems = useChatHistory(agent)
 	// const currentMode = agent.getMode()
 	// const modeDefinition = getFairyModeDefinition(currentMode)
 	// const filteredItems = filterChatHistoryByMode(historyItems, modeDefinition.memoryLevel)

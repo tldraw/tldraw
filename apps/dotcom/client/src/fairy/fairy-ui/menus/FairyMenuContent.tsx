@@ -12,7 +12,6 @@ import { useApp } from '../../../tla/hooks/useAppState'
 import { useMsg } from '../../../tla/utils/i18n'
 import { isDevelopmentEnv } from '../../../utils/env'
 import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
-import { getFollowingFairyId } from '../../fairy-agent/agent/managers/FairyAgentPositionManager'
 import { $fairyAgentsAtom, $fairyProjects } from '../../fairy-globals'
 import { fairyMessages } from '../../fairy-messages'
 import { disbandProject } from '../../fairy-projects'
@@ -37,29 +36,29 @@ export function FairyMenuContent({
 
 	const putAwayFairy = useCallback(() => {
 		agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false, pose: 'sleeping' } : f))
-		agent.setMode('sleeping')
+		agent.modeManager.setMode('sleeping')
 	}, [agent])
 
 	const putAwayAllFairies = useCallback(() => {
 		agents.forEach((agent) => {
 			agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false, pose: 'sleeping' } : f))
-			agent.setMode('sleeping')
+			agent.modeManager.setMode('sleeping')
 		})
 	}, [agents])
 
 	const isFollowing = useValue(
 		'is following fairy',
 		() => {
-			return getFollowingFairyId(editor) === agent.id
+			return agent.positionManager.getFollowingFairyId() === agent.id
 		},
 		[editor, agent]
 	)
 
 	const toggleFollow = useCallback(() => {
 		if (isFollowing) {
-			agent.stopFollowing()
+			agent.positionManager.stopFollowing()
 		} else {
-			agent.startFollowing()
+			agent.positionManager.startFollowing()
 		}
 	}, [agent, isFollowing])
 
@@ -108,7 +107,7 @@ export function FairyMenuContent({
 		const spacing = 150 // Distance between fairies
 		agents.forEach((agent, index) => {
 			if (agents.length === 1) {
-				agent.summon()
+				agent.positionManager.summon()
 			} else {
 				// Arrange fairies in a circle around the center
 				const angleStep = (2 * Math.PI) / agents.length
@@ -117,7 +116,7 @@ export function FairyMenuContent({
 					x: Math.cos(angle) * spacing,
 					y: Math.sin(angle) * spacing,
 				}
-				agent.summon(offset)
+				agent.positionManager.summon(offset)
 			}
 		})
 	}, [agents])
@@ -135,13 +134,13 @@ export function FairyMenuContent({
 
 	const hasChatHistory = useValue(
 		'has-chat-history',
-		() => agent.chatManager.$chatHistory.get().length > 0,
+		() => agent.chatManager.getHistory().length > 0,
 		[agent]
 	)
 
 	const resetAllChats = useCallback(() => {
 		agents.forEach((agent) => {
-			if (agent.isSleeping()) return
+			if (agent.modeManager.isSleeping()) return
 			agent.reset()
 		})
 	}, [agents])
@@ -188,13 +187,13 @@ export function FairyMenuContent({
 		)
 	}
 
-	if (agent.isSleeping()) {
+	if (agent.modeManager.isSleeping()) {
 		return (
 			<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">
 				<TldrawUiMenuGroup id="fairy-sleep-menu">
 					<TldrawUiMenuItem
 						id="wake-fairy"
-						onSelect={() => agent.setMode('idling')}
+						onSelect={() => agent.modeManager.setMode('idling')}
 						label={wakeFairyLabel}
 					/>
 				</TldrawUiMenuGroup>
@@ -223,12 +222,12 @@ export function FairyMenuContent({
 					<>
 						<TldrawUiMenuItem
 							id="go-to-fairy"
-							onSelect={() => agent.zoomTo()}
+							onSelect={() => agent.positionManager.zoomTo()}
 							label={goToFairyLabel}
 						/>
 						<TldrawUiMenuItem
 							id="summon-fairy"
-							onSelect={() => agent.summon()}
+							onSelect={() => agent.positionManager.summon()}
 							label={summonFairyLabel}
 						/>
 					</>

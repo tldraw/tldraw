@@ -1,23 +1,24 @@
 import { AgentInput, AgentRequest, FAIRY_VISION_DIMENSIONS } from '@tldraw/fairy-shared'
 import { atom, Atom, Box } from 'tldraw'
 import { FairyAgent } from '../FairyAgent'
+import { BaseFairyAgentManager } from './BaseFairyAgentManager'
 
 /**
  * Manages request lifecycle for a fairy agent.
  * Handles active requests, scheduled requests, and request state management.
  */
-export class FairyAgentRequestManager {
+export class FairyAgentRequestManager extends BaseFairyAgentManager {
 	/**
 	 * An atom containing the currently active request.
 	 * This is mainly used to render highlights and other UI elements.
 	 */
-	$activeRequest: Atom<AgentRequest | null>
+	private $activeRequest: Atom<AgentRequest | null>
 
 	/**
 	 * An atom containing the next request that the agent has scheduled for itself.
 	 * Null if there is no scheduled request.
 	 */
-	$scheduledRequest: Atom<AgentRequest | null>
+	private $scheduledRequest: Atom<AgentRequest | null>
 
 	/**
 	 * Whether the agent is currently prompting (working on a request).
@@ -30,9 +31,29 @@ export class FairyAgentRequestManager {
 	private cancelFn: (() => void) | null = null
 
 	constructor(public agent: FairyAgent) {
+		super(agent)
 		this.$activeRequest = atom('activeRequest', null)
 		this.$scheduledRequest = atom('scheduledRequest', null)
 		this.$isPrompting = atom('isPrompting', false)
+	}
+
+	reset(): void {
+		this.$activeRequest.set(null)
+		this.$scheduledRequest.set(null)
+		this.$isPrompting.set(false)
+		this.cancelFn = null
+	}
+
+	isGenerating() {
+		return this.$isPrompting.get()
+	}
+
+	clearScheduledRequest() {
+		this.$scheduledRequest.set(null)
+	}
+
+	clearActiveRequest() {
+		this.$activeRequest.set(null)
 	}
 
 	/**
@@ -80,13 +101,6 @@ export class FairyAgentRequestManager {
 		}
 
 		return input
-	}
-
-	/**
-	 * Check if the agent is currently working on a prompt or not.
-	 */
-	isGenerating() {
-		return this.$isPrompting.get()
 	}
 
 	/**

@@ -15,7 +15,7 @@ export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
 		return {
 			icon: 'cursor' as const,
 			description: action.intent ?? '',
-			pose: 'writing' as const,
+			pose: 'working' as const,
 		}
 	}
 
@@ -66,7 +66,7 @@ export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
 		})
 
 		if (!result.shape) {
-			this.agent.moveToPosition({
+			this.agent.positionManager.moveTo({
 				x: existingShape.x,
 				y: existingShape.y,
 			})
@@ -96,7 +96,7 @@ export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
 			}
 		}
 
-		this.agent.moveToPosition({
+		this.agent.positionManager.moveTo({
 			x: result.shape.x,
 			y: result.shape.y,
 		})

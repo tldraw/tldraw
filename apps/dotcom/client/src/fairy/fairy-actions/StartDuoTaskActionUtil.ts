@@ -53,7 +53,7 @@ export class StartDuoTaskActionUtil extends AgentActionUtil<StartDuoTaskAction> 
 			)
 		)
 
-		const currentBounds = this.agent.$activeRequest.get()?.bounds
+		const currentBounds = this.agent.requestManager.getActiveRequest()?.bounds
 		if (!currentBounds) return
 
 		this.agent.interrupt({

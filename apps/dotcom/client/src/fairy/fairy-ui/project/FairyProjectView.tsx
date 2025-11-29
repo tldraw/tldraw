@@ -11,12 +11,12 @@ import { Box, Editor, uniqueId, useValue } from 'tldraw'
 import { getIsCoarsePointer } from '../../../tla/utils/getIsCoarsePointer'
 import { F, useMsg } from '../../../tla/utils/i18n'
 import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
-import { FairyProjectChatContent } from '../../fairy-agent/chat/FairyProjectChatContent'
 import { $fairyTasks } from '../../fairy-globals'
 import { getRandomNoInputMessage } from '../../fairy-helpers/getRandomNoInputMessage'
 import { fairyMessages } from '../../fairy-messages'
 import { addProject, disbandProject, getProjectByAgentId } from '../../fairy-projects'
 import { getFairyTasksByProjectId, setFairyTaskStatus } from '../../fairy-task-list'
+import { FairyProjectChatContent } from '../chat/FairyProjectChatContent'
 
 interface FairyProjectViewProps {
 	editor: Editor
@@ -58,9 +58,9 @@ export function FairyProjectView({
 		'generating',
 		() => {
 			if (orchestratorAgent) {
-				return orchestratorAgent.isGenerating()
+				return orchestratorAgent.requestManager.isGenerating()
 			}
-			return agents.some((agent) => agent.isGenerating())
+			return agents.some((agent) => agent.requestManager.isGenerating())
 		},
 		[orchestratorAgent, agents]
 	)
@@ -158,9 +158,9 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 			}
 
 			// Clear chat history for all agents before starting new project
-			leaderAgent.chatManager.clearChatHistory()
+			leaderAgent.chatManager.clear()
 			followerAgents.forEach((agent) => {
-				agent.chatManager.clearChatHistory()
+				agent.chatManager.clear()
 			})
 
 			const newProjectId = uniqueId(5)
@@ -213,7 +213,7 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 
 			const projectMembers = project.members.length
 			const isDuo = projectMembers === 2
-			const currentMode = orchestratorAgent.getMode()
+			const currentMode = orchestratorAgent.modeManager.getMode()
 
 			// If orchestrator was working on a task, reset it to todo
 			if (currentMode === 'working-orchestrator') {

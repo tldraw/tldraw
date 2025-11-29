@@ -1,16 +1,17 @@
 import { atom, Atom, RecordsDiff, TLRecord } from 'tldraw'
 import { $fairyIsApplyingAction } from '../../../fairy-globals'
 import { FairyAgent } from '../FairyAgent'
+import { BaseFairyAgentManager } from './BaseFairyAgentManager'
 
 /**
  * Tracks user actions on the canvas for a fairy agent.
  * This allows the agent to be aware of changes the user makes between prompts.
  */
-export class FairyAgentUserActionTracker {
+export class FairyAgentUserActionTracker extends BaseFairyAgentManager {
 	/**
 	 * An atom that stores document changes made by the user since the previous request.
 	 */
-	$userActionHistory: Atom<RecordsDiff<TLRecord>[]>
+	private $userActionHistory: Atom<RecordsDiff<TLRecord>[]>
 
 	/**
 	 * A function that stops recording user actions.
@@ -18,7 +19,13 @@ export class FairyAgentUserActionTracker {
 	private stopRecordingFn: (() => void) | null = null
 
 	constructor(public agent: FairyAgent) {
+		super(agent)
 		this.$userActionHistory = atom('userActionHistory', [])
+	}
+
+	reset(): void {
+		this.stopRecording()
+		this.$userActionHistory.set([])
 	}
 
 	/**
@@ -97,14 +104,14 @@ export class FairyAgentUserActionTracker {
 	/**
 	 * Clear the user action history.
 	 */
-	clearUserActionHistory() {
+	clearHistory() {
 		this.$userActionHistory.set([])
 	}
 
 	/**
 	 * Get the current user action history.
 	 */
-	getUserActionHistory() {
+	getHistory() {
 		return this.$userActionHistory.get()
 	}
 

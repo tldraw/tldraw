@@ -3,25 +3,45 @@ import { atom, Atom } from 'tldraw'
 import { notifyAgentModeTransition } from '../../../fairy-wait-notifications'
 import { FairyAgent } from '../FairyAgent'
 import { FAIRY_MODE_CHART } from '../FairyModeNode'
+import { BaseFairyAgentManager } from './BaseFairyAgentManager'
 
 /**
  * Manages the mode/state of a fairy agent.
  * Handles mode transitions and lifecycle hooks (onEnter, onExit).
  */
-export class FairyAgentModeManager {
+export class FairyAgentModeManager extends BaseFairyAgentManager {
 	/**
 	 * An atom containing the current fairy mode.
 	 */
 	private $mode: Atom<FairyModeDefinition['type']>
 
+	/**
+	 * Creates a new mode manager for the given fairy agent.
+	 * Initializes the mode to 'sleeping'.
+	 */
 	constructor(public agent: FairyAgent) {
+		super(agent)
 		this.$mode = atom('fairyMode', 'sleeping')
+	}
+
+	/**
+	 * Resets the mode manager to its initial state.
+	 * Sets the mode to 'sleeping' and updates the fairy entity's pose accordingly.
+	 * @returns void
+	 */
+	reset(): void {
+		this.$mode.set('sleeping')
+		const modeDefinition = getFairyModeDefinition('sleeping')
+		this.agent.$fairyEntity.update((fairy) => ({ ...fairy, pose: modeDefinition.pose }))
 	}
 
 	/**
 	 * Change the mode of the agent.
 	 * Triggers lifecycle hooks (onExit on old mode, onEnter on new mode).
+	 * Also notifies other agents waiting for this mode transition and updates
+	 * the fairy entity's pose to match the new mode.
 	 * @param mode - The mode to set.
+	 * @returns void
 	 */
 	setMode(mode: FairyModeDefinition['type']) {
 		const fromMode = this.getMode()
@@ -45,7 +65,7 @@ export class FairyAgentModeManager {
 
 	/**
 	 * Get the current mode of the agent.
-	 * @returns The mode.
+	 * @returns The current mode type.
 	 */
 	getMode(): FairyModeDefinition['type'] {
 		return this.$mode.get()
@@ -53,6 +73,7 @@ export class FairyAgentModeManager {
 
 	/**
 	 * Check if the fairy is currently sleeping.
+	 * @returns True if the fairy is in 'sleeping' mode, false otherwise.
 	 */
 	isSleeping() {
 		return this.getMode() === 'sleeping'
@@ -60,6 +81,7 @@ export class FairyAgentModeManager {
 
 	/**
 	 * Get the mode definition for the current mode.
+	 * @returns The mode definition containing pose, memory level, and other mode-specific configuration.
 	 */
 	getModeDefinition() {
 		return getFairyModeDefinition(this.getMode())

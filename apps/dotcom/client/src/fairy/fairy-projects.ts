@@ -68,7 +68,7 @@ function addProjectCancellationMemory(memberAgent: FairyAgent, project: FairyPro
 
 	if (completedTasksCount > 0) {
 		const taskWord = completedTasksCount === 1 ? 'task' : 'tasks'
-		memberAgent.pushToChatHistory(
+		memberAgent.chatManager.push(
 			{
 				id: uniqueId(),
 				type: 'memory-transition',
@@ -86,7 +86,7 @@ function addProjectCancellationMemory(memberAgent: FairyAgent, project: FairyPro
 			}
 		)
 	} else {
-		memberAgent.pushToChatHistory(
+		memberAgent.chatManager.push(
 			{
 				id: uniqueId(),
 				type: 'memory-transition',
@@ -438,11 +438,11 @@ function rectifyFairyModesUponBadState(projectId: string, editor: Editor) {
 	projectMemberAgents.forEach((agent) => {
 		const role = agent.getRole()
 		if (role === 'orchestrator') {
-			agent.setMode('orchestrating-waiting')
+			agent.modeManager.setMode('orchestrating-waiting')
 		} else if (role === 'duo-orchestrator') {
-			agent.setMode('duo-orchestrating-waiting')
+			agent.modeManager.setMode('duo-orchestrating-waiting')
 		} else if (role === 'drone') {
-			agent.setMode('standing-by')
+			agent.modeManager.setMode('standing-by')
 		}
 	})
 }

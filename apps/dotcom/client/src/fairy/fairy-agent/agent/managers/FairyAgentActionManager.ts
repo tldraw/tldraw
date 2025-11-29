@@ -12,32 +12,23 @@ import { $fairyIsApplyingAction } from '../../../fairy-globals'
 import { getAgentActionUtilsRecord } from '../../../fairy-part-utils/fairy-part-utils'
 import { AgentHelpers } from '../AgentHelpers'
 import type { FairyAgent } from '../FairyAgent'
+import { BaseFairyAgentManager } from './BaseFairyAgentManager'
 
 /**
  * Manages action-related functionality for the fairy agent.
  * Handles action utils, action execution, and action info.
  */
-export class FairyAgentActionManager {
-	constructor(private agent: FairyAgent) {
-		// Initialize action utils
+export class FairyAgentActionManager extends BaseFairyAgentManager {
+	constructor(public agent: FairyAgent) {
+		super(agent)
 		this.agentActionUtils = getAgentActionUtilsRecord(agent)
-		this.unknownActionUtil = this.agentActionUtils.unknown
 	}
 
 	/**
 	 * A record of the agent's action util instances.
 	 * Used by the `getAgentActionUtil` method.
 	 */
-	agentActionUtils: Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
-
-	/**
-	 * The agent action util instance for the "unknown" action type.
-	 *
-	 * This is returned by the `getAgentActionUtil` method when the action type
-	 * isn't properly specified. This can happen if the model isn't finished
-	 * streaming yet or makes a mistake.
-	 */
-	unknownActionUtil: AgentActionUtil<AgentAction>
+	private agentActionUtils: Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
 
 	/**
 	 * Get an agent action util for a specific action type.
@@ -106,7 +97,7 @@ export class FairyAgentActionManager {
 		const actionInfo = this.getActionInfo(action)
 		if (actionInfo.pose) {
 			// check the mode at the exact instant we would set the pose, if the fairy has somehow become inactive, set the pose to idle
-			const modeDefinition = getFairyModeDefinition(this.agent.getMode())
+			const modeDefinition = getFairyModeDefinition(this.agent.modeManager.getMode())
 			if (modeDefinition.active) {
 				this.agent.$fairyEntity.update((fairy) => ({
 					...fairy,
@@ -120,7 +111,7 @@ export class FairyAgentActionManager {
 		// Ensure the fairy is on the correct page before performing the action
 		this.ensureFairyIsOnCorrectPage(action)
 
-		const modeDefinition = getFairyModeDefinition(this.agent.getMode())
+		const modeDefinition = getFairyModeDefinition(this.agent.modeManager.getMode())
 		let promise: Promise<void> | null = null
 		let diff: RecordsDiff<TLRecord> = createEmptyRecordsDiff()
 		try {
@@ -152,7 +143,7 @@ export class FairyAgentActionManager {
 				memoryLevel: modeDefinition.memoryLevel,
 			}
 
-			this.agent.chatManager.updateChatHistory((historyItems) => {
+			this.agent.chatManager.update((historyItems) => {
 				// If there are no items, start off the chat history with the first item
 				if (historyItems.length === 0) return [historyItem]
 
@@ -184,6 +175,10 @@ export class FairyAgentActionManager {
 		}
 
 		return { diff, promise }
+	}
+
+	reset(): void {
+		// Reset state if needed - currently no state to reset
 	}
 
 	/**

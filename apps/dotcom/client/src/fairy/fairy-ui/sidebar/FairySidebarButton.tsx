@@ -35,7 +35,9 @@ export function FairySidebarButton({
 	const fairyOutfit = useValue('fairy outfit', () => agent.$fairyConfig.get()?.outfit, [agent])
 	const fairyEntity = useValue('fairy entity', () => agent.$fairyEntity.get(), [agent])
 	const project = useValue('current-project', () => agent.getProject(), [agent])
-	const isSleeping = useValue('is-sleeping', () => agent.getMode() === 'sleeping', [agent])
+	const isSleeping = useValue('is-sleeping', () => agent.modeManager.getMode() === 'sleeping', [
+		agent,
+	])
 
 	const isOrchestrator = useValue(
 		'is-orchestrator',
@@ -56,7 +58,7 @@ export function FairySidebarButton({
 		!fairyIsSelected &&
 		!project &&
 		!hasAnyActiveProjects &&
-		!agent.isSleeping()
+		!agent.modeManager.isSleeping()
 
 	return (
 		<_ContextMenu.Root dir="ltr">

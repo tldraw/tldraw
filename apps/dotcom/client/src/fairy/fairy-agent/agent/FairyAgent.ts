@@ -1,8 +1,6 @@
 import {
 	AgentAction,
-	AgentActionInfo,
 	AgentInput,
-	AgentModelName,
 	AgentPrompt,
 	AgentRequest,
 	BaseAgentPrompt,
@@ -50,11 +48,8 @@ import { FairyAgentActionManager } from './managers/FairyAgentActionManager'
 import { FairyAgentChatManager } from './managers/FairyAgentChatManager'
 import { FairyAgentGestureManager } from './managers/FairyAgentGestureManager'
 import { FairyAgentModeManager } from './managers/FairyAgentModeManager'
-import {
-	FairyAgentPositionManager,
-	getFollowingFairyId,
-	stopFollowingFairy,
-} from './managers/FairyAgentPositionManager'
+import { FairyAgentPositionManager } from './managers/FairyAgentPositionManager'
+import { FairyAgentRequestManager } from './managers/FairyAgentRequestManager'
 import { FairyAgentTodoManager } from './managers/FairyAgentTodoManager'
 import { FairyAgentUsageTracker } from './managers/FairyAgentUsageTracker'
 import { FairyAgentUserActionTracker } from './managers/FairyAgentUserActionTracker'
@@ -91,18 +86,6 @@ export class FairyAgent {
 	getToken?: () => Promise<string | undefined>
 
 	/**
-	 * An atom containing the currently active request.
-	 * This is mainly used to render highlights and other UI elements.
-	 */
-	$activeRequest = atom<AgentRequest | null>('activeRequest', null)
-
-	/**
-	 * An atom containing the next request that the agent has scheduled for
-	 * itself. Null if there is no scheduled request.
-	 */
-	$scheduledRequest = atom<AgentRequest | null>('scheduledRequest', null)
-
-	/**
 	 * Debug flags for controlling logging behavior in the worker.
 	 */
 	$debugFlags = atom<{ logSystemPrompt: boolean; logMessages: boolean; logResponseTime: boolean }>(
@@ -120,26 +103,24 @@ export class FairyAgent {
 	$useOneShottingMode = atom<boolean>('oneShotMode', true)
 
 	/**
-	 * Change the mode of the agent.
-	 * @param mode - The mode to set.
+	 * A function that stops the wake-on-select reaction.
 	 */
-	setMode(mode: FairyModeDefinition['type']) {
-		this.modeManager.setMode(mode)
-	}
+	private wakeOnSelectReaction: () => void
 
 	/**
-	 * Get the current mode of the agent.
-	 * @returns The mode.
+	 * Handler for the max-shapes event to cancel fairy when limit is reached.
 	 */
-	getMode(): FairyModeDefinition['type'] {
-		return this.modeManager.getMode()
-	}
+	private handleMaxShapes: () => void
 
 	/**
 	 * Get the current project that the agent is working on.
 	 */
 	getProject(): FairyProject | null {
 		return getProjectByAgentId(this.id) ?? null
+	}
+
+	getEntity(): FairyEntity {
+		return this.$fairyEntity.get()
 	}
 
 	/**
@@ -174,6 +155,7 @@ export class FairyAgent {
 	gestureManager = new FairyAgentGestureManager(this)
 	modeManager = new FairyAgentModeManager(this)
 	positionManager = new FairyAgentPositionManager(this)
+	requestManager = new FairyAgentRequestManager(this)
 	todoManager = new FairyAgentTodoManager(this)
 	usageTracker = new FairyAgentUsageTracker(this)
 	userActionTracker = new FairyAgentUserActionTracker(this)
@@ -188,8 +170,7 @@ export class FairyAgent {
 		this.id = id
 		this.getToken = getToken
 
-		const center = editor.getViewportPageBounds().center
-		const spawnPoint = findFairySpawnPoint(center, editor)
+		const spawnPoint = this.positionManager.findFairySpawnPoint()
 
 		this.$fairyEntity = atom<FairyEntity>(`fairy-${id}`, {
 			position: AgentHelpers.RoundVec(spawnPoint),
@@ -212,8 +193,8 @@ export class FairyAgent {
 		// Wake up sleeping fairies when they become selected
 		this.wakeOnSelectReaction = react(`fairy-${id}-wake-on-select`, () => {
 			const entity = this.$fairyEntity.get()
-			if (entity?.isSelected && this.getMode() === 'sleeping') {
-				this.setMode('idling')
+			if (entity?.isSelected && this.modeManager.getMode() === 'sleeping') {
+				this.modeManager.setMode('idling')
 			}
 		})
 
@@ -224,7 +205,7 @@ export class FairyAgent {
 
 		// Cancel fairy when max shapes limit is reached
 		this.handleMaxShapes = () => {
-			if (this.isGenerating()) {
+			if (this.requestManager.isGenerating()) {
 				this.interrupt({
 					input: {
 						agentMessages: [
@@ -249,8 +230,8 @@ export class FairyAgent {
 		this.wakeOnSelectReaction?.()
 		this.editor.removeListener('max-shapes', this.handleMaxShapes)
 		// Stop following this fairy if it's currently being followed
-		if (getFollowingFairyId(this.editor) === this.id) {
-			stopFollowingFairy(this.editor)
+		if (this.positionManager.getFollowingFairyId() === this.id) {
+			this.positionManager.stopFollowing()
 		}
 		$fairyAgentsAtom.update(this.editor, (agents) => agents.filter((agent) => agent.id !== this.id))
 	}
@@ -292,7 +273,7 @@ export class FairyAgent {
 				}
 			})
 			if (this.$fairyEntity.get().pose !== 'sleeping') {
-				this.setMode('idling')
+				this.modeManager.setMode('idling')
 			}
 		}
 		this.chatManager.loadState(state)
@@ -305,56 +286,10 @@ export class FairyAgent {
 	}
 
 	/**
-	 * Push one or more items to the chat history.
-	 * @param items - The chat history item(s) to add
+	 * A record of the agent's prompt part util instances.
+	 * Used by the `getPromptPartUtil` method.
 	 */
-	pushToChatHistory(...items: ChatHistoryItem[]) {
-		this.chatManager.pushToChatHistory(...items)
-	}
-
-	/**
-	 * Reset the cumulative usage tracking for this fairy agent.
-	 * Useful when starting a new chat session.
-	 */
-	resetCumulativeUsage() {
-		this.usageTracker.resetCumulativeUsage()
-	}
-
-	/**
-	 * Extract the model name from a prompt.
-	 * @param prompt - The agent prompt
-	 * @returns The model name, or DEFAULT_MODEL_NAME if not found
-	 */
-	getModelNameFromPrompt(prompt: AgentPrompt): AgentModelName {
-		return this.usageTracker.getModelNameFromPrompt(prompt)
-	}
-
-	/**
-	 * Get the current cumulative cost for this fairy agent.
-	 * Calculates costs based on model-specific pricing, accounting for cached input tokens.
-	 * @returns An object with input cost, output cost, and total cost in USD.
-	 */
-	getCumulativeCost() {
-		return this.usageTracker.getCumulativeCost()
-	}
-
-	/**
-	 * Get an agent action util for a specific action type.
-	 *
-	 * @param type - The type of action to get the util for.
-	 * @returns The action util.
-	 */
-	getAgentActionUtil(type?: string) {
-		return this.actionManager.getAgentActionUtil(type)
-	}
-
-	/**
-	 * Get the util type for a provided action type.
-	 * If no util type is found, returns 'unknown'.
-	 */
-	getAgentActionUtilType(type?: string) {
-		return this.actionManager.getAgentActionUtilType(type)
-	}
+	promptPartUtils: Record<PromptPart['type'], PromptPartUtil<PromptPart>>
 
 	/**
 	 * Get a prompt part util for a specific part type.
@@ -367,12 +302,6 @@ export class FairyAgent {
 	}
 
 	/**
-	 * A record of the agent's prompt part util instances.
-	 * Used by the `getPromptPartUtil` method.
-	 */
-	promptPartUtils: Record<PromptPart['type'], PromptPartUtil<PromptPart>>
-
-	/**
 	 * Get a full agent request from a user input by filling out any missing
 	 * values with defaults.
 	 * @param input - A partial agent request or a string message.
@@ -380,7 +309,7 @@ export class FairyAgent {
 	getFullRequestFromInput(input: AgentInput): AgentRequest {
 		const request = this.getPartialRequestFromInput(input)
 
-		const activeRequest = this.$activeRequest.get()
+		const activeRequest = this.requestManager.getActiveRequest()
 
 		return {
 			agentMessages: request.agentMessages ?? [],
@@ -443,7 +372,7 @@ export class FairyAgent {
 		const { promptPartUtils } = this
 		const parts: PromptPart[] = []
 
-		const mode = getFairyModeDefinition(this.getMode())
+		const mode = getFairyModeDefinition(this.modeManager.getMode())
 		if (!mode.active) {
 			throw new Error(`Fairy is not in an active mode so can't act right now`)
 		}
@@ -458,8 +387,6 @@ export class FairyAgent {
 
 		return Object.fromEntries(parts.map((part) => [part.type, part])) as AgentPrompt
 	}
-
-	private $isPrompting = atom<boolean>('isPrompting', false)
 
 	/**
 	 * Prompt the agent to edit the canvas.
@@ -485,11 +412,11 @@ export class FairyAgent {
 	 * @returns A promise for when the agent has finished its work.
 	 */
 	async prompt(input: AgentInput, { nested = false }: { nested?: boolean } = {}) {
-		if (this.$isPrompting.get() && !nested) {
+		if (this.requestManager.isGenerating() && !nested) {
 			throw new Error('Agent is already prompting. Please wait for the current prompt to finish.')
 		}
 
-		this.$isPrompting.set(true)
+		this.requestManager.setIsPrompting(true)
 
 		if (this.isActing) {
 			throw new Error(
@@ -498,13 +425,13 @@ export class FairyAgent {
 		}
 
 		const request = this.getFullRequestFromInput(input)
-		const startingNode = FAIRY_MODE_CHART[this.getMode()]
-		await startingNode.onPromptStart?.(this, request)
+		const startingNode = FAIRY_MODE_CHART[this.modeManager.getMode()]
+		startingNode.onPromptStart?.(this, request)
 
-		const initialModeDefinition = getFairyModeDefinition(this.getMode())
+		const initialModeDefinition = getFairyModeDefinition(this.modeManager.getMode())
 		if (!initialModeDefinition.active) {
 			throw new Error(
-				`Fairy is not in an active mode so can't act right now. First change to an active mode. Current mode: ${this.getMode()}`
+				`Fairy is not in an active mode so can't act right now. First change to an active mode. Current mode: ${this.modeManager.getMode()}`
 			)
 		}
 
@@ -514,20 +441,20 @@ export class FairyAgent {
 		// If there's no schedule request...
 		// Trigger onPromptEnd callback(s)
 		let modeChanged = true
-		while (!this.$scheduledRequest.get() && modeChanged) {
+		while (!this.requestManager.getScheduledRequest() && modeChanged) {
 			modeChanged = false
-			const mode = this.getMode()
+			const mode = this.modeManager.getMode()
 			const node = FAIRY_MODE_CHART[mode]
 			node.onPromptEnd?.(this, request)
-			const newMode = this.getMode()
+			const newMode = this.modeManager.getMode()
 			if (newMode !== mode) {
 				modeChanged = true
 			}
 		}
 
 		// If there's still no scheduled request, quit
-		const scheduledRequest = this.$scheduledRequest.get()
-		const eventualMode = this.getMode()
+		const scheduledRequest = this.requestManager.getScheduledRequest()
+		const eventualMode = this.modeManager.getMode()
 		const eventualModeDefinition = getFairyModeDefinition(eventualMode)
 		if (!scheduledRequest) {
 			if (eventualModeDefinition.active) {
@@ -535,15 +462,15 @@ export class FairyAgent {
 					`Fairy is not allowed to become inactive during the active mode: ${eventualMode}`
 				)
 			}
-			this.$isPrompting.set(false)
-			this.cancelFn = null
+			this.requestManager.setIsPrompting(false)
+			this.requestManager.setCancelFn(null)
 			return
 		}
 
 		// If there *is* a scheduled request...
 		// Add the scheduled request to chat history
 		const resolvedData = await Promise.all(scheduledRequest.data)
-		this.pushToChatHistory({
+		this.chatManager.push({
 			id: uniqueId(),
 			type: 'continuation',
 			data: resolvedData,
@@ -551,7 +478,7 @@ export class FairyAgent {
 		})
 
 		// Handle the scheduled request and clear it
-		this.$scheduledRequest.set(null)
+		this.requestManager.setScheduledRequest(null)
 		await this.prompt(scheduledRequest, { nested: true })
 	}
 
@@ -570,24 +497,24 @@ export class FairyAgent {
 	 * to abort the request.
 	 */
 	async request(input: AgentInput) {
-		const request = this.getFullRequestFromInput(input)
+		const request = this.requestManager.getFullRequestFromInput(input)
 
 		// Interrupt any currently active request
-		if (this.$activeRequest.get() !== null) {
+		if (this.requestManager.getActiveRequest() !== null) {
 			this.cancel()
 		}
-		this.$activeRequest.set(request)
+		this.requestManager.setActiveRequest(request)
 
 		// Call an external helper function to request the agent
-		const { promise, cancel } = requestAgentActions({ agent: this, request })
+		const { promise, cancel } = this.requestAgentActions({ agent: this, request })
 
-		this.cancelFn = cancel
+		this.requestManager.setCancelFn(cancel)
 		// promise.finally(() => {
-		// 	this.cancelFn = null
+		// 	this.requestManager.setCancelFn(null)
 		// })
 
 		const results = await promise
-		this.$activeRequest.set(null)
+		this.requestManager.setActiveRequest(null)
 		return results
 	}
 
@@ -617,7 +544,7 @@ export class FairyAgent {
 	 * ```
 	 */
 	schedule(input: AgentInput) {
-		const scheduledRequest = this.$scheduledRequest.get()
+		const scheduledRequest = this.requestManager.getScheduledRequest()
 
 		// If there's no request scheduled yet, schedule one
 		if (!scheduledRequest) {
@@ -647,7 +574,7 @@ export class FairyAgent {
 		this._cancel()
 
 		if (mode) {
-			this.setMode(mode)
+			this.modeManager.setMode(mode)
 		}
 		if (input !== null) {
 			this.schedule(input)
@@ -681,11 +608,11 @@ export class FairyAgent {
 	 */
 	private _schedule(input: AgentInput | null) {
 		if (input === null) {
-			this.$scheduledRequest.set(null)
+			this.requestManager.clearScheduledRequest()
 			return
 		}
 
-		const activeRequest = this.$activeRequest.get()
+		const activeRequest = this.requestManager.getActiveRequest()
 		const partialRequest = this.getPartialRequestFromInput(input)
 		const request: AgentRequest = {
 			agentMessages: partialRequest.agentMessages ?? [],
@@ -698,104 +625,13 @@ export class FairyAgent {
 			userMessages: partialRequest.userMessages ?? [],
 		}
 
-		const isCurrentlyActive = this.isGenerating()
+		const isCurrentlyActive = this.requestManager.isGenerating()
 
 		if (isCurrentlyActive) {
-			this.$scheduledRequest.set(request)
+			this.requestManager.setScheduledRequest(request)
 		} else {
 			this.prompt(request)
 		}
-	}
-
-	/**
-	 * Add a todo item to the agent's todo list.
-	 * @param id The id of the todo item.
-	 * @param text The text of the todo item.
-	 * @returns The id of the todo item.
-	 */
-	addPersonalTodo(id: string, text: string) {
-		return this.todoManager.addPersonalTodo(id, text)
-	}
-
-	updatePersonalTodo(params: { id: string; status: FairyTodoItem['status']; text?: string }) {
-		this.todoManager.updatePersonalTodo(params)
-	}
-
-	deletePersonalTodos(ids: string[]) {
-		this.todoManager.deletePersonalTodos(ids)
-	}
-
-	deleteAllPersonalTodos() {
-		this.todoManager.deleteAllPersonalTodos()
-	}
-
-	clearUserActionHistory() {
-		this.userActionTracker.clearUserActionHistory()
-	}
-
-	/**
-	 * Check if the agent is currently waiting for any events.
-	 * @returns true if the agent has any wait conditions
-	 */
-	isWaiting() {
-		return this.waitManager.isWaiting()
-	}
-
-	/**
-	 * Add a wait condition to the agent.
-	 * The agent will be notified when an event matching this condition occurs.
-	 * @param condition - The wait condition to add
-	 */
-	waitFor(condition: any) {
-		return this.waitManager.waitFor(condition)
-	}
-
-	/**
-	 * Clear all wait conditions for this agent.
-	 */
-	stopWaiting() {
-		return this.waitManager.stopWaiting()
-	}
-
-	/**
-	 * Wake up the agent from waiting with a notification message.
-	 * Note: This does NOT remove wait conditions - the matched conditions should
-	 * already be removed by the notification system before calling this method.
-	 */
-	notifyWaitConditionFulfilled({
-		agentFacingMessage,
-		userFacingMessage,
-	}: {
-		agentFacingMessage: string
-		userFacingMessage: string | null
-	}) {
-		return this.waitManager.notifyWaitConditionFulfilled({
-			agentFacingMessage,
-			userFacingMessage,
-		})
-	}
-
-	/**
-	 * Make the agent perform an action.
-	 * @param action The action to make the agent do.
-	 * @param helpers The helpers to use.
-	 * @returns The diff of the action, a promise for when the action is finished
-	 */
-	act(
-		action: Streaming<AgentAction>,
-		helpers: AgentHelpers = new AgentHelpers(this)
-	): {
-		diff: RecordsDiff<TLRecord>
-		promise: Promise<void> | null
-	} {
-		return this.actionManager.act(action, helpers)
-	}
-
-	/**
-	 * Remove all completed todo items from the todo list.
-	 */
-	flushTodoList() {
-		this.todoManager.flushTodoList()
 	}
 
 	/**
@@ -886,13 +722,13 @@ export class FairyAgent {
 	 * Cancel the agent's current prompt, if one is active.
 	 */
 	cancel() {
-		const request = this.$activeRequest.get()
+		const request = this.requestManager.getActiveRequest()
 		if (request) {
-			const mode = this.getMode()
+			const mode = this.modeManager.getMode()
 			const node = FAIRY_MODE_CHART[mode]
 			node.onPromptCancel?.(this, request)
 
-			const newMode = this.getMode()
+			const newMode = this.modeManager.getMode()
 			const newModeDefinition = getFairyModeDefinition(newMode)
 			if (newModeDefinition.active) {
 				throw new Error(
@@ -906,16 +742,9 @@ export class FairyAgent {
 
 	private _cancel() {
 		this.cancelFn?.()
-		this.$activeRequest.set(null)
-		this.$scheduledRequest.set(null)
+		this.requestManager.clearActiveRequest()
+		this.requestManager.clearScheduledRequest()
 		this.cancelFn = null
-	}
-
-	/**
-	 * Check if the fairy is currently sleeping.
-	 */
-	isSleeping() {
-		return this.modeManager.isSleeping()
 	}
 
 	/**
@@ -925,31 +754,24 @@ export class FairyAgent {
 	reset() {
 		this.cancel()
 		this.promptStartTime = null
-		this.deleteAllPersonalTodos()
-		this.clearUserActionHistory()
+		this.todoManager.deleteAll()
+		this.userActionTracker.clearHistory()
 
 		// Remove solo tasks
 		$fairyTasks.update((tasks) =>
 			tasks.filter((task) => task.assignedTo !== this.id && task.projectId === null)
 		)
 
-		this.setMode('idling')
+		this.modeManager.setMode('idling')
 
-		this.chatManager.clearChatHistory()
-		this.chatManager.setChatOrigin({ x: 0, y: 0 })
+		this.chatManager.clear()
+		this.chatManager.setOrigin({ x: 0, y: 0 })
 
 		// clear any waiting conditions
-		this.stopWaiting()
+		this.waitManager.clear()
 
 		// Reset cumulative usage tracking when starting a new chat
-		this.resetCumulativeUsage()
-	}
-
-	/**
-	 * Check if the agent is currently working on a prompt or not.
-	 */
-	isGenerating() {
-		return this.$isPrompting.get()
+		this.usageTracker.resetCumulativeUsage()
 	}
 
 	/**
@@ -966,25 +788,6 @@ export class FairyAgent {
 	 */
 	promptStartTime: number | null = null
 
-	/**
-	 * A function that stops the wake-on-select reaction.
-	 */
-	private wakeOnSelectReaction: () => void
-
-	/**
-	 * Handler for the max-shapes event to cancel fairy when limit is reached.
-	 */
-	private handleMaxShapes: () => void
-
-	/**
-	 * Get information about an agent action, mostly used to display actions within the chat history UI.
-	 * @param action - The action to get information about.
-	 * @returns The information about the action.
-	 */
-	getActionInfo(action: Streaming<AgentAction>): AgentActionInfo {
-		return this.actionManager.getActionInfo(action)
-	}
-
 	updateFairyConfig(partial: Partial<FairyConfig>) {
 		this.app.z.mutate.user.updateFairyConfig({
 			id: this.id,
@@ -996,224 +799,101 @@ export class FairyAgent {
 		this.app.z.mutate.user.deleteFairyConfig({ id: this.id })
 	}
 
-	/**
-	 * Move the fairy to a spawn point near the center of the viewport.
-	 * Uses findFairySpawnPoint to avoid overlapping with other fairies.
-	 */
-	moveToSpawnPoint() {
-		const center = this.editor.getViewportPageBounds().center
-		const spawnPoint = findFairySpawnPoint(center, this.editor)
-		const currentPageId = this.editor.getCurrentPageId()
-		this.$fairyEntity.update((f) =>
-			f ? { ...f, position: AgentHelpers.RoundVec(spawnPoint), currentPageId } : f
-		)
-		this.gestureManager.push('poof', 400)
-	}
+	private requestAgentActions({ agent, request }: { agent: FairyAgent; request: AgentRequest }) {
+		const { editor } = agent
 
-	/**
-	 * Move the fairy to a position.
-	 * @param position - The position to move the fairy to.
-	 */
-	moveToPosition(position: VecModel) {
-		this.positionManager.moveToPosition(position)
-	}
+		const mode = getFairyModeDefinition(agent.modeManager.getMode())
 
-	/**
-	 * Instantly move the fairy to the center of the screen on the current page.
-	 * Updates the fairy's currentPageId to match the current editor page.
-	 * @param offset Optional offset from the center position
-	 */
-	summon(offset?: { x: number; y: number }) {
-		this.positionManager.summon(offset)
-	}
+		// Convert arrays to strings for ChatHistoryPromptItem
+		const agentFacingMessage = request.agentMessages.join('\n')
+		const userFacingMessage = request.userMessages.join('\n')
 
-	/**
-	 * Move the camera to the fairy's position.
-	 * Also switches to the page where the fairy is located.
-	 */
-	zoomTo() {
-		this.positionManager.zoomTo()
-	}
+		const promptHistoryItem: ChatHistoryPromptItem = {
+			id: uniqueId(),
+			type: 'prompt',
+			promptSource: request.source,
+			agentFacingMessage,
+			userFacingMessage,
+			memoryLevel: mode.memoryLevel,
+		}
+		agent.chatManager.push(promptHistoryItem)
 
-	/**
-	 * Start following this fairy with the camera.
-	 */
-	startFollowing() {
-		this.positionManager.startFollowing()
-	}
+		let cancelled = false
+		const controller = new AbortController()
+		const signal = controller.signal
+		const helpers = new AgentHelpers(agent)
 
-	/**
-	 * Stop following this fairy with the camera.
-	 */
-	stopFollowing() {
-		this.positionManager.stopFollowing()
-	}
+		if (!mode.active) {
+			agent.cancel()
+			throw new Error(`Fairy is not in an active mode so can't act right now`)
+		}
+		const availableActions = mode.actions(agent.getWork())
 
-	/**
-	 * Check if this fairy is currently being followed.
-	 */
-	isFollowing() {
-		return this.positionManager.isFollowing()
-	}
-}
+		const requestPromise = (async () => {
+			const prompt = await agent.preparePrompt(request, helpers)
+			let incompleteDiff: RecordsDiff<TLRecord> | null = null
+			const actionPromises: Promise<void>[] = []
+			try {
+				for await (const action of agent._streamActions({ prompt, signal })) {
+					if (cancelled) break
 
-/**
- * Send a request to the agent and handle its response.
- *
- * This is a helper function that is used internally by the agent.
- */
-function requestAgentActions({ agent, request }: { agent: FairyAgent; request: AgentRequest }) {
-	const { editor } = agent
+					editor.run(
+						() => {
+							const actionUtilType = agent.actionManager.getAgentActionUtilType(action._type)
+							const actionUtil = agent.actionManager.getAgentActionUtil(action._type)
 
-	const mode = getFairyModeDefinition(agent.getMode())
+							// If the action is not in the wand's available actions, skip it
+							if (!(availableActions as string[]).includes(actionUtilType)) {
+								return
+							}
 
-	// Convert arrays to strings for ChatHistoryPromptItem
-	const agentFacingMessage = request.agentMessages.join('\n')
-	const userFacingMessage = request.userMessages.join('\n')
+							// helpers the agent's action
+							const transformedAction = actionUtil.sanitizeAction(action, helpers)
+							if (!transformedAction) {
+								incompleteDiff = null
+								return
+							}
 
-	const promptHistoryItem: ChatHistoryPromptItem = {
-		id: uniqueId(),
-		type: 'prompt',
-		promptSource: request.source,
-		agentFacingMessage,
-		userFacingMessage,
-		memoryLevel: mode.memoryLevel,
-	}
-	agent.pushToChatHistory(promptHistoryItem)
+							// If there was a diff from an incomplete action, revert it so that we can reapply the action
+							if (incompleteDiff) {
+								const inversePrevDiff = reverseRecordsDiff(incompleteDiff)
+								editor.store.applyDiff(inversePrevDiff)
+							}
 
-	let cancelled = false
-	const controller = new AbortController()
-	const signal = controller.signal
-	const helpers = new AgentHelpers(agent)
+							// Apply the action to the app and editor
+							const { diff, promise } = agent.actionManager.act(transformedAction, helpers)
 
-	if (!mode.active) {
-		agent.cancel()
-		throw new Error(`Fairy is not in an active mode so can't act right now`)
-	}
-	const availableActions = mode.actions(agent.getWork())
+							if (promise) {
+								actionPromises.push(promise)
+							}
 
-	const requestPromise = (async () => {
-		const prompt = await agent.preparePrompt(request, helpers)
-		let incompleteDiff: RecordsDiff<TLRecord> | null = null
-		const actionPromises: Promise<void>[] = []
-		try {
-			for await (const action of agent._streamActions({ prompt, signal })) {
-				if (cancelled) break
-
-				editor.run(
-					() => {
-						const actionUtilType = agent.getAgentActionUtilType(action._type)
-						const actionUtil = agent.getAgentActionUtil(action._type)
-
-						// If the action is not in the wand's available actions, skip it
-						if (!(availableActions as string[]).includes(actionUtilType)) {
-							return
+							// The the action is incomplete, save the diff so that we can revert it in the future
+							if (transformedAction.complete) {
+								incompleteDiff = null
+							} else {
+								incompleteDiff = diff
+							}
+						},
+						{
+							ignoreShapeLock: false,
+							history: 'ignore',
 						}
-
-						// helpers the agent's action
-						const transformedAction = actionUtil.sanitizeAction(action, helpers)
-						if (!transformedAction) {
-							incompleteDiff = null
-							return
-						}
-
-						// If there was a diff from an incomplete action, revert it so that we can reapply the action
-						if (incompleteDiff) {
-							const inversePrevDiff = reverseRecordsDiff(incompleteDiff)
-							editor.store.applyDiff(inversePrevDiff)
-						}
-
-						// Apply the action to the app and editor
-						const { diff, promise } = agent.act(transformedAction, helpers)
-
-						if (promise) {
-							actionPromises.push(promise)
-						}
-
-						// The the action is incomplete, save the diff so that we can revert it in the future
-						if (transformedAction.complete) {
-							incompleteDiff = null
-						} else {
-							incompleteDiff = diff
-						}
-					},
-					{
-						ignoreShapeLock: false,
-						history: 'ignore',
-					}
-				)
+					)
+				}
+				await Promise.all(actionPromises)
+			} catch (e) {
+				if (e === 'Cancelled by user' || (e instanceof Error && e.name === 'AbortError')) {
+					return
+				}
+				agent.onError(e)
 			}
-			await Promise.all(actionPromises)
-		} catch (e) {
-			if (e === 'Cancelled by user' || (e instanceof Error && e.name === 'AbortError')) {
-				return
-			}
-			agent.onError(e)
-		}
-	})()
+		})()
 
-	const cancel = () => {
-		cancelled = true
-		controller.abort('Cancelled by user')
-	}
-
-	return { promise: requestPromise, cancel }
-}
-
-/**
- * Find a spawn point for the fairy that is at least 200px away from other fairies.
- * Fairies will spawn near the center of the viewport, expanding outward if needed.
- * Note: If no space can be easily found, fairies may still overlap.
- */
-function findFairySpawnPoint(initialPosition: VecModel, editor: Editor): VecModel {
-	const existingAgents = $fairyAgentsAtom.get(editor)
-	const MIN_DISTANCE = 200
-	const INITIAL_BOX_SIZE = 100 // Start with a smaller box near center
-	const BOX_EXPANSION = 50 // Smaller expansion increments to stay closer to center
-
-	const viewportCenter = editor.getViewportPageBounds().center
-
-	// If no other fairies exist, use the center
-	if (existingAgents.length === 0) {
-		return viewportCenter
-	}
-
-	// Try to find a valid spawn point near the center
-	let boxSize = INITIAL_BOX_SIZE
-	let attempts = 0
-	const MAX_ATTEMPTS = 100
-
-	while (attempts < MAX_ATTEMPTS) {
-		// Generate a candidate position near the viewport center
-		const candidate = {
-			x: viewportCenter.x + (Math.random() - 0.5) * boxSize,
-			y: viewportCenter.y + (Math.random() - 0.5) * boxSize,
+		const cancel = () => {
+			cancelled = true
+			controller.abort('Cancelled by user')
 		}
 
-		// Check if the candidate is far enough from all existing fairies
-		const tooClose = existingAgents.some((agent) => {
-			const otherPosition = agent.$fairyEntity.get().position
-			const distance = Math.sqrt(
-				Math.pow(candidate.x - otherPosition.x, 2) + Math.pow(candidate.y - otherPosition.y, 2)
-			)
-			return distance < MIN_DISTANCE
-		})
-
-		if (!tooClose) {
-			return candidate
-		}
-
-		// Expand the search area after every 10 attempts
-		if (attempts % 10 === 9) {
-			boxSize += BOX_EXPANSION
-		}
-
-		attempts++
-	}
-
-	// If we couldn't find a good spot, return a position near the center anyway
-	return {
-		x: viewportCenter.x + (Math.random() - 0.5) * boxSize,
-		y: viewportCenter.y + (Math.random() - 0.5) * boxSize,
+		return { promise: requestPromise, cancel }
 	}
 }

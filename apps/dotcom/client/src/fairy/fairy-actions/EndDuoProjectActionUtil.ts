@@ -13,7 +13,7 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 		return {
 			icon: 'flag' as const,
 			description: action.complete ? 'Ended project' : 'Ending project...',
-			pose: 'writing' as const,
+			pose: 'waiting' as const,
 			canGroup: () => false,
 		}
 	}
@@ -56,7 +56,7 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 		)
 		const duoOrchestratorTaskCount = duoOrchestratorCompletedTasks.length
 		const duoOrchestratorTaskWord = duoOrchestratorTaskCount === 1 ? 'task' : 'tasks'
-		duoOrchestratorAgent.pushToChatHistory(
+		duoOrchestratorAgent.chatManager.push(
 			{
 				id: uniqueId(),
 				type: 'memory-transition',
@@ -80,7 +80,7 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 		if (droneCompletedTasks.length > 0) {
 			const droneTaskCount = droneCompletedTasks.length
 			const droneTaskWord = droneTaskCount === 1 ? 'task' : 'tasks'
-			droneAgent.pushToChatHistory(
+			droneAgent.chatManager.push(
 				{
 					id: uniqueId(),
 					type: 'memory-transition',

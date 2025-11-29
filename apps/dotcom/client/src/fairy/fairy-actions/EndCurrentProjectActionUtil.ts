@@ -13,7 +13,7 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 		return {
 			icon: 'flag' as const,
 			description: action.complete ? 'Ended project' : 'Ending project...',
-			pose: 'writing' as const,
+			pose: 'waiting' as const,
 			canGroup: () => false,
 		}
 	}
@@ -46,7 +46,7 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 				.filter((id) => id !== memberAgent.id)
 
 			if (memberAgent.id === this.agent.id) {
-				memberAgent.pushToChatHistory(
+				memberAgent.chatManager.push(
 					{
 						id: uniqueId(),
 						type: 'memory-transition',
@@ -71,7 +71,7 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 			if (memberCompletedTasks.length > 0) {
 				const count = memberCompletedTasks.length
 				const taskWord = count === 1 ? 'task' : 'tasks'
-				memberAgent.pushToChatHistory(
+				memberAgent.chatManager.push(
 					{
 						id: uniqueId(),
 						type: 'memory-transition',

@@ -5,13 +5,13 @@ import { useMsg } from '../../../tla/utils/i18n'
 import { fairyMessages } from '../../fairy-messages'
 // import { $fairyTasks } from '../../FairyTaskList'
 import { getIsCoarsePointer } from '../../../tla/utils/getIsCoarsePointer'
+import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
 import { getRandomNoInputMessage } from '../../fairy-helpers/getRandomNoInputMessage'
-import { FairyAgent } from '../agent/FairyAgent'
 
 export function FairySingleChatInput({ agent, onCancel }: { agent: FairyAgent; onCancel(): void }) {
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const [inputValue, setInputValue] = useState('')
-	const isGenerating = useValue('isGenerating', () => agent.isGenerating(), [agent])
+	const isGenerating = useValue('isGenerating', () => agent.requestManager.isGenerating(), [agent])
 	const enterMsg = useMsg(fairyMessages.enterMsg)
 
 	const fairyEntity = useValue('fairyEntity', () => agent.$fairyEntity.get(), [agent])

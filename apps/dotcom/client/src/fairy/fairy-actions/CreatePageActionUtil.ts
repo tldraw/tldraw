@@ -62,7 +62,7 @@ export class CreatePageActionUtil extends AgentActionUtil<CreatePageAction> {
 
 				// Move the fairy to the center of the viewport on the new page
 				const center = editor.getViewportPageBounds().center
-				this.agent.moveToPosition(center)
+				this.agent.positionManager.moveTo(center)
 			}
 		})
 	}

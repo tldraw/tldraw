@@ -1,9 +1,9 @@
 import { ChatHistoryActionItem, IndentIcon } from '@tldraw/fairy-shared'
 import { useMemo } from 'react'
 import { useValue } from 'tldraw'
+import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
 import { FairyMiniAvatar, FairyMiniAvatarById } from '../../fairy-sprite/sprites/Avatar'
 import { getFairyTasksByProjectId } from '../../fairy-task-list'
-import { FairyAgent } from '../agent/FairyAgent'
 import { FairyChatHistoryAction } from './FairyChatHistoryAction'
 import { getAgentHistorySections } from './FairyChatHistorySection'
 import { filterChatHistoryByMode } from './filterChatHistoryByMode'
@@ -21,11 +21,9 @@ export function FairyProjectChatContent({
 	isPlanning,
 	projectTitle,
 }: FairyProjectChatContentProps) {
-	const historyItems = useValue(
-		'chat-history',
-		() => orchestratorAgent.chatManager.$chatHistory.get(),
-		[orchestratorAgent]
-	)
+	const historyItems = useValue('chat-history', () => orchestratorAgent.chatManager.getHistory(), [
+		orchestratorAgent,
+	])
 
 	const projectTasks = useValue(
 		'project-tasks',
@@ -46,9 +44,11 @@ export function FairyProjectChatContent({
 	const additionalSections = sections.slice(1)
 	const firstUserPrompt = firstSection?.prompt
 
-	const isGenerating = useValue('is-generating', () => orchestratorAgent.isGenerating(), [
-		orchestratorAgent,
-	])
+	const isGenerating = useValue(
+		'is-generating',
+		() => orchestratorAgent.requestManager.isGenerating(),
+		[orchestratorAgent]
+	)
 
 	// Determine the project status
 	const projectStatus = useMemo((): { text: string; isAnimating: boolean } => {
