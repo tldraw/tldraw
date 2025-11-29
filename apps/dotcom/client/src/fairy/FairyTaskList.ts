@@ -1,11 +1,9 @@
 import { FairyTask, FairyTaskStatus } from '@tldraw/fairy-shared'
-import { Editor, atom } from 'tldraw'
+import { Editor } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { $fairyTasks } from './fairy-globals'
 import { clearProjects } from './FairyProjects'
 import { notifyTaskCompleted } from './FairyWaitNotifications'
-
-export const $fairyTasks = atom<FairyTask[]>('fairyTasks', [])
-export const $showCanvasFairyTasks = atom<boolean>('showCanvasFairyTasks', false)
 
 export function createFairyTask(newPartialTask: Partial<FairyTask> & { id: string }) {
 	$fairyTasks.update((tasks) => {

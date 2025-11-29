@@ -251,10 +251,9 @@ export const PeripheralShapesPartDefinition: PromptPartDefinition<PeripheralShap
 	},
 }
 
-// PersonalityPart
-export interface PersonalityPart {
-	type: 'personality'
-	personality: string
+// SignPart
+export interface SignPart {
+	type: 'sign'
 	sign: {
 		sun: string
 		moon: string
@@ -262,22 +261,17 @@ export interface PersonalityPart {
 	}
 }
 
-export const PersonalityPartDefinition: PromptPartDefinition<PersonalityPart> = {
-	type: 'personality',
+export const SignPartDefinition: PromptPartDefinition<SignPart> = {
+	type: 'sign',
 	priority: 150,
-	buildContent({ personality: _personality, sign }: PersonalityPart) {
-		const messages: string[] = []
-
-		// if (personality && personality.trim() !== '') {
-		// 	messages.push(`Your personality is: ${personality}`)
-		// }
+	buildContent({ sign }: SignPart) {
 		if (sign.sun && sign.moon && sign.rising) {
-			messages.push(
-				`Your astrological sign is: Sun ${sign.sun}, Moon ${sign.moon}, Rising ${sign.rising}`
-			)
+			return [
+				`Your astrological sign is: Sun ${sign.sun}, Moon ${sign.moon}, Rising ${sign.rising}`,
+			]
 		}
 
-		return messages
+		return []
 	},
 }
 

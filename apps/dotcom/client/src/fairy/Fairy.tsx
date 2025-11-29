@@ -3,12 +3,12 @@ import { ContextMenu as _ContextMenu } from 'radix-ui'
 import React, { useRef } from 'react'
 import { Atom, TLEventInfo, useEditor, useValue } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
-import { $fairyAgentsAtom } from './fairy-agent/agent/fairyAgentsAtom'
+import { $fairyAgentsAtom } from './fairy-globals'
+import { getProjectColor } from './fairy-helpers/getProjectColor'
 import { FairySprite, getHatColor } from './fairy-sprite/FairySprite'
 import { FairyReticleSprite } from './fairy-sprite/sprites/FairyReticleSprite'
-import { FairyContextMenuContent } from './FairyContextMenuContent'
+import { FairyContextMenuContent } from './fairy-ui/menus/FairyContextMenuContent'
 import { FairyThrowTool } from './FairyThrowTool'
-import { getProjectColor } from './getProjectColor'
 
 export const FAIRY_CONTAINER_SIZE = 52
 export const FAIRY_SIZE = 44

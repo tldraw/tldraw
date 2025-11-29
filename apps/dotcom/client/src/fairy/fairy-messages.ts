@@ -3,18 +3,11 @@ import { defineMessages } from '../tla/utils/i18n'
 export const fairyMessages = defineMessages({
 	// Toolbar and navigation (aria-labels)
 	toolbar: { defaultMessage: 'Fairies' },
-	taskList: { defaultMessage: 'Task list' },
 	selectFairy: { defaultMessage: 'Select fairy' },
 	deselectFairy: { defaultMessage: 'Deselect fairy' },
 	joinSelectedFairies: { defaultMessage: 'Join selected fairies' },
 	resetChat: { defaultMessage: 'Clear' },
 	resetAllChats: { defaultMessage: 'Clear all' },
-
-	// Task list (titles and placeholders)
-	addTaskPlaceholder: { defaultMessage: 'Add a new task…' },
-	dragToCanvas: { defaultMessage: 'Drag to canvas' },
-	clickToRemoveOrDrag: { defaultMessage: 'Click to remove or drag to move' },
-	deleteTask: { defaultMessage: 'Delete task' },
 
 	// Fairy menu (labels)
 	goToFairy: { defaultMessage: 'Locate' },
@@ -34,7 +27,7 @@ export const fairyMessages = defineMessages({
 	resetChats: { defaultMessage: 'Clear' },
 	putAwayFairies: { defaultMessage: 'Sleep' },
 
-	// Task list menu (labels)
+	// Fairy menu (debug)
 	debugView: { defaultMessage: 'Debug view' },
 
 	// Fairy config dialog (placeholders)
@@ -53,7 +46,5 @@ export const fairyMessages = defineMessages({
 	enterMsg: { defaultMessage: 'Enter your message' },
 
 	// HUD toggle labels
-	switchToFairyChat: { defaultMessage: 'Switch to fairy chat' },
-	switchToTaskList: { defaultMessage: 'Switch to task list' },
 	manual: { defaultMessage: 'Help & documentation' },
 })

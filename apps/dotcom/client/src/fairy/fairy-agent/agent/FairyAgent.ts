@@ -36,7 +36,6 @@ import {
 	Computed,
 	createEmptyRecordsDiff,
 	Editor,
-	EditorAtom,
 	fetch,
 	react,
 	RecordsDiff,
@@ -49,20 +48,27 @@ import {
 import { TldrawApp } from '../../../tla/app/TldrawApp'
 import { FAIRY_WORKER } from '../../../utils/config'
 import { isDevelopmentEnv } from '../../../utils/env'
-import { AgentActionUtil } from '../../actions/AgentActionUtil'
-import { $fairyIsApplyingAction } from '../../FairyIsApplyingAction'
+import { AgentActionUtil } from '../../fairy-actions/AgentActionUtil'
+import {
+	$fairyAgentsAtom,
+	$fairyIsApplyingAction,
+	$fairyTasks,
+	$followingFairyId,
+} from '../../fairy-globals'
+import {
+	getAgentActionUtilsRecord,
+	getPromptPartUtilsRecord,
+} from '../../fairy-part-utils/fairy-part-utils'
+import { PromptPartUtil } from '../../fairy-part-utils/PromptPartUtil'
 import { getProjectByAgentId } from '../../FairyProjects'
-import { $fairyTasks } from '../../FairyTaskList'
-import { getAgentActionUtilsRecord, getPromptPartUtilsRecord } from '../../FairyUtils'
 import {
 	deserializeWaitCondition,
 	notifyAgentModeTransition,
 	serializeWaitCondition,
 } from '../../FairyWaitNotifications'
-import { PromptPartUtil } from '../../parts/PromptPartUtil'
 import { AgentHelpers } from './AgentHelpers'
 import { FairyAgentOptions } from './FairyAgentOptions'
-import { $fairyAgentsAtom, getFairyAgentById } from './fairyAgentsAtom'
+import { getFairyAgentById } from './fairyAgentsAtom'
 import { FAIRY_MODE_CHART } from './FairyModeNode'
 
 /**
@@ -1511,14 +1517,6 @@ export class FairyAgent {
 	}
 
 	/**
-	 * Set the fairy's personality.
-	 * @param personality - A description of the fairy's personality.
-	 */
-	setFairyPersonality(personality: string) {
-		this.updateFairyConfig({ personality })
-	}
-
-	/**
 	 * Move the camera to the fairy's position.
 	 * Also switches to the page where the fairy is located.
 	 */
@@ -1809,12 +1807,6 @@ function findFairySpawnPoint(initialPosition: VecModel, editor: Editor): VecMode
 	// If we couldn't find a good spot, just return the candidate anyway
 	return candidate
 }
-
-/**
- * Atom to track which fairy is currently being followed by the camera.
- * Maps from Editor instance to the fairy ID being followed, or null if not following any fairy.
- */
-export const $followingFairyId = new EditorAtom<string | null>('followingFairyId', () => null)
 
 /**
  * Store for the reactive dispose functions so we can properly clean them up.

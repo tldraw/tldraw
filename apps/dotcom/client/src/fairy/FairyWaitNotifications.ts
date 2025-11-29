@@ -8,7 +8,7 @@ import {
 	type SerializedWaitCondition,
 } from '@tldraw/fairy-shared'
 import { Editor } from 'tldraw'
-import { $fairyAgentsAtom } from './fairy-agent/agent/fairyAgentsAtom'
+import { $fairyAgentsAtom } from './fairy-globals'
 
 /**
  * Notify all agents that are waiting for an event.

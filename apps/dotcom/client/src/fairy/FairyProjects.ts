@@ -1,10 +1,9 @@
 import { FairyProject, FairyProjectMember, FairyProjectRole } from '@tldraw/fairy-shared'
-import { atom, Editor, uniqueId } from 'tldraw'
-import { deleteFairyTask, getFairyTasksByProjectId } from './FairyTaskList'
+import { Editor, uniqueId } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { getFairyAgentById } from './fairy-agent/agent/fairyAgentsAtom'
-
-export const $fairyProjects = atom<FairyProject[]>('fairyProjects', [])
+import { $fairyProjects } from './fairy-globals'
+import { deleteFairyTask, getFairyTasksByProjectId } from './FairyTaskList'
 
 export function addProject(project: FairyProject) {
 	$fairyProjects.update((projects) => {

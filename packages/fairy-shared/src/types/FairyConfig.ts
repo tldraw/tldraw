@@ -9,6 +9,5 @@ export interface FairySign {
 export interface FairyConfig {
 	name: string
 	outfit: FairyOutfit
-	personality: string
 	sign?: FairySign
 }

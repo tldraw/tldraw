@@ -1,7 +1,7 @@
 import { AgentRequest, FairyModeDefinition } from '@tldraw/fairy-shared'
-import { $fairyTasks, getFairyTasksByProjectId } from '../../FairyTaskList'
+import { $fairyAgentsAtom, $fairyTasks } from '../../fairy-globals'
+import { getFairyTasksByProjectId } from '../../FairyTaskList'
 import { FairyAgent } from './FairyAgent'
-import { $fairyAgentsAtom } from './fairyAgentsAtom'
 
 function startPromptTimer(agent: FairyAgent): void {
 	const debugFlags = agent.$debugFlags.get()

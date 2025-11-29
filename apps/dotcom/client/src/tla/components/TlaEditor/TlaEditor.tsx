@@ -64,17 +64,21 @@ const FairyApp = lazy(() =>
 	}))
 )
 const FairyHUD = lazy(() =>
-	import('../../../fairy/FairyHUD').then((m) => ({ default: m.FairyHUD }))
+	import('../../../fairy/fairy-ui/FairyHUD').then((m) => ({ default: m.FairyHUD }))
 )
-const FairyVision = lazy(() =>
-	import('../../../fairy/FairyVision').then((m) => ({ default: m.FairyVision }))
+const DebugFairyVision = lazy(() =>
+	import('../../../fairy/fairy-canvas-ui/DebugFairyVision').then((m) => ({
+		default: m.DebugFairyVision,
+	}))
 )
-const Fairies = lazy(() => import('../../../fairy/Fairies').then((m) => ({ default: m.Fairies })))
+const Fairies = lazy(() =>
+	import('../../../fairy/fairy-canvas-ui/Fairies').then((m) => ({ default: m.Fairies }))
+)
 const RemoteFairies = lazy(() =>
-	import('../../../fairy/RemoteFairies').then((m) => ({ default: m.RemoteFairies }))
+	import('../../../fairy/fairy-canvas-ui/RemoteFairies').then((m) => ({ default: m.RemoteFairies }))
 )
 const FairyHUDTeaser = lazy(() =>
-	import('../../../fairy/FairyHUDTeaser').then((m) => ({ default: m.FairyHUDTeaser }))
+	import('../../../fairy/fairy-ui/FairyHUDTeaser').then((m) => ({ default: m.FairyHUDTeaser }))
 )
 // const InCanvasTaskList = lazy(() =>
 // 	import('../../../fairy/InCanvasTaskList').then((m) => ({ default: m.InCanvasTaskList }))
@@ -309,8 +313,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 					<TldrawOverlays />
 					{canShowFairies ? (
 						<Suspense fallback={<div />}>
-							<FairyVision agents={agents} />
-							{/* <InCanvasTaskList agents={agents} /> */}
+							{/* <DebugFairyVision agents={agents} /> */}
 							<RemoteFairies />
 							<Fairies agents={agents} />
 						</Suspense>

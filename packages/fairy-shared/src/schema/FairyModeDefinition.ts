@@ -65,7 +65,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 		active: true,
 		pose: 'active',
 		parts: (_work: FairyWork) => [
-			'personality',
+			'sign',
 			'messages',
 			'modelName',
 			'mode',
@@ -129,7 +129,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'time',
 			// 'pages',
 			'otherFairies',
-			'personality',
+			'sign',
 			'debug',
 		],
 		actions: (_work: FairyWork) => [
@@ -158,7 +158,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'blurryShapes',
 			'chatHistory',
 			'workingTasks',
-			'personality',
+			'sign',
 			'debug',
 		],
 		actions: (_work: FairyWork) => [
@@ -196,7 +196,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'blurryShapes',
 			'chatHistory',
 			'workingTasks',
-			'personality',
+			'sign',
 			'debug',
 		],
 		actions: (_work: FairyWork) => [
@@ -246,7 +246,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'time',
 			// 'pages',
 			'otherFairies',
-			'personality',
+			'sign',
 			'currentProjectOrchestrator',
 			'debug',
 		],
@@ -295,7 +295,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'time',
 			// 'pages',
 			'otherFairies',
-			'personality',
+			'sign',
 			'currentProjectOrchestrator',
 			'debug',
 		],
@@ -340,7 +340,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			'blurryShapes',
 			'chatHistory',
 			'workingTasks',
-			// 'personality',
+			// 'sign',
 			'debug',
 		],
 		actions: (_work: FairyWork) => [

@@ -99,8 +99,8 @@ export function getSystemPromptFlags(
 		// assign todo item
 		hasAssignTodoItem: actions.includes('direct-to-start-project-task'),
 
-		// personality
-		hasPersonalityPart: parts.includes('personality'),
+		// sign
+		hasSignPart: parts.includes('sign'),
 
 		//orchestration
 		hasStartProject: actions.includes('start-project'),

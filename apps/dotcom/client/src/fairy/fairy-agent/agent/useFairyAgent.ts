@@ -1,8 +1,8 @@
 import { useCallback, useMemo } from 'react'
 import { Editor, useToasts } from 'tldraw'
 import { useApp } from '../../../tla/hooks/useAppState'
+import { $fairyAgentsAtom } from '../../fairy-globals'
 import { FairyAgent } from './FairyAgent'
-import { $fairyAgentsAtom } from './fairyAgentsAtom'
 
 /**
  * Create a tldraw agent that can be prompted to edit the canvas.
