@@ -11,7 +11,8 @@ import {
 import { useApp } from '../../../tla/hooks/useAppState'
 import { useMsg } from '../../../tla/utils/i18n'
 import { isDevelopmentEnv } from '../../../utils/env'
-import { FairyAgent, getFollowingFairyId } from '../../fairy-agent/agent/FairyAgent'
+import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
+import { getFollowingFairyId } from '../../fairy-agent/agent/managers/FairyAgentPositionManager'
 import { $fairyAgentsAtom, $fairyProjects } from '../../fairy-globals'
 import { fairyMessages } from '../../fairy-messages'
 import { disbandProject } from '../../fairy-projects'
@@ -132,9 +133,11 @@ export function FairyMenuContent({
 		[addDialog, agents]
 	)
 
-	const hasChatHistory = useValue('has-chat-history', () => agent.$chatHistory.get().length > 0, [
-		agent,
-	])
+	const hasChatHistory = useValue(
+		'has-chat-history',
+		() => agent.chatManager.$chatHistory.get().length > 0,
+		[agent]
+	)
 
 	const resetAllChats = useCallback(() => {
 		agents.forEach((agent) => {

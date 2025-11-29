@@ -8,24 +8,17 @@ import {
 	BaseAgentPrompt,
 	ChatHistoryItem,
 	ChatHistoryPromptItem,
-	DEFAULT_MODEL_NAME,
 	FAIRY_VISION_DIMENSIONS,
 	FairyConfig,
 	FairyEntity,
 	FairyModeDefinition,
-	FairyPose,
 	FairyProject,
 	FairyProjectRole,
 	FairyTask,
 	FairyTodoItem,
-	FairyWaitCondition,
-	FairyWaitEvent,
 	FairyWork,
 	getFairyModeDefinition,
-	getModelPricingInfo,
-	ModelNamePart,
 	PromptPart,
-	SerializedWaitCondition,
 	Streaming,
 } from '@tldraw/fairy-shared'
 import {
@@ -34,7 +27,6 @@ import {
 	Box,
 	computed,
 	Computed,
-	createEmptyRecordsDiff,
 	Editor,
 	fetch,
 	react,
@@ -47,29 +39,26 @@ import {
 } from 'tldraw'
 import { TldrawApp } from '../../../tla/app/TldrawApp'
 import { FAIRY_WORKER } from '../../../utils/config'
-import { isDevelopmentEnv } from '../../../utils/env'
-import { AgentActionUtil } from '../../fairy-actions/AgentActionUtil'
-import {
-	$fairyAgentsAtom,
-	$fairyIsApplyingAction,
-	$fairyTasks,
-	$followingFairyId,
-} from '../../fairy-globals'
-import {
-	getAgentActionUtilsRecord,
-	getPromptPartUtilsRecord,
-} from '../../fairy-part-utils/fairy-part-utils'
+import { $fairyAgentsAtom, $fairyTasks } from '../../fairy-globals'
+import { getPromptPartUtilsRecord } from '../../fairy-part-utils/fairy-part-utils'
 import { PromptPartUtil } from '../../fairy-part-utils/PromptPartUtil'
 import { getProjectByAgentId } from '../../fairy-projects'
-import {
-	deserializeWaitCondition,
-	notifyAgentModeTransition,
-	serializeWaitCondition,
-} from '../../fairy-wait-notifications'
 import { AgentHelpers } from './AgentHelpers'
 import { FairyAgentOptions } from './FairyAgentOptions'
-import { getFairyAgentById } from './fairyAgentsAtom'
 import { FAIRY_MODE_CHART } from './FairyModeNode'
+import { FairyAgentActionManager } from './managers/FairyAgentActionManager'
+import { FairyAgentChatManager } from './managers/FairyAgentChatManager'
+import { FairyAgentGestureManager } from './managers/FairyAgentGestureManager'
+import { FairyAgentModeManager } from './managers/FairyAgentModeManager'
+import {
+	FairyAgentPositionManager,
+	getFollowingFairyId,
+	stopFollowingFairy,
+} from './managers/FairyAgentPositionManager'
+import { FairyAgentTodoManager } from './managers/FairyAgentTodoManager'
+import { FairyAgentUsageTracker } from './managers/FairyAgentUsageTracker'
+import { FairyAgentUserActionTracker } from './managers/FairyAgentUserActionTracker'
+import { FairyAgentWaitManager } from './managers/FairyAgentWaitManager'
 
 /**
  * An agent that can be prompted to edit the canvas.
@@ -114,33 +103,6 @@ export class FairyAgent {
 	$scheduledRequest = atom<AgentRequest | null>('scheduledRequest', null)
 
 	/**
-	 * An atom containing the agent's chat history.
-	 */
-	$chatHistory = atom<ChatHistoryItem[]>('chatHistory', [])
-
-	/**
-	 * An atom containing the position on the page where the current chat
-	 * started.
-	 */
-	$chatOrigin = atom<VecModel>('chatOrigin', { x: 0, y: 0 })
-
-	/**
-	 * An atom containing the agent's todo list.
-	 */
-	$personalTodoList = atom<FairyTodoItem[]>('personalTodoList', [])
-
-	/**
-	 * An atom that's used to store document changes made by the user since the
-	 * previous request.
-	 */
-	$userActionHistory = atom<RecordsDiff<TLRecord>[]>('userActionHistory', [])
-
-	/**
-	 * An atom containing the current fairy mode.
-	 */
-	private $mode = atom<FairyModeDefinition['type']>('fairyMode', 'sleeping')
-
-	/**
 	 * Debug flags for controlling logging behavior in the worker.
 	 */
 	$debugFlags = atom<{ logSystemPrompt: boolean; logMessages: boolean; logResponseTime: boolean }>(
@@ -158,29 +120,11 @@ export class FairyAgent {
 	$useOneShottingMode = atom<boolean>('oneShotMode', true)
 
 	/**
-	 * An atom containing the conditions this agent is waiting for.
-	 * When events matching these conditions occur, the agent will be notified.
-	 */
-	$waitingFor = atom<FairyWaitCondition<FairyWaitEvent>[]>('waitingFor', [])
-
-	/**
 	 * Change the mode of the agent.
 	 * @param mode - The mode to set.
 	 */
 	setMode(mode: FairyModeDefinition['type']) {
-		const fromMode = this.getMode()
-		const fromModeNode = FAIRY_MODE_CHART[fromMode]
-		const toModeNode = FAIRY_MODE_CHART[mode]
-
-		// todo the order we call these vs notifyAgentModeTransition is probably important
-		fromModeNode.onExit?.(this, mode)
-		toModeNode.onEnter?.(this, fromMode)
-
-		notifyAgentModeTransition(this.id, mode, this.editor)
-
-		this.$mode.set(mode)
-		const modeDefinition = getFairyModeDefinition(mode)
-		this.$fairyEntity.update((fairy) => ({ ...fairy, pose: modeDefinition.pose }))
+		this.modeManager.setMode(mode)
 	}
 
 	/**
@@ -188,43 +132,7 @@ export class FairyAgent {
 	 * @returns The mode.
 	 */
 	getMode(): FairyModeDefinition['type'] {
-		return this.$mode.get()
-	}
-
-	/**
-	 * Cumulative token usage tracking for this chat session.
-	 * Tracked per model to handle different pricing models.
-	 */
-	cumulativeUsage: {
-		// Usage per model, separated by tier for models with tiered pricing
-		byModel: Record<
-			AgentModelName,
-			{
-				// Tier 1: Prompts ≤ 200K tokens (for models with tiered pricing)
-				tier1: {
-					promptTokens: number // Total input tokens (cached + uncached)
-					cachedInputTokens: number // Cached input tokens (cheaper pricing)
-					completionTokens: number
-				}
-				// Tier 2: Prompts > 200K tokens (for models with tiered pricing)
-				tier2: {
-					promptTokens: number // Total input tokens (cached + uncached)
-					cachedInputTokens: number // Cached input tokens (cheaper pricing)
-					completionTokens: number
-				}
-			}
-		>
-		// Total across all models and tiers
-		totalTokens: number
-	} = {
-		byModel: {} as Record<
-			AgentModelName,
-			{
-				tier1: { promptTokens: number; cachedInputTokens: number; completionTokens: number }
-				tier2: { promptTokens: number; cachedInputTokens: number; completionTokens: number }
-			}
-		>,
-		totalTokens: 0,
+		return this.modeManager.getMode()
 	}
 
 	/**
@@ -260,6 +168,16 @@ export class FairyAgent {
 			tasks: this.getTasks(),
 		}
 	}
+
+	actionManager = new FairyAgentActionManager(this)
+	chatManager = new FairyAgentChatManager(this)
+	gestureManager = new FairyAgentGestureManager(this)
+	modeManager = new FairyAgentModeManager(this)
+	positionManager = new FairyAgentPositionManager(this)
+	todoManager = new FairyAgentTodoManager(this)
+	usageTracker = new FairyAgentUsageTracker(this)
+	userActionTracker = new FairyAgentUserActionTracker(this)
+	waitManager = new FairyAgentWaitManager(this)
 
 	/**
 	 * Create a new tldraw agent.
@@ -299,12 +217,10 @@ export class FairyAgent {
 			}
 		})
 
-		// A fairy agent's action utils and prompt part utils are static. They don't change.
-		this.agentActionUtils = getAgentActionUtilsRecord(this)
+		// A fairy agent's prompt part utils are static. They don't change.
 		this.promptPartUtils = getPromptPartUtilsRecord(this)
-		this.unknownActionUtil = this.agentActionUtils.unknown
 
-		this.stopRecordingFn = this.startRecordingUserActions()
+		this.userActionTracker.startRecording()
 
 		// Cancel fairy when max shapes limit is reached
 		this.handleMaxShapes = () => {
@@ -321,7 +237,7 @@ export class FairyAgent {
 		editor.addListener('max-shapes', this.handleMaxShapes)
 
 		// Poof on spawn
-		this.stackGesture('poof')
+		this.gestureManager.push('poof', 400)
 	}
 
 	/**
@@ -329,7 +245,7 @@ export class FairyAgent {
 	 */
 	dispose() {
 		this.cancel()
-		this.stopRecordingUserActions()
+		this.userActionTracker.dispose()
 		this.wakeOnSelectReaction?.()
 		this.editor.removeListener('max-shapes', this.handleMaxShapes)
 		// Stop following this fairy if it's currently being followed
@@ -346,10 +262,9 @@ export class FairyAgent {
 	serializeState() {
 		return {
 			fairyEntity: this.$fairyEntity.get(),
-			chatHistory: this.$chatHistory.get(),
-			chatOrigin: this.$chatOrigin.get(),
-			personalTodoList: this.$personalTodoList.get(),
-			waitingFor: this.$waitingFor.get().map(serializeWaitCondition),
+			...this.chatManager.serializeState(),
+			personalTodoList: this.todoManager.serializeState(),
+			waitingFor: this.waitManager.serializeState(),
 		}
 	}
 
@@ -362,7 +277,7 @@ export class FairyAgent {
 		chatHistory?: ChatHistoryItem[]
 		chatOrigin?: VecModel
 		personalTodoList?: FairyTodoItem[]
-		waitingFor?: SerializedWaitCondition[]
+		waitingFor?: { eventType: string; id: string; metadata?: Record<string, any> }[]
 	}) {
 		if (state.fairyEntity) {
 			this.$fairyEntity.update((entity) => {
@@ -380,20 +295,12 @@ export class FairyAgent {
 				this.setMode('idling')
 			}
 		}
-		if (state.chatHistory) {
-			this.$chatHistory.set(state.chatHistory)
-		}
-		if (state.chatOrigin) {
-			this.$chatOrigin.set(state.chatOrigin)
-		}
+		this.chatManager.loadState(state)
 		if (state.personalTodoList) {
-			this.$personalTodoList.set(state.personalTodoList)
+			this.todoManager.loadState(state.personalTodoList)
 		}
 		if (state.waitingFor) {
-			const reconstructed = state.waitingFor
-				.map(deserializeWaitCondition)
-				.filter((condition): condition is FairyWaitCondition<FairyWaitEvent> => condition !== null)
-			this.$waitingFor.set(reconstructed)
+			this.waitManager.loadState(state.waitingFor)
 		}
 	}
 
@@ -402,8 +309,7 @@ export class FairyAgent {
 	 * @param items - The chat history item(s) to add
 	 */
 	pushToChatHistory(...items: ChatHistoryItem[]) {
-		if (items.length === 0) return
-		this.$chatHistory.update((prev) => [...prev, ...items])
+		this.chatManager.pushToChatHistory(...items)
 	}
 
 	/**
@@ -411,16 +317,7 @@ export class FairyAgent {
 	 * Useful when starting a new chat session.
 	 */
 	resetCumulativeUsage() {
-		this.cumulativeUsage = {
-			byModel: {} as Record<
-				AgentModelName,
-				{
-					tier1: { promptTokens: number; cachedInputTokens: number; completionTokens: number }
-					tier2: { promptTokens: number; cachedInputTokens: number; completionTokens: number }
-				}
-			>,
-			totalTokens: 0,
-		}
+		this.usageTracker.resetCumulativeUsage()
 	}
 
 	/**
@@ -429,12 +326,7 @@ export class FairyAgent {
 	 * @returns The model name, or DEFAULT_MODEL_NAME if not found
 	 */
 	getModelNameFromPrompt(prompt: AgentPrompt): AgentModelName {
-		for (const part of Object.values(prompt)) {
-			if (part.type === 'modelName') {
-				return (part as ModelNamePart).name
-			}
-		}
-		return DEFAULT_MODEL_NAME
+		return this.usageTracker.getModelNameFromPrompt(prompt)
 	}
 
 	/**
@@ -443,44 +335,7 @@ export class FairyAgent {
 	 * @returns An object with input cost, output cost, and total cost in USD.
 	 */
 	getCumulativeCost() {
-		let totalInputCost = 0
-		let totalOutputCost = 0
-
-		// Iterate through all models and calculate costs
-		for (const [modelName, usage] of Object.entries(this.cumulativeUsage.byModel)) {
-			const typedModelName = modelName as AgentModelName
-
-			// Calculate cost for tier 1 (≤ 200K tokens)
-			const tier1Pricing = getModelPricingInfo(typedModelName, 200_000)
-			const tier1UncachedInputTokens = usage.tier1.promptTokens - usage.tier1.cachedInputTokens
-			const tier1UncachedInputCost =
-				(tier1UncachedInputTokens / 1_000_000) * tier1Pricing.uncachedInputPrice
-			const tier1CachedInputCost =
-				tier1Pricing.cacheReadInputPrice !== null
-					? (usage.tier1.cachedInputTokens / 1_000_000) * tier1Pricing.cacheReadInputPrice
-					: 0
-			const tier1InputCost = tier1UncachedInputCost + tier1CachedInputCost
-			const tier1OutputCost = (usage.tier1.completionTokens / 1_000_000) * tier1Pricing.outputPrice
-
-			// Calculate cost for tier 2 (> 200K tokens)
-			const tier2Pricing = getModelPricingInfo(typedModelName, 200_001)
-			const tier2UncachedInputTokens = usage.tier2.promptTokens - usage.tier2.cachedInputTokens
-			const tier2UncachedInputCost =
-				(tier2UncachedInputTokens / 1_000_000) * tier2Pricing.uncachedInputPrice
-			const tier2CachedInputCost =
-				tier2Pricing.cacheReadInputPrice !== null
-					? (usage.tier2.cachedInputTokens / 1_000_000) * tier2Pricing.cacheReadInputPrice
-					: 0
-			const tier2InputCost = tier2UncachedInputCost + tier2CachedInputCost
-			const tier2OutputCost = (usage.tier2.completionTokens / 1_000_000) * tier2Pricing.outputPrice
-
-			totalInputCost += tier1InputCost + tier2InputCost
-			totalOutputCost += tier1OutputCost + tier2OutputCost
-		}
-
-		const totalCost = totalInputCost + totalOutputCost
-
-		return { inputCost: totalInputCost, outputCost: totalOutputCost, totalCost }
+		return this.usageTracker.getCumulativeCost()
 	}
 
 	/**
@@ -490,8 +345,7 @@ export class FairyAgent {
 	 * @returns The action util.
 	 */
 	getAgentActionUtil(type?: string) {
-		const utilType = this.getAgentActionUtilType(type)
-		return this.agentActionUtils[utilType]
+		return this.actionManager.getAgentActionUtil(type)
 	}
 
 	/**
@@ -499,10 +353,7 @@ export class FairyAgent {
 	 * If no util type is found, returns 'unknown'.
 	 */
 	getAgentActionUtilType(type?: string) {
-		if (!type) return 'unknown'
-		const util = this.agentActionUtils[type as AgentAction['_type']]
-		if (!util) return 'unknown'
-		return type as AgentAction['_type']
+		return this.actionManager.getAgentActionUtilType(type)
 	}
 
 	/**
@@ -514,21 +365,6 @@ export class FairyAgent {
 	getPromptPartUtil(type: PromptPart['type']) {
 		return this.promptPartUtils[type]
 	}
-
-	/**
-	 * A record of the agent's action util instances.
-	 * Used by the `getAgentActionUtil` method.
-	 */
-	agentActionUtils: Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
-
-	/**
-	 * The agent action util instance for the "unknown" action type.
-	 *
-	 * This is returned by the `getAgentActionUtil` method when the action type
-	 * isn't properly specified. This can happen if the model isn't finished
-	 * streaming yet or makes a mistake.
-	 */
-	unknownActionUtil: AgentActionUtil<AgentAction>
 
 	/**
 	 * A record of the agent's prompt part util instances.
@@ -878,54 +714,23 @@ export class FairyAgent {
 	 * @returns The id of the todo item.
 	 */
 	addPersonalTodo(id: string, text: string) {
-		this.$personalTodoList.update((personalTodoItems) => {
-			return [
-				...personalTodoItems,
-				{
-					id,
-					status: 'todo' as const,
-					text,
-				},
-			]
-		})
-		return id
+		return this.todoManager.addPersonalTodo(id, text)
 	}
 
-	updatePersonalTodo({
-		id,
-		status,
-		text,
-	}: {
-		id: string
-		status: FairyTodoItem['status']
-		text?: string
-	}) {
-		this.$personalTodoList.update((todoItems) => {
-			const index = todoItems.findIndex((item) => item.id === id)
-			if (index !== -1) {
-				return [
-					...todoItems.slice(0, index),
-					{ ...todoItems[index], status, ...(text !== undefined && { text }) },
-					...todoItems.slice(index + 1),
-				]
-			}
-			return todoItems
-		})
+	updatePersonalTodo(params: { id: string; status: FairyTodoItem['status']; text?: string }) {
+		this.todoManager.updatePersonalTodo(params)
 	}
 
 	deletePersonalTodos(ids: string[]) {
-		const idsSet = new Set(ids)
-		this.$personalTodoList.update((todoItems) => {
-			return todoItems.filter((item) => !idsSet.has(item.id))
-		})
+		this.todoManager.deletePersonalTodos(ids)
 	}
 
 	deleteAllPersonalTodos() {
-		this.$personalTodoList.set([])
+		this.todoManager.deleteAllPersonalTodos()
 	}
 
 	clearUserActionHistory() {
-		this.$userActionHistory.set([])
+		this.userActionTracker.clearUserActionHistory()
 	}
 
 	/**
@@ -933,7 +738,7 @@ export class FairyAgent {
 	 * @returns true if the agent has any wait conditions
 	 */
 	isWaiting() {
-		return this.$waitingFor.get().length > 0
+		return this.waitManager.isWaiting()
 	}
 
 	/**
@@ -941,32 +746,15 @@ export class FairyAgent {
 	 * The agent will be notified when an event matching this condition occurs.
 	 * @param condition - The wait condition to add
 	 */
-	waitFor(condition: FairyWaitCondition<FairyWaitEvent>) {
-		this.$waitingFor.update((conditions) => {
-			// Check if an equivalent condition already exists
-			const isDuplicate = conditions.some((existing) => {
-				if (existing.eventType !== condition.eventType) {
-					return false
-				}
-				if (existing.id && condition.id) {
-					return existing.id === condition.id
-				}
-				return false
-			})
-
-			if (isDuplicate) {
-				return conditions
-			}
-
-			return [...conditions, condition]
-		})
+	waitFor(condition: any) {
+		return this.waitManager.waitFor(condition)
 	}
 
 	/**
 	 * Clear all wait conditions for this agent.
 	 */
 	stopWaiting() {
-		this.$waitingFor.set([])
+		return this.waitManager.stopWaiting()
 	}
 
 	/**
@@ -981,19 +769,10 @@ export class FairyAgent {
 		agentFacingMessage: string
 		userFacingMessage: string | null
 	}) {
-		if (this.$isPrompting.get()) {
-			this.schedule({
-				agentMessages: [agentFacingMessage],
-				userMessages: userFacingMessage ? [userFacingMessage] : undefined,
-				source: 'other-agent',
-			})
-		} else {
-			this.prompt({
-				agentMessages: [agentFacingMessage],
-				userMessages: userFacingMessage ? [userFacingMessage] : undefined,
-				source: 'other-agent',
-			})
-		}
+		return this.waitManager.notifyWaitConditionFulfilled({
+			agentFacingMessage,
+			userFacingMessage,
+		})
 	}
 
 	/**
@@ -1009,98 +788,14 @@ export class FairyAgent {
 		diff: RecordsDiff<TLRecord>
 		promise: Promise<void> | null
 	} {
-		const { editor } = this
-		const util = this.getAgentActionUtil(action._type)
-		this.isActing = true
-
-		const actionInfo = this.getActionInfo(action)
-		if (actionInfo.pose) {
-			// check the mode at the exact instant we would set the pose, if the fairy has somehow become inactive, set the pose to idle
-			const modeDefinition = getFairyModeDefinition(this.getMode())
-			if (modeDefinition.active) {
-				this.$fairyEntity.update((fairy) => ({ ...fairy, pose: actionInfo.pose ?? fairy.pose }))
-			} else {
-				this.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
-			}
-		}
-
-		// Ensure the fairy is on the correct page before performing the action
-		this.ensureFairyIsOnCorrectPage(action)
-
-		const modeDefinition = getFairyModeDefinition(this.getMode())
-		let promise: Promise<void> | null = null
-		let diff: RecordsDiff<TLRecord> = createEmptyRecordsDiff()
-		try {
-			diff = editor.store.extractingChanges(() => {
-				$fairyIsApplyingAction.set(true)
-				promise = util.applyAction(structuredClone(action), helpers) ?? null
-				$fairyIsApplyingAction.set(false)
-			})
-		} catch (error) {
-			// always toast the error
-			this.onError(error)
-			promise = null
-			if (isDevelopmentEnv) {
-				// In development, crash by throwing error
-				throw error
-			}
-		} finally {
-			this.isActing = false
-		}
-
-		// Add the action to chat history
-		if (util.savesToHistory()) {
-			const historyItem: ChatHistoryItem = {
-				id: uniqueId(),
-				type: 'action',
-				action,
-				diff,
-				acceptance: 'pending',
-				memoryLevel: modeDefinition.memoryLevel,
-			}
-
-			this.$chatHistory.update((historyItems) => {
-				// If there are no items, start off the chat history with the first item
-				if (historyItems.length === 0) return [historyItem]
-
-				// Find the last EXTERNAL prompt index (ignore prompts from 'self' which are internal state transitions)
-				const lastPromptIndex = historyItems.findLastIndex(
-					(item) => item.type === 'prompt' && item.promptSource !== 'self'
-				)
-
-				// If the last action is still in progress AND it's after the last external prompt, replace it
-				const lastActionHistoryItemIndex = historyItems.findLastIndex(
-					(item) => item.type === 'action'
-				)
-				const lastActionHistoryItem =
-					lastActionHistoryItemIndex !== -1 ? historyItems[lastActionHistoryItemIndex] : null
-				if (
-					lastActionHistoryItem &&
-					lastActionHistoryItem.type === 'action' &&
-					!lastActionHistoryItem.action.complete &&
-					(lastPromptIndex === -1 || lastActionHistoryItemIndex > lastPromptIndex)
-				) {
-					const newHistoryItems = [...historyItems]
-					newHistoryItems[lastActionHistoryItemIndex] = historyItem
-					return newHistoryItems
-				} else {
-					// Otherwise, just add the new item to the end of the list
-					return [...historyItems, historyItem]
-				}
-			})
-		}
-
-		return { diff, promise }
+		return this.actionManager.act(action, helpers)
 	}
 
 	/**
 	 * Remove all completed todo items from the todo list.
-	 * Renumber the personal todo items to ensure the ids are sequential.
 	 */
 	flushTodoList() {
-		this.$personalTodoList.update((personalTodoItems) => {
-			return personalTodoItems.filter((item) => item.status !== 'done')
-		})
+		this.todoManager.flushTodoList()
 	}
 
 	/**
@@ -1220,7 +915,7 @@ export class FairyAgent {
 	 * Check if the fairy is currently sleeping.
 	 */
 	isSleeping() {
-		return this.getMode() === 'sleeping'
+		return this.modeManager.isSleeping()
 	}
 
 	/**
@@ -1240,8 +935,8 @@ export class FairyAgent {
 
 		this.setMode('idling')
 
-		this.$chatHistory.set([])
-		this.$chatOrigin.set({ x: 0, y: 0 })
+		this.chatManager.clearChatHistory()
+		this.chatManager.setChatOrigin({ x: 0, y: 0 })
 
 		// clear any waiting conditions
 		this.stopWaiting()
@@ -1272,74 +967,6 @@ export class FairyAgent {
 	promptStartTime: number | null = null
 
 	/**
-	 * Start recording user actions.
-	 * @returns A cleanup function to stop recording user actions.
-	 */
-	private startRecordingUserActions() {
-		const { editor } = this
-		const cleanUpCreate = editor.sideEffects.registerAfterCreateHandler(
-			'shape',
-			(shape, source) => {
-				if (source !== 'user') return
-				if (this.isActing) return
-				if ($fairyIsApplyingAction.get()) return
-				const change = {
-					added: { [shape.id]: shape },
-					updated: {},
-					removed: {},
-				}
-				this.$userActionHistory.update((prev) => [...prev, change])
-				return
-			}
-		)
-
-		const cleanUpDelete = editor.sideEffects.registerAfterDeleteHandler(
-			'shape',
-			(shape, source) => {
-				if (source !== 'user') return
-				if (this.isActing) return
-				if ($fairyIsApplyingAction.get()) return
-				const change = {
-					added: {},
-					updated: {},
-					removed: { [shape.id]: shape },
-				}
-				this.$userActionHistory.update((prev) => [...prev, change])
-				return
-			}
-		)
-
-		const cleanUpChange = editor.sideEffects.registerAfterChangeHandler(
-			'shape',
-			(prev, next, source) => {
-				if (source !== 'user') return
-				if (this.isActing) return
-				if ($fairyIsApplyingAction.get()) return
-				const change: RecordsDiff<TLRecord> = {
-					added: {},
-					updated: { [prev.id]: [prev, next] },
-					removed: {},
-				}
-				this.$userActionHistory.update((prev) => [...prev, change])
-				return
-			}
-		)
-
-		function cleanUp() {
-			cleanUpCreate()
-			cleanUpDelete()
-			cleanUpChange()
-		}
-
-		return cleanUp
-	}
-
-	/**
-	 * A function that stops recording user actions.
-	 */
-	private stopRecordingFn: () => void
-
-	/**
 	 * A function that stops the wake-on-select reaction.
 	 */
 	private wakeOnSelectReaction: () => void
@@ -1350,159 +977,12 @@ export class FairyAgent {
 	private handleMaxShapes: () => void
 
 	/**
-	 * Stop recording user actions.
-	 */
-	private stopRecordingUserActions() {
-		this.stopRecordingFn?.()
-	}
-
-	/**
 	 * Get information about an agent action, mostly used to display actions within the chat history UI.
 	 * @param action - The action to get information about.
 	 * @returns The information about the action.
 	 */
 	getActionInfo(action: Streaming<AgentAction>): AgentActionInfo {
-		const util = this.getAgentActionUtil(action._type)
-		const info = util.getInfo(action) ?? {}
-		const {
-			icon = null,
-			description = null,
-			summary = null,
-			canGroup = () => true,
-			pose = null,
-		} = info
-
-		return {
-			icon,
-			description,
-			summary,
-			canGroup,
-			pose,
-		}
-	}
-
-	/**
-	 * Move the fairy to a position.
-	 * @param position - The position to move the fairy to.
-	 */
-	moveToPosition(position: VecModel) {
-		this.$fairyEntity.update((fairy) => {
-			return {
-				...fairy,
-				position: AgentHelpers.RoundVec(position),
-				flipX: false,
-			}
-		})
-	}
-
-	/**
-	 * Ensures the fairy is on the correct page before performing an action.
-	 * For actions that work with existing shapes, switches to the shape's page.
-	 * For actions that create new content, ensures the fairy is on the current editor page.
-	 */
-	private ensureFairyIsOnCorrectPage(action: Streaming<AgentAction>) {
-		const { editor } = this
-		const fairyEntity = this.$fairyEntity.get()
-		if (!fairyEntity) return
-
-		// Extract shape IDs from the action based on action type
-		let shapeIds: string[] = []
-
-		// Actions with single shapeId
-		if ('shapeId' in action && typeof action.shapeId === 'string') {
-			shapeIds = [action.shapeId]
-		}
-		// Actions with shapeIds array
-		else if ('shapeIds' in action && Array.isArray(action.shapeIds)) {
-			shapeIds = action.shapeIds as string[]
-		}
-		// Update action has shape in 'update' property
-		else if (
-			action._type === 'update' &&
-			'update' in action &&
-			action.update &&
-			typeof action.update === 'object' &&
-			'shapeId' in action.update
-		) {
-			shapeIds = [action.update.shapeId as string]
-		}
-
-		// If we have shape IDs, ensure the fairy is on the same page as the first shape
-		if (shapeIds.length > 0) {
-			const firstShapeId = shapeIds[0].startsWith('shape:') ? shapeIds[0] : `shape:${shapeIds[0]}`
-			const shape = editor.getShape(firstShapeId as any)
-
-			if (shape) {
-				const shapePageId = editor.getAncestorPageId(shape)
-				if (shapePageId && fairyEntity.currentPageId !== shapePageId) {
-					// Switch to the shape's page
-					editor.setCurrentPage(shapePageId)
-					this.$fairyEntity.update((f) => (f ? { ...f, currentPageId: shapePageId } : f))
-				}
-			}
-		}
-		// For create actions or actions without shape IDs, ensure fairy is on the current editor page
-		else if (action._type === 'create' || action._type === 'pen') {
-			const currentPageId = editor.getCurrentPageId()
-			if (fairyEntity.currentPageId !== currentPageId) {
-				this.$fairyEntity.update((f) => (f ? { ...f, currentPageId } : f))
-			}
-		}
-	}
-
-	/**
-	 * An array of gestures that are currently active.
-	 * The most recently added gesture is the one that is displayed.
-	 * This array determines what to do when one gesture completes.
-	 * eg: Switch to the next gesture in the stack.
-	 * eg: Revert to the base pose.
-	 *
-	 * Each item contains a unique ID and the gesture to display.
-	 */
-	gestureStack: { id: string; gesture: FairyPose }[] = []
-
-	/**
-	 * Override the fairy's gesture, cancelling all other gestures in the stack.
-	 * @param gesture - The gesture to set the fairy to.
-	 * @param duration - The duration of the gesture in milliseconds.
-	 */
-	setGesture(gesture: FairyPose | null, duration = 400) {
-		this.$fairyEntity.update((fairy) => ({ ...fairy, gesture }))
-
-		if (!gesture) {
-			this.gestureStack = []
-			return
-		}
-
-		const id = uniqueId()
-		this.gestureStack = [{ id, gesture }]
-		setTimeout(() => {
-			this.gestureStack = this.gestureStack.filter((g) => g.id !== id)
-			const finalGesture = this.gestureStack[0]?.gesture ?? null
-			this.$fairyEntity.update((fairy) => ({ ...fairy, gesture: finalGesture }))
-		}, duration)
-	}
-
-	/**
-	 * Add a gesture to the stack. When this gesture completes, the next gesture in the stack is displayed.
-	 */
-	stackGesture(gesture: FairyPose, duration = 400) {
-		this.$fairyEntity.update((fairy) => ({ ...fairy, gesture: gesture }))
-
-		const id = uniqueId()
-		this.gestureStack.push({ id, gesture })
-		setTimeout(() => {
-			this.gestureStack = this.gestureStack.filter((g) => g.id !== id)
-			const finalGesture = this.gestureStack[0]?.gesture ?? null
-			this.$fairyEntity.update((fairy) => ({ ...fairy, gesture: finalGesture }))
-		}, duration)
-	}
-
-	/**
-	 * Clear the fairy's gesture.
-	 */
-	clearGesture() {
-		this.$fairyEntity.update((fairy) => ({ ...fairy, gesture: null }))
+		return this.actionManager.getActionInfo(action)
 	}
 
 	updateFairyConfig(partial: Partial<FairyConfig>) {
@@ -1517,23 +997,25 @@ export class FairyAgent {
 	}
 
 	/**
-	 * Move the camera to the fairy's position.
-	 * Also switches to the page where the fairy is located.
+	 * Move the fairy to a spawn point near the center of the viewport.
+	 * Uses findFairySpawnPoint to avoid overlapping with other fairies.
 	 */
-	zoomTo() {
-		const entity = this.$fairyEntity.get()
-		if (!entity) return
+	moveToSpawnPoint() {
+		const center = this.editor.getViewportPageBounds().center
+		const spawnPoint = findFairySpawnPoint(center, this.editor)
+		const currentPageId = this.editor.getCurrentPageId()
+		this.$fairyEntity.update((f) =>
+			f ? { ...f, position: AgentHelpers.RoundVec(spawnPoint), currentPageId } : f
+		)
+		this.gestureManager.push('poof', 400)
+	}
 
-		// Switch to the fairy's page
-		if (entity.currentPageId !== this.editor.getCurrentPageId()) {
-			this.editor.setCurrentPage(entity.currentPageId)
-		}
-
-		// Zoom to the fairy's position
-		this.editor.zoomToBounds(Box.FromCenter(entity.position, { x: 100, y: 100 }), {
-			animation: { duration: 220 },
-			targetZoom: 1,
-		})
+	/**
+	 * Move the fairy to a position.
+	 * @param position - The position to move the fairy to.
+	 */
+	moveToPosition(position: VecModel) {
+		this.positionManager.moveToPosition(position)
 	}
 
 	/**
@@ -1542,32 +1024,36 @@ export class FairyAgent {
 	 * @param offset Optional offset from the center position
 	 */
 	summon(offset?: { x: number; y: number }) {
-		const center = this.editor.getViewportPageBounds().center
-		const position = offset ? { x: center.x + offset.x, y: center.y + offset.y } : center
-		const currentPageId = this.editor.getCurrentPageId()
-		this.$fairyEntity.update((f) => (f ? { ...f, position, currentPageId } : f))
-		this.stackGesture('poof')
+		this.positionManager.summon(offset)
+	}
+
+	/**
+	 * Move the camera to the fairy's position.
+	 * Also switches to the page where the fairy is located.
+	 */
+	zoomTo() {
+		this.positionManager.zoomTo()
 	}
 
 	/**
 	 * Start following this fairy with the camera.
 	 */
 	startFollowing() {
-		startFollowingFairy(this.editor, this.id)
+		this.positionManager.startFollowing()
 	}
 
 	/**
 	 * Stop following this fairy with the camera.
 	 */
 	stopFollowing() {
-		stopFollowingFairy(this.editor)
+		this.positionManager.stopFollowing()
 	}
 
 	/**
 	 * Check if this fairy is currently being followed.
 	 */
 	isFollowing() {
-		return getFollowingFairyId(this.editor) === this.id
+		return this.positionManager.isFollowing()
 	}
 }
 
@@ -1613,84 +1099,6 @@ function requestAgentActions({ agent, request }: { agent: FairyAgent; request: A
 		try {
 			for await (const action of agent._streamActions({ prompt, signal })) {
 				if (cancelled) break
-
-				// NOTE: usage tracking in the client is disabled for now because it's not working as expected. Refer to the worker console for costs and token per request.
-
-				// Handle usage information
-				// if ((action as any)._type === '__usage__') {
-				// 	const usage = (action as any).usage
-				// 	if (usage) {
-				// 		// AI SDK returns: { inputTokens, outputTokens, totalTokens, cachedInputTokens }
-				// 		// cachedInputTokens can be undefined, which means 0
-				// 		const promptTokens = usage.inputTokens || 0
-				// 		const completionTokens = usage.outputTokens || 0
-				// 		const cachedInputTokens = usage.cachedInputTokens || 0
-
-				// 		// Extract model name from prompt
-				// 		const modelName = agent.getModelNameFromPrompt(prompt)
-
-				// 		// Initialize model usage if it doesn't exist
-				// 		if (!agent.cumulativeUsage.byModel[modelName]) {
-				// 			agent.cumulativeUsage.byModel[modelName] = {
-				// 				tier1: { promptTokens: 0, cachedInputTokens: 0, completionTokens: 0 },
-				// 				tier2: { promptTokens: 0, cachedInputTokens: 0, completionTokens: 0 },
-				// 			}
-				// 		}
-
-				// 		// Determine which tier this request falls into
-				// 		// Tier 1: ≤ 200K tokens, Tier 2: > 200K tokens
-				// 		if (promptTokens <= TIER_THRESHOLD) {
-				// 			agent.cumulativeUsage.byModel[modelName].tier1.promptTokens += promptTokens
-				// 			agent.cumulativeUsage.byModel[modelName].tier1.cachedInputTokens += cachedInputTokens
-				// 			agent.cumulativeUsage.byModel[modelName].tier1.completionTokens += completionTokens
-				// 		} else {
-				// 			agent.cumulativeUsage.byModel[modelName].tier2.promptTokens += promptTokens
-				// 			agent.cumulativeUsage.byModel[modelName].tier2.cachedInputTokens += cachedInputTokens
-				// 			agent.cumulativeUsage.byModel[modelName].tier2.completionTokens += completionTokens
-				// 		}
-
-				// 		agent.cumulativeUsage.totalTokens += usage.totalTokens || 0
-
-				// 		// Calculate cumulative costs
-				// 		const { inputCost, outputCost, totalCost } = agent.getCumulativeCost()
-
-				// 		// Calculate total prompt and completion tokens across all models and tiers
-				// 		let totalPromptTokens = 0
-				// 		let totalCompletionTokens = 0
-				// 		let totalCachedInputTokens = 0
-				// 		for (const modelUsage of Object.values(agent.cumulativeUsage.byModel)) {
-				// 			totalPromptTokens += modelUsage.tier1.promptTokens + modelUsage.tier2.promptTokens
-				// 			totalCompletionTokens +=
-				// 				modelUsage.tier1.completionTokens + modelUsage.tier2.completionTokens
-				// 			totalCachedInputTokens +=
-				// 				modelUsage.tier1.cachedInputTokens + modelUsage.tier2.cachedInputTokens
-				// 		}
-
-				// 		// Calculate percentage of input tokens that were cached
-				// 		const cachedPercentage =
-				// 			totalPromptTokens > 0
-				// 				? ((totalCachedInputTokens / totalPromptTokens) * 100).toFixed(1)
-				// 				: '0.0'
-
-				// 		// Build input cost string with cached breakdown if applicable
-				// 		const inputCostStr =
-				// 			totalCachedInputTokens > 0
-				// 				? `Input: $${inputCost.toFixed(4)} (${cachedPercentage}% cached)`
-				// 				: `Input: $${inputCost.toFixed(4)}`
-
-				// 		// eslint-disable-next-line no-console
-				// 		console.debug(
-				// 			`🧚 Fairy "${agent.$fairyConfig.get().name}" Cumulative Usage:\n` +
-				// 				`  Model: ${modelName}\n` +
-				// 				`  Prompt tokens: ${totalPromptTokens.toLocaleString()}\n` +
-				// 				`  Completion tokens: ${totalCompletionTokens.toLocaleString()}\n` +
-				// 				`  Total tokens: ${agent.cumulativeUsage.totalTokens.toLocaleString()}\n` +
-				// 				`  💰 Cumulative Cost: $${totalCost.toFixed(4)}\n` +
-				// 				`     (${inputCostStr}, Output: $${outputCost.toFixed(4)})`
-				// 		)
-				// 	}
-				// 	continue
-				// }
 
 				editor.run(
 					() => {
@@ -1808,115 +1216,4 @@ function findFairySpawnPoint(initialPosition: VecModel, editor: Editor): VecMode
 		x: viewportCenter.x + (Math.random() - 0.5) * boxSize,
 		y: viewportCenter.y + (Math.random() - 0.5) * boxSize,
 	}
-}
-
-/**
- * Store for the reactive dispose functions so we can properly clean them up.
- */
-const followDisposeHandlers = new WeakMap<Editor, () => void>()
-
-/**
- * Get the ID of the fairy currently being followed for a given editor.
- */
-export function getFollowingFairyId(editor: Editor): string | null {
-	return $followingFairyId.get(editor)
-}
-
-/**
- * Start following a fairy with the camera.
- * Similar to editor.startFollowingUser but for fairies.
- */
-export function startFollowingFairy(editor: Editor, fairyId: string) {
-	stopFollowingFairy(editor)
-
-	const agent = getFairyAgentById(fairyId, editor)
-	if (!agent) {
-		console.warn('Could not find fairy agent with id:', fairyId)
-		return
-	}
-
-	$followingFairyId.update(editor, () => fairyId)
-
-	// Track last seen position/page to avoid redundant zooms and feedback loops
-	let lastX: number | null = null
-	let lastY: number | null = null
-	let lastPageId: string | null = null
-
-	const disposeFollow = react('follow fairy', () => {
-		const currentFairyId = getFollowingFairyId(editor)
-		if (currentFairyId !== fairyId) {
-			// We're no longer following this fairy
-			return
-		}
-
-		const currentAgent = getFairyAgentById(fairyId, editor)
-		if (!currentAgent) {
-			stopFollowingFairy(editor)
-			return
-		}
-
-		const fairyEntity = currentAgent.$fairyEntity.get()
-		if (!fairyEntity) {
-			stopFollowingFairy(editor)
-			return
-		}
-
-		// Only react when position or page actually changes
-		const { x, y } = fairyEntity.position
-		const pageId = fairyEntity.currentPageId
-		const EPS = 0.5
-		const samePage = lastPageId === pageId
-		const sameX = lastX !== null && Math.abs(lastX - x) < EPS
-		const sameY = lastY !== null && Math.abs(lastY - y) < EPS
-		if (samePage && sameX && sameY) return
-
-		lastX = x
-		lastY = y
-		lastPageId = pageId
-
-		currentAgent.zoomTo()
-	})
-
-	// Listen for user input events that should stop following
-	const onWheel = () => stopFollowingFairy(editor)
-	document.addEventListener('wheel', onWheel, { passive: false, capture: true })
-
-	// Also stop following when the user manually changes pages
-	const disposePageChange = react('stop following on page change', () => {
-		const currentPageId = editor.getCurrentPageId()
-
-		// Skip initial page check
-		if (!lastPageId) {
-			return
-		}
-
-		// If user changed page manually (not from following), stop following
-		const currentAgent = getFairyAgentById(fairyId, editor)
-		if (currentAgent) {
-			const fairyPageId = currentAgent.$fairyEntity.get()?.currentPageId
-			if (currentPageId !== fairyPageId && currentPageId !== lastPageId) {
-				stopFollowingFairy(editor)
-			}
-		}
-	})
-
-	// Store dispose functions so we can clean them up later
-	const dispose = () => {
-		disposeFollow()
-		disposePageChange()
-		document.removeEventListener('wheel', onWheel)
-	}
-	followDisposeHandlers.set(editor, dispose)
-}
-
-/**
- * Stop following any fairy with the camera.
- */
-export function stopFollowingFairy(editor: Editor) {
-	const dispose = followDisposeHandlers.get(editor)
-	if (dispose) {
-		dispose()
-		followDisposeHandlers.delete(editor)
-	}
-	$followingFairyId.update(editor, () => null)
 }

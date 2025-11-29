@@ -1,6 +1,7 @@
 import { FairyOutfit, FairyPose } from '@tldraw/fairy-shared'
 import { ComponentType, useEffect, useState } from 'react'
 import { IdleSprite } from './sprites/IdleSprite'
+import { PanickingSprite1, PanickingSprite2 } from './sprites/PanickingSprite'
 import { PoofSprite } from './sprites/PoofSprite'
 import { RaisedAWingSprite } from './sprites/RaisedAWingSprite'
 import { RaisedBWingSprite } from './sprites/RaisedBWingSprite'
@@ -32,6 +33,7 @@ const WING_SPRITES: Record<FairyPose, ComponentType<WingSpriteProps>[]> = {
 	thinking: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
 	working: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
 	sleeping: [SleepingWingSprite],
+	panicking: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
 	poof: [],
 }
 
@@ -44,7 +46,21 @@ const FAIRY_SPRITES_WITH_PROPS: Record<FairyPose, ComponentType<FairySpriteProps
 	working: [WorkingSprite1, WorkingSprite2, WorkingSprite3, WorkingSprite2],
 	sleeping: [SleepingSprite],
 	waiting: [WaitingSprite],
+	panicking: [PanickingSprite1, PanickingSprite2],
 	poof: [PoofSprite],
+}
+
+const FRAME_DURATIONS: Record<FairyPose, number> = {
+	idle: 160,
+	active: 160,
+	reading: 160,
+	writing: 160,
+	thinking: 160,
+	working: 125,
+	sleeping: 160,
+	panicking: 65,
+	waiting: 160,
+	poof: 400,
 }
 
 /**
@@ -89,14 +105,16 @@ export function FairySprite({
 	hatColor?: string
 	padding?: number
 }) {
-	const bottomWingColor = isOrchestrator ? projectColor : 'var(--tl-color-fairy-light)'
+	const bottomWingColor = isOrchestrator ? projectColor : 'var(--tl-color-fairy-light'
+	const _pose = gesture || pose
+	const duration = FRAME_DURATIONS[_pose]
 
 	return (
 		<div className="fairy-sprite-container">
 			{isAnimated ? (
 				<AnimatedFairySpriteComponent
-					pose={gesture || pose}
-					speed={pose === 'working' ? 100 : isGenerating ? 120 : 160}
+					pose={_pose}
+					speed={isGenerating ? duration * 0.75 : duration}
 					topWingColor={projectColor}
 					bottomWingColor={bottomWingColor}
 					bodyColor={'var(--tl-color-fairy-light)'}

@@ -42,7 +42,11 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 				agent.setMode('soloing')
 			}
 		},
-		onEnter(agent) {
+		onEnter(agent, fromMode) {
+			// If waking up from sleeping, move to a spawn point near the viewport center
+			if (fromMode === 'sleeping') {
+				agent.moveToSpawnPoint()
+			}
 			agent.deleteAllPersonalTodos()
 			agent.clearUserActionHistory()
 			stopPromptTimer(agent)
@@ -55,7 +59,7 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	},
 	['one-shotting']: {
 		onPromptEnd(agent) {
-			const todoList = agent.$personalTodoList.get()
+			const todoList = agent.todoManager.$personalTodoList.get()
 			const incompleteTodoItems = todoList.filter((item) => item.status !== 'done')
 			if (incompleteTodoItems.length > 0) {
 				agent.schedule(
@@ -152,7 +156,7 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 				return
 			}
 
-			if (agent.$waitingFor.get().length > 0) {
+			if (agent.waitManager.$waitingFor.get().length > 0) {
 				const members = project.members.filter((member) => member.id !== agent.id)
 				const memberAgents = $fairyAgentsAtom
 					.get(agent.editor)
@@ -172,7 +176,7 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 				return
 			}
 
-			if (agent.$waitingFor.get().length === 0) {
+			if (agent.waitManager.$waitingFor.get().length === 0) {
 				const projectTasks = getFairyTasksByProjectId(project.id)
 				const outstandingTasks = projectTasks.filter((task) => task.status !== 'done')
 				const completedTasks = projectTasks.filter((task) => task.status === 'done')
@@ -216,7 +220,7 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 				return
 			}
 
-			if (agent.$waitingFor.get().length > 0) {
+			if (agent.waitManager.$waitingFor.get().length > 0) {
 				const partner = project.members.find((member) => member.id !== agent.id)
 				if (!partner) {
 					agent.setMode('idling')
@@ -242,7 +246,7 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 				return
 			}
 
-			if (agent.$waitingFor.get().length === 0) {
+			if (agent.waitManager.$waitingFor.get().length === 0) {
 				const projectTasks = getFairyTasksByProjectId(project.id)
 				const outstandingTasks = projectTasks.filter((task) => task.status !== 'done')
 				const completedTasks = projectTasks.filter((task) => task.status === 'done')

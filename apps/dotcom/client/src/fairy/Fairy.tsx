@@ -141,6 +141,7 @@ function useFairyPointerInteraction(
 	isFairyGrabbable: boolean
 ) {
 	const interactionState = useRef<FairyInteractionState>({ status: 'idle' })
+	const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const $fairyEntity = agent.$fairyEntity
 
 	useEffect(() => {
@@ -152,7 +153,16 @@ function useFairyPointerInteraction(
 			document.removeEventListener('pointerup', handlePointerUp)
 		}
 
+		function cancelLongPressTimer() {
+			if (longPressTimerRef.current) {
+				clearTimeout(longPressTimerRef.current)
+				longPressTimerRef.current = null
+			}
+		}
+
 		function startDraggingWithCurrentState(currentState: FairyPressedState) {
+			cancelLongPressTimer()
+			agent.gestureManager.clear()
 			interactionState.current = {
 				status: 'dragging',
 				pointerId: currentState.pointerId,
@@ -176,6 +186,11 @@ function useFairyPointerInteraction(
 
 		function handlePointerUp() {
 			const currentState = interactionState.current
+			cancelLongPressTimer()
+
+			// Clear panicking gesture if it was set
+			agent.gestureManager.clear()
+
 			if (currentState.status === 'idle') {
 				cleanupPointerListeners()
 				return
@@ -243,6 +258,17 @@ function useFairyPointerInteraction(
 				fairiesAtPointerDown: fairiesToDrag,
 			}
 
+			// Start long-press timer (3 seconds)
+			cancelLongPressTimer()
+			longPressTimerRef.current = setTimeout(() => {
+				const currentState = interactionState.current
+				// Only trigger panicking if still pressed and not dragging
+				if (currentState.status === 'pressed' && !editor.inputs.isDragging) {
+					agent.gestureManager.push('panicking')
+				}
+				longPressTimerRef.current = null
+			}, 3000)
+
 			editor.on('event', handleEvent)
 		}
 
@@ -250,6 +276,7 @@ function useFairyPointerInteraction(
 
 		return () => {
 			// Cleanup on unmount
+			cancelLongPressTimer()
 			elm.removeEventListener('pointerdown', handleFairyPointerDown)
 			document.removeEventListener('pointermove', handlePointerMove)
 			document.removeEventListener('pointerup', handlePointerUp)

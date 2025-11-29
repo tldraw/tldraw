@@ -29,7 +29,7 @@ export function notifyWaitingAgents({
 	const agents = $fairyAgentsAtom.get(editor)
 
 	for (const agent of agents) {
-		const waitingConditions = agent.$waitingFor.get()
+		const waitingConditions = agent.waitManager.$waitingFor.get()
 		const matchingCondition = waitingConditions.find(
 			(condition) => condition.eventType === eventType && condition.matcher(event)
 		) // if there are multiple matching conditions, this will miss all but the first
@@ -39,7 +39,7 @@ export function notifyWaitingAgents({
 			const remainingConditions = waitingConditions.filter(
 				(condition) => condition !== matchingCondition
 			)
-			agent.$waitingFor.set(remainingConditions)
+			agent.waitManager.$waitingFor.set(remainingConditions)
 
 			// Wake up the agent with a notification message
 			const agentFacingMessage = getAgentFacingMessage(agent.id, matchingCondition)

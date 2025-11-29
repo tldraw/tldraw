@@ -228,8 +228,8 @@ export function FairyApp({
 		agentsRef.current.forEach((agent) => {
 			const cleanup = react(`${agent.id} state`, () => {
 				agent.$fairyEntity.get()
-				agent.$chatHistory.get()
-				agent.$personalTodoList.get()
+				agent.chatManager.$chatHistory.get()
+				agent.todoManager.$personalTodoList.get()
 				updateFairyState()
 			})
 			fairyCleanupFns.push(cleanup)
@@ -256,7 +256,7 @@ export function FairyApp({
 
 		// Initialize sent message IDs for all agents
 		agentsRef.current.forEach((agent) => {
-			const chatHistory = agent.$chatHistory.get()
+			const chatHistory = agent.chatManager.$chatHistory.get()
 			const sent = new Set<string>()
 
 			chatHistory.forEach((item) => {
@@ -280,7 +280,7 @@ export function FairyApp({
 			const allMessagesToAppend: ChatHistoryItem[] = []
 
 			agentsRef.current.forEach((agent) => {
-				const chatHistory = agent.$chatHistory.get()
+				const chatHistory = agent.chatManager.$chatHistory.get()
 				const sent = sentMessageIds.get(agent.id) || new Set()
 
 				chatHistory.forEach((item) => {
@@ -307,7 +307,7 @@ export function FairyApp({
 		const fairyCleanupFns: (() => void)[] = []
 		agentsRef.current.forEach((agent) => {
 			const cleanup = react(`${agent.id} chat history`, () => {
-				agent.$chatHistory.get()
+				agent.chatManager.$chatHistory.get()
 				appendMessages()
 			})
 			fairyCleanupFns.push(cleanup)

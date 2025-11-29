@@ -33,7 +33,7 @@ export class UpsertPersonalTodoItemActionUtil extends AgentActionUtil<UpsertPers
 
 		const { id, text, status } = action
 
-		const index = this.agent.$personalTodoList.get().findIndex((item) => item.id === id)
+		const index = this.agent.todoManager.$personalTodoList.get().findIndex((item) => item.id === id)
 		if (index === -1) {
 			if (!text) {
 				this.agent.interrupt({

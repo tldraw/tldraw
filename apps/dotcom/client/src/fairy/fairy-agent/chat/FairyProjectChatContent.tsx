@@ -21,9 +21,11 @@ export function FairyProjectChatContent({
 	isPlanning,
 	projectTitle,
 }: FairyProjectChatContentProps) {
-	const historyItems = useValue('chat-history', () => orchestratorAgent.$chatHistory.get(), [
-		orchestratorAgent,
-	])
+	const historyItems = useValue(
+		'chat-history',
+		() => orchestratorAgent.chatManager.$chatHistory.get(),
+		[orchestratorAgent]
+	)
 
 	const projectTasks = useValue(
 		'project-tasks',

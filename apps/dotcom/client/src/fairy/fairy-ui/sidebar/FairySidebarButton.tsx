@@ -1,5 +1,5 @@
 import { ContextMenu as _ContextMenu } from 'radix-ui'
-import { MouseEvent } from 'react'
+import { MouseEvent, useCallback } from 'react'
 import { TldrawUiToolbarToggleGroup, TldrawUiToolbarToggleItem, useValue } from 'tldraw'
 import { useMsg } from '../../../tla/utils/i18n'
 import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
@@ -26,8 +26,6 @@ export function FairySidebarButton({
 	hasAnySelectedFairies: boolean
 	hasAnyActiveProjects: boolean
 }) {
-	const joinSelectedFairiesLabel = useMsg(fairyMessages.joinSelectedFairies)
-
 	const fairyIsSelected = useValue(
 		'fairy-button-selected',
 		() => agent.$fairyEntity.get()?.isSelected ?? false,
@@ -46,12 +44,10 @@ export function FairySidebarButton({
 	)
 	const projectColor = project ? getProjectColor(project.color) : undefined
 
-	const handlePlusClick = (e: MouseEvent) => {
-		e.preventDefault()
-		e.stopPropagation()
+	const handlePlusClick = useCallback(() => {
 		// Toggle selection like shift-clicking would
-		agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: !fairyIsSelected } : f))
-	}
+		agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: !f.isSelected } : f))
+	}, [agent])
 
 	if (!fairyEntity || !fairyOutfit) return null
 
@@ -93,55 +89,71 @@ export function FairySidebarButton({
 									<FairyReticleSprite inset={3} />
 								</div>
 							)}
-							{showPlusButton && (
-								<div
-									role="button"
-									tabIndex={0}
-									className="fairy-plus-button"
-									onClick={handlePlusClick}
-									aria-label={joinSelectedFairiesLabel}
-									title={joinSelectedFairiesLabel}
-									onKeyDown={(e) => {
-										if (e.key === 'Enter' || e.key === ' ') {
-											e.preventDefault()
-											handlePlusClick(e as any)
-										}
-									}}
-								>
-									<svg
-										width="12"
-										height="12"
-										viewBox="0 0 12 12"
-										fill="none"
-										xmlns="http://www.w3.org/2000/svg"
-									>
-										<circle cx="6" cy="6" r="6" fill="var(--tl-color-fairy-select)" />
-										<line
-											x1="4"
-											y1="6"
-											x2="8"
-											y2="6"
-											stroke="var(--tl-color-fairy-light)"
-											strokeWidth="2"
-											strokeLinecap="round"
-										/>
-										<line
-											x1="6"
-											y1="4"
-											x2="6"
-											y2="8"
-											stroke="var(--tl-color-fairy-light)"
-											strokeWidth="2"
-											strokeLinecap="round"
-										/>
-									</svg>
-								</div>
-							)}
+							{showPlusButton && <PlusButton onClick={handlePlusClick} />}
 						</div>
 					</TldrawUiToolbarToggleItem>
 				</TldrawUiToolbarToggleGroup>
 			</_ContextMenu.Trigger>
 			<FairyContextMenuContent agent={agent} source="sidebar" />
 		</_ContextMenu.Root>
+	)
+}
+
+function PlusButton({ onClick }: { onClick(): void }) {
+	const joinSelectedFairiesLabel = useMsg(fairyMessages.joinSelectedFairies)
+
+	return (
+		<div
+			role="button"
+			tabIndex={0}
+			className="fairy-plus-button"
+			onClick={(e) => {
+				e.stopPropagation()
+				e.preventDefault()
+				onClick()
+			}}
+			aria-label={joinSelectedFairiesLabel}
+			title={joinSelectedFairiesLabel}
+			onKeyDown={(e) => {
+				if (e.key === 'Enter' || e.key === ' ') {
+					e.preventDefault()
+					onClick()
+				}
+			}}
+		>
+			<svg
+				width="12"
+				height="12"
+				viewBox="0 0 12 12"
+				fill="none"
+				xmlns="http://www.w3.org/2000/svg"
+			>
+				<circle
+					className="fairy-plus-button-circle"
+					cx="6"
+					cy="6"
+					r="6"
+					fill="var(--tl-color-fairy-select-bg)"
+				/>
+				<line
+					x1="4"
+					y1="6"
+					x2="8"
+					y2="6"
+					stroke="var(--tl-color-fairy-light)"
+					strokeWidth="2"
+					strokeLinecap="round"
+				/>
+				<line
+					x1="6"
+					y1="4"
+					x2="6"
+					y2="8"
+					stroke="var(--tl-color-fairy-light)"
+					strokeWidth="2"
+					strokeLinecap="round"
+				/>
+			</svg>
+		</div>
 	)
 }

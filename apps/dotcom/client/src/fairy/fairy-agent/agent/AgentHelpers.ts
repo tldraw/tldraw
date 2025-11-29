@@ -32,7 +32,7 @@ export class AgentHelpers {
 	constructor(agent: FairyAgent) {
 		this.agent = agent
 		this.editor = agent.editor
-		const origin = agent.$chatOrigin.get()
+		const origin = agent.chatManager.getChatOrigin()
 		this.offset = {
 			x: -origin.x,
 			y: -origin.y,

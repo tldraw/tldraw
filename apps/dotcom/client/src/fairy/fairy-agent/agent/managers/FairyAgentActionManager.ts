@@ -1,0 +1,243 @@
+import {
+	AgentAction,
+	AgentActionInfo,
+	ChatHistoryItem,
+	getFairyModeDefinition,
+	Streaming,
+} from '@tldraw/fairy-shared'
+import { createEmptyRecordsDiff, RecordsDiff, structuredClone, TLRecord, uniqueId } from 'tldraw'
+import { isDevelopmentEnv } from '../../../../utils/env'
+import { AgentActionUtil } from '../../../fairy-actions/AgentActionUtil'
+import { $fairyIsApplyingAction } from '../../../fairy-globals'
+import { getAgentActionUtilsRecord } from '../../../fairy-part-utils/fairy-part-utils'
+import { AgentHelpers } from '../AgentHelpers'
+import type { FairyAgent } from '../FairyAgent'
+
+/**
+ * Manages action-related functionality for the fairy agent.
+ * Handles action utils, action execution, and action info.
+ */
+export class FairyAgentActionManager {
+	constructor(private agent: FairyAgent) {
+		// Initialize action utils
+		this.agentActionUtils = getAgentActionUtilsRecord(agent)
+		this.unknownActionUtil = this.agentActionUtils.unknown
+	}
+
+	/**
+	 * A record of the agent's action util instances.
+	 * Used by the `getAgentActionUtil` method.
+	 */
+	agentActionUtils: Record<AgentAction['_type'], AgentActionUtil<AgentAction>>
+
+	/**
+	 * The agent action util instance for the "unknown" action type.
+	 *
+	 * This is returned by the `getAgentActionUtil` method when the action type
+	 * isn't properly specified. This can happen if the model isn't finished
+	 * streaming yet or makes a mistake.
+	 */
+	unknownActionUtil: AgentActionUtil<AgentAction>
+
+	/**
+	 * Get an agent action util for a specific action type.
+	 *
+	 * @param type - The type of action to get the util for.
+	 * @returns The action util.
+	 */
+	getAgentActionUtil(type?: string) {
+		const utilType = this.getAgentActionUtilType(type)
+		return this.agentActionUtils[utilType]
+	}
+
+	/**
+	 * Get the util type for a provided action type.
+	 * If no util type is found, returns 'unknown'.
+	 */
+	getAgentActionUtilType(type?: string) {
+		if (!type) return 'unknown'
+		const util = this.agentActionUtils[type as AgentAction['_type']]
+		if (!util) return 'unknown'
+		return type as AgentAction['_type']
+	}
+
+	/**
+	 * Get information about an agent action, mostly used to display actions within the chat history UI.
+	 * @param action - The action to get information about.
+	 * @returns The information about the action.
+	 */
+	getActionInfo(action: Streaming<AgentAction>): AgentActionInfo {
+		const util = this.getAgentActionUtil(action._type)
+		const info = util.getInfo(action) ?? {}
+		const {
+			icon = null,
+			description = null,
+			summary = null,
+			canGroup = () => true,
+			pose = null,
+		} = info
+
+		return {
+			icon,
+			description,
+			summary,
+			canGroup,
+			pose,
+		}
+	}
+
+	/**
+	 * Make the agent perform an action.
+	 * @param action The action to make the agent do.
+	 * @param helpers The helpers to use.
+	 * @returns The diff of the action, a promise for when the action is finished
+	 */
+	act(
+		action: Streaming<AgentAction>,
+		helpers: AgentHelpers = new AgentHelpers(this.agent)
+	): {
+		diff: RecordsDiff<TLRecord>
+		promise: Promise<void> | null
+	} {
+		const { editor } = this.agent
+		const util = this.getAgentActionUtil(action._type)
+		this.agent['isActing'] = true
+
+		const actionInfo = this.getActionInfo(action)
+		if (actionInfo.pose) {
+			// check the mode at the exact instant we would set the pose, if the fairy has somehow become inactive, set the pose to idle
+			const modeDefinition = getFairyModeDefinition(this.agent.getMode())
+			if (modeDefinition.active) {
+				this.agent.$fairyEntity.update((fairy) => ({
+					...fairy,
+					pose: actionInfo.pose ?? fairy.pose,
+				}))
+			} else {
+				this.agent.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
+			}
+		}
+
+		// Ensure the fairy is on the correct page before performing the action
+		this.ensureFairyIsOnCorrectPage(action)
+
+		const modeDefinition = getFairyModeDefinition(this.agent.getMode())
+		let promise: Promise<void> | null = null
+		let diff: RecordsDiff<TLRecord> = createEmptyRecordsDiff()
+		try {
+			diff = editor.store.extractingChanges(() => {
+				$fairyIsApplyingAction.set(true)
+				promise = util.applyAction(structuredClone(action), helpers) ?? null
+				$fairyIsApplyingAction.set(false)
+			})
+		} catch (error) {
+			// always toast the error
+			this.agent.onError(error)
+			promise = null
+			if (isDevelopmentEnv) {
+				// In development, crash by throwing error
+				throw error
+			}
+		} finally {
+			this.agent['isActing'] = false
+		}
+
+		// Add the action to chat history
+		if (util.savesToHistory()) {
+			const historyItem: ChatHistoryItem = {
+				id: uniqueId(),
+				type: 'action',
+				action,
+				diff,
+				acceptance: 'pending',
+				memoryLevel: modeDefinition.memoryLevel,
+			}
+
+			this.agent.chatManager.updateChatHistory((historyItems) => {
+				// If there are no items, start off the chat history with the first item
+				if (historyItems.length === 0) return [historyItem]
+
+				// Find the last EXTERNAL prompt index (ignore prompts from 'self' which are internal state transitions)
+				const lastPromptIndex = historyItems.findLastIndex(
+					(item) => item.type === 'prompt' && item.promptSource !== 'self'
+				)
+
+				// If the last action is still in progress AND it's after the last external prompt, replace it
+				const lastActionHistoryItemIndex = historyItems.findLastIndex(
+					(item) => item.type === 'action'
+				)
+				const lastActionHistoryItem =
+					lastActionHistoryItemIndex !== -1 ? historyItems[lastActionHistoryItemIndex] : null
+				if (
+					lastActionHistoryItem &&
+					lastActionHistoryItem.type === 'action' &&
+					!lastActionHistoryItem.action.complete &&
+					(lastPromptIndex === -1 || lastActionHistoryItemIndex > lastPromptIndex)
+				) {
+					const newHistoryItems = [...historyItems]
+					newHistoryItems[lastActionHistoryItemIndex] = historyItem
+					return newHistoryItems
+				} else {
+					// Otherwise, just add the new item to the end of the list
+					return [...historyItems, historyItem]
+				}
+			})
+		}
+
+		return { diff, promise }
+	}
+
+	/**
+	 * Ensures the fairy is on the correct page before performing an action.
+	 * For actions that work with existing shapes, switches to the shape's page.
+	 * For actions that create new content, ensures the fairy is on the current editor page.
+	 */
+	private ensureFairyIsOnCorrectPage(action: Streaming<AgentAction>) {
+		const { editor } = this.agent
+		const fairyEntity = this.agent.$fairyEntity.get()
+		if (!fairyEntity) return
+
+		// Extract shape IDs from the action based on action type
+		let shapeIds: string[] = []
+
+		// Actions with single shapeId
+		if ('shapeId' in action && typeof action.shapeId === 'string') {
+			shapeIds = [action.shapeId]
+		}
+		// Actions with shapeIds array
+		else if ('shapeIds' in action && Array.isArray(action.shapeIds)) {
+			shapeIds = action.shapeIds as string[]
+		}
+		// Update action has shape in 'update' property
+		else if (
+			action._type === 'update' &&
+			'update' in action &&
+			action.update &&
+			typeof action.update === 'object' &&
+			'shapeId' in action.update
+		) {
+			shapeIds = [action.update.shapeId as string]
+		}
+
+		// If we have shape IDs, ensure the fairy is on the same page as the first shape
+		if (shapeIds.length > 0) {
+			const firstShapeId = shapeIds[0].startsWith('shape:') ? shapeIds[0] : `shape:${shapeIds[0]}`
+			const shape = editor.getShape(firstShapeId as any)
+
+			if (shape) {
+				const shapePageId = editor.getAncestorPageId(shape)
+				if (shapePageId && fairyEntity.currentPageId !== shapePageId) {
+					// Switch to the shape's page
+					editor.setCurrentPage(shapePageId)
+					this.agent.$fairyEntity.update((f) => (f ? { ...f, currentPageId: shapePageId } : f))
+				}
+			}
+		}
+		// For create actions or actions without shape IDs, ensure fairy is on the current editor page
+		else if (action._type === 'create' || action._type === 'pen') {
+			const currentPageId = editor.getCurrentPageId()
+			if (fairyEntity.currentPageId !== currentPageId) {
+				this.agent.$fairyEntity.update((f) => (f ? { ...f, currentPageId } : f))
+			}
+		}
+	}
+}

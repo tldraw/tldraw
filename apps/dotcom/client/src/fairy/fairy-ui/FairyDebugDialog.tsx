@@ -452,9 +452,9 @@ function FairyDebugView({
 	const fairyEntity = useValue(agent.$fairyEntity)
 	const activeRequest = useValue(agent.$activeRequest)
 	const scheduledRequest = useValue(agent.$scheduledRequest)
-	const chatOrigin = useValue(agent.$chatOrigin)
-	const personalTodoList = useValue(agent.$personalTodoList)
-	const userActionHistory = useValue(agent.$userActionHistory)
+	const chatOrigin = useValue(agent.chatManager.$chatOrigin)
+	const personalTodoList = useValue(agent.todoManager.$personalTodoList)
+	const userActionHistory = useValue(agent.userActionTracker.$userActionHistory)
 	const currentProjectId = agent.getProject()?.id ?? null
 	// const cumulativeUsage = agent.cumulativeUsage
 	const mode = agent.getMode()
@@ -524,7 +524,7 @@ function ConfigInspector({ agent }: { agent: FairyAgent }) {
 }
 
 function ActionsInspector({ agent }: { agent: FairyAgent }) {
-	const chatHistory = useValue(agent.$chatHistory)
+	const chatHistory = useValue(agent.chatManager.$chatHistory)
 
 	// Filter to only completed actions, and include all prompts and continuations
 	const items: ChatHistoryItem[] = chatHistory.filter((item) => {
@@ -613,7 +613,7 @@ function ActionsInspector({ agent }: { agent: FairyAgent }) {
 }
 
 function ChatHistoryInspector({ agent }: { agent: FairyAgent }) {
-	const chatHistory = useValue(agent.$chatHistory)
+	const chatHistory = useValue(agent.chatManager.$chatHistory)
 
 	return (
 		<div className="fairy-debug-container">

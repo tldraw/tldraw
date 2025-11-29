@@ -158,9 +158,9 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 			}
 
 			// Clear chat history for all agents before starting new project
-			leaderAgent.$chatHistory.set([])
+			leaderAgent.chatManager.clearChatHistory()
 			followerAgents.forEach((agent) => {
-				agent.$chatHistory.set([])
+				agent.chatManager.clearChatHistory()
 			})
 
 			const newProjectId = uniqueId(5)

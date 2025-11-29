@@ -106,6 +106,11 @@ export function useFairySelection(agents: FairyAgent[]) {
 			const isChosen = clickedAgent.id === shownFairy?.id
 			const project = clickedAgent.getProject()
 
+			// Close manual if open
+			if (manualOpen) {
+				setManualOpen(false)
+			}
+
 			if (!isMultiSelect && selectProjectGroup(project)) {
 				return
 			}
@@ -115,6 +120,11 @@ export function useFairySelection(agents: FairyAgent[]) {
 				clickedAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: !isSelected } : f))
 			} else {
 				// Single select mode
+				// If clicking an already selected fairy, don't deselect it
+				if (isSelected && selectedFairies.length === 1) {
+					return
+				}
+
 				if (selectedFairies.length > 1 && panelState !== 'fairy') {
 					// Multiple fairies already selected, panel not open - keep them all selected and show group chat
 					setShownFairy(clickedAgent)
@@ -136,7 +146,16 @@ export function useFairySelection(agents: FairyAgent[]) {
 				}
 			}
 		},
-		[selectFairy, shownFairy, selectedFairies, panelState, selectProjectGroup, agents]
+		[
+			selectFairy,
+			shownFairy,
+			selectedFairies,
+			panelState,
+			selectProjectGroup,
+			agents,
+			manualOpen,
+			setManualOpen,
+		]
 	)
 
 	const handleDoubleClickFairy = useCallback(

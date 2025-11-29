@@ -32,7 +32,7 @@ Here's an example of how the UI might look:
 */
 
 export function FairyChatHistory({ agent }: { agent: FairyAgent }) {
-	const historyItems = useValue(agent.$chatHistory)
+	const historyItems = useValue(agent.chatManager.$chatHistory)
 	// const currentMode = agent.getMode()
 	// const modeDefinition = getFairyModeDefinition(currentMode)
 	// const filteredItems = filterChatHistoryByMode(historyItems, modeDefinition.memoryLevel)
