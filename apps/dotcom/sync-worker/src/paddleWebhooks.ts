@@ -165,45 +165,92 @@ async function sendDiscordNotification(
 	}
 }
 
-async function handleTransactionCompleted(env: Environment, event: PaddleWebhookEvent) {
+async function markTransactionProcessed(
+	db: ReturnType<typeof createPostgresConnectionPool>,
+	eventId: string
+): Promise<void> {
+	await db
+		.updateTable('paddle_transactions')
+		.set({ processed: true, processedAt: Date.now() })
+		.where('eventId', '=', eventId)
+		.execute()
+}
+
+async function markTransactionError(
+	db: ReturnType<typeof createPostgresConnectionPool>,
+	eventId: string,
+	error: string
+): Promise<void> {
+	await db
+		.updateTable('paddle_transactions')
+		.set({ processingError: error, updatedAt: Date.now() })
+		.where('eventId', '=', eventId)
+		.execute()
+}
+
+async function handleTransactionCompleted(
+	env: Environment,
+	db: ReturnType<typeof createPostgresConnectionPool>,
+	event: PaddleWebhookEvent
+) {
 	const { data } = event
 
 	// Validate transaction status - only grant access for completed transactions
 	if (data.status !== 'completed') {
 		console.warn(`[Paddle Webhook] Ignoring transaction ${data.id} with status: ${data.status}`)
-		return { success: true, ignored: true }
+		return
 	}
 
 	// Extract userId from transaction custom_data
-	let userId: string
-	try {
-		if (!data.custom_data || typeof data.custom_data !== 'object') {
-			throw new Error('Missing custom_data on transaction')
-		}
+	let userId: string | null = null
+	if (data.custom_data && typeof data.custom_data === 'object') {
 		const transactionData = data.custom_data as Record<string, unknown>
-		userId = transactionData.userId as string
-		if (typeof userId !== 'string' || !userId) {
-			throw new Error('Invalid userId in transaction custom_data')
+		if (typeof transactionData.userId === 'string' && transactionData.userId) {
+			userId = transactionData.userId
 		}
+	}
+
+	// If no userId, send alert and return
+	if (!userId) {
+		if (env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL) {
+			await sendDiscordNotification(env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL, 'missing_user', {
+				transactionId: data.id,
+			})
+		}
+		return
+	}
+
+	// Try to grant fairy access
+	try {
+		const result = await upsertFairyAccess(env, userId)
+
+		if (!result.success) {
+			throw new Error(result.error)
+		}
+
+		// Success - send notification and mark processed
+		if (env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL) {
+			await sendDiscordNotification(env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL, 'success', {
+				transactionId: data.id,
+				userId,
+			})
+		}
+
+		await markTransactionProcessed(db, event.event_id)
 	} catch (error) {
-		console.error('Failed to parse transaction custom_data:', error)
-		throw new StatusError(400, 'Invalid transaction custom_data')
+		// Failure - send error notification and store error
+		const errorMessage = error instanceof Error ? error.message : String(error)
+
+		if (env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL) {
+			await sendDiscordNotification(env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL, 'error', {
+				transactionId: data.id,
+				userId,
+				error: errorMessage,
+			})
+		}
+
+		await markTransactionError(db, event.event_id, errorMessage)
 	}
-
-	const result = await upsertFairyAccess(env, userId)
-
-	if (!result.success) {
-		throw new StatusError(500, `Failed to grant fairy access: ${result.error}`)
-	}
-
-	if (env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL) {
-		await sendDiscordNotification(env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL, 'success', {
-			transactionId: data.id,
-			userId,
-		})
-	}
-
-	return { success: true }
 }
 
 export const paddleWebhooks = createRouter<Environment>().post(
@@ -231,7 +278,15 @@ export const paddleWebhooks = createRouter<Environment>().post(
 
 			// Handle event based on type
 			if (event.event_type === 'transaction.completed') {
-				await handleTransactionCompleted(env, event)
+				await handleTransactionCompleted(env, db, event)
+			} else if (event.event_type === 'transaction.canceled') {
+				// Send refund notification
+				if (env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL && userId) {
+					await sendDiscordNotification(env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL, 'refund', {
+						transactionId: event.data.id,
+						userId,
+					})
+				}
 			}
 
 			return json({ received: true })
