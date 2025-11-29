@@ -6,7 +6,7 @@ import {
 	TldrawUiToolbarToggleItem,
 	useValue,
 } from 'tldraw'
-import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
+import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { FairyReticleSprite } from '../../fairy-sprite/sprites/FairyReticleSprite'
 import { FairyHUDPanelState } from '../hud/useFairySelection'
 import { FairySidebarButton } from './FairySidebarButton'

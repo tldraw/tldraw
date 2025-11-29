@@ -4,7 +4,7 @@ import {
 	convertTldrawShapeToBlurryShape,
 } from '@tldraw/fairy-shared'
 import { Box } from 'tldraw'
-import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
+import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export class BlurryShapesPartUtil extends PromptPartUtil<BlurryShapesPart> {

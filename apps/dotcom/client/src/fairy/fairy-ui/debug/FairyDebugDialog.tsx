@@ -23,16 +23,16 @@ import {
 	track,
 	useValue,
 } from 'tldraw'
-import { F } from '../../tla/utils/i18n'
-import { FairyAgent } from '../fairy-agent/agent/FairyAgent'
+import { F } from '../../../tla/utils/i18n'
+import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import {
 	$fairyDebugFlags,
 	$fairyModelSelection,
 	$fairyProjects,
 	$fairyTasks,
-} from '../fairy-globals'
-import { addAgentToDummyProject } from '../fairy-projects'
-import { useChatHistory } from './hooks/useFairyAgentChatHistory'
+} from '../../fairy-globals'
+import { addAgentToDummyProject } from '../../fairy-projects'
+import { useChatHistory } from '../hooks/useFairyAgentChatHistory'
 
 // # Home Debug Inspector Types and Labels
 type HomeDebugInspectorType = 'projects' | 'fairyTaskList'

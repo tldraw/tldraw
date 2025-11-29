@@ -1,5 +1,5 @@
 import { AgentRequest, CurrentProjectDronePart } from '@tldraw/fairy-shared'
-import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
+import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export class CurrentProjectDronePartUtil extends PromptPartUtil<CurrentProjectDronePart> {

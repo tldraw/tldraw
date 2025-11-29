@@ -1,5 +1,5 @@
 import { Editor } from 'tldraw'
-import { TldrawApp } from '../../../tla/app/TldrawApp'
+import { TldrawApp } from '../../tla/app/TldrawApp'
 
 export interface FairyAgentOptions {
 	/** The editor to associate the agent with. */

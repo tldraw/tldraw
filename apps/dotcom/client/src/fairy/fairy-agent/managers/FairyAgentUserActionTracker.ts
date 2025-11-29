@@ -1,5 +1,5 @@
 import { atom, Atom, RecordsDiff, TLRecord } from 'tldraw'
-import { $fairyIsApplyingAction } from '../../../fairy-globals'
+import { $fairyIsApplyingAction } from '../../fairy-globals'
 import { FairyAgent } from '../FairyAgent'
 import { BaseFairyAgentManager } from './BaseFairyAgentManager'
 

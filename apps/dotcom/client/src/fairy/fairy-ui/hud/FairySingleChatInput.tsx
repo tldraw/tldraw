@@ -5,7 +5,7 @@ import { useMsg } from '../../../tla/utils/i18n'
 import { fairyMessages } from '../../fairy-messages'
 // import { $fairyTasks } from '../../FairyTaskList'
 import { getIsCoarsePointer } from '../../../tla/utils/getIsCoarsePointer'
-import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
+import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { getRandomNoInputMessage } from '../../fairy-helpers/getRandomNoInputMessage'
 
 export function FairySingleChatInput({ agent, onCancel }: { agent: FairyAgent; onCancel(): void }) {

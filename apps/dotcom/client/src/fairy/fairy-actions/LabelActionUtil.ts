@@ -1,6 +1,6 @@
 import { LabelAction, Streaming } from '@tldraw/fairy-shared'
 import { ExtractShapeByProps, TLRichText, TLShape, TLShapeId, toRichText } from 'tldraw'
-import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
+import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
 type ShapeWithRichText = ExtractShapeByProps<{ richText: TLRichText }>

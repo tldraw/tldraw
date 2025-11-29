@@ -1,5 +1,5 @@
 import { AgentRequest, OtherFairiesPart } from '@tldraw/fairy-shared'
-import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
+import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { $fairyAgentsAtom } from '../fairy-globals'
 import { PromptPartUtil } from './PromptPartUtil'
 

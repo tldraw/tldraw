@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { useValue } from 'tldraw'
-import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
+import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { $fairyProjects } from '../../fairy-globals'
 
 export function useIdlingFairies(agents: FairyAgent[]) {

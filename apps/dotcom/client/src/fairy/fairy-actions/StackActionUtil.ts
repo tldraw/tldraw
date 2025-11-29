@@ -1,6 +1,6 @@
 import { StackAction, Streaming } from '@tldraw/fairy-shared'
 import { TLShapeId } from 'tldraw'
-import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
+import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class StackActionUtil extends AgentActionUtil<StackAction> {

@@ -11,12 +11,12 @@ import {
 import { useApp } from '../../../tla/hooks/useAppState'
 import { useMsg } from '../../../tla/utils/i18n'
 import { isDevelopmentEnv } from '../../../utils/env'
-import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
+import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { $fairyAgentsAtom, $fairyProjects } from '../../fairy-globals'
 import { fairyMessages } from '../../fairy-messages'
 import { disbandProject } from '../../fairy-projects'
 import { clearFairyTasksAndProjects } from '../../fairy-task-list'
-import { FairyDebugDialog } from '../FairyDebugDialog'
+import { FairyDebugDialog } from '../debug/FairyDebugDialog'
 
 export type FairyMenuSource = 'canvas' | 'sidebar' | 'chat'
 

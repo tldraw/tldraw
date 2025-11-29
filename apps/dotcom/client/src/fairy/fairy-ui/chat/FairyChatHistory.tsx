@@ -1,6 +1,6 @@
 import { ChatHistoryPromptItem } from '@tldraw/fairy-shared'
 import { useEffect, useRef } from 'react'
-import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
+import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { useChatHistory } from '../../fairy-ui/hooks/useFairyAgentChatHistory'
 import { FairyChatHistorySection, getAgentHistorySections } from './FairyChatHistorySection'
 

@@ -1,6 +1,6 @@
 import { FairyTask, FairyTaskStatus } from '@tldraw/fairy-shared'
 import { Editor } from 'tldraw'
-import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { FairyAgent } from './fairy-agent/FairyAgent'
 import { $fairyTasks } from './fairy-globals'
 import { clearProjects } from './fairy-projects'
 import { notifyTaskCompleted } from './fairy-wait-notifications'

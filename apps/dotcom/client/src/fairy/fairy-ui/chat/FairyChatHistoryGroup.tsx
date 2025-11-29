@@ -1,6 +1,6 @@
 import { AgentIcon, ChatHistoryActionItem } from '@tldraw/fairy-shared'
 import { useMemo, useState } from 'react'
-import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
+import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { FairyChatHistoryAction } from './FairyChatHistoryAction'
 
 export interface FairyChatHistoryGroup {

@@ -1,5 +1,5 @@
 import { useValue } from 'tldraw'
-import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
+import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { FairyFaceSpritePart } from './parts/FairyFaceSpritePart'
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
 

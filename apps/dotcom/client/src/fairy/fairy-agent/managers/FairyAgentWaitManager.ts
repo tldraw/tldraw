@@ -8,7 +8,7 @@ import { atom, Atom } from 'tldraw'
 import {
 	createAgentModeTransitionWaitCondition,
 	createTaskWaitCondition,
-} from '../../../fairy-wait-notifications'
+} from '../../fairy-wait-notifications'
 import { FairyAgent } from '../FairyAgent'
 import { BaseFairyAgentManager } from './BaseFairyAgentManager'
 

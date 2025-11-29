@@ -6,8 +6,8 @@ import {
 	FocusedShape,
 	UserActionHistoryPart,
 } from '@tldraw/fairy-shared'
-import { squashRecordDiffs } from 'tldraw'
-import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
+import { squashRecordDiffs, TLShape } from 'tldraw'
+import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryPart> {
@@ -31,7 +31,7 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 		const { added, updated, removed } = squashedDiff
 
 		// Collect user-added shapes
-		for (const shape of Object.values(added)) {
+		for (const shape of Object.values(added) as TLShape[]) {
 			if (shape.typeName !== 'shape') continue
 			part.added.push({
 				shapeId: convertTldrawIdToSimpleId(shape.id),
@@ -40,7 +40,7 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 		}
 
 		// Collect user-removed shapes
-		for (const shape of Object.values(removed)) {
+		for (const shape of Object.values(removed) as TLShape[]) {
 			if (shape.typeName !== 'shape') continue
 			const simpleShape = convertTldrawShapeToFocusedShape(editor, shape)
 			part.removed.push({
@@ -50,7 +50,7 @@ export class UserActionHistoryPartUtil extends PromptPartUtil<UserActionHistoryP
 		}
 
 		// Collect user-updated shapes
-		for (const [from, to] of Object.values(updated)) {
+		for (const [from, to] of Object.values(updated) as [TLShape, TLShape][]) {
 			if (from.typeName !== 'shape' || to.typeName !== 'shape') continue
 			const fromSimpleShape = convertTldrawShapeToFocusedShape(editor, from)
 			const toSimpleShape = convertTldrawShapeToFocusedShape(editor, to)

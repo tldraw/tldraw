@@ -13,7 +13,7 @@ import { react, throttle, uniqueId, useEditor, useToasts, useValue } from 'tldra
 import { TldrawApp } from '../tla/app/TldrawApp'
 import { useApp } from '../tla/hooks/useAppState'
 import { useTldrawUser } from '../tla/hooks/useUser'
-import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { FairyAgent } from './fairy-agent/FairyAgent'
 import { $fairyProjects, $fairyTasks } from './fairy-globals'
 import { getRandomFairyName } from './fairy-helpers/getRandomFairyName'
 import { getRandomFairySign } from './fairy-helpers/getRandomFairySign'

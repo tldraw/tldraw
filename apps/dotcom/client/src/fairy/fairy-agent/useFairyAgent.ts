@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react'
 import { Editor, useToasts } from 'tldraw'
-import { useApp } from '../../../tla/hooks/useAppState'
-import { $fairyAgentsAtom } from '../../fairy-globals'
+import { useApp } from '../../tla/hooks/useAppState'
+import { $fairyAgentsAtom } from '../fairy-globals'
 import { FairyAgent } from './FairyAgent'
 
 /**

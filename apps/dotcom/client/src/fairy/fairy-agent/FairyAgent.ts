@@ -35,12 +35,12 @@ import {
 	uniqueId,
 	VecModel,
 } from 'tldraw'
-import { TldrawApp } from '../../../tla/app/TldrawApp'
-import { FAIRY_WORKER } from '../../../utils/config'
-import { $fairyAgentsAtom, $fairyTasks } from '../../fairy-globals'
-import { getPromptPartUtilsRecord } from '../../fairy-part-utils/fairy-part-utils'
-import { PromptPartUtil } from '../../fairy-part-utils/PromptPartUtil'
-import { getProjectByAgentId } from '../../fairy-projects'
+import { TldrawApp } from '../../tla/app/TldrawApp'
+import { FAIRY_WORKER } from '../../utils/config'
+import { $fairyAgentsAtom, $fairyTasks } from '../fairy-globals'
+import { getPromptPartUtilsRecord } from '../fairy-part-utils/fairy-part-utils'
+import { PromptPartUtil } from '../fairy-part-utils/PromptPartUtil'
+import { getProjectByAgentId } from '../fairy-projects'
 import { AgentHelpers } from './AgentHelpers'
 import { FairyAgentOptions } from './FairyAgentOptions'
 import { FAIRY_MODE_CHART } from './FairyModeNode'

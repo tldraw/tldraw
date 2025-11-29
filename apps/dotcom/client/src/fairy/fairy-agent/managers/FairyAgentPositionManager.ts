@@ -1,5 +1,5 @@
 import { Box, react, VecModel } from 'tldraw'
-import { $fairyAgentsAtom, $followingFairyId } from '../../../fairy-globals'
+import { $fairyAgentsAtom, $followingFairyId } from '../../fairy-globals'
 import { AgentHelpers } from '../AgentHelpers'
 import { FairyAgent } from '../FairyAgent'
 import { getFairyAgentById } from '../fairyAgentsAtom'

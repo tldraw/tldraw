@@ -1,6 +1,6 @@
 import { FairyModeDefinition, getFairyModeDefinition } from '@tldraw/fairy-shared'
 import { atom, Atom } from 'tldraw'
-import { notifyAgentModeTransition } from '../../../fairy-wait-notifications'
+import { notifyAgentModeTransition } from '../../fairy-wait-notifications'
 import { FairyAgent } from '../FairyAgent'
 import { FAIRY_MODE_CHART } from '../FairyModeNode'
 import { BaseFairyAgentManager } from './BaseFairyAgentManager'

@@ -7,7 +7,7 @@ import {
 	type RecordId,
 	T,
 } from 'tldraw'
-import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
+import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { FaeId } from './fae-fairy'
 import type { FaeProjectId } from './fae-fairy-project'
 

@@ -1,6 +1,6 @@
 import { AgentModelName, DEFAULT_MODEL_NAME, FairyProject, FairyTask } from '@tldraw/fairy-shared'
 import { atom, EditorAtom } from 'tldraw'
-import { FairyAgent } from './fairy-agent/agent/FairyAgent'
+import { FairyAgent } from './fairy-agent/FairyAgent'
 
 export const $fairyIsApplyingAction = atom<boolean>('globalIsActing', false)
 

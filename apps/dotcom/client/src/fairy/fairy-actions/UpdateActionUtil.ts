@@ -5,7 +5,7 @@ import {
 	UpdateAction,
 } from '@tldraw/fairy-shared'
 import { TLBindingId } from 'tldraw'
-import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
+import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {

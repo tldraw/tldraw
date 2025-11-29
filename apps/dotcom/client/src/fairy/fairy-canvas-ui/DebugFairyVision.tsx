@@ -1,6 +1,6 @@
 import { FAIRY_VISION_DIMENSIONS } from '@tldraw/fairy-shared'
 import { Box, BoxModel, SVGContainer, useValue } from 'tldraw'
-import { FairyAgent } from '../fairy-agent/agent/FairyAgent'
+import { FairyAgent } from '../fairy-agent/FairyAgent'
 
 export function DebugFairyVision({ agents }: { agents: FairyAgent[] }) {
 	return (

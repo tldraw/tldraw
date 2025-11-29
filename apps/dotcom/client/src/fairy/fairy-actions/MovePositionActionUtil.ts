@@ -1,5 +1,5 @@
 import { MoveViewportAction as MovePositionAction, Streaming } from '@tldraw/fairy-shared'
-import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
+import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class MovePositionActionUtil extends AgentActionUtil<MovePositionAction> {

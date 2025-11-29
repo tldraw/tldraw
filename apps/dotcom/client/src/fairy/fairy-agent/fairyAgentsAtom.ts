@@ -1,5 +1,5 @@
 import { Editor } from 'tldraw'
-import { $fairyAgentsAtom } from '../../fairy-globals'
+import { $fairyAgentsAtom } from '../fairy-globals'
 
 /**
  * An atom containing all the agents attached to an editor.

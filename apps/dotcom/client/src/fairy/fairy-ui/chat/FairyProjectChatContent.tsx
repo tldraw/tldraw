@@ -1,7 +1,7 @@
 import { ChatHistoryActionItem, IndentIcon } from '@tldraw/fairy-shared'
 import { useMemo } from 'react'
 import { useValue } from 'tldraw'
-import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
+import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { FairyMiniAvatar, FairyMiniAvatarById } from '../../fairy-sprite/sprites/Avatar'
 import { getFairyTasksByProjectId } from '../../fairy-task-list'
 import { FairyChatHistoryAction } from './FairyChatHistoryAction'

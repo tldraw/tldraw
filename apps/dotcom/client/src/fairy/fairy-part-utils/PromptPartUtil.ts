@@ -1,7 +1,7 @@
 import { AgentRequest, PromptPart } from '@tldraw/fairy-shared'
 import { Editor } from 'tldraw'
-import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
-import { FairyAgent } from '../fairy-agent/agent/FairyAgent'
+import { AgentHelpers } from '../fairy-agent/AgentHelpers'
+import { FairyAgent } from '../fairy-agent/FairyAgent'
 
 export abstract class PromptPartUtil<T extends PromptPart = PromptPart> {
 	static type: PromptPart['type']

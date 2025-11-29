@@ -2,7 +2,7 @@ import { AgentIcon, ChatHistoryActionItem } from '@tldraw/fairy-shared'
 import { useEffect, useRef } from 'react'
 import Markdown from 'react-markdown'
 import { useValue } from 'tldraw'
-import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
+import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { FairyChatHistoryGroup } from './FairyChatHistoryGroup'
 
 export function FairyChatHistoryAction({

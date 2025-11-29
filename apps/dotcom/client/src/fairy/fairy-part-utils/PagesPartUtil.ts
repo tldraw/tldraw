@@ -1,5 +1,5 @@
 import { AgentRequest, PagesPart } from '@tldraw/fairy-shared'
-import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
+import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export class PagesPartUtil extends PromptPartUtil<PagesPart> {

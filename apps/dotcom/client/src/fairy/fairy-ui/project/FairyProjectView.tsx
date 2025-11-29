@@ -10,7 +10,7 @@ import { KeyboardEvent, useCallback, useEffect, useLayoutEffect, useRef, useStat
 import { Box, Editor, uniqueId, useValue } from 'tldraw'
 import { getIsCoarsePointer } from '../../../tla/utils/getIsCoarsePointer'
 import { F, useMsg } from '../../../tla/utils/i18n'
-import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
+import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { $fairyTasks } from '../../fairy-globals'
 import { getRandomNoInputMessage } from '../../fairy-helpers/getRandomNoInputMessage'
 import { fairyMessages } from '../../fairy-messages'

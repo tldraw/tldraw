@@ -1,6 +1,6 @@
 import { useEditor, useValue } from 'tldraw'
 import { Fairy, SelectedFairy } from '../Fairy'
-import { FairyAgent } from '../fairy-agent/agent/FairyAgent'
+import { FairyAgent } from '../fairy-agent/FairyAgent'
 
 export function Fairies({ agents }: { agents: FairyAgent[] }) {
 	const editor = useEditor()

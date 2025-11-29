@@ -1,6 +1,6 @@
 import { FlyToBoundsAction, Streaming } from '@tldraw/fairy-shared'
 import { Box } from 'tldraw'
-import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
+import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class FlyToBoundsActionUtil extends AgentActionUtil<FlyToBoundsAction> {

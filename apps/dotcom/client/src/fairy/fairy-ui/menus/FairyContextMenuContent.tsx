@@ -1,6 +1,6 @@
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { useContainer } from 'tldraw'
-import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
+import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { FairyMenuContent, FairyMenuSource } from './FairyMenuContent'
 
 export function FairyContextMenuContent({

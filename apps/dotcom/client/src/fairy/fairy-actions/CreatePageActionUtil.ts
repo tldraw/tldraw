@@ -1,6 +1,6 @@
 import { CreatePageAction, Streaming } from '@tldraw/fairy-shared'
 import { PageRecordType } from 'tldraw'
-import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
+import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class CreatePageActionUtil extends AgentActionUtil<CreatePageAction> {

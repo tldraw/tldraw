@@ -1,7 +1,7 @@
 import { FairyProject, FairyProjectMember, FairyProjectRole } from '@tldraw/fairy-shared'
 import { Editor, uniqueId } from 'tldraw'
-import { FairyAgent } from './fairy-agent/agent/FairyAgent'
-import { getFairyAgentById } from './fairy-agent/agent/fairyAgentsAtom'
+import { FairyAgent } from './fairy-agent/FairyAgent'
+import { getFairyAgentById } from './fairy-agent/fairyAgentsAtom'
 import { $fairyProjects } from './fairy-globals'
 import { deleteFairyTask, getFairyTasksByProjectId } from './fairy-task-list'
 

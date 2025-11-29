@@ -1,5 +1,5 @@
 import { ChangePageAction, Streaming } from '@tldraw/fairy-shared'
-import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
+import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class ChangePageActionUtil extends AgentActionUtil<ChangePageAction> {

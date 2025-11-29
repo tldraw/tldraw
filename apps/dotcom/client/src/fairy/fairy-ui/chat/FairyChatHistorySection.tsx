@@ -8,7 +8,7 @@ import {
 } from '@tldraw/fairy-shared'
 import Markdown from 'react-markdown'
 import { useValue } from 'tldraw'
-import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
+import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { FairyChatHistoryGroup, getActionHistoryGroups } from './FairyChatHistoryGroup'
 
 export interface FairyChatHistorySection {

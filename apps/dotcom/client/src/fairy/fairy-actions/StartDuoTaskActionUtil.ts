@@ -1,5 +1,5 @@
 import { StartDuoTaskAction, Streaming } from '@tldraw/fairy-shared'
-import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
+import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { $fairyTasks } from '../fairy-globals'
 import { AgentActionUtil } from './AgentActionUtil'
 
