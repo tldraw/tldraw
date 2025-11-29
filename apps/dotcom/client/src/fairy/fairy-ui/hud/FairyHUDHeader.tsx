@@ -98,6 +98,7 @@ export function FairyHUDHeader({
 	const centerContent =
 		panelState === 'manual' ? (
 			<div className="fairy-id-display">
+				{/* Todo, remove duplication with fairy-messages */}
 				<F defaultMessage="User manual" />
 			</div>
 		) : selectedFairies.length > 1 ? (
