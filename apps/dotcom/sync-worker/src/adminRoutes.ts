@@ -28,8 +28,8 @@ async function requireUser(env: Environment, q: string) {
 export async function grantFairyAccessWithDb(
 	env: Environment,
 	userId: string,
-	fairyLimit: number | null = MAX_FAIRY_COUNT,
-	expiresAt: number | null = FAIRY_WORLDWIDE_EXPIRATION
+	fairyLimit: number | null,
+	expiresAt: number | null
 ) {
 	const db = createPostgresConnectionPool(env, 'grantFairyAccessWithDb')
 	try {
@@ -42,8 +42,8 @@ export async function grantFairyAccessWithDb(
 export async function upsertFairyAccess(
 	env: Environment,
 	userId: string,
-	fairyLimit: number | null = MAX_FAIRY_COUNT,
-	expiresAt: number | null = FAIRY_WORLDWIDE_EXPIRATION,
+	fairyLimit: number | null,
+	expiresAt: number | null,
 	db: ReturnType<typeof createPostgresConnectionPool>
 ) {
 	try {
@@ -74,7 +74,7 @@ export async function upsertFairyAccess(
 	}
 }
 
-async function grantFairyAccess(env: Environment, email: string, setToZero: boolean = false) {
+async function grantFairyAccess(env: Environment, email: string) {
 	assert(typeof email === 'string' && email, 'email is required')
 
 	const clerkClient = getClerkClient(env)
@@ -87,8 +87,12 @@ async function grantFairyAccess(env: Environment, email: string, setToZero: bool
 	const clerkUser = users.data[0]
 	const userId = clerkUser.id
 
-	const fairyLimit = setToZero ? 0 : MAX_FAIRY_COUNT
-	const result = await grantFairyAccessWithDb(env, userId, fairyLimit)
+	const result = await grantFairyAccessWithDb(
+		env,
+		userId,
+		MAX_FAIRY_COUNT,
+		FAIRY_WORLDWIDE_EXPIRATION
+	)
 
 	if (!result.success) {
 		throw new StatusError(500, `Failed to grant fairy access: ${result.error}`)
@@ -282,9 +286,9 @@ export const adminRoutes = createRouter<Environment>()
 	})
 	.post('/app/admin/fairy/grant-access', async (req, env) => {
 		const body: any = await req.json()
-		const { email, setToZero } = body
+		const { email } = body
 
-		const result = await grantFairyAccess(env, email, setToZero ?? false)
+		const result = await grantFairyAccess(env, email)
 		return json(result)
 	})
 	.post('/app/admin/fairy/enable-for-me', async (req, env) => {

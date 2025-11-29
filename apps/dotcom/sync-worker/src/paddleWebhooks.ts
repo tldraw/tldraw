@@ -1,6 +1,8 @@
+import { MAX_FAIRY_COUNT } from '@tldraw/dotcom-shared'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
 import { upsertFairyAccess } from './adminRoutes'
+import { FAIRY_WORLDWIDE_EXPIRATION } from './config'
 import { createPostgresConnectionPool } from './postgres'
 import { type Environment } from './types'
 
@@ -211,7 +213,13 @@ async function handleTransactionCompleted(
 		return
 	}
 
-	const result = await upsertFairyAccess(env, userId, null, null, db)
+	const result = await upsertFairyAccess(
+		env,
+		userId,
+		MAX_FAIRY_COUNT,
+		FAIRY_WORLDWIDE_EXPIRATION,
+		db
+	)
 
 	if (result.success) {
 		await sendDiscordNotification(webhookUrl, 'success', { transactionId: data.id, userId })
