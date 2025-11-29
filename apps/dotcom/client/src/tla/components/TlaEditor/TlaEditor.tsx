@@ -42,6 +42,7 @@ import { useFairyAccess } from '../../hooks/useFairyAccess'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawUser } from '../../hooks/useUser'
+import { useAreFairiesEnabled } from '../../utils/local-session-state'
 import { maybeSlurp } from '../../utils/slurping'
 import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
@@ -283,6 +284,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const extraDragIconOverrides = useExtraDragIconOverrides()
 
 	const hasFairyAccess = useFairyAccess()
+	const areFairiesEnabled = useAreFairiesEnabled()
 
 	// Fairy stuff
 
@@ -296,7 +298,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	}, [agents])
 
 	const instanceComponents = useMemo((): TLComponents => {
-		const canShowFairies = app && agents && hasFairyAccess
+		const canShowFairies = app && agents && hasFairyAccess && areFairiesEnabled
 
 		return {
 			...components,
@@ -321,7 +323,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			),
 			DebugMenu: () => <CustomDebugMenu />,
 		}
-	}, [agents, hasFairyAccess, app])
+	}, [agents, hasFairyAccess, areFairiesEnabled, app])
 
 	return (
 		<TlaEditorWrapper>
@@ -344,7 +346,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<SneakyToolSwitcher />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
-				{app && hasFairyAccess && (
+				{app && hasFairyAccess && areFairiesEnabled && (
 					<Suspense fallback={null}>
 						<FairyApp setAgents={setAgents} fileId={fileId} />
 					</Suspense>

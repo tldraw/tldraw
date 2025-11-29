@@ -46,6 +46,7 @@ import { FairyAgentOptions } from './FairyAgentOptions'
 import { FAIRY_MODE_CHART } from './FairyModeNode'
 import { FairyAgentActionManager } from './managers/FairyAgentActionManager'
 import { FairyAgentChatManager } from './managers/FairyAgentChatManager'
+import { FairyAgentChatOriginManager } from './managers/FairyAgentChatOriginManager'
 import { FairyAgentGestureManager } from './managers/FairyAgentGestureManager'
 import { FairyAgentModeManager } from './managers/FairyAgentModeManager'
 import { FairyAgentPositionManager } from './managers/FairyAgentPositionManager'
@@ -152,6 +153,7 @@ export class FairyAgent {
 
 	actionManager = new FairyAgentActionManager(this)
 	chatManager = new FairyAgentChatManager(this)
+	chatOriginManager = new FairyAgentChatOriginManager(this)
 	gestureManager = new FairyAgentGestureManager(this)
 	modeManager = new FairyAgentModeManager(this)
 	positionManager = new FairyAgentPositionManager(this)
@@ -243,7 +245,8 @@ export class FairyAgent {
 	serializeState() {
 		return {
 			fairyEntity: this.$fairyEntity.get(),
-			...this.chatManager.serializeState(),
+			chatHistory: this.chatManager.serializeState(),
+			chatOrigin: this.chatOriginManager.serializeState(),
 			personalTodoList: this.todoManager.serializeState(),
 			waitingFor: this.waitManager.serializeState(),
 		}
@@ -276,7 +279,12 @@ export class FairyAgent {
 				this.modeManager.setMode('idling')
 			}
 		}
-		this.chatManager.loadState(state)
+		if (state.chatHistory) {
+			this.chatManager.loadState(state.chatHistory)
+		}
+		if (state.chatOrigin) {
+			this.chatOriginManager.loadState(state.chatOrigin)
+		}
 		if (state.personalTodoList) {
 			this.todoManager.loadState(state.personalTodoList)
 		}
@@ -765,7 +773,7 @@ export class FairyAgent {
 		this.modeManager.setMode('idling')
 
 		this.chatManager.clear()
-		this.chatManager.setOrigin({ x: 0, y: 0 })
+		this.chatOriginManager.reset()
 
 		// clear any waiting conditions
 		this.waitManager.clear()

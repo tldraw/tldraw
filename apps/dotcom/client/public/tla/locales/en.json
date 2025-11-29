@@ -29,6 +29,9 @@
   "0a91f7fa87": {
     "translation": "This file has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
   },
+  "0ab1ef22a3": {
+    "translation": "Speak to the group…"
+  },
   "0b27918290": {
     "translation": "File"
   },
@@ -74,12 +77,6 @@
   "1dd1c5fb7f": {
     "translation": "Today"
   },
-  "1fe250ea06": {
-    "translation": "Instruct the group…"
-  },
-  "20dfc4f904": {
-    "translation": "Locate"
-  },
   "23f879f41a": {
     "translation": "Your weekly fairy usage limit has been reached. It will reset at the start of next week."
   },
@@ -103,9 +100,6 @@
   },
   "2c3ef76333": {
     "translation": "My files"
-  },
-  "2db683a1fe": {
-    "translation": "Join selected fairies"
   },
   "2f4d559909": {
     "translation": "Help & Documentation"
@@ -434,8 +428,8 @@
   "930390d222": {
     "translation": "Copied invite link"
   },
-  "93dfe9fbbe": {
-    "translation": "Deselect fairy"
+  "94186070ef": {
+    "translation": "Deselect"
   },
   "94966d9074": {
     "translation": "Send"
@@ -490,6 +484,9 @@
   },
   "a239905023": {
     "translation": "Export image"
+  },
+  "a286d9991c": {
+    "translation": "Join"
   },
   "a3debabee7": {
     "translation": "Cookie policy"
@@ -627,6 +624,9 @@
   "d9100f3e10": {
     "translation": "Go here to see the content"
   },
+  "d9bfb9789a": {
+    "translation": "Enable fairies"
+  },
   "d9e35d0f55": {
     "translation": "You have reached the maximum number of groups. You need to delete old groups before creating new ones."
   },
@@ -648,6 +648,9 @@
   "dfdb78a4e4": {
     "translation": "App debug flags"
   },
+  "e062622261": {
+    "translation": "Select"
+  },
   "e0c88179b3": {
     "translation": "Invite members"
   },
@@ -666,14 +669,14 @@
   "e404559826": {
     "translation": "Terms of service"
   },
+  "e43ec38a93": {
+    "translation": "Go to"
+  },
   "e81c4e4f2b": {
     "translation": "or"
   },
   "ea0626ac5a": {
     "translation": "Danger zone"
-  },
-  "ea181d98ca": {
-    "translation": "Select fairy"
   },
   "ea4788705e": {
     "translation": "Cancel"
@@ -714,9 +717,6 @@
   "f0e8bff6f9": {
     "translation": "User settings"
   },
-  "f23056da60": {
-    "translation": "New project"
-  },
   "f2569594b2": {
     "translation": "We use these cookies to save your files and settings."
   },
@@ -728,9 +728,6 @@
   },
   "f714e36843": {
     "translation": "Are you sure you want to leave this group?"
-  },
-  "f7d5ee6855": {
-    "translation": "Select a leader first…"
   },
   "fa2ead697d": {
     "translation": "Privacy Policy"

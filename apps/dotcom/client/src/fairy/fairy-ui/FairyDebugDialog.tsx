@@ -230,9 +230,9 @@ function HomeDebugView({
 
 // ## Home debug view inspector components
 
-function ProjectsInspector() {
-	const projects = useValue($fairyProjects)
-	const fairyTasks = useValue($fairyTasks)
+const ProjectsInspector = track(() => {
+	const projects = $fairyProjects.get()
+	const fairyTasks = $fairyTasks.get()
 
 	return (
 		<div className="fairy-debug-projects-container">
@@ -285,10 +285,10 @@ function ProjectsInspector() {
 			)}
 		</div>
 	)
-}
+})
 
-function FairyTaskInspector() {
-	const fairyTasks = useValue($fairyTasks)
+const FairyTaskInspector = track(() => {
+	const fairyTasks = $fairyTasks.get()
 
 	return (
 		<div className="fairy-debug-shared-todos-container">
@@ -308,11 +308,11 @@ function FairyTaskInspector() {
 			)}
 		</div>
 	)
-}
+})
 
-function HomeDebugOptions() {
-	const debugFlags = useValue($fairyDebugFlags)
-	const selectedModel = useValue($fairyModelSelection)
+const HomeDebugOptions = track(() => {
+	const debugFlags = $fairyDebugFlags.get()
+	const selectedModel = $fairyModelSelection.get()
 	const currentModel = selectedModel ?? DEFAULT_MODEL_NAME
 
 	return (
@@ -364,11 +364,11 @@ function HomeDebugOptions() {
 			</TldrawUiButton>
 		</div>
 	)
-}
+})
 
-function FairyDebugOptions({ agent }: { agent: FairyAgent }) {
-	const debugFlags = useValue(agent.$debugFlags)
-	const oneShotMode = useValue(agent.$useOneShottingMode)
+const FairyDebugOptions = track(({ agent }: { agent: FairyAgent }) => {
+	const debugFlags = agent.$debugFlags.get()
+	const oneShotMode = agent.$useOneShottingMode.get()
 
 	return (
 		<div className="fairy-debug-options-container">
@@ -439,7 +439,7 @@ function FairyDebugOptions({ agent }: { agent: FairyAgent }) {
 			</div>
 		</div>
 	)
-}
+})
 
 // # Fairy Debug View
 
@@ -449,7 +449,7 @@ const FairyDebugView = track(
 		const fairyEntity = agent.getEntity()
 		const activeRequest = agent.requestManager.getActiveRequest()
 		const scheduledRequest = agent.requestManager.getScheduledRequest()
-		const chatOrigin = agent.chatManager.getOrigin()
+		const chatOrigin = agent.chatOriginManager.getOrigin()
 		const personalTodoList = agent.todoManager.getTodos()
 		const userActionHistory = agent.userActionTracker.getHistory()
 		const currentProjectId = agent.getProject()?.id ?? null
@@ -508,8 +508,8 @@ const FairyDebugView = track(
 
 // ## Fairy debug view inspector components
 
-function ConfigInspector({ agent }: { agent: FairyAgent }) {
-	const config = useValue(agent.$fairyConfig)
+const ConfigInspector = track(({ agent }: { agent: FairyAgent }) => {
+	const config = agent.$fairyConfig.get()
 
 	return (
 		<div className="fairy-debug-config-container">
@@ -519,9 +519,9 @@ function ConfigInspector({ agent }: { agent: FairyAgent }) {
 			))}
 		</div>
 	)
-}
+})
 
-function ActionsInspector({ agent }: { agent: FairyAgent }) {
+const ActionsInspector = track(({ agent }: { agent: FairyAgent }) => {
 	const chatHistory = useChatHistory(agent)
 
 	// Filter to only completed actions, and include all prompts and continuations
@@ -608,7 +608,7 @@ function ActionsInspector({ agent }: { agent: FairyAgent }) {
 			</>
 		)
 	}
-}
+})
 
 function ChatHistoryInspector({ agent }: { agent: FairyAgent }) {
 	const chatHistory = useValue('chat history', () => agent.chatManager.getHistory(), [agent])

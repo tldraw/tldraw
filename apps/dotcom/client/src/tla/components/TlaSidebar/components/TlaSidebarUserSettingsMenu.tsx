@@ -4,12 +4,15 @@ import {
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
+	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	useValue,
 } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
+import { useFairyAccess } from '../../../hooks/useFairyAccess'
 import { F, defineMessages, useMsg } from '../../../utils/i18n'
+import { toggleFairies, useAreFairiesEnabled } from '../../../utils/local-session-state'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
 	ColorThemeSubmenu,
@@ -21,12 +24,17 @@ import styles from '../sidebar.module.css'
 
 const messages = defineMessages({
 	userMenu: { defaultMessage: 'User settings' },
+	enableFairies: { defaultMessage: 'Enable fairies' },
 })
 
 export function TlaUserSettingsMenu() {
 	const app = useApp()
 	const userMenuLbl = useMsg(messages.userMenu)
 	const user = useValue('auth', () => app.getUser(), [app])
+	const hasFairyAccess = useFairyAccess()
+	const areFairiesEnabled = useAreFairiesEnabled()
+	const enableFairiesLbl = useMsg(messages.enableFairies)
+
 	if (!user) return null
 
 	return (
@@ -59,6 +67,15 @@ export function TlaUserSettingsMenu() {
 					<TldrawUiMenuGroup id="preferences">
 						<ColorThemeSubmenu />
 						<LanguageMenu />
+						{hasFairyAccess && (
+							<TldrawUiMenuCheckboxItem
+								id="enable-fairies"
+								label={enableFairiesLbl}
+								checked={areFairiesEnabled}
+								onSelect={() => toggleFairies()}
+								readonlyOk
+							/>
+						)}
 					</TldrawUiMenuGroup>
 					<DebugMenuGroup />
 					<TldrawUiMenuGroup id="signout">

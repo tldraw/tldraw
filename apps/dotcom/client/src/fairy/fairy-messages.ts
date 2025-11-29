@@ -3,14 +3,14 @@ import { defineMessages } from '../tla/utils/i18n'
 export const fairyMessages = defineMessages({
 	// Toolbar and navigation (aria-labels)
 	toolbar: { defaultMessage: 'Fairies' },
-	selectFairy: { defaultMessage: 'Select fairy' },
-	deselectFairy: { defaultMessage: 'Deselect fairy' },
-	joinSelectedFairies: { defaultMessage: 'Join selected fairies' },
+	selectFairy: { defaultMessage: 'Select' },
+	deselectFairy: { defaultMessage: 'Deselect' },
+	joinSelectedFairies: { defaultMessage: 'Join' },
 	resetChat: { defaultMessage: 'Clear' },
 	resetAllChats: { defaultMessage: 'Clear all' },
 
 	// Fairy menu (labels)
-	goToFairy: { defaultMessage: 'Locate' },
+	goToFairy: { defaultMessage: 'Go to' },
 	summonFairy: { defaultMessage: 'Summon' },
 	followFairy: { defaultMessage: 'Follow' },
 	unfollowFairy: { defaultMessage: 'Unfollow' },
@@ -34,8 +34,7 @@ export const fairyMessages = defineMessages({
 	fairyNamePlaceholder: { defaultMessage: "Fairy's name" },
 
 	// Group chat (placeholders and aria-labels)
-	instructGroupPlaceholder: { defaultMessage: 'Instruct the group…' },
-	selectLeaderFirstPlaceholder: { defaultMessage: 'Select a leader first…' },
+	instructGroupPlaceholder: { defaultMessage: 'Speak to the group…' },
 	stopTitle: { defaultMessage: 'Stop' },
 	sendTitle: { defaultMessage: 'Send' },
 

@@ -83,19 +83,6 @@ export function FairyProjectView({
 		[agents, leaderAgent, isPreProject]
 	)
 
-	// Format names for pre-project header
-	const formattedNames = useValue(
-		'formatted-fairy-names',
-		() => {
-			const names = agents.map((agent) => (agent.$fairyConfig.get()?.name ?? 'fairy').split(' ')[0])
-			if (names.length === 0) return ''
-			if (names.length === 1) return `${names[0]}...`
-			if (names.length === 2) return `${names[0]} and ${names[1]}...`
-			return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}...`
-		},
-		[agents]
-	)
-
 	const orchestratorName = useValue(
 		'orchestrator-name',
 		() => orchestratorAgent?.$fairyConfig.get()?.name ?? 'your partner',
@@ -323,12 +310,6 @@ Do NOT start a completely new project. Respond with a message action first expla
 	return (
 		<div className="fairy-project-view">
 			<div className="fairy-project-chat-view">
-				{isPreProject && (
-					<div className="fairy-group-chat-leader-toggle-container">
-						<p>Summoning {formattedNames}</p>
-					</div>
-				)}
-
 				{!isPreProject && orchestratorAgent && (
 					<FairyProjectChatContent
 						orchestratorAgent={orchestratorAgent}
@@ -348,7 +329,7 @@ Do NOT start a completely new project. Respond with a message action first expla
 						value={inputValue}
 						onChange={(e) => setInputValue(e.target.value)}
 						onKeyDown={handleKeyDown}
-						autoFocus={!getIsCoarsePointer()}
+						autoFocus={!getIsCoarsePointer() && !editor.menus.hasAnyOpenMenus()}
 						spellCheck={false}
 					/>
 				</div>

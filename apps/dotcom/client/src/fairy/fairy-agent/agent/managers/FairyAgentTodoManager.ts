@@ -10,14 +10,23 @@ import { BaseFairyAgentManager } from './BaseFairyAgentManager'
 export class FairyAgentTodoManager extends BaseFairyAgentManager {
 	/**
 	 * An atom containing the agent's personal todo list.
+	 * @private
 	 */
 	private $personalTodoList: Atom<FairyTodoItem[]>
 
+	/**
+	 * Creates a new todo manager for the given fairy agent.
+	 * Initializes with an empty todo list.
+	 */
 	constructor(public agent: FairyAgent) {
 		super(agent)
 		this.$personalTodoList = atom('personalTodoList', [])
 	}
 
+	/**
+	 * Reset the todo manager to its initial state.
+	 * Clears all todo items from the list.
+	 */
 	reset(): void {
 		this.$personalTodoList.set([])
 	}
@@ -90,6 +99,7 @@ export class FairyAgentTodoManager extends BaseFairyAgentManager {
 
 	/**
 	 * Get the current personal todo list.
+	 * @returns An array of todo items.
 	 */
 	getTodos() {
 		return this.$personalTodoList.get()
@@ -97,6 +107,7 @@ export class FairyAgentTodoManager extends BaseFairyAgentManager {
 
 	/**
 	 * Serialize the todo list state to a plain object for persistence.
+	 * @returns An array of todo items that can be saved and restored later.
 	 */
 	serializeState() {
 		return this.$personalTodoList.get()
@@ -104,6 +115,7 @@ export class FairyAgentTodoManager extends BaseFairyAgentManager {
 
 	/**
 	 * Load previously persisted todo list into the manager.
+	 * @param personalTodoList - An array of todo items to restore.
 	 */
 	loadState(personalTodoList: FairyTodoItem[]) {
 		this.$personalTodoList.set(personalTodoList)

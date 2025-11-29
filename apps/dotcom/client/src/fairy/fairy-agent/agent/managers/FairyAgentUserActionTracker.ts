@@ -10,19 +10,29 @@ import { BaseFairyAgentManager } from './BaseFairyAgentManager'
 export class FairyAgentUserActionTracker extends BaseFairyAgentManager {
 	/**
 	 * An atom that stores document changes made by the user since the previous request.
+	 * @private
 	 */
 	private $userActionHistory: Atom<RecordsDiff<TLRecord>[]>
 
 	/**
 	 * A function that stops recording user actions.
+	 * @private
 	 */
 	private stopRecordingFn: (() => void) | null = null
 
+	/**
+	 * Creates a new user action tracker for the given fairy agent.
+	 * Initializes with an empty action history.
+	 */
 	constructor(public agent: FairyAgent) {
 		super(agent)
 		this.$userActionHistory = atom('userActionHistory', [])
 	}
 
+	/**
+	 * Reset the user action tracker to its initial state.
+	 * Stops recording and clears the action history.
+	 */
 	reset(): void {
 		this.stopRecording()
 		this.$userActionHistory.set([])
@@ -95,6 +105,7 @@ export class FairyAgentUserActionTracker extends BaseFairyAgentManager {
 
 	/**
 	 * Stop recording user actions.
+	 * Cleans up event listeners but preserves the action history.
 	 */
 	stopRecording() {
 		this.stopRecordingFn?.()
@@ -103,6 +114,7 @@ export class FairyAgentUserActionTracker extends BaseFairyAgentManager {
 
 	/**
 	 * Clear the user action history.
+	 * Does not affect recording status.
 	 */
 	clearHistory() {
 		this.$userActionHistory.set([])
@@ -110,6 +122,7 @@ export class FairyAgentUserActionTracker extends BaseFairyAgentManager {
 
 	/**
 	 * Get the current user action history.
+	 * @returns An array of record diffs representing user changes.
 	 */
 	getHistory() {
 		return this.$userActionHistory.get()
@@ -117,6 +130,7 @@ export class FairyAgentUserActionTracker extends BaseFairyAgentManager {
 
 	/**
 	 * Dispose of the tracker by stopping recording.
+	 * Called automatically during manager cleanup.
 	 */
 	dispose() {
 		this.stopRecording()

@@ -121,8 +121,9 @@ export function useFairySelection(agents: FairyAgent[]) {
 				clickedAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: !isSelected } : f))
 			} else {
 				// Single select mode
-				// If clicking an already selected fairy, don't deselect it
+				// If clicking an already selected fairy, deselect it
 				if (isSelected && selectedFairies.length === 1) {
+					clickedAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
 					return
 				}
 
@@ -181,27 +182,20 @@ export function useFairySelection(agents: FairyAgent[]) {
 		[selectFairy, agents]
 	)
 
-	const handleTogglePanel = useCallback(() => {
+	const handleToggleManual = useCallback(() => {
 		// Close manual if open, otherwise deselect all fairies
-		if (manualOpen) {
-			setManualOpen(false)
-		} else {
-			agents.forEach((agent) => {
-				agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
-			})
-		}
-	}, [agents, manualOpen])
+		setManualOpen((prev) => !prev)
+	}, [])
 
 	return {
 		panelState,
 		manualOpen,
-		setManualOpen,
 		shownFairy,
 		selectedFairies,
 		activeOrchestratorAgent,
 		selectFairy,
 		handleClickFairy,
 		handleDoubleClickFairy,
-		handleTogglePanel,
+		handleToggleManual,
 	}
 }

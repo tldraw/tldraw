@@ -44,6 +44,8 @@ export class FairyAgentActionManager extends BaseFairyAgentManager {
 	/**
 	 * Get the util type for a provided action type.
 	 * If no util type is found, returns 'unknown'.
+	 * @param type - The action type to get the util type for.
+	 * @returns The action util type, or 'unknown' if not found.
 	 */
 	getAgentActionUtilType(type?: string) {
 		if (!type) return 'unknown'
@@ -79,9 +81,10 @@ export class FairyAgentActionManager extends BaseFairyAgentManager {
 
 	/**
 	 * Make the agent perform an action.
-	 * @param action The action to make the agent do.
-	 * @param helpers The helpers to use.
-	 * @returns The diff of the action, a promise for when the action is finished
+	 * Applies the action to the editor, tracks it in chat history, and handles page synchronization.
+	 * @param action - The action to make the agent do.
+	 * @param helpers - The helpers to use for action execution.
+	 * @returns An object containing the diff of changes made and a promise that resolves when the action completes.
 	 */
 	act(
 		action: Streaming<AgentAction>,
@@ -177,6 +180,10 @@ export class FairyAgentActionManager extends BaseFairyAgentManager {
 		return { diff, promise }
 	}
 
+	/**
+	 * Reset the action manager to its initial state.
+	 * Currently no state to reset as action utils are stateless.
+	 */
 	reset(): void {
 		// Reset state if needed - currently no state to reset
 	}
@@ -185,6 +192,8 @@ export class FairyAgentActionManager extends BaseFairyAgentManager {
 	 * Ensures the fairy is on the correct page before performing an action.
 	 * For actions that work with existing shapes, switches to the shape's page.
 	 * For actions that create new content, ensures the fairy is on the current editor page.
+	 * @param action - The action being performed.
+	 * @private
 	 */
 	private ensureFairyIsOnCorrectPage(action: Streaming<AgentAction>) {
 		const { editor } = this.agent

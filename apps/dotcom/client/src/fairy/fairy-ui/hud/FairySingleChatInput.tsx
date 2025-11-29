@@ -1,6 +1,6 @@
 import { CancelIcon, FAIRY_VISION_DIMENSIONS, LipsIcon } from '@tldraw/fairy-shared'
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Box, useValue } from 'tldraw'
+import { Box, useEditor, useValue } from 'tldraw'
 import { useMsg } from '../../../tla/utils/i18n'
 import { fairyMessages } from '../../fairy-messages'
 // import { $fairyTasks } from '../../FairyTaskList'
@@ -9,6 +9,7 @@ import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
 import { getRandomNoInputMessage } from '../../fairy-helpers/getRandomNoInputMessage'
 
 export function FairySingleChatInput({ agent, onCancel }: { agent: FairyAgent; onCancel(): void }) {
+	const editor = useEditor()
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const [inputValue, setInputValue] = useState('')
 	const isGenerating = useValue('isGenerating', () => agent.requestManager.isGenerating(), [agent])
@@ -141,7 +142,7 @@ export function FairySingleChatInput({ agent, onCancel }: { agent: FairyAgent; o
 					onKeyDown={handleKeyDown}
 					onMouseDown={handleMouseDown}
 					readOnly={isCoarsePointer}
-					autoFocus={!isCoarsePointer}
+					autoFocus={!isCoarsePointer && !editor.menus.hasAnyOpenMenus()}
 					rows={1}
 					spellCheck={false}
 				/>

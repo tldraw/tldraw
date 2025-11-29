@@ -42,6 +42,7 @@ import {
 	clearLocalSessionState,
 	getLocalSessionState,
 	updateLocalSessionState,
+	useAreFairiesEnabled,
 } from '../utils/local-session-state'
 
 const assetUrls = getAssetUrlsByImport()
@@ -91,6 +92,7 @@ export function Component() {
 		() => !!globalEditor.get()?.getInstanceState().isFocusMode,
 		[]
 	)
+	const areFairiesEnabled = useAreFairiesEnabled()
 	return (
 		<div
 			ref={setContainer}
@@ -98,6 +100,7 @@ export function Component() {
 				'tla-theme__light tl-theme__light': theme === 'light',
 				'tla-theme__dark tl-theme__dark': theme !== 'light',
 				'tla-focus-mode': isFocusMode,
+				'tla-fairies-enabled': areFairiesEnabled,
 			})}
 		>
 			<IntlWrapper locale={locale}>

@@ -63,7 +63,7 @@ const FRAME_DURATIONS: Record<FairyPose, number> = {
 	sleeping: 160,
 	panicking: 65,
 	waiting: 160,
-	poof: 400,
+	poof: 100,
 }
 
 /**

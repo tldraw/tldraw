@@ -26,14 +26,13 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 	// Use custom hooks
 	const {
 		panelState,
-		setManualOpen,
+		handleToggleManual,
 		shownFairy,
 		selectedFairies,
 		activeOrchestratorAgent,
 		selectFairy,
 		handleClickFairy,
 		handleDoubleClickFairy,
-		handleTogglePanel,
 	} = useFairySelection(agents)
 
 	const { mobileMenuOffset } = useMobilePositioning(isMobile)
@@ -79,7 +78,6 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 							onWheelCapture={(e) => e.stopPropagation()}
 						>
 							<FairyHUDHeader
-								onClosePanel={handleTogglePanel}
 								panelState={panelState}
 								menuPopoverOpen={
 									selectedFairies.length > 1 ? headerMenuPopoverOpen : fairyMenuPopoverOpen
@@ -160,7 +158,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 							manualLabel={manualLabel}
 							onClickFairy={handleClickFairy}
 							onDoubleClickFairy={handleDoubleClickFairy}
-							onToggleManual={() => setManualOpen((v) => !v)}
+							onToggleManual={handleToggleManual}
 						/>
 					</div>
 				</div>

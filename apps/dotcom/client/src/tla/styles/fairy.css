@@ -392,6 +392,7 @@
 	flex-direction: row;
 	align-items: center;
 	flex-shrink: 0;
+	height: 40px;
 }
 
 .fairy-id-display {
@@ -1329,16 +1330,16 @@
 /* Fairy Group Chat Input */
 
 .fairy-group-chat-input {
-	border-radius: 8px;
+	border-radius: var(--tl-radius-2);
 	background: var(--tl-color-muted-2);
 	margin: 4px;
 	pointer-events: auto;
 	position: relative;
 	display: flex;
 	align-items: flex-start;
-	gap: 8px;
+	gap: 4px;
 	border: 1px solid var(--tl-color-divider);
-	min-height: 36px;
+	min-height: 64px;
 }
 
 .fairy-group-chat-input__wrapper {
@@ -1349,7 +1350,7 @@
 }
 
 .fairy-group-chat-input__field {
-	padding: 8px 12px 8px 12px;
+	padding: 8px;
 	pointer-events: auto;
 	border: none;
 	background: transparent;
@@ -1359,10 +1360,10 @@
 	outline: none;
 	width: 100%;
 	resize: none;
-	min-height: 20px;
+	min-height: 17px;
 	max-height: 85px;
 	overflow-y: auto;
-	line-height: 1.5;
+	line-height: 1.4;
 	flex: 1;
 }
 

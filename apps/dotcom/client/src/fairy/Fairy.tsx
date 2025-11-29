@@ -219,6 +219,7 @@ function useFairyPointerInteraction(
 		}
 
 		const handleFairyPointerDown = (e: PointerEvent) => {
+			// Allow right-click to pass through for context menu
 			if (e.button === 2) return
 			if (!editor.isIn('select.idle')) return
 			if (editor.isIn('select.fairy-throw')) return
@@ -247,6 +248,7 @@ function useFairyPointerInteraction(
 			editor.inputs.isDragging = false
 			editor.inputs.originPagePoint.setTo(editor.inputs.currentPagePoint)
 
+			// Only prevent default and stop propagation for left-clicks
 			e.preventDefault()
 			e.stopPropagation()
 

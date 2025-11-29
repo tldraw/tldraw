@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import {
 	TldrawUiButton,
 	TldrawUiButtonIcon,
+	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
 	useEditor,
@@ -11,14 +12,13 @@ import {
 import { F } from '../../../tla/utils/i18n'
 import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
 import { getProjectOrchestrator } from '../../fairy-projects'
-import { FairyDropdownContent } from '../menus/FairyDropdownContent'
+import { FairyMenuContent } from '../menus/FairyMenuContent'
 import { FairyHUDPanelState } from './useFairySelection'
 
 interface FairyHUDHeaderProps {
 	panelState: FairyHUDPanelState
 	menuPopoverOpen: boolean
 	onMenuPopoverOpenChange(open: boolean): void
-	onClosePanel(): void
 	shownFairy: FairyAgent | null
 	selectedFairies: FairyAgent[]
 }
@@ -27,7 +27,6 @@ export function FairyHUDHeader({
 	panelState,
 	menuPopoverOpen,
 	onMenuPopoverOpenChange,
-	onClosePanel,
 	shownFairy,
 	selectedFairies,
 }: FairyHUDHeaderProps) {
@@ -80,6 +79,21 @@ export function FairyHUDHeader({
 		return 'Planning project…'
 	}
 
+	// Format names for pre-project header
+	const formattedNames = useValue(
+		'formatted-fairy-names',
+		() => {
+			const names = selectedFairies.map(
+				(agent) => (agent.$fairyConfig.get()?.name ?? 'fairy').split(' ')[0]
+			)
+			if (names.length === 0) return ''
+			if (names.length === 1) return `${names[0]}`
+			if (names.length === 2) return `${names[0]} and ${names[1]}`
+			return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`
+		},
+		[selectedFairies]
+	)
+
 	// Determine center content based on panel state
 	const centerContent =
 		panelState === 'manual' ? (
@@ -87,9 +101,7 @@ export function FairyHUDHeader({
 				<F defaultMessage="Help & Documentation" />
 			</div>
 		) : selectedFairies.length > 1 ? (
-			<div className="fairy-id-display">
-				<F defaultMessage="New project" />
-			</div>
+			<div className="fairy-id-display">{formattedNames}</div>
 		) : shownFairy && fairyConfig ? (
 			<div className="fairy-id-display" onClick={zoomToFairy}>
 				<p style={{ cursor: fairyClickable ? 'pointer' : 'default' }}>{getDisplayName()}</p>
@@ -99,15 +111,27 @@ export function FairyHUDHeader({
 		)
 
 	// Determine menu content based on panel state
-	const dropdownContent =
-		shownFairy && selectedFairies.length <= 1 ? (
-			<FairyDropdownContent agent={shownFairy} alignOffset={4} sideOffset={4} side="bottom" />
-		) : null
+	const dropdownContent = <FairyDropdownContent agents={selectedFairies} />
+
+	const onlySelectedFairy = selectedFairies.length === 1 ? selectedFairies[0] : null
 
 	return (
 		<div className="fairy-toolbar-header">
 			{centerContent}
 			<div className="tlui-row">
+				{onlySelectedFairy && (
+					<TldrawUiButton
+						type="icon"
+						className="fairy-toolbar-button"
+						// Maybe needs to be reactive
+						disabled={onlySelectedFairy.chatManager.getHistory().length === 0}
+						onClick={() => {
+							onlySelectedFairy?.chatManager.reset()
+						}}
+					>
+						<TldrawUiButtonIcon icon="plus" small />
+					</TldrawUiButton>
+				)}
 				{panelState !== 'manual' && dropdownContent && (
 					<TldrawUiDropdownMenuRoot id="fairy-hud-menu" debugOpen={menuPopoverOpen}>
 						<TldrawUiDropdownMenuTrigger>
@@ -118,10 +142,21 @@ export function FairyHUDHeader({
 						{dropdownContent}
 					</TldrawUiDropdownMenuRoot>
 				)}
-				<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={onClosePanel}>
-					<TldrawUiButtonIcon icon="cross-2" small />
-				</TldrawUiButton>
 			</div>
 		</div>
+	)
+}
+
+function FairyDropdownContent({ agents }: { agents: FairyAgent[] }) {
+	return (
+		<TldrawUiDropdownMenuContent
+			align="start"
+			className="fairy-sidebar-dropdown"
+			alignOffset={4}
+			sideOffset={4}
+			side="bottom"
+		>
+			<FairyMenuContent agents={agents} menuType="menu" source="chat" />
+		</TldrawUiDropdownMenuContent>
 	)
 }

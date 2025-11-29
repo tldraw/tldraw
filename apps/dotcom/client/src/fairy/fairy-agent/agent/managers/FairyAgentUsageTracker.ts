@@ -17,6 +17,7 @@ export class FairyAgentUsageTracker extends BaseFairyAgentManager {
 	/**
 	 * Cumulative token usage tracking for this chat session.
 	 * Tracked per model to handle different pricing models.
+	 * Each model has separate tier tracking for models with tiered pricing (≤200K vs >200K tokens).
 	 */
 	cumulativeUsage: {
 		// Usage per model, separated by tier for models with tiered pricing
@@ -50,10 +51,18 @@ export class FairyAgentUsageTracker extends BaseFairyAgentManager {
 		totalTokens: 0,
 	}
 
+	/**
+	 * Creates a new usage tracker for the given fairy agent.
+	 * Initializes with empty usage tracking.
+	 */
 	constructor(public agent: FairyAgent) {
 		super(agent)
 	}
 
+	/**
+	 * Reset the usage tracker to its initial state.
+	 * Clears all cumulative usage data.
+	 */
 	reset(): void {
 		this.resetCumulativeUsage()
 	}

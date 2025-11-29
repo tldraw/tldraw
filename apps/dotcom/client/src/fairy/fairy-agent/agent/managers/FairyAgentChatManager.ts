@@ -1,10 +1,10 @@
 import { ChatHistoryItem } from '@tldraw/fairy-shared'
-import { atom, Atom, VecModel } from 'tldraw'
+import { atom, Atom } from 'tldraw'
 import { FairyAgent } from '../FairyAgent'
 import { BaseFairyAgentManager } from './BaseFairyAgentManager'
 
 /**
- * Manages chat history and chat-related state for a fairy agent.
+ * Manages chat history for a fairy agent.
  * The chat history stores all interactions between the user and the agent,
  * including prompts, actions, and continuations.
  */
@@ -17,20 +17,12 @@ export class FairyAgentChatManager extends BaseFairyAgentManager {
 	private $chatHistory: Atom<ChatHistoryItem[]>
 
 	/**
-	 * An atom containing the position on the page where the current chat started.
-	 * Used to track the origin point of the conversation on the canvas.
-	 * @private
-	 */
-	private $chatOrigin: Atom<VecModel>
-
-	/**
 	 * Creates a new FairyAgentChatManager instance.
-	 * Initializes chat history and origin atoms with default values.
+	 * Initializes chat history atom with an empty array.
 	 */
 	constructor(public agent: FairyAgent) {
 		super(agent)
 		this.$chatHistory = atom('chatHistory', [])
-		this.$chatOrigin = atom('chatOrigin', { x: 0, y: 0 })
 	}
 
 	/**
@@ -43,11 +35,10 @@ export class FairyAgentChatManager extends BaseFairyAgentManager {
 
 	/**
 	 * Reset the chat manager to its initial state.
-	 * Clears all chat history and resets the origin to (0, 0).
+	 * Clears all chat history.
 	 */
 	reset(): void {
 		this.$chatHistory.set([])
-		this.$chatOrigin.set({ x: 0, y: 0 })
 	}
 
 	/**
@@ -68,27 +59,10 @@ export class FairyAgentChatManager extends BaseFairyAgentManager {
 
 	/**
 	 * Clear all chat history.
-	 * Removes all items from the chat history but does not affect the chat origin.
+	 * Removes all items from the chat history.
 	 */
 	clear() {
 		this.$chatHistory.set([])
-	}
-
-	/**
-	 * Set the chat origin position on the canvas.
-	 * The origin represents where the conversation started spatially.
-	 * @param origin - The position where the chat started, with x and y coordinates.
-	 */
-	setOrigin(origin: VecModel) {
-		this.$chatOrigin.set(origin)
-	}
-
-	/**
-	 * Get the current chat origin position.
-	 * @returns The position where the chat started on the canvas.
-	 */
-	getOrigin() {
-		return this.$chatOrigin.get()
 	}
 
 	/**
@@ -111,29 +85,20 @@ export class FairyAgentChatManager extends BaseFairyAgentManager {
 	}
 
 	/**
-	 * Serialize the chat state to a plain object for persistence.
+	 * Serialize the chat history to a plain object for persistence.
 	 * Useful for saving the chat state to local storage or sending to a server.
-	 * @returns An object containing the chat history and origin.
+	 * @returns An array of chat history items.
 	 */
 	serializeState() {
-		return {
-			chatHistory: this.$chatHistory.get(),
-			chatOrigin: this.$chatOrigin.get(),
-		}
+		return this.$chatHistory.get()
 	}
 
 	/**
-	 * Load previously persisted chat state into the manager.
-	 * Restores both chat history and origin from a serialized state object.
-	 * If either property is missing, it will not be updated.
-	 * @param state - An object containing optional chatHistory and chatOrigin properties.
+	 * Load previously persisted chat history into the manager.
+	 * Restores the chat history from a serialized state.
+	 * @param chatHistory - An array of chat history items to restore.
 	 */
-	loadState(state: { chatHistory?: ChatHistoryItem[]; chatOrigin?: VecModel }) {
-		if (state.chatHistory) {
-			this.$chatHistory.set(state.chatHistory)
-		}
-		if (state.chatOrigin) {
-			this.$chatOrigin.set(state.chatOrigin)
-		}
+	loadState(chatHistory: ChatHistoryItem[]) {
+		this.$chatHistory.set(chatHistory)
 	}
 }

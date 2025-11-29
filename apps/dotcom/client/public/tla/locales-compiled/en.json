@@ -63,6 +63,12 @@
       "value": "This file has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
     }
   ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "Speak to the group…"
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
@@ -153,18 +159,6 @@
       "value": "Today"
     }
   ],
-  "1fe250ea06": [
-    {
-      "type": 0,
-      "value": "Instruct the group…"
-    }
-  ],
-  "20dfc4f904": [
-    {
-      "type": 0,
-      "value": "Locate"
-    }
-  ],
   "23f879f41a": [
     {
       "type": 0,
@@ -211,12 +205,6 @@
     {
       "type": 0,
       "value": "My files"
-    }
-  ],
-  "2db683a1fe": [
-    {
-      "type": 0,
-      "value": "Join selected fairies"
     }
   ],
   "2f4d559909": [
@@ -969,10 +957,10 @@
       "value": "Copied invite link"
     }
   ],
-  "93dfe9fbbe": [
+  "94186070ef": [
     {
       "type": 0,
-      "value": "Deselect fairy"
+      "value": "Deselect"
     }
   ],
   "94966d9074": [
@@ -1095,6 +1083,12 @@
     {
       "type": 0,
       "value": "Export image"
+    }
+  ],
+  "a286d9991c": [
+    {
+      "type": 0,
+      "value": "Join"
     }
   ],
   "a3debabee7": [
@@ -1455,6 +1449,12 @@
       "value": "Go here to see the content"
     }
   ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Enable fairies"
+    }
+  ],
   "d9e35d0f55": [
     {
       "type": 0,
@@ -1511,6 +1511,12 @@
       "value": "App debug flags"
     }
   ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Select"
+    }
+  ],
   "e0c88179b3": [
     {
       "type": 0,
@@ -1547,6 +1553,12 @@
       "value": "Terms of service"
     }
   ],
+  "e43ec38a93": [
+    {
+      "type": 0,
+      "value": "Go to"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1557,12 +1569,6 @@
     {
       "type": 0,
       "value": "Danger zone"
-    }
-  ],
-  "ea181d98ca": [
-    {
-      "type": 0,
-      "value": "Select fairy"
     }
   ],
   "ea4788705e": [
@@ -1657,12 +1663,6 @@
       "value": "User settings"
     }
   ],
-  "f23056da60": [
-    {
-      "type": 0,
-      "value": "New project"
-    }
-  ],
   "f2569594b2": [
     {
       "type": 0,
@@ -1685,12 +1685,6 @@
     {
       "type": 0,
       "value": "Are you sure you want to leave this group?"
-    }
-  ],
-  "f7d5ee6855": [
-    {
-      "type": 0,
-      "value": "Select a leader first…"
     }
   ],
   "fa2ead697d": [
