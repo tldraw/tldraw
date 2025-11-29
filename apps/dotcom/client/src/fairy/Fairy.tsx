@@ -176,7 +176,8 @@ function useFairyPointerInteraction(
 			if (!isFairyGrabbable) return
 			;(e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId)
 
-			document.body.click()
+			// hack: dispatch an escape event to the document body to close any open context menus
+			document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
 
 			const fairyAgents = $fairyAgentsAtom.get(editor)
 			const clickedFairyEntity = $fairyEntity.get()
