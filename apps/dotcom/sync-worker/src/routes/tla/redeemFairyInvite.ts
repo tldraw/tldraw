@@ -1,7 +1,7 @@
 import { hasActiveFairyAccess } from '@tldraw/dotcom-shared'
 import { IRequest, StatusError, json } from 'itty-router'
 import { sql } from 'kysely'
-import { grantFairyAccessWithDb } from '../../adminRoutes'
+import { upsertFairyAccessWithDb } from '../../adminRoutes'
 import { FAIRY_WORLDWIDE_EXPIRATION } from '../../config'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
@@ -88,7 +88,7 @@ export async function redeemFairyInvite(request: IRequest, env: Environment): Pr
 		}
 
 		// Grant fairy access using helper (handles upsert + DO refresh)
-		const result = await grantFairyAccessWithDb(
+		const result = await upsertFairyAccessWithDb(
 			env,
 			auth.userId,
 			invite.fairyLimit,

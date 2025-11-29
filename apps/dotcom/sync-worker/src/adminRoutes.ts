@@ -25,13 +25,13 @@ async function requireUser(env: Environment, q: string) {
 	return userRow
 }
 
-export async function grantFairyAccessWithDb(
+export async function upsertFairyAccessWithDb(
 	env: Environment,
 	userId: string,
 	fairyLimit: number | null,
 	expiresAt: number | null
 ) {
-	const db = createPostgresConnectionPool(env, 'grantFairyAccessWithDb')
+	const db = createPostgresConnectionPool(env, 'upsertFairyAccessWithDb')
 	try {
 		return await upsertFairyAccess(env, userId, fairyLimit, expiresAt, db)
 	} finally {
@@ -87,7 +87,7 @@ async function grantFairyAccess(env: Environment, email: string) {
 	const clerkUser = users.data[0]
 	const userId = clerkUser.id
 
-	const result = await grantFairyAccessWithDb(
+	const result = await upsertFairyAccessWithDb(
 		env,
 		userId,
 		MAX_FAIRY_COUNT,
@@ -114,7 +114,7 @@ async function removeFairyAccess(env: Environment, email: string) {
 	const clerkUser = users.data[0]
 	const userId = clerkUser.id
 
-	const result = await grantFairyAccessWithDb(env, userId, null, null)
+	const result = await upsertFairyAccessWithDb(env, userId, null, null)
 
 	if (!result.success) {
 		throw new StatusError(500, `Failed to remove fairy access: ${result.error}`)
@@ -295,7 +295,7 @@ export const adminRoutes = createRouter<Environment>()
 		const auth = await requireAuth(req, env)
 
 		const oneYearFromNow = Date.now() + 365 * 24 * 60 * 60 * 1000
-		const result = await grantFairyAccessWithDb(env, auth.userId, MAX_FAIRY_COUNT, oneYearFromNow)
+		const result = await upsertFairyAccessWithDb(env, auth.userId, MAX_FAIRY_COUNT, oneYearFromNow)
 
 		if (!result.success) {
 			throw new StatusError(500, `Failed to enable fairy access: ${result.error}`)
