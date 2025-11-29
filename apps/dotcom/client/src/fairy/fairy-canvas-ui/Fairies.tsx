@@ -1,5 +1,5 @@
 import { useEditor, useValue } from 'tldraw'
-import Fairy, { SelectedFairy } from '../Fairy'
+import { Fairy, SelectedFairy } from '../Fairy'
 import { FairyAgent } from '../fairy-agent/agent/FairyAgent'
 
 export function Fairies({ agents }: { agents: FairyAgent[] }) {

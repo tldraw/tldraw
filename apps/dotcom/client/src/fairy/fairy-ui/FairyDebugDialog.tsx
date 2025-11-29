@@ -30,7 +30,7 @@ import {
 	$fairyProjects,
 	$fairyTasks,
 } from '../fairy-globals'
-import { addAgentToDummyProject } from '../FairyProjects'
+import { addAgentToDummyProject } from '../fairy-projects'
 
 // # Home Debug Inspector Types and Labels
 type HomeDebugInspectorType = 'projects' | 'fairyTaskList'

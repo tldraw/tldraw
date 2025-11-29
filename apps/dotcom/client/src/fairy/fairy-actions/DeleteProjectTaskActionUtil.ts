@@ -1,5 +1,5 @@
 import { DeleteProjectTaskAction, Streaming } from '@tldraw/fairy-shared'
-import { deleteFairyTask, getFairyTaskById } from '../FairyTaskList'
+import { deleteFairyTask, getFairyTaskById } from '../fairy-task-list'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class DeleteProjectTaskActionUtil extends AgentActionUtil<DeleteProjectTaskAction> {

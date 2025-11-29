@@ -3,7 +3,7 @@ import { Editor, uniqueId } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { getFairyAgentById } from './fairy-agent/agent/fairyAgentsAtom'
 import { $fairyProjects } from './fairy-globals'
-import { deleteFairyTask, getFairyTasksByProjectId } from './FairyTaskList'
+import { deleteFairyTask, getFairyTasksByProjectId } from './fairy-task-list'
 
 export function addProject(project: FairyProject) {
 	$fairyProjects.update((projects) => {

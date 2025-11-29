@@ -1,6 +1,6 @@
 import { AgentInput, DirectToStartTaskAction, Streaming } from '@tldraw/fairy-shared'
 import { $fairyAgentsAtom } from '../fairy-globals'
-import { assignFairyToTask, getFairyTaskById, setFairyTaskStatus } from '../FairyTaskList'
+import { assignFairyToTask, getFairyTaskById, setFairyTaskStatus } from '../fairy-task-list'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTaskAction> {

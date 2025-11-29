@@ -1,9 +1,9 @@
 import { EndCurrentProjectAction, Streaming } from '@tldraw/fairy-shared'
 import { uniqueId } from 'tldraw'
-import { deleteProjectAndAssociatedTasks } from '../FairyProjects'
-import { getFairyTasksByProjectId } from '../FairyTaskList'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
 import { $fairyAgentsAtom } from '../fairy-globals'
+import { deleteProjectAndAssociatedTasks } from '../fairy-projects'
+import { getFairyTasksByProjectId } from '../fairy-task-list'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProjectAction> {

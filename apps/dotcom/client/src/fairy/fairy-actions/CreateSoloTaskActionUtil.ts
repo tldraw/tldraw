@@ -1,6 +1,6 @@
 import { CreateTaskAction as CreateSoloTaskAction, Streaming } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
-import { createFairyTask } from '../FairyTaskList'
+import { createFairyTask } from '../fairy-task-list'
 import { AgentActionUtil } from './AgentActionUtil'
 
 // Creates a task for themselves

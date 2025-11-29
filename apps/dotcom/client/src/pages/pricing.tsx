@@ -1,12 +1,12 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { setInSessionStorage, useDialogs } from 'tldraw'
-import '../../tla/styles/fairy.css'
 import { TlaSignInDialog } from '../tla/components/dialogs/TlaSignInDialog'
 import { useFairyAccess } from '../tla/hooks/useFairyAccess'
 import { useFeatureFlags } from '../tla/hooks/useFeatureFlags'
 import { usePaddle } from '../tla/hooks/usePaddle'
 import { useTldrawUser } from '../tla/hooks/useUser'
+import '../tla/styles/fairy.css'
 import { F } from '../tla/utils/i18n'
 import styles from './pricing.module.css'
 

@@ -66,11 +66,6 @@ const FairyApp = lazy(() =>
 const FairyHUD = lazy(() =>
 	import('../../../fairy/fairy-ui/FairyHUD').then((m) => ({ default: m.FairyHUD }))
 )
-const DebugFairyVision = lazy(() =>
-	import('../../../fairy/fairy-canvas-ui/DebugFairyVision').then((m) => ({
-		default: m.DebugFairyVision,
-	}))
-)
 const Fairies = lazy(() =>
 	import('../../../fairy/fairy-canvas-ui/Fairies').then((m) => ({ default: m.Fairies }))
 )
@@ -80,9 +75,6 @@ const RemoteFairies = lazy(() =>
 const FairyHUDTeaser = lazy(() =>
 	import('../../../fairy/fairy-ui/FairyHUDTeaser').then((m) => ({ default: m.FairyHUDTeaser }))
 )
-// const InCanvasTaskList = lazy(() =>
-// 	import('../../../fairy/InCanvasTaskList').then((m) => ({ default: m.InCanvasTaskList }))
-// )
 
 /** @internal */
 export const components: TLComponents = {

@@ -1,7 +1,7 @@
 import { AwaitDuoTasksCompletionAction, Streaming } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
-import { getFairyTaskById } from '../FairyTaskList'
-import { createTaskWaitCondition } from '../FairyWaitNotifications'
+import { getFairyTaskById } from '../fairy-task-list'
+import { createTaskWaitCondition } from '../fairy-wait-notifications'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class AwaitDuoTasksCompletionActionUtil extends AgentActionUtil<AwaitDuoTasksCompletionAction> {

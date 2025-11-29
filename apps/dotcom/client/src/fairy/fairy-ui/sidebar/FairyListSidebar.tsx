@@ -21,66 +21,75 @@ type FairySidebarEntry =
 	  }
 	| { type: 'single'; agent: FairyAgent }
 
-function getSidebarEntries(agents: FairyAgent[]): FairySidebarEntry[] {
-	const entries: FairySidebarEntry[] = []
-	const seenProjectIds = new Set<string>()
-	const projectMembers = new Map<string, { projectTitle: string; agents: FairyAgent[] }>()
-	const agentProjectLookup = new Map<string, { projectId: string; projectTitle: string } | null>()
+function useSidebarEntries(agents: FairyAgent[]): FairySidebarEntry[] {
+	return useValue(
+		'fairy-sidebar-entries',
+		() => {
+			const entries: FairySidebarEntry[] = []
+			const seenProjectIds = new Set<string>()
+			const projectMembers = new Map<string, { projectTitle: string; agents: FairyAgent[] }>()
+			const agentProjectLookup = new Map<
+				string,
+				{ projectId: string; projectTitle: string } | null
+			>()
 
-	for (const agent of agents) {
-		const project = agent.getProject()
-		if (project) {
-			const existingGroup = projectMembers.get(project.id)
-			if (existingGroup) {
-				existingGroup.agents.push(agent)
-			} else {
-				projectMembers.set(project.id, {
-					projectTitle: project.title,
-					agents: [agent],
-				})
+			for (const agent of agents) {
+				const project = agent.getProject()
+				if (project) {
+					const existingGroup = projectMembers.get(project.id)
+					if (existingGroup) {
+						existingGroup.agents.push(agent)
+					} else {
+						projectMembers.set(project.id, {
+							projectTitle: project.title,
+							agents: [agent],
+						})
+					}
+					agentProjectLookup.set(agent.id, {
+						projectId: project.id,
+						projectTitle: project.title,
+					})
+				} else {
+					agentProjectLookup.set(agent.id, null)
+				}
 			}
-			agentProjectLookup.set(agent.id, {
-				projectId: project.id,
-				projectTitle: project.title,
-			})
-		} else {
-			agentProjectLookup.set(agent.id, null)
-		}
-	}
 
-	for (const agent of agents) {
-		const projectInfo = agentProjectLookup.get(agent.id)
-		if (!projectInfo) {
-			entries.push({ type: 'single', agent })
-			continue
-		}
+			for (const agent of agents) {
+				const projectInfo = agentProjectLookup.get(agent.id)
+				if (!projectInfo) {
+					entries.push({ type: 'single', agent })
+					continue
+				}
 
-		const { projectId, projectTitle } = projectInfo
-		if (seenProjectIds.has(projectId)) {
-			continue
-		}
+				const { projectId, projectTitle } = projectInfo
+				if (seenProjectIds.has(projectId)) {
+					continue
+				}
 
-		seenProjectIds.add(projectId)
-		const group = projectMembers.get(projectId)
+				seenProjectIds.add(projectId)
+				const group = projectMembers.get(projectId)
 
-		if (group && group.agents.length > 1) {
-			const isActive = group.agents.some(
-				(groupAgent) => groupAgent.$fairyEntity.get()?.isSelected ?? false
-			)
+				if (group && group.agents.length > 1) {
+					const isActive = group.agents.some(
+						(groupAgent) => groupAgent.$fairyEntity.get()?.isSelected ?? false
+					)
 
-			entries.push({
-				type: 'group',
-				projectId,
-				projectTitle,
-				agents: group.agents,
-				isActive,
-			})
-		} else {
-			entries.push({ type: 'single', agent })
-		}
-	}
+					entries.push({
+						type: 'group',
+						projectId,
+						projectTitle,
+						agents: group.agents,
+						isActive,
+					})
+				} else {
+					entries.push({ type: 'single', agent })
+				}
+			}
 
-	return entries
+			return entries
+		},
+		[agents]
+	)
 }
 
 interface FairyListSidebarProps {
@@ -107,9 +116,7 @@ export function FairyListSidebar({
 	onDoubleClickFairy,
 	onToggleManual,
 }: FairyListSidebarProps) {
-	const sidebarEntries = useValue('fairy-sidebar-entries', () => getSidebarEntries(agents), [
-		agents,
-	])
+	const sidebarEntries = useSidebarEntries(agents)
 
 	const hasAnySelectedFairies = useValue(
 		'has-any-selected-fairies',

@@ -1,6 +1,6 @@
 import { AgentRequest, CurrentProjectOrchestratorPart } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
-import { getFairyTasksByProjectId } from '../FairyTaskList'
+import { getFairyTasksByProjectId } from '../fairy-task-list'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export class CurrentProjectOrchestratorPartUtil extends PromptPartUtil<CurrentProjectOrchestratorPart> {

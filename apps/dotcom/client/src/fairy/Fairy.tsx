@@ -1,6 +1,6 @@
 import { FairyEntity } from '@tldraw/fairy-shared'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
-import React, { useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Atom, TLEventInfo, useEditor, useValue } from 'tldraw'
 import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { $fairyAgentsAtom } from './fairy-globals'
@@ -12,6 +12,8 @@ import { FairyThrowTool } from './FairyThrowTool'
 
 export const FAIRY_CONTAINER_SIZE = 52
 export const FAIRY_SIZE = 44
+const FAIRY_TRANSFORM_X_OFFSET = -75
+const FAIRY_TRANSFORM_Y_OFFSET = -25
 
 interface FairyIdleState {
 	status: 'idle'
@@ -40,33 +42,237 @@ function getSelectedFairyAtoms(fairyAgents: FairyAgent[]) {
 	return selected
 }
 
-/*
-Selection logic:
+function updateFairySelection(
+	fairyAgents: FairyAgent[],
+	clickedAgent: FairyAgent,
+	wasSelected: boolean,
+	isMultiSelect: boolean
+) {
+	if (!isMultiSelect) {
+		// Regular click: select clicked fairy, deselect others
+		if (!wasSelected) {
+			fairyAgents.forEach((a) => {
+				if (a.id === clickedAgent.id) {
+					a.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
+				} else {
+					a.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+				}
+			})
+		}
+		// If already selected, do nothing (might be dragging multiple fairies)
+	} else {
+		// Multi-select: add to selection if not selected
+		if (!wasSelected) {
+			clickedAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
+		}
+		// If already selected, do nothing (will handle deselection on pointer up)
+	}
+}
 
-- click a fairy (down click)
-	- if fairy is not selected
-		- select the fairy
-	- if fairy is selected
-		- do nothing (might be dragging multiple fairies)
-- click a fairy (up click without dragging)
-	- if fairy was selected before down click
-		- deselect the fairy
-- shift click a fairy
-	- if fairy is not selected
-		- add the fairy to selection
-- shift click a fairy (up click without dragging)
-	- if fairy was selected before down click
-		- remove the fairy from selection
-*/
+function getFairyCursor(isFairyGrabbable: boolean, isDragging: boolean): string {
+	if (!isFairyGrabbable) return 'default'
+	return isDragging ? 'grabbing' : 'grab'
+}
 
-// We use the agent directly here because we need to access the isGenerating method
-// which is not exposed on the fairy atom
-export default function Fairy({ agent }: { agent: FairyAgent }) {
+function setFairiesToThrowTool(
+	editor: ReturnType<typeof useEditor>,
+	fairies: Atom<FairyEntity>[]
+): void {
+	const tool = editor.getStateDescendant('select.fairy-throw')
+	if (tool instanceof FairyThrowTool) {
+		tool.setFairies(fairies)
+	}
+}
+
+interface FairyContainerProps {
+	position: { x: number; y: number }
+	isSelected: boolean
+	isGenerating: boolean
+	isInThrowTool: boolean
+	onPointerDown(e: React.PointerEvent<HTMLDivElement>): void
+	isFairyGrabbable: boolean
+	isDragging: boolean
+	children: React.ReactNode
+}
+
+const FairyContainer = React.forwardRef<HTMLDivElement, FairyContainerProps>(
+	(
+		{
+			position,
+			isSelected,
+			isGenerating,
+			isInThrowTool,
+			onPointerDown,
+			isFairyGrabbable,
+			isDragging,
+			children,
+		},
+		ref
+	) => (
+		<div
+			ref={ref}
+			style={{
+				position: 'absolute',
+				left: position.x,
+				top: position.y,
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'center',
+				width: `${FAIRY_CONTAINER_SIZE}px`,
+				height: `${FAIRY_CONTAINER_SIZE}px`,
+				transform: `translate(${FAIRY_TRANSFORM_X_OFFSET}%, ${FAIRY_TRANSFORM_Y_OFFSET}%) scale(var(--tl-scale))`,
+				transformOrigin: `${-FAIRY_TRANSFORM_X_OFFSET}% ${-FAIRY_TRANSFORM_Y_OFFSET}%`,
+				zIndex: isSelected ? 1 : 0,
+				transition:
+					isGenerating && !isInThrowTool ? 'left 0.1s ease-in-out, top 0.1s ease-in-out' : 'none',
+			}}
+		>
+			<div
+				onPointerDown={onPointerDown}
+				style={{
+					position: 'absolute',
+					width: '100%',
+					height: '100%',
+					top: 0,
+					left: 0,
+					pointerEvents: isFairyGrabbable ? 'all' : 'none',
+					cursor: getFairyCursor(isFairyGrabbable, isDragging),
+				}}
+			/>
+			{children}
+		</div>
+	)
+)
+FairyContainer.displayName = 'FairyContainer'
+
+function useFairyPointerInteraction(
+	agent: FairyAgent,
+	editor: ReturnType<typeof useEditor>,
+	isFairyGrabbable: boolean
+) {
+	const interactionState = useRef<FairyInteractionState>({ status: 'idle' })
+	const $fairyEntity = agent.$fairyEntity
+	const handleFairyPointerDownRef =
+		useRef<(e: React.PointerEvent<HTMLDivElement>) => void | undefined>()
+
+	useEffect(() => {
+		function cleanupPointerListeners() {
+			document.removeEventListener('pointermove', handlePointerMove)
+			document.removeEventListener('pointerup', handlePointerUp)
+		}
+
+		function startDraggingWithCurrentState(currentState: FairyPressedState) {
+			interactionState.current = {
+				status: 'dragging',
+				pointerId: currentState.pointerId,
+				fairiesAtPointerDown: currentState.fairiesAtPointerDown,
+			}
+			cleanupPointerListeners()
+
+			setFairiesToThrowTool(editor, currentState.fairiesAtPointerDown)
+			editor.setCurrentTool('select.fairy-throw')
+			interactionState.current = { status: 'idle' }
+		}
+
+		function handlePointerMove() {
+			const currentState = interactionState.current
+			if (currentState.status !== 'pressed') return
+
+			if (editor.inputs.isDragging) {
+				startDraggingWithCurrentState(currentState)
+			}
+		}
+
+		function handlePointerUp() {
+			const currentState = interactionState.current
+			if (currentState.status === 'idle') {
+				cleanupPointerListeners()
+				return
+			}
+
+			cleanupPointerListeners()
+			editor.setCursor({ type: 'default', rotation: 0 })
+
+			if (currentState.status === 'pressed' && currentState.wasSelectedBeforeDown) {
+				agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+			}
+
+			interactionState.current = { status: 'idle' }
+		}
+
+		function handleEvent(event: TLEventInfo) {
+			if (event.type === 'pointer' && event.name === 'pointer_move') {
+				handlePointerMove()
+			}
+			if (event.type === 'pointer' && event.name === 'pointer_up') {
+				handlePointerUp()
+			}
+			if (event.type === 'misc' && event.name === 'cancel') {
+				handlePointerUp()
+			}
+		}
+
+		const handleFairyPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+			if (e.button === 2) return
+			if (!editor.isIn('select.idle')) return
+			if (editor.isIn('select.fairy-throw')) return
+			if (!isFairyGrabbable) return
+
+			e.currentTarget.setPointerCapture(e.pointerId)
+
+			const fairyAgents = $fairyAgentsAtom.get(editor)
+			const clickedFairyEntity = $fairyEntity.get()
+			const wasClickedFairySelected = clickedFairyEntity?.isSelected ?? false
+			const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey
+
+			updateFairySelection(fairyAgents, agent, wasClickedFairySelected, isMultiSelect)
+
+			const fairiesToDrag: Atom<FairyEntity>[] = []
+			const selectedFairies = getSelectedFairyAtoms(fairyAgents)
+			if (selectedFairies.length === 0) {
+				fairiesToDrag.push($fairyEntity)
+			} else {
+				fairiesToDrag.push(...selectedFairies)
+			}
+
+			editor.setSelectedShapes([])
+			editor.setCursor({ type: 'grabbing', rotation: 0 })
+
+			editor.inputs.isPointing = true
+			editor.inputs.isDragging = false
+			editor.inputs.originPagePoint.setTo(editor.inputs.currentPagePoint)
+
+			e.preventDefault()
+			e.stopPropagation()
+
+			interactionState.current = {
+				status: 'pressed',
+				pointerId: e.pointerId,
+				startClient: { x: e.clientX, y: e.clientY },
+				wasSelectedBeforeDown: wasClickedFairySelected,
+				fairiesAtPointerDown: fairiesToDrag,
+			}
+
+			editor.on('event', handleEvent)
+		}
+
+		handleFairyPointerDownRef.current = handleFairyPointerDown
+
+		return () => {
+			// Cleanup on unmount
+			document.removeEventListener('pointermove', handlePointerMove)
+			document.removeEventListener('pointerup', handlePointerUp)
+		}
+	}, [agent, editor, isFairyGrabbable, $fairyEntity])
+
+	return { handleFairyPointerDown: handleFairyPointerDownRef.current! }
+}
+
+export function Fairy({ agent }: { agent: FairyAgent }) {
 	const editor = useEditor()
 	const fairyRef = useRef<HTMLDivElement>(null)
 	const $fairyEntity = agent.$fairyEntity
 	const $fairyConfig = agent.$fairyConfig
-	const interactionState = useRef<FairyInteractionState>({ status: 'idle' })
 
 	const fairyOutfit = useValue('fairy outfit', () => $fairyConfig.get()?.outfit, [$fairyConfig])
 	const fairyEntity = useValue('fairy entity', () => $fairyEntity.get(), [$fairyEntity])
@@ -75,7 +281,6 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 		'fairy position',
 		() => {
 			const entity = $fairyEntity.get()
-			// Use entity position directly if it exists, otherwise return null to prevent rendering
 			if (!entity) return null
 			return {
 				x: entity.position.x,
@@ -105,192 +310,26 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 	const isGenerating = useValue('is generating', () => agent.isGenerating(), [agent])
 	const isFairyGrabbable = isInSelectTool
 
+	const { handleFairyPointerDown } = useFairyPointerInteraction(agent, editor, isFairyGrabbable)
+
 	// Don't render if entity, outfit or position doesn't exist yet to avoid position jumping from (0,0)
 	if (!fairyEntity || !fairyOutfit || !position) {
 		return null
 	}
 
-	// Handle fairy pointer down, we don't enter fairy throw tool until the user actually moves their mouse
-	const handleFairyPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-		// Don't activate tool immediately - wait for drag to start
-		// Skip dragging behavior on right-click (context menu will handle it)
-		if (e.button === 2) return
-		if (!editor.isIn('select.idle')) return
-		if (editor.isIn('select.fairy-throw')) return
-
-		e.currentTarget.setPointerCapture(e.pointerId)
-
-		// Determine which fairies to drag before updating selection
-		const fairyAgents = $fairyAgentsAtom.get(editor)
-		const clickedFairyEntity = $fairyEntity.get()
-		const wasClickedFairySelected = clickedFairyEntity?.isSelected ?? false
-		const shiftKey = e.shiftKey || e.ctrlKey || e.metaKey
-
-		// Handle selection on pointer down according to the selection logic:
-		// - click a fairy (down click): if fairy is not selected, select the fairy
-		// - if fairy is selected: do nothing (might be dragging multiple fairies)
-		// - shift click a fairy: if fairy is not selected, add the fairy to selection
-		if (!shiftKey) {
-			// Regular click
-			if (!wasClickedFairySelected) {
-				// Select the clicked fairy if it wasn't selected
-				fairyAgents.forEach((a) => {
-					if (a.id === agent.id) {
-						a.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
-					} else {
-						// Deselect all other fairies
-						a.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
-					}
-				})
-			}
-			// If already selected, do nothing (might be dragging multiple fairies)
-		} else {
-			// Shift/ctrl/meta click: add to selection if not selected
-			if (!wasClickedFairySelected) {
-				agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
-			}
-			// If already selected, do nothing (will handle deselection on pointer up)
-		}
-
-		// Determine which fairies to drag AFTER updating selection
-		// Always drag all currently selected fairies (including ones just added via shift-click)
-		const fairiesToDrag: Atom<FairyEntity>[] = []
-		const selectedFairies = getSelectedFairyAtoms(fairyAgents)
-		if (selectedFairies.length === 0) {
-			fairiesToDrag.push($fairyEntity)
-		} else {
-			fairiesToDrag.push(...selectedFairies)
-		}
-
-		editor.setSelectedShapes([])
-
-		editor.setCursor({ type: 'grabbing', rotation: 0 })
-
-		// hack: the editor never gets the pointer down event, do this manually
-		editor.inputs.isPointing = true
-		editor.inputs.isDragging = false
-		editor.inputs.originPagePoint.setTo(editor.inputs.currentPagePoint)
-
-		e.preventDefault()
-		e.stopPropagation()
-
-		interactionState.current = {
-			status: 'pressed',
-			pointerId: e.pointerId,
-			startClient: { x: e.clientX, y: e.clientY },
-			wasSelectedBeforeDown: wasClickedFairySelected,
-			fairiesAtPointerDown: fairiesToDrag,
-		}
-
-		function cleanupPointerListeners() {
-			document.removeEventListener('pointermove', handlePointerMove)
-			document.removeEventListener('pointerup', handlePointerUp)
-		}
-
-		function startDraggingWithCurrentState(currentState: FairyPressedState) {
-			interactionState.current = {
-				status: 'dragging',
-				pointerId: currentState.pointerId,
-				fairiesAtPointerDown: currentState.fairiesAtPointerDown,
-			}
-			cleanupPointerListeners()
-
-			const tool = editor.getStateDescendant('select.fairy-throw')
-			if (tool && 'setFairies' in tool) {
-				;(tool as FairyThrowTool).setFairies(currentState.fairiesAtPointerDown)
-			}
-			editor.setCurrentTool('select.fairy-throw')
-			interactionState.current = { status: 'idle' }
-		}
-
-		function handlePointerMove() {
-			const currentState = interactionState.current
-			if (currentState.status !== 'pressed') return
-
-			if (editor.inputs.isDragging) {
-				startDraggingWithCurrentState(currentState)
-			}
-		}
-
-		function handlePointerUp() {
-			const currentState = interactionState.current
-			if (currentState.status === 'idle') {
-				cleanupPointerListeners()
-				return
-			}
-
-			cleanupPointerListeners()
-			editor.setCursor({ type: 'default', rotation: 0 })
-
-			// Handle deselection on pointer up if no drag occurred
-			// - click a fairy (up click without dragging): if fairy was selected before down click, deselect the fairy
-			// - shift click a fairy (up click without dragging): if fairy was selected before down click, remove the fairy from selection
-			if (currentState.status === 'pressed' && currentState.wasSelectedBeforeDown) {
-				// Deselect if it was selected before (works for both regular and shift clicks)
-				agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
-			}
-
-			interactionState.current = { status: 'idle' }
-		}
-
-		function handleEvent(event: TLEventInfo) {
-			if (event.type === 'pointer' && event.name === 'pointer_move') {
-				handlePointerMove()
-			}
-			if (event.type === 'pointer' && event.name === 'pointer_up') {
-				handlePointerUp()
-			}
-			if (event.type === 'misc' && event.name === 'cancel') {
-				handlePointerUp()
-			}
-		}
-
-		// Use the editor's pointer move / up events
-		editor.on('event', handleEvent)
-	}
-
 	return (
 		<_ContextMenu.Root dir="ltr">
 			<_ContextMenu.Trigger asChild>
-				<div
+				<FairyContainer
 					ref={fairyRef}
-					// todo: select the fairy on right click
-					// onContextMenu={}
-					style={{
-						position: 'absolute',
-						left: position.x,
-						top: position.y,
-						display: 'flex',
-						alignItems: 'center',
-						justifyContent: 'center',
-						width: `${FAIRY_CONTAINER_SIZE}px`,
-						height: `${FAIRY_CONTAINER_SIZE}px`,
-						transform: `translate(-75%, -25%) scale(var(--tl-scale))`,
-						transformOrigin: '75% 25%',
-						zIndex: isSelected ? 1 : 0,
-						transition:
-							isGenerating && !isInThrowTool
-								? 'left 0.1s ease-in-out, top 0.1s ease-in-out'
-								: 'none',
-					}}
+					position={position}
+					isSelected={isSelected}
+					isGenerating={isGenerating}
+					isInThrowTool={isInThrowTool}
+					onPointerDown={handleFairyPointerDown}
+					isFairyGrabbable={isFairyGrabbable}
+					isDragging={editor.inputs.isDragging}
 				>
-					{/* Fairy clickable zone */}
-					<div
-						onPointerDown={handleFairyPointerDown}
-						style={{
-							position: 'absolute',
-							width: '100%',
-							height: '100%',
-							top: 0,
-							left: 0,
-							pointerEvents: isFairyGrabbable ? 'all' : 'none',
-							cursor: !isFairyGrabbable
-								? 'default'
-								: editor.inputs.isDragging
-									? 'grabbing'
-									: 'grab',
-						}}
-					/>
 					<div className="fairy-sprite-wrapper">
 						<FairySprite
 							pose={fairyEntity.pose}
@@ -304,7 +343,7 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 							projectColor={projectHexColor}
 						/>
 					</div>
-				</div>
+				</FairyContainer>
 			</_ContextMenu.Trigger>
 			<FairyContextMenuContent agent={agent} source="canvas" />
 		</_ContextMenu.Root>
@@ -329,11 +368,10 @@ export function SelectedFairy({ agent }: { agent: FairyAgent }) {
 				justifyContent: 'center',
 				width: `${FAIRY_CONTAINER_SIZE}px`,
 				height: `${FAIRY_CONTAINER_SIZE}px`,
-				transform: `translate(-75%, -25%) scale(var(--tl-scale))`,
-				transformOrigin: '75% 25%',
+				transform: `translate(${FAIRY_TRANSFORM_X_OFFSET}%, ${FAIRY_TRANSFORM_Y_OFFSET}%) scale(var(--tl-scale))`,
+				transformOrigin: `${-FAIRY_TRANSFORM_X_OFFSET}% ${-FAIRY_TRANSFORM_Y_OFFSET}%`,
 			}}
 		>
-			{/* Show reticle a bit larger than normal */}
 			<FairyReticleSprite size={FAIRY_CONTAINER_SIZE / 1.5} />
 		</div>
 	)

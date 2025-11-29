@@ -17,7 +17,7 @@ import { FairyAgent } from './fairy-agent/agent/FairyAgent'
 import { $fairyProjects, $fairyTasks } from './fairy-globals'
 import { getRandomFairyName } from './fairy-helpers/getRandomFairyName'
 import { getRandomFairySign } from './fairy-helpers/getRandomFairySign'
-import { disbandAllProjectsWithAgents } from './FairyProjects'
+import { disbandAllProjectsWithAgents } from './fairy-projects'
 import { FairyThrowTool } from './FairyThrowTool'
 
 function stripDiffFromChatItem(item: ChatHistoryItem): ChatHistoryItem {

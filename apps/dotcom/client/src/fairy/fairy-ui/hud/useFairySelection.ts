@@ -2,7 +2,7 @@ import { FairyProject } from '@tldraw/fairy-shared'
 import { MouseEvent, useCallback, useEffect, useState } from 'react'
 import { useValue } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
-import { getProjectOrchestrator } from '../../FairyProjects'
+import { getProjectOrchestrator } from '../../fairy-projects'
 
 export type FairyHUDPanelState = 'fairy' | 'manual' | 'closed'
 

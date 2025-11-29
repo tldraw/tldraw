@@ -60,12 +60,12 @@ import {
 	getPromptPartUtilsRecord,
 } from '../../fairy-part-utils/fairy-part-utils'
 import { PromptPartUtil } from '../../fairy-part-utils/PromptPartUtil'
-import { getProjectByAgentId } from '../../FairyProjects'
+import { getProjectByAgentId } from '../../fairy-projects'
 import {
 	deserializeWaitCondition,
 	notifyAgentModeTransition,
 	serializeWaitCondition,
-} from '../../FairyWaitNotifications'
+} from '../../fairy-wait-notifications'
 import { AgentHelpers } from './AgentHelpers'
 import { FairyAgentOptions } from './FairyAgentOptions'
 import { getFairyAgentById } from './fairyAgentsAtom'

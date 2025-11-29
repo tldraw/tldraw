@@ -10,7 +10,7 @@ import {
 } from 'tldraw'
 import { F } from '../../../tla/utils/i18n'
 import { FairyAgent } from '../../fairy-agent/agent/FairyAgent'
-import { getProjectOrchestrator } from '../../FairyProjects'
+import { getProjectOrchestrator } from '../../fairy-projects'
 import { FairyDropdownContent } from '../menus/FairyDropdownContent'
 import { FairyHUDPanelState } from './useFairySelection'
 

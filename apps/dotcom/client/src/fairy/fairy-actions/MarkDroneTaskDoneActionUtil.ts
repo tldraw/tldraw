@@ -1,7 +1,7 @@
 import { MarkDroneTaskDoneAction, Streaming } from '@tldraw/fairy-shared'
 import { uniqueId } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
-import { setFairyTaskStatusAndNotifyCompletion } from '../FairyTaskList'
+import { setFairyTaskStatusAndNotifyCompletion } from '../fairy-task-list'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class MarkDroneTaskDoneActionUtil extends AgentActionUtil<MarkDroneTaskDoneAction> {

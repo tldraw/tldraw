@@ -15,8 +15,8 @@ import { FairyProjectChatContent } from '../../fairy-agent/chat/FairyProjectChat
 import { $fairyTasks } from '../../fairy-globals'
 import { getRandomNoInputMessage } from '../../fairy-helpers/getRandomNoInputMessage'
 import { fairyMessages } from '../../fairy-messages'
-import { addProject, disbandProject, getProjectByAgentId } from '../../FairyProjects'
-import { getFairyTasksByProjectId, setFairyTaskStatus } from '../../FairyTaskList'
+import { addProject, disbandProject, getProjectByAgentId } from '../../fairy-projects'
+import { getFairyTasksByProjectId, setFairyTaskStatus } from '../../fairy-task-list'
 
 interface FairyProjectViewProps {
 	editor: Editor

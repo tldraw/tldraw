@@ -1,7 +1,7 @@
 import { CreateProjectTaskAction, Streaming } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/agent/AgentHelpers'
-import { getProjectByAgentId } from '../FairyProjects'
-import { createFairyTask } from '../FairyTaskList'
+import { getProjectByAgentId } from '../fairy-projects'
+import { createFairyTask } from '../fairy-task-list'
 import { AgentActionUtil } from './AgentActionUtil'
 
 // Creates a task for a project with a specifiable assignedTo id
