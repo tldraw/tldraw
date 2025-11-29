@@ -1,6 +1,7 @@
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
 import { upsertFairyAccess } from './adminRoutes'
+import { createPostgresConnectionPool } from './postgres'
 import { type Environment } from './types'
 
 interface PaddleWebhookEvent {
@@ -97,6 +98,47 @@ async function verifyWebhookSignature(
 	}
 }
 
+async function insertPaddleTransaction(
+	db: ReturnType<typeof createPostgresConnectionPool>,
+	event: PaddleWebhookEvent,
+	userId: string | null
+): Promise<{ exists: boolean }> {
+	const now = Date.now()
+	const occurredAt = new Date(event.occurred_at).getTime()
+
+	// Check if event already exists (idempotency)
+	const existing = await db
+		.selectFrom('paddle_transactions')
+		.where('eventId', '=', event.event_id)
+		.selectAll()
+		.executeTakeFirst()
+
+	if (existing) {
+		return { exists: true }
+	}
+
+	// Insert new transaction event
+	await db
+		.insertInto('paddle_transactions')
+		.values({
+			eventId: event.event_id,
+			transactionId: event.data.id,
+			eventType: event.event_type,
+			status: event.data.status,
+			userId,
+			processed: false,
+			processedAt: null,
+			processingError: null,
+			eventData: event as any,
+			occurredAt,
+			receivedAt: now,
+			updatedAt: now,
+		})
+		.execute()
+
+	return { exists: false }
+}
+
 async function sendDiscordPurchaseNotification(webhookUrl: string) {
 	try {
 		await fetch(webhookUrl, {
@@ -153,9 +195,25 @@ async function handleTransactionCompleted(env: Environment, event: PaddleWebhook
 export const paddleWebhooks = createRouter<Environment>().post(
 	'/app/paddle/webhook',
 	async (req, env) => {
+		const db = createPostgresConnectionPool(env, 'paddleWebhook')
 		try {
 			// Verify webhook signature and parse event
 			const event = await verifyWebhookSignature(env, req.clone())
+
+			// Extract userId from custom_data if available
+			let userId: string | null = null
+			if (event.data.custom_data && typeof event.data.custom_data === 'object') {
+				const customData = event.data.custom_data as Record<string, unknown>
+				if (typeof customData.userId === 'string') {
+					userId = customData.userId
+				}
+			}
+
+			// Check idempotency
+			const { exists } = await insertPaddleTransaction(db, event, userId)
+			if (exists) {
+				return json({ received: true })
+			}
 
 			// Handle event based on type
 			if (event.event_type === 'transaction.completed') {
@@ -169,6 +227,8 @@ export const paddleWebhooks = createRouter<Environment>().post(
 				return json({ error: error.message }, { status: error.status })
 			}
 			return json({ error: 'Internal server error' }, { status: 500 })
+		} finally {
+			await db.destroy()
 		}
 	}
 )

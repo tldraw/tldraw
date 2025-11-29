@@ -314,6 +314,22 @@ export interface TlaFairyInviteDB extends Omit<TlaFairyInvite, 'redeemedBy'> {
 	redeemedBy: string[] // JSONB: ["email1@example.com", "email2@example.com"]
 }
 
+// paddle_transactions is backend-only, not part of Zero schema
+export interface TlaPaddleTransaction {
+	eventId: string
+	transactionId: string
+	eventType: string
+	status: string
+	userId: string | null
+	processed: boolean
+	processedAt: number | null
+	processingError: string | null
+	eventData: Record<string, unknown>
+	occurredAt: number
+	receivedAt: number
+	updatedAt: number
+}
+
 export interface DB {
 	file: TlaFile
 	file_state: TlaFileState
@@ -327,6 +343,7 @@ export interface DB {
 	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
 	file_fairy_messages: TlaFileFairyMessage
+	paddle_transactions: TlaPaddleTransaction
 }
 
 export const schema = createSchema({
