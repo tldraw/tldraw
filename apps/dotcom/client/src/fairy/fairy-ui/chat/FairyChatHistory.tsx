@@ -13,7 +13,6 @@ Each section contains a user prompt item, and all the agent's actions that follo
 Each section is rendered as a separate component.
 The model's actions are grouped together into collapsible groups if appropriate.
 
-
 Here's an example of how the UI might look:
 
 - Chat history

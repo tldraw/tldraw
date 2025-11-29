@@ -299,6 +299,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 	const instanceComponents = useMemo((): TLComponents => {
 		const canShowFairies = app && agents && hasFairyAccess && areFairiesEnabled
+		const shouldShowAnyFairyUI = hasFairyAccess && areFairiesEnabled
 
 		return {
 			...components,
@@ -316,9 +317,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			),
 			InFrontOfTheCanvas: () => (
 				<>
-					<Suspense fallback={<div />}>
-						{canShowFairies ? <FairyHUD agents={agents} /> : <FairyHUDTeaser />}
-					</Suspense>
+					{shouldShowAnyFairyUI ? (
+						<Suspense fallback={<div />}>
+							{canShowFairies ? <FairyHUD agents={agents} /> : <FairyHUDTeaser />}
+						</Suspense>
+					) : null}
 				</>
 			),
 			DebugMenu: () => <CustomDebugMenu />,

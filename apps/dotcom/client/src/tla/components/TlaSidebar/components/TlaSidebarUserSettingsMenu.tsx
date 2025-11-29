@@ -7,6 +7,7 @@ import {
 	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
+	TldrawUiMenuSubmenu,
 	useValue,
 } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
@@ -24,6 +25,7 @@ import styles from '../sidebar.module.css'
 
 const messages = defineMessages({
 	userMenu: { defaultMessage: 'User settings' },
+	fairies: { defaultMessage: 'Fairies' },
 	enableFairies: { defaultMessage: 'Enable fairies' },
 })
 
@@ -32,8 +34,6 @@ export function TlaUserSettingsMenu() {
 	const userMenuLbl = useMsg(messages.userMenu)
 	const user = useValue('auth', () => app.getUser(), [app])
 	const hasFairyAccess = useFairyAccess()
-	const areFairiesEnabled = useAreFairiesEnabled()
-	const enableFairiesLbl = useMsg(messages.enableFairies)
 
 	if (!user) return null
 
@@ -67,15 +67,7 @@ export function TlaUserSettingsMenu() {
 					<TldrawUiMenuGroup id="preferences">
 						<ColorThemeSubmenu />
 						<LanguageMenu />
-						{hasFairyAccess && (
-							<TldrawUiMenuCheckboxItem
-								id="enable-fairies"
-								label={enableFairiesLbl}
-								checked={areFairiesEnabled}
-								onSelect={() => toggleFairies()}
-								readonlyOk
-							/>
-						)}
+						{hasFairyAccess && <FairiesSubmenu />}
 					</TldrawUiMenuGroup>
 					<DebugMenuGroup />
 					<TldrawUiMenuGroup id="signout">
@@ -84,5 +76,25 @@ export function TlaUserSettingsMenu() {
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>
 		</TldrawUiDropdownMenuRoot>
+	)
+}
+
+function FairiesSubmenu() {
+	const areFairiesEnabled = useAreFairiesEnabled()
+	const fairiesLbl = useMsg(messages.fairies)
+	const enableFairiesLbl = useMsg(messages.enableFairies)
+
+	return (
+		<TldrawUiMenuSubmenu id="fairies" label={fairiesLbl}>
+			<TldrawUiMenuGroup id="fairies-settings">
+				<TldrawUiMenuCheckboxItem
+					id="enable-fairies"
+					label={enableFairiesLbl}
+					checked={areFairiesEnabled}
+					onSelect={() => toggleFairies()}
+					readonlyOk
+				/>
+			</TldrawUiMenuGroup>
+		</TldrawUiMenuSubmenu>
 	)
 }

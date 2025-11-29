@@ -13,7 +13,7 @@ import { RaisedWingsSprite1, RaisedWingsSprite2, RaisedWingsSprite3 } from './sp
 import { ReadingSprite1, ReadingSprite2, ReadingSprite3 } from './sprites/ReadingSprite'
 import { SleepingSprite } from './sprites/SleepingSprite'
 import { ThinkingSprite } from './sprites/ThinkingSprite'
-import { WaitingSprite } from './sprites/WaitingSprite'
+import { WaitingSprite1, WaitingSprite2, WaitingSprite3 } from './sprites/WaitingSprite'
 import { WorkingSprite1, WorkingSprite2, WorkingSprite3 } from './sprites/WorkingSprite'
 import { WritingSprite1, WritingSprite2 } from './sprites/WritingSprite'
 
@@ -27,16 +27,31 @@ interface FairySpriteProps {
 	hatColor: string
 }
 
+const FLAPPING_HIGH = [
+	RaisedWingsSprite1,
+	RaisedWingsSprite2,
+	RaisedWingsSprite3,
+	RaisedWingsSprite2,
+]
+
+const FLAPPING_LOW = [
+	LoweredWingsSprite1,
+	LoweredWingsSprite2,
+	LoweredWingsSprite3,
+	LoweredWingsSprite2,
+]
+
 const WING_SPRITES: Record<FairyPose, ComponentType<WingSpriteProps>[]> = {
-	idle: [RaisedWingsSprite1, RaisedWingsSprite2, RaisedWingsSprite3, RaisedWingsSprite2],
-	waiting: [LoweredWingsSprite1, LoweredWingsSprite2, LoweredWingsSprite3, LoweredWingsSprite2],
-	active: [RaisedWingsSprite1, RaisedWingsSprite2, RaisedWingsSprite3, RaisedWingsSprite2],
-	reading: [RaisedWingsSprite1, RaisedWingsSprite2, RaisedWingsSprite3, RaisedWingsSprite2],
-	writing: [RaisedWingsSprite1, RaisedWingsSprite2, RaisedWingsSprite3, RaisedWingsSprite2],
-	thinking: [LoweredWingsSprite1, LoweredWingsSprite2, LoweredWingsSprite3, LoweredWingsSprite2],
-	working: [RaisedWingsSprite1, RaisedWingsSprite2, RaisedWingsSprite3, RaisedWingsSprite2],
+	idle: FLAPPING_HIGH,
+	waiting: FLAPPING_LOW,
+	active: FLAPPING_HIGH,
+	reading: FLAPPING_HIGH,
+	writing: FLAPPING_HIGH,
+	thinking: FLAPPING_LOW,
+	working: FLAPPING_HIGH,
 	sleeping: [LoweredWingsSprite1],
-	panicking: [RaisedWingsSprite1, RaisedWingsSprite2, RaisedWingsSprite3, RaisedWingsSprite2],
+	panicking: FLAPPING_HIGH,
+	reviewing: FLAPPING_HIGH,
 	poof: [],
 }
 
@@ -48,8 +63,9 @@ const FAIRY_SPRITES_WITH_PROPS: Record<FairyPose, ComponentType<FairySpriteProps
 	thinking: [ThinkingSprite],
 	working: [WorkingSprite1, WorkingSprite2, WorkingSprite3, WorkingSprite2],
 	sleeping: [SleepingSprite],
-	waiting: [WaitingSprite],
+	waiting: [WaitingSprite1],
 	panicking: [PanickingSprite1, PanickingSprite2],
+	reviewing: [WaitingSprite1, WaitingSprite2, WaitingSprite3, WaitingSprite2],
 	poof: [PoofSprite1, PoofSprite2, PoofSprite3, PoofSprite4],
 }
 
@@ -63,6 +79,7 @@ const FRAME_DURATIONS: Record<FairyPose, number> = {
 	sleeping: 160,
 	panicking: 65,
 	waiting: 160,
+	reviewing: 160,
 	poof: 100,
 }
 

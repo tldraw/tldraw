@@ -15,10 +15,9 @@ export function FairyContextMenuContent({
 	return (
 		<_ContextMenu.Portal container={container}>
 			<_ContextMenu.Content
-				className="tlui-menu fairy-sidebar-dropdown"
+				className="tlui-menu fairy-context-menu-content"
 				collisionPadding={4}
 				onPointerDown={(e) => e.stopPropagation()}
-				style={{ zIndex: 'var(--tl-layer-canvas-in-front)' }}
 			>
 				<FairyMenuContent agents={[agent]} menuType="context-menu" source={source} />
 			</_ContextMenu.Content>

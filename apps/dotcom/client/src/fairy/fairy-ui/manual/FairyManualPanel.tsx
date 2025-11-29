@@ -1,13 +1,33 @@
+import { useEffect, useRef } from 'react'
+import { getFromLocalStorage, setInLocalStorage } from 'tldraw'
+
+const SCROLL_POSITION_KEY = 'fairy-manual-scroll-position'
+
 export function FairyManualPanel() {
+	const contentRef = useRef<HTMLDivElement>(null)
+
+	// Restore scroll position on mount
+	useEffect(() => {
+		const savedPosition = getFromLocalStorage(SCROLL_POSITION_KEY)
+		if (savedPosition && contentRef.current) {
+			contentRef.current.scrollTop = parseInt(savedPosition, 10)
+		}
+	}, [])
+
+	// Save scroll position on scroll
+	const handleScroll = () => {
+		if (contentRef.current) {
+			setInLocalStorage(SCROLL_POSITION_KEY, contentRef.current.scrollTop.toString())
+		}
+	}
+
 	return (
-		<div className="fairy-manual-content">
+		<div className="fairy-manual-content" ref={contentRef} onScroll={handleScroll}>
 			<div className="fairy-manual-section">
 				<h3>What are fairies?</h3>
 				<p>
 					Fairies are AI assistants that can help you create and edit content on the canvas. They
 					appear as animated sprites that move around and interact with your canvas as they work.
-					Each fairy has its own personality and can work solo or collaborate with others on complex
-					projects.
 				</p>
 			</div>
 
@@ -53,30 +73,14 @@ export function FairyManualPanel() {
 			</div>
 
 			<div className="fairy-manual-section">
-				<h3>Working with multiple fairies (projects)</h3>
+				<h3>Working with multiple fairies</h3>
 				<p>
-					When you select multiple fairies, they form a project team. One fairy automatically
-					becomes the <strong>orchestrator</strong> who plans the work and coordinates the others,
-					called <strong>drones</strong>, who execute individual tasks.
+					When you select multiple fairies, they work together as a team to complete your request.
+					They will coordinate with each other to break down the work and complete it more quickly.
 				</p>
 				<p>
-					<strong>How it works:</strong>
-				</p>
-				<ol>
-					<li>Give your request to the selected fairies</li>
-					<li>The orchestrator breaks down the work into tasks</li>
-					<li>The orchestrator assigns tasks to specific drones</li>
-					<li>Drones work on their assigned tasks independently</li>
-					<li>The orchestrator reviews progress and coordinates next steps</li>
-					<li>When all tasks are complete, the orchestrator ends the project</li>
-				</ol>
-				<p>
-					<strong>Duo projects:</strong> When you select exactly 2 fairies, they work as a pair
-					where both can actively work on tasks together.
-				</p>
-				<p>
-					<strong>Note:</strong> Fairies working on projects cannot be interrupted individually. You
-					need to cancel the entire project to stop them.
+					<strong>Note:</strong> Fairies working together cannot be interrupted individually. You
+					need to cancel the entire team to stop them.
 				</p>
 			</div>
 
@@ -134,24 +138,10 @@ export function FairyManualPanel() {
 
 			<div className="fairy-manual-section">
 				<h3>Tasks and todo lists</h3>
-				<p>Fairies manage work using tasks:</p>
-				<ul>
-					<li>
-						<strong>Solo tasks:</strong> Tasks a fairy creates for itself when working alone
-					</li>
-					<li>
-						<strong>Project tasks:</strong> Tasks created by an orchestrator and assigned to team
-						members
-					</li>
-					<li>
-						<strong>Personal todos:</strong> Internal checklist items fairies use to organize their
-						work
-					</li>
-				</ul>
 				<p>
-					You can view task lists in the sidebar and see fairies checking off items as they complete
-					them. Task lists help fairies stay organized and let you track progress on complex
-					requests.
+					Fairies create and manage tasks as they work. You can view task lists in the sidebar and
+					see fairies checking off items as they complete them. Task lists help fairies stay
+					organized and let you track progress on complex requests.
 				</p>
 			</div>
 
@@ -175,8 +165,8 @@ export function FairyManualPanel() {
 						give new instructions at any time.
 					</li>
 					<li>
-						<strong>Use projects for scale:</strong> When you have many related tasks, multiple
-						fairies working as a team can complete work faster.
+						<strong>Use multiple fairies for scale:</strong> When you have many related tasks,
+						multiple fairies working as a team can complete work faster.
 					</li>
 					<li>
 						<strong>Be patient:</strong> Complex requests take time. Fairies will work through tasks
@@ -197,12 +187,11 @@ export function FairyManualPanel() {
 						the request.
 					</li>
 					<li>
-						<strong>Can&apos;t stop a fairy:</strong> If a fairy is in a project, you need to cancel
-						the entire project. Solo fairies can be interrupted by sending a new message.
+						<strong>Can&apos;t stop a fairy:</strong> If a fairy is working with others, you need to
+						cancel the entire team. Solo fairies can be interrupted by sending a new message.
 					</li>
 					<li>
-						<strong>Fairy stuck waiting:</strong> Some fairy modes involve waiting for tasks to
-						complete. Check the task list to see if work is in progress.
+						<strong>Fairy stuck waiting:</strong> Check the task list to see if work is in progress.
 					</li>
 					<li>
 						<strong>Reset if needed:</strong> You can always reset a fairy&apos;s conversation to

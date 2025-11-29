@@ -1835,3 +1835,7 @@
 .tla {
 	--tl-layer-canvas-in-front: 499;
 }
+
+.fairy-context-menu-content {
+	z-index: var(--tl-layer-canvas-in-front);
+}

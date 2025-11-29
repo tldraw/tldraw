@@ -92,15 +92,26 @@ interface FairyContainerProps {
 	isFairyGrabbable: boolean
 	isDragging: boolean
 	children: React.ReactNode
+	onContextMenu?(e: React.MouseEvent<HTMLDivElement>): void
 }
 
 const FairyContainer = React.forwardRef<HTMLDivElement, FairyContainerProps>(
 	(
-		{ position, isSelected, isGenerating, isInThrowTool, isFairyGrabbable, isDragging, children },
+		{
+			position,
+			isSelected,
+			isGenerating,
+			isInThrowTool,
+			isFairyGrabbable,
+			isDragging,
+			children,
+			onContextMenu,
+		},
 		ref
 	) => (
 		<div
 			ref={ref}
+			onContextMenu={onContextMenu}
 			style={{
 				position: 'absolute',
 				left: position.x,
@@ -226,6 +237,8 @@ function useFairyPointerInteraction(
 			if (!isFairyGrabbable) return
 			;(e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId)
 
+			document.body.click()
+
 			const fairyAgents = $fairyAgentsAtom.get(editor)
 			const clickedFairyEntity = $fairyEntity.get()
 			const wasClickedFairySelected = clickedFairyEntity?.isSelected ?? false
@@ -346,6 +359,10 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 					isInThrowTool={isInThrowTool}
 					isFairyGrabbable={isFairyGrabbable}
 					isDragging={editor.inputs.isDragging}
+					onContextMenu={(e) => {
+						// Allow context menu to open by not preventing default
+						e.stopPropagation()
+					}}
 				>
 					<div className="fairy-sprite-wrapper">
 						<FairySprite

@@ -1,12 +1,26 @@
 import { FairyBodySpritePart } from './parts/FairyBodySpritePart'
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
 
-export function WaitingSprite({
-	bodyColor = 'var(--tl-color-fairy-light)',
-	hatColor = 'white',
+export function WaitingSprite1({ bodyColor, hatColor }: { bodyColor: string; hatColor: string }) {
+	return <WaitingSpriteBase bodyColor={bodyColor} hatColor={hatColor} eyeOffsetX={0} />
+}
+
+export function WaitingSprite2({ bodyColor, hatColor }: { bodyColor: string; hatColor: string }) {
+	return <WaitingSpriteBase bodyColor={bodyColor} hatColor={hatColor} eyeOffsetX={1} />
+}
+
+export function WaitingSprite3({ bodyColor, hatColor }: { bodyColor: string; hatColor: string }) {
+	return <WaitingSpriteBase bodyColor={bodyColor} hatColor={hatColor} eyeOffsetX={2} />
+}
+
+export function WaitingSpriteBase({
+	bodyColor,
+	hatColor,
+	eyeOffsetX,
 }: {
-	bodyColor?: string
-	hatColor?: string
+	bodyColor: string
+	hatColor: string
+	eyeOffsetX: number
 }) {
 	return (
 		<>
@@ -26,13 +40,14 @@ export function WaitingSprite({
 				cx="64.6328"
 				cy="29.0855"
 				r="2.62701"
-				transform="rotate(3.23906 64.6328 29.0855)"
+				transform={`translate(${eyeOffsetX} 0)`}
 				fill="var(--tl-color-fairy-dark)"
 			/>
 			{/* Left eye */}
 			<path
 				d="M51.9556 31.2173C51.869 32.7472 50.5586 33.9172 49.0287 33.8306C47.4988 33.744 46.3288 32.4336 46.4154 30.9037C46.502 29.3738 47.8124 28.2038 49.3423 28.2904C50.8721 28.377 52.0422 29.6874 51.9556 31.2173Z"
 				fill="var(--tl-color-fairy-dark)"
+				transform={`translate(${eyeOffsetX} 0)`}
 			/>
 			{/* Mouth */}
 			<path

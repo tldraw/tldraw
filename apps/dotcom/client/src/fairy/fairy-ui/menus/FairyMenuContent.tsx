@@ -35,6 +35,7 @@ export function FairyMenuContent({
 	const allAgents = useValue('fairy-agents', () => $fairyAgentsAtom.get(editor), [editor])
 
 	const onlyAgent = agents.length === 1 ? agents[0] : null
+	const hasSelected = agents.some((agent) => agent.$fairyEntity.get()?.isSelected)
 	// const selectedAgents = useValue(
 	// 	'selected-agents',
 	// 	() => $fairyAgentsAtom.get(editor).filter((agent) => agent.$fairyEntity.get()?.isSelected),
@@ -100,6 +101,7 @@ export function FairyMenuContent({
 	const fairyManagementLabel = useMsg(fairyMessages.fairyManagement)
 	const selectAllFairiesLabel = useMsg(fairyMessages.selectAllFairiesLabel)
 	const deselectFairyLabel = useMsg(fairyMessages.deselectFairy)
+	const selectFairyLabel = useMsg(fairyMessages.selectFairy)
 
 	const projects = useValue($fairyProjects)
 	const currentProject = useMemo(() => {
@@ -164,6 +166,12 @@ export function FairyMenuContent({
 	const deselect = useCallback(() => {
 		agents.forEach((agent) => {
 			agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+		})
+	}, [agents])
+
+	const select = useCallback(() => {
+		agents.forEach((agent) => {
+			agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
 		})
 	}, [agents])
 
@@ -264,7 +272,11 @@ export function FairyMenuContent({
 					/>
 				)}
 
-				<TldrawUiMenuItem id="deselect" onSelect={deselect} label={deselectFairyLabel} />
+				{hasSelected ? (
+					<TldrawUiMenuItem id="deselect" onSelect={deselect} label={deselectFairyLabel} />
+				) : (
+					<TldrawUiMenuItem id="select" onSelect={select} label={selectFairyLabel} />
+				)}
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="fairy-management-resets">
 				{hasChatHistory && (
@@ -294,13 +306,6 @@ export function FairyMenuContent({
 						label={putAwayAllFairiesLabel}
 					/>
 					<TldrawUiMenuGroup id="fairy-chat-menu">
-						{menuType === 'context-menu' && onlyAgent && (
-							<TldrawUiMenuItem
-								id="new-chat"
-								onSelect={() => onlyAgent.reset()}
-								label={resetChatLabel}
-							/>
-						)}
 						<TldrawUiMenuItem
 							id="reset-all-chats"
 							onSelect={resetAllChats}
@@ -322,12 +327,6 @@ export function FairyMenuContent({
 						</TldrawUiMenuGroup>
 					)}
 				</TldrawUiMenuSubmenu>
-				{/* TODO: Reinstate */}
-				{/* <TldrawUiMenuItem
-					id="configure-fairy"
-					onSelect={() => configureFairy(agent)}
-					label={customizeFairyLabel}
-				/> */}
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuContextProvider>
 	)

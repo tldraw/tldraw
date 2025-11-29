@@ -13,7 +13,7 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 		return {
 			icon: 'flag' as const,
 			description: action.complete ? 'Ended project' : 'Ending project...',
-			pose: 'waiting' as const,
+			pose: 'reviewing' as const,
 			canGroup: () => false,
 		}
 	}
