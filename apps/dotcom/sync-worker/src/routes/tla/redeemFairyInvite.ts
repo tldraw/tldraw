@@ -1,7 +1,7 @@
 import { hasActiveFairyAccess } from '@tldraw/dotcom-shared'
 import { IRequest, StatusError, json } from 'itty-router'
 import { sql } from 'kysely'
-import { upsertFairyAccess } from '../../adminRoutes'
+import { grantFairyAccessWithDb } from '../../adminRoutes'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
 import { getFeatureFlag } from '../../utils/featureFlags'
@@ -87,7 +87,7 @@ export async function redeemFairyInvite(request: IRequest, env: Environment): Pr
 		}
 
 		// Grant fairy access using helper (handles upsert + DO refresh)
-		const result = await upsertFairyAccess(env, auth.userId, invite.fairyLimit)
+		const result = await grantFairyAccessWithDb(env, auth.userId, invite.fairyLimit)
 
 		if (!result.success) {
 			throw new StatusError(500, `Failed to grant fairy access: ${result.error}`)
