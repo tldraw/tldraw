@@ -35,10 +35,8 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 			return
 		}
 
-		const colorAlreadyChosen = $fairyProjects
-			.get()
-			.some((p) => p.color === projectColor || p.color === 'white')
-		if (colorAlreadyChosen) {
+		const colorAlreadyChosen = $fairyProjects.get().some((p) => p.color === projectColor)
+		if (colorAlreadyChosen || projectColor === 'white') {
 			this.agent.interrupt({
 				input: `The color ${projectColor} is not available at the moment. Please choose a different color.`,
 			})

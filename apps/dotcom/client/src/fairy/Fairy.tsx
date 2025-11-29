@@ -284,7 +284,11 @@ export default function Fairy({ agent }: { agent: FairyAgent }) {
 							top: 0,
 							left: 0,
 							pointerEvents: isFairyGrabbable ? 'all' : 'none',
-							cursor: isFairyGrabbable && !editor.inputs.isDragging ? 'grab' : 'grabbing',
+							cursor: !isFairyGrabbable
+								? 'default'
+								: editor.inputs.isDragging
+									? 'grabbing'
+									: 'grab',
 						}}
 					/>
 					<div className="fairy-sprite-wrapper">
