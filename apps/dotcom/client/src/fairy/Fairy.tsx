@@ -1,7 +1,9 @@
 import { FairyEntity } from '@tldraw/fairy-shared'
+import classNames from 'classnames'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import React, { useEffect, useRef } from 'react'
-import { Atom, TLEventInfo, useEditor, useValue } from 'tldraw'
+import { Atom, TLEventInfo, useEditor, useReactor, useValue } from 'tldraw'
+import '../tla/styles/fairy.css'
 import { FairyAgent } from './fairy-agent/FairyAgent'
 import { $fairyAgentsAtom } from './fairy-globals'
 import { getProjectColor } from './fairy-helpers/getProjectColor'
@@ -12,8 +14,6 @@ import { FairyThrowTool } from './FairyThrowTool'
 
 export const FAIRY_CONTAINER_SIZE = 52
 export const FAIRY_SIZE = 44
-const FAIRY_TRANSFORM_X_OFFSET = -75
-const FAIRY_TRANSFORM_Y_OFFSET = -25
 
 interface FairyIdleState {
 	status: 'idle'
@@ -83,67 +83,6 @@ function setFairiesToThrowTool(
 		tool.setFairies(fairies)
 	}
 }
-
-interface FairyContainerProps {
-	position: { x: number; y: number }
-	isSelected: boolean
-	isGenerating: boolean
-	isInThrowTool: boolean
-	isFairyGrabbable: boolean
-	isDragging: boolean
-	children: React.ReactNode
-	onContextMenu?(e: React.MouseEvent<HTMLDivElement>): void
-}
-
-const FairyContainer = React.forwardRef<HTMLDivElement, FairyContainerProps>(
-	(
-		{
-			position,
-			isSelected,
-			isGenerating,
-			isInThrowTool,
-			isFairyGrabbable,
-			isDragging,
-			children,
-			onContextMenu,
-		},
-		ref
-	) => (
-		<div
-			ref={ref}
-			onContextMenu={onContextMenu}
-			style={{
-				position: 'absolute',
-				left: position.x,
-				top: position.y,
-				display: 'flex',
-				alignItems: 'center',
-				justifyContent: 'center',
-				width: `${FAIRY_CONTAINER_SIZE}px`,
-				height: `${FAIRY_CONTAINER_SIZE}px`,
-				transform: `translate(${FAIRY_TRANSFORM_X_OFFSET}%, ${FAIRY_TRANSFORM_Y_OFFSET}%) scale(var(--tl-scale))`,
-				transformOrigin: `${-FAIRY_TRANSFORM_X_OFFSET}% ${-FAIRY_TRANSFORM_Y_OFFSET}%`,
-				zIndex: isSelected ? 1 : 0,
-				transition:
-					isGenerating && !isInThrowTool ? 'left 0.1s ease-in-out, top 0.1s ease-in-out' : 'none',
-			}}
-		>
-			<div
-				style={{
-					position: 'absolute',
-					width: '100%',
-					height: '100%',
-					top: 0,
-					left: 0,
-					pointerEvents: isFairyGrabbable ? 'all' : 'none',
-					cursor: getFairyCursor(isFairyGrabbable, isDragging),
-				}}
-			/>
-			{children}
-		</div>
-	)
-)
-FairyContainer.displayName = 'FairyContainer'
 
 function useFairyPointerInteraction(
 	ref: React.RefObject<HTMLDivElement>,
@@ -343,6 +282,19 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 
 	useFairyPointerInteraction(fairyRef, agent, editor, isFairyGrabbable)
 
+	useReactor(
+		'fairy position',
+		() => {
+			const elm = fairyRef.current
+			if (!elm) return
+			const position = $fairyEntity.get()?.position
+			if (!position) return null
+			elm.style.left = `${position.x}px`
+			elm.style.top = `${position.y}px`
+		},
+		[$fairyEntity, fairyRef]
+	)
+
 	// Don't render if entity, outfit or position doesn't exist yet to avoid position jumping from (0,0)
 	if (!fairyEntity || !fairyOutfit || !position) {
 		return null
@@ -351,19 +303,29 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 	return (
 		<_ContextMenu.Root dir="ltr">
 			<_ContextMenu.Trigger asChild>
-				<FairyContainer
+				<div
 					ref={fairyRef}
-					position={position}
-					isSelected={isSelected}
-					isGenerating={isGenerating}
-					isInThrowTool={isInThrowTool}
-					isFairyGrabbable={isFairyGrabbable}
-					isDragging={editor.inputs.isDragging}
 					onContextMenu={(e) => {
 						// Allow context menu to open by not preventing default
 						e.stopPropagation()
 					}}
+					className={classNames('fairy-container', {
+						'fairy-container__selected': isSelected,
+						'fairy-container__not-selected': !isSelected,
+						'fairy-container__generating': isGenerating,
+						'fairy-container__not-generating': !isGenerating,
+						'fairy-container__in-throw-tool': isInThrowTool,
+					})}
 				>
+					<div
+						className={classNames(`fairy-container-interaction-layer`, {
+							'fairy-container-interaction-layer--grabbable': isFairyGrabbable,
+							'fairy-container-interaction-layer--not-grabbable': !isFairyGrabbable,
+						})}
+						style={{
+							cursor: getFairyCursor(isFairyGrabbable, editor.inputs.isDragging),
+						}}
+					/>
 					<div className="fairy-sprite-wrapper">
 						<FairySprite
 							pose={fairyEntity.pose}
@@ -377,7 +339,7 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 							projectColor={projectHexColor}
 						/>
 					</div>
-				</FairyContainer>
+				</div>
 			</_ContextMenu.Trigger>
 			<FairyContextMenuContent agent={agent} source="canvas" />
 		</_ContextMenu.Root>
@@ -392,20 +354,7 @@ export function SelectedFairy({ agent }: { agent: FairyAgent }) {
 	)
 
 	return (
-		<div
-			style={{
-				position: 'absolute',
-				left: position.x,
-				top: position.y,
-				display: 'flex',
-				alignItems: 'center',
-				justifyContent: 'center',
-				width: `${FAIRY_CONTAINER_SIZE}px`,
-				height: `${FAIRY_CONTAINER_SIZE}px`,
-				transform: `translate(${FAIRY_TRANSFORM_X_OFFSET}%, ${FAIRY_TRANSFORM_Y_OFFSET}%) scale(var(--tl-scale))`,
-				transformOrigin: `${-FAIRY_TRANSFORM_X_OFFSET}% ${-FAIRY_TRANSFORM_Y_OFFSET}%`,
-			}}
-		>
+		<div className="fairy-selected" style={{ left: position.x, top: position.y }}>
 			<FairyReticleSprite size={FAIRY_CONTAINER_SIZE / 1.5} />
 		</div>
 	)

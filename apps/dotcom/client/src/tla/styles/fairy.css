@@ -1839,3 +1839,62 @@
 .fairy-context-menu-content {
 	z-index: var(--tl-layer-canvas-in-front);
 }
+
+/* Fairy Container */
+.fairy-container {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 52px;
+	height: 52px;
+	transform: translate(-75%, -25%) scale(var(--tl-scale));
+	transform-origin: 75% 25%;
+}
+
+.fairy-container__selected {
+	z-index: 1;
+}
+
+.fairy-container__not-selected {
+	z-index: 0;
+}
+
+.fairy-container-interaction-layer {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+}
+
+.fairy-container-interaction-layer--grabbable {
+	pointer-events: all;
+}
+
+.fairy-container-interaction-layer--not-grabbable {
+	pointer-events: none;
+}
+
+.fairy-container__generating:not(.fairy-container__in-throw-tool) {
+	transition:
+		left 0.1s ease-in-out,
+		top 0.1s ease-in-out;
+}
+
+.fairy-container__not-generating,
+.fairy-container__in-throw-tool {
+	transition: none;
+}
+
+/* Selected Fairy */
+.fairy-selected {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 52px;
+	height: 52px;
+	transform: translate(-75%, -25%) scale(var(--tl-scale));
+	transform-origin: 75% 25%;
+}
