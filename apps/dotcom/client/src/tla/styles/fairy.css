@@ -457,13 +457,19 @@
 
 /* Manual Panel Content */
 
-.fairy-manual-content {
+.fairy-manual-content-container {
 	flex: 1;
 	overflow-y: auto;
-	padding: 8px 12px 24px 12px;
+	padding: 1px 0px;
 	font-size: 13px;
 	line-height: 1.5;
 	color: var(--tl-color-text-1);
+}
+
+.fairy-manual-content {
+	padding: 16px 12px 24px 12px;
+	overflow-y: auto;
+	height: 100%;
 }
 
 .fairy-manual-section {

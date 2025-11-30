@@ -24,6 +24,7 @@ export interface TldrawAppSessionState {
 	}
 	shareMenuActiveTab: 'share' | 'export' | 'publish' | 'anon-share'
 	sidebarActiveTab: 'recent' | 'groups' | 'shared' | 'drafts' | 'starred'
+	fairyManualActiveTab: 'introduction' | 'usage' | 'about'
 	theme: 'light' | 'dark'
 	views: {
 		[key: string]: {
@@ -48,6 +49,7 @@ let prev: TldrawAppSessionState = {
 	isSidebarOpenMobile: false,
 	shareMenuActiveTab: 'share',
 	sidebarActiveTab: 'recent',
+	fairyManualActiveTab: 'introduction',
 	theme: 'light',
 	views: {},
 	flags: {},

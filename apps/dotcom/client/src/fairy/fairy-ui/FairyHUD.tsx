@@ -87,6 +87,7 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 								}
 								shownFairy={shownFairy}
 								selectedFairies={selectedFairies}
+								onToggleManual={handleToggleManual}
 							/>
 							{panelState === 'fairy' && selectedFairies.length === 0 && !shownFairy && (
 								<div className="fairy-chat-empty-message">
