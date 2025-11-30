@@ -64,15 +64,14 @@ export function FairyHUDTeaser() {
 	)
 
 	const handleToggleManual = useCallback(() => {
-		setIsManualOpen((prev) => {
-			if (prev) {
-				trackEvent('fairy-close-manual', { source: 'fairy-teaser' })
-			} else {
-				trackEvent('fairy-switch-to-manual', { source: 'fairy-teaser' })
-			}
-			return !prev
-		})
-	}, [trackEvent])
+		const wasOpen = isManualOpen
+		if (wasOpen) {
+			trackEvent('fairy-close-manual', { source: 'fairy-teaser' })
+		} else {
+			trackEvent('fairy-switch-to-manual', { source: 'fairy-teaser' })
+		}
+		setIsManualOpen(!wasOpen)
+	}, [trackEvent, isManualOpen])
 
 	// Position HUD above mobile style menu button on mobile
 	useEffect(() => {

@@ -188,15 +188,14 @@ export function useFairySelection(agents: FairyAgent[]) {
 
 	const handleToggleManual = useCallback(() => {
 		// Close manual if open, otherwise deselect all fairies
-		setManualOpen((prev) => {
-			if (prev) {
-				trackEvent('fairy-close-manual', { source: 'fairy-panel' })
-			} else {
-				trackEvent('fairy-switch-to-manual', { source: 'fairy-panel' })
-			}
-			return !prev
-		})
-	}, [trackEvent])
+		const wasOpen = manualOpen
+		if (wasOpen) {
+			trackEvent('fairy-close-manual', { source: 'fairy-panel' })
+		} else {
+			trackEvent('fairy-switch-to-manual', { source: 'fairy-panel' })
+		}
+		setManualOpen(!wasOpen)
+	}, [trackEvent, manualOpen])
 
 	return {
 		panelState,
