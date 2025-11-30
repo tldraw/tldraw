@@ -9,7 +9,6 @@ import {
 	TldrawOverlays,
 	TldrawScribble,
 	TldrawSelectionForeground,
-	TldrawShapeIndicators,
 	TldrawUi,
 	defaultAddFontsFromNode,
 	defaultBindingUtils,
@@ -31,7 +30,6 @@ import 'tldraw/tldraw.css'
 // [1]
 const defaultComponents = {
 	Scribble: TldrawScribble,
-	ShapeIndicators: TldrawShapeIndicators,
 	CollaboratorScribble: TldrawScribble,
 	SelectionForeground: TldrawSelectionForeground,
 	Handles: TldrawHandles,
