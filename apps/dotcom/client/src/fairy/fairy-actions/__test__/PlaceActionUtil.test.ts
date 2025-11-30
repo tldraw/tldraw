@@ -581,7 +581,6 @@ describe('PlaceActionUtil', () => {
 				x: 225,
 				y: 150,
 			})
-			// Verify the fairy's position actually changed
 		})
 
 		it('should handle invalid side/align combination gracefully', () => {
