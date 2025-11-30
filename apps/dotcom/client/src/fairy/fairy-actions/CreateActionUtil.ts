@@ -1,6 +1,7 @@
 import {
 	convertFocusedShapeToTldrawShape,
 	CreateAction,
+	createAgentActionInfo,
 	FocusedShape,
 	SIMPLE_TO_GEO_TYPES,
 	Streaming,
@@ -13,11 +14,11 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 	static override type = 'create' as const
 
 	override getInfo(action: Streaming<CreateAction>) {
-		return {
-			icon: 'pencil' as const,
+		return createAgentActionInfo({
+			icon: 'pencil',
 			description: action.intent ?? '',
-			pose: 'working' as const,
-		}
+			pose: 'working',
+		})
 	}
 
 	override sanitizeAction(action: Streaming<CreateAction>, helpers: AgentHelpers) {

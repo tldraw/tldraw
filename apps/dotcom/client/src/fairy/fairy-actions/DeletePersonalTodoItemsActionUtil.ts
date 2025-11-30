@@ -1,4 +1,8 @@
-import { DeletePersonalTodoItemsAction, Streaming } from '@tldraw/fairy-shared'
+import {
+	DeletePersonalTodoItemsAction,
+	Streaming,
+	createAgentActionInfo,
+} from '@tldraw/fairy-shared'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class DeletePersonalTodoItemsActionUtil extends AgentActionUtil<DeletePersonalTodoItemsAction> {
@@ -6,10 +10,10 @@ export class DeletePersonalTodoItemsActionUtil extends AgentActionUtil<DeletePer
 
 	override getInfo(action: Streaming<DeletePersonalTodoItemsAction>) {
 		if (!action.complete) {
-			return {
+			return createAgentActionInfo({
 				description: null,
-				pose: 'writing' as const,
-			}
+				pose: 'writing',
+			})
 		}
 
 		const count = action.ids.length

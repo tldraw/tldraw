@@ -197,6 +197,22 @@ export const MoveActionSchema = z
 
 export type MoveAction = z.infer<typeof MoveActionSchema>
 
+export const OffsetActionSchema = z
+	.object({
+		_type: z.literal('offset'),
+		intent: z.string(),
+		shapeIds: z.array(z.string()),
+		offsetX: z.number(),
+		offsetY: z.number(),
+	})
+	.meta({
+		title: 'Offset',
+		description:
+			'The agent moves multiple shapes by the same relative offset. The offset is applied to each shape individually, moving them all by the same amount.',
+	})
+
+export type OffsetAction = z.infer<typeof OffsetActionSchema>
+
 export const MovePositionActionSchema = z
 	.object({
 		_type: z.literal('move-position'),

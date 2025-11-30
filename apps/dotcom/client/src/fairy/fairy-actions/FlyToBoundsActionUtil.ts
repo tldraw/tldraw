@@ -1,4 +1,4 @@
-import { FlyToBoundsAction, Streaming } from '@tldraw/fairy-shared'
+import { FlyToBoundsAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { Box } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -8,11 +8,11 @@ export class FlyToBoundsActionUtil extends AgentActionUtil<FlyToBoundsAction> {
 
 	override getInfo(action: Streaming<FlyToBoundsAction>) {
 		const text = action.intent?.startsWith('#') ? `\n\n${action.intent}` : action.intent
-		return {
-			icon: 'eye' as const,
+		return createAgentActionInfo({
+			icon: 'eye',
 			description: `${text ?? ''}`,
-			pose: 'active' as const,
-		}
+			pose: 'active',
+		})
 	}
 
 	override applyAction(action: Streaming<FlyToBoundsAction>, helpers: AgentHelpers) {

@@ -1,4 +1,4 @@
-import { ReviewAction, Streaming } from '@tldraw/fairy-shared'
+import { ReviewAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -11,11 +11,11 @@ export class ReviewActionUtil extends AgentActionUtil<ReviewAction> {
 		const description = `**${label}:** ${text ?? ''}`
 		// const description = `${text ?? ''}`
 
-		return {
-			icon: 'search' as const,
+		return createAgentActionInfo({
+			icon: 'search',
 			description,
-			pose: 'reviewing' as const,
-		}
+			pose: 'reviewing',
+		})
 	}
 
 	override applyAction(action: Streaming<ReviewAction>, helpers: AgentHelpers) {

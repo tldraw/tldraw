@@ -1,4 +1,4 @@
-import { PlaceAction, Streaming } from '@tldraw/fairy-shared'
+import { PlaceAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { TLShapeId } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -7,11 +7,11 @@ export class PlaceActionUtil extends AgentActionUtil<PlaceAction> {
 	static override type = 'place' as const
 
 	override getInfo(action: Streaming<PlaceAction>) {
-		return {
-			icon: 'target' as const,
+		return createAgentActionInfo({
+			icon: 'target',
 			description: action.intent ?? '',
-			pose: 'working' as const,
-		}
+			pose: 'working',
+		})
 	}
 
 	override sanitizeAction(action: Streaming<PlaceAction>, helpers: AgentHelpers) {

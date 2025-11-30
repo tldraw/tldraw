@@ -1,4 +1,4 @@
-import { LabelAction, Streaming } from '@tldraw/fairy-shared'
+import { LabelAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { ExtractShapeByProps, TLRichText, TLShape, TLShapeId, toRichText } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -21,11 +21,11 @@ export class LabelActionUtil extends AgentActionUtil<LabelAction> {
 	static override type = 'label' as const
 
 	override getInfo(action: Streaming<LabelAction>) {
-		return {
-			icon: 'pencil' as const,
+		return createAgentActionInfo({
+			icon: 'pencil',
 			description: action.intent ?? '',
-			pose: 'working' as const,
-		}
+			pose: 'working',
+		})
 	}
 
 	override sanitizeAction(action: Streaming<LabelAction>, helpers: AgentHelpers) {

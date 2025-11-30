@@ -1,4 +1,4 @@
-import { BringToFrontAction, Streaming } from '@tldraw/fairy-shared'
+import { BringToFrontAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { TLShapeId } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -7,11 +7,11 @@ export class BringToFrontActionUtil extends AgentActionUtil<BringToFrontAction> 
 	static override type = 'bring-to-front' as const
 
 	override getInfo(action: Streaming<BringToFrontAction>) {
-		return {
-			icon: 'cursor' as const,
+		return createAgentActionInfo({
+			icon: 'cursor',
 			description: action.intent ?? '',
-			pose: 'working' as const,
-		}
+			pose: 'working',
+		})
 	}
 
 	override sanitizeAction(action: Streaming<BringToFrontAction>, helpers: AgentHelpers) {

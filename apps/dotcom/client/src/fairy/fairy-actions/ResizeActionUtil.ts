@@ -1,4 +1,4 @@
-import { ResizeAction, Streaming } from '@tldraw/fairy-shared'
+import { ResizeAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { TLShapeId } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -7,11 +7,11 @@ export class ResizeActionUtil extends AgentActionUtil<ResizeAction> {
 	static override type = 'resize' as const
 
 	override getInfo(action: Streaming<ResizeAction>) {
-		return {
-			icon: 'cursor' as const,
+		return createAgentActionInfo({
+			icon: 'cursor',
 			description: action.intent ?? '',
-			pose: 'working' as const,
-		}
+			pose: 'working',
+		})
 	}
 
 	override sanitizeAction(action: Streaming<ResizeAction>, helpers: AgentHelpers) {
