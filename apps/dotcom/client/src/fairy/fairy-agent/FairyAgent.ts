@@ -875,7 +875,6 @@ export class FairyAgent {
 								return
 							}
 
-							console.log('transformedAction', transformedAction)
 
 							// If there was a diff from an incomplete action, revert it so that we can reapply the action
 							if (incompleteDiff) {

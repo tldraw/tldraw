@@ -248,7 +248,6 @@ describe('ResizeActionUtil', () => {
 			const id1 = createShapeId('shape1')
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 
-			const shapeBefore = editor.getShape(id1)
 			const boundsBefore = editor.getShapePageBounds(id1)
 			const initialWidth = boundsBefore!.width
 			const initialHeight = boundsBefore!.height
