@@ -95,6 +95,8 @@ export interface ArrowShapeOptions {
 	 * When creating an arrow, should it bind to the target shape.
 	 */
 	shouldIgnoreTargets(editor: Editor): boolean
+	/** Whether to show the outline of the arrow shape's label (using the same color as the canvas). This helps with overlapping shapes. It does not show up on Safari, where text outline is a performance issues. */
+	readonly showTextOutline: boolean
 }
 
 /** @public */

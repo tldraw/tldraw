@@ -235,6 +235,7 @@ export interface ArrowShapeOptions {
     readonly pointingPreciseTimeout: number;
     shouldBeExact(editor: Editor, isPrecise: boolean): boolean;
     shouldIgnoreTargets(editor: Editor): boolean;
+    readonly showTextOutline: boolean;
 }
 
 // @public (undocumented)
@@ -2481,6 +2482,8 @@ export interface PlainTextLabelProps {
     // (undocumented)
     shapeId: TLShapeId;
     // (undocumented)
+    showTextOutline?: boolean;
+    // (undocumented)
     style?: React_3.CSSProperties;
     // (undocumented)
     text?: string;
@@ -2602,6 +2605,8 @@ export interface RichTextLabelProps {
     richText?: TLRichText;
     // (undocumented)
     shapeId: TLShapeId;
+    // (undocumented)
+    showTextOutline?: boolean;
     // (undocumented)
     style?: React_3.CSSProperties;
     // (undocumented)
@@ -2959,6 +2964,7 @@ export const TextDirection: Extension<any, any>;
 // @public (undocumented)
 export interface TextShapeOptions {
     extraArrowHorizontalPadding: number;
+    showTextOutline: boolean;
 }
 
 // @public (undocumented)
