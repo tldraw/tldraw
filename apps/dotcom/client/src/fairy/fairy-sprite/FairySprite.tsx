@@ -25,6 +25,7 @@ interface WingSpriteProps {
 interface FairySpriteProps {
 	bodyColor: string
 	hatColor: string
+	tint: string | null
 }
 
 const FLAPPING_HIGH = [
@@ -112,6 +113,7 @@ export function FairySprite({
 	showShadow,
 	isGenerating,
 	isOrchestrator,
+	tint,
 }: {
 	pose: FairyPose
 	gesture?: FairyPose | null
@@ -138,9 +140,10 @@ export function FairySprite({
 					topWingColor={projectColor ?? 'var(--tl-color-fairy-light)'}
 					bottomWingColor={bottomWingColor ?? 'var(--tl-color-fairy-light)'}
 					bodyColor={'var(--tl-color-fairy-light)'}
-					hatColor={hatColor}
+					hatColor={hatColor ?? 'var(--tl-color-fairy-light)'}
 					flipX={flipX}
 					showShadow={showShadow}
+					tint={tint}
 				/>
 			) : (
 				<FairySpriteSvg
@@ -148,9 +151,10 @@ export function FairySprite({
 					topWingColor={projectColor ?? 'var(--tl-color-fairy-light)'}
 					bottomWingColor={bottomWingColor ?? 'var(--tl-color-fairy-light)'}
 					bodyColor="var(--tl-color-fairy-light)"
-					hatColor={hatColor}
+					hatColor={hatColor ?? 'var(--tl-color-fairy-light)'}
 					flipX={flipX}
 					showShadow={showShadow}
+					tint={tint}
 				/>
 			)}
 		</div>
@@ -191,7 +195,11 @@ function AnimatedFairySpriteComponent({
 export function CleanFairySpriteComponent() {
 	return (
 		<div className="fairy-sprite-container">
-			<FairySpriteSvg pose="idle" />
+			<FairySpriteSvg
+				pose="idle"
+				bodyColor="var(--tl-color-fairy-light)"
+				hatColor="var(--tl-color-fairy-light)"
+			/>
 		</div>
 	)
 }
@@ -200,11 +208,12 @@ export interface FairySpriteSvgProps {
 	pose: FairyPose
 	topWingColor?: string
 	bottomWingColor?: string
-	bodyColor?: string
-	hatColor?: string
+	bodyColor: string
+	hatColor: string
 	keyframe?: number
 	flipX?: boolean
 	showShadow?: boolean
+	tint?: string | null
 }
 
 function getItemForKeyFrame<T>(items: T | T[], keyframe: number) {
@@ -223,6 +232,7 @@ function FairySpriteSvg({
 	keyframe = 0,
 	flipX = false,
 	showShadow = false,
+	tint = null,
 }: FairySpriteSvgProps) {
 	const FSprite = getItemForKeyFrame(FAIRY_SPRITES_WITH_PROPS[pose], keyframe)
 	const WSprite = getItemForKeyFrame(WING_SPRITES[pose], keyframe)
@@ -238,7 +248,7 @@ function FairySpriteSvg({
 				xmlns="http://www.w3.org/2000/svg"
 			>
 				{WSprite && <WSprite topWingColor={topWingColor} bottomWingColor={bottomWingColor} />}
-				{FSprite && <FSprite bodyColor={bodyColor} hatColor={hatColor} />}
+				{FSprite && <FSprite bodyColor={bodyColor} hatColor={hatColor} tint={tint} />}
 			</svg>
 		</div>
 	)

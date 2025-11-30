@@ -1,31 +1,57 @@
 import { FairyBodySpritePart } from './parts/FairyBodySpritePart'
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
 
-export function ReadingSprite1({ bodyColor, hatColor }: { bodyColor: string; hatColor: string }) {
-	return <BaseReadingSprite bodyColor={bodyColor} hatColor={hatColor} eyeOffsetX={0} />
+export function ReadingSprite1({
+	bodyColor,
+	hatColor,
+	tint,
+}: {
+	bodyColor: string
+	hatColor: string
+	tint?: string | null
+}) {
+	return <BaseReadingSprite bodyColor={bodyColor} hatColor={hatColor} eyeOffsetX={0} tint={tint} />
 }
 
-export function ReadingSprite2({ bodyColor, hatColor }: { bodyColor: string; hatColor: string }) {
-	return <BaseReadingSprite bodyColor={bodyColor} hatColor={hatColor} eyeOffsetX={1} />
+export function ReadingSprite2({
+	bodyColor,
+	hatColor,
+	tint,
+}: {
+	bodyColor: string
+	hatColor: string
+	tint?: string | null
+}) {
+	return <BaseReadingSprite bodyColor={bodyColor} hatColor={hatColor} eyeOffsetX={1} tint={tint} />
 }
 
-export function ReadingSprite3({ bodyColor, hatColor }: { bodyColor: string; hatColor: string }) {
-	return <BaseReadingSprite bodyColor={bodyColor} hatColor={hatColor} eyeOffsetX={2} />
+export function ReadingSprite3({
+	bodyColor,
+	hatColor,
+	tint,
+}: {
+	bodyColor: string
+	hatColor: string
+	tint?: string | null
+}) {
+	return <BaseReadingSprite bodyColor={bodyColor} hatColor={hatColor} eyeOffsetX={2} tint={tint} />
 }
 
 function BaseReadingSprite({
 	bodyColor,
 	hatColor,
 	eyeOffsetX = 0,
+	tint,
 }: {
 	bodyColor: string
 	hatColor: string
 	eyeOffsetX?: number
+	tint?: string | null
 }) {
 	return (
 		<>
 			<FairyHatSpritePart hatColor={hatColor} />
-			<FairyBodySpritePart bodyColor={bodyColor} />
+			<FairyBodySpritePart bodyColor={bodyColor} tint={tint ?? null} />
 			<circle
 				cx="55.4159"
 				cy="33.7834"

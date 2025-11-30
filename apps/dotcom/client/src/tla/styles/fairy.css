@@ -281,6 +281,12 @@
 		drop-shadow(0px 0px 5px rgba(255, 255, 255, 0.25));
 }
 
+.tla-theme__dark .fairy-sprite-stack.shadow {
+	filter: drop-shadow(var(--x-offset) 2px 0.5px rgba(8, 20, 35, 0.52))
+		drop-shadow(0px 0px 1px rgba(255, 255, 255, 0.25))
+		drop-shadow(0px 0px 5px rgba(255, 255, 255, 0.25));
+}
+
 .fairy-toggle-button {
 	position: relative;
 	width: 44px !important;
@@ -915,7 +921,7 @@
 	align-items: center;
 	gap: 4px;
 	font-size: 12px;
-	padding: 2px 8px 2px 8px;
+	padding: 2px 8px 2px 2px;
 	color: var(--tl-color-text-2);
 }
 

@@ -186,16 +186,6 @@ function useFairyPointerInteraction(
 		}
 
 		const handleFairyPointerDown = (e: PointerEvent) => {
-			// Allow right-click to pass through for context menu
-			if (e.button === 2) return
-			if (!editor.isIn('select.idle')) return
-			if (editor.isIn('select.fairy-throw')) return
-			if (!isFairyGrabbable) return
-			;(e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId)
-
-			editor.setSelectedShapes([])
-			editor.setCursor({ type: 'grabbing', rotation: 0 })
-
 			// This forces the pointer current position to update (needed on mobile)
 			editor.dispatch({
 				type: 'pointer',
@@ -204,56 +194,68 @@ function useFairyPointerInteraction(
 				...getPointerInfo(editor, e),
 			})
 
-			// hack: dispatch an escape event to the document body to close any open context menus
-			document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+			// Allow right-click to pass through for context menu
+			if (e.button === 2) return
+			if (!editor.isIn('select.idle')) return
+			if (editor.isIn('select.fairy-throw')) return
+			if (!isFairyGrabbable) return
+			;(e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId)
 
-			editor.inputs.isPointing = true
-			editor.inputs.isDragging = false
-			editor.inputs.originPagePoint.setTo(editor.inputs.currentPagePoint)
+			editor.run(() => {
+				editor.setSelectedShapes([])
+				editor.setCursor({ type: 'grabbing', rotation: 0 })
 
-			// Listen for pointer move events on the captured element
-			// This is necessary on mobile to ensure editor.inputs.currentPagePoint is updated
-			elm.addEventListener('pointermove', handleCapturedPointerMove)
+				// hack: dispatch an escape event to the document body to close any open context menus
+				document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
 
-			const fairyAgents = $fairyAgentsAtom.get(editor)
-			const clickedFairyEntity = $fairyEntity.get()
-			const wasClickedFairySelected = clickedFairyEntity?.isSelected ?? false
-			const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey
+				editor.inputs.isPointing = true
+				editor.inputs.isDragging = false
+				editor.inputs.originPagePoint.setTo(editor.inputs.currentPagePoint)
 
-			updateFairySelection(fairyAgents, agent, wasClickedFairySelected, isMultiSelect)
+				// Listen for pointer move events on the captured element
+				// This is necessary on mobile to ensure editor.inputs.currentPagePoint is updated
+				elm.addEventListener('pointermove', handleCapturedPointerMove)
 
-			const fairiesToDrag: Atom<FairyEntity>[] = []
-			const selectedFairies = getSelectedFairyAtoms(fairyAgents)
-			if (selectedFairies.length === 0) {
-				fairiesToDrag.push($fairyEntity)
-			} else {
-				fairiesToDrag.push(...selectedFairies)
-			}
+				const fairyAgents = $fairyAgentsAtom.get(editor)
+				const clickedFairyEntity = $fairyEntity.get()
+				const wasClickedFairySelected = clickedFairyEntity?.isSelected ?? false
+				const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey
 
-			// Only prevent default and stop propagation for left-clicks
-			e.preventDefault()
-			e.stopPropagation()
+				updateFairySelection(fairyAgents, agent, wasClickedFairySelected, isMultiSelect)
 
-			interactionState.current = {
-				status: 'pressed',
-				pointerId: e.pointerId,
-				startClient: { x: e.clientX, y: e.clientY },
-				wasSelectedBeforeDown: wasClickedFairySelected,
-				fairiesAtPointerDown: fairiesToDrag,
-			}
-
-			// Start long-press timer (3 seconds)
-			cancelLongPressTimer()
-			longPressTimerRef.current = setTimeout(() => {
-				const currentState = interactionState.current
-				// Only trigger panicking if still pressed and not dragging
-				if (currentState.status === 'pressed' && !editor.inputs.isDragging) {
-					agent.gestureManager.push('panicking')
+				const fairiesToDrag: Atom<FairyEntity>[] = []
+				const selectedFairies = getSelectedFairyAtoms(fairyAgents)
+				if (selectedFairies.length === 0) {
+					fairiesToDrag.push($fairyEntity)
+				} else {
+					fairiesToDrag.push(...selectedFairies)
 				}
-				longPressTimerRef.current = null
-			}, 3000)
 
-			editor.on('event', handleEvent)
+				// Only prevent default and stop propagation for left-clicks
+				e.preventDefault()
+				e.stopPropagation()
+
+				interactionState.current = {
+					status: 'pressed',
+					pointerId: e.pointerId,
+					startClient: { x: e.clientX, y: e.clientY },
+					wasSelectedBeforeDown: wasClickedFairySelected,
+					fairiesAtPointerDown: fairiesToDrag,
+				}
+
+				// Start long-press timer (3 seconds)
+				cancelLongPressTimer()
+				longPressTimerRef.current = setTimeout(() => {
+					const currentState = interactionState.current
+					// Only trigger panicking if still pressed and not dragging
+					if (currentState.status === 'pressed' && !editor.inputs.isDragging) {
+						agent.gestureManager.push('panicking')
+					}
+					longPressTimerRef.current = null
+				}, 3000)
+
+				editor.on('event', handleEvent)
+			})
 		}
 
 		elm.addEventListener('pointerdown', handleFairyPointerDown)
