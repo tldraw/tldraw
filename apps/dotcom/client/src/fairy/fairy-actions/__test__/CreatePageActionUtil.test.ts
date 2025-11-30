@@ -78,6 +78,8 @@ describe('CreatePageActionUtil', () => {
 		})
 
 		it('should switch to new page when switchToPage is true', () => {
+			const initialPageId = editor.getCurrentPageId()
+
 			const action = createAgentAction({
 				_type: 'create-page',
 				pageName: 'New Page',
@@ -93,9 +95,12 @@ describe('CreatePageActionUtil', () => {
 			// Should be on the new page
 			const currentPage = editor.getCurrentPage()
 			expect(currentPage.name).toBe('New Page')
+			expect(editor.getCurrentPageId()).not.toBe(initialPageId)
 		})
 
 		it('should update fairy entity current page ID when switching', () => {
+			const initialFairyPageId = agent.$fairyEntity.get().currentPageId
+
 			const action = createAgentAction({
 				_type: 'create-page',
 				pageName: 'New Page',
@@ -105,14 +110,18 @@ describe('CreatePageActionUtil', () => {
 				time: 0,
 			})
 
-			const updateSpy = vi.spyOn(agent.$fairyEntity, 'update')
 			const helpers = new AgentHelpers(agent)
 			createPageUtil.applyAction(action, helpers)
 
-			expect(updateSpy).toHaveBeenCalled()
+			// Verify the fairy entity's current page ID actually changed
+			const newFairyPageId = agent.$fairyEntity.get().currentPageId
+			expect(newFairyPageId).not.toBe(initialFairyPageId)
+			expect(newFairyPageId).toBe(editor.getCurrentPageId())
 		})
 
 		it('should move fairy to center of viewport when switching', () => {
+			const initialFairyPosition = agent.$fairyEntity.get().position
+
 			const action = createAgentAction({
 				_type: 'create-page',
 				pageName: 'New Page',
@@ -126,6 +135,10 @@ describe('CreatePageActionUtil', () => {
 			createPageUtil.applyAction(action, helpers)
 
 			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			// Verify the fairy's position actually changed
+			const newFairyPosition = agent.$fairyEntity.get().position
+			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
+			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})
 
 		it('should not move fairy when not switching pages', () => {

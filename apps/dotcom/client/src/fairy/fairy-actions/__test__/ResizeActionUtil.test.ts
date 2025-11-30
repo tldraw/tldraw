@@ -248,6 +248,11 @@ describe('ResizeActionUtil', () => {
 			const id1 = createShapeId('shape1')
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 
+			const shapeBefore = editor.getShape(id1)
+			const boundsBefore = editor.getShapePageBounds(id1)
+			const initialWidth = boundsBefore!.width
+			const initialHeight = boundsBefore!.height
+
 			const action = createAgentAction({
 				_type: 'resize',
 				shapeIds: ['shape1'],
@@ -261,14 +266,13 @@ describe('ResizeActionUtil', () => {
 			})
 
 			const helpers = new AgentHelpers(agent)
-			const resizeShapeSpy = vi.spyOn(editor, 'resizeShape')
 			resizeUtil.applyAction(action, helpers)
 
-			expect(resizeShapeSpy).toHaveBeenCalledWith(
-				id1 as TLShapeId,
-				{ x: 2, y: 2 },
-				{ scaleOrigin: { x: 50, y: 50 } }
-			)
+			const boundsAfter = editor.getShapePageBounds(id1)
+			expect(boundsAfter).toBeDefined()
+			// Verify the shape was actually resized (should be approximately 2x larger)
+			expect(boundsAfter!.width).toBeCloseTo(initialWidth * 2, 1)
+			expect(boundsAfter!.height).toBeCloseTo(initialHeight * 2, 1)
 		})
 
 		it('should resize multiple shapes', () => {
@@ -276,6 +280,13 @@ describe('ResizeActionUtil', () => {
 			const id2 = createShapeId('shape2')
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 			editor.createShape({ id: id2, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100 } })
+
+			const bounds1Before = editor.getShapePageBounds(id1)
+			const bounds2Before = editor.getShapePageBounds(id2)
+			const initialWidth1 = bounds1Before!.width
+			const initialHeight1 = bounds1Before!.height
+			const initialWidth2 = bounds2Before!.width
+			const initialHeight2 = bounds2Before!.height
 
 			const action = createAgentAction({
 				_type: 'resize',
@@ -290,25 +301,24 @@ describe('ResizeActionUtil', () => {
 			})
 
 			const helpers = new AgentHelpers(agent)
-			const resizeShapeSpy = vi.spyOn(editor, 'resizeShape')
 			resizeUtil.applyAction(action, helpers)
 
-			expect(resizeShapeSpy).toHaveBeenCalledTimes(2)
-			expect(resizeShapeSpy).toHaveBeenCalledWith(
-				id1 as TLShapeId,
-				{ x: 1.5, y: 1.5 },
-				{ scaleOrigin: { x: 100, y: 50 } }
-			)
-			expect(resizeShapeSpy).toHaveBeenCalledWith(
-				id2 as TLShapeId,
-				{ x: 1.5, y: 1.5 },
-				{ scaleOrigin: { x: 100, y: 50 } }
-			)
+			const bounds1After = editor.getShapePageBounds(id1)
+			const bounds2After = editor.getShapePageBounds(id2)
+			expect(bounds1After).toBeDefined()
+			expect(bounds2After).toBeDefined()
+			// Verify both shapes were actually resized (should be approximately 1.5x larger)
+			expect(bounds1After!.width).toBeCloseTo(initialWidth1 * 1.5, 1)
+			expect(bounds1After!.height).toBeCloseTo(initialHeight1 * 1.5, 1)
+			expect(bounds2After!.width).toBeCloseTo(initialWidth2 * 1.5, 1)
+			expect(bounds2After!.height).toBeCloseTo(initialHeight2 * 1.5, 1)
 		})
 
 		it('should move fairy to the origin point', () => {
 			const id1 = createShapeId('shape1')
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+
+			const initialFairyPosition = agent.$fairyEntity.get().position
 
 			const action = createAgentAction({
 				_type: 'resize',
@@ -326,11 +336,19 @@ describe('ResizeActionUtil', () => {
 			resizeUtil.applyAction(action, helpers)
 
 			expect(agent.positionManager.moveTo).toHaveBeenCalledWith({ x: 50, y: 50 })
+			// Verify the fairy's position actually changed
+			const newFairyPosition = agent.$fairyEntity.get().position
+			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
+			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})
 
 		it('should handle scale down operations', () => {
 			const id1 = createShapeId('shape1')
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+
+			const boundsBefore = editor.getShapePageBounds(id1)
+			const initialWidth = boundsBefore!.width
+			const initialHeight = boundsBefore!.height
 
 			const action = createAgentAction({
 				_type: 'resize',
@@ -345,19 +363,22 @@ describe('ResizeActionUtil', () => {
 			})
 
 			const helpers = new AgentHelpers(agent)
-			const resizeShapeSpy = vi.spyOn(editor, 'resizeShape')
 			resizeUtil.applyAction(action, helpers)
 
-			expect(resizeShapeSpy).toHaveBeenCalledWith(
-				id1 as TLShapeId,
-				{ x: 0.5, y: 0.5 },
-				{ scaleOrigin: { x: 50, y: 50 } }
-			)
+			const boundsAfter = editor.getShapePageBounds(id1)
+			expect(boundsAfter).toBeDefined()
+			// Verify the shape was actually resized (should be approximately 0.5x smaller)
+			expect(boundsAfter!.width).toBeCloseTo(initialWidth * 0.5, 1)
+			expect(boundsAfter!.height).toBeCloseTo(initialHeight * 0.5, 1)
 		})
 
 		it('should handle non-uniform scaling', () => {
 			const id1 = createShapeId('shape1')
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+
+			const boundsBefore = editor.getShapePageBounds(id1)
+			const initialWidth = boundsBefore!.width
+			const initialHeight = boundsBefore!.height
 
 			const action = createAgentAction({
 				_type: 'resize',
@@ -372,14 +393,13 @@ describe('ResizeActionUtil', () => {
 			})
 
 			const helpers = new AgentHelpers(agent)
-			const resizeShapeSpy = vi.spyOn(editor, 'resizeShape')
 			resizeUtil.applyAction(action, helpers)
 
-			expect(resizeShapeSpy).toHaveBeenCalledWith(
-				id1 as TLShapeId,
-				{ x: 2, y: 0.5 },
-				{ scaleOrigin: { x: 50, y: 50 } }
-			)
+			const boundsAfter = editor.getShapePageBounds(id1)
+			expect(boundsAfter).toBeDefined()
+			// Verify the shape was actually resized with non-uniform scaling
+			expect(boundsAfter!.width).toBeCloseTo(initialWidth * 2, 1)
+			expect(boundsAfter!.height).toBeCloseTo(initialHeight * 0.5, 1)
 		})
 
 		it('should apply offset transformations to origin', () => {

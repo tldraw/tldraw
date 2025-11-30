@@ -218,6 +218,8 @@ describe('UpdateActionUtil', () => {
 			const id = createShapeId('text1')
 			editor.createShape({ id, type: 'text', x: 0, y: 0 })
 
+			const initialFairyPosition = agent.$fairyEntity.get().position
+
 			const action = createAgentAction({
 				_type: 'update',
 				update: {
@@ -240,6 +242,10 @@ describe('UpdateActionUtil', () => {
 
 			// Verify moveTo was called (this happens after shape update)
 			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			// Verify the fairy's position actually changed
+			const newFairyPosition = agent.$fairyEntity.get().position
+			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
+			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})
 
 		it('should handle updating arrow bindings', () => {
@@ -249,6 +255,8 @@ describe('UpdateActionUtil', () => {
 			editor.createShape({ id: arrowId, type: 'arrow', x: 0, y: 0 })
 			editor.createShape({ id: fromId, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 			editor.createShape({ id: toId, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100 } })
+
+			const arrowBefore = editor.getShape(arrowId)
 
 			const action = createAgentAction({
 				_type: 'update',
@@ -269,11 +277,16 @@ describe('UpdateActionUtil', () => {
 				time: 0,
 			})
 
-			const updateShapeSpy = vi.spyOn(editor, 'updateShape')
 			const helpers = new AgentHelpers(agent)
 			updateUtil.applyAction(action, helpers)
 
-			expect(updateShapeSpy).toHaveBeenCalled()
+			// Verify the arrow shape was actually updated
+			const arrowAfter = editor.getShape(arrowId)
+			expect(arrowAfter).toBeDefined()
+			expect(arrowAfter).not.toBe(arrowBefore)
+			// Verify bindings were created
+			const newBindings = editor.getBindingsFromShape(arrowId, 'arrow')
+			expect(newBindings.length).toBeGreaterThan(0)
 		})
 
 		it('should handle shape not found error', () => {
@@ -306,6 +319,8 @@ describe('UpdateActionUtil', () => {
 			const id = createShapeId('note1')
 			editor.createShape({ id, type: 'note', x: 0, y: 0 })
 
+			const initialFairyPosition = agent.$fairyEntity.get().position
+
 			const action = createAgentAction({
 				_type: 'update',
 				update: {
@@ -327,6 +342,10 @@ describe('UpdateActionUtil', () => {
 
 			// Verify moveTo was called (this happens after shape update)
 			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			// Verify the fairy's position actually changed
+			const newFairyPosition = agent.$fairyEntity.get().position
+			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
+			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})
 	})
 })

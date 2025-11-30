@@ -97,6 +97,13 @@ describe('StackActionUtil', () => {
 			editor.createShape({ id: id2, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100 } })
 			editor.createShape({ id: id3, type: 'geo', x: 400, y: 0, props: { w: 100, h: 100 } })
 
+			const shape1Before = editor.getShape(id1)
+			const shape2Before = editor.getShape(id2)
+			const shape3Before = editor.getShape(id3)
+			const initialX1 = shape1Before!.x
+			const initialX2 = shape2Before!.x
+			const initialX3 = shape3Before!.x
+
 			const action = createAgentAction({
 				_type: 'stack',
 				direction: 'horizontal',
@@ -107,15 +114,19 @@ describe('StackActionUtil', () => {
 				time: 0,
 			})
 
-			const stackShapesSpy = vi.spyOn(editor, 'stackShapes')
 			stackUtil.applyAction(action)
 
-			// Gap is capped at 1
-			expect(stackShapesSpy).toHaveBeenCalledWith(
-				[id1 as TLShapeId, id2 as TLShapeId, id3 as TLShapeId],
-				'horizontal',
-				1
-			)
+			// Verify shapes were actually stacked (positions should be more evenly spaced)
+			const shape1After = editor.getShape(id1)
+			const shape2After = editor.getShape(id2)
+			const shape3After = editor.getShape(id3)
+			// At least one shape should have moved
+			const shapesMoved =
+				shape1After!.x !== initialX1 || shape2After!.x !== initialX2 || shape3After!.x !== initialX3
+			expect(shapesMoved).toBe(true)
+			// Shapes should be in order (x coordinates should be increasing)
+			expect(shape1After!.x).toBeLessThan(shape2After!.x)
+			expect(shape2After!.x).toBeLessThan(shape3After!.x)
 		})
 
 		it('should stack shapes vertically', () => {
@@ -127,6 +138,13 @@ describe('StackActionUtil', () => {
 			editor.createShape({ id: id2, type: 'geo', x: 0, y: 200, props: { w: 100, h: 100 } })
 			editor.createShape({ id: id3, type: 'geo', x: 0, y: 400, props: { w: 100, h: 100 } })
 
+			const shape1Before = editor.getShape(id1)
+			const shape2Before = editor.getShape(id2)
+			const shape3Before = editor.getShape(id3)
+			const initialY1 = shape1Before!.y
+			const initialY2 = shape2Before!.y
+			const initialY3 = shape3Before!.y
+
 			const action = createAgentAction({
 				_type: 'stack',
 				direction: 'vertical',
@@ -137,15 +155,19 @@ describe('StackActionUtil', () => {
 				time: 0,
 			})
 
-			const stackShapesSpy = vi.spyOn(editor, 'stackShapes')
 			stackUtil.applyAction(action)
 
-			// Gap is capped at 1
-			expect(stackShapesSpy).toHaveBeenCalledWith(
-				[id1 as TLShapeId, id2 as TLShapeId, id3 as TLShapeId],
-				'vertical',
-				1
-			)
+			// Verify shapes were actually stacked (positions should be more evenly spaced)
+			const shape1After = editor.getShape(id1)
+			const shape2After = editor.getShape(id2)
+			const shape3After = editor.getShape(id3)
+			// At least one shape should have moved
+			const shapesMoved =
+				shape1After!.y !== initialY1 || shape2After!.y !== initialY2 || shape3After!.y !== initialY3
+			expect(shapesMoved).toBe(true)
+			// Shapes should be in order (y coordinates should be increasing)
+			expect(shape1After!.y).toBeLessThan(shape2After!.y)
+			expect(shape2After!.y).toBeLessThan(shape3After!.y)
 		})
 
 		it('should limit gap to maximum of 1', () => {
@@ -212,6 +234,8 @@ describe('StackActionUtil', () => {
 			editor.createShape({ id: id2, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100 } })
 			editor.createShape({ id: id3, type: 'geo', x: 400, y: 0, props: { w: 100, h: 100 } })
 
+			const initialFairyPosition = agent.$fairyEntity.get().position
+
 			const action = createAgentAction({
 				_type: 'stack',
 				direction: 'vertical',
@@ -226,6 +250,10 @@ describe('StackActionUtil', () => {
 
 			// Should move to center of bounds
 			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			// Verify the fairy's position actually changed
+			const newFairyPosition = agent.$fairyEntity.get().position
+			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
+			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})
 
 		it('should not move fairy if shapes have no bounds', () => {

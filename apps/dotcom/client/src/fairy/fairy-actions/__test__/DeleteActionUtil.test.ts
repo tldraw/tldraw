@@ -1,5 +1,5 @@
 import { createAgentAction } from '@tldraw/fairy-shared'
-import { createShapeId, Editor, TLShapeId } from 'tldraw'
+import { createShapeId, Editor } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AgentHelpers } from '../../fairy-agent/AgentHelpers'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
@@ -92,6 +92,9 @@ describe('DeleteActionUtil', () => {
 			const id = createShapeId('shape1')
 			editor.createShape({ id, type: 'geo', x: 100, y: 200, props: { w: 100, h: 100 } })
 
+			// Verify shape exists before deletion
+			expect(editor.getShape(id)).toBeDefined()
+
 			const action = createAgentAction({
 				_type: 'delete',
 				shapeId: 'shape1',
@@ -100,15 +103,17 @@ describe('DeleteActionUtil', () => {
 				time: 0,
 			})
 
-			const deleteShapeSpy = vi.spyOn(editor, 'deleteShape')
 			deleteUtil.applyAction(action)
 
-			expect(deleteShapeSpy).toHaveBeenCalledWith(id as TLShapeId)
+			// Verify shape was actually deleted
+			expect(editor.getShape(id)).toBeUndefined()
 		})
 
 		it('should move fairy to the deleted shape position', () => {
 			const id = createShapeId('shape1')
 			editor.createShape({ id, type: 'geo', x: 150, y: 250, props: { w: 100, h: 100 } })
+
+			const initialFairyPosition = agent.$fairyEntity.get().position
 
 			const action = createAgentAction({
 				_type: 'delete',
@@ -121,6 +126,10 @@ describe('DeleteActionUtil', () => {
 			deleteUtil.applyAction(action)
 
 			expect(agent.positionManager.moveTo).toHaveBeenCalledWith({ x: 150, y: 250 })
+			// Verify the fairy's position actually changed
+			const newFairyPosition = agent.$fairyEntity.get().position
+			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
+			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})
 
 		it('should not delete if shape does not exist', () => {
@@ -143,6 +152,9 @@ describe('DeleteActionUtil', () => {
 			const id = createShapeId('text1')
 			editor.createShape({ id, type: 'text', x: 300, y: 400 })
 
+			// Verify shape exists before deletion
+			expect(editor.getShape(id)).toBeDefined()
+
 			const action = createAgentAction({
 				_type: 'delete',
 				shapeId: 'text1',
@@ -151,16 +163,19 @@ describe('DeleteActionUtil', () => {
 				time: 0,
 			})
 
-			const deleteShapeSpy = vi.spyOn(editor, 'deleteShape')
 			deleteUtil.applyAction(action)
 
-			expect(deleteShapeSpy).toHaveBeenCalledWith(id as TLShapeId)
+			// Verify shape was actually deleted
+			expect(editor.getShape(id)).toBeUndefined()
 			expect(agent.positionManager.moveTo).toHaveBeenCalledWith({ x: 300, y: 400 })
 		})
 
 		it('should handle deletion of arrow shape', () => {
 			const arrowId = createShapeId('arrow1')
 			editor.createShape({ id: arrowId, type: 'arrow', x: 50, y: 75 })
+
+			// Verify shape exists before deletion
+			expect(editor.getShape(arrowId)).toBeDefined()
 
 			const action = createAgentAction({
 				_type: 'delete',
@@ -170,10 +185,10 @@ describe('DeleteActionUtil', () => {
 				time: 0,
 			})
 
-			const deleteShapeSpy = vi.spyOn(editor, 'deleteShape')
 			deleteUtil.applyAction(action)
 
-			expect(deleteShapeSpy).toHaveBeenCalledWith(arrowId as TLShapeId)
+			// Verify shape was actually deleted
+			expect(editor.getShape(arrowId)).toBeUndefined()
 			expect(agent.positionManager.moveTo).toHaveBeenCalledWith({ x: 50, y: 75 })
 		})
 	})

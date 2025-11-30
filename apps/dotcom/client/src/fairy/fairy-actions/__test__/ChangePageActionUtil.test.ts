@@ -43,6 +43,8 @@ describe('ChangePageActionUtil', () => {
 			const page2Id = PageRecordType.createId()
 			editor.createPage({ name: 'Page 2', id: page2Id })
 
+			const initialPageId = editor.getCurrentPageId()
+
 			const action = createAgentAction({
 				_type: 'change-page',
 				pageName: 'Page 2',
@@ -51,17 +53,20 @@ describe('ChangePageActionUtil', () => {
 				time: 0,
 			})
 
-			const setCurrentPageSpy = vi.spyOn(editor, 'setCurrentPage')
 			const helpers = new AgentHelpers(agent)
 			changePageUtil.applyAction(action, helpers)
 
-			expect(setCurrentPageSpy).toHaveBeenCalledWith(page2Id)
+			// Verify the current page actually changed
+			expect(editor.getCurrentPageId()).toBe(page2Id)
+			expect(editor.getCurrentPageId()).not.toBe(initialPageId)
 		})
 
 		it('should update fairy entity current page ID', () => {
 			const page2Id = PageRecordType.createId()
 			editor.createPage({ name: 'Page 2', id: page2Id })
 
+			const initialFairyPageId = agent.$fairyEntity.get().currentPageId
+
 			const action = createAgentAction({
 				_type: 'change-page',
 				pageName: 'Page 2',
@@ -70,16 +75,20 @@ describe('ChangePageActionUtil', () => {
 				time: 0,
 			})
 
-			const updateSpy = vi.spyOn(agent.$fairyEntity, 'update')
 			const helpers = new AgentHelpers(agent)
 			changePageUtil.applyAction(action, helpers)
 
-			expect(updateSpy).toHaveBeenCalled()
+			// Verify the fairy entity's current page ID actually changed
+			const newFairyPageId = agent.$fairyEntity.get().currentPageId
+			expect(newFairyPageId).toBe(page2Id)
+			expect(newFairyPageId).not.toBe(initialFairyPageId)
 		})
 
 		it('should move fairy to center of viewport on new page', () => {
 			const page2Id = PageRecordType.createId()
 			editor.createPage({ name: 'Page 2', id: page2Id })
+
+			const initialFairyPosition = agent.$fairyEntity.get().position
 
 			const action = createAgentAction({
 				_type: 'change-page',
@@ -93,6 +102,10 @@ describe('ChangePageActionUtil', () => {
 			changePageUtil.applyAction(action, helpers)
 
 			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			// Verify the fairy's position actually changed
+			const newFairyPosition = agent.$fairyEntity.get().position
+			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
+			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})
 
 		it('should schedule message if page does not exist', () => {
@@ -173,6 +186,7 @@ describe('ChangePageActionUtil', () => {
 		it('should handle changing to page with same name as current page', () => {
 			// Get the default page name
 			const currentPage = editor.getCurrentPage()
+			const currentPageId = editor.getCurrentPageId()
 
 			const action = createAgentAction({
 				_type: 'change-page',
@@ -182,17 +196,18 @@ describe('ChangePageActionUtil', () => {
 				time: 0,
 			})
 
-			const setCurrentPageSpy = vi.spyOn(editor, 'setCurrentPage')
 			const helpers = new AgentHelpers(agent)
 			changePageUtil.applyAction(action, helpers)
 
-			// Should still call setCurrentPage even if it's the same page
-			expect(setCurrentPageSpy).toHaveBeenCalledWith(currentPage.id)
+			// Should still be on the same page
+			expect(editor.getCurrentPageId()).toBe(currentPageId)
 		})
 
 		it('should handle page names with special characters', () => {
 			const specialPageId = PageRecordType.createId()
 			editor.createPage({ name: 'Page-With-Dashes & Symbols!', id: specialPageId })
+
+			const initialPageId = editor.getCurrentPageId()
 
 			const action = createAgentAction({
 				_type: 'change-page',
@@ -202,11 +217,12 @@ describe('ChangePageActionUtil', () => {
 				time: 0,
 			})
 
-			const setCurrentPageSpy = vi.spyOn(editor, 'setCurrentPage')
 			const helpers = new AgentHelpers(agent)
 			changePageUtil.applyAction(action, helpers)
 
-			expect(setCurrentPageSpy).toHaveBeenCalledWith(specialPageId)
+			// Verify the current page actually changed
+			expect(editor.getCurrentPageId()).toBe(specialPageId)
+			expect(editor.getCurrentPageId()).not.toBe(initialPageId)
 		})
 
 		it('should be case-sensitive when matching page names', () => {

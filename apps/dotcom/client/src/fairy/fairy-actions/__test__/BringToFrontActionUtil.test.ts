@@ -1,5 +1,5 @@
 import { createAgentAction } from '@tldraw/fairy-shared'
-import { createShapeId, Editor, TLShapeId } from 'tldraw'
+import { createShapeId, Editor } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AgentHelpers } from '../../fairy-agent/AgentHelpers'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
@@ -94,6 +94,11 @@ describe('BringToFrontActionUtil', () => {
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 			editor.createShape({ id: id2, type: 'geo', x: 50, y: 50, props: { w: 100, h: 100 } })
 
+			// Get initial shape order
+			const shapesBefore = editor.getCurrentPageShapes()
+			const index1Before = shapesBefore.findIndex((s) => s.id === id1)
+			const index2Before = shapesBefore.findIndex((s) => s.id === id2)
+
 			const action = createAgentAction({
 				_type: 'bring-to-front',
 				intent: 'Bring to front',
@@ -102,10 +107,16 @@ describe('BringToFrontActionUtil', () => {
 				time: 0,
 			})
 
-			const bringToFrontSpy = vi.spyOn(editor, 'bringToFront')
 			bringToFrontUtil.applyAction(action)
 
-			expect(bringToFrontSpy).toHaveBeenCalledWith([id1 as TLShapeId])
+			// Verify shape was actually brought to front (should be last in array)
+			const shapesAfter = editor.getCurrentPageShapes()
+			const index1After = shapesAfter.findIndex((s) => s.id === id1)
+			const index2After = shapesAfter.findIndex((s) => s.id === id2)
+			// shape1 should now be after shape2 (brought to front)
+			expect(index1After).toBeGreaterThan(index2After)
+			// shape1 should be at the end (last shape)
+			expect(index1After).toBe(shapesAfter.length - 1)
 		})
 
 		it('should bring multiple shapes to front', () => {
@@ -117,6 +128,12 @@ describe('BringToFrontActionUtil', () => {
 			editor.createShape({ id: id2, type: 'geo', x: 50, y: 50, props: { w: 100, h: 100 } })
 			editor.createShape({ id: id3, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } })
 
+			// Get initial shape order
+			const shapesBefore = editor.getCurrentPageShapes()
+			const index1Before = shapesBefore.findIndex((s) => s.id === id1)
+			const index2Before = shapesBefore.findIndex((s) => s.id === id2)
+			const index3Before = shapesBefore.findIndex((s) => s.id === id3)
+
 			const action = createAgentAction({
 				_type: 'bring-to-front',
 				intent: 'Bring all to front',
@@ -125,10 +142,19 @@ describe('BringToFrontActionUtil', () => {
 				time: 0,
 			})
 
-			const bringToFrontSpy = vi.spyOn(editor, 'bringToFront')
 			bringToFrontUtil.applyAction(action)
 
-			expect(bringToFrontSpy).toHaveBeenCalledWith([id1 as TLShapeId, id2 as TLShapeId])
+			// Verify shapes were actually brought to front
+			const shapesAfter = editor.getCurrentPageShapes()
+			const index1After = shapesAfter.findIndex((s) => s.id === id1)
+			const index2After = shapesAfter.findIndex((s) => s.id === id2)
+			const index3After = shapesAfter.findIndex((s) => s.id === id3)
+			// shape1 and shape2 should now be after shape3 (brought to front)
+			expect(index1After).toBeGreaterThan(index3After)
+			expect(index2After).toBeGreaterThan(index3After)
+			// shape1 and shape2 should be at the end
+			expect(index1After).toBeGreaterThanOrEqual(shapesAfter.length - 2)
+			expect(index2After).toBeGreaterThanOrEqual(shapesAfter.length - 2)
 		})
 
 		it('should move fairy to the center of shapes', () => {
@@ -137,6 +163,8 @@ describe('BringToFrontActionUtil', () => {
 
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 			editor.createShape({ id: id2, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100 } })
+
+			const initialFairyPosition = agent.$fairyEntity.get().position
 
 			const action = createAgentAction({
 				_type: 'bring-to-front',
@@ -150,6 +178,10 @@ describe('BringToFrontActionUtil', () => {
 
 			// Should move to center of bounds
 			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			// Verify the fairy's position actually changed
+			const newFairyPosition = agent.$fairyEntity.get().position
+			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
+			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})
 
 		it('should not move fairy if shapes have no bounds', () => {

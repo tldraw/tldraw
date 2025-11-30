@@ -206,6 +206,9 @@ describe('RotateActionUtil', () => {
 			const id1 = createShapeId('shape1')
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 
+			const shapeBefore = editor.getShape(id1)
+			const initialRotation = shapeBefore!.rotation
+
 			const action = createAgentAction({
 				_type: 'rotate',
 				shapeIds: ['shape1'],
@@ -219,13 +222,14 @@ describe('RotateActionUtil', () => {
 			})
 
 			const helpers = new AgentHelpers(agent)
-			const rotateShapesBySpy = vi.spyOn(editor, 'rotateShapesBy')
 			rotateUtil.applyAction(action, helpers)
 
-			const expectedRadians = (90 * Math.PI) / 180
-			expect(rotateShapesBySpy).toHaveBeenCalledWith([id1 as TLShapeId], expectedRadians, {
-				center: { x: 50, y: 50 },
-			})
+			const shapeAfter = editor.getShape(id1)
+			expect(shapeAfter).toBeDefined()
+			// Verify the shape was actually rotated
+			const expectedRotation = initialRotation + (90 * Math.PI) / 180
+			// Rotation is normalized, so check it's approximately correct
+			expect(Math.abs(shapeAfter!.rotation - expectedRotation)).toBeLessThan(0.01)
 		})
 
 		it('should rotate multiple shapes', () => {
@@ -233,6 +237,11 @@ describe('RotateActionUtil', () => {
 			const id2 = createShapeId('shape2')
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 			editor.createShape({ id: id2, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100 } })
+
+			const shape1Before = editor.getShape(id1)
+			const shape2Before = editor.getShape(id2)
+			const initialRotation1 = shape1Before!.rotation
+			const initialRotation2 = shape2Before!.rotation
 
 			const action = createAgentAction({
 				_type: 'rotate',
@@ -247,20 +256,27 @@ describe('RotateActionUtil', () => {
 			})
 
 			const helpers = new AgentHelpers(agent)
-			const rotateShapesBySpy = vi.spyOn(editor, 'rotateShapesBy')
 			rotateUtil.applyAction(action, helpers)
 
-			const expectedRadians = (45 * Math.PI) / 180
-			expect(rotateShapesBySpy).toHaveBeenCalledWith(
-				[id1 as TLShapeId, id2 as TLShapeId],
-				expectedRadians,
-				{ center: { x: 150, y: 50 } }
+			const shape1After = editor.getShape(id1)
+			const shape2After = editor.getShape(id2)
+			expect(shape1After).toBeDefined()
+			expect(shape2After).toBeDefined()
+			// Verify both shapes were actually rotated
+			const expectedRotation = (45 * Math.PI) / 180
+			expect(Math.abs(shape1After!.rotation - (initialRotation1 + expectedRotation))).toBeLessThan(
+				0.01
+			)
+			expect(Math.abs(shape2After!.rotation - (initialRotation2 + expectedRotation))).toBeLessThan(
+				0.01
 			)
 		})
 
 		it('should move fairy to the origin point', () => {
 			const id1 = createShapeId('shape1')
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+
+			const initialFairyPosition = agent.$fairyEntity.get().position
 
 			const action = createAgentAction({
 				_type: 'rotate',
@@ -278,6 +294,10 @@ describe('RotateActionUtil', () => {
 			rotateUtil.applyAction(action, helpers)
 
 			expect(agent.positionManager.moveTo).toHaveBeenCalledWith({ x: 50, y: 50 })
+			// Verify the fairy's position actually changed
+			const newFairyPosition = agent.$fairyEntity.get().position
+			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
+			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})
 
 		it('should handle rotation by 180 degrees', () => {

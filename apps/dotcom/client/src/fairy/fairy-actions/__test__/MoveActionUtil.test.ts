@@ -165,6 +165,10 @@ describe('MoveActionUtil', () => {
 			const id1 = createShapeId('shape1')
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 
+			const shapeBefore = editor.getShape(id1)
+			const initialX = shapeBefore!.x
+			const initialY = shapeBefore!.y
+
 			const action = createAgentAction({
 				_type: 'move',
 				shapeId: 'shape1',
@@ -178,10 +182,16 @@ describe('MoveActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			moveUtil.applyAction(action, helpers)
 
-			const shape = editor.getShape(id1)
-			expect(shape).toBeDefined()
-			// The shape should be moved to the target position
-			// (accounting for offset and shape bounds)
+			const shapeAfter = editor.getShape(id1)
+			expect(shapeAfter).toBeDefined()
+			// The shape should have moved from its initial position
+			expect(shapeAfter!.x).not.toBe(initialX)
+			expect(shapeAfter!.y).not.toBe(initialY)
+			// Verify the shape bounds moved to approximately the target position
+			const bounds = editor.getShapePageBounds(id1)
+			expect(bounds).toBeDefined()
+			expect(Math.abs(bounds!.minX - 100)).toBeLessThan(50) // Account for shape origin offset
+			expect(Math.abs(bounds!.minY - 100)).toBeLessThan(50)
 		})
 
 		it('should not apply action if shape does not exist', () => {
@@ -206,6 +216,8 @@ describe('MoveActionUtil', () => {
 			const id1 = createShapeId('shape1')
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 
+			const initialFairyPosition = agent.$fairyEntity.get().position
+
 			const action = createAgentAction({
 				_type: 'move',
 				shapeId: 'shape1',
@@ -220,11 +232,19 @@ describe('MoveActionUtil', () => {
 			moveUtil.applyAction(action, helpers)
 
 			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			// Verify the fairy's position actually changed
+			const newFairyPosition = agent.$fairyEntity.get().position
+			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
+			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})
 
 		it('should correctly calculate shape position from bounds', () => {
 			const id1 = createShapeId('shape1')
 			editor.createShape({ id: id1, type: 'geo', x: 50, y: 50, props: { w: 100, h: 100 } })
+
+			const shapeBefore = editor.getShape(id1)
+			const initialX = shapeBefore!.x
+			const initialY = shapeBefore!.y
 
 			const action = createAgentAction({
 				_type: 'move',
@@ -237,20 +257,28 @@ describe('MoveActionUtil', () => {
 			})
 
 			const helpers = new AgentHelpers(agent)
-			const updateShapeSpy = vi.spyOn(editor, 'updateShape')
 			moveUtil.applyAction(action, helpers)
 
-			expect(updateShapeSpy).toHaveBeenCalled()
-			// Verify the shape was updated
-			const callArgs = updateShapeSpy.mock.calls[0]?.[0]
-			expect(callArgs).toBeDefined()
-			expect(callArgs?.id).toBe(id1)
+			const shapeAfter = editor.getShape(id1)
+			expect(shapeAfter).toBeDefined()
+			// Verify the shape position actually changed
+			expect(shapeAfter!.x).not.toBe(initialX)
+			expect(shapeAfter!.y).not.toBe(initialY)
+			// Verify the shape bounds moved towards the target
+			const bounds = editor.getShapePageBounds(id1)
+			expect(bounds).toBeDefined()
+			expect(bounds!.minX).toBeGreaterThan(initialX)
+			expect(bounds!.minY).toBeGreaterThan(initialY)
 		})
 
 		it('should handle shapes with different origins and bounds', () => {
 			const id1 = createShapeId('shape1')
 			// Create a shape where the origin differs from bounds
 			editor.createShape({ id: id1, type: 'geo', x: 25, y: 25, props: { w: 50, h: 50 } })
+
+			const shapeBefore = editor.getShape(id1)
+			const initialX = shapeBefore!.x
+			const initialY = shapeBefore!.y
 
 			const action = createAgentAction({
 				_type: 'move',
@@ -263,10 +291,13 @@ describe('MoveActionUtil', () => {
 			})
 
 			const helpers = new AgentHelpers(agent)
-			const updateShapeSpy = vi.spyOn(editor, 'updateShape')
 			moveUtil.applyAction(action, helpers)
 
-			expect(updateShapeSpy).toHaveBeenCalled()
+			const shapeAfter = editor.getShape(id1)
+			expect(shapeAfter).toBeDefined()
+			// Verify the shape position actually changed
+			expect(shapeAfter!.x).not.toBe(initialX)
+			expect(shapeAfter!.y).not.toBe(initialY)
 			expect(agent.positionManager.moveTo).toHaveBeenCalled()
 		})
 
@@ -298,6 +329,10 @@ describe('MoveActionUtil', () => {
 			const id1 = createShapeId('shape1')
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 
+			const shapeBefore = editor.getShape(id1)
+			const initialX = shapeBefore!.x
+			const initialY = shapeBefore!.y
+
 			const action = createAgentAction({
 				_type: 'move',
 				shapeId: 'shape1',
@@ -309,16 +344,23 @@ describe('MoveActionUtil', () => {
 			})
 
 			const helpers = new AgentHelpers(agent)
-			const updateShapeSpy = vi.spyOn(editor, 'updateShape')
 			moveUtil.applyAction(action, helpers)
 
-			expect(updateShapeSpy).toHaveBeenCalled()
+			const shapeAfter = editor.getShape(id1)
+			expect(shapeAfter).toBeDefined()
+			// Verify the shape moved (position should be different)
+			expect(shapeAfter!.x).not.toBe(initialX)
+			expect(shapeAfter!.y).not.toBe(initialY)
 			expect(agent.positionManager.moveTo).toHaveBeenCalled()
 		})
 
 		it('should handle zero coordinates', () => {
 			const id1 = createShapeId('shape1')
 			editor.createShape({ id: id1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } })
+
+			const shapeBefore = editor.getShape(id1)
+			const initialX = shapeBefore!.x
+			const initialY = shapeBefore!.y
 
 			const action = createAgentAction({
 				_type: 'move',
@@ -331,10 +373,13 @@ describe('MoveActionUtil', () => {
 			})
 
 			const helpers = new AgentHelpers(agent)
-			const updateShapeSpy = vi.spyOn(editor, 'updateShape')
 			moveUtil.applyAction(action, helpers)
 
-			expect(updateShapeSpy).toHaveBeenCalled()
+			const shapeAfter = editor.getShape(id1)
+			expect(shapeAfter).toBeDefined()
+			// Verify the shape moved from its initial position
+			expect(shapeAfter!.x).not.toBe(initialX)
+			expect(shapeAfter!.y).not.toBe(initialY)
 			expect(agent.positionManager.moveTo).toHaveBeenCalled()
 		})
 	})

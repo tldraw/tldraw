@@ -1,5 +1,5 @@
 import { createAgentAction } from '@tldraw/fairy-shared'
-import { createShapeId, Editor, TLShapeId } from 'tldraw'
+import { createShapeId, Editor } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AgentHelpers } from '../../fairy-agent/AgentHelpers'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
@@ -76,6 +76,11 @@ describe('AlignActionUtil', () => {
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 			editor.createShape({ id: id2, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100 } })
 
+			const shape1Before = editor.getShape(id1)
+			const shape2Before = editor.getShape(id2)
+			const bounds1Before = editor.getShapePageBounds(id1)
+			const bounds2Before = editor.getShapePageBounds(id2)
+
 			const action = createAgentAction({
 				_type: 'align',
 				alignment: 'left',
@@ -86,10 +91,20 @@ describe('AlignActionUtil', () => {
 				time: 0,
 			})
 
-			const alignShapesSpy = vi.spyOn(editor, 'alignShapes')
 			alignUtil.applyAction(action)
 
-			expect(alignShapesSpy).toHaveBeenCalledWith([id1 as TLShapeId, id2 as TLShapeId], 'left')
+			// Verify shapes were actually aligned (left edges should be aligned)
+			const bounds1After = editor.getShapePageBounds(id1)
+			const bounds2After = editor.getShapePageBounds(id2)
+
+			expect(bounds1After).toBeDefined()
+			expect(bounds2After).toBeDefined()
+			// Left edges should be aligned (minX should be the same)
+			expect(bounds1After!.minX).toBe(bounds2After!.minX)
+			// At least one shape should have moved
+			const shapesMoved =
+				bounds1After!.minX !== bounds1Before!.minX || bounds2After!.minX !== bounds2Before!.minX
+			expect(shapesMoved).toBe(true)
 		})
 
 		it('should align shapes to the right', () => {
@@ -98,6 +113,9 @@ describe('AlignActionUtil', () => {
 
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 			editor.createShape({ id: id2, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100 } })
+
+			const bounds1Before = editor.getShapePageBounds(id1)
+			const bounds2Before = editor.getShapePageBounds(id2)
 
 			const action = createAgentAction({
 				_type: 'align',
@@ -109,10 +127,20 @@ describe('AlignActionUtil', () => {
 				time: 0,
 			})
 
-			const alignShapesSpy = vi.spyOn(editor, 'alignShapes')
 			alignUtil.applyAction(action)
 
-			expect(alignShapesSpy).toHaveBeenCalledWith([id1 as TLShapeId, id2 as TLShapeId], 'right')
+			// Verify shapes were actually aligned (right edges should be aligned)
+			const bounds1After = editor.getShapePageBounds(id1)
+			const bounds2After = editor.getShapePageBounds(id2)
+
+			expect(bounds1After).toBeDefined()
+			expect(bounds2After).toBeDefined()
+			// Right edges should be aligned (maxX should be the same)
+			expect(bounds1After!.maxX).toBe(bounds2After!.maxX)
+			// At least one shape should have moved
+			const shapesMoved =
+				bounds1After!.maxX !== bounds1Before!.maxX || bounds2After!.maxX !== bounds2Before!.maxX
+			expect(shapesMoved).toBe(true)
 		})
 
 		it('should align shapes to the top', () => {
@@ -121,6 +149,9 @@ describe('AlignActionUtil', () => {
 
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 			editor.createShape({ id: id2, type: 'geo', x: 0, y: 200, props: { w: 100, h: 100 } })
+
+			const bounds1Before = editor.getShapePageBounds(id1)
+			const bounds2Before = editor.getShapePageBounds(id2)
 
 			const action = createAgentAction({
 				_type: 'align',
@@ -132,10 +163,20 @@ describe('AlignActionUtil', () => {
 				time: 0,
 			})
 
-			const alignShapesSpy = vi.spyOn(editor, 'alignShapes')
 			alignUtil.applyAction(action)
 
-			expect(alignShapesSpy).toHaveBeenCalledWith([id1 as TLShapeId, id2 as TLShapeId], 'top')
+			// Verify shapes were actually aligned (top edges should be aligned)
+			const bounds1After = editor.getShapePageBounds(id1)
+			const bounds2After = editor.getShapePageBounds(id2)
+
+			expect(bounds1After).toBeDefined()
+			expect(bounds2After).toBeDefined()
+			// Top edges should be aligned (minY should be the same)
+			expect(bounds1After!.minY).toBe(bounds2After!.minY)
+			// At least one shape should have moved
+			const shapesMoved =
+				bounds1After!.minY !== bounds1Before!.minY || bounds2After!.minY !== bounds2Before!.minY
+			expect(shapesMoved).toBe(true)
 		})
 
 		it('should align shapes to the bottom', () => {
@@ -144,6 +185,9 @@ describe('AlignActionUtil', () => {
 
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 			editor.createShape({ id: id2, type: 'geo', x: 0, y: 200, props: { w: 100, h: 100 } })
+
+			const bounds1Before = editor.getShapePageBounds(id1)
+			const bounds2Before = editor.getShapePageBounds(id2)
 
 			const action = createAgentAction({
 				_type: 'align',
@@ -155,10 +199,20 @@ describe('AlignActionUtil', () => {
 				time: 0,
 			})
 
-			const alignShapesSpy = vi.spyOn(editor, 'alignShapes')
 			alignUtil.applyAction(action)
 
-			expect(alignShapesSpy).toHaveBeenCalledWith([id1 as TLShapeId, id2 as TLShapeId], 'bottom')
+			// Verify shapes were actually aligned (bottom edges should be aligned)
+			const bounds1After = editor.getShapePageBounds(id1)
+			const bounds2After = editor.getShapePageBounds(id2)
+
+			expect(bounds1After).toBeDefined()
+			expect(bounds2After).toBeDefined()
+			// Bottom edges should be aligned (maxY should be the same)
+			expect(bounds1After!.maxY).toBe(bounds2After!.maxY)
+			// At least one shape should have moved
+			const shapesMoved =
+				bounds1After!.maxY !== bounds1Before!.maxY || bounds2After!.maxY !== bounds2Before!.maxY
+			expect(shapesMoved).toBe(true)
 		})
 
 		it('should align shapes center-horizontal', () => {
@@ -167,6 +221,9 @@ describe('AlignActionUtil', () => {
 
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 			editor.createShape({ id: id2, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100 } })
+
+			const bounds1Before = editor.getShapePageBounds(id1)
+			const bounds2Before = editor.getShapePageBounds(id2)
 
 			const action = createAgentAction({
 				_type: 'align',
@@ -178,13 +235,20 @@ describe('AlignActionUtil', () => {
 				time: 0,
 			})
 
-			const alignShapesSpy = vi.spyOn(editor, 'alignShapes')
 			alignUtil.applyAction(action)
 
-			expect(alignShapesSpy).toHaveBeenCalledWith(
-				[id1 as TLShapeId, id2 as TLShapeId],
-				'center-horizontal'
-			)
+			// Verify shapes were actually aligned (vertical centers should be aligned)
+			const bounds1After = editor.getShapePageBounds(id1)
+			const bounds2After = editor.getShapePageBounds(id2)
+
+			expect(bounds1After).toBeDefined()
+			expect(bounds2After).toBeDefined()
+			// Vertical centers should be aligned (midY should be the same)
+			expect(bounds1After!.midY).toBe(bounds2After!.midY)
+			// At least one shape should have moved
+			const shapesMoved =
+				bounds1After!.midY !== bounds1Before!.midY || bounds2After!.midY !== bounds2Before!.midY
+			expect(shapesMoved).toBe(true)
 		})
 
 		it('should align shapes center-vertical', () => {
@@ -193,6 +257,9 @@ describe('AlignActionUtil', () => {
 
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 			editor.createShape({ id: id2, type: 'geo', x: 0, y: 200, props: { w: 100, h: 100 } })
+
+			const bounds1Before = editor.getShapePageBounds(id1)
+			const bounds2Before = editor.getShapePageBounds(id2)
 
 			const action = createAgentAction({
 				_type: 'align',
@@ -204,13 +271,20 @@ describe('AlignActionUtil', () => {
 				time: 0,
 			})
 
-			const alignShapesSpy = vi.spyOn(editor, 'alignShapes')
 			alignUtil.applyAction(action)
 
-			expect(alignShapesSpy).toHaveBeenCalledWith(
-				[id1 as TLShapeId, id2 as TLShapeId],
-				'center-vertical'
-			)
+			// Verify shapes were actually aligned (horizontal centers should be aligned)
+			const bounds1After = editor.getShapePageBounds(id1)
+			const bounds2After = editor.getShapePageBounds(id2)
+
+			expect(bounds1After).toBeDefined()
+			expect(bounds2After).toBeDefined()
+			// Horizontal centers should be aligned (midX should be the same)
+			expect(bounds1After!.midX).toBe(bounds2After!.midX)
+			// At least one shape should have moved
+			const shapesMoved =
+				bounds1After!.midX !== bounds1Before!.midX || bounds2After!.midX !== bounds2Before!.midX
+			expect(shapesMoved).toBe(true)
 		})
 
 		it('should move fairy to the center of aligned shapes', () => {
@@ -219,6 +293,8 @@ describe('AlignActionUtil', () => {
 
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 			editor.createShape({ id: id2, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100 } })
+
+			const initialFairyPosition = agent.$fairyEntity.get().position
 
 			const action = createAgentAction({
 				_type: 'align',
@@ -234,6 +310,10 @@ describe('AlignActionUtil', () => {
 
 			// Should move to center of bounds
 			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			// Verify the fairy's position actually changed
+			const newFairyPosition = agent.$fairyEntity.get().position
+			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
+			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})
 
 		it('should not move fairy if shapes have no bounds', () => {

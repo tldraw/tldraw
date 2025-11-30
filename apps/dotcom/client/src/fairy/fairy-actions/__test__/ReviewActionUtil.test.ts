@@ -123,12 +123,14 @@ describe('ReviewActionUtil', () => {
 			})
 
 			const helpers = new AgentHelpers(agent)
-			const fairy = agent.$fairyEntity.get()!
-			const setSpy = vi.spyOn(agent.$fairyEntity, 'set')
+			const initialPose = agent.$fairyEntity.get().pose
 
 			reviewUtil.applyAction(action, helpers)
 
-			expect(setSpy).toHaveBeenCalledWith({ ...fairy, pose: 'idle' })
+			// Verify the fairy's pose actually changed to idle
+			const newPose = agent.$fairyEntity.get().pose
+			expect(newPose).toBe('idle')
+			expect(newPose).not.toBe(initialPose)
 		})
 
 		it('should include intent in review message', () => {

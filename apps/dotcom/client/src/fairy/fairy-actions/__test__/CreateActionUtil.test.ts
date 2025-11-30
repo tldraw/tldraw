@@ -200,6 +200,8 @@ describe('CreateActionUtil', () => {
 			editor.createShape({ id: fromId, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 			editor.createShape({ id: toId, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100 } })
 
+			const shapesBefore = editor.getCurrentPageShapes().length
+
 			const action = createAgentAction({
 				_type: 'create',
 				shape: {
@@ -222,8 +224,12 @@ describe('CreateActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			createUtil.applyAction(action, helpers)
 
-			// Verify the action was processed (may schedule error if conversion fails)
-			expect(agent.onError).toBeDefined()
+			// Verify a shape was actually created (shape count should increase)
+			const shapesAfter = editor.getCurrentPageShapes().length
+			expect(shapesAfter).toBeGreaterThan(shapesBefore)
+			// Verify we can find the arrow shape (it may have a modified ID)
+			const arrowShapes = editor.getCurrentPageShapes().filter((s) => s.type === 'arrow')
+			expect(arrowShapes.length).toBeGreaterThan(0)
 		})
 	})
 })
