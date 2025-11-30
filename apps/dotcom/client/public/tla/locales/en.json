@@ -101,9 +101,6 @@
   "2c3ef76333": {
     "translation": "My files"
   },
-  "2f4d559909": {
-    "translation": "Help & Documentation"
-  },
   "30cd34258a": {
     "translation": "A flutter of <b>fairies</b> have come to tldraw for the month of December. To investigate further, find the fairy and click it."
   },
@@ -125,14 +122,8 @@
   "335defdafe": {
     "translation": "Please try refreshing the page."
   },
-  "33f9ea6fe8": {
-    "translation": "Disband group"
-  },
   "34140869c6": {
     "translation": "A flutter of fairies is coming to tldraw for the month of December. Please check back on December 1st."
-  },
-  "3432b57473": {
-    "translation": "Help & documentation"
   },
   "344a7f427f": {
     "translation": "Editor"
@@ -271,6 +262,9 @@
   },
   "639bae9ac6": {
     "translation": "you"
+  },
+  "6602bbeb29": {
+    "translation": "Guide"
   },
   "6609dd239e": {
     "translation": "Something went wrong"

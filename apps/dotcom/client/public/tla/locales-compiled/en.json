@@ -207,12 +207,6 @@
       "value": "My files"
     }
   ],
-  "2f4d559909": [
-    {
-      "type": 0,
-      "value": "Help & Documentation"
-    }
-  ],
   "30cd34258a": [
     {
       "type": 0,
@@ -269,22 +263,10 @@
       "value": "Please try refreshing the page."
     }
   ],
-  "33f9ea6fe8": [
-    {
-      "type": 0,
-      "value": "Disband group"
-    }
-  ],
   "34140869c6": [
     {
       "type": 0,
       "value": "A flutter of fairies is coming to tldraw for the month of December. Please check back on December 1st."
-    }
-  ],
-  "3432b57473": [
-    {
-      "type": 0,
-      "value": "Help & documentation"
     }
   ],
   "344a7f427f": [
@@ -607,6 +589,12 @@
     {
       "type": 0,
       "value": "you"
+    }
+  ],
+  "6602bbeb29": [
+    {
+      "type": 0,
+      "value": "Guide"
     }
   ],
   "6609dd239e": [
