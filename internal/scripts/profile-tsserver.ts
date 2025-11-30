@@ -1,4 +1,4 @@
-import { execSync, execFileSync, spawn } from 'child_process'
+import { execFileSync, spawn } from 'child_process'
 import { existsSync, mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { REPO_ROOT } from './lib/file'
