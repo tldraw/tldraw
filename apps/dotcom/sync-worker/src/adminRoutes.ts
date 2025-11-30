@@ -25,14 +25,27 @@ async function requireUser(env: Environment, q: string) {
 	return userRow
 }
 
+export async function upsertFairyAccessWithDb(
+	env: Environment,
+	userId: string,
+	fairyLimit: number | null,
+	expiresAt: number | null
+) {
+	const db = createPostgresConnectionPool(env, 'upsertFairyAccessWithDb')
+	try {
+		return await upsertFairyAccess(env, userId, fairyLimit, expiresAt, db)
+	} finally {
+		await db.destroy()
+	}
+}
+
 export async function upsertFairyAccess(
 	env: Environment,
 	userId: string,
-	fairyLimit: number | null = MAX_FAIRY_COUNT,
-	expiresAt: number | null = FAIRY_WORLDWIDE_EXPIRATION
+	fairyLimit: number | null,
+	expiresAt: number | null,
+	db: ReturnType<typeof createPostgresConnectionPool>
 ) {
-	const db = createPostgresConnectionPool(env, 'upsertFairyAccess')
-
 	try {
 		await db
 			.insertInto('user_fairies')
@@ -58,12 +71,10 @@ export async function upsertFairyAccess(
 	} catch (error) {
 		console.error('Failed to upsert fairy access:', error)
 		return { success: false, error: String(error) }
-	} finally {
-		await db.destroy()
 	}
 }
 
-async function grantFairyAccess(env: Environment, email: string, setToZero: boolean = false) {
+async function grantFairyAccess(env: Environment, email: string) {
 	assert(typeof email === 'string' && email, 'email is required')
 
 	const clerkClient = getClerkClient(env)
@@ -76,8 +87,12 @@ async function grantFairyAccess(env: Environment, email: string, setToZero: bool
 	const clerkUser = users.data[0]
 	const userId = clerkUser.id
 
-	const fairyLimit = setToZero ? 0 : MAX_FAIRY_COUNT
-	const result = await upsertFairyAccess(env, userId, fairyLimit)
+	const result = await upsertFairyAccessWithDb(
+		env,
+		userId,
+		MAX_FAIRY_COUNT,
+		FAIRY_WORLDWIDE_EXPIRATION
+	)
 
 	if (!result.success) {
 		throw new StatusError(500, `Failed to grant fairy access: ${result.error}`)
@@ -99,7 +114,7 @@ async function removeFairyAccess(env: Environment, email: string) {
 	const clerkUser = users.data[0]
 	const userId = clerkUser.id
 
-	const result = await upsertFairyAccess(env, userId, null, null)
+	const result = await upsertFairyAccessWithDb(env, userId, null, null)
 
 	if (!result.success) {
 		throw new StatusError(500, `Failed to remove fairy access: ${result.error}`)
@@ -271,16 +286,16 @@ export const adminRoutes = createRouter<Environment>()
 	})
 	.post('/app/admin/fairy/grant-access', async (req, env) => {
 		const body: any = await req.json()
-		const { email, setToZero } = body
+		const { email } = body
 
-		const result = await grantFairyAccess(env, email, setToZero ?? false)
+		const result = await grantFairyAccess(env, email)
 		return json(result)
 	})
 	.post('/app/admin/fairy/enable-for-me', async (req, env) => {
 		const auth = await requireAuth(req, env)
 
 		const oneYearFromNow = Date.now() + 365 * 24 * 60 * 60 * 1000
-		const result = await upsertFairyAccess(env, auth.userId, MAX_FAIRY_COUNT, oneYearFromNow)
+		const result = await upsertFairyAccessWithDb(env, auth.userId, MAX_FAIRY_COUNT, oneYearFromNow)
 
 		if (!result.success) {
 			throw new StatusError(500, `Failed to enable fairy access: ${result.error}`)
