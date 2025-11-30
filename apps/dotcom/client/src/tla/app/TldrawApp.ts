@@ -107,48 +107,6 @@ window.zero = () => {
 	location.reload()
 }
 
-// @ts-expect-error
-window.copyPromptData = async (editor?: any) => {
-	// Use the editor from the fairy if available, otherwise try window.editor
-	const editorInstance = editor || (window as any).editor
-	if (!editorInstance) {
-		console.error('No editor found. Pass an editor instance or ensure window.editor is set.')
-		return
-	}
-
-	try {
-		const { convertTldrawShapeToFocusedShape } = await import('@tldraw/fairy-shared')
-		const selectedShapes = editorInstance.getSelectedShapes()
-
-		if (selectedShapes.length === 0) {
-			console.warn('No shapes selected')
-			return
-		}
-
-		const focusedShapes = selectedShapes.map((shape: any) =>
-			convertTldrawShapeToFocusedShape(editorInstance, shape)
-		)
-
-		const promptData = JSON.stringify(focusedShapes, null, 2)
-
-		// Try to copy to clipboard, but fall back to console if not focused
-		try {
-			await navigator.clipboard.writeText(promptData)
-			console.log(`✅ Copied prompt data for ${selectedShapes.length} shape(s) to clipboard`)
-		} catch (clipboardError) {
-			// If clipboard fails (e.g., document not focused), log the data instead
-			console.log(
-				`⚠️ Could not copy to clipboard (document not focused). Here's the prompt data:\n\n${promptData}`
-			)
-		}
-
-		// Always return the data so you can access it programmatically
-		return focusedShapes
-	} catch (error) {
-		console.error('Failed to generate prompt data:', error)
-	}
-}
-
 export class TldrawApp {
 	config = {
 		maxNumberOfFiles: MAX_NUMBER_OF_FILES,

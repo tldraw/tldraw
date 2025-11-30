@@ -294,7 +294,9 @@ Do NOT start a completely new project. Respond with a message action first expla
 	const sendTitle = useMsg(fairyMessages.sendTitle)
 
 	// Dynamic placeholder based on project state
-	const placeholder = isPreProject ? instructGroupPlaceholder : `Whisper to ${orchestratorName}...`
+	const placeholder = isPreProject
+		? instructGroupPlaceholder
+		: `Speak to ${orchestratorName.split(' ')[0]}...`
 
 	// Empty state
 	if (agents.length === 0) {

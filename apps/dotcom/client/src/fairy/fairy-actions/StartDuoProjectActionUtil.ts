@@ -13,7 +13,7 @@ export class StartDuoProjectActionUtil extends AgentActionUtil<StartDuoProjectAc
 			description: action.complete
 				? `Planned project: ${action.projectName}`
 				: `Planning project${action.projectName ? `: ${action.projectName}` : ''}${action.projectDescription ? `\n\n${action.projectDescription}` : ''}${action.projectPlan ? `\n\n${action.projectPlan}` : ''}`,
-			pose: 'waiting' as const,
+			pose: 'reviewing' as const,
 			canGroup: () => false,
 		}
 	}
@@ -37,9 +37,9 @@ export class StartDuoProjectActionUtil extends AgentActionUtil<StartDuoProjectAc
 		}
 
 		const colorAlreadyChosen = $fairyProjects.get().some((p) => p.color === projectColor)
-		if (colorAlreadyChosen) {
+		if (colorAlreadyChosen || projectColor === 'white') {
 			this.agent.interrupt({
-				input: `The color ${projectColor} has already been chosen for another project. Please choose a different color.`,
+				input: `The color ${projectColor} is not available at the moment. Please choose a different color.`,
 			})
 			return
 		}

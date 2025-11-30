@@ -37,7 +37,7 @@ export class ReviewActionUtil extends AgentActionUtil<ReviewAction> {
 		const fairy = this.agent.$fairyEntity.get()
 		if (!fairy) return
 		if (!action.complete) {
-			this.agent.$fairyEntity.set({ ...fairy, pose: 'thinking' })
+			this.agent.$fairyEntity.set({ ...fairy, pose: 'reviewing' })
 		} else {
 			this.agent.$fairyEntity.set({ ...fairy, pose: 'idle' })
 		}

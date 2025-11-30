@@ -13,7 +13,7 @@ export class DeleteProjectTaskActionUtil extends AgentActionUtil<DeleteProjectTa
 			description: action.complete
 				? `Removed task: ${taskName}${action.reason ? ` (${action.reason})` : ''}`
 				: `Removing task${taskName ? `: ${taskName}` : ''}...`,
-			pose: 'waiting' as const,
+			pose: 'writing' as const,
 		}
 	}
 

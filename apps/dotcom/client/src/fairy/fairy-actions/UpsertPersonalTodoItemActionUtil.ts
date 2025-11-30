@@ -16,7 +16,7 @@ export class UpsertPersonalTodoItemActionUtil extends AgentActionUtil<UpsertPers
 			return {
 				icon: 'note' as const,
 				description: action.text,
-				pose: 'waiting' as const,
+				pose: 'reviewing' as const,
 				canGroup: () => false,
 			}
 		}
