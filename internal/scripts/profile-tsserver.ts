@@ -1,4 +1,4 @@
-import { execSync, spawn } from 'child_process'
+import { execSync, execFileSync, spawn } from 'child_process'
 import { existsSync, mkdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { REPO_ROOT } from './lib/file'
@@ -67,7 +67,7 @@ async function main() {
 	nicelog('Step 1/4: Analyzing project structure...')
 	try {
 		const tscPath = join(REPO_ROOT, 'node_modules/.bin/tsc')
-		const listFilesOutput = execSync(`${tscPath} --listFiles --noEmit`, {
+		const listFilesOutput = execFileSync(tscPath, ['--listFiles', '--noEmit'], {
 			cwd: workspacePath,
 			encoding: 'utf-8',
 			maxBuffer: 50 * 1024 * 1024,
