@@ -1,4 +1,20 @@
-export function PoofSprite() {
+export function PoofSprite1() {
+	return <BasePoofSprite frame={0} />
+}
+
+export function PoofSprite2() {
+	return <BasePoofSprite frame={1} />
+}
+
+export function PoofSprite3() {
+	return <BasePoofSprite frame={2} />
+}
+
+export function PoofSprite4() {
+	return <BasePoofSprite frame={3} />
+}
+
+export function BasePoofSprite({ frame }: { frame: number }) {
 	return (
 		<>
 			<path
@@ -8,6 +24,7 @@ export function PoofSprite() {
 				strokeLinecap="round"
 				strokeLinejoin="round"
 				fill="var(--tl-color-fairy-light)"
+				transform={`rotate(${(frame % 2) * 4} 54 54)`}
 			/>
 			<path
 				d="M32.6641 30.4729C32.6767 29.7734 33.5896 29.5163 34.0274 30.089L37.1659 34.1941C37.3625 34.4513 37.6999 34.5656 38.007 34.4792L43.1153 33.0404C43.8269 32.8399 44.4126 33.6677 43.9546 34.2268L40.8133 38.0614C40.6026 38.3185 40.6019 38.6885 40.8115 38.9627L43.8536 42.9418C44.2986 43.5239 43.7464 44.2928 43.0426 44.0711L37.852 42.4361C37.5531 42.3419 37.2327 42.4322 37.0427 42.664L33.7447 46.6899C33.2975 47.2359 32.3704 46.8836 32.3832 46.1726L32.4702 41.3121C32.4761 40.9772 32.2495 40.6713 31.9179 40.5668L26.974 39.0095C26.2533 38.7825 26.2323 37.7956 26.944 37.5952L32.0522 36.1564C32.3593 36.0699 32.5688 35.8015 32.5744 35.4873L32.6641 30.4729Z"

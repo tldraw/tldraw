@@ -32,6 +32,5 @@ export interface PersistedFairyAgentState {
 export interface PersistedFairyState {
 	agents: Record<string, PersistedFairyAgentState>
 	fairyTaskList: FairyTask[]
-	showCanvasTodos: boolean
 	projects: FairyProject[]
 }

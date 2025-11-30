@@ -8,6 +8,7 @@ import {
 	TLDrawShape,
 	TLGeoShape,
 	TLGeoShapeGeoStyle,
+	TLImageShape,
 	TLLineShape,
 	TLNoteShape,
 	TLShape,
@@ -22,6 +23,7 @@ import {
 	FocusedDrawShape,
 	FocusedGeoShape,
 	FocusedGeoType,
+	FocusedImageShape,
 	FocusedLineShape,
 	FocusedNoteShape,
 	FocusedShape,
@@ -47,6 +49,8 @@ export function convertTldrawShapeToFocusedShape(editor: Editor, shape: TLShape)
 			return convertNoteShapeToFocused(editor, shape as TLNoteShape)
 		case 'draw':
 			return convertDrawShapeToFocused(editor, shape as TLDrawShape)
+		case 'image':
+			return convertImageShapeToFocused(editor, shape as TLImageShape)
 		default:
 			return convertUnknownShapeToFocused(editor, shape)
 	}
@@ -62,6 +66,7 @@ export function convertTldrawShapeToFocusedType(shape: TLShape): FocusedShape['_
 		case 'line':
 		case 'arrow':
 		case 'note':
+		case 'image':
 			return shape.type
 		case 'draw':
 			return 'pen'
@@ -236,6 +241,20 @@ function convertNoteShapeToFocused(editor: Editor, shape: TLNoteShape): FocusedN
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: text ?? '',
+		x: bounds.x,
+		y: bounds.y,
+	}
+}
+
+function convertImageShapeToFocused(editor: Editor, shape: TLImageShape): FocusedImageShape {
+	const bounds = getSimpleBounds(editor, shape)
+	return {
+		_type: 'image',
+		altText: shape.props.altText,
+		h: shape.props.h,
+		note: (shape.meta.note as string) ?? '',
+		shapeId: convertTldrawIdToSimpleId(shape.id),
+		w: shape.props.w,
 		x: bounds.x,
 		y: bounds.y,
 	}

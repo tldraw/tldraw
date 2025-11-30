@@ -1,21 +1,25 @@
 import { FairyOutfit, FairyPose } from '@tldraw/fairy-shared'
 import { ComponentType, useEffect, useState } from 'react'
 import { IdleSprite } from './sprites/IdleSprite'
-import { PoofSprite } from './sprites/PoofSprite'
-import { RaisedAWingSprite } from './sprites/RaisedAWingSprite'
-import { RaisedBWingSprite } from './sprites/RaisedBWingSprite'
-import { RaisedCWingSprite } from './sprites/RaisedCWingSprite'
-import { ReadingSprite } from './sprites/ReadingSprite'
+import {
+	LoweredWingsSprite1,
+	LoweredWingsSprite2,
+	LoweredWingsSprite3,
+} from './sprites/WingsSprite'
+
+import { PanickingSprite1, PanickingSprite2 } from './sprites/PanickingSprite'
+import { PoofSprite1, PoofSprite2, PoofSprite3, PoofSprite4 } from './sprites/PoofSprite'
+import { RaisedWingsSprite1, RaisedWingsSprite2, RaisedWingsSprite3 } from './sprites/RaisedWings'
+import { ReadingSprite1, ReadingSprite2, ReadingSprite3 } from './sprites/ReadingSprite'
 import { SleepingSprite } from './sprites/SleepingSprite'
-import { SleepingWingSprite } from './sprites/SleepingWingSprite'
 import { ThinkingSprite } from './sprites/ThinkingSprite'
-import { WaitingSprite } from './sprites/WaitingSprite'
+import { ReviewingSprite1, ReviewingSprite2, ReviewingSprite3 } from './sprites/WaitingSprite'
 import { WorkingSprite1, WorkingSprite2, WorkingSprite3 } from './sprites/WorkingSprite'
-import { WritingSprite } from './sprites/WritingSprite'
+import { WritingSprite1, WritingSprite2 } from './sprites/WritingSprite'
 
 interface WingSpriteProps {
-	topWingColor?: string
-	bottomWingColor?: string
+	topWingColor: string
+	bottomWingColor: string
 }
 
 interface FairySpriteProps {
@@ -23,28 +27,60 @@ interface FairySpriteProps {
 	hatColor: string
 }
 
+const FLAPPING_HIGH = [
+	RaisedWingsSprite1,
+	RaisedWingsSprite2,
+	RaisedWingsSprite3,
+	RaisedWingsSprite2,
+]
+
+const FLAPPING_LOW = [
+	LoweredWingsSprite1,
+	LoweredWingsSprite2,
+	LoweredWingsSprite3,
+	LoweredWingsSprite2,
+]
+
 const WING_SPRITES: Record<FairyPose, ComponentType<WingSpriteProps>[]> = {
-	idle: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
-	waiting: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
-	active: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
-	reading: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
-	writing: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
-	thinking: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
-	working: [RaisedAWingSprite, RaisedCWingSprite, RaisedBWingSprite, RaisedCWingSprite],
-	sleeping: [SleepingWingSprite],
+	idle: FLAPPING_HIGH,
+	waiting: FLAPPING_LOW,
+	active: FLAPPING_HIGH,
+	reading: FLAPPING_HIGH,
+	writing: FLAPPING_HIGH,
+	thinking: FLAPPING_LOW,
+	working: FLAPPING_HIGH,
+	sleeping: [LoweredWingsSprite1],
+	panicking: FLAPPING_HIGH,
+	reviewing: FLAPPING_HIGH,
 	poof: [],
 }
 
 const FAIRY_SPRITES_WITH_PROPS: Record<FairyPose, ComponentType<FairySpriteProps>[]> = {
 	idle: [IdleSprite],
 	active: [IdleSprite],
-	reading: [ReadingSprite],
-	writing: [WritingSprite],
+	reading: [ReadingSprite1, ReadingSprite2, ReadingSprite3, ReadingSprite2],
+	writing: [WritingSprite1, WritingSprite2],
 	thinking: [ThinkingSprite],
 	working: [WorkingSprite1, WorkingSprite2, WorkingSprite3, WorkingSprite2],
 	sleeping: [SleepingSprite],
-	waiting: [WaitingSprite],
-	poof: [PoofSprite],
+	waiting: [ReviewingSprite2],
+	panicking: [PanickingSprite1, PanickingSprite2],
+	reviewing: [ReviewingSprite1, ReviewingSprite2, ReviewingSprite3, ReviewingSprite2],
+	poof: [PoofSprite1, PoofSprite2, PoofSprite3, PoofSprite4],
+}
+
+const FRAME_DURATIONS: Record<FairyPose, number> = {
+	idle: 160,
+	active: 160,
+	reading: 160,
+	writing: 160,
+	thinking: 160,
+	working: 125,
+	sleeping: 160,
+	panicking: 65,
+	waiting: 160,
+	reviewing: 160,
+	poof: 100,
 }
 
 /**
@@ -89,16 +125,18 @@ export function FairySprite({
 	hatColor?: string
 	padding?: number
 }) {
-	const bottomWingColor = isOrchestrator ? projectColor : 'var(--tl-color-fairy-light)'
+	const bottomWingColor = isOrchestrator ? projectColor : 'var(--tl-color-fairy-light'
+	const _pose = gesture || pose
+	const duration = FRAME_DURATIONS[_pose]
 
 	return (
 		<div className="fairy-sprite-container">
 			{isAnimated ? (
 				<AnimatedFairySpriteComponent
-					pose={gesture || pose}
-					speed={pose === 'working' ? 100 : isGenerating ? 120 : 160}
-					topWingColor={projectColor}
-					bottomWingColor={bottomWingColor}
+					pose={_pose}
+					speed={isGenerating ? duration * 0.75 : duration}
+					topWingColor={projectColor ?? 'var(--tl-color-fairy-light)'}
+					bottomWingColor={bottomWingColor ?? 'var(--tl-color-fairy-light)'}
 					bodyColor={'var(--tl-color-fairy-light)'}
 					hatColor={hatColor}
 					flipX={flipX}
@@ -107,9 +145,9 @@ export function FairySprite({
 			) : (
 				<FairySpriteSvg
 					pose={gesture || pose}
-					topWingColor={projectColor}
-					bottomWingColor={bottomWingColor}
-					bodyColor={'var(--tl-color-fairy-light)'}
+					topWingColor={projectColor ?? 'var(--tl-color-fairy-light)'}
+					bottomWingColor={bottomWingColor ?? 'var(--tl-color-fairy-light)'}
+					bodyColor="var(--tl-color-fairy-light)"
 					hatColor={hatColor}
 					flipX={flipX}
 					showShadow={showShadow}
@@ -129,7 +167,9 @@ function useKeyframe({ pose, duration }: { pose: FairyPose; duration: number }) 
 		}
 		updateFrame()
 		const timer = setInterval(updateFrame, duration)
-		return () => clearInterval(timer)
+		return () => {
+			clearInterval(timer)
+		}
 	}, [duration, pose])
 
 	return keyframe

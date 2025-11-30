@@ -1,4 +1,3 @@
-export const DEFAULT_MODEL_NAME = 'claude-sonnet-4-5'
 // export const DEFAULT_MODEL_NAME =
 // 	(process.env.FAIRY_MODEL as AgentModelName | undefined) ?? 'claude-sonnet-4-5' //'gemini-3-pro-preview'
 
@@ -26,6 +25,12 @@ export const AGENT_MODEL_DEFINITIONS = {
 		provider: 'anthropic',
 	},
 
+	'claude-haiku-4-5': {
+		name: 'claude-haiku-4-5',
+		id: 'claude-haiku-4-5',
+		provider: 'anthropic',
+	},
+
 	'gpt-5.1': {
 		name: 'gpt-5.1',
 		id: 'gpt-5.1',
@@ -34,6 +39,8 @@ export const AGENT_MODEL_DEFINITIONS = {
 } as const
 
 export type AgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
+
+export const DEFAULT_MODEL_NAME: AgentModelName = 'claude-sonnet-4-5'
 
 export const TIER_THRESHOLD = 200_000
 
@@ -87,6 +94,13 @@ export function getModelPricingInfo(
 					cacheWriteInputPrice: 7.5,
 					outputPrice: 22.5,
 				}
+			}
+		case 'claude-haiku-4-5':
+			return {
+				uncachedInputPrice: 1,
+				cacheReadInputPrice: 0.1,
+				cacheWriteInputPrice: 1.25,
+				outputPrice: 5,
 			}
 		case 'gpt-5.1':
 			return {

@@ -1,7 +1,7 @@
 import z from 'zod'
 import { FocusColorSchema } from '../format/FocusColor'
 import { FocusFillSchema } from '../format/FocusFill'
-import { FocusedShapeSchema } from '../format/FocusedShape'
+import { FocusedCreatableShapeSchema, FocusedShapeSchema } from '../format/FocusedShape'
 import { BaseAgentAction } from '../types/BaseAgentAction'
 
 export const AlignActionSchema = z
@@ -84,7 +84,7 @@ export const CreateActionSchema = z
 	.object({
 		_type: z.literal('create'),
 		intent: z.string(),
-		shape: FocusedShapeSchema,
+		shape: FocusedCreatableShapeSchema,
 	})
 	.meta({ title: 'Create', description: 'The agent creates a new shape.' })
 
@@ -196,6 +196,21 @@ export const MoveActionSchema = z
 	.meta({ title: 'Move', description: 'The agent moves a shape to a new position.' })
 
 export type MoveAction = z.infer<typeof MoveActionSchema>
+
+export const MovePositionActionSchema = z
+	.object({
+		_type: z.literal('move-position'),
+		intent: z.string(),
+		x: z.number(),
+		y: z.number(),
+	})
+	.meta({
+		title: 'Move position',
+		description:
+			'The agent moves to the provided position. The viewport center will move to be centered on the position. ',
+	})
+
+export type MoveViewportAction = z.infer<typeof MovePositionActionSchema>
 
 export const PenActionSchema = z
 	.object({

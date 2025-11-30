@@ -83,6 +83,9 @@ export function convertFocusedShapeToTldrawShape(
 		case 'pen': {
 			return convertDrawShapeToTldrawShape(editor, focusedShape, { defaultShape })
 		}
+		case 'image': {
+			throw new Error('Image shapes cannot be created by agent via the create action')
+		}
 		case 'unknown': {
 			return convertUnknownShapeToTldrawShape(editor, focusedShape, { defaultShape })
 		}
