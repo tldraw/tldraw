@@ -115,7 +115,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	override getGeometry(shape: TLFrameShape): Geometry2d {
 		const { editor } = this
 
-		const z = editor.getZoomLevel()
+		const z = editor.getEfficientZoomLevel()
 
 		// Which dimension measures the top edge after rotation?
 		const labelSide = getFrameHeadingSide(editor, shape)

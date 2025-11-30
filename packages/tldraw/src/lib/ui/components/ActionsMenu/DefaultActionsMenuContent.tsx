@@ -1,4 +1,3 @@
-import { useEditor, useValue } from '@tldraw/editor'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import {
@@ -9,6 +8,7 @@ import {
 	useThreeStackableItems,
 	useUnlockedSelectedShapesCount,
 } from '../../hooks/menu-hooks'
+import { ZoomTo100MenuItem } from '../menu-items'
 import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
 
 /** @public @react */
@@ -96,14 +96,6 @@ export function ReorderMenuItems() {
 export function ZoomOrRotateMenuItem() {
 	const breakpoint = useBreakpoint()
 	return breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM ? <ZoomTo100MenuItem /> : <RotateCCWMenuItem />
-}
-/** @public @react */
-
-export function ZoomTo100MenuItem() {
-	const editor = useEditor()
-	const isZoomedTo100 = useValue('zoom is 1', () => editor.getZoomLevel() === 1, [editor])
-
-	return <TldrawUiMenuActionItem actionId="zoom-to-100" disabled={isZoomedTo100} />
 }
 /** @public @react */
 

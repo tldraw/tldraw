@@ -139,7 +139,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		const forceSolid = useValue(
 			'force solid',
 			() => {
-				const zoomLevel = this.editor.getZoomLevel()
+				const zoomLevel = this.editor.getEfficientZoomLevel()
 				return zoomLevel < 0.5 && zoomLevel < 1.5 / sw
 			},
 			[this.editor, sw]
@@ -244,7 +244,7 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 	const forceSolid = useValue(
 		'force solid',
 		() => {
-			const zoomLevel = zoomOverride ?? editor.getZoomLevel()
+			const zoomLevel = zoomOverride ?? editor.getEfficientZoomLevel()
 			return zoomLevel < 0.5 && zoomLevel < 1.5 / sw
 		},
 		[editor, sw, zoomOverride]
@@ -253,7 +253,7 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 	const dotAdjustment = useValue(
 		'dot adjustment',
 		() => {
-			const zoomLevel = zoomOverride ?? editor.getZoomLevel()
+			const zoomLevel = zoomOverride ?? editor.getEfficientZoomLevel()
 			// If we're zoomed way out (10%), then we need to make the dotted line go to 9 instead 0.1
 			// Chrome doesn't render anything otherwise.
 			return zoomLevel < 0.2 ? 0 : 0.1

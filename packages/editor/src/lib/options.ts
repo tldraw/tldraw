@@ -87,6 +87,12 @@ export interface TldrawOptions {
 	 * Branding name of the app, currently only used for adding aria-label for the application.
 	 */
 	readonly branding?: string
+	/**
+	 * Whether to use debounced zoom level for certain rendering optimizations. When true,
+	 * `editor.getDebouncedZoomLevel()` returns a cached zoom value while the camera is moving,
+	 * reducing re-renders. When false, it always returns the current zoom level.
+	 */
+	readonly useDebouncedZoom: boolean
 }
 
 /** @public */
@@ -139,4 +145,5 @@ export const defaultTldrawOptions = {
 	enableToolbarKeyboardShortcuts: true,
 	maxFontsToLoadBeforeRender: Infinity,
 	nonce: undefined,
+	useDebouncedZoom: true,
 } as const satisfies TldrawOptions
