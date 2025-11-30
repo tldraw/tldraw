@@ -59,7 +59,7 @@ async function main() {
 		)
 		results.fileCount = listFilesOutput.split('\n').filter((line) => line.trim()).length
 		nicelog(`   Found ${results.fileCount} files\n`)
-	} catch (err) {
+	} catch {
 		nicelog('   ⚠️  Could not count files (non-fatal)\n')
 	}
 
@@ -79,7 +79,7 @@ async function main() {
 					results.push(fullPath)
 				}
 			}
-		} catch (err) {
+		} catch {
 			// Ignore permission errors
 		}
 		return results

@@ -84,7 +84,7 @@ async function main() {
 		}
 
 		nicelog(`   Found ${files.length} files (${externalFiles} from node_modules)\n`)
-	} catch (err) {
+	} catch {
 		nicelog('   ⚠️  Could not analyze project (non-fatal)\n')
 	}
 
@@ -290,7 +290,11 @@ async function main() {
 	console.log('='.repeat(80) + '\n')
 }
 
-function generateReport(stats: TsServerStats, outputDir: string, tsserverLogPath: string): string {
+function generateReport(
+	stats: TsServerStats,
+	_outputDir: string,
+	_tsserverLogPath: string
+): string {
 	const lines: string[] = []
 
 	lines.push('# TSServer profiling report')
