@@ -329,3 +329,37 @@
 .authTermsAcceptAndContinueButton {
 	margin-top: var(--tl-space-4);
 }
+
+@media (max-width: 450px) {
+	.authLogo {
+		width: 108px;
+		margin-bottom: 0;
+	}
+
+	.authContainer {
+		max-width: 90vw;
+	}
+
+	.authCtaButton {
+		height: 36px;
+	}
+
+	.authBody {
+		gap: 24px;
+		padding: 8px 32px 24px 32px;
+	}
+
+	.authCtaButton img {
+		height: 18px;
+		width: 18px;
+	}
+
+	/* Inputs have 16px fontsize */
+	.authInput {
+		font-size: 16px;
+	}
+
+	.authInput::placeholder {
+		font-size: 14px;
+	}
+}

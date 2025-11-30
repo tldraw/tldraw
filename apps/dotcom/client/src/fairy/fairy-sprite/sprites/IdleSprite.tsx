@@ -3,17 +3,19 @@ import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
 import { FairyLegsSpritePart } from './parts/FairyLegsSpritePart'
 
 export function IdleSprite({
-	bodyColor = 'var(--tl-color-fairy-light)',
-	hatColor = 'white',
+	bodyColor,
+	hatColor,
+	tint,
 }: {
-	bodyColor?: string
-	hatColor?: string
+	bodyColor: string
+	hatColor: string
+	tint: string | null
 }) {
 	return (
 		<>
 			<FairyHatSpritePart hatColor={hatColor} />
 			<FairyLegsSpritePart />
-			<FairyBodySpritePart bodyColor={bodyColor} />
+			<FairyBodySpritePart bodyColor={bodyColor} tint={tint} />
 			<circle
 				cx="55.4159"
 				cy="33.7832"

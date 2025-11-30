@@ -29,6 +29,7 @@ import {
 	MessageActionSchema,
 	MoveActionSchema,
 	MovePositionActionSchema,
+	OffsetActionSchema,
 	PenActionSchema,
 	PlaceActionSchema,
 	ResizeActionSchema,
@@ -94,6 +95,7 @@ export const AGENT_ACTION_SCHEMAS = [
 	MoveActionSchema,
 
 	// Groups of shapes
+	OffsetActionSchema,
 	PlaceActionSchema,
 	BringToFrontActionSchema,
 	SendToBackActionSchema,

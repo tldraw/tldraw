@@ -1,4 +1,4 @@
-import { MarkSoloTaskDoneAction, Streaming } from '@tldraw/fairy-shared'
+import { MarkSoloTaskDoneAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { uniqueId } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { setFairyTaskStatusAndNotifyCompletion } from '../fairy-task-list'
@@ -8,12 +8,12 @@ export class MarkSoloTaskDoneActionUtil extends AgentActionUtil<MarkSoloTaskDone
 	static override type = 'mark-task-done' as const
 
 	override getInfo(action: Streaming<MarkSoloTaskDoneAction>) {
-		return {
-			icon: 'note' as const,
+		return createAgentActionInfo({
+			icon: 'note',
 			description: action.complete ? `Completed task` : 'Completing task...',
-			pose: 'writing' as const,
+			pose: 'writing',
 			canGroup: () => false,
-		}
+		})
 	}
 
 	override applyAction(action: Streaming<MarkSoloTaskDoneAction>, _helpers: AgentHelpers) {

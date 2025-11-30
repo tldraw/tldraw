@@ -1,7 +1,15 @@
 import { FairyBodySpritePart } from './parts/FairyBodySpritePart'
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
 
-export function ReviewingSprite1({ bodyColor, hatColor }: { bodyColor: string; hatColor: string }) {
+export function ReviewingSprite1({
+	bodyColor,
+	hatColor,
+	tint,
+}: {
+	bodyColor: string
+	hatColor: string
+	tint?: string | null
+}) {
 	return (
 		<WaitingSpriteBase
 			bodyColor={bodyColor}
@@ -10,11 +18,20 @@ export function ReviewingSprite1({ bodyColor, hatColor }: { bodyColor: string; h
 			offsetY={0}
 			mouthOffsetX={0}
 			mouthOffsetY={0}
+			tint={tint}
 		/>
 	)
 }
 
-export function ReviewingSprite2({ bodyColor, hatColor }: { bodyColor: string; hatColor: string }) {
+export function ReviewingSprite2({
+	bodyColor,
+	hatColor,
+	tint,
+}: {
+	bodyColor: string
+	hatColor: string
+	tint?: string | null
+}) {
 	return (
 		<WaitingSpriteBase
 			bodyColor={bodyColor}
@@ -23,11 +40,20 @@ export function ReviewingSprite2({ bodyColor, hatColor }: { bodyColor: string; h
 			offsetY={0}
 			mouthOffsetX={0}
 			mouthOffsetY={0}
+			tint={tint}
 		/>
 	)
 }
 
-export function ReviewingSprite3({ bodyColor, hatColor }: { bodyColor: string; hatColor: string }) {
+export function ReviewingSprite3({
+	bodyColor,
+	hatColor,
+	tint,
+}: {
+	bodyColor: string
+	hatColor: string
+	tint?: string | null
+}) {
 	return (
 		<WaitingSpriteBase
 			bodyColor={bodyColor}
@@ -36,11 +62,20 @@ export function ReviewingSprite3({ bodyColor, hatColor }: { bodyColor: string; h
 			offsetY={0}
 			mouthOffsetX={0}
 			mouthOffsetY={0}
+			tint={tint}
 		/>
 	)
 }
 
-export function NoddingSprite1({ bodyColor, hatColor }: { bodyColor: string; hatColor: string }) {
+export function NoddingSprite1({
+	bodyColor,
+	hatColor,
+	tint,
+}: {
+	bodyColor: string
+	hatColor: string
+	tint?: string | null
+}) {
 	return (
 		<WaitingSpriteBase
 			bodyColor={bodyColor}
@@ -49,11 +84,20 @@ export function NoddingSprite1({ bodyColor, hatColor }: { bodyColor: string; hat
 			offsetY={-1.5}
 			mouthOffsetX={0}
 			mouthOffsetY={-1.5}
+			tint={tint}
 		/>
 	)
 }
 
-export function NoddingSprite2({ bodyColor, hatColor }: { bodyColor: string; hatColor: string }) {
+export function NoddingSprite2({
+	bodyColor,
+	hatColor,
+	tint,
+}: {
+	bodyColor: string
+	hatColor: string
+	tint?: string | null
+}) {
 	return (
 		<WaitingSpriteBase
 			bodyColor={bodyColor}
@@ -62,6 +106,7 @@ export function NoddingSprite2({ bodyColor, hatColor }: { bodyColor: string; hat
 			offsetY={1.5}
 			mouthOffsetX={0}
 			mouthOffsetY={1.5}
+			tint={tint}
 		/>
 	)
 }
@@ -73,6 +118,7 @@ export function WaitingSpriteBase({
 	offsetY,
 	mouthOffsetX,
 	mouthOffsetY,
+	tint,
 }: {
 	bodyColor: string
 	hatColor: string
@@ -80,10 +126,11 @@ export function WaitingSpriteBase({
 	offsetY: number
 	mouthOffsetX: number
 	mouthOffsetY: number
+	tint?: string | null
 }) {
 	return (
 		<>
-			<FairyBodySpritePart bodyColor={bodyColor} />
+			<FairyBodySpritePart bodyColor={bodyColor} tint={tint ?? null} />
 			<FairyHatSpritePart hatColor={hatColor} offsetX={0} />
 			{/* Head circle */}
 			<circle

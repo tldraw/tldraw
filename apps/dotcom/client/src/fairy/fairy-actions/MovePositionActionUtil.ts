@@ -1,4 +1,8 @@
-import { MoveViewportAction as MovePositionAction, Streaming } from '@tldraw/fairy-shared'
+import {
+	MoveViewportAction as MovePositionAction,
+	Streaming,
+	createAgentActionInfo,
+} from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -7,11 +11,11 @@ export class MovePositionActionUtil extends AgentActionUtil<MovePositionAction> 
 
 	override getInfo(action: Streaming<MovePositionAction>) {
 		const text = action.intent?.startsWith('#') ? `\n\n${action.intent}` : action.intent
-		return {
-			icon: 'eye' as const,
+		return createAgentActionInfo({
+			icon: 'eye',
 			description: `${text ?? ''}`,
-			pose: 'active' as const,
-		}
+			pose: 'active',
+		})
 	}
 
 	override applyAction(action: Streaming<MovePositionAction>, helpers: AgentHelpers) {

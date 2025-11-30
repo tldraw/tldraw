@@ -43,6 +43,7 @@ export const TlaCookieConsent = memo(function TlaCookieConsent() {
 	)
 	const [consent, updateConsent] = useAnalyticsConsent()
 	const [requiresConsent, setRequiresConsent] = useState<ConsentCheckResult | null>(null)
+	const [animationComplete, setAnimationComplete] = useState(false)
 
 	// Check if consent is required based on user's location
 	useEffect(() => {
@@ -57,6 +58,17 @@ export const TlaCookieConsent = memo(function TlaCookieConsent() {
 			}
 		})
 	}, [consent, updateConsent])
+
+	// Enable pointer events after animation nearly completes
+	useEffect(() => {
+		if (requiresConsent !== 'requires-consent') return
+
+		const timer = setTimeout(() => {
+			setAnimationComplete(true)
+		}, 3000)
+
+		return () => clearTimeout(timer)
+	}, [requiresConsent])
 
 	const handleAccept = useCallback(() => {
 		updateConsent(true)
@@ -87,7 +99,10 @@ export const TlaCookieConsent = memo(function TlaCookieConsent() {
 	return (
 		<div
 			className={styles.cookieConsentWrapper}
-			style={{ opacity: isManageCookiesDialogShown ? 0 : 1 }} // If the manage cookies dialog is shown, hide the cookie consent banner but don't remove it or else the animation will replay when it reappears
+			style={{
+				opacity: isManageCookiesDialogShown ? 0 : 1,
+				pointerEvents: animationComplete ? 'auto' : 'none',
+			}} // If the manage cookies dialog is shown, hide the cookie consent banner but don't remove it or else the animation will replay when it reappears
 		>
 			<div className={styles.cookieConsent} data-testid="tla-cookie-consent">
 				<p className={styles.cookieText}>

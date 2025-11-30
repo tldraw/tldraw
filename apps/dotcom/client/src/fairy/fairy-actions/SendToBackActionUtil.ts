@@ -1,4 +1,4 @@
-import { SendToBackAction, Streaming } from '@tldraw/fairy-shared'
+import { SendToBackAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { TLShapeId } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -7,11 +7,11 @@ export class SendToBackActionUtil extends AgentActionUtil<SendToBackAction> {
 	static override type = 'send-to-back' as const
 
 	override getInfo(action: Streaming<SendToBackAction>) {
-		return {
-			icon: 'cursor' as const,
+		return createAgentActionInfo({
+			icon: 'cursor',
 			description: action.intent ?? '',
-			pose: 'working' as const,
-		}
+			pose: 'working',
+		})
 	}
 
 	override sanitizeAction(action: Streaming<SendToBackAction>, helpers: AgentHelpers) {

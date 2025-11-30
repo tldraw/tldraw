@@ -1,4 +1,10 @@
-import { PenAction, Streaming, asColor, convertFocusFillToTldrawFill } from '@tldraw/fairy-shared'
+import {
+	PenAction,
+	Streaming,
+	asColor,
+	convertFocusFillToTldrawFill,
+	createAgentActionInfo,
+} from '@tldraw/fairy-shared'
 import { TLDrawShapeSegment, Vec, VecModel, createShapeId, last } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -7,11 +13,11 @@ export class PenActionUtil extends AgentActionUtil<PenAction> {
 	static override type = 'pen' as const
 
 	override getInfo(action: Streaming<PenAction>) {
-		return {
-			icon: 'pencil' as const,
+		return createAgentActionInfo({
+			icon: 'pencil',
 			description: action.intent ?? '',
-			pose: 'working' as const,
-		}
+			pose: 'working',
+		})
 	}
 
 	override sanitizeAction(action: Streaming<PenAction>, helpers: AgentHelpers) {

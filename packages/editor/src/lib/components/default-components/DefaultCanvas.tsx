@@ -86,6 +86,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 			const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
 				x + offset
 			)}px,${toDomPrecision(y + offset)}px)`
+
 			setStyleProperty(rHtmlLayer.current, 'transform', transform)
 			setStyleProperty(rHtmlLayer2.current, 'transform', transform)
 		},

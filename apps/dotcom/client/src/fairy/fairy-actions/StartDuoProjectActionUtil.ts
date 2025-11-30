@@ -1,4 +1,4 @@
-import { StartDuoProjectAction, Streaming } from '@tldraw/fairy-shared'
+import { StartDuoProjectAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { $fairyProjects } from '../fairy-globals'
 import { getProjectByAgentId, updateProject } from '../fairy-projects'
@@ -8,14 +8,14 @@ export class StartDuoProjectActionUtil extends AgentActionUtil<StartDuoProjectAc
 	static override type = 'start-duo-project' as const
 
 	override getInfo(action: Streaming<StartDuoProjectAction>) {
-		return {
-			icon: 'flag' as const,
+		return createAgentActionInfo({
+			icon: 'flag',
 			description: action.complete
 				? `Planned project: ${action.projectName}`
 				: `Planning project${action.projectName ? `: ${action.projectName}` : ''}${action.projectDescription ? `\n\n${action.projectDescription}` : ''}${action.projectPlan ? `\n\n${action.projectPlan}` : ''}`,
-			pose: 'reviewing' as const,
+			pose: 'reviewing',
 			canGroup: () => false,
-		}
+		})
 	}
 
 	override applyAction(action: Streaming<StartDuoProjectAction>, _helpers: AgentHelpers) {

@@ -27,6 +27,7 @@ import { MarkSoloTaskDoneActionUtil } from '../fairy-actions/MarkSoloTaskDoneAct
 import { MessageActionUtil } from '../fairy-actions/MessageActionUtil'
 import { MoveActionUtil } from '../fairy-actions/MoveActionUtil'
 import { MovePositionActionUtil } from '../fairy-actions/MovePositionActionUtil'
+import { OffsetActionUtil } from '../fairy-actions/OffsetActionUtil'
 import { PenActionUtil } from '../fairy-actions/PenActionUtil'
 import { PlaceActionUtil } from '../fairy-actions/PlaceActionUtil'
 import { ResizeActionUtil } from '../fairy-actions/ResizeActionUtil'
@@ -91,6 +92,7 @@ export const AGENT_ACTION_UTILS = [
 	MoveActionUtil,
 
 	// Groups of shapes
+	OffsetActionUtil,
 	PlaceActionUtil,
 	BringToFrontActionUtil,
 	SendToBackActionUtil,

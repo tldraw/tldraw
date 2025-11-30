@@ -1,4 +1,4 @@
-import { StartSoloTaskAction, Streaming } from '@tldraw/fairy-shared'
+import { StartSoloTaskAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { $fairyTasks } from '../fairy-globals'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -9,14 +9,14 @@ export class StartSoloTaskActionUtil extends AgentActionUtil<StartSoloTaskAction
 	override getInfo(action: Streaming<StartSoloTaskAction>) {
 		const task = $fairyTasks.get().find((task) => task.id === action.taskId)
 
-		return {
-			icon: 'note' as const,
+		return createAgentActionInfo({
+			icon: 'note',
 			description: action.complete
 				? `Started task${task?.title ? `: ${task.title}` : ''}`
 				: 'Starting task...',
-			pose: 'reading' as const,
+			pose: 'reading',
 			canGroup: () => false,
-		}
+		})
 	}
 
 	override applyAction(action: Streaming<StartSoloTaskAction>, _helpers: AgentHelpers) {

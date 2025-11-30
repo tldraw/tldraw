@@ -10,10 +10,16 @@ import {
 	TldrawUiMenuSubmenu,
 	useValue,
 } from 'tldraw'
+import { isDevelopmentEnv } from '../../../../utils/env'
 import { useApp } from '../../../hooks/useAppState'
 import { useFairyAccess } from '../../../hooks/useFairyAccess'
 import { F, defineMessages, useMsg } from '../../../utils/i18n'
-import { toggleFairies, useAreFairiesEnabled } from '../../../utils/local-session-state'
+import {
+	toggleFairies,
+	toggleFairiesDebug,
+	useAreFairiesDebugEnabled,
+	useAreFairiesEnabled,
+} from '../../../utils/local-session-state'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
 	ColorThemeSubmenu,
@@ -27,6 +33,7 @@ const messages = defineMessages({
 	userMenu: { defaultMessage: 'User settings' },
 	fairies: { defaultMessage: 'Fairies' },
 	enableFairies: { defaultMessage: 'Enable fairies' },
+	debugFairies: { defaultMessage: 'Debug fairies' },
 })
 
 export function TlaUserSettingsMenu() {
@@ -81,8 +88,10 @@ export function TlaUserSettingsMenu() {
 
 function FairiesSubmenu() {
 	const areFairiesEnabled = useAreFairiesEnabled()
+	const areFairiesDebugEnabled = useAreFairiesDebugEnabled()
 	const fairiesLbl = useMsg(messages.fairies)
 	const enableFairiesLbl = useMsg(messages.enableFairies)
+	const debugFairiesLbl = useMsg(messages.debugFairies)
 
 	return (
 		<TldrawUiMenuSubmenu id="fairies" label={fairiesLbl}>
@@ -94,6 +103,15 @@ function FairiesSubmenu() {
 					onSelect={() => toggleFairies()}
 					readonlyOk
 				/>
+				{isDevelopmentEnv && (
+					<TldrawUiMenuCheckboxItem
+						id="debug-fairies"
+						label={debugFairiesLbl}
+						checked={areFairiesDebugEnabled}
+						onSelect={() => toggleFairiesDebug()}
+						readonlyOk
+					/>
+				)}
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)

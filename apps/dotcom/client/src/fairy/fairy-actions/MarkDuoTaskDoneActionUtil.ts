@@ -1,4 +1,4 @@
-import { MarkDuoTaskDoneAction, Streaming } from '@tldraw/fairy-shared'
+import { MarkDuoTaskDoneAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { uniqueId } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { setFairyTaskStatusAndNotifyCompletion } from '../fairy-task-list'
@@ -8,12 +8,12 @@ export class MarkDuoTaskDoneActionUtil extends AgentActionUtil<MarkDuoTaskDoneAc
 	static override type = 'mark-duo-task-done' as const
 
 	override getInfo(action: Streaming<MarkDuoTaskDoneAction>) {
-		return {
-			icon: 'note' as const,
+		return createAgentActionInfo({
+			icon: 'note',
 			description: action.complete ? `Completed task` : 'Completing task...',
-			pose: 'writing' as const,
+			pose: 'writing',
 			canGroup: () => false,
-		}
+		})
 	}
 
 	override applyAction(action: Streaming<MarkDuoTaskDoneAction>, _helpers: AgentHelpers) {

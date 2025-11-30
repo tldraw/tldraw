@@ -324,6 +324,7 @@ div:has(> .menuSelectContent) {
 	justify-content: flex-start;
 	position: relative;
 	overflow-x: auto;
+	flex: 1;
 	--tab-padding: 12px;
 	--line-height: 2px;
 }

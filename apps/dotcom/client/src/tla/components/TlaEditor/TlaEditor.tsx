@@ -38,7 +38,7 @@ import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { useFairyAccess } from '../../hooks/useFairyAccess'
+import { useFairyAccess, useShouldShowFairies } from '../../hooks/useFairyAccess'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawUser } from '../../hooks/useUser'
@@ -285,6 +285,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 	const hasFairyAccess = useFairyAccess()
 	const areFairiesEnabled = useAreFairiesEnabled()
+	const shouldShowFairies = useShouldShowFairies()
 
 	// Fairy stuff
 
@@ -292,41 +293,44 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const [_agents, setAgents] = useState<any[]>([])
 	// filter out deleted fairies (setAgents gets called after a fairy has been deleted)
 	const agents = useValue('agents', () => _agents.filter((a) => a.$fairyConfig.get()), [_agents])
-	// keep a ref in sync so getUserPresence can read current agents without re-creating the callback
+	// keep a ref in sync so getUserPresence can read current agents without re-create the callback
 	useEffect(() => {
 		agentsRef.current = agents
 	}, [agents])
 
 	const instanceComponents = useMemo((): TLComponents => {
-		const canShowFairies = app && agents && hasFairyAccess && areFairiesEnabled
-		const shouldShowAnyFairyUI = hasFairyAccess && areFairiesEnabled
+		// User can control their own fairies if they have fairy access and it's enabled
+		const canControlFairies = app && agents && hasFairyAccess && areFairiesEnabled
+		// Show fairy UI (HUD, remote fairies) if feature flag is enabled and local toggle is on
+		// This allows guests to see fairies on shared files without requiring login
+		const shouldShowFairyUI = shouldShowFairies && areFairiesEnabled
 
 		return {
 			...components,
 			Overlays: () => (
 				<>
 					<TldrawOverlays />
-					{canShowFairies ? (
+					{shouldShowFairyUI ? (
 						<Suspense fallback={<div />}>
 							{/* <DebugFairyVision agents={agents} /> */}
 							<RemoteFairies />
-							<Fairies agents={agents} />
+							{canControlFairies && <Fairies agents={agents} />}
 						</Suspense>
 					) : null}
 				</>
 			),
 			InFrontOfTheCanvas: () => (
 				<>
-					{shouldShowAnyFairyUI ? (
+					{shouldShowFairyUI ? (
 						<Suspense fallback={<div />}>
-							{canShowFairies ? <FairyHUD agents={agents} /> : <FairyHUDTeaser />}
+							{canControlFairies ? <FairyHUD agents={agents} /> : <FairyHUDTeaser />}
 						</Suspense>
 					) : null}
 				</>
 			),
 			DebugMenu: () => <CustomDebugMenu />,
 		}
-	}, [agents, hasFairyAccess, areFairiesEnabled, app])
+	}, [agents, hasFairyAccess, areFairiesEnabled, shouldShowFairies, app])
 
 	return (
 		<TlaEditorWrapper>

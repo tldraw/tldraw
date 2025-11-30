@@ -3,33 +3,41 @@ import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
 import { FairyLegsSpritePart } from './parts/FairyLegsSpritePart'
 
 export function WritingSprite1({
-	bodyColor = 'var(--tl-color-fairy-light)',
-	hatColor = 'white',
+	bodyColor,
+	hatColor,
+	tint,
 }: {
-	bodyColor?: string
-	hatColor?: string
+	bodyColor: string
+	hatColor: string
+	tint?: string | null
 }) {
-	return <BaseWritingSprite penRotation={0} bodyColor={bodyColor} hatColor={hatColor} />
+	return <BaseWritingSprite penRotation={0} bodyColor={bodyColor} hatColor={hatColor} tint={tint} />
 }
 
 export function WritingSprite2({
-	bodyColor = 'var(--tl-color-fairy-light)',
-	hatColor = 'white',
+	bodyColor,
+	hatColor,
+	tint,
 }: {
-	bodyColor?: string
-	hatColor?: string
+	bodyColor: string
+	hatColor: string
+	tint?: string | null
 }) {
-	return <BaseWritingSprite penRotation={10} bodyColor={bodyColor} hatColor={hatColor} />
+	return (
+		<BaseWritingSprite penRotation={10} bodyColor={bodyColor} hatColor={hatColor} tint={tint} />
+	)
 }
 
 export function BaseWritingSprite({
 	penRotation,
-	bodyColor = 'var(--tl-color-fairy-light)',
-	hatColor = 'white',
+	bodyColor,
+	hatColor,
+	tint,
 }: {
 	penRotation: number
-	bodyColor?: string
-	hatColor?: string
+	bodyColor: string
+	hatColor: string
+	tint?: string | null
 }) {
 	return (
 		<>
@@ -40,7 +48,7 @@ export function BaseWritingSprite({
 				strokeLinecap="round"
 			/>
 			<FairyLegsSpritePart />
-			<FairyBodySpritePart bodyColor={bodyColor} />
+			<FairyBodySpritePart bodyColor={bodyColor} tint={tint ?? null} />
 			<FairyHatSpritePart hatColor={hatColor} offsetX={3} offsetY={2} />
 			<circle
 				cx="58.2658"

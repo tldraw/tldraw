@@ -1,4 +1,4 @@
-import { DeleteProjectTaskAction, Streaming } from '@tldraw/fairy-shared'
+import { DeleteProjectTaskAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { deleteFairyTask, getFairyTaskById } from '../fairy-task-list'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -8,13 +8,13 @@ export class DeleteProjectTaskActionUtil extends AgentActionUtil<DeleteProjectTa
 	override getInfo(action: Streaming<DeleteProjectTaskAction>) {
 		const task = action.taskId ? getFairyTaskById(action.taskId) : null
 		const taskName = task?.title || action.taskId || 'task'
-		return {
-			icon: 'trash' as const,
+		return createAgentActionInfo({
+			icon: 'trash',
 			description: action.complete
 				? `Removed task: ${taskName}${action.reason ? ` (${action.reason})` : ''}`
 				: `Removing task${taskName ? `: ${taskName}` : ''}...`,
-			pose: 'writing' as const,
-		}
+			pose: 'writing',
+		})
 	}
 
 	override applyAction(action: Streaming<DeleteProjectTaskAction>) {

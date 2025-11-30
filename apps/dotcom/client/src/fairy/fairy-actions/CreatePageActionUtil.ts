@@ -1,4 +1,4 @@
-import { CreatePageAction, Streaming } from '@tldraw/fairy-shared'
+import { createAgentActionInfo, CreatePageAction, Streaming } from '@tldraw/fairy-shared'
 import { PageRecordType } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -7,11 +7,11 @@ export class CreatePageActionUtil extends AgentActionUtil<CreatePageAction> {
 	static override type = 'create-page' as const
 
 	override getInfo(action: Streaming<CreatePageAction>) {
-		return {
-			icon: 'note' as const,
+		return createAgentActionInfo({
+			icon: 'note',
 			description: action.intent ?? `Creating page: ${action.pageName}`,
-			pose: 'working' as const,
-		}
+			pose: 'working',
+		})
 	}
 
 	override applyAction(action: Streaming<CreatePageAction>, _helpers: AgentHelpers) {

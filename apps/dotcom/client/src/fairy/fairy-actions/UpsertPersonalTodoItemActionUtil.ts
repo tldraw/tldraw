@@ -1,4 +1,8 @@
-import { Streaming, UpsertPersonalTodoItemAction } from '@tldraw/fairy-shared'
+import {
+	Streaming,
+	UpsertPersonalTodoItemAction,
+	createAgentActionInfo,
+} from '@tldraw/fairy-shared'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class UpsertPersonalTodoItemActionUtil extends AgentActionUtil<UpsertPersonalTodoItemAction> {
@@ -6,10 +10,10 @@ export class UpsertPersonalTodoItemActionUtil extends AgentActionUtil<UpsertPers
 
 	override getInfo(action: Streaming<UpsertPersonalTodoItemAction>) {
 		if (!action.complete) {
-			return {
+			return createAgentActionInfo({
 				description: null,
-				pose: 'writing' as const,
-			}
+				pose: 'writing',
+			})
 		}
 
 		if (action.status === 'in-progress') {

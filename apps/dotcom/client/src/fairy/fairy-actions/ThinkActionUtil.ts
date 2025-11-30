@@ -1,4 +1,4 @@
-import { Streaming, ThinkAction } from '@tldraw/fairy-shared'
+import { Streaming, ThinkAction, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class ThinkActionUtil extends AgentActionUtil<ThinkAction> {
@@ -10,11 +10,11 @@ export class ThinkActionUtil extends AgentActionUtil<ThinkAction> {
 		if (time === 0) summary = 'Thought for less than a second'
 		if (time === 1) summary = 'Thought for 1 second'
 
-		return {
-			icon: 'brain' as const,
+		return createAgentActionInfo({
+			icon: 'brain',
 			description: action.text ?? (action.complete ? null : 'Thinking...'),
 			summary,
-			pose: 'thinking' as const,
-		}
+			pose: 'thinking',
+		})
 	}
 }

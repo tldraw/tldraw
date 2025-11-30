@@ -1,5 +1,9 @@
 /* eslint-disable local/no-export-star */
 
+import { AgentAction } from './types/AgentAction'
+import { AgentActionInfo } from './types/AgentActionInfo'
+import { FairyTask } from './types/FairyTask'
+
 // Format
 export type * from './format/BlurryShape'
 export * from './format/convertFocusedShapeToTldrawShape'
@@ -75,3 +79,15 @@ export * from './icons/SmallSpinner'
 export * from './icons/TargetIcon'
 export * from './icons/TickIcon'
 export * from './icons/TrashIcon'
+
+export function createAgentAction<T extends AgentAction>(action: T): T {
+	return action
+}
+
+export function createAgentActionInfo<T extends Partial<AgentActionInfo>>(info: T): T {
+	return info
+}
+
+export function createAgentTask<T extends FairyTask>(task: T): T {
+	return task
+}

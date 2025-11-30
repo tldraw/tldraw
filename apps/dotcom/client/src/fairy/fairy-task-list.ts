@@ -1,4 +1,4 @@
-import { FairyTask, FairyTaskStatus } from '@tldraw/fairy-shared'
+import { createAgentTask, FairyTask, FairyTaskStatus } from '@tldraw/fairy-shared'
 import { Editor } from 'tldraw'
 import { FairyAgent } from './fairy-agent/FairyAgent'
 import { $fairyTasks } from './fairy-globals'
@@ -7,15 +7,15 @@ import { notifyTaskCompleted } from './fairy-wait-notifications'
 
 export function createFairyTask(newPartialTask: Partial<FairyTask> & { id: string }) {
 	$fairyTasks.update((tasks) => {
-		const task: FairyTask = {
+		const task = createAgentTask({
 			title: newPartialTask.title || '',
 			text: '',
 			projectId: null,
 			assignedTo: null,
-			status: 'todo' as const,
+			status: 'todo',
 			pageId: undefined,
 			...newPartialTask,
-		}
+		})
 		return [...tasks, task]
 	})
 }

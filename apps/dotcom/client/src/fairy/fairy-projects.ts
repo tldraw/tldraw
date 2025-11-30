@@ -118,7 +118,6 @@ export function disbandProject(projectId: string, editor: Editor) {
 		addProjectCancellationMemory(memberAgent, project)
 
 		memberAgent.interrupt({ mode: 'idling', input: null })
-		memberAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
 	})
 
 	deleteProjectAndAssociatedTasks(projectId)

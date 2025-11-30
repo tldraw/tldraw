@@ -5,6 +5,7 @@ import {
 	fairyOutfitValidator,
 } from '@tldraw/fairy-shared'
 import { T, useEditor, usePeerIds, usePresence } from 'tldraw'
+import { FAIRY_CONTAINER_SIZE } from '../Fairy'
 import { FairySprite, getHatColor } from '../fairy-sprite/FairySprite'
 
 /**
@@ -74,14 +75,17 @@ function RemoteFairyIndicator({
 	outfit: FairyOutfit
 	color: string
 }) {
+	// Match local fairy animation logic: animate if pose is not idle or if selected
+	const isAnimated = entity.pose !== 'idle' || entity.isSelected
+
 	return (
 		<div
 			style={{
 				position: 'absolute',
 				left: entity.position.x,
 				top: entity.position.y,
-				width: 32, // `${FAIRY_SIZE}px`,
-				height: 32, // `${FAIRY_SIZE}px`,
+				width: `${FAIRY_CONTAINER_SIZE}px`,
+				height: `${FAIRY_CONTAINER_SIZE}px`,
 				transform: `translate(-75%, -25%) scale(var(--tl-scale))`,
 				transformOrigin: '75% 25%',
 				transition: 'left 0.1s ease-in-out, top 0.1s ease-in-out',
@@ -89,7 +93,7 @@ function RemoteFairyIndicator({
 		>
 			<FairySprite
 				showShadow
-				isAnimated={true}
+				isAnimated={isAnimated}
 				flipX={entity.flipX}
 				gesture={entity.gesture}
 				pose={entity.pose}

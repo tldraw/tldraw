@@ -16,6 +16,7 @@
 	--tl-color-fairy-gold: #f0c987;
 	--tl-color-fairy-rose: #f5a8c6;
 	--tl-color-fairy-green: #a3d9a5;
+	--tl-color-fairy-white: #ffffff;
 	--tl-color-fairy-lips: #ee7b90;
 	--tl-color-fairy-lips-hover: #d54a63;
 }
@@ -36,6 +37,7 @@
 	--tl-color-fairy-gold: #4d3c20;
 	--tl-color-fairy-rose: #5b2238;
 	--tl-color-fairy-green: #104212;
+	--tl-color-fairy-white: #ffffff;
 	--tl-color-fairy-lips: #ee7b90;
 	--tl-color-fairy-lips-hover: #d54a63;
 }
@@ -163,11 +165,18 @@
 	font-family: inherit;
 	outline: none;
 	resize: none;
-	min-height: 17px;
+	min-height: 62px;
 	max-height: 85px;
 	overflow-y: auto;
 	line-height: 1.4;
 	flex: 1;
+}
+
+/* Use 16px font on touch devices to prevent iOS auto-zoom on focus */
+@media (pointer: coarse) {
+	.fairy-input__field {
+		font-size: 16px;
+	}
 }
 
 .fairy-input__field::placeholder {
@@ -232,6 +241,7 @@
 	width: 100%;
 	height: 100%;
 	display: flex;
+	pointer-events: none;
 }
 
 .fairy-selected-sprite-overlay {
@@ -240,7 +250,6 @@
 	left: 0;
 	width: 100%;
 	height: 100%;
-	pointer-events: none;
 }
 
 .fairy-sprite-stack {
@@ -269,6 +278,12 @@
 .fairy-sprite-stack.shadow {
 	filter: drop-shadow(var(--x-offset) 2px 0.5px rgba(8, 20, 35, 0.12))
 		drop-shadow(0px 0px 1px rgba(255, 255, 255, 0.9))
+		drop-shadow(0px 0px 5px rgba(255, 255, 255, 0.25));
+}
+
+.tla-theme__dark .fairy-sprite-stack.shadow {
+	filter: drop-shadow(var(--x-offset) 2px 0.5px rgba(8, 20, 35, 0.52))
+		drop-shadow(0px 0px 1px rgba(255, 255, 255, 0.25))
 		drop-shadow(0px 0px 5px rgba(255, 255, 255, 0.25));
 }
 
@@ -303,17 +318,16 @@
 	fill: var(--tl-color-fairy-select-fg);
 }
 
-.fairy-plus-button:hover .fairy-plus-button-circle {
-	fill: var(--tl-color-fairy-select-bg);
-}
-
-.fairy-plus-button .tlui-icon {
-	width: 10px;
-	height: 10px;
-	color: white;
+@media (pointer: coarse) {
+	.fairy-plus-button {
+		display: none;
+	}
 }
 
 @media (hover: hover) {
+	.fairy-plus-button:hover .fairy-plus-button-circle {
+		fill: var(--tl-color-fairy-select-bg);
+	}
 	.fairy-plus-button {
 		opacity: 0;
 		transition:
@@ -457,13 +471,19 @@
 
 /* Manual Panel Content */
 
-.fairy-manual-content {
+.fairy-manual-content-container {
 	flex: 1;
 	overflow-y: auto;
-	padding: 8px 12px 24px 12px;
+	padding: 1px 0px;
 	font-size: 13px;
 	line-height: 1.5;
 	color: var(--tl-color-text-1);
+}
+
+.fairy-manual-content {
+	padding: 16px 12px 24px 12px;
+	overflow-y: auto;
+	height: 100%;
 }
 
 .fairy-manual-section {
@@ -901,7 +921,7 @@
 	align-items: center;
 	gap: 4px;
 	font-size: 12px;
-	padding: 2px 8px 2px 8px;
+	padding: 2px 8px 2px 2px;
 	color: var(--tl-color-text-2);
 }
 
@@ -1361,6 +1381,13 @@
 	overflow-y: auto;
 	line-height: 1.4;
 	flex: 1;
+}
+
+/* Use 16px font on touch devices to prevent iOS auto-zoom on focus */
+@media (pointer: coarse) {
+	.fairy-group-chat-input__field {
+		font-size: 16px;
+	}
 }
 
 .fairy-group-chat-input__submit:hover:not(:disabled) .fairy-lips-icon {

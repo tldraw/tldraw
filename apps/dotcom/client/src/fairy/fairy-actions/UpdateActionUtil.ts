@@ -1,6 +1,7 @@
 import {
 	convertFocusedShapeToTldrawShape,
 	convertSimpleIdToTldrawId,
+	createAgentActionInfo,
 	Streaming,
 	UpdateAction,
 } from '@tldraw/fairy-shared'
@@ -12,11 +13,11 @@ export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
 	static override type = 'update' as const
 
 	override getInfo(action: Streaming<UpdateAction>) {
-		return {
-			icon: 'cursor' as const,
+		return createAgentActionInfo({
+			icon: 'cursor',
 			description: action.intent ?? '',
-			pose: 'working' as const,
-		}
+			pose: 'working',
+		})
 	}
 
 	override sanitizeAction(action: Streaming<UpdateAction>, helpers: AgentHelpers) {

@@ -1,4 +1,4 @@
-import { ChangePageAction, Streaming } from '@tldraw/fairy-shared'
+import { ChangePageAction, createAgentActionInfo, Streaming } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
 
@@ -6,11 +6,11 @@ export class ChangePageActionUtil extends AgentActionUtil<ChangePageAction> {
 	static override type = 'change-page' as const
 
 	override getInfo(action: Streaming<ChangePageAction>) {
-		return {
-			icon: 'target' as const,
+		return createAgentActionInfo({
+			icon: 'target',
 			description: action.intent ?? `Changing to page: ${action.pageName}`,
-			pose: 'working' as const,
-		}
+			pose: 'working',
+		})
 	}
 
 	override applyAction(action: Streaming<ChangePageAction>, _helpers: AgentHelpers) {

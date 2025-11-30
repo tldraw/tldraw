@@ -1,4 +1,4 @@
-import { DeleteAction, Streaming } from '@tldraw/fairy-shared'
+import { DeleteAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { TLShapeId } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -7,12 +7,12 @@ export class DeleteActionUtil extends AgentActionUtil<DeleteAction> {
 	static override type = 'delete' as const
 
 	override getInfo(action: Streaming<DeleteAction>) {
-		return {
-			icon: 'trash' as const,
+		return createAgentActionInfo({
+			icon: 'trash',
 			description: action.intent ?? '',
-			pose: 'working' as const,
+			pose: 'working',
 			//canGroup: (other: Streaming<BaseAgentAction>) => other._type === 'delete',
-		}
+		})
 	}
 
 	override sanitizeAction(action: Streaming<DeleteAction>, helpers: AgentHelpers) {

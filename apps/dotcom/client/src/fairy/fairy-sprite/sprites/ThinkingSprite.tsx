@@ -2,11 +2,13 @@ import { FairyBodySpritePart } from './parts/FairyBodySpritePart'
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
 
 export function ThinkingSprite({
-	bodyColor = 'var(--tl-color-fairy-light)',
-	hatColor = 'white',
+	bodyColor,
+	hatColor,
+	tint,
 }: {
-	bodyColor?: string
-	hatColor?: string
+	bodyColor: string
+	hatColor: string
+	tint: string | null
 }) {
 	return (
 		<>
@@ -16,7 +18,7 @@ export function ThinkingSprite({
 				strokeWidth="6"
 				strokeLinecap="round"
 			/>
-			<FairyBodySpritePart bodyColor={bodyColor} />
+			<FairyBodySpritePart bodyColor={bodyColor} tint={tint} />
 			<FairyHatSpritePart hatColor={hatColor} offsetX={0} offsetY={1} />
 			<circle
 				cx="55.4159"

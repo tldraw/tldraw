@@ -1,4 +1,4 @@
-import { ClaimTodoItemAction, Streaming } from '@tldraw/fairy-shared'
+import { ClaimTodoItemAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class ClaimTodoItemActionUtil extends AgentActionUtil<ClaimTodoItemAction> {
@@ -9,11 +9,11 @@ export class ClaimTodoItemActionUtil extends AgentActionUtil<ClaimTodoItemAction
 			? `Claimed todo item ${action.todoItemId}.`
 			: `Claiming todo item ${action.todoItemId}...`
 
-		return {
-			icon: 'pencil' as const,
+		return createAgentActionInfo({
+			icon: 'pencil',
 			description: text,
-			pose: 'reading' as const,
-		}
+			pose: 'reading',
+		})
 	}
 
 	override applyAction(action: Streaming<ClaimTodoItemAction>) {

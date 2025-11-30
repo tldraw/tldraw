@@ -21,7 +21,7 @@ async function main() {
 				'--report-unused-disable-directives',
 				'--no-error-on-unmatched-pattern',
 				'--quiet',
-				shouldFix ? '--fix' : null,
+				...(shouldFix ? ['--fix'] : []),
 				relativeCwd,
 			],
 			{ pwd: REPO_ROOT }

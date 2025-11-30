@@ -1,4 +1,4 @@
-import { StartDuoTaskAction, Streaming } from '@tldraw/fairy-shared'
+import { StartDuoTaskAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { $fairyTasks } from '../fairy-globals'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -9,14 +9,14 @@ export class StartDuoTaskActionUtil extends AgentActionUtil<StartDuoTaskAction> 
 	override getInfo(action: Streaming<StartDuoTaskAction>) {
 		const task = $fairyTasks.get().find((task) => task.id === action.taskId)
 
-		return {
-			icon: 'note' as const,
+		return createAgentActionInfo({
+			icon: 'note',
 			description: action.complete
 				? `Started task${task?.title ? `: ${task.title}` : ''}`
 				: 'Starting task...',
-			pose: 'reading' as const,
+			pose: 'reading',
 			canGroup: () => false,
-		}
+		})
 	}
 
 	override applyAction(action: Streaming<StartDuoTaskAction>, _helpers: AgentHelpers) {

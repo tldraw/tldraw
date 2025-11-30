@@ -26,6 +26,16 @@ export function useFairyAccess(): boolean {
 }
 
 /**
+ * Hook that returns whether fairies should be visible.
+ * For logged-in users, checks fairy access. For guests, just checks the feature flag.
+ * This allows guests to see fairies on shared files without requiring login.
+ */
+export function useShouldShowFairies(): boolean {
+	const { flags } = useFeatureFlags()
+	return useValue('should_show_fairies', () => flags.fairies.enabled, [flags.fairies.enabled])
+}
+
+/**
  * Hook that returns the user's fairy limit.
  * Returns null if the user has no fairy access at all.
  */
