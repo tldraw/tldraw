@@ -122,6 +122,9 @@ describe('ReviewActionUtil', () => {
 				time: 0,
 			})
 
+			// set the pose to something other than idle
+			agent.$fairyEntity.set({ ...agent.$fairyEntity.get(), pose: 'thinking' })
+
 			const helpers = new AgentHelpers(agent)
 			const initialPose = agent.$fairyEntity.get().pose
 

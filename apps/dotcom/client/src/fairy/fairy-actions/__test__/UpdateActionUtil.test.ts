@@ -1,5 +1,5 @@
 import { createAgentAction } from '@tldraw/fairy-shared'
-import { createShapeId, Editor } from 'tldraw'
+import { createShapeId, Editor, TLNoteShape, TLTextShape, toRichText } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AgentHelpers } from '../../fairy-agent/AgentHelpers'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
@@ -214,11 +214,9 @@ describe('UpdateActionUtil', () => {
 			expect(updateShapeSpy).not.toHaveBeenCalled()
 		})
 
-		it('should attempt to update text content', () => {
+		it('should update text content', () => {
 			const id = createShapeId('text1')
 			editor.createShape({ id, type: 'text', x: 0, y: 0 })
-
-			const initialFairyPosition = agent.$fairyEntity.get().position
 
 			const action = createAgentAction({
 				_type: 'update',
@@ -240,12 +238,10 @@ describe('UpdateActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			updateUtil.applyAction(action, helpers)
 
-			// Verify moveTo was called (this happens after shape update)
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
-			// Verify the fairy's position actually changed
-			const newFairyPosition = agent.$fairyEntity.get().position
-			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
-			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
+			// Verify the text shape was actually updated on the canvas
+			const textShape = editor.getShape(id) as TLTextShape | null
+			expect(textShape).toBeDefined()
+			expect(textShape?.props.richText).toEqual(toRichText('Updated text'))
 		})
 
 		it('should handle updating arrow bindings', () => {
@@ -315,11 +311,9 @@ describe('UpdateActionUtil', () => {
 			}).toThrow('Shape shape:nonexistent not found in canvas')
 		})
 
-		it('should attempt to update note shape', () => {
+		it('should update note shape content and color', () => {
 			const id = createShapeId('note1')
 			editor.createShape({ id, type: 'note', x: 0, y: 0 })
-
-			const initialFairyPosition = agent.$fairyEntity.get().position
 
 			const action = createAgentAction({
 				_type: 'update',
@@ -340,12 +334,11 @@ describe('UpdateActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			updateUtil.applyAction(action, helpers)
 
-			// Verify moveTo was called (this happens after shape update)
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
-			// Verify the fairy's position actually changed
-			const newFairyPosition = agent.$fairyEntity.get().position
-			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
-			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
+			// Verify the note shape was actually updated on the canvas
+			const noteShape = editor.getShape(id) as TLNoteShape | null
+			expect(noteShape).toBeDefined()
+			expect(noteShape?.props.richText).toEqual(toRichText('Updated note content'))
+			expect(noteShape?.props.color).toBe('yellow')
 		})
 	})
 })

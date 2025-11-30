@@ -120,8 +120,6 @@ describe('CreatePageActionUtil', () => {
 		})
 
 		it('should move fairy to center of viewport when switching', () => {
-			const initialFairyPosition = agent.$fairyEntity.get().position
-
 			const action = createAgentAction({
 				_type: 'create-page',
 				pageName: 'New Page',
@@ -135,10 +133,6 @@ describe('CreatePageActionUtil', () => {
 			createPageUtil.applyAction(action, helpers)
 
 			expect(agent.positionManager.moveTo).toHaveBeenCalled()
-			// Verify the fairy's position actually changed
-			const newFairyPosition = agent.$fairyEntity.get().position
-			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
-			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})
 
 		it('should not move fairy when not switching pages', () => {

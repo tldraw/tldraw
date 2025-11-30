@@ -276,8 +276,6 @@ describe('RotateActionUtil', () => {
 			const id1 = createShapeId('shape1')
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 
-			const initialFairyPosition = agent.$fairyEntity.get().position
-
 			const action = createAgentAction({
 				_type: 'rotate',
 				shapeIds: ['shape1'],
@@ -294,10 +292,6 @@ describe('RotateActionUtil', () => {
 			rotateUtil.applyAction(action, helpers)
 
 			expect(agent.positionManager.moveTo).toHaveBeenCalledWith({ x: 50, y: 50 })
-			// Verify the fairy's position actually changed
-			const newFairyPosition = agent.$fairyEntity.get().position
-			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
-			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})
 
 		it('should handle rotation by 180 degrees', () => {

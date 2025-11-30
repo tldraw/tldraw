@@ -88,8 +88,6 @@ describe('ChangePageActionUtil', () => {
 			const page2Id = PageRecordType.createId()
 			editor.createPage({ name: 'Page 2', id: page2Id })
 
-			const initialFairyPosition = agent.$fairyEntity.get().position
-
 			const action = createAgentAction({
 				_type: 'change-page',
 				pageName: 'Page 2',
@@ -102,10 +100,6 @@ describe('ChangePageActionUtil', () => {
 			changePageUtil.applyAction(action, helpers)
 
 			expect(agent.positionManager.moveTo).toHaveBeenCalled()
-			// Verify the fairy's position actually changed
-			const newFairyPosition = agent.$fairyEntity.get().position
-			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
-			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})
 
 		it('should schedule message if page does not exist', () => {

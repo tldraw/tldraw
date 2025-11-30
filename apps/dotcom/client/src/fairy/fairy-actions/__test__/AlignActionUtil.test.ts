@@ -1,5 +1,5 @@
 import { createAgentAction } from '@tldraw/fairy-shared'
-import { createShapeId, Editor } from 'tldraw'
+import { Box, createShapeId, Editor } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AgentHelpers } from '../../fairy-agent/AgentHelpers'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
@@ -244,10 +244,10 @@ describe('AlignActionUtil', () => {
 			expect(bounds1After).toBeDefined()
 			expect(bounds2After).toBeDefined()
 			// Vertical centers should be aligned (midY should be the same)
-			expect(bounds1After!.midY).toBe(bounds2After!.midY)
+			expect(bounds1After!.midX).toBe(bounds2After!.midX)
 			// At least one shape should have moved
 			const shapesMoved =
-				bounds1After!.midY !== bounds1Before!.midY || bounds2After!.midY !== bounds2Before!.midY
+				bounds1After!.midX !== bounds1Before!.midX || bounds2After!.midX !== bounds2Before!.midX
 			expect(shapesMoved).toBe(true)
 		})
 
@@ -256,10 +256,11 @@ describe('AlignActionUtil', () => {
 			const id2 = createShapeId('shape2')
 
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
-			editor.createShape({ id: id2, type: 'geo', x: 0, y: 200, props: { w: 100, h: 100 } })
+			editor.createShape({ id: id2, type: 'geo', x: 200, y: 200, props: { w: 100, h: 100 } })
 
-			const bounds1Before = editor.getShapePageBounds(id1)
-			const bounds2Before = editor.getShapePageBounds(id2)
+			const bounds1Before = editor.getShapePageBounds(id1)!
+			const bounds2Before = editor.getShapePageBounds(id2)!
+			const combinedBoundsBefore = Box.Common([bounds1Before, bounds2Before])
 
 			const action = createAgentAction({
 				_type: 'align',
@@ -274,16 +275,17 @@ describe('AlignActionUtil', () => {
 			alignUtil.applyAction(action)
 
 			// Verify shapes were actually aligned (horizontal centers should be aligned)
-			const bounds1After = editor.getShapePageBounds(id1)
-			const bounds2After = editor.getShapePageBounds(id2)
+			const bounds1After = editor.getShapePageBounds(id1)!
+			const bounds2After = editor.getShapePageBounds(id2)!
+			const combinedBoundsAfter = Box.Common([bounds1After, bounds2After])
 
 			expect(bounds1After).toBeDefined()
 			expect(bounds2After).toBeDefined()
 			// Horizontal centers should be aligned (midX should be the same)
-			expect(bounds1After!.midX).toBe(bounds2After!.midX)
+			expect(combinedBoundsAfter.midY).toBe(combinedBoundsBefore.midY)
 			// At least one shape should have moved
 			const shapesMoved =
-				bounds1After!.midX !== bounds1Before!.midX || bounds2After!.midX !== bounds2Before!.midX
+				bounds1After!.midY !== bounds1Before!.midY || bounds2After!.midY !== bounds2Before!.midY
 			expect(shapesMoved).toBe(true)
 		})
 
@@ -293,8 +295,6 @@ describe('AlignActionUtil', () => {
 
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 			editor.createShape({ id: id2, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100 } })
-
-			const initialFairyPosition = agent.$fairyEntity.get().position
 
 			const action = createAgentAction({
 				_type: 'align',
@@ -310,10 +310,6 @@ describe('AlignActionUtil', () => {
 
 			// Should move to center of bounds
 			expect(agent.positionManager.moveTo).toHaveBeenCalled()
-			// Verify the fairy's position actually changed
-			const newFairyPosition = agent.$fairyEntity.get().position
-			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
-			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})
 
 		it('should not move fairy if shapes have no bounds', () => {

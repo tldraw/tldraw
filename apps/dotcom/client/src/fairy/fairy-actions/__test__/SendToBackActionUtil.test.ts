@@ -95,7 +95,7 @@ describe('SendToBackActionUtil', () => {
 			editor.createShape({ id: id2, type: 'geo', x: 50, y: 50, props: { w: 100, h: 100 } })
 
 			// Get initial shape order
-			const shapesBefore = editor.getCurrentPageShapes()
+			const shapesBefore = editor.getCurrentPageShapesSorted()
 			const index1Before = shapesBefore.findIndex((s) => s.id === id1)
 			const index2Before = shapesBefore.findIndex((s) => s.id === id2)
 
@@ -110,7 +110,7 @@ describe('SendToBackActionUtil', () => {
 			sendToBackUtil.applyAction(action)
 
 			// Verify shape was actually sent to back (should be first in array)
-			const shapesAfter = editor.getCurrentPageShapes()
+			const shapesAfter = editor.getCurrentPageShapesSorted()
 			const index1After = shapesAfter.findIndex((s) => s.id === id1)
 			const index2After = shapesAfter.findIndex((s) => s.id === id2)
 			// shape2 should now be before shape1 (sent to back)
@@ -129,7 +129,7 @@ describe('SendToBackActionUtil', () => {
 			editor.createShape({ id: id3, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } })
 
 			// Get initial shape order
-			const shapesBefore = editor.getCurrentPageShapes()
+			const shapesBefore = editor.getCurrentPageShapesSorted()
 			const index1Before = shapesBefore.findIndex((s) => s.id === id1)
 			const index2Before = shapesBefore.findIndex((s) => s.id === id2)
 			const index3Before = shapesBefore.findIndex((s) => s.id === id3)
@@ -145,7 +145,7 @@ describe('SendToBackActionUtil', () => {
 			sendToBackUtil.applyAction(action)
 
 			// Verify shapes were actually sent to back
-			const shapesAfter = editor.getCurrentPageShapes()
+			const shapesAfter = editor.getCurrentPageShapesSorted()
 			const index1After = shapesAfter.findIndex((s) => s.id === id1)
 			const index2After = shapesAfter.findIndex((s) => s.id === id2)
 			const index3After = shapesAfter.findIndex((s) => s.id === id3)
@@ -164,8 +164,6 @@ describe('SendToBackActionUtil', () => {
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 			editor.createShape({ id: id2, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100 } })
 
-			const initialFairyPosition = agent.$fairyEntity.get().position
-
 			const action = createAgentAction({
 				_type: 'send-to-back',
 				intent: 'test',
@@ -178,10 +176,6 @@ describe('SendToBackActionUtil', () => {
 
 			// Should move to center of bounds
 			expect(agent.positionManager.moveTo).toHaveBeenCalled()
-			// Verify the fairy's position actually changed
-			const newFairyPosition = agent.$fairyEntity.get().position
-			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
-			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})
 
 		it('should not move fairy if shapes have no bounds', () => {

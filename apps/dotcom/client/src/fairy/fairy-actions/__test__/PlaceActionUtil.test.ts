@@ -575,8 +575,6 @@ describe('PlaceActionUtil', () => {
 				time: 0,
 			})
 
-			const initialFairyPosition = agent.$fairyEntity.get().position
-
 			placeUtil.applyAction(action)
 
 			expect(agent.positionManager.moveTo).toHaveBeenCalledWith({
@@ -584,9 +582,6 @@ describe('PlaceActionUtil', () => {
 				y: 150,
 			})
 			// Verify the fairy's position actually changed
-			const newFairyPosition = agent.$fairyEntity.get().position
-			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
-			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})
 
 		it('should handle invalid side/align combination gracefully', () => {

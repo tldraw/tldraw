@@ -1,13 +1,15 @@
 import {
-	Editor,
 	atom,
 	createTLStore,
 	defaultAddFontsFromNode,
 	defaultBindingUtils,
 	defaultShapeUtils,
+	Editor,
 	tipTapDefaultExtensions,
+	VecModel,
 } from 'tldraw'
 import { vi } from 'vitest'
+import { AgentHelpers } from '../../fairy-agent/AgentHelpers'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 
 export function createTestEditor() {
@@ -27,20 +29,32 @@ export function createTestEditor() {
 }
 
 export function createTestAgent(editor: Editor) {
+	const $fairyEntity = atom('test-entity', {
+		position: { x: 0, y: 0 },
+		flipX: false,
+		isSelected: false,
+		pose: 'idle' as const,
+		gesture: null,
+		currentPageId: editor.getCurrentPageId(),
+	})
+
+	const moveToSpy = vi.fn((position: VecModel) => {
+		$fairyEntity.update((fairy) => {
+			return {
+				...fairy,
+				position: AgentHelpers.RoundVec(position),
+				flipX: false,
+			}
+		})
+	})
+
 	return {
 		id: 'test-fairy',
 		editor,
 		app: {} as any,
-		$fairyEntity: atom('test-entity', {
-			position: { x: 0, y: 0 },
-			flipX: false,
-			isSelected: false,
-			pose: 'idle',
-			gesture: null,
-			currentPageId: editor.getCurrentPageId(),
-		}),
+		$fairyEntity,
 		positionManager: {
-			moveTo: vi.fn(),
+			moveTo: moveToSpy,
 		},
 		chatOriginManager: {
 			getOrigin: vi.fn(() => ({ x: 0, y: 0 })),

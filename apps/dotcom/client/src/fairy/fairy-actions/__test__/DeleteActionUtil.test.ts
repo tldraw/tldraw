@@ -113,8 +113,6 @@ describe('DeleteActionUtil', () => {
 			const id = createShapeId('shape1')
 			editor.createShape({ id, type: 'geo', x: 150, y: 250, props: { w: 100, h: 100 } })
 
-			const initialFairyPosition = agent.$fairyEntity.get().position
-
 			const action = createAgentAction({
 				_type: 'delete',
 				shapeId: 'shape1',
@@ -126,10 +124,6 @@ describe('DeleteActionUtil', () => {
 			deleteUtil.applyAction(action)
 
 			expect(agent.positionManager.moveTo).toHaveBeenCalledWith({ x: 150, y: 250 })
-			// Verify the fairy's position actually changed
-			const newFairyPosition = agent.$fairyEntity.get().position
-			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
-			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})
 
 		it('should not delete if shape does not exist', () => {

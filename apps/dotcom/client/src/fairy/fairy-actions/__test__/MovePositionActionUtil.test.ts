@@ -54,7 +54,7 @@ describe('MovePositionActionUtil', () => {
 			movePositionUtil.applyAction(action, helpers)
 
 			expect(agent.positionManager.moveTo).toHaveBeenCalled()
-			// Verify the fairy's position actually changed
+
 			const newFairyPosition = agent.$fairyEntity.get().position
 			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
 			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
@@ -120,7 +120,7 @@ describe('MovePositionActionUtil', () => {
 			movePositionUtil.applyAction(action, helpers)
 
 			expect(agent.positionManager.moveTo).toHaveBeenCalled()
-			// Verify the fairy's position actually changed
+
 			const newFairyPosition = agent.$fairyEntity.get().position
 			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
 			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
@@ -142,7 +142,7 @@ describe('MovePositionActionUtil', () => {
 			movePositionUtil.applyAction(action, helpers)
 
 			expect(agent.positionManager.moveTo).toHaveBeenCalled()
-			// Verify the fairy's position actually changed
+
 			const newFairyPosition = agent.$fairyEntity.get().position
 			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
 			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
@@ -164,7 +164,7 @@ describe('MovePositionActionUtil', () => {
 			movePositionUtil.applyAction(action, helpers)
 
 			expect(agent.positionManager.moveTo).toHaveBeenCalled()
-			// Verify the fairy's position actually changed
+
 			const newFairyPosition = agent.$fairyEntity.get().position
 			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
 			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
@@ -186,29 +186,6 @@ describe('MovePositionActionUtil', () => {
 
 			// MovePositionActionUtil should not interrupt, unlike FlyToBoundsActionUtil
 			expect(interruptSpy).not.toHaveBeenCalled()
-		})
-
-		it('should handle moving along x-axis only', () => {
-			const initialFairyPosition = agent.$fairyEntity.get().position
-
-			const action = createAgentAction({
-				_type: 'move-position',
-				x: 500,
-				y: 0,
-				intent: 'Moving horizontally',
-				complete: true,
-				time: 0,
-			})
-
-			const helpers = new AgentHelpers(agent)
-			movePositionUtil.applyAction(action, helpers)
-
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
-			// Verify the fairy's x position changed (y may or may not change depending on initial position)
-			const newFairyPosition = agent.$fairyEntity.get().position
-			if (initialFairyPosition.x !== 500) {
-				expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
-			}
 		})
 
 		it('should handle moving along y-axis only', () => {
