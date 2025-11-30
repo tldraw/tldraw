@@ -194,6 +194,26 @@ export function FairyManualPanel() {
 					</div>
 
 					<div className="fairy-manual-section">
+						<h3>Turning off fairies</h3>
+						<p>
+							If you want to hide the fairies feature, you can disable it in your user settings:
+						</p>
+						<ol>
+							<li>Click on your account name in the sidebar to open the user settings menu</li>
+							<li>
+								Select <strong>Fairies</strong> from the menu
+							</li>
+							<li>
+								Uncheck <strong>Enable fairies</strong> to turn off the feature
+							</li>
+						</ol>
+						<p>
+							When disabled, fairies will be hidden from your view. You can re-enable them at any
+							time by following the same steps and checking the option again.
+						</p>
+					</div>
+
+					<div className="fairy-manual-section">
 						<h3>Tasks and todo lists</h3>
 						<p>
 							Fairies create and manage tasks as they work. You can view task lists in the sidebar

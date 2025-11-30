@@ -30,6 +30,8 @@ interface FairyHUDHeaderProps {
 	onMenuPopoverOpenChange(open: boolean): void
 	shownFairy: FairyAgent | null
 	selectedFairies: FairyAgent[]
+	allAgents: FairyAgent[]
+	isMobile: boolean
 	onToggleManual?(): void
 }
 
@@ -39,6 +41,8 @@ export function FairyHUDHeader({
 	onMenuPopoverOpenChange,
 	shownFairy,
 	selectedFairies,
+	allAgents,
+	isMobile,
 	onToggleManual,
 }: FairyHUDHeaderProps) {
 	const fairyConfig = useValue('fairy config', () => shownFairy?.$fairyConfig.get(), [shownFairy])
@@ -115,6 +119,12 @@ export function FairyHUDHeader({
 		updateLocalSessionState(() => ({ fairyManualActiveTab: value }))
 	}, [])
 
+	const selectAllFairies = useCallback(() => {
+		allAgents.forEach((agent) => {
+			agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
+		})
+	}, [allAgents])
+
 	if (panelState === 'manual') {
 		return (
 			<div className="fairy-toolbar-header">
@@ -157,10 +167,18 @@ export function FairyHUDHeader({
 
 	const onlySelectedFairy = selectedFairies.length === 1 ? selectedFairies[0] : null
 
+	// Show select all button on mobile when exactly one fairy is selected and there's more than one fairy total
+	const showSelectAllButton = isMobile && selectedFairies.length < allAgents.length && !project
+
 	return (
 		<div className="fairy-toolbar-header">
 			{centerContent}
 			<div className="tlui-row">
+				{showSelectAllButton && (
+					<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={selectAllFairies}>
+						<TldrawUiButtonIcon icon={<SelectAllIcon />} small />
+					</TldrawUiButton>
+				)}
 				{onlySelectedFairy && !project && <ResetChatHistoryButton agent={onlySelectedFairy} />}
 				{<FairyMenuButton menuPopoverOpen={menuPopoverOpen}>{dropdownContent}</FairyMenuButton>}
 			</div>
@@ -214,5 +232,17 @@ function ResetChatHistoryButton({ agent }: { agent: FairyAgent }) {
 		>
 			<TldrawUiButtonIcon icon="plus" small />
 		</TldrawUiButton>
+	)
+}
+
+function SelectAllIcon() {
+	return (
+		<svg width="15" height="15" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
+			<g fill="currentColor">
+				<circle cx="15" cy="9" r="3" />
+				<circle cx="10" cy="18" r="3" />
+				<circle cx="20" cy="18" r="3" />
+			</g>
+		</svg>
 	)
 }

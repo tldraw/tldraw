@@ -1,19 +1,17 @@
 import { CancelIcon, FAIRY_VISION_DIMENSIONS, LipsIcon } from '@tldraw/fairy-shared'
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { KeyboardEvent, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Box, useEditor, useValue } from 'tldraw'
-import { useMsg } from '../../../tla/utils/i18n'
-import { fairyMessages } from '../../fairy-messages'
-// import { $fairyTasks } from '../../FairyTaskList'
 import { getIsCoarsePointer } from '../../../tla/utils/getIsCoarsePointer'
+import { useMsg } from '../../../tla/utils/i18n'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { getRandomNoInputMessage } from '../../fairy-helpers/getRandomNoInputMessage'
+import { fairyMessages } from '../../fairy-messages'
 
 export function FairySingleChatInput({ agent, onCancel }: { agent: FairyAgent; onCancel(): void }) {
 	const editor = useEditor()
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const [inputValue, setInputValue] = useState('')
 	const isGenerating = useValue('isGenerating', () => agent.requestManager.isGenerating(), [agent])
-	const enterMsg = useMsg(fairyMessages.enterMsg)
 
 	const fairyEntity = useValue('fairyEntity', () => agent.$fairyEntity.get(), [agent])
 	const fairyConfig = useValue('fairyConfig', () => agent.$fairyConfig.get(), [agent])
@@ -71,7 +69,7 @@ export function FairySingleChatInput({ agent, onCancel }: { agent: FairyAgent; o
 
 	// Handle keyboard input for Enter and Shift+Enter
 	const handleKeyDown = useCallback(
-		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		(e: KeyboardEvent<HTMLTextAreaElement>) => {
 			if (e.key === 'Enter') {
 				if (e.shiftKey) {
 					// Shift+Enter: allow default behavior (insert newline)
@@ -101,21 +99,6 @@ export function FairySingleChatInput({ agent, onCancel }: { agent: FairyAgent; o
 		}
 	}
 
-	const handleMouseDown = useCallback(
-		(e: React.PointerEvent<HTMLTextAreaElement>) => {
-			if (getIsCoarsePointer()) {
-				e.stopPropagation()
-				e.preventDefault()
-				e.currentTarget.blur()
-				const value = window.prompt(enterMsg)
-				if (value) {
-					handlePrompt(value)
-				}
-			}
-		},
-		[handlePrompt, enterMsg]
-	)
-
 	const whisperPlaceholder = useMsg(fairyMessages.whisperToFairy, {
 		name: fairyConfig.name.split(' ')[0],
 	})
@@ -140,8 +123,6 @@ export function FairySingleChatInput({ agent, onCancel }: { agent: FairyAgent; o
 					value={inputValue}
 					onChange={(e) => setInputValue(e.target.value)}
 					onKeyDown={handleKeyDown}
-					onMouseDown={handleMouseDown}
-					readOnly={isCoarsePointer}
 					autoFocus={!isCoarsePointer && !editor.menus.hasAnyOpenMenus()}
 					rows={1}
 					spellCheck={false}
