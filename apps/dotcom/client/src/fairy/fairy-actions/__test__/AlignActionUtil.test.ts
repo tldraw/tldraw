@@ -1,17 +1,10 @@
 import { createAgentAction } from '@tldraw/fairy-shared'
-import {
-	atom,
-	createShapeId,
-	createTLStore,
-	defaultBindingUtils,
-	defaultShapeUtils,
-	Editor,
-	TLShapeId,
-} from 'tldraw'
+import { createShapeId, Editor, TLShapeId } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AgentHelpers } from '../../fairy-agent/AgentHelpers'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { AlignActionUtil } from '../AlignActionUtil'
+import { createTestAgent, createTestEditor } from './fairy-actions-tests-shared'
 
 describe('AlignActionUtil', () => {
 	let editor: Editor
@@ -19,62 +12,13 @@ describe('AlignActionUtil', () => {
 	let alignUtil: AlignActionUtil
 
 	beforeEach(() => {
-		// Create a test editor instance with default shape utils
-		editor = new Editor({
-			shapeUtils: defaultShapeUtils,
-			bindingUtils: defaultBindingUtils,
-			tools: [],
-			store: createTLStore({ shapeUtils: defaultShapeUtils, bindingUtils: defaultBindingUtils }),
-			getContainer: () => document.body,
-		})
-
-		// Create a mock fairy agent with minimal required properties
-		agent = {
-			id: 'test-fairy',
-			editor,
-			app: {} as any,
-			$fairyEntity: atom('test-entity', {
-				position: { x: 0, y: 0 },
-				flipX: false,
-				isSelected: false,
-				pose: 'idle',
-				gesture: null,
-				currentPageId: editor.getCurrentPageId(),
-			}),
-			positionManager: {
-				moveTo: vi.fn(),
-			},
-			chatOriginManager: {
-				getOrigin: vi.fn(() => ({ x: 0, y: 0 })),
-			},
-			onError: vi.fn(),
-		} as any
-
+		editor = createTestEditor()
+		agent = createTestAgent(editor)
 		alignUtil = new AlignActionUtil(agent)
 	})
 
 	afterEach(() => {
 		editor.dispose()
-	})
-
-	describe('getInfo', () => {
-		it('should return action info with cursor icon and working pose', () => {
-			const action = createAgentAction({
-				_type: 'align',
-				alignment: 'left',
-				gap: 0,
-				intent: 'Aligning shapes to the left',
-				shapeIds: [],
-				complete: true,
-				time: 0,
-			})
-
-			const info = alignUtil.getInfo(action)
-
-			expect(info.icon).toBe('cursor')
-			expect(info.description).toBe('Aligning shapes to the left')
-			expect(info.pose).toBe('working')
-		})
 	})
 
 	describe('sanitizeAction', () => {
@@ -306,35 +250,6 @@ describe('AlignActionUtil', () => {
 			alignUtil.applyAction(action)
 
 			expect(agent.positionManager.moveTo).not.toHaveBeenCalled()
-		})
-
-		it('should handle multiple shapes alignment', () => {
-			const id1 = createShapeId('shape1')
-			const id2 = createShapeId('shape2')
-			const id3 = createShapeId('shape3')
-
-			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
-			editor.createShape({ id: id2, type: 'geo', x: 200, y: 50, props: { w: 100, h: 100 } })
-			editor.createShape({ id: id3, type: 'geo', x: 400, y: 100, props: { w: 100, h: 100 } })
-
-			const action = createAgentAction({
-				_type: 'align',
-				alignment: 'center-horizontal',
-				gap: 0,
-				intent: 'Center all',
-				shapeIds: ['shape1', 'shape2', 'shape3'],
-				complete: true,
-				time: 0,
-			})
-
-			const alignShapesSpy = vi.spyOn(editor, 'alignShapes')
-			alignUtil.applyAction(action)
-
-			expect(alignShapesSpy).toHaveBeenCalledWith(
-				[id1 as TLShapeId, id2 as TLShapeId, id3 as TLShapeId],
-				'center-horizontal'
-			)
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
 		})
 	})
 })

@@ -2,6 +2,7 @@ import {
 	AgentAction,
 	AgentActionInfo,
 	ChatHistoryItem,
+	createAgentActionInfo,
 	getFairyModeDefinition,
 	Streaming,
 } from '@tldraw/fairy-shared'
@@ -70,13 +71,13 @@ export class FairyAgentActionManager extends BaseFairyAgentManager {
 			pose = null,
 		} = info
 
-		return {
+		return createAgentActionInfo({
 			icon,
 			description,
 			summary,
 			canGroup,
 			pose,
-		}
+		})
 	}
 
 	/**

@@ -31,7 +31,7 @@ export class OffsetActionUtil extends AgentActionUtil<OffsetAction> {
 		return action
 	}
 
-	override applyAction(action: Streaming<OffsetAction>, helpers: AgentHelpers) {
+	override applyAction(action: Streaming<OffsetAction>, _helpers: AgentHelpers) {
 		if (!action.complete) return
 		if (!this.agent) return
 		const { editor } = this.agent
