@@ -22,6 +22,7 @@ import {
 	TlaMenuTabsTabs,
 } from '../../tla/components/tla-menu/tla-menu'
 import '../../tla/styles/fairy.css'
+import { useTldrawAppUiEvents } from '../../tla/utils/app-ui-events'
 import { F, useMsg } from '../../tla/utils/i18n'
 import { getLocalSessionState, updateLocalSessionState } from '../../tla/utils/local-session-state'
 import { fairyMessages } from '../fairy-messages'
@@ -31,6 +32,7 @@ import { FairyManualPanel } from './manual/FairyManualPanel'
 export function FairyHUDTeaser() {
 	// should match fairy FairyHUD, but with one fairy sprite here
 	const editor = useEditor()
+	const trackEvent = useTldrawAppUiEvents()
 	const breakpoint = useBreakpoint()
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
 	const [mobileMenuOffset, setMobileMenuOffset] = useState<number | null>(null)
@@ -53,13 +55,24 @@ export function FairyHUDTeaser() {
 		[]
 	)
 
-	const handleTabChange = useCallback((value: 'introduction' | 'usage' | 'about') => {
-		updateLocalSessionState(() => ({ fairyManualActiveTab: value }))
-	}, [])
+	const handleTabChange = useCallback(
+		(value: 'introduction' | 'usage' | 'about') => {
+			trackEvent('fairy-switch-manual-tab', { source: 'fairy-teaser', tab: value })
+			updateLocalSessionState(() => ({ fairyManualActiveTab: value }))
+		},
+		[trackEvent]
+	)
 
 	const handleToggleManual = useCallback(() => {
-		setIsManualOpen((prev) => !prev)
-	}, [])
+		setIsManualOpen((prev) => {
+			if (prev) {
+				trackEvent('fairy-close-manual', { source: 'fairy-teaser' })
+			} else {
+				trackEvent('fairy-switch-to-manual', { source: 'fairy-teaser' })
+			}
+			return !prev
+		})
+	}, [trackEvent])
 
 	// Position HUD above mobile style menu button on mobile
 	useEffect(() => {
@@ -154,6 +167,7 @@ export function FairyHUDTeaser() {
 									aria-label="Fairies"
 									value="off"
 									onClick={() => {
+										trackEvent('click-fairy-teaser', { source: 'fairy-teaser' })
 										addDialog({
 											component: FairyComingSoonDialog,
 										})

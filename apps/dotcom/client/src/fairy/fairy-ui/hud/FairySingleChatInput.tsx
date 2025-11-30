@@ -1,6 +1,7 @@
 import { CancelIcon, FAIRY_VISION_DIMENSIONS, LipsIcon } from '@tldraw/fairy-shared'
 import { KeyboardEvent, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Box, useEditor, useValue } from 'tldraw'
+import { useTldrawAppUiEvents } from '../../../tla/utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../tla/utils/getIsCoarsePointer'
 import { useMsg } from '../../../tla/utils/i18n'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
@@ -9,6 +10,7 @@ import { fairyMessages } from '../../fairy-messages'
 
 export function FairySingleChatInput({ agent, onCancel }: { agent: FairyAgent; onCancel(): void }) {
 	const editor = useEditor()
+	const trackEvent = useTldrawAppUiEvents()
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const [inputValue, setInputValue] = useState('')
 	const isGenerating = useValue('isGenerating', () => agent.requestManager.isGenerating(), [agent])
@@ -62,9 +64,10 @@ export function FairySingleChatInput({ agent, onCancel }: { agent: FairyAgent; o
 			// Clear the input
 			setInputValue('')
 
+			trackEvent('fairy-send-message', { source: 'fairy-chat', fairyId: agent.id })
 			handlePrompt(value)
 		},
-		[handlePrompt]
+		[handlePrompt, trackEvent, agent.id]
 	)
 
 	// Handle keyboard input for Enter and Shift+Enter
@@ -92,6 +95,7 @@ export function FairySingleChatInput({ agent, onCancel }: { agent: FairyAgent; o
 	const handleButtonClick = () => {
 		if (showCancel) {
 			// Hard stop - cancel only, don't send
+			trackEvent('fairy-cancel-generation', { source: 'fairy-chat', fairyId: agent.id })
 			agent.cancel()
 		} else {
 			// Send (will interrupt if generating)
