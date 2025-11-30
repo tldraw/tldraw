@@ -8,6 +8,7 @@ import {
 } from '@tldraw/fairy-shared'
 import { KeyboardEvent, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Box, Editor, uniqueId, useValue } from 'tldraw'
+import { useTldrawAppUiEvents } from '../../../tla/utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../tla/utils/getIsCoarsePointer'
 import { F, useMsg } from '../../../tla/utils/i18n'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
@@ -33,6 +34,7 @@ export function FairyProjectView({
 	onProjectStarted,
 	onClose,
 }: FairyProjectViewProps) {
+	const trackEvent = useTldrawAppUiEvents()
 	const [inputValue, setInputValue] = useState('')
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -166,6 +168,13 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 				plan: '',
 			}
 
+			trackEvent('fairy-start-project', {
+				source: 'fairy-chat',
+				projectId: newProjectId,
+				memberCount: newProject.members.length,
+				projectType: isDuo ? 'duo' : 'group',
+			})
+
 			addProject(newProject)
 
 			// Set leader as orchestrator
@@ -190,7 +199,7 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 			onProjectStarted?.(leaderAgent)
 			setInputValue('')
 		},
-		[leaderAgent, followerAgents, getGroupChatPrompt, onProjectStarted]
+		[leaderAgent, followerAgents, getGroupChatPrompt, onProjectStarted, trackEvent]
 	)
 
 	// Handle interrupting an ongoing project with new instructions

@@ -14,6 +14,7 @@ import {
 	TlaMenuTabsTab,
 	TlaMenuTabsTabs,
 } from '../../../tla/components/tla-menu/tla-menu'
+import { useTldrawAppUiEvents } from '../../../tla/utils/app-ui-events'
 import { F } from '../../../tla/utils/i18n'
 import {
 	getLocalSessionState,
@@ -45,6 +46,7 @@ export function FairyHUDHeader({
 	isMobile,
 	onToggleManual,
 }: FairyHUDHeaderProps) {
+	const trackEvent = useTldrawAppUiEvents()
 	const fairyConfig = useValue('fairy config', () => shownFairy?.$fairyConfig.get(), [shownFairy])
 
 	// Get the project for the shown fairy
@@ -73,8 +75,9 @@ export function FairyHUDHeader({
 	const zoomToFairy = useCallback(() => {
 		if (!fairyClickable || !shownFairy) return
 
+		trackEvent('fairy-zoom-to', { source: 'fairy-panel', fairyId: shownFairy.id })
 		shownFairy.positionManager.zoomTo()
-	}, [shownFairy, fairyClickable])
+	}, [shownFairy, fairyClickable, trackEvent])
 
 	// const hasChatHistory = useValue(
 	// 	'has-chat-history',
@@ -115,15 +118,20 @@ export function FairyHUDHeader({
 		[]
 	)
 
-	const handleTabChange = useCallback((value: 'introduction' | 'usage' | 'about') => {
-		updateLocalSessionState(() => ({ fairyManualActiveTab: value }))
-	}, [])
+	const handleTabChange = useCallback(
+		(value: 'introduction' | 'usage' | 'about') => {
+			trackEvent('fairy-switch-manual-tab', { source: 'fairy-panel', tab: value })
+			updateLocalSessionState(() => ({ fairyManualActiveTab: value }))
+		},
+		[trackEvent]
+	)
 
 	const selectAllFairies = useCallback(() => {
+		trackEvent('fairy-select-all', { source: 'fairy-panel' })
 		allAgents.forEach((agent) => {
 			agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
 		})
-	}, [allAgents])
+	}, [allAgents, trackEvent])
 
 	if (panelState === 'manual') {
 		return (
@@ -220,6 +228,7 @@ function FairyDropdownContent({ agents }: { agents: FairyAgent[] }) {
 }
 
 function ResetChatHistoryButton({ agent }: { agent: FairyAgent }) {
+	const trackEvent = useTldrawAppUiEvents()
 	return (
 		<TldrawUiButton
 			type="icon"
@@ -227,6 +236,7 @@ function ResetChatHistoryButton({ agent }: { agent: FairyAgent }) {
 			// Maybe needs to be reactive
 			disabled={agent.chatManager.getHistory().length === 0}
 			onClick={() => {
+				trackEvent('fairy-reset-chat', { source: 'fairy-panel', fairyId: agent.id })
 				agent.chatManager.reset()
 			}}
 		>

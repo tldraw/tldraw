@@ -1,12 +1,14 @@
 import { FairyProject } from '@tldraw/fairy-shared'
 import { MouseEvent, useCallback, useEffect, useState } from 'react'
 import { useValue } from 'tldraw'
+import { useTldrawAppUiEvents } from '../../../tla/utils/app-ui-events'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { getProjectOrchestrator } from '../../fairy-projects'
 
 export type FairyHUDPanelState = 'fairy' | 'manual' | 'closed'
 
 export function useFairySelection(agents: FairyAgent[]) {
+	const trackEvent = useTldrawAppUiEvents()
 	const [manualOpen, setManualOpen] = useState(false)
 	const [shownFairy, setShownFairy] = useState<FairyAgent | null>(null)
 
@@ -162,6 +164,8 @@ export function useFairySelection(agents: FairyAgent[]) {
 
 	const handleDoubleClickFairy = useCallback(
 		(clickedAgent: FairyAgent) => {
+			trackEvent('fairy-double-click', { source: 'fairy-sidebar', fairyId: clickedAgent.id })
+			trackEvent('fairy-zoom-to', { source: 'fairy-sidebar', fairyId: clickedAgent.id })
 			clickedAgent.positionManager.zoomTo()
 
 			// If the clicked fairy is part of an active project, select the orchestrator instead
@@ -179,13 +183,19 @@ export function useFairySelection(agents: FairyAgent[]) {
 
 			selectFairy(clickedAgent)
 		},
-		[selectFairy, agents]
+		[selectFairy, agents, trackEvent]
 	)
 
 	const handleToggleManual = useCallback(() => {
 		// Close manual if open, otherwise deselect all fairies
-		setManualOpen((prev) => !prev)
-	}, [])
+		const wasOpen = manualOpen
+		if (wasOpen) {
+			trackEvent('fairy-close-manual', { source: 'fairy-panel' })
+		} else {
+			trackEvent('fairy-switch-to-manual', { source: 'fairy-panel' })
+		}
+		setManualOpen(!wasOpen)
+	}, [trackEvent, manualOpen])
 
 	return {
 		panelState,

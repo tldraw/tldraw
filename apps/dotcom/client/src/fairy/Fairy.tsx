@@ -4,6 +4,7 @@ import { ContextMenu as _ContextMenu } from 'radix-ui'
 import React, { useEffect, useRef } from 'react'
 import { Atom, TLEventInfo, getPointerInfo, useEditor, useQuickReactor, useValue } from 'tldraw'
 import '../tla/styles/fairy.css'
+import { TLAppUiHandler, useTldrawAppUiEvents } from '../tla/utils/app-ui-events'
 import { FairyAgent } from './fairy-agent/FairyAgent'
 import { $fairyAgentsAtom } from './fairy-globals'
 import { getProjectColor } from './fairy-helpers/getProjectColor'
@@ -46,11 +47,13 @@ function updateFairySelection(
 	fairyAgents: FairyAgent[],
 	clickedAgent: FairyAgent,
 	wasSelected: boolean,
-	isMultiSelect: boolean
+	isMultiSelect: boolean,
+	trackEvent: TLAppUiHandler
 ) {
 	if (!isMultiSelect) {
 		// Regular click: select clicked fairy, deselect others
 		if (!wasSelected) {
+			trackEvent('fairy-select', { source: 'fairy-canvas', fairyId: clickedAgent.id })
 			fairyAgents.forEach((a) => {
 				if (a.id === clickedAgent.id) {
 					a.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
@@ -63,6 +66,7 @@ function updateFairySelection(
 	} else {
 		// Multi-select: add to selection if not selected
 		if (!wasSelected) {
+			trackEvent('fairy-add-to-selection', { source: 'fairy-canvas', fairyId: clickedAgent.id })
 			clickedAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
 		}
 		// If already selected, do nothing (will handle deselection on pointer up)
@@ -88,7 +92,8 @@ function useFairyPointerInteraction(
 	ref: React.RefObject<HTMLDivElement>,
 	agent: FairyAgent,
 	editor: ReturnType<typeof useEditor>,
-	isFairyGrabbable: boolean
+	isFairyGrabbable: boolean,
+	trackEvent: TLAppUiHandler
 ) {
 	const interactionState = useRef<FairyInteractionState>({ status: 'idle' })
 	const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -128,6 +133,7 @@ function useFairyPointerInteraction(
 			cleanupPointerListeners()
 			cleanupEditorEventListener()
 
+			trackEvent('fairy-drag-start', { source: 'fairy-canvas', fairyId: agent.id })
 			setFairiesToThrowTool(editor, currentState.fairiesAtPointerDown)
 			editor.setCurrentTool('select.fairy-throw')
 			interactionState.current = { status: 'idle' }
@@ -228,7 +234,7 @@ function useFairyPointerInteraction(
 				const wasClickedFairySelected = clickedFairyEntity?.isSelected ?? false
 				const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey
 
-				updateFairySelection(fairyAgents, agent, wasClickedFairySelected, isMultiSelect)
+				updateFairySelection(fairyAgents, agent, wasClickedFairySelected, isMultiSelect, trackEvent)
 
 				const fairiesToDrag: Atom<FairyEntity>[] = []
 				const selectedFairies = getSelectedFairyAtoms(fairyAgents)
@@ -256,6 +262,7 @@ function useFairyPointerInteraction(
 					const currentState = interactionState.current
 					// Only trigger panicking if still pressed and not dragging
 					if (currentState.status === 'pressed' && !editor.inputs.isDragging) {
+						trackEvent('fairy-panic', { source: 'fairy-canvas', fairyId: agent.id })
 						agent.gestureManager.push('panicking')
 					}
 					longPressTimerRef.current = null
@@ -275,11 +282,12 @@ function useFairyPointerInteraction(
 			document.removeEventListener('pointermove', handlePointerMove)
 			document.removeEventListener('pointerup', handlePointerUp)
 		}
-	}, [agent, editor, isFairyGrabbable, $fairyEntity, ref])
+	}, [agent, editor, isFairyGrabbable, $fairyEntity, ref, trackEvent])
 }
 
 export function Fairy({ agent }: { agent: FairyAgent }) {
 	const editor = useEditor()
+	const trackEvent = useTldrawAppUiEvents()
 	const fairyRef = useRef<HTMLDivElement>(null)
 	const $fairyEntity = agent.$fairyEntity
 	const $fairyConfig = agent.$fairyConfig
@@ -322,7 +330,7 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 	const isGenerating = useValue('is generating', () => agent.requestManager.isGenerating(), [agent])
 	const isFairyGrabbable = isInSelectTool
 
-	useFairyPointerInteraction(fairyRef, agent, editor, isFairyGrabbable)
+	useFairyPointerInteraction(fairyRef, agent, editor, isFairyGrabbable, trackEvent)
 
 	useQuickReactor(
 		'fairy position',
