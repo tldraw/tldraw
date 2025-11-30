@@ -76,8 +76,6 @@ describe('AlignActionUtil', () => {
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 			editor.createShape({ id: id2, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100 } })
 
-			const shape1Before = editor.getShape(id1)
-			const shape2Before = editor.getShape(id2)
 			const bounds1Before = editor.getShapePageBounds(id1)
 			const bounds2Before = editor.getShapePageBounds(id2)
 
