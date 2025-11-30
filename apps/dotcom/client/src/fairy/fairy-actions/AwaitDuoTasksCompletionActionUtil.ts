@@ -1,4 +1,8 @@
-import { AwaitDuoTasksCompletionAction, Streaming } from '@tldraw/fairy-shared'
+import {
+	AwaitDuoTasksCompletionAction,
+	Streaming,
+	createAgentActionInfo,
+} from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { getFairyTaskById } from '../fairy-task-list'
 import { createTaskWaitCondition } from '../fairy-wait-notifications'
@@ -9,14 +13,14 @@ export class AwaitDuoTasksCompletionActionUtil extends AgentActionUtil<AwaitDuoT
 
 	override getInfo(action: Streaming<AwaitDuoTasksCompletionAction>) {
 		const taskCount = action.taskIds?.length ?? 0
-		return {
-			icon: 'refresh' as const,
+		return createAgentActionInfo({
+			icon: 'refresh',
 			description: action.complete
 				? `Waiting for ${taskCount} task${taskCount === 1 ? '' : 's'} to complete`
 				: 'Waiting...',
-			pose: 'reviewing' as const,
+			pose: 'reviewing',
 			canGroup: () => false,
-		}
+		})
 	}
 
 	override applyAction(action: Streaming<AwaitDuoTasksCompletionAction>, _helpers: AgentHelpers) {

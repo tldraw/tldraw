@@ -1,4 +1,4 @@
-import { AlignAction, Streaming } from '@tldraw/fairy-shared'
+import { AlignAction, createAgentActionInfo, Streaming } from '@tldraw/fairy-shared'
 import { TLShapeId } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -7,11 +7,11 @@ export class AlignActionUtil extends AgentActionUtil<AlignAction> {
 	static override type = 'align' as const
 
 	override getInfo(action: Streaming<AlignAction>) {
-		return {
-			icon: 'cursor' as const,
+		return createAgentActionInfo({
+			icon: 'cursor',
 			description: action.intent ?? '',
-			pose: 'working' as const,
-		}
+			pose: 'working',
+		})
 	}
 
 	override sanitizeAction(action: Streaming<AlignAction>, helpers: AgentHelpers) {

@@ -53,6 +53,11 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 		[editor, isMobile]
 	)
 
+	// hide the panel on mobile when dragging a fairy
+	const isDraggingFairy = useValue('is dragging fairy', () => editor.isIn('select.fairy-throw'), [
+		editor,
+	])
+
 	const toolbarMessage = useMsg(fairyMessages.toolbar)
 	const deselectMessage = useMsg(fairyMessages.deselectFairy)
 	const selectMessage = useMsg(fairyMessages.selectFairy)
@@ -76,6 +81,9 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 							className="fairy-chat-panel"
 							data-panel-state="open"
 							onWheelCapture={(e) => e.stopPropagation()}
+							style={{
+								display: isMobile && isDraggingFairy ? 'none' : undefined,
+							}}
 						>
 							<FairyHUDHeader
 								panelState={panelState}
@@ -87,6 +95,9 @@ export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
 								}
 								shownFairy={shownFairy}
 								selectedFairies={selectedFairies}
+								allAgents={agents}
+								isMobile={isMobile}
+								onToggleManual={handleToggleManual}
 							/>
 							{panelState === 'fairy' && selectedFairies.length === 0 && !shownFairy && (
 								<div className="fairy-chat-empty-message">

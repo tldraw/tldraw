@@ -2,6 +2,7 @@ import {
 	AgentAction,
 	AgentActionInfo,
 	ChatHistoryItem,
+	createAgentActionInfo,
 	getFairyModeDefinition,
 	Streaming,
 } from '@tldraw/fairy-shared'
@@ -70,13 +71,13 @@ export class FairyAgentActionManager extends BaseFairyAgentManager {
 			pose = null,
 		} = info
 
-		return {
+		return createAgentActionInfo({
 			icon,
 			description,
 			summary,
 			canGroup,
 			pose,
-		}
+		})
 	}
 
 	/**
@@ -112,7 +113,11 @@ export class FairyAgentActionManager extends BaseFairyAgentManager {
 		}
 
 		// Ensure the fairy is on the correct page before performing the action
-		this.ensureFairyIsOnCorrectPage(action)
+		// Only do this for complete actions - incomplete actions may have partial shapeIds
+		// that could accidentally match shapes on other pages
+		if (action.complete) {
+			this.ensureFairyIsOnCorrectPage(action)
+		}
 
 		const modeDefinition = getFairyModeDefinition(this.agent.modeManager.getMode())
 		let promise: Promise<void> | null = null

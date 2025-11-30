@@ -3620,6 +3620,8 @@ export interface TLEventMap {
     // (undocumented)
     mount: [];
     // (undocumented)
+    resize: [BoxModel];
+    // (undocumented)
     tick: [number];
     // (undocumented)
     update: [];

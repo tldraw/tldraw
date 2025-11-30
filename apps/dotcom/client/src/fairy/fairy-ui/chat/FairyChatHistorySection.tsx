@@ -112,19 +112,20 @@ export function getAgentHistorySections(items: ChatHistoryItem[]): FairyChatHist
 	const sections: FairyChatHistorySection[] = []
 
 	for (const item of items) {
-		// Add a new section for each prompt
+		// Add a new section for each prompt with a user-facing message
+		// Skip prompts without user-facing messages entirely
 		if (item.type === 'prompt') {
 			if (item.userFacingMessage) {
 				sections.push({ prompt: item, items: [] })
 			}
+			// Don't process any further - we skip prompts without userFacingMessage
 			continue
 		}
 
 		// Include memory transition items in the UI
+		// Only add to existing sections - don't create empty sections
 		if (sections.length > 0) {
 			sections[sections.length - 1].items.push(item)
-		} else {
-			sections.push({ prompt: null, items: [item] })
 		}
 	}
 

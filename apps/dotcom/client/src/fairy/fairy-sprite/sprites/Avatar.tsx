@@ -1,5 +1,6 @@
 import { useValue } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
+import { getHatColor } from '../FairySprite'
 import { FairyFaceSpritePart } from './parts/FairyFaceSpritePart'
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
 
@@ -15,8 +16,8 @@ export function FairyMiniAvatar({ agent }: FairyMiniAvatarProps) {
 	return (
 		<div className="fairy-avatar">
 			<svg viewBox="30 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<FairyHatSpritePart hatColor={getHatColor(fairyConfig.outfit.hat)} />
 				<FairyFaceSpritePart bodyColor="var(--tl-color-fairy-light)" />
-				<FairyHatSpritePart hatColor="transparent" />
 			</svg>
 		</div>
 	)

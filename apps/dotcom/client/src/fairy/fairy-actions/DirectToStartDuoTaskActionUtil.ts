@@ -1,4 +1,9 @@
-import { AgentRequest, DirectToStartDuoTaskAction, Streaming } from '@tldraw/fairy-shared'
+import {
+	AgentRequest,
+	DirectToStartDuoTaskAction,
+	Streaming,
+	createAgentActionInfo,
+} from '@tldraw/fairy-shared'
 import { $fairyAgentsAtom } from '../fairy-globals'
 import { assignFairyToTask, getFairyTaskById, setFairyTaskStatus } from '../fairy-task-list'
 import { AgentActionUtil } from './AgentActionUtil'
@@ -23,12 +28,12 @@ export class DirectToStartDuoTaskActionUtil extends AgentActionUtil<DirectToStar
 			? `Asked ${otherFairyFirstName} to do${task ? `: ${task.title}` : ' a task'}`
 			: `Asking ${otherFairyFirstName} to do a task...`
 
-		return {
-			icon: 'comment' as const,
+		return createAgentActionInfo({
+			icon: 'comment',
 			description: text,
 			canGroup: () => false,
-			pose: 'reviewing' as const, // todo: bullhorn
-		}
+			pose: 'reviewing', // todo: bullhorn
+		})
 	}
 
 	override applyAction(action: Streaming<DirectToStartDuoTaskAction>) {

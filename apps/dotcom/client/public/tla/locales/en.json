@@ -35,6 +35,9 @@
   "0b27918290": {
     "translation": "File"
   },
+  "0b79795d3e": {
+    "translation": "Introduction"
+  },
   "0b9a4cde72": {
     "translation": "File menu"
   },
@@ -284,6 +287,9 @@
   "6910bbdc82": {
     "translation": "Fairy's name"
   },
+  "695c3e899d": {
+    "translation": "Debug fairies"
+  },
   "6a26f54883": {
     "translation": "Help"
   },
@@ -407,6 +413,9 @@
   "8eb2c00e96": {
     "translation": "Shared with you"
   },
+  "8f7f4c1ce7": {
+    "translation": "About"
+  },
   "8ff3d0a705": {
     "translation": "Rate limited"
   },
@@ -488,6 +497,9 @@
   "a4d3b161ce": {
     "translation": "Submit"
   },
+  "a603905470": {
+    "translation": "Debug"
+  },
   "a6cc403d56": {
     "translation": "Anyone with the link"
   },
@@ -555,6 +567,9 @@
   "c303bd1095": {
     "translation": "Unable to publish the file."
   },
+  "c3bf447eab": {
+    "translation": "Open"
+  },
   "c3eb5c3b90": {
     "translation": "I understand"
   },
@@ -563,6 +578,9 @@
   },
   "c6155aaecc": {
     "translation": "Group name"
+  },
+  "c64518704c": {
+    "translation": "Usage"
   },
   "c655b27b1e": {
     "translation": "i18n: Long String"

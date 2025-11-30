@@ -1,13 +1,27 @@
-import { MouseEvent } from 'react'
+import { ContextMenu as _ContextMenu } from 'radix-ui'
+import { MouseEvent, useCallback } from 'react'
 import {
 	TldrawUiButtonIcon,
+	TldrawUiMenuContextProvider,
+	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
 	TldrawUiToolbar,
 	TldrawUiToolbarToggleGroup,
 	TldrawUiToolbarToggleItem,
+	useContainer,
+	useDialogs,
+	useEditor,
 	useValue,
 } from 'tldraw'
+import { useApp } from '../../../tla/hooks/useAppState'
+import { useMsg } from '../../../tla/utils/i18n'
+import { useAreFairiesDebugEnabled } from '../../../tla/utils/local-session-state'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
+import { $fairyAgentsAtom } from '../../fairy-globals'
+import { fairyMessages } from '../../fairy-messages'
 import { FairyReticleSprite } from '../../fairy-sprite/sprites/FairyReticleSprite'
+import { clearFairyTasksAndProjects } from '../../fairy-task-list'
+import { FairyDebugDialog } from '../debug/FairyDebugDialog'
 import { FairyHUDPanelState } from '../hud/useFairySelection'
 import { FairySidebarButton } from './FairySidebarButton'
 
@@ -159,18 +173,11 @@ export function FairyListSidebar({
 		<div className="fairy-list">
 			<TldrawUiToolbar label={toolbarMessage} orientation="vertical">
 				<TldrawUiToolbarToggleGroup type="single" value={isManualActive ? 'on' : 'off'}>
-					<TldrawUiToolbarToggleItem
-						className="fairy-manual-button"
-						type="icon"
-						value="on"
-						data-state={isManualActive ? 'on' : 'off'}
-						data-isactive={isManualActive}
-						onClick={onToggleManual}
-						title={manualLabel}
-						aria-label={manualLabel}
-					>
-						<TldrawUiButtonIcon icon="manual" />
-					</TldrawUiToolbarToggleItem>
+					<ManualButtonWithMenu
+						isManualActive={isManualActive}
+						manualLabel={manualLabel}
+						onToggleManual={onToggleManual}
+					/>
 				</TldrawUiToolbarToggleGroup>
 				{sidebarEntries.map((entry) => {
 					if (entry.type === 'group') {
@@ -196,5 +203,104 @@ export function FairyListSidebar({
 				})}
 			</TldrawUiToolbar>
 		</div>
+	)
+}
+
+function ManualButtonWithMenu({
+	isManualActive,
+	manualLabel,
+	onToggleManual,
+}: {
+	isManualActive: boolean
+	manualLabel: string
+	onToggleManual(): void
+}) {
+	const editor = useEditor()
+	const app = useApp()
+	const dialogs = useDialogs()
+	const container = useContainer()
+	const areFairiesDebugEnabled = useAreFairiesDebugEnabled()
+	const allAgents = useValue('fairy-agents', () => $fairyAgentsAtom.get(editor), [editor])
+
+	const openManualLabel = useMsg(fairyMessages.openManual)
+	const closeManualLabel = useMsg(fairyMessages.closeManual)
+	const debugViewLabel = useMsg(fairyMessages.debugView)
+	const resetEverythingLabel = useMsg(fairyMessages.resetEverything)
+
+	const openDebugDialog = useCallback(() => {
+		dialogs.addDialog({
+			component: ({ onClose }) => <FairyDebugDialog agents={allAgents} onClose={onClose} />,
+		})
+	}, [dialogs, allAgents])
+
+	const resetEverything = useCallback(() => {
+		// Stop all running tasks
+		allAgents.forEach((agent) => {
+			agent.cancel()
+		})
+
+		// Clear the todo list and projects
+		clearFairyTasksAndProjects()
+
+		// Reset all chats
+		allAgents.forEach((agent) => {
+			agent.reset()
+		})
+
+		// Delete all fairies
+		app.z.mutate.user.deleteAllFairyConfigs()
+		allAgents.forEach((agent) => {
+			agent.dispose()
+		})
+	}, [allAgents, app])
+
+	return (
+		<_ContextMenu.Root dir="ltr">
+			<_ContextMenu.Trigger asChild>
+				<TldrawUiToolbarToggleItem
+					className="fairy-manual-button"
+					type="icon"
+					value="on"
+					data-state={isManualActive ? 'on' : 'off'}
+					data-isactive={isManualActive}
+					onClick={onToggleManual}
+					title={manualLabel}
+					aria-label={manualLabel}
+				>
+					<TldrawUiButtonIcon icon="manual" />
+				</TldrawUiToolbarToggleItem>
+			</_ContextMenu.Trigger>
+			<_ContextMenu.Portal container={container}>
+				<_ContextMenu.Content
+					className="tlui-menu"
+					collisionPadding={4}
+					onPointerDown={(e) => e.stopPropagation()}
+				>
+					<TldrawUiMenuContextProvider type="context-menu" sourceId="fairy-panel">
+						<TldrawUiMenuGroup id="manual-toggle-menu">
+							<TldrawUiMenuItem
+								id={isManualActive ? 'close-manual' : 'open-manual'}
+								onSelect={onToggleManual}
+								label={isManualActive ? closeManualLabel : openManualLabel}
+							/>
+						</TldrawUiMenuGroup>
+						{areFairiesDebugEnabled && (
+							<TldrawUiMenuGroup id="manual-debug-menu">
+								<TldrawUiMenuItem
+									id="debug-fairies"
+									onSelect={openDebugDialog}
+									label={debugViewLabel}
+								/>
+								<TldrawUiMenuItem
+									id="reset-everything"
+									onSelect={resetEverything}
+									label={resetEverythingLabel}
+								/>
+							</TldrawUiMenuGroup>
+						)}
+					</TldrawUiMenuContextProvider>
+				</_ContextMenu.Content>
+			</_ContextMenu.Portal>
+		</_ContextMenu.Root>
 	)
 }

@@ -8,14 +8,31 @@ The fairy system is an AI agent framework for tldraw.com that provides intellige
 
 ### Core components
 
-**FairyAgent** (`fairy-agent/agent/FairyAgent.ts`)
+**FairyAgent** (`fairy-agent/FairyAgent.ts`)
 
-- Main agent class that handles AI interactions
-- Manages agent state, requests, and responses
+- Main agent class that orchestrates AI interactions
+- Delegates functionality to specialized manager classes
 - Coordinates with the AI backend for generation
-- Handles chat history, task management, and scheduling
-- Tracks active requests, scheduled requests, and wait conditions
-- Includes timing and performance monitoring capabilities
+- Contains computed state for fairy entity and configuration
+- Handles prompt preparation, request management, and scheduling
+
+**Manager classes** (`fairy-agent/managers/`)
+
+FairyAgent uses a manager pattern to organize functionality into focused classes that all extend `BaseFairyAgentManager`:
+
+- **FairyAgentActionManager**: Action utils, action execution, and action info retrieval
+- **FairyAgentChatManager**: Chat history storage and updates
+- **FairyAgentChatOriginManager**: Chat origin point tracking for coordinate offset calculations
+- **FairyAgentGestureManager**: Temporary visual gestures and poses
+- **FairyAgentModeManager**: Mode state machine transitions
+- **FairyAgentPositionManager**: Fairy positioning, spawning, following, and summon behavior
+- **FairyAgentRequestManager**: Active/scheduled request management and prompt state
+- **FairyAgentTodoManager**: Personal todo item management
+- **FairyAgentUsageTracker**: Token usage and cost tracking
+- **FairyAgentUserActionTracker**: Recording user actions on canvas
+- **FairyAgentWaitManager**: Wait conditions and wake-up logic
+
+Each manager has a `reset()` method and optional `dispose()` for cleanup.
 
 **FairyEntity** (from `@tldraw/fairy-shared`)
 
@@ -39,7 +56,8 @@ Fairies operate in different modes defined by a state machine (`FairyModeNode.ts
 
 **Basic modes**
 
-- **idling**: Default state, waiting for input, clears todo list and action history on enter
+- **sleeping**: Initial dormant state, fairy is not active
+- **idling**: Default awake state, waiting for input, clears todo list and action history on enter
 - **soloing**: Working independently on user requests, continues until all assigned tasks complete
 - **standing-by**: Waiting state (passive)
 
@@ -47,6 +65,7 @@ Fairies operate in different modes defined by a state machine (`FairyModeNode.ts
 
 - **working-solo**: Working on a solo task, maintains todo list, auto-continues until task marked done
 - **working-drone**: Working as drone in a project, cannot be cancelled mid-project
+- **working-orchestrator**: Duo orchestrator working on their own task
 
 **Orchestration modes**
 
@@ -63,11 +82,11 @@ Each mode has lifecycle hooks:
 - `onPromptEnd`: Determine next action after prompt completes
 - `onPromptCancel`: Handle cancellation (some modes prohibit cancellation)
 
-### Prompt Composition System
+### Prompt composition system
 
 The prompt composition system is responsible for gathering context from the client, sending it to the worker, and assembling it into a structured prompt for the AI model.
 
-**1. Gathering Context (Client-side)**
+**1. Gathering context (client-side)**
 
 When `agent.prompt()` is called, `FairyAgent` collects information using **Prompt Part Utils** (`PromptPartUtil`). Each util corresponds to a specific type of context (e.g., `selectedShapes`, `chatHistory`).
 
@@ -86,7 +105,7 @@ class SelectedShapesPartUtil extends PromptPartUtil<SelectedShapesPart> {
 }
 ```
 
-**2. Prompt Construction (Worker-side)**
+**2. Prompt construction (worker-side)**
 
 The worker receives the `AgentPrompt` (a collection of parts) and builds the final system prompt using `buildSystemPrompt`.
 
@@ -96,21 +115,21 @@ The worker receives the `AgentPrompt` (a collection of parts) and builds the fin
   - `rules-section`: Dynamic rules based on capabilities (e.g., "You can create shapes...").
   - `mode-section`: Mode-specific instructions (e.g., "You are currently orchestrating...").
 
-**3. Message Building**
+**3. Message building**
 
 The worker converts prompt parts into a list of messages (`ModelMessage[]`) for the LLM.
 
 - `buildMessages`: Iterates through parts and calls their `buildContent` method (defined in `PromptPartDefinitions` or `PromptPartUtil`).
 - **Prioritization**: Parts have priority levels. For example, `SystemPrompt` is high priority, while `PeripheralShapes` might be lower.
 
-**4. Schema Generation**
+**4. Schema generation**
 
 The JSON schema for the model's response is dynamically generated based on the **allowed actions** for the current mode.
 
 - If `mode: 'soloing'` allows `CreateAction`, the schema will include the definition for creating shapes.
 - If `mode: 'idling'` allows fewer actions, the schema is restricted accordingly.
 
-### Interrupt System
+### Interrupt system
 
 The interrupt system allows for immediate control flow changes in the agent's behavior. It is primarily handled by the `interrupt` method in `FairyAgent`.
 
@@ -142,11 +161,11 @@ agent.interrupt({
 
 **Implementation details**
 
-- Clears `$activeRequest` and `$scheduledRequest` atoms.
+- Clears active and scheduled requests via `requestManager`.
 - Calls the underlying `AbortController` to stop network requests.
 - Triggers `onExit` of the current mode and `onEnter` of the new mode.
 
-### Action Execution Pipeline
+### Action execution pipeline
 
 The agent processes actions streamed from the AI model through a rigorous pipeline to ensure safety and consistency.
 
@@ -159,44 +178,47 @@ The agent processes actions streamed from the AI model through a rigorous pipeli
    - The agent enters an "acting" state (`isActing = true`) to prevent recording its own actions as user actions.
    - `editor.store.extractingChanges` captures all state changes made during the action.
    - `applyAction` modifies the canvas (creating shapes, moving elements, etc.).
-5. **Partial Execution Handling**:
+5. **Partial execution handling**:
    - If an action comes in chunks, `incompleteDiff` tracks partial changes.
    - Previous partial changes are reverted before applying the new, more complete version of the action.
-6. **History & Persistence**:
+6. **Page synchronization**:
+   - `ensureFairyIsOnCorrectPage` ensures the fairy is on the same page as shapes being manipulated.
+   - For create actions, syncs fairy to current editor page.
+7. **History & persistence**:
    - `savesToHistory()` determines if the action appears in the chat log.
-   - The `$chatHistory` atom is updated with the action and its resulting diff.
+   - Chat history is updated with the action and its resulting diff.
 
-**Key methods**
+**Key methods in FairyAgentActionManager**
 
 - `act(action)`: Core method to execute a single action and capture its diff.
-- `_streamActions`: Generator handling the SSE stream and coordinating the loop.
-- `sanitizeAction`: Pre-processing hook in `AgentActionUtil`.
+- `getAgentActionUtil(type)`: Get the util for an action type.
+- `getActionInfo(action)`: Get display info for UI rendering.
 
-### Chat History System
+### Chat history system
 
 The chat history system maintains a persistent record of interactions, actions, and memory transitions. It serves as the agent's "memory," allowing it to recall past instructions and actions within specific contexts.
 
-**Data Structure**
+**Data structure**
 
-Chat history is stored as an array of `ChatHistoryItem` objects in the `$chatHistory` atom.
+Chat history is stored as an array of `ChatHistoryItem` objects managed by `FairyAgentChatManager`.
 
 ```typescript
 type ChatHistoryItem =
-  | { type: 'prompt', message: string, role: 'user', ... }
-  | { type: 'action', action: AgentAction, ... }
-  | { type: 'continuation', data: any[], ... }
-  | { type: 'memory-transition', message: string, userFacingMessage: string | null, ... }
+	| { type: 'prompt'; agentFacingMessage: string; userFacingMessage: string; promptSource: string; ... }
+	| { type: 'action'; action: AgentAction; diff: RecordsDiff; acceptance: string; ... }
+	| { type: 'continuation'; data: any[]; ... }
+	| { type: 'memory-transition'; agentFacingMessage: string; userFacingMessage: string | null; ... }
 ```
 
-**Memory Levels**
+**Memory levels**
 
 To manage context window size and relevance, the system implements a tiered memory model:
 
-1. **Task Level** (`memoryLevel: 'task'`): High-detail, short-term memory. Contains immediate actions and granular feedback for the current task. Cleared when the task is completed.
-2. **Project Level** (`memoryLevel: 'project'`): Medium-term memory. Contains key milestones and instructions relevant to the entire project. Persists across individual tasks but cleared when the project ends.
-3. **Fairy Level** (`memoryLevel: 'fairy'`): Long-term memory. Contains core personality traits and global instructions. Persists across projects.
+1. **Task level** (`memoryLevel: 'task'`): High-detail, short-term memory. Contains immediate actions and granular feedback for the current task. Cleared when the task is completed.
+2. **Project level** (`memoryLevel: 'project'`): Medium-term memory. Contains key milestones and instructions relevant to the entire project. Persists across individual tasks but cleared when the project ends.
+3. **Fairy level** (`memoryLevel: 'fairy'`): Long-term memory. Contains core personality traits and global instructions. Persists across projects.
 
-**Filtering Mechanism**
+**Filtering mechanism**
 
 The `ChatHistoryPartUtil` uses `filterChatHistoryByMode` to send only relevant history to the AI model based on the current mode's required memory level.
 
@@ -204,36 +226,11 @@ The `ChatHistoryPartUtil` uses `filterChatHistoryByMode` to send only relevant h
 - **Project mode**: Sees project-level history (stops at fairy-level boundaries).
 - **Fairy mode**: Sees only global history.
 
-**Usage**
-
-```typescript
-// Adding a user message
-agent.$chatHistory.update((prev) => [
-	...prev,
-	{
-		type: 'prompt',
-		message: 'Draw a box',
-		role: 'user',
-		memoryLevel: 'task',
-	},
-])
-
-// Recording an action
-agent.$chatHistory.update((prev) => [
-	...prev,
-	{
-		type: 'action',
-		action: createShapeAction,
-		memoryLevel: 'task',
-	},
-])
-```
-
 ### Actions system
 
 Actions are the operations fairies can perform on the canvas. Each action extends `AgentActionUtil` and implements:
 
-- `getInfo()`: Returns UI display information (icon, description)
+- `getInfo()`: Returns UI display information (icon, description, pose)
 - `sanitizeAction()`: Transforms/validates actions before execution
 - `applyAction()`: Executes the action on the canvas
 - `savesToHistory()`: Whether to persist in chat history
@@ -244,9 +241,11 @@ Actions are the operations fairies can perform on the canvas. Each action extend
 - `UpdateActionUtil`: Modify existing shapes with property updates
 - `DeleteActionUtil`: Remove shapes from canvas
 - `MoveActionUtil`: Reposition elements with offset calculations
+- `MovePositionActionUtil`: Move fairy position
 - `ResizeActionUtil`: Change shape dimensions
 - `RotateActionUtil`: Rotate shapes around their center
 - `LabelActionUtil`: Add or update text labels on shapes
+- `OffsetActionUtil`: Offset shapes by a delta
 
 **Organization**
 
@@ -273,11 +272,14 @@ Actions are the operations fairies can perform on the canvas. Each action extend
 - `StartSoloTaskActionUtil`: Begin working on solo tasks
 - `MarkSoloTaskDoneActionUtil`: Mark solo tasks as complete
 - `ClaimTodoItemActionUtil`: Claim personal todo items
+- `UpsertPersonalTodoItemActionUtil`: Manage personal todo list
+- `DeletePersonalTodoItemsActionUtil`: Delete todo items
 
 **Project task management (orchestrator)**
 
 - `StartProjectActionUtil`: Initialize a new project
 - `CreateProjectTaskActionUtil`: Create tasks within a project
+- `DeleteProjectTaskActionUtil`: Delete project tasks
 - `DirectToStartTaskActionUtil`: Direct drones to start tasks
 - `EndCurrentProjectActionUtil`: Complete and close current project
 - `AwaitTasksCompletionActionUtil`: Wait for task completion
@@ -301,7 +303,6 @@ Actions are the operations fairies can perform on the canvas. Each action extend
 - `MessageActionUtil`: Send messages to users
 - `ThinkActionUtil`: Display thinking process
 - `ReviewActionUtil`: Review and analyze canvas content
-- `UpsertPersonalTodoItemActionUtil`: Manage personal todo list
 
 **System**
 
@@ -318,6 +319,7 @@ Prompt parts provide context to the AI model:
 - `BlurryShapesPartUtil`: Distant/background shapes
 - `ScreenshotPartUtil`: Visual canvas representation
 - `DataPartUtil`: Shape data and properties
+- `CanvasLintsPartUtil`: Canvas lint warnings
 
 **User context**
 
@@ -329,7 +331,7 @@ Prompt parts provide context to the AI model:
 
 - `AgentViewportBoundsPartUtil`: Fairy's visible area
 - `ChatHistoryPartUtil`: Conversation history
-- `PersonalityPartUtil`: Fairy's personality traits
+- `SignPartUtil`: Fairy's astrological sign
 - `ModelNamePartUtil`: AI model being used
 
 **Task context**
@@ -350,7 +352,7 @@ Prompt parts provide context to the AI model:
 
 ### Helper system
 
-**AgentHelpers** (`fairy-agent/agent/AgentHelpers.ts`)
+**AgentHelpers** (`fairy-agent/AgentHelpers.ts`)
 
 Transformation utilities used during request processing:
 
@@ -374,7 +376,7 @@ Transformation utilities used during request processing:
 
 ### Wait and notification system
 
-**Wait conditions** (`FairyWaitNotifications.ts`)
+**Wait conditions** (`fairy-wait-notifications.ts`)
 
 Fairies can wait for specific events:
 
@@ -407,28 +409,46 @@ createAgentModeTransitionWaitCondition(agentId, mode)
 
 ### Collaborative features
 
-**Projects system** (`FairyProjects.ts`)
+**Projects system** (`fairy-projects.ts`)
 
 - Multi-fairy collaboration on complex tasks
 - Project roles:
   - **Orchestrator**: Coordinates work, assigns tasks, reviews progress, cannot be interrupted
+  - **Duo-orchestrator**: Leads a duo project, can also work on tasks themselves
   - **Drone**: Executes assigned tasks, reports completion, works autonomously
 - Duo projects for paired fairy collaboration
 - Project state tracked globally with member lists and task assignments
 - Projects have unique IDs and color coding
 
-**Task management** (`FairyTaskList.ts`)
+**Project resumption**
 
-- Shared task lists visible on canvas via `InCanvasTaskList`
-- Drag-and-drop task assignment using `FairyTaskDragTool`
-- Task states: pending, active, done
+Projects can be resumed after interruption with intelligent state recovery:
+
+- **State 1**: All tasks done → Resume orchestrator to review/end project
+- **State 2**: Tasks in progress → Resume working drones, orchestrator waits
+- **State 3**: Mix of done/todo → Resume orchestrator to continue leading
+- **State 4**: No tasks exist → Resume orchestrator to finish planning
+- **State 5**: All tasks todo → Resume orchestrator to direct drones
+
+**Project lifecycle**
+
+- `addProject()`: Register new project
+- `disbandProject()`: Cancel project, interrupt members, add cancellation memory
+- `disbandAllProjectsWithAgents()`: Cleanup all projects
+- `resumeProject()`: Intelligently resume interrupted projects
+- `deleteProjectAndAssociatedTasks()`: Clean removal with task cleanup
+
+**Task management** (`fairy-task-list.ts`)
+
+- Shared task lists for projects
+- Task states: `todo`, `in-progress`, `done`
 - Tasks include:
   - Unique ID for tracking
   - Text description
   - Assignment to specific fairy
   - Completion status
+  - Project association
   - Optional spatial bounds
-- Global task visibility toggle with `$showCanvasFairyTasks`
 
 **Inter-fairy communication**
 
@@ -440,36 +460,116 @@ createAgentModeTransitionWaitCondition(agentId, mode)
 
 ### UI components
 
-**Main components**
+**Main components** (`fairy-ui/`)
 
-- `FairyApp`: Root component managing fairy instances
-- `Fairies`: Container for multiple fairies
-- `RemoteFairies`: Handles fairies from other users
+- `FairyHUD`: Main heads-up display container
+- `FairyHUDTeaser`: Teaser/preview UI
+- `FairyHUDHeader`: Header with controls
 
-**Interaction components**
+**Chat components** (`fairy-ui/chat/`)
 
-- `FairySpriteComponent2`: Visual sprite representation
+- `FairyChatHistory`: Full conversation display
+- `FairyChatHistorySection`: Grouped history display
+- `FairyChatHistoryAction`: Individual action rendering
+- `FairyChatHistoryGroup`: Grouped action rendering
+- `FairyProjectChatContent`: Project-specific chat content
+- `filterChatHistoryByMode`: History filtering logic
+
+**Input components** (`fairy-ui/hud/`)
+
+- `FairySingleChatInput`: Single fairy chat input
+- `useFairySelection`: Selection state hook
+- `useIdlingFairies`: Hook for available fairies
+- `useMobilePositioning`: Mobile-specific positioning
+
+**Menu components** (`fairy-ui/menus/`)
+
 - `FairyContextMenuContent`: Right-click menu options
-- `FairyDropdownContent`: Dropdown menu items
 - `FairyMenuContent`: Main menu interface
 
-**Task UI**
+**Sidebar components** (`fairy-ui/sidebar/`)
 
-- `FairyTaskListInline`: Inline task display
-- `InCanvasTaskList`: Canvas-embedded task list
-- `FairyTaskDragTool`: Drag tool for task assignment
+- `FairySidebarButton`: Sidebar toggle button
+- `FairyListSidebar`: Fairy list in sidebar
 
-**Configuration**
+**Other UI** (`fairy-ui/`)
 
-- `FairyConfigDialog`: Settings dialog
 - `FairyDebugDialog`: Debug interface
-- `FairyModelSelection`: Model selection UI
+- `FairyProjectView`: Project view component
+- `FairyManualPanel`: User guide/manual panel
 
-**Input/chat**
+**Hooks** (`fairy-ui/hooks/`)
 
-- `FairyBasicInput`: Input interface
-- `FairyChatHistory`: Conversation display
-- `FairyGroupChat`: Multi-fairy chat
+- `useFairyAgentChatHistory`: Chat history access
+- `useFairyAgentChatOrigin`: Chat origin access
+
+### Sprite system
+
+**FairySprite** (`fairy-sprite/FairySprite.tsx`)
+
+- Visual representation of fairies on canvas
+- Animated sprites with multiple poses and keyframe animation
+- SVG-based rendering at 108x108 viewBox
+
+**Poses** (`FairyPose` type)
+
+- `idle`: Default standing pose
+- `active`: Active but not working
+- `reading`: Reading documents
+- `writing`: Writing/creating
+- `thinking`: Deep thought pose
+- `working`: Actively working on task
+- `sleeping`: Dormant state
+- `waiting`: Waiting for something
+- `reviewing`: Reviewing work
+- `panicking`: Error/panic state
+- `poof`: Spawn/despawn animation
+
+**Sprite parts** (`fairy-sprite/sprites/parts/`)
+
+- `FairyBodySpritePart`: Main body
+- `FairyFaceSpritePart`: Face expressions
+- `FairyHatSpritePart`: Hat accessories
+- `FairyLegsSpritePart`: Legs
+
+**Wing sprites** (`fairy-sprite/sprites/WingsSprite.tsx`)
+
+- `RaisedWingsSprite1/2/3`: High wing positions for active poses
+- `LoweredWingsSprite1/2/3`: Low wing positions for passive poses
+- Wing colors indicate project membership and role
+
+**Other sprites**
+
+- `IdleSprite`, `SleepingSprite`, `ThinkingSprite`
+- `WorkingSprite1/2/3`: Working animation frames
+- `ReadingSprite1/2/3`: Reading animation frames
+- `WritingSprite1/2`: Writing animation frames
+- `WaitingSprite/ReviewingSprite1/2/3`: Waiting states
+- `PanickingSprite1/2`: Error animations
+- `PoofSprite1/2/3/4`: Spawn/despawn effects
+- `FairyReticleSprite`: Selection reticle
+- `Avatar`: Avatar display component
+
+**Animation**
+
+- Frame durations vary by pose (65ms-160ms)
+- `useKeyframe` hook manages animation timing
+- Faster animation when generating (0.75x duration)
+
+**Customization**
+
+- Hat colors map to hat types (top, pointy, bald, antenna, etc.)
+- Project color shown on wings
+- Orchestrators have colored bottom wings
+- `flipX` prop for directional facing
+
+### Canvas UI components
+
+**Canvas components** (`fairy-canvas-ui/`)
+
+- `Fairies`: Container rendering all local fairies
+- `RemoteFairies`: Handles fairies from other users
+- `DebugFairyVision`: Debug overlay for fairy vision bounds
 
 ### Special tools
 
@@ -478,65 +578,51 @@ createAgentModeTransitionWaitCondition(agentId, mode)
 - Allows throwing/moving fairies on canvas
 - Integrated with select tool
 
-**FairyTaskDragTool** (`FairyTaskDragTool.tsx`)
+### Helpers
 
-- Drag tasks to assign to fairies
-
-### Utilities
-
-**Name generation** (`getRandomFairyName.ts`)
+**Name generation** (`fairy-helpers/getRandomFairyName.ts`)
 
 - Generates unique fairy names
 
-**Personality** (`getRandomFairyPersonality.ts`)
+**Sign generation** (`fairy-helpers/getRandomFairySign.ts`)
 
-- Creates fairy personality traits
+- Creates fairy astrological signs
 
-**Project colors** (`getProjectColor.ts`)
+**Project colors** (`fairy-helpers/getProjectColor.ts`)
 
 - Color coding for projects
 
-**Vision system** (`FairyVision.tsx`)
+**No-input messages** (`fairy-helpers/getRandomNoInputMessage.ts`)
 
-- Visual perception capabilities
-- Fixed dimensions from `FAIRY_VISION_DIMENSIONS`
-
-### Sprite system
-
-**FairySprite2** (`fairy-sprite/FairySprite2.tsx`)
-
-- Visual representation of fairies on canvas
-- Animated sprites with multiple poses and expressions
-- Customizable appearance:
-  - Hat styles (top, pointy, bald, antenna, spiky, hair, ears, propeller)
-  - Body colors based on project assignment
-  - Flip orientation for movement direction
-- Poses include idle, working, thinking, celebrating
-- Size scales with canvas zoom level
+- Messages when fairy has no input
 
 ### State management
 
-**Atoms**
+**Global atoms** (`fairy-globals.ts`)
 
-- `$fairyAgentsAtom`: Global fairy agents registry
+- `$fairyAgentsAtom`: Global fairy agents registry (per editor)
 - `$fairyTasks`: Task list state
 - `$fairyProjects`: Active projects
-- `$fairyIsApplyingAction`: Action application state
-- `$showCanvasFairyTasks`: Task visibility toggle
-- `$fairyDebugFlags`: Debug settings
+- `$fairyIsApplyingAction`: Action application state flag
+
+**FairyAgentsAtom** (`fairy-agent/fairyAgentsAtom.ts`)
+
+- `getFairyAgentById()`: Get agent by ID and editor
+- Editor-scoped fairy agent storage
 
 **Persistence**
 
-- Fairy state saved to user profile as `PersistedFairyState`
-- Chat history maintained across sessions
-- Task lists persisted
-- Configuration stored as `PersistedFairyConfigs`
+- Fairy state serialized via `agent.serializeState()`
+- Includes: fairyEntity, chatHistory, chatOrigin, personalTodoList, waitingFor
+- Restored via `agent.loadState()`
+- Configuration stored in user profile as `fairies` JSON
 
 ### Debug capabilities
 
-**Debug flags** (`FairyDebugFlags.ts`)
+**Debug flags**
 
-- `showTaskBounds`: Visualize task spatial boundaries
+- `logSystemPrompt`: Log system prompt to console
+- `logMessages`: Log messages to console
 - `logResponseTime`: Track AI response performance
 
 **Debug dialog** (`FairyDebugDialog.tsx`)
@@ -547,12 +633,23 @@ createAgentModeTransitionWaitCondition(agentId, mode)
 - Track mode transitions
 - Performance metrics
 
+### Internationalization
+
+**Messages** (`fairy-messages.ts`)
+
+Uses `defineMessages` for i18n support:
+
+- Toolbar labels (fairies, select, deselect, close)
+- Menu labels (go to, summon, follow, sleep, wake)
+- Input placeholders (speak to fairy, enter message)
+- Action labels (stop, send, clear)
+
 ### Backend integration
 
 - Communicates with `FAIRY_WORKER` endpoint
 - Authentication via `getToken`
-- Streaming responses for real-time generation
-- Model selection (Claude, GPT variants)
+- Streaming responses for real-time generation via SSE
+- Model selection support
 
 ## Usage patterns
 
@@ -576,12 +673,6 @@ fairy.prompt({
 	message: 'Draw a flowchart',
 })
 
-// With specific context parts
-fairy.prompt({
-	message: 'Organize these shapes',
-	parts: ['screenshot', 'selected-shapes', 'peripheral-shapes'],
-})
-
 // With spatial bounds
 fairy.prompt({
 	message: 'Work in this area',
@@ -592,7 +683,7 @@ fairy.prompt({
 ### Scheduling follow-up work
 
 ```typescript
-// Schedule next action
+// Add an instruction
 fairy.schedule('Continue working on the diagram')
 
 // Schedule with specific data
@@ -602,6 +693,19 @@ fairy.schedule({
 })
 ```
 
+### Interrupting a fairy
+
+```typescript
+// Cancel and switch mode
+fairy.interrupt({
+	mode: 'idling',
+	input: { message: 'Stop and wait' },
+})
+
+// Just cancel current work
+fairy.interrupt({ input: null })
+```
+
 ### Custom actions
 
 ```typescript
@@ -609,7 +713,7 @@ class CustomActionUtil extends AgentActionUtil<CustomAction> {
 	static override type = 'custom' as const
 
 	override getInfo(action) {
-		return { icon: 'star', description: action.description }
+		return { icon: 'star', description: action.description, pose: 'working' }
 	}
 
 	override sanitizeAction(action, helpers) {
@@ -642,29 +746,23 @@ class CustomPartUtil extends PromptPartUtil<CustomPart> {
 ### Working with projects
 
 ```typescript
-// Start a project
-fairy.startProject({
-	members: [fairy1.id, fairy2.id],
-	role: 'orchestrator',
-})
+import { addProject, disbandProject, resumeProject } from './fairy-projects'
 
-// Create and assign tasks
-fairy.createProjectTask({
-	text: 'Design header',
-	assignTo: fairy2.id,
-})
-
-// Wait for completion
-fairy.waitFor(createTaskWaitCondition(taskId))
+// Projects are typically started via StartProjectActionUtil
+// But can be managed programmatically:
+disbandProject(projectId, editor)
+resumeProject(projectId, editor)
 ```
 
 ## Key features
 
 - **Visual AI agents**: Sprites that move and interact on canvas
 - **Multi-modal understanding**: Process visual and text inputs
-- **Collaborative work**: Multiple fairies working together
+- **Collaborative work**: Multiple fairies working together on projects
 - **Task management**: Create, assign, and track tasks
 - **Canvas manipulation**: Full CRUD operations on shapes
 - **Page navigation**: Multi-page document support
-- **Personality system**: Each fairy has unique traits
+- **Personality system**: Each fairy has unique traits and sign
 - **Debug tools**: Comprehensive debugging interface
+- **Project resumption**: Intelligent recovery from interruptions
+- **Internationalization**: Full i18n support for UI strings

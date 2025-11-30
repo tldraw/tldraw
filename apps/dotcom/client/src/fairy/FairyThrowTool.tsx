@@ -49,7 +49,8 @@ class PointingState extends StateNode {
 		if (tool.fairies.length === 0) return
 
 		// Calculate offset between click position and each fairy position
-		const originPagePoint = editor.inputs.currentPagePoint
+		// Use originPagePoint instead of currentPagePoint to ensure correct positioning on mobile
+		const originPagePoint = editor.inputs.originPagePoint
 		tool.clickOffsets.clear()
 
 		for (const fairy of tool.fairies) {

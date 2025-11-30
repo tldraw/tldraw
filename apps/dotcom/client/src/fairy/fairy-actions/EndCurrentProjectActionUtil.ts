@@ -1,4 +1,4 @@
-import { EndCurrentProjectAction, Streaming } from '@tldraw/fairy-shared'
+import { EndCurrentProjectAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { uniqueId } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
 import { $fairyAgentsAtom } from '../fairy-globals'
@@ -10,12 +10,12 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 	static override type = 'end-project' as const
 
 	override getInfo(action: Streaming<EndCurrentProjectAction>) {
-		return {
-			icon: 'flag' as const,
+		return createAgentActionInfo({
+			icon: 'flag',
 			description: action.complete ? 'Ended project' : 'Ending project...',
-			pose: 'reviewing' as const,
+			pose: 'reviewing',
 			canGroup: () => false,
-		}
+		})
 	}
 
 	override applyAction(action: Streaming<EndCurrentProjectAction>, _helpers: AgentHelpers) {
