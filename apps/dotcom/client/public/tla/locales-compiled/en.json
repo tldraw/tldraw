@@ -75,6 +75,12 @@
       "value": "File"
     }
   ],
+  "0b79795d3e": [
+    {
+      "type": 0,
+      "value": "Introduction"
+    }
+  ],
   "0b9a4cde72": [
     {
       "type": 0,
@@ -633,6 +639,12 @@
       "value": "Fairy's name"
     }
   ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Debug fairies"
+    }
+  ],
   "6a26f54883": [
     {
       "type": 0,
@@ -915,6 +927,12 @@
       "value": "Shared with you"
     }
   ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "About"
+    }
+  ],
   "8ff3d0a705": [
     {
       "type": 0,
@@ -1089,6 +1107,12 @@
     {
       "type": 0,
       "value": "Submit"
+    }
+  ],
+  "a603905470": [
+    {
+      "type": 0,
+      "value": "Debug"
     }
   ],
   "a6cc403d56": [
@@ -1283,6 +1307,12 @@
       "value": "Unable to publish the file."
     }
   ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Open"
+    }
+  ],
   "c3eb5c3b90": [
     {
       "type": 0,
@@ -1299,6 +1329,12 @@
     {
       "type": 0,
       "value": "Group name"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Usage"
     }
   ],
   "c655b27b1e": [

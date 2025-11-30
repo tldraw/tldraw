@@ -324,7 +324,7 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 					}}
 				>
 					<FairySprite
-						pose={fairyEntity.pose}
+						pose={'thinking'} //fairyEntity.pose}
 						gesture={fairyEntity.gesture}
 						hatColor={getHatColor(fairyOutfit.hat)}
 						showShadow

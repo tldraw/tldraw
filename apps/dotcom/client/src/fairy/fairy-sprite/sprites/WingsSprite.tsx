@@ -157,7 +157,7 @@ export function BaseWingsSprite({
 			{/* Bottom left wing */}
 			<path
 				d="M76.704 80.505C75.6457 77.7148 70.2496 71.7015 67.4457 68.6916C66.8328 68.0336 65.7644 68.4713 65.7849 69.3703C65.8856 73.8009 66.2643 82.8929 67.6837 85.6768C72.0879 94.3147 80.0998 89.4582 76.704 80.505Z"
-				fill={topWingColor}
+				fill={bottomWingColor}
 				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="5"
 				transform={`translate(${-bwOffsetX}, ${bwOffsetY}) rotate(${-bwRotation}, 64, 70) `}
@@ -173,7 +173,7 @@ export function BaseWingsSprite({
 			{/* Top left wing */}
 			<path
 				d="M8.47308 56.0936C13.1053 46.9164 40.8655 48.0513 45.876 56.3843C50.8865 64.7174 25.2493 92.1075 17.2965 78.881C13.2008 72.0693 20.0845 66.5801 20.0845 66.5801C20.0845 66.5801 3.84085 65.2707 8.47308 56.0936Z"
-				fill={bottomWingColor}
+				fill={topWingColor}
 				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="5"
 				strokeLinejoin="round"

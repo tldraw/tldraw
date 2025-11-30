@@ -1,5 +1,5 @@
 import { HistoryEntry } from '@tldraw/store'
-import { TLPageId, TLRecord, TLShapeId } from '@tldraw/tlschema'
+import { BoxModel, TLPageId, TLRecord, TLShapeId } from '@tldraw/tlschema'
 import { TLEventInfo } from './event-types'
 
 /** @public */
@@ -16,6 +16,7 @@ export interface TLEventMap {
 	event: [TLEventInfo]
 	tick: [number]
 	frame: [number]
+	resize: [BoxModel]
 	'select-all-text': [{ shapeId: TLShapeId }]
 	'place-caret': [{ shapeId: TLShapeId; point: { x: number; y: number } }]
 	'created-shapes': [TLRecord[]]

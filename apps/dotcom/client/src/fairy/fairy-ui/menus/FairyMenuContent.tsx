@@ -4,19 +4,14 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
-	useDefaultHelpers,
 	useEditor,
 	useValue,
 } from 'tldraw'
-import { useApp } from '../../../tla/hooks/useAppState'
 import { useMsg } from '../../../tla/utils/i18n'
-import { isDevelopmentEnv } from '../../../utils/env'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { $fairyAgentsAtom, $fairyProjects } from '../../fairy-globals'
 import { fairyMessages } from '../../fairy-messages'
 import { disbandProject } from '../../fairy-projects'
-import { clearFairyTasksAndProjects } from '../../fairy-task-list'
-import { FairyDebugDialog } from '../debug/FairyDebugDialog'
 
 export type FairyMenuSource = 'canvas' | 'sidebar' | 'chat'
 
@@ -30,8 +25,6 @@ export function FairyMenuContent({
 	source?: FairyMenuSource
 }) {
 	const editor = useEditor()
-	const app = useApp()
-	const { addDialog } = useDefaultHelpers()
 	const allAgents = useValue('fairy-agents', () => $fairyAgentsAtom.get(editor), [editor])
 
 	const onlyAgent = agents.length === 1 ? agents[0] : null
@@ -96,11 +89,10 @@ export function FairyMenuContent({
 	const putAwayFairyLabel = useMsg(fairyMessages.putAwayFairy)
 	const putAwayAllFairiesLabel = useMsg(fairyMessages.putAwayAllFairies)
 	const disbandGroupLabel = useMsg(fairyMessages.disbandGroup)
-	const debugViewLabel = useMsg(fairyMessages.debugView)
-	const resetEverythingLabel = useMsg(fairyMessages.resetEverything)
 	const fairyManagementLabel = useMsg(fairyMessages.fairyManagement)
 	const selectAllFairiesLabel = useMsg(fairyMessages.selectAllFairiesLabel)
 	const deselectFairyLabel = useMsg(fairyMessages.deselectFairy)
+	const closeChatPanelLabel = useMsg(fairyMessages.closeChatPanel)
 	const selectFairyLabel = useMsg(fairyMessages.selectFairy)
 
 	const projects = useValue($fairyProjects)
@@ -137,17 +129,6 @@ export function FairyMenuContent({
 		})
 	}, [allAgents])
 
-	const openDebugDialog = useCallback(
-		(initialTabId?: string) => {
-			addDialog({
-				component: ({ onClose }) => (
-					<FairyDebugDialog agents={allAgents} onClose={onClose} initialTabId={initialTabId} />
-				),
-			})
-		},
-		[addDialog, allAgents]
-	)
-
 	const hasChatHistory = useValue(
 		'has-chat-history',
 		() => {
@@ -175,27 +156,6 @@ export function FairyMenuContent({
 		})
 	}, [agents])
 
-	const resetEverything = useCallback(() => {
-		// Stop all running tasks
-		allAgents.forEach((agent) => {
-			agent.cancel()
-		})
-
-		// Clear the todo list and projects
-		clearFairyTasksAndProjects()
-
-		// Reset all chats
-		allAgents.forEach((agent) => {
-			agent.reset()
-		})
-
-		// Delete all fairies
-		app.z.mutate.user.deleteAllFairyConfigs()
-		allAgents.forEach((agent) => {
-			agent.dispose()
-		})
-	}, [allAgents, app])
-
 	const selectAllFairies = useCallback(() => {
 		allAgents.forEach((agent) => {
 			agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
@@ -207,11 +167,6 @@ export function FairyMenuContent({
 			<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">
 				<TldrawUiMenuGroup id="fairy-group-menu">
 					<TldrawUiMenuItem id="disband-group" onSelect={disbandGroup} label={disbandGroupLabel} />
-					<TldrawUiMenuItem
-						id="debug-fairies"
-						onSelect={() => openDebugDialog(onlyAgent?.id ?? undefined)}
-						label={debugViewLabel}
-					/>
 				</TldrawUiMenuGroup>
 			</TldrawUiMenuContextProvider>
 		)
@@ -227,20 +182,6 @@ export function FairyMenuContent({
 						label={wakeFairyLabel}
 					/>
 				</TldrawUiMenuGroup>
-				<TldrawUiMenuGroup id="fairy-management-menu">
-					{isDevelopmentEnv && (
-						<TldrawUiMenuItem
-							id="debug-fairies"
-							onSelect={() => openDebugDialog(onlyAgent.id)}
-							label={debugViewLabel}
-						/>
-					)}
-					<TldrawUiMenuItem
-						id="reset-everything"
-						onSelect={resetEverything}
-						label={resetEverythingLabel}
-					/>
-				</TldrawUiMenuGroup>
 			</TldrawUiMenuContextProvider>
 		)
 	}
@@ -248,6 +189,9 @@ export function FairyMenuContent({
 	return (
 		<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">
 			<TldrawUiMenuGroup id="single-fairy-menu">
+				{!agents.some((agent) => agent.$fairyEntity.get().isSelected) && (
+					<TldrawUiMenuItem id="select" onSelect={select} label={selectFairyLabel} />
+				)}
 				{source !== 'canvas' && (
 					<>
 						{onlyAgent && (
@@ -271,63 +215,56 @@ export function FairyMenuContent({
 						label={isFollowing ? unfollowFairyLabel : followFairyLabel}
 					/>
 				)}
-
-				{hasSelected ? (
-					<TldrawUiMenuItem id="deselect" onSelect={deselect} label={deselectFairyLabel} />
-				) : (
-					<TldrawUiMenuItem id="select" onSelect={select} label={selectFairyLabel} />
-				)}
-			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="fairy-management-resets">
-				{hasChatHistory && (
-					<TldrawUiMenuItem
-						id="reset-fairy-chat"
-						onSelect={() => allAgents.forEach((agent) => agent.reset())}
-						label={resetChatLabel}
-					/>
-				)}
-				<TldrawUiMenuItem id="put-away-fairy" onSelect={putAwayFairy} label={putAwayFairyLabel} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="fairy-management-menu">
 				<TldrawUiMenuSubmenu id="fairy-management-submenu" label={fairyManagementLabel}>
-					<TldrawUiMenuItem
-						id="select all fairies"
-						onSelect={selectAllFairies}
-						label={selectAllFairiesLabel}
-					/>
-					<TldrawUiMenuItem
-						id="summon-all-fairies"
-						onSelect={summonAllFairies}
-						label={summonAllFairiesLabel}
-					/>
-					<TldrawUiMenuItem
-						id="put-away-all-fairies"
-						onSelect={putAwayAllFairies}
-						label={putAwayAllFairiesLabel}
-					/>
+					<TldrawUiMenuGroup id="fairy-management-group">
+						<TldrawUiMenuItem
+							id="select all fairies"
+							onSelect={selectAllFairies}
+							label={selectAllFairiesLabel}
+						/>
+						<TldrawUiMenuItem
+							id="summon-all-fairies"
+							onSelect={summonAllFairies}
+							label={summonAllFairiesLabel}
+						/>
+						<TldrawUiMenuItem
+							id="put-away-fairy"
+							onSelect={putAwayFairy}
+							label={putAwayFairyLabel}
+						/>
+						<TldrawUiMenuItem
+							id="put-away-all-fairies"
+							onSelect={putAwayAllFairies}
+							label={putAwayAllFairiesLabel}
+						/>
+					</TldrawUiMenuGroup>
 					<TldrawUiMenuGroup id="fairy-chat-menu">
+						{hasChatHistory && (
+							<TldrawUiMenuItem
+								id="reset-fairy-chat"
+								onSelect={() => allAgents.forEach((agent) => agent.reset())}
+								label={resetChatLabel}
+							/>
+						)}
 						<TldrawUiMenuItem
 							id="reset-all-chats"
 							onSelect={resetAllChats}
 							label={resetAllChatsLabel}
 						/>
 					</TldrawUiMenuGroup>
-					{isDevelopmentEnv && (
-						<TldrawUiMenuGroup id="fairy-management-submenu-debug">
-							<TldrawUiMenuItem
-								id="reset-everything"
-								onSelect={resetEverything}
-								label={resetEverythingLabel}
-							/>
-							<TldrawUiMenuItem
-								id="debug-fairies"
-								onSelect={() => openDebugDialog(onlyAgent?.id ?? undefined)}
-								label={debugViewLabel}
-							/>
-						</TldrawUiMenuGroup>
-					)}
 				</TldrawUiMenuSubmenu>
 			</TldrawUiMenuGroup>
+			{hasSelected && (
+				<TldrawUiMenuGroup id="fairy-close-menu">
+					<TldrawUiMenuItem
+						id="deselect"
+						onSelect={deselect}
+						label={source === 'chat' ? closeChatPanelLabel : deselectFairyLabel}
+					/>
+				</TldrawUiMenuGroup>
+			)}
 		</TldrawUiMenuContextProvider>
 	)
 }

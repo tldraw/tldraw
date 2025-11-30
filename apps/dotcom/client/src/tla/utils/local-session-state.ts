@@ -41,6 +41,7 @@ export interface TldrawAppSessionState {
 	sidebarWidth?: number
 	shouldShowWelcomeDialog?: boolean
 	fairiesEnabled?: boolean
+	fairiesDebugEnabled?: boolean
 }
 
 let prev: TldrawAppSessionState = {
@@ -61,6 +62,7 @@ let prev: TldrawAppSessionState = {
 	},
 	sidebarWidth: 260,
 	fairiesEnabled: true,
+	fairiesDebugEnabled: false,
 }
 
 try {
@@ -158,5 +160,20 @@ export function toggleFairies(enabled?: boolean) {
 	const nextEnabled = enabled ?? !getAreFairiesEnabled()
 	updateLocalSessionState(() => {
 		return { fairiesEnabled: nextEnabled }
+	})
+}
+
+export function getAreFairiesDebugEnabled() {
+	return localSessionState.get().fairiesDebugEnabled ?? false
+}
+
+export function useAreFairiesDebugEnabled() {
+	return useValue('areFairiesDebugEnabled', getAreFairiesDebugEnabled, [])
+}
+
+export function toggleFairiesDebug(enabled?: boolean) {
+	const nextEnabled = enabled ?? !getAreFairiesDebugEnabled()
+	updateLocalSessionState(() => {
+		return { fairiesDebugEnabled: nextEnabled }
 	})
 }

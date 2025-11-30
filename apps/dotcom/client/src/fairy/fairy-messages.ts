@@ -5,6 +5,7 @@ export const fairyMessages = defineMessages({
 	toolbar: { defaultMessage: 'Fairies' },
 	selectFairy: { defaultMessage: 'Select' },
 	deselectFairy: { defaultMessage: 'Deselect' },
+	closeChatPanel: { defaultMessage: 'Close' },
 	joinSelectedFairies: { defaultMessage: 'Join' },
 	resetChat: { defaultMessage: 'Clear' },
 	resetAllChats: { defaultMessage: 'Clear all' },
@@ -28,6 +29,7 @@ export const fairyMessages = defineMessages({
 	putAwayFairies: { defaultMessage: 'Sleep' },
 
 	// Fairy menu (debug)
+	debug: { defaultMessage: 'Debug' },
 	debugView: { defaultMessage: 'Debug view' },
 
 	// Fairy config dialog (placeholders)
@@ -46,4 +48,6 @@ export const fairyMessages = defineMessages({
 
 	// HUD toggle labels
 	manual: { defaultMessage: 'Guide' },
+	openManual: { defaultMessage: 'Open' },
+	closeManual: { defaultMessage: 'Close' },
 })
