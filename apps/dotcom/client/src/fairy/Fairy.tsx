@@ -106,6 +106,10 @@ function useFairyPointerInteraction(
 			document.removeEventListener('pointerup', handlePointerUp)
 		}
 
+		function cleanupEditorEventListener() {
+			editor.off('event', handleEvent)
+		}
+
 		function cancelLongPressTimer() {
 			if (longPressTimerRef.current) {
 				clearTimeout(longPressTimerRef.current)
@@ -122,6 +126,7 @@ function useFairyPointerInteraction(
 				fairiesAtPointerDown: currentState.fairiesAtPointerDown,
 			}
 			cleanupPointerListeners()
+			cleanupEditorEventListener()
 
 			setFairiesToThrowTool(editor, currentState.fairiesAtPointerDown)
 			editor.setCurrentTool('select.fairy-throw')
@@ -160,10 +165,12 @@ function useFairyPointerInteraction(
 
 			if (currentState.status === 'idle') {
 				cleanupPointerListeners()
+				cleanupEditorEventListener()
 				return
 			}
 
 			cleanupPointerListeners()
+			cleanupEditorEventListener()
 			editor.setCursor({ type: 'default', rotation: 0 })
 
 			if (currentState.status === 'pressed' && currentState.wasSelectedBeforeDown) {
@@ -263,6 +270,7 @@ function useFairyPointerInteraction(
 		return () => {
 			// Cleanup on unmount
 			cancelLongPressTimer()
+			cleanupEditorEventListener()
 			elm.removeEventListener('pointerdown', handleFairyPointerDown)
 			document.removeEventListener('pointermove', handlePointerMove)
 			document.removeEventListener('pointerup', handlePointerUp)
