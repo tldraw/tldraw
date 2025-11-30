@@ -94,11 +94,6 @@ describe('SendToBackActionUtil', () => {
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 			editor.createShape({ id: id2, type: 'geo', x: 50, y: 50, props: { w: 100, h: 100 } })
 
-			// Get initial shape order
-			const shapesBefore = editor.getCurrentPageShapesSorted()
-			const index1Before = shapesBefore.findIndex((s) => s.id === id1)
-			const index2Before = shapesBefore.findIndex((s) => s.id === id2)
-
 			const action = createAgentAction({
 				_type: 'send-to-back',
 				intent: 'Send to back',
@@ -127,12 +122,6 @@ describe('SendToBackActionUtil', () => {
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 			editor.createShape({ id: id2, type: 'geo', x: 50, y: 50, props: { w: 100, h: 100 } })
 			editor.createShape({ id: id3, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } })
-
-			// Get initial shape order
-			const shapesBefore = editor.getCurrentPageShapesSorted()
-			const index1Before = shapesBefore.findIndex((s) => s.id === id1)
-			const index2Before = shapesBefore.findIndex((s) => s.id === id2)
-			const index3Before = shapesBefore.findIndex((s) => s.id === id3)
 
 			const action = createAgentAction({
 				_type: 'send-to-back',
