@@ -151,17 +151,17 @@ export class FairyAgent {
 		}
 	}
 
-	actionManager = new FairyAgentActionManager(this)
-	chatManager = new FairyAgentChatManager(this)
-	chatOriginManager = new FairyAgentChatOriginManager(this)
-	gestureManager = new FairyAgentGestureManager(this)
-	modeManager = new FairyAgentModeManager(this)
-	positionManager = new FairyAgentPositionManager(this)
-	requestManager = new FairyAgentRequestManager(this)
-	todoManager = new FairyAgentTodoManager(this)
-	usageTracker = new FairyAgentUsageTracker(this)
-	userActionTracker = new FairyAgentUserActionTracker(this)
-	waitManager = new FairyAgentWaitManager(this)
+	actionManager: FairyAgentActionManager
+	chatManager: FairyAgentChatManager
+	chatOriginManager: FairyAgentChatOriginManager
+	gestureManager: FairyAgentGestureManager
+	modeManager: FairyAgentModeManager
+	positionManager: FairyAgentPositionManager
+	requestManager: FairyAgentRequestManager
+	todoManager: FairyAgentTodoManager
+	usageTracker: FairyAgentUsageTracker
+	userActionTracker: FairyAgentUserActionTracker
+	waitManager: FairyAgentWaitManager
 
 	/**
 	 * Create a new tldraw agent.
@@ -171,6 +171,19 @@ export class FairyAgent {
 		this.app = app
 		this.id = id
 		this.getToken = getToken
+
+		// Initialize managers after editor is set
+		this.actionManager = new FairyAgentActionManager(this)
+		this.chatManager = new FairyAgentChatManager(this)
+		this.chatOriginManager = new FairyAgentChatOriginManager(this)
+		this.gestureManager = new FairyAgentGestureManager(this)
+		this.modeManager = new FairyAgentModeManager(this)
+		this.positionManager = new FairyAgentPositionManager(this)
+		this.requestManager = new FairyAgentRequestManager(this)
+		this.todoManager = new FairyAgentTodoManager(this)
+		this.usageTracker = new FairyAgentUsageTracker(this)
+		this.userActionTracker = new FairyAgentUserActionTracker(this)
+		this.waitManager = new FairyAgentWaitManager(this)
 
 		const spawnPoint = this.positionManager.findFairySpawnPoint()
 

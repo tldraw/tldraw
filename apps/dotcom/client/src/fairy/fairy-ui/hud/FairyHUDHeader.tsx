@@ -120,7 +120,7 @@ export function FairyHUDHeader({
 		<div className="fairy-toolbar-header">
 			{centerContent}
 			<div className="tlui-row">
-				{onlySelectedFairy && (
+				{onlySelectedFairy && !project && (
 					<TldrawUiButton
 						type="icon"
 						className="fairy-toolbar-button"

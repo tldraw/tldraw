@@ -17,7 +17,7 @@ export const fairyMessages = defineMessages({
 	putAwayFairy: { defaultMessage: 'Sleep' },
 	wakeFairy: { defaultMessage: 'Wake' },
 	putAwayAllFairies: { defaultMessage: 'Sleep all' },
-	disbandGroup: { defaultMessage: 'Disband group' },
+	disbandGroup: { defaultMessage: 'Disband' },
 	resetEverything: { defaultMessage: 'Hard reset' },
 	fairyManagement: { defaultMessage: 'Manage' },
 	selectAllFairiesLabel: { defaultMessage: 'Select all' },

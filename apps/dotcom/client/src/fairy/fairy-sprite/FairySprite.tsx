@@ -13,7 +13,7 @@ import { RaisedWingsSprite1, RaisedWingsSprite2, RaisedWingsSprite3 } from './sp
 import { ReadingSprite1, ReadingSprite2, ReadingSprite3 } from './sprites/ReadingSprite'
 import { SleepingSprite } from './sprites/SleepingSprite'
 import { ThinkingSprite } from './sprites/ThinkingSprite'
-import { WaitingSprite1, WaitingSprite2, WaitingSprite3 } from './sprites/WaitingSprite'
+import { ReviewingSprite1, ReviewingSprite2, ReviewingSprite3 } from './sprites/WaitingSprite'
 import { WorkingSprite1, WorkingSprite2, WorkingSprite3 } from './sprites/WorkingSprite'
 import { WritingSprite1, WritingSprite2 } from './sprites/WritingSprite'
 
@@ -63,9 +63,9 @@ const FAIRY_SPRITES_WITH_PROPS: Record<FairyPose, ComponentType<FairySpriteProps
 	thinking: [ThinkingSprite],
 	working: [WorkingSprite1, WorkingSprite2, WorkingSprite3, WorkingSprite2],
 	sleeping: [SleepingSprite],
-	waiting: [WaitingSprite1],
+	waiting: [ReviewingSprite2],
 	panicking: [PanickingSprite1, PanickingSprite2],
-	reviewing: [WaitingSprite1, WaitingSprite2, WaitingSprite3, WaitingSprite2],
+	reviewing: [ReviewingSprite1, ReviewingSprite2, ReviewingSprite3, ReviewingSprite2],
 	poof: [PoofSprite1, PoofSprite2, PoofSprite3, PoofSprite4],
 }
 
@@ -135,8 +135,8 @@ export function FairySprite({
 				<AnimatedFairySpriteComponent
 					pose={_pose}
 					speed={isGenerating ? duration * 0.75 : duration}
-					topWingColor={projectColor}
-					bottomWingColor={bottomWingColor}
+					topWingColor={projectColor ?? 'var(--tl-color-fairy-light)'}
+					bottomWingColor={bottomWingColor ?? 'var(--tl-color-fairy-light)'}
 					bodyColor={'var(--tl-color-fairy-light)'}
 					hatColor={hatColor}
 					flipX={flipX}
@@ -145,9 +145,9 @@ export function FairySprite({
 			) : (
 				<FairySpriteSvg
 					pose={gesture || pose}
-					topWingColor={projectColor}
-					bottomWingColor={bottomWingColor}
-					bodyColor={'var(--tl-color-fairy-light)'}
+					topWingColor={projectColor ?? 'var(--tl-color-fairy-light)'}
+					bottomWingColor={bottomWingColor ?? 'var(--tl-color-fairy-light)'}
+					bodyColor="var(--tl-color-fairy-light)"
 					hatColor={hatColor}
 					flipX={flipX}
 					showShadow={showShadow}

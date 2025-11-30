@@ -38,12 +38,12 @@ export function LoweredWingsSprite3({
 
 function LoweredWingsSprite({
 	frame,
-	topWingColor,
-	bottomWingColor,
+	topWingColor = 'var(--tl-color-fairy-light)',
+	bottomWingColor = 'var(--tl-color-fairy-light)',
 }: {
 	frame: number
-	topWingColor: string
-	bottomWingColor: string
+	topWingColor?: string
+	bottomWingColor?: string
 }) {
 	const bwRotation = modulate(frame, [0, 2], [0, 6])
 	const bwOffsetX = modulate(frame, [0, 2], [0, -1])
