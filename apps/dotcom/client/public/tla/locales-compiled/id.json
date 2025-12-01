@@ -11,12 +11,6 @@
       "value": "Terima undangan"
     }
   ],
-  "01d61b2012": [
-    {
-      "type": 0,
-      "value": "Mulailah petualangan peri Anda"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -73,12 +67,6 @@
     {
       "type": 0,
       "value": "File"
-    }
-  ],
-  "0b79795d3e": [
-    {
-      "type": 0,
-      "value": "Perkenalan"
     }
   ],
   "0b9a4cde72": [
@@ -187,6 +175,12 @@
     {
       "type": 0,
       "value": "Tentang tldraw"
+    }
+  ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Peri-peri Anda sedang menunggu"
     }
   ],
   "275173253d": [
@@ -347,6 +341,22 @@
       "value": "Dapatkan bantuan di Discord"
     }
   ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Peri"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " telah datang untuk menggambar di bulan Desember."
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -417,6 +427,12 @@
     {
       "type": 0,
       "value": "Hapus grup…"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Lebih banyak pilihan"
     }
   ],
   "4e6fbf032b": [
@@ -853,10 +869,10 @@
       "value": "Hapus semua"
     }
   ],
-  "8472a551f1": [
+  "83218ac34c": [
     {
       "type": 0,
-      "value": "Peri telah datang untuk menggambar pada bulan Desember."
+      "value": "Selamat datang"
     }
   ],
   "85a082de1b": [
@@ -1139,6 +1155,12 @@
       "value": "Batas peri mingguan tercapai"
     }
   ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Obrolan baru"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
@@ -1265,6 +1287,12 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Perbesar ke peri"
     }
   ],
   "c2276c9127": [
@@ -1551,12 +1579,6 @@
       "value": "Ringkasan hukum"
     }
   ],
-  "e2b0147fd2": [
-    {
-      "type": 0,
-      "value": "Peri Anda sedang menunggu Anda! →"
-    }
-  ],
   "e3afed0047": [
     {
       "type": 0,
@@ -1737,12 +1759,6 @@
     {
       "type": 0,
       "value": "Impor berkas…"
-    }
-  ],
-  "ffec95af2f": [
-    {
-      "type": 0,
-      "value": "Beli akses peri"
     }
   ]
 }

@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Accepta la invitació"
   },
-  "01d61b2012": {
-    "translation": "Comença la teva aventura de fades"
-  },
   "03b3e13197": {
     "translation": "Arrossegueu el fitxer a la barra lateral d'aquesta pàgina. O seleccioneu l'opció \"Importa fitxer\" al menú d'usuari."
   },
@@ -34,9 +31,6 @@
   },
   "0b27918290": {
     "translation": "Fitxer"
-  },
-  "0b79795d3e": {
-    "translation": "Introducció"
   },
   "0b9a4cde72": {
     "translation": "Menú Fitxer"
@@ -91,6 +85,9 @@
   },
   "250ddea65c": {
     "translation": "Sobre tldraw"
+  },
+  "269097080b": {
+    "translation": "Les teves fades t'esperen"
   },
   "275173253d": {
     "translation": "Convoca tots"
@@ -164,6 +161,9 @@
   "44db318ee5": {
     "translation": "Obteniu ajuda a Discord"
   },
+  "45b43c2d28": {
+    "translation": "Les <strong>fades</strong> han vingut a dibuixar durant el mes de desembre."
+  },
   "46137245cd": {
     "translation": "Gràcies per ajudar-nos a millorar tldraw!"
   },
@@ -199,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "Suprimeix el grup…"
+  },
+  "4dab36ac83": {
+    "translation": "Més opcions"
   },
   "4e6fbf032b": {
     "translation": "Esteu segur que voleu suprimir aquest grup? Aquesta acció no es pot desfer."
@@ -380,8 +383,8 @@
   "81aa2078d1": {
     "translation": "Esborra-ho tot"
   },
-  "8472a551f1": {
-    "translation": "Les fades han vingut a dibuixar durant el mes de desembre."
+  "83218ac34c": {
+    "translation": "Benvingut/da"
   },
   "85a082de1b": {
     "translation": "Actualitzeu la pàgina per obtenir la darrera versió de tldraw."
@@ -512,6 +515,9 @@
   "a8de4c27a8": {
     "translation": "S'ha arribat al límit setmanal de fades"
   },
+  "a917baaf14": {
+    "translation": "Nou xat"
+  },
   "a9ded1e5ce": {
     "translation": "Fons"
   },
@@ -557,6 +563,9 @@
   },
   "bc88b0e89e": {
     "translation": "Compartit per {ownerName}"
+  },
+  "be4f1c62d3": {
+    "translation": "Zoom a la fada"
   },
   "c2276c9127": {
     "translation": "Més informació sobre com compartir."
@@ -672,9 +681,6 @@
   "e2ae80a510": {
     "translation": "Resum legal"
   },
-  "e2b0147fd2": {
-    "translation": "Les teves fades t'esperen! →"
-  },
   "e3afed0047": {
     "translation": "Administrador"
   },
@@ -758,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Importa el fitxer…"
-  },
-  "ffec95af2f": {
-    "translation": "Compra accés de fades"
   }
 }

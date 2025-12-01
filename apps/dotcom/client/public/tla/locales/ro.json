@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Acceptă invitația"
   },
-  "01d61b2012": {
-    "translation": "Începe-ți aventura cu zâne"
-  },
   "03b3e13197": {
     "translation": "Trageți fișierul în bara laterală de pe această pagină. Sau selectați opțiunea „Importați fișierul” din meniul utilizatorului."
   },
@@ -34,9 +31,6 @@
   },
   "0b27918290": {
     "translation": "Fişier"
-  },
-  "0b79795d3e": {
-    "translation": "Introducere"
   },
   "0b9a4cde72": {
     "translation": "meniul Fișier"
@@ -91,6 +85,9 @@
   },
   "250ddea65c": {
     "translation": "Despre tldraw"
+  },
+  "269097080b": {
+    "translation": "Zânele tale așteaptă"
   },
   "275173253d": {
     "translation": "Invocă-i pe toți"
@@ -164,6 +161,9 @@
   "44db318ee5": {
     "translation": "Obțineți ajutor pe Discord"
   },
+  "45b43c2d28": {
+    "translation": "<strong>Zânele</strong> au venit la desen în luna decembrie."
+  },
   "46137245cd": {
     "translation": "Vă mulțumim că ne ajutați să îmbunătățim tldraw!"
   },
@@ -199,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "Ștergeți grupul…"
+  },
+  "4dab36ac83": {
+    "translation": "Mai multe opțiuni"
   },
   "4e6fbf032b": {
     "translation": "Sigur doriți să ștergeți acest grup? Această acțiune nu poate fi anulată."
@@ -380,8 +383,8 @@
   "81aa2078d1": {
     "translation": "Ștergeți tot"
   },
-  "8472a551f1": {
-    "translation": "Zânele au venit la desen pentru luna decembrie."
+  "83218ac34c": {
+    "translation": "Bun venit"
   },
   "85a082de1b": {
     "translation": "Vă rugăm să reîmprospătați pagina pentru a obține cea mai recentă versiune de tldraw."
@@ -512,6 +515,9 @@
   "a8de4c27a8": {
     "translation": "Limita săptămânală a zânelor a fost atinsă"
   },
+  "a917baaf14": {
+    "translation": "Chat nou"
+  },
   "a9ded1e5ce": {
     "translation": "Fundal"
   },
@@ -557,6 +563,9 @@
   },
   "bc88b0e89e": {
     "translation": "Distribuit de {ownerName}"
+  },
+  "be4f1c62d3": {
+    "translation": "Zoom către zână"
   },
   "c2276c9127": {
     "translation": "Aflați mai multe despre partajare."
@@ -672,9 +681,6 @@
   "e2ae80a510": {
     "translation": "Rezumat juridic"
   },
-  "e2b0147fd2": {
-    "translation": "Zânele tale te așteaptă! →"
-  },
   "e3afed0047": {
     "translation": "Administrator"
   },
@@ -758,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Importați fișierul…"
-  },
-  "ffec95af2f": {
-    "translation": "Cumpără acces la zâne"
   }
 }

@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "초대 수락"
   },
-  "01d61b2012": {
-    "translation": "요정 모험을 시작하세요"
-  },
   "03b3e13197": {
     "translation": "이 페이지의 사이드바로 파일을 드래그하세요. 또는 사용자 메뉴에서 '파일 가져오기' 옵션을 선택합니다."
   },
@@ -34,9 +31,6 @@
   },
   "0b27918290": {
     "translation": "파일"
-  },
-  "0b79795d3e": {
-    "translation": "소개"
   },
   "0b9a4cde72": {
     "translation": "파일 메뉴"
@@ -91,6 +85,9 @@
   },
   "250ddea65c": {
     "translation": "tldraw에 대하여"
+  },
+  "269097080b": {
+    "translation": "당신의 요정들이 기다리고 있습니다"
   },
   "275173253d": {
     "translation": "모두 소환"
@@ -164,6 +161,9 @@
   "44db318ee5": {
     "translation": "Discord에서 도움 받기"
   },
+  "45b43c2d28": {
+    "translation": "<strong>요정</strong>이 12월 한 달 동안 그림을 그리러 왔습니다."
+  },
   "46137245cd": {
     "translation": "tldraw 개선에 도움을 주셔서 감사합니다!"
   },
@@ -199,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "그룹 삭제…"
+  },
+  "4dab36ac83": {
+    "translation": "더 많은 옵션"
   },
   "4e6fbf032b": {
     "translation": "이 그룹을 삭제하시겠습니까? 이 작업은 실행 취소할 수 없습니다."
@@ -380,8 +383,8 @@
   "81aa2078d1": {
     "translation": "모두 지우기"
   },
-  "8472a551f1": {
-    "translation": "12월에는 요정들이 그림을 그리러 왔어요."
+  "83218ac34c": {
+    "translation": "환영"
   },
   "85a082de1b": {
     "translation": "최신 tldraw 버전을 받으려면 페이지를 새로 고침해 주세요."
@@ -512,6 +515,9 @@
   "a8de4c27a8": {
     "translation": "주간 요정 한도에 도달했습니다"
   },
+  "a917baaf14": {
+    "translation": "새로운 채팅"
+  },
   "a9ded1e5ce": {
     "translation": "배경"
   },
@@ -557,6 +563,9 @@
   },
   "bc88b0e89e": {
     "translation": "{ownerName} 님이 공유함"
+  },
+  "be4f1c62d3": {
+    "translation": "요정으로 확대"
   },
   "c2276c9127": {
     "translation": "공유에 대해 자세히 알아보세요."
@@ -672,9 +681,6 @@
   "e2ae80a510": {
     "translation": "법적 요약"
   },
-  "e2b0147fd2": {
-    "translation": "요정들이 당신을 기다리고 있어요! →"
-  },
   "e3afed0047": {
     "translation": "관리자"
   },
@@ -758,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "파일 가져오기…"
-  },
-  "ffec95af2f": {
-    "translation": "요정 접근권 구매"
   }
 }

@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Aceptar a invitación"
   },
-  "01d61b2012": {
-    "translation": "Comeza a túa aventura de fadas"
-  },
   "03b3e13197": {
     "translation": "Arrastra o ficheiro á barra lateral desta páxina. Ou selecciona a opción \"Importar ficheiro\" no menú de usuario."
   },
@@ -34,9 +31,6 @@
   },
   "0b27918290": {
     "translation": "Arquivo"
-  },
-  "0b79795d3e": {
-    "translation": "Introdución"
   },
   "0b9a4cde72": {
     "translation": "Menú Ficheiro"
@@ -91,6 +85,9 @@
   },
   "250ddea65c": {
     "translation": "Acerca de tldraw"
+  },
+  "269097080b": {
+    "translation": "As túas fadas están esperando"
   },
   "275173253d": {
     "translation": "Convocar a todos"
@@ -164,6 +161,9 @@
   "44db318ee5": {
     "translation": "Obtén axuda en Discord"
   },
+  "45b43c2d28": {
+    "translation": "As <strong>fadas</strong> viñeron debuxar durante o mes de decembro."
+  },
   "46137245cd": {
     "translation": "Grazas por axudarnos a mellorar tldraw!"
   },
@@ -199,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "Eliminar grupo…"
+  },
+  "4dab36ac83": {
+    "translation": "Máis opcións"
   },
   "4e6fbf032b": {
     "translation": "Seguro que queres eliminar este grupo? Esta acción non se pode desfacer."
@@ -380,8 +383,8 @@
   "81aa2078d1": {
     "translation": "Borrar todo"
   },
-  "8472a551f1": {
-    "translation": "As fadas viñeron debuxar para o mes de decembro."
+  "83218ac34c": {
+    "translation": "Benvido/a"
   },
   "85a082de1b": {
     "translation": "Actualiza a páxina para obter a última versión de tldraw."
@@ -512,6 +515,9 @@
   "a8de4c27a8": {
     "translation": "Alcanzouse o límite semanal de fadas"
   },
+  "a917baaf14": {
+    "translation": "Novo chat"
+  },
   "a9ded1e5ce": {
     "translation": "Fondo"
   },
@@ -557,6 +563,9 @@
   },
   "bc88b0e89e": {
     "translation": "Compartido por {ownerName}"
+  },
+  "be4f1c62d3": {
+    "translation": "Zoom á fada"
   },
   "c2276c9127": {
     "translation": "Obtén máis información sobre como compartir."
@@ -672,9 +681,6 @@
   "e2ae80a510": {
     "translation": "Resumo legal"
   },
-  "e2b0147fd2": {
-    "translation": "As túas fadas están agardando por ti! →"
-  },
   "e3afed0047": {
     "translation": "Administrador"
   },
@@ -758,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Importar ficheiro…"
-  },
-  "ffec95af2f": {
-    "translation": "Compra acceso a fadas"
   }
 }

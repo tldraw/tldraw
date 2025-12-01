@@ -11,12 +11,6 @@
       "value": "Einladung annehmen"
     }
   ],
-  "01d61b2012": [
-    {
-      "type": 0,
-      "value": "Beginne dein Feenabenteuer!"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -73,12 +67,6 @@
     {
       "type": 0,
       "value": "Datei"
-    }
-  ],
-  "0b79795d3e": [
-    {
-      "type": 0,
-      "value": "Einführung"
     }
   ],
   "0b9a4cde72": [
@@ -187,6 +175,12 @@
     {
       "type": 0,
       "value": "Über tldraw"
+    }
+  ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Deine Feen warten."
     }
   ],
   "275173253d": [
@@ -347,6 +341,22 @@
       "value": "Holen Sie sich Hilfe auf Discord"
     }
   ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Feen"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " sind gekommen, um sich für den Monat Dezember einzufinden."
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -417,6 +427,12 @@
     {
       "type": 0,
       "value": "Gruppe löschen…"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Mehr Optionen"
     }
   ],
   "4e6fbf032b": [
@@ -853,10 +869,10 @@
       "value": "Alles löschen"
     }
   ],
-  "8472a551f1": [
+  "83218ac34c": [
     {
       "type": 0,
-      "value": "Feen sind gekommen, um sich für den Monat Dezember einzuzeichnen."
+      "value": "Willkommen"
     }
   ],
   "85a082de1b": [
@@ -1135,6 +1151,12 @@
       "value": "Wöchentliches Feenlimit erreicht"
     }
   ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Neuer Chat"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
@@ -1273,6 +1295,12 @@
     {
       "type": 0,
       "value": " geteilt"
+    }
+  ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Zoomen Sie zur Fee"
     }
   ],
   "c2276c9127": [
@@ -1559,12 +1587,6 @@
       "value": "Rechtliche Zusammenfassung"
     }
   ],
-  "e2b0147fd2": [
-    {
-      "type": 0,
-      "value": "Deine Feen warten auf dich! →"
-    }
-  ],
   "e3afed0047": [
     {
       "type": 0,
@@ -1745,12 +1767,6 @@
     {
       "type": 0,
       "value": "Datei importieren…"
-    }
-  ],
-  "ffec95af2f": [
-    {
-      "type": 0,
-      "value": "Kaufe Feenzugang"
     }
   ]
 }

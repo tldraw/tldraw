@@ -11,12 +11,6 @@
       "value": "Aceitar convite"
     }
   ],
-  "01d61b2012": [
-    {
-      "type": 0,
-      "value": "Comece sua aventura de fadas"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -73,12 +67,6 @@
     {
       "type": 0,
       "value": "Arquivo"
-    }
-  ],
-  "0b79795d3e": [
-    {
-      "type": 0,
-      "value": "Introdução"
     }
   ],
   "0b9a4cde72": [
@@ -187,6 +175,12 @@
     {
       "type": 0,
       "value": "Sobre tldraw"
+    }
+  ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Suas fadas estão esperando"
     }
   ],
   "275173253d": [
@@ -347,6 +341,22 @@
       "value": "Obtenha ajuda no Discord"
     }
   ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "As fadas"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " vieram desenhar durante o mês de dezembro."
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -417,6 +427,12 @@
     {
       "type": 0,
       "value": "Excluir grupo…"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Mais opções"
     }
   ],
   "4e6fbf032b": [
@@ -853,10 +869,10 @@
       "value": "Limpar tudo"
     }
   ],
-  "8472a551f1": [
+  "83218ac34c": [
     {
       "type": 0,
-      "value": "As fadas vieram desenhar durante o mês de dezembro."
+      "value": "Bem-vindo"
     }
   ],
   "85a082de1b": [
@@ -1139,6 +1155,12 @@
       "value": "Limite semanal de fadas atingido"
     }
   ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Novo bate-papo"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
@@ -1273,6 +1295,12 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Zoom para fada"
     }
   ],
   "c2276c9127": [
@@ -1559,12 +1587,6 @@
       "value": "Resumo jurídico"
     }
   ],
-  "e2b0147fd2": [
-    {
-      "type": 0,
-      "value": "Suas fadas estão esperando por você! →"
-    }
-  ],
   "e3afed0047": [
     {
       "type": 0,
@@ -1745,12 +1767,6 @@
     {
       "type": 0,
       "value": "Importar arquivo…"
-    }
-  ],
-  "ffec95af2f": [
-    {
-      "type": 0,
-      "value": "Adquira acesso às fadas"
     }
   ]
 }

@@ -137,6 +137,19 @@ export const EndCurrentProjectActionSchema = z
 
 export type EndCurrentProjectAction = z.infer<typeof EndCurrentProjectActionSchema>
 
+export const AbortProjectActionSchema = z
+	.object({
+		_type: z.literal('abort-project'),
+		reason: z.string(),
+	})
+	.meta({
+		title: 'Abort Project',
+		description:
+			"The agent aborts the currently active project before starting it because the user's input doesn't make sense in context or is unclear. The reason should be a succinct explanation for why the project is being aborted.",
+	})
+
+export type AbortProjectAction = z.infer<typeof AbortProjectActionSchema>
+
 export const EnterOrchestrationModeActionSchema = z
 	.object({
 		_type: z.literal('enter-orchestration-mode'),
@@ -643,5 +656,18 @@ export const EndDuoProjectActionSchema = z
 	})
 
 export type EndDuoProjectAction = z.infer<typeof EndDuoProjectActionSchema>
+
+export const AbortDuoProjectActionSchema = z
+	.object({
+		_type: z.literal('abort-duo-project'),
+		reason: z.string(),
+	})
+	.meta({
+		title: 'Abort Duo Project',
+		description:
+			"The agent aborts the currently active duo project before starting it because the user's input doesn't make sense in context or is unclear. The reason should be a succinct explanation for why the project is being aborted.",
+	})
+
+export type AbortDuoProjectAction = z.infer<typeof AbortDuoProjectActionSchema>
 
 export type UnknownAction = BaseAgentAction<'unknown'>

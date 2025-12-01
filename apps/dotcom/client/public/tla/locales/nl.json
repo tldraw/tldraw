@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Uitnodiging accepteren"
   },
-  "01d61b2012": {
-    "translation": "Begin je sprookjesavontuur"
-  },
   "03b3e13197": {
     "translation": "Sleep het bestand naar de zijbalk op deze pagina. Of selecteer de optie 'Bestand importeren' in het gebruikersmenu."
   },
@@ -34,9 +31,6 @@
   },
   "0b27918290": {
     "translation": "Bestand"
-  },
-  "0b79795d3e": {
-    "translation": "Invoering"
   },
   "0b9a4cde72": {
     "translation": "Bestandsmenu"
@@ -91,6 +85,9 @@
   },
   "250ddea65c": {
     "translation": "Over tldraw"
+  },
+  "269097080b": {
+    "translation": "Je feeën wachten"
   },
   "275173253d": {
     "translation": "Roep iedereen op"
@@ -164,6 +161,9 @@
   "44db318ee5": {
     "translation": "Krijg hulp op Discord"
   },
+  "45b43c2d28": {
+    "translation": "<strong>Feeën</strong> zijn gekomen om te tekenen voor de maand december."
+  },
   "46137245cd": {
     "translation": "Bedankt voor uw hulp bij het verbeteren van tldraw!"
   },
@@ -199,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "Groep verwijderen…"
+  },
+  "4dab36ac83": {
+    "translation": "Meer opties"
   },
   "4e6fbf032b": {
     "translation": "Weet u zeker dat u deze groep wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
@@ -380,8 +383,8 @@
   "81aa2078d1": {
     "translation": "Alles wissen"
   },
-  "8472a551f1": {
-    "translation": "Feeën zijn gekomen om te tekenen voor de maand december."
+  "83218ac34c": {
+    "translation": "Welkom"
   },
   "85a082de1b": {
     "translation": "Vernieuw de pagina om de nieuwste versie van tldraw te verkrijgen."
@@ -512,6 +515,9 @@
   "a8de4c27a8": {
     "translation": "Wekelijkse fee-limiet bereikt"
   },
+  "a917baaf14": {
+    "translation": "Nieuwe chat"
+  },
   "a9ded1e5ce": {
     "translation": "Achtergrond"
   },
@@ -557,6 +563,9 @@
   },
   "bc88b0e89e": {
     "translation": "Gedeeld door {ownerName}"
+  },
+  "be4f1c62d3": {
+    "translation": "Zoom naar fee"
   },
   "c2276c9127": {
     "translation": "Meer informatie over delen."
@@ -672,9 +681,6 @@
   "e2ae80a510": {
     "translation": "Juridische samenvatting"
   },
-  "e2b0147fd2": {
-    "translation": "Jouw feeën wachten op jou! →"
-  },
   "e3afed0047": {
     "translation": "Beheerder"
   },
@@ -758,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Bestand importeren…"
-  },
-  "ffec95af2f": {
-    "translation": "Koop feeëntoegang"
   }
 }

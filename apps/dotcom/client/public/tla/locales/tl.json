@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Tanggapin ang imbitasyon"
   },
-  "01d61b2012": {
-    "translation": "Simulan ang iyong pakikipagsapalaran sa engkanto"
-  },
   "03b3e13197": {
     "translation": "I-drag ang file sa sidebar sa page na ito. O piliin ang opsyong 'Mag-import ng file' mula sa menu ng user."
   },
@@ -34,9 +31,6 @@
   },
   "0b27918290": {
     "translation": "file"
-  },
-  "0b79795d3e": {
-    "translation": "Panimula"
   },
   "0b9a4cde72": {
     "translation": "Menu ng file"
@@ -91,6 +85,9 @@
   },
   "250ddea65c": {
     "translation": "Tungkol sa tldraw"
+  },
+  "269097080b": {
+    "translation": "Naghihintay ang iyong mga diwata"
   },
   "275173253d": {
     "translation": "Ipatawag lahat"
@@ -164,6 +161,9 @@
   "44db318ee5": {
     "translation": "Humingi ng tulong sa Discord"
   },
+  "45b43c2d28": {
+    "translation": "<strong>Mga diwata</strong> ay dumating upang tldraw para sa buwan ng Disyembre."
+  },
   "46137245cd": {
     "translation": "Salamat sa pagtulong sa amin na mapabuti ang tldraw!"
   },
@@ -199,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "Tanggalin ang pangkat…"
+  },
+  "4dab36ac83": {
+    "translation": "Higit pang mga pagpipilian"
   },
   "4e6fbf032b": {
     "translation": "Sigurado ka bang gusto mong tanggalin ang pangkat na ito? Ang pagkilos na ito ay hindi maaaring i-undo."
@@ -380,8 +383,8 @@
   "81aa2078d1": {
     "translation": "I-clear lahat"
   },
-  "8472a551f1": {
-    "translation": "Dumating ang mga diwata upang tldraw para sa buwan ng Disyembre."
+  "83218ac34c": {
+    "translation": "Maligayang pagdating"
   },
   "85a082de1b": {
     "translation": "Paki-refresh ang page para makuha ang pinakabagong bersyon ng tldraw."
@@ -512,6 +515,9 @@
   "a8de4c27a8": {
     "translation": "Naabot na ang lingguhang limitasyon ng engkanto"
   },
+  "a917baaf14": {
+    "translation": "Bagong chat"
+  },
   "a9ded1e5ce": {
     "translation": "Background"
   },
@@ -557,6 +563,9 @@
   },
   "bc88b0e89e": {
     "translation": "Ibinahagi ni {ownerName}"
+  },
+  "be4f1c62d3": {
+    "translation": "Mag-zoom sa diwata"
   },
   "c2276c9127": {
     "translation": "Matuto pa tungkol sa pagbabahagi."
@@ -672,9 +681,6 @@
   "e2ae80a510": {
     "translation": "Legal na buod"
   },
-  "e2b0147fd2": {
-    "translation": "Ang iyong mga diwata ay naghihintay para sa iyo! →"
-  },
   "e3afed0047": {
     "translation": "Admin"
   },
@@ -758,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Mag-import ng file…"
-  },
-  "ffec95af2f": {
-    "translation": "Bumili ng fairy access"
   }
 }

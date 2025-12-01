@@ -11,12 +11,6 @@
       "value": "Acceptă invitația"
     }
   ],
-  "01d61b2012": [
-    {
-      "type": 0,
-      "value": "Începe-ți aventura cu zâne"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -73,12 +67,6 @@
     {
       "type": 0,
       "value": "Fişier"
-    }
-  ],
-  "0b79795d3e": [
-    {
-      "type": 0,
-      "value": "Introducere"
     }
   ],
   "0b9a4cde72": [
@@ -187,6 +175,12 @@
     {
       "type": 0,
       "value": "Despre tldraw"
+    }
+  ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Zânele tale așteaptă"
     }
   ],
   "275173253d": [
@@ -347,6 +341,22 @@
       "value": "Obțineți ajutor pe Discord"
     }
   ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Zânele"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " au venit la desen în luna decembrie."
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -417,6 +427,12 @@
     {
       "type": 0,
       "value": "Ștergeți grupul…"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Mai multe opțiuni"
     }
   ],
   "4e6fbf032b": [
@@ -853,10 +869,10 @@
       "value": "Ștergeți tot"
     }
   ],
-  "8472a551f1": [
+  "83218ac34c": [
     {
       "type": 0,
-      "value": "Zânele au venit la desen pentru luna decembrie."
+      "value": "Bun venit"
     }
   ],
   "85a082de1b": [
@@ -1139,6 +1155,12 @@
       "value": "Limita săptămânală a zânelor a fost atinsă"
     }
   ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Chat nou"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
@@ -1277,6 +1299,12 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Zoom către zână"
     }
   ],
   "c2276c9127": [
@@ -1563,12 +1591,6 @@
       "value": "Rezumat juridic"
     }
   ],
-  "e2b0147fd2": [
-    {
-      "type": 0,
-      "value": "Zânele tale te așteaptă! →"
-    }
-  ],
   "e3afed0047": [
     {
       "type": 0,
@@ -1749,12 +1771,6 @@
     {
       "type": 0,
       "value": "Importați fișierul…"
-    }
-  ],
-  "ffec95af2f": [
-    {
-      "type": 0,
-      "value": "Cumpără acces la zâne"
     }
   ]
 }

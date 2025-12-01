@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Accetta l'invito"
   },
-  "01d61b2012": {
-    "translation": "Inizia la tua avventura fatata"
-  },
   "03b3e13197": {
     "translation": "Trascina il file nella barra laterale su questa pagina. Oppure seleziona l'opzione \"Importa file\" dal menu utente."
   },
@@ -34,9 +31,6 @@
   },
   "0b27918290": {
     "translation": "File"
-  },
-  "0b79795d3e": {
-    "translation": "Introduzione"
   },
   "0b9a4cde72": {
     "translation": "Menu file"
@@ -91,6 +85,9 @@
   },
   "250ddea65c": {
     "translation": "Informazioni su tldraw"
+  },
+  "269097080b": {
+    "translation": "Le tue fate ti stanno aspettando"
   },
   "275173253d": {
     "translation": "Evoca tutti"
@@ -164,6 +161,9 @@
   "44db318ee5": {
     "translation": "Chiedi aiuto su Discord"
   },
+  "45b43c2d28": {
+    "translation": "Le <strong>fate</strong> sono arrivate a tldraw per il mese di dicembre."
+  },
   "46137245cd": {
     "translation": "Grazie per averci aiutato a migliorare tldraw!"
   },
@@ -199,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "Elimina gruppo…"
+  },
+  "4dab36ac83": {
+    "translation": "Altre opzioni"
   },
   "4e6fbf032b": {
     "translation": "Vuoi davvero eliminare questo gruppo? Questa azione non può essere annullata."
@@ -380,8 +383,8 @@
   "81aa2078d1": {
     "translation": "Cancella tutto"
   },
-  "8472a551f1": {
-    "translation": "Le fate sono arrivate per disegnare per il mese di dicembre."
+  "83218ac34c": {
+    "translation": "Benvenuto"
   },
   "85a082de1b": {
     "translation": "Ricarica la pagina per ottenere l'ultima versione di tldraw."
@@ -512,6 +515,9 @@
   "a8de4c27a8": {
     "translation": "Limite settimanale di fate raggiunto"
   },
+  "a917baaf14": {
+    "translation": "Nuova chat"
+  },
   "a9ded1e5ce": {
     "translation": "Sfondo"
   },
@@ -557,6 +563,9 @@
   },
   "bc88b0e89e": {
     "translation": "Condivisi da {ownerName}"
+  },
+  "be4f1c62d3": {
+    "translation": "Zoom su fata"
   },
   "c2276c9127": {
     "translation": "Maggiori informazioni sulla condivisione."
@@ -672,9 +681,6 @@
   "e2ae80a510": {
     "translation": "Riepilogo legale"
   },
-  "e2b0147fd2": {
-    "translation": "Le tue fate ti aspettano! →"
-  },
   "e3afed0047": {
     "translation": "Amministratore"
   },
@@ -758,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Importa file…"
-  },
-  "ffec95af2f": {
-    "translation": "Acquista l'accesso fatato"
   }
 }

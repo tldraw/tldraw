@@ -1,4 +1,4 @@
-import { MouseEvent, RefObject, useEffect, useRef } from 'react'
+import { RefObject, useEffect, useRef } from 'react'
 import { getFromLocalStorage, setInLocalStorage, useValue } from 'tldraw'
 import { ExternalLink } from '../../../tla/components/ExternalLink/ExternalLink'
 import { getLocalSessionState } from '../../../tla/utils/local-session-state'
@@ -52,18 +52,6 @@ export function FairyManualPanel() {
 	const createScrollHandler = (ref: RefObject<HTMLDivElement>, tabId: string) => () => {
 		if (ref.current) {
 			setInLocalStorage(`${SCROLL_POSITION_KEY_PREFIX}-${tabId}`, ref.current.scrollTop.toString())
-		}
-	}
-
-	// Handle video play/pause on click (desktop only)
-	const handleVideoClick = (e: MouseEvent<HTMLVideoElement>) => {
-		// Only handle mouse clicks (e.detail > 0 indicates mouse click, not touch)
-		if (e.detail > 0 && videoRef.current) {
-			if (videoRef.current.paused) {
-				videoRef.current.play()
-			} else {
-				videoRef.current.pause()
-			}
 		}
 	}
 

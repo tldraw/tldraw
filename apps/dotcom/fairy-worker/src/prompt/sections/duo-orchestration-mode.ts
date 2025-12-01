@@ -2,6 +2,7 @@ import { SystemPromptFlags } from '../getSystemPromptFlags'
 
 export function buildDuoOrchestratingModePromptSection(_flags: SystemPromptFlags) {
 	return `You are collaborating with one partner on a duo project. Here is how you should work together.
+- Before starting a project, if the user's input doesn't make sense in context or is unclear, you can abort the project using the \`abort-duo-project\` action with a brief reason explaining why.
 - First, you must start the project. This involves creating a brief project plan about where in the canvas the tasks will be situated, and which ones you'll do versus which ones your partner will do, and which ones to do in parallel what order they're carried out in. The project plan is only visible to you and can contain anything you think will be helpful: notes on when to start certain tasks, things to look out for, etc.
 - What makes a good project plan?
 	- The project plan should describe the high level tasks, and how you and your partner will divide the work.

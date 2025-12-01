@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Accepter l'invitation"
   },
-  "01d61b2012": {
-    "translation": "Commencez votre aventure féerique"
-  },
   "03b3e13197": {
     "translation": "Faites glisser le fichier vers la barre latérale de cette page. Vous pouvez également sélectionner l'option « Importer un fichier » dans le menu utilisateur."
   },
@@ -34,9 +31,6 @@
   },
   "0b27918290": {
     "translation": "Fichier"
-  },
-  "0b79795d3e": {
-    "translation": "Introduction"
   },
   "0b9a4cde72": {
     "translation": "Menu du fichier"
@@ -91,6 +85,9 @@
   },
   "250ddea65c": {
     "translation": "À propos de tldraw"
+  },
+  "269097080b": {
+    "translation": "Vos fées vous attendent"
   },
   "275173253d": {
     "translation": "Invoquer tout"
@@ -164,6 +161,9 @@
   "44db318ee5": {
     "translation": "Obtenir de l'aide sur Discord"
   },
+  "45b43c2d28": {
+    "translation": "Les <strong>fées</strong> sont venues à tldraw pour le mois de décembre."
+  },
   "46137245cd": {
     "translation": "Merci de nous aider à améliorer tldraw !"
   },
@@ -199,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "Supprimer le groupe…"
+  },
+  "4dab36ac83": {
+    "translation": "Plus d'options"
   },
   "4e6fbf032b": {
     "translation": "Êtes-vous sûr de vouloir supprimer ce groupe ? Cette action est irréversible."
@@ -380,8 +383,8 @@
   "81aa2078d1": {
     "translation": "Effacer tout"
   },
-  "8472a551f1": {
-    "translation": "Les fées sont venues dessiner pour le mois de décembre."
+  "83218ac34c": {
+    "translation": "Accueillir"
   },
   "85a082de1b": {
     "translation": "Veuillez rafraîchir la page pour obtenir la dernière version de tldraw."
@@ -512,6 +515,9 @@
   "a8de4c27a8": {
     "translation": "Limite hebdomadaire de fées atteinte"
   },
+  "a917baaf14": {
+    "translation": "Nouvelle conversation"
+  },
   "a9ded1e5ce": {
     "translation": "Arrière-plan"
   },
@@ -557,6 +563,9 @@
   },
   "bc88b0e89e": {
     "translation": "Partagé par {ownerName}"
+  },
+  "be4f1c62d3": {
+    "translation": "Zoom sur la fée"
   },
   "c2276c9127": {
     "translation": "En savoir plus sur le partage."
@@ -672,9 +681,6 @@
   "e2ae80a510": {
     "translation": "Résumé juridique"
   },
-  "e2b0147fd2": {
-    "translation": "Vos fées vous attendent ! →"
-  },
   "e3afed0047": {
     "translation": "Administrateur"
   },
@@ -758,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Importer un fichier…"
-  },
-  "ffec95af2f": {
-    "translation": "Achetez un accès féerique"
   }
 }
