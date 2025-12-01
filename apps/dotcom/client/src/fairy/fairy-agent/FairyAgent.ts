@@ -242,14 +242,13 @@ export class FairyAgent {
 
 		this.$fairyConfig = computed<FairyConfig>(`fairy-config-${id}`, () => {
 			const userFairies = this.fairyApp.tldrawApp.getUser().fairies
-			const config = JSON.parse(userFairies)[id] as FairyConfig
-			if (!config) {
+			if (!userFairies) {
 				return {
 					name: '',
 					outfit: { body: 'plain', hat: 'top', wings: 'plain' },
 				} satisfies FairyConfig
 			}
-			return config
+			return JSON.parse(userFairies)[id] as FairyConfig
 		})
 
 		this.onError = onError
