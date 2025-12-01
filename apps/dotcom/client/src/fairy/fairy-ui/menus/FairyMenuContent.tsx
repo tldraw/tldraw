@@ -29,6 +29,12 @@ export function FairyMenuContent({
 	const trackEvent = useTldrawAppUiEvents()
 	const allAgents = useValue('fairy-agents', () => fairyApp.agents.getAgents(), [fairyApp])
 
+	const selectedAgents = useValue(
+		'selected-fairies',
+		() => agents.filter((agent) => agent.getEntity()?.isSelected),
+		[fairyApp]
+	)
+
 	const onlyAgent = agents.length === 1 ? agents[0] : null
 	const hasSelected = agents.some((agent) => agent.getEntity()?.isSelected)
 
@@ -224,7 +230,7 @@ export function FairyMenuContent({
 						<TldrawUiMenuItem
 							id="summon-fairy"
 							onSelect={() => {
-								agents.forEach((agent: FairyAgent) => {
+								selectedAgents.forEach((agent: FairyAgent) => {
 									trackEvent('fairy-summon', { source: 'fairy-panel', fairyId: agent.id })
 									agent.position.summon()
 								})

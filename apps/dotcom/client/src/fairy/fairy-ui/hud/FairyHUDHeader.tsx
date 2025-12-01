@@ -167,11 +167,11 @@ export function FairyHUDHeader({
 		selectedFairies.length > 1 ? (
 			<div className="fairy-id-display">{formattedNames}</div>
 		) : shownFairy && fairyConfig ? (
-			<TldrawUiTooltip content={fairyClickable ? zoomToFairyLabel : undefined} side="top">
-				<div className="fairy-id-display" onClick={zoomToFairy}>
-					<p style={{ cursor: fairyClickable ? 'pointer' : 'default' }}>{getDisplayName()}</p>
-				</div>
-			</TldrawUiTooltip>
+			<div className="fairy-id-display" onClick={zoomToFairy}>
+				<TldrawUiTooltip content={fairyClickable ? zoomToFairyLabel : undefined} side="top">
+					<span style={{ cursor: fairyClickable ? 'pointer' : 'default' }}>{getDisplayName()}</span>
+				</TldrawUiTooltip>
+			</div>
 		) : (
 			<div style={{ flex: 1 }}></div>
 		)
@@ -212,13 +212,16 @@ function FairyMenuButton({
 	menuPopoverOpen: boolean
 	children: ReactNode
 }) {
+	const moreOptionsLabel = useMsg(fairyMessages.moreOptions)
 	return (
 		<TldrawUiDropdownMenuRoot id="fairy-hud-menu" debugOpen={menuPopoverOpen}>
-			<TldrawUiDropdownMenuTrigger>
-				<TldrawUiButton type="icon" className="fairy-toolbar-button">
-					<TldrawUiButtonIcon icon="dots-vertical" small />
-				</TldrawUiButton>
-			</TldrawUiDropdownMenuTrigger>
+			<TldrawUiTooltip content={moreOptionsLabel} side="top">
+				<TldrawUiDropdownMenuTrigger>
+					<TldrawUiButton type="icon" className="fairy-toolbar-button">
+						<TldrawUiButtonIcon icon="dots-vertical" small />
+					</TldrawUiButton>
+				</TldrawUiDropdownMenuTrigger>
+			</TldrawUiTooltip>
 			{children}
 		</TldrawUiDropdownMenuRoot>
 	)
