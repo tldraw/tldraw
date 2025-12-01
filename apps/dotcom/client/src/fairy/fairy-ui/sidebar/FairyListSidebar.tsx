@@ -16,7 +16,7 @@ import { useApp } from '../../../tla/hooks/useAppState'
 import { useMsg } from '../../../tla/utils/i18n'
 import { useAreFairiesDebugEnabled } from '../../../tla/utils/local-session-state'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
-import { useFairyApp } from '../../fairy-app/FairyAppProvider'
+import { FairyAppContextProvider, useFairyApp } from '../../fairy-app/FairyAppProvider'
 import { fairyMessages } from '../../fairy-messages'
 import { FairyReticleSprite } from '../../fairy-sprite/sprites/FairyReticleSprite'
 import { FairyDebugDialog } from '../debug/FairyDebugDialog'
@@ -227,9 +227,13 @@ function ManualButtonWithMenu({
 
 	const openDebugDialog = useCallback(() => {
 		dialogs.addDialog({
-			component: ({ onClose }) => <FairyDebugDialog agents={allAgents} onClose={onClose} />,
+			component: ({ onClose }) => (
+				<FairyAppContextProvider fairyApp={fairyApp}>
+					<FairyDebugDialog agents={allAgents} onClose={onClose} />
+				</FairyAppContextProvider>
+			),
 		})
-	}, [dialogs, allAgents])
+	}, [dialogs, allAgents, fairyApp])
 
 	const resetEverything = useCallback(() => {
 		// Stop all running tasks
