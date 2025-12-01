@@ -245,13 +245,16 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 						})
 						.filter((agent): agent is NonNullable<typeof agent> => agent !== null) ?? []
 
-				console.log(fairyPresences, hoistedFairyApp)
 				defaultPresence.meta = { ...defaultPresence.meta, fairies: fairyPresences }
 				return defaultPresence
 			},
 			[hoistedFairyApp]
 		),
 	})
+
+	const handleUnmount = useCallback(() => {
+		setHoistedFairyApp(null)
+	}, [])
 
 	// we need to prevent calling onFileExit if the store is in an error state
 	const storeError = useRef(false)
@@ -400,7 +403,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 						<FairyAppProvider
 							fileId={fileId}
 							onMount={setHoistedFairyApp}
-							onUnmount={() => setHoistedFairyApp(null)}
+							onUnmount={handleUnmount}
 						/>
 					</Suspense>
 				)}

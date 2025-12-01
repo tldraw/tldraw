@@ -1,5 +1,5 @@
 import { PersistedFairyConfigs } from '@tldraw/fairy-shared'
-import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react'
+import { createContext, memo, ReactNode, useCallback, useContext, useEffect, useState } from 'react'
 import { useEditor, useToasts, useValue } from 'tldraw'
 import { useApp } from '../../tla/hooks/useAppState'
 import { useTldrawUser } from '../../tla/hooks/useUser'
@@ -30,7 +30,12 @@ export interface FairyAppProviderProps {
  * </Tldraw>
  * ```
  */
-export function FairyAppProvider({ fileId, children, onMount, onUnmount }: FairyAppProviderProps) {
+export const FairyAppProvider = memo(function ({
+	fileId,
+	children,
+	onMount,
+	onUnmount,
+}: FairyAppProviderProps) {
 	const editor = useEditor()
 	const app = useApp()
 	const user = useTldrawUser()
@@ -151,7 +156,7 @@ export function FairyAppProvider({ fileId, children, onMount, onUnmount }: Fairy
 	}
 
 	return <FairyAppContextProvider fairyApp={fairyApp}>{children}</FairyAppContextProvider>
-}
+})
 
 export function FairyAppContextProvider({
 	fairyApp,
