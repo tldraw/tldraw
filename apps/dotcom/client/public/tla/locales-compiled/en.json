@@ -11,12 +11,6 @@
       "value": "Accept invitation"
     }
   ],
-  "01d61b2012": [
-    {
-      "type": 0,
-      "value": "Start your fairy adventure"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -187,6 +181,12 @@
     {
       "type": 0,
       "value": "About tldraw"
+    }
+  ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Your fairies are waiting"
     }
   ],
   "275173253d": [
@@ -1139,6 +1139,12 @@
       "value": "Weekly fairy limit reached"
     }
   ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "New chat"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
@@ -1273,6 +1279,12 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Zoom to fairy"
     }
   ],
   "c2276c9127": [
@@ -1557,12 +1569,6 @@
     {
       "type": 0,
       "value": "Legal summary"
-    }
-  ],
-  "e2b0147fd2": [
-    {
-      "type": 0,
-      "value": "Your fairies are waiting for you! →"
     }
   ],
   "e3afed0047": [

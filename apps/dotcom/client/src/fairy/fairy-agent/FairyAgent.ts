@@ -647,7 +647,7 @@ export class FairyAgent {
 	 * Optionally, schedule a request.
 	 */
 	interrupt({ input, mode }: { input: AgentInput | null; mode?: FairyModeDefinition['type'] }) {
-		this._cancel()
+		this.requests.cancel()
 
 		if (mode) {
 			this.mode.setMode(mode)
@@ -790,11 +790,6 @@ export class FairyAgent {
 	}
 
 	/**
-	 * A function that cancels the agent's current prompt, if one is active.
-	 */
-	private cancelFn: (() => void) | null = null
-
-	/**
 	 * Cancel the agent's current prompt, if one is active.
 	 */
 	cancel() {
@@ -813,14 +808,7 @@ export class FairyAgent {
 			}
 		}
 
-		this._cancel()
-	}
-
-	private _cancel() {
-		this.cancelFn?.()
-		this.requests.clearActiveRequest()
-		this.requests.clearScheduledRequest()
-		this.cancelFn = null
+		this.requests.cancel()
 	}
 
 	/**

@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Accept invitation"
   },
-  "01d61b2012": {
-    "translation": "Start your fairy adventure"
-  },
   "03b3e13197": {
     "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
   },
@@ -91,6 +88,9 @@
   },
   "250ddea65c": {
     "translation": "About tldraw"
+  },
+  "269097080b": {
+    "translation": "Your fairies are waiting"
   },
   "275173253d": {
     "translation": "Summon all"
@@ -512,6 +512,9 @@
   "a8de4c27a8": {
     "translation": "Weekly fairy limit reached"
   },
+  "a917baaf14": {
+    "translation": "New chat"
+  },
   "a9ded1e5ce": {
     "translation": "Background"
   },
@@ -557,6 +560,9 @@
   },
   "bc88b0e89e": {
     "translation": "Shared by {ownerName}"
+  },
+  "be4f1c62d3": {
+    "translation": "Zoom to fairy"
   },
   "c2276c9127": {
     "translation": "Learn more about sharing."
@@ -671,9 +677,6 @@
   },
   "e2ae80a510": {
     "translation": "Legal summary"
-  },
-  "e2b0147fd2": {
-    "translation": "Your fairies are waiting for you! →"
   },
   "e3afed0047": {
     "translation": "Admin"
