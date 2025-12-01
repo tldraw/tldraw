@@ -11,10 +11,10 @@
       "value": "Zaakceptuj zaproszenie"
     }
   ],
-  "038c9b4432": [
+  "01d61b2012": [
     {
       "type": 0,
-      "value": "Osobowość wróżki"
+      "value": "Rozpocznij swoją przygodę z wróżkami"
     }
   ],
   "03b3e13197": [
@@ -57,22 +57,28 @@
       "value": "Konto"
     }
   ],
-  "090b807281": [
-    {
-      "type": 0,
-      "value": "Kolczasty"
-    }
-  ],
   "0a91f7fa87": [
     {
       "type": 0,
       "value": "Ten plik osiągnął limit rozmiaru i zmiany mogą nie zostać zapisane. Usuń część zawartości lub utwórz nowy plik."
     }
   ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "Porozmawiaj z grupą…"
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
       "value": "Plik"
+    }
+  ],
+  "0b79795d3e": [
+    {
+      "type": 0,
+      "value": "Wstęp"
     }
   ],
   "0b9a4cde72": [
@@ -129,12 +135,6 @@
       "value": "Eksportuj jako"
     }
   ],
-  "141c7239d3": [
-    {
-      "type": 0,
-      "value": "Personalizacja wróżki"
-    }
-  ],
   "146ffe2fd9": [
     {
       "type": 0,
@@ -165,16 +165,10 @@
       "value": "Dzisiaj"
     }
   ],
-  "1e38506832": [
+  "23f879f41a": [
     {
       "type": 0,
-      "value": "Idź do wróżki"
-    }
-  ],
-  "1fe250ea06": [
-    {
-      "type": 0,
-      "value": "Poinstruuj grupę…"
+      "value": "Twój tygodniowy limit wykorzystania wróżek został osiągnięty. Zostanie on zresetowany na początku przyszłego tygodnia."
     }
   ],
   "243924bfd5": [
@@ -195,6 +189,12 @@
       "value": "O tldraw"
     }
   ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Przywołaj wszystkich"
+    }
+  ],
   "284d5cd0dd": [
     {
       "type": 0,
@@ -211,12 +211,6 @@
     {
       "type": 0,
       "value": "Moje pliki"
-    }
-  ],
-  "2e86e6853d": [
-    {
-      "type": 0,
-      "value": "Wybierz lidera"
     }
   ],
   "30cd34258a": [
@@ -275,12 +269,6 @@
       "value": "Spróbuj odświeżyć stronę."
     }
   ],
-  "33f9ea6fe8": [
-    {
-      "type": 0,
-      "value": "Rozwiązać grupę"
-    }
-  ],
   "34140869c6": [
     {
       "type": 0,
@@ -293,6 +281,18 @@
       "value": "Edytor"
     }
   ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Śpijcie wszyscy"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Zarządzać"
+    }
+  ],
   "3596c1b1f7": [
     {
       "type": 0,
@@ -303,18 +303,6 @@
     {
       "type": 0,
       "value": "Podążać"
-    }
-  ],
-  "3a295397e6": [
-    {
-      "type": 0,
-      "value": "Poproś o pomoc"
-    }
-  ],
-  "3a77f951ca": [
-    {
-      "type": 0,
-      "value": "Dodaj nowe zadanie…"
     }
   ],
   "3b6c2b4caa": [
@@ -345,12 +333,6 @@
     {
       "type": 0,
       "value": "Akceptuj wszystko"
-    }
-  ],
-  "4131ec34ef": [
-    {
-      "type": 0,
-      "value": "Łysy"
     }
   ],
   "42e53c47c1": [
@@ -413,6 +395,12 @@
       "value": "Nazwa"
     }
   ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Zaznacz wszystko"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -435,12 +423,6 @@
     {
       "type": 0,
       "value": "Czy na pewno chcesz usunąć tę grupę? Tej czynności nie można cofnąć."
-    }
-  ],
-  "4f827717f7": [
-    {
-      "type": 0,
-      "value": "Spiczasty"
     }
   ],
   "50db1b7e1e": [
@@ -589,6 +571,20 @@
       "value": "Później"
     }
   ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "Porozmawiaj z "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
   "625fd29749": [
     {
       "type": 0,
@@ -601,22 +597,10 @@
       "value": "Ty"
     }
   ],
-  "63a78ed464": [
+  "6602bbeb29": [
     {
       "type": 0,
-      "value": "Dostosuj"
-    }
-  ],
-  "64ebe56d8c": [
-    {
-      "type": 0,
-      "value": "Kliknij, aby usunąć lub przeciągnij, aby przenieść"
-    }
-  ],
-  "65709fd250": [
-    {
-      "type": 0,
-      "value": "Lista zadań"
+      "value": "Przewodnik"
     }
   ],
   "6609dd239e": [
@@ -637,10 +621,28 @@
       "value": "Podaj swój adres e-mail"
     }
   ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Budzić"
+    }
+  ],
   "68d390535e": [
     {
       "type": 0,
       "value": "Wpisz swoją wiadomość"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Imię wróżki"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Wróżki debugowania"
     }
   ],
   "6a26f54883": [
@@ -659,12 +661,6 @@
     {
       "type": 0,
       "value": "Aby ręcznie zaimportować zawartość, wykonaj następujące czynności:"
-    }
-  ],
-  "6e02bd9e1e": [
-    {
-      "type": 0,
-      "value": "Schowaj wróżki"
     }
   ],
   "70222abcfc": [
@@ -745,12 +741,6 @@
       "value": "Ten anonimowy plik tldraw do gry wieloosobowej jest teraz tylko do odczytu. Aby kontynuować edycję, zaloguj się i skopiuj go do swoich plików."
     }
   ],
-  "7835039819": [
-    {
-      "type": 0,
-      "value": "Śmigło"
-    }
-  ],
   "78e9815992": [
     {
       "type": 0,
@@ -769,22 +759,10 @@
       "value": "Wróżka to mały człowieczek, który może pracować z tobą na płótnie. Wróżki mogą pracować samodzielnie lub w zespole. Nie ma ograniczeń co do możliwości wróżki. Nikt nie wie, skąd się wzięły."
     }
   ],
-  "7a3113b0ba": [
-    {
-      "type": 0,
-      "value": "Przeciągnij na płótno"
-    }
-  ],
   "7b1329f5ca": [
     {
       "type": 0,
       "value": "Instrukcja obsługi"
-    }
-  ],
-  "7b5449bd84": [
-    {
-      "type": 0,
-      "value": "Antena"
     }
   ],
   "7be10fc592": [
@@ -869,10 +847,10 @@
       "value": "."
     }
   ],
-  "81d48c2f3a": [
+  "81aa2078d1": [
     {
       "type": 0,
-      "value": "Pokaż zadania na płótnie"
+      "value": "Wyczyść wszystko"
     }
   ],
   "8472a551f1": [
@@ -901,28 +879,22 @@
       "value": " .tldr."
     }
   ],
-  "86a7df7572": [
-    {
-      "type": 0,
-      "value": "Przywołaj wróżki"
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
       "value": "Zmień nazwę pliku"
     }
   ],
+  "8726ef8909": [
+    {
+      "type": 0,
+      "value": "Twardy reset"
+    }
+  ],
   "88e83b88c5": [
     {
       "type": 0,
       "value": "Kup pakiet Fairy"
-    }
-  ],
-  "898e76f01a": [
-    {
-      "type": 0,
-      "value": "Zresetuj wszystko"
     }
   ],
   "8ad4303b83": [
@@ -943,10 +915,22 @@
       "value": "Sprawdź swoją skrzynkę e-mail, aby uzyskać kod weryfikacyjny."
     }
   ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Dom"
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Udostępniono Tobie"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "O"
     }
   ],
   "8ff3d0a705": [
@@ -979,16 +963,10 @@
       "value": "Skopiowano link zaproszenia"
     }
   ],
-  "93346fdd70": [
+  "94186070ef": [
     {
       "type": 0,
-      "value": "Uszy"
-    }
-  ],
-  "93dfe9fbbe": [
-    {
-      "type": 0,
-      "value": "Odznacz wróżkę"
+      "value": "Odznacz"
     }
   ],
   "94966d9074": [
@@ -1015,12 +993,6 @@
       "value": "W tym miesiącu"
     }
   ],
-  "97a9f16b2e": [
-    {
-      "type": 0,
-      "value": "Nowa wróżka"
-    }
-  ],
   "985a4b720f": [
     {
       "type": 0,
@@ -1031,12 +1003,6 @@
     {
       "type": 0,
       "value": "Dodaj link do pliku"
-    }
-  ],
-  "98e528aac6": [
-    {
-      "type": 0,
-      "value": "Przełącz na czat wróżki"
     }
   ],
   "9914a0ce04": [
@@ -1125,10 +1091,10 @@
       "value": "Eksportuj obraz"
     }
   ],
-  "a2f0372a75": [
+  "a286d9991c": [
     {
       "type": 0,
-      "value": "Przejdź do listy zadań"
+      "value": "Dołączyć"
     }
   ],
   "a3debabee7": [
@@ -1137,22 +1103,16 @@
       "value": "Polityka plików cookie"
     }
   ],
-  "a3e932550c": [
-    {
-      "type": 0,
-      "value": "Imię wróżki"
-    }
-  ],
   "a4d3b161ce": [
     {
       "type": 0,
       "value": "Składać"
     }
   ],
-  "a4ffdcf0dc": [
+  "a603905470": [
     {
       "type": 0,
-      "value": "Szczyt"
+      "value": "Odpluskwić"
     }
   ],
   "a6cc403d56": [
@@ -1167,16 +1127,16 @@
       "value": "Analityka"
     }
   ],
-  "a885eb91ac": [
-    {
-      "type": 0,
-      "value": "Wybór wróżki przywódczyni"
-    }
-  ],
   "a8873770ab": [
     {
       "type": 0,
       "value": "Plik staje się duży"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Osiągnięto tygodniowy limit wróżek"
     }
   ],
   "a9ded1e5ce": [
@@ -1249,12 +1209,6 @@
     {
       "type": 0,
       "value": "Kopiuj link"
-    }
-  ],
-  "b8996797b9": [
-    {
-      "type": 0,
-      "value": "Ukryj zadania na płótnie"
     }
   ],
   "ba0318cb81": [
@@ -1355,16 +1309,16 @@
       "value": ", aby pomóc nam ulepszyć tldraw."
     }
   ],
-  "c2ad21c079": [
-    {
-      "type": 0,
-      "value": "Włosy"
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
       "value": "Nie można opublikować pliku."
+    }
+  ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Otwarte"
     }
   ],
   "c3eb5c3b90": [
@@ -1383,6 +1337,12 @@
     {
       "type": 0,
       "value": "Nazwa grupy"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Stosowanie"
     }
   ],
   "c655b27b1e": [
@@ -1407,12 +1367,6 @@
     {
       "type": 0,
       "value": "Wyloguj się"
-    }
-  ],
-  "c9b04e7b53": [
-    {
-      "type": 0,
-      "value": "Odznacz lidera"
     }
   ],
   "c9cc8cce24": [
@@ -1451,22 +1405,10 @@
       "value": "Dowiedz się więcej o publikowaniu."
     }
   ],
-  "cf62a7f9a7": [
-    {
-      "type": 0,
-      "value": "Zresetuj czaty"
-    }
-  ],
   "d3d2e61733": [
     {
       "type": 0,
       "value": "Zamknij"
-    }
-  ],
-  "d438a51e6e": [
-    {
-      "type": 0,
-      "value": "Uśpij wszystkie wróżki"
     }
   ],
   "d46632fe1f": [
@@ -1521,26 +1463,6 @@
       "value": "Temat"
     }
   ],
-  "d739f35e18": [
-    {
-      "type": 0,
-      "value": "Szepcz do "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
-  "d7bc9d5a2e": [
-    {
-      "type": 0,
-      "value": "Usuń zadanie"
-    }
-  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1559,6 +1481,12 @@
       "value": "Kliknij tutaj, aby zobaczyć zawartość"
     }
   ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Włącz wróżki"
+    }
+  ],
   "d9e35d0f55": [
     {
       "type": 0,
@@ -1569,12 +1497,6 @@
     {
       "type": 0,
       "value": "Tylko z zaproszeniem"
-    }
-  ],
-  "dbbece0c3a": [
-    {
-      "type": 0,
-      "value": "Wyczyść wszystkie czaty"
     }
   ],
   "dc30bc0c79": [
@@ -1621,6 +1543,12 @@
       "value": "Oznaczenia debugowania aplikacji"
     }
   ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Wybierać"
+    }
+  ],
   "e0c88179b3": [
     {
       "type": 0,
@@ -1639,6 +1567,12 @@
       "value": "Podsumowanie prawne"
     }
   ],
+  "e2b0147fd2": [
+    {
+      "type": 0,
+      "value": "Twoje wróżki czekają na Ciebie! →"
+    }
+  ],
   "e3afed0047": [
     {
       "type": 0,
@@ -1651,6 +1585,12 @@
       "value": "Warunki korzystania z usługi"
     }
   ],
+  "e43ec38a93": [
+    {
+      "type": 0,
+      "value": "Idź do"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1661,12 +1601,6 @@
     {
       "type": 0,
       "value": "Strefa niebezpieczna"
-    }
-  ],
-  "ea181d98ca": [
-    {
-      "type": 0,
-      "value": "Wybierz wróżkę"
     }
   ],
   "ea4788705e": [
@@ -1725,6 +1659,12 @@
       "value": "."
     }
   ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Rozpuszczać"
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1735,12 +1675,6 @@
     {
       "type": 0,
       "value": "wybrany"
-    }
-  ],
-  "efb2d9d471": [
-    {
-      "type": 0,
-      "value": "Lista rzeczy do zrobienia"
     }
   ],
   "efde983742": [
@@ -1761,12 +1695,6 @@
       "value": "Ustawienia użytkownika"
     }
   ],
-  "f23056da60": [
-    {
-      "type": 0,
-      "value": "Nowy projekt"
-    }
-  ],
   "f2569594b2": [
     {
       "type": 0,
@@ -1785,28 +1713,10 @@
       "value": "Ustawienia"
     }
   ],
-  "f6ae34b4ba": [
-    {
-      "type": 0,
-      "value": "Zresetuj wszystkie różdżki"
-    }
-  ],
   "f714e36843": [
     {
       "type": 0,
       "value": "Czy na pewno chcesz opuścić tę grupę?"
-    }
-  ],
-  "f7d5ee6855": [
-    {
-      "type": 0,
-      "value": "Najpierw wybierz lidera…"
-    }
-  ],
-  "f87386b4ba": [
-    {
-      "type": 0,
-      "value": "Przywołaj wszystkie wróżki"
     }
   ],
   "fa2ead697d": [
@@ -1819,12 +1729,6 @@
     {
       "type": 0,
       "value": "Oglądający"
-    }
-  ],
-  "fd11eafb92": [
-    {
-      "type": 0,
-      "value": "Rozwiązać projekty"
     }
   ],
   "fd1be3efcf": [
