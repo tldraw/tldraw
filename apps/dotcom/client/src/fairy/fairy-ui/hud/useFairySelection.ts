@@ -73,7 +73,6 @@ export function useFairySelection(agents: FairyAgent[]) {
 
 	const selectProjectGroup = useCallback(
 		(project: FairyProject | null) => {
-			console.log('selectProjectGroup', project)
 			if (!project || project.members.length <= 1 || !fairyApp) {
 				return false
 			}
@@ -106,9 +105,7 @@ export function useFairySelection(agents: FairyAgent[]) {
 
 	const handleClickFairy = useCallback(
 		(clickedAgent: FairyAgent, event: MouseEvent) => {
-			console.log('handleclickfairy', clickedAgent.id)
 			const isMultiSelect = event.shiftKey || event.metaKey || event.ctrlKey
-			console.log('isMultiSelect', isMultiSelect)
 			const isSelected = clickedAgent.getEntity()?.isSelected ?? false
 			const isChosen = clickedAgent.id === shownFairy?.id
 			const project = clickedAgent.getProject()
