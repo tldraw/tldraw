@@ -1,16 +1,19 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import {
-	TldrawUiButton,
+	fetch,
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
-	fetch,
 	useToasts,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
-import { F, defineMessages, useMsg } from '../../utils/i18n'
-import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
+import { defineMessages, F, useMsg } from '../../utils/i18n'
+import styles from './TlaFairyInviteDialog.module.css'
+
+const FairySprite = lazy(() =>
+	import('../../../fairy/fairy-sprite/FairySprite').then((m) => ({ default: m.FairySprite }))
+)
 
 const messages = defineMessages({
 	alreadyHasAccess: { defaultMessage: 'You already have fairy access!' },
@@ -31,80 +34,70 @@ export function TlaFairyInviteDialog({
 
 	return (
 		<>
-			<TldrawUiDialogHeader>
+			<TldrawUiDialogHeader className={styles.dialogHeader}>
 				<TldrawUiDialogTitle>
 					<span />
 				</TldrawUiDialogTitle>
-				<div style={{ flex: 1 }} />
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody
-				style={{
-					textAlign: 'center',
-					display: 'flex',
-					flexDirection: 'column',
-					alignItems: 'center',
-					gap: '16px',
-				}}
-			>
-				<img
-					width={36}
-					height={36}
-					src="/tldraw-white-on-black.svg"
-					loading="lazy"
-					alt="tldraw logo"
-				/>
-
-				<div style={{ fontSize: '16px' }}>
-					<F defaultMessage="You've been invited to join tldraw fairies!" />
+			<TldrawUiDialogBody className={styles.dialogBody}>
+				<Suspense fallback={<div style={{ height: 44, width: 44 }} />}>
+					<FairySprite pose="idle" hatColor="var(--tl-color-fairy-pink)" />
+				</Suspense>
+				<div className={styles.message}>
+					<F
+						defaultMessage="You've been invited to <strong>tldraw fairies</strong>"
+						values={{
+							strong: (chunks) => <strong>{chunks}</strong>,
+						}}
+					/>
 				</div>
 
-				<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-					<TlaCtaButton
-						disabled={isAccepting}
-						onClick={async () => {
-							setIsAccepting(true)
-							try {
-								const res = await fetch('/api/app/fairy-invite/redeem', {
-									method: 'POST',
-									headers: { 'Content-Type': 'application/json' },
-									body: JSON.stringify({ inviteCode: fairyInviteToken }),
-								})
-								const data = await res.json()
-								if (!res.ok) {
-									onClose()
-									addToast({
-										id: 'fairy-invite-error',
-										title: data.error || redemptionErrorMsg,
-									})
-									return
-								}
-								onClose()
-								if (data.alreadyHasAccess) {
-									addToast({
-										id: 'fairy-invite-already-has-access',
-										title: alreadyHasAccessMsg,
-									})
-								} else {
-									window.location.href = routes.tlaRoot()
-								}
-							} catch (err) {
+				<button
+					className={styles.acceptButton}
+					disabled={isAccepting}
+					onClick={async () => {
+						setIsAccepting(true)
+						try {
+							const res = await fetch('/api/app/fairy-invite/redeem', {
+								method: 'POST',
+								headers: { 'Content-Type': 'application/json' },
+								body: JSON.stringify({ inviteCode: fairyInviteToken }),
+							})
+							const data = await res.json()
+							if (!res.ok) {
 								onClose()
 								addToast({
 									id: 'fairy-invite-error',
-									title: err instanceof Error ? err.message : redemptionErrorMsg,
+									title: data.error || redemptionErrorMsg,
 								})
-							} finally {
-								setIsAccepting(false)
+								return
 							}
-						}}
-					>
-						<F defaultMessage="Accept invitation" />
-					</TlaCtaButton>
-					<TldrawUiButton type="normal" onClick={() => onClose()}>
-						<F defaultMessage="No thanks" />
-					</TldrawUiButton>
-				</div>
+							onClose()
+							if (data.alreadyHasAccess) {
+								addToast({
+									id: 'fairy-invite-already-has-access',
+									title: alreadyHasAccessMsg,
+								})
+							} else {
+								window.location.href = routes.tlaRoot()
+							}
+						} catch (err) {
+							onClose()
+							addToast({
+								id: 'fairy-invite-error',
+								title: err instanceof Error ? err.message : redemptionErrorMsg,
+							})
+						} finally {
+							setIsAccepting(false)
+						}
+					}}
+				>
+					<F defaultMessage="Accept invite" />
+				</button>
+				<button className={styles.declineButton} onClick={() => onClose()}>
+					<F defaultMessage="No thanks" />
+				</button>
 			</TldrawUiDialogBody>
 		</>
 	)
