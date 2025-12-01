@@ -1,4 +1,8 @@
-import { MAX_FAIRY_COUNT, type TlaPaddleTransaction } from '@tldraw/dotcom-shared'
+import {
+	MAX_FAIRY_COUNT,
+	type PaddleCustomData,
+	type TlaPaddleTransaction,
+} from '@tldraw/dotcom-shared'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
 import { upsertFairyAccess } from './adminRoutes'
@@ -13,19 +17,22 @@ interface PaddleWebhookEvent {
 	data: {
 		id: string
 		status: string
-		custom_data?: unknown
+		custom_data?: PaddleCustomData
 		items?: unknown[]
 	}
 }
 
-function extractUserId(customData: unknown): string | null {
-	if (customData && typeof customData === 'object') {
-		const data = customData as Record<string, unknown>
-		if (typeof data.userId === 'string' && data.userId) {
-			return data.userId
-		}
+function extractUserData(customData: PaddleCustomData | undefined): {
+	userId: string | null
+	email: string | null
+} {
+	if (!customData) {
+		return { userId: null, email: null }
 	}
-	return null
+	return {
+		userId: customData.userId ?? null,
+		email: customData.email ?? null,
+	}
 }
 
 async function verifyPaddleSignature(
@@ -157,12 +164,12 @@ async function insertAndLockPaddleTransaction(
 async function sendDiscordNotification(
 	webhookUrl: string | undefined,
 	type: 'success' | 'error' | 'refund' | 'missing_user',
-	details: { transactionId: string; userId?: string; error?: string }
+	details: { transactionId: string; userId?: string; email?: string; error?: string }
 ): Promise<void> {
 	if (!webhookUrl) return
 
 	const messages = {
-		success: '🧚✨ Ka-ching! Someone just unlocked the magic! 💫🎊',
+		success: `🧚✨ Ka-ching! Someone just unlocked the magic! (${details.email || 'N/A'}) 💫🎊`,
 		error: `🚨 Fairy access grant FAILED for transaction ${details.transactionId}: ${details.error}`,
 		refund: `💸 Refund/cancellation for transaction ${details.transactionId}, userId: ${details.userId} - manual revocation needed`,
 		missing_user: `⚠️ Transaction ${details.transactionId} missing userId in custom_data`,
@@ -225,7 +232,7 @@ async function handleTransactionCompleted(
 	event: PaddleWebhookEvent
 ): Promise<void> {
 	const { data } = event
-	const userId = extractUserId(data.custom_data)
+	const { userId, email } = extractUserData(data.custom_data)
 	const webhookUrl = env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL
 
 	if (!userId) {
@@ -288,8 +295,11 @@ async function handleTransactionCompleted(
 		throw new Error(`Failed to grant fairy access: ${errorMessage}`)
 	}
 
-	// Success path - user got access, everything else is best-effort
-	await sendDiscordNotification(webhookUrl, 'success', { transactionId: data.id, userId })
+	await sendDiscordNotification(webhookUrl, 'success', {
+		transactionId: data.id,
+		userId,
+		email: email ?? undefined,
+	})
 	await markTransactionProcessed(db, event.event_id)
 }
 
@@ -299,7 +309,7 @@ export const paddleWebhooks = createRouter<Environment>().post(
 		const db = createPostgresConnectionPool(env, 'paddleWebhook')
 		try {
 			const event = await verifyWebhookSignature(env, req.clone())
-			const userId = extractUserId(event.data.custom_data)
+			const { userId } = extractUserData(event.data.custom_data)
 
 			const record = await insertAndLockPaddleTransaction(db, event, userId)
 			if (record.processed) {

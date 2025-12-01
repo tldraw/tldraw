@@ -1,3 +1,4 @@
+import { type PaddleCustomData } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 declare global {
@@ -10,7 +11,7 @@ declare global {
 			Checkout: {
 				open(options: {
 					items: Array<{ priceId: string; quantity: number }>
-					customData?: Record<string, any>
+					customData?: PaddleCustomData
 					customer?: {
 						email?: string
 					}
@@ -89,7 +90,7 @@ export function usePaddle() {
 		try {
 			window.Paddle.Checkout.open({
 				items: [{ priceId: paddlePriceId, quantity: 1 }],
-				customData: { userId },
+				customData: { userId, email },
 				customer: { email },
 				settings: {
 					allowDiscountRemoval: false,
