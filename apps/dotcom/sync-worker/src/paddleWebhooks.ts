@@ -295,12 +295,6 @@ async function handleTransactionCompleted(
 		throw new Error(`Failed to grant fairy access: ${errorMessage}`)
 	}
 
-	// Success path - user got access, everything else is best-effort
-	console.warn('[Paddle Webhook] Fairy access granted', {
-		transactionId: data.id,
-		userId,
-		email,
-	})
 	await sendDiscordNotification(webhookUrl, 'success', {
 		transactionId: data.id,
 		userId,
