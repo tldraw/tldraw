@@ -515,7 +515,14 @@ export class FairyAgent {
 		}
 
 		// Submit the request to the agent.
-		await this.request(request)
+		try {
+			await this.request(request)
+		} catch (e) {
+			console.error('Error data:', e)
+			this.requests.setIsPrompting(false)
+			this.requests.setCancelFn(null)
+			return
+		}
 
 		// If there's no schedule request...
 		// Trigger onPromptEnd callback(s)
@@ -970,7 +977,10 @@ export class FairyAgent {
 				if (e === 'Cancelled by user' || (e instanceof Error && e.name === 'AbortError')) {
 					return
 				}
+
 				agent.onError(e)
+
+				throw e
 			}
 		})()
 
