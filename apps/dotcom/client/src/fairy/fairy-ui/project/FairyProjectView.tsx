@@ -12,11 +12,9 @@ import { useTldrawAppUiEvents } from '../../../tla/utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../tla/utils/getIsCoarsePointer'
 import { F, useMsg } from '../../../tla/utils/i18n'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
-import { $fairyTasks } from '../../fairy-globals'
+import { useFairyApp } from '../../fairy-app/FairyAppProvider'
 import { getRandomNoInputMessage } from '../../fairy-helpers/getRandomNoInputMessage'
 import { fairyMessages } from '../../fairy-messages'
-import { addProject, disbandProject, getProjectByAgentId } from '../../fairy-projects'
-import { getFairyTasksByProjectId, setFairyTaskStatus } from '../../fairy-task-list'
 import { FairyProjectChatContent } from '../chat/FairyProjectChatContent'
 
 interface FairyProjectViewProps {
@@ -34,6 +32,7 @@ export function FairyProjectView({
 	onProjectStarted,
 	onClose,
 }: FairyProjectViewProps) {
+	const fairyApp = useFairyApp()
 	const trackEvent = useTldrawAppUiEvents()
 	const [inputValue, setInputValue] = useState('')
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -49,10 +48,10 @@ export function FairyProjectView({
 	const projectTasks = useValue(
 		'project-tasks',
 		() => {
-			if (!project) return []
-			return getFairyTasksByProjectId(project.id)
+			if (!project || !fairyApp) return []
+			return fairyApp.taskListManager.getTasksByProjectId(project.id)
 		},
-		[project]
+		[project, fairyApp]
 	)
 
 	// Check if any agents are generating
@@ -76,13 +75,15 @@ export function FairyProjectView({
 	const followerAgents = useValue(
 		'follower-agents',
 		() => {
-			if (!leaderAgent || !isPreProject) return []
+			if (!leaderAgent || !isPreProject || !fairyApp) return []
 
 			return agents.filter(
-				(agent) => agent.id !== leaderAgent.id && getProjectByAgentId(agent.id) === undefined
+				(agent) =>
+					agent.id !== leaderAgent.id &&
+					fairyApp.projectsManager.getProjectByAgentId(agent.id) === undefined
 			)
 		},
-		[agents, leaderAgent, isPreProject]
+		[agents, leaderAgent, isPreProject, fairyApp]
 	)
 
 	const orchestratorName = useValue(
@@ -175,7 +176,9 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 				projectType: isDuo ? 'duo' : 'group',
 			})
 
-			addProject(newProject)
+			if (fairyApp) {
+				fairyApp.projectsManager.addProject(newProject)
+			}
 
 			// Set leader as orchestrator
 			leaderAgent.interrupt({
@@ -199,7 +202,7 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 			onProjectStarted?.(leaderAgent)
 			setInputValue('')
 		},
-		[leaderAgent, followerAgents, getGroupChatPrompt, onProjectStarted, trackEvent]
+		[leaderAgent, followerAgents, getGroupChatPrompt, onProjectStarted, trackEvent, fairyApp]
 	)
 
 	// Handle interrupting an ongoing project with new instructions
@@ -212,14 +215,14 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 			const currentMode = orchestratorAgent.modeManager.getMode()
 
 			// If orchestrator was working on a task, reset it to todo
-			if (currentMode === 'working-orchestrator') {
-				const myInProgressTasks = $fairyTasks
-					.get()
+			if (currentMode === 'working-orchestrator' && fairyApp) {
+				const myInProgressTasks = fairyApp.taskListManager
+					.getTasks()
 					.filter(
 						(task) => task.assignedTo === orchestratorAgent.id && task.status === 'in-progress'
 					)
 				myInProgressTasks.forEach((task) => {
-					setFairyTaskStatus(task.id, 'todo')
+					fairyApp.taskListManager.setTaskStatus(task.id, 'todo')
 				})
 			}
 
@@ -254,15 +257,15 @@ Do NOT start a completely new project. Respond with a message action first expla
 
 			setInputValue('')
 		},
-		[orchestratorAgent, project]
+		[orchestratorAgent, project, fairyApp]
 	)
 
 	// Handle submit (unified for both states)
 	const handleSubmit = useCallback(
 		(value: string) => {
 			// Handle cancel (disband project)
-			if (shouldCancel && project) {
-				disbandProject(project.id, editor)
+			if (shouldCancel && project && fairyApp) {
+				fairyApp.projectsManager.disbandProject(project.id)
 				return
 			}
 
@@ -275,13 +278,13 @@ Do NOT start a completely new project. Respond with a message action first expla
 				handleProjectInterrupt(messageToSend)
 			}
 		},
-		[shouldCancel, project, editor, isPreProject, handleCreateProject, handleProjectInterrupt]
+		[shouldCancel, project, isPreProject, handleCreateProject, handleProjectInterrupt, fairyApp]
 	)
 
 	const handleButtonClick = () => {
 		if (shouldCancel) {
-			if (project) {
-				disbandProject(project.id, editor)
+			if (project && fairyApp) {
+				fairyApp.projectsManager.disbandProject(project.id)
 			}
 		} else {
 			handleSubmit(inputValue)

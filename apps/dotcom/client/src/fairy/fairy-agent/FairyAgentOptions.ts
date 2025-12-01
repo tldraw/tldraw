@@ -1,11 +1,11 @@
 import { Editor } from 'tldraw'
-import { TldrawApp } from '../../tla/app/TldrawApp'
+import { FairyApp } from '../fairy-app/FairyApp'
 
 export interface FairyAgentOptions {
 	/** The editor to associate the agent with. */
 	editor: Editor
-	/** The app to associate the agent with. */
-	app: TldrawApp
+	/** The fairy app to associate the agent with. */
+	fairyApp: FairyApp
 	/** A key used to differentiate the agent from other agents. */
 	id: string
 	/** A callback for when an error occurs. */

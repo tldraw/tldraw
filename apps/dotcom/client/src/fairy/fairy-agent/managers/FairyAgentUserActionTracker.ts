@@ -1,5 +1,4 @@
 import { atom, Atom, RecordsDiff, TLRecord } from 'tldraw'
-import { $fairyIsApplyingAction } from '../../fairy-globals'
 import { FairyAgent } from '../FairyAgent'
 import { BaseFairyAgentManager } from './BaseFairyAgentManager'
 
@@ -50,7 +49,7 @@ export class FairyAgentUserActionTracker extends BaseFairyAgentManager {
 			(shape, source) => {
 				if (source !== 'user') return
 				if (this.agent['isActing']) return
-				if ($fairyIsApplyingAction.get()) return
+				if (this.agent.fairyApp.getIsApplyingAction()) return
 				const change = {
 					added: { [shape.id]: shape },
 					updated: {},
@@ -66,7 +65,7 @@ export class FairyAgentUserActionTracker extends BaseFairyAgentManager {
 			(shape, source) => {
 				if (source !== 'user') return
 				if (this.agent['isActing']) return
-				if ($fairyIsApplyingAction.get()) return
+				if (this.agent.fairyApp.getIsApplyingAction()) return
 				const change = {
 					added: {},
 					updated: {},
@@ -82,7 +81,7 @@ export class FairyAgentUserActionTracker extends BaseFairyAgentManager {
 			(prev, next, source) => {
 				if (source !== 'user') return
 				if (this.agent['isActing']) return
-				if ($fairyIsApplyingAction.get()) return
+				if (this.agent.fairyApp.getIsApplyingAction()) return
 				const change: RecordsDiff<TLRecord> = {
 					added: {},
 					updated: { [prev.id]: [prev, next] },

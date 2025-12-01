@@ -1,6 +1,5 @@
 import { FairyModeDefinition, getFairyModeDefinition } from '@tldraw/fairy-shared'
 import { atom, Atom } from 'tldraw'
-import { notifyAgentModeTransition } from '../../fairy-wait-notifications'
 import { FairyAgent } from '../FairyAgent'
 import { FAIRY_MODE_CHART } from '../FairyModeNode'
 import { BaseFairyAgentManager } from './BaseFairyAgentManager'
@@ -53,7 +52,7 @@ export class FairyAgentModeManager extends BaseFairyAgentManager {
 		toModeNode.onEnter?.(this.agent, fromMode)
 
 		// Notify other agents waiting for this mode transition
-		notifyAgentModeTransition(this.agent.id, mode, this.agent.editor)
+		this.agent.fairyApp.waitManager.notifyAgentModeTransition(this.agent.id, mode)
 
 		// Update the mode
 		this.$mode.set(mode)

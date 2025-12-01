@@ -2,7 +2,7 @@ import { MouseEvent, useRef, useState } from 'react'
 import { PORTRAIT_BREAKPOINT, useBreakpoint, useEditor, useValue } from 'tldraw'
 import '../../tla/styles/fairy.css'
 import { F, useMsg } from '../../tla/utils/i18n'
-import { FairyAgent } from '../fairy-agent/FairyAgent'
+import { FairyApp } from '../fairy-app/FairyApp'
 import { fairyMessages } from '../fairy-messages'
 import { FairyChatHistory } from './chat/FairyChatHistory'
 import { FairyHUDHeader } from './hud/FairyHUDHeader'
@@ -13,8 +13,11 @@ import { FairyManualPanel } from './manual/FairyManualPanel'
 import { FairyProjectView } from './project/FairyProjectView'
 import { FairyListSidebar } from './sidebar/FairyListSidebar'
 
-export function FairyHUD({ agents }: { agents: FairyAgent[] }) {
+export function FairyHUD({ fairyApp }: { fairyApp: FairyApp }) {
 	const editor = useEditor()
+	const agents = useValue('fairy-agents', () => fairyApp?.agentsManager.getAgents() ?? [], [
+		fairyApp,
+	])
 	const breakpoint = useBreakpoint()
 	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
 	const [headerMenuPopoverOpen, setHeaderMenuPopoverOpen] = useState(false)

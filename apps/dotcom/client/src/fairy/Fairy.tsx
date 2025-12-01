@@ -6,7 +6,6 @@ import { Atom, TLEventInfo, getPointerInfo, useEditor, useQuickReactor, useValue
 import '../tla/styles/fairy.css'
 import { TLAppUiHandler, useTldrawAppUiEvents } from '../tla/utils/app-ui-events'
 import { FairyAgent } from './fairy-agent/FairyAgent'
-import { $fairyAgentsAtom } from './fairy-globals'
 import { getProjectColor } from './fairy-helpers/getProjectColor'
 import { FairySprite, getHatColor } from './fairy-sprite/FairySprite'
 import { FairyReticleSprite } from './fairy-sprite/sprites/FairyReticleSprite'
@@ -229,7 +228,7 @@ function useFairyPointerInteraction(
 				// This is necessary on mobile to ensure editor.inputs.currentPagePoint is updated
 				elm.addEventListener('pointermove', handleCapturedPointerMove)
 
-				const fairyAgents = $fairyAgentsAtom.get(editor)
+				const fairyAgents = agent.fairyApp.agentsManager.getAgents()
 				const clickedFairyEntity = $fairyEntity.get()
 				const wasClickedFairySelected = clickedFairyEntity?.isSelected ?? false
 				const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey

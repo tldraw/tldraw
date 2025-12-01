@@ -1,17 +1,17 @@
 import { AgentRequest, OtherFairiesPart } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
-import { $fairyAgentsAtom } from '../fairy-globals'
+import { FairyAgent } from '../fairy-agent/FairyAgent'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export class OtherFairiesPartUtil extends PromptPartUtil<OtherFairiesPart> {
 	static override type = 'otherFairies' as const
 
 	override getPart(_request: AgentRequest, helpers: AgentHelpers): OtherFairiesPart {
-		const otherFairies = $fairyAgentsAtom
-			.get(this.editor)
-			.filter((agent) => agent.id !== this.agent.id)
+		const otherFairies = this.agent.fairyApp.agentsManager
+			.getAgents()
+			.filter((agent: FairyAgent) => agent.id !== this.agent.id)
 
-		const otherFairiesData = otherFairies.map((agent) => {
+		const otherFairiesData = otherFairies.map((agent: FairyAgent) => {
 			const activeRequest = agent.requestManager.getActiveRequest()
 			return {
 				id: agent.id,

@@ -1,7 +1,6 @@
 import { MarkDroneTaskDoneAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { uniqueId } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
-import { setFairyTaskStatusAndNotifyCompletion } from '../fairy-task-list'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class MarkDroneTaskDoneActionUtil extends AgentActionUtil<MarkDroneTaskDoneAction> {
@@ -30,7 +29,7 @@ export class MarkDroneTaskDoneActionUtil extends AgentActionUtil<MarkDroneTaskDo
 		}
 		const currentTaskId = currentTask.id
 
-		setFairyTaskStatusAndNotifyCompletion(currentTaskId, 'done', this.editor)
+		this.agent.fairyApp.taskListManager.setTaskStatusAndNotify(currentTaskId, 'done')
 		this.agent.chatManager.push(
 			{
 				id: uniqueId(),

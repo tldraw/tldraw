@@ -1,12 +1,17 @@
 import { useEffect, useMemo } from 'react'
 import { useValue } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
-import { $fairyProjects } from '../../fairy-globals'
+import { useFairyApp } from '../../fairy-app/FairyAppProvider'
 
 export function useIdlingFairies(agents: FairyAgent[]) {
 	// Unused atm, wip
 	// Check if any fairies in projects are idling
-	const projects = useValue('fairy-projects', () => $fairyProjects.get(), [$fairyProjects])
+	const fairyApp = useFairyApp()
+	const projects = useValue(
+		'fairy-projects',
+		() => (fairyApp ? fairyApp.projectsManager.getProjects() : []),
+		[fairyApp]
+	)
 	const badStateProjectIds = useMemo(() => {
 		const projectIds = new Set<string>()
 		for (const project of projects) {

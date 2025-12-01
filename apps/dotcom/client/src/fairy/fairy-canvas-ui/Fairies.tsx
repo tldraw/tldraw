@@ -1,9 +1,13 @@
 import { useEditor, useValue } from 'tldraw'
 import { Fairy, SelectedFairy } from '../Fairy'
-import { FairyAgent } from '../fairy-agent/FairyAgent'
+import { FairyApp } from '../fairy-app/FairyApp'
 
-export function Fairies({ agents }: { agents: FairyAgent[] }) {
+export function Fairies({ fairyApp }: { fairyApp: FairyApp }) {
 	const editor = useEditor()
+
+	const agents = useValue('fairy-agents', () => fairyApp?.agentsManager.getAgents() ?? [], [
+		fairyApp,
+	])
 	const currentPageId = useValue('current page id', () => editor.getCurrentPageId(), [editor])
 
 	// Reactively filter fairies based on current page and each fairy's currentPageId

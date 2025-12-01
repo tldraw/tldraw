@@ -3,11 +3,12 @@ import { MouseEvent, useCallback, useEffect, useState } from 'react'
 import { useValue } from 'tldraw'
 import { useTldrawAppUiEvents } from '../../../tla/utils/app-ui-events'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
-import { getProjectOrchestrator } from '../../fairy-projects'
+import { useFairyApp } from '../../fairy-app/FairyAppProvider'
 
 export type FairyHUDPanelState = 'fairy' | 'manual' | 'closed'
 
 export function useFairySelection(agents: FairyAgent[]) {
+	const fairyApp = useFairyApp()
 	const trackEvent = useTldrawAppUiEvents()
 	const [manualOpen, setManualOpen] = useState(false)
 	const [shownFairy, setShownFairy] = useState<FairyAgent | null>(null)
@@ -33,17 +34,17 @@ export function useFairySelection(agents: FairyAgent[]) {
 	const activeOrchestratorAgent = useValue(
 		'shown-orchestrator',
 		() => {
-			if (!shownFairy) return null
+			if (!shownFairy || !fairyApp) return null
 			const project = shownFairy.getProject()
 			if (!project) return null
 
-			const orchestratorMember = getProjectOrchestrator(project)
+			const orchestratorMember = fairyApp.projectsManager.getProjectOrchestrator(project)
 			if (!orchestratorMember) return null
 
 			// Return the actual FairyAgent, not just the member
 			return agents.find((agent) => agent.id === orchestratorMember.id) ?? null
 		},
-		[shownFairy, agents]
+		[shownFairy, agents, fairyApp]
 	)
 
 	// Update the chosen fairy when the selected fairies change
@@ -72,12 +73,12 @@ export function useFairySelection(agents: FairyAgent[]) {
 
 	const selectProjectGroup = useCallback(
 		(project: FairyProject | null) => {
-			if (!project || project.members.length <= 1) {
+			if (!project || project.members.length <= 1 || !fairyApp) {
 				return false
 			}
 
 			// Check if project has an orchestrator (meaning it's been started)
-			const orchestratorMember = getProjectOrchestrator(project)
+			const orchestratorMember = fairyApp.projectsManager.getProjectOrchestrator(project)
 
 			if (orchestratorMember) {
 				// Project has been started, show the orchestrator's chat
@@ -99,7 +100,7 @@ export function useFairySelection(agents: FairyAgent[]) {
 			setShownFairy(null)
 			return true
 		},
-		[agents, setShownFairy, selectFairy]
+		[agents, setShownFairy, selectFairy, fairyApp]
 	)
 
 	const handleClickFairy = useCallback(
@@ -170,8 +171,8 @@ export function useFairySelection(agents: FairyAgent[]) {
 
 			// If the clicked fairy is part of an active project, select the orchestrator instead
 			const project = clickedAgent.getProject()
-			if (project) {
-				const orchestratorMember = getProjectOrchestrator(project)
+			if (project && fairyApp) {
+				const orchestratorMember = fairyApp.projectsManager.getProjectOrchestrator(project)
 				if (orchestratorMember) {
 					const orchestratorAgent = agents.find((agent) => agent.id === orchestratorMember.id)
 					if (orchestratorAgent) {
@@ -183,7 +184,7 @@ export function useFairySelection(agents: FairyAgent[]) {
 
 			selectFairy(clickedAgent)
 		},
-		[selectFairy, agents, trackEvent]
+		[selectFairy, agents, trackEvent, fairyApp]
 	)
 
 	const handleToggleManual = useCallback(() => {

@@ -35,12 +35,10 @@ import {
 	uniqueId,
 	VecModel,
 } from 'tldraw'
-import { TldrawApp } from '../../tla/app/TldrawApp'
 import { FAIRY_WORKER } from '../../utils/config'
-import { $fairyAgentsAtom, $fairyTasks } from '../fairy-globals'
+import { FairyApp } from '../fairy-app/FairyApp'
 import { getPromptPartUtilsRecord } from '../fairy-part-utils/fairy-part-utils'
 import { PromptPartUtil } from '../fairy-part-utils/PromptPartUtil'
-import { getProjectByAgentId } from '../fairy-projects'
 import { AgentHelpers } from './AgentHelpers'
 import { FairyAgentOptions } from './FairyAgentOptions'
 import { FAIRY_MODE_CHART } from './FairyModeNode'
@@ -67,12 +65,47 @@ import { FairyAgentWaitManager } from './managers/FairyAgentWaitManager'
  * ```
  */
 export class FairyAgent {
-	/** The editor associated with this agent. */
-	editor: Editor
-	app: TldrawApp
-
 	/** An id to differentiate the agent from other agents. */
 	id: string
+
+	/** The editor associated with this agent. */
+	editor: Editor
+
+	/** The fairy app associated with this agent. */
+	fairyApp: FairyApp
+
+	/** The action manager associated with this agent. */
+	actionManager: FairyAgentActionManager
+
+	/** The chat manager associated with this agent. */
+	chatManager: FairyAgentChatManager
+
+	/** The chat origin manager associated with this agent. */
+	chatOriginManager: FairyAgentChatOriginManager
+
+	/** The gesture manager associated with this agent. */
+	gestureManager: FairyAgentGestureManager
+
+	/** The mode manager associated with this agent. */
+	modeManager: FairyAgentModeManager
+
+	/** The position manager associated with this agent. */
+	positionManager: FairyAgentPositionManager
+
+	/** The request manager associated with this agent. */
+	requestManager: FairyAgentRequestManager
+
+	/** The todo manager associated with this agent. */
+	todoManager: FairyAgentTodoManager
+
+	/** The usage tracker associated with this agent. */
+	usageTracker: FairyAgentUsageTracker
+
+	/** The user action tracker associated with this agent. */
+	userActionTracker: FairyAgentUserActionTracker
+
+	/** The wait manager associated with this agent. */
+	waitManager: FairyAgentWaitManager
 
 	/** The fairy entity associated with this agent. */
 	$fairyEntity: Atom<FairyEntity>
@@ -117,7 +150,7 @@ export class FairyAgent {
 	 * Get the current project that the agent is working on.
 	 */
 	getProject(): FairyProject | null {
-		return getProjectByAgentId(this.id) ?? null
+		return this.fairyApp.projectsManager.getProjectByAgentId(this.id) ?? null
 	}
 
 	getEntity(): FairyEntity {
@@ -128,7 +161,7 @@ export class FairyAgent {
 	 * Get the tasks that the agent is working on.
 	 */
 	getTasks(): FairyTask[] {
-		return $fairyTasks.get().filter((task) => task.assignedTo === this.id)
+		return this.fairyApp.taskListManager.getTasksByAgentId(this.id)
 	}
 
 	/**
@@ -150,25 +183,12 @@ export class FairyAgent {
 			tasks: this.getTasks(),
 		}
 	}
-
-	actionManager: FairyAgentActionManager
-	chatManager: FairyAgentChatManager
-	chatOriginManager: FairyAgentChatOriginManager
-	gestureManager: FairyAgentGestureManager
-	modeManager: FairyAgentModeManager
-	positionManager: FairyAgentPositionManager
-	requestManager: FairyAgentRequestManager
-	todoManager: FairyAgentTodoManager
-	usageTracker: FairyAgentUsageTracker
-	userActionTracker: FairyAgentUserActionTracker
-	waitManager: FairyAgentWaitManager
-
 	/**
 	 * Create a new tldraw agent.
 	 */
-	constructor({ id, editor, app, onError, getToken }: FairyAgentOptions) {
+	constructor({ id, editor, fairyApp, onError, getToken }: FairyAgentOptions) {
 		this.editor = editor
-		this.app = app
+		this.fairyApp = fairyApp
 		this.id = id
 		this.getToken = getToken
 
@@ -198,12 +218,12 @@ export class FairyAgent {
 
 		this.$fairyConfig = computed<FairyConfig>(
 			`fairy-config-${id}`,
-			() => JSON.parse(app.getUser().fairies || '{}')[id] as FairyConfig
+			() => JSON.parse(this.fairyApp.tldrawApp.getUser().fairies || '{}')[id] as FairyConfig
 		)
 
 		this.onError = onError
 
-		$fairyAgentsAtom.update(editor, (agents) => [...agents, this])
+		// Agent is added to the manager's atom by FairyAppAgentsManager.syncAgentsWithConfigs
 
 		// Wake up sleeping fairies when they become selected
 		this.wakeOnSelectReaction = react(`fairy-${id}-wake-on-select`, () => {
@@ -248,7 +268,7 @@ export class FairyAgent {
 		if (this.positionManager.getFollowingFairyId() === this.id) {
 			this.positionManager.stopFollowing()
 		}
-		$fairyAgentsAtom.update(this.editor, (agents) => agents.filter((agent) => agent.id !== this.id))
+		// Agent is removed from the manager's atom by FairyAppAgentsManager.syncAgentsWithConfigs
 	}
 
 	/**
@@ -778,10 +798,11 @@ export class FairyAgent {
 		this.todoManager.deleteAll()
 		this.userActionTracker.clearHistory()
 
-		// Remove solo tasks
-		$fairyTasks.update((tasks) =>
-			tasks.filter((task) => task.assignedTo !== this.id && task.projectId === null)
-		)
+		// Remove solo tasks assigned to this agent
+		const soloTasks = this.fairyApp.taskListManager
+			.getTasks()
+			.filter((task) => task.assignedTo === this.id && task.projectId === null)
+		soloTasks.forEach((task) => this.fairyApp.taskListManager.deleteTask(task.id))
 
 		this.modeManager.setMode('idling')
 
@@ -810,14 +831,14 @@ export class FairyAgent {
 	promptStartTime: number | null = null
 
 	updateFairyConfig(partial: Partial<FairyConfig>) {
-		this.app.z.mutate.user.updateFairyConfig({
+		this.fairyApp.tldrawApp.z.mutate.user.updateFairyConfig({
 			id: this.id,
 			properties: partial,
 		})
 	}
 
 	public deleteFairyConfig() {
-		this.app.z.mutate.user.deleteFairyConfig({ id: this.id })
+		this.fairyApp.tldrawApp.z.mutate.user.deleteFairyConfig({ id: this.id })
 	}
 
 	private requestAgentActions({ agent, request }: { agent: FairyAgent; request: AgentRequest }) {

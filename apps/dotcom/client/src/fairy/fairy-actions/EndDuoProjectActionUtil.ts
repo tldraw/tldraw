@@ -1,9 +1,7 @@
 import { EndDuoProjectAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { uniqueId } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
-import { $fairyAgentsAtom } from '../fairy-globals'
-import { deleteProjectAndAssociatedTasks } from '../fairy-projects'
-import { getFairyTasksByProjectId } from '../fairy-task-list'
+import { FairyAgent } from '../fairy-agent/FairyAgent'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction> {
@@ -32,23 +30,23 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 		}
 
 		const membersIds = project.members.map((member) => member.id)
-		const memberAgents = $fairyAgentsAtom
-			.get(this.editor)
-			.filter((agent) => membersIds.includes(agent.id))
+		const memberAgents = this.agent.fairyApp.agentsManager
+			.getAgents()
+			.filter((agent: FairyAgent) => membersIds.includes(agent.id))
 
 		const duoOrchestratorAgent = memberAgents.find(
-			(agent) => agent.getRole() === 'duo-orchestrator'
+			(agent: FairyAgent) => agent.getRole() === 'duo-orchestrator'
 		)
-		const droneAgent = memberAgents.find((agent) => agent.getRole() === 'drone')
+		const droneAgent = memberAgents.find((agent: FairyAgent) => agent.getRole() === 'drone')
 
 		if (!duoOrchestratorAgent || !droneAgent) {
-			deleteProjectAndAssociatedTasks(project.id)
+			this.agent.fairyApp.projectsManager.deleteProjectAndAssociatedTasks(project.id)
 			return
 		}
 
-		const completedTasks = getFairyTasksByProjectId(project.id).filter(
-			(task) => task.status === 'done'
-		)
+		const completedTasks = this.agent.fairyApp.taskListManager
+			.getTasksByProjectId(project.id)
+			.filter((task) => task.status === 'done')
 
 		// Handle duo-orchestrator
 		const duoOrchestratorCompletedTasks = completedTasks.filter(
@@ -100,6 +98,6 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 		}
 		droneAgent.interrupt({ mode: 'idling', input: null })
 
-		deleteProjectAndAssociatedTasks(project.id)
+		this.agent.fairyApp.projectsManager.deleteProjectAndAssociatedTasks(project.id)
 	}
 }

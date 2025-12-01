@@ -21,7 +21,7 @@ import {
 	updateLocalSessionState,
 } from '../../../tla/utils/local-session-state'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
-import { getProjectOrchestrator } from '../../fairy-projects'
+import { useFairyApp } from '../../fairy-app/FairyAppProvider'
 import { FairyMenuContent } from '../menus/FairyMenuContent'
 import { FairyHUDPanelState } from './useFairySelection'
 
@@ -46,6 +46,7 @@ export function FairyHUDHeader({
 	isMobile,
 	onToggleManual,
 }: FairyHUDHeaderProps) {
+	const fairyApp = useFairyApp()
 	const trackEvent = useTldrawAppUiEvents()
 	const fairyConfig = useValue('fairy config', () => shownFairy?.$fairyConfig.get(), [shownFairy])
 
@@ -53,7 +54,8 @@ export function FairyHUDHeader({
 	const project = useValue('project', () => shownFairy?.getProject(), [shownFairy])
 
 	// Check if the project has been started (has an orchestrator)
-	const isProjectStarted = project && getProjectOrchestrator(project)
+	const isProjectStarted =
+		project && fairyApp && fairyApp.projectsManager.getProjectOrchestrator(project)
 
 	const fairyClickable = useValue(
 		'fairy clickable',

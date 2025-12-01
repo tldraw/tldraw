@@ -25,13 +25,7 @@ import {
 } from 'tldraw'
 import { F } from '../../../tla/utils/i18n'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
-import {
-	$fairyDebugFlags,
-	$fairyModelSelection,
-	$fairyProjects,
-	$fairyTasks,
-} from '../../fairy-globals'
-import { addAgentToDummyProject } from '../../fairy-projects'
+import { useFairyApp } from '../../fairy-app/FairyAppProvider'
 import { useChatHistory } from '../hooks/useFairyAgentChatHistory'
 
 // # Home Debug Inspector Types and Labels
@@ -231,8 +225,10 @@ function HomeDebugView({
 // ## Home debug view inspector components
 
 const ProjectsInspector = track(() => {
-	const projects = $fairyProjects.get()
-	const fairyTasks = $fairyTasks.get()
+	const fairyApp = useFairyApp()
+	if (!fairyApp) return null
+	const projects = fairyApp.projectsManager.getProjects()
+	const fairyTasks = fairyApp.taskListManager.getTasks()
 
 	return (
 		<div className="fairy-debug-projects-container">
@@ -240,8 +236,8 @@ const ProjectsInspector = track(() => {
 			{projects.length === 0 ? (
 				<div className="fairy-debug-projects-empty">No projects yet</div>
 			) : (
-				projects.map((project, index) => {
-					const projectTodos = fairyTasks.filter((todo) => todo.projectId === project.id)
+				projects.map((project: any, index: number) => {
+					const projectTodos = fairyTasks.filter((todo: any) => todo.projectId === project.id)
 					return (
 						<div key={project.id} className="fairy-debug-project-card">
 							<div className="fairy-debug-project-name">{project.title}</div>
@@ -253,12 +249,15 @@ const ProjectsInspector = track(() => {
 									label="orchestrator"
 									value={
 										project.members.find(
-											(member) =>
+											(member: any) =>
 												member.role === 'orchestrator' || member.role === 'duo-orchestrator'
 										)?.id
 									}
 								/>
-								<KeyValuePair label="members" value={project.members} />
+								<KeyValuePair
+									label="members"
+									value={project.members.map((member: any) => member.id)}
+								/>
 							</div>
 							<div className="fairy-debug-project-todos-section">
 								<div className="fairy-debug-project-todos-header">
@@ -270,7 +269,7 @@ const ProjectsInspector = track(() => {
 									</div>
 								) : (
 									<div className="fairy-debug-project-todos-list">
-										{projectTodos.map((todo) => (
+										{projectTodos.map((todo: any) => (
 											<div key={todo.id} className="fairy-debug-project-todo-item">
 												<pre className="fairy-debug-pre">{formatValue(todo)}</pre>
 											</div>
@@ -288,7 +287,9 @@ const ProjectsInspector = track(() => {
 })
 
 const FairyTaskInspector = track(() => {
-	const fairyTasks = $fairyTasks.get()
+	const fairyApp = useFairyApp()
+	if (!fairyApp) return null
+	const fairyTasks = fairyApp.taskListManager.getTasks()
 
 	return (
 		<div className="fairy-debug-shared-todos-container">
@@ -296,7 +297,7 @@ const FairyTaskInspector = track(() => {
 			{fairyTasks.length === 0 ? (
 				<div className="fairy-debug-shared-todos-empty">No shared todos yet</div>
 			) : (
-				fairyTasks.map((todo, index) => (
+				fairyTasks.map((todo: any, index: number) => (
 					<div key={todo.id} className="fairy-debug-shared-todo-item">
 						{/* <JsonDisplay value={todo} /> */}
 						{Object.entries(todo).map(([key, value]) => (
@@ -311,8 +312,10 @@ const FairyTaskInspector = track(() => {
 })
 
 const HomeDebugOptions = track(() => {
-	const debugFlags = $fairyDebugFlags.get()
-	const selectedModel = $fairyModelSelection.get()
+	const fairyApp = useFairyApp()
+	if (!fairyApp) return null
+	const debugFlags = fairyApp.getDebugFlags()
+	const selectedModel = fairyApp.getModelSelection()
 	const currentModel = selectedModel ?? DEFAULT_MODEL_NAME
 
 	return (
@@ -325,7 +328,7 @@ const HomeDebugOptions = track(() => {
 							type="checkbox"
 							checked={debugFlags.showTaskBounds}
 							onChange={(e) => {
-								$fairyDebugFlags.set({
+								fairyApp.setDebugFlags({
 									...debugFlags,
 									showTaskBounds: e.target.checked,
 								})
@@ -352,7 +355,7 @@ const HomeDebugOptions = track(() => {
 								key={modelName}
 								label={modelDefinition.name}
 								onClick={() => {
-									$fairyModelSelection.set(modelName as AgentModelName)
+									fairyApp.setModelSelection(modelName as AgentModelName)
 								}}
 							/>
 						))}
@@ -367,6 +370,7 @@ const HomeDebugOptions = track(() => {
 })
 
 const FairyDebugOptions = track(({ agent }: { agent: FairyAgent }) => {
+	const fairyApp = useFairyApp()
 	const debugFlags = agent.$debugFlags.get()
 	const oneShotMode = agent.$useOneShottingMode.get()
 
@@ -430,7 +434,14 @@ const FairyDebugOptions = track(({ agent }: { agent: FairyAgent }) => {
 			</div>
 
 			<div className="fairy-debug-options-buttons">
-				<TldrawUiButton type="low" onClick={() => addAgentToDummyProject(agent.id)}>
+				<TldrawUiButton
+					type="low"
+					onClick={() => {
+						if (fairyApp) {
+							fairyApp.projectsManager.addAgentToDummyProject(agent.id)
+						}
+					}}
+				>
 					<TldrawUiButtonLabel>Add to dummy project</TldrawUiButtonLabel>
 				</TldrawUiButton>
 				<TldrawUiButton type="low" onClick={() => ((window as any).agent = agent)}>

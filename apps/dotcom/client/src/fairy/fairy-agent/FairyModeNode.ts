@@ -1,6 +1,4 @@
-import { AgentRequest, FairyModeDefinition } from '@tldraw/fairy-shared'
-import { $fairyAgentsAtom, $fairyTasks } from '../fairy-globals'
-import { getFairyTasksByProjectId } from '../fairy-task-list'
+import { AgentRequest, FairyModeDefinition, FairyTask } from '@tldraw/fairy-shared'
 import { FairyAgent } from './FairyAgent'
 
 function startPromptTimer(agent: FairyAgent): void {
@@ -90,8 +88,10 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	soloing: {
 		onPromptEnd(agent) {
 			// Continue if there are outstanding tasks
-			const myTasks = $fairyTasks.get().filter((task) => task.assignedTo === agent.id)
-			const incompleteTasks = myTasks.filter((task) => task.status !== 'done')
+			const myTasks = agent.fairyApp.taskListManager
+				.getTasks()
+				.filter((task: FairyTask) => task.assignedTo === agent.id)
+			const incompleteTasks = myTasks.filter((task: FairyTask) => task.status !== 'done')
 			if (incompleteTasks.length > 0) {
 				agent.schedule('Continue until all tasks are marked as complete.')
 			} else {
@@ -158,11 +158,11 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 
 			if (agent.waitManager.isWaiting()) {
 				const members = project.members.filter((member) => member.id !== agent.id)
-				const memberAgents = $fairyAgentsAtom
-					.get(agent.editor)
-					.filter((agent) => members.some((member) => member.id === agent.id))
-				const activeMemberAgents = memberAgents.filter((agent) =>
-					agent.requestManager.isGenerating()
+				const memberAgents = agent.fairyApp.agentsManager
+					.getAgents()
+					.filter((a: FairyAgent) => members.some((member) => member.id === a.id))
+				const activeMemberAgents = memberAgents.filter((a: FairyAgent) =>
+					a.requestManager.isGenerating()
 				)
 
 				// If there are no active members, we need to deploy someone again probably!
@@ -179,7 +179,7 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			}
 
 			if (agent.waitManager.getWaitingFor().length === 0) {
-				const projectTasks = getFairyTasksByProjectId(project.id)
+				const projectTasks = agent.fairyApp.taskListManager.getTasksByProjectId(project.id)
 				const outstandingTasks = projectTasks.filter((task) => task.status !== 'done')
 				const completedTasks = projectTasks.filter((task) => task.status === 'done')
 				if (outstandingTasks.length > 0) {
@@ -229,7 +229,9 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 					return
 				}
 
-				const partnerAgent = $fairyAgentsAtom.get(agent.editor).find((a) => a.id === partner.id)
+				const partnerAgent = agent.fairyApp.agentsManager
+					.getAgents()
+					.find((a: FairyAgent) => a.id === partner.id)
 				if (!partnerAgent) {
 					agent.modeManager.setMode('idling')
 					return
@@ -249,7 +251,7 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			}
 
 			if (agent.waitManager.getWaitingFor().length === 0) {
-				const projectTasks = getFairyTasksByProjectId(project.id)
+				const projectTasks = agent.fairyApp.taskListManager.getTasksByProjectId(project.id)
 				const outstandingTasks = projectTasks.filter((task) => task.status !== 'done')
 				const completedTasks = projectTasks.filter((task) => task.status === 'done')
 				if (outstandingTasks.length > 0) {

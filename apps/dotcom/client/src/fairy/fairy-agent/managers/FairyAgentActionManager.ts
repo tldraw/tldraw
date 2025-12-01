@@ -9,7 +9,6 @@ import {
 import { createEmptyRecordsDiff, RecordsDiff, structuredClone, TLRecord, uniqueId } from 'tldraw'
 import { isDevelopmentEnv } from '../../../utils/env'
 import { AgentActionUtil } from '../../fairy-actions/AgentActionUtil'
-import { $fairyIsApplyingAction } from '../../fairy-globals'
 import { getAgentActionUtilsRecord } from '../../fairy-part-utils/fairy-part-utils'
 import { AgentHelpers } from '../AgentHelpers'
 import type { FairyAgent } from '../FairyAgent'
@@ -124,9 +123,9 @@ export class FairyAgentActionManager extends BaseFairyAgentManager {
 		let diff: RecordsDiff<TLRecord> = createEmptyRecordsDiff()
 		try {
 			diff = editor.store.extractingChanges(() => {
-				$fairyIsApplyingAction.set(true)
+				this.agent.fairyApp.setIsApplyingAction(true)
 				promise = util.applyAction(structuredClone(action), helpers) ?? null
-				$fairyIsApplyingAction.set(false)
+				this.agent.fairyApp.setIsApplyingAction(false)
 			})
 		} catch (error) {
 			// always toast the error
