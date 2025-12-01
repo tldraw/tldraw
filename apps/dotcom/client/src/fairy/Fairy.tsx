@@ -146,11 +146,12 @@ function useFairyPointerInteraction(
 		}
 
 		function handleCapturedPointerMove(e: PointerEvent) {
-			// Dispatch pointer move events to editor when pointer is captured
-			// This ensures editor.inputs.currentPagePoint is updated on mobile
+			// Flush pointer move events immediately to update editor.inputs.currentPagePoint
+			// Using _flushEventForTick instead of dispatch because dispatch queues pointer_move
+			// events for the next tick, which causes stale coordinates on mobile
 			const currentState = interactionState.current
 			if (currentState.status === 'pressed' && e.pointerId === currentState.pointerId) {
-				editor.dispatch({
+				editor._flushEventForTick({
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_move',
@@ -220,8 +221,10 @@ function useFairyPointerInteraction(
 		}
 
 		const handleFairyPointerDown = (e: PointerEvent) => {
-			// This forces the pointer current position to update (needed on mobile)
-			editor.dispatch({
+			// Flush pointer event immediately to update editor.inputs.currentPagePoint
+			// Using _flushEventForTick instead of dispatch because dispatch queues pointer_move
+			// events for the next tick, which causes stale coordinates on mobile
+			editor._flushEventForTick({
 				type: 'pointer',
 				target: 'canvas',
 				name: 'pointer_move',
