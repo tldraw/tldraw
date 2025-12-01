@@ -223,6 +223,10 @@ function useFairyPointerInteraction(
 				const fairiesToDrag: FairyAgent[] = []
 				const selectedFairies = fairyAgents.filter((a) => a.getEntity()?.isSelected)
 				fairiesToDrag.push(...selectedFairies)
+				// Fallback: if no fairies are selected, add the clicked fairy to enable dragging
+				if (selectedFairies.length === 0) {
+					fairiesToDrag.push(agent)
+				}
 
 				// Only prevent default and stop propagation for left-clicks
 				e.preventDefault()
