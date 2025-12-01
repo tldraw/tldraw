@@ -47,6 +47,8 @@ export class FairyAppPersistenceManager extends BaseFairyAppManager {
 	loadState(fairyState: PersistedFairyState) {
 		this.isLoadingState = true
 
+		console.log('loadState', fairyState)
+
 		try {
 			// Load agent states
 			const agents = this.fairyApp.agents.getAgents()
@@ -111,19 +113,25 @@ export class FairyAppPersistenceManager extends BaseFairyAppManager {
 		}
 	}
 
+	forcePersist() {
+		// Don't save if we're currently loading state
+		if (this.isLoadingState) return
+		if (!this._fileId) return
+
+		const fairyState = this.serializeState()
+		this.fairyApp.tldrawApp.onFairyStateUpdate(this._fileId, fairyState)
+	}
+
+	private _fileId: string | null = null
+
 	/**
 	 * Start watching for state changes and auto-save to backend.
 	 *
 	 * @param fileId - The file ID to save state to
 	 */
 	startAutoSave(fileId: string) {
-		const updateFairyState = throttle(() => {
-			// Don't save if we're currently loading state
-			if (this.isLoadingState) return
-
-			const fairyState = this.serializeState()
-			this.fairyApp.tldrawApp.onFairyStateUpdate(fileId, fairyState)
-		}, 2000) // Save maximum every 2 seconds
+		this._fileId = fileId
+		const updateFairyState = throttle(() => this.forcePersist(), 2000) // Save maximum every 2 seconds
 
 		// Watch for changes in fairy atoms
 		const agents = this.fairyApp.agents.getAgents()
@@ -180,6 +188,7 @@ export class FairyAppPersistenceManager extends BaseFairyAppManager {
 	 * Dispose of the persistence manager.
 	 */
 	dispose() {
+		this.forcePersist()
 		this.stopAutoSave()
 		super.dispose()
 	}
