@@ -32,9 +32,6 @@
   "0b27918290": {
     "translation": "File"
   },
-  "0b79795d3e": {
-    "translation": "Introduction"
-  },
   "0b9a4cde72": {
     "translation": "File menu"
   },
@@ -385,6 +382,9 @@
   },
   "81aa2078d1": {
     "translation": "Clear all"
+  },
+  "83218ac34c": {
+    "translation": "Welcome"
   },
   "85a082de1b": {
     "translation": "Please refresh the page to get the latest version of tldraw."

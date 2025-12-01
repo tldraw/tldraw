@@ -69,12 +69,6 @@
       "value": "File"
     }
   ],
-  "0b79795d3e": [
-    {
-      "type": 0,
-      "value": "Introduction"
-    }
-  ],
   "0b9a4cde72": [
     {
       "type": 0,
@@ -873,6 +867,12 @@
     {
       "type": 0,
       "value": "Clear all"
+    }
+  ],
+  "83218ac34c": [
+    {
+      "type": 0,
+      "value": "Welcome"
     }
   ],
   "85a082de1b": [
