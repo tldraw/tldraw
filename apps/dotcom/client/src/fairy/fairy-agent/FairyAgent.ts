@@ -789,7 +789,6 @@ export class FairyAgent {
 							const agentAction: Streaming<AgentAction> = data
 							yield agentAction
 						} catch (err: any) {
-							console.log('this is teh error')
 							throw new Error(err.message)
 						}
 					}
