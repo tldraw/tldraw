@@ -347,6 +347,22 @@
       "value": "Get help on Discord"
     }
   ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Fairies"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " have come to tldraw for the month of December."
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -851,12 +867,6 @@
     {
       "type": 0,
       "value": "Clear all"
-    }
-  ],
-  "8472a551f1": [
-    {
-      "type": 0,
-      "value": "Fairies have come to tldraw for the month of December."
     }
   ],
   "85a082de1b": [
@@ -1751,12 +1761,6 @@
     {
       "type": 0,
       "value": "Import file…"
-    }
-  ],
-  "ffec95af2f": [
-    {
-      "type": 0,
-      "value": "Purchase fairy access"
     }
   ]
 }

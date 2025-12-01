@@ -61,6 +61,7 @@ import { useFileEditorOverrides } from './useFileEditorOverrides'
 
 // eslint-disable-next-line local/no-fairy-imports -- ok for types
 import { type FairyApp } from '../../../fairy/fairy-app/FairyApp'
+import { useFeatureFlags } from '../../hooks/useFeatureFlags'
 
 // Lazy load fairy components
 
@@ -298,14 +299,18 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const hasFairyAccess = useFairyAccess()
 	const areFairiesEnabled = useAreFairiesEnabled()
 	const shouldShowFairies = useShouldShowFairies()
+	const { flags, isLoaded } = useFeatureFlags()
 
 	const instanceComponents = useMemo((): TLComponents => {
 		// User can control their own fairies if they have fairy access and it's enabled
 		const canControlFairies = app && hasFairyAccess && areFairiesEnabled
+
 		// Show fairy UI (HUD, remote fairies) if feature flag is enabled and local toggle is on
 		// This allows guests to see fairies on shared files without requiring login
 		const shouldShowFairyUI = shouldShowFairies && areFairiesEnabled
 
+		const shouldShowTeaser =
+			isLoaded && flags.fairies.enabled && flags.fairies_purchase.enabled && !hasFairyAccess
 		return {
 			...components,
 			Overlays: () => {
@@ -333,13 +338,28 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 									{canControlFairies ? <FairyHUD /> : <FairyHUDTeaser />}
 								</FairyAppContextProvider>
 							</Suspense>
-						) : null}
+						) : (
+							shouldShowTeaser && (
+								<Suspense fallback={<div />}>
+									<FairyHUDTeaser />
+								</Suspense>
+							)
+						)}
 					</>
 				)
 			},
 			DebugMenu: () => <CustomDebugMenu />,
 		}
-	}, [hasFairyAccess, areFairiesEnabled, shouldShowFairies, app, hoistedFairyApp])
+	}, [
+		isLoaded,
+		flags.fairies.enabled,
+		flags.fairies_purchase.enabled,
+		app,
+		hasFairyAccess,
+		areFairiesEnabled,
+		shouldShowFairies,
+		hoistedFairyApp,
+	])
 
 	return (
 		<TlaEditorWrapper>
