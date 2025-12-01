@@ -71,7 +71,6 @@
 }
 
 .pricingContentWrapper .footer {
-	height: 40px;
 	display: flex;
 	align-items: center;
 	font-size: 12px;
@@ -167,6 +166,8 @@
 	justify-content: center;
 	gap: 24px;
 	font-size: 12px;
+	height: 20px;
+	:wa;
 }
 
 .footerLink {
@@ -210,7 +211,6 @@
 }
 
 .dialogBody .footer {
-	height: 40px;
 	display: flex;
 	align-items: center;
 	font-size: 12px;
