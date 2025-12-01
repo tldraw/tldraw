@@ -278,7 +278,6 @@ export function Component() {
 }
 
 function FairyInvites() {
-	const tldrawUser = useTldrawUser()
 	const app = useApp()
 	const user = useValue('user', () => app.getUser(), [app])
 	const { paddleLoaded, openPaddleCheckout } = usePaddle()
@@ -614,9 +613,13 @@ function FairyInvites() {
 			</p>
 			<div className={styles.paddleButtonContainer}>
 				<TlaButton
-					onClick={() => openPaddleCheckout(app.userId, user?.email!)}
+					onClick={() => {
+						if (user?.email) {
+							openPaddleCheckout(app.userId, user.email)
+						}
+					}}
 					variant="primary"
-					disabled={!paddleLoaded}
+					disabled={!paddleLoaded || !user?.email}
 				>
 					Open Paddle Checkout
 				</TlaButton>
