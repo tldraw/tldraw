@@ -29,8 +29,8 @@ export class MarkDuoTaskDoneActionUtil extends AgentActionUtil<MarkDuoTaskDoneAc
 		}
 		const currentTaskId = currentTask.id
 
-		this.agent.fairyApp.taskListManager.setTaskStatusAndNotify(currentTaskId, 'done')
-		this.agent.chatManager.push(
+		this.agent.fairyApp.tasks.setTaskStatusAndNotify(currentTaskId, 'done')
+		this.agent.chat.push(
 			{
 				id: uniqueId(),
 				type: 'memory-transition',

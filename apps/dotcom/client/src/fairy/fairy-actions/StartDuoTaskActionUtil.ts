@@ -6,9 +6,7 @@ export class StartDuoTaskActionUtil extends AgentActionUtil<StartDuoTaskAction> 
 	static override type = 'start-duo-task' as const
 
 	override getInfo(action: Streaming<StartDuoTaskAction>) {
-		const task = action.taskId
-			? this.agent.fairyApp.taskListManager.getTaskById(action.taskId)
-			: undefined
+		const task = action.taskId ? this.agent.fairyApp.tasks.getTaskById(action.taskId) : undefined
 
 		return createAgentActionInfo({
 			icon: 'note',
@@ -23,7 +21,7 @@ export class StartDuoTaskActionUtil extends AgentActionUtil<StartDuoTaskAction> 
 	override applyAction(action: Streaming<StartDuoTaskAction>, _helpers: AgentHelpers) {
 		if (!action.complete) return
 
-		const task = this.agent.fairyApp.taskListManager.getTaskById(action.taskId)
+		const task = this.agent.fairyApp.tasks.getTaskById(action.taskId)
 		if (!task) return
 
 		const project = this.agent.getProject()
@@ -48,9 +46,9 @@ export class StartDuoTaskActionUtil extends AgentActionUtil<StartDuoTaskAction> 
 			return
 		}
 
-		this.agent.fairyApp.taskListManager.setTaskStatus(action.taskId, 'in-progress')
+		this.agent.fairyApp.tasks.setTaskStatus(action.taskId, 'in-progress')
 
-		const currentBounds = this.agent.requestManager.getActiveRequest()?.bounds
+		const currentBounds = this.agent.requests.getActiveRequest()?.bounds
 		if (!currentBounds) return
 
 		this.agent.interrupt({

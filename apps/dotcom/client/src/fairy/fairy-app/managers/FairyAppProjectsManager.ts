@@ -101,8 +101,8 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 	 * Delete a project and all associated tasks.
 	 */
 	deleteProjectAndAssociatedTasks(projectId: string) {
-		this.fairyApp.taskListManager.getTasksByProjectId(projectId).forEach((task) => {
-			this.fairyApp.taskListManager.deleteTask(task.id)
+		this.fairyApp.tasks.getTasksByProjectId(projectId).forEach((task) => {
+			this.fairyApp.tasks.deleteTask(task.id)
 		})
 		this.deleteProject(projectId)
 	}
@@ -117,14 +117,14 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 		const projectReference = project.title ? `the "${project.title}" project` : 'a project'
 
 		// Get completed tasks for this member agent
-		const completedTasks = this.fairyApp.taskListManager
+		const completedTasks = this.fairyApp.tasks
 			.getTasksByProjectId(project.id)
 			.filter((task) => task.status === 'done' && task.assignedTo === memberAgent.id)
 		const completedTasksCount = completedTasks.length
 
 		if (completedTasksCount > 0) {
 			const taskWord = completedTasksCount === 1 ? 'task' : 'tasks'
-			memberAgent.chatManager.push(
+			memberAgent.chat.push(
 				{
 					id: uniqueId(),
 					type: 'memory-transition',
@@ -142,7 +142,7 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 				}
 			)
 		} else {
-			memberAgent.chatManager.push(
+			memberAgent.chat.push(
 				{
 					id: uniqueId(),
 					type: 'memory-transition',
@@ -170,7 +170,7 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 		if (!project || project.members.length <= 1) return
 
 		const memberAgents = project.members
-			.map((member) => this.fairyApp.agentsManager.getAgentById(member.id))
+			.map((member) => this.fairyApp.agents.getAgentById(member.id))
 			.filter((agent): agent is FairyAgent => agent !== undefined)
 
 		memberAgents.forEach((memberAgent) => {
@@ -186,7 +186,7 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 	 */
 	disbandAllProjects() {
 		const projects = this.$projects.get()
-		const agents = this.fairyApp.agentsManager.getAgents()
+		const agents = this.fairyApp.agents.getAgents()
 
 		projects.forEach((project) => {
 			if (project.members.length <= 1) return
@@ -198,7 +198,7 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 			memberAgents.forEach((memberAgent) => {
 				this.addProjectCancellationMemory(memberAgent, project)
 				memberAgent.interrupt({ mode: 'idling', input: null })
-				memberAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+				memberAgent.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
 			})
 
 			this.deleteProjectAndAssociatedTasks(project.id)
@@ -231,7 +231,7 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 		}
 
 		const projectMemberAgents = project.members
-			.map((member) => this.fairyApp.agentsManager.getAgentById(member.id))
+			.map((member) => this.fairyApp.agents.getAgentById(member.id))
 			.filter((agent): agent is FairyAgent => agent !== undefined)
 
 		if (projectMemberAgents.length !== project.members.length) {
@@ -266,7 +266,7 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 			return
 		}
 
-		const projectTasks = this.fairyApp.taskListManager.getTasksByProjectId(project.id)
+		const projectTasks = this.fairyApp.tasks.getTasksByProjectId(project.id)
 		const projectHasTasks = projectTasks.length > 0
 
 		if (projectHasTasks) {
@@ -357,7 +357,7 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 			return
 		}
 
-		const projectTasks = this.fairyApp.taskListManager.getTasksByProjectId(project.id)
+		const projectTasks = this.fairyApp.tasks.getTasksByProjectId(project.id)
 		const projectHasTasks = projectTasks.length > 0
 
 		if (projectHasTasks) {
@@ -454,17 +454,17 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 		if (!project) return
 
 		const projectMemberAgents = project.members
-			.map((member) => this.fairyApp.agentsManager.getAgentById(member.id))
+			.map((member) => this.fairyApp.agents.getAgentById(member.id))
 			.filter((agent): agent is FairyAgent => agent !== undefined)
 
 		projectMemberAgents.forEach((agent) => {
 			const role = agent.getRole()
 			if (role === 'orchestrator') {
-				agent.modeManager.setMode('orchestrating-waiting')
+				agent.mode.setMode('orchestrating-waiting')
 			} else if (role === 'duo-orchestrator') {
-				agent.modeManager.setMode('duo-orchestrating-waiting')
+				agent.mode.setMode('duo-orchestrating-waiting')
 			} else if (role === 'drone') {
-				agent.modeManager.setMode('standing-by')
+				agent.mode.setMode('standing-by')
 			}
 		})
 	}

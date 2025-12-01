@@ -94,6 +94,6 @@ export class PlaceActionUtil extends AgentActionUtil<PlaceAction> {
 			y,
 		})
 
-		this.agent.positionManager.moveTo({ x, y })
+		this.agent.position.moveTo({ x, y })
 	}
 }

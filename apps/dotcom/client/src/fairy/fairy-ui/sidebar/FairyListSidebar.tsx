@@ -83,7 +83,7 @@ function useSidebarEntries(agents: FairyAgent[]): FairySidebarEntry[] {
 
 				if (group && group.agents.length > 1) {
 					const isActive = group.agents.some(
-						(groupAgent) => groupAgent.$fairyEntity.get()?.isSelected ?? false
+						(groupAgent) => groupAgent.getEntity()?.isSelected ?? false
 					)
 
 					entries.push({
@@ -131,7 +131,7 @@ export function FairyListSidebar({
 
 	const hasAnySelectedFairies = useValue(
 		'has-any-selected-fairies',
-		() => agents.some((agent) => agent.$fairyEntity.get()?.isSelected ?? false),
+		() => agents.some((agent) => agent.getEntity()?.isSelected ?? false),
 		[agents]
 	)
 
@@ -139,7 +139,7 @@ export function FairyListSidebar({
 		'has-any-active-projects',
 		() => {
 			// Check if any selected fairy is part of an active project
-			const selectedAgents = agents.filter((agent) => agent.$fairyEntity.get()?.isSelected ?? false)
+			const selectedAgents = agents.filter((agent) => agent.getEntity()?.isSelected ?? false)
 			return selectedAgents.some((agent) => {
 				const project = agent.getProject()
 				if (!project) return false
@@ -218,11 +218,9 @@ function ManualButtonWithMenu({
 	const dialogs = useDialogs()
 	const container = useContainer()
 	const areFairiesDebugEnabled = useAreFairiesDebugEnabled()
-	const allAgents = useValue(
-		'fairy-agents',
-		() => (fairyApp ? fairyApp.agentsManager.getAgents() : []),
-		[fairyApp]
-	)
+	const allAgents = useValue('fairy-agents', () => (fairyApp ? fairyApp.agents.getAgents() : []), [
+		fairyApp,
+	])
 
 	const openManualLabel = useMsg(fairyMessages.openManual)
 	const closeManualLabel = useMsg(fairyMessages.closeManual)
@@ -243,7 +241,7 @@ function ManualButtonWithMenu({
 
 		// Clear the todo list and projects
 		if (fairyApp) {
-			fairyApp.taskListManager.clearTasksAndProjects()
+			fairyApp.tasks.clearTasksAndProjects()
 		}
 
 		// Reset all chats

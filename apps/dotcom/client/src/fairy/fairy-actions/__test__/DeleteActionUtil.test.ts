@@ -123,7 +123,7 @@ describe('DeleteActionUtil', () => {
 
 			deleteUtil.applyAction(action)
 
-			expect(agent.positionManager.moveTo).toHaveBeenCalledWith({ x: 150, y: 250 })
+			expect(agent.position.moveTo).toHaveBeenCalledWith({ x: 150, y: 250 })
 		})
 
 		it('should not delete if shape does not exist', () => {
@@ -139,7 +139,7 @@ describe('DeleteActionUtil', () => {
 			deleteUtil.applyAction(action)
 
 			expect(deleteShapeSpy).not.toHaveBeenCalled()
-			expect(agent.positionManager.moveTo).not.toHaveBeenCalled()
+			expect(agent.position.moveTo).not.toHaveBeenCalled()
 		})
 
 		it('should handle deletion of text shape', () => {
@@ -161,7 +161,7 @@ describe('DeleteActionUtil', () => {
 
 			// Verify shape was actually deleted
 			expect(editor.getShape(id)).toBeUndefined()
-			expect(agent.positionManager.moveTo).toHaveBeenCalledWith({ x: 300, y: 400 })
+			expect(agent.position.moveTo).toHaveBeenCalledWith({ x: 300, y: 400 })
 		})
 
 		it('should handle deletion of arrow shape', () => {
@@ -183,7 +183,7 @@ describe('DeleteActionUtil', () => {
 
 			// Verify shape was actually deleted
 			expect(editor.getShape(arrowId)).toBeUndefined()
-			expect(agent.positionManager.moveTo).toHaveBeenCalledWith({ x: 50, y: 75 })
+			expect(agent.position.moveTo).toHaveBeenCalledWith({ x: 50, y: 75 })
 		})
 	})
 })

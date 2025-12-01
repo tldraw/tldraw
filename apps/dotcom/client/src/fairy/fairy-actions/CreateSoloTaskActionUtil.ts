@@ -27,7 +27,7 @@ export class CreateSoloTaskActionUtil extends AgentActionUtil<CreateSoloTaskActi
 			h: action.h,
 		})
 
-		this.agent.fairyApp.taskListManager.createTask({
+		this.agent.fairyApp.tasks.createTask({
 			id: action.taskId,
 			title: action.title,
 			text: action.text,

@@ -15,9 +15,7 @@ import { FairyListSidebar } from './sidebar/FairyListSidebar'
 
 export function FairyHUD({ fairyApp }: { fairyApp: FairyApp }) {
 	const editor = useEditor()
-	const agents = useValue('fairy-agents', () => fairyApp?.agentsManager.getAgents() ?? [], [
-		fairyApp,
-	])
+	const agents = useValue('fairy-agents', () => fairyApp?.agents.getAgents() ?? [], [fairyApp])
 	const breakpoint = useBreakpoint()
 	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
 	const [headerMenuPopoverOpen, setHeaderMenuPopoverOpen] = useState(false)
@@ -118,7 +116,7 @@ export function FairyHUD({ fairyApp }: { fairyApp: FairyApp }) {
 											agent={shownFairy}
 											onCancel={() => {
 												agents.forEach((agent) => {
-													agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+													agent.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
 												})
 											}}
 										/>
@@ -136,7 +134,7 @@ export function FairyHUD({ fairyApp }: { fairyApp: FairyApp }) {
 										orchestratorAgent={activeOrchestratorAgent}
 										onClose={() => {
 											agents.forEach((agent) => {
-												agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+												agent.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
 											})
 										}}
 									/>
@@ -153,7 +151,7 @@ export function FairyHUD({ fairyApp }: { fairyApp: FairyApp }) {
 									}}
 									onClose={() => {
 										agents.forEach((agent) => {
-											agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+											agent.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
 										})
 									}}
 								/>

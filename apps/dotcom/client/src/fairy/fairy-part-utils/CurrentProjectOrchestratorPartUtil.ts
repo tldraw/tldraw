@@ -8,7 +8,7 @@ export class CurrentProjectOrchestratorPartUtil extends PromptPartUtil<CurrentPr
 	override getPart(_request: AgentRequest, _helpers: AgentHelpers): CurrentProjectOrchestratorPart {
 		const currentProject = this.agent.getProject() ?? null
 		const currentProjectTasks = currentProject
-			? this.agent.fairyApp.taskListManager.getTasksByProjectId(currentProject.id)
+			? this.agent.fairyApp.tasks.getTasksByProjectId(currentProject.id)
 			: []
 		return {
 			type: 'currentProjectOrchestrator',

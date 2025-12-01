@@ -18,8 +18,7 @@ export function useFairySelection(agents: FairyAgent[]) {
 		'selected-fairies',
 		() =>
 			agents.filter(
-				(agent) =>
-					(agent.$fairyEntity.get()?.isSelected && !agent.modeManager.isSleeping()) ?? false
+				(agent) => (agent.getEntity()?.isSelected && !agent.mode.isSleeping()) ?? false
 			),
 		[agents]
 	)
@@ -38,7 +37,7 @@ export function useFairySelection(agents: FairyAgent[]) {
 			const project = shownFairy.getProject()
 			if (!project) return null
 
-			const orchestratorMember = fairyApp.projectsManager.getProjectOrchestrator(project)
+			const orchestratorMember = fairyApp.projects.getProjectOrchestrator(project)
 			if (!orchestratorMember) return null
 
 			// Return the actual FairyAgent, not just the member
@@ -60,12 +59,12 @@ export function useFairySelection(agents: FairyAgent[]) {
 	const selectFairy = useCallback(
 		(selectedAgent: FairyAgent) => {
 			// Select the specified fairy
-			selectedAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
+			selectedAgent.updateEntity((f) => (f ? { ...f, isSelected: true } : f))
 
 			// Deselect all other fairies
 			agents.forEach((agent) => {
 				if (agent.id === selectedAgent.id) return
-				agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+				agent.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
 			})
 		},
 		[agents]
@@ -78,7 +77,7 @@ export function useFairySelection(agents: FairyAgent[]) {
 			}
 
 			// Check if project has an orchestrator (meaning it's been started)
-			const orchestratorMember = fairyApp.projectsManager.getProjectOrchestrator(project)
+			const orchestratorMember = fairyApp.projects.getProjectOrchestrator(project)
 
 			if (orchestratorMember) {
 				// Project has been started, show the orchestrator's chat
@@ -94,7 +93,7 @@ export function useFairySelection(agents: FairyAgent[]) {
 
 			agents.forEach((agent) => {
 				const shouldSelect = memberIds.has(agent.id)
-				agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: shouldSelect } : f))
+				agent.updateEntity((f) => (f ? { ...f, isSelected: shouldSelect } : f))
 			})
 
 			setShownFairy(null)
@@ -106,7 +105,7 @@ export function useFairySelection(agents: FairyAgent[]) {
 	const handleClickFairy = useCallback(
 		(clickedAgent: FairyAgent, event: MouseEvent) => {
 			const isMultiSelect = event.shiftKey || event.metaKey || event.ctrlKey
-			const isSelected = clickedAgent.$fairyEntity.get().isSelected
+			const isSelected = clickedAgent.getEntity()?.isSelected ?? false
 			const isChosen = clickedAgent.id === shownFairy?.id
 			const project = clickedAgent.getProject()
 
@@ -121,12 +120,12 @@ export function useFairySelection(agents: FairyAgent[]) {
 
 			if (isMultiSelect) {
 				// Toggle selection without deselecting others
-				clickedAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: !isSelected } : f))
+				clickedAgent.updateEntity((f) => (f ? { ...f, isSelected: !isSelected } : f))
 			} else {
 				// Single select mode
 				// If clicking an already selected fairy, deselect it
 				if (isSelected && selectedFairies.length === 1) {
-					clickedAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+					clickedAgent.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
 					return
 				}
 
@@ -143,7 +142,7 @@ export function useFairySelection(agents: FairyAgent[]) {
 						isChosen && isSelected && panelState === 'fairy' && selectedFairies.length <= 1
 					if (shouldClosePanel) {
 						agents.forEach((agent) => {
-							agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+							agent.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
 						})
 					} else {
 						selectFairy(clickedAgent)
@@ -167,12 +166,12 @@ export function useFairySelection(agents: FairyAgent[]) {
 		(clickedAgent: FairyAgent) => {
 			trackEvent('fairy-double-click', { source: 'fairy-sidebar', fairyId: clickedAgent.id })
 			trackEvent('fairy-zoom-to', { source: 'fairy-sidebar', fairyId: clickedAgent.id })
-			clickedAgent.positionManager.zoomTo()
+			clickedAgent.position.zoomTo()
 
 			// If the clicked fairy is part of an active project, select the orchestrator instead
 			const project = clickedAgent.getProject()
 			if (project && fairyApp) {
-				const orchestratorMember = fairyApp.projectsManager.getProjectOrchestrator(project)
+				const orchestratorMember = fairyApp.projects.getProjectOrchestrator(project)
 				if (orchestratorMember) {
 					const orchestratorAgent = agents.find((agent) => agent.id === orchestratorMember.id)
 					if (orchestratorAgent) {

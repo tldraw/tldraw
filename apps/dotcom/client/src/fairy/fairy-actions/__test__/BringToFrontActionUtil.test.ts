@@ -164,7 +164,7 @@ describe('BringToFrontActionUtil', () => {
 			bringToFrontUtil.applyAction(action)
 
 			// Should move to center of bounds
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 		})
 
 		it('should not move fairy if shapes have no bounds', () => {
@@ -178,7 +178,7 @@ describe('BringToFrontActionUtil', () => {
 
 			bringToFrontUtil.applyAction(action)
 
-			expect(agent.positionManager.moveTo).not.toHaveBeenCalled()
+			expect(agent.position.moveTo).not.toHaveBeenCalled()
 		})
 
 		it('should handle bringing shapes with empty array', () => {
@@ -194,7 +194,7 @@ describe('BringToFrontActionUtil', () => {
 			bringToFrontUtil.applyAction(action)
 
 			expect(bringToFrontSpy).toHaveBeenCalledWith([])
-			expect(agent.positionManager.moveTo).not.toHaveBeenCalled()
+			expect(agent.position.moveTo).not.toHaveBeenCalled()
 		})
 	})
 })

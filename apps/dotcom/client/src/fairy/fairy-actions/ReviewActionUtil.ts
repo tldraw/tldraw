@@ -34,12 +34,12 @@ export class ReviewActionUtil extends AgentActionUtil<ReviewAction> {
 			agentMessages: [getReviewMessage(action.intent)],
 		})
 
-		const fairy = this.agent.$fairyEntity.get()
+		const fairy = this.agent.getEntity()
 		if (!fairy) return
 		if (!action.complete) {
-			this.agent.$fairyEntity.set({ ...fairy, pose: 'reviewing' })
+			this.agent.updateEntity((f) => (f ? { ...f, pose: 'reviewing' } : f))
 		} else {
-			this.agent.$fairyEntity.set({ ...fairy, pose: 'idle' })
+			this.agent.updateEntity((f) => (f ? { ...f, pose: 'idle' } : f))
 		}
 	}
 }

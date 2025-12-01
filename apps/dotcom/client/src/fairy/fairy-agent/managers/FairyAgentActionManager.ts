@@ -100,14 +100,14 @@ export class FairyAgentActionManager extends BaseFairyAgentManager {
 		const actionInfo = this.getActionInfo(action)
 		if (actionInfo.pose) {
 			// check the mode at the exact instant we would set the pose, if the fairy has somehow become inactive, set the pose to idle
-			const modeDefinition = getFairyModeDefinition(this.agent.modeManager.getMode())
+			const modeDefinition = getFairyModeDefinition(this.agent.mode.getMode())
 			if (modeDefinition.active) {
-				this.agent.$fairyEntity.update((fairy) => ({
+				this.agent.updateEntity((fairy) => ({
 					...fairy,
 					pose: actionInfo.pose ?? fairy.pose,
 				}))
 			} else {
-				this.agent.$fairyEntity.update((fairy) => ({ ...fairy, pose: 'idle' }))
+				this.agent.updateEntity((fairy) => ({ ...fairy, pose: 'idle' }))
 			}
 		}
 
@@ -118,7 +118,7 @@ export class FairyAgentActionManager extends BaseFairyAgentManager {
 			this.ensureFairyIsOnCorrectPage(action)
 		}
 
-		const modeDefinition = getFairyModeDefinition(this.agent.modeManager.getMode())
+		const modeDefinition = getFairyModeDefinition(this.agent.mode.getMode())
 		let promise: Promise<void> | null = null
 		let diff: RecordsDiff<TLRecord> = createEmptyRecordsDiff()
 		try {
@@ -150,7 +150,7 @@ export class FairyAgentActionManager extends BaseFairyAgentManager {
 				memoryLevel: modeDefinition.memoryLevel,
 			}
 
-			this.agent.chatManager.update((historyItems) => {
+			this.agent.chat.update((historyItems) => {
 				// If there are no items, start off the chat history with the first item
 				if (historyItems.length === 0) return [historyItem]
 
@@ -201,7 +201,7 @@ export class FairyAgentActionManager extends BaseFairyAgentManager {
 	 */
 	private ensureFairyIsOnCorrectPage(action: Streaming<AgentAction>) {
 		const { editor } = this.agent
-		const fairyEntity = this.agent.$fairyEntity.get()
+		const fairyEntity = this.agent.getEntity()
 		if (!fairyEntity) return
 
 		// Extract shape IDs from the action based on action type
@@ -236,7 +236,7 @@ export class FairyAgentActionManager extends BaseFairyAgentManager {
 				if (shapePageId && fairyEntity.currentPageId !== shapePageId) {
 					// Switch to the shape's page
 					editor.setCurrentPage(shapePageId)
-					this.agent.$fairyEntity.update((f) => (f ? { ...f, currentPageId: shapePageId } : f))
+					this.agent.updateEntity((f) => (f ? { ...f, currentPageId: shapePageId } : f))
 				}
 			}
 		}
@@ -244,7 +244,7 @@ export class FairyAgentActionManager extends BaseFairyAgentManager {
 		else if (action._type === 'create' || action._type === 'pen') {
 			const currentPageId = editor.getCurrentPageId()
 			if (fairyEntity.currentPageId !== currentPageId) {
-				this.agent.$fairyEntity.update((f) => (f ? { ...f, currentPageId } : f))
+				this.agent.updateEntity((f) => (f ? { ...f, currentPageId } : f))
 			}
 		}
 	}

@@ -247,7 +247,7 @@ describe('StackActionUtil', () => {
 			stackUtil.applyAction(action)
 
 			// Should move to center of bounds
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 		})
 
 		it('should not move fairy if shapes have no bounds', () => {
@@ -263,7 +263,7 @@ describe('StackActionUtil', () => {
 
 			stackUtil.applyAction(action)
 
-			expect(agent.positionManager.moveTo).not.toHaveBeenCalled()
+			expect(agent.position.moveTo).not.toHaveBeenCalled()
 		})
 
 		it('should handle stacking with two shapes', () => {
@@ -291,7 +291,7 @@ describe('StackActionUtil', () => {
 				'horizontal',
 				1
 			)
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 		})
 	})
 })

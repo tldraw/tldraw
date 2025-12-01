@@ -291,7 +291,7 @@ describe('RotateActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			rotateUtil.applyAction(action, helpers)
 
-			expect(agent.positionManager.moveTo).toHaveBeenCalledWith({ x: 50, y: 50 })
+			expect(agent.position.moveTo).toHaveBeenCalledWith({ x: 50, y: 50 })
 		})
 
 		it('should handle rotation by 180 degrees', () => {
@@ -427,7 +427,7 @@ describe('RotateActionUtil', () => {
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 
 			// Set up a chat origin offset
-			vi.mocked(agent.chatOriginManager.getOrigin).mockReturnValue({ x: 50, y: 50 })
+			vi.mocked(agent.chatOrigin.getOrigin).mockReturnValue({ x: 50, y: 50 })
 
 			const action = createAgentAction({
 				_type: 'rotate',
@@ -445,7 +445,7 @@ describe('RotateActionUtil', () => {
 			rotateUtil.applyAction(action, helpers)
 
 			// The offset should be removed from the origin
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 		})
 
 		it('should correctly convert degrees to radians', () => {

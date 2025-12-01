@@ -29,10 +29,10 @@ export class FairyAppWaitManager extends BaseFairyAppManager {
 		getUserFacingMessage?(agentId: string, condition: FairyWaitCondition<FairyWaitEvent>): string
 	}) {
 		const eventType = event.type
-		const agents = this.fairyApp.agentsManager.getAgents()
+		const agents = this.fairyApp.agents.getAgents()
 
 		for (const agent of agents) {
-			const waitingConditions = agent.waitManager.getWaitingFor()
+			const waitingConditions = agent.waits.getWaitingFor()
 			const matchingCondition = waitingConditions.find(
 				(condition) => condition.eventType === eventType && condition.matcher(event)
 			)
@@ -42,12 +42,12 @@ export class FairyAppWaitManager extends BaseFairyAppManager {
 				const remainingConditions = waitingConditions.filter(
 					(condition) => condition !== matchingCondition
 				)
-				agent.waitManager.waitForAll(remainingConditions)
+				agent.waits.waitForAll(remainingConditions)
 
 				// Wake up the agent with a notification message
 				const agentFacingMessage = getAgentFacingMessage(agent.id, matchingCondition)
 				const userFacingMessage = getUserFacingMessage?.(agent.id, matchingCondition) ?? null
-				agent.waitManager.notifyWaitConditionFulfilled({
+				agent.waits.notifyWaitConditionFulfilled({
 					agentFacingMessage,
 					userFacingMessage,
 				})

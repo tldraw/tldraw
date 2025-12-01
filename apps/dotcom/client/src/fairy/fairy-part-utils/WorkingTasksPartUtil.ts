@@ -6,7 +6,7 @@ export class WorkingTasksPartUtil extends PromptPartUtil<WorkingTasksPart> {
 	static override type = 'workingTasks' as const
 
 	override getPart(_request: AgentRequest, helpers: AgentHelpers): WorkingTasksPart {
-		const allTasks = this.agent.fairyApp.taskListManager.getTasks()
+		const allTasks = this.agent.fairyApp.tasks.getTasks()
 		const tasks = allTasks
 			.filter(
 				(task: FairyTask) => task.assignedTo === this.agent.id && task.status === 'in-progress'

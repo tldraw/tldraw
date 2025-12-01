@@ -307,7 +307,7 @@ describe('AlignActionUtil', () => {
 			alignUtil.applyAction(action)
 
 			// Should move to center of bounds
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 		})
 
 		it('should not move fairy if shapes have no bounds', () => {
@@ -323,7 +323,7 @@ describe('AlignActionUtil', () => {
 
 			alignUtil.applyAction(action)
 
-			expect(agent.positionManager.moveTo).not.toHaveBeenCalled()
+			expect(agent.position.moveTo).not.toHaveBeenCalled()
 		})
 	})
 })

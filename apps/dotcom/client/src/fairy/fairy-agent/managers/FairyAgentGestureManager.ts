@@ -38,7 +38,7 @@ export class FairyAgentGestureManager extends BaseFairyAgentManager {
 	reset(): void {
 		this.stack = []
 		const agent = this.agent
-		agent.$fairyEntity.update((fairy) => ({ ...fairy, gesture: null }))
+		agent.updateEntity((fairy) => ({ ...fairy, gesture: null }))
 	}
 
 	/**
@@ -49,7 +49,7 @@ export class FairyAgentGestureManager extends BaseFairyAgentManager {
 	pop() {
 		this.stack.pop()
 		const finalGesture = this.stack[this.stack.length - 1]?.gesture ?? null
-		this.agent.$fairyEntity.update((fairy) => ({ ...fairy, gesture: finalGesture }))
+		this.agent.updateEntity((fairy) => ({ ...fairy, gesture: finalGesture }))
 	}
 
 	/**
@@ -63,7 +63,7 @@ export class FairyAgentGestureManager extends BaseFairyAgentManager {
 	 */
 	push(gesture: FairyPose, duration?: number) {
 		const { agent } = this
-		agent.$fairyEntity.update((fairy) => ({ ...fairy, gesture: gesture }))
+		agent.updateEntity((fairy) => ({ ...fairy, gesture: gesture }))
 
 		const id = uniqueId()
 		this.stack.push({ id, gesture })
@@ -82,6 +82,6 @@ export class FairyAgentGestureManager extends BaseFairyAgentManager {
 	clear() {
 		const { agent } = this
 		this.stack = []
-		agent.$fairyEntity.update((fairy) => ({ ...fairy, gesture: null }))
+		agent.updateEntity((fairy) => ({ ...fairy, gesture: null }))
 	}
 }

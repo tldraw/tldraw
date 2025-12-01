@@ -50,7 +50,7 @@ export class FairyAppFollowingManager extends BaseFairyAppManager {
 		// Stop any existing following first
 		this.stopFollowing()
 
-		const agent = this.fairyApp.agentsManager.getAgentById(fairyId)
+		const agent = this.fairyApp.agents.getAgentById(fairyId)
 		if (!agent) {
 			console.warn('Could not find fairy agent with id:', fairyId)
 			return
@@ -70,13 +70,13 @@ export class FairyAppFollowingManager extends BaseFairyAppManager {
 				return
 			}
 
-			const currentAgent = this.fairyApp.agentsManager.getAgentById(fairyId)
+			const currentAgent = this.fairyApp.agents.getAgentById(fairyId)
 			if (!currentAgent) {
 				this.stopFollowing()
 				return
 			}
 
-			const fairyEntity = currentAgent.$fairyEntity.get()
+			const fairyEntity = currentAgent.getEntity()
 			if (!fairyEntity) {
 				this.stopFollowing()
 				return
@@ -113,9 +113,9 @@ export class FairyAppFollowingManager extends BaseFairyAppManager {
 			}
 
 			// If user changed page manually (not from following), stop following
-			const currentAgent = this.fairyApp.agentsManager.getAgentById(fairyId)
+			const currentAgent = this.fairyApp.agents.getAgentById(fairyId)
 			if (currentAgent) {
-				const fairyPageId = currentAgent.$fairyEntity.get()?.currentPageId
+				const fairyPageId = currentAgent.getEntity()?.currentPageId
 				if (currentPageId !== fairyPageId && currentPageId !== lastPageId) {
 					this.stopFollowing()
 				}
@@ -145,7 +145,7 @@ export class FairyAppFollowingManager extends BaseFairyAppManager {
 	 * Also switches to the page where the fairy is located.
 	 */
 	zoomToFairy(agent: FairyAgent) {
-		const entity = agent.$fairyEntity.get()
+		const entity = agent.getEntity()
 		if (!entity) return
 
 		const { editor } = this.fairyApp

@@ -94,7 +94,7 @@ export class FairyAgentRequestManager extends BaseFairyAgentManager {
 			bounds:
 				request.bounds ??
 				activeRequest?.bounds ??
-				Box.FromCenter(this.agent.$fairyEntity.get().position, FAIRY_VISION_DIMENSIONS),
+				Box.FromCenter(this.agent.getEntity().position, FAIRY_VISION_DIMENSIONS),
 		} satisfies AgentRequest
 	}
 

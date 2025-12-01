@@ -164,7 +164,7 @@ describe('SendToBackActionUtil', () => {
 			sendToBackUtil.applyAction(action)
 
 			// Should move to center of bounds
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 		})
 
 		it('should not move fairy if shapes have no bounds', () => {
@@ -178,7 +178,7 @@ describe('SendToBackActionUtil', () => {
 
 			sendToBackUtil.applyAction(action)
 
-			expect(agent.positionManager.moveTo).not.toHaveBeenCalled()
+			expect(agent.position.moveTo).not.toHaveBeenCalled()
 		})
 
 		it('should handle sending shapes with empty array', () => {
@@ -194,7 +194,7 @@ describe('SendToBackActionUtil', () => {
 			sendToBackUtil.applyAction(action)
 
 			expect(sendToBackSpy).toHaveBeenCalledWith([])
-			expect(agent.positionManager.moveTo).not.toHaveBeenCalled()
+			expect(agent.position.moveTo).not.toHaveBeenCalled()
 		})
 	})
 })

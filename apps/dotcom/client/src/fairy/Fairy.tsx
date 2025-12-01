@@ -1,8 +1,7 @@
-import { FairyEntity } from '@tldraw/fairy-shared'
 import classNames from 'classnames'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import React, { useEffect, useRef } from 'react'
-import { Atom, TLEventInfo, getPointerInfo, useEditor, useQuickReactor, useValue } from 'tldraw'
+import { TLEventInfo, getPointerInfo, useEditor, useQuickReactor, useValue } from 'tldraw'
 import '../tla/styles/fairy.css'
 import { TLAppUiHandler, useTldrawAppUiEvents } from '../tla/utils/app-ui-events'
 import { FairyAgent } from './fairy-agent/FairyAgent'
@@ -23,24 +22,14 @@ interface FairyPressedState {
 	pointerId: number
 	startClient: { x: number; y: number }
 	wasSelectedBeforeDown: boolean
-	fairiesAtPointerDown: Atom<FairyEntity>[]
+	fairiesAtPointerDown: FairyAgent[]
 }
 interface FairyDraggingState {
 	status: 'dragging'
 	pointerId: number
-	fairiesAtPointerDown: Atom<FairyEntity>[]
+	fairiesAtPointerDown: FairyAgent[]
 }
 type FairyInteractionState = FairyIdleState | FairyPressedState | FairyDraggingState
-
-function getSelectedFairyAtoms(fairyAgents: FairyAgent[]) {
-	const selected: Atom<FairyEntity>[] = []
-	fairyAgents.forEach((a) => {
-		if (a.$fairyEntity.get()?.isSelected) {
-			selected.push(a.$fairyEntity)
-		}
-	})
-	return selected
-}
 
 function updateFairySelection(
 	fairyAgents: FairyAgent[],
@@ -55,9 +44,9 @@ function updateFairySelection(
 			trackEvent('fairy-select', { source: 'fairy-canvas', fairyId: clickedAgent.id })
 			fairyAgents.forEach((a) => {
 				if (a.id === clickedAgent.id) {
-					a.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
+					a.updateEntity((f) => (f ? { ...f, isSelected: true } : f))
 				} else {
-					a.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+					a.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
 				}
 			})
 		}
@@ -66,7 +55,7 @@ function updateFairySelection(
 		// Multi-select: add to selection if not selected
 		if (!wasSelected) {
 			trackEvent('fairy-add-to-selection', { source: 'fairy-canvas', fairyId: clickedAgent.id })
-			clickedAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
+			clickedAgent.updateEntity((f) => (f ? { ...f, isSelected: true } : f))
 		}
 		// If already selected, do nothing (will handle deselection on pointer up)
 	}
@@ -77,10 +66,7 @@ function getFairyCursor(isFairyGrabbable: boolean, isDragging: boolean): string 
 	return isDragging ? 'grabbing' : 'grab'
 }
 
-function setFairiesToThrowTool(
-	editor: ReturnType<typeof useEditor>,
-	fairies: Atom<FairyEntity>[]
-): void {
+function setFairiesToThrowTool(editor: ReturnType<typeof useEditor>, fairies: FairyAgent[]): void {
 	const tool = editor.getStateDescendant('select.fairy-throw')
 	if (tool instanceof FairyThrowTool) {
 		tool.setFairies(fairies)
@@ -96,7 +82,6 @@ function useFairyPointerInteraction(
 ) {
 	const interactionState = useRef<FairyInteractionState>({ status: 'idle' })
 	const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-	const $fairyEntity = agent.$fairyEntity
 
 	useEffect(() => {
 		const elm = ref.current
@@ -123,7 +108,7 @@ function useFairyPointerInteraction(
 
 		function startDraggingWithCurrentState(currentState: FairyPressedState) {
 			cancelLongPressTimer()
-			agent.gestureManager.clear()
+			agent.gesture.clear()
 			interactionState.current = {
 				status: 'dragging',
 				pointerId: currentState.pointerId,
@@ -166,7 +151,7 @@ function useFairyPointerInteraction(
 			cancelLongPressTimer()
 
 			// Clear panicking gesture if it was set
-			agent.gestureManager.clear()
+			agent.gesture.clear()
 
 			if (currentState.status === 'idle') {
 				cleanupPointerListeners()
@@ -179,7 +164,7 @@ function useFairyPointerInteraction(
 			editor.setCursor({ type: 'default', rotation: 0 })
 
 			if (currentState.status === 'pressed' && currentState.wasSelectedBeforeDown) {
-				agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+				agent.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
 			}
 
 			interactionState.current = { status: 'idle' }
@@ -228,20 +213,16 @@ function useFairyPointerInteraction(
 				// This is necessary on mobile to ensure editor.inputs.currentPagePoint is updated
 				elm.addEventListener('pointermove', handleCapturedPointerMove)
 
-				const fairyAgents = agent.fairyApp.agentsManager.getAgents()
-				const clickedFairyEntity = $fairyEntity.get()
+				const fairyAgents = agent.fairyApp.agents.getAgents()
+				const clickedFairyEntity = agent.getEntity()
 				const wasClickedFairySelected = clickedFairyEntity?.isSelected ?? false
 				const isMultiSelect = e.shiftKey || e.ctrlKey || e.metaKey
 
 				updateFairySelection(fairyAgents, agent, wasClickedFairySelected, isMultiSelect, trackEvent)
 
-				const fairiesToDrag: Atom<FairyEntity>[] = []
-				const selectedFairies = getSelectedFairyAtoms(fairyAgents)
-				if (selectedFairies.length === 0) {
-					fairiesToDrag.push($fairyEntity)
-				} else {
-					fairiesToDrag.push(...selectedFairies)
-				}
+				const fairiesToDrag: FairyAgent[] = []
+				const selectedFairies = fairyAgents.filter((a) => a.getEntity()?.isSelected)
+				fairiesToDrag.push(...selectedFairies)
 
 				// Only prevent default and stop propagation for left-clicks
 				e.preventDefault()
@@ -262,7 +243,7 @@ function useFairyPointerInteraction(
 					// Only trigger panicking if still pressed and not dragging
 					if (currentState.status === 'pressed' && !editor.inputs.isDragging) {
 						trackEvent('fairy-panic', { source: 'fairy-canvas', fairyId: agent.id })
-						agent.gestureManager.push('panicking')
+						agent.gesture.push('panicking')
 					}
 					longPressTimerRef.current = null
 				}, 3000)
@@ -281,30 +262,28 @@ function useFairyPointerInteraction(
 			document.removeEventListener('pointermove', handlePointerMove)
 			document.removeEventListener('pointerup', handlePointerUp)
 		}
-	}, [agent, editor, isFairyGrabbable, $fairyEntity, ref, trackEvent])
+	}, [agent, editor, isFairyGrabbable, ref, trackEvent])
 }
 
 export function Fairy({ agent }: { agent: FairyAgent }) {
 	const editor = useEditor()
 	const trackEvent = useTldrawAppUiEvents()
 	const fairyRef = useRef<HTMLDivElement>(null)
-	const $fairyEntity = agent.$fairyEntity
-	const $fairyConfig = agent.$fairyConfig
 
-	const fairyOutfit = useValue('fairy outfit', () => $fairyConfig.get()?.outfit, [$fairyConfig])
-	const fairyEntity = useValue('fairy entity', () => $fairyEntity.get(), [$fairyEntity])
+	const fairyOutfit = useValue('fairy outfit', () => agent.getConfig()?.outfit, [agent])
+	const fairyEntity = useValue('fairy entity', () => agent.getEntity(), [agent])
 
 	const position = useValue(
 		'fairy position',
 		() => {
-			const entity = $fairyEntity.get()
+			const entity = agent.getEntity()
 			if (!entity) return null
 			return {
 				x: entity.position.x,
 				y: entity.position.y,
 			}
 		},
-		[editor, $fairyEntity]
+		[editor, agent]
 	)
 
 	const isOrchestrator = useValue(
@@ -318,15 +297,15 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 		? getProjectColor(projectColor)
 		: 'var(--tl-color-fairy-light)'
 
-	const flipX = useValue('fairy flipX', () => $fairyEntity.get()?.flipX ?? false, [$fairyEntity])
-	const isSelected = useValue('fairy isSelected', () => $fairyEntity.get()?.isSelected ?? false, [
-		$fairyEntity,
+	const flipX = useValue('fairy flipX', () => agent.getEntity()?.flipX ?? false, [agent])
+	const isSelected = useValue('fairy isSelected', () => agent.getEntity()?.isSelected ?? false, [
+		agent,
 	])
 	const isInSelectTool = useValue('is in select tool', () => editor.isIn('select.idle'), [editor])
 	const isInThrowTool = useValue('is in throw tool', () => editor.isIn('select.fairy-throw'), [
 		editor,
 	])
-	const isGenerating = useValue('is generating', () => agent.requestManager.isGenerating(), [agent])
+	const isGenerating = useValue('is generating', () => agent.requests.isGenerating(), [agent])
 	const isFairyGrabbable = isInSelectTool
 
 	useFairyPointerInteraction(fairyRef, agent, editor, isFairyGrabbable, trackEvent)
@@ -336,12 +315,12 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 		() => {
 			const elm = fairyRef.current
 			if (!elm) return
-			const position = $fairyEntity.get()?.position
+			const position = fairyEntity.position
 			if (!position) return null
 			elm.style.left = `${position.x}px`
 			elm.style.top = `${position.y}px`
 		},
-		[$fairyEntity, fairyRef]
+		[agent, fairyRef]
 	)
 
 	// Don't render if entity, outfit or position doesn't exist yet to avoid position jumping from (0,0)
@@ -396,7 +375,7 @@ export function SelectedFairy({ agent }: { agent: FairyAgent }) {
 		() => {
 			const elm = ref.current
 			if (!elm) return
-			const position = agent.$fairyEntity.get()?.position
+			const position = agent.getEntity()?.position
 			if (!position) return null
 			elm.style.left = `${position.x}px`
 			elm.style.top = `${position.y}px`

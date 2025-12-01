@@ -30,11 +30,11 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 		}
 
 		const membersIds = project.members.map((member) => member.id)
-		const memberAgents = this.agent.fairyApp.agentsManager
+		const memberAgents = this.agent.fairyApp.agents
 			.getAgents()
 			.filter((agent: FairyAgent) => membersIds.includes(agent.id))
 
-		const completedTasks = this.agent.fairyApp.taskListManager
+		const completedTasks = this.agent.fairyApp.tasks
 			.getTasksByProjectId(project.id)
 			.filter((task) => task.status === 'done')
 
@@ -44,7 +44,7 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 				.filter((id: string) => id !== memberAgent.id)
 
 			if (memberAgent.id === this.agent.id) {
-				memberAgent.chatManager.push(
+				memberAgent.chat.push(
 					{
 						id: uniqueId(),
 						type: 'memory-transition',
@@ -69,7 +69,7 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 			if (memberCompletedTasks.length > 0) {
 				const count = memberCompletedTasks.length
 				const taskWord = count === 1 ? 'task' : 'tasks'
-				memberAgent.chatManager.push(
+				memberAgent.chat.push(
 					{
 						id: uniqueId(),
 						type: 'memory-transition',
@@ -90,6 +90,6 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 			memberAgent.interrupt({ mode: 'idling', input: null })
 		})
 
-		this.agent.fairyApp.projectsManager.deleteProjectAndAssociatedTasks(project.id)
+		this.agent.fairyApp.projects.deleteProjectAndAssociatedTasks(project.id)
 	}
 }

@@ -28,7 +28,7 @@ export class AwaitTasksCompletionActionUtil extends AgentActionUtil<AwaitTasksCo
 		// Check if all tasks are real
 		const invalidTaskIds: string[] = []
 		for (const taskId of taskIds) {
-			const task = this.agent.fairyApp.taskListManager.getTaskById(taskId)
+			const task = this.agent.fairyApp.tasks.getTaskById(taskId)
 			if (!task || task.status === 'done') {
 				// todo, should we check if task is in project?
 				invalidTaskIds.push(taskId)
@@ -46,8 +46,8 @@ export class AwaitTasksCompletionActionUtil extends AgentActionUtil<AwaitTasksCo
 
 		// Create a wait condition for each task ID
 		for (const taskId of taskIds) {
-			const condition = this.agent.fairyApp.waitManager.createTaskWaitCondition(taskId)
-			this.agent.waitManager.waitFor(condition)
+			const condition = this.agent.fairyApp.waits.createTaskWaitCondition(taskId)
+			this.agent.waits.waitFor(condition)
 		}
 	}
 }

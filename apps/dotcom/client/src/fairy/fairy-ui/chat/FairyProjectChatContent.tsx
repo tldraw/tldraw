@@ -22,7 +22,7 @@ export function FairyProjectChatContent({
 	projectTitle,
 }: FairyProjectChatContentProps) {
 	const fairyApp = useFairyApp()
-	const historyItems = useValue('chat-history', () => orchestratorAgent.chatManager.getHistory(), [
+	const historyItems = useValue('chat-history', () => orchestratorAgent.chat.getHistory(), [
 		orchestratorAgent,
 	])
 
@@ -31,7 +31,7 @@ export function FairyProjectChatContent({
 		() => {
 			const project = orchestratorAgent.getProject()
 			if (!project || !fairyApp) return []
-			return fairyApp.taskListManager.getTasksByProjectId(project.id)
+			return fairyApp.tasks.getTasksByProjectId(project.id)
 		},
 		[orchestratorAgent, fairyApp]
 	)
@@ -45,11 +45,9 @@ export function FairyProjectChatContent({
 	const additionalSections = sections.slice(1)
 	const firstUserPrompt = firstSection?.prompt
 
-	const isGenerating = useValue(
-		'is-generating',
-		() => orchestratorAgent.requestManager.isGenerating(),
-		[orchestratorAgent]
-	)
+	const isGenerating = useValue('is-generating', () => orchestratorAgent.requests.isGenerating(), [
+		orchestratorAgent,
+	])
 
 	// Determine the project status
 	const projectStatus = useMemo((): { text: string; isAnimating: boolean } => {

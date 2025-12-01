@@ -28,6 +28,7 @@ All app managers extend `BaseFairyAppManager` with `reset()` and `dispose()` met
 
 - **FairyAppAgentsManager**: Agent lifecycle - creation, sync with configs, disposal
 - **FairyAppFollowingManager**: Camera following - tracks which fairy to follow, zoom behavior
+- **FairyAppPersistenceManager**: State persistence - load, save, auto-save with throttling
 - **FairyAppProjectsManager**: Project CRUD, disband, resume, member management
 - **FairyAppTaskListManager**: Task CRUD, assignment, status updates, notifications
 - **FairyAppWaitManager**: Wait/notification system for inter-agent coordination

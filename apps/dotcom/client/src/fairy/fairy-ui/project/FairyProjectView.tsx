@@ -49,7 +49,7 @@ export function FairyProjectView({
 		'project-tasks',
 		() => {
 			if (!project || !fairyApp) return []
-			return fairyApp.taskListManager.getTasksByProjectId(project.id)
+			return fairyApp.tasks.getTasksByProjectId(project.id)
 		},
 		[project, fairyApp]
 	)
@@ -59,9 +59,9 @@ export function FairyProjectView({
 		'generating',
 		() => {
 			if (orchestratorAgent) {
-				return orchestratorAgent.requestManager.isGenerating()
+				return orchestratorAgent.requests.isGenerating()
 			}
-			return agents.some((agent) => agent.requestManager.isGenerating())
+			return agents.some((agent) => agent.requests.isGenerating())
 		},
 		[orchestratorAgent, agents]
 	)
@@ -80,7 +80,7 @@ export function FairyProjectView({
 			return agents.filter(
 				(agent) =>
 					agent.id !== leaderAgent.id &&
-					fairyApp.projectsManager.getProjectByAgentId(agent.id) === undefined
+					fairyApp.projects.getProjectByAgentId(agent.id) === undefined
 			)
 		},
 		[agents, leaderAgent, isPreProject, fairyApp]
@@ -88,7 +88,7 @@ export function FairyProjectView({
 
 	const orchestratorName = useValue(
 		'orchestrator-name',
-		() => orchestratorAgent?.$fairyConfig.get()?.name ?? 'your partner',
+		() => orchestratorAgent?.getConfig()?.name ?? 'your partner',
 		[orchestratorAgent]
 	)
 
@@ -114,7 +114,7 @@ export function FairyProjectView({
 	const getGroupChatPrompt = useCallback(
 		(instruction: string, followers: FairyAgent[], isDuo: boolean) => {
 			if (isDuo) {
-				const partnerName = followers[0]?.$fairyConfig.get()?.name ?? 'your partner'
+				const partnerName = followers[0]?.getConfig()?.name ?? 'your partner'
 				const partnerId = followers[0]?.id ?? ''
 				return `You are collaborating with your partner on a duo project. You are the leader of the duo.You have been instructed to do this project:
 ${instruction}.
@@ -123,7 +123,7 @@ A project has automatically been created, but you need to start it yourself. You
 You are to complete the project together. You can assign tasks to your partner or work on tasks yourself. As you are the leader of the duo, your priority is to assign tasks for your partner to complete, but you may do tasks yourself as well, if it makes sense to work in parallel. Make sure to give the approximate locations of the work to be done, if relevant, in order to make sure you both don't get confused if there are multiple tasks to be done.`
 			} else {
 				const followerNames = followers
-					.map((agent) => `- name: ${agent.$fairyConfig.get()?.name} (id: ${agent.id})`)
+					.map((agent) => `- name: ${agent.getConfig()?.name} (id: ${agent.id})`)
 					.join('\n')
 				return `You are the leader of a group of fairies who have been instructed to do this project:
 ${instruction}.
@@ -148,9 +148,9 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 			}
 
 			// Clear chat history for all agents before starting new project
-			leaderAgent.chatManager.clear()
+			leaderAgent.chat.clear()
 			followerAgents.forEach((agent) => {
-				agent.chatManager.clear()
+				agent.chat.clear()
 			})
 
 			const newProjectId = uniqueId(5)
@@ -177,7 +177,7 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 			})
 
 			if (fairyApp) {
-				fairyApp.projectsManager.addProject(newProject)
+				fairyApp.projects.addProject(newProject)
 			}
 
 			// Set leader as orchestrator
@@ -212,22 +212,23 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 
 			const projectMembers = project.members.length
 			const isDuo = projectMembers === 2
-			const currentMode = orchestratorAgent.modeManager.getMode()
+			const currentMode = orchestratorAgent.mode.getMode()
 
 			// If orchestrator was working on a task, reset it to todo
 			if (currentMode === 'working-orchestrator' && fairyApp) {
-				const myInProgressTasks = fairyApp.taskListManager
+				const myInProgressTasks = fairyApp.tasks
 					.getTasks()
 					.filter(
 						(task) => task.assignedTo === orchestratorAgent.id && task.status === 'in-progress'
 					)
 				myInProgressTasks.forEach((task) => {
-					fairyApp.taskListManager.setTaskStatus(task.id, 'todo')
+					fairyApp.tasks.setTaskStatus(task.id, 'todo')
 				})
 			}
 
 			// Get fairy position for bounds
-			const fairyPosition = orchestratorAgent.$fairyEntity.get().position
+			const fairyPosition = orchestratorAgent.getEntity()?.position
+			if (!fairyPosition) return
 			const fairyVision = Box.FromCenter(fairyPosition, FAIRY_VISION_DIMENSIONS)
 
 			// Build an augmentation prompt that instructs the agent to modify the existing project
@@ -265,7 +266,7 @@ Do NOT start a completely new project. Respond with a message action first expla
 		(value: string) => {
 			// Handle cancel (disband project)
 			if (shouldCancel && project && fairyApp) {
-				fairyApp.projectsManager.disbandProject(project.id)
+				fairyApp.projects.disbandProject(project.id)
 				return
 			}
 
@@ -284,7 +285,7 @@ Do NOT start a completely new project. Respond with a message action first expla
 	const handleButtonClick = () => {
 		if (shouldCancel) {
 			if (project && fairyApp) {
-				fairyApp.projectsManager.disbandProject(project.id)
+				fairyApp.projects.disbandProject(project.id)
 			}
 		} else {
 			handleSubmit(inputValue)

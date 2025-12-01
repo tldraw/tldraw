@@ -31,7 +31,7 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 	 * @returns void
 	 */
 	moveTo(position: VecModel) {
-		this.agent.$fairyEntity.update((fairy) => {
+		this.agent.updateEntity((fairy) => {
 			return {
 				...fairy,
 				position: AgentHelpers.RoundVec(position),
@@ -47,7 +47,7 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 	 * @returns void
 	 */
 	zoomTo() {
-		const entity = this.agent.$fairyEntity.get()
+		const entity = this.agent.getEntity()
 		if (!entity) return
 
 		// Switch to the fairy's page
@@ -73,8 +73,8 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 		const center = this.agent.editor.getViewportPageBounds().center
 		const position = offset ? { x: center.x + offset.x, y: center.y + offset.y } : center
 		const currentPageId = this.agent.editor.getCurrentPageId()
-		this.agent.$fairyEntity.update((f) => (f ? { ...f, position, currentPageId } : f))
-		this.agent.gestureManager.push('poof', 400)
+		this.agent.updateEntity((f) => (f ? { ...f, position, currentPageId } : f))
+		this.agent.gesture.push('poof', 400)
 	}
 
 	/**
@@ -87,10 +87,10 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 	moveToSpawnPoint() {
 		const spawnPoint = this.findFairySpawnPoint()
 		const currentPageId = this.agent.editor.getCurrentPageId()
-		this.agent.$fairyEntity.update((f) =>
+		this.agent.updateEntity((f) =>
 			f ? { ...f, position: AgentHelpers.RoundVec(spawnPoint), currentPageId } : f
 		)
-		this.agent.gestureManager.push('poof', 400)
+		this.agent.gesture.push('poof', 400)
 	}
 
 	/**
@@ -103,7 +103,7 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 		const fairyId = this.agent.id
 		this.stopFollowing()
 		// Delegate to the following manager which handles all the following logic
-		this.agent.fairyApp.followingManager.startFollowing(fairyId)
+		this.agent.fairyApp.following.startFollowing(fairyId)
 	}
 
 	/**
@@ -113,7 +113,7 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 	 */
 	stopFollowing() {
 		this.dispose()
-		this.agent.fairyApp.followingManager.stopFollowing()
+		this.agent.fairyApp.following.stopFollowing()
 	}
 
 	/**
@@ -132,7 +132,7 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 	 */
 	findFairySpawnPoint(): VecModel {
 		const editor = this.agent.editor
-		const existingAgents = this.agent.fairyApp.agentsManager.getAgents()
+		const existingAgents = this.agent.fairyApp.agents.getAgents()
 		const MIN_DISTANCE = 200
 		const INITIAL_BOX_SIZE = 100 // Start with a smaller box near center
 		const BOX_EXPANSION = 50 // Smaller expansion increments to stay closer to center
@@ -158,7 +158,7 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 
 			// Check if the candidate is far enough from all existing fairies
 			const tooClose = existingAgents.some((agent: FairyAgent) => {
-				const otherPosition = agent.$fairyEntity.get().position
+				const otherPosition = agent.getEntity().position
 				const distance = Math.sqrt(
 					Math.pow(candidate.x - otherPosition.x, 2) + Math.pow(candidate.y - otherPosition.y, 2)
 				)
@@ -189,6 +189,6 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 	 * @returns The ID of the fairy being followed, or null if no fairy is being followed.
 	 */
 	getFollowingFairyId(): string | null {
-		return this.agent.fairyApp.followingManager.getFollowingFairyId()
+		return this.agent.fairyApp.following.getFollowingFairyId()
 	}
 }

@@ -5,9 +5,7 @@ export class DeleteProjectTaskActionUtil extends AgentActionUtil<DeleteProjectTa
 	static override type = 'delete-project-task' as const
 
 	override getInfo(action: Streaming<DeleteProjectTaskAction>) {
-		const task = action.taskId
-			? this.agent.fairyApp.taskListManager.getTaskById(action.taskId)
-			: null
+		const task = action.taskId ? this.agent.fairyApp.tasks.getTaskById(action.taskId) : null
 		const taskName = task?.title || action.taskId || 'task'
 		return createAgentActionInfo({
 			icon: 'trash',
@@ -24,7 +22,7 @@ export class DeleteProjectTaskActionUtil extends AgentActionUtil<DeleteProjectTa
 		const project = this.agent.getProject()
 		if (!project) return
 
-		const task = this.agent.fairyApp.taskListManager.getTaskById(action.taskId)
+		const task = this.agent.fairyApp.tasks.getTaskById(action.taskId)
 		if (!task) {
 			this.agent.interrupt({
 				input: `Task ${action.taskId} not found. Please take another look at the task list and try again.`,
@@ -40,6 +38,6 @@ export class DeleteProjectTaskActionUtil extends AgentActionUtil<DeleteProjectTa
 			return
 		}
 
-		this.agent.fairyApp.taskListManager.deleteTask(action.taskId)
+		this.agent.fairyApp.tasks.deleteTask(action.taskId)
 	}
 }

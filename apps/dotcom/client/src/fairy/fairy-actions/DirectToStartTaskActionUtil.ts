@@ -14,16 +14,14 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 		let otherFairyName = 'a fairy'
 
 		if (action.complete) {
-			const otherFairy = this.agent.fairyApp.agentsManager
+			const otherFairy = this.agent.fairyApp.agents
 				.getAgents()
 				.find((fairy: FairyAgent) => fairy.id === action.otherFairyId)
-			otherFairyName = otherFairy ? otherFairy.$fairyConfig.get().name : 'a fairy'
+			otherFairyName = otherFairy ? otherFairy.getConfig().name : 'a fairy'
 		}
 
 		const otherFairyFirstName = otherFairyName.split(' ')[0]
-		const task = action.complete
-			? this.agent.fairyApp.taskListManager.getTaskById(action.taskId)
-			: null
+		const task = action.complete ? this.agent.fairyApp.tasks.getTaskById(action.taskId) : null
 
 		const text = action.complete
 			? `Asked ${otherFairyFirstName} to do${task ? `: ${task.title}` : ' a task'}`
@@ -54,7 +52,7 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 			return
 		}
 
-		const allAgents = this.agent.fairyApp.agentsManager.getAgents()
+		const allAgents = this.agent.fairyApp.agents.getAgents()
 		const otherFairy = allAgents.find((fairy: FairyAgent) => fairy.id === otherFairyId)
 		if (!otherFairy) {
 			this.agent.interrupt({
@@ -63,7 +61,7 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 			return
 		}
 
-		const task = this.agent.fairyApp.taskListManager.getTaskById(taskId)
+		const task = this.agent.fairyApp.tasks.getTaskById(taskId)
 		if (!task) {
 			this.agent.interrupt({
 				input: `Task ${taskId} not found. Please take another look at the task list and try again.`,
@@ -78,10 +76,10 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 			return
 		}
 
-		this.agent.fairyApp.taskListManager.assignFairyToTask(taskId, otherFairyId, allAgents)
-		this.agent.fairyApp.taskListManager.setTaskStatus(taskId, 'in-progress')
+		this.agent.fairyApp.tasks.assignFairyToTask(taskId, otherFairyId, allAgents)
+		this.agent.fairyApp.tasks.setTaskStatus(taskId, 'in-progress')
 
-		const firstName = this.agent.$fairyConfig.get().name.split(' ')[0]
+		const firstName = this.agent.getConfig().name.split(' ')[0]
 		const otherFairyInput: AgentInput = {
 			agentMessages: [`You have been asked to complete task ${taskId}. Please complete it.`],
 			userMessages: [`Asked by ${firstName} to do${task.title ? `: ${task.title}` : ' a task'}`],

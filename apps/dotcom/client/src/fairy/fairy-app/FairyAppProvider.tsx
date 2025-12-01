@@ -98,7 +98,7 @@ export function FairyAppProvider({ fileId, children, onMount, onUnmount }: Fairy
 	useEffect(() => {
 		if (!fairyApp || isReadOnly) return
 
-		fairyApp.agentsManager.syncAgentsWithConfigs(fairyConfigs, {
+		fairyApp.agents.syncAgentsWithConfigs(fairyConfigs, {
 			onError: handleError,
 			getToken,
 		})
@@ -119,13 +119,13 @@ export function FairyAppProvider({ fileId, children, onMount, onUnmount }: Fairy
 		}
 
 		// Start auto-saving state changes
-		fairyApp.startAutoSave(fileId)
+		fairyApp.persistence.startAutoSave(fileId)
 
 		onMount(fairyApp)
 
 		return () => {
-			fairyApp.stopAutoSave()
-			fairyApp.resetLoadingFlags()
+			fairyApp.persistence.stopAutoSave()
+			fairyApp.persistence.resetLoadingFlags()
 			onUnmount()
 		}
 	}, [fairyApp, app, fileId, onMount, onUnmount])

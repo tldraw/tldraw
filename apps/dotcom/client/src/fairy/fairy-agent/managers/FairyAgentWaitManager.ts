@@ -117,7 +117,7 @@ export class FairyAgentWaitManager extends BaseFairyAgentManager {
 		userFacingMessage: string | null
 	}) {
 		const { agent } = this
-		if (agent.requestManager.isGenerating()) {
+		if (agent.requests.isGenerating()) {
 			agent.schedule({
 				agentMessages: [agentFacingMessage],
 				userMessages: userFacingMessage ? [userFacingMessage] : undefined,
@@ -161,7 +161,7 @@ export class FairyAgentWaitManager extends BaseFairyAgentManager {
 					const match = serialized.id.match(/^task-completed:(.+)$/)
 					if (match) {
 						const taskId = match[1]
-						return this.agent.fairyApp.waitManager.createTaskWaitCondition(taskId)
+						return this.agent.fairyApp.waits.createTaskWaitCondition(taskId)
 					}
 				} else if (serialized.eventType === 'agent-mode-transition') {
 					// Parse id format: "agent-mode-transition:${agentId}:${mode}"
@@ -169,10 +169,7 @@ export class FairyAgentWaitManager extends BaseFairyAgentManager {
 					if (match) {
 						const agentId = match[1]
 						const mode = match[2] as FairyModeDefinition['type']
-						return this.agent.fairyApp.waitManager.createAgentModeTransitionWaitCondition(
-							agentId,
-							mode
-						)
+						return this.agent.fairyApp.waits.createAgentModeTransitionWaitCondition(agentId, mode)
 					}
 				}
 				return null

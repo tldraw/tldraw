@@ -101,7 +101,7 @@ export function FairyDebugDialog({
 					Home
 				</TldrawUiButton>
 				{agents.map((agent) => {
-					const config = agent.$fairyConfig.get()
+					const config = agent.getConfig()
 					return (
 						<TldrawUiButton
 							key={agent.id}
@@ -227,8 +227,8 @@ function HomeDebugView({
 const ProjectsInspector = track(() => {
 	const fairyApp = useFairyApp()
 	if (!fairyApp) return null
-	const projects = fairyApp.projectsManager.getProjects()
-	const fairyTasks = fairyApp.taskListManager.getTasks()
+	const projects = fairyApp.projects.getProjects()
+	const fairyTasks = fairyApp.tasks.getTasks()
 
 	return (
 		<div className="fairy-debug-projects-container">
@@ -289,7 +289,7 @@ const ProjectsInspector = track(() => {
 const FairyTaskInspector = track(() => {
 	const fairyApp = useFairyApp()
 	if (!fairyApp) return null
-	const fairyTasks = fairyApp.taskListManager.getTasks()
+	const fairyTasks = fairyApp.tasks.getTasks()
 
 	return (
 		<div className="fairy-debug-shared-todos-container">
@@ -438,7 +438,7 @@ const FairyDebugOptions = track(({ agent }: { agent: FairyAgent }) => {
 					type="low"
 					onClick={() => {
 						if (fairyApp) {
-							fairyApp.projectsManager.addAgentToDummyProject(agent.id)
+							fairyApp.projects.addAgentToDummyProject(agent.id)
 						}
 					}}
 				>
@@ -458,14 +458,14 @@ const FairyDebugView = track(
 	({ agent, inspectorType }: { agent: FairyAgent; inspectorType: FairyDebugInspectorType }) => {
 		// Call all hooks unconditionally to satisfy React's rules of hooks
 		const fairyEntity = agent.getEntity()
-		const activeRequest = agent.requestManager.getActiveRequest()
-		const scheduledRequest = agent.requestManager.getScheduledRequest()
-		const chatOrigin = agent.chatOriginManager.getOrigin()
-		const personalTodoList = agent.todoManager.getTodos()
-		const userActionHistory = agent.userActionTracker.getHistory()
+		const activeRequest = agent.requests.getActiveRequest()
+		const scheduledRequest = agent.requests.getScheduledRequest()
+		const chatOrigin = agent.chatOrigin.getOrigin()
+		const personalTodoList = agent.todos.getTodos()
+		const userActionHistory = agent.userAction.getHistory()
 		const currentProjectId = agent.getProject()?.id ?? null
 		// const cumulativeUsage = agent.cumulativeUsage
-		const mode = agent.modeManager.getMode()
+		const mode = agent.mode.getMode()
 
 		if (inspectorType === 'config') {
 			return (
@@ -520,7 +520,7 @@ const FairyDebugView = track(
 // ## Fairy debug view inspector components
 
 const ConfigInspector = track(({ agent }: { agent: FairyAgent }) => {
-	const config = agent.$fairyConfig.get()
+	const config = agent.getConfig()
 
 	return (
 		<div className="fairy-debug-config-container">
@@ -622,7 +622,7 @@ const ActionsInspector = track(({ agent }: { agent: FairyAgent }) => {
 })
 
 function ChatHistoryInspector({ agent }: { agent: FairyAgent }) {
-	const chatHistory = useValue('chat history', () => agent.chatManager.getHistory(), [agent])
+	const chatHistory = useValue('chat history', () => agent.chat.getHistory(), [agent])
 
 	return (
 		<div className="fairy-debug-container">

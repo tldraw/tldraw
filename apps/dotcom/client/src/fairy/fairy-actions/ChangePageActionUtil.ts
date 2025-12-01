@@ -38,10 +38,10 @@ export class ChangePageActionUtil extends AgentActionUtil<ChangePageAction> {
 		editor.setCurrentPage(targetPage.id)
 
 		// Update the fairy's current page ID
-		this.agent.$fairyEntity.update((f) => (f ? { ...f, currentPageId: targetPage.id } : f))
+		this.agent.updateEntity((f) => (f ? { ...f, currentPageId: targetPage.id } : f))
 
 		// Move the fairy to the center of the viewport on the new page
 		const center = editor.getViewportPageBounds().center
-		this.agent.positionManager.moveTo(center)
+		this.agent.position.moveTo(center)
 	}
 }

@@ -77,7 +77,7 @@ export class FairyAppTaskListManager extends BaseFairyAppManager {
 		if (status === 'done') {
 			const task = this.getTaskById(id)
 			if (task) {
-				this.fairyApp.waitManager.notifyTaskCompleted(task)
+				this.fairyApp.waits.notifyTaskCompleted(task)
 			}
 		}
 	}
@@ -112,7 +112,7 @@ export class FairyAppTaskListManager extends BaseFairyAppManager {
 	 */
 	clearTasksAndProjects() {
 		this.$tasks.set([])
-		this.fairyApp.projectsManager.clearProjects()
+		this.fairyApp.projects.clearProjects()
 	}
 
 	/**

@@ -29,8 +29,8 @@ export class MarkSoloTaskDoneActionUtil extends AgentActionUtil<MarkSoloTaskDone
 		}
 		const currentTaskId = currentTask.id
 
-		this.agent.fairyApp.taskListManager.setTaskStatusAndNotify(currentTaskId, 'done')
-		this.agent.chatManager.push(
+		this.agent.fairyApp.tasks.setTaskStatusAndNotify(currentTaskId, 'done')
+		this.agent.chat.push(
 			{
 				id: uniqueId(),
 				type: 'memory-transition',
@@ -48,7 +48,7 @@ export class MarkSoloTaskDoneActionUtil extends AgentActionUtil<MarkSoloTaskDone
 			}
 		)
 
-		const currentBounds = this.agent.requestManager.getActiveRequest()?.bounds
+		const currentBounds = this.agent.requests.getActiveRequest()?.bounds
 		if (!currentBounds) return
 
 		this.agent.interrupt({

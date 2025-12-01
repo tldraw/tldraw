@@ -9,7 +9,7 @@ interface FairyMiniAvatarProps {
 }
 
 export function FairyMiniAvatar({ agent }: FairyMiniAvatarProps) {
-	const fairyConfig = useValue('fairy config', () => agent.$fairyConfig.get(), [agent])
+	const fairyConfig = useValue('fairy config', () => agent.getConfig(), [agent])
 
 	if (!fairyConfig?.outfit) return <FairyMiniAvatarPlaceholder />
 

@@ -65,7 +65,7 @@ describe('ChangePageActionUtil', () => {
 			const page2Id = PageRecordType.createId()
 			editor.createPage({ name: 'Page 2', id: page2Id })
 
-			const initialFairyPageId = agent.$fairyEntity.get().currentPageId
+			const initialFairyPageId = agent.getEntity().currentPageId
 
 			const action = createAgentAction({
 				_type: 'change-page',
@@ -79,7 +79,7 @@ describe('ChangePageActionUtil', () => {
 			changePageUtil.applyAction(action, helpers)
 
 			// Verify the fairy entity's current page ID actually changed
-			const newFairyPageId = agent.$fairyEntity.get().currentPageId
+			const newFairyPageId = agent.getEntity().currentPageId
 			expect(newFairyPageId).toBe(page2Id)
 			expect(newFairyPageId).not.toBe(initialFairyPageId)
 		})
@@ -99,7 +99,7 @@ describe('ChangePageActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			changePageUtil.applyAction(action, helpers)
 
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 		})
 
 		it('should schedule message if page does not exist', () => {
@@ -174,7 +174,7 @@ describe('ChangePageActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			changePageUtil.applyAction(action, helpers)
 
-			expect(agent.positionManager.moveTo).not.toHaveBeenCalled()
+			expect(agent.position.moveTo).not.toHaveBeenCalled()
 		})
 
 		it('should handle changing to page with same name as current page', () => {

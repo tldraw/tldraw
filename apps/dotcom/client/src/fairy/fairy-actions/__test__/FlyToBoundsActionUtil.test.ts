@@ -37,7 +37,7 @@ describe('FlyToBoundsActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			flyToBoundsUtil.applyAction(action, helpers)
 
-			expect(agent.positionManager.moveTo).not.toHaveBeenCalled()
+			expect(agent.position.moveTo).not.toHaveBeenCalled()
 		})
 
 		it('should move agent to center of bounds', () => {
@@ -55,8 +55,8 @@ describe('FlyToBoundsActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			flyToBoundsUtil.applyAction(action, helpers)
 
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
-			const callArgs = (agent.positionManager.moveTo as any).mock.calls[0][0]
+			expect(agent.position.moveTo).toHaveBeenCalled()
+			const callArgs = (agent.position.moveTo as any).mock.calls[0][0]
 			// Center of bounds should be (100 + 300/2, 200 + 400/2) = (250, 400)
 			// But with offset removal applied
 			expect(callArgs).toBeDefined()
@@ -128,14 +128,14 @@ describe('FlyToBoundsActionUtil', () => {
 				time: 0,
 			})
 
-			const initialFairyPosition = agent.$fairyEntity.get().position
+			const initialFairyPosition = agent.getEntity().position
 
 			const helpers = new AgentHelpers(agent)
 			flyToBoundsUtil.applyAction(action, helpers)
 
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 			// Verify the fairy's position changed (unless it was already at origin)
-			const newFairyPosition = agent.$fairyEntity.get().position
+			const newFairyPosition = agent.getEntity().position
 			if (initialFairyPosition.x !== 0 || initialFairyPosition.y !== 0) {
 				expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
 				expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
@@ -157,7 +157,7 @@ describe('FlyToBoundsActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			flyToBoundsUtil.applyAction(action, helpers)
 
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 		})
 
 		it('should handle small bounds', () => {
@@ -175,7 +175,7 @@ describe('FlyToBoundsActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			flyToBoundsUtil.applyAction(action, helpers)
 
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 		})
 
 		it('should include bounds dimensions in interrupt message', () => {

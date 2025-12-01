@@ -26,7 +26,7 @@ export class FlyToBoundsActionUtil extends AgentActionUtil<FlyToBoundsAction> {
 			h: action.h,
 		})
 
-		this.agent.positionManager.moveTo(Box.From(bounds).center)
+		this.agent.position.moveTo(Box.From(bounds).center)
 		this.agent.interrupt({
 			input: {
 				bounds,

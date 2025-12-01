@@ -67,7 +67,7 @@ export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
 		})
 
 		if (!result.shape) {
-			this.agent.positionManager.moveTo({
+			this.agent.position.moveTo({
 				x: existingShape.x,
 				y: existingShape.y,
 			})
@@ -97,7 +97,7 @@ export class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
 			}
 		}
 
-		this.agent.positionManager.moveTo({
+		this.agent.position.moveTo({
 			x: result.shape.x,
 			y: result.shape.y,
 		})

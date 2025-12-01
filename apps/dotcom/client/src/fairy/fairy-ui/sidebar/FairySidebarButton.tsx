@@ -28,16 +28,14 @@ export function FairySidebarButton({
 }) {
 	const fairyIsSelected = useValue(
 		'fairy-button-selected',
-		() => agent.$fairyEntity.get()?.isSelected ?? false,
+		() => agent.getEntity()?.isSelected ?? false,
 		[agent]
 	)
 
-	const fairyOutfit = useValue('fairy outfit', () => agent.$fairyConfig.get()?.outfit, [agent])
-	const fairyEntity = useValue('fairy entity', () => agent.$fairyEntity.get(), [agent])
+	const fairyOutfit = useValue('fairy outfit', () => agent.getConfig()?.outfit, [agent])
+	const fairyEntity = useValue('fairy entity', () => agent.getEntity(), [agent])
 	const project = useValue('current-project', () => agent.getProject(), [agent])
-	const isSleeping = useValue('is-sleeping', () => agent.modeManager.getMode() === 'sleeping', [
-		agent,
-	])
+	const isSleeping = useValue('is-sleeping', () => agent.mode.getMode() === 'sleeping', [agent])
 
 	const isOrchestrator = useValue(
 		'is-orchestrator',
@@ -48,7 +46,7 @@ export function FairySidebarButton({
 
 	const handlePlusClick = useCallback(() => {
 		// Toggle selection like shift-clicking would
-		agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: !f.isSelected } : f))
+		agent.updateEntity((f) => (f ? { ...f, isSelected: !f.isSelected } : f))
 	}, [agent])
 
 	if (!fairyEntity || !fairyOutfit) return null
@@ -58,7 +56,7 @@ export function FairySidebarButton({
 		!fairyIsSelected &&
 		!project &&
 		!hasAnyActiveProjects &&
-		!agent.modeManager.isSleeping()
+		!agent.mode.isSleeping()
 
 	return (
 		<_ContextMenu.Root dir="ltr">

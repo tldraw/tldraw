@@ -6,9 +6,7 @@ export class StartSoloTaskActionUtil extends AgentActionUtil<StartSoloTaskAction
 	static override type = 'start-task' as const
 
 	override getInfo(action: Streaming<StartSoloTaskAction>) {
-		const task = action.taskId
-			? this.agent.fairyApp.taskListManager.getTaskById(action.taskId)
-			: undefined
+		const task = action.taskId ? this.agent.fairyApp.tasks.getTaskById(action.taskId) : undefined
 
 		return createAgentActionInfo({
 			icon: 'note',
@@ -23,7 +21,7 @@ export class StartSoloTaskActionUtil extends AgentActionUtil<StartSoloTaskAction
 	override applyAction(action: Streaming<StartSoloTaskAction>, _helpers: AgentHelpers) {
 		if (!action.complete) return
 
-		const task = this.agent.fairyApp.taskListManager.getTaskById(action.taskId)
+		const task = this.agent.fairyApp.tasks.getTaskById(action.taskId)
 		if (!task) return
 
 		if (task.assignedTo !== this.agent.id) {
@@ -33,9 +31,9 @@ export class StartSoloTaskActionUtil extends AgentActionUtil<StartSoloTaskAction
 			return
 		}
 
-		this.agent.fairyApp.taskListManager.setTaskStatus(action.taskId, 'in-progress')
+		this.agent.fairyApp.tasks.setTaskStatus(action.taskId, 'in-progress')
 
-		const currentBounds = this.agent.requestManager.getActiveRequest()?.bounds
+		const currentBounds = this.agent.requests.getActiveRequest()?.bounds
 		if (!currentBounds) return
 
 		this.agent.interrupt({

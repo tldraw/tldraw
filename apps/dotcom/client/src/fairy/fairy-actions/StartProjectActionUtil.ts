@@ -30,7 +30,7 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 
 		const { projectName, projectDescription, projectColor, projectPlan } = action
 
-		const project = this.agent.fairyApp.projectsManager.getProjectByAgentId(this.agent.id)
+		const project = this.agent.fairyApp.projects.getProjectByAgentId(this.agent.id)
 		if (!project) {
 			this.agent.interrupt({
 				input:
@@ -39,7 +39,7 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 			return
 		}
 
-		const colorAlreadyChosen = this.agent.fairyApp.projectsManager
+		const colorAlreadyChosen = this.agent.fairyApp.projects
 			.getProjects()
 			.some((p: FairyProject) => p.color === projectColor)
 		if (colorAlreadyChosen || projectColor === 'white') {
@@ -49,7 +49,7 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 			return
 		}
 
-		this.agent.fairyApp.projectsManager.updateProject(project.id, {
+		this.agent.fairyApp.projects.updateProject(project.id, {
 			title: projectName,
 			description: projectDescription,
 			plan: projectPlan,

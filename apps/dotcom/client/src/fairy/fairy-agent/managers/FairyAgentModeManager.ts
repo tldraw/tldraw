@@ -31,7 +31,7 @@ export class FairyAgentModeManager extends BaseFairyAgentManager {
 	reset(): void {
 		this.$mode.set('sleeping')
 		const modeDefinition = getFairyModeDefinition('sleeping')
-		this.agent.$fairyEntity.update((fairy) => ({ ...fairy, pose: modeDefinition.pose }))
+		this.agent.updateEntity((fairy) => ({ ...fairy, pose: modeDefinition.pose }))
 	}
 
 	/**
@@ -52,14 +52,14 @@ export class FairyAgentModeManager extends BaseFairyAgentManager {
 		toModeNode.onEnter?.(this.agent, fromMode)
 
 		// Notify other agents waiting for this mode transition
-		this.agent.fairyApp.waitManager.notifyAgentModeTransition(this.agent.id, mode)
+		this.agent.fairyApp.waits.notifyAgentModeTransition(this.agent.id, mode)
 
 		// Update the mode
 		this.$mode.set(mode)
 
 		// Update the fairy entity's pose to match the new mode
 		const modeDefinition = getFairyModeDefinition(mode)
-		this.agent.$fairyEntity.update((fairy) => ({ ...fairy, pose: modeDefinition.pose }))
+		this.agent.updateEntity((fairy) => ({ ...fairy, pose: modeDefinition.pose }))
 	}
 
 	/**

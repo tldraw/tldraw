@@ -32,6 +32,6 @@ export class DistributeActionUtil extends AgentActionUtil<DistributeAction> {
 			return
 		}
 
-		this.agent.positionManager.moveTo(bounds.center)
+		this.agent.position.moveTo(bounds.center)
 	}
 }

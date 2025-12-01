@@ -6,7 +6,7 @@ export class SoloTasksPartUtil extends PromptPartUtil<SoloTasksPart> {
 	static override type = 'soloTasks' as const
 
 	override getPart(_request: AgentRequest, helpers: AgentHelpers): SoloTasksPart {
-		const allTasks = this.agent.fairyApp.taskListManager.getTasks()
+		const allTasks = this.agent.fairyApp.tasks.getTasks()
 		const tasks = allTasks
 			.filter((task: FairyTask) => task.assignedTo === this.agent.id)
 			.filter((task: FairyTask) => task.projectId === null) // should never happen

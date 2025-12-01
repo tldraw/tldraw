@@ -30,7 +30,7 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 		}
 
 		const membersIds = project.members.map((member) => member.id)
-		const memberAgents = this.agent.fairyApp.agentsManager
+		const memberAgents = this.agent.fairyApp.agents
 			.getAgents()
 			.filter((agent: FairyAgent) => membersIds.includes(agent.id))
 
@@ -40,11 +40,11 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 		const droneAgent = memberAgents.find((agent: FairyAgent) => agent.getRole() === 'drone')
 
 		if (!duoOrchestratorAgent || !droneAgent) {
-			this.agent.fairyApp.projectsManager.deleteProjectAndAssociatedTasks(project.id)
+			this.agent.fairyApp.projects.deleteProjectAndAssociatedTasks(project.id)
 			return
 		}
 
-		const completedTasks = this.agent.fairyApp.taskListManager
+		const completedTasks = this.agent.fairyApp.tasks
 			.getTasksByProjectId(project.id)
 			.filter((task) => task.status === 'done')
 
@@ -54,7 +54,7 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 		)
 		const duoOrchestratorTaskCount = duoOrchestratorCompletedTasks.length
 		const duoOrchestratorTaskWord = duoOrchestratorTaskCount === 1 ? 'task' : 'tasks'
-		duoOrchestratorAgent.chatManager.push(
+		duoOrchestratorAgent.chat.push(
 			{
 				id: uniqueId(),
 				type: 'memory-transition',
@@ -67,7 +67,7 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 				type: 'prompt',
 				promptSource: 'self',
 				memoryLevel: 'fairy',
-				agentFacingMessage: `I led and completed the "${project.title}" project with my partner, ${droneAgent.$fairyConfig.get()?.name}. I completed ${duoOrchestratorTaskCount} ${duoOrchestratorTaskWord} as part of the project.`,
+				agentFacingMessage: `I led and completed the "${project.title}" project with my partner, ${droneAgent.getConfig()?.name}. I completed ${duoOrchestratorTaskCount} ${duoOrchestratorTaskWord} as part of the project.`,
 				userFacingMessage: null,
 			}
 		)
@@ -78,7 +78,7 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 		if (droneCompletedTasks.length > 0) {
 			const droneTaskCount = droneCompletedTasks.length
 			const droneTaskWord = droneTaskCount === 1 ? 'task' : 'tasks'
-			droneAgent.chatManager.push(
+			droneAgent.chat.push(
 				{
 					id: uniqueId(),
 					type: 'memory-transition',
@@ -91,13 +91,13 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 					type: 'prompt',
 					promptSource: 'self',
 					memoryLevel: 'fairy',
-					agentFacingMessage: `I completed ${droneTaskCount} ${droneTaskWord} as part of the "${project.title}" project with my partner, ${duoOrchestratorAgent.$fairyConfig.get()?.name}.`,
+					agentFacingMessage: `I completed ${droneTaskCount} ${droneTaskWord} as part of the "${project.title}" project with my partner, ${duoOrchestratorAgent.getConfig()?.name}.`,
 					userFacingMessage: `I completed ${droneTaskCount} ${droneTaskWord} as part of the "${project.title}" project.`,
 				}
 			)
 		}
 		droneAgent.interrupt({ mode: 'idling', input: null })
 
-		this.agent.fairyApp.projectsManager.deleteProjectAndAssociatedTasks(project.id)
+		this.agent.fairyApp.projects.deleteProjectAndAssociatedTasks(project.id)
 	}
 }

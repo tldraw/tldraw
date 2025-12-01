@@ -48,14 +48,13 @@ export function FairyHUDHeader({
 }: FairyHUDHeaderProps) {
 	const fairyApp = useFairyApp()
 	const trackEvent = useTldrawAppUiEvents()
-	const fairyConfig = useValue('fairy config', () => shownFairy?.$fairyConfig.get(), [shownFairy])
+	const fairyConfig = useValue('fairy config', () => shownFairy?.getConfig(), [shownFairy])
 
 	// Get the project for the shown fairy
 	const project = useValue('project', () => shownFairy?.getProject(), [shownFairy])
 
 	// Check if the project has been started (has an orchestrator)
-	const isProjectStarted =
-		project && fairyApp && fairyApp.projectsManager.getProjectOrchestrator(project)
+	const isProjectStarted = project && fairyApp && fairyApp.projects.getProjectOrchestrator(project)
 
 	const fairyClickable = useValue(
 		'fairy clickable',
@@ -78,7 +77,7 @@ export function FairyHUDHeader({
 		if (!fairyClickable || !shownFairy) return
 
 		trackEvent('fairy-zoom-to', { source: 'fairy-panel', fairyId: shownFairy.id })
-		shownFairy.positionManager.zoomTo()
+		shownFairy.position.zoomTo()
 	}, [shownFairy, fairyClickable, trackEvent])
 
 	// const hasChatHistory = useValue(
@@ -104,7 +103,7 @@ export function FairyHUDHeader({
 		'formatted-fairy-names',
 		() => {
 			const names = selectedFairies.map(
-				(agent) => (agent.$fairyConfig.get()?.name ?? 'fairy').split(' ')[0]
+				(agent) => (agent.getConfig()?.name ?? 'fairy').split(' ')[0]
 			)
 			if (names.length === 0) return ''
 			if (names.length === 1) return `${names[0]}`
@@ -131,7 +130,7 @@ export function FairyHUDHeader({
 	const selectAllFairies = useCallback(() => {
 		trackEvent('fairy-select-all', { source: 'fairy-panel' })
 		allAgents.forEach((agent) => {
-			agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
+			agent.updateEntity((f) => (f ? { ...f, isSelected: true } : f))
 		})
 	}, [allAgents, trackEvent])
 
@@ -236,10 +235,10 @@ function ResetChatHistoryButton({ agent }: { agent: FairyAgent }) {
 			type="icon"
 			className="fairy-toolbar-button"
 			// Maybe needs to be reactive
-			disabled={agent.chatManager.getHistory().length === 0}
+			disabled={agent.chat.getHistory().length === 0}
 			onClick={() => {
 				trackEvent('fairy-reset-chat', { source: 'fairy-panel', fairyId: agent.id })
-				agent.chatManager.reset()
+				agent.chat.reset()
 			}}
 		>
 			<TldrawUiButtonIcon icon="plus" small />
