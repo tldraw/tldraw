@@ -23,6 +23,7 @@ export interface TLEventMap {
 	'edited-shapes': [TLRecord[]]
 	'deleted-shapes': [TLShapeId[]]
 	edit: []
+	dispose: []
 }
 
 /** @public */

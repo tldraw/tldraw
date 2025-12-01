@@ -78,12 +78,17 @@ export class FairyApp {
 		this.projects = new FairyAppProjectsManager(this)
 		this.tasks = new FairyAppTaskListManager(this)
 		this.waits = new FairyAppWaitManager(this)
+
+		editor.on('crash', () => this.dispose())
+		editor.on('dispose', () => this.dispose())
 	}
 
 	/**
 	 * Dispose of all resources. Call this during cleanup.
 	 */
 	dispose() {
+		this.projects.disbandAllProjects()
+
 		// Dispose all agents first (agents may depend on managers)
 		this.agents.disposeAll()
 

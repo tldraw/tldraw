@@ -3612,6 +3612,8 @@ export interface TLEventMap {
         error: unknown;
     }];
     // (undocumented)
+    dispose: [];
+    // (undocumented)
     edit: [];
     // (undocumented)
     event: [TLEventInfo];

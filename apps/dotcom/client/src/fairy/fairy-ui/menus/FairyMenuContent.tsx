@@ -169,9 +169,11 @@ export function FairyMenuContent({
 
 	const selectAllFairies = useCallback(() => {
 		trackEvent('fairy-select-all', { source: 'fairy-panel' })
-		allAgents.forEach((agent: FairyAgent) => {
-			agent.updateEntity((f) => (f ? { ...f, isSelected: true } : f))
-		})
+		allAgents
+			.filter((agent) => !agent.getProject())
+			.forEach((agent: FairyAgent) => {
+				agent.updateEntity((f) => (f ? { ...f, isSelected: true } : f))
+			})
 	}, [allAgents, trackEvent])
 
 	if (canDisbandGroup && currentProject) {

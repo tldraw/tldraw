@@ -176,7 +176,8 @@ export function FairyHUDHeader({
 	const onlySelectedFairy = selectedFairies.length === 1 ? selectedFairies[0] : null
 
 	// Show select all button on mobile when exactly one fairy is selected and there's more than one fairy total
-	const showSelectAllButton = selectedFairies.length < allAgents.length && !project // && isMobile
+	const showSelectAllButton =
+		selectedFairies.length < allAgents.length && !project && !hasChatHistory // && isMobile
 
 	return (
 		<div className="fairy-toolbar-header">
