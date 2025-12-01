@@ -23,7 +23,6 @@ import {
 	TlaMenuTabsTabs,
 } from '../../tla/components/tla-menu/tla-menu'
 import { useFeatureFlags } from '../../tla/hooks/useFeatureFlags'
-import { useTldrawUser } from '../../tla/hooks/useUser'
 import '../../tla/styles/fairy.css'
 import { useTldrawAppUiEvents } from '../../tla/utils/app-ui-events'
 import { F, useMsg } from '../../tla/utils/i18n'
@@ -49,7 +48,6 @@ export function FairyHUDTeaser() {
 
 	const { flags, isLoaded } = useFeatureFlags()
 	const { addDialog } = useDialogs()
-	const user = useTldrawUser()
 
 	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
 	const manualLabel = useMsg(fairyMessages.manual)
@@ -89,16 +87,11 @@ export function FairyHUDTeaser() {
 			return
 		}
 
-		// If user is signed in, show pricing in a modal
-		if (user) {
-			addDialog({
-				component: PricingDialog,
-			})
-		} else {
-			// If not signed in, redirect to pricing page
-			window.location.href = '/pricing'
-		}
-	}, [isLoaded, flags.fairies.enabled, flags.fairies_purchase.enabled, trackEvent, addDialog, user])
+		// Show pricing dialog for both signed in and signed out users
+		addDialog({
+			component: PricingDialog,
+		})
+	}, [isLoaded, flags.fairies.enabled, flags.fairies_purchase.enabled, trackEvent, addDialog])
 
 	// Position HUD above mobile style menu button on mobile
 	useEffect(() => {

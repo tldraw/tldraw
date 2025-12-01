@@ -90,7 +90,7 @@
 	padding: 24px;
 	border: 1px solid var(--tl-color-muted-1);
 	border-radius: 8px;
-	background-color: var(--tl-color-background);
+	background-color: var(--tl-color-panel);
 	gap: 24px;
 }
 
@@ -134,9 +134,9 @@
 	gap: 0px;
 }
 
-.fairyIcons > * {
-	height: 40px;
-	width: 40px;
+.fairyIcons > :global(.fairy-sprite-container) {
+	height: 44px;
+	width: 44px;
 	z-index: 3;
 }
 
@@ -198,10 +198,13 @@
 	overflow-y: auto;
 	max-height: 80vh;
 	padding: 64px 100px;
+	min-width: min(600px, 90vw);
 }
 
 .dialogBody > * {
 	max-width: 499px;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 .dialogBody p {
@@ -226,6 +229,7 @@
 	.dialogBody {
 		padding: 32px 24px;
 		max-height: none;
+		min-width: 95vw;
 	}
 
 	.dialogHeader {
@@ -270,10 +274,10 @@
 
 	.footer {
 		gap: 12px;
-		font-size: 10px;
+		font-size: 12px;
 	}
 
 	.footerLink {
-		font-size: 10px;
+		font-size: 12px;
 	}
 }

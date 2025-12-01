@@ -326,7 +326,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		const shouldShowFairyUI = shouldShowFairies && areFairiesEnabled
 
 		const shouldShowTeaser =
-			isLoaded && flags.fairies.enabled && flags.fairies_purchase.enabled && !hasFairyAccess
+			isLoaded &&
+			flags.fairies.enabled &&
+			flags.fairies_purchase.enabled &&
+			!hasFairyAccess &&
+			areFairiesEnabled
 		return {
 			...components,
 			Overlays: () => {

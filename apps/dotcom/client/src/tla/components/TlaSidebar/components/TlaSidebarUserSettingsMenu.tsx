@@ -74,7 +74,7 @@ export function TlaUserSettingsMenu() {
 					<TldrawUiMenuGroup id="preferences">
 						<ColorThemeSubmenu />
 						<LanguageMenu />
-						{hasFairyAccess && <FairiesSubmenu />}
+						<FairiesSubmenu />
 					</TldrawUiMenuGroup>
 					<DebugMenuGroup />
 					<TldrawUiMenuGroup id="signout">
