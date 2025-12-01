@@ -1,7 +1,3 @@
-// export const DEFAULT_MODEL_NAME =
-// 	(process.env.FAIRY_MODEL as AgentModelName | undefined) ?? 'claude-sonnet-4-5' //'gemini-3-pro-preview'
-
-export const DEFAULT_MODEL_NAME: AgentModelName = 'claude-sonnet-4-5'
 export type AgentModelProvider = 'openai' | 'anthropic' | 'google'
 
 export interface AgentModelDefinition {
@@ -40,6 +36,27 @@ export const AGENT_MODEL_DEFINITIONS = {
 } as const
 
 export type AgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
+
+const FALLBACK_MODEL_NAME = 'claude-sonnet-4-5' as AgentModelName
+
+function isValidModelName(value: string | undefined): value is AgentModelName {
+	return !!value && value in AGENT_MODEL_DEFINITIONS
+}
+
+function getBuildTimeDefault(): AgentModelName {
+	const buildTimeValue =
+		typeof process !== 'undefined' ? (process.env?.FAIRY_MODEL as string | undefined) : undefined
+	return isValidModelName(buildTimeValue) ? buildTimeValue : FALLBACK_MODEL_NAME
+}
+
+const BUILD_DEFAULT_MODEL_NAME = getBuildTimeDefault()
+
+export const DEFAULT_MODEL_NAME = BUILD_DEFAULT_MODEL_NAME //'gemini-3-pro-preview'
+
+export function getDefaultModelName(env?: { FAIRY_MODEL?: string }): AgentModelName {
+	const runtimeValue = env?.FAIRY_MODEL
+	return isValidModelName(runtimeValue) ? runtimeValue : BUILD_DEFAULT_MODEL_NAME
+}
 
 export const TIER_THRESHOLD = 200_000
 
