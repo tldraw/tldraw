@@ -48,8 +48,7 @@
 	font-weight: 500;
 	cursor: pointer;
 }
-
-.acceptButton:hover {
+.acceptButton:hover:not(:disabled) {
 	background-color: var(--tla-color-cta-hover);
 }
 
