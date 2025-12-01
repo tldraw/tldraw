@@ -22,6 +22,7 @@ export class StartDuoProjectActionUtil extends AgentActionUtil<StartDuoProjectAc
 	}
 
 	override applyAction(action: Streaming<StartDuoProjectAction>, _helpers: AgentHelpers) {
+		// if (!action.complete) return
 		if (!this.agent) return
 
 		// Assumptions:
@@ -73,6 +74,7 @@ export class StartDuoProjectActionUtil extends AgentActionUtil<StartDuoProjectAc
 		}
 
 		if (!action.complete) return
+
 		this.agent.fairyApp.projects.updateProject(project.id, {
 			title: projectName,
 			description: projectDescription,

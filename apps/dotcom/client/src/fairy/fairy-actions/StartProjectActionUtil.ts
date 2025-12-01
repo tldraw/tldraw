@@ -22,6 +22,7 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 	}
 
 	override applyAction(action: Streaming<StartProjectAction>, _helpers: AgentHelpers) {
+		// if (!action.complete) return
 		if (!this.agent) return
 
 		// Assumptions:
