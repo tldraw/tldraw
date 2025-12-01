@@ -199,10 +199,19 @@ function FairyInviteHandler() {
 	const hasFairyAccess = useFairyAccess()
 	const alreadyHasAccessMsg = useMsg(fairyInviteMessages.alreadyHasAccess)
 
+	const { user } = useClerkUser()
+
 	useEffect(() => {
 		if (!auth.isLoaded) return
 		if (!auth.isSignedIn || !auth.userId) return
 		if (!isLoaded) return // Wait for flags to load before processing
+		if (
+			user &&
+			!user.legalAcceptedAt && // Clerk's canonical metadata key (older accounts)
+			!user.unsafeMetadata?.legal_accepted_at // our metadata key (newer accounts)
+		) {
+			return
+		}
 
 		const storedToken = getFromSessionStorage('fairy-invite-token')
 
@@ -238,6 +247,7 @@ function FairyInviteHandler() {
 		hasFairyAccess,
 		addToast,
 		alreadyHasAccessMsg,
+		user,
 	])
 
 	return null
