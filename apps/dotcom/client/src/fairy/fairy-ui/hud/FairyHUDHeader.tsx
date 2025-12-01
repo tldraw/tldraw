@@ -81,7 +81,7 @@ export function FairyHUDHeader({
 
 	const hasChatHistory = useValue(
 		'has-chat-history',
-		() => shownFairy && shownFairy.chatManager.getHistory().length > 0,
+		() => shownFairy && shownFairy.chat.getHistory().length > 0,
 		[shownFairy]
 	)
 
