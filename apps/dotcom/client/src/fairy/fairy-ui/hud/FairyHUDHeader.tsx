@@ -5,6 +5,7 @@ import {
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
+	TldrawUiTooltip,
 	useEditor,
 	useReactor,
 	useValue,
@@ -15,13 +16,14 @@ import {
 	TlaMenuTabsTabs,
 } from '../../../tla/components/tla-menu/tla-menu'
 import { useTldrawAppUiEvents } from '../../../tla/utils/app-ui-events'
-import { F } from '../../../tla/utils/i18n'
+import { F, useMsg } from '../../../tla/utils/i18n'
 import {
 	getLocalSessionState,
 	updateLocalSessionState,
 } from '../../../tla/utils/local-session-state'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { useFairyApp } from '../../fairy-app/FairyAppProvider'
+import { fairyMessages } from '../../fairy-messages'
 import { FairyMenuContent } from '../menus/FairyMenuContent'
 import { FairyHUDPanelState } from './useFairySelection'
 
@@ -48,6 +50,8 @@ export function FairyHUDHeader({
 	const fairyApp = useFairyApp()
 	const trackEvent = useTldrawAppUiEvents()
 	const fairyConfig = useValue('fairy config', () => shownFairy?.getConfig(), [shownFairy])
+	const zoomToFairyLabel = useMsg(fairyMessages.zoomToFairy)
+	const selectAllFairiesLabel = useMsg(fairyMessages.selectAllFairiesLabel)
 
 	// Get the project for the shown fairy
 	const project = useValue('project', () => shownFairy?.getProject(), [shownFairy])
@@ -163,9 +167,11 @@ export function FairyHUDHeader({
 		selectedFairies.length > 1 ? (
 			<div className="fairy-id-display">{formattedNames}</div>
 		) : shownFairy && fairyConfig ? (
-			<div className="fairy-id-display" onClick={zoomToFairy}>
-				<p style={{ cursor: fairyClickable ? 'pointer' : 'default' }}>{getDisplayName()}</p>
-			</div>
+			<TldrawUiTooltip content={fairyClickable ? zoomToFairyLabel : undefined} side="top">
+				<div className="fairy-id-display" onClick={zoomToFairy}>
+					<p style={{ cursor: fairyClickable ? 'pointer' : 'default' }}>{getDisplayName()}</p>
+				</div>
+			</TldrawUiTooltip>
 		) : (
 			<div style={{ flex: 1 }}></div>
 		)
@@ -184,9 +190,11 @@ export function FairyHUDHeader({
 			{centerContent}
 			<div className="tlui-row">
 				{showSelectAllButton ? (
-					<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={selectAllFairies}>
-						<TldrawUiButtonIcon icon={<SelectAllIcon />} small />
-					</TldrawUiButton>
+					<TldrawUiTooltip content={selectAllFairiesLabel} side="top">
+						<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={selectAllFairies}>
+							<TldrawUiButtonIcon icon={<SelectAllIcon />} small />
+						</TldrawUiButton>
+					</TldrawUiTooltip>
 				) : (
 					onlySelectedFairy &&
 					hasChatHistory && <ResetChatHistoryButton agent={onlySelectedFairy} />
@@ -232,19 +240,22 @@ function FairyDropdownContent({ agents }: { agents: FairyAgent[] }) {
 
 function ResetChatHistoryButton({ agent }: { agent: FairyAgent }) {
 	const trackEvent = useTldrawAppUiEvents()
+	const newChatLabel = useMsg(fairyMessages.newChat)
 	return (
-		<TldrawUiButton
-			type="icon"
-			className="fairy-toolbar-button"
-			// Maybe needs to be reactive
-			disabled={agent.chat.getHistory().length === 0}
-			onClick={() => {
-				trackEvent('fairy-reset-chat', { source: 'fairy-panel', fairyId: agent.id })
-				agent.chat.reset()
-			}}
-		>
-			<TldrawUiButtonIcon icon="plus" small />
-		</TldrawUiButton>
+		<TldrawUiTooltip content={newChatLabel} side="top">
+			<TldrawUiButton
+				type="icon"
+				className="fairy-toolbar-button"
+				// Maybe needs to be reactive
+				disabled={agent.chat.getHistory().length === 0}
+				onClick={() => {
+					trackEvent('fairy-reset-chat', { source: 'fairy-panel', fairyId: agent.id })
+					agent.chat.reset()
+				}}
+			>
+				<TldrawUiButtonIcon icon="plus" small />
+			</TldrawUiButton>
+		</TldrawUiTooltip>
 	)
 }
 

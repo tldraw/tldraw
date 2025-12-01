@@ -1,6 +1,6 @@
 import { CancelIcon, FAIRY_VISION_DIMENSIONS, LipsIcon } from '@tldraw/fairy-shared'
 import { KeyboardEvent, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Box, useEditor, useValue } from 'tldraw'
+import { Box, TldrawUiTooltip, useEditor, useValue } from 'tldraw'
 import { useTldrawAppUiEvents } from '../../../tla/utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../tla/utils/getIsCoarsePointer'
 import { useMsg } from '../../../tla/utils/i18n'
@@ -131,13 +131,15 @@ export function FairySingleChatInput({ agent, onCancel }: { agent: FairyAgent; o
 					rows={1}
 					spellCheck={false}
 				/>
-				<button
-					onClick={handleButtonClick}
-					className="fairy-input__submit"
-					title={showCancel ? stopLabel : sendLabel}
-				>
-					{showCancel ? <CancelIcon /> : <LipsIcon />}
-				</button>
+				<TldrawUiTooltip content={showCancel ? stopLabel : sendLabel} side="top">
+					<button
+						onClick={handleButtonClick}
+						className="fairy-input__submit"
+						title={showCancel ? stopLabel : sendLabel}
+					>
+						{showCancel ? <CancelIcon /> : <LipsIcon />}
+					</button>
+				</TldrawUiTooltip>
 			</div>
 		</div>
 	)
