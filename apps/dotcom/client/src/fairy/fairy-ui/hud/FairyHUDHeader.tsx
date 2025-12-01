@@ -272,6 +272,8 @@ function ResetChatHistoryButton({ agent }: { agent: FairyAgent }) {
 				disabled={agent.chat.getHistory().length === 0}
 				onClick={() => {
 					trackEvent('fairy-reset-chat', { source: 'fairy-panel', fairyId: agent.id })
+					// Cancel any active generation before resetting the chat
+					agent.cancel()
 					agent.chat.reset()
 				}}
 			>
