@@ -315,7 +315,7 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 		() => {
 			const elm = fairyRef.current
 			if (!elm) return
-			const position = fairyEntity.position
+			const position = agent.getEntity()?.position
 			if (!position) return null
 			elm.style.left = `${position.x}px`
 			elm.style.top = `${position.y}px`

@@ -1,4 +1,4 @@
-import { AgentModelName, DEFAULT_MODEL_NAME, PersistedFairyState } from '@tldraw/fairy-shared'
+import { AgentModelName, DEFAULT_MODEL_NAME } from '@tldraw/fairy-shared'
 import { Atom, atom, Editor } from 'tldraw'
 import { TldrawApp } from '../../tla/app/TldrawApp'
 import { FairyAppAgentsManager } from './managers/FairyAppAgentsManager'
@@ -119,21 +119,5 @@ export class FairyApp {
 
 	setModelSelection(value: AgentModelName): void {
 		this.$modelSelection.set(value)
-	}
-
-	// --- Convenience methods delegating to persistenceManager ---
-
-	/**
-	 * Check if state is currently being loaded.
-	 */
-	getIsLoadingState(): boolean {
-		return this.persistence.getIsLoadingState()
-	}
-
-	/**
-	 * Load fairy state from persisted data.
-	 */
-	loadState(fairyState: PersistedFairyState) {
-		this.persistence.loadState(fairyState)
 	}
 }

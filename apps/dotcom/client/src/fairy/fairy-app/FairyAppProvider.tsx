@@ -112,7 +112,7 @@ export function FairyAppProvider({ fileId, children, onMount, onUnmount }: Fairy
 		if (fileState?.fairyState) {
 			try {
 				const fairyState = JSON.parse(fileState.fairyState)
-				fairyApp.loadState(fairyState)
+				fairyApp.persistence.loadState(fairyState)
 			} catch (e) {
 				console.error('Failed to parse fairy state:', e)
 			}

@@ -632,12 +632,12 @@ App-level state managed by `FairyApp`:
 
 **App managers state**
 
-Each app manager maintains its own reactive state:
+Each app manager maintains its own reactive state, accessed via unified API:
 
-- `FairyAppAgentsManager.$agents`: List of all fairy agents
-- `FairyAppFollowingManager.$followingFairyId`: ID of followed fairy
-- `FairyAppProjectsManager.$projects`: Active projects list
-- `FairyAppTaskListManager.$tasks`: Shared task list
+- `fairyApp.agents.$agents`: List of all fairy agents
+- `fairyApp.following.$followingFairyId`: ID of followed fairy
+- `fairyApp.projects.$projects`: Active projects list
+- `fairyApp.tasks.$tasks`: Shared task list
 
 **Agent state**
 
@@ -650,10 +650,10 @@ Per-agent state managed by `FairyAgent`:
 
 **Persistence**
 
-- Fairy state serialized via `fairyApp.serializeState()`
+- Fairy state serialized via `fairyApp.persistence.serializeState()`
 - Includes: all agent states, task list, projects
 - Agent state includes: fairyEntity, chatHistory, chatOrigin, personalTodoList, waitingFor
-- Restored via `fairyApp.loadState()`
+- Restored via `fairyApp.loadState()` (convenience method on FairyApp)
 - Auto-save via reactive watchers (throttled to 2 seconds)
 - Configuration stored in user profile as `fairies` JSON
 
@@ -803,25 +803,25 @@ class CustomPartUtil extends PromptPartUtil<CustomPart> {
 ```typescript
 // Projects are typically started via StartProjectActionUtil
 // But can be managed programmatically via fairyApp:
-fairyApp.projectsManager.disbandProject(projectId)
-fairyApp.projectsManager.resumeProject(projectId)
+fairyApp.projects.disbandProject(projectId)
+fairyApp.projects.resumeProject(projectId)
 
 // Task management
-fairyApp.taskListManager.createTask({ id, title, projectId })
-fairyApp.taskListManager.setTaskStatusAndNotify(taskId, 'done')
+fairyApp.tasks.createTask({ id, title, projectId })
+fairyApp.tasks.setTaskStatusAndNotify(taskId, 'done')
 ```
 
 ### Camera following
 
 ```typescript
 // Start following a fairy
-fairyApp.followingManager.startFollowing(fairyId)
+fairyApp.following.startFollowing(fairyId)
 
 // Stop following
-fairyApp.followingManager.stopFollowing()
+fairyApp.following.stopFollowing()
 
 // Check if following
-fairyApp.followingManager.isFollowing()
+fairyApp.following.isFollowing()
 ```
 
 ## Key features
