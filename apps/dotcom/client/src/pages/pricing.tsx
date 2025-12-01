@@ -161,9 +161,9 @@ export function Component() {
 						disabled={isProcessing}
 					>
 						{!user ? (
-							<F defaultMessage="Start your fairy adventure" />
+							<F defaultMessage="Purchase Fairy Bundle" />
 						) : hasFairyAccess ? (
-							<F defaultMessage="Your fairies are waiting for you! →" />
+							<F defaultMessage="Your fairies are waiting" />
 						) : (
 							<F defaultMessage="Purchase Fairy Bundle" />
 						)}
