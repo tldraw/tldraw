@@ -104,7 +104,7 @@ export function FairySingleChatInput({ agent, onCancel }: { agent: FairyAgent; o
 	}
 
 	const whisperPlaceholder = useMsg(fairyMessages.whisperToFairy, {
-		name: fairyConfig.name.split(' ')[0],
+		name: fairyConfig.name?.split(' ')[0] ?? '',
 	})
 	const stopLabel = useMsg(fairyMessages.stopLabel)
 	const sendLabel = useMsg(fairyMessages.sendLabel)

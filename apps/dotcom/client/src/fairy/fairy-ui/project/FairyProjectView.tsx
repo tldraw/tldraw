@@ -328,7 +328,7 @@ Do NOT start a completely new project. Respond with a message action first expla
 	// Dynamic placeholder based on project state
 	const placeholder = isPreProject
 		? instructGroupPlaceholder
-		: `Speak to ${orchestratorName.split(' ')[0]}...`
+		: `Speak to ${orchestratorName?.split(' ')[0] ?? ''}...`
 
 	// Empty state
 	if (agents.length === 0) {
