@@ -1,9 +1,9 @@
 import { FairyProject } from '@tldraw/fairy-shared'
 import { Editor } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { FairyApp } from '../FairyApp'
-import { FairyAppProjectsManager } from './FairyAppProjectsManager'
-import { createTestEditor, createTestFairyApp } from './__test__/fairy-app-managers-test-shared'
+import { FairyApp } from '../../FairyApp'
+import { FairyAppProjectsManager } from '../FairyAppProjectsManager'
+import { createTestEditor, createTestFairyApp } from './fairy-app-managers-test-shared'
 
 describe('FairyAppProjectsManager', () => {
 	let editor: Editor

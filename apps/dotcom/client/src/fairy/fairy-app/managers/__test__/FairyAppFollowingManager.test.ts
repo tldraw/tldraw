@@ -1,8 +1,8 @@
 import { Editor, PageRecordType } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { FairyApp } from '../FairyApp'
-import { FairyAppFollowingManager } from './FairyAppFollowingManager'
-import { createTestEditor, createTestFairyApp } from './__test__/fairy-app-managers-test-shared'
+import { FairyApp } from '../../FairyApp'
+import { FairyAppFollowingManager } from '../FairyAppFollowingManager'
+import { createTestEditor, createTestFairyApp } from './fairy-app-managers-test-shared'
 
 describe('FairyAppFollowingManager', () => {
 	let editor: Editor

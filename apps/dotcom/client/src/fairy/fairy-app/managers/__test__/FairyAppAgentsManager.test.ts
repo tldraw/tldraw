@@ -2,10 +2,10 @@ import { MAX_FAIRY_COUNT } from '@tldraw/dotcom-shared'
 import { FAIRY_VARIANTS, PersistedFairyConfigs } from '@tldraw/fairy-shared'
 import { Editor } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { FairyAgent } from '../../fairy-agent/FairyAgent'
-import { FairyApp } from '../FairyApp'
-import { FairyAppAgentsManager } from './FairyAppAgentsManager'
-import { createTestEditor, createTestFairyApp } from './__test__/fairy-app-managers-test-shared'
+import { FairyAgent } from '../../../fairy-agent/FairyAgent'
+import { FairyApp } from '../../FairyApp'
+import { FairyAppAgentsManager } from '../FairyAppAgentsManager'
+import { createTestEditor, createTestFairyApp } from './fairy-app-managers-test-shared'
 
 describe('FairyAppAgentsManager', () => {
 	let editor: Editor

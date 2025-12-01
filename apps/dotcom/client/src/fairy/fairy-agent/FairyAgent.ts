@@ -40,7 +40,6 @@ import { FairyApp } from '../fairy-app/FairyApp'
 import { getPromptPartUtilsRecord } from '../fairy-part-utils/fairy-part-utils'
 import { PromptPartUtil } from '../fairy-part-utils/PromptPartUtil'
 import { AgentHelpers } from './AgentHelpers'
-import { FairyAgentOptions } from './FairyAgentOptions'
 import { FAIRY_MODE_CHART } from './FairyModeNode'
 import { FairyAgentActionManager } from './managers/FairyAgentActionManager'
 import { FairyAgentChatManager } from './managers/FairyAgentChatManager'
@@ -53,6 +52,19 @@ import { FairyAgentTodoManager } from './managers/FairyAgentTodoManager'
 import { FairyAgentUsageTracker } from './managers/FairyAgentUsageTracker'
 import { FairyAgentUserActionTracker } from './managers/FairyAgentUserActionTracker'
 import { FairyAgentWaitManager } from './managers/FairyAgentWaitManager'
+
+export interface FairyAgentOptions {
+	/** The editor to associate the agent with. */
+	editor: Editor
+	/** The fairy app to associate the agent with. */
+	fairyApp: FairyApp
+	/** A key used to differentiate the agent from other agents. */
+	id: string
+	/** A callback for when an error occurs. */
+	onError(e: any): void
+	/** A function to get the authentication token. */
+	getToken?(): Promise<string | undefined>
+}
 
 /**
  * An agent that can be prompted to edit the canvas.
