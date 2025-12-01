@@ -298,6 +298,7 @@ function FairyInvites() {
 	const [isCreating, setIsCreating] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
 	const [isEnabling, setIsEnabling] = useState(false)
+	const [isRemovingForMe, setIsRemovingForMe] = useState(false)
 	const [isGranting, setIsGranting] = useState(false)
 	const [isRemoving, setIsRemoving] = useState(false)
 	const [error, setError] = useState(null as string | null)
@@ -429,6 +430,34 @@ function FairyInvites() {
 		}
 	}, [])
 
+	const removeForMe = useCallback(async () => {
+		if (!user?.email) {
+			setError('No user email found')
+			return
+		}
+
+		setIsRemovingForMe(true)
+		setError(null)
+		setSuccessMessage(null)
+		try {
+			const res = await fetch('/api/app/admin/fairy/remove-access', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email: user.email }),
+			})
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			await res.json()
+			setSuccessMessage('Fairy access removed!')
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to remove fairy access')
+		} finally {
+			setIsRemovingForMe(false)
+		}
+	}, [user?.email])
+
 	const removeFairyAccess = useCallback(async () => {
 		if (!accessEmail || !accessEmail.includes('@')) {
 			setError('Please enter a valid email address')
@@ -482,6 +511,14 @@ function FairyInvites() {
 			<div className={styles.fairyButtonContainer}>
 				<TlaButton onClick={enableForMe} variant="primary" isLoading={isEnabling}>
 					Enable fairies for me
+				</TlaButton>
+				<TlaButton
+					onClick={removeForMe}
+					variant="warning"
+					className={styles.deleteButton}
+					isLoading={isRemovingForMe}
+				>
+					Remove access for me
 				</TlaButton>
 			</div>
 

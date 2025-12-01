@@ -164,6 +164,9 @@
   "44db318ee5": {
     "translation": "Get help on Discord"
   },
+  "45b43c2d28": {
+    "translation": "<strong>Fairies</strong> have come to tldraw for the month of December."
+  },
   "46137245cd": {
     "translation": "Thanks for helping us improve tldraw!"
   },
@@ -379,9 +382,6 @@
   },
   "81aa2078d1": {
     "translation": "Clear all"
-  },
-  "8472a551f1": {
-    "translation": "Fairies have come to tldraw for the month of December."
   },
   "85a082de1b": {
     "translation": "Please refresh the page to get the latest version of tldraw."
@@ -761,8 +761,5 @@
   },
   "ffcd73e997": {
     "translation": "Import file…"
-  },
-  "ffec95af2f": {
-    "translation": "Purchase fairy access"
   }
 }
