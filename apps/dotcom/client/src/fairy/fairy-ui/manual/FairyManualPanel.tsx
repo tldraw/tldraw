@@ -207,8 +207,9 @@ export function FairyManualPanel() {
 					<div className="fairy-manual-section">
 						<h3>Tasks and todo lists</h3>
 						<p>
-							Fairies create and manage tasks as they work. Task lists help fairies stay organized
-							and let you track progress on complex requests.
+							Fairies create and manage tasks as they work. You can view task lists in the sidebar
+							and see fairies checking off items as they complete them. Task lists help fairies stay
+							organized and let you track progress on complex requests.
 						</p>
 					</div>
 
@@ -251,8 +252,7 @@ export function FairyManualPanel() {
 							</li>
 							<li>
 								<strong>Can&apos;t stop a fairy:</strong> If a fairy is working with others, you
-								need to cancel the entire team. Solo fairies can be interrupted by sending a new
-								message.
+								need to cancel the entire team. Fairies can be interrupted by sending a new message.
 							</li>
 							<li>
 								<strong>Fairy stuck waiting:</strong> Check the task list to see if work is in
