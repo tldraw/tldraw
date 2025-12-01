@@ -191,6 +191,17 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 				agent.interrupt({ mode: 'standing-by', input: null })
 			})
 
+			// Summon all fairies to the orchestrator
+			// Leader (orchestrator) at center
+			leaderAgent.position.summon()
+
+			// Followers positioned around the orchestrator
+			followerAgents.forEach((agent, index) => {
+				// Position followers in a horizontal line, offset from the orchestrator
+				const offset = { x: (index + 1) * 120, y: 0 }
+				agent.position.summon(offset)
+			})
+
 			// Send the prompt to the leader
 			const groupChatPrompt = getGroupChatPrompt(value, followerAgents, isDuo)
 			leaderAgent.prompt({
