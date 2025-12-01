@@ -112,7 +112,6 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 	 * @returns void
 	 */
 	stopFollowing() {
-		this.dispose()
 		this.agent.fairyApp.following.stopFollowing()
 	}
 
