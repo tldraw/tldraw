@@ -216,7 +216,8 @@ export function FairyHUDHeader({
 					</TldrawUiTooltip>
 				) : (
 					onlySelectedFairy &&
-					hasChatHistory && <ResetChatHistoryButton agent={onlySelectedFairy} />
+					hasChatHistory &&
+					!isProjectStarted && <ResetChatHistoryButton agent={onlySelectedFairy} />
 				)}
 				{<FairyMenuButton menuPopoverOpen={menuPopoverOpen}>{dropdownContent}</FairyMenuButton>}
 			</div>
