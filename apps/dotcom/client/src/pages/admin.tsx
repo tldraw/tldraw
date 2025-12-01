@@ -8,8 +8,10 @@ import {
 } from '@tldraw/dotcom-shared'
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { fetch } from 'tldraw'
+import { fetch, useValue } from 'tldraw'
 import { TlaButton } from '../tla/components/TlaButton/TlaButton'
+import { useApp } from '../tla/hooks/useAppState'
+import { usePaddle } from '../tla/hooks/usePaddle'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import styles from './admin.module.css'
 import { saveMigrationLog } from './migrationLogsDB'
@@ -276,6 +278,9 @@ export function Component() {
 }
 
 function FairyInvites() {
+	const app = useApp()
+	const user = useValue('user', () => app.getUser(), [app])
+	const { paddleLoaded, openPaddleCheckout } = usePaddle()
 	const [invites, setInvites] = useState<
 		Array<{
 			id: string
@@ -474,7 +479,7 @@ function FairyInvites() {
 				Quick access toggle for development. Grants {MAX_FAIRY_COUNT} fairies with 1 year
 				expiration.
 			</p>
-			<div style={{ marginBottom: '16px' }}>
+			<div className={styles.fairyButtonContainer}>
 				<TlaButton onClick={enableForMe} variant="primary" isLoading={isEnabling}>
 					Enable fairies for me
 				</TlaButton>
@@ -484,7 +489,7 @@ function FairyInvites() {
 			<p className="tla-text_ui__small">
 				Grant or remove fairy access by email. Granting access will give {MAX_FAIRY_COUNT} fairies.
 			</p>
-			<div className={styles.downloadContainer} style={{ marginBottom: '24px' }}>
+			<div className={`${styles.downloadContainer} ${styles.fairyAccessContainer}`}>
 				<div>
 					<label htmlFor="accessEmail">Email:</label>
 					<input
@@ -493,8 +498,7 @@ function FairyInvites() {
 						placeholder="user@example.com"
 						value={accessEmail}
 						onChange={(e) => setAccessEmail(e.target.value)}
-						className={styles.searchInput}
-						style={{ width: '250px', marginLeft: '8px' }}
+						className={`${styles.searchInput} ${styles.fairyEmailInput}`}
 					/>
 				</div>
 				<TlaButton onClick={grantAccess} variant="primary" isLoading={isGranting}>
@@ -524,8 +528,7 @@ function FairyInvites() {
 						placeholder="Optional description"
 						value={inviteDescription}
 						onChange={(e) => setInviteDescription(e.target.value)}
-						className={styles.searchInput}
-						style={{ width: '200px', marginLeft: '8px' }}
+						className={`${styles.searchInput} ${styles.fairyDescriptionInput}`}
 					/>
 				</div>
 				<div>
@@ -537,8 +540,7 @@ function FairyInvites() {
 						value={maxUses}
 						onChange={(e) => setMaxUses(Number(e.target.value))}
 						min={0}
-						className={styles.searchInput}
-						style={{ width: '120px', marginLeft: '8px' }}
+						className={`${styles.searchInput} ${styles.fairyMaxUsesInput}`}
 					/>
 				</div>
 				<TlaButton onClick={createInvite} variant="primary" isLoading={isCreating}>
@@ -578,7 +580,7 @@ function FairyInvites() {
 										: '-'}
 								</td>
 								<td>{new Date(invite.createdAt).toLocaleString()}</td>
-								<td style={{ display: 'flex', gap: '8px' }}>
+								<td className={styles.tableActions}>
 									<TlaButton
 										onClick={() => {
 											const inviteUrl = `${window.location.origin}/fairy-invite/${invite.id}`
@@ -602,6 +604,26 @@ function FairyInvites() {
 					</tbody>
 				</table>
 			)}
+
+			<h4 className={`tla-text_ui__medium ${styles.paddleSectionHeading}`}>
+				Test Paddle Purchase (Testing Only)
+			</h4>
+			<p className="tla-text_ui__small">
+				Test the Paddle checkout flow. This will open the payment overlay for purchasing fairies.
+			</p>
+			<div className={styles.paddleButtonContainer}>
+				<TlaButton
+					onClick={() => {
+						if (user?.email) {
+							openPaddleCheckout(app.userId, user.email)
+						}
+					}}
+					variant="primary"
+					disabled={!paddleLoaded || !user?.email}
+				>
+					Open Paddle Checkout
+				</TlaButton>
+			</div>
 		</div>
 	)
 }
@@ -670,10 +692,10 @@ function FeatureFlags() {
 			{error && <div className={styles.errorMessage}>{error}</div>}
 			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
 
-			<p className="tla-text_ui__small" style={{ marginBottom: '8px' }}>
+			<p className={`tla-text_ui__small ${styles.featureFlagsNote}`}>
 				<strong>Global feature toggles.</strong> Changes take effect immediately for ALL users.
 			</p>
-			<p className="tla-text_ui__small" style={{ color: 'var(--tla-color-text-3)' }}>
+			<p className={`tla-text_ui__small ${styles.featureFlagsDescription}`}>
 				Unchecking these flags will completely disable the feature for everyone, regardless of their
 				individual access settings.
 			</p>
@@ -681,7 +703,7 @@ function FeatureFlags() {
 			{isLoading ? (
 				<p className="tla-text_ui__small">Loading flags...</p>
 			) : (
-				<div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
+				<div className={styles.featureFlagsContainer}>
 					{Object.entries(flags)
 						.sort(([a], [b]) => a.localeCompare(b))
 						.map(([flagName, flagValue]) => {
@@ -690,17 +712,8 @@ function FeatureFlags() {
 								.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
 								.join(' ')
 							return (
-								<div key={flagName} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-									<label
-										htmlFor={flagName}
-										style={{
-											display: 'flex',
-											alignItems: 'center',
-											gap: '8px',
-											cursor: 'pointer',
-											minWidth: '200px',
-										}}
-									>
+								<div key={flagName} className={styles.featureFlagItem}>
+									<label htmlFor={flagName} className={styles.featureFlagLabel}>
 										<input
 											id={flagName}
 											type="checkbox"
@@ -713,10 +726,7 @@ function FeatureFlags() {
 										</span>
 									</label>
 									{flagValue.description && (
-										<span
-											className="tla-text_ui__small"
-											style={{ color: 'var(--tla-color-text-3)' }}
-										>
+										<span className={`tla-text_ui__small ${styles.featureFlagsDescription}`}>
 											{flagValue.description}
 										</span>
 									)}
@@ -1154,8 +1164,7 @@ function BatchMigrateUsersToGroups() {
 						onChange={(e) => setSleepMs(Number(e.target.value))}
 						disabled={isMigrating}
 						min={0}
-						className={styles.searchInput}
-						style={{ width: '100px', marginLeft: '8px' }}
+						className={`${styles.searchInput} ${styles.sleepInput}`}
 					/>
 				</div>
 			</div>
