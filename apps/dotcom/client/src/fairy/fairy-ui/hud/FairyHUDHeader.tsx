@@ -204,6 +204,8 @@ export function FairyHUDHeader({
 	const showSelectAllButton =
 		hasUnselectedFairiesWithoutActiveProjects && !project && !hasChatHistory // && isMobile
 
+	console.log(hasChatHistory)
+
 	return (
 		<div className="fairy-toolbar-header">
 			{centerContent}
