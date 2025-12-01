@@ -99,5 +99,12 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 		droneAgent.interrupt({ mode: 'idling', input: null })
 
 		this.agent.fairyApp.projects.deleteProjectAndAssociatedTasks(project.id)
+
+		// Select orchestrator after project deletion
+		const allAgents = this.agent.fairyApp.agents.getAgents()
+		allAgents.forEach((agent) => {
+			const shouldSelect = agent.id === duoOrchestratorAgent.id
+			agent.updateEntity((f) => (f ? { ...f, isSelected: shouldSelect } : f))
+		})
 	}
 }
