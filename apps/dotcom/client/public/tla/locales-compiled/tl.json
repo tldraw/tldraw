@@ -11,12 +11,6 @@
       "value": "Tanggapin ang imbitasyon"
     }
   ],
-  "01d61b2012": [
-    {
-      "type": 0,
-      "value": "Simulan ang iyong pakikipagsapalaran sa engkanto"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -73,12 +67,6 @@
     {
       "type": 0,
       "value": "file"
-    }
-  ],
-  "0b79795d3e": [
-    {
-      "type": 0,
-      "value": "Panimula"
     }
   ],
   "0b9a4cde72": [
@@ -187,6 +175,12 @@
     {
       "type": 0,
       "value": "Tungkol sa tldraw"
+    }
+  ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Naghihintay ang iyong mga diwata"
     }
   ],
   "275173253d": [
@@ -347,6 +341,22 @@
       "value": "Humingi ng tulong sa Discord"
     }
   ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Mga diwata"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " ay dumating upang tldraw para sa buwan ng Disyembre."
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -417,6 +427,12 @@
     {
       "type": 0,
       "value": "Tanggalin ang pangkat…"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Higit pang mga pagpipilian"
     }
   ],
   "4e6fbf032b": [
@@ -853,10 +869,10 @@
       "value": "I-clear lahat"
     }
   ],
-  "8472a551f1": [
+  "83218ac34c": [
     {
       "type": 0,
-      "value": "Dumating ang mga diwata upang tldraw para sa buwan ng Disyembre."
+      "value": "Maligayang pagdating"
     }
   ],
   "85a082de1b": [
@@ -1139,6 +1155,12 @@
       "value": "Naabot na ang lingguhang limitasyon ng engkanto"
     }
   ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Bagong chat"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
@@ -1289,6 +1311,12 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Mag-zoom sa diwata"
     }
   ],
   "c2276c9127": [
@@ -1575,12 +1603,6 @@
       "value": "Legal na buod"
     }
   ],
-  "e2b0147fd2": [
-    {
-      "type": 0,
-      "value": "Ang iyong mga diwata ay naghihintay para sa iyo! →"
-    }
-  ],
   "e3afed0047": [
     {
       "type": 0,
@@ -1761,12 +1783,6 @@
     {
       "type": 0,
       "value": "Mag-import ng file…"
-    }
-  ],
-  "ffec95af2f": [
-    {
-      "type": 0,
-      "value": "Bumili ng fairy access"
     }
   ]
 }

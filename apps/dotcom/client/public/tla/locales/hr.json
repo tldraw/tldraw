@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Prihvati pozivnicu"
   },
-  "01d61b2012": {
-    "translation": "Započnite svoju vilinsku avanturu"
-  },
   "03b3e13197": {
     "translation": "Povucite datoteku u bočnu traku na ovoj stranici. Ili odaberite opciju 'Uvezi datoteku' iz korisničkog izbornika."
   },
@@ -34,9 +31,6 @@
   },
   "0b27918290": {
     "translation": "File"
-  },
-  "0b79795d3e": {
-    "translation": "Uvod"
   },
   "0b9a4cde72": {
     "translation": "Izbornik datoteka"
@@ -91,6 +85,9 @@
   },
   "250ddea65c": {
     "translation": "O tldrawu"
+  },
+  "269097080b": {
+    "translation": "Tvoje vile čekaju"
   },
   "275173253d": {
     "translation": "Prizovi sve"
@@ -164,6 +161,9 @@
   "44db318ee5": {
     "translation": "Zatražite pomoć na Discordu"
   },
+  "45b43c2d28": {
+    "translation": "<strong>Vile</strong> su došle crtati za prosinac."
+  },
   "46137245cd": {
     "translation": "Hvala što nam pomažete poboljšati tldraw!"
   },
@@ -199,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "Izbriši grupu…"
+  },
+  "4dab36ac83": {
+    "translation": "Više opcija"
   },
   "4e6fbf032b": {
     "translation": "Jeste li sigurni da želite izbrisati ovu grupu? Ova se radnja ne može poništiti."
@@ -380,8 +383,8 @@
   "81aa2078d1": {
     "translation": "Obriši sve"
   },
-  "8472a551f1": {
-    "translation": "Vile su došle crtati za mjesec prosinac."
+  "83218ac34c": {
+    "translation": "Dobrodošli"
   },
   "85a082de1b": {
     "translation": "Osvježite stranicu kako biste dobili najnoviju verziju tldraw-a."
@@ -512,6 +515,9 @@
   "a8de4c27a8": {
     "translation": "Dosegnut je tjedni limit vila"
   },
+  "a917baaf14": {
+    "translation": "Novi razgovor"
+  },
   "a9ded1e5ce": {
     "translation": "Pozadina"
   },
@@ -557,6 +563,9 @@
   },
   "bc88b0e89e": {
     "translation": "Dijeli {ownerName}"
+  },
+  "be4f1c62d3": {
+    "translation": "Zumiraj do vile"
   },
   "c2276c9127": {
     "translation": "Saznajte više o dijeljenju."
@@ -672,9 +681,6 @@
   "e2ae80a510": {
     "translation": "Pravni sažetak"
   },
-  "e2b0147fd2": {
-    "translation": "Tvoje vile te čekaju! →"
-  },
   "e3afed0047": {
     "translation": "Administrator"
   },
@@ -758,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Uvoz datoteke…"
-  },
-  "ffec95af2f": {
-    "translation": "Kupite pristup vili"
   }
 }

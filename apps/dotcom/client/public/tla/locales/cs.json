@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Přijmout pozvání"
   },
-  "01d61b2012": {
-    "translation": "Začněte své vílí dobrodružství"
-  },
   "03b3e13197": {
     "translation": "Přetáhněte soubor na postranní panel na této stránce. Nebo vyberte možnost Importovat soubor z uživatelské nabídky."
   },
@@ -34,9 +31,6 @@
   },
   "0b27918290": {
     "translation": "Soubor"
-  },
-  "0b79795d3e": {
-    "translation": "Zavedení"
   },
   "0b9a4cde72": {
     "translation": "Nabídka Soubor"
@@ -91,6 +85,9 @@
   },
   "250ddea65c": {
     "translation": "O tldraw"
+  },
+  "269097080b": {
+    "translation": "Tvoje víly čekají"
   },
   "275173253d": {
     "translation": "Přivolat všechny"
@@ -164,6 +161,9 @@
   "44db318ee5": {
     "translation": "Získejte pomoc na Discordu"
   },
+  "45b43c2d28": {
+    "translation": "<strong>Víly</strong> přišly kreslit v prosinci."
+  },
   "46137245cd": {
     "translation": "Děkujeme, že nám pomáháte zlepšovat tldraw!"
   },
@@ -199,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "Smazat skupinu…"
+  },
+  "4dab36ac83": {
+    "translation": "Více možností"
   },
   "4e6fbf032b": {
     "translation": "Jste si jisti, že chcete tuto skupinu smazat? Tuto akci nelze vrátit zpět."
@@ -380,8 +383,8 @@
   "81aa2078d1": {
     "translation": "Vymazat vše"
   },
-  "8472a551f1": {
-    "translation": "Víly přišly kreslit na měsíc prosinec."
+  "83218ac34c": {
+    "translation": "Vítejte"
   },
   "85a082de1b": {
     "translation": "Po aktualizaci stránky získáte nejnovější verzi tldraw."
@@ -512,6 +515,9 @@
   "a8de4c27a8": {
     "translation": "Dosažen týdenní limit víl"
   },
+  "a917baaf14": {
+    "translation": "Nový chat"
+  },
   "a9ded1e5ce": {
     "translation": "Pozadí"
   },
@@ -557,6 +563,9 @@
   },
   "bc88b0e89e": {
     "translation": "Sdílel {ownerName}"
+  },
+  "be4f1c62d3": {
+    "translation": "Přiblížit na vílu"
   },
   "c2276c9127": {
     "translation": "Další informace o sdílení."
@@ -672,9 +681,6 @@
   "e2ae80a510": {
     "translation": "Právní shrnutí"
   },
-  "e2b0147fd2": {
-    "translation": "Vaše víly na vás čekají! →"
-  },
   "e3afed0047": {
     "translation": "Administrátor"
   },
@@ -758,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Importovat soubor…"
-  },
-  "ffec95af2f": {
-    "translation": "Zakoupit přístup pro víly"
   }
 }

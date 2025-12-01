@@ -11,12 +11,6 @@
       "value": "Aceptar invitación"
     }
   ],
-  "01d61b2012": [
-    {
-      "type": 0,
-      "value": "Comienza tu aventura de hadas"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -73,12 +67,6 @@
     {
       "type": 0,
       "value": "Archivo"
-    }
-  ],
-  "0b79795d3e": [
-    {
-      "type": 0,
-      "value": "Introducción"
     }
   ],
   "0b9a4cde72": [
@@ -187,6 +175,12 @@
     {
       "type": 0,
       "value": "Acerca de tldraw"
+    }
+  ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Tus hadas te están esperando"
     }
   ],
   "275173253d": [
@@ -347,6 +341,26 @@
       "value": "Obtenga ayuda en Discord"
     }
   ],
+  "45b43c2d28": [
+    {
+      "type": 0,
+      "value": "Las "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "hadas"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " han venido a tldraw durante el mes de diciembre."
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -417,6 +431,12 @@
     {
       "type": 0,
       "value": "Eliminar grupo…"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Más opciones"
     }
   ],
   "4e6fbf032b": [
@@ -853,10 +873,10 @@
       "value": "Borrar todo"
     }
   ],
-  "8472a551f1": [
+  "83218ac34c": [
     {
       "type": 0,
-      "value": "Las hadas han venido a dibujar durante el mes de diciembre."
+      "value": "Bienvenido"
     }
   ],
   "85a082de1b": [
@@ -1139,6 +1159,12 @@
       "value": "Se alcanzó el límite semanal de hadas"
     }
   ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Nuevo chat"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
@@ -1273,6 +1299,12 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Zoom al hada"
     }
   ],
   "c2276c9127": [
@@ -1559,12 +1591,6 @@
       "value": "Resumen legal"
     }
   ],
-  "e2b0147fd2": [
-    {
-      "type": 0,
-      "value": "¡Tus hadas te están esperando! →"
-    }
-  ],
   "e3afed0047": [
     {
       "type": 0,
@@ -1745,12 +1771,6 @@
     {
       "type": 0,
       "value": "Importar archivo…"
-    }
-  ],
-  "ffec95af2f": [
-    {
-      "type": 0,
-      "value": "Comprar acceso de hadas"
     }
   ]
 }

@@ -11,12 +11,6 @@
       "value": "Accepta la invitació"
     }
   ],
-  "01d61b2012": [
-    {
-      "type": 0,
-      "value": "Comença la teva aventura de fades"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -73,12 +67,6 @@
     {
       "type": 0,
       "value": "Fitxer"
-    }
-  ],
-  "0b79795d3e": [
-    {
-      "type": 0,
-      "value": "Introducció"
     }
   ],
   "0b9a4cde72": [
@@ -187,6 +175,12 @@
     {
       "type": 0,
       "value": "Sobre tldraw"
+    }
+  ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Les teves fades t'esperen"
     }
   ],
   "275173253d": [
@@ -347,6 +341,26 @@
       "value": "Obteniu ajuda a Discord"
     }
   ],
+  "45b43c2d28": [
+    {
+      "type": 0,
+      "value": "Les "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "fades"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " han vingut a dibuixar durant el mes de desembre."
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -417,6 +431,12 @@
     {
       "type": 0,
       "value": "Suprimeix el grup…"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Més opcions"
     }
   ],
   "4e6fbf032b": [
@@ -853,10 +873,10 @@
       "value": "Esborra-ho tot"
     }
   ],
-  "8472a551f1": [
+  "83218ac34c": [
     {
       "type": 0,
-      "value": "Les fades han vingut a dibuixar durant el mes de desembre."
+      "value": "Benvingut/da"
     }
   ],
   "85a082de1b": [
@@ -1139,6 +1159,12 @@
       "value": "S'ha arribat al límit setmanal de fades"
     }
   ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Nou xat"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
@@ -1273,6 +1299,12 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Zoom a la fada"
     }
   ],
   "c2276c9127": [
@@ -1559,12 +1591,6 @@
       "value": "Resum legal"
     }
   ],
-  "e2b0147fd2": [
-    {
-      "type": 0,
-      "value": "Les teves fades t'esperen! →"
-    }
-  ],
   "e3afed0047": [
     {
       "type": 0,
@@ -1745,12 +1771,6 @@
     {
       "type": 0,
       "value": "Importa el fitxer…"
-    }
-  ],
-  "ffec95af2f": [
-    {
-      "type": 0,
-      "value": "Compra accés de fades"
     }
   ]
 }

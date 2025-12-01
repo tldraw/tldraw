@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Zaakceptuj zaproszenie"
   },
-  "01d61b2012": {
-    "translation": "Rozpocznij swoją przygodę z wróżkami"
-  },
   "03b3e13197": {
     "translation": "Przeciągnij plik na pasek boczny na tej stronie lub wybierz opcję „Importuj plik” z menu użytkownika."
   },
@@ -34,9 +31,6 @@
   },
   "0b27918290": {
     "translation": "Plik"
-  },
-  "0b79795d3e": {
-    "translation": "Wstęp"
   },
   "0b9a4cde72": {
     "translation": "Menu pliku"
@@ -91,6 +85,9 @@
   },
   "250ddea65c": {
     "translation": "O tldraw"
+  },
+  "269097080b": {
+    "translation": "Twoje wróżki czekają"
   },
   "275173253d": {
     "translation": "Przywołaj wszystkich"
@@ -164,6 +161,9 @@
   "44db318ee5": {
     "translation": "Uzyskaj pomoc na Discordzie"
   },
+  "45b43c2d28": {
+    "translation": "<strong>Wróżki</strong> przybyły, aby rysować przez cały grudzień."
+  },
   "46137245cd": {
     "translation": "Dziękujemy za pomoc w ulepszaniu tldraw!"
   },
@@ -199,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "Usuń grupę…"
+  },
+  "4dab36ac83": {
+    "translation": "Więcej opcji"
   },
   "4e6fbf032b": {
     "translation": "Czy na pewno chcesz usunąć tę grupę? Tej czynności nie można cofnąć."
@@ -380,8 +383,8 @@
   "81aa2078d1": {
     "translation": "Wyczyść wszystko"
   },
-  "8472a551f1": {
-    "translation": "Wróżki przybyły, aby rysować przez cały grudzień."
+  "83218ac34c": {
+    "translation": "Powitanie"
   },
   "85a082de1b": {
     "translation": "Odśwież stronę, aby pobrać najnowszą wersję tldraw."
@@ -512,6 +515,9 @@
   "a8de4c27a8": {
     "translation": "Osiągnięto tygodniowy limit wróżek"
   },
+  "a917baaf14": {
+    "translation": "Nowy czat"
+  },
   "a9ded1e5ce": {
     "translation": "Tło"
   },
@@ -557,6 +563,9 @@
   },
   "bc88b0e89e": {
     "translation": "Udostępniono przez {ownerName}"
+  },
+  "be4f1c62d3": {
+    "translation": "Powiększ do wróżki"
   },
   "c2276c9127": {
     "translation": "Dowiedz się więcej o udostępnianiu."
@@ -672,9 +681,6 @@
   "e2ae80a510": {
     "translation": "Podsumowanie prawne"
   },
-  "e2b0147fd2": {
-    "translation": "Twoje wróżki czekają na Ciebie! →"
-  },
   "e3afed0047": {
     "translation": "Administrator"
   },
@@ -758,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Importuj plik…"
-  },
-  "ffec95af2f": {
-    "translation": "Kup dostęp do wróżki"
   }
 }

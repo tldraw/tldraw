@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Chấp nhận lời mời"
   },
-  "01d61b2012": {
-    "translation": "Bắt đầu cuộc phiêu lưu tiên của bạn"
-  },
   "03b3e13197": {
     "translation": "Kéo tệp vào thanh bên ở trang này. Hoặc chọn tùy chọn 'Nhập tệp' từ menu người dùng."
   },
@@ -34,9 +31,6 @@
   },
   "0b27918290": {
     "translation": "Tệp"
-  },
-  "0b79795d3e": {
-    "translation": "Giới thiệu"
   },
   "0b9a4cde72": {
     "translation": "Menu tệp"
@@ -91,6 +85,9 @@
   },
   "250ddea65c": {
     "translation": "Giới thiệu về tldraw"
+  },
+  "269097080b": {
+    "translation": "Các nàng tiên của bạn đang chờ đợi"
   },
   "275173253d": {
     "translation": "Triệu hồi tất cả"
@@ -164,6 +161,9 @@
   "44db318ee5": {
     "translation": "Nhận trợ giúp trên Discord"
   },
+  "45b43c2d28": {
+    "translation": "<strong>Các nàng tiên</strong> đã đến để vẽ tranh trong tháng 12."
+  },
   "46137245cd": {
     "translation": "Cảm ơn bạn đã giúp chúng tôi cải thiện tldraw!"
   },
@@ -199,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "Xóa nhóm…"
+  },
+  "4dab36ac83": {
+    "translation": "Thêm tùy chọn"
   },
   "4e6fbf032b": {
     "translation": "Bạn có chắc chắn muốn xóa nhóm này không? Thao tác này không thể hoàn tác."
@@ -380,8 +383,8 @@
   "81aa2078d1": {
     "translation": "Xóa tất cả"
   },
-  "8472a551f1": {
-    "translation": "Các nàng tiên đã đến để vẽ tranh cho tháng 12."
+  "83218ac34c": {
+    "translation": "Chào mừng"
   },
   "85a082de1b": {
     "translation": "Vui lòng làm mới trang để tải phiên bản mới nhất của tldraw."
@@ -512,6 +515,9 @@
   "a8de4c27a8": {
     "translation": "Đã đạt đến giới hạn tiên nữ hàng tuần"
   },
+  "a917baaf14": {
+    "translation": "Trò chuyện mới"
+  },
   "a9ded1e5ce": {
     "translation": "Cơ sở"
   },
@@ -557,6 +563,9 @@
   },
   "bc88b0e89e": {
     "translation": "Chia sẻ bởi {ownerName}"
+  },
+  "be4f1c62d3": {
+    "translation": "Phóng to đến tiên"
   },
   "c2276c9127": {
     "translation": "Tìm hiểu thêm về chia sẻ."
@@ -672,9 +681,6 @@
   "e2ae80a510": {
     "translation": "Tóm tắt pháp lý"
   },
-  "e2b0147fd2": {
-    "translation": "Các nàng tiên đang chờ bạn! →"
-  },
   "e3afed0047": {
     "translation": "Quản trị viên"
   },
@@ -758,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Nhập tập tin…"
-  },
-  "ffec95af2f": {
-    "translation": "Mua quyền truy cập Fairy"
   }
 }

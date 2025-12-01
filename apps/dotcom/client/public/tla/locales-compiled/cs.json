@@ -11,12 +11,6 @@
       "value": "Přijmout pozvání"
     }
   ],
-  "01d61b2012": [
-    {
-      "type": 0,
-      "value": "Začněte své vílí dobrodružství"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -73,12 +67,6 @@
     {
       "type": 0,
       "value": "Soubor"
-    }
-  ],
-  "0b79795d3e": [
-    {
-      "type": 0,
-      "value": "Zavedení"
     }
   ],
   "0b9a4cde72": [
@@ -187,6 +175,12 @@
     {
       "type": 0,
       "value": "O tldraw"
+    }
+  ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Tvoje víly čekají"
     }
   ],
   "275173253d": [
@@ -347,6 +341,22 @@
       "value": "Získejte pomoc na Discordu"
     }
   ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Víly"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " přišly kreslit v prosinci."
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -417,6 +427,12 @@
     {
       "type": 0,
       "value": "Smazat skupinu…"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Více možností"
     }
   ],
   "4e6fbf032b": [
@@ -853,10 +869,10 @@
       "value": "Vymazat vše"
     }
   ],
-  "8472a551f1": [
+  "83218ac34c": [
     {
       "type": 0,
-      "value": "Víly přišly kreslit na měsíc prosinec."
+      "value": "Vítejte"
     }
   ],
   "85a082de1b": [
@@ -1139,6 +1155,12 @@
       "value": "Dosažen týdenní limit víl"
     }
   ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Nový chat"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
@@ -1281,6 +1303,12 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Přiblížit na vílu"
     }
   ],
   "c2276c9127": [
@@ -1567,12 +1595,6 @@
       "value": "Právní shrnutí"
     }
   ],
-  "e2b0147fd2": [
-    {
-      "type": 0,
-      "value": "Vaše víly na vás čekají! →"
-    }
-  ],
   "e3afed0047": [
     {
       "type": 0,
@@ -1753,12 +1775,6 @@
     {
       "type": 0,
       "value": "Importovat soubor…"
-    }
-  ],
-  "ffec95af2f": [
-    {
-      "type": 0,
-      "value": "Zakoupit přístup pro víly"
     }
   ]
 }

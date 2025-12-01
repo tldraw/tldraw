@@ -11,12 +11,6 @@
       "value": "Accepter l'invitation"
     }
   ],
-  "01d61b2012": [
-    {
-      "type": 0,
-      "value": "Commencez votre aventure féerique"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -73,12 +67,6 @@
     {
       "type": 0,
       "value": "Fichier"
-    }
-  ],
-  "0b79795d3e": [
-    {
-      "type": 0,
-      "value": "Introduction"
     }
   ],
   "0b9a4cde72": [
@@ -187,6 +175,12 @@
     {
       "type": 0,
       "value": "À propos de tldraw"
+    }
+  ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Vos fées vous attendent"
     }
   ],
   "275173253d": [
@@ -347,6 +341,26 @@
       "value": "Obtenir de l'aide sur Discord"
     }
   ],
+  "45b43c2d28": [
+    {
+      "type": 0,
+      "value": "Les "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "fées"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " sont venues à tldraw pour le mois de décembre."
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -417,6 +431,12 @@
     {
       "type": 0,
       "value": "Supprimer le groupe…"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Plus d'options"
     }
   ],
   "4e6fbf032b": [
@@ -853,10 +873,10 @@
       "value": "Effacer tout"
     }
   ],
-  "8472a551f1": [
+  "83218ac34c": [
     {
       "type": 0,
-      "value": "Les fées sont venues dessiner pour le mois de décembre."
+      "value": "Accueillir"
     }
   ],
   "85a082de1b": [
@@ -1139,6 +1159,12 @@
       "value": "Limite hebdomadaire de fées atteinte"
     }
   ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Nouvelle conversation"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
@@ -1273,6 +1299,12 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Zoom sur la fée"
     }
   ],
   "c2276c9127": [
@@ -1559,12 +1591,6 @@
       "value": "Résumé juridique"
     }
   ],
-  "e2b0147fd2": [
-    {
-      "type": 0,
-      "value": "Vos fées vous attendent ! →"
-    }
-  ],
   "e3afed0047": [
     {
       "type": 0,
@@ -1745,12 +1771,6 @@
     {
       "type": 0,
       "value": "Importer un fichier…"
-    }
-  ],
-  "ffec95af2f": [
-    {
-      "type": 0,
-      "value": "Achetez un accès féerique"
     }
   ]
 }

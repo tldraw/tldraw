@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "接受邀请"
   },
-  "01d61b2012": {
-    "translation": "开启你的仙境冒险之旅"
-  },
   "03b3e13197": {
     "translation": "将文件拖放到本页面的侧边栏，或在用户菜单中选择“导入文件”选项。"
   },
@@ -34,9 +31,6 @@
   },
   "0b27918290": {
     "translation": "文件"
-  },
-  "0b79795d3e": {
-    "translation": "介绍"
   },
   "0b9a4cde72": {
     "translation": "文件菜单"
@@ -91,6 +85,9 @@
   },
   "250ddea65c": {
     "translation": "关于tldraw"
+  },
+  "269097080b": {
+    "translation": "你的仙女们正在等待"
   },
   "275173253d": {
     "translation": "召唤所有"
@@ -164,6 +161,9 @@
   "44db318ee5": {
     "translation": "在Discord上寻求帮助"
   },
+  "45b43c2d28": {
+    "translation": "<strong>仙女们</strong>在十二月来到了tldraw。"
+  },
   "46137245cd": {
     "translation": "感谢您帮助我们改进 tldraw！"
   },
@@ -199,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "删除群组…"
+  },
+  "4dab36ac83": {
+    "translation": "更多选项"
   },
   "4e6fbf032b": {
     "translation": "您确定要删除此群组吗？此操作无法撤销。"
@@ -380,8 +383,8 @@
   "81aa2078d1": {
     "translation": "全部清除"
   },
-  "8472a551f1": {
-    "translation": "十二月份，仙女们来到了tldraw。"
+  "83218ac34c": {
+    "translation": "欢迎"
   },
   "85a082de1b": {
     "translation": "请刷新页面，获取最新版tldraw。"
@@ -512,6 +515,9 @@
   "a8de4c27a8": {
     "translation": "每周仙女数量已达上限"
   },
+  "a917baaf14": {
+    "translation": "新聊天"
+  },
   "a9ded1e5ce": {
     "translation": "背景"
   },
@@ -557,6 +563,9 @@
   },
   "bc88b0e89e": {
     "translation": "由{ownerName}分享"
+  },
+  "be4f1c62d3": {
+    "translation": "放大到仙境"
   },
   "c2276c9127": {
     "translation": "详细了解分享。"
@@ -672,9 +681,6 @@
   "e2ae80a510": {
     "translation": "法律摘要"
   },
-  "e2b0147fd2": {
-    "translation": "你的仙女们在等你！→"
-  },
   "e3afed0047": {
     "translation": "行政"
   },
@@ -758,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "导入文件…"
-  },
-  "ffec95af2f": {
-    "translation": "购买仙女通道"
   }
 }

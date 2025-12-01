@@ -11,12 +11,6 @@
       "value": "Godta invitasjonen"
     }
   ],
-  "01d61b2012": [
-    {
-      "type": 0,
-      "value": "Start ditt fe-eventyr"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -73,12 +67,6 @@
     {
       "type": 0,
       "value": "Fil"
-    }
-  ],
-  "0b79795d3e": [
-    {
-      "type": 0,
-      "value": "Introduksjon"
     }
   ],
   "0b9a4cde72": [
@@ -187,6 +175,12 @@
     {
       "type": 0,
       "value": "Om tldraw"
+    }
+  ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Feene dine venter"
     }
   ],
   "275173253d": [
@@ -347,6 +341,22 @@
       "value": "Få hjelp på Discord"
     }
   ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Feer"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " har kommet for å tegne i desember måned."
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -417,6 +427,12 @@
     {
       "type": 0,
       "value": "Slett gruppe…"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Flere alternativer"
     }
   ],
   "4e6fbf032b": [
@@ -853,10 +869,10 @@
       "value": "Fjern alle"
     }
   ],
-  "8472a551f1": [
+  "83218ac34c": [
     {
       "type": 0,
-      "value": "Feer har kommet for å tegne i desember måned."
+      "value": "Velkomst"
     }
   ],
   "85a082de1b": [
@@ -1139,6 +1155,12 @@
       "value": "Ukentlig fe-grense nådd"
     }
   ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Ny chat"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
@@ -1273,6 +1295,12 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Zoom til fe"
     }
   ],
   "c2276c9127": [
@@ -1559,12 +1587,6 @@
       "value": "Juridisk sammendrag"
     }
   ],
-  "e2b0147fd2": [
-    {
-      "type": 0,
-      "value": "Feene dine venter på deg! →"
-    }
-  ],
   "e3afed0047": [
     {
       "type": 0,
@@ -1745,12 +1767,6 @@
     {
       "type": 0,
       "value": "Importer fil…"
-    }
-  ],
-  "ffec95af2f": [
-    {
-      "type": 0,
-      "value": "Kjøp tilgang til feer"
     }
   ]
 }

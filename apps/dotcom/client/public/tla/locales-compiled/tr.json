@@ -11,12 +11,6 @@
       "value": "Daveti kabul et"
     }
   ],
-  "01d61b2012": [
-    {
-      "type": 0,
-      "value": "Peri maceranıza başlayın"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -73,12 +67,6 @@
     {
       "type": 0,
       "value": "Dosya"
-    }
-  ],
-  "0b79795d3e": [
-    {
-      "type": 0,
-      "value": "giriiş"
     }
   ],
   "0b9a4cde72": [
@@ -187,6 +175,12 @@
     {
       "type": 0,
       "value": "tldraw hakkında"
+    }
+  ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Perileriniz sizi bekliyor"
     }
   ],
   "275173253d": [
@@ -347,6 +341,22 @@
       "value": "Discord'da yardım alın"
     }
   ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Periler"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " Aralık ayı için tldraw'a geldiler."
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -417,6 +427,12 @@
     {
       "type": 0,
       "value": "Grubu sil…"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Daha fazla seçenek"
     }
   ],
   "4e6fbf032b": [
@@ -849,10 +865,10 @@
       "value": "Tümünü temizle"
     }
   ],
-  "8472a551f1": [
+  "83218ac34c": [
     {
       "type": 0,
-      "value": "Aralık ayı için periler tldraw'a geldi."
+      "value": "Hoş geldin"
     }
   ],
   "85a082de1b": [
@@ -1131,6 +1147,12 @@
       "value": "Haftalık peri limiti aşıldı"
     }
   ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Yeni sohbet"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
@@ -1261,6 +1283,12 @@
     {
       "type": 0,
       "value": " tarafından paylaşıldı"
+    }
+  ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Periye yakınlaştır"
     }
   ],
   "c2276c9127": [
@@ -1547,12 +1575,6 @@
       "value": "Hukuki özet"
     }
   ],
-  "e2b0147fd2": [
-    {
-      "type": 0,
-      "value": "Perileriniz sizi bekliyor! →"
-    }
-  ],
   "e3afed0047": [
     {
       "type": 0,
@@ -1733,12 +1755,6 @@
     {
       "type": 0,
       "value": "Dosyayı içe aktar…"
-    }
-  ],
-  "ffec95af2f": [
-    {
-      "type": 0,
-      "value": "Peri erişimi satın al"
     }
   ]
 }
