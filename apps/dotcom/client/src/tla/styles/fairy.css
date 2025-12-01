@@ -1975,3 +1975,8 @@
 	transform: translate(-75%, -25%) scale(var(--tl-scale));
 	transform-origin: 75% 25%;
 }
+
+.fairy-manual-video {
+	width: 100%;
+	margin-bottom: 12px;
+}

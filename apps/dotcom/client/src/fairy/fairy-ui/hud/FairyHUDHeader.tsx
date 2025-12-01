@@ -162,7 +162,7 @@ export function FairyHUDHeader({
 				<TlaMenuTabsRoot activeTab={fairyManualActiveTab} onTabChange={handleTabChange}>
 					<TlaMenuTabsTabs>
 						<TlaMenuTabsTab id="introduction">
-							<F defaultMessage="Introduction" />
+							<F defaultMessage="Welcome" />
 						</TlaMenuTabsTab>
 						<TlaMenuTabsTab id="usage">
 							<F defaultMessage="Usage" />

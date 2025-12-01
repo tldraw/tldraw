@@ -61,6 +61,23 @@ export function FairyManualPanel() {
 					className="fairy-manual-content"
 					onScroll={createScrollHandler(introductionRef, 'introduction')}
 				>
+					<video
+						src="https://cdn.tldraw.com/misc/fairy_intro.mp4"
+						autoPlay
+						loop
+						muted
+						className="fairy-manual-video"
+					/>
+					<p>Welcome to fairies in tldraw.</p>
+				</div>
+			)}
+
+			{fairyManualActiveTab === 'usage' && (
+				<div
+					ref={usageRef}
+					onScroll={createScrollHandler(usageRef, 'usage')}
+					className="fairy-manual-content"
+				>
 					<div className="fairy-manual-section">
 						<h3>What are fairies?</h3>
 						<p>
@@ -101,15 +118,6 @@ export function FairyManualPanel() {
 							or continue from where you left off.
 						</p>
 					</div>
-				</div>
-			)}
-
-			{fairyManualActiveTab === 'usage' && (
-				<div
-					ref={usageRef}
-					onScroll={createScrollHandler(usageRef, 'usage')}
-					className="fairy-manual-content"
-				>
 					<div className="fairy-manual-section">
 						<h3>Selecting fairies</h3>
 						<ul>
