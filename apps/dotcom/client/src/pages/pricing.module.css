@@ -166,6 +166,7 @@
 	display: flex;
 	justify-content: center;
 	gap: 24px;
+	font-size: 12px;
 }
 
 .footerLink {
@@ -184,6 +185,10 @@
 	display: flex;
 	align-items: center;
 	justify-content: flex-end;
+}
+
+.dialogFooter {
+	height: 40px;
 }
 
 .dialogBody {

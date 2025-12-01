@@ -4,6 +4,7 @@ import {
 	setInSessionStorage,
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 	useDialogs,
@@ -124,6 +125,7 @@ export function PricingDialog({ onClose }: { onClose(): void }) {
 					showFooter={true}
 				/>
 			</TldrawUiDialogBody>
+			<TldrawUiDialogFooter className={styles.dialogFooter} />
 		</>
 	)
 }
