@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Terima undangan"
   },
-  "01d61b2012": {
-    "translation": "Mulailah petualangan peri Anda"
-  },
   "03b3e13197": {
     "translation": "Seret file ke bilah samping di halaman ini atau pilih opsi 'Impor file' dari menu pengguna."
   },
@@ -34,9 +31,6 @@
   },
   "0b27918290": {
     "translation": "File"
-  },
-  "0b79795d3e": {
-    "translation": "Perkenalan"
   },
   "0b9a4cde72": {
     "translation": "Menu file"
@@ -91,6 +85,9 @@
   },
   "250ddea65c": {
     "translation": "Tentang tldraw"
+  },
+  "269097080b": {
+    "translation": "Peri-peri Anda sedang menunggu"
   },
   "275173253d": {
     "translation": "Panggil semua"
@@ -164,6 +161,9 @@
   "44db318ee5": {
     "translation": "Dapatkan bantuan di Discord"
   },
+  "45b43c2d28": {
+    "translation": "<strong>Peri</strong> telah datang untuk menggambar di bulan Desember."
+  },
   "46137245cd": {
     "translation": "Terima kasih telah membantu kami meningkatkan tldraw!"
   },
@@ -199,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "Hapus grup…"
+  },
+  "4dab36ac83": {
+    "translation": "Lebih banyak pilihan"
   },
   "4e6fbf032b": {
     "translation": "Yakin ingin menghapus grup ini? Tindakan ini tidak dapat dibatalkan."
@@ -380,8 +383,8 @@
   "81aa2078d1": {
     "translation": "Hapus semua"
   },
-  "8472a551f1": {
-    "translation": "Peri telah datang untuk menggambar pada bulan Desember."
+  "83218ac34c": {
+    "translation": "Selamat datang"
   },
   "85a082de1b": {
     "translation": "Muat ulang halaman untuk mendapatkan versi terbaru tldraw."
@@ -512,6 +515,9 @@
   "a8de4c27a8": {
     "translation": "Batas peri mingguan tercapai"
   },
+  "a917baaf14": {
+    "translation": "Obrolan baru"
+  },
   "a9ded1e5ce": {
     "translation": "Latar belakang"
   },
@@ -557,6 +563,9 @@
   },
   "bc88b0e89e": {
     "translation": "Dibagikan oleh {ownerName}"
+  },
+  "be4f1c62d3": {
+    "translation": "Perbesar ke peri"
   },
   "c2276c9127": {
     "translation": "Pelajari lebih lanjut tentang berbagi."
@@ -672,9 +681,6 @@
   "e2ae80a510": {
     "translation": "Ringkasan hukum"
   },
-  "e2b0147fd2": {
-    "translation": "Peri Anda sedang menunggu Anda! →"
-  },
   "e3afed0047": {
     "translation": "Admin"
   },
@@ -758,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Impor berkas…"
-  },
-  "ffec95af2f": {
-    "translation": "Beli akses peri"
   }
 }

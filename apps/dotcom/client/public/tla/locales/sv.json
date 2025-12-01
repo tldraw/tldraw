@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Acceptera inbjudan"
   },
-  "01d61b2012": {
-    "translation": "Börja ditt älväventyr"
-  },
   "03b3e13197": {
     "translation": "Dra filen till sidofältet på den här sidan. Eller välj alternativet 'Importera fil' från användarmenyn."
   },
@@ -34,9 +31,6 @@
   },
   "0b27918290": {
     "translation": "Fil"
-  },
-  "0b79795d3e": {
-    "translation": "Introduktion"
   },
   "0b9a4cde72": {
     "translation": "Arkivmenyn"
@@ -91,6 +85,9 @@
   },
   "250ddea65c": {
     "translation": "Om tldraw"
+  },
+  "269097080b": {
+    "translation": "Dina älvor väntar"
   },
   "275173253d": {
     "translation": "Kalla fram alla"
@@ -164,6 +161,9 @@
   "44db318ee5": {
     "translation": "Få hjälp med Discord"
   },
+  "45b43c2d28": {
+    "translation": "<strong>Féer</strong> har kommit för att dra i december månad."
+  },
   "46137245cd": {
     "translation": "Tack för att du hjälper oss att förbättra tldraw!"
   },
@@ -199,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "Radera grupp…"
+  },
+  "4dab36ac83": {
+    "translation": "Fler alternativ"
   },
   "4e6fbf032b": {
     "translation": "Är du säker på att du vill ta bort den här gruppen? Åtgärden kan inte ångras."
@@ -380,8 +383,8 @@
   "81aa2078d1": {
     "translation": "Rensa alla"
   },
-  "8472a551f1": {
-    "translation": "Feer har kommit för att dra i december månad."
+  "83218ac34c": {
+    "translation": "Välkomna"
   },
   "85a082de1b": {
     "translation": "Uppdatera sidan för att få den senaste versionen av tldraw."
@@ -512,6 +515,9 @@
   "a8de4c27a8": {
     "translation": "Veckogränsen för feer nådd"
   },
+  "a917baaf14": {
+    "translation": "Ny chatt"
+  },
   "a9ded1e5ce": {
     "translation": "Bakgrund"
   },
@@ -557,6 +563,9 @@
   },
   "bc88b0e89e": {
     "translation": "Delas av {ownerName}"
+  },
+  "be4f1c62d3": {
+    "translation": "Zooma till älva"
   },
   "c2276c9127": {
     "translation": "Läs mer om delning."
@@ -672,9 +681,6 @@
   "e2ae80a510": {
     "translation": "Juridisk sammanfattning"
   },
-  "e2b0147fd2": {
-    "translation": "Dina älvor väntar på dig! →"
-  },
   "e3afed0047": {
     "translation": "Administration"
   },
@@ -758,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Importera fil…"
-  },
-  "ffec95af2f": {
-    "translation": "Köp tillgång till älvor"
   }
 }

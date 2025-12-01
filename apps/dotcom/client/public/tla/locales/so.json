@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Aqbal martiqaadka"
   },
-  "01d61b2012": {
-    "translation": "Bilow tacaburkaaga cirfiidka"
-  },
   "03b3e13197": {
     "translation": "Ku jiid faylka dhinaca bar-side ee boggan. Ama ka dooro 'Faylka Import' ee liiska isticmaalaha."
   },
@@ -34,9 +31,6 @@
   },
   "0b27918290": {
     "translation": "Faylka"
-  },
-  "0b79795d3e": {
-    "translation": "Hordhac"
   },
   "0b9a4cde72": {
     "translation": "Liiska faylka"
@@ -91,6 +85,9 @@
   },
   "250ddea65c": {
     "translation": "Ku saabsan tldraw"
+  },
+  "269097080b": {
+    "translation": "Carwadaada ayaa sugaya"
   },
   "275173253d": {
     "translation": "Isku yeedh dhammaan"
@@ -164,6 +161,9 @@
   "44db318ee5": {
     "translation": "Caawimo ka hel Discord"
   },
+  "45b43c2d28": {
+    "translation": "<strong>Fairies</strong>ayaa u yimi bishii December."
+  },
   "46137245cd": {
     "translation": "Waad ku mahadsan tahay inaad naga caawisay horumarinta tldraw!"
   },
@@ -199,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "Tirtir kooxda…"
+  },
+  "4dab36ac83": {
+    "translation": "Ikhtiyaar badan"
   },
   "4e6fbf032b": {
     "translation": "Ma hubtaa inaad doonayso inaad tirtirto kooxdan? Tallaabadan lama noqon karo."
@@ -380,8 +383,8 @@
   "81aa2078d1": {
     "translation": "Nadiifi dhammaan"
   },
-  "8472a551f1": {
-    "translation": "Carwooyinku waxay u yimaadeen inay soo baxaan bisha Disembar."
+  "83218ac34c": {
+    "translation": "Soo dhawoow"
   },
   "85a082de1b": {
     "translation": "Fadlan dib u cusbooneysii bogga si aad u hesho nuqulkii ugu dambeeyay ee tldraw."
@@ -512,6 +515,9 @@
   "a8de4c27a8": {
     "translation": "Xadka carwada toddobaadlaha ayaa la gaarey"
   },
+  "a917baaf14": {
+    "translation": "Sheeko cusub"
+  },
   "a9ded1e5ce": {
     "translation": "Asalkii hore"
   },
@@ -557,6 +563,9 @@
   },
   "bc88b0e89e": {
     "translation": "Waxaa wadaaga {ownerName}"
+  },
+  "be4f1c62d3": {
+    "translation": "U soo dhawoow cirfiid"
   },
   "c2276c9127": {
     "translation": "Wax badan ka baro wadaagga"
@@ -672,9 +681,6 @@
   "e2ae80a510": {
     "translation": "Soo koobid sharci ah"
   },
-  "e2b0147fd2": {
-    "translation": "Carwadaada ayaa ku sugaya! →"
-  },
   "e3afed0047": {
     "translation": "Admin"
   },
@@ -758,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Soo rar faylka…"
-  },
-  "ffec95af2f": {
-    "translation": "Iibso gelitaanka cirfiidka"
   }
 }

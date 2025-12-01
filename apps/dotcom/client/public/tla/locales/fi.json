@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Hyväksy kutsu"
   },
-  "01d61b2012": {
-    "translation": "Aloita keijuseikkailusi"
-  },
   "03b3e13197": {
     "translation": "Vedä tiedosto tämän sivun sivupalkkiin. Tai valitse käyttäjävalikosta vaihtoehto Tuo tiedosto."
   },
@@ -34,9 +31,6 @@
   },
   "0b27918290": {
     "translation": "Tiedosto"
-  },
-  "0b79795d3e": {
-    "translation": "Johdanto"
   },
   "0b9a4cde72": {
     "translation": "Tiedosto-valikko"
@@ -91,6 +85,9 @@
   },
   "250ddea65c": {
     "translation": "Tietoja tldraw'sta"
+  },
+  "269097080b": {
+    "translation": "Keijut odottavat"
   },
   "275173253d": {
     "translation": "Kutsu kaikki"
@@ -164,6 +161,9 @@
   "44db318ee5": {
     "translation": "Hanki apua Discordissa"
   },
+  "45b43c2d28": {
+    "translation": "<strong>Keijut</strong> ovat tulleet piirtämään joulukuun viettoon."
+  },
   "46137245cd": {
     "translation": "Kiitos, että autat meitä parantamaan tldraw:ta!"
   },
@@ -199,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "Poista ryhmä…"
+  },
+  "4dab36ac83": {
+    "translation": "Lisää vaihtoehtoja"
   },
   "4e6fbf032b": {
     "translation": "Haluatko varmasti poistaa tämän ryhmän? Tätä toimintoa ei voi perua."
@@ -380,8 +383,8 @@
   "81aa2078d1": {
     "translation": "Tyhjennä kaikki"
   },
-  "8472a551f1": {
-    "translation": "Keijut ovat tulleet piirtämään joulukuun viettoon."
+  "83218ac34c": {
+    "translation": "Tervetuloa"
   },
   "85a082de1b": {
     "translation": "Päivitä sivu saadaksesi tldraw:n uusimman version."
@@ -512,6 +515,9 @@
   "a8de4c27a8": {
     "translation": "Viikoittainen keijuraja saavutettu"
   },
+  "a917baaf14": {
+    "translation": "Uusi keskustelu"
+  },
   "a9ded1e5ce": {
     "translation": "Tausta"
   },
@@ -557,6 +563,9 @@
   },
   "bc88b0e89e": {
     "translation": "Jakaja {ownerName}"
+  },
+  "be4f1c62d3": {
+    "translation": "Zoomaa keijuun"
   },
   "c2276c9127": {
     "translation": "Lisätietoja jakamisesta."
@@ -672,9 +681,6 @@
   "e2ae80a510": {
     "translation": "Oikeudellinen yhteenveto"
   },
-  "e2b0147fd2": {
-    "translation": "Keijut odottavat sinua! →"
-  },
   "e3afed0047": {
     "translation": "Ylläpitäjä"
   },
@@ -758,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Tuo tiedosto…"
-  },
-  "ffec95af2f": {
-    "translation": "Osta keijun käyttöoikeus"
   }
 }

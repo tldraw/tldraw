@@ -26,11 +26,13 @@ import {
 } from './models'
 
 export class AgentService {
+	private readonly env: Environment
 	openai: OpenAIProvider
 	anthropic: AnthropicProvider
 	google: GoogleGenerativeAIProvider
 
 	constructor(env: Environment) {
+		this.env = env
 		this.openai = createOpenAI({ apiKey: env.OPENAI_API_KEY })
 		this.anthropic = createAnthropic({ apiKey: env.ANTHROPIC_API_KEY })
 		this.google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_API_KEY })
@@ -91,7 +93,7 @@ export class AgentService {
 		userStub: ReturnType<Environment['TL_USER']['get']>
 	): AsyncGenerator<Streaming<AgentAction>> {
 		try {
-			const modelName = getModelName(prompt)
+			const modelName = getModelName(prompt, this.env)
 			const model = this.getModel(modelName)
 
 			if (typeof model === 'string') {
