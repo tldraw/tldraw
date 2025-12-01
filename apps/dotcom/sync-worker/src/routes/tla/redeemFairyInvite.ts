@@ -5,6 +5,7 @@ import { upsertFairyAccessWithDb } from '../../adminRoutes'
 import { FAIRY_WORLDWIDE_EXPIRATION } from '../../config'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
+import { sendDiscordNotification } from '../../utils/discord'
 import { getFeatureFlag } from '../../utils/featureFlags'
 import { getClerkClient, requireAuth } from '../../utils/tla/getAuth'
 
@@ -98,6 +99,10 @@ export async function redeemFairyInvite(request: IRequest, env: Environment): Pr
 		if (!result.success) {
 			throw new StatusError(500, `Failed to grant fairy access: ${result.error}`)
 		}
+
+		await sendDiscordNotification(env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL, 'invite_redeemed', {
+			email: userEmail,
+		})
 
 		return json({
 			success: true,
