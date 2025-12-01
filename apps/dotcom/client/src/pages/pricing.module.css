@@ -167,7 +167,6 @@
 	gap: 24px;
 	font-size: 12px;
 	height: 20px;
-	:wa;
 }
 
 .footerLink {
@@ -220,7 +219,7 @@
 	.container {
 		padding: 16px;
 		padding-top: 32px;
-		align-items: start;
+		align-items: center;
 		font-size: 14px;
 	}
 
