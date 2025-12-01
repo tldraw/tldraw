@@ -6,6 +6,8 @@ import {
 import { react, throttle } from 'tldraw'
 import { BaseFairyAppManager } from './BaseFairyAppManager'
 
+const STATE_SETTLE_DELAY_MS = 100
+
 /**
  * Manager for fairy state persistence - loading, saving, and auto-save.
  */
@@ -72,9 +74,11 @@ export class FairyAppPersistenceManager extends BaseFairyAppManager {
 			}
 
 			// Allow a tick for state to settle before allowing saves
+			// This delay ensures all state updates from loading have propagated before we start saving again
+
 			setTimeout(() => {
 				this.isLoadingState = false
-			}, 100)
+			}, STATE_SETTLE_DELAY_MS)
 		} catch (e) {
 			console.error('Failed to load fairy state:', e)
 			this.isLoadingState = false

@@ -48,7 +48,7 @@ export class FairyAgentUserActionTracker extends BaseFairyAgentManager {
 			'shape',
 			(shape, source) => {
 				if (source !== 'user') return
-				if (this.agent['isActing']) return
+				if (this.agent.getIsActingOnEditor()) return
 				if (this.agent.fairyApp.getIsApplyingAction()) return
 				const change = {
 					added: { [shape.id]: shape },
@@ -64,7 +64,7 @@ export class FairyAgentUserActionTracker extends BaseFairyAgentManager {
 			'shape',
 			(shape, source) => {
 				if (source !== 'user') return
-				if (this.agent['isActing']) return
+				if (this.agent.getIsActingOnEditor()) return
 				if (this.agent.fairyApp.getIsApplyingAction()) return
 				const change = {
 					added: {},
@@ -80,7 +80,7 @@ export class FairyAgentUserActionTracker extends BaseFairyAgentManager {
 			'shape',
 			(prev, next, source) => {
 				if (source !== 'user') return
-				if (this.agent['isActing']) return
+				if (this.agent.getIsActingOnEditor()) return
 				if (this.agent.fairyApp.getIsApplyingAction()) return
 				const change: RecordsDiff<TLRecord> = {
 					added: {},

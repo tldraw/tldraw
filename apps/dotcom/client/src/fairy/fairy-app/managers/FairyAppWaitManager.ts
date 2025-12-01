@@ -47,10 +47,15 @@ export class FairyAppWaitManager extends BaseFairyAppManager {
 				// Wake up the agent with a notification message
 				const agentFacingMessage = getAgentFacingMessage(agent.id, matchingCondition)
 				const userFacingMessage = getUserFacingMessage?.(agent.id, matchingCondition) ?? null
-				agent.waits.notifyWaitConditionFulfilled({
-					agentFacingMessage,
-					userFacingMessage,
-				})
+				// Fire and forget - we don't want to block on multiple agents
+				agent.waits
+					.notifyWaitConditionFulfilled({
+						agentFacingMessage,
+						userFacingMessage,
+					})
+					.catch((error) => {
+						console.error('Error notifying wait condition fulfilled:', error)
+					})
 			}
 		}
 	}

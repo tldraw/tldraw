@@ -471,7 +471,7 @@ export class FairyAgent {
 
 		this.requests.setIsPrompting(true)
 
-		if (this.isActing) {
+		if (this.isActingOnEditor) {
 			throw new Error(
 				"Agent is already acting. It's illegal to prompt an agent during an action. Please use schedule instead."
 			)
@@ -834,7 +834,24 @@ export class FairyAgent {
 	 *
 	 * Do not use this to check if the agent is currently working on a request. Use `isGenerating` instead.
 	 */
-	private isActing = false
+	private isActingOnEditor = false
+
+	/**
+	 * Get whether the agent is currently acting on the editor.
+	 * @returns true if the agent is currently acting, false otherwise.
+	 */
+	getIsActingOnEditor(): boolean {
+		return this.isActingOnEditor
+	}
+
+	/**
+	 * Set whether the agent is currently acting on the editor.
+	 * @param value - true if the agent is acting, false otherwise.
+	 * @internal
+	 */
+	setIsActingOnEditor(value: boolean): void {
+		this.isActingOnEditor = value
+	}
 
 	/**
 	 * Tracks the start time of the current prompt being timed.

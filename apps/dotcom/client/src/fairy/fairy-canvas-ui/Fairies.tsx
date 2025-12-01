@@ -32,7 +32,7 @@ export function Fairies({ fairyApp }: { fairyApp: FairyApp }) {
 				return (
 					entity !== undefined &&
 					entity.currentPageId === currentPageId &&
-					agent.getEntity()?.isSelected &&
+					entity.isSelected &&
 					!agent.mode.isSleeping()
 				)
 			})

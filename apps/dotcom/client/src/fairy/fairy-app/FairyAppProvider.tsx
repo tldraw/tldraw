@@ -48,7 +48,12 @@ export function FairyAppProvider({ fileId, children, onMount, onUnmount }: Fairy
 	// Token getter for fairy API requests
 	const getToken = useCallback(async () => {
 		if (!user) return undefined
-		return await user.getToken()
+		try {
+			return await user.getToken()
+		} catch (error) {
+			console.error('Failed to get token:', error)
+			return undefined
+		}
 	}, [user])
 
 	// Error handler for fairy errors

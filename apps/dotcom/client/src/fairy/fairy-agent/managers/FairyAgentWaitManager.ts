@@ -107,15 +107,15 @@ export class FairyAgentWaitManager extends BaseFairyAgentManager {
 	 * already be removed by the notification system before calling this method.
 	 * If the agent is currently generating, the message will be scheduled.
 	 * Otherwise, it will be prompted immediately.
-	 * @returns void
+	 * @returns Promise that resolves when the prompt completes (if prompted)
 	 */
-	notifyWaitConditionFulfilled({
+	async notifyWaitConditionFulfilled({
 		agentFacingMessage,
 		userFacingMessage,
 	}: {
 		agentFacingMessage: string
 		userFacingMessage: string | null
-	}) {
+	}): Promise<void> {
 		const { agent } = this
 		if (agent.requests.isGenerating()) {
 			agent.schedule({
@@ -124,7 +124,7 @@ export class FairyAgentWaitManager extends BaseFairyAgentManager {
 				source: 'other-agent',
 			})
 		} else {
-			agent.prompt({
+			await agent.prompt({
 				agentMessages: [agentFacingMessage],
 				userMessages: userFacingMessage ? [userFacingMessage] : undefined,
 				source: 'other-agent',

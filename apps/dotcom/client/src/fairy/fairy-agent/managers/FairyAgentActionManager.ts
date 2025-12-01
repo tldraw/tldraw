@@ -95,7 +95,7 @@ export class FairyAgentActionManager extends BaseFairyAgentManager {
 	} {
 		const { editor } = this.agent
 		const util = this.getAgentActionUtil(action._type)
-		this.agent['isActing'] = true
+		this.agent.setIsActingOnEditor(true)
 
 		const actionInfo = this.getActionInfo(action)
 		if (actionInfo.pose) {
@@ -136,7 +136,7 @@ export class FairyAgentActionManager extends BaseFairyAgentManager {
 				throw error
 			}
 		} finally {
-			this.agent['isActing'] = false
+			this.agent.setIsActingOnEditor(false)
 		}
 
 		// Add the action to chat history

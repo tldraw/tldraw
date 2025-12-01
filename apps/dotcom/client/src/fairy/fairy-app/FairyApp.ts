@@ -84,17 +84,22 @@ export class FairyApp {
 	 * Dispose of all resources. Call this during cleanup.
 	 */
 	dispose() {
+		// Dispose all agents first (agents may depend on managers)
+		this.agents.disposeAll()
+
+		// Then dispose managers
 		// Stop following any fairy
 		this.following.dispose()
 
-		// Disband all projects first
+		// Disband all projects
 		this.projects.disbandAllProjects()
 
 		// Stop auto-save
 		this.persistence.dispose()
 
-		// Dispose all agents
-		this.agents.disposeAll()
+		// Dispose remaining managers
+		this.tasks.dispose()
+		this.waits.dispose()
 	}
 
 	getIsApplyingAction(): boolean {
