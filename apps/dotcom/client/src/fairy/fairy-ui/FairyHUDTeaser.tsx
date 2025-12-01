@@ -21,6 +21,7 @@ import {
 	TlaMenuTabsTab,
 	TlaMenuTabsTabs,
 } from '../../tla/components/tla-menu/tla-menu'
+import { useFeatureFlags } from '../../tla/hooks/useFeatureFlags'
 import '../../tla/styles/fairy.css'
 import { useTldrawAppUiEvents } from '../../tla/utils/app-ui-events'
 import { F, useMsg } from '../../tla/utils/i18n'
@@ -44,6 +45,7 @@ export function FairyHUDTeaser() {
 		[editor, breakpoint]
 	)
 
+	const { flags, isLoaded } = useFeatureFlags()
 	const { addDialog } = useDialogs()
 
 	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
@@ -72,6 +74,20 @@ export function FairyHUDTeaser() {
 		}
 		setIsManualOpen(!wasOpen)
 	}, [trackEvent, isManualOpen])
+
+	const handleFairyClick = useCallback(() => {
+		trackEvent('click-fairy-teaser', { source: 'fairy-teaser' })
+		if (!isLoaded) return
+
+		if (!flags.fairies.enabled || !flags.fairies_purchase.enabled) {
+			addDialog({
+				component: FairyComingSoonDialog,
+			})
+			return
+		}
+
+		window.location.href = '/pricing'
+	}, [isLoaded, flags.fairies.enabled, flags.fairies_purchase.enabled, trackEvent, addDialog])
 
 	// Position HUD above mobile style menu button on mobile
 	useEffect(() => {
@@ -165,12 +181,7 @@ export function FairyHUDTeaser() {
 									data-is-sleeping={true}
 									aria-label="Fairies"
 									value="off"
-									onClick={() => {
-										trackEvent('click-fairy-teaser', { source: 'fairy-teaser' })
-										addDialog({
-											component: FairyComingSoonDialog,
-										})
-									}}
+									onClick={handleFairyClick}
 								>
 									<FairySprite
 										pose={'sleeping'}
