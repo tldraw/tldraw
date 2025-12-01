@@ -11,10 +11,10 @@
       "value": "Aqbal martiqaadka"
     }
   ],
-  "038c9b4432": [
+  "01d61b2012": [
     {
       "type": 0,
-      "value": "Shakhsiyadda Fairy"
+      "value": "Bilow tacaburkaaga cirfiidka"
     }
   ],
   "03b3e13197": [
@@ -57,22 +57,28 @@
       "value": "Xisaab"
     }
   ],
-  "090b807281": [
-    {
-      "type": 0,
-      "value": "Basbaaska"
-    }
-  ],
   "0a91f7fa87": [
     {
       "type": 0,
       "value": "Faylkan waxa uu gaadhay xadka cabbirkiisa waxaana laga yaabaa in isbeddelada aan la kaydin. Ka saar qaar ka mid ah nuxurka ama bilow fayl cusub."
     }
   ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "La hadal kooxda..."
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
       "value": "Faylka"
+    }
+  ],
+  "0b79795d3e": [
+    {
+      "type": 0,
+      "value": "Hordhac"
     }
   ],
   "0b9a4cde72": [
@@ -129,12 +135,6 @@
       "value": "Dhoofinta sida"
     }
   ],
-  "141c7239d3": [
-    {
-      "type": 0,
-      "value": "Habaynta cirfiidka"
-    }
-  ],
   "146ffe2fd9": [
     {
       "type": 0,
@@ -165,16 +165,10 @@
       "value": "Maanta"
     }
   ],
-  "1e38506832": [
+  "23f879f41a": [
     {
       "type": 0,
-      "value": "Aad cirfiid"
-    }
-  ],
-  "1fe250ea06": [
-    {
-      "type": 0,
-      "value": "Wax u baro kooxda…"
+      "value": "Xadka isticmaalka cirfiidka toddobaadlaha ah waa la gaarey. Waxay dib u bilaabi doontaa bilawga usbuuca soo socda."
     }
   ],
   "243924bfd5": [
@@ -195,6 +189,12 @@
       "value": "Ku saabsan tldraw"
     }
   ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Isku yeedh dhammaan"
+    }
+  ],
   "284d5cd0dd": [
     {
       "type": 0,
@@ -211,12 +211,6 @@
     {
       "type": 0,
       "value": "Galalkayga"
-    }
-  ],
-  "2e86e6853d": [
-    {
-      "type": 0,
-      "value": "Hogaamiye dooro"
     }
   ],
   "30cd34258a": [
@@ -275,12 +269,6 @@
       "value": "Fadlan isku day inaad dib u cusbooneysiiso bogga"
     }
   ],
-  "33f9ea6fe8": [
-    {
-      "type": 0,
-      "value": "Kooxda kala dir"
-    }
-  ],
   "34140869c6": [
     {
       "type": 0,
@@ -293,6 +281,18 @@
       "value": "Tafatire"
     }
   ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Seexo dhamaantood"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Maamul"
+    }
+  ],
   "3596c1b1f7": [
     {
       "type": 0,
@@ -303,18 +303,6 @@
     {
       "type": 0,
       "value": "Raac"
-    }
-  ],
-  "3a295397e6": [
-    {
-      "type": 0,
-      "value": "Caawinaad weydiiso"
-    }
-  ],
-  "3a77f951ca": [
-    {
-      "type": 0,
-      "value": "Kudar hawl cusub…"
     }
   ],
   "3b6c2b4caa": [
@@ -345,12 +333,6 @@
     {
       "type": 0,
       "value": "Aqbal dhammaan"
-    }
-  ],
-  "4131ec34ef": [
-    {
-      "type": 0,
-      "value": "Bidaar"
     }
   ],
   "42e53c47c1": [
@@ -413,6 +395,12 @@
       "value": "Magaca"
     }
   ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Dhammaan dooro"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -435,12 +423,6 @@
     {
       "type": 0,
       "value": "Ma hubtaa inaad doonayso inaad tirtirto kooxdan? Tallaabadan lama noqon karo."
-    }
-  ],
-  "4f827717f7": [
-    {
-      "type": 0,
-      "value": "Tilmaame leh"
     }
   ],
   "50db1b7e1e": [
@@ -589,6 +571,20 @@
       "value": "Ka dib"
     }
   ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "La hadal "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
   "625fd29749": [
     {
       "type": 0,
@@ -601,22 +597,10 @@
       "value": "adiga"
     }
   ],
-  "63a78ed464": [
+  "6602bbeb29": [
     {
       "type": 0,
-      "value": "Habbee"
-    }
-  ],
-  "64ebe56d8c": [
-    {
-      "type": 0,
-      "value": "Guji si aad meesha uga saarto ama u jiiddo si aad u guurto"
-    }
-  ],
-  "65709fd250": [
-    {
-      "type": 0,
-      "value": "Liiska hawsha"
+      "value": "Hagaha"
     }
   ],
   "6609dd239e": [
@@ -637,10 +621,28 @@
       "value": "Geli ciwaanka iimaylkaaga"
     }
   ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Toos"
+    }
+  ],
   "68d390535e": [
     {
       "type": 0,
       "value": "Geli fariintaada"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Magaca cirfiidka"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Ciribtirka carwada"
     }
   ],
   "6a26f54883": [
@@ -659,12 +661,6 @@
     {
       "type": 0,
       "value": "Raac tillaabooyinkan si aad gacanta ugu soo dejiso waxa ku jira:"
-    }
-  ],
-  "6e02bd9e1e": [
-    {
-      "type": 0,
-      "value": "Iska dhig carwada"
     }
   ],
   "70222abcfc": [
@@ -745,12 +741,6 @@
       "value": "Faylka ciyaartoy badan oo tldraw aan la garanayn hadda waa akhrin-kaliya. Si aad u sii waddo tafatirka, fadlan soo gal oo koobi ka geli faylashaada."
     }
   ],
-  "7835039819": [
-    {
-      "type": 0,
-      "value": "Mashiin"
-    }
-  ],
   "78e9815992": [
     {
       "type": 0,
@@ -769,22 +759,10 @@
       "value": "Sheekadu waa nin yar oo kaala shaqayn kara shiraaca. Carwada waxay u shaqayn kartaa kali ama koox ahaan. Ma jiro wax xad ah oo ay samayn karto cirfiidku. Qofna ma garanayo meesha ay ka yimaadeen."
     }
   ],
-  "7a3113b0ba": [
-    {
-      "type": 0,
-      "value": "U jiid shiraac"
-    }
-  ],
   "7b1329f5ca": [
     {
       "type": 0,
       "value": "Buugga isticmaale"
-    }
-  ],
-  "7b5449bd84": [
-    {
-      "type": 0,
-      "value": "Anteenada"
     }
   ],
   "7be10fc592": [
@@ -869,10 +847,10 @@
       "value": "."
     }
   ],
-  "81d48c2f3a": [
+  "81aa2078d1": [
     {
       "type": 0,
-      "value": "Ku muuji hawlaha shiraac"
+      "value": "Nadiifi dhammaan"
     }
   ],
   "8472a551f1": [
@@ -901,28 +879,22 @@
       "value": " .tldr files."
     }
   ],
-  "86a7df7572": [
-    {
-      "type": 0,
-      "value": "U yeedh carwada"
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
       "value": "Magaca beddelo faylka"
     }
   ],
+  "8726ef8909": [
+    {
+      "type": 0,
+      "value": "Dib u dejin adag"
+    }
+  ],
   "88e83b88c5": [
     {
       "type": 0,
       "value": "Iibso xidhmo cirfiid ah"
-    }
-  ],
-  "898e76f01a": [
-    {
-      "type": 0,
-      "value": "Wax walba dib u deji"
     }
   ],
   "8ad4303b83": [
@@ -943,10 +915,22 @@
       "value": "Hubi iimaylkaga koodka xaqiijinta"
     }
   ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Guriga"
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "kula wadaagay"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Ku saabsan"
     }
   ],
   "8ff3d0a705": [
@@ -979,16 +963,10 @@
       "value": "Xiriirinta martiqaadka oo la guuriyay"
     }
   ],
-  "93346fdd70": [
+  "94186070ef": [
     {
       "type": 0,
-      "value": "Dhegaha"
-    }
-  ],
-  "93dfe9fbbe": [
-    {
-      "type": 0,
-      "value": "Ha dooran cirfiid"
+      "value": "Ha dooran"
     }
   ],
   "94966d9074": [
@@ -1015,12 +993,6 @@
       "value": "Bishan"
     }
   ],
-  "97a9f16b2e": [
-    {
-      "type": 0,
-      "value": "cirfiid cusub"
-    }
-  ],
   "985a4b720f": [
     {
       "type": 0,
@@ -1031,12 +1003,6 @@
     {
       "type": 0,
       "value": "Kudar xiriirinta faylka"
-    }
-  ],
-  "98e528aac6": [
-    {
-      "type": 0,
-      "value": "U beddel sheeko cirfiid"
     }
   ],
   "9914a0ce04": [
@@ -1125,10 +1091,10 @@
       "value": "Dhoofinta sawirka"
     }
   ],
-  "a2f0372a75": [
+  "a286d9991c": [
     {
       "type": 0,
-      "value": "U beddel liiska hawsha"
+      "value": "Ku biir"
     }
   ],
   "a3debabee7": [
@@ -1137,22 +1103,16 @@
       "value": "Siyaasadda kukiyada"
     }
   ],
-  "a3e932550c": [
-    {
-      "type": 0,
-      "value": "Magaca cirfiidka"
-    }
-  ],
   "a4d3b161ce": [
     {
       "type": 0,
       "value": "Gudbi"
     }
   ],
-  "a4ffdcf0dc": [
+  "a603905470": [
     {
       "type": 0,
-      "value": "Sare"
+      "value": "Ciribtirka"
     }
   ],
   "a6cc403d56": [
@@ -1167,16 +1127,16 @@
       "value": "Falanqaynta"
     }
   ],
-  "a885eb91ac": [
-    {
-      "type": 0,
-      "value": "Xulashada cirfiidka hogaamiyaha"
-    }
-  ],
   "a8873770ab": [
     {
       "type": 0,
       "value": "Faylku wuu weynaaday"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Xadka carwada toddobaadlaha ayaa la gaarey"
     }
   ],
   "a9ded1e5ce": [
@@ -1249,12 +1209,6 @@
     {
       "type": 0,
       "value": "Koobiga isku xirka"
-    }
-  ],
-  "b8996797b9": [
-    {
-      "type": 0,
-      "value": "Ku qari hawlaha shiraac"
     }
   ],
   "ba0318cb81": [
@@ -1347,16 +1301,16 @@
       "value": " inay naga caawiyaan horumarinta tldraw."
     }
   ],
-  "c2ad21c079": [
-    {
-      "type": 0,
-      "value": "Timaha"
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
       "value": "Aan awoodin in la daabaco faylka"
+    }
+  ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Furan"
     }
   ],
   "c3eb5c3b90": [
@@ -1375,6 +1329,12 @@
     {
       "type": 0,
       "value": "Magaca kooxda"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Isticmaalka"
     }
   ],
   "c655b27b1e": [
@@ -1399,12 +1359,6 @@
     {
       "type": 0,
       "value": "Saxiix"
-    }
-  ],
-  "c9b04e7b53": [
-    {
-      "type": 0,
-      "value": "Ha dooran hogaamiyaha"
     }
   ],
   "c9cc8cce24": [
@@ -1443,22 +1397,10 @@
       "value": "Wax badan ka baro daabacaadda"
     }
   ],
-  "cf62a7f9a7": [
-    {
-      "type": 0,
-      "value": "Dib u deji sheekeysiga"
-    }
-  ],
   "d3d2e61733": [
     {
       "type": 0,
       "value": "Xir"
-    }
-  ],
-  "d438a51e6e": [
-    {
-      "type": 0,
-      "value": "Dhammaan carwada hurdo dhig"
     }
   ],
   "d46632fe1f": [
@@ -1513,26 +1455,6 @@
       "value": "Dulucda"
     }
   ],
-  "d739f35e18": [
-    {
-      "type": 0,
-      "value": "Si hoose ugu sheeg "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
-  "d7bc9d5a2e": [
-    {
-      "type": 0,
-      "value": "Tirtir hawsha"
-    }
-  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1551,6 +1473,12 @@
       "value": "Tag halkan si aad u aragto waxa ku jira"
     }
   ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Daar carwada"
+    }
+  ],
   "d9e35d0f55": [
     {
       "type": 0,
@@ -1561,12 +1489,6 @@
     {
       "type": 0,
       "value": "martiqaad kaliya"
-    }
-  ],
-  "dbbece0c3a": [
-    {
-      "type": 0,
-      "value": "Nadiifi dhammaan sheekeysiga"
     }
   ],
   "dc30bc0c79": [
@@ -1613,6 +1535,12 @@
       "value": "Calaamadaha cilladaha abka"
     }
   ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Dooro"
+    }
+  ],
   "e0c88179b3": [
     {
       "type": 0,
@@ -1631,6 +1559,12 @@
       "value": "Soo koobid sharci ah"
     }
   ],
+  "e2b0147fd2": [
+    {
+      "type": 0,
+      "value": "Carwadaada ayaa ku sugaya! →"
+    }
+  ],
   "e3afed0047": [
     {
       "type": 0,
@@ -1643,6 +1577,12 @@
       "value": "Shuruudaha adeegga"
     }
   ],
+  "e43ec38a93": [
+    {
+      "type": 0,
+      "value": "Tag"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1653,12 +1593,6 @@
     {
       "type": 0,
       "value": "Aagga khatarta ah"
-    }
-  ],
-  "ea181d98ca": [
-    {
-      "type": 0,
-      "value": "Dooro cirfiid"
     }
   ],
   "ea4788705e": [
@@ -1713,6 +1647,12 @@
       "value": "a"
     }
   ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Kala dir"
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1723,12 +1663,6 @@
     {
       "type": 0,
       "value": "la doortay"
-    }
-  ],
-  "efb2d9d471": [
-    {
-      "type": 0,
-      "value": "Liiska Todo"
     }
   ],
   "efde983742": [
@@ -1749,12 +1683,6 @@
       "value": "Dejinta isticmaalaha"
     }
   ],
-  "f23056da60": [
-    {
-      "type": 0,
-      "value": "Mashruuc cusub"
-    }
-  ],
   "f2569594b2": [
     {
       "type": 0,
@@ -1773,28 +1701,10 @@
       "value": "Dejinta"
     }
   ],
-  "f6ae34b4ba": [
-    {
-      "type": 0,
-      "value": "Dib u habayn dhammaan usha"
-    }
-  ],
   "f714e36843": [
     {
       "type": 0,
       "value": "Ma hubtaa inaad doonayso inaad ka baxdo kooxdan?"
-    }
-  ],
-  "f7d5ee6855": [
-    {
-      "type": 0,
-      "value": "Dooro hogaamiye marka hore..."
-    }
-  ],
-  "f87386b4ba": [
-    {
-      "type": 0,
-      "value": "U yeedh dhammaan carwooyinka"
     }
   ],
   "fa2ead697d": [
@@ -1807,12 +1717,6 @@
     {
       "type": 0,
       "value": "Daawade"
-    }
-  ],
-  "fd11eafb92": [
-    {
-      "type": 0,
-      "value": "Burbur mashaariicda"
     }
   ],
   "fd1be3efcf": [

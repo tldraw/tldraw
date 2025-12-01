@@ -1,17 +1,34 @@
 import { hasActiveFairyAccess } from '@tldraw/dotcom-shared'
 import { IRequest, StatusError, json } from 'itty-router'
-import { upsertFairyAccess } from '../../adminRoutes'
+import { sql } from 'kysely'
+import { upsertFairyAccessWithDb } from '../../adminRoutes'
+import { FAIRY_WORLDWIDE_EXPIRATION } from '../../config'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
-import { requireAuth } from '../../utils/tla/getAuth'
+import { getFeatureFlag } from '../../utils/featureFlags'
+import { getClerkClient, requireAuth } from '../../utils/tla/getAuth'
 
 export async function redeemFairyInvite(request: IRequest, env: Environment): Promise<Response> {
+	const fairiesEnabled = await getFeatureFlag(env, 'fairies')
+	if (!fairiesEnabled) {
+		throw new StatusError(403, 'Fairy invites are currently disabled')
+	}
+
 	const auth = await requireAuth(request, env)
 	const body: any = await request.json()
 	const inviteCode = body?.inviteCode
 
 	if (!inviteCode || typeof inviteCode !== 'string') {
 		throw new StatusError(400, 'Invalid invite code')
+	}
+
+	// Get user's email from Clerk
+	const clerkClient = getClerkClient(env)
+	const clerkUser = await clerkClient.users.getUser(auth.userId)
+	const userEmail = clerkUser.emailAddresses[0]?.emailAddress
+
+	if (!userEmail) {
+		throw new StatusError(400, 'User email not found')
 	}
 
 	const db = createPostgresConnectionPool(env, 'redeemFairyInvite')
@@ -50,14 +67,14 @@ export async function redeemFairyInvite(request: IRequest, env: Environment): Pr
 				return null // Signal that user already has access
 			}
 
-			// Increment the invite usage count
-			await tx
-				.updateTable('fairy_invite')
-				.set({
-					currentUses: invite.currentUses + 1,
-				})
-				.where('id', '=', inviteCode)
-				.execute()
+			// Increment the invite usage count and append user email to redeemedBy
+			await sql`
+				UPDATE fairy_invite
+				SET
+					"currentUses" = "currentUses" + 1,
+					"redeemedBy" = COALESCE("redeemedBy", '[]'::jsonb) || jsonb_build_array(${userEmail}::text)
+				WHERE id = ${inviteCode}
+			`.execute(tx)
 
 			return invite
 		})
@@ -71,7 +88,12 @@ export async function redeemFairyInvite(request: IRequest, env: Environment): Pr
 		}
 
 		// Grant fairy access using helper (handles upsert + DO refresh)
-		const result = await upsertFairyAccess(env, auth.userId, invite.fairyLimit)
+		const result = await upsertFairyAccessWithDb(
+			env,
+			auth.userId,
+			invite.fairyLimit,
+			FAIRY_WORLDWIDE_EXPIRATION
+		)
 
 		if (!result.success) {
 			throw new StatusError(500, `Failed to grant fairy access: ${result.error}`)

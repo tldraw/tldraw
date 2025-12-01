@@ -122,6 +122,7 @@ export const user_fairies = table('user_fairies')
 		fairies: string(),
 		fairyLimit: number().optional(),
 		fairyAccessExpiresAt: number().optional(),
+		weeklyUsage: string(),
 	})
 	.primaryKey('userId')
 
@@ -303,6 +304,32 @@ export interface TlaAsset {
 	userId: string | null
 }
 
+// Override for user_fairies with proper JSONB types for Kysely
+export interface TlaUserFairyDB extends Omit<TlaUserFairy, 'weeklyUsage'> {
+	weeklyUsage: Record<string, number> // JSONB: { "2025-W48": 12.34 }
+}
+
+// Override for fairy_invite with proper JSONB types for Kysely
+export interface TlaFairyInviteDB extends Omit<TlaFairyInvite, 'redeemedBy'> {
+	redeemedBy: string[] // JSONB: ["email1@example.com", "email2@example.com"]
+}
+
+// paddle_transactions is backend-only, not part of Zero schema
+export interface TlaPaddleTransaction {
+	eventId: string
+	transactionId: string
+	eventType: string
+	status: string
+	userId: string | null
+	processed: boolean
+	processedAt: number | null
+	processingError: string | null
+	eventData: Record<string, unknown>
+	occurredAt: number
+	receivedAt: number
+	updatedAt: number
+}
+
 export interface DB {
 	file: TlaFile
 	file_state: TlaFileState
@@ -310,11 +337,13 @@ export interface DB {
 	group: TlaGroup
 	group_user: TlaGroupUser
 	group_file: TlaGroupFile
-	user_fairies: TlaUserFairy
+	user_fairies: TlaUserFairyDB
 	file_fairies: TlaFileFairy
-	fairy_invite: TlaFairyInvite
+	fairy_invite: TlaFairyInviteDB
 	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
+	file_fairy_messages: TlaFileFairyMessage
+	paddle_transactions: TlaPaddleTransaction
 }
 
 export const schema = createSchema({
@@ -338,6 +367,16 @@ export type TlaGroupFile = Row<typeof schema.tables.group_file>
 export type TlaUserFairy = Row<typeof schema.tables.user_fairies>
 export type TlaFileFairy = Row<typeof schema.tables.file_fairies>
 
+// file_fairy_messages is backend-only, not part of Zero schema
+export interface TlaFileFairyMessage {
+	id: string
+	fileId: string
+	userId: string
+	message: string
+	createdAt: number
+	updatedAt: number
+}
+
 // fairy_invite is backend-only, not part of Zero schema
 export interface TlaFairyInvite {
 	id: string
@@ -345,6 +384,8 @@ export interface TlaFairyInvite {
 	maxUses: number
 	currentUses: number
 	createdAt: number
+	description: string | null
+	redeemedBy: string[] // Array of emails
 }
 
 interface AuthData {

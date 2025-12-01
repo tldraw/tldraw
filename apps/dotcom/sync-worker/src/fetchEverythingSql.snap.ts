@@ -200,7 +200,7 @@ SELECT
   null::bigint as "12",
   "fairies"::text as "13",
   "userId"::text as "14",
-  null::text as "15",
+  "weeklyUsage"::text as "15",
   null::text as "16",
   null::text as "17",
   null::text as "18",
@@ -382,6 +382,7 @@ export const columnNamesByAlias = {
 		'10': 'fairyLimit',
 		'13': 'fairies',
 		'14': 'userId',
+		'15': 'weeklyUsage',
 	},
 	file_fairies: {
 		'13': 'fairyState',

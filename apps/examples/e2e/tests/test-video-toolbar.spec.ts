@@ -1,12 +1,12 @@
 import { expect } from '@playwright/test'
 import { Editor, TLAssetId, TLVideoShape } from 'tldraw'
 import test from '../fixtures/fixtures'
-import { setup } from '../shared-e2e'
+import { setupOrReset } from '../shared-e2e'
 
 declare const editor: Editor
 
 test.describe('Video toolbar behaviour', () => {
-	test.beforeEach(setup)
+	test.beforeEach(setupOrReset)
 	test.beforeEach(async ({ page, isMobile }) => {
 		// TODO: the mobile e2e test may need special handling
 		if (isMobile) return

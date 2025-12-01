@@ -11,10 +11,10 @@
       "value": "Einladung annehmen"
     }
   ],
-  "038c9b4432": [
+  "01d61b2012": [
     {
       "type": 0,
-      "value": "Fairys Persönlichkeit"
+      "value": "Beginne dein Feenabenteuer!"
     }
   ],
   "03b3e13197": [
@@ -57,22 +57,28 @@
       "value": "Konto"
     }
   ],
-  "090b807281": [
-    {
-      "type": 0,
-      "value": "Stachelig"
-    }
-  ],
   "0a91f7fa87": [
     {
       "type": 0,
       "value": "Diese Datei hat ihre maximale Größe erreicht, Änderungen werden möglicherweise nicht mehr gespeichert. Entfernen Sie einige Inhalte oder erstellen Sie eine neue Datei."
     }
   ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "Sprich zur Gruppe…"
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
       "value": "Datei"
+    }
+  ],
+  "0b79795d3e": [
+    {
+      "type": 0,
+      "value": "Einführung"
     }
   ],
   "0b9a4cde72": [
@@ -129,12 +135,6 @@
       "value": "Exportieren als"
     }
   ],
-  "141c7239d3": [
-    {
-      "type": 0,
-      "value": "Feen-Anpassung"
-    }
-  ],
   "146ffe2fd9": [
     {
       "type": 0,
@@ -165,16 +165,10 @@
       "value": "Heute"
     }
   ],
-  "1e38506832": [
+  "23f879f41a": [
     {
       "type": 0,
-      "value": "Geh zur Fee"
-    }
-  ],
-  "1fe250ea06": [
-    {
-      "type": 0,
-      "value": "Weisen Sie die Gruppe an…"
+      "value": "Ihr wöchentliches Feen-Nutzungslimit ist erreicht. Es wird zu Beginn der nächsten Woche zurückgesetzt."
     }
   ],
   "243924bfd5": [
@@ -195,6 +189,12 @@
       "value": "Über tldraw"
     }
   ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Alle herbeirufen"
+    }
+  ],
   "284d5cd0dd": [
     {
       "type": 0,
@@ -211,12 +211,6 @@
     {
       "type": 0,
       "value": "Meine Dateien"
-    }
-  ],
-  "2e86e6853d": [
-    {
-      "type": 0,
-      "value": "Vorsitzenden auswählen"
     }
   ],
   "30cd34258a": [
@@ -275,12 +269,6 @@
       "value": "Versuchen Sie bitte, die Seite neu zu laden."
     }
   ],
-  "33f9ea6fe8": [
-    {
-      "type": 0,
-      "value": "Gruppe auflösen"
-    }
-  ],
   "34140869c6": [
     {
       "type": 0,
@@ -293,6 +281,18 @@
       "value": "Editor"
     }
   ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Schlafen Sie alle"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Verwalten"
+    }
+  ],
   "3596c1b1f7": [
     {
       "type": 0,
@@ -303,18 +303,6 @@
     {
       "type": 0,
       "value": "Folgen"
-    }
-  ],
-  "3a295397e6": [
-    {
-      "type": 0,
-      "value": "Bitten Sie um Hilfe"
-    }
-  ],
-  "3a77f951ca": [
-    {
-      "type": 0,
-      "value": "Neue Aufgabe hinzufügen…"
     }
   ],
   "3b6c2b4caa": [
@@ -345,12 +333,6 @@
     {
       "type": 0,
       "value": "Alle akzeptieren"
-    }
-  ],
-  "4131ec34ef": [
-    {
-      "type": 0,
-      "value": "Kahl"
     }
   ],
   "42e53c47c1": [
@@ -413,6 +395,12 @@
       "value": "Name"
     }
   ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Alle auswählen"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -435,12 +423,6 @@
     {
       "type": 0,
       "value": "Sind Sie sicher, dass Sie diese Gruppe löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
-    }
-  ],
-  "4f827717f7": [
-    {
-      "type": 0,
-      "value": "Spitz"
     }
   ],
   "50db1b7e1e": [
@@ -589,6 +571,20 @@
       "value": "Später"
     }
   ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "Sprechen Sie mit "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
   "625fd29749": [
     {
       "type": 0,
@@ -601,22 +597,10 @@
       "value": "Du"
     }
   ],
-  "63a78ed464": [
+  "6602bbeb29": [
     {
       "type": 0,
-      "value": "Anpassen"
-    }
-  ],
-  "64ebe56d8c": [
-    {
-      "type": 0,
-      "value": "Zum Entfernen klicken oder zum Verschieben ziehen."
-    }
-  ],
-  "65709fd250": [
-    {
-      "type": 0,
-      "value": "Aufgabenliste"
+      "value": "Führung"
     }
   ],
   "6609dd239e": [
@@ -637,10 +621,28 @@
       "value": "Geben Sie Ihre E-Mail-Adresse ein."
     }
   ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Aufwachen"
+    }
+  ],
   "68d390535e": [
     {
       "type": 0,
       "value": "Geben Sie Ihre Nachricht ein"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Name der Fee"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Debug-Feen"
     }
   ],
   "6a26f54883": [
@@ -659,12 +661,6 @@
     {
       "type": 0,
       "value": "Befolgen Sie diese Schritte, um den Inhalt manuell zu importieren:"
-    }
-  ],
-  "6e02bd9e1e": [
-    {
-      "type": 0,
-      "value": "Feen wegräumen"
     }
   ],
   "70222abcfc": [
@@ -745,12 +741,6 @@
       "value": "Diese anonyme tldraw-Multiplayer-Datei ist jetzt schreibgeschützt. Um die Bearbeitung fortzusetzen, melden Sie sich bitte an und kopieren Sie die Datei in Ihren Ordner."
     }
   ],
-  "7835039819": [
-    {
-      "type": 0,
-      "value": "Propeller"
-    }
-  ],
   "78e9815992": [
     {
       "type": 0,
@@ -769,22 +759,10 @@
       "value": "Eine Fee ist ein kleines Wesen, das mit dir auf der Leinwand arbeiten kann. Feen können allein oder im Team arbeiten. Ihren Fähigkeiten sind keine Grenzen gesetzt. Niemand weiß, woher sie kommen."
     }
   ],
-  "7a3113b0ba": [
-    {
-      "type": 0,
-      "value": "Auf die Leinwand ziehen"
-    }
-  ],
   "7b1329f5ca": [
     {
       "type": 0,
       "value": "Benutzerhandbuch"
-    }
-  ],
-  "7b5449bd84": [
-    {
-      "type": 0,
-      "value": "Antenne"
     }
   ],
   "7be10fc592": [
@@ -869,10 +847,10 @@
       "value": "."
     }
   ],
-  "81d48c2f3a": [
+  "81aa2078d1": [
     {
       "type": 0,
-      "value": "Aufgaben auf der Leinwand anzeigen"
+      "value": "Alles löschen"
     }
   ],
   "8472a551f1": [
@@ -897,28 +875,22 @@
       "value": " .tldr-Dateien hinzugefügt."
     }
   ],
-  "86a7df7572": [
-    {
-      "type": 0,
-      "value": "Feen herbeirufen"
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
       "value": "Datei umbenennen"
     }
   ],
+  "8726ef8909": [
+    {
+      "type": 0,
+      "value": "Hard Reset"
+    }
+  ],
   "88e83b88c5": [
     {
       "type": 0,
       "value": "Feen-Bundle kaufen"
-    }
-  ],
-  "898e76f01a": [
-    {
-      "type": 0,
-      "value": "Alles zurücksetzen"
     }
   ],
   "8ad4303b83": [
@@ -939,10 +911,22 @@
       "value": "Prüfen Sie Ihr E-Mail-Postfach auf einen Bestätigungscode."
     }
   ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Heim"
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Mit Ihnen geteilt"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Um"
     }
   ],
   "8ff3d0a705": [
@@ -975,16 +959,10 @@
       "value": "Kopierter Einladungslink"
     }
   ],
-  "93346fdd70": [
+  "94186070ef": [
     {
       "type": 0,
-      "value": "Ohren"
-    }
-  ],
-  "93dfe9fbbe": [
-    {
-      "type": 0,
-      "value": "Fee abwählen"
+      "value": "Auswahl aufheben"
     }
   ],
   "94966d9074": [
@@ -1011,12 +989,6 @@
       "value": "Diesen Monat"
     }
   ],
-  "97a9f16b2e": [
-    {
-      "type": 0,
-      "value": "Neue Fee"
-    }
-  ],
   "985a4b720f": [
     {
       "type": 0,
@@ -1027,12 +999,6 @@
     {
       "type": 0,
       "value": "Dateilink hinzufügen"
-    }
-  ],
-  "98e528aac6": [
-    {
-      "type": 0,
-      "value": "Wechsle zum Feen-Chat"
     }
   ],
   "9914a0ce04": [
@@ -1121,10 +1087,10 @@
       "value": "Bild exportieren"
     }
   ],
-  "a2f0372a75": [
+  "a286d9991c": [
     {
       "type": 0,
-      "value": "Zur Aufgabenliste wechseln"
+      "value": "Verbinden"
     }
   ],
   "a3debabee7": [
@@ -1133,22 +1099,16 @@
       "value": "Cookie-Richtlinie"
     }
   ],
-  "a3e932550c": [
-    {
-      "type": 0,
-      "value": "Name der Fee"
-    }
-  ],
   "a4d3b161ce": [
     {
       "type": 0,
       "value": "Einreichen"
     }
   ],
-  "a4ffdcf0dc": [
+  "a603905470": [
     {
       "type": 0,
-      "value": "Spitze"
+      "value": "Debuggen"
     }
   ],
   "a6cc403d56": [
@@ -1163,16 +1123,16 @@
       "value": "Analyse"
     }
   ],
-  "a885eb91ac": [
-    {
-      "type": 0,
-      "value": "Auswahl der Anführerfee"
-    }
-  ],
   "a8873770ab": [
     {
       "type": 0,
       "value": "Die Datei wird immer größer."
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Wöchentliches Feenlimit erreicht"
     }
   ],
   "a9ded1e5ce": [
@@ -1245,12 +1205,6 @@
     {
       "type": 0,
       "value": "Link kopieren"
-    }
-  ],
-  "b8996797b9": [
-    {
-      "type": 0,
-      "value": "Aufgaben auf der Arbeitsfläche ausblenden"
     }
   ],
   "ba0318cb81": [
@@ -1347,16 +1301,16 @@
       "value": " tldraw zu verbessern."
     }
   ],
-  "c2ad21c079": [
-    {
-      "type": 0,
-      "value": "Haar"
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
       "value": "Diese Datei kann nicht veröffentlicht werden."
+    }
+  ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Offen"
     }
   ],
   "c3eb5c3b90": [
@@ -1375,6 +1329,12 @@
     {
       "type": 0,
       "value": "Gruppenname"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Verwendung"
     }
   ],
   "c655b27b1e": [
@@ -1399,12 +1359,6 @@
     {
       "type": 0,
       "value": "Abmelden"
-    }
-  ],
-  "c9b04e7b53": [
-    {
-      "type": 0,
-      "value": "Anführer abwählen"
     }
   ],
   "c9cc8cce24": [
@@ -1443,22 +1397,10 @@
       "value": "Erfahren Sie mehr über das Veröffentlichen."
     }
   ],
-  "cf62a7f9a7": [
-    {
-      "type": 0,
-      "value": "Chats zurücksetzen"
-    }
-  ],
   "d3d2e61733": [
     {
       "type": 0,
       "value": "Schließen"
-    }
-  ],
-  "d438a51e6e": [
-    {
-      "type": 0,
-      "value": "Bringt alle Feen in den Schlaf"
     }
   ],
   "d46632fe1f": [
@@ -1513,26 +1455,6 @@
       "value": "Design"
     }
   ],
-  "d739f35e18": [
-    {
-      "type": 0,
-      "value": "Flüstern Sie an "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
-  "d7bc9d5a2e": [
-    {
-      "type": 0,
-      "value": "Aufgabe löschen"
-    }
-  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1551,6 +1473,12 @@
       "value": "Hier können Sie den Inhalt sehen"
     }
   ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Feen aktivieren"
+    }
+  ],
   "d9e35d0f55": [
     {
       "type": 0,
@@ -1561,12 +1489,6 @@
     {
       "type": 0,
       "value": "Nur einladen"
-    }
-  ],
-  "dbbece0c3a": [
-    {
-      "type": 0,
-      "value": "Alle Chats löschen"
     }
   ],
   "dc30bc0c79": [
@@ -1613,6 +1535,12 @@
       "value": "App-Debug-Markierungen"
     }
   ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Wählen"
+    }
+  ],
   "e0c88179b3": [
     {
       "type": 0,
@@ -1631,6 +1559,12 @@
       "value": "Rechtliche Zusammenfassung"
     }
   ],
+  "e2b0147fd2": [
+    {
+      "type": 0,
+      "value": "Deine Feen warten auf dich! →"
+    }
+  ],
   "e3afed0047": [
     {
       "type": 0,
@@ -1643,6 +1577,12 @@
       "value": "Servicebedingungen"
     }
   ],
+  "e43ec38a93": [
+    {
+      "type": 0,
+      "value": "Gehe zu"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1653,12 +1593,6 @@
     {
       "type": 0,
       "value": "Gefahrenzone"
-    }
-  ],
-  "ea181d98ca": [
-    {
-      "type": 0,
-      "value": "Wähle Fee"
     }
   ],
   "ea4788705e": [
@@ -1717,6 +1651,12 @@
       "value": ", um mehr zu erfahren."
     }
   ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Auflösen"
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1727,12 +1667,6 @@
     {
       "type": 0,
       "value": "ausgewählt"
-    }
-  ],
-  "efb2d9d471": [
-    {
-      "type": 0,
-      "value": "Aufgabenliste"
     }
   ],
   "efde983742": [
@@ -1753,12 +1687,6 @@
       "value": "Benutzereinstellungen"
     }
   ],
-  "f23056da60": [
-    {
-      "type": 0,
-      "value": "Neues Projekt"
-    }
-  ],
   "f2569594b2": [
     {
       "type": 0,
@@ -1777,28 +1705,10 @@
       "value": "Einstellungen"
     }
   ],
-  "f6ae34b4ba": [
-    {
-      "type": 0,
-      "value": "Alle Zauberstäbe zurücksetzen"
-    }
-  ],
   "f714e36843": [
     {
       "type": 0,
       "value": "Möchtest du diese Gruppe wirklich verlassen?"
-    }
-  ],
-  "f7d5ee6855": [
-    {
-      "type": 0,
-      "value": "Wählen Sie zuerst einen Anführer aus…"
-    }
-  ],
-  "f87386b4ba": [
-    {
-      "type": 0,
-      "value": "Rufe alle Feen herbei"
     }
   ],
   "fa2ead697d": [
@@ -1811,12 +1721,6 @@
     {
       "type": 0,
       "value": "Viewer"
-    }
-  ],
-  "fd11eafb92": [
-    {
-      "type": 0,
-      "value": "Auflösen von Projekten"
     }
   ],
   "fd1be3efcf": [

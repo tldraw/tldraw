@@ -5,8 +5,8 @@
   "00b177e080": {
     "translation": "Terima undangan"
   },
-  "038c9b4432": {
-    "translation": "Kepribadian Peri"
+  "01d61b2012": {
+    "translation": "Mulailah petualangan peri Anda"
   },
   "03b3e13197": {
     "translation": "Seret file ke bilah samping di halaman ini atau pilih opsi 'Impor file' dari menu pengguna."
@@ -26,14 +26,17 @@
   "08bd40c754": {
     "translation": "Akun"
   },
-  "090b807281": {
-    "translation": "Runcing"
-  },
   "0a91f7fa87": {
     "translation": "Berkas ini telah mencapai batas ukuran dan perubahan mungkin tidak dapat disimpan lagi. Hapus sebagian konten atau buat berkas baru."
   },
+  "0ab1ef22a3": {
+    "translation": "Bicaralah kepada kelompok…"
+  },
   "0b27918290": {
     "translation": "File"
+  },
+  "0b79795d3e": {
+    "translation": "Perkenalan"
   },
   "0b9a4cde72": {
     "translation": "Menu file"
@@ -62,9 +65,6 @@
   "13ddd375ad": {
     "translation": "Ekspor sebagai"
   },
-  "141c7239d3": {
-    "translation": "Kustomisasi peri"
-  },
   "146ffe2fd9": {
     "translation": "Tampilkan lebih banyak"
   },
@@ -80,11 +80,8 @@
   "1dd1c5fb7f": {
     "translation": "Hari ini"
   },
-  "1e38506832": {
-    "translation": "Pergi ke peri"
-  },
-  "1fe250ea06": {
-    "translation": "Instruksikan kelompok…"
+  "23f879f41a": {
+    "translation": "Batas penggunaan peri mingguan Anda telah tercapai. Batas tersebut akan direset pada awal minggu depan."
   },
   "243924bfd5": {
     "translation": "Tidur"
@@ -95,6 +92,9 @@
   "250ddea65c": {
     "translation": "Tentang tldraw"
   },
+  "275173253d": {
+    "translation": "Panggil semua"
+  },
   "284d5cd0dd": {
     "translation": "Model:"
   },
@@ -103,9 +103,6 @@
   },
   "2c3ef76333": {
     "translation": "File saya"
-  },
-  "2e86e6853d": {
-    "translation": "Pilih pemimpin"
   },
   "30cd34258a": {
     "translation": "Sekumpulan <b>peri</b> telah datang untuk menggambar di bulan Desember. Untuk menyelidiki lebih lanjut, temukan peri tersebut dan klik."
@@ -128,26 +125,23 @@
   "335defdafe": {
     "translation": "Coba muat ulang halaman."
   },
-  "33f9ea6fe8": {
-    "translation": "Bubarkan grup"
-  },
   "34140869c6": {
     "translation": "Peri-peri akan hadir di Tldraw untuk bulan Desember. Silakan kunjungi kembali pada tanggal 1 Desember."
   },
   "344a7f427f": {
     "translation": "Editor"
   },
+  "34abfe7a0d": {
+    "translation": "Tidur semuanya"
+  },
+  "34e34c43ec": {
+    "translation": "Mengelola"
+  },
   "3596c1b1f7": {
     "translation": "Berhenti mengikuti"
   },
   "3903aab323": {
     "translation": "Mengikuti"
-  },
-  "3a295397e6": {
-    "translation": "Meminta bantuan"
-  },
-  "3a77f951ca": {
-    "translation": "Tambahkan tugas baru…"
   },
   "3b6c2b4caa": {
     "translation": "Ketentuan Layanan"
@@ -163,9 +157,6 @@
   },
   "3d0238bf16": {
     "translation": "Terima semua"
-  },
-  "4131ec34ef": {
-    "translation": "Botak"
   },
   "42e53c47c1": {
     "translation": "Hubungi pemilik untuk meminta akses."
@@ -197,6 +188,9 @@
   "49ee308734": {
     "translation": "Nama"
   },
+  "4c41e0bd95": {
+    "translation": "Pilih semua"
+  },
   "4d0d3ddec9": {
     "translation": "Situs ini menggunakan cookie untuk membuat aplikasi berfungsi dan mengumpulkan analitik."
   },
@@ -208,9 +202,6 @@
   },
   "4e6fbf032b": {
     "translation": "Yakin ingin menghapus grup ini? Tindakan ini tidak dapat dibatalkan."
-  },
-  "4f827717f7": {
-    "translation": "runcing"
   },
   "50db1b7e1e": {
     "translation": "Tidak dapat membatalkan penerbitan file."
@@ -266,20 +257,17 @@
   "61057a0c84": {
     "translation": "Nanti"
   },
+  "61daf2e53d": {
+    "translation": "Bicaralah dengan {name}…"
+  },
   "625fd29749": {
     "translation": "Lebih lama"
   },
   "639bae9ac6": {
     "translation": "Anda"
   },
-  "63a78ed464": {
-    "translation": "Sesuaikan"
-  },
-  "64ebe56d8c": {
-    "translation": "Klik untuk menghapus atau seret untuk memindahkan"
-  },
-  "65709fd250": {
-    "translation": "Daftar tugas"
+  "6602bbeb29": {
+    "translation": "Memandu"
   },
   "6609dd239e": {
     "translation": "Terjadi kesalahan"
@@ -290,8 +278,17 @@
   "6832ac5936": {
     "translation": "Masukkan alamat email Anda"
   },
+  "688761c83e": {
+    "translation": "Bangun"
+  },
   "68d390535e": {
     "translation": "Masukkan pesan Anda"
+  },
+  "6910bbdc82": {
+    "translation": "Nama peri"
+  },
+  "695c3e899d": {
+    "translation": "Peri debug"
   },
   "6a26f54883": {
     "translation": "Bantuan"
@@ -301,9 +298,6 @@
   },
   "6dfc62f621": {
     "translation": "Ikuti langkah berikut untuk mengimpor konten secara manual:"
-  },
-  "6e02bd9e1e": {
-    "translation": "Singkirkan peri"
   },
   "70222abcfc": {
     "translation": "Pengaturan grup"
@@ -344,9 +338,6 @@
   "7827371d1a": {
     "translation": "Berkas multipemain tldraw anonim ini sekarang hanya-baca. Untuk melanjutkan pengeditan, silakan masuk dan salin ke berkas Anda."
   },
-  "7835039819": {
-    "translation": "Baling-baling"
-  },
   "78e9815992": {
     "translation": "Mengerti"
   },
@@ -356,14 +347,8 @@
   "79cc22ac6b": {
     "translation": "Peri adalah makhluk kecil yang bisa bekerja bersamamu di atas kanvas. Peri bisa bekerja sendiri atau sebagai tim. Tak ada batasan untuk apa yang bisa dilakukan peri. Tak seorang pun tahu dari mana asal mereka."
   },
-  "7a3113b0ba": {
-    "translation": "Seret ke kanvas"
-  },
   "7b1329f5ca": {
     "translation": "Panduan pengguna"
-  },
-  "7b5449bd84": {
-    "translation": "Antena"
   },
   "7be10fc592": {
     "translation": "Pulihkan versi"
@@ -392,8 +377,8 @@
   "815e116a2e": {
     "translation": "Punya bug, masalah, atau ide untuk tldraw? Beri tahu kami! Isi formulir ini dan kami akan menindaklanjutinya melalui email jika diperlukan. Anda juga dapat <discord>mengobrol dengan kami di Discord</discord> atau <github>mengajukan masalah di GitHub</github>."
   },
-  "81d48c2f3a": {
-    "translation": "Tampilkan tugas di kanvas"
+  "81aa2078d1": {
+    "translation": "Hapus semua"
   },
   "8472a551f1": {
     "translation": "Peri telah datang untuk menggambar pada bulan Desember."
@@ -404,17 +389,14 @@
   "86353d2c41": {
     "translation": "Menambahkan file {total}.tldr."
   },
-  "86a7df7572": {
-    "translation": "Memanggil peri"
-  },
   "86c66437fd": {
     "translation": "Ganti nama berkas"
   },
+  "8726ef8909": {
+    "translation": "Reset keras"
+  },
   "88e83b88c5": {
     "translation": "Beli Paket Peri"
-  },
-  "898e76f01a": {
-    "translation": "Atur ulang semuanya"
   },
   "8ad4303b83": {
     "translation": "Tidak, terima kasih"
@@ -425,8 +407,14 @@
   "8c2d3d730c": {
     "translation": "Periksa email Anda untuk mendapatkan kode verifikasi."
   },
+  "8cf04a9734": {
+    "translation": "Rumah"
+  },
   "8eb2c00e96": {
     "translation": "Dibagikan kepada Anda"
+  },
+  "8f7f4c1ce7": {
+    "translation": "Tentang"
   },
   "8ff3d0a705": {
     "translation": "Laju dibatasi"
@@ -443,11 +431,8 @@
   "930390d222": {
     "translation": "Salin tautan undangan"
   },
-  "93346fdd70": {
-    "translation": "Telinga"
-  },
-  "93dfe9fbbe": {
-    "translation": "Batalkan pilihan peri"
+  "94186070ef": {
+    "translation": "Batalkan pilihan"
   },
   "94966d9074": {
     "translation": "Mengirim"
@@ -461,17 +446,11 @@
   "96165d6df5": {
     "translation": "Bulan ini"
   },
-  "97a9f16b2e": {
-    "translation": "Peri baru"
-  },
   "985a4b720f": {
     "translation": "Ketentuan Penggunaan"
   },
   "98c997a27e": {
     "translation": "Tambahkan tautan berkas"
-  },
-  "98e528aac6": {
-    "translation": "Beralih ke obrolan peri"
   },
   "9914a0ce04": {
     "translation": "Cahaya"
@@ -509,20 +488,17 @@
   "a239905023": {
     "translation": "Ekspor gambar"
   },
-  "a2f0372a75": {
-    "translation": "Beralih ke daftar tugas"
+  "a286d9991c": {
+    "translation": "Bergabung"
   },
   "a3debabee7": {
     "translation": "Kebijakan cookie"
   },
-  "a3e932550c": {
-    "translation": "Nama peri"
-  },
   "a4d3b161ce": {
     "translation": "Kirim"
   },
-  "a4ffdcf0dc": {
-    "translation": "Atas"
+  "a603905470": {
+    "translation": "Debug"
   },
   "a6cc403d56": {
     "translation": "Siapa pun yang memiliki tautan"
@@ -530,11 +506,11 @@
   "a768caa988": {
     "translation": "Analitik"
   },
-  "a885eb91ac": {
-    "translation": "Pemilihan peri pemimpin"
-  },
   "a8873770ab": {
     "translation": "File menjadi besar"
+  },
+  "a8de4c27a8": {
+    "translation": "Batas peri mingguan tercapai"
   },
   "a9ded1e5ce": {
     "translation": "Latar belakang"
@@ -570,9 +546,6 @@
   "b758336699": {
     "translation": "Salin tautan"
   },
-  "b8996797b9": {
-    "translation": "Sembunyikan tugas di kanvas"
-  },
   "ba0318cb81": {
     "translation": "Masuk untuk berbagi"
   },
@@ -591,11 +564,11 @@
   "c28aed8348": {
     "translation": "Izinkan <cookies>analytics</cookies> membantu kami meningkatkan tldraw."
   },
-  "c2ad21c079": {
-    "translation": "Rambut"
-  },
   "c303bd1095": {
     "translation": "Tidak dapat menerbitkan file."
+  },
+  "c3bf447eab": {
+    "translation": "Membuka"
   },
   "c3eb5c3b90": {
     "translation": "saya mengerti"
@@ -605,6 +578,9 @@
   },
   "c6155aaecc": {
     "translation": "Nama grup"
+  },
+  "c64518704c": {
+    "translation": "Penggunaan"
   },
   "c655b27b1e": {
     "translation": "i18n: Deret Panjang"
@@ -617,9 +593,6 @@
   },
   "c87aacf567": {
     "translation": "Keluar"
-  },
-  "c9b04e7b53": {
-    "translation": "Batalkan pilihan pemimpin"
   },
   "c9cc8cce24": {
     "translation": "Menyimpan"
@@ -639,14 +612,8 @@
   "cea291e45e": {
     "translation": "Pelajari lebih lanjut tentang penerbitan."
   },
-  "cf62a7f9a7": {
-    "translation": "Setel ulang obrolan"
-  },
   "d3d2e61733": {
     "translation": "Tutup"
-  },
-  "d438a51e6e": {
-    "translation": "Membuat semua peri tertidur"
   },
   "d46632fe1f": {
     "translation": "Terlalu banyak permintaan. Mohon pelan-pelan."
@@ -660,12 +627,6 @@
   "d721757161": {
     "translation": "Tema"
   },
-  "d739f35e18": {
-    "translation": "Berbisik ke {name}…"
-  },
-  "d7bc9d5a2e": {
-    "translation": "Hapus tugas"
-  },
   "d876a9fe1a": {
     "translation": "Coba Lagi"
   },
@@ -675,14 +636,14 @@
   "d9100f3e10": {
     "translation": "Klik di sini untuk melihat konten"
   },
+  "d9bfb9789a": {
+    "translation": "Aktifkan peri"
+  },
   "d9e35d0f55": {
     "translation": "Anda telah mencapai jumlah grup maksimum. Anda perlu menghapus grup lama sebelum membuat grup baru."
   },
   "dbbebf3c03": {
     "translation": "Hanya mengundang"
-  },
-  "dbbece0c3a": {
-    "translation": "Hapus semua obrolan"
   },
   "dc30bc0c79": {
     "translation": "Jernih"
@@ -699,6 +660,9 @@
   "dfdb78a4e4": {
     "translation": "Bendera debug aplikasi"
   },
+  "e062622261": {
+    "translation": "Memilih"
+  },
   "e0c88179b3": {
     "translation": "Undang anggota"
   },
@@ -708,20 +672,23 @@
   "e2ae80a510": {
     "translation": "Ringkasan hukum"
   },
+  "e2b0147fd2": {
+    "translation": "Peri Anda sedang menunggu Anda! →"
+  },
   "e3afed0047": {
     "translation": "Admin"
   },
   "e404559826": {
     "translation": "Ketentuan Layanan"
   },
+  "e43ec38a93": {
+    "translation": "Pergi ke"
+  },
   "e81c4e4f2b": {
     "translation": "atau"
   },
   "ea0626ac5a": {
     "translation": "Zona bahaya"
-  },
-  "ea181d98ca": {
-    "translation": "Pilih peri"
   },
   "ea4788705e": {
     "translation": "Batal"
@@ -744,14 +711,14 @@
   "ede55d955f": {
     "translation": "Baca <a>kebijakan cookie</a> kami untuk mempelajari lebih lanjut."
   },
+  "eee6f05922": {
+    "translation": "Bubar"
+  },
   "ef53538ae4": {
     "translation": "Anggota"
   },
   "ef7de3f485": {
     "translation": "terpilih"
-  },
-  "efb2d9d471": {
-    "translation": "Daftar tugas"
   },
   "efde983742": {
     "translation": "Memanggil"
@@ -762,9 +729,6 @@
   "f0e8bff6f9": {
     "translation": "Pengaturan pengguna"
   },
-  "f23056da60": {
-    "translation": "Proyek baru"
-  },
   "f2569594b2": {
     "translation": "Kami menggunakan cookie ini untuk menyimpan berkas dan pengaturan Anda."
   },
@@ -774,26 +738,14 @@
   "f4f70727dc": {
     "translation": "Pengaturan"
   },
-  "f6ae34b4ba": {
-    "translation": "Setel ulang semua tongkat sihir"
-  },
   "f714e36843": {
     "translation": "Apakah Anda yakin ingin meninggalkan grup ini?"
-  },
-  "f7d5ee6855": {
-    "translation": "Pilih pemimpin terlebih dahulu…"
-  },
-  "f87386b4ba": {
-    "translation": "Panggil semua peri"
   },
   "fa2ead697d": {
     "translation": "Kebijakan Privasi"
   },
   "fb15c53f22": {
     "translation": "Audiens"
-  },
-  "fd11eafb92": {
-    "translation": "Membubarkan proyek"
   },
   "fd1be3efcf": {
     "translation": "Yakin ingin menghapus file ini?"

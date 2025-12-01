@@ -11,10 +11,10 @@
       "value": "Accetta l'invito"
     }
   ],
-  "038c9b4432": [
+  "01d61b2012": [
     {
       "type": 0,
-      "value": "Personalità della fata"
+      "value": "Inizia la tua avventura fatata"
     }
   ],
   "03b3e13197": [
@@ -57,22 +57,28 @@
       "value": "Account"
     }
   ],
-  "090b807281": [
-    {
-      "type": 0,
-      "value": "Spinoso"
-    }
-  ],
   "0a91f7fa87": [
     {
       "type": 0,
       "value": "Questo file ha raggiunto il limite di dimensione e le modifiche potrebbero non essere più salvate. Rimuovi parte del contenuto o crea un nuovo file."
     }
   ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "Parla con il gruppo…"
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
       "value": "File"
+    }
+  ],
+  "0b79795d3e": [
+    {
+      "type": 0,
+      "value": "Introduzione"
     }
   ],
   "0b9a4cde72": [
@@ -129,12 +135,6 @@
       "value": "Esporta come"
     }
   ],
-  "141c7239d3": [
-    {
-      "type": 0,
-      "value": "Personalizzazione delle fate"
-    }
-  ],
   "146ffe2fd9": [
     {
       "type": 0,
@@ -165,16 +165,10 @@
       "value": "Oggi"
     }
   ],
-  "1e38506832": [
+  "23f879f41a": [
     {
       "type": 0,
-      "value": "Vai alla fata"
-    }
-  ],
-  "1fe250ea06": [
-    {
-      "type": 0,
-      "value": "Istruire il gruppo…"
+      "value": "Il limite settimanale di utilizzo delle fate è stato raggiunto. Verrà azzerato all'inizio della prossima settimana."
     }
   ],
   "243924bfd5": [
@@ -195,6 +189,12 @@
       "value": "Informazioni su tldraw"
     }
   ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Evoca tutti"
+    }
+  ],
   "284d5cd0dd": [
     {
       "type": 0,
@@ -211,12 +211,6 @@
     {
       "type": 0,
       "value": "I miei file"
-    }
-  ],
-  "2e86e6853d": [
-    {
-      "type": 0,
-      "value": "Seleziona il leader"
     }
   ],
   "30cd34258a": [
@@ -275,12 +269,6 @@
       "value": "Prova a ricaricare la pagina."
     }
   ],
-  "33f9ea6fe8": [
-    {
-      "type": 0,
-      "value": "Sciogliere il gruppo"
-    }
-  ],
   "34140869c6": [
     {
       "type": 0,
@@ -293,6 +281,18 @@
       "value": "Editor"
     }
   ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Dormire tutto"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Maneggio"
+    }
+  ],
   "3596c1b1f7": [
     {
       "type": 0,
@@ -303,18 +303,6 @@
     {
       "type": 0,
       "value": "Seguire"
-    }
-  ],
-  "3a295397e6": [
-    {
-      "type": 0,
-      "value": "Chiedi aiuto"
-    }
-  ],
-  "3a77f951ca": [
-    {
-      "type": 0,
-      "value": "Aggiungi una nuova attività…"
     }
   ],
   "3b6c2b4caa": [
@@ -345,12 +333,6 @@
     {
       "type": 0,
       "value": "Accetta tutto"
-    }
-  ],
-  "4131ec34ef": [
-    {
-      "type": 0,
-      "value": "Calvo"
     }
   ],
   "42e53c47c1": [
@@ -413,6 +395,12 @@
       "value": "Nome"
     }
   ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Seleziona tutto"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -435,12 +423,6 @@
     {
       "type": 0,
       "value": "Vuoi davvero eliminare questo gruppo? Questa azione non può essere annullata."
-    }
-  ],
-  "4f827717f7": [
-    {
-      "type": 0,
-      "value": "Appuntito"
     }
   ],
   "50db1b7e1e": [
@@ -589,6 +571,20 @@
       "value": "Più tardi"
     }
   ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "Parla con "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
   "625fd29749": [
     {
       "type": 0,
@@ -601,22 +597,10 @@
       "value": "Voi"
     }
   ],
-  "63a78ed464": [
+  "6602bbeb29": [
     {
       "type": 0,
-      "value": "Personalizza"
-    }
-  ],
-  "64ebe56d8c": [
-    {
-      "type": 0,
-      "value": "Fare clic per rimuovere o trascinare per spostare"
-    }
-  ],
-  "65709fd250": [
-    {
-      "type": 0,
-      "value": "Elenco delle attività"
+      "value": "Guida"
     }
   ],
   "6609dd239e": [
@@ -637,10 +621,28 @@
       "value": "Inserisci il tuo indirizzo email"
     }
   ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Veglia"
+    }
+  ],
   "68d390535e": [
     {
       "type": 0,
       "value": "Inserisci il tuo messaggio"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Nome della fata"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Fate del debug"
     }
   ],
   "6a26f54883": [
@@ -659,12 +661,6 @@
     {
       "type": 0,
       "value": "Per importare il contenuto manualmente, segui questi passaggi:"
-    }
-  ],
-  "6e02bd9e1e": [
-    {
-      "type": 0,
-      "value": "Metti via le fate"
     }
   ],
   "70222abcfc": [
@@ -745,12 +741,6 @@
       "value": "Questo file multigiocatore tldraw anonimo è ora di sola lettura. Per continuare a modificarlo, accedi e copialo nei tuoi file."
     }
   ],
-  "7835039819": [
-    {
-      "type": 0,
-      "value": "Elica"
-    }
-  ],
   "78e9815992": [
     {
       "type": 0,
@@ -769,22 +759,10 @@
       "value": "Una fata è un piccolo essere che può lavorare con te sulla tela. Le fate possono lavorare da sole o in gruppo. Non c'è limite a ciò che una fata può fare. Nessuno sa da dove vengano."
     }
   ],
-  "7a3113b0ba": [
-    {
-      "type": 0,
-      "value": "Trascina sulla tela"
-    }
-  ],
   "7b1329f5ca": [
     {
       "type": 0,
       "value": "Manuale utente"
-    }
-  ],
-  "7b5449bd84": [
-    {
-      "type": 0,
-      "value": "Antenna"
     }
   ],
   "7be10fc592": [
@@ -869,10 +847,10 @@
       "value": "."
     }
   ],
-  "81d48c2f3a": [
+  "81aa2078d1": [
     {
       "type": 0,
-      "value": "Mostra le attività sulla tela"
+      "value": "Cancella tutto"
     }
   ],
   "8472a551f1": [
@@ -901,28 +879,22 @@
       "value": " file .tldr."
     }
   ],
-  "86a7df7572": [
-    {
-      "type": 0,
-      "value": "Evoca le fate"
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
       "value": "Rinomina file"
     }
   ],
+  "8726ef8909": [
+    {
+      "type": 0,
+      "value": "Ripristino completo"
+    }
+  ],
   "88e83b88c5": [
     {
       "type": 0,
       "value": "Acquista il pacchetto Fairy"
-    }
-  ],
-  "898e76f01a": [
-    {
-      "type": 0,
-      "value": "Reimposta tutto"
     }
   ],
   "8ad4303b83": [
@@ -943,10 +915,22 @@
       "value": "Controlla la tua email per un codice di verifica."
     }
   ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Casa"
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Condivisi con te"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Di"
     }
   ],
   "8ff3d0a705": [
@@ -979,16 +963,10 @@
       "value": "Link di invito copiato"
     }
   ],
-  "93346fdd70": [
+  "94186070ef": [
     {
       "type": 0,
-      "value": "Orecchie"
-    }
-  ],
-  "93dfe9fbbe": [
-    {
-      "type": 0,
-      "value": "Deseleziona fata"
+      "value": "Deseleziona"
     }
   ],
   "94966d9074": [
@@ -1015,12 +993,6 @@
       "value": "Questo mese"
     }
   ],
-  "97a9f16b2e": [
-    {
-      "type": 0,
-      "value": "Nuova fata"
-    }
-  ],
   "985a4b720f": [
     {
       "type": 0,
@@ -1031,12 +1003,6 @@
     {
       "type": 0,
       "value": "Aggiungi collegamento al file"
-    }
-  ],
-  "98e528aac6": [
-    {
-      "type": 0,
-      "value": "Passa alla chat delle fate"
     }
   ],
   "9914a0ce04": [
@@ -1125,10 +1091,10 @@
       "value": "Esporta immagine"
     }
   ],
-  "a2f0372a75": [
+  "a286d9991c": [
     {
       "type": 0,
-      "value": "Passa all'elenco delle attività"
+      "value": "Giuntura"
     }
   ],
   "a3debabee7": [
@@ -1137,22 +1103,16 @@
       "value": "Politica sui cookie"
     }
   ],
-  "a3e932550c": [
-    {
-      "type": 0,
-      "value": "Nome della fata"
-    }
-  ],
   "a4d3b161ce": [
     {
       "type": 0,
       "value": "Invia"
     }
   ],
-  "a4ffdcf0dc": [
+  "a603905470": [
     {
       "type": 0,
-      "value": "Superiore"
+      "value": "Debug"
     }
   ],
   "a6cc403d56": [
@@ -1167,16 +1127,16 @@
       "value": "Analisi"
     }
   ],
-  "a885eb91ac": [
-    {
-      "type": 0,
-      "value": "Selezione della fata leader"
-    }
-  ],
   "a8873770ab": [
     {
       "type": 0,
       "value": "Il file sta diventando grande"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Limite settimanale di fate raggiunto"
     }
   ],
   "a9ded1e5ce": [
@@ -1249,12 +1209,6 @@
     {
       "type": 0,
       "value": "Copia link"
-    }
-  ],
-  "b8996797b9": [
-    {
-      "type": 0,
-      "value": "Nascondi le attività sulla tela"
     }
   ],
   "ba0318cb81": [
@@ -1347,16 +1301,16 @@
       "value": " per aiutarci a migliorare tldraw."
     }
   ],
-  "c2ad21c079": [
-    {
-      "type": 0,
-      "value": "Capelli"
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
       "value": "Impossibile pubblicare il file."
+    }
+  ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Aprire"
     }
   ],
   "c3eb5c3b90": [
@@ -1375,6 +1329,12 @@
     {
       "type": 0,
       "value": "Nome del gruppo"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Utilizzo"
     }
   ],
   "c655b27b1e": [
@@ -1399,12 +1359,6 @@
     {
       "type": 0,
       "value": "Esci"
-    }
-  ],
-  "c9b04e7b53": [
-    {
-      "type": 0,
-      "value": "Deseleziona leader"
     }
   ],
   "c9cc8cce24": [
@@ -1443,22 +1397,10 @@
       "value": "Maggiori informazioni sulla pubblicazione."
     }
   ],
-  "cf62a7f9a7": [
-    {
-      "type": 0,
-      "value": "Reimposta le chat"
-    }
-  ],
   "d3d2e61733": [
     {
       "type": 0,
       "value": "Chiudi"
-    }
-  ],
-  "d438a51e6e": [
-    {
-      "type": 0,
-      "value": "Metti tutte le fate a dormire"
     }
   ],
   "d46632fe1f": [
@@ -1513,26 +1455,6 @@
       "value": "Tema"
     }
   ],
-  "d739f35e18": [
-    {
-      "type": 0,
-      "value": "Sussurra a "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
-  "d7bc9d5a2e": [
-    {
-      "type": 0,
-      "value": "Elimina attività"
-    }
-  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1551,6 +1473,12 @@
       "value": "Vai qui per vedere i contenuti"
     }
   ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Abilita le fate"
+    }
+  ],
   "d9e35d0f55": [
     {
       "type": 0,
@@ -1561,12 +1489,6 @@
     {
       "type": 0,
       "value": "Solo su invito"
-    }
-  ],
-  "dbbece0c3a": [
-    {
-      "type": 0,
-      "value": "Cancella tutte le chat"
     }
   ],
   "dc30bc0c79": [
@@ -1613,6 +1535,12 @@
       "value": "Flag di debug dell'app"
     }
   ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Selezionare"
+    }
+  ],
   "e0c88179b3": [
     {
       "type": 0,
@@ -1631,6 +1559,12 @@
       "value": "Riepilogo legale"
     }
   ],
+  "e2b0147fd2": [
+    {
+      "type": 0,
+      "value": "Le tue fate ti aspettano! →"
+    }
+  ],
   "e3afed0047": [
     {
       "type": 0,
@@ -1643,6 +1577,12 @@
       "value": "Termini di servizio"
     }
   ],
+  "e43ec38a93": [
+    {
+      "type": 0,
+      "value": "Vai a"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1653,12 +1593,6 @@
     {
       "type": 0,
       "value": "Zona pericolosa"
-    }
-  ],
-  "ea181d98ca": [
-    {
-      "type": 0,
-      "value": "Seleziona fata"
     }
   ],
   "ea4788705e": [
@@ -1717,6 +1651,12 @@
       "value": "."
     }
   ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Sciogliere"
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1727,12 +1667,6 @@
     {
       "type": 0,
       "value": "selezionato"
-    }
-  ],
-  "efb2d9d471": [
-    {
-      "type": 0,
-      "value": "Lista delle cose da fare"
     }
   ],
   "efde983742": [
@@ -1753,12 +1687,6 @@
       "value": "Impostazioni utente"
     }
   ],
-  "f23056da60": [
-    {
-      "type": 0,
-      "value": "Nuovo progetto"
-    }
-  ],
   "f2569594b2": [
     {
       "type": 0,
@@ -1777,28 +1705,10 @@
       "value": "Impostazioni"
     }
   ],
-  "f6ae34b4ba": [
-    {
-      "type": 0,
-      "value": "Reimposta tutte le bacchette"
-    }
-  ],
   "f714e36843": [
     {
       "type": 0,
       "value": "Sei sicuro di voler abbandonare questo gruppo?"
-    }
-  ],
-  "f7d5ee6855": [
-    {
-      "type": 0,
-      "value": "Seleziona prima un leader…"
-    }
-  ],
-  "f87386b4ba": [
-    {
-      "type": 0,
-      "value": "Evoca tutte le fate"
     }
   ],
   "fa2ead697d": [
@@ -1811,12 +1721,6 @@
     {
       "type": 0,
       "value": "Visualizzatore"
-    }
-  ],
-  "fd11eafb92": [
-    {
-      "type": 0,
-      "value": "Sciogliere i progetti"
     }
   ],
   "fd1be3efcf": [

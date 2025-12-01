@@ -11,10 +11,10 @@
       "value": "Uitnodiging accepteren"
     }
   ],
-  "038c9b4432": [
+  "01d61b2012": [
     {
       "type": 0,
-      "value": "De persoonlijkheid van de fee"
+      "value": "Begin je sprookjesavontuur"
     }
   ],
   "03b3e13197": [
@@ -57,22 +57,28 @@
       "value": "Rekening"
     }
   ],
-  "090b807281": [
-    {
-      "type": 0,
-      "value": "Stekelig"
-    }
-  ],
   "0a91f7fa87": [
     {
       "type": 0,
       "value": "Dit bestand heeft de maximale bestandsgrootte bereikt en wijzigingen worden mogelijk niet meer opgeslagen. Verwijder wat inhoud of begin een nieuw bestand."
     }
   ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "Spreek tot de groep…"
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
       "value": "Bestand"
+    }
+  ],
+  "0b79795d3e": [
+    {
+      "type": 0,
+      "value": "Invoering"
     }
   ],
   "0b9a4cde72": [
@@ -129,12 +135,6 @@
       "value": "Exporteren als"
     }
   ],
-  "141c7239d3": [
-    {
-      "type": 0,
-      "value": "Feeënaanpassing"
-    }
-  ],
   "146ffe2fd9": [
     {
       "type": 0,
@@ -165,16 +165,10 @@
       "value": "Vandaag"
     }
   ],
-  "1e38506832": [
+  "23f879f41a": [
     {
       "type": 0,
-      "value": "Ga naar fee"
-    }
-  ],
-  "1fe250ea06": [
-    {
-      "type": 0,
-      "value": "Geef de groep instructies…"
+      "value": "Je wekelijkse fee-gebruikslimiet is bereikt. Deze wordt begin volgende week gereset."
     }
   ],
   "243924bfd5": [
@@ -195,6 +189,12 @@
       "value": "Over tldraw"
     }
   ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Roep iedereen op"
+    }
+  ],
   "284d5cd0dd": [
     {
       "type": 0,
@@ -211,12 +211,6 @@
     {
       "type": 0,
       "value": "Mijn bestanden"
-    }
-  ],
-  "2e86e6853d": [
-    {
-      "type": 0,
-      "value": "Selecteer leider"
     }
   ],
   "30cd34258a": [
@@ -275,12 +269,6 @@
       "value": "Probeer de pagina te vernieuwen."
     }
   ],
-  "33f9ea6fe8": [
-    {
-      "type": 0,
-      "value": "Groep ontbinden"
-    }
-  ],
   "34140869c6": [
     {
       "type": 0,
@@ -293,6 +281,18 @@
       "value": "Editor"
     }
   ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Slaap allemaal"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Beheren"
+    }
+  ],
   "3596c1b1f7": [
     {
       "type": 0,
@@ -303,18 +303,6 @@
     {
       "type": 0,
       "value": "Volgen"
-    }
-  ],
-  "3a295397e6": [
-    {
-      "type": 0,
-      "value": "Vraag om hulp"
-    }
-  ],
-  "3a77f951ca": [
-    {
-      "type": 0,
-      "value": "Een nieuwe taak toevoegen…"
     }
   ],
   "3b6c2b4caa": [
@@ -345,12 +333,6 @@
     {
       "type": 0,
       "value": "Alles accepteren"
-    }
-  ],
-  "4131ec34ef": [
-    {
-      "type": 0,
-      "value": "Kaal"
     }
   ],
   "42e53c47c1": [
@@ -413,6 +395,12 @@
       "value": "Naam"
     }
   ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Selecteer alles"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -435,12 +423,6 @@
     {
       "type": 0,
       "value": "Weet u zeker dat u deze groep wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
-    }
-  ],
-  "4f827717f7": [
-    {
-      "type": 0,
-      "value": "Puntig"
     }
   ],
   "50db1b7e1e": [
@@ -589,6 +571,20 @@
       "value": "Later"
     }
   ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "Praat met "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
   "625fd29749": [
     {
       "type": 0,
@@ -601,22 +597,10 @@
       "value": "Jij"
     }
   ],
-  "63a78ed464": [
+  "6602bbeb29": [
     {
       "type": 0,
-      "value": "Aanpassen"
-    }
-  ],
-  "64ebe56d8c": [
-    {
-      "type": 0,
-      "value": "Klik om te verwijderen of sleep om te verplaatsen"
-    }
-  ],
-  "65709fd250": [
-    {
-      "type": 0,
-      "value": "Takenlijst"
+      "value": "Gids"
     }
   ],
   "6609dd239e": [
@@ -637,10 +621,28 @@
       "value": "Voer uw e-mailadres in"
     }
   ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Wakker worden"
+    }
+  ],
   "68d390535e": [
     {
       "type": 0,
       "value": "Voer uw bericht in"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Naam van de fee"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Debug feeën"
     }
   ],
   "6a26f54883": [
@@ -659,12 +661,6 @@
     {
       "type": 0,
       "value": "Volg deze stappen om de inhoud handmatig te importeren:"
-    }
-  ],
-  "6e02bd9e1e": [
-    {
-      "type": 0,
-      "value": "Berg de feeën op"
     }
   ],
   "70222abcfc": [
@@ -745,12 +741,6 @@
       "value": "Dit anonieme tldraw-multiplayerbestand is nu alleen-lezen. Om verder te gaan met bewerken, meld je aan en kopieer je het naar je bestanden."
     }
   ],
-  "7835039819": [
-    {
-      "type": 0,
-      "value": "Propeller"
-    }
-  ],
   "78e9815992": [
     {
       "type": 0,
@@ -769,22 +759,10 @@
       "value": "Een fee is een klein mannetje dat met je aan het doek kan werken. Feeën kunnen alleen werken of in teamverband. Er zijn geen grenzen aan wat een fee kan doen. Niemand weet waar ze vandaan komen."
     }
   ],
-  "7a3113b0ba": [
-    {
-      "type": 0,
-      "value": "Slepen naar canvas"
-    }
-  ],
   "7b1329f5ca": [
     {
       "type": 0,
       "value": "Gebruikershandleiding"
-    }
-  ],
-  "7b5449bd84": [
-    {
-      "type": 0,
-      "value": "Antenne"
     }
   ],
   "7be10fc592": [
@@ -869,10 +847,10 @@
       "value": "."
     }
   ],
-  "81d48c2f3a": [
+  "81aa2078d1": [
     {
       "type": 0,
-      "value": "Taken weergeven op canvas"
+      "value": "Alles wissen"
     }
   ],
   "8472a551f1": [
@@ -897,28 +875,22 @@
       "value": " .tldr-bestanden toegevoegd."
     }
   ],
-  "86a7df7572": [
-    {
-      "type": 0,
-      "value": "Roep feeën op"
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
       "value": "Bestand hernoemen"
     }
   ],
+  "8726ef8909": [
+    {
+      "type": 0,
+      "value": "Harde reset"
+    }
+  ],
   "88e83b88c5": [
     {
       "type": 0,
       "value": "Koop Fairy Bundle"
-    }
-  ],
-  "898e76f01a": [
-    {
-      "type": 0,
-      "value": "Alles resetten"
     }
   ],
   "8ad4303b83": [
@@ -939,10 +911,22 @@
       "value": "Controleer uw e-mail voor een verificatiecode."
     }
   ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Thuis"
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Gedeeld met jou"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Over"
     }
   ],
   "8ff3d0a705": [
@@ -975,16 +959,10 @@
       "value": "Gekopieerde uitnodigingslink"
     }
   ],
-  "93346fdd70": [
+  "94186070ef": [
     {
       "type": 0,
-      "value": "Oren"
-    }
-  ],
-  "93dfe9fbbe": [
-    {
-      "type": 0,
-      "value": "Deselecteer fee"
+      "value": "Deselect"
     }
   ],
   "94966d9074": [
@@ -1011,12 +989,6 @@
       "value": "Deze maand"
     }
   ],
-  "97a9f16b2e": [
-    {
-      "type": 0,
-      "value": "Nieuwe fee"
-    }
-  ],
   "985a4b720f": [
     {
       "type": 0,
@@ -1027,12 +999,6 @@
     {
       "type": 0,
       "value": "Bestandslink toevoegen"
-    }
-  ],
-  "98e528aac6": [
-    {
-      "type": 0,
-      "value": "Overschakelen naar feeënchat"
     }
   ],
   "9914a0ce04": [
@@ -1121,10 +1087,10 @@
       "value": "Afbeelding exporteren"
     }
   ],
-  "a2f0372a75": [
+  "a286d9991c": [
     {
       "type": 0,
-      "value": "Overschakelen naar takenlijst"
+      "value": "Meedoen"
     }
   ],
   "a3debabee7": [
@@ -1133,22 +1099,16 @@
       "value": "Cookiebeleid"
     }
   ],
-  "a3e932550c": [
-    {
-      "type": 0,
-      "value": "Naam van de fee"
-    }
-  ],
   "a4d3b161ce": [
     {
       "type": 0,
       "value": "Verzenden"
     }
   ],
-  "a4ffdcf0dc": [
+  "a603905470": [
     {
       "type": 0,
-      "value": "Bovenkant"
+      "value": "Foutopsporing"
     }
   ],
   "a6cc403d56": [
@@ -1163,16 +1123,16 @@
       "value": "Analyse"
     }
   ],
-  "a885eb91ac": [
-    {
-      "type": 0,
-      "value": "Leider fee selectie"
-    }
-  ],
   "a8873770ab": [
     {
       "type": 0,
       "value": "Het bestand wordt groot"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Wekelijkse fee-limiet bereikt"
     }
   ],
   "a9ded1e5ce": [
@@ -1245,12 +1205,6 @@
     {
       "type": 0,
       "value": "Link kopiëren"
-    }
-  ],
-  "b8996797b9": [
-    {
-      "type": 0,
-      "value": "Taken op canvas verbergen"
     }
   ],
   "ba0318cb81": [
@@ -1343,16 +1297,16 @@
       "value": " toe om ons te helpen tldraw te verbeteren."
     }
   ],
-  "c2ad21c079": [
-    {
-      "type": 0,
-      "value": "Haar"
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
       "value": "Het bestand kan niet worden gepubliceerd."
+    }
+  ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Open"
     }
   ],
   "c3eb5c3b90": [
@@ -1371,6 +1325,12 @@
     {
       "type": 0,
       "value": "Groepsnaam"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Gebruik"
     }
   ],
   "c655b27b1e": [
@@ -1395,12 +1355,6 @@
     {
       "type": 0,
       "value": "Afmelden"
-    }
-  ],
-  "c9b04e7b53": [
-    {
-      "type": 0,
-      "value": "Leider deselecteren"
     }
   ],
   "c9cc8cce24": [
@@ -1439,22 +1393,10 @@
       "value": "Meer informatie over publiceren."
     }
   ],
-  "cf62a7f9a7": [
-    {
-      "type": 0,
-      "value": "Chats resetten"
-    }
-  ],
   "d3d2e61733": [
     {
       "type": 0,
       "value": "Sluiten"
-    }
-  ],
-  "d438a51e6e": [
-    {
-      "type": 0,
-      "value": "Laat alle feeën slapen"
     }
   ],
   "d46632fe1f": [
@@ -1509,26 +1451,6 @@
       "value": "Thema"
     }
   ],
-  "d739f35e18": [
-    {
-      "type": 0,
-      "value": "Fluister naar "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
-  "d7bc9d5a2e": [
-    {
-      "type": 0,
-      "value": "Taak verwijderen"
-    }
-  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1547,6 +1469,12 @@
       "value": "Ga hierheen om de inhoud te bekijken"
     }
   ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Feeën inschakelen"
+    }
+  ],
   "d9e35d0f55": [
     {
       "type": 0,
@@ -1557,12 +1485,6 @@
     {
       "type": 0,
       "value": "Alleen op uitnodiging"
-    }
-  ],
-  "dbbece0c3a": [
-    {
-      "type": 0,
-      "value": "Alle chats wissen"
     }
   ],
   "dc30bc0c79": [
@@ -1609,6 +1531,12 @@
       "value": "App-debug vlaggen"
     }
   ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Selecteer"
+    }
+  ],
   "e0c88179b3": [
     {
       "type": 0,
@@ -1627,6 +1555,12 @@
       "value": "Juridische samenvatting"
     }
   ],
+  "e2b0147fd2": [
+    {
+      "type": 0,
+      "value": "Jouw feeën wachten op jou! →"
+    }
+  ],
   "e3afed0047": [
     {
       "type": 0,
@@ -1639,6 +1573,12 @@
       "value": "Servicevoorwaarden"
     }
   ],
+  "e43ec38a93": [
+    {
+      "type": 0,
+      "value": "Ga naar"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1649,12 +1589,6 @@
     {
       "type": 0,
       "value": "Gevarenzone"
-    }
-  ],
-  "ea181d98ca": [
-    {
-      "type": 0,
-      "value": "Selecteer fee"
     }
   ],
   "ea4788705e": [
@@ -1713,6 +1647,12 @@
       "value": " voor meer informatie."
     }
   ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Ontbinden"
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1723,12 +1663,6 @@
     {
       "type": 0,
       "value": "gekozen"
-    }
-  ],
-  "efb2d9d471": [
-    {
-      "type": 0,
-      "value": "Todo-lijst"
     }
   ],
   "efde983742": [
@@ -1749,12 +1683,6 @@
       "value": "Gebruikersinstellingen"
     }
   ],
-  "f23056da60": [
-    {
-      "type": 0,
-      "value": "Nieuw project"
-    }
-  ],
   "f2569594b2": [
     {
       "type": 0,
@@ -1773,28 +1701,10 @@
       "value": "Instellingen"
     }
   ],
-  "f6ae34b4ba": [
-    {
-      "type": 0,
-      "value": "Alle toverstokken resetten"
-    }
-  ],
   "f714e36843": [
     {
       "type": 0,
       "value": "Weet u zeker dat u deze groep wilt verlaten?"
-    }
-  ],
-  "f7d5ee6855": [
-    {
-      "type": 0,
-      "value": "Selecteer eerst een leider…"
-    }
-  ],
-  "f87386b4ba": [
-    {
-      "type": 0,
-      "value": "Roep alle feeën op"
     }
   ],
   "fa2ead697d": [
@@ -1807,12 +1717,6 @@
     {
       "type": 0,
       "value": "Kijker"
-    }
-  ],
-  "fd11eafb92": [
-    {
-      "type": 0,
-      "value": "Projecten ontbinden"
     }
   ],
   "fd1be3efcf": [

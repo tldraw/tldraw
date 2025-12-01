@@ -126,7 +126,7 @@ export type FocusedArrowShape = z.infer<typeof FocusedArrowShapeSchema>
 
 const FocusedDrawShapeSchema = z
 	.object({
-		_type: z.literal('draw'),
+		_type: z.literal('pen'),
 		color: FocusColorSchema,
 		fill: FocusFillSchema.optional(),
 		note: z.string(),
@@ -139,6 +139,19 @@ const FocusedDrawShapeSchema = z
 	})
 
 export type FocusedDrawShape = z.infer<typeof FocusedDrawShapeSchema>
+
+const FocusedImageShapeSchema = z.object({
+	_type: z.literal('image'),
+	altText: z.string(),
+	h: z.number(),
+	note: z.string(),
+	shapeId: z.string(),
+	w: z.number(),
+	x: z.number(),
+	y: z.number(),
+})
+
+export type FocusedImageShape = z.infer<typeof FocusedImageShapeSchema>
 
 const FocusedUnknownShapeSchema = z
 	.object({
@@ -164,13 +177,26 @@ const FOCUSED_SHAPES_SCHEMAS = [
 	FocusedTextShapeSchema,
 	FocusedArrowShapeSchema,
 	FocusedNoteShapeSchema,
+	FocusedImageShapeSchema,
 	FocusedUnknownShapeSchema,
 ] as const
+
+// Shapes that can be created by the AI (excludes pen/draw and image shapes)
+const FOCUSED_CREATABLE_SHAPES_SCHEMAS = [
+	FocusedGeoShapeSchema,
+	FocusedLineShapeSchema,
+	FocusedTextShapeSchema,
+	FocusedArrowShapeSchema,
+	FocusedNoteShapeSchema,
+] as const
+
 export const FocusedShapeSchema = z.union(FOCUSED_SHAPES_SCHEMAS)
+export const FocusedCreatableShapeSchema = z.union(FOCUSED_CREATABLE_SHAPES_SCHEMAS)
 export const FocusedShapePartialSchema = z.union(
 	FOCUSED_SHAPES_SCHEMAS.map((schema) => schema.partial())
 )
 export type FocusedShape = z.infer<typeof FocusedShapeSchema>
+export type FocusedCreatableShape = z.infer<typeof FocusedCreatableShapeSchema>
 export type FocusedShapePartial = z.infer<typeof FocusedShapePartialSchema>
 /**
  * Extract all shape type names from the schema

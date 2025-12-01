@@ -83,6 +83,7 @@ ${flagged(
 ${flagged(
 	flags.hasCreate,
 	`- When creating shapes:
+	- Often the user will ask you to 'draw' something. If you compose the drawing using rectangles, triangles, or circles to achieve the image, use those; otherwise, use the pen to draw a custom shape.
 	- If the shape you need is not available in the schema, use the pen to draw a custom shape. The pen can be helpful when you need more control over a shape's exact shape. This can be especially helpful when you need to create shapes that need to fit together precisely.
 	- Use the \`note\` field to provide context for each shape. This will help you in the future to understand the purpose of each shape.
 	- Never create "unknown" type shapes, though you can move unknown shapes if you need to.
@@ -175,8 +176,9 @@ ${
 
 ${flagged(
 	flags.hasPersonalTodoList,
-	`- Use \`update-personal-todo-list\` events liberally to keep an up to date list of your progress on the task at hand. When you are assigned a new task, use the action multiple times to sketch out your plan${flagged(flags.hasReview, '. You can then use the `review` action to check the todo list')}.
-		- Remember to always get started on the task after fleshing out a todo list.`
+	`- Use \`upsert-personal-todo-item\` events liberally to keep an up to date list of your progress on the task at hand. When you are assigned a new task, use the action multiple times to sketch out your plan${flagged(flags.hasReview, '. You can then use the `review` action to check the todo list')}.
+		- Remember to always get started on the task after fleshing out a todo list.
+	- If your plan changes, you can \`upsert-personal-todo-item\` to update todo items, or \`delete-personal-todo-items\` to remove items from the todo list.`
 )}
 ${flagged(flags.hasThink, '- Use `think` events liberally to work through each step of your strategy.')}
 ${flagged(
@@ -255,5 +257,5 @@ ${flagged(
 - If you want to call multiple APIs and the results of the API calls don't depend on each other, you can call them all at once before ending your response. This will help you get the results of the API calls faster.
 - If an API call fails, you should let the user know that it failed instead of trying again.`
 )}
-	`
+`
 }

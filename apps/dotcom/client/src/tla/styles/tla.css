@@ -335,11 +335,11 @@
 	outline-offset: 0;
 }
 
-.tla .tl-watermark_SEE-LICENSE {
+.tla.tla-fairies-enabled .tl-watermark_SEE-LICENSE {
 	display: none;
 }
 
 /* Crazy sneaky */
 .tla .tl-container {
-	--tl-layer-canvas-in-front: 499;
+	--tl-layer-canvas-in-front: 399;
 }
