@@ -323,7 +323,7 @@ export function FairyManualPanel() {
 								Discord
 							</ExternalLink>{' '}
 							or submit an issue on{' '}
-							<ExternalLink to="https://github.com/tldraw/tldraw/issues">GitHub</ExternalLink>. .
+							<ExternalLink to="https://github.com/tldraw/tldraw/issues">GitHub</ExternalLink>.
 						</p>
 					</div>
 				</div>
