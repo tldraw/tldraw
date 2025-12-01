@@ -224,8 +224,27 @@
 		font-size: 14px;
 	}
 
+	.dialogBody {
+		padding: 32px 24px;
+		max-height: none;
+	}
+
+	.dialogHeader {
+		height: 32px;
+	}
+
+	.dialogFooter {
+		display: none;
+	}
+
+	.pricingContentWrapper {
+		gap: 24px;
+	}
+
 	.pricingCard {
 		padding: 16px;
+		margin-top: 0;
+		margin-bottom: 0;
 	}
 
 	.fairyIcons > *:nth-of-type(2) {
@@ -246,17 +265,16 @@
 		z-index: 2;
 	}
 
-	.pricingCard {
-		margin-top: 32px;
-		margin-bottom: 32px;
-	}
-
 	.price {
 		font-size: 40px;
 	}
 
 	.footer {
-		flex-direction: column;
-		gap: 8px;
+		gap: 12px;
+		font-size: 10px;
+	}
+
+	.footerLink {
+		font-size: 10px;
 	}
 }
