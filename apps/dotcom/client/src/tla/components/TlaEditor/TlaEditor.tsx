@@ -212,10 +212,6 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		return multiplayerAssetStore(() => fileId)
 	}, [fileId])
 
-	// Ref to store agents for presence syncing
-	// TODO(mime): use TldrawFairyAgent[] type when ready
-	const agentsRef = useRef<any[]>([])
-
 	const store = useSync({
 		uri: useCallback(async () => {
 			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
@@ -234,13 +230,15 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				const defaultPresence = getDefaultUserPresence(store, userInfo)
 				if (!defaultPresence) return null
 
+				if (!hoistedFairyApp) return defaultPresence
+
 				// Add fairy positions to presence for all active agents
 				const fairyPresences =
-					agentsRef.current
-						?.map((agent) => {
-							// TODO: this is any b/c we don't want to import the FairyEntity types here
-							const entity = agent?.$fairyEntity?.get?.() as any | undefined
-							const outfit = agent?.$fairyConfig?.get?.()?.outfit as string | undefined
+					hoistedFairyApp.agents
+						.getAgents()
+						.map((agent) => {
+							const entity = agent.getEntity()
+							const outfit = agent.getConfig().outfit as unknown as string | undefined
 							if (!entity || !outfit) return null
 							return { entity, outfit }
 						})
@@ -249,7 +247,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				defaultPresence.meta = { ...defaultPresence.meta, fairies: fairyPresences }
 				return defaultPresence
 			},
-			[]
+			[hoistedFairyApp]
 		),
 	})
 
