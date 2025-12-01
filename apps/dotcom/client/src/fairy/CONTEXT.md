@@ -6,17 +6,53 @@ The fairy system is an AI agent framework for tldraw.com that provides intellige
 
 ## Architecture
 
-### Core components
+The fairy system uses a two-level manager architecture:
+
+1. **Application level** (`FairyApp`): Manages global fairy state, agent lifecycle, projects, tasks, and coordination
+2. **Agent level** (`FairyAgent`): Manages individual fairy behavior, mode state machine, chat, and canvas actions
+
+### Application layer (`fairy-app/`)
+
+**FairyApp** (`fairy-app/FairyApp.ts`)
+
+The central coordinator for the fairy system. One instance per editor.
+
+- Manages global state (isApplyingAction, debugFlags, modelSelection)
+- Coordinates all app-level managers
+- Handles state persistence (load/save/auto-save)
+- Provides React context via `FairyAppProvider`
+
+**App managers** (`fairy-app/managers/`)
+
+All app managers extend `BaseFairyAppManager` with `reset()` and `dispose()` methods:
+
+- **FairyAppAgentsManager**: Agent lifecycle - creation, sync with configs, disposal
+- **FairyAppFollowingManager**: Camera following - tracks which fairy to follow, zoom behavior
+- **FairyAppProjectsManager**: Project CRUD, disband, resume, member management
+- **FairyAppTaskListManager**: Task CRUD, assignment, status updates, notifications
+- **FairyAppWaitManager**: Wait/notification system for inter-agent coordination
+
+**FairyAppProvider** (`fairy-app/FairyAppProvider.tsx`)
+
+React provider that:
+
+- Creates `FairyApp` instance on mount
+- Syncs agents with user's fairy configs
+- Loads/saves persisted state
+- Provides `useFairyApp()` hook for context access
+
+### Agent layer (`fairy-agent/`)
 
 **FairyAgent** (`fairy-agent/FairyAgent.ts`)
 
 - Main agent class that orchestrates AI interactions
+- References `FairyApp` for app-level operations
 - Delegates functionality to specialized manager classes
 - Coordinates with the AI backend for generation
 - Contains computed state for fairy entity and configuration
 - Handles prompt preparation, request management, and scheduling
 
-**Manager classes** (`fairy-agent/managers/`)
+**Agent managers** (`fairy-agent/managers/`)
 
 FairyAgent uses a manager pattern to organize functionality into focused classes that all extend `BaseFairyAgentManager`:
 
@@ -376,40 +412,27 @@ Transformation utilities used during request processing:
 
 ### Wait and notification system
 
-**Wait conditions** (`fairy-wait-notifications.ts`)
+**FairyAppWaitManager** (app level)
 
-Fairies can wait for specific events:
-
-- Task completion events
-- Agent mode transitions
-- Custom event types with matcher functions
-
-**Event broadcasting**
+Central event dispatcher for broadcasting events to waiting agents:
 
 - `notifyWaitingAgents()`: Central event dispatcher
 - `notifyTaskCompleted()`: Broadcast when tasks complete
 - `notifyAgentModeTransition()`: Broadcast mode changes
-- Automatic wake-up with contextual messages
+- `createTaskWaitCondition()`: Create wait condition for specific task
+- `createAgentModeTransitionWaitCondition()`: Create wait condition for mode change
 
-**Creating wait conditions**
+**FairyAgentWaitManager** (agent level)
 
-```typescript
-// Wait for specific task
-createTaskWaitCondition(taskId)
+Per-agent wait condition management:
 
-// Wait for mode change
-createAgentModeTransitionWaitCondition(agentId, mode)
-
-// Custom wait condition
-{
-  eventType: 'custom-event',
-  matcher: (event) => event.someProperty === expectedValue
-}
-```
+- `waitForAll()`: Set wait conditions for an agent
+- `getWaitingFor()`: Get current wait conditions
+- `notifyWaitConditionFulfilled()`: Wake agent with notification message
 
 ### Collaborative features
 
-**Projects system** (`fairy-projects.ts`)
+**Projects system** (`FairyAppProjectsManager`)
 
 - Multi-fairy collaboration on complex tasks
 - Project roles:
@@ -434,11 +457,11 @@ Projects can be resumed after interruption with intelligent state recovery:
 
 - `addProject()`: Register new project
 - `disbandProject()`: Cancel project, interrupt members, add cancellation memory
-- `disbandAllProjectsWithAgents()`: Cleanup all projects
+- `disbandAllProjects()`: Cleanup all projects
 - `resumeProject()`: Intelligently resume interrupted projects
 - `deleteProjectAndAssociatedTasks()`: Clean removal with task cleanup
 
-**Task management** (`fairy-task-list.ts`)
+**Task management** (`FairyAppTaskListManager`)
 
 - Shared task lists for projects
 - Task states: `todo`, `in-progress`, `done`
@@ -464,7 +487,6 @@ Projects can be resumed after interruption with intelligent state recovery:
 
 - `FairyHUD`: Main heads-up display container
 - `FairyHUDTeaser`: Teaser/preview UI
-- `FairyHUDHeader`: Header with controls
 
 **Chat components** (`fairy-ui/chat/`)
 
@@ -478,6 +500,7 @@ Projects can be resumed after interruption with intelligent state recovery:
 **Input components** (`fairy-ui/hud/`)
 
 - `FairySingleChatInput`: Single fairy chat input
+- `FairyHUDHeader`: Header with controls
 - `useFairySelection`: Selection state hook
 - `useIdlingFairies`: Hook for available fairies
 - `useMobilePositioning`: Mobile-specific positioning
@@ -494,9 +517,9 @@ Projects can be resumed after interruption with intelligent state recovery:
 
 **Other UI** (`fairy-ui/`)
 
-- `FairyDebugDialog`: Debug interface
-- `FairyProjectView`: Project view component
-- `FairyManualPanel`: User guide/manual panel
+- `FairyDebugDialog`: Debug interface (`fairy-ui/debug/`)
+- `FairyProjectView`: Project view component (`fairy-ui/project/`)
+- `FairyManualPanel`: User guide/manual panel (`fairy-ui/manual/`)
 
 **Hooks** (`fairy-ui/hooks/`)
 
@@ -598,23 +621,39 @@ Projects can be resumed after interruption with intelligent state recovery:
 
 ### State management
 
-**Global atoms** (`fairy-globals.ts`)
+**FairyApp state**
 
-- `$fairyAgentsAtom`: Global fairy agents registry (per editor)
-- `$fairyTasks`: Task list state
-- `$fairyProjects`: Active projects
-- `$fairyIsApplyingAction`: Action application state flag
+App-level state managed by `FairyApp`:
 
-**FairyAgentsAtom** (`fairy-agent/fairyAgentsAtom.ts`)
+- `$isApplyingAction`: Whether any fairy is currently applying an action
+- `$debugFlags`: Debug feature toggles (showTaskBounds)
+- `$modelSelection`: Currently selected AI model
 
-- `getFairyAgentById()`: Get agent by ID and editor
-- Editor-scoped fairy agent storage
+**App managers state**
+
+Each app manager maintains its own reactive state:
+
+- `FairyAppAgentsManager.$agents`: List of all fairy agents
+- `FairyAppFollowingManager.$followingFairyId`: ID of followed fairy
+- `FairyAppProjectsManager.$projects`: Active projects list
+- `FairyAppTaskListManager.$tasks`: Shared task list
+
+**Agent state**
+
+Per-agent state managed by `FairyAgent`:
+
+- `$fairyEntity`: Position, pose, selection, page
+- `$fairyConfig`: Name, outfit, sign (from user settings)
+- `$debugFlags`: Per-agent debug toggles
+- `$useOneShottingMode`: Solo prompting behavior
 
 **Persistence**
 
-- Fairy state serialized via `agent.serializeState()`
-- Includes: fairyEntity, chatHistory, chatOrigin, personalTodoList, waitingFor
-- Restored via `agent.loadState()`
+- Fairy state serialized via `fairyApp.serializeState()`
+- Includes: all agent states, task list, projects
+- Agent state includes: fairyEntity, chatHistory, chatOrigin, personalTodoList, waitingFor
+- Restored via `fairyApp.loadState()`
+- Auto-save via reactive watchers (throttled to 2 seconds)
 - Configuration stored in user profile as `fairies` JSON
 
 ### Debug capabilities
@@ -624,6 +663,7 @@ Projects can be resumed after interruption with intelligent state recovery:
 - `logSystemPrompt`: Log system prompt to console
 - `logMessages`: Log messages to console
 - `logResponseTime`: Track AI response performance
+- `showTaskBounds`: Display task bounds on canvas
 
 **Debug dialog** (`FairyDebugDialog.tsx`)
 
@@ -653,12 +693,26 @@ Uses `defineMessages` for i18n support:
 
 ## Usage patterns
 
-### Creating a fairy
+### Creating the fairy app
+
+```typescript
+// Via React provider (recommended)
+<FairyAppProvider fileId={fileId} onMount={handleMount} onUnmount={handleUnmount}>
+	<FairyHUD />
+</FairyAppProvider>
+
+// Access via hook
+const fairyApp = useFairyApp()
+```
+
+### Creating a fairy agent
+
+Agents are created automatically by `FairyAppAgentsManager.syncAgentsWithConfigs()` based on user's fairy configs. Manual creation:
 
 ```typescript
 const fairy = new FairyAgent({
 	id: uniqueId,
-	app: tldrawApp,
+	fairyApp: fairyApp,
 	editor: editor,
 	onError: handleError,
 	getToken: authTokenProvider,
@@ -746,12 +800,27 @@ class CustomPartUtil extends PromptPartUtil<CustomPart> {
 ### Working with projects
 
 ```typescript
-import { addProject, disbandProject, resumeProject } from './fairy-projects'
-
 // Projects are typically started via StartProjectActionUtil
-// But can be managed programmatically:
-disbandProject(projectId, editor)
-resumeProject(projectId, editor)
+// But can be managed programmatically via fairyApp:
+fairyApp.projectsManager.disbandProject(projectId)
+fairyApp.projectsManager.resumeProject(projectId)
+
+// Task management
+fairyApp.taskListManager.createTask({ id, title, projectId })
+fairyApp.taskListManager.setTaskStatusAndNotify(taskId, 'done')
+```
+
+### Camera following
+
+```typescript
+// Start following a fairy
+fairyApp.followingManager.startFollowing(fairyId)
+
+// Stop following
+fairyApp.followingManager.stopFollowing()
+
+// Check if following
+fairyApp.followingManager.isFollowing()
 ```
 
 ## Key features
@@ -766,3 +835,4 @@ resumeProject(projectId, editor)
 - **Debug tools**: Comprehensive debugging interface
 - **Project resumption**: Intelligent recovery from interruptions
 - **Internationalization**: Full i18n support for UI strings
+- **State persistence**: Auto-save and restore fairy state per file

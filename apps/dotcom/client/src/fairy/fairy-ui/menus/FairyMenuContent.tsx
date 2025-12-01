@@ -35,11 +35,6 @@ export function FairyMenuContent({
 
 	const onlyAgent = agents.length === 1 ? agents[0] : null
 	const hasSelected = agents.some((agent) => agent.$fairyEntity.get()?.isSelected)
-	// const selectedAgents = useValue(
-	// 	'selected-agents',
-	// 	() => $fairyAgentsAtom.get(editor).filter((agent) => agent.$fairyEntity.get()?.isSelected),
-	// 	[agents]
-	// )
 
 	const putAwayFairy = useCallback(() => {
 		agents.forEach((agent: FairyAgent) => {
