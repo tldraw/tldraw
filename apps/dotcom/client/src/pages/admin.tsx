@@ -431,7 +431,8 @@ function FairyInvites() {
 	}, [])
 
 	const removeForMe = useCallback(async () => {
-		if (!window.confirm('Remove fairy access from yourself?')) {
+		if (!user?.email) {
+			setError('No user email found')
 			return
 		}
 
@@ -439,8 +440,10 @@ function FairyInvites() {
 		setError(null)
 		setSuccessMessage(null)
 		try {
-			const res = await fetch('/api/app/admin/fairy/remove-for-me', {
+			const res = await fetch('/api/app/admin/fairy/remove-access', {
 				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ email: user.email }),
 			})
 			if (!res.ok) {
 				setError(res.statusText + ': ' + (await res.text()))
@@ -453,7 +456,7 @@ function FairyInvites() {
 		} finally {
 			setIsRemovingForMe(false)
 		}
-	}, [])
+	}, [user?.email])
 
 	const removeFairyAccess = useCallback(async () => {
 		if (!accessEmail || !accessEmail.includes('@')) {
