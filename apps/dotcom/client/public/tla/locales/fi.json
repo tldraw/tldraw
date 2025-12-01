@@ -5,8 +5,8 @@
   "00b177e080": {
     "translation": "Hyväksy kutsu"
   },
-  "038c9b4432": {
-    "translation": "Keijun persoonallisuus"
+  "01d61b2012": {
+    "translation": "Aloita keijuseikkailusi"
   },
   "03b3e13197": {
     "translation": "Vedä tiedosto tämän sivun sivupalkkiin. Tai valitse käyttäjävalikosta vaihtoehto Tuo tiedosto."
@@ -26,14 +26,17 @@
   "08bd40c754": {
     "translation": "Tili"
   },
-  "090b807281": {
-    "translation": "Kiukkuinen"
-  },
   "0a91f7fa87": {
     "translation": "Tiedosto on saavuttanut kokorajoituksensa, eikä muutoksia ehkä enää tallenneta. Poista sisältöä tai aloita uusi tiedosto."
   },
+  "0ab1ef22a3": {
+    "translation": "Puhu ryhmälle…"
+  },
   "0b27918290": {
     "translation": "Tiedosto"
+  },
+  "0b79795d3e": {
+    "translation": "Johdanto"
   },
   "0b9a4cde72": {
     "translation": "Tiedosto-valikko"
@@ -62,9 +65,6 @@
   "13ddd375ad": {
     "translation": "Vie nimellä"
   },
-  "141c7239d3": {
-    "translation": "Keijujen mukauttaminen"
-  },
   "146ffe2fd9": {
     "translation": "Näytä lisää"
   },
@@ -80,11 +80,8 @@
   "1dd1c5fb7f": {
     "translation": "Tänään"
   },
-  "1e38506832": {
-    "translation": "Mene keijun luo"
-  },
-  "1fe250ea06": {
-    "translation": "Ohjaa ryhmää…"
+  "23f879f41a": {
+    "translation": "Viikoittainen keijujen käyttökiintiösi on saavutettu. Se nollautuu ensi viikon alussa."
   },
   "243924bfd5": {
     "translation": "Nukkua"
@@ -95,6 +92,9 @@
   "250ddea65c": {
     "translation": "Tietoja tldraw'sta"
   },
+  "275173253d": {
+    "translation": "Kutsu kaikki"
+  },
   "284d5cd0dd": {
     "translation": "Malli:"
   },
@@ -103,9 +103,6 @@
   },
   "2c3ef76333": {
     "translation": "Omat tiedostoni"
-  },
-  "2e86e6853d": {
-    "translation": "Valitse johtaja"
   },
   "30cd34258a": {
     "translation": "Parvi <b>keijuja</b> on saapunut arpomaan joulukuuta. Jos haluat tutkia asiaa tarkemmin, etsi keiju ja napsauta sitä."
@@ -128,26 +125,23 @@
   "335defdafe": {
     "translation": "Yritä päivittää sivu."
   },
-  "33f9ea6fe8": {
-    "translation": "Hajoa ryhmä"
-  },
   "34140869c6": {
     "translation": "Keijuparvi saapuu arvontaan joulukuussa. Katso tilanne uudelleen 1. joulukuuta."
   },
   "344a7f427f": {
     "translation": "Toimittaja"
   },
+  "34abfe7a0d": {
+    "translation": "Nuku kaikki"
+  },
+  "34e34c43ec": {
+    "translation": "Hallitse"
+  },
   "3596c1b1f7": {
     "translation": "Lopeta seuraaminen"
   },
   "3903aab323": {
     "translation": "Seuraa"
-  },
-  "3a295397e6": {
-    "translation": "Pyydä apua"
-  },
-  "3a77f951ca": {
-    "translation": "Lisää uusi tehtävä…"
   },
   "3b6c2b4caa": {
     "translation": "Palveluehdot"
@@ -163,9 +157,6 @@
   },
   "3d0238bf16": {
     "translation": "Hyväksy kaikki"
-  },
-  "4131ec34ef": {
-    "translation": "Kalju"
   },
   "42e53c47c1": {
     "translation": "Pyydä käyttöoikeutta ottamalla yhteyttä omistajaan."
@@ -197,6 +188,9 @@
   "49ee308734": {
     "translation": "Nimi"
   },
+  "4c41e0bd95": {
+    "translation": "Valitse kaikki"
+  },
   "4d0d3ddec9": {
     "translation": "Tämä sivusto käyttää evästeitä sovelluksen toiminnan varmistamiseksi ja analytiikkatietojen keräämiseksi."
   },
@@ -208,9 +202,6 @@
   },
   "4e6fbf032b": {
     "translation": "Haluatko varmasti poistaa tämän ryhmän? Tätä toimintoa ei voi perua."
-  },
-  "4f827717f7": {
-    "translation": "Teräväkärkinen"
   },
   "50db1b7e1e": {
     "translation": "Tiedoston julkaisua ei voi peruuttaa."
@@ -266,20 +257,17 @@
   "61057a0c84": {
     "translation": "Myöhemmin"
   },
+  "61daf2e53d": {
+    "translation": "Puhu käyttäjälle {name}…"
+  },
   "625fd29749": {
     "translation": "Vanhempi"
   },
   "639bae9ac6": {
     "translation": "sinä"
   },
-  "63a78ed464": {
-    "translation": "Mukauta"
-  },
-  "64ebe56d8c": {
-    "translation": "Napsauta poistaaksesi tai vedä siirtääksesi"
-  },
-  "65709fd250": {
-    "translation": "Tehtävälista"
+  "6602bbeb29": {
+    "translation": "Opas"
   },
   "6609dd239e": {
     "translation": "Jotain meni pieleen"
@@ -290,8 +278,17 @@
   "6832ac5936": {
     "translation": "Anna sähköpostiosoitteesi"
   },
+  "688761c83e": {
+    "translation": "Herätä"
+  },
   "68d390535e": {
     "translation": "Kirjoita viestisi"
+  },
+  "6910bbdc82": {
+    "translation": "Keijun nimi"
+  },
+  "695c3e899d": {
+    "translation": "Virheenkorjauskeijut"
   },
   "6a26f54883": {
     "translation": "Auttaa"
@@ -301,9 +298,6 @@
   },
   "6dfc62f621": {
     "translation": "Tuo sisältö manuaalisesti seuraavasti:"
-  },
-  "6e02bd9e1e": {
-    "translation": "Laita keijut pois"
   },
   "70222abcfc": {
     "translation": "Ryhmän asetukset"
@@ -344,9 +338,6 @@
   "7827371d1a": {
     "translation": "Tämä anonyymi tldraw-moninpelitiedosto on nyt vain luku -tilassa. Jatkaaksesi muokkaamista, kirjaudu sisään ja kopioi se tiedostoihisi."
   },
-  "7835039819": {
-    "translation": "Potkuri"
-  },
   "78e9815992": {
     "translation": "Selvä"
   },
@@ -356,14 +347,8 @@
   "79cc22ac6b": {
     "translation": "Keiju on pieni hahmo, joka voi työskennellä kanssasi kankaalla. Keijut voivat työskennellä yksin tai tiiminä. Keijun kyvyillä ei ole rajoja. Kukaan ei tiedä, mistä he ovat kotoisin."
   },
-  "7a3113b0ba": {
-    "translation": "Vedä kankaalle"
-  },
   "7b1329f5ca": {
     "translation": "Käyttöohje"
-  },
-  "7b5449bd84": {
-    "translation": "Antenni"
   },
   "7be10fc592": {
     "translation": "Palauta versio"
@@ -392,8 +377,8 @@
   "815e116a2e": {
     "translation": "Onko sinulla bugi, ongelma tai idea tldraw'hun liittyen? Kerro meille! Täytä tämä lomake, niin otamme sinuun tarvittaessa yhteyttä sähköpostitse. Voit myös <discord>chattailla kanssamme Discordissa</discord> tai <github>lähettää ongelman GitHubissa</github>."
   },
-  "81d48c2f3a": {
-    "translation": "Näytä tehtävät kankaalla"
+  "81aa2078d1": {
+    "translation": "Tyhjennä kaikki"
   },
   "8472a551f1": {
     "translation": "Keijut ovat tulleet piirtämään joulukuun viettoon."
@@ -404,17 +389,14 @@
   "86353d2c41": {
     "translation": "Lisätty {total} .tldr-tiedostoja."
   },
-  "86a7df7572": {
-    "translation": "Kutsu keijut"
-  },
   "86c66437fd": {
     "translation": "Nimeä tiedosto uudelleen"
   },
+  "8726ef8909": {
+    "translation": "Pakkolunastus"
+  },
   "88e83b88c5": {
     "translation": "Osta keijupaketti"
-  },
-  "898e76f01a": {
-    "translation": "Nollaa kaikki"
   },
   "8ad4303b83": {
     "translation": "Ei kiitos"
@@ -425,8 +407,14 @@
   "8c2d3d730c": {
     "translation": "Tarkista sähköpostistasi vahvistuskoodi."
   },
+  "8cf04a9734": {
+    "translation": "Kotiin"
+  },
   "8eb2c00e96": {
     "translation": "Jaettu kanssasi"
+  },
+  "8f7f4c1ce7": {
+    "translation": "Noin"
   },
   "8ff3d0a705": {
     "translation": "Hinta rajoitettu"
@@ -443,11 +431,8 @@
   "930390d222": {
     "translation": "Kutsulinkki kopioitu"
   },
-  "93346fdd70": {
-    "translation": "Korvat"
-  },
-  "93dfe9fbbe": {
-    "translation": "Poista keijun valinta"
+  "94186070ef": {
+    "translation": "Poista valinta"
   },
   "94966d9074": {
     "translation": "Lähetä"
@@ -461,17 +446,11 @@
   "96165d6df5": {
     "translation": "Tämä kuukausi"
   },
-  "97a9f16b2e": {
-    "translation": "Uusi keiju"
-  },
   "985a4b720f": {
     "translation": "Käyttöehdot"
   },
   "98c997a27e": {
     "translation": "Lisää tiedostolinkki"
-  },
-  "98e528aac6": {
-    "translation": "Vaihda keijujen keskusteluun"
   },
   "9914a0ce04": {
     "translation": "Kevyt"
@@ -509,20 +488,17 @@
   "a239905023": {
     "translation": "Vie kuva"
   },
-  "a2f0372a75": {
-    "translation": "Vaihda tehtäväluetteloon"
+  "a286d9991c": {
+    "translation": "Liity"
   },
   "a3debabee7": {
     "translation": "Evästekäytäntö"
   },
-  "a3e932550c": {
-    "translation": "Keijun nimi"
-  },
   "a4d3b161ce": {
     "translation": "Lähetä"
   },
-  "a4ffdcf0dc": {
-    "translation": "Yläosa"
+  "a603905470": {
+    "translation": "Virheenjäljitys"
   },
   "a6cc403d56": {
     "translation": "Kaikki, joilla on linkki"
@@ -530,11 +506,11 @@
   "a768caa988": {
     "translation": "Analytics"
   },
-  "a885eb91ac": {
-    "translation": "Johtajakeijujen valinta"
-  },
   "a8873770ab": {
     "translation": "Tiedosto kasvaa suureksi"
+  },
+  "a8de4c27a8": {
+    "translation": "Viikoittainen keijuraja saavutettu"
   },
   "a9ded1e5ce": {
     "translation": "Tausta"
@@ -570,9 +546,6 @@
   "b758336699": {
     "translation": "Kopioi linkki"
   },
-  "b8996797b9": {
-    "translation": "Piilota tehtävät kankaalla"
-  },
   "ba0318cb81": {
     "translation": "Kirjaudu sisään jakaaksesi"
   },
@@ -591,11 +564,11 @@
   "c28aed8348": {
     "translation": "Salli <cookies>analytics</cookies>-palvelun auttaa meitä parantamaan tldrawia."
   },
-  "c2ad21c079": {
-    "translation": "Hiukset"
-  },
   "c303bd1095": {
     "translation": "Tiedostoa ei voi julkaista."
+  },
+  "c3bf447eab": {
+    "translation": "Avata"
   },
   "c3eb5c3b90": {
     "translation": "Ymmärrän"
@@ -605,6 +578,9 @@
   },
   "c6155aaecc": {
     "translation": "Ryhmän nimi"
+  },
+  "c64518704c": {
+    "translation": "Käyttö"
   },
   "c655b27b1e": {
     "translation": "i18n: Pitkä merkkijono"
@@ -617,9 +593,6 @@
   },
   "c87aacf567": {
     "translation": "Kirjaudu ulos"
-  },
-  "c9b04e7b53": {
-    "translation": "Poista johtajan valinta"
   },
   "c9cc8cce24": {
     "translation": "Tallentaa"
@@ -639,14 +612,8 @@
   "cea291e45e": {
     "translation": "Lisätietoja julkaisemisesta."
   },
-  "cf62a7f9a7": {
-    "translation": "Palauta keskustelut"
-  },
   "d3d2e61733": {
     "translation": "Lähellä"
-  },
-  "d438a51e6e": {
-    "translation": "Laita kaikki keijut nukkumaan"
   },
   "d46632fe1f": {
     "translation": "Liikaa pyyntöjä. Hiljennä tahtia."
@@ -660,12 +627,6 @@
   "d721757161": {
     "translation": "Teema"
   },
-  "d739f35e18": {
-    "translation": "Kuiskaus käyttäjälle {name}…"
-  },
-  "d7bc9d5a2e": {
-    "translation": "Poista tehtävä"
-  },
   "d876a9fe1a": {
     "translation": "Yritä uudelleen"
   },
@@ -675,14 +636,14 @@
   "d9100f3e10": {
     "translation": "Siirry tänne nähdäksesi sisällön"
   },
+  "d9bfb9789a": {
+    "translation": "Ota keijut käyttöön"
+  },
   "d9e35d0f55": {
     "translation": "Olet saavuttanut ryhmien enimmäismäärän. Sinun on poistettava vanhoja ryhmiä ennen uusien luomista."
   },
   "dbbebf3c03": {
     "translation": "Vain kutsu"
-  },
-  "dbbece0c3a": {
-    "translation": "Tyhjennä kaikki keskustelut"
   },
   "dc30bc0c79": {
     "translation": "Tyhjennä"
@@ -699,6 +660,9 @@
   "dfdb78a4e4": {
     "translation": "Sovelluksen virheenkorjausliput"
   },
+  "e062622261": {
+    "translation": "Valitse"
+  },
   "e0c88179b3": {
     "translation": "Kutsu jäseniä"
   },
@@ -708,20 +672,23 @@
   "e2ae80a510": {
     "translation": "Oikeudellinen yhteenveto"
   },
+  "e2b0147fd2": {
+    "translation": "Keijut odottavat sinua! →"
+  },
   "e3afed0047": {
     "translation": "Ylläpitäjä"
   },
   "e404559826": {
     "translation": "Palveluehdot"
   },
+  "e43ec38a93": {
+    "translation": "Siirry osoitteeseen"
+  },
   "e81c4e4f2b": {
     "translation": "tai"
   },
   "ea0626ac5a": {
     "translation": "Vaara-alue"
-  },
-  "ea181d98ca": {
-    "translation": "Valitse keiju"
   },
   "ea4788705e": {
     "translation": "Peruuttaa"
@@ -744,14 +711,14 @@
   "ede55d955f": {
     "translation": "Lue lisää <a>evästekäytännöstämme</a>."
   },
+  "eee6f05922": {
+    "translation": "Hajoaminen"
+  },
   "ef53538ae4": {
     "translation": "Jäsenet"
   },
   "ef7de3f485": {
     "translation": "valittu"
-  },
-  "efb2d9d471": {
-    "translation": "Tehtävälista"
   },
   "efde983742": {
     "translation": "Kutsu"
@@ -762,9 +729,6 @@
   "f0e8bff6f9": {
     "translation": "Käyttäjäasetukset"
   },
-  "f23056da60": {
-    "translation": "Uusi projekti"
-  },
   "f2569594b2": {
     "translation": "Käytämme näitä evästeitä tiedostojesi ja asetuksiesi tallentamiseen."
   },
@@ -774,26 +738,14 @@
   "f4f70727dc": {
     "translation": "Asetukset"
   },
-  "f6ae34b4ba": {
-    "translation": "Palauta kaikki sauvat tehdasasetuksiin"
-  },
   "f714e36843": {
     "translation": "Haluatko varmasti poistua tästä ryhmästä?"
-  },
-  "f7d5ee6855": {
-    "translation": "Valitse ensin johtaja…"
-  },
-  "f87386b4ba": {
-    "translation": "Kutsu kaikki keijut"
   },
   "fa2ead697d": {
     "translation": "Tietosuojakäytäntö"
   },
   "fb15c53f22": {
     "translation": "Katsoja"
-  },
-  "fd11eafb92": {
-    "translation": "Hajottaa projekteja"
   },
   "fd1be3efcf": {
     "translation": "Haluatko varmasti poistaa tämän tiedoston?"

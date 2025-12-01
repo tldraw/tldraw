@@ -11,10 +11,10 @@
       "value": "Meghívás elfogadása"
     }
   ],
-  "038c9b4432": [
+  "01d61b2012": [
     {
       "type": 0,
-      "value": "Tündér személyisége"
+      "value": "Kezdje el a tündérkalandját"
     }
   ],
   "03b3e13197": [
@@ -57,22 +57,28 @@
       "value": "Fiók"
     }
   ],
-  "090b807281": [
-    {
-      "type": 0,
-      "value": "Szúrós"
-    }
-  ],
   "0a91f7fa87": [
     {
       "type": 0,
       "value": "Ez a fájl elérte a méretkorlátját, és előfordulhat, hogy a módosítások már nem menthetők. Távolítson el néhány tartalmat, vagy hozzon létre egy új fájlt."
     }
   ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "Beszélj a csoporttal…"
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
       "value": "Fájl"
+    }
+  ],
+  "0b79795d3e": [
+    {
+      "type": 0,
+      "value": "Bevezetés"
     }
   ],
   "0b9a4cde72": [
@@ -129,12 +135,6 @@
       "value": "Exportálás másként"
     }
   ],
-  "141c7239d3": [
-    {
-      "type": 0,
-      "value": "Tündér testreszabása"
-    }
-  ],
   "146ffe2fd9": [
     {
       "type": 0,
@@ -165,16 +165,10 @@
       "value": "Ma"
     }
   ],
-  "1e38506832": [
+  "23f879f41a": [
     {
       "type": 0,
-      "value": "Menj a tündérhez"
-    }
-  ],
-  "1fe250ea06": [
-    {
-      "type": 0,
-      "value": "Utasítsd a csoportot…"
+      "value": "Elérted a heti tündérhasználati korlátodat. A jövő hét elején újraindul."
     }
   ],
   "243924bfd5": [
@@ -195,6 +189,12 @@
       "value": "A tldraw-ról"
     }
   ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Összes idézése"
+    }
+  ],
   "284d5cd0dd": [
     {
       "type": 0,
@@ -211,12 +211,6 @@
     {
       "type": 0,
       "value": "Saját fájlok"
-    }
-  ],
-  "2e86e6853d": [
-    {
-      "type": 0,
-      "value": "Vezető kiválasztása"
     }
   ],
   "30cd34258a": [
@@ -275,12 +269,6 @@
       "value": "Kérjük, próbálja meg frissíteni az oldalt."
     }
   ],
-  "33f9ea6fe8": [
-    {
-      "type": 0,
-      "value": "Csoport feloszlatása"
-    }
-  ],
   "34140869c6": [
     {
       "type": 0,
@@ -293,6 +281,18 @@
       "value": "Szerkesztő"
     }
   ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Aludj mindet"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Kezelés"
+    }
+  ],
   "3596c1b1f7": [
     {
       "type": 0,
@@ -303,18 +303,6 @@
     {
       "type": 0,
       "value": "Követés"
-    }
-  ],
-  "3a295397e6": [
-    {
-      "type": 0,
-      "value": "Kérj segítséget"
-    }
-  ],
-  "3a77f951ca": [
-    {
-      "type": 0,
-      "value": "Új feladat hozzáadása…"
     }
   ],
   "3b6c2b4caa": [
@@ -345,12 +333,6 @@
     {
       "type": 0,
       "value": "Összes elfogadása"
-    }
-  ],
-  "4131ec34ef": [
-    {
-      "type": 0,
-      "value": "Kopasz"
     }
   ],
   "42e53c47c1": [
@@ -413,6 +395,12 @@
       "value": "Név"
     }
   ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Összes kijelölése"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -435,12 +423,6 @@
     {
       "type": 0,
       "value": "Biztosan törölni szeretné ezt a csoportot? Ez a művelet nem vonható vissza."
-    }
-  ],
-  "4f827717f7": [
-    {
-      "type": 0,
-      "value": "Hegyes"
     }
   ],
   "50db1b7e1e": [
@@ -589,6 +571,20 @@
       "value": "Később"
     }
   ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "Beszélj "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "-mel…"
+    }
+  ],
   "625fd29749": [
     {
       "type": 0,
@@ -601,22 +597,10 @@
       "value": "te"
     }
   ],
-  "63a78ed464": [
+  "6602bbeb29": [
     {
       "type": 0,
-      "value": "Testreszabás"
-    }
-  ],
-  "64ebe56d8c": [
-    {
-      "type": 0,
-      "value": "Kattintson az eltávolításhoz, vagy húzással helyezze át"
-    }
-  ],
-  "65709fd250": [
-    {
-      "type": 0,
-      "value": "Feladatlista"
+      "value": "Útmutató"
     }
   ],
   "6609dd239e": [
@@ -637,10 +621,28 @@
       "value": "Add meg az e-mail címed"
     }
   ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Ébred"
+    }
+  ],
   "68d390535e": [
     {
       "type": 0,
       "value": "Írd be az üzeneted"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Tündér neve"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Tündérek hibakeresése"
     }
   ],
   "6a26f54883": [
@@ -659,12 +661,6 @@
     {
       "type": 0,
       "value": "Kövesse az alábbi lépéseket a tartalom kézi importálásához:"
-    }
-  ],
-  "6e02bd9e1e": [
-    {
-      "type": 0,
-      "value": "Tedd el a tündéreket"
     }
   ],
   "70222abcfc": [
@@ -745,12 +741,6 @@
       "value": "Ez a névtelen tldraw többjátékos fájl mostantól csak olvasható. A szerkesztés folytatásához jelentkezzen be, és másolja át a fájljai közé."
     }
   ],
-  "7835039819": [
-    {
-      "type": 0,
-      "value": "Propeller"
-    }
-  ],
   "78e9815992": [
     {
       "type": 0,
@@ -769,22 +759,10 @@
       "value": "A tündér egy apró fickó, akivel együtt dolgozhatsz a vásznon. A tündérek egyedül vagy csapatban is dolgozhatnak. Nincsenek határok abban, hogy mire képes egy tündér. Senki sem tudja, honnan jött."
     }
   ],
-  "7a3113b0ba": [
-    {
-      "type": 0,
-      "value": "Húzd a vászonra"
-    }
-  ],
   "7b1329f5ca": [
     {
       "type": 0,
       "value": "Felhasználói kézikönyv"
-    }
-  ],
-  "7b5449bd84": [
-    {
-      "type": 0,
-      "value": "Antenna"
     }
   ],
   "7be10fc592": [
@@ -869,10 +847,10 @@
       "value": "."
     }
   ],
-  "81d48c2f3a": [
+  "81aa2078d1": [
     {
       "type": 0,
-      "value": "Feladatok megjelenítése a vásznon"
+      "value": "Összes törlése"
     }
   ],
   "8472a551f1": [
@@ -897,28 +875,22 @@
       "value": " .tldr fájl hozzáadva."
     }
   ],
-  "86a7df7572": [
-    {
-      "type": 0,
-      "value": "Tündérek idézése"
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
       "value": "Fájl átnevezése"
     }
   ],
+  "8726ef8909": [
+    {
+      "type": 0,
+      "value": "Hard reset"
+    }
+  ],
   "88e83b88c5": [
     {
       "type": 0,
       "value": "Tündércsomag vásárlása"
-    }
-  ],
-  "898e76f01a": [
-    {
-      "type": 0,
-      "value": "Minden visszaállítása"
     }
   ],
   "8ad4303b83": [
@@ -939,10 +911,22 @@
       "value": "Ellenőrizd az e-mailjeidet, hogy érkezett-e egy ellenőrző kód."
     }
   ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Otthon"
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Megosztva veled"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Körülbelül"
     }
   ],
   "8ff3d0a705": [
@@ -975,16 +959,10 @@
       "value": "Meghívólink másolva"
     }
   ],
-  "93346fdd70": [
+  "94186070ef": [
     {
       "type": 0,
-      "value": "Fülek"
-    }
-  ],
-  "93dfe9fbbe": [
-    {
-      "type": 0,
-      "value": "Tündér kiválasztásának törlése"
+      "value": "Kijelölés törlése"
     }
   ],
   "94966d9074": [
@@ -1011,12 +989,6 @@
       "value": "Ebben a hónapban"
     }
   ],
-  "97a9f16b2e": [
-    {
-      "type": 0,
-      "value": "Új tündér"
-    }
-  ],
   "985a4b720f": [
     {
       "type": 0,
@@ -1027,12 +999,6 @@
     {
       "type": 0,
       "value": "Fájllink hozzáadása"
-    }
-  ],
-  "98e528aac6": [
-    {
-      "type": 0,
-      "value": "Váltás tündércsevegésre"
     }
   ],
   "9914a0ce04": [
@@ -1121,10 +1087,10 @@
       "value": "Kép exportálása"
     }
   ],
-  "a2f0372a75": [
+  "a286d9991c": [
     {
       "type": 0,
-      "value": "Váltás a feladatlistára"
+      "value": "Csatlakozik"
     }
   ],
   "a3debabee7": [
@@ -1133,22 +1099,16 @@
       "value": "Cookie-szabályzat"
     }
   ],
-  "a3e932550c": [
-    {
-      "type": 0,
-      "value": "Tündér neve"
-    }
-  ],
   "a4d3b161ce": [
     {
       "type": 0,
       "value": "Beküld"
     }
   ],
-  "a4ffdcf0dc": [
+  "a603905470": [
     {
       "type": 0,
-      "value": "Felső"
+      "value": "Hibakeresés"
     }
   ],
   "a6cc403d56": [
@@ -1163,16 +1123,16 @@
       "value": "Analitika"
     }
   ],
-  "a885eb91ac": [
-    {
-      "type": 0,
-      "value": "Vezető tündér kiválasztás"
-    }
-  ],
   "a8873770ab": [
     {
       "type": 0,
       "value": "A fájl mérete növekszik"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Elérted a heti tündérkorlátot"
     }
   ],
   "a9ded1e5ce": [
@@ -1245,12 +1205,6 @@
     {
       "type": 0,
       "value": "Link másolása"
-    }
-  ],
-  "b8996797b9": [
-    {
-      "type": 0,
-      "value": "Feladatok elrejtése a vásznon"
     }
   ],
   "ba0318cb81": [
@@ -1339,16 +1293,16 @@
       "value": " használatát a tldraw fejlesztéséhez."
     }
   ],
-  "c2ad21c079": [
-    {
-      "type": 0,
-      "value": "Haj"
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
       "value": "Nem lehet közzétenni a fájlt."
+    }
+  ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Nyitott"
     }
   ],
   "c3eb5c3b90": [
@@ -1367,6 +1321,12 @@
     {
       "type": 0,
       "value": "Csoport neve"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Használat"
     }
   ],
   "c655b27b1e": [
@@ -1391,12 +1351,6 @@
     {
       "type": 0,
       "value": "Jelentkezzen ki"
-    }
-  ],
-  "c9b04e7b53": [
-    {
-      "type": 0,
-      "value": "Vezető kiválasztásának törlése"
     }
   ],
   "c9cc8cce24": [
@@ -1435,22 +1389,10 @@
       "value": "További információ a közzétételről."
     }
   ],
-  "cf62a7f9a7": [
-    {
-      "type": 0,
-      "value": "Csevegések visszaállítása"
-    }
-  ],
   "d3d2e61733": [
     {
       "type": 0,
       "value": "Közeli"
-    }
-  ],
-  "d438a51e6e": [
-    {
-      "type": 0,
-      "value": "Altasd el az összes tündért"
     }
   ],
   "d46632fe1f": [
@@ -1505,26 +1447,6 @@
       "value": "Téma"
     }
   ],
-  "d739f35e18": [
-    {
-      "type": 0,
-      "value": "Suttogj "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "-nek…"
-    }
-  ],
-  "d7bc9d5a2e": [
-    {
-      "type": 0,
-      "value": "Feladat törlése"
-    }
-  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1543,6 +1465,12 @@
       "value": "Menjen ide a tartalom megtekintéséhez"
     }
   ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Tündérek engedélyezése"
+    }
+  ],
   "d9e35d0f55": [
     {
       "type": 0,
@@ -1553,12 +1481,6 @@
     {
       "type": 0,
       "value": "Csak meghívással"
-    }
-  ],
-  "dbbece0c3a": [
-    {
-      "type": 0,
-      "value": "Összes csevegés törlése"
     }
   ],
   "dc30bc0c79": [
@@ -1605,6 +1527,12 @@
       "value": "Alkalmazás-hibakeresési jelzők"
     }
   ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Válasszon"
+    }
+  ],
   "e0c88179b3": [
     {
       "type": 0,
@@ -1623,6 +1551,12 @@
       "value": "Jogi összefoglaló"
     }
   ],
+  "e2b0147fd2": [
+    {
+      "type": 0,
+      "value": "A tündéreid várnak rád! →"
+    }
+  ],
   "e3afed0047": [
     {
       "type": 0,
@@ -1635,6 +1569,12 @@
       "value": "Szolgáltatási feltételek"
     }
   ],
+  "e43ec38a93": [
+    {
+      "type": 0,
+      "value": "Menj ide"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1645,12 +1585,6 @@
     {
       "type": 0,
       "value": "Veszélyes zóna"
-    }
-  ],
-  "ea181d98ca": [
-    {
-      "type": 0,
-      "value": "Válassz tündért"
     }
   ],
   "ea4788705e": [
@@ -1709,6 +1643,12 @@
       "value": "."
     }
   ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Feloszlatás"
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1719,12 +1659,6 @@
     {
       "type": 0,
       "value": "kiválasztott"
-    }
-  ],
-  "efb2d9d471": [
-    {
-      "type": 0,
-      "value": "Tennivalólista"
     }
   ],
   "efde983742": [
@@ -1745,12 +1679,6 @@
       "value": "Felhasználói beállítások"
     }
   ],
-  "f23056da60": [
-    {
-      "type": 0,
-      "value": "Új projekt"
-    }
-  ],
   "f2569594b2": [
     {
       "type": 0,
@@ -1769,28 +1697,10 @@
       "value": "Beállítások"
     }
   ],
-  "f6ae34b4ba": [
-    {
-      "type": 0,
-      "value": "Az összes pálca visszaállítása"
-    }
-  ],
   "f714e36843": [
     {
       "type": 0,
       "value": "Biztosan kilépsz ebből a csoportból?"
-    }
-  ],
-  "f7d5ee6855": [
-    {
-      "type": 0,
-      "value": "Először válassz egy vezetőt…"
-    }
-  ],
-  "f87386b4ba": [
-    {
-      "type": 0,
-      "value": "Idézd meg az összes tündért"
     }
   ],
   "fa2ead697d": [
@@ -1803,12 +1713,6 @@
     {
       "type": 0,
       "value": "Néző"
-    }
-  ],
-  "fd11eafb92": [
-    {
-      "type": 0,
-      "value": "Projektek feloszlatása"
     }
   ],
   "fd1be3efcf": [

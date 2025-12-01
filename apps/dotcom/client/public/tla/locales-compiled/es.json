@@ -11,10 +11,10 @@
       "value": "Aceptar invitación"
     }
   ],
-  "038c9b4432": [
+  "01d61b2012": [
     {
       "type": 0,
-      "value": "La personalidad de Fairy"
+      "value": "Comienza tu aventura de hadas"
     }
   ],
   "03b3e13197": [
@@ -57,22 +57,28 @@
       "value": "Cuenta"
     }
   ],
-  "090b807281": [
-    {
-      "type": 0,
-      "value": "Puntiagudo"
-    }
-  ],
   "0a91f7fa87": [
     {
       "type": 0,
       "value": "Este archivo ha alcanzado su límite de tamaño y es posible que los cambios ya no se guarden. Elimine algún contenido o cree un nuevo archivo."
     }
   ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "Habla con el grupo…"
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
       "value": "Archivo"
+    }
+  ],
+  "0b79795d3e": [
+    {
+      "type": 0,
+      "value": "Introducción"
     }
   ],
   "0b9a4cde72": [
@@ -129,12 +135,6 @@
       "value": "Exportar como"
     }
   ],
-  "141c7239d3": [
-    {
-      "type": 0,
-      "value": "personalización de hadas"
-    }
-  ],
   "146ffe2fd9": [
     {
       "type": 0,
@@ -165,16 +165,10 @@
       "value": "Hoy"
     }
   ],
-  "1e38506832": [
+  "23f879f41a": [
     {
       "type": 0,
-      "value": "Ve a Fairy"
-    }
-  ],
-  "1fe250ea06": [
-    {
-      "type": 0,
-      "value": "Instruir al grupo…"
+      "value": "Se alcanzó tu límite semanal de uso de hadas. Se reiniciará a principios de la próxima semana."
     }
   ],
   "243924bfd5": [
@@ -195,6 +189,12 @@
       "value": "Acerca de tldraw"
     }
   ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Convocar a todos"
+    }
+  ],
   "284d5cd0dd": [
     {
       "type": 0,
@@ -211,12 +211,6 @@
     {
       "type": 0,
       "value": "Mis archivos"
-    }
-  ],
-  "2e86e6853d": [
-    {
-      "type": 0,
-      "value": "Seleccionar líder"
     }
   ],
   "30cd34258a": [
@@ -275,12 +269,6 @@
       "value": "Pruebe a actualizar la página."
     }
   ],
-  "33f9ea6fe8": [
-    {
-      "type": 0,
-      "value": "Disolver el grupo"
-    }
-  ],
   "34140869c6": [
     {
       "type": 0,
@@ -293,6 +281,18 @@
       "value": "Editor"
     }
   ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Duerme todo"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Administrar"
+    }
+  ],
   "3596c1b1f7": [
     {
       "type": 0,
@@ -303,18 +303,6 @@
     {
       "type": 0,
       "value": "Seguir"
-    }
-  ],
-  "3a295397e6": [
-    {
-      "type": 0,
-      "value": "Pide ayuda"
-    }
-  ],
-  "3a77f951ca": [
-    {
-      "type": 0,
-      "value": "Agregar una nueva tarea…"
     }
   ],
   "3b6c2b4caa": [
@@ -345,12 +333,6 @@
     {
       "type": 0,
       "value": "Aceptar todo"
-    }
-  ],
-  "4131ec34ef": [
-    {
-      "type": 0,
-      "value": "Calvo"
     }
   ],
   "42e53c47c1": [
@@ -413,6 +395,12 @@
       "value": "Nombre"
     }
   ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Seleccionar todo"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -435,12 +423,6 @@
     {
       "type": 0,
       "value": "¿Seguro que quieres eliminar este grupo? Esta acción no se puede deshacer."
-    }
-  ],
-  "4f827717f7": [
-    {
-      "type": 0,
-      "value": "Puntiagudo"
     }
   ],
   "50db1b7e1e": [
@@ -589,6 +571,20 @@
       "value": "Más tarde"
     }
   ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "Habla con "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
   "625fd29749": [
     {
       "type": 0,
@@ -601,22 +597,10 @@
       "value": "tú"
     }
   ],
-  "63a78ed464": [
+  "6602bbeb29": [
     {
       "type": 0,
-      "value": "Personalizar"
-    }
-  ],
-  "64ebe56d8c": [
-    {
-      "type": 0,
-      "value": "Haz clic para eliminar o arrastra para mover"
-    }
-  ],
-  "65709fd250": [
-    {
-      "type": 0,
-      "value": "Lista de tareas"
+      "value": "Guía"
     }
   ],
   "6609dd239e": [
@@ -637,10 +621,28 @@
       "value": "Introduce tu dirección de correo electrónico"
     }
   ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Despertar"
+    }
+  ],
   "68d390535e": [
     {
       "type": 0,
       "value": "Ingrese su mensaje"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Nombre del hada"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Hadas de depuración"
     }
   ],
   "6a26f54883": [
@@ -659,12 +661,6 @@
     {
       "type": 0,
       "value": "Siga estos pasos para importar el contenido de forma manual:"
-    }
-  ],
-  "6e02bd9e1e": [
-    {
-      "type": 0,
-      "value": "Guarda a las hadas"
     }
   ],
   "70222abcfc": [
@@ -745,12 +741,6 @@
       "value": "Este archivo tldraw multijugador anónimo ahora es de solo lectura. Para continuar editándolo, inicia sesión y cópialo a tus archivos."
     }
   ],
-  "7835039819": [
-    {
-      "type": 0,
-      "value": "Hélice"
-    }
-  ],
   "78e9815992": [
     {
       "type": 0,
@@ -769,22 +759,10 @@
       "value": "Un hada es un ser pequeño que puede trabajar contigo en el lienzo. Las hadas pueden trabajar solas o en equipo. No hay límites a lo que un hada puede hacer. Nadie sabe de dónde vienen."
     }
   ],
-  "7a3113b0ba": [
-    {
-      "type": 0,
-      "value": "Arrastrar al lienzo"
-    }
-  ],
   "7b1329f5ca": [
     {
       "type": 0,
       "value": "Manual de usuario"
-    }
-  ],
-  "7b5449bd84": [
-    {
-      "type": 0,
-      "value": "Antena"
     }
   ],
   "7be10fc592": [
@@ -869,10 +847,10 @@
       "value": "."
     }
   ],
-  "81d48c2f3a": [
+  "81aa2078d1": [
     {
       "type": 0,
-      "value": "Mostrar tareas en el lienzo"
+      "value": "Borrar todo"
     }
   ],
   "8472a551f1": [
@@ -901,28 +879,22 @@
       "value": " archivos .tldr."
     }
   ],
-  "86a7df7572": [
-    {
-      "type": 0,
-      "value": "Invocar hadas"
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
       "value": "Cambiar el nombre del archivo"
     }
   ],
+  "8726ef8909": [
+    {
+      "type": 0,
+      "value": "Reinicio completo"
+    }
+  ],
   "88e83b88c5": [
     {
       "type": 0,
       "value": "Comprar paquete de hadas"
-    }
-  ],
-  "898e76f01a": [
-    {
-      "type": 0,
-      "value": "Reiniciar todo"
     }
   ],
   "8ad4303b83": [
@@ -943,10 +915,22 @@
       "value": "Comprueba tu correo electrónico para encontrar un código de verificación."
     }
   ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Hogar"
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Compartido con usted"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Acerca de"
     }
   ],
   "8ff3d0a705": [
@@ -979,16 +963,10 @@
       "value": "Enlace de invitación copiado"
     }
   ],
-  "93346fdd70": [
+  "94186070ef": [
     {
       "type": 0,
-      "value": "Orejas"
-    }
-  ],
-  "93dfe9fbbe": [
-    {
-      "type": 0,
-      "value": "Hada deseleccionada"
+      "value": "Deseleccionar"
     }
   ],
   "94966d9074": [
@@ -1015,12 +993,6 @@
       "value": "Este mes"
     }
   ],
-  "97a9f16b2e": [
-    {
-      "type": 0,
-      "value": "Nueva hada"
-    }
-  ],
   "985a4b720f": [
     {
       "type": 0,
@@ -1031,12 +1003,6 @@
     {
       "type": 0,
       "value": "Agregar enlace de archivo"
-    }
-  ],
-  "98e528aac6": [
-    {
-      "type": 0,
-      "value": "Cambia al chat de hadas"
     }
   ],
   "9914a0ce04": [
@@ -1125,10 +1091,10 @@
       "value": "Exportar imagen"
     }
   ],
-  "a2f0372a75": [
+  "a286d9991c": [
     {
       "type": 0,
-      "value": "Cambiar a la lista de tareas"
+      "value": "Unirse"
     }
   ],
   "a3debabee7": [
@@ -1137,22 +1103,16 @@
       "value": "Política de cookies"
     }
   ],
-  "a3e932550c": [
-    {
-      "type": 0,
-      "value": "El nombre del hada"
-    }
-  ],
   "a4d3b161ce": [
     {
       "type": 0,
       "value": "Entregar"
     }
   ],
-  "a4ffdcf0dc": [
+  "a603905470": [
     {
       "type": 0,
-      "value": "Arriba"
+      "value": "Depurar"
     }
   ],
   "a6cc403d56": [
@@ -1167,16 +1127,16 @@
       "value": "Analítica"
     }
   ],
-  "a885eb91ac": [
-    {
-      "type": 0,
-      "value": "Selección de hadas líderes"
-    }
-  ],
   "a8873770ab": [
     {
       "type": 0,
       "value": "El archivo está creciendo mucho"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Se alcanzó el límite semanal de hadas"
     }
   ],
   "a9ded1e5ce": [
@@ -1249,12 +1209,6 @@
     {
       "type": 0,
       "value": "Copiar enlace"
-    }
-  ],
-  "b8996797b9": [
-    {
-      "type": 0,
-      "value": "Ocultar tareas en el lienzo"
     }
   ],
   "ba0318cb81": [
@@ -1347,16 +1301,16 @@
       "value": " para ayudarnos a mejorar tldraw."
     }
   ],
-  "c2ad21c079": [
-    {
-      "type": 0,
-      "value": "Cabello"
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
       "value": "No se ha podido publicar el archivo."
+    }
+  ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Abierto"
     }
   ],
   "c3eb5c3b90": [
@@ -1375,6 +1329,12 @@
     {
       "type": 0,
       "value": "Nombre del grupo"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Uso"
     }
   ],
   "c655b27b1e": [
@@ -1399,12 +1359,6 @@
     {
       "type": 0,
       "value": "Cerrar sesión"
-    }
-  ],
-  "c9b04e7b53": [
-    {
-      "type": 0,
-      "value": "Deseleccionar líder"
     }
   ],
   "c9cc8cce24": [
@@ -1443,22 +1397,10 @@
       "value": "Más información sobre publicaciones."
     }
   ],
-  "cf62a7f9a7": [
-    {
-      "type": 0,
-      "value": "Restablecer chats"
-    }
-  ],
   "d3d2e61733": [
     {
       "type": 0,
       "value": "Cerrar"
-    }
-  ],
-  "d438a51e6e": [
-    {
-      "type": 0,
-      "value": "Pon a dormir a todas las hadas"
     }
   ],
   "d46632fe1f": [
@@ -1513,26 +1455,6 @@
       "value": "Tema"
     }
   ],
-  "d739f35e18": [
-    {
-      "type": 0,
-      "value": "Susurra a "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
-  "d7bc9d5a2e": [
-    {
-      "type": 0,
-      "value": "Eliminar tarea"
-    }
-  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1551,6 +1473,12 @@
       "value": "Vaya aquí para ver el contenido"
     }
   ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Habilitar hadas"
+    }
+  ],
   "d9e35d0f55": [
     {
       "type": 0,
@@ -1561,12 +1489,6 @@
     {
       "type": 0,
       "value": "Solo invitar"
-    }
-  ],
-  "dbbece0c3a": [
-    {
-      "type": 0,
-      "value": "Borrar todos los chats"
     }
   ],
   "dc30bc0c79": [
@@ -1613,6 +1535,12 @@
       "value": "Indicadores de depuración de la aplicación"
     }
   ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Seleccionar"
+    }
+  ],
   "e0c88179b3": [
     {
       "type": 0,
@@ -1631,6 +1559,12 @@
       "value": "Resumen legal"
     }
   ],
+  "e2b0147fd2": [
+    {
+      "type": 0,
+      "value": "¡Tus hadas te están esperando! →"
+    }
+  ],
   "e3afed0047": [
     {
       "type": 0,
@@ -1643,6 +1577,12 @@
       "value": "Condiciones de servicio"
     }
   ],
+  "e43ec38a93": [
+    {
+      "type": 0,
+      "value": "Ir a"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1653,12 +1593,6 @@
     {
       "type": 0,
       "value": "Zona de peligro"
-    }
-  ],
-  "ea181d98ca": [
-    {
-      "type": 0,
-      "value": "Hada de selección"
     }
   ],
   "ea4788705e": [
@@ -1717,6 +1651,12 @@
       "value": " para obtener más información."
     }
   ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Disolver"
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1727,12 +1667,6 @@
     {
       "type": 0,
       "value": "seleccionado"
-    }
-  ],
-  "efb2d9d471": [
-    {
-      "type": 0,
-      "value": "Lista de tareas"
     }
   ],
   "efde983742": [
@@ -1753,12 +1687,6 @@
       "value": "Configuración de usuario"
     }
   ],
-  "f23056da60": [
-    {
-      "type": 0,
-      "value": "Nuevo proyecto"
-    }
-  ],
   "f2569594b2": [
     {
       "type": 0,
@@ -1777,28 +1705,10 @@
       "value": "Ajustes"
     }
   ],
-  "f6ae34b4ba": [
-    {
-      "type": 0,
-      "value": "Reiniciar todas las varitas"
-    }
-  ],
   "f714e36843": [
     {
       "type": 0,
       "value": "¿Estás seguro de que quieres abandonar este grupo?"
-    }
-  ],
-  "f7d5ee6855": [
-    {
-      "type": 0,
-      "value": "Primero, elige un líder…"
-    }
-  ],
-  "f87386b4ba": [
-    {
-      "type": 0,
-      "value": "Invoquen a todas las hadas"
     }
   ],
   "fa2ead697d": [
@@ -1811,12 +1721,6 @@
     {
       "type": 0,
       "value": "Espectador"
-    }
-  ],
-  "fd11eafb92": [
-    {
-      "type": 0,
-      "value": "Desmantelar proyectos"
     }
   ],
   "fd1be3efcf": [

@@ -11,10 +11,10 @@
       "value": "Aceptar a invitación"
     }
   ],
-  "038c9b4432": [
+  "01d61b2012": [
     {
       "type": 0,
-      "value": "Personalidade da fada"
+      "value": "Comeza a túa aventura de fadas"
     }
   ],
   "03b3e13197": [
@@ -57,22 +57,28 @@
       "value": "Conta"
     }
   ],
-  "090b807281": [
-    {
-      "type": 0,
-      "value": "Espiñento"
-    }
-  ],
   "0a91f7fa87": [
     {
       "type": 0,
       "value": "Este ficheiro alcanzou o seu límite de tamaño e é posible que os cambios xa non se garden. Elimina parte do contido ou comeza un ficheiro novo."
     }
   ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "Fala co grupo…"
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
       "value": "Arquivo"
+    }
+  ],
+  "0b79795d3e": [
+    {
+      "type": 0,
+      "value": "Introdución"
     }
   ],
   "0b9a4cde72": [
@@ -129,12 +135,6 @@
       "value": "Exportar como"
     }
   ],
-  "141c7239d3": [
-    {
-      "type": 0,
-      "value": "Personalización de fadas"
-    }
-  ],
   "146ffe2fd9": [
     {
       "type": 0,
@@ -165,16 +165,10 @@
       "value": "Hoxe"
     }
   ],
-  "1e38506832": [
+  "23f879f41a": [
     {
       "type": 0,
-      "value": "Ir á fada"
-    }
-  ],
-  "1fe250ea06": [
-    {
-      "type": 0,
-      "value": "Instruír ao grupo…"
+      "value": "Alcanzouse o teu límite de uso semanal de fadas. Reiniciarase a principios da próxima semana."
     }
   ],
   "243924bfd5": [
@@ -195,6 +189,12 @@
       "value": "Acerca de tldraw"
     }
   ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Convocar a todos"
+    }
+  ],
   "284d5cd0dd": [
     {
       "type": 0,
@@ -211,12 +211,6 @@
     {
       "type": 0,
       "value": "Os meus ficheiros"
-    }
-  ],
-  "2e86e6853d": [
-    {
-      "type": 0,
-      "value": "Seleccionar líder"
     }
   ],
   "30cd34258a": [
@@ -275,12 +269,6 @@
       "value": "Proba a actualizar a páxina."
     }
   ],
-  "33f9ea6fe8": [
-    {
-      "type": 0,
-      "value": "Disolver grupo"
-    }
-  ],
   "34140869c6": [
     {
       "type": 0,
@@ -293,6 +281,18 @@
       "value": "Editor"
     }
   ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Durmir todos"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Xestionar"
+    }
+  ],
   "3596c1b1f7": [
     {
       "type": 0,
@@ -303,18 +303,6 @@
     {
       "type": 0,
       "value": "Seguir"
-    }
-  ],
-  "3a295397e6": [
-    {
-      "type": 0,
-      "value": "Pedir axuda"
-    }
-  ],
-  "3a77f951ca": [
-    {
-      "type": 0,
-      "value": "Engadir unha nova tarefa…"
     }
   ],
   "3b6c2b4caa": [
@@ -345,12 +333,6 @@
     {
       "type": 0,
       "value": "Aceptar todo"
-    }
-  ],
-  "4131ec34ef": [
-    {
-      "type": 0,
-      "value": "Calvo"
     }
   ],
   "42e53c47c1": [
@@ -413,6 +395,12 @@
       "value": "Nome"
     }
   ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Seleccionar todo"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -435,12 +423,6 @@
     {
       "type": 0,
       "value": "Seguro que queres eliminar este grupo? Esta acción non se pode desfacer."
-    }
-  ],
-  "4f827717f7": [
-    {
-      "type": 0,
-      "value": "Puntiaguda"
     }
   ],
   "50db1b7e1e": [
@@ -589,6 +571,20 @@
       "value": "Máis tarde"
     }
   ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "Fala con "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
   "625fd29749": [
     {
       "type": 0,
@@ -601,22 +597,10 @@
       "value": "ti"
     }
   ],
-  "63a78ed464": [
+  "6602bbeb29": [
     {
       "type": 0,
-      "value": "Personalizar"
-    }
-  ],
-  "64ebe56d8c": [
-    {
-      "type": 0,
-      "value": "Fai clic para eliminar ou arrastra para mover"
-    }
-  ],
-  "65709fd250": [
-    {
-      "type": 0,
-      "value": "Lista de tarefas"
+      "value": "Guía"
     }
   ],
   "6609dd239e": [
@@ -637,10 +621,28 @@
       "value": "Introduce o teu enderezo de correo electrónico"
     }
   ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Despertar"
+    }
+  ],
   "68d390535e": [
     {
       "type": 0,
       "value": "Introduce a túa mensaxe"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Nome da fada"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Depurar fadas"
     }
   ],
   "6a26f54883": [
@@ -659,12 +661,6 @@
     {
       "type": 0,
       "value": "Siga estes pasos para importar o contido manualmente:"
-    }
-  ],
-  "6e02bd9e1e": [
-    {
-      "type": 0,
-      "value": "Garda as fadas fóra"
     }
   ],
   "70222abcfc": [
@@ -745,12 +741,6 @@
       "value": "Este ficheiro multixogador tldraw anónimo agora é de só lectura. Para continuar editándoo, inicia sesión e cópiao nos teus ficheiros."
     }
   ],
-  "7835039819": [
-    {
-      "type": 0,
-      "value": "Hélice"
-    }
-  ],
   "78e9815992": [
     {
       "type": 0,
@@ -769,22 +759,10 @@
       "value": "Unha fada é un rapaz pequeno que pode traballar contigo na lona. As fadas poden traballar soas ou en equipo. Non hai límite para o que unha fada pode facer. Ninguén sabe de onde vén."
     }
   ],
-  "7a3113b0ba": [
-    {
-      "type": 0,
-      "value": "Arrastrar ao lenzo"
-    }
-  ],
   "7b1329f5ca": [
     {
       "type": 0,
       "value": "Manual do usuario"
-    }
-  ],
-  "7b5449bd84": [
-    {
-      "type": 0,
-      "value": "Antena"
     }
   ],
   "7be10fc592": [
@@ -869,10 +847,10 @@
       "value": "."
     }
   ],
-  "81d48c2f3a": [
+  "81aa2078d1": [
     {
       "type": 0,
-      "value": "Mostrar tarefas no lenzo"
+      "value": "Borrar todo"
     }
   ],
   "8472a551f1": [
@@ -901,28 +879,22 @@
       "value": " ficheiros .tldr."
     }
   ],
-  "86a7df7572": [
-    {
-      "type": 0,
-      "value": "Invoca fadas"
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
       "value": "Cambiar o nome do ficheiro"
     }
   ],
+  "8726ef8909": [
+    {
+      "type": 0,
+      "value": "Reinicio completo"
+    }
+  ],
   "88e83b88c5": [
     {
       "type": 0,
       "value": "Compra o paquete de fadas"
-    }
-  ],
-  "898e76f01a": [
-    {
-      "type": 0,
-      "value": "Restablecer todo"
     }
   ],
   "8ad4303b83": [
@@ -943,10 +915,22 @@
       "value": "Consulta o teu correo electrónico para obter un código de verificación."
     }
   ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Inicio"
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Compartido contigo"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Acerca de"
     }
   ],
   "8ff3d0a705": [
@@ -979,16 +963,10 @@
       "value": "Ligazón de invitación copiada"
     }
   ],
-  "93346fdd70": [
+  "94186070ef": [
     {
       "type": 0,
-      "value": "Orellas"
-    }
-  ],
-  "93dfe9fbbe": [
-    {
-      "type": 0,
-      "value": "Deseleccionar fada"
+      "value": "Deseleccionar"
     }
   ],
   "94966d9074": [
@@ -1015,12 +993,6 @@
       "value": "Este mes"
     }
   ],
-  "97a9f16b2e": [
-    {
-      "type": 0,
-      "value": "Nova fada"
-    }
-  ],
   "985a4b720f": [
     {
       "type": 0,
@@ -1031,12 +1003,6 @@
     {
       "type": 0,
       "value": "Engadir ligazón ao ficheiro"
-    }
-  ],
-  "98e528aac6": [
-    {
-      "type": 0,
-      "value": "Cambiar ao chat de fadas"
     }
   ],
   "9914a0ce04": [
@@ -1125,10 +1091,10 @@
       "value": "Exportar imaxe"
     }
   ],
-  "a2f0372a75": [
+  "a286d9991c": [
     {
       "type": 0,
-      "value": "Cambiar á lista de tarefas"
+      "value": "Unirse"
     }
   ],
   "a3debabee7": [
@@ -1137,22 +1103,16 @@
       "value": "Política de cookies"
     }
   ],
-  "a3e932550c": [
-    {
-      "type": 0,
-      "value": "Nome da fada"
-    }
-  ],
   "a4d3b161ce": [
     {
       "type": 0,
       "value": "Enviar"
     }
   ],
-  "a4ffdcf0dc": [
+  "a603905470": [
     {
       "type": 0,
-      "value": "Arriba"
+      "value": "Depurar"
     }
   ],
   "a6cc403d56": [
@@ -1167,16 +1127,16 @@
       "value": "Analítica"
     }
   ],
-  "a885eb91ac": [
-    {
-      "type": 0,
-      "value": "Selección de fadas líderes"
-    }
-  ],
   "a8873770ab": [
     {
       "type": 0,
       "value": "O ficheiro está a facerse grande"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Alcanzouse o límite semanal de fadas"
     }
   ],
   "a9ded1e5ce": [
@@ -1249,12 +1209,6 @@
     {
       "type": 0,
       "value": "Copiar ligazón"
-    }
-  ],
-  "b8996797b9": [
-    {
-      "type": 0,
-      "value": "Agochar tarefas no lenzo"
     }
   ],
   "ba0318cb81": [
@@ -1347,16 +1301,16 @@
       "value": " nos axuden a mellorar tldraw."
     }
   ],
-  "c2ad21c079": [
-    {
-      "type": 0,
-      "value": "Cabelo"
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
       "value": "Non se puido publicar o ficheiro."
+    }
+  ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Abrir"
     }
   ],
   "c3eb5c3b90": [
@@ -1375,6 +1329,12 @@
     {
       "type": 0,
       "value": "Nome do grupo"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Uso"
     }
   ],
   "c655b27b1e": [
@@ -1399,12 +1359,6 @@
     {
       "type": 0,
       "value": "Pechar sesión"
-    }
-  ],
-  "c9b04e7b53": [
-    {
-      "type": 0,
-      "value": "Deseleccionar o líder"
     }
   ],
   "c9cc8cce24": [
@@ -1443,22 +1397,10 @@
       "value": "Máis información sobre a publicación."
     }
   ],
-  "cf62a7f9a7": [
-    {
-      "type": 0,
-      "value": "Restablecer chats"
-    }
-  ],
   "d3d2e61733": [
     {
       "type": 0,
       "value": "Pechar"
-    }
-  ],
-  "d438a51e6e": [
-    {
-      "type": 0,
-      "value": "Dorme todas as fadas"
     }
   ],
   "d46632fe1f": [
@@ -1513,26 +1455,6 @@
       "value": "Tema"
     }
   ],
-  "d739f35e18": [
-    {
-      "type": 0,
-      "value": "Murmurarlle a "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
-  "d7bc9d5a2e": [
-    {
-      "type": 0,
-      "value": "Eliminar tarefa"
-    }
-  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1551,6 +1473,12 @@
       "value": "Entra aquí para ver o contido"
     }
   ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Activar fadas"
+    }
+  ],
   "d9e35d0f55": [
     {
       "type": 0,
@@ -1561,12 +1489,6 @@
     {
       "type": 0,
       "value": "Só invitar"
-    }
-  ],
-  "dbbece0c3a": [
-    {
-      "type": 0,
-      "value": "Borrar todos os chats"
     }
   ],
   "dc30bc0c79": [
@@ -1613,6 +1535,12 @@
       "value": "Marcadores de depuración de aplicacións"
     }
   ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Seleccionar"
+    }
+  ],
   "e0c88179b3": [
     {
       "type": 0,
@@ -1631,6 +1559,12 @@
       "value": "Resumo legal"
     }
   ],
+  "e2b0147fd2": [
+    {
+      "type": 0,
+      "value": "As túas fadas están agardando por ti! →"
+    }
+  ],
   "e3afed0047": [
     {
       "type": 0,
@@ -1643,6 +1577,12 @@
       "value": "Condicións do servizo"
     }
   ],
+  "e43ec38a93": [
+    {
+      "type": 0,
+      "value": "Ir a"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1653,12 +1593,6 @@
     {
       "type": 0,
       "value": "Zona de perigo"
-    }
-  ],
-  "ea181d98ca": [
-    {
-      "type": 0,
-      "value": "Seleccionar fada"
     }
   ],
   "ea4788705e": [
@@ -1717,6 +1651,12 @@
       "value": " para obter máis información."
     }
   ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Disolver"
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1727,12 +1667,6 @@
     {
       "type": 0,
       "value": "seleccionado"
-    }
-  ],
-  "efb2d9d471": [
-    {
-      "type": 0,
-      "value": "Lista de tarefas pendentes"
     }
   ],
   "efde983742": [
@@ -1753,12 +1687,6 @@
       "value": "Configuración do usuario"
     }
   ],
-  "f23056da60": [
-    {
-      "type": 0,
-      "value": "Novo proxecto"
-    }
-  ],
   "f2569594b2": [
     {
       "type": 0,
@@ -1777,28 +1705,10 @@
       "value": "Configuración"
     }
   ],
-  "f6ae34b4ba": [
-    {
-      "type": 0,
-      "value": "Restablecer todas as variñas"
-    }
-  ],
   "f714e36843": [
     {
       "type": 0,
       "value": "Seguro que queres saír deste grupo?"
-    }
-  ],
-  "f7d5ee6855": [
-    {
-      "type": 0,
-      "value": "Escolle primeiro un líder…"
-    }
-  ],
-  "f87386b4ba": [
-    {
-      "type": 0,
-      "value": "Invoca todas as fadas"
     }
   ],
   "fa2ead697d": [
@@ -1811,12 +1721,6 @@
     {
       "type": 0,
       "value": "Visor"
-    }
-  ],
-  "fd11eafb92": [
-    {
-      "type": 0,
-      "value": "Disolver proxectos"
     }
   ],
   "fd1be3efcf": [

@@ -11,10 +11,10 @@
       "value": "Acceptă invitația"
     }
   ],
-  "038c9b4432": [
+  "01d61b2012": [
     {
       "type": 0,
-      "value": "Personalitatea zânei"
+      "value": "Începe-ți aventura cu zâne"
     }
   ],
   "03b3e13197": [
@@ -57,22 +57,28 @@
       "value": "Cont"
     }
   ],
-  "090b807281": [
-    {
-      "type": 0,
-      "value": "Ţepos"
-    }
-  ],
   "0a91f7fa87": [
     {
       "type": 0,
       "value": "Acest fișier a atins limita de dimensiune și este posibil ca modificările să nu mai fie salvate. Eliminați o parte din conținut sau începeți un fișier nou."
     }
   ],
+  "0ab1ef22a3": [
+    {
+      "type": 0,
+      "value": "Vorbește cu grupul…"
+    }
+  ],
   "0b27918290": [
     {
       "type": 0,
       "value": "Fişier"
+    }
+  ],
+  "0b79795d3e": [
+    {
+      "type": 0,
+      "value": "Introducere"
     }
   ],
   "0b9a4cde72": [
@@ -129,12 +135,6 @@
       "value": "Exportați ca"
     }
   ],
-  "141c7239d3": [
-    {
-      "type": 0,
-      "value": "Personalizarea zânelor"
-    }
-  ],
   "146ffe2fd9": [
     {
       "type": 0,
@@ -165,16 +165,10 @@
       "value": "Astăzi"
     }
   ],
-  "1e38506832": [
+  "23f879f41a": [
     {
       "type": 0,
-      "value": "Du-te la zână"
-    }
-  ],
-  "1fe250ea06": [
-    {
-      "type": 0,
-      "value": "Instruiți grupul…"
+      "value": "Limita săptămânală de utilizare a zânelor a fost atinsă. Aceasta se va reseta la începutul săptămânii viitoare."
     }
   ],
   "243924bfd5": [
@@ -195,6 +189,12 @@
       "value": "Despre tldraw"
     }
   ],
+  "275173253d": [
+    {
+      "type": 0,
+      "value": "Invocă-i pe toți"
+    }
+  ],
   "284d5cd0dd": [
     {
       "type": 0,
@@ -211,12 +211,6 @@
     {
       "type": 0,
       "value": "Fișierele mele"
-    }
-  ],
-  "2e86e6853d": [
-    {
-      "type": 0,
-      "value": "Selectați liderul"
     }
   ],
   "30cd34258a": [
@@ -275,12 +269,6 @@
       "value": "Vă rugăm să încercați să reîmprospătați pagina."
     }
   ],
-  "33f9ea6fe8": [
-    {
-      "type": 0,
-      "value": "Dizolvați grupul"
-    }
-  ],
   "34140869c6": [
     {
       "type": 0,
@@ -293,6 +281,18 @@
       "value": "Editor"
     }
   ],
+  "34abfe7a0d": [
+    {
+      "type": 0,
+      "value": "Dormiți toți"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Gestionează"
+    }
+  ],
   "3596c1b1f7": [
     {
       "type": 0,
@@ -303,18 +303,6 @@
     {
       "type": 0,
       "value": "Urmărește"
-    }
-  ],
-  "3a295397e6": [
-    {
-      "type": 0,
-      "value": "Cere ajutor"
-    }
-  ],
-  "3a77f951ca": [
-    {
-      "type": 0,
-      "value": "Adăugați o sarcină nouă…"
     }
   ],
   "3b6c2b4caa": [
@@ -345,12 +333,6 @@
     {
       "type": 0,
       "value": "Acceptă tot"
-    }
-  ],
-  "4131ec34ef": [
-    {
-      "type": 0,
-      "value": "Chel"
     }
   ],
   "42e53c47c1": [
@@ -413,6 +395,12 @@
       "value": "Nume"
     }
   ],
+  "4c41e0bd95": [
+    {
+      "type": 0,
+      "value": "Selectați tot"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -435,12 +423,6 @@
     {
       "type": 0,
       "value": "Sigur doriți să ștergeți acest grup? Această acțiune nu poate fi anulată."
-    }
-  ],
-  "4f827717f7": [
-    {
-      "type": 0,
-      "value": "Ascuțit"
     }
   ],
   "50db1b7e1e": [
@@ -589,6 +571,20 @@
       "value": "Mai târziu"
     }
   ],
+  "61daf2e53d": [
+    {
+      "type": 0,
+      "value": "Vorbește cu "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "…"
+    }
+  ],
   "625fd29749": [
     {
       "type": 0,
@@ -601,22 +597,10 @@
       "value": "tu"
     }
   ],
-  "63a78ed464": [
+  "6602bbeb29": [
     {
       "type": 0,
-      "value": "Personalizare"
-    }
-  ],
-  "64ebe56d8c": [
-    {
-      "type": 0,
-      "value": "Faceți clic pentru a elimina sau trageți pentru a muta"
-    }
-  ],
-  "65709fd250": [
-    {
-      "type": 0,
-      "value": "Listă de sarcini"
+      "value": "Ghid"
     }
   ],
   "6609dd239e": [
@@ -637,10 +621,28 @@
       "value": "Introdu adresa ta de e-mail"
     }
   ],
+  "688761c83e": [
+    {
+      "type": 0,
+      "value": "Trezi"
+    }
+  ],
   "68d390535e": [
     {
       "type": 0,
       "value": "Introdu mesajul tău"
+    }
+  ],
+  "6910bbdc82": [
+    {
+      "type": 0,
+      "value": "Numele zânei"
+    }
+  ],
+  "695c3e899d": [
+    {
+      "type": 0,
+      "value": "Zâne de depanare"
     }
   ],
   "6a26f54883": [
@@ -659,12 +661,6 @@
     {
       "type": 0,
       "value": "Urmați acești pași pentru a importa manual conținutul:"
-    }
-  ],
-  "6e02bd9e1e": [
-    {
-      "type": 0,
-      "value": "Pune deoparte zânele"
     }
   ],
   "70222abcfc": [
@@ -745,12 +741,6 @@
       "value": "Acest fișier multiplayer anonim tldraw este acum doar pentru citire. Pentru a continua editarea, vă rugăm să vă conectați și să îl copiați în fișierele dvs."
     }
   ],
-  "7835039819": [
-    {
-      "type": 0,
-      "value": "Elice"
-    }
-  ],
   "78e9815992": [
     {
       "type": 0,
@@ -769,22 +759,10 @@
       "value": "O zână este un micuț care poate lucra cu tine pe pânză. Zânele pot lucra singure sau în echipă. Nu există limite la ceea ce poate face o zână. Nimeni nu știe de unde a venit."
     }
   ],
-  "7a3113b0ba": [
-    {
-      "type": 0,
-      "value": "Trageți pe pânză"
-    }
-  ],
   "7b1329f5ca": [
     {
       "type": 0,
       "value": "Manual de utilizare"
-    }
-  ],
-  "7b5449bd84": [
-    {
-      "type": 0,
-      "value": "Antenă"
     }
   ],
   "7be10fc592": [
@@ -869,10 +847,10 @@
       "value": "."
     }
   ],
-  "81d48c2f3a": [
+  "81aa2078d1": [
     {
       "type": 0,
-      "value": "Afișați sarcinile pe pânză"
+      "value": "Ștergeți tot"
     }
   ],
   "8472a551f1": [
@@ -901,28 +879,22 @@
       "value": " fișiere .tldr."
     }
   ],
-  "86a7df7572": [
-    {
-      "type": 0,
-      "value": "Invocă zâne"
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
       "value": "Redenumiți fișierul"
     }
   ],
+  "8726ef8909": [
+    {
+      "type": 0,
+      "value": "Resetare completă"
+    }
+  ],
   "88e83b88c5": [
     {
       "type": 0,
       "value": "Cumpără pachetul Zâne"
-    }
-  ],
-  "898e76f01a": [
-    {
-      "type": 0,
-      "value": "Resetați totul"
     }
   ],
   "8ad4303b83": [
@@ -943,10 +915,22 @@
       "value": "Verifică-ți e-mailul pentru un cod de verificare."
     }
   ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Acasă"
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Împărtășită cu tine"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Despre"
     }
   ],
   "8ff3d0a705": [
@@ -979,16 +963,10 @@
       "value": "Link de invitație copiat"
     }
   ],
-  "93346fdd70": [
+  "94186070ef": [
     {
       "type": 0,
-      "value": "Urechi"
-    }
-  ],
-  "93dfe9fbbe": [
-    {
-      "type": 0,
-      "value": "Deselectați zâna"
+      "value": "Deselectați"
     }
   ],
   "94966d9074": [
@@ -1015,12 +993,6 @@
       "value": "Luna aceasta"
     }
   ],
-  "97a9f16b2e": [
-    {
-      "type": 0,
-      "value": "Zână nouă"
-    }
-  ],
   "985a4b720f": [
     {
       "type": 0,
@@ -1031,12 +1003,6 @@
     {
       "type": 0,
       "value": "Adăugați linkul fișierului"
-    }
-  ],
-  "98e528aac6": [
-    {
-      "type": 0,
-      "value": "Treceți la chatul cu zâne"
     }
   ],
   "9914a0ce04": [
@@ -1125,10 +1091,10 @@
       "value": "Exportați imaginea"
     }
   ],
-  "a2f0372a75": [
+  "a286d9991c": [
     {
       "type": 0,
-      "value": "Comutare la lista de activități"
+      "value": "Alătură-te"
     }
   ],
   "a3debabee7": [
@@ -1137,22 +1103,16 @@
       "value": "Politica de cookie-uri"
     }
   ],
-  "a3e932550c": [
-    {
-      "type": 0,
-      "value": "Numele zânei"
-    }
-  ],
   "a4d3b161ce": [
     {
       "type": 0,
       "value": "Trimiteți"
     }
   ],
-  "a4ffdcf0dc": [
+  "a603905470": [
     {
       "type": 0,
-      "value": "Top"
+      "value": "Depanare"
     }
   ],
   "a6cc403d56": [
@@ -1167,16 +1127,16 @@
       "value": "Analytics"
     }
   ],
-  "a885eb91ac": [
-    {
-      "type": 0,
-      "value": "Selecția zânei lider"
-    }
-  ],
   "a8873770ab": [
     {
       "type": 0,
       "value": "Fișierul devine mare"
+    }
+  ],
+  "a8de4c27a8": [
+    {
+      "type": 0,
+      "value": "Limita săptămânală a zânelor a fost atinsă"
     }
   ],
   "a9ded1e5ce": [
@@ -1249,12 +1209,6 @@
     {
       "type": 0,
       "value": "Copiați linkul"
-    }
-  ],
-  "b8996797b9": [
-    {
-      "type": 0,
-      "value": "Ascundeți sarcinile pe pânză"
     }
   ],
   "ba0318cb81": [
@@ -1351,16 +1305,16 @@
       "value": "` să ne ajute să îmbunătățim tldraw."
     }
   ],
-  "c2ad21c079": [
-    {
-      "type": 0,
-      "value": "Păr"
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
       "value": "Nu se poate publica fișierul."
+    }
+  ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Deschide"
     }
   ],
   "c3eb5c3b90": [
@@ -1379,6 +1333,12 @@
     {
       "type": 0,
       "value": "Numele grupului"
+    }
+  ],
+  "c64518704c": [
+    {
+      "type": 0,
+      "value": "Utilizare"
     }
   ],
   "c655b27b1e": [
@@ -1403,12 +1363,6 @@
     {
       "type": 0,
       "value": "Sign out"
-    }
-  ],
-  "c9b04e7b53": [
-    {
-      "type": 0,
-      "value": "Deselectați liderul"
     }
   ],
   "c9cc8cce24": [
@@ -1447,22 +1401,10 @@
       "value": "Aflați mai multe despre publicare."
     }
   ],
-  "cf62a7f9a7": [
-    {
-      "type": 0,
-      "value": "Resetează chaturile"
-    }
-  ],
   "d3d2e61733": [
     {
       "type": 0,
       "value": "Aproape"
-    }
-  ],
-  "d438a51e6e": [
-    {
-      "type": 0,
-      "value": "Adoarme toate zânele"
     }
   ],
   "d46632fe1f": [
@@ -1517,26 +1459,6 @@
       "value": "Temă"
     }
   ],
-  "d739f35e18": [
-    {
-      "type": 0,
-      "value": "Șoptește către "
-    },
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "…"
-    }
-  ],
-  "d7bc9d5a2e": [
-    {
-      "type": 0,
-      "value": "Ștergeți sarcina"
-    }
-  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1555,6 +1477,12 @@
       "value": "Intră aici pentru a vedea conținutul"
     }
   ],
+  "d9bfb9789a": [
+    {
+      "type": 0,
+      "value": "Activează zânele"
+    }
+  ],
   "d9e35d0f55": [
     {
       "type": 0,
@@ -1565,12 +1493,6 @@
     {
       "type": 0,
       "value": "Numai cu invitație"
-    }
-  ],
-  "dbbece0c3a": [
-    {
-      "type": 0,
-      "value": "Ștergeți toate chaturile"
     }
   ],
   "dc30bc0c79": [
@@ -1617,6 +1539,12 @@
       "value": "Indicatori de depanare a aplicației"
     }
   ],
+  "e062622261": [
+    {
+      "type": 0,
+      "value": "Selecta"
+    }
+  ],
   "e0c88179b3": [
     {
       "type": 0,
@@ -1635,6 +1563,12 @@
       "value": "Rezumat juridic"
     }
   ],
+  "e2b0147fd2": [
+    {
+      "type": 0,
+      "value": "Zânele tale te așteaptă! →"
+    }
+  ],
   "e3afed0047": [
     {
       "type": 0,
@@ -1647,6 +1581,12 @@
       "value": "Termeni și condiții"
     }
   ],
+  "e43ec38a93": [
+    {
+      "type": 0,
+      "value": "Mergi la"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1657,12 +1597,6 @@
     {
       "type": 0,
       "value": "Zonă periculoasă"
-    }
-  ],
-  "ea181d98ca": [
-    {
-      "type": 0,
-      "value": "Selectați zâna"
     }
   ],
   "ea4788705e": [
@@ -1721,6 +1655,12 @@
       "value": " pentru a afla mai multe."
     }
   ],
+  "eee6f05922": [
+    {
+      "type": 0,
+      "value": "Dizolva"
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1731,12 +1671,6 @@
     {
       "type": 0,
       "value": "selectat"
-    }
-  ],
-  "efb2d9d471": [
-    {
-      "type": 0,
-      "value": "Listă de activități"
     }
   ],
   "efde983742": [
@@ -1757,12 +1691,6 @@
       "value": "Setări utilizator"
     }
   ],
-  "f23056da60": [
-    {
-      "type": 0,
-      "value": "Proiect nou"
-    }
-  ],
   "f2569594b2": [
     {
       "type": 0,
@@ -1781,28 +1709,10 @@
       "value": "Setări"
     }
   ],
-  "f6ae34b4ba": [
-    {
-      "type": 0,
-      "value": "Resetează toate baghetele"
-    }
-  ],
   "f714e36843": [
     {
       "type": 0,
       "value": "Sigur vrei să părăsești acest grup?"
-    }
-  ],
-  "f7d5ee6855": [
-    {
-      "type": 0,
-      "value": "Alegeți mai întâi un lider…"
-    }
-  ],
-  "f87386b4ba": [
-    {
-      "type": 0,
-      "value": "Invocă toate zânele"
     }
   ],
   "fa2ead697d": [
@@ -1815,12 +1725,6 @@
     {
       "type": 0,
       "value": "Vizualizator"
-    }
-  ],
-  "fd11eafb92": [
-    {
-      "type": 0,
-      "value": "Desființați proiectele"
     }
   ],
   "fd1be3efcf": [
