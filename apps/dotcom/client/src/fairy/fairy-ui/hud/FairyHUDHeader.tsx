@@ -89,6 +89,25 @@ export function FairyHUDHeader({
 		[shownFairy]
 	)
 
+	// Check if there are unselected fairies without active projects
+	const hasUnselectedFairiesWithoutActiveProjects = useValue(
+		'unselected-fairies-without-active-projects',
+		() => {
+			if (!fairyApp) return false
+			const selectedIds = new Set(selectedFairies.map((f) => f.id))
+			const unselectedFairies = allAgents.filter((agent) => !selectedIds.has(agent.id))
+
+			return unselectedFairies.some((agent) => {
+				const agentProject = agent.getProject()
+				if (!agentProject) return true // No project means available
+				// Check if project has an orchestrator (is active)
+				const orchestrator = fairyApp.projects.getProjectOrchestrator(agentProject)
+				return !orchestrator // No orchestrator means not active
+			})
+		},
+		[allAgents, selectedFairies, fairyApp]
+	)
+
 	const getDisplayName = () => {
 		if (!isProjectStarted || !project) {
 			return fairyConfig?.name
@@ -181,9 +200,9 @@ export function FairyHUDHeader({
 
 	const onlySelectedFairy = selectedFairies.length === 1 ? selectedFairies[0] : null
 
-	// Show select all button on mobile when exactly one fairy is selected and there's more than one fairy total
+	// Show select all button when there are unselected fairies without active projects
 	const showSelectAllButton =
-		selectedFairies.length < allAgents.length && !project && !hasChatHistory // && isMobile
+		hasUnselectedFairiesWithoutActiveProjects && !project && !hasChatHistory // && isMobile
 
 	return (
 		<div className="fairy-toolbar-header">
@@ -253,6 +272,8 @@ function ResetChatHistoryButton({ agent }: { agent: FairyAgent }) {
 				disabled={agent.chat.getHistory().length === 0}
 				onClick={() => {
 					trackEvent('fairy-reset-chat', { source: 'fairy-panel', fairyId: agent.id })
+					// Cancel any active generation before resetting the chat
+					agent.cancel()
 					agent.chat.reset()
 				}}
 			>

@@ -41,6 +41,8 @@ export function FairyMenuContent({
 	const putAwayFairy = useCallback(() => {
 		agents.forEach((agent: FairyAgent) => {
 			trackEvent('fairy-sleep', { source: 'fairy-panel', fairyId: agent.id })
+			// Cancel any active generation before putting the fairy away
+			agent.cancel()
 			agent.updateEntity((f) => (f ? { ...f, isSelected: false, pose: 'sleeping' } : f))
 			agent.mode.setMode('sleeping')
 		})
@@ -49,6 +51,8 @@ export function FairyMenuContent({
 	const putAwayAllFairies = useCallback(() => {
 		trackEvent('fairy-sleep-all', { source: 'fairy-panel' })
 		allAgents.forEach((agent: FairyAgent) => {
+			// Cancel any active generation before putting the fairy away
+			agent.cancel()
 			agent.updateEntity((f) => (f ? { ...f, isSelected: false, pose: 'sleeping' } : f))
 			agent.mode.setMode('sleeping')
 		})
