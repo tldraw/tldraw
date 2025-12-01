@@ -245,7 +245,6 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 						})
 						.filter((agent): agent is NonNullable<typeof agent> => agent !== null) ?? []
 
-				console.log(fairyPresences, hoistedFairyApp)
 				defaultPresence.meta = { ...defaultPresence.meta, fairies: fairyPresences }
 				return defaultPresence
 			},
