@@ -129,5 +129,13 @@ export function getAgentHistorySections(items: ChatHistoryItem[]): FairyChatHist
 		}
 	}
 
-	return sections
+	// Filter out empty sections (sections with no items and no visible prompt)
+	return sections.filter((section) => {
+		// Keep sections that have items
+		if (section.items.length > 0) return true
+		// Keep sections that have a visible prompt (not 'self' source)
+		if (section.prompt !== null && section.prompt.promptSource !== 'self') return true
+		// Filter out everything else (empty sections)
+		return false
+	})
 }
