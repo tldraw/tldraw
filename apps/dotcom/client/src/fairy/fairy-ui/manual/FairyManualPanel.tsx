@@ -1,4 +1,4 @@
-import { RefObject, useEffect, useRef } from 'react'
+import { MouseEvent, RefObject, useEffect, useRef } from 'react'
 import { getFromLocalStorage, setInLocalStorage, useValue } from 'tldraw'
 import { getLocalSessionState } from '../../../tla/utils/local-session-state'
 
@@ -55,7 +55,7 @@ export function FairyManualPanel() {
 	}
 
 	// Handle video play/pause on click (desktop only)
-	const handleVideoClick = (e: React.MouseEvent<HTMLVideoElement>) => {
+	const handleVideoClick = (e: MouseEvent<HTMLVideoElement>) => {
 		// Only handle mouse clicks (e.detail > 0 indicates mouse click, not touch)
 		if (e.detail > 0 && videoRef.current) {
 			if (videoRef.current.paused) {
