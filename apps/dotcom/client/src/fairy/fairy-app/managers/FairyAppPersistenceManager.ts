@@ -73,6 +73,12 @@ export class FairyAppPersistenceManager extends BaseFairyAppManager {
 				this.projectsLoaded = true
 			}
 
+			// Clear any projects since we can't resume them
+			this.fairyApp.projects.disbandAllProjects()
+
+			// Clear any projects since we can't resume them
+			this.fairyApp.projects.clearProjects()
+
 			// Allow a tick for state to settle before allowing saves
 			// This delay ensures all state updates from loading have propagated before we start saving again
 			setTimeout(() => {
