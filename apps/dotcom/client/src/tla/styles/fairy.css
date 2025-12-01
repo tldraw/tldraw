@@ -463,10 +463,23 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	position: relative;
 }
 
 .fairy-manual-button[data-state='on']::after {
 	visibility: visible;
+}
+
+.fairy-manual-button[data-has-notification='true']::before {
+	content: '';
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	width: 8px;
+	height: 8px;
+	background-color: #2d7ff9;
+	border-radius: 50%;
+	z-index: 1;
 }
 
 /* Manual Panel Content */

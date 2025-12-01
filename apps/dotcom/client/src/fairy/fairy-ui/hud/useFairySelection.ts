@@ -2,6 +2,7 @@ import { FairyProject } from '@tldraw/fairy-shared'
 import { MouseEvent, useCallback, useEffect, useState } from 'react'
 import { useValue } from 'tldraw'
 import { useTldrawAppUiEvents } from '../../../tla/utils/app-ui-events'
+import { markManualAsOpened } from '../../../tla/utils/local-session-state'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { useFairyApp } from '../../fairy-app/FairyAppProvider'
 
@@ -193,6 +194,7 @@ export function useFairySelection(agents: FairyAgent[]) {
 			trackEvent('fairy-close-manual', { source: 'fairy-panel' })
 		} else {
 			trackEvent('fairy-switch-to-manual', { source: 'fairy-panel' })
+			markManualAsOpened()
 		}
 		setManualOpen(!wasOpen)
 	}, [trackEvent, manualOpen])

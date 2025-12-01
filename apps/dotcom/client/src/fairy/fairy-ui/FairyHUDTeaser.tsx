@@ -26,7 +26,12 @@ import { useFeatureFlags } from '../../tla/hooks/useFeatureFlags'
 import '../../tla/styles/fairy.css'
 import { useTldrawAppUiEvents } from '../../tla/utils/app-ui-events'
 import { F, useMsg } from '../../tla/utils/i18n'
-import { getLocalSessionState, updateLocalSessionState } from '../../tla/utils/local-session-state'
+import {
+	getLocalSessionState,
+	markManualAsOpened,
+	updateLocalSessionState,
+	useHasManualBeenOpened,
+} from '../../tla/utils/local-session-state'
 import { fairyMessages } from '../fairy-messages'
 import { FairySprite } from '../fairy-sprite/FairySprite'
 import { FairyManualPanel } from './manual/FairyManualPanel'
@@ -51,6 +56,7 @@ export function FairyHUDTeaser() {
 
 	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
 	const manualLabel = useMsg(fairyMessages.manual)
+	const hasManualBeenOpened = useHasManualBeenOpened()
 
 	const fairyManualActiveTab = useValue(
 		'fairy manual active tab',
@@ -72,6 +78,7 @@ export function FairyHUDTeaser() {
 			trackEvent('fairy-close-manual', { source: 'fairy-teaser' })
 		} else {
 			trackEvent('fairy-switch-to-manual', { source: 'fairy-teaser' })
+			markManualAsOpened()
 		}
 		setIsManualOpen(!wasOpen)
 	}, [trackEvent, isManualOpen])
@@ -171,6 +178,7 @@ export function FairyHUDTeaser() {
 									value="manual"
 									data-state={isManualOpen ? 'on' : 'off'}
 									data-isactive={isManualOpen}
+									data-has-notification={!hasManualBeenOpened}
 									onClick={handleToggleManual}
 									title={manualLabel}
 									aria-label={manualLabel}

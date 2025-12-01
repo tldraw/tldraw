@@ -13,7 +13,10 @@ import {
 	useValue,
 } from 'tldraw'
 import { useMsg } from '../../../tla/utils/i18n'
-import { useAreFairiesDebugEnabled } from '../../../tla/utils/local-session-state'
+import {
+	useAreFairiesDebugEnabled,
+	useHasManualBeenOpened,
+} from '../../../tla/utils/local-session-state'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { FairyAppContextProvider, useFairyApp } from '../../fairy-app/FairyAppProvider'
 import { fairyMessages } from '../../fairy-messages'
@@ -216,6 +219,7 @@ function ManualButtonWithMenu({
 	const dialogs = useDialogs()
 	const container = useContainer()
 	const areFairiesDebugEnabled = useAreFairiesDebugEnabled()
+	const hasManualBeenOpened = useHasManualBeenOpened()
 	const allAgents = useValue('fairy-agents', () => fairyApp.agents.getAgents(), [fairyApp])
 
 	const openManualLabel = useMsg(fairyMessages.openManual)
@@ -246,6 +250,7 @@ function ManualButtonWithMenu({
 					value="on"
 					data-state={isManualActive ? 'on' : 'off'}
 					data-isactive={isManualActive}
+					data-has-notification={!hasManualBeenOpened}
 					onClick={onToggleManual}
 					title={manualLabel}
 					aria-label={manualLabel}
