@@ -653,7 +653,7 @@ Per-agent state managed by `FairyAgent`:
 - Fairy state serialized via `fairyApp.persistence.serializeState()`
 - Includes: all agent states, task list, projects
 - Agent state includes: fairyEntity, chatHistory, chatOrigin, personalTodoList, waitingFor
-- Restored via `fairyApp.loadState()` (convenience method on FairyApp)
+- Restored via `fairyApp.persistence.loadState()`
 - Auto-save via reactive watchers (throttled to 2 seconds)
 - Configuration stored in user profile as `fairies` JSON
 
