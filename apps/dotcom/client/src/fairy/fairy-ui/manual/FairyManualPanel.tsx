@@ -1,4 +1,4 @@
-import { RefObject, useEffect, useRef } from 'react'
+import { MouseEvent, RefObject, useEffect, useRef } from 'react'
 import { getFromLocalStorage, setInLocalStorage, useValue } from 'tldraw'
 import { ExternalLink } from '../../../tla/components/ExternalLink/ExternalLink'
 import { getLocalSessionState } from '../../../tla/utils/local-session-state'
@@ -9,6 +9,7 @@ export function FairyManualPanel() {
 	const introductionRef = useRef<HTMLDivElement>(null)
 	const usageRef = useRef<HTMLDivElement>(null)
 	const aboutRef = useRef<HTMLDivElement>(null)
+	const videoRef = useRef<HTMLVideoElement>(null)
 
 	const fairyManualActiveTab = useValue(
 		'fairy manual active tab',
@@ -54,6 +55,18 @@ export function FairyManualPanel() {
 		}
 	}
 
+	// Handle video play/pause on click (desktop only)
+	const handleVideoClick = (e: MouseEvent<HTMLVideoElement>) => {
+		// Only handle mouse clicks (e.detail > 0 indicates mouse click, not touch)
+		if (e.detail > 0 && videoRef.current) {
+			if (videoRef.current.paused) {
+				videoRef.current.play()
+			} else {
+				videoRef.current.pause()
+			}
+		}
+	}
+
 	return (
 		<div className="fairy-manual-content-container">
 			{fairyManualActiveTab === 'introduction' && (
@@ -63,6 +76,7 @@ export function FairyManualPanel() {
 					onScroll={createScrollHandler(introductionRef, 'introduction')}
 				>
 					<video
+						ref={videoRef}
 						src="https://cdn.tldraw.com/misc/fairy_intro.mp4"
 						loop
 						muted
