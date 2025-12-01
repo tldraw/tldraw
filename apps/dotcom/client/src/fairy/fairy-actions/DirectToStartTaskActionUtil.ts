@@ -20,7 +20,7 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 			otherFairyName = otherFairy ? otherFairy.getConfig().name : 'a fairy'
 		}
 
-		const otherFairyFirstName = otherFairyName.split(' ')[0]
+		const otherFairyFirstName = otherFairyName?.split(' ')[0] ?? ''
 		const task = action.complete ? this.agent.fairyApp.tasks.getTaskById(action.taskId) : null
 
 		const text = action.complete
@@ -79,7 +79,7 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 		this.agent.fairyApp.tasks.assignFairyToTask(taskId, otherFairyId, allAgents)
 		this.agent.fairyApp.tasks.setTaskStatus(taskId, 'in-progress')
 
-		const firstName = this.agent.getConfig().name.split(' ')[0]
+		const firstName = this.agent.getConfig().name?.split(' ')[0] ?? ''
 		const otherFairyInput: AgentInput = {
 			agentMessages: [`You have been asked to complete task ${taskId}. Please complete it.`],
 			userMessages: [`Asked by ${firstName} to do${task.title ? `: ${task.title}` : ' a task'}`],

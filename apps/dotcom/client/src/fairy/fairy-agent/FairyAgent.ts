@@ -240,10 +240,16 @@ export class FairyAgent {
 			currentPageId: editor.getCurrentPageId(),
 		})
 
-		this.$fairyConfig = computed<FairyConfig>(
-			`fairy-config-${id}`,
-			() => JSON.parse(this.fairyApp.tldrawApp.getUser().fairies || '{}')[id] as FairyConfig
-		)
+		this.$fairyConfig = computed<FairyConfig>(`fairy-config-${id}`, () => {
+			const userFairies = this.fairyApp.tldrawApp.getUser().fairies
+			if (!userFairies) {
+				return {
+					name: '',
+					outfit: { body: 'plain', hat: 'top', wings: 'plain' },
+				} satisfies FairyConfig
+			}
+			return JSON.parse(userFairies)[id] as FairyConfig
+		})
 
 		this.onError = onError
 
