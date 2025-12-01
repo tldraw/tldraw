@@ -61,11 +61,6 @@ function updateFairySelection(
 	}
 }
 
-function getFairyCursor(isFairyGrabbable: boolean, isDragging: boolean): string {
-	if (!isFairyGrabbable) return 'default'
-	return isDragging ? 'grabbing' : 'grab'
-}
-
 function setFairiesToThrowTool(editor: ReturnType<typeof useEditor>, fairies: FairyAgent[]): void {
 	const tool = editor.getStateDescendant('select.fairy-throw')
 	if (tool instanceof FairyThrowTool) {
@@ -350,9 +345,6 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 						'fairy-container__grabbable': isFairyGrabbable,
 						'fairy-container__not-grabbable': !isFairyGrabbable,
 					})}
-					style={{
-						cursor: getFairyCursor(isFairyGrabbable, editor.inputs.isDragging),
-					}}
 				>
 					<FairySprite
 						pose={fairyEntity.pose}

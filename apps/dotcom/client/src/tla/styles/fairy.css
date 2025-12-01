@@ -1885,10 +1885,15 @@
 
 .fairy-container__grabbable {
 	pointer-events: all;
+	cursor: grab;
 }
 
 .fairy-container__not-grabbable {
 	pointer-events: none;
+}
+
+.fairy-container__in-throw-tool {
+	cursor: grabbing;
 }
 
 .fairy-container__generating:not(.fairy-container__in-throw-tool) {
