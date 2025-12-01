@@ -1,4 +1,4 @@
-import React, { RefObject, useEffect, useRef } from 'react'
+import { RefObject, useEffect, useRef } from 'react'
 import { getFromLocalStorage, setInLocalStorage, useValue } from 'tldraw'
 import { getLocalSessionState } from '../../../tla/utils/local-session-state'
 
