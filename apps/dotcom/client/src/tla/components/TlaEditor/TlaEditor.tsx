@@ -245,6 +245,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 						})
 						.filter((agent): agent is NonNullable<typeof agent> => agent !== null) ?? []
 
+				console.log(fairyPresences, hoistedFairyApp)
 				defaultPresence.meta = { ...defaultPresence.meta, fairies: fairyPresences }
 				return defaultPresence
 			},
@@ -299,6 +300,20 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const shouldShowFairies = useShouldShowFairies()
 	const { flags, isLoaded } = useFeatureFlags()
 
+	const RemoteFairiesDelayed = ({ enableForMe }: { enableForMe: boolean }) => {
+		const editor = useEditor()
+		const collaborators = editor.getCollaborators()
+		const doesAnybodyHaveFairiesEnabled = collaborators.some(
+			// @ts-ignore meh it's fine
+			(collaborator) => collaborator.meta?.fairies?.length > 0
+		)
+		return enableForMe || doesAnybodyHaveFairiesEnabled ? (
+			<Suspense fallback={<div />}>
+				<RemoteFairies />
+			</Suspense>
+		) : null
+	}
+
 	const instanceComponents = useMemo((): TLComponents => {
 		// User can control their own fairies if they have fairy access and it's enabled
 		const canControlFairies = app && hasFairyAccess && areFairiesEnabled
@@ -315,11 +330,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				return (
 					<>
 						<TldrawOverlays />
+						<RemoteFairiesDelayed enableForMe={!!(shouldShowFairyUI && hoistedFairyApp)} />
 						{shouldShowFairyUI && hoistedFairyApp ? (
 							<Suspense fallback={<div />}>
 								<FairyAppContextProvider fairyApp={hoistedFairyApp}>
 									{/* <DebugFairyVision agents={agents} /> */}
-									<RemoteFairies />
 									{canControlFairies && <Fairies />}
 								</FairyAppContextProvider>
 							</Suspense>
