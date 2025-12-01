@@ -1,10 +1,10 @@
 import { useEditor, useValue } from 'tldraw'
 import { Fairy, SelectedFairy } from '../Fairy'
-import { FairyApp } from '../fairy-app/FairyApp'
+import { useFairyApp } from '../fairy-app/FairyAppProvider'
 
-export function Fairies({ fairyApp }: { fairyApp: FairyApp }) {
+export function Fairies() {
 	const editor = useEditor()
-
+	const fairyApp = useFairyApp()
 	const agents = useValue('fairy-agents', () => fairyApp?.agents.getAgents() ?? [], [fairyApp])
 	const currentPageId = useValue('current page id', () => editor.getCurrentPageId(), [editor])
 

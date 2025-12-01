@@ -88,7 +88,6 @@ function RemoteFairyIndicator({
 				height: `${FAIRY_CONTAINER_SIZE}px`,
 				transform: `translate(-75%, -25%) scale(var(--tl-scale))`,
 				transformOrigin: '75% 25%',
-				transition: 'left 0.1s ease-in-out, top 0.1s ease-in-out',
 			}}
 		>
 			<FairySprite

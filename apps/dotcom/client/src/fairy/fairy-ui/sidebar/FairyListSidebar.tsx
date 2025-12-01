@@ -12,11 +12,13 @@ import {
 	useDialogs,
 	useValue,
 } from 'tldraw'
-import { useApp } from '../../../tla/hooks/useAppState'
 import { useMsg } from '../../../tla/utils/i18n'
-import { useAreFairiesDebugEnabled } from '../../../tla/utils/local-session-state'
+import {
+	useAreFairiesDebugEnabled,
+	useHasManualBeenOpened,
+} from '../../../tla/utils/local-session-state'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
-import { useFairyApp } from '../../fairy-app/FairyAppProvider'
+import { FairyAppContextProvider, useFairyApp } from '../../fairy-app/FairyAppProvider'
 import { fairyMessages } from '../../fairy-messages'
 import { FairyReticleSprite } from '../../fairy-sprite/sprites/FairyReticleSprite'
 import { FairyDebugDialog } from '../debug/FairyDebugDialog'
@@ -213,14 +215,12 @@ function ManualButtonWithMenu({
 	manualLabel: string
 	onToggleManual(): void
 }) {
-	const app = useApp()
 	const fairyApp = useFairyApp()
 	const dialogs = useDialogs()
 	const container = useContainer()
 	const areFairiesDebugEnabled = useAreFairiesDebugEnabled()
-	const allAgents = useValue('fairy-agents', () => (fairyApp ? fairyApp.agents.getAgents() : []), [
-		fairyApp,
-	])
+	const hasManualBeenOpened = useHasManualBeenOpened()
+	const allAgents = useValue('fairy-agents', () => fairyApp.agents.getAgents(), [fairyApp])
 
 	const openManualLabel = useMsg(fairyMessages.openManual)
 	const closeManualLabel = useMsg(fairyMessages.closeManual)
@@ -229,32 +229,17 @@ function ManualButtonWithMenu({
 
 	const openDebugDialog = useCallback(() => {
 		dialogs.addDialog({
-			component: ({ onClose }) => <FairyDebugDialog agents={allAgents} onClose={onClose} />,
+			component: ({ onClose }) => (
+				<FairyAppContextProvider fairyApp={fairyApp}>
+					<FairyDebugDialog agents={allAgents} onClose={onClose} />
+				</FairyAppContextProvider>
+			),
 		})
-	}, [dialogs, allAgents])
+	}, [dialogs, allAgents, fairyApp])
 
 	const resetEverything = useCallback(() => {
-		// Stop all running tasks
-		allAgents.forEach((agent: FairyAgent) => {
-			agent.cancel()
-		})
-
-		// Clear the todo list and projects
-		if (fairyApp) {
-			fairyApp.tasks.clearTasksAndProjects()
-		}
-
-		// Reset all chats
-		allAgents.forEach((agent: FairyAgent) => {
-			agent.reset()
-		})
-
-		// Delete all fairies
-		app.z.mutate.user.deleteAllFairyConfigs()
-		allAgents.forEach((agent: FairyAgent) => {
-			agent.dispose()
-		})
-	}, [allAgents, app, fairyApp])
+		fairyApp.resetEverything()
+	}, [fairyApp])
 
 	return (
 		<_ContextMenu.Root dir="ltr">
@@ -265,6 +250,7 @@ function ManualButtonWithMenu({
 					value="on"
 					data-state={isManualActive ? 'on' : 'off'}
 					data-isactive={isManualActive}
+					data-has-notification={!hasManualBeenOpened}
 					onClick={onToggleManual}
 					title={manualLabel}
 					aria-label={manualLabel}

@@ -1,6 +1,11 @@
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { MouseEvent, useCallback } from 'react'
-import { TldrawUiToolbarToggleGroup, TldrawUiToolbarToggleItem, useValue } from 'tldraw'
+import {
+	TldrawUiToolbarToggleGroup,
+	TldrawUiToolbarToggleItem,
+	TldrawUiTooltip,
+	useValue,
+} from 'tldraw'
 import { useMsg } from '../../../tla/utils/i18n'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { getProjectColor } from '../../fairy-helpers/getProjectColor'
@@ -103,57 +108,58 @@ function PlusButton({ onClick }: { onClick(): void }) {
 	const joinSelectedFairiesLabel = useMsg(fairyMessages.joinSelectedFairies)
 
 	return (
-		<div
-			role="button"
-			tabIndex={0}
-			className="fairy-plus-button"
-			onClick={(e) => {
-				e.stopPropagation()
-				e.preventDefault()
-				onClick()
-			}}
-			aria-label={joinSelectedFairiesLabel}
-			title={joinSelectedFairiesLabel}
-			onKeyDown={(e) => {
-				if (e.key === 'Enter' || e.key === ' ') {
+		<TldrawUiTooltip content={joinSelectedFairiesLabel} side="top">
+			<div
+				role="button"
+				tabIndex={0}
+				className="fairy-plus-button"
+				onClick={(e) => {
+					e.stopPropagation()
 					e.preventDefault()
 					onClick()
-				}
-			}}
-		>
-			<svg
-				width="12"
-				height="12"
-				viewBox="0 0 12 12"
-				fill="none"
-				xmlns="http://www.w3.org/2000/svg"
+				}}
+				aria-label={joinSelectedFairiesLabel}
+				onKeyDown={(e) => {
+					if (e.key === 'Enter' || e.key === ' ') {
+						e.preventDefault()
+						onClick()
+					}
+				}}
 			>
-				<circle
-					className="fairy-plus-button-circle"
-					cx="6"
-					cy="6"
-					r="6"
-					fill="var(--tl-color-fairy-select-bg)"
-				/>
-				<line
-					x1="4"
-					y1="6"
-					x2="8"
-					y2="6"
-					stroke="var(--tl-color-fairy-light)"
-					strokeWidth="2"
-					strokeLinecap="round"
-				/>
-				<line
-					x1="6"
-					y1="4"
-					x2="6"
-					y2="8"
-					stroke="var(--tl-color-fairy-light)"
-					strokeWidth="2"
-					strokeLinecap="round"
-				/>
-			</svg>
-		</div>
+				<svg
+					width="12"
+					height="12"
+					viewBox="0 0 12 12"
+					fill="none"
+					xmlns="http://www.w3.org/2000/svg"
+				>
+					<circle
+						className="fairy-plus-button-circle"
+						cx="6"
+						cy="6"
+						r="6"
+						fill="var(--tl-color-fairy-select-bg)"
+					/>
+					<line
+						x1="4"
+						y1="6"
+						x2="8"
+						y2="6"
+						stroke="var(--tl-color-fairy-light)"
+						strokeWidth="2"
+						strokeLinecap="round"
+					/>
+					<line
+						x1="6"
+						y1="4"
+						x2="6"
+						y2="8"
+						stroke="var(--tl-color-fairy-light)"
+						strokeWidth="2"
+						strokeLinecap="round"
+					/>
+				</svg>
+			</div>
+		</TldrawUiTooltip>
 	)
 }

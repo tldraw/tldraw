@@ -1,4 +1,8 @@
-import { FairyModeDefinition, getFairyModeDefinition } from '@tldraw/fairy-shared'
+import {
+	FairyModeDefinition,
+	FairyModeDefinitionType,
+	getFairyModeDefinition,
+} from '@tldraw/fairy-shared'
 import { atom, Atom } from 'tldraw'
 import { FairyAgent } from '../FairyAgent'
 import { FAIRY_MODE_CHART } from '../FairyModeNode'
@@ -42,7 +46,7 @@ export class FairyAgentModeManager extends BaseFairyAgentManager {
 	 * @param mode - The mode to set.
 	 * @returns void
 	 */
-	setMode(mode: FairyModeDefinition['type']) {
+	setMode(mode: FairyModeDefinitionType) {
 		const fromMode = this.getMode()
 		const fromModeNode = FAIRY_MODE_CHART[fromMode]
 		const toModeNode = FAIRY_MODE_CHART[mode]

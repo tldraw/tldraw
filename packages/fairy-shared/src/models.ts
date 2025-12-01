@@ -1,5 +1,5 @@
-// export const DEFAULT_MODEL_NAME =
-// 	(process.env.FAIRY_MODEL as AgentModelName | undefined) ?? 'claude-sonnet-4-5' //'gemini-3-pro-preview'
+export const DEFAULT_MODEL_NAME =
+	(process.env.FAIRY_MODEL as AgentModelName | undefined) ?? 'claude-sonnet-4-5' //'gemini-3-pro-preview'
 
 export type AgentModelProvider = 'openai' | 'anthropic' | 'google'
 
@@ -39,8 +39,6 @@ export const AGENT_MODEL_DEFINITIONS = {
 } as const
 
 export type AgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
-
-export const DEFAULT_MODEL_NAME: AgentModelName = 'claude-sonnet-4-5'
 
 export const TIER_THRESHOLD = 200_000
 

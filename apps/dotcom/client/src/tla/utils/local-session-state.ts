@@ -42,6 +42,7 @@ export interface TldrawAppSessionState {
 	shouldShowWelcomeDialog?: boolean
 	fairiesEnabled?: boolean
 	fairiesDebugEnabled?: boolean
+	hasManualBeenOpened?: boolean
 }
 
 let prev: TldrawAppSessionState = {
@@ -63,6 +64,7 @@ let prev: TldrawAppSessionState = {
 	sidebarWidth: 260,
 	fairiesEnabled: true,
 	fairiesDebugEnabled: false,
+	hasManualBeenOpened: false,
 }
 
 try {
@@ -175,5 +177,19 @@ export function toggleFairiesDebug(enabled?: boolean) {
 	const nextEnabled = enabled ?? !getAreFairiesDebugEnabled()
 	updateLocalSessionState(() => {
 		return { fairiesDebugEnabled: nextEnabled }
+	})
+}
+
+export function getHasManualBeenOpened() {
+	return localSessionState.get().hasManualBeenOpened ?? false
+}
+
+export function useHasManualBeenOpened() {
+	return useValue('hasManualBeenOpened', getHasManualBeenOpened, [])
+}
+
+export function markManualAsOpened() {
+	updateLocalSessionState(() => {
+		return { hasManualBeenOpened: true }
 	})
 }

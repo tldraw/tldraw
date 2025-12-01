@@ -1,5 +1,5 @@
 import { ChatHistoryPromptItem } from '@tldraw/fairy-shared'
-import { useEffect, useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { useChatHistory } from '../../fairy-ui/hooks/useFairyAgentChatHistory'
 import { FairyChatHistorySection, getAgentHistorySections } from './FairyChatHistorySection'
@@ -40,7 +40,7 @@ export function FairyChatHistory({ agent }: { agent: FairyAgent }) {
 	const historyRef = useRef<HTMLDivElement>(null)
 	const previousScrollDistanceFromBottomRef = useRef(0)
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (!historyRef.current) return
 
 		// If a new prompt is submitted by the user, scroll to the bottom

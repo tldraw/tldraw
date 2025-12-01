@@ -2,7 +2,7 @@ import { MouseEvent, useRef, useState } from 'react'
 import { PORTRAIT_BREAKPOINT, useBreakpoint, useEditor, useValue } from 'tldraw'
 import '../../tla/styles/fairy.css'
 import { F, useMsg } from '../../tla/utils/i18n'
-import { FairyApp } from '../fairy-app/FairyApp'
+import { useFairyApp } from '../fairy-app/FairyAppProvider'
 import { fairyMessages } from '../fairy-messages'
 import { FairyChatHistory } from './chat/FairyChatHistory'
 import { FairyHUDHeader } from './hud/FairyHUDHeader'
@@ -13,7 +13,8 @@ import { FairyManualPanel } from './manual/FairyManualPanel'
 import { FairyProjectView } from './project/FairyProjectView'
 import { FairyListSidebar } from './sidebar/FairyListSidebar'
 
-export function FairyHUD({ fairyApp }: { fairyApp: FairyApp }) {
+export function FairyHUD() {
+	const fairyApp = useFairyApp()
 	const editor = useEditor()
 	const agents = useValue('fairy-agents', () => fairyApp?.agents.getAgents() ?? [], [fairyApp])
 	const breakpoint = useBreakpoint()
@@ -140,12 +141,12 @@ export function FairyHUD({ fairyApp }: { fairyApp: FairyApp }) {
 									/>
 								)}
 
-							{/* Pre-project mode - multiple fairies selected, no project yet */}
+							{/* Project mode - multiple fairies selected (could be pre-project or active project) */}
 							{panelState === 'fairy' && selectedFairies.length > 1 && (
 								<FairyProjectView
 									editor={editor}
 									agents={selectedFairies}
-									orchestratorAgent={null}
+									orchestratorAgent={activeOrchestratorAgent}
 									onProjectStarted={(orchestrator) => {
 										selectFairy(orchestrator)
 									}}

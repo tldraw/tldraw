@@ -969,6 +969,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.clear()
 		this.store.dispose()
 		this.isDisposed = true
+		this.emit('dispose')
 	}
 
 	/* ------------------- Shape Utils ------------------ */

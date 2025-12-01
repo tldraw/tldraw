@@ -321,18 +321,24 @@ export class FairyAgent {
 		waitingFor?: { eventType: string; id: string; metadata?: Record<string, any> }[]
 	}) {
 		if (state.fairyEntity) {
+			// Clear gestures first to clean up any active timeouts and gesture stack
+			this.gesture.clear()
+
 			this.$fairyEntity.update((entity) => {
 				return {
 					...entity,
-					position: AgentHelpers.RoundVec(state.fairyEntity?.position ?? entity.position),
 					flipX: state.fairyEntity?.flipX ?? entity.flipX,
 					currentPageId: state.fairyEntity?.currentPageId ?? entity.currentPageId,
 					isSelected: state.fairyEntity?.isSelected ?? entity.isSelected,
 					pose: state.fairyEntity?.pose ?? entity.pose,
-					gesture: state.fairyEntity?.gesture ?? entity.gesture,
+					gesture: null,
 				}
 			})
-			if (this.$fairyEntity.get().pose !== 'sleeping') {
+			const entity = this.$fairyEntity.get()
+
+			const isSleeping = entity.pose === 'sleeping'
+
+			if (!isSleeping) {
 				this.mode.setMode('idling')
 			}
 		}
@@ -347,6 +353,14 @@ export class FairyAgent {
 		}
 		if (state.waitingFor) {
 			this.waits.loadState(state.waitingFor)
+		}
+		if (state.fairyEntity?.position) {
+			this.$fairyEntity.update((entity) => {
+				return {
+					...entity,
+					position: AgentHelpers.RoundVec(state.fairyEntity?.position ?? entity.position),
+				}
+			})
 		}
 	}
 
@@ -501,7 +515,14 @@ export class FairyAgent {
 		}
 
 		// Submit the request to the agent.
-		await this.request(request)
+		try {
+			await this.request(request)
+		} catch (e) {
+			console.error('Error data:', e)
+			this.requests.setIsPrompting(false)
+			this.requests.setCancelFn(null)
+			return
+		}
 
 		// If there's no schedule request...
 		// Trigger onPromptEnd callback(s)
@@ -636,7 +657,7 @@ export class FairyAgent {
 	 * Optionally, schedule a request.
 	 */
 	interrupt({ input, mode }: { input: AgentInput | null; mode?: FairyModeDefinition['type'] }) {
-		this._cancel()
+		this.requests.cancel()
 
 		if (mode) {
 			this.mode.setMode(mode)
@@ -779,11 +800,6 @@ export class FairyAgent {
 	}
 
 	/**
-	 * A function that cancels the agent's current prompt, if one is active.
-	 */
-	private cancelFn: (() => void) | null = null
-
-	/**
 	 * Cancel the agent's current prompt, if one is active.
 	 */
 	cancel() {
@@ -802,14 +818,7 @@ export class FairyAgent {
 			}
 		}
 
-		this._cancel()
-	}
-
-	private _cancel() {
-		this.cancelFn?.()
-		this.requests.clearActiveRequest()
-		this.requests.clearScheduledRequest()
-		this.cancelFn = null
+		this.requests.cancel()
 	}
 
 	/**
@@ -968,7 +977,10 @@ export class FairyAgent {
 				if (e === 'Cancelled by user' || (e instanceof Error && e.name === 'AbortError')) {
 					return
 				}
+
 				agent.onError(e)
+
+				throw e
 			}
 		})()
 

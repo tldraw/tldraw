@@ -463,10 +463,23 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	position: relative;
 }
 
 .fairy-manual-button[data-state='on']::after {
 	visibility: visible;
+}
+
+.fairy-manual-button[data-has-notification='true']::before {
+	content: '';
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	width: 8px;
+	height: 8px;
+	background-color: #2d7ff9;
+	border-radius: 50%;
+	z-index: 1;
 }
 
 /* Manual Panel Content */
@@ -502,7 +515,7 @@
 }
 
 .fairy-manual-section p {
-	margin: 0 0 8px 0;
+	margin: 8px 0 8px 0;
 }
 
 .fairy-manual-section p:last-child {
@@ -595,7 +608,27 @@
 .fairy-chat-history span:not(button *),
 .fairy-chat-history div:not(button *),
 .fairy-chat-history p:not(button *),
-.fairy-chat-history strong:not(button *) {
+.fairy-chat-history strong:not(button *),
+.fairy-chat-history h1:not(button *),
+.fairy-chat-history h2:not(button *),
+.fairy-chat-history h3:not(button *),
+.fairy-chat-history h4:not(button *),
+.fairy-chat-history h5:not(button *),
+.fairy-chat-history h6:not(button *),
+.fairy-chat-history ul:not(button *),
+.fairy-chat-history ol:not(button *),
+.fairy-chat-history li:not(button *),
+.fairy-chat-history code:not(button *),
+.fairy-chat-history pre:not(button *),
+.fairy-chat-history blockquote:not(button *),
+.fairy-chat-history em:not(button *),
+.fairy-chat-history a:not(button *),
+.fairy-chat-history table:not(button *),
+.fairy-chat-history thead:not(button *),
+.fairy-chat-history tbody:not(button *),
+.fairy-chat-history tr:not(button *),
+.fairy-chat-history td:not(button *),
+.fairy-chat-history th:not(button *) {
 	user-select: text;
 	cursor: initial;
 }
@@ -884,7 +917,27 @@
 .fairy-project-chat-view span:not(button *),
 .fairy-project-chat-view div:not(button *),
 .fairy-project-chat-view p:not(button *),
-.fairy-project-chat-view strong:not(button *) {
+.fairy-project-chat-view strong:not(button *),
+.fairy-project-chat-view h1:not(button *),
+.fairy-project-chat-view h2:not(button *),
+.fairy-project-chat-view h3:not(button *),
+.fairy-project-chat-view h4:not(button *),
+.fairy-project-chat-view h5:not(button *),
+.fairy-project-chat-view h6:not(button *),
+.fairy-project-chat-view ul:not(button *),
+.fairy-project-chat-view ol:not(button *),
+.fairy-project-chat-view li:not(button *),
+.fairy-project-chat-view code:not(button *),
+.fairy-project-chat-view pre:not(button *),
+.fairy-project-chat-view blockquote:not(button *),
+.fairy-project-chat-view em:not(button *),
+.fairy-project-chat-view a:not(button *),
+.fairy-project-chat-view table:not(button *),
+.fairy-project-chat-view thead:not(button *),
+.fairy-project-chat-view tbody:not(button *),
+.fairy-project-chat-view tr:not(button *),
+.fairy-project-chat-view td:not(button *),
+.fairy-project-chat-view th:not(button *) {
 	user-select: text;
 	cursor: initial;
 }
@@ -1888,6 +1941,10 @@
 	cursor: grab;
 }
 
+.fairy-container__grabbable:active {
+	cursor: grabbing;
+}
+
 .fairy-container__not-grabbable {
 	pointer-events: none;
 }
@@ -1917,4 +1974,9 @@
 	height: 52px;
 	transform: translate(-75%, -25%) scale(var(--tl-scale));
 	transform-origin: 75% 25%;
+}
+
+.fairy-manual-video {
+	width: 100%;
+	margin-bottom: 12px;
 }

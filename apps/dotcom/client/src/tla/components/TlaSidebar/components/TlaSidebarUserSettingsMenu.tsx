@@ -12,7 +12,6 @@ import {
 } from 'tldraw'
 import { isDevelopmentEnv } from '../../../../utils/env'
 import { useApp } from '../../../hooks/useAppState'
-import { useFairyAccess } from '../../../hooks/useFairyAccess'
 import { F, defineMessages, useMsg } from '../../../utils/i18n'
 import {
 	toggleFairies,
@@ -40,7 +39,6 @@ export function TlaUserSettingsMenu() {
 	const app = useApp()
 	const userMenuLbl = useMsg(messages.userMenu)
 	const user = useValue('auth', () => app.getUser(), [app])
-	const hasFairyAccess = useFairyAccess()
 
 	if (!user) return null
 
@@ -74,7 +72,7 @@ export function TlaUserSettingsMenu() {
 					<TldrawUiMenuGroup id="preferences">
 						<ColorThemeSubmenu />
 						<LanguageMenu />
-						{hasFairyAccess && <FairiesSubmenu />}
+						<FairiesSubmenu />
 					</TldrawUiMenuGroup>
 					<DebugMenuGroup />
 					<TldrawUiMenuGroup id="signout">

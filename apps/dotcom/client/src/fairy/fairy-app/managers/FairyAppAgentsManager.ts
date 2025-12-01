@@ -145,13 +145,18 @@ export class FairyAppAgentsManager extends BaseFairyAppManager {
 	}
 
 	/**
+	 * Clear the loaded agent tracking. Called when switching files.
+	 */
+	clearLoadedAgentIds() {
+		this.loadedAgentIds.clear()
+	}
+
+	/**
 	 * Dispose all agents. Call this during cleanup.
 	 */
 	disposeAll() {
 		const agents = this.$agents.get()
-		agents.forEach((agent) => agent.dispose())
-		this.$agents.set([])
-		this.loadedAgentIds.clear()
+		agents.forEach((agent) => agent.reset())
 	}
 
 	/**

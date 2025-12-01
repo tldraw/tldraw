@@ -5,6 +5,7 @@ import {
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
+	TldrawUiTooltip,
 	useEditor,
 	useReactor,
 	useValue,
@@ -15,13 +16,14 @@ import {
 	TlaMenuTabsTabs,
 } from '../../../tla/components/tla-menu/tla-menu'
 import { useTldrawAppUiEvents } from '../../../tla/utils/app-ui-events'
-import { F } from '../../../tla/utils/i18n'
+import { F, useMsg } from '../../../tla/utils/i18n'
 import {
 	getLocalSessionState,
 	updateLocalSessionState,
 } from '../../../tla/utils/local-session-state'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { useFairyApp } from '../../fairy-app/FairyAppProvider'
+import { fairyMessages } from '../../fairy-messages'
 import { FairyMenuContent } from '../menus/FairyMenuContent'
 import { FairyHUDPanelState } from './useFairySelection'
 
@@ -48,6 +50,8 @@ export function FairyHUDHeader({
 	const fairyApp = useFairyApp()
 	const trackEvent = useTldrawAppUiEvents()
 	const fairyConfig = useValue('fairy config', () => shownFairy?.getConfig(), [shownFairy])
+	const zoomToFairyLabel = useMsg(fairyMessages.zoomToFairy)
+	const selectAllFairiesLabel = useMsg(fairyMessages.selectAllFairiesLabel)
 
 	// Get the project for the shown fairy
 	const project = useValue('project', () => shownFairy?.getProject(), [shownFairy])
@@ -83,6 +87,25 @@ export function FairyHUDHeader({
 		'has-chat-history',
 		() => shownFairy && shownFairy.chat.getHistory().length > 0,
 		[shownFairy]
+	)
+
+	// Check if there are unselected fairies without active projects
+	const hasUnselectedFairiesWithoutActiveProjects = useValue(
+		'unselected-fairies-without-active-projects',
+		() => {
+			if (!fairyApp) return false
+			const selectedIds = new Set(selectedFairies.map((f) => f.id))
+			const unselectedFairies = allAgents.filter((agent) => !selectedIds.has(agent.id))
+
+			return unselectedFairies.some((agent) => {
+				const agentProject = agent.getProject()
+				if (!agentProject) return true // No project means available
+				// Check if project has an orchestrator (is active)
+				const orchestrator = fairyApp.projects.getProjectOrchestrator(agentProject)
+				return !orchestrator // No orchestrator means not active
+			})
+		},
+		[allAgents, selectedFairies, fairyApp]
 	)
 
 	const getDisplayName = () => {
@@ -139,7 +162,7 @@ export function FairyHUDHeader({
 				<TlaMenuTabsRoot activeTab={fairyManualActiveTab} onTabChange={handleTabChange}>
 					<TlaMenuTabsTabs>
 						<TlaMenuTabsTab id="introduction">
-							<F defaultMessage="Introduction" />
+							<F defaultMessage="Welcome" />
 						</TlaMenuTabsTab>
 						<TlaMenuTabsTab id="usage">
 							<F defaultMessage="Usage" />
@@ -158,13 +181,29 @@ export function FairyHUDHeader({
 		)
 	}
 
+	// Get display name for multi-fairy header (pre-project or active project)
+	const getProjectDisplayName = () => {
+		// Active project with a title
+		if (isProjectStarted && project?.title) {
+			return project.title
+		}
+		// Active project being planned (no title yet)
+		if (isProjectStarted) {
+			return 'Planning project…'
+		}
+		// Pre-project state (multiple fairies selected, no project started yet)
+		return formattedNames
+	}
+
 	// Determine center content based on panel state
 	const centerContent =
 		selectedFairies.length > 1 ? (
-			<div className="fairy-id-display">{formattedNames}</div>
+			<div className="fairy-id-display">{getProjectDisplayName()}</div>
 		) : shownFairy && fairyConfig ? (
 			<div className="fairy-id-display" onClick={zoomToFairy}>
-				<p style={{ cursor: fairyClickable ? 'pointer' : 'default' }}>{getDisplayName()}</p>
+				<TldrawUiTooltip content={fairyClickable ? zoomToFairyLabel : undefined} side="top">
+					<span style={{ cursor: fairyClickable ? 'pointer' : 'default' }}>{getDisplayName()}</span>
+				</TldrawUiTooltip>
 			</div>
 		) : (
 			<div style={{ flex: 1 }}></div>
@@ -175,20 +214,24 @@ export function FairyHUDHeader({
 
 	const onlySelectedFairy = selectedFairies.length === 1 ? selectedFairies[0] : null
 
-	// Show select all button on mobile when exactly one fairy is selected and there's more than one fairy total
-	const showSelectAllButton = selectedFairies.length < allAgents.length && !project // && isMobile
+	// Show select all button when there are unselected fairies without active projects
+	const showSelectAllButton =
+		hasUnselectedFairiesWithoutActiveProjects && !project && !hasChatHistory // && isMobile
 
 	return (
 		<div className="fairy-toolbar-header">
 			{centerContent}
 			<div className="tlui-row">
 				{showSelectAllButton ? (
-					<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={selectAllFairies}>
-						<TldrawUiButtonIcon icon={<SelectAllIcon />} small />
-					</TldrawUiButton>
+					<TldrawUiTooltip content={selectAllFairiesLabel} side="top">
+						<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={selectAllFairies}>
+							<TldrawUiButtonIcon icon={<SelectAllIcon />} small />
+						</TldrawUiButton>
+					</TldrawUiTooltip>
 				) : (
 					onlySelectedFairy &&
-					hasChatHistory && <ResetChatHistoryButton agent={onlySelectedFairy} />
+					hasChatHistory &&
+					!isProjectStarted && <ResetChatHistoryButton agent={onlySelectedFairy} />
 				)}
 				{<FairyMenuButton menuPopoverOpen={menuPopoverOpen}>{dropdownContent}</FairyMenuButton>}
 			</div>
@@ -203,13 +246,16 @@ function FairyMenuButton({
 	menuPopoverOpen: boolean
 	children: ReactNode
 }) {
+	const moreOptionsLabel = useMsg(fairyMessages.moreOptions)
 	return (
 		<TldrawUiDropdownMenuRoot id="fairy-hud-menu" debugOpen={menuPopoverOpen}>
-			<TldrawUiDropdownMenuTrigger>
-				<TldrawUiButton type="icon" className="fairy-toolbar-button">
-					<TldrawUiButtonIcon icon="dots-vertical" small />
-				</TldrawUiButton>
-			</TldrawUiDropdownMenuTrigger>
+			<TldrawUiTooltip content={moreOptionsLabel} side="top">
+				<TldrawUiDropdownMenuTrigger>
+					<TldrawUiButton type="icon" className="fairy-toolbar-button">
+						<TldrawUiButtonIcon icon="dots-vertical" small />
+					</TldrawUiButton>
+				</TldrawUiDropdownMenuTrigger>
+			</TldrawUiTooltip>
 			{children}
 		</TldrawUiDropdownMenuRoot>
 	)
@@ -231,19 +277,24 @@ function FairyDropdownContent({ agents }: { agents: FairyAgent[] }) {
 
 function ResetChatHistoryButton({ agent }: { agent: FairyAgent }) {
 	const trackEvent = useTldrawAppUiEvents()
+	const newChatLabel = useMsg(fairyMessages.newChat)
 	return (
-		<TldrawUiButton
-			type="icon"
-			className="fairy-toolbar-button"
-			// Maybe needs to be reactive
-			disabled={agent.chat.getHistory().length === 0}
-			onClick={() => {
-				trackEvent('fairy-reset-chat', { source: 'fairy-panel', fairyId: agent.id })
-				agent.chat.reset()
-			}}
-		>
-			<TldrawUiButtonIcon icon="plus" small />
-		</TldrawUiButton>
+		<TldrawUiTooltip content={newChatLabel} side="top">
+			<TldrawUiButton
+				type="icon"
+				className="fairy-toolbar-button"
+				// Maybe needs to be reactive
+				disabled={agent.chat.getHistory().length === 0}
+				onClick={() => {
+					trackEvent('fairy-reset-chat', { source: 'fairy-panel', fairyId: agent.id })
+					// Cancel any active generation before resetting the chat
+					agent.cancel()
+					agent.chat.reset()
+				}}
+			>
+				<TldrawUiButtonIcon icon="plus" small />
+			</TldrawUiButton>
+		</TldrawUiTooltip>
 	)
 }
 

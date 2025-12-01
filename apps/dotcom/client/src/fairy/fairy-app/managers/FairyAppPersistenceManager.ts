@@ -73,9 +73,11 @@ export class FairyAppPersistenceManager extends BaseFairyAppManager {
 				this.projectsLoaded = true
 			}
 
+			// Clear any projects since we can't resume them
+			this.fairyApp.projects.disbandAllProjects()
+
 			// Allow a tick for state to settle before allowing saves
 			// This delay ensures all state updates from loading have propagated before we start saving again
-
 			setTimeout(() => {
 				this.isLoadingState = false
 			}, STATE_SETTLE_DELAY_MS)
@@ -109,19 +111,25 @@ export class FairyAppPersistenceManager extends BaseFairyAppManager {
 		}
 	}
 
+	forcePersist() {
+		// Don't save if we're currently loading state
+		if (this.isLoadingState) return
+		if (!this._fileId) return
+
+		const fairyState = this.serializeState()
+		this.fairyApp.tldrawApp.onFairyStateUpdate(this._fileId, fairyState)
+	}
+
+	private _fileId: string | null = null
+
 	/**
 	 * Start watching for state changes and auto-save to backend.
 	 *
 	 * @param fileId - The file ID to save state to
 	 */
 	startAutoSave(fileId: string) {
-		const updateFairyState = throttle(() => {
-			// Don't save if we're currently loading state
-			if (this.isLoadingState) return
-
-			const fairyState = this.serializeState()
-			this.fairyApp.tldrawApp.onFairyStateUpdate(fileId, fairyState)
-		}, 2000) // Save maximum every 2 seconds
+		this._fileId = fileId
+		const updateFairyState = throttle(() => this.forcePersist(), 2000) // Save maximum every 2 seconds
 
 		// Watch for changes in fairy atoms
 		const agents = this.fairyApp.agents.getAgents()
@@ -161,6 +169,8 @@ export class FairyAppPersistenceManager extends BaseFairyAppManager {
 	resetLoadingFlags() {
 		this.fairyTaskListLoaded = false
 		this.projectsLoaded = false
+		// Also reset the agent loaded tracking so agents can be reloaded in the new file
+		this.fairyApp.agents.clearLoadedAgentIds()
 	}
 
 	/**
@@ -176,6 +186,7 @@ export class FairyAppPersistenceManager extends BaseFairyAppManager {
 	 * Dispose of the persistence manager.
 	 */
 	dispose() {
+		this.forcePersist()
 		this.stopAutoSave()
 		super.dispose()
 	}

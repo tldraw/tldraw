@@ -11,12 +11,6 @@
       "value": "Accept invitation"
     }
   ],
-  "01d61b2012": [
-    {
-      "type": 0,
-      "value": "Start your fairy adventure"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -189,6 +183,12 @@
       "value": "About tldraw"
     }
   ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Your fairies are waiting"
+    }
+  ],
   "275173253d": [
     {
       "type": 0,
@@ -347,6 +347,22 @@
       "value": "Get help on Discord"
     }
   ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Fairies"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " have come to tldraw for the month of December."
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -417,6 +433,12 @@
     {
       "type": 0,
       "value": "Delete group…"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "More options"
     }
   ],
   "4e6fbf032b": [
@@ -853,12 +875,6 @@
       "value": "Clear all"
     }
   ],
-  "8472a551f1": [
-    {
-      "type": 0,
-      "value": "Fairies have come to tldraw for the month of December."
-    }
-  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -1139,6 +1155,12 @@
       "value": "Weekly fairy limit reached"
     }
   ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "New chat"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
@@ -1273,6 +1295,12 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Zoom to fairy"
     }
   ],
   "c2276c9127": [
@@ -1559,12 +1587,6 @@
       "value": "Legal summary"
     }
   ],
-  "e2b0147fd2": [
-    {
-      "type": 0,
-      "value": "Your fairies are waiting for you! →"
-    }
-  ],
   "e3afed0047": [
     {
       "type": 0,
@@ -1745,12 +1767,6 @@
     {
       "type": 0,
       "value": "Import file…"
-    }
-  ],
-  "ffec95af2f": [
-    {
-      "type": 0,
-      "value": "Purchase fairy access"
     }
   ]
 }

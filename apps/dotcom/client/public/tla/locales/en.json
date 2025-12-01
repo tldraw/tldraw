@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Accept invitation"
   },
-  "01d61b2012": {
-    "translation": "Start your fairy adventure"
-  },
   "03b3e13197": {
     "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
   },
@@ -92,6 +89,9 @@
   "250ddea65c": {
     "translation": "About tldraw"
   },
+  "269097080b": {
+    "translation": "Your fairies are waiting"
+  },
   "275173253d": {
     "translation": "Summon all"
   },
@@ -164,6 +164,9 @@
   "44db318ee5": {
     "translation": "Get help on Discord"
   },
+  "45b43c2d28": {
+    "translation": "<strong>Fairies</strong> have come to tldraw for the month of December."
+  },
   "46137245cd": {
     "translation": "Thanks for helping us improve tldraw!"
   },
@@ -199,6 +202,9 @@
   },
   "4da5988a2e": {
     "translation": "Delete group…"
+  },
+  "4dab36ac83": {
+    "translation": "More options"
   },
   "4e6fbf032b": {
     "translation": "Are you sure you want to delete this group? This action cannot be undone."
@@ -380,9 +386,6 @@
   "81aa2078d1": {
     "translation": "Clear all"
   },
-  "8472a551f1": {
-    "translation": "Fairies have come to tldraw for the month of December."
-  },
   "85a082de1b": {
     "translation": "Please refresh the page to get the latest version of tldraw."
   },
@@ -512,6 +515,9 @@
   "a8de4c27a8": {
     "translation": "Weekly fairy limit reached"
   },
+  "a917baaf14": {
+    "translation": "New chat"
+  },
   "a9ded1e5ce": {
     "translation": "Background"
   },
@@ -557,6 +563,9 @@
   },
   "bc88b0e89e": {
     "translation": "Shared by {ownerName}"
+  },
+  "be4f1c62d3": {
+    "translation": "Zoom to fairy"
   },
   "c2276c9127": {
     "translation": "Learn more about sharing."
@@ -672,9 +681,6 @@
   "e2ae80a510": {
     "translation": "Legal summary"
   },
-  "e2b0147fd2": {
-    "translation": "Your fairies are waiting for you! →"
-  },
   "e3afed0047": {
     "translation": "Admin"
   },
@@ -758,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Import file…"
-  },
-  "ffec95af2f": {
-    "translation": "Purchase fairy access"
   }
 }

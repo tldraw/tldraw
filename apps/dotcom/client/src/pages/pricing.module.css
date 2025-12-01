@@ -54,11 +54,32 @@
 	background-color: var(--tl-color-text);
 	mask: url(/tldraw_sidebar_logo.svg) center 100% / 100% no-repeat;
 	-webkit-mask: url(/tldraw_sidebar_logo.svg) center 100% / 100% no-repeat;
-	margin-bottom: 24px;
 }
 
-.title {
-	font-weight: bold;
+.pricingContentWrapper {
+	display: flex;
+	flex-direction: column;
+	gap: 40px;
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 21px;
+}
+
+.pricingContentWrapper p {
+	margin-top: 8px;
+	margin-bottom: 8px;
+}
+
+.pricingContentWrapper .footer {
+	display: flex;
+	align-items: center;
+	font-size: 12px;
+}
+
+.pricingDescriptionWrapper {
+	display: flex;
+	gap: 32px;
+	flex-direction: column;
 }
 
 .pricingCard {
@@ -69,9 +90,7 @@
 	padding: 24px;
 	border: 1px solid var(--tl-color-muted-1);
 	border-radius: 8px;
-	background-color: var(--tl-color-background);
-	margin-top: 40px;
-	margin-bottom: 40px;
+	background-color: var(--tl-color-panel);
 	gap: 24px;
 }
 
@@ -115,9 +134,9 @@
 	gap: 0px;
 }
 
-.fairyIcons > * {
-	height: 40px;
-	width: 40px;
+.fairyIcons > :global(.fairy-sprite-container) {
+	height: 44px;
+	width: 44px;
 	z-index: 3;
 }
 
@@ -146,29 +165,89 @@
 	display: flex;
 	justify-content: center;
 	gap: 24px;
+	font-size: 12px;
+	height: 20px;
 }
 
 .footerLink {
 	font-size: 12px;
-	color: var(--tl-color-text-3);
+	color: var(--tl-color-text-3) !important;
 	text-decoration: none;
 }
 
 .footerLink:hover {
-	color: var(--tl-color-text-1);
+	color: var(--tl-color-text-1) !important;
 	text-decoration: underline;
+}
+
+.dialogHeader {
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+
+.dialogFooter {
+	height: 40px;
+}
+
+.dialogBody {
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 21px;
+	overflow-y: auto;
+	max-height: 80vh;
+	padding: 64px 100px;
+	min-width: min(600px, 90vw);
+}
+
+.dialogBody > * {
+	max-width: 499px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.dialogBody p {
+	margin-top: 8px;
+	margin-bottom: 8px;
+}
+
+.dialogBody .footer {
+	display: flex;
+	align-items: center;
+	font-size: 12px;
 }
 
 @media (max-width: 768px) {
 	.container {
 		padding: 16px;
 		padding-top: 32px;
-		align-items: start;
+		align-items: center;
 		font-size: 14px;
+	}
+
+	.dialogBody {
+		padding: 32px 24px;
+		max-height: none;
+		min-width: 95vw;
+	}
+
+	.dialogHeader {
+		height: 32px;
+	}
+
+	.dialogFooter {
+		display: none;
+	}
+
+	.pricingContentWrapper {
+		gap: 24px;
 	}
 
 	.pricingCard {
 		padding: 16px;
+		margin-top: 0;
+		margin-bottom: 0;
 	}
 
 	.fairyIcons > *:nth-of-type(2) {
@@ -189,17 +268,16 @@
 		z-index: 2;
 	}
 
-	.pricingCard {
-		margin-top: 32px;
-		margin-bottom: 32px;
-	}
-
 	.price {
 		font-size: 40px;
 	}
 
 	.footer {
-		flex-direction: column;
-		gap: 8px;
+		gap: 12px;
+		font-size: 12px;
+	}
+
+	.footerLink {
+		font-size: 12px;
 	}
 }

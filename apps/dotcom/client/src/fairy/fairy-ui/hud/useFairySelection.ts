@@ -1,7 +1,7 @@
-import { FairyProject } from '@tldraw/fairy-shared'
 import { MouseEvent, useCallback, useEffect, useState } from 'react'
 import { useValue } from 'tldraw'
 import { useTldrawAppUiEvents } from '../../../tla/utils/app-ui-events'
+import { markManualAsOpened } from '../../../tla/utils/local-session-state'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { useFairyApp } from '../../fairy-app/FairyAppProvider'
 
@@ -46,60 +46,79 @@ export function useFairySelection(agents: FairyAgent[]) {
 		[shownFairy, agents, fairyApp]
 	)
 
-	// Update the chosen fairy when the selected fairies change
+	// Update the shown fairy when selected fairies change
+	// If fairies in a project are selected, show the project view
 	useEffect(() => {
-		if (selectedFairies.length === 1) {
-			setShownFairy(selectedFairies[0])
-		}
 		if (selectedFairies.length === 0) {
 			setShownFairy(null)
+			return
 		}
-	}, [selectedFairies])
 
-	const selectFairy = useCallback(
-		(selectedAgent: FairyAgent) => {
-			// Select the specified fairy
-			selectedAgent.updateEntity((f) => (f ? { ...f, isSelected: true } : f))
+		if (selectedFairies.length === 1) {
+			setShownFairy(selectedFairies[0])
+			return
+		}
 
-			// Deselect all other fairies
-			agents.forEach((agent) => {
-				if (agent.id === selectedAgent.id) return
-				agent.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
-			})
-		},
-		[agents]
-	)
-
-	const selectProjectGroup = useCallback(
-		(project: FairyProject | null) => {
-			if (!project || project.members.length <= 1 || !fairyApp) {
-				return false
-			}
-
-			// Check if project has an orchestrator (meaning it's been started)
-			const orchestratorMember = fairyApp.projects.getProjectOrchestrator(project)
-
+		// Multiple fairies selected - check if they're in a project
+		const firstProject = selectedFairies[0]?.getProject()
+		if (firstProject && firstProject.members.length > 1 && fairyApp) {
+			const orchestratorMember = fairyApp.projects.getProjectOrchestrator(firstProject)
 			if (orchestratorMember) {
 				// Project has been started, show the orchestrator's chat
 				const orchestratorAgent = agents.find((agent) => agent.id === orchestratorMember.id)
 				if (orchestratorAgent) {
-					selectFairy(orchestratorAgent)
-					return true
+					setShownFairy(orchestratorAgent)
+					return
 				}
 			}
-
 			// Project hasn't been started yet, show group creation view
-			const memberIds = new Set(project.members.map((member) => member.id))
-
-			agents.forEach((agent) => {
-				const shouldSelect = memberIds.has(agent.id)
-				agent.updateEntity((f) => (f ? { ...f, isSelected: shouldSelect } : f))
-			})
-
 			setShownFairy(null)
-			return true
+		}
+	}, [selectedFairies, agents, fairyApp])
+
+	// Select a fairy (or all fairies in its project if it's in one)
+	const selectFairy = useCallback(
+		(selectedAgent: FairyAgent) => {
+			const project = selectedAgent.getProject()
+			const isInProject = project && project.members.length > 1
+
+			if (isInProject) {
+				// Select all fairies in the project, deselect others
+				const memberIds = new Set(project.members.map((member) => member.id))
+				agents.forEach((agent) => {
+					const shouldSelect = memberIds.has(agent.id)
+					agent.updateEntity((f) => (f ? { ...f, isSelected: shouldSelect } : f))
+				})
+			} else {
+				// Select just this fairy, deselect others
+				agents.forEach((agent) => {
+					const shouldSelect = agent.id === selectedAgent.id
+					agent.updateEntity((f) => (f ? { ...f, isSelected: shouldSelect } : f))
+				})
+			}
 		},
-		[agents, setShownFairy, selectFairy, fairyApp]
+		[agents]
+	)
+
+	// Deselect a fairy (or all fairies in its project if it's in one)
+	const deselectFairy = useCallback(
+		(agent: FairyAgent) => {
+			const project = agent.getProject()
+			const isInProject = project && project.members.length > 1
+
+			if (isInProject) {
+				// Deselect all fairies in the project
+				const memberIds = new Set(project.members.map((member) => member.id))
+				agents.forEach((a) => {
+					if (memberIds.has(a.id)) {
+						a.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
+					}
+				})
+			} else {
+				agent.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
+			}
+		},
+		[agents]
 	)
 
 	const handleClickFairy = useCallback(
@@ -108,58 +127,51 @@ export function useFairySelection(agents: FairyAgent[]) {
 			const isSelected = clickedAgent.getEntity()?.isSelected ?? false
 			const isChosen = clickedAgent.id === shownFairy?.id
 			const project = clickedAgent.getProject()
+			const isInProject = project && project.members.length > 1
 
 			// Close manual if open
 			if (manualOpen) {
 				setManualOpen(false)
 			}
 
-			if (!isMultiSelect && selectProjectGroup(project)) {
+			// Multi-select is disabled for fairies in projects
+			if (isMultiSelect && isInProject) {
 				return
 			}
 
+			// Multi-select is also disabled if any currently selected fairy is in a project
 			if (isMultiSelect) {
-				// Toggle selection without deselecting others
-				clickedAgent.updateEntity((f) => (f ? { ...f, isSelected: !isSelected } : f))
-			} else {
-				// Single select mode
-				// If clicking an already selected fairy, deselect it
-				if (isSelected && selectedFairies.length === 1) {
-					clickedAgent.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
+				const hasSelectedProject = selectedFairies.some((agent) => {
+					const p = agent.getProject()
+					return p && p.members.length > 1
+				})
+				if (hasSelectedProject) {
 					return
 				}
+				// Toggle selection without deselecting others
+				clickedAgent.updateEntity((f) => (f ? { ...f, isSelected: !isSelected } : f))
+				return
+			}
 
-				if (selectedFairies.length > 1 && panelState !== 'fairy') {
-					// Multiple fairies already selected, panel not open - keep them all selected and show group chat
-					setShownFairy(clickedAgent)
-				} else if (selectedFairies.length > 1 && panelState === 'fairy') {
-					// Multiple fairies selected, panel already open in group chat - switch to single fairy mode
+			// Single click behavior
+			if (isSelected) {
+				// Clicking an already selected fairy
+				const shouldClosePanel = isChosen && panelState === 'fairy'
+				if (shouldClosePanel) {
+					deselectFairy(clickedAgent)
+				} else if (selectedFairies.length > 1) {
+					// Multiple fairies selected, focus on this one
 					selectFairy(clickedAgent)
 				} else {
-					// Normal single select behavior - deselect all others
-					// If the clicked fairy is already chosen and selected, toggle the panel. Otherwise, keep the panel open.
-					const shouldClosePanel =
-						isChosen && isSelected && panelState === 'fairy' && selectedFairies.length <= 1
-					if (shouldClosePanel) {
-						agents.forEach((agent) => {
-							agent.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
-						})
-					} else {
-						selectFairy(clickedAgent)
-					}
+					// Single fairy selected, clicking again deselects
+					deselectFairy(clickedAgent)
 				}
+			} else {
+				// Clicking an unselected fairy - select it (and its project if applicable)
+				selectFairy(clickedAgent)
 			}
 		},
-		[
-			selectFairy,
-			shownFairy,
-			selectedFairies,
-			panelState,
-			selectProjectGroup,
-			agents,
-			manualOpen,
-			setManualOpen,
-		]
+		[selectFairy, deselectFairy, shownFairy, selectedFairies, panelState, manualOpen, setManualOpen]
 	)
 
 	const handleDoubleClickFairy = useCallback(
@@ -193,6 +205,7 @@ export function useFairySelection(agents: FairyAgent[]) {
 			trackEvent('fairy-close-manual', { source: 'fairy-panel' })
 		} else {
 			trackEvent('fairy-switch-to-manual', { source: 'fairy-panel' })
+			markManualAsOpened()
 		}
 		setManualOpen(!wasOpen)
 	}, [trackEvent, manualOpen])

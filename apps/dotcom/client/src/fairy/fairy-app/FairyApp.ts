@@ -78,28 +78,24 @@ export class FairyApp {
 		this.projects = new FairyAppProjectsManager(this)
 		this.tasks = new FairyAppTaskListManager(this)
 		this.waits = new FairyAppWaitManager(this)
+
+		editor.on('crash', () => this.dispose())
+		editor.on('dispose', () => this.dispose())
 	}
 
 	/**
 	 * Dispose of all resources. Call this during cleanup.
 	 */
 	dispose() {
-		// Dispose all agents first (agents may depend on managers)
-		this.agents.disposeAll()
-
-		// Then dispose managers
-		// Stop following any fairy
-		this.following.dispose()
-
-		// Disband all projects
 		this.projects.disbandAllProjects()
-
 		// Stop auto-save
 		this.persistence.dispose()
 
-		// Dispose remaining managers
-		this.tasks.dispose()
-		this.waits.dispose()
+		// Not sure if we need to dispose the rest...
+		// this.agents.disposeAll()
+		// this.following.dispose()
+		// this.tasks.dispose()
+		// this.waits.dispose()
 	}
 
 	getIsApplyingAction(): boolean {
@@ -124,5 +120,13 @@ export class FairyApp {
 
 	setModelSelection(value: AgentModelName): void {
 		this.$modelSelection.set(value)
+	}
+
+	resetEverything() {
+		this.projects.reset()
+		this.tasks.reset()
+		this.agents.reset()
+		this.following.reset()
+		this.waits.reset()
 	}
 }
