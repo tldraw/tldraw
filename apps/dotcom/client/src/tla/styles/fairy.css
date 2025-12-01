@@ -1984,3 +1984,7 @@
 	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tl-radius-2);
 }
+
+.fairy-manual-section a {
+	color: var(--tl-color-primary);
+}
