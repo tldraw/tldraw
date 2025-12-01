@@ -178,6 +178,14 @@ Make sure to give the approximate locations of the work to be done, if relevant,
 
 			if (fairyApp) {
 				fairyApp.projects.addProject(newProject)
+
+				// Select all fairies in the newly created project
+				const allAgents = fairyApp.agents.getAgents()
+				const projectMemberIds = new Set(newProject.members.map((member) => member.id))
+				allAgents.forEach((agent) => {
+					const shouldSelect = projectMemberIds.has(agent.id)
+					agent.updateEntity((f) => (f ? { ...f, isSelected: shouldSelect } : f))
+				})
 			}
 
 			// Set leader as orchestrator
