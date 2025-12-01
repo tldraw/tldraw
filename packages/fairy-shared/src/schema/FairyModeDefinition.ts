@@ -43,6 +43,8 @@ export type FairyModeDefinition = (typeof FAIRY_MODE_DEFINITIONS)[number]
  */
 export type ActiveFairyModeDefinition = (typeof ACTIVE_FAIRY_MODE_DEFINITIONS)[number]
 
+export type FairyModeDefinitionType = FairyModeDefinition['type']
+
 /**
  * Definitions of fairy modes — states that fairies can be in.
  */

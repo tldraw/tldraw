@@ -161,6 +161,8 @@ export class FairyAppPersistenceManager extends BaseFairyAppManager {
 	resetLoadingFlags() {
 		this.fairyTaskListLoaded = false
 		this.projectsLoaded = false
+		// Also reset the agent loaded tracking so agents can be reloaded in the new file
+		this.fairyApp.agents.clearLoadedAgentIds()
 	}
 
 	/**

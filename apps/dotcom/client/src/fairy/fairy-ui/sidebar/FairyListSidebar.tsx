@@ -218,9 +218,7 @@ function ManualButtonWithMenu({
 	const dialogs = useDialogs()
 	const container = useContainer()
 	const areFairiesDebugEnabled = useAreFairiesDebugEnabled()
-	const allAgents = useValue('fairy-agents', () => (fairyApp ? fairyApp.agents.getAgents() : []), [
-		fairyApp,
-	])
+	const allAgents = useValue('fairy-agents', () => fairyApp.agents.getAgents(), [fairyApp])
 
 	const openManualLabel = useMsg(fairyMessages.openManual)
 	const closeManualLabel = useMsg(fairyMessages.closeManual)

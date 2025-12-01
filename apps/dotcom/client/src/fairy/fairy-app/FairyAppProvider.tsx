@@ -6,7 +6,7 @@ import { useTldrawUser } from '../../tla/hooks/useUser'
 import { FairyThrowTool } from '../FairyThrowTool'
 import { FairyApp } from './FairyApp'
 
-const FairyAppContext = createContext<FairyApp | null>(null)
+const FairyAppContext = createContext({} as FairyApp)
 
 export interface FairyAppProviderProps {
 	fileId: string
@@ -114,10 +114,21 @@ export function FairyAppProvider({ fileId, children, onMount, onUnmount }: Fairy
 		if (!fairyApp || !fileId) return
 
 		const fileState = app.getFileState(fileId)
-		if (fileState?.fairyState) {
+		const hasPersistedState = !!fileState?.fairyState
+
+		if (hasPersistedState) {
 			try {
 				const fairyState = JSON.parse(fileState.fairyState)
 				fairyApp.persistence.loadState(fairyState)
+
+				for (const agent of fairyApp.agents.getAgents()) {
+					// We don't persist whether the fairy is sleeping or not, so use the pose
+					const isSleeping = agent.getEntity().pose === 'sleeping'
+					if (!isSleeping) {
+						agent.gesture.clear()
+						agent.mode.setMode('idling')
+					}
+				}
 			} catch (e) {
 				console.error('Failed to parse fairy state:', e)
 			}
@@ -135,6 +146,20 @@ export function FairyAppProvider({ fileId, children, onMount, onUnmount }: Fairy
 		}
 	}, [fairyApp, app, fileId, onMount, onUnmount])
 
+	if (!fairyApp) {
+		return null
+	}
+
+	return <FairyAppContextProvider fairyApp={fairyApp}>{children}</FairyAppContextProvider>
+}
+
+export function FairyAppContextProvider({
+	fairyApp,
+	children,
+}: {
+	fairyApp: FairyApp
+	children: ReactNode
+}) {
 	return <FairyAppContext.Provider value={fairyApp}>{children}</FairyAppContext.Provider>
 }
 
@@ -151,6 +176,6 @@ export function FairyAppProvider({ fileId, children, onMount, onUnmount }: Fairy
  * }
  * ```
  */
-export function useFairyApp(): FairyApp | null {
+export function useFairyApp(): FairyApp {
 	return useContext(FairyAppContext)
 }

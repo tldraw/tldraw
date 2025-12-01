@@ -81,6 +81,11 @@ const RemoteFairies = lazy(() =>
 const FairyHUDTeaser = lazy(() =>
 	import('../../../fairy/fairy-ui/FairyHUDTeaser').then((m) => ({ default: m.FairyHUDTeaser }))
 )
+const FairyAppContextProvider = lazy(() =>
+	import('../../../fairy/fairy-app/FairyAppProvider').then((m) => ({
+		default: m.FairyAppContextProvider,
+	}))
+)
 
 /** @internal */
 export const components: TLComponents = {
@@ -303,27 +308,35 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 		return {
 			...components,
-			Overlays: () => (
-				<>
-					<TldrawOverlays />
-					{shouldShowFairyUI && hoistedFairyApp ? (
-						<Suspense fallback={<div />}>
-							{/* <DebugFairyVision agents={agents} /> */}
-							<RemoteFairies />
-							{canControlFairies && <Fairies fairyApp={hoistedFairyApp} />}
-						</Suspense>
-					) : null}
-				</>
-			),
-			InFrontOfTheCanvas: () => (
-				<>
-					{shouldShowFairyUI && hoistedFairyApp ? (
-						<Suspense fallback={<div />}>
-							{canControlFairies ? <FairyHUD fairyApp={hoistedFairyApp} /> : <FairyHUDTeaser />}
-						</Suspense>
-					) : null}
-				</>
-			),
+			Overlays: () => {
+				return (
+					<>
+						<TldrawOverlays />
+						{shouldShowFairyUI && hoistedFairyApp ? (
+							<Suspense fallback={<div />}>
+								<FairyAppContextProvider fairyApp={hoistedFairyApp}>
+									{/* <DebugFairyVision agents={agents} /> */}
+									<RemoteFairies />
+									{canControlFairies && <Fairies />}
+								</FairyAppContextProvider>
+							</Suspense>
+						) : null}
+					</>
+				)
+			},
+			InFrontOfTheCanvas: () => {
+				return (
+					<>
+						{shouldShowFairyUI && hoistedFairyApp ? (
+							<Suspense fallback={<div />}>
+								<FairyAppContextProvider fairyApp={hoistedFairyApp}>
+									{canControlFairies ? <FairyHUD /> : <FairyHUDTeaser />}
+								</FairyAppContextProvider>
+							</Suspense>
+						) : null}
+					</>
+				)
+			},
 			DebugMenu: () => <CustomDebugMenu />,
 		}
 	}, [hasFairyAccess, areFairiesEnabled, shouldShowFairies, app, hoistedFairyApp])

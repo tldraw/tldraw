@@ -27,9 +27,7 @@ export function FairyMenuContent({
 	const editor = useEditor()
 	const fairyApp = useFairyApp()
 	const trackEvent = useTldrawAppUiEvents()
-	const allAgents = useValue('fairy-agents', () => (fairyApp ? fairyApp.agents.getAgents() : []), [
-		fairyApp,
-	])
+	const allAgents = useValue('fairy-agents', () => fairyApp.agents.getAgents(), [fairyApp])
 
 	const onlyAgent = agents.length === 1 ? agents[0] : null
 	const hasSelected = agents.some((agent) => agent.getEntity()?.isSelected)
