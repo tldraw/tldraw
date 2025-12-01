@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Einladung annehmen"
   },
-  "01d61b2012": {
-    "translation": "Beginne dein Feenabenteuer!"
-  },
   "03b3e13197": {
     "translation": "Ziehen Sie die Datei in die Seitenleiste auf dieser Seite. Oder wählen Sie im Benutzermenü Option „Datei importieren“."
   },
@@ -34,9 +31,6 @@
   },
   "0b27918290": {
     "translation": "Datei"
-  },
-  "0b79795d3e": {
-    "translation": "Einführung"
   },
   "0b9a4cde72": {
     "translation": "Dateimenü"
@@ -91,6 +85,9 @@
   },
   "250ddea65c": {
     "translation": "Über tldraw"
+  },
+  "269097080b": {
+    "translation": "Deine Feen warten."
   },
   "275173253d": {
     "translation": "Alle herbeirufen"
@@ -164,6 +161,9 @@
   "44db318ee5": {
     "translation": "Holen Sie sich Hilfe auf Discord"
   },
+  "45b43c2d28": {
+    "translation": "<strong>Feen</strong> sind gekommen, um sich für den Monat Dezember einzufinden."
+  },
   "46137245cd": {
     "translation": "Danke, dass Sie uns helfen, tldraw zu verbessern!"
   },
@@ -199,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "Gruppe löschen…"
+  },
+  "4dab36ac83": {
+    "translation": "Mehr Optionen"
   },
   "4e6fbf032b": {
     "translation": "Sind Sie sicher, dass Sie diese Gruppe löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
@@ -380,8 +383,8 @@
   "81aa2078d1": {
     "translation": "Alles löschen"
   },
-  "8472a551f1": {
-    "translation": "Feen sind gekommen, um sich für den Monat Dezember einzuzeichnen."
+  "83218ac34c": {
+    "translation": "Willkommen"
   },
   "85a082de1b": {
     "translation": "Bitte aktualisieren Sie die Seite und holden Sie sich die neueste Version von tldraw."
@@ -512,6 +515,9 @@
   "a8de4c27a8": {
     "translation": "Wöchentliches Feenlimit erreicht"
   },
+  "a917baaf14": {
+    "translation": "Neuer Chat"
+  },
   "a9ded1e5ce": {
     "translation": "Hintergrund"
   },
@@ -557,6 +563,9 @@
   },
   "bc88b0e89e": {
     "translation": "Von {ownerName} geteilt"
+  },
+  "be4f1c62d3": {
+    "translation": "Zoomen Sie zur Fee"
   },
   "c2276c9127": {
     "translation": "Erfahren Sie mehr über das Teilen."
@@ -672,9 +681,6 @@
   "e2ae80a510": {
     "translation": "Rechtliche Zusammenfassung"
   },
-  "e2b0147fd2": {
-    "translation": "Deine Feen warten auf dich! →"
-  },
   "e3afed0047": {
     "translation": "Administrator"
   },
@@ -758,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Datei importieren…"
-  },
-  "ffec95af2f": {
-    "translation": "Kaufe Feenzugang"
   }
 }

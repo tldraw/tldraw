@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "招待を承諾する"
   },
-  "01d61b2012": {
-    "translation": "妖精の冒険を始めましょう"
-  },
   "03b3e13197": {
     "translation": "このページのサイドバーにファイルをドラッグします。または、ユーザーメニューから [ファイルをインポート] オプションを選択します。"
   },
@@ -34,9 +31,6 @@
   },
   "0b27918290": {
     "translation": "ファイル"
-  },
-  "0b79795d3e": {
-    "translation": "導入"
   },
   "0b9a4cde72": {
     "translation": "ファイルメニュー"
@@ -91,6 +85,9 @@
   },
   "250ddea65c": {
     "translation": "tldrawについて"
+  },
+  "269097080b": {
+    "translation": "あなたの妖精たちが待っています"
   },
   "275173253d": {
     "translation": "全員召喚"
@@ -164,6 +161,9 @@
   "44db318ee5": {
     "translation": "Discordで問い合わせる"
   },
+  "45b43c2d28": {
+    "translation": "12月は<strong>妖精たち</strong>がtldrawにやって来ます。"
+  },
   "46137245cd": {
     "translation": "tldraw の改善にご協力いただきありがとうございます。"
   },
@@ -199,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "グループを削除…"
+  },
+  "4dab36ac83": {
+    "translation": "その他のオプション"
   },
   "4e6fbf032b": {
     "translation": "このグループを削除してもよろしいですか? この操作は元に戻せません。"
@@ -380,8 +383,8 @@
   "81aa2078d1": {
     "translation": "すべてクリア"
   },
-  "8472a551f1": {
-    "translation": "12月は妖精たちがtldrawにやって来ます。"
+  "83218ac34c": {
+    "translation": "いらっしゃいませ"
   },
   "85a082de1b": {
     "translation": "tldrawの最新バージョンを取得するには、ページを再読み込みしてください。"
@@ -512,6 +515,9 @@
   "a8de4c27a8": {
     "translation": "週間妖精制限に達しました"
   },
+  "a917baaf14": {
+    "translation": "新しいチャット"
+  },
   "a9ded1e5ce": {
     "translation": "背景"
   },
@@ -557,6 +563,9 @@
   },
   "bc88b0e89e": {
     "translation": "{ownerName}さんが共有"
+  },
+  "be4f1c62d3": {
+    "translation": "妖精にズーム"
   },
   "c2276c9127": {
     "translation": "共有についてさらに詳しく。"
@@ -672,9 +681,6 @@
   "e2ae80a510": {
     "translation": "法的概要"
   },
-  "e2b0147fd2": {
-    "translation": "妖精たちがあなたを待っています！→"
-  },
   "e3afed0047": {
     "translation": "管理者"
   },
@@ -758,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "ファイルをインポート…"
-  },
-  "ffec95af2f": {
-    "translation": "妖精のアクセスを購入"
   }
 }

@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Accepter invitationen"
   },
-  "01d61b2012": {
-    "translation": "Start dit fe-eventyr"
-  },
   "03b3e13197": {
     "translation": "Træk filen ind i sidebjælken på denne side. Eller vælg indstillingen 'Importer fil' fra brugermenuen."
   },
@@ -34,9 +31,6 @@
   },
   "0b27918290": {
     "translation": "Fil"
-  },
-  "0b79795d3e": {
-    "translation": "Indledning"
   },
   "0b9a4cde72": {
     "translation": "Fil menu"
@@ -91,6 +85,9 @@
   },
   "250ddea65c": {
     "translation": "Om tldraw"
+  },
+  "269097080b": {
+    "translation": "Dine feer venter"
   },
   "275173253d": {
     "translation": "Indkald alle"
@@ -164,6 +161,9 @@
   "44db318ee5": {
     "translation": "Få hjælp til Discord"
   },
+  "45b43c2d28": {
+    "translation": "<strong>Feer</strong> er kommet for at tegne i december måned."
+  },
   "46137245cd": {
     "translation": "Tak, fordi du hjælper os med at forbedre tldraw!"
   },
@@ -199,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "Slet gruppe…"
+  },
+  "4dab36ac83": {
+    "translation": "Flere muligheder"
   },
   "4e6fbf032b": {
     "translation": "Er du sikker på, at du vil slette denne gruppe? Denne handling kan ikke fortrydes."
@@ -380,8 +383,8 @@
   "81aa2078d1": {
     "translation": "Ryd alt"
   },
-  "8472a551f1": {
-    "translation": "Feer er kommet for at tegne i december måned."
+  "83218ac34c": {
+    "translation": "Velkomst"
   },
   "85a082de1b": {
     "translation": "Opdater siden for at få den seneste version af tldraw."
@@ -512,6 +515,9 @@
   "a8de4c27a8": {
     "translation": "Ugentlig fe-grænse nået"
   },
+  "a917baaf14": {
+    "translation": "Ny chat"
+  },
   "a9ded1e5ce": {
     "translation": "Baggrund"
   },
@@ -557,6 +563,9 @@
   },
   "bc88b0e89e": {
     "translation": "Delt af {ownerName}"
+  },
+  "be4f1c62d3": {
+    "translation": "Zoom til fe"
   },
   "c2276c9127": {
     "translation": "Få mere at vide om deling."
@@ -672,9 +681,6 @@
   "e2ae80a510": {
     "translation": "Juridisk resumé"
   },
-  "e2b0147fd2": {
-    "translation": "Dine feer venter på dig! →"
-  },
   "e3afed0047": {
     "translation": "Admin"
   },
@@ -758,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Importér fil…"
-  },
-  "ffec95af2f": {
-    "translation": "Køb adgang til feer"
   }
 }

@@ -16,7 +16,7 @@ import { useTldrawUser } from '../tla/hooks/useUser'
 import styles from './admin.module.css'
 import { saveMigrationLog } from './migrationLogsDB'
 
-// Helper component for structured data display
+// Helper component for structured data display.
 function StructuredDataDisplay({ data }: { data: ZStoreData }) {
 	const [copied, setCopied] = useState(false)
 

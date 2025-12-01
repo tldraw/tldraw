@@ -11,12 +11,6 @@
       "value": "Uitnodiging accepteren"
     }
   ],
-  "01d61b2012": [
-    {
-      "type": 0,
-      "value": "Begin je sprookjesavontuur"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -73,12 +67,6 @@
     {
       "type": 0,
       "value": "Bestand"
-    }
-  ],
-  "0b79795d3e": [
-    {
-      "type": 0,
-      "value": "Invoering"
     }
   ],
   "0b9a4cde72": [
@@ -187,6 +175,12 @@
     {
       "type": 0,
       "value": "Over tldraw"
+    }
+  ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Je feeën wachten"
     }
   ],
   "275173253d": [
@@ -347,6 +341,22 @@
       "value": "Krijg hulp op Discord"
     }
   ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Feeën"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " zijn gekomen om te tekenen voor de maand december."
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -417,6 +427,12 @@
     {
       "type": 0,
       "value": "Groep verwijderen…"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Meer opties"
     }
   ],
   "4e6fbf032b": [
@@ -853,10 +869,10 @@
       "value": "Alles wissen"
     }
   ],
-  "8472a551f1": [
+  "83218ac34c": [
     {
       "type": 0,
-      "value": "Feeën zijn gekomen om te tekenen voor de maand december."
+      "value": "Welkom"
     }
   ],
   "85a082de1b": [
@@ -1135,6 +1151,12 @@
       "value": "Wekelijkse fee-limiet bereikt"
     }
   ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Nieuwe chat"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
@@ -1269,6 +1291,12 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Zoom naar fee"
     }
   ],
   "c2276c9127": [
@@ -1555,12 +1583,6 @@
       "value": "Juridische samenvatting"
     }
   ],
-  "e2b0147fd2": [
-    {
-      "type": 0,
-      "value": "Jouw feeën wachten op jou! →"
-    }
-  ],
   "e3afed0047": [
     {
       "type": 0,
@@ -1741,12 +1763,6 @@
     {
       "type": 0,
       "value": "Bestand importeren…"
-    }
-  ],
-  "ffec95af2f": [
-    {
-      "type": 0,
-      "value": "Koop feeëntoegang"
     }
   ]
 }

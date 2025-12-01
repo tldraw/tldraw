@@ -11,12 +11,6 @@
       "value": "Prihvati pozivnicu"
     }
   ],
-  "01d61b2012": [
-    {
-      "type": 0,
-      "value": "Započnite svoju vilinsku avanturu"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -73,12 +67,6 @@
     {
       "type": 0,
       "value": "File"
-    }
-  ],
-  "0b79795d3e": [
-    {
-      "type": 0,
-      "value": "Uvod"
     }
   ],
   "0b9a4cde72": [
@@ -187,6 +175,12 @@
     {
       "type": 0,
       "value": "O tldrawu"
+    }
+  ],
+  "269097080b": [
+    {
+      "type": 0,
+      "value": "Tvoje vile čekaju"
     }
   ],
   "275173253d": [
@@ -347,6 +341,22 @@
       "value": "Zatražite pomoć na Discordu"
     }
   ],
+  "45b43c2d28": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Vile"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " su došle crtati za prosinac."
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -417,6 +427,12 @@
     {
       "type": 0,
       "value": "Izbriši grupu…"
+    }
+  ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Više opcija"
     }
   ],
   "4e6fbf032b": [
@@ -853,10 +869,10 @@
       "value": "Obriši sve"
     }
   ],
-  "8472a551f1": [
+  "83218ac34c": [
     {
       "type": 0,
-      "value": "Vile su došle crtati za mjesec prosinac."
+      "value": "Dobrodošli"
     }
   ],
   "85a082de1b": [
@@ -1139,6 +1155,12 @@
       "value": "Dosegnut je tjedni limit vila"
     }
   ],
+  "a917baaf14": [
+    {
+      "type": 0,
+      "value": "Novi razgovor"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
@@ -1277,6 +1299,12 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "be4f1c62d3": [
+    {
+      "type": 0,
+      "value": "Zumiraj do vile"
     }
   ],
   "c2276c9127": [
@@ -1563,12 +1591,6 @@
       "value": "Pravni sažetak"
     }
   ],
-  "e2b0147fd2": [
-    {
-      "type": 0,
-      "value": "Tvoje vile te čekaju! →"
-    }
-  ],
   "e3afed0047": [
     {
       "type": 0,
@@ -1749,12 +1771,6 @@
     {
       "type": 0,
       "value": "Uvoz datoteke…"
-    }
-  ],
-  "ffec95af2f": [
-    {
-      "type": 0,
-      "value": "Kupite pristup vili"
     }
   ]
 }

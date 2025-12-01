@@ -5,9 +5,6 @@
   "00b177e080": {
     "translation": "Aceptar invitación"
   },
-  "01d61b2012": {
-    "translation": "Comienza tu aventura de hadas"
-  },
   "03b3e13197": {
     "translation": "Arrastre el archivo hasta la barra lateral de esta página o seleccione la opción \"Importar archivo\" del menú de usuario."
   },
@@ -34,9 +31,6 @@
   },
   "0b27918290": {
     "translation": "Archivo"
-  },
-  "0b79795d3e": {
-    "translation": "Introducción"
   },
   "0b9a4cde72": {
     "translation": "Menú de archivo"
@@ -91,6 +85,9 @@
   },
   "250ddea65c": {
     "translation": "Acerca de tldraw"
+  },
+  "269097080b": {
+    "translation": "Tus hadas te están esperando"
   },
   "275173253d": {
     "translation": "Convocar a todos"
@@ -164,6 +161,9 @@
   "44db318ee5": {
     "translation": "Obtenga ayuda en Discord"
   },
+  "45b43c2d28": {
+    "translation": "Las <strong>hadas</strong> han venido a tldraw durante el mes de diciembre."
+  },
   "46137245cd": {
     "translation": "¡Gracias por ayudarnos a mejorar tldraw!"
   },
@@ -199,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "Eliminar grupo…"
+  },
+  "4dab36ac83": {
+    "translation": "Más opciones"
   },
   "4e6fbf032b": {
     "translation": "¿Seguro que quieres eliminar este grupo? Esta acción no se puede deshacer."
@@ -380,8 +383,8 @@
   "81aa2078d1": {
     "translation": "Borrar todo"
   },
-  "8472a551f1": {
-    "translation": "Las hadas han venido a dibujar durante el mes de diciembre."
+  "83218ac34c": {
+    "translation": "Bienvenido"
   },
   "85a082de1b": {
     "translation": "Actualice la página para obtener la última versión de tldraw."
@@ -512,6 +515,9 @@
   "a8de4c27a8": {
     "translation": "Se alcanzó el límite semanal de hadas"
   },
+  "a917baaf14": {
+    "translation": "Nuevo chat"
+  },
   "a9ded1e5ce": {
     "translation": "Fondo"
   },
@@ -557,6 +563,9 @@
   },
   "bc88b0e89e": {
     "translation": "Compartido por {ownerName}"
+  },
+  "be4f1c62d3": {
+    "translation": "Zoom al hada"
   },
   "c2276c9127": {
     "translation": "Más información sobre el uso compartido."
@@ -672,9 +681,6 @@
   "e2ae80a510": {
     "translation": "Resumen legal"
   },
-  "e2b0147fd2": {
-    "translation": "¡Tus hadas te están esperando! →"
-  },
   "e3afed0047": {
     "translation": "Administración"
   },
@@ -758,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Importar archivo…"
-  },
-  "ffec95af2f": {
-    "translation": "Comprar acceso de hadas"
   }
 }
