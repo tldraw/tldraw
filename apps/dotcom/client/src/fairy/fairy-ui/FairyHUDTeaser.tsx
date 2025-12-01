@@ -129,7 +129,8 @@ export function FairyHUDTeaser() {
 		<div
 			className={`tla-fairy-hud ${isManualOpen ? 'tla-fairy-hud--open' : ''}`}
 			style={{
-				bottom: mobileMenuOffset !== null ? 64 : isDebugMode ? 48 : 8,
+				// Calculate correct position for android's edge-to-edge mode
+				bottom: mobileMenuOffset !== null ? 'calc(100vh - 100% + 32px)' : isDebugMode ? 48 : 8,
 				right: mobileMenuOffset === null ? 8 : mobileMenuOffset,
 				display: isMobileStylePanelOpen ? 'none' : 'block',
 			}}
