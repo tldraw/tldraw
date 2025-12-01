@@ -331,6 +331,79 @@
 	background-color: var(--tla-color-low);
 }
 
+/* Fairy Invites Section */
+.fairyButtonContainer {
+	margin-bottom: 16px;
+}
+
+.fairyAccessContainer {
+	margin-bottom: 24px;
+}
+
+.fairyEmailInput {
+	width: 250px;
+	margin-left: 8px;
+}
+
+.fairyDescriptionInput {
+	width: 200px;
+	margin-left: 8px;
+}
+
+.fairyMaxUsesInput {
+	width: 120px;
+	margin-left: 8px;
+}
+
+.tableActions {
+	display: flex;
+	gap: 8px;
+}
+
+.paddleSectionHeading {
+	margin-top: 32px;
+}
+
+.paddleButtonContainer {
+	margin-top: 16px;
+}
+
+/* Feature Flags */
+.featureFlagsNote {
+	margin-bottom: 8px;
+}
+
+.featureFlagsDescription {
+	color: var(--tla-color-text-3);
+}
+
+.featureFlagsContainer {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	margin-top: 16px;
+}
+
+.featureFlagItem {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.featureFlagLabel {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	cursor: pointer;
+	min-width: 200px;
+}
+
+/* Batch Migration */
+.sleepInput {
+	width: 100px;
+	margin-left: 8px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
 	.adminHeader {
