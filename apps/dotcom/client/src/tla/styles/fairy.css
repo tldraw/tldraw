@@ -1981,4 +1981,6 @@
 	aspect-ratio: 4 / 3;
 	margin-bottom: 12px;
 	object-fit: contain;
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-2);
 }

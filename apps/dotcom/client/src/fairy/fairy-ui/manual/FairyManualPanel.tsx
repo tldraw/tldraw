@@ -1,6 +1,5 @@
-import { MediaHelpers } from '@tldraw/utils'
-import { RefObject, useEffect, useRef, useState } from 'react'
-import { getFromLocalStorage, setInLocalStorage, useValue } from 'tldraw'
+import { RefObject, useEffect, useRef } from 'react'
+import { getFromLocalStorage, setInLocalStorage, tlenv, useValue } from 'tldraw'
 import { getLocalSessionState } from '../../../tla/utils/local-session-state'
 
 const SCROLL_POSITION_KEY_PREFIX = 'fairy-manual-scroll-position'
@@ -9,7 +8,6 @@ export function FairyManualPanel() {
 	const introductionRef = useRef<HTMLDivElement>(null)
 	const usageRef = useRef<HTMLDivElement>(null)
 	const aboutRef = useRef<HTMLDivElement>(null)
-	const [posterUrl, setPosterUrl] = useState<string>('')
 
 	const fairyManualActiveTab = useValue(
 		'fairy manual active tab',
@@ -55,23 +53,6 @@ export function FairyManualPanel() {
 		}
 	}
 
-	// Generate thumbnail at 6 seconds
-	useEffect(() => {
-		if (posterUrl) return
-
-		const generateThumbnail = async () => {
-			try {
-				const video = await MediaHelpers.loadVideo('https://cdn.tldraw.com/misc/fairy_intro.mp4')
-				const thumbnail = await MediaHelpers.getVideoFrameAsDataUrl(video, 6)
-				setPosterUrl(thumbnail)
-			} catch (error) {
-				console.error('Failed to generate video thumbnail:', error)
-			}
-		}
-
-		generateThumbnail()
-	}, [posterUrl])
-
 	return (
 		<div className="fairy-manual-content-container">
 			{fairyManualActiveTab === 'introduction' && (
@@ -82,10 +63,11 @@ export function FairyManualPanel() {
 				>
 					<video
 						src="https://cdn.tldraw.com/misc/fairy_intro.mp4"
-						poster={posterUrl}
-						autoPlay
 						loop
 						muted
+						controls
+						autoPlay={!(tlenv.isIos || tlenv.isAndroid)}
+						preload="metadata"
 						className="fairy-manual-video"
 					/>
 					<p>Welcome to fairies in tldraw.</p>
