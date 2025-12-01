@@ -15,7 +15,6 @@ interface PricingContentProps {
 }
 
 export function PricingContent({
-	user,
 	hasFairyAccess,
 	isProcessing,
 	onPurchaseClick,
