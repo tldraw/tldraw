@@ -8,8 +8,10 @@ import {
 } from '@tldraw/dotcom-shared'
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { fetch } from 'tldraw'
+import { fetch, useValue } from 'tldraw'
 import { TlaButton } from '../tla/components/TlaButton/TlaButton'
+import { useApp } from '../tla/hooks/useAppState'
+import { usePaddle } from '../tla/hooks/usePaddle'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import styles from './admin.module.css'
 import { saveMigrationLog } from './migrationLogsDB'
@@ -276,6 +278,10 @@ export function Component() {
 }
 
 function FairyInvites() {
+	const tldrawUser = useTldrawUser()
+	const app = useApp()
+	const user = useValue('user', () => app.getUser(), [app])
+	const { paddleLoaded, openPaddleCheckout } = usePaddle()
 	const [invites, setInvites] = useState<
 		Array<{
 			id: string
@@ -602,6 +608,22 @@ function FairyInvites() {
 					</tbody>
 				</table>
 			)}
+
+			<h4 className="tla-text_ui__medium" style={{ marginTop: '32px' }}>
+				Test Paddle Purchase (Testing Only)
+			</h4>
+			<p className="tla-text_ui__small">
+				Test the Paddle checkout flow. This will open the payment overlay for purchasing fairies.
+			</p>
+			<div style={{ marginTop: '16px' }}>
+				<TlaButton
+					onClick={() => openPaddleCheckout(app.userId, user?.email!)}
+					variant="primary"
+					disabled={!paddleLoaded}
+				>
+					Open Paddle Checkout
+				</TlaButton>
+			</div>
 		</div>
 	)
 }
