@@ -121,4 +121,12 @@ export class FairyApp {
 	setModelSelection(value: AgentModelName): void {
 		this.$modelSelection.set(value)
 	}
+
+	resetEverything() {
+		this.projects.reset()
+		this.tasks.reset()
+		this.agents.reset()
+		this.following.reset()
+		this.waits.reset()
+	}
 }

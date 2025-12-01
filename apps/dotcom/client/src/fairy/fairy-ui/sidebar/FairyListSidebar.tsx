@@ -12,7 +12,6 @@ import {
 	useDialogs,
 	useValue,
 } from 'tldraw'
-import { useApp } from '../../../tla/hooks/useAppState'
 import { useMsg } from '../../../tla/utils/i18n'
 import { useAreFairiesDebugEnabled } from '../../../tla/utils/local-session-state'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
@@ -213,7 +212,6 @@ function ManualButtonWithMenu({
 	manualLabel: string
 	onToggleManual(): void
 }) {
-	const app = useApp()
 	const fairyApp = useFairyApp()
 	const dialogs = useDialogs()
 	const container = useContainer()
@@ -236,27 +234,8 @@ function ManualButtonWithMenu({
 	}, [dialogs, allAgents, fairyApp])
 
 	const resetEverything = useCallback(() => {
-		// Stop all running tasks
-		allAgents.forEach((agent: FairyAgent) => {
-			agent.cancel()
-		})
-
-		// Clear the todo list and projects
-		if (fairyApp) {
-			fairyApp.tasks.clearTasksAndProjects()
-		}
-
-		// Reset all chats
-		allAgents.forEach((agent: FairyAgent) => {
-			agent.reset()
-		})
-
-		// Delete all fairies
-		app.z.mutate.user.deleteAllFairyConfigs()
-		allAgents.forEach((agent: FairyAgent) => {
-			agent.dispose()
-		})
-	}, [allAgents, app, fairyApp])
+		fairyApp.resetEverything()
+	}, [fairyApp])
 
 	return (
 		<_ContextMenu.Root dir="ltr">
