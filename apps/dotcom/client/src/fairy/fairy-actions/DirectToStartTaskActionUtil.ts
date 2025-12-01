@@ -4,8 +4,7 @@ import {
 	Streaming,
 	createAgentActionInfo,
 } from '@tldraw/fairy-shared'
-import { $fairyAgentsAtom } from '../fairy-globals'
-import { assignFairyToTask, getFairyTaskById, setFairyTaskStatus } from '../fairy-task-list'
+import { FairyAgent } from '../fairy-agent/FairyAgent'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTaskAction> {
@@ -15,14 +14,14 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 		let otherFairyName = 'a fairy'
 
 		if (action.complete) {
-			const otherFairy = $fairyAgentsAtom
-				.get(this.editor)
-				.find((fairy) => fairy.id === action.otherFairyId)
-			otherFairyName = otherFairy ? otherFairy.$fairyConfig.get().name : 'a fairy'
+			const otherFairy = this.agent.fairyApp.agents
+				.getAgents()
+				.find((fairy: FairyAgent) => fairy.id === action.otherFairyId)
+			otherFairyName = otherFairy ? otherFairy.getConfig().name : 'a fairy'
 		}
 
 		const otherFairyFirstName = otherFairyName.split(' ')[0]
-		const task = action.complete ? getFairyTaskById(action.taskId) : null
+		const task = action.complete ? this.agent.fairyApp.tasks.getTaskById(action.taskId) : null
 
 		const text = action.complete
 			? `Asked ${otherFairyFirstName} to do${task ? `: ${task.title}` : ' a task'}`
@@ -53,7 +52,8 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 			return
 		}
 
-		const otherFairy = $fairyAgentsAtom.get(this.editor).find((fairy) => fairy.id === otherFairyId)
+		const allAgents = this.agent.fairyApp.agents.getAgents()
+		const otherFairy = allAgents.find((fairy: FairyAgent) => fairy.id === otherFairyId)
 		if (!otherFairy) {
 			this.agent.interrupt({
 				input: `Fairy ${otherFairyId} not found. Please take another look at the fairy list and try again.`,
@@ -61,7 +61,7 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 			return
 		}
 
-		const task = getFairyTaskById(taskId)
+		const task = this.agent.fairyApp.tasks.getTaskById(taskId)
 		if (!task) {
 			this.agent.interrupt({
 				input: `Task ${taskId} not found. Please take another look at the task list and try again.`,
@@ -76,10 +76,10 @@ export class DirectToStartTaskActionUtil extends AgentActionUtil<DirectToStartTa
 			return
 		}
 
-		assignFairyToTask(taskId, otherFairyId, $fairyAgentsAtom.get(this.editor))
-		setFairyTaskStatus(taskId, 'in-progress')
+		this.agent.fairyApp.tasks.assignFairyToTask(taskId, otherFairyId, allAgents)
+		this.agent.fairyApp.tasks.setTaskStatus(taskId, 'in-progress')
 
-		const firstName = this.agent.$fairyConfig.get().name.split(' ')[0]
+		const firstName = this.agent.getConfig().name.split(' ')[0]
 		const otherFairyInput: AgentInput = {
 			agentMessages: [`You have been asked to complete task ${taskId}. Please complete it.`],
 			userMessages: [`Asked by ${firstName} to do${task.title ? `: ${task.title}` : ' a task'}`],

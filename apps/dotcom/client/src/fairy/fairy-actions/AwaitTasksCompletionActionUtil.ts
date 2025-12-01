@@ -1,7 +1,5 @@
 import { AwaitTasksCompletionAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
-import { getFairyTaskById } from '../fairy-task-list'
-import { createTaskWaitCondition } from '../fairy-wait-notifications'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class AwaitTasksCompletionActionUtil extends AgentActionUtil<AwaitTasksCompletionAction> {
@@ -30,7 +28,7 @@ export class AwaitTasksCompletionActionUtil extends AgentActionUtil<AwaitTasksCo
 		// Check if all tasks are real
 		const invalidTaskIds: string[] = []
 		for (const taskId of taskIds) {
-			const task = getFairyTaskById(taskId)
+			const task = this.agent.fairyApp.tasks.getTaskById(taskId)
 			if (!task || task.status === 'done') {
 				// todo, should we check if task is in project?
 				invalidTaskIds.push(taskId)
@@ -48,8 +46,8 @@ export class AwaitTasksCompletionActionUtil extends AgentActionUtil<AwaitTasksCo
 
 		// Create a wait condition for each task ID
 		for (const taskId of taskIds) {
-			const condition = createTaskWaitCondition(taskId)
-			this.agent.waitManager.waitFor(condition)
+			const condition = this.agent.fairyApp.waits.createTaskWaitCondition(taskId)
+			this.agent.waits.waitFor(condition)
 		}
 	}
 }

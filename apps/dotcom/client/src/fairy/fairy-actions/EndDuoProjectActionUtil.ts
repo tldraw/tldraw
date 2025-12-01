@@ -1,9 +1,7 @@
 import { EndDuoProjectAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { uniqueId } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
-import { $fairyAgentsAtom } from '../fairy-globals'
-import { deleteProjectAndAssociatedTasks } from '../fairy-projects'
-import { getFairyTasksByProjectId } from '../fairy-task-list'
+import { FairyAgent } from '../fairy-agent/FairyAgent'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction> {
@@ -32,23 +30,23 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 		}
 
 		const membersIds = project.members.map((member) => member.id)
-		const memberAgents = $fairyAgentsAtom
-			.get(this.editor)
-			.filter((agent) => membersIds.includes(agent.id))
+		const memberAgents = this.agent.fairyApp.agents
+			.getAgents()
+			.filter((agent: FairyAgent) => membersIds.includes(agent.id))
 
 		const duoOrchestratorAgent = memberAgents.find(
-			(agent) => agent.getRole() === 'duo-orchestrator'
+			(agent: FairyAgent) => agent.getRole() === 'duo-orchestrator'
 		)
-		const droneAgent = memberAgents.find((agent) => agent.getRole() === 'drone')
+		const droneAgent = memberAgents.find((agent: FairyAgent) => agent.getRole() === 'drone')
 
 		if (!duoOrchestratorAgent || !droneAgent) {
-			deleteProjectAndAssociatedTasks(project.id)
+			this.agent.fairyApp.projects.deleteProjectAndAssociatedTasks(project.id)
 			return
 		}
 
-		const completedTasks = getFairyTasksByProjectId(project.id).filter(
-			(task) => task.status === 'done'
-		)
+		const completedTasks = this.agent.fairyApp.tasks
+			.getTasksByProjectId(project.id)
+			.filter((task) => task.status === 'done')
 
 		// Handle duo-orchestrator
 		const duoOrchestratorCompletedTasks = completedTasks.filter(
@@ -56,7 +54,7 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 		)
 		const duoOrchestratorTaskCount = duoOrchestratorCompletedTasks.length
 		const duoOrchestratorTaskWord = duoOrchestratorTaskCount === 1 ? 'task' : 'tasks'
-		duoOrchestratorAgent.chatManager.push(
+		duoOrchestratorAgent.chat.push(
 			{
 				id: uniqueId(),
 				type: 'memory-transition',
@@ -69,7 +67,7 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 				type: 'prompt',
 				promptSource: 'self',
 				memoryLevel: 'fairy',
-				agentFacingMessage: `I led and completed the "${project.title}" project with my partner, ${droneAgent.$fairyConfig.get()?.name}. I completed ${duoOrchestratorTaskCount} ${duoOrchestratorTaskWord} as part of the project.`,
+				agentFacingMessage: `I led and completed the "${project.title}" project with my partner, ${droneAgent.getConfig()?.name}. I completed ${duoOrchestratorTaskCount} ${duoOrchestratorTaskWord} as part of the project.`,
 				userFacingMessage: null,
 			}
 		)
@@ -80,7 +78,7 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 		if (droneCompletedTasks.length > 0) {
 			const droneTaskCount = droneCompletedTasks.length
 			const droneTaskWord = droneTaskCount === 1 ? 'task' : 'tasks'
-			droneAgent.chatManager.push(
+			droneAgent.chat.push(
 				{
 					id: uniqueId(),
 					type: 'memory-transition',
@@ -93,13 +91,13 @@ export class EndDuoProjectActionUtil extends AgentActionUtil<EndDuoProjectAction
 					type: 'prompt',
 					promptSource: 'self',
 					memoryLevel: 'fairy',
-					agentFacingMessage: `I completed ${droneTaskCount} ${droneTaskWord} as part of the "${project.title}" project with my partner, ${duoOrchestratorAgent.$fairyConfig.get()?.name}.`,
+					agentFacingMessage: `I completed ${droneTaskCount} ${droneTaskWord} as part of the "${project.title}" project with my partner, ${duoOrchestratorAgent.getConfig()?.name}.`,
 					userFacingMessage: `I completed ${droneTaskCount} ${droneTaskWord} as part of the "${project.title}" project.`,
 				}
 			)
 		}
 		droneAgent.interrupt({ mode: 'idling', input: null })
 
-		deleteProjectAndAssociatedTasks(project.id)
+		this.agent.fairyApp.projects.deleteProjectAndAssociatedTasks(project.id)
 	}
 }

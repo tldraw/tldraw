@@ -13,10 +13,10 @@ export function FairySingleChatInput({ agent, onCancel }: { agent: FairyAgent; o
 	const trackEvent = useTldrawAppUiEvents()
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const [inputValue, setInputValue] = useState('')
-	const isGenerating = useValue('isGenerating', () => agent.requestManager.isGenerating(), [agent])
+	const isGenerating = useValue('isGenerating', () => agent.requests.isGenerating(), [agent])
 
-	const fairyEntity = useValue('fairyEntity', () => agent.$fairyEntity.get(), [agent])
-	const fairyConfig = useValue('fairyConfig', () => agent.$fairyConfig.get(), [agent])
+	const fairyEntity = useValue('fairyEntity', () => agent.getEntity(), [agent])
+	const fairyConfig = useValue('fairyConfig', () => agent.getConfig(), [agent])
 
 	// Auto-resize textarea when content changes
 	useLayoutEffect(() => {

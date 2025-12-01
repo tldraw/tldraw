@@ -1,7 +1,10 @@
-import { StartProjectAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
+import {
+	FairyProject,
+	StartProjectAction,
+	Streaming,
+	createAgentActionInfo,
+} from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
-import { $fairyProjects } from '../fairy-globals'
-import { getProjectByAgentId, updateProject } from '../fairy-projects'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> {
@@ -27,7 +30,7 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 
 		const { projectName, projectDescription, projectColor, projectPlan } = action
 
-		const project = getProjectByAgentId(this.agent.id)
+		const project = this.agent.fairyApp.projects.getProjectByAgentId(this.agent.id)
 		if (!project) {
 			this.agent.interrupt({
 				input:
@@ -36,7 +39,9 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 			return
 		}
 
-		const colorAlreadyChosen = $fairyProjects.get().some((p) => p.color === projectColor)
+		const colorAlreadyChosen = this.agent.fairyApp.projects
+			.getProjects()
+			.some((p: FairyProject) => p.color === projectColor)
 		if (colorAlreadyChosen || projectColor === 'white') {
 			this.agent.interrupt({
 				input: `The color ${projectColor} is not available at the moment. Please choose a different color.`,
@@ -44,7 +49,7 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 			return
 		}
 
-		updateProject(project.id, {
+		this.agent.fairyApp.projects.updateProject(project.id, {
 			title: projectName,
 			description: projectDescription,
 			plan: projectPlan,

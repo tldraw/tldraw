@@ -58,7 +58,7 @@ export class OffsetActionUtil extends AgentActionUtil<OffsetAction> {
 		if (shapeIds.length > 0) {
 			const bounds = editor.getShapesPageBounds(shapeIds)
 			if (bounds) {
-				this.agent.positionManager.moveTo(bounds.center)
+				this.agent.position.moveTo(bounds.center)
 			}
 		}
 	}

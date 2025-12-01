@@ -31,7 +31,7 @@ function FairyChatHistoryMessageDisplay({
 	agent: FairyAgent
 }) {
 	const { action } = item
-	const info = agent.actionManager.getActionInfo(action)
+	const info = agent.actions.getActionInfo(action)
 	const content = info.description
 
 	if (!content) return null
@@ -65,18 +65,16 @@ function FairyChatHistoryActionDisplay({
 	}, [contentRef, item.action])
 
 	// if (action._type === 'update-shared-todo-list') return null
-	const info = agent.actionManager.getActionInfo(action)
+	const info = agent.actions.getActionInfo(action)
 
 	const displayText =
 		info.description || info.summary || formatActionName(action._type || 'unknown')
 
 	const isFinalItem = group.isFinalGroup && group.items.indexOf(item) === group.items.length - 1
 
-	const agentIsGenerating = useValue(
-		'agent-is-generating',
-		() => agent.requestManager.isGenerating(),
-		[agent]
-	)
+	const agentIsGenerating = useValue('agent-is-generating', () => agent.requests.isGenerating(), [
+		agent,
+	])
 	const actionIsStreaming = agentIsGenerating && isFinalItem
 
 	return (

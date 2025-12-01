@@ -1,12 +1,11 @@
 import { DeleteProjectTaskAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
-import { deleteFairyTask, getFairyTaskById } from '../fairy-task-list'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class DeleteProjectTaskActionUtil extends AgentActionUtil<DeleteProjectTaskAction> {
 	static override type = 'delete-project-task' as const
 
 	override getInfo(action: Streaming<DeleteProjectTaskAction>) {
-		const task = action.taskId ? getFairyTaskById(action.taskId) : null
+		const task = action.taskId ? this.agent.fairyApp.tasks.getTaskById(action.taskId) : null
 		const taskName = task?.title || action.taskId || 'task'
 		return createAgentActionInfo({
 			icon: 'trash',
@@ -23,7 +22,7 @@ export class DeleteProjectTaskActionUtil extends AgentActionUtil<DeleteProjectTa
 		const project = this.agent.getProject()
 		if (!project) return
 
-		const task = getFairyTaskById(action.taskId)
+		const task = this.agent.fairyApp.tasks.getTaskById(action.taskId)
 		if (!task) {
 			this.agent.interrupt({
 				input: `Task ${action.taskId} not found. Please take another look at the task list and try again.`,
@@ -39,6 +38,6 @@ export class DeleteProjectTaskActionUtil extends AgentActionUtil<DeleteProjectTa
 			return
 		}
 
-		deleteFairyTask(action.taskId)
+		this.agent.fairyApp.tasks.deleteTask(action.taskId)
 	}
 }

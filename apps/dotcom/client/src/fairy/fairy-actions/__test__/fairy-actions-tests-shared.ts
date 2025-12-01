@@ -48,16 +48,26 @@ export function createTestAgent(editor: Editor) {
 		})
 	})
 
+	const getOriginSpy = vi.fn(() => ({ x: 0, y: 0 }))
+
 	return {
 		id: 'test-fairy',
 		editor,
-		app: {} as any,
+		fairyApp: {} as any,
 		$fairyEntity,
-		positionManager: {
+		getEntity: () => $fairyEntity.get(),
+		updateEntity: (next: any) => {
+			if (typeof next === 'function') {
+				$fairyEntity.update(next)
+			} else {
+				$fairyEntity.set(next)
+			}
+		},
+		position: {
 			moveTo: moveToSpy,
 		},
-		chatOriginManager: {
-			getOrigin: vi.fn(() => ({ x: 0, y: 0 })),
+		chatOrigin: {
+			getOrigin: getOriginSpy,
 		},
 		interrupt: vi.fn(),
 		schedule: vi.fn(),

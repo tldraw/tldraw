@@ -28,6 +28,6 @@ export class DeletePersonalTodoItemsActionUtil extends AgentActionUtil<DeletePer
 		if (!action.complete) return
 		if (!this.agent) return
 
-		this.agent.todoManager.delete(action.ids)
+		this.agent.todos.delete(action.ids)
 	}
 }

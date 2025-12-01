@@ -99,7 +99,7 @@ describe('ReviewActionUtil', () => {
 			})
 
 			const helpers = new AgentHelpers(agent)
-			const setSpy = vi.spyOn(agent.$fairyEntity, 'set')
+			const setSpy = vi.spyOn(agent, 'updateEntity')
 
 			reviewUtil.applyAction(action, helpers)
 
@@ -123,15 +123,15 @@ describe('ReviewActionUtil', () => {
 			})
 
 			// set the pose to something other than idle
-			agent.$fairyEntity.set({ ...agent.$fairyEntity.get(), pose: 'thinking' })
+			agent.updateEntity((f) => (f ? { ...f, pose: 'thinking' } : f))
 
 			const helpers = new AgentHelpers(agent)
-			const initialPose = agent.$fairyEntity.get().pose
+			const initialPose = agent.getEntity().pose
 
 			reviewUtil.applyAction(action, helpers)
 
 			// Verify the fairy's pose actually changed to idle
-			const newPose = agent.$fairyEntity.get().pose
+			const newPose = agent.getEntity().pose
 			expect(newPose).toBe('idle')
 			expect(newPose).not.toBe(initialPose)
 		})

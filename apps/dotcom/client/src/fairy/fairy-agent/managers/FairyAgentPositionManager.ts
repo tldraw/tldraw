@@ -1,8 +1,6 @@
-import { Box, react, VecModel } from 'tldraw'
-import { $fairyAgentsAtom, $followingFairyId } from '../../fairy-globals'
+import { Box, VecModel } from 'tldraw'
 import { AgentHelpers } from '../AgentHelpers'
 import { FairyAgent } from '../FairyAgent'
-import { getFairyAgentById } from '../fairyAgentsAtom'
 import { BaseFairyAgentManager } from './BaseFairyAgentManager'
 
 /**
@@ -33,7 +31,7 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 	 * @returns void
 	 */
 	moveTo(position: VecModel) {
-		this.agent.$fairyEntity.update((fairy) => {
+		this.agent.updateEntity((fairy) => {
 			return {
 				...fairy,
 				position: AgentHelpers.RoundVec(position),
@@ -49,7 +47,7 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 	 * @returns void
 	 */
 	zoomTo() {
-		const entity = this.agent.$fairyEntity.get()
+		const entity = this.agent.getEntity()
 		if (!entity) return
 
 		// Switch to the fairy's page
@@ -75,8 +73,8 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 		const center = this.agent.editor.getViewportPageBounds().center
 		const position = offset ? { x: center.x + offset.x, y: center.y + offset.y } : center
 		const currentPageId = this.agent.editor.getCurrentPageId()
-		this.agent.$fairyEntity.update((f) => (f ? { ...f, position, currentPageId } : f))
-		this.agent.gestureManager.push('poof', 400)
+		this.agent.updateEntity((f) => (f ? { ...f, position, currentPageId } : f))
+		this.agent.gesture.push('poof', 400)
 	}
 
 	/**
@@ -89,10 +87,10 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 	moveToSpawnPoint() {
 		const spawnPoint = this.findFairySpawnPoint()
 		const currentPageId = this.agent.editor.getCurrentPageId()
-		this.agent.$fairyEntity.update((f) =>
+		this.agent.updateEntity((f) =>
 			f ? { ...f, position: AgentHelpers.RoundVec(spawnPoint), currentPageId } : f
 		)
-		this.agent.gestureManager.push('poof', 400)
+		this.agent.gesture.push('poof', 400)
 	}
 
 	/**
@@ -102,87 +100,10 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 	 * @returns void
 	 */
 	startFollowing() {
-		const { editor } = this.agent
 		const fairyId = this.agent.id
 		this.stopFollowing()
-
-		const agent = getFairyAgentById(fairyId, editor)
-		if (!agent) {
-			console.warn('Could not find fairy agent with id:', fairyId)
-			return
-		}
-
-		$followingFairyId.update(editor, () => fairyId)
-
-		// Track last seen position/page to avoid redundant zooms and feedback loops
-		let lastX: number | null = null
-		let lastY: number | null = null
-		let lastPageId: string | null = null
-
-		const disposeFollow = react('follow fairy', () => {
-			const currentFairyId = this.getFollowingFairyId()
-			if (currentFairyId !== fairyId) {
-				// We're no longer following this fairy
-				return
-			}
-
-			const currentAgent = getFairyAgentById(fairyId, editor)
-			if (!currentAgent) {
-				this.stopFollowing()
-				return
-			}
-
-			const fairyEntity = currentAgent.$fairyEntity.get()
-			if (!fairyEntity) {
-				this.stopFollowing()
-				return
-			}
-
-			// Only react when position or page actually changes
-			const { x, y } = fairyEntity.position
-			const pageId = fairyEntity.currentPageId
-			const EPS = 0.5
-			const samePage = lastPageId === pageId
-			const sameX = lastX !== null && Math.abs(lastX - x) < EPS
-			const sameY = lastY !== null && Math.abs(lastY - y) < EPS
-			if (samePage && sameX && sameY) return
-
-			lastX = x
-			lastY = y
-			lastPageId = pageId
-
-			currentAgent.positionManager.zoomTo()
-		})
-
-		// Listen for user input events that should stop following
-		const onWheel = () => this.stopFollowing()
-		document.addEventListener('wheel', onWheel, { passive: false, capture: true })
-
-		// Also stop following when the user manually changes pages
-		const disposePageChange = react('stop following on page change', () => {
-			const currentPageId = editor.getCurrentPageId()
-
-			// Skip initial page check
-			if (!lastPageId) {
-				return
-			}
-
-			// If user changed page manually (not from following), stop following
-			const currentAgent = getFairyAgentById(fairyId, editor)
-			if (currentAgent) {
-				const fairyPageId = currentAgent.$fairyEntity.get()?.currentPageId
-				if (currentPageId !== fairyPageId && currentPageId !== lastPageId) {
-					this.stopFollowing()
-				}
-			}
-		})
-
-		// Store dispose functions so we can clean them up later
-		this.disposables.add(() => {
-			disposeFollow()
-			disposePageChange()
-			document.removeEventListener('wheel', onWheel)
-		})
+		// Delegate to the following manager which handles all the following logic
+		this.agent.fairyApp.following.startFollowing(fairyId)
 	}
 
 	/**
@@ -191,9 +112,7 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 	 * @returns void
 	 */
 	stopFollowing() {
-		const { editor } = this.agent
-		this.dispose()
-		$followingFairyId.update(editor, () => null)
+		this.agent.fairyApp.following.stopFollowing()
 	}
 
 	/**
@@ -212,7 +131,7 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 	 */
 	findFairySpawnPoint(): VecModel {
 		const editor = this.agent.editor
-		const existingAgents = $fairyAgentsAtom.get(editor)
+		const existingAgents = this.agent.fairyApp.agents.getAgents()
 		const MIN_DISTANCE = 200
 		const INITIAL_BOX_SIZE = 100 // Start with a smaller box near center
 		const BOX_EXPANSION = 50 // Smaller expansion increments to stay closer to center
@@ -237,8 +156,8 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 			}
 
 			// Check if the candidate is far enough from all existing fairies
-			const tooClose = existingAgents.some((agent) => {
-				const otherPosition = agent.$fairyEntity.get().position
+			const tooClose = existingAgents.some((agent: FairyAgent) => {
+				const otherPosition = agent.getEntity().position
 				const distance = Math.sqrt(
 					Math.pow(candidate.x - otherPosition.x, 2) + Math.pow(candidate.y - otherPosition.y, 2)
 				)
@@ -269,7 +188,6 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 	 * @returns The ID of the fairy being followed, or null if no fairy is being followed.
 	 */
 	getFollowingFairyId(): string | null {
-		const { editor } = this.agent
-		return $followingFairyId.get(editor)
+		return this.agent.fairyApp.following.getFollowingFairyId()
 	}
 }

@@ -25,14 +25,6 @@ export class FairyAgentChatOriginManager extends BaseFairyAgentManager {
 	}
 
 	/**
-	 * Reset the chat origin manager to its initial state.
-	 * Sets the origin back to (0, 0).
-	 */
-	reset(): void {
-		this.$chatOrigin.set({ x: 0, y: 0 })
-	}
-
-	/**
 	 * Set the chat origin position on the canvas.
 	 * The origin represents where the conversation started spatially.
 	 * @param origin - The position where the chat started, with x and y coordinates.
@@ -47,6 +39,14 @@ export class FairyAgentChatOriginManager extends BaseFairyAgentManager {
 	 */
 	getOrigin() {
 		return this.$chatOrigin.get()
+	}
+
+	/**
+	 * Reset the chat origin manager to its initial state.
+	 * Sets the origin back to (0, 0).
+	 */
+	reset(): void {
+		this.$chatOrigin.set({ x: 0, y: 0 })
 	}
 
 	/**

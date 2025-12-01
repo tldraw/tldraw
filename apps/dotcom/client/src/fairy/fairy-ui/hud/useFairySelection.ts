@@ -3,11 +3,12 @@ import { MouseEvent, useCallback, useEffect, useState } from 'react'
 import { useValue } from 'tldraw'
 import { useTldrawAppUiEvents } from '../../../tla/utils/app-ui-events'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
-import { getProjectOrchestrator } from '../../fairy-projects'
+import { useFairyApp } from '../../fairy-app/FairyAppProvider'
 
 export type FairyHUDPanelState = 'fairy' | 'manual' | 'closed'
 
 export function useFairySelection(agents: FairyAgent[]) {
+	const fairyApp = useFairyApp()
 	const trackEvent = useTldrawAppUiEvents()
 	const [manualOpen, setManualOpen] = useState(false)
 	const [shownFairy, setShownFairy] = useState<FairyAgent | null>(null)
@@ -17,8 +18,7 @@ export function useFairySelection(agents: FairyAgent[]) {
 		'selected-fairies',
 		() =>
 			agents.filter(
-				(agent) =>
-					(agent.$fairyEntity.get()?.isSelected && !agent.modeManager.isSleeping()) ?? false
+				(agent) => (agent.getEntity()?.isSelected && !agent.mode.isSleeping()) ?? false
 			),
 		[agents]
 	)
@@ -33,17 +33,17 @@ export function useFairySelection(agents: FairyAgent[]) {
 	const activeOrchestratorAgent = useValue(
 		'shown-orchestrator',
 		() => {
-			if (!shownFairy) return null
+			if (!shownFairy || !fairyApp) return null
 			const project = shownFairy.getProject()
 			if (!project) return null
 
-			const orchestratorMember = getProjectOrchestrator(project)
+			const orchestratorMember = fairyApp.projects.getProjectOrchestrator(project)
 			if (!orchestratorMember) return null
 
 			// Return the actual FairyAgent, not just the member
 			return agents.find((agent) => agent.id === orchestratorMember.id) ?? null
 		},
-		[shownFairy, agents]
+		[shownFairy, agents, fairyApp]
 	)
 
 	// Update the chosen fairy when the selected fairies change
@@ -59,12 +59,12 @@ export function useFairySelection(agents: FairyAgent[]) {
 	const selectFairy = useCallback(
 		(selectedAgent: FairyAgent) => {
 			// Select the specified fairy
-			selectedAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
+			selectedAgent.updateEntity((f) => (f ? { ...f, isSelected: true } : f))
 
 			// Deselect all other fairies
 			agents.forEach((agent) => {
 				if (agent.id === selectedAgent.id) return
-				agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+				agent.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
 			})
 		},
 		[agents]
@@ -72,12 +72,12 @@ export function useFairySelection(agents: FairyAgent[]) {
 
 	const selectProjectGroup = useCallback(
 		(project: FairyProject | null) => {
-			if (!project || project.members.length <= 1) {
+			if (!project || project.members.length <= 1 || !fairyApp) {
 				return false
 			}
 
 			// Check if project has an orchestrator (meaning it's been started)
-			const orchestratorMember = getProjectOrchestrator(project)
+			const orchestratorMember = fairyApp.projects.getProjectOrchestrator(project)
 
 			if (orchestratorMember) {
 				// Project has been started, show the orchestrator's chat
@@ -93,19 +93,19 @@ export function useFairySelection(agents: FairyAgent[]) {
 
 			agents.forEach((agent) => {
 				const shouldSelect = memberIds.has(agent.id)
-				agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: shouldSelect } : f))
+				agent.updateEntity((f) => (f ? { ...f, isSelected: shouldSelect } : f))
 			})
 
 			setShownFairy(null)
 			return true
 		},
-		[agents, setShownFairy, selectFairy]
+		[agents, setShownFairy, selectFairy, fairyApp]
 	)
 
 	const handleClickFairy = useCallback(
 		(clickedAgent: FairyAgent, event: MouseEvent) => {
 			const isMultiSelect = event.shiftKey || event.metaKey || event.ctrlKey
-			const isSelected = clickedAgent.$fairyEntity.get().isSelected
+			const isSelected = clickedAgent.getEntity()?.isSelected ?? false
 			const isChosen = clickedAgent.id === shownFairy?.id
 			const project = clickedAgent.getProject()
 
@@ -120,12 +120,12 @@ export function useFairySelection(agents: FairyAgent[]) {
 
 			if (isMultiSelect) {
 				// Toggle selection without deselecting others
-				clickedAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: !isSelected } : f))
+				clickedAgent.updateEntity((f) => (f ? { ...f, isSelected: !isSelected } : f))
 			} else {
 				// Single select mode
 				// If clicking an already selected fairy, deselect it
 				if (isSelected && selectedFairies.length === 1) {
-					clickedAgent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+					clickedAgent.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
 					return
 				}
 
@@ -142,7 +142,7 @@ export function useFairySelection(agents: FairyAgent[]) {
 						isChosen && isSelected && panelState === 'fairy' && selectedFairies.length <= 1
 					if (shouldClosePanel) {
 						agents.forEach((agent) => {
-							agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+							agent.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
 						})
 					} else {
 						selectFairy(clickedAgent)
@@ -166,12 +166,12 @@ export function useFairySelection(agents: FairyAgent[]) {
 		(clickedAgent: FairyAgent) => {
 			trackEvent('fairy-double-click', { source: 'fairy-sidebar', fairyId: clickedAgent.id })
 			trackEvent('fairy-zoom-to', { source: 'fairy-sidebar', fairyId: clickedAgent.id })
-			clickedAgent.positionManager.zoomTo()
+			clickedAgent.position.zoomTo()
 
 			// If the clicked fairy is part of an active project, select the orchestrator instead
 			const project = clickedAgent.getProject()
-			if (project) {
-				const orchestratorMember = getProjectOrchestrator(project)
+			if (project && fairyApp) {
+				const orchestratorMember = fairyApp.projects.getProjectOrchestrator(project)
 				if (orchestratorMember) {
 					const orchestratorAgent = agents.find((agent) => agent.id === orchestratorMember.id)
 					if (orchestratorAgent) {
@@ -183,7 +183,7 @@ export function useFairySelection(agents: FairyAgent[]) {
 
 			selectFairy(clickedAgent)
 		},
-		[selectFairy, agents, trackEvent]
+		[selectFairy, agents, trackEvent, fairyApp]
 	)
 
 	const handleToggleManual = useCallback(() => {

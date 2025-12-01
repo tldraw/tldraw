@@ -75,7 +75,7 @@ export class CreateActionUtil extends AgentActionUtil<CreateAction> {
 			}
 		}
 
-		this.agent.positionManager.moveTo({
+		this.agent.position.moveTo({
 			x: result.shape.x,
 			y: result.shape.y,
 		})

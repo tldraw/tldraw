@@ -7,10 +7,10 @@ export class ChatHistoryPartUtil extends PromptPartUtil<ChatHistoryPart> {
 	static override type = 'chatHistory' as const
 
 	override async getPart(_request: AgentRequest) {
-		const allItems = structuredClone(this.agent.chatManager.getHistory())
+		const allItems = structuredClone(this.agent.chat.getHistory())
 
 		// Get the current mode's memory level
-		const modeDefinition = getFairyModeDefinition(this.agent.modeManager.getMode())
+		const modeDefinition = getFairyModeDefinition(this.agent.mode.getMode())
 		const { memoryLevel } = modeDefinition
 
 		const filteredItems = filterChatHistoryByMode(allItems, memoryLevel)

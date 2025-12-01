@@ -35,11 +35,11 @@ describe('MovePositionActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			movePositionUtil.applyAction(action, helpers)
 
-			expect(agent.positionManager.moveTo).not.toHaveBeenCalled()
+			expect(agent.position.moveTo).not.toHaveBeenCalled()
 		})
 
 		it('should move agent to specified position', () => {
-			const initialFairyPosition = agent.$fairyEntity.get().position
+			const initialFairyPosition = agent.getEntity().position
 
 			const action = createAgentAction({
 				_type: 'move-position',
@@ -53,9 +53,9 @@ describe('MovePositionActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			movePositionUtil.applyAction(action, helpers)
 
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 
-			const newFairyPosition = agent.$fairyEntity.get().position
+			const newFairyPosition = agent.getEntity().position
 			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
 			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})
@@ -81,7 +81,7 @@ describe('MovePositionActionUtil', () => {
 		})
 
 		it('should handle moving to origin', () => {
-			const initialFairyPosition = agent.$fairyEntity.get().position
+			const initialFairyPosition = agent.getEntity().position
 
 			const action = createAgentAction({
 				_type: 'move-position',
@@ -95,9 +95,9 @@ describe('MovePositionActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			movePositionUtil.applyAction(action, helpers)
 
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 			// Verify the fairy's position changed (unless it was already at origin)
-			const newFairyPosition = agent.$fairyEntity.get().position
+			const newFairyPosition = agent.getEntity().position
 			if (initialFairyPosition.x !== 0 || initialFairyPosition.y !== 0) {
 				expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
 				expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
@@ -105,7 +105,7 @@ describe('MovePositionActionUtil', () => {
 		})
 
 		it('should handle negative coordinates', () => {
-			const initialFairyPosition = agent.$fairyEntity.get().position
+			const initialFairyPosition = agent.getEntity().position
 
 			const action = createAgentAction({
 				_type: 'move-position',
@@ -119,15 +119,15 @@ describe('MovePositionActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			movePositionUtil.applyAction(action, helpers)
 
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 
-			const newFairyPosition = agent.$fairyEntity.get().position
+			const newFairyPosition = agent.getEntity().position
 			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
 			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})
 
 		it('should handle large coordinates', () => {
-			const initialFairyPosition = agent.$fairyEntity.get().position
+			const initialFairyPosition = agent.getEntity().position
 
 			const action = createAgentAction({
 				_type: 'move-position',
@@ -141,15 +141,15 @@ describe('MovePositionActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			movePositionUtil.applyAction(action, helpers)
 
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 
-			const newFairyPosition = agent.$fairyEntity.get().position
+			const newFairyPosition = agent.getEntity().position
 			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
 			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})
 
 		it('should handle fractional coordinates', () => {
-			const initialFairyPosition = agent.$fairyEntity.get().position
+			const initialFairyPosition = agent.getEntity().position
 
 			const action = createAgentAction({
 				_type: 'move-position',
@@ -163,9 +163,9 @@ describe('MovePositionActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			movePositionUtil.applyAction(action, helpers)
 
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 
-			const newFairyPosition = agent.$fairyEntity.get().position
+			const newFairyPosition = agent.getEntity().position
 			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
 			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})
@@ -189,7 +189,7 @@ describe('MovePositionActionUtil', () => {
 		})
 
 		it('should handle moving along y-axis only', () => {
-			const initialFairyPosition = agent.$fairyEntity.get().position
+			const initialFairyPosition = agent.getEntity().position
 
 			const action = createAgentAction({
 				_type: 'move-position',
@@ -203,16 +203,16 @@ describe('MovePositionActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			movePositionUtil.applyAction(action, helpers)
 
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 			// Verify the fairy's y position changed (x may or may not change depending on initial position)
-			const newFairyPosition = agent.$fairyEntity.get().position
+			const newFairyPosition = agent.getEntity().position
 			if (initialFairyPosition.y !== 500) {
 				expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 			}
 		})
 
 		it('should handle very small movements', () => {
-			const initialFairyPosition = agent.$fairyEntity.get().position
+			const initialFairyPosition = agent.getEntity().position
 
 			const action = createAgentAction({
 				_type: 'move-position',
@@ -226,9 +226,9 @@ describe('MovePositionActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			movePositionUtil.applyAction(action, helpers)
 
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 			// Verify the fairy's position changed (may be rounded, but should be different from initial)
-			const newFairyPosition = agent.$fairyEntity.get().position
+			const newFairyPosition = agent.getEntity().position
 			if (initialFairyPosition.x !== 0 || initialFairyPosition.y !== 0) {
 				expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
 				expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
@@ -236,7 +236,7 @@ describe('MovePositionActionUtil', () => {
 		})
 
 		it('should handle rapid successive movements', () => {
-			const initialFairyPosition = agent.$fairyEntity.get().position
+			const initialFairyPosition = agent.getEntity().position
 
 			const actions = [
 				createAgentAction({
@@ -271,9 +271,9 @@ describe('MovePositionActionUtil', () => {
 				movePositionUtil.applyAction(action, helpers)
 			})
 
-			expect(agent.positionManager.moveTo).toHaveBeenCalledTimes(3)
+			expect(agent.position.moveTo).toHaveBeenCalledTimes(3)
 			// Verify the fairy's final position changed from initial
-			const finalFairyPosition = agent.$fairyEntity.get().position
+			const finalFairyPosition = agent.getEntity().position
 			expect(finalFairyPosition.x).not.toBe(initialFairyPosition.x)
 			expect(finalFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})

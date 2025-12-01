@@ -1,9 +1,11 @@
 import { useEditor, useValue } from 'tldraw'
 import { Fairy, SelectedFairy } from '../Fairy'
-import { FairyAgent } from '../fairy-agent/FairyAgent'
+import { FairyApp } from '../fairy-app/FairyApp'
 
-export function Fairies({ agents }: { agents: FairyAgent[] }) {
+export function Fairies({ fairyApp }: { fairyApp: FairyApp }) {
 	const editor = useEditor()
+
+	const agents = useValue('fairy-agents', () => fairyApp?.agents.getAgents() ?? [], [fairyApp])
 	const currentPageId = useValue('current page id', () => editor.getCurrentPageId(), [editor])
 
 	// Reactively filter fairies based on current page and each fairy's currentPageId
@@ -11,12 +13,10 @@ export function Fairies({ agents }: { agents: FairyAgent[] }) {
 		'active fairies on page',
 		() => {
 			return agents.filter((agent) => {
-				const entity = agent.$fairyEntity.get()
+				const entity = agent.getEntity()
 				// Only show fairies that exist and are on the current page
 				return (
-					entity !== undefined &&
-					entity.currentPageId === currentPageId &&
-					!agent.modeManager.isSleeping()
+					entity !== undefined && entity.currentPageId === currentPageId && !agent.mode.isSleeping()
 				)
 			})
 		},
@@ -27,13 +27,13 @@ export function Fairies({ agents }: { agents: FairyAgent[] }) {
 		'selected fairies',
 		() => {
 			return agents.filter((agent) => {
-				const entity = agent.$fairyEntity.get()
+				const entity = agent.getEntity()
 				// Only show fairies that exist and are on the current page
 				return (
 					entity !== undefined &&
 					entity.currentPageId === currentPageId &&
-					agent.$fairyEntity.get()?.isSelected &&
-					!agent.modeManager.isSleeping()
+					entity.isSelected &&
+					!agent.mode.isSleeping()
 				)
 			})
 		},

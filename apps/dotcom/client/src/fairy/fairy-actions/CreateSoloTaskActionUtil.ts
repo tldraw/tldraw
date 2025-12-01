@@ -4,7 +4,6 @@ import {
 	createAgentActionInfo,
 } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
-import { createFairyTask } from '../fairy-task-list'
 import { AgentActionUtil } from './AgentActionUtil'
 
 // Creates a task for themselves
@@ -28,7 +27,7 @@ export class CreateSoloTaskActionUtil extends AgentActionUtil<CreateSoloTaskActi
 			h: action.h,
 		})
 
-		createFairyTask({
+		this.agent.fairyApp.tasks.createTask({
 			id: action.taskId,
 			title: action.title,
 			text: action.text,

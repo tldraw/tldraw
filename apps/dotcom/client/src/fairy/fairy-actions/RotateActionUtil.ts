@@ -32,6 +32,6 @@ export class RotateActionUtil extends AgentActionUtil<RotateAction> {
 		const radians = (action.degrees * Math.PI) / 180
 
 		agent.editor.rotateShapesBy(shapeIds, radians, { center: origin })
-		agent.positionManager.moveTo(origin)
+		agent.position.moveTo(origin)
 	}
 }

@@ -27,6 +27,7 @@ import {
 	type TLStore,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
+
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
@@ -58,10 +59,14 @@ import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
+// eslint-disable-next-line local/no-fairy-imports -- ok for types
+import { type FairyApp } from '../../../fairy/fairy-app/FairyApp'
+
 // Lazy load fairy components
-const FairyApp = lazy(() =>
-	import('../../../fairy/FairyApp').then((m) => ({
-		default: m.FairyApp,
+
+const FairyAppProvider = lazy(() =>
+	import('../../../fairy/fairy-app/FairyAppProvider').then((m) => ({
+		default: m.FairyAppProvider,
 	}))
 )
 const FairyHUD = lazy(() =>
@@ -118,6 +123,8 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const fileId = fileSlug
 
 	const setIsReady = useSetIsReady()
+
+	const [hoistedFairyApp, setHoistedFairyApp] = useState<FairyApp | null>(null)
 
 	const dialogs = useDialogs()
 	// need to wrap this in a useEvent to prevent the context id from changing on us
@@ -287,20 +294,9 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const areFairiesEnabled = useAreFairiesEnabled()
 	const shouldShowFairies = useShouldShowFairies()
 
-	// Fairy stuff
-
-	// TODO(mime): use TldrawFairyAgent[] type when ready
-	const [_agents, setAgents] = useState<any[]>([])
-	// filter out deleted fairies (setAgents gets called after a fairy has been deleted)
-	const agents = useValue('agents', () => _agents.filter((a) => a.$fairyConfig.get()), [_agents])
-	// keep a ref in sync so getUserPresence can read current agents without re-create the callback
-	useEffect(() => {
-		agentsRef.current = agents
-	}, [agents])
-
 	const instanceComponents = useMemo((): TLComponents => {
 		// User can control their own fairies if they have fairy access and it's enabled
-		const canControlFairies = app && agents && hasFairyAccess && areFairiesEnabled
+		const canControlFairies = app && hasFairyAccess && areFairiesEnabled
 		// Show fairy UI (HUD, remote fairies) if feature flag is enabled and local toggle is on
 		// This allows guests to see fairies on shared files without requiring login
 		const shouldShowFairyUI = shouldShowFairies && areFairiesEnabled
@@ -310,27 +306,27 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			Overlays: () => (
 				<>
 					<TldrawOverlays />
-					{shouldShowFairyUI ? (
+					{shouldShowFairyUI && hoistedFairyApp ? (
 						<Suspense fallback={<div />}>
 							{/* <DebugFairyVision agents={agents} /> */}
 							<RemoteFairies />
-							{canControlFairies && <Fairies agents={agents} />}
+							{canControlFairies && <Fairies fairyApp={hoistedFairyApp} />}
 						</Suspense>
 					) : null}
 				</>
 			),
 			InFrontOfTheCanvas: () => (
 				<>
-					{shouldShowFairyUI ? (
+					{shouldShowFairyUI && hoistedFairyApp ? (
 						<Suspense fallback={<div />}>
-							{canControlFairies ? <FairyHUD agents={agents} /> : <FairyHUDTeaser />}
+							{canControlFairies ? <FairyHUD fairyApp={hoistedFairyApp} /> : <FairyHUDTeaser />}
 						</Suspense>
 					) : null}
 				</>
 			),
 			DebugMenu: () => <CustomDebugMenu />,
 		}
-	}, [agents, hasFairyAccess, areFairiesEnabled, shouldShowFairies, app])
+	}, [hasFairyAccess, areFairiesEnabled, shouldShowFairies, app, hoistedFairyApp])
 
 	return (
 		<TlaEditorWrapper>
@@ -355,7 +351,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				<SneakyLargeFileHander />
 				{app && hasFairyAccess && areFairiesEnabled && (
 					<Suspense fallback={null}>
-						<FairyApp setAgents={setAgents} fileId={fileId} />
+						<FairyAppProvider
+							fileId={fileId}
+							onMount={setHoistedFairyApp}
+							onUnmount={() => setHoistedFairyApp(null)}
+						/>
 					</Suspense>
 				)}
 			</Tldraw>

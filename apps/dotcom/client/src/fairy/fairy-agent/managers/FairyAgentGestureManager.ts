@@ -24,10 +24,29 @@ export class FairyAgentGestureManager extends BaseFairyAgentManager {
 	private stack: { id: string; gesture: FairyPose }[] = []
 
 	/**
+	 * Map of gesture IDs to their timeout IDs for cleanup tracking.
+	 */
+	private timeoutIds = new Map<string, ReturnType<typeof setTimeout>>()
+
+	/**
 	 * Creates a new gesture manager for the given fairy agent.
 	 */
 	constructor(public agent: FairyAgent) {
 		super(agent)
+		// Register cleanup function to clear all timeouts on dispose
+		this.disposables.add(() => {
+			this.clearAllTimeouts()
+		})
+	}
+
+	/**
+	 * Clears all active timeouts.
+	 */
+	private clearAllTimeouts(): void {
+		for (const timeoutId of this.timeoutIds.values()) {
+			clearTimeout(timeoutId)
+		}
+		this.timeoutIds.clear()
 	}
 
 	/**
@@ -36,9 +55,10 @@ export class FairyAgentGestureManager extends BaseFairyAgentManager {
 	 * @returns void
 	 */
 	reset(): void {
+		this.clearAllTimeouts()
 		this.stack = []
 		const agent = this.agent
-		agent.$fairyEntity.update((fairy) => ({ ...fairy, gesture: null }))
+		agent.updateEntity((fairy) => ({ ...fairy, gesture: null }))
 	}
 
 	/**
@@ -47,9 +67,17 @@ export class FairyAgentGestureManager extends BaseFairyAgentManager {
 	 * @returns void
 	 */
 	pop() {
-		this.stack.pop()
+		const popped = this.stack.pop()
+		if (popped) {
+			// Clear timeout if this gesture had one
+			const timeoutId = this.timeoutIds.get(popped.id)
+			if (timeoutId) {
+				clearTimeout(timeoutId)
+				this.timeoutIds.delete(popped.id)
+			}
+		}
 		const finalGesture = this.stack[this.stack.length - 1]?.gesture ?? null
-		this.agent.$fairyEntity.update((fairy) => ({ ...fairy, gesture: finalGesture }))
+		this.agent.updateEntity((fairy) => ({ ...fairy, gesture: finalGesture }))
 	}
 
 	/**
@@ -63,14 +91,15 @@ export class FairyAgentGestureManager extends BaseFairyAgentManager {
 	 */
 	push(gesture: FairyPose, duration?: number) {
 		const { agent } = this
-		agent.$fairyEntity.update((fairy) => ({ ...fairy, gesture: gesture }))
+		agent.updateEntity((fairy) => ({ ...fairy, gesture: gesture }))
 
 		const id = uniqueId()
 		this.stack.push({ id, gesture })
 		if (duration) {
-			setTimeout(() => {
+			const timeoutId = setTimeout(() => {
 				this.pop()
 			}, duration)
+			this.timeoutIds.set(id, timeoutId)
 		}
 	}
 
@@ -80,8 +109,9 @@ export class FairyAgentGestureManager extends BaseFairyAgentManager {
 	 * @returns void
 	 */
 	clear() {
+		this.clearAllTimeouts()
 		const { agent } = this
 		this.stack = []
-		agent.$fairyEntity.update((fairy) => ({ ...fairy, gesture: null }))
+		agent.updateEntity((fairy) => ({ ...fairy, gesture: null }))
 	}
 }

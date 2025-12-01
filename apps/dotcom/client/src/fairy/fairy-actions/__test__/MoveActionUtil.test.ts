@@ -216,7 +216,7 @@ describe('MoveActionUtil', () => {
 			const id1 = createShapeId('shape1')
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 
-			const initialFairyPosition = agent.$fairyEntity.get().position
+			const initialFairyPosition = agent.getEntity().position
 
 			const action = createAgentAction({
 				_type: 'move',
@@ -231,9 +231,9 @@ describe('MoveActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			moveUtil.applyAction(action, helpers)
 
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 
-			const newFairyPosition = agent.$fairyEntity.get().position
+			const newFairyPosition = agent.getEntity().position
 			expect(newFairyPosition.x).not.toBe(initialFairyPosition.x)
 			expect(newFairyPosition.y).not.toBe(initialFairyPosition.y)
 		})
@@ -298,7 +298,7 @@ describe('MoveActionUtil', () => {
 			// Verify the shape position actually changed
 			expect(shapeAfter!.x).not.toBe(initialX)
 			expect(shapeAfter!.y).not.toBe(initialY)
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 		})
 
 		it('should apply offset transformations correctly', () => {
@@ -306,7 +306,7 @@ describe('MoveActionUtil', () => {
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 
 			// Set up a chat origin offset
-			vi.mocked(agent.chatOriginManager.getOrigin).mockReturnValue({ x: 50, y: 50 })
+			vi.mocked(agent.chatOrigin.getOrigin).mockReturnValue({ x: 50, y: 50 })
 
 			const action = createAgentAction({
 				_type: 'move',
@@ -322,7 +322,7 @@ describe('MoveActionUtil', () => {
 			moveUtil.applyAction(action, helpers)
 
 			// The offset should be applied when moving the shape
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 		})
 
 		it('should handle negative coordinates', () => {
@@ -351,7 +351,7 @@ describe('MoveActionUtil', () => {
 			// Verify the shape moved (position should be different)
 			expect(shapeAfter!.x).not.toBe(initialX)
 			expect(shapeAfter!.y).not.toBe(initialY)
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 		})
 
 		it('should handle zero coordinates', () => {
@@ -380,7 +380,7 @@ describe('MoveActionUtil', () => {
 			// Verify the shape moved from its initial position
 			expect(shapeAfter!.x).not.toBe(initialX)
 			expect(shapeAfter!.y).not.toBe(initialY)
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 		})
 	})
 })

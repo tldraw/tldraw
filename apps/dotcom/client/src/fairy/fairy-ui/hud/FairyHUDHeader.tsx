@@ -21,7 +21,7 @@ import {
 	updateLocalSessionState,
 } from '../../../tla/utils/local-session-state'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
-import { getProjectOrchestrator } from '../../fairy-projects'
+import { useFairyApp } from '../../fairy-app/FairyAppProvider'
 import { FairyMenuContent } from '../menus/FairyMenuContent'
 import { FairyHUDPanelState } from './useFairySelection'
 
@@ -45,14 +45,15 @@ export function FairyHUDHeader({
 	allAgents,
 	onToggleManual,
 }: FairyHUDHeaderProps) {
+	const fairyApp = useFairyApp()
 	const trackEvent = useTldrawAppUiEvents()
-	const fairyConfig = useValue('fairy config', () => shownFairy?.$fairyConfig.get(), [shownFairy])
+	const fairyConfig = useValue('fairy config', () => shownFairy?.getConfig(), [shownFairy])
 
 	// Get the project for the shown fairy
 	const project = useValue('project', () => shownFairy?.getProject(), [shownFairy])
 
 	// Check if the project has been started (has an orchestrator)
-	const isProjectStarted = project && getProjectOrchestrator(project)
+	const isProjectStarted = project && fairyApp && fairyApp.projects.getProjectOrchestrator(project)
 
 	const fairyClickable = useValue(
 		'fairy clickable',
@@ -75,12 +76,12 @@ export function FairyHUDHeader({
 		if (!fairyClickable || !shownFairy) return
 
 		trackEvent('fairy-zoom-to', { source: 'fairy-panel', fairyId: shownFairy.id })
-		shownFairy.positionManager.zoomTo()
+		shownFairy.position.zoomTo()
 	}, [shownFairy, fairyClickable, trackEvent])
 
 	const hasChatHistory = useValue(
 		'has-chat-history',
-		() => shownFairy && shownFairy.chatManager.getHistory().length > 0,
+		() => shownFairy && shownFairy.chat.getHistory().length > 0,
 		[shownFairy]
 	)
 
@@ -101,7 +102,7 @@ export function FairyHUDHeader({
 		'formatted-fairy-names',
 		() => {
 			const names = selectedFairies.map(
-				(agent) => (agent.$fairyConfig.get()?.name ?? 'fairy').split(' ')[0]
+				(agent) => (agent.getConfig()?.name ?? 'fairy').split(' ')[0]
 			)
 			if (names.length === 0) return ''
 			if (names.length === 1) return `${names[0]}`
@@ -128,7 +129,7 @@ export function FairyHUDHeader({
 	const selectAllFairies = useCallback(() => {
 		trackEvent('fairy-select-all', { source: 'fairy-panel' })
 		allAgents.forEach((agent) => {
-			agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
+			agent.updateEntity((f) => (f ? { ...f, isSelected: true } : f))
 		})
 	}, [allAgents, trackEvent])
 
@@ -235,10 +236,10 @@ function ResetChatHistoryButton({ agent }: { agent: FairyAgent }) {
 			type="icon"
 			className="fairy-toolbar-button"
 			// Maybe needs to be reactive
-			disabled={agent.chatManager.getHistory().length === 0}
+			disabled={agent.chat.getHistory().length === 0}
 			onClick={() => {
 				trackEvent('fairy-reset-chat', { source: 'fairy-panel', fairyId: agent.id })
-				agent.chatManager.reset()
+				agent.chat.reset()
 			}}
 		>
 			<TldrawUiButtonIcon icon="plus" small />
@@ -250,9 +251,9 @@ function SelectAllIcon() {
 	return (
 		<svg width="15" height="15" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
 			<g fill="currentColor">
-				<circle cx="15" cy="9" r="3" />
-				<circle cx="10" cy="18" r="3" />
-				<circle cx="20" cy="18" r="3" />
+				<circle cx="15" cy="9" r="2.5" />
+				<circle cx="10" cy="18" r="2.5" />
+				<circle cx="20" cy="18" r="2.5" />
 			</g>
 		</svg>
 	)

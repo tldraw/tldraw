@@ -13,7 +13,7 @@ export function DebugFairyVision({ agents }: { agents: FairyAgent[] }) {
 }
 
 function AgentVision({ agent }: { agent: FairyAgent }) {
-	const fairyEntity = useValue(agent.$fairyEntity)
+	const fairyEntity = useValue('fairy-entity', () => agent.getEntity(), [agent])
 	const fairyPosition = fairyEntity.position
 	const visionBounds = Box.FromCenter(fairyPosition, FAIRY_VISION_DIMENSIONS)
 

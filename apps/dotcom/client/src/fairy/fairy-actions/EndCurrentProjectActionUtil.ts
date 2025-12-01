@@ -1,9 +1,7 @@
 import { EndCurrentProjectAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { uniqueId } from 'tldraw'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
-import { $fairyAgentsAtom } from '../fairy-globals'
-import { deleteProjectAndAssociatedTasks } from '../fairy-projects'
-import { getFairyTasksByProjectId } from '../fairy-task-list'
+import { FairyAgent } from '../fairy-agent/FairyAgent'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProjectAction> {
@@ -32,21 +30,21 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 		}
 
 		const membersIds = project.members.map((member) => member.id)
-		const memberAgents = $fairyAgentsAtom
-			.get(this.editor)
-			.filter((agent) => membersIds.includes(agent.id))
+		const memberAgents = this.agent.fairyApp.agents
+			.getAgents()
+			.filter((agent: FairyAgent) => membersIds.includes(agent.id))
 
-		const completedTasks = getFairyTasksByProjectId(project.id).filter(
-			(task) => task.status === 'done'
-		)
+		const completedTasks = this.agent.fairyApp.tasks
+			.getTasksByProjectId(project.id)
+			.filter((task) => task.status === 'done')
 
-		memberAgents.forEach((memberAgent) => {
+		memberAgents.forEach((memberAgent: FairyAgent) => {
 			const otherMemberIds = memberAgents
-				.map((agent) => agent.id)
-				.filter((id) => id !== memberAgent.id)
+				.map((agent: FairyAgent) => agent.id)
+				.filter((id: string) => id !== memberAgent.id)
 
 			if (memberAgent.id === this.agent.id) {
-				memberAgent.chatManager.push(
+				memberAgent.chat.push(
 					{
 						id: uniqueId(),
 						type: 'memory-transition',
@@ -71,7 +69,7 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 			if (memberCompletedTasks.length > 0) {
 				const count = memberCompletedTasks.length
 				const taskWord = count === 1 ? 'task' : 'tasks'
-				memberAgent.chatManager.push(
+				memberAgent.chat.push(
 					{
 						id: uniqueId(),
 						type: 'memory-transition',
@@ -92,6 +90,6 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 			memberAgent.interrupt({ mode: 'idling', input: null })
 		})
 
-		deleteProjectAndAssociatedTasks(project.id)
+		this.agent.fairyApp.projects.deleteProjectAndAssociatedTasks(project.id)
 	}
 }

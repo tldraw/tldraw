@@ -1,6 +1,4 @@
-import { AgentRequest, FairyModeDefinition } from '@tldraw/fairy-shared'
-import { $fairyAgentsAtom, $fairyTasks } from '../fairy-globals'
-import { getFairyTasksByProjectId } from '../fairy-task-list'
+import { AgentRequest, FairyModeDefinition, FairyTask } from '@tldraw/fairy-shared'
 import { FairyAgent } from './FairyAgent'
 
 function startPromptTimer(agent: FairyAgent): void {
@@ -14,7 +12,7 @@ function stopPromptTimer(agent: FairyAgent): void {
 	if (agent.promptStartTime !== null) {
 		const endTime = performance.now()
 		const duration = (endTime - agent.promptStartTime) / 1000
-		const fairyName = agent.$fairyConfig.get().name
+		const fairyName = agent.getConfig().name
 		// eslint-disable-next-line no-console
 		console.log(`🧚 Fairy "${fairyName}" prompt completed in ${duration.toFixed(2)}s`)
 		agent.promptStartTime = null
@@ -37,18 +35,18 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			// Check one-shot mode flag and set mode accordingly
 			const oneShotMode = agent.$useOneShottingMode.get()
 			if (oneShotMode) {
-				agent.modeManager.setMode('one-shotting')
+				agent.mode.setMode('one-shotting')
 			} else {
-				agent.modeManager.setMode('soloing')
+				agent.mode.setMode('soloing')
 			}
 		},
 		onEnter(agent, fromMode) {
 			// If waking up from sleeping, move to a spawn point near the viewport center
 			if (fromMode === 'sleeping') {
-				agent.positionManager.moveToSpawnPoint()
+				agent.position.moveToSpawnPoint()
 			}
-			agent.todoManager.deleteAll()
-			agent.userActionTracker.clearHistory()
+			agent.todos.deleteAll()
+			agent.userAction.clearHistory()
 			stopPromptTimer(agent)
 		},
 	},
@@ -59,29 +57,29 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	},
 	['one-shotting']: {
 		onPromptEnd(agent) {
-			const todoList = agent.todoManager.getTodos()
+			const todoList = agent.todos.getTodos()
 			const incompleteTodoItems = todoList.filter((item) => item.status !== 'done')
 			if (incompleteTodoItems.length > 0) {
 				agent.schedule(
 					"Continue until all your todo items are marked as done. If you've completed the work, feel free to mark them as done, otherwise keep going."
 				)
 			} else {
-				agent.modeManager.setMode('idling')
+				agent.mode.setMode('idling')
 			}
 		},
 		onPromptCancel(agent) {
-			agent.modeManager.setMode('one-shotting-pausing')
+			agent.mode.setMode('one-shotting-pausing')
 		},
 		onExit(agent, toMode) {
 			if (toMode !== 'one-shotting-pausing') {
-				agent.userActionTracker.clearHistory()
-				agent.todoManager.deleteAll()
+				agent.userAction.clearHistory()
+				agent.todos.deleteAll()
 			}
 		},
 	},
 	['one-shotting-pausing']: {
 		onPromptStart(agent) {
-			agent.modeManager.setMode('one-shotting')
+			agent.mode.setMode('one-shotting')
 		},
 		onEnter(agent) {
 			stopPromptTimer(agent)
@@ -90,16 +88,18 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	soloing: {
 		onPromptEnd(agent) {
 			// Continue if there are outstanding tasks
-			const myTasks = $fairyTasks.get().filter((task) => task.assignedTo === agent.id)
-			const incompleteTasks = myTasks.filter((task) => task.status !== 'done')
+			const myTasks = agent.fairyApp.tasks
+				.getTasks()
+				.filter((task: FairyTask) => task.assignedTo === agent.id)
+			const incompleteTasks = myTasks.filter((task: FairyTask) => task.status !== 'done')
 			if (incompleteTasks.length > 0) {
 				agent.schedule('Continue until all tasks are marked as complete.')
 			} else {
-				agent.modeManager.setMode('idling')
+				agent.mode.setMode('idling')
 			}
 		},
 		onPromptCancel(agent) {
-			agent.modeManager.setMode('idling')
+			agent.mode.setMode('idling')
 		},
 	},
 	['standing-by']: {
@@ -109,12 +109,12 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	},
 	['working-drone']: {
 		onEnter(agent) {
-			agent.userActionTracker.clearHistory()
-			agent.todoManager.deleteAll()
+			agent.userAction.clearHistory()
+			agent.todos.deleteAll()
 		},
 		onExit(agent) {
-			agent.userActionTracker.clearHistory()
-			agent.todoManager.deleteAll()
+			agent.userAction.clearHistory()
+			agent.todos.deleteAll()
 		},
 		onPromptEnd(agent, request) {
 			// Keep going until the task is complete
@@ -129,13 +129,13 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	},
 	['working-solo']: {
 		onEnter(agent) {
-			agent.userActionTracker.clearHistory()
-			agent.todoManager.flush()
+			agent.userAction.clearHistory()
+			agent.todos.flush()
 		},
 		onExit(agent) {
 			// Wipe todo list after finishing a task
-			agent.userActionTracker.clearHistory()
-			agent.todoManager.flush()
+			agent.userAction.clearHistory()
+			agent.todos.flush()
 		},
 		onPromptEnd(agent, request) {
 			// Keep going until the task is complete
@@ -145,25 +145,23 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 			})
 		},
 		onPromptCancel(agent) {
-			agent.modeManager.setMode('idling')
+			agent.mode.setMode('idling')
 		},
 	},
 	['orchestrating-active']: {
 		onPromptEnd(agent) {
 			const project = agent.getProject()
 			if (!project) {
-				agent.modeManager.setMode('idling')
+				agent.mode.setMode('idling')
 				return
 			}
 
-			if (agent.waitManager.isWaiting()) {
+			if (agent.waits.isWaiting()) {
 				const members = project.members.filter((member) => member.id !== agent.id)
-				const memberAgents = $fairyAgentsAtom
-					.get(agent.editor)
-					.filter((agent) => members.some((member) => member.id === agent.id))
-				const activeMemberAgents = memberAgents.filter((agent) =>
-					agent.requestManager.isGenerating()
-				)
+				const memberAgents = agent.fairyApp.agents
+					.getAgents()
+					.filter((a: FairyAgent) => members.some((member) => member.id === a.id))
+				const activeMemberAgents = memberAgents.filter((a: FairyAgent) => a.requests.isGenerating())
 
 				// If there are no active members, we need to deploy someone again probably!
 				if (activeMemberAgents.length === 0) {
@@ -174,12 +172,12 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 				}
 
 				// Wait for all other members to finish their tasks
-				agent.modeManager.setMode('orchestrating-waiting')
+				agent.mode.setMode('orchestrating-waiting')
 				return
 			}
 
-			if (agent.waitManager.getWaitingFor().length === 0) {
-				const projectTasks = getFairyTasksByProjectId(project.id)
+			if (agent.waits.getWaitingFor().length === 0) {
+				const projectTasks = agent.fairyApp.tasks.getTasksByProjectId(project.id)
 				const outstandingTasks = projectTasks.filter((task) => task.status !== 'done')
 				const completedTasks = projectTasks.filter((task) => task.status === 'done')
 				if (outstandingTasks.length > 0) {
@@ -208,7 +206,7 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	},
 	['orchestrating-waiting']: {
 		onPromptStart(agent) {
-			agent.modeManager.setMode('orchestrating-active')
+			agent.mode.setMode('orchestrating-active')
 		},
 		onEnter(agent) {
 			stopPromptTimer(agent)
@@ -218,25 +216,27 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 		onPromptEnd(agent) {
 			const project = agent.getProject()
 			if (!project) {
-				agent.modeManager.setMode('idling')
+				agent.mode.setMode('idling')
 				return
 			}
 
-			if (agent.waitManager.isWaiting()) {
+			if (agent.waits.isWaiting()) {
 				const partner = project.members.find((member) => member.id !== agent.id)
 				if (!partner) {
-					agent.modeManager.setMode('idling')
+					agent.mode.setMode('idling')
 					return
 				}
 
-				const partnerAgent = $fairyAgentsAtom.get(agent.editor).find((a) => a.id === partner.id)
+				const partnerAgent = agent.fairyApp.agents
+					.getAgents()
+					.find((a: FairyAgent) => a.id === partner.id)
 				if (!partnerAgent) {
-					agent.modeManager.setMode('idling')
+					agent.mode.setMode('idling')
 					return
 				}
 
 				// If partner is not active, we might need to deploy them again or continue ourselves
-				if (!partnerAgent.requestManager.isGenerating()) {
+				if (!partnerAgent.requests.isGenerating()) {
 					agent.schedule(
 						'Your partner is not currently working on tasks. Consider directing them to start a task, starting a task yourself, or ending the project if all tasks are complete.'
 					)
@@ -244,12 +244,12 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 				}
 
 				// Wait for partner to finish their tasks
-				agent.modeManager.setMode('duo-orchestrating-waiting')
+				agent.mode.setMode('duo-orchestrating-waiting')
 				return
 			}
 
-			if (agent.waitManager.getWaitingFor().length === 0) {
-				const projectTasks = getFairyTasksByProjectId(project.id)
+			if (agent.waits.getWaitingFor().length === 0) {
+				const projectTasks = agent.fairyApp.tasks.getTasksByProjectId(project.id)
 				const outstandingTasks = projectTasks.filter((task) => task.status !== 'done')
 				const completedTasks = projectTasks.filter((task) => task.status === 'done')
 				if (outstandingTasks.length > 0) {
@@ -278,7 +278,7 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	},
 	['duo-orchestrating-waiting']: {
 		onPromptStart(agent) {
-			agent.modeManager.setMode('duo-orchestrating-active')
+			agent.mode.setMode('duo-orchestrating-active')
 		},
 		onEnter(agent) {
 			stopPromptTimer(agent)
@@ -286,12 +286,12 @@ export const FAIRY_MODE_CHART: Record<FairyModeDefinition['type'], FairyModeNode
 	},
 	['working-orchestrator']: {
 		onEnter(agent) {
-			agent.userActionTracker.clearHistory()
-			agent.todoManager.deleteAll()
+			agent.userAction.clearHistory()
+			agent.todos.deleteAll()
 		},
 		onExit(agent) {
-			agent.userActionTracker.clearHistory()
-			agent.todoManager.deleteAll()
+			agent.userAction.clearHistory()
+			agent.todos.deleteAll()
 		},
 		onPromptEnd(agent, request) {
 			// Keep going until the task is complete

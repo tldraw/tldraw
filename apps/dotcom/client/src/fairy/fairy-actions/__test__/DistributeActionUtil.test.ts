@@ -150,7 +150,7 @@ describe('DistributeActionUtil', () => {
 			distributeUtil.applyAction(action)
 
 			// Should move to center of bounds
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 		})
 
 		it('should not move fairy if shapes have no bounds', () => {
@@ -165,7 +165,7 @@ describe('DistributeActionUtil', () => {
 
 			distributeUtil.applyAction(action)
 
-			expect(agent.positionManager.moveTo).not.toHaveBeenCalled()
+			expect(agent.position.moveTo).not.toHaveBeenCalled()
 		})
 
 		it('should handle distribution with two shapes', () => {
@@ -196,7 +196,7 @@ describe('DistributeActionUtil', () => {
 			// At least one shape should have moved
 			const shapesMoved = shape2After!.x !== initialX2
 			expect(shapesMoved).toBe(true)
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 		})
 	})
 })

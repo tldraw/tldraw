@@ -391,9 +391,9 @@ describe('PenActionUtil', () => {
 
 			penUtil.applyAction(action, new AgentHelpers(agent))
 
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 			// @ts-expect-error - we're testing the mock
-			const callArgs = agent.positionManager.moveTo.mock.calls[0][0]
+			const callArgs = agent.position.moveTo.mock.calls[0][0]
 			// Position might be slightly off due to point interpolation, but should be reasonably close
 			expect(Math.abs(callArgs.x - 300)).toBeLessThan(10)
 			expect(Math.abs(callArgs.y - 150)).toBeLessThan(10)

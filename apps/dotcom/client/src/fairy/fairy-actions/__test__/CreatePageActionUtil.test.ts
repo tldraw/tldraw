@@ -99,7 +99,7 @@ describe('CreatePageActionUtil', () => {
 		})
 
 		it('should update fairy entity current page ID when switching', () => {
-			const initialFairyPageId = agent.$fairyEntity.get().currentPageId
+			const initialFairyPageId = agent.getEntity().currentPageId
 
 			const action = createAgentAction({
 				_type: 'create-page',
@@ -114,7 +114,7 @@ describe('CreatePageActionUtil', () => {
 			createPageUtil.applyAction(action, helpers)
 
 			// Verify the fairy entity's current page ID actually changed
-			const newFairyPageId = agent.$fairyEntity.get().currentPageId
+			const newFairyPageId = agent.getEntity().currentPageId
 			expect(newFairyPageId).not.toBe(initialFairyPageId)
 			expect(newFairyPageId).toBe(editor.getCurrentPageId())
 		})
@@ -132,7 +132,7 @@ describe('CreatePageActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			createPageUtil.applyAction(action, helpers)
 
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 		})
 
 		it('should not move fairy when not switching pages', () => {
@@ -148,7 +148,7 @@ describe('CreatePageActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			createPageUtil.applyAction(action, helpers)
 
-			expect(agent.positionManager.moveTo).not.toHaveBeenCalled()
+			expect(agent.position.moveTo).not.toHaveBeenCalled()
 		})
 
 		it('should not create page if one with same name exists', () => {

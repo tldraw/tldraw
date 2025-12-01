@@ -25,7 +25,7 @@ export function FairyChatHistorySection({
 	agent: FairyAgent
 	isFinalSection: boolean
 }) {
-	const isGenerating = useValue('is-generating', () => agent.requestManager.isGenerating(), [agent])
+	const isGenerating = useValue('is-generating', () => agent.requests.isGenerating(), [agent])
 	const actions = section.items.filter((item) => item.type === 'action') as ChatHistoryActionItem[]
 	const groups = getActionHistoryGroups(actions, agent, isFinalSection, isGenerating)
 

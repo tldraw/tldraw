@@ -1,17 +1,16 @@
-import { AgentRequest, SoloTasksPart } from '@tldraw/fairy-shared'
+import { AgentRequest, FairyTask, SoloTasksPart } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
-import { $fairyTasks } from '../fairy-globals'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export class SoloTasksPartUtil extends PromptPartUtil<SoloTasksPart> {
 	static override type = 'soloTasks' as const
 
 	override getPart(_request: AgentRequest, helpers: AgentHelpers): SoloTasksPart {
-		const allTasks = $fairyTasks.get()
+		const allTasks = this.agent.fairyApp.tasks.getTasks()
 		const tasks = allTasks
-			.filter((task) => task.assignedTo === this.agent.id)
-			.filter((task) => task.projectId === null) // should never happen
-			.map((task) => {
+			.filter((task: FairyTask) => task.assignedTo === this.agent.id)
+			.filter((task: FairyTask) => task.projectId === null) // should never happen
+			.map((task: FairyTask) => {
 				const transformedTaskBounds =
 					task.x !== undefined &&
 					task.y !== undefined &&

@@ -1,7 +1,5 @@
 import { CreateProjectTaskAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
-import { getProjectByAgentId } from '../fairy-projects'
-import { createFairyTask } from '../fairy-task-list'
 import { AgentActionUtil } from './AgentActionUtil'
 
 // Creates a task for a project with a specifiable assignedTo id
@@ -30,7 +28,7 @@ export class CreateProjectTaskActionUtil extends AgentActionUtil<CreateProjectTa
 		}
 
 		const assignedToId = action.assignedTo
-		const assignedAgentsProject = getProjectByAgentId(assignedToId)
+		const assignedAgentsProject = this.agent.fairyApp.projects.getProjectByAgentId(assignedToId)
 		if (!assignedAgentsProject || assignedAgentsProject.id !== project.id) {
 			this.agent.interrupt({
 				input: `Fairy ${assignedToId} is not in the same project as you. You may only assign tasks to fairies in the same project.`,
@@ -47,7 +45,7 @@ export class CreateProjectTaskActionUtil extends AgentActionUtil<CreateProjectTa
 			h: action.h,
 		})
 
-		createFairyTask({
+		this.agent.fairyApp.tasks.createTask({
 			id: action.taskId,
 			title: action.title,
 			text: action.text,

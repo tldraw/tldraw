@@ -10,9 +10,8 @@ import {
 import { useTldrawAppUiEvents } from '../../../tla/utils/app-ui-events'
 import { useMsg } from '../../../tla/utils/i18n'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
-import { $fairyAgentsAtom, $fairyProjects } from '../../fairy-globals'
+import { useFairyApp } from '../../fairy-app/FairyAppProvider'
 import { fairyMessages } from '../../fairy-messages'
-import { disbandProject } from '../../fairy-projects'
 
 export type FairyMenuSource = 'canvas' | 'sidebar' | 'chat'
 
@@ -26,30 +25,28 @@ export function FairyMenuContent({
 	source?: FairyMenuSource
 }) {
 	const editor = useEditor()
+	const fairyApp = useFairyApp()
 	const trackEvent = useTldrawAppUiEvents()
-	const allAgents = useValue('fairy-agents', () => $fairyAgentsAtom.get(editor), [editor])
+	const allAgents = useValue('fairy-agents', () => (fairyApp ? fairyApp.agents.getAgents() : []), [
+		fairyApp,
+	])
 
 	const onlyAgent = agents.length === 1 ? agents[0] : null
-	const hasSelected = agents.some((agent) => agent.$fairyEntity.get()?.isSelected)
-	// const selectedAgents = useValue(
-	// 	'selected-agents',
-	// 	() => $fairyAgentsAtom.get(editor).filter((agent) => agent.$fairyEntity.get()?.isSelected),
-	// 	[agents]
-	// )
+	const hasSelected = agents.some((agent) => agent.getEntity()?.isSelected)
 
 	const putAwayFairy = useCallback(() => {
-		agents.forEach((agent) => {
+		agents.forEach((agent: FairyAgent) => {
 			trackEvent('fairy-sleep', { source: 'fairy-panel', fairyId: agent.id })
-			agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false, pose: 'sleeping' } : f))
-			agent.modeManager.setMode('sleeping')
+			agent.updateEntity((f) => (f ? { ...f, isSelected: false, pose: 'sleeping' } : f))
+			agent.mode.setMode('sleeping')
 		})
 	}, [agents, trackEvent])
 
 	const putAwayAllFairies = useCallback(() => {
 		trackEvent('fairy-sleep-all', { source: 'fairy-panel' })
-		allAgents.forEach((agent) => {
-			agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false, pose: 'sleeping' } : f))
-			agent.modeManager.setMode('sleeping')
+		allAgents.forEach((agent: FairyAgent) => {
+			agent.updateEntity((f) => (f ? { ...f, isSelected: false, pose: 'sleeping' } : f))
+			agent.mode.setMode('sleeping')
 		})
 	}, [allAgents, trackEvent])
 
@@ -57,7 +54,7 @@ export function FairyMenuContent({
 		'is following fairy',
 		() => {
 			if (!onlyAgent) return false
-			return onlyAgent.positionManager.getFollowingFairyId() === onlyAgent.id
+			return onlyAgent.position.getFollowingFairyId() === onlyAgent.id
 		},
 		[editor, onlyAgent]
 	)
@@ -66,10 +63,10 @@ export function FairyMenuContent({
 		if (!onlyAgent) return
 		if (isFollowing) {
 			trackEvent('fairy-unfollow', { source: 'fairy-panel', fairyId: onlyAgent.id })
-			onlyAgent.positionManager.stopFollowing()
+			onlyAgent.position.stopFollowing()
 		} else {
 			trackEvent('fairy-follow', { source: 'fairy-panel', fairyId: onlyAgent.id })
-			onlyAgent.positionManager.startFollowing()
+			onlyAgent.position.startFollowing()
 		}
 	}, [onlyAgent, isFollowing, trackEvent])
 
@@ -101,29 +98,34 @@ export function FairyMenuContent({
 	const closeChatPanelLabel = useMsg(fairyMessages.closeChatPanel)
 	const selectFairyLabel = useMsg(fairyMessages.selectFairy)
 
-	const projects = useValue($fairyProjects)
+	const projects = useValue(
+		'fairy-projects',
+		() => (fairyApp ? fairyApp.projects.getProjects() : []),
+		[fairyApp]
+	)
 	const currentProject = useMemo(() => {
 		if (!onlyAgent) return null
 		return (
-			projects.find((project) => project.members.some((member) => member.id === onlyAgent.id)) ??
-			null
+			projects.find((project: any) =>
+				project.members.some((member: any) => member.id === onlyAgent.id)
+			) ?? null
 		)
 	}, [projects, onlyAgent])
 	const canDisbandGroup = currentProject && currentProject.members.length > 1
 
 	const disbandGroup = useCallback(() => {
-		if (!currentProject) return
+		if (!currentProject || !fairyApp) return
 
 		trackEvent('fairy-disband-group', { source: 'fairy-panel', projectId: currentProject.id })
-		disbandProject(currentProject.id, editor)
-	}, [currentProject, editor, trackEvent])
+		fairyApp.projects.disbandProject(currentProject.id)
+	}, [currentProject, fairyApp, trackEvent])
 
 	const summonAllFairies = useCallback(() => {
 		trackEvent('fairy-summon-all', { source: 'fairy-panel' })
 		const spacing = 150 // Distance between fairies
-		allAgents.forEach((agent, index) => {
+		allAgents.forEach((agent: FairyAgent, index: number) => {
 			if (allAgents.length === 1) {
-				agent.positionManager.summon()
+				agent.position.summon()
 			} else {
 				// Arrange fairies in a circle around the center
 				const angleStep = (2 * Math.PI) / allAgents.length
@@ -132,7 +134,7 @@ export function FairyMenuContent({
 					x: Math.cos(angle) * spacing,
 					y: Math.sin(angle) * spacing,
 				}
-				agent.positionManager.summon(offset)
+				agent.position.summon(offset)
 			}
 		})
 	}, [allAgents, trackEvent])
@@ -140,37 +142,37 @@ export function FairyMenuContent({
 	const hasChatHistory = useValue(
 		'has-chat-history',
 		() => {
-			return agents.some((agent) => agent.chatManager.getHistory().length > 0)
+			return agents.some((agent) => agent.chat.getHistory().length > 0)
 		},
 		[agents]
 	)
 
 	const resetAllChats = useCallback(() => {
 		trackEvent('fairy-reset-all-chats', { source: 'fairy-panel' })
-		allAgents.forEach((agent) => {
-			if (agent.modeManager.isSleeping()) return
+		allAgents.forEach((agent: FairyAgent) => {
+			if (agent.mode.isSleeping()) return
 			agent.reset()
 		})
 	}, [allAgents, trackEvent])
 
 	const deselect = useCallback(() => {
-		agents.forEach((agent) => {
+		agents.forEach((agent: FairyAgent) => {
 			trackEvent('fairy-deselect', { source: 'fairy-panel', fairyId: agent.id })
-			agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: false } : f))
+			agent.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
 		})
 	}, [agents, trackEvent])
 
 	const select = useCallback(() => {
-		agents.forEach((agent) => {
+		agents.forEach((agent: FairyAgent) => {
 			trackEvent('fairy-select', { source: 'fairy-panel', fairyId: agent.id })
-			agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
+			agent.updateEntity((f) => (f ? { ...f, isSelected: true } : f))
 		})
 	}, [agents, trackEvent])
 
 	const selectAllFairies = useCallback(() => {
 		trackEvent('fairy-select-all', { source: 'fairy-panel' })
-		allAgents.forEach((agent) => {
-			agent.$fairyEntity.update((f) => (f ? { ...f, isSelected: true } : f))
+		allAgents.forEach((agent: FairyAgent) => {
+			agent.updateEntity((f) => (f ? { ...f, isSelected: true } : f))
 		})
 	}, [allAgents, trackEvent])
 
@@ -184,7 +186,7 @@ export function FairyMenuContent({
 		)
 	}
 
-	if (onlyAgent && onlyAgent.modeManager.isSleeping()) {
+	if (onlyAgent && onlyAgent.mode.isSleeping()) {
 		return (
 			<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">
 				<TldrawUiMenuGroup id="fairy-sleep-menu">
@@ -192,7 +194,7 @@ export function FairyMenuContent({
 						id="wake-fairy"
 						onSelect={() => {
 							trackEvent('fairy-wake', { source: 'fairy-panel', fairyId: onlyAgent.id })
-							onlyAgent.modeManager.setMode('idling')
+							onlyAgent.mode.setMode('idling')
 						}}
 						label={wakeFairyLabel}
 					/>
@@ -204,7 +206,7 @@ export function FairyMenuContent({
 	return (
 		<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">
 			<TldrawUiMenuGroup id="single-fairy-menu">
-				{!agents.some((agent) => agent.$fairyEntity.get().isSelected) && (
+				{!agents.some((agent) => agent.getEntity().isSelected) && (
 					<TldrawUiMenuItem id="select" onSelect={select} label={selectFairyLabel} />
 				)}
 				{source !== 'canvas' && (
@@ -214,7 +216,7 @@ export function FairyMenuContent({
 								id="go-to-fairy"
 								onSelect={() => {
 									trackEvent('fairy-zoom-to', { source: 'fairy-panel', fairyId: onlyAgent.id })
-									onlyAgent.positionManager.zoomTo()
+									onlyAgent.position.zoomTo()
 								}}
 								label={goToFairyLabel}
 							/>
@@ -222,9 +224,9 @@ export function FairyMenuContent({
 						<TldrawUiMenuItem
 							id="summon-fairy"
 							onSelect={() => {
-								agents.forEach((agent) => {
+								agents.forEach((agent: FairyAgent) => {
 									trackEvent('fairy-summon', { source: 'fairy-panel', fairyId: agent.id })
-									agent.positionManager.summon()
+									agent.position.summon()
 								})
 							}}
 							label={summonFairyLabel}
@@ -268,7 +270,7 @@ export function FairyMenuContent({
 							<TldrawUiMenuItem
 								id="reset-fairy-chat"
 								onSelect={() => {
-									agents.forEach((agent) => {
+									agents.forEach((agent: FairyAgent) => {
 										trackEvent('fairy-reset-chat', { source: 'fairy-panel', fairyId: agent.id })
 										agent.reset()
 									})

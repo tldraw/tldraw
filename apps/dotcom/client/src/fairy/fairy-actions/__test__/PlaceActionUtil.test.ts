@@ -162,7 +162,7 @@ describe('PlaceActionUtil', () => {
 
 			placeUtil.applyAction(action)
 
-			expect(agent.positionManager.moveTo).not.toHaveBeenCalled()
+			expect(agent.position.moveTo).not.toHaveBeenCalled()
 		})
 
 		it('should not apply if reference shape does not exist', () => {
@@ -577,7 +577,7 @@ describe('PlaceActionUtil', () => {
 
 			placeUtil.applyAction(action)
 
-			expect(agent.positionManager.moveTo).toHaveBeenCalledWith({
+			expect(agent.position.moveTo).toHaveBeenCalledWith({
 				x: 225,
 				y: 150,
 			})
@@ -608,7 +608,7 @@ describe('PlaceActionUtil', () => {
 			const shape = editor.getShape(id1)
 			expect(shape?.x).toBe(0)
 			expect(shape?.y).toBe(0)
-			expect(agent.positionManager.moveTo).not.toHaveBeenCalled()
+			expect(agent.position.moveTo).not.toHaveBeenCalled()
 		})
 	})
 })

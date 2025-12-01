@@ -214,7 +214,7 @@ describe('LabelActionUtil', () => {
 
 			labelUtil.applyAction(action)
 
-			expect(agent.positionManager.moveTo).toHaveBeenCalledWith({
+			expect(agent.position.moveTo).toHaveBeenCalledWith({
 				x: 150,
 				y: 250,
 			})

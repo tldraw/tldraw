@@ -1,7 +1,5 @@
 import { CreateDuoTaskAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
-import { getProjectByAgentId } from '../fairy-projects'
-import { createFairyTask } from '../fairy-task-list'
 import { AgentActionUtil } from './AgentActionUtil'
 
 // Creates a task for a duo project with a specifiable assignedTo id
@@ -30,7 +28,7 @@ export class CreateDuoTaskActionUtil extends AgentActionUtil<CreateDuoTaskAction
 		}
 
 		const assignedToId = action.assignedTo
-		const assignedAgentsProject = getProjectByAgentId(assignedToId)
+		const assignedAgentsProject = this.agent.fairyApp.projects.getProjectByAgentId(assignedToId)
 		if (!assignedAgentsProject || assignedAgentsProject.id !== project.id) {
 			this.agent.interrupt({
 				input: `Fairy ${assignedToId} is not in the same project as you. You may only assign tasks to your partner in the same duo project.`,
@@ -47,7 +45,7 @@ export class CreateDuoTaskActionUtil extends AgentActionUtil<CreateDuoTaskAction
 			h: action.h,
 		})
 
-		createFairyTask({
+		this.agent.fairyApp.tasks.createTask({
 			id: action.taskId,
 			title: action.title,
 			text: action.text,

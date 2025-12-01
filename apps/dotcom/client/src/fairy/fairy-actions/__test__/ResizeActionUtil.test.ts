@@ -332,7 +332,7 @@ describe('ResizeActionUtil', () => {
 			const helpers = new AgentHelpers(agent)
 			resizeUtil.applyAction(action, helpers)
 
-			expect(agent.positionManager.moveTo).toHaveBeenCalledWith({ x: 50, y: 50 })
+			expect(agent.position.moveTo).toHaveBeenCalledWith({ x: 50, y: 50 })
 		})
 
 		it('should handle scale down operations', () => {
@@ -400,7 +400,7 @@ describe('ResizeActionUtil', () => {
 			editor.createShape({ id: id1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
 
 			// Set up a chat origin offset
-			vi.mocked(agent.chatOriginManager.getOrigin).mockReturnValue({ x: 50, y: 50 })
+			vi.mocked(agent.chatOrigin.getOrigin).mockReturnValue({ x: 50, y: 50 })
 
 			const action = createAgentAction({
 				_type: 'resize',
@@ -418,7 +418,7 @@ describe('ResizeActionUtil', () => {
 			resizeUtil.applyAction(action, helpers)
 
 			// The offset should be removed from the origin
-			expect(agent.positionManager.moveTo).toHaveBeenCalled()
+			expect(agent.position.moveTo).toHaveBeenCalled()
 		})
 
 		it('should handle negative scale values', () => {

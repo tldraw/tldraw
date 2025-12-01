@@ -1,13 +1,12 @@
 import { StartDuoTaskAction, Streaming, createAgentActionInfo } from '@tldraw/fairy-shared'
 import { AgentHelpers } from '../fairy-agent/AgentHelpers'
-import { $fairyTasks } from '../fairy-globals'
 import { AgentActionUtil } from './AgentActionUtil'
 
 export class StartDuoTaskActionUtil extends AgentActionUtil<StartDuoTaskAction> {
 	static override type = 'start-duo-task' as const
 
 	override getInfo(action: Streaming<StartDuoTaskAction>) {
-		const task = $fairyTasks.get().find((task) => task.id === action.taskId)
+		const task = action.taskId ? this.agent.fairyApp.tasks.getTaskById(action.taskId) : undefined
 
 		return createAgentActionInfo({
 			icon: 'note',
@@ -22,7 +21,7 @@ export class StartDuoTaskActionUtil extends AgentActionUtil<StartDuoTaskAction> 
 	override applyAction(action: Streaming<StartDuoTaskAction>, _helpers: AgentHelpers) {
 		if (!action.complete) return
 
-		const task = $fairyTasks.get().find((task) => task.id === action.taskId)
+		const task = this.agent.fairyApp.tasks.getTaskById(action.taskId)
 		if (!task) return
 
 		const project = this.agent.getProject()
@@ -47,13 +46,9 @@ export class StartDuoTaskActionUtil extends AgentActionUtil<StartDuoTaskAction> 
 			return
 		}
 
-		$fairyTasks.update((tasks) =>
-			tasks.map((task) =>
-				task.id === action.taskId ? { ...task, status: 'in-progress' as const } : task
-			)
-		)
+		this.agent.fairyApp.tasks.setTaskStatus(action.taskId, 'in-progress')
 
-		const currentBounds = this.agent.requestManager.getActiveRequest()?.bounds
+		const currentBounds = this.agent.requests.getActiveRequest()?.bounds
 		if (!currentBounds) return
 
 		this.agent.interrupt({

@@ -8,7 +8,7 @@ export class PersonalTodoListPartUtil extends PromptPartUtil<PersonalTodoListPar
 	override getPart(_request: AgentRequest, _helpers: AgentHelpers): PersonalTodoListPart {
 		return {
 			type: 'personalTodoList',
-			items: this.agent.todoManager.getTodos(),
+			items: this.agent.todos.getTodos(),
 		}
 	}
 }
