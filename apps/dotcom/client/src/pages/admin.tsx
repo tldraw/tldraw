@@ -695,6 +695,11 @@ function FeatureFlags() {
 	}, [loadFlags])
 
 	const toggleFlag = useCallback(async (flag: string, enabled: boolean) => {
+		const action = enabled ? 'enable' : 'disable'
+		if (!window.confirm(`Are you sure you want to ${action} "${flag}" for ALL users?`)) {
+			return
+		}
+
 		setIsSaving(true)
 		setError(null)
 		setSuccessMessage(null)
