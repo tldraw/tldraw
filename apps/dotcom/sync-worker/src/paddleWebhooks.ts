@@ -169,7 +169,7 @@ async function sendDiscordNotification(
 	if (!webhookUrl) return
 
 	const messages = {
-		success: `🧚✨ Ka-ching! Someone just unlocked the magic! 💫🎊\nTransaction: ${details.transactionId}\nUser: ${details.userId}\nEmail: ${details.email || 'N/A'}`,
+		success: `🧚✨ Ka-ching! Someone just unlocked the magic! (${details.email || 'N/A'}) 💫🎊`,
 		error: `🚨 Fairy access grant FAILED for transaction ${details.transactionId}: ${details.error}`,
 		refund: `💸 Refund/cancellation for transaction ${details.transactionId}, userId: ${details.userId} - manual revocation needed`,
 		missing_user: `⚠️ Transaction ${details.transactionId} missing userId in custom_data`,
