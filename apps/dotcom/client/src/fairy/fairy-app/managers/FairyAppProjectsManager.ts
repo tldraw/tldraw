@@ -186,22 +186,9 @@ export class FairyAppProjectsManager extends BaseFairyAppManager {
 	 */
 	disbandAllProjects() {
 		const projects = this.$projects.get()
-		const agents = this.fairyApp.agents.getAgents()
 
 		projects.forEach((project) => {
-			if (project.members.length <= 1) return
-
-			const memberAgents = project.members
-				.map((member) => agents.find((a) => a.id === member.id))
-				.filter((agent): agent is FairyAgent => agent !== undefined)
-
-			memberAgents.forEach((memberAgent) => {
-				this.addProjectCancellationMemory(memberAgent, project)
-				memberAgent.interrupt({ mode: 'idling', input: null })
-				memberAgent.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
-			})
-
-			this.deleteProjectAndAssociatedTasks(project.id)
+			this.disbandProject(project.id)
 		})
 
 		// Clear any remaining projects
