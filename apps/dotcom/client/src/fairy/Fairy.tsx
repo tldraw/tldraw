@@ -52,6 +52,16 @@ function updateFairySelection(
 		}
 		// If already selected, do nothing (might be dragging multiple fairies)
 	} else {
+		// Prevent selecting both a single fairy and a group (project) at the same time
+		const clickedProject = clickedAgent.getProject()
+		const selectedFairies = fairyAgents.filter((a) => a.getEntity()?.isSelected)
+		const hasSelectedProject = selectedFairies.some((agent) => agent.getProject() !== null)
+
+		// If clicked fairy is in a project OR any selected fairy is in a project, don't update selection
+		if (clickedProject !== null || hasSelectedProject) {
+			return
+		}
+
 		// Multi-select: add to selection if not selected
 		if (!wasSelected) {
 			trackEvent('fairy-add-to-selection', { source: 'fairy-canvas', fairyId: clickedAgent.id })

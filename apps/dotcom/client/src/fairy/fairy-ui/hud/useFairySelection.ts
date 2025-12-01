@@ -120,6 +120,15 @@ export function useFairySelection(agents: FairyAgent[]) {
 			}
 
 			if (isMultiSelect) {
+				// Prevent selecting both a single fairy and a group (project) at the same time
+				const clickedProject = clickedAgent.getProject()
+				const hasSelectedProject = selectedFairies.some((agent) => agent.getProject() !== null)
+
+				// If clicked fairy is in a project OR any selected fairy is in a project, don't update selection
+				if (clickedProject !== null || hasSelectedProject) {
+					return
+				}
+
 				// Toggle selection without deselecting others
 				clickedAgent.updateEntity((f) => (f ? { ...f, isSelected: !isSelected } : f))
 			} else {
