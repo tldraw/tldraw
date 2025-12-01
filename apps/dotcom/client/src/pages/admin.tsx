@@ -11,7 +11,6 @@ import { Navigate } from 'react-router-dom'
 import { fetch, useValue } from 'tldraw'
 import { TlaButton } from '../tla/components/TlaButton/TlaButton'
 import { useApp } from '../tla/hooks/useAppState'
-import { usePaddle } from '../tla/hooks/usePaddle'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import styles from './admin.module.css'
 import { saveMigrationLog } from './migrationLogsDB'
@@ -280,7 +279,6 @@ export function Component() {
 function FairyInvites() {
 	const app = useApp()
 	const user = useValue('user', () => app.getUser(), [app])
-	const { paddleLoaded, openPaddleCheckout } = usePaddle()
 	const [invites, setInvites] = useState<
 		Array<{
 			id: string
@@ -593,7 +591,8 @@ function FairyInvites() {
 					variant="secondary"
 					className={styles.toggleTableButton}
 				>
-					{isTableExpanded ? '▼' : '▶'} {invites.length} invite{invites.length !== 1 ? 's' : ''}
+					{isTableExpanded ? '▼' : '▶'} {isTableExpanded ? 'Hide' : 'Show'} {invites.length} invite
+					{invites.length !== 1 ? 's' : ''}
 				</TlaButton>
 
 				{isTableExpanded && (
@@ -658,26 +657,6 @@ function FairyInvites() {
 						)}
 					</>
 				)}
-			</div>
-
-			<h4 className={`tla-text_ui__medium ${styles.paddleSectionHeading}`}>
-				Test Paddle Purchase (Testing Only)
-			</h4>
-			<p className="tla-text_ui__small">
-				Test the Paddle checkout flow. This will open the payment overlay for purchasing fairies.
-			</p>
-			<div className={styles.paddleButtonContainer}>
-				<TlaButton
-					onClick={() => {
-						if (user?.email) {
-							openPaddleCheckout(app.userId, user.email)
-						}
-					}}
-					variant="primary"
-					disabled={!paddleLoaded || !user?.email}
-				>
-					Open Paddle Checkout
-				</TlaButton>
 			</div>
 		</div>
 	)
