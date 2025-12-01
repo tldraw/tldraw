@@ -1,5 +1,6 @@
-import { RefObject, useEffect, useRef } from 'react'
+import { MouseEvent, RefObject, useEffect, useRef } from 'react'
 import { getFromLocalStorage, setInLocalStorage, useValue } from 'tldraw'
+import { ExternalLink } from '../../../tla/components/ExternalLink/ExternalLink'
 import { getLocalSessionState } from '../../../tla/utils/local-session-state'
 
 const SCROLL_POSITION_KEY_PREFIX = 'fairy-manual-scroll-position'
@@ -8,6 +9,7 @@ export function FairyManualPanel() {
 	const introductionRef = useRef<HTMLDivElement>(null)
 	const usageRef = useRef<HTMLDivElement>(null)
 	const aboutRef = useRef<HTMLDivElement>(null)
+	const videoRef = useRef<HTMLVideoElement>(null)
 
 	const fairyManualActiveTab = useValue(
 		'fairy manual active tab',
@@ -53,6 +55,18 @@ export function FairyManualPanel() {
 		}
 	}
 
+	// Handle video play/pause on click (desktop only)
+	const handleVideoClick = (e: MouseEvent<HTMLVideoElement>) => {
+		// Only handle mouse clicks (e.detail > 0 indicates mouse click, not touch)
+		if (e.detail > 0 && videoRef.current) {
+			if (videoRef.current.paused) {
+				videoRef.current.play()
+			} else {
+				videoRef.current.pause()
+			}
+		}
+	}
+
 	return (
 		<div className="fairy-manual-content-container">
 			{fairyManualActiveTab === 'introduction' && (
@@ -62,10 +76,13 @@ export function FairyManualPanel() {
 					onScroll={createScrollHandler(introductionRef, 'introduction')}
 				>
 					<video
+						ref={videoRef}
 						src="https://cdn.tldraw.com/misc/fairy_intro.mp4"
-						autoPlay
 						loop
 						muted
+						playsInline
+						autoPlay
+						preload="metadata"
 						className="fairy-manual-video"
 					/>
 					<p>Welcome to fairies in tldraw.</p>
@@ -284,17 +301,29 @@ export function FairyManualPanel() {
 					<div className="fairy-manual-section">
 						<h3>About fairies</h3>
 						<p>
-							Fairies are an experimental feature that brings AI collaboration directly into your
-							tldraw canvas. They combine natural language interaction with visual awareness to help
-							you create and iterate on your work.
+							Fairies are a temporary feature that will be removed on January 1st, 2026. Perhaps
+							they will return again someday.
+						</p>
+					</div>
+
+					<div className="fairy-manual-section">
+						<h3>Developers</h3>
+						<p>
+							Are you a developer? Would you like to build something like this for your product?
+							Check out the <ExternalLink to="https://tldraw.dev">tldraw SDK</ExternalLink> to get
+							started.
 						</p>
 					</div>
 
 					<div className="fairy-manual-section">
 						<h3>Feedback and support</h3>
 						<p>
-							Fairies are currently in active development. If you encounter issues or have
-							suggestions for improvements, please let us know through the feedback channels.
+							To give feedback or report issues, please chat with us on{' '}
+							<ExternalLink to="https://discord.tldraw.com/?utm_source=dotcom&utm_medium=organic&utm_campaign=dotcom-feedback">
+								Discord
+							</ExternalLink>{' '}
+							or submit an issue on{' '}
+							<ExternalLink to="https://github.com/tldraw/tldraw/issues">GitHub</ExternalLink>.
 						</p>
 					</div>
 				</div>
