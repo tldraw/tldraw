@@ -124,8 +124,8 @@ export function FairyManualPanel() {
 								<strong>Double-click</strong> a fairy to zoom to its location on the canvas.
 							</li>
 							<li>
-								<strong>Right-click</strong> a fairy to access additional options like renaming,
-								customization, or removing it.
+								<strong>Right-click</strong> a fairy to access additional actions like summoning,
+								following, or putting the fairy to sleep.
 							</li>
 						</ul>
 					</div>
@@ -139,7 +139,6 @@ export function FairyManualPanel() {
 						<ul>
 							<li>Ask it to create shapes, diagrams, or drawings</li>
 							<li>Request edits to existing content on the canvas</li>
-							<li>Give it a specific area to work in by selecting shapes first</li>
 							<li>
 								The fairy will create tasks for itself and work through them until your request is
 								complete
@@ -147,8 +146,8 @@ export function FairyManualPanel() {
 						</ul>
 						<p>
 							<strong>Tips:</strong> Be specific about what you want. You can reference shapes by
-							their position, color, or type. The fairy can see what&apos;s on the canvas and will
-							work relative to your current viewport.
+							their position, color, or type. The fairy can see what&apos;s on the canvas in their
+							surrounding area.
 						</p>
 					</div>
 
@@ -169,14 +168,6 @@ export function FairyManualPanel() {
 						<h3>Managing fairies</h3>
 						<ul>
 							<li>
-								<strong>Add fairies:</strong> Click the plus icon in the sidebar to create new
-								fairies
-							</li>
-							<li>
-								<strong>Customize:</strong> Right-click a fairy to change its name, appearance, or
-								astrological sign
-							</li>
-							<li>
 								<strong>Move fairies:</strong> Drag fairies around the canvas to reposition them
 							</li>
 							<li>
@@ -184,7 +175,7 @@ export function FairyManualPanel() {
 								sleep
 							</li>
 							<li>
-								<strong>Reset chat:</strong> Start fresh by resetting a fairy&apos;s conversation
+								<strong>Clear chat:</strong> Start fresh by clearing a fairy&apos;s conversation
 								history
 							</li>
 							<li>
@@ -216,9 +207,8 @@ export function FairyManualPanel() {
 					<div className="fairy-manual-section">
 						<h3>Tasks and todo lists</h3>
 						<p>
-							Fairies create and manage tasks as they work. You can view task lists in the sidebar
-							and see fairies checking off items as they complete them. Task lists help fairies stay
-							organized and let you track progress on complex requests.
+							Fairies create and manage tasks as they work. Task lists help fairies stay organized
+							and let you track progress on complex requests.
 						</p>
 					</div>
 
@@ -228,10 +218,6 @@ export function FairyManualPanel() {
 							<li>
 								<strong>Be specific:</strong> Clear instructions get better results. Describe what
 								you want, where you want it, and any specific requirements.
-							</li>
-							<li>
-								<strong>Use selection:</strong> Select shapes on the canvas before giving
-								instructions to help fairies understand the context.
 							</li>
 							<li>
 								<strong>Break down large tasks:</strong> For complex requests, consider using
