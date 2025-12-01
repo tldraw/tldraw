@@ -303,6 +303,7 @@ function FairyInvites() {
 	const [isRemoving, setIsRemoving] = useState(false)
 	const [error, setError] = useState(null as string | null)
 	const [successMessage, setSuccessMessage] = useState(null as string | null)
+	const [isTableExpanded, setIsTableExpanded] = useState(false)
 
 	const loadInvites = useCallback(async () => {
 		setIsLoading(true)
@@ -347,6 +348,7 @@ function FairyInvites() {
 			const invite = await res.json()
 			setSuccessMessage(`Invite created: ${invite.id}`)
 			setInviteDescription('')
+			setIsTableExpanded(true)
 			await loadInvites()
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to create invite')
@@ -585,62 +587,78 @@ function FairyInvites() {
 				</TlaButton>
 			</div>
 
-			{isLoading ? (
-				<p className="tla-text_ui__small">Loading invites...</p>
-			) : invites.length === 0 ? (
-				<p className="tla-text_ui__small">No invites yet</p>
-			) : (
-				<table className={styles.invitesTable}>
-					<thead>
-						<tr>
-							<th>ID</th>
-							<th>Description</th>
-							<th>Fairy Limit</th>
-							<th>Uses</th>
-							<th>Redeemed By</th>
-							<th>Created</th>
-							<th>Actions</th>
-						</tr>
-					</thead>
-					<tbody>
-						{invites.map((invite) => (
-							<tr key={invite.id}>
-								<td>{invite.id}</td>
-								<td>{invite.description || '-'}</td>
-								<td>{invite.fairyLimit}</td>
-								<td>
-									{invite.currentUses} / {invite.maxUses === 0 ? '∞' : invite.maxUses}
-								</td>
-								<td>
-									{invite.redeemedBy && invite.redeemedBy.length > 0
-										? invite.redeemedBy.join(', ')
-										: '-'}
-								</td>
-								<td>{new Date(invite.createdAt).toLocaleString()}</td>
-								<td className={styles.tableActions}>
-									<TlaButton
-										onClick={() => {
-											const inviteUrl = `${window.location.origin}/fairy-invite/${invite.id}`
-											navigator.clipboard.writeText(inviteUrl)
-											setSuccessMessage('Link copied to clipboard!')
-										}}
-										variant="secondary"
-									>
-										Copy link
-									</TlaButton>
-									<TlaButton
-										onClick={() => deleteInvite(invite.id)}
-										variant="warning"
-										className={styles.deleteButton}
-									>
-										Delete
-									</TlaButton>
-								</td>
-							</tr>
-						))}
-					</tbody>
-				</table>
-			)}
+			<div className={styles.invitesTableContainer}>
+				<TlaButton
+					onClick={() => setIsTableExpanded(!isTableExpanded)}
+					variant="secondary"
+					className={styles.toggleTableButton}
+				>
+					{isTableExpanded ? '▼' : '▶'} {invites.length} invite{invites.length !== 1 ? 's' : ''}
+				</TlaButton>
+
+				{isTableExpanded && (
+					<>
+						{isLoading ? (
+							<p className="tla-text_ui__small">Loading invites...</p>
+						) : invites.length === 0 ? (
+							<p className="tla-text_ui__small">No invites yet</p>
+						) : (
+							<table className={styles.invitesTable}>
+								<thead>
+									<tr>
+										<th>ID</th>
+										<th>Description</th>
+										<th>Fairy Limit</th>
+										<th>Uses</th>
+										<th>Redeemed By</th>
+										<th>Created</th>
+										<th>Actions</th>
+									</tr>
+								</thead>
+								<tbody>
+									{[...invites]
+										.sort((a, b) => b.createdAt - a.createdAt)
+										.map((invite) => (
+											<tr key={invite.id}>
+												<td>{invite.id}</td>
+												<td>{invite.description || '-'}</td>
+												<td>{invite.fairyLimit}</td>
+												<td>
+													{invite.currentUses} / {invite.maxUses === 0 ? '∞' : invite.maxUses}
+												</td>
+												<td>
+													{invite.redeemedBy && invite.redeemedBy.length > 0
+														? invite.redeemedBy.join(', ')
+														: '-'}
+												</td>
+												<td>{new Date(invite.createdAt).toLocaleString()}</td>
+												<td className={styles.tableActions}>
+													<TlaButton
+														onClick={() => {
+															const inviteUrl = `${window.location.origin}/fairy-invite/${invite.id}`
+															navigator.clipboard.writeText(inviteUrl)
+															setSuccessMessage('Link copied to clipboard!')
+														}}
+														variant="secondary"
+													>
+														Copy link
+													</TlaButton>
+													<TlaButton
+														onClick={() => deleteInvite(invite.id)}
+														variant="warning"
+														className={styles.deleteButton}
+													>
+														Delete
+													</TlaButton>
+												</td>
+											</tr>
+										))}
+								</tbody>
+							</table>
+						)}
+					</>
+				)}
+			</div>
 
 			<h4 className={`tla-text_ui__medium ${styles.paddleSectionHeading}`}>
 				Test Paddle Purchase (Testing Only)
