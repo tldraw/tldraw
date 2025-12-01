@@ -47,8 +47,6 @@ export class FairyAppPersistenceManager extends BaseFairyAppManager {
 	loadState(fairyState: PersistedFairyState) {
 		this.isLoadingState = true
 
-		console.log('loadState', fairyState)
-
 		try {
 			// Load agent states
 			const agents = this.fairyApp.agents.getAgents()
