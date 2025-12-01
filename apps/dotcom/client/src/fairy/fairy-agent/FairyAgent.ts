@@ -515,7 +515,14 @@ export class FairyAgent {
 		}
 
 		// Submit the request to the agent.
-		await this.request(request)
+		try {
+			await this.request(request)
+		} catch (e) {
+			console.error('Error data:', e)
+			this.requests.setIsPrompting(false)
+			this.requests.setCancelFn(null)
+			return
+		}
 
 		// If there's no schedule request...
 		// Trigger onPromptEnd callback(s)
@@ -748,17 +755,7 @@ export class FairyAgent {
 
 		if (!res.ok) {
 			const errorData = await res.json().catch(() => ({ error: 'Unknown error' }))
-			const errorMessage = errorData.error || 'Request failed'
-
-			// For auth errors (401/403/500), throw a special error type to prevent retries
-			console.error('Error data:', errorData)
-			if (res.status === 401 || res.status === 403 || res.status === 500) {
-				const preventRetryError = new Error(errorMessage)
-				preventRetryError.name = 'PreventRetryError'
-				throw preventRetryError
-			}
-
-			throw new Error(errorMessage)
+			throw new Error(errorData.error || 'Request failed')
 		}
 
 		if (!res.body) {
@@ -792,6 +789,7 @@ export class FairyAgent {
 							const agentAction: Streaming<AgentAction> = data
 							yield agentAction
 						} catch (err: any) {
+							console.log('this is teh error')
 							throw new Error(err.message)
 						}
 					}
@@ -981,18 +979,9 @@ export class FairyAgent {
 					return
 				}
 
-				// For certain errors, prevent any further scheduling/interrupts
-				if (e instanceof Error && e.name === 'preventRetryError') {
-					// Clear any scheduled requests to prevent retry loop
-					agent.requests.clearScheduledRequest()
-					// If agent is in a project, we should disband it to prevent resume loops
-					const project = agent.getProject()
-					if (project) {
-						agent.fairyApp.projects.disbandProject(project.id)
-					}
-				}
-
 				agent.onError(e)
+
+				throw e
 			}
 		})()
 
