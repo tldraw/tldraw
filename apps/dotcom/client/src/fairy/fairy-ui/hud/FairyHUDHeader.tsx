@@ -43,7 +43,6 @@ export function FairyHUDHeader({
 	shownFairy,
 	selectedFairies,
 	allAgents,
-	isMobile,
 	onToggleManual,
 }: FairyHUDHeaderProps) {
 	const fairyApp = useFairyApp()
@@ -80,11 +79,11 @@ export function FairyHUDHeader({
 		shownFairy.position.zoomTo()
 	}, [shownFairy, fairyClickable, trackEvent])
 
-	// const hasChatHistory = useValue(
-	// 	'has-chat-history',
-	// 	() => shownFairy && shownFairy.$chatHistory.get().length > 0,
-	// 	[shownFairy]
-	// )
+	const hasChatHistory = useValue(
+		'has-chat-history',
+		() => shownFairy && shownFairy.chatManager.getHistory().length > 0,
+		[shownFairy]
+	)
 
 	const getDisplayName = () => {
 		if (!isProjectStarted || !project) {
@@ -177,18 +176,20 @@ export function FairyHUDHeader({
 	const onlySelectedFairy = selectedFairies.length === 1 ? selectedFairies[0] : null
 
 	// Show select all button on mobile when exactly one fairy is selected and there's more than one fairy total
-	const showSelectAllButton = isMobile && selectedFairies.length < allAgents.length && !project
+	const showSelectAllButton = selectedFairies.length < allAgents.length && !project // && isMobile
 
 	return (
 		<div className="fairy-toolbar-header">
 			{centerContent}
 			<div className="tlui-row">
-				{showSelectAllButton && (
+				{showSelectAllButton ? (
 					<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={selectAllFairies}>
 						<TldrawUiButtonIcon icon={<SelectAllIcon />} small />
 					</TldrawUiButton>
+				) : (
+					onlySelectedFairy &&
+					hasChatHistory && <ResetChatHistoryButton agent={onlySelectedFairy} />
 				)}
-				{onlySelectedFairy && !project && <ResetChatHistoryButton agent={onlySelectedFairy} />}
 				{<FairyMenuButton menuPopoverOpen={menuPopoverOpen}>{dropdownContent}</FairyMenuButton>}
 			</div>
 		</div>
