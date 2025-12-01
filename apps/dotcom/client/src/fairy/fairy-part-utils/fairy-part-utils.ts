@@ -1,4 +1,6 @@
 import { AgentAction, PromptPart } from '@tldraw/fairy-shared'
+import { AbortDuoProjectActionUtil } from '../fairy-actions/AbortDuoProjectActionUtil'
+import { AbortProjectActionUtil } from '../fairy-actions/AbortProjectActionUtil'
 import { AgentActionUtil, AgentActionUtilConstructor } from '../fairy-actions/AgentActionUtil'
 import { AlignActionUtil } from '../fairy-actions/AlignActionUtil'
 import { AwaitDuoTasksCompletionActionUtil } from '../fairy-actions/AwaitDuoTasksCompletionActionUtil'
@@ -124,6 +126,7 @@ export const AGENT_ACTION_UTILS = [
 	DeleteProjectTaskActionUtil,
 	DirectToStartTaskActionUtil,
 	EndCurrentProjectActionUtil,
+	AbortProjectActionUtil,
 	AwaitTasksCompletionActionUtil,
 
 	// Duo orchestrating
@@ -132,6 +135,7 @@ export const AGENT_ACTION_UTILS = [
 	DirectToStartDuoTaskActionUtil,
 	StartDuoTaskActionUtil,
 	EndDuoProjectActionUtil,
+	AbortDuoProjectActionUtil,
 	AwaitDuoTasksCompletionActionUtil,
 	MarkDuoTaskDoneActionUtil,
 

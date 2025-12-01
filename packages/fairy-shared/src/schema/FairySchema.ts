@@ -1,6 +1,8 @@
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPart } from '../types/PromptPart'
 import {
+	AbortDuoProjectActionSchema,
+	AbortProjectActionSchema,
 	ActivateFairyActionSchema,
 	AlignActionSchema,
 	AwaitDuoTasksCompletionActionSchema,
@@ -120,6 +122,8 @@ export const AGENT_ACTION_SCHEMAS = [
 	StartDuoProjectActionSchema,
 	EndCurrentProjectActionSchema,
 	EndDuoProjectActionSchema,
+	AbortProjectActionSchema,
+	AbortDuoProjectActionSchema,
 	ActivateFairyActionSchema,
 	AwaitTasksCompletionActionSchema,
 	AwaitDuoTasksCompletionActionSchema,

@@ -94,9 +94,10 @@ describe('FairyAppPersistenceManager', () => {
 
 			manager.loadState(fairyState)
 
-			// Check that tasks and projects were loaded
+			// Check that tasks were loaded
 			expect(fairyApp.tasks.getTasks()).toHaveLength(1)
-			expect(fairyApp.projects.getProjects()).toHaveLength(1)
+			// Projects should be cleared since we can't resume them
+			expect(fairyApp.projects.getProjects()).toHaveLength(0)
 		})
 
 		it('should not load fairy task list multiple times', () => {

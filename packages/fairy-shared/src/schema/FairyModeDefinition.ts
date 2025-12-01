@@ -262,6 +262,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			// 'create-page',
 
 			// Project management
+			'abort-project',
 			'start-project',
 			'end-project',
 			'create-project-task',
@@ -311,6 +312,7 @@ export const FAIRY_MODE_DEFINITIONS = [
 			// 'create-page',
 
 			// Duo project management
+			'abort-duo-project',
 			'start-duo-project',
 			'end-duo-project',
 			'create-duo-task',

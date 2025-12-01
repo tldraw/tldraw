@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Export"
   },
-  "00b177e080": {
-    "translation": "Accept invitation"
-  },
   "03b3e13197": {
     "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
   },
@@ -338,6 +335,9 @@
   "777f9e90cf": {
     "translation": "Invalid request."
   },
+  "77f0abf1aa": {
+    "translation": "You've been invited to <strong>tldraw fairies</strong>"
+  },
   "7827371d1a": {
     "translation": "This anonymous tldraw multiplayer file is now read-only. To continue editing, please sign in and copy it to your files."
   },
@@ -358,9 +358,6 @@
   },
   "7c0747a5df": {
     "translation": "Open tldraw"
-  },
-  "7cb471f815": {
-    "translation": "You've been invited to join tldraw fairies!"
   },
   "7cb5f8b4a5": {
     "translation": "Forget"
@@ -584,6 +581,9 @@
   },
   "c4b39a1cc3": {
     "translation": "Essential cookies"
+  },
+  "c54a624f46": {
+    "translation": "Accept invite"
   },
   "c6155aaecc": {
     "translation": "Group name"
