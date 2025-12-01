@@ -321,6 +321,9 @@ export class FairyAgent {
 		waitingFor?: { eventType: string; id: string; metadata?: Record<string, any> }[]
 	}) {
 		if (state.fairyEntity) {
+			// Clear gestures first to clean up any active timeouts and gesture stack
+			this.gesture.clear()
+
 			this.$fairyEntity.update((entity) => {
 				return {
 					...entity,
