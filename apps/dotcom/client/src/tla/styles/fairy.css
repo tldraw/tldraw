@@ -1888,6 +1888,10 @@
 	cursor: grab;
 }
 
+.fairy-container__grabbable:active {
+	cursor: grabbing;
+}
+
 .fairy-container__not-grabbable {
 	pointer-events: none;
 }
