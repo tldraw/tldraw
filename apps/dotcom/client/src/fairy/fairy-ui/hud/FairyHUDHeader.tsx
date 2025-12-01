@@ -251,9 +251,9 @@ function SelectAllIcon() {
 	return (
 		<svg width="15" height="15" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
 			<g fill="currentColor">
-				<circle cx="15" cy="9" r="3" />
-				<circle cx="10" cy="18" r="3" />
-				<circle cx="20" cy="18" r="3" />
+				<circle cx="15" cy="9" r="2.5" />
+				<circle cx="10" cy="18" r="2.5" />
+				<circle cx="20" cy="18" r="2.5" />
 			</g>
 		</svg>
 	)
