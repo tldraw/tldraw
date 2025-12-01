@@ -748,7 +748,17 @@ export class FairyAgent {
 
 		if (!res.ok) {
 			const errorData = await res.json().catch(() => ({ error: 'Unknown error' }))
-			throw new Error(errorData.error || 'Request failed')
+			const errorMessage = errorData.error || 'Request failed'
+
+			// For auth errors (401/403/500), throw a special error type to prevent retries
+			console.error('Error data:', errorData)
+			if (res.status === 401 || res.status === 403 || res.status === 500) {
+				const preventRetryError = new Error(errorMessage)
+				preventRetryError.name = 'PreventRetryError'
+				throw preventRetryError
+			}
+
+			throw new Error(errorMessage)
 		}
 
 		if (!res.body) {
@@ -970,6 +980,18 @@ export class FairyAgent {
 				if (e === 'Cancelled by user' || (e instanceof Error && e.name === 'AbortError')) {
 					return
 				}
+
+				// For certain errors, prevent any further scheduling/interrupts
+				if (e instanceof Error && e.name === 'preventRetryError') {
+					// Clear any scheduled requests to prevent retry loop
+					agent.requests.clearScheduledRequest()
+					// If agent is in a project, we should disband it to prevent resume loops
+					const project = agent.getProject()
+					if (project) {
+						agent.fairyApp.projects.disbandProject(project.id)
+					}
+				}
+
 				agent.onError(e)
 			}
 		})()
