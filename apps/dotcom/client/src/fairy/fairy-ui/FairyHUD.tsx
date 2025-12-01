@@ -141,12 +141,12 @@ export function FairyHUD() {
 									/>
 								)}
 
-							{/* Pre-project mode - multiple fairies selected, no project yet */}
+							{/* Project mode - multiple fairies selected (could be pre-project or active project) */}
 							{panelState === 'fairy' && selectedFairies.length > 1 && (
 								<FairyProjectView
 									editor={editor}
 									agents={selectedFairies}
-									orchestratorAgent={null}
+									orchestratorAgent={activeOrchestratorAgent}
 									onProjectStarted={(orchestrator) => {
 										selectFairy(orchestrator)
 									}}

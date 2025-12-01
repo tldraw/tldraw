@@ -38,36 +38,53 @@ function updateFairySelection(
 	isMultiSelect: boolean,
 	trackEvent: TLAppUiHandler
 ) {
-	if (!isMultiSelect) {
-		// Regular click: select clicked fairy, deselect others
-		if (!wasSelected) {
-			trackEvent('fairy-select', { source: 'fairy-canvas', fairyId: clickedAgent.id })
-			fairyAgents.forEach((a) => {
-				if (a.id === clickedAgent.id) {
-					a.updateEntity((f) => (f ? { ...f, isSelected: true } : f))
-				} else {
-					a.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
-				}
-			})
-		}
-		// If already selected, do nothing (might be dragging multiple fairies)
-	} else {
-		// Prevent selecting both a single fairy and a group (project) at the same time
-		const clickedProject = clickedAgent.getProject()
-		const selectedFairies = fairyAgents.filter((a) => a.getEntity()?.isSelected)
-		const hasSelectedProject = selectedFairies.some((agent) => agent.getProject() !== null)
+	const clickedProject = clickedAgent.getProject()
+	const isInProject = clickedProject && clickedProject.members.length > 1
 
-		// If clicked fairy is in a project OR any selected fairy is in a project, don't update selection
-		if (clickedProject !== null || hasSelectedProject) {
+	// Multi-select is disabled for fairies in projects
+	if (isMultiSelect && isInProject) {
+		return
+	}
+
+	// Multi-select is also disabled if any currently selected fairy is in a project
+	if (isMultiSelect) {
+		const selectedFairies = fairyAgents.filter((a) => a.getEntity()?.isSelected)
+		const hasSelectedProject = selectedFairies.some((agent) => {
+			const project = agent.getProject()
+			return project && project.members.length > 1
+		})
+		if (hasSelectedProject) {
 			return
 		}
+	}
 
-		// Multi-select: add to selection if not selected
+	if (!isMultiSelect) {
+		// Regular click
+		if (!wasSelected) {
+			trackEvent('fairy-select', { source: 'fairy-canvas', fairyId: clickedAgent.id })
+
+			if (isInProject) {
+				// Clicking a fairy in a project: select all project members, deselect others
+				const projectMemberIds = new Set(clickedProject.members.map((member) => member.id))
+				fairyAgents.forEach((a) => {
+					const shouldSelect = projectMemberIds.has(a.id)
+					a.updateEntity((f) => (f ? { ...f, isSelected: shouldSelect } : f))
+				})
+			} else {
+				// Clicking a fairy not in a project: select just that fairy, deselect others
+				fairyAgents.forEach((a) => {
+					const shouldSelect = a.id === clickedAgent.id
+					a.updateEntity((f) => (f ? { ...f, isSelected: shouldSelect } : f))
+				})
+			}
+		}
+		// If already selected, do nothing (might be dragging)
+	} else {
+		// Multi-select: add to selection if not selected (only for non-project fairies)
 		if (!wasSelected) {
 			trackEvent('fairy-add-to-selection', { source: 'fairy-canvas', fairyId: clickedAgent.id })
 			clickedAgent.updateEntity((f) => (f ? { ...f, isSelected: true } : f))
 		}
-		// If already selected, do nothing (will handle deselection on pointer up)
 	}
 }
 
@@ -169,7 +186,22 @@ function useFairyPointerInteraction(
 			editor.setCursor({ type: 'default', rotation: 0 })
 
 			if (currentState.status === 'pressed' && currentState.wasSelectedBeforeDown) {
-				agent.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
+				// Deselect the fairy (and all project members if in a project)
+				const project = agent.getProject()
+				const isInProject = project && project.members.length > 1
+
+				if (isInProject) {
+					// Deselect all fairies in the project
+					const fairyAgents = agent.fairyApp.agents.getAgents()
+					const projectMemberIds = new Set(project.members.map((member) => member.id))
+					fairyAgents.forEach((a) => {
+						if (projectMemberIds.has(a.id)) {
+							a.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
+						}
+					})
+				} else {
+					agent.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
+				}
 			}
 
 			interactionState.current = { status: 'idle' }

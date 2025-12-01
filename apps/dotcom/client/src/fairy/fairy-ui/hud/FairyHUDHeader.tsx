@@ -181,10 +181,24 @@ export function FairyHUDHeader({
 		)
 	}
 
+	// Get display name for multi-fairy header (pre-project or active project)
+	const getProjectDisplayName = () => {
+		// Active project with a title
+		if (isProjectStarted && project?.title) {
+			return project.title
+		}
+		// Active project being planned (no title yet)
+		if (isProjectStarted) {
+			return 'Planning project…'
+		}
+		// Pre-project state (multiple fairies selected, no project started yet)
+		return formattedNames
+	}
+
 	// Determine center content based on panel state
 	const centerContent =
 		selectedFairies.length > 1 ? (
-			<div className="fairy-id-display">{formattedNames}</div>
+			<div className="fairy-id-display">{getProjectDisplayName()}</div>
 		) : shownFairy && fairyConfig ? (
 			<div className="fairy-id-display" onClick={zoomToFairy}>
 				<TldrawUiTooltip content={fairyClickable ? zoomToFairyLabel : undefined} side="top">

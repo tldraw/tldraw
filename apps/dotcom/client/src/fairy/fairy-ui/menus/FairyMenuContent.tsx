@@ -38,6 +38,18 @@ export function FairyMenuContent({
 	const onlyAgent = agents.length === 1 ? agents[0] : null
 	const hasSelected = agents.some((agent) => agent.getEntity()?.isSelected)
 
+	// Check if any currently selected fairy is in a project (used to prevent mixed selection)
+	const hasSelectedProjectFairy = useValue(
+		'has-selected-project-fairy',
+		() =>
+			allAgents.some((agent) => {
+				if (!agent.getEntity()?.isSelected) return false
+				const project = agent.getProject()
+				return project && project.members.length > 1
+			}),
+		[allAgents]
+	)
+
 	const putAwayFairy = useCallback(() => {
 		agents.forEach((agent: FairyAgent) => {
 			trackEvent('fairy-sleep', { source: 'fairy-panel', fairyId: agent.id })
@@ -216,7 +228,7 @@ export function FairyMenuContent({
 	return (
 		<TldrawUiMenuContextProvider type={menuType} sourceId="fairy-panel">
 			<TldrawUiMenuGroup id="single-fairy-menu">
-				{!agents.some((agent) => agent.getEntity().isSelected) && (
+				{!agents.some((agent) => agent.getEntity().isSelected) && !hasSelectedProjectFairy && (
 					<TldrawUiMenuItem id="select" onSelect={select} label={selectFairyLabel} />
 				)}
 				{source !== 'canvas' && (
@@ -254,11 +266,13 @@ export function FairyMenuContent({
 			<TldrawUiMenuGroup id="fairy-management-menu">
 				<TldrawUiMenuSubmenu id="fairy-management-submenu" label={fairyManagementLabel}>
 					<TldrawUiMenuGroup id="fairy-management-group">
-						<TldrawUiMenuItem
-							id="select all fairies"
-							onSelect={selectAllFairies}
-							label={selectAllFairiesLabel}
-						/>
+						{!hasSelectedProjectFairy && (
+							<TldrawUiMenuItem
+								id="select all fairies"
+								onSelect={selectAllFairies}
+								label={selectAllFairiesLabel}
+							/>
+						)}
 						<TldrawUiMenuItem
 							id="summon-all-fairies"
 							onSelect={summonAllFairies}
