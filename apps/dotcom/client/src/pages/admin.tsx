@@ -11,7 +11,6 @@ import { Navigate } from 'react-router-dom'
 import { fetch, useValue } from 'tldraw'
 import { TlaButton } from '../tla/components/TlaButton/TlaButton'
 import { useApp } from '../tla/hooks/useAppState'
-import { usePaddle } from '../tla/hooks/usePaddle'
 import { useTldrawUser } from '../tla/hooks/useUser'
 import styles from './admin.module.css'
 import { saveMigrationLog } from './migrationLogsDB'
@@ -280,7 +279,6 @@ export function Component() {
 function FairyInvites() {
 	const app = useApp()
 	const user = useValue('user', () => app.getUser(), [app])
-	const { paddleLoaded, openPaddleCheckout } = usePaddle()
 	const [invites, setInvites] = useState<
 		Array<{
 			id: string
@@ -304,6 +302,9 @@ function FairyInvites() {
 	const [error, setError] = useState(null as string | null)
 	const [successMessage, setSuccessMessage] = useState(null as string | null)
 	const [isTableExpanded, setIsTableExpanded] = useState(false)
+	const [limitEmail, setLimitEmail] = useState('')
+	const [limit, setLimit] = useState<number | ''>('')
+	const [isSettingLimit, setIsSettingLimit] = useState(false)
 
 	const loadInvites = useCallback(async () => {
 		setIsLoading(true)
@@ -493,6 +494,50 @@ function FairyInvites() {
 		}
 	}, [accessEmail])
 
+	const setWeeklyLimit = useCallback(
+		async (newLimit: number) => {
+			if (!limitEmail) {
+				setError('Email is required')
+				return
+			}
+
+			setIsSettingLimit(true)
+			setError(null)
+			setSuccessMessage(null)
+			try {
+				const res = await fetch('/api/app/admin/fairy/set-weekly-limit', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ email: limitEmail, limit: newLimit }),
+				})
+				if (!res.ok) {
+					setError(res.statusText + ': ' + (await res.text()))
+					return
+				}
+				setSuccessMessage(`Weekly limit set to ${newLimit === 0 ? 'blocked' : `$${newLimit}`}`)
+				setLimitEmail('')
+				setLimit('')
+			} catch (err) {
+				setError(err instanceof Error ? err.message : 'Failed to set weekly limit')
+			} finally {
+				setIsSettingLimit(false)
+			}
+		},
+		[limitEmail]
+	)
+
+	const handleSetCustomLimit = useCallback(async () => {
+		if (limit === '') {
+			setError('Please enter a limit value')
+			return
+		}
+		await setWeeklyLimit(Number(limit))
+	}, [limit, setWeeklyLimit])
+
+	const handleBlock = useCallback(async () => {
+		await setWeeklyLimit(0)
+	}, [setWeeklyLimit])
+
 	useEffect(() => {
 		if (successMessage) {
 			const timer = setTimeout(() => setSuccessMessage(null), 3000)
@@ -553,6 +598,47 @@ function FairyInvites() {
 				</TlaButton>
 			</div>
 
+			<h4 className="tla-text_ui__medium">Manage weekly limits</h4>
+			<p className="tla-text_ui__small">
+				Set per-user weekly usage limits. Default is $25 per week.
+			</p>
+			<div className={`${styles.downloadContainer} ${styles.fairyAccessContainer}`}>
+				<div>
+					<label htmlFor="limitEmail">Email:</label>
+					<input
+						id="limitEmail"
+						type="text"
+						placeholder="user@example.com"
+						value={limitEmail}
+						onChange={(e) => setLimitEmail(e.target.value)}
+						className={`${styles.searchInput} ${styles.fairyEmailInput}`}
+					/>
+				</div>
+				<div>
+					<label htmlFor="customLimit">New limit:</label>
+					<input
+						id="customLimit"
+						type="number"
+						placeholder="25"
+						value={limit}
+						onChange={(e) => setLimit(e.target.value === '' ? '' : Number(e.target.value))}
+						min={0}
+						className={`${styles.searchInput} ${styles.fairyEmailInput}`}
+					/>
+				</div>
+				<TlaButton onClick={handleSetCustomLimit} variant="primary" isLoading={isSettingLimit}>
+					Set custom limit
+				</TlaButton>
+				<TlaButton
+					onClick={handleBlock}
+					variant="warning"
+					className={styles.deleteButton}
+					isLoading={isSettingLimit}
+				>
+					Block
+				</TlaButton>
+			</div>
+
 			<h4 className="tla-text_ui__medium">Create Invite Code</h4>
 			<p className="tla-text_ui__small">
 				Create an invite code that grants {MAX_FAIRY_COUNT} fairies. Max uses: how many users can
@@ -593,7 +679,8 @@ function FairyInvites() {
 					variant="secondary"
 					className={styles.toggleTableButton}
 				>
-					{isTableExpanded ? '▼' : '▶'} {invites.length} invite{invites.length !== 1 ? 's' : ''}
+					{isTableExpanded ? '▼' : '▶'} {isTableExpanded ? 'Hide' : 'Show'} {invites.length} invite
+					{invites.length !== 1 ? 's' : ''}
 				</TlaButton>
 
 				{isTableExpanded && (
@@ -658,26 +745,6 @@ function FairyInvites() {
 						)}
 					</>
 				)}
-			</div>
-
-			<h4 className={`tla-text_ui__medium ${styles.paddleSectionHeading}`}>
-				Test Paddle Purchase (Testing Only)
-			</h4>
-			<p className="tla-text_ui__small">
-				Test the Paddle checkout flow. This will open the payment overlay for purchasing fairies.
-			</p>
-			<div className={styles.paddleButtonContainer}>
-				<TlaButton
-					onClick={() => {
-						if (user?.email) {
-							openPaddleCheckout(app.userId, user.email)
-						}
-					}}
-					variant="primary"
-					disabled={!paddleLoaded || !user?.email}
-				>
-					Open Paddle Checkout
-				</TlaButton>
 			</div>
 		</div>
 	)

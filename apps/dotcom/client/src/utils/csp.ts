@@ -68,7 +68,12 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://public.profitwell.com',
 	],
 	'worker-src': [`'self'`, `blob:`],
-	'style-src': [`'self'`, `'unsafe-inline'`, `https://fonts.googleapis.com`],
+	'style-src': [
+		`'self'`,
+		`'unsafe-inline'`,
+		`https://fonts.googleapis.com`,
+		`https://*.paddle.com`,
+	],
 	'style-src-elem': [
 		`'self'`,
 		`'unsafe-inline'`,
