@@ -82,7 +82,7 @@ export default function BezierCurveShapeExample() {
 										},
 									})
 
-									editor.setEditingShape(info.shape.id)
+									editor.startEditingShape(info.shape.id)
 									return
 								}
 								case 'cp2': {
@@ -94,14 +94,14 @@ export default function BezierCurveShapeExample() {
 										},
 									})
 
-									editor.setEditingShape(info.shape.id)
+									editor.startEditingShape(info.shape.id)
 									return
 								}
 							}
 						}
 
 						if (editor.isShapeOfType(info.shape, 'bezier-curve') && info.target === 'handle') {
-							editor.setEditingShape(info.shape.id)
+							editor.startEditingShape(info.shape.id)
 							return
 						}
 
@@ -117,7 +117,7 @@ export default function BezierCurveShapeExample() {
 							editor.setCurrentTool('select.dragging_handle', {
 								...info,
 								onInteractionEnd: () => {
-									editor.setEditingShape(info.shape.id)
+									editor.startEditingShape(info.shape.id)
 								},
 							})
 							return
@@ -138,7 +138,7 @@ export default function BezierCurveShapeExample() {
 									target: 'shape',
 									shape: editingShape,
 									onInteractionEnd: () => {
-										editor.setEditingShape(editingShape.id)
+										editor.startEditingShape(editingShape.id)
 									},
 								})
 								return

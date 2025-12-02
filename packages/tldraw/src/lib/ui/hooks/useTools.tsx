@@ -239,8 +239,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 						createShape: (id) =>
 							editor.createShape({ id, type: 'text', props: { richText: toRichText('Text') } }),
 						onDragEnd: (id) => {
-							editor.setEditingShape(id)
-							editor.emit('select-all-text', { shapeId: id })
+							editor.startEditingShape(id, { selectAll: true })
 						},
 					})
 					trackEvent('drag-tool', { source, id: 'text' })
@@ -269,8 +268,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					onDragFromToolbarToCreateShape(editor, info, {
 						createShape: (id) => editor.createShape({ id, type: 'note' }),
 						onDragEnd: (id) => {
-							editor.setEditingShape(id)
-							editor.emit('select-all-text', { shapeId: id })
+							editor.startEditingShape(id, { selectAll: true })
 						},
 					})
 					trackEvent('drag-tool', { source, id: 'note' })

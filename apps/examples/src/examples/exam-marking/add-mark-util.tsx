@@ -48,7 +48,7 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 
 		// [c]
 		useEffect(() => {
-			this.editor.setEditingShape(shape.id)
+			this.editor.startEditingShape(shape.id)
 		}, [shape.id])
 
 		// [d]
@@ -101,7 +101,7 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 						}}
 						onChange={handleChange}
 						onBlur={() => {
-							this.editor.setEditingShape(null)
+							this.editor.stopEditingShape()
 						}}
 						onPointerDown={isEditing ? this.editor.markEventAsHandled : undefined}
 						onPointerUp={isEditing ? this.editor.markEventAsHandled : undefined}

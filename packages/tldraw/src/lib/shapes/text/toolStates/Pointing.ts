@@ -83,8 +83,7 @@ export class Pointing extends StateNode {
 				creationCursorOffset: { x: currentDragDist * scale, y: 1 },
 				onInteractionEnd: 'text',
 				onCreate: () => {
-					editor.setEditingShape(shape.id)
-					// this will automatically set the state to 'select.editing_shape'
+					editor.startEditingShape(shape)
 				},
 			})
 		}
@@ -114,8 +113,7 @@ export class Pointing extends StateNode {
 		if (!shape) return
 
 		this.editor.select(id)
-		this.editor.setEditingShape(id)
-		// this will automatically set the state to 'select.editing_shape'
+		this.editor.startEditingShape(id)
 	}
 
 	private cancel() {

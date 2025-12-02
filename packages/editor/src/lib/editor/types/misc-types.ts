@@ -1,6 +1,10 @@
 import { BoxModel, TLShape } from '@tldraw/tlschema'
 import { Box } from '../../primitives/Box'
+import { MatLike } from '../../primitives/Mat'
 import { VecLike } from '../../primitives/Vec'
+import { TLResizeMode } from '../shapes/ShapeUtil'
+import { TLClickEventInfo, TLKeyboardEventInfo, TLPointerEventInfo } from './event-types'
+import { TLResizeHandle } from './selection-types'
 
 /** @public */
 export type RequiredKeys<T, K extends keyof T> = Required<Pick<T, K>> & Omit<T, K>
@@ -252,4 +256,23 @@ export interface TLGetShapeAtPointOptions {
 	 * A filter function to apply to the shapes.
 	 */
 	filter?(shape: TLShape): boolean
+}
+
+/** @public */
+export type TLResizeShapeOptions = Partial<{
+	initialBounds: Box
+	scaleOrigin: VecLike
+	scaleAxisRotation: number
+	initialShape: TLShape
+	initialPageTransform: MatLike
+	dragHandle: TLResizeHandle
+	isAspectRatioLocked: boolean
+	mode: TLResizeMode
+	skipStartAndEndCallbacks: boolean
+}>
+
+/** @public */
+export interface TLStartEditingShapeOptions {
+	info?: TLClickEventInfo | TLKeyboardEventInfo | TLPointerEventInfo
+	selectAll?: boolean
 }

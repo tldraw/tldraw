@@ -154,7 +154,7 @@ import { SnapManager } from './managers/SnapManager/SnapManager'
 import { TextManager } from './managers/TextManager/TextManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
-import { ShapeUtil, TLGeometryOpts, TLResizeMode } from './shapes/ShapeUtil'
+import { ShapeUtil, TLGeometryOpts } from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
@@ -174,23 +174,12 @@ import {
 	TLCameraOptions,
 	TLGetShapeAtPointOptions,
 	TLImageExportOptions,
+	TLResizeShapeOptions,
+	TLStartEditingShapeOptions,
 	TLSvgExportOptions,
 	TLUpdatePointerOptions,
 } from './types/misc-types'
-import { TLAdjacentDirection, TLResizeHandle } from './types/selection-types'
-
-/** @public */
-export type TLResizeShapeOptions = Partial<{
-	initialBounds: Box
-	scaleOrigin: VecLike
-	scaleAxisRotation: number
-	initialShape: TLShape
-	initialPageTransform: MatLike
-	dragHandle: TLResizeHandle
-	isAspectRatioLocked: boolean
-	mode: TLResizeMode
-	skipStartAndEndCallbacks: boolean
-}>
+import { TLAdjacentDirection } from './types/selection-types'
 
 /** @public */
 export interface TLEditorOptions {
@@ -2279,24 +2268,48 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Whether the shape can be edited.
+	 * Try to begin editing a shape. Returns true if editing successfully started.
 	 *
-	 * @param shape - The shape (or shape id) to check if it can be edited.
+	 * @param shapeOrId - The shape (or shape id) to edit. Defaults to the only selected shape.
+	 * @param options - Additional options for starting the edit interaction.
 	 *
 	 * @public
-	 * @returns true if the shape can be edited, false otherwise.
 	 */
-	canEditShape<T extends TLShape | TLShapeId>(shape: T | null): shape is T {
-		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
-		if (!id) return false // no shape
-		if (id === this.getEditingShapeId()) return false // already editing this shape
-		const _shape = this.getShape(id)
-		if (!_shape) return false // no shape
-		const util = this.getShapeUtil(_shape)
-		if (!util.canEdit(_shape)) return false // shape is not editable
-		if (this.getIsReadonly() && !util.canEditInReadonly(_shape)) return false // readonly and no exception
-		if (this.isShapeOrAncestorLocked(_shape) && !util.canEditWhileLocked(_shape)) return false // locked and no exception. Note here: we're not distinguishing between a locked shape and a shape that is the descendant of a locked shape.
-		return true // shape is editable
+	startEditingShape(
+		shapeOrId: TLShape | TLShapeId | null = this.getOnlySelectedShape(),
+		options: TLStartEditingShapeOptions = {}
+	): boolean {
+		const shape = shapeOrId ? this.getShape(shapeOrId) : null
+		if (!shape) return false
+
+		const util = this.getShapeUtil(shape)
+		if (this.getIsReadonly() && !util.canEditInReadonly(shape)) return false
+		if (!util.canEdit(shape)) return false
+
+		this.select(shape.id)
+		this._setEditingShapeInternal(shape.id)
+		if (!this.getEditingShape()) return false
+
+		this.setCurrentTool('select.editing_shape', {
+			...(options.info ?? {}),
+			target: 'shape',
+			shape,
+		})
+
+		if (options.selectAll) {
+			this.emit('select-all-text', { shapeId: shape.id })
+		}
+
+		return true
+	}
+
+	/**
+	 * Stop editing the current shape, if any.
+	 *
+	 * @public
+	 */
+	stopEditingShape(): this {
+		return this._setEditingShapeInternal(null)
 	}
 
 	/**
@@ -2310,64 +2323,54 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param shape - The shape (or shape id) to set as editing.
 	 *
+	 * @deprecated Use {@link Editor.startEditingShape} / {@link Editor.stopEditingShape}.
+	 *
 	 * @public
 	 */
 	setEditingShape(shape: TLShapeId | TLShape | null): this {
-		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
+		return this._setEditingShapeInternal(shape)
+	}
 
-		if (!id) {
-			// setting the editing shape to null
+	private _setEditingShapeInternal(shape: TLShapeId | TLShape | null): this {
+		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
+		this.setRichTextEditor(null)
+		const prevEditingShapeId = this.getEditingShapeId()
+		if (id !== prevEditingShapeId) {
+			if (id) {
+				const shape = this.getShape(id)
+				if (shape && this.getShapeUtil(shape).canEdit(shape)) {
+					this.run(
+						() => {
+							this._updateCurrentPageState({ editingShapeId: id })
+							if (prevEditingShapeId) {
+								const prevEditingShape = this.getShape(prevEditingShapeId)
+								if (prevEditingShape) {
+									this.getShapeUtil(prevEditingShape).onEditEnd?.(prevEditingShape)
+								}
+							}
+							this.getShapeUtil(shape).onEditStart?.(shape)
+						},
+						{ history: 'ignore' }
+					)
+					return this
+				}
+			}
+
+			// Either we just set the editing id to null, or the shape was missing or not editable
 			this.run(
 				() => {
-					// Clean up the previous editing shape
-					const prevEditingShapeId = this.getEditingShapeId()
+					this._updateCurrentPageState({ editingShapeId: null })
+					this._currentRichTextEditor.set(null)
 					if (prevEditingShapeId) {
 						const prevEditingShape = this.getShape(prevEditingShapeId)
 						if (prevEditingShape) {
 							this.getShapeUtil(prevEditingShape).onEditEnd?.(prevEditingShape)
 						}
 					}
-
-					// Clean up the editing shape state and rich text editor
-					this._updateCurrentPageState({ editingShapeId: null })
-					this._currentRichTextEditor.set(null)
 				},
 				{ history: 'ignore' }
 			)
-
-			return this
 		}
-
-		// id was provided but the next editing shape was not editable or didn't exist, so do nothing
-		if (!this.canEditShape(id)) return this
-
-		// id was provided and the next editing shape is editable, so set the rich text editor to null
-		this.run(
-			() => {
-				this.setRichTextEditor(null)
-
-				// Clean up the previous editing shape
-				const prevEditingShapeId = this.getEditingShapeId()
-				if (prevEditingShapeId) {
-					const prevEditingShape = this.getShape(prevEditingShapeId)
-					if (prevEditingShape) {
-						this.getShapeUtil(prevEditingShape).onEditEnd?.(prevEditingShape)
-					}
-				}
-
-				// Clean up the editing shape state and rich text editor
-				this._updateCurrentPageState({ editingShapeId: null })
-				this._currentRichTextEditor.set(null)
-
-				// Set the new editing shape
-				this._updateCurrentPageState({ editingShapeId: id })
-
-				const nextEditingShape = this.getShape(id)! // shape should be there because canEditShape checked it. Possible small chance that onEditEnd deleted it?
-				this.getShapeUtil(nextEditingShape).onEditStart?.(nextEditingShape)
-			},
-			{ history: 'ignore' }
-		)
-
 		return this
 	}
 
@@ -2572,26 +2575,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Whether the shape can be cropped.
-	 *
-	 * @param shape - The shape (or shape id) to check if it can be cropped.
-	 *
-	 * @public
-	 * @returns true if the shape can be cropped, false otherwise.
-	 */
-	canCropShape<T extends TLShape | TLShapeId>(shape: T | null): shape is T {
-		if (!shape) return false
-		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
-		if (!id) return false
-		const _shape = this.getShape(id)
-		if (!_shape) return false
-		const util = this.getShapeUtil(_shape)
-		if (!util.canCrop(_shape)) return false
-		if (this.isShapeOrAncestorLocked(_shape)) return false
-		return true
-	}
-
-	/**
 	 * Set the current cropping shape.
 	 *
 	 * @example
@@ -2612,8 +2595,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				() => {
 					if (!id) {
 						this.updateCurrentPageState({ croppingShapeId: null })
-					} else if (this.canCropShape(id)) {
-						this.updateCurrentPageState({ croppingShapeId: id })
+					} else {
+						const shape = this.getShape(id)!
+						const util = this.getShapeUtil(shape)
+						if (shape && util.canCrop(shape)) {
+							this.updateCurrentPageState({ croppingShapeId: id })
+						}
 					}
 				},
 				{ history: 'ignore' }
@@ -9202,30 +9189,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		if (point) {
-			const shapesById = new Map<TLShapeId, TLShape>(shapes.map((shape) => [shape.id, shape]))
-			const rootShapesFromContent = compact(rootShapeIds.map((id) => shapesById.get(id)))
-			if (rootShapesFromContent.length > 0) {
-				const targetParent = this.getShapeAtPoint(point, {
-					hitInside: true,
-					hitFrameInside: true,
-					hitLocked: true,
-					filter: (shape) => {
-						const util = this.getShapeUtil(shape)
-						if (!util.canReceiveNewChildrenOfType) return false
-						return rootShapesFromContent.every((rootShape) =>
-							util.canReceiveNewChildrenOfType!(shape, rootShape.type)
-						)
-					},
-				})
-
-				// When pasting at a specific point (e.g. paste-at-cursor) prefer the
-				// parent under the pointer so that we don't keep using the original
-				// selection's parent (which can keep shapes clipped inside frames).
-				pasteParentId = targetParent ? targetParent.id : currentPageId
-			}
-		}
-
 		let isDuplicating = false
 
 		if (!isPageId(pasteParentId)) {
@@ -10332,8 +10295,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 
-			this.root.handleEvent(info)
 			this.emit('event', info)
+			this.root.handleEvent(info)
 			return
 		}
 

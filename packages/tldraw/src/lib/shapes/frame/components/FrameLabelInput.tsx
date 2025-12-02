@@ -34,7 +34,7 @@ export const FrameLabelInput = forwardRef<
 				// and sending us back into edit mode
 				editor.markEventAsHandled(e)
 				e.currentTarget.blur()
-				editor.setEditingShape(null)
+				editor.stopEditingShape()
 			}
 		},
 		[editor]
@@ -86,7 +86,7 @@ export const FrameLabelInput = forwardRef<
 			const newName = window.prompt(msg('action.rename'), currentName)
 			promptOpen.current = false
 			if (newName !== null) renameFrame(newName)
-			editor.setEditingShape(null)
+			editor.stopEditingShape()
 		}
 	}, [isEditing, shouldUseWindowPrompt, id, msg, renameFrame, editor])
 
