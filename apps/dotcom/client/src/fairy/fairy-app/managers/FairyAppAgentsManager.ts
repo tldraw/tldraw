@@ -156,7 +156,9 @@ export class FairyAppAgentsManager extends BaseFairyAppManager {
 	 */
 	disposeAll() {
 		const agents = this.$agents.get()
-		agents.forEach((agent) => agent.reset())
+		agents.forEach((agent) => agent.dispose())
+		this.$agents.set([])
+		this.loadedAgentIds.clear()
 	}
 
 	/**
