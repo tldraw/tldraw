@@ -123,14 +123,27 @@ export function FairyMenuContent({
 		() => (fairyApp ? fairyApp.projects.getProjects() : []),
 		[fairyApp]
 	)
+	// Find the project for the agents (works for single or multiple agents)
 	const currentProject = useMemo(() => {
-		if (!onlyAgent) return null
-		return (
-			projects.find((project: any) =>
-				project.members.some((member: any) => member.id === onlyAgent.id)
-			) ?? null
+		if (agents.length === 0) return null
+		// Check the first agent's project
+		const firstAgent = agents[0]
+		const project = projects.find((project: any) =>
+			project.members.some((member: any) => member.id === firstAgent.id)
 		)
-	}, [projects, onlyAgent])
+		if (!project) return null
+		// For multiple agents, verify they're all in the same project
+		if (agents.length > 1) {
+			const allInSameProject = agents.every((agent) =>
+				project.members.some((member: any) => member.id === agent.id)
+			)
+			if (!allInSameProject) return null
+		} else {
+			return null
+		}
+		return project
+	}, [projects, agents])
+
 	const canDisbandGroup = currentProject && currentProject.members.length > 1
 
 	const disbandGroup = useCallback(() => {
