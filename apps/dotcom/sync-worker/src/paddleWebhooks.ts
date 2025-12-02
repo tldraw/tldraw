@@ -212,7 +212,7 @@ async function handleTransactionCompleted(
 	const webhookUrl = env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL
 
 	if (!userId) {
-		await sendDiscordNotification(webhookUrl, 'missing_user', { transactionId: data.id })
+		await sendDiscordNotification(webhookUrl, { type: 'missing_user', transactionId: data.id })
 		throw new Error('Missing userId in transaction custom_data')
 	}
 
@@ -237,9 +237,9 @@ async function handleTransactionCompleted(
 			stack: error instanceof Error ? error.stack : undefined,
 		})
 
-		await sendDiscordNotification(webhookUrl, 'error', {
+		await sendDiscordNotification(webhookUrl, {
+			type: 'error',
 			transactionId: data.id,
-			userId,
 			error: `UNEXPECTED ERROR: ${errorMessage}`,
 		})
 
@@ -259,9 +259,9 @@ async function handleTransactionCompleted(
 			error: errorMessage,
 		})
 
-		await sendDiscordNotification(webhookUrl, 'error', {
+		await sendDiscordNotification(webhookUrl, {
+			type: 'error',
 			transactionId: data.id,
-			userId,
 			error: errorMessage,
 		})
 
@@ -271,10 +271,9 @@ async function handleTransactionCompleted(
 		throw new Error(`Failed to grant fairy access: ${errorMessage}`)
 	}
 
-	await sendDiscordNotification(webhookUrl, 'success', {
-		transactionId: data.id,
-		userId,
-		email: email ?? undefined,
+	await sendDiscordNotification(webhookUrl, {
+		type: 'success',
+		email: email ?? 'N/A',
 	})
 	await markTransactionProcessed(db, event.event_id)
 }
@@ -295,7 +294,8 @@ export const paddleWebhooks = createRouter<Environment>().post(
 			if (event.event_type === 'transaction.completed') {
 				await handleTransactionCompleted(env, db, event)
 			} else if (event.event_type === 'transaction.canceled' && userId) {
-				await sendDiscordNotification(env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL, 'refund', {
+				await sendDiscordNotification(env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL, {
+					type: 'refund',
 					transactionId: event.data.id,
 					userId,
 				})

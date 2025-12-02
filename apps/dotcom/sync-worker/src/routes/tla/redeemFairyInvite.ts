@@ -100,8 +100,10 @@ export async function redeemFairyInvite(request: IRequest, env: Environment): Pr
 			throw new StatusError(500, `Failed to grant fairy access: ${result.error}`)
 		}
 
-		await sendDiscordNotification(env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL, 'invite_redeemed', {
+		await sendDiscordNotification(env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL, {
+			type: 'invite_redeemed',
 			email: userEmail,
+			description: invite.description ?? undefined,
 		})
 
 		return json({
