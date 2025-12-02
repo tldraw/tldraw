@@ -2279,7 +2279,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		shapeOrId: TLShape | TLShapeId | null = this.getOnlySelectedShape(),
 		options: TLStartEditingShapeOptions = {}
 	): boolean {
-		const shape = shapeOrId ? this.getShape(shapeOrId) : null
+		const target = shapeOrId ?? this.getOnlySelectedShape()
+		const shape = typeof target === 'string' ? this.getShape(target) : target
 		if (!shape) return false
 
 		const util = this.getShapeUtil(shape)
