@@ -2,14 +2,14 @@
   "0095a9fa74": {
     "translation": "I-export"
   },
+  "00b177e080": {
+    "translation": "Tanggapin ang imbitasyon"
+  },
   "03b3e13197": {
     "translation": "I-drag ang file sa sidebar sa page na ito. O piliin ang opsyong 'Mag-import ng file' mula sa menu ng user."
   },
   "043973ec1f": {
     "translation": "Nahihirapan pa rin? {GetHelpLink}"
-  },
-  "05596b840b": {
-    "translation": "Buksan ang tldraw."
   },
   "06b9281e39": {
     "translation": "Auto"
@@ -23,8 +23,11 @@
   "08bd40c754": {
     "translation": "Account"
   },
-  "08d2d725a9": {
-    "translation": "Gumawa ng libreng account para i-save ang iyong trabaho, makipagtulungan sa real-time, at higit pa."
+  "0a91f7fa87": {
+    "translation": "Naabot na ng file na ito ang limitasyon sa laki nito at maaaring hindi na ma-save ang mga pagbabago. Mag-alis ng ilang content o magsimula ng bagong file."
+  },
+  "0ab1ef22a3": {
+    "translation": "Makipag-usap sa grupo..."
   },
   "0b27918290": {
     "translation": "file"
@@ -32,14 +35,17 @@
   "0b9a4cde72": {
     "translation": "Menu ng file"
   },
-  "0beb3ca97b": {
-    "translation": "Ang tldraw ay isang libre at instant na virtual whiteboard."
+  "0befa10111": {
+    "translation": "Mga diwata"
   },
   "0d1f2bb523": {
     "translation": "Magpadala ng feedback"
   },
   "110a4b01be": {
     "translation": "I-publish"
+  },
+  "11a755d598": {
+    "translation": "Tumigil ka"
   },
   "129b9e34ea": {
     "translation": "Umalis sa grupo"
@@ -68,11 +74,11 @@
   "1dd1c5fb7f": {
     "translation": "Ngayong araw"
   },
-  "20976e7bec": {
-    "translation": "Puno ang kwarto"
+  "23f879f41a": {
+    "translation": "Naabot na ang iyong lingguhang limitasyon sa paggamit ng engkanto. Ire-reset ito sa simula ng susunod na linggo."
   },
-  "21bfb2dc2e": {
-    "translation": "Papalapit na ang kwartong ito sa limitasyon ng laki nito. Pag-isipang mag-alis ng ilang content o magsimula ng bagong file."
+  "243924bfd5": {
+    "translation": "Matulog"
   },
   "2445e5e347": {
     "translation": "Lumikha ng pangkat"
@@ -80,14 +86,23 @@
   "250ddea65c": {
     "translation": "Tungkol sa tldraw"
   },
+  "269097080b": {
+    "translation": "Naghihintay ang iyong mga diwata"
+  },
+  "275173253d": {
+    "translation": "Ipatawag lahat"
+  },
+  "284d5cd0dd": {
+    "translation": "modelo:"
+  },
   "299cb00a7a": {
     "translation": "Nabigo ang pag-upload"
   },
   "2c3ef76333": {
     "translation": "Aking mga file"
   },
-  "2deec2cb74": {
-    "translation": "Naabot na ng kwartong ito ang limitasyon sa laki nito at maaaring hindi na ma-save ang mga pagbabago. Mag-alis ng ilang content o magsimula ng bagong file."
+  "30cd34258a": {
+    "translation": "Dumating ang isang kumag na <b>mga engkanto</b> sa tldraw para sa buwan ng Disyembre. Para mag-imbestiga pa, hanapin ang diwata at i-click ito."
   },
   "31246941ad": {
     "translation": "Kailangan mong mag-sign in upang tingnan ang file na ito."
@@ -95,14 +110,38 @@
   "31418ce4ad": {
     "translation": "i18n: Nawawala ang Highlight"
   },
+  "3209f407ed": {
+    "translation": "tatlong diwata"
+  },
   "32210b37e4": {
     "translation": "Magdagdag ng link"
+  },
+  "324a0f3182": {
+    "translation": "Bumalik sa tldraw"
   },
   "335defdafe": {
     "translation": "Pakisubukang i-refresh ang page."
   },
+  "34140869c6": {
+    "translation": "Isang kumpas ng mga diwata ang darating sa tldraw para sa buwan ng Disyembre. Mangyaring bumalik sa ika-1 ng Disyembre."
+  },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "34abfe7a0d": {
+    "translation": "Tulog lahat"
+  },
+  "34e34c43ec": {
+    "translation": "Pamahalaan"
+  },
+  "3596c1b1f7": {
+    "translation": "I-unfollow"
+  },
+  "3903aab323": {
+    "translation": "Sundin"
+  },
+  "3b6c2b4caa": {
+    "translation": "Mga Tuntunin ng Serbisyo"
   },
   "3bc7d6ea2f": {
     "translation": "Magpatuloy sa email"
@@ -122,8 +161,17 @@
   "44db318ee5": {
     "translation": "Humingi ng tulong sa Discord"
   },
+  "45b43c2d28": {
+    "translation": "<strong>Mga diwata</strong> ay dumating upang tldraw para sa buwan ng Disyembre."
+  },
   "46137245cd": {
     "translation": "Salamat sa pagtulong sa amin na mapabuti ang tldraw!"
+  },
+  "465a8a92a4": {
+    "translation": "Walang napiling mga engkanto"
+  },
+  "477df802ca": {
+    "translation": "Upang magpatuloy sa pag-edit, mangyaring kopyahin ang file sa iyong mga file."
   },
   "47839e47a5": {
     "translation": "tldraw"
@@ -140,6 +188,9 @@
   "49ee308734": {
     "translation": "Pangalan"
   },
+  "4c41e0bd95": {
+    "translation": "Piliin lahat"
+  },
   "4d0d3ddec9": {
     "translation": "Gumagamit ang site na ito ng cookies para gumana ang app at para mangolekta ng analytics."
   },
@@ -148,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "Tanggalin ang pangkat…"
+  },
+  "4dab36ac83": {
+    "translation": "Higit pang mga pagpipilian"
   },
   "4e6fbf032b": {
     "translation": "Sigurado ka bang gusto mong tanggalin ang pangkat na ito? Ang pagkilos na ito ay hindi maaaring i-undo."
@@ -158,11 +212,11 @@
   "517bb809d9": {
     "translation": "Menu ng page"
   },
+  "542248f0ba": {
+    "translation": "Read-only na ang file na ito"
+  },
   "54286b1d01": {
     "translation": "Naabot na ang limitasyon ng collaborator"
-  },
-  "54d240fa41": {
-    "translation": "Mangyaring magdahan-dahan."
   },
   "554a05155c": {
     "translation": "Nahihirapan pa rin? <a>Mag-ulat ng problema</a>"
@@ -176,17 +230,14 @@
   "56c34c6410": {
     "translation": "Patakaran sa privacy"
   },
+  "5a2ccdc00a": {
+    "translation": "Nabigong ma-redeem ang code ng imbitasyon"
+  },
   "5a86b22fa0": {
     "translation": "I-drag ang mga file dito, <create>lumikha ng file</create>, o <invite>copy invite link</invite> para makapagsimula."
   },
   "5a95a425f7": {
     "translation": "Ibahagi"
-  },
-  "5bb6cf3b53": {
-    "translation": "Lumalaki ang kwarto"
-  },
-  "5bcc12ace8": {
-    "translation": "Read-only na ang kwartong ito"
   },
   "5bec508475": {
     "translation": "Nakita ang lumang browser. Mangyaring i-update ang iyong browser upang magamit ang app na ito."
@@ -197,6 +248,9 @@
   "5d26ae7550": {
     "translation": "Nabigo kaming mag-upload ng ilan sa nilalamang ginawa mo bago ka mag-sign in."
   },
+  "5ea8bb44be": {
+    "translation": "Inimbitahan kang sumali sa grupo:"
+  },
   "5f3c333678": {
     "translation": "Naisumite ang feedback"
   },
@@ -206,11 +260,17 @@
   "61057a0c84": {
     "translation": "Mamaya"
   },
+  "61daf2e53d": {
+    "translation": "Kausapin si {name}..."
+  },
   "625fd29749": {
     "translation": "Mas matanda"
   },
   "639bae9ac6": {
     "translation": "ikaw"
+  },
+  "6602bbeb29": {
+    "translation": "Patnubay"
   },
   "6609dd239e": {
     "translation": "Nagkaproblema"
@@ -218,11 +278,20 @@
   "6637a98151": {
     "translation": "Available ang bagong bersyon ng tldraw. Paki-reload ang page para magpatuloy."
   },
-  "68257bb646": {
-    "translation": "Inimbitahan ka sa pangkat na <br></br><groupName></groupName>"
-  },
   "6832ac5936": {
     "translation": "Ilagay ang iyong email address"
+  },
+  "688761c83e": {
+    "translation": "Gumising ka"
+  },
+  "68d390535e": {
+    "translation": "Ilagay ang iyong mensahe"
+  },
+  "6910bbdc82": {
+    "translation": "pangalan ng diwata"
+  },
+  "695c3e899d": {
+    "translation": "I-debug ang mga engkanto"
   },
   "6a26f54883": {
     "translation": "Tulong"
@@ -263,8 +332,14 @@
   "764671e008": {
     "translation": "Makipag-chat sa amin sa Discord"
   },
+  "76dea3c9ca": {
+    "translation": "Ang tldraw ay isang libreng online na whiteboard. Gumawa ng account para i-save ang iyong mga file at magtrabaho kasama ang iyong mga kaibigan."
+  },
   "777f9e90cf": {
     "translation": "Di-wastong kahilingan."
+  },
+  "7827371d1a": {
+    "translation": "Read-only na ngayon ang hindi kilalang tldraw multiplayer file na ito. Upang magpatuloy sa pag-edit, mangyaring mag-sign in at kopyahin ito sa iyong mga file."
   },
   "78e9815992": {
     "translation": "Nakuha ko"
@@ -272,11 +347,20 @@
   "797799f35e": {
     "translation": "Magsumite ng isyu sa GitHub"
   },
+  "79cc22ac6b": {
+    "translation": "Ang isang engkanto ay isang maliit na tao na maaaring makipagtulungan sa iyo sa canvas. Ang mga diwata ay maaaring magtrabaho nang mag-isa o bilang isang pangkat. Walang limitasyon ang kayang gawin ng isang diwata. Walang nakakaalam kung saan sila nanggaling."
+  },
   "7b1329f5ca": {
     "translation": "User manual"
   },
   "7be10fc592": {
     "translation": "Ibalik ang bersyon"
+  },
+  "7c0747a5df": {
+    "translation": "Buksan ang tldraw"
+  },
+  "7cb471f815": {
+    "translation": "Inimbitahan ka na sumali sa tldraw fairies!"
   },
   "7cb5f8b4a5": {
     "translation": "Kalimutan"
@@ -296,6 +380,12 @@
   "815e116a2e": {
     "translation": "May bug, isyu, o ideya para sa tldraw? Ipaalam sa amin! Punan ang form na ito at susubaybayan namin ang email kung kinakailangan. Maaari ka ring <discord>makipag-chat sa amin sa Discord</discord> o <github>magsumite ng isyu sa GitHub</github>."
   },
+  "81aa2078d1": {
+    "translation": "I-clear lahat"
+  },
+  "83218ac34c": {
+    "translation": "Maligayang pagdating"
+  },
   "85a082de1b": {
     "translation": "Paki-refresh ang page para makuha ang pinakabagong bersyon ng tldraw."
   },
@@ -305,17 +395,29 @@
   "86c66437fd": {
     "translation": "Palitan ang pangalan ng file"
   },
+  "8726ef8909": {
+    "translation": "Hard reset"
+  },
+  "88e83b88c5": {
+    "translation": "Bumili ng Fairy Bundle"
+  },
   "8ad4303b83": {
     "translation": "Hindi salamat"
   },
-  "8b1946f965": {
-    "translation": "Para magpatuloy sa pag-edit, pakikopya ang kwarto sa iyong mga file."
+  "8be569f100": {
+    "translation": "isang beses na pagbabayad"
   },
   "8c2d3d730c": {
     "translation": "Tingnan ang iyong email para sa isang verification code."
   },
+  "8cf04a9734": {
+    "translation": "Bahay"
+  },
   "8eb2c00e96": {
     "translation": "Ibinahagi sa iyo"
+  },
+  "8f7f4c1ce7": {
+    "translation": "Tungkol sa"
   },
   "8ff3d0a705": {
     "translation": "Limitado ang rate"
@@ -331,6 +433,12 @@
   },
   "930390d222": {
     "translation": "Kinopya ang link ng imbitasyon"
+  },
+  "94186070ef": {
+    "translation": "Alisin sa pagkakapili"
+  },
+  "94966d9074": {
+    "translation": "Ipadala"
   },
   "95aacd4d4a": {
     "translation": "Mag-sign in gamit ang Google"
@@ -350,14 +458,14 @@
   "9914a0ce04": {
     "translation": "Liwanag"
   },
+  "9953e9946b": {
+    "translation": "Pag-debug ng view"
+  },
   "9b33f5c63c": {
     "translation": "Hindi nakatanggap ng code? <resend>Muling ipadala</resend>."
   },
   "9bef626805": {
     "translation": "Tanggalin ang file"
-  },
-  "9c258b8f88": {
-    "translation": "Read-only na ang anonymous na tldraw multiplayer room na ito. Upang magpatuloy sa pag-edit, mangyaring mag-sign in at kopyahin ito sa iyong mga file."
   },
   "9ceb927baa": {
     "translation": "I-publish ang file na ito"
@@ -383,11 +491,17 @@
   "a239905023": {
     "translation": "I-export ang larawan"
   },
+  "a286d9991c": {
+    "translation": "Sumali"
+  },
   "a3debabee7": {
     "translation": "Patakaran sa cookie"
   },
   "a4d3b161ce": {
     "translation": "Isumite"
+  },
+  "a603905470": {
+    "translation": "I-debug"
   },
   "a6cc403d56": {
     "translation": "Sinumang may link"
@@ -395,11 +509,17 @@
   "a768caa988": {
     "translation": "Analytics"
   },
+  "a8873770ab": {
+    "translation": "Lumalaki ang file"
+  },
+  "a8de4c27a8": {
+    "translation": "Naabot na ang lingguhang limitasyon ng engkanto"
+  },
+  "a917baaf14": {
+    "translation": "Bagong chat"
+  },
   "a9ded1e5ce": {
     "translation": "Background"
-  },
-  "aa916767cf": {
-    "translation": "Mag-sign in para tanggapin ang imbitasyon"
   },
   "ab0df9ba36": {
     "translation": "Naabot na ang limitasyon ng file"
@@ -410,6 +530,12 @@
   },
   "b028909917": {
     "translation": "Guest user"
+  },
+  "b2c3c2e30c": {
+    "translation": "Puno na ang file"
+  },
+  "b34a671e2c": {
+    "translation": "Mag-log ng oras ng pagtugon"
   },
   "b357b524e7": {
     "translation": "Email address"
@@ -438,6 +564,9 @@
   "bc88b0e89e": {
     "translation": "Ibinahagi ni {ownerName}"
   },
+  "be4f1c62d3": {
+    "translation": "Mag-zoom sa diwata"
+  },
   "c2276c9127": {
     "translation": "Matuto pa tungkol sa pagbabahagi."
   },
@@ -447,11 +576,20 @@
   "c303bd1095": {
     "translation": "Hindi ma-publish ang file."
   },
+  "c3bf447eab": {
+    "translation": "Bukas"
+  },
+  "c3eb5c3b90": {
+    "translation": "naiintindihan ko"
+  },
   "c4b39a1cc3": {
     "translation": "Mahahalagang cookies"
   },
   "c6155aaecc": {
     "translation": "Pangalan ng grupo"
+  },
+  "c64518704c": {
+    "translation": "Paggamit"
   },
   "c655b27b1e": {
     "translation": "i18n: Mahabang String"
@@ -474,11 +612,20 @@
   "cd15a75c26": {
     "translation": "SVG"
   },
+  "ce0547606c": {
+    "translation": "Ang file na ito ay papalapit na sa limitasyon ng laki nito. Pag-isipang mag-alis ng ilang content o magsimula ng bagong file."
+  },
+  "ce1424d44b": {
+    "translation": "May fairy access ka na!"
+  },
   "cea291e45e": {
     "translation": "Matuto pa tungkol sa pag-publish."
   },
   "d3d2e61733": {
     "translation": "Isara"
+  },
+  "d46632fe1f": {
+    "translation": "Masyadong maraming kahilingan. Mangyaring magdahan-dahan."
   },
   "d4bbf74f3e": {
     "translation": "I-toggle ang sidebar"
@@ -498,17 +645,32 @@
   "d9100f3e10": {
     "translation": "Pumunta dito upang makita ang nilalaman"
   },
+  "d9bfb9789a": {
+    "translation": "Paganahin ang mga diwata"
+  },
   "d9e35d0f55": {
     "translation": "Naabot mo na ang maximum na bilang ng mga pangkat. Kailangan mong tanggalin ang mga lumang grupo bago gumawa ng mga bago."
   },
   "dbbebf3c03": {
     "translation": "Mag-imbita lang"
   },
+  "dc30bc0c79": {
+    "translation": "Maaliwalas"
+  },
   "dcdaa754fe": {
     "translation": "Di-wastong tldraw file URL"
   },
+  "de290d52ef": {
+    "translation": "Pumili ng isang diwata sa kanan na makaka-chat"
+  },
+  "df6ff49394": {
+    "translation": "Ang mga engkanto ay isang <strong>pansamantalang</strong> na tampok. Sa ika-1 ng Enero, 2026, ang lahat ng mga engkanto ay aalisin sa aplikasyon. Baka balang araw babalik din sila. Ang iyong pagbili ay para sa pag-access sa mga engkanto para sa Disyembre 2025 lamang."
+  },
   "dfdb78a4e4": {
     "translation": "Mga flag ng pag-debug ng app"
+  },
+  "e062622261": {
+    "translation": "Pumili"
   },
   "e0c88179b3": {
     "translation": "Mag-imbita ng mga miyembro"
@@ -524,6 +686,9 @@
   },
   "e404559826": {
     "translation": "Mga tuntunin ng serbisyo"
+  },
+  "e43ec38a93": {
+    "translation": "Pumunta sa"
   },
   "e81c4e4f2b": {
     "translation": "o"
@@ -552,11 +717,17 @@
   "ede55d955f": {
     "translation": "Basahin ang aming <a>patakaran sa cookie</a> upang matuto nang higit pa."
   },
+  "eee6f05922": {
+    "translation": "Disband"
+  },
   "ef53538ae4": {
     "translation": "Mga miyembro"
   },
   "ef7de3f485": {
     "translation": "pinili"
+  },
+  "efde983742": {
+    "translation": "Ipatawag"
   },
   "f09b16bc5f": {
     "translation": "Gumagamit kami ng cookies upang panatilihin kang naka-log in, upang i-sync ang iyong mga file, at upang mangolekta ng analytics upang matulungan kaming mapabuti ang tldraw."
@@ -569,9 +740,6 @@
   },
   "f2a6c498fb": {
     "translation": "Tanggalin"
-  },
-  "f43fb62093": {
-    "translation": "Bumalik sa tldraw."
   },
   "f4f70727dc": {
     "translation": "Mga setting"

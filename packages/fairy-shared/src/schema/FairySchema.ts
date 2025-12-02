@@ -1,6 +1,8 @@
 import { BasePromptPart } from '../types/BasePromptPart'
 import { PromptPart } from '../types/PromptPart'
 import {
+	AbortDuoProjectActionSchema,
+	AbortProjectActionSchema,
 	ActivateFairyActionSchema,
 	AlignActionSchema,
 	AwaitDuoTasksCompletionActionSchema,
@@ -14,6 +16,8 @@ import {
 	CreateProjectTaskActionSchema,
 	CreateSoloTaskActionSchema,
 	DeleteActionSchema,
+	DeletePersonalTodoItemsActionSchema,
+	DeleteProjectTaskActionSchema,
 	DirectToStartDuoTaskActionSchema,
 	DirectToStartTaskActionSchema,
 	DistributeActionSchema,
@@ -26,8 +30,9 @@ import {
 	MarkSoloTaskDoneActionSchema,
 	MessageActionSchema,
 	MoveActionSchema,
+	MovePositionActionSchema,
+	OffsetActionSchema,
 	PenActionSchema,
-	PersonalTodoListActionSchema,
 	PlaceActionSchema,
 	ResizeActionSchema,
 	ReviewActionSchema,
@@ -40,10 +45,12 @@ import {
 	StartSoloTaskActionSchema,
 	ThinkActionSchema,
 	UpdateActionSchema,
+	UpsertPersonalTodoItemActionSchema,
 } from './AgentActionSchemas'
 import {
 	AgentViewportBoundsPartDefinition,
 	BlurryShapesPartDefinition,
+	CanvasLintsPartDefinition,
 	ChatHistoryPartDefinition,
 	CurrentProjectDronePartDefinition,
 	CurrentProjectOrchestratorPartDefinition,
@@ -55,11 +62,11 @@ import {
 	OtherFairiesPartDefinition,
 	PagesPartDefinition,
 	PeripheralShapesPartDefinition,
-	PersonalityPartDefinition,
 	PersonalTodoListPartDefinition,
 	PromptPartDefinition,
 	ScreenshotPartDefinition,
 	SelectedShapesPartDefinition,
+	SignPartDefinition,
 	SoloTasksPartDefinition,
 	TimePartDefinition,
 	UserActionHistoryPartDefinition,
@@ -78,7 +85,9 @@ export const AGENT_ACTION_SCHEMAS = [
 	ThinkActionSchema,
 	ReviewActionSchema,
 	FlyToBoundsActionSchema,
-	PersonalTodoListActionSchema,
+	MovePositionActionSchema,
+	UpsertPersonalTodoItemActionSchema,
+	DeletePersonalTodoItemsActionSchema,
 
 	// Individual shapes
 	CreateActionSchema,
@@ -88,6 +97,7 @@ export const AGENT_ACTION_SCHEMAS = [
 	MoveActionSchema,
 
 	// Groups of shapes
+	OffsetActionSchema,
 	PlaceActionSchema,
 	BringToFrontActionSchema,
 	SendToBackActionSchema,
@@ -112,11 +122,14 @@ export const AGENT_ACTION_SCHEMAS = [
 	StartDuoProjectActionSchema,
 	EndCurrentProjectActionSchema,
 	EndDuoProjectActionSchema,
+	AbortProjectActionSchema,
+	AbortDuoProjectActionSchema,
 	ActivateFairyActionSchema,
 	AwaitTasksCompletionActionSchema,
 	AwaitDuoTasksCompletionActionSchema,
 	CreateSoloTaskActionSchema,
 	CreateProjectTaskActionSchema,
+	DeleteProjectTaskActionSchema,
 	CreateDuoTaskActionSchema,
 	StartSoloTaskActionSchema,
 	StartDuoTaskActionSchema,
@@ -130,6 +143,7 @@ export const AGENT_ACTION_SCHEMAS = [
  */
 export const PROMPT_PART_DEFINITIONS = [
 	BlurryShapesPartDefinition,
+	CanvasLintsPartDefinition,
 	ChatHistoryPartDefinition,
 	DataPartDefinition,
 	DebugPartDefinition,
@@ -147,7 +161,7 @@ export const PROMPT_PART_DEFINITIONS = [
 	AgentViewportBoundsPartDefinition,
 	WorkingTasksPartDefinition,
 	OtherFairiesPartDefinition,
-	PersonalityPartDefinition,
+	SignPartDefinition,
 	ModePartDefinition,
 	CurrentProjectDronePartDefinition,
 	CurrentProjectOrchestratorPartDefinition,

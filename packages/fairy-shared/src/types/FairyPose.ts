@@ -7,6 +7,8 @@ export const FAIRY_POSE = [
 	'writing',
 	'sleeping',
 	'waiting',
+	'reviewing',
+	'panicking',
 	'poof',
 ] as const
 

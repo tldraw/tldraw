@@ -2,12 +2,6 @@
   "0095a9fa74": {
     "translation": "Export"
   },
-  "00b177e080": {
-    "translation": "Accept invitation"
-  },
-  "038c9b4432": {
-    "translation": "Fairy’s personality"
-  },
   "03b3e13197": {
     "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
   },
@@ -26,11 +20,11 @@
   "08bd40c754": {
     "translation": "Account"
   },
-  "090b807281": {
-    "translation": "Spiky"
-  },
   "0a91f7fa87": {
     "translation": "This file has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
+  },
+  "0ab1ef22a3": {
+    "translation": "Speak to the group…"
   },
   "0b27918290": {
     "translation": "File"
@@ -62,9 +56,6 @@
   "13ddd375ad": {
     "translation": "Export as"
   },
-  "141c7239d3": {
-    "translation": "Fairy customization"
-  },
   "146ffe2fd9": {
     "translation": "Show more"
   },
@@ -80,11 +71,8 @@
   "1dd1c5fb7f": {
     "translation": "Today"
   },
-  "1e38506832": {
-    "translation": "Go to fairy"
-  },
-  "1fe250ea06": {
-    "translation": "Instruct the group…"
+  "23f879f41a": {
+    "translation": "Your weekly fairy usage limit has been reached. It will reset at the start of next week."
   },
   "243924bfd5": {
     "translation": "Sleep"
@@ -95,6 +83,12 @@
   "250ddea65c": {
     "translation": "About tldraw"
   },
+  "269097080b": {
+    "translation": "Your fairies are waiting"
+  },
+  "275173253d": {
+    "translation": "Summon all"
+  },
   "284d5cd0dd": {
     "translation": "Model:"
   },
@@ -103,9 +97,6 @@
   },
   "2c3ef76333": {
     "translation": "My files"
-  },
-  "2e86e6853d": {
-    "translation": "Select leader"
   },
   "30cd34258a": {
     "translation": "A flutter of <b>fairies</b> have come to tldraw for the month of December. To investigate further, find the fairy and click it."
@@ -128,26 +119,23 @@
   "335defdafe": {
     "translation": "Please try refreshing the page."
   },
-  "33f9ea6fe8": {
-    "translation": "Disband group"
-  },
   "34140869c6": {
     "translation": "A flutter of fairies is coming to tldraw for the month of December. Please check back on December 1st."
   },
   "344a7f427f": {
     "translation": "Editor"
   },
+  "34abfe7a0d": {
+    "translation": "Sleep all"
+  },
+  "34e34c43ec": {
+    "translation": "Manage"
+  },
   "3596c1b1f7": {
     "translation": "Unfollow"
   },
   "3903aab323": {
     "translation": "Follow"
-  },
-  "3a295397e6": {
-    "translation": "Ask for help"
-  },
-  "3a77f951ca": {
-    "translation": "Add a new task…"
   },
   "3b6c2b4caa": {
     "translation": "Terms of Service"
@@ -164,14 +152,14 @@
   "3d0238bf16": {
     "translation": "Accept all"
   },
-  "4131ec34ef": {
-    "translation": "Bald"
-  },
   "42e53c47c1": {
     "translation": "Contact the owner to request access."
   },
   "44db318ee5": {
     "translation": "Get help on Discord"
+  },
+  "45b43c2d28": {
+    "translation": "<strong>Fairies</strong> have come to tldraw for the month of December."
   },
   "46137245cd": {
     "translation": "Thanks for helping us improve tldraw!"
@@ -197,6 +185,9 @@
   "49ee308734": {
     "translation": "Name"
   },
+  "4c41e0bd95": {
+    "translation": "Select all"
+  },
   "4d0d3ddec9": {
     "translation": "This site uses cookies to make the app work and to collect analytics."
   },
@@ -206,11 +197,11 @@
   "4da5988a2e": {
     "translation": "Delete group…"
   },
+  "4dab36ac83": {
+    "translation": "More options"
+  },
   "4e6fbf032b": {
     "translation": "Are you sure you want to delete this group? This action cannot be undone."
-  },
-  "4f827717f7": {
-    "translation": "Pointy"
   },
   "50db1b7e1e": {
     "translation": "Unable to unpublish the file."
@@ -266,20 +257,17 @@
   "61057a0c84": {
     "translation": "Later"
   },
+  "61daf2e53d": {
+    "translation": "Speak to {name}…"
+  },
   "625fd29749": {
     "translation": "Older"
   },
   "639bae9ac6": {
     "translation": "you"
   },
-  "63a78ed464": {
-    "translation": "Customize"
-  },
-  "64ebe56d8c": {
-    "translation": "Click to remove or drag to move"
-  },
-  "65709fd250": {
-    "translation": "Task list"
+  "6602bbeb29": {
+    "translation": "Guide"
   },
   "6609dd239e": {
     "translation": "Something went wrong"
@@ -290,8 +278,17 @@
   "6832ac5936": {
     "translation": "Enter your email address"
   },
+  "688761c83e": {
+    "translation": "Wake"
+  },
   "68d390535e": {
     "translation": "Enter your message"
+  },
+  "6910bbdc82": {
+    "translation": "Fairy's name"
+  },
+  "695c3e899d": {
+    "translation": "Debug fairies"
   },
   "6a26f54883": {
     "translation": "Help"
@@ -301,9 +298,6 @@
   },
   "6dfc62f621": {
     "translation": "Follow these steps to import the content manually:"
-  },
-  "6e02bd9e1e": {
-    "translation": "Put away fairies"
   },
   "70222abcfc": {
     "translation": "Group settings"
@@ -341,11 +335,11 @@
   "777f9e90cf": {
     "translation": "Invalid request."
   },
+  "77f0abf1aa": {
+    "translation": "You've been invited to <strong>tldraw fairies</strong>"
+  },
   "7827371d1a": {
     "translation": "This anonymous tldraw multiplayer file is now read-only. To continue editing, please sign in and copy it to your files."
-  },
-  "7835039819": {
-    "translation": "Propeller"
   },
   "78e9815992": {
     "translation": "Got it"
@@ -356,23 +350,14 @@
   "79cc22ac6b": {
     "translation": "A fairy is a little guy that can work with you on the canvas. Fairies can work alone or as a team. There is no limit to what a fairy can do. Nobody knows where they came from."
   },
-  "7a3113b0ba": {
-    "translation": "Drag to canvas"
-  },
   "7b1329f5ca": {
     "translation": "User manual"
-  },
-  "7b5449bd84": {
-    "translation": "Antenna"
   },
   "7be10fc592": {
     "translation": "Restore version"
   },
   "7c0747a5df": {
     "translation": "Open tldraw"
-  },
-  "7cb471f815": {
-    "translation": "You've been invited to join tldraw fairies!"
   },
   "7cb5f8b4a5": {
     "translation": "Forget"
@@ -392,11 +377,11 @@
   "815e116a2e": {
     "translation": "Have a bug, issue, or idea for tldraw? Let us know! Fill out this form and we will follow up over email if needed. You can also <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>."
   },
-  "81d48c2f3a": {
-    "translation": "Show tasks on canvas"
+  "81aa2078d1": {
+    "translation": "Clear all"
   },
-  "8472a551f1": {
-    "translation": "Fairies have come to tldraw for the month of December."
+  "83218ac34c": {
+    "translation": "Welcome"
   },
   "85a082de1b": {
     "translation": "Please refresh the page to get the latest version of tldraw."
@@ -404,17 +389,14 @@
   "86353d2c41": {
     "translation": "Added {total} .tldr files."
   },
-  "86a7df7572": {
-    "translation": "Summon fairies"
-  },
   "86c66437fd": {
     "translation": "Rename file"
   },
+  "8726ef8909": {
+    "translation": "Hard reset"
+  },
   "88e83b88c5": {
     "translation": "Purchase Fairy Bundle"
-  },
-  "898e76f01a": {
-    "translation": "Reset everything"
   },
   "8ad4303b83": {
     "translation": "No thanks"
@@ -425,8 +407,14 @@
   "8c2d3d730c": {
     "translation": "Check your email for a verification code."
   },
+  "8cf04a9734": {
+    "translation": "Home"
+  },
   "8eb2c00e96": {
     "translation": "Shared with you"
+  },
+  "8f7f4c1ce7": {
+    "translation": "About"
   },
   "8ff3d0a705": {
     "translation": "Rate limited"
@@ -443,11 +431,8 @@
   "930390d222": {
     "translation": "Copied invite link"
   },
-  "93346fdd70": {
-    "translation": "Ears"
-  },
-  "93dfe9fbbe": {
-    "translation": "Deselect fairy"
+  "94186070ef": {
+    "translation": "Deselect"
   },
   "94966d9074": {
     "translation": "Send"
@@ -461,17 +446,11 @@
   "96165d6df5": {
     "translation": "This month"
   },
-  "97a9f16b2e": {
-    "translation": "New fairy"
-  },
   "985a4b720f": {
     "translation": "Terms of Use"
   },
   "98c997a27e": {
     "translation": "Add file link"
-  },
-  "98e528aac6": {
-    "translation": "Switch to fairy chat"
   },
   "9914a0ce04": {
     "translation": "Light"
@@ -509,20 +488,17 @@
   "a239905023": {
     "translation": "Export image"
   },
-  "a2f0372a75": {
-    "translation": "Switch to task list"
+  "a286d9991c": {
+    "translation": "Join"
   },
   "a3debabee7": {
     "translation": "Cookie policy"
   },
-  "a3e932550c": {
-    "translation": "Fairy’s name"
-  },
   "a4d3b161ce": {
     "translation": "Submit"
   },
-  "a4ffdcf0dc": {
-    "translation": "Top"
+  "a603905470": {
+    "translation": "Debug"
   },
   "a6cc403d56": {
     "translation": "Anyone with the link"
@@ -530,11 +506,14 @@
   "a768caa988": {
     "translation": "Analytics"
   },
-  "a885eb91ac": {
-    "translation": "Leader fairy selection"
-  },
   "a8873770ab": {
     "translation": "File is getting large"
+  },
+  "a8de4c27a8": {
+    "translation": "Weekly fairy limit reached"
+  },
+  "a917baaf14": {
+    "translation": "New chat"
   },
   "a9ded1e5ce": {
     "translation": "Background"
@@ -570,9 +549,6 @@
   "b758336699": {
     "translation": "Copy link"
   },
-  "b8996797b9": {
-    "translation": "Hide tasks on canvas"
-  },
   "ba0318cb81": {
     "translation": "Sign in to share"
   },
@@ -585,20 +561,20 @@
   "bc88b0e89e": {
     "translation": "Shared by {ownerName}"
   },
+  "be4f1c62d3": {
+    "translation": "Zoom to fairy"
+  },
   "c2276c9127": {
     "translation": "Learn more about sharing."
   },
   "c28aed8348": {
     "translation": "Allow <cookies>analytics</cookies> to help us improve tldraw."
   },
-  "c2ad21c079": {
-    "translation": "Hair"
-  },
   "c303bd1095": {
     "translation": "Unable to publish the file."
   },
-  "c3e97dd6e9": {
-    "translation": "$"
+  "c3bf447eab": {
+    "translation": "Open"
   },
   "c3eb5c3b90": {
     "translation": "I understand"
@@ -606,8 +582,14 @@
   "c4b39a1cc3": {
     "translation": "Essential cookies"
   },
+  "c54a624f46": {
+    "translation": "Accept invite"
+  },
   "c6155aaecc": {
     "translation": "Group name"
+  },
+  "c64518704c": {
+    "translation": "Usage"
   },
   "c655b27b1e": {
     "translation": "i18n: Long String"
@@ -620,9 +602,6 @@
   },
   "c87aacf567": {
     "translation": "Sign out"
-  },
-  "c9b04e7b53": {
-    "translation": "Deselect leader"
   },
   "c9cc8cce24": {
     "translation": "Save"
@@ -642,14 +621,8 @@
   "cea291e45e": {
     "translation": "Learn more about publishing."
   },
-  "cf62a7f9a7": {
-    "translation": "Reset chats"
-  },
   "d3d2e61733": {
     "translation": "Close"
-  },
-  "d438a51e6e": {
-    "translation": "Put all fairies to sleep"
   },
   "d46632fe1f": {
     "translation": "Too many requests. Please slow down."
@@ -663,12 +636,6 @@
   "d721757161": {
     "translation": "Theme"
   },
-  "d739f35e18": {
-    "translation": "Whisper to {name}…"
-  },
-  "d7bc9d5a2e": {
-    "translation": "Delete task"
-  },
   "d876a9fe1a": {
     "translation": "Try Again"
   },
@@ -678,14 +645,14 @@
   "d9100f3e10": {
     "translation": "Go here to see the content"
   },
+  "d9bfb9789a": {
+    "translation": "Enable fairies"
+  },
   "d9e35d0f55": {
     "translation": "You have reached the maximum number of groups. You need to delete old groups before creating new ones."
   },
   "dbbebf3c03": {
     "translation": "Invite only"
-  },
-  "dbbece0c3a": {
-    "translation": "Clear all chats"
   },
   "dc30bc0c79": {
     "translation": "Clear"
@@ -702,6 +669,9 @@
   "dfdb78a4e4": {
     "translation": "App debug flags"
   },
+  "e062622261": {
+    "translation": "Select"
+  },
   "e0c88179b3": {
     "translation": "Invite members"
   },
@@ -717,14 +687,14 @@
   "e404559826": {
     "translation": "Terms of service"
   },
+  "e43ec38a93": {
+    "translation": "Go to"
+  },
   "e81c4e4f2b": {
     "translation": "or"
   },
   "ea0626ac5a": {
     "translation": "Danger zone"
-  },
-  "ea181d98ca": {
-    "translation": "Select fairy"
   },
   "ea4788705e": {
     "translation": "Cancel"
@@ -747,14 +717,14 @@
   "ede55d955f": {
     "translation": "Read our <a>cookie policy</a> to learn more."
   },
+  "eee6f05922": {
+    "translation": "Disband"
+  },
   "ef53538ae4": {
     "translation": "Members"
   },
   "ef7de3f485": {
     "translation": "selected"
-  },
-  "efb2d9d471": {
-    "translation": "Todo list"
   },
   "efde983742": {
     "translation": "Summon"
@@ -765,9 +735,6 @@
   "f0e8bff6f9": {
     "translation": "User settings"
   },
-  "f23056da60": {
-    "translation": "New project"
-  },
   "f2569594b2": {
     "translation": "We use these cookies to save your files and settings."
   },
@@ -777,26 +744,14 @@
   "f4f70727dc": {
     "translation": "Settings"
   },
-  "f6ae34b4ba": {
-    "translation": "Reset all wands"
-  },
   "f714e36843": {
     "translation": "Are you sure you want to leave this group?"
-  },
-  "f7d5ee6855": {
-    "translation": "Select a leader first…"
-  },
-  "f87386b4ba": {
-    "translation": "Summon all fairies"
   },
   "fa2ead697d": {
     "translation": "Privacy Policy"
   },
   "fb15c53f22": {
     "translation": "Viewer"
-  },
-  "fd11eafb92": {
-    "translation": "Disband projects"
   },
   "fd1be3efcf": {
     "translation": "Are you sure you want to delete this file?"
@@ -809,8 +764,5 @@
   },
   "ffcd73e997": {
     "translation": "Import file…"
-  },
-  "ffec95af2f": {
-    "translation": "Purchase fairy access"
   }
 }

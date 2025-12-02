@@ -278,6 +278,13 @@ export class TldrawApp {
 		rate_limit_exceeded: {
 			defaultMessage: 'Rate limit exceeded, try again later.',
 		},
+		fairy_rate_limit_title: {
+			defaultMessage: 'Weekly fairy limit reached',
+		},
+		fairy_rate_limit_exceeded: {
+			defaultMessage:
+				'Your weekly fairy usage limit has been reached. It will reset at the start of next week.',
+		},
 		client_too_old: {
 			defaultMessage: 'Please refresh the page to get the latest version of tldraw.',
 		},
@@ -812,6 +819,14 @@ export class TldrawApp {
 		this.z.mutate.file_state.updateFairies({
 			fileId,
 			fairyState: JSON.stringify(fairyState),
+		})
+	}
+
+	/* TODO: this is any b/c we don't want to import the ChatHistoryItem here */
+	appendFairyChatMessages(fileId: string, messages: any[]) {
+		this.z.mutate.file_state.appendFairyChatMessage({
+			fileId,
+			messages,
 		})
 	}
 

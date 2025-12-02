@@ -3612,6 +3612,8 @@ export interface TLEventMap {
         error: unknown;
     }];
     // (undocumented)
+    dispose: [];
+    // (undocumented)
     edit: [];
     // (undocumented)
     event: [TLEventInfo];
@@ -3619,6 +3621,8 @@ export interface TLEventMap {
     frame: [number];
     // (undocumented)
     mount: [];
+    // (undocumented)
+    resize: [BoxModel];
     // (undocumented)
     tick: [number];
     // (undocumented)

@@ -10,7 +10,6 @@ import {
 } from '../../utils/local-session-state'
 import { TlaSidebarCreateFileButton } from './components/TlaSidebarCreateFileButton'
 import { TlaSidebarDotDevLink } from './components/TlaSidebarDotDevLink'
-import { TlaSidebarFairyCheckoutLink } from './components/TlaSidebarFairyCheckoutLink'
 import { TlaSidebarHelpMenu } from './components/TlaSidebarHelpMenu'
 import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
 import { TlaSidebarRecentFilesNew } from './components/TlaSidebarRecentFilesNew'
@@ -102,7 +101,6 @@ export const TlaSidebar = memo(function TlaSidebar() {
 					</div>
 				</div>
 				<div className={styles.sidebarBottomArea}>
-					<TlaSidebarFairyCheckoutLink />
 					<TlaSidebarDotDevLink />
 					<div className={styles.sidebarBottomRow}>
 						<TlaUserSettingsMenu />

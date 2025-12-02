@@ -22,7 +22,7 @@ export function getSystemPromptFlags(
 		hasReview: actions.includes('review'),
 		hasFlyToBounds: actions.includes('fly-to-bounds'),
 		hasPersonalTodoList:
-			actions.includes('update-personal-todo-list') && parts.includes('personalTodoList'),
+			actions.includes('upsert-personal-todo-item') && parts.includes('personalTodoList'),
 
 		// Individual shapes
 		hasCreate: actions.includes('create'),
@@ -99,8 +99,8 @@ export function getSystemPromptFlags(
 		// assign todo item
 		hasAssignTodoItem: actions.includes('direct-to-start-project-task'),
 
-		// personality
-		hasPersonalityPart: parts.includes('personality'),
+		// sign
+		hasSignPart: parts.includes('sign'),
 
 		//orchestration
 		hasStartProject: actions.includes('start-project'),

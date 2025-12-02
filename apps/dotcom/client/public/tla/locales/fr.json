@@ -2,14 +2,14 @@
   "0095a9fa74": {
     "translation": "Exporter"
   },
+  "00b177e080": {
+    "translation": "Accepter l'invitation"
+  },
   "03b3e13197": {
     "translation": "Faites glisser le fichier vers la barre latérale de cette page. Vous pouvez également sélectionner l'option « Importer un fichier » dans le menu utilisateur."
   },
   "043973ec1f": {
     "translation": "Vous rencontrez encore des difficultés ? {GetHelpLink}"
-  },
-  "05596b840b": {
-    "translation": "Ouvrir tldraw."
   },
   "06b9281e39": {
     "translation": "Auto"
@@ -23,8 +23,11 @@
   "08bd40c754": {
     "translation": "Compte"
   },
-  "08d2d725a9": {
-    "translation": "Créez un compte gratuit pour sauvegarder votre travail, collaborer en temps réel et bien plus encore."
+  "0a91f7fa87": {
+    "translation": "Ce fichier a atteint sa limite de taille et les modifications risquent de ne plus être enregistrées. Supprimez du contenu ou créez un nouveau fichier."
+  },
+  "0ab1ef22a3": {
+    "translation": "Parlez au groupe…"
   },
   "0b27918290": {
     "translation": "Fichier"
@@ -32,14 +35,17 @@
   "0b9a4cde72": {
     "translation": "Menu du fichier"
   },
-  "0beb3ca97b": {
-    "translation": "tldraw est un tableau blanc virtuel gratuit et instantané."
+  "0befa10111": {
+    "translation": "fées"
   },
   "0d1f2bb523": {
     "translation": "Envoyer des commentaires"
   },
   "110a4b01be": {
     "translation": "Publier"
+  },
+  "11a755d598": {
+    "translation": "Arrêt"
   },
   "129b9e34ea": {
     "translation": "Quitter le groupe"
@@ -68,11 +74,11 @@
   "1dd1c5fb7f": {
     "translation": "Aujourd'hui"
   },
-  "20976e7bec": {
-    "translation": "La salle est pleine"
+  "23f879f41a": {
+    "translation": "Votre limite hebdomadaire d'utilisation des fées a été atteinte. Elle sera réinitialisée au début de la semaine prochaine."
   },
-  "21bfb2dc2e": {
-    "translation": "Cette salle approche de sa taille maximale. Envisagez de supprimer du contenu ou de créer un nouveau fichier."
+  "243924bfd5": {
+    "translation": "Dormir"
   },
   "2445e5e347": {
     "translation": "Créer un groupe"
@@ -80,14 +86,23 @@
   "250ddea65c": {
     "translation": "À propos de tldraw"
   },
+  "269097080b": {
+    "translation": "Vos fées vous attendent"
+  },
+  "275173253d": {
+    "translation": "Invoquer tout"
+  },
+  "284d5cd0dd": {
+    "translation": "Modèle:"
+  },
   "299cb00a7a": {
     "translation": "Échec de l'importation"
   },
   "2c3ef76333": {
     "translation": "Mes fichiers"
   },
-  "2deec2cb74": {
-    "translation": "Cette salle a atteint sa taille maximale et les modifications risquent de ne plus être enregistrées. Supprimez du contenu ou créez un nouveau fichier."
+  "30cd34258a": {
+    "translation": "Une volée de <b>fées</b> est arrivée sur tldraw pour le mois de décembre. Pour en savoir plus, trouvez la fée et cliquez dessus."
   },
   "31246941ad": {
     "translation": "Vous devez vous connecter pour consulter ce fichier."
@@ -95,14 +110,38 @@
   "31418ce4ad": {
     "translation": "i18n : surlignement manquant"
   },
+  "3209f407ed": {
+    "translation": "trois fées"
+  },
   "32210b37e4": {
     "translation": "Ajouter un lien"
+  },
+  "324a0f3182": {
+    "translation": "Retour à tldraw"
   },
   "335defdafe": {
     "translation": "Veuillez essayer de recharger la page."
   },
+  "34140869c6": {
+    "translation": "Un vent de féerie soufflera sur tldraw pour le mois de décembre. Rendez-vous le 1er décembre !"
+  },
   "344a7f427f": {
     "translation": "Éditeur"
+  },
+  "34abfe7a0d": {
+    "translation": "Dormez tout"
+  },
+  "34e34c43ec": {
+    "translation": "Gérer"
+  },
+  "3596c1b1f7": {
+    "translation": "Se désabonner"
+  },
+  "3903aab323": {
+    "translation": "Suivre"
+  },
+  "3b6c2b4caa": {
+    "translation": "Conditions d'utilisation"
   },
   "3bc7d6ea2f": {
     "translation": "Poursuivre par courriel"
@@ -122,8 +161,17 @@
   "44db318ee5": {
     "translation": "Obtenir de l'aide sur Discord"
   },
+  "45b43c2d28": {
+    "translation": "Les <strong>fées</strong> sont venues à tldraw pour le mois de décembre."
+  },
   "46137245cd": {
     "translation": "Merci de nous aider à améliorer tldraw !"
+  },
+  "465a8a92a4": {
+    "translation": "Aucune fée sélectionnée"
+  },
+  "477df802ca": {
+    "translation": "Pour continuer la modification, veuillez copier le fichier dans vos fichiers."
   },
   "47839e47a5": {
     "translation": "tldraw"
@@ -140,6 +188,9 @@
   "49ee308734": {
     "translation": "Nom"
   },
+  "4c41e0bd95": {
+    "translation": "Tout sélectionner"
+  },
   "4d0d3ddec9": {
     "translation": "Ce site utilise des cookies pour faire fonctionner l'application et collecter des analyses."
   },
@@ -148,6 +199,9 @@
   },
   "4da5988a2e": {
     "translation": "Supprimer le groupe…"
+  },
+  "4dab36ac83": {
+    "translation": "Plus d'options"
   },
   "4e6fbf032b": {
     "translation": "Êtes-vous sûr de vouloir supprimer ce groupe ? Cette action est irréversible."
@@ -158,11 +212,11 @@
   "517bb809d9": {
     "translation": "Menu de la page"
   },
+  "542248f0ba": {
+    "translation": "Ce fichier est désormais en lecture seule"
+  },
   "54286b1d01": {
     "translation": "Limite de collaborateurs atteinte"
-  },
-  "54d240fa41": {
-    "translation": "Veuillez ralentir."
   },
   "554a05155c": {
     "translation": "Vous rencontrez toujours des problèmes ? <a>Signaler un problème</a>"
@@ -176,17 +230,14 @@
   "56c34c6410": {
     "translation": "Politique de confidentialité"
   },
+  "5a2ccdc00a": {
+    "translation": "Impossible d'utiliser le code d'invitation"
+  },
   "5a86b22fa0": {
     "translation": "Glissez-déposez les fichiers ici, <create>créer un fichier</create> ou <invite>copier le lien d'invitation</invite> pour commencer."
   },
   "5a95a425f7": {
     "translation": "Partager"
-  },
-  "5bb6cf3b53": {
-    "translation": "La pièce devient grande"
-  },
-  "5bcc12ace8": {
-    "translation": "Cette salle est désormais en lecture seule"
   },
   "5bec508475": {
     "translation": "Ancien navigateur détecté. Veuillez mettre à jour votre navigateur pour utiliser cette application."
@@ -197,6 +248,9 @@
   "5d26ae7550": {
     "translation": "Nous n'avons pas réussi à importer une partie du contenu que vous avez créé avant de vous connecter."
   },
+  "5ea8bb44be": {
+    "translation": "Vous avez été invité à rejoindre le groupe :"
+  },
   "5f3c333678": {
     "translation": "Commentaires soumis"
   },
@@ -206,11 +260,17 @@
   "61057a0c84": {
     "translation": "Plus tard"
   },
+  "61daf2e53d": {
+    "translation": "Parlez à {name}…"
+  },
   "625fd29749": {
     "translation": "Plus ancien"
   },
   "639bae9ac6": {
     "translation": "toi"
+  },
+  "6602bbeb29": {
+    "translation": "Guide"
   },
   "6609dd239e": {
     "translation": "Une erreur s'est produite"
@@ -218,11 +278,20 @@
   "6637a98151": {
     "translation": "Une nouvelle version de tldraw est disponible. Veuillez recharger la page pour continuer."
   },
-  "68257bb646": {
-    "translation": "Vous avez été invité à rejoindre le groupe <br></br><groupName></groupName>"
-  },
   "6832ac5936": {
     "translation": "Saisissez votre adresse e-mail"
+  },
+  "688761c83e": {
+    "translation": "Se réveiller"
+  },
+  "68d390535e": {
+    "translation": "Saisissez votre message"
+  },
+  "6910bbdc82": {
+    "translation": "Nom de la fée"
+  },
+  "695c3e899d": {
+    "translation": "fées de débogage"
   },
   "6a26f54883": {
     "translation": "Aide"
@@ -263,8 +332,14 @@
   "764671e008": {
     "translation": "Discutez avec nous sur Discord"
   },
+  "76dea3c9ca": {
+    "translation": "TLDRAW est un tableau blanc en ligne gratuit. Créez un compte pour sauvegarder vos fichiers et collaborer avec vos amis."
+  },
   "777f9e90cf": {
     "translation": "Demande invalide."
+  },
+  "7827371d1a": {
+    "translation": "Ce fichier tldraw multijoueur anonyme est désormais en lecture seule. Pour continuer à le modifier, veuillez vous connecter et le copier dans vos fichiers."
   },
   "78e9815992": {
     "translation": "J'ai compris"
@@ -272,11 +347,20 @@
   "797799f35e": {
     "translation": "Soumettre un problème sur GitHub"
   },
+  "79cc22ac6b": {
+    "translation": "Une fée est un petit être qui peut vous accompagner sur la toile. Les fées peuvent travailler seules ou en équipe. Leurs possibilités sont infinies. Nul ne sait d'où elles viennent."
+  },
   "7b1329f5ca": {
     "translation": "Manuel d'utilisation"
   },
   "7be10fc592": {
     "translation": "Restaurer la version"
+  },
+  "7c0747a5df": {
+    "translation": "Ouvrir tldraw"
+  },
+  "7cb471f815": {
+    "translation": "Vous avez été invité(e) à rejoindre les fées de tldraw !"
   },
   "7cb5f8b4a5": {
     "translation": "Oublier"
@@ -296,6 +380,12 @@
   "815e116a2e": {
     "translation": "Vous avez un bug, un problème ou une idée pour tldraw ? N'hésitez pas à nous le faire savoir ! Remplissez ce formulaire et nous vous répondrons par e-mail si nécessaire. Vous pouvez également <discord>discuter avec nous sur Discord</discord> ou <github>soumettre un problème sur GitHub</github>."
   },
+  "81aa2078d1": {
+    "translation": "Effacer tout"
+  },
+  "83218ac34c": {
+    "translation": "Accueillir"
+  },
   "85a082de1b": {
     "translation": "Veuillez rafraîchir la page pour obtenir la dernière version de tldraw."
   },
@@ -305,17 +395,29 @@
   "86c66437fd": {
     "translation": "Renommer le fichier"
   },
+  "8726ef8909": {
+    "translation": "Réinitialisation matérielle"
+  },
+  "88e83b88c5": {
+    "translation": "Achetez le pack féerique"
+  },
   "8ad4303b83": {
     "translation": "Non merci"
   },
-  "8b1946f965": {
-    "translation": "Pour continuer l'édition, veuillez copier la pièce dans vos fichiers."
+  "8be569f100": {
+    "translation": "paiement unique"
   },
   "8c2d3d730c": {
     "translation": "Consultez votre boîte mail pour obtenir un code de vérification."
   },
+  "8cf04a9734": {
+    "translation": "Maison"
+  },
   "8eb2c00e96": {
     "translation": "Partagé avec vous"
+  },
+  "8f7f4c1ce7": {
+    "translation": "À propos"
   },
   "8ff3d0a705": {
     "translation": "Débit limité"
@@ -331,6 +433,12 @@
   },
   "930390d222": {
     "translation": "Lien d'invitation copié"
+  },
+  "94186070ef": {
+    "translation": "Désélectionner"
+  },
+  "94966d9074": {
+    "translation": "Envoyer"
   },
   "95aacd4d4a": {
     "translation": "Se connecter avec Google"
@@ -350,14 +458,14 @@
   "9914a0ce04": {
     "translation": "Clair"
   },
+  "9953e9946b": {
+    "translation": "Vue de débogage"
+  },
   "9b33f5c63c": {
     "translation": "Vous n'avez pas reçu de code ? <resend>Renvoyer</resend>."
   },
   "9bef626805": {
     "translation": "Supprimer le fichier"
-  },
-  "9c258b8f88": {
-    "translation": "Cette salle multijoueur anonyme de tldraw est désormais en lecture seule. Pour continuer à la modifier, veuillez vous connecter et la copier dans vos fichiers."
   },
   "9ceb927baa": {
     "translation": "Publier ce fichier"
@@ -383,11 +491,17 @@
   "a239905023": {
     "translation": "Exporter l'image"
   },
+  "a286d9991c": {
+    "translation": "Rejoindre"
+  },
   "a3debabee7": {
     "translation": "Politique de cookies"
   },
   "a4d3b161ce": {
     "translation": "Soumettre"
+  },
+  "a603905470": {
+    "translation": "Déboguer"
   },
   "a6cc403d56": {
     "translation": "N'importe qui disposant du lien"
@@ -395,11 +509,17 @@
   "a768caa988": {
     "translation": "Analytique"
   },
+  "a8873770ab": {
+    "translation": "Le fichier devient volumineux."
+  },
+  "a8de4c27a8": {
+    "translation": "Limite hebdomadaire de fées atteinte"
+  },
+  "a917baaf14": {
+    "translation": "Nouvelle conversation"
+  },
   "a9ded1e5ce": {
     "translation": "Arrière-plan"
-  },
-  "aa916767cf": {
-    "translation": "Connectez-vous pour accepter l'invitation"
   },
   "ab0df9ba36": {
     "translation": "Limite de fichier atteinte"
@@ -410,6 +530,12 @@
   },
   "b028909917": {
     "translation": "Utilisateur invité"
+  },
+  "b2c3c2e30c": {
+    "translation": "Le fichier est plein"
+  },
+  "b34a671e2c": {
+    "translation": "Journalisation du temps de réponse"
   },
   "b357b524e7": {
     "translation": "Adresse email"
@@ -438,6 +564,9 @@
   "bc88b0e89e": {
     "translation": "Partagé par {ownerName}"
   },
+  "be4f1c62d3": {
+    "translation": "Zoom sur la fée"
+  },
   "c2276c9127": {
     "translation": "En savoir plus sur le partage."
   },
@@ -447,11 +576,20 @@
   "c303bd1095": {
     "translation": "Impossible de publier le fichier."
   },
+  "c3bf447eab": {
+    "translation": "Ouvrir"
+  },
+  "c3eb5c3b90": {
+    "translation": "Je comprends"
+  },
   "c4b39a1cc3": {
     "translation": "Cookies essentiels"
   },
   "c6155aaecc": {
     "translation": "Nom du groupe"
+  },
+  "c64518704c": {
+    "translation": "Usage"
   },
   "c655b27b1e": {
     "translation": "i18n : chaîne longue"
@@ -474,11 +612,20 @@
   "cd15a75c26": {
     "translation": "SVG"
   },
+  "ce0547606c": {
+    "translation": "Ce fichier approche de sa limite de taille. Pensez à supprimer du contenu ou à créer un nouveau fichier."
+  },
+  "ce1424d44b": {
+    "translation": "Vous avez déjà accès aux fées !"
+  },
   "cea291e45e": {
     "translation": "En savoir plus sur la publication."
   },
   "d3d2e61733": {
     "translation": "Fermer"
+  },
+  "d46632fe1f": {
+    "translation": "Trop de requêtes. Veuillez ralentir."
   },
   "d4bbf74f3e": {
     "translation": "Activer/désactiver la barre latérale"
@@ -498,17 +645,32 @@
   "d9100f3e10": {
     "translation": "Le contenu se trouve ici"
   },
+  "d9bfb9789a": {
+    "translation": "Activer les fées"
+  },
   "d9e35d0f55": {
     "translation": "Vous avez atteint le nombre maximal de groupes. Vous devez supprimer les anciens groupes avant d'en créer de nouveaux."
   },
   "dbbebf3c03": {
     "translation": "Invitation uniquement"
   },
+  "dc30bc0c79": {
+    "translation": "Clair"
+  },
   "dcdaa754fe": {
     "translation": "URL de fichier tldraw invalide"
   },
+  "de290d52ef": {
+    "translation": "Sélectionnez une fée à droite pour discuter avec elle."
+  },
+  "df6ff49394": {
+    "translation": "Les fées sont une fonctionnalité <strong>temporaire</strong>. Le 1er janvier 2026, elles seront retirées de l'application. Elles reviendront peut-être un jour. Votre achat vous donne accès aux fées uniquement pour le mois de décembre 2025."
+  },
   "dfdb78a4e4": {
     "translation": "Indicateurs de débogage de l'application"
+  },
+  "e062622261": {
+    "translation": "Sélectionner"
   },
   "e0c88179b3": {
     "translation": "Inviter des membres"
@@ -524,6 +686,9 @@
   },
   "e404559826": {
     "translation": "Conditions d'utilisation"
+  },
+  "e43ec38a93": {
+    "translation": "Allez à"
   },
   "e81c4e4f2b": {
     "translation": "ou"
@@ -552,11 +717,17 @@
   "ede55d955f": {
     "translation": "Lisez notre <a>politique relative aux cookies</a> pour en savoir plus."
   },
+  "eee6f05922": {
+    "translation": "Dissoudre"
+  },
   "ef53538ae4": {
     "translation": "Membres"
   },
   "ef7de3f485": {
     "translation": "choisi"
+  },
+  "efde983742": {
+    "translation": "Convoquer"
   },
   "f09b16bc5f": {
     "translation": "Nous utilisons des cookies pour vous garder connecté, pour synchroniser vos fichiers et pour collecter des analyses pour nous aider à améliorer tldraw."
@@ -569,9 +740,6 @@
   },
   "f2a6c498fb": {
     "translation": "Supprimer"
-  },
-  "f43fb62093": {
-    "translation": "Revenir sur tldraw."
   },
   "f4f70727dc": {
     "translation": "Paramètres"

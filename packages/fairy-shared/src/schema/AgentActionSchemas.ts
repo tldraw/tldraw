@@ -1,7 +1,7 @@
 import z from 'zod'
 import { FocusColorSchema } from '../format/FocusColor'
 import { FocusFillSchema } from '../format/FocusFill'
-import { FocusedShapeSchema } from '../format/FocusedShape'
+import { FocusedCreatableShapeSchema, FocusedShapeSchema } from '../format/FocusedShape'
 import { BaseAgentAction } from '../types/BaseAgentAction'
 
 export const AlignActionSchema = z
@@ -84,7 +84,7 @@ export const CreateActionSchema = z
 	.object({
 		_type: z.literal('create'),
 		intent: z.string(),
-		shape: FocusedShapeSchema,
+		shape: FocusedCreatableShapeSchema,
 	})
 	.meta({ title: 'Create', description: 'The agent creates a new shape.' })
 
@@ -136,6 +136,19 @@ export const EndCurrentProjectActionSchema = z
 	})
 
 export type EndCurrentProjectAction = z.infer<typeof EndCurrentProjectActionSchema>
+
+export const AbortProjectActionSchema = z
+	.object({
+		_type: z.literal('abort-project'),
+		reason: z.string(),
+	})
+	.meta({
+		title: 'Abort Project',
+		description:
+			"The agent aborts the currently active project before starting it because the user's input doesn't make sense in context or is unclear. The reason should be a succinct explanation for why the project is being aborted.",
+	})
+
+export type AbortProjectAction = z.infer<typeof AbortProjectActionSchema>
 
 export const EnterOrchestrationModeActionSchema = z
 	.object({
@@ -196,6 +209,37 @@ export const MoveActionSchema = z
 	.meta({ title: 'Move', description: 'The agent moves a shape to a new position.' })
 
 export type MoveAction = z.infer<typeof MoveActionSchema>
+
+export const OffsetActionSchema = z
+	.object({
+		_type: z.literal('offset'),
+		intent: z.string(),
+		shapeIds: z.array(z.string()),
+		offsetX: z.number(),
+		offsetY: z.number(),
+	})
+	.meta({
+		title: 'Offset',
+		description:
+			'The agent moves multiple shapes by the same relative offset. The offset is applied to each shape individually, moving them all by the same amount.',
+	})
+
+export type OffsetAction = z.infer<typeof OffsetActionSchema>
+
+export const MovePositionActionSchema = z
+	.object({
+		_type: z.literal('move-position'),
+		intent: z.string(),
+		x: z.number(),
+		y: z.number(),
+	})
+	.meta({
+		title: 'Move position',
+		description:
+			'The agent moves to the provided position. The viewport center will move to be centered on the position. ',
+	})
+
+export type MoveViewportAction = z.infer<typeof MovePositionActionSchema>
 
 export const PenActionSchema = z
 	.object({
@@ -341,20 +385,33 @@ export const ThinkActionSchema = z
 
 export type ThinkAction = z.infer<typeof ThinkActionSchema>
 
-export const PersonalTodoListActionSchema = z
+export const UpsertPersonalTodoItemActionSchema = z
 	.object({
-		_type: z.literal('update-personal-todo-list'),
+		_type: z.literal('upsert-personal-todo-item'),
 		id: z.string(),
 		status: z.enum(['todo', 'in-progress', 'done']),
 		text: z.string().optional(),
 	})
 	.meta({
-		title: 'Update Personal Todo List',
+		title: 'Upsert Personal Todo Item',
 		description:
-			'The agent updates its personal todo list item or creates a new todo item. If the id is provided, the todo item is updated. If the id is not provided and text is provided, a new todo item is created and its status is set to "todo".',
+			'The agent updates or creates a new personal todo list item. If the id is provided, the todo item is updated. If the id is not provided and text is provided, a new todo item is created and its status is set to "todo".',
 	})
 
-export type PersonalTodoListAction = z.infer<typeof PersonalTodoListActionSchema>
+export type UpsertPersonalTodoItemAction = z.infer<typeof UpsertPersonalTodoItemActionSchema>
+
+export const DeletePersonalTodoItemsActionSchema = z
+	.object({
+		_type: z.literal('delete-personal-todo-items'),
+		ids: z.array(z.string()),
+	})
+	.meta({
+		title: 'Delete Personal Todo Items',
+		description:
+			'The agent deletes one or more todo items from its personal todo list by providing the todo item ids.',
+	})
+
+export type DeletePersonalTodoItemsAction = z.infer<typeof DeletePersonalTodoItemsActionSchema>
 
 export const UpdateActionSchema = z
 	.object({
@@ -436,6 +493,20 @@ export const CreateProjectTaskActionSchema = z
 	})
 
 export type CreateProjectTaskAction = z.infer<typeof CreateProjectTaskActionSchema>
+
+export const DeleteProjectTaskActionSchema = z
+	.object({
+		_type: z.literal('delete-project-task'),
+		taskId: z.string(),
+		reason: z.string(),
+	})
+	.meta({
+		title: 'Delete Project Task',
+		description:
+			"The agent removes a task from the current project. Use this when the user asks to cancel or remove specific work, or when a task is no longer relevant to the project goals. Provide the taskId of the task to delete and a brief reason why it's being removed.",
+	})
+
+export type DeleteProjectTaskAction = z.infer<typeof DeleteProjectTaskActionSchema>
 
 export const StartSoloTaskActionSchema = z
 	.object({
@@ -585,5 +656,18 @@ export const EndDuoProjectActionSchema = z
 	})
 
 export type EndDuoProjectAction = z.infer<typeof EndDuoProjectActionSchema>
+
+export const AbortDuoProjectActionSchema = z
+	.object({
+		_type: z.literal('abort-duo-project'),
+		reason: z.string(),
+	})
+	.meta({
+		title: 'Abort Duo Project',
+		description:
+			"The agent aborts the currently active duo project before starting it because the user's input doesn't make sense in context or is unclear. The reason should be a succinct explanation for why the project is being aborted.",
+	})
+
+export type AbortDuoProjectAction = z.infer<typeof AbortDuoProjectActionSchema>
 
 export type UnknownAction = BaseAgentAction<'unknown'>

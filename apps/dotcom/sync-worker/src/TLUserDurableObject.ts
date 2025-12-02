@@ -9,6 +9,7 @@ import {
 	ZErrorCode,
 	ZServerSentPacket,
 	createMutators,
+	hasActiveFairyAccess,
 	schema,
 } from '@tldraw/dotcom-shared'
 import {
@@ -26,6 +27,7 @@ import { Logger } from './Logger'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
 import { Analytics, Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
+import { getFeatureFlag } from './utils/featureFlags'
 import { isRateLimited } from './utils/rateLimit'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 import { getClerkClient } from './utils/tla/getAuth'
@@ -166,6 +168,95 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}
 		})
 		.get(`/app/:userId/connect`, (req) => this.onRequest(req))
+		.post('/app/:userId/fairy/check-rate-limit', async () => {
+			if (!this.userId) {
+				return Response.json({ error: 'User ID not initialized' }, { status: 400 })
+			}
+
+			const weekKey = getISOWeekKey()
+			const WEEKLY_LIMIT = 25
+
+			const userFairies = await this.db
+				.selectFrom('user_fairies')
+				.where('userId', '=', this.userId)
+				.select('weeklyUsage')
+				.executeTakeFirst()
+
+			if (!userFairies) {
+				return Response.json({ error: 'User fairy record not found' }, { status: 404 })
+			}
+
+			const currentUsage = userFairies.weeklyUsage[weekKey] || 0
+
+			if (currentUsage >= WEEKLY_LIMIT) {
+				return Response.json({ error: 'Weekly rate limit exceeded' }, { status: 429 })
+			}
+
+			return new Response(null, { status: 200 })
+		})
+		.post('/app/:userId/fairy/record-usage', async (req) => {
+			if (!this.userId) {
+				return Response.json({ error: 'User ID not initialized' }, { status: 400 })
+			}
+
+			const body = (await req.json()) as any
+			const { actualCost } = body
+
+			if (typeof actualCost !== 'number' || actualCost < 0 || !isFinite(actualCost)) {
+				return Response.json({ error: 'Invalid actualCost' }, { status: 400 })
+			}
+
+			const weekKey = getISOWeekKey()
+
+			// Atomic increment using PostgreSQL JSONB operators
+			const result = await this.db
+				.updateTable('user_fairies')
+				.set({
+					weeklyUsage: sql`
+						jsonb_set(
+							COALESCE("weeklyUsage", '{}'::jsonb),
+							${sql.lit(`{${weekKey}}`)},
+							to_jsonb(COALESCE(("weeklyUsage"->>${sql.lit(weekKey)})::numeric, 0) + ${actualCost}::numeric)
+						)
+					`,
+				})
+				.where('userId', '=', this.userId)
+				.returning(sql<number>`("weeklyUsage"->>${sql.lit(weekKey)})::numeric`.as('totalUsage'))
+				.executeTakeFirst()
+
+			if (!result) {
+				return Response.json({ error: 'User fairy record not found' }, { status: 404 })
+			}
+
+			return Response.json({ success: true, totalUsage: result.totalUsage })
+		})
+		.get('/app/:userId/fairy/has-access', async () => {
+			if (!this.userId) {
+				return Response.json({ error: 'User ID not initialized' }, { status: 400 })
+			}
+
+			const flagEnabled = await getFeatureFlag(this.env, 'fairies')
+			if (!flagEnabled) {
+				return Response.json({ hasAccess: false })
+			}
+
+			const userFairies = await this.db
+				.selectFrom('user_fairies')
+				.where('userId', '=', this.userId)
+				.select(['fairyAccessExpiresAt', 'fairyLimit'])
+				.executeTakeFirst()
+
+			if (!userFairies) {
+				return Response.json({ hasAccess: false })
+			}
+
+			const hasAccess = hasActiveFairyAccess(
+				userFairies.fairyAccessExpiresAt ?? null,
+				userFairies.fairyLimit ?? null
+			)
+
+			return Response.json({ hasAccess })
+		})
 
 	// Handle a request to the Durable Object.
 	override async fetch(req: IRequest) {
@@ -725,4 +816,16 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 		await this.db.destroy()
 	}
+}
+
+function getISOWeekKey(): string {
+	const now = new Date()
+	const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
+	const dayNum = d.getUTCDay() || 7
+	// Move to Thursday of the ISO week (determines which year the week belongs to)
+	d.setUTCDate(d.getUTCDate() + 4 - dayNum)
+	const year = d.getUTCFullYear()
+	const yearStart = new Date(Date.UTC(year, 0, 1))
+	const week = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
+	return `${year}-W${String(week).padStart(2, '0')}`
 }

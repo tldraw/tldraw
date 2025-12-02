@@ -66,6 +66,7 @@ const env = makeEnv([
 	'DISCORD_DEPLOY_WEBHOOK_URL',
 	'DISCORD_FEEDBACK_WEBHOOK_URL',
 	'DISCORD_HEALTH_WEBHOOK_URL',
+	'DISCORD_FAIRY_PURCHASE_WEBHOOK_URL',
 	'GC_MAPS_API_KEY',
 	'GH_TOKEN',
 	'GOOGLE_API_KEY',
@@ -282,11 +283,31 @@ async function deployAssetUploadWorker({ dryRun }: { dryRun: boolean }) {
 let didUpdateFairyWorker = false
 async function deployFairyWorker({ dryRun }: { dryRun: boolean }) {
 	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-fairy`
+	const multiplayerWorkerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-multiplayer`
 	if (previewId && !didUpdateFairyWorker) {
 		await setWranglerPreviewConfig(fairyWorker, {
 			name: workerId,
 			customDomain: `${previewId}-fairy.tldraw.xyz`,
 		})
+
+		// Add TL_USER DO binding for preview
+		const wranglerPath = path.join(fairyWorker, 'wrangler.toml')
+		let wranglerContent = fs.readFileSync(wranglerPath, 'utf-8')
+		const doBinding = `[env.preview.durable_objects]
+bindings = [
+    { name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" },
+    { name = "TL_USER", class_name = "TLUserDurableObject", script_name = "${multiplayerWorkerId}" },
+]`
+
+		// Replace preview DO section
+		const previewDORegex = /\[env\.preview\.durable_objects\]\s*bindings\s*=\s*\[[^\]]*\]/
+		if (previewDORegex.test(wranglerContent)) {
+			wranglerContent = wranglerContent.replace(previewDORegex, doBinding)
+		} else {
+			wranglerContent += `\n${doBinding}\n`
+		}
+		fs.writeFileSync(wranglerPath, wranglerContent)
+
 		didUpdateFairyWorker = true
 	}
 
@@ -356,6 +377,7 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
 			DISCORD_FEEDBACK_WEBHOOK_URL: env.DISCORD_FEEDBACK_WEBHOOK_URL,
+			DISCORD_FAIRY_PURCHASE_WEBHOOK_URL: env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL,
 			HEALTH_CHECK_BEARER_TOKEN: env.HEALTH_CHECK_BEARER_TOKEN,
 			ANALYTICS_API_URL: env.ANALYTICS_API_URL,
 			ANALYTICS_API_TOKEN: env.ANALYTICS_API_TOKEN,

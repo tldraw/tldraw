@@ -60,3 +60,24 @@ jobs:
           name: playwright-report
           path: apps/examples/playwright-report
           retention-days: 30
+
+      - uses: shallwefootball/s3-upload-action@master
+        # only upload if we have AWS credentials:
+        env:
+          HAS_AWS_KEY: ${{ secrets.AWS_S3_SECRET_KEY && '1' || '' }}
+        if: always() && env.HAS_AWS_KEY == '1'
+        name: Upload S3
+        id: s3
+        with:
+          aws_key_id: ${{ secrets.AWS_S3_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_KEY}}
+          aws_bucket: playwright.tldraw.xyz
+          source_dir: apps/examples/playwright-report
+
+      - name: Log report to summary
+        if: always()
+        run: |
+          report_url="https://playwright-reports.tldraw.xyz/${{ steps.s3.outputs.object_key }}/index.html"
+          echo "Report: $report_url"
+          echo "## Playwright report" >> $GITHUB_STEP_SUMMARY
+          echo "* $report_url" >> $GITHUB_STEP_SUMMARY

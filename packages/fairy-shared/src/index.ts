@@ -1,5 +1,9 @@
 /* eslint-disable local/no-export-star */
 
+import { AgentAction } from './types/AgentAction'
+import { AgentActionInfo } from './types/AgentActionInfo'
+import { FairyTask } from './types/FairyTask'
+
 // Format
 export type * from './format/BlurryShape'
 export * from './format/convertFocusedShapeToTldrawShape'
@@ -24,6 +28,7 @@ export type * from './types/BaseAgentAction'
 export type * from './types/BasePromptPart'
 export type * from './types/ChatHistoryItem'
 export type * from './types/ContextItem'
+export type * from './types/FairyCanvasLint'
 export type * from './types/FairyConfig'
 export type * from './types/FairyMemoryLevel'
 export type * from './types/FairyProject'
@@ -64,6 +69,7 @@ export * from './icons/CrossIcon'
 export * from './icons/CursorIcon'
 export * from './icons/EllipsisIcon'
 export * from './icons/EyeIcon'
+export * from './icons/IndentIcon'
 export * from './icons/LipsIcon'
 export * from './icons/NoteIcon'
 export * from './icons/PencilIcon'
@@ -73,3 +79,15 @@ export * from './icons/SmallSpinner'
 export * from './icons/TargetIcon'
 export * from './icons/TickIcon'
 export * from './icons/TrashIcon'
+
+export function createAgentAction<T extends AgentAction>(action: T): T {
+	return action
+}
+
+export function createAgentActionInfo<T extends Partial<AgentActionInfo>>(info: T): T {
+	return info
+}
+
+export function createAgentTask<T extends FairyTask>(task: T): T {
+	return task
+}
