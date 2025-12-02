@@ -232,4 +232,163 @@ describe('CreateActionUtil', () => {
 			expect(arrowShapes.length).toBeGreaterThan(0)
 		})
 	})
+
+	describe('font support', () => {
+		it('should create text shape with specified font', () => {
+			const action = createAgentAction({
+				_type: 'create',
+				shape: {
+					_type: 'text',
+					shapeId: 'text-serif',
+					text: 'Hello World',
+					font: 'serif',
+					anchor: 'top-left',
+					color: 'black',
+					note: '',
+					x: 100,
+					y: 100,
+				},
+				intent: 'Create text with serif font',
+				complete: true,
+				time: 0,
+			})
+
+			const helpers = new AgentHelpers(agent)
+			createUtil.applyAction(action, helpers)
+
+			const shapes = editor.getCurrentPageShapes()
+			const textShape = shapes.find((s) => s.type === 'text')
+			expect(textShape).toBeDefined()
+			if (textShape && textShape.type === 'text') {
+				expect((textShape as any).props.font).toBe('serif')
+			}
+		})
+
+		it('should create geo shape with specified font', () => {
+			const action = createAgentAction({
+				_type: 'create',
+				shape: {
+					_type: 'rectangle',
+					shapeId: 'rect-sans',
+					text: 'Label',
+					font: 'sans',
+					color: 'black',
+					fill: 'none',
+					note: '',
+					x: 200,
+					y: 200,
+					w: 100,
+					h: 100,
+				},
+				intent: 'Create rectangle with sans font',
+				complete: true,
+				time: 0,
+			})
+
+			const helpers = new AgentHelpers(agent)
+			createUtil.applyAction(action, helpers)
+
+			const shapes = editor.getCurrentPageShapes()
+			const geoShape = shapes.find((s) => s.type === 'geo')
+			expect(geoShape).toBeDefined()
+			if (geoShape && geoShape.type === 'geo') {
+				expect((geoShape as any).props.font).toBe('sans')
+			}
+		})
+
+		it('should create note shape with specified font', () => {
+			const action = createAgentAction({
+				_type: 'create',
+				shape: {
+					_type: 'note',
+					shapeId: 'note-mono',
+					text: 'console.log()',
+					font: 'mono',
+					color: 'yellow',
+					note: '',
+					x: 300,
+					y: 300,
+				},
+				intent: 'Create note with mono font',
+				complete: true,
+				time: 0,
+			})
+
+			const helpers = new AgentHelpers(agent)
+			createUtil.applyAction(action, helpers)
+
+			const shapes = editor.getCurrentPageShapes()
+			const noteShape = shapes.find((s) => s.type === 'note')
+			expect(noteShape).toBeDefined()
+			if (noteShape && noteShape.type === 'note') {
+				expect((noteShape as any).props.font).toBe('mono')
+			}
+		})
+
+		it('should use default font when not specified', () => {
+			const action = createAgentAction({
+				_type: 'create',
+				shape: {
+					_type: 'text',
+					shapeId: 'text-default',
+					text: 'Default font text',
+					anchor: 'top-left',
+					color: 'black',
+					note: '',
+					x: 400,
+					y: 400,
+				},
+				intent: 'Create text without specifying font',
+				complete: true,
+				time: 0,
+			})
+
+			const helpers = new AgentHelpers(agent)
+			createUtil.applyAction(action, helpers)
+
+			const shapes = editor.getCurrentPageShapes()
+			const textShape = shapes.find((s) => s.type === 'text')
+			expect(textShape).toBeDefined()
+			if (textShape && textShape.type === 'text') {
+				// Default font should be 'draw'
+				expect((textShape as any).props.font).toBe('draw')
+			}
+		})
+
+		it('should handle all valid font values', () => {
+			const fonts = ['draw', 'sans', 'serif', 'mono'] as const
+
+			for (const font of fonts) {
+				const action = createAgentAction({
+					_type: 'create',
+					shape: {
+						_type: 'text',
+						shapeId: `text-${font}`,
+						text: `Font: ${font}`,
+						font,
+						anchor: 'top-left',
+						color: 'black',
+						note: '',
+						x: 0,
+						y: 0,
+					},
+					intent: `Create text with ${font} font`,
+					complete: true,
+					time: 0,
+				})
+
+				const helpers = new AgentHelpers(agent)
+				createUtil.applyAction(action, helpers)
+			}
+
+			const shapes = editor.getCurrentPageShapes().filter((s) => s.type === 'text')
+			expect(shapes.length).toBe(4)
+
+			const fontValues = shapes.map((s) => (s as any).props.font)
+			expect(fontValues).toContain('draw')
+			expect(fontValues).toContain('sans')
+			expect(fontValues).toContain('serif')
+			expect(fontValues).toContain('mono')
+		})
+	})
 })

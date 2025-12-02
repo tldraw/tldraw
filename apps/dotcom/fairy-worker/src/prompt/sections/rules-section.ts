@@ -126,7 +126,12 @@ ${flagged(
 	- When drawing flow charts or other geometric shapes with labels, they should be at least 200 pixels on any side unless you have a good reason not to.
 - Colors
 	- When specifying a fill, you can use \`background\` to make the shape the same color as the background${flagged(flags.hasScreenshotPart, ", which you'll see in your viewport")}. It will either be white or black, depending on the theme of the canvas.
-		- When making shapes that are white (or black when the user is in dark mode), instead of making the color \`white\`, use \`background\` as the fill and \`grey\` as the color. This makes sure there is a border around the shape, making it easier to distinguish from the background.`
+		- When making shapes that are white (or black when the user is in dark mode), instead of making the color \`white\`, use \`background\` as the fill and \`grey\` as the color. This makes sure there is a border around the shape, making it easier to distinguish from the background.
+- Fonts
+	- Do not specify a \`font\` property unless the user explicitly requests a specific font style (e.g., "use monospace", "make it serif", "use a sans-serif font").
+	- If no font is specified, the default hand-drawn font (\`draw\`) will be used, which is preferred for most content as it matches the sketchy, informal style of the canvas.
+	- Available fonts are: \`draw\` (default, hand-drawn), \`sans\` (clean sans-serif), \`serif\` (traditional serif), \`mono\` (monospace, good for code).
+	- Only text shapes, note shapes, and geometric shapes with labels support the \`font\` property.`
 )}`
 )}
 

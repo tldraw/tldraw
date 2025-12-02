@@ -158,7 +158,7 @@ function convertTextShapeToTldrawShape(
 		focusedShape.wrap === undefined
 			? (defaultTextShape.props?.autoSize ?? true)
 			: !focusedShape.wrap
-	const font = defaultTextShape.props?.font ?? 'draw'
+	const font = focusedShape.font ?? 'draw'
 
 	let richText
 	if (focusedShape.text !== undefined) {
@@ -377,7 +377,7 @@ function convertArrowShapeToTldrawShape(
 			elbowMidPoint: defaultArrowShape.props?.elbowMidPoint ?? 0.5,
 			end: { x: x2 - minX, y: y2 - minY },
 			fill: defaultArrowShape.props?.fill ?? 'none',
-			font: defaultArrowShape.props?.font ?? 'draw',
+			font: 'draw' as const,
 			kind: defaultArrowShape.props?.kind ?? 'arc',
 			labelColor: defaultArrowShape.props?.labelColor ?? 'black',
 			labelPosition: defaultArrowShape.props?.labelPosition ?? 0.5,
@@ -490,7 +490,7 @@ function convertGeoShapeToTldrawShape(
 				color: asColor(focusedShape.color ?? defaultGeoShape.props?.color ?? 'black'),
 				dash: defaultGeoShape.props?.dash ?? 'draw',
 				fill,
-				font: defaultGeoShape.props?.font ?? 'draw',
+				font: focusedShape.font ?? 'draw',
 				geo: shapeType,
 				growY: defaultGeoShape.props?.growY ?? 0,
 				h: focusedShape.h ?? defaultGeoShape.props?.h ?? 100,
@@ -545,7 +545,7 @@ function convertNoteShapeToTldrawShape(
 				richText,
 				size: defaultNoteShape.props?.size ?? 's',
 				align: defaultNoteShape.props?.align ?? 'middle',
-				font: defaultNoteShape.props?.font ?? 'draw',
+				font: focusedShape.font ?? 'draw',
 				fontSizeAdjustment: defaultNoteShape.props?.fontSizeAdjustment ?? 0,
 				growY: defaultNoteShape.props?.growY ?? 0,
 				labelColor: defaultNoteShape.props?.labelColor ?? 'black',

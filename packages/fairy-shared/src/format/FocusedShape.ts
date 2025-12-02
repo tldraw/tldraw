@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { FocusColorSchema } from './FocusColor'
 import { FocusFillSchema } from './FocusFill'
+import { FocusFontSchema } from './FocusFont'
 import { FocusFontSizeSchema } from './FocusFontSize'
 
 const FocusedLabelSchema = z.string()
@@ -34,6 +35,7 @@ export const FocusedGeoShapeSchema = z.object({
 	_type: FocusedGeoTypeSchema,
 	color: FocusColorSchema,
 	fill: FocusFillSchema,
+	font: FocusFontSchema.optional(),
 	h: z.number(),
 	note: z.string(),
 	shapeId: z.string(),
@@ -62,6 +64,7 @@ export type FocusedLineShape = z.infer<typeof FocusedLineShapeSchema>
 export const FocusedNoteShapeSchema = z.object({
 	_type: z.literal('note'),
 	color: FocusColorSchema,
+	font: FocusFontSchema.optional(),
 	note: z.string(),
 	shapeId: z.string(),
 	text: FocusedLabelSchema.optional(),
@@ -90,6 +93,7 @@ const FocusedTextShapeSchema = z
 		_type: z.literal('text'),
 		anchor: FocusedTextAnchorSchema,
 		color: FocusColorSchema,
+		font: FocusFontSchema.optional(),
 		fontSize: FocusFontSizeSchema.optional(),
 		note: z.string(),
 		shapeId: z.string(),

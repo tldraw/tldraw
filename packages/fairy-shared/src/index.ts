@@ -13,6 +13,7 @@ export * from './format/convertTldrawShapeToFocusedShape'
 export * from './format/FocusColor'
 export * from './format/FocusedShape'
 export * from './format/FocusFill'
+export * from './format/FocusFont'
 export * from './format/FocusFontSize'
 
 // Types (these are type-only exports)

@@ -145,6 +145,8 @@ function convertTextShapeToFocused(editor: Editor, shape: TLTextShape): FocusedT
 		_type: 'text',
 		anchor,
 		color: shape.props.color,
+		// Only include font if it's not the default 'draw' font
+		...(shape.props.font !== 'draw' && { font: shape.props.font }),
 		fontSize: convertTldrawFontSizeToFocusFontSize(textSize, shape.props.scale),
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
@@ -180,6 +182,8 @@ function convertGeoShapeToFocused(editor: Editor, shape: TLGeoShape): FocusedGeo
 		_type: GEO_TO_SIMPLE_TYPES[shape.props.geo],
 		color: shape.props.color,
 		fill: convertTldrawFillToFocusFill(shape.props.fill),
+		// Only include font if it's not the default 'draw' font
+		...(shape.props.font !== 'draw' && { font: shape.props.font }),
 		h: shape.props.h,
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
@@ -238,6 +242,8 @@ function convertNoteShapeToFocused(editor: Editor, shape: TLNoteShape): FocusedN
 	return {
 		_type: 'note',
 		color: shape.props.color,
+		// Only include font if it's not the default 'draw' font
+		...(shape.props.font !== 'draw' && { font: shape.props.font }),
 		note: (shape.meta.note as string) ?? '',
 		shapeId: convertTldrawIdToSimpleId(shape.id),
 		text: text ?? '',
