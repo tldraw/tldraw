@@ -103,7 +103,7 @@ async function setFairyWeeklyLimit(
 				userId: user.id,
 				fairies: '{}',
 				weeklyUsage: {},
-				weeklyLimit: limit ?? 25,
+				weeklyLimit: limit,
 			})
 			.onConflict((oc) =>
 				oc.column('userId').doUpdateSet({
