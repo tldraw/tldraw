@@ -71,7 +71,12 @@ export function FairyHUD() {
 				ref={hudRef}
 				className={`tla-fairy-hud ${panelState !== 'closed' ? 'tla-fairy-hud--open' : ''}`}
 				style={{
-					bottom: mobileMenuOffset !== null ? 64 : isDebugMode ? 48 : 8,
+					bottom:
+						mobileMenuOffset !== null
+							? 'calc(64px + env(safe-area-inset-bottom))'
+							: isDebugMode
+								? 48
+								: 8,
 					right: mobileMenuOffset !== null ? mobileMenuOffset : 8,
 					display: isMobileBottomToolbarsOpen ? 'none' : 'block',
 				}}
