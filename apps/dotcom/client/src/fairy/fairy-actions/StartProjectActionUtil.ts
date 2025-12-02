@@ -51,7 +51,7 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 			})
 		}
 
-		if (finishedProjectColor && finishedProjectColor) {
+		if (finishedProjectColor && !project.color) {
 			this.agent.fairyApp.projects.updateProject(project.id, {
 				color: finishedProjectColor,
 			})
