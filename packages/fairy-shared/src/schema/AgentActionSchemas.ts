@@ -254,6 +254,7 @@ export const PenActionSchema = z
 				y: z.number(),
 			})
 		),
+		shapeId: z.string(),
 		style: z.enum(['smooth', 'straight']),
 	})
 	.meta({

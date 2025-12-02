@@ -30,6 +30,7 @@ describe('PenActionUtil', () => {
 				closed: false,
 				fill: 'none',
 				style: 'smooth',
+				shapeId: 'test-shape',
 				points: [
 					{ x: 0, y: 0 },
 					{ x: 100, y: 100 },
@@ -43,6 +44,30 @@ describe('PenActionUtil', () => {
 			const sanitized = penUtil.sanitizeAction(action, helpers)
 
 			expect(sanitized).toBe(action)
+		})
+
+		it('should ensure shapeId is unique', () => {
+			const action = createAgentAction({
+				_type: 'pen',
+				intent: 'test',
+				color: 'black',
+				closed: false,
+				fill: 'none',
+				style: 'smooth',
+				shapeId: 'test-shape',
+				points: [
+					{ x: 0, y: 0 },
+					{ x: 100, y: 100 },
+				],
+				complete: true,
+				time: 0,
+			})
+
+			const helpers = new AgentHelpers(agent)
+			const sanitized = penUtil.sanitizeAction(action, helpers)
+
+			expect(sanitized?.shapeId).toBeDefined()
+			expect(typeof sanitized?.shapeId).toBe('string')
 		})
 
 		it('should exclude last point if not complete', () => {
@@ -59,6 +84,7 @@ describe('PenActionUtil', () => {
 					closed: false,
 					fill: 'none',
 					style: 'smooth',
+					shapeId: 'test-shape',
 				}),
 				complete: false,
 				time: 0,
@@ -88,6 +114,7 @@ describe('PenActionUtil', () => {
 					closed: false,
 					fill: 'none',
 					style: 'smooth',
+					shapeId: 'test-shape',
 				}),
 				complete: true,
 				time: 0,
@@ -114,6 +141,7 @@ describe('PenActionUtil', () => {
 					closed: false,
 					fill: 'none',
 					style: 'smooth',
+					shapeId: 'test-shape',
 				}),
 				complete: true,
 				time: 0,
@@ -143,6 +171,7 @@ describe('PenActionUtil', () => {
 					color: 'black',
 					fill: 'none',
 					style: 'smooth',
+					shapeId: 'test-shape',
 				}),
 				complete: true,
 				time: 0,
@@ -166,6 +195,7 @@ describe('PenActionUtil', () => {
 				closed: false,
 				fill: 'none',
 				style: 'smooth',
+				shapeId: 'test-shape',
 				complete: true,
 				time: 0,
 			})
@@ -188,6 +218,7 @@ describe('PenActionUtil', () => {
 				color: 'black',
 				closed: false,
 				style: 'smooth',
+				shapeId: 'test-shape',
 				complete: true,
 				time: 0,
 			})
@@ -208,10 +239,39 @@ describe('PenActionUtil', () => {
 				closed: false,
 				fill: 'none',
 				style: 'smooth',
+				shapeId: 'test-shape',
 				points: [],
 				complete: true,
 				time: 0,
 			})
+
+			const shapesBefore = editor.getCurrentPageShapes().length
+			penUtil.applyAction(action, new AgentHelpers(agent))
+
+			const shapesAfter = editor.getCurrentPageShapes().length
+			expect(shapesAfter).toBe(shapesBefore)
+		})
+
+		it('should not apply action if no shapeId', () => {
+			const action = createAgentAction({
+				_type: 'pen',
+				intent: 'test',
+				color: 'black',
+				closed: false,
+				fill: 'none',
+				style: 'smooth',
+				shapeId: '',
+				points: [
+					{ x: 0, y: 0 },
+					{ x: 100, y: 100 },
+				],
+				complete: true,
+				time: 0,
+			})
+
+			// Override shapeId to undefined
+			// @ts-expect-error - testing edge case
+			action.shapeId = undefined
 
 			const shapesBefore = editor.getCurrentPageShapes().length
 			penUtil.applyAction(action, new AgentHelpers(agent))
@@ -229,6 +289,7 @@ describe('PenActionUtil', () => {
 				closed: false,
 				fill: 'none',
 				style: 'smooth',
+				shapeId: 'test-shape',
 				complete: true,
 				time: 0,
 			})
@@ -249,6 +310,7 @@ describe('PenActionUtil', () => {
 				closed: false,
 				fill: 'none',
 				style: 'smooth',
+				shapeId: 'test-shape',
 				complete: true,
 				time: 0,
 			})
@@ -272,6 +334,7 @@ describe('PenActionUtil', () => {
 				closed: false,
 				intent: 'Draw line',
 				style: 'smooth',
+				shapeId: 'test-shape',
 				complete: true,
 				time: 0,
 			})
@@ -282,6 +345,7 @@ describe('PenActionUtil', () => {
 			const drawShape = shapes.find((s) => s.type === 'draw') as TLDrawShape
 
 			expect(drawShape).toBeDefined()
+			expect(drawShape.id).toBe('shape:test-shape')
 			expect(drawShape.props.color).toBe('red')
 			expect(drawShape.props.fill).toBe('lined-fill') // 'solid' converts to 'lined-fill'
 			expect(drawShape.props.dash).toBe('draw')
@@ -304,6 +368,7 @@ describe('PenActionUtil', () => {
 				color: 'black',
 				fill: 'none',
 				style: 'smooth',
+				shapeId: 'test-shape',
 				complete: true,
 				time: 0,
 			})
@@ -329,6 +394,7 @@ describe('PenActionUtil', () => {
 				color: 'black',
 				fill: 'none',
 				style: 'smooth',
+				shapeId: 'test-shape',
 				complete: true,
 				time: 0,
 			})
@@ -359,6 +425,7 @@ describe('PenActionUtil', () => {
 				intent: 'test',
 				color: 'black',
 				style: 'smooth',
+				shapeId: 'test-shape',
 				complete: true,
 				time: 0,
 			})
@@ -385,6 +452,7 @@ describe('PenActionUtil', () => {
 				color: 'black',
 				fill: 'none',
 				style: 'smooth',
+				shapeId: 'test-shape',
 				complete: true,
 				time: 0,
 			})
@@ -411,6 +479,7 @@ describe('PenActionUtil', () => {
 				intent: 'test',
 				color: 'black',
 				fill: 'none',
+				shapeId: 'test-shape',
 				complete: true,
 				time: 0,
 			})
@@ -436,6 +505,7 @@ describe('PenActionUtil', () => {
 				color: 'black',
 				fill: 'none',
 				style: 'smooth',
+				shapeId: 'test-shape',
 				complete: true,
 				time: 0,
 			})
@@ -457,7 +527,7 @@ describe('PenActionUtil', () => {
 				'red',
 			]
 
-			colors.forEach((color) => {
+			colors.forEach((color, index) => {
 				const action = createAgentAction({
 					_type: 'pen',
 					points: [
@@ -469,6 +539,7 @@ describe('PenActionUtil', () => {
 					intent: 'test',
 					fill: 'none',
 					style: 'smooth',
+					shapeId: `test-shape-${index}`,
 					complete: true,
 					time: 0,
 				})
@@ -497,6 +568,7 @@ describe('PenActionUtil', () => {
 				color: 'black',
 				fill: 'none',
 				style: 'smooth',
+				shapeId: 'test-shape',
 				complete: true,
 				time: 0,
 			})
