@@ -196,7 +196,7 @@ SELECT
   null::boolean as "8",
   "fairyAccessExpiresAt"::bigint as "9",
   "fairyLimit"::bigint as "10",
-  null::bigint as "11",
+  "weeklyLimit"::bigint as "11",
   null::bigint as "12",
   "fairies"::text as "13",
   "userId"::text as "14",
@@ -380,6 +380,7 @@ export const columnNamesByAlias = {
 	user_fairies: {
 		'9': 'fairyAccessExpiresAt',
 		'10': 'fairyLimit',
+		'11': 'weeklyLimit',
 		'13': 'fairies',
 		'14': 'userId',
 		'15': 'weeklyUsage',

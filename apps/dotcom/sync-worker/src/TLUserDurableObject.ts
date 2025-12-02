@@ -174,21 +174,27 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}
 
 			const weekKey = getISOWeekKey()
-			const WEEKLY_LIMIT = 25
+			const DEFAULT_WEEKLY_LIMIT = 25
 
 			const userFairies = await this.db
 				.selectFrom('user_fairies')
 				.where('userId', '=', this.userId)
-				.select('weeklyUsage')
+				.select(['weeklyUsage', 'weeklyLimit'])
 				.executeTakeFirst()
 
 			if (!userFairies) {
 				return Response.json({ error: 'User fairy record not found' }, { status: 404 })
 			}
 
+			const effectiveLimit = userFairies.weeklyLimit ?? DEFAULT_WEEKLY_LIMIT
+
+			if (effectiveLimit === 0) {
+				return Response.json({ error: 'Fairy access blocked' }, { status: 403 })
+			}
+
 			const currentUsage = userFairies.weeklyUsage[weekKey] || 0
 
-			if (currentUsage >= WEEKLY_LIMIT) {
+			if (currentUsage >= effectiveLimit) {
 				return Response.json({ error: 'Weekly rate limit exceeded' }, { status: 429 })
 			}
 
