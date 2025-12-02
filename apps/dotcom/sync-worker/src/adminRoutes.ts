@@ -55,6 +55,7 @@ export async function upsertFairyAccess(
 				fairyAccessExpiresAt: expiresAt,
 				fairies: '{}',
 				weeklyUsage: {},
+				weeklyLimit: 25,
 			})
 			.onConflict((oc) =>
 				oc.column('userId').doUpdateSet({
@@ -71,6 +72,52 @@ export async function upsertFairyAccess(
 	} catch (error) {
 		console.error('Failed to upsert fairy access:', error)
 		return { success: false, error: String(error) }
+	}
+}
+
+async function setFairyWeeklyLimit(
+	env: Environment,
+	email: string,
+	limit: number | null
+): Promise<{ success: boolean; error?: string; limit?: number | null }> {
+	if (limit !== null && (typeof limit !== 'number' || limit < 0)) {
+		return { success: false, error: 'limit must be null or a number >= 0' }
+	}
+
+	const db = createPostgresConnectionPool(env, '/app/admin/fairy/set-weekly-limit')
+	try {
+		// Look up user by email
+		const user = await db
+			.selectFrom('user')
+			.where('email', '=', email)
+			.selectAll()
+			.executeTakeFirst()
+		if (!user) {
+			return { success: false, error: 'User not found' }
+		}
+
+		// Upsert user_fairies with new weeklyLimit
+		await db
+			.insertInto('user_fairies')
+			.values({
+				userId: user.id,
+				fairies: '{}',
+				weeklyUsage: {},
+				weeklyLimit: limit,
+			})
+			.onConflict((oc) =>
+				oc.column('userId').doUpdateSet({
+					weeklyLimit: limit,
+				})
+			)
+			.execute()
+
+		return { success: true, limit }
+	} catch (error) {
+		console.error('Failed to set fairy weekly limit:', error)
+		return { success: false, error: String(error) }
+	} finally {
+		await db.destroy()
 	}
 }
 
@@ -308,6 +355,24 @@ export const adminRoutes = createRouter<Environment>()
 		const { email } = body
 
 		const result = await removeFairyAccess(env, email)
+		return json(result)
+	})
+	.post('/app/admin/fairy/set-weekly-limit', async (req, env) => {
+		const body: any = await req.json()
+		const { email, limit } = body
+
+		if (typeof email !== 'string' || !email) {
+			throw new StatusError(400, 'email (string) is required')
+		}
+
+		if (limit !== null && (typeof limit !== 'number' || limit < 0)) {
+			throw new StatusError(400, 'limit must be null or a number >= 0')
+		}
+
+		const result = await setFairyWeeklyLimit(env, email, limit)
+		if (!result.success) {
+			throw new StatusError(400, result.error || 'Failed to set weekly limit')
+		}
 		return json(result)
 	})
 	.get('/app/admin/feature-flags', getFeatureFlags)
