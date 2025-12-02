@@ -19,7 +19,6 @@ import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShap
 import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
-import { startEditingShapeWithLabel } from '../selectHelpers'
 
 const SKIPPED_KEYS_FOR_AUTO_EDITING = [
 	'Delete',
@@ -473,15 +472,7 @@ export class Idle extends StateNode {
 					// If it's not locked or anything
 					this.shouldStartEditingShape(onlySelectedShape)
 				) {
-					this.startEditingShape(
-						onlySelectedShape,
-						{
-							...info,
-							target: 'shape',
-							shape: onlySelectedShape,
-						},
-						true /* select all */
-					)
+					this.startEditingShape(onlySelectedShape, info, true /* select all */)
 					return
 				}
 			}
@@ -533,15 +524,7 @@ export class Idle extends StateNode {
 				// If the only selected shape is editable, then begin editing it
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
 				if (onlySelectedShape && this.shouldStartEditingShape(onlySelectedShape)) {
-					this.startEditingShape(
-						onlySelectedShape,
-						{
-							...info,
-							target: 'shape',
-							shape: onlySelectedShape,
-						},
-						true /* select all */
-					)
+					this.startEditingShape(onlySelectedShape, info, true /* select all */)
 					return
 				}
 
@@ -577,8 +560,7 @@ export class Idle extends StateNode {
 	) {
 		if (this.editor.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return
 		this.editor.markHistoryStoppingPoint('editing shape')
-		startEditingShapeWithLabel(this.editor, shape, shouldSelectAll)
-		this.parent.transition('editing_shape', info)
+		this.editor.startEditingShape(shape, { info, selectAll: shouldSelectAll })
 	}
 
 	isOverArrowLabelTest(shape: TLShape | undefined) {
@@ -588,7 +570,7 @@ export class Idle extends StateNode {
 	}
 
 	handleDoubleClickOnCanvas(info: TLClickEventInfo) {
-		// Create text shape and transition to editing_shape
+		// Create text shape and start editing it.
 		if (this.editor.getIsReadonly()) return
 
 		if (!this.editor.options.createTextOnCanvasDoubleClick) return
@@ -616,16 +598,7 @@ export class Idle extends StateNode {
 		const shape = this.editor.getShape(id)
 		if (!shape) return
 
-		const util = this.editor.getShapeUtil(shape)
-		if (this.editor.getIsReadonly()) {
-			if (!util.canEditInReadonly(shape)) {
-				return
-			}
-		}
-
-		this.editor.setEditingShape(id)
-		this.editor.select(id)
-		this.parent.transition('editing_shape', info)
+		this.editor.startEditingShape(shape, { info })
 	}
 
 	private nudgeSelectedShapes(ephemeral = false) {

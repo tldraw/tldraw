@@ -136,7 +136,6 @@ export {
 	type TLEditorOptions,
 	type TLEditorRunOptions,
 	type TLRenderingShape,
-	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
 export { ClickManager, type TLClickState } from './lib/editor/managers/ClickManager/ClickManager'
 export { EdgeScrollManager } from './lib/editor/managers/EdgeScrollManager/EdgeScrollManager'
@@ -267,6 +266,8 @@ export {
 	type TLExportType,
 	type TLGetShapeAtPointOptions,
 	type TLImageExportOptions,
+	type TLResizeShapeOptions,
+	type TLStartEditingShapeOptions,
 	type TLSvgExportOptions,
 	type TLUpdatePointerOptions,
 } from './lib/editor/types/misc-types'

@@ -154,7 +154,7 @@ import { SnapManager } from './managers/SnapManager/SnapManager'
 import { TextManager } from './managers/TextManager/TextManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
-import { ShapeUtil, TLGeometryOpts, TLResizeMode } from './shapes/ShapeUtil'
+import { ShapeUtil, TLGeometryOpts } from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
@@ -174,23 +174,12 @@ import {
 	TLCameraOptions,
 	TLGetShapeAtPointOptions,
 	TLImageExportOptions,
+	TLResizeShapeOptions,
+	TLStartEditingShapeOptions,
 	TLSvgExportOptions,
 	TLUpdatePointerOptions,
 } from './types/misc-types'
-import { TLAdjacentDirection, TLResizeHandle } from './types/selection-types'
-
-/** @public */
-export type TLResizeShapeOptions = Partial<{
-	initialBounds: Box
-	scaleOrigin: VecLike
-	scaleAxisRotation: number
-	initialShape: TLShape
-	initialPageTransform: MatLike
-	dragHandle: TLResizeHandle
-	isAspectRatioLocked: boolean
-	mode: TLResizeMode
-	skipStartAndEndCallbacks: boolean
-}>
+import { TLAdjacentDirection } from './types/selection-types'
 
 /** @public */
 export interface TLEditorOptions {
@@ -2279,6 +2268,51 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Try to begin editing a shape. Returns true if editing successfully started.
+	 *
+	 * @param shapeOrId - The shape (or shape id) to edit. Defaults to the only selected shape.
+	 * @param options - Additional options for starting the edit interaction.
+	 *
+	 * @public
+	 */
+	startEditingShape(
+		shapeOrId: TLShape | TLShapeId | null = this.getOnlySelectedShape(),
+		options: TLStartEditingShapeOptions = {}
+	): boolean {
+		const shape = shapeOrId ? this.getShape(shapeOrId) : null
+		if (!shape) return false
+
+		const util = this.getShapeUtil(shape)
+		if (this.getIsReadonly() && !util.canEditInReadonly(shape)) return false
+		if (!util.canEdit(shape)) return false
+
+		this.select(shape.id)
+		this._setEditingShapeInternal(shape.id)
+		if (!this.getEditingShape()) return false
+
+		this.setCurrentTool('select.editing_shape', {
+			...(options.info ?? {}),
+			target: 'shape',
+			shape,
+		})
+
+		if (options.selectAll) {
+			this.emit('select-all-text', { shapeId: shape.id })
+		}
+
+		return true
+	}
+
+	/**
+	 * Stop editing the current shape, if any.
+	 *
+	 * @public
+	 */
+	stopEditingShape(): this {
+		return this._setEditingShapeInternal(null)
+	}
+
+	/**
 	 * Set the current editing shape.
 	 *
 	 * @example
@@ -2289,9 +2323,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param shape - The shape (or shape id) to set as editing.
 	 *
+	 * @deprecated Use {@link Editor.startEditingShape} / {@link Editor.stopEditingShape}.
+	 *
 	 * @public
 	 */
 	setEditingShape(shape: TLShapeId | TLShape | null): this {
+		return this._setEditingShapeInternal(shape)
+	}
+
+	private _setEditingShapeInternal(shape: TLShapeId | TLShape | null): this {
 		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 		this.setRichTextEditor(null)
 		const prevEditingShapeId = this.getEditingShapeId()
