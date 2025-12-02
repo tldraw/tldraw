@@ -38,12 +38,6 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 			.getTasksByProjectId(project.id)
 			.filter((task) => task.status === 'done')
 
-		// Find orchestrator before deletion
-		const orchestratorMember = this.agent.fairyApp.projects.getProjectOrchestrator(project)
-		const orchestratorAgent = orchestratorMember
-			? memberAgents.find((agent: FairyAgent) => agent.id === orchestratorMember.id)
-			: null
-
 		memberAgents.forEach((memberAgent: FairyAgent) => {
 			const otherMemberIds = memberAgents
 				.map((agent: FairyAgent) => agent.id)
@@ -99,12 +93,10 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 		this.agent.fairyApp.projects.deleteProjectAndAssociatedTasks(project.id)
 
 		// Select orchestrator after project deletion
-		if (orchestratorAgent) {
-			const allAgents = this.agent.fairyApp.agents.getAgents()
-			allAgents.forEach((agent) => {
-				const shouldSelect = agent.id === orchestratorAgent.id
-				agent.updateEntity((f) => (f ? { ...f, isSelected: shouldSelect } : f))
-			})
-		}
+		const allAgents = this.agent.fairyApp.agents.getAgents()
+		allAgents.forEach((agent) => {
+			const shouldSelect = agent.id === this.agent.id
+			agent.updateEntity((f) => (f ? { ...f, isSelected: shouldSelect } : f))
+		})
 	}
 }
