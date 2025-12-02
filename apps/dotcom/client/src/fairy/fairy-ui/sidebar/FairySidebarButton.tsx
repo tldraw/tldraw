@@ -1,3 +1,4 @@
+import { getProjectColor } from '@tldraw/fairy-shared'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { MouseEvent, useCallback } from 'react'
 import {
@@ -8,7 +9,6 @@ import {
 } from 'tldraw'
 import { useMsg } from '../../../tla/utils/i18n'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
-import { getProjectColor } from '../../fairy-helpers/getProjectColor'
 import { fairyMessages } from '../../fairy-messages'
 import { FairySprite, getHatColor } from '../../fairy-sprite/FairySprite'
 import { FairyReticleSprite } from '../../fairy-sprite/sprites/FairyReticleSprite'
@@ -47,8 +47,7 @@ export function FairySidebarButton({
 		() => agent.getRole() === 'orchestrator' || agent.getRole() === 'duo-orchestrator',
 		[agent]
 	)
-	const projectColor = project ? getProjectColor(project.color) : undefined
-
+	const projectColor = project ? getProjectColor(project.color) : 'var(--tl-color-fairy-light)'
 	const handlePlusClick = useCallback(() => {
 		// Toggle selection like shift-clicking would
 		agent.updateEntity((f) => (f ? { ...f, isSelected: !f.isSelected } : f))
