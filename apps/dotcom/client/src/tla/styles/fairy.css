@@ -416,6 +416,9 @@
 	white-space: nowrap;
 	max-width: 100%;
 	padding-left: 12px;
+	display: flex;
+	align-items: baseline;
+	gap: 6px;
 }
 
 .fairy-spinner-container {

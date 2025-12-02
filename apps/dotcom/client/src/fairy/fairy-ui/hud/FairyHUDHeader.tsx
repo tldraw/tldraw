@@ -1,3 +1,4 @@
+import { SmallSpinner } from '@tldraw/fairy-shared'
 import { ReactNode, useCallback } from 'react'
 import {
 	TldrawUiButton,
@@ -86,6 +87,12 @@ export function FairyHUDHeader({
 	const hasChatHistory = useValue(
 		'has-chat-history',
 		() => shownFairy && shownFairy.chat.getHistory().length > 0,
+		[shownFairy]
+	)
+
+	const isGenerating = useValue(
+		'is-generating',
+		() => shownFairy?.requests.isGenerating() ?? false,
 		[shownFairy]
 	)
 
@@ -204,6 +211,7 @@ export function FairyHUDHeader({
 				<TldrawUiTooltip content={fairyClickable ? zoomToFairyLabel : undefined} side="top">
 					<span style={{ cursor: fairyClickable ? 'pointer' : 'default' }}>{getDisplayName()}</span>
 				</TldrawUiTooltip>
+				{isGenerating && <SmallSpinner />}
 			</div>
 		) : (
 			<div style={{ flex: 1 }}></div>
