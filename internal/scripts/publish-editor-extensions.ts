@@ -78,7 +78,8 @@ async function copyExtensionToReleaseFolder(version: string) {
 
 async function publishToOpenVSX(version: string) {
 	nicelog('Publishing to Open VSX...')
-	await exec('npx', ['ovsx', 'publish', '-p', env.OVSX_PAT], { pwd: EXTENSION_DIR })
+	// Pass OVSX_PAT via environment variable instead of CLI argument to avoid logging the secret
+	await exec('npx', ['ovsx', 'publish'], { pwd: EXTENSION_DIR, env: { OVSX_PAT: env.OVSX_PAT } })
 	nicelog(`Successfully published v${version} to Open VSX`)
 }
 
