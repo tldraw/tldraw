@@ -1,5 +1,5 @@
 import z from 'zod'
-import { FocusColorSchema } from '../format/FocusColor'
+import { FocusColorSchema, ProjectColorSchema } from '../format/FocusColor'
 import { FocusFillSchema } from '../format/FocusFill'
 import { FocusedCreatableShapeSchema, FocusedShapeSchema } from '../format/FocusedShape'
 import { BaseAgentAction } from '../types/BaseAgentAction'
@@ -366,7 +366,7 @@ export const StartProjectActionSchema = z
 		_type: z.literal('start-project'),
 		projectName: z.string(),
 		projectDescription: z.string(),
-		projectColor: FocusColorSchema,
+		projectColor: ProjectColorSchema,
 		projectPlan: z.string(),
 	})
 	.meta({
@@ -635,7 +635,7 @@ export const StartDuoProjectActionSchema = z
 		_type: z.literal('start-duo-project'),
 		projectName: z.string(),
 		projectDescription: z.string(),
-		projectColor: FocusColorSchema,
+		projectColor: ProjectColorSchema,
 		projectPlan: z.string(),
 	})
 	.meta({

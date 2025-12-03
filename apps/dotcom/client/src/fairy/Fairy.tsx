@@ -1,3 +1,4 @@
+import { getProjectColor } from '@tldraw/fairy-shared'
 import classNames from 'classnames'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import React, { useEffect, useRef } from 'react'
@@ -5,7 +6,6 @@ import { TLEventInfo, getPointerInfo, useEditor, useQuickReactor, useValue } fro
 import '../tla/styles/fairy.css'
 import { TLAppUiHandler, useTldrawAppUiEvents } from '../tla/utils/app-ui-events'
 import { FairyAgent } from './fairy-agent/FairyAgent'
-import { getProjectColor } from './fairy-helpers/getProjectColor'
 import { FairySprite, getHatColor } from './fairy-sprite/FairySprite'
 import { FairyReticleSprite } from './fairy-sprite/sprites/FairyReticleSprite'
 import { FairyContextMenuContent } from './fairy-ui/menus/FairyContextMenuContent'
