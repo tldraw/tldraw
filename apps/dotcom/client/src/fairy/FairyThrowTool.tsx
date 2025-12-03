@@ -126,7 +126,11 @@ class ThrowingState extends StateNode {
 		// Set the selected fairy's velocity to the pointer movement
 		const tool = this.parent as FairyThrowTool
 		const fairies = tool.fairies.filter((f) => f.getEntity()?.isSelected)
-		if (fairies.length === 0) return
+		if (fairies.length === 0) {
+			this.cancel()
+			return
+		}
+
 		const { pointerVelocity } = this.editor.inputs
 		const inverseZoomLevel = 1 / this.editor.getZoomLevel()
 		const scaledPointerVelocity = Vec.Mul(pointerVelocity, inverseZoomLevel)
