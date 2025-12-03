@@ -1,3 +1,4 @@
+import { FairyHatType } from '@tldraw/fairy-shared'
 import { FairyBodySpritePart } from './parts/FairyBodySpritePart'
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
 import { FairyLegsSpritePart } from './parts/FairyLegsSpritePart'
@@ -5,10 +6,12 @@ import { FairyLegsSpritePart } from './parts/FairyLegsSpritePart'
 export function WorkingSprite1({
 	bodyColor,
 	hatColor,
+	hatType,
 	tint,
 }: {
 	bodyColor: string
 	hatColor: string
+	hatType: FairyHatType
 	tint?: string | null
 }) {
 	return (
@@ -18,7 +21,12 @@ export function WorkingSprite1({
 					d="M65.5907 53.3966C65.5907 53.3966 70.0926 55.3493 74.3761 55.1193C78.6596 54.8892 82.6283 51.7969 82.6283 51.7969"
 					strokeWidth="6"
 				/>
-				<WorkingSpriteBase bodyColor={bodyColor} hatColor={hatColor} tint={tint} />
+				<WorkingSpriteBase
+					bodyColor={bodyColor}
+					hatColor={hatColor}
+					hatType={hatType}
+					tint={tint}
+				/>
 				<path
 					d="M41.1356 56.2007C41.1356 56.2007 42.2812 64.0008 46.9921 69.0741C51.703 74.1473 58.4068 73.4227 58.4068 73.4227"
 					strokeWidth="7"
@@ -31,10 +39,12 @@ export function WorkingSprite1({
 export function WorkingSprite2({
 	bodyColor,
 	hatColor,
+	hatType,
 	tint,
 }: {
 	bodyColor: string
 	hatColor: string
+	hatType: FairyHatType
 	tint?: string | null
 }) {
 	return (
@@ -44,7 +54,12 @@ export function WorkingSprite2({
 					d="M65.2349 54.2168C65.2349 54.2168 66.9787 58.8999 71.7576 61.4642C76.5365 64.0285 81.5417 59.4712 81.5417 59.4712"
 					strokeWidth="6"
 				/>
-				<WorkingSpriteBase bodyColor={bodyColor} hatColor={hatColor} tint={tint} />
+				<WorkingSpriteBase
+					bodyColor={bodyColor}
+					hatColor={hatColor}
+					hatType={hatType}
+					tint={tint}
+				/>
 				<path
 					d="M41.5676 58.9449C41.5676 58.9449 40.9778 63.7401 46.5726 66.5375C52.1674 69.3348 59.0745 64.9068 59.0745 64.9068"
 					strokeWidth="7"
@@ -57,10 +72,12 @@ export function WorkingSprite2({
 export function WorkingSprite3({
 	bodyColor,
 	hatColor,
+	hatType,
 	tint,
 }: {
 	bodyColor: string
 	hatColor: string
+	hatType: FairyHatType
 	tint?: string | null
 }) {
 	return (
@@ -70,7 +87,12 @@ export function WorkingSprite3({
 					d="M65.8094 54.2964C65.8094 54.2964 66.6273 59.29 71.3381 62.9137C76.049 66.5375 80.3975 67.081 80.3975 67.081"
 					strokeWidth="6"
 				/>
-				<WorkingSpriteBase bodyColor={bodyColor} hatColor={hatColor} tint={tint} />
+				<WorkingSpriteBase
+					bodyColor={bodyColor}
+					hatColor={hatColor}
+					hatType={hatType}
+					tint={tint}
+				/>
 				<path
 					d="M41.7315 58.8285C41.7315 58.8285 43.114 64.9512 49.2333 66.1751C55.3526 67.399 57.9302 61.1019 57.9302 61.1019"
 					strokeWidth="7"
@@ -83,17 +105,19 @@ export function WorkingSprite3({
 export function WorkingSpriteBase({
 	bodyColor,
 	hatColor,
+	hatType,
 	tint,
 }: {
 	bodyColor: string
 	hatColor: string
+	hatType: FairyHatType
 	tint?: string | null
 }) {
 	return (
 		<>
 			<FairyLegsSpritePart />
 			<FairyBodySpritePart bodyColor={bodyColor} tint={tint ?? null} />
-			<FairyHatSpritePart hatColor={hatColor} />
+			<FairyHatSpritePart hatColor={hatColor} hatType={hatType} />
 			{/* Head */}
 			<circle
 				cx="55.4159"

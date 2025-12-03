@@ -1,13 +1,16 @@
+import { FairyHatType } from '@tldraw/fairy-shared'
 import { FairyBodySpritePart } from './parts/FairyBodySpritePart'
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
 
 export function ThinkingSprite({
 	bodyColor,
 	hatColor,
+	hatType,
 	tint,
 }: {
 	bodyColor: string
 	hatColor: string
+	hatType: FairyHatType
 	tint: string | null
 }) {
 	return (
@@ -19,7 +22,7 @@ export function ThinkingSprite({
 				strokeLinecap="round"
 			/>
 			<FairyBodySpritePart bodyColor={bodyColor} tint={tint} />
-			<FairyHatSpritePart hatColor={hatColor} offsetX={0} offsetY={1} />
+			<FairyHatSpritePart hatColor={hatColor} hatType={hatType} offsetX={0} offsetY={1} />
 			<circle
 				cx="55.4159"
 				cy="33.7832"

@@ -2,16 +2,16 @@ import { FairyHatType } from '@tldraw/fairy-shared'
 
 export function FairyHatSpritePart({
 	hatColor,
-	type = 'default',
+	hatType = 'default',
 	offsetX = 0,
 	offsetY = 0,
 }: {
-	type?: FairyHatType
+	hatType?: FairyHatType
 	hatColor: string
 	offsetX?: number
 	offsetY?: number
 }) {
-	switch (type) {
+	switch (hatType) {
 		case 'antenna-relaxed': {
 			return (
 				<g
@@ -237,7 +237,7 @@ export function FairyHatSpritePart({
 				</g>
 			)
 		}
-		case 'domes': {
+		case 'buns': {
 			return (
 				<g stroke="var(--tl-color-fairy-dark)" strokeWidth="5" strokeLinejoin="round">
 					<path d="M69.0001 18.4996C69.0001 18.4996 72.1135 15.0748 75 16.0002C79.8666 17.5604 84.1059 32.2853 79.5 34.4995C77.3882 35.5147 75 33.4996 75 33.4996M41.0001 20.0002C41.0001 20.0002 36.878 15.622 35 17.5C32.0001 20.4999 27 31.4996 29.5 34.4996C31.0001 36.2996 35.5 34.4996 35.5 34.4996" />

@@ -1,14 +1,14 @@
 import { FairyOutfit } from './FairyOutfit'
 
 export const HAT_COLORS = [
+	'coral',
 	'pink',
+	'rose',
 	'purple',
 	'peach',
-	'coral',
-	'teal',
 	'gold',
-	'rose',
 	'green',
+	'teal',
 	'white',
 ] as const
 
@@ -22,7 +22,7 @@ export const HAT_TYPES = [
 	'bat-ears',
 	'cat-ears',
 	'default',
-	'domes',
+	'buns',
 	'dotted-cap',
 	'ears',
 	'fairy-ears',

@@ -37,6 +37,7 @@ export const fairyMessages = defineMessages({
 
 	// Fairy config dialog (placeholders)
 	fairyNamePlaceholder: { defaultMessage: "Fairy's name" },
+	customizeFairy: { defaultMessage: 'Customize' },
 
 	// Group chat (placeholders and aria-labels)
 	instructGroupPlaceholder: { defaultMessage: 'Speak to the group…' },

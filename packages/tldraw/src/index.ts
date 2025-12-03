@@ -420,6 +420,25 @@ export {
 	type TLUiPopoverProps,
 	type TLUiPopoverTriggerProps,
 } from './lib/ui/components/primitives/TldrawUiPopover'
+export {
+	TldrawUiSelectContent,
+	TldrawUiSelectGroup,
+	TldrawUiSelectIcon,
+	TldrawUiSelectItem,
+	TldrawUiSelectLabel,
+	TldrawUiSelectRoot,
+	TldrawUiSelectSeparator,
+	TldrawUiSelectTrigger,
+	TldrawUiSelectValue,
+	type TLUiSelectContentProps,
+	type TLUiSelectGroupProps,
+	type TLUiSelectIconProps,
+	type TLUiSelectItemProps,
+	type TLUiSelectLabelProps,
+	type TLUiSelectRootProps,
+	type TLUiSelectTriggerProps,
+	type TLUiSelectValueProps,
+} from './lib/ui/components/primitives/TldrawUiSelect'
 export { TldrawUiSlider, type TLUiSliderProps } from './lib/ui/components/primitives/TldrawUiSlider'
 export {
 	TldrawUiToolbar,

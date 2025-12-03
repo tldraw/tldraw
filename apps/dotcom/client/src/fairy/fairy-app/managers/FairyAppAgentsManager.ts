@@ -68,6 +68,8 @@ export class FairyAppAgentsManager extends BaseFairyAppManager {
 			configIds.push(id)
 		}
 
+		this.migrateFairyConfigs(fairyConfigs)
+
 		// Find agents to create (new configs that don't have agents yet)
 		const idsToCreate = configIds.filter((id) => !existingIds.has(id))
 
@@ -133,6 +135,21 @@ export class FairyAppAgentsManager extends BaseFairyAppManager {
 		this.fairyApp.tldrawApp.z.mutate.user.updateFairyConfig({ id, properties: config })
 
 		return id
+	}
+
+	migrateFairyConfigs(fairyConfigs: PersistedFairyConfigs) {
+		for (const [id, config] of Object.entries(fairyConfigs)) {
+			let didMigrate = false
+			if (!config.version || config.version < 1) {
+				didMigrate = true
+				config.hat = getRandomFairyHat()
+				config.hatColor = getRandomFairyHatColor()
+				config.version = 1
+			}
+			if (didMigrate) {
+				this.fairyApp.tldrawApp.z.mutate.user.updateFairyConfig({ id, properties: config })
+			}
+		}
 	}
 
 	/**

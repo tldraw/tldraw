@@ -1,3 +1,4 @@
+import { FairyHatType } from '@tldraw/fairy-shared'
 import { FairyBodySpritePart } from './parts/FairyBodySpritePart'
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
 import { FairyLegsSpritePart } from './parts/FairyLegsSpritePart'
@@ -5,26 +6,44 @@ import { FairyLegsSpritePart } from './parts/FairyLegsSpritePart'
 export function WritingSprite1({
 	bodyColor,
 	hatColor,
+	hatType,
 	tint,
 }: {
 	bodyColor: string
 	hatColor: string
+	hatType: FairyHatType
 	tint?: string | null
 }) {
-	return <BaseWritingSprite penRotation={0} bodyColor={bodyColor} hatColor={hatColor} tint={tint} />
+	return (
+		<BaseWritingSprite
+			penRotation={0}
+			bodyColor={bodyColor}
+			hatColor={hatColor}
+			hatType={hatType}
+			tint={tint}
+		/>
+	)
 }
 
 export function WritingSprite2({
 	bodyColor,
 	hatColor,
+	hatType,
 	tint,
 }: {
 	bodyColor: string
 	hatColor: string
+	hatType: FairyHatType
 	tint?: string | null
 }) {
 	return (
-		<BaseWritingSprite penRotation={10} bodyColor={bodyColor} hatColor={hatColor} tint={tint} />
+		<BaseWritingSprite
+			penRotation={10}
+			bodyColor={bodyColor}
+			hatColor={hatColor}
+			hatType={hatType}
+			tint={tint}
+		/>
 	)
 }
 
@@ -32,11 +51,13 @@ export function BaseWritingSprite({
 	penRotation,
 	bodyColor,
 	hatColor,
+	hatType,
 	tint,
 }: {
 	penRotation: number
 	bodyColor: string
 	hatColor: string
+	hatType: FairyHatType
 	tint?: string | null
 }) {
 	return (
@@ -49,7 +70,7 @@ export function BaseWritingSprite({
 			/>
 			<FairyLegsSpritePart />
 			<FairyBodySpritePart bodyColor={bodyColor} tint={tint ?? null} />
-			<FairyHatSpritePart hatColor={hatColor} offsetX={3} offsetY={2} />
+			<FairyHatSpritePart hatColor={hatColor} hatType={hatType} offsetX={3} offsetY={2} />
 			<circle
 				cx="58.2658"
 				cy="36.4192"

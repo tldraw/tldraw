@@ -1,3 +1,4 @@
+import { FairyHatType } from '@tldraw/fairy-shared'
 import { FairyBodySpritePart } from './parts/FairyBodySpritePart'
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
 import { FairyLegsSpritePart } from './parts/FairyLegsSpritePart'
@@ -5,15 +6,17 @@ import { FairyLegsSpritePart } from './parts/FairyLegsSpritePart'
 export function IdleSprite({
 	bodyColor,
 	hatColor,
+	hatType,
 	tint,
 }: {
 	bodyColor: string
 	hatColor: string
+	hatType: FairyHatType
 	tint: string | null
 }) {
 	return (
 		<>
-			<FairyHatSpritePart hatColor={hatColor} />
+			<FairyHatSpritePart hatColor={hatColor} hatType={hatType} />
 			<FairyLegsSpritePart />
 			<FairyBodySpritePart bodyColor={bodyColor} tint={tint} />
 			<circle

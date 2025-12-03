@@ -4,6 +4,7 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
+	useDialogs,
 	useEditor,
 	useValue,
 } from 'tldraw'
@@ -12,6 +13,7 @@ import { useMsg } from '../../../tla/utils/i18n'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { useFairyApp } from '../../fairy-app/FairyAppProvider'
 import { fairyMessages } from '../../fairy-messages'
+import { FairyCustomizeDialog } from '../customize/FairyCustomizeDialog'
 
 export type FairyMenuSource = 'canvas' | 'sidebar' | 'chat'
 
@@ -27,6 +29,7 @@ export function FairyMenuContent({
 	const editor = useEditor()
 	const fairyApp = useFairyApp()
 	const trackEvent = useTldrawAppUiEvents()
+	const { addDialog } = useDialogs()
 	const allAgents = useValue('fairy-agents', () => fairyApp.agents.getAgents(), [fairyApp])
 
 	const selectedAgents = useValue(
@@ -90,16 +93,17 @@ export function FairyMenuContent({
 		}
 	}, [onlyAgent, isFollowing, trackEvent])
 
-	// const _configureFairy = useCallback(
-	// 	(agent: FairyAgent) => {
-	// 		addDialog({
-	// 			component: ({ onClose }) => <FairyConfigDialog agent={agent} onClose={onClose} />,
-	// 		})
-	// 	},
-	// 	[addDialog]
-	// )
+	const customizeFairy = useCallback(
+		(agent: FairyAgent) => {
+			trackEvent('fairy-customize', { source: 'fairy-panel', fairyId: agent.id })
+			addDialog({
+				component: ({ onClose }) => <FairyCustomizeDialog agent={agent} onClose={onClose} />,
+			})
+		},
+		[addDialog, trackEvent]
+	)
 
-	// const _customizeFairyLabel = useMsg(fairyMessages.customizeFairy)
+	const customizeFairyLabel = useMsg(fairyMessages.customizeFairy)
 
 	const goToFairyLabel = useMsg(fairyMessages.goToFairy)
 	const summonFairyLabel = useMsg(fairyMessages.summonFairy)
@@ -273,6 +277,13 @@ export function FairyMenuContent({
 						id="follow-fairy"
 						onSelect={toggleFollow}
 						label={isFollowing ? unfollowFairyLabel : followFairyLabel}
+					/>
+				)}
+				{onlyAgent && (
+					<TldrawUiMenuItem
+						id="customize-fairy"
+						onSelect={() => customizeFairy(onlyAgent)}
+						label={customizeFairyLabel}
 					/>
 				)}
 			</TldrawUiMenuGroup>

@@ -2115,6 +2115,128 @@ tldraw? probably.
 	height: 14px;
 }
 
+/* --------------------- Select --------------------- */
+
+.tlui-select__trigger {
+	position: relative;
+	height: 40px;
+	min-width: 40px;
+	padding: 0px 12px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--tl-space-2);
+	background-color: transparent;
+	border: transparent;
+	color: var(--tl-color-text-1);
+	cursor: pointer;
+	pointer-events: all;
+	font-weight: inherit;
+	font-family: inherit;
+	line-height: inherit;
+	text-rendering: optimizeLegibility;
+	font-size: 12px;
+	border-radius: var(--tl-radius-2);
+}
+
+.tlui-select__trigger:disabled {
+	color: var(--tl-color-text-3);
+	cursor: default;
+}
+
+.tlui-select__trigger::after {
+	display: block;
+	content: '';
+	position: absolute;
+	inset: 4px;
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-muted-2);
+	opacity: 0;
+	z-index: -1;
+}
+
+.tlui-select__trigger[data-state='open']::after {
+	opacity: 1;
+}
+
+@media (hover: hover) {
+	.tlui-select__trigger:not(:disabled):hover::after {
+		opacity: 1;
+	}
+}
+
+.tlui-select__icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.tlui-select__content {
+	z-index: var(--tl-layer-menus);
+	height: fit-content;
+	width: fit-content;
+	min-width: var(--radix-select-trigger-width);
+	max-height: var(--radix-select-content-available-height);
+	border-radius: var(--tl-radius-3);
+	pointer-events: all;
+	touch-action: auto;
+	overflow-y: auto;
+	overscroll-behavior: none;
+	background-color: var(--tl-color-panel);
+	box-shadow: var(--tl-shadow-3);
+}
+
+.tlui-select__viewport {
+	padding: 0;
+}
+
+.tlui-select__group {
+	width: 100%;
+}
+
+.tlui-select__label {
+	padding: var(--tl-space-2) var(--tl-space-4);
+	font-size: 11px;
+	color: var(--tl-color-text-3);
+}
+
+.tlui-select__item {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: var(--tl-space-2);
+	padding-right: 32px;
+}
+
+.tlui-select__item[data-highlighted] {
+	outline: none;
+}
+
+.tlui-select__item[data-highlighted]::after {
+	opacity: 1;
+}
+
+.tlui-select__item[data-disabled] {
+	color: var(--tl-color-text-3);
+	pointer-events: none;
+}
+
+.tlui-select__item-indicator {
+	position: absolute;
+	right: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.tlui-select__separator {
+	height: 1px;
+	background-color: var(--tl-color-divider);
+	margin: var(--tl-space-2) 0;
+}
+
 /* ------------------- Animations ------------------- */
 @keyframes tlui-fade-out {
 	0% {

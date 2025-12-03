@@ -1,3 +1,4 @@
+import { FairyHatType } from '@tldraw/fairy-shared'
 import { FairyBodySpritePart } from './parts/FairyBodySpritePart'
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
 import { FairyLegsSpritePart } from './parts/FairyLegsSpritePart'
@@ -5,15 +6,22 @@ import { FairyLegsSpritePart } from './parts/FairyLegsSpritePart'
 export function PanickingSprite1({
 	bodyColor,
 	hatColor,
+	hatType,
 	tint,
 }: {
 	bodyColor: string
 	hatColor: string
+	hatType: FairyHatType
 	tint?: string | null
 }) {
 	return (
 		<>
-			<PanickingSpriteBase bodyColor={bodyColor} hatColor={hatColor} tint={tint} />
+			<PanickingSpriteBase
+				bodyColor={bodyColor}
+				hatColor={hatColor}
+				hatType={hatType}
+				tint={tint}
+			/>
 			{/* Panicking arms */}
 			<path
 				d="M38.6163 53.9999C36.0284 51.6289 17.5418 48.5413 24.9514 27.1064"
@@ -35,15 +43,22 @@ export function PanickingSprite1({
 export function PanickingSprite2({
 	bodyColor,
 	hatColor,
+	hatType,
 	tint,
 }: {
 	bodyColor: string
 	hatColor: string
+	hatType: FairyHatType
 	tint?: string | null
 }) {
 	return (
 		<>
-			<PanickingSpriteBase bodyColor={bodyColor} hatColor={hatColor} tint={tint} />
+			<PanickingSpriteBase
+				bodyColor={bodyColor}
+				hatColor={hatColor}
+				hatType={hatType}
+				tint={tint}
+			/>
 			{/* Panicking arms */}
 			<path
 				d="M38.6163 53.9073C34.1222 53.3389 21.655 53.6289 19.0456 30.144"
@@ -65,15 +80,17 @@ export function PanickingSprite2({
 function PanickingSpriteBase({
 	bodyColor,
 	hatColor,
+	hatType,
 	tint,
 }: {
 	bodyColor: string
 	hatColor: string
+	hatType: FairyHatType
 	tint?: string | null
 }) {
 	return (
 		<>
-			<FairyHatSpritePart hatColor={hatColor} />
+			<FairyHatSpritePart hatColor={hatColor} hatType={hatType} />
 			<FairyLegsSpritePart />
 			<FairyBodySpritePart bodyColor={bodyColor} tint={tint ?? null} />
 			<circle

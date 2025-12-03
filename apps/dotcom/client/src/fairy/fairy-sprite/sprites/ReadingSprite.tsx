@@ -1,56 +1,89 @@
+import { FairyHatType } from '@tldraw/fairy-shared'
 import { FairyBodySpritePart } from './parts/FairyBodySpritePart'
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
 
 export function ReadingSprite1({
 	bodyColor,
 	hatColor,
+	hatType,
 	tint,
 }: {
 	bodyColor: string
 	hatColor: string
+	hatType: FairyHatType
 	tint?: string | null
 }) {
-	return <BaseReadingSprite bodyColor={bodyColor} hatColor={hatColor} eyeOffsetX={0} tint={tint} />
+	return (
+		<BaseReadingSprite
+			bodyColor={bodyColor}
+			hatColor={hatColor}
+			hatType={hatType}
+			eyeOffsetX={0}
+			tint={tint}
+		/>
+	)
 }
 
 export function ReadingSprite2({
 	bodyColor,
 	hatColor,
+	hatType,
 	tint,
 }: {
 	bodyColor: string
 	hatColor: string
+	hatType: FairyHatType
 	tint?: string | null
 }) {
-	return <BaseReadingSprite bodyColor={bodyColor} hatColor={hatColor} eyeOffsetX={1} tint={tint} />
+	return (
+		<BaseReadingSprite
+			bodyColor={bodyColor}
+			hatColor={hatColor}
+			hatType={hatType}
+			eyeOffsetX={1}
+			tint={tint}
+		/>
+	)
 }
 
 export function ReadingSprite3({
 	bodyColor,
 	hatColor,
+	hatType,
 	tint,
 }: {
 	bodyColor: string
 	hatColor: string
+	hatType: FairyHatType
 	tint?: string | null
 }) {
-	return <BaseReadingSprite bodyColor={bodyColor} hatColor={hatColor} eyeOffsetX={2} tint={tint} />
+	return (
+		<BaseReadingSprite
+			bodyColor={bodyColor}
+			hatColor={hatColor}
+			hatType={hatType}
+			eyeOffsetX={2}
+			tint={tint}
+		/>
+	)
 }
 
 function BaseReadingSprite({
 	bodyColor,
 	hatColor,
+	hatType,
 	eyeOffsetX = 0,
 	tint,
 }: {
 	bodyColor: string
 	hatColor: string
+	hatType: FairyHatType
 	eyeOffsetX?: number
 	tint?: string | null
 }) {
 	return (
 		<>
-			<FairyHatSpritePart hatColor={hatColor} />
+			<FairyHatSpritePart hatColor={hatColor} hatType={hatType} />
 			<FairyBodySpritePart bodyColor={bodyColor} tint={tint ?? null} />
 			<circle
 				cx="55.4159"

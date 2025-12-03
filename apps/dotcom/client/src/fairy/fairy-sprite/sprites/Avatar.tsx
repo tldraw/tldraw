@@ -15,7 +15,7 @@ export function FairyMiniAvatar({ agent }: FairyMiniAvatarProps) {
 	return (
 		<div className="fairy-avatar">
 			<svg viewBox="30 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-				<FairyHatSpritePart hatColor="var(--tl-color-fairy-light)" type={fairyConfig.hat} />
+				<FairyHatSpritePart hatColor="var(--tl-color-fairy-light)" hatType={fairyConfig.hat} />
 				<FairyFaceSpritePart bodyColor="var(--tl-color-fairy-light)" />
 			</svg>
 		</div>

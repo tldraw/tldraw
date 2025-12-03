@@ -314,8 +314,8 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 	const trackEvent = useTldrawAppUiEvents()
 	const fairyRef = useRef<HTMLDivElement>(null)
 
-	const fairyHatColor = useValue('fairy color', () => agent.getConfig()?.hatColor, [agent])
-	const fairyHat = useValue('fairy hat', () => agent.getConfig()?.hat, [agent])
+	const fairyHatColor = useValue('fairy color', () => agent.getConfig().hatColor, [agent])
+	const fairyHat = useValue('fairy hat', () => agent.getConfig().hat, [agent])
 	const fairyEntity = useValue('fairy entity', () => agent.getEntity(), [agent])
 
 	const position = useValue(

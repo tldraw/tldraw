@@ -97,20 +97,6 @@
 	}
 }
 
-/* Fairy Row */
-
-.fairy-row {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	gap: 8px;
-	min-height: 50px;
-}
-
-.fairy-row__input {
-	pointer-events: auto;
-}
-
 .fairy-toggle-button::before,
 .fairy-toggle-button::after {
 	display: none;
@@ -1987,4 +1973,111 @@
 
 .fairy-manual-section a {
 	color: var(--tl-color-primary);
+}
+
+/* Fairy Customize Dialog */
+.fairy-customize-dialog-body {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 16px;
+	min-width: 280px;
+}
+
+.fairy-customize-preview {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 8px;
+}
+
+.fairy-customize-preview-sprite {
+	width: 44px;
+	height: 44px;
+}
+
+.fairy-customize-fields {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	grid-template-rows: 40px;
+	align-items: center;
+	gap: 4px 8px;
+}
+
+.fairy-customize-fields .fairy-customize-input {
+	position: relative;
+	padding-left: 12px;
+	padding-right: 12px;
+}
+
+.fairy-customize-fields .tlui-input__wrapper {
+	position: relative;
+	height: 100%;
+}
+
+.fairy-customize-fields .tlui-input__wrapper::after {
+	content: '';
+	display: block;
+	position: absolute;
+	inset: 4px 4px;
+	border-radius: 6px;
+	background-color: var(--tl-color-muted-2);
+	border: 1px solid var(--tl-color-divider);
+}
+
+.fairy-customize-label {
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--color-text-2);
+}
+
+.fairy-customize-name-row {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 0px;
+}
+
+.fairy-customize-name-row .fairy-customize-input,
+.fairy-customize-name-row .fairy-customize-dropdown-button:nth-of-type(1) {
+	flex: 1;
+}
+
+.fairy-customize-random-name-button {
+	position: absolute;
+	right: 0;
+	top: 0;
+	z-index: 2;
+	color: var(--tl-color-text-3);
+}
+
+.fairy-customize-random-name-button::after {
+	inset: 8px;
+	border-radius: var(--tl-radius-1);
+}
+
+.fairy-customize-dropdown-button::after {
+	opacity: 1;
+	border: 1px solid var(--tl-color-divider);
+}
+
+.fairy-customize-dropdown-content {
+	max-height: 240px;
+	overflow-y: auto;
+	z-index: 650;
+}
+
+.fairy-customize-color-swatch {
+	display: inline-block;
+	width: 15px;
+	height: 15px;
+	border-radius: 50%;
+	border: 1px solid var(--color-divider);
+	flex-shrink: 0;
+}
+
+.fairy-customize-name-row svg {
+	flex-shrink: 0;
+	width: 14px;
+	height: 14px;
 }

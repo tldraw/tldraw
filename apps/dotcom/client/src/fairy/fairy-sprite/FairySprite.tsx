@@ -29,6 +29,7 @@ interface WingSpriteProps {
 interface FairySpriteProps {
 	bodyColor: string
 	hatColor: string
+	hatType: FairyHatType
 	tint: string | null
 }
 
@@ -112,11 +113,12 @@ export function FairySprite({
 	pose,
 	gesture,
 	flipX,
-	hatColor,
 	projectColor = 'var(--tl-color-fairy-light)',
 	isAnimated,
 	showShadow,
 	isGenerating,
+	hatType,
+	hatColor,
 	isOrchestrator,
 	tint,
 }: {
@@ -148,6 +150,7 @@ export function FairySprite({
 					topWingColor={projectColor ?? 'var(--tl-color-fairy-light)'}
 					bottomWingColor={bottomWingColor ?? 'var(--tl-color-fairy-light)'}
 					bodyColor={'var(--tl-color-fairy-light)'}
+					hatType={hatType}
 					hatColor={trueHatColor}
 					flipX={flipX}
 					showShadow={showShadow}
@@ -159,6 +162,7 @@ export function FairySprite({
 					topWingColor={projectColor ?? 'var(--tl-color-fairy-light)'}
 					bottomWingColor={bottomWingColor ?? 'var(--tl-color-fairy-light)'}
 					bodyColor="var(--tl-color-fairy-light)"
+					hatType={hatType}
 					hatColor={trueHatColor}
 					flipX={flipX}
 					showShadow={showShadow}
@@ -218,6 +222,7 @@ export interface FairySpriteSvgProps {
 	bottomWingColor?: string
 	bodyColor: string
 	hatColor: string
+	hatType?: FairyHatType
 	keyframe?: number
 	flipX?: boolean
 	showShadow?: boolean
@@ -237,6 +242,7 @@ function FairySpriteSvg({
 	bottomWingColor = 'var(--tl-color-fairy-light)',
 	bodyColor = 'var(--tl-color-fairy-light)',
 	hatColor = 'var(--tl-color-fairy-light)',
+	hatType = 'default',
 	keyframe = 0,
 	flipX = false,
 	showShadow = false,
@@ -256,7 +262,9 @@ function FairySpriteSvg({
 				xmlns="http://www.w3.org/2000/svg"
 			>
 				{WSprite && <WSprite topWingColor={topWingColor} bottomWingColor={bottomWingColor} />}
-				{FSprite && <FSprite bodyColor={bodyColor} hatColor={hatColor} tint={tint} />}
+				{FSprite && (
+					<FSprite bodyColor={bodyColor} hatColor={hatColor} hatType={hatType} tint={tint} />
+				)}
 			</svg>
 		</div>
 	)
