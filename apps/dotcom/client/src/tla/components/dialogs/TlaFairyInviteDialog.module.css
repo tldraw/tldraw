@@ -41,16 +41,15 @@
 .acceptButton {
 	width: 100%;
 	height: 32px;
-	background-color: rgba(249, 250, 251, 1);
-	color: rgba(0, 0, 0, 1);
+	background-color: var(--tla-color-cta);
+	color: white;
 	border: none;
 	border-radius: var(--tl-radius-1);
 	font-weight: 500;
 	cursor: pointer;
 }
-
 .acceptButton:hover:not(:disabled) {
-	background-color: rgba(239, 240, 241, 1);
+	background-color: var(--tla-color-cta-hover);
 }
 
 .acceptButton:disabled {

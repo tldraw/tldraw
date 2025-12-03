@@ -91,5 +91,12 @@ export class EndCurrentProjectActionUtil extends AgentActionUtil<EndCurrentProje
 		})
 
 		this.agent.fairyApp.projects.deleteProjectAndAssociatedTasks(project.id)
+
+		// Select orchestrator after project deletion
+		const allAgents = this.agent.fairyApp.agents.getAgents()
+		allAgents.forEach((agent) => {
+			const shouldSelect = agent.id === this.agent.id
+			agent.updateEntity((f) => (f ? { ...f, isSelected: shouldSelect } : f))
+		})
 	}
 }

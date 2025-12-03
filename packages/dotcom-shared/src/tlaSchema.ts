@@ -123,6 +123,7 @@ export const user_fairies = table('user_fairies')
 		fairyLimit: number().optional(),
 		fairyAccessExpiresAt: number().optional(),
 		weeklyUsage: string(),
+		weeklyLimit: number().optional(),
 	})
 	.primaryKey('userId')
 
