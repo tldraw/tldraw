@@ -19,7 +19,7 @@ export class FairyThrowTool extends StateNode {
 	override onEnter() {
 		if (this.fairies.length === 0) return
 		for (const fairy of this.fairies) {
-			fairy.updateEntity((f) => ({ ...f, isSelected: true }))
+			fairy.updateEntity((f) => ({ ...f, isSelected: true, velocity: { x: 0, y: 0 } }))
 		}
 		for (const fairy of this.fairies) {
 			const initialPosition = fairy.getEntity()?.position
@@ -123,6 +123,17 @@ class ThrowingState extends StateNode {
 	}
 
 	override onPointerUp() {
+		// Set the selected fairy's velocity to the pointer movement
+		const tool = this.parent as FairyThrowTool
+		const fairies = tool.fairies.filter((f) => f.getEntity()?.isSelected)
+		if (fairies.length === 0) return
+		const { pointerVelocity } = this.editor.inputs
+		const inverseZoomLevel = 1 / this.editor.getZoomLevel()
+		const scaledPointerVelocity = Vec.Mul(pointerVelocity, inverseZoomLevel)
+		for (const fairy of fairies) {
+			fairy.updateEntity((f) => ({ ...f, velocity: scaledPointerVelocity }))
+		}
+
 		this.cancel()
 	}
 
