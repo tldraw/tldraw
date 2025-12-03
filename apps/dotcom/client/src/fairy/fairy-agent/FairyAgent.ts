@@ -289,7 +289,9 @@ export class FairyAgent {
 		this.onTick = (delta: number) => {
 			const entity = this.$fairyEntity.get()
 			const { velocity, position } = entity
-			const newVelocity = Vec.Mul(velocity, 0.75)
+			const dampingFactor = 0.75
+			const scaledDampingFactor = dampingFactor * (1 - delta / 1000)
+			const newVelocity = Vec.Mul(velocity, scaledDampingFactor)
 			const magnitude = Vec.Len(newVelocity)
 
 			const scaledVelocity = Vec.Mul(newVelocity, delta)
