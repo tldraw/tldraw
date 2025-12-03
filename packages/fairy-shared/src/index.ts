@@ -77,6 +77,7 @@ export * from './icons/RefreshIcon'
 export * from './icons/SearchIcon'
 export * from './icons/SmallSpinner'
 export * from './icons/TargetIcon'
+export * from './icons/ThreadIndentIcon'
 export * from './icons/TickIcon'
 export * from './icons/TrashIcon'
 

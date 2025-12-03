@@ -5,11 +5,22 @@ import { FairyFaceSpritePart } from './parts/FairyFaceSpritePart'
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
 
 interface FairyMiniAvatarProps {
-	agent: FairyAgent
+	agent?: FairyAgent
 }
 
 export function FairyMiniAvatar({ agent }: FairyMiniAvatarProps) {
-	const fairyConfig = useValue('fairy config', () => agent.getConfig(), [agent])
+	const fairyConfig = useValue('fairy config', () => agent?.getConfig(), [agent])
+
+	if (!agent) {
+		return (
+			<div className="fairy-avatar">
+				<svg viewBox="30 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<FairyHatSpritePart hatColor="transparent" />
+					<FairyFaceSpritePart bodyColor="var(--tl-color-fairy-light)" />
+				</svg>
+			</div>
+		)
+	}
 
 	if (!fairyConfig?.outfit) return <FairyMiniAvatarPlaceholder />
 

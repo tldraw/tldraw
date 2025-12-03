@@ -5,7 +5,26 @@ import { markManualAsOpened } from '../../../tla/utils/local-session-state'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { useFairyApp } from '../../fairy-app/FairyAppProvider'
 
-export type FairyHUDPanelState = 'fairy' | 'manual' | 'closed'
+export type FairyHUDPanelState =
+	| 'closed'
+	| 'manual'
+	| 'fairy-solo'
+	| 'fairy-project'
+	| 'fairy-multi'
+	| 'feed'
+
+function derivePanelState(
+	manualOpen: boolean,
+	selectedFairiesCount: number,
+	shownFairy: FairyAgent | null,
+	activeOrchestratorAgent: FairyAgent | null
+): FairyHUDPanelState {
+	if (manualOpen) return 'manual'
+	if (selectedFairiesCount === 0) return 'closed'
+	if (shownFairy && activeOrchestratorAgent) return 'fairy-project'
+	if (selectedFairiesCount > 1) return 'fairy-multi'
+	return 'fairy-solo'
+}
 
 export function useFairySelection(agents: FairyAgent[]) {
 	const fairyApp = useFairyApp()
@@ -23,13 +42,6 @@ export function useFairySelection(agents: FairyAgent[]) {
 		[agents]
 	)
 
-	// Derive panelState from manualOpen and selectedFairies
-	const panelState: FairyHUDPanelState = manualOpen
-		? 'manual'
-		: selectedFairies.length > 0
-			? 'fairy'
-			: 'closed'
-
 	const activeOrchestratorAgent = useValue(
 		'shown-orchestrator',
 		() => {
@@ -44,6 +56,14 @@ export function useFairySelection(agents: FairyAgent[]) {
 			return agents.find((agent) => agent.id === orchestratorMember.id) ?? null
 		},
 		[shownFairy, agents, fairyApp]
+	)
+
+	// Derive panelState from all relevant state
+	const panelState = derivePanelState(
+		manualOpen,
+		selectedFairies.length,
+		shownFairy,
+		activeOrchestratorAgent
 	)
 
 	// Update the shown fairy when selected fairies change
@@ -155,8 +175,12 @@ export function useFairySelection(agents: FairyAgent[]) {
 
 			// Single click behavior
 			if (isSelected) {
-				// Clicking an already selected fairy
-				const shouldClosePanel = isChosen && panelState === 'fairy'
+				// Clicking an already selected fairy - close if it's the focused fairy in any fairy state
+				const isFairyPanelOpen =
+					panelState === 'fairy-solo' ||
+					panelState === 'fairy-project' ||
+					panelState === 'fairy-multi'
+				const shouldClosePanel = isChosen && isFairyPanelOpen
 				if (shouldClosePanel) {
 					deselectFairy(clickedAgent)
 				} else if (selectedFairies.length > 1) {

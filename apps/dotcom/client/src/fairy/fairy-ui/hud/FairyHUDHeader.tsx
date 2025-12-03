@@ -24,6 +24,7 @@ import {
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { useFairyApp } from '../../fairy-app/FairyAppProvider'
 import { fairyMessages } from '../../fairy-messages'
+import { FairyMiniAvatar } from '../../fairy-sprite/sprites/Avatar'
 import { FairyMenuContent } from '../menus/FairyMenuContent'
 import { FairyHUDPanelState } from './useFairySelection'
 
@@ -36,6 +37,10 @@ interface FairyHUDHeaderProps {
 	allAgents: FairyAgent[]
 	isMobile: boolean
 	onToggleManual?(): void
+	showFeed?: boolean
+	onToggleFeed?(): void
+	hasUnseenFeedItems?: boolean
+	showLiveFeed?: boolean
 }
 
 export function FairyHUDHeader({
@@ -46,6 +51,10 @@ export function FairyHUDHeader({
 	selectedFairies,
 	allAgents,
 	onToggleManual,
+	showFeed,
+	onToggleFeed,
+	hasUnseenFeedItems,
+	showLiveFeed,
 }: FairyHUDHeaderProps) {
 	const fairyApp = useFairyApp()
 	const trackEvent = useTldrawAppUiEvents()
@@ -183,6 +192,10 @@ export function FairyHUDHeader({
 
 	// Get display name for multi-fairy header (pre-project or active project)
 	const getProjectDisplayName = () => {
+		// Show "Live Feed" if feed is active
+		if (showLiveFeed) {
+			return 'Live Feed'
+		}
 		// Active project with a title
 		if (isProjectStarted && project?.title) {
 			return project.title
@@ -202,7 +215,9 @@ export function FairyHUDHeader({
 		) : shownFairy && fairyConfig ? (
 			<div className="fairy-id-display" onClick={zoomToFairy}>
 				<TldrawUiTooltip content={fairyClickable ? zoomToFairyLabel : undefined} side="top">
-					<span style={{ cursor: fairyClickable ? 'pointer' : 'default' }}>{getDisplayName()}</span>
+					<span style={{ cursor: fairyClickable ? 'pointer' : 'default' }}>
+						{showLiveFeed ? 'Live Feed' : getDisplayName()}
+					</span>
 				</TldrawUiTooltip>
 			</div>
 		) : (
@@ -221,7 +236,19 @@ export function FairyHUDHeader({
 	return (
 		<div className="fairy-toolbar-header">
 			{centerContent}
+
 			<div className="tlui-row">
+				{panelState === 'fairy-project' && (
+					<TldrawUiButton
+						type="icon"
+						className="fairy-toolbar-button fairy-feed-button"
+						onClick={onToggleFeed}
+						data-has-unseen={hasUnseenFeedItems && !showFeed}
+					>
+						<TldrawUiButtonIcon icon={showFeed ? <FairyMiniAvatar /> : 'bulletList'} small />
+					</TldrawUiButton>
+				)}
+
 				{showSelectAllButton ? (
 					<TldrawUiTooltip content={selectAllFairiesLabel} side="top">
 						<TldrawUiButton type="icon" className="fairy-toolbar-button" onClick={selectAllFairies}>
