@@ -291,13 +291,20 @@ export class FairyAgent {
 			const { velocity, position } = entity
 			const speed = Vec.Len(velocity)
 			if (speed < 0.01) {
-				this.$fairyEntity.update((entity) => {
-					return {
-						...entity,
-						velocity: { x: 0, y: 0 },
-					}
-				})
+				if (speed !== 0) {
+					// If the speed is near zero but not zero, snap to zero and clear the soaring gesture
+					this.gesture.clear()
+					this.$fairyEntity.update((entity) => {
+						return {
+							...entity,
+							velocity: { x: 0, y: 0 },
+						}
+					})
+				}
 				return
+			}
+			if (entity.gesture !== 'panicking') {
+				this.gesture.push('panicking')
 			}
 			const dampingFactor = 0.85
 			const scaledDampingFactor = dampingFactor * Math.max(0, 1 - delta / 1000)
