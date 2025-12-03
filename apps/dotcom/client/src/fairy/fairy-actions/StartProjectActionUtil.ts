@@ -1,5 +1,6 @@
 import {
 	FairyProject,
+	ProjectColorSchema,
 	StartProjectAction,
 	Streaming,
 	createAgentActionInfo,
@@ -26,15 +27,6 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 
 		// Assumptions:
 		// FairyGroupChat already handles creating the project, assigning roles programmatically as well as prompting the orchestrator
-
-		const { projectName, projectDescription, projectColor, projectPlan } = action
-
-		// the fields of streaming actions always stream in in the same order, so if projectName and the field that comes after it (projectDescription) are in the action, we know the projectName is finished streaming in and we can use it
-		const finishedProjectName =
-			'projectName' in action && 'projectDescription' in action ? projectName : undefined
-		const finishedProjectColor =
-			'projectColor' in action && 'projectPlan' in action ? projectColor : undefined
-
 		const project = this.agent.fairyApp.projects.getProjectByAgentId(this.agent.id)
 		if (!project) {
 			if (!action.complete) return
@@ -45,23 +37,19 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 			return
 		}
 
-		if (finishedProjectName && !project.title) {
+		if (action.projectName) {
 			this.agent.fairyApp.projects.updateProject(project.id, {
-				title: finishedProjectName,
+				title: action.projectName,
 			})
 		}
 
-		if (finishedProjectColor && !project.color) {
-			this.agent.fairyApp.projects.updateProject(project.id, {
-				color: finishedProjectColor,
-			})
-		}
-
-		// Only validate color when we have a complete color value to check
-		if (projectColor && typeof projectColor === 'string' && projectColor.trim() !== '') {
+		const isProjectColorValid = ProjectColorSchema.safeParse(action.projectColor).success
+		if (isProjectColorValid) {
+			const { projectColor } = action
 			const colorAlreadyChosen = this.agent.fairyApp.projects
 				.getProjects()
 				.some((p: FairyProject) => p.id !== project.id && p.color === projectColor)
+
 			if (colorAlreadyChosen) {
 				if (!action.complete) return
 				this.agent.interrupt({
@@ -69,15 +57,21 @@ export class StartProjectActionUtil extends AgentActionUtil<StartProjectAction> 
 				})
 				return
 			}
+
+			if (project.color === '') {
+				this.agent.fairyApp.projects.updateProject(project.id, {
+					color: projectColor,
+				})
+			}
 		}
 
 		if (!action.complete) return
 
 		this.agent.fairyApp.projects.updateProject(project.id, {
-			title: projectName,
-			description: projectDescription,
-			plan: projectPlan,
-			color: projectColor,
+			title: action.projectName,
+			description: action.projectDescription,
+			plan: action.projectPlan,
+			color: action.projectColor,
 		})
 	}
 }
