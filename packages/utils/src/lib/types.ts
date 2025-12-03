@@ -101,6 +101,9 @@ export type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never
  */
 export type Required<T, K extends keyof T> = Expand<Omit<T, K> & { [P in K]-?: T[P] }>
 
+
+type IsAny<T> = 0 extends 1 & T ? true : false
+
 /**
  * Automatically makes properties optional if their type includes `undefined`.
  * This transforms properties like `prop: string | undefined` to `prop?: string | undefined`,
@@ -134,8 +137,20 @@ export type Required<T, K extends keyof T> = Expand<Omit<T, K> & { [P in K]-?: T
  */
 export type MakeUndefinedOptional<T extends object> = Expand<
 	{
-		[P in { [K in keyof T]: undefined extends T[K] ? never : K }[keyof T]]: T[P]
+		[P in {
+			[K in keyof T]: IsAny<T[K]> extends true
+				? K
+				: undefined extends T[K]
+					? never
+					: K
+		}[keyof T]]: T[P]
 	} & {
-		[P in { [K in keyof T]: undefined extends T[K] ? K : never }[keyof T]]?: T[P]
+		[P in {
+			[K in keyof T]: IsAny<T[K]> extends true
+				? never
+				: undefined extends T[K]
+					? K
+					: never
+		}[keyof T]]?: T[P]
 	}
 >

@@ -195,3 +195,58 @@ describe('T.indexKey', () => {
 		)
 	})
 })
+
+describe('T.any', () => {
+	it('does not make any typed properties optional', () => {
+		const validator = T.object({
+			required: T.string,
+			anyField: T.any,
+		})
+
+		
+		type ValidatorType = T.TypeOf<typeof validator>
+		const typeTest: ValidatorType = {
+			required: 'test',
+			anyField: 'value',
+		}
+
+		expect(validator.validate(typeTest)).toStrictEqual(typeTest)
+
+		
+		const validWithAny = validator.validate({
+			required: 'test',
+			anyField: undefined,
+		})
+		expect(validWithAny).toEqual({
+			required: 'test',
+			anyField: undefined,
+		})
+	})
+
+	it('correctly distinguishes any from optional undefined types', () => {
+		const validator = T.object({
+			required: T.string,
+			anyField: T.any,
+			optionalField: T.string.optional(),
+		})
+
+		type ValidatorType = T.TypeOf<typeof validator>
+
+	
+		const valid: ValidatorType = {
+			required: 'test',
+			anyField: 123,
+		}
+
+		expect(validator.validate(valid)).toStrictEqual(valid)
+
+		
+		const alsoValid: ValidatorType = {
+			required: 'test',
+			anyField: 'anything',
+			optionalField: 'optional',
+		}
+
+		expect(validator.validate(alsoValid)).toStrictEqual(alsoValid)
+	})
+})
