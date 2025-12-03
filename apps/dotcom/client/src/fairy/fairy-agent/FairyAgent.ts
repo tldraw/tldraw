@@ -259,7 +259,7 @@ export class FairyAgent {
 			const fairyConfig = JSON.parse(userFairies)[id] as FairyConfig
 
 			// migrate the fairies
-			if (fairyConfig.version < 1) {
+			if (!fairyConfig.version || fairyConfig.version < 1) {
 				// Version 0 -> 1
 				fairyConfig.hat = getRandomFairyHat()
 				fairyConfig.hatColor = getRandomFairyHatColor()
