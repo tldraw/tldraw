@@ -120,6 +120,7 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 				y: shape.props.cp1.y,
 				index: indices[1],
 				snapType: 'align',
+				snapReferenceHandleId: 'start',
 			},
 			{
 				id: 'cp2',

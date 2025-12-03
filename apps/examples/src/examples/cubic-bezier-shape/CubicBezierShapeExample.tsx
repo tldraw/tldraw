@@ -1,4 +1,10 @@
-import { StateNode, TLAnyShapeUtilConstructor, Tldraw, TLPointerEventInfo } from 'tldraw'
+import {
+	createShapeId,
+	StateNode,
+	TLAnyShapeUtilConstructor,
+	Tldraw,
+	TLPointerEventInfo,
+} from 'tldraw'
 import { BezierCurveShapeUtil } from './CubicBezierShape'
 import { CustomHandles } from './CustomHandles'
 import { SneakyUndoRedoWhileEditing } from './SneakyUndoRedoWhileEditing'
@@ -21,11 +27,17 @@ export default function BezierCurveShapeExample() {
 					const centerX = viewportPageBounds.center.x
 					const centerY = viewportPageBounds.center.y
 
+					const id = createShapeId()
 					editor.createShape({
+						id,
 						type: 'bezier-curve',
 						x: centerX - 200,
 						y: centerY - 150,
 					})
+
+					// Select and edit the shape on appear
+					editor.select(id)
+					editor.setEditingShape(id)
 
 					// [10]
 					// Get state nodes with proper type safety

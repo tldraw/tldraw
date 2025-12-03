@@ -129,7 +129,12 @@ export function FairyHUDTeaser() {
 		<div
 			className={`tla-fairy-hud ${isManualOpen ? 'tla-fairy-hud--open' : ''}`}
 			style={{
-				bottom: mobileMenuOffset !== null ? 64 : isDebugMode ? 48 : 8,
+				bottom:
+					mobileMenuOffset !== null
+						? 'calc(64px + env(safe-area-inset-bottom))'
+						: isDebugMode
+							? 48
+							: 8,
 				right: mobileMenuOffset === null ? 8 : mobileMenuOffset,
 				display: isMobileStylePanelOpen ? 'none' : 'block',
 			}}
