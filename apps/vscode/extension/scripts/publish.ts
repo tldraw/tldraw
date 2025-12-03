@@ -28,7 +28,7 @@ async function publishToOpenVSX(preRelease: boolean) {
 	// eslint-disable-next-line no-console
 	console.log('Publishing to Open VSX...')
 	// OVSX_PAT is read from environment variable by ovsx CLI
-	await execAsync(`npx ovsx publish ${vsixPath}${preRelease ? ' --pre-release' : ''}`)
+	await execAsync(`npx ovsx publish${preRelease ? ' --pre-release' : ''} ${vsixPath}`)
 	// eslint-disable-next-line no-console
 	console.log('Successfully published to Open VSX')
 }
