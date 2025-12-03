@@ -1116,25 +1116,26 @@ export class TLDrawDurableObject extends DurableObject {
 			// Check if user owns the file directly
 			if (file.ownerId && session.meta.userId === file.ownerId) continue
 
-			// Check if user is a member of the owning group
-			if (file.owningGroupId && session.meta.userId) {
-				const groupMember = await this.db
+			const isGroupMember = async () =>
+				!!(await this.db
 					.selectFrom('group_user')
 					.where('groupId', '=', file.owningGroupId)
 					.where('userId', '=', session.meta.userId)
-					.executeTakeFirst()
-				if (groupMember) continue
-			}
+					.executeTakeFirst())
 
 			if (!file.shared) {
-				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
+				if (!(await isGroupMember())) {
+					room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
+				}
 			} else if (
 				// if the file is still shared but the readonly state changed, make them reconnect
 				(session.isReadonly && !roomIsReadOnlyForGuests) ||
 				(!session.isReadonly && roomIsReadOnlyForGuests)
 			) {
-				// not passing a reason means they will try to reconnect
-				room.closeSession(session.sessionId)
+				if (!(await isGroupMember())) {
+					// not passing a reason means they will try to reconnect
+					room.closeSession(session.sessionId)
+				}
 			}
 		}
 	}
