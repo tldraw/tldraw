@@ -37,7 +37,7 @@ export default function BezierCurveShapeExample() {
 
 					// Select and edit the shape on appear
 					editor.select(id)
-					editor.setEditingShape(id)
+					editor.startEditingShape(id)
 
 					// [10]
 					// Get state nodes with proper type safety
