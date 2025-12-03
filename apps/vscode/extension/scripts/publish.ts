@@ -23,12 +23,12 @@ async function publishToVSCodeMarketplace(preRelease: boolean) {
 	console.log('Successfully published to VS Code Marketplace')
 }
 
-async function publishToOpenVSX() {
+async function publishToOpenVSX(preRelease: boolean) {
 	const vsixPath = getVsixPath()
 	// eslint-disable-next-line no-console
 	console.log('Publishing to Open VSX...')
 	// OVSX_PAT is read from environment variable by ovsx CLI
-	await execAsync(`npx ovsx publish ${vsixPath}`)
+	await execAsync(`npx ovsx publish ${vsixPath}${preRelease ? ' --pre-release' : ''}`)
 	// eslint-disable-next-line no-console
 	console.log('Successfully published to Open VSX')
 }
@@ -37,11 +37,7 @@ async function main() {
 	const preRelease = process.argv.includes('--pre-release')
 
 	await publishToVSCodeMarketplace(preRelease)
-
-	// Only publish to Open VSX for non-pre-release versions
-	if (!preRelease) {
-		await publishToOpenVSX()
-	}
+	await publishToOpenVSX(preRelease)
 }
 
 main().catch((err) => {
