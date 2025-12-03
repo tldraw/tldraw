@@ -5,11 +5,15 @@ import {
 	LoweredWingsSprite1,
 	LoweredWingsSprite2,
 	LoweredWingsSprite3,
-} from './sprites/WingsSprite'
+} from './sprites/parts/WingsSprite'
 
 import { PanickingSprite1, PanickingSprite2 } from './sprites/PanickingSprite'
+import {
+	RaisedWingsSprite1,
+	RaisedWingsSprite2,
+	RaisedWingsSprite3,
+} from './sprites/parts/RaisedWings'
 import { PoofSprite1, PoofSprite2, PoofSprite3, PoofSprite4 } from './sprites/PoofSprite'
-import { RaisedWingsSprite1, RaisedWingsSprite2, RaisedWingsSprite3 } from './sprites/RaisedWings'
 import { ReadingSprite1, ReadingSprite2, ReadingSprite3 } from './sprites/ReadingSprite'
 import { SleepingSprite } from './sprites/SleepingSprite'
 import { ThinkingSprite } from './sprites/ThinkingSprite'

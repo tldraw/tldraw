@@ -1,12 +1,4 @@
-export type HatType =
-	| 'top'
-	| 'pointy'
-	| 'bald'
-	| 'antenna'
-	| 'spiky'
-	| 'hair'
-	| 'ears'
-	| 'propellor'
+export type HatType = 'pointy' | 'antenna' | 'default' | 'fez'
 
 export function FairyHatSpritePart({
 	hatColor,
@@ -43,6 +35,19 @@ export function FairyHatSpritePart({
 					strokeLinecap="round"
 					strokeLinejoin="round"
 				/>
+			)
+		}
+		case 'fez': {
+			return (
+				<g
+					fill={hatColor}
+					stroke="var(--tl-color-fairy-dark)"
+					strokeWidth="5"
+					strokeLinecap="round"
+				>
+					<path d="M47.2383 17.9351L47.6261 5.33154L64.6892 5.47919V17.9351H47.2383Z" />
+					<path d="M55.9637 5.33151L55.9637 2.5" />
+				</g>
 			)
 		}
 		default: {
