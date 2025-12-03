@@ -123,9 +123,9 @@ export class FairyApp {
 	}
 
 	resetEverything() {
-		this.projects.reset()
+		this.projects.disbandAllProjects()
 		this.tasks.reset()
-		this.agents.reset()
+		this.agents.resetAllAgents()
 		this.following.reset()
 		this.waits.reset()
 	}
