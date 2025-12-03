@@ -154,10 +154,10 @@ function convertTextShapeToTldrawShape(
 		scale = defaultTextShape.props.scale ?? 1
 	}
 
+	// If maxWidth is provided, enable wrapping (autoSize = false)
+	// Otherwise, let the text auto-size to fit content
 	const autoSize =
-		focusedShape.wrap === undefined
-			? (defaultTextShape.props?.autoSize ?? true)
-			: !focusedShape.wrap
+		focusedShape.maxWidth !== null ? false : (defaultTextShape.props?.autoSize ?? true)
 	const font = defaultTextShape.props?.font ?? 'draw'
 
 	let richText
@@ -206,7 +206,7 @@ function convertTextShapeToTldrawShape(
 			color: asColor(focusedShape.color ?? defaultTextShape.props?.color ?? 'black'),
 			textAlign,
 			autoSize,
-			w: focusedShape.width ?? defaultTextShape.props?.w ?? 100,
+			w: focusedShape.maxWidth ?? defaultTextShape.props?.w ?? 100,
 			font,
 		},
 		meta: {
