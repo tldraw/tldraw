@@ -111,6 +111,9 @@ describe('FairyAppAgentsManager', () => {
 						moon: 'aries',
 						rising: 'aries',
 					},
+					hat: 'ears',
+					hatColor: 'pink',
+					version: 1,
 				},
 			}
 

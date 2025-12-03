@@ -1,4 +1,4 @@
-import { FairyOutfit, FairyPose } from '@tldraw/fairy-shared'
+import { FairyHatColor, FairyHatType, FairyPose } from '@tldraw/fairy-shared'
 import { ComponentType, useEffect, useState } from 'react'
 import { IdleSprite } from './sprites/IdleSprite'
 import {
@@ -92,18 +92,19 @@ const FRAME_DURATIONS: Record<FairyPose, number> = {
  * Color mapping for different hat types
  * Using medium chroma, high value colors for good visibility
  */
-const HAT_COLORS: Record<string, string> = {
-	top: 'var(--tl-color-fairy-pink)', // Medium pink for top hat
-	pointy: 'var(--tl-color-fairy-purple)', // Medium purple for wizard hat
-	bald: 'var(--tl-color-fairy-peach)', // Medium peach/tan
-	antenna: 'var(--tl-color-fairy-coral)', // Medium coral for antenna
-	spiky: 'var(--tl-color-fairy-teal)', // Medium teal for spiky
-	hair: 'var(--tl-color-fairy-gold)', // Medium gold for hair
-	ears: 'var(--tl-color-fairy-rose)', // Medium rose for ears
-	propellor: 'var(--tl-color-fairy-green)', // Medium green for propellor
+const HAT_COLORS: Record<FairyHatColor, string> = {
+	pink: 'var(--tl-color-fairy-pink)',
+	purple: 'var(--tl-color-fairy-purple)',
+	peach: 'var(--tl-color-fairy-peach)',
+	coral: 'var(--tl-color-fairy-coral)',
+	teal: 'var(--tl-color-fairy-teal)',
+	gold: 'var(--tl-color-fairy-gold)',
+	rose: 'var(--tl-color-fairy-rose)',
+	green: 'var(--tl-color-fairy-green)',
+	white: 'var(--tl-color-fairy-white)',
 }
 
-export function getHatColor(hat: FairyOutfit['hat']) {
+function getHatColor(hat: FairyHatColor) {
 	return HAT_COLORS[hat]
 }
 
@@ -128,12 +129,15 @@ export function FairySprite({
 	showShadow?: boolean
 	isGenerating?: boolean
 	isOrchestrator?: boolean
-	hatColor?: string
+	hatColor?: FairyHatColor
+	hatType?: FairyHatType
 	padding?: number
 }) {
 	const bottomWingColor = isOrchestrator ? projectColor : 'var(--tl-color-fairy-light'
 	const _pose = gesture || pose
 	const duration = FRAME_DURATIONS[_pose]
+
+	const trueHatColor = hatColor ? getHatColor(hatColor) : 'var(--tl-color-fairy-light)'
 
 	return (
 		<div className="fairy-sprite-container">
@@ -144,7 +148,7 @@ export function FairySprite({
 					topWingColor={projectColor ?? 'var(--tl-color-fairy-light)'}
 					bottomWingColor={bottomWingColor ?? 'var(--tl-color-fairy-light)'}
 					bodyColor={'var(--tl-color-fairy-light)'}
-					hatColor={hatColor ?? 'var(--tl-color-fairy-light)'}
+					hatColor={trueHatColor}
 					flipX={flipX}
 					showShadow={showShadow}
 					tint={tint}
@@ -155,7 +159,7 @@ export function FairySprite({
 					topWingColor={projectColor ?? 'var(--tl-color-fairy-light)'}
 					bottomWingColor={bottomWingColor ?? 'var(--tl-color-fairy-light)'}
 					bodyColor="var(--tl-color-fairy-light)"
-					hatColor={hatColor ?? 'var(--tl-color-fairy-light)'}
+					hatColor={trueHatColor}
 					flipX={flipX}
 					showShadow={showShadow}
 					tint={tint}

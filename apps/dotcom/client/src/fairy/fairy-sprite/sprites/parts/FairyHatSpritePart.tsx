@@ -1,27 +1,4 @@
-export type HatType =
-	| 'antenna-droopy'
-	| 'antenna-relaxed'
-	| 'antenna-straight'
-	| 'antlers'
-	| 'bat-ears'
-	| 'cat-ears'
-	| 'default'
-	| 'domes'
-	| 'dotted-cap'
-	| 'ears'
-	| 'fairy-ears'
-	| 'farm-hat'
-	| 'fez'
-	| 'foam'
-	| 'parted-hair'
-	| 'pointy'
-	| 'santa-hat'
-	| 'sideburns'
-	| 'slick'
-	| 'spiky-hair'
-	| 'spinner'
-	| 'summer-hat'
-	| 'traces'
+import { FairyHatType } from '@tldraw/fairy-shared'
 
 export function FairyHatSpritePart({
 	hatColor,
@@ -29,7 +6,7 @@ export function FairyHatSpritePart({
 	offsetX = 0,
 	offsetY = 0,
 }: {
-	type?: HatType
+	type?: FairyHatType
 	hatColor: string
 	offsetX?: number
 	offsetY?: number

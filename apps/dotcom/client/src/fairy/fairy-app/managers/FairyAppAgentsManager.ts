@@ -7,6 +7,8 @@ import {
 } from '@tldraw/fairy-shared'
 import { atom, Atom, uniqueId } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
+import { getRandomFairyHat } from '../../fairy-helpers/getRandomFairyHat'
+import { getRandomFairyHatColor } from '../../fairy-helpers/getRandomFairyHatColor'
 import { getRandomFairyName } from '../../fairy-helpers/getRandomFairyName'
 import { getRandomFairySign } from '../../fairy-helpers/getRandomFairySign'
 import { BaseFairyAppManager } from './BaseFairyAppManager'
@@ -122,6 +124,9 @@ export class FairyAppAgentsManager extends BaseFairyAppManager {
 			name: getRandomFairyName(),
 			outfit: randomOutfit,
 			sign: getRandomFairySign(),
+			hat: getRandomFairyHat(),
+			hatColor: getRandomFairyHatColor(),
+			version: 1,
 		}
 
 		// Add the config to the user's settings

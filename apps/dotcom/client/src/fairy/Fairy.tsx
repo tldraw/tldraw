@@ -6,7 +6,7 @@ import '../tla/styles/fairy.css'
 import { TLAppUiHandler, useTldrawAppUiEvents } from '../tla/utils/app-ui-events'
 import { FairyAgent } from './fairy-agent/FairyAgent'
 import { getProjectColor } from './fairy-helpers/getProjectColor'
-import { FairySprite, getHatColor } from './fairy-sprite/FairySprite'
+import { FairySprite } from './fairy-sprite/FairySprite'
 import { FairyReticleSprite } from './fairy-sprite/sprites/FairyReticleSprite'
 import { FairyContextMenuContent } from './fairy-ui/menus/FairyContextMenuContent'
 import { FairyThrowTool } from './FairyThrowTool'
@@ -314,7 +314,8 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 	const trackEvent = useTldrawAppUiEvents()
 	const fairyRef = useRef<HTMLDivElement>(null)
 
-	const fairyOutfit = useValue('fairy outfit', () => agent.getConfig()?.outfit, [agent])
+	const fairyHatColor = useValue('fairy color', () => agent.getConfig()?.hatColor, [agent])
+	const fairyHat = useValue('fairy hat', () => agent.getConfig()?.hat, [agent])
 	const fairyEntity = useValue('fairy entity', () => agent.getEntity(), [agent])
 
 	const position = useValue(
@@ -368,7 +369,7 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 	)
 
 	// Don't render if entity, outfit or position doesn't exist yet to avoid position jumping from (0,0)
-	if (!fairyEntity || !fairyOutfit || !position) {
+	if (!fairyEntity || !fairyHat || !position) {
 		return null
 	}
 
@@ -394,7 +395,8 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 					<FairySprite
 						pose={fairyEntity.pose}
 						gesture={fairyEntity.gesture}
-						hatColor={getHatColor(fairyOutfit.hat)}
+						hatColor={fairyHatColor}
+						hatType={fairyHat}
 						showShadow
 						isAnimated={fairyEntity.pose !== 'idle' || isSelected}
 						isGenerating={isGenerating}

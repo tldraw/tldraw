@@ -105,11 +105,17 @@ describe('FairyAppFollowingManager', () => {
 						name: 'Agent 1',
 						outfit: { body: 'plain' as any, hat: 'ears' as any, wings: 'plain' as any },
 						sign: { sun: 'aries', moon: 'aries', rising: 'aries' },
+						hat: 'ears',
+						hatColor: 'pink',
+						version: 1,
 					},
 					[newId]: {
 						name: 'Agent 2',
 						outfit: { body: 'plain' as any, hat: 'ears' as any, wings: 'plain' as any },
 						sign: { sun: 'taurus', moon: 'taurus', rising: 'taurus' },
+						hat: 'ears',
+						hatColor: 'pink',
+						version: 1,
 					},
 				},
 				options

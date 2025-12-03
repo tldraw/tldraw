@@ -10,7 +10,7 @@ import { useMsg } from '../../../tla/utils/i18n'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { getProjectColor } from '../../fairy-helpers/getProjectColor'
 import { fairyMessages } from '../../fairy-messages'
-import { FairySprite, getHatColor } from '../../fairy-sprite/FairySprite'
+import { FairySprite } from '../../fairy-sprite/FairySprite'
 import { FairyReticleSprite } from '../../fairy-sprite/sprites/FairyReticleSprite'
 import { FairyContextMenuContent } from '../menus/FairyContextMenuContent'
 
@@ -37,7 +37,8 @@ export function FairySidebarButton({
 		[agent]
 	)
 
-	const fairyOutfit = useValue('fairy outfit', () => agent.getConfig()?.outfit, [agent])
+	const fairyHatColor = useValue('fairy hat color', () => agent.getConfig()?.hatColor, [agent])
+	const fairyHat = useValue('fairy hat', () => agent.getConfig()?.hat, [agent])
 	const fairyEntity = useValue('fairy entity', () => agent.getEntity(), [agent])
 	const project = useValue('current-project', () => agent.getProject(), [agent])
 	const isSleeping = useValue('is-sleeping', () => agent.mode.getMode() === 'sleeping', [agent])
@@ -54,7 +55,7 @@ export function FairySidebarButton({
 		agent.updateEntity((f) => (f ? { ...f, isSelected: !f.isSelected } : f))
 	}, [agent])
 
-	if (!fairyEntity || !fairyOutfit) return null
+	if (!fairyEntity || !fairyHat || !fairyHatColor) return null
 
 	const showPlusButton =
 		hasAnySelectedFairies &&
@@ -83,7 +84,8 @@ export function FairySidebarButton({
 								showShadow
 								pose={fairyEntity.pose}
 								gesture={fairyEntity.gesture}
-								hatColor={getHatColor(fairyOutfit.hat)}
+								hatColor={fairyHatColor}
+								hatType={fairyHat}
 								isAnimated={fairyEntity.pose !== 'idle' || fairyIsSelected}
 								flipX={fairyEntity.pose === 'sleeping' ? false : fairyEntity.flipX}
 								isOrchestrator={isOrchestrator}

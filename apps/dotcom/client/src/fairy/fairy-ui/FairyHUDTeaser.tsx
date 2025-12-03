@@ -202,7 +202,8 @@ export function FairyHUDTeaser() {
 								>
 									<FairySprite
 										pose={'sleeping'}
-										hatColor={'var(--tl-color-fairy-light)'}
+										hatColor="white"
+										hatType="default"
 										isAnimated={false}
 										showShadow
 									/>

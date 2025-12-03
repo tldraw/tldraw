@@ -239,9 +239,14 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 						.getAgents()
 						.map((agent) => {
 							const entity = agent.getEntity()
-							const outfit = agent.getConfig().outfit as unknown as string | undefined
-							if (!entity || !outfit) return null
-							return { entity, outfit }
+							const config = agent.getConfig()
+							if (!entity || !config) return null
+							return {
+								entity,
+								outfit: config.outfit,
+								hatColor: config.hatColor,
+								hatType: config.hat,
+							}
 						})
 						.filter((agent): agent is NonNullable<typeof agent> => agent !== null) ?? []
 

@@ -37,6 +37,9 @@ import {
 } from 'tldraw'
 import { FAIRY_WORKER } from '../../utils/config'
 import { FairyApp } from '../fairy-app/FairyApp'
+import { getRandomFairyHat } from '../fairy-helpers/getRandomFairyHat'
+import { getRandomFairyHatColor } from '../fairy-helpers/getRandomFairyHatColor'
+import { getRandomFairyName } from '../fairy-helpers/getRandomFairyName'
 import { getPromptPartUtilsRecord } from '../fairy-part-utils/fairy-part-utils'
 import { PromptPartUtil } from '../fairy-part-utils/PromptPartUtil'
 import { AgentHelpers } from './AgentHelpers'
@@ -242,13 +245,28 @@ export class FairyAgent {
 
 		this.$fairyConfig = computed<FairyConfig>(`fairy-config-${id}`, () => {
 			const userFairies = this.fairyApp.tldrawApp.getUser().fairies
+
 			if (!userFairies) {
 				return {
-					name: '',
+					name: getRandomFairyName(),
 					outfit: { body: 'plain', hat: 'top', wings: 'plain' },
+					hat: 'default',
+					hatColor: 'white',
+					version: 1,
 				} satisfies FairyConfig
 			}
-			return JSON.parse(userFairies)[id] as FairyConfig
+
+			const fairyConfig = JSON.parse(userFairies)[id] as FairyConfig
+
+			// migrate the fairies
+			if (fairyConfig.version < 1) {
+				// Version 0 -> 1
+				fairyConfig.hat = getRandomFairyHat()
+				fairyConfig.hatColor = getRandomFairyHatColor()
+				fairyConfig.version = 1
+			}
+
+			return fairyConfig
 		})
 
 		this.onError = onError
