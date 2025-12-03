@@ -295,7 +295,7 @@ export class FairyAgent {
 				if (entity.gesture === 'soaring') {
 					this.gesture.clear()
 				}
-			} else {
+			} else if (entity.gesture !== 'soaring') {
 				this.gesture.push('soaring')
 			}
 
