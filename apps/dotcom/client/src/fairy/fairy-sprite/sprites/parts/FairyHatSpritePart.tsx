@@ -2,11 +2,11 @@ export type HatType = 'pointy' | 'antenna' | 'default' | 'fez'
 
 export function FairyHatSpritePart({
 	hatColor,
-	type,
+	type = 'default',
 	offsetX = 0,
 	offsetY = 0,
 }: {
-	type: HatType
+	type?: HatType
 	hatColor: string
 	offsetX?: number
 	offsetY?: number
