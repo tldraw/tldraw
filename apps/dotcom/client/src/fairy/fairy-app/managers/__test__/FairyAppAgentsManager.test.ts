@@ -173,6 +173,28 @@ describe('FairyAppAgentsManager', () => {
 		})
 	})
 
+	describe('resetAgentState', () => {
+		it('should reset agent state without disposing agents', () => {
+			const options = {
+				onError: vi.fn(),
+				getToken: vi.fn().mockResolvedValue('token'),
+			}
+
+			manager.syncAgentsWithConfigs({}, options)
+			const agents = manager.getAgents()
+			expect(agents).toHaveLength(1)
+
+			const agentId = agents[0]!.id
+			const resetSpy = vi.spyOn(agents[0]!, 'reset')
+
+			manager.resetAllAgents()
+
+			expect(resetSpy).toHaveBeenCalled()
+			expect(manager.getAgents()).toHaveLength(1)
+			expect(manager.getAgentById(agentId)).toBe(agents[0])
+		})
+	})
+
 	describe('reset', () => {
 		it('should reset the manager by disposing all agents', () => {
 			const options = {

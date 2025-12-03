@@ -181,6 +181,15 @@ export class FairyAppAgentsManager extends BaseFairyAppManager {
 	}
 
 	/**
+	 * Reset the state of all agents without disposing them.
+	 * Clears chats, todos, projects, and returns agents to idle mode.
+	 */
+	resetAllAgents() {
+		const agents = this.$agents.get()
+		agents.forEach((agent) => agent.reset())
+	}
+
+	/**
 	 * Dispose all agents. Call this during cleanup.
 	 */
 	disposeAll() {
