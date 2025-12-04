@@ -244,6 +244,7 @@ function useFairyPointerInteraction(
 
 				// hack: dispatch an escape event to the document body to close any open context menus
 				document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+				document.body.dispatchEvent(new KeyboardEvent('keyup', { key: 'Escape' }))
 
 				editor.inputs.isPointing = true
 				editor.inputs.isDragging = false
