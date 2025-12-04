@@ -1,3 +1,5 @@
+import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
+
 export function SoaringSprite({
 	bodyColor,
 	hatColor,
@@ -49,13 +51,7 @@ export function SoaringSprite({
 				strokeWidth="5"
 			/>
 			{/* Hat */}
-			<path
-				d="M44.9161 15.3827C35.6641 21.8041 29.3809 22.8142 13.5569 19.7899C17.6251 9.61936 29.6603 2.5 32.7114 2.5C35.7626 2.5 41.1869 8.60231 44.9161 15.3827Z"
-				fill={hatColor}
-				stroke="var(--tl-color-fairy-dark)"
-				strokeWidth="5"
-				strokeLinejoin="round"
-			/>
+			<FairyHatSpritePart hatColor={hatColor} offsetX={-23.57} />
 			{/* Head circle */}
 			<circle
 				cx="31.8472"
