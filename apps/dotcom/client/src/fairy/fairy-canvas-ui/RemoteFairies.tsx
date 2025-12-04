@@ -31,6 +31,7 @@ interface FairyPresence {
 	outfit: FairyOutfit
 	hatColor: FairyHatColor
 	hatType: FairyHatType
+	legLength: number
 }
 
 const fairyPresenceValidator: T.ObjectValidator<FairyPresence> = T.object({
@@ -38,6 +39,7 @@ const fairyPresenceValidator: T.ObjectValidator<FairyPresence> = T.object({
 	outfit: fairyOutfitValidator,
 	hatColor: T.literalEnum(...HAT_COLORS),
 	hatType: T.literalEnum(...HAT_TYPES),
+	legLength: T.number,
 })
 
 function RemoteFairy({ userId }: { userId: string }) {
@@ -67,6 +69,7 @@ function RemoteFairy({ userId }: { userId: string }) {
 						entity={fairyPresence.entity}
 						hatColor={fairyPresence.hatColor}
 						hatType={fairyPresence.hatType}
+						legLength={fairyPresence.legLength}
 						color={color}
 					/>
 				)
@@ -78,12 +81,14 @@ function RemoteFairy({ userId }: { userId: string }) {
 function RemoteFairyIndicator({
 	entity,
 	hatColor,
+	legLength,
 	hatType,
 	color,
 }: {
 	entity: FairyEntity
 	hatColor: FairyHatColor
 	hatType: FairyHatType
+	legLength: number
 	color: string
 }) {
 	// Match local fairy animation logic: animate if pose is not idle or if selected
@@ -109,6 +114,7 @@ function RemoteFairyIndicator({
 				pose={entity.pose}
 				hatColor={hatColor}
 				hatType={hatType}
+				legLength={legLength}
 				tint={color}
 			/>
 		</div>
