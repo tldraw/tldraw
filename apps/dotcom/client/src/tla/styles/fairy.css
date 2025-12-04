@@ -2081,3 +2081,13 @@
 	width: 14px;
 	height: 14px;
 }
+
+.fairy-customize-hat-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.fairy-customize-hat-row .tlui-slider__container {
+	flex: 1;
+}

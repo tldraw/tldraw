@@ -14,31 +14,7 @@ export const HAT_COLORS = [
 
 export type FairyHatColor = (typeof HAT_COLORS)[number]
 
-export const HAT_TYPES = [
-	'antenna-droopy',
-	'antenna-relaxed',
-	'antenna-straight',
-	'antlers',
-	'bat-ears',
-	'cat-ears',
-	'default',
-	'buns',
-	'dotted-cap',
-	'ears',
-	'fairy-ears',
-	'farm-hat',
-	'fez',
-	'foam',
-	'parted-hair',
-	'pointy',
-	'santa-hat',
-	'sideburns',
-	'slick',
-	'spiky-hair',
-	'spinner',
-	'summer-hat',
-	'traces',
-] as const
+export const HAT_TYPES = ['default', 'flaps', 'horn', 'round', 'square', 'swoop', 'bald'] as const
 
 export type FairyHatType = (typeof HAT_TYPES)[number]
 

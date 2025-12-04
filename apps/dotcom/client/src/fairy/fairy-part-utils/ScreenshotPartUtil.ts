@@ -1,5 +1,5 @@
 import { AgentRequest, ScreenshotPart } from '@tldraw/fairy-shared'
-import { Box, FileHelpers } from 'tldraw'
+import { Box, downloadFile, FileHelpers } from 'tldraw'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export class ScreenshotPartUtil extends PromptPartUtil<ScreenshotPart> {
@@ -29,11 +29,15 @@ export class ScreenshotPartUtil extends PromptPartUtil<ScreenshotPart> {
 		const result = await editor.toImage(shapes, {
 			format: 'jpeg',
 			background: true,
+			darkMode: false,
 			bounds: Box.From(request.bounds),
 			padding: 0,
 			pixelRatio: 1,
 			scale,
 		})
+
+		// download the image
+		downloadFile(new File([result.blob], 'screenshot.jpeg', { type: 'image/jpeg' }))
 
 		return {
 			type: 'screenshot',

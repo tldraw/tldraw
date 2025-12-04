@@ -20,6 +20,7 @@ import {
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
 	TldrawUiInput,
+	TldrawUiSlider,
 	useValue,
 } from 'tldraw'
 import { useMsg } from '../../../tla/utils/i18n'
@@ -90,30 +91,16 @@ export function FairyCustomizeDialog({ agent, onClose }: { agent: FairyAgent; on
 						</TldrawUiButton>
 					</div>
 
-					{/* Hat type dropdown */}
+					{/* Hat type slider */}
 					<label className="fairy-customize-label">Hat</label>
-					<div className="fairy-customize-name-row">
-						<TldrawUiDropdownMenuRoot id="hat-type-select">
-							<TldrawUiDropdownMenuTrigger>
-								<TldrawUiButton type="normal" className="fairy-customize-dropdown-button">
-									<TldrawUiButtonLabel>{formatHatType(hatType)}</TldrawUiButtonLabel>
-									<TldrawUiButtonIcon icon="chevron-down" small />
-								</TldrawUiButton>
-							</TldrawUiDropdownMenuTrigger>
-							<TldrawUiDropdownMenuContent
-								side="bottom"
-								align="end"
-								className="fairy-customize-dropdown-content"
-							>
-								{HAT_TYPES.map((type) => (
-									<DropdownMenuItem
-										key={type}
-										label={formatHatType(type)}
-										onClick={() => setHatType(type)}
-									/>
-								))}
-							</TldrawUiDropdownMenuContent>
-						</TldrawUiDropdownMenuRoot>
+					<div className="fairy-customize-hat-row">
+						<TldrawUiSlider
+							label="Hat type"
+							title="Hat type"
+							value={HAT_TYPES.indexOf(hatType)}
+							steps={HAT_TYPES.length - 1}
+							onValueChange={(index) => setHatType(HAT_TYPES[index])}
+						/>
 						{/* Hat color dropdown */}
 						<TldrawUiDropdownMenuRoot id="hat-color-select">
 							<TldrawUiDropdownMenuTrigger>
