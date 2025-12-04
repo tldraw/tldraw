@@ -9,12 +9,11 @@ export const HAT_COLORS = [
 	'gold',
 	'green',
 	'teal',
-	'white',
 ] as const
 
 export type FairyHatColor = (typeof HAT_COLORS)[number]
 
-export const HAT_TYPES = ['default', 'flaps', 'horn', 'round', 'square', 'swoop', 'bald'] as const
+export const HAT_TYPES = ['bald', 'square', 'horn', 'flaps', 'default', 'swoop', 'round'] as const
 
 export type FairyHatType = (typeof HAT_TYPES)[number]
 
@@ -48,5 +47,7 @@ export interface FairyConfig {
 	sign?: FairySign
 	hat: FairyHatType
 	hatColor: FairyHatColor
+	/** Normalized leg length (0-1) */
+	legLength: number
 	version: number
 }

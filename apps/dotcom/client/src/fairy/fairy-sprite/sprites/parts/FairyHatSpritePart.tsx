@@ -1,13 +1,11 @@
-import { FairyHatType } from '@tldraw/fairy-shared'
+import { FairySpriteProps } from '../sprite-types'
 
 export function FairyHatSpritePart({
 	hatColor,
 	hatType = 'default',
 	offsetX = 0,
 	offsetY = 0,
-}: {
-	hatType?: FairyHatType
-	hatColor: string
+}: FairySpriteProps & {
 	offsetX?: number
 	offsetY?: number
 }) {

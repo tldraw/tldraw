@@ -11,6 +11,7 @@ import { getRandomFairyHat } from '../../fairy-helpers/getRandomFairyHat'
 import { getRandomFairyHatColor } from '../../fairy-helpers/getRandomFairyHatColor'
 import { getRandomFairyName } from '../../fairy-helpers/getRandomFairyName'
 import { getRandomFairySign } from '../../fairy-helpers/getRandomFairySign'
+import { getRandomLegLength } from '../../fairy-helpers/getRandomLegLength'
 import { BaseFairyAppManager } from './BaseFairyAppManager'
 
 /**
@@ -128,7 +129,8 @@ export class FairyAppAgentsManager extends BaseFairyAppManager {
 			sign: getRandomFairySign(),
 			hat: getRandomFairyHat(),
 			hatColor: getRandomFairyHatColor(),
-			version: 1,
+			legLength: getRandomLegLength(),
+			version: 2,
 		}
 
 		// Add the config to the user's settings
@@ -145,6 +147,11 @@ export class FairyAppAgentsManager extends BaseFairyAppManager {
 				config.hat = getRandomFairyHat()
 				config.hatColor = getRandomFairyHatColor()
 				config.version = 1
+			}
+			if (!config.version || config.version < 2) {
+				didMigrate = true
+				config.legLength = getRandomLegLength()
+				config.version = 2
 			}
 			if (didMigrate) {
 				this.fairyApp.tldrawApp.z.mutate.user.updateFairyConfig({ id, properties: config })

@@ -37,7 +37,10 @@ import {
 } from 'tldraw'
 import { FAIRY_WORKER } from '../../utils/config'
 import { FairyApp } from '../fairy-app/FairyApp'
+import { getRandomFairyHat } from '../fairy-helpers/getRandomFairyHat'
+import { getRandomFairyHatColor } from '../fairy-helpers/getRandomFairyHatColor'
 import { getRandomFairyName } from '../fairy-helpers/getRandomFairyName'
+import { getRandomLegLength } from '../fairy-helpers/getRandomLegLength'
 import { getPromptPartUtilsRecord } from '../fairy-part-utils/fairy-part-utils'
 import { PromptPartUtil } from '../fairy-part-utils/PromptPartUtil'
 import { AgentHelpers } from './AgentHelpers'
@@ -248,8 +251,9 @@ export class FairyAgent {
 				return {
 					name: getRandomFairyName(),
 					outfit: { body: 'plain', hat: 'top', wings: 'plain' },
-					hat: 'default',
-					hatColor: 'white',
+					hat: getRandomFairyHat(),
+					hatColor: getRandomFairyHatColor(),
+					legLength: getRandomLegLength(),
 					version: 1,
 				} satisfies FairyConfig
 			}

@@ -200,13 +200,7 @@ export function FairyHUDTeaser() {
 									value="off"
 									onClick={handleFairyClick}
 								>
-									<FairySprite
-										pose={'sleeping'}
-										hatColor="white"
-										hatType="default"
-										isAnimated={false}
-										showShadow
-									/>
+									<FairySprite pose={'sleeping'} hatType="default" isAnimated={false} showShadow />
 								</TldrawUiToolbarToggleItem>
 							</TldrawUiToolbarToggleGroup>
 						</TldrawUiToolbar>

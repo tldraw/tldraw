@@ -1,11 +1,15 @@
 import { MAX_FAIRY_COUNT } from '@tldraw/dotcom-shared'
-import { FAIRY_VARIANTS, PersistedFairyConfigs } from '@tldraw/fairy-shared'
+import { PersistedFairyConfigs } from '@tldraw/fairy-shared'
 import { Editor } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FairyAgent } from '../../../fairy-agent/FairyAgent'
 import { FairyApp } from '../../FairyApp'
 import { FairyAppAgentsManager } from '../FairyAppAgentsManager'
-import { createTestEditor, createTestFairyApp } from './fairy-app-managers-test-shared'
+import {
+	createTestEditor,
+	createTestFairyApp,
+	getDefaultFairyConfig,
+} from './fairy-app-managers-test-shared'
 
 describe('FairyAppAgentsManager', () => {
 	let editor: Editor
@@ -99,22 +103,7 @@ describe('FairyAppAgentsManager', () => {
 
 			// Get the config that was created
 			const configs: PersistedFairyConfigs = {
-				[firstAgentId]: {
-					name: 'Test',
-					outfit: {
-						body: Object.keys(FAIRY_VARIANTS.body)[0] as any,
-						hat: Object.keys(FAIRY_VARIANTS.hat)[0] as any,
-						wings: Object.keys(FAIRY_VARIANTS.wings)[0] as any,
-					},
-					sign: {
-						sun: 'aries',
-						moon: 'aries',
-						rising: 'aries',
-					},
-					hat: 'default',
-					hatColor: 'pink',
-					version: 1,
-				},
+				[firstAgentId]: getDefaultFairyConfig(),
 			}
 
 			// Second sync with same config should keep the agent

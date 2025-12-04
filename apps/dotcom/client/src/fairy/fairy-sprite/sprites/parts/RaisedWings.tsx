@@ -1,7 +1,9 @@
+import { FairySpriteProps } from '../sprite-types'
+
 export function RaisedWingsSprite1({
 	topWingColor,
 	bottomWingColor,
-}: {
+}: FairySpriteProps & {
 	topWingColor: string
 	bottomWingColor: string
 }) {

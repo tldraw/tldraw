@@ -1,25 +1,10 @@
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
+import { FairySpriteProps } from './sprite-types'
 
-export function SleepingSprite({
-	bodyColor,
-	hatColor,
-	tint,
-}: {
-	bodyColor: string
-	hatColor: string
-	tint: string | null
-}) {
-	;<circle
-		cx="55.4159"
-		cy="33.7832"
-		r="19.8442"
-		fill={bodyColor}
-		stroke="var(--tl-color-fairy-dark)"
-		strokeWidth="5"
-	/>
+export function SleepingSprite(props: FairySpriteProps) {
 	return (
 		<>
-			<FairyHatSpritePart hatColor={hatColor} offsetX={1} offsetY={3} />
+			<FairyHatSpritePart {...props} offsetX={1} offsetY={3} />
 			<path
 				d="M65.6146 53.7521C68.8514 55.8325 73.413 60.9857 74.1733 66.8989"
 				stroke="var(--tl-color-fairy-dark)"
@@ -40,7 +25,7 @@ export function SleepingSprite({
 			/>
 			<path
 				d="M43.3818 82.9905C39.5997 78.381 40.496 56.9063 41.9702 53.1565C44.9926 45.4689 64.1965 49.0706 66.134 56.5728C67.2994 61.0851 68.3209 81.8677 65.484 84.4088C62.647 86.95 47.1639 87.6001 43.3818 82.9905Z"
-				fill={tint ?? bodyColor}
+				fill={props.tint ?? props.bodyColor}
 				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="5"
 			/>
@@ -48,7 +33,7 @@ export function SleepingSprite({
 				cx="55.9419"
 				cy="37.8115"
 				r="19.8442"
-				fill={bodyColor}
+				fill={props.bodyColor}
 				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="5"
 			/>

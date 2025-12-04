@@ -1,14 +1,7 @@
-import {
-	FairyHatColor,
-	FairyHatType,
-	HAT_COLORS,
-	HAT_TYPES,
-	RefreshIcon,
-} from '@tldraw/fairy-shared'
+import { FairyHatColor, FairyHatType, HAT_COLORS, HAT_TYPES } from '@tldraw/fairy-shared'
 import { ReactNode, useCallback, useState } from 'react'
 import {
 	TldrawUiButton,
-	TldrawUiButtonIcon,
 	TldrawUiButtonLabel,
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
@@ -25,7 +18,6 @@ import {
 } from 'tldraw'
 import { useMsg } from '../../../tla/utils/i18n'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
-import { getRandomFairyName } from '../../fairy-helpers/getRandomFairyName'
 import { fairyMessages } from '../../fairy-messages'
 import { FairySprite } from '../../fairy-sprite/FairySprite'
 
@@ -35,6 +27,7 @@ export function FairyCustomizeDialog({ agent, onClose }: { agent: FairyAgent; on
 	const [name, setName] = useState(config.name)
 	const [hatType, setHatType] = useState<FairyHatType>(config.hat)
 	const [hatColor, setHatColor] = useState<FairyHatColor>(config.hatColor)
+	const [legLength, setLegLength] = useState(config.legLength)
 
 	const namePlaceholder = useMsg(fairyMessages.fairyNamePlaceholder)
 
@@ -43,11 +36,16 @@ export function FairyCustomizeDialog({ agent, onClose }: { agent: FairyAgent; on
 			name,
 			hat: hatType,
 			hatColor,
+			legLength,
 		})
 		onClose()
-	}, [agent, name, hatType, hatColor, onClose])
+	}, [agent, name, hatType, hatColor, legLength, onClose])
 
-	const hasChanges = name !== config.name || hatType !== config.hat || hatColor !== config.hatColor
+	const hasChanges =
+		name !== config.name ||
+		hatType !== config.hat ||
+		hatColor !== config.hatColor ||
+		legLength !== config.legLength
 
 	return (
 		<>
@@ -63,6 +61,7 @@ export function FairyCustomizeDialog({ agent, onClose }: { agent: FairyAgent; on
 							pose="idle"
 							hatColor={hatColor}
 							hatType={hatType}
+							legLength={legLength}
 							isAnimated={true}
 							showShadow={true}
 						/>
@@ -79,16 +78,17 @@ export function FairyCustomizeDialog({ agent, onClose }: { agent: FairyAgent; on
 							value={name}
 							onValueChange={setName}
 							placeholder={namePlaceholder}
+							disabled={true}
 							autoFocus
 						/>
-						<TldrawUiButton
+						{/* <TldrawUiButton
 							className="fairy-customize-random-name-button"
 							type="icon"
 							title="Random name"
 							onClick={() => setName(getRandomFairyName())}
 						>
 							<TldrawUiButtonIcon icon={<RefreshIcon />} />
-						</TldrawUiButton>
+						</TldrawUiButton> */}
 					</div>
 
 					{/* Hat type slider */}
@@ -125,8 +125,6 @@ export function FairyCustomizeDialog({ agent, onClose }: { agent: FairyAgent; on
 													className="fairy-customize-color-swatch"
 													style={{
 														backgroundColor: `var(--tl-color-fairy-${color})`,
-														border:
-															color === 'white' ? '1px solid var(--tl-color-overlay)' : 'none',
 													}}
 												/>
 											}
@@ -136,6 +134,18 @@ export function FairyCustomizeDialog({ agent, onClose }: { agent: FairyAgent; on
 								</div>
 							</TldrawUiDropdownMenuContent>
 						</TldrawUiDropdownMenuRoot>
+					</div>
+
+					{/* Leg length slider */}
+					<label className="fairy-customize-label">Legs</label>
+					<div className="fairy-customize-leg-row">
+						<TldrawUiSlider
+							label="Leg length"
+							title="Leg length"
+							value={legLength * 100}
+							steps={100}
+							onValueChange={(value) => setLegLength(value / 100)}
+						/>
 					</div>
 				</div>
 			</TldrawUiDialogBody>
@@ -159,15 +169,4 @@ function DropdownMenuItem({ label, onClick }: { label: string | ReactNode; onCli
 			</TldrawUiButton>
 		</TldrawUiDropdownMenuItem>
 	)
-}
-
-function formatHatType(type: FairyHatType): string {
-	return type
-		.split('-')
-		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-		.join(' ')
-}
-
-function formatHatColor(color: FairyHatColor): string {
-	return color.charAt(0).toUpperCase() + color.slice(1)
 }

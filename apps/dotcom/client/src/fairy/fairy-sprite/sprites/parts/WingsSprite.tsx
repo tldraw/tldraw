@@ -1,15 +1,8 @@
 import { modulate } from 'tldraw'
+import { WingSpriteProps } from '../sprite-types'
 
-export function LoweredWingsSprite1({
-	topWingColor,
-	bottomWingColor,
-}: {
-	topWingColor: string
-	bottomWingColor: string
-}) {
-	return (
-		<LoweredWingsSprite frame={0} topWingColor={topWingColor} bottomWingColor={bottomWingColor} />
-	)
+export function LoweredWingsSprite1(props: WingSpriteProps) {
+	return <LoweredWingsSprite frame={0} {...props} />
 }
 
 export function LoweredWingsSprite2({
