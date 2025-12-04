@@ -16,6 +16,7 @@ export {
 	type RecordOp,
 	type ValueOp,
 } from './lib/diff'
+export { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './lib/InMemorySyncStorage'
 export {
 	getTlsyncProtocolVersion,
 	TLIncompatibilityReason,
@@ -30,7 +31,13 @@ export { RoomSessionState, type RoomSession, type RoomSessionBase } from './lib/
 export type { PersistedRoomSnapshotForSupabase } from './lib/server-types'
 export type { WebSocketMinimal } from './lib/ServerSocketAdapter'
 export { TLRemoteSyncError } from './lib/TLRemoteSyncError'
-export { TLSocketRoom, type OmitVoid, type TLSyncLog } from './lib/TLSocketRoom'
+export {
+	TLSocketRoom,
+	type OmitVoid,
+	type RoomStoreMethods,
+	type TLSocketRoomOptions,
+	type TLSyncLog,
+} from './lib/TLSocketRoom'
 export {
 	TLSyncClient,
 	TLSyncErrorCloseEventCode,
@@ -44,12 +51,23 @@ export {
 	type TLSocketStatusListener,
 } from './lib/TLSyncClient'
 export {
-	DocumentState,
 	TLSyncRoom,
+	type MinimalDocStore,
+	type PresenceStore,
 	type RoomSnapshot,
-	type RoomStoreMethods,
 	type TLRoomSocket,
 } from './lib/TLSyncRoom'
+export {
+	loadSnapshotIntoStorage,
+	type TLSyncForwardDiff,
+	type TLSyncStorage,
+	type TLSyncStorageGetChangesSinceResult,
+	type TLSyncStorageOnChangeCallbackProps,
+	type TLSyncStorageTransaction,
+	type TLSyncStorageTransactionOptions,
+	type TLSyncStorageTransactionResult,
+	type TRANSACTION_CALLBACK_MUST_BE_SYNC,
+} from './lib/TLSyncStorage'
 
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,

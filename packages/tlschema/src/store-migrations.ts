@@ -67,36 +67,36 @@ export const storeMigrations = createMigrationSequence({
 	sequence: [
 		{
 			id: Versions.RemoveCodeAndIconShapeTypes,
-			scope: 'store',
-			up: (store) => {
-				for (const [id, record] of objectMapEntries(store)) {
+			scope: 'storage',
+			up: (storage) => {
+				for (const [id, record] of storage.entries()) {
 					if (
 						record.typeName === 'shape' &&
 						'type' in record &&
 						(record.type === 'icon' || record.type === 'code')
 					) {
-						delete store[id]
+						storage.delete(id)
 					}
 				}
 			},
 		},
 		{
 			id: Versions.AddInstancePresenceType,
-			scope: 'store',
-			up(_store) {
+			scope: 'storage',
+			up(_storage) {
 				// noop
 				// there used to be a down migration for this but we made down migrations optional
-				// and we don't use them on store-level migrations so we can just remove it
+				// and we don't use them on storage-level migrations so we can just remove it
 			},
 		},
 		{
 			// remove user and presence records and add pointer records
 			id: Versions.RemoveTLUserAndPresenceAndAddPointer,
-			scope: 'store',
-			up: (store) => {
-				for (const [id, record] of objectMapEntries(store)) {
+			scope: 'storage',
+			up: (storage) => {
+				for (const [id, record] of storage.entries()) {
 					if (record.typeName.match(/^(user|user_presence)$/)) {
-						delete store[id]
+						storage.delete(id)
 					}
 				}
 			},
@@ -104,11 +104,11 @@ export const storeMigrations = createMigrationSequence({
 		{
 			// remove user document records
 			id: Versions.RemoveUserDocument,
-			scope: 'store',
-			up: (store) => {
-				for (const [id, record] of objectMapEntries(store)) {
+			scope: 'storage',
+			up: (storage) => {
+				for (const [id, record] of storage.entries()) {
 					if (record.typeName.match('user_document')) {
-						delete store[id]
+						storage.delete(id)
 					}
 				}
 			},

@@ -1,10 +1,16 @@
 import type { StoreSchema, UnknownRecord } from '@tldraw/store'
-import { TLStoreSnapshot, createTLSchema } from '@tldraw/tlschema'
-import { objectMapValues, structuredClone } from '@tldraw/utils'
+import { createTLSchema, TLStoreSnapshot } from '@tldraw/tlschema'
+import { getOwnProperty, hasOwnProperty, isEqual, structuredClone } from '@tldraw/utils'
+import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './InMemorySyncStorage'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, RoomStoreMethods, TLSyncRoom } from './TLSyncRoom'
+import { RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
+import {
+	convertStoreSnapshotToRoomSnapshot,
+	loadSnapshotIntoStorage,
+	TLSyncStorage,
+} from './TLSyncStorage'
 import { JsonChunkAssembler } from './chunk'
 import { TLSocketServerSentEvent } from './protocol'
 
@@ -35,6 +41,51 @@ export interface TLSyncLog {
 	 * @param args - Arguments to log
 	 */
 	error?(...args: any[]): void
+}
+
+/**
+ * Base options for TLSocketRoom.
+ * @public
+ */
+export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
+	storage?: TLSyncStorage<R>
+	/**
+	 * @deprecated use the storage option instead
+	 */
+	initialSnapshot?: RoomSnapshot | TLStoreSnapshot
+	/**
+	 * @deprecated use the storage option with an onChange callback instead
+	 */
+	onDataChange?(): void
+	schema?: StoreSchema<R, any>
+	// how long to wait for a client to communicate before disconnecting them
+	clientTimeout?: number
+	log?: TLSyncLog
+	// a callback that is called when a client is disconnected
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	onSessionRemoved?: (
+		room: TLSocketRoom<R, SessionMeta>,
+		args: { sessionId: string; numSessionsRemaining: number; meta: SessionMeta }
+	) => void
+	// a callback that is called whenever a message is sent
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	onBeforeSendMessage?: (args: {
+		sessionId: string
+		/** @internal keep the protocol private for now */
+		message: TLSocketServerSentEvent<R>
+		stringified: string
+		meta: SessionMeta
+	}) => void
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	onAfterReceiveMessage?: (args: {
+		sessionId: string
+		/** @internal keep the protocol private for now */
+		message: TLSocketServerSentEvent<R>
+		stringified: string
+		meta: SessionMeta
+	}) => void
+	/** @internal */
+	onPresenceChange?(): void
 }
 
 /**
@@ -105,10 +156,10 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		{ assembler: JsonChunkAssembler; socket: WebSocketMinimal; unlisten: () => void }
 	>()
 	readonly log?: TLSyncLog
-	private readonly syncCallbacks: {
-		onDataChange?(): void
-		onPresenceChange?(): void
-	}
+
+	public storage: TLSyncStorage<R>
+
+	private disposables = new Set<() => void>()
 
 	/**
 	 * Creates a new TLSocketRoom instance for managing collaborative document synchronization.
@@ -124,56 +175,38 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 *   - onDataChange - Called when document data changes
 	 *   - onPresenceChange - Called when presence data changes
 	 */
-	constructor(
-		public readonly opts: {
-			initialSnapshot?: RoomSnapshot | TLStoreSnapshot
-			schema?: StoreSchema<R, any>
-			// how long to wait for a client to communicate before disconnecting them
-			clientTimeout?: number
-			log?: TLSyncLog
-			// a callback that is called when a client is disconnected
-			// eslint-disable-next-line @typescript-eslint/method-signature-style
-			onSessionRemoved?: (
-				room: TLSocketRoom<R, SessionMeta>,
-				args: { sessionId: string; numSessionsRemaining: number; meta: SessionMeta }
-			) => void
-			// a callback that is called whenever a message is sent
-			// eslint-disable-next-line @typescript-eslint/method-signature-style
-			onBeforeSendMessage?: (args: {
-				sessionId: string
-				/** @internal keep the protocol private for now */
-				message: TLSocketServerSentEvent<R>
-				stringified: string
-				meta: SessionMeta
-			}) => void
-			// eslint-disable-next-line @typescript-eslint/method-signature-style
-			onAfterReceiveMessage?: (args: {
-				sessionId: string
-				/** @internal keep the protocol private for now */
-				message: TLSocketServerSentEvent<R>
-				stringified: string
-				meta: SessionMeta
-			}) => void
-			onDataChange?(): void
-			/** @internal */
-			onPresenceChange?(): void
+	constructor(public readonly opts: TLSocketRoomOptions<R, SessionMeta>) {
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		if (opts.storage && opts.initialSnapshot) {
+			throw new Error('Cannot provide both storage and initialSnapshot options')
 		}
-	) {
-		const initialSnapshot =
-			opts.initialSnapshot && 'store' in opts.initialSnapshot
-				? convertStoreSnapshotToRoomSnapshot(opts.initialSnapshot!)
-				: opts.initialSnapshot
+		const storage = opts.storage
+			? opts.storage
+			: new InMemorySyncStorage<R>({
+					snapshot: convertStoreSnapshotToRoomSnapshot(
+						// eslint-disable-next-line @typescript-eslint/no-deprecated
+						opts.initialSnapshot ?? DEFAULT_INITIAL_SNAPSHOT
+					),
+				})
 
-		this.syncCallbacks = {
-			onDataChange: opts.onDataChange,
-			onPresenceChange: opts.onPresenceChange,
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		if ('onDataChange' in opts && opts.onDataChange) {
+			this.disposables.add(
+				storage.onChange(({ id }) => {
+					if (id !== this.room.internalTxnId) {
+						// eslint-disable-next-line @typescript-eslint/no-deprecated
+						opts.onDataChange?.()
+					}
+				})
+			)
 		}
 		this.room = new TLSyncRoom<R, SessionMeta>({
-			...this.syncCallbacks,
+			onPresenceChange: opts.onPresenceChange,
 			schema: opts.schema ?? (createTLSchema() as any),
-			snapshot: initialSnapshot,
 			log: opts.log,
+			storage,
 		})
+		this.storage = storage
 		this.room.events.on('session_removed', (args) => {
 			this.sessions.delete(args.sessionId)
 			if (this.opts.onSessionRemoved) {
@@ -396,7 +429,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * ```
 	 */
 	getCurrentDocumentClock() {
-		return this.room.documentClock
+		return this.storage.getClock()
 	}
 
 	/**
@@ -418,7 +451,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * ```
 	 */
 	getRecord(id: string) {
-		return structuredClone(this.room.documents.get(id)?.state)
+		return this.storage.transaction((txn) => {
+			return structuredClone(txn.get(id)) as any
+		}).result as R
 	}
 
 	/**
@@ -466,6 +501,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * to restore the room state later or revert to a previous version.
 	 *
 	 * @returns Complete room snapshot including documents, clock values, and tombstones
+	 * @deprecated if you need to do this use
 	 *
 	 * @example
 	 * ```ts
@@ -479,7 +515,10 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * ```
 	 */
 	getCurrentSnapshot() {
-		return this.room.getSnapshot()
+		if (this.storage.getSnapshot) {
+			return this.storage.getSnapshot()
+		}
+		throw new Error('getCurrentSnapshot is not supported for this storage type')
 	}
 
 	/**
@@ -491,23 +530,10 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 */
 	getPresenceRecords() {
 		const result = {} as Record<string, UnknownRecord>
-		for (const document of this.room.documents.values()) {
-			if (document.state.typeName === this.room.presenceType?.typeName) {
-				result[document.state.id] = document.state
-			}
+		for (const presence of this.room.presenceStore.values()) {
+			result[presence.id] = presence
 		}
 		return result
-	}
-
-	/**
-	 * Returns a JSON-serialized snapshot of the current document state. This is
-	 * equivalent to JSON.stringify(getCurrentSnapshot()) but provided as a convenience.
-	 *
-	 * @returns JSON string representation of the room snapshot
-	 * @internal
-	 */
-	getCurrentSerializedSnapshot() {
-		return JSON.stringify(this.room.getSnapshot())
 	}
 
 	/**
@@ -529,42 +555,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * ```
 	 */
 	loadSnapshot(snapshot: RoomSnapshot | TLStoreSnapshot) {
-		if ('store' in snapshot) {
-			snapshot = convertStoreSnapshotToRoomSnapshot(snapshot)
-		}
-		const oldRoom = this.room
-		const oldRoomSnapshot = oldRoom.getSnapshot()
-		const oldIds = oldRoomSnapshot.documents.map((d) => d.state.id)
-		const newIds = new Set(snapshot.documents.map((d) => d.state.id))
-		const removedIds = oldIds.filter((id) => !newIds.has(id))
-
-		const tombstones: RoomSnapshot['tombstones'] = { ...oldRoomSnapshot.tombstones }
-		removedIds.forEach((id) => {
-			tombstones[id] = oldRoom.clock + 1
+		this.storage.transaction((txn) => {
+			loadSnapshotIntoStorage(txn, this.room.schema, snapshot)
 		})
-		newIds.forEach((id) => {
-			delete tombstones[id]
-		})
-
-		const newRoom = new TLSyncRoom<R, SessionMeta>({
-			...this.syncCallbacks,
-			schema: oldRoom.schema,
-			snapshot: {
-				clock: oldRoom.clock + 1,
-				documentClock: oldRoom.clock + 1,
-				documents: snapshot.documents.map((d) => ({
-					lastChangedClock: oldRoom.clock + 1,
-					state: d.state,
-				})),
-				schema: snapshot.schema,
-				tombstones,
-				tombstoneHistoryStartsAtClock: oldRoomSnapshot.tombstoneHistoryStartsAtClock,
-			},
-			log: this.log,
-		})
-		// replace room with new one and kick out all the clients
-		this.room = newRoom
-		oldRoom.close()
 	}
 
 	/**
@@ -609,9 +602,32 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 *   }
 	 * })
 	 * ```
+	 * @deprecated use the storage.transaction method instead
 	 */
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	async updateStore(updater: (store: RoomStoreMethods<R>) => void | Promise<void>) {
-		return this.room.updateStore(updater)
+		if (this.isClosed()) {
+			throw new Error('Cannot update store on a closed room')
+		}
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		const ctx = new StoreUpdateContext<R>(
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			Object.fromEntries(this.getCurrentSnapshot().documents.map((d) => [d.state.id, d.state])),
+			this.room.schema
+		)
+		try {
+			await updater(ctx)
+		} finally {
+			ctx.close()
+		}
+		this.storage.transaction((txn) => {
+			for (const [id, record] of Object.entries(ctx.updates.puts)) {
+				txn.set(id, record as R)
+			}
+			for (const id of ctx.updates.deletes) {
+				txn.delete(id)
+			}
+		})
 	}
 
 	/**
@@ -688,6 +704,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 */
 	close() {
 		this.room.close()
+		this.disposables.forEach((d) => d())
+		this.disposables.clear()
 	}
 
 	/**
@@ -729,15 +747,113 @@ export type OmitVoid<T, KS extends keyof T = keyof T> = {
 	[K in KS extends any ? (void extends T[KS] ? never : KS) : never]: T[K]
 }
 
-function convertStoreSnapshotToRoomSnapshot(snapshot: TLStoreSnapshot): RoomSnapshot {
-	return {
-		clock: 0,
-		documentClock: 0,
-		documents: objectMapValues(snapshot.store).map((state) => ({
-			state,
-			lastChangedClock: 0,
-		})),
-		schema: snapshot.schema,
-		tombstones: {},
+/**
+ * Interface for making transactional changes to room store data. Used within
+ * updateStore transactions to modify documents atomically.
+ *
+ * @example
+ * ```ts
+ * await room.updateStore((store) => {
+ *   const shape = store.get('shape:123')
+ *   if (shape) {
+ *     store.put({ ...shape, x: shape.x + 10 })
+ *   }
+ *   store.delete('shape:456')
+ * })
+ * ```
+ *
+ * @public
+ * @deprecated use the storage.transaction method instead
+ */
+export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
+	/**
+	 * Add or update a record in the store.
+	 *
+	 * @param record - The record to store
+	 */
+	put(record: R): void
+	/**
+	 * Delete a record from the store.
+	 *
+	 * @param recordOrId - The record or record ID to delete
+	 */
+	delete(recordOrId: R | string): void
+	/**
+	 * Get a record by its ID.
+	 *
+	 * @param id - The record ID
+	 * @returns The record or null if not found
+	 */
+	get(id: string): R | null
+	/**
+	 * Get all records in the store.
+	 *
+	 * @returns Array of all records
+	 */
+	getAll(): R[]
+}
+
+/**
+ * @deprecated use the storage.transaction method instead
+ */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+class StoreUpdateContext<R extends UnknownRecord> implements RoomStoreMethods<R> {
+	constructor(
+		private readonly snapshot: Record<string, UnknownRecord>,
+		private readonly schema: StoreSchema<R, any>
+	) {}
+	readonly updates = {
+		puts: {} as Record<string, UnknownRecord>,
+		deletes: new Set<string>(),
+	}
+	put(record: R): void {
+		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
+		const recordType = getOwnProperty(this.schema.types, record.typeName)
+		if (!recordType) {
+			throw new Error(`Missing definition for record type ${record.typeName}`)
+		}
+		const recordBefore = this.snapshot[record.id] ?? undefined
+		recordType.validate(record, recordBefore as R)
+
+		if (record.id in this.snapshot && isEqual(this.snapshot[record.id], record)) {
+			delete this.updates.puts[record.id]
+		} else {
+			this.updates.puts[record.id] = structuredClone(record)
+		}
+		this.updates.deletes.delete(record.id)
+	}
+	delete(recordOrId: R | string): void {
+		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
+		const id = typeof recordOrId === 'string' ? recordOrId : recordOrId.id
+		delete this.updates.puts[id]
+		if (this.snapshot[id]) {
+			this.updates.deletes.add(id)
+		}
+	}
+	get(id: string): R | null {
+		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
+		if (hasOwnProperty(this.updates.puts, id)) {
+			return structuredClone(this.updates.puts[id]) as R
+		}
+		if (this.updates.deletes.has(id)) {
+			return null
+		}
+		return structuredClone(this.snapshot[id] ?? null) as R
+	}
+
+	getAll(): R[] {
+		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
+		const result = Object.values(this.updates.puts)
+		for (const [id, record] of Object.entries(this.snapshot)) {
+			if (!this.updates.deletes.has(id) && !hasOwnProperty(this.updates.puts, id)) {
+				result.push(record)
+			}
+		}
+		return structuredClone(result) as R[]
+	}
+
+	private _isClosed = false
+	close() {
+		this._isClosed = true
 	}
 }

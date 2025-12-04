@@ -213,6 +213,7 @@ export class BemoDO extends DurableObject<Environment> {
 				const clock = room.getCurrentDocumentClock()
 				if (this._lastPersistedClock === clock) return
 
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
 				const snapshot = JSON.stringify(room.getCurrentSnapshot())
 
 				const key = getR2KeyForSlug(slug)

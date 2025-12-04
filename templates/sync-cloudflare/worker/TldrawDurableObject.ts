@@ -116,6 +116,7 @@ export class TldrawDurableObject {
 		const room = await this.getRoom()
 
 		// convert the room to JSON and upload it to R2
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		const snapshot = JSON.stringify(room.getCurrentSnapshot())
 		await this.r2.put(`rooms/${this.roomId}`, snapshot)
 	}, 10_000)

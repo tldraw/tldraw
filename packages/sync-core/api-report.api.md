@@ -6,16 +6,21 @@
 
 import { Atom } from '@tldraw/state';
 import { AtomMap } from '@tldraw/store';
+import { DebouncedFunc } from 'lodash';
 import { Emitter } from 'nanoevents';
 import { RecordsDiff } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
-import { Result } from '@tldraw/utils';
 import { SerializedSchema } from '@tldraw/store';
+import { SerializedSchemaV2 } from '@tldraw/store';
 import { Signal } from '@tldraw/state';
 import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
+import { SynchronousStorage } from '@tldraw/store';
+import { TLDocument } from '@tldraw/tlschema';
+import { TLPage } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
+import { TLStoreSnapshot as TLStoreSnapshot_2 } from 'tldraw';
 import { UnknownRecord } from '@tldraw/store';
 
 // @internal
@@ -50,6 +55,20 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLSocket
     _ws: null | WebSocket;
 }
 
+// @public
+export const DEFAULT_INITIAL_SNAPSHOT: {
+    documentClock: number;
+    documents: ({
+        lastChangedClock: number;
+        state: TLDocument;
+    } | {
+        lastChangedClock: number;
+        state: TLPage;
+    })[];
+    schema: SerializedSchemaV2;
+    tombstoneHistoryStartsAtClock: number;
+};
+
 // @internal
 export type DeleteOp = [type: typeof ValueOpType.Delete];
 
@@ -57,22 +76,40 @@ export type DeleteOp = [type: typeof ValueOpType.Delete];
 export function diffRecord(prev: object, next: object, legacyAppendMode?: boolean): null | ObjectDiff;
 
 // @internal
-export class DocumentState<R extends UnknownRecord> {
-    static createAndValidate<R extends UnknownRecord>(state: R, lastChangedClock: number, recordType: RecordType<R, any>): Result<DocumentState<R>, Error>;
-    static createWithoutValidating<R extends UnknownRecord>(state: R, lastChangedClock: number, recordType: RecordType<R, any>): DocumentState<R>;
-    // (undocumented)
-    readonly lastChangedClock: number;
-    mergeDiff(diff: ObjectDiff, clock: number, legacyAppendMode?: boolean): Result<[ObjectDiff, DocumentState<R>] | null, Error>;
-    replaceState(state: R, clock: number, legacyAppendMode?: boolean): Result<[ObjectDiff, DocumentState<R>] | null, Error>;
-    // (undocumented)
-    readonly state: R;
-}
-
-// @internal
 export function getNetworkDiff<R extends UnknownRecord>(diff: RecordsDiff<R>): NetworkDiff<R> | null;
 
 // @internal
 export function getTlsyncProtocolVersion(): number;
+
+// @public
+export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
+    constructor({ snapshot }: {
+        snapshot: RoomSnapshot;
+    });
+    // @internal (undocumented)
+    documentClock: Atom<number>;
+    // @internal (undocumented)
+    documents: AtomMap<string, {
+        lastChangedClock: number;
+        state: R;
+    }>;
+    // (undocumented)
+    getClock(): number;
+    // (undocumented)
+    getSnapshot(): RoomSnapshot;
+    // (undocumented)
+    onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void;
+    // @internal (undocumented)
+    pruneTombstones: DebouncedFunc<() => void>;
+    // @internal (undocumented)
+    schema: Atom<SerializedSchema>;
+    // @internal (undocumented)
+    tombstoneHistoryStartsAtClock: Atom<number>;
+    // @internal (undocumented)
+    tombstones: AtomMap<string, number>;
+    // (undocumented)
+    transaction<T>(callback: (txn: TLSyncStorageTransaction<R>) => T extends Promise<any> ? TRANSACTION_CALLBACK_MUST_BE_SYNC : T, opts?: TLSyncStorageTransactionOptions): TLSyncStorageTransactionResult<T, R>;
+}
 
 // @public
 export class JsonChunkAssembler {
@@ -86,6 +123,19 @@ export class JsonChunkAssembler {
         chunksReceived: string[];
         totalChunks: number;
     };
+}
+
+// @public
+export function loadSnapshotIntoStorage<R extends UnknownRecord>(txn: TLSyncStorageTransaction<R>, schema: StoreSchema<R, any>, snapshot: RoomSnapshot | TLStoreSnapshot_2): void;
+
+// @internal (undocumented)
+export interface MinimalDocStore<R extends UnknownRecord> {
+    // (undocumented)
+    delete(id: string): void;
+    // (undocumented)
+    get(id: string): undefined | UnknownRecord;
+    // (undocumented)
+    set(id: string, record: R): void;
 }
 
 // @internal
@@ -116,6 +166,18 @@ export interface PersistedRoomSnapshotForSupabase {
     id: string;
     // (undocumented)
     slug: string;
+}
+
+// @internal (undocumented)
+export class PresenceStore<R extends UnknownRecord> implements MinimalDocStore<R> {
+    // (undocumented)
+    delete(id: string): void;
+    // (undocumented)
+    get(id: string): undefined | UnknownRecord;
+    // (undocumented)
+    set(id: string, state: R): void;
+    // (undocumented)
+    values(): Generator<R, undefined, unknown>;
 }
 
 // @internal
@@ -158,6 +220,7 @@ export type RoomSession<R extends UnknownRecord, Meta> = (RoomSessionBase<R, Met
     serializedSchema: SerializedSchema;
     debounceTimer: null | ReturnType<typeof setTimeout>;
     lastInteractionTime: number;
+    requiresDownMigrations: boolean;
 });
 
 // @internal
@@ -183,7 +246,7 @@ export type RoomSessionState = (typeof RoomSessionState)[keyof typeof RoomSessio
 
 // @public
 export interface RoomSnapshot {
-    clock: number;
+    clock?: number;
     documentClock?: number;
     documents: Array<{
         lastChangedClock: number;
@@ -194,7 +257,7 @@ export interface RoomSnapshot {
     tombstones?: Record<string, number>;
 }
 
-// @public
+// @public @deprecated
 export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
     delete(recordOrId: R | string): void;
     get(id: string): null | R;
@@ -292,41 +355,16 @@ export type TLSocketClientSentEvent<R extends UnknownRecord> = TLConnectRequest 
 
 // @public
 export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta = void> {
-    constructor(opts: {
-        onPresenceChange?(): void;
-        clientTimeout?: number;
-        initialSnapshot?: RoomSnapshot | TLStoreSnapshot;
-        log?: TLSyncLog;
-        onAfterReceiveMessage?: (args: {
-            message: TLSocketServerSentEvent<R>;
-            meta: SessionMeta;
-            sessionId: string;
-            stringified: string;
-        }) => void;
-        onBeforeSendMessage?: (args: {
-            message: TLSocketServerSentEvent<R>;
-            meta: SessionMeta;
-            sessionId: string;
-            stringified: string;
-        }) => void;
-        onDataChange?(): void;
-        onSessionRemoved?: (room: TLSocketRoom<R, SessionMeta>, args: {
-            meta: SessionMeta;
-            numSessionsRemaining: number;
-            sessionId: string;
-        }) => void;
-        schema?: StoreSchema<R, any>;
-    });
+    constructor(opts: TLSocketRoomOptions<R, SessionMeta>);
     close(): void;
     closeSession(sessionId: string, fatalReason?: string | TLSyncErrorCloseEventReason): void;
     getCurrentDocumentClock(): number;
-    // @internal
-    getCurrentSerializedSnapshot(): string;
+    // @deprecated
     getCurrentSnapshot(): RoomSnapshot;
     getNumActiveSessions(): number;
     // @internal
     getPresenceRecords(): Record<string, UnknownRecord>;
-    getRecord(id: string): R | undefined;
+    getRecord(id: string): R;
     getSessions(): Array<{
         isConnected: boolean;
         isReadonly: boolean;
@@ -348,33 +386,50 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     // (undocumented)
     readonly log?: TLSyncLog;
     // (undocumented)
-    readonly opts: {
-        onPresenceChange?(): void;
-        clientTimeout?: number;
-        initialSnapshot?: RoomSnapshot | TLStoreSnapshot;
-        log?: TLSyncLog;
-        onAfterReceiveMessage?: (args: {
-            message: TLSocketServerSentEvent<R>;
-            meta: SessionMeta;
-            sessionId: string;
-            stringified: string;
-        }) => void;
-        onBeforeSendMessage?: (args: {
-            message: TLSocketServerSentEvent<R>;
-            meta: SessionMeta;
-            sessionId: string;
-            stringified: string;
-        }) => void;
-        onDataChange?(): void;
-        onSessionRemoved?: (room: TLSocketRoom<R, SessionMeta>, args: {
-            meta: SessionMeta;
-            numSessionsRemaining: number;
-            sessionId: string;
-        }) => void;
-        schema?: StoreSchema<R, any>;
-    };
+    readonly opts: TLSocketRoomOptions<R, SessionMeta>;
     sendCustomMessage(sessionId: string, data: any): void;
+    // (undocumented)
+    storage: TLSyncStorage<R>;
+    // @deprecated
     updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
+}
+
+// @public
+export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
+    // (undocumented)
+    clientTimeout?: number;
+    // @deprecated (undocumented)
+    initialSnapshot?: RoomSnapshot | TLStoreSnapshot;
+    // (undocumented)
+    log?: TLSyncLog;
+    // (undocumented)
+    onAfterReceiveMessage?: (args: {
+        message: TLSocketServerSentEvent<R>;
+        meta: SessionMeta;
+        sessionId: string;
+        stringified: string;
+    }) => void;
+    // (undocumented)
+    onBeforeSendMessage?: (args: {
+        message: TLSocketServerSentEvent<R>;
+        meta: SessionMeta;
+        sessionId: string;
+        stringified: string;
+    }) => void;
+    // @deprecated (undocumented)
+    onDataChange?(): void;
+    // @internal (undocumented)
+    onPresenceChange?(): void;
+    // (undocumented)
+    onSessionRemoved?: (room: TLSocketRoom<R, SessionMeta>, args: {
+        meta: SessionMeta;
+        numSessionsRemaining: number;
+        sessionId: string;
+    }) => void;
+    // (undocumented)
+    schema?: StoreSchema<R, any>;
+    // (undocumented)
+    storage?: TLSyncStorage<R>;
 }
 
 // @internal
@@ -475,6 +530,14 @@ export const TLSyncErrorCloseEventReason: {
 export type TLSyncErrorCloseEventReason = (typeof TLSyncErrorCloseEventReason)[keyof typeof TLSyncErrorCloseEventReason];
 
 // @public
+export interface TLSyncForwardDiff<R extends UnknownRecord> {
+    // (undocumented)
+    deletes: string[];
+    // (undocumented)
+    puts: Record<string, [before: R, after: R] | R>;
+}
+
+// @public
 export interface TLSyncLog {
     error?(...args: any[]): void;
     warn?(...args: any[]): void;
@@ -484,22 +547,11 @@ export interface TLSyncLog {
 export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     constructor(opts: {
         log?: TLSyncLog;
-        onDataChange?(): void;
         onPresenceChange?(): void;
         schema: StoreSchema<R, any>;
-        snapshot?: RoomSnapshot;
+        storage: TLSyncStorage<R>;
     });
-    broadcastPatch(message: {
-        diff: NetworkDiff<R>;
-        sourceSessionId?: string;
-    }): this;
-    // (undocumented)
-    clock: number;
     close(): void;
-    // (undocumented)
-    documentClock: number;
-    // (undocumented)
-    documents: AtomMap<string, DocumentState<R>>;
     // (undocumented)
     readonly documentTypes: Set<string>;
     // (undocumented)
@@ -513,7 +565,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     // (undocumented)
     _flushDataMessages(sessionId: string): void;
     getCanEmitStringAppend(): boolean;
-    getSnapshot(): RoomSnapshot;
     handleClose(sessionId: string): void;
     handleMessage(sessionId: string, message: TLSocketClientSentEvent<R>): Promise<void>;
     handleNewSession(opts: {
@@ -522,7 +573,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         sessionId: string;
         socket: TLRoomSocket<R>;
     }): this;
+    // (undocumented)
+    readonly internalTxnId = "TLSyncRoom.txn";
     isClosed(): boolean;
+    // (undocumented)
+    readonly presenceStore: PresenceStore<R>;
     // (undocumented)
     readonly presenceType: null | RecordType<R, any>;
     // (undocumented)
@@ -535,11 +590,60 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     readonly serializedSchema: SerializedSchema;
     // (undocumented)
     readonly sessions: Map<string, RoomSession<R, SessionMeta>>;
+}
+
+// @public
+export interface TLSyncStorage<R extends UnknownRecord> {
     // (undocumented)
-    tombstoneHistoryStartsAtClock: number;
+    getClock(): number;
     // (undocumented)
-    tombstones: AtomMap<string, number>;
-    updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
+    getSnapshot?(): RoomSnapshot;
+    // (undocumented)
+    onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void;
+    // (undocumented)
+    transaction<T>(callback: (txn: TLSyncStorageTransaction<R>) => T extends Promise<any> ? TRANSACTION_CALLBACK_MUST_BE_SYNC : T, opts?: TLSyncStorageTransactionOptions): TLSyncStorageTransactionResult<T, R>;
+}
+
+// @public
+export interface TLSyncStorageGetChangesSinceResult<R extends UnknownRecord> {
+    diff: TLSyncForwardDiff<R>;
+    wipeAll: boolean;
+}
+
+// @public
+export interface TLSyncStorageOnChangeCallbackProps {
+    // (undocumented)
+    documentClock: number;
+    id?: string;
+}
+
+// @public
+export interface TLSyncStorageTransaction<R extends UnknownRecord> extends SynchronousStorage<R> {
+    getChangesSince(sinceClock: number): TLSyncStorageGetChangesSinceResult<R> | undefined;
+    getClock(): number;
+}
+
+// @public
+export interface TLSyncStorageTransactionOptions {
+    emitChanges?: 'always' | 'when-different';
+    id?: string;
+}
+
+// @public
+export interface TLSyncStorageTransactionResult<T, R extends UnknownRecord = UnknownRecord> {
+    changes?: TLSyncForwardDiff<R>;
+    // (undocumented)
+    didChange: boolean;
+    // (undocumented)
+    documentClock: number;
+    // (undocumented)
+    result: T;
+}
+
+// @public
+export interface TRANSACTION_CALLBACK_MUST_BE_SYNC {
+    // (undocumented)
+    __error: 'Transaction callbacks cannot be async. Use synchronous operations only.';
 }
 
 // @internal

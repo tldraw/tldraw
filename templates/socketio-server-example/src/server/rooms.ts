@@ -80,6 +80,7 @@ setInterval(() => {
 			// persist room
 			roomState.needsPersist = false
 			console.log('saving snapshot', roomState.id)
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			saveSnapshot(roomState.id, roomState.room.getCurrentSnapshot())
 		}
 		if (roomState.room.isClosed()) {
