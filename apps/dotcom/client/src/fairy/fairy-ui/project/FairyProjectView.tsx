@@ -16,7 +16,6 @@ import { useFairyApp } from '../../fairy-app/FairyAppProvider'
 import { getRandomNoInputMessage } from '../../fairy-helpers/getRandomNoInputMessage'
 import { fairyMessages } from '../../fairy-messages'
 import { FairyProjectChatContent } from '../chat/FairyProjectChatContent'
-import { useFairySelection } from '../hud/useFairySelection'
 
 interface FairyProjectViewProps {
 	editor: Editor
@@ -37,8 +36,6 @@ export function FairyProjectView({
 	const trackEvent = useTldrawAppUiEvents()
 	const [inputValue, setInputValue] = useState('')
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
-	
-	useFairySelection(agents)
 
 	// Determine the project state
 	const project = useValue('project', () => orchestratorAgent?.getProject() ?? null, [

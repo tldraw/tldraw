@@ -73,21 +73,16 @@ interface FeedItem {
 }
 
 interface FairyFeedItemProps {
-	orchestratorAgent: FairyAgent | null
+	agent: FairyAgent
 	agentName: string
 	timestamp: number
 	description: string
 }
-const FairyFeedItem = ({
-	orchestratorAgent,
-	agentName,
-	timestamp,
-	description,
-}: FairyFeedItemProps) => {
+const FairyFeedItem = ({ agent, agentName, timestamp, description }: FairyFeedItemProps) => {
 	return (
 		<div className="fairy-feed-view-item">
 			<div className="fairy-feed-avatar">
-				<FairyMiniAvatar agent={orchestratorAgent ?? undefined} />
+				<FairyMiniAvatar agent={agent} />
 			</div>
 			<div>
 				<div className="fairy-feed-view-item-header">
@@ -106,14 +101,14 @@ const FairyFeedItem = ({
 }
 
 interface FairyFeedThreadRootProps {
-	orchestratorAgent: FairyAgent | null
+	agent: FairyAgent
 	agentName: string
 	timestamp: number
 	description: string
 	children?: ReactNode
 }
 const FairyFeedThreadRoot = ({
-	orchestratorAgent,
+	agent,
 	agentName,
 	timestamp,
 	description,
@@ -126,7 +121,7 @@ const FairyFeedThreadRoot = ({
 			</div>
 			<div className="fairy-feed-thread-content">
 				<FairyFeedItem
-					orchestratorAgent={orchestratorAgent}
+					agent={agent}
 					agentName={agentName}
 					timestamp={timestamp}
 					description={description}
@@ -137,15 +132,10 @@ const FairyFeedThreadRoot = ({
 	)
 }
 
-const FairyFeedThreadReply = ({
-	orchestratorAgent,
-	agentName,
-	timestamp,
-	description,
-}: FairyFeedItemProps) => {
+const FairyFeedThreadReply = ({ agent, agentName, timestamp, description }: FairyFeedItemProps) => {
 	return (
 		<FairyFeedItem
-			orchestratorAgent={orchestratorAgent}
+			agent={agent}
 			agentName={agentName}
 			timestamp={timestamp}
 			description={description}
@@ -323,7 +313,7 @@ export function FairyFeedView({ orchestratorAgent, agents }: FairyFeedViewItem) 
 							// Thread root with replies
 							<>
 								<FairyFeedThreadRoot
-									orchestratorAgent={orchestratorAgent}
+									agent={item.agent}
 									agentName={item.agentName}
 									timestamp={item.timestamp}
 									description={item.description}
@@ -331,7 +321,7 @@ export function FairyFeedView({ orchestratorAgent, agents }: FairyFeedViewItem) 
 								{replies.map((reply) => (
 									<FairyFeedThreadReply
 										key={reply.id}
-										orchestratorAgent={orchestratorAgent}
+										agent={reply.agent}
 										agentName={reply.agentName}
 										timestamp={reply.timestamp}
 										description={reply.description}
@@ -341,7 +331,7 @@ export function FairyFeedView({ orchestratorAgent, agents }: FairyFeedViewItem) 
 						) : (
 							// Regular item (no thread)
 							<FairyFeedItem
-								orchestratorAgent={orchestratorAgent}
+								agent={item.agent}
 								agentName={item.agentName}
 								timestamp={item.timestamp}
 								description={item.description}
