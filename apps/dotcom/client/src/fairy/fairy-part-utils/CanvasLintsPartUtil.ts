@@ -6,6 +6,10 @@ import {
 	TLShape,
 	getArrowBindings,
 	intersectPolygonPolygon,
+	linesIntersect,
+	pointInPolygon,
+	polygonIntersectsPolyline,
+	polygonsIntersect,
 } from 'tldraw'
 import { PromptPartUtil } from './PromptPartUtil'
 
@@ -130,6 +134,30 @@ function getOverlappingTextLints(
 		}
 	}
 
+	// Check if text shapes intersect the edge of geo shapes
+	const textShapes = shapesInRequestBounds.filter((shape) => shape.type === 'text')
+	const geoShapes = shapesInRequestBounds.filter((shape) => shape.type === 'geo')
+
+	for (const textShape of textShapes) {
+		for (const geoShape of geoShapes) {
+			if (textShapeIntersectsGeoEdge(editor, textShape, geoShape)) {
+				// Check if we already have a lint for these shapes
+				const existingLint = lints.find(
+					(lint) =>
+						lint.type === 'overlapping-text' &&
+						lint.shapeIds.includes(textShape.id) &&
+						lint.shapeIds.includes(geoShape.id)
+				)
+				if (!existingLint) {
+					lints.push({
+						type: 'overlapping-text',
+						shapeIds: [textShape.id, geoShape.id],
+					})
+				}
+			}
+		}
+	}
+
 	return lints
 }
 
@@ -189,4 +217,98 @@ function shapesOverlap(editor: Editor, shapeA: TLShape, shapeB: TLShape): boolea
 	// Check if shape B's geometry overlaps with the transformed polygon
 	const geometryB = editor.getShapeGeometry(shapeB)
 	return geometryB.overlapsPolygon(polygonAInShapeBSpace)
+}
+
+function textShapeIntersectsGeoEdge(
+	editor: Editor,
+	textShape: TLShape,
+	geoShape: TLShape
+): boolean {
+	// Quick bounds check first for early exit
+	const textBounds = editor.getShapePageBounds(textShape)
+	const geoBounds = editor.getShapePageBounds(geoShape)
+	if (!textBounds || !geoBounds || !Box.Collides(textBounds, geoBounds)) {
+		return false
+	}
+
+	// Get text shape geometry in page space
+	const textGeometry = editor.getShapeGeometry(textShape)
+	const textPageTransform = editor.getShapePageTransform(textShape)
+	const textVertices = textPageTransform.applyToPoints(textGeometry.vertices)
+
+	// Get clip path if it exists for text shape
+	const textShapeUtil = editor.getShapeUtil(textShape.type)
+	const textClipPath = textShapeUtil.getClipPath?.(textShape)
+	const textPolygon = textClipPath
+		? intersectPolygonPolygon(textPageTransform.applyToPoints(textClipPath), textVertices)
+		: textVertices
+
+	if (!textPolygon || textPolygon.length === 0) {
+		return false
+	}
+
+	// Get geo shape geometry in page space
+	const geoGeometry = editor.getShapeGeometry(geoShape)
+	const geoPageTransform = editor.getShapePageTransform(geoShape)
+	const geoVertices = geoPageTransform.applyToPoints(geoGeometry.vertices)
+
+	// Get clip path if it exists for geo shape
+	const geoShapeUtil = editor.getShapeUtil(geoShape.type)
+	const geoClipPath = geoShapeUtil.getClipPath?.(geoShape)
+	const geoPolygon = geoClipPath
+		? intersectPolygonPolygon(geoPageTransform.applyToPoints(geoClipPath), geoVertices)
+		: geoVertices
+
+	if (!geoPolygon || geoPolygon.length === 0) {
+		return false
+	}
+
+	// Check if text shape intersects the geo shape's edge
+	// This means they intersect but the text shape is not fully contained inside
+	const textIsClosed = textGeometry.isClosed
+	const geoIsClosed = geoGeometry.isClosed
+
+	// Geo shapes are typically closed, so handle that case first
+	if (geoIsClosed) {
+		// Check if text shape intersects the geo shape's boundary
+		let edgesIntersect = false
+		if (textIsClosed) {
+			// Both are closed polygons - check if their edges intersect
+			edgesIntersect = polygonsIntersect(textPolygon, geoPolygon)
+		} else {
+			// Text is open (polyline), geo is closed - check if text intersects geo's boundary
+			edgesIntersect = polygonIntersectsPolyline(geoPolygon, textPolygon)
+		}
+
+		if (!edgesIntersect) {
+			return false
+		}
+
+		// Check if text shape is NOT fully contained inside geo shape
+		// If all vertices are inside, it's fully contained (not intersecting edge)
+		const allVerticesInside = textPolygon.every((vertex) => pointInPolygon(vertex, geoPolygon))
+		if (allVerticesInside) {
+			return false // Fully contained, not intersecting edge
+		}
+
+		return true
+	} else {
+		// Geo shape is open (unlikely but handle it)
+		// Check if any line segments intersect
+		if (textIsClosed) {
+			return polygonIntersectsPolyline(textPolygon, geoPolygon)
+		} else {
+			// Both are open - check if any segments intersect
+			for (let i = 0; i < textPolygon.length - 1; i++) {
+				for (let j = 0; j < geoPolygon.length - 1; j++) {
+					if (
+						linesIntersect(textPolygon[i], textPolygon[i + 1], geoPolygon[j], geoPolygon[j + 1])
+					) {
+						return true
+					}
+				}
+			}
+			return false
+		}
+	}
 }

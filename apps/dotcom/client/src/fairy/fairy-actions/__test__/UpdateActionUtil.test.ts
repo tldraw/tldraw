@@ -226,6 +226,7 @@ describe('UpdateActionUtil', () => {
 					text: 'Updated text',
 					anchor: 'center',
 					color: 'black',
+					maxWidth: null,
 					note: '',
 					x: 0,
 					y: 0,
