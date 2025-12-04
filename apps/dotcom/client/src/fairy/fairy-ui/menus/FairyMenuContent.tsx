@@ -13,7 +13,7 @@ import { useMsg } from '../../../tla/utils/i18n'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { useFairyApp } from '../../fairy-app/FairyAppProvider'
 import { fairyMessages } from '../../fairy-messages'
-import { FairyCustomizeDialog } from '../customize/FairyCustomizeDialog'
+import { FairyConfigurationDialog } from '../configuration/FairyConfigurationDialog'
 
 export type FairyMenuSource = 'canvas' | 'sidebar' | 'chat'
 
@@ -93,17 +93,17 @@ export function FairyMenuContent({
 		}
 	}, [onlyAgent, isFollowing, trackEvent])
 
-	const customizeFairy = useCallback(
+	const configureFairy = useCallback(
 		(agent: FairyAgent) => {
-			trackEvent('fairy-customize', { source: 'fairy-panel', fairyId: agent.id })
+			trackEvent('fairy-configure', { source: 'fairy-panel', fairyId: agent.id })
 			addDialog({
-				component: ({ onClose }) => <FairyCustomizeDialog agent={agent} onClose={onClose} />,
+				component: ({ onClose }) => <FairyConfigurationDialog agent={agent} onClose={onClose} />,
 			})
 		},
 		[addDialog, trackEvent]
 	)
 
-	const customizeFairyLabel = useMsg(fairyMessages.customizeFairy)
+	const configureFairyLabel = useMsg(fairyMessages.configureFairy)
 
 	const goToFairyLabel = useMsg(fairyMessages.goToFairy)
 	const summonFairyLabel = useMsg(fairyMessages.summonFairy)
@@ -282,8 +282,8 @@ export function FairyMenuContent({
 				{onlyAgent && (
 					<TldrawUiMenuItem
 						id="customize-fairy"
-						onSelect={() => customizeFairy(onlyAgent)}
-						label={customizeFairyLabel}
+						onSelect={() => configureFairy(onlyAgent)}
+						label={configureFairyLabel}
 					/>
 				)}
 			</TldrawUiMenuGroup>

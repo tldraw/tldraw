@@ -5,9 +5,11 @@ export function FairyHatSpritePart({
 	hatType = 'default',
 	offsetX = 0,
 	offsetY = 0,
+	rotate = 0,
 }: FairySpriteProps & {
 	offsetX?: number
 	offsetY?: number
+	rotate?: number
 }) {
 	switch (hatType) {
 		case 'bald': {
@@ -22,6 +24,7 @@ export function FairyHatSpritePart({
 					strokeWidth="5"
 					strokeLinecap="round"
 					strokeLinejoin="round"
+					transform={`translate(${offsetX} ${offsetY}) rotate(${rotate}, 53, 22)`}
 				/>
 			)
 		}
@@ -34,6 +37,7 @@ export function FairyHatSpritePart({
 					strokeWidth="5"
 					strokeLinecap="round"
 					strokeLinejoin="round"
+					transform={`translate(${offsetX} ${offsetY}) rotate(${rotate}, 53, 22)`}
 				/>
 			)
 		}
@@ -46,6 +50,7 @@ export function FairyHatSpritePart({
 					strokeWidth="5"
 					strokeLinecap="round"
 					strokeLinejoin="round"
+					transform={`translate(${offsetX} ${offsetY}) rotate(${rotate}, 53, 22)`}
 				/>
 			)
 		}
@@ -58,6 +63,7 @@ export function FairyHatSpritePart({
 					strokeWidth="5"
 					strokeLinecap="round"
 					strokeLinejoin="round"
+					transform={`translate(${offsetX} ${offsetY}) rotate(${rotate}, 53, 22)`}
 				/>
 			)
 		}
@@ -69,6 +75,7 @@ export function FairyHatSpritePart({
 					strokeWidth="5"
 					strokeLinecap="round"
 					strokeLinejoin="round"
+					transform={`translate(${offsetX} ${offsetY}) rotate(${rotate}, 53, 22)`}
 				>
 					<path d="M26.2091 23.8994C26.6818 14.6049 43.98 20.6773 43.98 20.6773L38.2829 32.7287C38.2829 32.7287 25.7365 33.1939 26.2091 23.8994Z" />
 					<path d="M84.2362 24.024C82.9759 13.6267 62.9306 21.7472 62.9306 21.7472L68.6277 33.7987C68.6277 33.7987 85.4964 34.4214 84.2362 24.024Z" />
@@ -83,7 +90,7 @@ export function FairyHatSpritePart({
 					stroke="var(--tl-color-fairy-dark)"
 					strokeWidth="5"
 					strokeLinejoin="round"
-					transform={`translate(${offsetX} ${offsetY})`}
+					transform={`translate(${offsetX} ${offsetY}) rotate(${rotate}, 53, 22)`}
 				/>
 			)
 		}

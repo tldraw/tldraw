@@ -1,5 +1,6 @@
 import { FairyBodySpritePart } from './parts/FairyBodySpritePart'
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
+import { FairyLegsSpritePart } from './parts/FairyLegsSpritePart'
 import { FairySpriteProps } from './sprite-types'
 
 export function ThinkingSprite(props: FairySpriteProps) {
@@ -11,6 +12,7 @@ export function ThinkingSprite(props: FairySpriteProps) {
 				strokeWidth="6"
 				strokeLinecap="round"
 			/>
+			<FairyLegsSpritePart {...props} />
 			<FairyBodySpritePart {...props} />
 			<FairyHatSpritePart {...props} offsetX={0} offsetY={1} />
 			<circle

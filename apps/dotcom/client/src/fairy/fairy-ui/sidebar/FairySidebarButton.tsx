@@ -37,8 +37,8 @@ export function FairySidebarButton({
 		[agent]
 	)
 
-	const fairyHatColor = useValue('fairy hat color', () => agent.getConfig()?.hatColor, [agent])
-	const fairyHat = useValue('fairy hat', () => agent.getConfig()?.hat, [agent])
+	const fairyConfig = useValue('fairy config', () => agent.getConfig(), [agent])
+
 	const fairyEntity = useValue('fairy entity', () => agent.getEntity(), [agent])
 	const project = useValue('current-project', () => agent.getProject(), [agent])
 	const isSleeping = useValue('is-sleeping', () => agent.mode.getMode() === 'sleeping', [agent])
@@ -55,7 +55,9 @@ export function FairySidebarButton({
 		agent.updateEntity((f) => (f ? { ...f, isSelected: !f.isSelected } : f))
 	}, [agent])
 
-	if (!fairyEntity || !fairyHat || !fairyHatColor) return null
+	if (!fairyEntity || !fairyConfig) return null
+
+	const { hatColor, hat, legLength } = fairyConfig
 
 	const showPlusButton =
 		hasAnySelectedFairies &&
@@ -81,15 +83,15 @@ export function FairySidebarButton({
 					>
 						<div className="fairy-sprite-wrapper">
 							<FairySprite
-								showShadow
 								pose={fairyEntity.pose}
 								gesture={fairyEntity.gesture}
-								hatColor={fairyHatColor}
-								hatType={fairyHat}
+								hatColor={hatColor}
+								hatType={hat}
 								isAnimated={fairyEntity.pose !== 'idle' || fairyIsSelected}
 								flipX={fairyEntity.pose === 'sleeping' ? false : fairyEntity.flipX}
 								isOrchestrator={isOrchestrator}
 								projectColor={projectColor}
+								legLength={legLength}
 							/>
 							{fairyIsSelected && !project && (
 								<div className="fairy-selected-sprite-overlay">

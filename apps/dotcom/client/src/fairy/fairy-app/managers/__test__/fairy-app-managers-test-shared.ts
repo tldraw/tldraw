@@ -53,8 +53,8 @@ export function getDefaultFairyConfig(config: Partial<FairyConfig> = {}): FairyC
 		sign: { sun: 'aries', moon: 'aries', rising: 'aries' },
 		hat: 'default',
 		hatColor: 'pink',
-		legLength: 1,
-		version: 1,
+		legLength: 0.5,
+		version: 2,
 		...config,
 	}
 }

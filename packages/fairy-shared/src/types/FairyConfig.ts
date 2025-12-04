@@ -9,6 +9,10 @@ export const HAT_COLORS = [
 	'gold',
 	'green',
 	'teal',
+	'mint',
+	'sky',
+	'azure',
+	'periwinkle',
 ] as const
 
 export type FairyHatColor = (typeof HAT_COLORS)[number]

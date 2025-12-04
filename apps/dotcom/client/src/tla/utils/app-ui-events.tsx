@@ -93,7 +93,7 @@ export interface TLAppUiEventMap {
 	'fairy-sleep-all': null
 	'fairy-wake': { fairyId: string }
 	// Fairy events - customization
-	'fairy-customize': { fairyId: string }
+	'fairy-configure': { fairyId: string }
 	// Fairy events - chat management
 	'fairy-reset-chat': { fairyId: string }
 	'fairy-reset-all-chats': null

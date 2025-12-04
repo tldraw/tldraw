@@ -16,6 +16,10 @@
 	--tl-color-fairy-gold: #f0c987;
 	--tl-color-fairy-rose: #f5a8c6;
 	--tl-color-fairy-green: #a3d9a5;
+	--tl-color-fairy-mint: #9ee7d5;
+	--tl-color-fairy-sky: #8fd4f5;
+	--tl-color-fairy-azure: #7ec8e3;
+	--tl-color-fairy-periwinkle: #a8b5e0;
 	--tl-color-fairy-white: #ffffff;
 	--tl-color-fairy-lips: #ee7b90;
 	--tl-color-fairy-lips-hover: #d54a63;
@@ -37,6 +41,10 @@
 	--tl-color-fairy-gold: #4d3c20;
 	--tl-color-fairy-rose: #5b2238;
 	--tl-color-fairy-green: #104212;
+	--tl-color-fairy-mint: #1a5c4d;
+	--tl-color-fairy-sky: #1e5a7a;
+	--tl-color-fairy-azure: #1a5570;
+	--tl-color-fairy-periwinkle: #2d3a5e;
 	--tl-color-fairy-white: #ffffff;
 	--tl-color-fairy-lips: #ee7b90;
 	--tl-color-fairy-lips-hover: #d54a63;
@@ -1976,7 +1984,7 @@
 }
 
 /* Fairy Customize Dialog */
-.fairy-customize-dialog-body {
+.fairy-configure-dialog-body {
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
@@ -1984,19 +1992,23 @@
 	min-width: 280px;
 }
 
-.fairy-customize-preview {
+.fairy-configure-preview {
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	padding-bottom: 8px;
 }
 
-.fairy-customize-preview-sprite {
+.fairy-configure-preview-sprite {
 	width: 88px;
 	height: 88px;
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
 }
 
-.fairy-customize-fields {
+.fairy-configure-fields {
 	display: grid;
 	grid-template-columns: auto 1fr;
 	grid-template-rows: 40px;
@@ -2004,18 +2016,18 @@
 	gap: 4px 8px;
 }
 
-.fairy-customize-fields .fairy-customize-input {
+.fairy-configure-fields .fairy-configure-input {
 	position: relative;
 	padding-left: 12px;
 	padding-right: 12px;
 }
 
-.fairy-customize-fields .tlui-input__wrapper {
+.fairy-configure-fields .tlui-input__wrapper {
 	position: relative;
 	height: 100%;
 }
 
-.fairy-customize-fields .tlui-input__wrapper::after {
+.fairy-configure-fields .tlui-input__wrapper::after {
 	content: '';
 	display: block;
 	position: absolute;
@@ -2025,29 +2037,29 @@
 	border: 1px solid var(--tl-color-divider);
 }
 
-.fairy-customize-label {
+.fairy-configure-label {
 	font-size: 12px;
 	font-weight: 500;
 	color: var(--color-text-2);
 }
 
-.fairy-customize-name-row {
+.fairy-configure-name-row {
 	position: relative;
 	display: flex;
 	align-items: center;
 	gap: 0px;
 }
 
-.fairy-customize-input {
+.fairy-configure-input {
 	color: var(--tl-color-text-3);
 }
 
-.fairy-customize-name-row .fairy-customize-input,
-.fairy-customize-name-row .fairy-customize-dropdown-button:nth-of-type(1) {
+.fairy-configure-name-row .fairy-configure-input,
+.fairy-configure-name-row .fairy-configure-dropdown-button:nth-of-type(1) {
 	flex: 1;
 }
 
-.fairy-customize-random-name-button {
+.fairy-configure-random-name-button {
 	position: absolute;
 	right: 0;
 	top: 0;
@@ -2055,18 +2067,18 @@
 	color: var(--tl-color-text-3);
 }
 
-.fairy-customize-random-name-button::after {
+.fairy-configure-random-name-button::after {
 	inset: 8px;
 	border-radius: var(--tl-radius-1);
 }
 
-.fairy-customize-dropdown-content {
+.fairy-configure-dropdown-content {
 	max-height: 240px;
 	overflow-y: auto;
 	z-index: 650;
 }
 
-.fairy-customize-color-swatch {
+.fairy-configure-color-swatch {
 	display: inline-block;
 	width: 15px;
 	height: 15px;
@@ -2074,34 +2086,34 @@
 	flex-shrink: 0;
 }
 
-.fairy-customize-name-row svg {
+.fairy-configure-name-row svg {
 	flex-shrink: 0;
 	width: 14px;
 	height: 14px;
 }
 
-.fairy-customize-hat-row {
+.fairy-configure-hat-row {
 	display: flex;
 	align-items: center;
 }
 
-.fairy-customize-hat-row .tlui-slider__container {
+.fairy-configure-hat-row .tlui-slider__container {
 	flex: 1;
 }
 
-.fairy-customize-hat-row .tlui-slider__range {
+.fairy-configure-hat-row .tlui-slider__range {
 	background-color: var(--tl-color-text-2);
 }
 
-.fairy-customize-leg-row {
+.fairy-configure-leg-row {
 	display: flex;
 	align-items: center;
 }
 
-.fairy-customize-leg-row .tlui-slider__container {
+.fairy-configure-leg-row .tlui-slider__container {
 	flex: 1;
 }
 
-.fairy-customize-leg-row .tlui-slider__range {
+.fairy-configure-leg-row .tlui-slider__range {
 	background-color: var(--tl-color-text-2);
 }

@@ -1,5 +1,6 @@
 import { FairyBodySpritePart } from './parts/FairyBodySpritePart'
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
+import { FairyLegsSpritePart } from './parts/FairyLegsSpritePart'
 import { FairySpriteProps } from './sprite-types'
 
 export function ReadingSprite1(props: FairySpriteProps) {
@@ -23,6 +24,7 @@ function BaseReadingSprite({
 	return (
 		<>
 			<FairyHatSpritePart {...props} />
+			<FairyLegsSpritePart {...props} />
 			<FairyBodySpritePart {...props} />
 			<circle
 				cx="55.4159"

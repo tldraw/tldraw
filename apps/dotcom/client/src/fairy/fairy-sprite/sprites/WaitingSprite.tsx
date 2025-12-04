@@ -1,5 +1,6 @@
 import { FairyBodySpritePart } from './parts/FairyBodySpritePart'
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
+import { FairyLegsSpritePart } from './parts/FairyLegsSpritePart'
 import { FairySpriteProps } from './sprite-types'
 
 export function ReviewingSprite1(props: FairySpriteProps) {
@@ -44,6 +45,7 @@ export function WaitingSpriteBase({
 }) {
 	return (
 		<>
+			<FairyLegsSpritePart {...props} />
 			<FairyBodySpritePart {...props} />
 			<FairyHatSpritePart {...props} offsetX={0} />
 			{/* Head circle */}

@@ -8,8 +8,9 @@ export function SoaringSprite(props: FairySpriteProps) {
 	const { bodyColor, tint, legLength } = props
 
 	const legScale = 0.5 + legLength * 0.5
-	const leftDashOffset = LEFT_LEG_LENGTH * (1 - legScale)
-	const rightDashOffset = RIGHT_LEG_LENGTH * (1 - legScale * 0.96)
+	// Negative offset because paths are drawn from foot to body (opposite of FairyLegsSpritePart)
+	const leftDashOffset = -LEFT_LEG_LENGTH * (1 - legScale)
+	const rightDashOffset = -RIGHT_LEG_LENGTH * (1 - legScale)
 
 	return (
 		<g transform="translate(1 0)">
@@ -53,7 +54,7 @@ export function SoaringSprite(props: FairySpriteProps) {
 				strokeWidth="5.19231"
 			/>
 			{/* Hat */}
-			<FairyHatSpritePart {...props} offsetX={3.0985} />
+			<FairyHatSpritePart {...props} offsetX={2} offsetY={2} rotate={-10} />
 			{/* Head circle */}
 			<circle
 				cx="58.51440"

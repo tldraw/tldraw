@@ -5,6 +5,8 @@ import {
 	LoweredWingsSprite1,
 	LoweredWingsSprite2,
 	LoweredWingsSprite3,
+	SoaringWingsSprite1,
+	SoaringWingsSprite2,
 } from './sprites/parts/WingsSprite'
 
 import { PanickingSprite1, PanickingSprite2 } from './sprites/PanickingSprite'
@@ -48,7 +50,7 @@ const WING_SPRITES: Record<FairyPose, ComponentType<WingSpriteProps>[]> = {
 	sleeping: [LoweredWingsSprite1],
 	panicking: FLAPPING_HIGH,
 	reviewing: FLAPPING_HIGH,
-	soaring: [LoweredWingsSprite1],
+	soaring: [SoaringWingsSprite1, SoaringWingsSprite2],
 	poof: [],
 }
 
@@ -78,7 +80,7 @@ const FRAME_DURATIONS: Record<FairyPose, number> = {
 	panicking: 65,
 	waiting: 160,
 	reviewing: 160,
-	soaring: 160,
+	soaring: 80,
 	poof: 100,
 }
 
@@ -95,6 +97,10 @@ const HAT_COLORS: Record<FairyHatColor, string> = {
 	gold: 'var(--tl-color-fairy-gold)',
 	rose: 'var(--tl-color-fairy-rose)',
 	green: 'var(--tl-color-fairy-green)',
+	mint: 'var(--tl-color-fairy-mint)',
+	sky: 'var(--tl-color-fairy-sky)',
+	azure: 'var(--tl-color-fairy-azure)',
+	periwinkle: 'var(--tl-color-fairy-periwinkle)',
 }
 
 function getHatColor(hat: FairyHatColor | null) {
