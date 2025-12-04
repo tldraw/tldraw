@@ -33,7 +33,6 @@ import {
 	structuredClone,
 	TLRecord,
 	uniqueId,
-	Vec,
 	VecModel,
 } from 'tldraw'
 import { FAIRY_WORKER } from '../../utils/config'
@@ -287,42 +286,7 @@ export class FairyAgent {
 		}
 
 		this.onTick = (delta: number) => {
-			const entity = this.$fairyEntity.get()
-			const { velocity, position } = entity
-			const speed = Vec.Len(velocity)
-
-			if (speed < 0.1) {
-				if (this.gesture.hasGestureInStack('soaring')) {
-					this.gesture.clear()
-				}
-			} else if (!this.gesture.hasGestureInStack('soaring')) {
-				this.gesture.push('soaring')
-			}
-
-			if (speed < 0.01) {
-				if (speed !== 0) {
-					this.$fairyEntity.update((entity) => {
-						return {
-							...entity,
-							velocity: { x: 0, y: 0 },
-						}
-					})
-				}
-				return
-			}
-			const dampingFactor = 0.85
-			const scaledDampingFactor = dampingFactor * Math.max(0, 1 - delta / 1000)
-			const newVelocity = Vec.Mul(velocity, scaledDampingFactor)
-
-			const scaledVelocity = Vec.Mul(newVelocity, delta)
-			const newPosition = Vec.Add(position, scaledVelocity)
-			this.$fairyEntity.update((entity) => {
-				return {
-					...entity,
-					position: newPosition,
-					velocity: newVelocity,
-				}
-			})
+			this.position.applyVelocity(delta)
 		}
 
 		editor.addListener('max-shapes', this.handleMaxShapes)

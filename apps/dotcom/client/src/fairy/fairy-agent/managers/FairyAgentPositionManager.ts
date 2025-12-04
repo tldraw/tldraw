@@ -1,4 +1,4 @@
-import { Box, VecModel } from 'tldraw'
+import { Box, Vec, VecModel } from 'tldraw'
 import { AgentHelpers } from '../AgentHelpers'
 import { FairyAgent } from '../FairyAgent'
 import { BaseFairyAgentManager } from './BaseFairyAgentManager'
@@ -199,5 +199,49 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 	 */
 	getFollowingFairyId(): string | null {
 		return this.agent.fairyApp.following.getFollowingFairyId()
+	}
+
+	/**
+	 * Apply the fairy's velocity to the its position for a given time delta.
+	 * @param delta - The time delta to apply the velocity for.
+	 * @returns void
+	 */
+	applyVelocity(delta: number) {
+		const entity = this.agent.getEntity()
+		const { velocity, position } = entity
+		const speed = Vec.Len(velocity)
+
+		if (speed < 0.1) {
+			if (this.agent.gesture.hasGestureInStack('soaring')) {
+				this.agent.gesture.clear()
+			}
+		} else if (!this.agent.gesture.hasGestureInStack('soaring')) {
+			this.agent.gesture.push('soaring')
+		}
+
+		if (speed < 0.01) {
+			if (speed !== 0) {
+				this.agent.updateEntity((entity) => {
+					return {
+						...entity,
+						velocity: { x: 0, y: 0 },
+					}
+				})
+			}
+			return
+		}
+		const dampingFactor = 0.85
+		const scaledDampingFactor = dampingFactor * Math.max(0, 1 - delta / 1000)
+		const newVelocity = Vec.Mul(velocity, scaledDampingFactor)
+
+		const scaledVelocity = Vec.Mul(newVelocity, delta)
+		const newPosition = Vec.Add(position, scaledVelocity)
+		this.agent.updateEntity((entity) => {
+			return {
+				...entity,
+				position: newPosition,
+				velocity: newVelocity,
+			}
+		})
 	}
 }
