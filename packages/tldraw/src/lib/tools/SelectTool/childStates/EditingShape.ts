@@ -21,6 +21,21 @@ export class EditingShape extends StateNode {
 	hitShapeForPointerUp: TLShape | null = null
 	private info = {} as EditingShapeInfo
 
+	private isTextInputFocused(): boolean {
+		const container = this.editor.getContainer()
+		return (
+			container.contains(document.activeElement) &&
+			(document.activeElement?.nodeName === 'TEXTAREA' ||
+				(document.activeElement as HTMLElement)?.isContentEditable)
+		)
+	}
+
+	private transitionToTranslating(info: TLPointerEventInfo): void {
+		this.editor.select(this.hitShapeForPointerUp!)
+		this.parent.transition('translating', info)
+		this.hitShapeForPointerUp = null
+	}
+
 	override onEnter(info: EditingShapeInfo) {
 		const editingShape = this.editor.getEditingShape()
 		if (!editingShape) throw Error('Entered editing state without an editing shape')
@@ -57,9 +72,23 @@ export class EditingShape extends StateNode {
 		if (this.hitShapeForPointerUp && this.editor.inputs.isDragging) {
 			if (this.editor.getIsReadonly()) return
 			if (this.hitShapeForPointerUp.isLocked) return
-			this.editor.select(this.hitShapeForPointerUp)
-			this.parent.transition('translating', info)
-			this.hitShapeForPointerUp = null
+
+			const editingShape = this.editor.getEditingShape()
+
+			// Check if dragging from the shape we're currently editing
+			if (editingShape && this.hitShapeForPointerUp.id === editingShape.id) {
+				if (!this.isTextInputFocused()) {
+					// Input blurred during drag - exit edit mode and start translating
+					this.transitionToTranslating(info)
+					return
+				}
+				// Input still focused - user is selecting text, stay in edit mode
+				this.hitShapeForPointerUp = null
+				return
+			}
+
+			// Dragging from different shape's label - start translating (existing behavior)
+			this.transitionToTranslating(info)
 			return
 		}
 
@@ -120,7 +149,8 @@ export class EditingShape extends StateNode {
 					) {
 						// it's a hit to the label!
 						if (selectingShape.id === editingShape.id) {
-							// If we clicked on the editing geo / arrow shape's label, do nothing
+							// Track click on editing shape's label for drag detection
+							this.hitShapeForPointerUp = selectingShape
 							return
 						} else {
 							this.hitShapeForPointerUp = selectingShape
@@ -161,6 +191,13 @@ export class EditingShape extends StateNode {
 		if (!hitShape) return
 		this.hitShapeForPointerUp = null
 
+		const currentEditingShape = this.editor.getEditingShape()
+
+		// If clicking same editing shape, let browser handle it naturally
+		if (currentEditingShape && hitShape.id === currentEditingShape.id) {
+			return
+		}
+
 		// Stay in edit mode to maintain flow of editing.
 		const util = this.editor.getShapeUtil(hitShape)
 		if (hitShape.isLocked) return
@@ -174,7 +211,6 @@ export class EditingShape extends StateNode {
 
 		this.editor.select(hitShape.id)
 
-		const currentEditingShape = this.editor.getEditingShape()
 		const isEditToEditAction = currentEditingShape && currentEditingShape.id !== hitShape.id
 		this.editor.setEditingShape(hitShape.id)
 
