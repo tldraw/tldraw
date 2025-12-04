@@ -62,6 +62,7 @@ describe('FairyAppPersistenceManager', () => {
 					[agentId]: {
 						fairyEntity: {
 							position: { x: 0, y: 0 },
+							velocity: { x: 0, y: 0 },
 							flipX: false,
 							isSelected: false,
 							pose: 'idle',
@@ -156,6 +157,7 @@ describe('FairyAppPersistenceManager', () => {
 					[agents[0]!.id]: {
 						fairyEntity: {
 							position: { x: 0, y: 0 },
+							velocity: { x: 0, y: 0 },
 							flipX: false,
 							isSelected: false,
 							pose: 'idle',
@@ -228,6 +230,7 @@ describe('FairyAppPersistenceManager', () => {
 			vi.spyOn(agent, 'serializeState').mockReturnValue({
 				fairyEntity: {
 					position: { x: 0, y: 0 },
+					velocity: { x: 0, y: 0 },
 					flipX: false,
 					isSelected: false,
 					pose: 'idle',

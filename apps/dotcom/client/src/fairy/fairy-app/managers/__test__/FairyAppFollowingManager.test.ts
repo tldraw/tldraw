@@ -54,6 +54,7 @@ describe('FairyAppFollowingManager', () => {
 			// Mock the agent's getEntity to return valid entity
 			vi.spyOn(agents[0]!, 'getEntity').mockReturnValue({
 				position: { x: 0, y: 0 },
+				velocity: { x: 0, y: 0 },
 				flipX: false,
 				isSelected: false,
 				pose: 'idle' as const,
@@ -79,6 +80,7 @@ describe('FairyAppFollowingManager', () => {
 			// Mock the agent's getEntity to return valid entity
 			vi.spyOn(agents[0]!, 'getEntity').mockReturnValue({
 				position: { x: 0, y: 0 },
+				velocity: { x: 0, y: 0 },
 				flipX: false,
 				isSelected: false,
 				pose: 'idle' as const,
@@ -121,6 +123,7 @@ describe('FairyAppFollowingManager', () => {
 			// Mock both agents
 			vi.spyOn(agents[0]!, 'getEntity').mockReturnValue({
 				position: { x: 0, y: 0 },
+				velocity: { x: 0, y: 0 },
 				flipX: false,
 				isSelected: false,
 				pose: 'idle' as const,
@@ -130,6 +133,7 @@ describe('FairyAppFollowingManager', () => {
 
 			vi.spyOn(agents[1]!, 'getEntity').mockReturnValue({
 				position: { x: 100, y: 100 },
+				velocity: { x: 0, y: 0 },
 				flipX: false,
 				isSelected: false,
 				pose: 'idle' as const,
@@ -172,6 +176,7 @@ describe('FairyAppFollowingManager', () => {
 
 			vi.spyOn(agents[0]!, 'getEntity').mockReturnValue({
 				position: { x: 0, y: 0 },
+				velocity: { x: 0, y: 0 },
 				flipX: false,
 				isSelected: false,
 				pose: 'idle' as const,
@@ -204,6 +209,7 @@ describe('FairyAppFollowingManager', () => {
 
 			vi.spyOn(agent, 'getEntity').mockReturnValue({
 				position: { x: 100, y: 200 },
+				velocity: { x: 0, y: 0 },
 				flipX: false,
 				isSelected: false,
 				pose: 'idle' as const,
@@ -232,6 +238,7 @@ describe('FairyAppFollowingManager', () => {
 
 			vi.spyOn(agent, 'getEntity').mockReturnValue({
 				position: { x: 100, y: 200 },
+				velocity: { x: 0, y: 0 },
 				flipX: false,
 				isSelected: false,
 				pose: 'idle' as const,
@@ -274,6 +281,7 @@ describe('FairyAppFollowingManager', () => {
 
 			vi.spyOn(agents[0]!, 'getEntity').mockReturnValue({
 				position: { x: 0, y: 0 },
+				velocity: { x: 0, y: 0 },
 				flipX: false,
 				isSelected: false,
 				pose: 'idle' as const,
@@ -301,6 +309,7 @@ describe('FairyAppFollowingManager', () => {
 
 			vi.spyOn(agents[0]!, 'getEntity').mockReturnValue({
 				position: { x: 0, y: 0 },
+				velocity: { x: 0, y: 0 },
 				flipX: false,
 				isSelected: false,
 				pose: 'idle' as const,

@@ -16,6 +16,7 @@ import {
 import { PoofSprite1, PoofSprite2, PoofSprite3, PoofSprite4 } from './sprites/PoofSprite'
 import { ReadingSprite1, ReadingSprite2, ReadingSprite3 } from './sprites/ReadingSprite'
 import { SleepingSprite } from './sprites/SleepingSprite'
+import { SoaringSprite } from './sprites/SoaringSprite'
 import { FairySpriteProps, WingSpriteProps } from './sprites/sprite-types'
 import { ThinkingSprite } from './sprites/ThinkingSprite'
 import { ReviewingSprite1, ReviewingSprite2, ReviewingSprite3 } from './sprites/WaitingSprite'
@@ -47,6 +48,7 @@ const WING_SPRITES: Record<FairyPose, ComponentType<WingSpriteProps>[]> = {
 	sleeping: [LoweredWingsSprite1],
 	panicking: FLAPPING_HIGH,
 	reviewing: FLAPPING_HIGH,
+	soaring: [LoweredWingsSprite1],
 	poof: [],
 }
 
@@ -61,6 +63,7 @@ const FAIRY_SPRITES_WITH_PROPS: Record<FairyPose, ComponentType<FairySpriteProps
 	waiting: [ReviewingSprite2],
 	panicking: [PanickingSprite1, PanickingSprite2],
 	reviewing: [ReviewingSprite1, ReviewingSprite2, ReviewingSprite3, ReviewingSprite2],
+	soaring: [SoaringSprite],
 	poof: [PoofSprite1, PoofSprite2, PoofSprite3, PoofSprite4],
 }
 
@@ -75,6 +78,7 @@ const FRAME_DURATIONS: Record<FairyPose, number> = {
 	panicking: 65,
 	waiting: 160,
 	reviewing: 160,
+	soaring: 160,
 	poof: 100,
 }
 

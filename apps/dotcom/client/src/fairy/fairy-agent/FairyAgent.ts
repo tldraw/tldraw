@@ -163,6 +163,11 @@ export class FairyAgent {
 	private handleMaxShapes: () => void
 
 	/**
+	 * Handler for the tick event to update the fairy's position.
+	 */
+	private onTick: (delta: number) => void
+
+	/**
 	 * Get the current project that the agent is working on.
 	 */
 	getProject(): FairyProject | null {
@@ -242,6 +247,7 @@ export class FairyAgent {
 			pose: 'sleeping',
 			gesture: null,
 			currentPageId: editor.getCurrentPageId(),
+			velocity: { x: 0, y: 0 },
 		})
 
 		this.$fairyConfig = computed<FairyConfig>(`fairy-config-${id}`, () => {
@@ -283,14 +289,18 @@ export class FairyAgent {
 			if (this.requests.isGenerating()) {
 				this.interrupt({
 					input: {
-						agentMessages: [
-							'Maximum shapes reached. Stop all your work and return to your home in the forest.',
-						],
+						agentMessages: ['Maximum shapes reached. Stop all your work.'],
 					},
 				})
 			}
 		}
+
+		this.onTick = (delta: number) => {
+			this.position.applyVelocity(delta)
+		}
+
 		editor.addListener('max-shapes', this.handleMaxShapes)
+		editor.addListener('tick', this.onTick)
 
 		// Poof on spawn
 		this.gesture.push('poof', 400)
@@ -304,6 +314,7 @@ export class FairyAgent {
 		this.userAction.dispose()
 		this.wakeOnSelectReaction?.()
 		this.editor.removeListener('max-shapes', this.handleMaxShapes)
+		this.editor.removeListener('tick', this.onTick)
 		// Stop following this fairy if it's currently being followed
 		if (this.position.getFollowingFairyId() === this.id) {
 			this.position.stopFollowing()
@@ -347,6 +358,7 @@ export class FairyAgent {
 					currentPageId: state.fairyEntity?.currentPageId ?? entity.currentPageId,
 					isSelected: state.fairyEntity?.isSelected ?? entity.isSelected,
 					pose: state.fairyEntity?.pose ?? entity.pose,
+					velocity: { x: 0, y: 0 },
 					gesture: null,
 				}
 			})

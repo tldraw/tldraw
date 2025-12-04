@@ -81,6 +81,15 @@ export class FairyAgentGestureManager extends BaseFairyAgentManager {
 	}
 
 	/**
+	 * Checks if the given gesture is in the stack.
+	 * @param gesture - The gesture to check for.
+	 * @returns True if the gesture is in the stack, false otherwise.
+	 */
+	hasGestureInStack(gesture: FairyPose): boolean {
+		return this.stack.some((item) => item.gesture === gesture)
+	}
+
+	/**
 	 * Adds a gesture to the stack and immediately displays it. When this gesture completes,
 	 * the next gesture in the stack will be displayed.
 	 *
