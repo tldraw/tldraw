@@ -246,6 +246,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 								outfit: config.outfit,
 								hatColor: config.hatColor,
 								hatType: config.hat,
+								legLength: config.legLength,
 							}
 						})
 						.filter((agent): agent is NonNullable<typeof agent> => agent !== null) ?? []
