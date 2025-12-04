@@ -211,7 +211,7 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 		const { velocity, position } = entity
 		const speed = Vec.Len(velocity)
 
-		if (speed < 0.005) {
+		if (speed < 0.001) {
 			if (this.agent.gesture.hasGestureInStack('soaring')) {
 				this.agent.gesture.clear()
 			}
