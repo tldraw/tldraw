@@ -84,7 +84,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 		}
 	}
 
-	constructor({ snapshot }: { snapshot: RoomSnapshot }) {
+	constructor({ snapshot = DEFAULT_INITIAL_SNAPSHOT }: { snapshot?: RoomSnapshot } = {}) {
 		const maxClockValue = Math.max(
 			0,
 			...Object.values(snapshot.tombstones ?? {}),

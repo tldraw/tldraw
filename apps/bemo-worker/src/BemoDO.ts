@@ -1,5 +1,6 @@
 import { AnalyticsEngineDataset } from '@cloudflare/workers-types'
 import {
+	InMemorySyncStorage,
 	RoomSnapshot,
 	TLSocketRoom,
 	TLSyncErrorCloseEventCode,
@@ -140,9 +141,19 @@ export class BemoDO extends DurableObject<Environment> {
 		const slug = this.getSlug()
 		if (!this._room) {
 			this._room = this.loadFromDatabase(slug).then((result) => {
+				// create the storage layer that holds the document state
+				const storage = new InMemorySyncStorage<TLRecord>({
+					snapshot: result.type === 'room_found' ? result.snapshot : undefined,
+				})
+
+				// when the data changes, we make sure to persist the room
+				storage.onChange(() => {
+					this.triggerPersistSchedule()
+				})
+
 				return new TLSocketRoom<TLRecord, { origin: string }>({
 					schema: makePermissiveSchema(),
-					initialSnapshot: result.type === 'room_found' ? result.snapshot : undefined,
+					storage,
 					onAfterReceiveMessage: ({ sessionId, meta }) => {
 						this.writeEvent({
 							type: 'receive_message',
@@ -169,10 +180,6 @@ export class BemoDO extends DurableObject<Environment> {
 						}
 						this._room = null
 						room.close()
-					},
-					onDataChange: () => {
-						// when we send a message, we make sure to persist the room
-						this.triggerPersistSchedule()
 					},
 				})
 			})
@@ -213,8 +220,7 @@ export class BemoDO extends DurableObject<Environment> {
 				const clock = room.getCurrentDocumentClock()
 				if (this._lastPersistedClock === clock) return
 
-				// eslint-disable-next-line @typescript-eslint/no-deprecated
-				const snapshot = JSON.stringify(room.getCurrentSnapshot())
+				const snapshot = JSON.stringify(room.storage.getSnapshot?.())
 
 				const key = getR2KeyForSlug(slug)
 				await Promise.all([this.r2.put(key, snapshot)])
