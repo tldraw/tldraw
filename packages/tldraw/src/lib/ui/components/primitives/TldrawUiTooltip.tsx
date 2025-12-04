@@ -214,6 +214,8 @@ function TooltipSingleton() {
 			document.removeEventListener('pointerdown', handlePointerDown, { capture: true })
 			document.removeEventListener('pointerup', handlePointerUp, { capture: true })
 			document.removeEventListener('pointercancel', handlePointerUp, { capture: true })
+			// Reset pointer state on unmount to prevent stuck state
+			tooltipManager.setIsPointerDown(false)
 		}
 	}, [])
 
