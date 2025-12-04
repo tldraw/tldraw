@@ -260,7 +260,7 @@ export class FairyAgent {
 					hat: getRandomFairyHat(),
 					hatColor: getRandomFairyHatColor(),
 					legLength: getRandomLegLength(),
-					version: 1,
+					version: 2,
 				} satisfies FairyConfig
 			}
 
