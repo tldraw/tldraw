@@ -224,7 +224,7 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 				})
 			}
 			return
-		} else if (!this.agent.gesture.hasGestureInStack('soaring')) {
+		} else if (!this.agent.gesture.hasGestureInStack('soaring') && speed > 0.2) {
 			this.agent.gesture.push('soaring')
 		}
 		const dampingFactor = 0.85
