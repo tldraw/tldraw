@@ -191,15 +191,14 @@ export function FairyFeedView({ orchestratorAgent, agents }: FairyFeedViewItem) 
 			const seenActionIds = new Set<string>()
 
 			// Second pass: process actions chronologically and track active tasks
-			for (const { agent, agentConfig, historyItem } of rawActions) {
+			for (const { agent, agentConfig, historyItem, timestamp } of rawActions) {
 				const actionItem = historyItem
 				const actionType = actionItem.action._type
 				const actionInfo = agent.actions.getActionInfo(actionItem.action)
 
 				// Generate a unique ID for this action
-				const actionId =
-					actionItem.id ||
-					`action-${agent.id}-${actionItem.timestamp ?? Date.now()}-${Math.random()}`
+				// Use the captured timestamp from first pass to ensure consistency with sort order
+				const actionId = actionItem.id || `action-${agent.id}-${timestamp}-${Math.random()}`
 
 				// Skip if we've already seen this action (deduplication)
 				if (seenActionIds.has(actionId)) {
@@ -249,7 +248,7 @@ export function FairyFeedView({ orchestratorAgent, agents }: FairyFeedViewItem) 
 					actionType,
 					agent,
 					agentName: agentConfig.name,
-					timestamp: actionItem.timestamp ?? Date.now(),
+					timestamp,
 					type: 'action',
 					description,
 					diff: actionItem.diff,
