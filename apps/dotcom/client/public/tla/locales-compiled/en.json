@@ -607,12 +607,6 @@
       "value": "you"
     }
   ],
-  "63a78ed464": [
-    {
-      "type": 0,
-      "value": "Customize"
-    }
-  ],
   "6602bbeb29": [
     {
       "type": 0,
@@ -1723,6 +1717,12 @@
     {
       "type": 0,
       "value": "User settings"
+    }
+  ],
+  "f1206f9fad": [
+    {
+      "type": 0,
+      "value": "Configure"
     }
   ],
   "f2569594b2": [

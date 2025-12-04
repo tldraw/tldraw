@@ -3412,33 +3412,6 @@ export interface TldrawUiProps extends TLUiContextProviderProps {
 export const TldrawUiRow: ForwardRefExoticComponent<TLUiLayoutProps & RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
-export function TldrawUiSelectContent({ children, className, side, sideOffset, align, alignOffset, position, }: TLUiSelectContentProps): JSX_2.Element;
-
-// @public (undocumented)
-export function TldrawUiSelectGroup({ children, className }: TLUiSelectGroupProps): JSX_2.Element;
-
-// @public (undocumented)
-export function TldrawUiSelectIcon({ children, className }: TLUiSelectIconProps): JSX_2.Element;
-
-// @public (undocumented)
-export function TldrawUiSelectItem({ children, value, disabled, className, ['data-testid']: testId, }: TLUiSelectItemProps): JSX_2.Element;
-
-// @public (undocumented)
-export function TldrawUiSelectLabel({ children, className }: TLUiSelectLabelProps): JSX_2.Element;
-
-// @public (undocumented)
-export function TldrawUiSelectRoot({ id, children, value, defaultValue, onValueChange, disabled, open: openProp, defaultOpen, }: TLUiSelectRootProps): JSX_2.Element;
-
-// @public (undocumented)
-export function TldrawUiSelectSeparator(): JSX_2.Element;
-
-// @public (undocumented)
-export function TldrawUiSelectTrigger({ children, className, title, placeholder, ['data-testid']: testId, }: TLUiSelectTriggerProps): JSX_2.Element;
-
-// @public (undocumented)
-export function TldrawUiSelectValue({ placeholder, className }: TLUiSelectValueProps): JSX_2.Element;
-
-// @public (undocumented)
 export const TldrawUiSlider: React_3.ForwardRefExoticComponent<TLUiSliderProps & React_3.RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
@@ -4509,104 +4482,6 @@ export interface TLUiQuickActionsProps {
 export interface TLUiRichTextToolbarProps {
     // (undocumented)
     children?: React_3.ReactNode;
-}
-
-// @public (undocumented)
-export interface TLUiSelectContentProps {
-    // (undocumented)
-    align?: 'center' | 'end' | 'start';
-    // (undocumented)
-    alignOffset?: number;
-    // (undocumented)
-    children: ReactNode;
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    position?: 'item-aligned' | 'popper';
-    // (undocumented)
-    side?: 'bottom' | 'left' | 'right' | 'top';
-    // (undocumented)
-    sideOffset?: number;
-}
-
-// @public (undocumented)
-export interface TLUiSelectGroupProps {
-    // (undocumented)
-    children: ReactNode;
-    // (undocumented)
-    className?: string;
-}
-
-// @public (undocumented)
-export interface TLUiSelectIconProps {
-    // (undocumented)
-    children?: ReactNode;
-    // (undocumented)
-    className?: string;
-}
-
-// @public (undocumented)
-export interface TLUiSelectItemProps {
-    // (undocumented)
-    'data-testid'?: string;
-    // (undocumented)
-    children: ReactNode;
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    disabled?: boolean;
-    // (undocumented)
-    value: string;
-}
-
-// @public (undocumented)
-export interface TLUiSelectLabelProps {
-    // (undocumented)
-    children: ReactNode;
-    // (undocumented)
-    className?: string;
-}
-
-// @public (undocumented)
-export interface TLUiSelectRootProps {
-    // (undocumented)
-    children: ReactNode;
-    // (undocumented)
-    defaultOpen?: boolean;
-    // (undocumented)
-    defaultValue?: string;
-    // (undocumented)
-    disabled?: boolean;
-    // (undocumented)
-    id: string;
-    // (undocumented)
-    onValueChange?(value: string): void;
-    // (undocumented)
-    open?: boolean;
-    // (undocumented)
-    value?: string;
-}
-
-// @public (undocumented)
-export interface TLUiSelectTriggerProps {
-    // (undocumented)
-    'data-testid'?: string;
-    // (undocumented)
-    children?: ReactNode;
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    placeholder?: string;
-    // (undocumented)
-    title?: string;
-}
-
-// @public (undocumented)
-export interface TLUiSelectValueProps {
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    placeholder?: string;
 }
 
 // @public (undocumented)
