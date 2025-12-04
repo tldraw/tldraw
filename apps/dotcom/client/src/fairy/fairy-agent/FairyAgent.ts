@@ -292,10 +292,10 @@ export class FairyAgent {
 			const speed = Vec.Len(velocity)
 
 			if (speed < 0.1) {
-				if (entity.gesture === 'soaring') {
+				if (this.gesture.hasGestureInStack('soaring')) {
 					this.gesture.clear()
 				}
-			} else if (entity.gesture !== 'soaring') {
+			} else if (!this.gesture.hasGestureInStack('soaring')) {
 				this.gesture.push('soaring')
 			}
 
