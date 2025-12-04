@@ -35,6 +35,7 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 			return {
 				...fairy,
 				position: AgentHelpers.RoundVec(position),
+				velocity: { x: 0, y: 0 },
 				flipX: false,
 			}
 		})
@@ -73,7 +74,9 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 		const center = this.agent.editor.getViewportPageBounds().center
 		const position = offset ? { x: center.x + offset.x, y: center.y + offset.y } : center
 		const currentPageId = this.agent.editor.getCurrentPageId()
-		this.agent.updateEntity((f) => (f ? { ...f, position, currentPageId } : f))
+		this.agent.updateEntity((f) =>
+			f ? { ...f, position, currentPageId, velocity: { x: 0, y: 0 } } : f
+		)
 		this.agent.gesture.push('poof', 400)
 	}
 
@@ -88,7 +91,14 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 		const spawnPoint = this.findFairySpawnPoint()
 		const currentPageId = this.agent.editor.getCurrentPageId()
 		this.agent.updateEntity((f) =>
-			f ? { ...f, position: AgentHelpers.RoundVec(spawnPoint), currentPageId } : f
+			f
+				? {
+						...f,
+						position: AgentHelpers.RoundVec(spawnPoint),
+						currentPageId,
+						velocity: { x: 0, y: 0 },
+					}
+				: f
 		)
 		this.agent.gesture.push('poof', 400)
 	}
