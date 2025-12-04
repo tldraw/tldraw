@@ -239,14 +239,16 @@ export function FairyHUDHeader({
 
 			<div className="tlui-row">
 				{panelState === 'fairy-project' && (
-					<TldrawUiButton
-						type="icon"
-						className="fairy-toolbar-button fairy-feed-button"
-						onClick={onToggleFeed}
-						data-has-unseen={hasUnseenFeedItems && !showFeed}
-					>
-						<TldrawUiButtonIcon icon={showFeed ? <FairyMiniAvatar /> : 'bulletList'} small />
-					</TldrawUiButton>
+					<TldrawUiTooltip content={showFeed ? 'Project' : 'Live feed'} side="top">
+						<TldrawUiButton
+							type="icon"
+							className="fairy-toolbar-button fairy-feed-button"
+							onClick={onToggleFeed}
+							data-has-unseen={hasUnseenFeedItems && !showFeed}
+						>
+							<TldrawUiButtonIcon icon={showFeed ? <FairyMiniAvatar /> : 'bulletList'} small />
+						</TldrawUiButton>
+					</TldrawUiTooltip>
 				)}
 
 				{showSelectAllButton ? (
