@@ -160,9 +160,15 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 		[editor, shapeId]
 	)
 
+	const handleBlur = useCallback(() => {
+		if (editor.getEditingShapeId() === shapeId) {
+			editor.complete()
+		}
+	}, [editor, shapeId])
+
 	return {
 		handleFocus: noop,
-		handleBlur: noop,
+		handleBlur,
 		handleInputPointerDown,
 		handleDoubleClick: editor.markEventAsHandled,
 		handlePaste,
