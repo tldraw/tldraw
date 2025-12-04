@@ -1,5 +1,5 @@
 import { AgentRequest, ScreenshotPart } from '@tldraw/fairy-shared'
-import { Box, downloadFile, FileHelpers } from 'tldraw'
+import { Box, FileHelpers } from 'tldraw'
 import { PromptPartUtil } from './PromptPartUtil'
 
 export class ScreenshotPartUtil extends PromptPartUtil<ScreenshotPart> {
@@ -35,9 +35,6 @@ export class ScreenshotPartUtil extends PromptPartUtil<ScreenshotPart> {
 			pixelRatio: 1,
 			scale,
 		})
-
-		// download the image
-		downloadFile(new File([result.blob], 'screenshot.jpeg', { type: 'image/jpeg' }))
 
 		return {
 			type: 'screenshot',
