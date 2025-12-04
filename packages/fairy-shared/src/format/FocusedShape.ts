@@ -3,8 +3,6 @@ import { FocusColorSchema } from './FocusColor'
 import { FocusFillSchema } from './FocusFill'
 import { FocusFontSizeSchema } from './FocusFontSize'
 
-const FocusedLabelSchema = z.string()
-
 export const FocusedGeoTypeSchema = z.enum([
 	'rectangle',
 	'ellipse',
@@ -37,7 +35,7 @@ export const FocusedGeoShapeSchema = z.object({
 	h: z.number(),
 	note: z.string(),
 	shapeId: z.string(),
-	text: FocusedLabelSchema.optional(),
+	text: z.string().optional(),
 	textAlign: z.enum(['start', 'middle', 'end']).optional(),
 	w: z.number(),
 	x: z.number(),
@@ -64,7 +62,7 @@ export const FocusedNoteShapeSchema = z.object({
 	color: FocusColorSchema,
 	note: z.string(),
 	shapeId: z.string(),
-	text: FocusedLabelSchema.optional(),
+	text: z.string().optional(),
 	x: z.number(),
 	y: z.number(),
 })
@@ -93,7 +91,7 @@ const FocusedTextShapeSchema = z
 		fontSize: FocusFontSizeSchema.optional(),
 		note: z.string(),
 		shapeId: z.string(),
-		text: FocusedLabelSchema,
+		text: z.string(),
 		width: z.number().optional(),
 		wrap: z.boolean().optional(),
 		x: z.number(),
