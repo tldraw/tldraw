@@ -40,12 +40,19 @@ class TooltipManager {
 	private static instance: TooltipManager | null = null
 	private currentTooltip = atom<CurrentTooltip | null>('current tooltip', null)
 	private destroyTimeoutId: number | null = null
+	private isPointerDown = false
 
 	static getInstance(): TooltipManager {
 		if (!TooltipManager.instance) {
 			TooltipManager.instance = new TooltipManager()
 		}
 		return TooltipManager.instance
+	}
+
+	setIsPointerDown(isDown: boolean) {
+		this.isPointerDown = isDown
+		// Hide all tooltips when pointer is down
+		if (isDown) this.hideAllTooltips()
 	}
 
 	showTooltip(
@@ -57,6 +64,11 @@ class TooltipManager {
 		showOnMobile: boolean,
 		delayDuration: number
 	) {
+		// Don't show tooltips while pointer is down
+		if (this.isPointerDown) {
+			return
+		}
+
 		// Clear any existing destroy timeout
 		if (this.destroyTimeoutId) {
 			clearTimeout(this.destroyTimeoutId)
@@ -184,6 +196,26 @@ function TooltipSingleton() {
 			document.removeEventListener('keydown', handleKeyDown, { capture: true })
 		}
 	}, [editor, currentTooltip, isOpen])
+
+	// Hide tooltip and prevent new ones from opening while pointer is down
+	useEffect(() => {
+		function handlePointerDown() {
+			tooltipManager.setIsPointerDown(true)
+		}
+
+		function handlePointerUp() {
+			tooltipManager.setIsPointerDown(false)
+		}
+
+		document.addEventListener('pointerdown', handlePointerDown, { capture: true })
+		document.addEventListener('pointerup', handlePointerUp, { capture: true })
+		document.addEventListener('pointercancel', handlePointerUp, { capture: true })
+		return () => {
+			document.removeEventListener('pointerdown', handlePointerDown, { capture: true })
+			document.removeEventListener('pointerup', handlePointerUp, { capture: true })
+			document.removeEventListener('pointercancel', handlePointerUp, { capture: true })
+		}
+	}, [])
 
 	// Update open state and trigger position
 	useEffect(() => {
