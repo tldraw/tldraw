@@ -23,6 +23,7 @@ export function useEditablePlainText(
 	const editor = useEditor()
 	const rInput = useRef<HTMLTextAreaElement>(null)
 	const isEmpty = (text || '').trim().length === 0
+	const ignoreNextBlurRef = useRef(false)
 
 	useEffect(() => {
 		function selectAllIfEditing(event: { shapeId: TLShapeId }) {
@@ -51,6 +52,7 @@ export function useEditablePlainText(
 		// XXX(mime): This fixes iOS not showing the caret sometimes.
 		// This "shakes" the caret awake.
 		if (tlenv.isSafari) {
+			ignoreNextBlurRef.current = true
 			rInput.current?.blur()
 			rInput.current?.focus()
 		}
@@ -88,10 +90,21 @@ export function useEditablePlainText(
 		[editor, shapeId, type]
 	)
 
+	const handleBlur = useCallback(() => {
+		if (ignoreNextBlurRef.current) {
+			ignoreNextBlurRef.current = false
+			return
+		}
+		if (editor.getEditingShapeId() === shapeId) {
+			editor.complete()
+		}
+	}, [editor, shapeId])
+
 	return {
 		rInput,
 		handleKeyDown,
 		handleChange,
+		handleBlur,
 		isEmpty,
 		...commonUseEditableTextHandlers,
 	}
@@ -160,15 +173,8 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 		[editor, shapeId]
 	)
 
-	const handleBlur = useCallback(() => {
-		if (editor.getEditingShapeId() === shapeId) {
-			editor.complete()
-		}
-	}, [editor, shapeId])
-
 	return {
 		handleFocus: noop,
-		handleBlur,
 		handleInputPointerDown,
 		handleDoubleClick: editor.markEventAsHandled,
 		handlePaste,

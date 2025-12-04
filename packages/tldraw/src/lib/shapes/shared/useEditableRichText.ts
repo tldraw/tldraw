@@ -52,10 +52,17 @@ export function useEditableRichText(
 		[editor, shapeId, type]
 	)
 
+	const handleBlur = useCallback(() => {
+		if (editor.getEditingShapeId() === shapeId) {
+			editor.complete()
+		}
+	}, [editor, shapeId])
+
 	return {
 		rInput,
 		handleKeyDown,
 		handleChange,
+		handleBlur,
 		isEmpty,
 		...commonUseEditableTextHandlers,
 	}
