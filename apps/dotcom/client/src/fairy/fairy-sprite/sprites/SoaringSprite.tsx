@@ -9,79 +9,75 @@ export function SoaringSprite({
 	hatColor: string
 	tint?: string | null
 }) {
-	const scale = 108 / 104
-	const scaledWidth = 55 * scale
-	const translateX = (108 - scaledWidth) / 2
-
 	return (
-		<g transform={`translate(${translateX} 0) scale(${scale})`}>
+		<g transform="translate(1 0)">
 			{/* Left arm */}
 			<path
-				d="M15.8234 51.5147C10.2422 54.3645 8.0303 59.6239 3.00018 63.3544"
+				d="M41.87430 53.49603C36.07844 56.45544 33.78147 61.91713 28.55788 65.79111"
 				stroke="var(--tl-color-fairy-dark)"
-				strokeWidth="6"
+				strokeWidth="6.23077"
 				strokeLinecap="round"
 			/>
 			{/* Right arm */}
 			<path
-				d="M41.8202 53.6248C45.8567 60.2734 45.2797 67.063 48.2311 72.3828"
+				d="M68.87098 55.68729C73.06273 62.59161 72.46353 69.64235 75.52845 75.16675"
 				stroke="var(--tl-color-fairy-dark)"
-				strokeWidth="6"
+				strokeWidth="6.23077"
 				strokeLinecap="round"
 			/>
 			{/* Left leg */}
 			<path
-				d="M6.43134 96.0098C6.43134 96.0098 11.3683 89.459 13.6983 84.1379C16.0282 78.8167 17.522 72.2881 17.522 72.2881"
+				d="M32.12101 99.70248C32.12101 99.70248 37.24785 92.89973 39.66747 87.37397 42.08698 81.84811 43.63823 75.06841 43.63823 75.06841"
 				stroke="var(--tl-color-fairy-dark)"
-				strokeWidth="6"
+				strokeWidth="6.23077"
 				strokeLinecap="round"
 			/>
 			{/* Right leg */}
 			<path
-				d="M21.4313 100.01C21.4313 100.01 24.5161 94.5867 26.2167 90.1246C27.9172 85.6625 28.9068 81.6182 28.9068 81.6182"
+				d="M47.69789 103.85654C47.69789 103.85654 50.90133 98.22465 52.66734 93.59093 54.43325 88.95721 55.46091 84.75736 55.46091 84.75736"
 				stroke="var(--tl-color-fairy-dark)"
-				strokeWidth="6"
+				strokeWidth="6.23077"
 				strokeLinecap="round"
 			/>
 			{/* Body */}
 			<path
-				d="M11.9707 73.4739C9.65983 67.9773 16.6416 47.6495 19.1237 44.4757C24.2126 37.9689 41.5925 46.8964 41.3106 54.6396C41.1411 59.2969 36.1948 79.5082 32.7511 81.135C29.3074 82.7617 14.2816 78.9704 11.9707 73.4739Z"
+				d="M37.87342 76.29982C35.47367 70.59181 42.72397 49.48217 45.30153 46.18630 50.58616 39.42924 68.63452 48.70011 68.34178 56.74112 68.16576 61.57755 63.02922 82.56621 59.45307 84.25558 55.87692 85.94484 40.27320 82.00772 37.87342 76.29982Z"
 				fill={tint ?? bodyColor}
 				stroke="var(--tl-color-fairy-dark)"
-				strokeWidth="5"
+				strokeWidth="5.19231"
 			/>
 			{/* Hat */}
-			<FairyHatSpritePart hatColor={hatColor} offsetX={-23.57} />
+			<FairyHatSpritePart hatColor={hatColor} offsetX={3.0985} />
 			{/* Head circle */}
 			<circle
-				cx="31.8472"
-				cy="32.7925"
-				r="19.8442"
+				cx="58.51440"
+				cy="34.05375"
+				r="20.60744"
 				fill={bodyColor}
 				stroke="var(--tl-color-fairy-dark)"
-				strokeWidth="5"
+				strokeWidth="5.19231"
 			/>
 			{/* Smile */}
 			<path
-				d="M26.6703 36.9853C26.6703 36.9853 27.2149 41.2518 32.5033 41.5511C37.7917 41.8504 40.2534 35.7721 40.2534 35.7721"
+				d="M53.13839 38.40781C53.13839 38.40781 53.70393 42.83841 59.19573 43.14922 64.68753 43.46003 67.24392 37.14795 67.24392 37.14795"
 				stroke="var(--tl-color-fairy-dark)"
-				strokeWidth="6"
+				strokeWidth="6.23077"
 				strokeLinecap="round"
 			/>
 			{/* Right eye */}
 			<circle
-				cx="41.2026"
-				cy="26.781"
-				r="2.62701"
-				transform="rotate(3.23906 41.2026 26.781)"
+				cx="68.22962"
+				cy="27.81104"
+				r="2.72805"
+				transform="rotate(3.23906 68.22962 27.81104)"
 				fill="var(--tl-color-fairy-dark)"
 			/>
 			{/* Left eye */}
 			<circle
-				cx="24.3582"
-				cy="29.9366"
-				r="2.77454"
-				transform="rotate(3.23906 24.3582 29.9366)"
+				cx="50.73736"
+				cy="31.08801"
+				r="2.88125"
+				transform="rotate(3.23906 50.73736 31.08801)"
 				fill="var(--tl-color-fairy-dark)"
 			/>
 		</g>
