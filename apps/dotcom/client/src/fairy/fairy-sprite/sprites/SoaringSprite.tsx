@@ -1,8 +1,16 @@
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
 import { FairySpriteProps } from './sprite-types'
 
+const LEFT_LEG_LENGTH = 26
+const RIGHT_LEG_LENGTH = 21
+
 export function SoaringSprite(props: FairySpriteProps) {
-	const { bodyColor, tint } = props
+	const { bodyColor, tint, legLength } = props
+
+	const legScale = 0.5 + legLength * 0.5
+	const leftDashOffset = LEFT_LEG_LENGTH * (1 - legScale)
+	const rightDashOffset = RIGHT_LEG_LENGTH * (1 - legScale * 0.96)
+
 	return (
 		<g transform="translate(1 0)">
 			{/* Left arm */}
@@ -25,6 +33,8 @@ export function SoaringSprite(props: FairySpriteProps) {
 				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="6.23077"
 				strokeLinecap="round"
+				strokeDasharray={LEFT_LEG_LENGTH}
+				strokeDashoffset={leftDashOffset}
 			/>
 			{/* Right leg */}
 			<path
@@ -32,6 +42,8 @@ export function SoaringSprite(props: FairySpriteProps) {
 				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="6.23077"
 				strokeLinecap="round"
+				strokeDasharray={RIGHT_LEG_LENGTH}
+				strokeDashoffset={rightDashOffset}
 			/>
 			{/* Body */}
 			<path
