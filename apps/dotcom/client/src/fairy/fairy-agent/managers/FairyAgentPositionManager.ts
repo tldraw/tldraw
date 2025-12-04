@@ -211,15 +211,10 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 		const { velocity, position } = entity
 		const speed = Vec.Len(velocity)
 
-		if (speed < 0.1) {
+		if (speed < 0.003) {
 			if (this.agent.gesture.hasGestureInStack('soaring')) {
 				this.agent.gesture.clear()
 			}
-		} else if (!this.agent.gesture.hasGestureInStack('soaring')) {
-			this.agent.gesture.push('soaring')
-		}
-
-		if (speed < 0.01) {
 			if (speed !== 0) {
 				this.agent.updateEntity((entity) => {
 					return {
@@ -229,6 +224,8 @@ export class FairyAgentPositionManager extends BaseFairyAgentManager {
 				})
 			}
 			return
+		} else if (!this.agent.gesture.hasGestureInStack('soaring') && speed > 0.2) {
+			this.agent.gesture.push('soaring')
 		}
 		const dampingFactor = 0.85
 		const scaledDampingFactor = dampingFactor * Math.max(0, 1 - delta / 1000)
