@@ -93,6 +93,10 @@ export function useFairySelection(agents: FairyAgent[]) {
 			}
 			// Project hasn't been started yet, show group creation view
 			setShownFairy(null)
+		} else {
+			// Multiple solo fairies selected (not in a multi-member project)
+			// Reset shownFairy to prevent stale project view
+			setShownFairy(null)
 		}
 	}, [selectedFairies, agents, fairyApp])
 
