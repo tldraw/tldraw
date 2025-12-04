@@ -102,6 +102,15 @@ export function useCanvasEvents() {
 				preventDefault(e)
 				e.stopPropagation()
 
+				if (editor.externalContentHandlers.drop) {
+					await editor.putExternalContent({
+						type: 'drop',
+						event: e,
+						point: editor.screenToPage({ x: e.clientX, y: e.clientY }),
+					})
+					return
+				}
+
 				if (e.dataTransfer?.files?.length) {
 					const files = Array.from(e.dataTransfer.files)
 
@@ -122,12 +131,6 @@ export function useCanvasEvents() {
 					})
 					return
 				}
-
-				await editor.putExternalContent({
-					type: 'drop',
-					event: e,
-					point: editor.screenToPage({ x: e.clientX, y: e.clientY }),
-				})
 			}
 
 			function onClick(e: React.MouseEvent) {
