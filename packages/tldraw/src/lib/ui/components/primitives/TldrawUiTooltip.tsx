@@ -1,4 +1,12 @@
-import { assert, Atom, atom, Editor, uniqueId, useMaybeEditor, useValue } from '@tldraw/editor'
+import {
+	assert,
+	atom,
+	Editor,
+	tlenvReactive,
+	uniqueId,
+	useMaybeEditor,
+	useValue,
+} from '@tldraw/editor'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import React, {
 	createContext,
@@ -161,21 +169,8 @@ class TooltipManager {
 		}
 
 		if (!tooltip) return null
-		if (!this.supportsHover() && !tooltip.showOnMobile) return null
+		if (tlenvReactive.get().isCoarsePointer && !tooltip.showOnMobile) return null
 		return tooltip
-	}
-
-	private supportsHoverAtom: Atom<boolean> | null = null
-	supportsHover() {
-		if (!this.supportsHoverAtom) {
-			const mediaQuery = window.matchMedia('(hover: hover)')
-			const supportsHover = atom('has hover', mediaQuery.matches)
-			this.supportsHoverAtom = supportsHover
-			mediaQuery.addEventListener('change', (e) => {
-				supportsHover.set(e.matches)
-			})
-		}
-		return this.supportsHoverAtom.get()
 	}
 }
 

@@ -282,7 +282,7 @@ export {
 	type SvgExportDef,
 } from './lib/editor/types/SvgExportContext'
 export { getSvgAsImage } from './lib/exports/getSvgAsImage'
-export { tlenv } from './lib/globals/environment'
+export { tlenv, tlenvReactive } from './lib/globals/environment'
 export { tlmenus } from './lib/globals/menus'
 export { tltime } from './lib/globals/time'
 export {
