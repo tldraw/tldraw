@@ -109,7 +109,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
     // @internal (undocumented)
     tombstones: AtomMap<string, number>;
     // (undocumented)
-    transaction<T>(callback: (txn: TLSyncStorageTransaction<R>) => T extends Promise<any> ? TRANSACTION_CALLBACK_MUST_BE_SYNC : T, opts?: TLSyncStorageTransactionOptions): TLSyncStorageTransactionResult<T, R>;
+    transaction<T>(callback: TLSyncStorageTransactionCallback<R, T>, opts?: TLSyncStorageTransactionOptions): TLSyncStorageTransactionResult<T, R>;
 }
 
 // @public
@@ -602,7 +602,7 @@ export interface TLSyncStorage<R extends UnknownRecord> {
     // (undocumented)
     onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void;
     // (undocumented)
-    transaction<T>(callback: (txn: TLSyncStorageTransaction<R>) => T extends Promise<any> ? TRANSACTION_CALLBACK_MUST_BE_SYNC : T, opts?: TLSyncStorageTransactionOptions): TLSyncStorageTransactionResult<T, R>;
+    transaction<T>(callback: TLSyncStorageTransactionCallback<R, T>, opts?: TLSyncStorageTransactionOptions): TLSyncStorageTransactionResult<T, R>;
 }
 
 // @public
@@ -625,6 +625,11 @@ export interface TLSyncStorageTransaction<R extends UnknownRecord> extends Synch
 }
 
 // @public
+export type TLSyncStorageTransactionCallback<R extends UnknownRecord, T> = (txn: TLSyncStorageTransaction<R>) => T extends Promise<any> ? {
+    __error: 'Transaction callbacks cannot be async. Use synchronous operations only.';
+} : T;
+
+// @public
 export interface TLSyncStorageTransactionOptions {
     emitChanges?: 'always' | 'when-different';
     id?: string;
@@ -639,12 +644,6 @@ export interface TLSyncStorageTransactionResult<T, R extends UnknownRecord = Unk
     documentClock: number;
     // (undocumented)
     result: T;
-}
-
-// @public
-export interface TRANSACTION_CALLBACK_MUST_BE_SYNC {
-    // (undocumented)
-    __error: 'Transaction callbacks cannot be async. Use synchronous operations only.';
 }
 
 // @internal

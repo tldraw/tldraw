@@ -64,9 +64,9 @@ export {
 	type TLSyncStorageGetChangesSinceResult,
 	type TLSyncStorageOnChangeCallbackProps,
 	type TLSyncStorageTransaction,
+	type TLSyncStorageTransactionCallback,
 	type TLSyncStorageTransactionOptions,
 	type TLSyncStorageTransactionResult,
-	type TRANSACTION_CALLBACK_MUST_BE_SYNC,
 } from './lib/TLSyncStorage'
 
 registerTldrawLibraryVersion(

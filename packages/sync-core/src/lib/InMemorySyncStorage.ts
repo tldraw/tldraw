@@ -15,9 +15,9 @@ import {
 	TLSyncStorageGetChangesSinceResult,
 	TLSyncStorageOnChangeCallbackProps,
 	TLSyncStorageTransaction,
+	TLSyncStorageTransactionCallback,
 	TLSyncStorageTransactionOptions,
 	TLSyncStorageTransactionResult,
-	TRANSACTION_CALLBACK_MUST_BE_SYNC,
 } from './TLSyncStorage'
 
 /** @internal */
@@ -131,9 +131,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 	}
 
 	transaction<T>(
-		callback: (
-			txn: TLSyncStorageTransaction<R>
-		) => T extends Promise<any> ? TRANSACTION_CALLBACK_MUST_BE_SYNC : T,
+		callback: TLSyncStorageTransactionCallback<R, T>,
 		opts?: TLSyncStorageTransactionOptions
 	): TLSyncStorageTransactionResult<T, R> {
 		const clockBefore = this.documentClock.get()

@@ -1,5 +1,5 @@
 import { StoreSchema, SynchronousStorage, UnknownRecord } from '@tldraw/store'
-import { assert, isEqual, objectMapEntriesIterable, objectMapValues } from '@tldraw/utils'
+import { isEqual, objectMapEntriesIterable, objectMapValues } from '@tldraw/utils'
 import { TLStoreSnapshot } from 'tldraw'
 import { diffRecord, NetworkDiff, RecordOpType } from './diff'
 import { RoomSnapshot } from './TLSyncRoom'
@@ -55,12 +55,17 @@ export interface TLSyncStorageTransactionOptions {
 }
 
 /**
- * Error type that appears in TypeScript errors when an async callback is passed to transaction().
+ * Callback type for a transaction.
+ * The conditional return type ensures that the callback is synchronous.
  * @public
  */
-export interface TRANSACTION_CALLBACK_MUST_BE_SYNC {
-	__error: 'Transaction callbacks cannot be async. Use synchronous operations only.'
-}
+export type TLSyncStorageTransactionCallback<R extends UnknownRecord, T> = (
+	txn: TLSyncStorageTransaction<R>
+) => T extends Promise<any>
+	? {
+			__error: 'Transaction callbacks cannot be async. Use synchronous operations only.'
+		}
+	: T
 
 /**
  * Pluggable synchronous transactional storage layer for TLSyncRoom.
@@ -70,9 +75,7 @@ export interface TRANSACTION_CALLBACK_MUST_BE_SYNC {
  */
 export interface TLSyncStorage<R extends UnknownRecord> {
 	transaction<T>(
-		callback: (
-			txn: TLSyncStorageTransaction<R>
-		) => T extends Promise<any> ? TRANSACTION_CALLBACK_MUST_BE_SYNC : T,
+		callback: TLSyncStorageTransactionCallback<R, T>,
 		opts?: TLSyncStorageTransactionOptions
 	): TLSyncStorageTransactionResult<T, R>
 
