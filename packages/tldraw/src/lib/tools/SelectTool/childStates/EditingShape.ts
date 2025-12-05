@@ -20,6 +20,7 @@ export class EditingShape extends StateNode {
 
 	hitLabelOnShapeForPointerUp: TLShape | null = null
 	private info = {} as EditingShapeInfo
+	private didPointerDownOnEditingShape = false
 
 	private isTextInputFocused(): boolean {
 		const container = this.editor.getContainer()
@@ -41,6 +42,7 @@ export class EditingShape extends StateNode {
 		const editingShape = this.editor.getEditingShape()
 		if (!editingShape) throw Error('Entered editing state without an editing shape')
 		this.hitLabelOnShapeForPointerUp = null
+		this.didPointerDownOnEditingShape = false
 
 		this.info = info
 
@@ -74,23 +76,26 @@ export class EditingShape extends StateNode {
 			if (this.editor.getIsReadonly()) return
 			if (this.hitLabelOnShapeForPointerUp.isLocked) return
 
-			const editingShape = this.editor.getEditingShape()
-
-			// Check if dragging from the shape we're currently editing
-			if (editingShape && this.hitLabelOnShapeForPointerUp.id === editingShape.id) {
-				if (!this.isTextInputFocused()) {
-					// Input blurred during drag - exit edit mode and start translating
-					this.transitionToTranslating(info)
-					return
-				}
-				// Input still focused - user is selecting text, stay in edit mode
-				this.hitLabelOnShapeForPointerUp = null
-				return
-			}
-
-			// Dragging from different shape's label - start translating (existing behavior)
 			this.transitionToTranslating(info)
 			return
+		}
+
+		// Check if dragging from editing shape with blurred input
+		if (this.didPointerDownOnEditingShape && this.editor.inputs.isDragging) {
+			if (this.editor.getIsReadonly()) return
+
+			const editingShape = this.editor.getEditingShape()
+			if (!editingShape || editingShape.isLocked) return
+
+			if (!this.isTextInputFocused()) {
+				// Input blurred during drag - exit edit mode and start translating
+				this.editor.select(editingShape)
+				this.parent.transition('translating', info)
+				this.didPointerDownOnEditingShape = false
+				return
+			}
+			// Input still focused - user is selecting text, stay in edit mode
+			this.didPointerDownOnEditingShape = false
 		}
 
 		switch (info.target) {
@@ -104,6 +109,7 @@ export class EditingShape extends StateNode {
 
 	override onPointerDown(info: TLPointerEventInfo) {
 		this.hitLabelOnShapeForPointerUp = null
+		this.didPointerDownOnEditingShape = false
 
 		switch (info.target) {
 			// N.B. This bit of logic has a bit of history to it.
@@ -150,8 +156,8 @@ export class EditingShape extends StateNode {
 					) {
 						// it's a hit to the label!
 						if (selectingShape.id === editingShape.id) {
-							// Track click on editing shape's label for drag detection
-							this.hitLabelOnShapeForPointerUp = selectingShape
+							// Track click on editing shape for drag detection
+							this.didPointerDownOnEditingShape = true
 							return
 						} else {
 							this.hitLabelOnShapeForPointerUp = selectingShape
