@@ -27,7 +27,6 @@ export class Idle extends StateNode {
 
 	override onKeyDown(info: TLKeyboardEventInfo) {
 		if (info.key === 'Enter') {
-			if (this.editor.getIsReadonly()) return null
 			const onlySelectedShape = this.editor.getOnlySelectedShape()
 			if (!this.editor.getCanEditShape(onlySelectedShape)) return
 			this.editor.setCurrentTool('select')
