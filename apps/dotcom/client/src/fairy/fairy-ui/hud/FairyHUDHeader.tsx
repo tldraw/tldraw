@@ -1,4 +1,3 @@
-import { SmallSpinner } from '@tldraw/fairy-shared'
 import { ReactNode, useCallback } from 'react'
 import {
 	TldrawUiButton,
@@ -207,11 +206,19 @@ export function FairyHUDHeader({
 		selectedFairies.length > 1 ? (
 			<div className="fairy-id-display">{getProjectDisplayName()}</div>
 		) : shownFairy && fairyConfig ? (
-			<div className="fairy-id-display" onClick={zoomToFairy}>
+			<div
+				className={`fairy-id-display ${isGenerating ? 'fairy-id-display--generating' : ''}`}
+				onClick={zoomToFairy}
+			>
 				<TldrawUiTooltip content={fairyClickable ? zoomToFairyLabel : undefined} side="top">
-					<span style={{ cursor: fairyClickable ? 'pointer' : 'default' }}>{getDisplayName()}</span>
+					<span
+						className="fairy-id-display-text"
+						style={{ cursor: fairyClickable ? 'pointer' : 'default' }}
+					>
+						<span className="fairy-id-display-text__normal">{getDisplayName()}</span>
+						<span className="fairy-id-display-text__shimmer">{getDisplayName()}</span>
+					</span>
 				</TldrawUiTooltip>
-				{isGenerating && <SmallSpinner />}
 			</div>
 		) : (
 			<div style={{ flex: 1 }}></div>
