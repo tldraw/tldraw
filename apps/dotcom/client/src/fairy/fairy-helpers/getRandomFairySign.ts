@@ -1,21 +1,4 @@
-import { FairySign } from '@tldraw/fairy-shared'
-
-const SIGN_PARTS = [
-	'aquarius',
-	'aries',
-	'taurus',
-	'gemini',
-	'cancer',
-	'leo',
-	'virgo',
-	'libra',
-	'scorpio',
-	'sagittarius',
-	'capricorn',
-	'pisces',
-] as const
-
-export type ZodiacSign = (typeof SIGN_PARTS)[number]
+import { FairySign, SIGN_PARTS } from '@tldraw/fairy-shared'
 
 export function getRandomFairySign(): FairySign {
 	const sunSign = SIGN_PARTS[Math.floor(Math.random() * SIGN_PARTS.length)]

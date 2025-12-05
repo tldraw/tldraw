@@ -1,62 +1,36 @@
 import { FairyBodySpritePart } from './parts/FairyBodySpritePart'
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
+import { FairyLegsSpritePart } from './parts/FairyLegsSpritePart'
+import { FairySpriteProps } from './sprite-types'
 
-export function ReadingSprite1({
-	bodyColor,
-	hatColor,
-	tint,
-}: {
-	bodyColor: string
-	hatColor: string
-	tint?: string | null
-}) {
-	return <BaseReadingSprite bodyColor={bodyColor} hatColor={hatColor} eyeOffsetX={0} tint={tint} />
+export function ReadingSprite1(props: FairySpriteProps) {
+	return <BaseReadingSprite {...props} eyeOffsetX={0} />
 }
 
-export function ReadingSprite2({
-	bodyColor,
-	hatColor,
-	tint,
-}: {
-	bodyColor: string
-	hatColor: string
-	tint?: string | null
-}) {
-	return <BaseReadingSprite bodyColor={bodyColor} hatColor={hatColor} eyeOffsetX={1} tint={tint} />
+export function ReadingSprite2(props: FairySpriteProps) {
+	return <BaseReadingSprite {...props} eyeOffsetX={1} />
 }
 
-export function ReadingSprite3({
-	bodyColor,
-	hatColor,
-	tint,
-}: {
-	bodyColor: string
-	hatColor: string
-	tint?: string | null
-}) {
-	return <BaseReadingSprite bodyColor={bodyColor} hatColor={hatColor} eyeOffsetX={2} tint={tint} />
+export function ReadingSprite3(props: FairySpriteProps) {
+	return <BaseReadingSprite {...props} eyeOffsetX={2} />
 }
 
 function BaseReadingSprite({
-	bodyColor,
-	hatColor,
 	eyeOffsetX = 0,
-	tint,
-}: {
-	bodyColor: string
-	hatColor: string
+	...props
+}: FairySpriteProps & {
 	eyeOffsetX?: number
-	tint?: string | null
 }) {
 	return (
 		<>
-			<FairyHatSpritePart hatColor={hatColor} />
-			<FairyBodySpritePart bodyColor={bodyColor} tint={tint ?? null} />
+			<FairyHatSpritePart {...props} />
+			<FairyLegsSpritePart {...props} />
+			<FairyBodySpritePart {...props} />
 			<circle
 				cx="55.4159"
 				cy="33.7834"
 				r="19.8442"
-				fill={bodyColor}
+				fill={props.bodyColor}
 				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="5"
 			/>
@@ -82,7 +56,7 @@ function BaseReadingSprite({
 			/>
 			<path
 				d="M54.0719 72.7172L58.8616 34.6991C58.9277 34.1749 59.3901 33.7925 59.9173 33.8261L82.5992 35.2707C83.2068 35.3094 83.6391 35.8773 83.5145 36.4732L81.7658 44.8397C81.7479 44.9252 81.7189 45.008 81.6795 45.086L80.5601 47.3019C80.4677 47.4848 80.4337 47.6917 80.4628 47.8946L80.7081 49.6066C80.7246 49.7219 80.7208 49.8391 80.697 49.953L75.87 73.0467C75.7732 73.5102 75.3646 73.8421 74.8912 73.8421L55.0641 73.8422C54.4622 73.8422 53.9967 73.3143 54.0719 72.7172Z"
-				fill={bodyColor}
+				fill={props.bodyColor}
 				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="5"
 				strokeLinecap="round"

@@ -1,4 +1,4 @@
-import { createAgentAction } from '@tldraw/fairy-shared'
+import { createAgentAction, toSimpleShapeId } from '@tldraw/fairy-shared'
 import { createShapeId, Editor } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AgentHelpers } from '../../fairy-agent/AgentHelpers'
@@ -27,7 +27,7 @@ describe('CreateActionUtil', () => {
 				_type: 'create',
 				shape: {
 					_type: 'rectangle',
-					shapeId: 'shape1',
+					shapeId: toSimpleShapeId('shape1'),
 					x: 0,
 					y: 0,
 					w: 100,
@@ -70,7 +70,7 @@ describe('CreateActionUtil', () => {
 				_type: 'create',
 				shape: {
 					_type: 'rectangle',
-					shapeId: 'shape1',
+					shapeId: toSimpleShapeId('shape1'),
 					x: 100,
 					y: 100,
 					w: 100,
@@ -102,9 +102,9 @@ describe('CreateActionUtil', () => {
 				_type: 'create',
 				shape: {
 					_type: 'arrow',
-					shapeId: 'arrow1',
-					fromId: 'from1',
-					toId: 'nonexistent',
+					shapeId: toSimpleShapeId('arrow1'),
+					fromId: toSimpleShapeId('from1'),
+					toId: toSimpleShapeId('nonexistent'),
 					color: 'black',
 					note: '',
 					x1: 0,
@@ -138,9 +138,9 @@ describe('CreateActionUtil', () => {
 				_type: 'create',
 				shape: {
 					_type: 'arrow',
-					shapeId: 'arrow1',
-					fromId: 'nonexistent',
-					toId: 'to1',
+					shapeId: toSimpleShapeId('arrow1'),
+					fromId: toSimpleShapeId('nonexistent'),
+					toId: toSimpleShapeId('to1'),
 					color: 'black',
 					note: '',
 					x1: 0,
@@ -173,7 +173,7 @@ describe('CreateActionUtil', () => {
 				_type: 'create',
 				shape: {
 					_type: 'rectangle',
-					shapeId: 'shape1',
+					shapeId: toSimpleShapeId('shape1'),
 					x: 0,
 					y: 0,
 					w: 100,
@@ -206,9 +206,9 @@ describe('CreateActionUtil', () => {
 				_type: 'create',
 				shape: {
 					_type: 'arrow',
-					shapeId: 'arrow1',
-					fromId: 'from1',
-					toId: 'to1',
+					shapeId: toSimpleShapeId('arrow1'),
+					fromId: toSimpleShapeId('from1'),
+					toId: toSimpleShapeId('to1'),
 					color: 'black',
 					note: '',
 					x1: 0,

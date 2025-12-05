@@ -1,143 +1,59 @@
 import { FairyBodySpritePart } from './parts/FairyBodySpritePart'
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
+import { FairyLegsSpritePart } from './parts/FairyLegsSpritePart'
+import { FairySpriteProps } from './sprite-types'
 
-export function ReviewingSprite1({
-	bodyColor,
-	hatColor,
-	tint,
-}: {
-	bodyColor: string
-	hatColor: string
-	tint?: string | null
-}) {
+export function ReviewingSprite1(props: FairySpriteProps) {
 	return (
-		<WaitingSpriteBase
-			bodyColor={bodyColor}
-			hatColor={hatColor}
-			offsetX={-1.5}
-			offsetY={0}
-			mouthOffsetX={0}
-			mouthOffsetY={0}
-			tint={tint}
-		/>
+		<WaitingSpriteBase offsetX={-1.5} offsetY={0} mouthOffsetX={0} mouthOffsetY={0} {...props} />
 	)
 }
 
-export function ReviewingSprite2({
-	bodyColor,
-	hatColor,
-	tint,
-}: {
-	bodyColor: string
-	hatColor: string
-	tint?: string | null
-}) {
+export function ReviewingSprite2(props: FairySpriteProps) {
+	return <WaitingSpriteBase offsetX={0} offsetY={0} mouthOffsetX={0} mouthOffsetY={0} {...props} />
+}
+
+export function ReviewingSprite3(props: FairySpriteProps) {
 	return (
-		<WaitingSpriteBase
-			bodyColor={bodyColor}
-			hatColor={hatColor}
-			offsetX={0}
-			offsetY={0}
-			mouthOffsetX={0}
-			mouthOffsetY={0}
-			tint={tint}
-		/>
+		<WaitingSpriteBase offsetX={1.5} offsetY={0} mouthOffsetX={0} mouthOffsetY={0} {...props} />
 	)
 }
 
-export function ReviewingSprite3({
-	bodyColor,
-	hatColor,
-	tint,
-}: {
-	bodyColor: string
-	hatColor: string
-	tint?: string | null
-}) {
+export function NoddingSprite1(props: FairySpriteProps) {
 	return (
-		<WaitingSpriteBase
-			bodyColor={bodyColor}
-			hatColor={hatColor}
-			offsetX={1.5}
-			offsetY={0}
-			mouthOffsetX={0}
-			mouthOffsetY={0}
-			tint={tint}
-		/>
+		<WaitingSpriteBase offsetX={0} offsetY={-1.5} mouthOffsetX={0} mouthOffsetY={-1.5} {...props} />
 	)
 }
 
-export function NoddingSprite1({
-	bodyColor,
-	hatColor,
-	tint,
-}: {
-	bodyColor: string
-	hatColor: string
-	tint?: string | null
-}) {
+export function NoddingSprite2(props: FairySpriteProps) {
 	return (
-		<WaitingSpriteBase
-			bodyColor={bodyColor}
-			hatColor={hatColor}
-			offsetX={0}
-			offsetY={-1.5}
-			mouthOffsetX={0}
-			mouthOffsetY={-1.5}
-			tint={tint}
-		/>
-	)
-}
-
-export function NoddingSprite2({
-	bodyColor,
-	hatColor,
-	tint,
-}: {
-	bodyColor: string
-	hatColor: string
-	tint?: string | null
-}) {
-	return (
-		<WaitingSpriteBase
-			bodyColor={bodyColor}
-			hatColor={hatColor}
-			offsetX={0}
-			offsetY={1.5}
-			mouthOffsetX={0}
-			mouthOffsetY={1.5}
-			tint={tint}
-		/>
+		<WaitingSpriteBase offsetX={0} offsetY={1.5} mouthOffsetX={0} mouthOffsetY={1.5} {...props} />
 	)
 }
 
 export function WaitingSpriteBase({
-	bodyColor,
-	hatColor,
 	offsetX,
 	offsetY,
 	mouthOffsetX,
 	mouthOffsetY,
-	tint,
-}: {
-	bodyColor: string
-	hatColor: string
+	...props
+}: FairySpriteProps & {
 	offsetX: number
 	offsetY: number
 	mouthOffsetX: number
 	mouthOffsetY: number
-	tint?: string | null
 }) {
 	return (
 		<>
-			<FairyBodySpritePart bodyColor={bodyColor} tint={tint ?? null} />
-			<FairyHatSpritePart hatColor={hatColor} offsetX={0} />
+			<FairyLegsSpritePart {...props} />
+			<FairyBodySpritePart {...props} />
+			<FairyHatSpritePart {...props} offsetX={0} />
 			{/* Head circle */}
 			<circle
 				cx="55.4159"
 				cy="33.7832"
 				r="19.8442"
-				fill={bodyColor}
+				fill={props.bodyColor}
 				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="5"
 			/>

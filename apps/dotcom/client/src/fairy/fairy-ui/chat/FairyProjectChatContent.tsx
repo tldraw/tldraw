@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import { useValue } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { useFairyApp } from '../../fairy-app/FairyAppProvider'
-import { FairyMiniAvatar, FairyMiniAvatarById } from '../../fairy-sprite/sprites/Avatar'
+import { FairyMiniAvatar } from '../../fairy-sprite/sprites/Avatar'
 import { FairyChatHistoryAction } from './FairyChatHistoryAction'
 import { getAgentHistorySections } from './FairyChatHistorySection'
 import { filterChatHistoryByMode } from './filterChatHistoryByMode'
@@ -119,33 +119,37 @@ export function FairyProjectChatContent({
 				<div
 					className={`fairy-project-chat-action ${projectStatus.isAnimating ? 'fairy-project-chat-action--planning' : ''}`}
 				>
-					<FairyMiniAvatar agent={orchestratorAgent} />
+					<FairyMiniAvatar hatType={orchestratorAgent.getConfig().hat} />
 					<span>{projectStatus.text}</span>
 				</div>
 
 				{hasTasks && (
 					<div className="fairy-project-chat-tasks">
-						{projectTasks.map((task) => (
-							<div key={task.id} className="fairy-project-chat-task">
-								<IndentIcon />
-								{task.assignedTo ? (
-									<FairyMiniAvatarById agentId={task.assignedTo} agents={agents} />
-								) : (
-									<FairyMiniAvatar agent={orchestratorAgent} />
-								)}
-								<span
-									className={`fairy-project-chat-action-text ${
-										task.status === 'done'
-											? 'fairy-project-chat-task-text--done'
-											: task.status === 'in-progress'
-												? 'fairy-project-chat-task-text--in-progress'
-												: 'fairy-project-chat-task-text--pending'
-									}`}
-								>
-									{task.title || task.text}
-								</span>
-							</div>
-						))}
+						{projectTasks.map((task) => {
+							const assignedToAgent =
+								task.assignedTo && agents.find((a) => a.id === task.assignedTo)
+							return (
+								<div key={task.id} className="fairy-project-chat-task">
+									<IndentIcon />
+									{assignedToAgent ? (
+										<FairyMiniAvatar hatType={assignedToAgent.getConfig().hat} />
+									) : (
+										<FairyMiniAvatar hatType={orchestratorAgent.getConfig().hat} />
+									)}
+									<span
+										className={`fairy-project-chat-action-text ${
+											task.status === 'done'
+												? 'fairy-project-chat-task-text--done'
+												: task.status === 'in-progress'
+													? 'fairy-project-chat-task-text--in-progress'
+													: 'fairy-project-chat-task-text--pending'
+										}`}
+									>
+										{task.title || task.text}
+									</span>
+								</div>
+							)
+						})}
 					</div>
 				)}
 			</div>

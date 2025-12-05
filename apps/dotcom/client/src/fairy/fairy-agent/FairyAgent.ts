@@ -1,5 +1,6 @@
 import {
 	AgentAction,
+	AgentId,
 	AgentInput,
 	AgentPrompt,
 	AgentRequest,
@@ -37,6 +38,10 @@ import {
 } from 'tldraw'
 import { FAIRY_WORKER } from '../../utils/config'
 import { FairyApp } from '../fairy-app/FairyApp'
+import { getRandomFairyHat } from '../fairy-helpers/getRandomFairyHat'
+import { getRandomFairyHatColor } from '../fairy-helpers/getRandomFairyHatColor'
+import { getRandomFairyName } from '../fairy-helpers/getRandomFairyName'
+import { getRandomLegLength } from '../fairy-helpers/getRandomLegLength'
 import { getPromptPartUtilsRecord } from '../fairy-part-utils/fairy-part-utils'
 import { PromptPartUtil } from '../fairy-part-utils/PromptPartUtil'
 import { AgentHelpers } from './AgentHelpers'
@@ -59,7 +64,7 @@ export interface FairyAgentOptions {
 	/** The fairy app to associate the agent with. */
 	fairyApp: FairyApp
 	/** A key used to differentiate the agent from other agents. */
-	id: string
+	id: AgentId
 	/** A callback for when an error occurs. */
 	onError(e: any): void
 	/** A function to get the authentication token. */
@@ -78,7 +83,7 @@ export interface FairyAgentOptions {
  */
 export class FairyAgent {
 	/** An id to differentiate the agent from other agents. */
-	id: string
+	id: AgentId
 
 	/** The editor associated with this agent. */
 	editor: Editor
@@ -157,6 +162,11 @@ export class FairyAgent {
 	 * Handler for the max-shapes event to cancel fairy when limit is reached.
 	 */
 	private handleMaxShapes: () => void
+
+	/**
+	 * Handler for the tick event to update the fairy's position.
+	 */
+	private onTick: (delta: number) => void
 
 	/**
 	 * Get the current project that the agent is working on.
@@ -238,16 +248,23 @@ export class FairyAgent {
 			pose: 'sleeping',
 			gesture: null,
 			currentPageId: editor.getCurrentPageId(),
+			velocity: { x: 0, y: 0 },
 		})
 
 		this.$fairyConfig = computed<FairyConfig>(`fairy-config-${id}`, () => {
 			const userFairies = this.fairyApp.tldrawApp.getUser().fairies
+
 			if (!userFairies) {
 				return {
-					name: '',
+					name: getRandomFairyName(),
 					outfit: { body: 'plain', hat: 'top', wings: 'plain' },
+					hat: getRandomFairyHat(),
+					hatColor: getRandomFairyHatColor(),
+					legLength: getRandomLegLength(),
+					version: 2,
 				} satisfies FairyConfig
 			}
+
 			return JSON.parse(userFairies)[id] as FairyConfig
 		})
 
@@ -273,14 +290,18 @@ export class FairyAgent {
 			if (this.requests.isGenerating()) {
 				this.interrupt({
 					input: {
-						agentMessages: [
-							'Maximum shapes reached. Stop all your work and return to your home in the forest.',
-						],
+						agentMessages: ['Maximum shapes reached. Stop all your work.'],
 					},
 				})
 			}
 		}
+
+		this.onTick = (delta: number) => {
+			this.position.applyVelocity(delta)
+		}
+
 		editor.addListener('max-shapes', this.handleMaxShapes)
+		editor.addListener('tick', this.onTick)
 
 		// Poof on spawn
 		this.gesture.push('poof', 400)
@@ -294,6 +315,7 @@ export class FairyAgent {
 		this.userAction.dispose()
 		this.wakeOnSelectReaction?.()
 		this.editor.removeListener('max-shapes', this.handleMaxShapes)
+		this.editor.removeListener('tick', this.onTick)
 		// Stop following this fairy if it's currently being followed
 		if (this.position.getFollowingFairyId() === this.id) {
 			this.position.stopFollowing()
@@ -337,6 +359,7 @@ export class FairyAgent {
 					currentPageId: state.fairyEntity?.currentPageId ?? entity.currentPageId,
 					isSelected: state.fairyEntity?.isSelected ?? entity.isSelected,
 					pose: state.fairyEntity?.pose ?? entity.pose,
+					velocity: { x: 0, y: 0 },
 					gesture: null,
 				}
 			})
@@ -886,6 +909,10 @@ export class FairyAgent {
 	 */
 	promptStartTime: number | null = null
 
+	/**
+	 * Update the fairy configuration with the given partial configuration.
+	 * @param partial - The partial configuration to update.
+	 */
 	updateFairyConfig(partial: Partial<FairyConfig>) {
 		this.fairyApp.tldrawApp.z.mutate.user.updateFairyConfig({
 			id: this.id,

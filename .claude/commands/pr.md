@@ -66,7 +66,18 @@ Write or update the pull request's body using the template in `pull_request_temp
 - Fixed a bug with…
 ```
 
-Tips:
+### API Changes
+
+If the PR introduces changes to the api-report.md, you must also include an API changes section that describes what API changes were made, lists any breaking changes, and notes any new or removed parameters. Like the release notes section above, this section is intended to help us identify breaking changes, communicate with downstream developers, and write our release notes.
+
+```md
+### API changes
+
+- Added new `Editor.logSelectedShapes` method that will log the details of selected shapes.
+- Breaking! Removed `Editor.freeze` method.
+```
+
+## Tips
 
 - Place the PR description at the top of the file, above the Change type heading
 - In Change type, you may delete any items that are not ticked

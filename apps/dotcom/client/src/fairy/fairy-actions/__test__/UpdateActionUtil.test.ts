@@ -1,4 +1,4 @@
-import { createAgentAction } from '@tldraw/fairy-shared'
+import { createAgentAction, toSimpleShapeId } from '@tldraw/fairy-shared'
 import { createShapeId, Editor, TLNoteShape, TLTextShape, toRichText } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AgentHelpers } from '../../fairy-agent/AgentHelpers'
@@ -27,7 +27,7 @@ describe('UpdateActionUtil', () => {
 				_type: 'update',
 				update: {
 					_type: 'rectangle',
-					shapeId: 'shape1',
+					shapeId: toSimpleShapeId('shape1'),
 					x: 100,
 					y: 100,
 					w: 100,
@@ -67,7 +67,7 @@ describe('UpdateActionUtil', () => {
 				_type: 'update',
 				update: {
 					_type: 'rectangle',
-					shapeId: 'nonexistent',
+					shapeId: toSimpleShapeId('nonexistent'),
 					x: 100,
 					y: 100,
 					w: 100,
@@ -95,7 +95,7 @@ describe('UpdateActionUtil', () => {
 				_type: 'update',
 				update: {
 					_type: 'rectangle',
-					shapeId: 'shape1',
+					shapeId: toSimpleShapeId('shape1'),
 					x: 200,
 					y: 200,
 					w: 100,
@@ -113,7 +113,7 @@ describe('UpdateActionUtil', () => {
 			const sanitized = updateUtil.sanitizeAction(action, helpers)
 
 			expect(sanitized).not.toBeNull()
-			expect(sanitized?.update?.shapeId).toBe('shape1')
+			expect(sanitized?.update?.shapeId).toBe(toSimpleShapeId('shape1'))
 		})
 
 		it('should validate arrow fromId exists', () => {
@@ -126,9 +126,9 @@ describe('UpdateActionUtil', () => {
 				_type: 'update',
 				update: {
 					_type: 'arrow',
-					shapeId: 'arrow1',
-					fromId: 'from1',
-					toId: 'nonexistent',
+					shapeId: toSimpleShapeId('arrow1'),
+					fromId: toSimpleShapeId('from1'),
+					toId: toSimpleShapeId('nonexistent'),
 					color: 'black',
 					note: '',
 					x1: 0,
@@ -161,9 +161,9 @@ describe('UpdateActionUtil', () => {
 				_type: 'update',
 				update: {
 					_type: 'arrow',
-					shapeId: 'arrow1',
-					fromId: 'nonexistent',
-					toId: 'to1',
+					shapeId: toSimpleShapeId('arrow1'),
+					fromId: toSimpleShapeId('nonexistent'),
+					toId: toSimpleShapeId('to1'),
 					color: 'black',
 					note: '',
 					x1: 0,
@@ -193,7 +193,7 @@ describe('UpdateActionUtil', () => {
 				_type: 'update',
 				update: {
 					_type: 'rectangle',
-					shapeId: 'shape1',
+					shapeId: toSimpleShapeId('shape1'),
 					x: 100,
 					y: 100,
 					w: 100,
@@ -222,10 +222,11 @@ describe('UpdateActionUtil', () => {
 				_type: 'update',
 				update: {
 					_type: 'text',
-					shapeId: 'text1',
+					shapeId: toSimpleShapeId('text1'),
 					text: 'Updated text',
 					anchor: 'center',
 					color: 'black',
+					maxWidth: null,
 					note: '',
 					x: 0,
 					y: 0,
@@ -258,9 +259,9 @@ describe('UpdateActionUtil', () => {
 				_type: 'update',
 				update: {
 					_type: 'arrow',
-					shapeId: 'arrow1',
-					fromId: 'from1',
-					toId: 'to1',
+					shapeId: toSimpleShapeId('arrow1'),
+					fromId: toSimpleShapeId('from1'),
+					toId: toSimpleShapeId('to1'),
 					color: 'black',
 					note: '',
 					x1: 0,
@@ -290,7 +291,7 @@ describe('UpdateActionUtil', () => {
 				_type: 'update',
 				update: {
 					_type: 'rectangle',
-					shapeId: 'nonexistent',
+					shapeId: toSimpleShapeId('nonexistent'),
 					x: 100,
 					y: 100,
 					w: 100,
@@ -319,7 +320,7 @@ describe('UpdateActionUtil', () => {
 				_type: 'update',
 				update: {
 					_type: 'note',
-					shapeId: 'note1',
+					shapeId: toSimpleShapeId('note1'),
 					text: 'Updated note content',
 					color: 'yellow',
 					note: '',

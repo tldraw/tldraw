@@ -1,26 +1,19 @@
 import { FairyBodySpritePart } from './parts/FairyBodySpritePart'
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
 import { FairyLegsSpritePart } from './parts/FairyLegsSpritePart'
+import { FairySpriteProps } from './sprite-types'
 
-export function IdleSprite({
-	bodyColor,
-	hatColor,
-	tint,
-}: {
-	bodyColor: string
-	hatColor: string
-	tint: string | null
-}) {
+export function IdleSprite(props: FairySpriteProps) {
 	return (
 		<>
-			<FairyHatSpritePart hatColor={hatColor} />
-			<FairyLegsSpritePart />
-			<FairyBodySpritePart bodyColor={bodyColor} tint={tint} />
+			<FairyHatSpritePart {...props} />
+			<FairyLegsSpritePart {...props} />
+			<FairyBodySpritePart {...props} />
 			<circle
 				cx="55.4159"
 				cy="33.7832"
 				r="19.8442"
-				fill={bodyColor}
+				fill={props.bodyColor}
 				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="5"
 			/>

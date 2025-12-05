@@ -9,7 +9,11 @@ import { sendDiscordNotification } from '../../utils/discord'
 import { getFeatureFlag } from '../../utils/featureFlags'
 import { getClerkClient, requireAuth } from '../../utils/tla/getAuth'
 
-export async function redeemFairyInvite(request: IRequest, env: Environment): Promise<Response> {
+export async function redeemFairyInvite(
+	request: IRequest,
+	env: Environment,
+	ctx: ExecutionContext
+): Promise<Response> {
 	const fairiesEnabled = await getFeatureFlag(env, 'fairies')
 	if (!fairiesEnabled) {
 		throw new StatusError(403, 'Fairy invites are currently disabled')
@@ -100,11 +104,15 @@ export async function redeemFairyInvite(request: IRequest, env: Environment): Pr
 			throw new StatusError(500, `Failed to grant fairy access: ${result.error}`)
 		}
 
-		await sendDiscordNotification(env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL, {
-			type: 'invite_redeemed',
-			email: userEmail,
-			description: invite.description ?? undefined,
-		})
+		sendDiscordNotification(
+			env.DISCORD_FAIRY_PURCHASE_WEBHOOK_URL,
+			{
+				type: 'invite_redeemed',
+				email: userEmail,
+				description: invite.description ?? undefined,
+			},
+			ctx
+		)
 
 		return json({
 			success: true,

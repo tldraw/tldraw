@@ -6,7 +6,8 @@ import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
 
 // VSCE_PAT needs to be set. It is used by the vsce publish command.
-const env = makeEnv(['VSCE_PAT', 'TLDRAW_ENV'])
+// OVSX_PAT needs to be set for Open VSX publishing (handled by publish script).
+const env = makeEnv(['VSCE_PAT', 'OVSX_PAT', 'TLDRAW_ENV'])
 
 const EXTENSION_DIR = 'apps/vscode/extension'
 const DISTRIBUTION_DIR = 'apps/vscode/extension/release'

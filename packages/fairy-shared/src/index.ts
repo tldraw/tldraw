@@ -1,5 +1,7 @@
 /* eslint-disable local/no-export-star */
 
+import { TLShapeId } from 'tldraw'
+import { AgentId, ProjectId, SimpleShapeId, TaskId } from './schema/id-schemas'
 import { AgentAction } from './types/AgentAction'
 import { AgentActionInfo } from './types/AgentActionInfo'
 import { FairyTask } from './types/FairyTask'
@@ -14,6 +16,8 @@ export * from './format/FocusColor'
 export * from './format/FocusedShape'
 export * from './format/FocusFill'
 export * from './format/FocusFontSize'
+export * from './schema/id-schemas'
+export * from './types/FairyConfig'
 
 // Types (these are type-only exports)
 export type * from './format/OtherFairy'
@@ -29,7 +33,6 @@ export type * from './types/BasePromptPart'
 export type * from './types/ChatHistoryItem'
 export type * from './types/ContextItem'
 export type * from './types/FairyCanvasLint'
-export type * from './types/FairyConfig'
 export type * from './types/FairyMemoryLevel'
 export type * from './types/FairyProject'
 export type * from './types/FairyTask'
@@ -90,4 +93,26 @@ export function createAgentActionInfo<T extends Partial<AgentActionInfo>>(info: 
 
 export function createAgentTask<T extends FairyTask>(task: T): T {
 	return task
+}
+
+export function toSimpleShapeId(id: string): SimpleShapeId {
+	if (id.startsWith('shape:')) throw new Error('Invalid simple shape id')
+	return id as SimpleShapeId
+}
+
+export function toTldrawShapeId(id: string): TLShapeId {
+	if (!id.startsWith('shape:')) throw new Error('Invalid simple shape id')
+	return id as TLShapeId
+}
+
+export function toAgentId(id: string): AgentId {
+	return id as AgentId
+}
+
+export function toProjectId(id: string): ProjectId {
+	return id as ProjectId
+}
+
+export function toTaskId(id: string): TaskId {
+	return id as TaskId
 }

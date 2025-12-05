@@ -1,12 +1,16 @@
 import {
 	FairyEntity,
 	fairyEntityValidator,
+	FairyHatColor,
+	FairyHatType,
 	FairyOutfit,
 	fairyOutfitValidator,
+	HAT_COLORS,
+	HAT_TYPES,
 } from '@tldraw/fairy-shared'
 import { T, useEditor, usePeerIds, usePresence } from 'tldraw'
 import { FAIRY_CONTAINER_SIZE } from '../Fairy'
-import { FairySprite, getHatColor } from '../fairy-sprite/FairySprite'
+import { FairySprite } from '../fairy-sprite/FairySprite'
 
 /**
  * Component that renders fairies for all remote users who have an active fairy.
@@ -25,11 +29,17 @@ export function RemoteFairies() {
 interface FairyPresence {
 	entity: FairyEntity
 	outfit: FairyOutfit
+	hatColor: FairyHatColor
+	hatType: FairyHatType
+	legLength: number
 }
 
 const fairyPresenceValidator: T.ObjectValidator<FairyPresence> = T.object({
 	entity: fairyEntityValidator,
 	outfit: fairyOutfitValidator,
+	hatColor: T.literalEnum(...HAT_COLORS),
+	hatType: T.literalEnum(...HAT_TYPES),
+	legLength: T.number,
 })
 
 function RemoteFairy({ userId }: { userId: string }) {
@@ -57,7 +67,9 @@ function RemoteFairy({ userId }: { userId: string }) {
 					<RemoteFairyIndicator
 						key={`${userId}_fairy_${index}`}
 						entity={fairyPresence.entity}
-						outfit={fairyPresence.outfit}
+						hatColor={fairyPresence.hatColor}
+						hatType={fairyPresence.hatType}
+						legLength={fairyPresence.legLength}
 						color={color}
 					/>
 				)
@@ -68,11 +80,15 @@ function RemoteFairy({ userId }: { userId: string }) {
 
 function RemoteFairyIndicator({
 	entity,
-	outfit,
+	hatColor,
+	legLength,
+	hatType,
 	color,
 }: {
 	entity: FairyEntity
-	outfit: FairyOutfit
+	hatColor: FairyHatColor
+	hatType: FairyHatType
+	legLength: number
 	color: string
 }) {
 	// Match local fairy animation logic: animate if pose is not idle or if selected
@@ -96,7 +112,9 @@ function RemoteFairyIndicator({
 				flipX={entity.flipX}
 				gesture={entity.gesture}
 				pose={entity.pose}
-				hatColor={getHatColor(outfit.hat)}
+				hatColor={hatColor}
+				hatType={hatType}
+				legLength={legLength}
 				tint={color}
 			/>
 		</div>
