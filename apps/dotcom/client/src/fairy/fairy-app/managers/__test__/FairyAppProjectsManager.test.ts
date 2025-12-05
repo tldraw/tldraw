@@ -16,7 +16,6 @@ const projectId1 = toProjectId('project-1')
 const projectId2 = toProjectId('project-2')
 const taskId1 = toTaskId('task-1')
 const taskId2 = toTaskId('task-2')
-const taskId3 = toTaskId('task-3')
 
 describe('FairyAppProjectsManager', () => {
 	let editor: Editor
