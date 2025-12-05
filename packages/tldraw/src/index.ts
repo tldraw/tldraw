@@ -678,7 +678,6 @@ export {
 } from './lib/utils/static-assets/assetUrls'
 export {
 	defaultAddFontsFromNode,
-	getTipTapExtensionsForRendering,
 	KeyboardShiftEnterTweakExtension,
 	renderHtmlFromRichText,
 	renderHtmlFromRichTextForMeasurement,

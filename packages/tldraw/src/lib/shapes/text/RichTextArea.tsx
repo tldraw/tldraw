@@ -183,6 +183,10 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 					blockSeparator: '\n',
 				},
 			},
+			// N.B. We disable the text direction in the core list here,
+			// but we add it back in again in our own extensions list so that
+			// people can omit/override it if they want to.
+			enableCoreExtensions: { textDirection: false },
 			textDirection: 'auto',
 			...restOfTipTapConfig,
 			content: rInitialRichText.current as JSONContent,

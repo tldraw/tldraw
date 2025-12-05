@@ -59,27 +59,15 @@ export const tipTapDefaultExtensions: Extensions = [
 	}),
 	Highlight,
 	KeyboardShiftEnterTweakExtension,
+
+	// N.B. We disable the text direction core extension in RichTextArea,
+	// but we add it back in again here in our own extensions list so that
+	// people can omit/override it if they want to.
+	extensions.TextDirection.configure({ direction: 'auto' }),
 ]
 
 // todo: bust this if the editor changes, too
 const htmlCache = new WeakCache<TLRichText, string>()
-
-/**
- * Gets the extensions for rendering rich text to/from TipTap.
- *
- * @param editor - The editor instance.
- *
- * @public
- */
-export const getTipTapExtensionsForRendering = (editor: Editor) => {
-	const tiptapCoreExtensions: Extensions = [
-		extensions.TextDirection.configure({ direction: 'auto' }),
-	]
-
-	const tipTapExtensions =
-		editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
-	return [...tiptapCoreExtensions, ...tipTapExtensions]
-}
 
 /**
  * Renders HTML from a rich text string.
@@ -91,7 +79,9 @@ export const getTipTapExtensionsForRendering = (editor: Editor) => {
  */
 export function renderHtmlFromRichText(editor: Editor, richText: TLRichText) {
 	return htmlCache.get(richText, () => {
-		const html = generateHTML(richText as JSONContent, getTipTapExtensionsForRendering(editor))
+		const tipTapExtensions =
+			editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
+		const html = generateHTML(richText as JSONContent, tipTapExtensions)
 		// We replace empty paragraphs with a single line break to prevent the browser from collapsing them.
 		return html.replaceAll('<p dir="auto"></p>', '<p><br /></p>') ?? ''
 	})
@@ -130,7 +120,9 @@ export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText
 	if (isEmptyRichText(richText)) return ''
 
 	return plainTextFromRichTextCache.get(richText, () => {
-		return generateText(richText as JSONContent, getTipTapExtensionsForRendering(editor), {
+		const tipTapExtensions =
+			editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
+		return generateText(richText as JSONContent, tipTapExtensions, {
 			blockSeparator: '\n',
 		})
 	})
@@ -144,7 +136,9 @@ export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText
  * @public
  */
 export function renderRichTextFromHTML(editor: Editor, html: string): TLRichText {
-	return generateJSON(html, getTipTapExtensionsForRendering(editor)) as TLRichText
+	const tipTapExtensions =
+		editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
+	return generateJSON(html, tipTapExtensions) as TLRichText
 }
 
 /** @public */
