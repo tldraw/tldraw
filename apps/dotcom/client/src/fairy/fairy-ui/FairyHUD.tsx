@@ -1,10 +1,12 @@
-import { MouseEvent, useRef, useState } from 'react'
-import { PORTRAIT_BREAKPOINT, useBreakpoint, useEditor, useValue } from 'tldraw'
+import { MouseEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { PORTRAIT_BREAKPOINT, useBreakpoint, useDialogs, useEditor, useValue } from 'tldraw'
 import '../../tla/styles/fairy.css'
-import { F, useMsg } from '../../tla/utils/i18n'
+import { useMsg } from '../../tla/utils/i18n'
 import { useFairyApp } from '../fairy-app/FairyAppProvider'
 import { fairyMessages } from '../fairy-messages'
 import { FairyChatHistory } from './chat/FairyChatHistory'
+import { FairyFeedDialog } from './feed/FairyFeedDialog'
+import { hasUnseenFeedItems } from './feed/feedUtils'
 import { FairyHUDHeader } from './hud/FairyHUDHeader'
 import { FairySingleChatInput } from './hud/FairySingleChatInput'
 import { useFairySelection } from './hud/useFairySelection'
@@ -13,9 +15,12 @@ import { FairyManualPanel } from './manual/FairyManualPanel'
 import { FairyProjectView } from './project/FairyProjectView'
 import { FairyListSidebar } from './sidebar/FairyListSidebar'
 
+const FAIRY_FEED_DIALOG_ID = 'fairy-feed-dialog'
+
 export function FairyHUD() {
 	const fairyApp = useFairyApp()
 	const editor = useEditor()
+	const { addDialog, removeDialog, dialogs } = useDialogs()
 	const agents = useValue('fairy-agents', () => fairyApp?.agents.getAgents() ?? [], [fairyApp])
 	const breakpoint = useBreakpoint()
 	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
@@ -24,6 +29,14 @@ export function FairyHUD() {
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
 
 	const hudRef = useRef<HTMLDivElement>(null)
+	const [lastSeenFeedTimestamp, setLastSeenFeedTimestamp] = useState<number>(Date.now())
+
+	// Track if feed dialog is open
+	const isFeedDialogOpen = useValue(
+		'feed-dialog-open',
+		() => dialogs.get().some((d) => d.id === FAIRY_FEED_DIALOG_ID),
+		[dialogs]
+	)
 
 	// Use custom hooks
 	const {
@@ -65,6 +78,33 @@ export function FairyHUD() {
 	const selectMessage = useMsg(fairyMessages.selectFairy)
 	const manualLabel = useMsg(fairyMessages.manual)
 
+	// Track if there are unseen feed items (new items since last viewing)
+	const hasUnseenFeedItemsValue = useValue(
+		'hasUnseenFeedItems',
+		() => hasUnseenFeedItems(agents, activeOrchestratorAgent, lastSeenFeedTimestamp),
+		[activeOrchestratorAgent, agents, lastSeenFeedTimestamp]
+	)
+
+	// Close feed dialog when a new project starts
+	useEffect(() => {
+		removeDialog(FAIRY_FEED_DIALOG_ID)
+	}, [activeOrchestratorAgent, removeDialog])
+
+	// Toggle feed dialog and mark as seen when opening
+	const handleToggleFeed = useCallback(() => {
+		if (isFeedDialogOpen) {
+			removeDialog(FAIRY_FEED_DIALOG_ID)
+		} else if (activeOrchestratorAgent) {
+			setLastSeenFeedTimestamp(Date.now())
+			addDialog({
+				id: FAIRY_FEED_DIALOG_ID,
+				component: () => (
+					<FairyFeedDialog orchestratorAgent={activeOrchestratorAgent} agents={agents} />
+				),
+			})
+		}
+	}, [isFeedDialogOpen, activeOrchestratorAgent, agents, addDialog, removeDialog])
+
 	return (
 		<>
 			<div
@@ -105,49 +145,45 @@ export function FairyHUD() {
 								allAgents={agents}
 								isMobile={isMobile}
 								onToggleManual={handleToggleManual}
+								onToggleFeed={handleToggleFeed}
+								hasUnseenFeedItems={hasUnseenFeedItemsValue}
 							/>
-							{panelState === 'fairy' && selectedFairies.length === 0 && !shownFairy && (
-								<div className="fairy-chat-empty-message">
-									<F defaultMessage="Select a fairy on the right to chat with" />
-								</div>
-							)}
 							{/* Solo fairy mode - no project */}
-							{panelState === 'fairy' &&
-								selectedFairies.length <= 1 &&
-								shownFairy &&
-								!activeOrchestratorAgent && (
-									<>
-										<FairyChatHistory agent={shownFairy} />
-										<FairySingleChatInput
-											agent={shownFairy}
-											onCancel={() => {
-												agents.forEach((agent) => {
-													agent.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
-												})
-											}}
-										/>
-									</>
-								)}
-
-							{/* Project mode - ongoing project with orchestrator */}
-							{panelState === 'fairy' &&
-								selectedFairies.length <= 1 &&
-								shownFairy &&
-								activeOrchestratorAgent && (
-									<FairyProjectView
-										editor={editor}
-										agents={agents}
-										orchestratorAgent={activeOrchestratorAgent}
-										onClose={() => {
+							{panelState === 'fairy-solo' && shownFairy && (
+								<>
+									<FairyChatHistory agent={shownFairy} />
+									<FairySingleChatInput
+										agent={shownFairy}
+										onCancel={() => {
 											agents.forEach((agent) => {
 												agent.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
 											})
 										}}
 									/>
-								)}
+								</>
+							)}
 
-							{/* Project mode - multiple fairies selected (could be pre-project or active project) */}
-							{panelState === 'fairy' && selectedFairies.length > 1 && (
+							{/* Project mode - ongoing project with orchestrator */}
+							{panelState === 'fairy-project' && shownFairy && activeOrchestratorAgent && (
+								<FairyProjectView
+									editor={editor}
+									agents={agents}
+									orchestratorAgent={activeOrchestratorAgent}
+									onClose={() => {
+										agents.forEach((agent) => {
+											agent.updateEntity((f) => (f ? { ...f, isSelected: false } : f))
+										})
+									}}
+								/>
+							)}
+
+							{/* Multi-fairy mode - multiple fairies selected (pre-project or active project) */}
+							{panelState === 'fairy-multi' && (
+								// <FairyFeedView
+								// 	orchestratorAgent={activeOrchestratorAgent}
+								// 	agents={selectedFairies}
+								// />
+
 								<FairyProjectView
 									editor={editor}
 									agents={selectedFairies}

@@ -148,6 +148,8 @@ export class FairyAgentActionManager extends BaseFairyAgentManager {
 				diff,
 				acceptance: 'pending',
 				memoryLevel: modeDefinition.memoryLevel,
+				// Set timestamp when action completes
+				timestamp: action.complete ? Date.now() : undefined,
 			}
 
 			this.agent.chat.update((historyItems) => {
@@ -172,6 +174,7 @@ export class FairyAgentActionManager extends BaseFairyAgentManager {
 					(lastPromptIndex === -1 || lastActionHistoryItemIndex > lastPromptIndex)
 				) {
 					const newHistoryItems = [...historyItems]
+					// Replace the incomplete action with the complete one (timestamp already set above)
 					newHistoryItems[lastActionHistoryItemIndex] = historyItem
 					return newHistoryItems
 				} else {
