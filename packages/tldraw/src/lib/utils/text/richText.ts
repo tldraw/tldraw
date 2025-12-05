@@ -1,6 +1,7 @@
 import {
 	Extension,
 	Extensions,
+	extensions,
 	generateHTML,
 	generateJSON,
 	generateText,
@@ -19,7 +20,6 @@ import {
 	WeakCache,
 } from '@tldraw/editor'
 import { DefaultFontFaces } from '../../shapes/shared/defaultFonts'
-import { TextDirection } from './textDirection'
 
 /** @public */
 export const KeyboardShiftEnterTweakExtension = Extension.create({
@@ -59,11 +59,27 @@ export const tipTapDefaultExtensions: Extensions = [
 	}),
 	Highlight,
 	KeyboardShiftEnterTweakExtension,
-	TextDirection,
 ]
 
 // todo: bust this if the editor changes, too
 const htmlCache = new WeakCache<TLRichText, string>()
+
+/**
+ * Gets the extensions for rendering rich text to/from TipTap.
+ *
+ * @param editor - The editor instance.
+ *
+ * @public
+ */
+export const getTipTapExtensionsForRendering = (editor: Editor) => {
+	const tiptapCoreExtensions: Extensions = [
+		extensions.TextDirection.configure({ direction: 'auto' }),
+	]
+
+	const tipTapExtensions =
+		editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
+	return [...tiptapCoreExtensions, ...tipTapExtensions]
+}
 
 /**
  * Renders HTML from a rich text string.
@@ -75,9 +91,7 @@ const htmlCache = new WeakCache<TLRichText, string>()
  */
 export function renderHtmlFromRichText(editor: Editor, richText: TLRichText) {
 	return htmlCache.get(richText, () => {
-		const tipTapExtensions =
-			editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
-		const html = generateHTML(richText as JSONContent, tipTapExtensions)
+		const html = generateHTML(richText as JSONContent, getTipTapExtensionsForRendering(editor))
 		// We replace empty paragraphs with a single line break to prevent the browser from collapsing them.
 		return html.replaceAll('<p dir="auto"></p>', '<p><br /></p>') ?? ''
 	})
@@ -87,7 +101,6 @@ export function renderHtmlFromRichText(editor: Editor, richText: TLRichText) {
  * Renders HTML from a rich text string for measurement.
  * @param editor - The editor instance.
  * @param richText - The rich text content.
- *
  *
  * @public
  */
@@ -111,16 +124,13 @@ export function isEmptyRichText(richText: TLRichText) {
  * @param editor - The editor instance.
  * @param richText - The rich text content.
  *
- *
  * @public
  */
 export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText) {
 	if (isEmptyRichText(richText)) return ''
 
 	return plainTextFromRichTextCache.get(richText, () => {
-		const tipTapExtensions =
-			editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
-		return generateText(richText as JSONContent, tipTapExtensions, {
+		return generateText(richText as JSONContent, getTipTapExtensionsForRendering(editor), {
 			blockSeparator: '\n',
 		})
 	})
@@ -131,13 +141,10 @@ export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText
  * @param editor - The editor instance.
  * @param richText - The rich text content.
  *
- *
  * @public
  */
 export function renderRichTextFromHTML(editor: Editor, html: string): TLRichText {
-	const tipTapExtensions =
-		editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
-	return generateJSON(html, tipTapExtensions) as TLRichText
+	return generateJSON(html, getTipTapExtensionsForRendering(editor)) as TLRichText
 }
 
 /** @public */

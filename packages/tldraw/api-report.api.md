@@ -4,6 +4,7 @@
 
 ```ts
 
+import { AnyExtension } from '@tiptap/core';
 import { Atom } from '@tldraw/editor';
 import { BaseBoxShapeTool } from '@tldraw/editor';
 import { BaseBoxShapeUtil } from '@tldraw/editor';
@@ -1796,6 +1797,9 @@ export function getStrokePoints(rawInputPoints: VecLike[], options?: StrokeOptio
 export function getSvgPathFromStrokePoints(points: StrokePoint[], closed?: boolean): string;
 
 // @public
+export const getTipTapExtensionsForRendering: (editor: Editor) => AnyExtension[];
+
+// @public
 export function getUncroppedSize(shapeSize: {
     h: number;
     w: number;
@@ -2955,9 +2959,6 @@ export interface TextAreaProps {
     // (undocumented)
     text?: string;
 }
-
-// @public (undocumented)
-export const TextDirection: Extension<any, any>;
 
 // @public (undocumented)
 export interface TextShapeOptions {

@@ -607,6 +607,7 @@ export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> =
 
 // @public
 export const richTextValidator: T.ObjectValidator<{
+    attrs?: any;
     content: unknown[];
     type: string;
 }>;

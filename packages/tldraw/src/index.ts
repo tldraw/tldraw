@@ -678,6 +678,7 @@ export {
 } from './lib/utils/static-assets/assetUrls'
 export {
 	defaultAddFontsFromNode,
+	getTipTapExtensionsForRendering,
 	KeyboardShiftEnterTweakExtension,
 	renderHtmlFromRichText,
 	renderHtmlFromRichTextForMeasurement,
@@ -686,7 +687,6 @@ export {
 	tipTapDefaultExtensions,
 } from './lib/utils/text/richText'
 export { truncateStringWithEllipsis } from './lib/utils/text/text'
-export { TextDirection } from './lib/utils/text/textDirection'
 export {
 	buildFromV1Document,
 	TLV1AlignStyle,

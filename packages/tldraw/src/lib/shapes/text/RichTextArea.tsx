@@ -183,6 +183,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 					blockSeparator: '\n',
 				},
 			},
+			textDirection: 'auto',
 			...restOfTipTapConfig,
 			content: rInitialRichText.current as JSONContent,
 		})
