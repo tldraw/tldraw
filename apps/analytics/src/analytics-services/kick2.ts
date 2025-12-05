@@ -8,7 +8,7 @@ class Kick2Service extends AnalyticsService {
 		const kick2ScriptTag = document.createElement('script')
 		kick2ScriptTag.id = KICK2_SCRIPT_ID
 		kick2ScriptTag.src = KICK2_SCRIPT_URL
-		kick2ScriptTag.async = true
+		kick2ScriptTag.defer = true
 		document.head.appendChild(kick2ScriptTag)
 		this.isEnabled = true
 	}
