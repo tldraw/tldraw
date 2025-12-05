@@ -1008,23 +1008,18 @@
 	animation: fairy-shimmer 2s ease-in-out infinite;
 }
 
-/* Fairy ID display text with crossfade shimmer effect */
+/* Fairy ID display text with shimmer effect */
 .fairy-id-display-text {
 	position: relative;
 	display: inline-block;
 }
 
-.fairy-id-display-text__normal,
-.fairy-id-display-text__shimmer {
-	transition: opacity 0.3s ease;
-}
-
-.fairy-id-display-text__shimmer {
+/* Shimmer overlay using pseudo-element */
+.fairy-id-display-text::after {
+	content: attr(data-text);
 	position: absolute;
 	left: 0;
 	top: 0;
-	opacity: 0;
-	color: var(--tl-color-text-3);
 	background: linear-gradient(
 		90deg,
 		var(--tl-color-text-3) 0%,
@@ -1037,15 +1032,14 @@
 	-webkit-background-clip: text;
 	background-clip: text;
 	-webkit-text-fill-color: transparent;
-	animation: fairy-shimmer 2s ease-in-out infinite;
-}
-
-.fairy-id-display--generating .fairy-id-display-text__normal {
 	opacity: 0;
+	transition: opacity 0.3s ease;
 }
 
-.fairy-id-display--generating .fairy-id-display-text__shimmer {
+/* When generating, fade in shimmer and animate */
+.fairy-id-display--generating .fairy-id-display-text::after {
 	opacity: 1;
+	animation: fairy-shimmer 2s ease-in-out infinite;
 }
 
 .fairy-project-chat-tasks {

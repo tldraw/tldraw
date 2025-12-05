@@ -214,9 +214,9 @@ export function FairyHUDHeader({
 					<span
 						className="fairy-id-display-text"
 						style={{ cursor: fairyClickable ? 'pointer' : 'default' }}
+						data-text={getDisplayName()}
 					>
-						<span className="fairy-id-display-text__normal">{getDisplayName()}</span>
-						<span className="fairy-id-display-text__shimmer">{getDisplayName()}</span>
+						{getDisplayName()}
 					</span>
 				</TldrawUiTooltip>
 			</div>
