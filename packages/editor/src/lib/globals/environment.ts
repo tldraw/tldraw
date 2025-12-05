@@ -1,4 +1,4 @@
-import { atom, unsafe__withoutCapture } from '@tldraw/state'
+import { atom } from '@tldraw/state'
 
 /**
  * An object that contains information about the current device and environment.
@@ -50,8 +50,7 @@ const tlenvReactive = atom('tlenvReactive', {
 if (typeof window !== 'undefined' && !isForcedFinePointer) {
 	const mql = window.matchMedia && window.matchMedia('(any-pointer: coarse)')
 
-	const isCurrentCoarsePointer = () =>
-		unsafe__withoutCapture(() => tlenvReactive.get().isCoarsePointer)
+	const isCurrentCoarsePointer = () => tlenvReactive.__unsafe__getWithoutCapture().isCoarsePointer
 
 	if (mql) {
 		// 1. Update the coarse pointer automatically when the media query changes
