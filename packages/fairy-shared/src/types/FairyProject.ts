@@ -1,7 +1,8 @@
 import { ProjectColor } from '../format/FocusColor'
+import { AgentId, ProjectId } from '../schema/id-schemas'
 
 export interface FairyProject {
-	id: string
+	id: ProjectId
 	title: string
 	description: string
 	color: ProjectColor | ''
@@ -10,7 +11,7 @@ export interface FairyProject {
 }
 
 export interface FairyProjectMember {
-	id: string
+	id: AgentId
 	role: FairyProjectRole
 }
 

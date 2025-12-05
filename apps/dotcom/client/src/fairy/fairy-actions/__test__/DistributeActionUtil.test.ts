@@ -1,4 +1,4 @@
-import { createAgentAction } from '@tldraw/fairy-shared'
+import { createAgentAction, toSimpleShapeId } from '@tldraw/fairy-shared'
 import { createShapeId, Editor } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AgentHelpers } from '../../fairy-agent/AgentHelpers'
@@ -34,7 +34,11 @@ describe('DistributeActionUtil', () => {
 				_type: 'distribute',
 				direction: 'horizontal',
 				intent: 'test',
-				shapeIds: ['shape1', 'shape2', 'nonexistent'],
+				shapeIds: [
+					toSimpleShapeId('shape1'),
+					toSimpleShapeId('shape2'),
+					toSimpleShapeId('nonexistent'),
+				],
 				complete: true,
 				time: 0,
 			})
@@ -44,9 +48,9 @@ describe('DistributeActionUtil', () => {
 
 			// Should filter out the nonexistent shape
 			expect(sanitized?.shapeIds).toHaveLength(2)
-			expect(sanitized?.shapeIds).toContain('shape1')
-			expect(sanitized?.shapeIds).toContain('shape2')
-			expect(sanitized?.shapeIds).not.toContain('nonexistent')
+			expect(sanitized?.shapeIds).toContain(toSimpleShapeId('shape1'))
+			expect(sanitized?.shapeIds).toContain(toSimpleShapeId('shape2'))
+			expect(sanitized?.shapeIds).not.toContain(toSimpleShapeId('nonexistent'))
 		})
 	})
 
@@ -83,7 +87,7 @@ describe('DistributeActionUtil', () => {
 				_type: 'distribute',
 				direction: 'horizontal',
 				intent: 'Distribute horizontally',
-				shapeIds: ['shape1', 'shape2', 'shape3'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('shape2'), toSimpleShapeId('shape3')],
 				complete: true,
 				time: 0,
 			})
@@ -114,7 +118,7 @@ describe('DistributeActionUtil', () => {
 				_type: 'distribute',
 				direction: 'vertical',
 				intent: 'Distribute vertically',
-				shapeIds: ['shape1', 'shape2', 'shape3'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('shape2'), toSimpleShapeId('shape3')],
 				complete: true,
 				time: 0,
 			})
@@ -142,7 +146,7 @@ describe('DistributeActionUtil', () => {
 				_type: 'distribute',
 				direction: 'horizontal',
 				intent: 'test',
-				shapeIds: ['shape1', 'shape2', 'shape3'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('shape2'), toSimpleShapeId('shape3')],
 				complete: true,
 				time: 0,
 			})
@@ -184,7 +188,7 @@ describe('DistributeActionUtil', () => {
 				_type: 'distribute',
 				direction: 'horizontal',
 				intent: 'Distribute two shapes',
-				shapeIds: ['shape1', 'shape2', 'shape3'],
+				shapeIds: [toSimpleShapeId('shape1'), toSimpleShapeId('shape2'), toSimpleShapeId('shape3')],
 				complete: true,
 				time: 0,
 			})

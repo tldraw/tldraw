@@ -1,3 +1,4 @@
+import { AgentId } from '@tldraw/fairy-shared'
 import { Atom, atom, Box, react } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
 import { BaseFairyAppManager } from './BaseFairyAppManager'
@@ -13,7 +14,7 @@ export class FairyAppFollowingManager extends BaseFairyAppManager {
 	 * Atom to track which fairy is currently being followed by the camera.
 	 * Contains the fairy ID being followed, or null if not following any fairy.
 	 */
-	private $followingFairyId: Atom<string | null> = atom('fairyAppFollowingFairyId', null)
+	private $followingFairyId: Atom<AgentId | null> = atom('fairyAppFollowingFairyId', null)
 
 	/**
 	 * Cleanup functions for following reactions.
@@ -23,14 +24,14 @@ export class FairyAppFollowingManager extends BaseFairyAppManager {
 	/**
 	 * Get the ID of the fairy currently being followed, or null if not following.
 	 */
-	getFollowingFairyId(): string | null {
+	getFollowingFairyId(): AgentId | null {
 		return this.$followingFairyId.get()
 	}
 
 	/**
 	 * Check if currently following a specific fairy.
 	 */
-	isFollowingFairy(fairyId: string): boolean {
+	isFollowingFairy(fairyId: AgentId): boolean {
 		return this.$followingFairyId.get() === fairyId
 	}
 
@@ -46,7 +47,7 @@ export class FairyAppFollowingManager extends BaseFairyAppManager {
 	 * The camera will automatically zoom to the fairy's position whenever it moves or changes pages.
 	 * Following stops automatically when the user scrolls (wheel event) or manually changes pages.
 	 */
-	startFollowing(fairyId: string) {
+	startFollowing(fairyId: AgentId) {
 		// Stop any existing following first
 		this.stopFollowing()
 
