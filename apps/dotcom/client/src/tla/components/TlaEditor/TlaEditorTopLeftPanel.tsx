@@ -244,7 +244,12 @@ export function TlaEditorTopLeftPanelSignedIn() {
 			>
 				<TldrawUiMenuGroup id="regular-stuff">
 					<TldrawUiMenuSubmenu id="file" label={fileSubmenuMsg}>
-						<FileItems source="file-header" fileId={fileId} onRenameAction={handleRenameAction} groupId={null} />
+						<FileItems
+							source="file-header"
+							fileId={fileId}
+							onRenameAction={handleRenameAction}
+							groupId={null}
+						/>
 					</TldrawUiMenuSubmenu>
 					<EditSubmenu />
 					<ViewSubmenu />
