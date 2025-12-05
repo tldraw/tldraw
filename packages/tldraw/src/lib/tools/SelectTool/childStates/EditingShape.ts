@@ -197,13 +197,6 @@ export class EditingShape extends StateNode {
 		if (!hitShape) return
 		this.hitLabelOnShapeForPointerUp = null
 
-		const currentEditingShape = this.editor.getEditingShape()
-
-		// If clicking same editing shape, let browser handle it naturally
-		if (currentEditingShape && hitShape.id === currentEditingShape.id) {
-			return
-		}
-
 		// Stay in edit mode to maintain flow of editing.
 		const util = this.editor.getShapeUtil(hitShape)
 		if (hitShape.isLocked) return
@@ -217,6 +210,7 @@ export class EditingShape extends StateNode {
 
 		this.editor.select(hitShape.id)
 
+		const currentEditingShape = this.editor.getEditingShape()
 		const isEditToEditAction = currentEditingShape && currentEditingShape.id !== hitShape.id
 		this.editor.setEditingShape(hitShape.id)
 
