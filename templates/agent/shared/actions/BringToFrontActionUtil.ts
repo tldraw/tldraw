@@ -1,4 +1,4 @@
-import { SimpleShapeIdSchema } from '@tldraw/fairy-shared/.tsbuild/schema/id-schemas'
+import { SimpleShapeIdSchema } from '@tldraw/fairy-shared'
 import { TLShapeId } from 'tldraw'
 import z from 'zod'
 import { AgentHelpers } from '../AgentHelpers'
