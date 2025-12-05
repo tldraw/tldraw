@@ -274,6 +274,7 @@ export class Idle extends StateNode {
 							return
 						}
 					}
+
 					// For corners OR edges but NOT rotation corners
 					if (this.editor.getCanCropShape(onlySelectedShape)) {
 						this.parent.transition('crop', info)
