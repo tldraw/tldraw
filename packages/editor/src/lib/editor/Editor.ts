@@ -2666,7 +2666,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getZoomLevel() {
-		console.log(this.getCamera().z)
 		return this.getCamera().z
 	}
 
