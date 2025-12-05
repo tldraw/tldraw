@@ -16,6 +16,7 @@ export * from './format/FocusColor'
 export * from './format/FocusedShape'
 export * from './format/FocusFill'
 export * from './format/FocusFontSize'
+export * from './schema/id-schemas'
 export * from './types/FairyConfig'
 
 // Types (these are type-only exports)
