@@ -1148,7 +1148,6 @@
 /* Fairy Feed Dialog */
 
 .fairy-feed-dialog {
-	font-family: 12px;
 	display: flex;
 	flex-direction: column;
 	width: 700px;
