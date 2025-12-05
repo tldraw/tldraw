@@ -3,6 +3,7 @@ import { FocusColorSchema, ProjectColorSchema } from '../format/FocusColor'
 import { FocusFillSchema } from '../format/FocusFill'
 import { FocusedCreatableShapeSchema, FocusedShapeSchema } from '../format/FocusedShape'
 import { BaseAgentAction } from '../types/BaseAgentAction'
+import { AgentIdSchema, SimpleShapeIdSchema, TaskIdSchema, TodoIdSchema } from './id-schemas'
 
 export const AlignActionSchema = z
 	.object({
@@ -10,7 +11,7 @@ export const AlignActionSchema = z
 		alignment: z.enum(['top', 'bottom', 'left', 'right', 'center-horizontal', 'center-vertical']),
 		gap: z.number(),
 		intent: z.string(),
-		shapeIds: z.array(z.string()),
+		shapeIds: z.array(SimpleShapeIdSchema),
 	})
 	.meta({ title: 'Align', description: 'The agent aligns shapes to each other on an axis.' })
 
@@ -19,8 +20,8 @@ export type AlignAction = z.infer<typeof AlignActionSchema>
 export const DirectToStartTaskActionSchema = z
 	.object({
 		_type: z.literal('direct-to-start-project-task'),
-		otherFairyId: z.string(),
-		taskId: z.string(),
+		otherFairyId: AgentIdSchema,
+		taskId: TaskIdSchema,
 	})
 	.meta({
 		title: 'Direct to start project task',
@@ -34,7 +35,7 @@ export const BringToFrontActionSchema = z
 	.object({
 		_type: z.literal('bring-to-front'),
 		intent: z.string(),
-		shapeIds: z.array(z.string()),
+		shapeIds: z.array(SimpleShapeIdSchema),
 	})
 	.meta({
 		title: 'Bring to Front',
@@ -47,7 +48,7 @@ export type BringToFrontAction = z.infer<typeof BringToFrontActionSchema>
 export const ClaimTodoItemActionSchema = z
 	.object({
 		_type: z.literal('claim-todo-item'),
-		todoItemId: z.number(),
+		todoItemId: TodoIdSchema,
 	})
 	.meta({
 		title: 'Claim todo item',
@@ -94,7 +95,7 @@ export const DeleteActionSchema = z
 	.object({
 		_type: z.literal('delete'),
 		intent: z.string(),
-		shapeId: z.string(),
+		shapeId: SimpleShapeIdSchema,
 	})
 	.meta({ title: 'Delete', description: 'The agent deletes a shape.' })
 
@@ -103,7 +104,7 @@ export type DeleteAction = z.infer<typeof DeleteActionSchema>
 export const ActivateFairyActionSchema = z
 	.object({
 		_type: z.literal('activate-agent'),
-		fairyId: z.string(),
+		fairyId: AgentIdSchema,
 	})
 	.meta({
 		title: 'Activate agent',
@@ -117,7 +118,7 @@ export const DistributeActionSchema = z
 		_type: z.literal('distribute'),
 		direction: z.enum(['horizontal', 'vertical']),
 		intent: z.string(),
-		shapeIds: z.array(z.string()),
+		shapeIds: z.array(SimpleShapeIdSchema),
 	})
 	.meta({
 		title: 'Distribute',
@@ -148,7 +149,7 @@ export const AbortProjectActionSchema = z
 			"The agent aborts the currently active project before starting it because the user's input doesn't make sense in context or is unclear. The reason should be a succinct explanation for why the project is being aborted.",
 	})
 
-export type AbortProjectAction = z.infer<typeof AbortProjectActionSchema>
+export type AbortProjectAction = z.infer<typeof AbortProjectActionSchema> & { reason: string }
 
 export const EnterOrchestrationModeActionSchema = z
 	.object({
@@ -182,7 +183,7 @@ export const LabelActionSchema = z
 	.object({
 		_type: z.literal('label'),
 		intent: z.string(),
-		shapeId: z.string(),
+		shapeId: SimpleShapeIdSchema,
 		text: z.string(),
 	})
 	.meta({ title: 'Label', description: "The agent changes a shape's text." })
@@ -202,7 +203,7 @@ export const MoveActionSchema = z
 	.object({
 		_type: z.literal('move'),
 		intent: z.string(),
-		shapeId: z.string(),
+		shapeId: SimpleShapeIdSchema,
 		x: z.number(),
 		y: z.number(),
 	})
@@ -214,7 +215,7 @@ export const OffsetActionSchema = z
 	.object({
 		_type: z.literal('offset'),
 		intent: z.string(),
-		shapeIds: z.array(z.string()),
+		shapeIds: z.array(SimpleShapeIdSchema),
 		offsetX: z.number(),
 		offsetY: z.number(),
 	})
@@ -254,6 +255,7 @@ export const PenActionSchema = z
 				y: z.number(),
 			})
 		),
+		shapeId: SimpleShapeIdSchema,
 		style: z.enum(['smooth', 'straight']),
 	})
 	.meta({
@@ -270,10 +272,10 @@ export const PlaceActionSchema = z
 		align: z.enum(['start', 'center', 'end']),
 		alignOffset: z.number(),
 		intent: z.string(),
-		referenceShapeId: z.string(),
+		referenceShapeId: SimpleShapeIdSchema,
 		side: z.enum(['top', 'bottom', 'left', 'right']),
 		sideOffset: z.number(),
-		shapeId: z.string(),
+		shapeId: SimpleShapeIdSchema,
 	})
 	.meta({ title: 'Place', description: 'The agent places a shape relative to another shape.' })
 
@@ -287,7 +289,7 @@ export const ResizeActionSchema = z
 		originY: z.number(),
 		scaleX: z.number(),
 		scaleY: z.number(),
-		shapeIds: z.array(z.string()),
+		shapeIds: z.array(SimpleShapeIdSchema),
 	})
 	.meta({
 		title: 'Resize',
@@ -322,7 +324,7 @@ export const RotateActionSchema = z
 		intent: z.string(),
 		originX: z.number(),
 		originY: z.number(),
-		shapeIds: z.array(z.string()),
+		shapeIds: z.array(SimpleShapeIdSchema),
 	})
 	.meta({
 		title: 'Rotate',
@@ -335,7 +337,7 @@ export const SendToBackActionSchema = z
 	.object({
 		_type: z.literal('send-to-back'),
 		intent: z.string(),
-		shapeIds: z.array(z.string()),
+		shapeIds: z.array(SimpleShapeIdSchema),
 	})
 	.meta({
 		title: 'Send to Back',
@@ -351,7 +353,7 @@ export const StackActionSchema = z
 		direction: z.enum(['vertical', 'horizontal']),
 		gap: z.number(),
 		intent: z.string(),
-		shapeIds: z.array(z.string()),
+		shapeIds: z.array(SimpleShapeIdSchema),
 	})
 	.meta({
 		title: 'Stack',
@@ -388,7 +390,7 @@ export type ThinkAction = z.infer<typeof ThinkActionSchema>
 export const UpsertPersonalTodoItemActionSchema = z
 	.object({
 		_type: z.literal('upsert-personal-todo-item'),
-		id: z.string(),
+		id: TaskIdSchema,
 		status: z.enum(['todo', 'in-progress', 'done']),
 		text: z.string().optional(),
 	})
@@ -403,7 +405,7 @@ export type UpsertPersonalTodoItemAction = z.infer<typeof UpsertPersonalTodoItem
 export const DeletePersonalTodoItemsActionSchema = z
 	.object({
 		_type: z.literal('delete-personal-todo-items'),
-		ids: z.array(z.string()),
+		ids: z.array(TaskIdSchema),
 	})
 	.meta({
 		title: 'Delete Personal Todo Items',
@@ -458,7 +460,7 @@ export type CreatePageAction = z.infer<typeof CreatePageActionSchema>
 export const CreateSoloTaskActionSchema = z
 	.object({
 		_type: z.literal('create-task'),
-		taskId: z.string(),
+		taskId: TaskIdSchema,
 		title: z.string(),
 		text: z.string(),
 		x: z.number(),
@@ -477,10 +479,10 @@ export type CreateTaskAction = z.infer<typeof CreateSoloTaskActionSchema>
 export const CreateProjectTaskActionSchema = z
 	.object({
 		_type: z.literal('create-project-task'),
-		taskId: z.string(),
+		taskId: TaskIdSchema,
 		title: z.string(),
 		text: z.string(),
-		assignedTo: z.string(),
+		assignedTo: AgentIdSchema,
 		x: z.number(),
 		y: z.number(),
 		w: z.number(),
@@ -497,7 +499,7 @@ export type CreateProjectTaskAction = z.infer<typeof CreateProjectTaskActionSche
 export const DeleteProjectTaskActionSchema = z
 	.object({
 		_type: z.literal('delete-project-task'),
-		taskId: z.string(),
+		taskId: TaskIdSchema,
 		reason: z.string(),
 	})
 	.meta({
@@ -511,7 +513,7 @@ export type DeleteProjectTaskAction = z.infer<typeof DeleteProjectTaskActionSche
 export const StartSoloTaskActionSchema = z
 	.object({
 		_type: z.literal('start-task'),
-		taskId: z.string(),
+		taskId: TaskIdSchema,
 	})
 	.meta({
 		title: 'Start Task',
@@ -548,7 +550,7 @@ export type MarkSoloTaskDoneAction = z.infer<typeof MarkSoloTaskDoneActionSchema
 export const AwaitTasksCompletionActionSchema = z
 	.object({
 		_type: z.literal('await-tasks-completion'),
-		taskIds: z.array(z.string()),
+		taskIds: z.array(TaskIdSchema),
 	})
 	.meta({
 		title: 'Await Tasks Completion',
@@ -561,10 +563,10 @@ export type AwaitTasksCompletionAction = z.infer<typeof AwaitTasksCompletionActi
 export const CreateDuoTaskActionSchema = z
 	.object({
 		_type: z.literal('create-duo-task'),
-		taskId: z.string(),
+		taskId: TaskIdSchema,
 		title: z.string(),
 		text: z.string(),
-		assignedTo: z.string(),
+		assignedTo: AgentIdSchema,
 		x: z.number(),
 		y: z.number(),
 		w: z.number(),
@@ -581,8 +583,8 @@ export type CreateDuoTaskAction = z.infer<typeof CreateDuoTaskActionSchema>
 export const DirectToStartDuoTaskActionSchema = z
 	.object({
 		_type: z.literal('direct-to-start-duo-task'),
-		otherFairyId: z.string(),
-		taskId: z.string(),
+		otherFairyId: AgentIdSchema,
+		taskId: TaskIdSchema,
 	})
 	.meta({
 		title: 'Direct to start duo task',
@@ -595,7 +597,7 @@ export type DirectToStartDuoTaskAction = z.infer<typeof DirectToStartDuoTaskActi
 export const StartDuoTaskActionSchema = z
 	.object({
 		_type: z.literal('start-duo-task'),
-		taskId: z.string(),
+		taskId: TaskIdSchema,
 	})
 	.meta({
 		title: 'Start Duo Task',
@@ -620,7 +622,7 @@ export type MarkDuoTaskDoneAction = z.infer<typeof MarkDuoTaskDoneActionSchema>
 export const AwaitDuoTasksCompletionActionSchema = z
 	.object({
 		_type: z.literal('await-duo-tasks-completion'),
-		taskIds: z.array(z.string()),
+		taskIds: z.array(TaskIdSchema),
 	})
 	.meta({
 		title: 'Await Duo Tasks Completion',

@@ -1,4 +1,4 @@
-import { createAgentAction } from '@tldraw/fairy-shared'
+import { createAgentAction, toSimpleShapeId } from '@tldraw/fairy-shared'
 import { createShapeId, Editor } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AgentHelpers } from '../../fairy-agent/AgentHelpers'
@@ -25,7 +25,7 @@ describe('DeleteActionUtil', () => {
 		it('should return action as-is if incomplete', () => {
 			const action = createAgentAction({
 				_type: 'delete',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				intent: 'test',
 				complete: false,
 				time: 0,
@@ -43,7 +43,7 @@ describe('DeleteActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'delete',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				intent: 'test',
 				complete: true,
 				time: 0,
@@ -53,13 +53,13 @@ describe('DeleteActionUtil', () => {
 			const sanitized = deleteUtil.sanitizeAction(action, helpers)
 
 			expect(sanitized).not.toBeNull()
-			expect(sanitized?.shapeId).toBe('shape1')
+			expect(sanitized?.shapeId).toBe(toSimpleShapeId('shape1'))
 		})
 
 		it('should return null if shape does not exist', () => {
 			const action = createAgentAction({
 				_type: 'delete',
-				shapeId: 'nonexistent',
+				shapeId: toSimpleShapeId('nonexistent'),
 				intent: 'test',
 				complete: true,
 				time: 0,
@@ -76,7 +76,7 @@ describe('DeleteActionUtil', () => {
 		it('should not apply incomplete actions', () => {
 			const action = createAgentAction({
 				_type: 'delete',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				intent: 'test',
 				complete: false,
 				time: 0,
@@ -97,7 +97,7 @@ describe('DeleteActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'delete',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				intent: 'Delete shape',
 				complete: true,
 				time: 0,
@@ -115,7 +115,7 @@ describe('DeleteActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'delete',
-				shapeId: 'shape1',
+				shapeId: toSimpleShapeId('shape1'),
 				intent: 'Delete shape',
 				complete: true,
 				time: 0,
@@ -129,7 +129,7 @@ describe('DeleteActionUtil', () => {
 		it('should not delete if shape does not exist', () => {
 			const action = createAgentAction({
 				_type: 'delete',
-				shapeId: 'nonexistent',
+				shapeId: toSimpleShapeId('nonexistent'),
 				intent: 'test',
 				complete: true,
 				time: 0,
@@ -151,7 +151,7 @@ describe('DeleteActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'delete',
-				shapeId: 'text1',
+				shapeId: toSimpleShapeId('text1'),
 				intent: 'Delete text',
 				complete: true,
 				time: 0,
@@ -173,7 +173,7 @@ describe('DeleteActionUtil', () => {
 
 			const action = createAgentAction({
 				_type: 'delete',
-				shapeId: 'arrow1',
+				shapeId: toSimpleShapeId('arrow1'),
 				intent: 'Delete arrow',
 				complete: true,
 				time: 0,

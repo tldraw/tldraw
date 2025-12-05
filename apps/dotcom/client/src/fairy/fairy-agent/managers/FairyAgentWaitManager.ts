@@ -3,6 +3,8 @@ import {
 	FairyWaitCondition,
 	FairyWaitEvent,
 	SerializedWaitCondition,
+	toAgentId,
+	toTaskId,
 } from '@tldraw/fairy-shared'
 import { atom, Atom } from 'tldraw'
 import { FairyAgent } from '../FairyAgent'
@@ -160,14 +162,14 @@ export class FairyAgentWaitManager extends BaseFairyAgentManager {
 					// Parse id format: "task-completed:${taskId}"
 					const match = serialized.id.match(/^task-completed:(.+)$/)
 					if (match) {
-						const taskId = match[1]
+						const taskId = toTaskId(match[1])
 						return this.agent.fairyApp.waits.createTaskWaitCondition(taskId)
 					}
 				} else if (serialized.eventType === 'agent-mode-transition') {
 					// Parse id format: "agent-mode-transition:${agentId}:${mode}"
 					const match = serialized.id.match(/^agent-mode-transition:(.+):(.+)$/)
 					if (match) {
-						const agentId = match[1]
+						const agentId = toAgentId(match[1])
 						const mode = match[2] as FairyModeDefinition['type']
 						return this.agent.fairyApp.waits.createAgentModeTransitionWaitCondition(agentId, mode)
 					}
