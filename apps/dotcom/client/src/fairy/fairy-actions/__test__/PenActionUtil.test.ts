@@ -280,6 +280,36 @@ describe('PenActionUtil', () => {
 			expect(shapesAfter).toBe(shapesBefore)
 		})
 
+		it('should handle shapeId that already has shape: prefix', () => {
+			const action = createAgentAction({
+				_type: 'pen',
+				intent: 'test',
+				color: 'black',
+				closed: false,
+				fill: 'none',
+				style: 'smooth',
+				shapeId: 'shape:prefixed-id',
+				points: [
+					{ x: 0, y: 0 },
+					{ x: 100, y: 100 },
+				],
+				complete: true,
+				time: 0,
+			})
+
+			const helpers = new AgentHelpers(agent)
+			const sanitized = penUtil.sanitizeAction(action, helpers)
+			penUtil.applyAction(sanitized, helpers)
+
+			const shapes = editor.getCurrentPageShapes()
+			const drawShape = shapes.find((s) => s.type === 'draw') as TLDrawShape
+
+			expect(drawShape).toBeDefined()
+			// Should not have double prefix "shape:shape:"
+			expect(drawShape.id).not.toContain('shape:shape:')
+			expect(drawShape.id).toMatch(/^shape:[^:]+$/)
+		})
+
 		it('should not apply action if points array is empty', () => {
 			const action = createAgentAction({
 				_type: 'pen',

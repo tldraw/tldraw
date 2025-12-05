@@ -93,6 +93,10 @@ export function convertFocusedShapeToTldrawShape(
 }
 
 export function convertSimpleIdToTldrawId(id: string): TLShapeId {
+	// If the ID already has the "shape:" prefix, return it as-is to avoid double-prefixing
+	if (id.startsWith('shape:')) {
+		return id as TLShapeId
+	}
 	return ('shape:' + id) as TLShapeId
 }
 
