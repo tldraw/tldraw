@@ -69,7 +69,8 @@ export function buildFeedItems(
 
 	// Second pass: convert to feed items
 	for (const { agent, agentConfig, timestamp, description } of rawActions) {
-		const actionId = `action-${agent.id}-${timestamp}-${Math.random()}`
+		// Create deterministic ID based on action properties for effective deduplication
+		const actionId = `action-${agent.id}-${timestamp}-${description}`
 
 		// Skip if we've already seen this action (deduplication)
 		if (seenActionIds.has(actionId)) {
@@ -116,9 +117,10 @@ export function hasUnseenFeedItems(
 				const actionInfo = agent.actions.getActionInfo(item.action)
 
 				// Only count as unseen if it would actually appear in the feed
+				// Use Date.now() fallback to match buildFeedItems behavior
 				if (
 					shouldShowInFeed(actionType, actionInfo) &&
-					(item.timestamp ?? 0) > lastSeenFeedTimestamp
+					(item.timestamp ?? Date.now()) > lastSeenFeedTimestamp
 				) {
 					return true
 				}

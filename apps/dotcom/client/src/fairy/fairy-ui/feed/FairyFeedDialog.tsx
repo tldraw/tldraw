@@ -6,14 +6,17 @@ import {
 	useValue,
 } from 'tldraw'
 import { FairyAgent } from '../../fairy-agent/FairyAgent'
+import { useFairyApp } from '../../fairy-app/FairyAppProvider'
 import { FairyFeedView } from './FairyFeedView'
 
 interface FairyFeedDialogProps {
 	orchestratorAgent: FairyAgent | null
-	agents: FairyAgent[]
 }
 
-export function FairyFeedDialog({ orchestratorAgent, agents }: FairyFeedDialogProps) {
+export function FairyFeedDialog({ orchestratorAgent }: FairyFeedDialogProps) {
+	const fairyApp = useFairyApp()
+	// Get agents reactively from context so the dialog updates when agents change
+	const agents = useValue('fairy-agents', () => fairyApp?.agents.getAgents() ?? [], [fairyApp])
 	const projectName = useValue(
 		'project-name',
 		() => {

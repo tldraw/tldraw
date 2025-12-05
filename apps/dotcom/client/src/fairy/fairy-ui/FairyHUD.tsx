@@ -98,12 +98,10 @@ export function FairyHUD() {
 			setLastSeenFeedTimestamp(Date.now())
 			addDialog({
 				id: FAIRY_FEED_DIALOG_ID,
-				component: () => (
-					<FairyFeedDialog orchestratorAgent={activeOrchestratorAgent} agents={agents} />
-				),
+				component: () => <FairyFeedDialog orchestratorAgent={activeOrchestratorAgent} />,
 			})
 		}
-	}, [isFeedDialogOpen, activeOrchestratorAgent, agents, addDialog, removeDialog])
+	}, [isFeedDialogOpen, activeOrchestratorAgent, addDialog, removeDialog])
 
 	return (
 		<>
