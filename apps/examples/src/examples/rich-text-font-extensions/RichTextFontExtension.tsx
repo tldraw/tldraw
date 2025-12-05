@@ -1,5 +1,5 @@
 import { EditorEvents as TextEditorEvents } from '@tiptap/core'
-import FontFamily from '@tiptap/extension-font-family'
+import { FontFamily } from '@tiptap/extension-font-family'
 import { TextStyleKit } from '@tiptap/extension-text-style'
 import { EditorState as TextEditorState } from '@tiptap/pm/state'
 import { useEffect, useState } from 'react'

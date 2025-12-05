@@ -7,6 +7,7 @@ import ts from 'typescript'
 
 const { AST_NODE_TYPES, ESLintUtils } = utils
 import TSESTree = utils.TSESTree
+const TIPTAP_IMPORT_PREFIX = '@tiptap/'
 
 const rules = {
 	// Rule to enforce using "while" instead of "whilst"
@@ -61,6 +62,40 @@ const rules = {
 			type: 'problem',
 			schema: [],
 			fixable: 'code',
+		},
+		defaultOptions: [],
+	}),
+	'no-tiptap-default-import': ESLintUtils.RuleCreator.withoutDocs({
+		create(context) {
+			return {
+				ImportDeclaration(node) {
+					const source = node.source.value
+					if (typeof source !== 'string' || !source.startsWith(TIPTAP_IMPORT_PREFIX)) {
+						return
+					}
+
+					for (const spec of node.specifiers) {
+						if (
+							spec.type === AST_NODE_TYPES.ImportDefaultSpecifier ||
+							spec.type === AST_NODE_TYPES.ImportNamespaceSpecifier
+						) {
+							context.report({
+								node: spec,
+								messageId: 'noDefault',
+								data: { module: source },
+							})
+						}
+					}
+				},
+			}
+		},
+		meta: {
+			messages: {
+				noDefault:
+					'Use named imports when importing from {{module}} to avoid CommonJS interop issues.',
+			},
+			type: 'problem',
+			schema: [],
 		},
 		defaultOptions: [],
 	}),
