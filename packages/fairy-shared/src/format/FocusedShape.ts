@@ -93,6 +93,8 @@ const FocusedTextShapeSchema = z
 		note: z.string(),
 		shapeId: z.string(),
 		text: z.string(),
+		width: z.number().optional(),
+		wrap: z.boolean().optional(),
 		x: z.number(),
 		y: z.number(),
 	})

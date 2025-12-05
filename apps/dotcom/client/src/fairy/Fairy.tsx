@@ -6,7 +6,7 @@ import { TLEventInfo, getPointerInfo, useEditor, useQuickReactor, useValue } fro
 import '../tla/styles/fairy.css'
 import { TLAppUiHandler, useTldrawAppUiEvents } from '../tla/utils/app-ui-events'
 import { FairyAgent } from './fairy-agent/FairyAgent'
-import { FairySprite, getHatColor } from './fairy-sprite/FairySprite'
+import { FairySprite } from './fairy-sprite/FairySprite'
 import { FairyReticleSprite } from './fairy-sprite/sprites/FairyReticleSprite'
 import { FairyContextMenuContent } from './fairy-ui/menus/FairyContextMenuContent'
 import { FairyThrowTool } from './FairyThrowTool'
@@ -244,6 +244,7 @@ function useFairyPointerInteraction(
 
 				// hack: dispatch an escape event to the document body to close any open context menus
 				document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+				document.body.dispatchEvent(new KeyboardEvent('keyup', { key: 'Escape' }))
 
 				editor.inputs.isPointing = true
 				editor.inputs.isDragging = false
@@ -314,7 +315,7 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 	const trackEvent = useTldrawAppUiEvents()
 	const fairyRef = useRef<HTMLDivElement>(null)
 
-	const fairyOutfit = useValue('fairy outfit', () => agent.getConfig()?.outfit, [agent])
+	const fairyConfig = useValue('fairy config', () => agent.getConfig(), [agent])
 	const fairyEntity = useValue('fairy entity', () => agent.getEntity(), [agent])
 
 	const position = useValue(
@@ -368,9 +369,11 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 	)
 
 	// Don't render if entity, outfit or position doesn't exist yet to avoid position jumping from (0,0)
-	if (!fairyEntity || !fairyOutfit || !position) {
+	if (!fairyEntity || !fairyConfig || !position) {
 		return null
 	}
+
+	const { hatColor, hat, legLength } = fairyConfig
 
 	return (
 		<_ContextMenu.Root dir="ltr">
@@ -394,13 +397,15 @@ export function Fairy({ agent }: { agent: FairyAgent }) {
 					<FairySprite
 						pose={fairyEntity.pose}
 						gesture={fairyEntity.gesture}
-						hatColor={getHatColor(fairyOutfit.hat)}
+						hatColor={hatColor}
+						hatType={hat}
 						showShadow
 						isAnimated={fairyEntity.pose !== 'idle' || isSelected}
 						isGenerating={isGenerating}
 						flipX={flipX}
 						isOrchestrator={isOrchestrator}
 						projectColor={projectHexColor}
+						legLength={legLength}
 					/>
 				</div>
 			</_ContextMenu.Trigger>

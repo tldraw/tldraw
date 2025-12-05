@@ -63,9 +63,9 @@ export function PricingContent({
 					</div>
 					<div className={styles.fairyIcons}>
 						<Suspense fallback={<div />}>
-							<FairySprite pose="idle" hatColor="var(--tl-color-fairy-pink)" />
-							<FairySprite pose="reading" hatColor="var(--tl-color-fairy-green)" />
-							<FairySprite pose="thinking" hatColor="var(--tl-color-fairy-purple)" />
+							<FairySprite pose="idle" hatColor="pink" hatType="default" />
+							<FairySprite pose="reading" hatColor="green" hatType="default" />
+							<FairySprite pose="thinking" hatColor="purple" hatType="default" />
 						</Suspense>
 					</div>
 				</div>

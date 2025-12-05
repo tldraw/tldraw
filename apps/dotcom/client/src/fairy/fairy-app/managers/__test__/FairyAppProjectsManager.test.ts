@@ -3,7 +3,12 @@ import { Editor } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FairyApp } from '../../FairyApp'
 import { FairyAppProjectsManager } from '../FairyAppProjectsManager'
-import { createTestEditor, createTestFairyApp } from './fairy-app-managers-test-shared'
+import {
+	createTestEditor,
+	createTestFairyApp,
+	getDefaultFairyConfig,
+	getFairyProject,
+} from './fairy-app-managers-test-shared'
 
 describe('FairyAppProjectsManager', () => {
 	let editor: Editor
@@ -63,14 +68,9 @@ describe('FairyAppProjectsManager', () => {
 		})
 
 		it('should not add duplicate projects', () => {
-			const project: FairyProject = {
+			const project = getFairyProject({
 				id: 'project-1',
-				title: 'Test Project',
-				description: 'Test description',
-				color: 'blue',
-				members: [],
-				plan: 'Test plan',
-			}
+			})
 
 			manager.addProject(project)
 			manager.addProject(project)
@@ -81,14 +81,9 @@ describe('FairyAppProjectsManager', () => {
 
 	describe('getProjectById', () => {
 		it('should return a project by ID', () => {
-			const project: FairyProject = {
+			const project = getFairyProject({
 				id: 'project-1',
-				title: 'Test Project',
-				description: 'Test description',
-				color: 'blue',
-				members: [],
-				plan: 'Test plan',
-			}
+			})
 
 			manager.addProject(project)
 
@@ -102,17 +97,13 @@ describe('FairyAppProjectsManager', () => {
 
 	describe('getProjectByAgentId', () => {
 		it('should return a project by agent ID', () => {
-			const project: FairyProject = {
+			const project = getFairyProject({
 				id: 'project-1',
-				title: 'Test Project',
-				description: 'Test description',
-				color: 'blue',
 				members: [
 					{ id: 'agent-1', role: 'orchestrator' },
 					{ id: 'agent-2', role: 'drone' },
 				],
-				plan: 'Test plan',
-			}
+			})
 
 			manager.addProject(project)
 
@@ -127,17 +118,13 @@ describe('FairyAppProjectsManager', () => {
 
 	describe('getRoleByAgentId', () => {
 		it('should return the role of an agent', () => {
-			const project: FairyProject = {
+			const project = getFairyProject({
 				id: 'project-1',
-				title: 'Test Project',
-				description: 'Test description',
-				color: 'blue',
 				members: [
 					{ id: 'agent-1', role: 'orchestrator' },
 					{ id: 'agent-2', role: 'drone' },
 				],
-				plan: 'Test plan',
-			}
+			})
 
 			manager.addProject(project)
 
@@ -152,17 +139,13 @@ describe('FairyAppProjectsManager', () => {
 
 	describe('getProjectOrchestrator', () => {
 		it('should return the orchestrator of a project', () => {
-			const project: FairyProject = {
+			const project = getFairyProject({
 				id: 'project-1',
-				title: 'Test Project',
-				description: 'Test description',
-				color: 'blue',
 				members: [
 					{ id: 'agent-1', role: 'orchestrator' },
 					{ id: 'agent-2', role: 'drone' },
 				],
-				plan: 'Test plan',
-			}
+			})
 
 			const orchestrator = manager.getProjectOrchestrator(project)
 
@@ -327,16 +310,12 @@ describe('FairyAppProjectsManager', () => {
 			const newId = fairyApp.agents.createNewFairyConfig()
 			fairyApp.agents.syncAgentsWithConfigs(
 				{
-					[firstAgent.id]: {
+					[firstAgent.id]: getDefaultFairyConfig({
 						name: 'Agent 1',
-						outfit: { body: 'plain' as any, hat: 'ears' as any, wings: 'plain' as any },
-						sign: { sun: 'aries', moon: 'aries', rising: 'aries' },
-					},
-					[newId]: {
+					}),
+					[newId]: getDefaultFairyConfig({
 						name: 'Agent 2',
-						outfit: { body: 'plain' as any, hat: 'ears' as any, wings: 'plain' as any },
-						sign: { sun: 'taurus', moon: 'taurus', rising: 'taurus' },
-					},
+					}),
 				},
 				options
 			)
@@ -418,21 +397,15 @@ describe('FairyAppProjectsManager', () => {
 
 			fairyApp.agents.syncAgentsWithConfigs(
 				{
-					[firstAgent.id]: {
+					[firstAgent.id]: getDefaultFairyConfig({
 						name: 'Agent 1',
-						outfit: { body: 'plain' as any, hat: 'ears' as any, wings: 'plain' as any },
-						sign: { sun: 'aries', moon: 'aries', rising: 'aries' },
-					},
-					[newId1]: {
+					}),
+					[newId1]: getDefaultFairyConfig({
 						name: 'Agent 2',
-						outfit: { body: 'plain' as any, hat: 'ears' as any, wings: 'plain' as any },
-						sign: { sun: 'taurus', moon: 'taurus', rising: 'taurus' },
-					},
-					[newId2]: {
+					}),
+					[newId2]: getDefaultFairyConfig({
 						name: 'Agent 3',
-						outfit: { body: 'plain' as any, hat: 'ears' as any, wings: 'plain' as any },
-						sign: { sun: 'gemini', moon: 'gemini', rising: 'gemini' },
-					},
+					}),
 				},
 				options
 			)

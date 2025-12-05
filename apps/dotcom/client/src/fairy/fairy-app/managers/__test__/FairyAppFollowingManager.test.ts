@@ -2,7 +2,11 @@ import { Editor, PageRecordType } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FairyApp } from '../../FairyApp'
 import { FairyAppFollowingManager } from '../FairyAppFollowingManager'
-import { createTestEditor, createTestFairyApp } from './fairy-app-managers-test-shared'
+import {
+	createTestEditor,
+	createTestFairyApp,
+	getDefaultFairyConfig,
+} from './fairy-app-managers-test-shared'
 
 describe('FairyAppFollowingManager', () => {
 	let editor: Editor
@@ -103,16 +107,8 @@ describe('FairyAppFollowingManager', () => {
 			const newId = fairyApp.agents.createNewFairyConfig()
 			fairyApp.agents.syncAgentsWithConfigs(
 				{
-					[fairy1Id]: {
-						name: 'Agent 1',
-						outfit: { body: 'plain' as any, hat: 'ears' as any, wings: 'plain' as any },
-						sign: { sun: 'aries', moon: 'aries', rising: 'aries' },
-					},
-					[newId]: {
-						name: 'Agent 2',
-						outfit: { body: 'plain' as any, hat: 'ears' as any, wings: 'plain' as any },
-						sign: { sun: 'taurus', moon: 'taurus', rising: 'taurus' },
-					},
+					[fairy1Id]: getDefaultFairyConfig({ name: 'Agent 1' }),
+					[newId]: getDefaultFairyConfig({ name: 'Agent 2' }),
 				},
 				options
 			)

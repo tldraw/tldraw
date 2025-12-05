@@ -1,14 +1,17 @@
 import { FairyHatSpritePart } from './parts/FairyHatSpritePart'
+import { FairySpriteProps } from './sprite-types'
 
-export function SoaringSprite({
-	bodyColor,
-	hatColor,
-	tint,
-}: {
-	bodyColor: string
-	hatColor: string
-	tint?: string | null
-}) {
+const LEFT_LEG_LENGTH = 26
+const RIGHT_LEG_LENGTH = 21
+
+export function SoaringSprite(props: FairySpriteProps) {
+	const { bodyColor, tint, legLength } = props
+
+	const legScale = 0.5 + legLength * 0.5
+	// Negative offset because paths are drawn from foot to body (opposite of FairyLegsSpritePart)
+	const leftDashOffset = -LEFT_LEG_LENGTH * (1 - legScale)
+	const rightDashOffset = -RIGHT_LEG_LENGTH * (1 - legScale)
+
 	return (
 		<g transform="translate(1 0)">
 			{/* Left arm */}
@@ -31,6 +34,8 @@ export function SoaringSprite({
 				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="6.23077"
 				strokeLinecap="round"
+				strokeDasharray={LEFT_LEG_LENGTH}
+				strokeDashoffset={leftDashOffset}
 			/>
 			{/* Right leg */}
 			<path
@@ -38,6 +43,8 @@ export function SoaringSprite({
 				stroke="var(--tl-color-fairy-dark)"
 				strokeWidth="6.23077"
 				strokeLinecap="round"
+				strokeDasharray={RIGHT_LEG_LENGTH}
+				strokeDashoffset={rightDashOffset}
 			/>
 			{/* Body */}
 			<path
@@ -47,7 +54,7 @@ export function SoaringSprite({
 				strokeWidth="5.19231"
 			/>
 			{/* Hat */}
-			<FairyHatSpritePart hatColor={hatColor} offsetX={3.0985} />
+			<FairyHatSpritePart {...props} offsetX={2} offsetY={2} rotate={-10} />
 			{/* Head circle */}
 			<circle
 				cx="58.51440"

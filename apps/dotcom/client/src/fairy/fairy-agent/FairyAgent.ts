@@ -37,6 +37,10 @@ import {
 } from 'tldraw'
 import { FAIRY_WORKER } from '../../utils/config'
 import { FairyApp } from '../fairy-app/FairyApp'
+import { getRandomFairyHat } from '../fairy-helpers/getRandomFairyHat'
+import { getRandomFairyHatColor } from '../fairy-helpers/getRandomFairyHatColor'
+import { getRandomFairyName } from '../fairy-helpers/getRandomFairyName'
+import { getRandomLegLength } from '../fairy-helpers/getRandomLegLength'
 import { getPromptPartUtilsRecord } from '../fairy-part-utils/fairy-part-utils'
 import { PromptPartUtil } from '../fairy-part-utils/PromptPartUtil'
 import { AgentHelpers } from './AgentHelpers'
@@ -248,12 +252,18 @@ export class FairyAgent {
 
 		this.$fairyConfig = computed<FairyConfig>(`fairy-config-${id}`, () => {
 			const userFairies = this.fairyApp.tldrawApp.getUser().fairies
+
 			if (!userFairies) {
 				return {
-					name: '',
+					name: getRandomFairyName(),
 					outfit: { body: 'plain', hat: 'top', wings: 'plain' },
+					hat: getRandomFairyHat(),
+					hatColor: getRandomFairyHatColor(),
+					legLength: getRandomLegLength(),
+					version: 2,
 				} satisfies FairyConfig
 			}
+
 			return JSON.parse(userFairies)[id] as FairyConfig
 		})
 
@@ -898,6 +908,10 @@ export class FairyAgent {
 	 */
 	promptStartTime: number | null = null
 
+	/**
+	 * Update the fairy configuration with the given partial configuration.
+	 * @param partial - The partial configuration to update.
+	 */
 	updateFairyConfig(partial: Partial<FairyConfig>) {
 		this.fairyApp.tldrawApp.z.mutate.user.updateFairyConfig({
 			id: this.id,
